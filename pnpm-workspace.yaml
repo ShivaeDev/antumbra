@@ -1,0 +1,23 @@
+packages:
+  - apps/*
+  - packages/*
+
+catalog:
+  "@biomejs/biome": 2.5.1
+  "@effect/vitest": 4.0.0-beta.102
+  "@types/node": 24.10.1
+  "@typescript/native": npm:typescript@7.0.2
+  effect: 4.0.0-beta.102
+  typescript: npm:@typescript/typescript6@6.0.2
+  vitest: 4.1.9
+
+minimumReleaseAge: 10080
+minimumReleaseAgeIgnoreMissingTime: false
+minimumReleaseAgeStrict: true
+trustPolicy: no-downgrade
+trustLockfile: false
+blockExoticSubdeps: true
+strictDepBuilds: true
+allowBuilds:
+  esbuild: true
+  msgpackr-extract: false

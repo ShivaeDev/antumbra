@@ -1,5 +1,6 @@
 import { dirname, join } from "node:path";
 import { Console, Effect } from "effect";
+import { copyPersistenceAssets } from "./adapters/assets.ts";
 import { closeWatcher, watchMainAndPreload } from "./adapters/bundler.ts";
 import { spawnElectron, waitForExit } from "./adapters/electron-process.ts";
 import { startRendererServer } from "./adapters/renderer-tooling.ts";
@@ -19,6 +20,7 @@ const restartPending = (): void => {
 };
 
 const program = Effect.gen(function* () {
+	yield* copyPersistenceAssets(desktopRoot, workspaceRoot);
 	yield* startRendererServer(rendererRoot, RENDERER_PORT);
 	const watcher = yield* watchMainAndPreload(desktopRoot, restartPending);
 	const child = yield* spawnElectron(

@@ -6,6 +6,9 @@ catalog:
   "@biomejs/biome": 2.5.1
   "@effect/atom-react": 4.0.0-beta.102
   "@effect/vitest": 4.0.0-beta.102
+  "@prisma-next/cli": 0.15.0
+  "@prisma-next/sqlite": 0.15.0
+  "@shivaedev/effect-prisma": 0.5.0
   "@shivaedev/effect-trpc": 0.3.0
   "@trpc/client": 11.18.0
   "@trpc/server": 11.18.0
@@ -28,12 +31,20 @@ catalog:
 savePrefix: ""
 catalogMode: strict
 
+overrides:
+  # `@prisma-next/cli-telemetry` asks for `^1.2.3`; 1.2.4 and 1.2.5 dropped the
+  # provenance attestation earlier versions carried, which `trustPolicy:
+  # no-downgrade` rejects. Drop the pin once an attested release lands.
+  "@vercel/detect-agent": 1.2.3
+
 trustPolicyExclude:
   - "semver@5.7.2 || 6.3.1"
 
 minimumReleaseAge: 10080
 minimumReleaseAgeIgnoreMissingTime: false
 minimumReleaseAgeStrict: true
+minimumReleaseAgeExclude:
+  - "@shivaedev/*"
 trustPolicy: no-downgrade
 trustLockfile: false
 blockExoticSubdeps: true
@@ -41,4 +52,5 @@ strictDepBuilds: true
 allowBuilds:
   electron: true
   electron-winstaller: false
+  esbuild: true
   msgpackr-extract: false

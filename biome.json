@@ -1,7 +1,16 @@
 {
 	"$schema": "https://biomejs.dev/schemas/2.5.1/schema.json",
 	"files": {
-		"includes": ["**", "!**/dist", "!**/out", "!**/coverage"]
+		"includes": [
+			"**",
+			"!**/dist",
+			"!**/out",
+			"!**/coverage",
+			"!packages/persistence/contract.json",
+			"!packages/persistence/contract.d.ts",
+			"!packages/persistence/migrations",
+			"!packages/persistence/test/fixtures"
+		]
 	},
 	"formatter": {
 		"enabled": true,

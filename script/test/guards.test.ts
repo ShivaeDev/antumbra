@@ -60,6 +60,17 @@ describe("lint-structure", () => {
 		const result = run("lint-structure.ts", [root]);
 		expect(result.status).toBe(0);
 	});
+
+	it("exempts declaration files from the line cap", () => {
+		const root = makeRoot();
+		seed(
+			root,
+			"packages/x/contract.d.ts",
+			`${"export type N = number;\n".repeat(200)}`,
+		);
+		const result = run("lint-structure.ts", [root]);
+		expect(result.status).toBe(0);
+	});
 });
 
 describe("lint-patterns", () => {
@@ -110,6 +121,40 @@ describe("lint-patterns", () => {
 		);
 		const result = run("lint-patterns.ts", [root]);
 		expect(result.status).toBe(0);
+	});
+
+	it("exempts declaration files from every rule", () => {
+		const root = makeRoot();
+		seed(
+			root,
+			"packages/x/contract.d.ts",
+			"// GENERATED FILE - DO NOT EDIT\nexport type T = string;\n",
+		);
+		const result = run("lint-patterns.ts", [root]);
+		expect(result.status).toBe(0);
+	});
+
+	it("allows continuation lines under a why: comment", () => {
+		const root = makeRoot();
+		seed(
+			root,
+			"packages/x/src/mod.ts",
+			"// why: the first line starts the explanation\n// and this wrapped line continues it.\nexport const k = 1;\n",
+		);
+		const result = run("lint-patterns.ts", [root]);
+		expect(result.status).toBe(0);
+	});
+
+	it("still fails plain comment blocks that never carry why:", () => {
+		const root = makeRoot();
+		seed(
+			root,
+			"packages/x/src/mod.ts",
+			"// narrates the obvious\n// across two lines\nexport const k = 1;\n",
+		);
+		const result = run("lint-patterns.ts", [root]);
+		expect(result.status).toBe(1);
+		expect(result.stderr).toContain("no-plain-comment");
 	});
 });
 

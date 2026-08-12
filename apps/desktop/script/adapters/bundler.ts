@@ -8,7 +8,11 @@ const configs = (root: string) => [
 	{
 		external: ["electron"],
 		input: join(root, "src", "main.ts"),
-		output: { file: join(root, "out", "main.js"), format: "esm" as const },
+		output: {
+			codeSplitting: false,
+			file: join(root, "out", "main.js"),
+			format: "esm" as const,
+		},
 		platform: "node" as const,
 	},
 	{

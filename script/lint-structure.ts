@@ -28,6 +28,9 @@ const walk = (dir: string): string[] => {
 		if (statSync(full).isDirectory()) {
 			return walk(full);
 		}
+		if (full.endsWith(".d.ts")) {
+			return [];
+		}
 		return full.endsWith(".ts") || full.endsWith(".tsx") ? [full] : [];
 	});
 };

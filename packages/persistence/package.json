@@ -4,15 +4,19 @@
 	"private": true,
 	"type": "module",
 	"exports": {
-		".": "./src/index.ts"
+		".": "./src/index.ts",
+		"./testing": "./src/testing.ts"
 	},
 	"scripts": {
+		"contract:emit": "prisma-next contract emit --no-interactive",
+		"contract:plan": "prisma-next migration plan --no-interactive",
 		"test": "vitest run --passWithNoTests",
 		"typecheck": "tsc --noEmit",
 		"typecheck:compat": "tsc6 --noEmit"
 	},
 	"devDependencies": {
 		"@effect/vitest": "catalog:",
+		"@prisma-next/cli": "catalog:",
 		"@types/node": "catalog:",
 		"@typescript/native": "catalog:",
 		"effect": "catalog:",
@@ -20,6 +24,8 @@
 		"vitest": "catalog:"
 	},
 	"dependencies": {
+		"@prisma-next/sqlite": "catalog:",
+		"@shivaedev/effect-prisma": "catalog:",
 		"effect": "catalog:"
 	}
 }

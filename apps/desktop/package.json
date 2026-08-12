@@ -17,6 +17,7 @@
 	},
 	"devDependencies": {
 		"@antumbra/contract": "workspace:*",
+		"@antumbra/persistence": "workspace:*",
 		"@antumbra/renderer": "workspace:*",
 		"@effect/vitest": "catalog:",
 		"@shivaedev/effect-trpc": "catalog:",

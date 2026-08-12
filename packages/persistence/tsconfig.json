@@ -1,4 +1,7 @@
 {
 	"extends": "../../tsconfig.base.json",
-	"include": ["src", "test"]
+	"compilerOptions": {
+		"resolveJsonModule": true
+	},
+	"include": ["src", "test", "prisma-next.config.ts"]
 }

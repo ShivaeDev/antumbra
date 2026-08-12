@@ -6,6 +6,9 @@ directories:
   output: release
 files:
   - out/**
+extraResources:
+  - from: out/persistence
+    to: persistence
 mac:
   target:
     - dmg

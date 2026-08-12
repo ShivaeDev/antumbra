@@ -1,0 +1,43 @@
+[
+  {
+    "id": "column.cargo.weight",
+    "label": "Add column weight on cargo",
+    "summary": "Adds column weight on cargo",
+    "operationClass": "additive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "column",
+        "name": "weight",
+        "table": "cargo"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"weight\" is missing",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM pragma_table_info(?) WHERE \"name\" = ?",
+        "params": [
+          "cargo",
+          "weight"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"weight\"",
+        "sql": "ALTER TABLE \"cargo\" ADD COLUMN \"weight\" INTEGER"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"weight\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM pragma_table_info(?) WHERE \"name\" = ?",
+        "params": [
+          "cargo",
+          "weight"
+        ]
+      }
+    ]
+  }
+]

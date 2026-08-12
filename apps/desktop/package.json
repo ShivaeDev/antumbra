@@ -3,23 +3,32 @@
 	"version": "0.0.0",
 	"private": true,
 	"type": "module",
+	"main": "out/main.js",
 	"exports": {
 		".": "./src/index.ts"
 	},
 	"scripts": {
+		"dev": "node script/dev.ts",
+		"build": "node script/build.ts",
+		"package": "node script/build.ts && electron-builder --mac --publish never",
 		"test": "vitest run --passWithNoTests",
 		"typecheck": "tsc --noEmit",
 		"typecheck:compat": "tsc6 --noEmit"
 	},
 	"devDependencies": {
+		"@antumbra/contract": "workspace:*",
+		"@antumbra/renderer": "workspace:*",
 		"@effect/vitest": "catalog:",
+		"@shivaedev/effect-trpc": "catalog:",
+		"@trpc/server": "catalog:",
 		"@types/node": "catalog:",
 		"@typescript/native": "catalog:",
 		"effect": "catalog:",
+		"electron": "catalog:",
+		"electron-builder": "catalog:",
+		"rolldown": "catalog:",
 		"typescript": "catalog:",
+		"vite": "catalog:",
 		"vitest": "catalog:"
-	},
-	"dependencies": {
-		"effect": "catalog:"
 	}
 }

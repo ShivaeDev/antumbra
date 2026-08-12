@@ -5,15 +5,29 @@ packages:
 catalog:
   "@biomejs/biome": 2.5.1
   "@effect/vitest": 4.0.0-beta.102
+  "@shivaedev/effect-trpc": 0.3.0
+  "@trpc/client": 11.18.0
+  "@trpc/server": 11.18.0
   "@types/node": 24.10.1
+  "@types/react": 19.2.18
+  "@types/react-dom": 19.2.4
   "@typescript/native": npm:typescript@7.0.2
   dependency-cruiser: 18.1.1
   effect: 4.0.0-beta.102
+  electron: 43.3.0
+  electron-builder: 26.15.7
+  react: 19.2.8
+  react-dom: 19.2.8
+  rolldown: 1.2.2
   typescript: npm:@typescript/typescript6@6.0.2
+  vite: 8.2.0
   vitest: 4.1.9
 
 savePrefix: ""
 catalogMode: strict
+
+trustPolicyExclude:
+  - "semver@5.7.2 || 6.3.1"
 
 minimumReleaseAge: 10080
 minimumReleaseAgeIgnoreMissingTime: false
@@ -23,5 +37,6 @@ trustLockfile: false
 blockExoticSubdeps: true
 strictDepBuilds: true
 allowBuilds:
-  esbuild: true
+  electron: true
+  electron-winstaller: false
   msgpackr-extract: false

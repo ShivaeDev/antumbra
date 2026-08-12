@@ -20,6 +20,8 @@
 		"vitest": "catalog:"
 	},
 	"dependencies": {
+		"@shivaedev/effect-trpc": "catalog:",
+		"@trpc/server": "catalog:",
 		"effect": "catalog:"
 	}
 }

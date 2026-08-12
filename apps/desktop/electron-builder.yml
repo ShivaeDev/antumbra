@@ -1,0 +1,12 @@
+appId: dev.shivae.antumbra
+productName: Antumbra
+electronVersion: 43.3.0
+npmRebuild: false
+directories:
+  output: release
+files:
+  - out/**
+mac:
+  target:
+    - dmg
+  identity: null

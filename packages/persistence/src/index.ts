@@ -1,3 +1,4 @@
+export type { PrismaError } from "@shivaedev/effect-prisma";
 export {
 	applyMigrations,
 	MigrationFailure,
@@ -8,7 +9,11 @@ export {
 	type DatabaseFilePath,
 	databaseFileInDataDirectory,
 } from "#data-dir.ts";
-export { Database } from "#database.ts";
+export {
+	Database,
+	type DatabaseService,
+	type WriteExecutors,
+} from "#database.ts";
 export { ensureInstallMarker } from "#install-marker.ts";
 export { PersistenceLive, type PersistenceOptions } from "#layer.ts";
 export { Writer, WriterLive } from "#writer.ts";

@@ -113,6 +113,56 @@ describe("lint-patterns", () => {
 	});
 });
 
+describe("lint-manifests", () => {
+	it("fails a package.json version that bypasses the catalog", () => {
+		const root = makeRoot();
+		seed(root, "pnpm-workspace.yaml", "catalog:\n  effect: 4.0.0\n");
+		seed(
+			root,
+			"packages/x/package.json",
+			JSON.stringify({ devDependencies: { "left-pad": "1.3.0" } }),
+		);
+		const result = run("lint-manifests.ts", [root]);
+		expect(result.status).toBe(1);
+		expect(result.stderr).toContain("left-pad");
+		expect(result.stderr).toContain("bypasses the catalog");
+	});
+
+	it("fails a ranged catalog entry", () => {
+		const root = makeRoot();
+		seed(root, "pnpm-workspace.yaml", "catalog:\n  effect: ^4.0.0\n");
+		const result = run("lint-manifests.ts", [root]);
+		expect(result.status).toBe(1);
+		expect(result.stderr).toContain("not an exact version");
+	});
+
+	it("passes exact catalog entries referenced via catalog: and workspace:", () => {
+		const root = makeRoot();
+		seed(
+			root,
+			"pnpm-workspace.yaml",
+			'catalog:\n  "@biomejs/biome": 2.5.1\n  effect: 4.0.0-beta.102\n  typescript: npm:@typescript/typescript6@6.0.2\n',
+		);
+		seed(
+			root,
+			"package.json",
+			JSON.stringify({ devDependencies: { effect: "catalog:" } }),
+		);
+		seed(
+			root,
+			"packages/x/package.json",
+			JSON.stringify({
+				dependencies: {
+					"@antumbra/contract": "workspace:*",
+					effect: "catalog:",
+				},
+			}),
+		);
+		const result = run("lint-manifests.ts", [root]);
+		expect(result.status).toBe(0);
+	});
+});
+
 describe("lint-pragmas", () => {
 	it("fails an unregistered pragma", () => {
 		const root = makeRoot();

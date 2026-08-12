@@ -107,6 +107,9 @@ importers:
       dependency-cruiser:
         specifier: 'catalog:'
         version: 18.1.1
+      effect:
+        specifier: 'catalog:'
+        version: 4.0.0-beta.102
       typescript:
         specifier: 'catalog:'
         version: '@typescript/typescript6@6.0.2'

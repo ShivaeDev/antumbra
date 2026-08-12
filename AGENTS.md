@@ -4,6 +4,20 @@ The conventions here are enforced by tooling, not requested by prose. Run
 `pnpm lint` before considering any change done; run `pnpm ready` for the full
 validation stack (lint, build, typechecks, tests, guard tests).
 
+## The guards
+
+`node script/lint.ts [root]` is the whole mechanical guard: one Effect program
+that walks `apps/`, `packages/` and its own `script/` tree once, runs every
+lint over that shared inventory concurrently, and prints one merged report.
+Rules live in `script/lint/rules/`; everything that touches the filesystem,
+the TypeScript compiler or the exit code lives in `script/lint/adapters/`.
+`pnpm lint` runs Biome, that program, and dependency-cruiser.
+
+The rules bind the lint system itself, which is why no banned token may be
+spelled in TypeScript: rule patterns live in
+`script/lint/rules/rule-patterns.json` and the guard tests read their
+offending fixtures from `script/test/fixtures/`.
+
 ## Everything is Effect
 
 All runtime code is Effect-based. The pattern linter fails the build on

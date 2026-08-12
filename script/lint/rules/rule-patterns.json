@@ -1,0 +1,79 @@
+{
+	"commentLine": "^\\s*//",
+	"patterns": [
+		{
+			"excludePaths": ["/adapters/"],
+			"id": "no-async-await",
+			"message": "async/await is banned outside adapter modules. Model effects with Effect; wrap external SDKs in an adapters/ module.",
+			"pattern": "\\basync\\s|\\bawait\\s"
+		},
+		{
+			"excludePaths": ["/adapters/"],
+			"id": "no-raw-promise",
+			"message": "Raw Promises are banned outside adapter modules. Use Effect; bridge external promises in an adapters/ module.",
+			"pattern": "\\bnew Promise\\b|\\.then\\("
+		},
+		{
+			"excludePaths": ["/adapters/"],
+			"id": "no-try-catch",
+			"message": "try/catch is banned. Failures travel on the Effect error channel as tagged errors.",
+			"pattern": "\\btry\\s*\\{|\\bcatch\\s*[({]"
+		},
+		{
+			"excludePaths": ["/adapters/"],
+			"id": "no-throw",
+			"message": "throw is banned. Fail with tagged errors on the Effect error channel (or Effect.die for defects).",
+			"pattern": "\\bthrow\\s"
+		},
+		{
+			"excludePaths": [],
+			"id": "no-ambient-time",
+			"message": "Ambient time is banned. Read time through Effect's Clock service.",
+			"pattern": "\\bDate\\.now\\(|\\bnew Date\\(\\)"
+		},
+		{
+			"excludePaths": [],
+			"id": "no-ambient-random",
+			"message": "Ambient randomness is banned. Use Effect's Random service.",
+			"pattern": "\\bMath\\.random\\("
+		},
+		{
+			"excludePaths": [],
+			"id": "no-console",
+			"message": "console.* is banned. Log through Effect's logger.",
+			"pattern": "\\bconsole\\.\\w+\\("
+		},
+		{
+			"excludePaths": [],
+			"id": "no-process-env",
+			"message": "process.env is banned. Read configuration through Effect's Config service.",
+			"pattern": "\\bprocess\\.env\\b"
+		},
+		{
+			"excludePaths": ["/migrations/"],
+			"id": "no-relative-import",
+			"message": "Relative imports are banned. Import package-internal modules through the # subpath map (package.json imports); cross-package modules through their @antumbra/* entry.",
+			"pattern": "\\bfrom\\s+[\"']\\.{1,2}/|\\bimport\\s*\\(?\\s*[\"']\\.{1,2}/"
+		},
+		{
+			"excludePaths": [],
+			"id": "no-compiled-extension",
+			"message": "Internal # imports name real files. Use the on-disk extension (.ts/.tsx/.d.ts); nothing in this repo emits .js.",
+			"pattern": "[\"']#[^\"']*\\.js[\"']"
+		},
+		{
+			"excludePaths": [],
+			"id": "no-ts-ignore",
+			"message": "@ts-ignore is never allowed. Use @ts-expect-error with a reason, registered in the pragma registry.",
+			"pattern": "@ts-ignore"
+		},
+		{
+			"excludePaths": [],
+			"id": "no-plain-comment",
+			"message": "Comments are banned unless they carry the why: marker or are registered pragmas. State constraints in code; when code cannot express one, write `// why: ...`.",
+			"pattern": "(?:^|[^:\"'`])//(?!\\s*why:)(?![/!]?\\s*(?:biome-ignore|@ts-expect-error))|/\\*(?!\\s*why:)"
+		}
+	],
+	"pragmaDetector": "biome-ignore|@ts-expect-error",
+	"whyOpener": "^\\s*//\\s*why:"
+}

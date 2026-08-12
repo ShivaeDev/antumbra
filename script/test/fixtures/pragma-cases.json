@@ -1,0 +1,7 @@
+{
+	"pragma": "biome-ignore lint/suspicious/noExplicitAny",
+	"source": {
+		"content": "export const v = 1; // biome-ignore lint/suspicious/noExplicitAny: probing the guard\n",
+		"path": "packages/x/src/mod.ts"
+	}
+}

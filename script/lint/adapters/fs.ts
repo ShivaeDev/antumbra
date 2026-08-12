@@ -1,7 +1,17 @@
 import { join } from "node:path";
 import { Data, Effect, FileSystem } from "effect";
 import type { PlatformError } from "effect/PlatformError";
+import {
+	emptyScope,
+	type IgnoreScope,
+	insideKept,
+	verdictFor,
+	withGitignore,
+} from "#lint/adapters/gitignore.ts";
 
+// why: a floor rather than the policy — these stay pruned in a tree that has
+// no .gitignore at all, so the walk never wanders into a dependency tree or
+// build output just because nobody wrote the rule down.
 const SKIPPED = new Set([".git", "dist", "node_modules", "out"]);
 
 // why: a path that is simply not there is ordinary — zones are optional and
@@ -45,11 +55,29 @@ const attempt = <Value>(
 				),
 	);
 
+export const readText = (
+	path: string,
+): Effect.Effect<string, FilesystemFailure, FileSystem.FileSystem> =>
+	Effect.gen(function* () {
+		const fs = yield* FileSystem.FileSystem;
+		return yield* attempt(path, fs.readFileString(path), "");
+	});
+
+export const ignoreScopeAt = (
+	dir: string,
+	inherited: IgnoreScope = emptyScope,
+): Effect.Effect<IgnoreScope, FilesystemFailure, FileSystem.FileSystem> =>
+	Effect.map(readText(join(dir, ".gitignore")), (contents) =>
+		contents === "" ? inherited : withGitignore(inherited, dir, contents),
+	);
+
 export const walk = (
 	dir: string,
+	inherited: IgnoreScope = emptyScope,
 ): Effect.Effect<readonly string[], FilesystemFailure, FileSystem.FileSystem> =>
 	Effect.gen(function* () {
 		const fs = yield* FileSystem.FileSystem;
+		const scope = yield* ignoreScopeAt(dir, inherited);
 		const entries = yield* attempt<readonly string[]>(
 			dir,
 			fs.readDirectory(dir),
@@ -57,7 +85,7 @@ export const walk = (
 		);
 		const nested = yield* Effect.forEach(
 			entries.filter((entry) => !SKIPPED.has(entry)),
-			(entry) => walkEntry(join(dir, entry)),
+			(entry) => walkEntry(join(dir, entry), scope),
 			{ concurrency: "unbounded" },
 		);
 		return nested.flat();
@@ -65,6 +93,7 @@ export const walk = (
 
 const walkEntry = (
 	path: string,
+	scope: IgnoreScope,
 ): Effect.Effect<readonly string[], FilesystemFailure, FileSystem.FileSystem> =>
 	Effect.gen(function* () {
 		const fs = yield* FileSystem.FileSystem;
@@ -76,16 +105,16 @@ const walkEntry = (
 		if (info === undefined) {
 			return [];
 		}
-		if (info.type !== "Directory") {
+		const directory = info.type === "Directory";
+		const verdict = verdictFor(scope, path, directory);
+		if (verdict === "ignored") {
+			return [];
+		}
+		if (!directory) {
 			return [path];
 		}
-		return yield* walk(path);
-	});
-
-export const readText = (
-	path: string,
-): Effect.Effect<string, FilesystemFailure, FileSystem.FileSystem> =>
-	Effect.gen(function* () {
-		const fs = yield* FileSystem.FileSystem;
-		return yield* attempt(path, fs.readFileString(path), "");
+		return yield* walk(
+			path,
+			verdict === "kept" ? insideKept(scope, path) : scope,
+		);
 	});

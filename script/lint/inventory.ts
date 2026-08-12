@@ -1,6 +1,11 @@
 import { join, relative } from "node:path";
 import { Effect, type FileSystem } from "effect";
-import { type FilesystemFailure, readText, walk } from "#lint/adapters/fs.ts";
+import {
+	type FilesystemFailure,
+	ignoreScopeAt,
+	readText,
+	walk,
+} from "#lint/adapters/fs.ts";
 
 export interface SourceFile {
 	readonly lines: readonly string[];
@@ -34,8 +39,9 @@ export const collectInventory = (
 	root: string,
 ): Effect.Effect<Inventory, FilesystemFailure, FileSystem.FileSystem> =>
 	Effect.gen(function* () {
+		const ignores = yield* ignoreScopeAt(root);
 		const zones = yield* Effect.all(
-			WALKED_ZONES.map((zone) => walk(join(root, zone))),
+			WALKED_ZONES.map((zone) => walk(join(root, zone), ignores)),
 			{ concurrency: "unbounded" },
 		);
 		const entries = zones

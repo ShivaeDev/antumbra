@@ -1,7 +1,7 @@
 import { createSqliteControlClient } from "@prisma-next/sqlite/control";
 import { Data, Effect } from "effect";
-import contractJson from "../../contract.json" with { type: "json" };
-import type { DatabaseFilePath } from "../data-dir.js";
+import contractJson from "#contract.json" with { type: "json" };
+import type { DatabaseFilePath } from "#data-dir.js";
 
 export class MigrationFailure extends Data.TaggedError("MigrationFailure")<{
 	readonly detail: string;

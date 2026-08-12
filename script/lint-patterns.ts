@@ -64,6 +64,13 @@ export const RULES: readonly Rule[] = [
 		pattern: /\bprocess\.env\b/,
 	},
 	{
+		excludePaths: ["/migrations/"],
+		id: "no-relative-import",
+		message:
+			"Relative imports are banned. Import package-internal modules through the # subpath map (package.json imports); cross-package modules through their @antumbra/* entry.",
+		pattern: /\bfrom\s+["']\.{1,2}\/|\bimport\s*\(?\s*["']\.{1,2}\//,
+	},
+	{
 		id: "no-ts-ignore",
 		message:
 			"@ts-ignore is never allowed. Use @ts-expect-error with a reason, registered in the pragma registry.",

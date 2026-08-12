@@ -1,8 +1,8 @@
 import { Effect, Layer } from "effect";
-import { applyMigrations } from "./adapters/migrator.js";
-import type { DatabaseFilePath } from "./data-dir.js";
-import { Database } from "./database.js";
-import { WriterLive } from "./writer.js";
+import { applyMigrations } from "#adapters/migrator.js";
+import type { DatabaseFilePath } from "#data-dir.js";
+import { Database } from "#database.js";
+import { WriterLive } from "#writer.js";
 
 export interface PersistenceOptions {
 	readonly database: DatabaseFilePath;

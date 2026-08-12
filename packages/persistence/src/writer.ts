@@ -3,7 +3,7 @@ import type {
 	PrismaError,
 } from "@shivaedev/effect-prisma";
 import { Context, Effect, Layer, Semaphore } from "effect";
-import { Database } from "./database.js";
+import { Database } from "#database.js";
 
 type Executors = DatabaseRequirement<typeof Database>;
 

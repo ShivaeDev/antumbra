@@ -5,10 +5,12 @@ import { fileURLToPath } from "node:url";
 import { it } from "@effect/vitest";
 import { Effect } from "effect";
 import { afterAll, expect } from "vitest";
-import { applyMigrations } from "../src/adapters/migrator.js";
-import { brandDatabaseFilePath } from "../src/data-dir.js";
-import fixtureContract from "./fixtures/contract.json" with { type: "json" };
-import stepOneContract from "./fixtures/migrations/app/20260812T0956_init/end-contract.json" with {
+import { applyMigrations } from "#adapters/migrator.js";
+import { brandDatabaseFilePath } from "#data-dir.js";
+import fixtureContract from "#test/fixtures/contract.json" with {
+	type: "json",
+};
+import stepOneContract from "#test/fixtures/migrations/app/20260812T0956_init/end-contract.json" with {
 	type: "json",
 };
 

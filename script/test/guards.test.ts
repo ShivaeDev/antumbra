@@ -88,6 +88,11 @@ describe("lint-patterns", () => {
 			"export const c = 1; // explains the obvious\n",
 			"why:",
 		],
+		[
+			"no-relative-import",
+			'import { x } from "./sibling.js";\nexport const y = x;\n',
+			"subpath map",
+		],
 	];
 
 	for (const [id, content, needle] of cases) {
@@ -107,6 +112,22 @@ describe("lint-patterns", () => {
 			root,
 			"packages/x/src/mod.ts",
 			'export const url = "https://example.com";\nexport const k = 1; // why: constraint the type system cannot express\n',
+		);
+		const result = run("lint-patterns.ts", [root]);
+		expect(result.status).toBe(0);
+	});
+
+	it("allows # subpath imports and exempts scaffolded migrations", () => {
+		const root = makeRoot();
+		seed(
+			root,
+			"packages/x/src/mod.ts",
+			'import { x } from "#sibling.js";\nexport const y = x;\n',
+		);
+		seed(
+			root,
+			"packages/x/migrations/app/1_init/migration.ts",
+			"import end from './end-contract.json' with { type: 'json' };\nexport const m = end;\n",
 		);
 		const result = run("lint-patterns.ts", [root]);
 		expect(result.status).toBe(0);

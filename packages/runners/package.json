@@ -6,6 +6,9 @@
 	"exports": {
 		".": "./src/index.ts"
 	},
+	"imports": {
+		"#*": "./src/*"
+	},
 	"scripts": {
 		"test": "vitest run --passWithNoTests",
 		"typecheck": "tsc --noEmit",

@@ -1,7 +1,7 @@
 import type { AppInfo } from "@antumbra/contract";
 import { useAtomValue } from "@effect/atom-react";
 import { AsyncResult, Atom } from "effect/unstable/reactivity";
-import { loadAppInfo } from "./adapters/trpc.js";
+import { loadAppInfo } from "#adapters/trpc.js";
 
 const appInfoAtom = Atom.make(loadAppInfo);
 

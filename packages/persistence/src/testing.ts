@@ -3,9 +3,9 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { makeDatabaseIt } from "@shivaedev/effect-prisma/testing";
-import { brandDatabaseFilePath, type DatabaseFilePath } from "./data-dir.js";
-import { Database } from "./database.js";
-import { PersistenceLive } from "./layer.js";
+import { brandDatabaseFilePath, type DatabaseFilePath } from "#data-dir.js";
+import { Database } from "#database.js";
+import { PersistenceLive } from "#layer.js";
 
 export const packagedMigrationsDirectory = fileURLToPath(
 	new URL("../migrations", import.meta.url),

@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
-import committedContract from "../contract.json" with { type: "json" };
+import committedContract from "#contract.json" with { type: "json" };
 
 const packageRoot = fileURLToPath(new URL("..", import.meta.url));
 

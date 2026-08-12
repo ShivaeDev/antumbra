@@ -7,6 +7,10 @@
 	"exports": {
 		".": "./src/index.ts"
 	},
+	"imports": {
+		"#script/*": "./script/*",
+		"#*": "./src/*"
+	},
 	"scripts": {
 		"dev": "node script/dev.ts",
 		"build": "node script/build.ts",

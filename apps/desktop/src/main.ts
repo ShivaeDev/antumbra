@@ -5,15 +5,15 @@ import {
 	PersistenceLive,
 } from "@antumbra/persistence";
 import { Effect, Layer, ManagedRuntime } from "effect";
-import { AppInfoSourceLive } from "./adapters/app-info.js";
+import { AppInfoSourceLive } from "#adapters/app-info.js";
 import {
 	configureDataDirectory,
 	openMainWindow,
 	persistenceMigrationsDirectory,
 	quitWhenAllWindowsClosed,
 	whenReady,
-} from "./adapters/shell.js";
-import { registerTrpcBridge } from "./adapters/trpc-bridge.js";
+} from "#adapters/shell.js";
+import { registerTrpcBridge } from "#adapters/trpc-bridge.js";
 
 const persistence = Layer.unwrap(
 	Effect.sync(() =>

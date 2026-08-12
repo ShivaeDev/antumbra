@@ -7,6 +7,12 @@
 		".": "./src/index.ts",
 		"./testing": "./src/testing.ts"
 	},
+	"imports": {
+		"#contract.js": "./contract.js",
+		"#contract.json": "./contract.json",
+		"#test/*": "./test/*",
+		"#*": "./src/*"
+	},
 	"scripts": {
 		"contract:emit": "prisma-next contract emit --no-interactive",
 		"contract:plan": "prisma-next migration plan --no-interactive",

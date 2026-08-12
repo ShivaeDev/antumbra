@@ -2,10 +2,10 @@ import { DatabaseSync } from "node:sqlite";
 import { makeDatabaseIt } from "@shivaedev/effect-prisma/testing";
 import { Effect, Ref } from "effect";
 import { expect } from "vitest";
-import { Database } from "../src/database.js";
-import { ensureInstallMarker } from "../src/install-marker.js";
-import { temporaryPersistence } from "../src/testing.js";
-import { Writer } from "../src/writer.js";
+import { Database } from "#database.js";
+import { ensureInstallMarker } from "#install-marker.js";
+import { temporaryPersistence } from "#testing.js";
+import { Writer } from "#writer.js";
 
 const temporary = temporaryPersistence();
 

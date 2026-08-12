@@ -1,6 +1,6 @@
 import { Effect } from "effect";
-import { Database } from "./database.js";
-import { Writer } from "./writer.js";
+import { Database } from "#database.js";
+import { Writer } from "#writer.js";
 
 export const ensureInstallMarker = Effect.gen(function* () {
 	const db = yield* Database;

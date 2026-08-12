@@ -4,6 +4,7 @@ packages:
 
 catalog:
   "@biomejs/biome": 2.5.1
+  "@effect/atom-react": 4.0.0-beta.102
   "@effect/vitest": 4.0.0-beta.102
   "@shivaedev/effect-trpc": 0.3.0
   "@trpc/client": 11.18.0
@@ -19,6 +20,7 @@ catalog:
   react: 19.2.8
   react-dom: 19.2.8
   rolldown: 1.2.2
+  scheduler: 0.27.0
   typescript: npm:@typescript/typescript6@6.0.2
   vite: 8.2.0
   vitest: 4.1.9

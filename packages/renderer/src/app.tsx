@@ -1,12 +1,9 @@
 import type { AppInfo } from "@antumbra/contract";
-import { Effect, Fiber } from "effect";
-import { useEffect, useState } from "react";
-import { type AppInfoLoadError, loadAppInfo } from "./adapters/trpc.js";
+import { useAtomValue } from "@effect/atom-react";
+import { AsyncResult, Atom } from "effect/unstable/reactivity";
+import { loadAppInfo } from "./adapters/trpc.js";
 
-type Sight =
-	| { readonly state: "charted"; readonly info: AppInfo }
-	| { readonly state: "lost"; readonly message: string }
-	| { readonly state: "sighting" };
+const appInfoAtom = Atom.make(loadAppInfo);
 
 const rows = (info: AppInfo): ReadonlyArray<readonly [string, string]> => [
 	["Antumbra", info.productVersion],
@@ -16,22 +13,7 @@ const rows = (info: AppInfo): ReadonlyArray<readonly [string, string]> => [
 ];
 
 export const App = () => {
-	const [sight, setSight] = useState<Sight>({ state: "sighting" });
-
-	useEffect(() => {
-		const program = loadAppInfo.pipe(
-			Effect.tap((info) =>
-				Effect.sync(() => setSight({ info, state: "charted" })),
-			),
-			Effect.catchTag("AppInfoLoadError", (error: AppInfoLoadError) =>
-				Effect.sync(() => setSight({ message: error.message, state: "lost" })),
-			),
-		);
-		const fiber = Effect.runFork(program);
-		return () => {
-			Effect.runFork(Fiber.interrupt(fiber));
-		};
-	}, []);
+	const sight = useAtomValue(appInfoAtom);
 
 	return (
 		<main
@@ -42,18 +24,21 @@ export const App = () => {
 			}}
 		>
 			<h1>Antumbra</h1>
-			{sight.state === "sighting" ? <p>Taking a sight…</p> : null}
-			{sight.state === "lost" ? <p>Fix lost: {sight.message}</p> : null}
-			{sight.state === "charted" ? (
-				<dl>
-					{rows(sight.info).map(([label, value]) => (
-						<div key={label} style={{ display: "flex", gap: "1rem" }}>
-							<dt style={{ minWidth: "8rem" }}>{label}</dt>
-							<dd>{value}</dd>
-						</div>
-					))}
-				</dl>
-			) : null}
+			{AsyncResult.matchWithError(sight, {
+				onDefect: (defect) => <p>Fix lost: {String(defect)}</p>,
+				onError: (error) => <p>Fix lost: {error.message}</p>,
+				onInitial: () => <p>Taking a sight…</p>,
+				onSuccess: (success) => (
+					<dl>
+						{rows(success.value).map(([label, value]) => (
+							<div key={label} style={{ display: "flex", gap: "1rem" }}>
+								<dt style={{ minWidth: "8rem" }}>{label}</dt>
+								<dd>{value}</dd>
+							</div>
+						))}
+					</dl>
+				),
+			})}
 		</main>
 	);
 };

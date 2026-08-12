@@ -23,10 +23,12 @@
 	},
 	"dependencies": {
 		"@antumbra/contract": "workspace:*",
+		"@effect/atom-react": "catalog:",
 		"@trpc/client": "catalog:",
 		"@trpc/server": "catalog:",
 		"effect": "catalog:",
 		"react": "catalog:",
-		"react-dom": "catalog:"
+		"react-dom": "catalog:",
+		"scheduler": "catalog:"
 	}
 }

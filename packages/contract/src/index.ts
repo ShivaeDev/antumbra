@@ -1,4 +1,4 @@
-export { AppInfo, AppInfoSource } from "./app-info.js";
+export { AppInfo, AppInfoSource } from "#app-info.ts";
 export {
 	type AntumbraBridge,
 	TRPC_CHANNEL,
@@ -6,10 +6,10 @@ export {
 	TrpcRequest,
 	type TrpcResponse,
 	type TrpcSuccess,
-} from "./ipc.js";
+} from "#ipc.ts";
 export {
 	type AppRouter,
 	makeAppRouter,
 	type RequestContext,
 	RequestOrigin,
-} from "./router.js";
+} from "#router.ts";

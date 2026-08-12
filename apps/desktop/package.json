@@ -7,6 +7,10 @@
 	"exports": {
 		".": "./src/index.ts"
 	},
+	"imports": {
+		"#script/*": "./script/*",
+		"#*": "./src/*"
+	},
 	"scripts": {
 		"dev": "node script/dev.ts",
 		"build": "node script/build.ts",
@@ -17,6 +21,7 @@
 	},
 	"devDependencies": {
 		"@antumbra/contract": "workspace:*",
+		"@antumbra/persistence": "workspace:*",
 		"@antumbra/renderer": "workspace:*",
 		"@effect/vitest": "catalog:",
 		"@shivaedev/effect-trpc": "catalog:",

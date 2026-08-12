@@ -64,6 +64,19 @@ export const RULES: readonly Rule[] = [
 		pattern: /\bprocess\.env\b/,
 	},
 	{
+		excludePaths: ["/migrations/"],
+		id: "no-relative-import",
+		message:
+			"Relative imports are banned. Import package-internal modules through the # subpath map (package.json imports); cross-package modules through their @antumbra/* entry.",
+		pattern: /\bfrom\s+["']\.{1,2}\/|\bimport\s*\(?\s*["']\.{1,2}\//,
+	},
+	{
+		id: "no-compiled-extension",
+		message:
+			"Internal # imports name real files. Use the on-disk extension (.ts/.tsx/.d.ts); nothing in this repo emits .js.",
+		pattern: /["']#[^"']*\.js["']/,
+	},
+	{
 		id: "no-ts-ignore",
 		message:
 			"@ts-ignore is never allowed. Use @ts-expect-error with a reason, registered in the pragma registry.",
@@ -103,15 +116,39 @@ const walk = (dir: string): string[] => {
 		if (statSync(full).isDirectory()) {
 			return walk(full);
 		}
+		if (full.endsWith(".d.ts")) {
+			return [];
+		}
 		return full.endsWith(".ts") || full.endsWith(".tsx") ? [full] : [];
 	});
 };
 
 const files = ["apps", "packages"].flatMap((zone) => walk(join(root, zone)));
 
+// why: a full-line comment directly under a `// why:` line continues that
+// explanation, so the plain-comment ban must treat the whole block as one
+// marked comment instead of flagging every wrapped line.
+const whyContinuationLines = (lines: readonly string[]): Set<number> => {
+	const continuations = new Set<number>();
+	let inWhyBlock = false;
+	lines.forEach((text, index) => {
+		if (/^\s*\/\/\s*why:/.test(text)) {
+			inWhyBlock = true;
+			return;
+		}
+		if (inWhyBlock && /^\s*\/\//.test(text)) {
+			continuations.add(index);
+			return;
+		}
+		inWhyBlock = false;
+	});
+	return continuations;
+};
+
 for (const file of files) {
 	const rel = relative(root, file).replaceAll("\\", "/");
 	const lines = readFileSync(file, "utf8").split("\n");
+	const continuations = whyContinuationLines(lines);
 	for (const rule of RULES) {
 		if (rule.excludePaths?.some((p) => rel.includes(p))) {
 			continue;
@@ -120,6 +157,9 @@ for (const file of files) {
 			continue;
 		}
 		lines.forEach((text, index) => {
+			if (rule.id === "no-plain-comment" && continuations.has(index)) {
+				return;
+			}
 			if (rule.pattern.test(text)) {
 				violations.push({
 					file: rel,

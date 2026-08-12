@@ -1,1 +1,7 @@
-[]
+[
+	{
+		"file": "packages/persistence/test/isolation.test.ts",
+		"pragma": "@ts-expect-error",
+		"reason": "Compile-time proof that the persistence test harness accepts no target path: the wrong-path attempt must fail to typecheck, which this pragma asserts."
+	}
+]

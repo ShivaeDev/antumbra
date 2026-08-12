@@ -1,9 +1,13 @@
 import { dirname, join } from "node:path";
 import { Console, Effect } from "effect";
-import { closeWatcher, watchMainAndPreload } from "./adapters/bundler.ts";
-import { spawnElectron, waitForExit } from "./adapters/electron-process.ts";
-import { startRendererServer } from "./adapters/renderer-tooling.ts";
-import { runMain } from "./adapters/run.ts";
+import { copyPersistenceAssets } from "#script/adapters/assets.ts";
+import { closeWatcher, watchMainAndPreload } from "#script/adapters/bundler.ts";
+import {
+	spawnElectron,
+	waitForExit,
+} from "#script/adapters/electron-process.ts";
+import { startRendererServer } from "#script/adapters/renderer-tooling.ts";
+import { runMain } from "#script/adapters/run.ts";
 
 const desktopRoot = dirname(import.meta.dirname);
 const workspaceRoot = dirname(dirname(desktopRoot));
@@ -19,6 +23,7 @@ const restartPending = (): void => {
 };
 
 const program = Effect.gen(function* () {
+	yield* copyPersistenceAssets(desktopRoot, workspaceRoot);
 	yield* startRendererServer(rendererRoot, RENDERER_PORT);
 	const watcher = yield* watchMainAndPreload(desktopRoot, restartPending);
 	const child = yield* spawnElectron(

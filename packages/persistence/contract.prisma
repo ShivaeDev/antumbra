@@ -1,0 +1,9 @@
+// use prisma-next
+
+model AppMeta {
+  key       String   @id
+  value     String
+  updatedAt DateTime @default(now()) @map("updated_at")
+
+  @@map("app_meta")
+}

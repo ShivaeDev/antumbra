@@ -40,7 +40,9 @@ module.exports = {
 			from: { path: "^(apps|packages)/(?!persistence)" },
 			name: "persistence-owns-the-db",
 			severity: "error",
-			to: { path: "^node:sqlite$|(^|/)@prisma-next(/|$)" },
+			to: {
+				path: "^node:sqlite$|(^|/)@prisma-next(/|$)|(^|/)@shivaedev/effect-prisma(/|$)",
+			},
 		},
 	],
 	options: {

@@ -1,0 +1,43 @@
+[
+  {
+    "id": "table.app_meta",
+    "label": "Create table app_meta",
+    "summary": "Creates table app_meta with required columns",
+    "operationClass": "additive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "table",
+        "name": "app_meta"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"app_meta\" does not exist",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "table",
+          "app_meta"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"app_meta\"",
+        "sql": "CREATE TABLE \"app_meta\" (\n  \"key\" TEXT NOT NULL,\n  \"updated_at\" TEXT NOT NULL DEFAULT (datetime('now')),\n  \"value\" TEXT NOT NULL,\n  PRIMARY KEY (\"key\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"app_meta\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "table",
+          "app_meta"
+        ]
+      }
+    ]
+  }
+]

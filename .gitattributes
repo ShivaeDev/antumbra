@@ -1,0 +1,9 @@
+# Tool-emitted artifacts: committed as history, collapsed in review.
+contract.json linguist-generated
+contract.d.ts linguist-generated
+end-contract.json linguist-generated
+end-contract.d.ts linguist-generated
+start-contract.json linguist-generated
+start-contract.d.ts linguist-generated
+ops.json linguist-generated
+migration.json linguist-generated

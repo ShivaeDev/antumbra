@@ -1,0 +1,9 @@
+// use prisma-next
+
+model Cargo {
+  id     String  @id
+  label  String
+  weight Int?
+
+  @@map("cargo")
+}

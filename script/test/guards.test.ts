@@ -60,6 +60,17 @@ describe("lint-structure", () => {
 		const result = run("lint-structure.ts", [root]);
 		expect(result.status).toBe(0);
 	});
+
+	it("exempts declaration files from the line cap", () => {
+		const root = makeRoot();
+		seed(
+			root,
+			"packages/x/contract.d.ts",
+			`${"export type N = number;\n".repeat(200)}`,
+		);
+		const result = run("lint-structure.ts", [root]);
+		expect(result.status).toBe(0);
+	});
 });
 
 describe("lint-patterns", () => {
@@ -76,6 +87,16 @@ describe("lint-patterns", () => {
 			"no-plain-comment",
 			"export const c = 1; // explains the obvious\n",
 			"why:",
+		],
+		[
+			"no-relative-import",
+			'import { x } from "./sibling.js";\nexport const y = x;\n',
+			"subpath map",
+		],
+		[
+			"no-compiled-extension",
+			'import { x } from "#sibling.js";\nexport const y = x;\n',
+			"on-disk extension",
 		],
 	];
 
@@ -101,6 +122,22 @@ describe("lint-patterns", () => {
 		expect(result.status).toBe(0);
 	});
 
+	it("allows # subpath imports and exempts scaffolded migrations", () => {
+		const root = makeRoot();
+		seed(
+			root,
+			"packages/x/src/mod.ts",
+			'import { x } from "#sibling.ts";\nexport const y = x;\n',
+		);
+		seed(
+			root,
+			"packages/x/migrations/app/1_init/migration.ts",
+			"import end from './end-contract.json' with { type: 'json' };\nexport const m = end;\n",
+		);
+		const result = run("lint-patterns.ts", [root]);
+		expect(result.status).toBe(0);
+	});
+
 	it("exempts adapter modules from the Effect-purity bans", () => {
 		const root = makeRoot();
 		seed(
@@ -110,6 +147,40 @@ describe("lint-patterns", () => {
 		);
 		const result = run("lint-patterns.ts", [root]);
 		expect(result.status).toBe(0);
+	});
+
+	it("exempts declaration files from every rule", () => {
+		const root = makeRoot();
+		seed(
+			root,
+			"packages/x/contract.d.ts",
+			"// GENERATED FILE - DO NOT EDIT\nexport type T = string;\n",
+		);
+		const result = run("lint-patterns.ts", [root]);
+		expect(result.status).toBe(0);
+	});
+
+	it("allows continuation lines under a why: comment", () => {
+		const root = makeRoot();
+		seed(
+			root,
+			"packages/x/src/mod.ts",
+			"// why: the first line starts the explanation\n// and this wrapped line continues it.\nexport const k = 1;\n",
+		);
+		const result = run("lint-patterns.ts", [root]);
+		expect(result.status).toBe(0);
+	});
+
+	it("still fails plain comment blocks that never carry why:", () => {
+		const root = makeRoot();
+		seed(
+			root,
+			"packages/x/src/mod.ts",
+			"// narrates the obvious\n// across two lines\nexport const k = 1;\n",
+		);
+		const result = run("lint-patterns.ts", [root]);
+		expect(result.status).toBe(1);
+		expect(result.stderr).toContain("no-plain-comment");
 	});
 });
 
@@ -159,6 +230,32 @@ describe("lint-manifests", () => {
 			}),
 		);
 		const result = run("lint-manifests.ts", [root]);
+		expect(result.status).toBe(0);
+	});
+});
+
+describe("lint-contracts", () => {
+	it("fails a contract.d.ts whose imports do not resolve", () => {
+		const root = makeRoot();
+		seed(
+			root,
+			"packages/x/contract.d.ts",
+			"import type { T } from '@antumbra-nonexistent/types';\nexport type Contract = T;\n",
+		);
+		const result = run("lint-contracts.ts", [root]);
+		expect(result.status).toBe(1);
+		expect(result.stderr).toContain("TS2307");
+		expect(result.stderr).toContain("skipLibCheck");
+	});
+
+	it("passes a contract.d.ts whose types resolve", () => {
+		const root = makeRoot();
+		seed(
+			root,
+			"packages/x/contract.d.ts",
+			"export type Contract = { readonly key: string };\n",
+		);
+		const result = run("lint-contracts.ts", [root]);
 		expect(result.status).toBe(0);
 	});
 });

@@ -5,8 +5,8 @@ import { fileURLToPath } from "node:url";
 import { it } from "@effect/vitest";
 import { Effect } from "effect";
 import { afterAll, expect } from "vitest";
-import { applyMigrations } from "#adapters/migrator.js";
-import { brandDatabaseFilePath } from "#data-dir.js";
+import { applyMigrations } from "#adapters/migrator.ts";
+import { brandDatabaseFilePath } from "#data-dir.ts";
 import fixtureContract from "#test/fixtures/contract.json" with {
 	type: "json",
 };

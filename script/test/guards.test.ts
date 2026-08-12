@@ -93,6 +93,11 @@ describe("lint-patterns", () => {
 			'import { x } from "./sibling.js";\nexport const y = x;\n',
 			"subpath map",
 		],
+		[
+			"no-compiled-extension",
+			'import { x } from "#sibling.js";\nexport const y = x;\n',
+			"on-disk extension",
+		],
 	];
 
 	for (const [id, content, needle] of cases) {
@@ -122,7 +127,7 @@ describe("lint-patterns", () => {
 		seed(
 			root,
 			"packages/x/src/mod.ts",
-			'import { x } from "#sibling.js";\nexport const y = x;\n',
+			'import { x } from "#sibling.ts";\nexport const y = x;\n',
 		);
 		seed(
 			root,

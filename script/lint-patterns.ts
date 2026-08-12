@@ -71,6 +71,12 @@ export const RULES: readonly Rule[] = [
 		pattern: /\bfrom\s+["']\.{1,2}\/|\bimport\s*\(?\s*["']\.{1,2}\//,
 	},
 	{
+		id: "no-compiled-extension",
+		message:
+			"Internal # imports name real files. Use the on-disk extension (.ts/.tsx/.d.ts); nothing in this repo emits .js.",
+		pattern: /["']#[^"']*\.js["']/,
+	},
+	{
 		id: "no-ts-ignore",
 		message:
 			"@ts-ignore is never allowed. Use @ts-expect-error with a reason, registered in the pragma registry.",

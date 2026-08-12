@@ -1,6 +1,6 @@
 import { describe, expect, it } from "@effect/vitest";
 import { Effect, Layer, ManagedRuntime } from "effect";
-import { AppInfoSource, makeAppRouter } from "#index.js";
+import { AppInfoSource, makeAppRouter } from "#index.ts";
 
 describe("makeAppRouter", () => {
 	it.effect("serves app info from the runtime's source", () =>

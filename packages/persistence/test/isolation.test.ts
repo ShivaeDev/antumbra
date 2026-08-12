@@ -1,6 +1,6 @@
 import { tmpdir } from "node:os";
 import { describe, expect, it } from "vitest";
-import { temporaryPersistence } from "#testing.js";
+import { temporaryPersistence } from "#testing.ts";
 
 describe("structural isolation", () => {
 	it("mints database files only under the OS temp directory", () => {

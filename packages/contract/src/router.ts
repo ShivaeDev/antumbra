@@ -5,7 +5,7 @@ import {
 } from "@shivaedev/effect-trpc";
 import { initTRPC } from "@trpc/server";
 import { Context, Layer } from "effect";
-import { AppInfo, AppInfoSource } from "#app-info.js";
+import { AppInfo, AppInfoSource } from "#app-info.ts";
 
 export interface RequestContext {
 	readonly senderId: number;

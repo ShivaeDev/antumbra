@@ -18,6 +18,9 @@ catalogs:
     '@typescript/native':
       specifier: npm:typescript@7.0.2
       version: 7.0.2
+    dependency-cruiser:
+      specifier: 18.1.1
+      version: 18.1.1
     effect:
       specifier: 4.0.0-beta.102
       version: 4.0.0-beta.102
@@ -42,7 +45,7 @@ importers:
         specifier: 'catalog:'
         version: typescript@7.0.2
       dependency-cruiser:
-        specifier: ^18.1.1
+        specifier: 'catalog:'
         version: 18.1.1
       typescript:
         specifier: 'catalog:'

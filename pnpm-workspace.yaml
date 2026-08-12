@@ -7,9 +7,13 @@ catalog:
   "@effect/vitest": 4.0.0-beta.102
   "@types/node": 24.10.1
   "@typescript/native": npm:typescript@7.0.2
+  dependency-cruiser: 18.1.1
   effect: 4.0.0-beta.102
   typescript: npm:@typescript/typescript6@6.0.2
   vitest: 4.1.9
+
+savePrefix: ""
+catalogMode: strict
 
 minimumReleaseAge: 10080
 minimumReleaseAgeIgnoreMissingTime: false

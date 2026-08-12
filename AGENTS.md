@@ -6,17 +6,11 @@ validation stack (lint, build, typechecks, tests, guard tests).
 
 ## The guards
 
-`node script/lint.ts [root]` is the whole mechanical guard: one Effect program
-that walks `apps/`, `packages/` and its own `script/` tree once, runs every
-lint over that shared inventory concurrently, and prints one merged report.
-Rules live in `script/lint/rules/`; everything that touches the filesystem,
-the TypeScript compiler or the exit code lives in `script/lint/adapters/`.
-`pnpm lint` runs Biome, that program, and dependency-cruiser.
-
-The rules bind the lint system itself, which is why no banned token may be
-spelled in TypeScript: rule patterns live in
-`script/lint/rules/rule-patterns.json` and the guard tests read their
-offending fixtures from `script/test/fixtures/`.
+`node script/lint.ts`, run by `pnpm lint`: rules in `script/lint/rules/`,
+impure edges in `script/lint/adapters/`. It walks `script/` too, so a banned
+token is never spelled in TypeScript — rule patterns live in
+`script/lint/rules/rule-patterns.json`, guard fixtures in
+`script/test/fixtures/`.
 
 ## Everything is Effect
 

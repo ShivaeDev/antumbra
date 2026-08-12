@@ -1,0 +1,31 @@
+{
+	"name": "@antumbra/workspace",
+	"version": "0.0.0",
+	"private": true,
+	"type": "module",
+	"packageManager": "pnpm@11.15.0+sha512.266f8957a30d2be6e9468e5e66bcdedd35a794175f71b067ba8504d686cce1d0c0f429b33c323c3c569ad4891e667574a49ff71d1b89a22cc66f13c65818c578",
+	"engines": {
+		"node": ">=24"
+	},
+	"scripts": {
+		"build": "pnpm --recursive --if-present build",
+		"check": "biome check .",
+		"format": "biome check --write .",
+		"lint": "pnpm check && node script/lint-structure.ts && node script/lint-patterns.ts && node script/lint-pragmas.ts && node script/lint-manifests.ts && pnpm lint:boundaries",
+		"lint:boundaries": "depcruise --config .dependency-cruiser.cjs apps packages",
+		"test": "pnpm --recursive --if-present test",
+		"test:guards": "vitest run script",
+		"typecheck": "pnpm --recursive --if-present typecheck",
+		"typecheck:compat": "pnpm --recursive --if-present typecheck:compat",
+		"typecheck:root": "tsc --noEmit",
+		"ready": "pnpm lint && pnpm build && pnpm typecheck && pnpm typecheck:root && pnpm typecheck:compat && pnpm test && pnpm test:guards"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "catalog:",
+		"@types/node": "catalog:",
+		"@typescript/native": "catalog:",
+		"dependency-cruiser": "catalog:",
+		"typescript": "catalog:",
+		"vitest": "catalog:"
+	}
+}

@@ -11,7 +11,7 @@ catalog:
   "@prisma-next/contract": 0.15.0
   "@prisma-next/sql-contract": 0.15.0
   "@prisma-next/sqlite": 0.15.0
-  "@shivaedev/effect-prisma": 0.5.0
+  "@shivaedev/effect-prisma": 0.5.1
   "@shivaedev/effect-trpc": 0.3.0
   "@trpc/client": 11.18.0
   "@trpc/server": 11.18.0

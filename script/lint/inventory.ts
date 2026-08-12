@@ -1,6 +1,6 @@
 import { join, relative } from "node:path";
 import { Effect } from "effect";
-import { readText, walk } from "#lint/adapters/fs.ts";
+import { type FilesystemFailure, readText, walk } from "#lint/adapters/fs.ts";
 
 export interface SourceFile {
 	readonly lines: readonly string[];
@@ -30,7 +30,9 @@ export const isDeclaration = (path: string): boolean => path.endsWith(".d.ts");
 
 const posix = (path: string): string => path.replaceAll("\\", "/");
 
-export const collectInventory = (root: string): Effect.Effect<Inventory> =>
+export const collectInventory = (
+	root: string,
+): Effect.Effect<Inventory, FilesystemFailure> =>
 	Effect.gen(function* () {
 		const zones = yield* Effect.all(
 			WALKED_ZONES.map((zone) => walk(join(root, zone))),

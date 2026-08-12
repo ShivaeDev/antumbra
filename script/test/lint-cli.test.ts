@@ -53,6 +53,16 @@ describe("lint entry point", () => {
 		expect(result.stderr).toContain("violation(s).");
 	});
 
+	it("fails loudly when part of the tree cannot be read", () => {
+		const root = seed(trees.clean);
+		rmSync(join(root, "pnpm-workspace.yaml"));
+		mkdirSync(join(root, "pnpm-workspace.yaml"));
+		const result = runLint(root);
+		expect(result.status).toBe(1);
+		expect(result.stdout).not.toContain("Lint passed");
+		expect(result.stderr).toContain("pnpm-workspace.yaml");
+	});
+
 	// why: the lint system walks its own script/ tree, so this run is the
 	// standing proof that the rules hold for the code that enforces them.
 	it("passes when pointed at this repository", () => {

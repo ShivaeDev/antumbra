@@ -15,7 +15,16 @@ catalogs:
     '@effect/vitest':
       specifier: 4.0.0-beta.102
       version: 4.0.0-beta.102
+    '@prisma-next/adapter-sqlite':
+      specifier: 0.15.0
+      version: 0.15.0
     '@prisma-next/cli':
+      specifier: 0.15.0
+      version: 0.15.0
+    '@prisma-next/contract':
+      specifier: 0.15.0
+      version: 0.15.0
+    '@prisma-next/sql-contract':
       specifier: 0.15.0
       version: 0.15.0
     '@prisma-next/sqlite':
@@ -227,6 +236,15 @@ importers:
 
   packages/persistence:
     dependencies:
+      '@prisma-next/adapter-sqlite':
+        specifier: 'catalog:'
+        version: 0.15.0(@typescript/typescript6@6.0.2)(typanion@3.14.0)
+      '@prisma-next/contract':
+        specifier: 'catalog:'
+        version: 0.15.0(@typescript/typescript6@6.0.2)
+      '@prisma-next/sql-contract':
+        specifier: 'catalog:'
+        version: 0.15.0(@typescript/typescript6@6.0.2)
       '@prisma-next/sqlite':
         specifier: 'catalog:'
         version: 0.15.0(@typescript/typescript6@6.0.2)(typanion@3.14.0)

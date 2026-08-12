@@ -2,7 +2,7 @@ import { DatabaseSync } from "node:sqlite";
 import { makeDatabaseIt } from "@shivaedev/effect-prisma/testing";
 import { Effect, Ref } from "effect";
 import { expect } from "vitest";
-import { appMeta, Database } from "../src/database.js";
+import { Database } from "../src/database.js";
 import { ensureInstallMarker } from "../src/install-marker.js";
 import { temporaryPersistence } from "../src/testing.js";
 import { Writer } from "../src/writer.js";
@@ -24,8 +24,7 @@ const journalMode = (path: string): unknown => {
 };
 
 it.effectDB("applies WAL at layer connect", function* (db) {
-	const meta = yield* appMeta(db);
-	yield* meta.where({ key: "journal-probe" }).exists();
+	yield* db.AppMeta.where({ key: "journal-probe" }).exists();
 
 	expect(journalMode(temporary.database)).toBe("wal");
 });
@@ -39,16 +38,15 @@ it.effectDB("stamps one install id and keeps returning it", function* () {
 });
 
 it.effectDB("decodes stored datetimes as UTC dates", function* (db) {
-	const meta = yield* appMeta(db);
-	const row = yield* meta.create({ key: "datetime-probe", value: "x" });
+	const row = yield* db.AppMeta.create({ key: "datetime-probe", value: "x" });
 
 	expect(row.updatedAt).toBeInstanceOf(Date);
 });
 
 it.effectDB("rolls the previous test's writes back", function* (db) {
-	const meta = yield* appMeta(db);
-
-	expect(yield* meta.where({ key: "datetime-probe" }).exists()).toBe(false);
+	expect(yield* db.AppMeta.where({ key: "datetime-probe" }).exists()).toBe(
+		false,
+	);
 });
 
 it.effectDB("serializes concurrent writes behind one permit", function* () {

@@ -1,5 +1,5 @@
 import { Effect } from "effect";
-import { appMeta, Database } from "./database.js";
+import { Database } from "./database.js";
 import { Writer } from "./writer.js";
 
 export const ensureInstallMarker = Effect.gen(function* () {
@@ -7,7 +7,7 @@ export const ensureInstallMarker = Effect.gen(function* () {
 	const writer = yield* Writer;
 	return yield* writer.write(
 		Effect.gen(function* () {
-			const meta = yield* appMeta(db);
+			const meta = db.AppMeta;
 			const existing = yield* meta.where({ key: "install_id" }).all();
 			const current = existing[0];
 			if (current !== undefined) {

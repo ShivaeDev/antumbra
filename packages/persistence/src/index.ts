@@ -8,7 +8,7 @@ export {
 	type DatabaseFilePath,
 	databaseFileInDataDirectory,
 } from "./data-dir.js";
-export { appMeta, Database } from "./database.js";
+export { Database } from "./database.js";
 export { ensureInstallMarker } from "./install-marker.js";
 export { PersistenceLive, type PersistenceOptions } from "./layer.js";
 export { Writer, WriterLive } from "./writer.js";

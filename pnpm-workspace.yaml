@@ -6,7 +6,10 @@ catalog:
   "@biomejs/biome": 2.5.1
   "@effect/atom-react": 4.0.0-beta.102
   "@effect/vitest": 4.0.0-beta.102
+  "@prisma-next/adapter-sqlite": 0.15.0
   "@prisma-next/cli": 0.15.0
+  "@prisma-next/contract": 0.15.0
+  "@prisma-next/sql-contract": 0.15.0
   "@prisma-next/sqlite": 0.15.0
   "@shivaedev/effect-prisma": 0.5.0
   "@shivaedev/effect-trpc": 0.3.0

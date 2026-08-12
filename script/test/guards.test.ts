@@ -208,6 +208,32 @@ describe("lint-manifests", () => {
 	});
 });
 
+describe("lint-contracts", () => {
+	it("fails a contract.d.ts whose imports do not resolve", () => {
+		const root = makeRoot();
+		seed(
+			root,
+			"packages/x/contract.d.ts",
+			"import type { T } from '@antumbra-nonexistent/types';\nexport type Contract = T;\n",
+		);
+		const result = run("lint-contracts.ts", [root]);
+		expect(result.status).toBe(1);
+		expect(result.stderr).toContain("TS2307");
+		expect(result.stderr).toContain("skipLibCheck");
+	});
+
+	it("passes a contract.d.ts whose types resolve", () => {
+		const root = makeRoot();
+		seed(
+			root,
+			"packages/x/contract.d.ts",
+			"export type Contract = { readonly key: string };\n",
+		);
+		const result = run("lint-contracts.ts", [root]);
+		expect(result.status).toBe(0);
+	});
+});
+
 describe("lint-pragmas", () => {
 	it("fails an unregistered pragma", () => {
 		const root = makeRoot();

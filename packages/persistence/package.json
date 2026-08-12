@@ -24,6 +24,9 @@
 		"vitest": "catalog:"
 	},
 	"dependencies": {
+		"@prisma-next/adapter-sqlite": "catalog:",
+		"@prisma-next/contract": "catalog:",
+		"@prisma-next/sql-contract": "catalog:",
 		"@prisma-next/sqlite": "catalog:",
 		"@shivaedev/effect-prisma": "catalog:",
 		"effect": "catalog:"

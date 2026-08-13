@@ -1,5 +1,46 @@
 [
   {
+    "id": "table.appMeta",
+    "label": "Create table appMeta",
+    "summary": "Creates table appMeta with required columns",
+    "operationClass": "additive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "table",
+        "name": "appMeta"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"appMeta\" does not exist",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "table",
+          "appMeta"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"appMeta\"",
+        "sql": "CREATE TABLE \"appMeta\" (\n  \"key\" TEXT NOT NULL,\n  \"updatedAt\" TEXT NOT NULL DEFAULT (datetime('now')),\n  \"value\" TEXT NOT NULL,\n  PRIMARY KEY (\"key\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"appMeta\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "table",
+          "appMeta"
+        ]
+      }
+    ]
+  },
+  {
     "id": "table.intent",
     "label": "Create table intent",
     "summary": "Creates table intent with required columns",
@@ -25,7 +66,7 @@
     "execute": [
       {
         "description": "create table \"intent\"",
-        "sql": "CREATE TABLE \"intent\" (\n  \"created_at\" TEXT NOT NULL DEFAULT (datetime('now')),\n  \"detail\" TEXT,\n  \"id\" TEXT NOT NULL,\n  \"payload\" TEXT NOT NULL,\n  \"resume_policy\" TEXT NOT NULL,\n  \"status\" TEXT NOT NULL,\n  \"tag\" TEXT NOT NULL,\n  \"updated_at\" TEXT NOT NULL DEFAULT (datetime('now')),\n  PRIMARY KEY (\"id\")\n)",
+        "sql": "CREATE TABLE \"intent\" (\n  \"createdAt\" TEXT NOT NULL DEFAULT (datetime('now')),\n  \"detail\" TEXT,\n  \"id\" TEXT NOT NULL,\n  \"payload\" TEXT NOT NULL,\n  \"status\" TEXT NOT NULL,\n  \"tag\" TEXT NOT NULL,\n  \"updatedAt\" TEXT NOT NULL DEFAULT (datetime('now')),\n  PRIMARY KEY (\"id\")\n)",
         "params": []
       }
     ],

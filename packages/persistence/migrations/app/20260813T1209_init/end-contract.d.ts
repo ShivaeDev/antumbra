@@ -16,7 +16,7 @@ import type {
 } from '@prisma-next/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'sha256:e8bef2347ba8a52ec6553b804d5290e4efbfbf9250d05a828869428aa970c436'>;
+  StorageHashBase<'sha256:2265ea5607b492cdd09d723e727b8334c51951be60b0bf6d6ddbe9c9aecfcbf2'>;
 export type ExecutionHash = ExecutionHashBase<string>;
 export type ProfileHash =
   ProfileHashBase<'sha256:3cc333ecad9f3f4c7229370a9d2c37e908cdce0f8d2e9fb132d50605b024eff2'>;
@@ -41,7 +41,6 @@ export type FieldOutputTypes = {
       readonly payload: CodecTypes['sqlite/text@1']['output'];
       readonly status: CodecTypes['sqlite/text@1']['output'];
       readonly detail: CodecTypes['sqlite/text@1']['output'] | null;
-      readonly resumePolicy: CodecTypes['sqlite/text@1']['output'];
       readonly createdAt: CodecTypes['sqlite/datetime@1']['output'];
       readonly updatedAt: CodecTypes['sqlite/datetime@1']['output'];
     };
@@ -60,7 +59,6 @@ export type FieldInputTypes = {
       readonly payload: CodecTypes['sqlite/text@1']['input'];
       readonly status: CodecTypes['sqlite/text@1']['input'];
       readonly detail: CodecTypes['sqlite/text@1']['input'] | null;
-      readonly resumePolicy: CodecTypes['sqlite/text@1']['input'];
       readonly createdAt: CodecTypes['sqlite/datetime@1']['input'];
       readonly updatedAt: CodecTypes['sqlite/datetime@1']['input'];
     };
@@ -68,39 +66,37 @@ export type FieldInputTypes = {
 };
 export type StorageColumnTypes = {
   readonly __unbound__: {
-    readonly app_meta: {
+    readonly appMeta: {
       readonly key: CodecTypes['sqlite/text@1']['output'];
-      readonly updated_at: CodecTypes['sqlite/datetime@1']['output'];
+      readonly updatedAt: CodecTypes['sqlite/datetime@1']['output'];
       readonly value: CodecTypes['sqlite/text@1']['output'];
     };
     readonly intent: {
-      readonly created_at: CodecTypes['sqlite/datetime@1']['output'];
+      readonly createdAt: CodecTypes['sqlite/datetime@1']['output'];
       readonly detail: CodecTypes['sqlite/text@1']['output'] | null;
       readonly id: CodecTypes['sqlite/text@1']['output'];
       readonly payload: CodecTypes['sqlite/text@1']['output'];
-      readonly resume_policy: CodecTypes['sqlite/text@1']['output'];
       readonly status: CodecTypes['sqlite/text@1']['output'];
       readonly tag: CodecTypes['sqlite/text@1']['output'];
-      readonly updated_at: CodecTypes['sqlite/datetime@1']['output'];
+      readonly updatedAt: CodecTypes['sqlite/datetime@1']['output'];
     };
   };
 };
 export type StorageColumnInputTypes = {
   readonly __unbound__: {
-    readonly app_meta: {
+    readonly appMeta: {
       readonly key: CodecTypes['sqlite/text@1']['input'];
-      readonly updated_at: CodecTypes['sqlite/datetime@1']['input'];
+      readonly updatedAt: CodecTypes['sqlite/datetime@1']['input'];
       readonly value: CodecTypes['sqlite/text@1']['input'];
     };
     readonly intent: {
-      readonly created_at: CodecTypes['sqlite/datetime@1']['input'];
+      readonly createdAt: CodecTypes['sqlite/datetime@1']['input'];
       readonly detail: CodecTypes['sqlite/text@1']['input'] | null;
       readonly id: CodecTypes['sqlite/text@1']['input'];
       readonly payload: CodecTypes['sqlite/text@1']['input'];
-      readonly resume_policy: CodecTypes['sqlite/text@1']['input'];
       readonly status: CodecTypes['sqlite/text@1']['input'];
       readonly tag: CodecTypes['sqlite/text@1']['input'];
-      readonly updated_at: CodecTypes['sqlite/datetime@1']['input'];
+      readonly updatedAt: CodecTypes['sqlite/datetime@1']['input'];
     };
   };
 };
@@ -121,7 +117,7 @@ type ContractBase = Omit<
         readonly kind: 'sqlite-namespace';
         readonly entries: {
           readonly table: {
-            readonly app_meta: {
+            readonly appMeta: {
               columns: {
                 readonly key: {
                   readonly nativeType: 'text';
@@ -133,7 +129,7 @@ type ContractBase = Omit<
                   readonly codecId: 'sqlite/text@1';
                   readonly nullable: false;
                 };
-                readonly updated_at: {
+                readonly updatedAt: {
                   readonly nativeType: 'text';
                   readonly codecId: 'sqlite/datetime@1';
                   readonly nullable: false;
@@ -172,18 +168,13 @@ type ContractBase = Omit<
                   readonly codecId: 'sqlite/text@1';
                   readonly nullable: true;
                 };
-                readonly resume_policy: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'sqlite/text@1';
-                  readonly nullable: false;
-                };
-                readonly created_at: {
+                readonly createdAt: {
                   readonly nativeType: 'text';
                   readonly codecId: 'sqlite/datetime@1';
                   readonly nullable: false;
                   readonly default: { readonly kind: 'function'; readonly expression: 'now()' };
                 };
-                readonly updated_at: {
+                readonly updatedAt: {
                   readonly nativeType: 'text';
                   readonly codecId: 'sqlite/datetime@1';
                   readonly nullable: false;
@@ -206,7 +197,7 @@ type ContractBase = Omit<
   readonly target: 'sqlite';
   readonly targetFamily: 'sql';
   readonly roots: {
-    readonly app_meta: {
+    readonly appMeta: {
       readonly namespace: '__unbound__' & NamespaceId;
       readonly model: 'AppMeta';
     };
@@ -233,12 +224,12 @@ type ContractBase = Omit<
             };
             readonly relations: Record<string, never>;
             readonly storage: {
-              readonly table: 'app_meta';
+              readonly table: 'appMeta';
               readonly namespaceId: '__unbound__';
               readonly fields: {
                 readonly key: { readonly column: 'key' };
                 readonly value: { readonly column: 'value' };
-                readonly updatedAt: { readonly column: 'updated_at' };
+                readonly updatedAt: { readonly column: 'updatedAt' };
               };
             };
           };
@@ -264,10 +255,6 @@ type ContractBase = Omit<
                 readonly nullable: true;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
               };
-              readonly resumePolicy: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
-              };
               readonly createdAt: {
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/datetime@1' };
@@ -287,9 +274,8 @@ type ContractBase = Omit<
                 readonly payload: { readonly column: 'payload' };
                 readonly status: { readonly column: 'status' };
                 readonly detail: { readonly column: 'detail' };
-                readonly resumePolicy: { readonly column: 'resume_policy' };
-                readonly createdAt: { readonly column: 'created_at' };
-                readonly updatedAt: { readonly column: 'updated_at' };
+                readonly createdAt: { readonly column: 'createdAt' };
+                readonly updatedAt: { readonly column: 'updatedAt' };
               };
             };
           };

@@ -67,7 +67,6 @@ const submitFor =
 					detail: null,
 					id,
 					payload: encoded,
-					resumePolicy: kind.reclaim,
 					status: "queued",
 					tag: kind.tag,
 				}),

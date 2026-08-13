@@ -4,7 +4,7 @@
   "target": "sqlite",
   "profileHash": "sha256:3cc333ecad9f3f4c7229370a9d2c37e908cdce0f8d2e9fb132d50605b024eff2",
   "roots": {
-    "app_meta": {
+    "appMeta": {
       "model": "AppMeta",
       "namespace": "__unbound__"
     },
@@ -48,14 +48,14 @@
                   "column": "key"
                 },
                 "updatedAt": {
-                  "column": "updated_at"
+                  "column": "updatedAt"
                 },
                 "value": {
                   "column": "value"
                 }
               },
               "namespaceId": "__unbound__",
-              "table": "app_meta"
+              "table": "appMeta"
             }
           },
           "Intent": {
@@ -88,13 +88,6 @@
                   "kind": "scalar"
                 }
               },
-              "resumePolicy": {
-                "nullable": false,
-                "type": {
-                  "codecId": "sqlite/text@1",
-                  "kind": "scalar"
-                }
-              },
               "status": {
                 "nullable": false,
                 "type": {
@@ -121,7 +114,7 @@
             "storage": {
               "fields": {
                 "createdAt": {
-                  "column": "created_at"
+                  "column": "createdAt"
                 },
                 "detail": {
                   "column": "detail"
@@ -132,9 +125,6 @@
                 "payload": {
                   "column": "payload"
                 },
-                "resumePolicy": {
-                  "column": "resume_policy"
-                },
                 "status": {
                   "column": "status"
                 },
@@ -142,7 +132,7 @@
                   "column": "tag"
                 },
                 "updatedAt": {
-                  "column": "updated_at"
+                  "column": "updatedAt"
                 }
               },
               "namespaceId": "__unbound__",
@@ -158,14 +148,14 @@
       "__unbound__": {
         "entries": {
           "table": {
-            "app_meta": {
+            "appMeta": {
               "columns": {
                 "key": {
                   "codecId": "sqlite/text@1",
                   "nativeType": "text",
                   "nullable": false
                 },
-                "updated_at": {
+                "updatedAt": {
                   "codecId": "sqlite/datetime@1",
                   "default": {
                     "expression": "now()",
@@ -191,7 +181,7 @@
             },
             "intent": {
               "columns": {
-                "created_at": {
+                "createdAt": {
                   "codecId": "sqlite/datetime@1",
                   "default": {
                     "expression": "now()",
@@ -215,11 +205,6 @@
                   "nativeType": "text",
                   "nullable": false
                 },
-                "resume_policy": {
-                  "codecId": "sqlite/text@1",
-                  "nativeType": "text",
-                  "nullable": false
-                },
                 "status": {
                   "codecId": "sqlite/text@1",
                   "nativeType": "text",
@@ -230,7 +215,7 @@
                   "nativeType": "text",
                   "nullable": false
                 },
-                "updated_at": {
+                "updatedAt": {
                   "codecId": "sqlite/datetime@1",
                   "default": {
                     "expression": "now()",
@@ -260,7 +245,7 @@
         "id": "__unbound__"
       }
     },
-    "storageHash": "sha256:e8bef2347ba8a52ec6553b804d5290e4efbfbf9250d05a828869428aa970c436"
+    "storageHash": "sha256:2265ea5607b492cdd09d723e727b8334c51951be60b0bf6d6ddbe9c9aecfcbf2"
   },
   "capabilities": {
     "sql": {

@@ -1,6 +1,8 @@
+import { Database, Writer } from "@antumbra/persistence";
 import { Effect } from "effect";
 import type { AnyIntentKind } from "#intent.ts";
-import { announce, type SchedulerContext, transitionRow } from "#scheduler.ts";
+import { announce, transitionRow } from "#scheduler.ts";
+import { SchedulerState } from "#state.ts";
 
 interface ReclaimPlan {
 	readonly detail?: string;
@@ -23,38 +25,35 @@ const reclaimPlan = (
 	return { event: "requeue" };
 };
 
-const settleStrandedRunning = (context: SchedulerContext) =>
-	Effect.gen(function* () {
-		const stranded = yield* context.db.Intent.where({
-			status: "running",
-		}).all();
-		return yield* Effect.forEach(stranded, (row) => {
-			const plan = reclaimPlan(context.kinds.get(row.tag), row.tag);
-			return transitionRow(context.db)(row.id, plan.event, plan.detail);
-		});
+const settleStrandedRunning = Effect.gen(function* () {
+	const db = yield* Database;
+	const { kinds } = yield* SchedulerState;
+	const stranded = yield* db.Intent.where({ status: "running" }).all();
+	return yield* Effect.forEach(stranded, (row) => {
+		const plan = reclaimPlan(kinds.get(row.tag), row.tag);
+		return transitionRow(row.id, plan.event, plan.detail);
 	});
+});
 
-const settleStrandedCancelling = (context: SchedulerContext) =>
-	Effect.gen(function* () {
-		const stranded = yield* context.db.Intent.where({
-			status: "cancelling",
-		}).all();
-		return yield* Effect.forEach(stranded, (row) =>
-			transitionRow(context.db)(row.id, "interrupt"),
-		);
-	});
+const settleStrandedCancelling = Effect.gen(function* () {
+	const db = yield* Database;
+	const stranded = yield* db.Intent.where({ status: "cancelling" }).all();
+	return yield* Effect.forEach(stranded, (row) =>
+		transitionRow(row.id, "interrupt"),
+	);
+});
 
 // why: reclaim runs before the scheduler exists, so rows stranded by the
 // previous process settle per policy in one write transaction and only then
 // does admission start.
-export const reclaim = (context: SchedulerContext) =>
-	Effect.gen(function* () {
-		const settled = yield* context.write(
-			Effect.gen(function* () {
-				const running = yield* settleStrandedRunning(context);
-				const cancelling = yield* settleStrandedCancelling(context);
-				return [...running, ...cancelling];
-			}),
-		);
-		yield* Effect.forEach(settled, announce(context));
-	});
+export const reclaim = Effect.gen(function* () {
+	const writer = yield* Writer;
+	const settled = yield* writer.write(
+		Effect.gen(function* () {
+			const running = yield* settleStrandedRunning;
+			const cancelling = yield* settleStrandedCancelling;
+			return [...running, ...cancelling];
+		}),
+	);
+	yield* Effect.forEach(settled, announce);
+});

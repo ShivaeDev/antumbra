@@ -1,6 +1,7 @@
 import { Database, Writer } from "@antumbra/persistence";
 import {
 	Clock,
+	Context,
 	Effect,
 	Fiber,
 	Layer,
@@ -16,29 +17,27 @@ import { IntentNotFound, UnregisteredIntentTag } from "#errors.ts";
 import { IntentStatusSchema } from "#fsm.ts";
 import type { Gate } from "#gate.ts";
 import type { AnyIntentKind, IntentKind } from "#intent.ts";
-import { Kernel } from "#kernel.ts";
+import { type IntentSubmission, Kernel } from "#kernel.ts";
 import { reclaim } from "#reclaim.ts";
-import {
-	announce,
-	type IntentChange,
-	type SchedulerContext,
-	transitionRow,
-} from "#scheduler.ts";
+import { announce, transitionRow } from "#scheduler.ts";
+import { type IntentChange, SchedulerState } from "#state.ts";
 
 export interface KernelOptions {
 	readonly gates?: ReadonlyArray<Gate>;
 	readonly kinds: ReadonlyArray<AnyIntentKind>;
 }
 
-const changesFor = (context: SchedulerContext) => (id: string) =>
+const changesFor = (id: string) =>
 	Stream.unwrap(
 		Effect.gen(function* () {
+			const db = yield* Database;
+			const { pubsub } = yield* SchedulerState;
 			// why: subscribing before the row read means a transition in the gap is
 			// never lost — it lands in the subscription and the current status
 			// already reflects it, so the dedup only ever drops repeats. Observers
 			// see the latest state, not a complete journal.
-			const subscription = yield* PubSub.subscribe(context.pubsub);
-			const row = yield* context.db.Intent.where({ id }).first();
+			const subscription = yield* PubSub.subscribe(pubsub);
+			const row = yield* db.Intent.where({ id }).first();
 			if (Option.isNone(row)) {
 				return yield* new IntentNotFound({ id });
 			}
@@ -53,36 +52,41 @@ const changesFor = (context: SchedulerContext) => (id: string) =>
 		}),
 	).pipe(Stream.scoped);
 
-const submitFor =
-	(context: SchedulerContext) =>
-	<Payload>(kind: IntentKind<Payload>, payload: Payload) =>
-		Effect.gen(function* () {
-			if (context.kinds.get(kind.tag) !== kind) {
-				return yield* new UnregisteredIntentTag({ tag: kind.tag });
-			}
-			const encoded = yield* kind.encode(payload);
-			const id = crypto.randomUUID();
-			yield* context.write(
-				context.db.Intent.create({
-					detail: null,
-					id,
-					payload: encoded,
-					status: "queued",
-					tag: kind.tag,
-				}),
-			);
-			yield* announce(context)({ id, status: "queued" });
-			return { changes: changesFor(context)(id), id };
-		});
-
-const cancelFor = (context: SchedulerContext) => (id: string) =>
+const submitIntent = <Payload>(
+	kind: IntentKind<Payload>,
+	payload: Payload,
+	changes: (id: string) => IntentSubmission["changes"],
+) =>
 	Effect.gen(function* () {
-		const change = yield* context.write(
-			transitionRow(context.db)(id, "cancel"),
+		const { kinds } = yield* SchedulerState;
+		if (kinds.get(kind.tag) !== kind) {
+			return yield* new UnregisteredIntentTag({ tag: kind.tag });
+		}
+		const encoded = yield* kind.encode(payload);
+		const id = crypto.randomUUID();
+		const db = yield* Database;
+		const writer = yield* Writer;
+		yield* writer.write(
+			db.Intent.create({
+				detail: null,
+				id,
+				payload: encoded,
+				status: "queued",
+				tag: kind.tag,
+			}),
 		);
-		yield* announce(context)(change);
+		yield* announce({ id, status: "queued" });
+		return { changes: changes(id), id };
+	});
+
+const cancelIntent = (id: string) =>
+	Effect.gen(function* () {
+		const writer = yield* Writer;
+		const change = yield* writer.write(transitionRow(id, "cancel"));
+		yield* announce(change);
 		if (change.status === "cancelling") {
-			const fiber = (yield* Ref.get(context.running)).get(id);
+			const { running } = yield* SchedulerState;
+			const fiber = (yield* Ref.get(running)).get(id);
 			if (fiber !== undefined) {
 				yield* Fiber.interrupt(fiber);
 			}
@@ -92,10 +96,7 @@ const cancelFor = (context: SchedulerContext) => (id: string) =>
 export const KernelLive = (options: KernelOptions) =>
 	Layer.effect(Kernel)(
 		Effect.gen(function* () {
-			const db = yield* Database;
-			const writer = yield* Writer;
-			const context: SchedulerContext = {
-				db,
+			const state = {
 				gates: options.gates ?? [],
 				kinds: new Map(options.kinds.map((kind) => [kind.tag, kind])),
 				lastChangeAt: yield* Ref.make(yield* Clock.currentTimeMillis),
@@ -105,15 +106,25 @@ export const KernelLive = (options: KernelOptions) =>
 					ReadonlyMap<string, Fiber.Fiber<void, unknown>>
 				>(new Map()),
 				tick: yield* Queue.unbounded<void>(),
-				write: writer.write,
 			};
-			yield* reclaim(context);
-			yield* Effect.forkScoped(schedulerLoop(context));
-			yield* Queue.offer(context.tick, undefined);
+			const context = Context.make(SchedulerState, state).pipe(
+				Context.add(Database, yield* Database),
+				Context.add(Writer, yield* Writer),
+			);
+			const changes = (id: string) =>
+				changesFor(id).pipe(Stream.provideContext(context));
+			yield* reclaim.pipe(Effect.provideContext(context));
+			yield* Effect.forkScoped(
+				schedulerLoop.pipe(Effect.provideContext(context)),
+			);
+			yield* Queue.offer(state.tick, undefined);
 			return {
-				cancel: cancelFor(context),
-				changes: changesFor(context),
-				submit: submitFor(context),
+				cancel: (id) => cancelIntent(id).pipe(Effect.provideContext(context)),
+				changes,
+				submit: <Payload>(kind: IntentKind<Payload>, payload: Payload) =>
+					submitIntent(kind, payload, changes).pipe(
+						Effect.provideContext(context),
+					),
 			};
 		}),
 	);

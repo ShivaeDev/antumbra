@@ -13,11 +13,11 @@ catalogs:
       specifier: 4.0.0-beta.102
       version: 4.0.0-beta.102
     '@effect/platform-node':
-      specifier: 4.0.0-beta.107
-      version: 4.0.0-beta.107
+      specifier: 4.0.0-rc.108
+      version: 4.0.0-rc.108
     '@effect/vitest':
-      specifier: 4.0.0-beta.107
-      version: 4.0.0-beta.107
+      specifier: 4.0.0-rc.108
+      version: 4.0.0-rc.108
     '@prisma-next/adapter-sqlite':
       specifier: 0.15.0
       version: 0.15.0
@@ -34,11 +34,11 @@ catalogs:
       specifier: 0.15.0
       version: 0.15.0
     '@shivaedev/effect-prisma':
-      specifier: 0.5.2
-      version: 0.5.2
+      specifier: 0.5.3
+      version: 0.5.3
     '@shivaedev/effect-trpc':
-      specifier: 0.3.1
-      version: 0.3.1
+      specifier: 0.3.2
+      version: 0.3.2
     '@trpc/client':
       specifier: 11.18.0
       version: 11.18.0
@@ -61,8 +61,8 @@ catalogs:
       specifier: 18.1.1
       version: 18.1.1
     effect:
-      specifier: 4.0.0-beta.107
-      version: 4.0.0-beta.107
+      specifier: 4.0.0-rc.108
+      version: 4.0.0-rc.108
     electron:
       specifier: 43.3.0
       version: 43.3.0
@@ -106,10 +106,10 @@ importers:
         version: 2.5.1
       '@effect/platform-node':
         specifier: 'catalog:'
-        version: 4.0.0-beta.107(effect@4.0.0-beta.107)(ioredis@5.11.1(supports-color@7.2.0))
+        version: 4.0.0-rc.108(effect@4.0.0-rc.108)(ioredis@5.11.1(supports-color@7.2.0))
       '@effect/vitest':
         specifier: 'catalog:'
-        version: 4.0.0-beta.107(effect@4.0.0-beta.107)(vitest@4.1.9(@types/node@24.10.1)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.0)))
+        version: 4.0.0-rc.108(effect@4.0.0-rc.108)(vitest@4.1.9(@types/node@24.10.1)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.0)))
       '@types/node':
         specifier: 'catalog:'
         version: 24.10.1
@@ -121,7 +121,7 @@ importers:
         version: 18.1.1
       effect:
         specifier: 'catalog:'
-        version: 4.0.0-beta.107
+        version: 4.0.0-rc.108
       ignore:
         specifier: 'catalog:'
         version: 7.0.6
@@ -145,10 +145,10 @@ importers:
         version: link:../../packages/renderer
       '@effect/vitest':
         specifier: 'catalog:'
-        version: 4.0.0-beta.107(effect@4.0.0-beta.107)(vitest@4.1.9(@types/node@24.10.1)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.0)))
+        version: 4.0.0-rc.108(effect@4.0.0-rc.108)(vitest@4.1.9(@types/node@24.10.1)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.0)))
       '@shivaedev/effect-trpc':
         specifier: 'catalog:'
-        version: 0.3.1(@effect/vitest@4.0.0-beta.107(effect@4.0.0-beta.107)(vitest@4.1.9(@types/node@24.10.1)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.0))))(@trpc/server@11.18.0(@typescript/typescript6@6.0.2))(effect@4.0.0-beta.107)
+        version: 0.3.2(@effect/vitest@4.0.0-rc.108(effect@4.0.0-rc.108)(vitest@4.1.9(@types/node@24.10.1)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.0))))(@trpc/server@11.18.0(@typescript/typescript6@6.0.2))(effect@4.0.0-rc.108)
       '@trpc/server':
         specifier: 'catalog:'
         version: 11.18.0(@typescript/typescript6@6.0.2)
@@ -160,7 +160,7 @@ importers:
         version: typescript@7.0.2
       effect:
         specifier: 'catalog:'
-        version: 4.0.0-beta.107
+        version: 4.0.0-rc.108
       electron:
         specifier: 'catalog:'
         version: 43.3.0(supports-color@7.2.0)
@@ -184,11 +184,11 @@ importers:
     dependencies:
       effect:
         specifier: 'catalog:'
-        version: 4.0.0-beta.107
+        version: 4.0.0-rc.108
     devDependencies:
       '@effect/vitest':
         specifier: 'catalog:'
-        version: 4.0.0-beta.107(effect@4.0.0-beta.107)(vitest@4.1.9(@types/node@24.10.1)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.0)))
+        version: 4.0.0-rc.108(effect@4.0.0-rc.108)(vitest@4.1.9(@types/node@24.10.1)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.0)))
       '@types/node':
         specifier: 'catalog:'
         version: 24.10.1
@@ -206,17 +206,17 @@ importers:
     dependencies:
       '@shivaedev/effect-trpc':
         specifier: 'catalog:'
-        version: 0.3.1(@effect/vitest@4.0.0-beta.107(effect@4.0.0-beta.107)(vitest@4.1.9(@types/node@24.10.1)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.0))))(@trpc/server@11.18.0(@typescript/typescript6@6.0.2))(effect@4.0.0-beta.107)
+        version: 0.3.2(@effect/vitest@4.0.0-rc.108(effect@4.0.0-rc.108)(vitest@4.1.9(@types/node@24.10.1)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.0))))(@trpc/server@11.18.0(@typescript/typescript6@6.0.2))(effect@4.0.0-rc.108)
       '@trpc/server':
         specifier: 'catalog:'
         version: 11.18.0(@typescript/typescript6@6.0.2)
       effect:
         specifier: 'catalog:'
-        version: 4.0.0-beta.107
+        version: 4.0.0-rc.108
     devDependencies:
       '@effect/vitest':
         specifier: 'catalog:'
-        version: 4.0.0-beta.107(effect@4.0.0-beta.107)(vitest@4.1.9(@types/node@24.10.1)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.0)))
+        version: 4.0.0-rc.108(effect@4.0.0-rc.108)(vitest@4.1.9(@types/node@24.10.1)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.0)))
       '@types/node':
         specifier: 'catalog:'
         version: 24.10.1
@@ -234,11 +234,11 @@ importers:
     dependencies:
       effect:
         specifier: 'catalog:'
-        version: 4.0.0-beta.107
+        version: 4.0.0-rc.108
     devDependencies:
       '@effect/vitest':
         specifier: 'catalog:'
-        version: 4.0.0-beta.107(effect@4.0.0-beta.107)(vitest@4.1.9(@types/node@24.10.1)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.0)))
+        version: 4.0.0-rc.108(effect@4.0.0-rc.108)(vitest@4.1.9(@types/node@24.10.1)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.0)))
       '@types/node':
         specifier: 'catalog:'
         version: 24.10.1
@@ -268,14 +268,14 @@ importers:
         version: 0.15.0(@typescript/typescript6@6.0.2)(typanion@3.14.0)
       '@shivaedev/effect-prisma':
         specifier: 'catalog:'
-        version: 0.5.2(@effect/vitest@4.0.0-beta.107(effect@4.0.0-beta.107)(vitest@4.1.9(@types/node@24.10.1)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.0))))(@typescript/typescript6@6.0.2)(effect@4.0.0-beta.107)(typanion@3.14.0)
+        version: 0.5.3(@effect/vitest@4.0.0-rc.108(effect@4.0.0-rc.108)(vitest@4.1.9(@types/node@24.10.1)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.0))))(@typescript/typescript6@6.0.2)(effect@4.0.0-rc.108)(typanion@3.14.0)
       effect:
         specifier: 'catalog:'
-        version: 4.0.0-beta.107
+        version: 4.0.0-rc.108
     devDependencies:
       '@effect/vitest':
         specifier: 'catalog:'
-        version: 4.0.0-beta.107(effect@4.0.0-beta.107)(vitest@4.1.9(@types/node@24.10.1)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.0)))
+        version: 4.0.0-rc.108(effect@4.0.0-rc.108)(vitest@4.1.9(@types/node@24.10.1)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.0)))
       '@prisma-next/cli':
         specifier: 'catalog:'
         version: 0.15.0(@typescript/typescript6@6.0.2)(typanion@3.14.0)
@@ -296,11 +296,11 @@ importers:
     dependencies:
       effect:
         specifier: 'catalog:'
-        version: 4.0.0-beta.107
+        version: 4.0.0-rc.108
     devDependencies:
       '@effect/vitest':
         specifier: 'catalog:'
-        version: 4.0.0-beta.107(effect@4.0.0-beta.107)(vitest@4.1.9(@types/node@24.10.1)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.0)))
+        version: 4.0.0-rc.108(effect@4.0.0-rc.108)(vitest@4.1.9(@types/node@24.10.1)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.0)))
       '@types/node':
         specifier: 'catalog:'
         version: 24.10.1
@@ -321,7 +321,7 @@ importers:
         version: link:../contract
       '@effect/atom-react':
         specifier: 'catalog:'
-        version: 4.0.0-beta.102(effect@4.0.0-beta.107)(react@19.2.8)(scheduler@0.27.0)
+        version: 4.0.0-beta.102(effect@4.0.0-rc.108)(react@19.2.8)(scheduler@0.27.0)
       '@trpc/client':
         specifier: 'catalog:'
         version: 11.18.0(@trpc/server@11.18.0(@typescript/typescript6@6.0.2))(@typescript/typescript6@6.0.2)
@@ -330,7 +330,7 @@ importers:
         version: 11.18.0(@typescript/typescript6@6.0.2)
       effect:
         specifier: 'catalog:'
-        version: 4.0.0-beta.107
+        version: 4.0.0-rc.108
       react:
         specifier: 'catalog:'
         version: 19.2.8
@@ -343,7 +343,7 @@ importers:
     devDependencies:
       '@effect/vitest':
         specifier: 'catalog:'
-        version: 4.0.0-beta.107(effect@4.0.0-beta.107)(vitest@4.1.9(@types/node@24.10.1)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.0)))
+        version: 4.0.0-rc.108(effect@4.0.0-rc.108)(vitest@4.1.9(@types/node@24.10.1)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.0)))
       '@types/node':
         specifier: 'catalog:'
         version: 24.10.1
@@ -367,11 +367,11 @@ importers:
     dependencies:
       effect:
         specifier: 'catalog:'
-        version: 4.0.0-beta.107
+        version: 4.0.0-rc.108
     devDependencies:
       '@effect/vitest':
         specifier: 'catalog:'
-        version: 4.0.0-beta.107(effect@4.0.0-beta.107)(vitest@4.1.9(@types/node@24.10.1)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.0)))
+        version: 4.0.0-rc.108(effect@4.0.0-rc.108)(vitest@4.1.9(@types/node@24.10.1)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.0)))
       '@types/node':
         specifier: 'catalog:'
         version: 24.10.1
@@ -465,23 +465,23 @@ packages:
       react: ^19.2.4
       scheduler: '*'
 
-  '@effect/platform-node-shared@4.0.0-beta.107':
-    resolution: {integrity: sha512-y6BqcRi86BfTJv+tvDrob4ozYVHxxlHYcn/zIQqZjXI9CvKnkgD6ng+38G1o45c4f2ucU+6HRI9POCmFdMoVGA==}
+  '@effect/platform-node-shared@4.0.0-rc.108':
+    resolution: {integrity: sha512-g5dSRR+tHzFcWav5A6zbug78oV8WPJL5BJqgKlKtow0cQ2IpULcLZaP2xCYR3RJDvz5SETREmPCJ+BNONIsalw==}
     engines: {node: '>=18.0.0'}
     peerDependencies:
-      effect: ^4.0.0-beta.107
+      effect: ^4.0.0-rc.108
 
-  '@effect/platform-node@4.0.0-beta.107':
-    resolution: {integrity: sha512-k+6YNbV4Ck0L6YXtlgkvEnuP5tlxWD8EeWOrpn46PDqbGEwt4ONpRltTwm3tn2cyBXD0i+2P11cUH/6sdFagTA==}
+  '@effect/platform-node@4.0.0-rc.108':
+    resolution: {integrity: sha512-Nof78154BaHGdSYr4TPQFZ5+Dg+HkpmbI3SQUdwsby5QNs6yahGJPu2AgdIVqdx7pKZ2w7j/bvdnqoMmkG0PbA==}
     engines: {node: '>=18.0.0'}
     peerDependencies:
-      effect: ^4.0.0-beta.107
+      effect: ^4.0.0-rc.108
       ioredis: '>=5.7.0 <6.0.0'
 
-  '@effect/vitest@4.0.0-beta.107':
-    resolution: {integrity: sha512-n4/qsx4DnT4dEI/wNgMivxyUeJoeiU1TCSz0WnoHWk/dny40Oxjip2P9IXGQDgPb9fsYVnerF0QRA6nPUuExQA==}
+  '@effect/vitest@4.0.0-rc.108':
+    resolution: {integrity: sha512-XD2GP1JATN28wnIeFGsBqYMuQDCHIodKKgFulGyG91GvuHqgf2gz+WxR2LPdyNoKMtr7lsbRzVj07niSYtIKzA==}
     peerDependencies:
-      effect: ^4.0.0-beta.107
+      effect: ^4.0.0-rc.108
       vitest: '>=4.1.0 <5.0.0'
 
   '@electron-internal/extract-zip@1.0.5':
@@ -1184,24 +1184,24 @@ packages:
   '@rolldown/pluginutils@1.0.1':
     resolution: {integrity: sha512-2j9bGt5Jh8hj+vPtgzPtl72j0yRxHAyumoo6TNfAjsLB04UtpSvPbPcDcBMxz7n+9CYB0c1GxQFxYRg2jimqGw==}
 
-  '@shivaedev/effect-prisma@0.5.2':
-    resolution: {integrity: sha512-8w/ZfwO6K7+Hsl4Y/p+qYSMp7wb9HMMyxzcaO4HuUlnE0vSiW+aNLDxxFEqy2VICCVrr4vy7zLzzzE7NWGSuRw==}
+  '@shivaedev/effect-prisma@0.5.3':
+    resolution: {integrity: sha512-JGx/Lqk1uGwA0tKX/M2WBA7EQNFAML2T0fWS3AyRkiYDa+kzc3f833LC07BcOhlj3f7EZzIEHU8nL+ECr4eWaA==}
     engines: {node: '>=24'}
     hasBin: true
     peerDependencies:
-      '@effect/vitest': 4.0.0-beta.107
-      effect: 4.0.0-beta.107
+      '@effect/vitest': 4.0.0-rc.108
+      effect: 4.0.0-rc.108
     peerDependenciesMeta:
       '@effect/vitest':
         optional: true
 
-  '@shivaedev/effect-trpc@0.3.1':
-    resolution: {integrity: sha512-VwXdxlAReQziaWoZT/IRGHlRIKeca99nNHm1jI/Wm+GOtKHER6u0Pg2B2Tgmo8MPg3btG3Tt46NIpTjzgYdshA==}
+  '@shivaedev/effect-trpc@0.3.2':
+    resolution: {integrity: sha512-PORh2/k5hzQmbh/B4By0cMM+MFoT4m+1xzGbU+H0d0THFXmmyqd0YfVbncglOvWBcdS+rvoDC2IHDv7FeOkHmw==}
     engines: {node: '>=24'}
     peerDependencies:
-      '@effect/vitest': 4.0.0-beta.107
+      '@effect/vitest': 4.0.0-rc.108
       '@trpc/server': 11.18.0
-      effect: 4.0.0-beta.107
+      effect: 4.0.0-rc.108
     peerDependenciesMeta:
       '@effect/vitest':
         optional: true
@@ -1764,8 +1764,8 @@ packages:
   duplexer2@0.1.4:
     resolution: {integrity: sha512-asLFVfWWtJ90ZyOUHMqk7/S2w2guQKxUI2itj3d92ADHhxUSbCMGi1f1cBcJ7xM1To+pE/Khbwo1yuNbMEPKeA==}
 
-  effect@4.0.0-beta.107:
-    resolution: {integrity: sha512-OoBAv8eF+yanc+C6xhgEUnWeXUSHA6ynnscYqpkAY9GSnzZWystsIjBowVqCkLpHGlnRtdIqYT3wHwpOY6JDnQ==}
+  effect@4.0.0-rc.108:
+    resolution: {integrity: sha512-KmI3DlKZWPvCL4QQ2FMaPOuxMt/7DrKMENCY/gQ+MkDR5QYw25wgU5Zmh/wVLboNjIci1gNOgNCFe4xqgxli3A==}
 
   ejs@3.1.10:
     resolution: {integrity: sha512-UeJmFfOrAQS8OJWPZ4qtgHyWExa088/MtK5UEyoJGFH67cDEXkZSviOiKRCZ4Xij0zxI3JECgYs3oKx+AizQBA==}
@@ -3062,25 +3062,25 @@ snapshots:
       fast-wrap-ansi: 0.2.2
       sisteransi: 1.0.5
 
-  '@effect/atom-react@4.0.0-beta.102(effect@4.0.0-beta.107)(react@19.2.8)(scheduler@0.27.0)':
+  '@effect/atom-react@4.0.0-beta.102(effect@4.0.0-rc.108)(react@19.2.8)(scheduler@0.27.0)':
     dependencies:
-      effect: 4.0.0-beta.107
+      effect: 4.0.0-rc.108
       react: 19.2.8
       scheduler: 0.27.0
 
-  '@effect/platform-node-shared@4.0.0-beta.107(effect@4.0.0-beta.107)':
+  '@effect/platform-node-shared@4.0.0-rc.108(effect@4.0.0-rc.108)':
     dependencies:
       '@types/ws': 8.18.1
-      effect: 4.0.0-beta.107
+      effect: 4.0.0-rc.108
       ws: 8.21.2
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
 
-  '@effect/platform-node@4.0.0-beta.107(effect@4.0.0-beta.107)(ioredis@5.11.1(supports-color@7.2.0))':
+  '@effect/platform-node@4.0.0-rc.108(effect@4.0.0-rc.108)(ioredis@5.11.1(supports-color@7.2.0))':
     dependencies:
-      '@effect/platform-node-shared': 4.0.0-beta.107(effect@4.0.0-beta.107)
-      effect: 4.0.0-beta.107
+      '@effect/platform-node-shared': 4.0.0-rc.108(effect@4.0.0-rc.108)
+      effect: 4.0.0-rc.108
       ioredis: 5.11.1(supports-color@7.2.0)
       mime: 4.1.0
       undici: 8.10.0
@@ -3088,9 +3088,9 @@ snapshots:
       - bufferutil
       - utf-8-validate
 
-  '@effect/vitest@4.0.0-beta.107(effect@4.0.0-beta.107)(vitest@4.1.9(@types/node@24.10.1)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.0)))':
+  '@effect/vitest@4.0.0-rc.108(effect@4.0.0-rc.108)(vitest@4.1.9(@types/node@24.10.1)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.0)))':
     dependencies:
-      effect: 4.0.0-beta.107
+      effect: 4.0.0-rc.108
       vitest: 4.1.9(@types/node@24.10.1)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.0))
 
   '@electron-internal/extract-zip@1.0.5': {}
@@ -3873,7 +3873,7 @@ snapshots:
 
   '@rolldown/pluginutils@1.0.1': {}
 
-  '@shivaedev/effect-prisma@0.5.2(@effect/vitest@4.0.0-beta.107(effect@4.0.0-beta.107)(vitest@4.1.9(@types/node@24.10.1)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.0))))(@typescript/typescript6@6.0.2)(effect@4.0.0-beta.107)(typanion@3.14.0)':
+  '@shivaedev/effect-prisma@0.5.3(@effect/vitest@4.0.0-rc.108(effect@4.0.0-rc.108)(vitest@4.1.9(@types/node@24.10.1)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.0))))(@typescript/typescript6@6.0.2)(effect@4.0.0-rc.108)(typanion@3.14.0)':
     dependencies:
       '@prisma-next/contract': 0.15.0(@typescript/typescript6@6.0.2)
       '@prisma-next/postgres': 0.15.0(@typescript/typescript6@6.0.2)(typanion@3.14.0)
@@ -3882,21 +3882,21 @@ snapshots:
       '@prisma-next/sql-relational-core': 0.15.0(@typescript/typescript6@6.0.2)
       '@prisma-next/sql-runtime': 0.15.0(@typescript/typescript6@6.0.2)
       '@prisma-next/sqlite': 0.15.0(@typescript/typescript6@6.0.2)(typanion@3.14.0)
-      effect: 4.0.0-beta.107
+      effect: 4.0.0-rc.108
     optionalDependencies:
-      '@effect/vitest': 4.0.0-beta.107(effect@4.0.0-beta.107)(vitest@4.1.9(@types/node@24.10.1)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.0)))
+      '@effect/vitest': 4.0.0-rc.108(effect@4.0.0-rc.108)(vitest@4.1.9(@types/node@24.10.1)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.0)))
     transitivePeerDependencies:
       - magicast
       - pg-native
       - typanion
       - typescript
 
-  '@shivaedev/effect-trpc@0.3.1(@effect/vitest@4.0.0-beta.107(effect@4.0.0-beta.107)(vitest@4.1.9(@types/node@24.10.1)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.0))))(@trpc/server@11.18.0(@typescript/typescript6@6.0.2))(effect@4.0.0-beta.107)':
+  '@shivaedev/effect-trpc@0.3.2(@effect/vitest@4.0.0-rc.108(effect@4.0.0-rc.108)(vitest@4.1.9(@types/node@24.10.1)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.0))))(@trpc/server@11.18.0(@typescript/typescript6@6.0.2))(effect@4.0.0-rc.108)':
     dependencies:
       '@trpc/server': 11.18.0(@typescript/typescript6@6.0.2)
-      effect: 4.0.0-beta.107
+      effect: 4.0.0-rc.108
     optionalDependencies:
-      '@effect/vitest': 4.0.0-beta.107(effect@4.0.0-beta.107)(vitest@4.1.9(@types/node@24.10.1)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.0)))
+      '@effect/vitest': 4.0.0-rc.108(effect@4.0.0-rc.108)(vitest@4.1.9(@types/node@24.10.1)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.0)))
 
   '@sindresorhus/is@4.6.0': {}
 
@@ -4449,7 +4449,7 @@ snapshots:
     dependencies:
       readable-stream: 2.3.8
 
-  effect@4.0.0-beta.107:
+  effect@4.0.0-rc.108:
     dependencies:
       '@standard-schema/spec': 1.1.0
       fast-check: 4.9.0

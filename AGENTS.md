@@ -4,6 +4,14 @@ The conventions here are enforced by tooling, not requested by prose. Run
 `pnpm lint` before considering any change done; run `pnpm ready` for the full
 validation stack (lint, build, typechecks, tests, guard tests).
 
+## The guards
+
+`node script/lint.ts`, run by `pnpm lint`: rules in `script/lint/rules/`,
+impure edges in `script/lint/adapters/`. It walks `script/` too, so a banned
+token is never spelled in TypeScript — rule patterns live in
+`script/lint/rules/rule-patterns.json`, guard fixtures in
+`script/test/fixtures/`.
+
 ## Everything is Effect
 
 All runtime code is Effect-based. The pattern linter fails the build on

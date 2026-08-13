@@ -5,14 +5,15 @@ packages:
 catalog:
   "@biomejs/biome": 2.5.1
   "@effect/atom-react": 4.0.0-beta.102
-  "@effect/vitest": 4.0.0-beta.102
+  "@effect/platform-node": 4.0.0-rc.108
+  "@effect/vitest": 4.0.0-rc.108
   "@prisma-next/adapter-sqlite": 0.15.0
   "@prisma-next/cli": 0.15.0
   "@prisma-next/contract": 0.15.0
   "@prisma-next/sql-contract": 0.15.0
   "@prisma-next/sqlite": 0.15.0
-  "@shivaedev/effect-prisma": 0.5.1
-  "@shivaedev/effect-trpc": 0.3.0
+  "@shivaedev/effect-prisma": 0.5.3
+  "@shivaedev/effect-trpc": 0.3.2
   "@trpc/client": 11.18.0
   "@trpc/server": 11.18.0
   "@types/node": 24.10.1
@@ -20,9 +21,10 @@ catalog:
   "@types/react-dom": 19.2.4
   "@typescript/native": npm:typescript@7.0.2
   dependency-cruiser: 18.1.1
-  effect: 4.0.0-beta.102
+  effect: 4.0.0-rc.108
   electron: 43.3.0
   electron-builder: 26.15.7
+  ignore: 7.0.6
   react: 19.2.8
   react-dom: 19.2.8
   rolldown: 1.2.2
@@ -48,6 +50,15 @@ minimumReleaseAgeIgnoreMissingTime: false
 minimumReleaseAgeStrict: true
 minimumReleaseAgeExclude:
   - "@shivaedev/*"
+  # The 4.0 release candidate is younger than the quarantine window. Pinned to
+  # the exact versions in the catalog, never the package name, so a fresh
+  # release cannot slip in unreviewed; the last entry is a transitive
+  # dependency of @effect/platform-node. Remove all four once 2026-08-19
+  # passes and the window covers them.
+  - "effect@4.0.0-rc.108"
+  - "@effect/vitest@4.0.0-rc.108"
+  - "@effect/platform-node@4.0.0-rc.108"
+  - "@effect/platform-node-shared@4.0.0-rc.108"
 trustPolicy: no-downgrade
 trustLockfile: false
 blockExoticSubdeps: true

@@ -7,11 +7,14 @@
 	"engines": {
 		"node": ">=24"
 	},
+	"imports": {
+		"#*": "./script/*"
+	},
 	"scripts": {
 		"build": "pnpm --recursive --if-present build",
 		"check": "biome check .",
 		"format": "biome check --write .",
-		"lint": "pnpm check && node script/lint-structure.ts && node script/lint-patterns.ts && node script/lint-pragmas.ts && node script/lint-manifests.ts && node script/lint-contracts.ts && pnpm lint:boundaries",
+		"lint": "pnpm check && node script/lint.ts && pnpm lint:boundaries",
 		"lint:boundaries": "depcruise --config .dependency-cruiser.cjs apps packages",
 		"test": "pnpm --recursive --if-present test",
 		"test:guards": "vitest run script",
@@ -22,9 +25,13 @@
 	},
 	"devDependencies": {
 		"@biomejs/biome": "catalog:",
+		"@effect/platform-node": "catalog:",
+		"@effect/vitest": "catalog:",
 		"@types/node": "catalog:",
 		"@typescript/native": "catalog:",
 		"dependency-cruiser": "catalog:",
+		"effect": "catalog:",
+		"ignore": "catalog:",
 		"typescript": "catalog:",
 		"vitest": "catalog:"
 	}

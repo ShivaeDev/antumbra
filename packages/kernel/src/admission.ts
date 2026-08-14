@@ -1,12 +1,23 @@
 import { Database } from "@antumbra/persistence";
-import { Clock, Effect, Queue, Ref } from "effect";
-import type { Gate } from "#gate.ts";
+import { Clock, Effect, Option, Queue, Ref } from "effect";
+import type { AdmissionSnapshot, Gate } from "#gate.ts";
 import { applyTransition, startIntent } from "#scheduler.ts";
 import { SchedulerState } from "#state.ts";
 
+const takeSnapshot = Effect.gen(function* () {
+	const state = yield* SchedulerState;
+	const running = yield* Ref.get(state.running);
+	const now = yield* Clock.currentTimeMillis;
+	const lastChange = yield* Ref.get(state.lastChangeAt);
+	return {
+		millisSinceLastChange: now - lastChange,
+		runningCount: running.size,
+	} satisfies AdmissionSnapshot;
+});
+
 const scheduleRetry = (
 	blocked: ReadonlyArray<Gate>,
-	snapshot: Parameters<Gate["admits"]>[0],
+	snapshot: AdmissionSnapshot,
 ) =>
 	Effect.gen(function* () {
 		const state = yield* SchedulerState;
@@ -18,10 +29,9 @@ const scheduleRetry = (
 		if (waits.length === 0) {
 			return;
 		}
-		if (yield* Ref.get(state.retryPending)) {
+		if (yield* Ref.getAndSet(state.retryPending, true)) {
 			return;
 		}
-		yield* Ref.set(state.retryPending, true);
 		// why: a time-blocked gate reopens on its own schedule, not on a status
 		// change, so a single pending timer re-ticks the loop when the longest
 		// remaining wait has elapsed.
@@ -33,59 +43,56 @@ const scheduleRetry = (
 		);
 	});
 
-const oldestFirst = (
-	a: { readonly createdAt: Date; readonly id: string },
-	b: { readonly createdAt: Date; readonly id: string },
-): number => {
-	if (a.createdAt < b.createdAt) {
-		return -1;
-	}
-	if (a.createdAt > b.createdAt) {
-		return 1;
-	}
-	return a.id < b.id ? -1 : 1;
-};
-
-const drain = Effect.gen(function* () {
-	const state = yield* SchedulerState;
+// why: the pull order is the scheduler's one policy seam — oldest-first in
+// SQL today; priority class, focus, and demand land here without touching
+// the loop.
+const pullNext = Effect.gen(function* () {
 	const db = yield* Database;
-	while (true) {
-		const runningMap = yield* Ref.get(state.running);
-		const now = yield* Clock.currentTimeMillis;
-		const lastChange = yield* Ref.get(state.lastChangeAt);
-		const snapshot = {
-			millisSinceLastChange: now - lastChange,
-			runningCount: runningMap.size,
-		};
-		const blocked = state.gates.filter((gate) => !gate.admits(snapshot));
-		if (blocked.length > 0) {
-			yield* scheduleRetry(blocked, snapshot);
-			return;
-		}
-		const queued = yield* db.Intent.where({ status: "queued" }).all();
-		const [oldest] = [...queued].sort(oldestFirst);
-		if (oldest === undefined) {
-			return;
-		}
-		const admitted = yield* applyTransition(oldest.id, "admit").pipe(
-			Effect.catchTags({
-				IntentNotFound: () => Effect.succeed(undefined),
-				InvalidTransition: () => Effect.succeed(undefined),
-			}),
-		);
-		if (admitted !== undefined) {
-			yield* startIntent(oldest);
-		}
+	return yield* db.Intent.where({ status: "queued" })
+		.orderBy([(intent) => intent.createdAt.asc(), (intent) => intent.id.asc()])
+		.take(1)
+		.first();
+});
+
+const admitOne = Effect.gen(function* () {
+	const state = yield* SchedulerState;
+	const snapshot = yield* takeSnapshot;
+	const blocked = state.gates.filter((gate) => !gate.admits(snapshot));
+	if (blocked.length > 0) {
+		yield* scheduleRetry(blocked, snapshot);
+		return "blocked" as const;
 	}
+	const next = yield* pullNext;
+	if (Option.isNone(next)) {
+		return "empty" as const;
+	}
+	const admitted = yield* applyTransition(next.value.id, "admit").pipe(
+		Effect.map(Option.some),
+		Effect.catchTags({
+			IntentNotFound: () => Effect.succeed(Option.none()),
+			InvalidTransition: () => Effect.succeed(Option.none()),
+		}),
+	);
+	if (Option.isSome(admitted)) {
+		yield* Effect.logDebug("admitted intent", { id: next.value.id });
+		yield* startIntent(next.value);
+	}
+	return "pulled" as const;
+});
+
+const drain = Effect.repeat(admitOne, {
+	while: (outcome) => outcome === "pulled",
 });
 
 export const schedulerLoop = Effect.gen(function* () {
 	const state = yield* SchedulerState;
 	// why: a failed drain must never kill the scheduler fiber — the kernel
 	// would keep accepting intents and silently stop admitting them. Log the
-	// cause and wait for the next tick.
+	// cause and wait for the next tick. Pending ticks coalesce: they all mean
+	// "look again", and one drain looks.
 	yield* Effect.forever(
 		Queue.take(state.tick).pipe(
+			Effect.andThen(Queue.clear(state.tick)),
 			Effect.andThen(drain),
 			Effect.catchCause((cause) =>
 				Effect.logError("scheduler drain failed", cause),

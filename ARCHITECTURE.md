@@ -52,4 +52,5 @@ plugins, so the API stays honest by construction.
 The stack is Effect-based TypeScript at maximum strictness. Mechanical
 guards (file structure, code patterns, pragma registry, boundaries) run in
 `pnpm lint` and are themselves covered by tests; judgment-level standards
-live in `quality-gates/`. See `AGENTS.md` for the working conventions.
+live in `quality-gates/`. See `AGENTS.md` for the working conventions and
+`DESIGN.md` for the design axioms every new concept must satisfy.

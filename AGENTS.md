@@ -2,7 +2,8 @@
 
 The conventions here are enforced by tooling, not requested by prose. Run
 `pnpm lint` before considering any change done; run `pnpm ready` for the full
-validation stack (lint, build, typechecks, tests, guard tests).
+validation stack (lint, build, typechecks, tests, guard tests). Before
+shaping any new concept, read `DESIGN.md` — the design axioms bind.
 
 ## The guards
 

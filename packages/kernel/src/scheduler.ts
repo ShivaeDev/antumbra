@@ -85,7 +85,15 @@ const settleExit = (id: string, exit: Exit.Exit<void, unknown>) =>
 			return;
 		}
 		yield* applyTransition(id, "fail", Cause.pretty(exit.cause));
-	}).pipe(Effect.uninterruptible, Effect.ignore);
+	}).pipe(
+		Effect.uninterruptible,
+		// why: settling must never take anything else down, but a swallowed
+		// write failure strands the row as "running" with no fiber until boot
+		// reclaim — the cause is logged before being discarded.
+		Effect.catchCause((cause) =>
+			Effect.logError("intent settle failed", { id }, cause),
+		),
+	);
 
 export const startIntent = (row: {
 	readonly id: string;
@@ -96,6 +104,7 @@ export const startIntent = (row: {
 		const state = yield* SchedulerState;
 		const kind = state.kinds.get(row.tag);
 		if (kind === undefined) {
+			yield* Effect.logWarning("no registered intent kind", { tag: row.tag });
 			yield* applyTransition(
 				row.id,
 				"fail",

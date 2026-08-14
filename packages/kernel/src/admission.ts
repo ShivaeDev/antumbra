@@ -81,5 +81,15 @@ const drain = Effect.gen(function* () {
 
 export const schedulerLoop = Effect.gen(function* () {
 	const state = yield* SchedulerState;
-	yield* Effect.forever(Queue.take(state.tick).pipe(Effect.andThen(drain)));
+	// why: a failed drain must never kill the scheduler fiber — the kernel
+	// would keep accepting intents and silently stop admitting them. Log the
+	// cause and wait for the next tick.
+	yield* Effect.forever(
+		Queue.take(state.tick).pipe(
+			Effect.andThen(drain),
+			Effect.catchCause((cause) =>
+				Effect.logError("scheduler drain failed", cause),
+			),
+		),
+	);
 });

@@ -55,5 +55,10 @@ export const reclaim = Effect.gen(function* () {
 			return [...running, ...cancelling];
 		}),
 	);
+	if (settled.length > 0) {
+		yield* Effect.logInfo("reclaim settled stranded intents", {
+			count: settled.length,
+		});
+	}
 	yield* Effect.forEach(settled, announce);
 });

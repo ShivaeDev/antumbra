@@ -13,21 +13,19 @@ export interface IntentStepOptions {
 export class IntentExecution extends Context.Service<
 	IntentExecution,
 	{
-		readonly step: (
+		readonly step: <R>(
 			name: string,
-			execute: Effect.Effect<void, unknown>,
+			execute: Effect.Effect<void, unknown, R>,
 			options?: IntentStepOptions,
-		) => Effect.Effect<void, unknown>;
+		) => Effect.Effect<void, unknown, R>;
 	}
 >()("@antumbra/kernel/IntentExecution") {}
 
-type WorkflowContext =
-	| WorkflowEngine.WorkflowEngine
-	| WorkflowEngine.WorkflowInstance;
-
 const makeExecution = (tag: string) =>
-	Effect.map(Effect.context<WorkflowContext>(), (context) =>
-		IntentExecution.of({
+	Effect.gen(function* () {
+		const engine = yield* WorkflowEngine.WorkflowEngine;
+		const instance = yield* WorkflowEngine.WorkflowInstance;
+		return IntentExecution.of({
 			step: (name, execute, options) => {
 				// why: Effect activities retry interruption by default, but kernel cancel
 				// and layer teardown must stop promptly; typed failure retries are explicit.
@@ -41,10 +39,13 @@ const makeExecution = (tag: string) =>
 					options === undefined
 						? activity
 						: Activity.retry(activity, { times: options.additionalAttempts });
-				return attempt.pipe(Effect.provideContext(context));
+				return attempt.pipe(
+					Effect.provideService(WorkflowEngine.WorkflowEngine, engine),
+					Effect.provideService(WorkflowEngine.WorkflowInstance, instance),
+				);
 			},
-		}),
-	);
+		});
+	});
 
 export const makeIntentWorkflow = (
 	tag: string,

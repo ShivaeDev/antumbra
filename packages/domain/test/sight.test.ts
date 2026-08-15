@@ -80,6 +80,8 @@ it.live("spawn surfaces on the fleet feed once the agent lives", () =>
 			expect(agent?.sessions.map((session) => session.id)).toEqual([
 				receipt.sessionId,
 			]);
+			expect(agent?.sessions[0]?.backend).toBe("scripted");
+			expect(settled[0]?.backends).toEqual(["scripted"]);
 		}).pipe(Effect.provide(sightLayer(temporary, scripted)));
 	}),
 );

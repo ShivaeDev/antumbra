@@ -22,10 +22,18 @@ const fleet = {
 			charter: "chart the reef",
 			id: "agent-1",
 			role: "navigator",
-			sessions: [{ cwd: "/tmp/reef", id: "session-1", status: "open" }],
+			sessions: [
+				{
+					backend: "claude",
+					cwd: "/tmp/reef",
+					id: "session-1",
+					status: "open",
+				},
+			],
 			status: "alive",
 		},
 	],
+	backends: ["claude"],
 };
 
 const storedEvents: ReadonlyArray<SessionEvent> = [

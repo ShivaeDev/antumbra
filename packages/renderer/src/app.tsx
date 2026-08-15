@@ -52,7 +52,7 @@ export const App = () => {
 				{notice === undefined ? null : (
 					<div style={{ color: "#ff7c7c", fontSize: "0.85rem" }}>{notice}</div>
 				)}
-				<SpawnForm onError={setNotice} />
+				<SpawnForm backends={fleet?.backends ?? []} onError={setNotice} />
 				<FleetPanel
 					fleet={fleet}
 					onError={setNotice}

@@ -58,11 +58,11 @@ given work. Missing observers, an empty in-memory registry, or a dead watcher
 only remove current knowledge; they never mean an Agent retired, a Session
 closed, a Moorage orphaned, or a claim released.
 
-After a successful native attach, recovery queues one durable recovery
-instruction. Delivery is an external effect: Antumbra records the attempt and
-marks it delivered only with positive evidence. If exit or transport failure
-makes delivery ambiguous, the work holds visibly for a retry decision instead
-of silently resending.
+After a successful native attach, recovery durably queues one recovery
+instruction for ordinary at-least-once delivery. If exit or transport failure
+obscures whether the provider accepted it, a retry may send a duplicate;
+missing the instruction is worse than repeating an idempotent one. A provider
+send is not durable evidence that an Agent read its mail.
 
 If the provider transcript or native session is unavailable, recovery holds
 visibly. Starting a linked successor Session is an explicit choice, preserves
@@ -74,7 +74,7 @@ resume.
 
 Graceful shutdown asks active and pending Sessions to settle, drains them to an
 idle posture, and only then exits. A forced shutdown merely ends local
-execution. It does not synthesize successful delivery, Session closure, Agent
+execution. It does not synthesize a mailbox read, Session closure, Agent
 retirement, or resource reclamation; startup reconciles the surviving durable
 truth.
 
@@ -83,9 +83,10 @@ are observable holds. Retrying restarts the workflow from durable truth. A
 successful intent means its promised durable boundary was reached, not merely
 that background work was detached.
 
-Agent-directed mail is durable and board-backed. Addressing and delivery are
-separate: mail remains true without a Session attachment, and transport into a
-running Session follows explicit precedence and delivery evidence.
+Agent-directed mail is durable and board-backed. Addressing and marked-read
+state remain true without a Session attachment. Transport into a running
+Session follows explicit precedence and at-least-once delivery; sending never
+marks the mail read.
 
 ## Reclamation boundary
 

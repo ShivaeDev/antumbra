@@ -15,18 +15,19 @@ durable truth. The governing concepts are in
 3. Keep Agent identity, current replaceable resources, and AgentSession
    provider conversation as separate concerns. Success or failure in one may
    only change the others through an explicit domain transition.
-4. Name success at the promised durable boundary. Durable evidence of an
-   external effect and the domain state it justifies are written atomically
-   before success is reported.
+4. Name success at the promised durable boundary. Durable domain transitions
+   and the evidence they depend on are written atomically before success is
+   reported. A transport send is never receipt or read evidence.
 5. Absence is not a terminal event. An empty registry, closed process, dead
    watcher, or lost subscription never proves completion, closure, retirement,
    orphaning, or release.
 6. Resume the same Agent, AgentSession, and provider-native session or thread.
    A successor is explicit recovery policy, never silent fallback, and the
    neutral event log is not provider replay input.
-7. Authentication and ambiguous external effects hold visibly. Never silently
-   resend an effect whose delivery cannot be proved, and never turn uncertainty
-   into success or abandonment.
+7. Choose delivery semantics explicitly. Recovery instructions use
+   at-least-once transport: retry when provider acceptance is unknown and make
+   duplicates harmless. Durable mailbox addressing and marked-read state stay
+   separate; sending never marks mail read.
 8. Reclamation targets replaceable resources only and fails closed on dirty,
    unpushed, unauthenticated, or uncertain evidence. Age is a policy signal,
    not proof of safety.
@@ -45,8 +46,8 @@ durable truth. The governing concepts are in
       domain work or release a resource?
 - [ ] Does normal recovery preserve Agent, AgentSession, native reference, and
       event sequence rather than replaying or replacing them?
-- [ ] Does ambiguous delivery become an observable hold instead of an
-      automatic resend?
+- [ ] Does each delivery path distinguish durable addressed and marked-read
+      truth from at-least-once transport, with duplicate-tolerant instructions?
 - [ ] Does cleanup preserve identity, boards, transcript, and story, and block
       automation whenever safety evidence is incomplete?
 - [ ] Does a restart test destroy and rebuild the real persistence and Effect

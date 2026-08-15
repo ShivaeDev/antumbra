@@ -90,8 +90,8 @@ Axioms of the stack:
   There is no turn in the domain: activity is a stream of events, load is a
   level, and quiescence is a derived gauge no one awaits — completion is not
   in the ontology of conversation. Admission governs births, not messages;
-  mail is durably addressed to an agent, while delivery into a session is a
-  separate, evidence-backed effect.
+  mail is durably addressed to an agent and marked read in mailbox truth,
+  while transport into a session is a separate, at-least-once effect.
 - **The event log is the product surface; views are glass.** The renderer is
   a stateless projection fed by one typed contract: every view rehydrates
   from the log and stays current by subscription, so killing a view touches

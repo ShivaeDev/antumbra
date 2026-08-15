@@ -6,7 +6,7 @@ import {
 	type WireEvent,
 } from "@antumbra/plugin-api";
 import { Effect, Queue, Stream } from "effect";
-import { openRawSession } from "#adapters/claude-sdk.ts";
+import { openRawSession } from "#claude/adapters/session.ts";
 
 const failure = (detail: unknown) =>
 	new BackendFailure({ detail: String(detail), tag: "claude" });

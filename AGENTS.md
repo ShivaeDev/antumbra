@@ -34,9 +34,13 @@ them.
 
 Comments are banned by the linter. When code genuinely cannot express a
 constraint, write `// why: ...` (or a `/* why: ... */` block) — every
-surviving comment is a deliberate, greppable claim. Tool pragmas
-(`@ts-expect-error`, `biome-ignore`) require a reason and an entry in
-`script/pragma-registry.json`; `@ts-ignore` is never allowed.
+surviving comment is a deliberate, greppable claim. Lint suppression does
+not exist: `biome-ignore` (in every form) is itself a lint failure. A false
+positive means the lint rule is wrong — fix the rule, a reviewed guard
+change, or fix the code; never silence the site. The only tool pragma is
+the compiler's `@ts-expect-error`, which requires a reason and an entry in
+`script/pragma-registry.json`; `@ts-ignore` and `@ts-nocheck` are never
+allowed.
 
 ## Size, structure, and depth
 

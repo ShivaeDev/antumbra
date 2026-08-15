@@ -65,14 +65,27 @@ responsibility — named functions in purpose-named files — never denser code.
 - `index.ts` exists only as a package entry. No barrels.
 - Any imported file should be readable in full.
 
+## Packages and layers
+
+A package is one responsibility, named for it. Dependencies point one way:
+the session vocabulary is a leaf, the port packages define the interfaces,
+the domain holds the use cases, and adapters implement the ports — one
+package per implementation, beside the interface it implements. Adapters
+know ports, never the domain; the domain knows ports, never the providers
+behind them. Only the desktop app composes the two. When an import wants to
+cross a layer, the package shape is wrong, not the rule. See
+`quality-gates/package-architecture.md`.
+
 ## Boundaries
 
 `.dependency-cruiser.cjs` enforces package direction: the renderer imports
-only the contract package (never Electron, never core packages); Electron
-APIs appear only in the desktop shell; the contract package imports nothing;
-nothing imports the app shell; only the persistence package touches the
-database. Never edit guard or boundary configuration to make a violation
-pass — fix the code.
+only the contract and session-events packages (never Electron, never core
+packages); adapter packages (`backend-*`, `runner-*`) never import the
+domain; the domain never imports an adapter or a provider SDK; Electron APIs
+appear only in the desktop shell; the contract and session-events packages
+import nothing; nothing imports the app shell; only the persistence package
+touches the database. Never edit guard or boundary configuration to make a
+violation pass — fix the code.
 
 ## Tests
 

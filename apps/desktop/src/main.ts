@@ -1,10 +1,10 @@
+import { claudePlugin } from "@antumbra/backend-claude";
+import { makeAppRouter } from "@antumbra/contract";
 import {
 	AgentDomain,
 	AgentDomainLive,
-	claudePlugin,
 	SightSourceLive,
-} from "@antumbra/backends";
-import { makeAppRouter } from "@antumbra/contract";
+} from "@antumbra/domain";
 import { KernelLive } from "@antumbra/kernel";
 import {
 	databaseFileInDataDirectory,
@@ -12,7 +12,7 @@ import {
 	PersistenceLive,
 } from "@antumbra/persistence";
 import { makePluginHost } from "@antumbra/plugin-api";
-import { localRunnerPlugin } from "@antumbra/runners";
+import { localRunnerPlugin } from "@antumbra/runner-local";
 import { Effect, Layer, ManagedRuntime } from "effect";
 import { AppInfoSourceLive } from "#adapters/app-info.ts";
 import { runBoot } from "#adapters/boot.ts";

@@ -7,20 +7,23 @@ export const AgentStatusSchema = Schema.Literals([
 ]);
 export type AgentStatus = typeof AgentStatusSchema.Type;
 
-export const AGENT_EVENTS = ["reclaim", "retire"] as const;
-export type AgentEvent = (typeof AGENT_EVENTS)[number];
+export const AGENT_STATUS_EVENTS = ["reclaim", "retire"] as const;
+export type AgentStatusEvent = (typeof AGENT_STATUS_EVENTS)[number];
 
 export class InvalidAgentTransition extends Data.TaggedError(
 	"InvalidAgentTransition",
 )<{
-	readonly event: AgentEvent;
+	readonly event: AgentStatusEvent;
 	readonly from: AgentStatus;
 }> {}
 
 // why: spawn creates the row directly in "alive" — birth is not a transition.
 // Dormant has no way back in v0: revival is deliberately absent, so the table
 // makes resurrection unrepresentable instead of discouraged.
-const TABLE: Record<AgentStatus, Partial<Record<AgentEvent, AgentStatus>>> = {
+const TABLE: Record<
+	AgentStatus,
+	Partial<Record<AgentStatusEvent, AgentStatus>>
+> = {
 	alive: { reclaim: "dormant", retire: "retired" },
 	dormant: { retire: "retired" },
 	retired: {},
@@ -30,7 +33,7 @@ export const AGENT_STATUSES = AgentStatusSchema.literals;
 
 export const agentTransition = (
 	from: AgentStatus,
-	event: AgentEvent,
+	event: AgentStatusEvent,
 ): Result.Result<AgentStatus, InvalidAgentTransition> => {
 	const next = TABLE[from][event];
 	return next === undefined

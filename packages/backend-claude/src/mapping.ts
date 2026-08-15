@@ -1,6 +1,6 @@
 import type { SDKMessage } from "@anthropic-ai/claude-agent-sdk";
 import type { AgentEvent, RawPayload } from "@antumbra/session-events";
-import { blockEvent, contentBlocks } from "#claude/blocks.ts";
+import { blockEvent, contentBlocks } from "#blocks.ts";
 
 const SOURCE = "claude";
 

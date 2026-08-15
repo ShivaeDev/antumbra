@@ -1,4 +1,3 @@
-export { claudeBackend, claudePlugin } from "#claude/plugin.ts";
 export {
 	AGENTS_ALIVE_GAUGE,
 	AgentDomain,
@@ -15,10 +14,10 @@ export type { RetireFields } from "#retire.ts";
 export { SightSourceLive } from "#sight.ts";
 export type { SpawnFields } from "#spawn.ts";
 export {
-	AGENT_EVENTS,
+	AGENT_STATUS_EVENTS,
 	AGENT_STATUSES,
-	type AgentEvent,
 	type AgentStatus,
+	type AgentStatusEvent,
 	AgentStatusSchema,
 	agentTransition,
 	InvalidAgentTransition,

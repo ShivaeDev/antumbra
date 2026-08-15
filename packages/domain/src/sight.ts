@@ -1,5 +1,6 @@
 import {
 	type EventQuery,
+	type RepoRegistration,
 	SessionEvent,
 	SightFailure,
 	SightSource,
@@ -91,7 +92,6 @@ export const SightSourceLive = Layer.effect(SightSource)(
 						agentId,
 						backend: request.backend,
 						charter: request.charter,
-						repos: request.repos,
 						role: request.role,
 						// why: the sole runner in v1 — the field joins the contract when
 						// a second runner exists to choose between.
@@ -111,10 +111,18 @@ export const SightSourceLive = Layer.effect(SightSource)(
 		const interrupt = (sessionId: string) =>
 			domain.interruptSession(sessionId).pipe(Effect.mapError(toFailure));
 
+		const registerRepo = (registration: RepoRegistration) =>
+			domain.repos.register(registration).pipe(Effect.mapError(toFailure));
+
+		const forgetRepo = (repoId: string) =>
+			domain.repos.forget(repoId).pipe(Effect.mapError(toFailure));
+
 		return {
 			fleet,
 			fleetFeed,
+			forgetRepo,
 			interrupt,
+			registerRepo,
 			retire,
 			sessionEventFeed,
 			sessionEvents,

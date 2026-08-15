@@ -56,7 +56,6 @@ const spawnPayload = (suffix: string): SpawnFields => ({
 	agentId: `agent-${suffix}`,
 	backend: "scripted",
 	charter: `charter for ${suffix}`,
-	repos: [],
 	role: "test hand",
 	runner: "local",
 	sessionId: `session-${suffix}`,
@@ -172,10 +171,14 @@ it.live("a failed spawn becomes dormant without hiding its failure", () =>
 			const db = yield* Database;
 			const kernel = yield* Kernel;
 			const domain = yield* AgentDomain;
-			const submission = yield* kernel.submit(domain.spawn, {
-				...spawnPayload("failed"),
-				repos: [{ ref: "main", source: "/somewhere/repo" }],
+			yield* domain.repos.register({
+				defaultRef: "main",
+				source: "/somewhere/repo",
 			});
+			const submission = yield* kernel.submit(
+				domain.spawn,
+				spawnPayload("failed"),
+			);
 			expect(yield* untilTerminal(submission.changes)).toBe("failed");
 			const agent = yield* db.Agent.where({ id: "agent-failed" }).first();
 			expect(Option.getOrThrow(agent).status).toBe("dormant");

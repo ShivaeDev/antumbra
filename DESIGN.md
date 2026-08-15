@@ -54,7 +54,26 @@ Axioms of the stack:
   never mutated.
 - **Repos and worktrees are resources, not containers.** A cross-repo piece
   gets one agent with one worktree per repo. Never bake in one-piece-one-repo,
-  one-session-one-worktree, or one-piece-one-PR.
+  one-session-one-worktree, or one-piece-one-PR. Repos are registered once,
+  at the app level, each with its bare mirror; every spawn gets a berth per
+  registered repo, so no piece or voyage carries a repo list. Narrowing which
+  repos an agent sees is a later filter, never a per-piece binding.
+- **Voyages sail by launch, not by play.** Every voyage has a captain — a
+  named, durable agent hailed for it, who charters its pieces. There is no
+  voyage-level play or pause: a voyage is under way because its captain is
+  at work. Launching is per piece and means *release into the pool* — the
+  intent separates the intention from the physical act. A launched piece
+  waits on its edges (predecessors done) and on admission, and crew is
+  spawned when it is ready, so a launched chain finishes on its own. The
+  captain launches by tool and the admiral by window; both pull the same
+  intent.
+- **Agents act back through tools on the backend port.** Landing an outcome,
+  writing a board, standing down: these are tools every session receives at
+  open, defined once in a transport-free package (schemas and handlers into
+  the domain, blind to any harness) and mapped by each backend adapter onto
+  its provider's own tool mechanism, in-process. Identity is bound at spawn;
+  nothing about who is calling travels on the wire. A network face for
+  non-local consumers is an addition to that package, never a substitute.
 - **Agents are alive; intents are events in their life.** The kernel
   schedules the moments — spawn brings an agent into being with a role, a
   charter, and pre-assigned identity; retire ends it — never the living.
@@ -188,8 +207,8 @@ compute: reify, queue, prioritize, preempt.
 - **Agents never create their own worktrees — they are moored.** Every spawn
   gets a moorage: a folder that is the agent's cwd and scratchpad, holding
   one berth (a worktree on a `work/…` branch, cut from a bare mirror under
-  the app's data dir) per requested repo — zero repos means a bare scratch
-  moorage. The runner provisions before the session opens. Reclaim is
+  the app's data dir) per registered repo — no repos registered means a bare
+  scratch moorage. The runner provisions before the session opens. Reclaim is
   clean-only: a berth with uncommitted or unpushed work is stranded and
   surfaced, while gitignored paths are declared disposable and do not strand
   it. Only strands older than seven days are scrapped. Runners register

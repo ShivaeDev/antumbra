@@ -16,7 +16,7 @@ import type {
 } from '@prisma-next/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'sha256:30005d5ef50dfd9519d446698b51aa01b1e752a12d911dd58db07a24c289a671'>;
+  StorageHashBase<'sha256:957d308f4f0887e60dd97056e641a0b6114f5877152e6d8a71df23700f3a33b0'>;
 export type ExecutionHash = ExecutionHashBase<string>;
 export type ProfileHash =
   ProfileHashBase<'sha256:3cc333ecad9f3f4c7229370a9d2c37e908cdce0f8d2e9fb132d50605b024eff2'>;
@@ -76,13 +76,6 @@ export type FieldOutputTypes = {
       readonly createdAt: CodecTypes['sqlite/datetime@1']['output'];
       readonly updatedAt: CodecTypes['sqlite/datetime@1']['output'];
     };
-    readonly Repo: {
-      readonly id: CodecTypes['sqlite/text@1']['output'];
-      readonly name: CodecTypes['sqlite/text@1']['output'];
-      readonly source: CodecTypes['sqlite/text@1']['output'];
-      readonly defaultRef: CodecTypes['sqlite/text@1']['output'];
-      readonly createdAt: CodecTypes['sqlite/datetime@1']['output'];
-    };
     readonly SessionEvent: {
       readonly sessionId: CodecTypes['sqlite/text@1']['output'];
       readonly seq: CodecTypes['sqlite/integer@1']['output'];
@@ -139,13 +132,6 @@ export type FieldInputTypes = {
       readonly detail: CodecTypes['sqlite/text@1']['input'] | null;
       readonly createdAt: CodecTypes['sqlite/datetime@1']['input'];
       readonly updatedAt: CodecTypes['sqlite/datetime@1']['input'];
-    };
-    readonly Repo: {
-      readonly id: CodecTypes['sqlite/text@1']['input'];
-      readonly name: CodecTypes['sqlite/text@1']['input'];
-      readonly source: CodecTypes['sqlite/text@1']['input'];
-      readonly defaultRef: CodecTypes['sqlite/text@1']['input'];
-      readonly createdAt: CodecTypes['sqlite/datetime@1']['input'];
     };
     readonly SessionEvent: {
       readonly sessionId: CodecTypes['sqlite/text@1']['input'];
@@ -204,13 +190,6 @@ export type StorageColumnTypes = {
       readonly tag: CodecTypes['sqlite/text@1']['output'];
       readonly updatedAt: CodecTypes['sqlite/datetime@1']['output'];
     };
-    readonly repo: {
-      readonly createdAt: CodecTypes['sqlite/datetime@1']['output'];
-      readonly defaultRef: CodecTypes['sqlite/text@1']['output'];
-      readonly id: CodecTypes['sqlite/text@1']['output'];
-      readonly name: CodecTypes['sqlite/text@1']['output'];
-      readonly source: CodecTypes['sqlite/text@1']['output'];
-    };
     readonly sessionEvent: {
       readonly at: CodecTypes['sqlite/datetime@1']['output'];
       readonly kind: CodecTypes['sqlite/text@1']['output'];
@@ -267,13 +246,6 @@ export type StorageColumnInputTypes = {
       readonly status: CodecTypes['sqlite/text@1']['input'];
       readonly tag: CodecTypes['sqlite/text@1']['input'];
       readonly updatedAt: CodecTypes['sqlite/datetime@1']['input'];
-    };
-    readonly repo: {
-      readonly createdAt: CodecTypes['sqlite/datetime@1']['input'];
-      readonly defaultRef: CodecTypes['sqlite/text@1']['input'];
-      readonly id: CodecTypes['sqlite/text@1']['input'];
-      readonly name: CodecTypes['sqlite/text@1']['input'];
-      readonly source: CodecTypes['sqlite/text@1']['input'];
     };
     readonly sessionEvent: {
       readonly at: CodecTypes['sqlite/datetime@1']['input'];
@@ -536,40 +508,6 @@ type ContractBase = Omit<
               indexes: readonly [{ readonly columns: readonly ['status'] }];
               foreignKeys: readonly [];
             };
-            readonly repo: {
-              columns: {
-                readonly id: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'sqlite/text@1';
-                  readonly nullable: false;
-                };
-                readonly name: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'sqlite/text@1';
-                  readonly nullable: false;
-                };
-                readonly source: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'sqlite/text@1';
-                  readonly nullable: false;
-                };
-                readonly defaultRef: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'sqlite/text@1';
-                  readonly nullable: false;
-                };
-                readonly createdAt: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'sqlite/datetime@1';
-                  readonly nullable: false;
-                  readonly default: { readonly kind: 'function'; readonly expression: 'now()' };
-                };
-              };
-              primaryKey: { readonly columns: readonly ['id'] };
-              uniques: readonly [{ readonly columns: readonly ['source'] }];
-              indexes: readonly [];
-              foreignKeys: readonly [];
-            };
             readonly sessionEvent: {
               columns: {
                 readonly sessionId: {
@@ -626,7 +564,6 @@ type ContractBase = Omit<
       readonly model: 'AgentSession';
     };
     readonly berth: { readonly namespace: '__unbound__' & NamespaceId; readonly model: 'Berth' };
-    readonly repo: { readonly namespace: '__unbound__' & NamespaceId; readonly model: 'Repo' };
     readonly sessionEvent: {
       readonly namespace: '__unbound__' & NamespaceId;
       readonly model: 'SessionEvent';
@@ -868,42 +805,6 @@ type ContractBase = Omit<
                 readonly detail: { readonly column: 'detail' };
                 readonly createdAt: { readonly column: 'createdAt' };
                 readonly updatedAt: { readonly column: 'updatedAt' };
-              };
-            };
-          };
-          readonly Repo: {
-            readonly fields: {
-              readonly id: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
-              };
-              readonly name: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
-              };
-              readonly source: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
-              };
-              readonly defaultRef: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
-              };
-              readonly createdAt: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/datetime@1' };
-              };
-            };
-            readonly relations: Record<string, never>;
-            readonly storage: {
-              readonly table: 'repo';
-              readonly namespaceId: '__unbound__';
-              readonly fields: {
-                readonly id: { readonly column: 'id' };
-                readonly name: { readonly column: 'name' };
-                readonly source: { readonly column: 'source' };
-                readonly defaultRef: { readonly column: 'defaultRef' };
-                readonly createdAt: { readonly column: 'createdAt' };
               };
             };
           };

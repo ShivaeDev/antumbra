@@ -3,6 +3,7 @@ import { Effect, Option, Schema } from "effect";
 import { deliverCharterOnce } from "#charter.ts";
 import type { AgentDeps } from "#deps.ts";
 import { UnknownBackendTag, UnknownRunnerTag } from "#errors.ts";
+import { berthRequests } from "#registry.ts";
 import {
 	activateAgent,
 	ensureAgentRow,
@@ -10,16 +11,10 @@ import {
 	settleSpawnFailure,
 } from "#spawn-rows.ts";
 
-const RepoField = Schema.Struct({
-	ref: Schema.String,
-	source: Schema.String,
-});
-
 const SpawnPayload = Schema.Struct({
 	agentId: Schema.String,
 	backend: Schema.String,
 	charter: Schema.String,
-	repos: Schema.Array(RepoField),
 	role: Schema.String,
 	runner: Schema.String,
 	sessionId: Schema.String,
@@ -38,10 +33,11 @@ const spawnAgent = (deps: AgentDeps, payload: SpawnFields) =>
 		}
 		yield* ensureAgentRow(deps, payload);
 		// why: the moorage exists before the session opens — the agent is never
-		// the one creating its own worktrees.
+		// the one creating its own worktrees — and it holds a berth for every
+		// registered repo, read now rather than at submit.
 		const moorage = yield* runner.provision({
 			agentId: payload.agentId,
-			repos: payload.repos,
+			repos: yield* berthRequests(deps),
 		});
 		yield* recordMoorage(deps, payload, moorage);
 		const sink = yield* deps.sinkFor(payload.sessionId);

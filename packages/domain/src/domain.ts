@@ -13,6 +13,7 @@ import { makeEventSinkFactory } from "#events.ts";
 import { makeSessionFabric } from "#fabric.ts";
 import { type DomainFeeds, makeDomainFeeds } from "#feeds.ts";
 import { reclaimAgents } from "#reclaim.ts";
+import { makeRepoRegistry, type RepoRegistry } from "#registry.ts";
 import { makeRetireKind, type RetireFields } from "#retire.ts";
 import { makeSpawnKind, type SpawnFields } from "#spawn.ts";
 
@@ -31,6 +32,7 @@ export class AgentDomain extends Context.Service<
 			sessionId: string,
 		) => Effect.Effect<void, BackendFailure | SessionNotLive>;
 		readonly kinds: ReadonlyArray<AnyIntentKind>;
+		readonly repos: RepoRegistry;
 		readonly retire: IntentKind<RetireFields>;
 		readonly spawn: IntentKind<SpawnFields>;
 	}
@@ -77,6 +79,7 @@ export const AgentDomainLive = (
 				gauges: { [AGENTS_ALIVE_GAUGE]: aliveAgents },
 				interruptSession: fabric.interrupt,
 				kinds: [spawn, retire],
+				repos: makeRepoRegistry(deps),
 				retire,
 				spawn,
 			};

@@ -1,4 +1,4 @@
-import type { AgentSummary, Fleet } from "@antumbra/contract";
+import type { AgentSummary, Fleet, RepoSummary } from "@antumbra/contract";
 import type { DatabaseService } from "@antumbra/persistence";
 import { Effect } from "effect";
 
@@ -16,6 +16,14 @@ export const fleetSnapshot = (
 		const berths = yield* db.Berth.orderBy((berth) =>
 			berth.createdAt.asc(),
 		).all();
+		const repos: ReadonlyArray<RepoSummary> = (yield* db.Repo.orderBy((repo) =>
+			repo.createdAt.asc(),
+		).all()).map((repo) => ({
+			defaultRef: repo.defaultRef,
+			id: repo.id,
+			name: repo.name,
+			source: repo.source,
+		}));
 		const summaries: ReadonlyArray<AgentSummary> = agents.map((agent) => ({
 			berths: berths
 				.filter((berth) => berth.agentId === agent.id)
@@ -37,5 +45,5 @@ export const fleetSnapshot = (
 				})),
 			status: agent.status,
 		}));
-		return { agents: summaries, backends } satisfies Fleet;
+		return { agents: summaries, backends, repos } satisfies Fleet;
 	});

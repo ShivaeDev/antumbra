@@ -60,6 +60,16 @@ model Berth {
   @@index([status])
 }
 
+model Repo {
+  id         String   @id
+  name       String
+  source     String
+  defaultRef String
+  createdAt  DateTime @default(now())
+
+  @@unique([source])
+}
+
 model SessionEvent {
   sessionId String
   seq       Int

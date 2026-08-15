@@ -1,100 +1,90 @@
 import type { SessionEvent } from "@antumbra/contract";
+import { AgentEvent } from "@antumbra/session-events";
+import { Option, Schema } from "effect";
 import { parseJson } from "#adapters/json.ts";
+import { openedLabel, turnLabel, usageLabel } from "#transcript/labels.ts";
 import type { TranscriptItem } from "#transcript/model.ts";
-import { blocksOf, telemetryLabel, textOf } from "#transcript/payload.ts";
 
 interface Derivation {
 	readonly items: TranscriptItem[];
 	readonly toolsById: Map<string, number>;
 }
 
-const applyText = (
-	state: Derivation,
-	event: SessionEvent,
-	block: Record<string, unknown>,
-): void => {
-	if (typeof block.text === "string") {
-		state.items.push({
-			kind: "message",
-			role: event.kind,
-			seq: event.seq,
-			text: block.text,
-		});
-	}
-};
+const decodeEvent = Schema.decodeUnknownOption(AgentEvent);
 
-const applyToolUse = (
+const completeTool = (
 	state: Derivation,
-	event: SessionEvent,
-	block: Record<string, unknown>,
+	toolId: string,
+	ok: boolean,
+	result: string,
 ): void => {
-	if (typeof block.id !== "string" || typeof block.name !== "string") {
-		return;
-	}
-	state.toolsById.set(block.id, state.items.length);
-	state.items.push({
-		input: JSON.stringify(block.input),
-		kind: "tool",
-		name: block.name,
-		result: undefined,
-		seq: event.seq,
-	});
-};
-
-const applyToolResult = (
-	state: Derivation,
-	block: Record<string, unknown>,
-): void => {
-	if (typeof block.tool_use_id !== "string") {
-		return;
-	}
-	const at = state.toolsById.get(block.tool_use_id);
+	const at = state.toolsById.get(toolId);
 	const tool = at === undefined ? undefined : state.items[at];
 	if (at !== undefined && tool !== undefined && tool.kind === "tool") {
-		state.items[at] = { ...tool, result: textOf(block.content) };
+		state.items[at] = { ...tool, ok, result };
 	}
 };
 
-const applyBlock = (
-	state: Derivation,
-	event: SessionEvent,
-	block: Record<string, unknown>,
-): void => {
-	if (block.type === "text") {
-		applyText(state, event, block);
-		return;
-	}
-	if (block.type === "tool_use") {
-		applyToolUse(state, event, block);
-		return;
-	}
-	if (block.type === "tool_result") {
-		applyToolResult(state, block);
-	}
-};
-
-const applyEvent = (state: Derivation, event: SessionEvent): void => {
-	const payload = parseJson(event.payload);
-	if (event.kind === "assistant" || event.kind === "user") {
-		for (const block of blocksOf(payload)) {
-			applyBlock(state, event, block);
-		}
-		return;
-	}
-	if (event.kind.startsWith("result/") || event.kind.startsWith("system/")) {
+// why: the transcript is a pure derivation of the neutral event vocabulary
+// — it never sees a provider's wire shape. Anything the vocabulary calls raw
+// (or anything that fails to decode) renders raw: never dropped, never fatal.
+const applyEvent = (state: Derivation, row: SessionEvent): void => {
+	const decoded = decodeEvent(parseJson(row.payload));
+	if (Option.isNone(decoded)) {
 		state.items.push({
-			kind: "telemetry",
-			label: telemetryLabel(event.kind, payload),
-			seq: event.seq,
+			kind: "raw",
+			label: row.kind,
+			payload: row.payload,
+			seq: row.seq,
 		});
 		return;
 	}
-	state.items.push({
-		kind: "raw",
-		label: event.kind,
-		payload: event.payload,
-		seq: event.seq,
-	});
+	const event = decoded.value;
+	const seq = row.seq;
+	switch (event.type) {
+		case "message":
+			state.items.push({
+				kind: "message",
+				role: event.role,
+				seq,
+				text: event.text,
+			});
+			return;
+		case "thinking":
+			state.items.push({ kind: "thinking", seq, text: event.text });
+			return;
+		case "tool.started":
+			state.toolsById.set(event.toolId, state.items.length);
+			state.items.push({
+				input: event.input,
+				kind: "tool",
+				name: event.name,
+				ok: undefined,
+				result: undefined,
+				seq,
+			});
+			return;
+		case "tool.completed":
+			completeTool(state, event.toolId, event.ok, event.output);
+			return;
+		case "usage":
+			state.items.push({ kind: "telemetry", label: usageLabel(event), seq });
+			return;
+		case "turn.completed":
+			state.items.push({ kind: "telemetry", label: turnLabel(event), seq });
+			return;
+		case "session.opened":
+			state.items.push({ kind: "telemetry", label: openedLabel(event), seq });
+			return;
+		case "raw":
+			state.items.push({
+				kind: "raw",
+				label: `${event.raw.source} ${event.raw.kind}`,
+				payload: event.raw.payload,
+				seq,
+			});
+			return;
+	}
 };
 
 export const deriveTranscript = (

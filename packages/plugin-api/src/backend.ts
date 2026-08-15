@@ -1,3 +1,4 @@
+import type { AgentEvent } from "@antumbra/session-events";
 import {
 	Data,
 	type Effect,
@@ -5,7 +6,6 @@ import {
 	type Scope,
 	type Stream,
 } from "effect";
-import type { AgentEvent } from "#events.ts";
 
 // why: shaped from the widest backend protocol surveyed and narrowed per
 // backend — the Claude SDK surface is not the interface ceiling.

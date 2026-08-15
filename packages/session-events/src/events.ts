@@ -1,8 +1,10 @@
 import { Schema } from "effect";
 
-// why: the domain owns this vocabulary; adapters map their provider's wire
-// messages onto it. `raw` carries the provider payload verbatim on every
-// event so the log stays the wire truth while consumers stay backend-blind.
+// why: the one vocabulary every side speaks — backends map their provider's
+// wire messages onto it, the log stores it, the renderer derives from it.
+// `raw` carries the provider payload verbatim on every event so the log
+// stays the wire truth while consumers stay backend-blind. This package is
+// a leaf on purpose: it must be importable by ports and views alike.
 const Raw = Schema.Struct({
 	kind: Schema.String,
 	payload: Schema.String,

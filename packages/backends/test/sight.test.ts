@@ -1,6 +1,6 @@
 import { SightSource } from "@antumbra/contract";
 import type { TemporaryPersistence } from "@antumbra/persistence/testing";
-import type { AgentEvent } from "@antumbra/plugin-api";
+import type { AgentEvent } from "@antumbra/session-events";
 import { expect, it } from "@effect/vitest";
 import { Effect, Fiber, Layer, Schedule, Stream } from "effect";
 import { SightSourceLive } from "#sight.ts";

@@ -5,11 +5,11 @@ import {
 } from "@antumbra/persistence/testing";
 import type {
 	AgentBackend,
-	AgentEvent,
 	ProvisionRequest,
 	Runner,
 	SessionHandle,
 } from "@antumbra/plugin-api";
+import type { AgentEvent } from "@antumbra/session-events";
 import { Effect, Layer, Option, Queue, Ref, Stream } from "effect";
 import { AgentDomain, AgentDomainLive } from "#domain.ts";
 

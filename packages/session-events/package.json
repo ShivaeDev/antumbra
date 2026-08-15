@@ -1,5 +1,5 @@
 {
-	"name": "@antumbra/plugin-api",
+	"name": "@antumbra/session-events",
 	"version": "0.0.0",
 	"private": true,
 	"type": "module",
@@ -23,7 +23,6 @@
 		"vitest": "catalog:"
 	},
 	"dependencies": {
-		"@antumbra/session-events": "workspace:*",
 		"effect": "catalog:"
 	}
 }

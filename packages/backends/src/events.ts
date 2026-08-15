@@ -5,7 +5,7 @@ import {
 	type WriteExecutors,
 	Writer,
 } from "@antumbra/persistence";
-import type { AgentEvent } from "@antumbra/plugin-api";
+import type { AgentEvent } from "@antumbra/session-events";
 import { type Context, Effect, PubSub, Ref } from "effect";
 import type { EventSink } from "#fabric.ts";
 import type { StoredEvent } from "#feeds.ts";

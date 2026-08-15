@@ -27,6 +27,7 @@ conversation-level: on relaunch, agent sessions resume from persisted state.
 | `packages/runners`     | Where execution lives: local processes, git worktrees   |
 | `packages/persistence` | SQLite behind Effect layers; owns all database access   |
 | `packages/plugin-api`  | The capability registration surface                     |
+| `packages/session-events` | The neutral session-event vocabulary every side speaks (a leaf) |
 | `packages/renderer`    | The web UI                                              |
 
 Dependency direction is enforced by `dependency-cruiser` in CI; the rules

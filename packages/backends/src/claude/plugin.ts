@@ -1,11 +1,11 @@
 import type { SDKMessage } from "@anthropic-ai/claude-agent-sdk";
 import {
 	type AgentBackend,
-	type AgentEvent,
 	type AntumbraPlugin,
 	BackendFailure,
 	type SessionHandle,
 } from "@antumbra/plugin-api";
+import type { AgentEvent } from "@antumbra/session-events";
 import { Effect, Option, Queue, Ref, Stream } from "effect";
 import { openRawSession, type RawSession } from "#claude/adapters/session.ts";
 import { toAgentEvents } from "#claude/mapping.ts";

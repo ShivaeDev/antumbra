@@ -1,10 +1,10 @@
 import type {
 	AgentBackend,
-	AgentEvent,
 	BackendFailure,
 	OpenSessionOptions,
 	SessionHandle,
 } from "@antumbra/plugin-api";
+import type { AgentEvent } from "@antumbra/session-events";
 import { Effect, Exit, Ref, Scope, Stream } from "effect";
 import { SessionNotLive } from "#errors.ts";
 

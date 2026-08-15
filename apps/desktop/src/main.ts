@@ -5,7 +5,7 @@ import {
 	AgentDomain,
 	AgentDomainLive,
 	DispatcherLive,
-	RetireQueueLive,
+	KernelReachLive,
 	SightSourceLive,
 } from "@antumbra/domain";
 import { KernelLive } from "@antumbra/kernel";
@@ -71,7 +71,7 @@ const kernel = Layer.unwrap(
 const bridge = Layer.mergeAll(
 	SightSourceLive,
 	DispatcherLive(),
-	RetireQueueLive,
+	KernelReachLive,
 ).pipe(Layer.provideMerge(kernel), Layer.provideMerge(persistence));
 
 // why: a migration or connect failure leaves no meaningful app to run, so

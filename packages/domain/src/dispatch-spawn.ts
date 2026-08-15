@@ -1,17 +1,9 @@
-import type {
-	IntentStatus,
-	IntentSubmission,
-	PayloadInvalid,
-	UnregisteredIntentTag,
-} from "@antumbra/kernel";
-import type {
-	DatabaseService,
-	PrismaError,
-	WriteExecutors,
-} from "@antumbra/persistence";
+import type { IntentStatus, IntentSubmission } from "@antumbra/kernel";
+import type { DatabaseService, WriteExecutors } from "@antumbra/persistence";
 import { Effect, Option, Queue, Stream } from "effect";
 import { smoothLog } from "#boards.ts";
 import { composeCrewCharter } from "#charter-compose.ts";
+import type { SpawnRefused } from "#deps.ts";
 import type { ReadyPiece } from "#dispatch-policy.ts";
 import {
 	type DispatchState,
@@ -22,18 +14,13 @@ import {
 } from "#dispatch-state.ts";
 import type { SpawnFields } from "#spawn.ts";
 
-export type SubmitRefused =
-	| PayloadInvalid
-	| PrismaError
-	| UnregisteredIntentTag;
-
 export interface DispatchPort {
 	readonly db: DatabaseService;
 	readonly patienceMillis: number;
 	readonly state: DispatchState;
 	readonly submit: (
 		payload: SpawnFields,
-	) => Effect.Effect<IntentSubmission, SubmitRefused, WriteExecutors>;
+	) => Effect.Effect<IntentSubmission, SpawnRefused, WriteExecutors>;
 }
 
 const TERMINAL: ReadonlySet<IntentStatus> = new Set([

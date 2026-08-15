@@ -1,4 +1,3 @@
-import type { ProvisionedMoorage } from "@antumbra/plugin-api";
 import { Effect, Option, PubSub, Schema } from "effect";
 import { type AgentDeps, provideExecutors } from "#deps.ts";
 import { AgentNotSpawnable } from "#errors.ts";
@@ -9,6 +8,7 @@ import {
 	AgentStatusSchema,
 	agentTransition,
 } from "#status.ts";
+import { assignToVoyage } from "#voyage-assignment.ts";
 
 export const ensureAgentRow = (deps: AgentDeps, payload: SpawnFields) => {
 	const provide = provideExecutors(deps);
@@ -38,6 +38,7 @@ export const ensureAgentRow = (deps: AgentDeps, payload: SpawnFields) => {
 			yield* PubSub.publish(deps.feeds.fleet, undefined);
 		}
 		yield* assignToPiece(deps, payload);
+		yield* assignToVoyage(deps, payload);
 	});
 };
 
@@ -96,54 +97,5 @@ export const settleSpawnFailure = (deps: AgentDeps, payload: SpawnFields) => {
 			deps.writer.write(closeFailedSpawnRows(deps, payload, next)),
 		);
 		yield* PubSub.publish(deps.feeds.fleet, undefined);
-	});
-};
-
-const berthRows = (
-	deps: AgentDeps,
-	payload: SpawnFields,
-	moorage: ProvisionedMoorage,
-) =>
-	Effect.forEach(moorage.berths, (berth) =>
-		deps.db.Berth.create({
-			agentId: payload.agentId,
-			branch: berth.branch,
-			id: `${payload.agentId}:${berth.slug}`,
-			path: berth.path,
-			ref: berth.ref,
-			runner: payload.runner,
-			slug: berth.slug,
-			source: berth.source,
-			status: "ready",
-			strandedAt: null,
-		}),
-	);
-
-export const recordMoorage = (
-	deps: AgentDeps,
-	payload: SpawnFields,
-	moorage: ProvisionedMoorage,
-) => {
-	const provide = provideExecutors(deps);
-	return Effect.gen(function* () {
-		const session = yield* provide(
-			deps.db.AgentSession.where({ id: payload.sessionId }).first(),
-		);
-		if (Option.isNone(session)) {
-			yield* provide(
-				deps.writer.write(
-					deps.db.AgentSession.create({
-						agentId: payload.agentId,
-						backend: payload.backend,
-						charterDeliveredAt: null,
-						cwd: moorage.root,
-						id: payload.sessionId,
-						nativeRef: null,
-						status: "open",
-					}).pipe(Effect.andThen(berthRows(deps, payload, moorage))),
-				),
-			);
-			yield* PubSub.publish(deps.feeds.fleet, undefined);
-		}
 	});
 };

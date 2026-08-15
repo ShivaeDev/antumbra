@@ -15,7 +15,7 @@ import type { AgentEvent } from "@antumbra/session-events";
 import { Effect, Layer, Option, Queue, Ref, Stream } from "effect";
 import { DispatcherLive, type DispatcherOptions } from "#dispatcher.ts";
 import { AgentDomain, AgentDomainLive } from "#domain.ts";
-import { RetireQueueLive } from "#retire-queue.ts";
+import { KernelReachLive } from "#kernel-reach.ts";
 
 export interface ScriptedRunner {
 	readonly provisioned: Effect.Effect<ReadonlyArray<ProvisionRequest>>;
@@ -165,7 +165,7 @@ export const domainKernelLayer = (
 	options: Omit<KernelOptions, "kinds" | "gauges"> = {},
 	runner: Runner = passiveRunner,
 ) =>
-	RetireQueueLive.pipe(
+	KernelReachLive.pipe(
 		Layer.provideMerge(
 			Layer.unwrap(
 				Effect.gen(function* () {

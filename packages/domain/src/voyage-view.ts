@@ -1,3 +1,4 @@
+import type { Option } from "effect";
 import {
 	dependenciesOf,
 	type PieceState,
@@ -6,6 +7,7 @@ import {
 	type VoyageState,
 	voyageState,
 } from "#piece-state.ts";
+import { captainOf, type VoyageCaptain } from "#voyage-captain.ts";
 import type {
 	ArtifactRow,
 	PieceRow,
@@ -30,11 +32,16 @@ export interface PieceView extends PieceRow {
 export type PieceCounts = Readonly<Record<PieceState, number>>;
 
 export interface VoyageView extends VoyageRow {
+	// why: the accountable address of the voyage, derived rather than stored —
+	// a hail writes a crew row, and who the captain is follows from that row
+	// and the agent's own status.
+	readonly captain: Option.Option<VoyageCaptain>;
 	readonly pieces: ReadonlyArray<PieceView>;
 	readonly state: VoyageState;
 }
 
 export interface VoyageSummary extends VoyageRow {
+	readonly captain: Option.Option<VoyageCaptain>;
 	readonly counts: PieceCounts;
 	readonly state: VoyageState;
 }
@@ -113,6 +120,7 @@ export const voyageView = (
 	const states = pieceStates(world);
 	return {
 		...voyage,
+		captain: captainOf(world, voyage.id),
 		pieces: memberPieces(world, voyage.id).map((piece) =>
 			pieceView(world, states, piece),
 		),
@@ -126,6 +134,7 @@ export const voyageSummaries = (
 	const states = pieceStates(world);
 	return world.voyages.map((voyage) => ({
 		...voyage,
+		captain: captainOf(world, voyage.id),
 		counts: countStates(
 			piecesOfVoyage(world, voyage.id).flatMap((pieceId) => {
 				const state = states.get(pieceId);

@@ -18,6 +18,17 @@ export const onPiece = (
 		onSome: act,
 	});
 
+// why: a captain acts on the voyage it was hailed for and on nothing else,
+// so the voyage is never an argument a call could get wrong.
+export const onVoyage = (
+	identity: SessionIdentity,
+	act: (voyageId: string) => Effect.Effect<DirectToolOutcome>,
+): Effect.Effect<DirectToolOutcome> =>
+	Option.match(identity.voyageId, {
+		onNone: () => Effect.succeed(refused("you are not on a voyage")),
+		onSome: act,
+	});
+
 // why: the harness already logs every call as a tool item, so the transcript
 // needs nothing from here — debug is for the times the two disagree.
 export const called = (identity: SessionIdentity, name: string) =>

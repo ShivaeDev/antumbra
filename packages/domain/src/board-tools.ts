@@ -12,11 +12,19 @@ type ScopeName = "piece" | "self" | "voyage";
 
 type Resolved = Effect.Effect<Option.Option<BoardScope>, PrismaError>;
 
-// why: crew reach their voyage's board through the piece they answer to —
-// membership is the link, so nothing has to be told to a session that the
-// rows do not already say.
-const voyageScope = (deps: AgentDeps, identity: SessionIdentity): Resolved =>
-	Option.match(identity.pieceId, {
+// why: a captain carries its voyage; crew reach the same board through the
+// piece they answer to, because membership is the link and nothing has to be
+// told to a session that the rows do not already say.
+const voyageScope = (deps: AgentDeps, identity: SessionIdentity): Resolved => {
+	if (Option.isSome(identity.voyageId)) {
+		return Effect.succeed(
+			Option.some<BoardScope>({
+				kind: "voyage",
+				voyageId: identity.voyageId.value,
+			}),
+		);
+	}
+	return Option.match(identity.pieceId, {
 		onNone: () => Effect.succeed(Option.none<BoardScope>()),
 		onSome: (pieceId) =>
 			provideExecutors(deps)(
@@ -33,6 +41,7 @@ const voyageScope = (deps: AgentDeps, identity: SessionIdentity): Resolved =>
 				),
 			),
 	});
+};
 
 const scopeFor = (
 	deps: AgentDeps,

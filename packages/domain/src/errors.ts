@@ -29,3 +29,17 @@ export class EdgeWouldCycle extends Data.TaggedError("EdgeWouldCycle")<{
 	readonly fromPieceId: string;
 	readonly toPieceId: string;
 }> {}
+
+export class VoyageNotFound extends Data.TaggedError("VoyageNotFound")<{
+	readonly voyageId: string;
+}> {}
+
+// why: a voyage is under way because its captain is at work, so hailing a
+// second one while the first still is would give the voyage two accountable
+// addresses. The refusal names the captain it already has.
+export class CaptainAlreadyHailed extends Data.TaggedError(
+	"CaptainAlreadyHailed",
+)<{
+	readonly agentId: string;
+	readonly voyageId: string;
+}> {}

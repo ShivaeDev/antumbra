@@ -10,8 +10,8 @@ import type { SessionIdentity } from "#tool-identity.ts";
 const standDown = (deps: AgentDeps, identity: SessionIdentity) =>
 	called(identity, standDownSpec.name).pipe(
 		Effect.andThen(
-			Deferred.await(deps.retireQueue).pipe(
-				Effect.flatMap((queue) => queue(identity.agentId)),
+			Deferred.await(deps.kernelReach).pipe(
+				Effect.flatMap((reach) => reach.queueRetire(identity.agentId)),
 				Effect.forkDetach,
 			),
 		),

@@ -57,7 +57,11 @@ export const voyageWorld = (
 	db: DatabaseService,
 ): Effect.Effect<VoyageWorld, PrismaError, WriteExecutors> =>
 	Effect.gen(function* () {
-		const agents = yield* db.Agent.all();
+		// why: read in the order they were born, so the map that carries them
+		// keeps that order and the most recent of any set is its last entry.
+		const agents = yield* db.Agent.orderBy((agent) =>
+			agent.createdAt.asc(),
+		).all();
 		return {
 			agentStatus: new Map(
 				agents.map((agent) => [agent.id, agent.status] as const),

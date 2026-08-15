@@ -1,8 +1,5 @@
 import { Schema } from "effect";
-import type {
-	BridgeRequest,
-	BridgeSubscribeRequest,
-} from "#channels.ts";
+import type { BridgeRequest, BridgeSubscribeRequest } from "#channels.ts";
 
 export const TrpcRequest = Schema.Struct({
 	input: Schema.Unknown,
@@ -30,8 +27,7 @@ export type UnsubscribeRequest = typeof UnsubscribeRequest.Type;
 // decoded shapes to stay assignable to the dependency-free channel types
 // the preload compiles against.
 const _bindRequest = (request: TrpcRequest): BridgeRequest => request;
-const _bindSubscribe = (
-	request: SubscribeRequest,
-): BridgeSubscribeRequest => request;
+const _bindSubscribe = (request: SubscribeRequest): BridgeSubscribeRequest =>
+	request;
 void _bindRequest;
 void _bindSubscribe;

@@ -6,7 +6,10 @@ type BundleWatcher = ReturnType<typeof watch>;
 
 const configs = (root: string) => [
 	{
-		external: ["electron"],
+		// why: the agent SDK locates its platform binary relative to its own
+		// module path — inlining it into the bundle breaks that resolution, so
+		// it must stay a runtime import.
+		external: ["electron", "@anthropic-ai/claude-agent-sdk"],
 		input: join(root, "src", "main.ts"),
 		output: {
 			codeSplitting: false,

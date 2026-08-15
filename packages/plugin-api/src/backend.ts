@@ -17,7 +17,11 @@ export interface WireEvent {
 export class BackendFailure extends Data.TaggedError("BackendFailure")<{
 	readonly detail: string;
 	readonly tag: string;
-}> {}
+}> {
+	override get message(): string {
+		return `${this.tag}: ${this.detail}`;
+	}
+}
 
 export interface SessionHandle {
 	readonly events: Stream.Stream<WireEvent, BackendFailure>;

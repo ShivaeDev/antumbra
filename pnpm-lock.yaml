@@ -136,6 +136,10 @@ importers:
         version: 4.1.9(@types/node@24.10.1)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0))
 
   apps/desktop:
+    dependencies:
+      '@anthropic-ai/claude-agent-sdk':
+        specifier: 'catalog:'
+        version: 0.3.225(@anthropic-ai/sdk@0.116.0(zod@4.4.3))(@modelcontextprotocol/sdk@1.30.0(supports-color@7.2.0)(zod@4.4.3))(zod@4.4.3)
     devDependencies:
       '@antumbra/backends':
         specifier: workspace:*

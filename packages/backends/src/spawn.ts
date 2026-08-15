@@ -52,6 +52,9 @@ export const makeSpawnKind = (deps: AgentDeps) => {
 							),
 						),
 					);
+					// why: rows changed, so observers refresh now — a spawn that
+					// fails later must still leave a visible agent, not a ghost.
+					yield* PubSub.publish(deps.feeds.fleet, undefined);
 				}
 				const sink = yield* deps.sinkFor(payload.sessionId);
 				const handle = yield* deps.fabric.start(

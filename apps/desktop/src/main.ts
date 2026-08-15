@@ -27,8 +27,6 @@ const persistence = Layer.unwrap(
 	),
 );
 
-// why: built-ins activate through the same plugin host a loaded plugin would
-// use — the registration path stays real because the app itself consumes it.
 const agents = Layer.unwrap(
 	Effect.gen(function* () {
 		const host = yield* makePluginHost;

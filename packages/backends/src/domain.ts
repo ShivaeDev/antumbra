@@ -9,9 +9,9 @@ import { reclaimAgents } from "#reclaim.ts";
 import { makeRetireKind, type RetireFields } from "#retire.ts";
 import { makeSpawnKind, type SpawnFields } from "#spawn.ts";
 
-// why: exposed but not installed as a gate in v0 — kernel gates are global,
-// so a birth ceiling would block retire alongside spawn. Installing it waits
-// for kind-scoped policies in the pick seam.
+// why: exposed but not installed as a gate — kernel gates are global, so a
+// birth ceiling would block retire alongside spawn. Installing it waits for
+// kind-scoped gate policies.
 export const AGENTS_ALIVE_GAUGE = "agents.alive";
 
 export class AgentDomain extends Context.Service<

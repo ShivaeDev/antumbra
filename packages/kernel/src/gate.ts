@@ -1,7 +1,7 @@
 export interface AdmissionSnapshot {
 	readonly millisSinceLastChange: number;
-	// why: gauges are domain-registered sensors sampled by the scheduler each
-	// pass — the snapshot grows fields without gates gaining effects.
+	// why: gauges are domain-registered sensors the scheduler samples — the
+	// snapshot grows fields while gates stay pure predicates.
 	readonly readings: Readonly<Record<string, number>>;
 	readonly runningCount: number;
 }

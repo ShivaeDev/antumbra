@@ -2,12 +2,12 @@ import { Database, type WriteExecutors, Writer } from "@antumbra/persistence";
 import { Effect, Ref } from "effect";
 import type { EventSink } from "#fabric.ts";
 
-// why: thinking-token telemetry dominated the spike's event table 74:200 on
-// trivial turns — it renders live from the stream and is never persisted.
+// why: thinking-token telemetry outnumbers real events several-fold on even
+// trivial turns and renders live from the stream — never persisted.
 const DROPPED_KINDS: ReadonlySet<string> = new Set(["system/thinking_tokens"]);
 
-// why: the factory captures the write lane once so the sink it mints is
-// context-free — fabric pumps run inside intent fibers where R must be never.
+// why: the minted sink runs inside intent fibers where R must be never, so
+// the factory captures the write lane once.
 export const makeEventSinkFactory = Effect.gen(function* () {
 	const db = yield* Database;
 	const writer = yield* Writer;

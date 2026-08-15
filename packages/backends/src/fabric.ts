@@ -23,13 +23,13 @@ export interface SessionFabric {
 	readonly stop: (sessionId: string) => Effect.Effect<void>;
 }
 
-// why: the fabric is the ruled ephemeral registry — live handles only, never
-// persisted, rebuilt empty at boot. Closing an entry's scope is the single
-// teardown path, so a stopped session can never leak its subprocess or pump.
+// why: live handles only, never persisted — rebuilt empty at boot. Closing an
+// entry's scope is the single teardown path, so a stopped session can never
+// leak its subprocess or pump.
 export const makeSessionFabric = Effect.gen(function* () {
 	const entries = yield* Ref.make<ReadonlyMap<string, FabricEntry>>(new Map());
-	// why: kill discipline — when the owning layer tears down, every session
-	// scope closes, so app quit never strands an SDK subprocess (P2 gotcha 10).
+	// why: when the owning layer tears down, every session scope closes — app
+	// quit must never strand an SDK subprocess.
 	yield* Effect.addFinalizer(() =>
 		Effect.gen(function* () {
 			const remaining = yield* Ref.getAndSet(entries, new Map());

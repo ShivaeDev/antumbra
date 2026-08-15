@@ -1,10 +1,8 @@
 import { Database, Writer } from "@antumbra/persistence";
 import { Effect } from "effect";
 
-// why: boot mirrors the kernel's intent reclaim one level up — any agent the
-// last process left "alive" is a lie the moment the fabric starts empty, so
-// the sweep settles rows before admission can act on them. Dormant stays
-// dormant: revival is not a v0 concept.
+// why: any agent the last process left "alive" is a lie the moment the fabric
+// starts empty. Dormant stays dormant: revival does not exist yet.
 export const reclaimAgents = Effect.gen(function* () {
 	const db = yield* Database;
 	const writer = yield* Writer;

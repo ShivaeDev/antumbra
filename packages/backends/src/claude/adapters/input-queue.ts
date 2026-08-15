@@ -1,8 +1,8 @@
 import type { SDKUserMessage } from "@anthropic-ai/claude-agent-sdk";
 
 // why: the SDK pulls user messages from an async iterable whose return ENDS
-// the session (P2), so the queue's iterator stays pending until close() —
-// close is the only graceful shutdown.
+// the session, so the queue's iterator stays pending until close() — close
+// is the only graceful shutdown.
 export class InputQueue {
 	private readonly buffer: SDKUserMessage[] = [];
 	private pending: ((result: IteratorResult<SDKUserMessage>) => void) | null =

@@ -1,7 +1,7 @@
 import { Data, type Effect, type Scope, type Stream } from "effect";
 
-// why: shaped from the codex app-server superset, narrowed per backend — the
-// Claude SDK surface is not the interface ceiling (D8).
+// why: shaped from the widest backend protocol surveyed and narrowed per
+// backend — the Claude SDK surface is not the interface ceiling.
 export interface BackendCapabilities {
 	readonly fork: boolean;
 	readonly liveInterrupt: boolean;

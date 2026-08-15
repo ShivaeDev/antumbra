@@ -11,8 +11,6 @@ import { openRawSession } from "#claude/adapters/session.ts";
 const failure = (detail: unknown) =>
 	new BackendFailure({ detail: String(detail), tag: "claude" });
 
-// why: capabilities narrowed from the app-server superset — the SDK gives
-// interrupt and fork-by-transcript, but no steer and no multi-client (D8).
 export const claudeBackend: AgentBackend = {
 	capabilities: {
 		fork: true,

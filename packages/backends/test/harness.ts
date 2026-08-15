@@ -29,9 +29,6 @@ export interface ScriptedBackend {
 	) => Effect.Effect<ScriptedSession | undefined>;
 }
 
-// why: the ruled simulability criterion — the whole domain runs against a
-// scripted backend with zero model tokens, and tests observe what the domain
-// sent and script what the wire returns.
 export const makeScriptedBackend = Effect.gen(function* () {
 	const sessions = yield* Ref.make<ReadonlyMap<string, ScriptedSession>>(
 		new Map(),

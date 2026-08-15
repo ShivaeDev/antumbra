@@ -33,9 +33,6 @@ export interface PluginHost {
 	readonly context: PluginContext;
 }
 
-// why: built-ins and loaded plugins register through this same host — the
-// registration path cannot rot into fiction because everything load-bearing
-// consumes it (D11). Secrets and settings are declared-but-empty in v0.
 export const makePluginHost = Effect.gen(function* () {
 	const registry = yield* Ref.make<ReadonlyMap<string, AgentBackend>>(
 		new Map(),

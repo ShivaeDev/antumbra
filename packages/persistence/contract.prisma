@@ -3,7 +3,17 @@
 model AppMeta {
   key       String   @id
   value     String
-  updatedAt DateTime @default(now()) @map("updated_at")
+  updatedAt DateTime @default(now())
+}
 
-  @@map("app_meta")
+model Intent {
+  id        String   @id
+  tag       String
+  payload   String
+  status    String
+  detail    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+
+  @@index([status])
 }

@@ -232,6 +232,9 @@ importers:
 
   packages/kernel:
     dependencies:
+      '@antumbra/persistence':
+        specifier: workspace:*
+        version: link:../persistence
       effect:
         specifier: 'catalog:'
         version: 4.0.0-rc.108

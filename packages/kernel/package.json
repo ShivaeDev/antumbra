@@ -7,6 +7,7 @@
 		".": "./src/index.ts"
 	},
 	"imports": {
+		"#test/*": "./test/*",
 		"#*": "./src/*"
 	},
 	"scripts": {
@@ -23,6 +24,7 @@
 		"vitest": "catalog:"
 	},
 	"dependencies": {
+		"@antumbra/persistence": "workspace:*",
 		"effect": "catalog:"
 	}
 }

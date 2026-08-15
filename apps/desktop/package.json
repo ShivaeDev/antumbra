@@ -21,6 +21,7 @@
 	},
 	"devDependencies": {
 		"@antumbra/backend-claude": "workspace:*",
+		"@antumbra/backend-codex": "workspace:*",
 		"@antumbra/contract": "workspace:*",
 		"@antumbra/domain": "workspace:*",
 		"@antumbra/kernel": "workspace:*",

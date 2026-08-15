@@ -1,4 +1,4 @@
-import { Data, Effect, Option, Ref } from "effect";
+import { Data, Effect, Option, Ref, type Scope } from "effect";
 import type { AgentBackend } from "#backend.ts";
 import type { Runner } from "#runner.ts";
 
@@ -31,8 +31,14 @@ export interface PluginContext {
 	readonly settings: SettingsApi;
 }
 
+// why: activation is scoped to the host that runs it — a plugin may hold a
+// resource that outlives any one session (a shared provider process, a
+// connection) and it is released when the host layer tears down, never
+// leaked and never tied to a session's lifetime.
 export interface AntumbraPlugin {
-	readonly activate: (context: PluginContext) => Effect.Effect<void, unknown>;
+	readonly activate: (
+		context: PluginContext,
+	) => Effect.Effect<void, unknown, Scope.Scope>;
 	readonly name: string;
 }
 

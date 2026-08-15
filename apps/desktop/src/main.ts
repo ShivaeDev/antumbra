@@ -1,4 +1,5 @@
 import { claudePlugin } from "@antumbra/backend-claude";
+import { codexPlugin } from "@antumbra/backend-codex";
 import { makeAppRouter } from "@antumbra/contract";
 import {
 	AgentDomain,
@@ -42,7 +43,15 @@ const agents = Layer.unwrap(
 		const runnerPlugin = localRunnerPlugin(
 			runnerRootsInDataDirectory(configureDataDirectory()),
 		);
+		// why: the app-server binary is whatever `codex` the host's PATH
+		// resolves; the child runs from the data directory, threads get their
+		// own cwd per session.
+		const codex = codexPlugin({
+			command: "codex",
+			cwd: configureDataDirectory(),
+		});
 		yield* Effect.orDie(claudePlugin.activate(host.context));
+		yield* Effect.orDie(codex.activate(host.context));
 		yield* Effect.orDie(runnerPlugin.activate(host.context));
 		return AgentDomainLive(yield* host.backends, yield* host.runners);
 	}),

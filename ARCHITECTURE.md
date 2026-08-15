@@ -27,6 +27,7 @@ conversation-level: on relaunch, agent sessions resume from persisted state.
 | `packages/kernel`         | Intents, admission scheduling, lifecycle state machines         |
 | `packages/domain`         | Agent use cases and the projections the contract serves         |
 | `packages/backend-claude` | The Claude agent backend: one adapter for one provider          |
+| `packages/backend-codex`  | The Codex agent backend: one app-server child, threads on it    |
 | `packages/runner-local`   | The local runner: processes and git worktrees on this machine   |
 | `packages/persistence`    | SQLite behind Effect layers; owns all database access           |
 | `packages/renderer`       | The web UI                                                      |

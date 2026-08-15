@@ -7,6 +7,10 @@ import type {
 } from "@antumbra/plugin-api";
 import { Context, Deferred, Effect, Layer } from "effect";
 import { sweepBerths } from "#berth-sweep.ts";
+import {
+	type BoardProcedures,
+	makeBoardProcedures,
+} from "#board-procedures.ts";
 import type { AgentDeps, QueueRetire } from "#deps.ts";
 import type { SessionNotLive } from "#errors.ts";
 import { makeEventSinkFactory } from "#events.ts";
@@ -27,6 +31,7 @@ export class AgentDomain extends Context.Service<
 	AgentDomain,
 	{
 		readonly backends: ReadonlyArray<string>;
+		readonly boards: BoardProcedures;
 		readonly feeds: DomainFeeds;
 		readonly gauges: Readonly<Record<string, Effect.Effect<number>>>;
 		readonly interruptSession: (
@@ -82,6 +87,7 @@ export const AgentDomainLive = (
 			const retire = makeRetireKind(deps);
 			return {
 				backends: [...backends.keys()],
+				boards: makeBoardProcedures(deps),
 				feeds,
 				gauges: { [AGENTS_ALIVE_GAUGE]: aliveAgents },
 				interruptSession: fabric.interrupt,

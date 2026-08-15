@@ -69,9 +69,11 @@ export const recordMoorage = (
 				deps.writer.write(
 					deps.db.AgentSession.create({
 						agentId: payload.agentId,
+						backend: payload.backend,
 						charterDeliveredAt: null,
 						cwd: moorage.root,
 						id: payload.sessionId,
+						nativeRef: null,
 						status: "open",
 					}).pipe(Effect.andThen(berthRows(deps, payload, moorage))),
 				),

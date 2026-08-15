@@ -2,7 +2,7 @@ module.exports = {
 	forbidden: [
 		{
 			comment:
-				"The renderer is a pure web app: it may depend on the contract package only. Electron, the desktop shell, and every core package are out of bounds — this is what keeps windows disposable and a future remote surface possible.",
+				"The renderer is a pure web app: it may depend on the contract and session-events packages only. Electron, the desktop shell, and every core package are out of bounds — this is what keeps windows disposable and a future remote surface possible.",
 			from: { path: "^packages/renderer" },
 			name: "renderer-pure-web",
 			severity: "error",
@@ -25,6 +25,14 @@ module.exports = {
 			name: "contract-is-a-leaf",
 			severity: "error",
 			to: { path: "^packages/(?!contract)|^apps/" },
+		},
+		{
+			comment:
+				"The session-events package is the vocabulary every side speaks — ports, domain, and the renderer alike. It stays a leaf so importing it never drags a layer along.",
+			from: { path: "^packages/session-events" },
+			name: "session-events-is-a-leaf",
+			severity: "error",
+			to: { path: "^packages/(?!session-events)|^apps/" },
 		},
 		{
 			comment:

@@ -1,44 +1,79 @@
+import type { SDKMessage } from "@anthropic-ai/claude-agent-sdk";
 import {
 	type AgentBackend,
 	type AntumbraPlugin,
 	BackendFailure,
 	type SessionHandle,
-	type WireEvent,
 } from "@antumbra/plugin-api";
-import { Effect, Queue, Stream } from "effect";
+import type { AgentEvent } from "@antumbra/session-events";
+import { Effect, Option, Queue, Ref, Stream } from "effect";
 import { openRawSession, type RawSession } from "#claude/adapters/session.ts";
+import { toAgentEvents } from "#claude/mapping.ts";
 
 const failure = (detail: unknown) =>
 	new BackendFailure({ detail: String(detail), tag: "claude" });
 
-const eventStream = (raw: RawSession): Stream.Stream<WireEvent> =>
-	Stream.callback<WireEvent>((queue) =>
+const rawEvents = (raw: RawSession): Stream.Stream<AgentEvent> =>
+	Stream.callback<AgentEvent>((queue) =>
 		Effect.sync(() => {
 			raw.subscribe({
 				end: () => Queue.endUnsafe(queue),
-				event: (event) => Queue.offerUnsafe(queue, event),
+				event: (message: SDKMessage) => {
+					for (const event of toAgentEvents(message)) {
+						Queue.offerUnsafe(queue, event);
+					}
+				},
 			});
 		}),
 	);
 
-const makeHandle = (raw: RawSession): SessionHandle => ({
-	events: eventStream(raw),
-	interrupt: Effect.tryPromise({ catch: failure, try: () => raw.interrupt() }),
-	send: (text) => Effect.try({ catch: failure, try: () => raw.send(text) }),
-});
+const eventStream = (
+	raw: RawSession,
+	nativeRef: Ref.Ref<Option.Option<string>>,
+): Stream.Stream<AgentEvent> =>
+	rawEvents(raw).pipe(
+		Stream.tap((event) =>
+			event.type === "session.opened"
+				? Ref.set(nativeRef, Option.some(event.nativeRef))
+				: Effect.void,
+		),
+	);
+
+const makeHandle = (raw: RawSession) =>
+	Effect.map(
+		Ref.make(Option.none<string>()),
+		(nativeRef): SessionHandle => ({
+			events: eventStream(raw, nativeRef),
+			interrupt: Effect.tryPromise({
+				catch: failure,
+				try: () => raw.interrupt(),
+			}),
+			nativeRef: Ref.get(nativeRef),
+			queue: (text) =>
+				Effect.try({ catch: failure, try: () => raw.queue(text) }),
+			steer: (text) =>
+				Effect.try({ catch: failure, try: () => raw.steer(text) }),
+		}),
+	);
 
 export const claudeBackend: AgentBackend = {
 	capabilities: {
 		fork: true,
 		liveInterrupt: true,
 		multiClient: false,
-		steer: false,
 	},
 	openSession: (options) =>
 		Effect.acquireRelease(
-			Effect.try({ catch: failure, try: () => openRawSession(options) }),
+			Effect.try({
+				catch: failure,
+				try: () =>
+					openRawSession({
+						cwd: options.cwd,
+						resume: Option.getOrUndefined(options.resume),
+					}),
+			}),
 			(session) => Effect.sync(() => session.close()),
-		).pipe(Effect.map(makeHandle)),
+		).pipe(Effect.flatMap(makeHandle)),
 	tag: "claude",
 };
 

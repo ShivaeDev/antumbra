@@ -1,96 +1,142 @@
 import type { SessionEvent } from "@antumbra/contract";
+import type { AgentEvent } from "@antumbra/session-events";
 import { describe, expect, it } from "vitest";
 import { deriveTranscript } from "#transcript/derive.ts";
 
-const event = (seq: number, kind: string, payload: unknown): SessionEvent => ({
-	kind,
-	payload: typeof payload === "string" ? payload : JSON.stringify(payload),
+const raw = { kind: "wire/kind", payload: "{}", source: "scripted" };
+
+const row = (seq: number, event: AgentEvent): SessionEvent => ({
+	kind: event.type,
+	payload: JSON.stringify(event),
 	seq,
 	sessionId: "session-1",
 });
 
-const assistant = (seq: number, content: ReadonlyArray<unknown>) =>
-	event(seq, "assistant", { message: { content, role: "assistant" } });
+const message = (seq: number, role: "agent" | "user", text: string) =>
+	row(seq, { raw, role, text, type: "message" });
 
 describe("deriveTranscript", () => {
-	it("turns text blocks into role-labelled messages", () => {
+	it("turns message events into role-labelled messages", () => {
 		const items = deriveTranscript([
-			assistant(0, [{ text: "hello, admiral", type: "text" }]),
-			event(1, "user", { message: { content: "hello back", role: "user" } }),
+			message(0, "agent", "hello, admiral"),
+			message(1, "user", "hello back"),
 		]);
 		expect(items).toEqual([
-			{ kind: "message", role: "assistant", seq: 0, text: "hello, admiral" },
+			{ kind: "message", role: "agent", seq: 0, text: "hello, admiral" },
 			{ kind: "message", role: "user", seq: 1, text: "hello back" },
 		]);
 	});
 
-	it("pairs a tool_use with its tool_result across events", () => {
+	it("thinking renders as its own quiet item", () => {
 		const items = deriveTranscript([
-			assistant(0, [
-				{ id: "tool-1", input: { path: "/tmp" }, name: "ls", type: "tool_use" },
-			]),
-			event(1, "user", {
-				message: {
-					content: [
-						{
-							content: [{ text: "file-a file-b", type: "text" }],
-							tool_use_id: "tool-1",
-							type: "tool_result",
-						},
-					],
-					role: "user",
-				},
+			row(0, { raw, text: "weighing options", type: "thinking" }),
+		]);
+		expect(items).toEqual([
+			{ kind: "thinking", seq: 0, text: "weighing options" },
+		]);
+	});
+
+	it("pairs tool.started with its tool.completed across events", () => {
+		const items = deriveTranscript([
+			row(0, {
+				input: '{"path":"/tmp"}',
+				name: "ls",
+				raw,
+				toolId: "tool-1",
+				type: "tool.started",
+			}),
+			message(1, "agent", "meanwhile"),
+			row(2, {
+				ok: false,
+				output: "no such dir",
+				raw,
+				toolId: "tool-1",
+				type: "tool.completed",
 			}),
 		]);
-		expect(items).toHaveLength(1);
+		expect(items).toHaveLength(2);
 		expect(items[0]).toEqual({
 			input: '{"path":"/tmp"}',
 			kind: "tool",
 			name: "ls",
-			result: "file-a file-b",
+			ok: false,
+			result: "no such dir",
 			seq: 0,
 		});
 	});
 
-	it("renders result events as telemetry dividers, never boundaries", () => {
+	it("usage, turn.completed and session.opened are telemetry dividers, never boundaries", () => {
 		const items = deriveTranscript([
-			assistant(0, [{ text: "done", type: "text" }]),
-			event(1, "result/success", { duration_ms: 2300, total_cost_usd: 0.0042 }),
-			assistant(2, [{ text: "more after the divider", type: "text" }]),
+			row(0, {
+				nativeRef: "thread-9",
+				raw: { ...raw, source: "codex" },
+				type: "session.opened",
+			}),
+			message(1, "agent", "done"),
+			row(2, {
+				costUsd: 0.0042,
+				inputTokens: 120,
+				model: "claude-fable-5",
+				outputTokens: 30,
+				raw,
+				type: "usage",
+			}),
+			row(3, {
+				durationMs: 2300,
+				raw,
+				status: "interrupted",
+				type: "turn.completed",
+			}),
+			message(4, "agent", "more after the divider"),
 		]);
 		expect(items.map((item) => item.kind)).toEqual([
+			"telemetry",
 			"message",
+			"telemetry",
 			"telemetry",
 			"message",
 		]);
-		expect(items[1]).toMatchObject({
-			label: "result/success · 2.3s · $0.0042",
-		});
-	});
-
-	it("labels system events with their model when present", () => {
-		const items = deriveTranscript([
-			event(0, "system/init", { model: "claude-fable-5" }),
-		]);
 		expect(items[0]).toMatchObject({
-			kind: "telemetry",
-			label: "system/init · claude-fable-5",
+			label: "session opened · codex thread-9",
 		});
+		expect(items[2]).toMatchObject({
+			label: "usage · claude-fable-5 · 120→30 tokens · $0.0042",
+		});
+		expect(items[3]).toMatchObject({ label: "turn interrupted · 2.3s" });
 	});
 
-	it("renders unknown kinds raw — never dropped, never fatal", () => {
+	it("raw events show the provider's kind; undecodable rows render raw too — never dropped, never fatal", () => {
 		const items = deriveTranscript([
-			event(0, "stream_event/exotic", '{"anything": true}'),
-			event(1, "gibberish", "not even json {"),
+			row(0, {
+				raw: {
+					kind: "thread/status/changed",
+					payload: '{"anything":true}',
+					source: "codex",
+				},
+				type: "raw",
+			}),
+			{
+				kind: "gibberish",
+				payload: "not even json {",
+				seq: 1,
+				sessionId: "session-1",
+			},
+			{
+				kind: "message",
+				payload: '{"type":"message"}',
+				seq: 2,
+				sessionId: "session-1",
+			},
 		]);
 		expect(items).toEqual([
 			{
 				kind: "raw",
-				label: "stream_event/exotic",
-				payload: '{"anything": true}',
+				label: "codex thread/status/changed",
+				payload: '{"anything":true}',
 				seq: 0,
 			},
 			{ kind: "raw", label: "gibberish", payload: "not even json {", seq: 1 },
+			{ kind: "raw", label: "message", payload: '{"type":"message"}', seq: 2 },
 		]);
 	});
 });

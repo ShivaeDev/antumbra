@@ -3,12 +3,12 @@ import type {
 	BackendFailure,
 	OpenSessionOptions,
 	SessionHandle,
-	WireEvent,
 } from "@antumbra/plugin-api";
+import type { AgentEvent } from "@antumbra/session-events";
 import { Effect, Exit, Ref, Scope, Stream } from "effect";
 import { SessionNotLive } from "#errors.ts";
 
-export type EventSink = (event: WireEvent) => Effect.Effect<void>;
+export type EventSink = (event: AgentEvent) => Effect.Effect<void>;
 
 interface FabricEntry {
 	readonly handle: SessionHandle;

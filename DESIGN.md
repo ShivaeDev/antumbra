@@ -64,14 +64,29 @@ Axioms of the stack:
   a stateless projection fed by one typed contract: every view rehydrates
   from the log and stays current by subscription, so killing a view touches
   nothing and an agent never notices being watched. The transcript is a pure
-  derivation of the wire-event sequence — assistant blocks accumulate, tool
-  calls pair with their results, terminal events render as telemetry
-  dividers (rhythm for human eyes, never a boundary the system acts on),
-  unknown kinds render raw instead of failing. New events reach observers
-  through a pubsub beside the write; subscribers subscribe first, read the
-  log, and dedup by sequence, so nothing falls in the gap. Views may only
-  offer acts the domain already has — spawn, retire, interrupt; a reply box
-  would smuggle delivery semantics past the axiom above.
+  derivation of the session-event sequence — messages accumulate, tool
+  starts pair with their completions, usage and turn events render as
+  telemetry dividers (rhythm for human eyes, never a boundary the system
+  acts on), raw and unknown kinds render raw instead of failing. New events
+  reach observers through a pubsub beside the write; subscribers subscribe
+  first, read the log, and dedup by sequence, so nothing falls in the gap.
+  Views may only offer acts the domain already has — spawn, retire,
+  interrupt; a reply box would smuggle delivery semantics past the axiom
+  above.
+- **One vocabulary, many backends.** The domain owns a small, neutral
+  session-event vocabulary — session opened, message, thinking, tool started
+  and completed, usage, turn completed, raw — and every agent backend maps
+  its provider's wire protocol onto it, carrying the provider payload
+  alongside so the log stays the wire truth. Consumers are backend-blind by
+  construction: nothing above a backend adapter may know a provider's shape.
+  A backend's own session or thread id is exposed on the handle and stored
+  beside ours, but our record id is the authority — no backend gets to name
+  our sessions. Delivery has two verbs on every backend, steer (into the
+  running turn) and queue (at the next full-turn boundary); which one a
+  caller uses is precedence policy the domain owns, never the backend's.
+  Approvals, when they ship, are decision objects, never booleans. The
+  second backend exists to prove all of this: an interface shaped from one
+  provider is a lie until a second one fits it.
 
 ## Authority
 

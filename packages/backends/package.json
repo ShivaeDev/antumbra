@@ -29,6 +29,7 @@
 		"@antumbra/kernel": "workspace:*",
 		"@antumbra/persistence": "workspace:*",
 		"@antumbra/plugin-api": "workspace:*",
+		"@antumbra/session-events": "workspace:*",
 		"effect": "catalog:"
 	}
 }

@@ -113,13 +113,6 @@
                   "kind": "scalar"
                 }
               },
-              "backend": {
-                "nullable": false,
-                "type": {
-                  "codecId": "sqlite/text@1",
-                  "kind": "scalar"
-                }
-              },
               "charterDeliveredAt": {
                 "nullable": true,
                 "type": {
@@ -148,13 +141,6 @@
                   "kind": "scalar"
                 }
               },
-              "nativeRef": {
-                "nullable": true,
-                "type": {
-                  "codecId": "sqlite/text@1",
-                  "kind": "scalar"
-                }
-              },
               "status": {
                 "nullable": false,
                 "type": {
@@ -169,9 +155,6 @@
                 "agentId": {
                   "column": "agentId"
                 },
-                "backend": {
-                  "column": "backend"
-                },
                 "charterDeliveredAt": {
                   "column": "charterDeliveredAt"
                 },
@@ -183,9 +166,6 @@
                 },
                 "id": {
                   "column": "id"
-                },
-                "nativeRef": {
-                  "column": "nativeRef"
                 },
                 "status": {
                   "column": "status"
@@ -581,15 +561,6 @@
                   "nativeType": "text",
                   "nullable": false
                 },
-                "backend": {
-                  "codecId": "sqlite/text@1",
-                  "default": {
-                    "kind": "literal",
-                    "value": "claude"
-                  },
-                  "nativeType": "text",
-                  "nullable": false
-                },
                 "charterDeliveredAt": {
                   "codecId": "sqlite/datetime@1",
                   "nativeType": "text",
@@ -613,11 +584,6 @@
                   "codecId": "sqlite/text@1",
                   "nativeType": "text",
                   "nullable": false
-                },
-                "nativeRef": {
-                  "codecId": "sqlite/text@1",
-                  "nativeType": "text",
-                  "nullable": true
                 },
                 "status": {
                   "codecId": "sqlite/text@1",
@@ -870,7 +836,7 @@
         "id": "__unbound__"
       }
     },
-    "storageHash": "sha256:957d308f4f0887e60dd97056e641a0b6114f5877152e6d8a71df23700f3a33b0"
+    "storageHash": "sha256:88141d414d43f3070a5ac4e8dbfafe16989e62771c734c91a6818e71d06a22f1"
   },
   "capabilities": {
     "sql": {

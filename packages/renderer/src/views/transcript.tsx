@@ -13,6 +13,11 @@ const itemStyle: Record<TranscriptItem["kind"], React.CSSProperties> = {
 		fontSize: "0.8rem",
 		paddingTop: "0.4rem",
 	},
+	thinking: {
+		color: "#8a8f98",
+		fontStyle: "italic",
+		whiteSpace: "pre-wrap",
+	},
 	tool: {
 		background: "#20242c",
 		borderRadius: "6px",
@@ -33,11 +38,14 @@ const Item = ({ item }: { readonly item: TranscriptItem }) => {
 			</div>
 		);
 	}
+	if (item.kind === "thinking") {
+		return <div style={itemStyle.thinking}>{item.text}</div>;
+	}
 	if (item.kind === "tool") {
 		return (
 			<div style={itemStyle.tool}>
 				<div>
-					⚙ {item.name} {item.input}
+					{item.ok === false ? "✗" : "⚙"} {item.name} {item.input}
 				</div>
 				{item.result === undefined ? null : (
 					<div style={{ color: "#8a8f98", marginTop: "0.3rem" }}>

@@ -216,6 +216,9 @@ importers:
       '@antumbra/plugin-api':
         specifier: workspace:*
         version: link:../plugin-api
+      '@antumbra/session-events':
+        specifier: workspace:*
+        version: link:../session-events
       effect:
         specifier: 'catalog:'
         version: 4.0.0-rc.108
@@ -331,6 +334,9 @@ importers:
 
   packages/plugin-api:
     dependencies:
+      '@antumbra/session-events':
+        specifier: workspace:*
+        version: link:../session-events
       effect:
         specifier: 'catalog:'
         version: 4.0.0-rc.108
@@ -356,6 +362,9 @@ importers:
       '@antumbra/contract':
         specifier: workspace:*
         version: link:../contract
+      '@antumbra/session-events':
+        specifier: workspace:*
+        version: link:../session-events
       '@effect/atom-react':
         specifier: 'catalog:'
         version: 4.0.0-beta.102(effect@4.0.0-rc.108)(react@19.2.8)(scheduler@0.27.0)
@@ -405,6 +414,28 @@ importers:
       '@antumbra/plugin-api':
         specifier: workspace:*
         version: link:../plugin-api
+      effect:
+        specifier: 'catalog:'
+        version: 4.0.0-rc.108
+    devDependencies:
+      '@effect/vitest':
+        specifier: 'catalog:'
+        version: 4.0.0-rc.108(effect@4.0.0-rc.108)(vitest@4.1.9(@types/node@24.10.1)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0)))
+      '@types/node':
+        specifier: 'catalog:'
+        version: 24.10.1
+      '@typescript/native':
+        specifier: 'catalog:'
+        version: typescript@7.0.2
+      typescript:
+        specifier: 'catalog:'
+        version: '@typescript/typescript6@6.0.2'
+      vitest:
+        specifier: 'catalog:'
+        version: 4.1.9(@types/node@24.10.1)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0))
+
+  packages/session-events:
+    dependencies:
       effect:
         specifier: 'catalog:'
         version: 4.0.0-rc.108
@@ -4571,7 +4602,7 @@ snapshots:
 
   '@types/ws@8.18.1':
     dependencies:
-      '@types/node': 24.10.1
+      '@types/node': 26.1.2
 
   '@typescript/typescript-aix-ppc64@7.0.2':
     optional: true

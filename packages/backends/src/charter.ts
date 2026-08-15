@@ -27,7 +27,7 @@ export const deliverCharterOnce = (
 		const delivered =
 			Option.isSome(session) && session.value.charterDeliveredAt !== null;
 		if (!delivered) {
-			yield* handle.send(payload.charter);
+			yield* handle.queue(payload.charter);
 			yield* stampCharter(deps, payload);
 		}
 	});

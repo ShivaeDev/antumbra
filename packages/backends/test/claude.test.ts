@@ -14,7 +14,6 @@ it.effect("the claude plugin registers its backend through the host", () =>
 			fork: true,
 			liveInterrupt: true,
 			multiClient: false,
-			steer: false,
 		});
 	}),
 );

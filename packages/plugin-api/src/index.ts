@@ -4,7 +4,6 @@ export {
 	BackendFailure,
 	type OpenSessionOptions,
 	type SessionHandle,
-	type WireEvent,
 } from "#backend.ts";
 export {
 	type AntumbraPlugin,

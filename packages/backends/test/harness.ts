@@ -8,9 +8,9 @@ import type {
 	ProvisionRequest,
 	Runner,
 	SessionHandle,
-	WireEvent,
 } from "@antumbra/plugin-api";
-import { Effect, Layer, Queue, Ref, Stream } from "effect";
+import type { AgentEvent } from "@antumbra/session-events";
+import { Effect, Layer, Option, Queue, Ref, Stream } from "effect";
 import { AgentDomain, AgentDomainLive } from "#domain.ts";
 
 export interface ScriptedRunner {
@@ -49,10 +49,17 @@ export const acquireTemporaryPersistence = Effect.acquireRelease(
 
 export interface ScriptedSession {
 	readonly closed: Effect.Effect<boolean>;
-	readonly emit: (event: WireEvent) => Effect.Effect<void>;
+	readonly emit: (event: AgentEvent) => Effect.Effect<void>;
 	readonly interrupted: Effect.Effect<boolean>;
 	readonly sent: Effect.Effect<ReadonlyArray<string>>;
+	readonly steered: Effect.Effect<ReadonlyArray<string>>;
 }
+
+export const rawOf = (kind: string): AgentEvent["raw"] => ({
+	kind,
+	payload: "{}",
+	source: "scripted",
+});
 
 export interface ScriptedBackend {
 	readonly backend: AgentBackend;
@@ -70,12 +77,12 @@ export const makeScriptedBackend = Effect.gen(function* () {
 			fork: false,
 			liveInterrupt: true,
 			multiClient: false,
-			steer: false,
 		},
 		openSession: (options) =>
 			Effect.gen(function* () {
-				const events = yield* Queue.unbounded<WireEvent>();
+				const events = yield* Queue.unbounded<AgentEvent>();
 				const sent = yield* Ref.make<ReadonlyArray<string>>([]);
+				const steered = yield* Ref.make<ReadonlyArray<string>>([]);
 				const closed = yield* Ref.make(false);
 				const interrupted = yield* Ref.make(false);
 				yield* Effect.addFinalizer(() => Ref.set(closed, true));
@@ -84,6 +91,7 @@ export const makeScriptedBackend = Effect.gen(function* () {
 					emit: (event) => Queue.offer(events, event),
 					interrupted: Ref.get(interrupted),
 					sent: Ref.get(sent),
+					steered: Ref.get(steered),
 				};
 				yield* Ref.update(sessions, (map) =>
 					new Map(map).set(options.sessionId, scripted),
@@ -91,7 +99,9 @@ export const makeScriptedBackend = Effect.gen(function* () {
 				const handle: SessionHandle = {
 					events: Stream.fromQueue(events),
 					interrupt: Ref.set(interrupted, true),
-					send: (text) => Ref.update(sent, (texts) => [...texts, text]),
+					nativeRef: Effect.succeed(Option.some(`native-${options.sessionId}`)),
+					queue: (text) => Ref.update(sent, (texts) => [...texts, text]),
+					steer: (text) => Ref.update(steered, (texts) => [...texts, text]),
 				};
 				return handle;
 			}),

@@ -20,8 +20,11 @@
 		"typecheck:compat": "tsc6 --noEmit"
 	},
 	"devDependencies": {
+		"@antumbra/backends": "workspace:*",
 		"@antumbra/contract": "workspace:*",
+		"@antumbra/kernel": "workspace:*",
 		"@antumbra/persistence": "workspace:*",
+		"@antumbra/plugin-api": "workspace:*",
 		"@antumbra/renderer": "workspace:*",
 		"@effect/vitest": "catalog:",
 		"@shivaedev/effect-trpc": "catalog:",

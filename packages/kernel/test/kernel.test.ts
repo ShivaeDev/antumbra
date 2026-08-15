@@ -1,7 +1,7 @@
 import { Database } from "@antumbra/persistence";
 import { expect, it } from "@effect/vitest";
 import { Deferred, Effect, Option, Ref, Schema, Stream } from "effect";
-import { type Gate, maxConcurrency, settle } from "#gate.ts";
+import { type Gate, gaugeCeiling, maxConcurrency, settle } from "#gate.ts";
 import { defineIntent } from "#intent.ts";
 import { Kernel } from "#kernel.ts";
 import {
@@ -200,6 +200,38 @@ it.live("holds admission until the system settles, then retries itself", () =>
 		}).pipe(
 			Effect.provide(
 				kernelLayer(temporary, { gates: [settle(40)], kinds: [kind] }),
+			),
+		);
+	}),
+);
+
+it.live("samples gauges into the snapshot on every admission pass", () =>
+	Effect.gen(function* () {
+		const temporary = yield* acquireTemporaryPersistence;
+		const level = yield* Ref.make(1);
+		const kind = defineIntent({
+			execute: () => Effect.void,
+			payload: EMPTY,
+			tag: "test/gauged",
+		});
+		yield* Effect.gen(function* () {
+			const kernel = yield* Kernel;
+			const blocked = yield* kernel.submit(kind, {});
+			const early = yield* Stream.runHead(blocked.changes);
+			expect(early).toEqual(Option.some("queued"));
+			yield* Ref.set(level, 0);
+			const second = yield* kernel.submit(kind, {});
+			const first = yield* statusesUntilTerminal(kernel.changes(blocked.id));
+			expect(first.at(-1)).toBe("succeeded");
+			const rest = yield* statusesUntilTerminal(second.changes);
+			expect(rest.at(-1)).toBe("succeeded");
+		}).pipe(
+			Effect.provide(
+				kernelLayer(temporary, {
+					gates: [gaugeCeiling("test.level", 1)],
+					gauges: { "test.level": Ref.get(level) },
+					kinds: [kind],
+				}),
 			),
 		);
 	}),

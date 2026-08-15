@@ -29,6 +29,7 @@ export {
 	voyageState,
 	wouldCycle,
 } from "#piece-state.ts";
+export type { PieceView } from "#piece-view.ts";
 export type { CharterInput } from "#pieces.ts";
 export {
 	type RegisteredRepo,
@@ -55,9 +56,9 @@ export type {
 	VoyageRow,
 	VoyageWorld,
 } from "#voyage-rows.ts";
+export { VoyageSourceLive } from "#voyage-source.ts";
 export type {
 	PieceCounts,
-	PieceView,
 	VoyageSummary,
 	VoyageView,
 } from "#voyage-view.ts";

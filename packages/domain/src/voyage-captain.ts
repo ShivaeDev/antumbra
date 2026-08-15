@@ -1,6 +1,7 @@
 import { Option } from "effect";
 import { atWork } from "#agent-at-work.ts";
-import type { CrewRow, VoyageWorld } from "#voyage-rows.ts";
+import { crewOf, type VoyageCrewMember } from "#voyage-crew.ts";
+import type { VoyageWorld } from "#voyage-rows.ts";
 
 export const CAPTAIN_ROLE = "captain";
 
@@ -9,28 +10,26 @@ export interface VoyageCaptain {
 	readonly status: string;
 }
 
-const captainRows = (
+const captains = (
 	world: VoyageWorld,
 	voyageId: string,
-): ReadonlyArray<CrewRow> =>
-	world.crews.filter(
-		(crew) => crew.voyageId === voyageId && crew.role === CAPTAIN_ROLE,
-	);
+): ReadonlyArray<VoyageCrewMember> =>
+	crewOf(world, voyageId).filter((member) => member.role === CAPTAIN_ROLE);
 
-const asCaptain = (world: VoyageWorld, row: CrewRow): VoyageCaptain => ({
-	agentId: row.agentId,
-	status: world.agentStatus.get(row.agentId) ?? "unknown",
+const asCaptain = (member: VoyageCrewMember): VoyageCaptain => ({
+	agentId: member.agentId,
+	status: member.status,
 });
 
 // why: agents reach the world in the order they were born, so the last
 // captain the world knows of is the one hailed most recently.
 const hailedLast = (
 	world: VoyageWorld,
-	rows: ReadonlyArray<CrewRow>,
-): CrewRow | undefined => {
+	members: ReadonlyArray<VoyageCrewMember>,
+): VoyageCrewMember | undefined => {
 	const born = [...world.agentStatus.keys()];
-	const at = (row: CrewRow) => born.indexOf(row.agentId);
-	return [...rows].sort((left, right) => at(left) - at(right)).at(-1);
+	const at = (member: VoyageCrewMember) => born.indexOf(member.agentId);
+	return [...members].sort((left, right) => at(left) - at(right)).at(-1);
 };
 
 export const captainAtWork = (
@@ -39,9 +38,9 @@ export const captainAtWork = (
 ): Option.Option<VoyageCaptain> =>
 	Option.map(
 		Option.fromUndefinedOr(
-			captainRows(world, voyageId).find((row) => atWork(world, row.agentId)),
+			captains(world, voyageId).find((member) => atWork(world, member.agentId)),
 		),
-		(row) => asCaptain(world, row),
+		asCaptain,
 	);
 
 // why: a voyage may have been captained more than once, and a dormant captain
@@ -56,7 +55,7 @@ export const captainOf = (
 		return working;
 	}
 	return Option.map(
-		Option.fromUndefinedOr(hailedLast(world, captainRows(world, voyageId))),
-		(row) => asCaptain(world, row),
+		Option.fromUndefinedOr(hailedLast(world, captains(world, voyageId))),
+		asCaptain,
 	);
 };

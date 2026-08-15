@@ -2,7 +2,6 @@ import {
 	type EventQuery,
 	type RepoRegistration,
 	SessionEvent,
-	SightFailure,
 	SightSource,
 	type SpawnRequest,
 } from "@antumbra/contract";
@@ -11,20 +10,8 @@ import { Database, type WriteExecutors } from "@antumbra/persistence";
 import { Effect, Layer, PubSub, Schema, Stream } from "effect";
 import { AgentDomain } from "#domain.ts";
 import type { StoredEvent } from "#feeds.ts";
+import { toFailure } from "#sight-failure.ts";
 import { fleetSnapshot } from "#sight-fleet.ts";
-
-const describe = (cause: unknown): string => {
-	if (cause instanceof Error && cause.message !== "") {
-		return cause.message;
-	}
-	if (typeof cause === "object" && cause !== null && "_tag" in cause) {
-		return String(cause._tag);
-	}
-	return String(cause);
-};
-
-const toFailure = (cause: unknown) =>
-	new SightFailure({ message: describe(cause) });
 
 const pastRehydrated =
 	(query: EventQuery, lastSeq: number) => (event: StoredEvent) =>

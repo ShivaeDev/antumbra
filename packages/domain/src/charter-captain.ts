@@ -1,7 +1,7 @@
 import { charterText, logSection, section } from "#charter-sections.ts";
 import { pieceLineWithOutcomes } from "#piece-line.ts";
+import type { PieceView } from "#piece-view.ts";
 import type { VoyageRow } from "#voyage-rows.ts";
-import type { PieceView } from "#voyage-view.ts";
 
 export interface CaptainLogs {
 	readonly voyageSmoothLog: ReadonlyArray<string>;

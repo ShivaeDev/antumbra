@@ -1,7 +1,8 @@
 import { Option } from "effect";
 import { pieceLine } from "#piece-line.ts";
+import type { PieceView } from "#piece-view.ts";
 import type { VoyageCaptain } from "#voyage-captain.ts";
-import type { PieceView, VoyageView } from "#voyage-view.ts";
+import type { VoyageView } from "#voyage-view.ts";
 
 const listed = (lines: ReadonlyArray<string>): string =>
 	lines.length === 0 ? "- none" : lines.join("\n");

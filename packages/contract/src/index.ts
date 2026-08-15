@@ -13,12 +13,11 @@ export {
 	type TrpcSuccess,
 } from "#channels.ts";
 export { SubscribeRequest, TrpcRequest, UnsubscribeRequest } from "#ipc.ts";
+export { type AppRouter, makeAppRouter } from "#router.ts";
 export {
-	type AppRouter,
-	makeAppRouter,
 	type RequestContext,
 	RequestOrigin,
-} from "#router.ts";
+} from "#router-procedure.ts";
 export {
 	AgentSummary,
 	BerthSummary,
@@ -33,3 +32,27 @@ export {
 	SpawnReceipt,
 	SpawnRequest,
 } from "#sight.ts";
+export {
+	ArtifactView,
+	BoardEntryView,
+	CrewMemberView,
+	PieceAgentView,
+	PieceCounts,
+	PieceState,
+	PieceView,
+	ReportView,
+	VoyageCaptainView,
+	VoyageState,
+	VoyageSummary,
+	VoyageView,
+} from "#voyage-views.ts";
+export {
+	BoardTarget,
+	BoardWriteRequest,
+	CharterPieceRequest,
+	CharterReceipt,
+	HailReceipt,
+	OpenVoyageRequest,
+	RewireRequest,
+	VoyageSource,
+} from "#voyages.ts";

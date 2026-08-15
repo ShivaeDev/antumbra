@@ -7,6 +7,7 @@ import {
 	DispatcherLive,
 	KernelReachLive,
 	SightSourceLive,
+	VoyageSourceLive,
 } from "@antumbra/domain";
 import { KernelLive } from "@antumbra/kernel";
 import {
@@ -70,6 +71,7 @@ const kernel = Layer.unwrap(
 // launched pieces are spawned for whether or not a window is watching.
 const bridge = Layer.mergeAll(
 	SightSourceLive,
+	VoyageSourceLive,
 	DispatcherLive(),
 	KernelReachLive,
 ).pipe(Layer.provideMerge(kernel), Layer.provideMerge(persistence));

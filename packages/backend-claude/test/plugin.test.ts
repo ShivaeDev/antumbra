@@ -6,7 +6,9 @@ import { claudePlugin } from "#plugin.ts";
 it.effect("the claude plugin registers its backend through the host", () =>
 	Effect.gen(function* () {
 		const host = yield* makePluginHost;
-		yield* Effect.orDie(claudePlugin.activate(host.context));
+		yield* Effect.orDie(
+			claudePlugin({ executable: "/usr/bin/false" }).activate(host.context),
+		);
 		const backends = yield* host.backends;
 		const claude = backends.get("claude");
 		expect(claude).toBeDefined();

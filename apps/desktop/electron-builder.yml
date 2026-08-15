@@ -6,6 +6,9 @@ directories:
   output: release
 files:
   - out/**
+  # why: Antumbra drives the Claude Code the user installed; the SDK's
+  # bundled platform binaries would only add ~270 MB that is never spawned.
+  - "!**/node_modules/@anthropic-ai/claude-agent-sdk-*/**"
 extraResources:
   - from: out/persistence
     to: persistence

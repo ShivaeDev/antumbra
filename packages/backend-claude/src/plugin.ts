@@ -56,28 +56,33 @@ const makeHandle = (raw: RawSession) =>
 		}),
 	);
 
-export const claudeBackend: AgentBackend = {
+export interface ClaudePluginOptions {
+	readonly executable: string;
+}
+
+export const claudeBackend = (options: ClaudePluginOptions): AgentBackend => ({
 	capabilities: {
 		fork: true,
 		liveInterrupt: true,
 		multiClient: false,
 	},
-	openSession: (options) =>
+	openSession: (session) =>
 		Effect.acquireRelease(
 			Effect.try({
 				catch: failure,
 				try: () =>
 					openRawSession({
-						cwd: options.cwd,
-						resume: Option.getOrUndefined(options.resume),
+						cwd: session.cwd,
+						executable: options.executable,
+						resume: Option.getOrUndefined(session.resume),
 					}),
 			}),
-			(session) => Effect.sync(() => session.close()),
+			(raw) => Effect.sync(() => raw.close()),
 		).pipe(Effect.flatMap(makeHandle)),
 	tag: "claude",
-};
+});
 
-export const claudePlugin: AntumbraPlugin = {
-	activate: (context) => context.registerAgentBackend(claudeBackend),
+export const claudePlugin = (options: ClaudePluginOptions): AntumbraPlugin => ({
+	activate: (context) => context.registerAgentBackend(claudeBackend(options)),
 	name: "claude",
-};
+});

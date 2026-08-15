@@ -1,3 +1,9 @@
+export type {
+	DomainFeedsService,
+	DomainFeedsService as DomainFeeds,
+	StoredEvent,
+} from "@antumbra/domain-feeds";
+export type { CharterInput, EdgeRow, PieceRow } from "@antumbra/pieces";
 export type { ChangeProcedures } from "#change-procedures.ts";
 export { refreshChanges } from "#change-refresh.ts";
 export type { ChangeRow, PieceChangeRow } from "#change-rows.ts";
@@ -33,7 +39,6 @@ export {
 	UnknownBackendTag,
 	UnknownChangeHostTag,
 } from "#errors.ts";
-export type { DomainFeeds, StoredEvent } from "#feeds.ts";
 export { KernelReachLive } from "#kernel-reach.ts";
 export {
 	changeStatus,
@@ -54,7 +59,6 @@ export {
 	wouldCycle,
 } from "#piece-state.ts";
 export type { ChangeView, PieceView } from "#piece-view.ts";
-export type { CharterInput } from "#pieces.ts";
 export {
 	type RegisteredRepo,
 	type RepoRegistration,
@@ -75,7 +79,6 @@ export {
 } from "#status.ts";
 export type {
 	ArtifactRow,
-	PieceRow,
 	ReportRow,
 	VoyageRow,
 	VoyageWorld,

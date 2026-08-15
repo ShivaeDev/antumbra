@@ -1,5 +1,11 @@
 import { Data } from "effect";
 
+export {
+	EdgeWouldCycle,
+	PieceNotFound,
+	VoyageNotFound,
+} from "@antumbra/pieces";
+
 export class AgentNotFound extends Data.TaggedError("AgentNotFound")<{
 	readonly agentId: string;
 }> {}
@@ -25,10 +31,6 @@ export class AgentNotSpawnable extends Data.TaggedError("AgentNotSpawnable")<{
 
 export class SessionNotLive extends Data.TaggedError("SessionNotLive")<{
 	readonly sessionId: string;
-}> {}
-
-export class PieceNotFound extends Data.TaggedError("PieceNotFound")<{
-	readonly pieceId: string;
 }> {}
 
 // why: these three reach a model verbatim through a tool answer, so each
@@ -58,15 +60,6 @@ export class NoChangeHost extends Data.TaggedError("NoChangeHost")<{
 		return `no change host claims ${this.repoName}`;
 	}
 }
-
-export class EdgeWouldCycle extends Data.TaggedError("EdgeWouldCycle")<{
-	readonly fromPieceId: string;
-	readonly toPieceId: string;
-}> {}
-
-export class VoyageNotFound extends Data.TaggedError("VoyageNotFound")<{
-	readonly voyageId: string;
-}> {}
 
 // why: a voyage is under way because its captain is at work, so hailing a
 // second one while the first still is would give the voyage two accountable

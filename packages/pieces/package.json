@@ -1,5 +1,5 @@
 {
-	"name": "@antumbra/domain",
+	"name": "@antumbra/pieces",
 	"version": "0.0.0",
 	"private": true,
 	"type": "module",
@@ -19,19 +19,12 @@
 		"@effect/vitest": "catalog:",
 		"@types/node": "catalog:",
 		"@typescript/native": "catalog:",
-		"effect": "catalog:",
 		"typescript": "catalog:",
 		"vitest": "catalog:"
 	},
 	"dependencies": {
-		"@antumbra/agent-tools": "workspace:*",
-		"@antumbra/contract": "workspace:*",
 		"@antumbra/domain-feeds": "workspace:*",
-		"@antumbra/kernel": "workspace:*",
 		"@antumbra/persistence": "workspace:*",
-		"@antumbra/pieces": "workspace:*",
-		"@antumbra/plugin-api": "workspace:*",
-		"@antumbra/session-events": "workspace:*",
 		"effect": "catalog:"
 	}
 }

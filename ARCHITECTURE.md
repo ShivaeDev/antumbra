@@ -26,7 +26,9 @@ conversation-level: on relaunch, agent sessions resume from persisted state.
 | `packages/plugin-api`     | The driven ports: agent backends, runners, plugin registration  |
 | `packages/agent-tools`    | The tools agents act through: schemas and binding, no transport |
 | `packages/kernel`         | Intents, admission scheduling, lifecycle state machines         |
-| `packages/domain`         | Agent use cases and the projections the contract serves         |
+| `packages/domain-feeds`   | Shared post-commit domain change notifications                  |
+| `packages/pieces`         | Piece acts and their transactional graph invariants             |
+| `packages/domain`         | Application-facing use cases and capability Layer composition   |
 | `packages/git`            | Semantic Git operations over Effect's child-process port        |
 | `packages/backend-claude` | The Claude agent backend: one adapter for one provider          |
 | `packages/backend-codex`  | The Codex agent backend: one app-server child, threads on it    |
@@ -43,13 +45,24 @@ runner must be, and what a tool an agent may call is. `agent-tools` sits
 just above it and holds the tool specifications themselves — schemas and
 binding, no transport — so the domain writes the handlers while every
 adapter maps the same set onto its provider, and neither learns the other.
-`domain` holds the use cases and depends only on ports, so it can name what
-it needs without naming who provides it. Adapter packages
+Small capability packages form a dependency-inversion tree beneath `domain`.
+For example, `pieces` owns piece transactions and depends on the persistence
+port plus the `domain-feeds` notification leaf. `domain` is the
+application-facing facade: it assembles those capability Layers and broader
+agent use cases without making the desktop shell wire each service manually.
+It depends only on ports and capabilities, so it can name what it needs without
+naming who provides it. Adapter packages
 (`backend-*`, `runner-*`) implement a port for exactly one provider and
 never reach back into the domain. `apps/desktop` is the composition root and
 the only place where an adapter and a use case appear together.
 `packages/git` is process infrastructure below `runner-local`; it speaks only
 Effect's child-process port and never imports an Antumbra layer.
+
+Runtime dependencies are expressed through Effect environments. Business
+functions yield exact services; capability services own their transactions and
+post-commit signals; Layers decide implementation, sharing, and lifetime.
+Provider-facing callbacks are compiled by the domain and cross the foreign SDK
+boundary only after their Effect requirements have been closed.
 
 Dependency direction is enforced by `dependency-cruiser` in CI; the rules
 live in `.dependency-cruiser.cjs` and each carries its rationale.

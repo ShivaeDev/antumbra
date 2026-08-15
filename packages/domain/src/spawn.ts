@@ -1,6 +1,6 @@
 import { defineIntent } from "@antumbra/kernel";
 import { Effect, Option, Schema } from "effect";
-import { captainTools } from "#captain-tools.ts";
+import { makeCaptainToolCompiler } from "#captain-tools.ts";
 import { deliverCharterOnce } from "#charter.ts";
 import { crewTools } from "#crew-tools.ts";
 import type { AgentDeps } from "#deps.ts";
@@ -31,55 +31,12 @@ const SpawnPayload = Schema.Struct({
 });
 export type SpawnFields = typeof SpawnPayload.Type;
 
-// why: the session's tools are bound to this agent, this session, and what it
-// answers to — identity is fixed here, at birth, and never travels with a
-// call. Which set a session receives is the whole enforcement of the
-// anti-proposer rule: a captain charters, everyone else reports.
-const toolsFor = (deps: AgentDeps, payload: SpawnFields) => {
-	const identity = {
-		agentId: payload.agentId,
-		pieceId: Option.fromUndefinedOr(payload.pieceId),
-		sessionId: payload.sessionId,
-		voyageId: Option.fromUndefinedOr(payload.voyageId),
-	};
-	return payload.role === CAPTAIN_ROLE && Option.isSome(identity.voyageId)
-		? captainTools(deps, identity)
-		: crewTools(deps, identity);
-};
-
-const spawnAgent = (deps: AgentDeps, payload: SpawnFields) =>
-	Effect.gen(function* () {
-		const backend = deps.backends.get(payload.backend);
-		if (backend === undefined) {
-			return yield* new UnknownBackendTag({ tag: payload.backend });
-		}
-		const runner = deps.runners.get(payload.runner);
-		if (runner === undefined) {
-			return yield* new UnknownRunnerTag({ tag: payload.runner });
-		}
-		yield* ensureAgentRow(deps, payload);
-		// why: the moorage exists before the session opens — the agent is never
-		// the one creating its own worktrees — and it holds a berth for every
-		// registered repo, read now rather than at submit.
-		const moorage = yield* runner.provision({
-			agentId: payload.agentId,
-			repos: yield* berthRequests(deps),
-		});
-		yield* recordMoorage(deps, payload, moorage);
-		const sink = yield* deps.sinkFor(payload.sessionId);
-		const handle = yield* deps.fabric.start(
-			backend,
-			{
-				cwd: moorage.root,
-				resume: Option.none(),
-				sessionId: payload.sessionId,
-				tools: toolsFor(deps, payload),
-			},
-			sink,
-		);
-		yield* deliverCharterOnce(deps, payload, handle);
-		yield* activateAgent(deps, payload.agentId);
-	});
+const sessionIdentity = (payload: SpawnFields) => ({
+	agentId: payload.agentId,
+	pieceId: Option.fromUndefinedOr(payload.pieceId),
+	sessionId: payload.sessionId,
+	voyageId: Option.fromUndefinedOr(payload.voyageId),
+});
 
 const settleAfterFailure = (deps: AgentDeps, payload: SpawnFields) =>
 	settleSpawnFailure(deps, payload).pipe(
@@ -92,15 +49,59 @@ const settleAfterFailure = (deps: AgentDeps, payload: SpawnFields) =>
 		),
 	);
 
-export const makeSpawnKind = (deps: AgentDeps) =>
-	defineIntent({
-		execute: (payload) =>
-			spawnAgent(deps, payload).pipe(
-				Effect.onError(() => settleAfterFailure(deps, payload)),
-			),
-		payload: SpawnPayload,
-		// why: a stranded spawn's agent goes dormant at boot; requeueing it would
-		// be revival, which v0 deliberately does not have.
-		reclaim: "abandon",
-		tag: "agent/spawn",
-	});
+export const makeSpawnKind = Effect.gen(function* () {
+	const compileCaptainTools = yield* makeCaptainToolCompiler;
+	return (deps: AgentDeps) => {
+		// why: the session's tools are bound to this agent, this session, and what
+		// it answers to. Capability effects are closed here, before the callbacks
+		// cross into the provider SDK.
+		const toolsFor = (payload: SpawnFields) => {
+			const identity = sessionIdentity(payload);
+			return payload.role === CAPTAIN_ROLE && Option.isSome(identity.voyageId)
+				? compileCaptainTools(deps, identity)
+				: crewTools(deps, identity);
+		};
+		const spawnAgent = (payload: SpawnFields) =>
+			Effect.gen(function* () {
+				const backend = deps.backends.get(payload.backend);
+				if (backend === undefined) {
+					return yield* new UnknownBackendTag({ tag: payload.backend });
+				}
+				const runner = deps.runners.get(payload.runner);
+				if (runner === undefined) {
+					return yield* new UnknownRunnerTag({ tag: payload.runner });
+				}
+				yield* ensureAgentRow(deps, payload);
+				const moorage = yield* runner.provision({
+					agentId: payload.agentId,
+					repos: yield* berthRequests(deps),
+				});
+				yield* recordMoorage(deps, payload, moorage);
+				const sink = yield* deps.sinkFor(payload.sessionId);
+				const handle = yield* deps.fabric.start(
+					backend,
+					{
+						cwd: moorage.root,
+						resume: Option.none(),
+						sessionId: payload.sessionId,
+						tools: toolsFor(payload),
+					},
+					sink,
+				);
+				yield* deliverCharterOnce(deps, payload, handle);
+				yield* activateAgent(deps, payload.agentId);
+			});
+
+		return defineIntent({
+			execute: (payload) =>
+				spawnAgent(payload).pipe(
+					Effect.onError(() => settleAfterFailure(deps, payload)),
+				),
+			payload: SpawnPayload,
+			// why: a stranded spawn's agent goes dormant at boot; requeueing it would
+			// be revival, which v0 deliberately does not have.
+			reclaim: "abandon",
+			tag: "agent/spawn",
+		});
+	};
+});

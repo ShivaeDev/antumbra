@@ -10,6 +10,8 @@ export interface Seed {
 	readonly manifests?: readonly TextFile[];
 	readonly pragmaRegistry?: string;
 	readonly root?: string;
+	readonly serviceParameterAllowance?: string;
+	readonly serviceParameterBaseline?: string;
 	readonly sources?: readonly SeedFile[];
 	readonly workspaceCatalog?: string;
 }
@@ -20,6 +22,8 @@ export const inventoryOf = (seed: Seed): Inventory => ({
 	manifests: seed.manifests ?? [],
 	pragmaRegistry: seed.pragmaRegistry ?? "[]",
 	root: seed.root ?? "/virtual",
+	serviceParameterAllowance: seed.serviceParameterAllowance ?? "[]",
+	serviceParameterBaseline: seed.serviceParameterBaseline ?? "[]",
 	sources: (seed.sources ?? []).map((file) => ({
 		comments: sourceComments(file.path, file.content),
 		lines: file.content.split("\n"),

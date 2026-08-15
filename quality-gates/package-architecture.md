@@ -10,9 +10,10 @@ whether it sits in the layer its name claims.
    two responsibilities is two packages that were never separated; a package
    named for a plural (`backends`, `runners`) is a folder of implementations
    pretending to be a module.
-2. Dependencies point one way: the vocabulary leaf carries the shared
-   language, the port packages define the interfaces, the domain holds the
-   use cases, and adapters implement the ports. Nothing points back.
+2. Dependencies point one way: vocabulary and notification leaves carry shared
+   language, port packages define interfaces, small capability packages own
+   business acts, the domain facade composes them, and adapters implement ports.
+   Nothing points back.
 3. Adapters know ports, never the domain. A backend or runner that imports a
    use case has stopped being replaceable.
 4. The domain knows ports, never providers. A vendor SDK, a provider name, or
@@ -27,13 +28,16 @@ whether it sits in the layer its name claims.
    own package beside it. A package that only ever ships with one other is a
    candidate for merging; a package whose parts serve different callers is a
    candidate for splitting.
-8. Every layer edge has a boundary rule with a written rationale. A rule is
+8. Capability packages form a dependency-inversion tree. The application-facing
+   domain facade assembles their Layers; the desktop consumes that facade rather
+   than reconstructing the tree service by service.
+9. Every layer edge has a boundary rule with a written rationale. A rule is
    never widened, weakened, or exempted to make a change pass — a violation
    says the code is in the wrong package.
-9. If a change feels weird — an import that wants to cross a layer, a file
+10. If a change feels weird — an import that wants to cross a layer, a file
    that wants two homes — step back and split or refactor the package first.
    Never accept a shape because it was already there.
-10. Leave the module cleaner than you found it. A change that lands in a
+11. Leave the module cleaner than you found it. A change that lands in a
     package is the moment to fix the misfiled file next to it.
 
 ## Review checklist
@@ -46,6 +50,8 @@ whether it sits in the layer its name claims.
       an SDK, or a concrete adapter?
 - [ ] Does a new package deserve its own name, or is it a folder inside an
       existing responsibility?
+- [ ] Does the desktop consume the domain facade instead of assembling leaf
+      capability services itself?
 - [ ] Did the change add a boundary rule for the edge it introduced — and did
       it leave every existing rule at least as strict?
 - [ ] Was any file placed where it fit the build rather than where it

@@ -5,11 +5,11 @@ import {
 	SightSource,
 	type SpawnRequest,
 } from "@antumbra/contract";
+import { DomainFeeds, type StoredEvent } from "@antumbra/domain-feeds";
 import { Kernel } from "@antumbra/kernel";
 import { Database, type WriteExecutors } from "@antumbra/persistence";
 import { Effect, Layer, PubSub, Schema, Stream } from "effect";
 import { AgentDomain } from "#domain.ts";
-import type { StoredEvent } from "#feeds.ts";
 import { toFailure } from "#sight-failure.ts";
 import { fleetSnapshot } from "#sight-fleet.ts";
 
@@ -20,6 +20,7 @@ const pastRehydrated =
 export const SightSourceLive = Layer.effect(SightSource)(
 	Effect.gen(function* () {
 		const domain = yield* AgentDomain;
+		const feeds = yield* DomainFeeds;
 		const kernel = yield* Kernel;
 		const db = yield* Database;
 		const executors = yield* Effect.context<WriteExecutors>();
@@ -50,7 +51,7 @@ export const SightSourceLive = Layer.effect(SightSource)(
 		const sessionEventFeed = (query: EventQuery) =>
 			Stream.unwrap(
 				Effect.gen(function* () {
-					const subscription = yield* PubSub.subscribe(domain.feeds.events);
+					const subscription = yield* PubSub.subscribe(feeds.events);
 					const rehydrated = yield* sessionEvents(query);
 					const lastSeq = rehydrated.at(-1)?.seq ?? query.fromSeq - 1;
 					const live = Stream.fromSubscription(subscription).pipe(
@@ -62,7 +63,7 @@ export const SightSourceLive = Layer.effect(SightSource)(
 
 		const fleetFeed = Stream.unwrap(
 			Effect.gen(function* () {
-				const subscription = yield* PubSub.subscribe(domain.feeds.fleet);
+				const subscription = yield* PubSub.subscribe(feeds.fleet);
 				const refresh = Stream.fromSubscription(subscription).pipe(
 					Stream.mapEffect(() => fleet),
 				);

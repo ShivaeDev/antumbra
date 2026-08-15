@@ -1,44 +1,79 @@
-import type { Fleet } from "@antumbra/contract";
+import type { Fleet, VoyageSummary } from "@antumbra/contract";
 import { useAtomValue } from "@effect/atom-react";
 import { AsyncResult, Atom } from "effect/unstable/reactivity";
 import { useEffect, useState } from "react";
 import { loadAppInfo, watchFleet } from "#adapters/trpc.ts";
-import { FleetPanel } from "#views/fleet.tsx";
-import { ReposPanel } from "#views/repos.tsx";
-import { SpawnForm } from "#views/spawn-form.tsx";
+import { watchVoyages } from "#adapters/trpc-voyages.ts";
+import { FleetAside } from "#views/fleet-aside.tsx";
+import { type Mode, ModeStrip } from "#views/mode-strip.tsx";
 import { TranscriptView } from "#views/transcript.tsx";
+import { VoyagePanel } from "#views/voyage.tsx";
+import { VoyagesAside } from "#views/voyages-aside.tsx";
 
 const appInfoAtom = Atom.make(loadAppInfo);
+
+const mainStyle: React.CSSProperties = {
+	background: "#16181d",
+	color: "#e4e2dd",
+	display: "flex",
+	fontFamily: "system-ui",
+	height: "100vh",
+};
+
+const asideStyle: React.CSSProperties = {
+	borderRight: "1px solid #2e323a",
+	display: "flex",
+	flexDirection: "column",
+	gap: "1.2rem",
+	overflowY: "auto",
+	padding: "1rem",
+	width: "20rem",
+};
+
+const emptyStyle: React.CSSProperties = { color: "#8a8f98", margin: "auto" };
+
+const MainSection = ({
+	mode,
+	onError,
+	session,
+	voyage,
+}: {
+	readonly mode: Mode;
+	readonly onError: (message: string) => void;
+	readonly session: string | undefined;
+	readonly voyage: string | undefined;
+}) => {
+	if (mode === "voyages") {
+		return voyage === undefined ? (
+			<section style={emptyStyle}>select a voyage to see its pieces</section>
+		) : (
+			<VoyagePanel onError={onError} voyageId={voyage} />
+		);
+	}
+	return session === undefined ? (
+		<section style={emptyStyle}>
+			select a session to watch its transcript
+		</section>
+	) : (
+		<TranscriptView sessionId={session} />
+	);
+};
 
 export const App = () => {
 	const info = useAtomValue(appInfoAtom);
 	const [fleet, setFleet] = useState<Fleet | undefined>(undefined);
-	const [selected, setSelected] = useState<string | undefined>(undefined);
+	const [voyages, setVoyages] = useState<ReadonlyArray<VoyageSummary>>([]);
+	const [mode, setMode] = useState<Mode>("fleet");
+	const [session, setSession] = useState<string | undefined>(undefined);
+	const [voyage, setVoyage] = useState<string | undefined>(undefined);
 	const [notice, setNotice] = useState<string | undefined>(undefined);
 
 	useEffect(() => watchFleet(setFleet, setNotice), []);
+	useEffect(() => watchVoyages(setVoyages, setNotice), []);
 
 	return (
-		<main
-			style={{
-				background: "#16181d",
-				color: "#e4e2dd",
-				display: "flex",
-				fontFamily: "system-ui",
-				height: "100vh",
-			}}
-		>
-			<aside
-				style={{
-					borderRight: "1px solid #2e323a",
-					display: "flex",
-					flexDirection: "column",
-					gap: "1.2rem",
-					overflowY: "auto",
-					padding: "1rem",
-					width: "20rem",
-				}}
-			>
+		<main style={mainStyle}>
+			<aside style={asideStyle}>
 				<header>
 					<h1 style={{ fontSize: "1.1rem", margin: 0 }}>Antumbra</h1>
 					<span style={{ color: "#8a8f98", fontSize: "0.75rem" }}>
@@ -53,22 +88,30 @@ export const App = () => {
 				{notice === undefined ? null : (
 					<div style={{ color: "#ff7c7c", fontSize: "0.85rem" }}>{notice}</div>
 				)}
-				<ReposPanel onError={setNotice} repos={fleet?.repos ?? []} />
-				<SpawnForm backends={fleet?.backends ?? []} onError={setNotice} />
-				<FleetPanel
-					fleet={fleet}
-					onError={setNotice}
-					onSelect={setSelected}
-					selected={selected}
-				/>
+				<ModeStrip mode={mode} onMode={setMode} />
+				{mode === "fleet" ? (
+					<FleetAside
+						fleet={fleet}
+						onError={setNotice}
+						onSelect={setSession}
+						selected={session}
+					/>
+				) : (
+					<VoyagesAside
+						backends={fleet?.backends ?? []}
+						onError={setNotice}
+						onSelect={setVoyage}
+						selected={voyage}
+						voyages={voyages}
+					/>
+				)}
 			</aside>
-			{selected === undefined ? (
-				<section style={{ color: "#8a8f98", margin: "auto" }}>
-					select a session to watch its transcript
-				</section>
-			) : (
-				<TranscriptView sessionId={selected} />
-			)}
+			<MainSection
+				mode={mode}
+				onError={setNotice}
+				session={session}
+				voyage={voyage}
+			/>
 		</main>
 	);
 };

@@ -26,3 +26,39 @@ export const rowStyle: React.CSSProperties = {
 	display: "flex",
 	gap: "0.5rem",
 };
+
+export const columnStyle: React.CSSProperties = {
+	display: "flex",
+	flexDirection: "column",
+	gap: "0.4rem",
+};
+
+export const headingStyle: React.CSSProperties = {
+	fontSize: "0.85rem",
+	margin: 0,
+};
+
+export const cardStyle: React.CSSProperties = {
+	background: "#1b1e24",
+	border: "1px solid #2e323a",
+	borderRadius: "6px",
+	display: "flex",
+	flexDirection: "column",
+	gap: "0.3rem",
+	padding: "0.5rem 0.7rem",
+};
+
+export const pillStyle = (colour: string): React.CSSProperties => ({
+	border: `1px solid ${colour}`,
+	borderRadius: "999px",
+	color: colour,
+	fontSize: "0.7rem",
+	padding: "0 0.45rem",
+});
+
+export const quietButtonStyle: React.CSSProperties = {
+	...buttonStyle,
+	background: "none",
+	color: "#7c9cff",
+	padding: 0,
+};

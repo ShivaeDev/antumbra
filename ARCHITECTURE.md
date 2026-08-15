@@ -60,6 +60,15 @@ admission (concurrency, resource pressure, shutdown draining) and is the only
 component that starts work. Intent lifecycles are explicit state machines
 with transition tables.
 
+Admitted intents run through the pinned Effect 4 RC's
+`WorkflowEngine.layerMemory`, with a deterministic execution identity derived
+from the durable intent id and a per-execution Effect service,
+`IntentExecution`, for stable, named activities. In-process activity results
+may replay, but engine history is never persisted: after restart, reclaim
+begins again, so activities must be idempotent or reconcile durable domain
+truth. The version-sensitive workflow API stays inside the kernel; the domain
+depends only on `IntentExecution`.
+
 ## Plugins
 
 Capabilities — agent backends, runners, integrations — register through the

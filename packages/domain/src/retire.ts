@@ -1,4 +1,4 @@
-import { defineIntent } from "@antumbra/kernel";
+import { defineIntent, IntentExecution } from "@antumbra/kernel";
 import { Effect, Option, PubSub, Schema } from "effect";
 import { type AgentDeps, provideExecutors } from "#deps.ts";
 import { AgentNotFound } from "#errors.ts";
@@ -40,21 +40,27 @@ const retireAgent = (deps: AgentDeps, agentId: string) => {
 		const status = yield* Effect.orDie(
 			Schema.decodeUnknownEffect(AgentStatusSchema)(agent.value.status),
 		);
+		if (status === "retired") {
+			return;
+		}
 		const next = yield* Effect.fromResult(agentTransition(status, "retire"));
-		yield* stopSessions(deps, agentId);
-		yield* provide(closeRows(deps, agentId, next));
-		yield* PubSub.publish(deps.feeds.fleet, undefined);
+		const execution = yield* IntentExecution;
+		yield* execution.step("stop-sessions", stopSessions(deps, agentId));
+		yield* execution.step(
+			"close-records",
+			provide(closeRows(deps, agentId, next)),
+			{ additionalAttempts: 1 },
+		);
+		yield* execution.step(
+			"publish-fleet",
+			PubSub.publish(deps.feeds.fleet, undefined),
+		);
 	});
 };
 
 export const makeRetireKind = (deps: AgentDeps) =>
 	defineIntent({
-		execute: (payload) =>
-			retireAgent(deps, payload.agentId).pipe(
-				// why: a requeued retire that already completed lands on "retired" —
-				// idempotent by treating the illegal re-transition as done.
-				Effect.catchTag("InvalidAgentTransition", () => Effect.void),
-			),
+		execute: (payload) => retireAgent(deps, payload.agentId),
 		payload: RetirePayload,
 		reclaim: "requeue",
 		tag: "agent/retire",

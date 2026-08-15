@@ -12,6 +12,7 @@ import {
 	Schema,
 	Stream,
 } from "effect";
+import { WorkflowEngine } from "effect/unstable/workflow";
 import { schedulerLoop } from "#admission.ts";
 import { IntentNotFound, UnregisteredIntentTag } from "#errors.ts";
 import { IntentStatusSchema } from "#fsm.ts";
@@ -98,6 +99,12 @@ const cancelIntent = (id: string) =>
 export const KernelLive = (options: KernelOptions) =>
 	Layer.effect(Kernel)(
 		Effect.gen(function* () {
+			const workflowEngine = yield* WorkflowEngine.WorkflowEngine;
+			yield* Effect.forEach(options.kinds, (kind) =>
+				kind.registerWorkflow.pipe(
+					Effect.provideService(WorkflowEngine.WorkflowEngine, workflowEngine),
+				),
+			);
 			const state = {
 				gates: options.gates ?? [],
 				gauges: new Map(Object.entries(options.gauges ?? {})),
@@ -114,6 +121,7 @@ export const KernelLive = (options: KernelOptions) =>
 				// any number of "look again" signals collapse into at most one
 				// pending element, so the drain never runs a redundant pass.
 				tick: yield* Queue.sliding<void>(1),
+				workflowEngine,
 			};
 			const context = Context.make(SchedulerState, state).pipe(
 				Context.add(Database, yield* Database),
@@ -135,4 +143,4 @@ export const KernelLive = (options: KernelOptions) =>
 					),
 			};
 		}),
-	);
+	).pipe(Layer.provide(WorkflowEngine.layerMemory));

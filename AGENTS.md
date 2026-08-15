@@ -38,12 +38,26 @@ surviving comment is a deliberate, greppable claim. Tool pragmas
 (`@ts-expect-error`, `biome-ignore`) require a reason and an entry in
 `script/pragma-registry.json`; `@ts-ignore` is never allowed.
 
-## Size and structure
+## Size, structure, and depth
+
+Small, flat, single-purpose units are the goal; the guards only enforce the
+floor. A file that covers one concern can be read, reviewed, and replaced in
+full. A function that stays shallow states its logic; nesting and branching
+hide it. When code grows past a guard, the answer is always decomposition by
+responsibility — named functions in purpose-named files — never denser code.
 
 - Source files: 150 lines. Test files: 300. There is no baseline of
   grandfathered exceptions and none will be added.
+- A line indented eight tabs or deeper fails the lint: extract a named
+  function (or component) instead of nesting further.
+- Biome fails nested ternaries and any function over cognitive complexity
+  15: prefer early returns and if-chains over ternary towers and wide
+  branching.
 - Split along responsibilities into purpose-named files and nested folders —
-  never golf a file under the cap, and never shard it arbitrarily.
+  a folder per concern — never golf a file under the cap, and never shard it
+  arbitrarily.
+- An extraction is named for what the block means, not what it mechanically
+  does. If no honest name exists, the split is in the wrong place.
 - `index.ts` exists only as a package entry. No barrels.
 - Any imported file should be readable in full.
 

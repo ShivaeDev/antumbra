@@ -21,7 +21,7 @@
 		"typecheck": "pnpm --recursive --if-present typecheck",
 		"typecheck:compat": "pnpm --recursive --if-present typecheck:compat",
 		"typecheck:root": "tsc --noEmit",
-		"ready": "pnpm lint && pnpm build && pnpm typecheck && pnpm typecheck:root && pnpm typecheck:compat && pnpm test && pnpm test:guards"
+		"ready": "node script/ready.ts"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "catalog:",

@@ -70,6 +70,12 @@ admission (concurrency, resource pressure, shutdown draining) and is the only
 component that starts work. Intent lifecycles are explicit state machines
 with transition tables.
 
+An Intent is a mortal executable attempt, not durable Piece demand. A desired
+Piece that is dependency-blocked has no dispatch workflow; reconciliation
+submits a new Intent when it becomes eligible. Waiting is reserved for an
+active attempt that needs immediate external intervention, such as
+authentication.
+
 Each admitted intent attempt builds a fresh `WorkflowEngine.layerMemory`,
 registers its kind, and discards the engine and its history when the attempt
 settles. The durable intent id is its deterministic execution identity, while

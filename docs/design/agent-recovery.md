@@ -14,6 +14,14 @@ flowchart LR
   Process["Process attachment: disposable"] -. "rebuilds from durable truth" .-> Session
 ```
 
+A Piece is work, an Agent is identity, and an AgentSession is execution. Those
+relations are not one-to-one: a Piece may assign several Agents, and an Agent
+may have several Sessions across handovers or explicit forks. Recovery follows
+each durable assignment and Session instead of selecting one row and treating
+the rest as finished. A failed provider conversation or resource never makes
+the Agent identity irrecoverable or releases its Piece assignment; recovery
+resumes the same Session or explicitly links a successor to the same Agent.
+
 ## Three truths, three lifecycles
 
 - The **Agent** owns identity, responsibility, and durable addresses such as
@@ -31,6 +39,28 @@ Agent setup reaches its success boundary when the required Moorage and Berths
 are ready. Opening a usable provider Session is subsequent work. A provider,
 authentication, or transcript failure after resource readiness must not undo
 the Agent or cause the same resources to be provisioned again.
+
+## Demand outlives dispatch
+
+A Piece's human posture is long-lived demand. `start_piece` changes that
+posture to desired; reconciliation owns queueing, starting, and resuming. A
+desired Piece whose dependencies are unfinished remains desired and blocked
+with no dispatch Intent. If a queued Piece becomes blocked or is parked before
+starting, its short-lived dispatch Intent is cancelled. A new Intent is
+submitted when the durable demand becomes eligible again.
+
+Intent waiting is narrower: an active attempt may wait visibly for immediate
+external intervention such as authentication, then retry. Waiting is not a
+place to store ordinary Piece prerequisites.
+
+An already assigned Agent and resumable Session are reconciled before another
+Agent is spawned. Starting becomes in progress when the first assigned Agent's
+Moorage and Session are established and the initial task has been queued to the
+provider at least once. It does not wait for marked-read evidence. The default
+staffing policy is one Agent, but the model permits several explicit Agent
+assignments and does not collapse their Sessions into one execution. Current
+domain policy permits each Agent only one active Piece; the M:N schema leaves
+room for that policy to evolve without imposing a structural one-to-one link.
 
 ## Durable truth and disposable execution
 
@@ -58,11 +88,12 @@ given work. Missing observers, an empty in-memory registry, or a dead watcher
 only remove current knowledge; they never mean an Agent retired, a Session
 closed, a Moorage orphaned, or a claim released.
 
-After a successful native attach, recovery durably queues one recovery
-instruction for ordinary at-least-once delivery. If exit or transport failure
-obscures whether the provider accepted it, a retry may send a duplicate;
-missing the instruction is worse than repeating an idempotent one. A provider
-send is not durable evidence that an Agent read its mail.
+Initial and recovery instructions use ordinary at-least-once delivery. After a
+successful native attach, recovery durably queues one recovery instruction. If
+exit or transport failure obscures whether the provider accepted an
+instruction, a retry may send a duplicate; missing it is worse than repeating
+an idempotent one. A provider send is not durable evidence that an Agent read
+its mail.
 
 If the provider transcript or native session is unavailable, recovery holds
 visibly. Starting a linked successor Session is an explicit choice, preserves
@@ -95,3 +126,11 @@ identity, Session identity, and story are not cleanup targets. Dirty or
 unpushed work, unavailable authentication, or uncertain inspection always
 blocks automated reclamation. Age can inform which safe resource to reclaim;
 it cannot make an unsafe resource safe.
+
+Stand-down is a reversible siesta: it drains toward a safe holding point while
+preserving the Agent, its Moorage, and its resumable Sessions. Retirement is
+the explicit irreversible end of an Agent and normally drives terminal Moorage
+cleanup. Exceptional recovery may instead reclaim a broken or deliberately
+abandoned setup for a non-retired Agent; a later ordinary provision attempt
+reuses the same Moorage row, reconciles surviving evidence, and recreates only
+what is absent. There is no separate resource-reset lifecycle.

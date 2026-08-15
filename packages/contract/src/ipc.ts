@@ -1,11 +1,8 @@
 import { Schema } from "effect";
-
-export const TRPC_CHANNEL = "antumbra:trpc";
-export const TRPC_SUBSCRIBE_CHANNEL = "antumbra:trpc:subscribe";
-export const TRPC_UNSUBSCRIBE_CHANNEL = "antumbra:trpc:unsubscribe";
-
-export const subscriptionChannel = (id: string) =>
-	`antumbra:trpc:subscription:${id}`;
+import type {
+	BridgeRequest,
+	BridgeSubscribeRequest,
+} from "#channels.ts";
 
 export const TrpcRequest = Schema.Struct({
 	input: Schema.Unknown,
@@ -29,30 +26,12 @@ export const UnsubscribeRequest = Schema.Struct({
 
 export type UnsubscribeRequest = typeof UnsubscribeRequest.Type;
 
-export type SubscriptionMessage =
-	| { readonly type: "data"; readonly data: unknown }
-	| { readonly type: "done" }
-	| { readonly type: "error"; readonly message: string };
-
-export interface TrpcFailure {
-	readonly error: {
-		readonly code: string;
-		readonly message: string;
-	};
-	readonly ok: false;
-}
-
-export interface TrpcSuccess {
-	readonly data: unknown;
-	readonly ok: true;
-}
-
-export type TrpcResponse = TrpcFailure | TrpcSuccess;
-
-export interface AntumbraBridge {
-	readonly subscribe: (
-		request: SubscribeRequest,
-		onMessage: (message: SubscriptionMessage) => void,
-	) => () => void;
-	readonly trpc: (request: TrpcRequest) => Promise<TrpcResponse>;
-}
+// why: the schemas decode what the wire carries; these bindings force the
+// decoded shapes to stay assignable to the dependency-free channel types
+// the preload compiles against.
+const _bindRequest = (request: TrpcRequest): BridgeRequest => request;
+const _bindSubscribe = (
+	request: SubscribeRequest,
+): BridgeSubscribeRequest => request;
+void _bindRequest;
+void _bindSubscribe;

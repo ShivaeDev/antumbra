@@ -1,18 +1,18 @@
 export { AppInfo, AppInfoSource } from "#app-info.ts";
 export {
 	type AntumbraBridge,
-	SubscribeRequest,
+	type BridgeRequest,
+	type BridgeSubscribeRequest,
 	type SubscriptionMessage,
 	subscriptionChannel,
 	TRPC_CHANNEL,
 	TRPC_SUBSCRIBE_CHANNEL,
 	TRPC_UNSUBSCRIBE_CHANNEL,
 	type TrpcFailure,
-	TrpcRequest,
 	type TrpcResponse,
 	type TrpcSuccess,
-	UnsubscribeRequest,
-} from "#ipc.ts";
+} from "#channels.ts";
+export { SubscribeRequest, TrpcRequest, UnsubscribeRequest } from "#ipc.ts";
 export {
 	type AppRouter,
 	makeAppRouter,

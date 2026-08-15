@@ -1,17 +1,17 @@
 import {
-	type SubscribeRequest,
+	type BridgeRequest,
+	type BridgeSubscribeRequest,
 	type SubscriptionMessage,
 	subscriptionChannel,
 	TRPC_CHANNEL,
 	TRPC_SUBSCRIBE_CHANNEL,
 	TRPC_UNSUBSCRIBE_CHANNEL,
-	type TrpcRequest,
-} from "@antumbra/contract";
+} from "@antumbra/contract/channels";
 import { contextBridge, ipcRenderer } from "electron";
 
 contextBridge.exposeInMainWorld("antumbra", {
 	subscribe: (
-		request: SubscribeRequest,
+		request: BridgeSubscribeRequest,
 		onMessage: (message: SubscriptionMessage) => void,
 	) => {
 		const channel = subscriptionChannel(request.id);
@@ -24,5 +24,5 @@ contextBridge.exposeInMainWorld("antumbra", {
 			ipcRenderer.send(TRPC_UNSUBSCRIBE_CHANNEL, { id: request.id });
 		};
 	},
-	trpc: (request: TrpcRequest) => ipcRenderer.invoke(TRPC_CHANNEL, request),
+	trpc: (request: BridgeRequest) => ipcRenderer.invoke(TRPC_CHANNEL, request),
 });

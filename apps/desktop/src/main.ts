@@ -14,6 +14,7 @@ import {
 import { makePluginHost } from "@antumbra/plugin-api";
 import { Effect, Layer, ManagedRuntime } from "effect";
 import { AppInfoSourceLive } from "#adapters/app-info.ts";
+import { runBoot } from "#adapters/boot.ts";
 import {
 	configureDataDirectory,
 	openMainWindow,
@@ -73,6 +74,7 @@ const main = Effect.gen(function* () {
 	yield* quitWhenAllWindowsClosed;
 	yield* ensureInstallMarker;
 	yield* openMainWindow;
+	yield* Effect.logInfo("bridge: window open");
 });
 
-runtime.runFork(main);
+runBoot(() => runtime.runPromise(main));

@@ -4,6 +4,28 @@ import { type AgentDeps, provideExecutors } from "#deps.ts";
 import { AgentNotSpawnable } from "#errors.ts";
 import type { SpawnFields } from "#spawn.ts";
 
+const assignToPiece = (deps: AgentDeps, payload: SpawnFields) => {
+	const pieceId = payload.pieceId;
+	if (pieceId === undefined) {
+		return Effect.void;
+	}
+	const provide = provideExecutors(deps);
+	return Effect.gen(function* () {
+		const existing = yield* provide(
+			deps.db.PieceAgent.where({ agentId: payload.agentId, pieceId }).first(),
+		);
+		if (Option.isSome(existing)) {
+			return;
+		}
+		yield* provide(
+			deps.writer.write(
+				deps.db.PieceAgent.create({ agentId: payload.agentId, pieceId }),
+			),
+		);
+		yield* PubSub.publish(deps.feeds.voyages, undefined);
+	});
+};
+
 export const ensureAgentRow = (deps: AgentDeps, payload: SpawnFields) => {
 	const provide = provideExecutors(deps);
 	return Effect.gen(function* () {
@@ -31,6 +53,7 @@ export const ensureAgentRow = (deps: AgentDeps, payload: SpawnFields) => {
 			// later must still leave a visible agent, not a ghost.
 			yield* PubSub.publish(deps.feeds.fleet, undefined);
 		}
+		yield* assignToPiece(deps, payload);
 	});
 };
 

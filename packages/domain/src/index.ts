@@ -1,3 +1,10 @@
+export { composeCrewCharter } from "#charter-compose.ts";
+export {
+	nextBackoffMillis,
+	type ReadyPiece,
+	readyPieces,
+} from "#dispatch-policy.ts";
+export { DispatcherLive, type DispatcherOptions } from "#dispatcher.ts";
 export {
 	AGENTS_ALIVE_GAUGE,
 	AgentDomain,

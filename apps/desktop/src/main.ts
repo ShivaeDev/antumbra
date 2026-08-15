@@ -4,6 +4,7 @@ import { makeAppRouter } from "@antumbra/contract";
 import {
 	AgentDomain,
 	AgentDomainLive,
+	DispatcherLive,
 	SightSourceLive,
 } from "@antumbra/domain";
 import { KernelLive } from "@antumbra/kernel";
@@ -64,19 +65,18 @@ const kernel = Layer.unwrap(
 	}),
 ).pipe(Layer.provideMerge(agents));
 
+// why: the dispatcher stands beside the view source rather than under it —
+// launched pieces are spawned for whether or not a window is watching.
+const bridge = Layer.mergeAll(SightSourceLive, DispatcherLive()).pipe(
+	Layer.provideMerge(kernel),
+	Layer.provideMerge(persistence),
+);
+
 // why: a migration or connect failure leaves no meaningful app to run, so
 // the persistence layer dies instead of threading an error type every
 // consumer would have to carry.
 const runtime = ManagedRuntime.make(
-	Layer.mergeAll(
-		AppInfoSourceLive,
-		Layer.orDie(
-			SightSourceLive.pipe(
-				Layer.provideMerge(kernel),
-				Layer.provideMerge(persistence),
-			),
-		),
-	),
+	Layer.mergeAll(AppInfoSourceLive, Layer.orDie(bridge)),
 );
 const router = makeAppRouter(runtime);
 

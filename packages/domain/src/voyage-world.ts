@@ -1,4 +1,8 @@
-import type { PrismaError } from "@antumbra/persistence";
+import type {
+	DatabaseService,
+	PrismaError,
+	WriteExecutors,
+} from "@antumbra/persistence";
 import { Effect } from "effect";
 import { type AgentDeps, provideExecutors } from "#deps.ts";
 import type {
@@ -49,31 +53,33 @@ const byId = <A extends { readonly id: string }>(
 	rows: ReadonlyArray<A>,
 ): ReadonlyMap<string, A> => new Map(rows.map((row) => [row.id, row]));
 
+export const voyageWorld = (
+	db: DatabaseService,
+): Effect.Effect<VoyageWorld, PrismaError, WriteExecutors> =>
+	Effect.gen(function* () {
+		const agents = yield* db.Agent.all();
+		return {
+			agentStatus: new Map(
+				agents.map((agent) => [agent.id, agent.status] as const),
+			),
+			artifacts: byId((yield* db.Artifact.all()).map(artifactRow)),
+			assignments: yield* db.PieceAgent.all(),
+			crews: yield* db.VoyageAgent.all(),
+			edges: yield* db.PieceEdge.all(),
+			memberships: yield* db.VoyagePiece.all(),
+			pieceArtifacts: yield* db.PieceArtifact.all(),
+			pieceReports: yield* db.PieceReport.all(),
+			pieces: (yield* db.Piece.orderBy((piece) =>
+				piece.createdAt.asc(),
+			).all()).map(pieceRow),
+			reports: byId((yield* db.Report.all()).map(reportRow)),
+			voyages: (yield* db.Voyage.orderBy((voyage) =>
+				voyage.createdAt.asc(),
+			).all()).map(voyageRow),
+		} satisfies VoyageWorld;
+	});
+
 export const readVoyageWorld = (
 	deps: AgentDeps,
 ): Effect.Effect<VoyageWorld, PrismaError> =>
-	provideExecutors(deps)(
-		Effect.gen(function* () {
-			const db = deps.db;
-			const agents = yield* db.Agent.all();
-			return {
-				agentStatus: new Map(
-					agents.map((agent) => [agent.id, agent.status] as const),
-				),
-				artifacts: byId((yield* db.Artifact.all()).map(artifactRow)),
-				assignments: yield* db.PieceAgent.all(),
-				crews: yield* db.VoyageAgent.all(),
-				edges: yield* db.PieceEdge.all(),
-				memberships: yield* db.VoyagePiece.all(),
-				pieceArtifacts: yield* db.PieceArtifact.all(),
-				pieceReports: yield* db.PieceReport.all(),
-				pieces: (yield* db.Piece.orderBy((piece) =>
-					piece.createdAt.asc(),
-				).all()).map(pieceRow),
-				reports: byId((yield* db.Report.all()).map(reportRow)),
-				voyages: (yield* db.Voyage.orderBy((voyage) =>
-					voyage.createdAt.asc(),
-				).all()).map(voyageRow),
-			} satisfies VoyageWorld;
-		}),
-	);
+	provideExecutors(deps)(voyageWorld(deps.db));

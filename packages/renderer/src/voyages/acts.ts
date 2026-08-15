@@ -24,6 +24,7 @@ const ACCEPTS: Readonly<Record<PieceState, ReadonlyArray<PieceAct>>> = {
 	blocked: ["park"],
 	done: [],
 	held: ["launch"],
+	landing: ["park"],
 	parked: ["unpark"],
 	ready: ["park"],
 };

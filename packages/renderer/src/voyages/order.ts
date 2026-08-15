@@ -1,12 +1,13 @@
 import type { BoardEntryView, PieceState, PieceView } from "@antumbra/contract";
 
 // why: the ladder reads top-down as attention deserved — what is moving, what
-// could move next, what is stuck, what has not been released, what was set
-// aside, and last what is already landed.
+// could move next, what is stuck, what is only waiting on something to land,
+// what has not been released, what was set aside, and last what is done.
 const LADDER: ReadonlyArray<PieceState> = [
 	"active",
 	"ready",
 	"blocked",
+	"landing",
 	"held",
 	"parked",
 	"done",

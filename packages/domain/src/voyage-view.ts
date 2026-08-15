@@ -46,6 +46,7 @@ const countStates = (states: ReadonlyArray<PieceState>): PieceCounts => {
 		blocked: held("blocked"),
 		done: held("done"),
 		held: held("held"),
+		landing: held("landing"),
 		parked: held("parked"),
 		ready: held("ready"),
 	};

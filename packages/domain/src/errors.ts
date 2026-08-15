@@ -12,6 +12,12 @@ export class UnknownRunnerTag extends Data.TaggedError("UnknownRunnerTag")<{
 	readonly tag: string;
 }> {}
 
+export class UnknownChangeHostTag extends Data.TaggedError(
+	"UnknownChangeHostTag",
+)<{
+	readonly tag: string;
+}> {}
+
 export class AgentNotSpawnable extends Data.TaggedError("AgentNotSpawnable")<{
 	readonly agentId: string;
 	readonly status: string;
@@ -24,6 +30,34 @@ export class SessionNotLive extends Data.TaggedError("SessionNotLive")<{
 export class PieceNotFound extends Data.TaggedError("PieceNotFound")<{
 	readonly pieceId: string;
 }> {}
+
+// why: these three reach a model verbatim through a tool answer, so each
+// carries the sentence it wants read — which repo, which berth, and that no
+// host in this build claims the repo it was asked to open a change on.
+export class RepoNotFound extends Data.TaggedError("RepoNotFound")<{
+	readonly repoName: string;
+}> {
+	override get message(): string {
+		return `no repo named ${this.repoName} is registered`;
+	}
+}
+
+export class BerthNotFound extends Data.TaggedError("BerthNotFound")<{
+	readonly agentId: string;
+	readonly repoName: string;
+}> {
+	override get message(): string {
+		return `you have no berth in ${this.repoName}`;
+	}
+}
+
+export class NoChangeHost extends Data.TaggedError("NoChangeHost")<{
+	readonly repoName: string;
+}> {
+	override get message(): string {
+		return `no change host claims ${this.repoName}`;
+	}
+}
 
 export class EdgeWouldCycle extends Data.TaggedError("EdgeWouldCycle")<{
 	readonly fromPieceId: string;

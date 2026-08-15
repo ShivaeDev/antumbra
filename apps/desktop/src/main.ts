@@ -56,7 +56,11 @@ const agents = Layer.unwrap(
 			codexPlugin({ command, cwd: configureDataDirectory() }),
 		);
 		yield* Effect.orDie(runnerPlugin.activate(host.context));
-		return AgentDomainLive(yield* host.backends, yield* host.runners);
+		return AgentDomainLive(
+			yield* host.backends,
+			yield* host.runners,
+			yield* host.changeHosts,
+		);
 	}),
 );
 

@@ -21,14 +21,34 @@ export const ArtifactView = Schema.Struct({
 });
 export type ArtifactView = typeof ArtifactView.Type;
 
-// why: a piece's state is derived from its edges, its stamps and who is at
-// work on it — the contract carries the outcome of that ladder so a window
-// renders what the domain concluded instead of concluding it again.
+// why: a change lives on a host that speaks its own dialect, and the window is
+// shown only the neutral reading — where it stands and what the host last said
+// — so nothing above the domain ever learns which host it is looking at.
+export const ChangeView = Schema.Struct({
+	checks: Schema.String,
+	externalId: Schema.NullOr(Schema.String),
+	host: Schema.String,
+	id: Schema.String,
+	isDraft: Schema.Boolean,
+	mergeable: Schema.String,
+	repoId: Schema.String,
+	review: Schema.String,
+	stage: Schema.String,
+	title: Schema.String,
+	url: Schema.NullOr(Schema.String),
+});
+export type ChangeView = typeof ChangeView.Type;
+
+// why: a piece's state is derived from its edges, its stamps, who is at work
+// on it and what it is still waiting to land — the contract carries the
+// outcome of that ladder so a window renders what the domain concluded
+// instead of concluding it again.
 export const PieceState = Schema.Literals([
 	"active",
 	"blocked",
 	"done",
 	"held",
+	"landing",
 	"parked",
 	"ready",
 ]);
@@ -37,6 +57,7 @@ export type PieceState = typeof PieceState.Type;
 export const PieceView = Schema.Struct({
 	agents: Schema.Array(PieceAgentView),
 	artifacts: Schema.Array(ArtifactView),
+	changes: Schema.Array(ChangeView),
 	charter: Schema.String,
 	dependsOn: Schema.Array(Schema.String),
 	expectation: Schema.String,

@@ -3,6 +3,7 @@ import { Database, type WriteExecutors, Writer } from "@antumbra/persistence";
 import type {
 	AgentBackend,
 	BackendFailure,
+	ChangeHost,
 	Runner,
 } from "@antumbra/plugin-api";
 import { Context, Deferred, Effect, Layer } from "effect";
@@ -11,6 +12,10 @@ import {
 	type BoardProcedures,
 	makeBoardProcedures,
 } from "#board-procedures.ts";
+import {
+	type ChangeProcedures,
+	makeChangeProcedures,
+} from "#change-procedures.ts";
 import type { AgentDeps, KernelReach } from "#deps.ts";
 import type { SessionNotLive } from "#errors.ts";
 import { makeEventSinkFactory } from "#events.ts";
@@ -32,6 +37,7 @@ export class AgentDomain extends Context.Service<
 	{
 		readonly backends: ReadonlyArray<string>;
 		readonly boards: BoardProcedures;
+		readonly changes: ChangeProcedures;
 		readonly feeds: DomainFeeds;
 		readonly gauges: Readonly<Record<string, Effect.Effect<number>>>;
 		readonly interruptSession: (
@@ -53,6 +59,7 @@ export class AgentDomain extends Context.Service<
 export const AgentDomainLive = (
 	backends: ReadonlyMap<string, AgentBackend>,
 	runners: ReadonlyMap<string, Runner>,
+	changeHosts: ReadonlyMap<string, ChangeHost>,
 ) =>
 	Layer.effect(AgentDomain)(
 		Effect.gen(function* () {
@@ -67,6 +74,7 @@ export const AgentDomainLive = (
 			const kernelReach = yield* Deferred.make<KernelReach>();
 			const deps: AgentDeps = {
 				backends,
+				changeHosts,
 				db,
 				executors,
 				fabric,
@@ -88,6 +96,7 @@ export const AgentDomainLive = (
 			return {
 				backends: [...backends.keys()],
 				boards: makeBoardProcedures(deps),
+				changes: makeChangeProcedures(deps),
 				feeds,
 				gauges: { [AGENTS_ALIVE_GAUGE]: aliveAgents },
 				interruptSession: fabric.interrupt,

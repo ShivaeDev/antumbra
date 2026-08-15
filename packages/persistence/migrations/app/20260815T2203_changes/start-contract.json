@@ -36,10 +36,6 @@
       "model": "BoardEntry",
       "namespace": "__unbound__"
     },
-    "change": {
-      "model": "Change",
-      "namespace": "__unbound__"
-    },
     "intent": {
       "model": "Intent",
       "namespace": "__unbound__"
@@ -58,10 +54,6 @@
     },
     "pieceBoard": {
       "model": "PieceBoard",
-      "namespace": "__unbound__"
-    },
-    "pieceChange": {
-      "model": "PieceChange",
       "namespace": "__unbound__"
     },
     "pieceEdge": {
@@ -633,237 +625,6 @@
               "table": "boardEntry"
             }
           },
-          "Change": {
-            "fields": {
-              "activityAt": {
-                "nullable": false,
-                "type": {
-                  "codecId": "sqlite/datetime@1",
-                  "kind": "scalar"
-                }
-              },
-              "baseRef": {
-                "nullable": false,
-                "type": {
-                  "codecId": "sqlite/text@1",
-                  "kind": "scalar"
-                }
-              },
-              "body": {
-                "nullable": false,
-                "type": {
-                  "codecId": "sqlite/text@1",
-                  "kind": "scalar"
-                }
-              },
-              "checks": {
-                "nullable": false,
-                "type": {
-                  "codecId": "sqlite/text@1",
-                  "kind": "scalar"
-                }
-              },
-              "createdAt": {
-                "nullable": false,
-                "type": {
-                  "codecId": "sqlite/datetime@1",
-                  "kind": "scalar"
-                }
-              },
-              "draftAt": {
-                "nullable": true,
-                "type": {
-                  "codecId": "sqlite/datetime@1",
-                  "kind": "scalar"
-                }
-              },
-              "externalId": {
-                "nullable": true,
-                "type": {
-                  "codecId": "sqlite/text@1",
-                  "kind": "scalar"
-                }
-              },
-              "headRef": {
-                "nullable": false,
-                "type": {
-                  "codecId": "sqlite/text@1",
-                  "kind": "scalar"
-                }
-              },
-              "headSha": {
-                "nullable": true,
-                "type": {
-                  "codecId": "sqlite/text@1",
-                  "kind": "scalar"
-                }
-              },
-              "host": {
-                "nullable": false,
-                "type": {
-                  "codecId": "sqlite/text@1",
-                  "kind": "scalar"
-                }
-              },
-              "id": {
-                "nullable": false,
-                "type": {
-                  "codecId": "sqlite/text@1",
-                  "kind": "scalar"
-                }
-              },
-              "landedAt": {
-                "nullable": true,
-                "type": {
-                  "codecId": "sqlite/datetime@1",
-                  "kind": "scalar"
-                }
-              },
-              "mergeable": {
-                "nullable": false,
-                "type": {
-                  "codecId": "sqlite/text@1",
-                  "kind": "scalar"
-                }
-              },
-              "observedAt": {
-                "nullable": false,
-                "type": {
-                  "codecId": "sqlite/datetime@1",
-                  "kind": "scalar"
-                }
-              },
-              "openedByAgentId": {
-                "nullable": true,
-                "type": {
-                  "codecId": "sqlite/text@1",
-                  "kind": "scalar"
-                }
-              },
-              "raw": {
-                "nullable": true,
-                "type": {
-                  "codecId": "sqlite/text@1",
-                  "kind": "scalar"
-                }
-              },
-              "repoId": {
-                "nullable": false,
-                "type": {
-                  "codecId": "sqlite/text@1",
-                  "kind": "scalar"
-                }
-              },
-              "review": {
-                "nullable": false,
-                "type": {
-                  "codecId": "sqlite/text@1",
-                  "kind": "scalar"
-                }
-              },
-              "stage": {
-                "nullable": false,
-                "type": {
-                  "codecId": "sqlite/text@1",
-                  "kind": "scalar"
-                }
-              },
-              "title": {
-                "nullable": false,
-                "type": {
-                  "codecId": "sqlite/text@1",
-                  "kind": "scalar"
-                }
-              },
-              "url": {
-                "nullable": true,
-                "type": {
-                  "codecId": "sqlite/text@1",
-                  "kind": "scalar"
-                }
-              },
-              "withdrawnAt": {
-                "nullable": true,
-                "type": {
-                  "codecId": "sqlite/datetime@1",
-                  "kind": "scalar"
-                }
-              }
-            },
-            "relations": {},
-            "storage": {
-              "fields": {
-                "activityAt": {
-                  "column": "activityAt"
-                },
-                "baseRef": {
-                  "column": "baseRef"
-                },
-                "body": {
-                  "column": "body"
-                },
-                "checks": {
-                  "column": "checks"
-                },
-                "createdAt": {
-                  "column": "createdAt"
-                },
-                "draftAt": {
-                  "column": "draftAt"
-                },
-                "externalId": {
-                  "column": "externalId"
-                },
-                "headRef": {
-                  "column": "headRef"
-                },
-                "headSha": {
-                  "column": "headSha"
-                },
-                "host": {
-                  "column": "host"
-                },
-                "id": {
-                  "column": "id"
-                },
-                "landedAt": {
-                  "column": "landedAt"
-                },
-                "mergeable": {
-                  "column": "mergeable"
-                },
-                "observedAt": {
-                  "column": "observedAt"
-                },
-                "openedByAgentId": {
-                  "column": "openedByAgentId"
-                },
-                "raw": {
-                  "column": "raw"
-                },
-                "repoId": {
-                  "column": "repoId"
-                },
-                "review": {
-                  "column": "review"
-                },
-                "stage": {
-                  "column": "stage"
-                },
-                "title": {
-                  "column": "title"
-                },
-                "url": {
-                  "column": "url"
-                },
-                "withdrawnAt": {
-                  "column": "withdrawnAt"
-                }
-              },
-              "namespaceId": "__unbound__",
-              "table": "change"
-            }
-          },
           "Intent": {
             "fields": {
               "createdAt": {
@@ -1137,37 +898,6 @@
               },
               "namespaceId": "__unbound__",
               "table": "pieceBoard"
-            }
-          },
-          "PieceChange": {
-            "fields": {
-              "changeId": {
-                "nullable": false,
-                "type": {
-                  "codecId": "sqlite/text@1",
-                  "kind": "scalar"
-                }
-              },
-              "pieceId": {
-                "nullable": false,
-                "type": {
-                  "codecId": "sqlite/text@1",
-                  "kind": "scalar"
-                }
-              }
-            },
-            "relations": {},
-            "storage": {
-              "fields": {
-                "changeId": {
-                  "column": "changeId"
-                },
-                "pieceId": {
-                  "column": "pieceId"
-                }
-              },
-              "namespaceId": "__unbound__",
-              "table": "pieceChange"
             }
           },
           "PieceEdge": {
@@ -2004,144 +1734,6 @@
               },
               "uniques": []
             },
-            "change": {
-              "columns": {
-                "activityAt": {
-                  "codecId": "sqlite/datetime@1",
-                  "nativeType": "text",
-                  "nullable": false
-                },
-                "baseRef": {
-                  "codecId": "sqlite/text@1",
-                  "nativeType": "text",
-                  "nullable": false
-                },
-                "body": {
-                  "codecId": "sqlite/text@1",
-                  "nativeType": "text",
-                  "nullable": false
-                },
-                "checks": {
-                  "codecId": "sqlite/text@1",
-                  "nativeType": "text",
-                  "nullable": false
-                },
-                "createdAt": {
-                  "codecId": "sqlite/datetime@1",
-                  "default": {
-                    "expression": "now()",
-                    "kind": "function"
-                  },
-                  "nativeType": "text",
-                  "nullable": false
-                },
-                "draftAt": {
-                  "codecId": "sqlite/datetime@1",
-                  "nativeType": "text",
-                  "nullable": true
-                },
-                "externalId": {
-                  "codecId": "sqlite/text@1",
-                  "nativeType": "text",
-                  "nullable": true
-                },
-                "headRef": {
-                  "codecId": "sqlite/text@1",
-                  "nativeType": "text",
-                  "nullable": false
-                },
-                "headSha": {
-                  "codecId": "sqlite/text@1",
-                  "nativeType": "text",
-                  "nullable": true
-                },
-                "host": {
-                  "codecId": "sqlite/text@1",
-                  "nativeType": "text",
-                  "nullable": false
-                },
-                "id": {
-                  "codecId": "sqlite/text@1",
-                  "nativeType": "text",
-                  "nullable": false
-                },
-                "landedAt": {
-                  "codecId": "sqlite/datetime@1",
-                  "nativeType": "text",
-                  "nullable": true
-                },
-                "mergeable": {
-                  "codecId": "sqlite/text@1",
-                  "nativeType": "text",
-                  "nullable": false
-                },
-                "observedAt": {
-                  "codecId": "sqlite/datetime@1",
-                  "nativeType": "text",
-                  "nullable": false
-                },
-                "openedByAgentId": {
-                  "codecId": "sqlite/text@1",
-                  "nativeType": "text",
-                  "nullable": true
-                },
-                "raw": {
-                  "codecId": "sqlite/text@1",
-                  "nativeType": "text",
-                  "nullable": true
-                },
-                "repoId": {
-                  "codecId": "sqlite/text@1",
-                  "nativeType": "text",
-                  "nullable": false
-                },
-                "review": {
-                  "codecId": "sqlite/text@1",
-                  "nativeType": "text",
-                  "nullable": false
-                },
-                "stage": {
-                  "codecId": "sqlite/text@1",
-                  "nativeType": "text",
-                  "nullable": false
-                },
-                "title": {
-                  "codecId": "sqlite/text@1",
-                  "nativeType": "text",
-                  "nullable": false
-                },
-                "url": {
-                  "codecId": "sqlite/text@1",
-                  "nativeType": "text",
-                  "nullable": true
-                },
-                "withdrawnAt": {
-                  "codecId": "sqlite/datetime@1",
-                  "nativeType": "text",
-                  "nullable": true
-                }
-              },
-              "foreignKeys": [],
-              "indexes": [
-                {
-                  "columns": [
-                    "repoId"
-                  ]
-                },
-                {
-                  "columns": [
-                    "host",
-                    "externalId"
-                  ]
-                }
-              ],
-              "primaryKey": {
-                "columns": [
-                  "id"
-                ]
-              },
-              "uniques": []
-            },
             "intent": {
               "columns": {
                 "createdAt": {
@@ -2339,35 +1931,6 @@
                 "columns": [
                   "pieceId",
                   "boardId"
-                ]
-              },
-              "uniques": []
-            },
-            "pieceChange": {
-              "columns": {
-                "changeId": {
-                  "codecId": "sqlite/text@1",
-                  "nativeType": "text",
-                  "nullable": false
-                },
-                "pieceId": {
-                  "codecId": "sqlite/text@1",
-                  "nativeType": "text",
-                  "nullable": false
-                }
-              },
-              "foreignKeys": [],
-              "indexes": [
-                {
-                  "columns": [
-                    "changeId"
-                  ]
-                }
-              ],
-              "primaryKey": {
-                "columns": [
-                  "pieceId",
-                  "changeId"
                 ]
               },
               "uniques": []
@@ -2705,7 +2268,7 @@
         "id": "__unbound__"
       }
     },
-    "storageHash": "sha256:89f4b3339664754f467e094870aebb351e09c167d70cd2bffd5cc56236485c27"
+    "storageHash": "sha256:a9a625fadf9b6bc5a00795cd3cfc20ea32fdfdef55bcabb3db5701ffa27550f2"
   },
   "capabilities": {
     "sql": {

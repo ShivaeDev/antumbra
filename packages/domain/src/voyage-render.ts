@@ -28,6 +28,22 @@ const landedLines = (pieces: ReadonlyArray<PieceView>): ReadonlyArray<string> =>
 		),
 	]);
 
+// why: a change is read at a glance by where it stands and what the host last
+// said about it — the same fields whatever host it lives on, so a captain
+// never has to learn a second dialect.
+const changeLines = (pieces: ReadonlyArray<PieceView>): ReadonlyArray<string> =>
+	pieces.flatMap((piece) =>
+		piece.changes.map((change) =>
+			[
+				`- ${change.stage}`,
+				change.host,
+				change.title,
+				change.url ?? "no url",
+				`${change.checks}/${change.review}/${change.mergeable}`,
+			].join(" · "),
+		),
+	);
+
 const captainLine = (captain: Option.Option<VoyageCaptain>): string =>
 	Option.match(captain, {
 		onNone: () => "- none",
@@ -49,6 +65,9 @@ export const renderVoyage = (view: VoyageView): string =>
 		``,
 		`## Landed`,
 		listed(landedLines(view.pieces)),
+		``,
+		`## Changes`,
+		listed(changeLines(view.pieces)),
 		``,
 		`## Captain`,
 		captainLine(view.captain),

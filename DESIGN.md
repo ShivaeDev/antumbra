@@ -41,20 +41,30 @@ Axioms of the stack:
 - **Charters are dead reckoning, not contracts.** A piece's stated outcome is
   an estimate, revised as reality arrives.
 - **Outcomes are polymorphic and audience-split.** Reports are prose for
-  agents; artifacts are visual, for the human. Further kinds (pull requests,
-  external references, prepared worktrees) register through plugins — the
-  set is open, every kind individually typed. Proposed structure is never an
-  outcome kind: **workers report; captains charter.**
+  agents; artifacts are visual, for the human; a **change** is a proposed
+  modification to a repo, on a branch, and it takes its time to land — it
+  passes through stages, `prepared`, `open`, `landed`, `withdrawn`, before it
+  counts. Where a change lives is a **host**: GitHub's pull request is the
+  first, another host may call it something else, and hosts register through
+  the plugin API exactly as backends and runners do. The core owns the
+  concept and one neutral vocabulary for it, and stores the host's own state
+  raw beside it, so a second host maps onto the same reading and no consumer
+  learns which host it is looking at. Further kinds (external references,
+  prepared worktrees) register the same way — the set is open, every kind
+  individually typed. Proposed structure is never an outcome kind:
+  **workers report; captains charter.**
 - **Plans bend.** Typed concepts with transformation verbs — promote, park,
   reorder, rewire, split, merge — over any universal substrate. Position is
   expressed as links, verbs edit links, substance never migrates.
-- **Done is derived, never declared.** Leaf work completes when its outcomes
-  land; containers derive doneness and are never marked. Done is not gone:
-  finished work is resumable as linked follow-ups. History is appended,
-  never mutated.
+- **Done is derived, never declared.** Leaf work completes when at least one
+  of its outcomes has landed and none is still pending; containers derive
+  doneness and are never marked. A piece whose only unmet outcome is a pending
+  change is **landing** — out of the pool, no crew, waiting on the host. Done
+  is not gone: finished work is resumable as linked follow-ups. History is
+  appended, never mutated.
 - **Repos and worktrees are resources, not containers.** A cross-repo piece
   gets one agent with one worktree per repo. Never bake in one-piece-one-repo,
-  one-session-one-worktree, or one-piece-one-PR. Repos are registered once,
+  one-session-one-worktree, or one-piece-one-change. Repos are registered once,
   at the app level, each with its bare mirror; every spawn gets a berth per
   registered repo, so no piece or voyage carries a repo list. Narrowing which
   repos an agent sees is a later filter, never a per-piece binding.

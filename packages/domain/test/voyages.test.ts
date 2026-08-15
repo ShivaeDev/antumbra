@@ -230,6 +230,7 @@ it.live("the list carries every voyage with its piece counts and focus", () =>
 				blocked: 0,
 				done: 0,
 				held: 1,
+				landing: 0,
 				parked: 0,
 				ready: 1,
 			});

@@ -4,7 +4,7 @@ import type {
 	PrismaError,
 	WriteExecutors,
 } from "@antumbra/persistence";
-import type { AgentBackend, Runner } from "@antumbra/plugin-api";
+import type { AgentBackend, ChangeHost, Runner } from "@antumbra/plugin-api";
 import { type Context, type Deferred, Effect } from "effect";
 import type { EventSink, SessionFabric } from "#fabric.ts";
 import type { DomainFeeds } from "#feeds.ts";
@@ -27,6 +27,7 @@ export interface KernelReach {
 // domain captures its services once and every kind closes over this bundle.
 export interface AgentDeps {
 	readonly backends: ReadonlyMap<string, AgentBackend>;
+	readonly changeHosts: ReadonlyMap<string, ChangeHost>;
 	readonly db: DatabaseService;
 	readonly executors: Context.Context<WriteExecutors>;
 	readonly fabric: SessionFabric;

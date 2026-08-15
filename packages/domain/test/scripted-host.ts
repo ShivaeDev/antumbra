@@ -1,0 +1,146 @@
+import type {
+	ChangeHost,
+	ChangeHostRepo,
+	ChangeObservation,
+	ChangeRef,
+	OpenChangeRequest,
+} from "@antumbra/plugin-api";
+import { ChangeHostRefused } from "@antumbra/plugin-api";
+import { Effect, Ref } from "effect";
+
+export interface ScriptedHostDrive {
+	readonly announce: (observation: ChangeObservation) => Effect.Effect<void>;
+	readonly asked: Effect.Effect<ReadonlyArray<ChangeRef>>;
+	readonly opened: Effect.Effect<ReadonlyArray<OpenChangeRequest>>;
+	readonly transition: (
+		externalId: string,
+		patch: Partial<ChangeObservation>,
+	) => Effect.Effect<void>;
+}
+
+export interface ScriptedHost {
+	readonly drive: ScriptedHostDrive;
+	readonly host: ChangeHost;
+}
+
+export interface ScriptedHostOptions {
+	readonly supports?: (repo: ChangeHostRepo) => boolean;
+	readonly tag?: string;
+}
+
+interface ObservationFields {
+	readonly baseRef: string;
+	readonly headRef: string;
+	readonly title: string;
+}
+
+export const scriptedObservation = (
+	tag: string,
+	externalId: string,
+	fields: ObservationFields,
+): ChangeObservation => ({
+	activityAt: 1_780_000_000_000,
+	baseRef: fields.baseRef,
+	checks: "pending",
+	externalId,
+	headRef: fields.headRef,
+	headSha: `sha-${externalId}`,
+	isDraft: false,
+	mergeable: "unknown",
+	raw: { number: externalId, source: tag },
+	review: "none",
+	stage: "open",
+	title: fields.title,
+	url: `https://${tag}.test/changes/${externalId}`,
+});
+
+// why: a url is all a host is given to adopt by, so the scripted one reads its
+// own id off the end of it — the same trick a real host plays with a number.
+const adoptedObservation = (
+	tag: string,
+	url: string,
+	repo: ChangeHostRepo,
+): ChangeObservation => {
+	const externalId = url.split("/").at(-1) ?? "";
+	return scriptedObservation(tag, externalId, {
+		baseRef: repo.defaultRef,
+		headRef: `work/adopted-${externalId}`,
+		title: `adopted ${externalId}`,
+	});
+};
+
+// why: the host every change test runs against — it mints ids the way a real
+// one does and answers from a map the test drives, so a change's whole life is
+// exercised without a network or a model. `observe` volunteers everything it
+// knows rather than only what was asked, because that is the case the domain
+// must survive: what it has no row for is ignored, never adopted by drift.
+export const makeScriptedHost = (options: ScriptedHostOptions = {}) =>
+	Effect.gen(function* () {
+		const tag = options.tag ?? "scripted";
+		const supports = options.supports ?? (() => true);
+		const count = yield* Ref.make(0);
+		const known = yield* Ref.make<ReadonlyMap<string, ChangeObservation>>(
+			new Map(),
+		);
+		const requests = yield* Ref.make<ReadonlyArray<OpenChangeRequest>>([]);
+		const refs = yield* Ref.make<ReadonlyArray<ChangeRef>>([]);
+		const remember = (observation: ChangeObservation) =>
+			Ref.update(known, (map) =>
+				new Map(map).set(observation.externalId, observation),
+			).pipe(Effect.as(observation));
+		const host: ChangeHost = {
+			adopt: (url, repo) =>
+				Effect.gen(function* () {
+					const fresh = adoptedObservation(tag, url, repo);
+					const seen = (yield* Ref.get(known)).get(fresh.externalId);
+					return seen ?? (yield* remember(fresh));
+				}),
+			capability: Effect.succeed({ available: true, detail: "scripted" }),
+			observe: (asked) =>
+				Ref.update(refs, (all) => [...all, ...asked]).pipe(
+					Effect.andThen(Ref.get(known)),
+					Effect.map((map) => [...map.values()]),
+				),
+			open: (request) =>
+				Effect.gen(function* () {
+					yield* Ref.update(requests, (all) => [...all, request]);
+					const minted = yield* Ref.updateAndGet(count, (seen) => seen + 1);
+					return yield* remember(
+						scriptedObservation(tag, `${minted}`, {
+							baseRef: request.base ?? request.repo.defaultRef,
+							headRef: request.berth.branch,
+							title: request.title,
+						}),
+					);
+				}),
+			supports,
+			tag,
+		};
+		return {
+			drive: {
+				announce: (observation) => Effect.asVoid(remember(observation)),
+				asked: Ref.get(refs),
+				opened: Ref.get(requests),
+				transition: (externalId, patch) =>
+					Ref.update(known, (map) => {
+						const seen = map.get(externalId);
+						return seen === undefined
+							? map
+							: new Map(map).set(externalId, { ...seen, ...patch });
+					}),
+			},
+			host,
+		} satisfies ScriptedHost;
+	});
+
+// why: a build where a host is registered but claims nothing is the honest
+// shape of "no host for this repo" — the refusal must name the repo rather
+// than pretend a change was opened.
+export const claimsNothingHost = (tag: string): ChangeHost => ({
+	adopt: () => new ChangeHostRefused({ detail: "claims nothing", host: tag }),
+	capability: Effect.succeed({ available: false, detail: "claims nothing" }),
+	observe: () => Effect.succeed([]),
+	open: () => new ChangeHostRefused({ detail: "claims nothing", host: tag }),
+	supports: () => false,
+	tag,
+});

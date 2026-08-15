@@ -49,6 +49,7 @@ export const storedEvents: ReadonlyArray<SessionEvent> = [
 const soundings: PieceView = {
 	agents: [{ agentId: "agent-2", status: "alive" }],
 	artifacts: [],
+	changes: [],
 	charter: "sound the northern shoals",
 	dependsOn: [],
 	expectation: "the depths are recorded",
@@ -64,6 +65,7 @@ const soundings: PieceView = {
 const chart: PieceView = {
 	agents: [],
 	artifacts: [],
+	changes: [],
 	charter: "draw the chart from the soundings",
 	dependsOn: ["piece-1"],
 	expectation: "a chart exists",

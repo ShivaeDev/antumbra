@@ -82,7 +82,10 @@ async function* mapEvents(
 			"subtype" in message && typeof message.subtype === "string"
 				? `/${message.subtype}`
 				: "";
-		yield { kind: `${message.type}${subtype}`, payload: JSON.stringify(message) };
+		yield {
+			kind: `${message.type}${subtype}`,
+			payload: JSON.stringify(message),
+		};
 	}
 }
 

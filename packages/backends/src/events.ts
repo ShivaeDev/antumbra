@@ -1,8 +1,4 @@
-import {
-	Database,
-	Writer,
-	type WriteExecutors,
-} from "@antumbra/persistence";
+import { Database, type WriteExecutors, Writer } from "@antumbra/persistence";
 import { Effect, Ref } from "effect";
 import type { EventSink } from "#fabric.ts";
 

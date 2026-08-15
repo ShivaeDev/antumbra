@@ -1,9 +1,5 @@
 import type { AnyIntentKind, IntentKind } from "@antumbra/kernel";
-import {
-	Database,
-	Writer,
-	type WriteExecutors,
-} from "@antumbra/persistence";
+import { Database, type WriteExecutors, Writer } from "@antumbra/persistence";
 import type { AgentBackend } from "@antumbra/plugin-api";
 import { Context, Effect, Layer } from "effect";
 import type { AgentDeps } from "#deps.ts";

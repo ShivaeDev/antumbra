@@ -52,6 +52,14 @@ Axioms of the stack:
 - **Repos and worktrees are resources, not containers.** A cross-repo piece
   gets one agent with one worktree per repo. Never bake in one-piece-one-repo,
   one-session-one-worktree, or one-piece-one-PR.
+- **Agents are alive; intents are events in their life.** The kernel
+  schedules the moments — spawn brings an agent into being with a role, a
+  charter, and pre-assigned identity; retire ends it — never the living.
+  There is no turn in the domain: activity is a stream of events, load is a
+  level, and quiescence is a derived gauge no one awaits — completion is not
+  in the ontology of conversation. Admission governs births, not messages;
+  messages to living agents stay unshipped until their delivery semantics
+  are ruled.
 
 ## Authority
 

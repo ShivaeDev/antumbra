@@ -1,9 +1,12 @@
+import { AgentDomain, AgentDomainLive, claudePlugin } from "@antumbra/backends";
 import { makeAppRouter } from "@antumbra/contract";
+import { KernelLive } from "@antumbra/kernel";
 import {
 	databaseFileInDataDirectory,
 	ensureInstallMarker,
 	PersistenceLive,
 } from "@antumbra/persistence";
+import { makePluginHost } from "@antumbra/plugin-api";
 import { Effect, Layer, ManagedRuntime } from "effect";
 import { AppInfoSourceLive } from "#adapters/app-info.ts";
 import {
@@ -24,11 +27,31 @@ const persistence = Layer.unwrap(
 	),
 );
 
+// why: built-ins activate through the same plugin host a loaded plugin would
+// use — the registration path stays real because the app itself consumes it.
+const agents = Layer.unwrap(
+	Effect.gen(function* () {
+		const host = yield* makePluginHost;
+		yield* Effect.orDie(claudePlugin.activate(host.context));
+		return AgentDomainLive(yield* host.backends);
+	}),
+);
+
+const kernel = Layer.unwrap(
+	Effect.gen(function* () {
+		const domain = yield* AgentDomain;
+		return KernelLive({ gauges: domain.gauges, kinds: domain.kinds });
+	}),
+).pipe(Layer.provideMerge(agents));
+
 // why: a migration or connect failure leaves no meaningful app to run, so
 // the persistence layer dies instead of threading an error type every
 // consumer would have to carry.
 const runtime = ManagedRuntime.make(
-	Layer.mergeAll(AppInfoSourceLive, Layer.orDie(persistence)),
+	Layer.mergeAll(
+		AppInfoSourceLive,
+		Layer.orDie(kernel.pipe(Layer.provideMerge(persistence))),
+	),
 );
 const router = makeAppRouter(runtime);
 

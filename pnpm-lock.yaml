@@ -137,12 +137,21 @@ importers:
 
   apps/desktop:
     devDependencies:
+      '@antumbra/backends':
+        specifier: workspace:*
+        version: link:../../packages/backends
       '@antumbra/contract':
         specifier: workspace:*
         version: link:../../packages/contract
+      '@antumbra/kernel':
+        specifier: workspace:*
+        version: link:../../packages/kernel
       '@antumbra/persistence':
         specifier: workspace:*
         version: link:../../packages/persistence
+      '@antumbra/plugin-api':
+        specifier: workspace:*
+        version: link:../../packages/plugin-api
       '@antumbra/renderer':
         specifier: workspace:*
         version: link:../../packages/renderer

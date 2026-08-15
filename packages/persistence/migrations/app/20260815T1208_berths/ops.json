@@ -1,0 +1,125 @@
+[
+  {
+    "id": "table.berth",
+    "label": "Create table berth",
+    "summary": "Creates table berth with required columns",
+    "operationClass": "additive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "table",
+        "name": "berth"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"berth\" does not exist",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "table",
+          "berth"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"berth\"",
+        "sql": "CREATE TABLE \"berth\" (\n  \"agentId\" TEXT NOT NULL,\n  \"branch\" TEXT NOT NULL,\n  \"createdAt\" TEXT NOT NULL DEFAULT (datetime('now')),\n  \"id\" TEXT NOT NULL,\n  \"path\" TEXT NOT NULL,\n  \"ref\" TEXT NOT NULL,\n  \"runner\" TEXT NOT NULL,\n  \"slug\" TEXT NOT NULL,\n  \"source\" TEXT NOT NULL,\n  \"status\" TEXT NOT NULL,\n  \"strandedAt\" TEXT,\n  \"updatedAt\" TEXT NOT NULL DEFAULT (datetime('now')),\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"berth\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "table",
+          "berth"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.berth.berth_agentId_idx",
+    "label": "Create index berth_agentId_idx on berth",
+    "summary": "Creates index berth_agentId_idx on berth",
+    "operationClass": "additive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "index",
+        "name": "berth_agentId_idx",
+        "table": "berth"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"berth_agentId_idx\" is missing",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "index",
+          "berth_agentId_idx"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"berth_agentId_idx\"",
+        "sql": "CREATE INDEX \"berth_agentId_idx\" ON \"berth\" (\"agentId\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"berth_agentId_idx\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "index",
+          "berth_agentId_idx"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.berth.berth_status_idx",
+    "label": "Create index berth_status_idx on berth",
+    "summary": "Creates index berth_status_idx on berth",
+    "operationClass": "additive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "index",
+        "name": "berth_status_idx",
+        "table": "berth"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"berth_status_idx\" is missing",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "index",
+          "berth_status_idx"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"berth_status_idx\"",
+        "sql": "CREATE INDEX \"berth_status_idx\" ON \"berth\" (\"status\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"berth_status_idx\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "index",
+          "berth_status_idx"
+        ]
+      }
+    ]
+  }
+]

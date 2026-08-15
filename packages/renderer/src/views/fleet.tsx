@@ -1,6 +1,21 @@
-import type { AgentSummary, Fleet, SessionSummary } from "@antumbra/contract";
+import type {
+	AgentSummary,
+	BerthSummary,
+	Fleet,
+	SessionSummary,
+} from "@antumbra/contract";
 import { interruptSession, retireAgent } from "#adapters/trpc.ts";
 import { buttonStyle, mutedStyle, rowStyle } from "#views/styles.ts";
+
+const BerthRow = ({ berth }: { readonly berth: BerthSummary }) => (
+	<div style={{ ...rowStyle, paddingLeft: "0.8rem" }}>
+		<span style={mutedStyle}>⚓ {berth.slug}</span>
+		<span style={mutedStyle}>{berth.branch}</span>
+		{berth.status === "stranded" ? (
+			<span style={{ color: "#ff7c7c" }}>stranded</span>
+		) : null}
+	</div>
+);
 
 const SessionRow = ({
 	onError,
@@ -64,6 +79,11 @@ const AgentRow = ({
 				</button>
 			) : null}
 		</div>
+		{agent.berths
+			.filter((berth) => berth.status !== "reclaimed")
+			.map((berth) => (
+				<BerthRow berth={berth} key={berth.slug} />
+			))}
 		{agent.sessions.map((session) => (
 			<SessionRow
 				key={session.id}

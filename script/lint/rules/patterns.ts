@@ -13,6 +13,7 @@ import type { Violation } from "#lint/violation.ts";
 interface CompiledRule {
 	readonly excludePaths: readonly string[];
 	readonly id: string;
+	readonly ignoreStrings: boolean;
 	readonly message: string;
 	readonly pattern: RegExp;
 }
@@ -20,9 +21,17 @@ interface CompiledRule {
 const RULES: readonly CompiledRule[] = ruleData.patterns.map((rule) => ({
 	excludePaths: rule.excludePaths,
 	id: rule.id,
+	ignoreStrings: rule.ignoreStrings,
 	message: rule.message,
 	pattern: new RegExp(rule.pattern),
 }));
+
+// why: rules with ignoreStrings target code tokens, and a banned token inside
+// a string literal (a refspec's /*, a test name saying "async") is prose, not
+// code — string spans are blanked before those rules match. Rules that
+// inspect string content (import paths) keep the raw line.
+const STRING_SPANS = /"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|`(?:[^`\\]|\\.)*`/g;
+const stripStrings = (text: string): string => text.replace(STRING_SPANS, '""');
 
 const WHY_OPENER = new RegExp(ruleData.whyOpener);
 const COMMENT_LINE = new RegExp(ruleData.commentLine);
@@ -54,7 +63,7 @@ const ruleViolations = (
 ): readonly Violation[] =>
 	file.lines.flatMap((text, index) =>
 		(rule.id === "no-plain-comment" && continuations.has(index)) ||
-		!rule.pattern.test(text)
+		!rule.pattern.test(rule.ignoreStrings ? stripStrings(text) : text)
 			? []
 			: [
 					{

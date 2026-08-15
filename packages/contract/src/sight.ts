@@ -7,7 +7,15 @@ export const SessionSummary = Schema.Struct({
 });
 export type SessionSummary = typeof SessionSummary.Type;
 
+export const BerthSummary = Schema.Struct({
+	branch: Schema.String,
+	slug: Schema.String,
+	status: Schema.String,
+});
+export type BerthSummary = typeof BerthSummary.Type;
+
 export const AgentSummary = Schema.Struct({
+	berths: Schema.Array(BerthSummary),
 	charter: Schema.String,
 	id: Schema.String,
 	role: Schema.String,
@@ -35,10 +43,16 @@ export const EventQuery = Schema.Struct({
 });
 export type EventQuery = typeof EventQuery.Type;
 
+export const RepoSpec = Schema.Struct({
+	ref: Schema.String,
+	source: Schema.String,
+});
+export type RepoSpec = typeof RepoSpec.Type;
+
 export const SpawnRequest = Schema.Struct({
 	backend: Schema.String,
 	charter: Schema.String,
-	cwd: Schema.String,
+	repos: Schema.Array(RepoSpec),
 	role: Schema.String,
 });
 export type SpawnRequest = typeof SpawnRequest.Type;

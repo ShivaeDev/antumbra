@@ -3,7 +3,7 @@ import type {
 	PrismaError,
 	WriteExecutors,
 } from "@antumbra/persistence";
-import type { AgentBackend } from "@antumbra/plugin-api";
+import type { AgentBackend, Runner } from "@antumbra/plugin-api";
 import { type Context, Effect } from "effect";
 import type { EventSink, SessionFabric } from "#fabric.ts";
 import type { DomainFeeds } from "#feeds.ts";
@@ -16,6 +16,7 @@ export interface AgentDeps {
 	readonly executors: Context.Context<WriteExecutors>;
 	readonly fabric: SessionFabric;
 	readonly feeds: DomainFeeds;
+	readonly runners: ReadonlyMap<string, Runner>;
 	readonly sinkFor: (sessionId: string) => Effect.Effect<EventSink>;
 	readonly writer: {
 		readonly write: <A, E, R>(

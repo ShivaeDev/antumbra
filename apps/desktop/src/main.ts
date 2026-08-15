@@ -12,6 +12,7 @@ import {
 	PersistenceLive,
 } from "@antumbra/persistence";
 import { makePluginHost } from "@antumbra/plugin-api";
+import { localRunnerPlugin } from "@antumbra/runners";
 import { Effect, Layer, ManagedRuntime } from "effect";
 import { AppInfoSourceLive } from "#adapters/app-info.ts";
 import { runBoot } from "#adapters/boot.ts";
@@ -20,6 +21,7 @@ import {
 	openMainWindow,
 	persistenceMigrationsDirectory,
 	quitWhenAllWindowsClosed,
+	runnerRootsInDataDirectory,
 	whenReady,
 } from "#adapters/shell.ts";
 import { registerTrpcBridge } from "#adapters/trpc-bridge.ts";
@@ -37,8 +39,12 @@ const persistence = Layer.unwrap(
 const agents = Layer.unwrap(
 	Effect.gen(function* () {
 		const host = yield* makePluginHost;
+		const runnerPlugin = localRunnerPlugin(
+			runnerRootsInDataDirectory(configureDataDirectory()),
+		);
 		yield* Effect.orDie(claudePlugin.activate(host.context));
-		return AgentDomainLive(yield* host.backends);
+		yield* Effect.orDie(runnerPlugin.activate(host.context));
+		return AgentDomainLive(yield* host.backends, yield* host.runners);
 	}),
 );
 

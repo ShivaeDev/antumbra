@@ -1,7 +1,5 @@
 import {
-	type AgentSummary,
 	type EventQuery,
-	type Fleet,
 	SessionEvent,
 	SightFailure,
 	SightSource,
@@ -12,6 +10,7 @@ import { Database, type WriteExecutors } from "@antumbra/persistence";
 import { Effect, Layer, PubSub, Schema, Stream } from "effect";
 import { AgentDomain } from "#domain.ts";
 import type { StoredEvent } from "#feeds.ts";
+import { fleetSnapshot } from "#sight-fleet.ts";
 
 const describe = (cause: unknown): string => {
 	if (cause instanceof Error && cause.message !== "") {
@@ -40,30 +39,7 @@ export const SightSourceLive = Layer.effect(SightSource)(
 			Effect.provideContext(effect, executors);
 		const decodeEvents = Schema.decodeUnknownEffect(Schema.Array(SessionEvent));
 
-		const fleet = provide(
-			Effect.gen(function* () {
-				const agents = yield* db.Agent.orderBy((agent) =>
-					agent.createdAt.asc(),
-				).all();
-				const sessions = yield* db.AgentSession.orderBy((session) =>
-					session.createdAt.asc(),
-				).all();
-				const summaries: ReadonlyArray<AgentSummary> = agents.map((agent) => ({
-					charter: agent.charter,
-					id: agent.id,
-					role: agent.role,
-					sessions: sessions
-						.filter((session) => session.agentId === agent.id)
-						.map((session) => ({
-							cwd: session.cwd,
-							id: session.id,
-							status: session.status,
-						})),
-					status: agent.status,
-				}));
-				return { agents: summaries } satisfies Fleet;
-			}),
-		).pipe(Effect.mapError(toFailure));
+		const fleet = provide(fleetSnapshot(db)).pipe(Effect.mapError(toFailure));
 
 		const sessionEvents = (query: EventQuery) =>
 			provide(
@@ -113,8 +89,11 @@ export const SightSourceLive = Layer.effect(SightSource)(
 						agentId,
 						backend: request.backend,
 						charter: request.charter,
-						cwd: request.cwd,
+						repos: request.repos,
 						role: request.role,
+						// why: the sole runner in v1 — the field joins the contract when
+						// a second runner exists to choose between.
+						runner: "local",
 						sessionId,
 					}),
 				);

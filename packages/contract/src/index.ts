@@ -21,8 +21,10 @@ export {
 } from "#router.ts";
 export {
 	AgentSummary,
+	BerthSummary,
 	EventQuery,
 	Fleet,
+	RepoSpec,
 	SessionEvent,
 	SessionSummary,
 	SightFailure,

@@ -48,6 +48,15 @@
 				}
 			],
 			"name": "continuation lines under a why: comment"
+		},
+		{
+			"files": [
+				{
+					"content": "export const refspec = \"+refs/heads/*:refs/remotes/origin/*\";\nexport const label = \"an async iterable, then some\";\nexport const cite = 'try { } catch \u2014 as prose';\n",
+					"path": "packages/x/src/mod.ts"
+				}
+			],
+			"name": "banned tokens inside string literals are prose, not code"
 		}
 	],
 	"lineReport": {

@@ -16,7 +16,7 @@ import type {
 } from '@prisma-next/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'sha256:88141d414d43f3070a5ac4e8dbfafe16989e62771c734c91a6818e71d06a22f1'>;
+  StorageHashBase<'sha256:1e5bd73e595303a6500d07a24a5f6907aa544a40cc3e73c68a0c79268924d492'>;
 export type ExecutionHash = ExecutionHashBase<string>;
 export type ProfileHash =
   ProfileHashBase<'sha256:3cc333ecad9f3f4c7229370a9d2c37e908cdce0f8d2e9fb132d50605b024eff2'>;
@@ -49,20 +49,6 @@ export type FieldOutputTypes = {
     readonly AppMeta: {
       readonly key: CodecTypes['sqlite/text@1']['output'];
       readonly value: CodecTypes['sqlite/text@1']['output'];
-      readonly updatedAt: CodecTypes['sqlite/datetime@1']['output'];
-    };
-    readonly Berth: {
-      readonly id: CodecTypes['sqlite/text@1']['output'];
-      readonly agentId: CodecTypes['sqlite/text@1']['output'];
-      readonly runner: CodecTypes['sqlite/text@1']['output'];
-      readonly source: CodecTypes['sqlite/text@1']['output'];
-      readonly slug: CodecTypes['sqlite/text@1']['output'];
-      readonly ref: CodecTypes['sqlite/text@1']['output'];
-      readonly branch: CodecTypes['sqlite/text@1']['output'];
-      readonly path: CodecTypes['sqlite/text@1']['output'];
-      readonly status: CodecTypes['sqlite/text@1']['output'];
-      readonly strandedAt: CodecTypes['sqlite/datetime@1']['output'] | null;
-      readonly createdAt: CodecTypes['sqlite/datetime@1']['output'];
       readonly updatedAt: CodecTypes['sqlite/datetime@1']['output'];
     };
     readonly Intent: {
@@ -106,20 +92,6 @@ export type FieldInputTypes = {
       readonly value: CodecTypes['sqlite/text@1']['input'];
       readonly updatedAt: CodecTypes['sqlite/datetime@1']['input'];
     };
-    readonly Berth: {
-      readonly id: CodecTypes['sqlite/text@1']['input'];
-      readonly agentId: CodecTypes['sqlite/text@1']['input'];
-      readonly runner: CodecTypes['sqlite/text@1']['input'];
-      readonly source: CodecTypes['sqlite/text@1']['input'];
-      readonly slug: CodecTypes['sqlite/text@1']['input'];
-      readonly ref: CodecTypes['sqlite/text@1']['input'];
-      readonly branch: CodecTypes['sqlite/text@1']['input'];
-      readonly path: CodecTypes['sqlite/text@1']['input'];
-      readonly status: CodecTypes['sqlite/text@1']['input'];
-      readonly strandedAt: CodecTypes['sqlite/datetime@1']['input'] | null;
-      readonly createdAt: CodecTypes['sqlite/datetime@1']['input'];
-      readonly updatedAt: CodecTypes['sqlite/datetime@1']['input'];
-    };
     readonly Intent: {
       readonly id: CodecTypes['sqlite/text@1']['input'];
       readonly tag: CodecTypes['sqlite/text@1']['input'];
@@ -161,20 +133,6 @@ export type StorageColumnTypes = {
       readonly updatedAt: CodecTypes['sqlite/datetime@1']['output'];
       readonly value: CodecTypes['sqlite/text@1']['output'];
     };
-    readonly berth: {
-      readonly agentId: CodecTypes['sqlite/text@1']['output'];
-      readonly branch: CodecTypes['sqlite/text@1']['output'];
-      readonly createdAt: CodecTypes['sqlite/datetime@1']['output'];
-      readonly id: CodecTypes['sqlite/text@1']['output'];
-      readonly path: CodecTypes['sqlite/text@1']['output'];
-      readonly ref: CodecTypes['sqlite/text@1']['output'];
-      readonly runner: CodecTypes['sqlite/text@1']['output'];
-      readonly slug: CodecTypes['sqlite/text@1']['output'];
-      readonly source: CodecTypes['sqlite/text@1']['output'];
-      readonly status: CodecTypes['sqlite/text@1']['output'];
-      readonly strandedAt: CodecTypes['sqlite/datetime@1']['output'] | null;
-      readonly updatedAt: CodecTypes['sqlite/datetime@1']['output'];
-    };
     readonly intent: {
       readonly createdAt: CodecTypes['sqlite/datetime@1']['output'];
       readonly detail: CodecTypes['sqlite/text@1']['output'] | null;
@@ -215,20 +173,6 @@ export type StorageColumnInputTypes = {
       readonly key: CodecTypes['sqlite/text@1']['input'];
       readonly updatedAt: CodecTypes['sqlite/datetime@1']['input'];
       readonly value: CodecTypes['sqlite/text@1']['input'];
-    };
-    readonly berth: {
-      readonly agentId: CodecTypes['sqlite/text@1']['input'];
-      readonly branch: CodecTypes['sqlite/text@1']['input'];
-      readonly createdAt: CodecTypes['sqlite/datetime@1']['input'];
-      readonly id: CodecTypes['sqlite/text@1']['input'];
-      readonly path: CodecTypes['sqlite/text@1']['input'];
-      readonly ref: CodecTypes['sqlite/text@1']['input'];
-      readonly runner: CodecTypes['sqlite/text@1']['input'];
-      readonly slug: CodecTypes['sqlite/text@1']['input'];
-      readonly source: CodecTypes['sqlite/text@1']['input'];
-      readonly status: CodecTypes['sqlite/text@1']['input'];
-      readonly strandedAt: CodecTypes['sqlite/datetime@1']['input'] | null;
-      readonly updatedAt: CodecTypes['sqlite/datetime@1']['input'];
     };
     readonly intent: {
       readonly createdAt: CodecTypes['sqlite/datetime@1']['input'];
@@ -368,79 +312,6 @@ type ContractBase = Omit<
               indexes: readonly [];
               foreignKeys: readonly [];
             };
-            readonly berth: {
-              columns: {
-                readonly id: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'sqlite/text@1';
-                  readonly nullable: false;
-                };
-                readonly agentId: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'sqlite/text@1';
-                  readonly nullable: false;
-                };
-                readonly runner: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'sqlite/text@1';
-                  readonly nullable: false;
-                };
-                readonly source: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'sqlite/text@1';
-                  readonly nullable: false;
-                };
-                readonly slug: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'sqlite/text@1';
-                  readonly nullable: false;
-                };
-                readonly ref: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'sqlite/text@1';
-                  readonly nullable: false;
-                };
-                readonly branch: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'sqlite/text@1';
-                  readonly nullable: false;
-                };
-                readonly path: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'sqlite/text@1';
-                  readonly nullable: false;
-                };
-                readonly status: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'sqlite/text@1';
-                  readonly nullable: false;
-                };
-                readonly strandedAt: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'sqlite/datetime@1';
-                  readonly nullable: true;
-                };
-                readonly createdAt: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'sqlite/datetime@1';
-                  readonly nullable: false;
-                  readonly default: { readonly kind: 'function'; readonly expression: 'now()' };
-                };
-                readonly updatedAt: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'sqlite/datetime@1';
-                  readonly nullable: false;
-                  readonly default: { readonly kind: 'function'; readonly expression: 'now()' };
-                };
-              };
-              primaryKey: { readonly columns: readonly ['id'] };
-              uniques: readonly [];
-              indexes: readonly [
-                { readonly columns: readonly ['agentId'] },
-                { readonly columns: readonly ['status'] },
-              ];
-              foreignKeys: readonly [];
-            };
             readonly intent: {
               columns: {
                 readonly id: {
@@ -541,7 +412,6 @@ type ContractBase = Omit<
       readonly namespace: '__unbound__' & NamespaceId;
       readonly model: 'AgentSession';
     };
-    readonly berth: { readonly namespace: '__unbound__' & NamespaceId; readonly model: 'Berth' };
     readonly sessionEvent: {
       readonly namespace: '__unbound__' & NamespaceId;
       readonly model: 'SessionEvent';
@@ -655,77 +525,6 @@ type ContractBase = Omit<
               readonly fields: {
                 readonly key: { readonly column: 'key' };
                 readonly value: { readonly column: 'value' };
-                readonly updatedAt: { readonly column: 'updatedAt' };
-              };
-            };
-          };
-          readonly Berth: {
-            readonly fields: {
-              readonly id: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
-              };
-              readonly agentId: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
-              };
-              readonly runner: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
-              };
-              readonly source: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
-              };
-              readonly slug: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
-              };
-              readonly ref: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
-              };
-              readonly branch: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
-              };
-              readonly path: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
-              };
-              readonly status: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
-              };
-              readonly strandedAt: {
-                readonly nullable: true;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/datetime@1' };
-              };
-              readonly createdAt: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/datetime@1' };
-              };
-              readonly updatedAt: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/datetime@1' };
-              };
-            };
-            readonly relations: Record<string, never>;
-            readonly storage: {
-              readonly table: 'berth';
-              readonly namespaceId: '__unbound__';
-              readonly fields: {
-                readonly id: { readonly column: 'id' };
-                readonly agentId: { readonly column: 'agentId' };
-                readonly runner: { readonly column: 'runner' };
-                readonly source: { readonly column: 'source' };
-                readonly slug: { readonly column: 'slug' };
-                readonly ref: { readonly column: 'ref' };
-                readonly branch: { readonly column: 'branch' };
-                readonly path: { readonly column: 'path' };
-                readonly status: { readonly column: 'status' };
-                readonly strandedAt: { readonly column: 'strandedAt' };
-                readonly createdAt: { readonly column: 'createdAt' };
                 readonly updatedAt: { readonly column: 'updatedAt' };
               };
             };

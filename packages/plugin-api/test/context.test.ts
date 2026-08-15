@@ -1,6 +1,7 @@
 import { expect, it } from "@effect/vitest";
 import { Effect } from "effect";
 import type { AgentBackend } from "#backend.ts";
+import type { ChangeHost } from "#change-host.ts";
 import { makePluginHost } from "#context.ts";
 
 const fakeBackend = (tag: string): AgentBackend => ({
@@ -10,6 +11,15 @@ const fakeBackend = (tag: string): AgentBackend => ({
 		multiClient: false,
 	},
 	openSession: () => Effect.die("unused in this test"),
+	tag,
+});
+
+const fakeChangeHost = (tag: string): ChangeHost => ({
+	adopt: () => Effect.die("unused in this test"),
+	capability: Effect.succeed({ available: true, detail: "scripted" }),
+	observe: () => Effect.die("unused in this test"),
+	open: () => Effect.die("unused in this test"),
+	supports: () => true,
 	tag,
 });
 
@@ -31,6 +41,26 @@ it.effect("rejects a second backend with the same tag", () =>
 			.registerAgentBackend(fakeBackend("claude"))
 			.pipe(Effect.flip);
 		expect(outcome._tag).toBe("DuplicateBackendTag");
+	}),
+);
+
+it.effect("collects registered change hosts by tag", () =>
+	Effect.gen(function* () {
+		const host = yield* makePluginHost;
+		yield* host.context.registerChangeHost(fakeChangeHost("github"));
+		const hosts = yield* host.changeHosts;
+		expect([...hosts.keys()]).toEqual(["github"]);
+	}),
+);
+
+it.effect("rejects a second change host with the same tag", () =>
+	Effect.gen(function* () {
+		const host = yield* makePluginHost;
+		yield* host.context.registerChangeHost(fakeChangeHost("github"));
+		const outcome = yield* host.context
+			.registerChangeHost(fakeChangeHost("github"))
+			.pipe(Effect.flip);
+		expect(outcome._tag).toBe("DuplicateChangeHostTag");
 	}),
 );
 

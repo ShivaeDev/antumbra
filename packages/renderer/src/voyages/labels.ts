@@ -12,14 +12,16 @@ export const voyageStateColour: Readonly<Record<VoyageState, string>> = {
 	underWay: "#7cd3a0",
 };
 
-// why: the six states read at a glance by colour rather than by reading —
-// what is moving is green, what waits is blue, what is stuck is amber, and
-// what is finished or not yet released recedes.
+// why: the states read at a glance by colour rather than by reading — what is
+// moving is green, what waits is blue, what is stuck is amber, what is done
+// but for something landing elsewhere is teal, and what is finished or not yet
+// released recedes.
 export const stateColour: Readonly<Record<PieceState, string>> = {
 	active: "#7cd3a0",
 	blocked: "#ff9f5c",
 	done: "#8a8f98",
 	held: "#8a8f98",
+	landing: "#5cc8d3",
 	parked: "#c9a0ff",
 	ready: "#7c9cff",
 };

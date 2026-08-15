@@ -6,6 +6,7 @@ import {
 } from "@antumbra/persistence/testing";
 import type {
 	AgentBackend,
+	ChangeHost,
 	DirectTool,
 	ProvisionRequest,
 	Runner,
@@ -150,7 +151,7 @@ export const callTool = (
 		},
 	);
 
-const passiveRunner: Runner = {
+export const passiveRunner: Runner = {
 	capabilities: { liveTerminal: false },
 	provision: (request) =>
 		Effect.succeed({ berths: [], root: `/tmp/moorage/${request.agentId}` }),
@@ -159,11 +160,17 @@ const passiveRunner: Runner = {
 	tag: "local",
 };
 
+export const changeHostsOf = (
+	...hosts: ReadonlyArray<ChangeHost>
+): ReadonlyMap<string, ChangeHost> =>
+	new Map(hosts.map((host) => [host.tag, host] as const));
+
 export const domainKernelLayer = (
 	temporary: TemporaryPersistence,
 	backend: AgentBackend,
 	options: Omit<KernelOptions, "kinds" | "gauges"> = {},
 	runner: Runner = passiveRunner,
+	changeHosts: ReadonlyMap<string, ChangeHost> = new Map(),
 ) =>
 	KernelReachLive.pipe(
 		Layer.provideMerge(
@@ -182,6 +189,7 @@ export const domainKernelLayer = (
 			AgentDomainLive(
 				new Map([[backend.tag, backend]]),
 				new Map([[runner.tag, runner]]),
+				changeHosts,
 			),
 		),
 		Layer.provideMerge(temporary.layer),
@@ -193,7 +201,10 @@ export const dispatchingLayer = (
 	dispatcher: Partial<DispatcherOptions>,
 	options: Omit<KernelOptions, "kinds" | "gauges"> = {},
 	runner: Runner = passiveRunner,
+	changeHosts: ReadonlyMap<string, ChangeHost> = new Map(),
 ) =>
 	DispatcherLive(dispatcher).pipe(
-		Layer.provideMerge(domainKernelLayer(temporary, backend, options, runner)),
+		Layer.provideMerge(
+			domainKernelLayer(temporary, backend, options, runner, changeHosts),
+		),
 	);

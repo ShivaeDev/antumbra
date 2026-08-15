@@ -58,6 +58,8 @@ it.live(
 				expect(live.tools.map((tool) => tool.name)).toEqual([
 					"land_report",
 					"land_artifact",
+					"open_change",
+					"adopt_change",
 					"write_board",
 					"read_board",
 					"stand_down",

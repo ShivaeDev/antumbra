@@ -1,5 +1,6 @@
 import { Data, Effect, Option, Ref, type Scope } from "effect";
 import type { AgentBackend } from "#backend.ts";
+import type { ChangeHost } from "#change-host.ts";
 import type { Runner } from "#runner.ts";
 
 export class DuplicateBackendTag extends Data.TaggedError(
@@ -9,6 +10,12 @@ export class DuplicateBackendTag extends Data.TaggedError(
 }> {}
 
 export class DuplicateRunnerTag extends Data.TaggedError("DuplicateRunnerTag")<{
+	readonly tag: string;
+}> {}
+
+export class DuplicateChangeHostTag extends Data.TaggedError(
+	"DuplicateChangeHostTag",
+)<{
 	readonly tag: string;
 }> {}
 
@@ -24,6 +31,9 @@ export interface PluginContext {
 	readonly registerAgentBackend: (
 		backend: AgentBackend,
 	) => Effect.Effect<void, DuplicateBackendTag>;
+	readonly registerChangeHost: (
+		host: ChangeHost,
+	) => Effect.Effect<void, DuplicateChangeHostTag>;
 	readonly registerRunner: (
 		runner: Runner,
 	) => Effect.Effect<void, DuplicateRunnerTag>;
@@ -44,6 +54,7 @@ export interface AntumbraPlugin {
 
 export interface PluginHost {
 	readonly backends: Effect.Effect<ReadonlyMap<string, AgentBackend>>;
+	readonly changeHosts: Effect.Effect<ReadonlyMap<string, ChangeHost>>;
 	readonly context: PluginContext;
 	readonly runners: Effect.Effect<ReadonlyMap<string, Runner>>;
 }
@@ -69,6 +80,9 @@ export const makePluginHost = Effect.gen(function* () {
 	const runnerRegistry = yield* Ref.make<ReadonlyMap<string, Runner>>(
 		new Map(),
 	);
+	const changeHostRegistry = yield* Ref.make<ReadonlyMap<string, ChangeHost>>(
+		new Map(),
+	);
 	const empty = {
 		get: () => Effect.succeed(Option.none<string>()),
 	};
@@ -76,6 +90,10 @@ export const makePluginHost = Effect.gen(function* () {
 		registerAgentBackend: registerInto(
 			backendRegistry,
 			(tag) => new DuplicateBackendTag({ tag }),
+		),
+		registerChangeHost: registerInto(
+			changeHostRegistry,
+			(tag) => new DuplicateChangeHostTag({ tag }),
 		),
 		registerRunner: registerInto(
 			runnerRegistry,
@@ -86,6 +104,7 @@ export const makePluginHost = Effect.gen(function* () {
 	};
 	return {
 		backends: Ref.get(backendRegistry),
+		changeHosts: Ref.get(changeHostRegistry),
 		context,
 		runners: Ref.get(runnerRegistry),
 	} satisfies PluginHost;

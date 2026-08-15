@@ -17,6 +17,7 @@ const piece = (
 ): PieceView => ({
 	agents: [],
 	artifacts: [],
+	changes: [],
 	charter: `do ${title}`,
 	dependsOn,
 	expectation: `${title} is landed`,

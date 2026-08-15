@@ -6,8 +6,25 @@ export {
 	type SessionHandle,
 } from "#backend.ts";
 export {
+	type ChangeChecks,
+	type ChangeHost,
+	type ChangeHostBerth,
+	type ChangeHostCapability,
+	type ChangeHostError,
+	ChangeHostRefused,
+	type ChangeHostRepo,
+	ChangeHostUnavailable,
+	type ChangeMergeable,
+	type ChangeObservation,
+	type ChangeRef,
+	type ChangeReview,
+	type ChangeStage,
+	type OpenChangeRequest,
+} from "#change-host.ts";
+export {
 	type AntumbraPlugin,
 	DuplicateBackendTag,
+	DuplicateChangeHostTag,
 	DuplicateRunnerTag,
 	makePluginHost,
 	type PluginContext,

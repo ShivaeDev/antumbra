@@ -23,7 +23,7 @@ type LandFailure = PieceNotFound | PrismaError;
 // why: landing is the only way a piece becomes done, so the piece must exist
 // before an outcome can point at it — an orphan link would read as a done
 // piece nobody chartered.
-const requirePiece = (deps: AgentDeps, pieceId: string) =>
+export const requirePiece = (deps: AgentDeps, pieceId: string) =>
 	provideExecutors(deps)(deps.db.Piece.where({ id: pieceId }).first()).pipe(
 		Effect.flatMap((row) =>
 			Option.isNone(row) ? new PieceNotFound({ pieceId }) : Effect.void,

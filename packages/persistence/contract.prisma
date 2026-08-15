@@ -166,6 +166,42 @@ model PieceArtifact {
   @@id([pieceId, artifactId])
 }
 
+model Change {
+  id              String    @id
+  repoId          String
+  host            String
+  title           String
+  body            String
+  headRef         String
+  baseRef         String
+  headSha         String?
+  stage           String
+  draftAt         DateTime?
+  url             String?
+  externalId      String?
+  checks          String
+  review          String
+  mergeable       String
+  openedByAgentId String?
+  raw             String?
+  activityAt      DateTime
+  observedAt      DateTime
+  landedAt        DateTime?
+  withdrawnAt     DateTime?
+  createdAt       DateTime  @default(now())
+
+  @@index([repoId])
+  @@index([host, externalId])
+}
+
+model PieceChange {
+  pieceId  String
+  changeId String
+
+  @@id([pieceId, changeId])
+  @@index([changeId])
+}
+
 model Board {
   id        String   @id
   createdAt DateTime @default(now())

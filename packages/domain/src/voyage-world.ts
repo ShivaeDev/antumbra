@@ -4,6 +4,7 @@ import type {
 	WriteExecutors,
 } from "@antumbra/persistence";
 import { Effect } from "effect";
+import { changeRow } from "#change-read.ts";
 import { type AgentDeps, provideExecutors } from "#deps.ts";
 import type {
 	ArtifactRow,
@@ -68,10 +69,14 @@ export const voyageWorld = (
 			),
 			artifacts: byId((yield* db.Artifact.all()).map(artifactRow)),
 			assignments: yield* db.PieceAgent.all(),
+			changes: (yield* db.Change.orderBy((change) =>
+				change.createdAt.asc(),
+			).all()).map(changeRow),
 			crews: yield* db.VoyageAgent.all(),
 			edges: yield* db.PieceEdge.all(),
 			memberships: yield* db.VoyagePiece.all(),
 			pieceArtifacts: yield* db.PieceArtifact.all(),
+			pieceChanges: yield* db.PieceChange.all(),
 			pieceReports: yield* db.PieceReport.all(),
 			pieces: (yield* db.Piece.orderBy((piece) =>
 				piece.createdAt.asc(),

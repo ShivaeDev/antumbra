@@ -1,3 +1,5 @@
+import type { ChangeRow, PieceChangeRow } from "#change-rows.ts";
+
 export interface VoyageRow {
 	readonly backend: string;
 	readonly context: string;
@@ -69,10 +71,12 @@ export interface VoyageWorld {
 	readonly agentStatus: ReadonlyMap<string, string>;
 	readonly artifacts: ReadonlyMap<string, ArtifactRow>;
 	readonly assignments: ReadonlyArray<AssignmentRow>;
+	readonly changes: ReadonlyArray<ChangeRow>;
 	readonly crews: ReadonlyArray<CrewRow>;
 	readonly edges: ReadonlyArray<EdgeRow>;
 	readonly memberships: ReadonlyArray<MembershipRow>;
 	readonly pieceArtifacts: ReadonlyArray<ArtifactLinkRow>;
+	readonly pieceChanges: ReadonlyArray<PieceChangeRow>;
 	readonly pieceReports: ReadonlyArray<ReportLinkRow>;
 	readonly pieces: ReadonlyArray<PieceRow>;
 	readonly reports: ReadonlyMap<string, ReportRow>;

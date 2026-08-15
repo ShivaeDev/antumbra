@@ -24,6 +24,7 @@ import { type IntentChange, SchedulerState } from "#state.ts";
 
 export interface KernelOptions {
 	readonly gates?: ReadonlyArray<Gate>;
+	readonly gauges?: Readonly<Record<string, Effect.Effect<number>>>;
 	readonly kinds: ReadonlyArray<AnyIntentKind>;
 	readonly nextId?: Effect.Effect<string>;
 }
@@ -99,6 +100,7 @@ export const KernelLive = (options: KernelOptions) =>
 		Effect.gen(function* () {
 			const state = {
 				gates: options.gates ?? [],
+				gauges: new Map(Object.entries(options.gauges ?? {})),
 				kinds: new Map(options.kinds.map((kind) => [kind.tag, kind])),
 				lastChangeAt: yield* Ref.make(yield* Clock.currentTimeMillis),
 				// why: ids are an injectable effect so a seeded simulation can own

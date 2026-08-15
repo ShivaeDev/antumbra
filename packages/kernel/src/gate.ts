@@ -1,5 +1,8 @@
 export interface AdmissionSnapshot {
 	readonly millisSinceLastChange: number;
+	// why: gauges are domain-registered sensors sampled by the scheduler each
+	// pass — the snapshot grows fields without gates gaining effects.
+	readonly readings: Readonly<Record<string, number>>;
 	readonly runningCount: number;
 }
 
@@ -23,6 +26,11 @@ export const settle = (quietMillis: number): Gate => ({
 	id: `settle(${quietMillis})`,
 	retryAfterMillis: (snapshot) =>
 		Math.max(1, quietMillis - snapshot.millisSinceLastChange),
+});
+
+export const gaugeCeiling = (reading: string, limit: number): Gate => ({
+	admits: (snapshot) => (snapshot.readings[reading] ?? 0) < limit,
+	id: `gauge-ceiling(${reading}, ${limit})`,
 });
 
 // why: RAM and CPU admission are part of the v1 gate surface without v1

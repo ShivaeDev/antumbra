@@ -22,6 +22,7 @@ export class SchedulerState extends Context.Service<
 	SchedulerState,
 	{
 		readonly gates: ReadonlyArray<Gate>;
+		readonly gauges: ReadonlyMap<string, Effect.Effect<number>>;
 		readonly kinds: ReadonlyMap<string, AnyIntentKind>;
 		readonly lastChangeAt: Ref.Ref<number>;
 		readonly nextId: Effect.Effect<string>;

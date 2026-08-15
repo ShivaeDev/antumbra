@@ -16,6 +16,7 @@ export {
 	type AdmissionSnapshot,
 	cpuHeadroom,
 	type Gate,
+	gaugeCeiling,
 	maxConcurrency,
 	ramHeadroom,
 	settle,

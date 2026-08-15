@@ -14,8 +14,13 @@ const takeSnapshot = Effect.gen(function* () {
 	const running = yield* Ref.get(state.running);
 	const now = yield* Clock.currentTimeMillis;
 	const lastChange = yield* Ref.get(state.lastChangeAt);
+	const readings: Record<string, number> = {};
+	for (const [name, gauge] of state.gauges) {
+		readings[name] = yield* gauge;
+	}
 	return {
 		millisSinceLastChange: now - lastChange,
+		readings,
 		runningCount: running.size,
 	} satisfies AdmissionSnapshot;
 });

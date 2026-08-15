@@ -1,0 +1,576 @@
+[
+  {
+    "id": "table.artifact",
+    "label": "Create table artifact",
+    "summary": "Creates table artifact with required columns",
+    "operationClass": "additive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "table",
+        "name": "artifact"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"artifact\" does not exist",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "table",
+          "artifact"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"artifact\"",
+        "sql": "CREATE TABLE \"artifact\" (\n  \"authorAgentId\" TEXT,\n  \"createdAt\" TEXT NOT NULL DEFAULT (datetime('now')),\n  \"id\" TEXT NOT NULL,\n  \"title\" TEXT NOT NULL,\n  \"uri\" TEXT NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"artifact\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "table",
+          "artifact"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.piece",
+    "label": "Create table piece",
+    "summary": "Creates table piece with required columns",
+    "operationClass": "additive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "table",
+        "name": "piece"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"piece\" does not exist",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "table",
+          "piece"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"piece\"",
+        "sql": "CREATE TABLE \"piece\" (\n  \"charter\" TEXT NOT NULL,\n  \"createdAt\" TEXT NOT NULL DEFAULT (datetime('now')),\n  \"expectation\" TEXT NOT NULL,\n  \"id\" TEXT NOT NULL,\n  \"launchedAt\" TEXT,\n  \"parkedAt\" TEXT,\n  \"role\" TEXT NOT NULL,\n  \"title\" TEXT NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"piece\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "table",
+          "piece"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.pieceAgent",
+    "label": "Create table pieceAgent",
+    "summary": "Creates table pieceAgent with required columns",
+    "operationClass": "additive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "table",
+        "name": "pieceAgent"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"pieceAgent\" does not exist",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "table",
+          "pieceAgent"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"pieceAgent\"",
+        "sql": "CREATE TABLE \"pieceAgent\" (\n  \"agentId\" TEXT NOT NULL,\n  \"assignedAt\" TEXT NOT NULL DEFAULT (datetime('now')),\n  \"pieceId\" TEXT NOT NULL,\n  PRIMARY KEY (\"pieceId\", \"agentId\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"pieceAgent\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "table",
+          "pieceAgent"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.pieceArtifact",
+    "label": "Create table pieceArtifact",
+    "summary": "Creates table pieceArtifact with required columns",
+    "operationClass": "additive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "table",
+        "name": "pieceArtifact"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"pieceArtifact\" does not exist",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "table",
+          "pieceArtifact"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"pieceArtifact\"",
+        "sql": "CREATE TABLE \"pieceArtifact\" (\n  \"artifactId\" TEXT NOT NULL,\n  \"pieceId\" TEXT NOT NULL,\n  PRIMARY KEY (\"pieceId\", \"artifactId\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"pieceArtifact\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "table",
+          "pieceArtifact"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.pieceEdge",
+    "label": "Create table pieceEdge",
+    "summary": "Creates table pieceEdge with required columns",
+    "operationClass": "additive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "table",
+        "name": "pieceEdge"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"pieceEdge\" does not exist",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "table",
+          "pieceEdge"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"pieceEdge\"",
+        "sql": "CREATE TABLE \"pieceEdge\" (\n  \"fromPieceId\" TEXT NOT NULL,\n  \"toPieceId\" TEXT NOT NULL,\n  PRIMARY KEY (\"fromPieceId\", \"toPieceId\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"pieceEdge\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "table",
+          "pieceEdge"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.pieceReport",
+    "label": "Create table pieceReport",
+    "summary": "Creates table pieceReport with required columns",
+    "operationClass": "additive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "table",
+        "name": "pieceReport"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"pieceReport\" does not exist",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "table",
+          "pieceReport"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"pieceReport\"",
+        "sql": "CREATE TABLE \"pieceReport\" (\n  \"pieceId\" TEXT NOT NULL,\n  \"reportId\" TEXT NOT NULL,\n  PRIMARY KEY (\"pieceId\", \"reportId\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"pieceReport\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "table",
+          "pieceReport"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.report",
+    "label": "Create table report",
+    "summary": "Creates table report with required columns",
+    "operationClass": "additive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "table",
+        "name": "report"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"report\" does not exist",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "table",
+          "report"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"report\"",
+        "sql": "CREATE TABLE \"report\" (\n  \"authorAgentId\" TEXT,\n  \"body\" TEXT NOT NULL,\n  \"createdAt\" TEXT NOT NULL DEFAULT (datetime('now')),\n  \"id\" TEXT NOT NULL,\n  \"title\" TEXT NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"report\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "table",
+          "report"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.voyage",
+    "label": "Create table voyage",
+    "summary": "Creates table voyage with required columns",
+    "operationClass": "additive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "table",
+        "name": "voyage"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"voyage\" does not exist",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "table",
+          "voyage"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"voyage\"",
+        "sql": "CREATE TABLE \"voyage\" (\n  \"backend\" TEXT NOT NULL,\n  \"context\" TEXT NOT NULL,\n  \"createdAt\" TEXT NOT NULL DEFAULT (datetime('now')),\n  \"focusedAt\" TEXT,\n  \"id\" TEXT NOT NULL,\n  \"name\" TEXT NOT NULL,\n  \"northStar\" TEXT NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"voyage\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "table",
+          "voyage"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.voyageAgent",
+    "label": "Create table voyageAgent",
+    "summary": "Creates table voyageAgent with required columns",
+    "operationClass": "additive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "table",
+        "name": "voyageAgent"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"voyageAgent\" does not exist",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "table",
+          "voyageAgent"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"voyageAgent\"",
+        "sql": "CREATE TABLE \"voyageAgent\" (\n  \"agentId\" TEXT NOT NULL,\n  \"role\" TEXT NOT NULL,\n  \"voyageId\" TEXT NOT NULL,\n  PRIMARY KEY (\"voyageId\", \"agentId\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"voyageAgent\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "table",
+          "voyageAgent"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.voyagePiece",
+    "label": "Create table voyagePiece",
+    "summary": "Creates table voyagePiece with required columns",
+    "operationClass": "additive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "table",
+        "name": "voyagePiece"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"voyagePiece\" does not exist",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "table",
+          "voyagePiece"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"voyagePiece\"",
+        "sql": "CREATE TABLE \"voyagePiece\" (\n  \"createdAt\" TEXT NOT NULL DEFAULT (datetime('now')),\n  \"pieceId\" TEXT NOT NULL,\n  \"voyageId\" TEXT NOT NULL,\n  PRIMARY KEY (\"voyageId\", \"pieceId\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"voyagePiece\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "table",
+          "voyagePiece"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.pieceAgent.pieceAgent_agentId_idx",
+    "label": "Create index pieceAgent_agentId_idx on pieceAgent",
+    "summary": "Creates index pieceAgent_agentId_idx on pieceAgent",
+    "operationClass": "additive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "index",
+        "name": "pieceAgent_agentId_idx",
+        "table": "pieceAgent"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"pieceAgent_agentId_idx\" is missing",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "index",
+          "pieceAgent_agentId_idx"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"pieceAgent_agentId_idx\"",
+        "sql": "CREATE INDEX \"pieceAgent_agentId_idx\" ON \"pieceAgent\" (\"agentId\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"pieceAgent_agentId_idx\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "index",
+          "pieceAgent_agentId_idx"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.pieceEdge.pieceEdge_toPieceId_idx",
+    "label": "Create index pieceEdge_toPieceId_idx on pieceEdge",
+    "summary": "Creates index pieceEdge_toPieceId_idx on pieceEdge",
+    "operationClass": "additive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "index",
+        "name": "pieceEdge_toPieceId_idx",
+        "table": "pieceEdge"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"pieceEdge_toPieceId_idx\" is missing",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "index",
+          "pieceEdge_toPieceId_idx"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"pieceEdge_toPieceId_idx\"",
+        "sql": "CREATE INDEX \"pieceEdge_toPieceId_idx\" ON \"pieceEdge\" (\"toPieceId\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"pieceEdge_toPieceId_idx\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "index",
+          "pieceEdge_toPieceId_idx"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.voyageAgent.voyageAgent_agentId_idx",
+    "label": "Create index voyageAgent_agentId_idx on voyageAgent",
+    "summary": "Creates index voyageAgent_agentId_idx on voyageAgent",
+    "operationClass": "additive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "index",
+        "name": "voyageAgent_agentId_idx",
+        "table": "voyageAgent"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"voyageAgent_agentId_idx\" is missing",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "index",
+          "voyageAgent_agentId_idx"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"voyageAgent_agentId_idx\"",
+        "sql": "CREATE INDEX \"voyageAgent_agentId_idx\" ON \"voyageAgent\" (\"agentId\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"voyageAgent_agentId_idx\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "index",
+          "voyageAgent_agentId_idx"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.voyagePiece.voyagePiece_pieceId_idx",
+    "label": "Create index voyagePiece_pieceId_idx on voyagePiece",
+    "summary": "Creates index voyagePiece_pieceId_idx on voyagePiece",
+    "operationClass": "additive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "index",
+        "name": "voyagePiece_pieceId_idx",
+        "table": "voyagePiece"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"voyagePiece_pieceId_idx\" is missing",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "index",
+          "voyagePiece_pieceId_idx"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"voyagePiece_pieceId_idx\"",
+        "sql": "CREATE INDEX \"voyagePiece_pieceId_idx\" ON \"voyagePiece\" (\"pieceId\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"voyagePiece_pieceId_idx\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "index",
+          "voyagePiece_pieceId_idx"
+        ]
+      }
+    ]
+  }
+]

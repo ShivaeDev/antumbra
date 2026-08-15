@@ -1,0 +1,141 @@
+import { expect, it } from "@effect/vitest";
+import { Effect, Option } from "effect";
+import { nextBackoffMillis } from "#dispatch-policy.ts";
+import { AgentDomain } from "#domain.ts";
+import {
+	acquireTemporaryPersistence,
+	dispatchingLayer,
+	makeScriptedBackend,
+} from "#test/harness.ts";
+import {
+	assignedPieces,
+	chain,
+	eventually,
+	land,
+	openReefVoyage,
+	PATIENCE,
+	retireOneAlive,
+	stateOf,
+} from "#test/voyage-fixtures.ts";
+
+it("nextBackoffMillis doubles from patience and stops at five minutes", () => {
+	expect(nextBackoffMillis(0, 50)).toBe(50);
+	expect(nextBackoffMillis(1, 50)).toBe(100);
+	expect(nextBackoffMillis(3, 50)).toBe(400);
+	expect(nextBackoffMillis(20, 5000)).toBe(300000);
+});
+
+it.live("a launched chain sails on its own as outcomes land", () =>
+	Effect.gen(function* () {
+		const temporary = yield* acquireTemporaryPersistence;
+		const scripted = yield* makeScriptedBackend;
+		yield* Effect.gen(function* () {
+			const { alpha, bravo, charlie, voyage } = yield* chain;
+			yield* eventually(
+				Effect.gen(function* () {
+					expect(yield* assignedPieces).toEqual([alpha.id]);
+					expect(yield* stateOf(voyage.id, alpha.id)).toBe("active");
+				}),
+			);
+			expect(yield* stateOf(voyage.id, bravo.id)).toBe("blocked");
+			expect(yield* stateOf(voyage.id, charlie.id)).toBe("blocked");
+
+			yield* land(alpha.id, "soundings");
+			yield* eventually(
+				Effect.gen(function* () {
+					expect(yield* stateOf(voyage.id, bravo.id)).toBe("active");
+					expect(yield* stateOf(voyage.id, charlie.id)).toBe("active");
+				}),
+			);
+
+			yield* land(bravo.id, "eastern chart");
+			yield* land(charlie.id, "western chart");
+			const domain = yield* AgentDomain;
+			const view = Option.getOrThrow(yield* domain.voyages.read(voyage.id));
+			expect(view.pieces.map((piece) => piece.state)).toEqual([
+				"done",
+				"done",
+				"done",
+			]);
+			expect(view.state).toBe("quiet");
+		}).pipe(
+			Effect.provide(dispatchingLayer(temporary, scripted.backend, PATIENCE)),
+		);
+	}),
+);
+
+it.live(
+	"the alive ceiling holds the second dependent until a berth frees",
+	() =>
+		Effect.gen(function* () {
+			const temporary = yield* acquireTemporaryPersistence;
+			const scripted = yield* makeScriptedBackend;
+			yield* Effect.gen(function* () {
+				const { alpha } = yield* chain;
+				yield* eventually(
+					Effect.gen(function* () {
+						expect(yield* assignedPieces).toEqual([alpha.id]);
+					}),
+				);
+				yield* land(alpha.id, "soundings");
+				yield* Effect.sleep(300);
+				expect(yield* assignedPieces).toEqual([alpha.id]);
+
+				yield* retireOneAlive;
+				yield* eventually(
+					Effect.gen(function* () {
+						expect((yield* assignedPieces).length).toBe(2);
+					}),
+				);
+				yield* Effect.sleep(300);
+				expect((yield* assignedPieces).length).toBe(2);
+
+				yield* retireOneAlive;
+				yield* eventually(
+					Effect.gen(function* () {
+						expect((yield* assignedPieces).length).toBe(3);
+					}),
+				);
+			}).pipe(
+				Effect.provide(
+					dispatchingLayer(temporary, scripted.backend, {
+						maxAlive: 1,
+						patienceMillis: 50,
+					}),
+				),
+			);
+		}),
+);
+
+it.live("a parked piece is never dispatched until it is unparked", () =>
+	Effect.gen(function* () {
+		const temporary = yield* acquireTemporaryPersistence;
+		const scripted = yield* makeScriptedBackend;
+		yield* Effect.gen(function* () {
+			const domain = yield* AgentDomain;
+			const voyage = yield* openReefVoyage;
+			const piece = yield* domain.voyages.charterPiece({
+				charter: "sound the shallows",
+				dependsOn: [],
+				expectation: "soundings are landed",
+				role: "hand",
+				title: "alpha",
+				voyageId: voyage.id,
+			});
+			yield* domain.voyages.park(piece.id);
+			yield* domain.voyages.launch(piece.id);
+			yield* Effect.sleep(300);
+			expect(yield* assignedPieces).toEqual([]);
+			expect(yield* stateOf(voyage.id, piece.id)).toBe("parked");
+
+			yield* domain.voyages.unpark(piece.id);
+			yield* eventually(
+				Effect.gen(function* () {
+					expect(yield* assignedPieces).toEqual([piece.id]);
+				}),
+			);
+		}).pipe(
+			Effect.provide(dispatchingLayer(temporary, scripted.backend, PATIENCE)),
+		);
+	}),
+);

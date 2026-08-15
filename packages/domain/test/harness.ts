@@ -11,6 +11,7 @@ import type {
 } from "@antumbra/plugin-api";
 import type { AgentEvent } from "@antumbra/session-events";
 import { Effect, Layer, Option, Queue, Ref, Stream } from "effect";
+import { DispatcherLive, type DispatcherOptions } from "#dispatcher.ts";
 import { AgentDomain, AgentDomainLive } from "#domain.ts";
 
 export interface ScriptedRunner {
@@ -146,4 +147,15 @@ export const domainKernelLayer = (
 			),
 		),
 		Layer.provideMerge(temporary.layer),
+	);
+
+export const dispatchingLayer = (
+	temporary: TemporaryPersistence,
+	backend: AgentBackend,
+	dispatcher: Partial<DispatcherOptions>,
+	options: Omit<KernelOptions, "kinds" | "gauges"> = {},
+	runner: Runner = passiveRunner,
+) =>
+	DispatcherLive(dispatcher).pipe(
+		Layer.provideMerge(domainKernelLayer(temporary, backend, options, runner)),
 	);

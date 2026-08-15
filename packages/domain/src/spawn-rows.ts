@@ -2,6 +2,7 @@ import type { ProvisionedMoorage } from "@antumbra/plugin-api";
 import { Effect, Option, PubSub, Schema } from "effect";
 import { type AgentDeps, provideExecutors } from "#deps.ts";
 import { AgentNotSpawnable } from "#errors.ts";
+import { assignToPiece } from "#piece-assignment.ts";
 import type { SpawnFields } from "#spawn.ts";
 import {
 	type AgentStatus,
@@ -36,6 +37,7 @@ export const ensureAgentRow = (deps: AgentDeps, payload: SpawnFields) => {
 			// later must still leave a visible agent, not a ghost.
 			yield* PubSub.publish(deps.feeds.fleet, undefined);
 		}
+		yield* assignToPiece(deps, payload);
 	});
 };
 

@@ -20,3 +20,12 @@ export class AgentNotSpawnable extends Data.TaggedError("AgentNotSpawnable")<{
 export class SessionNotLive extends Data.TaggedError("SessionNotLive")<{
 	readonly sessionId: string;
 }> {}
+
+export class PieceNotFound extends Data.TaggedError("PieceNotFound")<{
+	readonly pieceId: string;
+}> {}
+
+export class EdgeWouldCycle extends Data.TaggedError("EdgeWouldCycle")<{
+	readonly fromPieceId: string;
+	readonly toPieceId: string;
+}> {}

@@ -16,6 +16,7 @@ import { reclaimAgents } from "#reclaim.ts";
 import { makeRepoRegistry, type RepoRegistry } from "#registry.ts";
 import { makeRetireKind, type RetireFields } from "#retire.ts";
 import { makeSpawnKind, type SpawnFields } from "#spawn.ts";
+import { makeVoyageProcedures, type VoyageProcedures } from "#voyages.ts";
 
 // why: exposed but not installed as a gate — kernel gates are global, so a
 // birth ceiling would block retire alongside spawn. Installing it waits for
@@ -35,6 +36,7 @@ export class AgentDomain extends Context.Service<
 		readonly repos: RepoRegistry;
 		readonly retire: IntentKind<RetireFields>;
 		readonly spawn: IntentKind<SpawnFields>;
+		readonly voyages: VoyageProcedures;
 	}
 >()("@antumbra/domain/AgentDomain") {}
 
@@ -82,6 +84,7 @@ export const AgentDomainLive = (
 				repos: makeRepoRegistry(deps),
 				retire,
 				spawn,
+				voyages: makeVoyageProcedures(deps),
 			};
 		}),
 	);

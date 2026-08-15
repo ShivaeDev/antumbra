@@ -40,6 +40,24 @@ model AgentSession {
   @@index([agentId])
 }
 
+model Berth {
+  id         String    @id
+  agentId    String
+  runner     String
+  source     String
+  slug       String
+  ref        String
+  branch     String
+  path       String
+  status     String
+  strandedAt DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @default(now())
+
+  @@index([agentId])
+  @@index([status])
+}
+
 model SessionEvent {
   sessionId String
   seq       Int

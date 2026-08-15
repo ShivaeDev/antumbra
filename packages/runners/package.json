@@ -23,6 +23,7 @@
 		"vitest": "catalog:"
 	},
 	"dependencies": {
+		"@antumbra/plugin-api": "workspace:*",
 		"effect": "catalog:"
 	}
 }

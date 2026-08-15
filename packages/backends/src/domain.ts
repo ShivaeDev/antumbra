@@ -1,7 +1,12 @@
 import type { AnyIntentKind, IntentKind } from "@antumbra/kernel";
 import { Database, type WriteExecutors, Writer } from "@antumbra/persistence";
-import type { AgentBackend, BackendFailure } from "@antumbra/plugin-api";
+import type {
+	AgentBackend,
+	BackendFailure,
+	Runner,
+} from "@antumbra/plugin-api";
 import { Context, Effect, Layer } from "effect";
+import { sweepBerths } from "#berth-sweep.ts";
 import type { AgentDeps } from "#deps.ts";
 import type { SessionNotLive } from "#errors.ts";
 import { makeEventSinkFactory } from "#events.ts";
@@ -32,7 +37,10 @@ export class AgentDomain extends Context.Service<
 
 // why: built before the kernel starts — the boot sweep must settle stranded
 // agents before admission can pull anything that reads their state.
-export const AgentDomainLive = (backends: ReadonlyMap<string, AgentBackend>) =>
+export const AgentDomainLive = (
+	backends: ReadonlyMap<string, AgentBackend>,
+	runners: ReadonlyMap<string, Runner>,
+) =>
 	Layer.effect(AgentDomain)(
 		Effect.gen(function* () {
 			const db = yield* Database;
@@ -42,12 +50,14 @@ export const AgentDomainLive = (backends: ReadonlyMap<string, AgentBackend>) =>
 			const feeds = yield* makeDomainFeeds;
 			const sinkFor = yield* makeEventSinkFactory(feeds.events);
 			yield* reclaimAgents;
+			yield* sweepBerths(runners);
 			const deps: AgentDeps = {
 				backends,
 				db,
 				executors,
 				fabric,
 				feeds,
+				runners,
 				sinkFor,
 				writer,
 			};

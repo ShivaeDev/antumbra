@@ -17,6 +17,13 @@ export const configureDataDirectory = (): string => {
 	return directory;
 };
 
+export const runnerRootsInDataDirectory = (
+	dataDirectory: string,
+): { readonly berthsRoot: string; readonly reposRoot: string } => ({
+	berthsRoot: join(dataDirectory, "berths"),
+	reposRoot: join(dataDirectory, "repos"),
+});
+
 export const persistenceMigrationsDirectory = (): string =>
 	app.isPackaged
 		? join(process.resourcesPath, "persistence", "migrations")

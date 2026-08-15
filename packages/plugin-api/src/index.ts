@@ -9,9 +9,21 @@ export {
 export {
 	type AntumbraPlugin,
 	DuplicateBackendTag,
+	DuplicateRunnerTag,
 	makePluginHost,
 	type PluginContext,
 	type PluginHost,
 	type SecretsApi,
 	type SettingsApi,
 } from "#context.ts";
+export {
+	type BerthSite,
+	type ProvisionedBerth,
+	type ProvisionedMoorage,
+	type ProvisionRequest,
+	type ReclaimVerdict,
+	type RepoRequest,
+	type Runner,
+	type RunnerCapabilities,
+	RunnerFailure,
+} from "#runner.ts";

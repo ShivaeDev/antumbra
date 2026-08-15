@@ -8,6 +8,10 @@ export class UnknownBackendTag extends Data.TaggedError("UnknownBackendTag")<{
 	readonly tag: string;
 }> {}
 
+export class UnknownRunnerTag extends Data.TaggedError("UnknownRunnerTag")<{
+	readonly tag: string;
+}> {}
+
 export class AgentNotSpawnable extends Data.TaggedError("AgentNotSpawnable")<{
 	readonly agentId: string;
 	readonly status: string;

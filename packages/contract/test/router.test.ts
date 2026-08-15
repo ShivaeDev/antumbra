@@ -18,6 +18,7 @@ const info = {
 const fleet = {
 	agents: [
 		{
+			berths: [{ branch: "work/agent-1/reef", slug: "reef", status: "ready" }],
 			charter: "chart the reef",
 			id: "agent-1",
 			role: "navigator",
@@ -120,7 +121,7 @@ describe("makeAppRouter", () => {
 				caller.spawnAgent({
 					backend: "claude",
 					charter: "map the shoals",
-					cwd: "/tmp/shoals",
+					repos: [{ ref: "main", source: "/tmp/shoals" }],
 					role: "surveyor",
 				}),
 			);

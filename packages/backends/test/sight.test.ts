@@ -27,7 +27,7 @@ const sightLayer = (
 const spawnRequest = {
 	backend: "scripted",
 	charter: "chart the reef",
-	cwd: "/tmp",
+	repos: [],
 	role: "navigator",
 };
 
@@ -51,10 +51,16 @@ it.live("spawn surfaces on the fleet feed once the agent lives", () =>
 		yield* Effect.gen(function* () {
 			const sight = yield* SightSource;
 			const receipt = yield* sight.spawn(spawnRequest);
+			// why: the agent surfaces before its moorage is provisioned, so the
+			// feed legitimately shows it session-less first — the test waits for
+			// the snapshot that carries the session.
 			const settled = yield* sight.fleetFeed.pipe(
 				Stream.filter((fleet) =>
 					fleet.agents.some(
-						(agent) => agent.id === receipt.agentId && agent.status === "alive",
+						(agent) =>
+							agent.id === receipt.agentId &&
+							agent.status === "alive" &&
+							agent.sessions.length > 0,
 					),
 				),
 				Stream.take(1),

@@ -20,6 +20,9 @@ gets amended here — never silently.
   piece↔session, piece↔outcome). Pieces produce artifacts.
 - **Intent** — a kernel-scheduled bounded operation. The kernel executes the
   piece graph through intent admission. Intents are always mortal.
+  The intent record and affected domain rows are the durable authority;
+  execution progress is reconstructed from them after restart, not persisted
+  as execution checkpoints.
 - **Agent** — a conceptual identity with a responsibility, persisting across
   sessions the way a program persists across process IDs.
 - **Session** — one SDK session of an agent: an executor detail. Transcript

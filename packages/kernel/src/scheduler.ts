@@ -65,6 +65,10 @@ export const applyTransition = (
 const settleExit = (id: string, exit: Exit.Exit<void, unknown>) =>
 	Effect.gen(function* () {
 		const state = yield* SchedulerState;
+		// why: the fiber leaves the running map before the status write announces
+		// its tick, so the drain woken by this completion sees the freed slot at
+		// once. Handoff latency is all that rides on this order — the drain's
+		// bounded patience covers liveness.
 		yield* Ref.update(state.running, (map) => {
 			const next = new Map(map);
 			next.delete(id);

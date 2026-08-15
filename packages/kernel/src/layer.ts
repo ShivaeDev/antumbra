@@ -25,6 +25,7 @@ import { type IntentChange, SchedulerState } from "#state.ts";
 export interface KernelOptions {
 	readonly gates?: ReadonlyArray<Gate>;
 	readonly kinds: ReadonlyArray<AnyIntentKind>;
+	readonly nextId?: Effect.Effect<string>;
 }
 
 const changesFor = (id: string) =>
@@ -58,12 +59,12 @@ const submitIntent = <Payload>(
 	changes: (id: string) => IntentSubmission["changes"],
 ) =>
 	Effect.gen(function* () {
-		const { kinds } = yield* SchedulerState;
+		const { kinds, nextId } = yield* SchedulerState;
 		if (kinds.get(kind.tag) !== kind) {
 			return yield* new UnregisteredIntentTag({ tag: kind.tag });
 		}
 		const encoded = yield* kind.encode(payload);
-		const id = crypto.randomUUID();
+		const id = yield* nextId;
 		const db = yield* Database;
 		const writer = yield* Writer;
 		yield* writer.write(
@@ -100,12 +101,17 @@ export const KernelLive = (options: KernelOptions) =>
 				gates: options.gates ?? [],
 				kinds: new Map(options.kinds.map((kind) => [kind.tag, kind])),
 				lastChangeAt: yield* Ref.make(yield* Clock.currentTimeMillis),
+				// why: ids are an injectable effect so a seeded simulation can own
+				// them; the ambient uuid is the default, not a hard-wired impurity.
+				nextId: options.nextId ?? Effect.sync(() => crypto.randomUUID()),
 				pubsub: yield* PubSub.unbounded<IntentChange>(),
-				retryPending: yield* Ref.make(false),
 				running: yield* Ref.make<
 					ReadonlyMap<string, Fiber.Fiber<void, unknown>>
 				>(new Map()),
-				tick: yield* Queue.unbounded<void>(),
+				// why: a sliding capacity-1 queue makes tick coalescing structural —
+				// any number of "look again" signals collapse into at most one
+				// pending element, so the drain never runs a redundant pass.
+				tick: yield* Queue.sliding<void>(1),
 			};
 			const context = Context.make(SchedulerState, state).pipe(
 				Context.add(Database, yield* Database),

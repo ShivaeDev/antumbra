@@ -4,6 +4,11 @@ import type { AdmissionSnapshot, Gate } from "#gate.ts";
 import { applyTransition, startIntent } from "#scheduler.ts";
 import { SchedulerState } from "#state.ts";
 
+type AdmitOutcome =
+	| { readonly _tag: "blocked"; readonly retryMillis: Option.Option<number> }
+	| { readonly _tag: "empty" }
+	| { readonly _tag: "pulled" };
+
 const takeSnapshot = Effect.gen(function* () {
 	const state = yield* SchedulerState;
 	const running = yield* Ref.get(state.running);
@@ -15,33 +20,20 @@ const takeSnapshot = Effect.gen(function* () {
 	} satisfies AdmissionSnapshot;
 });
 
-const scheduleRetry = (
+const retryAfter = (
 	blocked: ReadonlyArray<Gate>,
 	snapshot: AdmissionSnapshot,
-) =>
-	Effect.gen(function* () {
-		const state = yield* SchedulerState;
-		const waits = blocked.flatMap((gate) =>
-			gate.retryAfterMillis === undefined
-				? []
-				: [gate.retryAfterMillis(snapshot)],
-		);
-		if (waits.length === 0) {
-			return;
-		}
-		if (yield* Ref.getAndSet(state.retryPending, true)) {
-			return;
-		}
-		// why: a time-blocked gate reopens on its own schedule, not on a status
-		// change, so a single pending timer re-ticks the loop when the longest
-		// remaining wait has elapsed.
-		yield* Effect.forkChild(
-			Effect.sleep(Math.max(...waits)).pipe(
-				Effect.andThen(Ref.set(state.retryPending, false)),
-				Effect.andThen(Queue.offer(state.tick, undefined)),
-			),
-		);
-	});
+): Option.Option<number> => {
+	const waits = blocked.flatMap((gate) =>
+		gate.retryAfterMillis === undefined
+			? []
+			: [gate.retryAfterMillis(snapshot)],
+	);
+	// why: every blocked gate must reopen before anything is admitted, so the
+	// earliest useful retry is the longest wait; gates without a schedule
+	// reopen on status changes, which tick the loop on their own.
+	return waits.length === 0 ? Option.none() : Option.some(Math.max(...waits));
+};
 
 // why: the pull order is the scheduler's one policy seam — oldest-first in
 // SQL today; priority class, focus, and demand land here without touching
@@ -59,12 +51,14 @@ const admitOne = Effect.gen(function* () {
 	const snapshot = yield* takeSnapshot;
 	const blocked = state.gates.filter((gate) => !gate.admits(snapshot));
 	if (blocked.length > 0) {
-		yield* scheduleRetry(blocked, snapshot);
-		return "blocked" as const;
+		return {
+			_tag: "blocked",
+			retryMillis: retryAfter(blocked, snapshot),
+		} satisfies AdmitOutcome;
 	}
 	const next = yield* pullNext;
 	if (Option.isNone(next)) {
-		return "empty" as const;
+		return { _tag: "empty" } satisfies AdmitOutcome;
 	}
 	const admitted = yield* applyTransition(next.value.id, "admit").pipe(
 		Effect.map(Option.some),
@@ -77,26 +71,40 @@ const admitOne = Effect.gen(function* () {
 		yield* Effect.logDebug("admitted intent", { id: next.value.id });
 		yield* startIntent(next.value);
 	}
-	return "pulled" as const;
+	return { _tag: "pulled" } satisfies AdmitOutcome;
 });
 
 const drain = Effect.repeat(admitOne, {
-	while: (outcome) => outcome === "pulled",
+	while: (outcome) => outcome._tag === "pulled",
 });
+
+// why: a failed drain must never kill the scheduler fiber — the kernel would
+// keep accepting intents and silently stop admitting them. Log the cause and
+// wait for the next tick.
+const guardedDrain = drain.pipe(
+	Effect.catchCause((cause) =>
+		Effect.logError("scheduler drain failed", cause).pipe(
+			Effect.as({ _tag: "empty" } satisfies AdmitOutcome),
+		),
+	),
+);
+
+const patienceMillis = 5000;
 
 export const schedulerLoop = Effect.gen(function* () {
 	const state = yield* SchedulerState;
-	// why: a failed drain must never kill the scheduler fiber — the kernel
-	// would keep accepting intents and silently stop admitting them. Log the
-	// cause and wait for the next tick. Pending ticks coalesce: they all mean
-	// "look again", and one drain looks.
-	yield* Effect.forever(
-		Queue.take(state.tick).pipe(
-			Effect.andThen(Queue.clear(state.tick)),
-			Effect.andThen(drain),
-			Effect.catchCause((cause) =>
-				Effect.logError("scheduler drain failed", cause),
-			),
-		),
-	);
+	// why: every wait is bounded — a gate deadline when one was published, the
+	// patience floor otherwise. Ticks are latency hints, never a liveness
+	// dependency; a lost wakeup self-heals within one patience period.
+	const awaitTick = (retry: Option.Option<number>) =>
+		Effect.timeoutOption(
+			Queue.take(state.tick),
+			Option.getOrElse(retry, () => patienceMillis),
+		).pipe(Effect.asVoid);
+	let retry = Option.none<number>();
+	while (true) {
+		yield* awaitTick(retry);
+		const outcome = yield* guardedDrain;
+		retry = outcome._tag === "blocked" ? outcome.retryMillis : Option.none();
+	}
 });

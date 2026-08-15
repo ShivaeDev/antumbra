@@ -188,10 +188,10 @@ compute: reify, queue, prioritize, preempt.
   the app's data dir) per requested repo — zero repos means a bare scratch
   moorage. The runner provisions before the session opens. Reclaim is
   clean-only: a berth with uncommitted or unpushed work is stranded and
-  surfaced, never auto-deleted, and only strands older than seven days are
-  scrapped. Runners register through the plugin surface like backends; the
-  local runner's terminal capability stays honestly false until something
-  can render a terminal.
+  surfaced, while gitignored paths are declared disposable and do not strand
+  it. Only strands older than seven days are scrapped. Runners register
+  through the plugin surface like backends; the local runner's terminal
+  capability stays honestly false until something can render a terminal.
 - Resource claims are ephemeral, visible, and rebuilt: exposed to the
   observability surface, never persisted. After a restart the system
   presents what was under way rather than blindly re-inflating it.

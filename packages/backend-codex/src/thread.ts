@@ -1,5 +1,6 @@
 import type {
 	BackendFailure,
+	DirectTool,
 	OpenSessionOptions,
 	SessionHandle,
 } from "@antumbra/plugin-api";
@@ -20,6 +21,21 @@ const THREAD_POLICY = {
 	sandbox: "workspace-write",
 };
 
+// why: the same name, description, and JSON Schema every backend is handed,
+// in the shape codex takes them. A thread opened with no tools sends no key at
+// all, so a session that acts through nothing looks exactly as it did.
+const dynamicTools = (tools: ReadonlyArray<DirectTool>) =>
+	tools.length === 0
+		? {}
+		: {
+				dynamicTools: tools.map((tool) => ({
+					description: tool.description,
+					inputSchema: tool.inputSchema,
+					name: tool.name,
+					type: "function",
+				})),
+			};
+
 const decodeScoped = Schema.decodeUnknownOption(ThreadScoped);
 const decodeThread = Schema.decodeUnknownOption(ThreadResponse);
 
@@ -35,8 +51,15 @@ const openThread = (server: CodexServer, options: OpenSessionOptions) =>
 	Option.match(options.resume, {
 		onNone: () =>
 			server
-				.request("thread/start", { cwd: options.cwd, ...THREAD_POLICY })
+				.request("thread/start", {
+					cwd: options.cwd,
+					...dynamicTools(options.tools),
+					...THREAD_POLICY,
+				})
 				.pipe(Effect.map((response) => ["thread/start", response] as const)),
+		// why: resume sends no specifications — codex keeps them in the thread's
+		// rollout — but the running process still has to be able to answer a call,
+		// so the tools are registered again either way.
 		onSome: (threadId) =>
 			server
 				.request("thread/resume", {
@@ -77,6 +100,8 @@ export const openThreadSession = (
 		const forDriver = yield* PubSub.subscribe(server.notifications);
 		const [method, response] = yield* openThread(server, options);
 		const threadId = yield* threadIdOf(method, response);
+		yield* server.tools.register(threadId, options.tools);
+		yield* Effect.addFinalizer(() => server.tools.forget(threadId));
 		const own = forThread(threadId);
 		const driver = yield* makeTurnDriver(server, threadId);
 		yield* Effect.forkScoped(

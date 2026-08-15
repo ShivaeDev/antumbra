@@ -138,6 +138,41 @@ describe("codex notifications map onto the neutral vocabulary", () => {
 		]);
 	});
 
+	it("a tool we served reads as a tool, named as the agent called it", () => {
+		const running = {
+			arguments: { body: "ok", title: "spike" },
+			contentItems: null,
+			durationMs: null,
+			id: "exec-6f4d21ae",
+			namespace: null,
+			status: "inProgress",
+			success: null,
+			tool: "land_report",
+			type: "dynamicToolCall",
+		};
+		expect(toAgentEvents(item("item/started", running))).toMatchObject([
+			{
+				input: '{"body":"ok","title":"spike"}',
+				name: "land_report",
+				toolId: "exec-6f4d21ae",
+				type: "tool.started",
+			},
+		]);
+		const landed = {
+			...running,
+			contentItems: [{ text: "report landed", type: "inputText" }],
+			status: "completed",
+			success: true,
+		};
+		expect(toAgentEvents(item("item/completed", landed))).toMatchObject([
+			{ ok: true, output: "report landed", type: "tool.completed" },
+		]);
+		const refused = { ...landed, success: false };
+		expect(toAgentEvents(item("item/completed", refused))).toMatchObject([
+			{ ok: false, type: "tool.completed" },
+		]);
+	});
+
 	it("an item kind outside the model is kept raw, never dropped", () => {
 		const events = toAgentEvents(
 			item("item/completed", { id: "s", type: "sleep", durationMs: 3 }),

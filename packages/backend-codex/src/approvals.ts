@@ -1,5 +1,4 @@
-import { Effect } from "effect";
-import type { RpcConnection, RpcServerRequest } from "#adapters/rpc.ts";
+import type { RpcServerRequest } from "#adapters/rpc.ts";
 
 const DECLINED = "declined by antumbra: no approval consumer is wired yet";
 
@@ -8,7 +7,9 @@ const DECLINED = "declined by antumbra: no approval consumer is wired yet";
 // approval consumer exists on our side, every residual prompt is declined
 // rather than silently accepted. Declining completes the item as declined;
 // the turn goes on.
-const residualAnswer = (request: RpcServerRequest): unknown | undefined => {
+export const residualApproval = (
+	request: RpcServerRequest,
+): unknown | undefined => {
 	switch (request.method) {
 		case "item/commandExecution/requestApproval":
 		case "item/fileChange/requestApproval":
@@ -26,19 +27,3 @@ const residualAnswer = (request: RpcServerRequest): unknown | undefined => {
 			return undefined;
 	}
 };
-
-export const answerServerRequest = (
-	rpc: RpcConnection,
-	request: RpcServerRequest,
-): Effect.Effect<void> =>
-	Effect.sync(() => {
-		const answer = residualAnswer(request);
-		if (answer === undefined) {
-			rpc.respondError(request.id, {
-				code: -32601,
-				message: `antumbra does not serve ${request.method}`,
-			});
-			return;
-		}
-		rpc.respond(request.id, answer);
-	});

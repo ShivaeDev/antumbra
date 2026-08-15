@@ -1,0 +1,75 @@
+{
+	"allowed": [
+		{
+			"content": "export const label = \"async await new Promise try catch throw\";\n",
+			"name": "Effect vocabulary in a quoted string",
+			"path": "packages/x/src/mod.ts"
+		},
+		{
+			"content": "// why: this documents async, await, try, and throw without executing them\nexport const value = `escaped \\` then`;\n",
+			"name": "Effect vocabulary in comments and escaped templates",
+			"path": "packages/x/src/mod.ts"
+		},
+		{
+			"content": "export const load = async () => {\n\ttry {\n\t\treturn await new Promise((resolve) => resolve(1));\n\t} catch (cause) {\n\t\tthrow cause;\n\t}\n};\n",
+			"name": "Effect escape hatches in an adapter",
+			"path": "packages/x/src/adapters/sdk.ts"
+		}
+	],
+	"flagged": [
+		{
+			"content": "export async function load() {\n\treturn run();\n}\n",
+			"message": "async/await is banned outside adapter modules",
+			"name": "async functions without await",
+			"path": "packages/x/src/mod.ts"
+		},
+		{
+			"content": "export const load = async () => run();\n",
+			"message": "async/await is banned outside adapter modules",
+			"name": "async arrows without await",
+			"path": "packages/x/src/mod.ts"
+		},
+		{
+			"content": "export const load = async function () { return run(); };\n",
+			"message": "async/await is banned outside adapter modules",
+			"name": "async function expressions without await",
+			"path": "packages/x/src/mod.ts"
+		},
+		{
+			"content": "export const client = { async load() { return run(); } };\n",
+			"message": "async/await is banned outside adapter modules",
+			"name": "async object methods without await",
+			"path": "packages/x/src/mod.ts"
+		},
+		{
+			"content": "export class Client { private async load() { return run(); } }\n",
+			"message": "async/await is banned outside adapter modules",
+			"name": "async class methods without await",
+			"path": "packages/x/src/mod.ts"
+		},
+		{
+			"content": "export const load = async () => await run();\n",
+			"message": "async/await is banned outside adapter modules",
+			"name": "async and await",
+			"path": "packages/x/src/mod.ts"
+		},
+		{
+			"content": "export const task = new Promise((resolve) => resolve(1)).then(String);\n",
+			"message": "Raw Promises are banned outside adapter modules",
+			"name": "raw promise construction and chaining",
+			"path": "packages/x/src/mod.ts"
+		},
+		{
+			"content": "try { run(); } catch (cause) { throw cause; }\n",
+			"message": "try/catch is banned",
+			"name": "try catch and throw",
+			"path": "packages/x/src/mod.ts"
+		},
+		{
+			"content": "export const rendered = `first line\nresult: ${work.then(String)}`;\n",
+			"message": "Raw Promises are banned outside adapter modules",
+			"name": "promise chaining inside multiline template interpolation",
+			"path": "packages/x/src/mod.ts"
+		}
+	]
+}

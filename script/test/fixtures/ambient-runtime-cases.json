@@ -1,0 +1,69 @@
+{
+	"allowed": [
+		{
+			"content": "export const label = \"Date.now Math.random console.log process.env\";\n",
+			"name": "ambient vocabulary in a quoted string",
+			"path": "packages/x/src/mod.ts"
+		},
+		{
+			"content": "export const label = `Date.now()\nconsole.log process.env`;\n",
+			"name": "ambient vocabulary in multiline template text",
+			"path": "packages/x/src/mod.ts"
+		},
+		{
+			"content": "export const View = () => <div title=\"console.log(Date.now())\">process.env</div>;\n",
+			"name": "ambient vocabulary in JSX text and attributes",
+			"path": "packages/x/src/view.tsx"
+		}
+	],
+	"flagged": [
+		{
+			"content": "export const rendered = `started at ${Date.now()}`;\n",
+			"message": "Ambient time is banned",
+			"name": "ambient time inside template interpolation",
+			"path": "packages/x/src/mod.ts"
+		},
+		{
+			"content": "export const started = new Date();\n",
+			"message": "Ambient time is banned",
+			"name": "zero-argument Date construction",
+			"path": "packages/x/src/mod.ts"
+		},
+		{
+			"content": "export const started = Date.now();\n",
+			"message": "Ambient time is banned",
+			"name": "ambient APIs remain banned inside adapters",
+			"path": "packages/x/src/adapters/sdk.ts"
+		},
+		{
+			"content": "export const id = Math.random();\n",
+			"message": "Ambient randomness is banned",
+			"name": "ambient randomness",
+			"path": "packages/x/src/mod.ts"
+		},
+		{
+			"content": "console.info(\"started\");\nexport {};\n",
+			"message": "console.* is banned",
+			"name": "console logging",
+			"path": "packages/x/src/mod.ts"
+		},
+		{
+			"content": "console[\"warn\"](\"started\");\nexport {};\n",
+			"message": "console.* is banned",
+			"name": "computed console logging",
+			"path": "packages/x/src/mod.ts"
+		},
+		{
+			"content": "export const token = process.env.TOKEN;\n",
+			"message": "process.env is banned",
+			"name": "ambient configuration",
+			"path": "packages/x/src/mod.ts"
+		},
+		{
+			"content": "export const token = process[\"env\"].TOKEN;\n",
+			"message": "process.env is banned",
+			"name": "computed ambient configuration",
+			"path": "packages/x/src/mod.ts"
+		}
+	]
+}

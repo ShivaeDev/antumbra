@@ -1,0 +1,23 @@
+{
+	"allowed": [
+		{
+			"content": "export const states = [\"held\", \"running\"] as const;\n",
+			"name": "const assertions",
+			"path": "packages/x/src/mod.ts"
+		}
+	],
+	"flagged": [
+		{
+			"content": "export const value = input as { readonly id: string };\n",
+			"message": "Type assertions are banned",
+			"name": "unsafe type assertions",
+			"path": "packages/x/src/mod.ts"
+		},
+		{
+			"content": "export const value = <{ readonly id: string }>input;\n",
+			"message": "Type assertions are banned",
+			"name": "angle-bracket type assertions",
+			"path": "packages/x/src/mod.ts"
+		}
+	]
+}

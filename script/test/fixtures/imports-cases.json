@@ -1,0 +1,51 @@
+{
+	"allowed": [
+		{
+			"content": "import { value } from \"#value.ts\";\nexport { value };\n",
+			"name": "package subpath imports with source extensions",
+			"path": "packages/x/src/mod.ts"
+		},
+		{
+			"content": "export const label = \"import('./relative.ts') and #value.js\";\n",
+			"name": "import vocabulary in prose",
+			"path": "packages/x/src/mod.ts"
+		},
+		{
+			"content": "import end from './end-contract.json' with { type: 'json' };\nexport default end;\n",
+			"name": "generated migration-relative imports",
+			"path": "packages/x/migrations/app/1_init/migration.ts"
+		}
+	],
+	"flagged": [
+		{
+			"content": "import { value } from \"./value.ts\";\nexport { value };\n",
+			"message": "Relative imports are banned",
+			"name": "static relative imports",
+			"path": "packages/x/src/mod.ts"
+		},
+		{
+			"content": "export { value } from \"../value.ts\";\n",
+			"message": "Relative imports are banned",
+			"name": "relative re-exports",
+			"path": "packages/x/src/mod.ts"
+		},
+		{
+			"content": "export const load = () => import(\"./value.ts\");\n",
+			"message": "Relative imports are banned",
+			"name": "dynamic relative imports",
+			"path": "packages/x/src/mod.ts"
+		},
+		{
+			"content": "import { value } from \"#value.js\";\nexport { value };\n",
+			"message": "Internal imports use the on-disk TypeScript extension",
+			"name": "compiled extensions on static internal imports",
+			"path": "packages/x/src/mod.ts"
+		},
+		{
+			"content": "export const load = () => import(\"#value.js\");\n",
+			"message": "Internal imports use the on-disk TypeScript extension",
+			"name": "compiled extensions on dynamic internal imports",
+			"path": "packages/x/src/mod.ts"
+		}
+	]
+}

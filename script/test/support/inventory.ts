@@ -1,3 +1,4 @@
+import { sourceComments } from "#lint/adapters/typescript.ts";
 import type { Inventory, TextFile } from "#lint/inventory.ts";
 
 export interface SeedFile {
@@ -20,6 +21,7 @@ export const inventoryOf = (seed: Seed): Inventory => ({
 	pragmaRegistry: seed.pragmaRegistry ?? "[]",
 	root: seed.root ?? "/virtual",
 	sources: (seed.sources ?? []).map((file) => ({
+		comments: sourceComments(file.path, file.content),
 		lines: file.content.split("\n"),
 		path: file.path,
 	})),

@@ -14,6 +14,17 @@ import { ipcMain, type WebContents } from "electron";
 const decodeSubscribe = Schema.decodeUnknownResult(SubscribeRequest);
 const decodeUnsubscribe = Schema.decodeUnknownResult(UnsubscribeRequest);
 
+const SubscriptionProcedureResult = Schema.declare(
+	(value): value is AsyncIterable<unknown> =>
+		typeof value === "object" &&
+		value !== null &&
+		Symbol.asyncIterator in value &&
+		typeof value[Symbol.asyncIterator] === "function",
+);
+const decodeSubscriptionProcedureResult = Schema.decodeUnknownSync(
+	SubscriptionProcedureResult,
+);
+
 const pump = async (
 	sender: WebContents,
 	id: string,
@@ -86,15 +97,17 @@ export const registerTrpcSubscriptions = (router: AppRouter): void => {
 		const controller = track(event.sender, request.id);
 		void (async () => {
 			try {
-				const iterable = (await callTRPCProcedure({
-					batchIndex: 0,
-					ctx: { senderId: event.sender.id },
-					getRawInput: () => Promise.resolve(request.input),
-					path: request.path,
-					router,
-					signal: controller.signal,
-					type: "subscription",
-				})) as AsyncIterable<unknown>;
+				const iterable = decodeSubscriptionProcedureResult(
+					await callTRPCProcedure({
+						batchIndex: 0,
+						ctx: { senderId: event.sender.id },
+						getRawInput: () => Promise.resolve(request.input),
+						path: request.path,
+						router,
+						signal: controller.signal,
+						type: "subscription",
+					}),
+				);
 				await pump(event.sender, request.id, iterable, controller.signal);
 			} catch (cause) {
 				if (!event.sender.isDestroyed()) {

@@ -1,4 +1,5 @@
 import { readFileSync } from "node:fs";
+import { Schema } from "effect";
 import { describe, expect, it } from "vitest";
 import { MUTED_NOTIFICATIONS } from "#handshake.ts";
 import { ExecutionStatus, KnownItem, TurnStatus } from "#protocol.ts";
@@ -8,15 +9,32 @@ import { ExecutionStatus, KnownItem, TurnStatus } from "#protocol.ts";
 // type, and method name our hand-written slice relies on to them.
 // Regenerate with `codex app-server generate-json-schema --out <dir>` when
 // the pin moves, and let this test say what changed.
-interface SchemaFile {
-	readonly definitions: Record<string, Record<string, unknown>>;
-	readonly oneOf?: ReadonlyArray<{
-		readonly properties?: { readonly method?: { readonly enum?: unknown } };
-	}>;
-}
+const EnumNode = Schema.Struct({
+	enum: Schema.optional(Schema.Array(Schema.String)),
+});
+const Variant = Schema.Struct({
+	properties: Schema.optional(
+		Schema.Struct({
+			method: Schema.optional(EnumNode),
+			type: Schema.optional(EnumNode),
+		}),
+	),
+});
+const Definition = Schema.Struct({
+	enum: Schema.optional(Schema.Array(Schema.String)),
+	oneOf: Schema.optional(Schema.Array(Variant)),
+});
+const SchemaFile = Schema.Struct({
+	definitions: Schema.Record(Schema.String, Definition),
+	oneOf: Schema.optional(Schema.Array(Variant)),
+});
+type SchemaFile = typeof SchemaFile.Type;
+const decodeSchemaFile = Schema.decodeUnknownSync(
+	Schema.fromJsonString(SchemaFile),
+);
 
 const load = (name: string): SchemaFile =>
-	JSON.parse(
+	decodeSchemaFile(
 		readFileSync(new URL(`../src/schema/${name}`, import.meta.url), "utf8"),
 	);
 
@@ -27,15 +45,13 @@ const serverNotifications = load("ServerNotification.json");
 const methodsOf = (file: SchemaFile): ReadonlyArray<string> =>
 	(file.oneOf ?? []).flatMap((variant) => {
 		const values = variant.properties?.method?.enum;
-		return Array.isArray(values)
-			? values.filter((v) => typeof v === "string")
-			: [];
+		return values ?? [];
 	});
 
-const enumOf = (name: string): ReadonlyArray<unknown> => {
+const enumOf = (name: string): ReadonlyArray<string> => {
 	const definition = bundle.definitions[name];
 	const values = definition?.enum;
-	return Array.isArray(values) ? values : [];
+	return values ?? [];
 };
 
 const literalsOf = (schema: { readonly ast: unknown }): ReadonlyArray<string> =>
@@ -49,18 +65,7 @@ const variantTypes = (name: string): ReadonlyArray<string> => {
 	if (!Array.isArray(variants)) {
 		return [];
 	}
-	return variants.flatMap((variant: unknown) => {
-		if (typeof variant !== "object" || variant === null) {
-			return [];
-		}
-		const properties = (
-			variant as { properties?: { type?: { enum?: unknown } } }
-		).properties;
-		const values = properties?.type?.enum;
-		return Array.isArray(values)
-			? values.filter((v) => typeof v === "string")
-			: [];
-	});
+	return variants.flatMap((variant) => variant.properties?.type?.enum ?? []);
 };
 
 describe("the codex protocol slice agrees with the pinned schema bundle", () => {

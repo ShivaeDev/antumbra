@@ -1,0 +1,68 @@
+{
+	"allowed": [
+		{
+			"content": "export const prose = \"// biome-ignore @ts-ignore /* plain */\";\n",
+			"name": "comment vocabulary in strings",
+			"path": "packages/x/src/mod.ts"
+		},
+		{
+			"content": "export const prose = `first // static\nsecond /* static */ escaped \\``;\n",
+			"name": "multiline and escaped template text",
+			"path": "packages/x/src/mod.ts"
+		},
+		{
+			"content": "export const View = () => <div title=\"// attribute\">// jsx text /* still text */</div>;\n",
+			"name": "JSX text and attributes",
+			"path": "packages/x/src/view.tsx"
+		},
+		{
+			"content": "// why: the first line owns the constraint\n// and the next line continues it\nexport const value = 1; /* why: an inline block can also state a constraint */\n",
+			"name": "why comments and their continuation",
+			"path": "packages/x/src/mod.ts"
+		},
+		{
+			"content": "export const matcher = /https?:\\/\\/example\\.com\\/\\*path/;\n",
+			"name": "comment tokens in a regular expression",
+			"path": "packages/x/src/mod.ts"
+		}
+	],
+	"flagged": [
+		{
+			"content": "if (ready) { // empty block note\n}\n",
+			"line": 1,
+			"name": "comments inside empty blocks",
+			"rule": "no-plain-comment"
+		},
+		{
+			"content": "export const View = () => <div>{/* actual JSX comment */}</div>;\n",
+			"line": 1,
+			"name": "comments inside JSX expressions",
+			"path": "packages/x/src/view.tsx",
+			"rule": "no-plain-comment"
+		},
+		{
+			"content": "// biome-ignore lint/suspicious/noExplicitAny: hidden\nexport const value = 1;\n",
+			"line": 1,
+			"name": "Biome suppression comments",
+			"rule": "no-lint-suppression"
+		},
+		{
+			"content": "// @ts-nocheck\nexport const value = 1;\n",
+			"line": 1,
+			"name": "TypeScript file suppressions",
+			"rule": "no-ts-ignore"
+		},
+		{
+			"content": "// why: marked block\nexport const value = 1;\n// detached narration\n",
+			"line": 3,
+			"name": "detached plain comments",
+			"rule": "no-plain-comment"
+		},
+		{
+			"content": "export const value = 1; /* @ts-expect-error is not a compiler pragma here */\n",
+			"line": 1,
+			"name": "pragma vocabulary in block comments",
+			"rule": "no-plain-comment"
+		}
+	]
+}

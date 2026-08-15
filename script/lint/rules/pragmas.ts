@@ -1,6 +1,5 @@
 import { parseJson } from "#lint/adapters/json.ts";
 import type { Inventory, SourceFile } from "#lint/inventory.ts";
-import ruleData from "#lint/rules/rule-patterns.json" with { type: "json" };
 import type { Violation } from "#lint/violation.ts";
 
 interface RegistryEntry {
@@ -8,7 +7,7 @@ interface RegistryEntry {
 	readonly pragma: string;
 }
 
-const DETECTOR = new RegExp(ruleData.pragmaDetector);
+const PRAGMA = "@ts-expect-error";
 
 const isRegistryEntry = (value: unknown): value is RegistryEntry =>
 	typeof value === "object" &&
@@ -27,18 +26,19 @@ const fileViolations = (
 	file: SourceFile,
 	registry: readonly RegistryEntry[],
 ): readonly Violation[] =>
-	file.lines.flatMap((text, index) => {
-		const match = DETECTOR.exec(text);
+	file.comments.flatMap((comment) => {
+		const detected = comment.content.includes(PRAGMA);
 		const registered = registry.some(
-			(entry) => entry.file === file.path && text.includes(entry.pragma),
+			(entry) =>
+				entry.file === file.path && comment.content.includes(entry.pragma),
 		);
-		return match === null || registered
+		return !detected || registered
 			? []
 			: [
 					{
 						file: file.path,
-						line: index + 1,
-						message: `uses "${match[0]}" without a registry entry. Every lint escape is enumerated, with a reason, in script/pragma-registry.json.`,
+						line: comment.line,
+						message: `uses "${PRAGMA}" without a registry entry. Every lint escape is enumerated, with a reason, in script/pragma-registry.json.`,
 						rule: "pragmas/unregistered",
 					},
 				];

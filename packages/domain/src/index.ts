@@ -6,10 +6,22 @@ export {
 export {
 	AgentNotFound,
 	AgentNotSpawnable,
+	EdgeWouldCycle,
+	PieceNotFound,
 	SessionNotLive,
 	UnknownBackendTag,
 } from "#errors.ts";
 export type { DomainFeeds, StoredEvent } from "#feeds.ts";
+export type { ArtifactInput, ReportInput } from "#outcomes.ts";
+export {
+	PIECE_STATES,
+	type PieceState,
+	pieceStates,
+	type VoyageState,
+	voyageState,
+	wouldCycle,
+} from "#piece-state.ts";
+export type { CharterInput } from "#pieces.ts";
 export {
 	type RegisteredRepo,
 	type RepoRegistration,
@@ -28,3 +40,17 @@ export {
 	agentTransition,
 	InvalidAgentTransition,
 } from "#status.ts";
+export type {
+	ArtifactRow,
+	PieceRow,
+	ReportRow,
+	VoyageRow,
+	VoyageWorld,
+} from "#voyage-rows.ts";
+export type {
+	PieceCounts,
+	PieceView,
+	VoyageSummary,
+	VoyageView,
+} from "#voyage-view.ts";
+export type { OpenVoyageInput, VoyageProcedures } from "#voyages.ts";

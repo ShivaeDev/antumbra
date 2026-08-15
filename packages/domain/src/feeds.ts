@@ -13,12 +13,14 @@ export interface StoredEvent {
 export interface DomainFeeds {
 	readonly events: PubSub.PubSub<StoredEvent>;
 	readonly fleet: PubSub.PubSub<void>;
+	readonly voyages: PubSub.PubSub<void>;
 }
 
 export const makeDomainFeeds: Effect.Effect<DomainFeeds> = Effect.gen(
 	function* () {
 		const events = yield* PubSub.unbounded<StoredEvent>();
 		const fleet = yield* PubSub.unbounded<void>();
-		return { events, fleet };
+		const voyages = yield* PubSub.unbounded<void>();
+		return { events, fleet, voyages };
 	},
 );

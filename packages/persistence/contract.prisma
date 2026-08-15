@@ -79,3 +79,89 @@ model SessionEvent {
 
   @@id([sessionId, seq])
 }
+
+model Voyage {
+  id        String    @id
+  name      String
+  northStar String
+  context   String
+  focusedAt DateTime?
+  backend   String
+  createdAt DateTime  @default(now())
+}
+
+model Piece {
+  id          String    @id
+  title       String
+  charter     String
+  expectation String
+  role        String
+  launchedAt  DateTime?
+  parkedAt    DateTime?
+  createdAt   DateTime  @default(now())
+}
+
+model VoyagePiece {
+  voyageId  String
+  pieceId   String
+  createdAt DateTime @default(now())
+
+  @@id([voyageId, pieceId])
+  @@index([pieceId])
+}
+
+model PieceEdge {
+  fromPieceId String
+  toPieceId   String
+
+  @@id([fromPieceId, toPieceId])
+  @@index([toPieceId])
+}
+
+model PieceAgent {
+  pieceId    String
+  agentId    String
+  assignedAt DateTime @default(now())
+
+  @@id([pieceId, agentId])
+  @@index([agentId])
+}
+
+model VoyageAgent {
+  voyageId String
+  agentId  String
+  role     String
+
+  @@id([voyageId, agentId])
+  @@index([agentId])
+}
+
+model Report {
+  id            String   @id
+  authorAgentId String?
+  title         String
+  body          String
+  createdAt     DateTime @default(now())
+}
+
+model Artifact {
+  id            String   @id
+  authorAgentId String?
+  title         String
+  uri           String
+  createdAt     DateTime @default(now())
+}
+
+model PieceReport {
+  pieceId  String
+  reportId String
+
+  @@id([pieceId, reportId])
+}
+
+model PieceArtifact {
+  pieceId    String
+  artifactId String
+
+  @@id([pieceId, artifactId])
+}

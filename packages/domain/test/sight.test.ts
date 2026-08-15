@@ -29,7 +29,6 @@ const sightLayer = (
 const spawnRequest = {
 	backend: "scripted",
 	charter: "chart the reef",
-	repos: [],
 	role: "navigator",
 };
 

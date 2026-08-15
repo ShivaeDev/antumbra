@@ -25,11 +25,21 @@ export const AgentSummary = Schema.Struct({
 });
 export type AgentSummary = typeof AgentSummary.Type;
 
-// why: the fleet carries the backends that can be spawned — the renderer
-// offers what the host registered, never a list of its own.
+export const RepoSummary = Schema.Struct({
+	defaultRef: Schema.String,
+	id: Schema.String,
+	name: Schema.String,
+	source: Schema.String,
+});
+export type RepoSummary = typeof RepoSummary.Type;
+
+// why: the fleet carries what every spawn is made of — the backends the host
+// registered and the repos every agent is moored to. The renderer offers
+// these, never a list of its own.
 export const Fleet = Schema.Struct({
 	agents: Schema.Array(AgentSummary),
 	backends: Schema.Array(Schema.String),
+	repos: Schema.Array(RepoSummary),
 });
 export type Fleet = typeof Fleet.Type;
 
@@ -47,16 +57,15 @@ export const EventQuery = Schema.Struct({
 });
 export type EventQuery = typeof EventQuery.Type;
 
-export const RepoSpec = Schema.Struct({
-	ref: Schema.String,
+export const RepoRegistration = Schema.Struct({
+	defaultRef: Schema.String,
 	source: Schema.String,
 });
-export type RepoSpec = typeof RepoSpec.Type;
+export type RepoRegistration = typeof RepoRegistration.Type;
 
 export const SpawnRequest = Schema.Struct({
 	backend: Schema.String,
 	charter: Schema.String,
-	repos: Schema.Array(RepoSpec),
 	role: Schema.String,
 });
 export type SpawnRequest = typeof SpawnRequest.Type;
@@ -76,9 +85,13 @@ export class SightSource extends Context.Service<
 	{
 		readonly fleet: Effect.Effect<Fleet, SightFailure>;
 		readonly fleetFeed: Stream.Stream<Fleet, SightFailure>;
+		readonly forgetRepo: (repoId: string) => Effect.Effect<void, SightFailure>;
 		readonly interrupt: (
 			sessionId: string,
 		) => Effect.Effect<void, SightFailure>;
+		readonly registerRepo: (
+			registration: RepoRegistration,
+		) => Effect.Effect<RepoSummary, SightFailure>;
 		readonly retire: (agentId: string) => Effect.Effect<void, SightFailure>;
 		readonly sessionEventFeed: (
 			query: EventQuery,

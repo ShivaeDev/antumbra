@@ -34,6 +34,14 @@ const fleet = {
 		},
 	],
 	backends: ["claude"],
+	repos: [
+		{
+			defaultRef: "main",
+			id: "repo-1",
+			name: "shoals",
+			source: "/tmp/shoals",
+		},
+	],
 };
 
 const storedEvents: ReadonlyArray<SessionEvent> = [
@@ -48,8 +56,16 @@ const makeRuntime = () =>
 			Layer.succeed(SightSource, {
 				fleet: Effect.succeed(fleet),
 				fleetFeed: Stream.make(fleet),
+				forgetRepo: () => Effect.void,
 				interrupt: (sessionId) =>
 					new SightFailure({ message: `session not live: ${sessionId}` }),
+				registerRepo: (registration) =>
+					Effect.succeed({
+						defaultRef: registration.defaultRef,
+						id: "repo-new",
+						name: "shallows",
+						source: registration.source,
+					}),
 				retire: () => Effect.void,
 				sessionEventFeed: (query) =>
 					Stream.fromArray(
@@ -129,13 +145,29 @@ describe("makeAppRouter", () => {
 				caller.spawnAgent({
 					backend: "claude",
 					charter: "map the shoals",
-					repos: [{ ref: "main", source: "/tmp/shoals" }],
 					role: "surveyor",
 				}),
 			);
 			expect(receipt).toEqual({
 				agentId: "agent-for-surveyor",
 				sessionId: "session-new",
+			});
+			yield* Effect.promise(() => runtime.dispose());
+		}),
+	);
+
+	it.effect("registers a repo through sight and returns its summary", () =>
+		Effect.gen(function* () {
+			const runtime = makeRuntime();
+			const caller = makeAppRouter(runtime).createCaller({ senderId: 7 });
+			const registered = yield* Effect.promise(() =>
+				caller.registerRepo({ defaultRef: "trunk", source: "/tmp/shallows" }),
+			);
+			expect(registered).toEqual({
+				defaultRef: "trunk",
+				id: "repo-new",
+				name: "shallows",
+				source: "/tmp/shallows",
 			});
 			yield* Effect.promise(() => runtime.dispose());
 		}),

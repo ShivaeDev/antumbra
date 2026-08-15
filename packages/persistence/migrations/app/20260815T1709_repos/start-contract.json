@@ -24,10 +24,6 @@
       "model": "Intent",
       "namespace": "__unbound__"
     },
-    "repo": {
-      "model": "Repo",
-      "namespace": "__unbound__"
-    },
     "sessionEvent": {
       "model": "SessionEvent",
       "namespace": "__unbound__"
@@ -452,67 +448,6 @@
               "table": "intent"
             }
           },
-          "Repo": {
-            "fields": {
-              "createdAt": {
-                "nullable": false,
-                "type": {
-                  "codecId": "sqlite/datetime@1",
-                  "kind": "scalar"
-                }
-              },
-              "defaultRef": {
-                "nullable": false,
-                "type": {
-                  "codecId": "sqlite/text@1",
-                  "kind": "scalar"
-                }
-              },
-              "id": {
-                "nullable": false,
-                "type": {
-                  "codecId": "sqlite/text@1",
-                  "kind": "scalar"
-                }
-              },
-              "name": {
-                "nullable": false,
-                "type": {
-                  "codecId": "sqlite/text@1",
-                  "kind": "scalar"
-                }
-              },
-              "source": {
-                "nullable": false,
-                "type": {
-                  "codecId": "sqlite/text@1",
-                  "kind": "scalar"
-                }
-              }
-            },
-            "relations": {},
-            "storage": {
-              "fields": {
-                "createdAt": {
-                  "column": "createdAt"
-                },
-                "defaultRef": {
-                  "column": "defaultRef"
-                },
-                "id": {
-                  "column": "id"
-                },
-                "name": {
-                  "column": "name"
-                },
-                "source": {
-                  "column": "source"
-                }
-              },
-              "namespaceId": "__unbound__",
-              "table": "repo"
-            }
-          },
           "SessionEvent": {
             "fields": {
               "at": {
@@ -888,53 +823,6 @@
               },
               "uniques": []
             },
-            "repo": {
-              "columns": {
-                "createdAt": {
-                  "codecId": "sqlite/datetime@1",
-                  "default": {
-                    "expression": "now()",
-                    "kind": "function"
-                  },
-                  "nativeType": "text",
-                  "nullable": false
-                },
-                "defaultRef": {
-                  "codecId": "sqlite/text@1",
-                  "nativeType": "text",
-                  "nullable": false
-                },
-                "id": {
-                  "codecId": "sqlite/text@1",
-                  "nativeType": "text",
-                  "nullable": false
-                },
-                "name": {
-                  "codecId": "sqlite/text@1",
-                  "nativeType": "text",
-                  "nullable": false
-                },
-                "source": {
-                  "codecId": "sqlite/text@1",
-                  "nativeType": "text",
-                  "nullable": false
-                }
-              },
-              "foreignKeys": [],
-              "indexes": [],
-              "primaryKey": {
-                "columns": [
-                  "id"
-                ]
-              },
-              "uniques": [
-                {
-                  "columns": [
-                    "source"
-                  ]
-                }
-              ]
-            },
             "sessionEvent": {
               "columns": {
                 "at": {
@@ -982,7 +870,7 @@
         "id": "__unbound__"
       }
     },
-    "storageHash": "sha256:30005d5ef50dfd9519d446698b51aa01b1e752a12d911dd58db07a24c289a671"
+    "storageHash": "sha256:957d308f4f0887e60dd97056e641a0b6114f5877152e6d8a71df23700f3a33b0"
   },
   "capabilities": {
     "sql": {

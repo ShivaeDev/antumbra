@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { spawnAgent } from "#adapters/trpc.ts";
-import { parseRepoLines } from "#views/repo-lines.ts";
 import { buttonStyle, inputStyle } from "#views/styles.ts";
 
 export const SpawnForm = ({
@@ -14,20 +13,13 @@ export const SpawnForm = ({
 	const chosen = backends.includes(backend) ? backend : (backends[0] ?? "");
 	const [role, setRole] = useState("");
 	const [charter, setCharter] = useState("");
-	const [repoLines, setRepoLines] = useState("");
 	const ready = role !== "" && charter !== "" && chosen !== "";
 	const submit = () =>
 		spawnAgent(
-			{
-				backend: chosen,
-				charter,
-				repos: parseRepoLines(repoLines),
-				role,
-			},
+			{ backend: chosen, charter, role },
 			() => {
 				setRole("");
 				setCharter("");
-				setRepoLines("");
 			},
 			onError,
 		);
@@ -56,15 +48,6 @@ export const SpawnForm = ({
 				rows={3}
 				style={inputStyle}
 				value={charter}
-			/>
-			<textarea
-				onChange={(e) => setRepoLines(e.target.value)}
-				placeholder={
-					"repos — one per line: source [ref]\nempty = scratch berth"
-				}
-				rows={2}
-				style={inputStyle}
-				value={repoLines}
 			/>
 			<button
 				disabled={!ready}

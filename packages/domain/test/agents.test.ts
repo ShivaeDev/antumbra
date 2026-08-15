@@ -50,7 +50,6 @@ const spawnPayload = (suffix: string): SpawnFields => ({
 	agentId: `agent-${suffix}`,
 	backend: "scripted",
 	charter: `charter for ${suffix}`,
-	repos: [],
 	role: "test hand",
 	runner: "local",
 	sessionId: `session-${suffix}`,

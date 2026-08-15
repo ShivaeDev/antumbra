@@ -10,6 +10,8 @@ import { AppInfo, AppInfoSource } from "#app-info.ts";
 import {
 	EventQuery,
 	Fleet,
+	RepoRegistration,
+	RepoSummary,
 	SessionEvent,
 	type SightFailure,
 	SightSource,
@@ -57,11 +59,24 @@ export const makeAppRouter = (
 			const sight = yield* SightSource;
 			return sight.fleetFeed;
 		}),
+		forgetRepo: procedure
+			.input(Schema.Struct({ repoId: Schema.String }))
+			.mutation(function* (input) {
+				const sight = yield* SightSource;
+				yield* surface(sight.forgetRepo(input.repoId));
+			}),
 		interruptSession: procedure
 			.input(Schema.Struct({ sessionId: Schema.String }))
 			.mutation(function* (input) {
 				const sight = yield* SightSource;
 				yield* surface(sight.interrupt(input.sessionId));
+			}),
+		registerRepo: procedure
+			.input(RepoRegistration)
+			.output(RepoSummary)
+			.mutation(function* (input) {
+				const sight = yield* SightSource;
+				return yield* surface(sight.registerRepo(input));
 			}),
 		retireAgent: procedure
 			.input(Schema.Struct({ agentId: Schema.String }))

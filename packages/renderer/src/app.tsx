@@ -4,6 +4,7 @@ import { AsyncResult, Atom } from "effect/unstable/reactivity";
 import { useEffect, useState } from "react";
 import { loadAppInfo, watchFleet } from "#adapters/trpc.ts";
 import { FleetPanel } from "#views/fleet.tsx";
+import { ReposPanel } from "#views/repos.tsx";
 import { SpawnForm } from "#views/spawn-form.tsx";
 import { TranscriptView } from "#views/transcript.tsx";
 
@@ -52,6 +53,7 @@ export const App = () => {
 				{notice === undefined ? null : (
 					<div style={{ color: "#ff7c7c", fontSize: "0.85rem" }}>{notice}</div>
 				)}
+				<ReposPanel onError={setNotice} repos={fleet?.repos ?? []} />
 				<SpawnForm backends={fleet?.backends ?? []} onError={setNotice} />
 				<FleetPanel
 					fleet={fleet}

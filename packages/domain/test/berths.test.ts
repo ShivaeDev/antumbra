@@ -24,7 +24,6 @@ const payload: SpawnFields = {
 	agentId: "agent-sweep",
 	backend: "scripted",
 	charter: "hold the berth",
-	repos: [{ ref: "main", source: "/somewhere/reef" }],
 	role: "keeper",
 	runner: "local",
 	sessionId: "session-sweep",
@@ -33,6 +32,10 @@ const payload: SpawnFields = {
 const submitSpawn = Effect.gen(function* () {
 	const kernel = yield* Kernel;
 	const domain = yield* AgentDomain;
+	yield* domain.repos.register({
+		defaultRef: "main",
+		source: "/somewhere/reef",
+	});
 	const submission = yield* kernel.submit(domain.spawn, payload);
 	return yield* submission.changes.pipe(
 		Stream.takeUntil((status) => TERMINAL.has(status)),

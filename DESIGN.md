@@ -134,6 +134,12 @@ compute: reify, queue, prioritize, preempt.
   second, begin work last.
 - **All deadlocks are soft.** Capacities carry margin; on stall the pool
   deliberately overcommits — loudly, temporarily — until the knot clears.
+- **Wake liveness is bounded patience, not signal discipline.** Every
+  scheduler wait times out — a published deadline when one exists, a patience
+  floor otherwise — so wake signals are latency hints, never liveness
+  dependencies. A lost wakeup self-heals within one patience period, and
+  orderings that make handoff instant stay optimizations, never invariants.
+  Simulation asserts the budget: admit latency never exceeds patience.
 - **Sleep.** A session is reapable only at true idle; in-flight sub-agent
   trees are never interrupted. Everything long-lived is externalized —
   monitors become event subscriptions, pending questions live on the board,

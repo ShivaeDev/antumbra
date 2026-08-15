@@ -6,6 +6,7 @@ import {
 	type Queue,
 	type Ref,
 } from "effect";
+import type { WorkflowEngine } from "effect/unstable/workflow";
 import type { IntentStatus } from "#fsm.ts";
 import type { Gate } from "#gate.ts";
 import type { AnyIntentKind } from "#intent.ts";
@@ -29,5 +30,6 @@ export class SchedulerState extends Context.Service<
 		readonly pubsub: PubSub.PubSub<IntentChange>;
 		readonly running: Ref.Ref<ReadonlyMap<string, Fiber.Fiber<void, unknown>>>;
 		readonly tick: Queue.Queue<void>;
+		readonly workflowEngine: WorkflowEngine.WorkflowEngine["Service"];
 	}
 >()("@antumbra/kernel/SchedulerState") {}

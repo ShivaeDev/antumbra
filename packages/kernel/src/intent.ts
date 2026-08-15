@@ -1,5 +1,7 @@
-import { Effect, Schema } from "effect";
+import { Effect, Schema, type Scope } from "effect";
+import type { WorkflowEngine } from "effect/unstable/workflow";
 import { PayloadInvalid } from "#errors.ts";
+import { type IntentExecution, makeIntentWorkflow } from "#workflow.ts";
 
 export type ReclaimPolicy = "abandon" | "requeue";
 
@@ -13,7 +15,7 @@ export type IntentPayloadSchema = Schema.Top & {
 export interface IntentKindOptions<PayloadSchema extends IntentPayloadSchema> {
 	readonly execute: (
 		payload: PayloadSchema["Type"],
-	) => Effect.Effect<void, unknown>;
+	) => Effect.Effect<void, unknown, IntentExecution>;
 	readonly payload: PayloadSchema;
 	readonly reclaim?: ReclaimPolicy;
 	readonly tag: string;
@@ -27,7 +29,15 @@ export interface IntentKindOptions<PayloadSchema extends IntentPayloadSchema> {
 export interface IntentKind<in Payload> {
 	readonly encode: (payload: Payload) => Effect.Effect<string, PayloadInvalid>;
 	readonly reclaim: ReclaimPolicy;
-	readonly run: (payloadJson: string) => Effect.Effect<void, unknown>;
+	readonly registerWorkflow: Effect.Effect<
+		void,
+		never,
+		Scope.Scope | WorkflowEngine.WorkflowEngine
+	>;
+	readonly run: (
+		intentId: string,
+		payloadJson: string,
+	) => Effect.Effect<void, unknown, WorkflowEngine.WorkflowEngine>;
 	readonly tag: string;
 }
 
@@ -37,6 +47,11 @@ export const defineIntent = <PayloadSchema extends IntentPayloadSchema>(
 	options: IntentKindOptions<PayloadSchema>,
 ): IntentKind<PayloadSchema["Type"]> => {
 	const column = Schema.fromJsonString(options.payload);
+	const workflow = makeIntentWorkflow(options.tag, (payloadJson) =>
+		Effect.flatMap(Schema.decodeUnknownEffect(column)(payloadJson), (payload) =>
+			options.execute(payload),
+		),
+	);
 	return {
 		encode: (payload) =>
 			Schema.encodeEffect(column)(payload).pipe(
@@ -45,11 +60,8 @@ export const defineIntent = <PayloadSchema extends IntentPayloadSchema>(
 				),
 			),
 		reclaim: options.reclaim ?? "requeue",
-		run: (payloadJson) =>
-			Effect.flatMap(
-				Schema.decodeUnknownEffect(column)(payloadJson),
-				options.execute,
-			),
+		registerWorkflow: workflow.register,
+		run: workflow.run,
 		tag: options.tag,
 	};
 };

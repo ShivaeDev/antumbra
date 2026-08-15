@@ -6,15 +6,20 @@ code is catching up to it.
 
 ## Process model
 
-The main process owns everything durable — agent sessions, scheduling,
-persistence, native surfaces (menus, tray, windows). The renderer is a pure
-web app and a stateless projection: it holds no durable state, reaches main
-only through one typed contract, and every window can reload at any moment
-and rehydrate. Agents running in the main process never notice a renderer
-reload.
+The main process owns orchestration, scheduling, and native surfaces (menus,
+tray, windows); persistence owns durable truth. Process memory contains only
+things that may disappear at exit, such as fibers, handles, subscriptions,
+semaphores, timers, and local indexes. The renderer is a pure web app and a
+stateless projection: it holds no durable state, reaches main only through one
+typed contract, and every window can reload at any moment and rehydrate.
+Agents running in the main process never notice a renderer reload.
 
-Closing the app stops all local work by design. Recovery is
-conversation-level: on relaunch, agent sessions resume from persisted state.
+Closing the app stops local execution, not durable work. Graceful shutdown
+drains active and pending work to idle; forced shutdown never invents
+completion. On relaunch, active, pending, or uncertain sessions resume from
+persisted truth using the same Antumbra and provider-native session identities,
+while idle sessions remain detached until needed. See
+[`docs/design/agent-recovery.md`](docs/design/agent-recovery.md).
 
 ## Workspace
 
@@ -77,6 +82,12 @@ that returns an id and an observable status stream. A scheduler decides
 admission (concurrency, resource pressure, shutdown draining) and is the only
 component that starts work. Intent lifecycles are explicit state machines
 with transition tables.
+
+An Intent is a mortal executable attempt, not durable Piece demand. A desired
+Piece that is dependency-blocked has no dispatch workflow; reconciliation
+submits a new Intent when it becomes eligible. Waiting is reserved for an
+active attempt that needs immediate external intervention, such as
+authentication.
 
 Each admitted intent attempt builds a fresh `WorkflowEngine.layerMemory`,
 registers its kind, and discards the engine and its history when the attempt

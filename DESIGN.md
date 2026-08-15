@@ -15,19 +15,22 @@ gets amended here — never silently.
 - **Leg** — one pass of the loop: SIGHT (measure reality) → PLOT (revise the
   roadmap, pick waypoints) → SAIL (execute without re-planning every gust) →
   DRIFT (measure planned-vs-actual, feed the next sighting).
-- **Piece** — a bounded unit of work with zero-to-many typed outcomes.
-  Pieces depend on pieces; every relation is M:N (piece↔repo, piece↔agent,
-  piece↔session, piece↔outcome). Pieces produce artifacts.
+- **Piece** — a bounded unit of durable work with zero-to-many typed outcomes.
+  Its human posture records demand, not execution. Pieces depend on pieces;
+  every relation is M:N (piece↔repo, piece↔agent, piece↔session,
+  piece↔outcome). Pieces produce artifacts.
 - **Intent** — a kernel-scheduled bounded operation. The kernel executes the
-  piece graph through intent admission. Intents are always mortal.
+  piece graph through intent admission. Intents are always mortal and never
+  stand in for long-lived Piece demand.
   The intent record and affected domain rows are the durable authority;
   execution progress is reconstructed from them after restart, not persisted
   as execution checkpoints.
-- **Agent** — a conceptual identity with a responsibility, persisting across
-  sessions the way a program persists across process IDs.
-- **Session** — one SDK session of an agent: an executor detail. Transcript
-  and worktree survive it; a handover or fork starts a new session of the
-  same agent.
+- **Agent** — a durable identity with a responsibility, independent of any
+  process, replaceable workspace, or provider session.
+- **Session** — one durable execution context bound to one provider-native
+  session or thread. An Agent may own a succession of Sessions, and a Piece
+  may involve several Agents. Process attachments may die and resume the same
+  Session; a handover or fork is an explicit new Session, never crash recovery.
 
 Axioms of the stack:
 
@@ -37,7 +40,7 @@ Axioms of the stack:
 - **Pieces are places, not processes.** A piece is a rich domain entity —
   board, links, questions, intent history, revisable outcome expectations —
   but nothing executes inside it. Everything that happens to a piece is an
-  agent acting on its behalf, one mortal intent at a time.
+  Agent acting on its behalf through mortal Intents.
 - **Charters are dead reckoning, not contracts.** A piece's stated outcome is
   an estimate, revised as reality arrives.
 - **Outcomes are polymorphic and audience-split.** Reports are prose for
@@ -63,20 +66,22 @@ Axioms of the stack:
   is not gone: finished work is resumable as linked follow-ups. History is
   appended, never mutated.
 - **Repos and worktrees are resources, not containers.** A cross-repo piece
-  gets one agent with one worktree per repo. Never bake in one-piece-one-repo,
-  one-session-one-worktree, or one-piece-one-change. Repos are registered once,
-  at the app level, each with its bare mirror; every spawn gets a berth per
-  registered repo, so no piece or voyage carries a repo list. Narrowing which
-  repos an agent sees is a later filter, never a per-piece binding.
+  may have several Agents; each gets one worktree per repo. Never bake in
+  one-piece-one-repo, one-session-one-worktree, or one-piece-one-change. Repos
+  are registered once, at the app level, each with its bare mirror; every spawn
+  gets a berth per registered repo, so no piece or voyage carries a repo list.
+  Narrowing which repos an agent sees is a later filter, never a per-piece
+  binding.
 - **Voyages sail by launch, not by play.** Every voyage has a captain — a
   named, durable agent hailed for it, who charters its pieces. There is no
   voyage-level play or pause: a voyage is under way because its captain is
-  at work. Launching is per piece and means *release into the pool* — the
-  intent separates the intention from the physical act. A launched piece
-  waits on its edges (predecessors done) and on admission, and crew is
-  spawned when it is ready, so a launched chain finishes on its own. The
-  captain launches by tool and the admiral by window; both pull the same
-  intent.
+  at work. Launching is per Piece and records durable desired posture —
+  *release into the pool*. A desired Piece may remain blocked with no running
+  workflow. Reconciliation creates a mortal dispatch Intent only when its
+  edges and admission allow work, cancels that Intent if the Piece becomes
+  blocked or parked before starting, and creates a new one when demand becomes
+  eligible again. The captain launches by tool and the admiral by window; both
+  express the same durable demand.
 - **Agents act back through tools on the backend port.** Landing an outcome,
   writing a board, standing down: these are tools every session receives at
   open, defined once in a transport-free package (schemas and handlers into
@@ -86,12 +91,13 @@ Axioms of the stack:
   non-local consumers is an addition to that package, never a substitute.
 - **Agents are alive; intents are events in their life.** The kernel
   schedules the moments — spawn brings an agent into being with a role, a
-  charter, and pre-assigned identity; retire ends it — never the living.
+  charter, and pre-assigned identity; retire irreversibly ends it — never the
+  living. Stand-down is a reversible drain to siesta, not retirement.
   There is no turn in the domain: activity is a stream of events, load is a
   level, and quiescence is a derived gauge no one awaits — completion is not
   in the ontology of conversation. Admission governs births, not messages;
-  messages to living agents stay unshipped until their delivery semantics
-  are ruled.
+  mail is durably addressed to an agent and marked read in mailbox truth,
+  while transport into a session is a separate, at-least-once effect.
 - **The event log is the product surface; views are glass.** The renderer is
   a stateless projection fed by one typed contract: every view rehydrates
   from the log and stays current by subscription, so killing a view touches
@@ -177,8 +183,11 @@ compute: reify, queue, prioritize, preempt.
   If everything is durable, nothing is signal.
 - **Never duplicate the derivable.** Boards do not record what the database
   already knows.
-- **Sessions fork.** Transcripts are durable data; any point is resumable
-  under a new identity, cheaply. Fork when the context is the value; smooth
+- **Boards and story are not resources.** Resource reclamation never erases
+  their history.
+- **Recovery never forks.** Normal recovery resumes the same agent, Antumbra
+  session, and provider-native session or thread. Forking is an explicit new
+  identity when the context is the value; smoothing is the explicit operation
   when the context is the cost.
 - Blackboard state, declarative wakeups, bounded direct messages, and typed
   artifact handoffs are the coordination rails. Deterministic coordination
@@ -215,18 +224,23 @@ compute: reify, queue, prioritize, preempt.
   to wake soon. **The durable concepts exist precisely so that sessions can
   die at any moment.**
 - **Agents never create their own worktrees — they are moored.** Every spawn
-  gets a moorage: a folder that is the agent's cwd and scratchpad, holding
-  one berth (a worktree on a `work/…` branch, cut from a bare mirror under
-  the app's data dir) per registered repo — no repos registered means a bare
-  scratch moorage. The runner provisions before the session opens. Reclaim is
-  clean-only: a berth with uncommitted or unpushed work is stranded and
-  surfaced, while gitignored paths are declared disposable and do not strand
-  it. Only strands older than seven days are scrapped. Runners register
-  through the plugin surface like backends; the local runner's terminal
-  capability stays honestly false until something can render a terminal.
+  has one durable current moorage: a folder that is the agent's cwd and
+  scratchpad,
+  holding one berth (a worktree on a `work/…` branch, cut from a bare mirror
+  under the app's data dir) per registered repo — no repos registered means a
+  bare scratch moorage. The runner provisions before a session opens. The
+  same Moorage row may be reclaimed and later reprovisioned without replacing
+  its Agent; ordinary provisioning reconciles that row with whatever physical
+  resources remain. Reclaim is evidence-bound: uncommitted or unpushed work,
+  unavailable authentication, or uncertain state blocks automation;
+  gitignored paths are declared disposable and do not strand it. Age may
+  influence policy but never proves safety. Runners register through the
+  plugin surface like backends; the local runner's terminal capability stays
+  honestly false until something can render a terminal.
 - Resource claims are ephemeral, visible, and rebuilt: exposed to the
-  observability surface, never persisted. After a restart the system
-  presents what was under way rather than blindly re-inflating it.
+  observability surface, never persisted. After restart, the system derives
+  them from durable work and posture rather than treating missing process
+  state as completion.
 - Mid-flight resource holds intercept at the agent SDK's pre-tool layer —
   never by wrapping a repository's own tooling. Repos may contribute
   configuration, never mechanism.

@@ -1,4 +1,10 @@
-import { existsSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import {
+	existsSync,
+	mkdirSync,
+	mkdtempSync,
+	rmSync,
+	writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "@effect/vitest";
@@ -20,6 +26,7 @@ const makeSourceRepo = (root: string) =>
 		yield* git(["-C", source, "config", "user.email", "fixture@antumbra"]);
 		yield* git(["-C", source, "config", "user.name", "antumbra fixture"]);
 		yield* Effect.sync(() => {
+			writeFileSync(join(source, ".gitignore"), "dist/\n");
 			writeFileSync(join(source, "README.md"), "ahoy\n");
 		});
 		yield* git(["-C", source, "add", "."]);
@@ -82,6 +89,27 @@ describe("local runner", () => {
 			if (berth === undefined) {
 				return expect.unreachable("no berth provisioned");
 			}
+			const verdict = yield* runner.reclaim(berth);
+			expect(verdict._tag).toBe("reclaimed");
+			expect(existsSync(berth.path)).toBe(false);
+		}),
+	);
+
+	it.live("reclaims a berth with ignored generated output", () =>
+		Effect.gen(function* () {
+			const { runner, source } = yield* makeHarbor;
+			const moorage = yield* runner.provision({
+				agentId: AGENT,
+				repos: [{ ref: "main", source }],
+			});
+			const berth = moorage.berths[0];
+			if (berth === undefined) {
+				return expect.unreachable("no berth provisioned");
+			}
+			yield* Effect.sync(() => {
+				mkdirSync(join(berth.path, "dist"));
+				writeFileSync(join(berth.path, "dist", "bundle.js"), "generated\n");
+			});
 			const verdict = yield* runner.reclaim(berth);
 			expect(verdict._tag).toBe("reclaimed");
 			expect(existsSync(berth.path)).toBe(false);

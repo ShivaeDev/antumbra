@@ -1,6 +1,5 @@
 import { expect, it } from "@effect/vitest";
 import { Effect, Ref, Result, Schema } from "effect";
-import { WorkflowEngine } from "effect/unstable/workflow";
 import { defineIntent } from "#intent.ts";
 
 const GreetPayload = Schema.Struct({ name: Schema.String });
@@ -16,10 +15,9 @@ it.effect("round-trips a payload through the JSON column", () =>
 		});
 		const encoded = yield* kind.encode({ name: "umbra" });
 		expect(JSON.parse(encoded)).toEqual({ name: "umbra" });
-		yield* kind.registerWorkflow;
 		yield* kind.run("intent-greet", encoded);
 		expect(yield* Ref.get(seen)).toEqual(["umbra"]);
-	}).pipe(Effect.provide(WorkflowEngine.layerMemory)),
+	}),
 );
 
 it.effect("fails run when the stored payload does not decode", () =>
@@ -29,10 +27,9 @@ it.effect("fails run when the stored payload does not decode", () =>
 			payload: GreetPayload,
 			tag: "test/strict",
 		});
-		yield* kind.registerWorkflow;
 		const outcome = yield* Effect.result(kind.run("intent-strict", "not json"));
 		expect(Result.isFailure(outcome)).toBe(true);
-	}).pipe(Effect.provide(WorkflowEngine.layerMemory)),
+	}),
 );
 
 it("defaults reclaim to requeue and honors an explicit abandon", () => {

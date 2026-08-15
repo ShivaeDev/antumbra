@@ -11,7 +11,6 @@ import {
 	Ref,
 	Schema,
 } from "effect";
-import { WorkflowEngine } from "effect/unstable/workflow";
 import { IntentNotFound } from "#errors.ts";
 import { type IntentEvent, IntentStatusSchema, transition } from "#fsm.ts";
 import { type IntentChange, SchedulerState } from "#state.ts";
@@ -121,10 +120,6 @@ export const startIntent = (row: {
 		const fiber = yield* Effect.forkChild(
 			Deferred.await(registered).pipe(
 				Effect.andThen(kind.run(row.id, row.payload)),
-				Effect.provideService(
-					WorkflowEngine.WorkflowEngine,
-					state.workflowEngine,
-				),
 				Effect.onExit((exit) => settleExit(row.id, exit)),
 			),
 		);

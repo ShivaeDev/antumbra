@@ -14,14 +14,8 @@ class RetryCounter extends Context.Service<
 const failFirstAttempt = (attempt: number) =>
 	attempt === 1 ? Effect.fail("transient") : Effect.void;
 
-const runRegistered = (
-	kind: ReturnType<typeof defineIntent<typeof EMPTY>>,
-	intentId: string,
-	payload: string,
-) => kind.registerWorkflow.pipe(Effect.andThen(kind.run(intentId, payload)));
-
 it.effect(
-	"deduplicates a completed workflow after bounded activity attempts",
+	"retries a typed failure while preserving step service requirements",
 	() =>
 		Effect.gen(function* () {
 			const attempts = yield* Ref.make(0);
@@ -42,16 +36,12 @@ it.effect(
 				tag: "test/activity-replay",
 			});
 			const payload = yield* kind.encode({});
-			yield* Effect.gen(function* () {
-				yield* kind.registerWorkflow;
-				yield* kind.run("intent-replay", payload);
-				yield* kind.run("intent-replay", payload);
-			}).pipe(Effect.provide(WorkflowEngine.layerMemory));
+			yield* kind.run("intent-replay", payload);
 			expect(yield* Ref.get(attempts)).toBe(2);
 		}),
 );
 
-it.effect("keeps workflow history separate for different intent ids", () =>
+it.effect("runs the same intent id in separate admission scopes", () =>
 	Effect.gen(function* () {
 		const executions = yield* Ref.make(0);
 		const kind = defineIntent({
@@ -64,15 +54,11 @@ it.effect("keeps workflow history separate for different intent ids", () =>
 					);
 				}),
 			payload: EMPTY,
-			tag: "test/history-separation",
+			tag: "test/attempt-scope",
 		});
 		const payload = yield* kind.encode({});
-		yield* Effect.gen(function* () {
-			yield* kind.registerWorkflow;
-			yield* kind.run("intent-one", payload);
-			yield* kind.run("intent-two", payload);
-			yield* kind.run("intent-one", payload);
-		}).pipe(Effect.provide(WorkflowEngine.layerMemory));
+		yield* kind.run("intent-repeat", payload);
+		yield* kind.run("intent-repeat", payload);
 		expect(yield* Ref.get(executions)).toBe(2);
 	}),
 );
@@ -101,31 +87,5 @@ it.effect("replays a stored activity result for the same execution", () =>
 			expect((yield* execute)._tag).toBe("Complete");
 		}).pipe(Effect.provide(WorkflowEngine.layerMemory));
 		expect(yield* Ref.get(activityRuns)).toBe(1);
-	}),
-);
-
-it.effect("a new in-memory engine starts the workflow again", () =>
-	Effect.gen(function* () {
-		const executions = yield* Ref.make(0);
-		const kind = defineIntent({
-			execute: () =>
-				Effect.gen(function* () {
-					const execution = yield* IntentExecution;
-					yield* execution.step(
-						"observable-step",
-						Ref.update(executions, (count) => count + 1),
-					);
-				}),
-			payload: EMPTY,
-			tag: "test/memory-boundary",
-		});
-		const payload = yield* kind.encode({});
-		yield* runRegistered(kind, "intent-restart", payload).pipe(
-			Effect.provide(WorkflowEngine.layerMemory),
-		);
-		yield* runRegistered(kind, "intent-restart", payload).pipe(
-			Effect.provide(WorkflowEngine.layerMemory),
-		);
-		expect(yield* Ref.get(executions)).toBe(2);
 	}),
 );

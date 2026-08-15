@@ -1,5 +1,4 @@
-import { Effect, Schema, type Scope } from "effect";
-import type { WorkflowEngine } from "effect/unstable/workflow";
+import { Effect, Schema } from "effect";
 import { PayloadInvalid } from "#errors.ts";
 import { type IntentExecution, makeIntentWorkflow } from "#workflow.ts";
 
@@ -29,15 +28,10 @@ export interface IntentKindOptions<PayloadSchema extends IntentPayloadSchema> {
 export interface IntentKind<in Payload> {
 	readonly encode: (payload: Payload) => Effect.Effect<string, PayloadInvalid>;
 	readonly reclaim: ReclaimPolicy;
-	readonly registerWorkflow: Effect.Effect<
-		void,
-		never,
-		Scope.Scope | WorkflowEngine.WorkflowEngine
-	>;
 	readonly run: (
 		intentId: string,
 		payloadJson: string,
-	) => Effect.Effect<void, unknown, WorkflowEngine.WorkflowEngine>;
+	) => Effect.Effect<void, unknown>;
 	readonly tag: string;
 }
 
@@ -60,7 +54,6 @@ export const defineIntent = <PayloadSchema extends IntentPayloadSchema>(
 				),
 			),
 		reclaim: options.reclaim ?? "requeue",
-		registerWorkflow: workflow.register,
 		run: workflow.run,
 		tag: options.tag,
 	};

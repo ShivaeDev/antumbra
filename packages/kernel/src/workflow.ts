@@ -67,7 +67,7 @@ export const makeIntentWorkflow = (
 			),
 		),
 	);
-	const run = (intentId: string, payloadJson: string) =>
+	const executeWorkflow = (intentId: string, payloadJson: string) =>
 		Effect.gen(function* () {
 			const engine = yield* WorkflowEngine.WorkflowEngine;
 			const payload = { intentId, payloadJson };
@@ -82,5 +82,11 @@ export const makeIntentWorkflow = (
 					),
 				);
 		});
-	return { register, run };
+	const run = (intentId: string, payloadJson: string) =>
+		register.pipe(
+			Effect.andThen(executeWorkflow(intentId, payloadJson)),
+			Effect.scoped,
+			Effect.provide(WorkflowEngine.layerMemory, { local: true }),
+		);
+	return { run };
 };

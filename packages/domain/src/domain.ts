@@ -33,7 +33,7 @@ export class AgentDomain extends Context.Service<
 		readonly retire: IntentKind<RetireFields>;
 		readonly spawn: IntentKind<SpawnFields>;
 	}
->()("@antumbra/backends/AgentDomain") {}
+>()("@antumbra/domain/AgentDomain") {}
 
 // why: built before the kernel starts — the boot sweep must settle stranded
 // agents before admission can pull anything that reads their state.

@@ -1,5 +1,5 @@
 {
-	"name": "@antumbra/runners",
+	"name": "@antumbra/domain",
 	"version": "0.0.0",
 	"private": true,
 	"type": "module",
@@ -7,6 +7,7 @@
 		".": "./src/index.ts"
 	},
 	"imports": {
+		"#test/*": "./test/*",
 		"#*": "./src/*"
 	},
 	"scripts": {
@@ -23,7 +24,11 @@
 		"vitest": "catalog:"
 	},
 	"dependencies": {
+		"@antumbra/contract": "workspace:*",
+		"@antumbra/kernel": "workspace:*",
+		"@antumbra/persistence": "workspace:*",
 		"@antumbra/plugin-api": "workspace:*",
+		"@antumbra/session-events": "workspace:*",
 		"effect": "catalog:"
 	}
 }

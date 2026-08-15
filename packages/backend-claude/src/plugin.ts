@@ -7,8 +7,8 @@ import {
 } from "@antumbra/plugin-api";
 import type { AgentEvent } from "@antumbra/session-events";
 import { Effect, Option, Queue, Ref, Stream } from "effect";
-import { openRawSession, type RawSession } from "#claude/adapters/session.ts";
-import { toAgentEvents } from "#claude/mapping.ts";
+import { openRawSession, type RawSession } from "#adapters/session.ts";
+import { toAgentEvents } from "#mapping.ts";
 
 const failure = (detail: unknown) =>
 	new BackendFailure({ detail: String(detail), tag: "claude" });

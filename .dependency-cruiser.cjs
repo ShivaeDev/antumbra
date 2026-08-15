@@ -7,7 +7,25 @@ module.exports = {
 			name: "renderer-pure-web",
 			severity: "error",
 			to: {
-				path: "(^|/)electron(/|$)|^apps/|^packages/(kernel|backends|runners|persistence|plugin-api)",
+				path: "(^|/)electron(/|$)|^apps/|^packages/(kernel|domain|backend-[^/]+|runner-[^/]+|persistence|plugin-api)",
+			},
+		},
+		{
+			comment:
+				"Adapters implement the driven ports and nothing else. A backend or runner that reaches for the domain has stopped being replaceable — it would drag the use cases into every provider it serves.",
+			from: { path: "^packages/(backend-[^/]+|runner-[^/]+)" },
+			name: "adapters-never-import-the-domain",
+			severity: "error",
+			to: { path: "^packages/domain" },
+		},
+		{
+			comment:
+				"The domain speaks to ports, never to the providers behind them. Naming a concrete adapter or a vendor SDK here would weld one provider into the use cases and make the next one a rewrite.",
+			from: { path: "^packages/domain" },
+			name: "domain-knows-ports-not-providers",
+			severity: "error",
+			to: {
+				path: "^packages/(backend-[^/]+|runner-[^/]+)|(^|/)@anthropic-ai/claude-agent-sdk(/|$)",
 			},
 		},
 		{

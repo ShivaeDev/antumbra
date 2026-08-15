@@ -5,7 +5,7 @@ import {
 	type SDKMessage,
 	type SDKUserMessage,
 } from "@anthropic-ai/claude-agent-sdk";
-import { InputQueue } from "#claude/adapters/input-queue.ts";
+import { InputQueue } from "#adapters/input-queue.ts";
 
 export interface RawSessionOptions {
 	readonly cwd: string;

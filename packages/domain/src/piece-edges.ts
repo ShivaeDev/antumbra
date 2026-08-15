@@ -1,10 +1,12 @@
-import type { PrismaError } from "@antumbra/persistence";
+import type {
+	DatabaseService,
+	PrismaError,
+	WriteExecutors,
+} from "@antumbra/persistence";
 import { Effect } from "effect";
-import type { AgentDeps } from "#deps.ts";
 import { EdgeWouldCycle, PieceNotFound } from "#errors.ts";
 import { wouldCycle } from "#piece-state.ts";
 import type { EdgeRow } from "#voyage-rows.ts";
-import { readVoyageWorld } from "#voyage-world.ts";
 
 export type EdgeFailure = EdgeWouldCycle | PieceNotFound | PrismaError;
 
@@ -13,14 +15,15 @@ export type EdgeFailure = EdgeWouldCycle | PieceNotFound | PrismaError;
 // produce, so a batch that would close a loop only through its own siblings
 // is refused whole instead of half-written.
 export const plannedEdges = (
-	deps: AgentDeps,
+	db: DatabaseService,
 	pieceId: string,
 	dependsOn: ReadonlyArray<string>,
-): Effect.Effect<ReadonlyArray<EdgeRow>, EdgeFailure> =>
+): Effect.Effect<ReadonlyArray<EdgeRow>, EdgeFailure, WriteExecutors> =>
 	Effect.gen(function* () {
-		const world = yield* readVoyageWorld(deps);
-		const known = new Set(world.pieces.map((piece) => piece.id));
-		let edges = world.edges.filter((edge) => edge.toPieceId !== pieceId);
+		const known = new Set((yield* db.Piece.all()).map((piece) => piece.id));
+		let edges = (yield* db.PieceEdge.all()).filter(
+			(edge) => edge.toPieceId !== pieceId,
+		);
 		const planned: EdgeRow[] = [];
 		for (const dependency of dependsOn) {
 			if (!known.has(dependency)) {
@@ -42,14 +45,14 @@ export const plannedEdges = (
 // why: rewiring replaces a piece's incoming edges wholesale — the verb edits
 // position, and position is exactly the set of things that gate this piece.
 export const writeEdges = (
-	deps: AgentDeps,
+	db: DatabaseService,
 	pieceId: string,
 	edges: ReadonlyArray<EdgeRow>,
 ) =>
-	deps.db.PieceEdge.where({ toPieceId: pieceId })
+	db.PieceEdge.where({ toPieceId: pieceId })
 		.deleteAll()
 		.pipe(
 			Effect.andThen(
-				Effect.forEach(edges, (edge) => deps.db.PieceEdge.create(edge)),
+				Effect.forEach(edges, (edge) => db.PieceEdge.create(edge)),
 			),
 		);

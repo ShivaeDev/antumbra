@@ -1,8 +1,9 @@
-import type { PrismaError } from "@antumbra/persistence";
+import type { DatabaseService, PrismaError } from "@antumbra/persistence";
 import { Clock, Effect, Option, PubSub } from "effect";
 import { type AgentDeps, provideExecutors } from "#deps.ts";
-import { PieceNotFound } from "#errors.ts";
+import { PieceNotFound, type VoyageNotFound } from "#errors.ts";
 import { type EdgeFailure, plannedEdges, writeEdges } from "#piece-edges.ts";
+import { requireVoyage } from "#voyage-record.ts";
 import type { PieceRow } from "#voyage-rows.ts";
 
 export interface CharterInput {
@@ -17,22 +18,25 @@ export interface CharterInput {
 const announce = (deps: AgentDeps) =>
 	PubSub.publish(deps.feeds.voyages, undefined);
 
-const requirePiece = (deps: AgentDeps, pieceId: string) =>
-	provideExecutors(deps)(deps.db.Piece.where({ id: pieceId }).first()).pipe(
-		Effect.flatMap((row) =>
-			Option.isNone(row)
-				? new PieceNotFound({ pieceId })
-				: Effect.succeed(row.value),
-		),
-	);
+const requirePiece = (db: DatabaseService, pieceId: string) =>
+	db.Piece.where({ id: pieceId })
+		.first()
+		.pipe(
+			Effect.flatMap((row) =>
+				Option.isNone(row)
+					? new PieceNotFound({ pieceId })
+					: Effect.succeed(row.value),
+			),
+		);
+
+export type CharterFailure = EdgeFailure | VoyageNotFound;
 
 export const charterPiece = (
 	deps: AgentDeps,
 	input: CharterInput,
-): Effect.Effect<PieceRow, EdgeFailure> =>
+): Effect.Effect<PieceRow, CharterFailure> =>
 	Effect.gen(function* () {
 		const pieceId = crypto.randomUUID();
-		const edges = yield* plannedEdges(deps, pieceId, input.dependsOn);
 		const row: PieceRow = {
 			charter: input.charter,
 			expectation: input.expectation,
@@ -44,12 +48,16 @@ export const charterPiece = (
 		};
 		yield* provideExecutors(deps)(
 			deps.writer.write(
-				deps.db.Piece.create(row).pipe(
-					Effect.andThen(
-						deps.db.VoyagePiece.create({ pieceId, voyageId: input.voyageId }),
-					),
-					Effect.andThen(writeEdges(deps, pieceId, edges)),
-				),
+				Effect.gen(function* () {
+					yield* requireVoyage(deps.db, input.voyageId);
+					const edges = yield* plannedEdges(deps.db, pieceId, input.dependsOn);
+					yield* deps.db.Piece.create(row);
+					yield* deps.db.VoyagePiece.create({
+						pieceId,
+						voyageId: input.voyageId,
+					});
+					yield* writeEdges(deps.db, pieceId, edges);
+				}),
 			),
 		);
 		yield* announce(deps);
@@ -62,26 +70,19 @@ export const rewirePiece = (
 	dependsOn: ReadonlyArray<string>,
 ): Effect.Effect<void, EdgeFailure> =>
 	Effect.gen(function* () {
-		yield* requirePiece(deps, pieceId);
-		const edges = yield* plannedEdges(deps, pieceId, dependsOn);
+		// why: graph validation and replacement share the writer transaction, so a
+		// concurrent rewire is seen before the next one decides whether it cycles.
 		yield* provideExecutors(deps)(
-			deps.writer.write(writeEdges(deps, pieceId, edges)),
+			deps.writer.write(
+				Effect.gen(function* () {
+					yield* requirePiece(deps.db, pieceId);
+					const edges = yield* plannedEdges(deps.db, pieceId, dependsOn);
+					yield* writeEdges(deps.db, pieceId, edges);
+				}),
+			),
 		);
 		yield* announce(deps);
 	});
-
-const stamp = (
-	deps: AgentDeps,
-	pieceId: string,
-	fields: {
-		readonly launchedAt?: Date | null;
-		readonly parkedAt?: Date | null;
-	},
-) =>
-	provideExecutors(deps)(
-		deps.writer.write(deps.db.Piece.where({ id: pieceId }).update(fields)),
-	).pipe(Effect.andThen(announce(deps)), Effect.asVoid);
-
 // why: launching is idempotent because launchedAt is the moment of release,
 // not a toggle — a second launch must not re-date the piece and reorder the
 // pool behind it.
@@ -90,12 +91,25 @@ export const launchPiece = (
 	pieceId: string,
 ): Effect.Effect<void, PieceNotFound | PrismaError> =>
 	Effect.gen(function* () {
-		const piece = yield* requirePiece(deps, pieceId);
-		if (piece.launchedAt !== null) {
+		const launched = yield* provideExecutors(deps)(
+			deps.writer.write(
+				Effect.gen(function* () {
+					const piece = yield* requirePiece(deps.db, pieceId);
+					if (piece.launchedAt !== null) {
+						return false;
+					}
+					const now = yield* Clock.currentTimeMillis;
+					yield* deps.db.Piece.where({ id: pieceId }).update({
+						launchedAt: new Date(now),
+					});
+					return true;
+				}),
+			),
+		);
+		if (!launched) {
 			return;
 		}
-		const now = yield* Clock.currentTimeMillis;
-		yield* stamp(deps, pieceId, { launchedAt: new Date(now) });
+		yield* announce(deps);
 	});
 
 export const parkPiece = (
@@ -104,7 +118,14 @@ export const parkPiece = (
 	parked: boolean,
 ): Effect.Effect<void, PieceNotFound | PrismaError> =>
 	Effect.gen(function* () {
-		yield* requirePiece(deps, pieceId);
+		yield* provideExecutors(deps)(requirePiece(deps.db, pieceId));
 		const now = yield* Clock.currentTimeMillis;
-		yield* stamp(deps, pieceId, { parkedAt: parked ? new Date(now) : null });
+		yield* provideExecutors(deps)(
+			deps.writer.write(
+				deps.db.Piece.where({ id: pieceId }).update({
+					parkedAt: parked ? new Date(now) : null,
+				}),
+			),
+		);
+		yield* announce(deps);
 	});

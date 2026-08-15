@@ -54,15 +54,22 @@ export const donePieces = (world: VoyageWorld): ReadonlySet<string> =>
 		...world.pieceArtifacts.map((link) => link.pieceId),
 	]);
 
-export const aliveAssignees = (
+// why: an agent is at work from the moment it is being born — a spawning
+// agent has no session yet, but its piece must not be dispatched a second
+// time while the first spawn is still assembling it. Dormant and retired
+// agents release their piece back into the pool.
+const AT_WORK: ReadonlySet<string> = new Set(["alive", "spawning"]);
+
+const atWork = (world: VoyageWorld, agentId: string): boolean =>
+	AT_WORK.has(world.agentStatus.get(agentId) ?? "");
+
+export const workingAssignees = (
 	world: VoyageWorld,
 	pieceId: string,
 ): ReadonlyArray<string> =>
 	world.assignments
 		.filter((assignment) => assignment.pieceId === pieceId)
-		.filter(
-			(assignment) => world.agentStatus.get(assignment.agentId) === "alive",
-		)
+		.filter((assignment) => atWork(world, assignment.agentId))
 		.map((assignment) => assignment.agentId);
 
 const stateOf = (
@@ -73,7 +80,7 @@ const stateOf = (
 	if (done.has(piece.id)) {
 		return "done";
 	}
-	if (aliveAssignees(world, piece.id).length > 0) {
+	if (workingAssignees(world, piece.id).length > 0) {
 		return "active";
 	}
 	if (piece.parkedAt !== null) {
@@ -120,7 +127,7 @@ export const voyageState = (
 		(crew) =>
 			crew.voyageId === voyageId &&
 			crew.role === "captain" &&
-			world.agentStatus.get(crew.agentId) === "alive",
+			atWork(world, crew.agentId),
 	);
 	return working || captained ? "underWay" : "quiet";
 };

@@ -154,7 +154,8 @@ export const dispatchingLayer = (
 	backend: AgentBackend,
 	dispatcher: Partial<DispatcherOptions>,
 	options: Omit<KernelOptions, "kinds" | "gauges"> = {},
+	runner: Runner = passiveRunner,
 ) =>
 	DispatcherLive(dispatcher).pipe(
-		Layer.provideMerge(domainKernelLayer(temporary, backend, options)),
+		Layer.provideMerge(domainKernelLayer(temporary, backend, options, runner)),
 	);

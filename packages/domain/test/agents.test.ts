@@ -1,13 +1,19 @@
 import { type IntentStatus, Kernel } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
+import {
+	type AgentBackend,
+	BackendFailure,
+	type Runner,
+} from "@antumbra/plugin-api";
 import { expect, it } from "@effect/vitest";
-import { Effect, Option, Schedule, Stream } from "effect";
+import { Deferred, Effect, Option, Schedule, Stream } from "effect";
 import { AGENTS_ALIVE_GAUGE, AgentDomain } from "#domain.ts";
 import type { RetireFields, SpawnFields } from "#index.ts";
 import {
 	acquireTemporaryPersistence,
 	domainKernelLayer,
 	makeScriptedBackend,
+	makeScriptedRunner,
 	rawOf,
 } from "#test/harness.ts";
 
@@ -103,6 +109,92 @@ it.live("spawn brings an agent alive, chartered, with events flowing", () =>
 				}),
 			);
 		}).pipe(Effect.provide(domainKernelLayer(temporary, scripted.backend)));
+	}),
+);
+
+it.live("spawn stays spawning until its moorage and session exist", () =>
+	Effect.gen(function* () {
+		const temporary = yield* acquireTemporaryPersistence;
+		const scripted = yield* makeScriptedBackend;
+		const recorded = yield* makeScriptedRunner;
+		const provisioning = yield* Deferred.make<void>();
+		const release = yield* Deferred.make<void>();
+		const runner: Runner = {
+			...recorded.runner,
+			provision: (request) =>
+				Deferred.succeed(provisioning, undefined).pipe(
+					Effect.andThen(Deferred.await(release)),
+					Effect.andThen(recorded.runner.provision(request)),
+				),
+		};
+		yield* Effect.gen(function* () {
+			const db = yield* Database;
+			const kernel = yield* Kernel;
+			const domain = yield* AgentDomain;
+			const submission = yield* kernel.submit(
+				domain.spawn,
+				spawnPayload("phase"),
+			);
+			yield* Deferred.await(provisioning);
+			const pending = yield* db.Agent.where({ id: "agent-phase" }).first();
+			expect(Option.getOrThrow(pending).status).toBe("spawning");
+			expect(
+				Option.isNone(
+					yield* db.AgentSession.where({ id: "session-phase" }).first(),
+				),
+			).toBe(true);
+			yield* Deferred.succeed(release, undefined);
+			expect(yield* untilTerminal(submission.changes)).toBe("succeeded");
+			const alive = yield* db.Agent.where({ id: "agent-phase" }).first();
+			expect(Option.getOrThrow(alive).status).toBe("alive");
+		}).pipe(
+			Effect.provide(
+				domainKernelLayer(temporary, scripted.backend, {}, runner),
+			),
+		);
+	}),
+);
+
+it.live("a failed spawn becomes dormant without hiding its failure", () =>
+	Effect.gen(function* () {
+		const temporary = yield* acquireTemporaryPersistence;
+		const scripted = yield* makeScriptedBackend;
+		const recorded = yield* makeScriptedRunner;
+		const backend: AgentBackend = {
+			...scripted.backend,
+			openSession: () =>
+				Effect.fail(
+					new BackendFailure({ detail: "open denied", tag: "scripted" }),
+				),
+		};
+		yield* Effect.gen(function* () {
+			const db = yield* Database;
+			const kernel = yield* Kernel;
+			const domain = yield* AgentDomain;
+			yield* domain.repos.register({
+				defaultRef: "main",
+				source: "/somewhere/repo",
+			});
+			const submission = yield* kernel.submit(
+				domain.spawn,
+				spawnPayload("failed"),
+			);
+			expect(yield* untilTerminal(submission.changes)).toBe("failed");
+			const agent = yield* db.Agent.where({ id: "agent-failed" }).first();
+			expect(Option.getOrThrow(agent).status).toBe("dormant");
+			const session = yield* db.AgentSession.where({
+				id: "session-failed",
+			}).first();
+			expect(Option.getOrThrow(session).status).toBe("closed");
+			const berths = yield* db.Berth.where({ agentId: "agent-failed" }).all();
+			expect(berths.map((berth) => berth.status)).toEqual(["ready"]);
+			const intent = yield* db.Intent.where({ id: submission.id }).first();
+			expect(Option.getOrThrow(intent).detail).toContain("open denied");
+		}).pipe(
+			Effect.provide(
+				domainKernelLayer(temporary, backend, {}, recorded.runner),
+			),
+		);
 	}),
 );
 

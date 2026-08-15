@@ -1,7 +1,5 @@
-import { type IntentStatus, Kernel, maxConcurrency } from "@antumbra/kernel";
-import { Database } from "@antumbra/persistence";
 import { expect, it } from "@effect/vitest";
-import { Effect, Option, Schedule, Stream } from "effect";
+import { Effect, Option } from "effect";
 import { nextBackoffMillis } from "#dispatch-policy.ts";
 import { AgentDomain } from "#domain.ts";
 import {
@@ -9,82 +7,16 @@ import {
 	dispatchingLayer,
 	makeScriptedBackend,
 } from "#test/harness.ts";
-
-const PATIENCE = { maxAlive: 4, patienceMillis: 50 };
-
-const TERMINAL: ReadonlySet<IntentStatus> = new Set([
-	"cancelled",
-	"failed",
-	"succeeded",
-]);
-
-const eventually = <A, E, R>(check: Effect.Effect<A, E, R>) =>
-	check.pipe(
-		Effect.catchDefect((defect) => Effect.fail(defect)),
-		Effect.retry(Schedule.spaced(10).pipe(Schedule.upTo({ duration: 3000 }))),
-	);
-
-const chain = Effect.gen(function* () {
-	const domain = yield* AgentDomain;
-	const voyage = yield* domain.voyages.open({
-		backend: "scripted",
-		context: "the reef is uncharted",
-		name: "Chart the reef",
-		northStar: "every shoal is known",
-	});
-	const charter = (title: string, dependsOn: ReadonlyArray<string>) =>
-		domain.voyages.charterPiece({
-			charter: `do ${title}`,
-			dependsOn,
-			expectation: `${title} is landed`,
-			role: "hand",
-			title,
-			voyageId: voyage.id,
-		});
-	const alpha = yield* charter("alpha", []);
-	const bravo = yield* charter("bravo", [alpha.id]);
-	const charlie = yield* charter("charlie", [alpha.id]);
-	yield* domain.voyages.launch(alpha.id);
-	yield* domain.voyages.launch(bravo.id);
-	yield* domain.voyages.launch(charlie.id);
-	return { alpha, bravo, charlie, voyage };
-});
-
-const stateOf = (voyageId: string, pieceId: string) =>
-	Effect.gen(function* () {
-		const domain = yield* AgentDomain;
-		const view = Option.getOrThrow(yield* domain.voyages.read(voyageId));
-		return view.pieces.find((piece) => piece.id === pieceId)?.state;
-	});
-
-const land = (pieceId: string, title: string) =>
-	Effect.gen(function* () {
-		const domain = yield* AgentDomain;
-		yield* domain.voyages.landReport({
-			body: `${title} landed`,
-			pieceId,
-			title,
-		});
-	});
-
-const assignedPieces = Effect.gen(function* () {
-	const db = yield* Database;
-	return (yield* db.PieceAgent.all()).map((row) => row.pieceId);
-});
-
-const retireOneAlive = Effect.gen(function* () {
-	const db = yield* Database;
-	const kernel = yield* Kernel;
-	const domain = yield* AgentDomain;
-	const alive = yield* db.Agent.where({ status: "alive" }).all();
-	const submission = yield* kernel.submit(domain.retire, {
-		agentId: alive[0]?.id ?? "",
-	});
-	return yield* submission.changes.pipe(
-		Stream.takeUntil((status) => TERMINAL.has(status)),
-		Stream.runLast,
-	);
-});
+import {
+	assignedPieces,
+	chain,
+	eventually,
+	land,
+	openReefVoyage,
+	PATIENCE,
+	retireOneAlive,
+	stateOf,
+} from "#test/voyage-fixtures.ts";
 
 it("nextBackoffMillis doubles from patience and stops at five minutes", () => {
 	expect(nextBackoffMillis(0, 50)).toBe(50);
@@ -181,12 +113,7 @@ it.live("a parked piece is never dispatched until it is unparked", () =>
 		const scripted = yield* makeScriptedBackend;
 		yield* Effect.gen(function* () {
 			const domain = yield* AgentDomain;
-			const voyage = yield* domain.voyages.open({
-				backend: "scripted",
-				context: "the reef is uncharted",
-				name: "Chart the reef",
-				northStar: "every shoal is known",
-			});
+			const voyage = yield* openReefVoyage;
 			const piece = yield* domain.voyages.charterPiece({
 				charter: "sound the shallows",
 				dependsOn: [],
@@ -210,55 +137,5 @@ it.live("a parked piece is never dispatched until it is unparked", () =>
 		}).pipe(
 			Effect.provide(dispatchingLayer(temporary, scripted.backend, PATIENCE)),
 		);
-	}),
-);
-
-it.live("a spawn held at admission is never submitted twice", () =>
-	Effect.gen(function* () {
-		const temporary = yield* acquireTemporaryPersistence;
-		const scripted = yield* makeScriptedBackend;
-		yield* Effect.gen(function* () {
-			const db = yield* Database;
-			yield* chain;
-			yield* Effect.sleep(400);
-			const spawns = yield* db.Intent.where({ tag: "agent/spawn" }).all();
-			expect(spawns).toHaveLength(1);
-			expect(spawns[0]?.status).toBe("queued");
-		}).pipe(
-			Effect.provide(
-				dispatchingLayer(temporary, scripted.backend, PATIENCE, {
-					gates: [maxConcurrency(0)],
-				}),
-			),
-		);
-	}),
-);
-
-it.live("a piece whose agent the crash left behind is dispatched again", () =>
-	Effect.gen(function* () {
-		const temporary = yield* acquireTemporaryPersistence;
-		const scripted = yield* makeScriptedBackend;
-		const layer = dispatchingLayer(temporary, scripted.backend, PATIENCE);
-		yield* Effect.gen(function* () {
-			const { alpha } = yield* chain;
-			yield* eventually(
-				Effect.gen(function* () {
-					expect(yield* assignedPieces).toEqual([alpha.id]);
-				}),
-			);
-		}).pipe(Effect.provide(layer));
-
-		yield* Effect.gen(function* () {
-			const db = yield* Database;
-			yield* eventually(
-				Effect.gen(function* () {
-					expect((yield* db.PieceAgent.all()).length).toBe(2);
-				}),
-			);
-			const agents = yield* db.Agent.all();
-			expect(agents.filter((agent) => agent.status === "alive")).toHaveLength(
-				1,
-			);
-		}).pipe(Effect.provide(layer));
 	}),
 );

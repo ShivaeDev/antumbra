@@ -30,3 +30,4 @@ export {
 } from "#intent.ts";
 export { type IntentSubmission, Kernel } from "#kernel.ts";
 export { KernelLive, type KernelOptions } from "#layer.ts";
+export { IntentExecution, type IntentStepOptions } from "#workflow.ts";

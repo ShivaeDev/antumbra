@@ -3,8 +3,9 @@ import {
 	type AntumbraPlugin,
 	BackendFailure,
 	type SessionHandle,
+	type WireEvent,
 } from "@antumbra/plugin-api";
-import { Effect, Stream } from "effect";
+import { Effect, Queue, Stream } from "effect";
 import { openRawSession } from "#adapters/claude-sdk.ts";
 
 const failure = (detail: unknown) =>
@@ -26,7 +27,18 @@ export const claudeBackend: AgentBackend = {
 				(session) => Effect.sync(() => session.close()),
 			);
 			return {
-				events: Stream.fromAsyncIterable(raw.events, failure),
+				events: Stream.callback<WireEvent>((queue) =>
+					Effect.sync(() => {
+						raw.subscribe({
+							end: () => {
+								Queue.endUnsafe(queue);
+							},
+							event: (event) => {
+								Queue.offerUnsafe(queue, event);
+							},
+						});
+					}),
+				),
 				interrupt: Effect.tryPromise({
 					catch: failure,
 					try: () => raw.interrupt(),

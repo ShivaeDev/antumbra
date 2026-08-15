@@ -1,9 +1,6 @@
 import { resolve } from "node:path";
-import {
-	type Options,
-	query,
-	type SDKUserMessage,
-} from "@anthropic-ai/claude-agent-sdk";
+import { type Options, query } from "@anthropic-ai/claude-agent-sdk";
+import { InputQueue } from "#adapters/input-queue.ts";
 
 export interface RawSessionOptions {
 	readonly cwd: string;
@@ -16,77 +13,16 @@ export interface RawWireEvent {
 	readonly payload: string;
 }
 
+export interface RawEventListener {
+	readonly end: () => void;
+	readonly event: (event: RawWireEvent) => void;
+}
+
 export interface RawSession {
 	readonly close: () => void;
-	readonly events: AsyncIterable<RawWireEvent>;
 	readonly interrupt: () => Promise<void>;
 	readonly send: (text: string) => void;
-}
-
-// why: the SDK pulls user messages from an async iterable whose return ENDS
-// the session (P2), so the queue's iterator stays pending until close() —
-// close is the only graceful shutdown.
-class InputQueue {
-	private readonly buffer: SDKUserMessage[] = [];
-	private pending: ((result: IteratorResult<SDKUserMessage>) => void) | null =
-		null;
-	private done = false;
-
-	push(message: SDKUserMessage): void {
-		const pending = this.pending;
-		if (pending !== null) {
-			this.pending = null;
-			pending({ done: false, value: message });
-			return;
-		}
-		this.buffer.push(message);
-	}
-
-	close(): void {
-		this.done = true;
-		const pending = this.pending;
-		if (pending !== null) {
-			this.pending = null;
-			pending({ done: true, value: undefined });
-		}
-	}
-
-	stream(): AsyncIterable<SDKUserMessage> {
-		return {
-			[Symbol.asyncIterator]: () => ({
-				next: () => {
-					const buffered = this.buffer.shift();
-					if (buffered !== undefined) {
-						return Promise.resolve({ done: false, value: buffered });
-					}
-					if (this.done) {
-						return Promise.resolve({
-							done: true as const,
-							value: undefined,
-						});
-					}
-					return new Promise((promiseResolve) => {
-						this.pending = promiseResolve;
-					});
-				},
-			}),
-		};
-	}
-}
-
-async function* mapEvents(
-	messages: AsyncIterable<{ type: string }>,
-): AsyncIterable<RawWireEvent> {
-	for await (const message of messages) {
-		const subtype =
-			"subtype" in message && typeof message.subtype === "string"
-				? `/${message.subtype}`
-				: "";
-		yield {
-			kind: `${message.type}${subtype}`,
-			payload: JSON.stringify(message),
-		};
-	}
+	readonly subscribe: (listener: RawEventListener) => void;
 }
 
 export const openRawSession = (options: RawSessionOptions): RawSession => {
@@ -102,12 +38,54 @@ export const openRawSession = (options: RawSessionOptions): RawSession => {
 			: { sessionId: options.sessionId }),
 	};
 	const live = query({ prompt: input.stream(), options: sessionOptions });
+
+	// why: events reach consumers by push, never by awaiting the SDK iterator —
+	// a consumer waiting on the SDK's own promise cannot be shut down while the
+	// model is idle, which deadlocked session teardown. Ending is a signal;
+	// close() fires it immediately regardless of what the subprocess is doing.
+	const pendingEvents: RawWireEvent[] = [];
+	let listener: RawEventListener | null = null;
+	let ended = false;
+	const deliver = (event: RawWireEvent): void => {
+		if (listener === null) {
+			pendingEvents.push(event);
+			return;
+		}
+		listener.event(event);
+	};
+	const finish = (): void => {
+		if (ended) {
+			return;
+		}
+		ended = true;
+		listener?.end();
+	};
+	void (async () => {
+		try {
+			for await (const message of live) {
+				const subtype =
+					"subtype" in message && typeof message.subtype === "string"
+						? `/${message.subtype}`
+						: "";
+				deliver({
+					kind: `${message.type}${subtype}`,
+					payload: JSON.stringify(message),
+				});
+			}
+		} catch {
+			// why: an abrupt subprocess death is not an event — the end signal in
+			// finally is; the gap in the log is the trace.
+		} finally {
+			finish();
+		}
+	})();
+
 	return {
 		close: () => {
 			input.close();
 			live.close();
+			finish();
 		},
-		events: mapEvents(live),
 		interrupt: async () => {
 			await live.interrupt();
 		},
@@ -117,6 +95,15 @@ export const openRawSession = (options: RawSessionOptions): RawSession => {
 				parent_tool_use_id: null,
 				type: "user",
 			});
+		},
+		subscribe: (next) => {
+			listener = next;
+			for (const event of pendingEvents.splice(0)) {
+				next.event(event);
+			}
+			if (ended) {
+				next.end();
+			}
 		},
 	};
 };

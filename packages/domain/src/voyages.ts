@@ -1,7 +1,15 @@
 import type { PrismaError } from "@antumbra/persistence";
+import {
+	type CharterFailure,
+	type CharterInput,
+	type EdgeWouldCycle,
+	type PieceNotFound,
+	type PieceRow,
+	Pieces,
+} from "@antumbra/pieces";
 import { Clock, Effect, type Option, PubSub } from "effect";
 import { type AgentDeps, provideExecutors } from "#deps.ts";
-import type { EdgeWouldCycle, PieceNotFound, VoyageNotFound } from "#errors.ts";
+import type { VoyageNotFound } from "#errors.ts";
 import { type HailedCaptain, type HailRefused, hailCaptain } from "#hail.ts";
 import {
 	type ArtifactInput,
@@ -9,22 +17,9 @@ import {
 	landReport,
 	type ReportInput,
 } from "#outcomes.ts";
-import {
-	type CharterFailure,
-	type CharterInput,
-	charterPiece,
-	launchPiece,
-	parkPiece,
-	rewirePiece,
-} from "#pieces.ts";
 import { readVoyageView } from "#voyage-read.ts";
 import { requireVoyage } from "#voyage-record.ts";
-import type {
-	ArtifactRow,
-	PieceRow,
-	ReportRow,
-	VoyageRow,
-} from "#voyage-rows.ts";
+import type { ArtifactRow, ReportRow, VoyageRow } from "#voyage-rows.ts";
 import {
 	type VoyageSummary,
 	type VoyageView,
@@ -119,17 +114,22 @@ const setFocus = (deps: AgentDeps, voyageId: string, focused: boolean) =>
 		yield* announce(deps);
 	});
 
-export const makeVoyageProcedures = (deps: AgentDeps): VoyageProcedures => ({
-	charterPiece: (input) => charterPiece(deps, input),
-	hail: (voyageId) => hailCaptain(deps, voyageId),
-	landArtifact: (input) => landArtifact(deps, input),
-	landReport: (input) => landReport(deps, input),
-	launch: (pieceId) => launchPiece(deps, pieceId),
-	list: readVoyageWorld(deps).pipe(Effect.map(voyageSummaries)),
-	open: (input) => openVoyage(deps, input),
-	park: (pieceId) => parkPiece(deps, pieceId, true),
-	read: (voyageId) => readVoyageView(deps, voyageId),
-	rewire: (pieceId, dependsOn) => rewirePiece(deps, pieceId, dependsOn),
-	setFocus: (voyageId, focused) => setFocus(deps, voyageId, focused),
-	unpark: (pieceId) => parkPiece(deps, pieceId, false),
+export const makeVoyageProcedures = Effect.gen(function* () {
+	const pieces = yield* Pieces;
+	return (deps: AgentDeps): VoyageProcedures => ({
+		charterPiece: pieces.charter,
+		hail: (voyageId) => hailCaptain(deps, voyageId),
+		landArtifact: (input) => landArtifact(deps, input),
+		landReport: (input) => landReport(deps, input),
+		launch: pieces.launch,
+		list: readVoyageWorld(deps).pipe(Effect.map(voyageSummaries)),
+		open: (input) => openVoyage(deps, input),
+		park: (pieceId) => pieces.park(pieceId, true),
+		read: (voyageId) => readVoyageView(deps, voyageId),
+		// why: the public vocabulary keeps its established verb while the capability
+		// names the exact act. Literal set-dependency semantics land separately.
+		rewire: pieces.setDependencies,
+		setFocus: (voyageId, focused) => setFocus(deps, voyageId, focused),
+		unpark: (pieceId) => pieces.park(pieceId, false),
+	});
 });

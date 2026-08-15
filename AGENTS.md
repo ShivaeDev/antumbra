@@ -12,6 +12,10 @@ defects use `Effect.die`. Services are classes provided through Layers, never
 ambient singletons. Data crossing IPC, disk, subprocess, or network boundaries
 is decoded with Schema.
 
+Business functions yield the exact services they need; callers never pass
+service values or dependency bundles through ordinary parameters. See
+`quality-gates/effect-services.md`.
+
 External SDK bridges belong in thin adapters. Keep policy and business logic
 outside them.
 

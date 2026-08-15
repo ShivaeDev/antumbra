@@ -2,14 +2,14 @@ import { VoyageSource } from "@antumbra/contract";
 import { Effect, Layer } from "effect";
 import { AgentDomain } from "#domain.ts";
 import { makeVoyageActs } from "#voyage-acts.ts";
-import { voyageRefreshes } from "#voyage-feed.ts";
+import { makeVoyageRefreshes } from "#voyage-feed.ts";
 import { makeVoyageReads } from "#voyage-reads.ts";
 
 export const VoyageSourceLive = Layer.effect(VoyageSource)(
 	Effect.gen(function* () {
 		const domain = yield* AgentDomain;
 		const reads = makeVoyageReads(domain);
-		const refreshes = voyageRefreshes(domain.feeds);
+		const refreshes = yield* makeVoyageRefreshes;
 		return {
 			...makeVoyageActs(domain, reads),
 			voyage: reads.voyage,

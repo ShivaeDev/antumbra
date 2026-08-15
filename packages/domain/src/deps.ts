@@ -1,3 +1,4 @@
+import type { DomainFeedsService } from "@antumbra/domain-feeds";
 import type { PayloadInvalid, UnregisteredIntentTag } from "@antumbra/kernel";
 import type {
 	DatabaseService,
@@ -7,7 +8,6 @@ import type {
 import type { AgentBackend, ChangeHost, Runner } from "@antumbra/plugin-api";
 import { type Context, type Deferred, Effect } from "effect";
 import type { EventSink, SessionFabric } from "#fabric.ts";
-import type { DomainFeeds } from "#feeds.ts";
 import type { SpawnFields } from "#spawn.ts";
 
 export type SpawnRefused = PayloadInvalid | PrismaError | UnregisteredIntentTag;
@@ -31,7 +31,7 @@ export interface AgentDeps {
 	readonly db: DatabaseService;
 	readonly executors: Context.Context<WriteExecutors>;
 	readonly fabric: SessionFabric;
-	readonly feeds: DomainFeeds;
+	readonly feeds: DomainFeedsService;
 	readonly kernelReach: Deferred.Deferred<KernelReach>;
 	readonly runners: ReadonlyMap<string, Runner>;
 	readonly sinkFor: (sessionId: string) => Effect.Effect<EventSink>;

@@ -2,6 +2,32 @@ module.exports = {
 	forbidden: [
 		{
 			comment:
+				"Domain feeds are a notification leaf. Importing another workspace layer here would make every capability that publishes a signal depend on that layer too.",
+			from: { path: "^packages/domain-feeds" },
+			name: "domain-feeds-is-a-leaf",
+			severity: "error",
+			to: { path: "^packages/(?!domain-feeds(?:/|$))|^apps/" },
+		},
+		{
+			comment:
+				"Pieces owns one domain capability. It may write through persistence and publish through domain-feeds, but it never reaches up into the domain facade, ports, adapters, or app.",
+			from: { path: "^packages/pieces" },
+			name: "pieces-has-narrow-dependencies",
+			severity: "error",
+			to: {
+				path: "^packages/(?!pieces(?:/|$)|persistence(?:/|$)|domain-feeds(?:/|$))|^apps/",
+			},
+		},
+		{
+			comment:
+				"The desktop consumes the application-facing domain facade. Leaf capability Layers stay composed inside that facade so the app does not become a service graph by hand.",
+			from: { path: "^apps/desktop" },
+			name: "desktop-uses-domain-facade",
+			severity: "error",
+			to: { path: "^packages/(pieces|domain-feeds)(?:/|$)" },
+		},
+		{
+			comment:
 				"Git is process infrastructure beneath the local runner. No other current package consumes that mechanism directly; a new caller must earn and document a real layer edge.",
 			from: {
 				path: "^packages/(?!git(?:/|$)|runner-local(?:/|$))|^apps/",
@@ -25,7 +51,7 @@ module.exports = {
 			name: "renderer-pure-web",
 			severity: "error",
 			to: {
-				path: "(^|/)electron(/|$)|^apps/|^packages/(agent-tools|kernel|domain|backend-[^/]+|runner-[^/]+|persistence|plugin-api)",
+				path: "(^|/)electron(/|$)|^apps/|^packages/(agent-tools|kernel|domain(?:-feeds)?|pieces|backend-[^/]+|runner-[^/]+|persistence|plugin-api)",
 			},
 		},
 		{
@@ -34,7 +60,7 @@ module.exports = {
 			from: { path: "^packages/(backend-[^/]+|runner-[^/]+)" },
 			name: "adapters-never-import-the-domain",
 			severity: "error",
-			to: { path: "^packages/domain" },
+			to: { path: "^packages/(domain(?:-feeds)?|pieces)(?:/|$)" },
 		},
 		{
 			comment:

@@ -1,3 +1,4 @@
+import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Kernel } from "@antumbra/kernel";
 import { Database, type WriteExecutors } from "@antumbra/persistence";
 import {
@@ -86,6 +87,7 @@ export const DispatcherLive = (overrides: Partial<DispatcherOptions> = {}) =>
 		Effect.gen(function* () {
 			const options = { ...DEFAULTS, ...overrides };
 			const domain = yield* AgentDomain;
+			const feeds = yield* DomainFeeds;
 			const kernel = yield* Kernel;
 			const db = yield* Database;
 			const executors = yield* Effect.context<WriteExecutors>();
@@ -106,8 +108,8 @@ export const DispatcherLive = (overrides: Partial<DispatcherOptions> = {}) =>
 					executors,
 				),
 			);
-			yield* Effect.forkScoped(pump(domain.feeds.fleet, state.tick));
-			yield* Effect.forkScoped(pump(domain.feeds.voyages, state.tick));
+			yield* Effect.forkScoped(pump(feeds.fleet, state.tick));
+			yield* Effect.forkScoped(pump(feeds.voyages, state.tick));
 			yield* Queue.offer(state.tick, undefined);
 		}),
 	);

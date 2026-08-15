@@ -1,3 +1,4 @@
+import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database } from "@antumbra/persistence";
 import { expect, it } from "@effect/vitest";
 import { Effect, Option, PubSub, Stream } from "effect";
@@ -173,6 +174,7 @@ it.live("a landed change flips its piece done and wakes the voyage feed", () =>
 	withHost((scripted) =>
 		Effect.gen(function* () {
 			const domain = yield* AgentDomain;
+			const feeds = yield* DomainFeeds;
 			const { piece, repo, voyage } = yield* reefWithPiece;
 			yield* berthed(CREW);
 			const row = yield* openedChange(piece.id, repo.name);
@@ -195,7 +197,7 @@ it.live("a landed change flips its piece done and wakes the voyage feed", () =>
 
 			const heard = yield* Effect.scoped(
 				Effect.gen(function* () {
-					const subscription = yield* PubSub.subscribe(domain.feeds.voyages);
+					const subscription = yield* PubSub.subscribe(feeds.voyages);
 					yield* domain.changes.refresh("scripted");
 					return yield* Stream.fromSubscription(subscription).pipe(
 						Stream.take(1),

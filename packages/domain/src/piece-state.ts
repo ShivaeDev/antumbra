@@ -1,8 +1,11 @@
+import type { EdgeRow, PieceRow } from "@antumbra/pieces";
 import { Option } from "effect";
 import { atWork } from "#agent-at-work.ts";
 import { pieceOutcomeTally } from "#outcome-status.ts";
 import { captainAtWork } from "#voyage-captain.ts";
-import type { EdgeRow, PieceRow, VoyageWorld } from "#voyage-rows.ts";
+import type { VoyageWorld } from "#voyage-rows.ts";
+
+export { wouldCycle } from "@antumbra/pieces";
 
 export const PIECE_STATES = [
 	"active",
@@ -16,34 +19,6 @@ export const PIECE_STATES = [
 export type PieceState = (typeof PIECE_STATES)[number];
 
 export type VoyageState = "quiet" | "underWay";
-
-// why: adding "from gates to" closes a loop exactly when `to` already reaches
-// `from`, so the walk starts at `to` and looks for `from`. A self-edge is the
-// degenerate case of the same question.
-export const wouldCycle = (
-	edges: ReadonlyArray<EdgeRow>,
-	from: string,
-	to: string,
-): boolean => {
-	const seen = new Set<string>();
-	const frontier = [to];
-	while (frontier.length > 0) {
-		const at = frontier.pop();
-		if (at === undefined || seen.has(at)) {
-			continue;
-		}
-		if (at === from) {
-			return true;
-		}
-		seen.add(at);
-		for (const edge of edges) {
-			if (edge.fromPieceId === at) {
-				frontier.push(edge.toPieceId);
-			}
-		}
-	}
-	return false;
-};
 
 export const dependenciesOf = (
 	edges: ReadonlyArray<EdgeRow>,

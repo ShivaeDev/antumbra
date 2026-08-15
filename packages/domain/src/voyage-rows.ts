@@ -1,4 +1,7 @@
+import type { EdgeRow, PieceRow } from "@antumbra/pieces";
 import type { ChangeRow, PieceChangeRow } from "#change-rows.ts";
+
+export type { EdgeRow, PieceRow } from "@antumbra/pieces";
 
 export interface VoyageRow {
 	readonly backend: string;
@@ -7,16 +10,6 @@ export interface VoyageRow {
 	readonly id: string;
 	readonly name: string;
 	readonly northStar: string;
-}
-
-export interface PieceRow {
-	readonly charter: string;
-	readonly expectation: string;
-	readonly id: string;
-	readonly launchedAt: Date | null;
-	readonly parkedAt: Date | null;
-	readonly role: string;
-	readonly title: string;
 }
 
 export interface ReportRow {
@@ -31,11 +24,6 @@ export interface ArtifactRow {
 	readonly id: string;
 	readonly title: string;
 	readonly uri: string;
-}
-
-export interface EdgeRow {
-	readonly fromPieceId: string;
-	readonly toPieceId: string;
 }
 
 export interface AssignmentRow {

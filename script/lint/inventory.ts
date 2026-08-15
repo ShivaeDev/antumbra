@@ -26,6 +26,8 @@ export interface Inventory {
 	readonly manifests: readonly TextFile[];
 	readonly pragmaRegistry: string;
 	readonly root: string;
+	readonly serviceParameterAllowance: string;
+	readonly serviceParameterBaseline: string;
 	readonly sources: readonly SourceFile[];
 	readonly workspaceCatalog: string;
 }
@@ -80,10 +82,18 @@ export const collectInventory = (
 		const pragmaRegistry = yield* readText(
 			join(root, "script", "pragma-registry.json"),
 		);
+		const serviceParameterBaseline = yield* readText(
+			join(root, "script", "lint", "service-parameter-baseline.json"),
+		);
+		const serviceParameterAllowance = yield* readText(
+			join(root, "script", "lint", "service-parameter-allowance.json"),
+		);
 		return {
 			manifests: manifests.filter((manifest) => manifest.raw !== ""),
 			pragmaRegistry,
 			root,
+			serviceParameterAllowance,
+			serviceParameterBaseline,
 			sources,
 			workspaceCatalog,
 		};

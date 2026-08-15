@@ -13,6 +13,17 @@ export class RunnerFailure extends Data.TaggedError("RunnerFailure")<{
 	}
 }
 
+export class RunnerAuthRequired extends Data.TaggedError("RunnerAuthRequired")<{
+	readonly detail: string;
+	readonly tag: string;
+}> {
+	override get message(): string {
+		return `${this.tag}: authentication required: ${this.detail}`;
+	}
+}
+
+export type RunnerError = RunnerAuthRequired | RunnerFailure;
+
 export interface RepoRequest {
 	readonly ref: string;
 	readonly source: string;
@@ -53,12 +64,12 @@ export interface Runner {
 	readonly capabilities: RunnerCapabilities;
 	readonly provision: (
 		request: ProvisionRequest,
-	) => Effect.Effect<ProvisionedMoorage, RunnerFailure>;
+	) => Effect.Effect<ProvisionedMoorage, RunnerError>;
 	// why: reclaim refuses dirty berths by design — only scrap may destroy
 	// uncommitted or unpushed work, and only expiry policy calls scrap.
 	readonly reclaim: (
 		berth: BerthSite,
-	) => Effect.Effect<ReclaimVerdict, RunnerFailure>;
-	readonly scrap: (berth: BerthSite) => Effect.Effect<void, RunnerFailure>;
+	) => Effect.Effect<ReclaimVerdict, RunnerError>;
+	readonly scrap: (berth: BerthSite) => Effect.Effect<void, RunnerError>;
 	readonly tag: string;
 }

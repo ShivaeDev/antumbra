@@ -24,6 +24,7 @@
 		"vitest": "catalog:"
 	},
 	"dependencies": {
+		"@anthropic-ai/claude-agent-sdk": "catalog:",
 		"@antumbra/kernel": "workspace:*",
 		"@antumbra/persistence": "workspace:*",
 		"@antumbra/plugin-api": "workspace:*",

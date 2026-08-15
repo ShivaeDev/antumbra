@@ -1,3 +1,4 @@
+export { claudeBackend, claudePlugin } from "#claude.ts";
 export {
 	AGENTS_ALIVE_GAUGE,
 	AgentDomain,

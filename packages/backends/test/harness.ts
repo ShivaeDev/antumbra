@@ -19,6 +19,7 @@ export const acquireTemporaryPersistence = Effect.acquireRelease(
 export interface ScriptedSession {
 	readonly closed: Effect.Effect<boolean>;
 	readonly emit: (event: WireEvent) => Effect.Effect<void>;
+	readonly interrupted: Effect.Effect<boolean>;
 	readonly sent: Effect.Effect<ReadonlyArray<string>>;
 }
 
@@ -45,10 +46,12 @@ export const makeScriptedBackend = Effect.gen(function* () {
 				const events = yield* Queue.unbounded<WireEvent>();
 				const sent = yield* Ref.make<ReadonlyArray<string>>([]);
 				const closed = yield* Ref.make(false);
+				const interrupted = yield* Ref.make(false);
 				yield* Effect.addFinalizer(() => Ref.set(closed, true));
 				const scripted: ScriptedSession = {
 					closed: Ref.get(closed),
 					emit: (event) => Queue.offer(events, event),
+					interrupted: Ref.get(interrupted),
 					sent: Ref.get(sent),
 				};
 				yield* Ref.update(sessions, (map) =>
@@ -56,7 +59,7 @@ export const makeScriptedBackend = Effect.gen(function* () {
 				);
 				const handle: SessionHandle = {
 					events: Stream.fromQueue(events),
-					interrupt: Effect.void,
+					interrupt: Ref.set(interrupted, true),
 					send: (text) => Ref.update(sent, (texts) => [...texts, text]),
 				};
 				return handle;

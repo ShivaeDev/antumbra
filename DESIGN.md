@@ -60,6 +60,18 @@ Axioms of the stack:
   in the ontology of conversation. Admission governs births, not messages;
   messages to living agents stay unshipped until their delivery semantics
   are ruled.
+- **The event log is the product surface; views are glass.** The renderer is
+  a stateless projection fed by one typed contract: every view rehydrates
+  from the log and stays current by subscription, so killing a view touches
+  nothing and an agent never notices being watched. The transcript is a pure
+  derivation of the wire-event sequence — assistant blocks accumulate, tool
+  calls pair with their results, terminal events render as telemetry
+  dividers (rhythm for human eyes, never a boundary the system acts on),
+  unknown kinds render raw instead of failing. New events reach observers
+  through a pubsub beside the write; subscribers subscribe first, read the
+  log, and dedup by sequence, so nothing falls in the gap. Views may only
+  offer acts the domain already has — spawn, retire, interrupt; a reply box
+  would smuggle delivery semantics past the axiom above.
 
 ## Authority
 

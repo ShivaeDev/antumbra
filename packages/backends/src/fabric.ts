@@ -6,6 +6,7 @@ import type {
 	WireEvent,
 } from "@antumbra/plugin-api";
 import { Effect, Exit, Ref, Scope, Stream } from "effect";
+import { SessionNotLive } from "#errors.ts";
 
 export type EventSink = (event: WireEvent) => Effect.Effect<void>;
 
@@ -15,6 +16,9 @@ interface FabricEntry {
 }
 
 export interface SessionFabric {
+	readonly interrupt: (
+		sessionId: string,
+	) => Effect.Effect<void, BackendFailure | SessionNotLive>;
 	readonly start: (
 		backend: AgentBackend,
 		options: OpenSessionOptions,
@@ -66,6 +70,14 @@ export const makeSessionFabric = Effect.gen(function* () {
 			);
 			return handle;
 		});
+	const interrupt: SessionFabric["interrupt"] = (sessionId) =>
+		Effect.gen(function* () {
+			const entry = (yield* Ref.get(entries)).get(sessionId);
+			if (entry === undefined) {
+				return yield* new SessionNotLive({ sessionId });
+			}
+			yield* entry.handle.interrupt;
+		});
 	const stop: SessionFabric["stop"] = (sessionId) =>
 		Effect.gen(function* () {
 			const entry = (yield* Ref.get(entries)).get(sessionId);
@@ -79,5 +91,5 @@ export const makeSessionFabric = Effect.gen(function* () {
 			});
 			yield* Scope.close(entry.scope, Exit.void);
 		});
-	return { start, stop } satisfies SessionFabric;
+	return { interrupt, start, stop } satisfies SessionFabric;
 });

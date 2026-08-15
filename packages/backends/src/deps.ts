@@ -6,6 +6,7 @@ import type {
 import type { AgentBackend } from "@antumbra/plugin-api";
 import { type Context, Effect } from "effect";
 import type { EventSink, SessionFabric } from "#fabric.ts";
+import type { DomainFeeds } from "#feeds.ts";
 
 // why: intent executes run inside kernel fibers where R must be never, so the
 // domain captures its services once and every kind closes over this bundle.
@@ -14,6 +15,7 @@ export interface AgentDeps {
 	readonly db: DatabaseService;
 	readonly executors: Context.Context<WriteExecutors>;
 	readonly fabric: SessionFabric;
+	readonly feeds: DomainFeeds;
 	readonly sinkFor: (sessionId: string) => Effect.Effect<EventSink>;
 	readonly writer: {
 		readonly write: <A, E, R>(

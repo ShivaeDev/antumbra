@@ -1,4 +1,9 @@
-import { AgentDomain, AgentDomainLive, claudePlugin } from "@antumbra/backends";
+import {
+	AgentDomain,
+	AgentDomainLive,
+	claudePlugin,
+	SightSourceLive,
+} from "@antumbra/backends";
 import { makeAppRouter } from "@antumbra/contract";
 import { KernelLive } from "@antumbra/kernel";
 import {
@@ -9,6 +14,7 @@ import {
 import { makePluginHost } from "@antumbra/plugin-api";
 import { Effect, Layer, ManagedRuntime } from "effect";
 import { AppInfoSourceLive } from "#adapters/app-info.ts";
+import { runBoot } from "#adapters/boot.ts";
 import {
 	configureDataDirectory,
 	openMainWindow,
@@ -17,6 +23,7 @@ import {
 	whenReady,
 } from "#adapters/shell.ts";
 import { registerTrpcBridge } from "#adapters/trpc-bridge.ts";
+import { registerTrpcSubscriptions } from "#adapters/trpc-subscriptions.ts";
 
 const persistence = Layer.unwrap(
 	Effect.sync(() =>
@@ -48,7 +55,12 @@ const kernel = Layer.unwrap(
 const runtime = ManagedRuntime.make(
 	Layer.mergeAll(
 		AppInfoSourceLive,
-		Layer.orDie(kernel.pipe(Layer.provideMerge(persistence))),
+		Layer.orDie(
+			SightSourceLive.pipe(
+				Layer.provideMerge(kernel),
+				Layer.provideMerge(persistence),
+			),
+		),
 	),
 );
 const router = makeAppRouter(runtime);
@@ -57,10 +69,12 @@ const main = Effect.gen(function* () {
 	yield* whenReady;
 	yield* Effect.sync(() => {
 		registerTrpcBridge(router);
+		registerTrpcSubscriptions(router);
 	});
 	yield* quitWhenAllWindowsClosed;
 	yield* ensureInstallMarker;
 	yield* openMainWindow;
+	yield* Effect.logInfo("bridge: window open");
 });
 
-runtime.runFork(main);
+runBoot(() => runtime.runPromise(main));

@@ -12,3 +12,7 @@ export class AgentNotSpawnable extends Data.TaggedError("AgentNotSpawnable")<{
 	readonly agentId: string;
 	readonly status: string;
 }> {}
+
+export class SessionNotLive extends Data.TaggedError("SessionNotLive")<{
+	readonly sessionId: string;
+}> {}

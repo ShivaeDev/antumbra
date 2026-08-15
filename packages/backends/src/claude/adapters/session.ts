@@ -27,12 +27,12 @@ export interface RawSession {
 
 export const openRawSession = (options: RawSessionOptions): RawSession => {
 	const input = new InputQueue();
-	// why: full-auto permissions and stock host config are deliberate policy,
-	// not an oversight. cwd is resolved because it keys the SDK's transcript
-	// space — a non-canonical path silently forks it.
+	// why: the SDK's literal "auto" permission mode — ruled policy, and not
+	// interchangeable with bypassPermissions. cwd is resolved because it keys
+	// the SDK's transcript space — a non-canonical path silently forks it.
 	const sessionOptions: Options = {
 		cwd: resolve(options.cwd),
-		permissionMode: "bypassPermissions",
+		permissionMode: "auto",
 		...(options.resume
 			? { resume: options.sessionId }
 			: { sessionId: options.sessionId }),

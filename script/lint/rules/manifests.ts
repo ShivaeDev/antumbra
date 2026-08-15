@@ -35,57 +35,78 @@ const catalogLines = (catalog: string): readonly string[] => {
 	return collected;
 };
 
+const catalogViolation = (line: string): readonly Violation[] => {
+	const entry = CATALOG_ENTRY.exec(line);
+	if (entry === null) {
+		return [];
+	}
+	const value = (entry[2] ?? "").replace(/^["']|["']$/g, "");
+	if (EXACT_VERSION.test(value)) {
+		return [];
+	}
+	return [
+		{
+			file: "pnpm-workspace.yaml",
+			line: undefined,
+			message: `catalog entry "${entry[1]}: ${value}" is not an exact version. Ranges are banned; pin the version and let upgrades be visible diffs.`,
+			rule: "manifests/exact-catalog-version",
+		},
+	];
+};
+
 const catalogViolations = (catalog: string): readonly Violation[] =>
-	catalogLines(catalog).flatMap((line) => {
-		const entry = CATALOG_ENTRY.exec(line);
-		const value = (entry?.[2] ?? "").replace(/^["']|["']$/g, "");
-		return entry === null || EXACT_VERSION.test(value)
-			? []
-			: [
-					{
-						file: "pnpm-workspace.yaml",
-						line: undefined,
-						message: `catalog entry "${entry[1]}: ${value}" is not an exact version. Ranges are banned; pin the version and let upgrades be visible diffs.`,
-						rule: "manifests/exact-catalog-version",
-					},
-				];
-	});
+	catalogLines(catalog).flatMap(catalogViolation);
+
+const dependencyViolation = (
+	manifest: TextFile,
+	key: string,
+	name: string,
+	spec: unknown,
+): readonly Violation[] => {
+	const throughCatalog =
+		typeof spec === "string" &&
+		(spec.startsWith("catalog:") || spec.startsWith("workspace:"));
+	if (throughCatalog) {
+		return [];
+	}
+	return [
+		{
+			file: manifest.path,
+			line: undefined,
+			message: `${key} entry "${name}": "${String(spec)}" bypasses the catalog. Use "catalog:" and pin the exact version in pnpm-workspace.yaml.`,
+			rule: "manifests/catalog-only",
+		},
+	];
+};
 
 const dependencyViolations = (
 	manifest: TextFile,
 	key: string,
 	deps: unknown,
-): readonly Violation[] =>
-	isRecord(deps)
-		? Object.entries(deps).flatMap(([name, spec]) =>
-				typeof spec === "string" &&
-				(spec.startsWith("catalog:") || spec.startsWith("workspace:"))
-					? []
-					: [
-							{
-								file: manifest.path,
-								line: undefined,
-								message: `${key} entry "${name}": "${String(spec)}" bypasses the catalog. Use "catalog:" and pin the exact version in pnpm-workspace.yaml.`,
-								rule: "manifests/catalog-only",
-							},
-						],
-			)
-		: [];
+): readonly Violation[] => {
+	if (!isRecord(deps)) {
+		return [];
+	}
+	return Object.entries(deps).flatMap(([name, spec]) =>
+		dependencyViolation(manifest, key, name, spec),
+	);
+};
 
 const oneManifestViolations = (manifest: TextFile): readonly Violation[] => {
 	const parsed = parseJson(manifest.raw);
-	return isRecord(parsed)
-		? DEPENDENCY_KEYS.flatMap((key) =>
-				dependencyViolations(manifest, key, parsed[key]),
-			)
-		: [
-				{
-					file: manifest.path,
-					line: undefined,
-					message: "is not a readable JSON manifest.",
-					rule: "manifests/unreadable",
-				},
-			];
+	if (!isRecord(parsed)) {
+		return [
+			{
+				file: manifest.path,
+				line: undefined,
+				message: "is not a readable JSON manifest.",
+				rule: "manifests/unreadable",
+			},
+		];
+	}
+	return DEPENDENCY_KEYS.flatMap((key) =>
+		dependencyViolations(manifest, key, parsed[key]),
+	);
 };
 
 export const manifestViolations = (

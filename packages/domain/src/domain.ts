@@ -5,9 +5,9 @@ import type {
 	BackendFailure,
 	Runner,
 } from "@antumbra/plugin-api";
-import { Context, Effect, Layer } from "effect";
+import { Context, Deferred, Effect, Layer } from "effect";
 import { sweepBerths } from "#berth-sweep.ts";
-import type { AgentDeps } from "#deps.ts";
+import type { AgentDeps, QueueRetire } from "#deps.ts";
 import type { SessionNotLive } from "#errors.ts";
 import { makeEventSinkFactory } from "#events.ts";
 import { makeSessionFabric } from "#fabric.ts";
@@ -35,6 +35,9 @@ export class AgentDomain extends Context.Service<
 		readonly kinds: ReadonlyArray<AnyIntentKind>;
 		readonly repos: RepoRegistry;
 		readonly retire: IntentKind<RetireFields>;
+		// why: filled in by the layer that has the kernel; the crew's stand_down
+		// waits on it rather than the domain naming a scheduler it sits below.
+		readonly retireQueue: Deferred.Deferred<QueueRetire>;
 		readonly spawn: IntentKind<SpawnFields>;
 		readonly voyages: VoyageProcedures;
 	}
@@ -56,12 +59,14 @@ export const AgentDomainLive = (
 			const sinkFor = yield* makeEventSinkFactory(feeds.events);
 			yield* reclaimAgents;
 			yield* sweepBerths(runners);
+			const retireQueue = yield* Deferred.make<QueueRetire>();
 			const deps: AgentDeps = {
 				backends,
 				db,
 				executors,
 				fabric,
 				feeds,
+				retireQueue,
 				runners,
 				sinkFor,
 				writer,
@@ -83,6 +88,7 @@ export const AgentDomainLive = (
 				kinds: [spawn, retire],
 				repos: makeRepoRegistry(deps),
 				retire,
+				retireQueue,
 				spawn,
 				voyages: makeVoyageProcedures(deps),
 			};

@@ -2,7 +2,8 @@ import { readFileSync } from "node:fs";
 import { Schema } from "effect";
 import { describe, expect, it } from "vitest";
 import { MUTED_NOTIFICATIONS } from "#handshake.ts";
-import { ExecutionStatus, KnownItem, TurnStatus } from "#protocol.ts";
+import { TurnStatus } from "#protocol.ts";
+import { ExecutionStatus, KnownItem } from "#protocol-items.ts";
 
 // why: app-server negotiates no protocol version, so the vendored schema
 // files for the pinned CLI are the contract; this test holds every literal,
@@ -23,6 +24,7 @@ const Variant = Schema.Struct({
 const Definition = Schema.Struct({
 	enum: Schema.optional(Schema.Array(Schema.String)),
 	oneOf: Schema.optional(Schema.Array(Variant)),
+	properties: Schema.optional(Schema.Record(Schema.String, Schema.Unknown)),
 });
 const SchemaFile = Schema.Struct({
 	definitions: Schema.Record(Schema.String, Definition),
@@ -32,15 +34,24 @@ type SchemaFile = typeof SchemaFile.Type;
 const decodeSchemaFile = Schema.decodeUnknownSync(
 	Schema.fromJsonString(SchemaFile),
 );
+const ResponseFile = Schema.Struct({
+	required: Schema.Array(Schema.String),
+});
+const decodeResponseFile = Schema.decodeUnknownSync(
+	Schema.fromJsonString(ResponseFile),
+);
+const read = (name: string): string =>
+	readFileSync(new URL(`../src/schema/${name}`, import.meta.url), "utf8");
 
-const load = (name: string): SchemaFile =>
-	decodeSchemaFile(
-		readFileSync(new URL(`../src/schema/${name}`, import.meta.url), "utf8"),
-	);
+const load = (name: string): SchemaFile => decodeSchemaFile(read(name));
+const loadResponse = (name: string): typeof ResponseFile.Type =>
+	decodeResponseFile(read(name));
 
 const bundle = load("codex_app_server_protocol.v2.schemas.json");
 const serverRequests = load("ServerRequest.json");
 const serverNotifications = load("ServerNotification.json");
+const toolCallResponse = loadResponse("DynamicToolCallResponse.json");
+const currentTimeResponse = loadResponse("CurrentTimeReadResponse.json");
 
 const methodsOf = (file: SchemaFile): ReadonlyArray<string> =>
 	(file.oneOf ?? []).flatMap((variant) => {
@@ -91,11 +102,31 @@ describe("the codex protocol slice agrees with the pinned schema bundle", () => 
 				"userMessage",
 				"reasoning",
 				"commandExecution",
+				"dynamicToolCall",
 				"fileChange",
 				"mcpToolCall",
 				"webSearch",
 			]),
 		);
+	});
+
+	it("a thread may be started with the tools we serve", () => {
+		const start = bundle.definitions.ThreadStartParams?.properties;
+		expect(start).toHaveProperty("dynamicTools");
+		const spec = bundle.definitions.DynamicToolSpec?.oneOf;
+		expect(Array.isArray(spec) && spec.length > 0).toBe(true);
+		expect(variantTypes("DynamicToolSpec")).toContain("function");
+		expect(enumOf("DynamicToolCallStatus")).toEqual([
+			"inProgress",
+			"completed",
+			"failed",
+		]);
+	});
+
+	it("the answers we send carry every field the server requires", () => {
+		expect(toolCallResponse.required).toEqual(["contentItems", "success"]);
+		expect(currentTimeResponse.required).toEqual(["currentTimeAt"]);
+		expect(bundle.definitions.DynamicToolCallOutputContentItem).toBeDefined();
 	});
 
 	it("the policy values we send exist", () => {
@@ -146,6 +177,8 @@ describe("the codex protocol slice agrees with the pinned schema bundle", () => 
 			"mcpServer/elicitation/request",
 			"execCommandApproval",
 			"applyPatchApproval",
+			"item/tool/call",
+			"currentTime/read",
 		]) {
 			expect(methods, method).toContain(method);
 		}

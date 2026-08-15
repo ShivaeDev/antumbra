@@ -6,6 +6,7 @@ import {
 	type Scope,
 	type Stream,
 } from "effect";
+import type { DirectTool } from "#tools.ts";
 
 // why: shaped from the widest backend protocol surveyed and narrowed per
 // backend — the Claude SDK surface is not the interface ceiling.
@@ -42,6 +43,10 @@ export interface OpenSessionOptions {
 	readonly cwd: string;
 	readonly resume: Option.Option<string>;
 	readonly sessionId: string;
+	// why: the session's whole tool set, decided by the caller at open. An
+	// empty array is the explicit "this session acts through nothing", never
+	// an omission a backend may fill in for itself.
+	readonly tools: ReadonlyArray<DirectTool>;
 }
 
 // why: opening is scoped — releasing the scope is the only way a session

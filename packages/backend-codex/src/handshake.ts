@@ -40,11 +40,15 @@ const checkVersion = (response: unknown) =>
 	});
 
 // why: one initialize per connection, then the initialized notification —
-// the only handshake app-server accepts, and nothing else may go first.
+// the only handshake app-server accepts, and nothing else may go first. The
+// experimental capability is on because the tools a session is opened with
+// are gated behind it: thread/start refuses them without it. That surface was
+// surveyed against the stable one at the pinned version and is additive —
+// nothing we already speak changes shape.
 export const handshake = (request: Request) =>
 	request("initialize", {
 		capabilities: {
-			experimentalApi: false,
+			experimentalApi: true,
 			optOutNotificationMethods: MUTED_NOTIFICATIONS,
 			requestAttestation: false,
 		},

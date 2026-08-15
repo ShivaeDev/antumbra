@@ -5,6 +5,7 @@ import {
 } from "@antumbra/persistence/testing";
 import type {
 	AgentBackend,
+	DirectTool,
 	ProvisionRequest,
 	Runner,
 	SessionHandle,
@@ -13,6 +14,7 @@ import type { AgentEvent } from "@antumbra/session-events";
 import { Effect, Layer, Option, Queue, Ref, Stream } from "effect";
 import { DispatcherLive, type DispatcherOptions } from "#dispatcher.ts";
 import { AgentDomain, AgentDomainLive } from "#domain.ts";
+import { RetireQueueLive } from "#retire-queue.ts";
 
 export interface ScriptedRunner {
 	readonly provisioned: Effect.Effect<ReadonlyArray<ProvisionRequest>>;
@@ -54,6 +56,9 @@ export interface ScriptedSession {
 	readonly interrupted: Effect.Effect<boolean>;
 	readonly sent: Effect.Effect<ReadonlyArray<string>>;
 	readonly steered: Effect.Effect<ReadonlyArray<string>>;
+	// why: the scripted backend is where a test reaches the tools a session was
+	// opened with — a real harness hands them to a model instead.
+	readonly tools: ReadonlyArray<DirectTool>;
 }
 
 export const rawOf = (kind: string): AgentEvent["raw"] => ({
@@ -93,6 +98,7 @@ export const makeScriptedBackend = Effect.gen(function* () {
 					interrupted: Ref.get(interrupted),
 					sent: Ref.get(sent),
 					steered: Ref.get(steered),
+					tools: options.tools,
 				};
 				yield* Ref.update(sessions, (map) =>
 					new Map(map).set(options.sessionId, scripted),
@@ -130,16 +136,19 @@ export const domainKernelLayer = (
 	options: Omit<KernelOptions, "kinds" | "gauges"> = {},
 	runner: Runner = passiveRunner,
 ) =>
-	Layer.unwrap(
-		Effect.gen(function* () {
-			const domain = yield* AgentDomain;
-			return KernelLive({
-				...options,
-				gauges: domain.gauges,
-				kinds: domain.kinds,
-			});
-		}),
-	).pipe(
+	RetireQueueLive.pipe(
+		Layer.provideMerge(
+			Layer.unwrap(
+				Effect.gen(function* () {
+					const domain = yield* AgentDomain;
+					return KernelLive({
+						...options,
+						gauges: domain.gauges,
+						kinds: domain.kinds,
+					});
+				}),
+			),
+		),
 		Layer.provideMerge(
 			AgentDomainLive(
 				new Map([[backend.tag, backend]]),

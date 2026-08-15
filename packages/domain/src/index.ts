@@ -36,6 +36,7 @@ export {
 	repoName,
 } from "#registry.ts";
 export type { RetireFields } from "#retire.ts";
+export { RetireQueueLive } from "#retire-queue.ts";
 export { SightSourceLive } from "#sight.ts";
 export type { SpawnFields } from "#spawn.ts";
 export {

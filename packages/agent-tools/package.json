@@ -1,5 +1,5 @@
 {
-	"name": "@antumbra/backend-claude",
+	"name": "@antumbra/agent-tools",
 	"version": "0.0.0",
 	"private": true,
 	"type": "module",
@@ -23,10 +23,7 @@
 		"vitest": "catalog:"
 	},
 	"dependencies": {
-		"@anthropic-ai/claude-agent-sdk": "catalog:",
 		"@antumbra/plugin-api": "workspace:*",
-		"@antumbra/session-events": "workspace:*",
-		"@modelcontextprotocol/sdk": "catalog:",
 		"effect": "catalog:"
 	}
 }

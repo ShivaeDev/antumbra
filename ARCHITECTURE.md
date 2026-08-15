@@ -24,6 +24,7 @@ conversation-level: on relaunch, agent sessions resume from persisted state.
 | `packages/contract`       | The typed API surface between renderer and main (a leaf)        |
 | `packages/session-events` | The neutral session-event vocabulary every side speaks (a leaf) |
 | `packages/plugin-api`     | The driven ports: agent backends, runners, plugin registration  |
+| `packages/agent-tools`    | The tools agents act through: schemas and binding, no transport |
 | `packages/kernel`         | Intents, admission scheduling, lifecycle state machines         |
 | `packages/domain`         | Agent use cases and the projections the contract serves         |
 | `packages/git`            | Semantic Git operations over Effect's child-process port        |
@@ -38,8 +39,12 @@ conversation-level: on relaunch, agent sessions resume from persisted state.
 The workspace is hexagonal, and the direction is the point. The vocabulary
 and the contract are leaves: they import nothing and everyone may speak
 them. `plugin-api` declares the driven ports — what an agent backend or a
-runner must be. `domain` holds the use cases and depends only on ports, so
-it can name what it needs without naming who provides it. Adapter packages
+runner must be, and what a tool an agent may call is. `agent-tools` sits
+just above it and holds the tool specifications themselves — schemas and
+binding, no transport — so the domain writes the handlers while every
+adapter maps the same set onto its provider, and neither learns the other.
+`domain` holds the use cases and depends only on ports, so it can name what
+it needs without naming who provides it. Adapter packages
 (`backend-*`, `runner-*`) implement a port for exactly one provider and
 never reach back into the domain. `apps/desktop` is the composition root and
 the only place where an adapter and a use case appear together.

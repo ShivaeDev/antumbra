@@ -4,7 +4,8 @@ import { Schema } from "effect";
 // backend consumes. The full generated schema bundle for the pinned CLI is
 // vendored beside this file and a test holds every literal here to it —
 // the bundle is the pin, this file is the slice we speak. Decoding is
-// lenient: unknown fields drop, unmodelled items fall through as raw.
+// lenient: unknown fields drop, unmodelled items fall through as raw. The
+// thread items are their own page, in `protocol-items.ts`.
 
 export const PINNED_CLI_VERSION = "0.148.0-alpha.9";
 
@@ -34,88 +35,14 @@ export const TurnResponse = Schema.Struct({ turn: Turn });
 
 export const TurnSteerResponse = Schema.Struct({ turnId: Schema.String });
 
-const item = { id: Schema.String };
-
-export const ExecutionStatus = Schema.Literals([
-	"inProgress",
-	"completed",
-	"failed",
-	"declined",
-]);
-
-export const AgentMessageItem = Schema.Struct({
-	...item,
-	text: Schema.String,
-	type: Schema.Literal("agentMessage"),
-});
-
-export const ReasoningItem = Schema.Struct({
-	...item,
-	content: Schema.optional(Schema.Array(Schema.String)),
-	summary: Schema.optional(Schema.Array(Schema.String)),
-	type: Schema.Literal("reasoning"),
-});
-
-export const CommandExecutionItem = Schema.Struct({
-	...item,
-	aggregatedOutput: Schema.optional(Schema.NullOr(Schema.String)),
-	command: Schema.String,
-	cwd: Schema.String,
-	exitCode: Schema.optional(Schema.NullOr(Schema.Number)),
-	status: ExecutionStatus,
-	type: Schema.Literal("commandExecution"),
-});
-
-export const FileChangeItem = Schema.Struct({
-	...item,
-	changes: Schema.Array(
-		Schema.Struct({ diff: Schema.String, path: Schema.String }),
-	),
-	status: ExecutionStatus,
-	type: Schema.Literal("fileChange"),
-});
-
-export const McpToolCallItem = Schema.Struct({
-	...item,
+// why: the server asks us to run a tool by thread and name; the call id and
+// turn id ride along on the wire as its own bookkeeping, so the slice names
+// only what deciding an answer needs.
+export const DynamicToolCallParams = Schema.Struct({
 	arguments: Schema.Unknown,
-	error: Schema.optional(Schema.NullOr(TurnError)),
-	result: Schema.optional(Schema.Unknown),
-	server: Schema.String,
-	status: Schema.Literals(["inProgress", "completed", "failed"]),
+	threadId: Schema.String,
 	tool: Schema.String,
-	type: Schema.Literal("mcpToolCall"),
 });
-
-export const WebSearchItem = Schema.Struct({
-	...item,
-	query: Schema.String,
-	type: Schema.Literal("webSearch"),
-});
-
-export const UserMessageItem = Schema.Struct({
-	...item,
-	content: Schema.Array(
-		Schema.Struct({
-			text: Schema.optional(Schema.String),
-			type: Schema.String,
-		}),
-	),
-	type: Schema.Literal("userMessage"),
-});
-
-// why: only the modelled variants form the union, so a literal `type`
-// discriminates every member; anything else stays `unknown` and is logged
-// raw rather than decoded into a shape it does not have.
-export const KnownItem = Schema.Union([
-	AgentMessageItem,
-	UserMessageItem,
-	ReasoningItem,
-	CommandExecutionItem,
-	FileChangeItem,
-	McpToolCallItem,
-	WebSearchItem,
-]);
-export type KnownItem = typeof KnownItem.Type;
 
 export const ItemNotification = Schema.Struct({
 	item: Schema.Unknown,

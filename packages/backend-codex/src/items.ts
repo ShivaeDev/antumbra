@@ -1,18 +1,26 @@
 import type { AgentEvent, RawPayload } from "@antumbra/session-events";
 import { Option, Schema } from "effect";
-import { KnownItem } from "#protocol.ts";
+import { KnownItem } from "#protocol-items.ts";
 
 type Item<T extends KnownItem["type"]> = Extract<KnownItem, { type: T }>;
 
 const decodeItem = Schema.decodeUnknownOption(KnownItem);
 
-const toolName = (item: KnownItem): string =>
-	item.type === "mcpToolCall" ? `${item.server}/${item.tool}` : item.type;
+const toolName = (item: KnownItem): string => {
+	if (item.type === "mcpToolCall") {
+		return `${item.server}/${item.tool}`;
+	}
+	// why: a tool we served is named as the agent called it, with no provider
+	// prefix — the transcript should read the same on either backend.
+	return item.type === "dynamicToolCall" ? item.tool : item.type;
+};
 
 const toolInput = (item: KnownItem): string => {
 	switch (item.type) {
 		case "commandExecution":
 			return item.command;
+		case "dynamicToolCall":
+			return JSON.stringify(item.arguments);
 		case "fileChange":
 			return item.changes.map((change) => change.path).join("\n");
 		case "mcpToolCall":
@@ -28,10 +36,12 @@ const isTool = (
 	item: KnownItem,
 ): item is
 	| Item<"commandExecution">
+	| Item<"dynamicToolCall">
 	| Item<"fileChange">
 	| Item<"mcpToolCall">
 	| Item<"webSearch"> =>
 	item.type === "commandExecution" ||
+	item.type === "dynamicToolCall" ||
 	item.type === "fileChange" ||
 	item.type === "mcpToolCall" ||
 	item.type === "webSearch";
@@ -39,12 +49,27 @@ const isTool = (
 const commandOk = (item: Item<"commandExecution">): boolean =>
 	item.status === "completed" && (item.exitCode ?? 0) === 0;
 
+// why: the answer we gave is the truth about a tool we served — status alone
+// reads a refused landing as a completed call.
+const dynamicOutcome = (item: Item<"dynamicToolCall">) => ({
+	ok: item.success ?? item.status === "completed",
+	output: (item.contentItems ?? []).map((part) => part.text ?? "").join("\n"),
+});
+
 const toolOutcome = (
-	item: Item<"commandExecution" | "fileChange" | "mcpToolCall" | "webSearch">,
+	item: Item<
+		| "commandExecution"
+		| "dynamicToolCall"
+		| "fileChange"
+		| "mcpToolCall"
+		| "webSearch"
+	>,
 ): { ok: boolean; output: string } => {
 	switch (item.type) {
 		case "commandExecution":
 			return { ok: commandOk(item), output: item.aggregatedOutput ?? "" };
+		case "dynamicToolCall":
+			return dynamicOutcome(item);
 		case "fileChange":
 			return {
 				ok: item.status === "completed",

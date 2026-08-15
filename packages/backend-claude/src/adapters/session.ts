@@ -9,6 +9,9 @@ import { InputQueue } from "#adapters/input-queue.ts";
 
 export interface RawSessionOptions {
 	readonly cwd: string;
+	// why: the Claude Code the host installed, never a bundled copy — the
+	// desktop shell finds it, the backend never guesses a path.
+	readonly executable: string;
 	readonly resume: string | undefined;
 }
 
@@ -44,6 +47,7 @@ export const openRawSession = (options: RawSessionOptions): RawSession => {
 	// system/init, the same path codex threads take.
 	const sessionOptions: Options = {
 		cwd: resolve(options.cwd),
+		pathToClaudeCodeExecutable: options.executable,
 		permissionMode: "auto",
 		...(options.resume === undefined ? {} : { resume: options.resume }),
 	};

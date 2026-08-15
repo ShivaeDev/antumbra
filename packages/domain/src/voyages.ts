@@ -1,7 +1,8 @@
 import type { PrismaError } from "@antumbra/persistence";
-import { Clock, Effect, Option, PubSub } from "effect";
+import { Clock, Effect, type Option, PubSub } from "effect";
 import { type AgentDeps, provideExecutors } from "#deps.ts";
 import type { EdgeWouldCycle, PieceNotFound } from "#errors.ts";
+import { type HailedCaptain, type HailRefused, hailCaptain } from "#hail.ts";
 import {
 	type ArtifactInput,
 	landArtifact,
@@ -16,6 +17,7 @@ import {
 	parkPiece,
 	rewirePiece,
 } from "#pieces.ts";
+import { readVoyageView } from "#voyage-read.ts";
 import type {
 	ArtifactRow,
 	PieceRow,
@@ -26,7 +28,6 @@ import {
 	type VoyageSummary,
 	type VoyageView,
 	voyageSummaries,
-	voyageView,
 } from "#voyage-view.ts";
 import { readVoyageWorld } from "#voyage-world.ts";
 
@@ -42,6 +43,9 @@ export interface VoyageProcedures {
 	readonly charterPiece: (
 		input: CharterInput,
 	) => Effect.Effect<PieceRow, EdgeFailure>;
+	readonly hail: (
+		voyageId: string,
+	) => Effect.Effect<HailedCaptain, HailRefused>;
 	readonly landArtifact: (
 		input: ArtifactInput,
 	) => Effect.Effect<ArtifactRow, PieceNotFound | PrismaError>;
@@ -111,27 +115,16 @@ const setFocus = (deps: AgentDeps, voyageId: string, focused: boolean) =>
 		yield* announce(deps);
 	});
 
-const readVoyage = (deps: AgentDeps, voyageId: string) =>
-	readVoyageWorld(deps).pipe(
-		Effect.map((world) =>
-			Option.map(
-				Option.fromUndefinedOr(
-					world.voyages.find((voyage) => voyage.id === voyageId),
-				),
-				(voyage) => voyageView(world, voyage),
-			),
-		),
-	);
-
 export const makeVoyageProcedures = (deps: AgentDeps): VoyageProcedures => ({
 	charterPiece: (input) => charterPiece(deps, input),
+	hail: (voyageId) => hailCaptain(deps, voyageId),
 	landArtifact: (input) => landArtifact(deps, input),
 	landReport: (input) => landReport(deps, input),
 	launch: (pieceId) => launchPiece(deps, pieceId),
 	list: readVoyageWorld(deps).pipe(Effect.map(voyageSummaries)),
 	open: (input) => openVoyage(deps, input),
 	park: (pieceId) => parkPiece(deps, pieceId, true),
-	read: (voyageId) => readVoyage(deps, voyageId),
+	read: (voyageId) => readVoyageView(deps, voyageId),
 	rewire: (pieceId, dependsOn) => rewirePiece(deps, pieceId, dependsOn),
 	setFocus: (voyageId, focused) => setFocus(deps, voyageId, focused),
 	unpark: (pieceId) => parkPiece(deps, pieceId, false),

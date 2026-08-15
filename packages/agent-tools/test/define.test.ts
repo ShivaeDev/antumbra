@@ -1,10 +1,31 @@
 import { DIRECT_TOOL_NAME } from "@antumbra/plugin-api";
 import { expect, it } from "@effect/vitest";
 import { Effect, Schema } from "effect";
+import { readBoardSpec, writeBoardSpec } from "#boards.ts";
+import {
+	charterPieceSpec,
+	launchPieceSpec,
+	parkPieceSpec,
+	readVoyageSpec,
+	rewirePieceSpec,
+	unparkPieceSpec,
+} from "#captain.ts";
 import { landArtifactSpec, landReportSpec, standDownSpec } from "#crew.ts";
 import { bind, defineTool } from "#define.ts";
 
-const specs = [landReportSpec, landArtifactSpec, standDownSpec];
+const specs = [
+	landReportSpec,
+	landArtifactSpec,
+	charterPieceSpec,
+	launchPieceSpec,
+	parkPieceSpec,
+	unparkPieceSpec,
+	rewirePieceSpec,
+	readVoyageSpec,
+	readBoardSpec,
+	writeBoardSpec,
+	standDownSpec,
+];
 
 it("every spec is named the way both harnesses accept", () => {
 	for (const spec of specs) {
@@ -22,6 +43,27 @@ it("every spec emits a closed object schema", () => {
 	}
 	expect(landReportSpec.inputSchema.required).toEqual(["body", "title"]);
 	expect(landArtifactSpec.inputSchema.required).toEqual(["title", "uri"]);
+	expect(writeBoardSpec.inputSchema.required).toEqual([
+		"body",
+		"register",
+		"scope",
+	]);
+	expect(readBoardSpec.inputSchema.required).toEqual(["scope"]);
+	expect(charterPieceSpec.inputSchema.required).toEqual([
+		"charter",
+		"dependsOn",
+		"expectation",
+		"role",
+		"title",
+	]);
+	expect(launchPieceSpec.inputSchema.required).toEqual(["pieceId"]);
+	expect(parkPieceSpec.inputSchema.required).toEqual(["pieceId"]);
+	expect(unparkPieceSpec.inputSchema.required).toEqual(["pieceId"]);
+	expect(rewirePieceSpec.inputSchema.required).toEqual([
+		"dependsOn",
+		"pieceId",
+	]);
+	expect(readVoyageSpec.inputSchema).toEqual(standDownSpec.inputSchema);
 	expect(standDownSpec.inputSchema).toEqual({
 		additionalProperties: false,
 		properties: {},
@@ -34,6 +76,19 @@ it("field descriptions reach the schema the model reads", () => {
 	expect(landReportSpec.inputSchema.properties).toMatchObject({
 		body: { description: expect.any(String), type: "string" },
 		title: { description: expect.any(String), type: "string" },
+	});
+});
+
+it("a list of ids reaches the model as an array of strings", () => {
+	expect(rewirePieceSpec.inputSchema.properties).toMatchObject({
+		dependsOn: { items: { type: "string" }, type: "array" },
+	});
+});
+
+it("a closed set of choices reaches the model as an enum", () => {
+	expect(writeBoardSpec.inputSchema.properties).toMatchObject({
+		register: { enum: ["rough", "smooth"] },
+		scope: { enum: ["piece", "self", "voyage"] },
 	});
 });
 

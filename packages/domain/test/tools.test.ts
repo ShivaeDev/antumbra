@@ -6,22 +6,13 @@ import { AgentDomain } from "#domain.ts";
 import type { SpawnFields } from "#index.ts";
 import {
 	acquireTemporaryPersistence,
+	callTool,
 	dispatchingLayer,
 	domainKernelLayer,
 	makeScriptedBackend,
 	type ScriptedBackend,
-	type ScriptedSession,
 } from "#test/harness.ts";
 import { chain, eventually, PATIENCE, stateOf } from "#test/voyage-fixtures.ts";
-
-const callTool = (session: ScriptedSession, name: string, args: unknown) =>
-	Option.match(
-		Option.fromUndefinedOr(session.tools.find((tool) => tool.name === name)),
-		{
-			onNone: () => Effect.die(`the session has no ${name} tool`),
-			onSome: (tool) => tool.call(args),
-		},
-	);
 
 const openedSession = (scripted: ScriptedBackend) =>
 	Effect.gen(function* () {
@@ -67,6 +58,8 @@ it.live(
 				expect(live.tools.map((tool) => tool.name)).toEqual([
 					"land_report",
 					"land_artifact",
+					"write_board",
+					"read_board",
 					"stand_down",
 				]);
 
@@ -122,6 +115,74 @@ it.live("a session with no piece has nothing to land against", () =>
 					title: "adrift",
 				}),
 			).toEqual({ ok: false, text: "you are not on a piece" });
+		}).pipe(Effect.provide(domainKernelLayer(temporary, scripted.backend)));
+	}),
+);
+
+it.live("crew write to the board of their piece and of its voyage", () =>
+	Effect.gen(function* () {
+		const temporary = yield* acquireTemporaryPersistence;
+		const scripted = yield* makeScriptedBackend;
+		yield* Effect.gen(function* () {
+			const domain = yield* AgentDomain;
+			const { alpha, voyage } = yield* chain;
+			const { agentId, live } = yield* eventually(openedSession(scripted));
+
+			expect(
+				yield* callTool(live, "write_board", {
+					body: "the shoal is steeper than charted",
+					register: "smooth",
+					scope: "piece",
+				}),
+			).toEqual({ ok: true, text: "written to the piece board" });
+			expect(
+				yield* callTool(live, "write_board", {
+					body: "the swell is running",
+					register: "rough",
+					scope: "voyage",
+				}),
+			).toEqual({ ok: true, text: "written to the voyage board" });
+
+			expect(
+				yield* domain.boards.read({ kind: "piece", pieceId: alpha.id }),
+			).toMatchObject([
+				{ authorAgentId: agentId, body: "the shoal is steeper than charted" },
+			]);
+			expect(yield* callTool(live, "read_board", { scope: "voyage" })).toEqual({
+				ok: true,
+				text: "[rough] the swell is running",
+			});
+			expect(
+				yield* domain.boards.read({ kind: "voyage", voyageId: voyage.id }),
+			).toMatchObject([{ body: "the swell is running" }]);
+		}).pipe(
+			Effect.provide(dispatchingLayer(temporary, scripted.backend, PATIENCE)),
+		);
+	}),
+);
+
+it.live("a session with no piece has no board but its own", () =>
+	Effect.gen(function* () {
+		const temporary = yield* acquireTemporaryPersistence;
+		const scripted = yield* makeScriptedBackend;
+		yield* Effect.gen(function* () {
+			yield* spawnByHand(HAND);
+			const { live } = yield* eventually(openedSession(scripted));
+			expect(yield* callTool(live, "read_board", { scope: "voyage" })).toEqual({
+				ok: false,
+				text: "you have no voyage board",
+			});
+			expect(
+				yield* callTool(live, "write_board", {
+					body: "sounded nothing yet",
+					register: "rough",
+					scope: "self",
+				}),
+			).toEqual({ ok: true, text: "written to the self board" });
+			expect(yield* callTool(live, "read_board", { scope: "self" })).toEqual({
+				ok: true,
+				text: "[rough] sounded nothing yet",
+			});
 		}).pipe(Effect.provide(domainKernelLayer(temporary, scripted.backend)));
 	}),
 );

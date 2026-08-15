@@ -1,16 +1,9 @@
-import type {
-	IntentStatus,
-	IntentSubmission,
-	PayloadInvalid,
-	UnregisteredIntentTag,
-} from "@antumbra/kernel";
-import type {
-	DatabaseService,
-	PrismaError,
-	WriteExecutors,
-} from "@antumbra/persistence";
+import type { IntentStatus, IntentSubmission } from "@antumbra/kernel";
+import type { DatabaseService, WriteExecutors } from "@antumbra/persistence";
 import { Effect, Option, Queue, Stream } from "effect";
+import { smoothLog } from "#boards.ts";
 import { composeCrewCharter } from "#charter-compose.ts";
+import type { SpawnRefused } from "#deps.ts";
 import type { ReadyPiece } from "#dispatch-policy.ts";
 import {
 	type DispatchState,
@@ -21,18 +14,13 @@ import {
 } from "#dispatch-state.ts";
 import type { SpawnFields } from "#spawn.ts";
 
-export type SubmitRefused =
-	| PayloadInvalid
-	| PrismaError
-	| UnregisteredIntentTag;
-
 export interface DispatchPort {
 	readonly db: DatabaseService;
 	readonly patienceMillis: number;
 	readonly state: DispatchState;
 	readonly submit: (
 		payload: SpawnFields,
-	) => Effect.Effect<IntentSubmission, SubmitRefused, WriteExecutors>;
+	) => Effect.Effect<IntentSubmission, SpawnRefused, WriteExecutors>;
 }
 
 const TERMINAL: ReadonlySet<IntentStatus> = new Set([
@@ -86,6 +74,25 @@ const watchDispatch = (
 		Effect.andThen(Queue.offer(port.state.tick, undefined)),
 	);
 
+// why: the boards are read here, in the pass, rather than inside the pure
+// composer — what a piece is told at birth is a fact about the moment it is
+// dispatched, and the composer stays a function of its inputs.
+const charterFor = (port: DispatchPort, candidate: ReadyPiece) =>
+	Effect.gen(function* () {
+		const voyageSmoothLog = yield* smoothLog(port.db, {
+			kind: "voyage",
+			voyageId: candidate.voyage.id,
+		});
+		const pieceSmoothLog = yield* smoothLog(port.db, {
+			kind: "piece",
+			pieceId: candidate.piece.id,
+		});
+		return composeCrewCharter(candidate.voyage, candidate.piece, {
+			pieceSmoothLog,
+			voyageSmoothLog,
+		});
+	});
+
 export const dispatchPiece = (port: DispatchPort, candidate: ReadyPiece) =>
 	Effect.gen(function* () {
 		const agentId = crypto.randomUUID();
@@ -93,7 +100,7 @@ export const dispatchPiece = (port: DispatchPort, candidate: ReadyPiece) =>
 		const submission = yield* port.submit({
 			agentId,
 			backend: candidate.voyage.backend,
-			charter: composeCrewCharter(candidate.voyage, candidate.piece),
+			charter: yield* charterFor(port, candidate),
 			pieceId,
 			// why: the sole runner in v1 — the field becomes a choice when a
 			// second runner exists to choose between.

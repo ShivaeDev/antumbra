@@ -1,16 +1,18 @@
 import { defineIntent } from "@antumbra/kernel";
 import { Effect, Option, Schema } from "effect";
+import { captainTools } from "#captain-tools.ts";
 import { deliverCharterOnce } from "#charter.ts";
 import { crewTools } from "#crew-tools.ts";
 import type { AgentDeps } from "#deps.ts";
 import { UnknownBackendTag, UnknownRunnerTag } from "#errors.ts";
+import { recordMoorage } from "#moorage-rows.ts";
 import { berthRequests } from "#registry.ts";
 import {
 	activateAgent,
 	ensureAgentRow,
-	recordMoorage,
 	settleSpawnFailure,
 } from "#spawn-rows.ts";
+import { CAPTAIN_ROLE } from "#voyage-captain.ts";
 
 const SpawnPayload = Schema.Struct({
 	agentId: Schema.String,
@@ -23,18 +25,27 @@ const SpawnPayload = Schema.Struct({
 	role: Schema.String,
 	runner: Schema.String,
 	sessionId: Schema.String,
+	// why: a captain answers to a voyage rather than to one of its pieces, so
+	// the crew row is written in the same act as the birth.
+	voyageId: Schema.optionalKey(Schema.String),
 });
 export type SpawnFields = typeof SpawnPayload.Type;
 
-// why: the session's tools are bound to this agent, this session, and the
-// piece it answers to — identity is fixed here, at birth, and never travels
-// with a call.
-const toolsFor = (deps: AgentDeps, payload: SpawnFields) =>
-	crewTools(deps, {
+// why: the session's tools are bound to this agent, this session, and what it
+// answers to — identity is fixed here, at birth, and never travels with a
+// call. Which set a session receives is the whole enforcement of the
+// anti-proposer rule: a captain charters, everyone else reports.
+const toolsFor = (deps: AgentDeps, payload: SpawnFields) => {
+	const identity = {
 		agentId: payload.agentId,
 		pieceId: Option.fromUndefinedOr(payload.pieceId),
 		sessionId: payload.sessionId,
-	});
+		voyageId: Option.fromUndefinedOr(payload.voyageId),
+	};
+	return payload.role === CAPTAIN_ROLE && Option.isSome(identity.voyageId)
+		? captainTools(deps, identity)
+		: crewTools(deps, identity);
+};
 
 const spawnAgent = (deps: AgentDeps, payload: SpawnFields) =>
 	Effect.gen(function* () {

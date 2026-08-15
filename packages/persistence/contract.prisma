@@ -165,3 +165,40 @@ model PieceArtifact {
 
   @@id([pieceId, artifactId])
 }
+
+model Board {
+  id        String   @id
+  createdAt DateTime @default(now())
+}
+
+model BoardEntry {
+  id            String   @id
+  boardId       String
+  register      String
+  authorAgentId String?
+  body          String
+  createdAt     DateTime @default(now())
+
+  @@index([boardId])
+}
+
+model VoyageBoard {
+  voyageId String
+  boardId  String
+
+  @@id([voyageId, boardId])
+}
+
+model PieceBoard {
+  pieceId String
+  boardId String
+
+  @@id([pieceId, boardId])
+}
+
+model AgentBoard {
+  agentId String
+  boardId String
+
+  @@id([agentId, boardId])
+}

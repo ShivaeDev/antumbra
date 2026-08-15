@@ -1,3 +1,6 @@
+import { Option } from "effect";
+import { atWork } from "#agent-at-work.ts";
+import { captainAtWork } from "#voyage-captain.ts";
 import type { EdgeRow, PieceRow, VoyageWorld } from "#voyage-rows.ts";
 
 export const PIECE_STATES = [
@@ -53,15 +56,6 @@ export const donePieces = (world: VoyageWorld): ReadonlySet<string> =>
 		...world.pieceReports.map((link) => link.pieceId),
 		...world.pieceArtifacts.map((link) => link.pieceId),
 	]);
-
-// why: an agent is at work from the moment it is being born — a spawning
-// agent has no session yet, but its piece must not be dispatched a second
-// time while the first spawn is still assembling it. Dormant and retired
-// agents release their piece back into the pool.
-const AT_WORK: ReadonlySet<string> = new Set(["alive", "spawning"]);
-
-const atWork = (world: VoyageWorld, agentId: string): boolean =>
-	AT_WORK.has(world.agentStatus.get(agentId) ?? "");
 
 export const workingAssignees = (
 	world: VoyageWorld,
@@ -123,11 +117,7 @@ export const voyageState = (
 	const working = piecesOfVoyage(world, voyageId).some(
 		(pieceId) => states.get(pieceId) === "active",
 	);
-	const captained = world.crews.some(
-		(crew) =>
-			crew.voyageId === voyageId &&
-			crew.role === "captain" &&
-			atWork(world, crew.agentId),
-	);
-	return working || captained ? "underWay" : "quiet";
+	return working || Option.isSome(captainAtWork(world, voyageId))
+		? "underWay"
+		: "quiet";
 };

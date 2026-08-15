@@ -1,0 +1,248 @@
+[
+  {
+    "id": "table.agentBoard",
+    "label": "Create table agentBoard",
+    "summary": "Creates table agentBoard with required columns",
+    "operationClass": "additive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "table",
+        "name": "agentBoard"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"agentBoard\" does not exist",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "table",
+          "agentBoard"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"agentBoard\"",
+        "sql": "CREATE TABLE \"agentBoard\" (\n  \"agentId\" TEXT NOT NULL,\n  \"boardId\" TEXT NOT NULL,\n  PRIMARY KEY (\"agentId\", \"boardId\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"agentBoard\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "table",
+          "agentBoard"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.board",
+    "label": "Create table board",
+    "summary": "Creates table board with required columns",
+    "operationClass": "additive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "table",
+        "name": "board"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"board\" does not exist",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "table",
+          "board"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"board\"",
+        "sql": "CREATE TABLE \"board\" (\n  \"createdAt\" TEXT NOT NULL DEFAULT (datetime('now')),\n  \"id\" TEXT NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"board\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "table",
+          "board"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.boardEntry",
+    "label": "Create table boardEntry",
+    "summary": "Creates table boardEntry with required columns",
+    "operationClass": "additive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "table",
+        "name": "boardEntry"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"boardEntry\" does not exist",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "table",
+          "boardEntry"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"boardEntry\"",
+        "sql": "CREATE TABLE \"boardEntry\" (\n  \"authorAgentId\" TEXT,\n  \"boardId\" TEXT NOT NULL,\n  \"body\" TEXT NOT NULL,\n  \"createdAt\" TEXT NOT NULL DEFAULT (datetime('now')),\n  \"id\" TEXT NOT NULL,\n  \"register\" TEXT NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"boardEntry\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "table",
+          "boardEntry"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.pieceBoard",
+    "label": "Create table pieceBoard",
+    "summary": "Creates table pieceBoard with required columns",
+    "operationClass": "additive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "table",
+        "name": "pieceBoard"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"pieceBoard\" does not exist",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "table",
+          "pieceBoard"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"pieceBoard\"",
+        "sql": "CREATE TABLE \"pieceBoard\" (\n  \"boardId\" TEXT NOT NULL,\n  \"pieceId\" TEXT NOT NULL,\n  PRIMARY KEY (\"pieceId\", \"boardId\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"pieceBoard\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "table",
+          "pieceBoard"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.voyageBoard",
+    "label": "Create table voyageBoard",
+    "summary": "Creates table voyageBoard with required columns",
+    "operationClass": "additive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "table",
+        "name": "voyageBoard"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"voyageBoard\" does not exist",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "table",
+          "voyageBoard"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"voyageBoard\"",
+        "sql": "CREATE TABLE \"voyageBoard\" (\n  \"boardId\" TEXT NOT NULL,\n  \"voyageId\" TEXT NOT NULL,\n  PRIMARY KEY (\"voyageId\", \"boardId\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"voyageBoard\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "table",
+          "voyageBoard"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.boardEntry.boardEntry_boardId_idx",
+    "label": "Create index boardEntry_boardId_idx on boardEntry",
+    "summary": "Creates index boardEntry_boardId_idx on boardEntry",
+    "operationClass": "additive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "index",
+        "name": "boardEntry_boardId_idx",
+        "table": "boardEntry"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"boardEntry_boardId_idx\" is missing",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "index",
+          "boardEntry_boardId_idx"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"boardEntry_boardId_idx\"",
+        "sql": "CREATE INDEX \"boardEntry_boardId_idx\" ON \"boardEntry\" (\"boardId\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"boardEntry_boardId_idx\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "index",
+          "boardEntry_boardId_idx"
+        ]
+      }
+    ]
+  }
+]

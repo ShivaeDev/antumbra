@@ -19,6 +19,7 @@ export {
 	UnknownBackendTag,
 } from "#errors.ts";
 export type { DomainFeeds, StoredEvent } from "#feeds.ts";
+export { KernelReachLive } from "#kernel-reach.ts";
 export type { ArtifactInput, ReportInput } from "#outcomes.ts";
 export {
 	PIECE_STATES,
@@ -36,7 +37,6 @@ export {
 	repoName,
 } from "#registry.ts";
 export type { RetireFields } from "#retire.ts";
-export { RetireQueueLive } from "#retire-queue.ts";
 export { SightSourceLive } from "#sight.ts";
 export type { SpawnFields } from "#spawn.ts";
 export {

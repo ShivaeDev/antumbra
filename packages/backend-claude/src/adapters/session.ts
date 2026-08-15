@@ -1,11 +1,13 @@
-import { resolve } from "node:path";
 import {
-	type Options,
 	query,
 	type SDKMessage,
 	type SDKUserMessage,
 } from "@anthropic-ai/claude-agent-sdk";
+import type { DirectTool } from "@antumbra/plugin-api";
+import { type Context, Option } from "effect";
 import { InputQueue } from "#adapters/input-queue.ts";
+import { makeToolServer } from "#adapters/tool-server.ts";
+import { sessionOptions, type ToolAccess } from "#session-options.ts";
 
 export interface RawSessionOptions {
 	readonly cwd: string;
@@ -13,6 +15,10 @@ export interface RawSessionOptions {
 	// desktop shell finds it, the backend never guesses a path.
 	readonly executable: string;
 	readonly resume: string | undefined;
+	// why: the tools run their handlers on the services the session was opened
+	// with, so a handler logs through the app's logger rather than a bare one.
+	readonly services: Context.Context<never>;
+	readonly tools: ReadonlyArray<DirectTool>;
 }
 
 export interface RawEventListener {
@@ -38,20 +44,27 @@ const userMessage = (
 	type: "user",
 });
 
+// why: an empty tool set means the session acts through nothing, so no server
+// is built and the SDK is never made to wait on one connecting.
+const toolAccess = (options: RawSessionOptions): Option.Option<ToolAccess> =>
+	options.tools.length === 0
+		? Option.none()
+		: Option.some({
+				names: options.tools.map((tool) => tool.name),
+				server: makeToolServer(options.tools, options.services),
+			});
+
 export const openRawSession = (options: RawSessionOptions): RawSession => {
 	const input = new InputQueue();
-	// why: the SDK's literal "auto" permission mode — ruled policy, and not
-	// interchangeable with bypassPermissions. cwd is resolved because it keys
-	// the SDK's transcript space — a non-canonical path silently forks it. No
-	// session id is pre-assigned: the SDK mints one and reports it in
-	// system/init, the same path codex threads take.
-	const sessionOptions: Options = {
-		cwd: resolve(options.cwd),
-		pathToClaudeCodeExecutable: options.executable,
-		permissionMode: "auto",
-		...(options.resume === undefined ? {} : { resume: options.resume }),
-	};
-	const live = query({ prompt: input.stream(), options: sessionOptions });
+	const live = query({
+		options: sessionOptions({
+			cwd: options.cwd,
+			executable: options.executable,
+			resume: options.resume,
+			tools: toolAccess(options),
+		}),
+		prompt: input.stream(),
+	});
 
 	// why: events reach consumers by push, never by awaiting the SDK iterator —
 	// a consumer waiting on the SDK's own promise cannot be shut down while the

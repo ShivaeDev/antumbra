@@ -25,7 +25,7 @@ module.exports = {
 			name: "renderer-pure-web",
 			severity: "error",
 			to: {
-				path: "(^|/)electron(/|$)|^apps/|^packages/(kernel|domain|backend-[^/]+|runner-[^/]+|persistence|plugin-api)",
+				path: "(^|/)electron(/|$)|^apps/|^packages/(agent-tools|kernel|domain|backend-[^/]+|runner-[^/]+|persistence|plugin-api)",
 			},
 		},
 		{
@@ -69,6 +69,16 @@ module.exports = {
 			name: "session-events-is-a-leaf",
 			severity: "error",
 			to: { path: "^packages/(?!session-events)|^apps/" },
+		},
+		{
+			comment:
+				"The tools an agent acts through are transport-free: they name the port that declares what a tool is and nothing else. A tool package that reached for the domain, a provider, or a harness would stop being the one definition every backend maps.",
+			from: { path: "^packages/agent-tools" },
+			name: "agent-tools-knows-only-the-port",
+			severity: "error",
+			to: {
+				path: "^packages/(?!agent-tools(?:/|$)|plugin-api(?:/|$))|^apps/",
+			},
 		},
 		{
 			comment:

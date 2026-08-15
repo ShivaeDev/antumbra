@@ -21,6 +21,9 @@ catalogs:
     '@effect/vitest':
       specifier: 4.0.0-rc.108
       version: 4.0.0-rc.108
+    '@modelcontextprotocol/sdk':
+      specifier: 1.30.0
+      version: 1.30.0
     '@prisma-next/adapter-sqlite':
       specifier: 0.15.0
       version: 0.15.0
@@ -205,6 +208,31 @@ importers:
         specifier: 'catalog:'
         version: 4.1.9(@types/node@24.10.1)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0))
 
+  packages/agent-tools:
+    dependencies:
+      '@antumbra/plugin-api':
+        specifier: workspace:*
+        version: link:../plugin-api
+      effect:
+        specifier: 'catalog:'
+        version: 4.0.0-rc.108
+    devDependencies:
+      '@effect/vitest':
+        specifier: 'catalog:'
+        version: 4.0.0-rc.108(effect@4.0.0-rc.108)(vitest@4.1.9(@types/node@24.10.1)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0)))
+      '@types/node':
+        specifier: 'catalog:'
+        version: 24.10.1
+      '@typescript/native':
+        specifier: 'catalog:'
+        version: typescript@7.0.2
+      typescript:
+        specifier: 'catalog:'
+        version: '@typescript/typescript6@6.0.2'
+      vitest:
+        specifier: 'catalog:'
+        version: 4.1.9(@types/node@24.10.1)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0))
+
   packages/backend-claude:
     dependencies:
       '@anthropic-ai/claude-agent-sdk':
@@ -216,6 +244,9 @@ importers:
       '@antumbra/session-events':
         specifier: workspace:*
         version: link:../session-events
+      '@modelcontextprotocol/sdk':
+        specifier: 'catalog:'
+        version: 1.30.0(supports-color@7.2.0)(zod@4.4.3)
       effect:
         specifier: 'catalog:'
         version: 4.0.0-rc.108
@@ -294,6 +325,9 @@ importers:
 
   packages/domain:
     dependencies:
+      '@antumbra/agent-tools':
+        specifier: workspace:*
+        version: link:../agent-tools
       '@antumbra/contract':
         specifier: workspace:*
         version: link:../contract

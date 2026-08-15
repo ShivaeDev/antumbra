@@ -28,3 +28,8 @@ export {
 	type RunnerError,
 	RunnerFailure,
 } from "#runner.ts";
+export {
+	DIRECT_TOOL_NAME,
+	type DirectTool,
+	type DirectToolOutcome,
+} from "#tools.ts";

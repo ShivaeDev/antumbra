@@ -24,6 +24,7 @@
 		"vitest": "catalog:"
 	},
 	"dependencies": {
+		"@antumbra/agent-tools": "workspace:*",
 		"@antumbra/contract": "workspace:*",
 		"@antumbra/kernel": "workspace:*",
 		"@antumbra/persistence": "workspace:*",

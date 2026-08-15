@@ -1,6 +1,7 @@
 import { defineIntent } from "@antumbra/kernel";
 import { Effect, Option, Schema } from "effect";
 import { deliverCharterOnce } from "#charter.ts";
+import { crewTools } from "#crew-tools.ts";
 import type { AgentDeps } from "#deps.ts";
 import { UnknownBackendTag, UnknownRunnerTag } from "#errors.ts";
 import { berthRequests } from "#registry.ts";
@@ -24,6 +25,16 @@ const SpawnPayload = Schema.Struct({
 	sessionId: Schema.String,
 });
 export type SpawnFields = typeof SpawnPayload.Type;
+
+// why: the session's tools are bound to this agent, this session, and the
+// piece it answers to — identity is fixed here, at birth, and never travels
+// with a call.
+const toolsFor = (deps: AgentDeps, payload: SpawnFields) =>
+	crewTools(deps, {
+		agentId: payload.agentId,
+		pieceId: Option.fromUndefinedOr(payload.pieceId),
+		sessionId: payload.sessionId,
+	});
 
 const spawnAgent = (deps: AgentDeps, payload: SpawnFields) =>
 	Effect.gen(function* () {
@@ -51,6 +62,7 @@ const spawnAgent = (deps: AgentDeps, payload: SpawnFields) =>
 				cwd: moorage.root,
 				resume: Option.none(),
 				sessionId: payload.sessionId,
+				tools: toolsFor(deps, payload),
 			},
 			sink,
 		);

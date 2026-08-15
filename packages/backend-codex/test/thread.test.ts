@@ -22,6 +22,7 @@ const openFake = (resume: Option.Option<string> = Option.none()) =>
 			cwd: "/moorage",
 			resume,
 			sessionId: "session-1",
+			tools: [],
 		});
 		const events = yield* Queue.unbounded<AgentEvent>();
 		yield* handle.events.pipe(
@@ -192,6 +193,7 @@ it.live(
 				cwd: "/moorage",
 				resume: Option.none(),
 				sessionId: "session-1",
+				tools: [],
 			});
 			const collector = yield* handle.events.pipe(
 				Stream.runCollect,

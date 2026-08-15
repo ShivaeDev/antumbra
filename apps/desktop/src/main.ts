@@ -1,4 +1,5 @@
 import { claudePlugin } from "@antumbra/backend-claude";
+import { codexPlugin } from "@antumbra/backend-codex";
 import { makeAppRouter } from "@antumbra/contract";
 import {
 	AgentDomain,
@@ -13,9 +14,10 @@ import {
 } from "@antumbra/persistence";
 import { makePluginHost } from "@antumbra/plugin-api";
 import { localRunnerPlugin } from "@antumbra/runner-local";
-import { Effect, Layer, ManagedRuntime } from "effect";
+import { Effect, Layer, ManagedRuntime, Option } from "effect";
 import { AppInfoSourceLive } from "#adapters/app-info.ts";
 import { runBoot } from "#adapters/boot.ts";
+import { resolveOnLoginPath } from "#adapters/login-shell.ts";
 import {
 	configureDataDirectory,
 	openMainWindow,
@@ -43,6 +45,22 @@ const agents = Layer.unwrap(
 			runnerRootsInDataDirectory(configureDataDirectory()),
 		);
 		yield* Effect.orDie(claudePlugin.activate(host.context));
+		// why: codex is offered only when the user's login shell can find it —
+		// a backend that cannot spawn is not a backend. The child runs from
+		// the data directory; threads get their own cwd per session.
+		yield* Option.match(yield* resolveOnLoginPath("codex"), {
+			onNone: () =>
+				Effect.logWarning("codex: not on the login shell PATH; not registered"),
+			onSome: (command) =>
+				Effect.logInfo("codex", { command }).pipe(
+					Effect.andThen(
+						codexPlugin({ command, cwd: configureDataDirectory() }).activate(
+							host.context,
+						),
+					),
+					Effect.orDie,
+				),
+		});
 		yield* Effect.orDie(runnerPlugin.activate(host.context));
 		return AgentDomainLive(yield* host.backends, yield* host.runners);
 	}),

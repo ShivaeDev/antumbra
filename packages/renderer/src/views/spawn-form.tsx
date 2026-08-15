@@ -4,18 +4,22 @@ import { parseRepoLines } from "#views/repo-lines.ts";
 import { buttonStyle, inputStyle } from "#views/styles.ts";
 
 export const SpawnForm = ({
+	backends,
 	onError,
 }: {
+	readonly backends: ReadonlyArray<string>;
 	readonly onError: (message: string) => void;
 }) => {
+	const [backend, setBackend] = useState("");
+	const chosen = backends.includes(backend) ? backend : (backends[0] ?? "");
 	const [role, setRole] = useState("");
 	const [charter, setCharter] = useState("");
 	const [repoLines, setRepoLines] = useState("");
-	const ready = role !== "" && charter !== "";
+	const ready = role !== "" && charter !== "" && chosen !== "";
 	const submit = () =>
 		spawnAgent(
 			{
-				backend: "claude",
+				backend: chosen,
 				charter,
 				repos: parseRepoLines(repoLines),
 				role,
@@ -29,6 +33,17 @@ export const SpawnForm = ({
 		);
 	return (
 		<div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
+			<select
+				onChange={(e) => setBackend(e.target.value)}
+				style={inputStyle}
+				value={chosen}
+			>
+				{backends.map((tag) => (
+					<option key={tag} value={tag}>
+						{tag}
+					</option>
+				))}
+			</select>
 			<input
 				onChange={(e) => setRole(e.target.value)}
 				placeholder="role"

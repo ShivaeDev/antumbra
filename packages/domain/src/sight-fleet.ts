@@ -2,7 +2,10 @@ import type { AgentSummary, Fleet } from "@antumbra/contract";
 import type { DatabaseService } from "@antumbra/persistence";
 import { Effect } from "effect";
 
-export const fleetSnapshot = (db: DatabaseService) =>
+export const fleetSnapshot = (
+	db: DatabaseService,
+	backends: ReadonlyArray<string>,
+) =>
 	Effect.gen(function* () {
 		const agents = yield* db.Agent.orderBy((agent) =>
 			agent.createdAt.asc(),
@@ -27,11 +30,12 @@ export const fleetSnapshot = (db: DatabaseService) =>
 			sessions: sessions
 				.filter((session) => session.agentId === agent.id)
 				.map((session) => ({
+					backend: session.backend,
 					cwd: session.cwd,
 					id: session.id,
 					status: session.status,
 				})),
 			status: agent.status,
 		}));
-		return { agents: summaries } satisfies Fleet;
+		return { agents: summaries, backends } satisfies Fleet;
 	});

@@ -1,0 +1,106 @@
+import type { LineProcess } from "#adapters/process.ts";
+
+export interface FakeRequest {
+	readonly id: number;
+	readonly method: string;
+	readonly params: unknown;
+}
+
+export interface FakeAppServer {
+	readonly exit: () => void;
+	readonly notify: (method: string, params: unknown) => void;
+	readonly process: LineProcess;
+	readonly requests: FakeRequest[];
+	readonly responses: Array<{ id: number | string; result: unknown }>;
+	readonly serverRequest: (id: number, method: string, params: unknown) => void;
+}
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+	typeof value === "object" && value !== null;
+
+// why: an in-memory app-server that answers the handful of requests the
+// backend makes, so the whole client — rpc, server, thread, turn driver —
+// is exercised without the codex binary. Turn ids count up per thread.
+const answer = (
+	method: string,
+	params: unknown,
+	nextTurn: () => number,
+): unknown => {
+	switch (method) {
+		case "initialize":
+			return { userAgent: "fake/0.148.0-alpha.9 (test)" };
+		case "thread/start":
+		case "thread/resume":
+			return {
+				thread: {
+					id:
+						isRecord(params) && typeof params.threadId === "string"
+							? params.threadId
+							: "thread-1",
+				},
+			};
+		case "turn/start":
+			return {
+				turn: { id: `turn-${nextTurn()}`, items: [], status: "inProgress" },
+			};
+		case "turn/steer":
+			return { turnId: isRecord(params) ? params.expectedTurnId : "" };
+		default:
+			return {};
+	}
+};
+
+export const makeFakeAppServer = (): FakeAppServer => {
+	let lineListener: ((line: string) => void) | null = null;
+	let exitListener: ((code: number | null) => void) | null = null;
+	let turnCounter = 0;
+	const nextTurn = () => {
+		turnCounter += 1;
+		return turnCounter;
+	};
+	const requests: FakeRequest[] = [];
+	const responses: Array<{ id: number | string; result: unknown }> = [];
+	const send = (message: Record<string, unknown>) =>
+		lineListener?.(JSON.stringify({ jsonrpc: "2.0", ...message }));
+	const receive = (line: string): void => {
+		const message: unknown = JSON.parse(line);
+		if (!isRecord(message)) {
+			return;
+		}
+		const { id, method, params } = message;
+		if (typeof method !== "string") {
+			if (typeof id === "number" || typeof id === "string") {
+				responses.push({ id, result: message.result });
+			}
+			return;
+		}
+		if (typeof id !== "number") {
+			return;
+		}
+		requests.push({ id, method, params });
+		queueMicrotask(() => {
+			send({ id, result: answer(method, params, nextTurn) });
+		});
+	};
+	const process: LineProcess = {
+		kill: () => {
+			exitListener?.(0);
+		},
+		onExit: (listener) => {
+			exitListener = listener;
+		},
+		onLine: (listener) => {
+			lineListener = listener;
+		},
+		onStderr: () => {},
+		write: receive,
+	};
+	return {
+		exit: () => exitListener?.(1),
+		notify: (method, params) => send({ method, params }),
+		process,
+		requests,
+		responses,
+		serverRequest: (id, method, params) => send({ id, method, params }),
+	};
+};

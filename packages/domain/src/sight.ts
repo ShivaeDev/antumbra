@@ -39,7 +39,9 @@ export const SightSourceLive = Layer.effect(SightSource)(
 			Effect.provideContext(effect, executors);
 		const decodeEvents = Schema.decodeUnknownEffect(Schema.Array(SessionEvent));
 
-		const fleet = provide(fleetSnapshot(db)).pipe(Effect.mapError(toFailure));
+		const fleet = provide(fleetSnapshot(db, domain.backends)).pipe(
+			Effect.mapError(toFailure),
+		);
 
 		const sessionEvents = (query: EventQuery) =>
 			provide(

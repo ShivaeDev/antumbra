@@ -1,6 +1,7 @@
 import { Context, Data, type Effect, Schema, type Stream } from "effect";
 
 export const SessionSummary = Schema.Struct({
+	backend: Schema.String,
 	cwd: Schema.String,
 	id: Schema.String,
 	status: Schema.String,
@@ -24,8 +25,11 @@ export const AgentSummary = Schema.Struct({
 });
 export type AgentSummary = typeof AgentSummary.Type;
 
+// why: the fleet carries the backends that can be spawned — the renderer
+// offers what the host registered, never a list of its own.
 export const Fleet = Schema.Struct({
 	agents: Schema.Array(AgentSummary),
+	backends: Schema.Array(Schema.String),
 });
 export type Fleet = typeof Fleet.Type;
 

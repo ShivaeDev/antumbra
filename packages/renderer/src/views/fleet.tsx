@@ -41,6 +41,7 @@ const SessionRow = ({
 		>
 			{session.id.slice(0, 8)}
 		</button>
+		<span style={mutedStyle}>{session.backend}</span>
 		<span style={mutedStyle}>{session.status}</span>
 		{session.status === "open" ? (
 			<button

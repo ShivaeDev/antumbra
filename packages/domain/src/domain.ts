@@ -24,6 +24,7 @@ export const AGENTS_ALIVE_GAUGE = "agents.alive";
 export class AgentDomain extends Context.Service<
 	AgentDomain,
 	{
+		readonly backends: ReadonlyArray<string>;
 		readonly feeds: DomainFeeds;
 		readonly gauges: Readonly<Record<string, Effect.Effect<number>>>;
 		readonly interruptSession: (
@@ -71,6 +72,7 @@ export const AgentDomainLive = (
 			const spawn = makeSpawnKind(deps);
 			const retire = makeRetireKind(deps);
 			return {
+				backends: [...backends.keys()],
 				feeds,
 				gauges: { [AGENTS_ALIVE_GAUGE]: aliveAgents },
 				interruptSession: fabric.interrupt,

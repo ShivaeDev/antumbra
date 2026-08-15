@@ -1,6 +1,9 @@
 {
 	"clean": [
-		{ "content": "export const k = 1;\n", "path": "packages/x/src/mod.ts" },
+		{
+			"content": "export const k = 1;\n",
+			"path": "packages/x/src/mod.ts"
+		},
 		{
 			"content": "{ \"devDependencies\": { \"effect\": \"catalog:\" } }",
 			"path": "packages/x/package.json"
@@ -9,16 +12,22 @@
 			"content": "catalog:\n  effect: 4.0.0-beta.102\n",
 			"path": "pnpm-workspace.yaml"
 		},
-		{ "content": "[]\n", "path": "script/pragma-registry.json" }
+		{
+			"content": "[]\n",
+			"path": "script/pragma-registry.json"
+		}
 	],
 	"dirty": [
 		{
 			"content": "console.log(1);\nexport {};\n",
 			"path": "packages/x/src/mod.ts"
 		},
-		{ "content": "export {};\n", "path": "packages/x/src/things/index.ts" },
 		{
-			"content": "export const v = 1; // biome-ignore lint/suspicious/noExplicitAny: probing\n",
+			"content": "export {};\n",
+			"path": "packages/x/src/things/index.ts"
+		},
+		{
+			"content": "export const v = 1; // @ts-expect-error probing\n",
 			"path": "packages/x/src/escape.ts"
 		},
 		{
@@ -29,6 +38,9 @@
 			"content": "{ \"devDependencies\": { \"left-pad\": \"1.3.0\" } }",
 			"path": "packages/x/package.json"
 		},
-		{ "content": "[]\n", "path": "script/pragma-registry.json" }
+		{
+			"content": "[]\n",
+			"path": "script/pragma-registry.json"
+		}
 	]
 }

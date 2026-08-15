@@ -1,7 +1,7 @@
 {
-	"pragma": "biome-ignore lint/suspicious/noExplicitAny",
+	"pragma": "@ts-expect-error",
 	"source": {
-		"content": "export const v = 1; // biome-ignore lint/suspicious/noExplicitAny: probing the guard\n",
+		"content": "export const v: number = \"wrong\"; // @ts-expect-error probing the guard\n",
 		"path": "packages/x/src/mod.ts"
 	}
 }

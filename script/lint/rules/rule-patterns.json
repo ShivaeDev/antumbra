@@ -80,19 +80,26 @@
 		},
 		{
 			"excludePaths": [],
+			"id": "no-lint-suppression",
+			"ignoreStrings": true,
+			"message": "Lint suppression is banned \u2014 there is no pragma that silences the linter. A false positive means the lint rule is wrong: fix the rule (a reviewed guard change), or fix the code.",
+			"pattern": "biome-ignore"
+		},
+		{
+			"excludePaths": [],
 			"id": "no-ts-ignore",
-			"message": "@ts-ignore is never allowed. Use @ts-expect-error with a reason, registered in the pragma registry.",
-			"pattern": "@ts-ignore",
+			"message": "@ts-ignore and @ts-nocheck are never allowed. Use @ts-expect-error with a reason, registered in the pragma registry.",
+			"pattern": "@ts-ignore|@ts-nocheck",
 			"ignoreStrings": false
 		},
 		{
 			"excludePaths": [],
 			"id": "no-plain-comment",
 			"message": "Comments are banned unless they carry the why: marker or are registered pragmas. State constraints in code; when code cannot express one, write `// why: ...`.",
-			"pattern": "(?:^|[^:\"'`])//(?!\\s*why:)(?![/!]?\\s*(?:biome-ignore|@ts-expect-error))|/\\*(?!\\s*why:)",
+			"pattern": "(?:^|[^:\"'`])//(?!\\s*why:)(?![/!]?\\s*@ts-expect-error)|/\\*(?!\\s*why:)",
 			"ignoreStrings": true
 		}
 	],
-	"pragmaDetector": "biome-ignore|@ts-expect-error",
+	"pragmaDetector": "@ts-expect-error",
 	"whyOpener": "^\\s*//\\s*why:"
 }

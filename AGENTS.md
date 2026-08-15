@@ -49,8 +49,8 @@ wants to cross a layer, the package shape is wrong, not the rule. See
 
 ## Review
 
-Apply every checklist in `quality-gates/` when reviewing a change. They cover
-what mechanical guards cannot judge.
+Start with `quality-gates/README.md` and apply the checklists it routes for the
+change under review. They cover what mechanical guards cannot judge.
 
 ## Pull requests
 

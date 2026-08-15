@@ -23,11 +23,11 @@ gets amended here — never silently.
   The intent record and affected domain rows are the durable authority;
   execution progress is reconstructed from them after restart, not persisted
   as execution checkpoints.
-- **Agent** — a conceptual identity with a responsibility, persisting across
-  sessions the way a program persists across process IDs.
-- **Session** — one SDK session of an agent: an executor detail. Transcript
-  and worktree survive it; a handover or fork starts a new session of the
-  same agent.
+- **Agent** — a durable identity with a responsibility, independent of any
+  process, replaceable workspace, or provider session.
+- **Session** — one durable Antumbra session bound to one provider-native
+  session or thread. Process attachments may die and resume it; a handover or
+  fork is an explicit new session of the same agent, never crash recovery.
 
 Axioms of the stack:
 
@@ -90,8 +90,8 @@ Axioms of the stack:
   There is no turn in the domain: activity is a stream of events, load is a
   level, and quiescence is a derived gauge no one awaits — completion is not
   in the ontology of conversation. Admission governs births, not messages;
-  messages to living agents stay unshipped until their delivery semantics
-  are ruled.
+  mail is durably addressed to an agent, while delivery into a session is a
+  separate, evidence-backed effect.
 - **The event log is the product surface; views are glass.** The renderer is
   a stateless projection fed by one typed contract: every view rehydrates
   from the log and stays current by subscription, so killing a view touches
@@ -177,8 +177,11 @@ compute: reify, queue, prioritize, preempt.
   If everything is durable, nothing is signal.
 - **Never duplicate the derivable.** Boards do not record what the database
   already knows.
-- **Sessions fork.** Transcripts are durable data; any point is resumable
-  under a new identity, cheaply. Fork when the context is the value; smooth
+- **Boards and story are not resources.** Resource reclamation never erases
+  their history.
+- **Recovery never forks.** Normal recovery resumes the same agent, Antumbra
+  session, and provider-native session or thread. Forking is an explicit new
+  identity when the context is the value; smoothing is the explicit operation
   when the context is the cost.
 - Blackboard state, declarative wakeups, bounded direct messages, and typed
   artifact handoffs are the coordination rails. Deterministic coordination
@@ -215,18 +218,21 @@ compute: reify, queue, prioritize, preempt.
   to wake soon. **The durable concepts exist precisely so that sessions can
   die at any moment.**
 - **Agents never create their own worktrees — they are moored.** Every spawn
-  gets a moorage: a folder that is the agent's cwd and scratchpad, holding
-  one berth (a worktree on a `work/…` branch, cut from a bare mirror under
-  the app's data dir) per registered repo — no repos registered means a bare
-  scratch moorage. The runner provisions before the session opens. Reclaim is
-  clean-only: a berth with uncommitted or unpushed work is stranded and
-  surfaced, while gitignored paths are declared disposable and do not strand
-  it. Only strands older than seven days are scrapped. Runners register
-  through the plugin surface like backends; the local runner's terminal
-  capability stays honestly false until something can render a terminal.
+  has one current moorage: a folder that is the agent's cwd and scratchpad,
+  holding one berth (a worktree on a `work/…` branch, cut from a bare mirror
+  under the app's data dir) per registered repo — no repos registered means a
+  bare scratch moorage. The runner provisions before a session opens. A
+  moorage may be reclaimed and later reprovisioned without replacing its
+  agent. Reclaim is evidence-bound: uncommitted or unpushed work, unavailable
+  authentication, or uncertain state blocks automation; gitignored paths are
+  declared disposable and do not strand it. Age may influence policy but
+  never proves safety. Runners register through the plugin surface like
+  backends; the local runner's terminal capability stays honestly false until
+  something can render a terminal.
 - Resource claims are ephemeral, visible, and rebuilt: exposed to the
-  observability surface, never persisted. After a restart the system
-  presents what was under way rather than blindly re-inflating it.
+  observability surface, never persisted. After restart, the system derives
+  them from durable work and posture rather than treating missing process
+  state as completion.
 - Mid-flight resource holds intercept at the agent SDK's pre-tool layer —
   never by wrapping a repository's own tooling. Repos may contribute
   configuration, never mechanism.

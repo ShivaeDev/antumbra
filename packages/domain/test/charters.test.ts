@@ -4,6 +4,7 @@ import { Effect, Option } from "effect";
 import { composeCaptainCharter } from "#charter-captain.ts";
 import { composeCrewCharter } from "#charter-compose.ts";
 import { AgentDomain } from "#domain.ts";
+import type { PieceView } from "#piece-view.ts";
 import {
 	acquireTemporaryPersistence,
 	dispatchingLayer,
@@ -13,7 +14,6 @@ import {
 } from "#test/harness.ts";
 import { eventually, openReefVoyage, PATIENCE } from "#test/voyage-fixtures.ts";
 import type { PieceRow, VoyageRow } from "#voyage-rows.ts";
-import type { PieceView } from "#voyage-view.ts";
 
 const voyage: VoyageRow = {
 	backend: "scripted",

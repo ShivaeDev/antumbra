@@ -1,4 +1,4 @@
-import type { PieceView } from "#voyage-view.ts";
+import type { PieceView } from "#piece-view.ts";
 
 const parts = (fragments: ReadonlyArray<string>): string =>
 	fragments.filter((fragment) => fragment !== "").join(" ");

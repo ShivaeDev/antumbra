@@ -3,7 +3,7 @@ import type {
 	PrismaError,
 	WriteExecutors,
 } from "@antumbra/persistence";
-import { Effect, Option, PubSub } from "effect";
+import { Clock, Effect, Option, PubSub } from "effect";
 import { type BoardScope, linkBoard, linkedBoardId } from "#board-scope.ts";
 import { type AgentDeps, provideExecutors } from "#deps.ts";
 
@@ -12,6 +12,7 @@ export type BoardRegister = "rough" | "smooth";
 export interface BoardEntryRow {
 	readonly authorAgentId: string | null;
 	readonly body: string;
+	readonly createdAt: Date;
 	readonly id: string;
 	readonly register: string;
 }
@@ -25,6 +26,7 @@ export interface EntryInput {
 const entryRow = (row: BoardEntryRow): BoardEntryRow => ({
 	authorAgentId: row.authorAgentId,
 	body: row.body,
+	createdAt: row.createdAt,
 	id: row.id,
 	register: row.register,
 });
@@ -94,9 +96,11 @@ export const writeEntry = (
 ): Effect.Effect<BoardEntryRow, PrismaError> =>
 	Effect.gen(function* () {
 		const boardId = yield* ensureBoard(deps, scope);
+		const now = yield* Clock.currentTimeMillis;
 		const row: BoardEntryRow = {
 			authorAgentId: Option.getOrElse(input.authorAgentId, () => null),
 			body: input.body,
+			createdAt: new Date(now),
 			id: crypto.randomUUID(),
 			register: input.register,
 		};

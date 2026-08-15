@@ -1,7 +1,7 @@
 import type { PrismaError } from "@antumbra/persistence";
 import { Clock, Effect, type Option, PubSub } from "effect";
 import { type AgentDeps, provideExecutors } from "#deps.ts";
-import type { EdgeWouldCycle, PieceNotFound } from "#errors.ts";
+import type { EdgeWouldCycle, PieceNotFound, VoyageNotFound } from "#errors.ts";
 import { type HailedCaptain, type HailRefused, hailCaptain } from "#hail.ts";
 import {
 	type ArtifactInput,
@@ -9,8 +9,8 @@ import {
 	landReport,
 	type ReportInput,
 } from "#outcomes.ts";
-import type { EdgeFailure } from "#piece-edges.ts";
 import {
+	type CharterFailure,
 	type CharterInput,
 	charterPiece,
 	launchPiece,
@@ -18,6 +18,7 @@ import {
 	rewirePiece,
 } from "#pieces.ts";
 import { readVoyageView } from "#voyage-read.ts";
+import { requireVoyage } from "#voyage-record.ts";
 import type {
 	ArtifactRow,
 	PieceRow,
@@ -42,7 +43,7 @@ export interface OpenVoyageInput {
 export interface VoyageProcedures {
 	readonly charterPiece: (
 		input: CharterInput,
-	) => Effect.Effect<PieceRow, EdgeFailure>;
+	) => Effect.Effect<PieceRow, CharterFailure>;
 	readonly hail: (
 		voyageId: string,
 	) => Effect.Effect<HailedCaptain, HailRefused>;
@@ -72,7 +73,7 @@ export interface VoyageProcedures {
 	readonly setFocus: (
 		voyageId: string,
 		focused: boolean,
-	) => Effect.Effect<void, PrismaError>;
+	) => Effect.Effect<void, PrismaError | VoyageNotFound>;
 	readonly unpark: (
 		pieceId: string,
 	) => Effect.Effect<void, PieceNotFound | PrismaError>;
@@ -107,8 +108,11 @@ const setFocus = (deps: AgentDeps, voyageId: string, focused: boolean) =>
 		const now = yield* Clock.currentTimeMillis;
 		yield* provideExecutors(deps)(
 			deps.writer.write(
-				deps.db.Voyage.where({ id: voyageId }).update({
-					focusedAt: focused ? new Date(now) : null,
+				Effect.gen(function* () {
+					yield* requireVoyage(deps.db, voyageId);
+					yield* deps.db.Voyage.where({ id: voyageId }).update({
+						focusedAt: focused ? new Date(now) : null,
+					});
 				}),
 			),
 		);

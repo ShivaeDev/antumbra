@@ -2,6 +2,24 @@ module.exports = {
 	forbidden: [
 		{
 			comment:
+				"Git is process infrastructure beneath the local runner. No other current package consumes that mechanism directly; a new caller must earn and document a real layer edge.",
+			from: {
+				path: "^packages/(?!git(?:/|$)|runner-local(?:/|$))|^apps/",
+			},
+			name: "git-only-below-local-runner",
+			severity: "error",
+			to: { path: "^packages/git" },
+		},
+		{
+			comment:
+				"Git owns one semantic process boundary and stays below every workspace layer. It may depend on Effect's process port, never on an Antumbra package or app.",
+			from: { path: "^packages/git" },
+			name: "git-imports-no-workspace-layer",
+			severity: "error",
+			to: { path: "^packages/(?!git(?:/|$))|^apps/" },
+		},
+		{
+			comment:
 				"The renderer is a pure web app: it may depend on the contract and session-events packages only. Electron, the desktop shell, and every core package are out of bounds — this is what keeps windows disposable and a future remote surface possible.",
 			from: { path: "^packages/renderer" },
 			name: "renderer-pure-web",

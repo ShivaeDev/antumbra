@@ -26,6 +26,7 @@ conversation-level: on relaunch, agent sessions resume from persisted state.
 | `packages/plugin-api`     | The driven ports: agent backends, runners, plugin registration  |
 | `packages/kernel`         | Intents, admission scheduling, lifecycle state machines         |
 | `packages/domain`         | Agent use cases and the projections the contract serves         |
+| `packages/git`            | Semantic Git operations over Effect's child-process port        |
 | `packages/backend-claude` | The Claude agent backend: one adapter for one provider          |
 | `packages/backend-codex`  | The Codex agent backend: one app-server child, threads on it    |
 | `packages/runner-local`   | The local runner: processes and git worktrees on this machine   |
@@ -42,6 +43,8 @@ it can name what it needs without naming who provides it. Adapter packages
 (`backend-*`, `runner-*`) implement a port for exactly one provider and
 never reach back into the domain. `apps/desktop` is the composition root and
 the only place where an adapter and a use case appear together.
+`packages/git` is process infrastructure below `runner-local`; it speaks only
+Effect's child-process port and never imports an Antumbra layer.
 
 Dependency direction is enforced by `dependency-cruiser` in CI; the rules
 live in `.dependency-cruiser.cjs` and each carries its rationale.

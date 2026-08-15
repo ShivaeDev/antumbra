@@ -1,3 +1,4 @@
+import { execFileSync } from "node:child_process";
 import {
 	existsSync,
 	mkdirSync,
@@ -7,12 +8,16 @@ import {
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { GitAuthRequired } from "@antumbra/git";
 import { describe, expect, it } from "@effect/vitest";
 import { Effect } from "effect";
-import { git } from "#adapters/git.ts";
+import { toRunnerError } from "#git-runtime.ts";
 import { makeLocalRunner } from "#local.ts";
 
 const AGENT = "0123456789abcdef";
+
+const git = (args: ReadonlyArray<string>): Effect.Effect<string> =>
+	Effect.sync(() => execFileSync("git", args, { encoding: "utf8" }));
 
 const acquireTempRoot = Effect.acquireRelease(
 	Effect.sync(() => mkdtempSync(join(tmpdir(), "antumbra-runner-"))),
@@ -45,6 +50,16 @@ const makeHarbor = Effect.gen(function* () {
 });
 
 describe("local runner", () => {
+	it("preserves retryable authentication failures at the runner port", () => {
+		const failure = toRunnerError(
+			new GitAuthRequired({
+				detail: "credential expired",
+				operation: "refresh-mirror",
+			}),
+		);
+		expect(failure._tag).toBe("RunnerAuthRequired");
+	});
+
 	it.live("provisions a worktree on a work branch from the mirror", () =>
 		Effect.gen(function* () {
 			const { runner, source } = yield* makeHarbor;

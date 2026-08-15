@@ -23,6 +23,8 @@ export {
 	type ReclaimVerdict,
 	type RepoRequest,
 	type Runner,
+	RunnerAuthRequired,
 	type RunnerCapabilities,
+	type RunnerError,
 	RunnerFailure,
 } from "#runner.ts";

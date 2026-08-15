@@ -1,0 +1,134 @@
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import { describe, expect, it } from "@effect/vitest";
+import { Effect } from "effect";
+import { mapPullRequest } from "#mapping.ts";
+import {
+	decodeObserveResponse,
+	type ObservedNode,
+	type PullRequestNode,
+} from "#payload.ts";
+
+// why: recorded from the real endpoint (ShivaeDev/antumbra, pull requests 23,
+// 24, 27, 32 and a number nobody can resolve) so the translation is checked
+// against GitHub's own words rather than against words we invented for it.
+const RECORDED = readFileSync(
+	fileURLToPath(new URL("./fixtures/observe-response.json", import.meta.url)),
+	"utf8",
+);
+
+const observed = Effect.runSync(
+	decodeObserveResponse("observe-changes", RECORDED),
+);
+
+const withNode = (fields: Partial<PullRequestNode>): ObservedNode => {
+	const base = observed[0];
+	return base === undefined
+		? expect.unreachable("the fixture is empty")
+		: { node: { ...base.node, ...fields }, raw: base.raw };
+};
+
+describe("reading GitHub's answer as the neutral vocabulary", () => {
+	it("drops the alias for a pull request nobody can see", () => {
+		expect(observed).toHaveLength(4);
+		expect(observed.map((one) => one.node.number)).toEqual([23, 24, 27, 32]);
+	});
+
+	it("maps a merged pull request onto a landed change", () => {
+		const merged = observed[0];
+		if (merged === undefined) {
+			return expect.unreachable("the fixture lost its first node");
+		}
+		expect(mapPullRequest(merged)).toEqual({
+			activityAt: Date.parse("2026-08-15T20:24:25Z"),
+			baseRef: "main",
+			checks: "green",
+			externalId: "23",
+			headRef: "voyages",
+			headSha: "5db93d623f85b559613a71cf767889ae71eca980",
+			isDraft: false,
+			// why: a merged pull request reports UNKNOWN merge state, which is not
+			// a conflict — it is GitHub declining to answer a settled question.
+			mergeable: "unknown",
+			raw: merged.raw,
+			review: "none",
+			stage: "landed",
+			title:
+				"Voyages hold pieces gated by edges; launched pieces are dispatched to crew",
+			url: "https://github.com/ShivaeDev/antumbra/pull/23",
+		});
+	});
+
+	it("maps an open pull request onto an open change", () => {
+		const open = observed[3];
+		if (open === undefined) {
+			return expect.unreachable("the fixture lost its open node");
+		}
+		const mapped = mapPullRequest(open);
+		expect(mapped.stage).toBe("open");
+		expect(mapped.mergeable).toBe("clean");
+		expect(mapped.externalId).toBe("32");
+		expect(mapped.headRef).toBe("shivae/agent-session-recovery");
+	});
+
+	it.each([
+		["OPEN", "open"],
+		["CLOSED", "withdrawn"],
+		["MERGED", "landed"],
+		["SOMETHING_NEW", "open"],
+	])("reads state %s as stage %s", (state, stage) => {
+		expect(mapPullRequest(withNode({ state })).stage).toBe(stage);
+	});
+
+	it.each([
+		["CLEAN", "clean"],
+		["DIRTY", "conflict"],
+		["BLOCKED", "unknown"],
+		["BEHIND", "unknown"],
+		["UNSTABLE", "unknown"],
+		["HAS_HOOKS", "unknown"],
+		["DRAFT", "unknown"],
+		["UNKNOWN", "unknown"],
+	])("reads merge state %s as %s", (mergeStateStatus, mergeable) => {
+		expect(mapPullRequest(withNode({ mergeStateStatus })).mergeable).toBe(
+			mergeable,
+		);
+	});
+
+	it.each([
+		["APPROVED", "approved"],
+		["CHANGES_REQUESTED", "changes_requested"],
+		["REVIEW_REQUIRED", "pending"],
+		[null, "none"],
+	])("reads review decision %s as %s", (reviewDecision, review) => {
+		expect(mapPullRequest(withNode({ reviewDecision })).review).toBe(review);
+	});
+
+	it.each([
+		["SUCCESS", "green"],
+		["FAILURE", "red"],
+		["ERROR", "red"],
+		["PENDING", "pending"],
+		["EXPECTED", "pending"],
+	])("reads a check rollup of %s as %s", (state, checks) => {
+		const commits = { nodes: [{ commit: { statusCheckRollup: { state } } }] };
+		expect(mapPullRequest(withNode({ commits })).checks).toBe(checks);
+	});
+
+	it("reads a missing check rollup as no signal at all", () => {
+		expect(
+			mapPullRequest(
+				withNode({
+					commits: { nodes: [{ commit: { statusCheckRollup: null } }] },
+				}),
+			).checks,
+		).toBe("none");
+		expect(mapPullRequest(withNode({ commits: { nodes: [] } })).checks).toBe(
+			"none",
+		);
+	});
+
+	it("puts an undatable change outside every recency window", () => {
+		expect(mapPullRequest(withNode({ updatedAt: "never" })).activityAt).toBe(0);
+	});
+});

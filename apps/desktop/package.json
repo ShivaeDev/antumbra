@@ -24,6 +24,7 @@
 		"@antumbra/backend-codex": "workspace:*",
 		"@antumbra/contract": "workspace:*",
 		"@antumbra/domain": "workspace:*",
+		"@antumbra/github": "workspace:*",
 		"@antumbra/kernel": "workspace:*",
 		"@antumbra/persistence": "workspace:*",
 		"@antumbra/plugin-api": "workspace:*",

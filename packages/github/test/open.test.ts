@@ -1,0 +1,135 @@
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import type { OpenChangeRequest } from "@antumbra/plugin-api";
+import { describe, expect, it } from "@effect/vitest";
+import { Effect } from "effect";
+import { makeGitHubHost } from "#host.ts";
+import { type Berthed, BRANCH, berthed, remoteBranches } from "#test/berth.ts";
+import { type ScriptedGh, scriptedGh } from "#test/scripted-gh.ts";
+
+const RECORDED = readFileSync(
+	fileURLToPath(new URL("./fixtures/observe-response.json", import.meta.url)),
+	"utf8",
+);
+
+const CREATED = "https://github.com/ShivaeDev/antumbra/pull/23\n";
+
+const EXISTS =
+	"pull request create failed: GraphQL: A pull request already exists for ShivaeDev:work/ab12cd34/antumbra. (createPullRequest)\n";
+
+const requestFor = (site: Berthed): OpenChangeRequest => ({
+	base: null,
+	berth: site.berth,
+	body: "sounded three fathoms\n\nthe eastern spit is charted\n",
+	draft: false,
+	repo: site.repo,
+	title: "chart the eastern spit",
+});
+
+const withBerth = <A, E, R>(
+	body: (gh: ScriptedGh, site: Berthed) => Effect.Effect<A, E, R>,
+): Effect.Effect<A, E, R> =>
+	Effect.scoped(
+		Effect.gen(function* () {
+			const gh = yield* scriptedGh;
+			const site = yield* berthed;
+			gh.answer("graphql", { out: RECORDED });
+			return yield* body(gh, site);
+		}),
+	);
+
+describe("opening a change on GitHub", () => {
+	it.live("pushes the berth's branch and opens a pull request on it", () =>
+		withBerth((gh, site) =>
+			Effect.gen(function* () {
+				gh.answer("create", { out: CREATED });
+				const host = yield* makeGitHubHost({ executable: gh.executable });
+
+				const opened = yield* host.open(requestFor(site));
+
+				expect(remoteBranches(site.remote)).toEqual([
+					"refs/heads/main",
+					`refs/heads/${BRANCH}`,
+				]);
+				const received = gh.received();
+				expect(received).toContain("--head");
+				expect(received).toContain(BRANCH);
+				expect(received).toContain("--base");
+				expect(received).toContain("main");
+				expect(received).toContain("--repo");
+				expect(received).toContain("ShivaeDev/antumbra");
+				// why: a multi-line body travels as one argument, unquoted and
+				// unescaped, because no shell stands between this and gh.
+				expect(received).toContain(
+					"sounded three fathoms\n\nthe eastern spit is charted\n",
+				);
+				expect(received).not.toContain("--draft");
+				expect(opened.externalId).toBe("23");
+			}),
+		),
+	);
+
+	it.live("marks the pull request a draft when the change is one", () =>
+		withBerth((gh, site) =>
+			Effect.gen(function* () {
+				gh.answer("create", { out: CREATED });
+				const host = yield* makeGitHubHost({ executable: gh.executable });
+				yield* host.open({ ...requestFor(site), base: "trunk", draft: true });
+				const received = gh.received();
+				expect(received).toContain("--draft");
+				expect(received).toContain("trunk");
+			}),
+		),
+	);
+
+	// why: opening twice must not fail the second time — an agent that retried,
+	// or a berth reopened after a restart, is describing a change that already
+	// exists, and the right answer is that change rather than a refusal.
+	it.live("adopts the pull request a branch already has", () =>
+		withBerth((gh, site) =>
+			Effect.gen(function* () {
+				gh.answer("create", { code: 1, err: EXISTS });
+				gh.answer("view", { out: '{"number":23}\n' });
+				const host = yield* makeGitHubHost({ executable: gh.executable });
+
+				const opened = yield* host.open(requestFor(site));
+
+				expect(opened.externalId).toBe("23");
+				expect(gh.received()).toContain("view");
+			}),
+		),
+	);
+
+	it.live("refuses a berth whose branch cannot be pushed", () =>
+		withBerth((gh, site) =>
+			Effect.gen(function* () {
+				const host = yield* makeGitHubHost({ executable: gh.executable });
+				const failure = yield* Effect.flip(
+					host.open({
+						...requestFor(site),
+						berth: { ...site.berth, branch: "main" },
+					}),
+				);
+				expect(failure._tag).toBe("ChangeHostRefused");
+				expect(failure.message).toContain("only work/ branches may be pushed");
+				expect(gh.received()).toEqual([]);
+			}),
+		),
+	);
+
+	it.live("refuses a repo that does not live on this host", () =>
+		withBerth((gh, site) =>
+			Effect.gen(function* () {
+				const host = yield* makeGitHubHost({ executable: gh.executable });
+				const failure = yield* Effect.flip(
+					host.open({
+						...requestFor(site),
+						repo: { ...site.repo, source: "/somewhere/reef" },
+					}),
+				);
+				expect(failure._tag).toBe("ChangeHostRefused");
+				expect(failure.message).toContain("not a GitHub repository");
+			}),
+		),
+	);
+});

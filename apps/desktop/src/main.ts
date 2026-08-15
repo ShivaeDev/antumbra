@@ -9,6 +9,7 @@ import {
 	SightSourceLive,
 	VoyageSourceLive,
 } from "@antumbra/domain";
+import { githubPlugin } from "@antumbra/github";
 import { KernelLive } from "@antumbra/kernel";
 import {
 	databaseFileInDataDirectory,
@@ -56,6 +57,11 @@ const agents = Layer.unwrap(
 			codexPlugin({ command, cwd: configureDataDirectory() }),
 		);
 		yield* Effect.orDie(runnerPlugin.activate(host.context));
+		// why: registered unconditionally, unlike the agent CLIs — a change host
+		// that cannot reach gh still claims its repos and says why through its
+		// capability, where a missing backend would leave a voyage unable to run
+		// at all. A login gained later is picked up without a restart.
+		yield* Effect.orDie(githubPlugin().activate(host.context));
 		return AgentDomainLive(
 			yield* host.backends,
 			yield* host.runners,

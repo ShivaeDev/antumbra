@@ -19,10 +19,6 @@
 	],
 	"dirty": [
 		{
-			"content": "console.log(1);\nexport {};\n",
-			"path": "packages/x/src/mod.ts"
-		},
-		{
 			"content": "export {};\n",
 			"path": "packages/x/src/things/index.ts"
 		},

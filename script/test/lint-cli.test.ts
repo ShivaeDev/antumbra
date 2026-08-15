@@ -26,7 +26,6 @@ describe("lint entry point", () => {
 		expect(result.status).toBe(1);
 		for (const rule of [
 			"structure/no-barrel",
-			"patterns/no-console",
 			"pragmas/unregistered",
 			"manifests/catalog-only",
 			"contracts/declaration-resolves",

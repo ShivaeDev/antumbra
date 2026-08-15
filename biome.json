@@ -18,6 +18,24 @@
 		"enabled": true,
 		"indentStyle": "tab"
 	},
+	"plugins": [
+		{
+			"path": "./script/lint/plugins/effect-boundaries.grit",
+			"includes": ["**/*.ts", "**/*.tsx", "!**/*.d.ts", "!**/adapters/**"]
+		},
+		{
+			"path": "./script/lint/plugins/ambient-runtime.grit",
+			"includes": ["**/*.ts", "**/*.tsx", "!**/*.d.ts"]
+		},
+		{
+			"path": "./script/lint/plugins/type-assertions.grit",
+			"includes": ["**/*.ts", "**/*.tsx", "!**/*.d.ts"]
+		},
+		{
+			"path": "./script/lint/plugins/imports.grit",
+			"includes": ["**/*.ts", "**/*.tsx", "!**/*.d.ts"]
+		}
+	],
 	"linter": {
 		"enabled": true,
 		"rules": {

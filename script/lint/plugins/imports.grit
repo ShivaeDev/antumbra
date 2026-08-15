@@ -1,0 +1,22 @@
+engine biome(1.0)
+language js(typescript, jsx)
+
+or {
+	or {
+		JsModuleSource() as $match where { $match <: r"^[\"']\.\.?/.*" },
+		JsImportCallExpression() as $match where {
+			$match <: r"^import\s*\(\s*[\"']\.\.?/.*"
+		}
+	} where {
+		! $filename <: r".*/migrations/.*",
+		register_diagnostic(span=$match, message="Relative imports are banned. Use a package subpath or an @antumbra package entry.")
+	},
+	or {
+		JsModuleSource() as $match where { $match <: r"^[\"']#[^\"']*\.js[\"']$" },
+		JsImportCallExpression() as $match where {
+			$match <: r"^import\s*\(\s*[\"']#[^\"']*\.js[\"']\s*\)$"
+		}
+	} where {
+		register_diagnostic(span=$match, message="Internal imports use the on-disk TypeScript extension; this repository emits no JavaScript files.")
+	}
+}

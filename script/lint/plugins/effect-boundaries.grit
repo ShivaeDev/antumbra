@@ -1,0 +1,32 @@
+engine biome(1.0)
+language js(typescript, jsx)
+
+or {
+	or {
+		JsAwaitExpression() as $match,
+		JsArrowFunctionExpression() as $match where {
+			$match <: r"^async(?:.|\n)*"
+		},
+		`async function $name($...) { $... }` as $match,
+		`async function ($...) { $... }` as $match,
+		JsFunctionExpression() as $match where { $match <: r"^async(?:.|\n)*" },
+		JsMethodClassMember() as $match where {
+			$match <: r"^(?:public |private |protected |static |override )*async(?:.|\n)*"
+		},
+		JsMethodObjectMember() as $match where { $match <: r"^async(?:.|\n)*" }
+	} where {
+		register_diagnostic(span=$match, message="async/await is banned outside adapter modules. Model effects with Effect; wrap external SDKs in an adapters/ module.")
+	},
+	or {
+		`new Promise($...)` as $match,
+		`$value.then($...)` as $match
+	} where {
+		register_diagnostic(span=$match, message="Raw Promises are banned outside adapter modules. Use Effect; bridge external promises in an adapters/ module.")
+	},
+	JsTryStatement() as $match where {
+		register_diagnostic(span=$match, message="try/catch is banned. Failures travel on the Effect error channel as tagged errors.")
+	},
+	JsThrowStatement() as $match where {
+		register_diagnostic(span=$match, message="throw is banned. Fail with tagged errors on the Effect error channel (or Effect.die for defects).")
+	}
+}

@@ -6,8 +6,13 @@ import {
 	readText,
 	walk,
 } from "#lint/adapters/fs.ts";
+import {
+	type SourceComment,
+	sourceComments,
+} from "#lint/adapters/typescript.ts";
 
 export interface SourceFile {
+	readonly comments: readonly SourceComment[];
 	readonly lines: readonly string[];
 	readonly path: string;
 }
@@ -52,6 +57,7 @@ export const collectInventory = (
 				.filter((entry) => SOURCE_PATH.test(entry.path))
 				.map((entry) =>
 					Effect.map(readText(entry.absolute), (raw) => ({
+						comments: sourceComments(entry.path, raw),
 						lines: raw.split("\n"),
 						path: entry.path,
 					})),

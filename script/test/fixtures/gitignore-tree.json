@@ -7,37 +7,16 @@
 		},
 		{ "content": "!build/\n", "path": "packages/z/.gitignore" }
 	],
-	"ignored": [
-		{
-			"content": "console.log(1);\nexport {};\n",
-			"path": "packages/x/.worktree/scratch.ts"
-		},
-		{
-			"content": "console.log(1);\nexport {};\n",
-			"path": "packages/y/generated/drop.ts"
-		},
-		{
-			"content": "console.log(1);\nexport {};\n",
-			"path": "packages/z/build/a.scratch.ts"
-		},
-		{
-			"content": "console.log(1);\nexport {};\n",
-			"path": "packages/w/build/drop.ts"
-		}
+	"ignoredPaths": [
+		"packages/x/.worktree/scratch.ts",
+		"packages/y/generated/drop.ts",
+		"packages/z/build/a.scratch.ts",
+		"packages/w/build/drop.ts"
 	],
-	"kept": [
-		{ "content": "export const k = 1;\n", "path": "packages/x/src/mod.ts" },
-		{
-			"content": "export const keep = 1;\n",
-			"path": "packages/y/generated/keep.ts"
-		},
-		{
-			"content": "export const keep = 1;\n",
-			"path": "packages/z/build/keep.ts"
-		},
-		{
-			"content": "export const deep = 1;\n",
-			"path": "packages/z/build/sub/deep.ts"
-		}
+	"keptPaths": [
+		"packages/x/src/mod.ts",
+		"packages/y/generated/keep.ts",
+		"packages/z/build/keep.ts",
+		"packages/z/build/sub/deep.ts"
 	]
 }

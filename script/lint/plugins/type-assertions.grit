@@ -1,0 +1,9 @@
+engine biome(1.0)
+language js(typescript, jsx)
+
+or {
+	TsAsExpression() as $assertion where { $assertion <: not `$_ as const` },
+	TsTypeAssertionExpression() as $assertion
+} where {
+	register_diagnostic(span=$assertion, message="Type assertions are banned. Decode boundaries with Schema, narrow values, or use satisfies; only `as const` is allowed.")
+}

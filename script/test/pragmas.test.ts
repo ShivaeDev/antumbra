@@ -40,4 +40,13 @@ describe("pragma rules", () => {
 			),
 		).toHaveLength(1);
 	});
+
+	it("ignores pragma vocabulary outside comments", () => {
+		const source = {
+			content:
+				"export const text = '@ts-expect-error';\nexport const View = () => <div>@ts-expect-error</div>;\n",
+			path: "packages/x/src/view.tsx",
+		};
+		expect(pragmaViolations(inventoryOf({ sources: [source] }))).toEqual([]);
+	});
 });

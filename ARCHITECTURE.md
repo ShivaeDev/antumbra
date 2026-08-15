@@ -18,20 +18,34 @@ conversation-level: on relaunch, agent sessions resume from persisted state.
 
 ## Workspace
 
-| Package                | Role                                                    |
-| ---------------------- | ------------------------------------------------------- |
-| `apps/desktop`         | Electron shell: windows, native surfaces, composition   |
-| `packages/contract`    | The typed API surface between renderer and main (a leaf)|
-| `packages/kernel`      | Intents, admission scheduling, lifecycle state machines |
-| `packages/backends`    | Agent backend adapters (what drives a model session)    |
-| `packages/runners`     | Where execution lives: local processes, git worktrees   |
-| `packages/persistence` | SQLite behind Effect layers; owns all database access   |
-| `packages/plugin-api`  | The capability registration surface                     |
+| Package                   | Role                                                            |
+| ------------------------- | --------------------------------------------------------------- |
+| `apps/desktop`            | Electron shell: windows, native surfaces, composition           |
+| `packages/contract`       | The typed API surface between renderer and main (a leaf)        |
 | `packages/session-events` | The neutral session-event vocabulary every side speaks (a leaf) |
-| `packages/renderer`    | The web UI                                              |
+| `packages/plugin-api`     | The driven ports: agent backends, runners, plugin registration  |
+| `packages/kernel`         | Intents, admission scheduling, lifecycle state machines         |
+| `packages/domain`         | Agent use cases and the projections the contract serves         |
+| `packages/backend-claude` | The Claude agent backend: one adapter for one provider          |
+| `packages/runner-local`   | The local runner: processes and git worktrees on this machine   |
+| `packages/persistence`    | SQLite behind Effect layers; owns all database access           |
+| `packages/renderer`       | The web UI                                                      |
+
+## Layers
+
+The workspace is hexagonal, and the direction is the point. The vocabulary
+and the contract are leaves: they import nothing and everyone may speak
+them. `plugin-api` declares the driven ports — what an agent backend or a
+runner must be. `domain` holds the use cases and depends only on ports, so
+it can name what it needs without naming who provides it. Adapter packages
+(`backend-*`, `runner-*`) implement a port for exactly one provider and
+never reach back into the domain. `apps/desktop` is the composition root and
+the only place where an adapter and a use case appear together.
 
 Dependency direction is enforced by `dependency-cruiser` in CI; the rules
 live in `.dependency-cruiser.cjs` and each carries its rationale.
+`quality-gates/package-architecture.md` covers the judgment the rules cannot
+make.
 
 ## The kernel
 

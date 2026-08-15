@@ -1,7 +1,8 @@
 import type { SessionEvent } from "@antumbra/contract";
 import { useEffect, useRef, useState } from "react";
 import { watchSessionEvents } from "#adapters/trpc.ts";
-import { deriveTranscript, type TranscriptItem } from "#transcript.ts";
+import { deriveTranscript } from "#transcript/derive.ts";
+import type { TranscriptItem } from "#transcript/model.ts";
 
 const itemStyle: Record<TranscriptItem["kind"], React.CSSProperties> = {
 	message: { whiteSpace: "pre-wrap" },

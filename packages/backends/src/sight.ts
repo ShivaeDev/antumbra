@@ -11,16 +11,24 @@ import { Kernel } from "@antumbra/kernel";
 import { Database, type WriteExecutors } from "@antumbra/persistence";
 import { Effect, Layer, PubSub, Schema, Stream } from "effect";
 import { AgentDomain } from "#domain.ts";
+import type { StoredEvent } from "#feeds.ts";
 
-const describe = (cause: unknown): string =>
-	cause instanceof Error && cause.message !== ""
-		? cause.message
-		: typeof cause === "object" && cause !== null && "_tag" in cause
-			? String(cause._tag)
-			: String(cause);
+const describe = (cause: unknown): string => {
+	if (cause instanceof Error && cause.message !== "") {
+		return cause.message;
+	}
+	if (typeof cause === "object" && cause !== null && "_tag" in cause) {
+		return String(cause._tag);
+	}
+	return String(cause);
+};
 
 const toFailure = (cause: unknown) =>
 	new SightFailure({ message: describe(cause) });
+
+const pastRehydrated =
+	(query: EventQuery, lastSeq: number) => (event: StoredEvent) =>
+		event.sessionId === query.sessionId && event.seq > lastSeq;
 
 export const SightSourceLive = Layer.effect(SightSource)(
 	Effect.gen(function* () {
@@ -80,10 +88,7 @@ export const SightSourceLive = Layer.effect(SightSource)(
 					const rehydrated = yield* sessionEvents(query);
 					const lastSeq = rehydrated.at(-1)?.seq ?? query.fromSeq - 1;
 					const live = Stream.fromSubscription(subscription).pipe(
-						Stream.filter(
-							(event) =>
-								event.sessionId === query.sessionId && event.seq > lastSeq,
-						),
+						Stream.filter(pastRehydrated(query, lastSeq)),
 					);
 					return Stream.fromArray(rehydrated).pipe(Stream.concat(live));
 				}),

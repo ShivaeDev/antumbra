@@ -31,6 +31,19 @@ const spawnRequest = {
 	role: "navigator",
 };
 
+const liveSession = (scripted: ScriptedBackend, sessionId: string) =>
+	eventually(
+		scripted
+			.session(sessionId)
+			.pipe(
+				Effect.flatMap((live) =>
+					live === undefined
+						? Effect.fail("not live yet")
+						: Effect.succeed(live),
+				),
+			),
+	);
+
 it.live("spawn surfaces on the fleet feed once the agent lives", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
@@ -65,17 +78,7 @@ it.live(
 			yield* Effect.gen(function* () {
 				const sight = yield* SightSource;
 				const receipt = yield* sight.spawn(spawnRequest);
-				const session = yield* eventually(
-					scripted
-						.session(receipt.sessionId)
-						.pipe(
-							Effect.flatMap((live) =>
-								live === undefined
-									? Effect.fail("not live yet")
-									: Effect.succeed(live),
-							),
-						),
-				);
+				const session = yield* liveSession(scripted, receipt.sessionId);
 				yield* session.emit({ kind: "assistant", payload: '{"n":0}' });
 				yield* session.emit({ kind: "assistant", payload: '{"n":1}' });
 				yield* eventually(

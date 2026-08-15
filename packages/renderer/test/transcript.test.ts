@@ -1,6 +1,6 @@
 import type { SessionEvent } from "@antumbra/contract";
 import { describe, expect, it } from "vitest";
-import { deriveTranscript } from "#transcript.ts";
+import { deriveTranscript } from "#transcript/derive.ts";
 
 const event = (seq: number, kind: string, payload: unknown): SessionEvent => ({
 	kind,

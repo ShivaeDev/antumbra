@@ -33,20 +33,19 @@ describe("manifest rules", () => {
 	});
 
 	it("allows exact catalog entries referenced via catalog: and workspace:", () => {
+		const cleanManifests = [
+			manifest("package.json", { devDependencies: { effect: "catalog:" } }),
+			manifest("packages/x/package.json", {
+				dependencies: {
+					"@antumbra/contract": "workspace:*",
+					effect: "catalog:",
+				},
+			}),
+		];
 		expect(
 			manifestViolations(
 				inventoryOf({
-					manifests: [
-						manifest("package.json", {
-							devDependencies: { effect: "catalog:" },
-						}),
-						manifest("packages/x/package.json", {
-							dependencies: {
-								"@antumbra/contract": "workspace:*",
-								effect: "catalog:",
-							},
-						}),
-					],
+					manifests: cleanManifests,
 					workspaceCatalog:
 						'catalog:\n  "@biomejs/biome": 2.5.1\n  effect: 4.0.0-beta.102\n  typescript: npm:@typescript/typescript6@6.0.2\n',
 				}),

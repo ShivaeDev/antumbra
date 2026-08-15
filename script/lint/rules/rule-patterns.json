@@ -27,6 +27,12 @@
 		},
 		{
 			"excludePaths": [],
+			"id": "max-nesting",
+			"message": "Indentation is 8+ tabs deep. Extract a named function (or component) instead of nesting further.",
+			"pattern": "^\\t{8,}"
+		},
+		{
+			"excludePaths": [],
 			"id": "no-ambient-time",
 			"message": "Ambient time is banned. Read time through Effect's Clock service.",
 			"pattern": "\\bDate\\.now\\(|\\bnew Date\\(\\)"

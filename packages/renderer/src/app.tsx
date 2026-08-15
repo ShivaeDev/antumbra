@@ -3,7 +3,8 @@ import { useAtomValue } from "@effect/atom-react";
 import { AsyncResult, Atom } from "effect/unstable/reactivity";
 import { useEffect, useState } from "react";
 import { loadAppInfo, watchFleet } from "#adapters/trpc.ts";
-import { FleetPanel, SpawnForm } from "#views/fleet.tsx";
+import { FleetPanel } from "#views/fleet.tsx";
+import { SpawnForm } from "#views/spawn-form.tsx";
 import { TranscriptView } from "#views/transcript.tsx";
 
 const appInfoAtom = Atom.make(loadAppInfo);

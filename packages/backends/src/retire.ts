@@ -1,5 +1,5 @@
 import { defineIntent } from "@antumbra/kernel";
-import { Effect, Option, Schema } from "effect";
+import { Effect, Option, PubSub, Schema } from "effect";
 import { type AgentDeps, provideExecutors } from "#deps.ts";
 import { AgentNotFound } from "#errors.ts";
 import { AgentStatusSchema, agentTransition } from "#status.ts";
@@ -43,6 +43,7 @@ export const makeRetireKind = (deps: AgentDeps) => {
 							),
 					),
 				);
+				yield* PubSub.publish(deps.feeds.fleet, undefined);
 			}).pipe(
 				// why: a requeued retire that already completed lands on "retired" —
 				// idempotent by treating the illegal re-transition as done.

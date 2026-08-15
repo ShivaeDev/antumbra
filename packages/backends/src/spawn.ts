@@ -1,5 +1,5 @@
 import { defineIntent } from "@antumbra/kernel";
-import { Clock, Effect, Option, Schema } from "effect";
+import { Clock, Effect, Option, PubSub, Schema } from "effect";
 import { type AgentDeps, provideExecutors } from "#deps.ts";
 import { AgentNotSpawnable, UnknownBackendTag } from "#errors.ts";
 
@@ -75,6 +75,7 @@ export const makeSpawnKind = (deps: AgentDeps) => {
 						),
 					);
 				}
+				yield* PubSub.publish(deps.feeds.fleet, undefined);
 			}),
 		payload: SpawnPayload,
 		// why: a stranded spawn's agent goes dormant at boot; requeueing it would

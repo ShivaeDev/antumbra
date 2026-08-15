@@ -1,10 +1,12 @@
 import type { AnyIntentKind, IntentKind } from "@antumbra/kernel";
 import { Database, type WriteExecutors, Writer } from "@antumbra/persistence";
-import type { AgentBackend } from "@antumbra/plugin-api";
+import type { AgentBackend, BackendFailure } from "@antumbra/plugin-api";
 import { Context, Effect, Layer } from "effect";
 import type { AgentDeps } from "#deps.ts";
+import type { SessionNotLive } from "#errors.ts";
 import { makeEventSinkFactory } from "#events.ts";
 import { makeSessionFabric } from "#fabric.ts";
+import { type DomainFeeds, makeDomainFeeds } from "#feeds.ts";
 import { reclaimAgents } from "#reclaim.ts";
 import { makeRetireKind, type RetireFields } from "#retire.ts";
 import { makeSpawnKind, type SpawnFields } from "#spawn.ts";
@@ -17,7 +19,11 @@ export const AGENTS_ALIVE_GAUGE = "agents.alive";
 export class AgentDomain extends Context.Service<
 	AgentDomain,
 	{
+		readonly feeds: DomainFeeds;
 		readonly gauges: Readonly<Record<string, Effect.Effect<number>>>;
+		readonly interruptSession: (
+			sessionId: string,
+		) => Effect.Effect<void, BackendFailure | SessionNotLive>;
 		readonly kinds: ReadonlyArray<AnyIntentKind>;
 		readonly retire: IntentKind<RetireFields>;
 		readonly spawn: IntentKind<SpawnFields>;
@@ -33,13 +39,15 @@ export const AgentDomainLive = (backends: ReadonlyMap<string, AgentBackend>) =>
 			const writer = yield* Writer;
 			const executors = yield* Effect.context<WriteExecutors>();
 			const fabric = yield* makeSessionFabric;
-			const sinkFor = yield* makeEventSinkFactory;
+			const feeds = yield* makeDomainFeeds;
+			const sinkFor = yield* makeEventSinkFactory(feeds.events);
 			yield* reclaimAgents;
 			const deps: AgentDeps = {
 				backends,
 				db,
 				executors,
 				fabric,
+				feeds,
 				sinkFor,
 				writer,
 			};
@@ -53,7 +61,9 @@ export const AgentDomainLive = (backends: ReadonlyMap<string, AgentBackend>) =>
 			const spawn = makeSpawnKind(deps);
 			const retire = makeRetireKind(deps);
 			return {
+				feeds,
 				gauges: { [AGENTS_ALIVE_GAUGE]: aliveAgents },
+				interruptSession: fabric.interrupt,
 				kinds: [spawn, retire],
 				retire,
 				spawn,

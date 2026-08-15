@@ -32,7 +32,9 @@ model Agent {
 model AgentSession {
   id                 String    @id
   agentId            String
+  backend            String    @default("claude")
   cwd                String
+  nativeRef          String?
   status             String
   charterDeliveredAt DateTime?
   createdAt          DateTime  @default(now())

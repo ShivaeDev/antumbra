@@ -8,7 +8,6 @@ const fakeBackend = (tag: string): AgentBackend => ({
 		fork: false,
 		liveInterrupt: false,
 		multiClient: false,
-		steer: false,
 	},
 	openSession: () => Effect.die("unused in this test"),
 	tag,

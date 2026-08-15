@@ -1,5 +1,6 @@
 import { SightSource } from "@antumbra/contract";
 import type { TemporaryPersistence } from "@antumbra/persistence/testing";
+import type { AgentEvent } from "@antumbra/plugin-api";
 import { expect, it } from "@effect/vitest";
 import { Effect, Fiber, Layer, Schedule, Stream } from "effect";
 import { SightSourceLive } from "#sight.ts";
@@ -7,6 +8,7 @@ import {
 	acquireTemporaryPersistence,
 	domainKernelLayer,
 	makeScriptedBackend,
+	rawOf,
 	type ScriptedBackend,
 } from "#test/harness.ts";
 
@@ -30,6 +32,13 @@ const spawnRequest = {
 	repos: [],
 	role: "navigator",
 };
+
+const note = (n: number): AgentEvent => ({
+	raw: rawOf("assistant"),
+	role: "agent",
+	text: `note ${n}`,
+	type: "message",
+});
 
 const liveSession = (scripted: ScriptedBackend, sessionId: string) =>
 	eventually(
@@ -85,8 +94,8 @@ it.live(
 				const sight = yield* SightSource;
 				const receipt = yield* sight.spawn(spawnRequest);
 				const session = yield* liveSession(scripted, receipt.sessionId);
-				yield* session.emit({ kind: "assistant", payload: '{"n":0}' });
-				yield* session.emit({ kind: "assistant", payload: '{"n":1}' });
+				yield* session.emit(note(0));
+				yield* session.emit(note(1));
 				yield* eventually(
 					Effect.gen(function* () {
 						const rows = yield* sight.sessionEvents({
@@ -99,7 +108,7 @@ it.live(
 				const collector = yield* sight
 					.sessionEventFeed({ fromSeq: 0, sessionId: receipt.sessionId })
 					.pipe(Stream.take(3), Stream.runCollect, Effect.forkChild);
-				yield* session.emit({ kind: "assistant", payload: '{"n":2}' });
+				yield* session.emit(note(2));
 				const events = yield* Fiber.join(collector);
 				expect(events.map((event) => event.seq)).toEqual([0, 1, 2]);
 				const tail = yield* sight

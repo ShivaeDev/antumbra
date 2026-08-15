@@ -1,5 +1,5 @@
 import { defineIntent } from "@antumbra/kernel";
-import { Effect, PubSub, Schema } from "effect";
+import { Effect, Option, PubSub, Schema } from "effect";
 import { deliverCharterOnce } from "#charter.ts";
 import type { AgentDeps } from "#deps.ts";
 import { UnknownBackendTag, UnknownRunnerTag } from "#errors.ts";
@@ -44,7 +44,11 @@ export const makeSpawnKind = (deps: AgentDeps) =>
 				const sink = yield* deps.sinkFor(payload.sessionId);
 				const handle = yield* deps.fabric.start(
 					backend,
-					{ cwd: moorage.root, resume: false, sessionId: payload.sessionId },
+					{
+						cwd: moorage.root,
+						resume: Option.none(),
+						sessionId: payload.sessionId,
+					},
 					sink,
 				);
 				yield* deliverCharterOnce(deps, payload, handle);

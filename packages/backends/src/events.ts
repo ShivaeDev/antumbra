@@ -5,14 +5,10 @@ import {
 	type WriteExecutors,
 	Writer,
 } from "@antumbra/persistence";
-import type { WireEvent } from "@antumbra/plugin-api";
+import type { AgentEvent } from "@antumbra/plugin-api";
 import { type Context, Effect, PubSub, Ref } from "effect";
 import type { EventSink } from "#fabric.ts";
 import type { StoredEvent } from "#feeds.ts";
-
-// why: thinking-token telemetry outnumbers real events several-fold on even
-// trivial turns and renders live from the stream — never persisted.
-const DROPPED_KINDS: ReadonlySet<string> = new Set(["system/thinking_tokens"]);
 
 interface SinkContext {
 	readonly db: DatabaseService;
@@ -29,12 +25,14 @@ const appendAndAnnounce = (
 	context: SinkContext,
 	sessionId: string,
 	seq: number,
-	event: WireEvent,
+	event: AgentEvent,
 ) =>
 	Effect.gen(function* () {
+		// why: the row kind is the neutral event type; the whole neutral event
+		// (raw provider payload included) is the row payload.
 		const stored: StoredEvent = {
-			kind: event.kind,
-			payload: event.payload,
+			kind: event.type,
+			payload: JSON.stringify(event),
 			seq,
 			sessionId,
 		};
@@ -42,19 +40,34 @@ const appendAndAnnounce = (
 		yield* PubSub.publish(context.feed, stored);
 	});
 
+// why: the backend's own id arrives as an event, so the row that resume
+// reads is written by the same pump that writes the log — no second path.
+const recordNativeRef = (
+	context: SinkContext,
+	sessionId: string,
+	event: AgentEvent,
+): Effect.Effect<void, PrismaError, WriteExecutors> =>
+	event.type === "session.opened"
+		? context.writer
+				.write(
+					context.db.AgentSession.where({ id: sessionId }).update({
+						nativeRef: event.nativeRef,
+					}),
+				)
+				.pipe(Effect.asVoid)
+		: Effect.void;
+
 const makeSink = (
 	context: SinkContext,
 	sessionId: string,
 	counter: Ref.Ref<number>,
 ): EventSink => {
-	return (event) => {
-		if (DROPPED_KINDS.has(event.kind)) {
-			return Effect.void;
-		}
-		return Ref.getAndUpdate(counter, (n) => n + 1).pipe(
+	return (event) =>
+		Ref.getAndUpdate(counter, (n) => n + 1).pipe(
 			Effect.flatMap((seq) =>
 				appendAndAnnounce(context, sessionId, seq, event),
 			),
+			Effect.andThen(recordNativeRef(context, sessionId, event)),
 			Effect.provideContext(context.executors),
 			// why: one failed append must not end the pump — the gap is logged
 			// and the stream continues.
@@ -62,7 +75,6 @@ const makeSink = (
 				Effect.logError("event append failed", { sessionId }, cause),
 			),
 		);
-	};
 };
 
 // why: the minted sink runs inside intent fibers where R must be never, so

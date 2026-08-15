@@ -4,7 +4,6 @@ export {
 	BackendFailure,
 	type OpenSessionOptions,
 	type SessionHandle,
-	type WireEvent,
 } from "#backend.ts";
 export {
 	type AntumbraPlugin,
@@ -16,6 +15,19 @@ export {
 	type SecretsApi,
 	type SettingsApi,
 } from "#context.ts";
+export {
+	AgentEvent,
+	MessageEvent,
+	RawEvent,
+	type RawPayload,
+	SessionOpened,
+	ThinkingEvent,
+	ToolCompleted,
+	ToolStarted,
+	TurnCompleted,
+	TurnStatus,
+	UsageEvent,
+} from "#events.ts";
 export {
 	type BerthSite,
 	type ProvisionedBerth,

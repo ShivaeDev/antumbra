@@ -8,6 +8,7 @@ import {
 	acquireTemporaryPersistence,
 	domainKernelLayer,
 	makeScriptedBackend,
+	rawOf,
 } from "#test/harness.ts";
 
 const TERMINAL: ReadonlySet<IntentStatus> = new Set([
@@ -73,16 +74,33 @@ it.live("spawn brings an agent alive, chartered, with events flowing", () =>
 				return;
 			}
 			expect(yield* live.sent).toEqual(["charter for a"]);
-			yield* live.emit({ kind: "system/thinking_tokens", payload: "{}" });
-			yield* live.emit({ kind: "assistant", payload: '{"text":"hi"}' });
+			yield* live.emit({
+				nativeRef: "provider-thread-1",
+				raw: rawOf("system/init"),
+				type: "session.opened",
+			});
+			yield* live.emit({
+				raw: rawOf("assistant"),
+				role: "agent",
+				text: "hi",
+				type: "message",
+			});
 			yield* eventually(
 				Effect.gen(function* () {
 					const events = yield* db.SessionEvent.where({
 						sessionId: "session-a",
 					}).all();
-					expect(events).toHaveLength(1);
-					expect(events[0]?.kind).toBe("assistant");
-					expect(events[0]?.seq).toBe(0);
+					expect(events.map((event) => event.kind)).toEqual([
+						"session.opened",
+						"message",
+					]);
+					const session = yield* db.AgentSession.where({
+						id: "session-a",
+					}).first();
+					expect(Option.getOrThrow(session).nativeRef).toBe(
+						"provider-thread-1",
+					);
+					expect(Option.getOrThrow(session).backend).toBe("scripted");
 				}),
 			);
 		}).pipe(Effect.provide(domainKernelLayer(temporary, scripted.backend)));

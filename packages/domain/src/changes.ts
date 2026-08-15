@@ -1,7 +1,8 @@
 import type { PrismaError } from "@antumbra/persistence";
 import type { ChangeHostError } from "@antumbra/plugin-api";
-import { Clock, Effect, Option } from "effect";
+import { Clock, Effect, Option, PubSub } from "effect";
 import {
+	capableHost,
 	requireBerth,
 	requireChangeHost,
 	requireRepo,
@@ -51,7 +52,7 @@ export const openChange = (
 	Effect.gen(function* () {
 		yield* requirePiece(deps, input.pieceId);
 		const repo = yield* requireRepo(deps, input.repoName);
-		const host = yield* requireChangeHost(deps, repo);
+		const host = yield* capableHost(yield* requireChangeHost(deps, repo));
 		const berth = yield* requireBerth(deps, input.agentId, repo);
 		const observation = yield* host.open({
 			base: input.base,
@@ -79,6 +80,9 @@ export const openChange = (
 			),
 		);
 		yield* announceChanges(deps);
+		// why: a change that just reached a host has news to give sooner than any
+		// cadence would guess, so the watcher is rung rather than waited on.
+		yield* PubSub.publish(deps.feeds.changeRefresh, undefined);
 		return row;
 	});
 
@@ -92,7 +96,7 @@ export const adoptChange = (
 	Effect.gen(function* () {
 		yield* requirePiece(deps, input.pieceId);
 		const repo = yield* requireRepo(deps, input.repoName);
-		const host = yield* requireChangeHost(deps, repo);
+		const host = yield* capableHost(yield* requireChangeHost(deps, repo));
 		const observation = yield* host.adopt(input.url, repo);
 		const now = yield* Clock.currentTimeMillis;
 		const known = yield* changeOfExternalId(
@@ -119,5 +123,6 @@ export const adoptChange = (
 			),
 		);
 		yield* announceChanges(deps);
+		yield* PubSub.publish(deps.feeds.changeRefresh, undefined);
 		return row;
 	});

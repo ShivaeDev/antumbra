@@ -14,6 +14,8 @@ import type {
 } from "@antumbra/plugin-api";
 import type { AgentEvent } from "@antumbra/session-events";
 import { Effect, Layer, Option, Queue, Ref, Stream } from "effect";
+import type { ObserveCadenceOptions } from "#change-cadence.ts";
+import { ChangeWatcherLive } from "#change-watcher.ts";
 import { DispatcherLive, type DispatcherOptions } from "#dispatcher.ts";
 import { AgentDomain, AgentDomainLive } from "#domain.ts";
 import { KernelReachLive } from "#kernel-reach.ts";
@@ -206,5 +208,22 @@ export const dispatchingLayer = (
 	DispatcherLive(dispatcher).pipe(
 		Layer.provideMerge(
 			domainKernelLayer(temporary, backend, options, runner, changeHosts),
+		),
+	);
+
+// why: the watcher stands beside the dispatcher exactly as it does in the app,
+// so a test of "the host said it landed" runs the same path a real merge does
+// — nothing in these tests ever calls a refresh by hand.
+export const watchingLayer = (
+	temporary: TemporaryPersistence,
+	backend: AgentBackend,
+	cadence: Partial<ObserveCadenceOptions>,
+	changeHosts: ReadonlyMap<string, ChangeHost>,
+	dispatcher: Partial<DispatcherOptions> = { maxAlive: 4, patienceMillis: 50 },
+	runner: Runner = passiveRunner,
+) =>
+	ChangeWatcherLive(cadence).pipe(
+		Layer.provideMerge(
+			dispatchingLayer(temporary, backend, dispatcher, {}, runner, changeHosts),
 		),
 	);

@@ -4,6 +4,7 @@ import { makeAppRouter } from "@antumbra/contract";
 import {
 	AgentDomain,
 	AgentDomainLive,
+	ChangeWatcherLive,
 	DispatcherLive,
 	KernelReachLive,
 	SightSourceLive,
@@ -77,11 +78,13 @@ const kernel = Layer.unwrap(
 	}),
 ).pipe(Layer.provideMerge(agents));
 
-// why: the dispatcher stands beside the view source rather than under it —
-// launched pieces are spawned for whether or not a window is watching.
+// why: the dispatcher and the change watcher stand beside the view source
+// rather than under it — launched pieces are spawned for and open changes are
+// followed whether or not a window is watching.
 const bridge = Layer.mergeAll(
 	SightSourceLive,
 	VoyageSourceLive,
+	ChangeWatcherLive(),
 	DispatcherLive(),
 	KernelReachLive,
 ).pipe(Layer.provideMerge(kernel), Layer.provideMerge(persistence));

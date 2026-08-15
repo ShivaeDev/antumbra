@@ -5,13 +5,16 @@ import type {
 	ChangeRef,
 	OpenChangeRequest,
 } from "@antumbra/plugin-api";
-import { ChangeHostRefused } from "@antumbra/plugin-api";
+import { ChangeHostRefused, ChangeHostUnavailable } from "@antumbra/plugin-api";
 import { Effect, Ref } from "effect";
 
 export interface ScriptedHostDrive {
 	readonly announce: (observation: ChangeObservation) => Effect.Effect<void>;
 	readonly asked: Effect.Effect<ReadonlyArray<ChangeRef>>;
 	readonly opened: Effect.Effect<ReadonlyArray<OpenChangeRequest>>;
+	// why: a host that stops answering is the case a watcher must survive, so
+	// the scripted one can be told to refuse and told to stop refusing.
+	readonly refuse: (detail: string | null) => Effect.Effect<void>;
 	readonly transition: (
 		externalId: string,
 		patch: Partial<ChangeObservation>,
@@ -84,6 +87,7 @@ export const makeScriptedHost = (options: ScriptedHostOptions = {}) =>
 		);
 		const requests = yield* Ref.make<ReadonlyArray<OpenChangeRequest>>([]);
 		const refs = yield* Ref.make<ReadonlyArray<ChangeRef>>([]);
+		const refusal = yield* Ref.make<string | null>(null);
 		const remember = (observation: ChangeObservation) =>
 			Ref.update(known, (map) =>
 				new Map(map).set(observation.externalId, observation),
@@ -98,8 +102,12 @@ export const makeScriptedHost = (options: ScriptedHostOptions = {}) =>
 			capability: Effect.succeed({ available: true, detail: "scripted" }),
 			observe: (asked) =>
 				Ref.update(refs, (all) => [...all, ...asked]).pipe(
-					Effect.andThen(Ref.get(known)),
-					Effect.map((map) => [...map.values()]),
+					Effect.andThen(Ref.get(refusal)),
+					Effect.flatMap((detail) =>
+						detail === null
+							? Ref.get(known).pipe(Effect.map((map) => [...map.values()]))
+							: new ChangeHostUnavailable({ detail, host: tag }),
+					),
 				),
 			open: (request) =>
 				Effect.gen(function* () {
@@ -121,6 +129,7 @@ export const makeScriptedHost = (options: ScriptedHostOptions = {}) =>
 				announce: (observation) => Effect.asVoid(remember(observation)),
 				asked: Ref.get(refs),
 				opened: Ref.get(requests),
+				refuse: (detail) => Ref.set(refusal, detail),
 				transition: (externalId, patch) =>
 					Ref.update(known, (map) => {
 						const seen = map.get(externalId);

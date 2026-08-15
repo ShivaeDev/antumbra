@@ -1,10 +1,15 @@
 import { expect, it } from "@effect/vitest";
-import { Effect, Ref, Schema } from "effect";
+import { Context, Effect, Ref, Schema } from "effect";
 import { Activity, Workflow, WorkflowEngine } from "effect/unstable/workflow";
 import { defineIntent } from "#intent.ts";
 import { IntentExecution } from "#workflow.ts";
 
 const EMPTY = Schema.Struct({});
+
+class RetryCounter extends Context.Service<
+	RetryCounter,
+	{ readonly next: Effect.Effect<number> }
+>()("test/RetryCounter") {}
 
 const failFirstAttempt = (attempt: number) =>
 	attempt === 1 ? Effect.fail("transient") : Effect.void;
@@ -20,17 +25,19 @@ it.effect(
 	() =>
 		Effect.gen(function* () {
 			const attempts = yield* Ref.make(0);
-			const retryable = Ref.updateAndGet(attempts, (count) => count + 1).pipe(
-				Effect.flatMap(failFirstAttempt),
+			const counter = RetryCounter.of({
+				next: Ref.updateAndGet(attempts, (count) => count + 1),
+			});
+			const retryable = RetryCounter.use((service) =>
+				Effect.flatMap(service.next, failFirstAttempt),
+			);
+			const retryStep = IntentExecution.use((execution) =>
+				execution
+					.step("retryable-step", retryable, { additionalAttempts: 1 })
+					.pipe(Effect.provideService(RetryCounter, counter)),
 			);
 			const kind = defineIntent({
-				execute: () =>
-					Effect.gen(function* () {
-						const execution = yield* IntentExecution;
-						yield* execution.step("retryable-step", retryable, {
-							additionalAttempts: 1,
-						});
-					}),
+				execute: () => retryStep,
 				payload: EMPTY,
 				tag: "test/activity-replay",
 			});

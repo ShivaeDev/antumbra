@@ -7,6 +7,7 @@ import {
 } from "@antumbra/persistence";
 import type { BerthSite, Runner } from "@antumbra/plugin-api";
 import { Clock, Effect } from "effect";
+import { readBerthSweep } from "#berth-sweep-read.ts";
 
 const STRANDED_TTL_MILLIS = 7 * 24 * 60 * 60 * 1000;
 
@@ -89,6 +90,22 @@ const guarded = (
 		),
 	);
 
+// why: a held berth is where a crew answers red checks and reviews, so no
+// sweep may reclaim, expire or scrap it — the hold sits in front of the git
+// verdict rather than beside it, and lifts on its own when the change resolves.
+const unlessHeld = (
+	held: ReadonlyMap<string, string>,
+	berth: BerthRow,
+	sweep: Effect.Effect<void, unknown, WriteExecutors>,
+) => {
+	const changeId = held.get(berth.id);
+	return changeId === undefined
+		? guarded(berth, sweep)
+		: Effect.logDebug(`held: change ${changeId} pending`, {
+				berthId: berth.id,
+			});
+};
+
 // why: runs after the agent sweep — revival does not exist, so by now every
 // agent is dormant and every ready berth is orphaned by construction.
 export const sweepBerths = (runners: ReadonlyMap<string, Runner>) =>
@@ -96,19 +113,22 @@ export const sweepBerths = (runners: ReadonlyMap<string, Runner>) =>
 		const db = yield* Database;
 		const writer = yield* Writer;
 		const now = yield* Clock.currentTimeMillis;
-		const ready = yield* db.Berth.where({ status: "ready" }).all();
-		const stranded = yield* db.Berth.where({ status: "stranded" }).all();
+		const { held, ready, stranded } = yield* readBerthSweep;
 		yield* Effect.forEach(ready, (berth) => {
 			const runner = runners.get(berth.runner);
 			return runner === undefined
 				? Effect.void
-				: guarded(berth, judgeReady(db, writer, runner, berth, now));
+				: unlessHeld(held, berth, judgeReady(db, writer, runner, berth, now));
 		});
 		yield* Effect.forEach(stranded, (berth) => {
 			const runner = runners.get(berth.runner);
 			return runner === undefined
 				? Effect.void
-				: guarded(berth, expireStranded(db, writer, runner, berth, now));
+				: unlessHeld(
+						held,
+						berth,
+						expireStranded(db, writer, runner, berth, now),
+					);
 		});
 		if (ready.length + stranded.length > 0) {
 			yield* Effect.logInfo("boot berth sweep finished", {

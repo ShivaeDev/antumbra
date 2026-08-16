@@ -1,8 +1,45 @@
 import { Database, Writer } from "@antumbra/persistence";
+import type { ChangeStage } from "@antumbra/plugin-api";
 import { Effect } from "effect";
+import type { ChangeRow } from "#change-rows.ts";
 import { AgentDomain } from "#domain.ts";
 
 export const REEF_SOURCE = "/somewhere/reef";
+
+const OBSERVED = new Date("2026-08-15T09:00:00.000Z");
+
+export interface ChangeFields {
+	readonly headRef: string;
+	readonly id: string;
+	readonly repoId: string;
+	readonly stage: ChangeStage;
+}
+
+// why: every column but the four a caller names is scenery here, so a test says
+// only what it asserts on and the row still reads back as a whole change.
+export const changeOf = (fields: ChangeFields): ChangeRow => ({
+	activityAt: OBSERVED,
+	baseRef: "main",
+	body: "",
+	checks: "none",
+	draftAt: null,
+	externalId: fields.id,
+	headRef: fields.headRef,
+	headSha: null,
+	host: "scripted",
+	id: fields.id,
+	landedAt: fields.stage === "landed" ? OBSERVED : null,
+	mergeable: "clean",
+	observedAt: OBSERVED,
+	openedByAgentId: null,
+	raw: null,
+	repoId: fields.repoId,
+	review: "none",
+	stage: fields.stage,
+	title: fields.id,
+	url: null,
+	withdrawnAt: fields.stage === "withdrawn" ? OBSERVED : null,
+});
 
 // why: a berth is written by a spawn in life, and these tests are about what a
 // change does once an agent already has one — so the berth is a fixture here

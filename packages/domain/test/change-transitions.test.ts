@@ -153,6 +153,61 @@ it.live("a newer reopen advances the same durable change", () =>
 	),
 );
 
+it.live("a landed fact wins when the host timestamp ties the open fact", () =>
+	withHost(() =>
+		Effect.gen(function* () {
+			const db = yield* Database;
+			const domain = yield* AgentDomain;
+			const { piece, repo } = yield* reefWithPiece;
+			yield* berthed(CREW);
+			const row = yield* openChange(piece.id, repo.name);
+
+			yield* domain.changes.observed("scripted", [
+				observed(row, repo.id, 0, { stage: "landed" }),
+			]);
+
+			expect((yield* storedChange(row.id)).stage).toBe("landed");
+			const transitions = yield* db.ChangeTransition.where({
+				changeId: row.id,
+			}).all();
+			expect(transitions.map((transition) => transition.id)).toEqual([
+				`${row.id}:${row.activityAt.getTime()}:landed`,
+			]);
+		}),
+	),
+);
+
+it.live(
+	"equal-time withdrawal and reopen facts apply once in observed order",
+	() =>
+		withHost(() =>
+			Effect.gen(function* () {
+				const db = yield* Database;
+				const domain = yield* AgentDomain;
+				const { piece, repo } = yield* reefWithPiece;
+				yield* berthed(CREW);
+				const row = yield* openChange(piece.id, repo.name);
+				const withdrawn = observed(row, repo.id, 1, { stage: "withdrawn" });
+				const reopened = observed(row, repo.id, 1, { stage: "open" });
+
+				yield* domain.changes.observed("scripted", [withdrawn]);
+				yield* domain.changes.observed("scripted", [reopened]);
+				yield* domain.changes.observed("scripted", [withdrawn]);
+
+				expect((yield* storedChange(row.id)).stage).toBe("open");
+				const transitions = yield* db.ChangeTransition.where({
+					changeId: row.id,
+				}).all();
+				expect(
+					transitions.map((transition) => transition.id).toSorted(),
+				).toEqual([
+					`${row.id}:${withdrawn.activityAt}:open`,
+					`${row.id}:${withdrawn.activityAt}:withdrawn`,
+				]);
+			}),
+		),
+);
+
 it.live("landed is irreversible even when a newer observation says open", () =>
 	withHost(() =>
 		Effect.gen(function* () {

@@ -18,9 +18,16 @@ const refused = (row: ChangeRow, observation: ChangeObservation) =>
 		stage: row.stage,
 	});
 
+const unsettlesLandedChange = (
+	row: ChangeRow,
+	observation: ChangeObservation,
+): boolean => row.stage === "landed" && observation.stage !== "landed";
+
 // why: read, freshness decision, transition append and projection update all
-// happen inside the serialized transaction. A restart can replay any host
-// answer: equal facts are no-ops, and older facts cannot roll the row back.
+// happen inside the serialized transaction. Provider timestamps are not unique
+// revisions: at equal time an unseen destination stage is the next fact in
+// observed order, while its durable transition id makes a later replay a no-op.
+// Older facts cannot roll the row back, and landed remains irreversible.
 export const applyObservations = (
 	deps: AgentDeps,
 	hostTag: string,
@@ -47,6 +54,20 @@ export const applyObservations = (
 			url: row.url,
 			withdrawnAt: row.withdrawnAt,
 		});
+	const stageTransitionToAppend = (before: ChangeRow, after: ChangeRow) =>
+		Effect.gen(function* () {
+			if (after.stage === before.stage) {
+				return Option.none();
+			}
+			const transition = stageTransition(before, after);
+			if (after.activityAt.getTime() > before.activityAt.getTime()) {
+				return Option.some(transition);
+			}
+			const replayed = yield* deps.db.ChangeTransition.where({
+				id: transition.id,
+			}).first();
+			return Option.isSome(replayed) ? Option.none() : Option.some(transition);
+		});
 	const reconcile = (observation: ChangeObservation, now: number) =>
 		Effect.gen(function* () {
 			const known = yield* changeOfExternalId(
@@ -59,16 +80,19 @@ export const applyObservations = (
 				return Option.none<ReconciledObservation>();
 			}
 			const row = known.value;
-			if (row.stage === "landed" && observation.stage !== "landed") {
+			if (unsettlesLandedChange(row, observation)) {
 				yield* refused(row, observation);
 				return Option.some({ changed: false, row });
 			}
-			if (observation.activityAt <= row.activityAt.getTime()) {
+			if (observation.activityAt < row.activityAt.getTime()) {
 				return Option.some({ changed: false, row });
 			}
 			const next = projectedChange(row, observation, now);
-			if (next.stage !== row.stage) {
-				yield* deps.db.ChangeTransition.create(stageTransition(row, next));
+			const transition = yield* stageTransitionToAppend(row, next);
+			if (Option.isSome(transition)) {
+				yield* deps.db.ChangeTransition.create(transition.value);
+			} else if (observation.activityAt === row.activityAt.getTime()) {
+				return Option.some({ changed: false, row });
 			}
 			yield* updateProjection(next);
 			return Option.some({ changed: true, row: next });

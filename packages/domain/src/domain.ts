@@ -82,10 +82,23 @@ export const AgentDomainLive = (
 					sessionId: context.identity.sessionId,
 					tools: toolsFor(context),
 				};
-				return sinkFor(context.identity.sessionId).pipe(
-					Effect.flatMap((sink) => fabric.start(backend, options, sink)),
-					Effect.flatMap((handle) => handle.queue(RECOVERY_INSTRUCTION)),
-				);
+				return Effect.gen(function* () {
+					const sink = yield* sinkFor(context.identity.sessionId);
+					const attachment = yield* fabric.start(backend, options, sink);
+					const openedNativeRef = yield* attachment.openedNativeRef.pipe(
+						Effect.onError(() => fabric.stop(context.identity.sessionId)),
+						Effect.catchTag("SessionAttachmentFailure", (failure) =>
+							Effect.fail(new SessionRecoveryHeld({ detail: failure.detail })),
+						),
+					);
+					if (openedNativeRef !== context.nativeRef) {
+						yield* fabric.stop(context.identity.sessionId);
+						return yield* new SessionRecoveryHeld({
+							detail: `provider resumed native session ${openedNativeRef}, expected ${context.nativeRef}`,
+						});
+					}
+					yield* attachment.handle.queue(RECOVERY_INSTRUCTION);
+				});
 			};
 			const recoveryRuntime = SessionRecoveryRuntime.of({
 				resume: resumeSession,

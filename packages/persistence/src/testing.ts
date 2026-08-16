@@ -67,3 +67,32 @@ export const corruptTestBoardEntry = (
 	database.prepare(statements[column]).run(value);
 	database.close();
 };
+
+export const rejectTestSessionOpenedWrites = (
+	databasePath: DatabaseFilePath,
+) => {
+	const database = new DatabaseSync(databasePath);
+	try {
+		database.exec(`
+			CREATE TRIGGER reject_session_opened
+			BEFORE INSERT ON "sessionEvent"
+			WHEN NEW."kind" = 'session.opened'
+			BEGIN
+				SELECT RAISE(FAIL, 'reject session.opened');
+			END
+		`);
+	} finally {
+		database.close();
+	}
+};
+
+export const allowTestSessionOpenedWrites = (
+	databasePath: DatabaseFilePath,
+) => {
+	const database = new DatabaseSync(databasePath);
+	try {
+		database.exec("DROP TRIGGER reject_session_opened");
+	} finally {
+		database.close();
+	}
+};

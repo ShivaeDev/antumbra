@@ -109,7 +109,7 @@ export const makeSpawnKind = Effect.gen(function* () {
 					yield* markMoorageReady(payload);
 					yield* ensureSessionRow(payload, plan);
 					const sink = yield* deps.sinkFor(payload.sessionId);
-					const handle = yield* deps.fabric.start(
+					const attachment = yield* deps.fabric.start(
 						backend,
 						{
 							cwd: plan.root,
@@ -119,7 +119,7 @@ export const makeSpawnKind = Effect.gen(function* () {
 						},
 						sink,
 					);
-					yield* deliverCharterOnce(deps, payload, handle);
+					yield* deliverCharterOnce(deps, payload, attachment.handle);
 					yield* activateAgent(deps, payload.agentId);
 				}).pipe(Effect.onError(settleUnlessTeardown(payload)));
 			});

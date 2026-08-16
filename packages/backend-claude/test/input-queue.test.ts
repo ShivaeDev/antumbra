@@ -1,7 +1,11 @@
-import type { SDKUserMessage } from "@anthropic-ai/claude-agent-sdk";
+import type {
+	SDKMessage,
+	SDKUserMessage,
+} from "@anthropic-ai/claude-agent-sdk";
 import { expect, it } from "@effect/vitest";
 import { Effect, Exit, Fiber } from "effect";
 import { InputQueue } from "#adapters/input-queue.ts";
+import { consumeSdkMessages } from "#adapters/session.ts";
 
 const message = (text: string): SDKUserMessage => ({
 	message: { content: text, role: "user" },
@@ -36,5 +40,24 @@ it.effect("closing fails a buffered send the SDK never accepted", () =>
 		yield* Effect.yieldNow;
 		yield* Effect.sync(() => input.close());
 		expect(Exit.isFailure(yield* Effect.exit(Fiber.join(receipt)))).toBe(true);
+	}),
+);
+
+it.effect("provider termination fails a buffered send", () =>
+	Effect.gen(function* () {
+		const input = new InputQueue();
+		const receipt = yield* Effect.forkChild(
+			input.push(message("held when provider died")),
+		);
+		yield* Effect.yieldNow;
+		const ended: AsyncIterable<SDKMessage> = {
+			[Symbol.asyncIterator]: () => ({
+				next: () => Promise.resolve({ done: true, value: undefined }),
+			}),
+		};
+		yield* Effect.promise(() => consumeSdkMessages(ended, input, () => {}));
+		yield* Effect.yieldNow;
+		const result = receipt.pollUnsafe();
+		expect(result !== undefined && Exit.isFailure(result)).toBe(true);
 	}),
 );

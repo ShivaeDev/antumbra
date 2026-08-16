@@ -60,12 +60,12 @@ export const makeTurnDriver = (
 			requests,
 			failWhenClosed,
 		);
-		yield* Effect.addFinalizer(() =>
-			Deferred.fail(closure, SESSION_CLOSED).pipe(
-				Effect.andThen(queued.close),
-				Effect.asVoid,
-			),
+		const closeDelivery = Deferred.fail(closure, SESSION_CLOSED).pipe(
+			Effect.andThen(queued.close),
+			Effect.asVoid,
 		);
+		yield* Effect.addFinalizer(() => closeDelivery);
+		yield* Effect.forkScoped(server.exited.pipe(Effect.andThen(closeDelivery)));
 
 		const startSteered = (text: string) =>
 			requests

@@ -159,6 +159,19 @@ it.live("closing a session fails text held before provider acceptance", () =>
 	}),
 );
 
+it.live("provider termination fails text held before acceptance", () =>
+	Effect.gen(function* () {
+		const { fake, handle } = yield* openFake();
+		yield* handle.queue("first");
+		const held = yield* Effect.forkChild(handle.queue("held"));
+		yield* Effect.yieldNow;
+		fake.exit();
+		yield* Effect.yieldNow;
+		const result = held.pollUnsafe();
+		expect(result !== undefined && Exit.isFailure(result)).toBe(true);
+	}),
+);
+
 it.live("steer rides the active turn and starts one when idle", () =>
 	Effect.gen(function* () {
 		const { fake, handle } = yield* openFake();

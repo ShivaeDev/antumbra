@@ -34,6 +34,23 @@ export interface RawSession {
 	readonly subscribe: (listener: RawEventListener) => void;
 }
 
+export const consumeSdkMessages = async (
+	live: AsyncIterable<SDKMessage>,
+	input: InputQueue,
+	deliver: (message: SDKMessage) => void,
+): Promise<void> => {
+	try {
+		for await (const message of live) {
+			deliver(message);
+		}
+	} catch {
+		// why: an abrupt subprocess death is not an event — ending the output
+		// stream is; the gap in the log remains the trace.
+	} finally {
+		input.close();
+	}
+};
+
 const userMessage = (
 	text: string,
 	priority?: SDKUserMessage["priority"],
@@ -87,18 +104,7 @@ export const openRawSession = (options: RawSessionOptions): RawSession => {
 		ended = true;
 		listener?.end();
 	};
-	void (async () => {
-		try {
-			for await (const message of live) {
-				deliver(message);
-			}
-		} catch {
-			// why: an abrupt subprocess death is not an event — the end signal in
-			// finally is; the gap in the log is the trace.
-		} finally {
-			finish();
-		}
-	})();
+	void consumeSdkMessages(live, input, deliver).finally(finish);
 
 	return {
 		close: () => {

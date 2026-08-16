@@ -3,8 +3,8 @@ import {
 	type SDKMessage,
 	type SDKUserMessage,
 } from "@anthropic-ai/claude-agent-sdk";
-import type { DirectTool } from "@antumbra/plugin-api";
-import { type Context, Option } from "effect";
+import type { BackendFailure, DirectTool } from "@antumbra/plugin-api";
+import { type Context, type Effect, Option } from "effect";
 import { InputQueue } from "#adapters/input-queue.ts";
 import { makeToolServer } from "#adapters/tool-server.ts";
 import { sessionOptions, type ToolAccess } from "#session-options.ts";
@@ -29,8 +29,8 @@ export interface RawEventListener {
 export interface RawSession {
 	readonly close: () => void;
 	readonly interrupt: () => Promise<void>;
-	readonly queue: (text: string) => void;
-	readonly steer: (text: string) => void;
+	readonly queue: (text: string) => Effect.Effect<void, BackendFailure>;
+	readonly steer: (text: string) => Effect.Effect<void, BackendFailure>;
 	readonly subscribe: (listener: RawEventListener) => void;
 }
 

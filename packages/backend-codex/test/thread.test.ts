@@ -1,7 +1,16 @@
 import type { SessionHandle } from "@antumbra/plugin-api";
 import type { AgentEvent } from "@antumbra/session-events";
 import { expect, it } from "@effect/vitest";
-import { Effect, Fiber, Option, Queue, Schedule, Stream } from "effect";
+import {
+	Effect,
+	Exit,
+	Fiber,
+	Option,
+	Queue,
+	Schedule,
+	Scope,
+	Stream,
+} from "effect";
 import { makeCodexServer } from "#server.ts";
 import { type FakeAppServer, makeFakeAppServer } from "#test/fake.ts";
 import { openThreadSession } from "#thread.ts";
@@ -102,32 +111,52 @@ it.live("only this thread's notifications become events; items map", () =>
 	}),
 );
 
-it.live(
-	"queue starts a turn when idle and holds texts while one is active",
-	() =>
-		Effect.gen(function* () {
-			const { fake, handle } = yield* openFake();
-			yield* handle.queue("first");
-			expect(methods(fake).at(-1)).toBe("turn/start");
-			yield* handle.queue("second");
-			yield* handle.queue("third");
-			expect(methods(fake).filter((m) => m === "turn/start")).toHaveLength(1);
-			turnCompleted(fake, "turn-1");
-			yield* eventually(
-				Effect.sync(() => {
-					expect(methods(fake).filter((m) => m === "turn/start")).toHaveLength(
-						2,
-					);
+it.live("queue settles only when its text reaches a provider turn", () =>
+	Effect.gen(function* () {
+		const { fake, handle } = yield* openFake();
+		yield* handle.queue("first");
+		expect(methods(fake).at(-1)).toBe("turn/start");
+		const second = yield* Effect.forkScoped(handle.queue("second"));
+		yield* Effect.yieldNow;
+		const third = yield* Effect.forkScoped(handle.queue("third"));
+		yield* Effect.yieldNow;
+		expect(methods(fake).filter((m) => m === "turn/start")).toHaveLength(1);
+		expect(second.pollUnsafe()).toBeUndefined();
+		expect(third.pollUnsafe()).toBeUndefined();
+		turnCompleted(fake, "turn-1");
+		yield* Fiber.join(second);
+		yield* Fiber.join(third);
+		expect(fake.requests.at(-1)?.params).toEqual({
+			input: [
+				{ text: "second", text_elements: [], type: "text" },
+				{ text: "third", text_elements: [], type: "text" },
+			],
+			threadId: THREAD,
+		});
+	}),
+);
+
+it.live("closing a session fails text held before provider acceptance", () =>
+	Effect.gen(function* () {
+		const scope = yield* Scope.make();
+		const fake = makeFakeAppServer();
+		const handle = yield* makeCodexServer({ spawn: () => fake.process }).pipe(
+			Effect.flatMap((server) =>
+				openThreadSession(server, {
+					cwd: "/moorage",
+					resume: Option.none(),
+					sessionId: "session-cut",
+					tools: [],
 				}),
-			);
-			expect(fake.requests.at(-1)?.params).toEqual({
-				input: [
-					{ text: "second", text_elements: [], type: "text" },
-					{ text: "third", text_elements: [], type: "text" },
-				],
-				threadId: THREAD,
-			});
-		}),
+			),
+			Scope.provide(scope),
+		);
+		yield* handle.queue("first");
+		const held = yield* Effect.forkChild(handle.queue("held"));
+		yield* Effect.yieldNow;
+		yield* Scope.close(scope, Exit.void);
+		expect(Exit.isFailure(yield* Effect.exit(Fiber.join(held)))).toBe(true);
+	}),
 );
 
 it.live("steer rides the active turn and starts one when idle", () =>

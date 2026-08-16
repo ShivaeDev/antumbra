@@ -5,6 +5,20 @@ import type { SeedFile } from "#test/support/inventory.ts";
 
 const seeded: string[] = [];
 
+const requiredLintInputs: readonly SeedFile[] = [
+	{ content: "{}\n", path: "package.json" },
+	{ content: "catalog:\n", path: "pnpm-workspace.yaml" },
+	{ content: "[]\n", path: "script/pragma-registry.json" },
+	{
+		content: "[]\n",
+		path: "script/lint/service-parameter-allowance.json",
+	},
+	{
+		content: "[]\n",
+		path: "script/lint/service-parameter-baseline.json",
+	},
+];
+
 export const seedTree = (
 	...groups: ReadonlyArray<readonly SeedFile[]>
 ): string => {
@@ -17,6 +31,10 @@ export const seedTree = (
 	}
 	return root;
 };
+
+export const seedLintTree = (
+	...groups: ReadonlyArray<readonly SeedFile[]>
+): string => seedTree(requiredLintInputs, ...groups);
 
 export const removeSeededTrees = (): void => {
 	for (const root of seeded.splice(0)) {

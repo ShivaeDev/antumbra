@@ -1,4 +1,5 @@
-import { parseJson } from "#lint/adapters/json.ts";
+import { Result, Schema } from "effect";
+import { jsonDecoder } from "#lint/adapters/json.ts";
 import type { Inventory, TextFile } from "#lint/inventory.ts";
 import type { Violation } from "#lint/violation.ts";
 
@@ -12,10 +13,16 @@ const DEPENDENCY_KEYS = [
 	"devDependencies",
 	"optionalDependencies",
 	"peerDependencies",
-];
-
-const isRecord = (value: unknown): value is Record<string, unknown> =>
-	typeof value === "object" && value !== null;
+] as const;
+const DependencyMap = Schema.Record(Schema.String, Schema.Unknown);
+const decodeManifest = jsonDecoder(
+	Schema.Struct({
+		dependencies: Schema.optional(DependencyMap),
+		devDependencies: Schema.optional(DependencyMap),
+		optionalDependencies: Schema.optional(DependencyMap),
+		peerDependencies: Schema.optional(DependencyMap),
+	}),
+);
 
 const catalogLines = (catalog: string): readonly string[] => {
 	const collected: string[] = [];
@@ -82,9 +89,9 @@ const dependencyViolation = (
 const dependencyViolations = (
 	manifest: TextFile,
 	key: string,
-	deps: unknown,
+	deps: Readonly<Record<string, unknown>> | undefined,
 ): readonly Violation[] => {
-	if (!isRecord(deps)) {
+	if (deps === undefined) {
 		return [];
 	}
 	return Object.entries(deps).flatMap(([name, spec]) =>
@@ -93,8 +100,8 @@ const dependencyViolations = (
 };
 
 const oneManifestViolations = (manifest: TextFile): readonly Violation[] => {
-	const parsed = parseJson(manifest.raw);
-	if (!isRecord(parsed)) {
+	const decoded = decodeManifest(manifest.raw);
+	if (Result.isFailure(decoded)) {
 		return [
 			{
 				file: manifest.path,
@@ -105,7 +112,7 @@ const oneManifestViolations = (manifest: TextFile): readonly Violation[] => {
 		];
 	}
 	return DEPENDENCY_KEYS.flatMap((key) =>
-		dependencyViolations(manifest, key, parsed[key]),
+		dependencyViolations(manifest, key, decoded.success[key]),
 	);
 };
 

@@ -1,10 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { pragmaViolations } from "#lint/rules/pragmas.ts";
-import fixture from "#test/fixtures/pragma-cases.json" with { type: "json" };
+import rawFixture from "#test/fixtures/pragma-cases.json" with { type: "json" };
+import { decodePragmaFixture } from "#test/support/fixture-schemas.ts";
 import { inventoryOf } from "#test/support/inventory.ts";
 
 const registry = (entries: readonly unknown[]): string =>
 	JSON.stringify(entries);
+const fixture = decodePragmaFixture(rawFixture);
 
 describe("pragma rules", () => {
 	it("flags a pragma missing from the registry", () => {
@@ -33,12 +35,25 @@ describe("pragma rules", () => {
 		).toEqual([]);
 	});
 
-	it("treats a missing or unreadable registry as empty", () => {
-		expect(
-			pragmaViolations(
-				inventoryOf({ pragmaRegistry: "", sources: [fixture.source] }),
-			),
-		).toHaveLength(1);
+	it("reports a malformed registry instead of treating it as empty", () => {
+		const violations = pragmaViolations(
+			inventoryOf({ pragmaRegistry: "{oops", sources: [fixture.source] }),
+		);
+		expect(violations).toHaveLength(1);
+		expect(violations[0]?.rule).toBe("pragmas/registry-invalid");
+		expect(violations[0]?.file).toBe("script/pragma-registry.json");
+	});
+
+	it("requires each registry entry to carry its reason", () => {
+		const violations = pragmaViolations(
+			inventoryOf({
+				pragmaRegistry: registry([
+					{ file: fixture.source.path, pragma: fixture.pragma },
+				]),
+				sources: [fixture.source],
+			}),
+		);
+		expect(violations[0]?.rule).toBe("pragmas/registry-invalid");
 	});
 
 	it("ignores pragma vocabulary outside comments", () => {

@@ -1,16 +1,26 @@
 import type { BackendFailure } from "@antumbra/plugin-api";
-import { Effect, Option, Ref, Schema, Semaphore } from "effect";
+import {
+	Deferred,
+	Effect,
+	Option,
+	Ref,
+	Schema,
+	type Scope,
+	Semaphore,
+} from "effect";
 import type { RpcNotification } from "#adapters/rpc.ts";
 import { TurnNotification } from "#protocol.ts";
+import { makeQueuedTurns } from "#queued-turns.ts";
 import type { CodexServer } from "#server.ts";
 import { notSteerable, turnRequests } from "#turn-requests.ts";
 import {
 	idle,
-	readyToFlush,
+	observeTurn,
+	recordAcceptedTurn,
+	requireOpen,
+	SESSION_CLOSED,
 	type TurnState,
 	withoutTurn,
-	withPending,
-	withTurn,
 } from "#turn-state.ts";
 
 export interface TurnDriver {
@@ -37,62 +47,66 @@ const turnIdIn = (notification: RpcNotification): Option.Option<string> =>
 export const makeTurnDriver = (
 	server: CodexServer,
 	threadId: string,
-): Effect.Effect<TurnDriver> =>
+): Effect.Effect<TurnDriver, never, Scope.Scope> =>
 	Effect.gen(function* () {
 		const state = yield* Ref.make<TurnState>(idle);
 		const gate = yield* Semaphore.make(1);
 		const requests = turnRequests(server, threadId);
-
-		const startTurn = (texts: ReadonlyArray<string>) =>
-			requests
-				.start(texts)
-				.pipe(
-					Effect.flatMap((turnId) =>
-						Ref.set(state, { pending: [], turn: Option.some(turnId) }),
-					),
-				);
-
-		const flush = Ref.get(state).pipe(
-			Effect.flatMap((current) =>
-				readyToFlush(current) ? startTurn(current.pending) : Effect.void,
-			),
+		const closure = yield* Deferred.make<never, BackendFailure>();
+		const failWhenClosed = Deferred.await(closure);
+		const queued = makeQueuedTurns(
+			state,
+			gate.withPermit,
+			requests,
+			failWhenClosed,
 		);
+		const closeDelivery = Deferred.fail(closure, SESSION_CLOSED).pipe(
+			Effect.andThen(queued.close),
+			Effect.asVoid,
+		);
+		yield* Effect.addFinalizer(() => closeDelivery);
+		yield* Effect.forkScoped(server.exited.pipe(Effect.andThen(closeDelivery)));
 
-		const queue = (text: string) =>
-			gate.withPermit(
-				Ref.update(state, (current) => withPending(current, text)).pipe(
-					Effect.andThen(flush),
-				),
+		const startSteered = (text: string) =>
+			requests
+				.start([text])
+				.pipe(Effect.flatMap((turnId) => recordAcceptedTurn(state, turnId)));
+
+		const steerActive = (turnId: string, text: string) =>
+			requests.steer(turnId, text).pipe(
+				Effect.andThen(requireOpen(state)),
+				Effect.catchIf(notSteerable, () => startSteered(text)),
 			);
 
 		const steerNow = (current: TurnState, text: string) =>
-			Option.match(current.turn, {
-				onNone: () => startTurn([text]),
-				onSome: (turnId) =>
-					requests
-						.steer(turnId, text)
-						.pipe(Effect.catchIf(notSteerable, () => startTurn([text]))),
-			});
+			current._tag === "closed"
+				? Effect.fail(SESSION_CLOSED)
+				: Option.match(current.turn, {
+						onNone: () => startSteered(text),
+						onSome: (turnId) => steerActive(turnId, text),
+					});
 
 		const steer = (text: string) =>
-			gate.withPermit(
-				Ref.get(state).pipe(
-					Effect.flatMap((current) => steerNow(current, text)),
-				),
-			);
+			Ref.get(state)
+				.pipe(Effect.flatMap((current) => steerNow(current, text)))
+				.pipe(gate.withPermit, Effect.raceFirst(failWhenClosed));
 
 		const interrupt = Ref.get(state).pipe(
 			Effect.flatMap((current) =>
-				Option.match(current.turn, {
-					onNone: () => Effect.void,
-					onSome: requests.interrupt,
-				}),
+				current._tag === "closed"
+					? Effect.void
+					: Option.match(current.turn, {
+							onNone: () => Effect.void,
+							onSome: requests.interrupt,
+						}),
 			),
 		);
 
 		const settled = gate.withPermit(
-			Ref.update(state, withoutTurn).pipe(
-				Effect.andThen(flush),
+			Ref.update(state, (current) =>
+				current._tag === "closed" ? current : withoutTurn(current),
+			).pipe(
+				Effect.andThen(queued.flush),
 				Effect.catchCause((cause) =>
 					Effect.logWarning("codex: queued turn failed to start", cause),
 				),
@@ -104,8 +118,7 @@ export const makeTurnDriver = (
 				case "turn/started":
 					return Option.match(turnIdIn(notification), {
 						onNone: () => Effect.void,
-						onSome: (turnId) =>
-							Ref.update(state, (current) => withTurn(current, turnId)),
+						onSome: (turnId) => observeTurn(state, turnId),
 					});
 				case "turn/completed":
 					return Option.isSome(turnIdIn(notification)) ? settled : Effect.void;
@@ -114,5 +127,10 @@ export const makeTurnDriver = (
 			}
 		};
 
-		return { interrupt, queue, steer, track } satisfies TurnDriver;
+		return {
+			interrupt,
+			queue: queued.queue,
+			steer,
+			track,
+		} satisfies TurnDriver;
 	});

@@ -3,8 +3,8 @@ import {
 	type SDKMessage,
 	type SDKUserMessage,
 } from "@anthropic-ai/claude-agent-sdk";
-import type { DirectTool } from "@antumbra/plugin-api";
-import { type Context, Option } from "effect";
+import type { BackendFailure, DirectTool } from "@antumbra/plugin-api";
+import { type Context, type Effect, Option } from "effect";
 import { InputQueue } from "#adapters/input-queue.ts";
 import { makeToolServer } from "#adapters/tool-server.ts";
 import { sessionOptions, type ToolAccess } from "#session-options.ts";
@@ -29,10 +29,27 @@ export interface RawEventListener {
 export interface RawSession {
 	readonly close: () => void;
 	readonly interrupt: () => Promise<void>;
-	readonly queue: (text: string) => void;
-	readonly steer: (text: string) => void;
+	readonly queue: (text: string) => Effect.Effect<void, BackendFailure>;
+	readonly steer: (text: string) => Effect.Effect<void, BackendFailure>;
 	readonly subscribe: (listener: RawEventListener) => void;
 }
+
+export const consumeSdkMessages = async (
+	live: AsyncIterable<SDKMessage>,
+	input: InputQueue,
+	deliver: (message: SDKMessage) => void,
+): Promise<void> => {
+	try {
+		for await (const message of live) {
+			deliver(message);
+		}
+	} catch {
+		// why: an abrupt subprocess death is not an event — ending the output
+		// stream is; the gap in the log remains the trace.
+	} finally {
+		input.close();
+	}
+};
 
 const userMessage = (
 	text: string,
@@ -87,18 +104,7 @@ export const openRawSession = (options: RawSessionOptions): RawSession => {
 		ended = true;
 		listener?.end();
 	};
-	void (async () => {
-		try {
-			for await (const message of live) {
-				deliver(message);
-			}
-		} catch {
-			// why: an abrupt subprocess death is not an event — the end signal in
-			// finally is; the gap in the log is the trace.
-		} finally {
-			finish();
-		}
-	})();
+	void consumeSdkMessages(live, input, deliver).finally(finish);
 
 	return {
 		close: () => {

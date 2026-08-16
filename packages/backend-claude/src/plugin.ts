@@ -50,10 +50,8 @@ const makeHandle = (raw: RawSession) =>
 				try: () => raw.interrupt(),
 			}),
 			nativeRef: Ref.get(nativeRef),
-			queue: (text) =>
-				Effect.try({ catch: failure, try: () => raw.queue(text) }),
-			steer: (text) =>
-				Effect.try({ catch: failure, try: () => raw.steer(text) }),
+			queue: (text) => raw.queue(text),
+			steer: (text) => raw.steer(text),
 		}),
 	);
 

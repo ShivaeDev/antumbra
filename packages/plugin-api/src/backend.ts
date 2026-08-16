@@ -26,8 +26,11 @@ export class BackendFailure extends Data.TaggedError("BackendFailure")<{
 }
 
 // why: two delivery verbs, both on every backend. `queue` lands at the next
-// full-turn boundary; `steer` injects into the running turn. Which one a
-// caller uses is a precedence policy the domain owns, never the backend's.
+// full-turn boundary; `steer` injects into the running turn. Their effects
+// succeed only once the provider transport accepts the text — anything held
+// only in adapter memory stays pending and fails if the session closes. This
+// is transport acceptance, never evidence that the agent read it. Which verb
+// a caller uses is precedence policy the domain owns, never the backend's.
 export interface SessionHandle {
 	readonly events: Stream.Stream<AgentEvent, BackendFailure>;
 	readonly interrupt: Effect.Effect<void, BackendFailure>;

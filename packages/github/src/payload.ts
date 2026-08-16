@@ -1,5 +1,6 @@
 import { Effect, Schema } from "effect";
 import { type GhOperation, GhOutputInvalid } from "#errors.ts";
+import type { ObserveSelection } from "#query.ts";
 
 const CheckRollup = Schema.Struct({ state: Schema.String });
 
@@ -37,6 +38,7 @@ const ObserveEnvelope = Schema.Struct({
 export interface ObservedNode {
 	readonly node: PullRequestNode;
 	readonly raw: unknown;
+	readonly repoId: string;
 }
 
 const invalid = (operation: GhOperation) => (cause: unknown) =>
@@ -44,11 +46,21 @@ const invalid = (operation: GhOperation) => (cause: unknown) =>
 
 const decodeNode = (
 	operation: GhOperation,
+	selection: ObserveSelection,
 	raw: unknown,
 ): Effect.Effect<ObservedNode, GhOutputInvalid> =>
 	Schema.decodeUnknownEffect(PullRequestNode)(raw).pipe(
 		Effect.mapError(invalid(operation)),
-		Effect.map((node) => ({ node, raw })),
+		Effect.flatMap((node) =>
+			node.number === selection.ref.number
+				? Effect.succeed({ node, raw, repoId: selection.ref.repoId })
+				: Effect.fail(
+						new GhOutputInvalid({
+							detail: `${selection.pullAlias} answered pull request ${node.number}, expected ${selection.ref.number}`,
+							operation,
+						}),
+					),
+		),
 	);
 
 // why: a null alias is a pull request this login cannot see — deleted, or in a
@@ -57,26 +69,26 @@ const decodeNode = (
 // truth.
 const aliasedNodes = (
 	data: Readonly<Record<string, Readonly<Record<string, unknown>> | null>>,
-): ReadonlyArray<unknown> =>
-	Object.values(data).flatMap((repo) =>
-		repo === null
-			? []
-			: Object.values(repo).filter(
-					(node) => node !== null && node !== undefined,
-				),
-	);
+	selections: ReadonlyArray<ObserveSelection>,
+): ReadonlyArray<readonly [ObserveSelection, unknown]> =>
+	selections.flatMap((selection) => {
+		const node = data[selection.repoAlias]?.[selection.pullAlias];
+		return node === null || node === undefined ? [] : [[selection, node]];
+	});
 
 export const decodeObserveResponse = (
 	operation: GhOperation,
 	stdout: string,
+	selections: ReadonlyArray<ObserveSelection>,
 ): Effect.Effect<ReadonlyArray<ObservedNode>, GhOutputInvalid> =>
 	Schema.decodeUnknownEffect(Schema.fromJsonString(ObserveEnvelope))(
 		stdout,
 	).pipe(
 		Effect.mapError(invalid(operation)),
 		Effect.flatMap((envelope) =>
-			Effect.forEach(aliasedNodes(envelope.data), (raw) =>
-				decodeNode(operation, raw),
+			Effect.forEach(
+				aliasedNodes(envelope.data, selections),
+				([selection, raw]) => decodeNode(operation, selection, raw),
 			),
 		),
 	);

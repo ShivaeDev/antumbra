@@ -1,0 +1,82 @@
+[
+  {
+    "id": "recreateTable.change",
+    "label": "Recreate table change",
+    "summary": "Recreates table change to apply schema changes: database/change/unique:host,repoId,externalId",
+    "operationClass": "destructive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "table",
+        "name": "change"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"change\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "table",
+          "change"
+        ]
+      },
+      {
+        "description": "ensure temp table \"_prisma_new_change\" does not exist",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "table",
+          "_prisma_new_change"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create new table \"_prisma_new_change\" with desired schema",
+        "sql": "CREATE TABLE \"_prisma_new_change\" (\n  \"activityAt\" TEXT NOT NULL,\n  \"baseRef\" TEXT NOT NULL,\n  \"body\" TEXT NOT NULL,\n  \"checks\" TEXT NOT NULL,\n  \"createdAt\" TEXT DEFAULT (datetime('now')) NOT NULL,\n  \"draftAt\" TEXT,\n  \"externalId\" TEXT,\n  \"headRef\" TEXT NOT NULL,\n  \"headSha\" TEXT,\n  \"host\" TEXT NOT NULL,\n  \"id\" TEXT NOT NULL,\n  \"landedAt\" TEXT,\n  \"mergeable\" TEXT NOT NULL,\n  \"observedAt\" TEXT NOT NULL,\n  \"openedByAgentId\" TEXT,\n  \"raw\" TEXT,\n  \"repoId\" TEXT NOT NULL,\n  \"review\" TEXT NOT NULL,\n  \"stage\" TEXT NOT NULL,\n  \"title\" TEXT NOT NULL,\n  \"url\" TEXT,\n  \"withdrawnAt\" TEXT,\n  PRIMARY KEY (\"id\"),\n  UNIQUE (\"host\", \"repoId\", \"externalId\")\n)"
+      },
+      {
+        "description": "copy data from \"change\" to \"_prisma_new_change\"",
+        "sql": "INSERT INTO \"_prisma_new_change\" (\"activityAt\", \"baseRef\", \"body\", \"checks\", \"createdAt\", \"draftAt\", \"externalId\", \"headRef\", \"headSha\", \"host\", \"id\", \"landedAt\", \"mergeable\", \"observedAt\", \"openedByAgentId\", \"raw\", \"repoId\", \"review\", \"stage\", \"title\", \"url\", \"withdrawnAt\") SELECT \"activityAt\", \"baseRef\", \"body\", \"checks\", \"createdAt\", \"draftAt\", \"externalId\", \"headRef\", \"headSha\", \"host\", \"id\", \"landedAt\", \"mergeable\", \"observedAt\", \"openedByAgentId\", \"raw\", \"repoId\", \"review\", \"stage\", \"title\", \"url\", \"withdrawnAt\" FROM \"change\""
+      },
+      {
+        "description": "drop old table \"change\"",
+        "sql": "DROP TABLE \"change\""
+      },
+      {
+        "description": "rename \"_prisma_new_change\" to \"change\"",
+        "sql": "ALTER TABLE \"_prisma_new_change\" RENAME TO \"change\""
+      },
+      {
+        "description": "recreate index \"change_repoId_idx\" on \"change\"",
+        "sql": "CREATE INDEX \"change_repoId_idx\" ON \"change\" (\"repoId\")"
+      },
+      {
+        "description": "recreate index \"change_host_externalId_idx\" on \"change\"",
+        "sql": "CREATE INDEX \"change_host_externalId_idx\" ON \"change\" (\"host\", \"externalId\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"change\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "table",
+          "change"
+        ]
+      },
+      {
+        "description": "verify temp table \"_prisma_new_change\" is gone",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "table",
+          "_prisma_new_change"
+        ]
+      },
+      {
+        "description": "verify unique constraint (host, repoId, externalId) on \"change\"",
+        "sql": "SELECT EXISTS (SELECT 1 FROM pragma_index_list('change') l WHERE l.\"unique\" = 1 AND (SELECT COUNT(*) FROM pragma_index_info(l.name)) = 3 AND (SELECT COUNT(*) FROM pragma_index_info(l.name) WHERE name IN ('host', 'repoId', 'externalId')) = 3)"
+      }
+    ]
+  }
+]

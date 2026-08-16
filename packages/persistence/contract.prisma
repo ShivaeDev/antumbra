@@ -192,6 +192,7 @@ model Change {
 
   @@index([repoId])
   @@index([host, externalId])
+  @@unique([host, repoId, externalId])
 }
 
 model PieceChange {

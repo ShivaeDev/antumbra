@@ -118,13 +118,13 @@ describe("watching open changes", () => {
 				const { piece, repo, voyage } = yield* reefWithPiece;
 				yield* berthed(CREW);
 				yield* openedChange(piece.id, repo.name);
-				yield* scripted.drive.transition("1", { checks: "green" });
+				yield* scripted.drive.transition(repo.id, "1", { checks: "green" });
 
 				const early = yield* passes(scripted);
 				yield* Effect.sleep(300);
 				expect(yield* passes(scripted)).toBeGreaterThan(early);
 
-				yield* scripted.drive.transition("1", { stage: "landed" });
+				yield* scripted.drive.transition(repo.id, "1", { stage: "landed" });
 				yield* eventually(
 					Effect.gen(function* () {
 						expect(yield* stateOf(voyage.id, piece.id)).toBe("done");
@@ -156,7 +156,7 @@ describe("watching open changes", () => {
 				// why: the loop is still alive — a host that starts answering again
 				// is heard without anything being restarted.
 				yield* scripted.drive.refuse(null);
-				yield* scripted.drive.transition("1", { stage: "landed" });
+				yield* scripted.drive.transition(repo.id, "1", { stage: "landed" });
 				yield* eventually(
 					Effect.gen(function* () {
 						expect((yield* domain.changes.openChanges("scripted")).length).toBe(
@@ -187,7 +187,7 @@ describe("a chain gated on a change", () => {
 		watched(BRISK, (scripted, backend) =>
 			Effect.gen(function* () {
 				const domain = yield* AgentDomain;
-				yield* domain.repos.register({
+				const repo = yield* domain.repos.register({
 					defaultRef: "main",
 					source: REEF_SOURCE,
 				});
@@ -225,7 +225,7 @@ describe("a chain gated on a change", () => {
 					}),
 				);
 
-				yield* scripted.drive.transition("1", { stage: "landed" });
+				yield* scripted.drive.transition(repo.id, "1", { stage: "landed" });
 
 				yield* eventually(
 					Effect.gen(function* () {

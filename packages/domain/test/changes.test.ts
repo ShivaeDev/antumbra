@@ -179,7 +179,7 @@ it.live("a landed change flips its piece done and wakes the voyage feed", () =>
 			yield* berthed(CREW);
 			const row = yield* openedChange(piece.id, repo.name);
 
-			yield* scripted.drive.transition("1", {
+			yield* scripted.drive.transition(repo.id, "1", {
 				checks: "green",
 				mergeable: "clean",
 				review: "approved",
@@ -191,6 +191,7 @@ it.live("a landed change flips its piece done and wakes the voyage feed", () =>
 				scriptedObservation("scripted", "stranger", {
 					baseRef: "main",
 					headRef: "work/somebody-else",
+					repoId: repo.id,
 					title: "not ours",
 				}),
 			);
@@ -240,7 +241,7 @@ it.live("a change that has landed never goes back to open", () =>
 			const { piece, repo, voyage } = yield* reefWithPiece;
 			yield* berthed(CREW);
 			yield* openedChange(piece.id, repo.name);
-			yield* scripted.drive.transition("1", { stage: "landed" });
+			yield* scripted.drive.transition(repo.id, "1", { stage: "landed" });
 			const landed = (yield* domain.changes.refresh("scripted"))[0];
 			expect(landed?.stage).toBe("landed");
 
@@ -248,6 +249,7 @@ it.live("a change that has landed never goes back to open", () =>
 				scriptedObservation("scripted", "1", {
 					baseRef: "main",
 					headRef: HEAD,
+					repoId: repo.id,
 					title: "chart the eastern spit",
 				}),
 			]))[0];

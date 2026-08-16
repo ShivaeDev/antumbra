@@ -142,6 +142,10 @@ it.live("a chain gated on a change sails across a boot", () =>
 		const chain = yield* Effect.gen(function* () {
 			const domain = yield* AgentDomain;
 			const voyage = yield* openReef;
+			const repo = (yield* domain.repos.list)[0];
+			if (repo === undefined) {
+				return yield* Effect.fail("the reef was not registered");
+			}
 			const hailed = yield* domain.voyages.hail(voyage.id);
 			const captain = yield* eventually(sessionFor(backend, hailed.agentId));
 			const alpha = yield* chartered(captain, "alpha", []);
@@ -159,10 +163,10 @@ it.live("a chain gated on a change sails across a boot", () =>
 					expect(yield* stateOf(voyage.id, bravo)).toBe("blocked");
 				}),
 			);
-			return { alpha, bravo, voyage };
+			return { alpha, bravo, repo, voyage };
 		}).pipe(Effect.provide(sailing));
 
-		yield* scripted.drive.transition("1", { stage: "landed" });
+		yield* scripted.drive.transition(chain.repo.id, "1", { stage: "landed" });
 
 		yield* Effect.gen(function* () {
 			const domain = yield* AgentDomain;

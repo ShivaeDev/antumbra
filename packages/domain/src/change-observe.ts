@@ -15,6 +15,9 @@ export const rawText = (payload: unknown): string | null =>
 const terminal = (row: ChangeRow): boolean =>
 	row.stage === "landed" || row.stage === "withdrawn";
 
+const observationKey = (repoId: string, externalId: string): string =>
+	`${repoId}:${externalId}`;
+
 const observed = (
 	row: ChangeRow,
 	observation: ChangeObservation,
@@ -86,14 +89,18 @@ export const applyObservations = (
 		const now = yield* Clock.currentTimeMillis;
 		const world = yield* readVoyageWorld(deps);
 		const known = new Map(
-			world.changes
-				.filter((row) => row.host === hostTag && row.externalId !== null)
-				.map((row) => [row.externalId, row] as const),
+			world.changes.flatMap((row) =>
+				row.host === hostTag && row.externalId !== null
+					? [[observationKey(row.repoId, row.externalId), row] as const]
+					: [],
+			),
 		);
 		const settled: ChangeRow[] = [];
 		const written: ChangeRow[] = [];
 		for (const observation of observations) {
-			const row = known.get(observation.externalId);
+			const row = known.get(
+				observationKey(observation.repoId, observation.externalId),
+			);
 			if (row === undefined) {
 				continue;
 			}

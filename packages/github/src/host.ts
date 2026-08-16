@@ -73,7 +73,7 @@ export const makeGitHubHost = (
 					const named = yield* namedRepo(repo);
 					const pull = yield* matchingPull(named, url);
 					return yield* asked(
-						observeOne(options.executable, named, pull.number),
+						observeOne(options.executable, named, repo.id, pull.number),
 					);
 				}),
 			capability: cached.read,
@@ -86,7 +86,9 @@ export const makeGitHubHost = (
 					const number = yield* asked(
 						createPull(options.executable, named, request),
 					);
-					return yield* asked(observeOne(options.executable, named, number));
+					return yield* asked(
+						observeOne(options.executable, named, request.repo.id, number),
+					);
 				}),
 			supports: (repo) => Option.isSome(parseGitHubSource(repo.source)),
 			tag: GITHUB_TAG,

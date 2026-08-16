@@ -51,6 +51,7 @@ export interface ChangeObservation {
 	readonly isDraft: boolean;
 	readonly mergeable: ChangeMergeable;
 	readonly raw: unknown;
+	readonly repoId: string;
 	readonly review: ChangeReview;
 	readonly stage: Exclude<ChangeStage, "prepared">;
 	readonly title: string;

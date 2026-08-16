@@ -1,5 +1,20 @@
 import type { PullRequestRef } from "#pull-url.ts";
 
+export interface LocatedPullRequestRef extends PullRequestRef {
+	readonly repoId: string;
+}
+
+export interface ObserveSelection {
+	readonly pullAlias: string;
+	readonly ref: LocatedPullRequestRef;
+	readonly repoAlias: string;
+}
+
+export interface ObservePlan {
+	readonly query: string;
+	readonly selections: ReadonlyArray<ObserveSelection>;
+}
+
 // why: one call per fifty changes rather than one per change — a watcher pass
 // over a busy fleet is a handful of requests, and GitHub's node limit for a
 // single document sits far above this.
@@ -36,9 +51,9 @@ export const chunked = <A>(
 const repoKey = (ref: PullRequestRef): string => `${ref.owner}/${ref.name}`;
 
 const groupedByRepo = (
-	refs: ReadonlyArray<PullRequestRef>,
-): ReadonlyArray<ReadonlyArray<PullRequestRef>> => {
-	const groups = new Map<string, Array<PullRequestRef>>();
+	refs: ReadonlyArray<LocatedPullRequestRef>,
+): ReadonlyArray<ReadonlyArray<LocatedPullRequestRef>> => {
+	const groups = new Map<string, Array<LocatedPullRequestRef>>();
 	for (const ref of refs) {
 		const key = repoKey(ref);
 		const group = groups.get(key);
@@ -52,12 +67,12 @@ const groupedByRepo = (
 };
 
 // why: every pull request in the batch gets an alias unique across the whole
-// document, so nothing has to be matched back by position — each answered node
-// carries its own number, and a missing one is simply absent.
+// document. The plan preserves that alias-to-repository mapping, so partial
+// answers never have to be correlated by position.
 const repositoryBlock = (
-	group: ReadonlyArray<PullRequestRef>,
+	group: ReadonlyArray<LocatedPullRequestRef>,
 	alias: string,
-	numbered: (ref: PullRequestRef) => string,
+	numbered: (ref: LocatedPullRequestRef) => string,
 ): string => {
 	const first = group[0];
 	if (first === undefined) {
@@ -67,17 +82,25 @@ const repositoryBlock = (
 	return `${alias}: repository(owner: "${first.owner}", name: "${first.name}") { ${selections} }`;
 };
 
-export const buildObserveQuery = (
-	refs: ReadonlyArray<PullRequestRef>,
-): string => {
+export const buildObservePlan = (
+	refs: ReadonlyArray<LocatedPullRequestRef>,
+): ObservePlan => {
 	let index = 0;
-	const numbered = (ref: PullRequestRef): string => {
-		const selection = `pr_${index}: pullRequest(number: ${ref.number}) { ${PULL_FIELDS} }`;
-		index += 1;
-		return selection;
-	};
-	const blocks = groupedByRepo(refs).map((group, position) =>
-		repositoryBlock(group, `r_${position}`, numbered),
-	);
-	return `query { ${blocks.join(" ")} }`;
+	const selections: ObserveSelection[] = [];
+	const blocks = groupedByRepo(refs).map((group, position) => {
+		const repoAlias = `r_${position}`;
+		const numbered = (ref: LocatedPullRequestRef): string => {
+			const pullAlias = `pr_${index}`;
+			selections.push({ pullAlias, ref, repoAlias });
+			const selection = `${pullAlias}: pullRequest(number: ${ref.number}) { ${PULL_FIELDS} }`;
+			index += 1;
+			return selection;
+		};
+		return repositoryBlock(group, repoAlias, numbered);
+	});
+	return { query: `query { ${blocks.join(" ")} }`, selections };
 };
+
+export const buildObserveQuery = (
+	refs: ReadonlyArray<LocatedPullRequestRef>,
+): string => buildObservePlan(refs).query;

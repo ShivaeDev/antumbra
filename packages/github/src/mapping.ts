@@ -61,6 +61,7 @@ export const mapPullRequest = (observed: ObservedNode): ChangeObservation => {
 		isDraft: node.isDraft,
 		mergeable: MERGEABLES[node.mergeStateStatus ?? ""] ?? "unknown",
 		raw: observed.raw,
+		repoId: observed.repoId,
 		review: REVIEWS[node.reviewDecision ?? ""] ?? "none",
 		stage: STAGES[node.state] ?? "open",
 		title: node.title,

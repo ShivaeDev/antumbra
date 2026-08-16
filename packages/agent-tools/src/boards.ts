@@ -22,6 +22,24 @@ export const writeBoardSpec = defineTool({
 	name: "write_board",
 });
 
+export const readMailSpec = defineTool({
+	description:
+		"Read explicitly addressed unread mail, oldest first. Use it when the admiral selects this mailbox for attention. Reading marks nothing and does not imply the mail was handled.",
+	input: Schema.Struct({}),
+	name: "read_mail",
+});
+
+export const markReadSpec = defineTool({
+	description:
+		"Mark addressed mail as read after taking in its information. This records only read truth, not completion, and does not wake or resume any Agent.",
+	input: Schema.Struct({
+		entryIds: Schema.Array(Schema.String).annotate({
+			description: "The ids returned by `read_mail` that you have taken in.",
+		}),
+	}),
+	name: "mark_read",
+});
+
 export const readBoardSpec = defineTool({
 	description:
 		"Read a board, oldest entry first: what earlier sessions left for whoever came next. Call it before you start, so you do not redo what someone already settled.",

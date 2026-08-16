@@ -1,11 +1,19 @@
-import { bind, readBoardSpec, writeBoardSpec } from "@antumbra/agent-tools";
+import {
+	bind,
+	markReadSpec,
+	readBoardSpec,
+	readMailSpec,
+	writeBoardSpec,
+} from "@antumbra/agent-tools";
 import type { PrismaError } from "@antumbra/persistence";
 import type { DirectTool, DirectToolOutcome } from "@antumbra/plugin-api";
 import { Effect, Option } from "effect";
+import { makeBoardProcedures } from "#board-procedures.ts";
 import type { BoardEntryRow } from "#board-rows.ts";
 import type { BoardScope } from "#board-scope.ts";
 import { boardEntries, writeEntry } from "#boards.ts";
 import { type AgentDeps, provideExecutors } from "#deps.ts";
+import { renderMail } from "#mail-render.ts";
 import { answered, refused } from "#tool-answers.ts";
 import type { SessionIdentity } from "#tool-identity.ts";
 
@@ -90,29 +98,48 @@ const rendered = (entries: ReadonlyArray<BoardEntryRow>): string =>
 export const boardTools = (
 	deps: AgentDeps,
 	identity: SessionIdentity,
-): ReadonlyArray<DirectTool> => [
-	bind(writeBoardSpec, (input) =>
-		withScope(deps, identity, input.scope, (scope) =>
+): ReadonlyArray<DirectTool> => {
+	const boards = makeBoardProcedures(deps);
+	return [
+		bind(readMailSpec, () =>
 			answered(
 				identity,
-				writeBoardSpec.name,
-				writeEntry(deps, scope, {
-					authorAgentId: Option.some(identity.agentId),
-					body: input.body,
-					register: input.register,
-				}),
-				() => `written to the ${input.scope} board`,
+				readMailSpec.name,
+				boards.unread(identity.agentId),
+				renderMail,
 			),
 		),
-	),
-	bind(readBoardSpec, (input) =>
-		withScope(deps, identity, input.scope, (scope) =>
+		bind(markReadSpec, (input) =>
 			answered(
 				identity,
-				readBoardSpec.name,
-				provideExecutors(deps)(boardEntries(deps.db, scope)),
-				rendered,
+				markReadSpec.name,
+				boards.markRead(identity.agentId, input.entryIds),
+				() => "marked read",
 			),
 		),
-	),
-];
+		bind(writeBoardSpec, (input) =>
+			withScope(deps, identity, input.scope, (scope) =>
+				answered(
+					identity,
+					writeBoardSpec.name,
+					writeEntry(deps, scope, {
+						authorAgentId: Option.some(identity.agentId),
+						body: input.body,
+						register: input.register,
+					}),
+					() => `written to the ${input.scope} board`,
+				),
+			),
+		),
+		bind(readBoardSpec, (input) =>
+			withScope(deps, identity, input.scope, (scope) =>
+				answered(
+					identity,
+					readBoardSpec.name,
+					provideExecutors(deps)(boardEntries(deps.db, scope)),
+					rendered,
+				),
+			),
+		),
+	];
+};

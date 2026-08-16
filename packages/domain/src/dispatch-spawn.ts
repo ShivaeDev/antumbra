@@ -1,7 +1,8 @@
 import type { IntentStatus, IntentSubmission } from "@antumbra/kernel";
 import type { DatabaseService, WriteExecutors } from "@antumbra/persistence";
 import { Effect, Option, Queue, Stream } from "effect";
-import { smoothLog } from "#boards.ts";
+import { smoothBodies } from "#board-rows.ts";
+import { boardEntries } from "#boards.ts";
 import { composeCrewCharter } from "#charter-compose.ts";
 import type { SpawnRefused } from "#deps.ts";
 import type { ReadyPiece } from "#dispatch-policy.ts";
@@ -79,14 +80,14 @@ const watchDispatch = (
 // dispatched, and the composer stays a function of its inputs.
 const charterFor = (port: DispatchPort, candidate: ReadyPiece) =>
 	Effect.gen(function* () {
-		const voyageSmoothLog = yield* smoothLog(port.db, {
+		const voyageSmoothLog = yield* boardEntries(port.db, {
 			kind: "voyage",
 			voyageId: candidate.voyage.id,
-		});
-		const pieceSmoothLog = yield* smoothLog(port.db, {
+		}).pipe(Effect.map(smoothBodies));
+		const pieceSmoothLog = yield* boardEntries(port.db, {
 			kind: "piece",
 			pieceId: candidate.piece.id,
-		});
+		}).pipe(Effect.map(smoothBodies));
 		return composeCrewCharter(candidate.voyage, candidate.piece, {
 			pieceSmoothLog,
 			voyageSmoothLog,

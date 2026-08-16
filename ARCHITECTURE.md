@@ -14,6 +14,13 @@ stateless projection: it holds no durable state, reaches main only through one
 typed contract, and every window can reload at any moment and rehydrate.
 Agents running in the main process never notice a renderer reload.
 
+Explicitly addressed mail is persisted as an immutable entry on the
+addressee's Agent Board; its marked-read receipt is separate durable truth, so
+a read never clears it. Raw Change and Review observations remain in their own
+records. No mailbox feed, settling timer, presentation cap, or observation
+hook turns those facts into mail or resumes an Agent; v1 attention is pulled
+only after human selection.
+
 Closing the app stops local execution, not durable work. Graceful shutdown
 drains active and pending work to idle; forced shutdown never invents
 completion. On relaunch, active, pending, or uncertain sessions resume from

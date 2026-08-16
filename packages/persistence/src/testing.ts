@@ -52,3 +52,18 @@ export const deleteTestAgent = (
 	database.prepare("DELETE FROM agent WHERE id = ?").run(agentId);
 	database.close();
 };
+
+export const corruptTestBoardEntry = (
+	databasePath: DatabaseFilePath,
+	column: "kind" | "precedence" | "register",
+	value: string,
+) => {
+	const statements = {
+		kind: 'UPDATE "boardEntry" SET "kind" = ?',
+		precedence: 'UPDATE "boardEntry" SET "precedence" = ?',
+		register: 'UPDATE "boardEntry" SET "register" = ?',
+	};
+	const database = new DatabaseSync(databasePath);
+	database.prepare(statements[column]).run(value);
+	database.close();
+};

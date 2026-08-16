@@ -60,6 +60,8 @@ it.live(
 					"land_artifact",
 					"open_change",
 					"adopt_change",
+					"read_mail",
+					"mark_read",
 					"write_board",
 					"read_board",
 					"stand_down",
@@ -157,6 +159,40 @@ it.live("crew write to the board of their piece and of its voyage", () =>
 			expect(
 				yield* domain.boards.read({ kind: "voyage", voyageId: voyage.id }),
 			).toMatchObject([{ body: "the swell is running" }]);
+		}).pipe(
+			Effect.provide(dispatchingLayer(temporary, scripted.backend, PATIENCE)),
+		);
+	}),
+);
+
+it.live("mail tools read without marking and receipt only when asked", () =>
+	Effect.gen(function* () {
+		const temporary = yield* acquireTemporaryPersistence;
+		const scripted = yield* makeScriptedBackend;
+		yield* Effect.gen(function* () {
+			const domain = yield* AgentDomain;
+			yield* chain;
+			const { agentId, live } = yield* eventually(openedSession(scripted));
+			const entry = yield* domain.boards.mail({
+				authorAgentId: Option.none(),
+				body: "the admiral selected this mail",
+				precedence: "priority",
+				sourceRef: "selection:tool-test",
+				toAgentId: agentId,
+			});
+
+			const first = yield* callTool(live, "read_mail", undefined);
+			const second = yield* callTool(live, "read_mail", undefined);
+			expect(first).toMatchObject({ ok: true });
+			expect(first.text).toContain(entry.id);
+			expect(second.text).toContain(entry.id);
+			expect(
+				yield* callTool(live, "mark_read", { entryIds: [entry.id] }),
+			).toEqual({ ok: true, text: "marked read" });
+			expect(yield* callTool(live, "read_mail", undefined)).toEqual({
+				ok: true,
+				text: "No mail.",
+			});
 		}).pipe(
 			Effect.provide(dispatchingLayer(temporary, scripted.backend, PATIENCE)),
 		);

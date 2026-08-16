@@ -21,6 +21,8 @@ const CAPTAIN_TOOLS = [
 	"unpark_piece",
 	"rewire_piece",
 	"read_voyage",
+	"read_mail",
+	"mark_read",
 	"write_board",
 	"read_board",
 	"stand_down",

@@ -50,10 +50,10 @@ it.live("a piece stays active while its agent is still spawning", () =>
 		const release = yield* Deferred.make<void>();
 		const runner: Runner = {
 			...recorded.runner,
-			provision: (request) =>
+			provision: (plan) =>
 				Deferred.succeed(provisioning, undefined).pipe(
 					Effect.andThen(Deferred.await(release)),
-					Effect.andThen(recorded.runner.provision(request)),
+					Effect.andThen(recorded.runner.provision(plan)),
 				),
 		};
 		yield* Effect.gen(function* () {

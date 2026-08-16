@@ -21,7 +21,7 @@ const TERMINAL: ReadonlySet<IntentStatus> = new Set([
 
 const EIGHT_DAYS_MILLIS = 8 * 24 * 60 * 60 * 1000;
 
-const payload: SpawnFields = {
+const sweepPayload: SpawnFields = {
 	agentId: "agent-sweep",
 	backend: "scripted",
 	charter: "hold the berth",
@@ -37,7 +37,7 @@ const submitSpawn = Effect.gen(function* () {
 		defaultRef: "main",
 		source: REEF_SOURCE,
 	});
-	const submission = yield* kernel.submit(domain.spawn, payload);
+	const submission = yield* kernel.submit(domain.spawn, sweepPayload);
 	return yield* submission.changes.pipe(
 		Stream.takeUntil((status) => TERMINAL.has(status)),
 		Stream.runLast,

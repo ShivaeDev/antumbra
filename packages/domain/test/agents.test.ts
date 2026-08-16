@@ -121,16 +121,20 @@ it.live("spawn stays spawning until its moorage and session exist", () =>
 		const release = yield* Deferred.make<void>();
 		const runner: Runner = {
 			...recorded.runner,
-			provision: (request) =>
+			provision: (plan) =>
 				Deferred.succeed(provisioning, undefined).pipe(
 					Effect.andThen(Deferred.await(release)),
-					Effect.andThen(recorded.runner.provision(request)),
+					Effect.andThen(recorded.runner.provision(plan)),
 				),
 		};
 		yield* Effect.gen(function* () {
 			const db = yield* Database;
 			const kernel = yield* Kernel;
 			const domain = yield* AgentDomain;
+			yield* domain.repos.register({
+				defaultRef: "main",
+				source: "/somewhere/phase",
+			});
 			const submission = yield* kernel.submit(
 				domain.spawn,
 				spawnPayload("phase"),
@@ -138,6 +142,19 @@ it.live("spawn stays spawning until its moorage and session exist", () =>
 			yield* Deferred.await(provisioning);
 			const pending = yield* db.Agent.where({ id: "agent-phase" }).first();
 			expect(Option.getOrThrow(pending).status).toBe("spawning");
+			const moorage = yield* db.Moorage.where({
+				agentId: "agent-phase",
+			}).first();
+			expect(Option.getOrThrow(moorage)).toMatchObject({
+				root: "/tmp/moorage/agent-phase",
+				status: "provisioning",
+			});
+			const plannedBerths = yield* db.Berth.where({
+				agentId: "agent-phase",
+			}).all();
+			expect(plannedBerths).toMatchObject([
+				{ ref: "main", source: "/somewhere/phase", status: "provisioning" },
+			]);
 			expect(
 				Option.isNone(
 					yield* db.AgentSession.where({ id: "session-phase" }).first(),
@@ -147,6 +164,11 @@ it.live("spawn stays spawning until its moorage and session exist", () =>
 			expect(yield* untilTerminal(submission.changes)).toBe("succeeded");
 			const alive = yield* db.Agent.where({ id: "agent-phase" }).first();
 			expect(Option.getOrThrow(alive).status).toBe("alive");
+			expect(
+				Option.getOrThrow(
+					yield* db.Moorage.where({ agentId: "agent-phase" }).first(),
+				).status,
+			).toBe("ready");
 		}).pipe(
 			Effect.provide(
 				domainKernelLayer(temporary, scripted.backend, {}, runner),

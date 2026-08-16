@@ -70,8 +70,6 @@ export const AgentDomainLive = (
 			const fabric = yield* makeSessionFabric;
 			const feeds = yield* DomainFeeds;
 			const sinkFor = yield* makeEventSinkFactory(feeds.events);
-			yield* reclaimAgents;
-			yield* sweepBerths(runners);
 			const kernelReach = yield* Deferred.make<KernelReach>();
 			const deps: AgentDeps = {
 				backends,
@@ -85,6 +83,10 @@ export const AgentDomainLive = (
 				sinkFor,
 				writer,
 			};
+			const makeSpawn = yield* makeSpawnKind;
+			const spawn = makeSpawn(deps);
+			yield* reclaimAgents(spawn);
+			yield* sweepBerths(runners);
 			const aliveAgents = db.Agent.where({ status: "alive" })
 				.all()
 				.pipe(
@@ -92,9 +94,7 @@ export const AgentDomainLive = (
 					Effect.provideContext(executors),
 					Effect.orDie,
 				);
-			const makeSpawn = yield* makeSpawnKind;
 			const makeVoyages = yield* makeVoyageProcedures;
-			const spawn = makeSpawn(deps);
 			const retire = makeRetireKind(deps);
 			return {
 				backends: [...backends.keys()],

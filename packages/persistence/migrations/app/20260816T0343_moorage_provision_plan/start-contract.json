@@ -48,10 +48,6 @@
       "model": "Intent",
       "namespace": "__unbound__"
     },
-    "moorage": {
-      "model": "Moorage",
-      "namespace": "__unbound__"
-    },
     "piece": {
       "model": "Piece",
       "namespace": "__unbound__"
@@ -1022,77 +1018,6 @@
               },
               "namespaceId": "__unbound__",
               "table": "intent"
-            }
-          },
-          "Moorage": {
-            "fields": {
-              "agentId": {
-                "nullable": false,
-                "type": {
-                  "codecId": "sqlite/text@1",
-                  "kind": "scalar"
-                }
-              },
-              "createdAt": {
-                "nullable": false,
-                "type": {
-                  "codecId": "sqlite/datetime@1",
-                  "kind": "scalar"
-                }
-              },
-              "root": {
-                "nullable": false,
-                "type": {
-                  "codecId": "sqlite/text@1",
-                  "kind": "scalar"
-                }
-              },
-              "runner": {
-                "nullable": false,
-                "type": {
-                  "codecId": "sqlite/text@1",
-                  "kind": "scalar"
-                }
-              },
-              "status": {
-                "nullable": false,
-                "type": {
-                  "codecId": "sqlite/text@1",
-                  "kind": "scalar"
-                }
-              },
-              "updatedAt": {
-                "nullable": false,
-                "type": {
-                  "codecId": "sqlite/datetime@1",
-                  "kind": "scalar"
-                }
-              }
-            },
-            "relations": {},
-            "storage": {
-              "fields": {
-                "agentId": {
-                  "column": "agentId"
-                },
-                "createdAt": {
-                  "column": "createdAt"
-                },
-                "root": {
-                  "column": "root"
-                },
-                "runner": {
-                  "column": "runner"
-                },
-                "status": {
-                  "column": "status"
-                },
-                "updatedAt": {
-                  "column": "updatedAt"
-                }
-              },
-              "namespaceId": "__unbound__",
-              "table": "moorage"
             }
           },
           "Piece": {
@@ -2410,62 +2335,6 @@
               },
               "uniques": []
             },
-            "moorage": {
-              "columns": {
-                "agentId": {
-                  "codecId": "sqlite/text@1",
-                  "nativeType": "text",
-                  "nullable": false
-                },
-                "createdAt": {
-                  "codecId": "sqlite/datetime@1",
-                  "default": {
-                    "expression": "now()",
-                    "kind": "function"
-                  },
-                  "nativeType": "text",
-                  "nullable": false
-                },
-                "root": {
-                  "codecId": "sqlite/text@1",
-                  "nativeType": "text",
-                  "nullable": false
-                },
-                "runner": {
-                  "codecId": "sqlite/text@1",
-                  "nativeType": "text",
-                  "nullable": false
-                },
-                "status": {
-                  "codecId": "sqlite/text@1",
-                  "nativeType": "text",
-                  "nullable": false
-                },
-                "updatedAt": {
-                  "codecId": "sqlite/datetime@1",
-                  "default": {
-                    "expression": "now()",
-                    "kind": "function"
-                  },
-                  "nativeType": "text",
-                  "nullable": false
-                }
-              },
-              "foreignKeys": [],
-              "indexes": [
-                {
-                  "columns": [
-                    "status"
-                  ]
-                }
-              ],
-              "primaryKey": {
-                "columns": [
-                  "agentId"
-                ]
-              },
-              "uniques": []
-            },
             "piece": {
               "columns": {
                 "charter": {
@@ -2968,7 +2837,7 @@
         "id": "__unbound__"
       }
     },
-    "storageHash": "sha256:c1592916ef1d124550d8c5c333cab0ffedabe62ddd9c0edd6b44cb473a9451dc"
+    "storageHash": "sha256:930176083db4187fb2aefe3e7a9313b72ef1a2d32768cb147c30d7d38e924799"
   },
   "capabilities": {
     "sql": {

@@ -12,6 +12,7 @@ import { readBerthSweep } from "#berth-sweep-read.ts";
 const STRANDED_TTL_MILLIS = 7 * 24 * 60 * 60 * 1000;
 
 interface BerthRow {
+	readonly agentId: string;
 	readonly branch: string;
 	readonly id: string;
 	readonly path: string;
@@ -106,34 +107,42 @@ const unlessHeld = (
 			});
 };
 
-// why: runs after the agent sweep — revival does not exist, so by now every
-// agent is dormant and every ready berth is orphaned by construction.
+// why: runs after the agent sweep, so only an alive Agent tied to a running
+// birth still owns its ready berths. Dormant and orphaned rows are reclaimable;
+// unresolved changes independently hold either kind ahead of git work.
 export const sweepBerths = (runners: ReadonlyMap<string, Runner>) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
 		const writer = yield* Writer;
 		const now = yield* Clock.currentTimeMillis;
-		const { held, ready, stranded } = yield* readBerthSweep;
+		const alive = yield* db.Agent.where({ status: "alive" }).all();
+		const aliveIds = new Set(alive.map((agent) => agent.id));
+		const sweep = yield* readBerthSweep;
+		const ready = sweep.ready.filter((berth) => !aliveIds.has(berth.agentId));
 		yield* Effect.forEach(ready, (berth) => {
 			const runner = runners.get(berth.runner);
 			return runner === undefined
 				? Effect.void
-				: unlessHeld(held, berth, judgeReady(db, writer, runner, berth, now));
+				: unlessHeld(
+						sweep.held,
+						berth,
+						judgeReady(db, writer, runner, berth, now),
+					);
 		});
-		yield* Effect.forEach(stranded, (berth) => {
+		yield* Effect.forEach(sweep.stranded, (berth) => {
 			const runner = runners.get(berth.runner);
 			return runner === undefined
 				? Effect.void
 				: unlessHeld(
-						held,
+						sweep.held,
 						berth,
 						expireStranded(db, writer, runner, berth, now),
 					);
 		});
-		if (ready.length + stranded.length > 0) {
+		if (ready.length + sweep.stranded.length > 0) {
 			yield* Effect.logInfo("boot berth sweep finished", {
 				ready: ready.length,
-				stranded: stranded.length,
+				stranded: sweep.stranded.length,
 			});
 		}
 	});

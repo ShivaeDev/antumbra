@@ -29,6 +29,13 @@ export class AgentNotSpawnable extends Data.TaggedError("AgentNotSpawnable")<{
 	readonly status: string;
 }> {}
 
+export class MooragePlanConflict extends Data.TaggedError(
+	"MooragePlanConflict",
+)<{
+	readonly agentId: string;
+	readonly detail: string;
+}> {}
+
 export class SessionNotLive extends Data.TaggedError("SessionNotLive")<{
 	readonly sessionId: string;
 }> {}

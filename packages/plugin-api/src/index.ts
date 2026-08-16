@@ -33,9 +33,9 @@ export {
 	type SettingsApi,
 } from "#context.ts";
 export {
+	type BerthPlan,
 	type BerthSite,
-	type ProvisionedBerth,
-	type ProvisionedMoorage,
+	type MooragePlan,
 	type ProvisionRequest,
 	type ReclaimVerdict,
 	type RepoRequest,
@@ -44,6 +44,7 @@ export {
 	type RunnerCapabilities,
 	type RunnerError,
 	RunnerFailure,
+	RunnerProvisionConflict,
 } from "#runner.ts";
 export {
 	DIRECT_TOOL_NAME,

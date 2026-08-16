@@ -16,7 +16,7 @@ import type {
 } from '@prisma-next/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'sha256:449ed65d66b4f0d4e23fdef78634d1dc73d824d900263a953f654edd93ddda98'>;
+  StorageHashBase<'sha256:a305dffc7fdb7d7f6c2bc08c50c8c9bff45e63bafdfebb73a26e13ad75cd8756'>;
 export type ExecutionHash = ExecutionHashBase<string>;
 export type ProfileHash =
   ProfileHashBase<'sha256:3cc333ecad9f3f4c7229370a9d2c37e908cdce0f8d2e9fb132d50605b024eff2'>;
@@ -81,7 +81,6 @@ export type FieldOutputTypes = {
     readonly BoardEntry: {
       readonly id: CodecTypes['sqlite/text@1']['output'];
       readonly boardId: CodecTypes['sqlite/text@1']['output'];
-      readonly seq: CodecTypes['sqlite/integer@1']['output'];
       readonly register: CodecTypes['sqlite/text@1']['output'];
       readonly authorAgentId: CodecTypes['sqlite/text@1']['output'] | null;
       readonly body: CodecTypes['sqlite/text@1']['output'];
@@ -267,7 +266,6 @@ export type FieldInputTypes = {
     readonly BoardEntry: {
       readonly id: CodecTypes['sqlite/text@1']['input'];
       readonly boardId: CodecTypes['sqlite/text@1']['input'];
-      readonly seq: CodecTypes['sqlite/integer@1']['input'];
       readonly register: CodecTypes['sqlite/text@1']['input'];
       readonly authorAgentId: CodecTypes['sqlite/text@1']['input'] | null;
       readonly body: CodecTypes['sqlite/text@1']['input'];
@@ -457,7 +455,6 @@ export type StorageColumnTypes = {
       readonly createdAt: CodecTypes['sqlite/datetime@1']['output'];
       readonly id: CodecTypes['sqlite/text@1']['output'];
       readonly register: CodecTypes['sqlite/text@1']['output'];
-      readonly seq: CodecTypes['sqlite/integer@1']['output'];
     };
     readonly boardOwner: {
       readonly boardId: CodecTypes['sqlite/text@1']['output'];
@@ -643,7 +640,6 @@ export type StorageColumnInputTypes = {
       readonly createdAt: CodecTypes['sqlite/datetime@1']['input'];
       readonly id: CodecTypes['sqlite/text@1']['input'];
       readonly register: CodecTypes['sqlite/text@1']['input'];
-      readonly seq: CodecTypes['sqlite/integer@1']['input'];
     };
     readonly boardOwner: {
       readonly boardId: CodecTypes['sqlite/text@1']['input'];
@@ -1044,11 +1040,6 @@ type ContractBase = Omit<
                   readonly codecId: 'sqlite/text@1';
                   readonly nullable: false;
                 };
-                readonly seq: {
-                  readonly nativeType: 'integer';
-                  readonly codecId: 'sqlite/integer@1';
-                  readonly nullable: false;
-                };
                 readonly register: {
                   readonly nativeType: 'text';
                   readonly codecId: 'sqlite/text@1';
@@ -1072,7 +1063,7 @@ type ContractBase = Omit<
                 };
               };
               primaryKey: { readonly columns: readonly ['id'] };
-              uniques: readonly [{ readonly columns: readonly ['boardId', 'seq'] }];
+              uniques: readonly [];
               indexes: readonly [{ readonly columns: readonly ['boardId'] }];
               foreignKeys: readonly [];
             };
@@ -2023,10 +2014,6 @@ type ContractBase = Omit<
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
               };
-              readonly seq: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/integer@1' };
-              };
               readonly register: {
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
@@ -2051,7 +2038,6 @@ type ContractBase = Omit<
               readonly fields: {
                 readonly id: { readonly column: 'id' };
                 readonly boardId: { readonly column: 'boardId' };
-                readonly seq: { readonly column: 'seq' };
                 readonly register: { readonly column: 'register' };
                 readonly authorAgentId: { readonly column: 'authorAgentId' };
                 readonly body: { readonly column: 'body' };

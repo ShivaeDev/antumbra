@@ -7,7 +7,7 @@ import type {
 	VoyageView,
 } from "@antumbra/contract";
 import { Option } from "effect";
-import type { BoardEntryRow } from "#boards.ts";
+import type { BoardEntryRow } from "#board-rows.ts";
 import type { ChangeView as DerivedChange } from "#change-view.ts";
 import type { PieceView as DerivedPiece } from "#piece-view.ts";
 import type {

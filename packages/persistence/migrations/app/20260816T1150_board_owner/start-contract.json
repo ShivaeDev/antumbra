@@ -8,6 +8,10 @@
       "model": "Agent",
       "namespace": "__unbound__"
     },
+    "agentBoard": {
+      "model": "AgentBoard",
+      "namespace": "__unbound__"
+    },
     "agentSession": {
       "model": "AgentSession",
       "namespace": "__unbound__"
@@ -30,10 +34,6 @@
     },
     "boardEntry": {
       "model": "BoardEntry",
-      "namespace": "__unbound__"
-    },
-    "boardOwner": {
-      "model": "BoardOwner",
       "namespace": "__unbound__"
     },
     "change": {
@@ -62,6 +62,10 @@
     },
     "pieceArtifact": {
       "model": "PieceArtifact",
+      "namespace": "__unbound__"
+    },
+    "pieceBoard": {
+      "model": "PieceBoard",
       "namespace": "__unbound__"
     },
     "pieceChange": {
@@ -94,6 +98,10 @@
     },
     "voyageAgent": {
       "model": "VoyageAgent",
+      "namespace": "__unbound__"
+    },
+    "voyageBoard": {
+      "model": "VoyageBoard",
       "namespace": "__unbound__"
     },
     "voyagePiece": {
@@ -174,6 +182,37 @@
               },
               "namespaceId": "__unbound__",
               "table": "agent"
+            }
+          },
+          "AgentBoard": {
+            "fields": {
+              "agentId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "sqlite/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "boardId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "sqlite/text@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {},
+            "storage": {
+              "fields": {
+                "agentId": {
+                  "column": "agentId"
+                },
+                "boardId": {
+                  "column": "boardId"
+                }
+              },
+              "namespaceId": "__unbound__",
+              "table": "agentBoard"
             }
           },
           "AgentSession": {
@@ -574,13 +613,6 @@
                   "codecId": "sqlite/text@1",
                   "kind": "scalar"
                 }
-              },
-              "seq": {
-                "nullable": false,
-                "type": {
-                  "codecId": "sqlite/integer@1",
-                  "kind": "scalar"
-                }
               }
             },
             "relations": {},
@@ -603,54 +635,10 @@
                 },
                 "register": {
                   "column": "register"
-                },
-                "seq": {
-                  "column": "seq"
                 }
               },
               "namespaceId": "__unbound__",
               "table": "boardEntry"
-            }
-          },
-          "BoardOwner": {
-            "fields": {
-              "boardId": {
-                "nullable": false,
-                "type": {
-                  "codecId": "sqlite/text@1",
-                  "kind": "scalar"
-                }
-              },
-              "ownerId": {
-                "nullable": false,
-                "type": {
-                  "codecId": "sqlite/text@1",
-                  "kind": "scalar"
-                }
-              },
-              "ownerKind": {
-                "nullable": false,
-                "type": {
-                  "codecId": "sqlite/text@1",
-                  "kind": "scalar"
-                }
-              }
-            },
-            "relations": {},
-            "storage": {
-              "fields": {
-                "boardId": {
-                  "column": "boardId"
-                },
-                "ownerId": {
-                  "column": "ownerId"
-                },
-                "ownerKind": {
-                  "column": "ownerKind"
-                }
-              },
-              "namespaceId": "__unbound__",
-              "table": "boardOwner"
             }
           },
           "Change": {
@@ -1270,6 +1258,37 @@
               "table": "pieceArtifact"
             }
           },
+          "PieceBoard": {
+            "fields": {
+              "boardId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "sqlite/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "pieceId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "sqlite/text@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {},
+            "storage": {
+              "fields": {
+                "boardId": {
+                  "column": "boardId"
+                },
+                "pieceId": {
+                  "column": "pieceId"
+                }
+              },
+              "namespaceId": "__unbound__",
+              "table": "pieceBoard"
+            }
+          },
           "PieceChange": {
             "fields": {
               "changeId": {
@@ -1668,6 +1687,37 @@
               "table": "voyageAgent"
             }
           },
+          "VoyageBoard": {
+            "fields": {
+              "boardId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "sqlite/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "voyageId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "sqlite/text@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {},
+            "storage": {
+              "fields": {
+                "boardId": {
+                  "column": "boardId"
+                },
+                "voyageId": {
+                  "column": "voyageId"
+                }
+              },
+              "namespaceId": "__unbound__",
+              "table": "voyageBoard"
+            }
+          },
           "VoyagePiece": {
             "fields": {
               "createdAt": {
@@ -1770,6 +1820,29 @@
               "primaryKey": {
                 "columns": [
                   "id"
+                ]
+              },
+              "uniques": []
+            },
+            "agentBoard": {
+              "columns": {
+                "agentId": {
+                  "codecId": "sqlite/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "boardId": {
+                  "codecId": "sqlite/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [],
+              "indexes": [],
+              "primaryKey": {
+                "columns": [
+                  "agentId",
+                  "boardId"
                 ]
               },
               "uniques": []
@@ -2064,11 +2137,6 @@
                   "codecId": "sqlite/text@1",
                   "nativeType": "text",
                   "nullable": false
-                },
-                "seq": {
-                  "codecId": "sqlite/integer@1",
-                  "nativeType": "integer",
-                  "nullable": false
                 }
               },
               "foreignKeys": [],
@@ -2084,48 +2152,7 @@
                   "id"
                 ]
               },
-              "uniques": [
-                {
-                  "columns": [
-                    "boardId",
-                    "seq"
-                  ]
-                }
-              ]
-            },
-            "boardOwner": {
-              "columns": {
-                "boardId": {
-                  "codecId": "sqlite/text@1",
-                  "nativeType": "text",
-                  "nullable": false
-                },
-                "ownerId": {
-                  "codecId": "sqlite/text@1",
-                  "nativeType": "text",
-                  "nullable": false
-                },
-                "ownerKind": {
-                  "codecId": "sqlite/text@1",
-                  "nativeType": "text",
-                  "nullable": false
-                }
-              },
-              "foreignKeys": [],
-              "indexes": [],
-              "primaryKey": {
-                "columns": [
-                  "boardId"
-                ]
-              },
-              "uniques": [
-                {
-                  "columns": [
-                    "ownerKind",
-                    "ownerId"
-                  ]
-                }
-              ]
+              "uniques": []
             },
             "change": {
               "columns": {
@@ -2556,6 +2583,29 @@
               },
               "uniques": []
             },
+            "pieceBoard": {
+              "columns": {
+                "boardId": {
+                  "codecId": "sqlite/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "pieceId": {
+                  "codecId": "sqlite/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [],
+              "indexes": [],
+              "primaryKey": {
+                "columns": [
+                  "pieceId",
+                  "boardId"
+                ]
+              },
+              "uniques": []
+            },
             "pieceChange": {
               "columns": {
                 "changeId": {
@@ -2852,6 +2902,29 @@
               },
               "uniques": []
             },
+            "voyageBoard": {
+              "columns": {
+                "boardId": {
+                  "codecId": "sqlite/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "voyageId": {
+                  "codecId": "sqlite/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [],
+              "indexes": [],
+              "primaryKey": {
+                "columns": [
+                  "voyageId",
+                  "boardId"
+                ]
+              },
+              "uniques": []
+            },
             "voyagePiece": {
               "columns": {
                 "createdAt": {
@@ -2895,7 +2968,7 @@
         "id": "__unbound__"
       }
     },
-    "storageHash": "sha256:449ed65d66b4f0d4e23fdef78634d1dc73d824d900263a953f654edd93ddda98"
+    "storageHash": "sha256:c1592916ef1d124550d8c5c333cab0ffedabe62ddd9c0edd6b44cb473a9451dc"
   },
   "capabilities": {
     "sql": {

@@ -1,0 +1,207 @@
+[
+  {
+    "id": "table.boardOwner",
+    "label": "Create table boardOwner",
+    "summary": "Creates table boardOwner with required columns",
+    "operationClass": "additive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "table",
+        "name": "boardOwner"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"boardOwner\" does not exist",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "table",
+          "boardOwner"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"boardOwner\"",
+        "sql": "CREATE TABLE \"boardOwner\" (\n  \"boardId\" TEXT NOT NULL,\n  \"ownerId\" TEXT NOT NULL,\n  \"ownerKind\" TEXT NOT NULL,\n  PRIMARY KEY (\"boardId\"),\n  UNIQUE (\"ownerKind\", \"ownerId\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"boardOwner\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "table",
+          "boardOwner"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "boardOwner.transfer",
+    "label": "Transfer typed Board owners",
+    "summary": "move legacy Board links into their globally exclusive typed owner table",
+    "operationClass": "data",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "table",
+        "name": "boardOwner"
+      }
+    },
+    "precheck": [],
+    "execute": [
+      {
+        "description": "move legacy Board links into their globally exclusive typed owner table",
+        "sql": "INSERT INTO \"boardOwner\" (\"boardId\", \"ownerKind\", \"ownerId\")\nSELECT \"boardId\", 'agent', \"agentId\" FROM \"agentBoard\"\nUNION ALL\nSELECT \"boardId\", 'piece', \"pieceId\" FROM \"pieceBoard\"\nUNION ALL\nSELECT \"boardId\", 'voyage', \"voyageId\" FROM \"voyageBoard\""
+      }
+    ],
+    "postcheck": []
+  },
+  {
+    "id": "boardOwner.owner.guard",
+    "label": "Reject dangling Board owners",
+    "summary": "fail when a Board link names an owner that does not exist",
+    "operationClass": "data",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "table",
+        "name": "boardOwner"
+      }
+    },
+    "precheck": [],
+    "execute": [
+      {
+        "description": "fail when a Board link names an owner that does not exist",
+        "sql": "INSERT INTO \"boardOwner\" (\"boardId\", \"ownerKind\", \"ownerId\")\nSELECT \"boardId\", \"ownerKind\", \"ownerId\" FROM \"boardOwner\"\nWHERE (\"ownerKind\" = 'agent' AND NOT EXISTS (\n  SELECT 1 FROM \"agent\" WHERE \"agent\".\"id\" = \"boardOwner\".\"ownerId\"\n)) OR (\"ownerKind\" = 'piece' AND NOT EXISTS (\n  SELECT 1 FROM \"piece\" WHERE \"piece\".\"id\" = \"boardOwner\".\"ownerId\"\n)) OR (\"ownerKind\" = 'voyage' AND NOT EXISTS (\n  SELECT 1 FROM \"voyage\" WHERE \"voyage\".\"id\" = \"boardOwner\".\"ownerId\"\n))"
+      }
+    ],
+    "postcheck": []
+  },
+  {
+    "id": "dropTable.agentBoard",
+    "label": "Drop table agentBoard",
+    "summary": "Drops table agentBoard which is not in the contract",
+    "operationClass": "destructive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "table",
+        "name": "agentBoard"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"agentBoard\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "table",
+          "agentBoard"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "drop table \"agentBoard\"",
+        "sql": "DROP TABLE \"agentBoard\""
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"agentBoard\" is gone",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "table",
+          "agentBoard"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "dropTable.pieceBoard",
+    "label": "Drop table pieceBoard",
+    "summary": "Drops table pieceBoard which is not in the contract",
+    "operationClass": "destructive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "table",
+        "name": "pieceBoard"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"pieceBoard\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "table",
+          "pieceBoard"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "drop table \"pieceBoard\"",
+        "sql": "DROP TABLE \"pieceBoard\""
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"pieceBoard\" is gone",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "table",
+          "pieceBoard"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "dropTable.voyageBoard",
+    "label": "Drop table voyageBoard",
+    "summary": "Drops table voyageBoard which is not in the contract",
+    "operationClass": "destructive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "table",
+        "name": "voyageBoard"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"voyageBoard\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "table",
+          "voyageBoard"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "drop table \"voyageBoard\"",
+        "sql": "DROP TABLE \"voyageBoard\""
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"voyageBoard\" is gone",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "table",
+          "voyageBoard"
+        ]
+      }
+    ]
+  }
+]

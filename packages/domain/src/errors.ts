@@ -1,4 +1,5 @@
 import { Data } from "effect";
+import type { BoardScope } from "#board-scope.ts";
 
 export {
 	EdgeWouldCycle,
@@ -65,6 +66,18 @@ export class NoChangeHost extends Data.TaggedError("NoChangeHost")<{
 }> {
 	override get message(): string {
 		return `no change host claims ${this.repoName}`;
+	}
+}
+
+// why: a board hangs off one entity, so a scope naming an entity that is not
+// there is a mistake to answer rather than a board to mint — an orphan board
+// is a mailbox nobody owns and nobody can be shown.
+export class BoardOwnerNotFound extends Data.TaggedError("BoardOwnerNotFound")<{
+	readonly ownerId: string;
+	readonly ownerKind: BoardScope["kind"];
+}> {
+	override get message(): string {
+		return `no ${this.ownerKind} named ${this.ownerId} carries a board`;
 	}
 }
 

@@ -1,7 +1,7 @@
 import type { PieceView } from "@antumbra/contract";
 import { useState } from "react";
 import { charterPiece } from "#adapters/trpc-voyages.ts";
-import { PiecePicker } from "#views/piece-picker.tsx";
+import { PiecePicker, pickable } from "#views/piece-picker.tsx";
 import {
 	buttonStyle,
 	columnStyle,
@@ -63,7 +63,11 @@ export const CharterPieceForm = ({
 				style={inputStyle}
 				value={role}
 			/>
-			<PiecePicker chosen={dependsOn} onChange={setDependsOn} pieces={pieces} />
+			<PiecePicker
+				chosen={dependsOn}
+				onChange={setDependsOn}
+				pieces={pickable(pieces)}
+			/>
 			<button
 				disabled={!ready}
 				onClick={submit}

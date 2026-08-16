@@ -1,10 +1,11 @@
 import { buttonStyle, rowStyle } from "#views/styles.ts";
 
-// why: the window watches two things — the fleet at work and the voyages the
-// work is for. They share one aside, so the strip says which is on show.
-export type Mode = "fleet" | "voyages";
+// why: the window watches three things — the fleet at work, the voyages the
+// work is for, and the quay where finished work waits on a host. They share
+// one aside, so the strip says which is on show.
+export type Mode = "fleet" | "voyages" | "quay";
 
-const MODES: ReadonlyArray<Mode> = ["fleet", "voyages"];
+const MODES: ReadonlyArray<Mode> = ["fleet", "voyages", "quay"];
 
 export const ModeStrip = ({
 	mode,

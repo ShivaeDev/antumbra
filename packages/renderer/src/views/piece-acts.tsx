@@ -6,7 +6,7 @@ import {
 	rewirePiece,
 	unparkPiece,
 } from "#adapters/trpc-voyages.ts";
-import { PiecePicker } from "#views/piece-picker.tsx";
+import { PiecePicker, pickable } from "#views/piece-picker.tsx";
 import { buttonStyle, columnStyle, rowStyle } from "#views/styles.ts";
 import { actsFor, type PieceAct } from "#voyages/acts.ts";
 
@@ -65,7 +65,7 @@ export const PieceActs = ({
 						chosen={dependsOn}
 						exclude={piece.id}
 						onChange={setDependsOn}
-						pieces={pieces}
+						pieces={pickable(pieces)}
 					/>
 					<button onClick={rewire} style={buttonStyle} type="button">
 						save position

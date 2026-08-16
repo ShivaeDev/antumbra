@@ -6,6 +6,7 @@ import { loadAppInfo, watchFleet } from "#adapters/trpc.ts";
 import { watchVoyages } from "#adapters/trpc-voyages.ts";
 import { FleetAside } from "#views/fleet-aside.tsx";
 import { type Mode, ModeStrip } from "#views/mode-strip.tsx";
+import { QuayPanel } from "#views/quay.tsx";
 import { TranscriptView } from "#views/transcript.tsx";
 import { VoyagePanel } from "#views/voyage.tsx";
 import { VoyagesAside } from "#views/voyages-aside.tsx";
@@ -43,6 +44,9 @@ const MainSection = ({
 	readonly session: string | undefined;
 	readonly voyage: string | undefined;
 }) => {
+	if (mode === "quay") {
+		return <QuayPanel onError={onError} />;
+	}
 	if (mode === "voyages") {
 		return voyage === undefined ? (
 			<section style={emptyStyle}>select a voyage to see its pieces</section>
@@ -89,6 +93,8 @@ export const App = () => {
 					<div style={{ color: "#ff7c7c", fontSize: "0.85rem" }}>{notice}</div>
 				)}
 				<ModeStrip mode={mode} onMode={setMode} />
+				{/* why: the quay is read against the voyages the work is owed to, so
+				the aside keeps listing them rather than emptying itself. */}
 				{mode === "fleet" ? (
 					<FleetAside
 						fleet={fleet}

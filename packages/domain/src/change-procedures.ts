@@ -42,9 +42,9 @@ export interface ChangeProcedures {
 	readonly open: (
 		input: OpenChangeInput,
 	) => Effect.Effect<ChangeRow, OpenChangeFailure>;
-	// why: what is still waiting on a host, which is both what a pass asks
-	// about and what decides how soon the next pass is worth making.
-	readonly openChanges: (
+	// why: what can still change at a host — open changes can settle and
+	// withdrawn ones can reopen. The set also decides the next pass cadence.
+	readonly watchableChanges: (
 		hostTag: string,
 	) => Effect.Effect<ReadonlyArray<ChangeRow>, PrismaError>;
 	// why: every change still owed, read across the whole fleet and grouped by
@@ -75,7 +75,7 @@ export const makeChangeProcedures = (deps: AgentDeps): ChangeProcedures => ({
 	observed: (hostTag, observations) =>
 		applyObservations(deps, hostTag, observations),
 	open: (input) => openChange(deps, input),
-	openChanges: (hostTag) => openChangesOfHost(deps, hostTag),
+	watchableChanges: (hostTag) => openChangesOfHost(deps, hostTag),
 	quay: readVoyageWorld(deps).pipe(Effect.map(quayReading)),
 	refresh: (hostTag) => refreshChanges(deps, hostTag),
 	requestRefresh: PubSub.publish(deps.feeds.changeRefresh, undefined),

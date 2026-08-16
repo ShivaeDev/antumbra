@@ -122,12 +122,20 @@ it("a piece is done when every change of it has landed", () => {
 	expect(stateOf(built)).toBe("done");
 });
 
-// why: a withdrawn change is neither landed nor pending — nothing came of it,
-// so the piece is back where it started rather than finished or waiting.
-it("a withdrawn change leaves the piece neither done nor landing", () => {
+it("a withdrawn change keeps the piece unfinished until a replacement lands", () => {
 	const built = withChanges(["withdrawn"]);
-	expect(pieceOutcomeTally(built, "alpha")).toEqual({ landed: 0, pending: 0 });
-	expect(stateOf(built)).toBe("ready");
+	expect(pieceOutcomeTally(built, "alpha")).toEqual({ landed: 0, pending: 1 });
+	expect(stateOf(built)).toBe("landing");
+
+	const reported = withChanges(["withdrawn"], {
+		pieceReports: [{ pieceId: "alpha", reportId: "report-1" }],
+	});
+	expect(pieceOutcomeTally(reported, "alpha")).toEqual({
+		landed: 1,
+		pending: 1,
+	});
+	expect(stateOf(reported)).toBe("landing");
+	expect(stateOf(withChanges(["withdrawn", "landed"]))).toBe("done");
 });
 
 it("landing sits below blocked and above ready on the ladder", () => {

@@ -3,8 +3,8 @@ import type { VoyageWorld } from "#voyage-rows.ts";
 
 // why: outcomes differ in how long they take to count. A report or an artifact
 // is landed the instant it is written; a change is proposed and only lands
-// when its host says so, and a withdrawn one never will. Doneness is a tally
-// over these three answers, never a column.
+// when its host says so. A withdrawn change stays unresolved until it reopens
+// or another linked change lands. Doneness is a tally, never a column.
 export type OutcomeStatus = "landed" | "pending" | "withdrawn";
 
 export interface OutcomeTally {
@@ -41,11 +41,15 @@ export const pieceOutcomeTally = (
 	pieceId: string,
 ): OutcomeTally => {
 	const statuses = changesOfPiece(world, pieceId).map(changeStatus);
+	const landedChanges = statuses.filter((status) => status === "landed").length;
+	const withdrawn = statuses.filter((status) => status === "withdrawn").length;
 	return {
 		landed:
 			countedLinks(world.pieceReports, pieceId) +
 			countedLinks(world.pieceArtifacts, pieceId) +
-			statuses.filter((status) => status === "landed").length,
-		pending: statuses.filter((status) => status === "pending").length,
+			landedChanges,
+		pending:
+			statuses.filter((status) => status === "pending").length +
+			(landedChanges === 0 ? withdrawn : 0),
 	};
 };

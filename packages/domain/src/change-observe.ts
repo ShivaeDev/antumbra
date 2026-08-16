@@ -1,74 +1,19 @@
 import type { PrismaError } from "@antumbra/persistence";
 import type { ChangeObservation } from "@antumbra/plugin-api";
-import { Clock, Effect, PubSub } from "effect";
+import { Clock, Effect, Option, PubSub } from "effect";
+import {
+	projectedChange,
+	sameProjectedFacts,
+	stageTransition,
+} from "#change-projection.ts";
+import { changeOfExternalId } from "#change-read.ts";
 import type { ChangeRow } from "#change-rows.ts";
 import { type AgentDeps, provideExecutors } from "#deps.ts";
-import { readVoyageWorld } from "#voyage-world.ts";
 
-export const rawText = (payload: unknown): string | null =>
-	JSON.stringify(payload) ?? null;
-
-// why: a change that has landed or been withdrawn is history, and history is
-// appended, never mutated. A host that reports it open again is telling us
-// about a world we have already accounted for — the row stands and the
-// disagreement goes to the log for a human to read.
-const terminal = (row: ChangeRow): boolean =>
-	row.stage === "landed" || row.stage === "withdrawn";
-
-const observationKey = (repoId: string, externalId: string): string =>
-	`${repoId}:${externalId}`;
-
-const observed = (
-	row: ChangeRow,
-	observation: ChangeObservation,
-	now: number,
-): ChangeRow => ({
-	...row,
-	activityAt: new Date(observation.activityAt),
-	baseRef: observation.baseRef,
-	checks: observation.checks,
-	draftAt: observation.isDraft ? (row.draftAt ?? new Date(now)) : null,
-	headRef: observation.headRef,
-	headSha: observation.headSha,
-	landedAt:
-		observation.stage === "landed" ? (row.landedAt ?? new Date(now)) : null,
-	mergeable: observation.mergeable,
-	observedAt: new Date(now),
-	raw: rawText(observation.raw),
-	review: observation.review,
-	stage: observation.stage,
-	title: observation.title,
-	url: observation.url,
-	withdrawnAt:
-		observation.stage === "withdrawn"
-			? (row.withdrawnAt ?? new Date(now))
-			: null,
-});
-
-const writeObserved = (deps: AgentDeps, rows: ReadonlyArray<ChangeRow>) =>
-	provideExecutors(deps)(
-		deps.writer.write(
-			Effect.forEach(rows, (row) =>
-				deps.db.Change.where({ id: row.id }).update({
-					activityAt: row.activityAt,
-					baseRef: row.baseRef,
-					checks: row.checks,
-					draftAt: row.draftAt,
-					headRef: row.headRef,
-					headSha: row.headSha,
-					landedAt: row.landedAt,
-					mergeable: row.mergeable,
-					observedAt: row.observedAt,
-					raw: row.raw,
-					review: row.review,
-					stage: row.stage,
-					title: row.title,
-					url: row.url,
-					withdrawnAt: row.withdrawnAt,
-				}),
-			),
-		),
-	);
+interface ReconciledObservation {
+	readonly changed: boolean;
+	readonly row: ChangeRow;
+}
 
 const refused = (row: ChangeRow, observation: ChangeObservation) =>
 	Effect.logWarning("a settled change was observed unsettled", {
@@ -77,43 +22,111 @@ const refused = (row: ChangeRow, observation: ChangeObservation) =>
 		stage: row.stage,
 	});
 
-// why: matched by the host's own id rather than by ours, because a host answers
-// about the changes it knows. A pair nobody here has a row for is not an error:
-// a change opened somewhere else is adopted deliberately, never by drift.
+const unsettlesLandedChange = (
+	row: ChangeRow,
+	observation: ChangeObservation,
+): boolean => row.stage === "landed" && observation.stage !== "landed";
+
+// why: read, freshness decision, transition append and projection update all
+// happen inside the serialized transaction. Provider timestamps are not unique
+// revisions: at equal time an unseen destination stage is the next fact in
+// observed order, while its durable transition id makes a later replay a no-op.
+// Older facts cannot roll the row back, and landed remains irreversible.
 export const applyObservations = (
 	deps: AgentDeps,
 	hostTag: string,
 	observations: ReadonlyArray<ChangeObservation>,
-): Effect.Effect<ReadonlyArray<ChangeRow>, PrismaError> =>
-	Effect.gen(function* () {
+): Effect.Effect<ReadonlyArray<ChangeRow>, PrismaError> => {
+	if (observations.length === 0) {
+		return Effect.succeed([]);
+	}
+	const updateProjection = (row: ChangeRow) =>
+		deps.db.Change.where({ id: row.id }).update({
+			activityAt: row.activityAt,
+			baseRef: row.baseRef,
+			checks: row.checks,
+			draftAt: row.draftAt,
+			headRef: row.headRef,
+			headSha: row.headSha,
+			landedAt: row.landedAt,
+			mergeable: row.mergeable,
+			observedAt: row.observedAt,
+			raw: row.raw,
+			review: row.review,
+			stage: row.stage,
+			title: row.title,
+			url: row.url,
+			withdrawnAt: row.withdrawnAt,
+		});
+	const stageTransitionToAppend = (before: ChangeRow, after: ChangeRow) =>
+		Effect.gen(function* () {
+			if (after.stage === before.stage) {
+				return Option.none();
+			}
+			const transition = stageTransition(before, after);
+			if (after.activityAt.getTime() > before.activityAt.getTime()) {
+				return Option.some(transition);
+			}
+			const replayed = yield* deps.db.ChangeTransition.where({
+				id: transition.id,
+			}).first();
+			return Option.isSome(replayed) ? Option.none() : Option.some(transition);
+		});
+	const isEqualTimeReplay = (
+		before: ChangeRow,
+		after: ChangeRow,
+		transition: Option.Option<ReturnType<typeof stageTransition>>,
+	): boolean =>
+		after.activityAt.getTime() === before.activityAt.getTime() &&
+		(sameProjectedFacts(before, after) ||
+			(after.stage !== before.stage && Option.isNone(transition)));
+	const reconcile = (observation: ChangeObservation, now: number) =>
+		Effect.gen(function* () {
+			const known = yield* changeOfExternalId(
+				deps,
+				hostTag,
+				observation.repoId,
+				observation.externalId,
+			);
+			if (Option.isNone(known)) {
+				return Option.none<ReconciledObservation>();
+			}
+			const row = known.value;
+			if (unsettlesLandedChange(row, observation)) {
+				yield* refused(row, observation);
+				return Option.some({ changed: false, row });
+			}
+			if (observation.activityAt < row.activityAt.getTime()) {
+				return Option.some({ changed: false, row });
+			}
+			const next = projectedChange(row, observation, now);
+			const transition = yield* stageTransitionToAppend(row, next);
+			if (isEqualTimeReplay(row, next, transition)) {
+				return Option.some({ changed: false, row });
+			}
+			if (Option.isSome(transition)) {
+				yield* deps.db.ChangeTransition.create(transition.value);
+			}
+			yield* updateProjection(next);
+			return Option.some({ changed: true, row: next });
+		});
+	return Effect.gen(function* () {
 		const now = yield* Clock.currentTimeMillis;
-		const world = yield* readVoyageWorld(deps);
-		const known = new Map(
-			world.changes.flatMap((row) =>
-				row.host === hostTag && row.externalId !== null
-					? [[observationKey(row.repoId, row.externalId), row] as const]
-					: [],
+		const results = yield* provideExecutors(deps)(
+			deps.writer.write(
+				Effect.forEach(
+					observations,
+					(observation) => reconcile(observation, now),
+					{ concurrency: 1 },
+				),
 			),
 		);
-		const settled: ChangeRow[] = [];
-		const written: ChangeRow[] = [];
-		for (const observation of observations) {
-			const row = known.get(
-				observationKey(observation.repoId, observation.externalId),
-			);
-			if (row === undefined) {
-				continue;
-			}
-			if (terminal(row)) {
-				yield* refused(row, observation);
-				settled.push(row);
-				continue;
-			}
-			written.push(observed(row, observation, now));
-		}
-		if (written.length > 0) {
-			yield* writeObserved(deps, written);
+		const reconciled = results.flatMap((result) =>
+			Option.isSome(result) ? [result.value] : [],
+		);
+		if (reconciled.some((result) => result.changed)) {
 			yield* PubSub.publish(deps.feeds.voyages, undefined);
 		}
-		return [...written, ...settled];
+		return reconciled.map((result) => result.row);
 	});
+};

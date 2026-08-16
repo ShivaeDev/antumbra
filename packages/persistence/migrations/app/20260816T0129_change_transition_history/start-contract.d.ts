@@ -16,7 +16,7 @@ import type {
 } from '@prisma-next/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'sha256:930176083db4187fb2aefe3e7a9313b72ef1a2d32768cb147c30d7d38e924799'>;
+  StorageHashBase<'sha256:5db61efad7665ff5e219bac71a6b3660bc276ae8a15e217bf3ff8c2d9a53a785'>;
 export type ExecutionHash = ExecutionHashBase<string>;
 export type ProfileHash =
   ProfileHashBase<'sha256:3cc333ecad9f3f4c7229370a9d2c37e908cdce0f8d2e9fb132d50605b024eff2'>;
@@ -113,14 +113,6 @@ export type FieldOutputTypes = {
       readonly landedAt: CodecTypes['sqlite/datetime@1']['output'] | null;
       readonly withdrawnAt: CodecTypes['sqlite/datetime@1']['output'] | null;
       readonly createdAt: CodecTypes['sqlite/datetime@1']['output'];
-    };
-    readonly ChangeTransition: {
-      readonly id: CodecTypes['sqlite/text@1']['output'];
-      readonly changeId: CodecTypes['sqlite/text@1']['output'];
-      readonly fromStage: CodecTypes['sqlite/text@1']['output'];
-      readonly toStage: CodecTypes['sqlite/text@1']['output'];
-      readonly activityAt: CodecTypes['sqlite/datetime@1']['output'];
-      readonly observedAt: CodecTypes['sqlite/datetime@1']['output'];
     };
     readonly Intent: {
       readonly id: CodecTypes['sqlite/text@1']['output'];
@@ -298,14 +290,6 @@ export type FieldInputTypes = {
       readonly withdrawnAt: CodecTypes['sqlite/datetime@1']['input'] | null;
       readonly createdAt: CodecTypes['sqlite/datetime@1']['input'];
     };
-    readonly ChangeTransition: {
-      readonly id: CodecTypes['sqlite/text@1']['input'];
-      readonly changeId: CodecTypes['sqlite/text@1']['input'];
-      readonly fromStage: CodecTypes['sqlite/text@1']['input'];
-      readonly toStage: CodecTypes['sqlite/text@1']['input'];
-      readonly activityAt: CodecTypes['sqlite/datetime@1']['input'];
-      readonly observedAt: CodecTypes['sqlite/datetime@1']['input'];
-    };
     readonly Intent: {
       readonly id: CodecTypes['sqlite/text@1']['input'];
       readonly tag: CodecTypes['sqlite/text@1']['input'];
@@ -482,14 +466,6 @@ export type StorageColumnTypes = {
       readonly url: CodecTypes['sqlite/text@1']['output'] | null;
       readonly withdrawnAt: CodecTypes['sqlite/datetime@1']['output'] | null;
     };
-    readonly changeTransition: {
-      readonly activityAt: CodecTypes['sqlite/datetime@1']['output'];
-      readonly changeId: CodecTypes['sqlite/text@1']['output'];
-      readonly fromStage: CodecTypes['sqlite/text@1']['output'];
-      readonly id: CodecTypes['sqlite/text@1']['output'];
-      readonly observedAt: CodecTypes['sqlite/datetime@1']['output'];
-      readonly toStage: CodecTypes['sqlite/text@1']['output'];
-    };
     readonly intent: {
       readonly createdAt: CodecTypes['sqlite/datetime@1']['output'];
       readonly detail: CodecTypes['sqlite/text@1']['output'] | null;
@@ -665,14 +641,6 @@ export type StorageColumnInputTypes = {
       readonly title: CodecTypes['sqlite/text@1']['input'];
       readonly url: CodecTypes['sqlite/text@1']['input'] | null;
       readonly withdrawnAt: CodecTypes['sqlite/datetime@1']['input'] | null;
-    };
-    readonly changeTransition: {
-      readonly activityAt: CodecTypes['sqlite/datetime@1']['input'];
-      readonly changeId: CodecTypes['sqlite/text@1']['input'];
-      readonly fromStage: CodecTypes['sqlite/text@1']['input'];
-      readonly id: CodecTypes['sqlite/text@1']['input'];
-      readonly observedAt: CodecTypes['sqlite/datetime@1']['input'];
-      readonly toStage: CodecTypes['sqlite/text@1']['input'];
     };
     readonly intent: {
       readonly createdAt: CodecTypes['sqlite/datetime@1']['input'];
@@ -1203,44 +1171,6 @@ type ContractBase = Omit<
               ];
               foreignKeys: readonly [];
             };
-            readonly changeTransition: {
-              columns: {
-                readonly id: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'sqlite/text@1';
-                  readonly nullable: false;
-                };
-                readonly changeId: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'sqlite/text@1';
-                  readonly nullable: false;
-                };
-                readonly fromStage: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'sqlite/text@1';
-                  readonly nullable: false;
-                };
-                readonly toStage: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'sqlite/text@1';
-                  readonly nullable: false;
-                };
-                readonly activityAt: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'sqlite/datetime@1';
-                  readonly nullable: false;
-                };
-                readonly observedAt: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'sqlite/datetime@1';
-                  readonly nullable: false;
-                };
-              };
-              primaryKey: { readonly columns: readonly ['id'] };
-              uniques: readonly [];
-              indexes: readonly [{ readonly columns: readonly ['changeId', 'activityAt'] }];
-              foreignKeys: readonly [];
-            };
             readonly intent: {
               columns: {
                 readonly id: {
@@ -1719,10 +1649,6 @@ type ContractBase = Omit<
       readonly model: 'PieceArtifact';
     };
     readonly change: { readonly namespace: '__unbound__' & NamespaceId; readonly model: 'Change' };
-    readonly changeTransition: {
-      readonly namespace: '__unbound__' & NamespaceId;
-      readonly model: 'ChangeTransition';
-    };
     readonly pieceChange: {
       readonly namespace: '__unbound__' & NamespaceId;
       readonly model: 'PieceChange';
@@ -2175,47 +2101,6 @@ type ContractBase = Omit<
                 readonly landedAt: { readonly column: 'landedAt' };
                 readonly withdrawnAt: { readonly column: 'withdrawnAt' };
                 readonly createdAt: { readonly column: 'createdAt' };
-              };
-            };
-          };
-          readonly ChangeTransition: {
-            readonly fields: {
-              readonly id: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
-              };
-              readonly changeId: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
-              };
-              readonly fromStage: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
-              };
-              readonly toStage: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
-              };
-              readonly activityAt: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/datetime@1' };
-              };
-              readonly observedAt: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/datetime@1' };
-              };
-            };
-            readonly relations: Record<string, never>;
-            readonly storage: {
-              readonly table: 'changeTransition';
-              readonly namespaceId: '__unbound__';
-              readonly fields: {
-                readonly id: { readonly column: 'id' };
-                readonly changeId: { readonly column: 'changeId' };
-                readonly fromStage: { readonly column: 'fromStage' };
-                readonly toStage: { readonly column: 'toStage' };
-                readonly activityAt: { readonly column: 'activityAt' };
-                readonly observedAt: { readonly column: 'observedAt' };
               };
             };
           };

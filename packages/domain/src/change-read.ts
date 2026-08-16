@@ -84,12 +84,16 @@ export const changeOfExternalId = (
 		.first()
 		.pipe(Effect.map((row) => Option.map(row, changeRow)));
 
-// why: only what is still open is worth asking a host about — a prepared
-// change has never reached it, and a settled one is history.
+// why: an open change can land and a withdrawn one can reopen. Both remain
+// reconcilable; prepared has never reached a host and landed is irreversible.
 export const openChangesOfHost = (
 	deps: AgentDeps,
 	host: string,
 ): Effect.Effect<ReadonlyArray<ChangeRow>, PrismaError> =>
-	provideExecutors(deps)(
-		deps.db.Change.where({ host, stage: "open" }).all(),
-	).pipe(Effect.map((rows) => rows.map(changeRow)));
+	provideExecutors(deps)(deps.db.Change.where({ host }).all()).pipe(
+		Effect.map((rows) =>
+			rows
+				.map(changeRow)
+				.filter((row) => row.stage === "open" || row.stage === "withdrawn"),
+		),
+	);

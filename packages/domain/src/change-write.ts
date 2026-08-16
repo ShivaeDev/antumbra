@@ -1,6 +1,6 @@
 import type { ChangeObservation } from "@antumbra/plugin-api";
 import { Effect, PubSub } from "effect";
-import { rawText } from "#change-observe.ts";
+import { rawText } from "#change-projection.ts";
 import type { ChangeRow } from "#change-rows.ts";
 import type { AgentDeps } from "#deps.ts";
 

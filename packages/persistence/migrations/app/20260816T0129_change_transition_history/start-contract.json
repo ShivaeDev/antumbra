@@ -40,10 +40,6 @@
       "model": "Change",
       "namespace": "__unbound__"
     },
-    "changeTransition": {
-      "model": "ChangeTransition",
-      "namespace": "__unbound__"
-    },
     "intent": {
       "model": "Intent",
       "namespace": "__unbound__"
@@ -866,77 +862,6 @@
               },
               "namespaceId": "__unbound__",
               "table": "change"
-            }
-          },
-          "ChangeTransition": {
-            "fields": {
-              "activityAt": {
-                "nullable": false,
-                "type": {
-                  "codecId": "sqlite/datetime@1",
-                  "kind": "scalar"
-                }
-              },
-              "changeId": {
-                "nullable": false,
-                "type": {
-                  "codecId": "sqlite/text@1",
-                  "kind": "scalar"
-                }
-              },
-              "fromStage": {
-                "nullable": false,
-                "type": {
-                  "codecId": "sqlite/text@1",
-                  "kind": "scalar"
-                }
-              },
-              "id": {
-                "nullable": false,
-                "type": {
-                  "codecId": "sqlite/text@1",
-                  "kind": "scalar"
-                }
-              },
-              "observedAt": {
-                "nullable": false,
-                "type": {
-                  "codecId": "sqlite/datetime@1",
-                  "kind": "scalar"
-                }
-              },
-              "toStage": {
-                "nullable": false,
-                "type": {
-                  "codecId": "sqlite/text@1",
-                  "kind": "scalar"
-                }
-              }
-            },
-            "relations": {},
-            "storage": {
-              "fields": {
-                "activityAt": {
-                  "column": "activityAt"
-                },
-                "changeId": {
-                  "column": "changeId"
-                },
-                "fromStage": {
-                  "column": "fromStage"
-                },
-                "id": {
-                  "column": "id"
-                },
-                "observedAt": {
-                  "column": "observedAt"
-                },
-                "toStage": {
-                  "column": "toStage"
-                }
-              },
-              "namespaceId": "__unbound__",
-              "table": "changeTransition"
             }
           },
           "Intent": {
@@ -2225,55 +2150,6 @@
                 }
               ]
             },
-            "changeTransition": {
-              "columns": {
-                "activityAt": {
-                  "codecId": "sqlite/datetime@1",
-                  "nativeType": "text",
-                  "nullable": false
-                },
-                "changeId": {
-                  "codecId": "sqlite/text@1",
-                  "nativeType": "text",
-                  "nullable": false
-                },
-                "fromStage": {
-                  "codecId": "sqlite/text@1",
-                  "nativeType": "text",
-                  "nullable": false
-                },
-                "id": {
-                  "codecId": "sqlite/text@1",
-                  "nativeType": "text",
-                  "nullable": false
-                },
-                "observedAt": {
-                  "codecId": "sqlite/datetime@1",
-                  "nativeType": "text",
-                  "nullable": false
-                },
-                "toStage": {
-                  "codecId": "sqlite/text@1",
-                  "nativeType": "text",
-                  "nullable": false
-                }
-              },
-              "foreignKeys": [],
-              "indexes": [
-                {
-                  "columns": [
-                    "changeId",
-                    "activityAt"
-                  ]
-                }
-              ],
-              "primaryKey": {
-                "columns": [
-                  "id"
-                ]
-              },
-              "uniques": []
-            },
             "intent": {
               "columns": {
                 "createdAt": {
@@ -2837,7 +2713,7 @@
         "id": "__unbound__"
       }
     },
-    "storageHash": "sha256:930176083db4187fb2aefe3e7a9313b72ef1a2d32768cb147c30d7d38e924799"
+    "storageHash": "sha256:5db61efad7665ff5e219bac71a6b3660bc276ae8a15e217bf3ff8c2d9a53a785"
   },
   "capabilities": {
     "sql": {

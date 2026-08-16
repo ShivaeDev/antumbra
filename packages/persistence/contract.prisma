@@ -195,6 +195,17 @@ model Change {
   @@unique([host, repoId, externalId])
 }
 
+model ChangeTransition {
+  id         String   @id
+  changeId   String
+  fromStage  String
+  toStage    String
+  activityAt DateTime
+  observedAt DateTime
+
+  @@index([changeId, activityAt])
+}
+
 model PieceChange {
   pieceId  String
   changeId String

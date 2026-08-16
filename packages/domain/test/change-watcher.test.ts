@@ -149,9 +149,9 @@ describe("watching open changes", () => {
 				const before = yield* passes(scripted);
 				yield* Effect.sleep(300);
 				expect(yield* passes(scripted)).toBeGreaterThan(before);
-				const open = yield* domain.changes.openChanges("scripted");
-				expect(open[0]?.observedAt).toEqual(row.observedAt);
-				expect(open[0]?.stage).toBe("open");
+				const watchable = yield* domain.changes.watchableChanges("scripted");
+				expect(watchable[0]?.observedAt).toEqual(row.observedAt);
+				expect(watchable[0]?.stage).toBe("open");
 
 				// why: the loop is still alive — a host that starts answering again
 				// is heard without anything being restarted.
@@ -159,9 +159,9 @@ describe("watching open changes", () => {
 				yield* scripted.drive.transition(repo.id, "1", { stage: "landed" });
 				yield* eventually(
 					Effect.gen(function* () {
-						expect((yield* domain.changes.openChanges("scripted")).length).toBe(
-							0,
-						);
+						expect(
+							(yield* domain.changes.watchableChanges("scripted")).length,
+						).toBe(0);
 					}),
 				);
 			}),

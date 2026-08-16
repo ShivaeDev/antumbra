@@ -27,9 +27,9 @@ const passAndWait = (
 ): Effect.Effect<number> =>
 	Effect.gen(function* () {
 		yield* changes.refresh(hostTag);
-		const open = yield* changes.openChanges(hostTag);
+		const watchable = yield* changes.watchableChanges(hostTag);
 		const now = yield* Clock.currentTimeMillis;
-		return nextObserveDelayMillis(open, now, options);
+		return nextObserveDelayMillis(watchable, now, options);
 	}).pipe(
 		Effect.catchCause((cause) =>
 			Effect.logWarning("a change watch pass failed", { hostTag }, cause).pipe(

@@ -21,11 +21,11 @@ export const refreshChanges = (
 > =>
 	Effect.gen(function* () {
 		const host = yield* namedChangeHost(deps, hostTag);
-		const open = yield* openChangesOfHost(deps, hostTag);
+		const watchable = yield* openChangesOfHost(deps, hostTag);
 		const repos = new Map(
 			(yield* listRepos(deps)).map((repo) => [repo.id, repo] as const),
 		);
-		const refs = open.flatMap((row): ReadonlyArray<ChangeRef> => {
+		const refs = watchable.flatMap((row): ReadonlyArray<ChangeRef> => {
 			const repo = repos.get(row.repoId);
 			return repo === undefined || row.externalId === null
 				? []

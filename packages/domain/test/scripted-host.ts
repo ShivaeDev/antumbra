@@ -79,6 +79,15 @@ const adoptedObservation = (
 const observationKey = (repoId: string, externalId: string): string =>
 	`${repoId}:${externalId}`;
 
+const transitioned = (
+	seen: ChangeObservation,
+	patch: Partial<ChangeObservation>,
+): ChangeObservation => ({
+	...seen,
+	activityAt: seen.activityAt + 1,
+	...patch,
+});
+
 // why: the host every change test runs against — it mints ids the way a real
 // one does and answers from a map the test drives, so a change's whole life is
 // exercised without a network or a model. `observe` volunteers everything it
@@ -149,7 +158,7 @@ export const makeScriptedHost = (options: ScriptedHostOptions = {}) =>
 						const seen = map.get(key);
 						return seen === undefined
 							? map
-							: new Map(map).set(key, { ...seen, ...patch });
+							: new Map(map).set(key, transitioned(seen, patch));
 					}),
 			},
 			host,

@@ -60,6 +60,10 @@ describe("how soon the next pass is worth making", () => {
 		expect(at([])).toBe(900);
 	});
 
+	it("is cold while only withdrawn changes await reconciliation", () => {
+		expect(at([row({ checks: "pending", stage: "withdrawn" })])).toBe(900);
+	});
+
 	// why: one hot change is enough — a fleet is only as patient as the change
 	// with the most to say, or a busy pull request would wait behind a draft.
 	it("takes the shortest delay any open change asks for", () => {

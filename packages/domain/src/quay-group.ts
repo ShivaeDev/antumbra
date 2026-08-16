@@ -38,10 +38,8 @@ const pendingOn = (world: VoyageWorld, pieceId: string): boolean =>
 		(change) => changeStatus(change) === "pending",
 	);
 
-// why: a landed change is history and leaves the quay the moment it lands. A
-// withdrawn one is not history — nothing came of it and the piece is back
-// where it started — so it stays under needs attention until the piece is
-// waiting on another change or has finished by other means.
+// why: a landed change leaves the quay the moment it lands. A withdrawn one
+// stays under needs attention until a replacement is under way or has landed.
 export const liesAtQuay = (
 	world: VoyageWorld,
 	done: ReadonlySet<string>,

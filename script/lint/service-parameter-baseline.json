@@ -498,12 +498,6 @@
 		"type": "AgentDeps"
 	},
 	{
-		"callable": "writeObserved",
-		"file": "packages/domain/src/change-observe.ts",
-		"parameter": "deps",
-		"type": "AgentDeps"
-	},
-	{
 		"callable": "applyObservations",
 		"file": "packages/domain/src/change-observe.ts",
 		"parameter": "deps",

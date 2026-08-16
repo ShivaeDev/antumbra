@@ -1,4 +1,5 @@
 import type { PrismaError } from "@antumbra/persistence";
+import { Pieces } from "@antumbra/pieces";
 import type { ChangeHostError, ChangeObservation } from "@antumbra/plugin-api";
 import { Effect, PubSub } from "effect";
 import { applyObservations } from "#change-observe.ts";
@@ -62,21 +63,29 @@ export interface ChangeProcedures {
 	readonly requestRefresh: Effect.Effect<void>;
 }
 
-export const makeChangeProcedures = (deps: AgentDeps): ChangeProcedures => ({
-	adopt: (input) => adoptChange(deps, input),
-	capabilities: Effect.forEach([...deps.changeHosts.values()], (host) =>
-		Effect.map(host.capability, (capability) => ({
-			available: capability.available,
-			detail: capability.detail,
-			tag: host.tag,
-		})),
-	),
-	hostTags: [...deps.changeHosts.keys()],
-	observed: (hostTag, observations) =>
-		applyObservations(deps, hostTag, observations),
-	open: (input) => openChange(deps, input),
-	watchableChanges: (hostTag) => openChangesOfHost(deps, hostTag),
-	quay: readVoyageWorld(deps).pipe(Effect.map(quayReading)),
-	refresh: (hostTag) => refreshChanges(deps, hostTag),
-	requestRefresh: PubSub.publish(deps.feeds.changeRefresh, undefined),
+export const makeChangeProcedureCompiler = Effect.gen(function* () {
+	const pieces = yield* Pieces;
+	const providePieces = <A, E>(effect: Effect.Effect<A, E, Pieces>) =>
+		effect.pipe(Effect.provideService(Pieces, pieces));
+	function makeChangeProcedures(deps: AgentDeps): ChangeProcedures {
+		return {
+			adopt: (input) => providePieces(adoptChange(deps, input)),
+			capabilities: Effect.forEach([...deps.changeHosts.values()], (host) =>
+				Effect.map(host.capability, (capability) => ({
+					available: capability.available,
+					detail: capability.detail,
+					tag: host.tag,
+				})),
+			),
+			hostTags: [...deps.changeHosts.keys()],
+			observed: (hostTag, observations) =>
+				applyObservations(deps, hostTag, observations),
+			open: (input) => providePieces(openChange(deps, input)),
+			watchableChanges: (hostTag) => openChangesOfHost(deps, hostTag),
+			quay: readVoyageWorld(deps).pipe(Effect.map(quayReading)),
+			refresh: (hostTag) => refreshChanges(deps, hostTag),
+			requestRefresh: PubSub.publish(deps.feeds.changeRefresh, undefined),
+		};
+	}
+	return makeChangeProcedures;
 });

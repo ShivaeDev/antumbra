@@ -11,6 +11,7 @@ import type { CharterFailure, EdgeFailure, PieceNotFound } from "#errors.ts";
 import { launch } from "#launch.ts";
 import type { CharterInput, PieceRow } from "#model.ts";
 import { park } from "#park.ts";
+import { requirePiece } from "#rows.ts";
 import { setDependencies } from "#set-dependencies.ts";
 
 export class Pieces extends Context.Service<
@@ -26,6 +27,9 @@ export class Pieces extends Context.Service<
 			pieceId: string,
 			parked: boolean,
 		) => Effect.Effect<void, PieceNotFound | PrismaError>;
+		readonly require: (
+			pieceId: string,
+		) => Effect.Effect<PieceRow, PieceNotFound | PrismaError>;
 		readonly setDependencies: (
 			pieceId: string,
 			dependsOn: ReadonlyArray<string>,
@@ -50,6 +54,7 @@ export const PiecesLive = Layer.effect(Pieces)(
 			charter: (input) => Effect.provide(charter(input), context),
 			launch: (pieceId) => Effect.provide(launch(pieceId), context),
 			park: (pieceId, parked) => Effect.provide(park(pieceId, parked), context),
+			require: (pieceId) => Effect.provide(requirePiece(pieceId), context),
 			setDependencies: (pieceId, dependsOn) =>
 				Effect.provide(setDependencies(pieceId, dependsOn), context),
 		};

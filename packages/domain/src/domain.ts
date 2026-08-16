@@ -9,7 +9,7 @@ import { AGENTS_ALIVE_GAUGE, AgentDomain } from "#agent-domain-service.ts";
 import { sweepBerths } from "#berth-sweep.ts";
 import { makeBoardProcedures } from "#board-procedures.ts";
 import { makeCaptainToolCompiler } from "#captain-tools.ts";
-import { makeChangeProcedures } from "#change-procedures.ts";
+import { makeChangeProcedureCompiler } from "#change-procedures.ts";
 import { makeCrewToolCompiler } from "#crew-tools.ts";
 import type { AgentDeps, KernelReach } from "#deps.ts";
 import { makeEventSinkFactory } from "#events.ts";
@@ -75,6 +75,7 @@ export const AgentDomainLive = (
 				writer,
 			};
 			const makeSpawn = yield* makeSpawnKind;
+			const makeChanges = yield* makeChangeProcedureCompiler;
 			const compileCaptainTools = yield* makeCaptainToolCompiler;
 			const compileCrewTools = yield* makeCrewToolCompiler;
 			const spawn = makeSpawn(deps);
@@ -128,7 +129,7 @@ export const AgentDomainLive = (
 			return {
 				backends: [...backends.keys()],
 				boards: makeBoardProcedures(deps),
-				changes: makeChangeProcedures(deps),
+				changes: makeChanges(deps),
 				gauges: { [AGENTS_ALIVE_GAUGE]: aliveAgents },
 				interruptSession: fabric.interrupt,
 				kernelReach,

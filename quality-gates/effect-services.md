@@ -24,16 +24,5 @@ service-parameter lint rule.
    adapter receives an `R = never` callback and never carries a domain Context.
 6. Adapters may accept constructed foreign values at their boundary, and tests
    may inject a narrow fake through a Layer. Neither exception permits service
-   plumbing through production business functions.
-
-## Review checklist
-
-- [ ] Does every touched business function yield exact services instead of
-      accepting them as values or bundles?
-- [ ] Does one capability own its transaction and publish only after commit?
-- [ ] Is Layer composition the only place implementations are selected and
-      environments closed?
-- [ ] Does a foreign callback cross the adapter boundary with `R = never`?
-- [ ] Is a new service or package named for one durable responsibility?
-- [ ] Did the service-parameter debt baseline shrink when legacy plumbing was
-      removed?
+   plumbing through production business functions. When touched legacy
+   plumbing is removed, its active debt-baseline entry leaves with it.

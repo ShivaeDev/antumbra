@@ -35,6 +35,7 @@ while idle sessions remain detached until needed. See
 | `packages/pieces`         | Piece acts and their transactional graph invariants             |
 | `packages/domain`         | Application-facing use cases and capability Layer composition   |
 | `packages/git`            | Semantic Git operations over Effect's child-process port        |
+| `packages/github`         | GitHub change-host adapter: pull requests through `gh`           |
 | `packages/backend-claude` | The Claude agent backend: one adapter for one provider          |
 | `packages/backend-codex`  | The Codex agent backend: one app-server child, threads on it    |
 | `packages/runner-local`   | The local runner: processes and git worktrees on this machine   |
@@ -43,36 +44,24 @@ while idle sessions remain detached until needed. See
 
 ## Layers
 
-The workspace is hexagonal, and the direction is the point. The vocabulary
-and the contract are leaves: they import nothing and everyone may speak
-them. `plugin-api` declares the driven ports — what an agent backend or a
-runner must be, and what a tool an agent may call is. `agent-tools` sits
-just above it and holds the tool specifications themselves — schemas and
-binding, no transport — so the domain writes the handlers while every
-adapter maps the same set onto its provider, and neither learns the other.
-Small capability packages form a dependency-inversion tree beneath `domain`.
-For example, `pieces` owns piece transactions and depends on the persistence
-port plus the `domain-feeds` notification leaf. `domain` is the
-application-facing facade: it assembles those capability Layers and broader
-agent use cases without making the desktop shell wire each service manually.
-It depends only on ports and capabilities, so it can name what it needs without
-naming who provides it. Adapter packages
-(`backend-*`, `runner-*`) implement a port for exactly one provider and
-never reach back into the domain. `apps/desktop` is the composition root and
-the only place where an adapter and a use case appear together.
-`packages/git` is process infrastructure below `runner-local`; it speaks only
-Effect's child-process port and never imports an Antumbra layer.
+The workspace is hexagonal, and dependency direction is the point. Vocabulary
+and contract packages are leaves. `plugin-api` declares driven ports;
+`agent-tools` defines transport-free tools. Capability packages own business
+acts beneath the application-facing `domain` facade, while adapters implement
+ports without importing the domain.
 
-Runtime dependencies are expressed through Effect environments. Business
-functions yield exact services; capability services own their transactions and
-post-commit signals; Layers decide implementation, sharing, and lifetime.
-Provider-facing callbacks are compiled by the domain and cross the foreign SDK
-boundary only after their Effect requirements have been closed.
+`apps/desktop` is the only composition root where adapters and use cases meet.
+Effect environments state runtime dependencies, capability services own their
+transactions and post-commit signals, and Layers select implementations and
+lifetimes. Foreign callbacks cross adapter boundaries only after their Effect
+requirements are closed. `packages/git` remains process infrastructure beneath
+`runner-local`.
 
 Dependency direction is enforced by `dependency-cruiser` in CI; the rules
 live in `.dependency-cruiser.cjs` and each carries its rationale.
-`quality-gates/package-architecture.md` covers the judgment the rules cannot
-make.
+The [package-architecture](quality-gates/package-architecture.md) and
+[Effect-services](quality-gates/effect-services.md) gates cover the judgment
+those rules cannot make.
 
 ## The kernel
 
@@ -89,15 +78,10 @@ submits a new Intent when it becomes eligible. Waiting is reserved for an
 active attempt that needs immediate external intervention, such as
 authentication.
 
-Each admitted intent attempt builds a fresh `WorkflowEngine.layerMemory`,
-registers its kind, and discards the engine and its history when the attempt
-settles. The durable intent id is its deterministic execution identity, while
-the per-execution `IntentExecution` service provides replay semantics for stable,
-named activities within an attempt. Retried or reclaimed attempts begin again,
-so activities
-must be idempotent or reconcile durable domain truth. The version-sensitive
-Effect 4 RC workflow API stays inside the kernel; the domain depends only on
-`IntentExecution`.
+Execution history lives only for one admitted attempt. Retried or reclaimed
+attempts begin again, so every step is idempotent or reconciles durable domain
+truth. See the [durable-recovery gate](quality-gates/durable-recovery.md) for
+the binding review criteria.
 
 ## Plugins
 
@@ -107,8 +91,5 @@ plugins, so the API stays honest by construction.
 
 ## Quality
 
-The stack is Effect-based TypeScript at maximum strictness. Mechanical
-guards (file structure, code patterns, pragma registry, boundaries) run in
-`pnpm lint` and are themselves covered by tests; judgment-level standards
-live in `quality-gates/`. See `AGENTS.md` for the working conventions and
-`DESIGN.md` for the design axioms every new concept must satisfy.
+Mechanical guards run in `pnpm ready`; judgment-level standards are routed by
+`quality-gates/README.md`. `DESIGN.md` contains the binding design axioms.

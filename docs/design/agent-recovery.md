@@ -58,9 +58,7 @@ Agent is spawned. Starting becomes in progress when the first assigned Agent's
 Moorage and Session are established and the initial task has been queued to the
 provider at least once. It does not wait for marked-read evidence. The default
 staffing policy is one Agent, but the model permits several explicit Agent
-assignments and does not collapse their Sessions into one execution. Current
-domain policy permits each Agent only one active Piece; the M:N schema leaves
-room for that policy to evolve without imposing a structural one-to-one link.
+assignments and does not collapse their Sessions into one execution.
 
 ## Durable truth and disposable execution
 

@@ -3,6 +3,7 @@ import { Data, Result, Schema } from "effect";
 export const IntentStatusSchema = Schema.Literals([
 	"queued",
 	"running",
+	"waiting",
 	"cancelling",
 	"succeeded",
 	"failed",
@@ -17,7 +18,9 @@ export const INTENT_EVENTS = [
 	"fail",
 	"interrupt",
 	"requeue",
+	"retry",
 	"succeed",
+	"wait",
 ] as const;
 export type IntentEvent = (typeof INTENT_EVENTS)[number];
 
@@ -36,7 +39,12 @@ const TABLE: Record<
 	Partial<Record<IntentEvent, IntentStatus>>
 > = {
 	cancelled: {},
-	cancelling: { fail: "failed", interrupt: "cancelled", succeed: "succeeded" },
+	cancelling: {
+		fail: "failed",
+		interrupt: "cancelled",
+		succeed: "succeeded",
+		wait: "cancelled",
+	},
 	failed: {},
 	queued: { admit: "running", cancel: "cancelled" },
 	running: {
@@ -45,11 +53,21 @@ const TABLE: Record<
 		fail: "failed",
 		requeue: "queued",
 		succeed: "succeeded",
+		wait: "waiting",
 	},
 	succeeded: {},
+	waiting: { cancel: "cancelled", retry: "queued" },
 };
 
 export const INTENT_STATUSES = IntentStatusSchema.literals;
+
+export const ActiveIntentStatusSchema = Schema.Literals([
+	"queued",
+	"running",
+	"waiting",
+	"cancelling",
+]);
+export type ActiveIntentStatus = typeof ActiveIntentStatusSchema.Type;
 
 export const transition = (
 	from: IntentStatus,

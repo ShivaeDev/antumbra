@@ -1,9 +1,12 @@
 export {
 	IntentNotFound,
 	PayloadInvalid,
+	StoredIntentInvalid,
 	UnregisteredIntentTag,
 } from "#errors.ts";
 export {
+	type ActiveIntentStatus,
+	ActiveIntentStatusSchema,
 	INTENT_EVENTS,
 	INTENT_STATUSES,
 	type IntentEvent,
@@ -28,6 +31,10 @@ export {
 	type IntentKindOptions,
 	type ReclaimPolicy,
 } from "#intent.ts";
-export { type IntentSubmission, Kernel } from "#kernel.ts";
+export {
+	type ActiveIntent,
+	type IntentSubmission,
+	Kernel,
+} from "#kernel.ts";
 export { KernelLive, type KernelOptions } from "#layer.ts";
 export { IntentExecution, type IntentStepOptions } from "#workflow.ts";

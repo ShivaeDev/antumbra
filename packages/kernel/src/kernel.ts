@@ -3,10 +3,22 @@ import { Context, type Effect, type Stream } from "effect";
 import type {
 	IntentNotFound,
 	PayloadInvalid,
+	StoredIntentInvalid,
 	UnregisteredIntentTag,
 } from "#errors.ts";
-import type { IntentStatus, InvalidTransition } from "#fsm.ts";
+import type {
+	ActiveIntentStatus,
+	IntentStatus,
+	InvalidTransition,
+} from "#fsm.ts";
 import type { IntentKind } from "#intent.ts";
+
+export interface ActiveIntent<Payload> {
+	readonly detail: string | null;
+	readonly id: string;
+	readonly payload: Payload;
+	readonly status: ActiveIntentStatus;
+}
 
 export interface IntentSubmission {
 	readonly changes: Stream.Stream<
@@ -23,6 +35,13 @@ export interface IntentSubmission {
 export class Kernel extends Context.Service<
 	Kernel,
 	{
+		readonly active: <Payload>(
+			kind: IntentKind<Payload>,
+		) => Effect.Effect<
+			ReadonlyArray<ActiveIntent<Payload>>,
+			StoredIntentInvalid | UnregisteredIntentTag | PrismaError,
+			WriteExecutors
+		>;
 		readonly cancel: (
 			id: string,
 		) => Effect.Effect<
@@ -37,9 +56,16 @@ export class Kernel extends Context.Service<
 			IntentNotFound | PrismaError,
 			WriteExecutors
 		>;
+		readonly retry: (
+			id: string,
+		) => Effect.Effect<
+			void,
+			IntentNotFound | InvalidTransition | PrismaError,
+			WriteExecutors
+		>;
 		readonly submit: <Payload>(
 			kind: IntentKind<Payload>,
-			payload: Payload,
+			payload: NoInfer<Payload>,
 		) => Effect.Effect<
 			IntentSubmission,
 			PayloadInvalid | UnregisteredIntentTag | PrismaError,

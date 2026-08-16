@@ -12,6 +12,7 @@ import {
 	Schema,
 	Stream,
 } from "effect";
+import { activeIntents } from "#active-intents.ts";
 import { schedulerLoop } from "#admission.ts";
 import { IntentNotFound, UnregisteredIntentTag } from "#errors.ts";
 import { IntentStatusSchema } from "#fsm.ts";
@@ -95,6 +96,13 @@ const cancelIntent = (id: string) =>
 		}
 	});
 
+const retryIntent = (id: string) =>
+	Effect.gen(function* () {
+		const writer = yield* Writer;
+		const change = yield* writer.write(transitionRow(id, "retry"));
+		yield* announce(change);
+	});
+
 export const KernelLive = (options: KernelOptions) =>
 	Layer.effect(Kernel)(
 		Effect.gen(function* () {
@@ -127,8 +135,11 @@ export const KernelLive = (options: KernelOptions) =>
 			);
 			yield* Queue.offer(state.tick, undefined);
 			return {
+				active: <Payload>(kind: IntentKind<Payload>) =>
+					activeIntents(kind).pipe(Effect.provideContext(context)),
 				cancel: (id) => cancelIntent(id).pipe(Effect.provideContext(context)),
 				changes,
+				retry: (id) => retryIntent(id).pipe(Effect.provideContext(context)),
 				submit: <Payload>(kind: IntentKind<Payload>, payload: Payload) =>
 					submitIntent(kind, payload, changes).pipe(
 						Effect.provideContext(context),

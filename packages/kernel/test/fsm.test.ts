@@ -13,7 +13,12 @@ const LEGAL: Record<
 	Partial<Record<IntentEvent, IntentStatus>>
 > = {
 	cancelled: {},
-	cancelling: { fail: "failed", interrupt: "cancelled", succeed: "succeeded" },
+	cancelling: {
+		fail: "failed",
+		interrupt: "cancelled",
+		succeed: "succeeded",
+		wait: "cancelled",
+	},
 	failed: {},
 	queued: { admit: "running", cancel: "cancelled" },
 	running: {
@@ -22,8 +27,10 @@ const LEGAL: Record<
 		fail: "failed",
 		requeue: "queued",
 		succeed: "succeeded",
+		wait: "waiting",
 	},
 	succeeded: {},
+	waiting: { cancel: "cancelled", retry: "queued" },
 };
 
 describe("intent FSM", () => {

@@ -1,26 +1,27 @@
-import { parseJson } from "#lint/adapters/json.ts";
+import { Result, Schema } from "effect";
+import { jsonDecoder } from "#lint/adapters/json.ts";
 import type { Inventory, SourceFile } from "#lint/inventory.ts";
 import type { Violation } from "#lint/violation.ts";
 
-interface RegistryEntry {
-	readonly file: string;
-	readonly pragma: string;
-}
-
 const PRAGMA = "@ts-expect-error";
+const REGISTRY_FILE = "script/pragma-registry.json";
+const RegistryEntry = Schema.Struct({
+	file: Schema.String,
+	pragma: Schema.String,
+	reason: Schema.String,
+});
+const decodeRegistry = jsonDecoder(Schema.Array(RegistryEntry));
+type RegistryEntry = typeof RegistryEntry.Type;
 
-const isRegistryEntry = (value: unknown): value is RegistryEntry =>
-	typeof value === "object" &&
-	value !== null &&
-	"file" in value &&
-	"pragma" in value &&
-	typeof value.file === "string" &&
-	typeof value.pragma === "string";
-
-const registryOf = (raw: string): readonly RegistryEntry[] => {
-	const parsed = parseJson(raw);
-	return Array.isArray(parsed) ? parsed.filter(isRegistryEntry) : [];
-};
+const invalidRegistry = (): readonly Violation[] => [
+	{
+		file: REGISTRY_FILE,
+		line: undefined,
+		message:
+			"must be a JSON array of entries with string file, pragma, and reason fields.",
+		rule: "pragmas/registry-invalid",
+	},
+];
 
 const fileViolations = (
 	file: SourceFile,
@@ -47,6 +48,12 @@ const fileViolations = (
 export const pragmaViolations = (
 	inventory: Inventory,
 ): readonly Violation[] => {
-	const registry = registryOf(inventory.pragmaRegistry);
-	return inventory.sources.flatMap((file) => fileViolations(file, registry));
+	const registry = decodeRegistry(inventory.pragmaRegistry, {
+		onExcessProperty: "error",
+	});
+	return Result.isFailure(registry)
+		? invalidRegistry()
+		: inventory.sources.flatMap((file) =>
+				fileViolations(file, registry.success),
+			);
 };

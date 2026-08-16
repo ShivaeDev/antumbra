@@ -1,7 +1,7 @@
-export const parseJson = (raw: string): unknown => {
-	try {
-		return JSON.parse(raw);
-	} catch {
-		return undefined;
-	}
-};
+import { Schema } from "effect";
+
+export const jsonDecoder = <
+	S extends Schema.Constraint & { readonly DecodingServices: never },
+>(
+	schema: S,
+) => Schema.decodeUnknownResult(Schema.fromJsonString(schema));

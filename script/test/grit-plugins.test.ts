@@ -4,22 +4,27 @@ import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, describe, expect, it } from "vitest";
-import ambientCases from "#test/fixtures/ambient-runtime-cases.json" with {
+import rawAmbientCases from "#test/fixtures/ambient-runtime-cases.json" with {
 	type: "json",
 };
-import effectCases from "#test/fixtures/effect-boundaries-cases.json" with {
+import rawEffectCases from "#test/fixtures/effect-boundaries-cases.json" with {
 	type: "json",
 };
-import importCases from "#test/fixtures/imports-cases.json" with {
+import rawImportCases from "#test/fixtures/imports-cases.json" with {
 	type: "json",
 };
-import assertionCases from "#test/fixtures/type-assertions-cases.json" with {
+import rawAssertionCases from "#test/fixtures/type-assertions-cases.json" with {
 	type: "json",
 };
+import { decodeGritCases } from "#test/support/fixture-schemas.ts";
 
 const root = dirname(dirname(dirname(fileURLToPath(import.meta.url))));
 const biome = join(root, "node_modules", ".bin", "biome");
 const seeded: string[] = [];
+const ambientCases = decodeGritCases(rawAmbientCases);
+const effectCases = decodeGritCases(rawEffectCases);
+const importCases = decodeGritCases(rawImportCases);
+const assertionCases = decodeGritCases(rawAssertionCases);
 const suites = [
 	{ cases: effectCases, name: "Effect boundaries" },
 	{ cases: ambientCases, name: "ambient runtime" },

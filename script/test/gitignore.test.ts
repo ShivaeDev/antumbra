@@ -4,9 +4,10 @@ import { Effect } from "effect";
 import { afterEach, expect } from "vitest";
 import { collectInventory } from "#lint/inventory.ts";
 import { lint } from "#lint/program.ts";
-import tree from "#test/fixtures/gitignore-tree.json" with { type: "json" };
+import rawTree from "#test/fixtures/gitignore-tree.json" with { type: "json" };
+import { decodeGitignoreTree } from "#test/support/fixture-schemas.ts";
 import type { SeedFile } from "#test/support/inventory.ts";
-import { removeSeededTrees, seedTree } from "#test/support/tree.ts";
+import { removeSeededTrees, seedLintTree } from "#test/support/tree.ts";
 
 afterEach(removeSeededTrees);
 
@@ -22,6 +23,7 @@ const violatingFiles = (paths: readonly string[]): readonly SeedFile[] =>
 		content: "export const hidden = 1; // unmarked comment\n",
 		path,
 	}));
+const tree = decodeGitignoreTree(rawTree);
 const ignored = sourceFiles(tree.ignoredPaths);
 const kept = sourceFiles(tree.keptPaths);
 
@@ -30,7 +32,7 @@ const kept = sourceFiles(tree.keptPaths);
 it.layer(NodeFileSystem.layer)("gitignore-aware walk", (it) => {
 	it.effect("keeps gitignored files out of the inventory", () =>
 		Effect.gen(function* () {
-			const root = seedTree(tree.gitignores, ignored, kept);
+			const root = seedLintTree(tree.gitignores, ignored, kept);
 			const paths = yield* pathsOf(root);
 			for (const path of tree.ignoredPaths) {
 				expect(paths).not.toContain(path);
@@ -43,7 +45,7 @@ it.layer(NodeFileSystem.layer)("gitignore-aware walk", (it) => {
 
 	it.effect("reports no violation from a gitignored file", () =>
 		Effect.gen(function* () {
-			const root = seedTree(
+			const root = seedLintTree(
 				tree.gitignores,
 				violatingFiles(tree.ignoredPaths),
 				kept,
@@ -57,7 +59,7 @@ it.layer(NodeFileSystem.layer)("gitignore-aware walk", (it) => {
 	// violation, which is what proves the ignore rules did the suppressing.
 	it.effect("walks the identical tree in full when nothing is ignored", () =>
 		Effect.gen(function* () {
-			const root = seedTree(violatingFiles(tree.ignoredPaths), kept);
+			const root = seedLintTree(violatingFiles(tree.ignoredPaths), kept);
 			const paths = yield* pathsOf(root);
 			for (const path of [...tree.ignoredPaths, ...tree.keptPaths]) {
 				expect(paths).toContain(path);
@@ -73,7 +75,7 @@ it.layer(NodeFileSystem.layer)("gitignore-aware walk", (it) => {
 	// it. Both halves live in the fixture, so name them here.
 	it.effect("scopes an outer directory rule to the re-included subtree", () =>
 		Effect.gen(function* () {
-			const root = seedTree(tree.gitignores, ignored, kept);
+			const root = seedLintTree(tree.gitignores, ignored, kept);
 			const paths = yield* pathsOf(root);
 			expect(paths).toContain("packages/z/build/sub/deep.ts");
 			expect(paths).not.toContain("packages/z/build/a.scratch.ts");
@@ -82,7 +84,7 @@ it.layer(NodeFileSystem.layer)("gitignore-aware walk", (it) => {
 
 	it.effect("prunes vendored directories with no .gitignore present", () =>
 		Effect.gen(function* () {
-			const root = seedTree([
+			const root = seedLintTree([
 				{ content: "export const k = 1;\n", path: "packages/x/src/mod.ts" },
 				{
 					content: "export const v = 1;\n",

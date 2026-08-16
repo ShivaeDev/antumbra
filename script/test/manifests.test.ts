@@ -70,4 +70,13 @@ describe("manifest rules", () => {
 		);
 		expect(violations[0]?.rule).toBe("manifests/unreadable");
 	});
+
+	it("flags a manifest whose dependency table has the wrong shape", () => {
+		const violations = manifestViolations(
+			inventoryOf({
+				manifests: [manifest("package.json", { dependencies: ["effect"] })],
+			}),
+		);
+		expect(violations[0]?.rule).toBe("manifests/unreadable");
+	});
 });

@@ -12,7 +12,7 @@ import { NodeFileSystem } from "@effect/platform-node";
 import { it } from "@effect/vitest";
 import { Cause, Effect, Exit } from "effect";
 import { afterEach, expect } from "vitest";
-import { readText, walk } from "#lint/adapters/fs.ts";
+import { readOptionalText, readRequiredText, walk } from "#lint/adapters/fs.ts";
 
 const roots: string[] = [];
 
@@ -57,9 +57,18 @@ it.layer(NodeFileSystem.layer)("filesystem adapter", (it) => {
 		}),
 	);
 
-	it.effect("treats a missing file as empty text", () =>
+	it.effect("treats a missing optional file as empty text", () =>
 		Effect.gen(function* () {
-			expect(yield* readText(join(makeRoot(), "pnpm-workspace.yaml"))).toBe("");
+			expect(yield* readOptionalText(join(makeRoot(), ".gitignore"))).toBe("");
+		}),
+	);
+
+	it.effect("fails distinctly when a required file is missing", () =>
+		Effect.gen(function* () {
+			const path = join(makeRoot(), "pnpm-workspace.yaml");
+			const text = yield* failureText(readRequiredText(path));
+			expect(text).toContain("required input is missing");
+			expect(text).toContain(path);
 		}),
 	);
 
@@ -69,7 +78,9 @@ it.layer(NodeFileSystem.layer)("filesystem adapter", (it) => {
 		Effect.gen(function* () {
 			const root = makeRoot();
 			mkdirSync(join(root, "package.json"));
-			const text = yield* failureText(readText(join(root, "package.json")));
+			const text = yield* failureText(
+				readRequiredText(join(root, "package.json")),
+			);
 			expect(text).toContain("FilesystemFailure");
 			expect(text).toContain(join(root, "package.json"));
 		}),

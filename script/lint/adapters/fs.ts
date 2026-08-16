@@ -55,7 +55,7 @@ const attempt = <Value>(
 				),
 	);
 
-export const readText = (
+export const readOptionalText = (
 	path: string,
 ): Effect.Effect<string, FilesystemFailure, FileSystem.FileSystem> =>
 	Effect.gen(function* () {
@@ -63,11 +63,28 @@ export const readText = (
 		return yield* attempt(path, fs.readFileString(path), "");
 	});
 
+export const readRequiredText = (
+	path: string,
+): Effect.Effect<string, FilesystemFailure, FileSystem.FileSystem> =>
+	Effect.gen(function* () {
+		const fs = yield* FileSystem.FileSystem;
+		return yield* Effect.mapError(
+			fs.readFileString(path),
+			(error) =>
+				new FilesystemFailure({
+					message: ABSENT.has(errnoOf(error))
+						? `required input is missing: ${path}`
+						: `cannot read ${path}: ${error.message}`,
+					path,
+				}),
+		);
+	});
+
 export const ignoreScopeAt = (
 	dir: string,
 	inherited: IgnoreScope = emptyScope,
 ): Effect.Effect<IgnoreScope, FilesystemFailure, FileSystem.FileSystem> =>
-	Effect.map(readText(join(dir, ".gitignore")), (contents) =>
+	Effect.map(readOptionalText(join(dir, ".gitignore")), (contents) =>
 		contents === "" ? inherited : withGitignore(inherited, dir, contents),
 	);
 
@@ -86,7 +103,7 @@ export const walk = (
 		const nested = yield* Effect.forEach(
 			entries.filter((entry) => !SKIPPED.has(entry)),
 			(entry) => walkEntry(join(dir, entry), scope),
-			{ concurrency: "unbounded" },
+			{ concurrency: 1 },
 		);
 		return nested.flat();
 	});

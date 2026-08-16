@@ -1,12 +1,9 @@
-import { parseJson } from "#lint/adapters/json.ts";
+import { Result, Schema } from "effect";
+import { jsonDecoder } from "#lint/adapters/json.ts";
 import type { Inventory } from "#lint/inventory.ts";
-import {
-	findServiceParameters,
-	type ServiceParameterDebt,
-} from "#lint/rules/service-parameter-analysis.ts";
+import { findServiceParameters } from "#lint/rules/service-parameter-analysis.ts";
 import type { Violation } from "#lint/violation.ts";
 
-type BaselineEntry = Omit<ServiceParameterDebt, "line">;
 type ParsedBaseline =
 	| { readonly entries: readonly BaselineEntry[]; readonly valid: true }
 	| { readonly valid: false; readonly violations: readonly Violation[] };
@@ -14,19 +11,14 @@ type ParsedBaseline =
 const RULE = "effect/service-parameter-debt";
 const BASELINE_RULE = "effect/service-parameter-baseline";
 const LEGACY_ROOT = "packages/domain/src/";
-
-const isEntry = (value: unknown): value is BaselineEntry =>
-	typeof value === "object" &&
-	value !== null &&
-	"callable" in value &&
-	typeof value.callable === "string" &&
-	"file" in value &&
-	typeof value.file === "string" &&
-	"parameter" in value &&
-	typeof value.parameter === "string" &&
-	"type" in value &&
-	typeof value.type === "string" &&
-	Object.keys(value).length === 4;
+const BaselineEntry = Schema.Struct({
+	callable: Schema.String,
+	file: Schema.String,
+	parameter: Schema.String,
+	type: Schema.String,
+});
+type BaselineEntry = typeof BaselineEntry.Type;
+const decodeRegistry = jsonDecoder(Schema.Array(BaselineEntry));
 
 const keyOf = (entry: BaselineEntry): string =>
 	JSON.stringify([entry.file, entry.callable, entry.parameter, entry.type]);
@@ -53,11 +45,10 @@ const invalidRegistry = (
 ];
 
 const parseRegistry = (raw: string, file: string): ParsedBaseline => {
-	const parsed = parseJson(raw === "" ? "[]" : raw);
-	return Array.isArray(parsed) &&
-		parsed.every(isEntry) &&
-		parsed.every((entry) => entry.file.startsWith(LEGACY_ROOT))
-		? { entries: parsed, valid: true }
+	const parsed = decodeRegistry(raw, { onExcessProperty: "error" });
+	return Result.isSuccess(parsed) &&
+		parsed.success.every((entry) => entry.file.startsWith(LEGACY_ROOT))
+		? { entries: parsed.success, valid: true }
 		: {
 				valid: false,
 				violations: invalidRegistry(

@@ -1,16 +1,16 @@
 # Effect service parameter debt
 
 Production functions should require services through their Effect environment,
-not accept service values or bundles as ordinary parameters. The TypeScript-AST
-guard follows service-bearing interfaces and type aliases transitively so a new
-name around an old dependency does not evade the rule.
+not accept service values or bundles as ordinary parameters. The guard builds a
+TypeScript program and follows symbol identity, generic constraints, inferred
+parameters, factory returns, interfaces, aliases, and destructuring so a new
+spelling or wrapper around an old dependency does not evade the rule.
 
-The analysis is syntactic TypeScript AST analysis. It recognizes Effect
-`Context.Service` and `Context.Tag` classes, database service/executor types,
-non-empty `Context.Context` values, imported aliases, and structural `write`
-bundles backed by `WriteExecutors`. An `Effect` or `Stream` whose environment
-mentions a service is a computation, not a manually passed service value, and
-is not debt by itself.
+It recognizes Effect `Context.Service` and `Context.Tag` classes, database
+service/executor types, non-empty `Context.Context` values, and structural
+`write` capabilities backed by `WriteExecutors`. An `Effect` or `Stream` whose
+environment mentions a service is a computation, not a manually passed service
+value, and is not debt by itself.
 
 `service-parameter-allowance.json` freezes the exact debt that existed when the
 guard landed and never changes. `service-parameter-baseline.json` starts as the
@@ -22,12 +22,8 @@ entry. Because entries include the full source path and both registries reject
 paths outside the sole legacy root, `packages/domain/src`, a new package has no
 allowance.
 
-Tests, provider adapters under `src/adapters`, and the desktop composition root
-`apps/desktop/src/main.ts` are the only exemptions. Those boundaries sometimes
-receive concrete implementations by design; similarly named neighboring paths
-remain checked.
-
-The guard intentionally does not run a TypeScript type checker. A service hidden
-behind an opaque computed type that never names a known service cannot be
-followed until the rule learns that construction; add a focused AST case when a
-new service-declaration idiom enters the repository.
+Tests and the desktop composition root `apps/desktop/src/main.ts` are the path
+exemptions. Adapters remain checked. The two contract router runtime parameters
+are exact foreign-callback composition seams: they close the desktop-owned
+runtime into tRPC callbacks. Their file, callable, parameter, and type must all
+match; neighboring helpers remain checked.

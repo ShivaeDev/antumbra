@@ -1,10 +1,16 @@
 import ts from "typescript";
-import { isDeclaration, type SourceFile } from "#lint/inventory.ts";
+import type { SourceFile } from "#lint/inventory.ts";
 import {
-	type ParsedSource,
-	serviceBearingTypes,
+	type CheckedSource,
+	serviceParameterProgram,
+} from "#lint/rules/service-parameter-program.ts";
+import { isForeignCompositionSeam } from "#lint/rules/service-parameter-seams.ts";
+import {
 	typeIsServiceBearing,
+	typeNodeIsServiceBearing,
 } from "#lint/rules/service-parameter-types.ts";
+import { expressionMentionsService } from "#lint/rules/service-type-node.ts";
+import { serviceSymbols } from "#lint/rules/service-type-symbols.ts";
 
 export interface ServiceParameterDebt {
 	readonly callable: string;
@@ -16,7 +22,6 @@ export interface ServiceParameterDebt {
 
 const exempt = (path: string): boolean =>
 	path === "apps/desktop/src/main.ts" ||
-	path.includes("/src/adapters/") ||
 	/(^|\/)(test|tests|__tests__)(\/|$)/.test(path) ||
 	/\.(test|spec)\.tsx?$/.test(path);
 
@@ -47,42 +52,56 @@ const hasImplementation = (node: ts.Node): node is ts.FunctionLikeDeclaration =>
 		ts.isSetAccessorDeclaration(node)) &&
 	node.body !== undefined;
 
-const parse = (files: readonly SourceFile[]): readonly ParsedSource[] =>
-	files
-		.filter((file) => !isDeclaration(file.path))
-		.map((file) => ({
-			path: file.path,
-			source: ts.createSourceFile(
-				file.path,
-				file.lines.join("\n"),
-				ts.ScriptTarget.Latest,
-				true,
-				file.path.endsWith(".tsx") ? ts.ScriptKind.TSX : ts.ScriptKind.TS,
-			),
-		}));
-
 const lineOf = (source: ts.SourceFile, node: ts.Node): number =>
 	source.getLineAndCharacterOfPosition(node.getStart(source)).line + 1;
 
+const parameterIsServiceBearing = (
+	parameter: ts.ParameterDeclaration,
+	checker: ts.TypeChecker,
+	services: ReadonlySet<ts.Symbol>,
+): boolean => {
+	if (parameter.type !== undefined) {
+		return typeNodeIsServiceBearing(parameter.type, checker, services);
+	}
+	const type = checker.getTypeAtLocation(parameter);
+	return (
+		typeIsServiceBearing(type, checker, services) ||
+		(parameter.initializer !== undefined &&
+			expressionMentionsService(parameter.initializer, checker, services))
+	);
+};
+
 const debtsIn = (
-	parsed: ParsedSource,
-	tainted: ReadonlySet<string>,
+	parsed: CheckedSource,
+	checker: ts.TypeChecker,
+	services: ReadonlySet<ts.Symbol>,
 ): readonly ServiceParameterDebt[] => {
 	const debts: ServiceParameterDebt[] = [];
 	const { path, source } = parsed;
 	const visit = (node: ts.Node) => {
 		if (hasImplementation(node)) {
 			for (const parameter of node.parameters) {
+				const type = checker.getTypeAtLocation(parameter);
+				const callable = callableName(node, source);
+				const parameterName = parameter.name.getText(source);
+				const parameterType =
+					parameter.type?.getText(source) ?? checker.typeToString(type);
 				if (
-					parameter.type !== undefined &&
-					typeIsServiceBearing(parameter.type, source, tainted)
+					parameterIsServiceBearing(parameter, checker, services) &&
+					!isForeignCompositionSeam(
+						path,
+						node,
+						parameterName,
+						parameterType,
+						source,
+					)
 				) {
 					debts.push({
-						callable: callableName(node, source),
+						callable,
 						file: path,
 						line: lineOf(source, parameter),
-						parameter: parameter.name.getText(source),
-						type: parameter.type.getText(source),
+						parameter: parameterName,
+						type: parameterType,
 					});
 				}
 			}
@@ -95,10 +114,11 @@ const debtsIn = (
 
 export const findServiceParameters = (
 	files: readonly SourceFile[],
+	root: string,
 ): readonly ServiceParameterDebt[] => {
-	const parsed = parse(files);
-	const tainted = serviceBearingTypes(parsed);
-	return parsed
+	const program = serviceParameterProgram(files, root);
+	const services = serviceSymbols(program.checker, program.sources);
+	return program.sources
 		.filter(({ path }) => !exempt(path))
-		.flatMap((source) => debtsIn(source, tainted));
+		.flatMap((source) => debtsIn(source, program.checker, services));
 };

@@ -3,10 +3,18 @@ import { mkdtempSync, readdirSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { Schema } from "effect";
 import { describe, expect, it } from "vitest";
 import committedContract from "#contract.json" with { type: "json" };
 
 const packageRoot = fileURLToPath(new URL("..", import.meta.url));
+
+const MigrationRecord = Schema.Struct({
+	from: Schema.NullOr(Schema.String),
+	to: Schema.String,
+});
+
+const decodeMigration = Schema.decodeUnknownSync(MigrationRecord);
 
 describe("contract drift", () => {
 	it("committed artifacts match a fresh emit of contract.prisma", () => {
@@ -27,18 +35,27 @@ describe("contract drift", () => {
 		});
 	});
 
-	it("the migration chain reaches the committed contract", () => {
+	it("the migration chain is linear and reaches the committed contract", () => {
 		const migrationRoot = join(packageRoot, "migrations", "app");
-		const reachable = readdirSync(migrationRoot).map((directory): unknown =>
-			JSON.parse(
-				readFileSync(join(migrationRoot, directory, "migration.json"), "utf8"),
-			),
-		);
+		const chain = readdirSync(migrationRoot)
+			.sort()
+			.map((directory) =>
+				decodeMigration(
+					JSON.parse(
+						readFileSync(
+							join(migrationRoot, directory, "migration.json"),
+							"utf8",
+						),
+					),
+				),
+			);
 
-		expect(reachable).toContainEqual(
-			expect.objectContaining({
-				to: committedContract.storage.storageHash,
-			}),
-		);
+		expect(chain[0]?.from).toBeNull();
+		for (const [index, migration] of chain.entries()) {
+			if (index > 0) {
+				expect(migration.from).toBe(chain[index - 1]?.to);
+			}
+		}
+		expect(chain.at(-1)?.to).toBe(committedContract.storage.storageHash);
 	});
 });

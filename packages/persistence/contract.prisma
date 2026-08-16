@@ -233,31 +233,20 @@ model Board {
 model BoardEntry {
   id            String   @id
   boardId       String
+  seq           Int
   register      String
   authorAgentId String?
   body          String
   createdAt     DateTime @default(now())
 
   @@index([boardId])
+  @@unique([boardId, seq])
 }
 
-model VoyageBoard {
-  voyageId String
-  boardId  String
+model BoardOwner {
+  boardId   String @id
+  ownerKind String
+  ownerId   String
 
-  @@id([voyageId, boardId])
-}
-
-model PieceBoard {
-  pieceId String
-  boardId String
-
-  @@id([pieceId, boardId])
-}
-
-model AgentBoard {
-  agentId String
-  boardId String
-
-  @@id([agentId, boardId])
+  @@unique([ownerKind, ownerId])
 }

@@ -1,9 +1,13 @@
 import type { PrismaError } from "@antumbra/persistence";
 import { Deferred, Effect, Option } from "effect";
-import { readSmoothLog } from "#boards.ts";
+import { smoothLog } from "#boards.ts";
 import { composeCaptainCharter } from "#charter-captain.ts";
-import type { AgentDeps, SpawnRefused } from "#deps.ts";
-import { CaptainAlreadyHailed, VoyageNotFound } from "#errors.ts";
+import { type AgentDeps, provideExecutors, type SpawnRefused } from "#deps.ts";
+import {
+	type BoardOwnerNotFound,
+	CaptainAlreadyHailed,
+	VoyageNotFound,
+} from "#errors.ts";
 import { CAPTAIN_ROLE, captainAtWork } from "#voyage-captain.ts";
 import { voyageView } from "#voyage-view.ts";
 import { readVoyageWorld } from "#voyage-world.ts";
@@ -14,6 +18,7 @@ export interface HailedCaptain {
 }
 
 export type HailRefused =
+	| BoardOwnerNotFound
 	| CaptainAlreadyHailed
 	| PrismaError
 	| SpawnRefused
@@ -39,10 +44,9 @@ export const hailCaptain = (
 				voyageId,
 			});
 		}
-		const voyageSmoothLog = yield* readSmoothLog(deps, {
-			kind: "voyage",
-			voyageId,
-		});
+		const voyageSmoothLog = yield* provideExecutors(deps)(
+			smoothLog(deps.db, { kind: "voyage", voyageId }),
+		);
 		const agentId = crypto.randomUUID();
 		// why: the hail is answered from the window or the router, never from
 		// inside a session, so it may wait for the kernel to be reachable and

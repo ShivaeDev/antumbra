@@ -1,6 +1,7 @@
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { DatabaseSync } from "node:sqlite";
 import { fileURLToPath } from "node:url";
 import { makeDatabaseIt } from "@shivaedev/effect-prisma/testing";
 import { brandDatabaseFilePath, type DatabaseFilePath } from "#data-dir.ts";
@@ -41,4 +42,13 @@ export const persistenceIt = () => {
 	});
 	harness.afterAll(temporary.remove);
 	return harness;
+};
+
+export const deleteTestAgent = (
+	databasePath: DatabaseFilePath,
+	agentId: string,
+) => {
+	const database = new DatabaseSync(databasePath);
+	database.prepare("DELETE FROM agent WHERE id = ?").run(agentId);
+	database.close();
 };

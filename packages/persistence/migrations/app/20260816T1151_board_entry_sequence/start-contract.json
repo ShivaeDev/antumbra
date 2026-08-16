@@ -574,13 +574,6 @@
                   "codecId": "sqlite/text@1",
                   "kind": "scalar"
                 }
-              },
-              "seq": {
-                "nullable": false,
-                "type": {
-                  "codecId": "sqlite/integer@1",
-                  "kind": "scalar"
-                }
               }
             },
             "relations": {},
@@ -603,9 +596,6 @@
                 },
                 "register": {
                   "column": "register"
-                },
-                "seq": {
-                  "column": "seq"
                 }
               },
               "namespaceId": "__unbound__",
@@ -2064,11 +2054,6 @@
                   "codecId": "sqlite/text@1",
                   "nativeType": "text",
                   "nullable": false
-                },
-                "seq": {
-                  "codecId": "sqlite/integer@1",
-                  "nativeType": "integer",
-                  "nullable": false
                 }
               },
               "foreignKeys": [],
@@ -2084,14 +2069,7 @@
                   "id"
                 ]
               },
-              "uniques": [
-                {
-                  "columns": [
-                    "boardId",
-                    "seq"
-                  ]
-                }
-              ]
+              "uniques": []
             },
             "boardOwner": {
               "columns": {
@@ -2895,7 +2873,7 @@
         "id": "__unbound__"
       }
     },
-    "storageHash": "sha256:449ed65d66b4f0d4e23fdef78634d1dc73d824d900263a953f654edd93ddda98"
+    "storageHash": "sha256:a305dffc7fdb7d7f6c2bc08c50c8c9bff45e63bafdfebb73a26e13ad75cd8756"
   },
   "capabilities": {
     "sql": {

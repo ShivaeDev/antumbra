@@ -276,18 +276,6 @@
 		"type": "AgentDeps"
 	},
 	{
-		"callable": "readBoard",
-		"file": "packages/domain/src/boards.ts",
-		"parameter": "deps",
-		"type": "AgentDeps"
-	},
-	{
-		"callable": "readSmoothLog",
-		"file": "packages/domain/src/boards.ts",
-		"parameter": "deps",
-		"type": "AgentDeps"
-	},
-	{
 		"callable": "readVoyage",
 		"file": "packages/domain/src/voyage-reads.ts",
 		"parameter": "domain",

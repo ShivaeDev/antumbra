@@ -2,8 +2,9 @@ import { bind, readBoardSpec, writeBoardSpec } from "@antumbra/agent-tools";
 import type { PrismaError } from "@antumbra/persistence";
 import type { DirectTool, DirectToolOutcome } from "@antumbra/plugin-api";
 import { Effect, Option } from "effect";
+import type { BoardEntryRow } from "#board-rows.ts";
 import type { BoardScope } from "#board-scope.ts";
-import { type BoardEntryRow, readBoard, writeEntry } from "#boards.ts";
+import { boardEntries, writeEntry } from "#boards.ts";
 import { type AgentDeps, provideExecutors } from "#deps.ts";
 import { answered, refused } from "#tool-answers.ts";
 import type { SessionIdentity } from "#tool-identity.ts";
@@ -106,7 +107,12 @@ export const boardTools = (
 	),
 	bind(readBoardSpec, (input) =>
 		withScope(deps, identity, input.scope, (scope) =>
-			answered(identity, readBoardSpec.name, readBoard(deps, scope), rendered),
+			answered(
+				identity,
+				readBoardSpec.name,
+				provideExecutors(deps)(boardEntries(deps.db, scope)),
+				rendered,
+			),
 		),
 	),
 ];

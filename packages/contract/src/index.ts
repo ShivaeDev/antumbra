@@ -13,6 +13,13 @@ export {
 	type TrpcSuccess,
 } from "#channels.ts";
 export { SubscribeRequest, TrpcRequest, UnsubscribeRequest } from "#ipc.ts";
+export {
+	HostCapabilityView,
+	QuayGroup,
+	QuayPiece,
+	QuayRow,
+	QuayView,
+} from "#quay-views.ts";
 export { type AppRouter, makeAppRouter } from "#router.ts";
 export {
 	type RequestContext,
@@ -48,6 +55,7 @@ export {
 	VoyageView,
 } from "#voyage-views.ts";
 export {
+	AdoptChangeRequest,
 	BoardTarget,
 	BoardWriteRequest,
 	CharterPieceRequest,

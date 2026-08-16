@@ -1,10 +1,4 @@
-import type {
-	ChangeChecks,
-	ChangeMergeable,
-	ChangeReview,
-	ChangeStage,
-} from "@antumbra/plugin-api";
-import type { ChangeRow } from "#change-rows.ts";
+import { type ChangeView, changeView, repoNameOf } from "#change-view.ts";
 import { changesOfPiece } from "#outcome-status.ts";
 import { dependenciesOf, type PieceState } from "#piece-state.ts";
 import type {
@@ -19,23 +13,6 @@ export interface PieceAgentView {
 	readonly status: string;
 }
 
-// why: what a reader needs to place a change — where it stands, where it
-// lives, and what the host last said about it. The body and the host's raw
-// payload stay in the row; nobody reading a piece wants either.
-export interface ChangeView {
-	readonly checks: ChangeChecks;
-	readonly externalId: string | null;
-	readonly host: string;
-	readonly id: string;
-	readonly isDraft: boolean;
-	readonly mergeable: ChangeMergeable;
-	readonly repoId: string;
-	readonly review: ChangeReview;
-	readonly stage: ChangeStage;
-	readonly title: string;
-	readonly url: string | null;
-}
-
 export interface PieceView extends PieceRow {
 	readonly agents: ReadonlyArray<PieceAgentView>;
 	readonly artifacts: ReadonlyArray<ArtifactRow>;
@@ -44,20 +21,6 @@ export interface PieceView extends PieceRow {
 	readonly reports: ReadonlyArray<ReportRow>;
 	readonly state: PieceState;
 }
-
-export const changeView = (change: ChangeRow): ChangeView => ({
-	checks: change.checks,
-	externalId: change.externalId,
-	host: change.host,
-	id: change.id,
-	isDraft: change.draftAt !== null,
-	mergeable: change.mergeable,
-	repoId: change.repoId,
-	review: change.review,
-	stage: change.stage,
-	title: change.title,
-	url: change.url,
-});
 
 const agentsOf = (
 	world: VoyageWorld,
@@ -100,7 +63,9 @@ export const pieceView = (
 	...piece,
 	agents: agentsOf(world, piece.id),
 	artifacts: artifactsOf(world, piece.id),
-	changes: changesOfPiece(world, piece.id).map(changeView),
+	changes: changesOfPiece(world, piece.id).map((change) =>
+		changeView(repoNameOf(world, change.repoId), change),
+	),
 	dependsOn: dependenciesOf(world.edges, piece.id),
 	reports: reportsOf(world, piece.id),
 	state: states.get(piece.id) ?? "held",

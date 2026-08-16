@@ -1,5 +1,6 @@
 import { AppInfo, AppInfoSource } from "#app-info.ts";
 import { type AppRuntime, makeProcedure, trpc } from "#router-procedure.ts";
+import { quayRoutes } from "#router-quay.ts";
 import { sightRoutes } from "#router-sight.ts";
 import { voyageRoutes } from "#router-voyages.ts";
 
@@ -10,6 +11,7 @@ export const makeAppRouter = (runtime: AppRuntime) => {
 			const source = yield* AppInfoSource;
 			return yield* source.current;
 		}),
+		...quayRoutes(procedure),
 		...sightRoutes(procedure),
 		...voyageRoutes(procedure),
 	});

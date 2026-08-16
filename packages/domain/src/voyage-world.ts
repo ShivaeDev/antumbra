@@ -9,6 +9,7 @@ import { type AgentDeps, provideExecutors } from "#deps.ts";
 import type {
 	ArtifactRow,
 	PieceRow,
+	RepoRow,
 	ReportRow,
 	VoyageRow,
 	VoyageWorld,
@@ -42,6 +43,8 @@ const reportRow = (row: ReportRow): ReportRow => ({
 	id: row.id,
 	title: row.title,
 });
+
+const repoRow = (row: RepoRow): RepoRow => ({ id: row.id, name: row.name });
 
 const artifactRow = (row: ArtifactRow): ArtifactRow => ({
 	authorAgentId: row.authorAgentId,
@@ -82,6 +85,7 @@ export const voyageWorld = (
 				piece.createdAt.asc(),
 			).all()).map(pieceRow),
 			reports: byId((yield* db.Report.all()).map(reportRow)),
+			repos: byId((yield* db.Repo.all()).map(repoRow)),
 			voyages: (yield* db.Voyage.orderBy((voyage) =>
 				voyage.createdAt.asc(),
 			).all()).map(voyageRow),

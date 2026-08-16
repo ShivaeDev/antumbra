@@ -15,6 +15,8 @@ import {
 } from "#changes.ts";
 import type { AgentDeps } from "#deps.ts";
 import type { UnknownChangeHostTag } from "#errors.ts";
+import { type QuayReading, quayReading } from "#quay-view.ts";
+import { readVoyageWorld } from "#voyage-world.ts";
 
 // why: what a host can do right now, said in the host's own words — the window
 // shows it, and a tool that cannot act says the same sentence back to the
@@ -45,6 +47,9 @@ export interface ChangeProcedures {
 	readonly openChanges: (
 		hostTag: string,
 	) => Effect.Effect<ReadonlyArray<ChangeRow>, PrismaError>;
+	// why: every change still owed, read across the whole fleet and grouped by
+	// where it lies, beside the pieces one made by hand can be adopted onto.
+	readonly quay: Effect.Effect<QuayReading, PrismaError>;
 	readonly refresh: (
 		hostTag: string,
 	) => Effect.Effect<
@@ -71,6 +76,7 @@ export const makeChangeProcedures = (deps: AgentDeps): ChangeProcedures => ({
 		applyObservations(deps, hostTag, observations),
 	open: (input) => openChange(deps, input),
 	openChanges: (hostTag) => openChangesOfHost(deps, hostTag),
+	quay: readVoyageWorld(deps).pipe(Effect.map(quayReading)),
 	refresh: (hostTag) => refreshChanges(deps, hostTag),
 	requestRefresh: PubSub.publish(deps.feeds.changeRefresh, undefined),
 });

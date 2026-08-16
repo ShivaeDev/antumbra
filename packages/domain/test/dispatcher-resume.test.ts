@@ -86,7 +86,7 @@ it.live("a piece stays active while its agent is still spawning", () =>
 	}),
 );
 
-it.live("a piece whose agent the crash left behind is dispatched again", () =>
+it.live("a piece whose Agent survived a crash is not dispatched twice", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
 		const scripted = yield* makeScriptedBackend;
@@ -104,12 +104,9 @@ it.live("a piece whose agent the crash left behind is dispatched again", () =>
 			const db = yield* Database;
 			yield* eventually(
 				Effect.gen(function* () {
-					expect((yield* db.PieceAgent.all()).length).toBe(2);
+					expect((yield* db.PieceAgent.all()).length).toBe(1);
 					const agents = yield* db.Agent.all();
-					expect(agents.map((agent) => agent.status).sort()).toEqual([
-						"alive",
-						"dormant",
-					]);
+					expect(agents.map((agent) => agent.status)).toEqual(["alive"]);
 				}),
 			);
 		}).pipe(Effect.provide(layer));

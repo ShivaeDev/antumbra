@@ -2,7 +2,7 @@ import { type Gate, type IntentStatus, Kernel } from "@antumbra/kernel";
 import { Database, Writer } from "@antumbra/persistence";
 import type { AgentBackend, MooragePlan } from "@antumbra/plugin-api";
 import { expect, it } from "@effect/vitest";
-import { Effect, Option, Ref, Stream } from "effect";
+import { Effect, Option, Ref, Schedule, Stream } from "effect";
 import { AgentDomain } from "#domain.ts";
 import type { SpawnFields } from "#index.ts";
 import {
@@ -11,6 +11,7 @@ import {
 	makeScriptedBackend,
 	makeScriptedRunner,
 } from "#test/harness.ts";
+import { reportsNativeRef } from "#test/session-recovery-fixture.ts";
 
 const TERMINAL: ReadonlySet<IntentStatus> = new Set([
 	"cancelled",
@@ -34,6 +35,12 @@ const untilTerminal = <E, R>(changes: Stream.Stream<IntentStatus, E, R>) =>
 		Stream.takeUntil((status) => TERMINAL.has(status)),
 		Stream.runLast,
 		Effect.map(Option.getOrThrow),
+	);
+
+const eventually = <A, E, R>(check: Effect.Effect<A, E, R>) =>
+	check.pipe(
+		Effect.catchDefect((defect) => Effect.fail(defect)),
+		Effect.retry(Schedule.spaced(10).pipe(Schedule.upTo({ duration: 2000 }))),
 	);
 
 const seedActivatedBoundary = (intentId: string, plan: MooragePlan) =>
@@ -124,14 +131,17 @@ const countOpens = (
 });
 
 it.live(
-	"boot completes an activated birth without reopening its durable resources",
+	"boot completes an activated birth while resuming its durable Session",
 	() =>
 		Effect.gen(function* () {
 			const temporary = yield* acquireTemporaryPersistence;
 			const scripted = yield* makeScriptedBackend;
 			const recorded = yield* makeScriptedRunner;
 			const opens = yield* Ref.make(0);
-			const backend = countOpens(scripted.backend, opens);
+			const backend = countOpens(
+				reportsNativeRef(scripted.backend, scripted, "native-existing"),
+				opens,
+			);
 			const plan = recorded.runner.plan({
 				agentId: payload.agentId,
 				repos: [{ ref: "main", source: "/somewhere/activated" }],
@@ -161,12 +171,27 @@ it.live(
 				expect(yield* untilTerminal(kernel.changes(seeded.intentId))).toBe(
 					"succeeded",
 				);
-				expect(yield* birthRows).toEqual(seeded.before);
-				expect({
-					opened: yield* Ref.get(opens),
-					provisioned: yield* recorded.provisioned,
-				}).toEqual({ opened: 0, provisioned: [] });
-				expect(yield* scripted.session(payload.sessionId)).toBeUndefined();
+				const after = yield* birthRows;
+				expect({ ...after, transcript: seeded.before.transcript }).toEqual(
+					seeded.before,
+				);
+				yield* eventually(
+					Effect.gen(function* () {
+						expect({
+							opened: yield* Ref.get(opens),
+							provisioned: yield* recorded.provisioned,
+						}).toEqual({ opened: 1, provisioned: [] });
+						const resumed = yield* scripted.session(payload.sessionId);
+						expect(resumed).toBeDefined();
+						expect(resumed === undefined ? [] : yield* resumed.sent).toEqual([
+							"Reconcile durable Antumbra truth and continue your assigned work.",
+						]);
+						const settled = yield* birthRows;
+						expect(settled.transcript.map((event) => event.seq)).toEqual([
+							0, 1,
+						]);
+					}),
+				);
 			}).pipe(
 				Effect.provide(
 					domainKernelLayer(temporary, backend, {}, recorded.runner),

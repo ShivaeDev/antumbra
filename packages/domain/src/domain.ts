@@ -1,59 +1,43 @@
 import { ArtifactsLive } from "@antumbra/artifacts";
 import { DomainFeeds, DomainFeedsLive } from "@antumbra/domain-feeds";
-import type { AnyIntentKind, IntentKind } from "@antumbra/kernel";
 import { Database, type WriteExecutors, Writer } from "@antumbra/persistence";
 import { PiecesLive } from "@antumbra/pieces";
-import type {
-	AgentBackend,
-	BackendFailure,
-	ChangeHost,
-	Runner,
-} from "@antumbra/plugin-api";
-import { Context, Deferred, Effect, Layer } from "effect";
+import type { AgentBackend, ChangeHost, Runner } from "@antumbra/plugin-api";
+import { Deferred, Effect, Layer, Option } from "effect";
+import { AGENTS_ALIVE_GAUGE, AgentDomain } from "#agent-domain-service.ts";
 import { sweepBerths } from "#berth-sweep.ts";
-import {
-	type BoardProcedures,
-	makeBoardProcedures,
-} from "#board-procedures.ts";
-import {
-	type ChangeProcedures,
-	makeChangeProcedures,
-} from "#change-procedures.ts";
+import { makeBoardProcedures } from "#board-procedures.ts";
+import { makeCaptainToolCompiler } from "#captain-tools.ts";
+import { makeChangeProcedures } from "#change-procedures.ts";
+import { makeCrewToolCompiler } from "#crew-tools.ts";
 import type { AgentDeps, KernelReach } from "#deps.ts";
-import type { SessionNotLive } from "#errors.ts";
 import { makeEventSinkFactory } from "#events.ts";
-import { makeSessionFabric } from "#fabric.ts";
-import { reclaimAgents } from "#reclaim.ts";
-import { makeRepoRegistry, type RepoRegistry } from "#registry.ts";
-import { makeRetireKind, type RetireFields } from "#retire.ts";
-import { makeSpawnKind, type SpawnFields } from "#spawn.ts";
-import { makeVoyageProcedures, type VoyageProcedures } from "#voyages.ts";
+import { makeSessionFabric, type SessionAttachment } from "#fabric.ts";
+import { makeRepoRegistry } from "#registry.ts";
+import { makeRetireKind } from "#retire.ts";
+import { makeRecoveryKind, RECOVERY_INSTRUCTION } from "#session-recovery.ts";
+import type { SessionRecoveryContext } from "#session-recovery-context.ts";
+import { SessionRecoveryHeld } from "#session-recovery-error.ts";
+import { SessionRecoveryRuntime } from "#session-recovery-runtime.ts";
+import { makeSpawnKind } from "#spawn.ts";
+import { CAPTAIN_ROLE } from "#voyage-captain.ts";
+import { makeVoyageProcedures } from "#voyages.ts";
 
-// why: exposed but not installed as a gate — kernel gates are global, so a
-// birth ceiling would block retire alongside spawn. Installing it waits for
-// kind-scoped gate policies.
-export const AGENTS_ALIVE_GAUGE = "agents.alive";
+export { AGENTS_ALIVE_GAUGE, AgentDomain } from "#agent-domain-service.ts";
 
-export class AgentDomain extends Context.Service<
-	AgentDomain,
-	{
-		readonly backends: ReadonlyArray<string>;
-		readonly boards: BoardProcedures;
-		readonly changes: ChangeProcedures;
-		readonly gauges: Readonly<Record<string, Effect.Effect<number>>>;
-		readonly interruptSession: (
-			sessionId: string,
-		) => Effect.Effect<void, BackendFailure | SessionNotLive>;
-		// why: filled in by the layer that has the kernel; a stand_down and a
-		// hail wait on it rather than the domain naming a scheduler it sits below.
-		readonly kernelReach: Deferred.Deferred<KernelReach>;
-		readonly kinds: ReadonlyArray<AnyIntentKind>;
-		readonly repos: RepoRegistry;
-		readonly retire: IntentKind<RetireFields>;
-		readonly spawn: IntentKind<SpawnFields>;
-		readonly voyages: VoyageProcedures;
-	}
->()("@antumbra/domain/AgentDomain") {}
+const admitRecoveredSession = (
+	context: SessionRecoveryContext,
+	attachment: SessionAttachment,
+) =>
+	Effect.gen(function* () {
+		const openedNativeRef = yield* attachment.openedNativeRef;
+		if (openedNativeRef !== context.nativeRef) {
+			return yield* new SessionRecoveryHeld({
+				detail: `provider resumed native session ${openedNativeRef}, expected ${context.nativeRef}`,
+			});
+		}
+		yield* attachment.handle.queue(RECOVERY_INSTRUCTION);
+	});
 
 // why: built before the kernel starts — the boot sweep must settle stranded
 // agents before admission can pull anything that reads their state.
@@ -89,8 +73,46 @@ export const AgentDomainLive = (
 				writer,
 			};
 			const makeSpawn = yield* makeSpawnKind;
+			const compileCaptainTools = yield* makeCaptainToolCompiler;
+			const compileCrewTools = yield* makeCrewToolCompiler;
 			const spawn = makeSpawn(deps);
-			yield* reclaimAgents(spawn);
+			const toolsFor = (context: SessionRecoveryContext) =>
+				context.role === CAPTAIN_ROLE &&
+				Option.isSome(context.identity.voyageId)
+					? compileCaptainTools(deps, context.identity)
+					: compileCrewTools(deps, context.identity);
+			const resumeSession = (context: SessionRecoveryContext) => {
+				const backend = backends.get(context.backend);
+				if (backend === undefined) {
+					return Effect.fail(
+						new SessionRecoveryHeld({
+							detail: `agent backend ${context.backend} is not available`,
+						}),
+					);
+				}
+				const options = {
+					cwd: context.cwd,
+					resume: Option.some(context.nativeRef),
+					sessionId: context.identity.sessionId,
+					tools: toolsFor(context),
+				};
+				return Effect.gen(function* () {
+					const sink = yield* sinkFor(context.identity.sessionId);
+					yield* fabric.start(backend, options, sink, (attachment) =>
+						admitRecoveredSession(context, attachment),
+					);
+				}).pipe(
+					Effect.catchTag("SessionAttachmentFailure", (failure) =>
+						Effect.fail(new SessionRecoveryHeld({ detail: failure.detail })),
+					),
+				);
+			};
+			const recoveryRuntime = SessionRecoveryRuntime.of({
+				resume: resumeSession,
+			});
+			const recover = yield* makeRecoveryKind.pipe(
+				Effect.provideService(SessionRecoveryRuntime, recoveryRuntime),
+			);
 			yield* sweepBerths(runners);
 			const aliveAgents = db.Agent.where({ status: "alive" })
 				.all()
@@ -108,8 +130,9 @@ export const AgentDomainLive = (
 				gauges: { [AGENTS_ALIVE_GAUGE]: aliveAgents },
 				interruptSession: fabric.interrupt,
 				kernelReach,
-				kinds: [spawn, retire],
+				kinds: [spawn, recover, retire],
 				repos: makeRepoRegistry(deps),
+				recover,
 				retire,
 				spawn,
 				voyages: makeVoyages(deps),

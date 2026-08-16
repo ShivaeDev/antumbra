@@ -41,6 +41,18 @@ export class SessionNotLive extends Data.TaggedError("SessionNotLive")<{
 	readonly sessionId: string;
 }> {}
 
+export class SessionAttachmentFailure extends Data.TaggedError(
+	"SessionAttachmentFailure",
+)<{
+	readonly detail: string;
+}> {}
+
+export class SessionIdentityMissing extends Data.TaggedError(
+	"SessionIdentityMissing",
+)<{
+	readonly sessionId: string;
+}> {}
+
 // why: these three reach a model verbatim through a tool answer, so each
 // carries the sentence it wants read — which repo, which berth, and that no
 // host in this build claims the repo it was asked to open a change on.

@@ -258,25 +258,6 @@ it.live("retire closes the session, the rows, and is idempotent", () =>
 	}),
 );
 
-it.live("boot reclaim marks agents the last life left alive as dormant", () =>
-	Effect.gen(function* () {
-		const temporary = yield* acquireTemporaryPersistence;
-		const scripted = yield* makeScriptedBackend;
-		yield* Effect.gen(function* () {
-			yield* submitSpawn(spawnPayload("d"));
-		}).pipe(Effect.provide(domainKernelLayer(temporary, scripted.backend)));
-		const live = yield* scripted.session("session-d");
-		expect(live !== undefined && (yield* live.closed)).toBe(true);
-		yield* Effect.gen(function* () {
-			const db = yield* Database;
-			const agent = yield* db.Agent.where({ id: "agent-d" }).first();
-			expect(Option.getOrThrow(agent).status).toBe("dormant");
-			const session = yield* db.AgentSession.where({ id: "session-d" }).first();
-			expect(Option.getOrThrow(session).status).toBe("closed");
-		}).pipe(Effect.provide(domainKernelLayer(temporary, scripted.backend)));
-	}),
-);
-
 it.live("the alive-agents gauge tracks births and deaths", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;

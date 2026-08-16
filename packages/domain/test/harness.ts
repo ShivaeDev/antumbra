@@ -10,6 +10,7 @@ import type {
 	ChangeHost,
 	DirectTool,
 	MooragePlan,
+	OpenSessionOptions,
 	ProvisionRequest,
 	Runner,
 	SessionHandle,
@@ -22,6 +23,7 @@ import { ChangeWatcherLive } from "#change-watcher.ts";
 import { DispatcherLive, type DispatcherOptions } from "#dispatcher.ts";
 import { AgentDomain, AgentDomainLive } from "#domain.ts";
 import { KernelReachLive } from "#kernel-reach.ts";
+import { AgentRecoveryLive } from "#session-recovery-live.ts";
 
 export interface ScriptedRunner {
 	readonly provisioned: Effect.Effect<ReadonlyArray<MooragePlan>>;
@@ -76,6 +78,7 @@ export const rawOf = (kind: string): AgentEvent["raw"] => ({
 
 export interface ScriptedBackend {
 	readonly backend: AgentBackend;
+	readonly opened: Effect.Effect<ReadonlyArray<OpenSessionOptions>>;
 	readonly session: (
 		sessionId: string,
 	) => Effect.Effect<ScriptedSession | undefined>;
@@ -85,6 +88,7 @@ export const makeScriptedBackend = Effect.gen(function* () {
 	const sessions = yield* Ref.make<ReadonlyMap<string, ScriptedSession>>(
 		new Map(),
 	);
+	const opened = yield* Ref.make<ReadonlyArray<OpenSessionOptions>>([]);
 	const backend: AgentBackend = {
 		capabilities: {
 			fork: false,
@@ -93,6 +97,7 @@ export const makeScriptedBackend = Effect.gen(function* () {
 		},
 		openSession: (options) =>
 			Effect.gen(function* () {
+				yield* Ref.update(opened, (all) => [...all, options]);
 				const events = yield* Queue.unbounded<AgentEvent>();
 				const sent = yield* Ref.make<ReadonlyArray<string>>([]);
 				const steered = yield* Ref.make<ReadonlyArray<string>>([]);
@@ -123,6 +128,7 @@ export const makeScriptedBackend = Effect.gen(function* () {
 	};
 	return {
 		backend,
+		opened: Ref.get(opened),
 		session: (sessionId) =>
 			Ref.get(sessions).pipe(Effect.map((map) => map.get(sessionId))),
 	} satisfies ScriptedBackend;
@@ -180,7 +186,7 @@ export const domainKernelLayer = (
 	runner: Runner = passiveRunner,
 	changeHosts: ReadonlyMap<string, ChangeHost> = new Map(),
 ) =>
-	KernelReachLive.pipe(
+	Layer.merge(KernelReachLive, AgentRecoveryLive).pipe(
 		Layer.provideMerge(
 			Layer.unwrap(
 				Effect.gen(function* () {

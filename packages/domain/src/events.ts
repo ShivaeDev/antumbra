@@ -7,7 +7,8 @@ import {
 	Writer,
 } from "@antumbra/persistence";
 import type { AgentEvent } from "@antumbra/session-events";
-import { type Context, Effect, PubSub, Ref } from "effect";
+import { type Context, Effect, Option, PubSub } from "effect";
+import { SessionIdentityMissing } from "#errors.ts";
 import type { EventSink } from "#fabric.ts";
 
 interface SinkContext {
@@ -24,19 +25,32 @@ interface SinkContext {
 const appendAndAnnounce = (
 	context: SinkContext,
 	sessionId: string,
-	seq: number,
 	event: AgentEvent,
 ) =>
 	Effect.gen(function* () {
-		// why: the row kind is the neutral event type; the whole neutral event
-		// (raw provider payload included) is the row payload.
-		const stored: StoredEvent = {
-			kind: event.type,
-			payload: JSON.stringify(event),
-			seq,
-			sessionId,
-		};
-		yield* context.writer.write(context.db.SessionEvent.create(stored));
+		const stored = yield* context.writer.write(
+			Effect.gen(function* () {
+				const latest = yield* context.db.SessionEvent.where({ sessionId })
+					.orderBy((row) => row.seq.desc())
+					.take(1)
+					.first();
+				const seq = Option.match(latest, {
+					onNone: () => 0,
+					onSome: (row) => row.seq + 1,
+				});
+				// why: the row kind is the neutral event type; the whole neutral event
+				// (raw provider payload included) is the row payload.
+				const row: StoredEvent = {
+					kind: event.type,
+					payload: JSON.stringify(event),
+					seq,
+					sessionId,
+				};
+				yield* context.db.SessionEvent.create(row);
+				yield* recordNativeRef(context, sessionId, event);
+				return row;
+			}),
+		);
 		yield* PubSub.publish(context.feed, stored);
 	});
 
@@ -46,33 +60,43 @@ const recordNativeRef = (
 	context: SinkContext,
 	sessionId: string,
 	event: AgentEvent,
-): Effect.Effect<void, PrismaError, WriteExecutors> =>
+): Effect.Effect<void, PrismaError | SessionIdentityMissing, WriteExecutors> =>
 	event.type === "session.opened"
-		? context.writer
-				.write(
-					context.db.AgentSession.where({ id: sessionId }).update({
+		? Effect.gen(function* () {
+				const session = yield* context.db.AgentSession.where({
+					id: sessionId,
+				}).first();
+				if (Option.isNone(session)) {
+					return yield* new SessionIdentityMissing({ sessionId });
+				}
+				const durable = session.value.nativeRef;
+				if (durable === null) {
+					yield* context.db.AgentSession.where({ id: sessionId }).update({
 						nativeRef: event.nativeRef,
-					}),
-				)
-				.pipe(Effect.asVoid)
+					});
+					return;
+				}
+				if (durable !== event.nativeRef) {
+					yield* Effect.logWarning("session native identity mismatch", {
+						durableNativeRef: durable,
+						reportedNativeRef: event.nativeRef,
+						sessionId,
+					});
+				}
+			}).pipe(Effect.asVoid)
 		: Effect.void;
 
-const makeSink = (
-	context: SinkContext,
-	sessionId: string,
-	counter: Ref.Ref<number>,
-): EventSink => {
+const makeSink = (context: SinkContext, sessionId: string): EventSink => {
 	return (event) =>
-		Ref.getAndUpdate(counter, (n) => n + 1).pipe(
-			Effect.flatMap((seq) =>
-				appendAndAnnounce(context, sessionId, seq, event),
-			),
-			Effect.andThen(recordNativeRef(context, sessionId, event)),
+		appendAndAnnounce(context, sessionId, event).pipe(
 			Effect.provideContext(context.executors),
-			// why: one failed append must not end the pump — the gap is logged
-			// and the stream continues.
+			Effect.as(true),
+			// why: one failed append must not end the pump; sequence allocation and
+			// insert shared one transaction, so a failure leaves no hidden gap.
 			Effect.catchCause((cause) =>
-				Effect.logError("event append failed", { sessionId }, cause),
+				Effect.logError("event append failed", { sessionId }, cause).pipe(
+					Effect.as(false),
+				),
 			),
 		);
 };
@@ -85,8 +109,5 @@ export const makeEventSinkFactory = (feed: PubSub.PubSub<StoredEvent>) =>
 		const writer = yield* Writer;
 		const executors = yield* Effect.context<WriteExecutors>();
 		const context: SinkContext = { db, executors, feed, writer };
-		return (sessionId: string) =>
-			Effect.map(Ref.make(0), (counter) =>
-				makeSink(context, sessionId, counter),
-			);
+		return (sessionId: string) => Effect.succeed(makeSink(context, sessionId));
 	});

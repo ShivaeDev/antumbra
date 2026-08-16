@@ -14,6 +14,13 @@ stateless projection: it holds no durable state, reaches main only through one
 typed contract, and every window can reload at any moment and rehydrate.
 Agents running in the main process never notice a renderer reload.
 
+Exactly one Antumbra desktop process owns the application and its selected
+local data directory at a time. Repeat launches are routed to that owner,
+which opens or focuses windows in its process; windows never create independent
+orchestration or persistence owners. The shell takes Electron's native
+application lock before configuring data or constructing runtime and
+persistence Layers.
+
 Explicitly addressed mail is persisted as an immutable entry on the
 addressee's Agent Board; its marked-read receipt is separate durable truth, so
 a read never clears it. Raw Change and Review observations remain in their own

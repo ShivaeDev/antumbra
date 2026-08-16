@@ -34,7 +34,9 @@ export interface AgentDeps {
 	readonly feeds: DomainFeedsService;
 	readonly kernelReach: Deferred.Deferred<KernelReach>;
 	readonly runners: ReadonlyMap<string, Runner>;
-	readonly sinkFor: (sessionId: string) => Effect.Effect<EventSink>;
+	readonly sinkFor: (
+		sessionId: string,
+	) => Effect.Effect<EventSink, PrismaError>;
 	readonly writer: {
 		readonly write: <A, E, R>(
 			program: Effect.Effect<A, E, R>,

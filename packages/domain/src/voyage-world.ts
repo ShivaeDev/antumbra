@@ -4,13 +4,13 @@ import type {
 	PrismaError,
 	WriteExecutors,
 } from "@antumbra/persistence";
+import type { ReportRow } from "@antumbra/reports";
 import { Effect } from "effect";
 import { changeRow } from "#change-read.ts";
 import { type AgentDeps, provideExecutors } from "#deps.ts";
 import type {
 	PieceRow,
 	RepoRow,
-	ReportRow,
 	VoyageRow,
 	VoyageWorld,
 } from "#voyage-rows.ts";

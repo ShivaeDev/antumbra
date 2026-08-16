@@ -30,11 +30,23 @@ module.exports = {
 		},
 		{
 			comment:
+				"Reports owns durable report landing. It may validate pieces, write through persistence, and publish through domain-feeds, but it never reaches up into the domain facade, ports, adapters, or app.",
+			from: { path: "^packages/reports" },
+			name: "reports-has-narrow-dependencies",
+			severity: "error",
+			to: {
+				path: "^packages/(?!reports(?:/|$)|pieces(?:/|$)|persistence(?:/|$)|domain-feeds(?:/|$))|^apps/",
+			},
+		},
+		{
+			comment:
 				"The desktop consumes the application-facing domain facade. Leaf capability Layers stay composed inside that facade so the app does not become a service graph by hand.",
 			from: { path: "^apps/desktop" },
 			name: "desktop-uses-domain-facade",
 			severity: "error",
-			to: { path: "^packages/(artifacts|pieces|domain-feeds)(?:/|$)" },
+			to: {
+				path: "^packages/(artifacts|pieces|reports|domain-feeds)(?:/|$)",
+			},
 		},
 		{
 			comment:
@@ -71,7 +83,7 @@ module.exports = {
 			name: "renderer-pure-web",
 			severity: "error",
 			to: {
-				path: "(^|/)electron(/|$)|^apps/|^packages/(agent-tools|artifacts|kernel|domain(?:-feeds)?|pieces|backend-[^/]+|github|runner-[^/]+|persistence|plugin-api)",
+				path: "(^|/)electron(/|$)|^apps/|^packages/(agent-tools|artifacts|kernel|domain(?:-feeds)?|pieces|reports|backend-[^/]+|github|runner-[^/]+|persistence|plugin-api)",
 			},
 		},
 		{
@@ -80,7 +92,9 @@ module.exports = {
 			from: { path: "^packages/(backend-[^/]+|github|runner-[^/]+)" },
 			name: "adapters-never-import-the-domain",
 			severity: "error",
-			to: { path: "^packages/(artifacts|domain(?:-feeds)?|pieces)(?:/|$)" },
+			to: {
+				path: "^packages/(artifacts|domain(?:-feeds)?|pieces|reports)(?:/|$)",
+			},
 		},
 		{
 			comment:

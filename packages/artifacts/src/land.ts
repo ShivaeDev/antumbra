@@ -1,6 +1,6 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database, Writer } from "@antumbra/persistence";
-import { PieceNotFound } from "@antumbra/pieces";
+import { requirePiece } from "@antumbra/pieces";
 import { Crypto, Effect, Option, PubSub } from "effect";
 import { ArtifactSourceNotOwned, artifactPublicationFailed } from "#errors.ts";
 import type {
@@ -9,15 +9,6 @@ import type {
 	ArtifactRow,
 } from "#model.ts";
 import { publishArtifact } from "#publication.ts";
-
-const requirePiece = (pieceId: string) =>
-	Effect.gen(function* () {
-		const db = yield* Database;
-		const row = yield* db.Piece.where({ id: pieceId }).first();
-		if (Option.isNone(row)) {
-			return yield* new PieceNotFound({ pieceId });
-		}
-	});
 
 const requireCurrentMoorage = (publication: ArtifactPublication) =>
 	Effect.gen(function* () {

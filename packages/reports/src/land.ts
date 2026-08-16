@@ -1,0 +1,31 @@
+import { DomainFeeds } from "@antumbra/domain-feeds";
+import { Database, Writer } from "@antumbra/persistence";
+import { requirePiece } from "@antumbra/pieces";
+import { Effect, PubSub } from "effect";
+import type { ReportInput, ReportRow } from "#model.ts";
+
+const writeReport = (row: ReportRow, pieceId: string) =>
+	Effect.gen(function* () {
+		const db = yield* Database;
+		// why: an outcome and its piece link are one transaction, with existence
+		// checked inside that transaction, so neither an orphan nor false done state
+		// can become durable.
+		yield* requirePiece(pieceId);
+		yield* db.Report.create(row);
+		yield* db.PieceReport.create({ pieceId, reportId: row.id });
+	});
+
+export const landReport = (input: ReportInput) =>
+	Effect.gen(function* () {
+		const feeds = yield* DomainFeeds;
+		const writer = yield* Writer;
+		const row: ReportRow = {
+			authorAgentId: input.authorAgentId ?? null,
+			body: input.body,
+			id: crypto.randomUUID(),
+			title: input.title,
+		};
+		yield* writer.write(writeReport(row, input.pieceId));
+		yield* PubSub.publish(feeds.voyages, undefined);
+		return row;
+	});

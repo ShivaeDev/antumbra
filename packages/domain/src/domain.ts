@@ -3,12 +3,13 @@ import { DomainFeeds, DomainFeedsLive } from "@antumbra/domain-feeds";
 import { Database, type WriteExecutors, Writer } from "@antumbra/persistence";
 import { PiecesLive } from "@antumbra/pieces";
 import type { AgentBackend, ChangeHost, Runner } from "@antumbra/plugin-api";
+import { ReportsLive } from "@antumbra/reports";
 import { Deferred, Effect, Layer, Option } from "effect";
 import { AGENTS_ALIVE_GAUGE, AgentDomain } from "#agent-domain-service.ts";
 import { sweepBerths } from "#berth-sweep.ts";
 import { makeBoardProcedures } from "#board-procedures.ts";
 import { makeCaptainToolCompiler } from "#captain-tools.ts";
-import { makeChangeProcedures } from "#change-procedures.ts";
+import { makeChangeProcedureCompiler } from "#change-procedures.ts";
 import { makeCrewToolCompiler } from "#crew-tools.ts";
 import type { AgentDeps, KernelReach } from "#deps.ts";
 import { makeEventSinkFactory } from "#events.ts";
@@ -50,6 +51,7 @@ export const AgentDomainLive = (
 	const capabilities = Layer.mergeAll(
 		PiecesLive,
 		ArtifactsLive(artifactsDirectory),
+		ReportsLive,
 	).pipe(Layer.provideMerge(DomainFeedsLive));
 	return Layer.effect(AgentDomain)(
 		Effect.gen(function* () {
@@ -73,6 +75,7 @@ export const AgentDomainLive = (
 				writer,
 			};
 			const makeSpawn = yield* makeSpawnKind;
+			const makeChanges = yield* makeChangeProcedureCompiler;
 			const compileCaptainTools = yield* makeCaptainToolCompiler;
 			const compileCrewTools = yield* makeCrewToolCompiler;
 			const spawn = makeSpawn(deps);
@@ -126,7 +129,7 @@ export const AgentDomainLive = (
 			return {
 				backends: [...backends.keys()],
 				boards: makeBoardProcedures(deps),
-				changes: makeChangeProcedures(deps),
+				changes: makeChanges(deps),
 				gauges: { [AGENTS_ALIVE_GAUGE]: aliveAgents },
 				interruptSession: fabric.interrupt,
 				kernelReach,

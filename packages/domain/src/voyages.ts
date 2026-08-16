@@ -13,14 +13,14 @@ import {
 	type PieceRow,
 	Pieces,
 } from "@antumbra/pieces";
+import { type ReportInput, type ReportRow, Reports } from "@antumbra/reports";
 import { Clock, Effect, type Option, PubSub } from "effect";
 import { type AgentDeps, provideExecutors } from "#deps.ts";
 import type { VoyageNotFound } from "#errors.ts";
 import { type HailedCaptain, type HailRefused, hailCaptain } from "#hail.ts";
-import { landReport, type ReportInput } from "#outcomes.ts";
 import { readVoyageView } from "#voyage-read.ts";
 import { requireVoyage } from "#voyage-record.ts";
-import type { ReportRow, VoyageRow } from "#voyage-rows.ts";
+import type { VoyageRow } from "#voyage-rows.ts";
 import {
 	type VoyageSummary,
 	type VoyageView,
@@ -118,11 +118,12 @@ const setFocus = (deps: AgentDeps, voyageId: string, focused: boolean) =>
 export const makeVoyageProcedures = Effect.gen(function* () {
 	const artifacts = yield* Artifacts;
 	const pieces = yield* Pieces;
+	const reports = yield* Reports;
 	return (deps: AgentDeps): VoyageProcedures => ({
 		charterPiece: pieces.charter,
 		hail: (voyageId) => hailCaptain(deps, voyageId),
 		landArtifact: artifacts.land,
-		landReport: (input) => landReport(deps, input),
+		landReport: reports.land,
 		launch: pieces.launch,
 		list: readVoyageWorld(deps).pipe(Effect.map(voyageSummaries)),
 		open: (input) => openVoyage(deps, input),

@@ -32,10 +32,6 @@
       "model": "BoardEntry",
       "namespace": "__unbound__"
     },
-    "boardEntryReceipt": {
-      "model": "BoardEntryReceipt",
-      "namespace": "__unbound__"
-    },
     "boardOwner": {
       "model": "BoardOwner",
       "namespace": "__unbound__"
@@ -572,20 +568,6 @@
                   "kind": "scalar"
                 }
               },
-              "kind": {
-                "nullable": false,
-                "type": {
-                  "codecId": "sqlite/text@1",
-                  "kind": "scalar"
-                }
-              },
-              "precedence": {
-                "nullable": false,
-                "type": {
-                  "codecId": "sqlite/text@1",
-                  "kind": "scalar"
-                }
-              },
               "register": {
                 "nullable": false,
                 "type": {
@@ -597,13 +579,6 @@
                 "nullable": false,
                 "type": {
                   "codecId": "sqlite/integer@1",
-                  "kind": "scalar"
-                }
-              },
-              "sourceRef": {
-                "nullable": true,
-                "type": {
-                  "codecId": "sqlite/text@1",
                   "kind": "scalar"
                 }
               }
@@ -626,55 +601,15 @@
                 "id": {
                   "column": "id"
                 },
-                "kind": {
-                  "column": "kind"
-                },
-                "precedence": {
-                  "column": "precedence"
-                },
                 "register": {
                   "column": "register"
                 },
                 "seq": {
                   "column": "seq"
-                },
-                "sourceRef": {
-                  "column": "sourceRef"
                 }
               },
               "namespaceId": "__unbound__",
               "table": "boardEntry"
-            }
-          },
-          "BoardEntryReceipt": {
-            "fields": {
-              "entryId": {
-                "nullable": false,
-                "type": {
-                  "codecId": "sqlite/text@1",
-                  "kind": "scalar"
-                }
-              },
-              "readAt": {
-                "nullable": false,
-                "type": {
-                  "codecId": "sqlite/datetime@1",
-                  "kind": "scalar"
-                }
-              }
-            },
-            "relations": {},
-            "storage": {
-              "fields": {
-                "entryId": {
-                  "column": "entryId"
-                },
-                "readAt": {
-                  "column": "readAt"
-                }
-              },
-              "namespaceId": "__unbound__",
-              "table": "boardEntryReceipt"
             }
           },
           "BoardOwner": {
@@ -2125,24 +2060,6 @@
                   "nativeType": "text",
                   "nullable": false
                 },
-                "kind": {
-                  "codecId": "sqlite/text@1",
-                  "default": {
-                    "kind": "literal",
-                    "value": "note"
-                  },
-                  "nativeType": "text",
-                  "nullable": false
-                },
-                "precedence": {
-                  "codecId": "sqlite/text@1",
-                  "default": {
-                    "kind": "literal",
-                    "value": "routine"
-                  },
-                  "nativeType": "text",
-                  "nullable": false
-                },
                 "register": {
                   "codecId": "sqlite/text@1",
                   "nativeType": "text",
@@ -2152,11 +2069,6 @@
                   "codecId": "sqlite/integer@1",
                   "nativeType": "integer",
                   "nullable": false
-                },
-                "sourceRef": {
-                  "codecId": "sqlite/text@1",
-                  "nativeType": "text",
-                  "nullable": true
                 }
               },
               "foreignKeys": [],
@@ -2178,40 +2090,8 @@
                     "boardId",
                     "seq"
                   ]
-                },
-                {
-                  "columns": [
-                    "boardId",
-                    "sourceRef"
-                  ]
                 }
               ]
-            },
-            "boardEntryReceipt": {
-              "columns": {
-                "entryId": {
-                  "codecId": "sqlite/text@1",
-                  "nativeType": "text",
-                  "nullable": false
-                },
-                "readAt": {
-                  "codecId": "sqlite/datetime@1",
-                  "default": {
-                    "expression": "now()",
-                    "kind": "function"
-                  },
-                  "nativeType": "text",
-                  "nullable": false
-                }
-              },
-              "foreignKeys": [],
-              "indexes": [],
-              "primaryKey": {
-                "columns": [
-                  "entryId"
-                ]
-              },
-              "uniques": []
             },
             "boardOwner": {
               "columns": {
@@ -3015,7 +2895,7 @@
         "id": "__unbound__"
       }
     },
-    "storageHash": "sha256:7bb169ed7915c78dcd2b43eb89605f622c1c909ea6e4d89e266cd4b3d5d87de4"
+    "storageHash": "sha256:449ed65d66b4f0d4e23fdef78634d1dc73d824d900263a953f654edd93ddda98"
   },
   "capabilities": {
     "sql": {

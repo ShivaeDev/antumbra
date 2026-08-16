@@ -342,12 +342,6 @@
 		"type": "AgentDeps"
 	},
 	{
-		"callable": "smoothLog",
-		"file": "packages/domain/src/boards.ts",
-		"parameter": "db",
-		"type": "DatabaseService"
-	},
-	{
 		"callable": "stampCharter",
 		"file": "packages/domain/src/charter.ts",
 		"parameter": "deps",

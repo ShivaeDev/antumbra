@@ -52,7 +52,9 @@ Axioms of the stack:
   the plugin API exactly as backends and runners do. The core owns the
   concept and one neutral vocabulary for it, and stores the host's own state
   raw beside it, so a second host maps onto the same reading and no consumer
-  learns which host it is looking at. Further kinds (external references,
+  learns which host it is looking at. Raw Change and Review facts remain their
+  own durable truth: observing one never turns it into mail and never directly
+  wakes or interrupts an Agent. Further kinds (external references,
   prepared worktrees) register the same way — the set is open, every kind
   individually typed. Proposed structure is never an outcome kind:
   **workers report; captains charter.**
@@ -171,6 +173,9 @@ compute: reify, queue, prioritize, preempt.
   becomes its only traffic, and held messages flow afterwards — coalesced,
   in precedence order. Message precedence: routine and priority wait for a
   full idle turn; flash alone steers in mid-turn.
+- **v1 attention is human-selected.** A pull view may rank addressed mail and
+  relevant Change, Review, and Question facts, but the admiral chooses what an
+  idle Agent receives. Persisting a fact never selects work or resumes anyone.
 
 ## Boards and memory
 
@@ -183,6 +188,9 @@ compute: reify, queue, prioritize, preempt.
   If everything is durable, nothing is signal.
 - **Never duplicate the derivable.** Boards do not record what the database
   already knows.
+- Explicitly addressed mail is an immutable entry on the addressee's Agent
+  Board. Its stable source identity makes replay harmless; reading it and
+  marking it read are separate durable acts, neither of which means handled.
 - **Boards and story are not resources.** Resource reclamation never erases
   their history.
 - **Recovery never forks.** Normal recovery resumes the same agent, Antumbra

@@ -81,6 +81,33 @@ export class BoardOwnerNotFound extends Data.TaggedError("BoardOwnerNotFound")<{
 	}
 }
 
+export class BoardSourceConflict extends Data.TaggedError(
+	"BoardSourceConflict",
+)<{
+	readonly boardId: string;
+	readonly sourceRef: string;
+}> {
+	override get message(): string {
+		return `${this.sourceRef} already names different mail on ${this.boardId}`;
+	}
+}
+
+export class MailNotAddressed extends Data.TaggedError("MailNotAddressed")<{
+	readonly agentId: string;
+	readonly entryId: string;
+}> {
+	override get message(): string {
+		return `${this.entryId} is not mail addressed to ${this.agentId}`;
+	}
+}
+
+export class StoredBoardEntryInvalid extends Data.TaggedError(
+	"StoredBoardEntryInvalid",
+)<{
+	readonly detail: string;
+	readonly entryId: string;
+}> {}
+
 // why: a voyage is under way because its captain is at work, so hailing a
 // second one while the first still is would give the voyage two accountable
 // addresses. The refusal names the captain it already has.

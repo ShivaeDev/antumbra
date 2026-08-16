@@ -204,17 +204,41 @@ it.effect(
 			});
 			const migrated = withSqlite(database, (sqlite) => ({
 				entries: sqlite
-					.prepare('SELECT "id", "seq" FROM "boardEntry" ORDER BY "seq"')
+					.prepare(
+						'SELECT "id", "kind", "precedence", "seq", "sourceRef" FROM "boardEntry" ORDER BY "seq"',
+					)
 					.all(),
 				owners: sqlite.prepare('SELECT * FROM "boardOwner"').all(),
+				receipts: sqlite
+					.prepare('SELECT COUNT(*) AS "count" FROM "boardEntryReceipt"')
+					.get(),
 			}));
 			expect(migrated.owners).toMatchObject([
 				{ boardId: "board-1", ownerId: "agent-1", ownerKind: "agent" },
 			]);
 			expect(migrated.entries).toMatchObject([
-				{ id: "entry-a", seq: 1 },
-				{ id: "entry-b", seq: 2 },
-				{ id: "entry-c", seq: 3 },
+				{
+					id: "entry-a",
+					kind: "note",
+					precedence: "routine",
+					seq: 1,
+					sourceRef: null,
+				},
+				{
+					id: "entry-b",
+					kind: "note",
+					precedence: "routine",
+					seq: 2,
+					sourceRef: null,
+				},
+				{
+					id: "entry-c",
+					kind: "note",
+					precedence: "routine",
+					seq: 3,
+					sourceRef: null,
+				},
 			]);
+			expect(migrated.receipts).toMatchObject({ count: 0 });
 		}),
 );

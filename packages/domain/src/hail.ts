@@ -1,11 +1,13 @@
 import type { PrismaError } from "@antumbra/persistence";
 import { Deferred, Effect, Option } from "effect";
-import { smoothLog } from "#boards.ts";
+import { smoothBodies } from "#board-rows.ts";
+import { boardEntries } from "#boards.ts";
 import { composeCaptainCharter } from "#charter-captain.ts";
 import { type AgentDeps, provideExecutors, type SpawnRefused } from "#deps.ts";
 import {
 	type BoardOwnerNotFound,
 	CaptainAlreadyHailed,
+	type StoredBoardEntryInvalid,
 	VoyageNotFound,
 } from "#errors.ts";
 import { CAPTAIN_ROLE, captainAtWork } from "#voyage-captain.ts";
@@ -22,6 +24,7 @@ export type HailRefused =
 	| CaptainAlreadyHailed
 	| PrismaError
 	| SpawnRefused
+	| StoredBoardEntryInvalid
 	| VoyageNotFound;
 
 // why: hailing materializes the role for the voyage as it stands right now —
@@ -45,7 +48,9 @@ export const hailCaptain = (
 			});
 		}
 		const voyageSmoothLog = yield* provideExecutors(deps)(
-			smoothLog(deps.db, { kind: "voyage", voyageId }),
+			boardEntries(deps.db, { kind: "voyage", voyageId }).pipe(
+				Effect.map(smoothBodies),
+			),
 		);
 		const agentId = crypto.randomUUID();
 		// why: the hail is answered from the window or the router, never from

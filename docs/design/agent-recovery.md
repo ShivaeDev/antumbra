@@ -113,9 +113,10 @@ successful intent means its promised durable boundary was reached, not merely
 that background work was detached.
 
 Agent-directed mail is durable and board-backed. Addressing and marked-read
-state remain true without a Session attachment. Transport into a running
-Session follows explicit precedence and at-least-once delivery; sending never
-marks the mail read.
+state remain true without a Session attachment, and reading never writes a
+receipt. In v1 the admiral selects attention and the Agent pulls its mailbox;
+no mail arrival or external fact automatically attaches, resumes, or
+interrupts a Session.
 
 ## Reclamation boundary
 

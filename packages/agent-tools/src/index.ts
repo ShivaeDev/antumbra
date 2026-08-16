@@ -1,4 +1,9 @@
-export { readBoardSpec, writeBoardSpec } from "#boards.ts";
+export {
+	markReadSpec,
+	readBoardSpec,
+	readMailSpec,
+	writeBoardSpec,
+} from "#boards.ts";
 export {
 	charterPieceSpec,
 	launchPieceSpec,

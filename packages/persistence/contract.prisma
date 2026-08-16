@@ -234,6 +234,9 @@ model BoardEntry {
   id            String   @id
   boardId       String
   seq           Int
+  kind          String   @default("note")
+  precedence    String   @default("routine")
+  sourceRef     String?
   register      String
   authorAgentId String?
   body          String
@@ -241,6 +244,12 @@ model BoardEntry {
 
   @@index([boardId])
   @@unique([boardId, seq])
+  @@unique([boardId, sourceRef])
+}
+
+model BoardEntryReceipt {
+  entryId String   @id
+  readAt  DateTime @default(now())
 }
 
 model BoardOwner {

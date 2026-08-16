@@ -5,6 +5,7 @@ const ref = (owner: string, name: string, number: number) => ({
 	name,
 	number,
 	owner,
+	repoId: `repo-${owner}-${name}`,
 });
 
 describe("asking about many changes at once", () => {

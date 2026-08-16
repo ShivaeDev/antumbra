@@ -2140,15 +2140,7 @@
                   "id"
                 ]
               },
-              "uniques": [
-                {
-                  "columns": [
-                    "host",
-                    "repoId",
-                    "externalId"
-                  ]
-                }
-              ]
+              "uniques": []
             },
             "intent": {
               "columns": {
@@ -2713,7 +2705,7 @@
         "id": "__unbound__"
       }
     },
-    "storageHash": "sha256:5db61efad7665ff5e219bac71a6b3660bc276ae8a15e217bf3ff8c2d9a53a785"
+    "storageHash": "sha256:89f4b3339664754f467e094870aebb351e09c167d70cd2bffd5cc56236485c27"
   },
   "capabilities": {
     "sql": {

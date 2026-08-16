@@ -102,27 +102,31 @@ export const adoptChange = (
 		const host = yield* capableHost(yield* requireChangeHost(deps, repo));
 		const observation = yield* host.adopt(input.url, repo);
 		const now = yield* Clock.currentTimeMillis;
-		const known = yield* changeOfExternalId(
-			deps,
-			host.tag,
-			observation.externalId,
-		);
-		const row = Option.getOrElse(known, () =>
-			proposedChange({
-				body: "",
-				host: host.tag,
-				now,
-				observation,
-				openedByAgentId: input.agentId,
-				repoId: repo.id,
-			}),
-		);
-		const link = linkPiece(deps, input.pieceId, row.id);
-		yield* provideExecutors(deps)(
+		const row = yield* provideExecutors(deps)(
 			deps.writer.write(
-				Option.isSome(known)
-					? link
-					: deps.db.Change.create(row).pipe(Effect.andThen(link)),
+				Effect.gen(function* () {
+					const known = yield* changeOfExternalId(
+						deps,
+						host.tag,
+						repo.id,
+						observation.externalId,
+					);
+					const row = Option.getOrElse(known, () =>
+						proposedChange({
+							body: "",
+							host: host.tag,
+							now,
+							observation,
+							openedByAgentId: input.agentId,
+							repoId: repo.id,
+						}),
+					);
+					if (Option.isNone(known)) {
+						yield* deps.db.Change.create(row);
+					}
+					yield* linkPiece(deps, input.pieceId, row.id);
+					return row;
+				}),
 			),
 		);
 		yield* announceChanges(deps);

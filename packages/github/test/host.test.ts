@@ -23,6 +23,32 @@ const REPO: ChangeHostRepo = {
 	source: "https://github.com/ShivaeDev/antumbra.git",
 };
 
+const pullNode = (number: number, slug: string) => ({
+	baseRefName: "main",
+	commits: { nodes: [{ commit: { statusCheckRollup: null } }] },
+	headRefName: `work/${slug}`,
+	headRefOid: `sha-${slug}`,
+	isDraft: false,
+	mergeStateStatus: "CLEAN",
+	number,
+	reviewDecision: null,
+	state: "OPEN",
+	title: `change in ${slug}`,
+	updatedAt: "2026-08-15T20:24:25Z",
+	url: `https://github.com/${slug}/pull/${number}`,
+});
+
+const PARTIAL_CROSS_REPO = JSON.stringify({
+	data: {
+		r_0: { pr_0: pullNode(7, "ShivaeDev/antumbra") },
+		r_1: {
+			pr_1: pullNode(7, "ShivaeDev/other"),
+			pr_2: null,
+		},
+	},
+	errors: [{ message: "pull request 9999 was not found" }],
+});
+
 const withGh = <A, E, R>(
 	body: (gh: ScriptedGh) => Effect.Effect<A, E, R>,
 ): Effect.Effect<A, E, R> => Effect.scoped(Effect.flatMap(scriptedGh, body));
@@ -85,6 +111,40 @@ describe("what the GitHub host can do right now", () => {
 });
 
 describe("observing changes through gh", () => {
+	it.live("keeps repository identity through a partial cross-repo batch", () =>
+		withGh((gh) =>
+			Effect.gen(function* () {
+				const other = {
+					...REPO,
+					id: "repo-other",
+					name: "other",
+					source: "https://github.com/ShivaeDev/other.git",
+				};
+				gh.answer("graphql", {
+					code: 1,
+					err: "gh: Could not resolve",
+					out: PARTIAL_CROSS_REPO,
+				});
+				const host = yield* hostOf(gh);
+				const seen = yield* host.observe([
+					{ externalId: "7", repo: REPO },
+					{ externalId: "7", repo: other },
+					{ externalId: "9999", repo: { ...other, id: "repo-missing" } },
+				]);
+
+				expect(
+					seen.map((one) => ({
+						externalId: one.externalId,
+						repoId: one.repoId,
+					})),
+				).toEqual([
+					{ externalId: "7", repoId: REPO.id },
+					{ externalId: "7", repoId: other.id },
+				]);
+			}),
+		),
+	);
+
 	it.live("maps every answered pull request and drops the missing one", () =>
 		withGh((gh) =>
 			Effect.gen(function* () {
@@ -96,6 +156,9 @@ describe("observing changes through gh", () => {
 				const host = yield* hostOf(gh);
 				const seen = yield* host.observe([
 					{ externalId: "23", repo: REPO },
+					{ externalId: "24", repo: REPO },
+					{ externalId: "27", repo: REPO },
+					{ externalId: "32", repo: REPO },
 					{ externalId: "9999", repo: REPO },
 					{ externalId: "77", repo: { ...REPO, source: "/somewhere/reef" } },
 				]);

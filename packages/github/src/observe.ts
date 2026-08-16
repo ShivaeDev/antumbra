@@ -8,8 +8,12 @@ import {
 } from "#errors.ts";
 import { mapPullRequest } from "#mapping.ts";
 import { decodeObserveResponse } from "#payload.ts";
-import type { PullRequestRef } from "#pull-url.ts";
-import { buildObserveQuery, chunked, OBSERVE_CHUNK_SIZE } from "#query.ts";
+import {
+	buildObservePlan,
+	chunked,
+	type LocatedPullRequestRef,
+	OBSERVE_CHUNK_SIZE,
+} from "#query.ts";
 import { onThisMachine } from "#runtime.ts";
 import { type GitHubRepoName, parseGitHubSource } from "#source.ts";
 
@@ -20,13 +24,20 @@ const OBSERVE_TIMEOUT_MILLIS = 60_000;
 // someone else and is left untouched rather than guessed at.
 export const pullRefsOf = (
 	refs: ReadonlyArray<ChangeRef>,
-): ReadonlyArray<PullRequestRef> =>
+): ReadonlyArray<LocatedPullRequestRef> =>
 	refs.flatMap((ref) => {
 		const repo = parseGitHubSource(ref.repo.source);
 		const number = Number(ref.externalId);
 		return Option.isNone(repo) || !Number.isSafeInteger(number) || number <= 0
 			? []
-			: [{ name: repo.value.name, number, owner: repo.value.owner }];
+			: [
+					{
+						name: repo.value.name,
+						number,
+						owner: repo.value.owner,
+						repoId: ref.repo.id,
+					},
+				];
 	});
 
 // why: GitHub answers a batch partially — one pull request this login cannot
@@ -41,22 +52,24 @@ const partial = (failure: GhCommandFailed): Effect.Effect<string, GhError> =>
 
 const observeGroup = (
 	executable: string,
-	group: ReadonlyArray<PullRequestRef>,
+	group: ReadonlyArray<LocatedPullRequestRef>,
 ): Effect.Effect<ReadonlyArray<ChangeObservation>, GhError> =>
-	onThisMachine(
-		runGh({
-			args: ["api", "graphql", "-f", `query=${buildObserveQuery(group)}`],
-			executable,
-			operation: "observe-changes",
-			timeoutMillis: OBSERVE_TIMEOUT_MILLIS,
-		}),
-	).pipe(
-		Effect.catchTag("GhCommandFailed", partial),
-		Effect.flatMap((stdout) =>
-			decodeObserveResponse("observe-changes", stdout),
-		),
-		Effect.map((nodes) => nodes.map(mapPullRequest)),
-	);
+	Effect.gen(function* () {
+		const plan = buildObservePlan(group);
+		const stdout = yield* onThisMachine(
+			runGh({
+				args: ["api", "graphql", "-f", `query=${plan.query}`],
+				executable,
+				operation: "observe-changes",
+				timeoutMillis: OBSERVE_TIMEOUT_MILLIS,
+			}),
+		).pipe(Effect.catchTag("GhCommandFailed", partial));
+		return (yield* decodeObserveResponse(
+			"observe-changes",
+			stdout,
+			plan.selections,
+		)).map(mapPullRequest);
+	});
 
 // why: a chunk that fails leaves its rows unobserved, and the domain reads an
 // unobserved row as untouched — the rest of the fleet still gets its answer.
@@ -64,7 +77,7 @@ const observeGroup = (
 // so it fails the whole call rather than reporting silence as calm.
 const observedOrSkipped = (
 	executable: string,
-	group: ReadonlyArray<PullRequestRef>,
+	group: ReadonlyArray<LocatedPullRequestRef>,
 ): Effect.Effect<ReadonlyArray<ChangeObservation>, GhError> =>
 	observeGroup(executable, group).pipe(
 		Effect.catch(
@@ -79,7 +92,7 @@ const observedOrSkipped = (
 
 export const observePulls = (
 	executable: string,
-	refs: ReadonlyArray<PullRequestRef>,
+	refs: ReadonlyArray<LocatedPullRequestRef>,
 ): Effect.Effect<ReadonlyArray<ChangeObservation>, GhError> =>
 	refs.length === 0
 		? Effect.succeed([])
@@ -94,9 +107,10 @@ export const observePulls = (
 export const observeOne = (
 	executable: string,
 	repo: GitHubRepoName,
+	repoId: string,
 	number: number,
 ): Effect.Effect<ChangeObservation, GhError> =>
-	observePulls(executable, [{ ...repo, number }]).pipe(
+	observePulls(executable, [{ ...repo, number, repoId }]).pipe(
 		Effect.flatMap((seen) => {
 			const one = seen[0];
 			return one === undefined

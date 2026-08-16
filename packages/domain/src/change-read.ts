@@ -77,11 +77,12 @@ export const changeRow = (row: StoredChange): ChangeRow => ({
 export const changeOfExternalId = (
 	deps: AgentDeps,
 	host: string,
+	repoId: string,
 	externalId: string,
-): Effect.Effect<Option.Option<ChangeRow>, PrismaError> =>
-	provideExecutors(deps)(
-		deps.db.Change.where({ externalId, host }).first(),
-	).pipe(Effect.map((row) => Option.map(row, changeRow)));
+) =>
+	deps.db.Change.where({ externalId, host, repoId })
+		.first()
+		.pipe(Effect.map((row) => Option.map(row, changeRow)));
 
 // why: only what is still open is worth asking a host about — a prepared
 // change has never reached it, and a settled one is history.

@@ -16,6 +16,7 @@ export interface ScriptedHostDrive {
 	// the scripted one can be told to refuse and told to stop refusing.
 	readonly refuse: (detail: string | null) => Effect.Effect<void>;
 	readonly transition: (
+		repoId: string,
 		externalId: string,
 		patch: Partial<ChangeObservation>,
 	) => Effect.Effect<void>;
@@ -34,6 +35,7 @@ export interface ScriptedHostOptions {
 interface ObservationFields {
 	readonly baseRef: string;
 	readonly headRef: string;
+	readonly repoId: string;
 	readonly title: string;
 }
 
@@ -51,6 +53,7 @@ export const scriptedObservation = (
 	isDraft: false,
 	mergeable: "unknown",
 	raw: { number: externalId, source: tag },
+	repoId: fields.repoId,
 	review: "none",
 	stage: "open",
 	title: fields.title,
@@ -68,9 +71,13 @@ const adoptedObservation = (
 	return scriptedObservation(tag, externalId, {
 		baseRef: repo.defaultRef,
 		headRef: `work/adopted-${externalId}`,
+		repoId: repo.id,
 		title: `adopted ${externalId}`,
 	});
 };
+
+const observationKey = (repoId: string, externalId: string): string =>
+	`${repoId}:${externalId}`;
 
 // why: the host every change test runs against — it mints ids the way a real
 // one does and answers from a map the test drives, so a change's whole life is
@@ -90,13 +97,18 @@ export const makeScriptedHost = (options: ScriptedHostOptions = {}) =>
 		const refusal = yield* Ref.make<string | null>(null);
 		const remember = (observation: ChangeObservation) =>
 			Ref.update(known, (map) =>
-				new Map(map).set(observation.externalId, observation),
+				new Map(map).set(
+					observationKey(observation.repoId, observation.externalId),
+					observation,
+				),
 			).pipe(Effect.as(observation));
 		const host: ChangeHost = {
 			adopt: (url, repo) =>
 				Effect.gen(function* () {
 					const fresh = adoptedObservation(tag, url, repo);
-					const seen = (yield* Ref.get(known)).get(fresh.externalId);
+					const seen = (yield* Ref.get(known)).get(
+						observationKey(repo.id, fresh.externalId),
+					);
 					return seen ?? (yield* remember(fresh));
 				}),
 			capability: Effect.succeed({ available: true, detail: "scripted" }),
@@ -117,6 +129,7 @@ export const makeScriptedHost = (options: ScriptedHostOptions = {}) =>
 						scriptedObservation(tag, `${minted}`, {
 							baseRef: request.base ?? request.repo.defaultRef,
 							headRef: request.berth.branch,
+							repoId: request.repo.id,
 							title: request.title,
 						}),
 					);
@@ -130,12 +143,13 @@ export const makeScriptedHost = (options: ScriptedHostOptions = {}) =>
 				asked: Ref.get(refs),
 				opened: Ref.get(requests),
 				refuse: (detail) => Ref.set(refusal, detail),
-				transition: (externalId, patch) =>
+				transition: (repoId, externalId, patch) =>
 					Ref.update(known, (map) => {
-						const seen = map.get(externalId);
+						const key = observationKey(repoId, externalId);
+						const seen = map.get(key);
 						return seen === undefined
 							? map
-							: new Map(map).set(externalId, { ...seen, ...patch });
+							: new Map(map).set(key, { ...seen, ...patch });
 					}),
 			},
 			host,

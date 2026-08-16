@@ -21,7 +21,10 @@ import {
 
 const gatedChain = Effect.gen(function* () {
 	const domain = yield* AgentDomain;
-	yield* domain.repos.register({ defaultRef: "main", source: REEF_SOURCE });
+	const repo = yield* domain.repos.register({
+		defaultRef: "main",
+		source: REEF_SOURCE,
+	});
 	const voyage = yield* domain.voyages.open({
 		backend: "scripted",
 		context: "the reef is uncharted",
@@ -41,7 +44,7 @@ const gatedChain = Effect.gen(function* () {
 	const bravo = yield* charter("bravo", [alpha.id]);
 	yield* domain.voyages.launch(alpha.id);
 	yield* domain.voyages.launch(bravo.id);
-	return { alpha, bravo, voyage };
+	return { alpha, bravo, repo, voyage };
 });
 
 const crewOf = (pieceId: string) =>
@@ -63,7 +66,7 @@ it.live("a landing piece gates its dependents until the change lands", () =>
 		const scripted = yield* makeScriptedHost();
 		yield* Effect.gen(function* () {
 			const domain = yield* AgentDomain;
-			const { alpha, bravo, voyage } = yield* gatedChain;
+			const { alpha, bravo, repo, voyage } = yield* gatedChain;
 			const crew = yield* eventually(crewOf(alpha.id));
 
 			yield* domain.changes.open({
@@ -86,7 +89,7 @@ it.live("a landing piece gates its dependents until the change lands", () =>
 			yield* Effect.sleep(400);
 			expect(yield* assignedPieces).toEqual([alpha.id]);
 
-			yield* scripted.drive.transition("1", { stage: "landed" });
+			yield* scripted.drive.transition(repo.id, "1", { stage: "landed" });
 			yield* domain.changes.refresh("scripted");
 			yield* eventually(
 				Effect.gen(function* () {

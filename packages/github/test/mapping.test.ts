@@ -8,6 +8,7 @@ import {
 	type ObservedNode,
 	type PullRequestNode,
 } from "#payload.ts";
+import { buildObservePlan } from "#query.ts";
 
 // why: recorded from the real endpoint (ShivaeDev/antumbra, pull requests 23,
 // 24, 27, 32 and a number nobody can resolve) so the translation is checked
@@ -17,15 +18,24 @@ const RECORDED = readFileSync(
 	"utf8",
 );
 
+const PLAN = buildObservePlan(
+	[23, 24, 27, 32, 9999].map((number) => ({
+		name: "antumbra",
+		number,
+		owner: "ShivaeDev",
+		repoId: "repo-antumbra",
+	})),
+);
+
 const observed = Effect.runSync(
-	decodeObserveResponse("observe-changes", RECORDED),
+	decodeObserveResponse("observe-changes", RECORDED, PLAN.selections),
 );
 
 const withNode = (fields: Partial<PullRequestNode>): ObservedNode => {
 	const base = observed[0];
 	return base === undefined
 		? expect.unreachable("the fixture is empty")
-		: { node: { ...base.node, ...fields }, raw: base.raw };
+		: { node: { ...base.node, ...fields }, raw: base.raw, repoId: base.repoId };
 };
 
 describe("reading GitHub's answer as the neutral vocabulary", () => {
@@ -51,6 +61,7 @@ describe("reading GitHub's answer as the neutral vocabulary", () => {
 			// a conflict — it is GitHub declining to answer a settled question.
 			mergeable: "unknown",
 			raw: merged.raw,
+			repoId: "repo-antumbra",
 			review: "none",
 			stage: "landed",
 			title:

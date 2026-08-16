@@ -2,6 +2,7 @@ import {
 	addExistingWorktree,
 	addWorktree as addGitWorktree,
 	branchExists,
+	countUnpushedBranchCommits,
 	deleteBranch,
 	inspectWorktree,
 	inspectWorktreeIdentity,
@@ -11,6 +12,7 @@ import {
 import {
 	type BerthPlan,
 	type BerthSite,
+	type ReclaimVerdict,
 	type RunnerError,
 	RunnerProvisionConflict,
 } from "@antumbra/plugin-api";
@@ -89,6 +91,25 @@ export const isClean = (path: string): Effect.Effect<boolean, RunnerError> =>
 	Effect.gen(function* () {
 		const state = yield* runGit(inspectWorktree(path));
 		return state._tag === "clean" && state.unpushedCommits === 0;
+	});
+
+// why: a prior reclaim may remove the worktree before branch deletion fails;
+// the surviving branch is then the only remaining unique-work evidence.
+export const reclaimMissingWorktree = (
+	mirror: string,
+	site: BerthSite,
+): Effect.Effect<ReclaimVerdict, RunnerError> =>
+	Effect.gen(function* () {
+		if (!(yield* runGit(branchExists(mirror, site.branch)))) {
+			yield* runGit(pruneWorktrees(mirror));
+			return { _tag: "reclaimed" as const };
+		}
+		if ((yield* runGit(countUnpushedBranchCommits(mirror, site.branch))) > 0) {
+			return { _tag: "dirty" as const };
+		}
+		yield* runGit(pruneWorktrees(mirror));
+		yield* runGit(deleteBranch(mirror, site.branch));
+		return { _tag: "reclaimed" as const };
 	});
 
 export const removeWorktree = (

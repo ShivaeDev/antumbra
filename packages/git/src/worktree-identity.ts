@@ -64,7 +64,7 @@ export const branchExists = (
 			"--format=%(refname:short)",
 			branch,
 		],
-		operation: "inspect-worktree",
+		operation: "inspect-branch",
 		timeoutMillis: INSPECT_TIMEOUT_MILLIS,
 	}).pipe(Effect.flatMap((output) => decodeBranchExists(branch, output)));
 

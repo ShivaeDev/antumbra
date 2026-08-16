@@ -97,9 +97,9 @@ const unlessHeld = <R>(
 			});
 };
 
-// why: runs after the agent sweep, so only an alive Agent tied to a running
-// birth still owns its ready berths. Dormant and orphaned rows are reclaimable;
-// unresolved changes independently hold either kind ahead of git work.
+// why: alive Agents retain their ready berths for Session recovery. Dormant
+// and orphaned rows are reclaimable; unresolved changes independently hold
+// either kind ahead of git work.
 export const sweepBerths = (runners: ReadonlyMap<string, Runner>) =>
 	Effect.gen(function* () {
 		const db = yield* Database;

@@ -78,6 +78,7 @@ export {
 	repoName,
 } from "#registry.ts";
 export type { RetireFields } from "#retire.ts";
+export { AgentRecoveryLive } from "#session-recovery-live.ts";
 export { SightSourceLive } from "#sight.ts";
 export type { SpawnFields } from "#spawn.ts";
 export {

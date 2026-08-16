@@ -4,6 +4,7 @@ import { makeAppRouter } from "@antumbra/contract";
 import {
 	AgentDomain,
 	AgentDomainLive,
+	AgentRecoveryLive,
 	ChangeWatcherLive,
 	DispatcherLive,
 	KernelReachLive,
@@ -89,6 +90,7 @@ const bridge = Layer.mergeAll(
 	VoyageSourceLive,
 	ChangeWatcherLive(),
 	DispatcherLive(),
+	AgentRecoveryLive,
 	KernelReachLive,
 ).pipe(Layer.provideMerge(kernel), Layer.provideMerge(persistence));
 

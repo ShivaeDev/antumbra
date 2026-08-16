@@ -1,10 +1,10 @@
 import { Clock, Effect, Queue, Ref } from "effect";
 import { nextBackoffMillis } from "#dispatch-policy.ts";
 
-// why: nothing here is persisted. After a crash the boot reclaim marks alive
-// agents dormant, their pieces read ready again, and the next tick
-// re-dispatches — a durable in-flight table would only be a second truth to
-// reconcile against the rows that already say everything.
+// why: nothing here is persisted. After a crash the durable Agent assignment
+// keeps its Piece active while Session recovery resumes it; a failed dormant
+// birth releases the Piece through that status. A durable in-flight table
+// would only duplicate the rows and Intents that already say everything.
 export interface DispatchState {
 	readonly failures: Ref.Ref<ReadonlyMap<string, number>>;
 	readonly inFlight: Ref.Ref<ReadonlyMap<string, string>>;

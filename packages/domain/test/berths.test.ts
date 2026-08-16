@@ -52,6 +52,22 @@ const berthRow = Effect.gen(function* () {
 	);
 });
 
+const detachSweepAgent = Effect.gen(function* () {
+	const db = yield* Database;
+	const writer = yield* Writer;
+	yield* writer.write(
+		db.Agent.where({ id: sweepPayload.agentId })
+			.update({ status: "dormant" })
+			.pipe(
+				Effect.andThen(
+					db.AgentSession.where({ id: sweepPayload.sessionId }).update({
+						status: "closed",
+					}),
+				),
+			),
+	);
+});
+
 const dirtyRunner = (base: Runner): Runner => ({
 	...base,
 	reclaim: () => Effect.succeed({ _tag: "dirty" as const }),
@@ -77,9 +93,10 @@ it.live("an old dirty berth stays stranded without destructive cleanup", () =>
 		expect(outcome).toBe("succeeded");
 		const ready = yield* berthRow.pipe(Effect.provide(temporary.layer));
 		expect(ready.status).toBe("ready");
+		yield* detachSweepAgent.pipe(Effect.provide(temporary.layer));
 
-		// why: a rebuild is a boot — the sweep judges every ready berth, and a
-		// dirty verdict must strand it rather than delete it.
+		// why: the explicitly detached Agent makes this berth reclaimable; an
+		// alive Agent would instead resume and keep its ready resources.
 		yield* Effect.provide(
 			Effect.void,
 			domainKernelLayer(

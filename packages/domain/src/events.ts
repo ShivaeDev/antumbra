@@ -7,7 +7,7 @@ import {
 	Writer,
 } from "@antumbra/persistence";
 import type { AgentEvent } from "@antumbra/session-events";
-import { type Context, Effect, PubSub, Ref } from "effect";
+import { type Context, Effect, Option, PubSub, Ref } from "effect";
 import type { EventSink } from "#fabric.ts";
 
 interface SinkContext {
@@ -86,7 +86,16 @@ export const makeEventSinkFactory = (feed: PubSub.PubSub<StoredEvent>) =>
 		const executors = yield* Effect.context<WriteExecutors>();
 		const context: SinkContext = { db, executors, feed, writer };
 		return (sessionId: string) =>
-			Effect.map(Ref.make(0), (counter) =>
-				makeSink(context, sessionId, counter),
-			);
+			Effect.gen(function* () {
+				const latest = yield* db.SessionEvent.where({ sessionId })
+					.orderBy((event) => event.seq.desc())
+					.take(1)
+					.first()
+					.pipe(Effect.provideContext(executors));
+				const next = Option.match(latest, {
+					onNone: () => 0,
+					onSome: (event) => event.seq + 1,
+				});
+				return makeSink(context, sessionId, yield* Ref.make(next));
+			});
 	});

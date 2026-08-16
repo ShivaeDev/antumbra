@@ -29,6 +29,7 @@ export const fleet = {
 			sessions: [
 				{
 					backend: "claude",
+					canInterrupt: true,
 					cwd: "/tmp/reef",
 					id: "session-1",
 					status: "open",

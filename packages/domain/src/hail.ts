@@ -11,11 +11,14 @@ import { composeCaptainCharter } from "#charter-captain.ts";
 import type { AgentDeps, SpawnRefused } from "#deps.ts";
 import {
 	CaptainAlreadyHailed,
+	CaptainSessionUnavailable,
 	type StoredChangeInvalid,
 	type StoredPieceChangeInvalid,
 	VoyageNotFound,
 } from "#errors.ts";
-import { CAPTAIN_ROLE, captainAtWork } from "#voyage-captain.ts";
+import { idleExecutionSessionsOfAgent } from "#session-execution-selection.ts";
+import type { InvalidSessionExecutionStatus } from "#session-execution-status.ts";
+import { CAPTAIN_ROLE, captainAtWork, captainOf } from "#voyage-captain.ts";
 import { voyageView } from "#voyage-view.ts";
 import { readVoyageWorld } from "#voyage-world.ts";
 
@@ -27,6 +30,8 @@ export interface HailedCaptain {
 export type HailRefused =
 	| BoardOwnerNotFound
 	| CaptainAlreadyHailed
+	| CaptainSessionUnavailable
+	| InvalidSessionExecutionStatus
 	| PrismaError
 	| SpawnRefused
 	| StoredBoardEntryInvalid
@@ -51,6 +56,27 @@ export const hailCaptain = (deps: AgentDeps, voyageId: string) =>
 				agentId: standing.value.agentId,
 				voyageId,
 			});
+		}
+		const current = captainOf(world, voyageId);
+		if (Option.isSome(current) && current.value.status === "alive") {
+			const sessions = idleExecutionSessionsOfAgent(
+				world,
+				current.value.agentId,
+			);
+			if (sessions.length !== 1) {
+				return yield* new CaptainSessionUnavailable({
+					agentId: current.value.agentId,
+					detail:
+						sessions.length === 0
+							? "no resumable execution is available"
+							: "more than one resumable execution is available",
+					voyageId,
+				});
+			}
+			const reach = yield* Deferred.await(deps.kernelReach);
+			const session = Option.getOrThrow(Option.fromUndefinedOr(sessions[0]));
+			const intentId = yield* reach.submitRecovery(session.id);
+			return { agentId: current.value.agentId, intentId };
 		}
 		const voyageSmoothLog = yield* boards
 			.read(BoardScope.Voyage({ voyageId }))

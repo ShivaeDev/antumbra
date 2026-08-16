@@ -3,7 +3,7 @@ import type {
 	BackendFailure,
 	OpenSessionOptions,
 } from "@antumbra/plugin-api";
-import { Effect, Exit, Ref } from "effect";
+import { Context, Effect, Exit, Layer, Ref } from "effect";
 import { type SessionAttachmentFailure, SessionNotLive } from "#errors.ts";
 import {
 	closeSessionAttachment,
@@ -16,7 +16,7 @@ import { makeSessionLifecycles } from "#session-lifecycle.ts";
 
 export type { EventSink, SessionAttachment } from "#session-attachment.ts";
 
-export interface SessionFabric {
+export interface SessionFabricService {
 	readonly interrupt: (
 		sessionId: string,
 	) => Effect.Effect<void, BackendFailure | SessionNotLive>;
@@ -28,6 +28,11 @@ export interface SessionFabric {
 	) => Effect.Effect<void, BackendFailure | SessionAttachmentFailure | E, R>;
 	readonly stop: (sessionId: string) => Effect.Effect<void>;
 }
+
+export class SessionFabric extends Context.Service<
+	SessionFabric,
+	SessionFabricService
+>()("@antumbra/domain/SessionFabric") {}
 
 // why: live handles only, never persisted — rebuilt empty at boot. Closing an
 // entry's scope is the single teardown path, so a stopped session can never
@@ -62,7 +67,12 @@ export const makeSessionFabric = Effect.gen(function* () {
 			);
 		}),
 	);
-	const start: SessionFabric["start"] = (backend, options, sink, admit) =>
+	const start: SessionFabricService["start"] = (
+		backend,
+		options,
+		sink,
+		admit,
+	) =>
 		lifecycles.admit(
 			options.sessionId,
 			Effect.gen(function* () {
@@ -81,7 +91,7 @@ export const makeSessionFabric = Effect.gen(function* () {
 				),
 			),
 		);
-	const interrupt: SessionFabric["interrupt"] = (sessionId) =>
+	const interrupt: SessionFabricService["interrupt"] = (sessionId) =>
 		Effect.gen(function* () {
 			const entry = (yield* Ref.get(entries)).get(sessionId);
 			if (entry === undefined) {
@@ -89,7 +99,9 @@ export const makeSessionFabric = Effect.gen(function* () {
 			}
 			yield* entry.handle.interrupt;
 		});
-	const stop: SessionFabric["stop"] = (sessionId) =>
+	const stop: SessionFabricService["stop"] = (sessionId) =>
 		lifecycles.stop(sessionId, removeEntry(sessionId));
-	return { interrupt, start, stop } satisfies SessionFabric;
+	return { interrupt, start, stop } satisfies SessionFabricService;
 });
+
+export const SessionFabricLive = Layer.effect(SessionFabric)(makeSessionFabric);

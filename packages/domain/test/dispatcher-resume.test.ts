@@ -2,13 +2,20 @@ import { maxConcurrency } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
 import type { Runner } from "@antumbra/plugin-api";
 import { expect, it } from "@effect/vitest";
-import { Deferred, Effect } from "effect";
+import { Deferred, Effect, Option } from "effect";
 import {
 	acquireTemporaryPersistence,
+	callTool,
 	dispatchingLayer,
 	makeScriptedBackend,
 	makeScriptedRunner,
+	rawOf,
+	sessionFor,
 } from "#test/harness.ts";
+import {
+	RECOVERY_INSTRUCTION,
+	reportsNativeRef,
+} from "#test/session-recovery-fixture.ts";
 import {
 	assignedPieces,
 	chain,
@@ -111,4 +118,85 @@ it.live("a piece whose Agent survived a crash is not dispatched twice", () =>
 			);
 		}).pipe(Effect.provide(layer));
 	}),
+);
+
+it.live(
+	"assigned work wakes the same idle Agent and Session before spawn",
+	() =>
+		Effect.gen(function* () {
+			const temporary = yield* acquireTemporaryPersistence;
+			const scripted = yield* makeScriptedBackend;
+			const backend = reportsNativeRef(
+				scripted.backend,
+				scripted,
+				"native-assigned",
+			);
+			yield* Effect.gen(function* () {
+				const db = yield* Database;
+				const { alpha } = yield* chain;
+				yield* eventually(
+					Effect.gen(function* () {
+						expect(yield* assignedPieces).toEqual([alpha.id]);
+					}),
+				);
+				const assignment = (yield* db.PieceAgent.where({
+					pieceId: alpha.id,
+				}).all())[0];
+				expect(assignment).toBeDefined();
+				if (assignment === undefined) {
+					return yield* Effect.die("the dispatched Piece has no Agent");
+				}
+				const initial = yield* sessionFor(scripted, assignment.agentId);
+				yield* initial.emit({
+					nativeRef: "native-assigned",
+					raw: rawOf("session/opened"),
+					type: "session.opened",
+				});
+				const session = (yield* db.AgentSession.where({
+					agentId: assignment.agentId,
+				}).all())[0];
+				expect(session).toBeDefined();
+				if (session === undefined) {
+					return yield* Effect.die("the assigned Agent has no Session");
+				}
+				yield* eventually(
+					Effect.gen(function* () {
+						const stored = yield* db.AgentSession.where({
+							id: session.id,
+						}).first();
+						expect(Option.getOrThrow(stored).nativeRef).toBe("native-assigned");
+					}),
+				);
+
+				yield* callTool(initial, "stand_down", undefined);
+				yield* eventually(
+					Effect.gen(function* () {
+						expect(yield* scripted.opened).toHaveLength(2);
+						const resumed = yield* sessionFor(scripted, assignment.agentId);
+						expect(yield* resumed.sent).toEqual([RECOVERY_INSTRUCTION]);
+					}),
+				);
+				const secondOpen = (yield* scripted.opened)[1];
+				expect(secondOpen?.sessionId).toBe(session.id);
+				expect(secondOpen?.resume).toEqual(Option.some("native-assigned"));
+				expect(yield* db.Agent.all()).toHaveLength(1);
+				expect(yield* db.AgentSession.all()).toHaveLength(1);
+				expect(yield* db.PieceAgent.all()).toEqual([assignment]);
+				expect(
+					yield* db.Intent.where({ tag: "agent/spawn" }).all(),
+				).toHaveLength(1);
+				expect(
+					Option.getOrThrow(
+						yield* db.AgentSession.where({ id: session.id }).first(),
+					).executionStatus,
+				).toBe("active");
+			}).pipe(
+				Effect.provide(
+					dispatchingLayer(temporary, backend, {
+						maxAlive: 1,
+						patienceMillis: 50,
+					}),
+				),
+			);
+		}),
 );

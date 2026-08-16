@@ -13,7 +13,7 @@ const CREW_STANDING_ORDER = [
 	"- Land what you produce against your piece: `land_report` for prose another agent will read, `land_artifact` for something a person should look at. A piece is done when its outcomes land; nothing else marks it.",
 	"- Code changes are opened with `open_change` against the repo you were berthed in, or adopted with `adopt_change` if you opened one by hand. Opening is not landing: your piece completes when the change lands.",
 	"- Write anything your successor must know to your piece board with `write_board` — the smooth register for what stays true, the rough register for scratch. `read_board` shows what earlier hands left.",
-	"- Call `stand_down` once everything is landed. Nothing you do after that call is seen.",
+	"- Call `stand_down` once everything is landed. Antumbra accepts the request before detaching execution and resumes you when hailed or assigned work.",
 	"- You charter nothing. If the voyage needs more pieces, say so in your report.",
 ].join("\n");
 

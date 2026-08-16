@@ -1,6 +1,7 @@
 import type { AgentSummary, Fleet, RepoSummary } from "@antumbra/contract";
 import type { DatabaseService } from "@antumbra/persistence";
 import { Effect } from "effect";
+import { decodeSessionExecutionStatus } from "#session-execution-status.ts";
 
 export const fleetSnapshot = (
 	db: DatabaseService,
@@ -13,6 +14,21 @@ export const fleetSnapshot = (
 		const sessions = yield* db.AgentSession.orderBy((session) =>
 			session.createdAt.asc(),
 		).all();
+		const sessionSummaries = yield* Effect.forEach(sessions, (session) =>
+			Effect.fromResult(
+				decodeSessionExecutionStatus(session.id, session.executionStatus),
+			).pipe(
+				Effect.map((executionStatus) => ({
+					agentId: session.agentId,
+					backend: session.backend,
+					canInterrupt:
+						session.status === "open" && executionStatus === "active",
+					cwd: session.cwd,
+					id: session.id,
+					status: session.status,
+				})),
+			),
+		);
 		const berths = yield* db.Berth.orderBy((berth) =>
 			berth.createdAt.asc(),
 		).all();
@@ -35,10 +51,11 @@ export const fleetSnapshot = (
 			charter: agent.charter,
 			id: agent.id,
 			role: agent.role,
-			sessions: sessions
+			sessions: sessionSummaries
 				.filter((session) => session.agentId === agent.id)
 				.map((session) => ({
 					backend: session.backend,
+					canInterrupt: session.canInterrupt,
 					cwd: session.cwd,
 					id: session.id,
 					status: session.status,

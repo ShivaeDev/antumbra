@@ -217,13 +217,6 @@
                   "kind": "scalar"
                 }
               },
-              "executionStatus": {
-                "nullable": false,
-                "type": {
-                  "codecId": "sqlite/text@1",
-                  "kind": "scalar"
-                }
-              },
               "id": {
                 "nullable": false,
                 "type": {
@@ -263,9 +256,6 @@
                 },
                 "cwd": {
                   "column": "cwd"
-                },
-                "executionStatus": {
-                  "column": "executionStatus"
                 },
                 "id": {
                   "column": "id"
@@ -1964,15 +1954,6 @@
                   "nativeType": "text",
                   "nullable": false
                 },
-                "executionStatus": {
-                  "codecId": "sqlite/text@1",
-                  "default": {
-                    "kind": "literal",
-                    "value": "active"
-                  },
-                  "nativeType": "text",
-                  "nullable": false
-                },
                 "id": {
                   "codecId": "sqlite/text@1",
                   "nativeType": "text",
@@ -3163,7 +3144,7 @@
         "id": "__unbound__"
       }
     },
-    "storageHash": "sha256:87a5c18aff7ae86f85c0115a4ee38c1587b32ad5c0e6fed69100a3165e01c5e0"
+    "storageHash": "sha256:50401c0e4002e23c2765a08775a8d4fc8e9d0d0d2680dbea24a3d3b5979405a9"
   },
   "capabilities": {
     "sql": {

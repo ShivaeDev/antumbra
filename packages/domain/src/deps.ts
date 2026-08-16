@@ -7,17 +7,19 @@ import type {
 } from "@antumbra/persistence";
 import type { AgentBackend, ChangeHost, Runner } from "@antumbra/plugin-api";
 import { type Context, type Deferred, Effect } from "effect";
-import type { EventSink, SessionFabric } from "#fabric.ts";
+import type { EventSink, SessionFabricService } from "#fabric.ts";
 import type { SpawnFields } from "#spawn.ts";
 
 export type SpawnRefused = PayloadInvalid | PrismaError | UnregisteredIntentTag;
 
-// why: an agent standing down asks for its own retire and a hail asks for a
-// spawn — only the kernel schedules either, and the kernel is built on top of
-// this bundle. The reach is handed over once the kernel is up, so a caller
-// waits for the path to exist rather than finding a half-built one.
+// why: only the kernel schedules lifecycle work, and the kernel is built on
+// top of this bundle. The reach is handed over once the kernel is up, so a
+// caller waits for the path to exist rather than finding a half-built one.
 export interface KernelReach {
-	readonly queueRetire: (agentId: string) => Effect.Effect<void>;
+	readonly queueSiesta: (sessionId: string) => Effect.Effect<void>;
+	readonly submitRecovery: (
+		sessionId: string,
+	) => Effect.Effect<string, SpawnRefused>;
 	readonly submitSpawn: (
 		payload: SpawnFields,
 	) => Effect.Effect<string, SpawnRefused>;
@@ -30,7 +32,7 @@ export interface AgentDeps {
 	readonly changeHosts: ReadonlyMap<string, ChangeHost>;
 	readonly db: DatabaseService;
 	readonly executors: Context.Context<WriteExecutors>;
-	readonly fabric: SessionFabric;
+	readonly fabric: SessionFabricService;
 	readonly feeds: DomainFeedsService;
 	readonly kernelReach: Deferred.Deferred<KernelReach>;
 	readonly runners: ReadonlyMap<string, Runner>;

@@ -49,7 +49,7 @@ export const makeSessionRecoveryContext = Effect.gen(function* () {
 		});
 	return (sessionId: string) =>
 		Effect.gen(function* () {
-			const session = yield* state.openSession(sessionId);
+			const session = yield* state.resumableSession(sessionId);
 			if (Option.isNone(session)) {
 				return Option.none<SessionRecoveryContext>();
 			}

@@ -21,6 +21,7 @@ import type {
 	UnknownChangeHostTag,
 } from "#errors.ts";
 import { type QuayReading, quayReading } from "#quay-view.ts";
+import type { InvalidSessionExecutionStatus } from "#session-execution-status.ts";
 import { readVoyageWorld } from "#voyage-world.ts";
 
 // why: what a host can do right now, said in the host's own words — the window
@@ -68,7 +69,10 @@ export interface ChangeProcedures {
 	// where it lies, beside the pieces one made by hand can be adopted onto.
 	readonly quay: Effect.Effect<
 		QuayReading,
-		PrismaError | StoredChangeInvalid | StoredPieceChangeInvalid
+		| InvalidSessionExecutionStatus
+		| PrismaError
+		| StoredChangeInvalid
+		| StoredPieceChangeInvalid
 	>;
 	readonly refresh: (
 		hostTag: string,

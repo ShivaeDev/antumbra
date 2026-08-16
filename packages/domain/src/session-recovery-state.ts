@@ -1,5 +1,10 @@
-import { Database, type WriteExecutors } from "@antumbra/persistence";
-import { Effect, Option, Schema } from "effect";
+import { DomainFeeds } from "@antumbra/domain-feeds";
+import { Database, type WriteExecutors, Writer } from "@antumbra/persistence";
+import { Effect, Option, PubSub, Schema } from "effect";
+import {
+	decodeSessionExecutionStatus,
+	sessionExecutionTransition,
+} from "#session-execution-status.ts";
 import { recoveryHeld } from "#session-recovery-error.ts";
 import { AgentStatusSchema } from "#status.ts";
 
@@ -11,10 +16,12 @@ const decodeAgentStatus = Schema.decodeUnknownOption(AgentStatusSchema);
 
 export const makeSessionRecoveryState = Effect.gen(function* () {
 	const db = yield* Database;
+	const feeds = yield* DomainFeeds;
+	const writer = yield* Writer;
 	const executors = yield* Effect.context<WriteExecutors>();
 	const provide = <A, E>(effect: Effect.Effect<A, E, WriteExecutors>) =>
 		Effect.provideContext(effect, executors);
-	const openSession = (sessionId: string) =>
+	const resumableSession = (sessionId: string) =>
 		Effect.gen(function* () {
 			const session = yield* provide(
 				db.AgentSession.where({ id: sessionId }).first(),
@@ -26,7 +33,32 @@ export const makeSessionRecoveryState = Effect.gen(function* () {
 			if (Option.isNone(status)) {
 				return yield* recoveryHeld(`${sessionId} has invalid Session status`);
 			}
-			return status.value === "open" ? session : Option.none();
+			if (status.value !== "open") {
+				return Option.none();
+			}
+			const executionStatus = yield* Effect.fromResult(
+				decodeSessionExecutionStatus(sessionId, session.value.executionStatus),
+			);
+			if (executionStatus === "draining") {
+				return Option.none();
+			}
+			if (executionStatus === "idle") {
+				const active = yield* Effect.fromResult(
+					sessionExecutionTransition(sessionId, executionStatus, "wake"),
+				);
+				yield* provide(
+					writer.write(
+						db.AgentSession.where({
+							id: sessionId,
+							executionStatus: "idle",
+							status: "open",
+						}).update({ executionStatus: active }),
+					),
+				);
+				yield* PubSub.publish(feeds.fleet, undefined);
+				yield* PubSub.publish(feeds.voyages, undefined);
+			}
+			return session;
 		});
 	const aliveAgent = (agentId: string, sessionId: string) =>
 		Effect.gen(function* () {
@@ -86,6 +118,6 @@ export const makeSessionRecoveryState = Effect.gen(function* () {
 				],
 				{ concurrency: 1 },
 			).pipe(Effect.asVoid),
-		openSession,
+		resumableSession,
 	};
 });

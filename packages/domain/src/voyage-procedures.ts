@@ -19,6 +19,7 @@ import type {
 	VoyageNotFound,
 } from "#errors.ts";
 import type { HailedCaptain, HailRefused } from "#hail.ts";
+import type { InvalidSessionExecutionStatus } from "#session-execution-status.ts";
 import type { VoyageRow } from "#voyage-rows.ts";
 import type { VoyageSummary, VoyageView } from "#voyage-view.ts";
 
@@ -48,7 +49,10 @@ export interface VoyageProcedures {
 	) => Effect.Effect<void, PieceNotFound | PrismaError>;
 	readonly list: Effect.Effect<
 		ReadonlyArray<VoyageSummary>,
-		PrismaError | StoredChangeInvalid | StoredPieceChangeInvalid
+		| InvalidSessionExecutionStatus
+		| PrismaError
+		| StoredChangeInvalid
+		| StoredPieceChangeInvalid
 	>;
 	readonly open: (
 		input: OpenVoyageInput,
@@ -60,7 +64,10 @@ export interface VoyageProcedures {
 		voyageId: string,
 	) => Effect.Effect<
 		Option.Option<VoyageView>,
-		PrismaError | StoredChangeInvalid | StoredPieceChangeInvalid
+		| InvalidSessionExecutionStatus
+		| PrismaError
+		| StoredChangeInvalid
+		| StoredPieceChangeInvalid
 	>;
 	readonly rewire: (
 		pieceId: string,

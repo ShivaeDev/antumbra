@@ -8,6 +8,7 @@ import type { SessionNotLive } from "#errors.ts";
 import type { RepoRegistry } from "#registry.ts";
 import type { RetireFields } from "#retire.ts";
 import type { RecoveryFields } from "#session-recovery.ts";
+import type { SiestaFields } from "#session-siesta.ts";
 import type { SpawnFields } from "#spawn.ts";
 import type { VoyageProcedures } from "#voyages.ts";
 
@@ -33,6 +34,7 @@ export class AgentDomain extends Context.Service<
 		readonly repos: RepoRegistry;
 		readonly recover: IntentKind<RecoveryFields>;
 		readonly retire: IntentKind<RetireFields>;
+		readonly siesta: IntentKind<SiestaFields>;
 		readonly spawn: IntentKind<SpawnFields>;
 		readonly voyages: VoyageProcedures;
 	}

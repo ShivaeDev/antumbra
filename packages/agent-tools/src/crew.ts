@@ -36,7 +36,7 @@ export const landArtifactSpec = defineTool({
 
 export const standDownSpec = defineTool({
 	description:
-		"End your session gracefully once your work is done and everything is landed. Nothing you do after calling this will be seen.",
+		"Ask Antumbra to stand you down once your work is done and everything is landed. Antumbra accepts the request before detaching execution and resumes the same Agent when hailed or assigned work.",
 	input: Schema.Struct({}),
 	name: "stand_down",
 });

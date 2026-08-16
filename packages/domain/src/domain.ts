@@ -12,7 +12,7 @@ import { makeChangeProcedures } from "#change-procedures.ts";
 import { makeCrewToolCompiler } from "#crew-tools.ts";
 import type { AgentDeps, KernelReach } from "#deps.ts";
 import { makeEventSinkFactory } from "#events.ts";
-import { makeSessionFabric } from "#fabric.ts";
+import { makeSessionFabric, type SessionAttachment } from "#fabric.ts";
 import { makeRepoRegistry } from "#registry.ts";
 import { makeRetireKind } from "#retire.ts";
 import { makeRecoveryKind, RECOVERY_INSTRUCTION } from "#session-recovery.ts";
@@ -24,6 +24,20 @@ import { CAPTAIN_ROLE } from "#voyage-captain.ts";
 import { makeVoyageProcedures } from "#voyages.ts";
 
 export { AGENTS_ALIVE_GAUGE, AgentDomain } from "#agent-domain-service.ts";
+
+const admitRecoveredSession = (
+	context: SessionRecoveryContext,
+	attachment: SessionAttachment,
+) =>
+	Effect.gen(function* () {
+		const openedNativeRef = yield* attachment.openedNativeRef;
+		if (openedNativeRef !== context.nativeRef) {
+			return yield* new SessionRecoveryHeld({
+				detail: `provider resumed native session ${openedNativeRef}, expected ${context.nativeRef}`,
+			});
+		}
+		yield* attachment.handle.queue(RECOVERY_INSTRUCTION);
+	});
 
 // why: built before the kernel starts — the boot sweep must settle stranded
 // agents before admission can pull anything that reads their state.
@@ -84,21 +98,14 @@ export const AgentDomainLive = (
 				};
 				return Effect.gen(function* () {
 					const sink = yield* sinkFor(context.identity.sessionId);
-					const attachment = yield* fabric.start(backend, options, sink);
-					const openedNativeRef = yield* attachment.openedNativeRef.pipe(
-						Effect.onError(() => fabric.stop(context.identity.sessionId)),
-						Effect.catchTag("SessionAttachmentFailure", (failure) =>
-							Effect.fail(new SessionRecoveryHeld({ detail: failure.detail })),
-						),
+					yield* fabric.start(backend, options, sink, (attachment) =>
+						admitRecoveredSession(context, attachment),
 					);
-					if (openedNativeRef !== context.nativeRef) {
-						yield* fabric.stop(context.identity.sessionId);
-						return yield* new SessionRecoveryHeld({
-							detail: `provider resumed native session ${openedNativeRef}, expected ${context.nativeRef}`,
-						});
-					}
-					yield* attachment.handle.queue(RECOVERY_INSTRUCTION);
-				});
+				}).pipe(
+					Effect.catchTag("SessionAttachmentFailure", (failure) =>
+						Effect.fail(new SessionRecoveryHeld({ detail: failure.detail })),
+					),
+				);
 			};
 			const recoveryRuntime = SessionRecoveryRuntime.of({
 				resume: resumeSession,

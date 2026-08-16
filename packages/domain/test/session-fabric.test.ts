@@ -45,11 +45,21 @@ it.live("concurrent starts attach one backend handle per session", () =>
 			};
 			const fabric = yield* makeSessionFabric;
 			const first = yield* fabric
-				.start(backend, options, () => Effect.succeed(true))
+				.start(
+					backend,
+					options,
+					() => Effect.succeed(true),
+					() => Effect.void,
+				)
 				.pipe(Effect.forkChild);
 			yield* Deferred.await(firstEntered);
 			const second = yield* fabric
-				.start(backend, options, () => Effect.succeed(true))
+				.start(
+					backend,
+					options,
+					() => Effect.succeed(true),
+					() => Effect.void,
+				)
 				.pipe(Effect.forkChild);
 			// why: reaching either suspension point proves both starts overlapped.
 			yield* Effect.yieldNow;
@@ -88,12 +98,80 @@ it.live(
 					tag: "scripted",
 				};
 				const fabric = yield* makeSessionFabric;
-				const attachment = yield* fabric.start(backend, options, () =>
-					Effect.succeed(false),
+				const failure = yield* Effect.flip(
+					fabric.start(
+						backend,
+						options,
+						() => Effect.succeed(false),
+						(attachment) => attachment.openedNativeRef.pipe(Effect.asVoid),
+					),
 				);
-				const failure = yield* Effect.flip(attachment.openedNativeRef);
 				expect(failure).toBeInstanceOf(SessionAttachmentFailure);
 				expect(failure.detail).toContain("durably record native identity");
 			}),
 		),
+);
+
+it.live("stop interrupts admission, closes once, and leaves retry fresh", () =>
+	Effect.scoped(
+		Effect.gen(function* () {
+			const queueEntered = yield* Deferred.make<void>();
+			const release = yield* Deferred.make<void>();
+			const closes = yield* Ref.make(0);
+			const opens = yield* Ref.make(0);
+			const queued = yield* Ref.make(false);
+			const handle: SessionHandle = {
+				events: Stream.empty,
+				interrupt: Effect.void,
+				nativeRef: Effect.succeed(Option.some("native-fabric")),
+				queue: () =>
+					Deferred.succeed(queueEntered, undefined).pipe(
+						Effect.andThen(Deferred.await(release)),
+						Effect.andThen(Ref.set(queued, true)),
+					),
+				steer: () => Effect.void,
+			};
+			const backend: AgentBackend = {
+				capabilities: {
+					fork: false,
+					liveInterrupt: true,
+					multiClient: false,
+				},
+				openSession: () =>
+					Effect.gen(function* () {
+						yield* Ref.update(opens, (count) => count + 1);
+						yield* Effect.addFinalizer(() =>
+							Ref.update(closes, (count) => count + 1),
+						);
+						return handle;
+					}),
+				tag: "scripted",
+			};
+			const fabric = yield* makeSessionFabric;
+			const starting = yield* fabric
+				.start(
+					backend,
+					options,
+					() => Effect.succeed(true),
+					(attachment) => attachment.handle.queue("recover"),
+				)
+				.pipe(Effect.forkChild);
+			yield* Deferred.await(queueEntered);
+			yield* fabric.stop(options.sessionId);
+			const failure = yield* Effect.flip(Fiber.join(starting));
+			expect(failure).toBeInstanceOf(SessionAttachmentFailure);
+			expect(yield* Ref.get(closes)).toBe(1);
+			expect(yield* Ref.get(queued)).toBe(false);
+
+			yield* Deferred.succeed(release, undefined);
+			yield* fabric.start(
+				backend,
+				options,
+				() => Effect.succeed(true),
+				(attachment) => attachment.handle.queue("retry"),
+			);
+			expect(yield* Ref.get(opens)).toBe(2);
+			expect(yield* Ref.get(queued)).toBe(true);
+		}),
+	),
 );

@@ -6,6 +6,7 @@ import { deliverCharterOnce } from "#charter.ts";
 import { makeCrewToolCompiler } from "#crew-tools.ts";
 import type { AgentDeps } from "#deps.ts";
 import { UnknownBackendTag, UnknownRunnerTag } from "#errors.ts";
+import type { SessionAttachment } from "#fabric.ts";
 import { makePrepareMoorage } from "#moorage-plan.ts";
 import { makeMarkMoorageReady } from "#moorage-ready.ts";
 import { makeEnsureSessionRow } from "#moorage-session.ts";
@@ -31,6 +32,14 @@ export const makeSpawnKind = Effect.gen(function* () {
 	const isActivatedBirth = yield* makeIsActivatedBirth;
 	const isCancelling = yield* makeIsSpawnCancelling;
 	return (deps: AgentDeps) => {
+		const admitSpawnSession = (
+			payload: SpawnFields,
+			attachment: SessionAttachment,
+		) =>
+			Effect.gen(function* () {
+				yield* deliverCharterOnce(deps, payload, attachment.handle);
+				yield* activateAgent(deps, payload.agentId);
+			});
 		const settleAfterFailure = (payload: SpawnFields) =>
 			settleSpawnFailure(deps, payload).pipe(
 				Effect.catchCause((cause) =>
@@ -109,7 +118,7 @@ export const makeSpawnKind = Effect.gen(function* () {
 					yield* markMoorageReady(payload);
 					yield* ensureSessionRow(payload, plan);
 					const sink = yield* deps.sinkFor(payload.sessionId);
-					const attachment = yield* deps.fabric.start(
+					yield* deps.fabric.start(
 						backend,
 						{
 							cwd: plan.root,
@@ -118,9 +127,8 @@ export const makeSpawnKind = Effect.gen(function* () {
 							tools: toolsFor(payload),
 						},
 						sink,
+						(attachment) => admitSpawnSession(payload, attachment),
 					);
-					yield* deliverCharterOnce(deps, payload, attachment.handle);
-					yield* activateAgent(deps, payload.agentId);
 				}).pipe(Effect.onError(settleUnlessTeardown(payload)));
 			});
 

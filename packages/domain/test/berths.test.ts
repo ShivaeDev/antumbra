@@ -173,6 +173,10 @@ const moored = (strandedAt: Date) =>
 						stage: "open",
 					}),
 				),
+				db.PieceChange.create({
+					changeId: "change-open",
+					pieceId: "piece-open",
+				}),
 				db.Berth.create(
 					berthAt({
 						branch: HELD_BRANCH,

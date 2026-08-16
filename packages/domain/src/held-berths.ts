@@ -1,5 +1,5 @@
-import type { ChangeRow } from "#change-rows.ts";
-import { changeStatus } from "#outcome-status.ts";
+import type { ChangeRow, PieceChangeRow } from "#change-rows.ts";
+import { unresolvedChangeIds } from "#outcome-status.ts";
 
 // why: the rule reads three columns off a berth and two off the registry, so it
 // names the shapes it reads rather than either table's whole row — the sweep's
@@ -21,11 +21,11 @@ export interface RepoSource {
 // by nothing: forgetting a repo hands its berths back to the ordinary sweep.
 const backingChange = (
 	berth: BerthBranch,
-	pending: ReadonlyArray<ChangeRow>,
+	unresolved: ReadonlyArray<ChangeRow>,
 	repoOfSource: ReadonlyMap<string, string>,
 ): ChangeRow | undefined => {
 	const repoId = repoOfSource.get(berth.source);
-	return pending.find(
+	return unresolved.find(
 		(change) => change.repoId === repoId && change.headRef === berth.branch,
 	);
 };
@@ -33,22 +33,22 @@ const backingChange = (
 // why: the crew that must answer red checks or a review needs the worktree the
 // change was written in, and its branch is right there with its reflog. Which
 // changes still want an answer is the outcome model's word, never a stage this
-// file names — the day a withdrawn change counts as pending again, so does the
-// hold. Each held berth carries the change holding it, so a sweep can say why.
+// file names. Each held berth carries the unresolved change holding it, so a
+// sweep can say why.
 export const heldBerths = (
 	berths: ReadonlyArray<BerthBranch>,
 	changes: ReadonlyArray<ChangeRow>,
 	repos: ReadonlyArray<RepoSource>,
+	pieceChanges: ReadonlyArray<PieceChangeRow>,
 ): ReadonlyMap<string, string> => {
 	const repoOfSource = new Map(
 		repos.map((repo) => [repo.source, repo.id] as const),
 	);
-	const pending = changes.filter(
-		(change) => changeStatus(change) === "pending",
-	);
+	const unresolvedIds = unresolvedChangeIds({ changes, pieceChanges });
+	const unresolved = changes.filter((change) => unresolvedIds.has(change.id));
 	const held = new Map<string, string>();
 	for (const berth of berths) {
-		const backing = backingChange(berth, pending, repoOfSource);
+		const backing = backingChange(berth, unresolved, repoOfSource);
 		if (backing !== undefined) {
 			held.set(berth.id, backing.id);
 		}

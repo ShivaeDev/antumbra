@@ -1,4 +1,4 @@
-import type { ChangeRow } from "#change-rows.ts";
+import type { ChangeRow, PieceChangeRow } from "#change-rows.ts";
 import type { VoyageWorld } from "#voyage-rows.ts";
 
 // why: outcomes differ in how long they take to count. A report or an artifact
@@ -20,7 +20,7 @@ export const changeStatus = (row: ChangeRow): OutcomeStatus => {
 };
 
 export const changesOfPiece = (
-	world: VoyageWorld,
+	world: Pick<VoyageWorld, "changes" | "pieceChanges">,
 	pieceId: string,
 ): ReadonlyArray<ChangeRow> => {
 	const linked = new Set(
@@ -29,6 +29,37 @@ export const changesOfPiece = (
 			.map((link) => link.changeId),
 	);
 	return world.changes.filter((change) => linked.has(change.id));
+};
+
+export const unresolvedChangesOfPiece = (
+	world: {
+		readonly changes: ReadonlyArray<ChangeRow>;
+		readonly pieceChanges: ReadonlyArray<PieceChangeRow>;
+	},
+	pieceId: string,
+): ReadonlyArray<ChangeRow> => {
+	const changes = changesOfPiece(world, pieceId);
+	const replacementLanded = changes.some(
+		(change) => changeStatus(change) === "landed",
+	);
+	return changes.filter((change) => {
+		const status = changeStatus(change);
+		return (
+			status === "pending" || (status === "withdrawn" && !replacementLanded)
+		);
+	});
+};
+
+export const unresolvedChangeIds = (world: {
+	readonly changes: ReadonlyArray<ChangeRow>;
+	readonly pieceChanges: ReadonlyArray<PieceChangeRow>;
+}): ReadonlySet<string> => {
+	const pieceIds = new Set(world.pieceChanges.map((link) => link.pieceId));
+	return new Set(
+		[...pieceIds].flatMap((pieceId) =>
+			unresolvedChangesOfPiece(world, pieceId).map((change) => change.id),
+		),
+	);
 };
 
 const countedLinks = (
@@ -42,14 +73,11 @@ export const pieceOutcomeTally = (
 ): OutcomeTally => {
 	const statuses = changesOfPiece(world, pieceId).map(changeStatus);
 	const landedChanges = statuses.filter((status) => status === "landed").length;
-	const withdrawn = statuses.filter((status) => status === "withdrawn").length;
 	return {
 		landed:
 			countedLinks(world.pieceReports, pieceId) +
 			countedLinks(world.pieceArtifacts, pieceId) +
 			landedChanges,
-		pending:
-			statuses.filter((status) => status === "pending").length +
-			(landedChanges === 0 ? withdrawn : 0),
+		pending: unresolvedChangesOfPiece(world, pieceId).length,
 	};
 };

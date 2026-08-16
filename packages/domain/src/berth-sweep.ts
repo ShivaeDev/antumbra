@@ -7,8 +7,7 @@ import {
 } from "@antumbra/persistence";
 import type { BerthSite, Runner } from "@antumbra/plugin-api";
 import { Clock, Effect } from "effect";
-import { changeRow } from "#change-read.ts";
-import { heldBerths } from "#held-berths.ts";
+import { readBerthSweep } from "#berth-sweep-read.ts";
 
 const STRANDED_TTL_MILLIS = 7 * 24 * 60 * 60 * 1000;
 
@@ -114,11 +113,7 @@ export const sweepBerths = (runners: ReadonlyMap<string, Runner>) =>
 		const db = yield* Database;
 		const writer = yield* Writer;
 		const now = yield* Clock.currentTimeMillis;
-		const ready = yield* db.Berth.where({ status: "ready" }).all();
-		const stranded = yield* db.Berth.where({ status: "stranded" }).all();
-		const changes = (yield* db.Change.all()).map(changeRow);
-		const repos = yield* db.Repo.all();
-		const held = heldBerths([...ready, ...stranded], changes, repos);
+		const { held, ready, stranded } = yield* readBerthSweep;
 		yield* Effect.forEach(ready, (berth) => {
 			const runner = runners.get(berth.runner);
 			return runner === undefined

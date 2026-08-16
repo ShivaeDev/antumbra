@@ -91,16 +91,34 @@ const registerRepo = (deps: AgentDeps, registration: RepoRegistration) => {
 	});
 };
 
-// why: forgetting a repo only changes what future spawns are moored to —
-// berths already cut from it belong to their agents and are swept on their
-// own schedule.
-const forgetRepo = (deps: AgentDeps, id: string) =>
-	provideExecutors(deps)(
-		deps.writer.write(deps.db.Repo.where({ id }).deleteAll()),
-	).pipe(
-		Effect.andThen(PubSub.publish(deps.feeds.fleet, undefined)),
+// why: forgetting is the destructive boundary for a registered repo. Its
+// changes cannot survive without the registry identity that lets the watcher
+// address them, so links and transition history leave in the same transaction.
+const forgetRepo = (deps: AgentDeps, id: string) => {
+	const forget = Effect.gen(function* () {
+		const changes = yield* deps.db.Change.where({ repoId: id }).all();
+		yield* Effect.forEach(changes, (change) =>
+			deps.db.ChangeTransition.where({ changeId: change.id })
+				.deleteAll()
+				.pipe(
+					Effect.andThen(
+						deps.db.PieceChange.where({ changeId: change.id }).deleteAll(),
+					),
+				),
+		);
+		yield* deps.db.Change.where({ repoId: id }).deleteAll();
+		yield* deps.db.Repo.where({ id }).deleteAll();
+	});
+	return provideExecutors(deps)(deps.writer.write(forget)).pipe(
+		Effect.andThen(
+			Effect.all([
+				PubSub.publish(deps.feeds.fleet, undefined),
+				PubSub.publish(deps.feeds.voyages, undefined),
+			]),
+		),
 		Effect.asVoid,
 	);
+};
 
 export const makeRepoRegistry = (deps: AgentDeps): RepoRegistry => ({
 	forget: (id) => forgetRepo(deps, id),

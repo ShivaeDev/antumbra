@@ -19,11 +19,13 @@ import {
 } from "@antumbra/persistence";
 import { makePluginHost } from "@antumbra/plugin-api";
 import { localRunnerPlugin } from "@antumbra/runner-local";
+import { NodeServices } from "@effect/platform-node";
 import { Effect, Layer, ManagedRuntime } from "effect";
 import { AppInfoSourceLive } from "#adapters/app-info.ts";
 import { runBoot } from "#adapters/boot.ts";
 import { activateInstalledCli } from "#adapters/installed-cli.ts";
 import {
+	artifactsInDataDirectory,
 	configureDataDirectory,
 	openMainWindow,
 	persistenceMigrationsDirectory,
@@ -67,7 +69,8 @@ const agents = Layer.unwrap(
 			yield* host.backends,
 			yield* host.runners,
 			yield* host.changeHosts,
-		);
+			artifactsInDataDirectory(configureDataDirectory()),
+		).pipe(Layer.provide(NodeServices.layer));
 	}),
 );
 

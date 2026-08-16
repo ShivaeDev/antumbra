@@ -144,12 +144,6 @@
 		"type": "SweepWriter"
 	},
 	{
-		"callable": "landArtifact",
-		"file": "packages/domain/src/outcomes.ts",
-		"parameter": "deps",
-		"type": "AgentDeps"
-	},
-	{
 		"callable": "landReport",
 		"file": "packages/domain/src/outcomes.ts",
 		"parameter": "deps",

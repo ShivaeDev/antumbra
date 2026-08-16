@@ -1,3 +1,4 @@
+import { dirname, join } from "node:path";
 import { KernelLive, type KernelOptions } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
 import {
@@ -14,6 +15,7 @@ import type {
 	SessionHandle,
 } from "@antumbra/plugin-api";
 import type { AgentEvent } from "@antumbra/session-events";
+import { NodeServices } from "@effect/platform-node";
 import { Effect, Layer, Option, Queue, Ref, Stream } from "effect";
 import type { ObserveCadenceOptions } from "#change-cadence.ts";
 import { ChangeWatcherLive } from "#change-watcher.ts";
@@ -196,7 +198,8 @@ export const domainKernelLayer = (
 				new Map([[backend.tag, backend]]),
 				new Map([[runner.tag, runner]]),
 				changeHosts,
-			),
+				join(dirname(temporary.database), "artifacts"),
+			).pipe(Layer.provide(NodeServices.layer)),
 		),
 		Layer.provideMerge(temporary.layer),
 	);

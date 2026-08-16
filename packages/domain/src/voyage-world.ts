@@ -1,3 +1,4 @@
+import type { ArtifactRow } from "@antumbra/artifacts";
 import type {
 	DatabaseService,
 	PrismaError,
@@ -7,7 +8,6 @@ import { Effect } from "effect";
 import { changeRow } from "#change-read.ts";
 import { type AgentDeps, provideExecutors } from "#deps.ts";
 import type {
-	ArtifactRow,
 	PieceRow,
 	RepoRow,
 	ReportRow,

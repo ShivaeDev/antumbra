@@ -1,3 +1,9 @@
+import {
+	type ArtifactFailure,
+	type ArtifactInput,
+	type ArtifactRow,
+	Artifacts,
+} from "@antumbra/artifacts";
 import type { PrismaError } from "@antumbra/persistence";
 import {
 	type CharterFailure,
@@ -11,15 +17,10 @@ import { Clock, Effect, type Option, PubSub } from "effect";
 import { type AgentDeps, provideExecutors } from "#deps.ts";
 import type { VoyageNotFound } from "#errors.ts";
 import { type HailedCaptain, type HailRefused, hailCaptain } from "#hail.ts";
-import {
-	type ArtifactInput,
-	landArtifact,
-	landReport,
-	type ReportInput,
-} from "#outcomes.ts";
+import { landReport, type ReportInput } from "#outcomes.ts";
 import { readVoyageView } from "#voyage-read.ts";
 import { requireVoyage } from "#voyage-record.ts";
-import type { ArtifactRow, ReportRow, VoyageRow } from "#voyage-rows.ts";
+import type { ReportRow, VoyageRow } from "#voyage-rows.ts";
 import {
 	type VoyageSummary,
 	type VoyageView,
@@ -44,7 +45,7 @@ export interface VoyageProcedures {
 	) => Effect.Effect<HailedCaptain, HailRefused>;
 	readonly landArtifact: (
 		input: ArtifactInput,
-	) => Effect.Effect<ArtifactRow, PieceNotFound | PrismaError>;
+	) => Effect.Effect<ArtifactRow, ArtifactFailure>;
 	readonly landReport: (
 		input: ReportInput,
 	) => Effect.Effect<ReportRow, PieceNotFound | PrismaError>;
@@ -115,11 +116,12 @@ const setFocus = (deps: AgentDeps, voyageId: string, focused: boolean) =>
 	});
 
 export const makeVoyageProcedures = Effect.gen(function* () {
+	const artifacts = yield* Artifacts;
 	const pieces = yield* Pieces;
 	return (deps: AgentDeps): VoyageProcedures => ({
 		charterPiece: pieces.charter,
 		hail: (voyageId) => hailCaptain(deps, voyageId),
-		landArtifact: (input) => landArtifact(deps, input),
+		landArtifact: artifacts.land,
 		landReport: (input) => landReport(deps, input),
 		launch: pieces.launch,
 		list: readVoyageWorld(deps).pipe(Effect.map(voyageSummaries)),

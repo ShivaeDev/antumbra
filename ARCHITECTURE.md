@@ -40,6 +40,7 @@ while idle sessions remain detached until needed. See
 | `packages/kernel`         | Intents, admission scheduling, lifecycle state machines         |
 | `packages/domain-feeds`   | Shared post-commit domain change notifications                  |
 | `packages/pieces`         | Piece acts and their transactional graph invariants             |
+| `packages/artifacts`      | Durable artifact publication and landing                        |
 | `packages/domain`         | Application-facing use cases and capability Layer composition   |
 | `packages/git`            | Semantic Git operations over Effect's child-process port        |
 | `packages/github`         | GitHub change-host adapter: pull requests through `gh`           |

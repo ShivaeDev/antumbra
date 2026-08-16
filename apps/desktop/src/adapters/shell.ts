@@ -24,6 +24,9 @@ export const runnerRootsInDataDirectory = (
 	reposRoot: join(dataDirectory, "repos"),
 });
 
+export const artifactsInDataDirectory = (dataDirectory: string): string =>
+	join(dataDirectory, "artifacts");
+
 export const persistenceMigrationsDirectory = (): string =>
 	app.isPackaged
 		? join(process.resourcesPath, "persistence", "migrations")

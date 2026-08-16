@@ -88,7 +88,7 @@ export const serviceParameterViolations = (
 			`The active baseline contains ${expanded.length} entry or entries outside the frozen legacy allowance. A newly baselined domain parameter is still new debt; the allowance never changes.`,
 		);
 	}
-	const current = findServiceParameters(inventory.sources);
+	const current = findServiceParameters(inventory.sources, inventory.root);
 	const allowed = occurrences(baseline);
 	const observed = occurrences(current);
 	const additions = current.flatMap((debt) => {

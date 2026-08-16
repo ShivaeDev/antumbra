@@ -1,132 +1,125 @@
 import ts from "typescript";
+import { typeIsNonemptyContext } from "#lint/rules/service-context-types.ts";
+import { nodeIsNonemptyContext } from "#lint/rules/service-context-verdict.ts";
+import { canonicalSymbol } from "#lint/rules/service-symbol.ts";
 import {
-	addImportedServiceAliases,
-	declaredServiceNames,
-	type ParsedSource,
-} from "#lint/rules/service-type-names.ts";
+	nodeIsComputation,
+	typeIsComputation,
+} from "#lint/rules/service-type-kinds.ts";
+import { typeNodeMentionsService } from "#lint/rules/service-type-node.ts";
 
-export type { ParsedSource } from "#lint/rules/service-type-names.ts";
+const PRIMITIVES =
+	ts.TypeFlags.Any |
+	ts.TypeFlags.Unknown |
+	ts.TypeFlags.StringLike |
+	ts.TypeFlags.NumberLike |
+	ts.TypeFlags.BigIntLike |
+	ts.TypeFlags.BooleanLike |
+	ts.TypeFlags.ESSymbolLike |
+	ts.TypeFlags.Void |
+	ts.TypeFlags.Undefined |
+	ts.TypeFlags.Null |
+	ts.TypeFlags.Never;
 
-const referenceName = (node: ts.TypeNode, source: ts.SourceFile): string =>
-	ts.isTypeReferenceNode(node) ? node.typeName.getText(source) : "";
+const symbolType = (symbol: ts.Symbol, checker: ts.TypeChecker): ts.Type => {
+	const declaration = symbol.valueDeclaration ?? symbol.declarations?.[0];
+	return declaration === undefined
+		? checker.getDeclaredTypeOfSymbol(symbol)
+		: checker.getTypeOfSymbolAtLocation(symbol, declaration);
+};
 
-const containsName = (
-	node: ts.Node,
-	source: ts.SourceFile,
-	name: string,
+const writeCapability = (
+	type: ts.Type,
+	checker: ts.TypeChecker,
+	services: ReadonlySet<ts.Symbol>,
+): boolean => {
+	const declaration = checker.getPropertyOfType(type, "write")
+		?.declarations?.[0];
+	if (declaration === undefined) return false;
+	const visit = (node: ts.Node): boolean => {
+		const symbol = canonicalSymbol(checker, checker.getSymbolAtLocation(node));
+		return (
+			(symbol !== undefined && services.has(symbol)) ||
+			node.getChildren().some(visit)
+		);
+	};
+	return visit(declaration);
+};
+
+const signatureReturnsService = (
+	type: ts.Type,
+	checker: ts.TypeChecker,
+	services: ReadonlySet<ts.Symbol>,
+	seen: Set<ts.Type>,
 ): boolean =>
-	(ts.isTypeReferenceNode(node) &&
-		referenceName(node, source).split(".").at(-1) === name) ||
-	node.getChildren(source).some((child) => containsName(child, source, name));
-
-const memberType = (member: ts.TypeElement): ts.TypeNode | undefined =>
-	ts.isPropertySignature(member) ||
-	ts.isMethodSignature(member) ||
-	ts.isCallSignatureDeclaration(member) ||
-	ts.isConstructSignatureDeclaration(member) ||
-	ts.isIndexSignatureDeclaration(member)
-		? member.type
-		: undefined;
-
-const memberIsServiceBearing = (
-	member: ts.TypeElement,
-	source: ts.SourceFile,
-	tainted: ReadonlySet<string>,
-): boolean => {
-	const name = member.name?.getText(source);
-	if (name === "write" && containsName(member, source, "WriteExecutors")) {
-		return true;
-	}
-	const type = memberType(member);
-	return type !== undefined && typeIsServiceBearing(type, source, tainted);
-};
-
-const referenceIsServiceBearing = (
-	node: ts.TypeReferenceNode,
-	source: ts.SourceFile,
-	tainted: ReadonlySet<string>,
-): boolean => {
-	const name = referenceName(node, source);
-	if (tainted.has(name) || tainted.has(name.split(".").at(-1) ?? "")) {
-		return true;
-	}
-	if (name.endsWith(".Effect") || name.endsWith(".Stream")) return false;
-	if (name.endsWith(".Context")) {
-		return node.typeArguments?.[0]?.kind !== ts.SyntaxKind.NeverKeyword;
-	}
-	return (
-		node.typeArguments?.some((argument) =>
-			typeIsServiceBearing(argument, source, tainted),
-		) === true
-	);
-};
+	checker
+		.getSignaturesOfType(type, ts.SignatureKind.Call)
+		.some((signature) =>
+			typeIsServiceBearing(
+				checker.getReturnTypeOfSignature(signature),
+				checker,
+				services,
+				seen,
+			),
+		);
 
 export const typeIsServiceBearing = (
+	type: ts.Type,
+	checker: ts.TypeChecker,
+	services: ReadonlySet<ts.Symbol>,
+	seen: Set<ts.Type> = new Set(),
+): boolean => {
+	if (typeIsComputation(type, checker) || seen.has(type)) return false;
+	seen.add(type);
+	const symbol = canonicalSymbol(checker, type.aliasSymbol ?? type.symbol);
+	if (symbol !== undefined && services.has(symbol)) return true;
+	if ((type.flags & PRIMITIVES) !== 0) return false;
+	const context = typeIsNonemptyContext(type, checker);
+	if (context !== undefined) {
+		return context;
+	}
+	const constraint = checker.getBaseConstraintOfType(type);
+	if (
+		constraint !== undefined &&
+		typeIsServiceBearing(constraint, checker, services, seen)
+	) {
+		return true;
+	}
+	if (type.isUnionOrIntersection()) {
+		return type.types.some((part) =>
+			typeIsServiceBearing(part, checker, services, seen),
+		);
+	}
+	if (writeCapability(type, checker, services)) return true;
+	const signatures = checker.getSignaturesOfType(type, ts.SignatureKind.Call);
+	if (signatures.length > 0) {
+		return signatureReturnsService(type, checker, services, seen);
+	}
+	if (
+		(type.aliasTypeArguments ?? []).some((argument) =>
+			typeIsServiceBearing(argument, checker, services, seen),
+		)
+	) {
+		return true;
+	}
+	return checker
+		.getPropertiesOfType(type)
+		.some((property) =>
+			typeIsServiceBearing(
+				symbolType(property, checker),
+				checker,
+				services,
+				seen,
+			),
+		);
+};
+
+export const typeNodeIsServiceBearing = (
 	node: ts.TypeNode,
-	source: ts.SourceFile,
-	tainted: ReadonlySet<string>,
-): boolean => {
-	if (ts.isTypeQueryNode(node)) {
-		const name = node.exprName.getText(source);
-		return tainted.has(name) || tainted.has(name.split(".").at(-1) ?? "");
-	}
-	if (ts.isTypeLiteralNode(node)) {
-		return node.members.some((member) =>
-			memberIsServiceBearing(member, source, tainted),
-		);
-	}
-	if (ts.isTypeReferenceNode(node)) {
-		return referenceIsServiceBearing(node, source, tainted);
-	}
-	if (ts.isFunctionOrConstructorTypeNode(node)) return false;
-	return node
-		.getChildren(source)
-		.some((child) =>
-			ts.isTypeNode(child)
-				? typeIsServiceBearing(child, source, tainted)
-				: false,
-		);
-};
-
-const declarationTainted = (
-	statement: ts.InterfaceDeclaration | ts.TypeAliasDeclaration,
-	source: ts.SourceFile,
-	tainted: ReadonlySet<string>,
-): boolean => {
-	if (ts.isInterfaceDeclaration(statement)) {
-		return statement.members.some((member) =>
-			memberIsServiceBearing(member, source, tainted),
-		);
-	}
-	if (ts.isTypeLiteralNode(statement.type)) {
-		return statement.type.members.some((member) =>
-			memberIsServiceBearing(member, source, tainted),
-		);
-	}
-	return typeIsServiceBearing(statement.type, source, tainted);
-};
-
-export const serviceBearingTypes = (
-	sources: readonly ParsedSource[],
-): ReadonlySet<string> => {
-	const tainted = new Set(declaredServiceNames(sources));
-	let changed = true;
-	while (changed) {
-		changed = false;
-		for (const { source } of sources) {
-			if (addImportedServiceAliases(source, tainted)) changed = true;
-			for (const statement of source.statements) {
-				if (
-					(ts.isInterfaceDeclaration(statement) ||
-						ts.isTypeAliasDeclaration(statement)) &&
-					!tainted.has(statement.name.text) &&
-					declarationTainted(statement, source, tainted)
-				) {
-					tainted.add(statement.name.text);
-					changed = true;
-				}
-			}
-		}
-	}
-	return tainted;
-};
+	checker: ts.TypeChecker,
+	services: ReadonlySet<ts.Symbol>,
+): boolean =>
+	!nodeIsComputation(node, checker, new Set()) &&
+	(nodeIsNonemptyContext(node, checker) ||
+		typeNodeMentionsService(node, checker, services) ||
+		typeIsServiceBearing(checker.getTypeFromTypeNode(node), checker, services));

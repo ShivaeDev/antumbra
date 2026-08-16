@@ -57,7 +57,7 @@ const nested = (deps: NestedDeps) => deps;
 	it("follows imported aliases of a tainted bundle", () => {
 		const violations = check([
 			source(
-				"interface AgentDeps { readonly db: DatabaseService }\n",
+				"export interface AgentDeps { readonly db: DatabaseService }\n",
 				"packages/domain/src/deps.ts",
 			),
 			source(`
@@ -72,13 +72,21 @@ const use = (deps: Deps) => deps;
 	it("detects a service shape extracted through typeof", () => {
 		const violations = check([
 			source(`
-class Pieces extends Context.Service<Pieces, { readonly launch: () => void }>()("Pieces") {}
+import { Context } from "effect";
+import { Service as DirectFactory } from "effect/Context";
+const { Service: ServiceFactory } = Context;
+class Pieces extends ServiceFactory<Pieces, { readonly launch: () => void }>()("Pieces") {}
+class Direct extends DirectFactory<Direct, { readonly launch: () => void }>()("Direct") {}
 type PiecesService = Context.Service.Shape<typeof Pieces>;
 const use = (pieces: PiecesService) => pieces;
+const useDirect = (direct: Direct) => direct;
 `),
 		]);
-		expect(violations).toHaveLength(1);
-		expect(violations[0]?.message).toContain('"PiecesService"');
+		expect(violations).toHaveLength(2);
+		expect(violations.map((violation) => violation.message)).toEqual([
+			expect.stringContaining('"PiecesService"'),
+			expect.stringContaining('"Direct"'),
+		]);
 	});
 
 	it("detects Writer-shaped, sink, sweep, and dispatch bundles", () => {
@@ -108,6 +116,7 @@ const dispatch = (port: DispatchPort) => port;
 		expect(
 			check([
 				source(`
+import { Effect } from "effect";
 type WriteExecutors = { readonly transaction: true };
 const program = (effect: Effect.Effect<void, never, WriteExecutors>) => effect;
 interface IntentOptions {
@@ -191,7 +200,7 @@ const build = Effect.gen(function* () {
 		expect(violations[0]?.message).toContain("frozen legacy allowance");
 	});
 
-	it("exempts only tests, source adapters, and the desktop composition root", () => {
+	it("exempts only tests and the desktop composition root", () => {
 		const content = "const use = (db: DatabaseService) => db;\n";
 		const violations = check([
 			source(content, "packages/x/test/use.ts"),
@@ -199,8 +208,10 @@ const build = Effect.gen(function* () {
 			source(content, "apps/desktop/src/main.ts"),
 			source(content, "apps/desktop/src/main-helper.ts"),
 		]);
-		expect(violations).toHaveLength(1);
-		expect(violations[0]?.file).toBe("apps/desktop/src/main-helper.ts");
+		expect(violations.map((violation) => violation.file)).toEqual([
+			"packages/x/src/adapters/use.ts",
+			"apps/desktop/src/main-helper.ts",
+		]);
 	});
 
 	it("ignores parameter declarations without runtime implementations", () => {

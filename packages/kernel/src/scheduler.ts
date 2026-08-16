@@ -14,6 +14,7 @@ import {
 import { IntentNotFound } from "#errors.ts";
 import { type IntentEvent, IntentStatusSchema, transition } from "#fsm.ts";
 import { type IntentChange, SchedulerState } from "#state.ts";
+import { intentWaitCause } from "#wait-cause.ts";
 
 // why: every status write is a read-transition-update against the FSM table
 // inside the single write lane, so concurrent transitions serialize and an
@@ -62,6 +63,11 @@ export const applyTransition = (
 		return change;
 	});
 
+const settleInterrupt = (id: string) =>
+	applyTransition(id, "interrupt").pipe(
+		Effect.catchTag("InvalidTransition", () => Effect.void),
+	);
+
 const settleExit = (id: string, exit: Exit.Exit<void, unknown>) =>
 	Effect.gen(function* () {
 		const state = yield* SchedulerState;
@@ -83,9 +89,16 @@ const settleExit = (id: string, exit: Exit.Exit<void, unknown>) =>
 			// a shutdown, where "interrupt" is illegal from "running" — the FSM
 			// rejection leaves the row for boot reclaim, making in-process teardown
 			// indistinguishable from a crash on disk.
-			yield* applyTransition(id, "interrupt").pipe(
-				Effect.catchTag("InvalidTransition", () => Effect.void),
-			);
+			yield* settleInterrupt(id);
+			return;
+		}
+		const waiting = intentWaitCause(exit.cause);
+		if (Option.isSome(waiting)) {
+			if (waiting.value.interrupted) {
+				yield* settleInterrupt(id);
+				return;
+			}
+			yield* applyTransition(id, "wait", waiting.value.detail);
 			return;
 		}
 		yield* applyTransition(id, "fail", Cause.pretty(exit.cause));

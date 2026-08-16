@@ -13,3 +13,10 @@ export class UnregisteredIntentTag extends Data.TaggedError(
 export class PayloadInvalid extends Data.TaggedError("PayloadInvalid")<{
 	readonly detail: string;
 }> {}
+
+export class StoredIntentInvalid extends Data.TaggedError(
+	"StoredIntentInvalid",
+)<{
+	readonly detail: string;
+	readonly id: string;
+}> {}

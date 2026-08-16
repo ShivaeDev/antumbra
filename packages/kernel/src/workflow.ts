@@ -6,6 +6,14 @@ const IntentWorkflowPayload = Schema.Struct({
 	payloadJson: Schema.String,
 });
 
+const IntentWaitSignal = Schema.Struct({
+	_tag: Schema.Literal("IntentWaitSignal"),
+	detail: Schema.String,
+});
+type IntentWaitSignal = typeof IntentWaitSignal.Type;
+
+export const isIntentWaitSignal = Schema.is(IntentWaitSignal);
+
 export interface IntentStepOptions {
 	readonly additionalAttempts: number;
 }
@@ -18,6 +26,7 @@ export class IntentExecution extends Context.Service<
 			execute: Effect.Effect<void, unknown, R>,
 			options?: IntentStepOptions,
 		) => Effect.Effect<void, unknown, R>;
+		readonly wait: (detail: string) => Effect.Effect<never, unknown>;
 	}
 >()("@antumbra/kernel/IntentExecution") {}
 
@@ -44,6 +53,11 @@ const makeExecution = (tag: string) =>
 					Effect.provideService(WorkflowEngine.WorkflowInstance, instance),
 				);
 			},
+			wait: (detail) =>
+				Effect.fail({
+					_tag: "IntentWaitSignal",
+					detail,
+				} satisfies IntentWaitSignal),
 		});
 	});
 

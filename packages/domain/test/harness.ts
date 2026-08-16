@@ -8,6 +8,7 @@ import type {
 	AgentBackend,
 	ChangeHost,
 	DirectTool,
+	MooragePlan,
 	ProvisionRequest,
 	Runner,
 	SessionHandle,
@@ -21,32 +22,32 @@ import { AgentDomain, AgentDomainLive } from "#domain.ts";
 import { KernelReachLive } from "#kernel-reach.ts";
 
 export interface ScriptedRunner {
-	readonly provisioned: Effect.Effect<ReadonlyArray<ProvisionRequest>>;
+	readonly provisioned: Effect.Effect<ReadonlyArray<MooragePlan>>;
 	readonly runner: Runner;
 }
 
 export const makeScriptedRunner = Effect.gen(function* () {
-	const requests = yield* Ref.make<ReadonlyArray<ProvisionRequest>>([]);
+	const plans = yield* Ref.make<ReadonlyArray<MooragePlan>>([]);
+	const plan = (request: ProvisionRequest): MooragePlan => ({
+		berths: request.repos.map((repo, index) => ({
+			branch: `work/${request.agentId.slice(0, 8)}/berth-${index}`,
+			path: `/tmp/moorage/${request.agentId}/berth-${index}`,
+			ref: repo.ref,
+			slug: `berth-${index}`,
+			source: repo.source,
+		})),
+		root: `/tmp/moorage/${request.agentId}`,
+	});
 	const runner: Runner = {
 		capabilities: { liveTerminal: false },
-		provision: (request) =>
-			Ref.update(requests, (all) => [...all, request]).pipe(
-				Effect.as({
-					berths: request.repos.map((repo, index) => ({
-						branch: `work/${request.agentId.slice(0, 8)}/berth-${index}`,
-						path: `/tmp/moorage/${request.agentId}/berth-${index}`,
-						ref: repo.ref,
-						slug: `berth-${index}`,
-						source: repo.source,
-					})),
-					root: `/tmp/moorage/${request.agentId}`,
-				}),
-			),
+		plan,
+		provision: (provisionPlan) =>
+			Ref.update(plans, (all) => [...all, provisionPlan]),
 		reclaim: () => Effect.succeed({ _tag: "reclaimed" as const }),
 		scrap: () => Effect.void,
 		tag: "local",
 	};
-	return { provisioned: Ref.get(requests), runner } satisfies ScriptedRunner;
+	return { provisioned: Ref.get(plans), runner } satisfies ScriptedRunner;
 });
 
 export const acquireTemporaryPersistence = Effect.acquireRelease(
@@ -155,8 +156,11 @@ export const callTool = (
 
 export const passiveRunner: Runner = {
 	capabilities: { liveTerminal: false },
-	provision: (request) =>
-		Effect.succeed({ berths: [], root: `/tmp/moorage/${request.agentId}` }),
+	plan: (request) => ({
+		berths: [],
+		root: `/tmp/moorage/${request.agentId}`,
+	}),
+	provision: () => Effect.void,
 	reclaim: () => Effect.succeed({ _tag: "reclaimed" as const }),
 	scrap: () => Effect.void,
 	tag: "local",

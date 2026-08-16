@@ -10,6 +10,12 @@ export {
 export { cloneMirror, refreshMirror } from "#mirrors.ts";
 export { pushBranch } from "#push.ts";
 export {
+	branchExists,
+	inspectWorktreeIdentity,
+	type WorktreeIdentity,
+} from "#worktree-identity.ts";
+export {
+	addExistingWorktree,
 	addWorktree,
 	deleteBranch,
 	inspectWorktree,

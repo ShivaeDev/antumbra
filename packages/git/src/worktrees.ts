@@ -37,6 +37,17 @@ export const addWorktree = (
 		timeoutMillis: MUTATE_TIMEOUT_MILLIS,
 	}).pipe(Effect.asVoid);
 
+export const addExistingWorktree = (
+	mirror: string,
+	path: string,
+	branch: string,
+): Effect.Effect<void, GitError, ChildProcessSpawner.ChildProcessSpawner> =>
+	runGit({
+		args: ["-C", mirror, "worktree", "add", path, branch],
+		operation: "add-worktree",
+		timeoutMillis: MUTATE_TIMEOUT_MILLIS,
+	}).pipe(Effect.asVoid);
+
 export const inspectWorktree = (
 	path: string,
 ): Effect.Effect<

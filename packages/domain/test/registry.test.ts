@@ -1,6 +1,6 @@
 import { type IntentStatus, Kernel } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
-import type { RepoRequest } from "@antumbra/plugin-api";
+import type { BerthPlan } from "@antumbra/plugin-api";
 import { expect, it } from "@effect/vitest";
 import { Effect, Option, Stream } from "effect";
 import { AgentDomain } from "#domain.ts";
@@ -42,8 +42,10 @@ const submitSpawn = (suffix: string) =>
 
 // why: two repos registered in the same millisecond tie on createdAt, so the
 // berth order is not the assertion — the set of berths is.
-const bySource = (repos: ReadonlyArray<RepoRequest>) =>
-	[...repos].sort((left, right) => left.source.localeCompare(right.source));
+const bySource = (berths: ReadonlyArray<BerthPlan>) =>
+	berths
+		.map((berth) => ({ ref: berth.ref, source: berth.source }))
+		.sort((left, right) => left.source.localeCompare(right.source));
 
 it.live("a spawn is moored to every registered repo at its default ref", () =>
 	Effect.gen(function* () {
@@ -68,7 +70,7 @@ it.live("a spawn is moored to every registered repo at its default ref", () =>
 		);
 		const requests = yield* recorder.provisioned;
 		expect(requests).toHaveLength(1);
-		expect(bySource(requests[0]?.repos ?? [])).toEqual([
+		expect(bySource(requests[0]?.berths ?? [])).toEqual([
 			{ ref: "main", source: "/reefs/one" },
 			{ ref: "trunk", source: "/reefs/two" },
 		]);
@@ -121,7 +123,7 @@ it.live("a forgotten repo leaves the next spawn a bare moorage", () =>
 			),
 		);
 		const requests = yield* recorder.provisioned;
-		expect(requests[0]?.repos).toEqual([]);
+		expect(requests[0]?.berths).toEqual([]);
 	}),
 );
 

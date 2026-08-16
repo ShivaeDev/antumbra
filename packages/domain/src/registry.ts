@@ -1,5 +1,4 @@
 import type { PrismaError } from "@antumbra/persistence";
-import type { RepoRequest } from "@antumbra/plugin-api";
 import { Effect, Option, PubSub } from "effect";
 import { type AgentDeps, provideExecutors } from "#deps.ts";
 
@@ -47,18 +46,6 @@ export const listRepos = (
 	provideExecutors(deps)(
 		deps.db.Repo.orderBy((repo) => repo.createdAt.asc()).all(),
 	).pipe(Effect.map((rows) => rows.map(summarize)));
-
-// why: the registry is what every spawn is moored to — read at provision
-// time, never copied into a payload, so a queued spawn sees the repos that
-// exist when it runs.
-export const berthRequests = (
-	deps: AgentDeps,
-): Effect.Effect<ReadonlyArray<RepoRequest>, PrismaError> =>
-	listRepos(deps).pipe(
-		Effect.map((repos) =>
-			repos.map((repo) => ({ ref: repo.defaultRef, source: repo.source })),
-		),
-	);
 
 // why: registering is idempotent by source — the same repo entered twice
 // refreshes its default ref instead of duplicating its berths on every spawn.

@@ -13,6 +13,17 @@ export class RunnerFailure extends Data.TaggedError("RunnerFailure")<{
 	}
 }
 
+export class RunnerProvisionConflict extends Data.TaggedError(
+	"RunnerProvisionConflict",
+)<{
+	readonly detail: string;
+	readonly tag: string;
+}> {
+	override get message(): string {
+		return `${this.tag}: provision conflict: ${this.detail}`;
+	}
+}
+
 export class RunnerAuthRequired extends Data.TaggedError("RunnerAuthRequired")<{
 	readonly detail: string;
 	readonly tag: string;
@@ -22,7 +33,10 @@ export class RunnerAuthRequired extends Data.TaggedError("RunnerAuthRequired")<{
 	}
 }
 
-export type RunnerError = RunnerAuthRequired | RunnerFailure;
+export type RunnerError =
+	| RunnerAuthRequired
+	| RunnerFailure
+	| RunnerProvisionConflict;
 
 export interface RepoRequest {
 	readonly ref: string;
@@ -34,7 +48,7 @@ export interface ProvisionRequest {
 	readonly repos: ReadonlyArray<RepoRequest>;
 }
 
-export interface ProvisionedBerth {
+export interface BerthPlan {
 	readonly branch: string;
 	readonly path: string;
 	readonly ref: string;
@@ -44,8 +58,8 @@ export interface ProvisionedBerth {
 
 // why: the root is the agent's cwd and doubles as its scratchpad — it exists
 // even when no repos were requested.
-export interface ProvisionedMoorage {
-	readonly berths: ReadonlyArray<ProvisionedBerth>;
+export interface MooragePlan {
+	readonly berths: ReadonlyArray<BerthPlan>;
 	readonly root: string;
 }
 
@@ -62,9 +76,8 @@ export type ReclaimVerdict =
 
 export interface Runner {
 	readonly capabilities: RunnerCapabilities;
-	readonly provision: (
-		request: ProvisionRequest,
-	) => Effect.Effect<ProvisionedMoorage, RunnerError>;
+	readonly plan: (request: ProvisionRequest) => MooragePlan;
+	readonly provision: (plan: MooragePlan) => Effect.Effect<void, RunnerError>;
 	// why: reclaim refuses dirty berths by design — only scrap may destroy
 	// uncommitted or unpushed work, and only expiry policy calls scrap.
 	readonly reclaim: (

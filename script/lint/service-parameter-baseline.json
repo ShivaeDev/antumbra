@@ -30,18 +30,6 @@
 		"type": "AgentDeps"
 	},
 	{
-		"callable": "berthRequests",
-		"file": "packages/domain/src/registry.ts",
-		"parameter": "deps",
-		"type": "AgentDeps"
-	},
-	{
-		"callable": "berthRows",
-		"file": "packages/domain/src/moorage-rows.ts",
-		"parameter": "deps",
-		"type": "AgentDeps"
-	},
-	{
 		"callable": "boardEntries",
 		"file": "packages/domain/src/boards.ts",
 		"parameter": "db",
@@ -318,12 +306,6 @@
 		"type": "AgentDeps"
 	},
 	{
-		"callable": "recordMoorage",
-		"file": "packages/domain/src/moorage-rows.ts",
-		"parameter": "deps",
-		"type": "AgentDeps"
-	},
-	{
 		"callable": "recordNativeRef",
 		"file": "packages/domain/src/events.ts",
 		"parameter": "context",
@@ -378,18 +360,6 @@
 		"type": "DispatchPort"
 	},
 	{
-		"callable": "settleAfterFailure",
-		"file": "packages/domain/src/spawn.ts",
-		"parameter": "deps",
-		"type": "AgentDeps"
-	},
-	{
-		"callable": "settleAgent",
-		"file": "packages/domain/src/reclaim.ts",
-		"parameter": "db",
-		"type": "DatabaseService"
-	},
-	{
 		"callable": "settleSpawnFailure",
 		"file": "packages/domain/src/spawn-rows.ts",
 		"parameter": "deps",
@@ -424,12 +394,6 @@
 		"file": "packages/domain/src/retire.ts",
 		"parameter": "deps",
 		"type": "AgentDeps"
-	},
-	{
-		"callable": "sweepActive",
-		"file": "packages/domain/src/reclaim.ts",
-		"parameter": "db",
-		"type": "DatabaseService"
 	},
 	{
 		"callable": "voyageOrGone",

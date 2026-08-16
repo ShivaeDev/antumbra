@@ -21,6 +21,7 @@ export interface IntentStepOptions {
 export class IntentExecution extends Context.Service<
 	IntentExecution,
 	{
+		readonly intentId: string;
 		readonly step: <R>(
 			name: string,
 			execute: Effect.Effect<void, unknown, R>,
@@ -30,11 +31,12 @@ export class IntentExecution extends Context.Service<
 	}
 >()("@antumbra/kernel/IntentExecution") {}
 
-const makeExecution = (tag: string) =>
+const makeExecution = (tag: string, intentId: string) =>
 	Effect.gen(function* () {
 		const engine = yield* WorkflowEngine.WorkflowEngine;
 		const instance = yield* WorkflowEngine.WorkflowInstance;
 		return IntentExecution.of({
+			intentId,
 			step: (name, execute, options) => {
 				// why: Effect activities retry interruption by default, but kernel cancel
 				// and layer teardown must stop promptly; typed failure retries are explicit.
@@ -74,7 +76,7 @@ export const makeIntentWorkflow = (
 	});
 	const register = Effect.flatMap(WorkflowEngine.WorkflowEngine, (engine) =>
 		engine.register(workflow, (payload) =>
-			Effect.flatMap(makeExecution(tag), (execution) =>
+			Effect.flatMap(makeExecution(tag, payload.intentId), (execution) =>
 				execute(payload.payloadJson).pipe(
 					Effect.provideService(IntentExecution, execution),
 				),

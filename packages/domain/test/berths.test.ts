@@ -62,7 +62,7 @@ const scrapCounting = (base: Runner, scraps: Ref.Ref<number>): Runner => ({
 	scrap: () => Ref.update(scraps, (count) => count + 1),
 });
 
-it.live("a berth is stranded while dirty and scrapped after the TTL", () =>
+it.live("an old dirty berth stays stranded without destructive cleanup", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
 		const scripted = yield* makeScriptedBackend;
@@ -94,12 +94,13 @@ it.live("a berth is stranded while dirty and scrapped after the TTL", () =>
 		expect(stranded.strandedAt).not.toBeNull();
 
 		const now = yield* Clock.currentTimeMillis;
+		const oldStrandedAt = new Date(now - EIGHT_DAYS_MILLIS);
 		yield* Effect.gen(function* () {
 			const db = yield* Database;
 			const writer = yield* Writer;
 			yield* writer.write(
 				db.Berth.where({ id: "agent-sweep:berth-0" }).update({
-					strandedAt: new Date(now - EIGHT_DAYS_MILLIS),
+					strandedAt: oldStrandedAt,
 				}),
 			);
 		}).pipe(Effect.provide(temporary.layer));
@@ -113,9 +114,10 @@ it.live("a berth is stranded while dirty and scrapped after the TTL", () =>
 				scrapCounting(dirtyRunner(recorder.runner), scraps),
 			),
 		);
-		const scrapped = yield* berthRow.pipe(Effect.provide(temporary.layer));
-		expect(scrapped.status).toBe("reclaimed");
-		expect(yield* Ref.get(scraps)).toBe(1);
+		const preserved = yield* berthRow.pipe(Effect.provide(temporary.layer));
+		expect(preserved.status).toBe("stranded");
+		expect(preserved.strandedAt?.getTime()).toBe(oldStrandedAt.getTime());
+		expect(yield* Ref.get(scraps)).toBe(0);
 	}),
 );
 
@@ -236,7 +238,7 @@ it.live(
 			const recorder = yield* makeScriptedRunner;
 			const scraps = yield* Ref.make(0);
 			const now = yield* Clock.currentTimeMillis;
-			const runner = scrapCounting(dirtyRunner(recorder.runner), scraps);
+			const runner = scrapCounting(recorder.runner, scraps);
 			yield* moored(new Date(now - EIGHT_DAYS_MILLIS)).pipe(
 				Effect.provide(temporary.layer),
 			);
@@ -250,7 +252,7 @@ it.live(
 			expect(swept.get(AT_WORK)).toBe("ready");
 			expect(swept.get(SIBLING)).toBe("reclaimed");
 			expect(swept.get(ELSEWHERE)).toBe("reclaimed");
-			expect(yield* Ref.get(scraps)).toBe(2);
+			expect(yield* Ref.get(scraps)).toBe(0);
 
 			// why: nothing about the worktrees changed — only the change resolved, and
 			// that alone must be enough for the ordinary path to take both berths.
@@ -263,7 +265,7 @@ it.live(
 				Effect.provide(temporary.layer),
 			);
 			expect(released.get(HELD)).toBe("reclaimed");
-			expect(released.get(AT_WORK)).toBe("stranded");
-			expect(yield* Ref.get(scraps)).toBe(3);
+			expect(released.get(AT_WORK)).toBe("reclaimed");
+			expect(yield* Ref.get(scraps)).toBe(0);
 		}),
 );

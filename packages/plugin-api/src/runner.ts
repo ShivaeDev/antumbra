@@ -78,8 +78,8 @@ export interface Runner {
 	readonly capabilities: RunnerCapabilities;
 	readonly plan: (request: ProvisionRequest) => MooragePlan;
 	readonly provision: (plan: MooragePlan) => Effect.Effect<void, RunnerError>;
-	// why: reclaim refuses dirty berths by design — only scrap may destroy
-	// uncommitted or unpushed work, and only expiry policy calls scrap.
+	// why: reclaim refuses dirty berths by design; scrap is a destructive
+	// primitive and automatic recovery must never call it.
 	readonly reclaim: (
 		berth: BerthSite,
 	) => Effect.Effect<ReclaimVerdict, RunnerError>;

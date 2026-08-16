@@ -108,18 +108,6 @@
 		"type": "DatabaseService"
 	},
 	{
-		"callable": "expireStranded",
-		"file": "packages/domain/src/berth-sweep.ts",
-		"parameter": "db",
-		"type": "DatabaseService"
-	},
-	{
-		"callable": "expireStranded",
-		"file": "packages/domain/src/berth-sweep.ts",
-		"parameter": "writer",
-		"type": "SweepWriter"
-	},
-	{
 		"callable": "fleetSnapshot",
 		"file": "packages/domain/src/sight-fleet.ts",
 		"parameter": "db",

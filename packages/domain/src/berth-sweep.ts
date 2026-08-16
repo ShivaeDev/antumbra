@@ -9,8 +9,6 @@ import type { BerthSite, Runner } from "@antumbra/plugin-api";
 import { Clock, Effect } from "effect";
 import { readBerthSweep } from "#berth-sweep-read.ts";
 
-const STRANDED_TTL_MILLIS = 7 * 24 * 60 * 60 * 1000;
-
 interface BerthRow {
 	readonly agentId: string;
 	readonly branch: string;
@@ -60,28 +58,20 @@ const judgeReady = (
 		yield* writer.write(setStatus(db, berth, "stranded", new Date(now)));
 	});
 
-const expireStranded = (
-	db: DatabaseService,
-	writer: SweepWriter,
-	runner: Runner,
-	berth: BerthRow,
-	now: number,
-) =>
+const judgeStranded = (runner: Runner, berth: BerthRow) =>
 	Effect.gen(function* () {
-		const strandedAt = berth.strandedAt?.getTime();
-		if (strandedAt === undefined || now - strandedAt < STRANDED_TTL_MILLIS) {
+		const verdict = yield* runner.reclaim(site(berth));
+		if (verdict._tag === "dirty") {
 			return;
 		}
-		yield* runner.scrap(site(berth));
-		yield* writer.write(setStatus(db, berth, "reclaimed", berth.strandedAt));
+		const db = yield* Database;
+		const writer = yield* Writer;
+		yield* writer.write(setStatus(db, berth, "reclaimed", null));
 	});
 
 // why: one stuck berth must not abort boot — its failure is logged and the
 // sweep moves on; the berth stays in its current status for the next boot.
-const guarded = (
-	berth: BerthRow,
-	judge: Effect.Effect<void, unknown, WriteExecutors>,
-) =>
+const guarded = <R>(berth: BerthRow, judge: Effect.Effect<void, unknown, R>) =>
 	judge.pipe(
 		Effect.catchCause((failure) =>
 			Effect.logWarning("berth sweep skipped a berth", {
@@ -92,12 +82,12 @@ const guarded = (
 	);
 
 // why: a held berth is where a crew answers red checks and reviews, so no
-// sweep may reclaim, expire or scrap it — the hold sits in front of the git
-// verdict rather than beside it, and lifts on its own when the change resolves.
-const unlessHeld = (
+// sweep may reclaim it — the hold sits in front of the git verdict rather
+// than beside it, and lifts on its own when the change resolves.
+const unlessHeld = <R>(
 	held: ReadonlyMap<string, string>,
 	berth: BerthRow,
-	sweep: Effect.Effect<void, unknown, WriteExecutors>,
+	sweep: Effect.Effect<void, unknown, R>,
 ) => {
 	const changeId = held.get(berth.id);
 	return changeId === undefined
@@ -133,11 +123,7 @@ export const sweepBerths = (runners: ReadonlyMap<string, Runner>) =>
 			const runner = runners.get(berth.runner);
 			return runner === undefined
 				? Effect.void
-				: unlessHeld(
-						sweep.held,
-						berth,
-						expireStranded(db, writer, runner, berth, now),
-					);
+				: unlessHeld(sweep.held, berth, judgeStranded(runner, berth));
 		});
 		if (ready.length + sweep.stranded.length > 0) {
 			yield* Effect.logInfo("boot berth sweep finished", {

@@ -22,13 +22,13 @@ export const landReportSpec = defineTool({
 
 export const landArtifactSpec = defineTool({
 	description:
-		"Land an artifact against your piece: something to look at rather than read — a file in your moorage or a URL. Call it for every result a person should see.",
+		"Land an artifact against your piece: something to look at rather than read — a file in your moorage, copied into durable storage, or an external URL. Call it for every result a person should see.",
 	input: Schema.Struct({
 		title: Schema.String.annotate({
 			description: "One line naming what this artifact shows.",
 		}),
 		uri: Schema.String.annotate({
-			description: "A path inside your moorage, or a URL.",
+			description: "A path inside your moorage, or an http(s) URL.",
 		}),
 	}),
 	name: "land_artifact",

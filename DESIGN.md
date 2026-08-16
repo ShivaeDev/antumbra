@@ -58,6 +58,9 @@ Axioms of the stack:
   prepared worktrees) register the same way — the set is open, every kind
   individually typed. Proposed structure is never an outcome kind:
   **workers report; captains charter.**
+  A local artifact lands only after its bytes are published into app-managed
+  durable storage; reclaiming the Agent's Moorage or Berths never reclaims a
+  landed outcome. An external URL remains a reference to external custody.
 - **Plans bend.** Typed concepts with transformation verbs — promote, park,
   reorder, rewire, split, merge — over any universal substrate. Position is
   expressed as links, verbs edit links, substance never migrates.

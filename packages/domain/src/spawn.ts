@@ -1,9 +1,9 @@
 import { defineIntent, IntentExecution } from "@antumbra/kernel";
 import type { MooragePlan, Runner } from "@antumbra/plugin-api";
-import { Cause, Effect, Option, Schema } from "effect";
+import { Cause, Effect, Option } from "effect";
 import { makeCaptainToolCompiler } from "#captain-tools.ts";
 import { deliverCharterOnce } from "#charter.ts";
-import { crewTools } from "#crew-tools.ts";
+import { makeCrewToolCompiler } from "#crew-tools.ts";
 import type { AgentDeps } from "#deps.ts";
 import { UnknownBackendTag, UnknownRunnerTag } from "#errors.ts";
 import { makePrepareMoorage } from "#moorage-plan.ts";
@@ -11,6 +11,7 @@ import { makeMarkMoorageReady } from "#moorage-ready.ts";
 import { makeEnsureSessionRow } from "#moorage-session.ts";
 import { makeIsActivatedBirth } from "#spawn-activated.ts";
 import { makeIsSpawnCancelling } from "#spawn-cancellation.ts";
+import { type SpawnFields, SpawnPayload } from "#spawn-fields.ts";
 import { spawnSessionIdentity } from "#spawn-identity.ts";
 import {
 	activateAgent,
@@ -19,25 +20,11 @@ import {
 } from "#spawn-rows.ts";
 import { CAPTAIN_ROLE } from "#voyage-captain.ts";
 
-const SpawnPayload = Schema.Struct({
-	agentId: Schema.String,
-	backend: Schema.String,
-	charter: Schema.String,
-	// why: crew spawned for a piece carries the piece it answers to, so the
-	// assignment is written in the same act as the birth; a hand spawned from
-	// the fleet view answers to no piece and omits it.
-	pieceId: Schema.optionalKey(Schema.String),
-	role: Schema.String,
-	runner: Schema.String,
-	sessionId: Schema.String,
-	// why: a captain answers to a voyage rather than to one of its pieces, so
-	// the crew row is written in the same act as the birth.
-	voyageId: Schema.optionalKey(Schema.String),
-});
-export type SpawnFields = typeof SpawnPayload.Type;
+export type { SpawnFields } from "#spawn-fields.ts";
 
 export const makeSpawnKind = Effect.gen(function* () {
 	const compileCaptainTools = yield* makeCaptainToolCompiler;
+	const compileCrewTools = yield* makeCrewToolCompiler;
 	const prepareMoorage = yield* makePrepareMoorage;
 	const markMoorageReady = yield* makeMarkMoorageReady;
 	const ensureSessionRow = yield* makeEnsureSessionRow;
@@ -96,7 +83,7 @@ export const makeSpawnKind = Effect.gen(function* () {
 			const identity = spawnSessionIdentity(payload);
 			return payload.role === CAPTAIN_ROLE && Option.isSome(identity.voyageId)
 				? compileCaptainTools(deps, identity)
-				: crewTools(deps, identity);
+				: compileCrewTools(deps, identity);
 		};
 		const spawnAgent = (payload: SpawnFields) =>
 			Effect.gen(function* () {

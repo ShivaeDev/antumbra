@@ -1,3 +1,4 @@
+export type { ArtifactInput, ArtifactRow } from "@antumbra/artifacts";
 export type {
 	DomainFeedsService,
 	DomainFeedsService as DomainFeeds,
@@ -56,7 +57,7 @@ export {
 	type OutcomeTally,
 	pieceOutcomeTally,
 } from "#outcome-status.ts";
-export type { ArtifactInput, ReportInput } from "#outcomes.ts";
+export type { ReportInput } from "#outcomes.ts";
 export {
 	donePieces,
 	landingPieces,
@@ -89,7 +90,6 @@ export {
 	InvalidAgentTransition,
 } from "#status.ts";
 export type {
-	ArtifactRow,
 	ReportRow,
 	VoyageRow,
 	VoyageWorld,

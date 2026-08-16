@@ -181,7 +181,7 @@ it.live("a landed artifact carries its author and lands the piece", () =>
 				authorAgentId: "agent-cartographer",
 				pieceId: piece.id,
 				title: "the chart",
-				uri: "file:///charts/reef.svg",
+				uri: "https://example.test/charts/reef.svg",
 			});
 			expect(artifact.authorAgentId).toBe("agent-cartographer");
 			expect(yield* stateOf(voyages, voyage.id, "draw")).toBe("done");

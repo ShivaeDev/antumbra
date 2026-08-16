@@ -1,3 +1,4 @@
+import { ArtifactsLive } from "@antumbra/artifacts";
 import { DomainFeeds, DomainFeedsLive } from "@antumbra/domain-feeds";
 import type { AnyIntentKind, IntentKind } from "@antumbra/kernel";
 import { Database, type WriteExecutors, Writer } from "@antumbra/persistence";
@@ -60,8 +61,12 @@ export const AgentDomainLive = (
 	backends: ReadonlyMap<string, AgentBackend>,
 	runners: ReadonlyMap<string, Runner>,
 	changeHosts: ReadonlyMap<string, ChangeHost>,
+	artifactsDirectory: string,
 ) => {
-	const capabilities = PiecesLive.pipe(Layer.provideMerge(DomainFeedsLive));
+	const capabilities = Layer.mergeAll(
+		PiecesLive,
+		ArtifactsLive(artifactsDirectory),
+	).pipe(Layer.provideMerge(DomainFeedsLive));
 	return Layer.effect(AgentDomain)(
 		Effect.gen(function* () {
 			const db = yield* Database;

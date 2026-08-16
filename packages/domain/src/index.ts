@@ -14,6 +14,7 @@ export type {
 } from "#change-procedures.ts";
 export { refreshChanges } from "#change-refresh.ts";
 export type { ChangeRow, PieceChangeRow } from "#change-rows.ts";
+export type { ChangeView } from "#change-view.ts";
 export { ChangeWatcherLive } from "#change-watcher.ts";
 export {
 	type AdoptChangeFailure,
@@ -66,7 +67,9 @@ export {
 	voyageState,
 	wouldCycle,
 } from "#piece-state.ts";
-export type { ChangeView, PieceView } from "#piece-view.ts";
+export type { PieceView } from "#piece-view.ts";
+export type { QuayGroup } from "#quay-group.ts";
+export type { QuayPiece, QuayReading, QuayRow } from "#quay-view.ts";
 export {
 	type RegisteredRepo,
 	type RepoRegistration,

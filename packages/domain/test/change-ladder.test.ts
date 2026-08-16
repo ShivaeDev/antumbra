@@ -54,6 +54,7 @@ const world = (over: Partial<VoyageWorld>): VoyageWorld => ({
 	pieceReports: [],
 	pieces: [piece("alpha")],
 	reports: new Map(),
+	repos: new Map(),
 	voyages: [],
 	...over,
 });

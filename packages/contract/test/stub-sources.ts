@@ -1,7 +1,9 @@
 import { Effect, Layer, ManagedRuntime, Stream } from "effect";
 import {
 	AppInfoSource,
+	type ChangeView,
 	type PieceView,
+	type QuayView,
 	type SessionEvent,
 	SightFailure,
 	SightSource,
@@ -46,10 +48,27 @@ export const storedEvents: ReadonlyArray<SessionEvent> = [
 	{ kind: "assistant", payload: "{}", seq: 1, sessionId: "session-1" },
 ];
 
+const shoalWarning: ChangeView = {
+	activityAt: "2026-08-15T09:20:00.000Z",
+	checks: "green",
+	externalId: "41",
+	host: "github",
+	id: "change-1",
+	isDraft: false,
+	mergeable: "clean",
+	observedAt: "2026-08-15T09:22:00.000Z",
+	repoId: "repo-1",
+	repoName: "shoals",
+	review: "approved",
+	stage: "open",
+	title: "warn on the northern shoal",
+	url: "https://github.test/shoals/pull/41",
+};
+
 const soundings: PieceView = {
 	agents: [{ agentId: "agent-2", status: "alive" }],
 	artifacts: [],
-	changes: [],
+	changes: [shoalWarning],
 	charter: "sound the northern shoals",
 	dependsOn: [],
 	expectation: "the depths are recorded",
@@ -105,6 +124,24 @@ export const reefView: VoyageView = {
 	pieces: [soundings, chart],
 };
 
+export const quayView: QuayView = {
+	hosts: [{ available: true, detail: "signed in as navigator", tag: "github" }],
+	pieces: [
+		{ id: "piece-1", title: "soundings", voyageName: "Chart the reef" },
+		{ id: "piece-2", title: "the chart", voyageName: "Chart the reef" },
+	],
+	rows: [
+		{
+			change: shoalWarning,
+			group: "alongside",
+			pieceId: "piece-1",
+			pieceTitle: "soundings",
+			voyageId: "voyage-1",
+			voyageName: "Chart the reef",
+		},
+	],
+};
+
 const noSuchVoyage = (voyageId: string) =>
 	new SightFailure({ message: `no such voyage: ${voyageId}` });
 
@@ -136,12 +173,19 @@ const sightStub = Layer.succeed(SightSource, {
 });
 
 const voyageStub = Layer.succeed(VoyageSource, {
+	adoptChange: (request) =>
+		request.url === ""
+			? new SightFailure({ message: "github refused: no such change" })
+			: Effect.succeed({ ...shoalWarning, url: request.url }),
 	charterPiece: (request) =>
 		Effect.succeed({ pieceId: `piece-for-${request.title}` }),
 	hail: () => Effect.succeed({ agentId: "agent-hailed" }),
 	launch: () => Effect.void,
 	open: (request) => Effect.succeed({ ...reefSummary, name: request.name }),
 	park: () => Effect.void,
+	quay: Effect.succeed(quayView),
+	quayFeed: Stream.make(quayView),
+	refreshChanges: Effect.void,
 	rewire: () => Effect.void,
 	setFocus: () => Effect.void,
 	unpark: () => Effect.void,

@@ -29,8 +29,11 @@ export interface OpenChangeInput {
 	readonly title: string;
 }
 
+// why: a change made by hand has no agent behind it — the person at the window
+// adopts it, and a null opener records that rather than crediting whoever
+// happened to be at work on the piece.
 export interface AdoptChangeInput {
-	readonly agentId: string;
+	readonly agentId: string | null;
 	readonly pieceId: string;
 	readonly repoName: string;
 	readonly url: string;

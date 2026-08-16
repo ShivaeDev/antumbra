@@ -1,6 +1,7 @@
 import { Context, type Effect, Schema, type Stream } from "effect";
+import type { QuayView } from "#quay-views.ts";
 import type { SightFailure } from "#sight.ts";
-import type { VoyageSummary, VoyageView } from "#voyage-views.ts";
+import type { ChangeView, VoyageSummary, VoyageView } from "#voyage-views.ts";
 
 export const OpenVoyageRequest = Schema.Struct({
 	backend: Schema.String,
@@ -41,6 +42,15 @@ export const BoardWriteRequest = Schema.Struct({
 });
 export type BoardWriteRequest = typeof BoardWriteRequest.Type;
 
+// why: a change opened by hand is linked to its piece by url — the host is
+// asked what it is, so the window sends what a person can read off a page.
+export const AdoptChangeRequest = Schema.Struct({
+	pieceId: Schema.String,
+	repoName: Schema.String,
+	url: Schema.String,
+});
+export type AdoptChangeRequest = typeof AdoptChangeRequest.Type;
+
 export const HailReceipt = Schema.Struct({ agentId: Schema.String });
 export type HailReceipt = typeof HailReceipt.Type;
 
@@ -50,6 +60,9 @@ export type CharterReceipt = typeof CharterReceipt.Type;
 export class VoyageSource extends Context.Service<
 	VoyageSource,
 	{
+		readonly adoptChange: (
+			request: AdoptChangeRequest,
+		) => Effect.Effect<ChangeView, SightFailure>;
 		readonly charterPiece: (
 			request: CharterPieceRequest,
 		) => Effect.Effect<CharterReceipt, SightFailure>;
@@ -61,6 +74,11 @@ export class VoyageSource extends Context.Service<
 			request: OpenVoyageRequest,
 		) => Effect.Effect<VoyageSummary, SightFailure>;
 		readonly park: (pieceId: string) => Effect.Effect<void, SightFailure>;
+		readonly quay: Effect.Effect<QuayView, SightFailure>;
+		readonly quayFeed: Stream.Stream<QuayView, SightFailure>;
+		// why: the watcher is rung rather than waited on — what the pass costs
+		// stays the cadence's decision, so this asks and never promises news.
+		readonly refreshChanges: Effect.Effect<void, SightFailure>;
 		readonly rewire: (
 			request: RewireRequest,
 		) => Effect.Effect<void, SightFailure>;

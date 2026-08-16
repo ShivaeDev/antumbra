@@ -26,6 +26,13 @@ export interface ArtifactRow {
 	readonly uri: string;
 }
 
+// why: a reader of a change wants the repo it lives in by name; the rest of
+// the registration is the registry's business, not a view's.
+export interface RepoRow {
+	readonly id: string;
+	readonly name: string;
+}
+
 export interface AssignmentRow {
 	readonly agentId: string;
 	readonly pieceId: string;
@@ -68,5 +75,6 @@ export interface VoyageWorld {
 	readonly pieceReports: ReadonlyArray<ReportLinkRow>;
 	readonly pieces: ReadonlyArray<PieceRow>;
 	readonly reports: ReadonlyMap<string, ReportRow>;
+	readonly repos: ReadonlyMap<string, RepoRow>;
 	readonly voyages: ReadonlyArray<VoyageRow>;
 }

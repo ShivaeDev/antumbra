@@ -23,15 +23,19 @@ export type ArtifactView = typeof ArtifactView.Type;
 
 // why: a change lives on a host that speaks its own dialect, and the window is
 // shown only the neutral reading — where it stands and what the host last said
-// — so nothing above the domain ever learns which host it is looking at.
+// — so nothing above the domain ever learns which host it is looking at. The
+// repo reaches a reader by name; the id is what the rest of the system joins on.
 export const ChangeView = Schema.Struct({
+	activityAt: Schema.String,
 	checks: Schema.String,
 	externalId: Schema.NullOr(Schema.String),
 	host: Schema.String,
 	id: Schema.String,
 	isDraft: Schema.Boolean,
 	mergeable: Schema.String,
+	observedAt: Schema.String,
 	repoId: Schema.String,
+	repoName: Schema.String,
 	review: Schema.String,
 	stage: Schema.String,
 	title: Schema.String,

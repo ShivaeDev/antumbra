@@ -1,5 +1,6 @@
 import type {
 	BoardEntryView,
+	ChangeView,
 	PieceCounts,
 	PieceView,
 	VoyageSummary,
@@ -7,6 +8,7 @@ import type {
 } from "@antumbra/contract";
 import { Option } from "effect";
 import type { BoardEntryRow } from "#boards.ts";
+import type { ChangeView as DerivedChange } from "#change-view.ts";
 import type { PieceView as DerivedPiece } from "#piece-view.ts";
 import type {
 	PieceCounts as DerivedCounts,
@@ -19,6 +21,23 @@ import type {
 const stamp = (at: Date | null): string | null =>
 	at === null ? null : at.toISOString();
 
+export const changeSeen = (change: DerivedChange): ChangeView => ({
+	activityAt: change.activityAt.toISOString(),
+	checks: change.checks,
+	externalId: change.externalId,
+	host: change.host,
+	id: change.id,
+	isDraft: change.isDraft,
+	mergeable: change.mergeable,
+	observedAt: change.observedAt.toISOString(),
+	repoId: change.repoId,
+	repoName: change.repoName,
+	review: change.review,
+	stage: change.stage,
+	title: change.title,
+	url: change.url,
+});
+
 const pieceSeen = (piece: DerivedPiece): PieceView => ({
 	agents: piece.agents.map((agent) => ({
 		agentId: agent.agentId,
@@ -30,19 +49,7 @@ const pieceSeen = (piece: DerivedPiece): PieceView => ({
 		title: artifact.title,
 		uri: artifact.uri,
 	})),
-	changes: piece.changes.map((change) => ({
-		checks: change.checks,
-		externalId: change.externalId,
-		host: change.host,
-		id: change.id,
-		isDraft: change.isDraft,
-		mergeable: change.mergeable,
-		repoId: change.repoId,
-		review: change.review,
-		stage: change.stage,
-		title: change.title,
-		url: change.url,
-	})),
+	changes: piece.changes.map(changeSeen),
 	charter: piece.charter,
 	dependsOn: piece.dependsOn,
 	expectation: piece.expectation,

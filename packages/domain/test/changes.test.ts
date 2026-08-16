@@ -211,21 +211,21 @@ it.live("a landed change flips its piece done and wakes the voyage feed", () =>
 			const view = Option.getOrThrow(yield* domain.voyages.read(voyage.id));
 			const seen = view.pieces.find((row) => row.id === piece.id);
 			expect(seen?.state).toBe("done");
-			expect(seen?.changes).toEqual([
-				{
-					checks: "green",
-					externalId: "1",
-					host: "scripted",
-					id: row.id,
-					isDraft: false,
-					mergeable: "clean",
-					repoId: repo.id,
-					review: "approved",
-					stage: "landed",
-					title: "chart the eastern spit",
-					url: "https://scripted.test/changes/1",
-				},
-			]);
+			expect(seen?.changes).toHaveLength(1);
+			expect(seen?.changes.at(0)).toMatchObject({
+				checks: "green",
+				externalId: "1",
+				host: "scripted",
+				id: row.id,
+				isDraft: false,
+				mergeable: "clean",
+				repoId: repo.id,
+				repoName: repo.name,
+				review: "approved",
+				stage: "landed",
+				title: "chart the eastern spit",
+				url: "https://scripted.test/changes/1",
+			});
 			expect(yield* stateOf(voyage.id, piece.id)).toBe("done");
 		}),
 	),

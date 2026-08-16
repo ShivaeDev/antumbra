@@ -1,5 +1,6 @@
 import type { ArtifactRow } from "@antumbra/artifacts";
 import type { EdgeRow, PieceRow } from "@antumbra/pieces";
+import type { ReportRow } from "@antumbra/reports";
 import type { ChangeRow, PieceChangeRow } from "#change-rows.ts";
 
 export type { EdgeRow, PieceRow } from "@antumbra/pieces";
@@ -11,13 +12,6 @@ export interface VoyageRow {
 	readonly id: string;
 	readonly name: string;
 	readonly northStar: string;
-}
-
-export interface ReportRow {
-	readonly authorAgentId: string | null;
-	readonly body: string;
-	readonly id: string;
-	readonly title: string;
 }
 
 // why: a reader of a change wants the repo it lives in by name; the rest of

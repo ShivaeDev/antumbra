@@ -5,6 +5,7 @@ export type {
 	StoredEvent,
 } from "@antumbra/domain-feeds";
 export type { CharterInput, EdgeRow, PieceRow } from "@antumbra/pieces";
+export type { ReportInput, ReportRow } from "@antumbra/reports";
 export {
 	nextObserveDelayMillis,
 	type ObserveCadenceOptions,
@@ -57,7 +58,6 @@ export {
 	type OutcomeTally,
 	pieceOutcomeTally,
 } from "#outcome-status.ts";
-export type { ReportInput } from "#outcomes.ts";
 export {
 	donePieces,
 	landingPieces,
@@ -90,11 +90,7 @@ export {
 	agentTransition,
 	InvalidAgentTransition,
 } from "#status.ts";
-export type {
-	ReportRow,
-	VoyageRow,
-	VoyageWorld,
-} from "#voyage-rows.ts";
+export type { VoyageRow, VoyageWorld } from "#voyage-rows.ts";
 export { VoyageSourceLive } from "#voyage-source.ts";
 export type {
 	PieceCounts,

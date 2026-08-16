@@ -144,12 +144,6 @@
 		"type": "SweepWriter"
 	},
 	{
-		"callable": "landReport",
-		"file": "packages/domain/src/outcomes.ts",
-		"parameter": "deps",
-		"type": "AgentDeps"
-	},
-	{
 		"callable": "linkBoard",
 		"file": "packages/domain/src/board-scope.ts",
 		"parameter": "db",
@@ -284,12 +278,6 @@
 	{
 		"callable": "registerRepo",
 		"file": "packages/domain/src/registry.ts",
-		"parameter": "deps",
-		"type": "AgentDeps"
-	},
-	{
-		"callable": "requirePiece",
-		"file": "packages/domain/src/outcomes.ts",
 		"parameter": "deps",
 		"type": "AgentDeps"
 	},

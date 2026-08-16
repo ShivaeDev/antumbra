@@ -1,4 +1,5 @@
-import type { PrismaError } from "@antumbra/persistence";
+import { Database, type PrismaError } from "@antumbra/persistence";
+import { requirePiece } from "@antumbra/pieces";
 import type { ChangeHostError } from "@antumbra/plugin-api";
 import { Clock, Effect, Option, PubSub } from "effect";
 import {
@@ -17,7 +18,6 @@ import type {
 	PieceNotFound,
 	RepoNotFound,
 } from "#errors.ts";
-import { requirePiece } from "#outcomes.ts";
 
 export interface OpenChangeInput {
 	readonly agentId: string;
@@ -53,7 +53,11 @@ export const openChange = (
 	input: OpenChangeInput,
 ): Effect.Effect<ChangeRow, OpenChangeFailure> =>
 	Effect.gen(function* () {
-		yield* requirePiece(deps, input.pieceId);
+		yield* provideExecutors(deps)(
+			requirePiece(input.pieceId).pipe(
+				Effect.provideService(Database, deps.db),
+			),
+		);
 		const repo = yield* requireRepo(deps, input.repoName);
 		const host = yield* capableHost(yield* requireChangeHost(deps, repo));
 		const berth = yield* requireBerth(deps, input.agentId, repo);
@@ -97,7 +101,11 @@ export const adoptChange = (
 	input: AdoptChangeInput,
 ): Effect.Effect<ChangeRow, AdoptChangeFailure> =>
 	Effect.gen(function* () {
-		yield* requirePiece(deps, input.pieceId);
+		yield* provideExecutors(deps)(
+			requirePiece(input.pieceId).pipe(
+				Effect.provideService(Database, deps.db),
+			),
+		);
 		const repo = yield* requireRepo(deps, input.repoName);
 		const host = yield* capableHost(yield* requireChangeHost(deps, repo));
 		const observation = yield* host.adopt(input.url, repo);

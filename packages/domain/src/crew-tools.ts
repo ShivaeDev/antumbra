@@ -1,11 +1,11 @@
 import { bind, landArtifactSpec, landReportSpec } from "@antumbra/agent-tools";
 import { Artifacts } from "@antumbra/artifacts";
 import type { DirectTool } from "@antumbra/plugin-api";
+import { Reports } from "@antumbra/reports";
 import { Effect } from "effect";
 import { boardTools } from "#board-tools.ts";
 import { changeTools } from "#change-tools.ts";
 import type { AgentDeps } from "#deps.ts";
-import { landReport } from "#outcomes.ts";
 import { standDownTool } from "#stand-down.ts";
 import { answered, onPiece } from "#tool-answers.ts";
 import type { SessionIdentity } from "#tool-identity.ts";
@@ -16,6 +16,7 @@ import type { SessionIdentity } from "#tool-identity.ts";
 // set, not by asking.
 export const makeCrewToolCompiler = Effect.gen(function* () {
 	const artifacts = yield* Artifacts;
+	const reports = yield* Reports;
 	function crewTools(
 		deps: AgentDeps,
 		identity: SessionIdentity,
@@ -26,7 +27,7 @@ export const makeCrewToolCompiler = Effect.gen(function* () {
 					answered(
 						identity,
 						landReportSpec.name,
-						landReport(deps, {
+						reports.land({
 							authorAgentId: identity.agentId,
 							body: input.body,
 							pieceId,

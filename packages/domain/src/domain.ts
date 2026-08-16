@@ -3,6 +3,7 @@ import { DomainFeeds, DomainFeedsLive } from "@antumbra/domain-feeds";
 import { Database, type WriteExecutors, Writer } from "@antumbra/persistence";
 import { PiecesLive } from "@antumbra/pieces";
 import type { AgentBackend, ChangeHost, Runner } from "@antumbra/plugin-api";
+import { ReportsLive } from "@antumbra/reports";
 import { Deferred, Effect, Layer, Option } from "effect";
 import { AGENTS_ALIVE_GAUGE, AgentDomain } from "#agent-domain-service.ts";
 import { sweepBerths } from "#berth-sweep.ts";
@@ -50,6 +51,7 @@ export const AgentDomainLive = (
 	const capabilities = Layer.mergeAll(
 		PiecesLive,
 		ArtifactsLive(artifactsDirectory),
+		ReportsLive,
 	).pipe(Layer.provideMerge(DomainFeedsLive));
 	return Layer.effect(AgentDomain)(
 		Effect.gen(function* () {

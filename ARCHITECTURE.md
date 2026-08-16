@@ -47,6 +47,7 @@ while idle sessions remain detached until needed. See
 | `packages/kernel`         | Intents, admission scheduling, lifecycle state machines         |
 | `packages/domain-feeds`   | Shared post-commit domain change notifications                  |
 | `packages/pieces`         | Piece acts and their transactional graph invariants             |
+| `packages/boards`         | Board and mailbox storage invariants                            |
 | `packages/artifacts`      | Durable artifact publication and landing                        |
 | `packages/reports`        | Durable report landing                                           |
 | `packages/domain`         | Application-facing use cases and capability Layer composition   |

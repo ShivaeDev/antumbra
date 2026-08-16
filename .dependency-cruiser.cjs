@@ -20,6 +20,16 @@ module.exports = {
 		},
 		{
 			comment:
+				"Boards owns durable board and mailbox invariants. It may write through persistence and publish through domain-feeds, but it never reaches up into the domain facade, ports, adapters, or app.",
+			from: { path: "^packages/boards" },
+			name: "boards-has-narrow-dependencies",
+			severity: "error",
+			to: {
+				path: "^packages/(?!boards(?:/|$)|persistence(?:/|$)|domain-feeds(?:/|$))|^apps/",
+			},
+		},
+		{
+			comment:
 				"Artifacts owns durable outcome publication. It may validate pieces, write through persistence, and publish through domain-feeds, but it never reaches up into the domain facade, ports, adapters, or app.",
 			from: { path: "^packages/artifacts" },
 			name: "artifacts-has-narrow-dependencies",
@@ -45,7 +55,7 @@ module.exports = {
 			name: "desktop-uses-domain-facade",
 			severity: "error",
 			to: {
-				path: "^packages/(artifacts|pieces|reports|domain-feeds)(?:/|$)",
+				path: "^packages/(artifacts|boards|pieces|reports|domain-feeds)(?:/|$)",
 			},
 		},
 		{
@@ -83,7 +93,7 @@ module.exports = {
 			name: "renderer-pure-web",
 			severity: "error",
 			to: {
-				path: "(^|/)electron(/|$)|^apps/|^packages/(agent-tools|artifacts|kernel|domain(?:-feeds)?|pieces|reports|backend-[^/]+|github|runner-[^/]+|persistence|plugin-api)",
+				path: "(^|/)electron(/|$)|^apps/|^packages/(agent-tools|artifacts|boards|kernel|domain(?:-feeds)?|pieces|reports|backend-[^/]+|github|runner-[^/]+|persistence|plugin-api)",
 			},
 		},
 		{
@@ -93,7 +103,7 @@ module.exports = {
 			name: "adapters-never-import-the-domain",
 			severity: "error",
 			to: {
-				path: "^packages/(artifacts|domain(?:-feeds)?|pieces|reports)(?:/|$)",
+				path: "^packages/(artifacts|boards|domain(?:-feeds)?|pieces|reports)(?:/|$)",
 			},
 		},
 		{

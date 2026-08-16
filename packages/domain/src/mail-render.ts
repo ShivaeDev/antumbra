@@ -1,4 +1,4 @@
-import type { BoardEntryRow } from "#board-rows.ts";
+import type { BoardEntryRow } from "@antumbra/boards";
 
 const mailLine = (entry: BoardEntryRow): string =>
 	[

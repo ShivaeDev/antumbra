@@ -1,65 +1,9 @@
 import { Effect, Option, Schema } from "effect";
 import { StoredBoardEntryInvalid } from "#errors.ts";
-
-export type BoardRegister = "rough" | "smooth";
-
-export type MailPrecedence = "flash" | "priority" | "routine";
-
-// why: `seq` is the board's own order, claimed by the append that wrote the
-// row. It exists because `createdAt` is stored to the second and ties whenever
-// two hands write inside the same one, which would make a log's order a toss.
-interface BoardEntryFields {
-	readonly authorAgentId: string | null;
-	readonly body: string;
-	readonly createdAt: Date;
-	readonly id: string;
-	readonly register: BoardRegister;
-	readonly seq: number;
-	readonly sourceRef: string | null;
-}
-
-export type BoardEntryRow = BoardEntryFields &
-	(
-		| {
-				readonly kind: "mail";
-				readonly precedence: MailPrecedence;
-				readonly sourceRef: string;
-		  }
-		| {
-				readonly kind: "note";
-				readonly precedence: "routine";
-		  }
-	);
-
-interface EntryFields {
-	readonly authorAgentId: Option.Option<string>;
-	readonly body: string;
-	readonly register: BoardRegister;
-}
-
-export type EntryInput = EntryFields &
-	(
-		| {
-				readonly kind: "mail";
-				readonly precedence: MailPrecedence;
-				readonly sourceRef: string;
-		  }
-		| {
-				readonly kind?: "note";
-				readonly precedence?: "routine";
-				readonly sourceRef?: string;
-		  }
-	);
-
-export interface AppendFields {
-	readonly nowMillis: number;
-	readonly seq: number;
-}
+import type { AppendFields, BoardEntryRow, EntryInput } from "#model.ts";
 
 // why: this is the disk boundary. Unknown entry vocabulary is corruption, not
-// a quiet note or routine precedence, so decoding fails before any projection
-// can make the row look benign; the Board id is omitted because its reader
-// already knows it.
+// a quiet note or routine precedence, so decoding fails before projection.
 const StoredFields = {
 	authorAgentId: Schema.NullOr(Schema.String),
 	body: Schema.String,

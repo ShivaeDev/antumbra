@@ -1,8 +1,7 @@
+import { Boards, smoothBodies } from "@antumbra/boards";
 import type { IntentStatus, IntentSubmission } from "@antumbra/kernel";
 import type { DatabaseService, WriteExecutors } from "@antumbra/persistence";
 import { Effect, Option, Queue, Stream } from "effect";
-import { smoothBodies } from "#board-rows.ts";
-import { boardEntries } from "#boards.ts";
 import { composeCrewCharter } from "#charter-compose.ts";
 import type { SpawnRefused } from "#deps.ts";
 import type { ReadyPiece } from "#dispatch-policy.ts";
@@ -78,16 +77,21 @@ const watchDispatch = (
 // why: the boards are read here, in the pass, rather than inside the pure
 // composer — what a piece is told at birth is a fact about the moment it is
 // dispatched, and the composer stays a function of its inputs.
-const charterFor = (port: DispatchPort, candidate: ReadyPiece) =>
+const charterFor = (candidate: ReadyPiece) =>
 	Effect.gen(function* () {
-		const voyageSmoothLog = yield* boardEntries(port.db, {
-			kind: "voyage",
-			voyageId: candidate.voyage.id,
-		}).pipe(Effect.map(smoothBodies));
-		const pieceSmoothLog = yield* boardEntries(port.db, {
-			kind: "piece",
-			pieceId: candidate.piece.id,
-		}).pipe(Effect.map(smoothBodies));
+		const boards = yield* Boards;
+		const voyageSmoothLog = yield* boards
+			.read({
+				kind: "voyage",
+				voyageId: candidate.voyage.id,
+			})
+			.pipe(Effect.map(smoothBodies));
+		const pieceSmoothLog = yield* boards
+			.read({
+				kind: "piece",
+				pieceId: candidate.piece.id,
+			})
+			.pipe(Effect.map(smoothBodies));
 		return composeCrewCharter(candidate.voyage, candidate.piece, {
 			pieceSmoothLog,
 			voyageSmoothLog,
@@ -101,7 +105,7 @@ export const dispatchPiece = (port: DispatchPort, candidate: ReadyPiece) =>
 		const submission = yield* port.submit({
 			agentId,
 			backend: candidate.voyage.backend,
-			charter: yield* charterFor(port, candidate),
+			charter: yield* charterFor(candidate),
 			pieceId,
 			// why: the sole runner in v1 — the field becomes a choice when a
 			// second runner exists to choose between.

@@ -30,28 +30,10 @@
 		"type": "AgentDeps"
 	},
 	{
-		"callable": "boardEntries",
-		"file": "packages/domain/src/boards.ts",
-		"parameter": "db",
-		"type": "DatabaseService"
-	},
-	{
 		"callable": "boardOf",
 		"file": "packages/domain/src/voyage-reads.ts",
 		"parameter": "domain",
 		"type": "Domain"
-	},
-	{
-		"callable": "boardTools",
-		"file": "packages/domain/src/board-tools.ts",
-		"parameter": "deps",
-		"type": "AgentDeps"
-	},
-	{
-		"callable": "charterFor",
-		"file": "packages/domain/src/dispatch-spawn.ts",
-		"parameter": "port",
-		"type": "DispatchPort"
 	},
 	{
 		"callable": "closeFailedSpawnRows",
@@ -96,18 +78,6 @@
 		"type": "AgentDeps"
 	},
 	{
-		"callable": "ensureBoard",
-		"file": "packages/domain/src/boards.ts",
-		"parameter": "deps",
-		"type": "AgentDeps"
-	},
-	{
-		"callable": "entriesOn",
-		"file": "packages/domain/src/boards.ts",
-		"parameter": "db",
-		"type": "DatabaseService"
-	},
-	{
 		"callable": "fleetSnapshot",
 		"file": "packages/domain/src/sight-fleet.ts",
 		"parameter": "db",
@@ -144,26 +114,8 @@
 		"type": "SweepWriter"
 	},
 	{
-		"callable": "linkBoard",
-		"file": "packages/domain/src/board-scope.ts",
-		"parameter": "db",
-		"type": "DatabaseService"
-	},
-	{
-		"callable": "linkedBoardId",
-		"file": "packages/domain/src/board-scope.ts",
-		"parameter": "db",
-		"type": "DatabaseService"
-	},
-	{
 		"callable": "listRepos",
 		"file": "packages/domain/src/registry.ts",
-		"parameter": "deps",
-		"type": "AgentDeps"
-	},
-	{
-		"callable": "makeBoardProcedures",
-		"file": "packages/domain/src/board-procedures.ts",
 		"parameter": "deps",
 		"type": "AgentDeps"
 	},
@@ -294,12 +246,6 @@
 		"type": "AgentDeps"
 	},
 	{
-		"callable": "scopeFor",
-		"file": "packages/domain/src/board-tools.ts",
-		"parameter": "deps",
-		"type": "AgentDeps"
-	},
-	{
 		"callable": "setFocus",
 		"file": "packages/domain/src/voyages.ts",
 		"parameter": "deps",
@@ -354,12 +300,6 @@
 		"type": "AgentDeps"
 	},
 	{
-		"callable": "voyageScope",
-		"file": "packages/domain/src/board-tools.ts",
-		"parameter": "deps",
-		"type": "AgentDeps"
-	},
-	{
 		"callable": "voyageWorld",
 		"file": "packages/domain/src/voyage-world.ts",
 		"parameter": "db",
@@ -374,18 +314,6 @@
 	{
 		"callable": "withMembers",
 		"file": "packages/domain/src/captain-membership.ts",
-		"parameter": "deps",
-		"type": "AgentDeps"
-	},
-	{
-		"callable": "withScope",
-		"file": "packages/domain/src/board-tools.ts",
-		"parameter": "deps",
-		"type": "AgentDeps"
-	},
-	{
-		"callable": "writeEntry",
-		"file": "packages/domain/src/boards.ts",
 		"parameter": "deps",
 		"type": "AgentDeps"
 	},

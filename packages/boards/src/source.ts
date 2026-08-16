@@ -1,7 +1,7 @@
 import { Effect, Option } from "effect";
-import type { BoardEntryRow, EntryInput } from "#board-rows.ts";
-import { entryRow } from "#board-rows.ts";
+import { entryRow } from "#entries.ts";
 import { BoardSourceConflict, type StoredBoardEntryInvalid } from "#errors.ts";
+import type { BoardEntryRow, EntryInput } from "#model.ts";
 
 export const replayedEntry = (
 	boardId: string,

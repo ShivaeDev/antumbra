@@ -2,7 +2,7 @@ import { bind, charterPieceSpec, readVoyageSpec } from "@antumbra/agent-tools";
 import { Pieces } from "@antumbra/pieces";
 import type { DirectTool } from "@antumbra/plugin-api";
 import { Effect, Option } from "effect";
-import { boardTools } from "#board-tools.ts";
+import { makeBoardToolCompiler } from "#board-tools.ts";
 import { onOwnDeps } from "#captain-membership.ts";
 import { makePieceVerbToolCompiler } from "#captain-pieces.ts";
 import type { AgentDeps } from "#deps.ts";
@@ -29,6 +29,7 @@ const voyageOrGone = (deps: AgentDeps, voyageId: string) =>
 export const makeCaptainToolCompiler = Effect.gen(function* () {
 	const pieces = yield* Pieces;
 	const pieceVerbTools = yield* makePieceVerbToolCompiler;
+	const compileBoardTools = yield* makeBoardToolCompiler;
 	return (
 		deps: AgentDeps,
 		identity: SessionIdentity,
@@ -61,7 +62,7 @@ export const makeCaptainToolCompiler = Effect.gen(function* () {
 				),
 			),
 		),
-		...boardTools(deps, identity),
+		...compileBoardTools(identity),
 		standDownTool(deps, identity),
 	];
 });

@@ -1,8 +1,8 @@
+import type { BoardScope } from "@antumbra/boards";
 import { Database, Writer } from "@antumbra/persistence";
 import { deleteTestAgent } from "@antumbra/persistence/testing";
 import { expect, it } from "@effect/vitest";
 import { Effect, Option } from "effect";
-import type { BoardScope } from "#board-scope.ts";
 import { AgentDomain } from "#domain.ts";
 import {
 	acquireTemporaryPersistence,

@@ -13,6 +13,7 @@ import { berthSlug, mirrorName, workBranch } from "#naming.ts";
 import {
 	createWorktree,
 	isClean,
+	reclaimMissingWorktree,
 	remountWorktree,
 	removeWorktree,
 	scrapWorktree,
@@ -88,6 +89,9 @@ export const makeLocalRunner = (roots: LocalRunnerRoots): Runner => ({
 	reclaim: (site) =>
 		Effect.gen(function* () {
 			const mirror = join(roots.reposRoot, mirrorName(site.source));
+			if (!(yield* pathExists(site.path))) {
+				return yield* reclaimMissingWorktree(mirror, site);
+			}
 			const clean = yield* isClean(site.path);
 			if (!clean) {
 				return { _tag: "dirty" as const };

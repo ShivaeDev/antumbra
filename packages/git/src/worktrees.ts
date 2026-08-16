@@ -16,6 +16,42 @@ const CommitCount = Schema.FiniteFromString.check(
 const decodeCount = (output: string) =>
 	Schema.decodeUnknownEffect(CommitCount)(output.trim());
 
+const countUnpushedCommits = (
+	repository: string,
+	revision: string,
+	operation: "inspect-branch" | "inspect-worktree",
+) =>
+	Effect.gen(function* () {
+		const output = yield* runGit({
+			args: [
+				"-C",
+				repository,
+				"rev-list",
+				"--count",
+				revision,
+				"--not",
+				"--remotes",
+			],
+			operation,
+			timeoutMillis: INSPECT_TIMEOUT_MILLIS,
+		});
+		return yield* decodeCount(output).pipe(
+			Effect.mapError(
+				(cause) =>
+					new GitOutputInvalid({
+						detail: String(cause),
+						operation,
+					}),
+			),
+		);
+	});
+
+export const countUnpushedBranchCommits = (
+	mirror: string,
+	branch: string,
+): Effect.Effect<number, GitError, ChildProcessSpawner.ChildProcessSpawner> =>
+	countUnpushedCommits(mirror, branch, "inspect-branch");
+
 export const addWorktree = (
 	mirror: string,
 	path: string,
@@ -64,19 +100,10 @@ export const inspectWorktree = (
 		if (status.trim() !== "") {
 			return { _tag: "changed" as const };
 		}
-		const unpushed = yield* runGit({
-			args: ["-C", path, "rev-list", "--count", "HEAD", "--not", "--remotes"],
-			operation: "inspect-worktree",
-			timeoutMillis: INSPECT_TIMEOUT_MILLIS,
-		});
-		const unpushedCommits = yield* decodeCount(unpushed).pipe(
-			Effect.mapError(
-				(cause) =>
-					new GitOutputInvalid({
-						detail: String(cause),
-						operation: "inspect-worktree",
-					}),
-			),
+		const unpushedCommits = yield* countUnpushedCommits(
+			path,
+			"HEAD",
+			"inspect-worktree",
 		);
 		return { _tag: "clean" as const, unpushedCommits };
 	});

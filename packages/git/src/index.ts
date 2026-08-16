@@ -17,6 +17,7 @@ export {
 export {
 	addExistingWorktree,
 	addWorktree,
+	countUnpushedBranchCommits,
 	deleteBranch,
 	inspectWorktree,
 	pruneWorktrees,

@@ -31,6 +31,28 @@ export const projectedChange = (
 			: null,
 });
 
+export const sameProjectedFacts = (
+	before: ChangeRow,
+	after: ChangeRow,
+): boolean =>
+	// why: `observedAt` records our receipt, not a provider fact.
+	[
+		before.activityAt.getTime() === after.activityAt.getTime(),
+		before.baseRef === after.baseRef,
+		before.checks === after.checks,
+		before.draftAt?.getTime() === after.draftAt?.getTime(),
+		before.headRef === after.headRef,
+		before.headSha === after.headSha,
+		before.landedAt?.getTime() === after.landedAt?.getTime(),
+		before.mergeable === after.mergeable,
+		before.raw === after.raw,
+		before.review === after.review,
+		before.stage === after.stage,
+		before.title === after.title,
+		before.url === after.url,
+		before.withdrawnAt?.getTime() === after.withdrawnAt?.getTime(),
+	].every(Boolean);
+
 // why: the id is the provider fact rather than the time we happened to hear
 // it, so replaying one observation names one immutable event. It can later be
 // used directly as an event-mail source reference.

@@ -1,7 +1,11 @@
 import type { PrismaError } from "@antumbra/persistence";
 import type { ChangeObservation } from "@antumbra/plugin-api";
 import { Clock, Effect, Option, PubSub } from "effect";
-import { projectedChange, stageTransition } from "#change-projection.ts";
+import {
+	projectedChange,
+	sameProjectedFacts,
+	stageTransition,
+} from "#change-projection.ts";
 import { changeOfExternalId } from "#change-read.ts";
 import type { ChangeRow } from "#change-rows.ts";
 import { type AgentDeps, provideExecutors } from "#deps.ts";
@@ -68,6 +72,14 @@ export const applyObservations = (
 			}).first();
 			return Option.isSome(replayed) ? Option.none() : Option.some(transition);
 		});
+	const isEqualTimeReplay = (
+		before: ChangeRow,
+		after: ChangeRow,
+		transition: Option.Option<ReturnType<typeof stageTransition>>,
+	): boolean =>
+		after.activityAt.getTime() === before.activityAt.getTime() &&
+		(sameProjectedFacts(before, after) ||
+			(after.stage !== before.stage && Option.isNone(transition)));
 	const reconcile = (observation: ChangeObservation, now: number) =>
 		Effect.gen(function* () {
 			const known = yield* changeOfExternalId(
@@ -89,10 +101,11 @@ export const applyObservations = (
 			}
 			const next = projectedChange(row, observation, now);
 			const transition = yield* stageTransitionToAppend(row, next);
+			if (isEqualTimeReplay(row, next, transition)) {
+				return Option.some({ changed: false, row });
+			}
 			if (Option.isSome(transition)) {
 				yield* deps.db.ChangeTransition.create(transition.value);
-			} else if (observation.activityAt === row.activityAt.getTime()) {
-				return Option.some({ changed: false, row });
 			}
 			yield* updateProjection(next);
 			return Option.some({ changed: true, row: next });

@@ -76,6 +76,12 @@ const storedChange = (id: string) =>
 		return Option.getOrThrow(yield* db.Change.where({ id }).first());
 	});
 
+const storedTransitions = (changeId: string) =>
+	Effect.gen(function* () {
+		const db = yield* Database;
+		return yield* db.ChangeTransition.where({ changeId }).all();
+	});
+
 it.live("freshness wins when one batch carries newer then stale news", () =>
 	withHost(() =>
 		Effect.gen(function* () {
@@ -135,9 +141,7 @@ it.live("a newer reopen advances the same durable change", () =>
 			expect(reopened?.id).toBe(row.id);
 			expect(reopened?.stage).toBe("open");
 			expect(yield* db.Change.all()).toHaveLength(1);
-			const transitions = yield* db.ChangeTransition.where({
-				changeId: row.id,
-			}).all();
+			const transitions = yield* storedTransitions(row.id);
 			expect(
 				transitions
 					.toSorted(
@@ -156,23 +160,51 @@ it.live("a newer reopen advances the same durable change", () =>
 it.live("a landed fact wins when the host timestamp ties the open fact", () =>
 	withHost(() =>
 		Effect.gen(function* () {
-			const db = yield* Database;
 			const domain = yield* AgentDomain;
 			const { piece, repo } = yield* reefWithPiece;
 			yield* berthed(CREW);
 			const row = yield* openChange(piece.id, repo.name);
-
 			yield* domain.changes.observed("scripted", [
 				observed(row, repo.id, 0, { stage: "landed" }),
 			]);
-
 			expect((yield* storedChange(row.id)).stage).toBe("landed");
-			const transitions = yield* db.ChangeTransition.where({
-				changeId: row.id,
-			}).all();
+			const transitions = yield* storedTransitions(row.id);
 			expect(transitions.map((transition) => transition.id)).toEqual([
 				`${row.id}:${row.activityAt.getTime()}:landed`,
 			]);
+		}),
+	),
+);
+
+it.live("equal-time same-stage facts refresh the projection exactly once", () =>
+	withHost(() =>
+		Effect.gen(function* () {
+			const domain = yield* AgentDomain;
+			const { piece, repo } = yield* reefWithPiece;
+			yield* berthed(CREW);
+			const row = yield* openChange(piece.id, repo.name);
+			const fact = observed(row, repo.id, 0, {
+				checks: "green",
+				mergeable: "clean",
+				raw: { checks: "finished" },
+				review: "approved",
+				title: "chart approved",
+			});
+			const expected = {
+				checks: "green",
+				mergeable: "clean",
+				raw: '{"checks":"finished"}',
+				review: "approved",
+				title: "chart approved",
+			};
+			const [first] = yield* domain.changes.observed("scripted", [fact]);
+			yield* Effect.sleep("10 millis");
+			const [replayed] = yield* domain.changes.observed("scripted", [fact]);
+			const stored = yield* storedChange(row.id);
+			expect(first).toMatchObject(expected);
+			expect(stored).toMatchObject(expected);
+			expect(replayed?.observedAt).toEqual(first?.observedAt);
+			expect(yield* storedTransitions(row.id)).toHaveLength(0);
 		}),
 	),
 );
@@ -182,22 +214,17 @@ it.live(
 	() =>
 		withHost(() =>
 			Effect.gen(function* () {
-				const db = yield* Database;
 				const domain = yield* AgentDomain;
 				const { piece, repo } = yield* reefWithPiece;
 				yield* berthed(CREW);
 				const row = yield* openChange(piece.id, repo.name);
 				const withdrawn = observed(row, repo.id, 1, { stage: "withdrawn" });
 				const reopened = observed(row, repo.id, 1, { stage: "open" });
-
 				yield* domain.changes.observed("scripted", [withdrawn]);
 				yield* domain.changes.observed("scripted", [reopened]);
 				yield* domain.changes.observed("scripted", [withdrawn]);
-
 				expect((yield* storedChange(row.id)).stage).toBe("open");
-				const transitions = yield* db.ChangeTransition.where({
-					changeId: row.id,
-				}).all();
+				const transitions = yield* storedTransitions(row.id);
 				expect(
 					transitions.map((transition) => transition.id).toSorted(),
 				).toEqual([
@@ -231,7 +258,6 @@ it.live("landed is irreversible even when a newer observation says open", () =>
 it.live("replaying one transition keeps one stable event identity", () =>
 	withHost(() =>
 		Effect.gen(function* () {
-			const db = yield* Database;
 			const domain = yield* AgentDomain;
 			const { piece, repo } = yield* reefWithPiece;
 			yield* berthed(CREW);
@@ -241,9 +267,7 @@ it.live("replaying one transition keeps one stable event identity", () =>
 			yield* domain.changes.observed("scripted", [withdrawn]);
 			yield* domain.changes.observed("scripted", [withdrawn]);
 
-			const transitions = yield* db.ChangeTransition.where({
-				changeId: row.id,
-			}).all();
+			const transitions = yield* storedTransitions(row.id);
 			expect(transitions).toHaveLength(1);
 			expect(transitions[0]?.id).toBe(
 				`${row.id}:${withdrawn.activityAt}:withdrawn`,

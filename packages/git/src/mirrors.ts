@@ -2,9 +2,7 @@ import { Effect } from "effect";
 import type { ChildProcessSpawner } from "effect/unstable/process";
 import { runGit } from "#command.ts";
 import type { GitError } from "#errors.ts";
-
-const REMOTE_TIMEOUT_MILLIS = 30 * 60 * 1_000;
-const INSPECT_TIMEOUT_MILLIS = 3 * 60 * 1_000;
+import { INSPECT_TIMEOUT_MILLIS, REMOTE_TIMEOUT_MILLIS } from "#timeouts.ts";
 
 export const cloneMirror = (
 	source: string,

@@ -7,7 +7,8 @@ export type GitOperation =
 	| "inspect-worktree"
 	| "remove-worktree"
 	| "prune-worktrees"
-	| "delete-branch";
+	| "delete-branch"
+	| "push-branch";
 
 interface GitFailureFields {
 	readonly detail: string;
@@ -25,6 +26,18 @@ export class GitCommandFailed extends Data.TaggedError("GitCommandFailed")<
 export class GitOutputInvalid extends Data.TaggedError(
 	"GitOutputInvalid",
 )<GitFailureFields> {}
+
+// why: refused before git is spawned, so it is not a failed command — the
+// branch a caller asked for was never one this system is allowed to move.
+// The detail reaches a model through a tool answer, so it reads as a sentence.
+export class GitPushRefused extends Data.TaggedError("GitPushRefused")<{
+	readonly branch: string;
+	readonly detail: string;
+}> {
+	override get message(): string {
+		return `refused to push ${this.branch}: ${this.detail}`;
+	}
+}
 
 export class GitTimedOut extends Data.TaggedError("GitTimedOut")<
 	GitFailureFields & { readonly timeoutMillis: number }

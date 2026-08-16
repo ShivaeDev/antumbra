@@ -1,8 +1,9 @@
 import type { PrismaError } from "@antumbra/persistence";
-import type {
-	ChangeHost,
-	ChangeHostBerth,
-	ChangeHostRepo,
+import {
+	type ChangeHost,
+	type ChangeHostBerth,
+	type ChangeHostRepo,
+	ChangeHostUnavailable,
 } from "@antumbra/plugin-api";
 import { Effect, Option } from "effect";
 import { type AgentDeps, provideExecutors } from "#deps.ts";
@@ -47,6 +48,23 @@ export const requireChangeHost = (
 		? new NoChangeHost({ repoName: repo.name })
 		: Effect.succeed(claimed);
 };
+
+// why: asked before anything is pushed or written, so a host that cannot be
+// reached is told to the agent as the host's own sentence — "run: gh auth
+// login" — instead of surfacing halfway through an act it cannot undo.
+export const capableHost = (
+	host: ChangeHost,
+): Effect.Effect<ChangeHost, ChangeHostUnavailable> =>
+	host.capability.pipe(
+		Effect.flatMap((capability) =>
+			capability.available
+				? Effect.succeed(host)
+				: new ChangeHostUnavailable({
+						detail: capability.detail,
+						host: host.tag,
+					}),
+		),
+	);
 
 export const namedChangeHost = (
 	deps: AgentDeps,

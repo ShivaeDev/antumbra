@@ -4,9 +4,17 @@ export type {
 	StoredEvent,
 } from "@antumbra/domain-feeds";
 export type { CharterInput, EdgeRow, PieceRow } from "@antumbra/pieces";
-export type { ChangeProcedures } from "#change-procedures.ts";
+export {
+	nextObserveDelayMillis,
+	type ObserveCadenceOptions,
+} from "#change-cadence.ts";
+export type {
+	ChangeHostCapabilityView,
+	ChangeProcedures,
+} from "#change-procedures.ts";
 export { refreshChanges } from "#change-refresh.ts";
 export type { ChangeRow, PieceChangeRow } from "#change-rows.ts";
+export { ChangeWatcherLive } from "#change-watcher.ts";
 export {
 	type AdoptChangeFailure,
 	type AdoptChangeInput,

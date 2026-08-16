@@ -28,18 +28,28 @@ module.exports = {
 		},
 		{
 			comment:
-				"Git is process infrastructure beneath the local runner. No other current package consumes that mechanism directly; a new caller must earn and document a real layer edge.",
+				"Git is process infrastructure beneath the adapters that move branches: the local runner cuts worktrees, and the GitHub host pushes one before it proposes a change. No other package consumes that mechanism directly; a new caller must earn and document a real layer edge.",
 			from: {
-				path: "^packages/(?!git(?:/|$)|runner-local(?:/|$))|^apps/",
+				path: "^packages/(?!git(?:/|$)|github(?:/|$)|runner-local(?:/|$))|^apps/",
 			},
-			name: "git-only-below-local-runner",
+			name: "git-only-below-branch-adapters",
 			severity: "error",
-			to: { path: "^packages/git" },
+			to: { path: "^packages/git(?:/|$)" },
+		},
+		{
+			comment:
+				"The GitHub host implements one driven port for one provider. It may name that port, the git mechanism it pushes through, and Effect — nothing else. Reaching for the domain, the kernel or persistence would weld one forge into the use cases and make the second host a rewrite.",
+			from: { path: "^packages/github(?:/|$)" },
+			name: "github-implements-one-port",
+			severity: "error",
+			to: {
+				path: "^packages/(?!github(?:/|$)|git(?:/|$)|plugin-api(?:/|$))|^apps/",
+			},
 		},
 		{
 			comment:
 				"Git owns one semantic process boundary and stays below every workspace layer. It may depend on Effect's process port, never on an Antumbra package or app.",
-			from: { path: "^packages/git" },
+			from: { path: "^packages/git(?:/|$)" },
 			name: "git-imports-no-workspace-layer",
 			severity: "error",
 			to: { path: "^packages/(?!git(?:/|$))|^apps/" },
@@ -51,13 +61,13 @@ module.exports = {
 			name: "renderer-pure-web",
 			severity: "error",
 			to: {
-				path: "(^|/)electron(/|$)|^apps/|^packages/(agent-tools|kernel|domain(?:-feeds)?|pieces|backend-[^/]+|runner-[^/]+|persistence|plugin-api)",
+				path: "(^|/)electron(/|$)|^apps/|^packages/(agent-tools|kernel|domain(?:-feeds)?|pieces|backend-[^/]+|github|runner-[^/]+|persistence|plugin-api)",
 			},
 		},
 		{
 			comment:
-				"Adapters implement the driven ports and nothing else. A backend or runner that reaches for the domain has stopped being replaceable — it would drag the use cases into every provider it serves.",
-			from: { path: "^packages/(backend-[^/]+|runner-[^/]+)" },
+				"Adapters implement the driven ports and nothing else. A backend, runner or change host that reaches for the domain has stopped being replaceable — it would drag the use cases into every provider it serves.",
+			from: { path: "^packages/(backend-[^/]+|github|runner-[^/]+)" },
 			name: "adapters-never-import-the-domain",
 			severity: "error",
 			to: { path: "^packages/(domain(?:-feeds)?|pieces)(?:/|$)" },
@@ -69,7 +79,7 @@ module.exports = {
 			name: "domain-knows-ports-not-providers",
 			severity: "error",
 			to: {
-				path: "^packages/(backend-[^/]+|runner-[^/]+)|(^|/)@anthropic-ai/claude-agent-sdk(/|$)",
+				path: "^packages/(backend-[^/]+|github|runner-[^/]+)|(^|/)@anthropic-ai/claude-agent-sdk(/|$)",
 			},
 		},
 		{

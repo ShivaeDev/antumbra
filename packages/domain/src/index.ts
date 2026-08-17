@@ -58,6 +58,8 @@ export {
 	PieceNotFound,
 	RepoNotFound,
 	SessionNotLive,
+	StoredChangeInvalid,
+	StoredPieceChangeInvalid,
 	UnknownBackendTag,
 	UnknownChangeHostTag,
 } from "#errors.ts";

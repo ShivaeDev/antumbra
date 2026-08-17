@@ -1,8 +1,14 @@
 import { Effect, Schema } from "effect";
+import {
+	GitHubCheckState,
+	GitHubMergeState,
+	GitHubPullState,
+	GitHubReviewDecision,
+} from "#dialect.ts";
 import { type GhOperation, GhOutputInvalid } from "#errors.ts";
 import type { ObserveSelection } from "#query.ts";
 
-const CheckRollup = Schema.Struct({ state: Schema.String });
+const CheckRollup = Schema.Struct({ state: GitHubCheckState });
 
 const CommitNode = Schema.Struct({
 	commit: Schema.Struct({ statusCheckRollup: Schema.NullOr(CheckRollup) }),
@@ -17,10 +23,10 @@ export const PullRequestNode = Schema.Struct({
 	headRefName: Schema.String,
 	headRefOid: Schema.NullOr(Schema.String),
 	isDraft: Schema.Boolean,
-	mergeStateStatus: Schema.NullOr(Schema.String),
+	mergeStateStatus: Schema.NullOr(GitHubMergeState),
 	number: Schema.Number,
-	reviewDecision: Schema.NullOr(Schema.String),
-	state: Schema.String,
+	reviewDecision: Schema.NullOr(GitHubReviewDecision),
+	state: GitHubPullState,
 	title: Schema.String,
 	updatedAt: Schema.String,
 	url: Schema.String,

@@ -1,3 +1,9 @@
+export type {
+	ChangeChecks,
+	ChangeMergeable,
+	ChangeReview,
+	ChangeStage,
+} from "@antumbra/change-vocabulary";
 export {
 	type AgentBackend,
 	type BackendCapabilities,
@@ -6,7 +12,6 @@ export {
 	type SessionHandle,
 } from "#backend.ts";
 export {
-	type ChangeChecks,
 	type ChangeHost,
 	type ChangeHostBerth,
 	type ChangeHostCapability,
@@ -14,11 +19,8 @@ export {
 	ChangeHostRefused,
 	type ChangeHostRepo,
 	ChangeHostUnavailable,
-	type ChangeMergeable,
 	type ChangeObservation,
 	type ChangeRef,
-	type ChangeReview,
-	type ChangeStage,
 	type OpenChangeRequest,
 } from "#change-host.ts";
 export {

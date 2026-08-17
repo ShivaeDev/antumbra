@@ -39,7 +39,7 @@ import {
 	ChangeRegistriesLive,
 	RunnerRegistry,
 } from "#change-submissions/registries.ts";
-import type { UnknownChangeHostTag } from "#errors.ts";
+import type { StoredChangeInvalid, UnknownChangeHostTag } from "#errors.ts";
 
 export class ChangeSubmissions extends Context.Service<
 	ChangeSubmissions,
@@ -52,7 +52,10 @@ export class ChangeSubmissions extends Context.Service<
 			observations: ReadonlyArray<ChangeObservation>,
 		) => Effect.Effect<
 			ReadonlyArray<ChangeRow>,
-			ChangeIdentityCollision | ChangeObservationConflict | PrismaError
+			| ChangeIdentityCollision
+			| ChangeObservationConflict
+			| PrismaError
+			| StoredChangeInvalid
 		>;
 		readonly open: (
 			input: OpenChangeInput,
@@ -65,6 +68,7 @@ export class ChangeSubmissions extends Context.Service<
 			| ChangeIdentityCollision
 			| ChangeObservationConflict
 			| PrismaError
+			| StoredChangeInvalid
 			| UnknownChangeHostTag
 		>;
 		readonly submit: (
@@ -72,7 +76,10 @@ export class ChangeSubmissions extends Context.Service<
 		) => Effect.Effect<ChangeRow, SubmitChangeFailure>;
 		readonly watchable: (
 			hostTag: string,
-		) => Effect.Effect<ReadonlyArray<ChangeRow>, PrismaError>;
+		) => Effect.Effect<
+			ReadonlyArray<ChangeRow>,
+			PrismaError | StoredChangeInvalid
+		>;
 	}
 >()("@antumbra/domain/ChangeSubmissions") {}
 

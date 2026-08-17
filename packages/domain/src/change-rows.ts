@@ -3,9 +3,15 @@ import type {
 	ChangeMergeable,
 	ChangeReview,
 	ChangeStage,
-} from "@antumbra/plugin-api";
+} from "@antumbra/change-vocabulary";
+import {
+	type PieceChangePurpose,
+	PieceChangePurpose as PieceChangePurposeSchema,
+} from "@antumbra/change-vocabulary";
+import { Effect, Schema } from "effect";
+import { StoredPieceChangeInvalid } from "#errors.ts";
 
-// why: the neutral columns are typed with the port's own unions, so a host
+// why: the neutral columns are typed with the shared vocabulary, so a host
 // that maps its dialect wrong is a compile error rather than a string nobody
 // notices. `draftAt` is a stamped moment like every other flag in this
 // schema — null is "not a draft", never "unknown".
@@ -40,26 +46,33 @@ export interface ChangeRow {
 	readonly worktreePath: string | null;
 }
 
-export type PieceChangePurpose = "depends_on" | "produces" | "reviews";
-
 export interface PieceChangeRow {
 	readonly changeId: string;
 	readonly pieceId: string;
 	readonly purpose: PieceChangePurpose;
 }
 
-const PURPOSES: Readonly<Record<string, PieceChangePurpose>> = {
-	depends_on: "depends_on",
-	produces: "produces",
-	reviews: "reviews",
-};
-
 export const pieceChangeRow = (row: {
 	readonly changeId: string;
 	readonly pieceId: string;
 	readonly purpose: string;
-}): PieceChangeRow => ({
-	changeId: row.changeId,
-	pieceId: row.pieceId,
-	purpose: PURPOSES[row.purpose] ?? "produces",
-});
+}) =>
+	Schema.decodeUnknownEffect(PieceChangePurposeSchema)(row.purpose).pipe(
+		Effect.mapError(
+			(cause) =>
+				new StoredPieceChangeInvalid({
+					changeId: row.changeId,
+					detail: `${String(cause)}; stored purpose ${JSON.stringify(row.purpose)}`,
+					pieceId: row.pieceId,
+				}),
+		),
+		Effect.map(
+			(purpose): PieceChangeRow => ({
+				changeId: row.changeId,
+				pieceId: row.pieceId,
+				purpose,
+			}),
+		),
+	);
+
+export type { PieceChangePurpose };

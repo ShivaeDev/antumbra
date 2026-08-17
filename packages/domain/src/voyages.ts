@@ -1,80 +1,18 @@
-import {
-	type ArtifactFailure,
-	type ArtifactInput,
-	type ArtifactRow,
-	Artifacts,
-} from "@antumbra/artifacts";
+import { Artifacts } from "@antumbra/artifacts";
 import { Boards } from "@antumbra/boards";
-import type { PrismaError } from "@antumbra/persistence";
-import {
-	type CharterFailure,
-	type CharterInput,
-	type EdgeWouldCycle,
-	type PieceNotFound,
-	type PieceRow,
-	Pieces,
-} from "@antumbra/pieces";
-import { type ReportInput, type ReportRow, Reports } from "@antumbra/reports";
-import { Clock, Effect, type Option, PubSub } from "effect";
+import { Pieces } from "@antumbra/pieces";
+import { Reports } from "@antumbra/reports";
+import { Clock, Effect, PubSub } from "effect";
 import { type AgentDeps, provideExecutors } from "#deps.ts";
-import type { VoyageNotFound } from "#errors.ts";
-import { type HailedCaptain, type HailRefused, hailCaptain } from "#hail.ts";
+import { hailCaptain } from "#hail.ts";
+import type { OpenVoyageInput, VoyageProcedures } from "#voyage-procedures.ts";
 import { readVoyageView } from "#voyage-read.ts";
 import { requireVoyage } from "#voyage-record.ts";
 import type { VoyageRow } from "#voyage-rows.ts";
-import {
-	type VoyageSummary,
-	type VoyageView,
-	voyageSummaries,
-} from "#voyage-view.ts";
+import { voyageSummaries } from "#voyage-view.ts";
 import { readVoyageWorld } from "#voyage-world.ts";
 
-export interface OpenVoyageInput {
-	readonly backend: string;
-	readonly context: string;
-	readonly focused?: boolean;
-	readonly name: string;
-	readonly northStar: string;
-}
-
-export interface VoyageProcedures {
-	readonly charterPiece: (
-		input: CharterInput,
-	) => Effect.Effect<PieceRow, CharterFailure>;
-	readonly hail: (
-		voyageId: string,
-	) => Effect.Effect<HailedCaptain, HailRefused>;
-	readonly landArtifact: (
-		input: ArtifactInput,
-	) => Effect.Effect<ArtifactRow, ArtifactFailure>;
-	readonly landReport: (
-		input: ReportInput,
-	) => Effect.Effect<ReportRow, PieceNotFound | PrismaError>;
-	readonly launch: (
-		pieceId: string,
-	) => Effect.Effect<void, PieceNotFound | PrismaError>;
-	readonly list: Effect.Effect<ReadonlyArray<VoyageSummary>, PrismaError>;
-	readonly open: (
-		input: OpenVoyageInput,
-	) => Effect.Effect<VoyageRow, PrismaError>;
-	readonly park: (
-		pieceId: string,
-	) => Effect.Effect<void, PieceNotFound | PrismaError>;
-	readonly read: (
-		voyageId: string,
-	) => Effect.Effect<Option.Option<VoyageView>, PrismaError>;
-	readonly rewire: (
-		pieceId: string,
-		dependsOn: ReadonlyArray<string>,
-	) => Effect.Effect<void, EdgeWouldCycle | PieceNotFound | PrismaError>;
-	readonly setFocus: (
-		voyageId: string,
-		focused: boolean,
-	) => Effect.Effect<void, PrismaError | VoyageNotFound>;
-	readonly unpark: (
-		pieceId: string,
-	) => Effect.Effect<void, PieceNotFound | PrismaError>;
-}
+export type { OpenVoyageInput, VoyageProcedures } from "#voyage-procedures.ts";
 
 const announce = (deps: AgentDeps) =>
 	PubSub.publish(deps.feeds.voyages, undefined);

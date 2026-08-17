@@ -58,6 +58,29 @@ export class SessionIdentityMissing extends Data.TaggedError(
 	readonly sessionId: string;
 }> {}
 
+export class StoredChangeInvalid extends Data.TaggedError(
+	"StoredChangeInvalid",
+)<{
+	readonly changeId: string;
+	readonly detail: string;
+}> {
+	override get message(): string {
+		return `stored Change ${this.changeId} is invalid: ${this.detail}`;
+	}
+}
+
+export class StoredPieceChangeInvalid extends Data.TaggedError(
+	"StoredPieceChangeInvalid",
+)<{
+	readonly changeId: string;
+	readonly detail: string;
+	readonly pieceId: string;
+}> {
+	override get message(): string {
+		return `stored PieceChange ${this.pieceId}/${this.changeId} is invalid: ${this.detail}`;
+	}
+}
+
 // why: these three reach a model verbatim through a tool answer, so each
 // carries the sentence it wants read — which repo, which berth, and that no
 // host in this build claims the repo it was asked to open a change on.

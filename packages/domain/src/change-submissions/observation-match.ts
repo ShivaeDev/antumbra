@@ -21,6 +21,14 @@ export interface ObservationMatches {
 	readonly preparedCandidates: ReadonlyArray<ChangeRow>;
 }
 
+const decodedOptional = <A extends Parameters<typeof changeRow>[0]>(
+	row: Option.Option<A>,
+) =>
+	Option.match(row, {
+		onNone: () => Effect.succeed(Option.none<ChangeRow>()),
+		onSome: (stored) => Effect.map(changeRow(stored), Option.some),
+	});
+
 const hasSubmissionClaim = (row: ChangeRow): boolean =>
 	row.openedByAgentId !== null &&
 	row.submissionKey === submissionKey(row.openedByAgentId, row.repoId);
@@ -62,26 +70,27 @@ export const matchObservation = (
 		}).first();
 		if (observation.headSha === null) {
 			return {
-				external: Option.map(external, changeRow),
+				external: yield* decodedOptional(external),
 				prepared: Option.none<ChangeRow>(),
 				preparedCandidates: [],
 			} satisfies ObservationMatches;
 		}
-		const candidates = (yield* db.Change.where({
-			host: hostTag,
-			repoId: observation.repoId,
-		}).all())
-			.map(changeRow)
-			.filter(
-				(row) =>
-					row.externalId === null &&
-					row.stage === "prepared" &&
-					row.preparedHeadRef === observation.headRef &&
-					row.preparedHeadSha === observation.headSha &&
-					hasSubmissionClaim(row),
-			);
+		const candidates = (yield* Effect.forEach(
+			yield* db.Change.where({
+				host: hostTag,
+				repoId: observation.repoId,
+			}).all(),
+			changeRow,
+		)).filter(
+			(row) =>
+				row.externalId === null &&
+				row.stage === "prepared" &&
+				row.preparedHeadRef === observation.headRef &&
+				row.preparedHeadSha === observation.headSha &&
+				hasSubmissionClaim(row),
+		);
 		return {
-			external: Option.map(external, changeRow),
+			external: yield* decodedOptional(external),
 			prepared: selectedPrepared(candidates, attachment),
 			preparedCandidates: candidates,
 		} satisfies ObservationMatches;

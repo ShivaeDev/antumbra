@@ -2,6 +2,7 @@ import { Database } from "@antumbra/persistence";
 import type { ChangeRef } from "@antumbra/plugin-api";
 import { Effect } from "effect";
 import { changeRow } from "#change-read.ts";
+import type { ChangeRow } from "#change-rows.ts";
 import { applyObservations } from "#change-submissions/observations.ts";
 import { ChangeHostRegistry } from "#change-submissions/registries.ts";
 import { UnknownChangeHostTag } from "#errors.ts";
@@ -9,13 +10,14 @@ import { UnknownChangeHostTag } from "#errors.ts";
 export const watchableChanges = (hostTag: string) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
-		return (yield* db.Change.where({ host: hostTag }).all())
-			.map(changeRow)
-			.filter((row) => row.stage === "open" || row.stage === "withdrawn");
+		return (yield* Effect.forEach(
+			yield* db.Change.where({ host: hostTag }).all(),
+			changeRow,
+		)).filter((row) => row.stage === "open" || row.stage === "withdrawn");
 	});
 
 const changeRef = (
-	row: ReturnType<typeof changeRow>,
+	row: ChangeRow,
 	repos: ReadonlyMap<
 		string,
 		{

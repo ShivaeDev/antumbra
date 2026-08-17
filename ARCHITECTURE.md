@@ -42,6 +42,7 @@ obligation remains detached until needed. See
 | ------------------------- | --------------------------------------------------------------- |
 | `apps/desktop`            | Electron shell: windows, native surfaces, composition           |
 | `packages/contract`       | The typed API surface between renderer and main (a leaf)        |
+| `packages/change-vocabulary` | Neutral Change and PieceChange vocabulary (a leaf)           |
 | `packages/session-events` | The neutral session-event vocabulary every side speaks (a leaf) |
 | `packages/plugin-api`     | The driven ports: agent backends, runners, plugin registration  |
 | `packages/agent-tools`    | The tools agents act through: schemas and binding, no transport |

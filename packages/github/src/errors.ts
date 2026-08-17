@@ -45,9 +45,11 @@ export class GhCommandFailed extends Data.TaggedError("GhCommandFailed")<
 	}
 }
 
-export class GhOutputInvalid extends Data.TaggedError(
-	"GhOutputInvalid",
-)<GhFailureFields> {
+export class GhOutputInvalid extends Data.TaggedError("GhOutputInvalid")<
+	GhFailureFields & {
+		readonly raw?: unknown;
+	}
+> {
 	override get message(): string {
 		return `gh ${this.operation} answered something unreadable: ${this.detail}`;
 	}

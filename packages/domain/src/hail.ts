@@ -9,7 +9,12 @@ import type { PrismaError } from "@antumbra/persistence";
 import { Deferred, Effect, Option } from "effect";
 import { composeCaptainCharter } from "#charter-captain.ts";
 import type { AgentDeps, SpawnRefused } from "#deps.ts";
-import { CaptainAlreadyHailed, VoyageNotFound } from "#errors.ts";
+import {
+	CaptainAlreadyHailed,
+	type StoredChangeInvalid,
+	type StoredPieceChangeInvalid,
+	VoyageNotFound,
+} from "#errors.ts";
 import { CAPTAIN_ROLE, captainAtWork } from "#voyage-captain.ts";
 import { voyageView } from "#voyage-view.ts";
 import { readVoyageWorld } from "#voyage-world.ts";
@@ -25,6 +30,8 @@ export type HailRefused =
 	| PrismaError
 	| SpawnRefused
 	| StoredBoardEntryInvalid
+	| StoredChangeInvalid
+	| StoredPieceChangeInvalid
 	| VoyageNotFound;
 
 // why: hailing materializes the role for the voyage as it stands right now —

@@ -61,6 +61,13 @@ module.exports = {
 		...capabilityPackages.map(capabilityRule),
 		rule({
 			rationale:
+				"Change vocabulary is the neutral language shared by hosts, durable projections, the public contract, and views. It stays a leaf so no consumer drags another layer with it.",
+			from: "^packages/change-vocabulary",
+			name: "change-vocabulary-is-a-leaf",
+			to: "^packages/(?!change-vocabulary)|^apps/",
+		}),
+		rule({
+			rationale:
 				"The desktop consumes the application-facing domain facade. Leaf capability Layers stay composed inside that facade so the app does not become a service graph by hand.",
 			from: "^apps/desktop",
 			name: "desktop-uses-domain-facade",
@@ -117,10 +124,10 @@ module.exports = {
 		}),
 		rule({
 			rationale:
-				"The contract package is the IDL — a leaf. It imports no other workspace package.",
+				"The contract package is the IDL. It may name the dependency-free Change vocabulary shared with host ports, but imports no capability, adapter, domain, or app layer.",
 			from: "^packages/contract",
-			name: "contract-is-a-leaf",
-			to: "^packages/(?!contract)|^apps/",
+			name: "contract-has-only-vocabulary-dependency",
+			to: "^packages/(?!contract(?:/|$)|change-vocabulary(?:/|$))|^apps/",
 		}),
 		rule({
 			rationale:

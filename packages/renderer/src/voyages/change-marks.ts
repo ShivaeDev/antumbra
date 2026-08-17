@@ -1,27 +1,34 @@
 import type { ChangeView } from "@antumbra/contract";
 
-// why: the host's dialect already reached the window as one vocabulary, so a
-// word this build does not know shows as nothing rather than a wrong mark.
-const CHECK_MARKS: Readonly<Record<string, string>> = {
+// why: every neutral word is named here, including intentional blanks. A new
+// vocabulary value is therefore a compile error until the view decides how it
+// reads instead of silently disappearing or printing its wire spelling.
+const STAGE_LABELS: Readonly<Record<ChangeView["stage"], string>> = {
+	landed: "landed",
+	open: "open",
+	prepared: "prepared",
+	withdrawn: "withdrawn",
+};
+
+const CHECK_MARKS: Readonly<Record<ChangeView["checks"], string>> = {
 	green: "✓",
 	none: "○",
 	pending: "…",
 	red: "✗",
 };
 
-const REVIEW_MARKS: Readonly<Record<string, string>> = {
+const REVIEW_MARKS: Readonly<Record<ChangeView["review"], string>> = {
 	approved: "✓",
 	changes_requested: "✎",
+	none: "",
 	pending: "…",
 };
 
-const MERGEABLE_MARKS: Readonly<Record<string, string>> = {
+const MERGEABLE_MARKS: Readonly<Record<ChangeView["mergeable"], string>> = {
 	clean: "⚓",
 	conflict: "⚡",
+	unknown: "",
 };
-
-const mark = (marks: Readonly<Record<string, string>>, word: string): string =>
-	marks[word] ?? "";
 
 // why: a landed change has nothing left to say about checks or reviewers — it
 // merged, and that is the whole of its state.
@@ -30,10 +37,10 @@ export const changeMarks = (change: ChangeView): string => {
 		return "✓ merged";
 	}
 	return [
-		change.stage,
-		mark(CHECK_MARKS, change.checks),
-		mark(REVIEW_MARKS, change.review),
-		mark(MERGEABLE_MARKS, change.mergeable),
+		STAGE_LABELS[change.stage],
+		CHECK_MARKS[change.checks],
+		REVIEW_MARKS[change.review],
+		MERGEABLE_MARKS[change.mergeable],
 	]
 		.filter((glyph) => glyph !== "")
 		.join(" · ");

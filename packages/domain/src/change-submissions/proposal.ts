@@ -14,7 +14,7 @@ const requireStoredChange = (id: string) =>
 					changeId: id,
 					detail: "the durable prepared row is missing",
 				}),
-			onSome: (row) => Effect.succeed(changeRow(row)),
+			onSome: changeRow,
 		});
 	});
 

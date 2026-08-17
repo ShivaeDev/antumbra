@@ -1,15 +1,10 @@
 {
-	"name": "@antumbra/contract",
+	"name": "@antumbra/change-vocabulary",
 	"version": "0.0.0",
 	"private": true,
 	"type": "module",
 	"exports": {
-		".": "./src/index.ts",
-		"./channels": "./src/channels.ts"
-	},
-	"imports": {
-		"#test/*": "./test/*",
-		"#*": "./src/*"
+		".": "./src/index.ts"
 	},
 	"scripts": {
 		"test": "vitest run --passWithNoTests",
@@ -25,9 +20,6 @@
 		"vitest": "catalog:"
 	},
 	"dependencies": {
-		"@antumbra/change-vocabulary": "workspace:*",
-		"@shivaedev/effect-trpc": "catalog:",
-		"@trpc/server": "catalog:",
 		"effect": "catalog:"
 	}
 }

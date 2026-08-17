@@ -3,6 +3,7 @@ import { Boards } from "@antumbra/boards";
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database, type WriteExecutors, Writer } from "@antumbra/persistence";
 import type { AgentBackend, ChangeHost, Runner } from "@antumbra/plugin-api";
+import { Repos } from "@antumbra/repos";
 import { Deferred, Effect, Layer, Option } from "effect";
 import { AGENTS_ALIVE_GAUGE, AgentDomain } from "#agent-domain-service.ts";
 import { sweepBerths } from "#berth-sweep.ts";
@@ -13,7 +14,6 @@ import type { AgentDeps, KernelReach } from "#deps.ts";
 import { domainCapabilities } from "#domain-capabilities.ts";
 import { makeEventSinkFactory } from "#events.ts";
 import { SessionFabric, SessionFabricLive } from "#fabric.ts";
-import { makeRepoRegistry } from "#registry.ts";
 import { makeRetireKind } from "#retire.ts";
 import { makeRecoveryKind } from "#session-recovery.ts";
 import type { SessionRecoveryContext } from "#session-recovery-context.ts";
@@ -42,6 +42,7 @@ export const AgentDomainLive = (
 	return Layer.effect(AgentDomain)(
 		Effect.gen(function* () {
 			const boards = yield* Boards;
+			const repos = yield* Repos;
 			const db = yield* Database;
 			const writer = yield* Writer;
 			const executors = yield* Effect.context<WriteExecutors>();
@@ -102,7 +103,7 @@ export const AgentDomainLive = (
 				interruptSession: fabric.interrupt,
 				kernelReach,
 				kinds: [spawn, recover, retire, siesta],
-				repos: makeRepoRegistry(deps),
+				repos,
 				recover,
 				retire,
 				siesta,

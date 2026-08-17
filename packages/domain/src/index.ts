@@ -7,6 +7,12 @@ export type {
 export type { CharterInput, EdgeRow, PieceRow } from "@antumbra/pieces";
 export type { ReportInput, ReportRow } from "@antumbra/reports";
 export {
+	type RegisteredRepo,
+	type RepoRegistration,
+	type RepoRegistry,
+	repoName,
+} from "@antumbra/repos";
+export {
 	nextObserveDelayMillis,
 	type ObserveCadenceOptions,
 } from "#change-cadence.ts";
@@ -84,12 +90,6 @@ export {
 export type { PieceView } from "#piece-view.ts";
 export type { QuayGroup } from "#quay-group.ts";
 export type { QuayPiece, QuayReading, QuayRow } from "#quay-view.ts";
-export {
-	type RegisteredRepo,
-	type RepoRegistration,
-	type RepoRegistry,
-	repoName,
-} from "#registry.ts";
 export type { RetireFields } from "#retire.ts";
 export { AgentRecoveryLive } from "#session-recovery-live.ts";
 export { SightSourceLive } from "#sight.ts";

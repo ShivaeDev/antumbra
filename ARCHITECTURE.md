@@ -50,6 +50,7 @@ obligation remains detached until needed. See
 | `packages/agent-tools`    | The tools agents act through: schemas and binding, no transport |
 | `packages/kernel`         | Intents, admission scheduling, lifecycle state machines         |
 | `packages/domain-feeds`   | Shared post-commit domain change notifications                  |
+| `packages/repos`          | Application repository registry and transactional lifecycle     |
 | `packages/pieces`         | Piece acts and their transactional graph invariants             |
 | `packages/boards`         | Board and mailbox storage invariants                            |
 | `packages/artifacts`      | Durable artifact publication and landing                        |

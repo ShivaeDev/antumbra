@@ -80,10 +80,11 @@ request are the same object.
 ## Landing and harvest
 
 **Landing** is the durable acceptance of an Outcome. For a Change, the external
-merge is the landing event; Antumbra observes and records it idempotently, then
-allows dependent work to reconcile against merged code. A Change still waiting
-on its host leaves its Piece in the landing projection: out of the work pool,
-with no crew required merely to wait.
+host acceptance is the landing event; for GitHub, that acceptance is merge.
+Antumbra observes and records it idempotently, then allows dependent work to
+reconcile against landed code. A Change still waiting on its host leaves its
+Piece in the landing projection: out of the work pool, with no crew required
+merely to wait.
 
 The **harvest** is the set of work produced during an unattended stretch that
 is now ready for the admiral to review, merge, or otherwise ship. It is not tied

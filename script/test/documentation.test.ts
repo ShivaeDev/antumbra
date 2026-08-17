@@ -30,6 +30,15 @@ const hasRule = (documents: readonly TextFile[], rule: string): boolean =>
 		(violation) => violation.rule === rule,
 	);
 
+const replaceDocument = (
+	documents: readonly TextFile[],
+	path: string,
+	rewrite: (raw: string) => string,
+): readonly TextFile[] =>
+	documents.map((entry) =>
+		entry.path === path ? document(path, rewrite(entry.raw)) : entry,
+	);
+
 describe("documentation rules", () => {
 	it("accepts a linked and singly owned documentation set", () => {
 		expect(documentationViolations(cleanDocuments())).toEqual([]);
@@ -45,6 +54,41 @@ describe("documentation rules", () => {
 		];
 		expect(hasRule(documents, "docs/relative-link")).toBe(true);
 		expect(hasRule(documents, "docs/anchor")).toBe(true);
+	});
+
+	it("ignores Markdown links demonstrated inside code", () => {
+		const documents = replaceDocument(
+			cleanDocuments(),
+			"DESIGN.md",
+			(raw) =>
+				`${raw}\n\`[Inline](missing.md)\`\n\n\`\`\`md\n[Fenced](absent.md#gone)\n\`\`\`\n`,
+		);
+		expect(documentationViolations(documents)).toEqual([]);
+	});
+
+	it("resolves reference-style Markdown links", () => {
+		let documents = replaceDocument(
+			cleanDocuments(),
+			"README.md",
+			() =>
+				"# Antumbra\n\n[Design][design]\n[Architecture][architecture]\n[Glossary][glossary]\n[Guides][guides]\n\n[design]: DESIGN.md\n[architecture]: ARCHITECTURE.md\n[glossary]: GLOSSARY.md\n[guides]: docs/design/README.md\n",
+		);
+		documents = replaceDocument(
+			documents,
+			"docs/design/README.md",
+			() =>
+				"# Design guides\n\n- [Work and planning][work]\n\n[work]: work-and-planning.md\n",
+		);
+		expect(documentationViolations(documents)).toEqual([]);
+	});
+
+	it("validates the destinations of reference-style links", () => {
+		const documents = replaceDocument(
+			cleanDocuments(),
+			"README.md",
+			() => "# Antumbra\n\n[Design][design]\n\n[design]: absent.md\n",
+		);
+		expect(hasRule(documents, "docs/relative-link")).toBe(true);
 	});
 
 	it("flags pages unreachable from the public README", () => {
@@ -90,6 +134,43 @@ describe("documentation rules", () => {
 						),
 					)
 				: entry,
+		);
+		expect(hasRule(documents, "docs/glossary-owner")).toBe(true);
+	});
+
+	it("rejects malformed glossary term rows", () => {
+		const documents = replaceDocument(cleanDocuments(), "GLOSSARY.md", (raw) =>
+			raw.replace(
+				"- [**Voyage**](docs/design/work-and-planning.md#voyages) — a ship under sail for an objective.",
+				"- **Voyage** — a ship under sail for an objective.",
+			),
+		);
+		expect(hasRule(documents, "docs/glossary-row")).toBe(true);
+	});
+
+	it("requires a glossary owner under docs/design", () => {
+		const documents = replaceDocument(
+			cleanDocuments(),
+			"GLOSSARY.md",
+			() =>
+				"# Glossary\n\n## Work and planning\n\nOwner: [Design](DESIGN.md)\n\n- [**Voyage**](DESIGN.md#design-axioms) — a ship under sail for an objective.\n",
+		);
+		expect(hasRule(documents, "docs/glossary-owner")).toBe(true);
+	});
+
+	it("requires an owner even when a glossary group has no valid rows", () => {
+		const documents = replaceDocument(cleanDocuments(), "GLOSSARY.md", (raw) =>
+			raw.replace(/^Owner: .*\n\n/m, ""),
+		);
+		expect(hasRule(documents, "docs/glossary-owner")).toBe(true);
+	});
+
+	it("rejects a term routed to a different topic than its owner", () => {
+		const documents = replaceDocument(cleanDocuments(), "GLOSSARY.md", (raw) =>
+			raw.replace(
+				"docs/design/work-and-planning.md#voyages) — a ship",
+				"docs/design/README.md#design-guides) — a ship",
+			),
 		);
 		expect(hasRule(documents, "docs/glossary-owner")).toBe(true);
 	});

@@ -29,10 +29,11 @@ hook turns those facts into mail or resumes an Agent; v1 attention is pulled
 only after human selection.
 
 Closing the app stops local execution, not durable work. Graceful shutdown
-drains active and pending work to idle; forced shutdown never invents
-completion. On relaunch, active, pending, or uncertain sessions resume from
-persisted truth using the same Antumbra and provider-native session identities,
-while idle sessions remain detached until needed. See
+asks attached executive work to reach a safe quiescent boundary; forced
+shutdown never invents completion. On relaunch, durable executive obligations
+that may remain unfinished resume from persisted truth using the same Antumbra
+and provider-native session identities. Machinery with no outstanding
+obligation remains detached until needed. See
 [`docs/design/agent-recovery.md`](docs/design/agent-recovery.md).
 
 ## Workspace
@@ -92,7 +93,7 @@ with transition tables.
 An Intent is a mortal executable attempt, not durable Piece demand. A desired
 Piece that is dependency-blocked has no dispatch workflow; reconciliation
 submits a new Intent when it becomes eligible. Waiting is reserved for an
-active attempt that needs immediate external intervention, such as
+admitted attempt that needs immediate external intervention, such as
 authentication.
 
 Execution history lives only for one admitted attempt. Retried or reclaimed

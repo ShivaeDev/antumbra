@@ -50,6 +50,10 @@ detailed authority, course, Piece, dependency, and progress model.
   pre-identified Agent with role and charter. Retire irreversibly ends that
   identity. A mortal Intent schedules an operation and never stands in for
   long-lived Piece demand.
+- **Activity has no turns in the domain.** Agent activity is an event stream,
+  load is a level, and quiescence is a derived gauge no workflow awaits.
+  Provider turn events are telemetry, not a completion ontology. Admission
+  governs Agent births, never message delivery.
 - **Voyages sail by Piece launch, not play.** Launch records durable demand.
   Reconciliation creates or cancels dispatch attempts as eligibility changes;
   a blocked desired Piece needs no sleeping workflow.
@@ -60,8 +64,10 @@ detailed authority, course, Piece, dependency, and progress model.
   durable Agent and its work. Antumbra manages execution machinery beneath
   that surface.
 - **Agents act through transport-free tools.** Domain acts are defined once as
-  typed schemas and handlers, then adapted to each provider in process.
-  Identity is bound at spawn and does not travel on a tool wire.
+  typed schemas and handlers, injected when an execution context opens, then
+  adapted to each provider in process. Identity is bound at spawn and does not
+  travel on a tool wire. A network face may add another consumer; it never
+  replaces the in-process capability.
 
 The [Agent recovery guide](docs/design/agent-recovery.md) owns resource,
 Session, restart, siesta, handover, and reclamation behavior.
@@ -75,12 +81,16 @@ Session, restart, siesta, handover, and reclamation behavior.
   from durable intent and domain truth, then idempotently compares it with
   current runtime and external reality.
 - **The event log is the product surface; views are glass.** Renderers are
-  stateless typed projections that rehydrate from the log and subscribe without
-  a read/write gap. Killing a view cannot affect an Agent or durable work.
+  stateless typed projections. They subscribe first, read the durable log, and
+  deduplicate by sequence so observation has no gap. Views may offer only
+  existing domain acts; killing one cannot affect an Agent or durable work.
 - **One vocabulary serves many backends.** The domain owns neutral Session
   events and delivery acts; adapters preserve provider payloads and native ids
   without making them authoritative. A second backend must fit the same model
   before the interface can claim neutrality.
+- **Every backend has both delivery boundaries.** `steer` enters running work;
+  `queue` waits for the next full provider boundary. The domain's precedence
+  policy chooses between them, never the adapter.
 - **Unknown evidence stays evidence.** Raw or future event kinds render raw
   instead of taking the view down. Provider facts remain their own durable
   truth; observing a Change, Review, or message never invents another fact.
@@ -105,6 +115,10 @@ Session, restart, siesta, handover, and reclamation behavior.
 - **Anyone may all stop.** Escalation can hold one asker, one Voyage, or the
   fleet. The system makes the stop loud and reliable; misuse is handled as a
   conversation afterwards.
+- **Coordination uses settled rails.** Board entries hold shared state,
+  declarative wakeups request reconciliation, direct messages remain bounded,
+  and typed Artifact handoffs carry results. Software owns deterministic
+  coordination; Agents supply judgment.
 
 The [attention and memory guide](docs/design/attention-and-memory.md) owns
 Boards, smoothing, questions, rulings, mail, heave-to, and precedence.
@@ -115,8 +129,9 @@ Boards, smoothing, questions, rulings, mail, heave-to, and precedence.
   serve the admiral, and Changes represent repository modifications that take
   time to land. The set of kinds is open, but every kind is individually typed.
 - **Landing is a durable boundary.** A local Artifact must enter app-managed
-  durable storage before it lands. A Change lands when its external host
-  confirms merge. Resource cleanup never reclaims landed Outcomes.
+  durable storage before it lands. A Change lands when host evidence confirms
+  the host-specific acceptance mapped by its adapter. Resource cleanup never
+  reclaims landed Outcomes.
 - **External systems do not name our truth.** Antumbra keeps neutral Change
   identity and meaning beside a host's raw state. Host publication and
   observation are reconciled effects, not shortcuts around the domain.
@@ -131,13 +146,25 @@ Outcome relationships, Change stages, the Quay, and the GitHub mapping.
   holding.
 - **Policies are the concept; pools are one application.** Typed conditions
   and restrictions compose. Freed capacity pulls by policy, priority class,
-  focus, and durable demand; reclaiming resources outranks finishing work,
-  which outranks starting more.
+  focus, and durable demand. Priority class belongs to the Intent kind and is
+  never stored as mutable work state. Reclaiming resources outranks finishing
+  work, which outranks starting more. Plugins may register further policy
+  families without changing admission's meaning.
 - **All deadlocks are soft.** Capacity retains margin and may overcommit loudly
   and temporarily to break a proven stall.
 - **Wake is a latency hint, never a liveness dependency.** Startup, relevant
-  events, and bounded patience all trigger idempotent reconciliation. A lost
-  wake self-heals within the published patience bound.
+  events, and bounded patience all trigger idempotent reconciliation. A wait
+  uses a published deadline when one exists and a patience floor otherwise; a
+  lost wake self-heals within that bound. Simulation proves admission latency
+  never exceeds the patience budget.
+- **Repository resources are app-level and capability-honest.** Every
+  registered repository has one app-managed bare mirror, and each spawn gets
+  one Berth for each registration. Runners expose only capabilities they can
+  actually provide; repositories and Pieces never smuggle in resource policy.
+- **Reaping waits for settled execution.** A Session with an in-flight tool,
+  descendant Agent tree, or background obligation is never interrupted for
+  sleep. Pressure selects among safe candidates by likelihood of waking again;
+  durable concepts make the eventual loss of any process attachment safe.
 - **Replaceable resources are evidence-bound.** Agents never create their own
   worktrees. A runner provisions their current Moorage and Berths; dirty,
   unpushed, unauthenticated, or uncertain evidence blocks automated reclaim.
@@ -145,7 +172,7 @@ Outcome relationships, Change stages, the Quay, and the GitHub mapping.
 - **Claims are ephemeral and visible.** Process-local ownership is rebuilt from
   durable work and direction after restart; missing memory never means work
   completed or a resource became free.
-- **Resource holds live at the Agent tool boundary.** Repositories may
+- **Resource holds live at the Agent's pre-tool boundary.** Repositories may
   contribute configuration, but Antumbra never wraps or weakens their own
   tooling to manufacture compliance.
 

@@ -34,8 +34,8 @@ resumes the same Session or explicitly links a successor to the same Agent.
   current resource truth, not an event-sourced history of resource
   generations.
 - An **AgentSession** owns Antumbra's session identity, the provider-native
-  session or thread reference, transcript evidence, and last-known execution
-  status. A local SDK handle or observer is only an attachment to that
+  session or thread reference, transcript evidence, and durable recovery
+  evidence. A local SDK handle or observer is only an attachment to that
   durable record.
 
 Agent setup reaches its success boundary when the required Moorage and Berths
@@ -52,7 +52,7 @@ with no dispatch Intent. If a queued Piece becomes blocked or is parked before
 starting, its short-lived dispatch Intent is cancelled. A new Intent is
 submitted when the durable demand becomes eligible again.
 
-Intent waiting is narrower: an active attempt may wait visibly for immediate
+Intent waiting is narrower: an admitted attempt may wait visibly for immediate
 external intervention such as authentication, then retry. Waiting is not a
 place to store ordinary Piece prerequisites.
 
@@ -67,7 +67,7 @@ assignments and does not collapse their Sessions into one execution.
 
 The database holds everything that remains true after exit: intents, domain
 links, Agent and AgentSession identities, native references, transcript and
-event evidence, current resource evidence, and last-known execution status.
+event evidence, current resource evidence, and recovery obligations.
 Memory may hold only execution machinery that is safe to lose: fibers, process
 handles, subscriptions, semaphores, timers, wakes, workflow history, and
 indexes rebuilt from durable records.
@@ -77,19 +77,44 @@ and domain state, then reconciles each idempotent step with reality. An
 activity's in-memory history may prevent duplicate work within that attempt;
 it is not recovery truth.
 
+## Activity, observation, and delivery
+
+Agent activity is a stream of events and load is a level. Quiescence is a
+derived gauge for observation and policy, not a promise on which a workflow
+waits. Provider turns may appear in telemetry, but the domain never treats a
+turn boundary as conversational completion.
+
+The durable Session event sequence is the UI and audit source. Each observer
+subscribes to post-write publication before reading the log, then deduplicates
+by sequence as live events arrive. That ordering closes the read/subscription
+gap. Its neutral vocabulary covers opening, messages, thinking, tool start and
+completion, usage, provider-turn telemetry, and raw evidence. The transcript
+accumulates messages, pairs tool lifecycle events, and renders usage and turn
+events as visual rhythm rather than domain boundaries. Unknown kinds and
+provider payloads remain visible as raw evidence instead of taking the
+projection down. A renderer may invoke only acts already owned by the domain,
+such as spawn, retire, or interrupt. It cannot invent a reply path or another
+delivery model.
+
+Every backend implements two delivery acts. `steer` enters work already under
+way; `queue` waits for the provider's next full boundary. Precedence policy in
+the domain chooses the act. A backend cannot silently omit one, choose for the
+caller, or make its native session identifier authoritative.
+
 ## Resume before replace
 
 Normal recovery attaches the same AgentSession to the same provider-native
 session or thread. Antumbra's neutral event log is the UI and audit surface; it
 is not input for reconstructing a provider conversation.
 
-At startup, Sessions whose internal execution status is active, pending, or
-uncertain resume by default. Idle Sessions stay detached and attach lazily when
-hailed or given work. Those exact statuses are recovery machinery, not product
-vocabulary or an ordinary Fleet presentation. Missing observers, an empty
+At startup, Antumbra resumes a durable Session whenever persisted evidence says
+its executive obligation may remain unfinished or provider acceptance still
+needs reconciliation. A Session with no such obligation stays detached and
+attaches lazily when hailed or given work. Missing observers, an empty
 in-memory registry, or a dead watcher only remove current knowledge; they never
 mean an Agent retired, a Session closed, a Moorage orphaned, or a claim
-released.
+released. The executive distinction remains internal recovery machinery, not
+product vocabulary or an ordinary Fleet presentation.
 
 Initial and recovery instructions use ordinary at-least-once delivery. After a
 successful native attach, recovery durably queues one recovery instruction. If
@@ -115,16 +140,15 @@ execution machinery.
 
 ## Shutdown and failure
 
-Graceful shutdown asks active and pending Sessions to settle, drains them to an
-idle execution status, and only then exits. A forced shutdown merely ends local
-execution. It does not synthesize a mailbox read, Session closure, Agent
-retirement, or resource reclamation; startup reconciles the surviving durable
-truth.
+Graceful shutdown asks attached executive work to settle at a safe boundary and
+only then exits. A forced shutdown merely ends local execution. It does not
+synthesize a mailbox read, Session closure, Agent retirement, or resource
+reclamation; startup reconciles the surviving durable truth.
 
-Authentication requirements, provider uncertainty, and unsafe resource state
-are observable holds. Retrying restarts the workflow from durable truth. A
-successful intent means its promised durable boundary was reached, not merely
-that background work was detached.
+Authentication requirements, ambiguous provider acceptance, and unsafe
+resource state are observable holds. Retrying restarts the workflow from
+durable truth. A successful intent means its promised durable boundary was
+reached, not merely that background work was detached.
 
 Agent-directed mail is durable and board-backed. Addressing and marked-read
 state remain true without a Session attachment, and reading never writes a
@@ -132,13 +156,46 @@ receipt. In v1 the admiral selects attention and the Agent pulls its mailbox;
 no mail arrival or external fact automatically attaches, resumes, or
 interrupts a Session.
 
+## Provisioning and resource topology
+
+Repositories are registered once at the app level. Each registration owns a
+bare mirror under app-managed data; before a provider Session opens, the runner
+provisions one Berth from each mirror into the Agent's current Moorage on a
+`work/…` branch. The Moorage folder is the Agent's current working directory
+and scratchpad. With no repositories registered, the Agent still receives a
+bare scratch Moorage. Narrowing repository visibility may later filter what
+an Agent sees, but it never binds repositories to a Piece or Voyage.
+
+The same Moorage row survives physical loss and later reprovisioning. Ordinary
+provisioning reconciles that durable row with whatever folders and Berths
+remain, creating only what is absent. Dirty or unpushed work, unavailable
+authentication, or ambiguous inspection blocks automated reclaim. Declared
+gitignored paths are disposable and therefore do not strand otherwise safe
+resources. Age may rank safe candidates but never proves safety.
+
+Runners register through the same plugin surface as backends and report their
+capabilities honestly. In particular, the local runner cannot claim terminal
+support until Antumbra can actually render and operate a terminal.
+
+## Rest and reaping
+
+Standing an Agent down drains its work toward a safe holding point. A Session
+is reapable only after its provider work, tool calls, descendant Agent tree,
+and background obligations have all settled; resource pressure never
+interrupts an in-flight subtree. Long-lived concerns are externalized as
+subscriptions, durable Questions, and Board-backed mail rather than keeping a
+process attachment alive.
+
+When pressure requires eviction, policy chooses among safe Sessions by which
+is least likely to wake soon. The durable Agent, Session identity, Board,
+mailbox, and recovery evidence remain, so losing the process attachment never
+becomes loss of work or identity.
+
 ## Reclamation boundary
 
 Reclamation applies only to replaceable resources. Boards, transcripts, Agent
-identity, Session identity, and story are not cleanup targets. Dirty or
-unpushed work, unavailable authentication, or uncertain inspection always
-blocks automated reclamation. Age can inform which safe resource to reclaim;
-it cannot make an unsafe resource safe.
+identity, Session identity, and story are not cleanup targets. The evidence
+boundary and selection policy above govern every automated reclamation.
 
 Stand-down is a reversible siesta: it drains toward a safe holding point while
 preserving the Agent, its Moorage, and its resumable Sessions. Retirement is

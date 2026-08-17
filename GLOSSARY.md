@@ -41,9 +41,9 @@ Owner: [Changes and delivery](docs/design/changes-and-delivery.md)
 - [**Outcome**](docs/design/changes-and-delivery.md#outcomes) — a typed result a Piece expects and eventually lands.
 - [**Report**](docs/design/changes-and-delivery.md#reports-and-artifacts) — a prose outcome for Agents to consume.
 - [**Artifact**](docs/design/changes-and-delivery.md#reports-and-artifacts) — a durable visual outcome for the admiral.
-- [**Change**](docs/design/changes-and-delivery.md#changes) — a proposed repository modification; on GitHub, this maps to a pull request and its branch.
+- [**Change**](docs/design/changes-and-delivery.md#changes) — a proposed repository modification that takes time to land.
 - [**Quay**](docs/design/changes-and-delivery.md#the-quay) — the admiral's view of Changes waiting to land or settle.
-- [**Landing**](docs/design/changes-and-delivery.md#landing-and-harvest) — durable acceptance of an Outcome; for a Change, merge is the landing event.
+- [**Landing**](docs/design/changes-and-delivery.md#landing-and-harvest) — durable acceptance of an Outcome.
 - [**Harvest**](docs/design/changes-and-delivery.md#landing-and-harvest) — work produced over an unattended stretch that is ready to review or ship.
 
 ## Agents and recovery
@@ -52,8 +52,8 @@ Owner: [Agent identity, resources, and recovery](docs/design/agent-recovery.md)
 
 - [**Agent**](docs/design/agent-recovery.md#three-truths-three-lifecycles) — a durable identity and responsibility, not a process or provider conversation.
 - [**Hail**](docs/design/agent-recovery.md#hailing-an-agent) — address an Agent by resuming it or establishing its execution context.
-- [**Moorage**](docs/design/agent-recovery.md#reclamation-boundary) — an Agent's current replaceable resource home.
-- [**Berth**](docs/design/agent-recovery.md#reclamation-boundary) — one repository worktree inside a Moorage.
+- [**Moorage**](docs/design/agent-recovery.md#provisioning-and-resource-topology) — an Agent's current replaceable resource home.
+- [**Berth**](docs/design/agent-recovery.md#provisioning-and-resource-topology) — one repository worktree inside a Moorage.
 - [**Siesta**](docs/design/agent-recovery.md#reclamation-boundary) — the reversible rest reached by standing an Agent down.
 - [**Stand down**](docs/design/agent-recovery.md#reclamation-boundary) — drain an Agent to a safe holding point without retiring it.
 - [**Retirement**](docs/design/agent-recovery.md#reclamation-boundary) — the explicit irreversible end of an Agent identity.

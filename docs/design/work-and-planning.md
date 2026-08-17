@@ -105,4 +105,6 @@ Launching changes durable demand; reconciliation decides when eligible demand
 needs a dispatch Intent. Parking withdraws demand from the pool without
 deleting the Piece, its finished work, or its history. Done is derived from
 landed Outcomes and pending obligations, never declared, and done work remains
-available as the parent of a follow-up.
+available as the parent of a follow-up. A captain launching through an Agent
+tool and the admiral launching through the app express the same durable demand;
+neither starts a hidden Voyage-level process.

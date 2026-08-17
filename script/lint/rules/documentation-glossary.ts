@@ -1,10 +1,14 @@
 import type { TextFile } from "#lint/inventory.ts";
-import { linkAnchor, linkPath } from "#lint/rules/markdown.ts";
+import {
+	type GlossaryTarget,
+	glossaryGroupViolations,
+} from "#lint/rules/documentation-glossary-group.ts";
+import { markdownProseLines } from "#lint/rules/markdown.ts";
 import type { Violation } from "#lint/violation.ts";
 
 const GLOSSARY = "GLOSSARY.md";
 const OWNER = /^Owner: \[[^\]]+\]\(([^)]+)\)$/;
-const TERM = /^- \[\*\*([^*]+)\*\*\]\(([^)]+)\) — \S/;
+const TERM = /^- \[\*\*([^*]+)\*\*\]\(([^)]+)\) — \S.*$/;
 
 const violation = (
 	line: number | undefined,
@@ -15,6 +19,39 @@ const violation = (
 const normalizedTerm = (term: string): string =>
 	term.toLocaleLowerCase("en").replace(/[^\p{L}\p{N}]/gu, "");
 
+const malformedRowViolations = (
+	line: number,
+	raw: string,
+): readonly Violation[] =>
+	raw.startsWith("- ")
+		? [
+				violation(
+					line,
+					"docs/glossary-row",
+					"glossary term rows must link one bold term to its owning topic anchor.",
+				),
+			]
+		: [];
+
+const duplicateTermViolations = (
+	found: Set<string>,
+	line: number,
+	term: string,
+): readonly Violation[] => {
+	const key = normalizedTerm(term);
+	if (found.has(key)) {
+		return [
+			violation(
+				line,
+				"docs/glossary-term",
+				`glossary term is duplicated after normalization: ${term}`,
+			),
+		];
+	}
+	found.add(key);
+	return [];
+};
+
 export const glossaryViolations = (
 	documents: ReadonlyMap<string, TextFile>,
 ): readonly Violation[] => {
@@ -22,58 +59,39 @@ export const glossaryViolations = (
 	if (glossary === undefined) return [];
 	const found = new Set<string>();
 	const violations: Violation[] = [];
-	let owners: string[] = [];
-	let terms: ReadonlyArray<{ readonly line: number; readonly target: string }> =
-		[];
+	let groupLine: number | undefined;
+	let owners: readonly GlossaryTarget[] = [];
+	let terms: readonly GlossaryTarget[] = [];
 	const closeGroup = (): void => {
-		if (owners.length === 0 && terms.length === 0) return;
-		if (owners.length !== 1) {
-			violations.push(
-				violation(
-					undefined,
-					"docs/glossary-owner",
-					"each glossary group must declare exactly one topic owner.",
-				),
-			);
-		} else {
-			const ownerPath = linkPath(GLOSSARY, owners[0] ?? "");
-			for (const term of terms) {
-				if (
-					linkPath(GLOSSARY, term.target) !== ownerPath ||
-					linkAnchor(term.target) === undefined
-				) {
-					violations.push(
-						violation(
-							term.line,
-							"docs/glossary-owner",
-							"glossary terms must link to an anchor in their group's topic owner.",
-						),
-					);
-				}
-			}
+		if (groupLine !== undefined) {
+			violations.push(...glossaryGroupViolations(groupLine, owners, terms));
 		}
 		owners = [];
 		terms = [];
+		groupLine = undefined;
 	};
-	glossary.raw.split("\n").forEach((line, index) => {
-		if (line.startsWith("## ")) closeGroup();
-		const owner = OWNER.exec(line)?.[1];
-		if (owner !== undefined) owners.push(owner);
-		const term = TERM.exec(line);
-		if (term === null) return;
-		const key = normalizedTerm(term[1] ?? "");
-		if (found.has(key)) {
-			violations.push(
-				violation(
-					index + 1,
-					"docs/glossary-term",
-					`glossary term is duplicated after normalization: ${term[1]}`,
-				),
-			);
+	for (const { line: lineNumber, raw: line } of markdownProseLines(glossary)) {
+		if (line.startsWith("## ")) {
+			closeGroup();
+			groupLine = lineNumber;
+			continue;
 		}
-		found.add(key);
-		terms = [...terms, { line: index + 1, target: term[2] ?? "" }];
-	});
+		if (groupLine === undefined) continue;
+		const owner = OWNER.exec(line)?.[1];
+		if (owner !== undefined) {
+			owners = [...owners, { line: lineNumber, target: owner }];
+			continue;
+		}
+		const term = TERM.exec(line);
+		if (term === null) {
+			violations.push(...malformedRowViolations(lineNumber, line));
+			continue;
+		}
+		violations.push(
+			...duplicateTermViolations(found, lineNumber, term[1] ?? ""),
+		);
+		terms = [...terms, { line: lineNumber, target: term[2] ?? "" }];
+	}
 	closeGroup();
 	return violations;
 };

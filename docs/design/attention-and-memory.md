@@ -36,6 +36,18 @@ Covered sources remain reachable. Smoothing may make derivable material recede
 from the frontier, but it never deletes the underlying graph. That is how a
 Board can preserve evidence without making every old detail equally salient.
 
+## Coordination rails
+
+Antumbra coordinates through four settled rails: Board entries for shared
+state, declarative wakeups that request idempotent reconciliation, bounded
+direct messages for addressed signal, and typed Artifact handoffs for durable
+results. Deterministic coordination belongs in software; Agents contribute the
+judgment that cannot be reduced to a transition or query.
+
+When context should survive a handoff, it belongs on the relevant Board rather
+than in an informal side conversation. A wakeup never carries the truth it
+announces, and a direct message never replaces durable shared state.
+
 ## Attention lanes
 
 Four lanes state why attention is wanted:

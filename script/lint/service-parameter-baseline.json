@@ -6,12 +6,6 @@
 		"type": "AgentDeps"
 	},
 	{
-		"callable": "appendAndAnnounce",
-		"file": "packages/domain/src/events.ts",
-		"parameter": "context",
-		"type": "SinkContext"
-	},
-	{
 		"callable": "assignToPiece",
 		"file": "packages/domain/src/piece-assignment.ts",
 		"parameter": "deps",
@@ -54,12 +48,6 @@
 		"type": "AgentDeps"
 	},
 	{
-		"callable": "makeSink",
-		"file": "packages/domain/src/events.ts",
-		"parameter": "context",
-		"type": "SinkContext"
-	},
-	{
 		"callable": "makeSpawnKind",
 		"file": "packages/domain/src/spawn.ts",
 		"parameter": "deps",
@@ -70,12 +58,6 @@
 		"file": "packages/domain/src/deps.ts",
 		"parameter": "deps",
 		"type": "AgentDeps"
-	},
-	{
-		"callable": "recordNativeRef",
-		"file": "packages/domain/src/events.ts",
-		"parameter": "context",
-		"type": "SinkContext"
 	},
 	{
 		"callable": "retireAgent",

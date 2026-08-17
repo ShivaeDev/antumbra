@@ -98,6 +98,7 @@ export {
 export type { RetireFields } from "#retire.ts";
 export { AgentRecoveryLive } from "#session-recovery-live.ts";
 export { drainActiveSessions } from "#session-shutdown.ts";
+export { SessionShutdownLive } from "#session-shutdown-live.ts";
 export { SightSourceLive } from "#sight.ts";
 export type { SpawnFields } from "#spawn.ts";
 export {

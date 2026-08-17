@@ -9,6 +9,7 @@ import {
 	DispatcherLive,
 	drainActiveSessions,
 	KernelReachLive,
+	SessionShutdownLive,
 	SightSourceLive,
 	VoyageSourceLive,
 } from "@antumbra/domain";
@@ -94,6 +95,7 @@ const startOwner = () => {
 		DispatcherLive(),
 		AgentRecoveryLive,
 		KernelReachLive,
+		SessionShutdownLive,
 	).pipe(Layer.provideMerge(kernel), Layer.provideMerge(persistence));
 	// why: a migration or connect failure leaves no meaningful app to run, so
 	// the persistence layer dies instead of threading an error type every

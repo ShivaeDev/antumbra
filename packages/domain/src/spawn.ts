@@ -1,6 +1,6 @@
 import { defineIntent, IntentExecution } from "@antumbra/kernel";
 import type { MooragePlan, Runner } from "@antumbra/plugin-api";
-import { Cause, Effect, Option } from "effect";
+import { Cause, Effect } from "effect";
 import { makeCaptainToolCompiler } from "#captain-tools.ts";
 import { deliverCharterOnce } from "#charter.ts";
 import { makeCrewToolCompiler } from "#crew-tools.ts";
@@ -8,8 +8,6 @@ import type { AgentDeps } from "#deps.ts";
 import { UnknownBackendTag, UnknownRunnerTag } from "#errors.ts";
 import type { SessionAttachment } from "#fabric.ts";
 import { makePrepareMoorage } from "#moorage-plan.ts";
-import { makeMarkMoorageReady } from "#moorage-ready.ts";
-import { makeEnsureSessionRow } from "#moorage-session.ts";
 import { ResourceReconciler } from "#resource-reconciler.ts";
 import { makeIsActivatedBirth } from "#spawn-activated.ts";
 import { makeIsSpawnCancelling } from "#spawn-cancellation.ts";
@@ -20,6 +18,7 @@ import {
 	ensureAgentRow,
 	settleSpawnFailure,
 } from "#spawn-rows.ts";
+import { makeSpawnSessionStart } from "#spawn-session-start.ts";
 import { isVoyageCaptainIdentity } from "#voyage-captain.ts";
 
 export type { SpawnFields } from "#spawn-fields.ts";
@@ -28,11 +27,10 @@ export const makeSpawnKind = Effect.gen(function* () {
 	const compileCaptainTools = yield* makeCaptainToolCompiler;
 	const compileCrewTools = yield* makeCrewToolCompiler;
 	const prepareMoorage = yield* makePrepareMoorage;
-	const markMoorageReady = yield* makeMarkMoorageReady;
-	const ensureSessionRow = yield* makeEnsureSessionRow;
 	const isActivatedBirth = yield* makeIsActivatedBirth;
 	const isCancelling = yield* makeIsSpawnCancelling;
 	const resources = yield* ResourceReconciler;
+	const startSession = yield* makeSpawnSessionStart;
 	return (deps: AgentDeps) => {
 		const admitSpawnSession = (
 			payload: SpawnFields,
@@ -117,22 +115,15 @@ export const makeSpawnKind = Effect.gen(function* () {
 				yield* reconcileMoorage(payload, runner, plan).pipe(
 					Effect.onInterrupt(() => settleCancellation(payload)),
 				);
-				yield* Effect.gen(function* () {
-					yield* markMoorageReady(payload);
-					yield* ensureSessionRow(payload, plan);
-					const sink = yield* deps.sinkFor(payload.sessionId);
-					yield* deps.fabric.start(
-						backend,
-						{
-							cwd: plan.root,
-							resume: Option.none(),
-							sessionId: payload.sessionId,
-							tools: toolsFor(payload),
-						},
-						sink,
-						(attachment) => admitSpawnSession(payload, attachment),
-					);
-				}).pipe(Effect.onError(settleUnlessTeardown(payload)));
+				yield* startSession(
+					payload,
+					backend,
+					plan,
+					toolsFor(payload),
+					deps.sinkFor(payload.sessionId),
+					(attachment) => admitSpawnSession(payload, attachment),
+					settleUnlessTeardown(payload),
+				);
 			});
 
 		return defineIntent({

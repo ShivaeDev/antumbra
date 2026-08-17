@@ -31,7 +31,7 @@ export const makeSessionRecoveryRuntime = (deps: SessionResumeDeps) =>
 	Effect.gen(function* () {
 		const fabric = yield* SessionFabric;
 		return SessionRecoveryRuntime.of({
-			resume: (context) => {
+			resume: (permit, context) => {
 				const backend = deps.backends.get(context.backend);
 				if (backend === undefined) {
 					return Effect.fail(
@@ -49,6 +49,7 @@ export const makeSessionRecoveryRuntime = (deps: SessionResumeDeps) =>
 				return Effect.gen(function* () {
 					const sink = yield* deps.sinkFor(context.identity.sessionId);
 					yield* fabric.start(
+						permit,
 						backend,
 						options,
 						sink,

@@ -75,6 +75,9 @@ const updateMatchedRow = (
 ) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
+		if (attachment._tag === "Claimed" && !matchesClaim(row, attachment)) {
+			return yield* observationConflict(attachment, hostTag, observation);
+		}
 		if (row.stage === "landed" && observation.stage !== "landed") {
 			yield* Effect.logWarning("a settled change was observed unsettled", {
 				changeId: row.id,
@@ -87,9 +90,6 @@ const updateMatchedRow = (
 			return { changed: false, row } satisfies ReconciledObservation;
 		}
 		const next = projectedChange(row, observation, now);
-		if (attachment._tag === "Claimed" && !matchesClaim(next, attachment)) {
-			return yield* observationConflict(attachment, hostTag, observation);
-		}
 		const transition = stageTransition(row, next);
 		const replayed = yield* db.ChangeTransition.where({
 			id: transition.id,

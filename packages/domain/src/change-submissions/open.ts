@@ -12,6 +12,15 @@ import { freezeProposal } from "#change-submissions/proposal.ts";
 import { ChangeHostRegistry } from "#change-submissions/registries.ts";
 import { UnknownChangeHostTag } from "#errors.ts";
 
+const retainsClaimOrSettles = (
+	row: { readonly stage: string; readonly submissionKey: string | null },
+	submissionKey: string,
+): boolean =>
+	row.stage === "open"
+		? row.submissionKey === submissionKey
+		: (row.stage === "landed" || row.stage === "withdrawn") &&
+			row.submissionKey === null;
+
 export const openSubmittedChange = (input: OpenChangeInput) =>
 	Effect.gen(function* () {
 		const feeds = yield* DomainFeeds;
@@ -71,7 +80,7 @@ export const openSubmittedChange = (input: OpenChangeInput) =>
 		if (
 			row === undefined ||
 			row.id !== snapshot.id ||
-			row.submissionKey !== submissionKey
+			!retainsClaimOrSettles(row, submissionKey)
 		) {
 			return yield* new ChangeObservationConflict({
 				changeId: snapshot.id,

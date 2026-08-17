@@ -30,7 +30,10 @@ const piece = (
 	title,
 });
 
-const entry = (id: string, register: string): BoardEntryView => ({
+const entry = (
+	id: string,
+	register: BoardEntryView["register"],
+): BoardEntryView => ({
 	authorAgentId: null,
 	body: id,
 	createdAt: "2026-08-15T09:10:00.000Z",

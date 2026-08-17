@@ -1,3 +1,4 @@
+import { decodeStoredBoardOwnerKind } from "@antumbra/board-vocabulary";
 import { Database } from "@antumbra/persistence";
 import { Effect, Option } from "effect";
 import { BoardOwnerNotFound } from "#errors.ts";
@@ -35,6 +36,15 @@ export const requireBoardOwner = (scope: BoardScope) =>
 export const linkedBoardId = (scope: BoardScope) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
+		const owner = ownerOf(scope);
+		const storedKinds = yield* db.BoardOwner.where({ ownerId: owner.ownerId })
+			.select("ownerKind")
+			.all();
+		yield* Effect.forEach(storedKinds, (row) =>
+			Effect.fromResult(
+				decodeStoredBoardOwnerKind(owner.ownerId, row.ownerKind),
+			),
+		);
 		return yield* db.BoardOwner.where(ownerOf(scope))
 			.select("boardId")
 			.first()

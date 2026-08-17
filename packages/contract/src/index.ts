@@ -6,13 +6,21 @@ export {
 	type SubscriptionMessage,
 	subscriptionChannel,
 	TRPC_CHANNEL,
+	TRPC_FAILURE_CODES,
+	TRPC_INVOKE_TYPES,
 	TRPC_SUBSCRIBE_CHANNEL,
 	TRPC_UNSUBSCRIBE_CHANNEL,
 	type TrpcFailure,
 	type TrpcResponse,
 	type TrpcSuccess,
 } from "#channels.ts";
-export { SubscribeRequest, TrpcRequest, UnsubscribeRequest } from "#ipc.ts";
+export {
+	SubscribeRequest,
+	TrpcFailureCode,
+	TrpcInvokeType,
+	TrpcRequest,
+	UnsubscribeRequest,
+} from "#ipc.ts";
 export {
 	HostCapabilityView,
 	QuayGroup,

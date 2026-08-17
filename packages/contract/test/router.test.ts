@@ -24,6 +24,11 @@ describe("makeAppRouter", () => {
 				caller.sessionEvents({ fromSeq: 1, sessionId: "session-1" }),
 			);
 			expect(events.map((event) => event.seq)).toEqual([1]);
+			expect(events[0]?.event).toEqual({
+				_tag: "Unknown",
+				kind: "assistant",
+				payload: "{}",
+			});
 			yield* Effect.promise(() => runtime.dispose());
 		}),
 	);
@@ -40,6 +45,10 @@ describe("makeAppRouter", () => {
 				(cause) => cause,
 			).pipe(Stream.runCollect);
 			expect(collected.map((event) => event.seq)).toEqual([0, 1]);
+			expect(collected.map((event) => event.event._tag)).toEqual([
+				"Unknown",
+				"Unknown",
+			]);
 			yield* Effect.promise(() => runtime.dispose());
 		}),
 	);

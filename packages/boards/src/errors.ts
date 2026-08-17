@@ -1,5 +1,5 @@
+import type { BoardOwnerKind } from "@antumbra/board-vocabulary";
 import { Data } from "effect";
-import type { BoardOwnerKind } from "#model.ts";
 
 // why: a board hangs off one entity, so a missing owner is a mistake to
 // answer rather than a board to mint — an orphan board cannot be shown.

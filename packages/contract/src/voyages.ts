@@ -1,3 +1,4 @@
+import { BoardRegisterSchema } from "@antumbra/board-vocabulary";
 import { Context, type Effect, Schema, type Stream } from "effect";
 import type { QuayView } from "#quay-views.ts";
 import type { SightFailure } from "#sight.ts";
@@ -37,7 +38,7 @@ export type BoardTarget = typeof BoardTarget.Type;
 
 export const BoardWriteRequest = Schema.Struct({
 	body: Schema.String,
-	register: Schema.Literals(["rough", "smooth"]),
+	register: BoardRegisterSchema,
 	scope: BoardTarget,
 });
 export type BoardWriteRequest = typeof BoardWriteRequest.Type;

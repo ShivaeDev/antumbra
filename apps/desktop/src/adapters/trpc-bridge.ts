@@ -23,15 +23,6 @@ const respond = async (
 		};
 	}
 	const request = decoded.success;
-	if (request.type !== "query" && request.type !== "mutation") {
-		return {
-			error: {
-				code: "METHOD_NOT_SUPPORTED",
-				message: `"${request.type}" is not supported over the invoke bridge`,
-			},
-			ok: false,
-		};
-	}
 	try {
 		const data = await callTRPCProcedure({
 			batchIndex: 0,

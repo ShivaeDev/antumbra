@@ -1,3 +1,4 @@
+import { BoardRegisterSchema } from "@antumbra/board-vocabulary";
 import { Effect, Option, Schema } from "effect";
 import { StoredBoardEntryInvalid } from "#errors.ts";
 import {
@@ -14,7 +15,7 @@ const StoredFields = {
 	body: Schema.String,
 	createdAt: Schema.Date,
 	id: Schema.String,
-	register: Schema.Literals(["rough", "smooth"]),
+	register: BoardRegisterSchema,
 	seq: Schema.Number,
 };
 

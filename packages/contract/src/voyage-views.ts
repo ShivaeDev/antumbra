@@ -1,3 +1,4 @@
+import { BoardRegisterSchema } from "@antumbra/board-vocabulary";
 import {
 	ChangeChecks,
 	ChangeMergeable,
@@ -86,7 +87,7 @@ export const BoardEntryView = Schema.Struct({
 	body: Schema.String,
 	createdAt: Schema.String,
 	id: Schema.String,
-	register: Schema.String,
+	register: BoardRegisterSchema,
 });
 export type BoardEntryView = typeof BoardEntryView.Type;
 

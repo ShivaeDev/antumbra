@@ -1,3 +1,4 @@
+import { BoardRegisterSchema } from "@antumbra/board-vocabulary";
 import { Schema } from "effect";
 import { defineTool } from "#define.ts";
 
@@ -13,7 +14,7 @@ export const writeBoardSpec = defineTool({
 		body: Schema.String.annotate({
 			description: "The entry, written for whoever reads this board next.",
 		}),
-		register: Schema.Literals(["rough", "smooth"]).annotate({
+		register: BoardRegisterSchema.annotate({
 			description:
 				"`smooth` for distilled learnings that stay true, `rough` for high-volume scratch.",
 		}),

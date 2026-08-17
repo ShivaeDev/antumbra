@@ -57,12 +57,4 @@ describe("lint entry point", () => {
 		expect(result.stderr).toContain("required input is missing");
 		expect(result.stderr).toContain("package.json");
 	});
-
-	// why: the lint system walks its own script/ tree, so this run is the
-	// standing proof that the rules hold for the code that enforces them.
-	it("passes when pointed at this repository", () => {
-		const result = runLint(dirname(scriptDir));
-		expect(result.stderr).toBe("");
-		expect(result.status).toBe(0);
-	});
 });

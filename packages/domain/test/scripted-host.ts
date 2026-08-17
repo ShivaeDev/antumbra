@@ -9,6 +9,7 @@ import { ChangeHostRefused, ChangeHostUnavailable } from "@antumbra/plugin-api";
 import { Effect, Ref } from "effect";
 
 export interface ScriptedHostDrive {
+	readonly adopted: Effect.Effect<ReadonlyArray<string>>;
 	readonly announce: (observation: ChangeObservation) => Effect.Effect<void>;
 	readonly asked: Effect.Effect<ReadonlyArray<ChangeRef>>;
 	readonly opened: Effect.Effect<ReadonlyArray<OpenChangeRequest>>;
@@ -101,6 +102,7 @@ export const makeScriptedHost = (options: ScriptedHostOptions = {}) =>
 		const known = yield* Ref.make<ReadonlyMap<string, ChangeObservation>>(
 			new Map(),
 		);
+		const adoptions = yield* Ref.make<ReadonlyArray<string>>([]);
 		const requests = yield* Ref.make<ReadonlyArray<OpenChangeRequest>>([]);
 		const refs = yield* Ref.make<ReadonlyArray<ChangeRef>>([]);
 		const refusal = yield* Ref.make<string | null>(null);
@@ -114,6 +116,7 @@ export const makeScriptedHost = (options: ScriptedHostOptions = {}) =>
 		const host: ChangeHost = {
 			adopt: (url, repo) =>
 				Effect.gen(function* () {
+					yield* Ref.update(adoptions, (all) => [...all, url]);
 					const fresh = adoptedObservation(tag, url, repo);
 					const seen = (yield* Ref.get(known)).get(
 						observationKey(repo.id, fresh.externalId),
@@ -157,6 +160,7 @@ export const makeScriptedHost = (options: ScriptedHostOptions = {}) =>
 		};
 		return {
 			drive: {
+				adopted: Ref.get(adoptions),
 				announce: (observation) => Effect.asVoid(remember(observation)),
 				asked: Ref.get(refs),
 				opened: Ref.get(requests),

@@ -10,12 +10,12 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { Artifacts, ArtifactsLive } from "@antumbra/artifacts";
-import { DomainFeedsLive } from "@antumbra/domain-feeds";
+import { DomainFeeds, DomainFeedsLive } from "@antumbra/domain-feeds";
 import type { DatabaseService } from "@antumbra/persistence";
 import { persistenceIt } from "@antumbra/persistence/testing";
 import { NodeServices } from "@effect/platform-node";
 import { expect } from "@effect/vitest";
-import { Effect, Layer } from "effect";
+import { Effect, Layer, PubSub } from "effect";
 
 const it = persistenceIt();
 
@@ -174,5 +174,32 @@ it.effectDB("keeps an external URL as a reference", function* (db) {
 			expect(artifact.uri).toBe("https://example.test/reef.svg");
 			expect(yield* db.Artifact.all()).toHaveLength(1);
 		}),
+	);
+});
+
+it.effectDB("refuses an orphan artifact without publishing", function* (db) {
+	yield* withArtifacts(() =>
+		Effect.scoped(
+			Effect.gen(function* () {
+				const artifacts = yield* Artifacts;
+				const feeds = yield* DomainFeeds;
+				const notices = yield* PubSub.subscribe(feeds.voyages);
+				const failure = yield* Effect.flip(
+					artifacts.land({
+						pieceId: "missing-piece",
+						title: "orphan chart",
+						uri: "https://example.test/orphan.svg",
+					}),
+				);
+
+				expect(failure).toMatchObject({
+					_tag: "PieceNotFound",
+					pieceId: "missing-piece",
+				});
+				expect(yield* db.Artifact.all()).toEqual([]);
+				expect(yield* db.PieceArtifact.all()).toEqual([]);
+				expect(yield* PubSub.takeUpTo(notices, 1)).toEqual([]);
+			}),
+		),
 	);
 });

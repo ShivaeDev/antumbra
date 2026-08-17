@@ -38,6 +38,7 @@ it.live("invalid Agent truth skips the complete reclaim sweep unchanged", () =>
 							branch: "work/keeper/uncertain",
 							id: "agent-invalid-sweep:uncertain",
 							path: "/tmp/moorage/agent-invalid-sweep/uncertain",
+							reclaimState: null,
 							ref: "main",
 							runner: "local",
 							slug: "uncertain",

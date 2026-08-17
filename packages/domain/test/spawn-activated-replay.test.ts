@@ -67,6 +67,7 @@ const seedActivatedBoundary = (intentId: string, plan: MooragePlan) =>
 				});
 				yield* db.Moorage.create({
 					agentId: payload.agentId,
+					reclaimState: null,
 					root: plan.root,
 					runner: payload.runner,
 					status: "ready",
@@ -76,6 +77,7 @@ const seedActivatedBoundary = (intentId: string, plan: MooragePlan) =>
 					branch: berth.branch,
 					id: `${payload.agentId}:${berth.slug}`,
 					path: berth.path,
+					reclaimState: null,
 					ref: berth.ref,
 					runner: payload.runner,
 					slug: berth.slug,

@@ -25,6 +25,9 @@ export const BerthStatusSchema = Schema.Literals([
 ]);
 export type BerthStatus = typeof BerthStatusSchema.Type;
 
+export const ResourceReclaimStateSchema = Schema.Literal("claimed");
+export type ResourceReclaimState = typeof ResourceReclaimStateSchema.Type;
+
 export class StoredAgentStatusInvalid extends Data.TaggedError(
 	"StoredAgentStatusInvalid",
 )<{
@@ -69,6 +72,18 @@ export class StoredBerthStatusInvalid extends Data.TaggedError(
 	}
 }
 
+export class StoredResourceReclaimStateInvalid extends Data.TaggedError(
+	"StoredResourceReclaimStateInvalid",
+)<{
+	readonly resourceId: string;
+	readonly resourceKind: "Berth" | "Moorage";
+	readonly value: unknown;
+}> {
+	override get message(): string {
+		return `stored ${this.resourceKind} ${this.resourceId} has invalid reclaim state: ${String(this.value)}`;
+	}
+}
+
 export const decodeStoredAgentStatus = (
 	agentId: string,
 	value: unknown,
@@ -107,4 +122,27 @@ export const decodeStoredBerthStatus = (
 	return Option.isSome(decoded)
 		? Result.succeed(decoded.value)
 		: Result.fail(new StoredBerthStatusInvalid({ berthId, value }));
+};
+
+export const decodeStoredResourceReclaimState = (
+	resourceKind: "Berth" | "Moorage",
+	resourceId: string,
+	value: unknown,
+): Result.Result<
+	ResourceReclaimState | null,
+	StoredResourceReclaimStateInvalid
+> => {
+	if (value === null) {
+		return Result.succeed(null);
+	}
+	const decoded = Schema.decodeUnknownOption(ResourceReclaimStateSchema)(value);
+	return Option.isSome(decoded)
+		? Result.succeed(decoded.value)
+		: Result.fail(
+				new StoredResourceReclaimStateInvalid({
+					resourceId,
+					resourceKind,
+					value,
+				}),
+			);
 };

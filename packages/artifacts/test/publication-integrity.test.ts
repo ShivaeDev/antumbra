@@ -62,6 +62,7 @@ const seed = (db: DatabaseService, moorage: string) =>
 		});
 		yield* db.Moorage.create({
 			agentId: "agent-chart",
+			reclaimState: null,
 			root: moorage,
 			runner: "local",
 			status: "ready",

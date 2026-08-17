@@ -10,6 +10,7 @@ import type { SessionAttachment } from "#fabric.ts";
 import { makePrepareMoorage } from "#moorage-plan.ts";
 import { makeMarkMoorageReady } from "#moorage-ready.ts";
 import { makeEnsureSessionRow } from "#moorage-session.ts";
+import { ResourceReconciler } from "#resource-reconciler.ts";
 import { makeIsActivatedBirth } from "#spawn-activated.ts";
 import { makeIsSpawnCancelling } from "#spawn-cancellation.ts";
 import { type SpawnFields, SpawnPayload } from "#spawn-fields.ts";
@@ -31,6 +32,7 @@ export const makeSpawnKind = Effect.gen(function* () {
 	const ensureSessionRow = yield* makeEnsureSessionRow;
 	const isActivatedBirth = yield* makeIsActivatedBirth;
 	const isCancelling = yield* makeIsSpawnCancelling;
+	const resources = yield* ResourceReconciler;
 	return (deps: AgentDeps) => {
 		const admitSpawnSession = (
 			payload: SpawnFields,
@@ -42,6 +44,7 @@ export const makeSpawnKind = Effect.gen(function* () {
 			});
 		const settleAfterFailure = (payload: SpawnFields) =>
 			settleSpawnFailure(deps, payload).pipe(
+				Effect.tap(() => resources.request),
 				Effect.catchCause((cause) =>
 					Effect.logWarning(
 						"spawn failure settlement failed",

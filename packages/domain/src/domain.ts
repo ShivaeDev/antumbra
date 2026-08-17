@@ -6,7 +6,6 @@ import type { AgentBackend, ChangeHost, Runner } from "@antumbra/plugin-api";
 import { Repos } from "@antumbra/repos";
 import { Deferred, Effect, Layer, Option } from "effect";
 import { AGENTS_ALIVE_GAUGE, AgentDomain } from "#agent-domain-service.ts";
-import { sweepBerths } from "#berth-sweep.ts";
 import { makeCaptainToolCompiler } from "#captain-tools.ts";
 import { makeChangeProcedureCompiler } from "#change-procedures.ts";
 import { makeCrewToolCompiler } from "#crew-tools.ts";
@@ -14,6 +13,11 @@ import type { AgentDeps, KernelReach } from "#deps.ts";
 import { domainCapabilities } from "#domain-capabilities.ts";
 import { makeEventSinkFactory } from "#events.ts";
 import { SessionFabric, SessionFabricLive } from "#fabric.ts";
+import {
+	type ResourceReconcileOptions,
+	ResourceReconciler,
+	ResourceReconcilerLive,
+} from "#resource-reconciler.ts";
 import { makeRetireKind } from "#retire.ts";
 import { makeRecoveryKind } from "#session-recovery.ts";
 import type { SessionRecoveryContext } from "#session-recovery-context.ts";
@@ -26,13 +30,14 @@ import { makeVoyageProcedures } from "#voyages.ts";
 
 export { AGENTS_ALIVE_GAUGE, AgentDomain } from "#agent-domain-service.ts";
 
-// why: built before the kernel starts — the boot sweep must settle stranded
-// agents before admission can pull anything that reads their state.
+// why: built before the kernel starts — the first resource pass must resume
+// durable claims before admission can authorize more work through them.
 export const AgentDomainLive = (
 	backends: ReadonlyMap<string, AgentBackend>,
 	runners: ReadonlyMap<string, Runner>,
 	changeHosts: ReadonlyMap<string, ChangeHost>,
 	artifactsDirectory: string,
+	reclaimOptions: Partial<ResourceReconcileOptions> = {},
 ) => {
 	const capabilities = domainCapabilities(
 		changeHosts,
@@ -50,6 +55,7 @@ export const AgentDomainLive = (
 			const feeds = yield* DomainFeeds;
 			const sinkFor = yield* makeEventSinkFactory(feeds.events);
 			const kernelReach = yield* Deferred.make<KernelReach>();
+			const resourceReconciler = yield* ResourceReconciler;
 			const deps: AgentDeps = {
 				backends,
 				changeHosts,
@@ -63,6 +69,7 @@ export const AgentDomainLive = (
 				writer,
 			};
 			const makeSpawn = yield* makeSpawnKind;
+			const makeRetire = yield* makeRetireKind;
 			const makeChanges = yield* makeChangeProcedureCompiler;
 			const compileCaptainTools = yield* makeCaptainToolCompiler;
 			const compileCrewTools = yield* makeCrewToolCompiler;
@@ -80,7 +87,6 @@ export const AgentDomainLive = (
 			const recover = yield* makeRecoveryKind.pipe(
 				Effect.provideService(SessionRecoveryRuntime, recoveryRuntime),
 			);
-			yield* sweepBerths(runners);
 			const aliveAgents = db.Agent.all().pipe(
 				Effect.flatMap((agents) =>
 					Effect.forEach(agents, (agent) =>
@@ -93,7 +99,7 @@ export const AgentDomainLive = (
 				Effect.provideContext(executors),
 			);
 			const makeVoyages = yield* makeVoyageProcedures;
-			const retire = makeRetireKind(deps);
+			const retire = makeRetire(deps);
 			const siesta = yield* makeSiestaKind;
 			return {
 				backends: [...backends.keys()],
@@ -104,6 +110,7 @@ export const AgentDomainLive = (
 				kernelReach,
 				kinds: [spawn, recover, retire, siesta],
 				repos,
+				retryResourceReclaim: resourceReconciler.reconcile,
 				recover,
 				retire,
 				siesta,
@@ -111,5 +118,9 @@ export const AgentDomainLive = (
 				voyages: makeVoyages(deps),
 			};
 		}),
-	).pipe(Layer.provide(SessionFabricLive), Layer.provideMerge(capabilities));
+	).pipe(
+		Layer.provide(ResourceReconcilerLive(runners, reclaimOptions)),
+		Layer.provide(SessionFabricLive),
+		Layer.provideMerge(capabilities),
+	);
 };

@@ -436,13 +436,6 @@
                   "kind": "scalar"
                 }
               },
-              "reclaimState": {
-                "nullable": true,
-                "type": {
-                  "codecId": "sqlite/text@1",
-                  "kind": "scalar"
-                }
-              },
               "ref": {
                 "nullable": false,
                 "type": {
@@ -510,9 +503,6 @@
                 },
                 "path": {
                   "column": "path"
-                },
-                "reclaimState": {
-                  "column": "reclaimState"
                 },
                 "ref": {
                   "column": "ref"
@@ -1223,13 +1213,6 @@
                   "kind": "scalar"
                 }
               },
-              "reclaimState": {
-                "nullable": true,
-                "type": {
-                  "codecId": "sqlite/text@1",
-                  "kind": "scalar"
-                }
-              },
               "root": {
                 "nullable": false,
                 "type": {
@@ -1267,9 +1250,6 @@
                 },
                 "createdAt": {
                   "column": "createdAt"
-                },
-                "reclaimState": {
-                  "column": "reclaimState"
                 },
                 "root": {
                   "column": "root"
@@ -2252,11 +2232,6 @@
                   "nativeType": "text",
                   "nullable": false
                 },
-                "reclaimState": {
-                  "codecId": "sqlite/text@1",
-                  "nativeType": "text",
-                  "nullable": true
-                },
                 "ref": {
                   "codecId": "sqlite/text@1",
                   "nativeType": "text",
@@ -2807,11 +2782,6 @@
                   },
                   "nativeType": "text",
                   "nullable": false
-                },
-                "reclaimState": {
-                  "codecId": "sqlite/text@1",
-                  "nativeType": "text",
-                  "nullable": true
                 },
                 "root": {
                   "codecId": "sqlite/text@1",
@@ -3400,7 +3370,7 @@
         "id": "__unbound__"
       }
     },
-    "storageHash": "sha256:3db5b90a38b7fe28473ae474f8b963ebe4bffcda1d51d9fb93ed68b534f55841"
+    "storageHash": "sha256:278fd83cf8ac3f94e575aeffc004d4c5c12564cdd36352b650e421b71bdab7ca"
   },
   "capabilities": {
     "sql": {

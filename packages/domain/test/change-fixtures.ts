@@ -61,6 +61,7 @@ export const berthed = (agentId: string, source = REEF_SOURCE) =>
 				branch: `work/${agentId}/berth-0`,
 				id: `${agentId}:berth-0`,
 				path: `/tmp/moorage/${agentId}/berth-0`,
+				reclaimState: null,
 				ref: "main",
 				runner: "local",
 				slug: "berth-0",

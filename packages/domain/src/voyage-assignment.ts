@@ -1,5 +1,7 @@
+import { Database } from "@antumbra/persistence";
 import { Effect, Option, PubSub } from "effect";
 import { type AgentDeps, provideExecutors } from "#deps.ts";
+import { ensureAgentResourcesUnclaimed } from "#resource-reclaim-guard.ts";
 import type { SpawnFields } from "#spawn.ts";
 
 // why: the crew row is written beside the agent row rather than after the
@@ -13,24 +15,30 @@ export const assignToVoyage = (deps: AgentDeps, payload: SpawnFields) => {
 	}
 	const provide = provideExecutors(deps);
 	return Effect.gen(function* () {
-		const existing = yield* provide(
-			deps.db.VoyageAgent.where({
-				agentId: payload.agentId,
-				voyageId,
-			}).first(),
-		);
-		if (Option.isSome(existing)) {
-			return;
-		}
-		yield* provide(
+		const created = yield* provide(
 			deps.writer.write(
-				deps.db.VoyageAgent.create({
-					agentId: payload.agentId,
-					role: payload.role,
-					voyageId,
+				Effect.gen(function* () {
+					yield* ensureAgentResourcesUnclaimed(payload.agentId).pipe(
+						Effect.provideService(Database, deps.db),
+					);
+					const existing = yield* deps.db.VoyageAgent.where({
+						agentId: payload.agentId,
+						voyageId,
+					}).first();
+					if (Option.isSome(existing)) {
+						return false;
+					}
+					yield* deps.db.VoyageAgent.create({
+						agentId: payload.agentId,
+						role: payload.role,
+						voyageId,
+					});
+					return true;
 				}),
 			),
 		);
-		yield* PubSub.publish(deps.feeds.voyages, undefined);
+		if (created) {
+			yield* PubSub.publish(deps.feeds.voyages, undefined);
+		}
 	});
 };

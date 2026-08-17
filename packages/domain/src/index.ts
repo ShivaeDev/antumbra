@@ -63,6 +63,7 @@ export {
 	NoChangeHost,
 	PieceNotFound,
 	RepoNotFound,
+	ResourceReclaimClaimed,
 	SessionNotLive,
 	StoredChangeInvalid,
 	StoredPieceChangeInvalid,
@@ -90,6 +91,10 @@ export {
 export type { PieceView } from "#piece-view.ts";
 export type { QuayGroup } from "#quay-group.ts";
 export type { QuayPiece, QuayReading, QuayRow } from "#quay-view.ts";
+export {
+	type ResourceReconcileOptions,
+	ResourceReconciler,
+} from "#resource-reconciler.ts";
 export type { RetireFields } from "#retire.ts";
 export { AgentRecoveryLive } from "#session-recovery-live.ts";
 export { SightSourceLive } from "#sight.ts";

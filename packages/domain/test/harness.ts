@@ -23,6 +23,7 @@ import { ChangeWatcherLive } from "#change-watcher.ts";
 import { DispatcherLive, type DispatcherOptions } from "#dispatcher.ts";
 import { AgentDomain, AgentDomainLive } from "#domain.ts";
 import { KernelReachLive } from "#kernel-reach.ts";
+import type { ResourceReconcileOptions } from "#resource-reconciler.ts";
 import { AgentRecoveryLive } from "#session-recovery-live.ts";
 
 export interface ScriptedRunner {
@@ -201,6 +202,7 @@ export const domainKernelLayer = (
 	options: Omit<KernelOptions, "kinds" | "gauges"> = {},
 	runner: Runner = passiveRunner,
 	changeHosts: ReadonlyMap<string, ChangeHost> = new Map(),
+	reclaim: Partial<ResourceReconcileOptions> = {},
 ) =>
 	Layer.merge(KernelReachLive, AgentRecoveryLive).pipe(
 		Layer.provideMerge(
@@ -220,6 +222,7 @@ export const domainKernelLayer = (
 				new Map([[runner.tag, runner]]),
 				changeHosts,
 				join(dirname(temporary.database), "artifacts"),
+				reclaim,
 			).pipe(Layer.provide(NodeServices.layer)),
 		),
 		Layer.provideMerge(temporary.layer),

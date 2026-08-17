@@ -1,5 +1,7 @@
+import { Database } from "@antumbra/persistence";
 import { Effect, Option, PubSub } from "effect";
 import { type AgentDeps, provideExecutors } from "#deps.ts";
+import { ensureAgentResourcesUnclaimed } from "#resource-reclaim-guard.ts";
 import type { SpawnFields } from "#spawn.ts";
 
 // why: the link is written beside the agent row, not after the session opens,
@@ -13,17 +15,29 @@ export const assignToPiece = (deps: AgentDeps, payload: SpawnFields) => {
 	}
 	const provide = provideExecutors(deps);
 	return Effect.gen(function* () {
-		const existing = yield* provide(
-			deps.db.PieceAgent.where({ agentId: payload.agentId, pieceId }).first(),
-		);
-		if (Option.isSome(existing)) {
-			return;
-		}
-		yield* provide(
+		const created = yield* provide(
 			deps.writer.write(
-				deps.db.PieceAgent.create({ agentId: payload.agentId, pieceId }),
+				Effect.gen(function* () {
+					yield* ensureAgentResourcesUnclaimed(payload.agentId).pipe(
+						Effect.provideService(Database, deps.db),
+					);
+					const existing = yield* deps.db.PieceAgent.where({
+						agentId: payload.agentId,
+						pieceId,
+					}).first();
+					if (Option.isSome(existing)) {
+						return false;
+					}
+					yield* deps.db.PieceAgent.create({
+						agentId: payload.agentId,
+						pieceId,
+					});
+					return true;
+				}),
 			),
 		);
-		yield* PubSub.publish(deps.feeds.voyages, undefined);
+		if (created) {
+			yield* PubSub.publish(deps.feeds.voyages, undefined);
+		}
 	});
 };

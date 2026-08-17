@@ -1,0 +1,84 @@
+[
+  {
+    "id": "column.berth.reclaimState",
+    "label": "Add column reclaimState on berth",
+    "summary": "Adds column reclaimState on berth",
+    "operationClass": "additive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "column",
+        "name": "reclaimState",
+        "table": "berth"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"reclaimState\" is missing",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM pragma_table_info(?) WHERE \"name\" = ?",
+        "params": [
+          "berth",
+          "reclaimState"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"reclaimState\"",
+        "sql": "ALTER TABLE \"berth\" ADD COLUMN \"reclaimState\" TEXT"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"reclaimState\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM pragma_table_info(?) WHERE \"name\" = ?",
+        "params": [
+          "berth",
+          "reclaimState"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.moorage.reclaimState",
+    "label": "Add column reclaimState on moorage",
+    "summary": "Adds column reclaimState on moorage",
+    "operationClass": "additive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "column",
+        "name": "reclaimState",
+        "table": "moorage"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"reclaimState\" is missing",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM pragma_table_info(?) WHERE \"name\" = ?",
+        "params": [
+          "moorage",
+          "reclaimState"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"reclaimState\"",
+        "sql": "ALTER TABLE \"moorage\" ADD COLUMN \"reclaimState\" TEXT"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"reclaimState\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM pragma_table_info(?) WHERE \"name\" = ?",
+        "params": [
+          "moorage",
+          "reclaimState"
+        ]
+      }
+    ]
+  }
+]

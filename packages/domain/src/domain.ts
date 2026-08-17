@@ -4,7 +4,7 @@ import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database, type WriteExecutors, Writer } from "@antumbra/persistence";
 import type { AgentBackend, ChangeHost, Runner } from "@antumbra/plugin-api";
 import { Repos } from "@antumbra/repos";
-import { Effect, Layer, Option } from "effect";
+import { Effect, Layer } from "effect";
 import { AGENTS_ALIVE_GAUGE, AgentDomain } from "#agent-domain-service.ts";
 import { makeCaptainToolCompiler } from "#captain-tools.ts";
 import { ChangeProcedureService } from "#change-procedures.ts";
@@ -25,7 +25,7 @@ import { SessionRecoveryRuntime } from "#session-recovery-runtime.ts";
 import { makeSessionRecoveryRuntime } from "#session-resume.ts";
 import { makeSiestaKind } from "#session-siesta.ts";
 import { makeSpawnKind } from "#spawn.ts";
-import { CAPTAIN_ROLE } from "#voyage-captain.ts";
+import { isVoyageCaptainIdentity } from "#voyage-captain.ts";
 import { VoyageProcedureService } from "#voyage-procedures.ts";
 
 export { AGENTS_ALIVE_GAUGE, AgentDomain } from "#agent-domain-service.ts";
@@ -74,8 +74,7 @@ export const AgentDomainLive = (
 			const compileCrewTools = yield* makeCrewToolCompiler;
 			const spawn = makeSpawn(deps);
 			const toolsFor = (context: SessionRecoveryContext) =>
-				context.role === CAPTAIN_ROLE &&
-				Option.isSome(context.identity.voyageId)
+				isVoyageCaptainIdentity(context.role, context.identity)
 					? compileCaptainTools(context.identity)
 					: compileCrewTools(context.identity);
 			const recoveryRuntime = yield* makeSessionRecoveryRuntime({

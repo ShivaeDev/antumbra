@@ -6,8 +6,8 @@ import type { SpawnFields } from "#spawn.ts";
 
 // why: the crew row is written beside the agent row rather than after the
 // session opens, so a spawn that fails partway still leaves the voyage
-// pointing at the captain it hailed — a settled dormant captain is visible on
-// its voyage instead of vanishing with the attempt.
+// pointing at the crew it was given — a settled dormant Agent remains visible
+// on its voyage instead of vanishing with the attempt.
 export const assignToVoyage = (deps: AgentDeps, payload: SpawnFields) => {
 	const voyageId = payload.voyageId;
 	if (voyageId === undefined) {

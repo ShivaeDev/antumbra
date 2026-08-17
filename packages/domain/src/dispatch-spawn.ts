@@ -129,6 +129,7 @@ export const dispatchPiece = (
 			runner: "local",
 			role: candidate.piece.role,
 			sessionId: crypto.randomUUID(),
+			voyageId: candidate.voyage.id,
 		});
 		yield* holdInFlight(port.state, pieceId, submission.id);
 		yield* Effect.forkChild(watchDispatch(port, pieceId, submission));

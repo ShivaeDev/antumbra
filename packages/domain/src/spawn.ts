@@ -20,7 +20,7 @@ import {
 	ensureAgentRow,
 	settleSpawnFailure,
 } from "#spawn-rows.ts";
-import { CAPTAIN_ROLE } from "#voyage-captain.ts";
+import { isVoyageCaptainIdentity } from "#voyage-captain.ts";
 
 export type { SpawnFields } from "#spawn-fields.ts";
 
@@ -93,7 +93,7 @@ export const makeSpawnKind = Effect.gen(function* () {
 		// cross into the provider SDK.
 		const toolsFor = (payload: SpawnFields) => {
 			const identity = spawnSessionIdentity(payload);
-			return payload.role === CAPTAIN_ROLE && Option.isSome(identity.voyageId)
+			return isVoyageCaptainIdentity(payload.role, identity)
 				? compileCaptainTools(identity)
 				: compileCrewTools(identity);
 		};

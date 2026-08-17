@@ -5,6 +5,10 @@ import {
 	type StoredAgentStatusInvalid,
 } from "@antumbra/agent-runtime-vocabulary";
 import {
+	type StoredArtifactLineageInvalid,
+	validateStoredArtifactLineage,
+} from "@antumbra/artifacts";
+import {
 	Database,
 	type PrismaError,
 	type WriteExecutors,
@@ -30,6 +34,7 @@ import type { VoyageWorld } from "#voyage-rows.ts";
 export type VoyageWorldReadFailure =
 	| InvalidSessionExecutionStatus
 	| PrismaError
+	| StoredArtifactLineageInvalid
 	| StoredAgentSessionStatusInvalid
 	| StoredAgentStatusInvalid
 	| StoredChangeInvalid
@@ -86,19 +91,27 @@ const voyageWorld: Effect.Effect<
 				})),
 			),
 	);
+	const artifacts = (yield* db.Artifact.all()).map(artifactRow);
+	const artifactSupersessions = yield* db.ArtifactSupersession.all();
+	const pieceArtifacts = yield* db.PieceArtifact.all();
+	yield* validateStoredArtifactLineage({
+		artifacts,
+		links: pieceArtifacts,
+		supersessions: artifactSupersessions,
+	});
 	return {
 		agentStatus: new Map(agentStatuses),
 		currentSessionByAgent: new Map(
 			agents.map((agent) => [agent.id, agent.currentSessionId] as const),
 		),
-		artifacts: byId((yield* db.Artifact.all()).map(artifactRow)),
-		artifactSupersessions: yield* db.ArtifactSupersession.all(),
+		artifacts: byId(artifacts),
+		artifactSupersessions,
 		assignments: yield* db.PieceAgent.all(),
 		changes,
 		crews: yield* db.VoyageAgent.all(),
 		edges: yield* db.PieceEdge.all(),
 		memberships: yield* db.VoyagePiece.all(),
-		pieceArtifacts: yield* db.PieceArtifact.all(),
+		pieceArtifacts,
 		pieceChanges,
 		pieceReports: yield* db.PieceReport.all(),
 		pieces: (yield* db.Piece.orderBy((piece) =>

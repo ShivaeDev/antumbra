@@ -9,7 +9,9 @@ export {
 	ArtifactSourceNotOwned,
 	ArtifactSupersessionNotFound,
 	ArtifactSupersessionUnauthorized,
+	StoredArtifactLineageInvalid,
 } from "#errors.ts";
+export { validateStoredArtifactLineage } from "#lineage/stored.ts";
 export type {
 	ArtifactActor,
 	ArtifactInput,

@@ -1,8 +1,4 @@
 import type {
-	StoredAgentSessionStatusInvalid,
-	StoredAgentStatusInvalid,
-} from "@antumbra/agent-runtime-vocabulary";
-import type {
 	ArtifactFailure,
 	ArtifactInput,
 	ArtifactLanding,
@@ -19,15 +15,11 @@ import type {
 } from "@antumbra/pieces";
 import type { ReportInput, ReportRow } from "@antumbra/reports";
 import { Context, type Effect, type Option } from "effect";
-import type {
-	StoredChangeInvalid,
-	StoredPieceChangeInvalid,
-	VoyageNotFound,
-} from "#errors.ts";
+import type { VoyageNotFound } from "#errors.ts";
 import type { HailedCaptain, HailRefused } from "#hail.ts";
-import type { InvalidSessionExecutionStatus } from "#session-execution-status.ts";
 import type { VoyageRow } from "#voyage-rows.ts";
 import type { VoyageSummary, VoyageView } from "#voyage-view.ts";
+import type { VoyageWorldReadFailure } from "#voyage-world.ts";
 
 export interface OpenVoyageInput {
 	readonly backend: string;
@@ -58,12 +50,7 @@ export interface VoyageProcedures {
 	) => Effect.Effect<void, PieceNotFound | PrismaError>;
 	readonly list: Effect.Effect<
 		ReadonlyArray<VoyageSummary>,
-		| InvalidSessionExecutionStatus
-		| PrismaError
-		| StoredAgentSessionStatusInvalid
-		| StoredAgentStatusInvalid
-		| StoredChangeInvalid
-		| StoredPieceChangeInvalid
+		VoyageWorldReadFailure
 	>;
 	readonly open: (
 		input: OpenVoyageInput,
@@ -73,15 +60,7 @@ export interface VoyageProcedures {
 	) => Effect.Effect<void, PieceNotFound | PrismaError>;
 	readonly read: (
 		voyageId: string,
-	) => Effect.Effect<
-		Option.Option<VoyageView>,
-		| InvalidSessionExecutionStatus
-		| PrismaError
-		| StoredAgentSessionStatusInvalid
-		| StoredAgentStatusInvalid
-		| StoredChangeInvalid
-		| StoredPieceChangeInvalid
-	>;
+	) => Effect.Effect<Option.Option<VoyageView>, VoyageWorldReadFailure>;
 	readonly rewire: (
 		pieceId: string,
 		dependsOn: ReadonlyArray<string>,

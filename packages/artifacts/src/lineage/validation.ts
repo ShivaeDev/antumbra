@@ -81,10 +81,15 @@ export const cycleWouldForm = (
 		edges.map((edge) => [edge.supersededArtifactId, edge.successorArtifactId]),
 	);
 	let cursor: string | undefined = successorArtifactId;
+	const visited = new Set<string>();
 	while (cursor !== undefined) {
 		if (cursor === supersededArtifactId) {
 			return true;
 		}
+		if (visited.has(cursor)) {
+			return false;
+		}
+		visited.add(cursor);
 		cursor = successorByArtifact.get(cursor);
 	}
 	return false;

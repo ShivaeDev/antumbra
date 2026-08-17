@@ -5,6 +5,7 @@ import { verifyPieceExists } from "@antumbra/pieces";
 import { Crypto, Effect, Option, PubSub } from "effect";
 import { ArtifactSourceNotOwned, artifactPublicationFailed } from "#errors.ts";
 import { currentArtifactsForPiece } from "#lineage/current.ts";
+import { validateCurrentStoredArtifactLineage } from "#lineage/stored.ts";
 import { validateLandingSupersession } from "#lineage/validation.ts";
 import type {
 	ArtifactInput,
@@ -47,6 +48,7 @@ const writeArtifact = (
 ) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
+		yield* validateCurrentStoredArtifactLineage;
 		yield* verifyPieceExists(input.pieceId);
 		yield* requireCurrentMoorage(publication);
 		if (input.supersedesArtifactId !== undefined) {
@@ -86,12 +88,22 @@ export const landArtifact = (root: string, input: ArtifactInput) =>
 		const crypto = yield* Crypto.Crypto;
 		const feeds = yield* DomainFeeds;
 		const writer = yield* Writer;
+		const id = yield* crypto.randomUUIDv4.pipe(
+			Effect.mapError(artifactPublicationFailed("identify artifact")),
+		);
+		yield* verifyPieceExists(input.pieceId);
+		yield* validateCurrentStoredArtifactLineage;
+		if (input.supersedesArtifactId !== undefined) {
+			yield* validateLandingSupersession(
+				input.supersedesArtifactId,
+				id,
+				input.pieceId,
+			);
+		}
 		const publication = yield* publishArtifact(root, input);
 		const row: ArtifactRow = {
 			authorAgentId: input.authorAgentId ?? null,
-			id: yield* crypto.randomUUIDv4.pipe(
-				Effect.mapError(artifactPublicationFailed("identify artifact")),
-			),
+			id,
 			title: input.title,
 			uri: publication.uri,
 		};

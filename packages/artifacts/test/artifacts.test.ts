@@ -37,6 +37,8 @@ const piece = {
 	title: "Chart",
 };
 
+const otherPiece = { ...piece, id: "piece-log", title: "Log" };
+
 const agent = {
 	charter: "draw the reef",
 	id: "agent-chart",
@@ -185,6 +187,39 @@ it.effectDB("keeps an external URL as a reference", function* (db) {
 		}),
 	);
 });
+
+it.effectDB(
+	"refuses known invalid supersession before publishing local bytes",
+	function* (db) {
+		yield* withArtifacts((moorage, published) =>
+			Effect.gen(function* () {
+				yield* seed(db, moorage);
+				yield* db.Piece.create(otherPiece);
+				const artifacts = yield* Artifacts;
+				const old = yield* artifacts.land({
+					authorAgentId: agent.id,
+					pieceId: otherPiece.id,
+					title: "foreign chart",
+					uri: "https://example.test/foreign.svg",
+				});
+				writeFileSync(join(moorage, "reef.svg"), "<svg>reef</svg>");
+				const failure = yield* Effect.flip(
+					artifacts.land({
+						authorAgentId: agent.id,
+						pieceId: piece.id,
+						supersedesArtifactId: old.artifact.id,
+						title: "wrong lineage",
+						uri: "reef.svg",
+					}),
+				);
+
+				expect(failure._tag).toBe("ArtifactProvenanceConflict");
+				expect(readdirSync(published)).toEqual([]);
+				expect(yield* db.Artifact.all()).toHaveLength(1);
+			}),
+		);
+	},
+);
 
 it.effectDB("refuses an orphan artifact without publishing", function* (db) {
 	yield* withArtifacts(() =>

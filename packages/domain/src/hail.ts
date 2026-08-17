@@ -2,6 +2,7 @@ import type {
 	StoredAgentSessionStatusInvalid,
 	StoredAgentStatusInvalid,
 } from "@antumbra/agent-runtime-vocabulary";
+import type { StoredArtifactLineageInvalid } from "@antumbra/artifacts";
 import {
 	type BoardOwnerNotFound,
 	BoardScope,
@@ -42,6 +43,7 @@ export type HailRefused =
 	| SpawnRefused
 	| StoredAgentSessionStatusInvalid
 	| StoredAgentStatusInvalid
+	| StoredArtifactLineageInvalid
 	| StoredBoardEntryInvalid
 	| StoredBoardOwnerKindInvalid
 	| StoredChangeInvalid

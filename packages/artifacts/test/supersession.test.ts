@@ -211,6 +211,28 @@ it.effectDB(
 	},
 );
 
+it.effectDB("replays explicit add and remove acts harmlessly", function* (db) {
+	yield* db.Piece.create(piece);
+	const first = yield* land(piece.id, "first").pipe(Effect.provide(layer));
+	const second = yield* land(piece.id, "second").pipe(Effect.provide(layer));
+	const input = {
+		actor: { _tag: "agent", agentId: "agent-chart" } as const,
+		successorArtifactId: second.artifact.id,
+		supersededArtifactId: first.artifact.id,
+	};
+	const created = yield* useArtifacts((artifacts) =>
+		artifacts.supersede(input),
+	);
+	const replayed = yield* useArtifacts((artifacts) =>
+		artifacts.supersede(input),
+	);
+	yield* useArtifacts((artifacts) => artifacts.removeSupersession(input));
+	yield* useArtifacts((artifacts) => artifacts.removeSupersession(input));
+
+	expect(replayed).toEqual(created);
+	expect(yield* db.ArtifactSupersession.all()).toEqual([]);
+});
+
 it.effectDB(
 	"an invalid landing leaves Artifact, provenance, and topology unchanged",
 	function* (db) {

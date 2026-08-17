@@ -4,6 +4,7 @@ import {
 	ArtifactLineageConflict,
 	ArtifactSupersessionNotFound,
 } from "#errors.ts";
+import { validateCurrentStoredArtifactLineage } from "#lineage/stored.ts";
 import {
 	cycleWouldForm,
 	requireArtifact,
@@ -18,11 +19,20 @@ import type {
 export const writeSupersession = (input: ArtifactSupersessionInput) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
+		yield* validateCurrentStoredArtifactLineage;
 		const superseded = yield* requireArtifact(input.supersededArtifactId);
 		const successor = yield* requireArtifact(input.successorArtifactId);
 		yield* requireAuthority(input.actor, superseded, successor);
 		yield* requireSharedPiece(superseded.id, successor.id);
 		const edges = yield* db.ArtifactSupersession.all();
+		const replayed = edges.find(
+			(edge) =>
+				edge.supersededArtifactId === input.supersededArtifactId &&
+				edge.successorArtifactId === input.successorArtifactId,
+		);
+		if (replayed !== undefined) {
+			return replayed;
+		}
 		if (
 			edges.some(
 				(edge) => edge.supersededArtifactId === input.supersededArtifactId,
@@ -69,14 +79,18 @@ export const writeSupersession = (input: ArtifactSupersessionInput) =>
 export const deleteSupersession = (input: ArtifactSupersessionInput) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
+		yield* validateCurrentStoredArtifactLineage;
 		const superseded = yield* requireArtifact(input.supersededArtifactId);
 		const successor = yield* requireArtifact(input.successorArtifactId);
 		yield* requireAuthority(input.actor, superseded, successor);
+		yield* requireSharedPiece(superseded.id, successor.id);
 		const edge = yield* db.ArtifactSupersession.where({
-			successorArtifactId: input.successorArtifactId,
 			supersededArtifactId: input.supersededArtifactId,
 		}).first();
 		if (Option.isNone(edge)) {
+			return;
+		}
+		if (edge.value.successorArtifactId !== input.successorArtifactId) {
 			return yield* new ArtifactSupersessionNotFound({
 				successorArtifactId: input.successorArtifactId,
 				supersededArtifactId: input.supersededArtifactId,

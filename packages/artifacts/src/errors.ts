@@ -64,6 +64,21 @@ export class ArtifactSupersessionUnauthorized extends Data.TaggedError(
 	readonly supersededArtifactId: string;
 }> {}
 
+export type StoredArtifactLineageInvalidReason =
+	| "branch"
+	| "cross_piece"
+	| "cycle"
+	| "endpoint"
+	| "provenance";
+
+export class StoredArtifactLineageInvalid extends Data.TaggedError(
+	"StoredArtifactLineageInvalid",
+)<{
+	readonly artifactIds: ReadonlyArray<string>;
+	readonly pieceIds: ReadonlyArray<string>;
+	readonly reason: StoredArtifactLineageInvalidReason;
+}> {}
+
 export const artifactPublicationFailed =
 	(operation: string) => (cause: unknown) =>
 		new ArtifactPublicationFailed({
@@ -81,4 +96,5 @@ export type ArtifactFailure =
 	| ArtifactSupersessionUnauthorized
 	| PieceNotFound
 	| PrismaError
+	| StoredArtifactLineageInvalid
 	| StoredMoorageStatusInvalid;

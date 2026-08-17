@@ -1,9 +1,10 @@
 import { SightSource } from "@antumbra/contract";
+import { DomainFeeds, type StoredEvent } from "@antumbra/domain-feeds";
 import { Database, Writer } from "@antumbra/persistence";
 import type { TemporaryPersistence } from "@antumbra/persistence/testing";
 import type { AgentEvent } from "@antumbra/session-events";
 import { expect, it } from "@effect/vitest";
-import { Effect, Fiber, Layer, Schedule, Stream } from "effect";
+import { Effect, Fiber, Layer, PubSub, Schedule, Stream } from "effect";
 import { SightSourceLive } from "#sight.ts";
 import {
 	acquireTemporaryPersistence,
@@ -122,7 +123,10 @@ it.live(
 			const temporary = yield* acquireTemporaryPersistence;
 			const scripted = yield* makeScriptedBackend;
 			yield* Effect.gen(function* () {
+				const db = yield* Database;
+				const feeds = yield* DomainFeeds;
 				const sight = yield* SightSource;
+				const writer = yield* Writer;
 				const receipt = yield* sight.spawn(spawnRequest);
 				const session = yield* liveSession(scripted, receipt.sessionId);
 				yield* session.emit(note(0));
@@ -136,12 +140,42 @@ it.live(
 						expect(rows).toHaveLength(2);
 					}),
 				);
+				const rehydratedUnknown: StoredEvent = {
+					kind: "future.event",
+					payload: "future bytes {",
+					seq: 2,
+					sessionId: receipt.sessionId,
+				};
+				yield* writer.write(db.SessionEvent.create(rehydratedUnknown));
 				const collector = yield* sight
 					.sessionEventFeed({ fromSeq: 0, sessionId: receipt.sessionId })
-					.pipe(Stream.take(3), Stream.runCollect, Effect.forkChild);
-				yield* session.emit(note(2));
+					.pipe(Stream.take(4), Stream.runCollect, Effect.forkChild);
+				const liveMismatch: StoredEvent = {
+					kind: "thinking",
+					payload: JSON.stringify(note(3)),
+					seq: 3,
+					sessionId: receipt.sessionId,
+				};
+				yield* writer.write(db.SessionEvent.create(liveMismatch));
+				yield* PubSub.publish(feeds.events, liveMismatch);
 				const events = yield* Fiber.join(collector);
-				expect(events.map((event) => event.seq)).toEqual([0, 1, 2]);
+				expect(events.map((event) => event.seq)).toEqual([0, 1, 2, 3]);
+				expect(events.map((event) => event.event._tag)).toEqual([
+					"Known",
+					"Known",
+					"Unknown",
+					"Unknown",
+				]);
+				expect(events[2]?.event).toEqual({
+					_tag: "Unknown",
+					kind: "future.event",
+					payload: "future bytes {",
+				});
+				expect(events[3]?.event).toEqual({
+					_tag: "Unknown",
+					kind: "thinking",
+					payload: liveMismatch.payload,
+				});
 				const tail = yield* sight
 					.sessionEventFeed({ fromSeq: 2, sessionId: receipt.sessionId })
 					.pipe(Stream.take(1), Stream.runCollect);

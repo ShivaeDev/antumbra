@@ -1,14 +1,15 @@
 import {
 	type EventQuery,
 	type RepoRegistration,
-	SessionEvent,
+	type SessionEvent,
 	SightSource,
 	type SpawnRequest,
 } from "@antumbra/contract";
 import { DomainFeeds, type StoredEvent } from "@antumbra/domain-feeds";
 import { Kernel } from "@antumbra/kernel";
 import { Database, type WriteExecutors } from "@antumbra/persistence";
-import { Effect, Layer, PubSub, Schema, Stream } from "effect";
+import { projectHistoricalAgentEvent } from "@antumbra/session-events";
+import { Effect, Layer, PubSub, Stream } from "effect";
 import { AgentDomain } from "#domain.ts";
 import { toFailure } from "#sight-failure.ts";
 import { fleetSnapshot } from "#sight-fleet.ts";
@@ -16,6 +17,12 @@ import { fleetSnapshot } from "#sight-fleet.ts";
 const pastRehydrated =
 	(query: EventQuery, lastSeq: number) => (event: StoredEvent) =>
 		event.sessionId === query.sessionId && event.seq > lastSeq;
+
+const projectSessionEvent = (row: StoredEvent): SessionEvent => ({
+	event: projectHistoricalAgentEvent(row.kind, row.payload),
+	seq: row.seq,
+	sessionId: row.sessionId,
+});
 
 export const SightSourceLive = Layer.effect(SightSource)(
 	Effect.gen(function* () {
@@ -26,8 +33,6 @@ export const SightSourceLive = Layer.effect(SightSource)(
 		const executors = yield* Effect.context<WriteExecutors>();
 		const provide = <A, E>(effect: Effect.Effect<A, E, WriteExecutors>) =>
 			Effect.provideContext(effect, executors);
-		const decodeEvents = Schema.decodeUnknownEffect(Schema.Array(SessionEvent));
-
 		const fleet = provide(fleetSnapshot(db, domain.backends)).pipe(
 			Effect.mapError(toFailure),
 		);
@@ -38,9 +43,10 @@ export const SightSourceLive = Layer.effect(SightSource)(
 					.orderBy((event) => event.seq.asc())
 					.all(),
 			).pipe(
-				Effect.flatMap(decodeEvents),
 				Effect.map((rows) =>
-					rows.filter((event) => event.seq >= query.fromSeq),
+					rows
+						.filter((event) => event.seq >= query.fromSeq)
+						.map(projectSessionEvent),
 				),
 				Effect.mapError(toFailure),
 			);
@@ -56,6 +62,7 @@ export const SightSourceLive = Layer.effect(SightSource)(
 					const lastSeq = rehydrated.at(-1)?.seq ?? query.fromSeq - 1;
 					const live = Stream.fromSubscription(subscription).pipe(
 						Stream.filter(pastRehydrated(query, lastSeq)),
+						Stream.map(projectSessionEvent),
 					);
 					return Stream.fromArray(rehydrated).pipe(Stream.concat(live));
 				}),

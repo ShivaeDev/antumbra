@@ -1,7 +1,5 @@
 import type { SessionEvent } from "@antumbra/contract";
-import { AgentEvent } from "@antumbra/session-events";
-import { Option, Schema } from "effect";
-import { parseJson } from "#adapters/json.ts";
+import type { AgentEvent } from "@antumbra/session-events";
 import { openedLabel, turnLabel, usageLabel } from "#transcript/labels.ts";
 import type { TranscriptItem } from "#transcript/model.ts";
 
@@ -9,8 +7,6 @@ interface Derivation {
 	readonly items: TranscriptItem[];
 	readonly toolsById: Map<string, number>;
 }
-
-const decodeEvent = Schema.decodeUnknownOption(AgentEvent);
 
 const completeTool = (
 	state: Derivation,
@@ -25,22 +21,13 @@ const completeTool = (
 	}
 };
 
-// why: the transcript is a pure derivation of the neutral event vocabulary
-// — it never sees a provider's wire shape. Anything the vocabulary calls raw
-// (or anything that fails to decode) renders raw: never dropped, never fatal.
-const applyEvent = (state: Derivation, row: SessionEvent): void => {
-	const decoded = decodeEvent(parseJson(row.payload));
-	if (Option.isNone(decoded)) {
-		state.items.push({
-			kind: "raw",
-			label: row.kind,
-			payload: row.payload,
-			seq: row.seq,
-		});
-		return;
-	}
-	const event = decoded.value;
-	const seq = row.seq;
+// why: the transcript is a pure derivation of a Known neutral event. Provider
+// RawEvent stays visually raw and every other variant is handled exhaustively.
+const applyKnownEvent = (
+	state: Derivation,
+	event: AgentEvent,
+	seq: number,
+): void => {
 	switch (event.type) {
 		case "message":
 			state.items.push({
@@ -85,6 +72,26 @@ const applyEvent = (state: Derivation, row: SessionEvent): void => {
 			});
 			return;
 	}
+	event satisfies never;
+};
+
+// why: the domain already made historical uncertainty explicit. The renderer
+// exhausts that envelope and never reparses bytes or invents a known event.
+const applyEvent = (state: Derivation, row: SessionEvent): void => {
+	switch (row.event._tag) {
+		case "Known":
+			applyKnownEvent(state, row.event.event, row.seq);
+			return;
+		case "Unknown":
+			state.items.push({
+				kind: "raw",
+				label: row.event.kind,
+				payload: row.event.payload,
+				seq: row.seq,
+			});
+			return;
+	}
+	row.event satisfies never;
 };
 
 export const deriveTranscript = (

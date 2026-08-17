@@ -43,6 +43,7 @@ obligation remains detached until needed. See
 | `apps/desktop`            | Electron shell: windows, native surfaces, composition           |
 | `packages/contract`       | Public typed IDL between renderer and main                      |
 | `packages/agent-runtime-vocabulary` | Agent, Session, Moorage, and Berth statuses (a leaf)     |
+| `packages/board-vocabulary` | Board register and owner-kind vocabulary (a leaf)                |
 | `packages/change-vocabulary` | Neutral Change and PieceChange vocabulary (a leaf)           |
 | `packages/session-events` | The neutral session-event vocabulary every side speaks (a leaf) |
 | `packages/plugin-api`     | The driven ports: agent backends, runners, plugin registration  |

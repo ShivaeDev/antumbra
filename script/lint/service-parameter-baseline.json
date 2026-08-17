@@ -48,12 +48,6 @@
 		"type": "AgentDeps"
 	},
 	{
-		"callable": "fleetSnapshot",
-		"file": "packages/domain/src/sight-fleet.ts",
-		"parameter": "db",
-		"type": "DatabaseService"
-	},
-	{
 		"callable": "makeRetireKind",
 		"file": "packages/domain/src/retire.ts",
 		"parameter": "deps",

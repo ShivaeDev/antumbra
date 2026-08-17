@@ -33,7 +33,9 @@ export const SightSourceLive = Layer.effect(SightSource)(
 		const executors = yield* Effect.context<WriteExecutors>();
 		const provide = <A, E>(effect: Effect.Effect<A, E, WriteExecutors>) =>
 			Effect.provideContext(effect, executors);
-		const fleet = provide(fleetSnapshot(db, domain.backends)).pipe(
+		const fleet = fleetSnapshot(domain.backends).pipe(
+			Effect.provideService(Database, db),
+			provide,
 			Effect.mapError(toFailure),
 		);
 

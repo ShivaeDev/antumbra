@@ -25,6 +25,7 @@ import { AgentDomain, AgentDomainLive } from "#domain.ts";
 import { KernelReachLive } from "#kernel-reach.ts";
 import type { ResourceReconcileOptions } from "#resource-reconciler.ts";
 import { AgentRecoveryLive } from "#session-recovery-live.ts";
+import { SessionShutdownLive } from "#session-shutdown-live.ts";
 
 export interface ScriptedRunner {
 	readonly provisioned: Effect.Effect<ReadonlyArray<MooragePlan>>;
@@ -204,7 +205,7 @@ export const domainKernelLayer = (
 	changeHosts: ReadonlyMap<string, ChangeHost> = new Map(),
 	reclaim: Partial<ResourceReconcileOptions> = {},
 ) =>
-	Layer.merge(KernelReachLive, AgentRecoveryLive).pipe(
+	Layer.mergeAll(KernelReachLive, AgentRecoveryLive, SessionShutdownLive).pipe(
 		Layer.provideMerge(
 			Layer.unwrap(
 				Effect.gen(function* () {

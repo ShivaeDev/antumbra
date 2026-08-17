@@ -21,6 +21,14 @@ const acquireMoorage = Effect.acquireRelease(
 );
 
 const runnerAt = (root: string): Runner => ({
+	captureChange: (berth) =>
+		Effect.succeed({
+			branch: berth.branch,
+			headSha: `sha-${berth.branch}`,
+			workingDiff: "",
+			workingTreeStatus: "",
+			worktreePath: berth.path,
+		}),
 	capabilities: { liveTerminal: false },
 	plan: () => ({ berths: [], root }),
 	provision: () => Effect.void,

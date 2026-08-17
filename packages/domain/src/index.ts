@@ -14,8 +14,15 @@ export type {
 	ChangeHostCapabilityView,
 	ChangeProcedures,
 } from "#change-procedures.ts";
-export { refreshChanges } from "#change-refresh.ts";
-export type { ChangeRow, PieceChangeRow } from "#change-rows.ts";
+export type {
+	ChangeRow,
+	PieceChangePurpose,
+	PieceChangeRow,
+} from "#change-rows.ts";
+export {
+	ChangeObservationConflict,
+	PreparedChangeInvalid,
+} from "#change-submissions/errors.ts";
 export type { ChangeView } from "#change-view.ts";
 export { ChangeWatcherLive } from "#change-watcher.ts";
 export {
@@ -25,6 +32,9 @@ export {
 	type OpenChangeFailure,
 	type OpenChangeInput,
 	openChange,
+	type SubmitChangeFailure,
+	type SubmitChangeInput,
+	submitChange,
 } from "#changes.ts";
 export { composeCrewCharter } from "#charter-compose.ts";
 export {

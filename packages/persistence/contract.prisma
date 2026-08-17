@@ -186,6 +186,12 @@ model Change {
   headRef         String
   baseRef         String
   headSha         String?
+  preparedHeadRef String?
+  preparedHeadSha String?
+  worktreePath    String?
+  workingDiff     String?
+  workingTreeStatus String?
+  submissionKey   String?   @unique
   stage           String
   draftAt         DateTime?
   url             String?
@@ -220,6 +226,7 @@ model ChangeTransition {
 model PieceChange {
   pieceId  String
   changeId String
+  purpose  String @default("produces")
 
   @@id([pieceId, changeId])
   @@index([changeId])

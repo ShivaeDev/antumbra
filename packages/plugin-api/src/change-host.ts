@@ -28,6 +28,7 @@ export interface OpenChangeRequest {
 	readonly berth: ChangeHostBerth;
 	readonly body: string;
 	readonly draft: boolean;
+	readonly headSha: string;
 	readonly repo: ChangeHostRepo;
 	readonly title: string;
 }

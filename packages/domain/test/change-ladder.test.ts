@@ -32,13 +32,19 @@ const change = (id: string, stage: ChangeStage): ChangeRow => ({
 	mergeable: "unknown",
 	observedAt: RELEASED,
 	openedByAgentId: null,
+	preparedHeadRef: null,
+	preparedHeadSha: null,
 	raw: null,
 	repoId: "repo-1",
 	review: "none",
 	stage,
+	submissionKey: null,
 	title: id,
 	url: `https://scripted.test/changes/${id}`,
 	withdrawnAt: stage === "withdrawn" ? RELEASED : null,
+	workingDiff: null,
+	workingTreeStatus: null,
+	worktreePath: null,
 });
 
 const world = (over: Partial<VoyageWorld>): VoyageWorld => ({
@@ -68,6 +74,7 @@ const withChanges = (
 		pieceChanges: stages.map((_, index) => ({
 			changeId: `change-${index}`,
 			pieceId: "alpha",
+			purpose: "produces",
 		})),
 		...over,
 	});

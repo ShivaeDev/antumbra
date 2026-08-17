@@ -34,13 +34,19 @@ export const proposedChange = (fields: ProposedChange): ChangeRow => {
 		mergeable: observation.mergeable,
 		observedAt: new Date(now),
 		openedByAgentId: fields.openedByAgentId,
+		preparedHeadRef: null,
+		preparedHeadSha: null,
 		raw: rawText(observation.raw),
 		repoId: fields.repoId,
 		review: observation.review,
 		stage: observation.stage,
+		submissionKey: null,
 		title: observation.title,
 		url: observation.url,
 		withdrawnAt: observation.stage === "withdrawn" ? new Date(now) : null,
+		workingDiff: null,
+		workingTreeStatus: null,
+		worktreePath: null,
 	};
 };
 
@@ -50,11 +56,18 @@ export const linkPiece = (deps: AgentDeps, pieceId: string, changeId: string) =>
 	deps.db.PieceChange.where({ pieceId })
 		.all()
 		.pipe(
-			Effect.flatMap((links) =>
-				links.some((link) => link.changeId === changeId)
-					? Effect.void
-					: Effect.asVoid(deps.db.PieceChange.create({ changeId, pieceId })),
-			),
+			Effect.flatMap((links) => {
+				if (links.some((link) => link.changeId === changeId)) {
+					return Effect.void;
+				}
+				return Effect.asVoid(
+					deps.db.PieceChange.create({
+						changeId,
+						pieceId,
+						purpose: "produces",
+					}),
+				);
+			}),
 		);
 
 export const announceChanges = (deps: AgentDeps) =>

@@ -10,6 +10,7 @@ import { AGENTS_ALIVE_GAUGE, AgentDomain } from "#agent-domain-service.ts";
 import { sweepBerths } from "#berth-sweep.ts";
 import { makeCaptainToolCompiler } from "#captain-tools.ts";
 import { makeChangeProcedureCompiler } from "#change-procedures.ts";
+import { ChangeSubmissionsLive } from "#change-submissions/change-submissions.ts";
 import { makeCrewToolCompiler } from "#crew-tools.ts";
 import type { AgentDeps, KernelReach } from "#deps.ts";
 import { makeEventSinkFactory } from "#events.ts";
@@ -48,12 +49,15 @@ export const AgentDomainLive = (
 	changeHosts: ReadonlyMap<string, ChangeHost>,
 	artifactsDirectory: string,
 ) => {
-	const capabilities = Layer.mergeAll(
+	const outcomes = Layer.mergeAll(
 		PiecesLive,
 		BoardsLive,
 		ArtifactsLive(artifactsDirectory),
 		ReportsLive,
 	).pipe(Layer.provideMerge(DomainFeedsLive));
+	const capabilities = ChangeSubmissionsLive(changeHosts, runners).pipe(
+		Layer.provideMerge(outcomes),
+	);
 	return Layer.effect(AgentDomain)(
 		Effect.gen(function* () {
 			const boards = yield* Boards;

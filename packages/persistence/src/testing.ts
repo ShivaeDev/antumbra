@@ -96,3 +96,27 @@ export const allowTestSessionOpenedWrites = (
 		database.close();
 	}
 };
+
+export const rejectTestChangeUpdates = (databasePath: DatabaseFilePath) => {
+	const database = new DatabaseSync(databasePath);
+	try {
+		database.exec(`
+			CREATE TRIGGER reject_change_update
+			BEFORE UPDATE ON "change"
+			BEGIN
+				SELECT RAISE(FAIL, 'reject change update');
+			END
+		`);
+	} finally {
+		database.close();
+	}
+};
+
+export const allowTestChangeUpdates = (databasePath: DatabaseFilePath) => {
+	const database = new DatabaseSync(databasePath);
+	try {
+		database.exec("DROP TRIGGER reject_change_update");
+	} finally {
+		database.close();
+	}
+};

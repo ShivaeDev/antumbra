@@ -96,6 +96,12 @@ it.live("crew open a change through the tool and hear where it lives", () =>
 			yield* domain.voyages.launch(piece.id);
 			const crew = yield* eventually(crewOn(backend, piece.id));
 
+			const submitted = yield* callTool(crew, "submit_change", {
+				repo: "reef",
+			});
+			expect(submitted).toMatchObject({ ok: true });
+			expect(submitted.text).toContain("change prepared: no url");
+
 			const outcome = yield* opened(crew, "reef");
 			expect(outcome.ok).toBe(true);
 			expect(outcome.text).toContain("change open: ");

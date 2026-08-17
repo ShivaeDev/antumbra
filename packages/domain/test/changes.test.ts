@@ -5,57 +5,20 @@ import { Effect, Option, PubSub, Stream } from "effect";
 import { AgentDomain } from "#domain.ts";
 import { berthed, reefWithPiece } from "#test/change-fixtures.ts";
 import {
+	CREW,
+	HEAD,
+	openedChange,
+	withHost,
+} from "#test/change-submission-fixtures.ts";
+import {
 	acquireTemporaryPersistence,
 	changeHostsOf,
 	domainKernelLayer,
 	makeScriptedBackend,
 	passiveRunner,
 } from "#test/harness.ts";
-import {
-	claimsNothingHost,
-	makeScriptedHost,
-	type ScriptedHost,
-	scriptedObservation,
-} from "#test/scripted-host.ts";
+import { claimsNothingHost, scriptedObservation } from "#test/scripted-host.ts";
 import { stateOf } from "#test/voyage-fixtures.ts";
-
-const CREW = "agent-crew";
-
-const HEAD = `work/${CREW}/berth-0`;
-
-const withHost = <A, E, R>(
-	body: (scripted: ScriptedHost) => Effect.Effect<A, E, R>,
-) =>
-	Effect.gen(function* () {
-		const temporary = yield* acquireTemporaryPersistence;
-		const backend = yield* makeScriptedBackend;
-		const host = yield* makeScriptedHost();
-		yield* body(host).pipe(
-			Effect.provide(
-				domainKernelLayer(
-					temporary,
-					backend.backend,
-					{},
-					passiveRunner,
-					changeHostsOf(host.host),
-				),
-			),
-		);
-	});
-
-const openedChange = (pieceId: string, repoName: string) =>
-	Effect.gen(function* () {
-		const domain = yield* AgentDomain;
-		return yield* domain.changes.open({
-			agentId: CREW,
-			base: null,
-			body: "sounded three fathoms",
-			draft: false,
-			pieceId,
-			repoName,
-			title: "chart the eastern spit",
-		});
-	});
 
 it.live("a change opened by crew is written with the link to its piece", () =>
 	withHost((scripted) =>
@@ -73,7 +36,7 @@ it.live("a change opened by crew is written with the link to its piece", () =>
 			expect(row.raw).toBe('{"number":"1","source":"scripted"}');
 
 			expect(yield* db.PieceChange.all()).toEqual([
-				{ changeId: row.id, pieceId: piece.id },
+				{ changeId: row.id, pieceId: piece.id, purpose: "produces" },
 			]);
 			expect((yield* scripted.drive.opened).length).toBe(1);
 			expect(yield* stateOf(voyage.id, piece.id)).toBe("landing");

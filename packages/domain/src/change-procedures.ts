@@ -2,17 +2,18 @@ import type { PrismaError } from "@antumbra/persistence";
 import { Pieces } from "@antumbra/pieces";
 import type { ChangeHostError, ChangeObservation } from "@antumbra/plugin-api";
 import { Effect, PubSub } from "effect";
-import { applyObservations } from "#change-observe.ts";
-import { openChangesOfHost } from "#change-read.ts";
-import { refreshChanges } from "#change-refresh.ts";
 import type { ChangeRow } from "#change-rows.ts";
+import {
+	ChangeSubmissions,
+	type SubmitChangeFailure,
+	type SubmitChangeInput,
+} from "#change-submissions/change-submissions.ts";
 import {
 	type AdoptChangeFailure,
 	type AdoptChangeInput,
 	adoptChange,
 	type OpenChangeFailure,
 	type OpenChangeInput,
-	openChange,
 } from "#changes.ts";
 import type { AgentDeps } from "#deps.ts";
 import type { UnknownChangeHostTag } from "#errors.ts";
@@ -43,6 +44,9 @@ export interface ChangeProcedures {
 	readonly open: (
 		input: OpenChangeInput,
 	) => Effect.Effect<ChangeRow, OpenChangeFailure>;
+	readonly submit: (
+		input: SubmitChangeInput,
+	) => Effect.Effect<ChangeRow, SubmitChangeFailure>;
 	// why: what can still change at a host — open changes can settle and
 	// withdrawn ones can reopen. The set also decides the next pass cadence.
 	readonly watchableChanges: (
@@ -64,6 +68,7 @@ export interface ChangeProcedures {
 }
 
 export const makeChangeProcedureCompiler = Effect.gen(function* () {
+	const submissions = yield* ChangeSubmissions;
 	const pieces = yield* Pieces;
 	const providePieces = <A, E>(effect: Effect.Effect<A, E, Pieces>) =>
 		effect.pipe(Effect.provideService(Pieces, pieces));
@@ -78,12 +83,12 @@ export const makeChangeProcedureCompiler = Effect.gen(function* () {
 				})),
 			),
 			hostTags: [...deps.changeHosts.keys()],
-			observed: (hostTag, observations) =>
-				applyObservations(deps, hostTag, observations),
-			open: (input) => providePieces(openChange(deps, input)),
-			watchableChanges: (hostTag) => openChangesOfHost(deps, hostTag),
+			observed: submissions.observed,
+			open: submissions.open,
+			submit: submissions.submit,
+			watchableChanges: submissions.watchable,
 			quay: readVoyageWorld(deps).pipe(Effect.map(quayReading)),
-			refresh: (hostTag) => refreshChanges(deps, hostTag),
+			refresh: submissions.refresh,
 			requestRefresh: PubSub.publish(deps.feeds.changeRefresh, undefined),
 		};
 	}

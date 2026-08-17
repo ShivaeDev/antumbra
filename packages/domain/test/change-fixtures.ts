@@ -32,13 +32,19 @@ export const changeOf = (fields: ChangeFields): ChangeRow => ({
 	mergeable: "clean",
 	observedAt: OBSERVED,
 	openedByAgentId: null,
+	preparedHeadRef: null,
+	preparedHeadSha: null,
 	raw: null,
 	repoId: fields.repoId,
 	review: "none",
 	stage: fields.stage,
+	submissionKey: null,
 	title: fields.id,
 	url: null,
 	withdrawnAt: fields.stage === "withdrawn" ? OBSERVED : null,
+	workingDiff: null,
+	workingTreeStatus: null,
+	worktreePath: null,
 });
 
 // why: a berth is written by a spawn in life, and these tests are about what a

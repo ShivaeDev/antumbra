@@ -4,30 +4,28 @@ import type { ChangeHostError } from "@antumbra/plugin-api";
 import { Clock, Effect, Option, PubSub } from "effect";
 import {
 	capableHost,
-	requireBerth,
 	requireChangeHost,
 	requireRepo,
 } from "#change-host-resolve.ts";
 import { changeOfExternalId } from "#change-read.ts";
 import type { ChangeRow } from "#change-rows.ts";
+import {
+	ChangeSubmissions,
+	type OpenChangeFailure,
+	type OpenChangeInput,
+	type SubmitChangeFailure,
+	type SubmitChangeInput,
+} from "#change-submissions/change-submissions.ts";
 import { announceChanges, linkPiece, proposedChange } from "#change-write.ts";
 import { type AgentDeps, provideExecutors } from "#deps.ts";
-import type {
-	BerthNotFound,
-	NoChangeHost,
-	PieceNotFound,
-	RepoNotFound,
-} from "#errors.ts";
+import type { NoChangeHost, PieceNotFound, RepoNotFound } from "#errors.ts";
 
-export interface OpenChangeInput {
-	readonly agentId: string;
-	readonly base: string | null;
-	readonly body: string;
-	readonly draft: boolean;
-	readonly pieceId: string;
-	readonly repoName: string;
-	readonly title: string;
-}
+export type {
+	OpenChangeFailure,
+	OpenChangeInput,
+	SubmitChangeFailure,
+	SubmitChangeInput,
+} from "#change-submissions/change-submissions.ts";
 
 // why: a change made by hand has no agent behind it — the person at the window
 // adopts it, and a null opener records that rather than crediting whoever
@@ -46,49 +44,15 @@ export type AdoptChangeFailure =
 	| PrismaError
 	| RepoNotFound;
 
-export type OpenChangeFailure = AdoptChangeFailure | BerthNotFound;
-
 export const openChange = (
-	deps: AgentDeps,
 	input: OpenChangeInput,
-): Effect.Effect<ChangeRow, OpenChangeFailure, Pieces> =>
-	Effect.gen(function* () {
-		const pieces = yield* Pieces;
-		yield* pieces.require(input.pieceId);
-		const repo = yield* requireRepo(deps, input.repoName);
-		const host = yield* capableHost(yield* requireChangeHost(deps, repo));
-		const berth = yield* requireBerth(deps, input.agentId, repo);
-		const observation = yield* host.open({
-			base: input.base,
-			berth,
-			body: input.body,
-			draft: input.draft,
-			repo,
-			title: input.title,
-		});
-		const row = proposedChange({
-			body: input.body,
-			host: host.tag,
-			now: yield* Clock.currentTimeMillis,
-			observation,
-			openedByAgentId: input.agentId,
-			repoId: repo.id,
-		});
-		// why: the change and the link to its piece are written together — a
-		// change no piece points at would be an outcome nobody is waiting on.
-		yield* provideExecutors(deps)(
-			deps.writer.write(
-				deps.db.Change.create(row).pipe(
-					Effect.andThen(linkPiece(deps, input.pieceId, row.id)),
-				),
-			),
-		);
-		yield* announceChanges(deps);
-		// why: a change that just reached a host has news to give sooner than any
-		// cadence would guess, so the watcher is rung rather than waited on.
-		yield* PubSub.publish(deps.feeds.changeRefresh, undefined);
-		return row;
-	});
+): Effect.Effect<ChangeRow, OpenChangeFailure, ChangeSubmissions> =>
+	Effect.flatMap(ChangeSubmissions, (changes) => changes.open(input));
+
+export const submitChange = (
+	input: SubmitChangeInput,
+): Effect.Effect<ChangeRow, SubmitChangeFailure, ChangeSubmissions> =>
+	Effect.flatMap(ChangeSubmissions, (changes) => changes.submit(input));
 
 // why: a change opened by hand is adopted by its url — the host is asked what
 // it is, and a change this system already knows gains a second piece rather

@@ -44,6 +44,31 @@ describe("local runner", () => {
 		}),
 	);
 
+	it.live("captures immutable change evidence from the exact berth", () =>
+		Effect.gen(function* () {
+			const { runner, source } = yield* makeHarbor;
+			const moorage = yield* provision(runner, {
+				agentId: AGENT,
+				repos: [{ ref: "main", source }],
+			});
+			const berth = moorage.berths[0];
+			if (berth === undefined) {
+				return expect.unreachable("no berth provisioned");
+			}
+			yield* Effect.sync(() => {
+				writeFileSync(join(berth.path, "README.md"), "changed\n");
+				writeFileSync(join(berth.path, "untracked.md"), "new\n");
+			});
+
+			const evidence = yield* runner.captureChange(berth);
+			expect(evidence.branch).toBe(berth.branch);
+			expect(evidence.headSha).toMatch(/^[0-9a-f]+$/u);
+			expect(evidence.worktreePath).toBe(berth.path);
+			expect(evidence.workingDiff).toContain("-ahoy");
+			expect(evidence.workingTreeStatus).toContain("?? untracked.md");
+		}),
+	);
+
 	it.live(
 		"finishes reclaim when branch cleanup fails after removing the worktree",
 		() =>

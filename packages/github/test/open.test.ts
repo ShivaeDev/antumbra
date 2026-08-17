@@ -22,6 +22,7 @@ const requestFor = (site: Berthed): OpenChangeRequest => ({
 	berth: site.berth,
 	body: "sounded three fathoms\n\nthe eastern spit is charted\n",
 	draft: false,
+	headSha: "0123456789abcdef",
 	repo: site.repo,
 	title: "chart the eastern spit",
 });

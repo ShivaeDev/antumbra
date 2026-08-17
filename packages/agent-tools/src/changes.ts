@@ -34,6 +34,13 @@ export const openChangeSpec = defineTool({
 	name: "open_change",
 });
 
+export const submitChangeSpec = defineTool({
+	description:
+		"Submit the work in your berth as a durable prepared change for your piece. Repeated calls reuse that repo's active change. Returns its id and stage; a host pull request may attach later.",
+	input: Schema.Struct({ repo: Repo }),
+	name: "submit_change",
+});
+
 export const adoptChangeSpec = defineTool({
 	description:
 		"Adopt a change that already exists: link it to your piece by its url, so the record knows your piece is waiting on it. Call it for a change you opened by hand rather than through `open_change`.",

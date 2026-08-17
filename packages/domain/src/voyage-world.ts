@@ -7,6 +7,7 @@ import type {
 import type { ReportRow } from "@antumbra/reports";
 import { Effect } from "effect";
 import { changeRow } from "#change-read.ts";
+import { pieceChangeRow } from "#change-rows.ts";
 import { type AgentDeps, provideExecutors } from "#deps.ts";
 import type {
 	PieceRow,
@@ -79,7 +80,7 @@ export const voyageWorld = (
 			edges: yield* db.PieceEdge.all(),
 			memberships: yield* db.VoyagePiece.all(),
 			pieceArtifacts: yield* db.PieceArtifact.all(),
-			pieceChanges: yield* db.PieceChange.all(),
+			pieceChanges: (yield* db.PieceChange.all()).map(pieceChangeRow),
 			pieceReports: yield* db.PieceReport.all(),
 			pieces: (yield* db.Piece.orderBy((piece) =>
 				piece.createdAt.asc(),

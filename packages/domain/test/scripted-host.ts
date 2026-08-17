@@ -132,16 +132,25 @@ export const makeScriptedHost = (options: ScriptedHostOptions = {}) =>
 				),
 			open: (request) =>
 				Effect.gen(function* () {
+					const existing = [...(yield* Ref.get(known)).values()].find(
+						(observation) =>
+							observation.repoId === request.repo.id &&
+							observation.headRef === request.berth.branch,
+					);
+					if (existing !== undefined) {
+						return existing;
+					}
 					yield* Ref.update(requests, (all) => [...all, request]);
 					const minted = yield* Ref.updateAndGet(count, (seen) => seen + 1);
-					return yield* remember(
-						scriptedObservation(tag, `${minted}`, {
+					return yield* remember({
+						...scriptedObservation(tag, `${minted}`, {
 							baseRef: request.base ?? request.repo.defaultRef,
 							headRef: request.berth.branch,
 							repoId: request.repo.id,
 							title: request.title,
 						}),
-					);
+						headSha: request.headSha,
+					});
 				}),
 			supports,
 			tag,

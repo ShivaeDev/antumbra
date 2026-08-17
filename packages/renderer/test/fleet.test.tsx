@@ -2,7 +2,7 @@ import { expect, it } from "@effect/vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import { FleetPanel } from "#views/fleet.tsx";
 
-it("offers interrupt without rendering internal Session execution state", () => {
+const renderFleet = (canInterrupt: boolean, executionStatus: string) => {
 	const fleet = {
 		agents: [
 			{
@@ -13,11 +13,11 @@ it("offers interrupt without rendering internal Session execution state", () => 
 				sessions: [
 					{
 						backend: "scripted",
-						canInterrupt: true,
+						canInterrupt,
 						cwd: "/tmp/reef",
-						executionStatus: "active",
+						executionStatus,
 						id: "session-1",
-						posture: "active",
+						posture: executionStatus,
 						status: "open",
 					},
 				],
@@ -27,7 +27,7 @@ it("offers interrupt without rendering internal Session execution state", () => 
 		backends: ["scripted"],
 		repos: [],
 	};
-	const markup = renderToStaticMarkup(
+	return renderToStaticMarkup(
 		<FleetPanel
 			fleet={fleet}
 			onError={() => undefined}
@@ -35,6 +35,13 @@ it("offers interrupt without rendering internal Session execution state", () => 
 			selected={undefined}
 		/>,
 	);
-	expect(markup).toContain("interrupt");
-	expect(markup).not.toContain("active");
+};
+
+it("offers interrupt only when the public capability allows it", () => {
+	const interruptible = renderFleet(true, "active");
+	const idle = renderFleet(false, "idle");
+	expect(interruptible).toContain("interrupt");
+	expect(idle).not.toContain("interrupt");
+	expect(interruptible).not.toContain("active");
+	expect(idle).not.toContain("idle");
 });

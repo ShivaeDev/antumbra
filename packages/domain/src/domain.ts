@@ -70,9 +70,8 @@ export const AgentDomainLive = (
 				Option.isSome(context.identity.voyageId)
 					? compileCaptainTools(deps, context.identity)
 					: compileCrewTools(deps, context.identity);
-			const recoveryRuntime = makeSessionRecoveryRuntime({
+			const recoveryRuntime = yield* makeSessionRecoveryRuntime({
 				backends,
-				fabric,
 				sinkFor,
 				toolsFor,
 			});

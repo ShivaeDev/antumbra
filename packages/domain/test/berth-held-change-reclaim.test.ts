@@ -1,8 +1,10 @@
 import { Database, Writer } from "@antumbra/persistence";
 import type { Runner } from "@antumbra/plugin-api";
 import { expect, it } from "@effect/vitest";
-import { Clock, Effect, Ref } from "effect";
+import { Clock, Effect, Ref, Schedule } from "effect";
+import { AgentDomain } from "#domain.ts";
 import { changeOf, REEF_SOURCE } from "#test/change-fixtures.ts";
+import { observed } from "#test/change-transition-fixtures.ts";
 import {
 	acquireTemporaryPersistence,
 	domainKernelLayer,
@@ -18,8 +20,22 @@ const AT_WORK = "agent-keeper:at-work";
 const SIBLING = "agent-keeper:sibling";
 const ELSEWHERE = "agent-keeper:elsewhere";
 
-const scrapCounting = (base: Runner, scraps: Ref.Ref<number>): Runner => ({
+const eventually = <A, E, R>(check: Effect.Effect<A, E, R>) =>
+	check.pipe(
+		Effect.catchDefect((defect) => Effect.fail(defect)),
+		Effect.retry(Schedule.spaced(10).pipe(Schedule.upTo({ duration: 2000 }))),
+	);
+
+const countingRunner = (
+	base: Runner,
+	reclaims: Ref.Ref<number>,
+	scraps: Ref.Ref<number>,
+): Runner => ({
 	...base,
+	reclaim: (site) =>
+		Ref.update(reclaims, (count) => count + 1).pipe(
+			Effect.andThen(base.reclaim(site)),
+		),
 	scrap: () => Ref.update(scraps, (count) => count + 1),
 });
 
@@ -127,51 +143,72 @@ const berthStatuses = Effect.gen(function* () {
 	return new Map(rows.map((row) => [row.id, row.status] as const));
 });
 
-const landTheChange = Effect.gen(function* () {
-	const db = yield* Database;
-	const writer = yield* Writer;
-	yield* writer.write(
-		db.Change.where({ id: "change-open" }).update({ stage: "landed" }),
-	);
-});
+const expectReclaimed = (released: ReadonlyMap<string, string>) =>
+	Effect.sync(() => {
+		expect(released.get(HELD)).toBe("reclaimed");
+		expect(released.get(AT_WORK)).toBe("reclaimed");
+		expect(released.get(SIBLING)).toBe("reclaimed");
+		expect(released.get(ELSEWHERE)).toBe("reclaimed");
+	});
 
 it.live(
-	"a berth backing a pending change delays its Agent's reclaim until it lands",
+	"a landed change observation wakes reclaim without waiting for cadence",
 	() =>
 		Effect.gen(function* () {
 			const temporary = yield* acquireTemporaryPersistence;
 			const scripted = yield* makeScriptedBackend;
 			const recorder = yield* makeScriptedRunner;
+			const reclaims = yield* Ref.make(0);
 			const scraps = yield* Ref.make(0);
 			const now = yield* Clock.currentTimeMillis;
-			const runner = scrapCounting(recorder.runner, scraps);
+			const runner = countingRunner(recorder.runner, reclaims, scraps);
 			yield* moored(new Date(now - EIGHT_DAYS_MILLIS)).pipe(
 				Effect.provide(temporary.layer),
 			);
 
-			yield* Effect.provide(
-				Effect.void,
-				domainKernelLayer(temporary, scripted.backend, {}, runner),
-			);
-			const swept = yield* berthStatuses.pipe(Effect.provide(temporary.layer));
-			expect(swept.get(HELD)).toBe("stranded");
-			expect(swept.get(AT_WORK)).toBe("ready");
-			expect(swept.get(SIBLING)).toBe("stranded");
-			expect(swept.get(ELSEWHERE)).toBe("stranded");
-			expect(yield* Ref.get(scraps)).toBe(0);
+			yield* Effect.gen(function* () {
+				const domain = yield* AgentDomain;
+				const swept = yield* berthStatuses;
+				expect(swept.get(HELD)).toBe("stranded");
+				expect(swept.get(AT_WORK)).toBe("ready");
+				expect(swept.get(SIBLING)).toBe("stranded");
+				expect(swept.get(ELSEWHERE)).toBe("stranded");
+				expect(yield* Ref.get(reclaims)).toBe(0);
+				expect(yield* Ref.get(scraps)).toBe(0);
+				yield* Effect.yieldNow;
 
-			yield* landTheChange.pipe(Effect.provide(temporary.layer));
-			yield* Effect.provide(
-				Effect.void,
-				domainKernelLayer(temporary, scripted.backend, {}, runner),
+				const landing = observed(
+					changeOf({
+						headRef: HELD_BRANCH,
+						id: "change-open",
+						repoId: "repo-reef",
+						stage: "open",
+					}),
+					"repo-reef",
+					1,
+					{ stage: "landed" },
+				);
+				const [landed] = yield* domain.changes.observed("scripted", [landing]);
+				expect(landed?.stage).toBe("landed");
+				yield* eventually(berthStatuses.pipe(Effect.tap(expectReclaimed)));
+				expect(yield* Ref.get(reclaims)).toBe(4);
+				expect(yield* Ref.get(scraps)).toBe(0);
+
+				yield* domain.changes.observed("scripted", [landing]);
+				yield* Effect.sleep(25);
+				expect(yield* Ref.get(reclaims)).toBe(4);
+				expect(yield* Ref.get(scraps)).toBe(0);
+			}).pipe(
+				Effect.provide(
+					domainKernelLayer(
+						temporary,
+						scripted.backend,
+						{},
+						runner,
+						new Map(),
+						{ cadenceMillis: 60_000 },
+					),
+				),
 			);
-			const released = yield* berthStatuses.pipe(
-				Effect.provide(temporary.layer),
-			);
-			expect(released.get(HELD)).toBe("reclaimed");
-			expect(released.get(AT_WORK)).toBe("reclaimed");
-			expect(released.get(SIBLING)).toBe("reclaimed");
-			expect(released.get(ELSEWHERE)).toBe("reclaimed");
-			expect(yield* Ref.get(scraps)).toBe(0);
 		}),
 );

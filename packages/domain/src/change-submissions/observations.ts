@@ -55,7 +55,13 @@ export const applyObservations = (
 			Option.isSome(result) ? [result.value] : [],
 		);
 		if (reconciled.some((result) => result.changed)) {
-			yield* PubSub.publish(feeds.voyages, undefined);
+			yield* Effect.all(
+				[
+					PubSub.publish(feeds.resourceReclaim, undefined),
+					PubSub.publish(feeds.voyages, undefined),
+				],
+				{ discard: true },
+			);
 		}
 		return reconciled.map((result) => result.row);
 	});

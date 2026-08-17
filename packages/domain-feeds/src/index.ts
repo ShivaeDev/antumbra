@@ -18,6 +18,10 @@ export class DomainFeeds extends Context.Service<
 		readonly changeRefresh: PubSub.PubSub<void>;
 		readonly events: PubSub.PubSub<StoredEvent>;
 		readonly fleet: PubSub.PubSub<void>;
+		// why: durable truth can make held resources reclaimable without a
+		// lifecycle transition. This ring only reduces latency; boot and cadence
+		// still recover a missed notification.
+		readonly resourceReclaim: PubSub.PubSub<void>;
 		readonly voyages: PubSub.PubSub<void>;
 	}
 >()("@antumbra/domain-feeds/DomainFeeds") {}
@@ -29,7 +33,8 @@ export const DomainFeedsLive = Layer.effect(DomainFeeds)(
 		const changeRefresh = yield* PubSub.unbounded<void>();
 		const events = yield* PubSub.unbounded<StoredEvent>();
 		const fleet = yield* PubSub.unbounded<void>();
+		const resourceReclaim = yield* PubSub.unbounded<void>();
 		const voyages = yield* PubSub.unbounded<void>();
-		return { changeRefresh, events, fleet, voyages };
+		return { changeRefresh, events, fleet, resourceReclaim, voyages };
 	}),
 );

@@ -15,6 +15,7 @@ const piece: PieceRow = {
 const artifact = (id: string) => ({
 	authorAgentId: "agent-chart",
 	id,
+	pieceId: piece.id,
 	title: id,
 	uri: `https://example.test/${id}.svg`,
 });
@@ -37,10 +38,6 @@ const world: VoyageWorld = {
 	currentSessionByAgent: new Map(),
 	edges: [],
 	memberships: [],
-	pieceArtifacts: [
-		{ artifactId: "artifact-old", pieceId: piece.id },
-		{ artifactId: "artifact-new", pieceId: piece.id },
-	],
 	pieceChanges: [],
 	pieceReports: [],
 	pieces: [piece],

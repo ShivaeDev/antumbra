@@ -5,7 +5,7 @@ import { verifyPieceExists } from "@antumbra/pieces";
 import { Crypto, Effect, Option, PubSub } from "effect";
 import { ArtifactSourceNotOwned, artifactPublicationFailed } from "#errors.ts";
 import { currentArtifactsForPiece } from "#lineage/current.ts";
-import { validateCurrentStoredArtifactLineage } from "#lineage/stored.ts";
+import { validateCurrentStoredArtifactLineage } from "#lineage/piece-lineage.ts";
 import { validateLandingSupersession } from "#lineage/validation.ts";
 import type {
 	ArtifactInput,
@@ -48,7 +48,7 @@ const writeArtifact = (
 ) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
-		yield* validateCurrentStoredArtifactLineage;
+		yield* validateCurrentStoredArtifactLineage(input.pieceId);
 		yield* verifyPieceExists(input.pieceId);
 		yield* requireCurrentMoorage(publication);
 		if (input.supersedesArtifactId !== undefined) {
@@ -60,7 +60,6 @@ const writeArtifact = (
 		}
 		yield* db.Artifact.create({
 			...row,
-			pieces: (pieces) => pieces.create({ pieceId: input.pieceId }),
 		});
 		if (input.supersedesArtifactId !== undefined) {
 			yield* db.ArtifactSupersession.create({
@@ -92,7 +91,7 @@ export const landArtifact = (root: string, input: ArtifactInput) =>
 			Effect.mapError(artifactPublicationFailed("identify artifact")),
 		);
 		yield* verifyPieceExists(input.pieceId);
-		yield* validateCurrentStoredArtifactLineage;
+		yield* validateCurrentStoredArtifactLineage(input.pieceId);
 		if (input.supersedesArtifactId !== undefined) {
 			yield* validateLandingSupersession(
 				input.supersedesArtifactId,
@@ -104,6 +103,7 @@ export const landArtifact = (root: string, input: ArtifactInput) =>
 		const row: ArtifactRow = {
 			authorAgentId: input.authorAgentId ?? null,
 			id,
+			pieceId: input.pieceId,
 			title: input.title,
 			uri: publication.uri,
 		};

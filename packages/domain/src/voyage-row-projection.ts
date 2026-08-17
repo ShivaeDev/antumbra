@@ -38,6 +38,7 @@ export const repoRow = (row: RepoRow): RepoRow => ({
 export const artifactRow = (row: ArtifactRow): ArtifactRow => ({
 	authorAgentId: row.authorAgentId,
 	id: row.id,
+	pieceId: row.pieceId,
 	title: row.title,
 	uri: row.uri,
 });

@@ -1,9 +1,17 @@
-import { persistenceIt } from "@antumbra/persistence/testing";
+import { Database } from "@antumbra/persistence";
+import {
+	corruptTestArtifactPiece,
+	persistenceIt,
+	temporaryPersistence,
+} from "@antumbra/persistence/testing";
 import { expect } from "@effect/vitest";
 import { Effect } from "effect";
 import { VoyageWorldSource, VoyageWorldSourceLive } from "#voyage-world.ts";
 
 const it = persistenceIt();
+const corrupted = temporaryPersistence();
+
+it.afterAll(corrupted.remove);
 
 const piece = (id: string) => ({
 	charter: "draw the reef",
@@ -67,11 +75,11 @@ it.effectDB(
 		yield* db.Piece.create(piece("piece-two"));
 		yield* db.Artifact.create({
 			...artifact("artifact-one"),
-			pieces: (pieces) => pieces.create({ pieceId: "piece-one" }),
+			pieceId: "piece-one",
 		});
 		yield* db.Artifact.create({
 			...artifact("artifact-two"),
-			pieces: (pieces) => pieces.create({ pieceId: "piece-two" }),
+			pieceId: "piece-two",
 		});
 		yield* db.ArtifactSupersession.create({
 			successorArtifactId: "artifact-two",
@@ -91,7 +99,7 @@ it.effectDB("refuses stored cyclic Artifact lineage", function* (db) {
 	for (const id of ["artifact-one", "artifact-two"]) {
 		yield* db.Artifact.create({
 			...artifact(id),
-			pieces: (pieces) => pieces.create({ pieceId: "piece-one" }),
+			pieceId: "piece-one",
 		});
 	}
 	yield* db.ArtifactSupersession.create({
@@ -110,15 +118,26 @@ it.effectDB("refuses stored cyclic Artifact lineage", function* (db) {
 	});
 });
 
-it.effectDB(
-	"refuses an Artifact without producing-Piece provenance",
-	function* (db) {
-		yield* db.Artifact.create(artifact("artifact-orphan"));
+it.effect("refuses stored Artifact provenance without a Piece", () =>
+	Effect.gen(function* () {
+		const db = yield* Database;
+		yield* db.Piece.create(piece("piece-one"));
+		yield* db.Artifact.create({
+			...artifact("artifact-orphan"),
+			pieceId: "piece-one",
+		});
+		yield* Effect.sync(() =>
+			corruptTestArtifactPiece(
+				corrupted.database,
+				"artifact-orphan",
+				"piece-missing",
+			),
+		);
 
 		const failure = yield* readWorldFailure;
 		expect(failure).toMatchObject({
 			_tag: "StoredArtifactLineageInvalid",
 			reason: "provenance",
 		});
-	},
+	}).pipe(Effect.provide(corrupted.layer)),
 );

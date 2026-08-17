@@ -93,10 +93,12 @@ const voyageWorld: Effect.Effect<
 	);
 	const artifacts = (yield* db.Artifact.all()).map(artifactRow);
 	const artifactSupersessions = yield* db.ArtifactSupersession.all();
-	const pieceArtifacts = yield* db.PieceArtifact.all();
+	const pieces = (yield* db.Piece.orderBy((piece) =>
+		piece.createdAt.asc(),
+	).all()).map(pieceRow);
 	yield* validateStoredArtifactLineage({
 		artifacts,
-		links: pieceArtifacts,
+		pieceIds: new Set(pieces.map((piece) => piece.id)),
 		supersessions: artifactSupersessions,
 	});
 	return {
@@ -111,12 +113,9 @@ const voyageWorld: Effect.Effect<
 		crews: yield* db.VoyageAgent.all(),
 		edges: yield* db.PieceEdge.all(),
 		memberships: yield* db.VoyagePiece.all(),
-		pieceArtifacts,
 		pieceChanges,
 		pieceReports: yield* db.PieceReport.all(),
-		pieces: (yield* db.Piece.orderBy((piece) =>
-			piece.createdAt.asc(),
-		).all()).map(pieceRow),
+		pieces,
 		reports: byId((yield* db.Report.all()).map(reportRow)),
 		repos: byId((yield* db.Repo.all()).map(repoRow)),
 		sessions,

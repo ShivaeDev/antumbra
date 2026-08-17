@@ -60,7 +60,6 @@ const world = (over: Partial<VoyageWorld>): VoyageWorld => ({
 	crews: [],
 	edges: [],
 	memberships: [{ pieceId: "alpha", voyageId: "voyage-1" }],
-	pieceArtifacts: [],
 	pieceChanges: [],
 	pieceReports: [],
 	pieces: [piece("alpha")],

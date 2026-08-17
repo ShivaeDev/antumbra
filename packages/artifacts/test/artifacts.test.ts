@@ -107,7 +107,6 @@ it.effectDB(
 				expect(changed.artifact.id).not.toBe(first.artifact.id);
 				expect(changed.artifact.uri).not.toBe(first.artifact.uri);
 				expect(yield* db.Artifact.all()).toHaveLength(3);
-				expect(yield* db.PieceArtifact.all()).toHaveLength(3);
 				expect(existsSync(fileURLToPath(first.artifact.uri))).toBe(true);
 			}),
 		);
@@ -241,7 +240,6 @@ it.effectDB("refuses an orphan artifact without publishing", function* (db) {
 					pieceId: "missing-piece",
 				});
 				expect(yield* db.Artifact.all()).toEqual([]);
-				expect(yield* db.PieceArtifact.all()).toEqual([]);
 				expect(yield* PubSub.takeUpTo(notices, 1)).toEqual([]);
 			}),
 		),
@@ -278,7 +276,6 @@ it.effect(
 
 					expect(failure._tag).toBe("PrismaError");
 					expect(yield* db.Artifact.all()).toEqual([]);
-					expect(yield* db.PieceArtifact.all()).toEqual([]);
 					expect(yield* PubSub.takeUpTo(notices, 1)).toEqual([]);
 					expect(readdirSync(published)).toHaveLength(1);
 				}),

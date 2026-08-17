@@ -9,6 +9,7 @@ export interface ArtifactInput {
 export interface ArtifactRow {
 	readonly authorAgentId: string | null;
 	readonly id: string;
+	readonly pieceId: string;
 	readonly title: string;
 	readonly uri: string;
 }

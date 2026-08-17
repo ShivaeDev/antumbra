@@ -10,6 +10,22 @@ import { PersistenceLive } from "#layer.ts";
 
 export { rejectTestOutcomeLinks } from "#testing/outcome-links.ts";
 
+export const corruptTestArtifactPiece = (
+	databasePath: DatabaseFilePath,
+	artifactId: string,
+	pieceId: string,
+) => {
+	const database = new DatabaseSync(databasePath);
+	try {
+		database.exec("PRAGMA foreign_keys = OFF");
+		database
+			.prepare('UPDATE "artifact" SET "pieceId" = ? WHERE "id" = ?')
+			.run(pieceId, artifactId);
+	} finally {
+		database.close();
+	}
+};
+
 export const packagedMigrationsDirectory = fileURLToPath(
 	new URL("../migrations", import.meta.url),
 );

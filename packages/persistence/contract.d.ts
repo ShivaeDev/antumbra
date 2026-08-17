@@ -16,7 +16,7 @@ import type {
 } from '@prisma-next/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'sha256:4caea3661a7df67d42b82d81a373fdbc2086c5f6eb772dba4f656c193813ed43'>;
+  StorageHashBase<'sha256:8dc1b60b7d87d39ff6ab0d1b08b0be2ee27433957d419f735c77e9a997c8226e'>;
 export type ExecutionHash = ExecutionHashBase<string>;
 export type ProfileHash =
   ProfileHashBase<'sha256:3cc333ecad9f3f4c7229370a9d2c37e908cdce0f8d2e9fb132d50605b024eff2'>;
@@ -57,6 +57,7 @@ export type FieldOutputTypes = {
     };
     readonly Artifact: {
       readonly id: CodecTypes['sqlite/text@1']['output'];
+      readonly pieceId: CodecTypes['sqlite/text@1']['output'];
       readonly authorAgentId: CodecTypes['sqlite/text@1']['output'] | null;
       readonly title: CodecTypes['sqlite/text@1']['output'];
       readonly uri: CodecTypes['sqlite/text@1']['output'];
@@ -178,10 +179,6 @@ export type FieldOutputTypes = {
       readonly agentId: CodecTypes['sqlite/text@1']['output'];
       readonly assignedAt: CodecTypes['sqlite/datetime@1']['output'];
     };
-    readonly PieceArtifact: {
-      readonly pieceId: CodecTypes['sqlite/text@1']['output'];
-      readonly artifactId: CodecTypes['sqlite/text@1']['output'];
-    };
     readonly PieceChange: {
       readonly pieceId: CodecTypes['sqlite/text@1']['output'];
       readonly changeId: CodecTypes['sqlite/text@1']['output'];
@@ -266,6 +263,7 @@ export type FieldInputTypes = {
     };
     readonly Artifact: {
       readonly id: CodecTypes['sqlite/text@1']['input'];
+      readonly pieceId: CodecTypes['sqlite/text@1']['input'];
       readonly authorAgentId: CodecTypes['sqlite/text@1']['input'] | null;
       readonly title: CodecTypes['sqlite/text@1']['input'];
       readonly uri: CodecTypes['sqlite/text@1']['input'];
@@ -387,10 +385,6 @@ export type FieldInputTypes = {
       readonly agentId: CodecTypes['sqlite/text@1']['input'];
       readonly assignedAt: CodecTypes['sqlite/datetime@1']['input'];
     };
-    readonly PieceArtifact: {
-      readonly pieceId: CodecTypes['sqlite/text@1']['input'];
-      readonly artifactId: CodecTypes['sqlite/text@1']['input'];
-    };
     readonly PieceChange: {
       readonly pieceId: CodecTypes['sqlite/text@1']['input'];
       readonly changeId: CodecTypes['sqlite/text@1']['input'];
@@ -477,6 +471,7 @@ export type StorageColumnTypes = {
       readonly authorAgentId: CodecTypes['sqlite/text@1']['output'] | null;
       readonly createdAt: CodecTypes['sqlite/datetime@1']['output'];
       readonly id: CodecTypes['sqlite/text@1']['output'];
+      readonly pieceId: CodecTypes['sqlite/text@1']['output'];
       readonly title: CodecTypes['sqlite/text@1']['output'];
       readonly uri: CodecTypes['sqlite/text@1']['output'];
     };
@@ -594,10 +589,6 @@ export type StorageColumnTypes = {
     readonly pieceAgent: {
       readonly agentId: CodecTypes['sqlite/text@1']['output'];
       readonly assignedAt: CodecTypes['sqlite/datetime@1']['output'];
-      readonly pieceId: CodecTypes['sqlite/text@1']['output'];
-    };
-    readonly pieceArtifact: {
-      readonly artifactId: CodecTypes['sqlite/text@1']['output'];
       readonly pieceId: CodecTypes['sqlite/text@1']['output'];
     };
     readonly pieceChange: {
@@ -686,6 +677,7 @@ export type StorageColumnInputTypes = {
       readonly authorAgentId: CodecTypes['sqlite/text@1']['input'] | null;
       readonly createdAt: CodecTypes['sqlite/datetime@1']['input'];
       readonly id: CodecTypes['sqlite/text@1']['input'];
+      readonly pieceId: CodecTypes['sqlite/text@1']['input'];
       readonly title: CodecTypes['sqlite/text@1']['input'];
       readonly uri: CodecTypes['sqlite/text@1']['input'];
     };
@@ -803,10 +795,6 @@ export type StorageColumnInputTypes = {
     readonly pieceAgent: {
       readonly agentId: CodecTypes['sqlite/text@1']['input'];
       readonly assignedAt: CodecTypes['sqlite/datetime@1']['input'];
-      readonly pieceId: CodecTypes['sqlite/text@1']['input'];
-    };
-    readonly pieceArtifact: {
-      readonly artifactId: CodecTypes['sqlite/text@1']['input'];
       readonly pieceId: CodecTypes['sqlite/text@1']['input'];
     };
     readonly pieceChange: {
@@ -1019,6 +1007,11 @@ type ContractBase = Omit<
                   readonly codecId: 'sqlite/text@1';
                   readonly nullable: false;
                 };
+                readonly pieceId: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'sqlite/text@1';
+                  readonly nullable: false;
+                };
                 readonly authorAgentId: {
                   readonly nativeType: 'text';
                   readonly codecId: 'sqlite/text@1';
@@ -1043,8 +1036,23 @@ type ContractBase = Omit<
               };
               primaryKey: { readonly columns: readonly ['id'] };
               uniques: readonly [];
-              indexes: readonly [];
-              foreignKeys: readonly [];
+              indexes: readonly [{ readonly columns: readonly ['pieceId'] }];
+              foreignKeys: readonly [
+                {
+                  readonly source: {
+                    readonly namespaceId: '__unbound__' & NamespaceId;
+                    readonly tableName: 'artifact';
+                    readonly columns: readonly ['pieceId'];
+                  };
+                  readonly target: {
+                    readonly namespaceId: '__unbound__' & NamespaceId;
+                    readonly tableName: 'piece';
+                    readonly columns: readonly ['id'];
+                  };
+                  readonly constraint: true;
+                  readonly index: true;
+                },
+              ];
             };
             readonly artifactSupersession: {
               columns: {
@@ -1663,53 +1671,6 @@ type ContractBase = Omit<
               indexes: readonly [{ readonly columns: readonly ['agentId'] }];
               foreignKeys: readonly [];
             };
-            readonly pieceArtifact: {
-              columns: {
-                readonly pieceId: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'sqlite/text@1';
-                  readonly nullable: false;
-                };
-                readonly artifactId: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'sqlite/text@1';
-                  readonly nullable: false;
-                };
-              };
-              primaryKey: { readonly columns: readonly ['pieceId', 'artifactId'] };
-              uniques: readonly [{ readonly columns: readonly ['artifactId'] }];
-              indexes: readonly [{ readonly columns: readonly ['artifactId'] }];
-              foreignKeys: readonly [
-                {
-                  readonly source: {
-                    readonly namespaceId: '__unbound__' & NamespaceId;
-                    readonly tableName: 'pieceArtifact';
-                    readonly columns: readonly ['pieceId'];
-                  };
-                  readonly target: {
-                    readonly namespaceId: '__unbound__' & NamespaceId;
-                    readonly tableName: 'piece';
-                    readonly columns: readonly ['id'];
-                  };
-                  readonly constraint: true;
-                  readonly index: true;
-                },
-                {
-                  readonly source: {
-                    readonly namespaceId: '__unbound__' & NamespaceId;
-                    readonly tableName: 'pieceArtifact';
-                    readonly columns: readonly ['artifactId'];
-                  };
-                  readonly target: {
-                    readonly namespaceId: '__unbound__' & NamespaceId;
-                    readonly tableName: 'artifact';
-                    readonly columns: readonly ['id'];
-                  };
-                  readonly constraint: true;
-                  readonly index: true;
-                },
-              ];
-            };
             readonly pieceChange: {
               columns: {
                 readonly pieceId: {
@@ -2053,10 +2014,6 @@ type ContractBase = Omit<
       readonly namespace: '__unbound__' & NamespaceId;
       readonly model: 'PieceReport';
     };
-    readonly pieceArtifact: {
-      readonly namespace: '__unbound__' & NamespaceId;
-      readonly model: 'PieceArtifact';
-    };
     readonly artifactSupersession: {
       readonly namespace: '__unbound__' & NamespaceId;
       readonly model: 'ArtifactSupersession';
@@ -2222,6 +2179,10 @@ type ContractBase = Omit<
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
               };
+              readonly pieceId: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
+              };
               readonly authorAgentId: {
                 readonly nullable: true;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
@@ -2240,15 +2201,15 @@ type ContractBase = Omit<
               };
             };
             readonly relations: {
-              readonly pieces: {
+              readonly piece: {
                 readonly to: {
                   readonly namespace: '__unbound__' & NamespaceId;
-                  readonly model: 'PieceArtifact';
+                  readonly model: 'Piece';
                 };
-                readonly cardinality: '1:N';
+                readonly cardinality: 'N:1';
                 readonly on: {
-                  readonly localFields: readonly ['id'];
-                  readonly targetFields: readonly ['artifactId'];
+                  readonly localFields: readonly ['pieceId'];
+                  readonly targetFields: readonly ['id'];
                 };
               };
               readonly predecessors: {
@@ -2279,6 +2240,7 @@ type ContractBase = Omit<
               readonly namespaceId: '__unbound__';
               readonly fields: {
                 readonly id: { readonly column: 'id' };
+                readonly pieceId: { readonly column: 'pieceId' };
                 readonly authorAgentId: { readonly column: 'authorAgentId' };
                 readonly title: { readonly column: 'title' };
                 readonly uri: { readonly column: 'uri' };
@@ -2863,7 +2825,7 @@ type ContractBase = Omit<
               readonly artifacts: {
                 readonly to: {
                   readonly namespace: '__unbound__' & NamespaceId;
-                  readonly model: 'PieceArtifact';
+                  readonly model: 'Artifact';
                 };
                 readonly cardinality: '1:N';
                 readonly on: {
@@ -2921,50 +2883,6 @@ type ContractBase = Omit<
                 readonly pieceId: { readonly column: 'pieceId' };
                 readonly agentId: { readonly column: 'agentId' };
                 readonly assignedAt: { readonly column: 'assignedAt' };
-              };
-            };
-          };
-          readonly PieceArtifact: {
-            readonly fields: {
-              readonly pieceId: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
-              };
-              readonly artifactId: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
-              };
-            };
-            readonly relations: {
-              readonly artifact: {
-                readonly to: {
-                  readonly namespace: '__unbound__' & NamespaceId;
-                  readonly model: 'Artifact';
-                };
-                readonly cardinality: 'N:1';
-                readonly on: {
-                  readonly localFields: readonly ['artifactId'];
-                  readonly targetFields: readonly ['id'];
-                };
-              };
-              readonly piece: {
-                readonly to: {
-                  readonly namespace: '__unbound__' & NamespaceId;
-                  readonly model: 'Piece';
-                };
-                readonly cardinality: 'N:1';
-                readonly on: {
-                  readonly localFields: readonly ['pieceId'];
-                  readonly targetFields: readonly ['id'];
-                };
-              };
-            };
-            readonly storage: {
-              readonly table: 'pieceArtifact';
-              readonly namespaceId: '__unbound__';
-              readonly fields: {
-                readonly pieceId: { readonly column: 'pieceId' };
-                readonly artifactId: { readonly column: 'artifactId' };
               };
             };
           };

@@ -51,13 +51,9 @@ const artifactsOf = (
 	const superseded = new Set(
 		world.artifactSupersessions.map((edge) => edge.supersededArtifactId),
 	);
-	return world.pieceArtifacts
-		.filter((link) => !superseded.has(link.artifactId))
-		.filter((link) => link.pieceId === pieceId)
-		.flatMap((link) => {
-			const artifact = world.artifacts.get(link.artifactId);
-			return artifact === undefined ? [] : [artifact];
-		});
+	return [...world.artifacts.values()].filter(
+		(artifact) => artifact.pieceId === pieceId && !superseded.has(artifact.id),
+	);
 };
 
 const artifactHistoryOf = (
@@ -70,12 +66,11 @@ const artifactHistoryOf = (
 			edge.successorArtifactId,
 		]),
 	);
-	return world.pieceArtifacts
-		.filter((link) => link.pieceId === pieceId)
-		.flatMap((link) => {
-			const artifact = world.artifacts.get(link.artifactId);
-			const successorArtifactId = successorByArtifact.get(link.artifactId);
-			return artifact === undefined || successorArtifactId === undefined
+	return [...world.artifacts.values()]
+		.filter((artifact) => artifact.pieceId === pieceId)
+		.flatMap((artifact) => {
+			const successorArtifactId = successorByArtifact.get(artifact.id);
+			return successorArtifactId === undefined
 				? []
 				: [{ ...artifact, successorArtifactId }];
 		});

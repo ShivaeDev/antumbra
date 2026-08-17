@@ -29,13 +29,6 @@ export class ArtifactProvenanceConflict extends Data.TaggedError(
 	readonly supersededPieceId: string;
 }> {}
 
-export class ArtifactProvenanceInvalid extends Data.TaggedError(
-	"ArtifactProvenanceInvalid",
-)<{
-	readonly artifactId: string;
-	readonly pieceIds: ReadonlyArray<string>;
-}> {}
-
 export type ArtifactLineageConflictKind =
 	| "cycle"
 	| "successor_artifact_already_has_predecessor"
@@ -90,7 +83,6 @@ export type ArtifactFailure =
 	| ArtifactNotFound
 	| ArtifactPublicationFailed
 	| ArtifactProvenanceConflict
-	| ArtifactProvenanceInvalid
 	| ArtifactSourceNotOwned
 	| ArtifactSupersessionNotFound
 	| ArtifactSupersessionUnauthorized

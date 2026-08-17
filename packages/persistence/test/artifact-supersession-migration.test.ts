@@ -19,7 +19,7 @@ const migrationDirectory = join(
 	packageRoot,
 	"migrations",
 	"app",
-	"20260817T2206_artifact_supersession",
+	"20260817T2323_artifact_supersession",
 );
 const startContract: unknown = JSON.parse(
 	readFileSync(join(migrationDirectory, "start-contract.json"), "utf8"),
@@ -95,6 +95,13 @@ const supersessionTableCount = (database: DatabaseSync) =>
 		)
 		.get("table", "artifactSupersession");
 
+const pieceArtifactTableCount = (database: DatabaseSync) =>
+	database
+		.prepare(
+			"SELECT COUNT(*) AS count FROM sqlite_master WHERE type = ? AND name = ?",
+		)
+		.get("table", "pieceArtifact");
+
 const assertInvalidProvenanceMigration = (
 	provenance: "ambiguous" | "missing",
 ) =>
@@ -126,34 +133,37 @@ it.effect(
 		),
 );
 
-it.effect("preserves valid provenance and enforces one producing Piece", () =>
-	Effect.gen(function* () {
-		const database = freshDatabase();
-		yield* migrateToStart(database);
-		withSqlite(database, (sqlite) => {
-			seedPiece(sqlite, "piece-one");
-			seedPiece(sqlite, "piece-two");
-			seedArtifact(sqlite);
-			sqlite
-				.prepare(
-					'INSERT INTO "pieceArtifact" ("pieceId", "artifactId") VALUES (?, ?)',
-				)
-				.run("piece-one", "artifact-chart");
-		});
-
-		yield* applyMigrations({
-			contract: endContract,
-			database,
-			migrationsDirectory: packagedMigrationsDirectory,
-		});
-		expect(() =>
-			withSqlite(database, (sqlite) =>
+it.effect(
+	"moves valid provenance onto Artifact and removes the join table",
+	() =>
+		Effect.gen(function* () {
+			const database = freshDatabase();
+			yield* migrateToStart(database);
+			withSqlite(database, (sqlite) => {
+				seedPiece(sqlite, "piece-one");
+				seedPiece(sqlite, "piece-two");
+				seedArtifact(sqlite);
 				sqlite
 					.prepare(
 						'INSERT INTO "pieceArtifact" ("pieceId", "artifactId") VALUES (?, ?)',
 					)
-					.run("piece-two", "artifact-chart"),
-			),
-		).toThrow();
-	}),
+					.run("piece-one", "artifact-chart");
+			});
+
+			yield* applyMigrations({
+				contract: endContract,
+				database,
+				migrationsDirectory: packagedMigrationsDirectory,
+			});
+			expect(
+				withSqlite(database, (sqlite) =>
+					sqlite
+						.prepare('SELECT "pieceId" FROM "artifact" WHERE "id" = ?')
+						.get("artifact-chart"),
+				),
+			).toEqual({ pieceId: "piece-one" });
+			expect(withSqlite(database, pieceArtifactTableCount)).toEqual({
+				count: 0,
+			});
+		}),
 );

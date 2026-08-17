@@ -4,7 +4,6 @@ export {
 	ArtifactLineageConflict,
 	ArtifactNotFound,
 	ArtifactProvenanceConflict,
-	ArtifactProvenanceInvalid,
 	ArtifactPublicationFailed,
 	ArtifactSourceNotOwned,
 	ArtifactSupersessionNotFound,

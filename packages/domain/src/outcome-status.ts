@@ -76,7 +76,9 @@ export const pieceOutcomeTally = (
 	return {
 		landed:
 			countedLinks(world.pieceReports, pieceId) +
-			countedLinks(world.pieceArtifacts, pieceId) +
+			[...world.artifacts.values()].filter(
+				(artifact) => artifact.pieceId === pieceId,
+			).length +
 			landedChanges,
 		pending: unresolvedChangesOfPiece(world, pieceId).length,
 	};

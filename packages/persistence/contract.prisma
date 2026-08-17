@@ -115,7 +115,7 @@ model Piece {
   parkedAt    DateTime?
   createdAt   DateTime  @default(now())
   reports     PieceReport[]
-  artifacts   PieceArtifact[]
+  artifacts   Artifact[]
 }
 
 model VoyagePiece {
@@ -164,13 +164,16 @@ model Report {
 
 model Artifact {
   id            String   @id
+  pieceId       String
   authorAgentId String?
   title         String
   uri           String
   createdAt     DateTime @default(now())
-  pieces        PieceArtifact[]
+  piece         Piece @relation(fields: [pieceId], references: [id], onDelete: Restrict, onUpdate: Restrict)
   successors    ArtifactSupersession[] @relation("SupersededArtifact")
   predecessors  ArtifactSupersession[] @relation("SuccessorArtifact")
+
+  @@index([pieceId])
 }
 
 model PieceReport {
@@ -180,17 +183,6 @@ model PieceReport {
   report   Report @relation(fields: [reportId], references: [id], onDelete: Restrict, onUpdate: Restrict)
 
   @@id([pieceId, reportId])
-}
-
-model PieceArtifact {
-  pieceId    String
-  artifactId String
-  piece      Piece    @relation(fields: [pieceId], references: [id], onDelete: Restrict, onUpdate: Restrict)
-  artifact   Artifact @relation(fields: [artifactId], references: [id], onDelete: Restrict, onUpdate: Restrict)
-
-  @@id([pieceId, artifactId])
-  @@index([artifactId])
-  @@unique([artifactId])
 }
 
 model ArtifactSupersession {

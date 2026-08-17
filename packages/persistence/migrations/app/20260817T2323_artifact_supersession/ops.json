@@ -1,0 +1,244 @@
+[
+  {
+    "id": "artifact.provenance.guard-exactly-one-piece",
+    "label": "Reject Artifacts without exactly one producing Piece",
+    "summary": "fail before direct provenance storage when Artifact provenance is missing or ambiguous",
+    "operationClass": "data",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "table",
+        "name": "artifact"
+      }
+    },
+    "precheck": [],
+    "execute": [
+      {
+        "description": "fail before direct provenance storage when Artifact provenance is missing or ambiguous",
+        "sql": "INSERT INTO \"artifact\" (\"id\", \"authorAgentId\", \"title\", \"uri\", \"createdAt\")\nSELECT a.\"id\", a.\"authorAgentId\", a.\"title\", a.\"uri\", a.\"createdAt\"\nFROM \"artifact\" a LEFT JOIN \"pieceArtifact\" pa ON pa.\"artifactId\" = a.\"id\"\nGROUP BY a.\"id\" HAVING COUNT(pa.\"artifactId\") <> 1"
+      }
+    ],
+    "postcheck": []
+  },
+  {
+    "id": "column.artifact.pieceId",
+    "label": "Add column pieceId on artifact",
+    "summary": "Adds column pieceId on artifact",
+    "operationClass": "additive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "column",
+        "name": "pieceId",
+        "table": "artifact"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"pieceId\" is missing",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM pragma_table_info(?) WHERE \"name\" = ?",
+        "params": [
+          "artifact",
+          "pieceId"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"pieceId\"",
+        "sql": "ALTER TABLE \"artifact\" ADD COLUMN \"pieceId\" TEXT"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"pieceId\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM pragma_table_info(?) WHERE \"name\" = ?",
+        "params": [
+          "artifact",
+          "pieceId"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "artifact.provenance.store-originating-piece",
+    "label": "Store each Artifact producing Piece directly",
+    "summary": "copy validated producing-Piece provenance onto its Artifact",
+    "operationClass": "data",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "table",
+        "name": "artifact"
+      }
+    },
+    "precheck": [],
+    "execute": [
+      {
+        "description": "copy validated producing-Piece provenance onto its Artifact",
+        "sql": "UPDATE \"artifact\" SET \"pieceId\" = (\n  SELECT pa.\"pieceId\" FROM \"pieceArtifact\" pa\n  WHERE pa.\"artifactId\" = \"artifact\".\"id\"\n)"
+      }
+    ],
+    "postcheck": []
+  },
+  {
+    "id": "dropTable.pieceArtifact",
+    "label": "Drop table pieceArtifact",
+    "summary": "Drops table pieceArtifact which is not in the contract",
+    "operationClass": "destructive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "table",
+        "name": "pieceArtifact"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"pieceArtifact\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "table",
+          "pieceArtifact"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "drop table \"pieceArtifact\"",
+        "sql": "DROP TABLE \"pieceArtifact\""
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"pieceArtifact\" is gone",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "table",
+          "pieceArtifact"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "recreateTable.artifact",
+    "label": "Recreate table artifact",
+    "summary": "Recreates table artifact to apply schema changes: database/artifact/foreign-key:pieceId->.piece(id)",
+    "operationClass": "destructive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "table",
+        "name": "artifact"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"artifact\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "table",
+          "artifact"
+        ]
+      },
+      {
+        "description": "ensure temp table \"_prisma_new_artifact\" does not exist",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "table",
+          "_prisma_new_artifact"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create new table \"_prisma_new_artifact\" with desired schema",
+        "sql": "CREATE TABLE \"_prisma_new_artifact\" (\n  \"authorAgentId\" TEXT,\n  \"createdAt\" TEXT DEFAULT (datetime('now')) NOT NULL,\n  \"id\" TEXT NOT NULL,\n  \"pieceId\" TEXT NOT NULL,\n  \"title\" TEXT NOT NULL,\n  \"uri\" TEXT NOT NULL,\n  PRIMARY KEY (\"id\"),\n  FOREIGN KEY (\"pieceId\") REFERENCES \"piece\" (\"id\") ON DELETE RESTRICT ON UPDATE RESTRICT\n)"
+      },
+      {
+        "description": "copy data from \"artifact\" to \"_prisma_new_artifact\"",
+        "sql": "INSERT INTO \"_prisma_new_artifact\" (\"authorAgentId\", \"createdAt\", \"id\", \"pieceId\", \"title\", \"uri\") SELECT \"authorAgentId\", \"createdAt\", \"id\", \"pieceId\", \"title\", \"uri\" FROM \"artifact\""
+      },
+      {
+        "description": "drop old table \"artifact\"",
+        "sql": "DROP TABLE \"artifact\""
+      },
+      {
+        "description": "rename \"_prisma_new_artifact\" to \"artifact\"",
+        "sql": "ALTER TABLE \"_prisma_new_artifact\" RENAME TO \"artifact\""
+      },
+      {
+        "description": "recreate index \"artifact_pieceId_idx\" on \"artifact\"",
+        "sql": "CREATE INDEX \"artifact_pieceId_idx\" ON \"artifact\" (\"pieceId\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"artifact\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "table",
+          "artifact"
+        ]
+      },
+      {
+        "description": "verify temp table \"_prisma_new_artifact\" is gone",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "table",
+          "_prisma_new_artifact"
+        ]
+      },
+      {
+        "description": "verify foreign key (pieceId) → piece(id) on \"artifact\"",
+        "sql": "SELECT EXISTS (SELECT 1 FROM pragma_foreign_key_list('artifact') f WHERE f.\"table\" = 'piece' GROUP BY f.id HAVING COUNT(*) = 1 AND SUM(CASE WHEN (f.\"from\", f.\"to\") IN (('pieceId', 'id')) THEN 1 ELSE 0 END) = 1)"
+      }
+    ]
+  },
+  {
+    "id": "table.artifactSupersession",
+    "label": "Create table artifactSupersession",
+    "summary": "Creates table artifactSupersession with required columns",
+    "operationClass": "additive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "table",
+        "name": "artifactSupersession"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"artifactSupersession\" does not exist",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "table",
+          "artifactSupersession"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"artifactSupersession\"",
+        "sql": "CREATE TABLE \"artifactSupersession\" (\n  \"successorArtifactId\" TEXT NOT NULL,\n  \"supersededArtifactId\" TEXT NOT NULL,\n  PRIMARY KEY (\"supersededArtifactId\"),\n  UNIQUE (\"successorArtifactId\"),\n  FOREIGN KEY (\"supersededArtifactId\") REFERENCES \"artifact\" (\"id\") ON DELETE RESTRICT ON UPDATE RESTRICT,\n  FOREIGN KEY (\"successorArtifactId\") REFERENCES \"artifact\" (\"id\") ON DELETE RESTRICT ON UPDATE RESTRICT\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"artifactSupersession\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "table",
+          "artifactSupersession"
+        ]
+      }
+    ]
+  }
+]

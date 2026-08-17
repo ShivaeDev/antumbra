@@ -4,7 +4,6 @@ import {
 	ArtifactLineageConflict,
 	ArtifactNotFound,
 	ArtifactProvenanceConflict,
-	ArtifactProvenanceInvalid,
 	ArtifactSupersessionUnauthorized,
 } from "#errors.ts";
 import type {
@@ -21,19 +20,6 @@ export const requireArtifact = (artifactId: string) =>
 			return yield* new ArtifactNotFound({ artifactId });
 		}
 		return stored.value;
-	});
-
-export const requirePieceId = (artifactId: string) =>
-	Effect.gen(function* () {
-		const db = yield* Database;
-		const links = yield* db.PieceArtifact.where({ artifactId }).all();
-		if (links.length !== 1) {
-			return yield* new ArtifactProvenanceInvalid({
-				artifactId,
-				pieceIds: links.map((link) => link.pieceId),
-			});
-		}
-		return links[0]?.pieceId ?? "";
 	});
 
 export const requireAuthority = (
@@ -56,18 +42,16 @@ export const requireAuthority = (
 };
 
 export const requireSharedPiece = (
-	supersededArtifactId: string,
-	successorArtifactId: string,
+	superseded: ArtifactRow,
+	successor: ArtifactRow,
 ) =>
 	Effect.gen(function* () {
-		const supersededPieceId = yield* requirePieceId(supersededArtifactId);
-		const successorPieceId = yield* requirePieceId(successorArtifactId);
-		if (supersededPieceId !== successorPieceId) {
+		if (superseded.pieceId !== successor.pieceId) {
 			return yield* new ArtifactProvenanceConflict({
-				successorArtifactId,
-				successorPieceId,
-				supersededArtifactId,
-				supersededPieceId,
+				successorArtifactId: successor.id,
+				successorPieceId: successor.pieceId,
+				supersededArtifactId: superseded.id,
+				supersededPieceId: superseded.pieceId,
 			});
 		}
 	});
@@ -102,14 +86,13 @@ export const validateLandingSupersession = (
 ) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
-		yield* requireArtifact(supersededArtifactId);
-		const supersededPieceId = yield* requirePieceId(supersededArtifactId);
-		if (supersededPieceId !== successorPieceId) {
+		const superseded = yield* requireArtifact(supersededArtifactId);
+		if (superseded.pieceId !== successorPieceId) {
 			return yield* new ArtifactProvenanceConflict({
 				successorArtifactId,
 				successorPieceId,
 				supersededArtifactId,
-				supersededPieceId,
+				supersededPieceId: superseded.pieceId,
 			});
 		}
 		const existing = yield* db.ArtifactSupersession.where({

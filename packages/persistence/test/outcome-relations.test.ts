@@ -105,6 +105,7 @@ const report = {
 const artifact = {
 	authorAgentId: null,
 	id: "artifact-chart",
+	pieceId: piece.id,
 	title: "Reef chart",
 	uri: "https://example.test/reef.svg",
 };
@@ -122,15 +123,10 @@ it.effectDB("rejects every orphan Piece outcome relation", function* (db) {
 			db.PieceReport.create({ pieceId: piece.id, reportId: "missing-report" }),
 		),
 		Effect.flip(
-			db.PieceArtifact.create({
-				artifactId: artifact.id,
+			db.Artifact.create({
+				...artifact,
+				id: "artifact-orphan",
 				pieceId: "missing-piece",
-			}),
-		),
-		Effect.flip(
-			db.PieceArtifact.create({
-				artifactId: "missing-artifact",
-				pieceId: piece.id,
 			}),
 		),
 	]);
@@ -139,7 +135,7 @@ it.effectDB("rejects every orphan Piece outcome relation", function* (db) {
 		expect(failure._tag).toBe("PrismaError");
 	}
 	expect(yield* db.PieceReport.all()).toEqual([]);
-	expect(yield* db.PieceArtifact.all()).toEqual([]);
+	expect(yield* db.Artifact.all()).toEqual([expect.objectContaining(artifact)]);
 });
 
 it.effect("migration refuses a historical orphan Report link unchanged", () =>

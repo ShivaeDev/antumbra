@@ -234,6 +234,32 @@ it.effectDB("replays explicit add and remove acts harmlessly", function* (db) {
 });
 
 it.effectDB(
+	"does not scan an unrelated Piece's corrupt lineage",
+	function* (db) {
+		yield* db.Piece.create(piece);
+		yield* db.Piece.create(otherPiece);
+		const foreignFirst = yield* land(otherPiece.id, "foreign-first").pipe(
+			Effect.provide(layer),
+		);
+		const foreignSecond = yield* land(otherPiece.id, "foreign-second").pipe(
+			Effect.provide(layer),
+		);
+		yield* db.ArtifactSupersession.create({
+			successorArtifactId: foreignSecond.artifact.id,
+			supersededArtifactId: foreignFirst.artifact.id,
+		});
+		yield* db.ArtifactSupersession.create({
+			successorArtifactId: foreignFirst.artifact.id,
+			supersededArtifactId: foreignSecond.artifact.id,
+		});
+
+		const landed = yield* land(piece.id, "target").pipe(Effect.provide(layer));
+
+		expect(landed).toMatchObject({ _tag: "landed", otherCurrentArtifacts: [] });
+	},
+);
+
+it.effectDB(
 	"an invalid landing leaves Artifact, provenance, and topology unchanged",
 	function* (db) {
 		yield* db.Piece.create(piece);
@@ -243,7 +269,6 @@ it.effectDB(
 		);
 		const before = {
 			artifacts: yield* db.Artifact.all(),
-			links: yield* db.PieceArtifact.all(),
 			supersessions: yield* db.ArtifactSupersession.all(),
 		};
 		const failure = yield* Effect.flip(
@@ -260,7 +285,6 @@ it.effectDB(
 
 		expect(failure._tag).toBe("ArtifactProvenanceConflict");
 		expect(yield* db.Artifact.all()).toEqual(before.artifacts);
-		expect(yield* db.PieceArtifact.all()).toEqual(before.links);
 		expect(yield* db.ArtifactSupersession.all()).toEqual(before.supersessions);
 	},
 );

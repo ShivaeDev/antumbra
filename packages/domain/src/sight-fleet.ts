@@ -5,15 +5,13 @@ import {
 	decodeStoredResourceReclaimState,
 } from "@antumbra/agent-runtime-vocabulary";
 import type { AgentSummary, Fleet, RepoSummary } from "@antumbra/contract";
-import type { DatabaseService } from "@antumbra/persistence";
+import { Database } from "@antumbra/persistence";
 import { Effect } from "effect";
 import { decodeSessionExecutionStatus } from "#session-execution-status.ts";
 
-export const fleetSnapshot = (
-	db: DatabaseService,
-	backends: ReadonlyArray<string>,
-) =>
+export const fleetSnapshot = (backends: ReadonlyArray<string>) =>
 	Effect.gen(function* () {
+		const db = yield* Database;
 		const storedAgents = yield* db.Agent.orderBy((agent) =>
 			agent.createdAt.asc(),
 		).all();

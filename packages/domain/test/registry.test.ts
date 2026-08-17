@@ -1,5 +1,4 @@
 import { type IntentStatus, Kernel } from "@antumbra/kernel";
-import { Database } from "@antumbra/persistence";
 import type { BerthPlan } from "@antumbra/plugin-api";
 import { expect, it } from "@effect/vitest";
 import { Effect, Option, Stream } from "effect";
@@ -137,8 +136,7 @@ it.live("the fleet snapshot carries the registry", () =>
 				defaultRef: "main",
 				source: "/reefs/one.git",
 			});
-			const db = yield* Database;
-			const fleet = yield* fleetSnapshot(db, ["scripted"]);
+			const fleet = yield* fleetSnapshot(["scripted"]);
 			expect(fleet.repos).toEqual([
 				{
 					defaultRef: "main",

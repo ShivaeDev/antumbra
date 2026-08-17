@@ -2,6 +2,7 @@ import { mkdirSync } from "node:fs";
 import { join } from "node:path";
 import { Effect } from "effect";
 import { app, BrowserWindow } from "electron";
+import { registerGracefulShutdown } from "#adapters/graceful-shutdown.ts";
 
 const RENDERER_URL_FLAG = "--renderer-url=";
 
@@ -37,6 +38,17 @@ export const quitWhenAllWindowsClosed = Effect.sync(() => {
 		app.quit();
 	});
 });
+
+export const drainBeforeQuit = <E>(shutdown: Effect.Effect<void, E>) =>
+	registerGracefulShutdown(
+		{
+			onBeforeQuit: (listener) => {
+				app.on("before-quit", listener);
+			},
+			quit: () => app.quit(),
+		},
+		shutdown,
+	);
 
 const rendererUrl = (): string | undefined =>
 	process.argv

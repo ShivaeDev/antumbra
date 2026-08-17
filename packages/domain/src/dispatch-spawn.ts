@@ -1,4 +1,4 @@
-import { Boards, smoothBodies } from "@antumbra/boards";
+import { BoardScope, Boards, smoothBodies } from "@antumbra/boards";
 import type { IntentStatus, IntentSubmission } from "@antumbra/kernel";
 import type { DatabaseService, WriteExecutors } from "@antumbra/persistence";
 import { Effect, Option, Queue, Stream } from "effect";
@@ -81,16 +81,10 @@ const charterFor = (candidate: ReadyPiece) =>
 	Effect.gen(function* () {
 		const boards = yield* Boards;
 		const voyageSmoothLog = yield* boards
-			.read({
-				kind: "voyage",
-				voyageId: candidate.voyage.id,
-			})
+			.read(BoardScope.Voyage({ voyageId: candidate.voyage.id }))
 			.pipe(Effect.map(smoothBodies));
 		const pieceSmoothLog = yield* boards
-			.read({
-				kind: "piece",
-				pieceId: candidate.piece.id,
-			})
+			.read(BoardScope.Piece({ pieceId: candidate.piece.id }))
 			.pipe(Effect.map(smoothBodies));
 		return composeCrewCharter(candidate.voyage, candidate.piece, {
 			pieceSmoothLog,

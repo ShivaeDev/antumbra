@@ -16,8 +16,7 @@ export {
 export type {
 	BoardEntryRow,
 	BoardRegister,
-	BoardScope,
-	EntryInput,
 	MailInput,
 	MailPrecedence,
 } from "#model.ts";
+export { BoardScope, EntryInput } from "#model.ts";

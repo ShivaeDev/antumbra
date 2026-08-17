@@ -1,3 +1,4 @@
+import { BoardScope } from "@antumbra/boards";
 import {
 	SightFailure,
 	type VoyageSummary,
@@ -25,7 +26,7 @@ const absent = (voyageId: string) =>
 
 const boardOf = (domain: Domain, voyageId: string) =>
 	domain.boards
-		.read({ kind: "voyage", voyageId })
+		.read(BoardScope.Voyage({ voyageId }))
 		.pipe(Effect.mapError(toFailure));
 
 const readVoyage = (domain: Domain, voyageId: string) =>

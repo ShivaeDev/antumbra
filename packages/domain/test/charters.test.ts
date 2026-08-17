@@ -1,3 +1,4 @@
+import { BoardScope, EntryInput } from "@antumbra/boards";
 import { Database } from "@antumbra/persistence";
 import { expect, it } from "@effect/vitest";
 import { Effect, Option } from "effect";
@@ -143,18 +144,18 @@ it.live("a dispatched crew is told the smooth log, never the rough one", () =>
 			});
 			const wrote = (body: string, register: "rough" | "smooth") =>
 				domain.boards.write(
-					{ kind: "voyage", voyageId: reef.id },
-					{ authorAgentId: Option.none(), body, register },
+					BoardScope.Voyage({ voyageId: reef.id }),
+					EntryInput.Note({ authorAgentId: Option.none(), body, register }),
 				);
 			yield* wrote("the eastern approach is safe", "smooth");
 			yield* wrote("the swell is running", "rough");
 			yield* domain.boards.write(
-				{ kind: "piece", pieceId: alpha.id },
-				{
+				BoardScope.Piece({ pieceId: alpha.id }),
+				EntryInput.Note({
 					authorAgentId: Option.none(),
 					body: "the last hand reached the reef edge",
 					register: "smooth",
-				},
+				}),
 			);
 			yield* domain.voyages.launch(alpha.id);
 

@@ -1,5 +1,6 @@
 import {
 	type BoardOwnerNotFound,
+	BoardScope,
 	Boards,
 	type StoredBoardEntryInvalid,
 	smoothBodies,
@@ -45,7 +46,7 @@ export const hailCaptain = (deps: AgentDeps, voyageId: string) =>
 			});
 		}
 		const voyageSmoothLog = yield* boards
-			.read({ kind: "voyage", voyageId })
+			.read(BoardScope.Voyage({ voyageId }))
 			.pipe(Effect.map(smoothBodies));
 		const agentId = crypto.randomUUID();
 		// why: the hail is answered from the window or the router, never from

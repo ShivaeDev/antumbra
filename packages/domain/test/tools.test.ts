@@ -1,3 +1,4 @@
+import { BoardScope } from "@antumbra/boards";
 import { Kernel } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
 import { expect, it } from "@effect/vitest";
@@ -148,7 +149,7 @@ it.live("crew write to the board of their piece and of its voyage", () =>
 			).toEqual({ ok: true, text: "written to the voyage board" });
 
 			expect(
-				yield* domain.boards.read({ kind: "piece", pieceId: alpha.id }),
+				yield* domain.boards.read(BoardScope.Piece({ pieceId: alpha.id })),
 			).toMatchObject([
 				{ authorAgentId: agentId, body: "the shoal is steeper than charted" },
 			]);
@@ -157,7 +158,7 @@ it.live("crew write to the board of their piece and of its voyage", () =>
 				text: "[rough] the swell is running",
 			});
 			expect(
-				yield* domain.boards.read({ kind: "voyage", voyageId: voyage.id }),
+				yield* domain.boards.read(BoardScope.Voyage({ voyageId: voyage.id })),
 			).toMatchObject([{ body: "the swell is running" }]);
 		}).pipe(
 			Effect.provide(dispatchingLayer(temporary, scripted.backend, PATIENCE)),

@@ -1,15 +1,24 @@
+import { BoardScope, EntryInput } from "@antumbra/boards";
 import type {
 	BoardWriteRequest,
 	CharterPieceRequest,
 	OpenVoyageRequest,
 	RewireRequest,
 } from "@antumbra/contract";
-import { Effect, Option } from "effect";
+import { Effect, Match, Option } from "effect";
 import type { AgentDomain } from "#domain.ts";
 import { toFailure } from "#sight-failure.ts";
 import type { VoyageReads } from "#voyage-reads.ts";
 
 type Domain = AgentDomain["Service"];
+
+const boardScope = Match.type<BoardWriteRequest["scope"]>().pipe(
+	Match.when({ kind: "piece" }, ({ pieceId }) => BoardScope.Piece({ pieceId })),
+	Match.when({ kind: "voyage" }, ({ voyageId }) =>
+		BoardScope.Voyage({ voyageId }),
+	),
+	Match.exhaustive,
+);
 
 // why: the window commands the same verbs a captain has — they edit links and
 // stamps, and every one of them refuses the same way, so what a window learns
@@ -46,10 +55,13 @@ export const makeVoyageActs = (domain: Domain, reads: VoyageReads) => ({
 	// which of the crew wrote it, and you are not of the crew.
 	writeBoard: (request: BoardWriteRequest) =>
 		domain.boards
-			.write(request.scope, {
-				authorAgentId: Option.none(),
-				body: request.body,
-				register: request.register,
-			})
+			.write(
+				boardScope(request.scope),
+				EntryInput.Note({
+					authorAgentId: Option.none(),
+					body: request.body,
+					register: request.register,
+				}),
+			)
 			.pipe(Effect.asVoid, Effect.mapError(toFailure)),
 });

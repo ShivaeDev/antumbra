@@ -46,8 +46,10 @@ const writeArtifact = (
 		const db = yield* Database;
 		yield* verifyPieceExists(pieceId);
 		yield* requireCurrentMoorage(publication);
-		yield* db.Artifact.create(row);
-		yield* db.PieceArtifact.create({ artifactId: row.id, pieceId });
+		yield* db.Artifact.create({
+			...row,
+			pieces: (pieces) => pieces.create({ pieceId }),
+		});
 	});
 
 export const landArtifact = (root: string, input: ArtifactInput) =>

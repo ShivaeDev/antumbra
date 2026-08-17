@@ -1,0 +1,334 @@
+[
+  {
+    "id": "index.pieceArtifact.pieceArtifact_artifactId_idx",
+    "label": "Create index pieceArtifact_artifactId_idx on pieceArtifact",
+    "summary": "Creates index pieceArtifact_artifactId_idx on pieceArtifact",
+    "operationClass": "additive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "index",
+        "name": "pieceArtifact_artifactId_idx",
+        "table": "pieceArtifact"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"pieceArtifact_artifactId_idx\" is missing",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "index",
+          "pieceArtifact_artifactId_idx"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"pieceArtifact_artifactId_idx\"",
+        "sql": "CREATE INDEX \"pieceArtifact_artifactId_idx\" ON \"pieceArtifact\" (\"artifactId\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"pieceArtifact_artifactId_idx\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "index",
+          "pieceArtifact_artifactId_idx"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.pieceArtifact.pieceArtifact_pieceId_idx",
+    "label": "Create index pieceArtifact_pieceId_idx on pieceArtifact",
+    "summary": "Creates index pieceArtifact_pieceId_idx on pieceArtifact",
+    "operationClass": "additive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "index",
+        "name": "pieceArtifact_pieceId_idx",
+        "table": "pieceArtifact"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"pieceArtifact_pieceId_idx\" is missing",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "index",
+          "pieceArtifact_pieceId_idx"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"pieceArtifact_pieceId_idx\"",
+        "sql": "CREATE INDEX \"pieceArtifact_pieceId_idx\" ON \"pieceArtifact\" (\"pieceId\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"pieceArtifact_pieceId_idx\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "index",
+          "pieceArtifact_pieceId_idx"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.pieceReport.pieceReport_pieceId_idx",
+    "label": "Create index pieceReport_pieceId_idx on pieceReport",
+    "summary": "Creates index pieceReport_pieceId_idx on pieceReport",
+    "operationClass": "additive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "index",
+        "name": "pieceReport_pieceId_idx",
+        "table": "pieceReport"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"pieceReport_pieceId_idx\" is missing",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "index",
+          "pieceReport_pieceId_idx"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"pieceReport_pieceId_idx\"",
+        "sql": "CREATE INDEX \"pieceReport_pieceId_idx\" ON \"pieceReport\" (\"pieceId\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"pieceReport_pieceId_idx\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "index",
+          "pieceReport_pieceId_idx"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.pieceReport.pieceReport_reportId_idx",
+    "label": "Create index pieceReport_reportId_idx on pieceReport",
+    "summary": "Creates index pieceReport_reportId_idx on pieceReport",
+    "operationClass": "additive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "index",
+        "name": "pieceReport_reportId_idx",
+        "table": "pieceReport"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"pieceReport_reportId_idx\" is missing",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "index",
+          "pieceReport_reportId_idx"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"pieceReport_reportId_idx\"",
+        "sql": "CREATE INDEX \"pieceReport_reportId_idx\" ON \"pieceReport\" (\"reportId\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"pieceReport_reportId_idx\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "index",
+          "pieceReport_reportId_idx"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "recreateTable.pieceArtifact",
+    "label": "Recreate table pieceArtifact",
+    "summary": "Recreates table pieceArtifact to apply schema changes: database/pieceArtifact/foreign-key:pieceId->.piece(id); database/pieceArtifact/foreign-key:artifactId->.artifact(id)",
+    "operationClass": "destructive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "table",
+        "name": "pieceArtifact"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"pieceArtifact\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "table",
+          "pieceArtifact"
+        ]
+      },
+      {
+        "description": "ensure temp table \"_prisma_new_pieceArtifact\" does not exist",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "table",
+          "_prisma_new_pieceArtifact"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create new table \"_prisma_new_pieceArtifact\" with desired schema",
+        "sql": "CREATE TABLE \"_prisma_new_pieceArtifact\" (\n  \"artifactId\" TEXT NOT NULL,\n  \"pieceId\" TEXT NOT NULL,\n  PRIMARY KEY (\"pieceId\", \"artifactId\"),\n  FOREIGN KEY (\"pieceId\") REFERENCES \"piece\" (\"id\") ON DELETE RESTRICT ON UPDATE RESTRICT,\n  FOREIGN KEY (\"artifactId\") REFERENCES \"artifact\" (\"id\") ON DELETE RESTRICT ON UPDATE RESTRICT\n)"
+      },
+      {
+        "description": "copy data from \"pieceArtifact\" to \"_prisma_new_pieceArtifact\"",
+        "sql": "INSERT INTO \"_prisma_new_pieceArtifact\" (\"artifactId\", \"pieceId\") SELECT \"artifactId\", \"pieceId\" FROM \"pieceArtifact\""
+      },
+      {
+        "description": "drop old table \"pieceArtifact\"",
+        "sql": "DROP TABLE \"pieceArtifact\""
+      },
+      {
+        "description": "rename \"_prisma_new_pieceArtifact\" to \"pieceArtifact\"",
+        "sql": "ALTER TABLE \"_prisma_new_pieceArtifact\" RENAME TO \"pieceArtifact\""
+      },
+      {
+        "description": "recreate index \"pieceArtifact_pieceId_idx\" on \"pieceArtifact\"",
+        "sql": "CREATE INDEX \"pieceArtifact_pieceId_idx\" ON \"pieceArtifact\" (\"pieceId\")"
+      },
+      {
+        "description": "recreate index \"pieceArtifact_artifactId_idx\" on \"pieceArtifact\"",
+        "sql": "CREATE INDEX \"pieceArtifact_artifactId_idx\" ON \"pieceArtifact\" (\"artifactId\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"pieceArtifact\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "table",
+          "pieceArtifact"
+        ]
+      },
+      {
+        "description": "verify temp table \"_prisma_new_pieceArtifact\" is gone",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "table",
+          "_prisma_new_pieceArtifact"
+        ]
+      },
+      {
+        "description": "verify foreign key (pieceId) → piece(id) on \"pieceArtifact\"",
+        "sql": "SELECT EXISTS (SELECT 1 FROM pragma_foreign_key_list('pieceArtifact') f WHERE f.\"table\" = 'piece' GROUP BY f.id HAVING COUNT(*) = 1 AND SUM(CASE WHEN (f.\"from\", f.\"to\") IN (('pieceId', 'id')) THEN 1 ELSE 0 END) = 1)"
+      },
+      {
+        "description": "verify foreign key (artifactId) → artifact(id) on \"pieceArtifact\"",
+        "sql": "SELECT EXISTS (SELECT 1 FROM pragma_foreign_key_list('pieceArtifact') f WHERE f.\"table\" = 'artifact' GROUP BY f.id HAVING COUNT(*) = 1 AND SUM(CASE WHEN (f.\"from\", f.\"to\") IN (('artifactId', 'id')) THEN 1 ELSE 0 END) = 1)"
+      }
+    ]
+  },
+  {
+    "id": "recreateTable.pieceReport",
+    "label": "Recreate table pieceReport",
+    "summary": "Recreates table pieceReport to apply schema changes: database/pieceReport/foreign-key:pieceId->.piece(id); database/pieceReport/foreign-key:reportId->.report(id)",
+    "operationClass": "destructive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "table",
+        "name": "pieceReport"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"pieceReport\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "table",
+          "pieceReport"
+        ]
+      },
+      {
+        "description": "ensure temp table \"_prisma_new_pieceReport\" does not exist",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "table",
+          "_prisma_new_pieceReport"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create new table \"_prisma_new_pieceReport\" with desired schema",
+        "sql": "CREATE TABLE \"_prisma_new_pieceReport\" (\n  \"pieceId\" TEXT NOT NULL,\n  \"reportId\" TEXT NOT NULL,\n  PRIMARY KEY (\"pieceId\", \"reportId\"),\n  FOREIGN KEY (\"pieceId\") REFERENCES \"piece\" (\"id\") ON DELETE RESTRICT ON UPDATE RESTRICT,\n  FOREIGN KEY (\"reportId\") REFERENCES \"report\" (\"id\") ON DELETE RESTRICT ON UPDATE RESTRICT\n)"
+      },
+      {
+        "description": "copy data from \"pieceReport\" to \"_prisma_new_pieceReport\"",
+        "sql": "INSERT INTO \"_prisma_new_pieceReport\" (\"pieceId\", \"reportId\") SELECT \"pieceId\", \"reportId\" FROM \"pieceReport\""
+      },
+      {
+        "description": "drop old table \"pieceReport\"",
+        "sql": "DROP TABLE \"pieceReport\""
+      },
+      {
+        "description": "rename \"_prisma_new_pieceReport\" to \"pieceReport\"",
+        "sql": "ALTER TABLE \"_prisma_new_pieceReport\" RENAME TO \"pieceReport\""
+      },
+      {
+        "description": "recreate index \"pieceReport_pieceId_idx\" on \"pieceReport\"",
+        "sql": "CREATE INDEX \"pieceReport_pieceId_idx\" ON \"pieceReport\" (\"pieceId\")"
+      },
+      {
+        "description": "recreate index \"pieceReport_reportId_idx\" on \"pieceReport\"",
+        "sql": "CREATE INDEX \"pieceReport_reportId_idx\" ON \"pieceReport\" (\"reportId\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"pieceReport\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "table",
+          "pieceReport"
+        ]
+      },
+      {
+        "description": "verify temp table \"_prisma_new_pieceReport\" is gone",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "table",
+          "_prisma_new_pieceReport"
+        ]
+      },
+      {
+        "description": "verify foreign key (pieceId) → piece(id) on \"pieceReport\"",
+        "sql": "SELECT EXISTS (SELECT 1 FROM pragma_foreign_key_list('pieceReport') f WHERE f.\"table\" = 'piece' GROUP BY f.id HAVING COUNT(*) = 1 AND SUM(CASE WHEN (f.\"from\", f.\"to\") IN (('pieceId', 'id')) THEN 1 ELSE 0 END) = 1)"
+      },
+      {
+        "description": "verify foreign key (reportId) → report(id) on \"pieceReport\"",
+        "sql": "SELECT EXISTS (SELECT 1 FROM pragma_foreign_key_list('pieceReport') f WHERE f.\"table\" = 'report' GROUP BY f.id HAVING COUNT(*) = 1 AND SUM(CASE WHEN (f.\"from\", f.\"to\") IN (('reportId', 'id')) THEN 1 ELSE 0 END) = 1)"
+      }
+    ]
+  }
+]

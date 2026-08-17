@@ -360,23 +360,7 @@
                 }
               }
             },
-            "relations": {
-              "pieces": {
-                "cardinality": "1:N",
-                "on": {
-                  "localFields": [
-                    "id"
-                  ],
-                  "targetFields": [
-                    "artifactId"
-                  ]
-                },
-                "to": {
-                  "model": "PieceArtifact",
-                  "namespace": "__unbound__"
-                }
-              }
-            },
+            "relations": {},
             "storage": {
               "fields": {
                 "authorAgentId": {
@@ -1327,38 +1311,7 @@
                 }
               }
             },
-            "relations": {
-              "artifacts": {
-                "cardinality": "1:N",
-                "on": {
-                  "localFields": [
-                    "id"
-                  ],
-                  "targetFields": [
-                    "pieceId"
-                  ]
-                },
-                "to": {
-                  "model": "PieceArtifact",
-                  "namespace": "__unbound__"
-                }
-              },
-              "reports": {
-                "cardinality": "1:N",
-                "on": {
-                  "localFields": [
-                    "id"
-                  ],
-                  "targetFields": [
-                    "pieceId"
-                  ]
-                },
-                "to": {
-                  "model": "PieceReport",
-                  "namespace": "__unbound__"
-                }
-              }
-            },
+            "relations": {},
             "storage": {
               "fields": {
                 "charter": {
@@ -1448,38 +1401,7 @@
                 }
               }
             },
-            "relations": {
-              "artifact": {
-                "cardinality": "N:1",
-                "on": {
-                  "localFields": [
-                    "artifactId"
-                  ],
-                  "targetFields": [
-                    "id"
-                  ]
-                },
-                "to": {
-                  "model": "Artifact",
-                  "namespace": "__unbound__"
-                }
-              },
-              "piece": {
-                "cardinality": "N:1",
-                "on": {
-                  "localFields": [
-                    "pieceId"
-                  ],
-                  "targetFields": [
-                    "id"
-                  ]
-                },
-                "to": {
-                  "model": "Piece",
-                  "namespace": "__unbound__"
-                }
-              }
-            },
+            "relations": {},
             "storage": {
               "fields": {
                 "artifactId": {
@@ -1582,38 +1504,7 @@
                 }
               }
             },
-            "relations": {
-              "piece": {
-                "cardinality": "N:1",
-                "on": {
-                  "localFields": [
-                    "pieceId"
-                  ],
-                  "targetFields": [
-                    "id"
-                  ]
-                },
-                "to": {
-                  "model": "Piece",
-                  "namespace": "__unbound__"
-                }
-              },
-              "report": {
-                "cardinality": "N:1",
-                "on": {
-                  "localFields": [
-                    "reportId"
-                  ],
-                  "targetFields": [
-                    "id"
-                  ]
-                },
-                "to": {
-                  "model": "Report",
-                  "namespace": "__unbound__"
-                }
-              }
-            },
+            "relations": {},
             "storage": {
               "fields": {
                 "pieceId": {
@@ -1726,23 +1617,7 @@
                 }
               }
             },
-            "relations": {
-              "pieces": {
-                "cardinality": "1:N",
-                "on": {
-                  "localFields": [
-                    "id"
-                  ],
-                  "targetFields": [
-                    "reportId"
-                  ]
-                },
-                "to": {
-                  "model": "PieceReport",
-                  "namespace": "__unbound__"
-                }
-              }
-            },
+            "relations": {},
             "storage": {
               "fields": {
                 "authorAgentId": {
@@ -2930,48 +2805,7 @@
                   "nullable": false
                 }
               },
-              "foreignKeys": [
-                {
-                  "constraint": true,
-                  "index": true,
-                  "onDelete": "restrict",
-                  "onUpdate": "restrict",
-                  "source": {
-                    "columns": [
-                      "pieceId"
-                    ],
-                    "namespaceId": "__unbound__",
-                    "tableName": "pieceArtifact"
-                  },
-                  "target": {
-                    "columns": [
-                      "id"
-                    ],
-                    "namespaceId": "__unbound__",
-                    "tableName": "piece"
-                  }
-                },
-                {
-                  "constraint": true,
-                  "index": true,
-                  "onDelete": "restrict",
-                  "onUpdate": "restrict",
-                  "source": {
-                    "columns": [
-                      "artifactId"
-                    ],
-                    "namespaceId": "__unbound__",
-                    "tableName": "pieceArtifact"
-                  },
-                  "target": {
-                    "columns": [
-                      "id"
-                    ],
-                    "namespaceId": "__unbound__",
-                    "tableName": "artifact"
-                  }
-                }
-              ],
+              "foreignKeys": [],
               "indexes": [],
               "primaryKey": {
                 "columns": [
@@ -3061,48 +2895,7 @@
                   "nullable": false
                 }
               },
-              "foreignKeys": [
-                {
-                  "constraint": true,
-                  "index": true,
-                  "onDelete": "restrict",
-                  "onUpdate": "restrict",
-                  "source": {
-                    "columns": [
-                      "pieceId"
-                    ],
-                    "namespaceId": "__unbound__",
-                    "tableName": "pieceReport"
-                  },
-                  "target": {
-                    "columns": [
-                      "id"
-                    ],
-                    "namespaceId": "__unbound__",
-                    "tableName": "piece"
-                  }
-                },
-                {
-                  "constraint": true,
-                  "index": true,
-                  "onDelete": "restrict",
-                  "onUpdate": "restrict",
-                  "source": {
-                    "columns": [
-                      "reportId"
-                    ],
-                    "namespaceId": "__unbound__",
-                    "tableName": "pieceReport"
-                  },
-                  "target": {
-                    "columns": [
-                      "id"
-                    ],
-                    "namespaceId": "__unbound__",
-                    "tableName": "report"
-                  }
-                }
-              ],
+              "foreignKeys": [],
               "indexes": [],
               "primaryKey": {
                 "columns": [
@@ -3370,7 +3163,7 @@
         "id": "__unbound__"
       }
     },
-    "storageHash": "sha256:278fd83cf8ac3f94e575aeffc004d4c5c12564cdd36352b650e421b71bdab7ca"
+    "storageHash": "sha256:87a5c18aff7ae86f85c0115a4ee38c1587b32ad5c0e6fed69100a3165e01c5e0"
   },
   "capabilities": {
     "sql": {

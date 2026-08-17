@@ -1,6 +1,7 @@
 import { Database, Writer } from "@antumbra/persistence";
+import type { Runner } from "@antumbra/plugin-api";
 import { expect, it } from "@effect/vitest";
-import { Effect } from "effect";
+import { Effect, Ref } from "effect";
 import { sweepBerths } from "#berth-sweep.ts";
 import { AgentDomain } from "#domain.ts";
 import { changeOf } from "#test/change-fixtures.ts";
@@ -27,7 +28,7 @@ const registeredRepo = Effect.gen(function* () {
 	return yield* domain.repos.register({ defaultRef: "main", source: SOURCE });
 });
 
-const storeUnsafeBerth = (repoId: string) =>
+const storeUnsafeChangeBerth = (repoId: string) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
 		const writer = yield* Writer;
@@ -57,6 +58,49 @@ const storeUnsafeBerth = (repoId: string) =>
 			}),
 		);
 	});
+
+const storeUnsafePieceChangeBerth = (repoId: string, pieceId: string) =>
+	Effect.gen(function* () {
+		const db = yield* Database;
+		const writer = yield* Writer;
+		yield* writer.write(
+			Effect.gen(function* () {
+				yield* db.Berth.create({
+					agentId: "agent-gone",
+					branch: "work/agent/reef",
+					id: "berth-unsafe-piece-change",
+					path: "/tmp/unsafe-piece-change-berth",
+					ref: "main",
+					runner: "local",
+					slug: "reef-piece-change",
+					source: SOURCE,
+					status: "ready",
+					strandedAt: null,
+				});
+				yield* db.Change.create(
+					changeOf({
+						headRef: "work/agent/reef",
+						id: "change-invalid-piece-link",
+						repoId,
+						stage: "open",
+					}),
+				);
+				yield* db.PieceChange.create({
+					changeId: "change-invalid-piece-link",
+					pieceId,
+					purpose: "future_purpose",
+				});
+			}),
+		);
+	});
+
+const reclaimCounting = (calls: Ref.Ref<number>): Runner => ({
+	...passiveRunner,
+	reclaim: () =>
+		Ref.update(calls, (count) => count + 1).pipe(
+			Effect.as({ _tag: "reclaimed" as const }),
+		),
+});
 
 it.live("a direct Change read fails typed on invalid durable vocabulary", () =>
 	withDomain(
@@ -142,12 +186,48 @@ it.live(
 			Effect.gen(function* () {
 				const db = yield* Database;
 				const repo = yield* registeredRepo;
-				yield* storeUnsafeBerth(repo.id);
+				yield* storeUnsafeChangeBerth(repo.id);
 
 				yield* sweepBerths(new Map([["local", passiveRunner]]));
 				const [berth] = yield* db.Berth.where({ id: "berth-unsafe" }).all();
 				expect(berth?.status).toBe("ready");
 				expect(berth?.strandedAt).toBeNull();
+			}),
+		),
+);
+
+it.live(
+	"boot recovery holds a berth behind invalid PieceChange truth before reclaim",
+	() =>
+		withDomain(
+			Effect.gen(function* () {
+				const db = yield* Database;
+				const domain = yield* AgentDomain;
+				const repo = yield* registeredRepo;
+				const voyage = yield* domain.voyages.open({
+					backend: "scripted",
+					context: "the reef is uncharted",
+					name: "Chart the reef",
+					northStar: "every shoal is known",
+				});
+				const piece = yield* domain.voyages.charterPiece({
+					charter: "sound the shallows",
+					dependsOn: [],
+					expectation: "soundings are landed",
+					role: "hand",
+					title: "soundings",
+					voyageId: voyage.id,
+				});
+				yield* storeUnsafePieceChangeBerth(repo.id, piece.id);
+				const reclaimCalls = yield* Ref.make(0);
+
+				yield* sweepBerths(new Map([["local", reclaimCounting(reclaimCalls)]]));
+				const [berth] = yield* db.Berth.where({
+					id: "berth-unsafe-piece-change",
+				}).all();
+				expect(berth?.status).toBe("ready");
+				expect(berth?.strandedAt).toBeNull();
+				expect(yield* Ref.get(reclaimCalls)).toBe(0);
 			}),
 		),
 );

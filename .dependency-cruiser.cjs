@@ -96,10 +96,10 @@ module.exports = {
 		}),
 		rule({
 			rationale:
-				"The renderer is a pure web app: it may depend on the contract and session-events packages only. Electron, the desktop shell, and every core package are out of bounds — this is what keeps windows disposable and a future remote surface possible.",
+				"The renderer is a pure web app: public vocabulary reaches it through contract, and session-events is its only direct vocabulary dependency. Electron, the desktop shell, and every other workspace package are out of bounds — this keeps windows disposable and a future remote surface possible.",
 			from: "^packages/renderer",
 			name: "renderer-pure-web",
-			to: `(^|/)electron(/|$)|^apps/|^packages/(agent-tools|${domainPattern}|kernel|backend-[^/]+|github|runner-[^/]+|persistence|plugin-api)`,
+			to: `(^|/)electron(/|$)|${allowOnly(["renderer", "contract", "session-events"])}`,
 		}),
 		rule({
 			rationale:

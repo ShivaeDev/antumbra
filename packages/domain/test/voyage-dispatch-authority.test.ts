@@ -1,0 +1,205 @@
+import { BoardScope } from "@antumbra/boards";
+import { Kernel } from "@antumbra/kernel";
+import { Database, Writer } from "@antumbra/persistence";
+import { expect, it } from "@effect/vitest";
+import { Effect, Option } from "effect";
+import { AgentDomain } from "#domain.ts";
+import type { SpawnFields } from "#index.ts";
+import {
+	acquireTemporaryPersistence,
+	callTool,
+	dispatchingLayer,
+	domainKernelLayer,
+	makeScriptedBackend,
+	rawOf,
+	sessionFor,
+} from "#test/harness.ts";
+import { reportsNativeRef } from "#test/session-recovery-fixture.ts";
+import { chain, eventually, PATIENCE } from "#test/voyage-fixtures.ts";
+
+const HAND: SpawnFields = {
+	agentId: "agent-hand-with-piece",
+	backend: "scripted",
+	charter: "sound the shallows",
+	role: "hand",
+	runner: "local",
+	sessionId: "session-hand-with-piece",
+};
+
+const spawnByHand = (payload: SpawnFields) =>
+	Effect.gen(function* () {
+		const kernel = yield* Kernel;
+		const domain = yield* AgentDomain;
+		yield* kernel.submit(domain.spawn, payload);
+	});
+
+const firstAssignedCrew = Effect.gen(function* () {
+	const db = yield* Database;
+	const assignment = (yield* db.PieceAgent.all())[0];
+	return assignment === undefined
+		? yield* Effect.fail("no dispatched crew yet")
+		: assignment;
+});
+
+it.live(
+	"dispatched crew keeps its selected Voyage authority across rebuild",
+	() =>
+		Effect.gen(function* () {
+			const temporary = yield* acquireTemporaryPersistence;
+			const scripted = yield* makeScriptedBackend;
+			const selected = yield* Effect.gen(function* () {
+				const db = yield* Database;
+				const domain = yield* AgentDomain;
+				const writer = yield* Writer;
+				const { alpha, voyage } = yield* chain;
+				const decoy = yield* domain.voyages.open({
+					backend: "scripted",
+					context: "the southern reef is unrelated",
+					name: "Chart the southern reef",
+					northStar: "every southern shoal is known",
+				});
+				const assignment = yield* eventually(firstAssignedCrew);
+				const live = yield* eventually(
+					sessionFor(scripted, assignment.agentId),
+				);
+				yield* writer.write(
+					db.VoyagePiece.create({ pieceId: alpha.id, voyageId: decoy.id }),
+				);
+				expect(
+					new Set(
+						(yield* db.VoyagePiece.where({ pieceId: alpha.id }).all()).map(
+							(membership) => membership.voyageId,
+						),
+					),
+				).toEqual(new Set([voyage.id, decoy.id]));
+				const session = Option.getOrThrow(
+					Option.fromUndefinedOr(
+						(yield* db.AgentSession.where({
+							agentId: assignment.agentId,
+						}).all())[0],
+					),
+				);
+
+				expect(
+					yield* db.VoyageAgent.where({ agentId: assignment.agentId }).all(),
+				).toEqual([
+					{ agentId: assignment.agentId, role: "hand", voyageId: voyage.id },
+				]);
+				expect(
+					yield* callTool(live, "write_board", {
+						body: "the swell is running",
+						register: "rough",
+						scope: "voyage",
+					}),
+				).toEqual({ ok: true, text: "written to the voyage board" });
+				expect(
+					yield* domain.boards.read(BoardScope.Voyage({ voyageId: voyage.id })),
+				).toMatchObject([{ body: "the swell is running" }]);
+				expect(
+					yield* domain.boards.read(BoardScope.Voyage({ voyageId: decoy.id })),
+				).toEqual([]);
+
+				yield* live.emit({
+					nativeRef: "native-selected-voyage",
+					raw: rawOf("session/opened"),
+					type: "session.opened",
+				});
+				yield* eventually(
+					Effect.gen(function* () {
+						const stored = Option.getOrThrow(
+							yield* db.AgentSession.where({ id: session.id }).first(),
+						);
+						expect(stored.nativeRef).toBe("native-selected-voyage");
+					}),
+				);
+				return {
+					agentId: assignment.agentId,
+					decoyId: decoy.id,
+					voyageId: voyage.id,
+				};
+			}).pipe(
+				Effect.provide(dispatchingLayer(temporary, scripted.backend, PATIENCE)),
+			);
+
+			const resumedBackend = reportsNativeRef(
+				scripted.backend,
+				scripted,
+				"native-selected-voyage",
+			);
+			yield* Effect.gen(function* () {
+				const db = yield* Database;
+				const domain = yield* AgentDomain;
+				yield* eventually(
+					Effect.gen(function* () {
+						expect(yield* scripted.opened).toHaveLength(2);
+					}),
+				);
+				const resumed = yield* sessionFor(scripted, selected.agentId);
+				expect(
+					yield* db.VoyageAgent.where({ agentId: selected.agentId }).all(),
+				).toEqual([
+					{
+						agentId: selected.agentId,
+						role: "hand",
+						voyageId: selected.voyageId,
+					},
+				]);
+				expect(
+					yield* callTool(resumed, "write_board", {
+						body: "the durable authority survived rebuild",
+						register: "smooth",
+						scope: "voyage",
+					}),
+				).toEqual({ ok: true, text: "written to the voyage board" });
+				expect(
+					(yield* domain.boards.read(
+						BoardScope.Voyage({ voyageId: selected.voyageId }),
+					)).map((entry) => entry.body),
+				).toEqual([
+					"the swell is running",
+					"the durable authority survived rebuild",
+				]);
+				expect(
+					yield* domain.boards.read(
+						BoardScope.Voyage({ voyageId: selected.decoyId }),
+					),
+				).toEqual([]);
+			}).pipe(Effect.provide(domainKernelLayer(temporary, resumedBackend)));
+		}),
+);
+
+it.live("Piece membership cannot supply missing Session Voyage authority", () =>
+	Effect.gen(function* () {
+		const temporary = yield* acquireTemporaryPersistence;
+		const scripted = yield* makeScriptedBackend;
+		yield* Effect.gen(function* () {
+			const domain = yield* AgentDomain;
+			const voyage = yield* domain.voyages.open({
+				backend: "scripted",
+				context: "the reef is uncharted",
+				name: "Chart the reef",
+				northStar: "every shoal is known",
+			});
+			const piece = yield* domain.voyages.charterPiece({
+				charter: "sound the shallows",
+				dependsOn: [],
+				expectation: "soundings are landed",
+				role: "hand",
+				title: "alpha",
+				voyageId: voyage.id,
+			});
+			yield* spawnByHand({ ...HAND, pieceId: piece.id });
+			const live = yield* eventually(sessionFor(scripted, HAND.agentId));
+			expect(
+				yield* callTool(live, "write_board", {
+					body: "this must not be guessed from membership",
+					register: "rough",
+					scope: "voyage",
+				}),
+			).toEqual({ ok: false, text: "you have no voyage board" });
+			expect(
+				yield* domain.boards.read(BoardScope.Voyage({ voyageId: voyage.id })),
+			).toEqual([]);
+		}).pipe(Effect.provide(domainKernelLayer(temporary, scripted.backend)));
+	}),
+);

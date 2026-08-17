@@ -1,5 +1,6 @@
 import { Option } from "effect";
 import { atWork } from "#agent-at-work.ts";
+import type { SessionIdentity } from "#tool-identity.ts";
 import { crewOf, type VoyageCrewMember } from "#voyage-crew.ts";
 import type { VoyageWorld } from "#voyage-rows.ts";
 
@@ -10,11 +11,28 @@ export interface VoyageCaptain {
 	readonly status: string;
 }
 
+// why: "captain" may describe a Piece's requested worker role, but Voyage
+// captain authority belongs only to an Agent that answers directly to the
+// Voyage rather than through a Piece.
+export const isVoyageCaptainIdentity = (
+	role: string,
+	identity: SessionIdentity,
+) =>
+	role === CAPTAIN_ROLE &&
+	Option.isSome(identity.voyageId) &&
+	Option.isNone(identity.pieceId);
+
+const isPieceAssigned = (world: VoyageWorld, agentId: string) =>
+	world.assignments.some((assignment) => assignment.agentId === agentId);
+
 const captains = (
 	world: VoyageWorld,
 	voyageId: string,
 ): ReadonlyArray<VoyageCrewMember> =>
-	crewOf(world, voyageId).filter((member) => member.role === CAPTAIN_ROLE);
+	crewOf(world, voyageId).filter(
+		(member) =>
+			member.role === CAPTAIN_ROLE && !isPieceAssigned(world, member.agentId),
+	);
 
 const asCaptain = (member: VoyageCrewMember): VoyageCaptain => ({
 	agentId: member.agentId,

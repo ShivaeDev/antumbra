@@ -11,9 +11,8 @@ import {
 	Boards,
 	EntryInput,
 } from "@antumbra/boards";
-import { Database, type WriteExecutors } from "@antumbra/persistence";
 import type { DirectTool, DirectToolOutcome } from "@antumbra/plugin-api";
-import { Context, Effect, Option } from "effect";
+import { Effect, Option } from "effect";
 import {
 	type BoardScopeName,
 	resolveBoardScope,
@@ -27,16 +26,10 @@ const withScope = (
 	name: BoardScopeName,
 	act: (scope: BoardScope) => Effect.Effect<DirectToolOutcome>,
 ) =>
-	resolveBoardScope(identity, name).pipe(
-		Effect.matchEffect({
-			onFailure: () => Effect.succeed(refused("the boards could not be read")),
-			onSuccess: (scope) =>
-				Option.match(scope, {
-					onNone: () => Effect.succeed(refused(`you have no ${name} board`)),
-					onSome: act,
-				}),
-		}),
-	);
+	Option.match(resolveBoardScope(identity, name), {
+		onNone: () => Effect.succeed(refused(`you have no ${name} board`)),
+		onSome: act,
+	});
 
 const rendered = (entries: ReadonlyArray<BoardEntryRow>): string =>
 	entries.length === 0
@@ -45,14 +38,6 @@ const rendered = (entries: ReadonlyArray<BoardEntryRow>): string =>
 
 export const makeBoardToolCompiler = Effect.gen(function* () {
 	const boards = yield* Boards;
-	const db = yield* Database;
-	const executors = yield* Effect.context<WriteExecutors>();
-	const context = Context.merge(executors, Context.make(Database, db));
-	const resolve = (
-		identity: SessionIdentity,
-		name: BoardScopeName,
-		act: (scope: BoardScope) => Effect.Effect<DirectToolOutcome>,
-	) => Effect.provide(withScope(identity, name, act), context);
 	return (identity: SessionIdentity): ReadonlyArray<DirectTool> => [
 		bind(readMailSpec, () =>
 			answered(
@@ -71,7 +56,7 @@ export const makeBoardToolCompiler = Effect.gen(function* () {
 			),
 		),
 		bind(writeBoardSpec, (input) =>
-			resolve(identity, input.scope, (scope) =>
+			withScope(identity, input.scope, (scope) =>
 				answered(
 					identity,
 					writeBoardSpec.name,
@@ -88,7 +73,7 @@ export const makeBoardToolCompiler = Effect.gen(function* () {
 			),
 		),
 		bind(readBoardSpec, (input) =>
-			resolve(identity, input.scope, (scope) =>
+			withScope(identity, input.scope, (scope) =>
 				answered(identity, readBoardSpec.name, boards.read(scope), rendered),
 			),
 		),

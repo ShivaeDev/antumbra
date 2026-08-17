@@ -11,8 +11,8 @@ export const SpawnPayload = Schema.Struct({
 	role: Schema.String,
 	runner: Schema.String,
 	sessionId: Schema.String,
-	// why: a captain answers to a voyage rather than to one of its pieces, so
-	// the crew row is written in the same act as the birth.
+	// why: a Session's exact Voyage authority is durable crew truth, so it is
+	// written in the same act as the birth; a hand spawned outside one omits it.
 	voyageId: Schema.optionalKey(Schema.String),
 });
 

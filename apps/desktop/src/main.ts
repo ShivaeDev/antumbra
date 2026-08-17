@@ -7,6 +7,7 @@ import {
 	AgentRecoveryLive,
 	ChangeWatcherLive,
 	DispatcherLive,
+	drainActiveSessions,
 	KernelReachLive,
 	SightSourceLive,
 	VoyageSourceLive,
@@ -24,11 +25,13 @@ import { NodeServices } from "@effect/platform-node";
 import { Effect, Layer, ManagedRuntime } from "effect";
 import { AppInfoSourceLive } from "#adapters/app-info.ts";
 import { ownerBoot, runBoot } from "#adapters/boot.ts";
+import { drainManagedRuntime } from "#adapters/graceful-shutdown.ts";
 import { activateInstalledCli } from "#adapters/installed-cli.ts";
 import {
 	acquireDesktopOwnership,
 	artifactsInDataDirectory,
 	configureDataDirectory,
+	drainBeforeQuit,
 	openMainWindow,
 	persistenceMigrationsDirectory,
 	quitWhenAllWindowsClosed,
@@ -100,6 +103,7 @@ const startOwner = () => {
 	);
 	const router = makeAppRouter(runtime);
 	const main = Effect.gen(function* () {
+		yield* drainBeforeQuit(drainManagedRuntime(runtime, drainActiveSessions));
 		yield* whenReady;
 		yield* Effect.sync(() => {
 			registerTrpcBridge(router);

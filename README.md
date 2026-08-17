@@ -14,6 +14,11 @@ A place to stand for the long view.
 
 Early development. Nothing to install or run yet.
 
+The repository contains tested internal foundations for Voyages, Pieces,
+Agents, recovery, and typed Outcomes. They do not yet form a supported
+charter-to-harvest journey. Source-level tests are not evidence of
+installability, live-provider readiness, or safe dogfood use.
+
 ## Documentation
 
 - [Design axioms](DESIGN.md) — the cross-context laws every design obeys.

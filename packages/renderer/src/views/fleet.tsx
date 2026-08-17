@@ -43,7 +43,7 @@ const SessionRow = ({
 		</button>
 		<span style={mutedStyle}>{session.backend}</span>
 		<span style={mutedStyle}>{session.status}</span>
-		{session.status === "open" ? (
+		{session.canInterrupt ? (
 			<button
 				onClick={() => interruptSession(session.id, onError)}
 				style={buttonStyle}

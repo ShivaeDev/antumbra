@@ -1,5 +1,6 @@
 import { Database, type WriteExecutors } from "@antumbra/persistence";
-import { Effect, Option } from "effect";
+import { Effect, Option, Result } from "effect";
+import { decodeSessionExecutionStatus } from "#session-execution-status.ts";
 import type { SpawnFields } from "#spawn.ts";
 
 interface AgentRow {
@@ -25,6 +26,7 @@ interface SessionRow {
 	readonly charterDeliveredAt: Date | null;
 	readonly cwd: string;
 	readonly nativeRef: string | null;
+	readonly executionStatus: unknown;
 	readonly status: string;
 }
 
@@ -33,12 +35,21 @@ const matchesAgent = (row: AgentRow, payload: SpawnFields) =>
 	row.charter === payload.charter &&
 	row.role === payload.role;
 
-const matchesSession = (row: SessionRow, payload: SpawnFields) =>
-	row.agentId === payload.agentId &&
-	row.backend === payload.backend &&
-	row.status === "open" &&
-	row.nativeRef !== null &&
-	row.charterDeliveredAt !== null;
+const matchesSession = (row: SessionRow, payload: SpawnFields) => {
+	const executionStatus = decodeSessionExecutionStatus(
+		payload.sessionId,
+		row.executionStatus,
+	);
+	return (
+		row.agentId === payload.agentId &&
+		row.backend === payload.backend &&
+		row.status === "open" &&
+		Result.isSuccess(executionStatus) &&
+		executionStatus.success === "active" &&
+		row.nativeRef !== null &&
+		row.charterDeliveredAt !== null
+	);
+};
 
 const matchesMoorage = (
 	row: MoorageRow,

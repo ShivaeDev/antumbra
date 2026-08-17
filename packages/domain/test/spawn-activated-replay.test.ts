@@ -90,6 +90,7 @@ const seedActivatedBoundary = (intentId: string, plan: MooragePlan) =>
 					cwd: plan.root,
 					id: payload.sessionId,
 					nativeRef: "native-existing",
+					executionStatus: "active",
 					status: "open",
 				});
 				yield* db.SessionEvent.create({

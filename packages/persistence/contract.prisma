@@ -47,6 +47,7 @@ model AgentSession {
   cwd                String
   nativeRef          String?
   status             String
+  executionStatus    String    @default("active")
   charterDeliveredAt DateTime?
   createdAt          DateTime  @default(now())
 

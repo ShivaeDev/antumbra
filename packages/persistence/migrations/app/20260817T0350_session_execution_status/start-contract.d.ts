@@ -16,7 +16,7 @@ import type {
 } from '@prisma-next/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'sha256:87a5c18aff7ae86f85c0115a4ee38c1587b32ad5c0e6fed69100a3165e01c5e0'>;
+  StorageHashBase<'sha256:50401c0e4002e23c2765a08775a8d4fc8e9d0d0d2680dbea24a3d3b5979405a9'>;
 export type ExecutionHash = ExecutionHashBase<string>;
 export type ProfileHash =
   ProfileHashBase<'sha256:3cc333ecad9f3f4c7229370a9d2c37e908cdce0f8d2e9fb132d50605b024eff2'>;
@@ -45,7 +45,6 @@ export type FieldOutputTypes = {
       readonly cwd: CodecTypes['sqlite/text@1']['output'];
       readonly nativeRef: CodecTypes['sqlite/text@1']['output'] | null;
       readonly status: CodecTypes['sqlite/text@1']['output'];
-      readonly executionStatus: CodecTypes['sqlite/text@1']['output'];
       readonly charterDeliveredAt: CodecTypes['sqlite/datetime@1']['output'] | null;
       readonly createdAt: CodecTypes['sqlite/datetime@1']['output'];
     };
@@ -247,7 +246,6 @@ export type FieldInputTypes = {
       readonly cwd: CodecTypes['sqlite/text@1']['input'];
       readonly nativeRef: CodecTypes['sqlite/text@1']['input'] | null;
       readonly status: CodecTypes['sqlite/text@1']['input'];
-      readonly executionStatus: CodecTypes['sqlite/text@1']['input'];
       readonly charterDeliveredAt: CodecTypes['sqlite/datetime@1']['input'] | null;
       readonly createdAt: CodecTypes['sqlite/datetime@1']['input'];
     };
@@ -448,7 +446,6 @@ export type StorageColumnTypes = {
       readonly charterDeliveredAt: CodecTypes['sqlite/datetime@1']['output'] | null;
       readonly createdAt: CodecTypes['sqlite/datetime@1']['output'];
       readonly cwd: CodecTypes['sqlite/text@1']['output'];
-      readonly executionStatus: CodecTypes['sqlite/text@1']['output'];
       readonly id: CodecTypes['sqlite/text@1']['output'];
       readonly nativeRef: CodecTypes['sqlite/text@1']['output'] | null;
       readonly status: CodecTypes['sqlite/text@1']['output'];
@@ -650,7 +647,6 @@ export type StorageColumnInputTypes = {
       readonly charterDeliveredAt: CodecTypes['sqlite/datetime@1']['input'] | null;
       readonly createdAt: CodecTypes['sqlite/datetime@1']['input'];
       readonly cwd: CodecTypes['sqlite/text@1']['input'];
-      readonly executionStatus: CodecTypes['sqlite/text@1']['input'];
       readonly id: CodecTypes['sqlite/text@1']['input'];
       readonly nativeRef: CodecTypes['sqlite/text@1']['input'] | null;
       readonly status: CodecTypes['sqlite/text@1']['input'];
@@ -928,15 +924,6 @@ type ContractBase = Omit<
                   readonly nativeType: 'text';
                   readonly codecId: 'sqlite/text@1';
                   readonly nullable: false;
-                };
-                readonly executionStatus: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'sqlite/text@1';
-                  readonly nullable: false;
-                  readonly default: {
-                    readonly kind: 'literal';
-                    readonly value: DefaultLiteralValue<'sqlite/text@1', 'active'>;
-                  };
                 };
                 readonly charterDeliveredAt: {
                   readonly nativeType: 'text';
@@ -2003,10 +1990,6 @@ type ContractBase = Omit<
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
               };
-              readonly executionStatus: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
-              };
               readonly charterDeliveredAt: {
                 readonly nullable: true;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/datetime@1' };
@@ -2027,7 +2010,6 @@ type ContractBase = Omit<
                 readonly cwd: { readonly column: 'cwd' };
                 readonly nativeRef: { readonly column: 'nativeRef' };
                 readonly status: { readonly column: 'status' };
-                readonly executionStatus: { readonly column: 'executionStatus' };
                 readonly charterDeliveredAt: { readonly column: 'charterDeliveredAt' };
                 readonly createdAt: { readonly column: 'createdAt' };
               };

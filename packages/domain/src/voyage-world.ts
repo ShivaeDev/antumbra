@@ -10,6 +10,10 @@ import { changeRow } from "#change-read.ts";
 import { pieceChangeRow } from "#change-rows.ts";
 import { type AgentDeps, provideExecutors } from "#deps.ts";
 import type { StoredChangeInvalid, StoredPieceChangeInvalid } from "#errors.ts";
+import {
+	decodeSessionExecutionStatus,
+	type InvalidSessionExecutionStatus,
+} from "#session-execution-status.ts";
 import type {
 	PieceRow,
 	RepoRow,
@@ -63,7 +67,10 @@ export const voyageWorld = (
 	db: DatabaseService,
 ): Effect.Effect<
 	VoyageWorld,
-	PrismaError | StoredChangeInvalid | StoredPieceChangeInvalid,
+	| InvalidSessionExecutionStatus
+	| PrismaError
+	| StoredChangeInvalid
+	| StoredPieceChangeInvalid,
 	WriteExecutors
 > =>
 	Effect.gen(function* () {
@@ -79,6 +86,20 @@ export const voyageWorld = (
 		const pieceChanges = yield* Effect.forEach(
 			yield* db.PieceChange.all(),
 			pieceChangeRow,
+		);
+		const sessions = yield* Effect.forEach(
+			yield* db.AgentSession.all(),
+			(session) =>
+				Effect.fromResult(
+					decodeSessionExecutionStatus(session.id, session.executionStatus),
+				).pipe(
+					Effect.map((executionStatus) => ({
+						agentId: session.agentId,
+						executionStatus,
+						id: session.id,
+						status: session.status,
+					})),
+				),
 		);
 		return {
 			agentStatus: new Map(
@@ -98,6 +119,7 @@ export const voyageWorld = (
 			).all()).map(pieceRow),
 			reports: byId((yield* db.Report.all()).map(reportRow)),
 			repos: byId((yield* db.Repo.all()).map(repoRow)),
+			sessions,
 			voyages: (yield* db.Voyage.orderBy((voyage) =>
 				voyage.createdAt.asc(),
 			).all()).map(voyageRow),
@@ -108,5 +130,8 @@ export const readVoyageWorld = (
 	deps: AgentDeps,
 ): Effect.Effect<
 	VoyageWorld,
-	PrismaError | StoredChangeInvalid | StoredPieceChangeInvalid
+	| InvalidSessionExecutionStatus
+	| PrismaError
+	| StoredChangeInvalid
+	| StoredPieceChangeInvalid
 > => provideExecutors(deps)(voyageWorld(deps.db));

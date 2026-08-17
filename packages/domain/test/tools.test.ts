@@ -227,7 +227,7 @@ it.live("a session with no piece has no board but its own", () =>
 	}),
 );
 
-it.live("standing down retires the agent that called it", () =>
+it.live("standing down preserves the agent and session that called it", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
 		const scripted = yield* makeScriptedBackend;
@@ -235,6 +235,11 @@ it.live("standing down retires the agent that called it", () =>
 			const db = yield* Database;
 			yield* spawnByHand(HAND);
 			const { live } = yield* eventually(openedSession(scripted));
+			const before = {
+				agent: yield* db.Agent.where({ id: HAND.agentId }).first(),
+				moorage: yield* db.Moorage.where({ agentId: HAND.agentId }).first(),
+				session: yield* db.AgentSession.where({ id: HAND.sessionId }).first(),
+			};
 			expect(yield* callTool(live, "stand_down", undefined)).toEqual({
 				ok: true,
 				text: "standing down",
@@ -242,9 +247,28 @@ it.live("standing down retires the agent that called it", () =>
 			yield* eventually(
 				Effect.gen(function* () {
 					const agent = yield* db.Agent.where({ id: HAND.agentId }).first();
-					expect(Option.getOrThrow(agent).status).toBe("retired");
+					const session = yield* db.AgentSession.where({
+						id: HAND.sessionId,
+					}).first();
+					expect(Option.getOrThrow(agent).status).toBe("alive");
+					expect(Option.getOrThrow(session).status).toBe("open");
+					expect(yield* live.closed).toBe(true);
 				}),
 			);
+			expect(yield* db.Agent.where({ id: HAND.agentId }).first()).toEqual(
+				before.agent,
+			);
+			expect(
+				yield* db.Moorage.where({ agentId: HAND.agentId }).first(),
+			).toEqual(before.moorage);
+			const beforeSession = Option.getOrThrow(before.session);
+			const settledSession = Option.getOrThrow(
+				yield* db.AgentSession.where({ id: HAND.sessionId }).first(),
+			);
+			expect(settledSession).toEqual({
+				...beforeSession,
+				executionStatus: "idle",
+			});
 		}).pipe(Effect.provide(domainKernelLayer(temporary, scripted.backend)));
 	}),
 );

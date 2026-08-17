@@ -2,6 +2,7 @@ import type { ArtifactRow } from "@antumbra/artifacts";
 import type { EdgeRow, PieceRow } from "@antumbra/pieces";
 import type { ReportRow } from "@antumbra/reports";
 import type { ChangeRow, PieceChangeRow } from "#change-rows.ts";
+import type { SessionExecutionStatus } from "#session-execution-status.ts";
 
 export type { EdgeRow, PieceRow } from "@antumbra/pieces";
 
@@ -30,6 +31,13 @@ export interface CrewRow {
 	readonly agentId: string;
 	readonly role: string;
 	readonly voyageId: string;
+}
+
+export interface AgentSessionRow {
+	readonly agentId: string;
+	readonly executionStatus: SessionExecutionStatus;
+	readonly id: string;
+	readonly status: string;
 }
 
 export interface MembershipRow {
@@ -64,5 +72,6 @@ export interface VoyageWorld {
 	readonly pieces: ReadonlyArray<PieceRow>;
 	readonly reports: ReadonlyMap<string, ReportRow>;
 	readonly repos: ReadonlyMap<string, RepoRow>;
+	readonly sessions: ReadonlyArray<AgentSessionRow>;
 	readonly voyages: ReadonlyArray<VoyageRow>;
 }

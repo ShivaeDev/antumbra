@@ -7,6 +7,7 @@ import { type DispatchPort, dispatchPiece } from "#dispatch-spawn.ts";
 import { dispatchable, makeDispatchState } from "#dispatch-state.ts";
 import { AGENTS_ALIVE_GAUGE, AgentDomain } from "#domain.ts";
 import { pump } from "#feed-pump.ts";
+import { idleAssignedExecutionSessions } from "#session-execution-selection.ts";
 import { voyageWorld } from "#voyage-world.ts";
 
 export interface DispatcherOptions {
@@ -28,11 +29,27 @@ const onePass = (
 		const inFlight = (yield* Ref.get(port.state.inFlight)).size;
 		let budget = maxAlive - (yield* aliveAgents) - inFlight;
 		for (const candidate of readyPieces(world)) {
-			if (budget <= 0) {
-				return;
+			if (!allowed(candidate.piece.id)) {
+				continue;
 			}
-			if (allowed(candidate.piece.id)) {
-				yield* dispatchPiece(port, candidate);
+			const assigned = idleAssignedExecutionSessions(world, candidate.piece.id);
+			if (assigned.length > 1) {
+				yield* Effect.logWarning("assigned Session wake is ambiguous", {
+					pieceId: candidate.piece.id,
+					sessionIds: assigned.map((session) => session.sessionId),
+				});
+				continue;
+			}
+			const session = assigned[0];
+			if (session !== undefined) {
+				yield* dispatchPiece(port, candidate, {
+					_tag: "resume",
+					sessionId: session.sessionId,
+				});
+				continue;
+			}
+			if (budget > 0) {
+				yield* dispatchPiece(port, candidate, { _tag: "spawn" });
 				budget -= 1;
 			}
 		}
@@ -80,6 +97,7 @@ export const DispatcherLive = (overrides: Partial<DispatcherOptions> = {}) =>
 				db,
 				patienceMillis: options.patienceMillis,
 				state,
+				resume: (sessionId) => kernel.submit(domain.recover, { sessionId }),
 				submit: (payload) => kernel.submit(domain.spawn, payload),
 			};
 			const aliveAgents = Option.getOrElse(

@@ -15,17 +15,22 @@ export const KernelReachLive = Layer.effectDiscard(
 		const kernel = yield* Kernel;
 		const executors = yield* Effect.context<WriteExecutors>();
 		const reach: KernelReach = {
-			queueRetire: (agentId) =>
-				kernel.submit(domain.retire, { agentId }).pipe(
+			queueSiesta: (sessionId) =>
+				kernel.submit(domain.siesta, { sessionId }).pipe(
 					Effect.asVoid,
 					Effect.provideContext(executors),
 					Effect.catchCause((cause) =>
 						Effect.logWarning(
 							"a stand down could not be queued",
-							{ agentId },
+							{ sessionId },
 							cause,
 						),
 					),
+				),
+			submitRecovery: (sessionId) =>
+				kernel.submit(domain.recover, { sessionId }).pipe(
+					Effect.map((submission) => submission.id),
+					Effect.provideContext(executors),
 				),
 			// why: a hail is answered rather than fired and forgotten — the caller
 			// is a window or a router waiting on the intent it just asked for, so

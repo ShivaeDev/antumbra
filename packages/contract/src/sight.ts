@@ -2,6 +2,7 @@ import { Context, Data, type Effect, Schema, type Stream } from "effect";
 
 export const SessionSummary = Schema.Struct({
 	backend: Schema.String,
+	canInterrupt: Schema.Boolean,
 	cwd: Schema.String,
 	id: Schema.String,
 	status: Schema.String,

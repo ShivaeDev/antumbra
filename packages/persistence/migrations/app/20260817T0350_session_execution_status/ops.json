@@ -1,0 +1,43 @@
+[
+  {
+    "id": "column.agentSession.executionStatus",
+    "label": "Add column executionStatus on agentSession",
+    "summary": "Adds column executionStatus on agentSession",
+    "operationClass": "additive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "column",
+        "name": "executionStatus",
+        "table": "agentSession"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"executionStatus\" is missing",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM pragma_table_info(?) WHERE \"name\" = ?",
+        "params": [
+          "agentSession",
+          "executionStatus"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"executionStatus\"",
+        "sql": "ALTER TABLE \"agentSession\" ADD COLUMN \"executionStatus\" TEXT DEFAULT 'active' NOT NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"executionStatus\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM pragma_table_info(?) WHERE \"name\" = ?",
+        "params": [
+          "agentSession",
+          "executionStatus"
+        ]
+      }
+    ]
+  }
+]

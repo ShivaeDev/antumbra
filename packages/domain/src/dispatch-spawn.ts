@@ -18,10 +18,17 @@ export interface DispatchPort {
 	readonly db: DatabaseService;
 	readonly patienceMillis: number;
 	readonly state: DispatchState;
+	readonly resume: (
+		sessionId: string,
+	) => Effect.Effect<IntentSubmission, SpawnRefused, WriteExecutors>;
 	readonly submit: (
 		payload: SpawnFields,
 	) => Effect.Effect<IntentSubmission, SpawnRefused, WriteExecutors>;
 }
+
+export type DispatchTarget =
+	| { readonly _tag: "resume"; readonly sessionId: string }
+	| { readonly _tag: "spawn" };
 
 const TERMINAL: ReadonlySet<IntentStatus> = new Set([
 	"cancelled",
@@ -92,10 +99,24 @@ const charterFor = (candidate: ReadyPiece) =>
 		});
 	});
 
-export const dispatchPiece = (port: DispatchPort, candidate: ReadyPiece) =>
+export const dispatchPiece = (
+	port: DispatchPort,
+	candidate: ReadyPiece,
+	target: DispatchTarget,
+) =>
 	Effect.gen(function* () {
-		const agentId = crypto.randomUUID();
 		const pieceId = candidate.piece.id;
+		if (target._tag === "resume") {
+			const submission = yield* port.resume(target.sessionId);
+			yield* holdInFlight(port.state, pieceId, submission.id);
+			yield* Effect.forkChild(watchDispatch(port, pieceId, submission));
+			yield* Effect.logDebug("resumed assigned piece", {
+				pieceId,
+				sessionId: target.sessionId,
+			});
+			return;
+		}
+		const agentId = crypto.randomUUID();
 		const submission = yield* port.submit({
 			agentId,
 			backend: candidate.voyage.backend,

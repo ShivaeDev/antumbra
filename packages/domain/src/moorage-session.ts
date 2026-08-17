@@ -28,6 +28,7 @@ export const makeEnsureSessionRow = Effect.gen(function* () {
 						cwd: plan.root,
 						id: payload.sessionId,
 						nativeRef: null,
+						executionStatus: "active",
 						status: "open",
 					}),
 				),

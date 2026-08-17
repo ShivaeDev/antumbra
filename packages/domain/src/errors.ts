@@ -118,3 +118,15 @@ export class CaptainAlreadyHailed extends Data.TaggedError(
 	readonly agentId: string;
 	readonly voyageId: string;
 }> {}
+
+export class CaptainSessionUnavailable extends Data.TaggedError(
+	"CaptainSessionUnavailable",
+)<{
+	readonly agentId: string;
+	readonly detail: string;
+	readonly voyageId: string;
+}> {
+	override get message(): string {
+		return `captain ${this.agentId} cannot resume: ${this.detail}`;
+	}
+}

@@ -1,10 +1,21 @@
 import type { VoyageWorld } from "#voyage-rows.ts";
 
-// why: an agent is at work from the moment it is being born — a spawning
-// agent has no session yet, but what it holds must not be handed out a second
-// time while the first spawn is still assembling it. Dormant and retired
-// agents release what they held.
-const AT_WORK: ReadonlySet<string> = new Set(["alive", "spawning"]);
-
-export const atWork = (world: VoyageWorld, agentId: string): boolean =>
-	AT_WORK.has(world.agentStatus.get(agentId) ?? "");
+// why: a spawning Agent owns work before its Session row exists. Once alive,
+// only an explicitly idle open Session releases that work; missing or invalid
+// Session truth fails closed so a replacement cannot silently fork identity.
+export const atWork = (world: VoyageWorld, agentId: string): boolean => {
+	const status = world.agentStatus.get(agentId);
+	if (status === "spawning") {
+		return true;
+	}
+	if (status !== "alive") {
+		return false;
+	}
+	const sessions = world.sessions.filter(
+		(session) => session.agentId === agentId && session.status === "open",
+	);
+	return (
+		sessions.length === 0 ||
+		sessions.some((session) => session.executionStatus !== "idle")
+	);
+};

@@ -21,9 +21,6 @@ const RECORDED = readFileSync(
 
 const CREATED = "https://github.com/ShivaeDev/antumbra/pull/23\n";
 
-const EXISTS =
-	"pull request create failed: GraphQL: A pull request already exists for ShivaeDev:work/ab12cd34/antumbra. (createPullRequest)\n";
-
 const requestFor = (site: Berthed): OpenChangeRequest => ({
 	base: null,
 	berth: site.berth,
@@ -31,6 +28,7 @@ const requestFor = (site: Berthed): OpenChangeRequest => ({
 	draft: false,
 	headSha: site.headSha,
 	repo: site.repo,
+	submissionId: "change-1",
 	title: "chart the eastern spit",
 });
 
@@ -42,6 +40,7 @@ const withBerth = <A, E, R>(
 			const gh = yield* scriptedGh;
 			const site = yield* berthed;
 			gh.answer("graphql", { out: RECORDED });
+			gh.answer("list", { out: "[]\n" });
 			return yield* body(gh, site);
 		}),
 	);
@@ -115,16 +114,62 @@ describe("opening a change on GitHub", () => {
 	it.live("adopts the pull request a branch already has", () =>
 		withBerth((gh, site) =>
 			Effect.gen(function* () {
-				gh.answer("create", { code: 1, err: EXISTS });
-				gh.answer("view", { out: '{"number":23}\n' });
+				gh.answer("list", { out: '[{"number":23}]\n' });
 				const host = yield* makeGitHubHost({ executable: gh.executable });
 
 				const opened = yield* host.open(requestFor(site));
 
 				expect(opened.externalId).toBe("23");
-				expect(gh.received()).toContain("view");
+				const received = gh.received();
+				expect(received).toContain("list");
+				expect(received).toContain("--head");
+				expect(received).toContain(BRANCH);
+				expect(received).toContain("--state");
+				expect(received).toContain("open");
+				expect(received).not.toContain("create");
 			}),
 		),
+	);
+
+	it.live(
+		"recovers a lost response through branch lookup without another create",
+		() =>
+			withBerth((gh, site) =>
+				Effect.gen(function* () {
+					gh.answer("list", { out: "[]\n" });
+					gh.answer("create", { out: CREATED });
+					gh.answer("graphql", { out: "{" });
+					const first = yield* makeGitHubHost({ executable: gh.executable });
+
+					const lost = yield* Effect.flip(first.open(requestFor(site)));
+					expect(lost._tag).toBe("ChangeHostUnavailable");
+					expect(
+						gh.received().filter((argument) => argument === "create"),
+					).toHaveLength(1);
+
+					gh.answer("list", { out: "{" });
+					const uncertain = yield* makeGitHubHost({
+						executable: gh.executable,
+					});
+					const refused = yield* Effect.flip(uncertain.open(requestFor(site)));
+					expect(refused._tag).toBe("ChangeHostUnavailable");
+					expect(
+						gh.received().filter((argument) => argument === "create"),
+					).toHaveLength(1);
+
+					gh.answer("list", { out: '[{"number":23}]\n' });
+					gh.answer("graphql", { out: RECORDED });
+					const recovered = yield* makeGitHubHost({
+						executable: gh.executable,
+					});
+					const opened = yield* recovered.open(requestFor(site));
+
+					expect(opened.externalId).toBe("23");
+					expect(
+						gh.received().filter((argument) => argument === "create"),
+					).toHaveLength(1);
+				}),
+			),
 	);
 
 	it.live("refuses a berth whose branch cannot be pushed", () =>

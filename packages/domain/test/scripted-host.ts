@@ -12,6 +12,7 @@ export interface ScriptedHostDrive {
 	readonly adopted: Effect.Effect<ReadonlyArray<string>>;
 	readonly announce: (observation: ChangeObservation) => Effect.Effect<void>;
 	readonly asked: Effect.Effect<ReadonlyArray<ChangeRef>>;
+	readonly attempted: Effect.Effect<ReadonlyArray<OpenChangeRequest>>;
 	readonly opened: Effect.Effect<ReadonlyArray<OpenChangeRequest>>;
 	// why: a host that stops answering is the case a watcher must survive, so
 	// the scripted one can be told to refuse and told to stop refusing.
@@ -31,6 +32,13 @@ export interface ScriptedHost {
 export interface ScriptedHostOptions {
 	readonly supports?: (repo: ChangeHostRepo) => boolean;
 	readonly tag?: string;
+	readonly truth?: ScriptedHostTruth;
+}
+
+export interface ScriptedHostTruth {
+	readonly count: Ref.Ref<number>;
+	readonly known: Ref.Ref<ReadonlyMap<string, ChangeObservation>>;
+	readonly submissions: Ref.Ref<ReadonlyMap<string, string>>;
 }
 
 interface ObservationFields {
@@ -80,6 +88,73 @@ const adoptedObservation = (
 const observationKey = (repoId: string, externalId: string): string =>
 	`${repoId}:${externalId}`;
 
+const submissionKey = (tag: string, request: OpenChangeRequest): string =>
+	`${tag}:${request.repo.id}:${request.submissionId}`;
+
+const observeHostTruth = (
+	truth: ScriptedHostTruth,
+	refusal: Ref.Ref<string | null>,
+	refs: Ref.Ref<ReadonlyArray<ChangeRef>>,
+	tag: string,
+	asked: ReadonlyArray<ChangeRef>,
+) =>
+	Ref.update(refs, (all) => [...all, ...asked]).pipe(
+		Effect.andThen(Ref.get(refusal)),
+		Effect.flatMap((detail) =>
+			detail === null
+				? Ref.get(truth.known).pipe(Effect.map((map) => [...map.values()]))
+				: new ChangeHostUnavailable({ detail, host: tag }),
+		),
+	);
+
+// why: a submission is the stable host correlation; branch identity is only
+// part of its frozen proposal. Fresh adapter instances therefore return the
+// same provider observation without minting another external change.
+const openSubmittedTruth = (
+	truth: ScriptedHostTruth,
+	attempts: Ref.Ref<ReadonlyArray<OpenChangeRequest>>,
+	openings: Ref.Ref<ReadonlyArray<OpenChangeRequest>>,
+	tag: string,
+	remember: (
+		observation: ChangeObservation,
+	) => Effect.Effect<ChangeObservation>,
+	request: OpenChangeRequest,
+) =>
+	Effect.gen(function* () {
+		yield* Ref.update(attempts, (all) => [...all, request]);
+		const key = submissionKey(tag, request);
+		const existingKey = (yield* Ref.get(truth.submissions)).get(key);
+		if (existingKey !== undefined) {
+			const existing = (yield* Ref.get(truth.known)).get(existingKey);
+			if (existing === undefined) {
+				return yield* new ChangeHostUnavailable({
+					detail: "the correlated scripted change cannot be observed",
+					host: tag,
+				});
+			}
+			return existing;
+		}
+		yield* Ref.update(openings, (all) => [...all, request]);
+		const minted = yield* Ref.updateAndGet(truth.count, (seen) => seen + 1);
+		const observation = yield* remember({
+			...scriptedObservation(tag, `${minted}`, {
+				baseRef: request.base ?? request.repo.defaultRef,
+				headRef: request.berth.branch,
+				repoId: request.repo.id,
+				title: request.title,
+			}),
+			headSha: request.headSha,
+			isDraft: request.draft,
+		});
+		yield* Ref.update(truth.submissions, (map) =>
+			new Map(map).set(
+				key,
+				observationKey(observation.repoId, observation.externalId),
+			),
+		);
+		return observation;
+	});
+
 const transitioned = (
 	seen: ChangeObservation,
 	patch: Partial<ChangeObservation>,
@@ -94,20 +169,27 @@ const transitioned = (
 // exercised without a network or a model. `observe` volunteers everything it
 // knows rather than only what was asked, because that is the case the domain
 // must survive: what it has no row for is ignored, never adopted by drift.
+export const makeScriptedHostTruth: Effect.Effect<ScriptedHostTruth> =
+	Effect.gen(function* () {
+		return {
+			count: yield* Ref.make(0),
+			known: yield* Ref.make<ReadonlyMap<string, ChangeObservation>>(new Map()),
+			submissions: yield* Ref.make<ReadonlyMap<string, string>>(new Map()),
+		};
+	});
+
 export const makeScriptedHost = (options: ScriptedHostOptions = {}) =>
 	Effect.gen(function* () {
 		const tag = options.tag ?? "scripted";
 		const supports = options.supports ?? (() => true);
-		const count = yield* Ref.make(0);
-		const known = yield* Ref.make<ReadonlyMap<string, ChangeObservation>>(
-			new Map(),
-		);
+		const truth = options.truth ?? (yield* makeScriptedHostTruth);
 		const adoptions = yield* Ref.make<ReadonlyArray<string>>([]);
-		const requests = yield* Ref.make<ReadonlyArray<OpenChangeRequest>>([]);
+		const attempts = yield* Ref.make<ReadonlyArray<OpenChangeRequest>>([]);
+		const openings = yield* Ref.make<ReadonlyArray<OpenChangeRequest>>([]);
 		const refs = yield* Ref.make<ReadonlyArray<ChangeRef>>([]);
 		const refusal = yield* Ref.make<string | null>(null);
 		const remember = (observation: ChangeObservation) =>
-			Ref.update(known, (map) =>
+			Ref.update(truth.known, (map) =>
 				new Map(map).set(
 					observationKey(observation.repoId, observation.externalId),
 					observation,
@@ -118,43 +200,15 @@ export const makeScriptedHost = (options: ScriptedHostOptions = {}) =>
 				Effect.gen(function* () {
 					yield* Ref.update(adoptions, (all) => [...all, url]);
 					const fresh = adoptedObservation(tag, url, repo);
-					const seen = (yield* Ref.get(known)).get(
+					const seen = (yield* Ref.get(truth.known)).get(
 						observationKey(repo.id, fresh.externalId),
 					);
 					return seen ?? (yield* remember(fresh));
 				}),
 			capability: Effect.succeed({ available: true, detail: "scripted" }),
-			observe: (asked) =>
-				Ref.update(refs, (all) => [...all, ...asked]).pipe(
-					Effect.andThen(Ref.get(refusal)),
-					Effect.flatMap((detail) =>
-						detail === null
-							? Ref.get(known).pipe(Effect.map((map) => [...map.values()]))
-							: new ChangeHostUnavailable({ detail, host: tag }),
-					),
-				),
+			observe: (asked) => observeHostTruth(truth, refusal, refs, tag, asked),
 			open: (request) =>
-				Effect.gen(function* () {
-					const existing = [...(yield* Ref.get(known)).values()].find(
-						(observation) =>
-							observation.repoId === request.repo.id &&
-							observation.headRef === request.berth.branch,
-					);
-					if (existing !== undefined) {
-						return existing;
-					}
-					yield* Ref.update(requests, (all) => [...all, request]);
-					const minted = yield* Ref.updateAndGet(count, (seen) => seen + 1);
-					return yield* remember({
-						...scriptedObservation(tag, `${minted}`, {
-							baseRef: request.base ?? request.repo.defaultRef,
-							headRef: request.berth.branch,
-							repoId: request.repo.id,
-							title: request.title,
-						}),
-						headSha: request.headSha,
-					});
-				}),
+				openSubmittedTruth(truth, attempts, openings, tag, remember, request),
 			supports,
 			tag,
 		};
@@ -163,10 +217,11 @@ export const makeScriptedHost = (options: ScriptedHostOptions = {}) =>
 				adopted: Ref.get(adoptions),
 				announce: (observation) => Effect.asVoid(remember(observation)),
 				asked: Ref.get(refs),
-				opened: Ref.get(requests),
+				attempted: Ref.get(attempts),
+				opened: Ref.get(openings),
 				refuse: (detail) => Ref.set(refusal, detail),
 				transition: (repoId, externalId, patch) =>
-					Ref.update(known, (map) => {
+					Ref.update(truth.known, (map) => {
 						const key = observationKey(repoId, externalId);
 						const seen = map.get(key);
 						return seen === undefined

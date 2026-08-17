@@ -27,6 +27,10 @@ export interface OpenChangeRequest {
 	readonly draft: boolean;
 	readonly headSha: string;
 	readonly repo: ChangeHostRepo;
+	// why: this is the immutable prepared Change id. Repeating open for the same
+	// host, repo id, and submission id must return the accepted observation, or
+	// fail without attempting another external create when acceptance is unknown.
+	readonly submissionId: string;
 	readonly title: string;
 }
 

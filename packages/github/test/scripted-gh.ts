@@ -20,7 +20,7 @@ case "$1 $2" in
 "auth status") ANSWER=auth ;;
 "api graphql") ANSWER=graphql ;;
 "pr create") ANSWER=create ;;
-"pr view") ANSWER=view ;;
+"pr list") ANSWER=list ;;
 *) printf 'unscripted: %s\\n' "$*" >&2; exit 64 ;;
 esac
 if [ -f "$ROOT/$ANSWER.out" ]; then cat "$ROOT/$ANSWER.out"; fi
@@ -35,7 +35,7 @@ export interface ScriptedAnswer {
 	readonly out?: string;
 }
 
-export type ScriptedCall = "auth" | "create" | "graphql" | "view";
+export type ScriptedCall = "auth" | "create" | "graphql" | "list";
 
 export interface ScriptedGh {
 	readonly answer: (call: ScriptedCall, answer: ScriptedAnswer) => void;

@@ -69,6 +69,7 @@ export const openSubmittedChange = (input: OpenChangeInput) =>
 			draft: snapshot.draftAt !== null,
 			headSha,
 			repo: prepared.repo,
+			submissionId: snapshot.id,
 			title: snapshot.title,
 		});
 		const attached = yield* applyObservations(host.tag, [observation], {

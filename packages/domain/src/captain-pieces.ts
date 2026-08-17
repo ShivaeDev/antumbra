@@ -8,21 +8,18 @@ import {
 import { Pieces } from "@antumbra/pieces";
 import type { DirectTool } from "@antumbra/plugin-api";
 import { Effect } from "effect";
-import { onOwnDeps, onOwnPiece } from "#captain-membership.ts";
-import type { AgentDeps } from "#deps.ts";
+import { CaptainMembership } from "#captain-membership.ts";
 import { answered } from "#tool-answers.ts";
 import type { SessionIdentity } from "#tool-identity.ts";
 
 // why: the verbs that edit a piece's position rather than its substance —
 // plans bend, and every one of these is a link edit the record keeps.
 export const makePieceVerbToolCompiler = Effect.gen(function* () {
+	const membership = yield* CaptainMembership;
 	const pieces = yield* Pieces;
-	return (
-		deps: AgentDeps,
-		identity: SessionIdentity,
-	): ReadonlyArray<DirectTool> => [
+	return (identity: SessionIdentity): ReadonlyArray<DirectTool> => [
 		bind(launchPieceSpec, (input) =>
-			onOwnPiece(deps, identity, input.pieceId, (pieceId) =>
+			membership.onOwnPiece(identity, input.pieceId, (pieceId) =>
 				answered(
 					identity,
 					launchPieceSpec.name,
@@ -32,7 +29,7 @@ export const makePieceVerbToolCompiler = Effect.gen(function* () {
 			),
 		),
 		bind(parkPieceSpec, (input) =>
-			onOwnPiece(deps, identity, input.pieceId, (pieceId) =>
+			membership.onOwnPiece(identity, input.pieceId, (pieceId) =>
 				answered(
 					identity,
 					parkPieceSpec.name,
@@ -42,7 +39,7 @@ export const makePieceVerbToolCompiler = Effect.gen(function* () {
 			),
 		),
 		bind(unparkPieceSpec, (input) =>
-			onOwnPiece(deps, identity, input.pieceId, (pieceId) =>
+			membership.onOwnPiece(identity, input.pieceId, (pieceId) =>
 				answered(
 					identity,
 					unparkPieceSpec.name,
@@ -52,8 +49,8 @@ export const makePieceVerbToolCompiler = Effect.gen(function* () {
 			),
 		),
 		bind(rewirePieceSpec, (input) =>
-			onOwnPiece(deps, identity, input.pieceId, (pieceId) =>
-				onOwnDeps(deps, identity, input.dependsOn, () =>
+			membership.onOwnPiece(identity, input.pieceId, (pieceId) =>
+				membership.onOwnDeps(identity, input.dependsOn, () =>
 					answered(
 						identity,
 						rewirePieceSpec.name,

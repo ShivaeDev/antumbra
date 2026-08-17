@@ -4,12 +4,12 @@ import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database, type WriteExecutors, Writer } from "@antumbra/persistence";
 import type { AgentBackend, ChangeHost, Runner } from "@antumbra/plugin-api";
 import { Repos } from "@antumbra/repos";
-import { Deferred, Effect, Layer, Option } from "effect";
+import { Effect, Layer, Option } from "effect";
 import { AGENTS_ALIVE_GAUGE, AgentDomain } from "#agent-domain-service.ts";
 import { makeCaptainToolCompiler } from "#captain-tools.ts";
-import { makeChangeProcedureCompiler } from "#change-procedures.ts";
+import { ChangeProcedureService } from "#change-procedures.ts";
 import { makeCrewToolCompiler } from "#crew-tools.ts";
-import type { AgentDeps, KernelReach } from "#deps.ts";
+import type { AgentDeps } from "#deps.ts";
 import { domainCapabilities } from "#domain-capabilities.ts";
 import { makeEventSinkFactory } from "#events.ts";
 import { SessionFabric, SessionFabricLive } from "#fabric.ts";
@@ -26,7 +26,7 @@ import { makeSessionRecoveryRuntime } from "#session-resume.ts";
 import { makeSiestaKind } from "#session-siesta.ts";
 import { makeSpawnKind } from "#spawn.ts";
 import { CAPTAIN_ROLE } from "#voyage-captain.ts";
-import { makeVoyageProcedures } from "#voyages.ts";
+import { VoyageProcedureService } from "#voyage-procedures.ts";
 
 export { AGENTS_ALIVE_GAUGE, AgentDomain } from "#agent-domain-service.ts";
 
@@ -47,6 +47,7 @@ export const AgentDomainLive = (
 	return Layer.effect(AgentDomain)(
 		Effect.gen(function* () {
 			const boards = yield* Boards;
+			const changes = yield* ChangeProcedureService;
 			const repos = yield* Repos;
 			const db = yield* Database;
 			const writer = yield* Writer;
@@ -54,8 +55,8 @@ export const AgentDomainLive = (
 			const fabric = yield* SessionFabric;
 			const feeds = yield* DomainFeeds;
 			const sinkFor = yield* makeEventSinkFactory(feeds.events);
-			const kernelReach = yield* Deferred.make<KernelReach>();
 			const resourceReconciler = yield* ResourceReconciler;
+			const voyages = yield* VoyageProcedureService;
 			const deps: AgentDeps = {
 				backends,
 				changeHosts,
@@ -63,22 +64,20 @@ export const AgentDomainLive = (
 				executors,
 				fabric,
 				feeds,
-				kernelReach,
 				runners,
 				sinkFor,
 				writer,
 			};
 			const makeSpawn = yield* makeSpawnKind;
 			const makeRetire = yield* makeRetireKind;
-			const makeChanges = yield* makeChangeProcedureCompiler;
 			const compileCaptainTools = yield* makeCaptainToolCompiler;
 			const compileCrewTools = yield* makeCrewToolCompiler;
 			const spawn = makeSpawn(deps);
 			const toolsFor = (context: SessionRecoveryContext) =>
 				context.role === CAPTAIN_ROLE &&
 				Option.isSome(context.identity.voyageId)
-					? compileCaptainTools(deps, context.identity)
-					: compileCrewTools(deps, context.identity);
+					? compileCaptainTools(context.identity)
+					: compileCrewTools(context.identity);
 			const recoveryRuntime = yield* makeSessionRecoveryRuntime({
 				backends,
 				sinkFor,
@@ -98,16 +97,14 @@ export const AgentDomainLive = (
 				),
 				Effect.provideContext(executors),
 			);
-			const makeVoyages = yield* makeVoyageProcedures;
 			const retire = makeRetire(deps);
 			const siesta = yield* makeSiestaKind;
 			return {
 				backends: [...backends.keys()],
 				boards,
-				changes: makeChanges(deps),
+				changes,
 				gauges: { [AGENTS_ALIVE_GAUGE]: aliveAgents },
 				interruptSession: fabric.interrupt,
-				kernelReach,
 				kinds: [spawn, recover, retire, siesta],
 				repos,
 				retryResourceReclaim: resourceReconciler.reconcile,
@@ -115,7 +112,7 @@ export const AgentDomainLive = (
 				retire,
 				siesta,
 				spawn,
-				voyages: makeVoyages(deps),
+				voyages,
 			};
 		}),
 	).pipe(

@@ -4,9 +4,8 @@ import type { AnyIntentKind, IntentKind } from "@antumbra/kernel";
 import type { PrismaError } from "@antumbra/persistence";
 import type { BackendFailure } from "@antumbra/plugin-api";
 import type { RepoRegistry } from "@antumbra/repos";
-import { Context, type Deferred, type Effect } from "effect";
+import { Context, type Effect } from "effect";
 import type { ChangeProcedures } from "#change-procedures.ts";
-import type { KernelReach } from "#deps.ts";
 import type { SessionNotLive } from "#errors.ts";
 import type { RetireFields } from "#retire.ts";
 import type { RecoveryFields } from "#session-recovery.ts";
@@ -34,9 +33,6 @@ export class AgentDomain extends Context.Service<
 		readonly interruptSession: (
 			sessionId: string,
 		) => Effect.Effect<void, BackendFailure | SessionNotLive>;
-		// why: filled in by the layer that has the kernel; a stand_down and a
-		// hail wait on it rather than the domain naming a scheduler it sits below.
-		readonly kernelReach: Deferred.Deferred<KernelReach>;
 		readonly kinds: ReadonlyArray<AnyIntentKind>;
 		readonly repos: RepoRegistry;
 		readonly retryResourceReclaim: Effect.Effect<void>;

@@ -36,6 +36,11 @@ tests own exact implemented fields, states, wire names, and current behavior.
   remains available for linked follow-ups.
 - **Workers report; captains charter.** Proposed structure is not an Outcome.
   Agents return typed results; accountable captains decide the next work.
+- **Every Voyage is accountable and addressable.** It has an accountable
+  captain and can be hailed as if crewed, materializing a standing identity or
+  a fresh context over the durable record without requiring permanent crew.
+- **Work is chartered, never shopped.** Captains assign work to Agents; Agents
+  do not select work for themselves from a pool.
 
 The [work and planning guide](docs/design/work-and-planning.md) owns the
 detailed authority, course, Piece, dependency, and progress model.
@@ -53,7 +58,8 @@ detailed authority, course, Piece, dependency, and progress model.
 - **Activity has no turns in the domain.** Agent activity is an event stream,
   load is a level, and quiescence is a derived gauge no workflow awaits.
   Provider turn events are telemetry, not a completion ontology. Admission
-  governs Agent births, never message delivery.
+  governs Agent births, never message delivery. Mail is durable truth;
+  transport into execution is a separate, at-least-once effect.
 - **Voyages sail by Piece launch, not play.** Launch records durable demand.
   Reconciliation creates or cancels dispatch attempts as eligibility changes;
   a blocked desired Piece needs no sleeping workflow.
@@ -99,6 +105,9 @@ Session, restart, siesta, handover, and reclamation behavior.
 
 ## Coordination and attention
 
+- **Human attention is a scheduled resource.** Antumbra reifies, queues,
+  prioritizes, and preempts demands on focus with the same discipline it uses
+  for compute, while v1 leaves the final selection to the admiral.
 - **Boards preserve coordination across attention gaps.** Durable entities
   have one append-only Board with rough and smooth salience registers. Boards
   never duplicate derivable database state and are never resource-reclamation
@@ -111,7 +120,9 @@ Session, restart, siesta, handover, and reclamation behavior.
   chooses what an idle Agent receives; persisted facts do not wake one.
 - **Questions stay where they arose.** A Question is a stable typed Board
   entry. Raises route that identity through authority; rulings and withdrawals
-  derive its state, and precedent remains appended and supersedable.
+  derive its state, and precedent remains appended and supersedable. Rulings
+  exist at every authority level; a captain's rulings form an audit trail the
+  admiral can inspect and overrule.
 - **Anyone may all stop.** Escalation can hold one asker, one Voyage, or the
   fleet. The system makes the stop loud and reliable; misuse is handled as a
   conversation afterwards.

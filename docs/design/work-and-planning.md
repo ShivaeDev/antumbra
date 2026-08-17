@@ -10,11 +10,17 @@ forecast is a promise or a running process is the work itself.
 ## Authority and staffing
 
 The human is the **admiral**: they set direction, allocate attention and
-capacity, and rule without conning any ship. A **captain** is one Agent role
-within a Voyage, not the only role an Agent can hold. The captain is the
-accountable address for that Voyage and charters its work. Other assigned
-Agents are its **crew**. Durable responsibility earns a named Agent;
-interchangeable work may use a roster.
+capacity, and rule without conning any ship. Every Voyage has a **captain**: an
+Agent role that is the Voyage's accountable address and charters its work.
+Other assigned Agents are its **crew**. Every Voyage remains addressable as if
+crewed and may be hailed; Antumbra can materialize a standing identity where
+one exists or a fresh context over its durable record without keeping permanent
+crew. Durable responsibility earns a named Agent; interchangeable work may use
+a roster.
+
+Work is chartered to Agents through explicit assignments. Agents never shop
+for or select their own work from the pool; reconciliation acts on the durable
+demand and assignments captains and the admiral have established.
 
 The fleet-wide concern lives on a distinguished flagship Voyage whose north
 star is the fleet sailing well. Fleet-level rulings and findings belong there,

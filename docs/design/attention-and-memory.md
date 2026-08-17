@@ -7,6 +7,11 @@ Antumbra treats coordination and human attention as durable product concerns.
 Facts land before anyone is interrupted; delivery, prioritization, and
 discussion are separate choices.
 
+Human focus is scheduled through reified demands that can be queued,
+prioritized, and preempted. In v1 that schedule remains a pull projection: it
+can order what deserves attention, but the admiral chooses the next item and
+persisting a fact never automatically selects work or resumes an Agent.
+
 ## Boards and registers
 
 Durable entities such as Voyages, Pieces, repositories, and Agents carry a
@@ -72,9 +77,12 @@ change without copying the Question into a new object. Rulings and withdrawals
 that reference it derive whether it remains open.
 
 Rulings are scoped, supersedable precedent appended to the Board where they
-bind. Agents check that precedent before asking. A reversible, two-way-door
-Question may expire and be re-raised for a provisional lower-level ruling. An
-expensive-to-undo one-way-door Question never times out.
+bind. Every authority level can rule within its scope. A captain's rulings form
+an audit trail the admiral can inspect and overrule; supersession appends the
+new precedent rather than erasing the old one. Agents check precedent before
+asking. A reversible, two-way-door Question may expire and be re-raised for a
+provisional lower-level ruling. An expensive-to-undo one-way-door Question
+never times out.
 
 Reach and interruption are separate. The Question always lands durably.
 Whether it pages someone now is computed from its importance and the admiral's
@@ -94,7 +102,9 @@ separate product acts with separate durable consequences.
 
 Mail is an immutable, Board-backed message addressed to an Agent. Its stable
 record and marked-read receipt are separate durable facts; reading does not
-mean handling, and transport into an execution context does not prove either.
+mean handling. Transport into an execution context is a separate,
+at-least-once effect, so a duplicate delivery proves neither reading nor
+handling and must remain harmless.
 
 **Precedence** orders delivery: routine waits for a full idle boundary,
 priority jumps the routine queue at that boundary, and flash alone may steer

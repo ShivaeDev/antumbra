@@ -1,6 +1,6 @@
 import { BoardScope, Boards, smoothBodies } from "@antumbra/boards";
 import type { IntentStatus, IntentSubmission } from "@antumbra/kernel";
-import type { DatabaseService, WriteExecutors } from "@antumbra/persistence";
+import { Database, type WriteExecutors } from "@antumbra/persistence";
 import { Effect, Option, Queue, Stream } from "effect";
 import { composeCrewCharter } from "#charter-compose.ts";
 import type { SpawnRefused } from "#deps.ts";
@@ -15,7 +15,6 @@ import {
 import type { SpawnFields } from "#spawn.ts";
 
 export interface DispatchPort {
-	readonly db: DatabaseService;
 	readonly patienceMillis: number;
 	readonly state: DispatchState;
 	readonly resume: (
@@ -36,10 +35,13 @@ const TERMINAL: ReadonlySet<IntentStatus> = new Set([
 	"succeeded",
 ]);
 
-const intentDetail = (db: DatabaseService, intentId: string) =>
-	db.Intent.where({ id: intentId })
-		.first()
-		.pipe(Effect.map((row) => Option.map(row, (intent) => intent.detail)));
+const intentDetail = (intentId: string) =>
+	Effect.gen(function* () {
+		const db = yield* Database;
+		return yield* db.Intent.where({ id: intentId })
+			.first()
+			.pipe(Effect.map((row) => Option.map(row, (intent) => intent.detail)));
+	});
 
 const settle = (
 	port: DispatchPort,
@@ -55,7 +57,7 @@ const settle = (
 		}
 		yield* recordFailure(port.state, pieceId, port.patienceMillis);
 		yield* Effect.logWarning("dispatch failed", {
-			detail: yield* intentDetail(port.db, intentId),
+			detail: yield* intentDetail(intentId),
 			pieceId,
 		});
 	});

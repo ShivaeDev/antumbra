@@ -19,12 +19,13 @@ model Intent {
 }
 
 model Agent {
-  id        String   @id
-  role      String
-  charter   String
-  status    String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now())
+  id               String   @id
+  role             String
+  charter          String
+  status           String
+  currentSessionId String?  @unique
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @default(now())
 
   @@index([status])
 }

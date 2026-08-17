@@ -1,0 +1,207 @@
+[
+  {
+    "id": "column.agent.currentSessionId",
+    "label": "Add column currentSessionId on agent",
+    "summary": "Adds column currentSessionId on agent",
+    "operationClass": "additive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "column",
+        "name": "currentSessionId",
+        "table": "agent"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"currentSessionId\" is missing",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM pragma_table_info(?) WHERE \"name\" = ?",
+        "params": [
+          "agent",
+          "currentSessionId"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"currentSessionId\"",
+        "sql": "ALTER TABLE \"agent\" ADD COLUMN \"currentSessionId\" TEXT"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"currentSessionId\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM pragma_table_info(?) WHERE \"name\" = ?",
+        "params": [
+          "agent",
+          "currentSessionId"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "agent.currentSessionId.guard-agent-status",
+    "label": "Reject unknown Agent lifecycle truth",
+    "summary": "fail before repair when an Agent status is outside the durable vocabulary",
+    "operationClass": "data",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "table",
+        "name": "agent"
+      }
+    },
+    "precheck": [],
+    "execute": [
+      {
+        "description": "fail before repair when an Agent status is outside the durable vocabulary",
+        "sql": "INSERT INTO \"agent\"\n  (\"id\", \"role\", \"charter\", \"status\", \"currentSessionId\", \"createdAt\", \"updatedAt\")\nSELECT \"id\", \"role\", \"charter\", \"status\", \"currentSessionId\", \"createdAt\", \"updatedAt\"\nFROM \"agent\" WHERE \"status\" NOT IN ('spawning', 'alive', 'dormant', 'retired')"
+      }
+    ],
+    "postcheck": []
+  },
+  {
+    "id": "agent.currentSessionId.guard-session-status",
+    "label": "Reject unknown Session lifecycle truth",
+    "summary": "fail before repair when a Session status is outside the durable vocabulary",
+    "operationClass": "data",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "table",
+        "name": "agentSession"
+      }
+    },
+    "precheck": [],
+    "execute": [
+      {
+        "description": "fail before repair when a Session status is outside the durable vocabulary",
+        "sql": "INSERT INTO \"agentSession\"\n  (\"id\", \"agentId\", \"backend\", \"cwd\", \"nativeRef\", \"status\", \"executionStatus\", \"charterDeliveredAt\", \"createdAt\")\nSELECT \"id\", \"agentId\", \"backend\", \"cwd\", \"nativeRef\", \"status\", \"executionStatus\", \"charterDeliveredAt\", \"createdAt\"\nFROM \"agentSession\" WHERE \"status\" NOT IN ('open', 'closed')"
+      }
+    ],
+    "postcheck": []
+  },
+  {
+    "id": "agent.currentSessionId.backfill",
+    "label": "Select each Agent current Session",
+    "summary": "select newest open Session by (createdAt DESC, id DESC)",
+    "operationClass": "data",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "table",
+        "name": "agent"
+      }
+    },
+    "precheck": [],
+    "execute": [
+      {
+        "description": "select newest open Session by (createdAt DESC, id DESC)",
+        "sql": "UPDATE \"agent\" SET \"currentSessionId\" = (\n  SELECT \"id\" FROM \"agentSession\"\n  WHERE \"agentSession\".\"agentId\" = \"agent\".\"id\"\n    AND \"agentSession\".\"status\" = 'open'\n  ORDER BY \"agentSession\".\"createdAt\" DESC, \"agentSession\".\"id\" DESC\n  LIMIT 1\n)\nWHERE \"agent\".\"status\" IN ('spawning', 'alive')"
+      }
+    ],
+    "postcheck": []
+  },
+  {
+    "id": "agentSession.current.close-others",
+    "label": "Close non-current Agent Sessions",
+    "summary": "close open Sessions not selected as current",
+    "operationClass": "data",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "table",
+        "name": "agentSession"
+      }
+    },
+    "precheck": [],
+    "execute": [
+      {
+        "description": "close open Sessions not selected as current",
+        "sql": "UPDATE \"agentSession\" SET \"status\" = 'closed'\nWHERE \"agentSession\".\"status\" = 'open'\n  AND (\n    NOT EXISTS (\n      SELECT 1 FROM \"agent\" WHERE \"agent\".\"id\" = \"agentSession\".\"agentId\"\n    )\n    OR EXISTS (\n      SELECT 1 FROM \"agent\"\n      WHERE \"agent\".\"id\" = \"agentSession\".\"agentId\"\n        AND \"agent\".\"status\" IN ('dormant', 'retired')\n    )\n    OR EXISTS (\n      SELECT 1 FROM \"agent\"\n      WHERE \"agent\".\"id\" = \"agentSession\".\"agentId\"\n        AND \"agent\".\"currentSessionId\" IS NOT \"agentSession\".\"id\"\n    )\n  )"
+      }
+    ],
+    "postcheck": []
+  },
+  {
+    "id": "recreateTable.agent",
+    "label": "Recreate table agent",
+    "summary": "Recreates table agent to apply schema changes: database/agent/unique:currentSessionId",
+    "operationClass": "destructive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "table",
+        "name": "agent"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"agent\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "table",
+          "agent"
+        ]
+      },
+      {
+        "description": "ensure temp table \"_prisma_new_agent\" does not exist",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "table",
+          "_prisma_new_agent"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create new table \"_prisma_new_agent\" with desired schema",
+        "sql": "CREATE TABLE \"_prisma_new_agent\" (\n  \"charter\" TEXT NOT NULL,\n  \"createdAt\" TEXT DEFAULT (datetime('now')) NOT NULL,\n  \"currentSessionId\" TEXT,\n  \"id\" TEXT NOT NULL,\n  \"role\" TEXT NOT NULL,\n  \"status\" TEXT NOT NULL,\n  \"updatedAt\" TEXT DEFAULT (datetime('now')) NOT NULL,\n  PRIMARY KEY (\"id\"),\n  UNIQUE (\"currentSessionId\")\n)"
+      },
+      {
+        "description": "copy data from \"agent\" to \"_prisma_new_agent\"",
+        "sql": "INSERT INTO \"_prisma_new_agent\" (\"charter\", \"createdAt\", \"currentSessionId\", \"id\", \"role\", \"status\", \"updatedAt\") SELECT \"charter\", \"createdAt\", \"currentSessionId\", \"id\", \"role\", \"status\", \"updatedAt\" FROM \"agent\""
+      },
+      {
+        "description": "drop old table \"agent\"",
+        "sql": "DROP TABLE \"agent\""
+      },
+      {
+        "description": "rename \"_prisma_new_agent\" to \"agent\"",
+        "sql": "ALTER TABLE \"_prisma_new_agent\" RENAME TO \"agent\""
+      },
+      {
+        "description": "recreate index \"agent_status_idx\" on \"agent\"",
+        "sql": "CREATE INDEX \"agent_status_idx\" ON \"agent\" (\"status\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"agent\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "table",
+          "agent"
+        ]
+      },
+      {
+        "description": "verify temp table \"_prisma_new_agent\" is gone",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "table",
+          "_prisma_new_agent"
+        ]
+      },
+      {
+        "description": "verify unique constraint (currentSessionId) on \"agent\"",
+        "sql": "SELECT EXISTS (SELECT 1 FROM pragma_index_list('agent') l WHERE l.\"unique\" = 1 AND (SELECT COUNT(*) FROM pragma_index_info(l.name)) = 1 AND (SELECT COUNT(*) FROM pragma_index_info(l.name) WHERE name IN ('currentSessionId')) = 1)"
+      }
+    ]
+  }
+]

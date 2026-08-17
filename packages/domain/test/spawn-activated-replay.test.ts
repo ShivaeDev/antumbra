@@ -52,6 +52,7 @@ const seedActivatedBoundary = (intentId: string, plan: MooragePlan) =>
 			Effect.gen(function* () {
 				yield* db.Agent.create({
 					charter: payload.charter,
+					currentSessionId: payload.sessionId,
 					id: payload.agentId,
 					role: payload.role,
 					status: "alive",

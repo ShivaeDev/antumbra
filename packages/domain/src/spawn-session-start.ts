@@ -38,6 +38,7 @@ export const makeSpawnSessionStart = Effect.gen(function* () {
 					const eventSink = yield* sink;
 					yield* fabric.start(
 						permit,
+						payload.agentId,
 						backend,
 						{
 							cwd: plan.root,

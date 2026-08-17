@@ -6,6 +6,7 @@ import { Kernel } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
 import { Effect, Layer, Result } from "effect";
 import { AgentDomain } from "#agent-domain-service.ts";
+import { makeCurrentSessionReconciler } from "#current-session-reconcile.ts";
 import { decodeSessionExecutionStatus } from "#session-execution-status.ts";
 
 const sessionsToReconcile = Effect.gen(function* () {
@@ -54,6 +55,8 @@ export const AgentRecoveryLive = Layer.effectDiscard(
 	Effect.gen(function* () {
 		const domain = yield* AgentDomain;
 		const kernel = yield* Kernel;
+		const reconcileCurrentSessions = yield* makeCurrentSessionReconciler;
+		yield* reconcileCurrentSessions;
 		const recoveries = yield* kernel.active(domain.recover);
 		const siestas = yield* kernel.active(domain.siesta);
 		const alreadyRecovering = new Set(

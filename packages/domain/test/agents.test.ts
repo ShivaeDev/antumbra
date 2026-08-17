@@ -70,7 +70,10 @@ it.live("spawn brings an agent alive, chartered, with events flowing", () =>
 			const outcome = yield* submitSpawn(spawnPayload("a"));
 			expect(outcome).toBe("succeeded");
 			const agent = yield* db.Agent.where({ id: "agent-a" }).first();
-			expect(Option.getOrThrow(agent).status).toBe("alive");
+			expect(Option.getOrThrow(agent)).toMatchObject({
+				currentSessionId: "session-a",
+				status: "alive",
+			});
 			const session = yield* db.AgentSession.where({ id: "session-a" }).first();
 			expect(Option.getOrThrow(session).charterDeliveredAt).not.toBeNull();
 			const live = yield* scripted.session("session-a");
@@ -141,7 +144,10 @@ it.live("spawn stays spawning until its moorage and session exist", () =>
 			);
 			yield* Deferred.await(provisioning);
 			const pending = yield* db.Agent.where({ id: "agent-phase" }).first();
-			expect(Option.getOrThrow(pending).status).toBe("spawning");
+			expect(Option.getOrThrow(pending)).toMatchObject({
+				currentSessionId: "session-phase",
+				status: "spawning",
+			});
 			const moorage = yield* db.Moorage.where({
 				agentId: "agent-phase",
 			}).first();
@@ -203,7 +209,10 @@ it.live("a failed spawn becomes dormant without hiding its failure", () =>
 			);
 			expect(yield* untilTerminal(submission.changes)).toBe("failed");
 			const agent = yield* db.Agent.where({ id: "agent-failed" }).first();
-			expect(Option.getOrThrow(agent).status).toBe("dormant");
+			expect(Option.getOrThrow(agent)).toMatchObject({
+				currentSessionId: null,
+				status: "dormant",
+			});
 			const session = yield* db.AgentSession.where({
 				id: "session-failed",
 			}).first();
@@ -247,7 +256,10 @@ it.live("retire closes the session, the rows, and is idempotent", () =>
 			const first = yield* submitRetire({ agentId: "agent-c" });
 			expect(first).toBe("succeeded");
 			const agent = yield* db.Agent.where({ id: "agent-c" }).first();
-			expect(Option.getOrThrow(agent).status).toBe("retired");
+			expect(Option.getOrThrow(agent)).toMatchObject({
+				currentSessionId: null,
+				status: "retired",
+			});
 			const session = yield* db.AgentSession.where({ id: "session-c" }).first();
 			expect(Option.getOrThrow(session).status).toBe("closed");
 			const live = yield* scripted.session("session-c");

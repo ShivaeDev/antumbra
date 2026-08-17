@@ -78,6 +78,11 @@ it.live(
 						yield* db.Berth.where({ agentId: payload.agentId }).first(),
 					).status,
 				).toBe("ready");
+				expect(
+					Option.getOrThrow(
+						yield* db.Agent.where({ id: payload.agentId }).first(),
+					).currentSessionId,
+				).toBe(payload.sessionId);
 				return submission.id;
 			}).pipe(
 				Effect.provide(
@@ -101,8 +106,11 @@ it.live(
 				expect(
 					Option.getOrThrow(
 						yield* db.Agent.where({ id: payload.agentId }).first(),
-					).status,
-				).toBe("alive");
+					),
+				).toMatchObject({
+					currentSessionId: payload.sessionId,
+					status: "alive",
+				});
 				expect((yield* recorded.provisioned)[1]).toEqual(
 					(yield* recorded.provisioned)[0],
 				);

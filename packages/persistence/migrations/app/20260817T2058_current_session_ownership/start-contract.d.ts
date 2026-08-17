@@ -16,7 +16,7 @@ import type {
 } from '@prisma-next/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'sha256:f60b745880fb455c1ff185a3a0b767815f3f7505e44bf245b262c82ffcb96c51'>;
+  StorageHashBase<'sha256:3db5b90a38b7fe28473ae474f8b963ebe4bffcda1d51d9fb93ed68b534f55841'>;
 export type ExecutionHash = ExecutionHashBase<string>;
 export type ProfileHash =
   ProfileHashBase<'sha256:3cc333ecad9f3f4c7229370a9d2c37e908cdce0f8d2e9fb132d50605b024eff2'>;
@@ -35,7 +35,6 @@ export type FieldOutputTypes = {
       readonly role: CodecTypes['sqlite/text@1']['output'];
       readonly charter: CodecTypes['sqlite/text@1']['output'];
       readonly status: CodecTypes['sqlite/text@1']['output'];
-      readonly currentSessionId: CodecTypes['sqlite/text@1']['output'] | null;
       readonly createdAt: CodecTypes['sqlite/datetime@1']['output'];
       readonly updatedAt: CodecTypes['sqlite/datetime@1']['output'];
     };
@@ -240,7 +239,6 @@ export type FieldInputTypes = {
       readonly role: CodecTypes['sqlite/text@1']['input'];
       readonly charter: CodecTypes['sqlite/text@1']['input'];
       readonly status: CodecTypes['sqlite/text@1']['input'];
-      readonly currentSessionId: CodecTypes['sqlite/text@1']['input'] | null;
       readonly createdAt: CodecTypes['sqlite/datetime@1']['input'];
       readonly updatedAt: CodecTypes['sqlite/datetime@1']['input'];
     };
@@ -443,7 +441,6 @@ export type StorageColumnTypes = {
     readonly agent: {
       readonly charter: CodecTypes['sqlite/text@1']['output'];
       readonly createdAt: CodecTypes['sqlite/datetime@1']['output'];
-      readonly currentSessionId: CodecTypes['sqlite/text@1']['output'] | null;
       readonly id: CodecTypes['sqlite/text@1']['output'];
       readonly role: CodecTypes['sqlite/text@1']['output'];
       readonly status: CodecTypes['sqlite/text@1']['output'];
@@ -648,7 +645,6 @@ export type StorageColumnInputTypes = {
     readonly agent: {
       readonly charter: CodecTypes['sqlite/text@1']['input'];
       readonly createdAt: CodecTypes['sqlite/datetime@1']['input'];
-      readonly currentSessionId: CodecTypes['sqlite/text@1']['input'] | null;
       readonly id: CodecTypes['sqlite/text@1']['input'];
       readonly role: CodecTypes['sqlite/text@1']['input'];
       readonly status: CodecTypes['sqlite/text@1']['input'];
@@ -887,11 +883,6 @@ type ContractBase = Omit<
                   readonly codecId: 'sqlite/text@1';
                   readonly nullable: false;
                 };
-                readonly currentSessionId: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'sqlite/text@1';
-                  readonly nullable: true;
-                };
                 readonly createdAt: {
                   readonly nativeType: 'text';
                   readonly codecId: 'sqlite/datetime@1';
@@ -906,7 +897,7 @@ type ContractBase = Omit<
                 };
               };
               primaryKey: { readonly columns: readonly ['id'] };
-              uniques: readonly [{ readonly columns: readonly ['currentSessionId'] }];
+              uniques: readonly [];
               indexes: readonly [{ readonly columns: readonly ['status'] }];
               foreignKeys: readonly [];
             };
@@ -2039,10 +2030,6 @@ type ContractBase = Omit<
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
               };
-              readonly currentSessionId: {
-                readonly nullable: true;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
-              };
               readonly createdAt: {
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/datetime@1' };
@@ -2061,7 +2048,6 @@ type ContractBase = Omit<
                 readonly role: { readonly column: 'role' };
                 readonly charter: { readonly column: 'charter' };
                 readonly status: { readonly column: 'status' };
-                readonly currentSessionId: { readonly column: 'currentSessionId' };
                 readonly createdAt: { readonly column: 'createdAt' };
                 readonly updatedAt: { readonly column: 'updatedAt' };
               };

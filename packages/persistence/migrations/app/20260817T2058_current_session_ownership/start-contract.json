@@ -125,13 +125,6 @@
                   "kind": "scalar"
                 }
               },
-              "currentSessionId": {
-                "nullable": true,
-                "type": {
-                  "codecId": "sqlite/text@1",
-                  "kind": "scalar"
-                }
-              },
               "id": {
                 "nullable": false,
                 "type": {
@@ -169,9 +162,6 @@
                 },
                 "createdAt": {
                   "column": "createdAt"
-                },
-                "currentSessionId": {
-                  "column": "currentSessionId"
                 },
                 "id": {
                   "column": "id"
@@ -2044,11 +2034,6 @@
                   "nativeType": "text",
                   "nullable": false
                 },
-                "currentSessionId": {
-                  "codecId": "sqlite/text@1",
-                  "nativeType": "text",
-                  "nullable": true
-                },
                 "id": {
                   "codecId": "sqlite/text@1",
                   "nativeType": "text",
@@ -2087,13 +2072,7 @@
                   "id"
                 ]
               },
-              "uniques": [
-                {
-                  "columns": [
-                    "currentSessionId"
-                  ]
-                }
-              ]
+              "uniques": []
             },
             "agentSession": {
               "columns": {
@@ -3421,7 +3400,7 @@
         "id": "__unbound__"
       }
     },
-    "storageHash": "sha256:f60b745880fb455c1ff185a3a0b767815f3f7505e44bf245b262c82ffcb96c51"
+    "storageHash": "sha256:3db5b90a38b7fe28473ae474f8b963ebe4bffcda1d51d9fb93ed68b534f55841"
   },
   "capabilities": {
     "sql": {

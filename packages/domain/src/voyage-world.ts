@@ -79,6 +79,7 @@ const voyageWorld: Effect.Effect<
 			}).pipe(
 				Effect.map(({ executionStatus, status }) => ({
 					agentId: session.agentId,
+					createdAt: session.createdAt,
 					executionStatus,
 					id: session.id,
 					status,
@@ -87,6 +88,9 @@ const voyageWorld: Effect.Effect<
 	);
 	return {
 		agentStatus: new Map(agentStatuses),
+		currentSessionByAgent: new Map(
+			agents.map((agent) => [agent.id, agent.currentSessionId] as const),
+		),
 		artifacts: byId((yield* db.Artifact.all()).map(artifactRow)),
 		assignments: yield* db.PieceAgent.all(),
 		changes,

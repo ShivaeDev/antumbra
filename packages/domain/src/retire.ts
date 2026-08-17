@@ -15,7 +15,7 @@ export type RetireFields = typeof RetirePayload.Type;
 const closeRows = (deps: AgentDeps, agentId: string, next: AgentStatus) =>
 	deps.writer.write(
 		deps.db.Agent.where({ id: agentId })
-			.update({ status: next })
+			.update({ currentSessionId: null, status: next })
 			.pipe(
 				Effect.andThen(
 					deps.db.AgentSession.where({ agentId }).update({ status: "closed" }),

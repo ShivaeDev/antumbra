@@ -1,3 +1,4 @@
+import { BoardScope } from "@antumbra/boards";
 import { expect, it } from "@effect/vitest";
 import { Effect } from "effect";
 import { AgentDomain } from "#domain.ts";
@@ -183,7 +184,7 @@ it.live("a captain cons one ship and cannot reach across a hull", () =>
 				}),
 			).toEqual({ ok: true, text: "written to the voyage board" });
 			expect(
-				yield* domain.boards.read({ kind: "voyage", voyageId: reef.id }),
+				yield* domain.boards.read(BoardScope.Voyage({ voyageId: reef.id })),
 			).toMatchObject([{ body: "hand the next captain the eastern approach" }]);
 		}).pipe(Effect.provide(domainKernelLayer(temporary, scripted.backend)));
 	}),

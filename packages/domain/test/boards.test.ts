@@ -1,4 +1,4 @@
-import type { BoardScope } from "@antumbra/boards";
+import { BoardScope, EntryInput } from "@antumbra/boards";
 import { Database, Writer } from "@antumbra/persistence";
 import { deleteTestAgent } from "@antumbra/persistence/testing";
 import { expect, it } from "@effect/vitest";
@@ -32,31 +32,45 @@ const hand = (agentId: string) =>
 				status: "alive",
 			}),
 		);
-		return { agentId, kind: "agent" } satisfies BoardScope;
+		return BoardScope.Agent({ agentId });
 	});
 
-const noted = (body: string) => ({
-	authorAgentId: Option.none<string>(),
-	body,
-	register: "smooth" as const,
-});
+const noted = (body: string) =>
+	EntryInput.Note({
+		authorAgentId: Option.none<string>(),
+		body,
+		register: "smooth" as const,
+	});
+
+const roughNote = (body: string, authorAgentId: string) =>
+	EntryInput.Note({
+		authorAgentId: Option.some(authorAgentId),
+		body,
+		register: "rough",
+	});
 
 it.live("a board keeps both registers in the order they were written", () =>
 	withDomain(
 		Effect.gen(function* () {
 			const domain = yield* AgentDomain;
 			const voyage = yield* openReefVoyage;
-			const scope: BoardScope = { kind: "voyage", voyageId: voyage.id };
-			yield* domain.boards.write(scope, {
-				authorAgentId: Option.none(),
-				body: "sail the eastern approach first",
-				register: "smooth",
-			});
-			yield* domain.boards.write(scope, {
-				authorAgentId: Option.some("agent-1"),
-				body: "the swell is running",
-				register: "rough",
-			});
+			const scope = BoardScope.Voyage({ voyageId: voyage.id });
+			yield* domain.boards.write(
+				scope,
+				EntryInput.Note({
+					authorAgentId: Option.none(),
+					body: "sail the eastern approach first",
+					register: "smooth",
+				}),
+			);
+			yield* domain.boards.write(
+				scope,
+				EntryInput.Note({
+					authorAgentId: Option.some("agent-1"),
+					body: "the swell is running",
+					register: "rough",
+				}),
+			);
 			expect(yield* domain.boards.read(scope)).toMatchObject([
 				{
 					authorAgentId: null,
@@ -89,16 +103,16 @@ it.live("every durable entity carries its own board", () =>
 				voyageId: voyage.id,
 			});
 			const scopes: ReadonlyArray<BoardScope> = [
-				{ kind: "voyage", voyageId: voyage.id },
-				{ kind: "piece", pieceId: piece.id },
+				BoardScope.Voyage({ voyageId: voyage.id }),
+				BoardScope.Piece({ pieceId: piece.id }),
 				yield* hand("agent-1"),
 			];
 			yield* Effect.forEach(scopes, (scope) =>
-				domain.boards.write(scope, noted(`written to ${scope.kind}`)),
+				domain.boards.write(scope, noted(`written to ${scope._tag}`)),
 			);
 			for (const scope of scopes) {
 				expect(yield* domain.boards.read(scope)).toMatchObject([
-					{ body: `written to ${scope.kind}` },
+					{ body: `written to ${scope._tag}` },
 				]);
 			}
 		}),
@@ -110,7 +124,7 @@ it.live("an entity has one board, however often it is asked for", () =>
 		Effect.gen(function* () {
 			const domain = yield* AgentDomain;
 			const voyage = yield* openReefVoyage;
-			const scope: BoardScope = { kind: "voyage", voyageId: voyage.id };
+			const scope = BoardScope.Voyage({ voyageId: voyage.id });
 			const first = yield* domain.boards.ensure(scope);
 			expect(yield* domain.boards.ensure(scope)).toBe(first);
 			yield* domain.boards.write(scope, noted("the reef is charted north"));
@@ -126,7 +140,7 @@ it.live("an entity nobody has written to reads as an empty board", () =>
 			const domain = yield* AgentDomain;
 			const voyage = yield* openReefVoyage;
 			expect(
-				yield* domain.boards.read({ kind: "voyage", voyageId: voyage.id }),
+				yield* domain.boards.read(BoardScope.Voyage({ voyageId: voyage.id })),
 			).toEqual([]);
 		}),
 	),
@@ -154,16 +168,15 @@ it.live("interleaved appends take distinct places in the log", () =>
 		Effect.gen(function* () {
 			const domain = yield* AgentDomain;
 			const voyage = yield* openReefVoyage;
-			const scope: BoardScope = { kind: "voyage", voyageId: voyage.id };
+			const scope = BoardScope.Voyage({ voyageId: voyage.id });
 			const bodies = ["one", "two", "three", "four", "five", "six"];
 			yield* Effect.forEach(
 				bodies,
 				(body, index) =>
-					domain.boards.write(scope, {
-						authorAgentId: Option.some(index % 2 === 0 ? "port" : "starboard"),
-						body,
-						register: "rough",
-					}),
+					domain.boards.write(
+						scope,
+						roughNote(body, index % 2 === 0 ? "port" : "starboard"),
+					),
 				{ concurrency: "unbounded" },
 			);
 			const entries = yield* domain.boards.read(scope);
@@ -179,7 +192,7 @@ it.live("the log reads in its own order, not the clock's", () =>
 			const writer = yield* Writer;
 			const domain = yield* AgentDomain;
 			const voyage = yield* openReefVoyage;
-			const scope: BoardScope = { kind: "voyage", voyageId: voyage.id };
+			const scope = BoardScope.Voyage({ voyageId: voyage.id });
 			const boardId = yield* domain.boards.ensure(scope);
 			const tied = new Date("2026-08-16T00:00:00.000Z");
 			yield* Effect.forEach([2, 1], (seq) =>
@@ -209,7 +222,7 @@ it.live("a board is never minted for an entity that is not there", () =>
 			const domain = yield* AgentDomain;
 			const refused = yield* Effect.flip(
 				domain.boards.write(
-					{ agentId: "nobody", kind: "agent" },
+					BoardScope.Agent({ agentId: "nobody" }),
 					noted("hello?"),
 				),
 			);
@@ -228,16 +241,15 @@ it.live("one board cannot be linked to owners of two different kinds", () =>
 			const domain = yield* AgentDomain;
 			const voyage = yield* openReefVoyage;
 			const agent = yield* hand("agent-1");
-			const boardId = yield* domain.boards.ensure({
-				kind: "voyage",
-				voyageId: voyage.id,
-			});
+			const boardId = yield* domain.boards.ensure(
+				BoardScope.Voyage({ voyageId: voyage.id }),
+			);
 			const collision = yield* Effect.exit(
 				writer.write(
 					db.BoardOwner.create({
 						boardId,
 						ownerId: agent.agentId,
-						ownerKind: agent.kind,
+						ownerKind: "agent",
 					}),
 				),
 			);

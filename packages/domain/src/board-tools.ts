@@ -5,7 +5,12 @@ import {
 	readMailSpec,
 	writeBoardSpec,
 } from "@antumbra/agent-tools";
-import { type BoardEntryRow, type BoardScope, Boards } from "@antumbra/boards";
+import {
+	type BoardEntryRow,
+	type BoardScope,
+	Boards,
+	EntryInput,
+} from "@antumbra/boards";
 import { Database, type WriteExecutors } from "@antumbra/persistence";
 import type { DirectTool, DirectToolOutcome } from "@antumbra/plugin-api";
 import { Context, Effect, Option } from "effect";
@@ -70,11 +75,14 @@ export const makeBoardToolCompiler = Effect.gen(function* () {
 				answered(
 					identity,
 					writeBoardSpec.name,
-					boards.write(scope, {
-						authorAgentId: Option.some(identity.agentId),
-						body: input.body,
-						register: input.register,
-					}),
+					boards.write(
+						scope,
+						EntryInput.Note({
+							authorAgentId: Option.some(identity.agentId),
+							body: input.body,
+							register: input.register,
+						}),
+					),
 					() => `written to the ${input.scope} board`,
 				),
 			),

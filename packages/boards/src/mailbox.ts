@@ -1,11 +1,11 @@
 import { Database, Writer } from "@antumbra/persistence";
 import { Effect } from "effect";
 import { MailNotAddressed } from "#errors.ts";
-import type { BoardScope, MailInput } from "#model.ts";
+import { BoardScope, EntryInput, type MailInput } from "#model.ts";
 import { readBoard } from "#read.ts";
 import { writeEntry } from "#write.ts";
 
-const mailbox = (agentId: string): BoardScope => ({ agentId, kind: "agent" });
+const mailbox = (agentId: string): BoardScope => BoardScope.Agent({ agentId });
 
 const readIds = (receipts: ReadonlyArray<{ readonly entryId: string }>) =>
 	new Set(receipts.map((receipt) => receipt.entryId));
@@ -16,14 +16,16 @@ const mailEntries = (agentId: string) =>
 	);
 
 export const mail = (input: MailInput) =>
-	writeEntry(mailbox(input.toAgentId), {
-		authorAgentId: input.authorAgentId,
-		body: input.body,
-		kind: "mail",
-		precedence: input.precedence,
-		register: "smooth",
-		sourceRef: input.sourceRef,
-	});
+	writeEntry(
+		mailbox(input.toAgentId),
+		EntryInput.Mail({
+			authorAgentId: input.authorAgentId,
+			body: input.body,
+			precedence: input.precedence,
+			register: "smooth",
+			sourceRef: input.sourceRef,
+		}),
+	);
 
 export const unreadMail = (agentId: string) =>
 	Effect.gen(function* () {

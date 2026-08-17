@@ -1,5 +1,5 @@
 import { Effect, Option } from "effect";
-import { entryRow } from "#entries.ts";
+import { entryRow, storedEntryVariant } from "#entries.ts";
 import { BoardSourceConflict, type StoredBoardEntryInvalid } from "#errors.ts";
 import type { BoardEntryRow, EntryInput } from "#model.ts";
 
@@ -13,18 +13,19 @@ export const replayedEntry = (
 > =>
 	Effect.gen(function* () {
 		const existing = yield* entryRow(row);
+		const expected = storedEntryVariant(input);
 		const matches =
 			existing.authorAgentId ===
 				Option.getOrElse(input.authorAgentId, () => null) &&
 			existing.body === input.body &&
-			existing.kind === (input.kind ?? "note") &&
-			existing.precedence === (input.precedence ?? "routine") &&
+			existing.kind === expected.kind &&
+			existing.precedence === expected.precedence &&
 			existing.register === input.register &&
-			existing.sourceRef === (input.sourceRef ?? null);
+			existing.sourceRef === expected.sourceRef;
 		if (!matches) {
 			return yield* new BoardSourceConflict({
 				boardId,
-				sourceRef: input.sourceRef ?? "missing",
+				sourceRef: expected.sourceRef ?? "missing",
 			});
 		}
 		return existing;

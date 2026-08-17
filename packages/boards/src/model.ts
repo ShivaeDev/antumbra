@@ -1,19 +1,22 @@
-import type { Option } from "effect";
+import { Data, type Option } from "effect";
 
 export type BoardRegister = "rough" | "smooth";
 
 export type MailPrecedence = "flash" | "priority" | "routine";
 
-// why: entity ids may overlap across kinds; this discriminated pair is the
-// durable address while each linked board id stays globally exclusive.
-export type BoardScope =
-	| { readonly agentId: string; readonly kind: "agent" }
-	| { readonly kind: "piece"; readonly pieceId: string }
-	| { readonly kind: "voyage"; readonly voyageId: string };
+export type BoardScope = Data.TaggedEnum<{
+	Agent: { readonly agentId: string };
+	Piece: { readonly pieceId: string };
+	Voyage: { readonly voyageId: string };
+}>;
+
+export const BoardScope = Data.taggedEnum<BoardScope>();
+
+export type BoardOwnerKind = "agent" | "piece" | "voyage";
 
 export interface BoardOwner {
 	readonly ownerId: string;
-	readonly ownerKind: BoardScope["kind"];
+	readonly ownerKind: BoardOwnerKind;
 }
 
 interface BoardEntryFields {
@@ -26,18 +29,19 @@ interface BoardEntryFields {
 	readonly sourceRef: string | null;
 }
 
-export type BoardEntryRow = BoardEntryFields &
-	(
-		| {
-				readonly kind: "mail";
-				readonly precedence: MailPrecedence;
-				readonly sourceRef: string;
-		  }
-		| {
-				readonly kind: "note";
-				readonly precedence: "routine";
-		  }
-	);
+export type BoardEntryVariant =
+	| {
+			readonly kind: "mail";
+			readonly precedence: MailPrecedence;
+			readonly sourceRef: string;
+	  }
+	| {
+			readonly kind: "note";
+			readonly precedence: "routine";
+			readonly sourceRef: string | null;
+	  };
+
+export type BoardEntryRow = BoardEntryFields & BoardEntryVariant;
 
 interface EntryFields {
 	readonly authorAgentId: Option.Option<string>;
@@ -45,19 +49,17 @@ interface EntryFields {
 	readonly register: BoardRegister;
 }
 
-export type EntryInput = EntryFields &
-	(
-		| {
-				readonly kind: "mail";
-				readonly precedence: MailPrecedence;
-				readonly sourceRef: string;
-		  }
-		| {
-				readonly kind?: "note";
-				readonly precedence?: "routine";
-				readonly sourceRef?: string;
-		  }
-	);
+export type EntryInput = Data.TaggedEnum<{
+	Mail: EntryFields & {
+		readonly precedence: MailPrecedence;
+		readonly sourceRef: string;
+	};
+	Note: EntryFields & {
+		readonly sourceRef?: string;
+	};
+}>;
+
+export const EntryInput = Data.taggedEnum<EntryInput>();
 
 export interface MailInput {
 	readonly authorAgentId: Option.Option<string>;

@@ -1,4 +1,4 @@
-import type { BoardScope } from "@antumbra/boards";
+import { BoardScope } from "@antumbra/boards";
 import { Database } from "@antumbra/persistence";
 import { Effect, Option } from "effect";
 import type { SessionIdentity } from "#tool-identity.ts";
@@ -14,10 +14,8 @@ const voyageOfPiece = (pieceId: string) =>
 				Effect.map((row) =>
 					Option.map(
 						row,
-						(membership): BoardScope => ({
-							kind: "voyage",
-							voyageId: membership.voyageId,
-						}),
+						(membership): BoardScope =>
+							BoardScope.Voyage({ voyageId: membership.voyageId }),
 					),
 				),
 			);
@@ -29,10 +27,9 @@ const voyageOfPiece = (pieceId: string) =>
 const voyageScope = (identity: SessionIdentity) => {
 	if (Option.isSome(identity.voyageId)) {
 		return Effect.succeed(
-			Option.some<BoardScope>({
-				kind: "voyage",
-				voyageId: identity.voyageId.value,
-			}),
+			Option.some<BoardScope>(
+				BoardScope.Voyage({ voyageId: identity.voyageId.value }),
+			),
 		);
 	}
 	return Option.match(identity.pieceId, {
@@ -47,14 +44,14 @@ export const resolveBoardScope = (
 ) => {
 	if (name === "self") {
 		return Effect.succeed(
-			Option.some<BoardScope>({ agentId: identity.agentId, kind: "agent" }),
+			Option.some<BoardScope>(BoardScope.Agent({ agentId: identity.agentId })),
 		);
 	}
 	if (name === "piece") {
 		return Effect.succeed(
 			Option.map(
 				identity.pieceId,
-				(pieceId): BoardScope => ({ kind: "piece", pieceId }),
+				(pieceId): BoardScope => BoardScope.Piece({ pieceId }),
 			),
 		);
 	}

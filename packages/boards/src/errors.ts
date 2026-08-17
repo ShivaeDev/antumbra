@@ -1,11 +1,11 @@
 import { Data } from "effect";
-import type { BoardScope } from "#model.ts";
+import type { BoardOwnerKind } from "#model.ts";
 
 // why: a board hangs off one entity, so a missing owner is a mistake to
 // answer rather than a board to mint — an orphan board cannot be shown.
 export class BoardOwnerNotFound extends Data.TaggedError("BoardOwnerNotFound")<{
 	readonly ownerId: string;
-	readonly ownerKind: BoardScope["kind"];
+	readonly ownerKind: BoardOwnerKind;
 }> {
 	override get message(): string {
 		return `no ${this.ownerKind} named ${this.ownerId} carries a board`;

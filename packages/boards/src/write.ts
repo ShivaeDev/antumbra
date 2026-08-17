@@ -1,20 +1,21 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database, Writer } from "@antumbra/persistence";
 import { Clock, Effect, Option, PubSub } from "effect";
-import { appendedEntry, nextSequence } from "#entries.ts";
-import type { BoardEntryRow, BoardScope, EntryInput } from "#model.ts";
+import { appendedEntry, nextSequence, storedEntryVariant } from "#entries.ts";
+import { type BoardEntryRow, BoardScope, type EntryInput } from "#model.ts";
 import { linkBoard, linkedBoardId, requireBoardOwner } from "#owner.ts";
 import { replayedEntry } from "#source.ts";
 
 const priorEntry = (boardId: string, input: EntryInput) => {
-	if (input.sourceRef === undefined) {
+	const sourceRef = storedEntryVariant(input).sourceRef;
+	if (sourceRef === null) {
 		return Effect.succeed(Option.none());
 	}
 	return Effect.gen(function* () {
 		const db = yield* Database;
 		return yield* db.BoardEntry.where({
 			boardId,
-			sourceRef: input.sourceRef,
+			sourceRef,
 		}).first();
 	});
 };
@@ -71,7 +72,12 @@ export const writeEntry = (scope: BoardScope, input: EntryInput) =>
 				return { row, written: true };
 			}),
 		);
-		if (result.written && scope.kind !== "agent") {
+		const publishesVoyage = BoardScope.$match(scope, {
+			Agent: () => false,
+			Piece: () => true,
+			Voyage: () => true,
+		});
+		if (result.written && publishesVoyage) {
 			yield* PubSub.publish(feeds.voyages, undefined);
 		}
 		return result.row;

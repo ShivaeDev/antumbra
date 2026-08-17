@@ -1,29 +1,32 @@
 import { Database } from "@antumbra/persistence";
 import { Effect, Option } from "effect";
 import { BoardOwnerNotFound } from "#errors.ts";
-import type { BoardOwner, BoardScope } from "#model.ts";
+import { type BoardOwner, BoardScope } from "#model.ts";
 
-export const ownerOf = (scope: BoardScope): BoardOwner => {
-	if (scope.kind === "agent") {
-		return { ownerId: scope.agentId, ownerKind: "agent" };
-	}
-	if (scope.kind === "piece") {
-		return { ownerId: scope.pieceId, ownerKind: "piece" };
-	}
-	return { ownerId: scope.voyageId, ownerKind: "voyage" };
-};
+export const ownerOf = (scope: BoardScope): BoardOwner =>
+	BoardScope.$match(scope, {
+		Agent: ({ agentId }): BoardOwner => ({
+			ownerId: agentId,
+			ownerKind: "agent",
+		}),
+		Piece: ({ pieceId }): BoardOwner => ({
+			ownerId: pieceId,
+			ownerKind: "piece",
+		}),
+		Voyage: ({ voyageId }): BoardOwner => ({
+			ownerId: voyageId,
+			ownerKind: "voyage",
+		}),
+	});
 
 export const requireBoardOwner = (scope: BoardScope) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
-		let exists: boolean;
-		if (scope.kind === "agent") {
-			exists = yield* db.Agent.where({ id: scope.agentId }).exists();
-		} else if (scope.kind === "piece") {
-			exists = yield* db.Piece.where({ id: scope.pieceId }).exists();
-		} else {
-			exists = yield* db.Voyage.where({ id: scope.voyageId }).exists();
-		}
+		const exists = yield* BoardScope.$match(scope, {
+			Agent: ({ agentId }) => db.Agent.where({ id: agentId }).exists(),
+			Piece: ({ pieceId }) => db.Piece.where({ id: pieceId }).exists(),
+			Voyage: ({ voyageId }) => db.Voyage.where({ id: voyageId }).exists(),
+		});
 		if (!exists) {
 			return yield* new BoardOwnerNotFound(ownerOf(scope));
 		}

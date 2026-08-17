@@ -1,3 +1,4 @@
+import { BoardScope, EntryInput } from "@antumbra/boards";
 import { Database } from "@antumbra/persistence";
 import { expect, it } from "@effect/vitest";
 import { Effect, Option } from "effect";
@@ -47,12 +48,12 @@ it.live("hailing a voyage brings it a captain and puts it under way", () =>
 			const domain = yield* AgentDomain;
 			const voyage = yield* openReefVoyage;
 			yield* domain.boards.write(
-				{ kind: "voyage", voyageId: voyage.id },
-				{
+				BoardScope.Voyage({ voyageId: voyage.id }),
+				EntryInput.Note({
 					authorAgentId: Option.none(),
 					body: "the eastern approach is safe",
 					register: "smooth",
-				},
+				}),
 			);
 
 			const hailed = yield* domain.voyages.hail(voyage.id);

@@ -1,3 +1,4 @@
+import { BoardScope } from "@antumbra/boards";
 import { Database, Writer } from "@antumbra/persistence";
 import { corruptTestBoardEntry } from "@antumbra/persistence/testing";
 import { expect, it } from "@effect/vitest";
@@ -51,7 +52,7 @@ it.live("addressed mail and its explicit receipt survive full rebuilds", () =>
 			expect(second.map((entry) => entry.id)).toEqual([entryId]);
 			yield* domain.boards.markRead(AGENT_ID, [entryId]);
 			expect(
-				(yield* domain.boards.read({ agentId: AGENT_ID, kind: "agent" }))
+				(yield* domain.boards.read(BoardScope.Agent({ agentId: AGENT_ID })))
 					.length,
 			).toBe(1);
 		}).pipe(Effect.provide(domainKernelLayer(temporary, scripted.backend)));
@@ -60,9 +61,9 @@ it.live("addressed mail and its explicit receipt survive full rebuilds", () =>
 			const domain = yield* AgentDomain;
 			expect(yield* domain.boards.unread(AGENT_ID)).toEqual([]);
 			expect(
-				(yield* domain.boards.read({ agentId: AGENT_ID, kind: "agent" })).map(
-					(entry) => entry.id,
-				),
+				(yield* domain.boards.read(
+					BoardScope.Agent({ agentId: AGENT_ID }),
+				)).map((entry) => entry.id),
 			).toEqual([entryId]);
 		}).pipe(Effect.provide(domainKernelLayer(temporary, scripted.backend)));
 	}),

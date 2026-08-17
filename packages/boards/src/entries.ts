@@ -1,6 +1,11 @@
 import { Effect, Option, Schema } from "effect";
 import { StoredBoardEntryInvalid } from "#errors.ts";
-import type { AppendFields, BoardEntryRow, EntryInput } from "#model.ts";
+import {
+	type AppendFields,
+	type BoardEntryRow,
+	type BoardEntryVariant,
+	EntryInput,
+} from "#model.ts";
 
 // why: this is the disk boundary. Unknown entry vocabulary is corruption, not
 // a quiet note or routine precedence, so decoding fails before projection.
@@ -58,6 +63,20 @@ export const nextSequence = (last: Option.Option<{ readonly seq: number }>) =>
 		onSome: (entry) => entry.seq + 1,
 	});
 
+export const storedEntryVariant = (input: EntryInput): BoardEntryVariant =>
+	EntryInput.$match(input, {
+		Mail: ({ precedence, sourceRef }): BoardEntryVariant => ({
+			kind: "mail",
+			precedence,
+			sourceRef,
+		}),
+		Note: ({ sourceRef }): BoardEntryVariant => ({
+			kind: "note",
+			precedence: "routine",
+			sourceRef: sourceRef ?? null,
+		}),
+	});
+
 export const appendedEntry = (
 	input: EntryInput,
 	fields: AppendFields,
@@ -70,17 +89,5 @@ export const appendedEntry = (
 		register: input.register,
 		seq: fields.seq,
 	};
-	return input.kind === "mail"
-		? {
-				...row,
-				kind: "mail",
-				precedence: input.precedence,
-				sourceRef: input.sourceRef,
-			}
-		: {
-				...row,
-				kind: "note",
-				precedence: "routine",
-				sourceRef: input.sourceRef ?? null,
-			};
+	return { ...row, ...storedEntryVariant(input) };
 };

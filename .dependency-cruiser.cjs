@@ -47,6 +47,12 @@ const capabilityPackages = [
 			"Reports owns durable report landing. It may validate pieces, write through persistence, and publish through domain-feeds, but it never reaches up into the domain facade, ports, adapters, or app.",
 		name: "reports",
 	},
+	{
+		allowed: ["persistence", "domain-feeds"],
+		rationale:
+			"Repos owns the application repository registry. It may write through persistence and publish through domain-feeds, but it never reaches up into the domain facade, ports, adapters, or app.",
+		name: "repos",
+	},
 ];
 
 const capabilityRule = ({ allowed, name, rationale }) =>

@@ -84,12 +84,6 @@
 		"type": "DatabaseService"
 	},
 	{
-		"callable": "forgetRepo",
-		"file": "packages/domain/src/registry.ts",
-		"parameter": "deps",
-		"type": "AgentDeps"
-	},
-	{
 		"callable": "hailCaptain",
 		"file": "packages/domain/src/hail.ts",
 		"parameter": "deps",
@@ -102,12 +96,6 @@
 		"type": "DatabaseService"
 	},
 	{
-		"callable": "listRepos",
-		"file": "packages/domain/src/registry.ts",
-		"parameter": "deps",
-		"type": "AgentDeps"
-	},
-	{
 		"callable": "makeCaptainToolCompiler",
 		"file": "packages/domain/src/captain-tools.ts",
 		"parameter": "deps",
@@ -116,12 +104,6 @@
 	{
 		"callable": "makePieceVerbToolCompiler",
 		"file": "packages/domain/src/captain-pieces.ts",
-		"parameter": "deps",
-		"type": "AgentDeps"
-	},
-	{
-		"callable": "makeRepoRegistry",
-		"file": "packages/domain/src/registry.ts",
 		"parameter": "deps",
 		"type": "AgentDeps"
 	},
@@ -214,12 +196,6 @@
 		"file": "packages/domain/src/events.ts",
 		"parameter": "context",
 		"type": "SinkContext"
-	},
-	{
-		"callable": "registerRepo",
-		"file": "packages/domain/src/registry.ts",
-		"parameter": "deps",
-		"type": "AgentDeps"
 	},
 	{
 		"callable": "requireVoyage",

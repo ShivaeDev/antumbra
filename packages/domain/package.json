@@ -37,6 +37,7 @@
 		"@antumbra/pieces": "workspace:*",
 		"@antumbra/plugin-api": "workspace:*",
 		"@antumbra/reports": "workspace:*",
+		"@antumbra/repos": "workspace:*",
 		"@antumbra/session-events": "workspace:*",
 		"effect": "catalog:"
 	}

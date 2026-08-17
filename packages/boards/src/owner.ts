@@ -36,6 +36,7 @@ export const linkedBoardId = (scope: BoardScope) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
 		return yield* db.BoardOwner.where(ownerOf(scope))
+			.select("boardId")
 			.first()
 			.pipe(Effect.map((link) => Option.map(link, (row) => row.boardId)));
 	});

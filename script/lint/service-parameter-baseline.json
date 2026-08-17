@@ -24,12 +24,6 @@
 		"type": "AgentDeps"
 	},
 	{
-		"callable": "closeRows",
-		"file": "packages/domain/src/retire.ts",
-		"parameter": "deps",
-		"type": "AgentDeps"
-	},
-	{
 		"callable": "deliverCharterOnce",
 		"file": "packages/domain/src/charter.ts",
 		"parameter": "deps",
@@ -38,12 +32,6 @@
 	{
 		"callable": "ensureAgentRow",
 		"file": "packages/domain/src/spawn-rows.ts",
-		"parameter": "deps",
-		"type": "AgentDeps"
-	},
-	{
-		"callable": "makeRetireKind",
-		"file": "packages/domain/src/retire.ts",
 		"parameter": "deps",
 		"type": "AgentDeps"
 	},
@@ -60,12 +48,6 @@
 		"type": "AgentDeps"
 	},
 	{
-		"callable": "retireAgent",
-		"file": "packages/domain/src/retire.ts",
-		"parameter": "deps",
-		"type": "AgentDeps"
-	},
-	{
 		"callable": "settleSpawnFailure",
 		"file": "packages/domain/src/spawn-rows.ts",
 		"parameter": "deps",
@@ -74,12 +56,6 @@
 	{
 		"callable": "stampCharter",
 		"file": "packages/domain/src/charter.ts",
-		"parameter": "deps",
-		"type": "AgentDeps"
-	},
-	{
-		"callable": "stopSessions",
-		"file": "packages/domain/src/retire.ts",
 		"parameter": "deps",
 		"type": "AgentDeps"
 	}

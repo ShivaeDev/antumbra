@@ -4,4 +4,4 @@ export type {
 	RepoRegistry,
 } from "#model.ts";
 export { repoName } from "#repo-name.ts";
-export { Repos, ReposLive, type ReposService } from "#repos.ts";
+export { Repos, ReposLive } from "#repos.ts";

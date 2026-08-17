@@ -10,8 +10,6 @@ export class Repos extends Context.Service<Repos, RepoRegistry>()(
 	"@antumbra/repos/Repos",
 ) {}
 
-export type ReposService = Context.Service.Shape<typeof Repos>;
-
 export const ReposLive = Layer.effect(Repos)(
 	Effect.gen(function* () {
 		const db = yield* Database;

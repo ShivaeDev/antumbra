@@ -1,5 +1,7 @@
+import type { StoredAgentStatusInvalid } from "@antumbra/agent-runtime-vocabulary";
 import type { BoardsService } from "@antumbra/boards";
 import type { AnyIntentKind, IntentKind } from "@antumbra/kernel";
+import type { PrismaError } from "@antumbra/persistence";
 import type { BackendFailure } from "@antumbra/plugin-api";
 import { Context, type Deferred, type Effect } from "effect";
 import type { ChangeProcedures } from "#change-procedures.ts";
@@ -23,7 +25,12 @@ export class AgentDomain extends Context.Service<
 		readonly backends: ReadonlyArray<string>;
 		readonly boards: BoardsService;
 		readonly changes: ChangeProcedures;
-		readonly gauges: Readonly<Record<string, Effect.Effect<number>>>;
+		readonly gauges: Readonly<
+			Record<
+				string,
+				Effect.Effect<number, PrismaError | StoredAgentStatusInvalid>
+			>
+		>;
 		readonly interruptSession: (
 			sessionId: string,
 		) => Effect.Effect<void, BackendFailure | SessionNotLive>;

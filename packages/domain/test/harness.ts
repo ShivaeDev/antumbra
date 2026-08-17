@@ -209,7 +209,6 @@ export const domainKernelLayer = (
 					const domain = yield* AgentDomain;
 					return KernelLive({
 						...options,
-						gauges: domain.gauges,
 						kinds: domain.kinds,
 					});
 				}),

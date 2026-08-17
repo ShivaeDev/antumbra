@@ -1,67 +1,11 @@
 import { Database, type WriteExecutors } from "@antumbra/persistence";
-import { Effect, Option, Result } from "effect";
-import { decodeSessionExecutionStatus } from "#session-execution-status.ts";
+import { Effect, Option } from "effect";
 import type { SpawnFields } from "#spawn.ts";
-
-interface AgentRow {
-	readonly charter: string;
-	readonly role: string;
-	readonly status: string;
-}
-
-interface BerthRow {
-	readonly runner: string;
-	readonly status: string;
-}
-
-interface MoorageRow {
-	readonly root: string;
-	readonly runner: string;
-	readonly status: string;
-}
-
-interface SessionRow {
-	readonly agentId: string;
-	readonly backend: string;
-	readonly charterDeliveredAt: Date | null;
-	readonly cwd: string;
-	readonly nativeRef: string | null;
-	readonly executionStatus: unknown;
-	readonly status: string;
-}
-
-const matchesAgent = (row: AgentRow, payload: SpawnFields) =>
-	row.status === "alive" &&
-	row.charter === payload.charter &&
-	row.role === payload.role;
-
-const matchesSession = (row: SessionRow, payload: SpawnFields) => {
-	const executionStatus = decodeSessionExecutionStatus(
-		payload.sessionId,
-		row.executionStatus,
-	);
-	return (
-		row.agentId === payload.agentId &&
-		row.backend === payload.backend &&
-		row.status === "open" &&
-		Result.isSuccess(executionStatus) &&
-		executionStatus.success === "active" &&
-		row.nativeRef !== null &&
-		row.charterDeliveredAt !== null
-	);
-};
-
-const matchesMoorage = (
-	row: MoorageRow,
-	session: SessionRow,
-	payload: SpawnFields,
-) =>
-	row.runner === payload.runner &&
-	row.status === "ready" &&
-	row.root === session.cwd;
-
-const matchesBerth = (row: BerthRow, payload: SpawnFields) =>
-	row.runner === payload.runner && row.status === "ready";
+import {
+	storedAgentMatches,
+	storedBerthsMatch,
+	storedResourcesMatch,
+} from "#spawn-activated-match.ts";
 
 export const makeIsActivatedBirth = Effect.gen(function* () {
 	const db = yield* Database;
@@ -70,8 +14,11 @@ export const makeIsActivatedBirth = Effect.gen(function* () {
 		Effect.provideContext(effect, executors);
 	const agentMatches = (payload: SpawnFields) =>
 		provide(db.Agent.where({ id: payload.agentId }).first()).pipe(
-			Effect.map((agent) =>
-				Option.isSome(agent) ? matchesAgent(agent.value, payload) : false,
+			Effect.flatMap(
+				Option.match({
+					onNone: () => Effect.succeed(false),
+					onSome: (agent) => storedAgentMatches(agent, payload),
+				}),
 			),
 		);
 	const resourcesMatch = (payload: SpawnFields) =>
@@ -82,20 +29,14 @@ export const makeIsActivatedBirth = Effect.gen(function* () {
 			const moorage = yield* provide(
 				db.Moorage.where({ agentId: payload.agentId }).first(),
 			);
-			if (
-				Option.isNone(session) ||
-				!matchesSession(session.value, payload) ||
-				Option.isNone(moorage)
-			) {
+			if (Option.isNone(session) || Option.isNone(moorage)) {
 				return false;
 			}
-			return matchesMoorage(moorage.value, session.value, payload);
+			return yield* storedResourcesMatch(session.value, moorage.value, payload);
 		});
 	const berthsMatch = (payload: SpawnFields) =>
 		provide(db.Berth.where({ agentId: payload.agentId }).all()).pipe(
-			Effect.map((berths) =>
-				berths.every((berth) => matchesBerth(berth, payload)),
-			),
+			Effect.flatMap((berths) => storedBerthsMatch(berths, payload)),
 		);
 	const pieceAssignmentMatches = (payload: SpawnFields) => {
 		if (payload.pieceId === undefined) {

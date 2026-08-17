@@ -1,3 +1,4 @@
+import { decodeStoredAgentStatus } from "@antumbra/agent-runtime-vocabulary";
 import { Boards } from "@antumbra/boards";
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database, type WriteExecutors, Writer } from "@antumbra/persistence";
@@ -79,13 +80,17 @@ export const AgentDomainLive = (
 				Effect.provideService(SessionRecoveryRuntime, recoveryRuntime),
 			);
 			yield* sweepBerths(runners);
-			const aliveAgents = db.Agent.where({ status: "alive" })
-				.all()
-				.pipe(
-					Effect.map((agents) => agents.length),
-					Effect.provideContext(executors),
-					Effect.orDie,
-				);
+			const aliveAgents = db.Agent.all().pipe(
+				Effect.flatMap((agents) =>
+					Effect.forEach(agents, (agent) =>
+						Effect.fromResult(decodeStoredAgentStatus(agent.id, agent.status)),
+					),
+				),
+				Effect.map(
+					(statuses) => statuses.filter((status) => status === "alive").length,
+				),
+				Effect.provideContext(executors),
+			);
 			const makeVoyages = yield* makeVoyageProcedures;
 			const retire = makeRetireKind(deps);
 			const siesta = yield* makeSiestaKind;

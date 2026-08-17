@@ -1,3 +1,7 @@
+import type {
+	StoredAgentSessionStatusInvalid,
+	StoredAgentStatusInvalid,
+} from "@antumbra/agent-runtime-vocabulary";
 import {
 	type BoardOwnerNotFound,
 	BoardScope,
@@ -34,6 +38,8 @@ export type HailRefused =
 	| InvalidSessionExecutionStatus
 	| PrismaError
 	| SpawnRefused
+	| StoredAgentSessionStatusInvalid
+	| StoredAgentStatusInvalid
 	| StoredBoardEntryInvalid
 	| StoredChangeInvalid
 	| StoredPieceChangeInvalid

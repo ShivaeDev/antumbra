@@ -1,18 +1,42 @@
+import {
+	decodeStoredAgentSessionStatus,
+	decodeStoredAgentStatus,
+} from "@antumbra/agent-runtime-vocabulary";
 import { Kernel } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
-import { Effect, Layer } from "effect";
+import { Effect, Layer, Result } from "effect";
 import { AgentDomain } from "#agent-domain-service.ts";
 import { decodeSessionExecutionStatus } from "#session-execution-status.ts";
 
 const sessionsToReconcile = Effect.gen(function* () {
 	const db = yield* Database;
-	const alive = yield* db.Agent.where({ status: "alive" }).all();
-	const aliveIds = new Set(alive.map((agent) => agent.id));
-	const open = yield* db.AgentSession.where({ status: "open" }).all();
-	const sessions = open.filter((session) => aliveIds.has(session.agentId));
+	const agents = yield* db.Agent.all();
+	const agentStatuses = new Map(
+		agents.map(
+			(agent) =>
+				[agent.id, decodeStoredAgentStatus(agent.id, agent.status)] as const,
+		),
+	);
+	const sessions = yield* db.AgentSession.all();
 	const recover: Array<string> = [];
 	const siesta: Array<string> = [];
 	for (const session of sessions) {
+		const status = decodeStoredAgentSessionStatus(session.id, session.status);
+		const agentStatus = agentStatuses.get(session.agentId);
+		if (
+			Result.isFailure(status) ||
+			(agentStatus !== undefined && Result.isFailure(agentStatus))
+		) {
+			recover.push(session.id);
+			continue;
+		}
+		if (
+			agentStatus === undefined ||
+			agentStatus.success !== "alive" ||
+			status.success !== "open"
+		) {
+			continue;
+		}
 		const executionStatus = yield* Effect.fromResult(
 			decodeSessionExecutionStatus(session.id, session.executionStatus),
 		);

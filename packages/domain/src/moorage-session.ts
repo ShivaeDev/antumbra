@@ -1,3 +1,4 @@
+import { decodeStoredAgentSessionStatus } from "@antumbra/agent-runtime-vocabulary";
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database, type WriteExecutors, Writer } from "@antumbra/persistence";
 import type { MooragePlan } from "@antumbra/plugin-api";
@@ -17,6 +18,12 @@ export const makeEnsureSessionRow = Effect.gen(function* () {
 				db.AgentSession.where({ id: payload.sessionId }).first(),
 			);
 			if (Option.isSome(session)) {
+				yield* Effect.fromResult(
+					decodeStoredAgentSessionStatus(
+						session.value.id,
+						session.value.status,
+					),
+				);
 				return;
 			}
 			yield* provide(

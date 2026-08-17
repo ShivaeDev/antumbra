@@ -25,6 +25,7 @@
 		"vitest": "catalog:"
 	},
 	"dependencies": {
+		"@antumbra/agent-runtime-vocabulary": "workspace:*",
 		"@antumbra/agent-tools": "workspace:*",
 		"@antumbra/artifacts": "workspace:*",
 		"@antumbra/boards": "workspace:*",

@@ -78,7 +78,7 @@ const startOwner = () => {
 	const kernel = Layer.unwrap(
 		Effect.gen(function* () {
 			const domain = yield* AgentDomain;
-			return KernelLive({ gauges: domain.gauges, kinds: domain.kinds });
+			return KernelLive({ kinds: domain.kinds });
 		}),
 	).pipe(Layer.provideMerge(agents));
 	// why: the dispatcher and the change watcher stand beside the view source

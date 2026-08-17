@@ -31,9 +31,14 @@ const capabilityPackages = [
 		name: "boards",
 	},
 	{
-		allowed: ["pieces", "persistence", "domain-feeds"],
+		allowed: [
+			"agent-runtime-vocabulary",
+			"pieces",
+			"persistence",
+			"domain-feeds",
+		],
 		rationale:
-			"Artifacts owns durable outcome publication. It may validate pieces, write through persistence, and publish through domain-feeds, but it never reaches up into the domain facade, ports, adapters, or app.",
+			"Artifacts owns durable outcome publication. It may decode Moorage ownership through the runtime vocabulary, validate pieces, write through persistence, and publish through domain-feeds, but it never reaches up into the domain facade, ports, adapters, or app.",
 		name: "artifacts",
 	},
 	{
@@ -59,6 +64,13 @@ const domainPattern = alternatives(["domain", ...capabilityNames]);
 module.exports = {
 	forbidden: [
 		...capabilityPackages.map(capabilityRule),
+		rule({
+			rationale:
+				"Agent runtime vocabulary is the neutral language shared by domain recovery and artifact ownership. It stays a leaf so neither capability drags the other's implementation with it.",
+			from: "^packages/agent-runtime-vocabulary",
+			name: "agent-runtime-vocabulary-is-a-leaf",
+			to: "^packages/(?!agent-runtime-vocabulary)|^apps/",
+		}),
 		rule({
 			rationale:
 				"Change vocabulary is the neutral language shared by hosts, durable projections, the public contract, and views. It stays a leaf so no consumer drags another layer with it.",

@@ -1,18 +1,20 @@
+import {
+	decodeStoredAgentSessionStatus,
+	decodeStoredAgentStatus,
+	decodeStoredBerthStatus,
+	decodeStoredMoorageStatus,
+} from "@antumbra/agent-runtime-vocabulary";
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database, type WriteExecutors, Writer } from "@antumbra/persistence";
-import { Effect, Option, PubSub, Schema } from "effect";
+import { Effect, Option, PubSub } from "effect";
 import {
 	decodeSessionExecutionStatus,
 	sessionExecutionTransition,
 } from "#session-execution-status.ts";
 import { recoveryHeld } from "#session-recovery-error.ts";
-import { AgentStatusSchema } from "#status.ts";
 
-const SessionStatus = Schema.Literals(["open", "closed"]);
-const ResourceStatus = Schema.Literals(["provisioning", "ready", "stranded"]);
-const decodeSessionStatus = Schema.decodeUnknownOption(SessionStatus);
-const decodeResourceStatus = Schema.decodeUnknownOption(ResourceStatus);
-const decodeAgentStatus = Schema.decodeUnknownOption(AgentStatusSchema);
+const heldInvalid = (failure: { readonly message: string }) =>
+	recoveryHeld(failure.message);
 
 export const makeSessionRecoveryState = Effect.gen(function* () {
 	const db = yield* Database;
@@ -29,11 +31,10 @@ export const makeSessionRecoveryState = Effect.gen(function* () {
 			if (Option.isNone(session)) {
 				return session;
 			}
-			const status = decodeSessionStatus(session.value.status);
-			if (Option.isNone(status)) {
-				return yield* recoveryHeld(`${sessionId} has invalid Session status`);
-			}
-			if (status.value !== "open") {
+			const status = yield* Effect.fromResult(
+				decodeStoredAgentSessionStatus(sessionId, session.value.status),
+			).pipe(Effect.mapError(heldInvalid));
+			if (status !== "open") {
 				return Option.none();
 			}
 			const executionStatus = yield* Effect.fromResult(
@@ -60,17 +61,16 @@ export const makeSessionRecoveryState = Effect.gen(function* () {
 			}
 			return session;
 		});
-	const aliveAgent = (agentId: string, sessionId: string) =>
+	const aliveAgent = (agentId: string) =>
 		Effect.gen(function* () {
 			const agent = yield* provide(db.Agent.where({ id: agentId }).first());
 			if (Option.isNone(agent)) {
 				return agent;
 			}
-			const status = decodeAgentStatus(agent.value.status);
-			if (Option.isNone(status)) {
-				return yield* recoveryHeld(`${sessionId} has invalid Agent status`);
-			}
-			return status.value === "alive" ? agent : Option.none();
+			const status = yield* Effect.fromResult(
+				decodeStoredAgentStatus(agent.value.id, agent.value.status),
+			).pipe(Effect.mapError(heldInvalid));
+			return status === "alive" ? agent : Option.none();
 		});
 	const ensureMoorage = (agentId: string, cwd: string, sessionId: string) =>
 		Effect.gen(function* () {
@@ -80,11 +80,10 @@ export const makeSessionRecoveryState = Effect.gen(function* () {
 					`${sessionId} is waiting for its ready Moorage`,
 				);
 			}
-			const status = decodeResourceStatus(moorage.value.status);
-			if (Option.isNone(status)) {
-				return yield* recoveryHeld(`${sessionId} has invalid Moorage status`);
-			}
-			if (status.value !== "ready" || moorage.value.root !== cwd) {
+			const status = yield* Effect.fromResult(
+				decodeStoredMoorageStatus(moorage.value.agentId, moorage.value.status),
+			).pipe(Effect.mapError(heldInvalid));
+			if (status !== "ready" || moorage.value.root !== cwd) {
 				return yield* recoveryHeld(
 					`${sessionId} is waiting for its ready Moorage`,
 				);
@@ -93,15 +92,12 @@ export const makeSessionRecoveryState = Effect.gen(function* () {
 	const ensureBerths = (agentId: string, sessionId: string) =>
 		Effect.gen(function* () {
 			const berths = yield* provide(db.Berth.where({ agentId }).all());
-			const statuses = berths.map((berth) =>
-				decodeResourceStatus(berth.status),
+			const statuses = yield* Effect.forEach(berths, (berth) =>
+				Effect.fromResult(decodeStoredBerthStatus(berth.id, berth.status)).pipe(
+					Effect.mapError(heldInvalid),
+				),
 			);
-			if (statuses.some(Option.isNone)) {
-				return yield* recoveryHeld(`${sessionId} has invalid Berth status`);
-			}
-			const notReady = statuses.some((status) =>
-				Option.isSome(status) ? status.value !== "ready" : false,
-			);
+			const notReady = statuses.some((status) => status !== "ready");
 			if (notReady) {
 				return yield* recoveryHeld(
 					`${sessionId} is waiting for its ready Berths`,

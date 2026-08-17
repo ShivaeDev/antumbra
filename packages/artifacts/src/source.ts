@@ -1,3 +1,4 @@
+import { decodeStoredMoorageStatus } from "@antumbra/agent-runtime-vocabulary";
 import { Database } from "@antumbra/persistence";
 import { Effect, FileSystem, Option, Path } from "effect";
 import { ArtifactSourceNotOwned, artifactPublicationFailed } from "#errors.ts";
@@ -65,7 +66,13 @@ export const readOwnedArtifact = (input: ArtifactInput) =>
 				});
 			}
 			const moorage = yield* db.Moorage.where({ agentId }).first();
-			if (Option.isNone(moorage) || moorage.value.status !== "ready") {
+			if (Option.isNone(moorage)) {
+				return yield* new ArtifactSourceNotOwned({ agentId, uri: input.uri });
+			}
+			const status = yield* Effect.fromResult(
+				decodeStoredMoorageStatus(moorage.value.agentId, moorage.value.status),
+			);
+			if (status !== "ready") {
 				return yield* new ArtifactSourceNotOwned({ agentId, uri: input.uri });
 			}
 			const root = yield* fs

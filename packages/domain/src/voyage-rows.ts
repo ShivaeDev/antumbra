@@ -1,3 +1,7 @@
+import type {
+	AgentSessionStatus,
+	AgentStatus,
+} from "@antumbra/agent-runtime-vocabulary";
 import type { ArtifactRow } from "@antumbra/artifacts";
 import type { EdgeRow, PieceRow } from "@antumbra/pieces";
 import type { ReportRow } from "@antumbra/reports";
@@ -37,7 +41,7 @@ export interface AgentSessionRow {
 	readonly agentId: string;
 	readonly executionStatus: SessionExecutionStatus;
 	readonly id: string;
-	readonly status: string;
+	readonly status: AgentSessionStatus;
 }
 
 export interface MembershipRow {
@@ -59,7 +63,7 @@ export interface ArtifactLinkRow {
 // state is a function of every row that touches it — a per-voyage query would
 // fan out into a read per piece, and these tables stay small by construction.
 export interface VoyageWorld {
-	readonly agentStatus: ReadonlyMap<string, string>;
+	readonly agentStatus: ReadonlyMap<string, AgentStatus>;
 	readonly artifacts: ReadonlyMap<string, ArtifactRow>;
 	readonly assignments: ReadonlyArray<AssignmentRow>;
 	readonly changes: ReadonlyArray<ChangeRow>;

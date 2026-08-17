@@ -25,7 +25,7 @@ import { type IntentChange, SchedulerState } from "#state.ts";
 
 export interface KernelOptions {
 	readonly gates?: ReadonlyArray<Gate>;
-	readonly gauges?: Readonly<Record<string, Effect.Effect<number>>>;
+	readonly gauges?: Readonly<Record<string, Effect.Effect<number, unknown>>>;
 	readonly kinds: ReadonlyArray<AnyIntentKind>;
 	readonly nextId?: Effect.Effect<string>;
 }

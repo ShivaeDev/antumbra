@@ -54,7 +54,7 @@ export const makeSessionRecoveryContext = Effect.gen(function* () {
 				return Option.none<SessionRecoveryContext>();
 			}
 			const row = session.value;
-			const agent = yield* state.aliveAgent(row.agentId, sessionId);
+			const agent = yield* state.aliveAgent(row.agentId);
 			if (Option.isNone(agent)) {
 				return Option.none<SessionRecoveryContext>();
 			}

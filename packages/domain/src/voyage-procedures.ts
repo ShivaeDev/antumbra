@@ -1,4 +1,8 @@
 import type {
+	StoredAgentSessionStatusInvalid,
+	StoredAgentStatusInvalid,
+} from "@antumbra/agent-runtime-vocabulary";
+import type {
 	ArtifactFailure,
 	ArtifactInput,
 	ArtifactRow,
@@ -51,6 +55,8 @@ export interface VoyageProcedures {
 		ReadonlyArray<VoyageSummary>,
 		| InvalidSessionExecutionStatus
 		| PrismaError
+		| StoredAgentSessionStatusInvalid
+		| StoredAgentStatusInvalid
 		| StoredChangeInvalid
 		| StoredPieceChangeInvalid
 	>;
@@ -66,6 +72,8 @@ export interface VoyageProcedures {
 		Option.Option<VoyageView>,
 		| InvalidSessionExecutionStatus
 		| PrismaError
+		| StoredAgentSessionStatusInvalid
+		| StoredAgentStatusInvalid
 		| StoredChangeInvalid
 		| StoredPieceChangeInvalid
 	>;

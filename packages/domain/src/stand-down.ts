@@ -1,3 +1,4 @@
+import { decodeStoredAgentSessionStatus } from "@antumbra/agent-runtime-vocabulary";
 import { bind, standDownSpec } from "@antumbra/agent-tools";
 import type { DirectTool } from "@antumbra/plugin-api";
 import { Deferred, Effect, Option, PubSub } from "effect";
@@ -21,9 +22,16 @@ const standDown = (deps: AgentDeps, identity: SessionIdentity) =>
 			);
 			if (
 				Option.isNone(session) ||
-				session.value.agentId !== identity.agentId ||
-				session.value.status !== "open"
+				session.value.agentId !== identity.agentId
 			) {
+				return yield* new SessionIdentityMissing({
+					sessionId: identity.sessionId,
+				});
+			}
+			const status = yield* Effect.fromResult(
+				decodeStoredAgentSessionStatus(session.value.id, session.value.status),
+			);
+			if (status !== "open") {
 				return yield* new SessionIdentityMissing({
 					sessionId: identity.sessionId,
 				});

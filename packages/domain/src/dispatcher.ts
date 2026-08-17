@@ -20,7 +20,7 @@ const DEFAULTS: DispatcherOptions = { maxAlive: 4, patienceMillis: 5000 };
 const onePass = (
 	port: DispatchPort,
 	maxAlive: number,
-	aliveAgents: Effect.Effect<number>,
+	aliveAgents: Effect.Effect<number, unknown>,
 ) =>
 	Effect.gen(function* () {
 		const now = yield* Clock.currentTimeMillis;
@@ -68,7 +68,7 @@ const guarded = <A, R>(pass: Effect.Effect<A, unknown, R>) =>
 const dispatchLoop = (
 	port: DispatchPort,
 	options: DispatcherOptions,
-	aliveAgents: Effect.Effect<number>,
+	aliveAgents: Effect.Effect<number, unknown>,
 ) =>
 	Effect.gen(function* () {
 		// why: every wait is bounded by the patience floor, so a wake signal is a

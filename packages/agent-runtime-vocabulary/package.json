@@ -1,14 +1,10 @@
 {
-	"name": "@antumbra/artifacts",
+	"name": "@antumbra/agent-runtime-vocabulary",
 	"version": "0.0.0",
 	"private": true,
 	"type": "module",
 	"exports": {
 		".": "./src/index.ts"
-	},
-	"imports": {
-		"#test/*": "./test/*",
-		"#*": "./src/*"
 	},
 	"scripts": {
 		"test": "vitest run --passWithNoTests",
@@ -16,18 +12,14 @@
 		"typecheck:compat": "tsc6 --noEmit"
 	},
 	"devDependencies": {
-		"@effect/platform-node": "catalog:",
 		"@effect/vitest": "catalog:",
 		"@types/node": "catalog:",
 		"@typescript/native": "catalog:",
+		"effect": "catalog:",
 		"typescript": "catalog:",
 		"vitest": "catalog:"
 	},
 	"dependencies": {
-		"@antumbra/agent-runtime-vocabulary": "workspace:*",
-		"@antumbra/domain-feeds": "workspace:*",
-		"@antumbra/persistence": "workspace:*",
-		"@antumbra/pieces": "workspace:*",
 		"effect": "catalog:"
 	}
 }

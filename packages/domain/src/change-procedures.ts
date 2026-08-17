@@ -1,3 +1,7 @@
+import type {
+	StoredAgentSessionStatusInvalid,
+	StoredAgentStatusInvalid,
+} from "@antumbra/agent-runtime-vocabulary";
 import type { PrismaError } from "@antumbra/persistence";
 import type { ChangeHostError, ChangeObservation } from "@antumbra/plugin-api";
 import { Effect, PubSub } from "effect";
@@ -71,6 +75,8 @@ export interface ChangeProcedures {
 		QuayReading,
 		| InvalidSessionExecutionStatus
 		| PrismaError
+		| StoredAgentSessionStatusInvalid
+		| StoredAgentStatusInvalid
 		| StoredChangeInvalid
 		| StoredPieceChangeInvalid
 	>;

@@ -1,10 +1,14 @@
-import type { ArtifactRow } from "@antumbra/artifacts";
+import {
+	decodeStoredAgentSessionStatus,
+	decodeStoredAgentStatus,
+	type StoredAgentSessionStatusInvalid,
+	type StoredAgentStatusInvalid,
+} from "@antumbra/agent-runtime-vocabulary";
 import type {
 	DatabaseService,
 	PrismaError,
 	WriteExecutors,
 } from "@antumbra/persistence";
-import type { ReportRow } from "@antumbra/reports";
 import { Effect } from "effect";
 import { changeRow } from "#change-read.ts";
 import { pieceChangeRow } from "#change-rows.ts";
@@ -14,54 +18,15 @@ import {
 	decodeSessionExecutionStatus,
 	type InvalidSessionExecutionStatus,
 } from "#session-execution-status.ts";
-import type {
-	PieceRow,
-	RepoRow,
-	VoyageRow,
-	VoyageWorld,
-} from "#voyage-rows.ts";
-
-// why: entity rows reach a reader whole, and the stored shape carries a
-// createdAt the views have no use for, so each is projected onto its declared
-// type here rather than leaking a field the interface never promised.
-const voyageRow = (row: VoyageRow): VoyageRow => ({
-	backend: row.backend,
-	context: row.context,
-	focusedAt: row.focusedAt,
-	id: row.id,
-	name: row.name,
-	northStar: row.northStar,
-});
-
-const pieceRow = (row: PieceRow): PieceRow => ({
-	charter: row.charter,
-	expectation: row.expectation,
-	id: row.id,
-	launchedAt: row.launchedAt,
-	parkedAt: row.parkedAt,
-	role: row.role,
-	title: row.title,
-});
-
-const reportRow = (row: ReportRow): ReportRow => ({
-	authorAgentId: row.authorAgentId,
-	body: row.body,
-	id: row.id,
-	title: row.title,
-});
-
-const repoRow = (row: RepoRow): RepoRow => ({ id: row.id, name: row.name });
-
-const artifactRow = (row: ArtifactRow): ArtifactRow => ({
-	authorAgentId: row.authorAgentId,
-	id: row.id,
-	title: row.title,
-	uri: row.uri,
-});
-
-const byId = <A extends { readonly id: string }>(
-	rows: ReadonlyArray<A>,
-): ReadonlyMap<string, A> => new Map(rows.map((row) => [row.id, row]));
+import {
+	artifactRow,
+	byId,
+	pieceRow,
+	repoRow,
+	reportRow,
+	voyageRow,
+} from "#voyage-row-projection.ts";
+import type { VoyageWorld } from "#voyage-rows.ts";
 
 export const voyageWorld = (
 	db: DatabaseService,
@@ -69,6 +34,8 @@ export const voyageWorld = (
 	VoyageWorld,
 	| InvalidSessionExecutionStatus
 	| PrismaError
+	| StoredAgentSessionStatusInvalid
+	| StoredAgentStatusInvalid
 	| StoredChangeInvalid
 	| StoredPieceChangeInvalid,
 	WriteExecutors
@@ -79,6 +46,11 @@ export const voyageWorld = (
 		const agents = yield* db.Agent.orderBy((agent) =>
 			agent.createdAt.asc(),
 		).all();
+		const agentStatuses = yield* Effect.forEach(agents, (agent) =>
+			Effect.fromResult(decodeStoredAgentStatus(agent.id, agent.status)).pipe(
+				Effect.map((status) => [agent.id, status] as const),
+			),
+		);
 		const changes = yield* Effect.forEach(
 			yield* db.Change.orderBy((change) => change.createdAt.asc()).all(),
 			changeRow,
@@ -90,21 +62,24 @@ export const voyageWorld = (
 		const sessions = yield* Effect.forEach(
 			yield* db.AgentSession.all(),
 			(session) =>
-				Effect.fromResult(
-					decodeSessionExecutionStatus(session.id, session.executionStatus),
-				).pipe(
-					Effect.map((executionStatus) => ({
+				Effect.all({
+					executionStatus: Effect.fromResult(
+						decodeSessionExecutionStatus(session.id, session.executionStatus),
+					),
+					status: Effect.fromResult(
+						decodeStoredAgentSessionStatus(session.id, session.status),
+					),
+				}).pipe(
+					Effect.map(({ executionStatus, status }) => ({
 						agentId: session.agentId,
 						executionStatus,
 						id: session.id,
-						status: session.status,
+						status,
 					})),
 				),
 		);
 		return {
-			agentStatus: new Map(
-				agents.map((agent) => [agent.id, agent.status] as const),
-			),
+			agentStatus: new Map(agentStatuses),
 			artifacts: byId((yield* db.Artifact.all()).map(artifactRow)),
 			assignments: yield* db.PieceAgent.all(),
 			changes,
@@ -132,6 +107,8 @@ export const readVoyageWorld = (
 	VoyageWorld,
 	| InvalidSessionExecutionStatus
 	| PrismaError
+	| StoredAgentSessionStatusInvalid
+	| StoredAgentStatusInvalid
 	| StoredChangeInvalid
 	| StoredPieceChangeInvalid
 > => provideExecutors(deps)(voyageWorld(deps.db));

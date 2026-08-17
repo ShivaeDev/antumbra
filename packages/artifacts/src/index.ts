@@ -1,3 +1,4 @@
+export { StoredMoorageStatusInvalid } from "@antumbra/agent-runtime-vocabulary";
 export { Artifacts, ArtifactsLive } from "#artifacts.ts";
 export {
 	type ArtifactFailure,

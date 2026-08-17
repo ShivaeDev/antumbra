@@ -1,3 +1,7 @@
+import type {
+	StoredAgentSessionStatusInvalid,
+	StoredAgentStatusInvalid,
+} from "@antumbra/agent-runtime-vocabulary";
 import type { PrismaError } from "@antumbra/persistence";
 import { Effect, Option } from "effect";
 import type { AgentDeps } from "#deps.ts";
@@ -13,6 +17,8 @@ export const readVoyageView = (
 	Option.Option<VoyageView>,
 	| InvalidSessionExecutionStatus
 	| PrismaError
+	| StoredAgentSessionStatusInvalid
+	| StoredAgentStatusInvalid
 	| StoredChangeInvalid
 	| StoredPieceChangeInvalid
 > =>

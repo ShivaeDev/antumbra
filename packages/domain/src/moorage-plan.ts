@@ -1,3 +1,7 @@
+import {
+	decodeStoredBerthStatus,
+	decodeStoredMoorageStatus,
+} from "@antumbra/agent-runtime-vocabulary";
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database, type WriteExecutors, Writer } from "@antumbra/persistence";
 import type { MooragePlan, Runner } from "@antumbra/plugin-api";
@@ -48,10 +52,16 @@ export const makePrepareMoorage = Effect.gen(function* () {
 					detail: `stored runner ${row.value.runner} does not match ${payload.runner}`,
 				});
 			}
+			yield* Effect.fromResult(
+				decodeStoredMoorageStatus(row.value.agentId, row.value.status),
+			);
 			const berths = yield* provide(
 				db.Berth.where({ agentId: payload.agentId })
 					.orderBy((berth) => berth.createdAt.asc())
 					.all(),
+			);
+			yield* Effect.forEach(berths, (berth) =>
+				Effect.fromResult(decodeStoredBerthStatus(berth.id, berth.status)),
 			);
 			return Option.some(planFromRows(row.value.root, berths));
 		});

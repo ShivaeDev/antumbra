@@ -1,12 +1,10 @@
-import { Data, Result, Schema } from "effect";
+import {
+	type AgentStatus,
+	AgentStatusSchema,
+} from "@antumbra/agent-runtime-vocabulary";
+import { Data, Result } from "effect";
 
-export const AgentStatusSchema = Schema.Literals([
-	"spawning",
-	"alive",
-	"dormant",
-	"retired",
-]);
-export type AgentStatus = typeof AgentStatusSchema.Type;
+export { type AgentStatus, AgentStatusSchema };
 
 export const AGENT_STATUS_EVENTS = ["activate", "reclaim", "retire"] as const;
 export type AgentStatusEvent = (typeof AGENT_STATUS_EVENTS)[number];

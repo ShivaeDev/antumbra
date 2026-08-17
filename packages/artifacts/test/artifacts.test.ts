@@ -129,6 +129,37 @@ it.effectDB(
 	},
 );
 
+it.effectDB(
+	"reports an invalid stored Moorage status instead of calling it unowned",
+	function* (db) {
+		yield* withArtifacts((moorage) =>
+			Effect.gen(function* () {
+				yield* seed(db, moorage);
+				yield* db.Moorage.where({ agentId: agent.id }).update({
+					status: "future-moorage",
+				});
+				writeFileSync(join(moorage, "reef.svg"), "<svg>reef</svg>");
+				const artifacts = yield* Artifacts;
+				const failure = yield* Effect.flip(
+					artifacts.land({
+						authorAgentId: agent.id,
+						pieceId: piece.id,
+						title: "reef chart",
+						uri: "reef.svg",
+					}),
+				);
+
+				expect(failure).toMatchObject({
+					_tag: "StoredMoorageStatusInvalid",
+					agentId: agent.id,
+					value: "future-moorage",
+				});
+				expect(yield* db.Artifact.all()).toEqual([]);
+			}),
+		);
+	},
+);
+
 it.effectDB("keeps an external URL as a reference", function* (db) {
 	yield* withArtifacts(() =>
 		Effect.gen(function* () {

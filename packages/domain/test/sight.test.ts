@@ -1,4 +1,5 @@
 import { SightSource } from "@antumbra/contract";
+import { Database, Writer } from "@antumbra/persistence";
 import type { TemporaryPersistence } from "@antumbra/persistence/testing";
 import type { AgentEvent } from "@antumbra/session-events";
 import { expect, it } from "@effect/vitest";
@@ -81,6 +82,35 @@ it.live("spawn surfaces on the fleet feed once the agent lives", () =>
 			]);
 			expect(agent?.sessions[0]?.backend).toBe("scripted");
 			expect(settled[0]?.backends).toEqual(["scripted"]);
+		}).pipe(Effect.provide(sightLayer(temporary, scripted)));
+	}),
+);
+
+it.live("fleet projection rejects an unknown stored Agent status", () =>
+	Effect.gen(function* () {
+		const temporary = yield* acquireTemporaryPersistence;
+		const scripted = yield* makeScriptedBackend;
+		yield* Effect.gen(function* () {
+			const db = yield* Database;
+			const sight = yield* SightSource;
+			const writer = yield* Writer;
+			const receipt = yield* sight.spawn(spawnRequest);
+			yield* eventually(
+				Effect.gen(function* () {
+					const fleet = yield* sight.fleet;
+					expect(
+						fleet.agents.find((agent) => agent.id === receipt.agentId)?.status,
+					).toBe("alive");
+				}),
+			);
+			yield* writer.write(
+				db.Agent.where({ id: receipt.agentId }).update({
+					status: "future-agent",
+				}),
+			);
+			const failure = yield* Effect.flip(sight.fleet);
+			expect(failure._tag).toBe("SightFailure");
+			expect(failure.message).toContain("future-agent");
 		}).pipe(Effect.provide(sightLayer(temporary, scripted)));
 	}),
 );

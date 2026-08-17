@@ -1,3 +1,4 @@
+import { decodeStoredAgentSessionStatus } from "@antumbra/agent-runtime-vocabulary";
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { defineIntent, IntentExecution } from "@antumbra/kernel";
 import { Database, type WriteExecutors, Writer } from "@antumbra/persistence";
@@ -31,7 +32,13 @@ export const makeSiestaKind = Effect.gen(function* () {
 			const session = yield* provide(
 				db.AgentSession.where({ id: sessionId }).first(),
 			);
-			if (Option.isNone(session) || session.value.status !== "open") {
+			if (Option.isNone(session)) {
+				return;
+			}
+			const status = yield* Effect.fromResult(
+				decodeStoredAgentSessionStatus(session.value.id, session.value.status),
+			);
+			if (status !== "open") {
 				return;
 			}
 			const executionStatus = yield* Effect.fromResult(

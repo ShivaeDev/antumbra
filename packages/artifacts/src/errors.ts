@@ -1,3 +1,4 @@
+import type { StoredMoorageStatusInvalid } from "@antumbra/agent-runtime-vocabulary";
 import type { PrismaError } from "@antumbra/persistence";
 import type { PieceNotFound } from "@antumbra/pieces";
 import { Data } from "effect";
@@ -25,4 +26,5 @@ export type ArtifactFailure =
 	| ArtifactPublicationFailed
 	| ArtifactSourceNotOwned
 	| PieceNotFound
-	| PrismaError;
+	| PrismaError
+	| StoredMoorageStatusInvalid;

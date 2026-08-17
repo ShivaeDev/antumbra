@@ -1,13 +1,13 @@
-import { Effect, Option, PubSub, Schema } from "effect";
+import {
+	decodeStoredAgentSessionStatus,
+	decodeStoredAgentStatus,
+} from "@antumbra/agent-runtime-vocabulary";
+import { Effect, Option, PubSub } from "effect";
 import { type AgentDeps, provideExecutors } from "#deps.ts";
 import { AgentNotSpawnable } from "#errors.ts";
 import { assignToPiece } from "#piece-assignment.ts";
 import type { SpawnFields } from "#spawn.ts";
-import {
-	type AgentStatus,
-	AgentStatusSchema,
-	agentTransition,
-} from "#status.ts";
+import { type AgentStatus, agentTransition } from "#status.ts";
 import { assignToVoyage } from "#voyage-assignment.ts";
 
 export const ensureAgentRow = (deps: AgentDeps, payload: SpawnFields) => {
@@ -16,11 +16,16 @@ export const ensureAgentRow = (deps: AgentDeps, payload: SpawnFields) => {
 		const existing = yield* provide(
 			deps.db.Agent.where({ id: payload.agentId }).first(),
 		);
-		if (Option.isSome(existing) && existing.value.status !== "spawning") {
-			return yield* new AgentNotSpawnable({
-				agentId: payload.agentId,
-				status: existing.value.status,
-			});
+		if (Option.isSome(existing)) {
+			const status = yield* Effect.fromResult(
+				decodeStoredAgentStatus(existing.value.id, existing.value.status),
+			);
+			if (status !== "spawning") {
+				return yield* new AgentNotSpawnable({
+					agentId: payload.agentId,
+					status,
+				});
+			}
 		}
 		if (Option.isNone(existing)) {
 			yield* provide(
@@ -49,8 +54,8 @@ export const activateAgent = (deps: AgentDeps, agentId: string) => {
 		if (Option.isNone(agent)) {
 			return yield* new AgentNotSpawnable({ agentId, status: "missing" });
 		}
-		const status = yield* Effect.orDie(
-			Schema.decodeUnknownEffect(AgentStatusSchema)(agent.value.status),
+		const status = yield* Effect.fromResult(
+			decodeStoredAgentStatus(agent.value.id, agent.value.status),
 		);
 		if (status === "alive") {
 			return;
@@ -86,8 +91,22 @@ export const settleSpawnFailure = (deps: AgentDeps, payload: SpawnFields) => {
 		const agent = yield* provide(
 			deps.db.Agent.where({ id: payload.agentId }).first(),
 		);
-		if (Option.isNone(agent) || agent.value.status !== "spawning") {
+		if (Option.isNone(agent)) {
 			return;
+		}
+		const status = yield* Effect.fromResult(
+			decodeStoredAgentStatus(agent.value.id, agent.value.status),
+		);
+		if (status !== "spawning") {
+			return;
+		}
+		const session = yield* provide(
+			deps.db.AgentSession.where({ id: payload.sessionId }).first(),
+		);
+		if (Option.isSome(session)) {
+			yield* Effect.fromResult(
+				decodeStoredAgentSessionStatus(session.value.id, session.value.status),
+			);
 		}
 		const next = yield* Effect.fromResult(
 			agentTransition("spawning", "reclaim"),

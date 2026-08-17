@@ -102,18 +102,6 @@
 		"type": "DatabaseService"
 	},
 	{
-		"callable": "judgeReady",
-		"file": "packages/domain/src/berth-sweep.ts",
-		"parameter": "db",
-		"type": "DatabaseService"
-	},
-	{
-		"callable": "judgeReady",
-		"file": "packages/domain/src/berth-sweep.ts",
-		"parameter": "writer",
-		"type": "SweepWriter"
-	},
-	{
 		"callable": "listRepos",
 		"file": "packages/domain/src/registry.ts",
 		"parameter": "deps",
@@ -250,12 +238,6 @@
 		"file": "packages/domain/src/voyages.ts",
 		"parameter": "deps",
 		"type": "AgentDeps"
-	},
-	{
-		"callable": "setStatus",
-		"file": "packages/domain/src/berth-sweep.ts",
-		"parameter": "db",
-		"type": "DatabaseService"
 	},
 	{
 		"callable": "settle",

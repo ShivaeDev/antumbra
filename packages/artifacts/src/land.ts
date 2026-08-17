@@ -1,3 +1,4 @@
+import { decodeStoredMoorageStatus } from "@antumbra/agent-runtime-vocabulary";
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database, Writer } from "@antumbra/persistence";
 import { requirePiece } from "@antumbra/pieces";
@@ -19,11 +20,16 @@ const requireCurrentMoorage = (publication: ArtifactPublication) =>
 		const row = yield* db.Moorage.where({
 			agentId: publication.agentId,
 		}).first();
-		if (
-			Option.isNone(row) ||
-			row.value.status !== "ready" ||
-			row.value.root !== publication.moorageRoot
-		) {
+		if (Option.isNone(row)) {
+			return yield* new ArtifactSourceNotOwned({
+				agentId: publication.agentId,
+				uri: publication.uri,
+			});
+		}
+		const status = yield* Effect.fromResult(
+			decodeStoredMoorageStatus(row.value.agentId, row.value.status),
+		);
+		if (status !== "ready" || row.value.root !== publication.moorageRoot) {
 			return yield* new ArtifactSourceNotOwned({
 				agentId: publication.agentId,
 				uri: publication.uri,

@@ -1,3 +1,8 @@
+import {
+	decodeStoredAgentSessionStatus,
+	decodeStoredAgentStatus,
+	decodeStoredBerthStatus,
+} from "@antumbra/agent-runtime-vocabulary";
 import type { AgentSummary, Fleet, RepoSummary } from "@antumbra/contract";
 import type { DatabaseService } from "@antumbra/persistence";
 import { Effect } from "effect";
@@ -8,30 +13,44 @@ export const fleetSnapshot = (
 	backends: ReadonlyArray<string>,
 ) =>
 	Effect.gen(function* () {
-		const agents = yield* db.Agent.orderBy((agent) =>
+		const storedAgents = yield* db.Agent.orderBy((agent) =>
 			agent.createdAt.asc(),
 		).all();
+		const agents = yield* Effect.forEach(storedAgents, (agent) =>
+			Effect.fromResult(decodeStoredAgentStatus(agent.id, agent.status)).pipe(
+				Effect.map((status) => ({ ...agent, status })),
+			),
+		);
 		const sessions = yield* db.AgentSession.orderBy((session) =>
 			session.createdAt.asc(),
 		).all();
 		const sessionSummaries = yield* Effect.forEach(sessions, (session) =>
-			Effect.fromResult(
-				decodeSessionExecutionStatus(session.id, session.executionStatus),
-			).pipe(
-				Effect.map((executionStatus) => ({
+			Effect.all({
+				executionStatus: Effect.fromResult(
+					decodeSessionExecutionStatus(session.id, session.executionStatus),
+				),
+				status: Effect.fromResult(
+					decodeStoredAgentSessionStatus(session.id, session.status),
+				),
+			}).pipe(
+				Effect.map(({ executionStatus, status }) => ({
 					agentId: session.agentId,
 					backend: session.backend,
-					canInterrupt:
-						session.status === "open" && executionStatus === "active",
+					canInterrupt: status === "open" && executionStatus === "active",
 					cwd: session.cwd,
 					id: session.id,
-					status: session.status,
+					status,
 				})),
 			),
 		);
-		const berths = yield* db.Berth.orderBy((berth) =>
+		const storedBerths = yield* db.Berth.orderBy((berth) =>
 			berth.createdAt.asc(),
 		).all();
+		const berths = yield* Effect.forEach(storedBerths, (berth) =>
+			Effect.fromResult(decodeStoredBerthStatus(berth.id, berth.status)).pipe(
+				Effect.map((status) => ({ ...berth, status })),
+			),
+		);
 		const repos: ReadonlyArray<RepoSummary> = (yield* db.Repo.orderBy((repo) =>
 			repo.createdAt.asc(),
 		).all()).map((repo) => ({

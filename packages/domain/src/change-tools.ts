@@ -1,10 +1,13 @@
-import { adoptChangeSpec, bind, openChangeSpec } from "@antumbra/agent-tools";
-import { Pieces } from "@antumbra/pieces";
+import {
+	adoptChangeSpec,
+	bind,
+	openChangeSpec,
+	submitChangeSpec,
+} from "@antumbra/agent-tools";
 import type { DirectTool } from "@antumbra/plugin-api";
 import { Effect } from "effect";
 import type { ChangeRow } from "#change-rows.ts";
-import { adoptChange, openChange } from "#changes.ts";
-import type { AgentDeps } from "#deps.ts";
+import { ChangeSubmissions } from "#change-submissions/change-submissions.ts";
 import { answered, onPiece } from "#tool-answers.ts";
 import type { SessionIdentity } from "#tool-identity.ts";
 
@@ -15,29 +18,36 @@ const said = (row: ChangeRow): string =>
 	`change ${row.stage}: ${row.url ?? "no url"} (id ${row.id})`;
 
 export const makeChangeToolCompiler = Effect.gen(function* () {
-	const pieces = yield* Pieces;
-	const providePieces = <A, E>(effect: Effect.Effect<A, E, Pieces>) =>
-		effect.pipe(Effect.provideService(Pieces, pieces));
-	function changeTools(
-		deps: AgentDeps,
-		identity: SessionIdentity,
-	): ReadonlyArray<DirectTool> {
+	const submissions = yield* ChangeSubmissions;
+	function changeTools(identity: SessionIdentity): ReadonlyArray<DirectTool> {
 		const open = bind(openChangeSpec, (input) =>
 			onPiece(identity, (pieceId) =>
 				answered(
 					identity,
 					openChangeSpec.name,
-					providePieces(
-						openChange(deps, {
-							agentId: identity.agentId,
-							base: input.base ?? null,
-							body: input.body,
-							draft: input.draft ?? false,
-							pieceId,
-							repoName: input.repo,
-							title: input.title,
-						}),
-					),
+					submissions.open({
+						agentId: identity.agentId,
+						base: input.base ?? null,
+						body: input.body,
+						draft: input.draft ?? false,
+						pieceId,
+						repoName: input.repo,
+						title: input.title,
+					}),
+					said,
+				),
+			),
+		);
+		const submit = bind(submitChangeSpec, (input) =>
+			onPiece(identity, (pieceId) =>
+				answered(
+					identity,
+					submitChangeSpec.name,
+					submissions.submit({
+						agentId: identity.agentId,
+						pieceId,
+						repoName: input.repo,
+					}),
 					said,
 				),
 			),
@@ -47,19 +57,17 @@ export const makeChangeToolCompiler = Effect.gen(function* () {
 				answered(
 					identity,
 					adoptChangeSpec.name,
-					providePieces(
-						adoptChange(deps, {
-							agentId: identity.agentId,
-							pieceId,
-							repoName: input.repo,
-							url: input.url,
-						}),
-					),
+					submissions.adopt({
+						agentId: identity.agentId,
+						pieceId,
+						repoName: input.repo,
+						url: input.url,
+					}),
 					said,
 				),
 			),
 		);
-		return [open, adopt];
+		return [submit, open, adopt];
 	}
 	return changeTools;
 });

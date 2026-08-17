@@ -70,11 +70,22 @@ export interface BerthSite {
 	readonly source: string;
 }
 
+export interface ChangePreparationEvidence {
+	readonly branch: string;
+	readonly headSha: string;
+	readonly workingDiff: string;
+	readonly workingTreeStatus: string;
+	readonly worktreePath: string;
+}
+
 export type ReclaimVerdict =
 	| { readonly _tag: "dirty" }
 	| { readonly _tag: "reclaimed" };
 
 export interface Runner {
+	readonly captureChange: (
+		berth: BerthSite,
+	) => Effect.Effect<ChangePreparationEvidence, RunnerError>;
 	readonly capabilities: RunnerCapabilities;
 	readonly plan: (request: ProvisionRequest) => MooragePlan;
 	readonly provision: (plan: MooragePlan) => Effect.Effect<void, RunnerError>;

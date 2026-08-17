@@ -1,126 +1,18 @@
 import { Database } from "@antumbra/persistence";
-import type { ChangeObservation } from "@antumbra/plugin-api";
 import { expect, it } from "@effect/vitest";
-import { Effect, Option } from "effect";
-import type { ChangeRow } from "#change-rows.ts";
+import { Effect } from "effect";
 import { AgentDomain } from "#domain.ts";
 import { berthed, reefWithPiece } from "#test/change-fixtures.ts";
 import {
-	acquireTemporaryPersistence,
-	changeHostsOf,
-	domainKernelLayer,
-	makeScriptedBackend,
-	passiveRunner,
-} from "#test/harness.ts";
+	CREW,
+	openedChange,
+	withHost,
+} from "#test/change-submission-fixtures.ts";
 import {
-	makeScriptedHost,
-	type ScriptedHost,
-	scriptedObservation,
-} from "#test/scripted-host.ts";
-
-const CREW = "agent-crew";
-
-const withHost = <A, E, R>(
-	body: (scripted: ScriptedHost) => Effect.Effect<A, E, R>,
-) =>
-	Effect.gen(function* () {
-		const temporary = yield* acquireTemporaryPersistence;
-		const backend = yield* makeScriptedBackend;
-		const scripted = yield* makeScriptedHost();
-		yield* body(scripted).pipe(
-			Effect.provide(
-				domainKernelLayer(
-					temporary,
-					backend.backend,
-					{},
-					passiveRunner,
-					changeHostsOf(scripted.host),
-				),
-			),
-		);
-	});
-
-const openChange = (pieceId: string, repoName: string) =>
-	Effect.gen(function* () {
-		const domain = yield* AgentDomain;
-		return yield* domain.changes.open({
-			agentId: CREW,
-			base: null,
-			body: "sounded three fathoms",
-			draft: false,
-			pieceId,
-			repoName,
-			title: "chart the eastern spit",
-		});
-	});
-
-const observed = (
-	row: ChangeRow,
-	repoId: string,
-	activityOffset: number,
-	patch: Partial<ChangeObservation>,
-): ChangeObservation => ({
-	...scriptedObservation("scripted", row.externalId ?? "", {
-		baseRef: row.baseRef,
-		headRef: row.headRef,
-		repoId,
-		title: row.title,
-	}),
-	activityAt: row.activityAt.getTime() + activityOffset,
-	...patch,
-});
-
-const storedChange = (id: string) =>
-	Effect.gen(function* () {
-		const db = yield* Database;
-		return Option.getOrThrow(yield* db.Change.where({ id }).first());
-	});
-
-const storedTransitions = (changeId: string) =>
-	Effect.gen(function* () {
-		const db = yield* Database;
-		return yield* db.ChangeTransition.where({ changeId }).all();
-	});
-
-it.live("freshness wins when one batch carries newer then stale news", () =>
-	withHost(() =>
-		Effect.gen(function* () {
-			const domain = yield* AgentDomain;
-			const { piece, repo } = yield* reefWithPiece;
-			yield* berthed(CREW);
-			const row = yield* openChange(piece.id, repo.name);
-
-			yield* domain.changes.observed("scripted", [
-				observed(row, repo.id, 2, { stage: "landed" }),
-				observed(row, repo.id, 1, { stage: "open", title: "stale" }),
-			]);
-
-			expect((yield* storedChange(row.id)).stage).toBe("landed");
-		}),
-	),
-);
-
-it.live("freshness wins across concurrent observation calls", () =>
-	withHost(() =>
-		Effect.gen(function* () {
-			const domain = yield* AgentDomain;
-			const { piece, repo } = yield* reefWithPiece;
-			yield* berthed(CREW);
-			const row = yield* openChange(piece.id, repo.name);
-			const pair = [
-				observed(row, repo.id, 2, { stage: "landed" }),
-				observed(row, repo.id, 1, { stage: "open", title: "stale" }),
-			];
-
-			yield* Effect.all(
-				pair.map((one) => domain.changes.observed("scripted", [one])),
-				{ concurrency: "unbounded" },
-			);
-
-			expect((yield* storedChange(row.id)).stage).toBe("landed");
-		}),
-	),
-);
+	observed,
+	storedChange,
+	storedTransitions,
+} from "#test/change-transition-fixtures.ts";
 
 it.live("a newer reopen advances the same durable change", () =>
 	withHost(() =>
@@ -129,7 +21,7 @@ it.live("a newer reopen advances the same durable change", () =>
 			const domain = yield* AgentDomain;
 			const { piece, repo } = yield* reefWithPiece;
 			yield* berthed(CREW);
-			const row = yield* openChange(piece.id, repo.name);
+			const row = yield* openedChange(piece.id, repo.name);
 
 			yield* domain.changes.observed("scripted", [
 				observed(row, repo.id, 1, { stage: "withdrawn" }),
@@ -150,6 +42,7 @@ it.live("a newer reopen advances the same durable change", () =>
 					)
 					.map((transition) => [transition.fromStage, transition.toStage]),
 			).toEqual([
+				["prepared", "open"],
 				["open", "withdrawn"],
 				["withdrawn", "open"],
 			]);
@@ -163,13 +56,14 @@ it.live("a landed fact wins when the host timestamp ties the open fact", () =>
 			const domain = yield* AgentDomain;
 			const { piece, repo } = yield* reefWithPiece;
 			yield* berthed(CREW);
-			const row = yield* openChange(piece.id, repo.name);
+			const row = yield* openedChange(piece.id, repo.name);
 			yield* domain.changes.observed("scripted", [
 				observed(row, repo.id, 0, { stage: "landed" }),
 			]);
 			expect((yield* storedChange(row.id)).stage).toBe("landed");
 			const transitions = yield* storedTransitions(row.id);
 			expect(transitions.map((transition) => transition.id)).toEqual([
+				`${row.id}:${row.activityAt.getTime()}:open`,
 				`${row.id}:${row.activityAt.getTime()}:landed`,
 			]);
 		}),
@@ -182,7 +76,7 @@ it.live("equal-time same-stage facts refresh the projection exactly once", () =>
 			const domain = yield* AgentDomain;
 			const { piece, repo } = yield* reefWithPiece;
 			yield* berthed(CREW);
-			const row = yield* openChange(piece.id, repo.name);
+			const row = yield* openedChange(piece.id, repo.name);
 			const fact = observed(row, repo.id, 0, {
 				checks: "green",
 				mergeable: "clean",
@@ -204,7 +98,7 @@ it.live("equal-time same-stage facts refresh the projection exactly once", () =>
 			expect(first).toMatchObject(expected);
 			expect(stored).toMatchObject(expected);
 			expect(replayed?.observedAt).toEqual(first?.observedAt);
-			expect(yield* storedTransitions(row.id)).toHaveLength(0);
+			expect(yield* storedTransitions(row.id)).toHaveLength(1);
 		}),
 	),
 );
@@ -217,7 +111,7 @@ it.live(
 				const domain = yield* AgentDomain;
 				const { piece, repo } = yield* reefWithPiece;
 				yield* berthed(CREW);
-				const row = yield* openChange(piece.id, repo.name);
+				const row = yield* openedChange(piece.id, repo.name);
 				const withdrawn = observed(row, repo.id, 1, { stage: "withdrawn" });
 				const reopened = observed(row, repo.id, 1, { stage: "open" });
 				yield* domain.changes.observed("scripted", [withdrawn]);
@@ -228,6 +122,7 @@ it.live(
 				expect(
 					transitions.map((transition) => transition.id).toSorted(),
 				).toEqual([
+					`${row.id}:${row.activityAt.getTime()}:open`,
 					`${row.id}:${withdrawn.activityAt}:open`,
 					`${row.id}:${withdrawn.activityAt}:withdrawn`,
 				]);
@@ -241,7 +136,7 @@ it.live("landed is irreversible even when a newer observation says open", () =>
 			const domain = yield* AgentDomain;
 			const { piece, repo } = yield* reefWithPiece;
 			yield* berthed(CREW);
-			const row = yield* openChange(piece.id, repo.name);
+			const row = yield* openedChange(piece.id, repo.name);
 
 			yield* domain.changes.observed("scripted", [
 				observed(row, repo.id, 1, { stage: "landed" }),
@@ -261,15 +156,15 @@ it.live("replaying one transition keeps one stable event identity", () =>
 			const domain = yield* AgentDomain;
 			const { piece, repo } = yield* reefWithPiece;
 			yield* berthed(CREW);
-			const row = yield* openChange(piece.id, repo.name);
+			const row = yield* openedChange(piece.id, repo.name);
 			const withdrawn = observed(row, repo.id, 1, { stage: "withdrawn" });
 
 			yield* domain.changes.observed("scripted", [withdrawn]);
 			yield* domain.changes.observed("scripted", [withdrawn]);
 
 			const transitions = yield* storedTransitions(row.id);
-			expect(transitions).toHaveLength(1);
-			expect(transitions[0]?.id).toBe(
+			expect(transitions).toHaveLength(2);
+			expect(transitions[1]?.id).toBe(
 				`${row.id}:${withdrawn.activityAt}:withdrawn`,
 			);
 		}),
@@ -282,7 +177,7 @@ it.live("a withdrawn change remains pollable so reopening is reconciled", () =>
 			const domain = yield* AgentDomain;
 			const { piece, repo } = yield* reefWithPiece;
 			yield* berthed(CREW);
-			const row = yield* openChange(piece.id, repo.name);
+			const row = yield* openedChange(piece.id, repo.name);
 
 			yield* scripted.drive.transition(repo.id, "1", {
 				stage: "withdrawn",

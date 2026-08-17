@@ -14,6 +14,7 @@ export const projectedChange = (
 	baseRef: observation.baseRef,
 	checks: observation.checks,
 	draftAt: observation.isDraft ? (row.draftAt ?? new Date(now)) : null,
+	externalId: observation.externalId,
 	headRef: observation.headRef,
 	headSha: observation.headSha,
 	landedAt:
@@ -23,6 +24,7 @@ export const projectedChange = (
 	raw: rawText(observation.raw),
 	review: observation.review,
 	stage: observation.stage,
+	submissionKey: observation.stage === "open" ? row.submissionKey : null,
 	title: observation.title,
 	url: observation.url,
 	withdrawnAt:
@@ -41,6 +43,7 @@ export const sameProjectedFacts = (
 		before.baseRef === after.baseRef,
 		before.checks === after.checks,
 		before.draftAt?.getTime() === after.draftAt?.getTime(),
+		before.externalId === after.externalId,
 		before.headRef === after.headRef,
 		before.headSha === after.headSha,
 		before.landedAt?.getTime() === after.landedAt?.getTime(),
@@ -48,6 +51,7 @@ export const sameProjectedFacts = (
 		before.raw === after.raw,
 		before.review === after.review,
 		before.stage === after.stage,
+		before.submissionKey === after.submissionKey,
 		before.title === after.title,
 		before.url === after.url,
 		before.withdrawnAt?.getTime() === after.withdrawnAt?.getTime(),

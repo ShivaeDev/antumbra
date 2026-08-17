@@ -1,13 +1,10 @@
-import type { PrismaError } from "@antumbra/persistence";
 import type {
 	ChangeChecks,
 	ChangeMergeable,
 	ChangeReview,
 	ChangeStage,
 } from "@antumbra/plugin-api";
-import { Effect, Option } from "effect";
 import type { ChangeRow } from "#change-rows.ts";
-import { type AgentDeps, provideExecutors } from "#deps.ts";
 
 // why: the columns hold text and the vocabulary they hold is closed, so a row
 // is read back through total tables — no cast, and a word this build does not
@@ -65,35 +62,18 @@ export const changeRow = (row: StoredChange): ChangeRow => ({
 	mergeable: MERGEABLES[row.mergeable] ?? "unknown",
 	observedAt: row.observedAt,
 	openedByAgentId: row.openedByAgentId,
+	preparedHeadRef: row.preparedHeadRef,
+	preparedHeadSha: row.preparedHeadSha,
+	proposalFrozenAt: row.proposalFrozenAt,
 	raw: row.raw,
 	repoId: row.repoId,
 	review: REVIEWS[row.review] ?? "none",
 	stage: STAGES[row.stage] ?? "prepared",
+	submissionKey: row.submissionKey,
 	title: row.title,
 	url: row.url,
 	withdrawnAt: row.withdrawnAt,
+	workingDiff: row.workingDiff,
+	workingTreeStatus: row.workingTreeStatus,
+	worktreePath: row.worktreePath,
 });
-
-export const changeOfExternalId = (
-	deps: AgentDeps,
-	host: string,
-	repoId: string,
-	externalId: string,
-) =>
-	deps.db.Change.where({ externalId, host, repoId })
-		.first()
-		.pipe(Effect.map((row) => Option.map(row, changeRow)));
-
-// why: an open change can land and a withdrawn one can reopen. Both remain
-// reconcilable; prepared has never reached a host and landed is irreversible.
-export const openChangesOfHost = (
-	deps: AgentDeps,
-	host: string,
-): Effect.Effect<ReadonlyArray<ChangeRow>, PrismaError> =>
-	provideExecutors(deps)(deps.db.Change.where({ host }).all()).pipe(
-		Effect.map((rows) =>
-			rows
-				.map(changeRow)
-				.filter((row) => row.stage === "open" || row.stage === "withdrawn"),
-		),
-	);

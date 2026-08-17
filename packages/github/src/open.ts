@@ -115,7 +115,8 @@ export const createPull = (
 
 export const pushWorkBranch = (
 	berth: ChangeHostBerth,
+	preparedHeadSha: string,
 ): Effect.Effect<void, ChangeHostError> =>
-	onThisMachine(pushBranch(berth.path, berth.branch)).pipe(
+	onThisMachine(pushBranch(berth.path, berth.branch, preparedHeadSha)).pipe(
 		Effect.mapError(toPushRefusal),
 	);

@@ -20,7 +20,9 @@ const REEF_BERTH = berth("keeper:reef", BRANCH, REEF);
 const onReef = (stage: ChangeStage) =>
 	changeOf({ headRef: BRANCH, id: "change-1", repoId: REEF.id, stage });
 
-const linked = [{ changeId: "change-1", pieceId: "piece-1" }];
+const linked = [
+	{ changeId: "change-1", pieceId: "piece-1", purpose: "produces" as const },
+];
 
 it("a berth whose branch backs a pending change is held by that change", () => {
 	expect(heldBerths([REEF_BERTH], [onReef("open")], REGISTRY, linked)).toEqual(
@@ -51,7 +53,7 @@ it("a withdrawn change holds until a linked replacement lands", () => {
 	expect(
 		heldBerths([REEF_BERTH], [withdrawn, replacement], REGISTRY, [
 			...linked,
-			{ changeId: replacement.id, pieceId: "piece-1" },
+			{ changeId: replacement.id, pieceId: "piece-1", purpose: "produces" },
 		]).size,
 	).toBe(0);
 });

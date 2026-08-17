@@ -24,16 +24,42 @@ export interface ChangeRow {
 	readonly mergeable: ChangeMergeable;
 	readonly observedAt: Date;
 	readonly openedByAgentId: string | null;
+	readonly preparedHeadRef: string | null;
+	readonly preparedHeadSha: string | null;
+	readonly proposalFrozenAt: Date | null;
 	readonly raw: string | null;
 	readonly repoId: string;
 	readonly review: ChangeReview;
 	readonly stage: ChangeStage;
+	readonly submissionKey: string | null;
 	readonly title: string;
 	readonly url: string | null;
 	readonly withdrawnAt: Date | null;
+	readonly workingDiff: string | null;
+	readonly workingTreeStatus: string | null;
+	readonly worktreePath: string | null;
 }
+
+export type PieceChangePurpose = "depends_on" | "produces" | "reviews";
 
 export interface PieceChangeRow {
 	readonly changeId: string;
 	readonly pieceId: string;
+	readonly purpose: PieceChangePurpose;
 }
+
+const PURPOSES: Readonly<Record<string, PieceChangePurpose>> = {
+	depends_on: "depends_on",
+	produces: "produces",
+	reviews: "reviews",
+};
+
+export const pieceChangeRow = (row: {
+	readonly changeId: string;
+	readonly pieceId: string;
+	readonly purpose: string;
+}): PieceChangeRow => ({
+	changeId: row.changeId,
+	pieceId: row.pieceId,
+	purpose: PURPOSES[row.purpose] ?? "produces",
+});

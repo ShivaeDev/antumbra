@@ -17,6 +17,7 @@ const WORK_PREFIX = "work/";
 export const pushBranch = (
 	path: string,
 	branch: string,
+	preparedHeadSha: string,
 ): Effect.Effect<
 	void,
 	GitError | GitPushRefused,
@@ -30,7 +31,7 @@ export const pushBranch = (
 					"push",
 					"--force-with-lease",
 					"origin",
-					`HEAD:refs/heads/${branch}`,
+					`${preparedHeadSha}:refs/heads/${branch}`,
 				],
 				operation: "push-branch",
 				timeoutMillis: REMOTE_TIMEOUT_MILLIS,

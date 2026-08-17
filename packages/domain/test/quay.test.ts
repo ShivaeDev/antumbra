@@ -33,13 +33,20 @@ const change = (id: string, over: Partial<ChangeRow> = {}): ChangeRow => ({
 	mergeable: "clean",
 	observedAt: MOMENT,
 	openedByAgentId: null,
+	preparedHeadRef: null,
+	preparedHeadSha: null,
+	proposalFrozenAt: null,
 	raw: null,
 	repoId: "repo-1",
 	review: "approved",
 	stage: "open",
+	submissionKey: null,
 	title: id,
 	url: `https://github.test/shoals/pull/${id}`,
 	withdrawnAt: null,
+	workingDiff: null,
+	workingTreeStatus: null,
+	worktreePath: null,
 	...over,
 });
 
@@ -73,7 +80,11 @@ const world = (over: Partial<VoyageWorld>): VoyageWorld => ({
 const onAlpha = (rows: ReadonlyArray<ChangeRow>): VoyageWorld =>
 	world({
 		changes: rows,
-		pieceChanges: rows.map((row) => ({ changeId: row.id, pieceId: "alpha" })),
+		pieceChanges: rows.map((row) => ({
+			changeId: row.id,
+			pieceId: "alpha",
+			purpose: "produces",
+		})),
 	});
 
 const groupOf = (over: Partial<ChangeRow>): QuayGroup =>

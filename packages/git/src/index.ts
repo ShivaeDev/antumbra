@@ -1,4 +1,8 @@
 export {
+	captureWorktreeChange,
+	type WorktreeChangeEvidence,
+} from "#change-evidence.ts";
+export {
 	GitAuthRequired,
 	GitCommandFailed,
 	type GitError,

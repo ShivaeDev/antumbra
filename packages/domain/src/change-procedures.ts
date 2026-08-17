@@ -1,19 +1,19 @@
 import type { PrismaError } from "@antumbra/persistence";
-import { Pieces } from "@antumbra/pieces";
 import type { ChangeHostError, ChangeObservation } from "@antumbra/plugin-api";
 import { Effect, PubSub } from "effect";
-import { applyObservations } from "#change-observe.ts";
-import { openChangesOfHost } from "#change-read.ts";
-import { refreshChanges } from "#change-refresh.ts";
 import type { ChangeRow } from "#change-rows.ts";
 import {
 	type AdoptChangeFailure,
 	type AdoptChangeInput,
-	adoptChange,
-	type OpenChangeFailure,
-	type OpenChangeInput,
-	openChange,
-} from "#changes.ts";
+	ChangeSubmissions,
+	type SubmitChangeFailure,
+	type SubmitChangeInput,
+} from "#change-submissions/change-submissions.ts";
+import type {
+	ChangeIdentityCollision,
+	ChangeObservationConflict,
+} from "#change-submissions/errors.ts";
+import type { OpenChangeFailure, OpenChangeInput } from "#changes.ts";
 import type { AgentDeps } from "#deps.ts";
 import type { UnknownChangeHostTag } from "#errors.ts";
 import { type QuayReading, quayReading } from "#quay-view.ts";
@@ -39,10 +39,16 @@ export interface ChangeProcedures {
 	readonly observed: (
 		hostTag: string,
 		observations: ReadonlyArray<ChangeObservation>,
-	) => Effect.Effect<ReadonlyArray<ChangeRow>, PrismaError>;
+	) => Effect.Effect<
+		ReadonlyArray<ChangeRow>,
+		ChangeIdentityCollision | ChangeObservationConflict | PrismaError
+	>;
 	readonly open: (
 		input: OpenChangeInput,
 	) => Effect.Effect<ChangeRow, OpenChangeFailure>;
+	readonly submit: (
+		input: SubmitChangeInput,
+	) => Effect.Effect<ChangeRow, SubmitChangeFailure>;
 	// why: what can still change at a host — open changes can settle and
 	// withdrawn ones can reopen. The set also decides the next pass cadence.
 	readonly watchableChanges: (
@@ -55,7 +61,11 @@ export interface ChangeProcedures {
 		hostTag: string,
 	) => Effect.Effect<
 		ReadonlyArray<ChangeRow>,
-		ChangeHostError | PrismaError | UnknownChangeHostTag
+		| ChangeHostError
+		| ChangeIdentityCollision
+		| ChangeObservationConflict
+		| PrismaError
+		| UnknownChangeHostTag
 	>;
 	// why: the same ring an opened change gives, offered to whoever else wants
 	// to stop waiting — a window's refresh button, an agent that knows something
@@ -64,12 +74,10 @@ export interface ChangeProcedures {
 }
 
 export const makeChangeProcedureCompiler = Effect.gen(function* () {
-	const pieces = yield* Pieces;
-	const providePieces = <A, E>(effect: Effect.Effect<A, E, Pieces>) =>
-		effect.pipe(Effect.provideService(Pieces, pieces));
+	const submissions = yield* ChangeSubmissions;
 	function makeChangeProcedures(deps: AgentDeps): ChangeProcedures {
 		return {
-			adopt: (input) => providePieces(adoptChange(deps, input)),
+			adopt: submissions.adopt,
 			capabilities: Effect.forEach([...deps.changeHosts.values()], (host) =>
 				Effect.map(host.capability, (capability) => ({
 					available: capability.available,
@@ -78,12 +86,12 @@ export const makeChangeProcedureCompiler = Effect.gen(function* () {
 				})),
 			),
 			hostTags: [...deps.changeHosts.keys()],
-			observed: (hostTag, observations) =>
-				applyObservations(deps, hostTag, observations),
-			open: (input) => providePieces(openChange(deps, input)),
-			watchableChanges: (hostTag) => openChangesOfHost(deps, hostTag),
+			observed: submissions.observed,
+			open: submissions.open,
+			submit: submissions.submit,
+			watchableChanges: submissions.watchable,
 			quay: readVoyageWorld(deps).pipe(Effect.map(quayReading)),
-			refresh: (hostTag) => refreshChanges(deps, hostTag),
+			refresh: submissions.refresh,
 			requestRefresh: PubSub.publish(deps.feeds.changeRefresh, undefined),
 		};
 	}

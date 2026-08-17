@@ -75,7 +75,7 @@ describe("pushing a work branch", () => {
 			yield* refreshMirror(mirror);
 			yield* addWorktree(mirror, worktree, BRANCH, "main");
 			commitInto(worktree, "notes.md", "sounded three fathoms");
-			yield* pushBranch(worktree, BRANCH);
+			yield* pushBranch(worktree, BRANCH, sha(worktree, "HEAD"));
 
 			expect(sha(remote, `refs/heads/${BRANCH}`)).toBe(sha(worktree, "HEAD"));
 			expect(sha(remote, "refs/heads/main")).toBe(trunk);
@@ -87,14 +87,36 @@ describe("pushing a work branch", () => {
 			});
 
 			git("-C", worktree, "commit", "-q", "--amend", "-m", "re-sounded");
-			yield* pushBranch(worktree, BRANCH);
+			yield* pushBranch(worktree, BRANCH, sha(worktree, "HEAD"));
 			expect(sha(remote, `refs/heads/${BRANCH}`)).toBe(sha(worktree, "HEAD"));
+		}).pipe(Effect.provide(NodeServices.layer)),
+	);
+
+	it.live("pushes the prepared commit when the berth advances afterward", () =>
+		Effect.gen(function* () {
+			const root = yield* tempRoot;
+			const remote = seedRemote(root);
+			const mirror = join(root, "mirror.git");
+			const worktree = join(root, "berth");
+			yield* cloneMirror(remote, mirror);
+			yield* refreshMirror(mirror);
+			yield* addWorktree(mirror, worktree, BRANCH, "main");
+			commitInto(worktree, "prepared.md", "prepared snapshot");
+			const preparedHeadSha = sha(worktree, "HEAD");
+			commitInto(worktree, "later.md", "later work");
+
+			yield* pushBranch(worktree, BRANCH, preparedHeadSha);
+
+			expect(sha(remote, `refs/heads/${BRANCH}`)).toBe(preparedHeadSha);
+			expect(sha(worktree, "HEAD")).not.toBe(preparedHeadSha);
 		}).pipe(Effect.provide(NodeServices.layer)),
 	);
 
 	it.effect("refuses any branch outside work/ without spawning git", () =>
 		Effect.gen(function* () {
-			const refused = yield* Effect.flip(pushBranch("/berth", "main"));
+			const refused = yield* Effect.flip(
+				pushBranch("/berth", "main", "deadbeef"),
+			);
 			expect(refused._tag).toBe("GitPushRefused");
 			expect(refused.message).toContain("main");
 		}).pipe(Effect.provide(forbiddenSpawner)),

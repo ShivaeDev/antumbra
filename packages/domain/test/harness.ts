@@ -43,6 +43,14 @@ export const makeScriptedRunner = Effect.gen(function* () {
 		root: `/tmp/moorage/${request.agentId}`,
 	});
 	const runner: Runner = {
+		captureChange: (berth) =>
+			Effect.succeed({
+				branch: berth.branch,
+				headSha: `sha-${berth.branch}`,
+				workingDiff: "",
+				workingTreeStatus: "",
+				worktreePath: berth.path,
+			}),
 		capabilities: { liveTerminal: false },
 		plan,
 		provision: (provisionPlan) =>
@@ -163,6 +171,14 @@ export const callTool = (
 	);
 
 export const passiveRunner: Runner = {
+	captureChange: (berth) =>
+		Effect.succeed({
+			branch: berth.branch,
+			headSha: `sha-${berth.branch}`,
+			workingDiff: "",
+			workingTreeStatus: "",
+			worktreePath: berth.path,
+		}),
 	capabilities: { liveTerminal: false },
 	plan: (request) => ({
 		berths: [],

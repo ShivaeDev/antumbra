@@ -8,6 +8,7 @@ import type {
 } from "@antumbra/plugin-api";
 import { Effect } from "effect";
 import { ensureDirectory, pathExists } from "#adapters/fs.ts";
+import { captureChange } from "#change-evidence.ts";
 import { ensureMirror } from "#mirrors.ts";
 import { berthSlug, mirrorName, workBranch } from "#naming.ts";
 import {
@@ -76,6 +77,7 @@ const provisionInto = (roots: LocalRunnerRoots, plan: MooragePlan) =>
 	);
 
 export const makeLocalRunner = (roots: LocalRunnerRoots): Runner => ({
+	captureChange,
 	capabilities: { liveTerminal: false },
 	plan: (request) => planMoorage(roots, request),
 	provision: (plan) =>

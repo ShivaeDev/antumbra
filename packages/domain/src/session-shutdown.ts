@@ -46,7 +46,7 @@ const requireSucceeded = (
 					),
 	});
 
-export const drainActiveSessions = Effect.gen(function* () {
+const drainOpenSessions = Effect.gen(function* () {
 	const db = yield* Database;
 	const domain = yield* AgentDomain;
 	const feeds = yield* DomainFeeds;
@@ -133,3 +133,10 @@ export const drainActiveSessions = Effect.gen(function* () {
 		);
 	}
 });
+
+export const drainActiveSessions = AgentDomain.use((domain) =>
+	domain.closeSessionStarts.pipe(
+		Effect.andThen(drainOpenSessions),
+		Effect.onError(() => domain.reopenSessionStarts),
+	),
+);

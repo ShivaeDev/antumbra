@@ -15,6 +15,38 @@ const options: OpenSessionOptions = {
 	tools: [],
 };
 
+it.live(
+	"reopen releases a start already waiting on its closed generation",
+	() =>
+		Effect.scoped(
+			Effect.gen(function* () {
+				const fabric = yield* makeSessionFabric;
+				const attempted = yield* Deferred.make<void>();
+				const admitted = yield* Deferred.make<void>();
+				yield* fabric.closeStarts;
+				const waiting = yield* Deferred.succeed(attempted, undefined).pipe(
+					Effect.andThen(
+						fabric.withStartAdmission(() =>
+							Deferred.succeed(admitted, undefined),
+						),
+					),
+					Effect.forkChild,
+				);
+				yield* Deferred.await(attempted);
+				// why: after the synchronized attempt, the closed admission Deferred is
+				// the child fiber's only possible suspension point.
+				yield* Effect.yieldNow;
+				yield* Effect.yieldNow;
+				expect(waiting.pollUnsafe()).toBeUndefined();
+				expect(yield* Deferred.isDone(admitted)).toBe(false);
+
+				yield* fabric.reopenStarts;
+				yield* Fiber.join(waiting);
+				expect(yield* Deferred.isDone(admitted)).toBe(true);
+			}),
+		),
+);
+
 it.live("concurrent starts attach one backend handle per session", () =>
 	Effect.scoped(
 		Effect.gen(function* () {
@@ -45,20 +77,26 @@ it.live("concurrent starts attach one backend handle per session", () =>
 			};
 			const fabric = yield* makeSessionFabric;
 			const first = yield* fabric
-				.start(
-					backend,
-					options,
-					() => Effect.succeed(true),
-					() => Effect.void,
+				.withStartAdmission((permit) =>
+					fabric.start(
+						permit,
+						backend,
+						options,
+						() => Effect.succeed(true),
+						() => Effect.void,
+					),
 				)
 				.pipe(Effect.forkChild);
 			yield* Deferred.await(firstEntered);
 			const second = yield* fabric
-				.start(
-					backend,
-					options,
-					() => Effect.succeed(true),
-					() => Effect.void,
+				.withStartAdmission((permit) =>
+					fabric.start(
+						permit,
+						backend,
+						options,
+						() => Effect.succeed(true),
+						() => Effect.void,
+					),
 				)
 				.pipe(Effect.forkChild);
 			// why: reaching either suspension point proves both starts overlapped.
@@ -99,11 +137,14 @@ it.live(
 				};
 				const fabric = yield* makeSessionFabric;
 				const failure = yield* Effect.flip(
-					fabric.start(
-						backend,
-						options,
-						() => Effect.succeed(false),
-						(attachment) => attachment.openedNativeRef.pipe(Effect.asVoid),
+					fabric.withStartAdmission((permit) =>
+						fabric.start(
+							permit,
+							backend,
+							options,
+							() => Effect.succeed(false),
+							(attachment) => attachment.openedNativeRef.pipe(Effect.asVoid),
+						),
 					),
 				);
 				expect(failure).toBeInstanceOf(SessionAttachmentFailure);
@@ -149,11 +190,14 @@ it.live("stop interrupts admission, closes once, and leaves retry fresh", () =>
 			};
 			const fabric = yield* makeSessionFabric;
 			const starting = yield* fabric
-				.start(
-					backend,
-					options,
-					() => Effect.succeed(true),
-					(attachment) => attachment.handle.queue("recover"),
+				.withStartAdmission((permit) =>
+					fabric.start(
+						permit,
+						backend,
+						options,
+						() => Effect.succeed(true),
+						(attachment) => attachment.handle.queue("recover"),
+					),
 				)
 				.pipe(Effect.forkChild);
 			yield* Deferred.await(queueEntered);
@@ -164,11 +208,14 @@ it.live("stop interrupts admission, closes once, and leaves retry fresh", () =>
 			expect(yield* Ref.get(queued)).toBe(false);
 
 			yield* Deferred.succeed(release, undefined);
-			yield* fabric.start(
-				backend,
-				options,
-				() => Effect.succeed(true),
-				(attachment) => attachment.handle.queue("retry"),
+			yield* fabric.withStartAdmission((permit) =>
+				fabric.start(
+					permit,
+					backend,
+					options,
+					() => Effect.succeed(true),
+					(attachment) => attachment.handle.queue("retry"),
+				),
 			);
 			expect(yield* Ref.get(opens)).toBe(2);
 			expect(yield* Ref.get(queued)).toBe(true);

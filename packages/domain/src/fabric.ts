@@ -13,20 +13,37 @@ import {
 	type SessionAttachment,
 } from "#session-attachment.ts";
 import { makeSessionLifecycles } from "#session-lifecycle.ts";
+import { makeSessionStartAdmission } from "#session-start-admission.ts";
 
 export type { EventSink, SessionAttachment } from "#session-attachment.ts";
 
+const SessionStartPermitTypeId = Symbol("@antumbra/domain/SessionStartPermit");
+
+export interface SessionStartPermit {
+	readonly [SessionStartPermitTypeId]: true;
+}
+
+const sessionStartPermit: SessionStartPermit = {
+	[SessionStartPermitTypeId]: true,
+};
+
 export interface SessionFabricService {
+	readonly closeStarts: Effect.Effect<void>;
 	readonly interrupt: (
 		sessionId: string,
 	) => Effect.Effect<void, BackendFailure | SessionNotLive>;
 	readonly start: <E, R>(
+		permit: SessionStartPermit,
 		backend: AgentBackend,
 		options: OpenSessionOptions,
 		sink: EventSink,
 		admit: (attachment: SessionAttachment) => Effect.Effect<void, E, R>,
 	) => Effect.Effect<void, BackendFailure | SessionAttachmentFailure | E, R>;
+	readonly reopenStarts: Effect.Effect<void>;
 	readonly stop: (sessionId: string) => Effect.Effect<void>;
+	readonly withStartAdmission: <A, E, R>(
+		use: (permit: SessionStartPermit) => Effect.Effect<A, E, R>,
+	) => Effect.Effect<A, E, R>;
 }
 
 export class SessionFabric extends Context.Service<
@@ -42,6 +59,7 @@ export const makeSessionFabric = Effect.gen(function* () {
 		new Map(),
 	);
 	const lifecycles = yield* makeSessionLifecycles;
+	const startAdmission = yield* makeSessionStartAdmission;
 	const removeEntry = (sessionId: string) =>
 		Effect.gen(function* () {
 			const entry = yield* Ref.modify(entries, (map) => {
@@ -68,6 +86,7 @@ export const makeSessionFabric = Effect.gen(function* () {
 		}),
 	);
 	const start: SessionFabricService["start"] = (
+		_permit,
 		backend,
 		options,
 		sink,
@@ -101,7 +120,15 @@ export const makeSessionFabric = Effect.gen(function* () {
 		});
 	const stop: SessionFabricService["stop"] = (sessionId) =>
 		lifecycles.stop(sessionId, removeEntry(sessionId));
-	return { interrupt, start, stop } satisfies SessionFabricService;
+	return {
+		closeStarts: startAdmission.close,
+		interrupt,
+		reopenStarts: startAdmission.reopen,
+		start,
+		stop,
+		withStartAdmission: (use) =>
+			startAdmission.run(Effect.suspend(() => use(sessionStartPermit))),
+	} satisfies SessionFabricService;
 });
 
 export const SessionFabricLive = Layer.effect(SessionFabric)(makeSessionFabric);

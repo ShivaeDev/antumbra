@@ -11,6 +11,7 @@ import {
 	makeScriptedBackend,
 	makeScriptedRunner,
 } from "#test/harness.ts";
+import { eventually } from "#test/session-recovery-fixture.ts";
 
 const payload: SpawnFields = {
 	agentId: "agent-cancel",
@@ -93,4 +94,47 @@ it.live(
 				),
 			);
 		}),
+);
+
+it.live("explicit cancel settles a spawn waiting behind closed admission", () =>
+	Effect.gen(function* () {
+		const temporary = yield* acquireTemporaryPersistence;
+		const scripted = yield* makeScriptedBackend;
+		const recorded = yield* makeScriptedRunner;
+		yield* Effect.gen(function* () {
+			const db = yield* Database;
+			const kernel = yield* Kernel;
+			const domain = yield* AgentDomain;
+			yield* domain.closeSessionStarts;
+			const submission = yield* kernel.submit(domain.spawn, payload);
+			yield* eventually(
+				Effect.gen(function* () {
+					expect(yield* recorded.provisioned).toHaveLength(1);
+				}),
+			);
+			yield* Effect.yieldNow;
+			yield* Effect.yieldNow;
+			expect(
+				Option.getOrThrow(
+					yield* db.Agent.where({ id: payload.agentId }).first(),
+				).status,
+			).toBe("spawning");
+			expect(yield* db.AgentSession.all()).toHaveLength(0);
+			expect(yield* scripted.opened).toHaveLength(0);
+
+			yield* kernel.cancel(submission.id);
+			expect(yield* untilTerminal(submission.changes)).toBe("cancelled");
+			expect(
+				Option.getOrThrow(
+					yield* db.Agent.where({ id: payload.agentId }).first(),
+				).status,
+			).toBe("dormant");
+			expect(yield* db.AgentSession.all()).toHaveLength(0);
+			expect(yield* scripted.opened).toHaveLength(0);
+		}).pipe(
+			Effect.provide(
+				domainKernelLayer(temporary, scripted.backend, {}, recorded.runner),
+			),
+		);
+	}),
 );

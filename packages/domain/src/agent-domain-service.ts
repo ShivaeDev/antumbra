@@ -24,6 +24,7 @@ export class AgentDomain extends Context.Service<
 		readonly backends: ReadonlyArray<string>;
 		readonly boards: BoardsService;
 		readonly changes: ChangeProcedures;
+		readonly closeSessionStarts: Effect.Effect<void>;
 		readonly gauges: Readonly<
 			Record<
 				string,
@@ -37,6 +38,7 @@ export class AgentDomain extends Context.Service<
 		readonly repos: RepoRegistry;
 		readonly retryResourceReclaim: Effect.Effect<void>;
 		readonly recover: IntentKind<RecoveryFields>;
+		readonly reopenSessionStarts: Effect.Effect<void>;
 		readonly retire: IntentKind<RetireFields>;
 		readonly siesta: IntentKind<SiestaFields>;
 		readonly spawn: IntentKind<SpawnFields>;

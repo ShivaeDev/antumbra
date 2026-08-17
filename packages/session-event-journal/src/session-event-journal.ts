@@ -1,28 +1,37 @@
-import type { StoredEvent } from "@antumbra/domain-feeds";
+import { DomainFeeds, type StoredEvent } from "@antumbra/domain-feeds";
 import { Database, type WriteExecutors, Writer } from "@antumbra/persistence";
 import type { AgentEvent } from "@antumbra/session-events";
-import { Effect, Option, PubSub } from "effect";
-import { SessionIdentityMissing } from "#errors.ts";
-import type { EventSink } from "#fabric.ts";
+import { Context, Data, Effect, Layer, Option, PubSub } from "effect";
 
-// why: the minted sink runs inside intent fibers where R must be never, so
-// the factory captures the write lane once.
-export const makeEventSinkFactory = (feed: PubSub.PubSub<StoredEvent>) =>
+class SessionIdentityMissing extends Data.TaggedError(
+	"SessionIdentityMissing",
+)<{
+	readonly sessionId: string;
+}> {}
+
+export class SessionEventJournal extends Context.Service<
+	SessionEventJournal,
+	{
+		readonly record: (
+			sessionId: string,
+			event: AgentEvent,
+		) => Effect.Effect<boolean>;
+	}
+>()("@antumbra/session-event-journal/SessionEventJournal") {}
+
+export const SessionEventJournalLive = Layer.effect(
+	SessionEventJournal,
 	Effect.gen(function* () {
 		const db = yield* Database;
+		const feeds = yield* DomainFeeds;
 		const writer = yield* Writer;
 		const executors = yield* Effect.context<WriteExecutors>();
-
-		// why: the backend's own id arrives as an event, so the row that resume
-		// reads is written by the same pump that writes the log — no second path.
 		const recordNativeRef = (sessionId: string, event: AgentEvent) => {
 			if (event.type !== "session.opened") {
 				return Effect.void;
 			}
 			return Effect.gen(function* () {
-				const session = yield* db.AgentSession.where({
-					id: sessionId,
-				}).first();
+				const session = yield* db.AgentSession.where({ id: sessionId }).first();
 				if (Option.isNone(session)) {
 					return yield* new SessionIdentityMissing({ sessionId });
 				}
@@ -42,7 +51,6 @@ export const makeEventSinkFactory = (feed: PubSub.PubSub<StoredEvent>) =>
 				}
 			}).pipe(Effect.asVoid);
 		};
-
 		const appendAndAnnounce = (sessionId: string, event: AgentEvent) =>
 			Effect.gen(function* () {
 				const stored = yield* writer.write(
@@ -68,11 +76,10 @@ export const makeEventSinkFactory = (feed: PubSub.PubSub<StoredEvent>) =>
 						return row;
 					}),
 				);
-				yield* PubSub.publish(feed, stored);
+				yield* PubSub.publish(feeds.events, stored);
 			});
-
-		const makeSink = (sessionId: string): EventSink => {
-			return (event) =>
+		return {
+			record: (sessionId, event) =>
 				appendAndAnnounce(sessionId, event).pipe(
 					Effect.provideContext(executors),
 					Effect.as(true),
@@ -83,8 +90,7 @@ export const makeEventSinkFactory = (feed: PubSub.PubSub<StoredEvent>) =>
 							Effect.as(false),
 						),
 					),
-				);
+				),
 		};
-
-		return (sessionId: string) => Effect.succeed(makeSink(sessionId));
-	});
+	}),
+);

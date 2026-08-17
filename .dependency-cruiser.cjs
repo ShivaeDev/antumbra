@@ -53,6 +53,12 @@ const capabilityPackages = [
 			"Repos owns the application repository registry. It may write through persistence and publish through domain-feeds, but it never reaches up into the domain facade, ports, adapters, or app.",
 		name: "repos",
 	},
+	{
+		allowed: ["session-events", "persistence", "domain-feeds"],
+		rationale:
+			"The Session event journal owns durable event sequencing and native Session identity correlation. It may speak the neutral Session event vocabulary, write through persistence, and publish through domain-feeds, but it never reaches up into the domain facade, ports, adapters, or app.",
+		name: "session-event-journal",
+	},
 ];
 
 const capabilityRule = ({ allowed, name, rationale }) =>

@@ -46,6 +46,7 @@ obligation remains detached until needed. See
 | `packages/board-vocabulary` | Board register and owner-kind vocabulary (a leaf)                |
 | `packages/change-vocabulary` | Neutral Change and PieceChange vocabulary (a leaf)           |
 | `packages/session-events` | The neutral session-event vocabulary every side speaks (a leaf) |
+| `packages/session-event-journal` | Durable Session event sequencing and native identity correlation |
 | `packages/plugin-api`     | The driven ports: agent backends, runners, plugin registration  |
 | `packages/agent-tools`    | The tools agents act through: schemas and binding, no transport |
 | `packages/kernel`         | Intents, admission scheduling, lifecycle state machines         |

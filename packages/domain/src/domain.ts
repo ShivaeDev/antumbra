@@ -4,6 +4,7 @@ import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database, type WriteExecutors, Writer } from "@antumbra/persistence";
 import type { AgentBackend, ChangeHost, Runner } from "@antumbra/plugin-api";
 import { Repos } from "@antumbra/repos";
+import { SessionEventJournal } from "@antumbra/session-event-journal";
 import { Effect, Layer } from "effect";
 import { AGENTS_ALIVE_GAUGE, AgentDomain } from "#agent-domain-service.ts";
 import { makeCaptainToolCompiler } from "#captain-tools.ts";
@@ -11,8 +12,7 @@ import { ChangeProcedureService } from "#change-procedures.ts";
 import { makeCrewToolCompiler } from "#crew-tools.ts";
 import type { AgentDeps } from "#deps.ts";
 import { domainCapabilities } from "#domain-capabilities.ts";
-import { makeEventSinkFactory } from "#events.ts";
-import { SessionFabric, SessionFabricLive } from "#fabric.ts";
+import { type EventSink, SessionFabric, SessionFabricLive } from "#fabric.ts";
 import {
 	type ResourceReconcileOptions,
 	ResourceReconciler,
@@ -54,7 +54,9 @@ export const AgentDomainLive = (
 			const executors = yield* Effect.context<WriteExecutors>();
 			const fabric = yield* SessionFabric;
 			const feeds = yield* DomainFeeds;
-			const sinkFor = yield* makeEventSinkFactory(feeds.events);
+			const journal = yield* SessionEventJournal;
+			const sinkFor = (sessionId: string): Effect.Effect<EventSink> =>
+				Effect.succeed((event) => journal.record(sessionId, event));
 			const resourceReconciler = yield* ResourceReconciler;
 			const voyages = yield* VoyageProcedureService;
 			const deps: AgentDeps = {

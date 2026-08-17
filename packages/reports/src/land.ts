@@ -11,8 +11,10 @@ const writeReport = (row: ReportRow, pieceId: string) =>
 		// checked inside that transaction, so neither an orphan nor false done state
 		// can become durable.
 		yield* verifyPieceExists(pieceId);
-		yield* db.Report.create(row);
-		yield* db.PieceReport.create({ pieceId, reportId: row.id });
+		yield* db.Report.create({
+			...row,
+			pieces: (pieces) => pieces.create({ pieceId }),
+		});
 	});
 
 export const landReport = (input: ReportInput) =>

@@ -2,6 +2,7 @@ import {
 	existsSync,
 	mkdirSync,
 	mkdtempSync,
+	readdirSync,
 	rmSync,
 	symlinkSync,
 	writeFileSync,
@@ -11,13 +12,20 @@ import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { Artifacts, ArtifactsLive } from "@antumbra/artifacts";
 import { DomainFeeds, DomainFeedsLive } from "@antumbra/domain-feeds";
-import type { DatabaseService } from "@antumbra/persistence";
-import { persistenceIt } from "@antumbra/persistence/testing";
+import { Database, type DatabaseService } from "@antumbra/persistence";
+import {
+	persistenceIt,
+	rejectTestOutcomeLinks,
+	temporaryPersistence,
+} from "@antumbra/persistence/testing";
 import { NodeServices } from "@effect/platform-node";
 import { expect } from "@effect/vitest";
 import { Effect, Layer, PubSub } from "effect";
 
 const it = persistenceIt();
+const rejectedLinkPersistence = temporaryPersistence();
+
+it.afterAll(rejectedLinkPersistence.remove);
 
 const piece = {
 	charter: "draw the reef",
@@ -203,3 +211,41 @@ it.effectDB("refuses an orphan artifact without publishing", function* (db) {
 		),
 	);
 });
+
+it.effect(
+	"keeps published bytes but rolls back an Artifact whose Piece link is rejected",
+	() =>
+		withArtifacts((moorage, published) =>
+			Effect.scoped(
+				Effect.gen(function* () {
+					const db = yield* Database;
+					const artifacts = yield* Artifacts;
+					const feeds = yield* DomainFeeds;
+					const notices = yield* PubSub.subscribe(feeds.voyages);
+					yield* seed(db, moorage);
+					writeFileSync(join(moorage, "reef.svg"), "<svg>reef</svg>");
+					yield* Effect.sync(() =>
+						rejectTestOutcomeLinks(
+							rejectedLinkPersistence.database,
+							"artifact",
+						),
+					);
+
+					const failure = yield* Effect.flip(
+						artifacts.land({
+							authorAgentId: agent.id,
+							pieceId: piece.id,
+							title: "rejected reef chart",
+							uri: "reef.svg",
+						}),
+					);
+
+					expect(failure._tag).toBe("PrismaError");
+					expect(yield* db.Artifact.all()).toEqual([]);
+					expect(yield* db.PieceArtifact.all()).toEqual([]);
+					expect(yield* PubSub.takeUpTo(notices, 1)).toEqual([]);
+					expect(readdirSync(published)).toHaveLength(1);
+				}),
+			),
+		).pipe(Effect.provide(rejectedLinkPersistence.layer)),
+);

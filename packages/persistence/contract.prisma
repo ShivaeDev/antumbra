@@ -111,6 +111,8 @@ model Piece {
   launchedAt  DateTime?
   parkedAt    DateTime?
   createdAt   DateTime  @default(now())
+  reports     PieceReport[]
+  artifacts   PieceArtifact[]
 }
 
 model VoyagePiece {
@@ -154,6 +156,7 @@ model Report {
   title         String
   body          String
   createdAt     DateTime @default(now())
+  pieces        PieceReport[]
 }
 
 model Artifact {
@@ -162,11 +165,14 @@ model Artifact {
   title         String
   uri           String
   createdAt     DateTime @default(now())
+  pieces        PieceArtifact[]
 }
 
 model PieceReport {
   pieceId  String
   reportId String
+  piece    Piece  @relation(fields: [pieceId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  report   Report @relation(fields: [reportId], references: [id], onDelete: Restrict, onUpdate: Restrict)
 
   @@id([pieceId, reportId])
 }
@@ -174,6 +180,8 @@ model PieceReport {
 model PieceArtifact {
   pieceId    String
   artifactId String
+  piece      Piece    @relation(fields: [pieceId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  artifact   Artifact @relation(fields: [artifactId], references: [id], onDelete: Restrict, onUpdate: Restrict)
 
   @@id([pieceId, artifactId])
 }

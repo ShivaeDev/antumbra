@@ -1,18 +1,15 @@
-import { ArtifactsLive } from "@antumbra/artifacts";
-import { Boards, BoardsLive } from "@antumbra/boards";
-import { DomainFeeds, DomainFeedsLive } from "@antumbra/domain-feeds";
+import { Boards } from "@antumbra/boards";
+import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database, type WriteExecutors, Writer } from "@antumbra/persistence";
-import { PiecesLive } from "@antumbra/pieces";
 import type { AgentBackend, ChangeHost, Runner } from "@antumbra/plugin-api";
-import { ReportsLive } from "@antumbra/reports";
 import { Deferred, Effect, Layer, Option } from "effect";
 import { AGENTS_ALIVE_GAUGE, AgentDomain } from "#agent-domain-service.ts";
 import { sweepBerths } from "#berth-sweep.ts";
 import { makeCaptainToolCompiler } from "#captain-tools.ts";
 import { makeChangeProcedureCompiler } from "#change-procedures.ts";
-import { ChangeSubmissionsLive } from "#change-submissions/change-submissions.ts";
 import { makeCrewToolCompiler } from "#crew-tools.ts";
 import type { AgentDeps, KernelReach } from "#deps.ts";
+import { domainCapabilities } from "#domain-capabilities.ts";
 import { makeEventSinkFactory } from "#events.ts";
 import { makeSessionFabric, type SessionAttachment } from "#fabric.ts";
 import { makeRepoRegistry } from "#registry.ts";
@@ -49,14 +46,10 @@ export const AgentDomainLive = (
 	changeHosts: ReadonlyMap<string, ChangeHost>,
 	artifactsDirectory: string,
 ) => {
-	const outcomes = Layer.mergeAll(
-		PiecesLive,
-		BoardsLive,
-		ArtifactsLive(artifactsDirectory),
-		ReportsLive,
-	).pipe(Layer.provideMerge(DomainFeedsLive));
-	const capabilities = ChangeSubmissionsLive(changeHosts, runners).pipe(
-		Layer.provideMerge(outcomes),
+	const capabilities = domainCapabilities(
+		changeHosts,
+		runners,
+		artifactsDirectory,
 	);
 	return Layer.effect(AgentDomain)(
 		Effect.gen(function* () {

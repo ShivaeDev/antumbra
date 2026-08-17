@@ -69,7 +69,7 @@ export const AgentDomainLive = (
 				writer,
 			};
 			const makeSpawn = yield* makeSpawnKind;
-			const makeRetire = yield* makeRetireKind;
+			const retire = yield* makeRetireKind;
 			const compileCaptainTools = yield* makeCaptainToolCompiler;
 			const compileCrewTools = yield* makeCrewToolCompiler;
 			const spawn = makeSpawn(deps);
@@ -96,7 +96,6 @@ export const AgentDomainLive = (
 				),
 				Effect.provideContext(executors),
 			);
-			const retire = makeRetire(deps);
 			const siesta = yield* makeSiestaKind;
 			return {
 				backends: [...backends.keys()],

@@ -2,6 +2,7 @@ import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database, type WriteExecutors, Writer } from "@antumbra/persistence";
 import type { Runner } from "@antumbra/plugin-api";
 import { Context, Effect, Layer, Queue, Semaphore } from "effect";
+import { pump } from "#feed-pump.ts";
 import { runResourceReclaimPass } from "#resource-reclaim-pass.ts";
 
 export interface ResourceReconcileOptions {
@@ -72,6 +73,7 @@ export const ResourceReconcilerLive = (
 			// why: boot waits for the first pass, so kernel admission never starts
 			// against a durable claim that only a later background fiber would see.
 			yield* reconcile;
+			yield* Effect.forkScoped(pump(feeds.resourceReclaim, tick));
 			yield* Effect.forkScoped(
 				cadenceLoop(reconcile, tick, options.cadenceMillis),
 			);

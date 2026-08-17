@@ -3,7 +3,7 @@ import { Database, Writer } from "@antumbra/persistence";
 import { Effect, PubSub } from "effect";
 import { plannedEdges, writeEdges } from "#edges.ts";
 import type { CharterInput, PieceRow } from "#model.ts";
-import { requireVoyage } from "#rows.ts";
+import { verifyVoyageExists } from "#rows.ts";
 
 export const charter = (input: CharterInput) =>
 	Effect.gen(function* () {
@@ -22,7 +22,7 @@ export const charter = (input: CharterInput) =>
 		};
 		yield* writer.write(
 			Effect.gen(function* () {
-				yield* requireVoyage(input.voyageId);
+				yield* verifyVoyageExists(input.voyageId);
 				const edges = yield* plannedEdges(pieceId, input.dependsOn);
 				yield* db.Piece.create(row);
 				yield* db.VoyagePiece.create({

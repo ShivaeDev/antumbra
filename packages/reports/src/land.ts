@@ -1,6 +1,6 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database, Writer } from "@antumbra/persistence";
-import { requirePiece } from "@antumbra/pieces";
+import { verifyPieceExists } from "@antumbra/pieces";
 import { Effect, PubSub } from "effect";
 import type { ReportInput, ReportRow } from "#model.ts";
 
@@ -10,7 +10,7 @@ const writeReport = (row: ReportRow, pieceId: string) =>
 		// why: an outcome and its piece link are one transaction, with existence
 		// checked inside that transaction, so neither an orphan nor false done state
 		// can become durable.
-		yield* requirePiece(pieceId);
+		yield* verifyPieceExists(pieceId);
 		yield* db.Report.create(row);
 		yield* db.PieceReport.create({ pieceId, reportId: row.id });
 	});

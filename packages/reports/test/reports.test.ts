@@ -63,7 +63,10 @@ it.effectDB("refuses an orphan report without publishing", function* (db) {
 				}),
 			);
 
-			expect(failure).toMatchObject({ _tag: "PieceNotFound" });
+			expect(failure).toMatchObject({
+				_tag: "PieceNotFound",
+				pieceId: "missing",
+			});
 			expect(yield* db.Report.all()).toEqual([]);
 			expect(yield* db.PieceReport.all()).toEqual([]);
 			expect(yield* PubSub.takeUpTo(notices, 1)).toEqual([]);

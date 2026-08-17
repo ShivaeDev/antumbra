@@ -30,7 +30,7 @@ export const prepareChange = (input: SubmitChangeInput, proposal?: Proposal) =>
 		const pieces = yield* Pieces;
 		const runners = yield* RunnerRegistry;
 		const writer = yield* Writer;
-		yield* pieces.require(input.pieceId);
+		yield* pieces.verifyExists(input.pieceId);
 		const repo = yield* repoNamed(input.repoName);
 		const key = submissionKey(input.agentId, repo.id);
 		const linked = yield* writer.write(

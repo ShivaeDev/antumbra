@@ -2,7 +2,7 @@ import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Writer } from "@antumbra/persistence";
 import { Effect, PubSub } from "effect";
 import { plannedEdges, writeEdges } from "#edges.ts";
-import { requirePiece } from "#rows.ts";
+import { verifyPieceExists } from "#rows.ts";
 
 export const setDependencies = (
 	pieceId: string,
@@ -13,7 +13,7 @@ export const setDependencies = (
 		const writer = yield* Writer;
 		yield* writer.write(
 			Effect.gen(function* () {
-				yield* requirePiece(pieceId);
+				yield* verifyPieceExists(pieceId);
 				const edges = yield* plannedEdges(pieceId, dependsOn);
 				yield* writeEdges(pieceId, edges);
 			}),

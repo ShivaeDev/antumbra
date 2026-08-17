@@ -36,7 +36,7 @@ export const adoptSubmittedChange = (input: AdoptChangeInput) =>
 		const feeds = yield* DomainFeeds;
 		const pieces = yield* Pieces;
 		const writer = yield* Writer;
-		yield* pieces.require(input.pieceId);
+		yield* pieces.verifyExists(input.pieceId);
 		const repo = yield* repoNamed(input.repoName);
 		const host = yield* claimingHost(repo);
 		const capability = yield* host.capability;

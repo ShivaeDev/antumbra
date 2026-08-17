@@ -50,12 +50,28 @@ it.live(
 		withHost((scripted) =>
 			Effect.gen(function* () {
 				const db = yield* Database;
+				const domain = yield* AgentDomain;
 				const { piece, repo } = yield* reefWithPiece;
 
 				const noPiece = yield* Effect.flip(
 					openedChange("no-such-piece", repo.name),
 				);
-				expect(noPiece._tag).toBe("PieceNotFound");
+				expect(noPiece).toMatchObject({
+					_tag: "PieceNotFound",
+					pieceId: "no-such-piece",
+				});
+				const noPieceAdoption = yield* Effect.flip(
+					domain.changes.adopt({
+						agentId: CREW,
+						pieceId: "no-such-piece",
+						repoName: repo.name,
+						url: "https://scripted.test/changes/77",
+					}),
+				);
+				expect(noPieceAdoption).toMatchObject({
+					_tag: "PieceNotFound",
+					pieceId: "no-such-piece",
+				});
 
 				const noRepo = yield* Effect.flip(openedChange(piece.id, "shoals"));
 				expect(noRepo._tag).toBe("RepoNotFound");
@@ -65,6 +81,7 @@ it.live(
 				expect(noBerth._tag).toBe("BerthNotFound");
 				expect(noBerth.message).toContain("reef");
 
+				expect(yield* scripted.drive.adopted).toEqual([]);
 				expect(yield* scripted.drive.opened).toEqual([]);
 				expect(yield* db.Change.all()).toEqual([]);
 			}),

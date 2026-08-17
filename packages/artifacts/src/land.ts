@@ -1,7 +1,7 @@
 import { decodeStoredMoorageStatus } from "@antumbra/agent-runtime-vocabulary";
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database, Writer } from "@antumbra/persistence";
-import { requirePiece } from "@antumbra/pieces";
+import { verifyPieceExists } from "@antumbra/pieces";
 import { Crypto, Effect, Option, PubSub } from "effect";
 import { ArtifactSourceNotOwned, artifactPublicationFailed } from "#errors.ts";
 import type {
@@ -44,7 +44,7 @@ const writeArtifact = (
 ) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
-		yield* requirePiece(pieceId);
+		yield* verifyPieceExists(pieceId);
 		yield* requireCurrentMoorage(publication);
 		yield* db.Artifact.create(row);
 		yield* db.PieceArtifact.create({ artifactId: row.id, pieceId });

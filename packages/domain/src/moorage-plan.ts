@@ -7,6 +7,7 @@ import { Database, type WriteExecutors, Writer } from "@antumbra/persistence";
 import type { MooragePlan, Runner } from "@antumbra/plugin-api";
 import { Effect, Option, PubSub } from "effect";
 import { MooragePlanConflict } from "#errors.ts";
+import { ensureAgentResourcesUnclaimed } from "#resource-reclaim-guard.ts";
 import type { SpawnFields } from "#spawn.ts";
 
 interface StoredBerthPlan {
@@ -38,11 +39,14 @@ export const makePrepareMoorage = Effect.gen(function* () {
 	const executors = yield* Effect.context<WriteExecutors>();
 	const provide = <A, E>(effect: Effect.Effect<A, E, WriteExecutors>) =>
 		Effect.provideContext(effect, executors);
+	const ensureUnclaimed = (agentId: string) =>
+		ensureAgentResourcesUnclaimed(agentId).pipe(
+			Effect.provideService(Database, db),
+		);
 	const loadPlan = (payload: SpawnFields) =>
 		Effect.gen(function* () {
-			const row = yield* provide(
-				db.Moorage.where({ agentId: payload.agentId }).first(),
-			);
+			yield* ensureUnclaimed(payload.agentId);
+			const row = yield* db.Moorage.where({ agentId: payload.agentId }).first();
 			if (Option.isNone(row)) {
 				return Option.none<MooragePlan>();
 			}
@@ -55,11 +59,9 @@ export const makePrepareMoorage = Effect.gen(function* () {
 			yield* Effect.fromResult(
 				decodeStoredMoorageStatus(row.value.agentId, row.value.status),
 			);
-			const berths = yield* provide(
-				db.Berth.where({ agentId: payload.agentId })
-					.orderBy((berth) => berth.createdAt.asc())
-					.all(),
-			);
+			const berths = yield* db.Berth.where({ agentId: payload.agentId })
+				.orderBy((berth) => berth.createdAt.asc())
+				.all();
 			yield* Effect.forEach(berths, (berth) =>
 				Effect.fromResult(decodeStoredBerthStatus(berth.id, berth.status)),
 			);
@@ -68,6 +70,7 @@ export const makePrepareMoorage = Effect.gen(function* () {
 	const persistPlan = (payload: SpawnFields, plan: MooragePlan) =>
 		db.Moorage.create({
 			agentId: payload.agentId,
+			reclaimState: null,
 			root: plan.root,
 			runner: payload.runner,
 			status: "provisioning",
@@ -79,6 +82,7 @@ export const makePrepareMoorage = Effect.gen(function* () {
 						branch: berth.branch,
 						id: `${payload.agentId}:${berth.slug}`,
 						path: berth.path,
+						reclaimState: null,
 						ref: berth.ref,
 						runner: payload.runner,
 						slug: berth.slug,
@@ -91,7 +95,7 @@ export const makePrepareMoorage = Effect.gen(function* () {
 		);
 	return (payload: SpawnFields, runner: Runner) =>
 		Effect.gen(function* () {
-			const stored = yield* loadPlan(payload);
+			const stored = yield* provide(writer.write(loadPlan(payload)));
 			if (Option.isSome(stored)) {
 				return stored.value;
 			}
@@ -105,7 +109,13 @@ export const makePrepareMoorage = Effect.gen(function* () {
 					source: repo.source,
 				})),
 			});
-			yield* provide(writer.write(persistPlan(payload, plan)));
+			yield* provide(
+				writer.write(
+					ensureUnclaimed(payload.agentId).pipe(
+						Effect.andThen(persistPlan(payload, plan)),
+					),
+				),
+			);
 			yield* PubSub.publish(feeds.fleet, undefined);
 			return plan;
 		});

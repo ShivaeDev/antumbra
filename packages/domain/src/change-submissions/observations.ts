@@ -1,9 +1,31 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
-import { Writer } from "@antumbra/persistence";
+import { Database, Writer } from "@antumbra/persistence";
 import type { ChangeObservation } from "@antumbra/plugin-api";
 import { Clock, Effect, Option, PubSub } from "effect";
 import type { ObservationAttachment } from "#change-submissions/observation-match.ts";
 import { reconcileObservation } from "#change-submissions/observation-projection.ts";
+import {
+	ensureAgentResourcesUnclaimed,
+	ensureBranchResourcesUnclaimed,
+} from "#resource-reclaim-guard.ts";
+
+const ensureObservationUnclaimed = (
+	observation: ChangeObservation,
+	attachment: ObservationAttachment,
+) =>
+	Effect.gen(function* () {
+		const db = yield* Database;
+		if (attachment._tag === "Claimed") {
+			yield* ensureAgentResourcesUnclaimed(attachment.agentId);
+		}
+		const repo = yield* db.Repo.where({ id: observation.repoId }).first();
+		if (Option.isSome(repo)) {
+			yield* ensureBranchResourcesUnclaimed(
+				repo.value.source,
+				observation.headRef,
+			);
+		}
+	});
 
 export const applyObservations = (
 	hostTag: string,
@@ -21,7 +43,11 @@ export const applyObservations = (
 			Effect.forEach(
 				observations,
 				(observation) =>
-					reconcileObservation(hostTag, observation, now, attachment),
+					ensureObservationUnclaimed(observation, attachment).pipe(
+						Effect.andThen(
+							reconcileObservation(hostTag, observation, now, attachment),
+						),
+					),
 				{ concurrency: 1 },
 			),
 		);

@@ -30,12 +30,13 @@ model Agent {
 }
 
 model Moorage {
-  agentId   String   @id
-  runner    String
-  root      String
-  status    String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now())
+  agentId      String   @id
+  runner       String
+  root         String
+  status       String
+  reclaimState String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @default(now())
 
   @@index([status])
 }
@@ -64,6 +65,7 @@ model Berth {
   branch     String
   path       String
   status     String
+  reclaimState String?
   strandedAt DateTime?
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @default(now())

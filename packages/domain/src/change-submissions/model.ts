@@ -1,3 +1,4 @@
+import type { StoredResourceReclaimStateInvalid } from "@antumbra/agent-runtime-vocabulary";
 import type { PrismaError } from "@antumbra/persistence";
 import type { PieceNotFound } from "@antumbra/pieces";
 import type { ChangeHostError, RunnerError } from "@antumbra/plugin-api";
@@ -10,6 +11,7 @@ import type {
 	BerthNotFound,
 	NoChangeHost,
 	RepoNotFound,
+	ResourceReclaimClaimed,
 	StoredChangeInvalid,
 	UnknownChangeHostTag,
 	UnknownRunnerTag,
@@ -41,8 +43,10 @@ export type SubmitChangeFailure =
 	| PieceNotFound
 	| PrismaError
 	| RepoNotFound
+	| ResourceReclaimClaimed
 	| RunnerError
 	| StoredChangeInvalid
+	| StoredResourceReclaimStateInvalid
 	| UnknownRunnerTag;
 
 export type AdoptChangeFailure =
@@ -53,7 +57,9 @@ export type AdoptChangeFailure =
 	| PieceNotFound
 	| PrismaError
 	| RepoNotFound
-	| StoredChangeInvalid;
+	| ResourceReclaimClaimed
+	| StoredChangeInvalid
+	| StoredResourceReclaimStateInvalid;
 
 export type OpenChangeFailure =
 	| ChangeHostError
@@ -71,7 +77,9 @@ export interface Proposal {
 }
 
 export interface RepoBerth {
+	readonly agentId: string;
 	readonly branch: string;
+	readonly id: string;
 	readonly path: string;
 	readonly runner: string;
 	readonly slug: string;

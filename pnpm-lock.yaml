@@ -440,6 +440,9 @@ importers:
 
   packages/contract:
     dependencies:
+      '@antumbra/agent-runtime-vocabulary':
+        specifier: workspace:*
+        version: link:../agent-runtime-vocabulary
       '@antumbra/board-vocabulary':
         specifier: workspace:*
         version: link:../board-vocabulary

@@ -4,6 +4,7 @@ import { Effect, Option } from "effect";
 import type { RepoBerth } from "#change-submissions/model.ts";
 import { ChangeHostRegistry } from "#change-submissions/registries.ts";
 import { BerthNotFound, NoChangeHost, RepoNotFound } from "#errors.ts";
+import { ensureAgentResourcesUnclaimed } from "#resource-reclaim-guard.ts";
 
 export const claimingHost = (
 	repo: ChangeHostRepo,
@@ -37,12 +38,15 @@ export const repoNamed = (repoName: string) =>
 export const berthFor = (agentId: string, repo: ChangeHostRepo) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
+		yield* ensureAgentResourcesUnclaimed(agentId);
 		const berths = yield* db.Berth.where({ agentId }).all();
 		const berth = berths.find((candidate) => candidate.source === repo.source);
 		return berth === undefined
 			? yield* new BerthNotFound({ agentId, repoName: repo.name })
 			: ({
+					agentId,
 					branch: berth.branch,
+					id: berth.id,
 					path: berth.path,
 					runner: berth.runner,
 					slug: berth.slug,

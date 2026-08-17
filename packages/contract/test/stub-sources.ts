@@ -22,7 +22,14 @@ export const info = {
 export const fleet = {
 	agents: [
 		{
-			berths: [{ branch: "work/agent-1/reef", slug: "reef", status: "ready" }],
+			berths: [
+				{
+					branch: "work/agent-1/reef",
+					reclaimState: null,
+					slug: "reef",
+					status: "ready",
+				},
+			],
 			charter: "chart the reef",
 			id: "agent-1",
 			role: "navigator",

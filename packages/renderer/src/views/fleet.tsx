@@ -7,13 +7,21 @@ import type {
 import { interruptSession, retireAgent } from "#adapters/trpc.ts";
 import { buttonStyle, mutedStyle, rowStyle } from "#views/styles.ts";
 
+const BerthReclaimStatus = ({ berth }: { readonly berth: BerthSummary }) => {
+	if (berth.reclaimState === "claimed") {
+		return <span style={{ color: "#ffb86b" }}>reclaiming</span>;
+	}
+	if (berth.status === "stranded") {
+		return <span style={{ color: "#ff7c7c" }}>stranded</span>;
+	}
+	return null;
+};
+
 const BerthRow = ({ berth }: { readonly berth: BerthSummary }) => (
 	<div style={{ ...rowStyle, paddingLeft: "0.8rem" }}>
 		<span style={mutedStyle}>⚓ {berth.slug}</span>
 		<span style={mutedStyle}>{berth.branch}</span>
-		{berth.status === "stranded" ? (
-			<span style={{ color: "#ff7c7c" }}>stranded</span>
-		) : null}
+		<BerthReclaimStatus berth={berth} />
 	</div>
 );
 

@@ -16,6 +16,10 @@ import {
 	repoNamed,
 } from "#change-submissions/repository.ts";
 import { UnknownRunnerTag } from "#errors.ts";
+import {
+	ensureAgentResourcesUnclaimed,
+	ensureBerthResourcesUnclaimed,
+} from "#resource-reclaim-guard.ts";
 
 export interface PreparedSubmission {
 	readonly hostTag: string;
@@ -35,6 +39,7 @@ export const prepareChange = (input: SubmitChangeInput, proposal?: Proposal) =>
 		const key = submissionKey(input.agentId, repo.id);
 		const linked = yield* writer.write(
 			Effect.gen(function* () {
+				yield* ensureAgentResourcesUnclaimed(input.agentId);
 				const existing = yield* activeChange(key);
 				if (Option.isNone(existing)) {
 					return Option.none<{
@@ -59,7 +64,7 @@ export const prepareChange = (input: SubmitChangeInput, proposal?: Proposal) =>
 			} satisfies PreparedSubmission;
 		}
 		const host = yield* claimingHost(repo);
-		const berth = yield* berthFor(input.agentId, repo);
+		const berth = yield* writer.write(berthFor(input.agentId, repo));
 		const runner = runners.get(berth.runner);
 		if (runner === undefined) {
 			return yield* new UnknownRunnerTag({ tag: berth.runner });
@@ -75,6 +80,7 @@ export const prepareChange = (input: SubmitChangeInput, proposal?: Proposal) =>
 		);
 		const stored = yield* writer.write(
 			Effect.gen(function* () {
+				yield* ensureBerthResourcesUnclaimed(berth.id);
 				const raced = yield* activeChange(key);
 				const row = Option.getOrElse(raced, () => candidate);
 				let created = false;

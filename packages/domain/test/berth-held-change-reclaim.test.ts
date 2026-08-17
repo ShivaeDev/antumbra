@@ -1,0 +1,177 @@
+import { Database, Writer } from "@antumbra/persistence";
+import type { Runner } from "@antumbra/plugin-api";
+import { expect, it } from "@effect/vitest";
+import { Clock, Effect, Ref } from "effect";
+import { changeOf, REEF_SOURCE } from "#test/change-fixtures.ts";
+import {
+	acquireTemporaryPersistence,
+	domainKernelLayer,
+	makeScriptedBackend,
+	makeScriptedRunner,
+} from "#test/harness.ts";
+
+const EIGHT_DAYS_MILLIS = 8 * 24 * 60 * 60 * 1000;
+const SHOAL_SOURCE = "/somewhere/shoal";
+const HELD_BRANCH = "work/keeper/berth-0";
+const HELD = "agent-keeper:held";
+const AT_WORK = "agent-keeper:at-work";
+const SIBLING = "agent-keeper:sibling";
+const ELSEWHERE = "agent-keeper:elsewhere";
+
+const scrapCounting = (base: Runner, scraps: Ref.Ref<number>): Runner => ({
+	...base,
+	scrap: () => Ref.update(scraps, (count) => count + 1),
+});
+
+const berthAt = (fields: {
+	readonly branch: string;
+	readonly id: string;
+	readonly source: string;
+	readonly strandedAt: Date | null;
+}) => ({
+	agentId: "agent-keeper",
+	branch: fields.branch,
+	id: fields.id,
+	path: `/tmp/moorage/agent-keeper/${fields.id}`,
+	reclaimState: null,
+	ref: "main",
+	runner: "local",
+	slug: fields.id,
+	source: fields.source,
+	status: fields.strandedAt === null ? "ready" : "stranded",
+	strandedAt: fields.strandedAt,
+});
+
+const moored = (strandedAt: Date) =>
+	Effect.gen(function* () {
+		const db = yield* Database;
+		const writer = yield* Writer;
+		yield* writer.write(
+			Effect.all([
+				db.Agent.create({
+					charter: "release settled resources",
+					id: "agent-keeper",
+					role: "keeper",
+					status: "retired",
+				}),
+				db.Moorage.create({
+					agentId: "agent-keeper",
+					reclaimState: null,
+					root: "/tmp/moorage/agent-keeper",
+					runner: "local",
+					status: "ready",
+				}),
+				db.Repo.create({
+					defaultRef: "main",
+					id: "repo-reef",
+					name: "reef",
+					source: REEF_SOURCE,
+				}),
+				db.Repo.create({
+					defaultRef: "main",
+					id: "repo-shoal",
+					name: "shoal",
+					source: SHOAL_SOURCE,
+				}),
+				db.Change.create(
+					changeOf({
+						headRef: HELD_BRANCH,
+						id: "change-open",
+						repoId: "repo-reef",
+						stage: "open",
+					}),
+				),
+				db.PieceChange.create({
+					changeId: "change-open",
+					pieceId: "piece-open",
+				}),
+				db.Berth.create(
+					berthAt({
+						branch: HELD_BRANCH,
+						id: HELD,
+						source: REEF_SOURCE,
+						strandedAt,
+					}),
+				),
+				db.Berth.create(
+					berthAt({
+						branch: HELD_BRANCH,
+						id: AT_WORK,
+						source: REEF_SOURCE,
+						strandedAt: null,
+					}),
+				),
+				db.Berth.create(
+					berthAt({
+						branch: "work/keeper/berth-1",
+						id: SIBLING,
+						source: REEF_SOURCE,
+						strandedAt,
+					}),
+				),
+				db.Berth.create(
+					berthAt({
+						branch: HELD_BRANCH,
+						id: ELSEWHERE,
+						source: SHOAL_SOURCE,
+						strandedAt,
+					}),
+				),
+			]),
+		);
+	});
+
+const berthStatuses = Effect.gen(function* () {
+	const db = yield* Database;
+	const rows = yield* db.Berth.all();
+	return new Map(rows.map((row) => [row.id, row.status] as const));
+});
+
+const landTheChange = Effect.gen(function* () {
+	const db = yield* Database;
+	const writer = yield* Writer;
+	yield* writer.write(
+		db.Change.where({ id: "change-open" }).update({ stage: "landed" }),
+	);
+});
+
+it.live(
+	"a berth backing a pending change delays its Agent's reclaim until it lands",
+	() =>
+		Effect.gen(function* () {
+			const temporary = yield* acquireTemporaryPersistence;
+			const scripted = yield* makeScriptedBackend;
+			const recorder = yield* makeScriptedRunner;
+			const scraps = yield* Ref.make(0);
+			const now = yield* Clock.currentTimeMillis;
+			const runner = scrapCounting(recorder.runner, scraps);
+			yield* moored(new Date(now - EIGHT_DAYS_MILLIS)).pipe(
+				Effect.provide(temporary.layer),
+			);
+
+			yield* Effect.provide(
+				Effect.void,
+				domainKernelLayer(temporary, scripted.backend, {}, runner),
+			);
+			const swept = yield* berthStatuses.pipe(Effect.provide(temporary.layer));
+			expect(swept.get(HELD)).toBe("stranded");
+			expect(swept.get(AT_WORK)).toBe("ready");
+			expect(swept.get(SIBLING)).toBe("stranded");
+			expect(swept.get(ELSEWHERE)).toBe("stranded");
+			expect(yield* Ref.get(scraps)).toBe(0);
+
+			yield* landTheChange.pipe(Effect.provide(temporary.layer));
+			yield* Effect.provide(
+				Effect.void,
+				domainKernelLayer(temporary, scripted.backend, {}, runner),
+			);
+			const released = yield* berthStatuses.pipe(
+				Effect.provide(temporary.layer),
+			);
+			expect(released.get(HELD)).toBe("reclaimed");
+			expect(released.get(AT_WORK)).toBe("reclaimed");
+			expect(released.get(SIBLING)).toBe("reclaimed");
+			expect(released.get(ELSEWHERE)).toBe("reclaimed");
+			expect(yield* Ref.get(scraps)).toBe(0);
+		}),
+);

@@ -74,6 +74,7 @@ const seed = (db: DatabaseService, root: string) =>
 		yield* db.Agent.create(agent);
 		yield* db.Moorage.create({
 			agentId: agent.id,
+			reclaimState: null,
 			root,
 			runner: "local",
 			status: "ready",

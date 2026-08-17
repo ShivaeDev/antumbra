@@ -39,6 +39,7 @@ export class AgentDomain extends Context.Service<
 		readonly kernelReach: Deferred.Deferred<KernelReach>;
 		readonly kinds: ReadonlyArray<AnyIntentKind>;
 		readonly repos: RepoRegistry;
+		readonly retryResourceReclaim: Effect.Effect<void>;
 		readonly recover: IntentKind<RecoveryFields>;
 		readonly retire: IntentKind<RetireFields>;
 		readonly siesta: IntentKind<SiestaFields>;

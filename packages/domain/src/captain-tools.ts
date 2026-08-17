@@ -12,9 +12,10 @@ import { answered, onVoyage } from "#tool-answers.ts";
 import type { SessionIdentity } from "#tool-identity.ts";
 import { readVoyageView } from "#voyage-read.ts";
 import { renderVoyage } from "#voyage-render.ts";
+import { VoyageWorldSource } from "#voyage-world.ts";
 
-const voyageOrGone = (deps: AgentDeps, voyageId: string) =>
-	readVoyageView(deps, voyageId).pipe(
+const voyageOrGone = (voyageId: string) =>
+	readVoyageView(voyageId).pipe(
 		Effect.flatMap((view) =>
 			Option.match(view, {
 				onNone: () => new VoyageNotFound({ voyageId }),
@@ -30,6 +31,7 @@ export const makeCaptainToolCompiler = Effect.gen(function* () {
 	const pieces = yield* Pieces;
 	const pieceVerbTools = yield* makePieceVerbToolCompiler;
 	const compileBoardTools = yield* makeBoardToolCompiler;
+	const world = yield* VoyageWorldSource;
 	return (
 		deps: AgentDeps,
 		identity: SessionIdentity,
@@ -57,7 +59,9 @@ export const makeCaptainToolCompiler = Effect.gen(function* () {
 				answered(
 					identity,
 					readVoyageSpec.name,
-					voyageOrGone(deps, voyageId),
+					voyageOrGone(voyageId).pipe(
+						Effect.provideService(VoyageWorldSource, world),
+					),
 					renderVoyage,
 				),
 			),

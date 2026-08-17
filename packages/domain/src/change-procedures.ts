@@ -28,7 +28,7 @@ import type {
 } from "#errors.ts";
 import { type QuayReading, quayReading } from "#quay-view.ts";
 import type { InvalidSessionExecutionStatus } from "#session-execution-status.ts";
-import { readVoyageWorld } from "#voyage-world.ts";
+import { VoyageWorldSource } from "#voyage-world.ts";
 
 // why: what a host can do right now, said in the host's own words — the window
 // shows it, and a tool that cannot act says the same sentence back to the
@@ -105,6 +105,7 @@ export interface ChangeProcedures {
 
 export const makeChangeProcedureCompiler = Effect.gen(function* () {
 	const submissions = yield* ChangeSubmissions;
+	const world = yield* VoyageWorldSource;
 	function makeChangeProcedures(deps: AgentDeps): ChangeProcedures {
 		return {
 			adopt: submissions.adopt,
@@ -120,7 +121,7 @@ export const makeChangeProcedureCompiler = Effect.gen(function* () {
 			open: submissions.open,
 			submit: submissions.submit,
 			watchableChanges: submissions.watchable,
-			quay: readVoyageWorld(deps).pipe(Effect.map(quayReading)),
+			quay: world.read.pipe(Effect.map(quayReading)),
 			refresh: submissions.refresh,
 			requestRefresh: PubSub.publish(deps.feeds.changeRefresh, undefined),
 		};

@@ -7,6 +7,7 @@ import { ReportsLive } from "@antumbra/reports";
 import { ReposLive } from "@antumbra/repos";
 import { Layer } from "effect";
 import { ChangeSubmissionsLive } from "#change-submissions/change-submissions.ts";
+import { VoyageWorldSourceLive } from "#voyage-world.ts";
 
 export const domainCapabilities = (
 	changeHosts: ReadonlyMap<string, ChangeHost>,
@@ -19,6 +20,7 @@ export const domainCapabilities = (
 		ArtifactsLive(artifactsDirectory),
 		ReportsLive,
 		ReposLive,
+		VoyageWorldSourceLive,
 	).pipe(Layer.provideMerge(DomainFeedsLive));
 	return ChangeSubmissionsLive(changeHosts, runners).pipe(
 		Layer.provideMerge(outcomes),

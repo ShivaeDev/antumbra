@@ -60,18 +60,6 @@
 		"type": "AgentDeps"
 	},
 	{
-		"callable": "dispatchLoop",
-		"file": "packages/domain/src/dispatcher.ts",
-		"parameter": "port",
-		"type": "DispatchPort"
-	},
-	{
-		"callable": "dispatchPiece",
-		"file": "packages/domain/src/dispatch-spawn.ts",
-		"parameter": "port",
-		"type": "DispatchPort"
-	},
-	{
 		"callable": "ensureAgentRow",
 		"file": "packages/domain/src/spawn-rows.ts",
 		"parameter": "deps",
@@ -88,12 +76,6 @@
 		"file": "packages/domain/src/hail.ts",
 		"parameter": "deps",
 		"type": "AgentDeps"
-	},
-	{
-		"callable": "intentDetail",
-		"file": "packages/domain/src/dispatch-spawn.ts",
-		"parameter": "db",
-		"type": "DatabaseService"
 	},
 	{
 		"callable": "makeCaptainToolCompiler",
@@ -144,12 +126,6 @@
 		"type": "Domain"
 	},
 	{
-		"callable": "onePass",
-		"file": "packages/domain/src/dispatcher.ts",
-		"parameter": "port",
-		"type": "DispatchPort"
-	},
-	{
 		"callable": "onOwnDeps",
 		"file": "packages/domain/src/captain-membership.ts",
 		"parameter": "deps",
@@ -180,18 +156,6 @@
 		"type": "Domain"
 	},
 	{
-		"callable": "readVoyageView",
-		"file": "packages/domain/src/voyage-read.ts",
-		"parameter": "deps",
-		"type": "AgentDeps"
-	},
-	{
-		"callable": "readVoyageWorld",
-		"file": "packages/domain/src/voyage-world.ts",
-		"parameter": "deps",
-		"type": "AgentDeps"
-	},
-	{
 		"callable": "recordNativeRef",
 		"file": "packages/domain/src/events.ts",
 		"parameter": "context",
@@ -214,12 +178,6 @@
 		"file": "packages/domain/src/voyages.ts",
 		"parameter": "deps",
 		"type": "AgentDeps"
-	},
-	{
-		"callable": "settle",
-		"file": "packages/domain/src/dispatch-spawn.ts",
-		"parameter": "port",
-		"type": "DispatchPort"
 	},
 	{
 		"callable": "settleSpawnFailure",
@@ -250,24 +208,6 @@
 		"file": "packages/domain/src/retire.ts",
 		"parameter": "deps",
 		"type": "AgentDeps"
-	},
-	{
-		"callable": "voyageOrGone",
-		"file": "packages/domain/src/captain-tools.ts",
-		"parameter": "deps",
-		"type": "AgentDeps"
-	},
-	{
-		"callable": "voyageWorld",
-		"file": "packages/domain/src/voyage-world.ts",
-		"parameter": "db",
-		"type": "DatabaseService"
-	},
-	{
-		"callable": "watchDispatch",
-		"file": "packages/domain/src/dispatch-spawn.ts",
-		"parameter": "port",
-		"type": "DispatchPort"
 	},
 	{
 		"callable": "withMembers",

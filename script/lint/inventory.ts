@@ -23,6 +23,7 @@ export interface TextFile {
 }
 
 export interface Inventory {
+	readonly documents: readonly TextFile[];
 	readonly manifests: readonly TextFile[];
 	readonly pragmaRegistry: string;
 	readonly root: string;
@@ -33,6 +34,13 @@ export interface Inventory {
 }
 
 const WALKED_ZONES = ["apps", "packages", "script"];
+const DOCUMENT_ROOTS = [
+	"README.md",
+	"DESIGN.md",
+	"ARCHITECTURE.md",
+	"GLOSSARY.md",
+];
+const DOCUMENT_ZONES = ["docs", "quality-gates"];
 const SOURCE_PATH = /\.tsx?$/;
 const WORKSPACE_MANIFEST = /^(apps|packages)\/[^/]+\/package\.json$/;
 const INVENTORY_CONCURRENCY = 16;
@@ -79,6 +87,29 @@ export const collectInventory = (
 			),
 			{ concurrency: INVENTORY_CONCURRENCY },
 		);
+		const documentZones = yield* Effect.all(
+			DOCUMENT_ZONES.map((zone) => walk(join(root, zone), ignores)),
+			{ concurrency: INVENTORY_CONCURRENCY },
+		);
+		const documentEntries = [
+			...DOCUMENT_ROOTS.map((path) => ({ absolute: join(root, path), path })),
+			...documentZones
+				.flat()
+				.map((absolute) => ({
+					absolute,
+					path: posix(relative(root, absolute)),
+				}))
+				.filter((entry) => entry.path.endsWith(".md")),
+		];
+		const documents = yield* Effect.all(
+			documentEntries.map((entry) =>
+				Effect.map(readRequiredText(entry.absolute), (raw) => ({
+					path: entry.path,
+					raw,
+				})),
+			),
+			{ concurrency: INVENTORY_CONCURRENCY },
+		);
 		const workspaceCatalog = yield* readRequiredText(
 			join(root, "pnpm-workspace.yaml"),
 		);
@@ -92,6 +123,7 @@ export const collectInventory = (
 			join(root, "script", "lint", "service-parameter-allowance.json"),
 		);
 		return {
+			documents,
 			manifests,
 			pragmaRegistry,
 			root,

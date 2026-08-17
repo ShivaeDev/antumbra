@@ -7,6 +7,7 @@ export interface SeedFile {
 }
 
 export interface Seed {
+	readonly documents?: readonly TextFile[];
 	readonly manifests?: readonly TextFile[];
 	readonly pragmaRegistry?: string;
 	readonly root?: string;
@@ -19,6 +20,7 @@ export interface Seed {
 // why: the rules read a file inventory and nothing else, so their tests build
 // one directly instead of seeding a directory and spawning the CLI.
 export const inventoryOf = (seed: Seed): Inventory => ({
+	documents: seed.documents ?? [],
 	manifests: seed.manifests ?? [],
 	pragmaRegistry: seed.pragmaRegistry ?? "[]",
 	root: seed.root ?? "/virtual",

@@ -1,5 +1,8 @@
 # Agent identity, resources, and recovery
 
+[Design guides](README.md) · [Glossary](../../GLOSSARY.md) ·
+[Binding axioms](../../DESIGN.md)
+
 An Agent is a durable responsibility, not a process. Its replaceable resources
 and its provider conversation have separate lifecycles because losing one must
 not silently destroy the others.
@@ -31,8 +34,8 @@ resumes the same Session or explicitly links a successor to the same Agent.
   current resource truth, not an event-sourced history of resource
   generations.
 - An **AgentSession** owns Antumbra's session identity, the provider-native
-  session or thread reference, transcript evidence, and last-known work
-  posture. A local SDK handle or observer is only an attachment to that
+  session or thread reference, transcript evidence, and last-known execution
+  status. A local SDK handle or observer is only an attachment to that
   durable record.
 
 Agent setup reaches its success boundary when the required Moorage and Berths
@@ -64,10 +67,10 @@ assignments and does not collapse their Sessions into one execution.
 
 The database holds everything that remains true after exit: intents, domain
 links, Agent and AgentSession identities, native references, transcript and
-event evidence, current resource evidence, and last-known posture. Memory may
-hold only execution machinery that is safe to lose: fibers, process handles,
-subscriptions, semaphores, timers, wakes, workflow history, and indexes rebuilt
-from durable records.
+event evidence, current resource evidence, and last-known execution status.
+Memory may hold only execution machinery that is safe to lose: fibers, process
+handles, subscriptions, semaphores, timers, wakes, workflow history, and
+indexes rebuilt from durable records.
 
 Workflows are never checkpointed. Every attempt starts from its durable intent
 and domain state, then reconciles each idempotent step with reality. An
@@ -80,11 +83,13 @@ Normal recovery attaches the same AgentSession to the same provider-native
 session or thread. Antumbra's neutral event log is the UI and audit surface; it
 is not input for reconstructing a provider conversation.
 
-At startup, sessions whose last-known posture is active, pending, or uncertain
-resume by default. Idle sessions stay detached and attach lazily when hailed or
-given work. Missing observers, an empty in-memory registry, or a dead watcher
-only remove current knowledge; they never mean an Agent retired, a Session
-closed, a Moorage orphaned, or a claim released.
+At startup, Sessions whose internal execution status is active, pending, or
+uncertain resume by default. Idle Sessions stay detached and attach lazily when
+hailed or given work. Those exact statuses are recovery machinery, not product
+vocabulary or an ordinary Fleet presentation. Missing observers, an empty
+in-memory registry, or a dead watcher only remove current knowledge; they never
+mean an Agent retired, a Session closed, a Moorage orphaned, or a claim
+released.
 
 Initial and recovery instructions use ordinary at-least-once delivery. After a
 successful native attach, recovery durably queues one recovery instruction. If
@@ -99,10 +104,19 @@ the same Agent, and carries a crash-recovery charter plus the available files,
 notes, and predecessor link. It is never an automatic substitute for normal
 resume.
 
+## Hailing an Agent
+
+Hailing addresses the durable Agent, not a Session id. Antumbra resumes the
+Agent's existing internal execution context when one is usable; otherwise it
+establishes the context required to converse without replacing the Agent's
+identity, responsibility, Board, or assignments. The admiral and other Agents
+therefore think in terms of whom they are addressing while Antumbra manages the
+execution machinery.
+
 ## Shutdown and failure
 
 Graceful shutdown asks active and pending Sessions to settle, drains them to an
-idle posture, and only then exits. A forced shutdown merely ends local
+idle execution status, and only then exits. A forced shutdown merely ends local
 execution. It does not synthesize a mailbox read, Session closure, Agent
 retirement, or resource reclamation; startup reconciles the surviving durable
 truth.

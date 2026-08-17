@@ -11,9 +11,9 @@ import {
 	smoothBodies,
 } from "@antumbra/boards";
 import type { PrismaError } from "@antumbra/persistence";
-import { Deferred, Effect, Option } from "effect";
+import { Effect, Option } from "effect";
 import { composeCaptainCharter } from "#charter-captain.ts";
-import type { AgentDeps, SpawnRefused } from "#deps.ts";
+import type { SpawnRefused } from "#deps.ts";
 import {
 	CaptainAlreadyHailed,
 	CaptainSessionUnavailable,
@@ -21,6 +21,7 @@ import {
 	type StoredPieceChangeInvalid,
 	VoyageNotFound,
 } from "#errors.ts";
+import { KernelReach } from "#kernel-reach.ts";
 import { idleExecutionSessionsOfAgent } from "#session-execution-selection.ts";
 import type { InvalidSessionExecutionStatus } from "#session-execution-status.ts";
 import { CAPTAIN_ROLE, captainAtWork, captainOf } from "#voyage-captain.ts";
@@ -50,9 +51,10 @@ export type HailRefused =
 // why: hailing materializes the role for the voyage as it stands right now —
 // north star, board and pieces are read at the moment of the hail, because a
 // captain's session is mortal and the voyage is not.
-export const hailCaptain = (deps: AgentDeps, voyageId: string) =>
+export const hailCaptain = (voyageId: string) =>
 	Effect.gen(function* () {
 		const boards = yield* Boards;
+		const reach = yield* KernelReach;
 		const source = yield* VoyageWorldSource;
 		const world = yield* source.read;
 		const voyage = world.voyages.find((row) => row.id === voyageId);
@@ -82,7 +84,6 @@ export const hailCaptain = (deps: AgentDeps, voyageId: string) =>
 					voyageId,
 				});
 			}
-			const reach = yield* Deferred.await(deps.kernelReach);
 			const session = Option.getOrThrow(Option.fromUndefinedOr(sessions[0]));
 			const intentId = yield* reach.submitRecovery(session.id);
 			return { agentId: current.value.agentId, intentId };
@@ -94,7 +95,6 @@ export const hailCaptain = (deps: AgentDeps, voyageId: string) =>
 		// why: the hail is answered from the window or the router, never from
 		// inside a session, so it may wait for the kernel to be reachable and
 		// hand back the intent it just asked for.
-		const reach = yield* Deferred.await(deps.kernelReach);
 		const intentId = yield* reach.submitSpawn({
 			agentId,
 			backend: voyage.backend,

@@ -16,7 +16,7 @@ import type {
 	PieceRow,
 } from "@antumbra/pieces";
 import type { ReportInput, ReportRow } from "@antumbra/reports";
-import type { Effect, Option } from "effect";
+import { Context, type Effect, type Option } from "effect";
 import type {
 	StoredChangeInvalid,
 	StoredPieceChangeInvalid,
@@ -89,3 +89,8 @@ export interface VoyageProcedures {
 		pieceId: string,
 	) => Effect.Effect<void, PieceNotFound | PrismaError>;
 }
+
+export class VoyageProcedureService extends Context.Service<
+	VoyageProcedureService,
+	VoyageProcedures
+>()("@antumbra/domain/VoyageProcedures") {}

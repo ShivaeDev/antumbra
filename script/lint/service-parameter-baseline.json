@@ -6,12 +6,6 @@
 		"type": "AgentDeps"
 	},
 	{
-		"callable": "announce",
-		"file": "packages/domain/src/voyages.ts",
-		"parameter": "deps",
-		"type": "AgentDeps"
-	},
-	{
 		"callable": "appendAndAnnounce",
 		"file": "packages/domain/src/events.ts",
 		"parameter": "context",
@@ -30,12 +24,6 @@
 		"type": "AgentDeps"
 	},
 	{
-		"callable": "boardOf",
-		"file": "packages/domain/src/voyage-reads.ts",
-		"parameter": "domain",
-		"type": "Domain"
-	},
-	{
 		"callable": "closeFailedSpawnRows",
 		"file": "packages/domain/src/spawn-rows.ts",
 		"parameter": "deps",
@@ -44,12 +32,6 @@
 	{
 		"callable": "closeRows",
 		"file": "packages/domain/src/retire.ts",
-		"parameter": "deps",
-		"type": "AgentDeps"
-	},
-	{
-		"callable": "crewTools",
-		"file": "packages/domain/src/crew-tools.ts",
 		"parameter": "deps",
 		"type": "AgentDeps"
 	},
@@ -72,24 +54,6 @@
 		"type": "DatabaseService"
 	},
 	{
-		"callable": "hailCaptain",
-		"file": "packages/domain/src/hail.ts",
-		"parameter": "deps",
-		"type": "AgentDeps"
-	},
-	{
-		"callable": "makeCaptainToolCompiler",
-		"file": "packages/domain/src/captain-tools.ts",
-		"parameter": "deps",
-		"type": "AgentDeps"
-	},
-	{
-		"callable": "makePieceVerbToolCompiler",
-		"file": "packages/domain/src/captain-pieces.ts",
-		"parameter": "deps",
-		"type": "AgentDeps"
-	},
-	{
 		"callable": "makeRetireKind",
 		"file": "packages/domain/src/retire.ts",
 		"parameter": "deps",
@@ -108,52 +72,10 @@
 		"type": "AgentDeps"
 	},
 	{
-		"callable": "makeVoyageActs",
-		"file": "packages/domain/src/voyage-acts.ts",
-		"parameter": "domain",
-		"type": "Domain"
-	},
-	{
-		"callable": "makeVoyageProcedures",
-		"file": "packages/domain/src/voyages.ts",
-		"parameter": "deps",
-		"type": "AgentDeps"
-	},
-	{
-		"callable": "makeVoyageReads",
-		"file": "packages/domain/src/voyage-reads.ts",
-		"parameter": "domain",
-		"type": "Domain"
-	},
-	{
-		"callable": "onOwnDeps",
-		"file": "packages/domain/src/captain-membership.ts",
-		"parameter": "deps",
-		"type": "AgentDeps"
-	},
-	{
-		"callable": "onOwnPiece",
-		"file": "packages/domain/src/captain-membership.ts",
-		"parameter": "deps",
-		"type": "AgentDeps"
-	},
-	{
-		"callable": "openVoyage",
-		"file": "packages/domain/src/voyages.ts",
-		"parameter": "deps",
-		"type": "AgentDeps"
-	},
-	{
 		"callable": "provideExecutors",
 		"file": "packages/domain/src/deps.ts",
 		"parameter": "deps",
 		"type": "AgentDeps"
-	},
-	{
-		"callable": "readVoyage",
-		"file": "packages/domain/src/voyage-reads.ts",
-		"parameter": "domain",
-		"type": "Domain"
 	},
 	{
 		"callable": "recordNativeRef",
@@ -162,20 +84,8 @@
 		"type": "SinkContext"
 	},
 	{
-		"callable": "requireVoyage",
-		"file": "packages/domain/src/voyage-record.ts",
-		"parameter": "db",
-		"type": "DatabaseService"
-	},
-	{
 		"callable": "retireAgent",
 		"file": "packages/domain/src/retire.ts",
-		"parameter": "deps",
-		"type": "AgentDeps"
-	},
-	{
-		"callable": "setFocus",
-		"file": "packages/domain/src/voyages.ts",
 		"parameter": "deps",
 		"type": "AgentDeps"
 	},
@@ -192,32 +102,8 @@
 		"type": "AgentDeps"
 	},
 	{
-		"callable": "standDown",
-		"file": "packages/domain/src/stand-down.ts",
-		"parameter": "deps",
-		"type": "AgentDeps"
-	},
-	{
-		"callable": "standDownTool",
-		"file": "packages/domain/src/stand-down.ts",
-		"parameter": "deps",
-		"type": "AgentDeps"
-	},
-	{
 		"callable": "stopSessions",
 		"file": "packages/domain/src/retire.ts",
-		"parameter": "deps",
-		"type": "AgentDeps"
-	},
-	{
-		"callable": "withMembers",
-		"file": "packages/domain/src/captain-membership.ts",
-		"parameter": "deps",
-		"type": "AgentDeps"
-	},
-	{
-		"callable": "makeChangeProcedures",
-		"file": "packages/domain/src/change-procedures.ts",
 		"parameter": "deps",
 		"type": "AgentDeps"
 	}

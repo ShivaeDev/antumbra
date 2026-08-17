@@ -94,8 +94,8 @@ export const makeSpawnKind = Effect.gen(function* () {
 		const toolsFor = (payload: SpawnFields) => {
 			const identity = spawnSessionIdentity(payload);
 			return payload.role === CAPTAIN_ROLE && Option.isSome(identity.voyageId)
-				? compileCaptainTools(deps, identity)
-				: compileCrewTools(deps, identity);
+				? compileCaptainTools(identity)
+				: compileCrewTools(identity);
 		};
 		const spawnAgent = (payload: SpawnFields) =>
 			Effect.gen(function* () {

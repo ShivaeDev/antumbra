@@ -3,9 +3,14 @@ import type {
 	StoredAgentStatusInvalid,
 	StoredResourceReclaimStateInvalid,
 } from "@antumbra/agent-runtime-vocabulary";
+import { DomainFeeds } from "@antumbra/domain-feeds";
 import type { PrismaError } from "@antumbra/persistence";
-import type { ChangeHostError, ChangeObservation } from "@antumbra/plugin-api";
-import { Effect, PubSub } from "effect";
+import type {
+	ChangeHost,
+	ChangeHostError,
+	ChangeObservation,
+} from "@antumbra/plugin-api";
+import { Context, Effect, Layer, PubSub } from "effect";
 import type { ChangeRow } from "#change-rows.ts";
 import {
 	type AdoptChangeFailure,
@@ -19,7 +24,6 @@ import type {
 	ChangeObservationConflict,
 } from "#change-submissions/errors.ts";
 import type { OpenChangeFailure, OpenChangeInput } from "#changes.ts";
-import type { AgentDeps } from "#deps.ts";
 import type {
 	ResourceReclaimClaimed,
 	StoredChangeInvalid,
@@ -103,28 +107,34 @@ export interface ChangeProcedures {
 	readonly requestRefresh: Effect.Effect<void>;
 }
 
-export const makeChangeProcedureCompiler = Effect.gen(function* () {
-	const submissions = yield* ChangeSubmissions;
-	const world = yield* VoyageWorldSource;
-	function makeChangeProcedures(deps: AgentDeps): ChangeProcedures {
-		return {
-			adopt: submissions.adopt,
-			capabilities: Effect.forEach([...deps.changeHosts.values()], (host) =>
-				Effect.map(host.capability, (capability) => ({
-					available: capability.available,
-					detail: capability.detail,
-					tag: host.tag,
-				})),
-			),
-			hostTags: [...deps.changeHosts.keys()],
-			observed: submissions.observed,
-			open: submissions.open,
-			submit: submissions.submit,
-			watchableChanges: submissions.watchable,
-			quay: world.read.pipe(Effect.map(quayReading)),
-			refresh: submissions.refresh,
-			requestRefresh: PubSub.publish(deps.feeds.changeRefresh, undefined),
-		};
-	}
-	return makeChangeProcedures;
-});
+export class ChangeProcedureService extends Context.Service<
+	ChangeProcedureService,
+	ChangeProcedures
+>()("@antumbra/domain/ChangeProcedures") {}
+
+export const ChangeProceduresLive = (hosts: ReadonlyMap<string, ChangeHost>) =>
+	Layer.effect(ChangeProcedureService)(
+		Effect.gen(function* () {
+			const feeds = yield* DomainFeeds;
+			const submissions = yield* ChangeSubmissions;
+			const world = yield* VoyageWorldSource;
+			return ChangeProcedureService.of({
+				adopt: submissions.adopt,
+				capabilities: Effect.forEach([...hosts.values()], (host) =>
+					Effect.map(host.capability, (capability) => ({
+						available: capability.available,
+						detail: capability.detail,
+						tag: host.tag,
+					})),
+				),
+				hostTags: [...hosts.keys()],
+				observed: submissions.observed,
+				open: submissions.open,
+				quay: world.read.pipe(Effect.map(quayReading)),
+				refresh: submissions.refresh,
+				requestRefresh: PubSub.publish(feeds.changeRefresh, undefined),
+				submit: submissions.submit,
+				watchableChanges: submissions.watchable,
+			});
+		}),
+	);

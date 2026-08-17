@@ -1,9 +1,11 @@
 import { decodeStoredAgentSessionStatus } from "@antumbra/agent-runtime-vocabulary";
 import { bind, standDownSpec } from "@antumbra/agent-tools";
+import { DomainFeeds } from "@antumbra/domain-feeds";
+import { Database, type WriteExecutors, Writer } from "@antumbra/persistence";
 import type { DirectTool } from "@antumbra/plugin-api";
-import { Deferred, Effect, Option, PubSub } from "effect";
-import { type AgentDeps, provideExecutors } from "#deps.ts";
+import { Context, Effect, Layer, Option, PubSub } from "effect";
 import { SessionIdentityMissing } from "#errors.ts";
+import { KernelReach } from "#kernel-reach.ts";
 import {
 	decodeSessionExecutionStatus,
 	sessionExecutionTransition,
@@ -11,62 +13,85 @@ import {
 import { answered } from "#tool-answers.ts";
 import type { SessionIdentity } from "#tool-identity.ts";
 
-const standDown = (deps: AgentDeps, identity: SessionIdentity) =>
-	answered(
-		identity,
-		standDownSpec.name,
-		Effect.gen(function* () {
-			const provide = provideExecutors(deps);
-			const session = yield* provide(
-				deps.db.AgentSession.where({ id: identity.sessionId }).first(),
-			);
-			if (
-				Option.isNone(session) ||
-				session.value.agentId !== identity.agentId
-			) {
-				return yield* new SessionIdentityMissing({
-					sessionId: identity.sessionId,
-				});
-			}
-			const status = yield* Effect.fromResult(
-				decodeStoredAgentSessionStatus(session.value.id, session.value.status),
-			);
-			if (status !== "open") {
-				return yield* new SessionIdentityMissing({
-					sessionId: identity.sessionId,
-				});
-			}
-			const executionStatus = yield* Effect.fromResult(
-				decodeSessionExecutionStatus(
+const standDown = (identity: SessionIdentity) =>
+	Effect.gen(function* () {
+		const db = yield* Database;
+		const feeds = yield* DomainFeeds;
+		const reach = yield* KernelReach;
+		const writer = yield* Writer;
+		const session = yield* db.AgentSession.where({
+			id: identity.sessionId,
+		}).first();
+		if (Option.isNone(session) || session.value.agentId !== identity.agentId) {
+			return yield* new SessionIdentityMissing({
+				sessionId: identity.sessionId,
+			});
+		}
+		const status = yield* Effect.fromResult(
+			decodeStoredAgentSessionStatus(session.value.id, session.value.status),
+		);
+		if (status !== "open") {
+			return yield* new SessionIdentityMissing({
+				sessionId: identity.sessionId,
+			});
+		}
+		const executionStatus = yield* Effect.fromResult(
+			decodeSessionExecutionStatus(
+				identity.sessionId,
+				session.value.executionStatus,
+			),
+		);
+		if (executionStatus === "active") {
+			const next = yield* Effect.fromResult(
+				sessionExecutionTransition(
 					identity.sessionId,
-					session.value.executionStatus,
+					executionStatus,
+					"request-siesta",
 				),
 			);
-			if (executionStatus === "active") {
-				const next = yield* Effect.fromResult(
-					sessionExecutionTransition(
-						identity.sessionId,
-						executionStatus,
-						"request-siesta",
-					),
-				);
-				yield* provide(
-					deps.writer.write(
-						deps.db.AgentSession.where({ id: identity.sessionId }).update({
-							executionStatus: next,
-						}),
-					),
-				);
-				yield* PubSub.publish(deps.feeds.fleet, undefined);
-				yield* PubSub.publish(deps.feeds.voyages, undefined);
-			}
-			const reach = yield* Deferred.await(deps.kernelReach);
-			yield* Effect.forkDetach(reach.queueSiesta(identity.sessionId));
-		}),
-		() => "standing down",
-	);
+			yield* writer.write(
+				db.AgentSession.where({ id: identity.sessionId }).update({
+					executionStatus: next,
+				}),
+			);
+			yield* PubSub.publish(feeds.fleet, undefined);
+			yield* PubSub.publish(feeds.voyages, undefined);
+		}
+		yield* Effect.forkDetach(reach.queueSiesta(identity.sessionId));
+	});
 
-export const standDownTool = (
-	deps: AgentDeps,
-	identity: SessionIdentity,
-): DirectTool => bind(standDownSpec, () => standDown(deps, identity));
+export class StandDown extends Context.Service<
+	StandDown,
+	{
+		readonly tool: (identity: SessionIdentity) => DirectTool;
+	}
+>()("@antumbra/domain/StandDown") {}
+
+export const StandDownLive = Layer.effect(StandDown)(
+	Effect.gen(function* () {
+		const db = yield* Database;
+		const feeds = yield* DomainFeeds;
+		const reach = yield* KernelReach;
+		const writer = yield* Writer;
+		const executors = yield* Effect.context<WriteExecutors>();
+		const context = Context.merge(
+			executors,
+			Context.make(Database, db).pipe(
+				Context.add(DomainFeeds, feeds),
+				Context.add(KernelReach, reach),
+				Context.add(Writer, writer),
+			),
+		);
+		return StandDown.of({
+			tool: (identity) =>
+				bind(standDownSpec, () =>
+					answered(
+						identity,
+						standDownSpec.name,
+						Effect.provide(standDown(identity), context),
+						() => "standing down",
+					),
+				),
+		});
+	}),
+);

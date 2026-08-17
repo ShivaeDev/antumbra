@@ -3,11 +3,10 @@ import { Pieces } from "@antumbra/pieces";
 import type { DirectTool } from "@antumbra/plugin-api";
 import { Effect, Option } from "effect";
 import { makeBoardToolCompiler } from "#board-tools.ts";
-import { onOwnDeps } from "#captain-membership.ts";
+import { CaptainMembership } from "#captain-membership.ts";
 import { makePieceVerbToolCompiler } from "#captain-pieces.ts";
-import type { AgentDeps } from "#deps.ts";
 import { VoyageNotFound } from "#errors.ts";
-import { standDownTool } from "#stand-down.ts";
+import { StandDown } from "#stand-down.ts";
 import { answered, onVoyage } from "#tool-answers.ts";
 import type { SessionIdentity } from "#tool-identity.ts";
 import { readVoyageView } from "#voyage-read.ts";
@@ -28,16 +27,15 @@ const voyageOrGone = (voyageId: string) =>
 // reads where the voyage stands, but it lands no outcomes: workers report,
 // captains charter, and the rule is the set rather than a request to behave.
 export const makeCaptainToolCompiler = Effect.gen(function* () {
+	const membership = yield* CaptainMembership;
 	const pieces = yield* Pieces;
 	const pieceVerbTools = yield* makePieceVerbToolCompiler;
 	const compileBoardTools = yield* makeBoardToolCompiler;
+	const standDown = yield* StandDown;
 	const world = yield* VoyageWorldSource;
-	return (
-		deps: AgentDeps,
-		identity: SessionIdentity,
-	): ReadonlyArray<DirectTool> => [
+	return (identity: SessionIdentity): ReadonlyArray<DirectTool> => [
 		bind(charterPieceSpec, (input) =>
-			onOwnDeps(deps, identity, input.dependsOn, (voyageId) =>
+			membership.onOwnDeps(identity, input.dependsOn, (voyageId) =>
 				answered(
 					identity,
 					charterPieceSpec.name,
@@ -53,7 +51,7 @@ export const makeCaptainToolCompiler = Effect.gen(function* () {
 				),
 			),
 		),
-		...pieceVerbTools(deps, identity),
+		...pieceVerbTools(identity),
 		bind(readVoyageSpec, () =>
 			onVoyage(identity, (voyageId) =>
 				answered(
@@ -67,6 +65,6 @@ export const makeCaptainToolCompiler = Effect.gen(function* () {
 			),
 		),
 		...compileBoardTools(identity),
-		standDownTool(deps, identity),
+		standDown.tool(identity),
 	];
 });

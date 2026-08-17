@@ -1,11 +1,17 @@
 import { Artifacts } from "@antumbra/artifacts";
 import { Boards } from "@antumbra/boards";
+import { DomainFeeds } from "@antumbra/domain-feeds";
+import { Database, type WriteExecutors, Writer } from "@antumbra/persistence";
 import { Pieces } from "@antumbra/pieces";
 import { Reports } from "@antumbra/reports";
-import { Clock, Effect, PubSub } from "effect";
-import { type AgentDeps, provideExecutors } from "#deps.ts";
+import { Clock, Context, Effect, Layer, PubSub } from "effect";
 import { hailCaptain } from "#hail.ts";
-import type { OpenVoyageInput, VoyageProcedures } from "#voyage-procedures.ts";
+import { KernelReach } from "#kernel-reach.ts";
+import {
+	type OpenVoyageInput,
+	VoyageProcedureService,
+	type VoyageProcedures,
+} from "#voyage-procedures.ts";
 import { readVoyageView } from "#voyage-read.ts";
 import { requireVoyage } from "#voyage-record.ts";
 import type { VoyageRow } from "#voyage-rows.ts";
@@ -14,11 +20,14 @@ import { VoyageWorldSource } from "#voyage-world.ts";
 
 export type { OpenVoyageInput, VoyageProcedures } from "#voyage-procedures.ts";
 
-const announce = (deps: AgentDeps) =>
-	PubSub.publish(deps.feeds.voyages, undefined);
+const announce = DomainFeeds.pipe(
+	Effect.flatMap((feeds) => PubSub.publish(feeds.voyages, undefined)),
+);
 
-const openVoyage = (deps: AgentDeps, input: OpenVoyageInput) =>
+const openVoyage = (input: OpenVoyageInput) =>
 	Effect.gen(function* () {
+		const db = yield* Database;
+		const writer = yield* Writer;
 		const now = yield* Clock.currentTimeMillis;
 		const row: VoyageRow = {
 			backend: input.backend,
@@ -28,59 +37,72 @@ const openVoyage = (deps: AgentDeps, input: OpenVoyageInput) =>
 			name: input.name,
 			northStar: input.northStar,
 		};
-		yield* provideExecutors(deps)(
-			deps.writer.write(deps.db.Voyage.create(row)),
-		);
-		yield* announce(deps);
+		yield* writer.write(db.Voyage.create(row));
+		yield* announce;
 		return row;
 	});
 
 // why: focus is a stamped moment rather than a flag so the dispatcher can
 // order by it later without a second column, and so un-focusing leaves no
 // trace to mistake for history.
-const setFocus = (deps: AgentDeps, voyageId: string, focused: boolean) =>
+const setFocus = (voyageId: string, focused: boolean) =>
 	Effect.gen(function* () {
+		const db = yield* Database;
+		const writer = yield* Writer;
 		const now = yield* Clock.currentTimeMillis;
-		yield* provideExecutors(deps)(
-			deps.writer.write(
-				Effect.gen(function* () {
-					yield* requireVoyage(deps.db, voyageId);
-					yield* deps.db.Voyage.where({ id: voyageId }).update({
-						focusedAt: focused ? new Date(now) : null,
-					});
-				}),
-			),
+		yield* writer.write(
+			Effect.gen(function* () {
+				yield* requireVoyage(voyageId);
+				yield* db.Voyage.where({ id: voyageId }).update({
+					focusedAt: focused ? new Date(now) : null,
+				});
+			}),
 		);
-		yield* announce(deps);
+		yield* announce;
 	});
 
-export const makeVoyageProcedures = Effect.gen(function* () {
-	const artifacts = yield* Artifacts;
-	const boards = yield* Boards;
-	const pieces = yield* Pieces;
-	const reports = yield* Reports;
-	const world = yield* VoyageWorldSource;
-	return (deps: AgentDeps): VoyageProcedures => ({
-		charterPiece: pieces.charter,
-		hail: (voyageId) =>
-			hailCaptain(deps, voyageId).pipe(
-				Effect.provideService(Boards, boards),
-				Effect.provideService(VoyageWorldSource, world),
+export const VoyageProceduresLive = Layer.effect(VoyageProcedureService)(
+	Effect.gen(function* () {
+		const artifacts = yield* Artifacts;
+		const boards = yield* Boards;
+		const db = yield* Database;
+		const feeds = yield* DomainFeeds;
+		const reach = yield* KernelReach;
+		const pieces = yield* Pieces;
+		const reports = yield* Reports;
+		const world = yield* VoyageWorldSource;
+		const writer = yield* Writer;
+		const executors = yield* Effect.context<WriteExecutors>();
+		const context = Context.merge(
+			executors,
+			Context.make(Boards, boards).pipe(
+				Context.add(Database, db),
+				Context.add(DomainFeeds, feeds),
+				Context.add(KernelReach, reach),
+				Context.add(VoyageWorldSource, world),
+				Context.add(Writer, writer),
 			),
-		landArtifact: artifacts.land,
-		landReport: reports.land,
-		launch: pieces.launch,
-		list: world.read.pipe(Effect.map(voyageSummaries)),
-		open: (input) => openVoyage(deps, input),
-		park: (pieceId) => pieces.park(pieceId, true),
-		read: (voyageId) =>
-			readVoyageView(voyageId).pipe(
-				Effect.provideService(VoyageWorldSource, world),
-			),
-		// why: the public vocabulary keeps its established verb while the capability
-		// names the exact act. Literal set-dependency semantics land separately.
-		rewire: pieces.setDependencies,
-		setFocus: (voyageId, focused) => setFocus(deps, voyageId, focused),
-		unpark: (pieceId) => pieces.park(pieceId, false),
-	});
-});
+		);
+		return VoyageProcedureService.of({
+			charterPiece: pieces.charter,
+			hail: (voyageId) => Effect.provide(hailCaptain(voyageId), context),
+			landArtifact: artifacts.land,
+			landReport: reports.land,
+			launch: pieces.launch,
+			list: world.read.pipe(Effect.map(voyageSummaries)),
+			open: (input) => Effect.provide(openVoyage(input), context),
+			park: (pieceId) => pieces.park(pieceId, true),
+			read: (voyageId) =>
+				readVoyageView(voyageId).pipe(
+					Effect.provideService(VoyageWorldSource, world),
+				),
+			// why: the public vocabulary keeps its established verb while the
+			// capability names the exact act. Literal set-dependency semantics land
+			// separately.
+			rewire: pieces.setDependencies,
+			setFocus: (voyageId, focused) =>
+				Effect.provide(setFocus(voyageId, focused), context),
+			unpark: (pieceId) => pieces.park(pieceId, false),
+		} satisfies VoyageProcedures);
+	}),
+);

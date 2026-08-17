@@ -10,6 +10,7 @@ import type {
 	BerthNotFound,
 	NoChangeHost,
 	RepoNotFound,
+	StoredChangeInvalid,
 	UnknownChangeHostTag,
 	UnknownRunnerTag,
 } from "#errors.ts";
@@ -41,6 +42,7 @@ export type SubmitChangeFailure =
 	| PrismaError
 	| RepoNotFound
 	| RunnerError
+	| StoredChangeInvalid
 	| UnknownRunnerTag;
 
 export type AdoptChangeFailure =
@@ -50,7 +52,8 @@ export type AdoptChangeFailure =
 	| NoChangeHost
 	| PieceNotFound
 	| PrismaError
-	| RepoNotFound;
+	| RepoNotFound
+	| StoredChangeInvalid;
 
 export type OpenChangeFailure =
 	| ChangeHostError

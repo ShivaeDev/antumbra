@@ -5,9 +5,11 @@ import { changeRow } from "#change-read.ts";
 export const activeChange = (key: string) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
-		return yield* db.Change.where({ submissionKey: key })
-			.first()
-			.pipe(Effect.map(Option.map(changeRow)));
+		const stored = yield* db.Change.where({ submissionKey: key }).first();
+		return yield* Option.match(stored, {
+			onNone: () => Effect.succeed(Option.none()),
+			onSome: (row) => Effect.map(changeRow(row), Option.some),
+		});
 	});
 
 export const linkProduces = (pieceId: string, changeId: string) =>

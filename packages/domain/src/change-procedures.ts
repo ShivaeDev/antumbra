@@ -15,7 +15,11 @@ import type {
 } from "#change-submissions/errors.ts";
 import type { OpenChangeFailure, OpenChangeInput } from "#changes.ts";
 import type { AgentDeps } from "#deps.ts";
-import type { UnknownChangeHostTag } from "#errors.ts";
+import type {
+	StoredChangeInvalid,
+	StoredPieceChangeInvalid,
+	UnknownChangeHostTag,
+} from "#errors.ts";
 import { type QuayReading, quayReading } from "#quay-view.ts";
 import { readVoyageWorld } from "#voyage-world.ts";
 
@@ -41,7 +45,10 @@ export interface ChangeProcedures {
 		observations: ReadonlyArray<ChangeObservation>,
 	) => Effect.Effect<
 		ReadonlyArray<ChangeRow>,
-		ChangeIdentityCollision | ChangeObservationConflict | PrismaError
+		| ChangeIdentityCollision
+		| ChangeObservationConflict
+		| PrismaError
+		| StoredChangeInvalid
 	>;
 	readonly open: (
 		input: OpenChangeInput,
@@ -53,10 +60,16 @@ export interface ChangeProcedures {
 	// withdrawn ones can reopen. The set also decides the next pass cadence.
 	readonly watchableChanges: (
 		hostTag: string,
-	) => Effect.Effect<ReadonlyArray<ChangeRow>, PrismaError>;
+	) => Effect.Effect<
+		ReadonlyArray<ChangeRow>,
+		PrismaError | StoredChangeInvalid
+	>;
 	// why: every change still owed, read across the whole fleet and grouped by
 	// where it lies, beside the pieces one made by hand can be adopted onto.
-	readonly quay: Effect.Effect<QuayReading, PrismaError>;
+	readonly quay: Effect.Effect<
+		QuayReading,
+		PrismaError | StoredChangeInvalid | StoredPieceChangeInvalid
+	>;
 	readonly refresh: (
 		hostTag: string,
 	) => Effect.Effect<
@@ -65,6 +78,7 @@ export interface ChangeProcedures {
 		| ChangeIdentityCollision
 		| ChangeObservationConflict
 		| PrismaError
+		| StoredChangeInvalid
 		| UnknownChangeHostTag
 	>;
 	// why: the same ring an opened change gives, offered to whoever else wants

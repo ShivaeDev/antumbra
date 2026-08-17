@@ -64,11 +64,10 @@ const observeGroup = (
 				timeoutMillis: OBSERVE_TIMEOUT_MILLIS,
 			}),
 		).pipe(Effect.catchTag("GhCommandFailed", partial));
-		return (yield* decodeObserveResponse(
-			"observe-changes",
-			stdout,
-			plan.selections,
-		)).map(mapPullRequest);
+		return yield* Effect.forEach(
+			yield* decodeObserveResponse("observe-changes", stdout, plan.selections),
+			mapPullRequest,
+		);
 	});
 
 // why: a chunk that fails leaves its rows unobserved, and the domain reads an
@@ -110,7 +109,7 @@ export const observeOne = (
 	repoId: string,
 	number: number,
 ): Effect.Effect<ChangeObservation, GhError> =>
-	observePulls(executable, [{ ...repo, number, repoId }]).pipe(
+	observeGroup(executable, [{ ...repo, number, repoId }]).pipe(
 		Effect.flatMap((seen) => {
 			const one = seen[0];
 			return one === undefined

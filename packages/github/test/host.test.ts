@@ -16,6 +16,11 @@ const RECORDED = readFileSync(
 	"utf8",
 );
 
+const FUTURE_STATE = RECORDED.replace(
+	'"state": "MERGED"',
+	'"state": "SOMETHING_NEW"',
+);
+
 const REPO: ChangeHostRepo = {
 	defaultRef: "main",
 	id: "repo-antumbra",
@@ -178,6 +183,19 @@ describe("observing changes through gh", () => {
 		),
 	);
 
+	it.live(
+		"leaves a batch unobserved when GitHub adds an unsupported word",
+		() =>
+			withGh((gh) =>
+				Effect.gen(function* () {
+					gh.answer("graphql", { out: FUTURE_STATE });
+					const host = yield* hostOf(gh);
+					const seen = yield* host.observe([{ externalId: "23", repo: REPO }]);
+					expect(seen).toEqual([]);
+				}),
+			),
+	);
+
 	it.live("fails the whole pass when the login stopped working", () =>
 		withGh((gh) =>
 			Effect.gen(function* () {
@@ -230,5 +248,23 @@ describe("adopting a change by its address", () => {
 				expect(adopted.stage).toBe("landed");
 			}),
 		),
+	);
+
+	it.live(
+		"surfaces the exact unsupported word when one pull is read directly",
+		() =>
+			withGh((gh) =>
+				Effect.gen(function* () {
+					gh.answer("graphql", { out: FUTURE_STATE });
+					const host = yield* hostOf(gh);
+					const failure = yield* Effect.flip(
+						host.adopt("https://github.com/ShivaeDev/antumbra/pull/23", REPO),
+					);
+					expect(failure._tag).toBe("ChangeHostUnavailable");
+					expect(failure.message).toContain(
+						'state answered unsupported word "SOMETHING_NEW"',
+					);
+				}),
+			),
 	);
 });

@@ -1,13 +1,10 @@
+import type {
+	ChangeChecks,
+	ChangeMergeable,
+	ChangeReview,
+	ChangeStage,
+} from "@antumbra/change-vocabulary";
 import { Data, type Effect } from "effect";
-
-export type ChangeStage = "landed" | "open" | "prepared" | "withdrawn";
-export type ChangeChecks = "green" | "none" | "pending" | "red";
-export type ChangeReview =
-	| "approved"
-	| "changes_requested"
-	| "none"
-	| "pending";
-export type ChangeMergeable = "clean" | "conflict" | "unknown";
 
 export interface ChangeHostRepo {
 	readonly defaultRef: string;

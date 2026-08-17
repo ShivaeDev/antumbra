@@ -1,6 +1,7 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { ChangeHostUnavailable } from "@antumbra/plugin-api";
 import { Effect, PubSub } from "effect";
+import type { ChangeRow } from "#change-rows.ts";
 import {
 	ChangeObservationConflict,
 	PreparedChangeInvalid,
@@ -13,7 +14,7 @@ import { ChangeHostRegistry } from "#change-submissions/registries.ts";
 import { UnknownChangeHostTag } from "#errors.ts";
 
 const retainsClaimOrSettles = (
-	row: { readonly stage: string; readonly submissionKey: string | null },
+	row: ChangeRow,
 	submissionKey: string,
 ): boolean =>
 	row.stage === "open"

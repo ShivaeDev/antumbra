@@ -1,3 +1,9 @@
+import {
+	ChangeChecks,
+	ChangeMergeable,
+	ChangeReview,
+	ChangeStage,
+} from "@antumbra/change-vocabulary";
 import { Schema } from "effect";
 
 export const PieceAgentView = Schema.Struct({
@@ -27,17 +33,17 @@ export type ArtifactView = typeof ArtifactView.Type;
 // repo reaches a reader by name; the id is what the rest of the system joins on.
 export const ChangeView = Schema.Struct({
 	activityAt: Schema.String,
-	checks: Schema.String,
+	checks: ChangeChecks,
 	externalId: Schema.NullOr(Schema.String),
 	host: Schema.String,
 	id: Schema.String,
 	isDraft: Schema.Boolean,
-	mergeable: Schema.String,
+	mergeable: ChangeMergeable,
 	observedAt: Schema.String,
 	repoId: Schema.String,
 	repoName: Schema.String,
-	review: Schema.String,
-	stage: Schema.String,
+	review: ChangeReview,
+	stage: ChangeStage,
 	title: Schema.String,
 	url: Schema.NullOr(Schema.String),
 });

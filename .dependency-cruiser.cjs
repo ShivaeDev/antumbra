@@ -61,6 +61,13 @@ module.exports = {
 		...capabilityPackages.map(capabilityRule),
 		rule({
 			rationale:
+				"Change vocabulary is the neutral language shared by hosts, durable projections, the public contract, and views. It stays a leaf so no consumer drags another layer with it.",
+			from: "^packages/change-vocabulary",
+			name: "change-vocabulary-is-a-leaf",
+			to: "^packages/(?!change-vocabulary)|^apps/",
+		}),
+		rule({
+			rationale:
 				"The desktop consumes the application-facing domain facade. Leaf capability Layers stay composed inside that facade so the app does not become a service graph by hand.",
 			from: "^apps/desktop",
 			name: "desktop-uses-domain-facade",
@@ -89,10 +96,10 @@ module.exports = {
 		}),
 		rule({
 			rationale:
-				"The renderer is a pure web app: it may depend on the contract and session-events packages only. Electron, the desktop shell, and every core package are out of bounds — this is what keeps windows disposable and a future remote surface possible.",
+				"The renderer is a pure web app: public vocabulary reaches it through contract, and session-events is its only direct vocabulary dependency. Electron, the desktop shell, and every other workspace package are out of bounds — this keeps windows disposable and a future remote surface possible.",
 			from: "^packages/renderer",
 			name: "renderer-pure-web",
-			to: `(^|/)electron(/|$)|^apps/|^packages/(agent-tools|${domainPattern}|kernel|backend-[^/]+|github|runner-[^/]+|persistence|plugin-api)`,
+			to: `(^|/)electron(/|$)|${allowOnly(["renderer", "contract", "session-events"])}`,
 		}),
 		rule({
 			rationale:
@@ -117,10 +124,10 @@ module.exports = {
 		}),
 		rule({
 			rationale:
-				"The contract package is the IDL — a leaf. It imports no other workspace package.",
+				"The contract package is the IDL. It may name the dependency-free Change vocabulary shared with host ports, but imports no capability, adapter, domain, or app layer.",
 			from: "^packages/contract",
-			name: "contract-is-a-leaf",
-			to: "^packages/(?!contract)|^apps/",
+			name: "contract-has-only-vocabulary-dependency",
+			to: "^packages/(?!contract(?:/|$)|change-vocabulary(?:/|$))|^apps/",
 		}),
 		rule({
 			rationale:

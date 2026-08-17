@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "@effect/vitest";
 import { Effect } from "effect";
+import type { UnknownGitHubWord } from "#dialect.ts";
 import { mapPullRequest } from "#mapping.ts";
 import {
 	decodeObserveResponse,
@@ -38,6 +39,9 @@ const withNode = (fields: Partial<PullRequestNode>): ObservedNode => {
 		: { node: { ...base.node, ...fields }, raw: base.raw, repoId: base.repoId };
 };
 
+const mapped = (fields: Partial<PullRequestNode>) =>
+	Effect.runSync(mapPullRequest(withNode(fields)));
+
 describe("reading GitHub's answer as the neutral vocabulary", () => {
 	it("drops the alias for a pull request nobody can see", () => {
 		expect(observed).toHaveLength(4);
@@ -49,7 +53,7 @@ describe("reading GitHub's answer as the neutral vocabulary", () => {
 		if (merged === undefined) {
 			return expect.unreachable("the fixture lost its first node");
 		}
-		expect(mapPullRequest(merged)).toEqual({
+		expect(Effect.runSync(mapPullRequest(merged))).toEqual({
 			activityAt: Date.parse("2026-08-15T20:24:25Z"),
 			baseRef: "main",
 			checks: "green",
@@ -75,20 +79,86 @@ describe("reading GitHub's answer as the neutral vocabulary", () => {
 		if (open === undefined) {
 			return expect.unreachable("the fixture lost its open node");
 		}
-		const mapped = mapPullRequest(open);
-		expect(mapped.stage).toBe("open");
-		expect(mapped.mergeable).toBe("clean");
-		expect(mapped.externalId).toBe("32");
-		expect(mapped.headRef).toBe("shivae/agent-session-recovery");
+		const change = Effect.runSync(mapPullRequest(open));
+		expect(change.stage).toBe("open");
+		expect(change.mergeable).toBe("clean");
+		expect(change.externalId).toBe("32");
+		expect(change.headRef).toBe("shivae/agent-session-recovery");
 	});
 
 	it.each([
 		["OPEN", "open"],
 		["CLOSED", "withdrawn"],
 		["MERGED", "landed"],
-		["SOMETHING_NEW", "open"],
-	])("reads state %s as stage %s", (state, stage) => {
-		expect(mapPullRequest(withNode({ state })).stage).toBe(stage);
+	] as const)("reads state %s as stage %s", (state, stage) => {
+		expect(mapped({ state }).stage).toBe(stage);
+	});
+
+	it.effect("preserves and refuses unsupported GitHub vocabulary", () => {
+		type DialectWord = string | UnknownGitHubWord | null;
+		const futureWords = [
+			{
+				field: "state",
+				from: '"state": "MERGED"',
+				read: (node: PullRequestNode): DialectWord => node.state,
+				to: '"state": "SOMETHING_NEW"',
+				word: "SOMETHING_NEW",
+			},
+			{
+				field: "mergeStateStatus",
+				from: '"mergeStateStatus": "UNKNOWN"',
+				read: (node: PullRequestNode): DialectWord => node.mergeStateStatus,
+				to: '"mergeStateStatus": "FUTURE_MERGE"',
+				word: "FUTURE_MERGE",
+			},
+			{
+				field: "reviewDecision",
+				from: '"reviewDecision": null',
+				read: (node: PullRequestNode): DialectWord => node.reviewDecision,
+				to: '"reviewDecision": "FUTURE_REVIEW"',
+				word: "FUTURE_REVIEW",
+			},
+			{
+				field: "statusCheckRollup.state",
+				from: '"state": "SUCCESS"',
+				read: (node: PullRequestNode): DialectWord =>
+					node.commits.nodes[0]?.commit.statusCheckRollup?.state ?? null,
+				to: '"state": "FUTURE_CHECK"',
+				word: "FUTURE_CHECK",
+			},
+		] satisfies ReadonlyArray<{
+			readonly field: string;
+			readonly from: string;
+			readonly read: (node: PullRequestNode) => DialectWord;
+			readonly to: string;
+			readonly word: string;
+		}>;
+		return Effect.gen(function* () {
+			for (const futureWord of futureWords) {
+				const future = RECORDED.replace(futureWord.from, futureWord.to);
+				expect(future).not.toBe(RECORDED);
+				const [unsupported] = yield* decodeObserveResponse(
+					"observe-changes",
+					future,
+					PLAN.selections,
+				);
+				if (unsupported === undefined) {
+					return expect.unreachable("the fixture lost its first node");
+				}
+				expect(futureWord.read(unsupported.node)).toEqual({
+					_tag: "Unknown",
+					raw: futureWord.word,
+				});
+				const failure = yield* Effect.flip(mapPullRequest(unsupported));
+				expect(failure).toMatchObject({
+					_tag: "GhOutputInvalid",
+					raw: unsupported.raw,
+				});
+				expect(failure.detail).toContain(
+					`${futureWord.field} answered unsupported word ${JSON.stringify(futureWord.word)}`,
+				);
+			}
+		});
 	});
 
 	it.each([
@@ -100,10 +170,8 @@ describe("reading GitHub's answer as the neutral vocabulary", () => {
 		["HAS_HOOKS", "unknown"],
 		["DRAFT", "unknown"],
 		["UNKNOWN", "unknown"],
-	])("reads merge state %s as %s", (mergeStateStatus, mergeable) => {
-		expect(mapPullRequest(withNode({ mergeStateStatus })).mergeable).toBe(
-			mergeable,
-		);
+	] as const)("reads merge state %s as %s", (mergeStateStatus, mergeable) => {
+		expect(mapped({ mergeStateStatus }).mergeable).toBe(mergeable);
 	});
 
 	it.each([
@@ -111,8 +179,8 @@ describe("reading GitHub's answer as the neutral vocabulary", () => {
 		["CHANGES_REQUESTED", "changes_requested"],
 		["REVIEW_REQUIRED", "pending"],
 		[null, "none"],
-	])("reads review decision %s as %s", (reviewDecision, review) => {
-		expect(mapPullRequest(withNode({ reviewDecision })).review).toBe(review);
+	] as const)("reads review decision %s as %s", (reviewDecision, review) => {
+		expect(mapped({ reviewDecision }).review).toBe(review);
 	});
 
 	it.each([
@@ -121,25 +189,21 @@ describe("reading GitHub's answer as the neutral vocabulary", () => {
 		["ERROR", "red"],
 		["PENDING", "pending"],
 		["EXPECTED", "pending"],
-	])("reads a check rollup of %s as %s", (state, checks) => {
+	] as const)("reads a check rollup of %s as %s", (state, checks) => {
 		const commits = { nodes: [{ commit: { statusCheckRollup: { state } } }] };
-		expect(mapPullRequest(withNode({ commits })).checks).toBe(checks);
+		expect(mapped({ commits }).checks).toBe(checks);
 	});
 
 	it("reads a missing check rollup as no signal at all", () => {
 		expect(
-			mapPullRequest(
-				withNode({
-					commits: { nodes: [{ commit: { statusCheckRollup: null } }] },
-				}),
-			).checks,
+			mapped({
+				commits: { nodes: [{ commit: { statusCheckRollup: null } }] },
+			}).checks,
 		).toBe("none");
-		expect(mapPullRequest(withNode({ commits: { nodes: [] } })).checks).toBe(
-			"none",
-		);
+		expect(mapped({ commits: { nodes: [] } }).checks).toBe("none");
 	});
 
 	it("puts an undatable change outside every recency window", () => {
-		expect(mapPullRequest(withNode({ updatedAt: "never" })).activityAt).toBe(0);
+		expect(mapped({ updatedAt: "never" }).activityAt).toBe(0);
 	});
 });

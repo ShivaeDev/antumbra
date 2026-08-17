@@ -28,6 +28,7 @@
 		"@antumbra/agent-tools": "workspace:*",
 		"@antumbra/artifacts": "workspace:*",
 		"@antumbra/boards": "workspace:*",
+		"@antumbra/change-vocabulary": "workspace:*",
 		"@antumbra/contract": "workspace:*",
 		"@antumbra/domain-feeds": "workspace:*",
 		"@antumbra/kernel": "workspace:*",

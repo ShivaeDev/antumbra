@@ -41,7 +41,8 @@ obligation remains detached until needed. See
 | Package                   | Role                                                            |
 | ------------------------- | --------------------------------------------------------------- |
 | `apps/desktop`            | Electron shell: windows, native surfaces, composition           |
-| `packages/contract`       | The typed API surface between renderer and main (a leaf)        |
+| `packages/contract`       | Public typed IDL between renderer and main                      |
+| `packages/change-vocabulary` | Neutral Change and PieceChange vocabulary (a leaf)           |
 | `packages/session-events` | The neutral session-event vocabulary every side speaks (a leaf) |
 | `packages/plugin-api`     | The driven ports: agent backends, runners, plugin registration  |
 | `packages/agent-tools`    | The tools agents act through: schemas and binding, no transport |
@@ -63,10 +64,12 @@ obligation remains detached until needed. See
 ## Layers
 
 The workspace is hexagonal, and dependency direction is the point. Vocabulary
-and contract packages are leaves. `plugin-api` declares driven ports;
-`agent-tools` defines transport-free tools. Capability packages own business
-acts beneath the application-facing `domain` facade, while adapters implement
-ports without importing the domain.
+packages are Effect-only leaves. `contract` is the public IDL layer and may
+depend on those lower vocabulary leaves, but never on a capability, port,
+adapter, domain, or app layer. `plugin-api` declares driven ports; `agent-tools`
+defines transport-free tools. Capability packages own business acts beneath
+the application-facing `domain` facade, while adapters implement ports without
+importing the domain.
 
 `apps/desktop` is the only composition root where adapters and use cases meet.
 Effect environments state runtime dependencies, capability services own their

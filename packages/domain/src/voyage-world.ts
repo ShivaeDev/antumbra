@@ -9,6 +9,7 @@ import { Effect } from "effect";
 import { changeRow } from "#change-read.ts";
 import { pieceChangeRow } from "#change-rows.ts";
 import { type AgentDeps, provideExecutors } from "#deps.ts";
+import type { StoredChangeInvalid, StoredPieceChangeInvalid } from "#errors.ts";
 import type {
 	PieceRow,
 	RepoRow,
@@ -60,27 +61,37 @@ const byId = <A extends { readonly id: string }>(
 
 export const voyageWorld = (
 	db: DatabaseService,
-): Effect.Effect<VoyageWorld, PrismaError, WriteExecutors> =>
+): Effect.Effect<
+	VoyageWorld,
+	PrismaError | StoredChangeInvalid | StoredPieceChangeInvalid,
+	WriteExecutors
+> =>
 	Effect.gen(function* () {
 		// why: read in the order they were born, so the map that carries them
 		// keeps that order and the most recent of any set is its last entry.
 		const agents = yield* db.Agent.orderBy((agent) =>
 			agent.createdAt.asc(),
 		).all();
+		const changes = yield* Effect.forEach(
+			yield* db.Change.orderBy((change) => change.createdAt.asc()).all(),
+			changeRow,
+		);
+		const pieceChanges = yield* Effect.forEach(
+			yield* db.PieceChange.all(),
+			pieceChangeRow,
+		);
 		return {
 			agentStatus: new Map(
 				agents.map((agent) => [agent.id, agent.status] as const),
 			),
 			artifacts: byId((yield* db.Artifact.all()).map(artifactRow)),
 			assignments: yield* db.PieceAgent.all(),
-			changes: (yield* db.Change.orderBy((change) =>
-				change.createdAt.asc(),
-			).all()).map(changeRow),
+			changes,
 			crews: yield* db.VoyageAgent.all(),
 			edges: yield* db.PieceEdge.all(),
 			memberships: yield* db.VoyagePiece.all(),
 			pieceArtifacts: yield* db.PieceArtifact.all(),
-			pieceChanges: (yield* db.PieceChange.all()).map(pieceChangeRow),
+			pieceChanges,
 			pieceReports: yield* db.PieceReport.all(),
 			pieces: (yield* db.Piece.orderBy((piece) =>
 				piece.createdAt.asc(),
@@ -95,5 +106,7 @@ export const voyageWorld = (
 
 export const readVoyageWorld = (
 	deps: AgentDeps,
-): Effect.Effect<VoyageWorld, PrismaError> =>
-	provideExecutors(deps)(voyageWorld(deps.db));
+): Effect.Effect<
+	VoyageWorld,
+	PrismaError | StoredChangeInvalid | StoredPieceChangeInvalid
+> => provideExecutors(deps)(voyageWorld(deps.db));

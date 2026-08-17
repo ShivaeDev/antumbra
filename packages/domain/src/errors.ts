@@ -1,6 +1,11 @@
 import { Data } from "effect";
-import type { BoardScope } from "#board-scope.ts";
 
+export {
+	BoardOwnerNotFound,
+	BoardSourceConflict,
+	MailNotAddressed,
+	StoredBoardEntryInvalid,
+} from "@antumbra/boards";
 export {
 	EdgeWouldCycle,
 	PieceNotFound,
@@ -80,45 +85,6 @@ export class NoChangeHost extends Data.TaggedError("NoChangeHost")<{
 		return `no change host claims ${this.repoName}`;
 	}
 }
-
-// why: a board hangs off one entity, so a scope naming an entity that is not
-// there is a mistake to answer rather than a board to mint — an orphan board
-// is a mailbox nobody owns and nobody can be shown.
-export class BoardOwnerNotFound extends Data.TaggedError("BoardOwnerNotFound")<{
-	readonly ownerId: string;
-	readonly ownerKind: BoardScope["kind"];
-}> {
-	override get message(): string {
-		return `no ${this.ownerKind} named ${this.ownerId} carries a board`;
-	}
-}
-
-export class BoardSourceConflict extends Data.TaggedError(
-	"BoardSourceConflict",
-)<{
-	readonly boardId: string;
-	readonly sourceRef: string;
-}> {
-	override get message(): string {
-		return `${this.sourceRef} already names different mail on ${this.boardId}`;
-	}
-}
-
-export class MailNotAddressed extends Data.TaggedError("MailNotAddressed")<{
-	readonly agentId: string;
-	readonly entryId: string;
-}> {
-	override get message(): string {
-		return `${this.entryId} is not mail addressed to ${this.agentId}`;
-	}
-}
-
-export class StoredBoardEntryInvalid extends Data.TaggedError(
-	"StoredBoardEntryInvalid",
-)<{
-	readonly detail: string;
-	readonly entryId: string;
-}> {}
 
 // why: a voyage is under way because its captain is at work, so hailing a
 // second one while the first still is would give the voyage two accountable

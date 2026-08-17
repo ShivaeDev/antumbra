@@ -1,15 +1,14 @@
-import type { PrismaError } from "@antumbra/persistence";
-import { Deferred, Effect, Option } from "effect";
-import { smoothBodies } from "#board-rows.ts";
-import { boardEntries } from "#boards.ts";
-import { composeCaptainCharter } from "#charter-captain.ts";
-import { type AgentDeps, provideExecutors, type SpawnRefused } from "#deps.ts";
 import {
 	type BoardOwnerNotFound,
-	CaptainAlreadyHailed,
+	Boards,
 	type StoredBoardEntryInvalid,
-	VoyageNotFound,
-} from "#errors.ts";
+	smoothBodies,
+} from "@antumbra/boards";
+import type { PrismaError } from "@antumbra/persistence";
+import { Deferred, Effect, Option } from "effect";
+import { composeCaptainCharter } from "#charter-captain.ts";
+import type { AgentDeps, SpawnRefused } from "#deps.ts";
+import { CaptainAlreadyHailed, VoyageNotFound } from "#errors.ts";
 import { CAPTAIN_ROLE, captainAtWork } from "#voyage-captain.ts";
 import { voyageView } from "#voyage-view.ts";
 import { readVoyageWorld } from "#voyage-world.ts";
@@ -30,11 +29,9 @@ export type HailRefused =
 // why: hailing materializes the role for the voyage as it stands right now —
 // north star, board and pieces are read at the moment of the hail, because a
 // captain's session is mortal and the voyage is not.
-export const hailCaptain = (
-	deps: AgentDeps,
-	voyageId: string,
-): Effect.Effect<HailedCaptain, HailRefused> =>
+export const hailCaptain = (deps: AgentDeps, voyageId: string) =>
 	Effect.gen(function* () {
+		const boards = yield* Boards;
 		const world = yield* readVoyageWorld(deps);
 		const voyage = world.voyages.find((row) => row.id === voyageId);
 		if (voyage === undefined) {
@@ -47,11 +44,9 @@ export const hailCaptain = (
 				voyageId,
 			});
 		}
-		const voyageSmoothLog = yield* provideExecutors(deps)(
-			boardEntries(deps.db, { kind: "voyage", voyageId }).pipe(
-				Effect.map(smoothBodies),
-			),
-		);
+		const voyageSmoothLog = yield* boards
+			.read({ kind: "voyage", voyageId })
+			.pipe(Effect.map(smoothBodies));
 		const agentId = crypto.randomUUID();
 		// why: the hail is answered from the window or the router, never from
 		// inside a session, so it may wait for the kernel to be reachable and

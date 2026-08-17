@@ -3,7 +3,7 @@ import { Artifacts } from "@antumbra/artifacts";
 import type { DirectTool } from "@antumbra/plugin-api";
 import { Reports } from "@antumbra/reports";
 import { Effect } from "effect";
-import { boardTools } from "#board-tools.ts";
+import { makeBoardToolCompiler } from "#board-tools.ts";
 import { makeChangeToolCompiler } from "#change-tools.ts";
 import type { AgentDeps } from "#deps.ts";
 import { standDownTool } from "#stand-down.ts";
@@ -16,6 +16,7 @@ import type { SessionIdentity } from "#tool-identity.ts";
 // set, not by asking.
 export const makeCrewToolCompiler = Effect.gen(function* () {
 	const artifacts = yield* Artifacts;
+	const compileBoardTools = yield* makeBoardToolCompiler;
 	const compileChangeTools = yield* makeChangeToolCompiler;
 	const reports = yield* Reports;
 	function crewTools(
@@ -54,7 +55,7 @@ export const makeCrewToolCompiler = Effect.gen(function* () {
 				),
 			),
 			...compileChangeTools(deps, identity),
-			...boardTools(deps, identity),
+			...compileBoardTools(identity),
 			standDownTool(deps, identity),
 		];
 	}

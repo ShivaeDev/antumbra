@@ -1,5 +1,5 @@
 {
-	"name": "@antumbra/domain",
+	"name": "@antumbra/boards",
 	"version": "0.0.0",
 	"private": true,
 	"type": "module",
@@ -7,7 +7,6 @@
 		".": "./src/index.ts"
 	},
 	"imports": {
-		"#test/*": "./test/*",
 		"#*": "./src/*"
 	},
 	"scripts": {
@@ -16,26 +15,15 @@
 		"typecheck:compat": "tsc6 --noEmit"
 	},
 	"devDependencies": {
-		"@effect/platform-node": "catalog:",
 		"@effect/vitest": "catalog:",
 		"@types/node": "catalog:",
 		"@typescript/native": "catalog:",
-		"effect": "catalog:",
 		"typescript": "catalog:",
 		"vitest": "catalog:"
 	},
 	"dependencies": {
-		"@antumbra/agent-tools": "workspace:*",
-		"@antumbra/artifacts": "workspace:*",
-		"@antumbra/boards": "workspace:*",
-		"@antumbra/contract": "workspace:*",
 		"@antumbra/domain-feeds": "workspace:*",
-		"@antumbra/kernel": "workspace:*",
 		"@antumbra/persistence": "workspace:*",
-		"@antumbra/pieces": "workspace:*",
-		"@antumbra/plugin-api": "workspace:*",
-		"@antumbra/reports": "workspace:*",
-		"@antumbra/session-events": "workspace:*",
 		"effect": "catalog:"
 	}
 }

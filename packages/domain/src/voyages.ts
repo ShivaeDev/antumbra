@@ -4,6 +4,7 @@ import {
 	type ArtifactRow,
 	Artifacts,
 } from "@antumbra/artifacts";
+import { Boards } from "@antumbra/boards";
 import type { PrismaError } from "@antumbra/persistence";
 import {
 	type CharterFailure,
@@ -117,11 +118,13 @@ const setFocus = (deps: AgentDeps, voyageId: string, focused: boolean) =>
 
 export const makeVoyageProcedures = Effect.gen(function* () {
 	const artifacts = yield* Artifacts;
+	const boards = yield* Boards;
 	const pieces = yield* Pieces;
 	const reports = yield* Reports;
 	return (deps: AgentDeps): VoyageProcedures => ({
 		charterPiece: pieces.charter,
-		hail: (voyageId) => hailCaptain(deps, voyageId),
+		hail: (voyageId) =>
+			hailCaptain(deps, voyageId).pipe(Effect.provideService(Boards, boards)),
 		landArtifact: artifacts.land,
 		landReport: reports.land,
 		launch: pieces.launch,

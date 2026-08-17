@@ -1,7 +1,7 @@
+import type { BoardsService } from "@antumbra/boards";
 import type { AnyIntentKind, IntentKind } from "@antumbra/kernel";
 import type { BackendFailure } from "@antumbra/plugin-api";
 import { Context, type Deferred, type Effect } from "effect";
-import type { BoardProcedures } from "#board-procedures.ts";
 import type { ChangeProcedures } from "#change-procedures.ts";
 import type { KernelReach } from "#deps.ts";
 import type { SessionNotLive } from "#errors.ts";
@@ -20,7 +20,7 @@ export class AgentDomain extends Context.Service<
 	AgentDomain,
 	{
 		readonly backends: ReadonlyArray<string>;
-		readonly boards: BoardProcedures;
+		readonly boards: BoardsService;
 		readonly changes: ChangeProcedures;
 		readonly gauges: Readonly<Record<string, Effect.Effect<number>>>;
 		readonly interruptSession: (

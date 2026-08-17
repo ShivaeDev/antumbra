@@ -1,4 +1,5 @@
 import { ArtifactsLive } from "@antumbra/artifacts";
+import { Boards, BoardsLive } from "@antumbra/boards";
 import { DomainFeeds, DomainFeedsLive } from "@antumbra/domain-feeds";
 import { Database, type WriteExecutors, Writer } from "@antumbra/persistence";
 import { PiecesLive } from "@antumbra/pieces";
@@ -7,7 +8,6 @@ import { ReportsLive } from "@antumbra/reports";
 import { Deferred, Effect, Layer, Option } from "effect";
 import { AGENTS_ALIVE_GAUGE, AgentDomain } from "#agent-domain-service.ts";
 import { sweepBerths } from "#berth-sweep.ts";
-import { makeBoardProcedures } from "#board-procedures.ts";
 import { makeCaptainToolCompiler } from "#captain-tools.ts";
 import { makeChangeProcedureCompiler } from "#change-procedures.ts";
 import { makeCrewToolCompiler } from "#crew-tools.ts";
@@ -50,11 +50,13 @@ export const AgentDomainLive = (
 ) => {
 	const capabilities = Layer.mergeAll(
 		PiecesLive,
+		BoardsLive,
 		ArtifactsLive(artifactsDirectory),
 		ReportsLive,
 	).pipe(Layer.provideMerge(DomainFeedsLive));
 	return Layer.effect(AgentDomain)(
 		Effect.gen(function* () {
+			const boards = yield* Boards;
 			const db = yield* Database;
 			const writer = yield* Writer;
 			const executors = yield* Effect.context<WriteExecutors>();
@@ -128,7 +130,7 @@ export const AgentDomainLive = (
 			const retire = makeRetireKind(deps);
 			return {
 				backends: [...backends.keys()],
-				boards: makeBoardProcedures(deps),
+				boards,
 				changes: makeChanges(deps),
 				gauges: { [AGENTS_ALIVE_GAUGE]: aliveAgents },
 				interruptSession: fabric.interrupt,

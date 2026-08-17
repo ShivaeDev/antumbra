@@ -1,173 +1,155 @@
+const rule = ({ from, name, rationale, to }) => ({
+	comment: rationale,
+	from: { path: from },
+	name,
+	severity: "error",
+	to: { path: to },
+});
+
+const packagePath = (name) => `${name}(?:/|$)`;
+const alternatives = (names) => names.join("|");
+const allowOnly = (names) =>
+	`^packages/(?!${alternatives(names.map(packagePath))})|^apps/`;
+
+const capabilityPackages = [
+	{
+		allowed: [],
+		rationale:
+			"Domain feeds are a notification leaf. Importing another workspace layer here would make every capability that publishes a signal depend on that layer too.",
+		name: "domain-feeds",
+	},
+	{
+		allowed: ["persistence", "domain-feeds"],
+		rationale:
+			"Pieces owns one domain capability. It may write through persistence and publish through domain-feeds, but it never reaches up into the domain facade, ports, adapters, or app.",
+		name: "pieces",
+	},
+	{
+		allowed: ["persistence", "domain-feeds"],
+		rationale:
+			"Boards owns durable board and mailbox invariants. It may write through persistence and publish through domain-feeds, but it never reaches up into the domain facade, ports, adapters, or app.",
+		name: "boards",
+	},
+	{
+		allowed: ["pieces", "persistence", "domain-feeds"],
+		rationale:
+			"Artifacts owns durable outcome publication. It may validate pieces, write through persistence, and publish through domain-feeds, but it never reaches up into the domain facade, ports, adapters, or app.",
+		name: "artifacts",
+	},
+	{
+		allowed: ["pieces", "persistence", "domain-feeds"],
+		rationale:
+			"Reports owns durable report landing. It may validate pieces, write through persistence, and publish through domain-feeds, but it never reaches up into the domain facade, ports, adapters, or app.",
+		name: "reports",
+	},
+];
+
+const capabilityRule = ({ allowed, name, rationale }) =>
+	rule({
+		from: `^packages/${name}`,
+		name: `${name}-${allowed.length === 0 ? "is-a-leaf" : "has-narrow-dependencies"}`,
+		rationale,
+		to: allowOnly([name, ...allowed]),
+	});
+
+const capabilityNames = capabilityPackages.map(({ name }) => name);
+const capabilityPattern = alternatives(capabilityNames);
+const domainPattern = alternatives(["domain", ...capabilityNames]);
+
 module.exports = {
 	forbidden: [
-		{
-			comment:
-				"Domain feeds are a notification leaf. Importing another workspace layer here would make every capability that publishes a signal depend on that layer too.",
-			from: { path: "^packages/domain-feeds" },
-			name: "domain-feeds-is-a-leaf",
-			severity: "error",
-			to: { path: "^packages/(?!domain-feeds(?:/|$))|^apps/" },
-		},
-		{
-			comment:
-				"Pieces owns one domain capability. It may write through persistence and publish through domain-feeds, but it never reaches up into the domain facade, ports, adapters, or app.",
-			from: { path: "^packages/pieces" },
-			name: "pieces-has-narrow-dependencies",
-			severity: "error",
-			to: {
-				path: "^packages/(?!pieces(?:/|$)|persistence(?:/|$)|domain-feeds(?:/|$))|^apps/",
-			},
-		},
-		{
-			comment:
-				"Boards owns durable board and mailbox invariants. It may write through persistence and publish through domain-feeds, but it never reaches up into the domain facade, ports, adapters, or app.",
-			from: { path: "^packages/boards" },
-			name: "boards-has-narrow-dependencies",
-			severity: "error",
-			to: {
-				path: "^packages/(?!boards(?:/|$)|persistence(?:/|$)|domain-feeds(?:/|$))|^apps/",
-			},
-		},
-		{
-			comment:
-				"Artifacts owns durable outcome publication. It may validate pieces, write through persistence, and publish through domain-feeds, but it never reaches up into the domain facade, ports, adapters, or app.",
-			from: { path: "^packages/artifacts" },
-			name: "artifacts-has-narrow-dependencies",
-			severity: "error",
-			to: {
-				path: "^packages/(?!artifacts(?:/|$)|pieces(?:/|$)|persistence(?:/|$)|domain-feeds(?:/|$))|^apps/",
-			},
-		},
-		{
-			comment:
-				"Reports owns durable report landing. It may validate pieces, write through persistence, and publish through domain-feeds, but it never reaches up into the domain facade, ports, adapters, or app.",
-			from: { path: "^packages/reports" },
-			name: "reports-has-narrow-dependencies",
-			severity: "error",
-			to: {
-				path: "^packages/(?!reports(?:/|$)|pieces(?:/|$)|persistence(?:/|$)|domain-feeds(?:/|$))|^apps/",
-			},
-		},
-		{
-			comment:
+		...capabilityPackages.map(capabilityRule),
+		rule({
+			rationale:
 				"The desktop consumes the application-facing domain facade. Leaf capability Layers stay composed inside that facade so the app does not become a service graph by hand.",
-			from: { path: "^apps/desktop" },
+			from: "^apps/desktop",
 			name: "desktop-uses-domain-facade",
-			severity: "error",
-			to: {
-				path: "^packages/(artifacts|boards|pieces|reports|domain-feeds)(?:/|$)",
-			},
-		},
-		{
-			comment:
+			to: `^packages/(${capabilityPattern})(?:/|$)`,
+		}),
+		rule({
+			rationale:
 				"Git is process infrastructure beneath the adapters that move branches: the local runner cuts worktrees, and the GitHub host pushes one before it proposes a change. No other package consumes that mechanism directly; a new caller must earn and document a real layer edge.",
-			from: {
-				path: "^packages/(?!git(?:/|$)|github(?:/|$)|runner-local(?:/|$))|^apps/",
-			},
+			from: "^packages/(?!git(?:/|$)|github(?:/|$)|runner-local(?:/|$))|^apps/",
 			name: "git-only-below-branch-adapters",
-			severity: "error",
-			to: { path: "^packages/git(?:/|$)" },
-		},
-		{
-			comment:
+			to: "^packages/git(?:/|$)",
+		}),
+		rule({
+			rationale:
 				"The GitHub host implements one driven port for one provider. It may name that port, the git mechanism it pushes through, and Effect — nothing else. Reaching for the domain, the kernel or persistence would weld one forge into the use cases and make the second host a rewrite.",
-			from: { path: "^packages/github(?:/|$)" },
+			from: "^packages/github(?:/|$)",
 			name: "github-implements-one-port",
-			severity: "error",
-			to: {
-				path: "^packages/(?!github(?:/|$)|git(?:/|$)|plugin-api(?:/|$))|^apps/",
-			},
-		},
-		{
-			comment:
+			to: "^packages/(?!github(?:/|$)|git(?:/|$)|plugin-api(?:/|$))|^apps/",
+		}),
+		rule({
+			rationale:
 				"Git owns one semantic process boundary and stays below every workspace layer. It may depend on Effect's process port, never on an Antumbra package or app.",
-			from: { path: "^packages/git(?:/|$)" },
+			from: "^packages/git(?:/|$)",
 			name: "git-imports-no-workspace-layer",
-			severity: "error",
-			to: { path: "^packages/(?!git(?:/|$))|^apps/" },
-		},
-		{
-			comment:
+			to: "^packages/(?!git(?:/|$))|^apps/",
+		}),
+		rule({
+			rationale:
 				"The renderer is a pure web app: it may depend on the contract and session-events packages only. Electron, the desktop shell, and every core package are out of bounds — this is what keeps windows disposable and a future remote surface possible.",
-			from: { path: "^packages/renderer" },
+			from: "^packages/renderer",
 			name: "renderer-pure-web",
-			severity: "error",
-			to: {
-				path: "(^|/)electron(/|$)|^apps/|^packages/(agent-tools|artifacts|boards|kernel|domain(?:-feeds)?|pieces|reports|backend-[^/]+|github|runner-[^/]+|persistence|plugin-api)",
-			},
-		},
-		{
-			comment:
+			to: `(^|/)electron(/|$)|^apps/|^packages/(agent-tools|${domainPattern}|kernel|backend-[^/]+|github|runner-[^/]+|persistence|plugin-api)`,
+		}),
+		rule({
+			rationale:
 				"Adapters implement the driven ports and nothing else. A backend, runner or change host that reaches for the domain has stopped being replaceable — it would drag the use cases into every provider it serves.",
-			from: { path: "^packages/(backend-[^/]+|github|runner-[^/]+)" },
+			from: "^packages/(backend-[^/]+|github|runner-[^/]+)",
 			name: "adapters-never-import-the-domain",
-			severity: "error",
-			to: {
-				path: "^packages/(artifacts|boards|domain(?:-feeds)?|pieces|reports)(?:/|$)",
-			},
-		},
-		{
-			comment:
+			to: `^packages/(${domainPattern})(?:/|$)`,
+		}),
+		rule({
+			rationale:
 				"The domain speaks to ports, never to the providers behind them. Naming a concrete adapter or a vendor SDK here would weld one provider into the use cases and make the next one a rewrite.",
-			from: { path: "^packages/domain" },
+			from: "^packages/domain",
 			name: "domain-knows-ports-not-providers",
-			severity: "error",
-			to: {
-				path: "^packages/(backend-[^/]+|github|runner-[^/]+)|(^|/)@anthropic-ai/claude-agent-sdk(/|$)",
-			},
-		},
-		{
-			comment:
+			to: "^packages/(backend-[^/]+|github|runner-[^/]+)|(^|/)@anthropic-ai/claude-agent-sdk(/|$)",
+		}),
+		rule({
+			rationale:
 				"Only the desktop shell touches Electron APIs. Core packages stay host-agnostic.",
-			from: { path: "^packages/" },
+			from: "^packages/",
 			name: "electron-only-in-desktop",
-			severity: "error",
-			to: { path: "(^|/)electron(/|$)" },
-		},
-		{
-			comment:
+			to: "(^|/)electron(/|$)",
+		}),
+		rule({
+			rationale:
 				"The contract package is the IDL — a leaf. It imports no other workspace package.",
-			from: { path: "^packages/contract" },
+			from: "^packages/contract",
 			name: "contract-is-a-leaf",
-			severity: "error",
-			to: { path: "^packages/(?!contract)|^apps/" },
-		},
-		{
-			comment:
+			to: "^packages/(?!contract)|^apps/",
+		}),
+		rule({
+			rationale:
 				"The session-events package is the vocabulary every side speaks — ports, domain, and the renderer alike. It stays a leaf so importing it never drags a layer along.",
-			from: { path: "^packages/session-events" },
+			from: "^packages/session-events",
 			name: "session-events-is-a-leaf",
-			severity: "error",
-			to: { path: "^packages/(?!session-events)|^apps/" },
-		},
-		{
-			comment:
+			to: "^packages/(?!session-events)|^apps/",
+		}),
+		rule({
+			rationale:
 				"The tools an agent acts through are transport-free: they name the port that declares what a tool is and nothing else. A tool package that reached for the domain, a provider, or a harness would stop being the one definition every backend maps.",
-			from: { path: "^packages/agent-tools" },
+			from: "^packages/agent-tools",
 			name: "agent-tools-knows-only-the-port",
-			severity: "error",
-			to: {
-				path: "^packages/(?!agent-tools(?:/|$)|plugin-api(?:/|$))|^apps/",
-			},
-		},
-		{
-			comment:
+			to: "^packages/(?!agent-tools(?:/|$)|plugin-api(?:/|$))|^apps/",
+		}),
+		rule({
+			rationale:
 				"Nothing imports the app shell; composition flows downward only.",
-			from: { path: "^packages/" },
+			from: "^packages/",
 			name: "nothing-imports-desktop",
-			severity: "error",
-			to: { path: "^apps/" },
-		},
-		{
-			comment:
+			to: "^apps/",
+		}),
+		rule({
+			rationale:
 				"Database access exists only behind the persistence package. No feature code ever holds a raw DB handle.",
-			from: { path: "^(apps|packages)/(?!persistence)" },
+			from: "^(apps|packages)/(?!persistence)",
 			name: "persistence-owns-the-db",
-			severity: "error",
-			to: {
-				path: "^node:sqlite$|(^|/)@prisma-next(/|$)|(^|/)@shivaedev/effect-prisma(/|$)",
-			},
-		},
+			to: "^node:sqlite$|(^|/)@prisma-next(/|$)|(^|/)@shivaedev/effect-prisma(/|$)",
+		}),
 	],
 	options: {
 		doNotFollow: { path: "node_modules" },

@@ -39,6 +39,7 @@ export interface CrewRow {
 
 export interface AgentSessionRow {
 	readonly agentId: string;
+	readonly createdAt: Date;
 	readonly executionStatus: SessionExecutionStatus;
 	readonly id: string;
 	readonly status: AgentSessionStatus;
@@ -64,6 +65,7 @@ export interface ArtifactLinkRow {
 // fan out into a read per piece, and these tables stay small by construction.
 export interface VoyageWorld {
 	readonly agentStatus: ReadonlyMap<string, AgentStatus>;
+	readonly currentSessionByAgent: ReadonlyMap<string, string | null>;
 	readonly artifacts: ReadonlyMap<string, ArtifactRow>;
 	readonly assignments: ReadonlyArray<AssignmentRow>;
 	readonly changes: ReadonlyArray<ChangeRow>;

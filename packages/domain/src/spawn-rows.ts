@@ -1,72 +1,86 @@
-import {
-	decodeStoredAgentSessionStatus,
-	decodeStoredAgentStatus,
-} from "@antumbra/agent-runtime-vocabulary";
+import { decodeStoredAgentStatus } from "@antumbra/agent-runtime-vocabulary";
 import { Effect, Option, PubSub } from "effect";
 import { type AgentDeps, provideExecutors } from "#deps.ts";
 import { AgentNotSpawnable } from "#errors.ts";
 import { assignToPiece } from "#piece-assignment.ts";
 import type { SpawnFields } from "#spawn.ts";
+import {
+	activationFor,
+	ensureSessionStatus,
+	reservationFor,
+} from "#spawn-current-session.ts";
 import { type AgentStatus, agentTransition } from "#status.ts";
 import { assignToVoyage } from "#voyage-assignment.ts";
 
 export const ensureAgentRow = (deps: AgentDeps, payload: SpawnFields) => {
 	const provide = provideExecutors(deps);
 	return Effect.gen(function* () {
-		const existing = yield* provide(
-			deps.db.Agent.where({ id: payload.agentId }).first(),
-		);
-		if (Option.isSome(existing)) {
-			const status = yield* Effect.fromResult(
-				decodeStoredAgentStatus(existing.value.id, existing.value.status),
-			);
-			if (status !== "spawning") {
-				return yield* new AgentNotSpawnable({
-					agentId: payload.agentId,
-					status,
-				});
-			}
-		}
-		if (Option.isNone(existing)) {
-			yield* provide(
-				deps.writer.write(
-					deps.db.Agent.create({
-						charter: payload.charter,
+		const changed = yield* provide(
+			deps.writer.write(
+				Effect.gen(function* () {
+					const stored = yield* deps.db.Agent.where({
 						id: payload.agentId,
-						role: payload.role,
-						status: "spawning",
-					}),
-				),
-			);
-			// why: rows changed, so observers refresh now — a spawn that fails
-			// later must still leave a visible agent, not a ghost.
+					}).first();
+					if (Option.isNone(stored)) {
+						yield* deps.db.Agent.create({
+							charter: payload.charter,
+							currentSessionId: payload.sessionId,
+							id: payload.agentId,
+							role: payload.role,
+							status: "spawning",
+						});
+						return true;
+					}
+					const reservation = yield* reservationFor(stored.value, payload);
+					if (reservation === "current") {
+						return false;
+					}
+					yield* deps.db.Agent.where({
+						currentSessionId: null,
+						id: payload.agentId,
+					}).update({ currentSessionId: payload.sessionId });
+					return true;
+				}),
+			),
+		);
+		if (changed) {
 			yield* PubSub.publish(deps.feeds.fleet, undefined);
+			yield* PubSub.publish(deps.feeds.voyages, undefined);
 		}
 		yield* assignToPiece(deps, payload);
 		yield* assignToVoyage(deps, payload);
 	});
 };
 
-export const activateAgent = (deps: AgentDeps, agentId: string) => {
+export const activateAgent = (deps: AgentDeps, payload: SpawnFields) => {
 	const provide = provideExecutors(deps);
 	return Effect.gen(function* () {
-		const agent = yield* provide(deps.db.Agent.where({ id: agentId }).first());
-		if (Option.isNone(agent)) {
-			return yield* new AgentNotSpawnable({ agentId, status: "missing" });
-		}
-		const status = yield* Effect.fromResult(
-			decodeStoredAgentStatus(agent.value.id, agent.value.status),
-		);
-		if (status === "alive") {
-			return;
-		}
-		const next = yield* Effect.fromResult(agentTransition(status, "activate"));
-		yield* provide(
+		const changed = yield* provide(
 			deps.writer.write(
-				deps.db.Agent.where({ id: agentId }).update({ status: next }),
+				Effect.gen(function* () {
+					const stored = yield* deps.db.Agent.where({
+						id: payload.agentId,
+					}).first();
+					if (Option.isNone(stored)) {
+						return yield* new AgentNotSpawnable({
+							agentId: payload.agentId,
+							status: "missing",
+						});
+					}
+					const next = yield* activationFor(stored.value, payload);
+					if (next === null) {
+						return false;
+					}
+					yield* deps.db.Agent.where({ id: payload.agentId }).update({
+						status: next,
+					});
+					return true;
+				}),
 			),
 		);
-		yield* PubSub.publish(deps.feeds.fleet, undefined);
+		if (changed) {
+			yield* PubSub.publish(deps.feeds.fleet, undefined);
+		}
 	});
 };
 
@@ -76,7 +90,7 @@ const closeFailedSpawnRows = (
 	status: AgentStatus,
 ) =>
 	deps.db.Agent.where({ id: payload.agentId })
-		.update({ status })
+		.update({ currentSessionId: null, status })
 		.pipe(
 			Effect.andThen(
 				deps.db.AgentSession.where({ id: payload.sessionId }).update({
@@ -88,33 +102,41 @@ const closeFailedSpawnRows = (
 export const settleSpawnFailure = (deps: AgentDeps, payload: SpawnFields) => {
 	const provide = provideExecutors(deps);
 	return Effect.gen(function* () {
-		const agent = yield* provide(
-			deps.db.Agent.where({ id: payload.agentId }).first(),
-		);
-		if (Option.isNone(agent)) {
-			return;
-		}
-		const status = yield* Effect.fromResult(
-			decodeStoredAgentStatus(agent.value.id, agent.value.status),
-		);
-		if (status !== "spawning") {
-			return;
-		}
-		const session = yield* provide(
-			deps.db.AgentSession.where({ id: payload.sessionId }).first(),
-		);
-		if (Option.isSome(session)) {
-			yield* Effect.fromResult(
-				decodeStoredAgentSessionStatus(session.value.id, session.value.status),
-			);
-		}
-		const next = yield* Effect.fromResult(
-			agentTransition("spawning", "reclaim"),
-		);
 		yield* deps.fabric.stop(payload.sessionId);
-		yield* provide(
-			deps.writer.write(closeFailedSpawnRows(deps, payload, next)),
+		const changed = yield* provide(
+			deps.writer.write(
+				Effect.gen(function* () {
+					const agent = yield* deps.db.Agent.where({
+						id: payload.agentId,
+					}).first();
+					if (Option.isNone(agent)) {
+						return false;
+					}
+					const status = yield* Effect.fromResult(
+						decodeStoredAgentStatus(agent.value.id, agent.value.status),
+					);
+					if (
+						status !== "spawning" ||
+						agent.value.currentSessionId !== payload.sessionId
+					) {
+						return false;
+					}
+					const session = yield* deps.db.AgentSession.where({
+						id: payload.sessionId,
+					}).first();
+					if (Option.isSome(session)) {
+						yield* ensureSessionStatus(session.value.id, session.value.status);
+					}
+					const next = yield* Effect.fromResult(
+						agentTransition(status, "reclaim"),
+					);
+					yield* closeFailedSpawnRows(deps, payload, next);
+					return true;
+				}),
+			),
 		);
-		yield* PubSub.publish(deps.feeds.fleet, undefined);
+		if (changed) {
+			yield* PubSub.publish(deps.feeds.fleet, undefined);
+		}
 	});
 };

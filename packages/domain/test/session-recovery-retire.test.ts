@@ -69,7 +69,10 @@ it.live("retirement cancels a recovery attachment blocked while opening", () =>
 					const session = Option.getOrThrow(
 						yield* db.AgentSession.where({ id: payload.sessionId }).first(),
 					);
-					expect(agent.status).toBe("retired");
+					expect(agent).toMatchObject({
+						currentSessionId: null,
+						status: "retired",
+					});
 					expect(session.status).toBe("closed");
 					expect(yield* scripted.opened).toHaveLength(1);
 					const original = yield* scripted.session(payload.sessionId);

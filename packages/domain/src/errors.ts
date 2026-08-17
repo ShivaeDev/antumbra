@@ -12,6 +12,10 @@ export {
 	VoyageNotFound,
 } from "@antumbra/pieces";
 export {
+	AgentSessionConflict,
+	CurrentSessionInvalid,
+} from "#current-session-errors.ts";
+export {
 	ResourceReclaimClaimed,
 	ResourceReclaimClaimInvalid,
 } from "#resource-reclaim-errors.ts";

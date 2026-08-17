@@ -80,6 +80,7 @@ it.live("concurrent starts attach one backend handle per session", () =>
 				.withStartAdmission((permit) =>
 					fabric.start(
 						permit,
+						"agent-fabric",
 						backend,
 						options,
 						() => Effect.succeed(true),
@@ -92,6 +93,7 @@ it.live("concurrent starts attach one backend handle per session", () =>
 				.withStartAdmission((permit) =>
 					fabric.start(
 						permit,
+						"agent-fabric",
 						backend,
 						options,
 						() => Effect.succeed(true),
@@ -105,6 +107,69 @@ it.live("concurrent starts attach one backend handle per session", () =>
 			yield* Deferred.succeed(release, undefined);
 			yield* Fiber.join(first);
 			yield* Fiber.join(second);
+			expect(yield* Ref.get(opens)).toBe(1);
+		}),
+	),
+);
+
+it.live("one Agent cannot attach two different Sessions", () =>
+	Effect.scoped(
+		Effect.gen(function* () {
+			const entered = yield* Deferred.make<void>();
+			const release = yield* Deferred.make<void>();
+			const opens = yield* Ref.make(0);
+			const handle: SessionHandle = {
+				events: Stream.empty,
+				interrupt: Effect.void,
+				nativeRef: Effect.succeed(Option.some("native-fabric")),
+				queue: () => Effect.void,
+				steer: () => Effect.void,
+			};
+			const backend: AgentBackend = {
+				capabilities: {
+					fork: false,
+					liveInterrupt: true,
+					multiClient: false,
+				},
+				openSession: () =>
+					Ref.update(opens, (count) => count + 1).pipe(
+						Effect.andThen(Deferred.succeed(entered, undefined)),
+						Effect.andThen(Deferred.await(release)),
+						Effect.as(handle),
+					),
+				tag: "scripted",
+			};
+			const fabric = yield* makeSessionFabric;
+			const first = yield* fabric
+				.withStartAdmission((permit) =>
+					fabric.start(
+						permit,
+						"agent-fabric",
+						backend,
+						options,
+						() => Effect.succeed(true),
+						() => Effect.void,
+					),
+				)
+				.pipe(Effect.forkChild);
+			yield* Deferred.await(entered);
+			const second = yield* fabric
+				.withStartAdmission((permit) =>
+					fabric.start(
+						permit,
+						"agent-fabric",
+						backend,
+						{ ...options, sessionId: "session-other" },
+						() => Effect.succeed(true),
+						() => Effect.void,
+					),
+				)
+				.pipe(Effect.forkChild);
+			yield* Effect.yieldNow;
+			yield* Deferred.succeed(release, undefined);
+			yield* Fiber.join(first);
+			const failure = yield* Effect.flip(Fiber.join(second));
+			expect(failure).toBeInstanceOf(SessionAttachmentFailure);
 			expect(yield* Ref.get(opens)).toBe(1);
 		}),
 	),
@@ -140,6 +205,7 @@ it.live(
 					fabric.withStartAdmission((permit) =>
 						fabric.start(
 							permit,
+							"agent-fabric",
 							backend,
 							options,
 							() => Effect.succeed(false),
@@ -193,6 +259,7 @@ it.live("stop interrupts admission, closes once, and leaves retry fresh", () =>
 				.withStartAdmission((permit) =>
 					fabric.start(
 						permit,
+						"agent-fabric",
 						backend,
 						options,
 						() => Effect.succeed(true),
@@ -211,6 +278,7 @@ it.live("stop interrupts admission, closes once, and leaves retry fresh", () =>
 			yield* fabric.withStartAdmission((permit) =>
 				fabric.start(
 					permit,
+					"agent-fabric",
 					backend,
 					options,
 					() => Effect.succeed(true),

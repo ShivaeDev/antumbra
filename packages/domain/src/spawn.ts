@@ -38,7 +38,7 @@ export const makeSpawnKind = Effect.gen(function* () {
 		) =>
 			Effect.gen(function* () {
 				yield* deliverCharterOnce(deps, payload, attachment.handle);
-				yield* activateAgent(deps, payload.agentId);
+				yield* activateAgent(deps, payload);
 			});
 		const settleAfterFailure = (payload: SpawnFields) =>
 			settleSpawnFailure(deps, payload).pipe(

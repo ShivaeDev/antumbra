@@ -7,7 +7,7 @@ import { type DispatchPort, dispatchPiece } from "#dispatch-spawn.ts";
 import { dispatchable, makeDispatchState } from "#dispatch-state.ts";
 import { AGENTS_ALIVE_GAUGE, AgentDomain } from "#domain.ts";
 import { pump } from "#feed-pump.ts";
-import { idleAssignedExecutionSessions } from "#session-execution-selection.ts";
+import { assignedExecution } from "#session-execution-selection.ts";
 import { VoyageWorldSource } from "#voyage-world.ts";
 
 export interface DispatcherOptions {
@@ -33,19 +33,18 @@ const onePass = (
 			if (!allowed(candidate.piece.id)) {
 				continue;
 			}
-			const assigned = idleAssignedExecutionSessions(world, candidate.piece.id);
-			if (assigned.length > 1) {
-				yield* Effect.logWarning("assigned Session wake is ambiguous", {
+			const assigned = assignedExecution(world, candidate.piece.id);
+			if (assigned._tag === "unavailable") {
+				yield* Effect.logWarning("assigned Agent has no idle current Session", {
+					agentId: assigned.agentId,
 					pieceId: candidate.piece.id,
-					sessionIds: assigned.map((session) => session.sessionId),
 				});
 				continue;
 			}
-			const session = assigned[0];
-			if (session !== undefined) {
+			if (assigned._tag === "resume") {
 				yield* dispatchPiece(port, candidate, {
 					_tag: "resume",
-					sessionId: session.sessionId,
+					sessionId: assigned.sessionId,
 				});
 				continue;
 			}

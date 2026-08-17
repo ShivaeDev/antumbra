@@ -14,6 +14,7 @@ import type { SpawnFields } from "#spawn.ts";
 
 interface StoredAgent {
 	readonly charter: string;
+	readonly currentSessionId: string | null;
 	readonly id: string;
 	readonly role: string;
 	readonly status: unknown;
@@ -49,6 +50,7 @@ const agentMatches = (
 ) =>
 	row.status === "alive" &&
 	row.charter === payload.charter &&
+	row.currentSessionId === payload.sessionId &&
 	row.role === payload.role;
 
 const sessionMatches = (

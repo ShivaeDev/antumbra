@@ -50,6 +50,7 @@ const change = (id: string, stage: ChangeStage): ChangeRow => ({
 
 const world = (over: Partial<VoyageWorld>): VoyageWorld => ({
 	agentStatus: new Map(),
+	currentSessionByAgent: new Map(),
 	artifacts: new Map(),
 	assignments: [],
 	changes: [],

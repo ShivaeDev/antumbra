@@ -50,6 +50,7 @@ export const makeSessionRecoveryRuntime = (deps: SessionResumeDeps) =>
 					const sink = yield* deps.sinkFor(context.identity.sessionId);
 					yield* fabric.start(
 						permit,
+						context.identity.agentId,
 						backend,
 						options,
 						sink,

@@ -10,7 +10,7 @@ import { readVoyageView } from "#voyage-read.ts";
 import { requireVoyage } from "#voyage-record.ts";
 import type { VoyageRow } from "#voyage-rows.ts";
 import { voyageSummaries } from "#voyage-view.ts";
-import { readVoyageWorld } from "#voyage-world.ts";
+import { VoyageWorldSource } from "#voyage-world.ts";
 
 export type { OpenVoyageInput, VoyageProcedures } from "#voyage-procedures.ts";
 
@@ -59,17 +59,24 @@ export const makeVoyageProcedures = Effect.gen(function* () {
 	const boards = yield* Boards;
 	const pieces = yield* Pieces;
 	const reports = yield* Reports;
+	const world = yield* VoyageWorldSource;
 	return (deps: AgentDeps): VoyageProcedures => ({
 		charterPiece: pieces.charter,
 		hail: (voyageId) =>
-			hailCaptain(deps, voyageId).pipe(Effect.provideService(Boards, boards)),
+			hailCaptain(deps, voyageId).pipe(
+				Effect.provideService(Boards, boards),
+				Effect.provideService(VoyageWorldSource, world),
+			),
 		landArtifact: artifacts.land,
 		landReport: reports.land,
 		launch: pieces.launch,
-		list: readVoyageWorld(deps).pipe(Effect.map(voyageSummaries)),
+		list: world.read.pipe(Effect.map(voyageSummaries)),
 		open: (input) => openVoyage(deps, input),
 		park: (pieceId) => pieces.park(pieceId, true),
-		read: (voyageId) => readVoyageView(deps, voyageId),
+		read: (voyageId) =>
+			readVoyageView(voyageId).pipe(
+				Effect.provideService(VoyageWorldSource, world),
+			),
 		// why: the public vocabulary keeps its established verb while the capability
 		// names the exact act. Literal set-dependency semantics land separately.
 		rewire: pieces.setDependencies,

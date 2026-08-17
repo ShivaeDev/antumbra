@@ -8,7 +8,7 @@ import { dispatchable, makeDispatchState } from "#dispatch-state.ts";
 import { AGENTS_ALIVE_GAUGE, AgentDomain } from "#domain.ts";
 import { pump } from "#feed-pump.ts";
 import { idleAssignedExecutionSessions } from "#session-execution-selection.ts";
-import { voyageWorld } from "#voyage-world.ts";
+import { VoyageWorldSource } from "#voyage-world.ts";
 
 export interface DispatcherOptions {
 	readonly maxAlive: number;
@@ -23,8 +23,9 @@ const onePass = (
 	aliveAgents: Effect.Effect<number, unknown>,
 ) =>
 	Effect.gen(function* () {
+		const source = yield* VoyageWorldSource;
 		const now = yield* Clock.currentTimeMillis;
-		const world = yield* voyageWorld(port.db);
+		const world = yield* source.read;
 		const allowed = yield* dispatchable(port.state, now);
 		const inFlight = (yield* Ref.get(port.state.inFlight)).size;
 		let budget = maxAlive - (yield* aliveAgents) - inFlight;
@@ -94,7 +95,6 @@ export const DispatcherLive = (overrides: Partial<DispatcherOptions> = {}) =>
 			const executors = yield* Effect.context<WriteExecutors>();
 			const state = yield* makeDispatchState;
 			const port: DispatchPort = {
-				db,
 				patienceMillis: options.patienceMillis,
 				state,
 				resume: (sessionId) => kernel.submit(domain.recover, { sessionId }),
@@ -105,9 +105,9 @@ export const DispatcherLive = (overrides: Partial<DispatcherOptions> = {}) =>
 				() => Effect.succeed(0),
 			);
 			yield* Effect.forkScoped(
-				Effect.provideContext(
-					dispatchLoop(port, options, aliveAgents),
-					executors,
+				dispatchLoop(port, options, aliveAgents).pipe(
+					Effect.provideService(Database, db),
+					Effect.provideContext(executors),
 				),
 			);
 			yield* Effect.forkScoped(pump(feeds.fleet, state.tick));

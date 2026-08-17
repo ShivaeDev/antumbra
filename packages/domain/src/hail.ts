@@ -25,7 +25,7 @@ import { idleExecutionSessionsOfAgent } from "#session-execution-selection.ts";
 import type { InvalidSessionExecutionStatus } from "#session-execution-status.ts";
 import { CAPTAIN_ROLE, captainAtWork, captainOf } from "#voyage-captain.ts";
 import { voyageView } from "#voyage-view.ts";
-import { readVoyageWorld } from "#voyage-world.ts";
+import { VoyageWorldSource } from "#voyage-world.ts";
 
 export interface HailedCaptain {
 	readonly agentId: string;
@@ -53,7 +53,8 @@ export type HailRefused =
 export const hailCaptain = (deps: AgentDeps, voyageId: string) =>
 	Effect.gen(function* () {
 		const boards = yield* Boards;
-		const world = yield* readVoyageWorld(deps);
+		const source = yield* VoyageWorldSource;
+		const world = yield* source.read;
 		const voyage = world.voyages.find((row) => row.id === voyageId);
 		if (voyage === undefined) {
 			return yield* new VoyageNotFound({ voyageId });

@@ -21,6 +21,10 @@ export default class M extends Migration<Start, End> {
       }),
       this.addColumn({
         table: 'change',
+        column: { name: 'proposalFrozenAt', typeSql: 'TEXT', defaultSql: '', nullable: true },
+      }),
+      this.addColumn({
+        table: 'change',
         column: { name: 'submissionKey', typeSql: 'TEXT', defaultSql: '', nullable: true },
       }),
       this.addColumn({
@@ -70,6 +74,7 @@ export default class M extends Migration<Start, End> {
             { name: 'openedByAgentId', typeSql: 'TEXT', defaultSql: '', nullable: true },
             { name: 'preparedHeadRef', typeSql: 'TEXT', defaultSql: '', nullable: true },
             { name: 'preparedHeadSha', typeSql: 'TEXT', defaultSql: '', nullable: true },
+            { name: 'proposalFrozenAt', typeSql: 'TEXT', defaultSql: '', nullable: true },
             { name: 'raw', typeSql: 'TEXT', defaultSql: '', nullable: true },
             { name: 'repoId', typeSql: 'TEXT', defaultSql: '', nullable: false },
             { name: 'review', typeSql: 'TEXT', defaultSql: '', nullable: false },

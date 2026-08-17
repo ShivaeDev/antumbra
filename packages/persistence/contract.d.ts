@@ -16,7 +16,7 @@ import type {
 } from '@prisma-next/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'sha256:433c49ce353630bf4e99307bc798b8cd13730632c029b9c24fe2f88f15724a6b'>;
+  StorageHashBase<'sha256:50401c0e4002e23c2765a08775a8d4fc8e9d0d0d2680dbea24a3d3b5979405a9'>;
 export type ExecutionHash = ExecutionHashBase<string>;
 export type ProfileHash =
   ProfileHashBase<'sha256:3cc333ecad9f3f4c7229370a9d2c37e908cdce0f8d2e9fb132d50605b024eff2'>;
@@ -110,6 +110,7 @@ export type FieldOutputTypes = {
       readonly headSha: CodecTypes['sqlite/text@1']['output'] | null;
       readonly preparedHeadRef: CodecTypes['sqlite/text@1']['output'] | null;
       readonly preparedHeadSha: CodecTypes['sqlite/text@1']['output'] | null;
+      readonly proposalFrozenAt: CodecTypes['sqlite/datetime@1']['output'] | null;
       readonly worktreePath: CodecTypes['sqlite/text@1']['output'] | null;
       readonly workingDiff: CodecTypes['sqlite/text@1']['output'] | null;
       readonly workingTreeStatus: CodecTypes['sqlite/text@1']['output'] | null;
@@ -310,6 +311,7 @@ export type FieldInputTypes = {
       readonly headSha: CodecTypes['sqlite/text@1']['input'] | null;
       readonly preparedHeadRef: CodecTypes['sqlite/text@1']['input'] | null;
       readonly preparedHeadSha: CodecTypes['sqlite/text@1']['input'] | null;
+      readonly proposalFrozenAt: CodecTypes['sqlite/datetime@1']['input'] | null;
       readonly worktreePath: CodecTypes['sqlite/text@1']['input'] | null;
       readonly workingDiff: CodecTypes['sqlite/text@1']['input'] | null;
       readonly workingTreeStatus: CodecTypes['sqlite/text@1']['input'] | null;
@@ -517,6 +519,7 @@ export type StorageColumnTypes = {
       readonly openedByAgentId: CodecTypes['sqlite/text@1']['output'] | null;
       readonly preparedHeadRef: CodecTypes['sqlite/text@1']['output'] | null;
       readonly preparedHeadSha: CodecTypes['sqlite/text@1']['output'] | null;
+      readonly proposalFrozenAt: CodecTypes['sqlite/datetime@1']['output'] | null;
       readonly raw: CodecTypes['sqlite/text@1']['output'] | null;
       readonly repoId: CodecTypes['sqlite/text@1']['output'];
       readonly review: CodecTypes['sqlite/text@1']['output'];
@@ -717,6 +720,7 @@ export type StorageColumnInputTypes = {
       readonly openedByAgentId: CodecTypes['sqlite/text@1']['input'] | null;
       readonly preparedHeadRef: CodecTypes['sqlite/text@1']['input'] | null;
       readonly preparedHeadSha: CodecTypes['sqlite/text@1']['input'] | null;
+      readonly proposalFrozenAt: CodecTypes['sqlite/datetime@1']['input'] | null;
       readonly raw: CodecTypes['sqlite/text@1']['input'] | null;
       readonly repoId: CodecTypes['sqlite/text@1']['input'];
       readonly review: CodecTypes['sqlite/text@1']['input'];
@@ -1250,6 +1254,11 @@ type ContractBase = Omit<
                 readonly preparedHeadSha: {
                   readonly nativeType: 'text';
                   readonly codecId: 'sqlite/text@1';
+                  readonly nullable: true;
+                };
+                readonly proposalFrozenAt: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'sqlite/datetime@1';
                   readonly nullable: true;
                 };
                 readonly worktreePath: {
@@ -2310,6 +2319,10 @@ type ContractBase = Omit<
                 readonly nullable: true;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
               };
+              readonly proposalFrozenAt: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/datetime@1' };
+              };
               readonly worktreePath: {
                 readonly nullable: true;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
@@ -2398,6 +2411,7 @@ type ContractBase = Omit<
                 readonly headSha: { readonly column: 'headSha' };
                 readonly preparedHeadRef: { readonly column: 'preparedHeadRef' };
                 readonly preparedHeadSha: { readonly column: 'preparedHeadSha' };
+                readonly proposalFrozenAt: { readonly column: 'proposalFrozenAt' };
                 readonly worktreePath: { readonly column: 'worktreePath' };
                 readonly workingDiff: { readonly column: 'workingDiff' };
                 readonly workingTreeStatus: { readonly column: 'workingTreeStatus' };

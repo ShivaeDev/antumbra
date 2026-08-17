@@ -82,7 +82,7 @@ export const makeGitHubHost = (
 			open: (request) =>
 				Effect.gen(function* () {
 					const named = yield* namedRepo(request.repo);
-					yield* pushWorkBranch(request.berth);
+					yield* pushWorkBranch(request.berth, request.headSha);
 					const number = yield* asked(
 						createPull(options.executable, named, request),
 					);

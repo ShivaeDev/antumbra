@@ -1,20 +1,15 @@
 import type { PrismaError } from "@antumbra/persistence";
-import { Pieces } from "@antumbra/pieces";
 import type { ChangeHostError, ChangeObservation } from "@antumbra/plugin-api";
 import { Effect, PubSub } from "effect";
 import type { ChangeRow } from "#change-rows.ts";
 import {
+	type AdoptChangeFailure,
+	type AdoptChangeInput,
 	ChangeSubmissions,
 	type SubmitChangeFailure,
 	type SubmitChangeInput,
 } from "#change-submissions/change-submissions.ts";
-import {
-	type AdoptChangeFailure,
-	type AdoptChangeInput,
-	adoptChange,
-	type OpenChangeFailure,
-	type OpenChangeInput,
-} from "#changes.ts";
+import type { OpenChangeFailure, OpenChangeInput } from "#changes.ts";
 import type { AgentDeps } from "#deps.ts";
 import type { UnknownChangeHostTag } from "#errors.ts";
 import { type QuayReading, quayReading } from "#quay-view.ts";
@@ -69,12 +64,9 @@ export interface ChangeProcedures {
 
 export const makeChangeProcedureCompiler = Effect.gen(function* () {
 	const submissions = yield* ChangeSubmissions;
-	const pieces = yield* Pieces;
-	const providePieces = <A, E>(effect: Effect.Effect<A, E, Pieces>) =>
-		effect.pipe(Effect.provideService(Pieces, pieces));
 	function makeChangeProcedures(deps: AgentDeps): ChangeProcedures {
 		return {
-			adopt: (input) => providePieces(adoptChange(deps, input)),
+			adopt: submissions.adopt,
 			capabilities: Effect.forEach([...deps.changeHosts.values()], (host) =>
 				Effect.map(host.capability, (capability) => ({
 					available: capability.available,

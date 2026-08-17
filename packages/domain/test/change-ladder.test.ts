@@ -34,6 +34,7 @@ const change = (id: string, stage: ChangeStage): ChangeRow => ({
 	openedByAgentId: null,
 	preparedHeadRef: null,
 	preparedHeadSha: null,
+	proposalFrozenAt: null,
 	raw: null,
 	repoId: "repo-1",
 	review: "none",

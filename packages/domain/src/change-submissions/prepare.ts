@@ -37,17 +37,25 @@ export const prepareChange = (input: SubmitChangeInput, proposal?: Proposal) =>
 			Effect.gen(function* () {
 				const existing = yield* activeChange(key);
 				if (Option.isNone(existing)) {
-					return Option.none<ReturnType<typeof preparedChange>>();
+					return Option.none<{
+						readonly linked: boolean;
+						readonly row: ReturnType<typeof preparedChange>;
+					}>();
 				}
-				yield* linkProduces(input.pieceId, existing.value.id);
-				return existing;
+				return Option.some({
+					linked: yield* linkProduces(input.pieceId, existing.value.id),
+					row: existing.value,
+				});
 			}),
 		);
 		if (Option.isSome(linked)) {
+			if (linked.value.linked) {
+				yield* PubSub.publish(feeds.voyages, undefined);
+			}
 			return {
-				hostTag: linked.value.host,
+				hostTag: linked.value.row.host,
 				repo,
-				row: linked.value,
+				row: linked.value.row,
 			} satisfies PreparedSubmission;
 		}
 		const host = yield* claimingHost(repo);
@@ -65,17 +73,25 @@ export const prepareChange = (input: SubmitChangeInput, proposal?: Proposal) =>
 			yield* Clock.currentTimeMillis,
 			proposal,
 		);
-		const row = yield* writer.write(
+		const stored = yield* writer.write(
 			Effect.gen(function* () {
 				const raced = yield* activeChange(key);
 				const row = Option.getOrElse(raced, () => candidate);
+				let created = false;
 				if (Option.isNone(raced)) {
 					yield* db.Change.create(row);
+					created = true;
 				}
-				yield* linkProduces(input.pieceId, row.id);
-				return row;
+				const linked = yield* linkProduces(input.pieceId, row.id);
+				return { changed: created || linked, row };
 			}),
 		);
-		yield* PubSub.publish(feeds.voyages, undefined);
-		return { hostTag: row.host, repo, row } satisfies PreparedSubmission;
+		if (stored.changed) {
+			yield* PubSub.publish(feeds.voyages, undefined);
+		}
+		return {
+			hostTag: stored.row.host,
+			repo,
+			row: stored.row,
+		} satisfies PreparedSubmission;
 	});

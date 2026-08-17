@@ -22,6 +22,7 @@ const git = (...args: ReadonlyArray<string>): string =>
 
 export interface Berthed {
 	readonly berth: ChangeHostBerth;
+	readonly headSha: string;
 	readonly remote: string;
 	readonly repo: ChangeHostRepo;
 	readonly root: string;
@@ -56,6 +57,7 @@ const cut = (root: string): Berthed => {
 	git("-C", path, "commit", "-qm", "sound the shallows");
 	return {
 		berth: { branch: BRANCH, path },
+		headSha: git("-C", path, "rev-parse", "HEAD").trim(),
 		remote,
 		repo: {
 			defaultRef: "main",
@@ -66,6 +68,15 @@ const cut = (root: string): Berthed => {
 		root,
 	};
 };
+
+export const advanceBerth = (path: string): void => {
+	writeFileSync(join(path, "later.md"), "charted after submission\n");
+	git("-C", path, "add", ".");
+	git("-C", path, "commit", "-qm", "chart later work");
+};
+
+export const refSha = (repo: string, ref: string): string =>
+	git("-C", repo, "rev-parse", ref).trim();
 
 export const berthed = Effect.acquireRelease(
 	Effect.sync(() => cut(mkdtempSync(join(tmpdir(), "antumbra-berth-")))),

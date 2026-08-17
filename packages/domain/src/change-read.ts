@@ -4,9 +4,7 @@ import type {
 	ChangeReview,
 	ChangeStage,
 } from "@antumbra/plugin-api";
-import { Effect, Option } from "effect";
 import type { ChangeRow } from "#change-rows.ts";
-import type { AgentDeps } from "#deps.ts";
 
 // why: the columns hold text and the vocabulary they hold is closed, so a row
 // is read back through total tables — no cast, and a word this build does not
@@ -66,6 +64,7 @@ export const changeRow = (row: StoredChange): ChangeRow => ({
 	openedByAgentId: row.openedByAgentId,
 	preparedHeadRef: row.preparedHeadRef,
 	preparedHeadSha: row.preparedHeadSha,
+	proposalFrozenAt: row.proposalFrozenAt,
 	raw: row.raw,
 	repoId: row.repoId,
 	review: REVIEWS[row.review] ?? "none",
@@ -78,13 +77,3 @@ export const changeRow = (row: StoredChange): ChangeRow => ({
 	workingTreeStatus: row.workingTreeStatus,
 	worktreePath: row.worktreePath,
 });
-
-export const changeOfExternalId = (
-	deps: AgentDeps,
-	host: string,
-	repoId: string,
-	externalId: string,
-) =>
-	deps.db.Change.where({ externalId, host, repoId })
-		.first()
-		.pipe(Effect.map((row) => Option.map(row, changeRow)));

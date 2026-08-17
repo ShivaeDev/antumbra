@@ -4,7 +4,14 @@ import type { OpenChangeRequest } from "@antumbra/plugin-api";
 import { describe, expect, it } from "@effect/vitest";
 import { Effect } from "effect";
 import { makeGitHubHost } from "#host.ts";
-import { type Berthed, BRANCH, berthed, remoteBranches } from "#test/berth.ts";
+import {
+	advanceBerth,
+	type Berthed,
+	BRANCH,
+	berthed,
+	refSha,
+	remoteBranches,
+} from "#test/berth.ts";
 import { type ScriptedGh, scriptedGh } from "#test/scripted-gh.ts";
 
 const RECORDED = readFileSync(
@@ -22,7 +29,7 @@ const requestFor = (site: Berthed): OpenChangeRequest => ({
 	berth: site.berth,
 	body: "sounded three fathoms\n\nthe eastern spit is charted\n",
 	draft: false,
-	headSha: "0123456789abcdef",
+	headSha: site.headSha,
 	repo: site.repo,
 	title: "chart the eastern spit",
 });
@@ -81,6 +88,25 @@ describe("opening a change on GitHub", () => {
 				expect(received).toContain("trunk");
 			}),
 		),
+	);
+
+	it.live(
+		"pushes the prepared head when the berth advances before opening",
+		() =>
+			withBerth((gh, site) =>
+				Effect.gen(function* () {
+					gh.answer("create", { out: CREATED });
+					const request = requestFor(site);
+					advanceBerth(site.berth.path);
+					const host = yield* makeGitHubHost({ executable: gh.executable });
+
+					yield* host.open(request);
+
+					expect(refSha(site.remote, `refs/heads/${BRANCH}`)).toBe(
+						request.headSha,
+					);
+				}),
+			),
 	);
 
 	// why: opening twice must not fail the second time — an agent that retried,

@@ -4,13 +4,10 @@ import {
 	openChangeSpec,
 	submitChangeSpec,
 } from "@antumbra/agent-tools";
-import { Pieces } from "@antumbra/pieces";
 import type { DirectTool } from "@antumbra/plugin-api";
 import { Effect } from "effect";
 import type { ChangeRow } from "#change-rows.ts";
 import { ChangeSubmissions } from "#change-submissions/change-submissions.ts";
-import { adoptChange } from "#changes.ts";
-import type { AgentDeps } from "#deps.ts";
 import { answered, onPiece } from "#tool-answers.ts";
 import type { SessionIdentity } from "#tool-identity.ts";
 
@@ -22,13 +19,7 @@ const said = (row: ChangeRow): string =>
 
 export const makeChangeToolCompiler = Effect.gen(function* () {
 	const submissions = yield* ChangeSubmissions;
-	const pieces = yield* Pieces;
-	const providePieces = <A, E>(effect: Effect.Effect<A, E, Pieces>) =>
-		effect.pipe(Effect.provideService(Pieces, pieces));
-	function changeTools(
-		deps: AgentDeps,
-		identity: SessionIdentity,
-	): ReadonlyArray<DirectTool> {
+	function changeTools(identity: SessionIdentity): ReadonlyArray<DirectTool> {
 		const open = bind(openChangeSpec, (input) =>
 			onPiece(identity, (pieceId) =>
 				answered(
@@ -66,14 +57,12 @@ export const makeChangeToolCompiler = Effect.gen(function* () {
 				answered(
 					identity,
 					adoptChangeSpec.name,
-					providePieces(
-						adoptChange(deps, {
-							agentId: identity.agentId,
-							pieceId,
-							repoName: input.repo,
-							url: input.url,
-						}),
-					),
+					submissions.adopt({
+						agentId: identity.agentId,
+						pieceId,
+						repoName: input.repo,
+						url: input.url,
+					}),
 					said,
 				),
 			),

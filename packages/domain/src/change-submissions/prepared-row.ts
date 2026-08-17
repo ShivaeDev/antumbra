@@ -34,6 +34,7 @@ export const preparedChange = (
 	openedByAgentId: input.agentId,
 	preparedHeadRef: evidence.branch,
 	preparedHeadSha: evidence.headSha,
+	proposalFrozenAt: proposal === undefined ? null : new Date(now),
 	raw: null,
 	repoId: repo.id,
 	review: "none",

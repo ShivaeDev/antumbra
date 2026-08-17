@@ -4,6 +4,11 @@ import { Effect, Option } from "effect";
 import { changeRow } from "#change-read.ts";
 import type { ChangeRow } from "#change-rows.ts";
 
+export interface ObservationMatches {
+	readonly external: Option.Option<ChangeRow>;
+	readonly prepared: Option.Option<ChangeRow>;
+}
+
 export const matchObservation = (
 	hostTag: string,
 	observation: ChangeObservation,
@@ -15,11 +20,11 @@ export const matchObservation = (
 			host: hostTag,
 			repoId: observation.repoId,
 		}).first();
-		if (Option.isSome(external)) {
-			return Option.some(changeRow(external.value));
-		}
 		if (observation.headSha === null) {
-			return Option.none<ChangeRow>();
+			return {
+				external: Option.map(external, changeRow),
+				prepared: Option.none<ChangeRow>(),
+			} satisfies ObservationMatches;
 		}
 		const candidates = (yield* db.Change.where({
 			host: hostTag,
@@ -34,7 +39,11 @@ export const matchObservation = (
 					row.preparedHeadSha === observation.headSha,
 			);
 		const candidate = candidates[0];
-		return candidates.length === 1 && candidate !== undefined
-			? Option.some(candidate)
-			: Option.none<ChangeRow>();
+		return {
+			external: Option.map(external, changeRow),
+			prepared:
+				candidates.length === 1 && candidate !== undefined
+					? Option.some(candidate)
+					: Option.none<ChangeRow>(),
+		} satisfies ObservationMatches;
 	});

@@ -19,6 +19,13 @@ export interface SubmitChangeInput {
 	readonly repoName: string;
 }
 
+export interface AdoptChangeInput {
+	readonly agentId: string | null;
+	readonly pieceId: string;
+	readonly repoName: string;
+	readonly url: string;
+}
+
 export interface OpenChangeInput extends SubmitChangeInput {
 	readonly base: string | null;
 	readonly body: string;
@@ -34,6 +41,13 @@ export type SubmitChangeFailure =
 	| RepoNotFound
 	| RunnerError
 	| UnknownRunnerTag;
+
+export type AdoptChangeFailure =
+	| ChangeHostError
+	| NoChangeHost
+	| PieceNotFound
+	| PrismaError
+	| RepoNotFound;
 
 export type OpenChangeFailure =
 	| ChangeHostError

@@ -14,7 +14,10 @@ import type {
 } from "@antumbra/plugin-api";
 import { Context, Effect, Layer } from "effect";
 import type { ChangeRow } from "#change-rows.ts";
+import { adoptSubmittedChange } from "#change-submissions/adopt.ts";
 import type {
+	AdoptChangeFailure,
+	AdoptChangeInput,
 	OpenChangeFailure,
 	OpenChangeInput,
 	SubmitChangeFailure,
@@ -37,6 +40,9 @@ import type { UnknownChangeHostTag } from "#errors.ts";
 export class ChangeSubmissions extends Context.Service<
 	ChangeSubmissions,
 	{
+		readonly adopt: (
+			input: AdoptChangeInput,
+		) => Effect.Effect<ChangeRow, AdoptChangeFailure>;
 		readonly observed: (
 			hostTag: string,
 			observations: ReadonlyArray<ChangeObservation>,
@@ -83,6 +89,7 @@ export const ChangeSubmissionsLive = (
 				),
 			);
 			return ChangeSubmissions.of({
+				adopt: (input) => Effect.provide(adoptSubmittedChange(input), context),
 				observed: (hostTag, observations) =>
 					Effect.provide(applyObservations(hostTag, observations), context),
 				open: (input) => Effect.provide(openSubmittedChange(input), context),

@@ -318,62 +318,8 @@
 		"type": "AgentDeps"
 	},
 	{
-		"callable": "requireRepo",
-		"file": "packages/domain/src/change-host-resolve.ts",
-		"parameter": "deps",
-		"type": "AgentDeps"
-	},
-	{
-		"callable": "requireChangeHost",
-		"file": "packages/domain/src/change-host-resolve.ts",
-		"parameter": "deps",
-		"type": "AgentDeps"
-	},
-	{
-		"callable": "namedChangeHost",
-		"file": "packages/domain/src/change-host-resolve.ts",
-		"parameter": "deps",
-		"type": "AgentDeps"
-	},
-	{
-		"callable": "requireBerth",
-		"file": "packages/domain/src/change-host-resolve.ts",
-		"parameter": "deps",
-		"type": "AgentDeps"
-	},
-	{
 		"callable": "makeChangeProcedures",
 		"file": "packages/domain/src/change-procedures.ts",
-		"parameter": "deps",
-		"type": "AgentDeps"
-	},
-	{
-		"callable": "changeOfExternalId",
-		"file": "packages/domain/src/change-read.ts",
-		"parameter": "deps",
-		"type": "AgentDeps"
-	},
-	{
-		"callable": "changeTools",
-		"file": "packages/domain/src/change-tools.ts",
-		"parameter": "deps",
-		"type": "AgentDeps"
-	},
-	{
-		"callable": "linkPiece",
-		"file": "packages/domain/src/change-write.ts",
-		"parameter": "deps",
-		"type": "AgentDeps"
-	},
-	{
-		"callable": "announceChanges",
-		"file": "packages/domain/src/change-write.ts",
-		"parameter": "deps",
-		"type": "AgentDeps"
-	},
-	{
-		"callable": "adoptChange",
-		"file": "packages/domain/src/changes.ts",
 		"parameter": "deps",
 		"type": "AgentDeps"
 	}

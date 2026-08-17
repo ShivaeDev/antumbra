@@ -15,11 +15,12 @@ export const linkProduces = (pieceId: string, changeId: string) =>
 		const db = yield* Database;
 		const linked = yield* db.PieceChange.where({ changeId, pieceId }).first();
 		if (Option.isSome(linked)) {
-			return;
+			return false;
 		}
 		yield* db.PieceChange.create({
 			changeId,
 			pieceId,
 			purpose: "produces",
 		});
+		return true;
 	});

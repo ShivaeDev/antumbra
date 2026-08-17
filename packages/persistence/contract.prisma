@@ -188,6 +188,7 @@ model Change {
   headSha         String?
   preparedHeadRef String?
   preparedHeadSha String?
+  proposalFrozenAt DateTime?
   worktreePath    String?
   workingDiff     String?
   workingTreeStatus String?

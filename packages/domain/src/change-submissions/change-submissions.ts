@@ -1,4 +1,6 @@
 export type {
+	AdoptChangeFailure,
+	AdoptChangeInput,
 	OpenChangeFailure,
 	OpenChangeInput,
 	SubmitChangeFailure,

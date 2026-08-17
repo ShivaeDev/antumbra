@@ -8,6 +8,7 @@ import {
 import type { OpenChangeInput } from "#change-submissions/model.ts";
 import { applyObservations } from "#change-submissions/observations.ts";
 import { prepareChange } from "#change-submissions/prepare.ts";
+import { freezeProposal } from "#change-submissions/proposal.ts";
 import { ChangeHostRegistry } from "#change-submissions/registries.ts";
 import { UnknownChangeHostTag } from "#errors.ts";
 
@@ -19,6 +20,11 @@ export const openSubmittedChange = (input: OpenChangeInput) =>
 		if (prepared.row.externalId !== null) {
 			return prepared.row;
 		}
+		const snapshot = yield* freezeProposal(
+			prepared.row.id,
+			prepared.repo.defaultRef,
+			input,
+		);
 		const host = hosts.get(prepared.hostTag);
 		if (host === undefined) {
 			return yield* new UnknownChangeHostTag({ tag: prepared.hostTag });
@@ -30,29 +36,29 @@ export const openSubmittedChange = (input: OpenChangeInput) =>
 				host: host.tag,
 			});
 		}
-		const branch = prepared.row.preparedHeadRef;
-		const headSha = prepared.row.preparedHeadSha;
-		const path = prepared.row.worktreePath;
+		const branch = snapshot.preparedHeadRef;
+		const headSha = snapshot.preparedHeadSha;
+		const path = snapshot.worktreePath;
 		if (branch === null || headSha === null || path === null) {
 			return yield* new PreparedChangeInvalid({
-				changeId: prepared.row.id,
+				changeId: snapshot.id,
 				detail: "local branch, head, or worktree evidence is missing",
 			});
 		}
 		const observation = yield* host.open({
-			base: input.base,
+			base: snapshot.baseRef,
 			berth: { branch, path },
-			body: input.body,
-			draft: input.draft,
+			body: snapshot.body,
+			draft: snapshot.draftAt !== null,
 			headSha,
 			repo: prepared.repo,
-			title: input.title,
+			title: snapshot.title,
 		});
 		const attached = yield* applyObservations(host.tag, [observation]);
-		const row = attached.find((candidate) => candidate.id === prepared.row.id);
+		const row = attached[0];
 		if (row === undefined) {
 			return yield* new ChangeObservationConflict({
-				changeId: prepared.row.id,
+				changeId: snapshot.id,
 				externalId: observation.externalId,
 				host: host.tag,
 			});

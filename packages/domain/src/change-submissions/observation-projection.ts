@@ -7,6 +7,7 @@ import {
 	stageTransition,
 } from "#change-projection.ts";
 import type { ChangeRow } from "#change-rows.ts";
+import { absorbPreparedCollision } from "#change-submissions/observation-collision.ts";
 import { matchObservation } from "#change-submissions/observation-match.ts";
 
 export interface ReconciledObservation {
@@ -65,11 +66,17 @@ export const reconcileObservation = (
 ) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
-		const known = yield* matchObservation(hostTag, observation);
-		if (Option.isNone(known)) {
+		const matches = yield* matchObservation(hostTag, observation);
+		if (Option.isNone(matches.external) && Option.isNone(matches.prepared)) {
 			return Option.none<ReconciledObservation>();
 		}
-		const row = known.value;
+		const row = yield* Option.match(matches.external, {
+			onNone: () => Effect.succeed(Option.getOrThrow(matches.prepared)),
+			onSome: (external) =>
+				Option.isSome(matches.prepared) && external.submissionKey === null
+					? absorbPreparedCollision(external, matches.prepared.value)
+					: Effect.succeed(external),
+		});
 		if (row.stage === "landed" && observation.stage !== "landed") {
 			yield* Effect.logWarning("a settled change was observed unsettled", {
 				changeId: row.id,

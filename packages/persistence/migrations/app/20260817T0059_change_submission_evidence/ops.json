@@ -82,6 +82,47 @@
     ]
   },
   {
+    "id": "column.change.proposalFrozenAt",
+    "label": "Add column proposalFrozenAt on change",
+    "summary": "Adds column proposalFrozenAt on change",
+    "operationClass": "additive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "column",
+        "name": "proposalFrozenAt",
+        "table": "change"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"proposalFrozenAt\" is missing",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM pragma_table_info(?) WHERE \"name\" = ?",
+        "params": [
+          "change",
+          "proposalFrozenAt"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"proposalFrozenAt\"",
+        "sql": "ALTER TABLE \"change\" ADD COLUMN \"proposalFrozenAt\" TEXT"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"proposalFrozenAt\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM pragma_table_info(?) WHERE \"name\" = ?",
+        "params": [
+          "change",
+          "proposalFrozenAt"
+        ]
+      }
+    ]
+  },
+  {
     "id": "column.change.submissionKey",
     "label": "Add column submissionKey on change",
     "summary": "Adds column submissionKey on change",
@@ -320,7 +361,7 @@
     "execute": [
       {
         "description": "create new table \"_prisma_new_change\" with desired schema",
-        "sql": "CREATE TABLE \"_prisma_new_change\" (\n  \"activityAt\" TEXT NOT NULL,\n  \"baseRef\" TEXT NOT NULL,\n  \"body\" TEXT NOT NULL,\n  \"checks\" TEXT NOT NULL,\n  \"createdAt\" TEXT DEFAULT (datetime('now')) NOT NULL,\n  \"draftAt\" TEXT,\n  \"externalId\" TEXT,\n  \"headRef\" TEXT NOT NULL,\n  \"headSha\" TEXT,\n  \"host\" TEXT NOT NULL,\n  \"id\" TEXT NOT NULL,\n  \"landedAt\" TEXT,\n  \"mergeable\" TEXT NOT NULL,\n  \"observedAt\" TEXT NOT NULL,\n  \"openedByAgentId\" TEXT,\n  \"preparedHeadRef\" TEXT,\n  \"preparedHeadSha\" TEXT,\n  \"raw\" TEXT,\n  \"repoId\" TEXT NOT NULL,\n  \"review\" TEXT NOT NULL,\n  \"stage\" TEXT NOT NULL,\n  \"submissionKey\" TEXT,\n  \"title\" TEXT NOT NULL,\n  \"url\" TEXT,\n  \"withdrawnAt\" TEXT,\n  \"workingDiff\" TEXT,\n  \"workingTreeStatus\" TEXT,\n  \"worktreePath\" TEXT,\n  PRIMARY KEY (\"id\"),\n  UNIQUE (\"submissionKey\"),\n  UNIQUE (\"host\", \"repoId\", \"externalId\")\n)"
+        "sql": "CREATE TABLE \"_prisma_new_change\" (\n  \"activityAt\" TEXT NOT NULL,\n  \"baseRef\" TEXT NOT NULL,\n  \"body\" TEXT NOT NULL,\n  \"checks\" TEXT NOT NULL,\n  \"createdAt\" TEXT DEFAULT (datetime('now')) NOT NULL,\n  \"draftAt\" TEXT,\n  \"externalId\" TEXT,\n  \"headRef\" TEXT NOT NULL,\n  \"headSha\" TEXT,\n  \"host\" TEXT NOT NULL,\n  \"id\" TEXT NOT NULL,\n  \"landedAt\" TEXT,\n  \"mergeable\" TEXT NOT NULL,\n  \"observedAt\" TEXT NOT NULL,\n  \"openedByAgentId\" TEXT,\n  \"preparedHeadRef\" TEXT,\n  \"preparedHeadSha\" TEXT,\n  \"proposalFrozenAt\" TEXT,\n  \"raw\" TEXT,\n  \"repoId\" TEXT NOT NULL,\n  \"review\" TEXT NOT NULL,\n  \"stage\" TEXT NOT NULL,\n  \"submissionKey\" TEXT,\n  \"title\" TEXT NOT NULL,\n  \"url\" TEXT,\n  \"withdrawnAt\" TEXT,\n  \"workingDiff\" TEXT,\n  \"workingTreeStatus\" TEXT,\n  \"worktreePath\" TEXT,\n  PRIMARY KEY (\"id\"),\n  UNIQUE (\"submissionKey\"),\n  UNIQUE (\"host\", \"repoId\", \"externalId\")\n)"
       },
       {
         "description": "copy data from \"change\" to \"_prisma_new_change\"",

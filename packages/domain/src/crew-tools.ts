@@ -54,7 +54,7 @@ export const makeCrewToolCompiler = Effect.gen(function* () {
 					),
 				),
 			),
-			...compileChangeTools(deps, identity),
+			...compileChangeTools(identity),
 			...compileBoardTools(identity),
 			standDownTool(deps, identity),
 		];

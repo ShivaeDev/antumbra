@@ -839,6 +839,13 @@
                   "kind": "scalar"
                 }
               },
+              "proposalFrozenAt": {
+                "nullable": true,
+                "type": {
+                  "codecId": "sqlite/datetime@1",
+                  "kind": "scalar"
+                }
+              },
               "raw": {
                 "nullable": true,
                 "type": {
@@ -970,6 +977,9 @@
                 },
                 "preparedHeadSha": {
                   "column": "preparedHeadSha"
+                },
+                "proposalFrozenAt": {
+                  "column": "proposalFrozenAt"
                 },
                 "raw": {
                   "column": "raw"
@@ -2408,6 +2418,11 @@
                   "nativeType": "text",
                   "nullable": true
                 },
+                "proposalFrozenAt": {
+                  "codecId": "sqlite/datetime@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
                 "raw": {
                   "codecId": "sqlite/text@1",
                   "nativeType": "text",
@@ -3129,7 +3144,7 @@
         "id": "__unbound__"
       }
     },
-    "storageHash": "sha256:433c49ce353630bf4e99307bc798b8cd13730632c029b9c24fe2f88f15724a6b"
+    "storageHash": "sha256:50401c0e4002e23c2765a08775a8d4fc8e9d0d0d2680dbea24a3d3b5979405a9"
   },
   "capabilities": {
     "sql": {

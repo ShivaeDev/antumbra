@@ -26,6 +26,7 @@ export interface ChangeRow {
 	readonly openedByAgentId: string | null;
 	readonly preparedHeadRef: string | null;
 	readonly preparedHeadSha: string | null;
+	readonly proposalFrozenAt: Date | null;
 	readonly raw: string | null;
 	readonly repoId: string;
 	readonly review: ChangeReview;

@@ -1,8 +1,6 @@
 import type { ChangeObservation } from "@antumbra/plugin-api";
-import { Effect, PubSub } from "effect";
 import { rawText } from "#change-projection.ts";
 import type { ChangeRow } from "#change-rows.ts";
-import type { AgentDeps } from "#deps.ts";
 
 export interface ProposedChange {
 	readonly body: string;
@@ -36,6 +34,7 @@ export const proposedChange = (fields: ProposedChange): ChangeRow => {
 		openedByAgentId: fields.openedByAgentId,
 		preparedHeadRef: null,
 		preparedHeadSha: null,
+		proposalFrozenAt: null,
 		raw: rawText(observation.raw),
 		repoId: fields.repoId,
 		review: observation.review,
@@ -49,26 +48,3 @@ export const proposedChange = (fields: ProposedChange): ChangeRow => {
 		worktreePath: null,
 	};
 };
-
-// why: linking is idempotent — the same change adopted twice onto one piece is
-// one relation, and the same change on two pieces is two.
-export const linkPiece = (deps: AgentDeps, pieceId: string, changeId: string) =>
-	deps.db.PieceChange.where({ pieceId })
-		.all()
-		.pipe(
-			Effect.flatMap((links) => {
-				if (links.some((link) => link.changeId === changeId)) {
-					return Effect.void;
-				}
-				return Effect.asVoid(
-					deps.db.PieceChange.create({
-						changeId,
-						pieceId,
-						purpose: "produces",
-					}),
-				);
-			}),
-		);
-
-export const announceChanges = (deps: AgentDeps) =>
-	PubSub.publish(deps.feeds.voyages, undefined);

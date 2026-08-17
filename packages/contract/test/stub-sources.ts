@@ -45,8 +45,16 @@ export const fleet = {
 };
 
 export const storedEvents: ReadonlyArray<SessionEvent> = [
-	{ kind: "system/init", payload: "{}", seq: 0, sessionId: "session-1" },
-	{ kind: "assistant", payload: "{}", seq: 1, sessionId: "session-1" },
+	{
+		event: { _tag: "Unknown", kind: "system/init", payload: "{}" },
+		seq: 0,
+		sessionId: "session-1",
+	},
+	{
+		event: { _tag: "Unknown", kind: "assistant", payload: "{}" },
+		seq: 1,
+		sessionId: "session-1",
+	},
 ];
 
 const shoalWarning: ChangeView = {

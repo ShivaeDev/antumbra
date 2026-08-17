@@ -1,3 +1,4 @@
+import { HistoricalAgentEvent } from "@antumbra/session-events";
 import { Context, Data, type Effect, Schema, type Stream } from "effect";
 
 export const SessionSummary = Schema.Struct({
@@ -45,8 +46,7 @@ export const Fleet = Schema.Struct({
 export type Fleet = typeof Fleet.Type;
 
 export const SessionEvent = Schema.Struct({
-	kind: Schema.String,
-	payload: Schema.String,
+	event: HistoricalAgentEvent,
 	seq: Schema.Number,
 	sessionId: Schema.String,
 });

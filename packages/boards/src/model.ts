@@ -1,6 +1,5 @@
+import type { BoardOwnerKind, BoardRegister } from "@antumbra/board-vocabulary";
 import { Data, type Option } from "effect";
-
-export type BoardRegister = "rough" | "smooth";
 
 export type MailPrecedence = "flash" | "priority" | "routine";
 
@@ -11,8 +10,6 @@ export type BoardScope = Data.TaggedEnum<{
 }>;
 
 export const BoardScope = Data.taggedEnum<BoardScope>();
-
-export type BoardOwnerKind = "agent" | "piece" | "voyage";
 
 export interface BoardOwner {
 	readonly ownerId: string;

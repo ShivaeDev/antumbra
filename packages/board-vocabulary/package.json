@@ -1,13 +1,10 @@
 {
-	"name": "@antumbra/boards",
+	"name": "@antumbra/board-vocabulary",
 	"version": "0.0.0",
 	"private": true,
 	"type": "module",
 	"exports": {
 		".": "./src/index.ts"
-	},
-	"imports": {
-		"#*": "./src/*"
 	},
 	"scripts": {
 		"test": "vitest run --passWithNoTests",
@@ -22,9 +19,6 @@
 		"vitest": "catalog:"
 	},
 	"dependencies": {
-		"@antumbra/board-vocabulary": "workspace:*",
-		"@antumbra/domain-feeds": "workspace:*",
-		"@antumbra/persistence": "workspace:*",
 		"effect": "catalog:"
 	}
 }

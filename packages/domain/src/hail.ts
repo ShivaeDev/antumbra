@@ -7,6 +7,7 @@ import {
 	BoardScope,
 	Boards,
 	type StoredBoardEntryInvalid,
+	type StoredBoardOwnerKindInvalid,
 	smoothBodies,
 } from "@antumbra/boards";
 import type { PrismaError } from "@antumbra/persistence";
@@ -41,6 +42,7 @@ export type HailRefused =
 	| StoredAgentSessionStatusInvalid
 	| StoredAgentStatusInvalid
 	| StoredBoardEntryInvalid
+	| StoredBoardOwnerKindInvalid
 	| StoredChangeInvalid
 	| StoredPieceChangeInvalid
 	| VoyageNotFound;

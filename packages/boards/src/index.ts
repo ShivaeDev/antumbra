@@ -1,3 +1,5 @@
+export type { BoardRegister } from "@antumbra/board-vocabulary";
+export { StoredBoardOwnerKindInvalid } from "@antumbra/board-vocabulary";
 export {
 	type BoardReadFailure,
 	Boards,
@@ -15,7 +17,6 @@ export {
 } from "#errors.ts";
 export type {
 	BoardEntryRow,
-	BoardRegister,
 	MailInput,
 	MailPrecedence,
 } from "#model.ts";

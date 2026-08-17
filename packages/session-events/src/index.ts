@@ -11,3 +11,9 @@ export {
 	TurnStatus,
 	UsageEvent,
 } from "#events.ts";
+export {
+	HistoricalAgentEvent,
+	KnownAgentEvent,
+	projectHistoricalAgentEvent,
+	UnknownAgentEvent,
+} from "#historical.ts";

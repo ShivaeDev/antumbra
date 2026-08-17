@@ -6,8 +6,7 @@ import { deriveTranscript } from "#transcript/derive.ts";
 const raw = { kind: "wire/kind", payload: "{}", source: "scripted" };
 
 const row = (seq: number, event: AgentEvent): SessionEvent => ({
-	kind: event.type,
-	payload: JSON.stringify(event),
+	event: { _tag: "Known", event },
 	seq,
 	sessionId: "session-1",
 });
@@ -116,14 +115,20 @@ describe("deriveTranscript", () => {
 				type: "raw",
 			}),
 			{
-				kind: "gibberish",
-				payload: "not even json {",
+				event: {
+					_tag: "Unknown",
+					kind: "gibberish",
+					payload: "not even json {",
+				},
 				seq: 1,
 				sessionId: "session-1",
 			},
 			{
-				kind: "message",
-				payload: '{"type":"message"}',
+				event: {
+					_tag: "Unknown",
+					kind: "message",
+					payload: '{"type":"message"}',
+				},
 				seq: 2,
 				sessionId: "session-1",
 			},
@@ -138,5 +143,23 @@ describe("deriveTranscript", () => {
 			{ kind: "raw", label: "gibberish", payload: "not even json {", seq: 1 },
 			{ kind: "raw", label: "message", payload: '{"type":"message"}', seq: 2 },
 		]);
+	});
+
+	it("renders a mismatched historical envelope from its exact stored evidence", () => {
+		const payload = JSON.stringify({
+			raw,
+			role: "agent",
+			text: "the payload disagrees with its durable kind",
+			type: "message",
+		});
+		expect(
+			deriveTranscript([
+				{
+					event: { _tag: "Unknown", kind: "thinking", payload },
+					seq: 9,
+					sessionId: "session-1",
+				},
+			]),
+		).toEqual([{ kind: "raw", label: "thinking", payload, seq: 9 }]);
 	});
 });

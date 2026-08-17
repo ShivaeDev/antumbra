@@ -25,9 +25,9 @@ const capabilityPackages = [
 		name: "pieces",
 	},
 	{
-		allowed: ["persistence", "domain-feeds"],
+		allowed: ["board-vocabulary", "persistence", "domain-feeds"],
 		rationale:
-			"Boards owns durable board and mailbox invariants. It may write through persistence and publish through domain-feeds, but it never reaches up into the domain facade, ports, adapters, or app.",
+			"Boards owns durable board and mailbox invariants. It may name the neutral Board vocabulary, write through persistence, and publish through domain-feeds, but it never reaches up into the domain facade, ports, adapters, or app.",
 		name: "boards",
 	},
 	{
@@ -70,6 +70,13 @@ module.exports = {
 			from: "^packages/agent-runtime-vocabulary",
 			name: "agent-runtime-vocabulary-is-a-leaf",
 			to: "^packages/(?!agent-runtime-vocabulary)|^apps/",
+		}),
+		rule({
+			rationale:
+				"Board vocabulary is the neutral language shared by Board storage, agent tools, and public views. It stays a leaf so no consumer drags another layer with it.",
+			from: "^packages/board-vocabulary",
+			name: "board-vocabulary-is-a-leaf",
+			to: "^packages/(?!board-vocabulary)|^apps/",
 		}),
 		rule({
 			rationale:
@@ -136,10 +143,10 @@ module.exports = {
 		}),
 		rule({
 			rationale:
-				"The contract package is the IDL. It may name the dependency-free Change vocabulary shared with host ports, but imports no capability, adapter, domain, or app layer.",
+				"The contract package is the IDL. It may name neutral Board, Change, and session-event vocabularies, but imports no capability, adapter, domain, or app layer.",
 			from: "^packages/contract",
 			name: "contract-has-only-vocabulary-dependency",
-			to: "^packages/(?!contract(?:/|$)|change-vocabulary(?:/|$))|^apps/",
+			to: "^packages/(?!contract(?:/|$)|board-vocabulary(?:/|$)|change-vocabulary(?:/|$)|session-events(?:/|$))|^apps/",
 		}),
 		rule({
 			rationale:
@@ -150,10 +157,10 @@ module.exports = {
 		}),
 		rule({
 			rationale:
-				"The tools an agent acts through are transport-free: they name the port that declares what a tool is and nothing else. A tool package that reached for the domain, a provider, or a harness would stop being the one definition every backend maps.",
+				"The tools an agent acts through are transport-free: they name the port and neutral Board vocabulary, never a capability, provider, or harness.",
 			from: "^packages/agent-tools",
 			name: "agent-tools-knows-only-the-port",
-			to: "^packages/(?!agent-tools(?:/|$)|plugin-api(?:/|$))|^apps/",
+			to: "^packages/(?!agent-tools(?:/|$)|board-vocabulary(?:/|$)|plugin-api(?:/|$))|^apps/",
 		}),
 		rule({
 			rationale:

@@ -1,3 +1,4 @@
+import type { StoredBoardOwnerKindInvalid } from "@antumbra/board-vocabulary";
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import {
 	Database,
@@ -26,12 +27,14 @@ export type BoardWriteFailure =
 	| BoardOwnerNotFound
 	| BoardSourceConflict
 	| PrismaError
-	| StoredBoardEntryInvalid;
+	| StoredBoardEntryInvalid
+	| StoredBoardOwnerKindInvalid;
 
 export type BoardReadFailure =
 	| BoardOwnerNotFound
 	| PrismaError
-	| StoredBoardEntryInvalid;
+	| StoredBoardEntryInvalid
+	| StoredBoardOwnerKindInvalid;
 
 export type MarkReadFailure = BoardReadFailure | MailNotAddressed;
 
@@ -40,7 +43,10 @@ export class Boards extends Context.Service<
 	{
 		readonly ensure: (
 			scope: BoardScope,
-		) => Effect.Effect<string, BoardOwnerNotFound | PrismaError>;
+		) => Effect.Effect<
+			string,
+			BoardOwnerNotFound | PrismaError | StoredBoardOwnerKindInvalid
+		>;
 		readonly mail: (
 			input: MailInput,
 		) => Effect.Effect<BoardEntryRow, BoardWriteFailure>;

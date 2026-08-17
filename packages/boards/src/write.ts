@@ -63,6 +63,7 @@ export const writeEntry = (scope: BoardScope, input: EntryInput) =>
 				}
 				const last = yield* db.BoardEntry.where({ boardId })
 					.orderBy((entry) => entry.seq.desc())
+					.select("seq")
 					.first();
 				const row: BoardEntryRow = appendedEntry(input, {
 					nowMillis: now,

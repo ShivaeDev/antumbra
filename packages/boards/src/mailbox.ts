@@ -31,7 +31,7 @@ export const unreadMail = (agentId: string) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
 		const entries = yield* mailEntries(agentId);
-		const read = readIds(yield* db.BoardEntryReceipt.all());
+		const read = readIds(yield* db.BoardEntryReceipt.select("entryId"));
 		return entries.filter((entry) => !read.has(entry.id));
 	});
 
@@ -51,7 +51,7 @@ export const markMailRead = (
 		}
 		yield* writer.write(
 			Effect.gen(function* () {
-				const read = readIds(yield* db.BoardEntryReceipt.all());
+				const read = readIds(yield* db.BoardEntryReceipt.select("entryId"));
 				yield* Effect.forEach(
 					[...requested].filter((entryId) => !read.has(entryId)),
 					(entryId) => db.BoardEntryReceipt.create({ entryId }),

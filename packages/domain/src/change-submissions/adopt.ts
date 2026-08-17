@@ -3,11 +3,32 @@ import { Database, Writer } from "@antumbra/persistence";
 import { Pieces } from "@antumbra/pieces";
 import { ChangeHostUnavailable } from "@antumbra/plugin-api";
 import { Clock, Effect, Option, PubSub } from "effect";
-import { linkProduces } from "#change-submissions/links.ts";
+import { activeChange, linkProduces } from "#change-submissions/links.ts";
 import type { AdoptChangeInput } from "#change-submissions/model.ts";
+import type { ObservationAttachment } from "#change-submissions/observation-match.ts";
 import { reconcileObservation } from "#change-submissions/observation-projection.ts";
+import { submissionKey } from "#change-submissions/prepared-row.ts";
 import { claimingHost, repoNamed } from "#change-submissions/repository.ts";
 import { proposedChange } from "#change-write.ts";
+
+const adoptionAttachment = (agentId: string | null, repoId: string) =>
+	Effect.gen(function* () {
+		if (agentId === null) {
+			return { _tag: "ExternalOnly" } satisfies ObservationAttachment;
+		}
+		const key = submissionKey(agentId, repoId);
+		const active = yield* activeChange(key);
+		return Option.match(active, {
+			onNone: () => ({ _tag: "ExternalOnly" }) as const,
+			onSome: (row) =>
+				({
+					_tag: "Claimed",
+					agentId,
+					changeId: row.id,
+					submissionKey: key,
+				}) as const,
+		}) satisfies ObservationAttachment;
+	});
 
 export const adoptSubmittedChange = (input: AdoptChangeInput) =>
 	Effect.gen(function* () {
@@ -29,10 +50,12 @@ export const adoptSubmittedChange = (input: AdoptChangeInput) =>
 		const now = yield* Clock.currentTimeMillis;
 		const adopted = yield* writer.write(
 			Effect.gen(function* () {
+				const attachment = yield* adoptionAttachment(input.agentId, repo.id);
 				const reconciled = yield* reconcileObservation(
 					host.tag,
 					observation,
 					now,
+					attachment,
 				);
 				const row = Option.match(reconciled, {
 					onNone: () =>

@@ -150,35 +150,71 @@ it.live("manual adoption attaches and lands the submitted change", () =>
 	),
 );
 
-it.live(
-	"a reopened withdrawn change absorbs its exact prepared replacement",
-	() =>
-		withHost((scripted) =>
-			Effect.gen(function* () {
-				const db = yield* Database;
-				const domain = yield* AgentDomain;
-				const { piece, repo, voyage } = yield* reefWithPiece;
-				yield* berthed(CREW);
-				const first = yield* openedChange(piece.id, repo.name);
-				yield* scripted.drive.transition(repo.id, "1", { stage: "withdrawn" });
-				yield* domain.changes.refresh("scripted");
-				const replacement = yield* submittedChange(piece.id, repo.name);
-				expect(replacement.id).not.toBe(first.id);
+it.live("a withdrawn replay preserves its exact prepared replacement", () =>
+	withHost((scripted) =>
+		Effect.gen(function* () {
+			const db = yield* Database;
+			const domain = yield* AgentDomain;
+			const { piece, repo } = yield* reefWithPiece;
+			yield* berthed(CREW);
+			const first = yield* openedChange(piece.id, repo.name);
+			yield* scripted.drive.transition(repo.id, "1", { stage: "withdrawn" });
+			yield* domain.changes.refresh("scripted");
+			const replacement = yield* submittedChange(piece.id, repo.name);
+			expect(replacement.id).not.toBe(first.id);
 
-				yield* scripted.drive.transition(repo.id, "1", { stage: "open" });
-				yield* domain.changes.refresh("scripted");
-				const reused = yield* submittedChange(piece.id, repo.name);
-				expect(reused.id).toBe(first.id);
-				expect(yield* db.Change.all()).toHaveLength(1);
-				expect(yield* db.PieceChange.all()).toEqual([
+			const conflict = yield* Effect.flip(domain.changes.refresh("scripted"));
+			expect(conflict._tag).toBe("ChangeIdentityCollision");
+			const changes = yield* db.Change.all();
+			expect(changes).toHaveLength(2);
+			expect(changes.find((row) => row.id === first.id)?.stage).toBe(
+				"withdrawn",
+			);
+			expect(changes.find((row) => row.id === replacement.id)).toMatchObject({
+				stage: "prepared",
+				submissionKey: replacement.submissionKey,
+			});
+			expect(yield* db.PieceChange.all()).toEqual(
+				expect.arrayContaining([
 					{ changeId: first.id, pieceId: piece.id, purpose: "produces" },
-				]);
+					{
+						changeId: replacement.id,
+						pieceId: piece.id,
+						purpose: "produces",
+					},
+				]),
+			);
+		}),
+	),
+);
 
-				yield* scripted.drive.transition(repo.id, "1", { stage: "landed" });
-				yield* domain.changes.refresh("scripted");
-				expect(yield* stateOf(voyage.id, piece.id)).toBe("done");
-			}),
-		),
+it.live("a reopened external collision preserves both durable identities", () =>
+	withHost((scripted) =>
+		Effect.gen(function* () {
+			const db = yield* Database;
+			const domain = yield* AgentDomain;
+			const { piece, repo } = yield* reefWithPiece;
+			yield* berthed(CREW);
+			const first = yield* openedChange(piece.id, repo.name);
+			yield* scripted.drive.transition(repo.id, "1", { stage: "withdrawn" });
+			yield* domain.changes.refresh("scripted");
+			const replacement = yield* submittedChange(piece.id, repo.name);
+
+			yield* scripted.drive.transition(repo.id, "1", { stage: "open" });
+			const conflict = yield* Effect.flip(domain.changes.refresh("scripted"));
+			expect(conflict._tag).toBe("ChangeIdentityCollision");
+			const changes = yield* db.Change.all();
+			expect(changes).toHaveLength(2);
+			expect(changes.find((row) => row.id === first.id)?.stage).toBe(
+				"withdrawn",
+			);
+			expect(changes.find((row) => row.id === replacement.id)).toMatchObject({
+				stage: "prepared",
+				submissionKey: replacement.submissionKey,
+			});
+			expect(yield* db.PieceChange.all()).toHaveLength(2);
+		}),
+	),
 );
 
 it.live("linking another Piece to the active change wakes voyage readers", () =>

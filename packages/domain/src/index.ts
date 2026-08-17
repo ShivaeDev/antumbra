@@ -20,6 +20,7 @@ export type {
 	PieceChangeRow,
 } from "#change-rows.ts";
 export {
+	ChangeIdentityCollision,
 	ChangeObservationConflict,
 	PreparedChangeInvalid,
 } from "#change-submissions/errors.ts";

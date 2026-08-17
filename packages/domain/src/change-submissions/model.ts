@@ -2,6 +2,7 @@ import type { PrismaError } from "@antumbra/persistence";
 import type { PieceNotFound } from "@antumbra/pieces";
 import type { ChangeHostError, RunnerError } from "@antumbra/plugin-api";
 import type {
+	ChangeIdentityCollision,
 	ChangeObservationConflict,
 	PreparedChangeInvalid,
 } from "#change-submissions/errors.ts";
@@ -44,6 +45,8 @@ export type SubmitChangeFailure =
 
 export type AdoptChangeFailure =
 	| ChangeHostError
+	| ChangeIdentityCollision
+	| ChangeObservationConflict
 	| NoChangeHost
 	| PieceNotFound
 	| PrismaError
@@ -51,6 +54,7 @@ export type AdoptChangeFailure =
 
 export type OpenChangeFailure =
 	| ChangeHostError
+	| ChangeIdentityCollision
 	| ChangeObservationConflict
 	| PreparedChangeInvalid
 	| SubmitChangeFailure

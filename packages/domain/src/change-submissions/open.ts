@@ -39,10 +39,17 @@ export const openSubmittedChange = (input: OpenChangeInput) =>
 		const branch = snapshot.preparedHeadRef;
 		const headSha = snapshot.preparedHeadSha;
 		const path = snapshot.worktreePath;
-		if (branch === null || headSha === null || path === null) {
+		const submissionKey = snapshot.submissionKey;
+		if (
+			branch === null ||
+			headSha === null ||
+			path === null ||
+			submissionKey === null
+		) {
 			return yield* new PreparedChangeInvalid({
 				changeId: snapshot.id,
-				detail: "local branch, head, or worktree evidence is missing",
+				detail:
+					"local branch, head, worktree, or submission claim evidence is missing",
 			});
 		}
 		const observation = yield* host.open({
@@ -54,9 +61,18 @@ export const openSubmittedChange = (input: OpenChangeInput) =>
 			repo: prepared.repo,
 			title: snapshot.title,
 		});
-		const attached = yield* applyObservations(host.tag, [observation]);
+		const attached = yield* applyObservations(host.tag, [observation], {
+			_tag: "Claimed",
+			agentId: input.agentId,
+			changeId: snapshot.id,
+			submissionKey,
+		});
 		const row = attached[0];
-		if (row === undefined) {
+		if (
+			row === undefined ||
+			row.id !== snapshot.id ||
+			row.submissionKey !== submissionKey
+		) {
 			return yield* new ChangeObservationConflict({
 				changeId: snapshot.id,
 				externalId: observation.externalId,

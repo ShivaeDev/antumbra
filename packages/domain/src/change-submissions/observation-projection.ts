@@ -7,8 +7,15 @@ import {
 	stageTransition,
 } from "#change-projection.ts";
 import type { ChangeRow } from "#change-rows.ts";
-import { absorbPreparedCollision } from "#change-submissions/observation-collision.ts";
-import { matchObservation } from "#change-submissions/observation-match.ts";
+import {
+	matchObservation,
+	type ObservationAttachment,
+} from "#change-submissions/observation-match.ts";
+import {
+	matchesClaim,
+	observationConflict,
+	selectMatchedRow,
+} from "#change-submissions/observation-selection.ts";
 
 export interface ReconciledObservation {
 	readonly changed: boolean;
@@ -59,47 +66,63 @@ const updateProjection = (row: ChangeRow) =>
 		});
 	});
 
-export const reconcileObservation = (
+const updateMatchedRow = (
+	row: ChangeRow,
+	attachment: ObservationAttachment,
 	hostTag: string,
 	observation: ChangeObservation,
 	now: number,
 ) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
-		const matches = yield* matchObservation(hostTag, observation);
-		if (Option.isNone(matches.external) && Option.isNone(matches.prepared)) {
-			return Option.none<ReconciledObservation>();
-		}
-		const row = yield* Option.match(matches.external, {
-			onNone: () => Effect.succeed(Option.getOrThrow(matches.prepared)),
-			onSome: (external) =>
-				Option.isSome(matches.prepared) && external.submissionKey === null
-					? absorbPreparedCollision(external, matches.prepared.value)
-					: Effect.succeed(external),
-		});
 		if (row.stage === "landed" && observation.stage !== "landed") {
 			yield* Effect.logWarning("a settled change was observed unsettled", {
 				changeId: row.id,
 				observed: observation.stage,
 				stage: row.stage,
 			});
-			return Option.some({ changed: false, row });
+			return { changed: false, row } satisfies ReconciledObservation;
 		}
 		if (isStale(row, observation)) {
-			return Option.some({ changed: false, row });
+			return { changed: false, row } satisfies ReconciledObservation;
 		}
 		const next = projectedChange(row, observation, now);
+		if (attachment._tag === "Claimed" && !matchesClaim(next, attachment)) {
+			return yield* observationConflict(attachment, hostTag, observation);
+		}
 		const transition = stageTransition(row, next);
 		const replayed = yield* db.ChangeTransition.where({
 			id: transition.id,
 		}).first();
 		const append = shouldAppendTransition(row, next, replayed);
 		if (isEqualTimeReplay(row, next, append)) {
-			return Option.some({ changed: false, row });
+			return { changed: false, row } satisfies ReconciledObservation;
 		}
 		if (append) {
 			yield* db.ChangeTransition.create(transition);
 		}
 		yield* updateProjection(next);
-		return Option.some({ changed: true, row: next });
+		return { changed: true, row: next } satisfies ReconciledObservation;
+	});
+
+export const reconcileObservation = (
+	hostTag: string,
+	observation: ChangeObservation,
+	now: number,
+	attachment: ObservationAttachment = { _tag: "Observed" },
+) =>
+	Effect.gen(function* () {
+		const matches = yield* matchObservation(hostTag, observation, attachment);
+		const row = yield* selectMatchedRow(
+			matches,
+			attachment,
+			hostTag,
+			observation,
+		);
+		if (Option.isNone(row)) {
+			return Option.none<ReconciledObservation>();
+		}
+		return Option.some(
+			yield* updateMatchedRow(row.value, attachment, hostTag, observation, now),
+		);
 	});

@@ -1,5 +1,18 @@
 import { Data } from "effect";
 
+export class ChangeIdentityCollision extends Data.TaggedError(
+	"ChangeIdentityCollision",
+)<{
+	readonly externalChangeId: string;
+	readonly externalId: string;
+	readonly host: string;
+	readonly preparedChangeIds: ReadonlyArray<string>;
+}> {
+	override get message(): string {
+		return `${this.host} observation ${this.externalId} names external change ${this.externalChangeId} and prepared change ${this.preparedChangeIds.join(", ")}`;
+	}
+}
+
 export class ChangeObservationConflict extends Data.TaggedError(
 	"ChangeObservationConflict",
 )<{

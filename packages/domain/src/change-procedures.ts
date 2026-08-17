@@ -9,6 +9,10 @@ import {
 	type SubmitChangeFailure,
 	type SubmitChangeInput,
 } from "#change-submissions/change-submissions.ts";
+import type {
+	ChangeIdentityCollision,
+	ChangeObservationConflict,
+} from "#change-submissions/errors.ts";
 import type { OpenChangeFailure, OpenChangeInput } from "#changes.ts";
 import type { AgentDeps } from "#deps.ts";
 import type { UnknownChangeHostTag } from "#errors.ts";
@@ -35,7 +39,10 @@ export interface ChangeProcedures {
 	readonly observed: (
 		hostTag: string,
 		observations: ReadonlyArray<ChangeObservation>,
-	) => Effect.Effect<ReadonlyArray<ChangeRow>, PrismaError>;
+	) => Effect.Effect<
+		ReadonlyArray<ChangeRow>,
+		ChangeIdentityCollision | ChangeObservationConflict | PrismaError
+	>;
 	readonly open: (
 		input: OpenChangeInput,
 	) => Effect.Effect<ChangeRow, OpenChangeFailure>;
@@ -54,7 +61,11 @@ export interface ChangeProcedures {
 		hostTag: string,
 	) => Effect.Effect<
 		ReadonlyArray<ChangeRow>,
-		ChangeHostError | PrismaError | UnknownChangeHostTag
+		| ChangeHostError
+		| ChangeIdentityCollision
+		| ChangeObservationConflict
+		| PrismaError
+		| UnknownChangeHostTag
 	>;
 	// why: the same ring an opened change gives, offered to whoever else wants
 	// to stop waiting — a window's refresh button, an agent that knows something

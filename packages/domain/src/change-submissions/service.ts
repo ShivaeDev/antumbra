@@ -16,6 +16,10 @@ import { Context, Effect, Layer } from "effect";
 import type { ChangeRow } from "#change-rows.ts";
 import { adoptSubmittedChange } from "#change-submissions/adopt.ts";
 import type {
+	ChangeIdentityCollision,
+	ChangeObservationConflict,
+} from "#change-submissions/errors.ts";
+import type {
 	AdoptChangeFailure,
 	AdoptChangeInput,
 	OpenChangeFailure,
@@ -46,7 +50,10 @@ export class ChangeSubmissions extends Context.Service<
 		readonly observed: (
 			hostTag: string,
 			observations: ReadonlyArray<ChangeObservation>,
-		) => Effect.Effect<ReadonlyArray<ChangeRow>, PrismaError>;
+		) => Effect.Effect<
+			ReadonlyArray<ChangeRow>,
+			ChangeIdentityCollision | ChangeObservationConflict | PrismaError
+		>;
 		readonly open: (
 			input: OpenChangeInput,
 		) => Effect.Effect<ChangeRow, OpenChangeFailure>;
@@ -54,7 +61,11 @@ export class ChangeSubmissions extends Context.Service<
 			hostTag: string,
 		) => Effect.Effect<
 			ReadonlyArray<ChangeRow>,
-			ChangeHostError | PrismaError | UnknownChangeHostTag
+			| ChangeHostError
+			| ChangeIdentityCollision
+			| ChangeObservationConflict
+			| PrismaError
+			| UnknownChangeHostTag
 		>;
 		readonly submit: (
 			input: SubmitChangeInput,

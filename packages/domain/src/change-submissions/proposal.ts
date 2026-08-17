@@ -3,6 +3,7 @@ import { Clock, Effect, Option } from "effect";
 import { changeRow } from "#change-read.ts";
 import { PreparedChangeInvalid } from "#change-submissions/errors.ts";
 import type { Proposal } from "#change-submissions/model.ts";
+import { ensureAgentResourcesUnclaimed } from "#resource-reclaim-guard.ts";
 
 const requireStoredChange = (id: string) =>
 	Effect.gen(function* () {
@@ -30,6 +31,9 @@ export const freezeProposal = (
 		return yield* writer.write(
 			Effect.gen(function* () {
 				const row = yield* requireStoredChange(changeId);
+				if (row.openedByAgentId !== null) {
+					yield* ensureAgentResourcesUnclaimed(row.openedByAgentId);
+				}
 				if (row.proposalFrozenAt !== null) {
 					return row;
 				}

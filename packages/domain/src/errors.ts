@@ -11,6 +11,10 @@ export {
 	PieceNotFound,
 	VoyageNotFound,
 } from "@antumbra/pieces";
+export {
+	ResourceReclaimClaimed,
+	ResourceReclaimClaimInvalid,
+} from "#resource-reclaim-errors.ts";
 
 export class AgentNotFound extends Data.TaggedError("AgentNotFound")<{
 	readonly agentId: string;

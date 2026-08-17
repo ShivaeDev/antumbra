@@ -2,6 +2,7 @@ import {
 	decodeStoredAgentSessionStatus,
 	decodeStoredAgentStatus,
 	decodeStoredBerthStatus,
+	decodeStoredResourceReclaimState,
 } from "@antumbra/agent-runtime-vocabulary";
 import type { AgentSummary, Fleet, RepoSummary } from "@antumbra/contract";
 import type { DatabaseService } from "@antumbra/persistence";
@@ -47,9 +48,18 @@ export const fleetSnapshot = (
 			berth.createdAt.asc(),
 		).all();
 		const berths = yield* Effect.forEach(storedBerths, (berth) =>
-			Effect.fromResult(decodeStoredBerthStatus(berth.id, berth.status)).pipe(
-				Effect.map((status) => ({ ...berth, status })),
-			),
+			Effect.all({
+				reclaimState: Effect.fromResult(
+					decodeStoredResourceReclaimState(
+						"Berth",
+						berth.id,
+						berth.reclaimState,
+					),
+				),
+				status: Effect.fromResult(
+					decodeStoredBerthStatus(berth.id, berth.status),
+				),
+			}).pipe(Effect.map((decoded) => ({ ...berth, ...decoded }))),
 		);
 		const repos: ReadonlyArray<RepoSummary> = (yield* db.Repo.orderBy((repo) =>
 			repo.createdAt.asc(),
@@ -64,6 +74,7 @@ export const fleetSnapshot = (
 				.filter((berth) => berth.agentId === agent.id)
 				.map((berth) => ({
 					branch: berth.branch,
+					reclaimState: berth.reclaimState,
 					slug: berth.slug,
 					status: berth.status,
 				})),

@@ -65,6 +65,7 @@ const seed = (db: DatabaseService, fixture: Fixture, suffix: string) =>
 		});
 		yield* db.Moorage.create({
 			agentId,
+			reclaimState: null,
 			root: fixture.moorage,
 			runner: "local",
 			status: "ready",

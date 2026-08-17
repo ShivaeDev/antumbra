@@ -1,6 +1,7 @@
 import type {
 	StoredAgentSessionStatusInvalid,
 	StoredAgentStatusInvalid,
+	StoredResourceReclaimStateInvalid,
 } from "@antumbra/agent-runtime-vocabulary";
 import type { PrismaError } from "@antumbra/persistence";
 import type { ChangeHostError, ChangeObservation } from "@antumbra/plugin-api";
@@ -20,6 +21,7 @@ import type {
 import type { OpenChangeFailure, OpenChangeInput } from "#changes.ts";
 import type { AgentDeps } from "#deps.ts";
 import type {
+	ResourceReclaimClaimed,
 	StoredChangeInvalid,
 	StoredPieceChangeInvalid,
 	UnknownChangeHostTag,
@@ -53,7 +55,9 @@ export interface ChangeProcedures {
 		| ChangeIdentityCollision
 		| ChangeObservationConflict
 		| PrismaError
+		| ResourceReclaimClaimed
 		| StoredChangeInvalid
+		| StoredResourceReclaimStateInvalid
 	>;
 	readonly open: (
 		input: OpenChangeInput,
@@ -88,7 +92,9 @@ export interface ChangeProcedures {
 		| ChangeIdentityCollision
 		| ChangeObservationConflict
 		| PrismaError
+		| ResourceReclaimClaimed
 		| StoredChangeInvalid
+		| StoredResourceReclaimStateInvalid
 		| UnknownChangeHostTag
 	>;
 	// why: the same ring an opened change gives, offered to whoever else wants

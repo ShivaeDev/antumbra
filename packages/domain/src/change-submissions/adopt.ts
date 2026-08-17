@@ -10,6 +10,10 @@ import { reconcileObservation } from "#change-submissions/observation-projection
 import { submissionKey } from "#change-submissions/prepared-row.ts";
 import { claimingHost, repoNamed } from "#change-submissions/repository.ts";
 import { proposedChange } from "#change-write.ts";
+import {
+	ensureAgentResourcesUnclaimed,
+	ensureBranchResourcesUnclaimed,
+} from "#resource-reclaim-guard.ts";
 
 const adoptionAttachment = (agentId: string | null, repoId: string) =>
 	Effect.gen(function* () {
@@ -38,6 +42,9 @@ export const adoptSubmittedChange = (input: AdoptChangeInput) =>
 		const writer = yield* Writer;
 		yield* pieces.verifyExists(input.pieceId);
 		const repo = yield* repoNamed(input.repoName);
+		if (input.agentId !== null) {
+			yield* writer.write(ensureAgentResourcesUnclaimed(input.agentId));
+		}
 		const host = yield* claimingHost(repo);
 		const capability = yield* host.capability;
 		if (!capability.available) {
@@ -50,6 +57,10 @@ export const adoptSubmittedChange = (input: AdoptChangeInput) =>
 		const now = yield* Clock.currentTimeMillis;
 		const adopted = yield* writer.write(
 			Effect.gen(function* () {
+				if (input.agentId !== null) {
+					yield* ensureAgentResourcesUnclaimed(input.agentId);
+				}
+				yield* ensureBranchResourcesUnclaimed(repo.source, observation.headRef);
 				const attachment = yield* adoptionAttachment(input.agentId, repo.id);
 				const reconciled = yield* reconcileObservation(
 					host.tag,

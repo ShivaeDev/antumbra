@@ -1,3 +1,4 @@
+import type { StoredResourceReclaimStateInvalid } from "@antumbra/agent-runtime-vocabulary";
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import {
 	Database,
@@ -39,7 +40,11 @@ import {
 	ChangeRegistriesLive,
 	RunnerRegistry,
 } from "#change-submissions/registries.ts";
-import type { StoredChangeInvalid, UnknownChangeHostTag } from "#errors.ts";
+import type {
+	ResourceReclaimClaimed,
+	StoredChangeInvalid,
+	UnknownChangeHostTag,
+} from "#errors.ts";
 
 export class ChangeSubmissions extends Context.Service<
 	ChangeSubmissions,
@@ -55,7 +60,9 @@ export class ChangeSubmissions extends Context.Service<
 			| ChangeIdentityCollision
 			| ChangeObservationConflict
 			| PrismaError
+			| ResourceReclaimClaimed
 			| StoredChangeInvalid
+			| StoredResourceReclaimStateInvalid
 		>;
 		readonly open: (
 			input: OpenChangeInput,
@@ -68,7 +75,9 @@ export class ChangeSubmissions extends Context.Service<
 			| ChangeIdentityCollision
 			| ChangeObservationConflict
 			| PrismaError
+			| ResourceReclaimClaimed
 			| StoredChangeInvalid
+			| StoredResourceReclaimStateInvalid
 			| UnknownChangeHostTag
 		>;
 		readonly submit: (

@@ -6,6 +6,7 @@ import { defineIntent, IntentExecution } from "@antumbra/kernel";
 import { Effect, Option, PubSub, Schema } from "effect";
 import { type AgentDeps, provideExecutors } from "#deps.ts";
 import { AgentNotFound } from "#errors.ts";
+import { ResourceReconciler } from "#resource-reconciler.ts";
 import { type AgentStatus, agentTransition } from "#status.ts";
 
 const RetirePayload = Schema.Struct({ agentId: Schema.String });
@@ -63,10 +64,16 @@ const retireAgent = (deps: AgentDeps, agentId: string) => {
 	});
 };
 
-export const makeRetireKind = (deps: AgentDeps) =>
-	defineIntent({
-		execute: (payload) => retireAgent(deps, payload.agentId),
-		payload: RetirePayload,
-		reclaim: "requeue",
-		tag: "agent/retire",
-	});
+export const makeRetireKind = Effect.gen(function* () {
+	const resources = yield* ResourceReconciler;
+	return (deps: AgentDeps) =>
+		defineIntent({
+			execute: (payload) =>
+				retireAgent(deps, payload.agentId).pipe(
+					Effect.tap(() => resources.request),
+				),
+			payload: RetirePayload,
+			reclaim: "requeue",
+			tag: "agent/retire",
+		});
+});

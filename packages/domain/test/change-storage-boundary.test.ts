@@ -1,15 +1,12 @@
 import { Database, Writer } from "@antumbra/persistence";
-import type { Runner } from "@antumbra/plugin-api";
 import { expect, it } from "@effect/vitest";
-import { Effect, Ref } from "effect";
-import { sweepBerths } from "#berth-sweep.ts";
+import { Effect } from "effect";
 import { AgentDomain } from "#domain.ts";
 import { changeOf } from "#test/change-fixtures.ts";
 import {
 	acquireTemporaryPersistence,
 	domainKernelLayer,
 	makeScriptedBackend,
-	passiveRunner,
 } from "#test/harness.ts";
 
 const SOURCE = "/somewhere/change-storage-boundary";
@@ -39,6 +36,7 @@ const storeUnsafeChangeBerth = (repoId: string) =>
 					branch: "work/agent/reef",
 					id: "berth-unsafe",
 					path: "/tmp/unsafe-berth",
+					reclaimState: null,
 					ref: "main",
 					runner: "local",
 					slug: "reef",
@@ -70,6 +68,7 @@ const storeUnsafePieceChangeBerth = (repoId: string, pieceId: string) =>
 					branch: "work/agent/reef",
 					id: "berth-unsafe-piece-change",
 					path: "/tmp/unsafe-piece-change-berth",
+					reclaimState: null,
 					ref: "main",
 					runner: "local",
 					slug: "reef-piece-change",
@@ -93,14 +92,6 @@ const storeUnsafePieceChangeBerth = (repoId: string, pieceId: string) =>
 			}),
 		);
 	});
-
-const reclaimCounting = (calls: Ref.Ref<number>): Runner => ({
-	...passiveRunner,
-	reclaim: () =>
-		Ref.update(calls, (count) => count + 1).pipe(
-			Effect.as({ _tag: "reclaimed" as const }),
-		),
-});
 
 it.live("a direct Change read fails typed on invalid durable vocabulary", () =>
 	withDomain(
@@ -185,10 +176,11 @@ it.live(
 		withDomain(
 			Effect.gen(function* () {
 				const db = yield* Database;
+				const domain = yield* AgentDomain;
 				const repo = yield* registeredRepo;
 				yield* storeUnsafeChangeBerth(repo.id);
 
-				yield* sweepBerths(new Map([["local", passiveRunner]]));
+				yield* domain.retryResourceReclaim;
 				const [berth] = yield* db.Berth.where({ id: "berth-unsafe" }).all();
 				expect(berth?.status).toBe("ready");
 				expect(berth?.strandedAt).toBeNull();
@@ -219,15 +211,12 @@ it.live(
 					voyageId: voyage.id,
 				});
 				yield* storeUnsafePieceChangeBerth(repo.id, piece.id);
-				const reclaimCalls = yield* Ref.make(0);
-
-				yield* sweepBerths(new Map([["local", reclaimCounting(reclaimCalls)]]));
+				yield* domain.retryResourceReclaim;
 				const [berth] = yield* db.Berth.where({
 					id: "berth-unsafe-piece-change",
 				}).all();
 				expect(berth?.status).toBe("ready");
 				expect(berth?.strandedAt).toBeNull();
-				expect(yield* Ref.get(reclaimCalls)).toBe(0);
 			}),
 		),
 );

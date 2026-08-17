@@ -1,3 +1,4 @@
+import { ResourceReclaimStateSchema } from "@antumbra/agent-runtime-vocabulary";
 import { HistoricalAgentEvent } from "@antumbra/session-events";
 import { Context, Data, type Effect, Schema, type Stream } from "effect";
 
@@ -12,6 +13,7 @@ export type SessionSummary = typeof SessionSummary.Type;
 
 export const BerthSummary = Schema.Struct({
 	branch: Schema.String,
+	reclaimState: Schema.NullOr(ResourceReclaimStateSchema),
 	slug: Schema.String,
 	status: Schema.String,
 });

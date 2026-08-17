@@ -13,6 +13,9 @@ export interface PieceAgentView {
 export interface PieceView extends PieceRow {
 	readonly agents: ReadonlyArray<PieceAgentView>;
 	readonly artifacts: ReadonlyArray<ArtifactRow>;
+	readonly artifactHistory: ReadonlyArray<
+		ArtifactRow & { readonly successorArtifactId: string }
+	>;
 	readonly changes: ReadonlyArray<ChangeView>;
 	readonly dependsOn: ReadonlyArray<string>;
 	readonly reports: ReadonlyArray<ReportRow>;
@@ -44,13 +47,39 @@ const reportsOf = (
 const artifactsOf = (
 	world: VoyageWorld,
 	pieceId: string,
-): ReadonlyArray<ArtifactRow> =>
-	world.pieceArtifacts
+): ReadonlyArray<ArtifactRow> => {
+	const superseded = new Set(
+		world.artifactSupersessions.map((edge) => edge.supersededArtifactId),
+	);
+	return world.pieceArtifacts
+		.filter((link) => !superseded.has(link.artifactId))
 		.filter((link) => link.pieceId === pieceId)
 		.flatMap((link) => {
 			const artifact = world.artifacts.get(link.artifactId);
 			return artifact === undefined ? [] : [artifact];
 		});
+};
+
+const artifactHistoryOf = (
+	world: VoyageWorld,
+	pieceId: string,
+): ReadonlyArray<ArtifactRow & { readonly successorArtifactId: string }> => {
+	const successorByArtifact = new Map(
+		world.artifactSupersessions.map((edge) => [
+			edge.supersededArtifactId,
+			edge.successorArtifactId,
+		]),
+	);
+	return world.pieceArtifacts
+		.filter((link) => link.pieceId === pieceId)
+		.flatMap((link) => {
+			const artifact = world.artifacts.get(link.artifactId);
+			const successorArtifactId = successorByArtifact.get(link.artifactId);
+			return artifact === undefined || successorArtifactId === undefined
+				? []
+				: [{ ...artifact, successorArtifactId }];
+		});
+};
 
 export const pieceView = (
 	world: VoyageWorld,
@@ -59,6 +88,7 @@ export const pieceView = (
 ): PieceView => ({
 	...piece,
 	agents: agentsOf(world, piece.id),
+	artifactHistory: artifactHistoryOf(world, piece.id),
 	artifacts: artifactsOf(world, piece.id),
 	changes: changesOfPiece(world, piece.id).map((change) =>
 		changeView(repoNameOf(world, change.repoId), change),

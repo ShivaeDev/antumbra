@@ -92,6 +92,7 @@ const voyageWorld: Effect.Effect<
 			agents.map((agent) => [agent.id, agent.currentSessionId] as const),
 		),
 		artifacts: byId((yield* db.Artifact.all()).map(artifactRow)),
+		artifactSupersessions: yield* db.ArtifactSupersession.all(),
 		assignments: yield* db.PieceAgent.all(),
 		changes,
 		crews: yield* db.VoyageAgent.all(),

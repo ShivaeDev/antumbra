@@ -2,7 +2,7 @@ import type {
 	AgentSessionStatus,
 	AgentStatus,
 } from "@antumbra/agent-runtime-vocabulary";
-import type { ArtifactRow } from "@antumbra/artifacts";
+import type { ArtifactRow, ArtifactSupersessionRow } from "@antumbra/artifacts";
 import type { EdgeRow, PieceRow } from "@antumbra/pieces";
 import type { ReportRow } from "@antumbra/reports";
 import type { ChangeRow, PieceChangeRow } from "#change-rows.ts";
@@ -67,6 +67,7 @@ export interface VoyageWorld {
 	readonly agentStatus: ReadonlyMap<string, AgentStatus>;
 	readonly currentSessionByAgent: ReadonlyMap<string, string | null>;
 	readonly artifacts: ReadonlyMap<string, ArtifactRow>;
+	readonly artifactSupersessions: ReadonlyArray<ArtifactSupersessionRow>;
 	readonly assignments: ReadonlyArray<AssignmentRow>;
 	readonly changes: ReadonlyArray<ChangeRow>;
 	readonly crews: ReadonlyArray<CrewRow>;

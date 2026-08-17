@@ -16,6 +16,7 @@ const piece = (
 	dependsOn: ReadonlyArray<string> = [],
 ): PieceView => ({
 	agents: [],
+	artifactHistory: [],
 	artifacts: [],
 	changes: [],
 	charter: `do ${title}`,

@@ -194,7 +194,7 @@ it.effectDB(
 				const artifacts = yield* Artifacts;
 				return yield* artifacts.land(input);
 			}).pipe(Effect.provide(layer));
-			expect(existsSync(fileURLToPath(artifact.uri))).toBe(true);
+			expect(existsSync(fileURLToPath(artifact.artifact.uri))).toBe(true);
 			expect(yield* db.Artifact.all()).toHaveLength(artifactsBefore + 1);
 			expect(yield* db.PieceArtifact.all()).toHaveLength(linksBefore + 1);
 			rmSync(fixture.root, { force: true, recursive: true });

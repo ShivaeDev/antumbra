@@ -1,0 +1,159 @@
+import { mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { DatabaseSync } from "node:sqlite";
+import { fileURLToPath } from "node:url";
+import { applyMigrations } from "@antumbra/persistence";
+import {
+	packagedMigrationsDirectory,
+	type TemporaryPersistence,
+} from "@antumbra/persistence/testing";
+import { expect, it } from "@effect/vitest";
+import { Effect } from "effect";
+import { afterAll } from "vitest";
+import { brandDatabaseFilePath } from "#data-dir.ts";
+
+const directories: string[] = [];
+const packageRoot = fileURLToPath(new URL("..", import.meta.url));
+const migrationDirectory = join(
+	packageRoot,
+	"migrations",
+	"app",
+	"20260817T2206_artifact_supersession",
+);
+const startContract: unknown = JSON.parse(
+	readFileSync(join(migrationDirectory, "start-contract.json"), "utf8"),
+);
+const endContract: unknown = JSON.parse(
+	readFileSync(join(migrationDirectory, "end-contract.json"), "utf8"),
+);
+
+afterAll(() => {
+	for (const directory of directories.splice(0)) {
+		rmSync(directory, { force: true, recursive: true });
+	}
+});
+
+const freshDatabase = (): TemporaryPersistence["database"] => {
+	const directory = mkdtempSync(join(tmpdir(), "antumbra-artifact-lineage-"));
+	directories.push(directory);
+	return brandDatabaseFilePath(join(directory, "test.db"));
+};
+
+const withSqlite = <A>(path: string, use: (database: DatabaseSync) => A): A => {
+	const database = new DatabaseSync(path);
+	try {
+		return use(database);
+	} finally {
+		database.close();
+	}
+};
+
+const migrateToStart = (database: TemporaryPersistence["database"]) =>
+	applyMigrations({
+		contract: startContract,
+		database,
+		migrationsDirectory: packagedMigrationsDirectory,
+	});
+
+const seedPiece = (database: DatabaseSync, id: string) =>
+	database
+		.prepare(
+			'INSERT INTO "piece" ("id", "title", "charter", "expectation", "role") VALUES (?, ?, ?, ?, ?)',
+		)
+		.run(id, id, "draw", "a chart lands", "cartographer");
+
+const seedArtifact = (database: DatabaseSync) =>
+	database
+		.prepare('INSERT INTO "artifact" ("id", "title", "uri") VALUES (?, ?, ?)')
+		.run("artifact-chart", "chart", "https://example.test/chart.svg");
+
+const pieceArtifactRows = (database: DatabaseSync) =>
+	database.prepare('SELECT * FROM "pieceArtifact" ORDER BY "pieceId"').all();
+
+const seedInvalidProvenance = (
+	database: DatabaseSync,
+	provenance: "ambiguous" | "missing",
+) => {
+	seedPiece(database, "piece-one");
+	seedArtifact(database);
+	if (provenance === "missing") {
+		return;
+	}
+	seedPiece(database, "piece-two");
+	database
+		.prepare(
+			'INSERT INTO "pieceArtifact" ("pieceId", "artifactId") VALUES (?, ?), (?, ?)',
+		)
+		.run("piece-one", "artifact-chart", "piece-two", "artifact-chart");
+};
+
+const supersessionTableCount = (database: DatabaseSync) =>
+	database
+		.prepare(
+			"SELECT COUNT(*) AS count FROM sqlite_master WHERE type = ? AND name = ?",
+		)
+		.get("table", "artifactSupersession");
+
+const assertInvalidProvenanceMigration = (
+	provenance: "ambiguous" | "missing",
+) =>
+	Effect.gen(function* () {
+		const database = freshDatabase();
+		yield* migrateToStart(database);
+		const before = withSqlite(database, (sqlite) => {
+			seedInvalidProvenance(sqlite, provenance);
+			return pieceArtifactRows(sqlite);
+		});
+		const result = yield* Effect.exit(
+			applyMigrations({
+				contract: endContract,
+				database,
+				migrationsDirectory: packagedMigrationsDirectory,
+			}),
+		);
+		expect(result._tag).toBe("Failure");
+		expect(withSqlite(database, pieceArtifactRows)).toEqual(before);
+		expect(withSqlite(database, supersessionTableCount)).toEqual({ count: 0 });
+	});
+
+it.effect(
+	"refuses missing or ambiguous producing-Piece provenance unchanged",
+	() =>
+		Effect.forEach(
+			["missing", "ambiguous"] as const,
+			assertInvalidProvenanceMigration,
+		),
+);
+
+it.effect("preserves valid provenance and enforces one producing Piece", () =>
+	Effect.gen(function* () {
+		const database = freshDatabase();
+		yield* migrateToStart(database);
+		withSqlite(database, (sqlite) => {
+			seedPiece(sqlite, "piece-one");
+			seedPiece(sqlite, "piece-two");
+			seedArtifact(sqlite);
+			sqlite
+				.prepare(
+					'INSERT INTO "pieceArtifact" ("pieceId", "artifactId") VALUES (?, ?)',
+				)
+				.run("piece-one", "artifact-chart");
+		});
+
+		yield* applyMigrations({
+			contract: endContract,
+			database,
+			migrationsDirectory: packagedMigrationsDirectory,
+		});
+		expect(() =>
+			withSqlite(database, (sqlite) =>
+				sqlite
+					.prepare(
+						'INSERT INTO "pieceArtifact" ("pieceId", "artifactId") VALUES (?, ?)',
+					)
+					.run("piece-two", "artifact-chart"),
+			),
+		).toThrow();
+	}),
+);

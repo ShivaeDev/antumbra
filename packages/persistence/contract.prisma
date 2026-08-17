@@ -169,6 +169,8 @@ model Artifact {
   uri           String
   createdAt     DateTime @default(now())
   pieces        PieceArtifact[]
+  successors    ArtifactSupersession[] @relation("SupersededArtifact")
+  predecessors  ArtifactSupersession[] @relation("SuccessorArtifact")
 }
 
 model PieceReport {
@@ -187,6 +189,15 @@ model PieceArtifact {
   artifact   Artifact @relation(fields: [artifactId], references: [id], onDelete: Restrict, onUpdate: Restrict)
 
   @@id([pieceId, artifactId])
+  @@index([artifactId])
+  @@unique([artifactId])
+}
+
+model ArtifactSupersession {
+  supersededArtifactId String @id
+  successorArtifactId  String @unique
+  supersededArtifact   Artifact @relation("SupersededArtifact", fields: [supersededArtifactId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  successorArtifact    Artifact @relation("SuccessorArtifact", fields: [successorArtifactId], references: [id], onDelete: Restrict, onUpdate: Restrict)
 }
 
 model Change {

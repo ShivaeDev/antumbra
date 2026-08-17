@@ -17,5 +17,11 @@ export {
 	openChangeSpec,
 	submitChangeSpec,
 } from "#changes.ts";
-export { landArtifactSpec, landReportSpec, standDownSpec } from "#crew.ts";
+export {
+	landArtifactSpec,
+	landReportSpec,
+	removeArtifactSupersessionSpec,
+	standDownSpec,
+	supersedeArtifactSpec,
+} from "#crew.ts";
 export { bind, defineTool, type ToolSpec } from "#define.ts";

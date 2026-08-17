@@ -28,6 +28,12 @@ export const ArtifactView = Schema.Struct({
 });
 export type ArtifactView = typeof ArtifactView.Type;
 
+export const ArtifactHistoryView = Schema.Struct({
+	...ArtifactView.fields,
+	successorArtifactId: Schema.String,
+});
+export type ArtifactHistoryView = typeof ArtifactHistoryView.Type;
+
 // why: a change lives on a host that speaks its own dialect, and the window is
 // shown only the neutral reading — where it stands and what the host last said
 // — so nothing above the domain ever learns which host it is looking at. The
@@ -67,6 +73,7 @@ export type PieceState = typeof PieceState.Type;
 
 export const PieceView = Schema.Struct({
 	agents: Schema.Array(PieceAgentView),
+	artifactHistory: Schema.Array(ArtifactHistoryView),
 	artifacts: Schema.Array(ArtifactView),
 	changes: Schema.Array(ChangeView),
 	charter: Schema.String,

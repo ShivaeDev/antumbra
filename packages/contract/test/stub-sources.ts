@@ -83,6 +83,7 @@ const shoalWarning: ChangeView = {
 
 const soundings: PieceView = {
 	agents: [{ agentId: "agent-2", status: "alive" }],
+	artifactHistory: [],
 	artifacts: [],
 	changes: [shoalWarning],
 	charter: "sound the northern shoals",
@@ -99,6 +100,7 @@ const soundings: PieceView = {
 
 const chart: PieceView = {
 	agents: [],
+	artifactHistory: [],
 	artifacts: [],
 	changes: [],
 	charter: "draw the chart from the soundings",
@@ -202,8 +204,10 @@ const voyageStub = Layer.succeed(VoyageSource, {
 	quay: Effect.succeed(quayView),
 	quayFeed: Stream.make(quayView),
 	refreshChanges: Effect.void,
+	removeArtifactSupersession: () => Effect.void,
 	rewire: () => Effect.void,
 	setFocus: () => Effect.void,
+	supersedeArtifact: () => Effect.void,
 	unpark: () => Effect.void,
 	voyage: (voyageId) =>
 		voyageId === reefView.id

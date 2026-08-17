@@ -1,0 +1,244 @@
+import { Artifacts, ArtifactsLive } from "@antumbra/artifacts";
+import { DomainFeedsLive } from "@antumbra/domain-feeds";
+import { persistenceIt } from "@antumbra/persistence/testing";
+import { NodeServices } from "@effect/platform-node";
+import { expect } from "@effect/vitest";
+import { Effect, Layer } from "effect";
+
+const it = persistenceIt();
+
+const piece = {
+	charter: "draw the reef",
+	expectation: "a chart lands",
+	id: "piece-chart",
+	launchedAt: null,
+	parkedAt: null,
+	role: "cartographer",
+	title: "Chart",
+};
+
+const otherPiece = { ...piece, id: "piece-log", title: "Log" };
+
+const layer = ArtifactsLive("/unused-for-external-artifacts").pipe(
+	Layer.provideMerge(DomainFeedsLive),
+	Layer.provide(NodeServices.layer),
+);
+
+const land = (pieceId: string, title: string, authorAgentId = "agent-chart") =>
+	Artifacts.pipe(
+		Effect.flatMap((artifacts) =>
+			artifacts.land({
+				authorAgentId,
+				pieceId,
+				title,
+				uri: `https://example.test/${title}.svg`,
+			}),
+		),
+	);
+
+const useArtifacts = <A, E>(
+	use: (artifacts: Artifacts["Service"]) => Effect.Effect<A, E>,
+) => Artifacts.pipe(Effect.flatMap(use), Effect.provide(layer));
+
+it.effectDB(
+	"lands an explicit revision and keeps immutable lineage",
+	function* (db) {
+		yield* db.Piece.create(piece);
+		const first = yield* land(piece.id, "first").pipe(Effect.provide(layer));
+		const second = yield* Artifacts.pipe(
+			Effect.flatMap((artifacts) =>
+				artifacts.land({
+					authorAgentId: "agent-chart",
+					pieceId: piece.id,
+					supersedesArtifactId: first.artifact.id,
+					title: "second",
+					uri: "https://example.test/second.svg",
+				}),
+			),
+			Effect.provide(layer),
+		);
+
+		expect(first).toMatchObject({
+			_tag: "landed",
+			otherCurrentArtifacts: [],
+		});
+		expect(second).toMatchObject({
+			_tag: "superseded",
+			supersededArtifactId: first.artifact.id,
+		});
+		expect(yield* db.Artifact.all()).toHaveLength(2);
+		expect(yield* db.ArtifactSupersession.all()).toEqual([
+			{
+				successorArtifactId: second.artifact.id,
+				supersededArtifactId: first.artifact.id,
+			},
+		]);
+	},
+);
+
+it.effectDB(
+	"returns every other current Artifact when landing does not infer supersession",
+	function* (db) {
+		yield* db.Piece.create(piece);
+		const first = yield* land(piece.id, "first").pipe(Effect.provide(layer));
+		const second = yield* land(piece.id, "second").pipe(Effect.provide(layer));
+
+		expect(second).toMatchObject({
+			_tag: "landed",
+			otherCurrentArtifacts: [first.artifact],
+		});
+	},
+);
+
+it.effectDB(
+	"refuses branching and cycles without changing existing topology",
+	function* (db) {
+		yield* db.Piece.create(piece);
+		const first = yield* land(piece.id, "first").pipe(Effect.provide(layer));
+		const second = yield* land(piece.id, "second").pipe(Effect.provide(layer));
+		const third = yield* land(piece.id, "third").pipe(Effect.provide(layer));
+		const actor = { _tag: "agent", agentId: "agent-chart" } as const;
+		yield* useArtifacts((artifacts) =>
+			artifacts.supersede({
+				actor,
+				successorArtifactId: second.artifact.id,
+				supersededArtifactId: first.artifact.id,
+			}),
+		);
+		const before = yield* db.ArtifactSupersession.all();
+		const branch = yield* Effect.flip(
+			useArtifacts((artifacts) =>
+				artifacts.supersede({
+					actor,
+					successorArtifactId: third.artifact.id,
+					supersededArtifactId: first.artifact.id,
+				}),
+			),
+		);
+		const cycle = yield* Effect.flip(
+			useArtifacts((artifacts) =>
+				artifacts.supersede({
+					actor,
+					successorArtifactId: first.artifact.id,
+					supersededArtifactId: second.artifact.id,
+				}),
+			),
+		);
+
+		expect(branch).toMatchObject({
+			_tag: "ArtifactLineageConflict",
+			conflict: "superseded_artifact_already_has_successor",
+		});
+		expect(cycle).toMatchObject({
+			_tag: "ArtifactLineageConflict",
+			conflict: "cycle",
+		});
+		expect(yield* db.ArtifactSupersession.all()).toEqual(before);
+	},
+);
+
+it.effectDB(
+	"refuses cross-Piece lineage and unauthorized correction unchanged",
+	function* (db) {
+		yield* db.Piece.create(piece);
+		yield* db.Piece.create(otherPiece);
+		const first = yield* land(piece.id, "first").pipe(Effect.provide(layer));
+		const foreign = yield* land(otherPiece.id, "foreign").pipe(
+			Effect.provide(layer),
+		);
+		const crossPiece = yield* Effect.flip(
+			useArtifacts((artifacts) =>
+				artifacts.supersede({
+					actor: { _tag: "admiral" },
+					successorArtifactId: foreign.artifact.id,
+					supersededArtifactId: first.artifact.id,
+				}),
+			),
+		);
+		const unauthorized = yield* Effect.flip(
+			useArtifacts((artifacts) =>
+				artifacts.supersede({
+					actor: { _tag: "agent", agentId: "agent-other" },
+					successorArtifactId: foreign.artifact.id,
+					supersededArtifactId: first.artifact.id,
+				}),
+			),
+		);
+
+		expect(crossPiece._tag).toBe("ArtifactProvenanceConflict");
+		expect(unauthorized._tag).toBe("ArtifactSupersessionUnauthorized");
+		expect(yield* db.ArtifactSupersession.all()).toEqual([]);
+	},
+);
+
+it.effectDB(
+	"an author may remove an involving edge and the admiral may correct any edge",
+	function* (db) {
+		yield* db.Piece.create(piece);
+		const first = yield* land(piece.id, "first", "agent-first").pipe(
+			Effect.provide(layer),
+		);
+		const second = yield* land(piece.id, "second", "agent-second").pipe(
+			Effect.provide(layer),
+		);
+		const edge = {
+			successorArtifactId: second.artifact.id,
+			supersededArtifactId: first.artifact.id,
+		};
+		yield* useArtifacts((artifacts) =>
+			artifacts.supersede({
+				actor: { _tag: "agent", agentId: "agent-first" },
+				...edge,
+			}),
+		);
+		yield* useArtifacts((artifacts) =>
+			artifacts.removeSupersession({
+				actor: { _tag: "agent", agentId: "agent-second" },
+				...edge,
+			}),
+		);
+		yield* useArtifacts((artifacts) =>
+			artifacts.supersede({ actor: { _tag: "admiral" }, ...edge }),
+		);
+		yield* useArtifacts((artifacts) =>
+			artifacts.removeSupersession({
+				actor: { _tag: "admiral" },
+				...edge,
+			}),
+		);
+
+		expect(yield* db.ArtifactSupersession.all()).toEqual([]);
+	},
+);
+
+it.effectDB(
+	"an invalid landing leaves Artifact, provenance, and topology unchanged",
+	function* (db) {
+		yield* db.Piece.create(piece);
+		yield* db.Piece.create(otherPiece);
+		const old = yield* land(otherPiece.id, "foreign").pipe(
+			Effect.provide(layer),
+		);
+		const before = {
+			artifacts: yield* db.Artifact.all(),
+			links: yield* db.PieceArtifact.all(),
+			supersessions: yield* db.ArtifactSupersession.all(),
+		};
+		const failure = yield* Effect.flip(
+			useArtifacts((artifacts) =>
+				artifacts.land({
+					authorAgentId: "agent-chart",
+					pieceId: piece.id,
+					supersedesArtifactId: old.artifact.id,
+					title: "wrong lineage",
+					uri: "https://example.test/wrong.svg",
+				}),
+			),
+		);
+
+		expect(failure._tag).toBe("ArtifactProvenanceConflict");
+		expect(yield* db.Artifact.all()).toEqual(before.artifacts);
+		expect(yield* db.PieceArtifact.all()).toEqual(before.links);
+		expect(yield* db.ArtifactSupersession.all()).toEqual(before.supersessions);
+	},
+);

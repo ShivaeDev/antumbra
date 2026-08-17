@@ -59,6 +59,8 @@ it.live(
 				expect(live.tools.map((tool) => tool.name)).toEqual([
 					"land_report",
 					"land_artifact",
+					"supersede",
+					"remove_supersession",
 					"submit_change",
 					"open_change",
 					"adopt_change",

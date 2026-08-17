@@ -100,13 +100,13 @@ it.effectDB(
 				writeFileSync(join(moorage, "reef.svg"), "<svg>new reef</svg>");
 				const changed = yield* artifacts.land(input);
 
-				expect(replay.id).not.toBe(first.id);
-				expect(replay.uri).toBe(first.uri);
-				expect(changed.id).not.toBe(first.id);
-				expect(changed.uri).not.toBe(first.uri);
+				expect(replay.artifact.id).not.toBe(first.artifact.id);
+				expect(replay.artifact.uri).toBe(first.artifact.uri);
+				expect(changed.artifact.id).not.toBe(first.artifact.id);
+				expect(changed.artifact.uri).not.toBe(first.artifact.uri);
 				expect(yield* db.Artifact.all()).toHaveLength(3);
 				expect(yield* db.PieceArtifact.all()).toHaveLength(3);
-				expect(existsSync(fileURLToPath(first.uri))).toBe(true);
+				expect(existsSync(fileURLToPath(first.artifact.uri))).toBe(true);
 			}),
 		);
 	},
@@ -180,7 +180,7 @@ it.effectDB("keeps an external URL as a reference", function* (db) {
 				uri: "https://example.test/reef.svg",
 			});
 
-			expect(artifact.uri).toBe("https://example.test/reef.svg");
+			expect(artifact.artifact.uri).toBe("https://example.test/reef.svg");
 			expect(yield* db.Artifact.all()).toHaveLength(1);
 		}),
 	);

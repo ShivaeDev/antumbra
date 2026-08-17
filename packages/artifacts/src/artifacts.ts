@@ -1,16 +1,36 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database, type WriteExecutors, Writer } from "@antumbra/persistence";
-import { Context, Crypto, Effect, FileSystem, Layer, Path } from "effect";
+import {
+	Context,
+	Crypto,
+	Effect,
+	FileSystem,
+	Layer,
+	Path,
+	PubSub,
+} from "effect";
 import type { ArtifactFailure } from "#errors.ts";
 import { landArtifact } from "#land.ts";
-import type { ArtifactInput, ArtifactRow } from "#model.ts";
+import { deleteSupersession, writeSupersession } from "#lineage/write.ts";
+import type {
+	ArtifactInput,
+	ArtifactLanding,
+	ArtifactSupersessionInput,
+	ArtifactSupersessionRow,
+} from "#model.ts";
 
 export class Artifacts extends Context.Service<
 	Artifacts,
 	{
 		readonly land: (
 			input: ArtifactInput,
-		) => Effect.Effect<ArtifactRow, ArtifactFailure>;
+		) => Effect.Effect<ArtifactLanding, ArtifactFailure>;
+		readonly removeSupersession: (
+			input: ArtifactSupersessionInput,
+		) => Effect.Effect<void, ArtifactFailure>;
+		readonly supersede: (
+			input: ArtifactSupersessionInput,
+		) => Effect.Effect<ArtifactSupersessionRow, ArtifactFailure>;
 	}
 >()("@antumbra/artifacts/Artifacts") {}
 
@@ -34,8 +54,20 @@ export const ArtifactsLive = (root: string) =>
 					Context.add(Path.Path, path),
 				),
 			);
+			const announce = PubSub.publish(feeds.voyages, undefined);
+			const write = <A, E, R>(program: Effect.Effect<A, E, R>) =>
+				writer.write(program).pipe(Effect.tap(() => announce));
+			const removeSupersession = (input: ArtifactSupersessionInput) =>
+				Effect.provide(
+					write(deleteSupersession(input)).pipe(Effect.asVoid),
+					context,
+				);
+			const supersede = (input: ArtifactSupersessionInput) =>
+				Effect.provide(write(writeSupersession(input)), context);
 			return {
 				land: (input) => Effect.provide(landArtifact(root, input), context),
+				removeSupersession,
+				supersede,
 			};
 		}),
 	);

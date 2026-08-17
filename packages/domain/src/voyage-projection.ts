@@ -43,6 +43,13 @@ const pieceSeen = (piece: DerivedPiece): PieceView => ({
 		agentId: agent.agentId,
 		status: agent.status,
 	})),
+	artifactHistory: piece.artifactHistory.map((artifact) => ({
+		authorAgentId: artifact.authorAgentId,
+		id: artifact.id,
+		successorArtifactId: artifact.successorArtifactId,
+		title: artifact.title,
+		uri: artifact.uri,
+	})),
 	artifacts: piece.artifacts.map((artifact) => ({
 		authorAgentId: artifact.authorAgentId,
 		id: artifact.id,

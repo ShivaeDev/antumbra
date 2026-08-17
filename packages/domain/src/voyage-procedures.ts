@@ -5,7 +5,9 @@ import type {
 import type {
 	ArtifactFailure,
 	ArtifactInput,
-	ArtifactRow,
+	ArtifactLanding,
+	ArtifactSupersessionInput,
+	ArtifactSupersessionRow,
 } from "@antumbra/artifacts";
 import type { PrismaError } from "@antumbra/persistence";
 import type {
@@ -44,10 +46,13 @@ export interface VoyageProcedures {
 	) => Effect.Effect<HailedCaptain, HailRefused>;
 	readonly landArtifact: (
 		input: ArtifactInput,
-	) => Effect.Effect<ArtifactRow, ArtifactFailure>;
+	) => Effect.Effect<ArtifactLanding, ArtifactFailure>;
 	readonly landReport: (
 		input: ReportInput,
 	) => Effect.Effect<ReportRow, PieceNotFound | PrismaError>;
+	readonly removeArtifactSupersession: (
+		input: Omit<ArtifactSupersessionInput, "actor">,
+	) => Effect.Effect<void, ArtifactFailure>;
 	readonly launch: (
 		pieceId: string,
 	) => Effect.Effect<void, PieceNotFound | PrismaError>;
@@ -85,6 +90,9 @@ export interface VoyageProcedures {
 		voyageId: string,
 		focused: boolean,
 	) => Effect.Effect<void, PrismaError | VoyageNotFound>;
+	readonly supersedeArtifact: (
+		input: Omit<ArtifactSupersessionInput, "actor">,
+	) => Effect.Effect<ArtifactSupersessionRow, ArtifactFailure>;
 	readonly unpark: (
 		pieceId: string,
 	) => Effect.Effect<void, PieceNotFound | PrismaError>;

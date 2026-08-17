@@ -2,6 +2,7 @@ import { Effect } from "effect";
 import type { Inventory } from "#lint/inventory.ts";
 import { commentViolations } from "#lint/rules/comments.ts";
 import { contractViolations } from "#lint/rules/contracts.ts";
+import { documentationViolations } from "#lint/rules/documentation.ts";
 import { manifestViolations } from "#lint/rules/manifests.ts";
 import { nestingViolations } from "#lint/rules/nesting.ts";
 import { pragmaViolations } from "#lint/rules/pragmas.ts";
@@ -18,6 +19,7 @@ export const lint = (
 	Effect.map(
 		Effect.all(
 			[
+				Effect.sync(() => documentationViolations(inventory.documents)),
 				Effect.sync(() => structureViolations(inventory)),
 				Effect.sync(() => nestingViolations(inventory)),
 				Effect.sync(() => commentViolations(inventory)),

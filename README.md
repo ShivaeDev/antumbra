@@ -14,6 +14,14 @@ A place to stand for the long view.
 
 Early development. Nothing to install or run yet.
 
+## Documentation
+
+- [Design axioms](DESIGN.md) — the cross-context laws every design obeys.
+- [Architecture](ARCHITECTURE.md) — the process, package, and dependency shape.
+- [Glossary](GLOSSARY.md) — a short index of Antumbra's product language.
+- [Design guides](docs/design/README.md) — the relationships, acts, and rationale
+  behind that language.
+
 ## License
 
 [MIT](LICENSE)

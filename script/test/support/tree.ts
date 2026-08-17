@@ -8,6 +8,23 @@ const seeded: string[] = [];
 const requiredLintInputs: readonly SeedFile[] = [
 	{ content: "{}\n", path: "package.json" },
 	{ content: "catalog:\n", path: "pnpm-workspace.yaml" },
+	{
+		content:
+			"# Antumbra\n\n[Design](DESIGN.md)\n[Architecture](ARCHITECTURE.md)\n[Glossary](GLOSSARY.md)\n[Guides](docs/design/README.md)\n",
+		path: "README.md",
+	},
+	{ content: "# Design axioms\n", path: "DESIGN.md" },
+	{ content: "# Architecture\n", path: "ARCHITECTURE.md" },
+	{
+		content:
+			"# Glossary\n\n## Work\n\nOwner: [Work](docs/design/work.md)\n\n- [**Voyage**](docs/design/work.md#voyage) — work under sail.\n",
+		path: "GLOSSARY.md",
+	},
+	{
+		content: "# Design guides\n\n- [Work](work.md)\n",
+		path: "docs/design/README.md",
+	},
+	{ content: "# Work\n\n## Voyage\n", path: "docs/design/work.md" },
 	{ content: "[]\n", path: "script/pragma-registry.json" },
 	{
 		content: "[]\n",

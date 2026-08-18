@@ -10,3 +10,7 @@ bullet per decision. Add `### Callouts` only when a spot deserves reviewer
 attention, with one bullet per callout.
 
 Do not add file lists, test plans, or diff narration.
+
+Review applies only the relevant [quality-gate routes](../../quality-gates/README.md).
+When feedback reveals a reusable quality rule, follow that guide's clarification
+and recording process instead of leaving the reasoning in one review thread.

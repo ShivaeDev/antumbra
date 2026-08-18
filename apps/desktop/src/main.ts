@@ -28,12 +28,13 @@ import { AppInfoSourceLive } from "#adapters/app-info.ts";
 import { ownerBoot, runBoot } from "#adapters/boot.ts";
 import { drainManagedRuntime } from "#adapters/graceful-shutdown.ts";
 import { activateInstalledCli } from "#adapters/installed-cli.ts";
+import { mainDocumentAuthority } from "#adapters/main-document-authority.ts";
+import { openMainWindow } from "#adapters/main-window.ts";
 import {
 	acquireDesktopOwnership,
 	artifactsInDataDirectory,
 	configureDataDirectory,
 	drainBeforeQuit,
-	openMainWindow,
 	persistenceMigrationsDirectory,
 	quitWhenAllWindowsClosed,
 	runnerRootsInDataDirectory,
@@ -108,12 +109,12 @@ const startOwner = () => {
 		yield* drainBeforeQuit(drainManagedRuntime(runtime, drainActiveSessions));
 		yield* whenReady;
 		yield* Effect.sync(() => {
-			registerTrpcBridge(router);
-			registerTrpcSubscriptions(router);
+			registerTrpcBridge(router, mainDocumentAuthority);
+			registerTrpcSubscriptions(router, mainDocumentAuthority);
 		});
 		yield* quitWhenAllWindowsClosed;
 		yield* ensureInstallMarker;
-		yield* openMainWindow;
+		yield* openMainWindow(mainDocumentAuthority);
 		yield* Effect.logInfo("bridge: window open");
 	});
 	return Effect.promise(() => runtime.runPromise(main));

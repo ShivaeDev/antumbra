@@ -3,8 +3,7 @@ import { join } from "node:path";
 import { Effect } from "effect";
 import { app, BrowserWindow } from "electron";
 import { registerGracefulShutdown } from "#adapters/graceful-shutdown.ts";
-
-const RENDERER_URL_FLAG = "--renderer-url=";
+import { openMainWindow } from "#adapters/main-window.ts";
 
 export const whenReady = Effect.promise(() => app.whenReady());
 
@@ -50,28 +49,6 @@ export const drainBeforeQuit = <E>(shutdown: Effect.Effect<void, E>) =>
 		shutdown,
 	);
 
-const rendererUrl = (): string | undefined =>
-	process.argv
-		.find((argument) => argument.startsWith(RENDERER_URL_FLAG))
-		?.slice(RENDERER_URL_FLAG.length);
-
-export const openMainWindow = Effect.promise(() => {
-	const window = new BrowserWindow({
-		height: 760,
-		title: "Antumbra",
-		webPreferences: {
-			contextIsolation: true,
-			preload: join(import.meta.dirname, "preload.cjs"),
-			sandbox: true,
-		},
-		width: 1120,
-	});
-	const url = rendererUrl();
-	return url === undefined
-		? window.loadFile(join(import.meta.dirname, "renderer", "index.html"))
-		: window.loadURL(url);
-});
-
 interface DesktopApplication {
 	readonly onSecondInstance: (listener: () => void) => void;
 	readonly quit: () => void;
@@ -93,7 +70,7 @@ const focusOrOpenOwnedWindow = (windows: OwnedWindows) =>
 	Effect.gen(function* () {
 		const window = windows.getAllWindows()[0];
 		if (window === undefined) {
-			yield* openMainWindow;
+			yield* openMainWindow();
 			return;
 		}
 		if (window.isMinimized()) {

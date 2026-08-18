@@ -41,4 +41,6 @@ it("keeps superseded Artifacts behind an explicit History disclosure", () => {
 	expect(html).toContain("Current chart");
 	expect(html).toContain("History");
 	expect(html).toContain("Old chart");
+	expect(html).not.toContain("<a");
+	expect(html).not.toContain("href=");
 });

@@ -1,23 +1,14 @@
 import type { ArtifactView, PieceView, ReportView } from "@antumbra/contract";
 import { ChangeChip } from "#views/change-chip.tsx";
 import { columnStyle, mutedStyle, rowStyle } from "#views/styles.ts";
-import { artifactHref } from "#voyages/labels.ts";
 
 const ReportChip = ({ report }: { readonly report: ReportView }) => (
 	<span style={mutedStyle}>📄 {report.title}</span>
 );
 
-const ArtifactChip = ({ artifact }: { readonly artifact: ArtifactView }) => {
-	const href = artifactHref(artifact.uri);
-	if (href === undefined) {
-		return <span style={mutedStyle}>🖼 {artifact.title}</span>;
-	}
-	return (
-		<a href={href} style={{ color: "#7c9cff", fontSize: "0.75rem" }}>
-			🖼 {artifact.title}
-		</a>
-	);
-};
+const ArtifactChip = ({ artifact }: { readonly artifact: ArtifactView }) => (
+	<span style={mutedStyle}>🖼 {artifact.title}</span>
+);
 
 // why: a change takes its time to land, so it reads as its own line rather
 // than as one chip among the outcomes that were done the moment they landed.

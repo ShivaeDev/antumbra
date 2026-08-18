@@ -1,6 +1,7 @@
 import { Effect, Layer, ManagedRuntime, Stream } from "effect";
 import {
 	AppInfoSource,
+	ArtifactPresentationSource,
 	type ChangeView,
 	type PieceView,
 	type QuayView,
@@ -226,6 +227,7 @@ export const makeRuntime = () =>
 	ManagedRuntime.make(
 		Layer.mergeAll(
 			Layer.succeed(AppInfoSource, { current: Effect.succeed(info) }),
+			Layer.succeed(ArtifactPresentationSource, { open: () => Effect.void }),
 			sightStub,
 			voyageStub,
 		),

@@ -81,6 +81,10 @@ lifetimes. Foreign callbacks cross adapter boundaries only after their Effect
 requirements are closed. `packages/git` remains process infrastructure beneath
 `runner-local`.
 
+The desktop reads verified app-owned Artifact custody by identity and opens its
+Markdown in a dedicated application window, with Mermaid diagrams rendered in
+place.
+
 `intent-demand` is the process-lifetime bridge between capability-owned durable
 demand and Kernel-owned mortal Intents. Capabilities close typed discovery
 registrations before handing them down; the bridge imports only Kernel and

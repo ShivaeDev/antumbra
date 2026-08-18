@@ -10,12 +10,17 @@ export const startRendererServer = (root: string, port: number) =>
 		}).then((server) => server.listen()),
 	);
 
-export const buildRenderer = (root: string, outDir: string) =>
+export const buildRenderer = (
+	root: string,
+	outDir: string,
+	logLevel: "error" | "info" = "info",
+) =>
 	Effect.promise(() =>
 		viteBuild({
 			base: "./",
 			build: { emptyOutDir: true, outDir },
 			configFile: false,
+			logLevel,
 			root,
 		}),
 	);

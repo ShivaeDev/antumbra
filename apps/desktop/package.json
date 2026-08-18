@@ -9,6 +9,7 @@
 	},
 	"imports": {
 		"#script/*": "./script/*",
+		"#viewer/*": "./viewer/src/*",
 		"#*": "./src/*"
 	},
 	"scripts": {
@@ -36,10 +37,17 @@
 		"@shivaedev/effect-trpc": "catalog:",
 		"@trpc/server": "catalog:",
 		"@types/node": "catalog:",
+		"@types/react": "catalog:",
+		"@types/react-dom": "catalog:",
 		"@typescript/native": "catalog:",
 		"effect": "catalog:",
 		"electron": "catalog:",
 		"electron-builder": "catalog:",
+		"mermaid": "catalog:",
+		"react": "catalog:",
+		"react-dom": "catalog:",
+		"react-markdown": "catalog:",
+		"remark-gfm": "catalog:",
 		"rolldown": "catalog:",
 		"typescript": "catalog:",
 		"vite": "catalog:",

@@ -7,6 +7,7 @@ import {
 import { initTRPC } from "@trpc/server";
 import { Context, Effect, Layer } from "effect";
 import type { AppInfoSource } from "#app-info.ts";
+import type { ArtifactPresentationSource } from "#artifact-presentation.ts";
 import type { SightFailure, SightSource } from "#sight.ts";
 import type { VoyageSource } from "#voyages.ts";
 
@@ -20,7 +21,7 @@ export class RequestOrigin extends Context.Service<
 >()("@antumbra/contract/RequestOrigin") {}
 
 export type AppRuntime = EffectTRPCRuntime<
-	AppInfoSource | SightSource | VoyageSource,
+	AppInfoSource | ArtifactPresentationSource | SightSource | VoyageSource,
 	never
 >;
 

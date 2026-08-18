@@ -1,3 +1,4 @@
+import type { ArtifactFailure, ArtifactMarkdown } from "@antumbra/artifacts";
 import type { BoardsService } from "@antumbra/boards";
 import type { IntentDemandRegistration } from "@antumbra/intent-demand";
 import type { AnyIntentKind, IntentKind } from "@antumbra/kernel";
@@ -41,6 +42,9 @@ export class AgentDomain extends Context.Service<
 		readonly retryResourceReclaim: Effect.Effect<void>;
 		readonly recover: IntentKind<RecoveryFields>;
 		readonly reopenSessionStarts: Effect.Effect<void>;
+		readonly readArtifactMarkdown: (
+			artifactId: string,
+		) => Effect.Effect<ArtifactMarkdown, ArtifactFailure>;
 		readonly retire: IntentKind<RetireFields>;
 		readonly siesta: IntentKind<SiestaFields>;
 		readonly spawn: IntentKind<SpawnFields>;

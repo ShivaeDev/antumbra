@@ -27,6 +27,9 @@ catalog:
   electron: 43.3.0
   electron-builder: 26.15.7
   ignore: 7.0.6
+  mermaid: 11.16.0
+  react-markdown: 10.1.0
+  remark-gfm: 4.0.1
   react: 19.2.8
   react-dom: 19.2.8
   rolldown: 1.2.2
@@ -43,6 +46,9 @@ overrides:
   # provenance attestation earlier versions carried, which `trustPolicy:
   # no-downgrade` rejects. Drop the pin once an attested release lands.
   "@vercel/detect-agent": 1.2.3
+  # Mermaid accepts this earlier minor, whose trusted-publisher provenance is
+  # stronger than the release currently selected by its range.
+  cytoscape: 3.33.1
 
 trustPolicyExclude:
   - "semver@5.7.2 || 6.3.1"

@@ -6,12 +6,16 @@ import {
 	spawnElectron,
 	waitForExit,
 } from "#script/adapters/electron-process.ts";
-import { startRendererServer } from "#script/adapters/renderer-tooling.ts";
+import {
+	buildRenderer,
+	startRendererServer,
+} from "#script/adapters/renderer-tooling.ts";
 import { runMain } from "#script/adapters/run.ts";
 
 const desktopRoot = dirname(import.meta.dirname);
 const workspaceRoot = dirname(dirname(desktopRoot));
 const rendererRoot = join(workspaceRoot, "packages", "renderer");
+const artifactViewerRoot = join(desktopRoot, "viewer");
 const RENDERER_PORT = 5183;
 
 const restartPending = (): void => {
@@ -25,6 +29,12 @@ const restartPending = (): void => {
 const program = Effect.gen(function* () {
 	yield* copyPersistenceAssets(desktopRoot, workspaceRoot);
 	yield* startRendererServer(rendererRoot, RENDERER_PORT);
+	// why: the viewer is a second application window, so development builds its
+	// renderer once before Electron starts while the main renderer keeps HMR.
+	yield* buildRenderer(
+		artifactViewerRoot,
+		join(desktopRoot, "out", "artifact-viewer"),
+	);
 	const watcher = yield* watchMainAndPreload(desktopRoot, restartPending);
 	const child = yield* spawnElectron(
 		desktopRoot,

@@ -1,3 +1,4 @@
+import { Artifacts } from "@antumbra/artifacts";
 import { Boards } from "@antumbra/boards";
 import { Database, type WriteExecutors } from "@antumbra/persistence";
 import type { AgentBackend, ChangeHost, Runner } from "@antumbra/plugin-api";
@@ -56,6 +57,7 @@ export const AgentDomainLive = (
 	);
 	return Layer.effect(AgentDomain)(
 		Effect.gen(function* () {
+			const artifacts = yield* Artifacts;
 			const boards = yield* Boards;
 			const changes = yield* ChangeProcedureService;
 			const repos = yield* Repos;
@@ -108,6 +110,7 @@ export const AgentDomainLive = (
 				intentDemands,
 				kinds: [spawn, recover, retire, siesta],
 				repos,
+				readArtifactMarkdown: artifacts.readMarkdown,
 				retryResourceReclaim: resourceReconciler.reconcile,
 				recover,
 				reopenSessionStarts: fabric.reopenStarts,

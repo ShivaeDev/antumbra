@@ -4,6 +4,18 @@ import { makeAppRouter } from "#index.ts";
 import { fleet, info, makeRuntime } from "#test/stub-sources.ts";
 
 describe("makeAppRouter", () => {
+	it.effect("opens an Artifact by identity without returning its body", () =>
+		Effect.gen(function* () {
+			const runtime = makeRuntime();
+			const caller = makeAppRouter(runtime).createCaller({ senderId: 7 });
+			expect(
+				yield* Effect.promise(() =>
+					caller.openArtifact({ artifactId: "artifact-1" }),
+				),
+			).toBeUndefined();
+			yield* Effect.promise(() => runtime.dispose());
+		}),
+	);
 	it.effect("serves app info from the runtime's source", () =>
 		Effect.gen(function* () {
 			const runtime = makeRuntime();

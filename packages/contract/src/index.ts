@@ -1,5 +1,9 @@
 export { AppInfo, AppInfoSource } from "#app-info.ts";
 export {
+	ArtifactPresentationSource,
+	OpenArtifactRequest,
+} from "#artifact-presentation.ts";
+export {
 	type AntumbraBridge,
 	type BridgeRequest,
 	type BridgeSubscribeRequest,

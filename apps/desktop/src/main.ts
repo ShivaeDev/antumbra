@@ -25,6 +25,7 @@ import { localRunnerPlugin } from "@antumbra/runner-local";
 import { NodeServices } from "@effect/platform-node";
 import { Effect, Layer, ManagedRuntime } from "effect";
 import { AppInfoSourceLive } from "#adapters/app-info.ts";
+import { ArtifactPresentationSourceLive } from "#adapters/artifact-presentation.ts";
 import { ownerBoot, runBoot } from "#adapters/boot.ts";
 import { drainManagedRuntime } from "#adapters/graceful-shutdown.ts";
 import { activateInstalledCli } from "#adapters/installed-cli.ts";
@@ -91,6 +92,7 @@ const startOwner = () => {
 	// rather than under it — launched pieces are spawned for and open changes are
 	// followed whether or not a window is watching.
 	const bridge = Layer.mergeAll(
+		ArtifactPresentationSourceLive,
 		SightSourceLive,
 		VoyageSourceLive,
 		ChangeWatcherLive(),

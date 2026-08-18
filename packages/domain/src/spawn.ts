@@ -2,7 +2,7 @@ import { defineIntent, IntentExecution } from "@antumbra/kernel";
 import type { MooragePlan, Runner } from "@antumbra/plugin-api";
 import { Cause, Effect } from "effect";
 import { makeCaptainToolCompiler } from "#captain-tools.ts";
-import { deliverCharterOnce } from "#charter.ts";
+import { charterDelivery } from "#charter.ts";
 import { makeCrewToolCompiler } from "#crew-tools.ts";
 import type { AgentDeps } from "#deps.ts";
 import { UnknownBackendTag, UnknownRunnerTag } from "#errors.ts";
@@ -21,6 +21,7 @@ import { isVoyageCaptainIdentity } from "#voyage-captain.ts";
 export type { SpawnFields } from "#spawn-fields.ts";
 
 export const makeSpawnKind = Effect.gen(function* () {
+	const delivery = yield* charterDelivery;
 	const compileCaptainTools = yield* makeCaptainToolCompiler;
 	const compileCrewTools = yield* makeCrewToolCompiler;
 	const prepareMoorage = yield* makePrepareMoorage;
@@ -35,7 +36,7 @@ export const makeSpawnKind = Effect.gen(function* () {
 			attachment: SessionAttachment,
 		) =>
 			Effect.gen(function* () {
-				yield* deliverCharterOnce(deps, payload, attachment.handle);
+				yield* delivery.deliverOnce(payload, attachment.handle);
 				yield* resolution.activate(payload);
 			});
 		const settleAfterFailure = (payload: SpawnFields) =>

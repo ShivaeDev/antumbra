@@ -12,12 +12,6 @@
 		"type": "AgentDeps"
 	},
 	{
-		"callable": "deliverCharterOnce",
-		"file": "packages/domain/src/charter.ts",
-		"parameter": "deps",
-		"type": "AgentDeps"
-	},
-	{
 		"callable": "ensureAgentRow",
 		"file": "packages/domain/src/spawn-rows.ts",
 		"parameter": "deps",
@@ -32,12 +26,6 @@
 	{
 		"callable": "provideExecutors",
 		"file": "packages/domain/src/deps.ts",
-		"parameter": "deps",
-		"type": "AgentDeps"
-	},
-	{
-		"callable": "stampCharter",
-		"file": "packages/domain/src/charter.ts",
 		"parameter": "deps",
 		"type": "AgentDeps"
 	}

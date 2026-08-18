@@ -12,19 +12,41 @@ const heldResource = (resource: HeldResource) =>
 		if (Option.isNone(repo)) {
 			return new Map<string, string>();
 		}
-		const changes = yield* Effect.forEach(
+		const matchingChanges = yield* Effect.forEach(
 			yield* db.Change.where({
 				headRef: resource.branch,
 				repoId: repo.value.id,
 			}).all(),
 			changeRow,
 		);
-		const pieceChanges = yield* Effect.forEach(changes, (change) =>
+		const matchingLinks = yield* Effect.forEach(matchingChanges, (change) =>
 			db.PieceChange.where({ changeId: change.id })
 				.all()
 				.pipe(Effect.flatMap((rows) => Effect.forEach(rows, pieceChangeRow))),
 		);
-		return heldBerths([resource], changes, [repo.value], pieceChanges.flat());
+		const pieceIds = new Set(
+			matchingLinks.flat().map(({ pieceId }) => pieceId),
+		);
+		const pieceLinks = yield* Effect.forEach(pieceIds, (pieceId) =>
+			db.PieceChange.where({ pieceId })
+				.all()
+				.pipe(Effect.flatMap((rows) => Effect.forEach(rows, pieceChangeRow))),
+		);
+		const links = pieceLinks.flat();
+		const changeIds = new Set([
+			...matchingChanges.map(({ id }) => id),
+			...links.map(({ changeId }) => changeId),
+		]);
+		const related = yield* Effect.forEach(changeIds, (id) =>
+			db.Change.where({ id }).first(),
+		);
+		const changes = yield* Effect.forEach(
+			related.flatMap((change) =>
+				Option.isSome(change) ? [change.value] : [],
+			),
+			changeRow,
+		);
+		return heldBerths([resource], changes, [repo.value], links);
 	});
 
 export const readHeldResources = (resources: ReadonlyArray<HeldResource>) =>

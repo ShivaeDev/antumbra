@@ -26,6 +26,7 @@ const piece = (id: string) => ({
 const artifact = (id: string) => ({
 	authorAgentId: "agent-chart",
 	id,
+	supersededByArtifactId: null,
 	title: id,
 	uri: `https://example.test/${id}.svg`,
 });
@@ -81,9 +82,8 @@ it.effectDB(
 			...artifact("artifact-two"),
 			pieceId: "piece-two",
 		});
-		yield* db.ArtifactSupersession.create({
-			successorArtifactId: "artifact-two",
-			supersededArtifactId: "artifact-one",
+		yield* db.Artifact.where({ id: "artifact-one" }).update({
+			supersededByArtifactId: "artifact-two",
 		});
 
 		const failure = yield* readWorldFailure;
@@ -102,13 +102,11 @@ it.effectDB("refuses stored cyclic Artifact lineage", function* (db) {
 			pieceId: "piece-one",
 		});
 	}
-	yield* db.ArtifactSupersession.create({
-		successorArtifactId: "artifact-two",
-		supersededArtifactId: "artifact-one",
+	yield* db.Artifact.where({ id: "artifact-one" }).update({
+		supersededByArtifactId: "artifact-two",
 	});
-	yield* db.ArtifactSupersession.create({
-		successorArtifactId: "artifact-one",
-		supersededArtifactId: "artifact-two",
+	yield* db.Artifact.where({ id: "artifact-two" }).update({
+		supersededByArtifactId: "artifact-one",
 	});
 
 	const failure = yield* readWorldFailure;

@@ -62,9 +62,8 @@ const writeArtifact = (
 			...row,
 		});
 		if (input.supersedesArtifactId !== undefined) {
-			yield* db.ArtifactSupersession.create({
-				successorArtifactId: row.id,
-				supersededArtifactId: input.supersedesArtifactId,
+			yield* db.Artifact.where({ id: input.supersedesArtifactId }).update({
+				supersededByArtifactId: row.id,
 			});
 			return {
 				_tag: "superseded",
@@ -104,6 +103,7 @@ export const landArtifact = (root: string, input: ArtifactInput) =>
 			authorAgentId: input.authorAgentId ?? null,
 			id,
 			pieceId: input.pieceId,
+			supersededByArtifactId: null,
 			title: input.title,
 			uri: publication.uri,
 		};

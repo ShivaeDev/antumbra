@@ -20,10 +20,6 @@
       "model": "Artifact",
       "namespace": "__unbound__"
     },
-    "artifactSupersession": {
-      "model": "ArtifactSupersession",
-      "namespace": "__unbound__"
-    },
     "berth": {
       "model": "Berth",
       "namespace": "__unbound__"
@@ -362,6 +358,13 @@
                   "kind": "scalar"
                 }
               },
+              "supersededByArtifactId": {
+                "nullable": true,
+                "type": {
+                  "codecId": "sqlite/text@1",
+                  "kind": "scalar"
+                }
+              },
               "title": {
                 "nullable": false,
                 "type": {
@@ -393,33 +396,33 @@
                   "namespace": "__unbound__"
                 }
               },
-              "predecessors": {
-                "cardinality": "1:N",
+              "supersededBy": {
+                "cardinality": "N:1",
                 "on": {
                   "localFields": [
-                    "id"
+                    "supersededByArtifactId"
                   ],
                   "targetFields": [
-                    "successorArtifactId"
+                    "id"
                   ]
                 },
                 "to": {
-                  "model": "ArtifactSupersession",
+                  "model": "Artifact",
                   "namespace": "__unbound__"
                 }
               },
-              "successors": {
+              "supersedes": {
                 "cardinality": "1:N",
                 "on": {
                   "localFields": [
                     "id"
                   ],
                   "targetFields": [
-                    "supersededArtifactId"
+                    "supersededByArtifactId"
                   ]
                 },
                 "to": {
-                  "model": "ArtifactSupersession",
+                  "model": "Artifact",
                   "namespace": "__unbound__"
                 }
               }
@@ -438,6 +441,9 @@
                 "pieceId": {
                   "column": "pieceId"
                 },
+                "supersededByArtifactId": {
+                  "column": "supersededByArtifactId"
+                },
                 "title": {
                   "column": "title"
                 },
@@ -447,68 +453,6 @@
               },
               "namespaceId": "__unbound__",
               "table": "artifact"
-            }
-          },
-          "ArtifactSupersession": {
-            "fields": {
-              "successorArtifactId": {
-                "nullable": false,
-                "type": {
-                  "codecId": "sqlite/text@1",
-                  "kind": "scalar"
-                }
-              },
-              "supersededArtifactId": {
-                "nullable": false,
-                "type": {
-                  "codecId": "sqlite/text@1",
-                  "kind": "scalar"
-                }
-              }
-            },
-            "relations": {
-              "successorArtifact": {
-                "cardinality": "N:1",
-                "on": {
-                  "localFields": [
-                    "successorArtifactId"
-                  ],
-                  "targetFields": [
-                    "id"
-                  ]
-                },
-                "to": {
-                  "model": "Artifact",
-                  "namespace": "__unbound__"
-                }
-              },
-              "supersededArtifact": {
-                "cardinality": "N:1",
-                "on": {
-                  "localFields": [
-                    "supersededArtifactId"
-                  ],
-                  "targetFields": [
-                    "id"
-                  ]
-                },
-                "to": {
-                  "model": "Artifact",
-                  "namespace": "__unbound__"
-                }
-              }
-            },
-            "storage": {
-              "fields": {
-                "successorArtifactId": {
-                  "column": "successorArtifactId"
-                },
-                "supersededArtifactId": {
-                  "column": "supersededArtifactId"
-                }
-              },
-              "namespaceId": "__unbound__",
-              "table": "artifactSupersession"
             }
           },
           "Berth": {
@@ -2267,6 +2211,11 @@
                   "nativeType": "text",
                   "nullable": false
                 },
+                "supersededByArtifactId": {
+                  "codecId": "sqlite/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
                 "title": {
                   "codecId": "sqlite/text@1",
                   "nativeType": "text",
@@ -2298,6 +2247,26 @@
                     "namespaceId": "__unbound__",
                     "tableName": "piece"
                   }
+                },
+                {
+                  "constraint": true,
+                  "index": true,
+                  "onDelete": "restrict",
+                  "onUpdate": "restrict",
+                  "source": {
+                    "columns": [
+                      "supersededByArtifactId"
+                    ],
+                    "namespaceId": "__unbound__",
+                    "tableName": "artifact"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "__unbound__",
+                    "tableName": "artifact"
+                  }
                 }
               ],
               "indexes": [
@@ -2312,73 +2281,10 @@
                   "id"
                 ]
               },
-              "uniques": []
-            },
-            "artifactSupersession": {
-              "columns": {
-                "successorArtifactId": {
-                  "codecId": "sqlite/text@1",
-                  "nativeType": "text",
-                  "nullable": false
-                },
-                "supersededArtifactId": {
-                  "codecId": "sqlite/text@1",
-                  "nativeType": "text",
-                  "nullable": false
-                }
-              },
-              "foreignKeys": [
-                {
-                  "constraint": true,
-                  "index": true,
-                  "onDelete": "restrict",
-                  "onUpdate": "restrict",
-                  "source": {
-                    "columns": [
-                      "supersededArtifactId"
-                    ],
-                    "namespaceId": "__unbound__",
-                    "tableName": "artifactSupersession"
-                  },
-                  "target": {
-                    "columns": [
-                      "id"
-                    ],
-                    "namespaceId": "__unbound__",
-                    "tableName": "artifact"
-                  }
-                },
-                {
-                  "constraint": true,
-                  "index": true,
-                  "onDelete": "restrict",
-                  "onUpdate": "restrict",
-                  "source": {
-                    "columns": [
-                      "successorArtifactId"
-                    ],
-                    "namespaceId": "__unbound__",
-                    "tableName": "artifactSupersession"
-                  },
-                  "target": {
-                    "columns": [
-                      "id"
-                    ],
-                    "namespaceId": "__unbound__",
-                    "tableName": "artifact"
-                  }
-                }
-              ],
-              "indexes": [],
-              "primaryKey": {
-                "columns": [
-                  "supersededArtifactId"
-                ]
-              },
               "uniques": [
                 {
                   "columns": [
-                    "successorArtifactId"
+                    "supersededByArtifactId"
                   ]
                 }
               ]
@@ -3498,7 +3404,7 @@
         "id": "__unbound__"
       }
     },
-    "storageHash": "sha256:8dc1b60b7d87d39ff6ab0d1b08b0be2ee27433957d419f735c77e9a997c8226e"
+    "storageHash": "sha256:7bed1b5421dd224911e12335de498920dc5a617efc49f82a1f0f06cf52446bbe"
   },
   "capabilities": {
     "sql": {

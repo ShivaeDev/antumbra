@@ -17,5 +17,4 @@ export type {
 	ArtifactLanding,
 	ArtifactRow,
 	ArtifactSupersessionInput,
-	ArtifactSupersessionRow,
 } from "#model.ts";

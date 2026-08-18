@@ -16,6 +16,7 @@ const artifact = (id: string) => ({
 	authorAgentId: "agent-chart",
 	id,
 	pieceId: piece.id,
+	supersededByArtifactId: id === "artifact-old" ? "artifact-new" : null,
 	title: id,
 	uri: `https://example.test/${id}.svg`,
 });
@@ -26,12 +27,6 @@ const world: VoyageWorld = {
 		["artifact-old", artifact("artifact-old")],
 		["artifact-new", artifact("artifact-new")],
 	]),
-	artifactSupersessions: [
-		{
-			successorArtifactId: "artifact-new",
-			supersededArtifactId: "artifact-old",
-		},
-	],
 	assignments: [],
 	changes: [],
 	crews: [],

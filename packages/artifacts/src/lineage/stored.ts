@@ -3,12 +3,11 @@ import {
 	StoredArtifactLineageInvalid,
 	type StoredArtifactLineageInvalidReason,
 } from "#errors.ts";
-import type { ArtifactRow, ArtifactSupersessionRow } from "#model.ts";
+import type { ArtifactRow } from "#model.ts";
 
 interface StoredArtifactLineage {
 	readonly artifacts: ReadonlyArray<ArtifactRow>;
 	readonly pieceIds: ReadonlySet<string>;
-	readonly supersessions: ReadonlyArray<ArtifactSupersessionRow>;
 }
 
 const invalid = (
@@ -29,50 +28,42 @@ const validateProvenance = (input: StoredArtifactLineage) =>
 const validateTopology = (input: StoredArtifactLineage) =>
 	Effect.gen(function* () {
 		const artifacts = new Map(input.artifacts.map((row) => [row.id, row]));
-		const successorByArtifact = new Map<string, string>();
 		const predecessorByArtifact = new Map<string, string>();
-		for (const edge of input.supersessions) {
-			const superseded = artifacts.get(edge.supersededArtifactId);
-			const successor = artifacts.get(edge.successorArtifactId);
-			if (superseded === undefined || successor === undefined) {
-				return yield* invalid("endpoint", [
-					edge.supersededArtifactId,
-					edge.successorArtifactId,
-				]);
+		for (const artifact of input.artifacts) {
+			const successorId = artifact.supersededByArtifactId;
+			if (successorId === null) {
+				continue;
 			}
-			if (superseded.pieceId !== successor.pieceId) {
+			const successor = artifacts.get(successorId);
+			if (successor === undefined) {
+				return yield* invalid("endpoint", [artifact.id, successorId]);
+			}
+			if (artifact.pieceId !== successor.pieceId) {
 				return yield* invalid(
 					"cross_piece",
-					[superseded.id, successor.id],
-					[superseded.pieceId, successor.pieceId],
+					[artifact.id, successor.id],
+					[artifact.pieceId, successor.pieceId],
 				);
 			}
-			if (
-				successorByArtifact.has(superseded.id) ||
-				predecessorByArtifact.has(successor.id)
-			) {
-				return yield* invalid("branch", [superseded.id, successor.id]);
+			if (predecessorByArtifact.has(successor.id)) {
+				return yield* invalid("branch", [artifact.id, successor.id]);
 			}
-			successorByArtifact.set(superseded.id, successor.id);
-			predecessorByArtifact.set(successor.id, superseded.id);
+			predecessorByArtifact.set(successor.id, artifact.id);
 		}
-		return successorByArtifact;
 	});
 
-const validateAcyclic = (
-	artifacts: ReadonlyArray<ArtifactRow>,
-	successorByArtifact: ReadonlyMap<string, string>,
-) =>
+const validateAcyclic = (artifacts: ReadonlyArray<ArtifactRow>) =>
 	Effect.gen(function* () {
+		const byId = new Map(artifacts.map((artifact) => [artifact.id, artifact]));
 		for (const artifact of artifacts) {
 			const visited = new Set<string>();
-			let cursor: string | undefined = artifact.id;
-			while (cursor !== undefined) {
+			let cursor: string | null = artifact.id;
+			while (cursor !== null) {
 				if (visited.has(cursor)) {
 					return yield* invalid("cycle", [...visited]);
 				}
 				visited.add(cursor);
-				cursor = successorByArtifact.get(cursor);
+				cursor = byId.get(cursor)?.supersededByArtifactId ?? null;
 			}
 		}
 	});
@@ -80,6 +71,6 @@ const validateAcyclic = (
 export const validateStoredArtifactLineage = (input: StoredArtifactLineage) =>
 	Effect.gen(function* () {
 		yield* validateProvenance(input);
-		const successorByArtifact = yield* validateTopology(input);
-		yield* validateAcyclic(input.artifacts, successorByArtifact);
+		yield* validateTopology(input);
+		yield* validateAcyclic(input.artifacts);
 	});

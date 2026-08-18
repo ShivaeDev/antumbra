@@ -47,34 +47,24 @@ const reportsOf = (
 const artifactsOf = (
 	world: VoyageWorld,
 	pieceId: string,
-): ReadonlyArray<ArtifactRow> => {
-	const superseded = new Set(
-		world.artifactSupersessions.map((edge) => edge.supersededArtifactId),
+): ReadonlyArray<ArtifactRow> =>
+	[...world.artifacts.values()].filter(
+		(artifact) =>
+			artifact.pieceId === pieceId && artifact.supersededByArtifactId === null,
 	);
-	return [...world.artifacts.values()].filter(
-		(artifact) => artifact.pieceId === pieceId && !superseded.has(artifact.id),
-	);
-};
 
 const artifactHistoryOf = (
 	world: VoyageWorld,
 	pieceId: string,
-): ReadonlyArray<ArtifactRow & { readonly successorArtifactId: string }> => {
-	const successorByArtifact = new Map(
-		world.artifactSupersessions.map((edge) => [
-			edge.supersededArtifactId,
-			edge.successorArtifactId,
-		]),
-	);
-	return [...world.artifacts.values()]
+): ReadonlyArray<ArtifactRow & { readonly successorArtifactId: string }> =>
+	[...world.artifacts.values()]
 		.filter((artifact) => artifact.pieceId === pieceId)
 		.flatMap((artifact) => {
-			const successorArtifactId = successorByArtifact.get(artifact.id);
-			return successorArtifactId === undefined
+			const successorArtifactId = artifact.supersededByArtifactId;
+			return successorArtifactId === null
 				? []
 				: [{ ...artifact, successorArtifactId }];
 		});
-};
 
 export const pieceView = (
 	world: VoyageWorld,

@@ -16,7 +16,7 @@ import type {
 } from '@prisma-next/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'sha256:8dc1b60b7d87d39ff6ab0d1b08b0be2ee27433957d419f735c77e9a997c8226e'>;
+  StorageHashBase<'sha256:7bed1b5421dd224911e12335de498920dc5a617efc49f82a1f0f06cf52446bbe'>;
 export type ExecutionHash = ExecutionHashBase<string>;
 export type ProfileHash =
   ProfileHashBase<'sha256:3cc333ecad9f3f4c7229370a9d2c37e908cdce0f8d2e9fb132d50605b024eff2'>;
@@ -58,14 +58,11 @@ export type FieldOutputTypes = {
     readonly Artifact: {
       readonly id: CodecTypes['sqlite/text@1']['output'];
       readonly pieceId: CodecTypes['sqlite/text@1']['output'];
+      readonly supersededByArtifactId: CodecTypes['sqlite/text@1']['output'] | null;
       readonly authorAgentId: CodecTypes['sqlite/text@1']['output'] | null;
       readonly title: CodecTypes['sqlite/text@1']['output'];
       readonly uri: CodecTypes['sqlite/text@1']['output'];
       readonly createdAt: CodecTypes['sqlite/datetime@1']['output'];
-    };
-    readonly ArtifactSupersession: {
-      readonly supersededArtifactId: CodecTypes['sqlite/text@1']['output'];
-      readonly successorArtifactId: CodecTypes['sqlite/text@1']['output'];
     };
     readonly Berth: {
       readonly id: CodecTypes['sqlite/text@1']['output'];
@@ -264,14 +261,11 @@ export type FieldInputTypes = {
     readonly Artifact: {
       readonly id: CodecTypes['sqlite/text@1']['input'];
       readonly pieceId: CodecTypes['sqlite/text@1']['input'];
+      readonly supersededByArtifactId: CodecTypes['sqlite/text@1']['input'] | null;
       readonly authorAgentId: CodecTypes['sqlite/text@1']['input'] | null;
       readonly title: CodecTypes['sqlite/text@1']['input'];
       readonly uri: CodecTypes['sqlite/text@1']['input'];
       readonly createdAt: CodecTypes['sqlite/datetime@1']['input'];
-    };
-    readonly ArtifactSupersession: {
-      readonly supersededArtifactId: CodecTypes['sqlite/text@1']['input'];
-      readonly successorArtifactId: CodecTypes['sqlite/text@1']['input'];
     };
     readonly Berth: {
       readonly id: CodecTypes['sqlite/text@1']['input'];
@@ -472,12 +466,9 @@ export type StorageColumnTypes = {
       readonly createdAt: CodecTypes['sqlite/datetime@1']['output'];
       readonly id: CodecTypes['sqlite/text@1']['output'];
       readonly pieceId: CodecTypes['sqlite/text@1']['output'];
+      readonly supersededByArtifactId: CodecTypes['sqlite/text@1']['output'] | null;
       readonly title: CodecTypes['sqlite/text@1']['output'];
       readonly uri: CodecTypes['sqlite/text@1']['output'];
-    };
-    readonly artifactSupersession: {
-      readonly successorArtifactId: CodecTypes['sqlite/text@1']['output'];
-      readonly supersededArtifactId: CodecTypes['sqlite/text@1']['output'];
     };
     readonly berth: {
       readonly agentId: CodecTypes['sqlite/text@1']['output'];
@@ -678,12 +669,9 @@ export type StorageColumnInputTypes = {
       readonly createdAt: CodecTypes['sqlite/datetime@1']['input'];
       readonly id: CodecTypes['sqlite/text@1']['input'];
       readonly pieceId: CodecTypes['sqlite/text@1']['input'];
+      readonly supersededByArtifactId: CodecTypes['sqlite/text@1']['input'] | null;
       readonly title: CodecTypes['sqlite/text@1']['input'];
       readonly uri: CodecTypes['sqlite/text@1']['input'];
-    };
-    readonly artifactSupersession: {
-      readonly successorArtifactId: CodecTypes['sqlite/text@1']['input'];
-      readonly supersededArtifactId: CodecTypes['sqlite/text@1']['input'];
     };
     readonly berth: {
       readonly agentId: CodecTypes['sqlite/text@1']['input'];
@@ -1012,6 +1000,11 @@ type ContractBase = Omit<
                   readonly codecId: 'sqlite/text@1';
                   readonly nullable: false;
                 };
+                readonly supersededByArtifactId: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'sqlite/text@1';
+                  readonly nullable: true;
+                };
                 readonly authorAgentId: {
                   readonly nativeType: 'text';
                   readonly codecId: 'sqlite/text@1';
@@ -1035,7 +1028,7 @@ type ContractBase = Omit<
                 };
               };
               primaryKey: { readonly columns: readonly ['id'] };
-              uniques: readonly [];
+              uniques: readonly [{ readonly columns: readonly ['supersededByArtifactId'] }];
               indexes: readonly [{ readonly columns: readonly ['pieceId'] }];
               foreignKeys: readonly [
                 {
@@ -1052,44 +1045,11 @@ type ContractBase = Omit<
                   readonly constraint: true;
                   readonly index: true;
                 },
-              ];
-            };
-            readonly artifactSupersession: {
-              columns: {
-                readonly supersededArtifactId: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'sqlite/text@1';
-                  readonly nullable: false;
-                };
-                readonly successorArtifactId: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'sqlite/text@1';
-                  readonly nullable: false;
-                };
-              };
-              primaryKey: { readonly columns: readonly ['supersededArtifactId'] };
-              uniques: readonly [{ readonly columns: readonly ['successorArtifactId'] }];
-              indexes: readonly [];
-              foreignKeys: readonly [
                 {
                   readonly source: {
-                    readonly namespaceId: '__unbound__' & NamespaceId;
-                    readonly tableName: 'artifactSupersession';
-                    readonly columns: readonly ['supersededArtifactId'];
-                  };
-                  readonly target: {
                     readonly namespaceId: '__unbound__' & NamespaceId;
                     readonly tableName: 'artifact';
-                    readonly columns: readonly ['id'];
-                  };
-                  readonly constraint: true;
-                  readonly index: true;
-                },
-                {
-                  readonly source: {
-                    readonly namespaceId: '__unbound__' & NamespaceId;
-                    readonly tableName: 'artifactSupersession';
-                    readonly columns: readonly ['successorArtifactId'];
+                    readonly columns: readonly ['supersededByArtifactId'];
                   };
                   readonly target: {
                     readonly namespaceId: '__unbound__' & NamespaceId;
@@ -2014,10 +1974,6 @@ type ContractBase = Omit<
       readonly namespace: '__unbound__' & NamespaceId;
       readonly model: 'PieceReport';
     };
-    readonly artifactSupersession: {
-      readonly namespace: '__unbound__' & NamespaceId;
-      readonly model: 'ArtifactSupersession';
-    };
     readonly change: { readonly namespace: '__unbound__' & NamespaceId; readonly model: 'Change' };
     readonly changeTransition: {
       readonly namespace: '__unbound__' & NamespaceId;
@@ -2183,6 +2139,10 @@ type ContractBase = Omit<
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
               };
+              readonly supersededByArtifactId: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
+              };
               readonly authorAgentId: {
                 readonly nullable: true;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
@@ -2212,26 +2172,26 @@ type ContractBase = Omit<
                   readonly targetFields: readonly ['id'];
                 };
               };
-              readonly predecessors: {
+              readonly supersededBy: {
                 readonly to: {
                   readonly namespace: '__unbound__' & NamespaceId;
-                  readonly model: 'ArtifactSupersession';
+                  readonly model: 'Artifact';
                 };
-                readonly cardinality: '1:N';
+                readonly cardinality: 'N:1';
                 readonly on: {
-                  readonly localFields: readonly ['id'];
-                  readonly targetFields: readonly ['successorArtifactId'];
+                  readonly localFields: readonly ['supersededByArtifactId'];
+                  readonly targetFields: readonly ['id'];
                 };
               };
-              readonly successors: {
+              readonly supersedes: {
                 readonly to: {
                   readonly namespace: '__unbound__' & NamespaceId;
-                  readonly model: 'ArtifactSupersession';
+                  readonly model: 'Artifact';
                 };
                 readonly cardinality: '1:N';
                 readonly on: {
                   readonly localFields: readonly ['id'];
-                  readonly targetFields: readonly ['supersededArtifactId'];
+                  readonly targetFields: readonly ['supersededByArtifactId'];
                 };
               };
             };
@@ -2241,54 +2201,11 @@ type ContractBase = Omit<
               readonly fields: {
                 readonly id: { readonly column: 'id' };
                 readonly pieceId: { readonly column: 'pieceId' };
+                readonly supersededByArtifactId: { readonly column: 'supersededByArtifactId' };
                 readonly authorAgentId: { readonly column: 'authorAgentId' };
                 readonly title: { readonly column: 'title' };
                 readonly uri: { readonly column: 'uri' };
                 readonly createdAt: { readonly column: 'createdAt' };
-              };
-            };
-          };
-          readonly ArtifactSupersession: {
-            readonly fields: {
-              readonly supersededArtifactId: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
-              };
-              readonly successorArtifactId: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
-              };
-            };
-            readonly relations: {
-              readonly successorArtifact: {
-                readonly to: {
-                  readonly namespace: '__unbound__' & NamespaceId;
-                  readonly model: 'Artifact';
-                };
-                readonly cardinality: 'N:1';
-                readonly on: {
-                  readonly localFields: readonly ['successorArtifactId'];
-                  readonly targetFields: readonly ['id'];
-                };
-              };
-              readonly supersededArtifact: {
-                readonly to: {
-                  readonly namespace: '__unbound__' & NamespaceId;
-                  readonly model: 'Artifact';
-                };
-                readonly cardinality: 'N:1';
-                readonly on: {
-                  readonly localFields: readonly ['supersededArtifactId'];
-                  readonly targetFields: readonly ['id'];
-                };
-              };
-            };
-            readonly storage: {
-              readonly table: 'artifactSupersession';
-              readonly namespaceId: '__unbound__';
-              readonly fields: {
-                readonly supersededArtifactId: { readonly column: 'supersededArtifactId' };
-                readonly successorArtifactId: { readonly column: 'successorArtifactId' };
               };
             };
           };

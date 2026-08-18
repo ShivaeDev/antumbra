@@ -1,28 +1,28 @@
 import { Database } from "@antumbra/persistence";
 import { Effect, Option } from "effect";
 import { validateStoredArtifactLineage } from "#lineage/stored.ts";
-import type { ArtifactRow, ArtifactSupersessionRow } from "#model.ts";
+import type { ArtifactRow } from "#model.ts";
 
-const edgeEntry = (edge: ArtifactSupersessionRow) =>
-	[
-		JSON.stringify([edge.supersededArtifactId, edge.successorArtifactId]),
-		edge,
-	] as const;
-
-const lineageEdges = (artifacts: ReadonlyArray<ArtifactRow>) =>
+const relatedArtifacts = (artifacts: ReadonlyArray<ArtifactRow>) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
-		const queried = yield* Effect.forEach(artifacts, (artifact) =>
-			Effect.all([
-				db.ArtifactSupersession.where({
-					successorArtifactId: artifact.id,
-				}).all(),
-				db.ArtifactSupersession.where({
-					supersededArtifactId: artifact.id,
-				}).all(),
-			]),
+		const ownIds = new Set(artifacts.map((artifact) => artifact.id));
+		const successors = yield* Effect.forEach(
+			artifacts.flatMap((artifact) =>
+				artifact.supersededByArtifactId === null ||
+				ownIds.has(artifact.supersededByArtifactId)
+					? []
+					: [artifact.supersededByArtifactId],
+			),
+			(artifactId) => db.Artifact.where({ id: artifactId }).first(),
 		);
-		return [...new Map(queried.flat(2).map(edgeEntry)).values()];
+		const predecessors = yield* Effect.forEach(artifacts, (artifact) =>
+			db.Artifact.where({ supersededByArtifactId: artifact.id }).all(),
+		);
+		return [
+			...successors.filter(Option.isSome).map((stored) => stored.value),
+			...predecessors.flat(),
+		];
 	});
 
 export const readValidStoredArtifactLineage = (pieceId: string) =>
@@ -30,25 +30,17 @@ export const readValidStoredArtifactLineage = (pieceId: string) =>
 		const db = yield* Database;
 		const ownArtifacts = yield* db.Artifact.where({ pieceId }).all();
 		const pieceExists = yield* db.Piece.where({ id: pieceId }).exists();
-		const supersessions = yield* lineageEdges(ownArtifacts);
-		const ownIds = new Set(ownArtifacts.map((artifact) => artifact.id));
-		const counterpartIds = new Set(
-			supersessions.flatMap((edge) => [
-				edge.supersededArtifactId,
-				edge.successorArtifactId,
-			]),
-		);
-		const counterparts = yield* Effect.forEach(
-			[...counterpartIds].filter((artifactId) => !ownIds.has(artifactId)),
-			(artifactId) => db.Artifact.where({ id: artifactId }).first(),
-		);
+		const related = yield* relatedArtifacts(ownArtifacts);
 		const lineage = {
 			artifacts: [
-				...ownArtifacts,
-				...counterparts.filter(Option.isSome).map((stored) => stored.value),
+				...new Map(
+					[...ownArtifacts, ...related].map((artifact) => [
+						artifact.id,
+						artifact,
+					]),
+				).values(),
 			],
 			pieceIds: new Set(pieceExists ? [pieceId] : []),
-			supersessions,
 		};
 		yield* validateStoredArtifactLineage(lineage);
 		return lineage;

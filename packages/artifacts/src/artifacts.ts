@@ -16,7 +16,6 @@ import type {
 	ArtifactInput,
 	ArtifactLanding,
 	ArtifactSupersessionInput,
-	ArtifactSupersessionRow,
 } from "#model.ts";
 
 export class Artifacts extends Context.Service<
@@ -30,7 +29,7 @@ export class Artifacts extends Context.Service<
 		) => Effect.Effect<void, ArtifactFailure>;
 		readonly supersede: (
 			input: ArtifactSupersessionInput,
-		) => Effect.Effect<ArtifactSupersessionRow, ArtifactFailure>;
+		) => Effect.Effect<void, ArtifactFailure>;
 	}
 >()("@antumbra/artifacts/Artifacts") {}
 
@@ -63,7 +62,10 @@ export const ArtifactsLive = (root: string) =>
 					context,
 				);
 			const supersede = (input: ArtifactSupersessionInput) =>
-				Effect.provide(write(writeSupersession(input)), context);
+				Effect.provide(
+					write(writeSupersession(input)).pipe(Effect.asVoid),
+					context,
+				);
 			return {
 				land: (input) => Effect.provide(landArtifact(root, input), context),
 				removeSupersession,

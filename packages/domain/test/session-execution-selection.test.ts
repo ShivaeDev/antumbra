@@ -22,7 +22,6 @@ const session = (
 const world = (over: Partial<VoyageWorld>): VoyageWorld => ({
 	agentStatus: new Map(),
 	artifacts: new Map(),
-	artifactSupersessions: [],
 	assignments: [],
 	changes: [],
 	crews: [],

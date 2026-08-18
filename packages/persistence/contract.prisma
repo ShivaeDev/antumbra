@@ -163,15 +163,16 @@ model Report {
 }
 
 model Artifact {
-  id            String   @id
-  pieceId       String
-  authorAgentId String?
-  title         String
-  uri           String
-  createdAt     DateTime @default(now())
-  piece         Piece @relation(fields: [pieceId], references: [id], onDelete: Restrict, onUpdate: Restrict)
-  successors    ArtifactSupersession[] @relation("SupersededArtifact")
-  predecessors  ArtifactSupersession[] @relation("SuccessorArtifact")
+  id                     String   @id
+  pieceId                String
+  supersededByArtifactId String?  @unique
+  authorAgentId          String?
+  title                  String
+  uri                    String
+  createdAt              DateTime @default(now())
+  piece                  Piece     @relation(fields: [pieceId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  supersededBy           Artifact? @relation("ArtifactSupersession", fields: [supersededByArtifactId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  supersedes             Artifact[] @relation("ArtifactSupersession")
 
   @@index([pieceId])
 }
@@ -183,13 +184,6 @@ model PieceReport {
   report   Report @relation(fields: [reportId], references: [id], onDelete: Restrict, onUpdate: Restrict)
 
   @@id([pieceId, reportId])
-}
-
-model ArtifactSupersession {
-  supersededArtifactId String @id
-  successorArtifactId  String @unique
-  supersededArtifact   Artifact @relation("SupersededArtifact", fields: [supersededArtifactId], references: [id], onDelete: Restrict, onUpdate: Restrict)
-  successorArtifact    Artifact @relation("SuccessorArtifact", fields: [successorArtifactId], references: [id], onDelete: Restrict, onUpdate: Restrict)
 }
 
 model Change {

@@ -10,6 +10,7 @@ export interface ArtifactRow {
 	readonly authorAgentId: string | null;
 	readonly id: string;
 	readonly pieceId: string;
+	readonly supersededByArtifactId: string | null;
 	readonly title: string;
 	readonly uri: string;
 }
@@ -20,11 +21,6 @@ export type ArtifactActor =
 
 export interface ArtifactSupersessionInput {
 	readonly actor: ArtifactActor;
-	readonly successorArtifactId: string;
-	readonly supersededArtifactId: string;
-}
-
-export interface ArtifactSupersessionRow {
 	readonly successorArtifactId: string;
 	readonly supersededArtifactId: string;
 }

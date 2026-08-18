@@ -63,6 +63,47 @@
     ]
   },
   {
+    "id": "column.artifact.supersededByArtifactId",
+    "label": "Add column supersededByArtifactId on artifact",
+    "summary": "Adds column supersededByArtifactId on artifact",
+    "operationClass": "additive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "column",
+        "name": "supersededByArtifactId",
+        "table": "artifact"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"supersededByArtifactId\" is missing",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM pragma_table_info(?) WHERE \"name\" = ?",
+        "params": [
+          "artifact",
+          "supersededByArtifactId"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"supersededByArtifactId\"",
+        "sql": "ALTER TABLE \"artifact\" ADD COLUMN \"supersededByArtifactId\" TEXT"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"supersededByArtifactId\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM pragma_table_info(?) WHERE \"name\" = ?",
+        "params": [
+          "artifact",
+          "supersededByArtifactId"
+        ]
+      }
+    ]
+  },
+  {
     "id": "artifact.provenance.store-originating-piece",
     "label": "Store each Artifact producing Piece directly",
     "summary": "copy validated producing-Piece provenance onto its Artifact",
@@ -127,7 +168,7 @@
   {
     "id": "recreateTable.artifact",
     "label": "Recreate table artifact",
-    "summary": "Recreates table artifact to apply schema changes: database/artifact/foreign-key:pieceId->.piece(id)",
+    "summary": "Recreates table artifact to apply schema changes: database/artifact/foreign-key:pieceId->.piece(id); database/artifact/foreign-key:supersededByArtifactId->.artifact(id); database/artifact/unique:supersededByArtifactId",
     "operationClass": "destructive",
     "target": {
       "id": "sqlite",
@@ -158,11 +199,11 @@
     "execute": [
       {
         "description": "create new table \"_prisma_new_artifact\" with desired schema",
-        "sql": "CREATE TABLE \"_prisma_new_artifact\" (\n  \"authorAgentId\" TEXT,\n  \"createdAt\" TEXT DEFAULT (datetime('now')) NOT NULL,\n  \"id\" TEXT NOT NULL,\n  \"pieceId\" TEXT NOT NULL,\n  \"title\" TEXT NOT NULL,\n  \"uri\" TEXT NOT NULL,\n  PRIMARY KEY (\"id\"),\n  FOREIGN KEY (\"pieceId\") REFERENCES \"piece\" (\"id\") ON DELETE RESTRICT ON UPDATE RESTRICT\n)"
+        "sql": "CREATE TABLE \"_prisma_new_artifact\" (\n  \"authorAgentId\" TEXT,\n  \"createdAt\" TEXT DEFAULT (datetime('now')) NOT NULL,\n  \"id\" TEXT NOT NULL,\n  \"pieceId\" TEXT NOT NULL,\n  \"supersededByArtifactId\" TEXT,\n  \"title\" TEXT NOT NULL,\n  \"uri\" TEXT NOT NULL,\n  PRIMARY KEY (\"id\"),\n  UNIQUE (\"supersededByArtifactId\"),\n  FOREIGN KEY (\"pieceId\") REFERENCES \"piece\" (\"id\") ON DELETE RESTRICT ON UPDATE RESTRICT,\n  FOREIGN KEY (\"supersededByArtifactId\") REFERENCES \"artifact\" (\"id\") ON DELETE RESTRICT ON UPDATE RESTRICT\n)"
       },
       {
         "description": "copy data from \"artifact\" to \"_prisma_new_artifact\"",
-        "sql": "INSERT INTO \"_prisma_new_artifact\" (\"authorAgentId\", \"createdAt\", \"id\", \"pieceId\", \"title\", \"uri\") SELECT \"authorAgentId\", \"createdAt\", \"id\", \"pieceId\", \"title\", \"uri\" FROM \"artifact\""
+        "sql": "INSERT INTO \"_prisma_new_artifact\" (\"authorAgentId\", \"createdAt\", \"id\", \"pieceId\", \"supersededByArtifactId\", \"title\", \"uri\") SELECT \"authorAgentId\", \"createdAt\", \"id\", \"pieceId\", \"supersededByArtifactId\", \"title\", \"uri\" FROM \"artifact\""
       },
       {
         "description": "drop old table \"artifact\"",
@@ -195,49 +236,16 @@
         ]
       },
       {
+        "description": "verify unique constraint (supersededByArtifactId) on \"artifact\"",
+        "sql": "SELECT EXISTS (SELECT 1 FROM pragma_index_list('artifact') l WHERE l.\"unique\" = 1 AND (SELECT COUNT(*) FROM pragma_index_info(l.name)) = 1 AND (SELECT COUNT(*) FROM pragma_index_info(l.name) WHERE name IN ('supersededByArtifactId')) = 1)"
+      },
+      {
         "description": "verify foreign key (pieceId) → piece(id) on \"artifact\"",
         "sql": "SELECT EXISTS (SELECT 1 FROM pragma_foreign_key_list('artifact') f WHERE f.\"table\" = 'piece' GROUP BY f.id HAVING COUNT(*) = 1 AND SUM(CASE WHEN (f.\"from\", f.\"to\") IN (('pieceId', 'id')) THEN 1 ELSE 0 END) = 1)"
-      }
-    ]
-  },
-  {
-    "id": "table.artifactSupersession",
-    "label": "Create table artifactSupersession",
-    "summary": "Creates table artifactSupersession with required columns",
-    "operationClass": "additive",
-    "target": {
-      "id": "sqlite",
-      "details": {
-        "schema": "main",
-        "objectType": "table",
-        "name": "artifactSupersession"
-      }
-    },
-    "precheck": [
+      },
       {
-        "description": "ensure table \"artifactSupersession\" does not exist",
-        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
-        "params": [
-          "table",
-          "artifactSupersession"
-        ]
-      }
-    ],
-    "execute": [
-      {
-        "description": "create table \"artifactSupersession\"",
-        "sql": "CREATE TABLE \"artifactSupersession\" (\n  \"successorArtifactId\" TEXT NOT NULL,\n  \"supersededArtifactId\" TEXT NOT NULL,\n  PRIMARY KEY (\"supersededArtifactId\"),\n  UNIQUE (\"successorArtifactId\"),\n  FOREIGN KEY (\"supersededArtifactId\") REFERENCES \"artifact\" (\"id\") ON DELETE RESTRICT ON UPDATE RESTRICT,\n  FOREIGN KEY (\"successorArtifactId\") REFERENCES \"artifact\" (\"id\") ON DELETE RESTRICT ON UPDATE RESTRICT\n)",
-        "params": []
-      }
-    ],
-    "postcheck": [
-      {
-        "description": "verify table \"artifactSupersession\" exists",
-        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
-        "params": [
-          "table",
-          "artifactSupersession"
-        ]
+        "description": "verify foreign key (supersededByArtifactId) → artifact(id) on \"artifact\"",
+        "sql": "SELECT EXISTS (SELECT 1 FROM pragma_foreign_key_list('artifact') f WHERE f.\"table\" = 'artifact' GROUP BY f.id HAVING COUNT(*) = 1 AND SUM(CASE WHEN (f.\"from\", f.\"to\") IN (('supersededByArtifactId', 'id')) THEN 1 ELSE 0 END) = 1)"
       }
     ]
   }

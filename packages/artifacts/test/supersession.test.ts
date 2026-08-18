@@ -66,12 +66,15 @@ it.effectDB(
 			_tag: "superseded",
 			supersededArtifactId: first.artifact.id,
 		});
-		expect(yield* db.Artifact.all()).toHaveLength(2);
-		expect(yield* db.ArtifactSupersession.all()).toEqual([
-			{
-				successorArtifactId: second.artifact.id,
-				supersededArtifactId: first.artifact.id,
-			},
+		expect(yield* db.Artifact.all()).toEqual([
+			expect.objectContaining({
+				id: first.artifact.id,
+				supersededByArtifactId: second.artifact.id,
+			}),
+			expect.objectContaining({
+				id: second.artifact.id,
+				supersededByArtifactId: null,
+			}),
 		]);
 	},
 );
@@ -105,7 +108,7 @@ it.effectDB(
 				supersededArtifactId: first.artifact.id,
 			}),
 		);
-		const before = yield* db.ArtifactSupersession.all();
+		const before = yield* db.Artifact.all();
 		const branch = yield* Effect.flip(
 			useArtifacts((artifacts) =>
 				artifacts.supersede({
@@ -133,7 +136,7 @@ it.effectDB(
 			_tag: "ArtifactLineageConflict",
 			conflict: "cycle",
 		});
-		expect(yield* db.ArtifactSupersession.all()).toEqual(before);
+		expect(yield* db.Artifact.all()).toEqual(before);
 	},
 );
 
@@ -167,7 +170,10 @@ it.effectDB(
 
 		expect(crossPiece._tag).toBe("ArtifactProvenanceConflict");
 		expect(unauthorized._tag).toBe("ArtifactSupersessionUnauthorized");
-		expect(yield* db.ArtifactSupersession.all()).toEqual([]);
+		expect(yield* db.Artifact.all()).toEqual([
+			expect.objectContaining({ supersededByArtifactId: null }),
+			expect.objectContaining({ supersededByArtifactId: null }),
+		]);
 	},
 );
 
@@ -207,7 +213,11 @@ it.effectDB(
 			}),
 		);
 
-		expect(yield* db.ArtifactSupersession.all()).toEqual([]);
+		expect(
+			yield* db.Artifact.where({ id: first.artifact.id }).first(),
+		).toMatchObject({
+			value: { supersededByArtifactId: null },
+		});
 	},
 );
 
@@ -230,7 +240,11 @@ it.effectDB("replays explicit add and remove acts harmlessly", function* (db) {
 	yield* useArtifacts((artifacts) => artifacts.removeSupersession(input));
 
 	expect(replayed).toEqual(created);
-	expect(yield* db.ArtifactSupersession.all()).toEqual([]);
+	expect(
+		yield* db.Artifact.where({ id: first.artifact.id }).first(),
+	).toMatchObject({
+		value: { supersededByArtifactId: null },
+	});
 });
 
 it.effectDB(
@@ -244,13 +258,11 @@ it.effectDB(
 		const foreignSecond = yield* land(otherPiece.id, "foreign-second").pipe(
 			Effect.provide(layer),
 		);
-		yield* db.ArtifactSupersession.create({
-			successorArtifactId: foreignSecond.artifact.id,
-			supersededArtifactId: foreignFirst.artifact.id,
+		yield* db.Artifact.where({ id: foreignFirst.artifact.id }).update({
+			supersededByArtifactId: foreignSecond.artifact.id,
 		});
-		yield* db.ArtifactSupersession.create({
-			successorArtifactId: foreignFirst.artifact.id,
-			supersededArtifactId: foreignSecond.artifact.id,
+		yield* db.Artifact.where({ id: foreignSecond.artifact.id }).update({
+			supersededByArtifactId: foreignFirst.artifact.id,
 		});
 
 		const landed = yield* land(piece.id, "target").pipe(Effect.provide(layer));
@@ -267,10 +279,7 @@ it.effectDB(
 		const old = yield* land(otherPiece.id, "foreign").pipe(
 			Effect.provide(layer),
 		);
-		const before = {
-			artifacts: yield* db.Artifact.all(),
-			supersessions: yield* db.ArtifactSupersession.all(),
-		};
+		const before = yield* db.Artifact.all();
 		const failure = yield* Effect.flip(
 			useArtifacts((artifacts) =>
 				artifacts.land({
@@ -284,7 +293,6 @@ it.effectDB(
 		);
 
 		expect(failure._tag).toBe("ArtifactProvenanceConflict");
-		expect(yield* db.Artifact.all()).toEqual(before.artifacts);
-		expect(yield* db.ArtifactSupersession.all()).toEqual(before.supersessions);
+		expect(yield* db.Artifact.all()).toEqual(before);
 	},
 );

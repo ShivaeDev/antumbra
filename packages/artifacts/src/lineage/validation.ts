@@ -6,11 +6,7 @@ import {
 	ArtifactProvenanceConflict,
 	ArtifactSupersessionUnauthorized,
 } from "#errors.ts";
-import type {
-	ArtifactActor,
-	ArtifactRow,
-	ArtifactSupersessionRow,
-} from "#model.ts";
+import type { ArtifactActor, ArtifactRow } from "#model.ts";
 
 export const requireArtifact = (artifactId: string) =>
 	Effect.gen(function* () {
@@ -57,12 +53,16 @@ export const requireSharedPiece = (
 	});
 
 export const cycleWouldForm = (
-	edges: ReadonlyArray<ArtifactSupersessionRow>,
+	artifacts: ReadonlyArray<ArtifactRow>,
 	supersededArtifactId: string,
 	successorArtifactId: string,
 ): boolean => {
 	const successorByArtifact = new Map(
-		edges.map((edge) => [edge.supersededArtifactId, edge.successorArtifactId]),
+		artifacts.flatMap((artifact) =>
+			artifact.supersededByArtifactId === null
+				? []
+				: [[artifact.id, artifact.supersededByArtifactId] as const],
+		),
 	);
 	let cursor: string | undefined = successorArtifactId;
 	const visited = new Set<string>();
@@ -85,7 +85,6 @@ export const validateLandingSupersession = (
 	successorPieceId: string,
 ) =>
 	Effect.gen(function* () {
-		const db = yield* Database;
 		const superseded = yield* requireArtifact(supersededArtifactId);
 		if (superseded.pieceId !== successorPieceId) {
 			return yield* new ArtifactProvenanceConflict({
@@ -95,10 +94,7 @@ export const validateLandingSupersession = (
 				supersededPieceId: superseded.pieceId,
 			});
 		}
-		const existing = yield* db.ArtifactSupersession.where({
-			supersededArtifactId,
-		}).first();
-		if (Option.isSome(existing)) {
+		if (superseded.supersededByArtifactId !== null) {
 			return yield* new ArtifactLineageConflict({
 				conflict: "superseded_artifact_already_has_successor",
 				successorArtifactId,

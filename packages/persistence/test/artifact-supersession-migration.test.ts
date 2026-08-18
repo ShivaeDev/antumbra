@@ -19,7 +19,7 @@ const migrationDirectory = join(
 	packageRoot,
 	"migrations",
 	"app",
-	"20260817T2323_artifact_supersession",
+	"20260818T0003_artifact_supersession",
 );
 const startContract: unknown = JSON.parse(
 	readFileSync(join(migrationDirectory, "start-contract.json"), "utf8"),
@@ -158,11 +158,19 @@ it.effect(
 			expect(
 				withSqlite(database, (sqlite) =>
 					sqlite
-						.prepare('SELECT "pieceId" FROM "artifact" WHERE "id" = ?')
+						.prepare(
+							'SELECT "pieceId", "supersededByArtifactId" FROM "artifact" WHERE "id" = ?',
+						)
 						.get("artifact-chart"),
 				),
-			).toEqual({ pieceId: "piece-one" });
+			).toEqual({
+				pieceId: "piece-one",
+				supersededByArtifactId: null,
+			});
 			expect(withSqlite(database, pieceArtifactTableCount)).toEqual({
+				count: 0,
+			});
+			expect(withSqlite(database, supersessionTableCount)).toEqual({
 				count: 0,
 			});
 		}),

@@ -11,10 +11,7 @@ import {
 	requireAuthority,
 	requireSharedPiece,
 } from "#lineage/validation.ts";
-import type {
-	ArtifactSupersessionInput,
-	ArtifactSupersessionRow,
-} from "#model.ts";
+import type { ArtifactSupersessionInput } from "#model.ts";
 
 export const writeSupersession = (input: ArtifactSupersessionInput) =>
 	Effect.gen(function* () {
@@ -23,30 +20,23 @@ export const writeSupersession = (input: ArtifactSupersessionInput) =>
 		const successor = yield* requireArtifact(input.successorArtifactId);
 		yield* requireAuthority(input.actor, superseded, successor);
 		yield* requireSharedPiece(superseded, successor);
-		const { supersessions } = yield* readValidStoredArtifactLineage(
+		const { artifacts } = yield* readValidStoredArtifactLineage(
 			superseded.pieceId,
 		);
-		const existingSuccessor = yield* db.ArtifactSupersession.where({
-			supersededArtifactId: superseded.id,
-		}).first();
-		if (
-			Option.isSome(existingSuccessor) &&
-			existingSuccessor.value.successorArtifactId === successor.id
-		) {
-			return existingSuccessor.value;
+		if (superseded.supersededByArtifactId === successor.id) {
+			return;
 		}
-		if (Option.isSome(existingSuccessor)) {
+		if (superseded.supersededByArtifactId !== null) {
 			return yield* new ArtifactLineageConflict({
 				conflict: "superseded_artifact_already_has_successor",
 				successorArtifactId: successor.id,
 				supersededArtifactId: superseded.id,
 			});
 		}
-		if (
-			yield* db.ArtifactSupersession.where({
-				successorArtifactId: successor.id,
-			}).exists()
-		) {
+		const existingPredecessor = yield* db.Artifact.where({
+			supersededByArtifactId: successor.id,
+		}).first();
+		if (Option.isSome(existingPredecessor)) {
 			return yield* new ArtifactLineageConflict({
 				conflict: "successor_artifact_already_has_predecessor",
 				successorArtifactId: successor.id,
@@ -55,7 +45,7 @@ export const writeSupersession = (input: ArtifactSupersessionInput) =>
 		}
 		if (
 			cycleWouldForm(
-				supersessions,
+				artifacts,
 				input.supersededArtifactId,
 				input.successorArtifactId,
 			)
@@ -66,12 +56,9 @@ export const writeSupersession = (input: ArtifactSupersessionInput) =>
 				supersededArtifactId: superseded.id,
 			});
 		}
-		const row: ArtifactSupersessionRow = {
-			successorArtifactId: successor.id,
-			supersededArtifactId: superseded.id,
-		};
-		yield* db.ArtifactSupersession.create(row);
-		return row;
+		yield* db.Artifact.where({ id: superseded.id }).update({
+			supersededByArtifactId: successor.id,
+		});
 	});
 
 export const deleteSupersession = (input: ArtifactSupersessionInput) =>
@@ -82,19 +69,16 @@ export const deleteSupersession = (input: ArtifactSupersessionInput) =>
 		yield* requireAuthority(input.actor, superseded, successor);
 		yield* requireSharedPiece(superseded, successor);
 		yield* readValidStoredArtifactLineage(superseded.pieceId);
-		const edge = yield* db.ArtifactSupersession.where({
-			supersededArtifactId: input.supersededArtifactId,
-		}).first();
-		if (Option.isNone(edge)) {
+		if (superseded.supersededByArtifactId === null) {
 			return;
 		}
-		if (edge.value.successorArtifactId !== input.successorArtifactId) {
+		if (superseded.supersededByArtifactId !== input.successorArtifactId) {
 			return yield* new ArtifactSupersessionNotFound({
 				successorArtifactId: input.successorArtifactId,
 				supersededArtifactId: input.supersededArtifactId,
 			});
 		}
-		yield* db.ArtifactSupersession.where({
-			supersededArtifactId: input.supersededArtifactId,
-		}).deleteAll();
+		yield* db.Artifact.where({ id: input.supersededArtifactId }).update({
+			supersededByArtifactId: null,
+		});
 	});

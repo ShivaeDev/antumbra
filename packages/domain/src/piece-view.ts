@@ -13,6 +13,9 @@ export interface PieceAgentView {
 export interface PieceView extends PieceRow {
 	readonly agents: ReadonlyArray<PieceAgentView>;
 	readonly artifacts: ReadonlyArray<ArtifactRow>;
+	readonly artifactHistory: ReadonlyArray<
+		ArtifactRow & { readonly successorArtifactId: string }
+	>;
 	readonly changes: ReadonlyArray<ChangeView>;
 	readonly dependsOn: ReadonlyArray<string>;
 	readonly reports: ReadonlyArray<ReportRow>;
@@ -45,11 +48,22 @@ const artifactsOf = (
 	world: VoyageWorld,
 	pieceId: string,
 ): ReadonlyArray<ArtifactRow> =>
-	world.pieceArtifacts
-		.filter((link) => link.pieceId === pieceId)
-		.flatMap((link) => {
-			const artifact = world.artifacts.get(link.artifactId);
-			return artifact === undefined ? [] : [artifact];
+	[...world.artifacts.values()].filter(
+		(artifact) =>
+			artifact.pieceId === pieceId && artifact.supersededByArtifactId === null,
+	);
+
+const artifactHistoryOf = (
+	world: VoyageWorld,
+	pieceId: string,
+): ReadonlyArray<ArtifactRow & { readonly successorArtifactId: string }> =>
+	[...world.artifacts.values()]
+		.filter((artifact) => artifact.pieceId === pieceId)
+		.flatMap((artifact) => {
+			const successorArtifactId = artifact.supersededByArtifactId;
+			return successorArtifactId === null
+				? []
+				: [{ ...artifact, successorArtifactId }];
 		});
 
 export const pieceView = (
@@ -59,6 +73,7 @@ export const pieceView = (
 ): PieceView => ({
 	...piece,
 	agents: agentsOf(world, piece.id),
+	artifactHistory: artifactHistoryOf(world, piece.id),
 	artifacts: artifactsOf(world, piece.id),
 	changes: changesOfPiece(world, piece.id).map((change) =>
 		changeView(repoNameOf(world, change.repoId), change),

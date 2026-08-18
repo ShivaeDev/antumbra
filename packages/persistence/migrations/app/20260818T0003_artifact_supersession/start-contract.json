@@ -64,6 +64,10 @@
       "model": "PieceAgent",
       "namespace": "__unbound__"
     },
+    "pieceArtifact": {
+      "model": "PieceArtifact",
+      "namespace": "__unbound__"
+    },
     "pieceChange": {
       "model": "PieceChange",
       "namespace": "__unbound__"
@@ -351,20 +355,6 @@
                   "kind": "scalar"
                 }
               },
-              "pieceId": {
-                "nullable": false,
-                "type": {
-                  "codecId": "sqlite/text@1",
-                  "kind": "scalar"
-                }
-              },
-              "supersededByArtifactId": {
-                "nullable": true,
-                "type": {
-                  "codecId": "sqlite/text@1",
-                  "kind": "scalar"
-                }
-              },
               "title": {
                 "nullable": false,
                 "type": {
@@ -381,48 +371,18 @@
               }
             },
             "relations": {
-              "piece": {
-                "cardinality": "N:1",
-                "on": {
-                  "localFields": [
-                    "pieceId"
-                  ],
-                  "targetFields": [
-                    "id"
-                  ]
-                },
-                "to": {
-                  "model": "Piece",
-                  "namespace": "__unbound__"
-                }
-              },
-              "supersededBy": {
-                "cardinality": "N:1",
-                "on": {
-                  "localFields": [
-                    "supersededByArtifactId"
-                  ],
-                  "targetFields": [
-                    "id"
-                  ]
-                },
-                "to": {
-                  "model": "Artifact",
-                  "namespace": "__unbound__"
-                }
-              },
-              "supersedes": {
+              "pieces": {
                 "cardinality": "1:N",
                 "on": {
                   "localFields": [
                     "id"
                   ],
                   "targetFields": [
-                    "supersededByArtifactId"
+                    "artifactId"
                   ]
                 },
                 "to": {
-                  "model": "Artifact",
+                  "model": "PieceArtifact",
                   "namespace": "__unbound__"
                 }
               }
@@ -437,12 +397,6 @@
                 },
                 "id": {
                   "column": "id"
-                },
-                "pieceId": {
-                  "column": "pieceId"
-                },
-                "supersededByArtifactId": {
-                  "column": "supersededByArtifactId"
                 },
                 "title": {
                   "column": "title"
@@ -1415,7 +1369,7 @@
                   ]
                 },
                 "to": {
-                  "model": "Artifact",
+                  "model": "PieceArtifact",
                   "namespace": "__unbound__"
                 }
               },
@@ -1505,6 +1459,68 @@
               },
               "namespaceId": "__unbound__",
               "table": "pieceAgent"
+            }
+          },
+          "PieceArtifact": {
+            "fields": {
+              "artifactId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "sqlite/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "pieceId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "sqlite/text@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "artifact": {
+                "cardinality": "N:1",
+                "on": {
+                  "localFields": [
+                    "artifactId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Artifact",
+                  "namespace": "__unbound__"
+                }
+              },
+              "piece": {
+                "cardinality": "N:1",
+                "on": {
+                  "localFields": [
+                    "pieceId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Piece",
+                  "namespace": "__unbound__"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "artifactId": {
+                  "column": "artifactId"
+                },
+                "pieceId": {
+                  "column": "pieceId"
+                }
+              },
+              "namespaceId": "__unbound__",
+              "table": "pieceArtifact"
             }
           },
           "PieceChange": {
@@ -2206,16 +2222,6 @@
                   "nativeType": "text",
                   "nullable": false
                 },
-                "pieceId": {
-                  "codecId": "sqlite/text@1",
-                  "nativeType": "text",
-                  "nullable": false
-                },
-                "supersededByArtifactId": {
-                  "codecId": "sqlite/text@1",
-                  "nativeType": "text",
-                  "nullable": true
-                },
                 "title": {
                   "codecId": "sqlite/text@1",
                   "nativeType": "text",
@@ -2227,67 +2233,14 @@
                   "nullable": false
                 }
               },
-              "foreignKeys": [
-                {
-                  "constraint": true,
-                  "index": true,
-                  "onDelete": "restrict",
-                  "onUpdate": "restrict",
-                  "source": {
-                    "columns": [
-                      "pieceId"
-                    ],
-                    "namespaceId": "__unbound__",
-                    "tableName": "artifact"
-                  },
-                  "target": {
-                    "columns": [
-                      "id"
-                    ],
-                    "namespaceId": "__unbound__",
-                    "tableName": "piece"
-                  }
-                },
-                {
-                  "constraint": true,
-                  "index": true,
-                  "onDelete": "restrict",
-                  "onUpdate": "restrict",
-                  "source": {
-                    "columns": [
-                      "supersededByArtifactId"
-                    ],
-                    "namespaceId": "__unbound__",
-                    "tableName": "artifact"
-                  },
-                  "target": {
-                    "columns": [
-                      "id"
-                    ],
-                    "namespaceId": "__unbound__",
-                    "tableName": "artifact"
-                  }
-                }
-              ],
-              "indexes": [
-                {
-                  "columns": [
-                    "pieceId"
-                  ]
-                }
-              ],
+              "foreignKeys": [],
+              "indexes": [],
               "primaryKey": {
                 "columns": [
                   "id"
                 ]
               },
-              "uniques": [
-                {
-                  "columns": [
-                    "supersededByArtifactId"
-                  ]
-                }
-              ]
+              "uniques": []
             },
             "berth": {
               "columns": {
@@ -3015,6 +2968,70 @@
               },
               "uniques": []
             },
+            "pieceArtifact": {
+              "columns": {
+                "artifactId": {
+                  "codecId": "sqlite/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "pieceId": {
+                  "codecId": "sqlite/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [
+                {
+                  "constraint": true,
+                  "index": true,
+                  "onDelete": "restrict",
+                  "onUpdate": "restrict",
+                  "source": {
+                    "columns": [
+                      "pieceId"
+                    ],
+                    "namespaceId": "__unbound__",
+                    "tableName": "pieceArtifact"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "__unbound__",
+                    "tableName": "piece"
+                  }
+                },
+                {
+                  "constraint": true,
+                  "index": true,
+                  "onDelete": "restrict",
+                  "onUpdate": "restrict",
+                  "source": {
+                    "columns": [
+                      "artifactId"
+                    ],
+                    "namespaceId": "__unbound__",
+                    "tableName": "pieceArtifact"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "__unbound__",
+                    "tableName": "artifact"
+                  }
+                }
+              ],
+              "indexes": [],
+              "primaryKey": {
+                "columns": [
+                  "pieceId",
+                  "artifactId"
+                ]
+              },
+              "uniques": []
+            },
             "pieceChange": {
               "columns": {
                 "changeId": {
@@ -3404,7 +3421,7 @@
         "id": "__unbound__"
       }
     },
-    "storageHash": "sha256:7bed1b5421dd224911e12335de498920dc5a617efc49f82a1f0f06cf52446bbe"
+    "storageHash": "sha256:f60b745880fb455c1ff185a3a0b767815f3f7505e44bf245b262c82ffcb96c51"
   },
   "capabilities": {
     "sql": {

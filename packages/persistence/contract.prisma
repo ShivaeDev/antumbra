@@ -115,7 +115,7 @@ model Piece {
   parkedAt    DateTime?
   createdAt   DateTime  @default(now())
   reports     PieceReport[]
-  artifacts   PieceArtifact[]
+  artifacts   Artifact[]
 }
 
 model VoyagePiece {
@@ -163,12 +163,18 @@ model Report {
 }
 
 model Artifact {
-  id            String   @id
-  authorAgentId String?
-  title         String
-  uri           String
-  createdAt     DateTime @default(now())
-  pieces        PieceArtifact[]
+  id                     String   @id
+  pieceId                String
+  supersededByArtifactId String?  @unique
+  authorAgentId          String?
+  title                  String
+  uri                    String
+  createdAt              DateTime @default(now())
+  piece                  Piece     @relation(fields: [pieceId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  supersededBy           Artifact? @relation("ArtifactSupersession", fields: [supersededByArtifactId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  supersedes             Artifact[] @relation("ArtifactSupersession")
+
+  @@index([pieceId])
 }
 
 model PieceReport {
@@ -178,15 +184,6 @@ model PieceReport {
   report   Report @relation(fields: [reportId], references: [id], onDelete: Restrict, onUpdate: Restrict)
 
   @@id([pieceId, reportId])
-}
-
-model PieceArtifact {
-  pieceId    String
-  artifactId String
-  piece      Piece    @relation(fields: [pieceId], references: [id], onDelete: Restrict, onUpdate: Restrict)
-  artifact   Artifact @relation(fields: [artifactId], references: [id], onDelete: Restrict, onUpdate: Restrict)
-
-  @@id([pieceId, artifactId])
 }
 
 model Change {

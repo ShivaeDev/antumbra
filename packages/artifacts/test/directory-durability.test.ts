@@ -179,7 +179,6 @@ it.effectDB(
 				uri: "reef.svg",
 			};
 			const artifactsBefore = (yield* db.Artifact.all()).length;
-			const linksBefore = (yield* db.PieceArtifact.all()).length;
 			const failure = yield* Effect.gen(function* () {
 				const artifacts = yield* Artifacts;
 				return yield* Effect.flip(artifacts.land(input));
@@ -188,15 +187,13 @@ it.effectDB(
 			expect(failure._tag).toBe("ArtifactPublicationFailed");
 			expect(state.events).toEqual(["sync"]);
 			expect(yield* db.Artifact.all()).toHaveLength(artifactsBefore);
-			expect(yield* db.PieceArtifact.all()).toHaveLength(linksBefore);
 
 			const artifact = yield* Effect.gen(function* () {
 				const artifacts = yield* Artifacts;
 				return yield* artifacts.land(input);
 			}).pipe(Effect.provide(layer));
-			expect(existsSync(fileURLToPath(artifact.uri))).toBe(true);
+			expect(existsSync(fileURLToPath(artifact.artifact.uri))).toBe(true);
 			expect(yield* db.Artifact.all()).toHaveLength(artifactsBefore + 1);
-			expect(yield* db.PieceArtifact.all()).toHaveLength(linksBefore + 1);
 			rmSync(fixture.root, { force: true, recursive: true });
 		}
 	},

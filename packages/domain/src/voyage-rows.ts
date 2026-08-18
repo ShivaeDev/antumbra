@@ -55,11 +55,6 @@ export interface ReportLinkRow {
 	readonly reportId: string;
 }
 
-export interface ArtifactLinkRow {
-	readonly artifactId: string;
-	readonly pieceId: string;
-}
-
 // why: the derivation reads whole tables and joins in memory. A voyage's
 // state is a function of every row that touches it — a per-voyage query would
 // fan out into a read per piece, and these tables stay small by construction.
@@ -72,7 +67,6 @@ export interface VoyageWorld {
 	readonly crews: ReadonlyArray<CrewRow>;
 	readonly edges: ReadonlyArray<EdgeRow>;
 	readonly memberships: ReadonlyArray<MembershipRow>;
-	readonly pieceArtifacts: ReadonlyArray<ArtifactLinkRow>;
 	readonly pieceChanges: ReadonlyArray<PieceChangeRow>;
 	readonly pieceReports: ReadonlyArray<ReportLinkRow>;
 	readonly pieces: ReadonlyArray<PieceRow>;

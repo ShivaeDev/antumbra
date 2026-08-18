@@ -88,6 +88,8 @@ export const VoyageProceduresLive = Layer.effect(VoyageProcedureService)(
 			hail: (voyageId) => Effect.provide(hailCaptain(voyageId), context),
 			landArtifact: artifacts.land,
 			landReport: reports.land,
+			removeArtifactSupersession: (input) =>
+				artifacts.removeSupersession({ actor: { _tag: "admiral" }, ...input }),
 			launch: pieces.launch,
 			list: world.read.pipe(Effect.map(voyageSummaries)),
 			open: (input) => Effect.provide(openVoyage(input), context),
@@ -102,6 +104,8 @@ export const VoyageProceduresLive = Layer.effect(VoyageProcedureService)(
 			rewire: pieces.setDependencies,
 			setFocus: (voyageId, focused) =>
 				Effect.provide(setFocus(voyageId, focused), context),
+			supersedeArtifact: (input) =>
+				artifacts.supersede({ actor: { _tag: "admiral" }, ...input }),
 			unpark: (pieceId) => pieces.park(pieceId, false),
 		} satisfies VoyageProcedures);
 	}),

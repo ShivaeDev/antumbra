@@ -57,7 +57,6 @@ const world = (over: Partial<VoyageWorld>): VoyageWorld => ({
 	crews: [],
 	edges: [],
 	memberships: [],
-	pieceArtifacts: [],
 	pieceChanges: [],
 	pieceReports: [],
 	pieces: [piece("alpha")],
@@ -100,12 +99,13 @@ it("a report and an artifact land a piece outright", () => {
 				{
 					authorAgentId: null,
 					id: "artifact-1",
+					pieceId: "alpha",
+					supersededByArtifactId: null,
 					title: "chart",
 					uri: "/chart.svg",
 				},
 			],
 		]),
-		pieceArtifacts: [{ artifactId: "artifact-1", pieceId: "alpha" }],
 		pieceReports: [{ pieceId: "alpha", reportId: "report-1" }],
 	});
 	expect(pieceOutcomeTally(built, "alpha")).toEqual({ landed: 2, pending: 0 });

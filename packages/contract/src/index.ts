@@ -48,6 +48,7 @@ export {
 	SpawnRequest,
 } from "#sight.ts";
 export {
+	ArtifactHistoryView,
 	ArtifactView,
 	BoardEntryView,
 	ChangeView,
@@ -64,6 +65,7 @@ export {
 } from "#voyage-views.ts";
 export {
 	AdoptChangeRequest,
+	ArtifactSupersessionRequest,
 	BoardTarget,
 	BoardWriteRequest,
 	CharterPieceRequest,

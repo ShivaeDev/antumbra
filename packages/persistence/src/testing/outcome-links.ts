@@ -7,9 +7,9 @@ export const rejectTestOutcomeLinks = (
 ) => {
 	const targets = {
 		artifact: {
-			message: "reject piece artifact link",
-			table: "pieceArtifact",
-			trigger: "reject_piece_artifact_link",
+			message: "reject artifact provenance",
+			table: "artifact",
+			trigger: "reject_artifact_provenance",
 		},
 		report: {
 			message: "reject piece report link",

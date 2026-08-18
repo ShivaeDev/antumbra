@@ -1,5 +1,15 @@
-import { bind, landArtifactSpec, landReportSpec } from "@antumbra/agent-tools";
-import { Artifacts } from "@antumbra/artifacts";
+import {
+	bind,
+	landArtifactSpec,
+	landReportSpec,
+	removeArtifactSupersessionSpec,
+	supersedeArtifactSpec,
+} from "@antumbra/agent-tools";
+import {
+	type ArtifactInput,
+	type ArtifactLanding,
+	Artifacts,
+} from "@antumbra/artifacts";
 import type { DirectTool } from "@antumbra/plugin-api";
 import { Reports } from "@antumbra/reports";
 import { Effect } from "effect";
@@ -8,6 +18,36 @@ import { makeChangeToolCompiler } from "#change-tools.ts";
 import { StandDown } from "#stand-down.ts";
 import { answered, onPiece } from "#tool-answers.ts";
 import type { SessionIdentity } from "#tool-identity.ts";
+
+const artifactLandingAnswer = (landing: ArtifactLanding): string => {
+	if (landing._tag === "superseded") {
+		return `artifact landed and superseded ${landing.supersededArtifactId}`;
+	}
+	const current = landing.otherCurrentArtifacts
+		.map((artifact) => `${artifact.id} (${artifact.title})`)
+		.join(", ");
+	return `artifact landed; other current artifacts: ${current === "" ? "none" : current}; call supersede if this is a new version`;
+};
+
+const artifactInput = (
+	identity: SessionIdentity,
+	pieceId: string,
+	input: {
+		readonly supersedesArtifactId?: string | undefined;
+		readonly title: string;
+		readonly uri: string;
+	},
+): ArtifactInput => {
+	const base = {
+		authorAgentId: identity.agentId,
+		pieceId,
+		title: input.title,
+		uri: input.uri,
+	};
+	return input.supersedesArtifactId === undefined
+		? base
+		: { ...base, supersedesArtifactId: input.supersedesArtifactId };
+};
 
 // why: the set is the whole of what a worker may do to the record — land
 // outcomes, propose changes, write boards, end its session. Nothing here
@@ -41,14 +81,31 @@ export const makeCrewToolCompiler = Effect.gen(function* () {
 					answered(
 						identity,
 						landArtifactSpec.name,
-						artifacts.land({
-							authorAgentId: identity.agentId,
-							pieceId,
-							title: input.title,
-							uri: input.uri,
-						}),
-						() => "artifact landed",
+						artifacts.land(artifactInput(identity, pieceId, input)),
+						artifactLandingAnswer,
 					),
+				),
+			),
+			bind(supersedeArtifactSpec, (input) =>
+				answered(
+					identity,
+					supersedeArtifactSpec.name,
+					artifacts.supersede({
+						actor: { _tag: "agent", agentId: identity.agentId },
+						...input,
+					}),
+					() => "artifact supersession recorded",
+				),
+			),
+			bind(removeArtifactSupersessionSpec, (input) =>
+				answered(
+					identity,
+					removeArtifactSupersessionSpec.name,
+					artifacts.removeSupersession({
+						actor: { _tag: "agent", agentId: identity.agentId },
+						...input,
+					}),
+					() => "artifact supersession removed",
 				),
 			),
 			...compileChangeTools(identity),

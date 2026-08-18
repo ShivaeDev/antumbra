@@ -28,7 +28,6 @@ const world = (over: Partial<VoyageWorld>): VoyageWorld => ({
 	currentSessionByAgent: new Map(),
 	edges: [],
 	memberships: [],
-	pieceArtifacts: [],
 	pieceChanges: [],
 	pieceReports: [],
 	pieces: [],

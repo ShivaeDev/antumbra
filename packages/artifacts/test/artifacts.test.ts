@@ -37,6 +37,8 @@ const piece = {
 	title: "Chart",
 };
 
+const otherPiece = { ...piece, id: "piece-log", title: "Log" };
+
 const agent = {
 	charter: "draw the reef",
 	id: "agent-chart",
@@ -100,13 +102,12 @@ it.effectDB(
 				writeFileSync(join(moorage, "reef.svg"), "<svg>new reef</svg>");
 				const changed = yield* artifacts.land(input);
 
-				expect(replay.id).not.toBe(first.id);
-				expect(replay.uri).toBe(first.uri);
-				expect(changed.id).not.toBe(first.id);
-				expect(changed.uri).not.toBe(first.uri);
+				expect(replay.artifact.id).not.toBe(first.artifact.id);
+				expect(replay.artifact.uri).toBe(first.artifact.uri);
+				expect(changed.artifact.id).not.toBe(first.artifact.id);
+				expect(changed.artifact.uri).not.toBe(first.artifact.uri);
 				expect(yield* db.Artifact.all()).toHaveLength(3);
-				expect(yield* db.PieceArtifact.all()).toHaveLength(3);
-				expect(existsSync(fileURLToPath(first.uri))).toBe(true);
+				expect(existsSync(fileURLToPath(first.artifact.uri))).toBe(true);
 			}),
 		);
 	},
@@ -180,11 +181,44 @@ it.effectDB("keeps an external URL as a reference", function* (db) {
 				uri: "https://example.test/reef.svg",
 			});
 
-			expect(artifact.uri).toBe("https://example.test/reef.svg");
+			expect(artifact.artifact.uri).toBe("https://example.test/reef.svg");
 			expect(yield* db.Artifact.all()).toHaveLength(1);
 		}),
 	);
 });
+
+it.effectDB(
+	"refuses known invalid supersession before publishing local bytes",
+	function* (db) {
+		yield* withArtifacts((moorage, published) =>
+			Effect.gen(function* () {
+				yield* seed(db, moorage);
+				yield* db.Piece.create(otherPiece);
+				const artifacts = yield* Artifacts;
+				const old = yield* artifacts.land({
+					authorAgentId: agent.id,
+					pieceId: otherPiece.id,
+					title: "foreign chart",
+					uri: "https://example.test/foreign.svg",
+				});
+				writeFileSync(join(moorage, "reef.svg"), "<svg>reef</svg>");
+				const failure = yield* Effect.flip(
+					artifacts.land({
+						authorAgentId: agent.id,
+						pieceId: piece.id,
+						supersedesArtifactId: old.artifact.id,
+						title: "wrong lineage",
+						uri: "reef.svg",
+					}),
+				);
+
+				expect(failure._tag).toBe("ArtifactProvenanceConflict");
+				expect(readdirSync(published)).toEqual([]);
+				expect(yield* db.Artifact.all()).toHaveLength(1);
+			}),
+		);
+	},
+);
 
 it.effectDB("refuses an orphan artifact without publishing", function* (db) {
 	yield* withArtifacts(() =>
@@ -206,7 +240,6 @@ it.effectDB("refuses an orphan artifact without publishing", function* (db) {
 					pieceId: "missing-piece",
 				});
 				expect(yield* db.Artifact.all()).toEqual([]);
-				expect(yield* db.PieceArtifact.all()).toEqual([]);
 				expect(yield* PubSub.takeUpTo(notices, 1)).toEqual([]);
 			}),
 		),
@@ -243,7 +276,6 @@ it.effect(
 
 					expect(failure._tag).toBe("PrismaError");
 					expect(yield* db.Artifact.all()).toEqual([]);
-					expect(yield* db.PieceArtifact.all()).toEqual([]);
 					expect(yield* PubSub.takeUpTo(notices, 1)).toEqual([]);
 					expect(readdirSync(published)).toHaveLength(1);
 				}),

@@ -2,6 +2,7 @@ import { Schema } from "effect";
 import { type AppProcedure, surface } from "#router-procedure.ts";
 import { VoyageSummary, VoyageView } from "#voyage-views.ts";
 import {
+	ArtifactSupersessionRequest,
 	BoardWriteRequest,
 	CharterPieceRequest,
 	CharterReceipt,
@@ -50,6 +51,12 @@ export const voyageRoutes = (procedure: AppProcedure) => ({
 		const voyages = yield* VoyageSource;
 		yield* surface(voyages.park(input.pieceId));
 	}),
+	removeArtifactSupersession: procedure
+		.input(ArtifactSupersessionRequest)
+		.mutation(function* (input) {
+			const voyages = yield* VoyageSource;
+			yield* surface(voyages.removeArtifactSupersession(input));
+		}),
 	rewirePiece: procedure.input(RewireRequest).mutation(function* (input) {
 		const voyages = yield* VoyageSource;
 		yield* surface(voyages.rewire(input));
@@ -58,6 +65,12 @@ export const voyageRoutes = (procedure: AppProcedure) => ({
 		const voyages = yield* VoyageSource;
 		yield* surface(voyages.unpark(input.pieceId));
 	}),
+	supersedeArtifact: procedure
+		.input(ArtifactSupersessionRequest)
+		.mutation(function* (input) {
+			const voyages = yield* VoyageSource;
+			yield* surface(voyages.supersedeArtifact(input));
+		}),
 	voyage: procedure
 		.input(VoyageRef)
 		.output(VoyageView)

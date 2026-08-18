@@ -4,8 +4,12 @@ import { Database, Writer } from "@antumbra/persistence";
 import { verifyPieceExists } from "@antumbra/pieces";
 import { Crypto, Effect, Option, PubSub } from "effect";
 import { ArtifactSourceNotOwned, artifactPublicationFailed } from "#errors.ts";
+import { currentArtifactsForPiece } from "#lineage/current.ts";
+import { validateCurrentStoredArtifactLineage } from "#lineage/piece-lineage.ts";
+import { validateLandingSupersession } from "#lineage/validation.ts";
 import type {
 	ArtifactInput,
+	ArtifactLanding,
 	ArtifactPublication,
 	ArtifactRow,
 } from "#model.ts";
@@ -39,17 +43,42 @@ const requireCurrentMoorage = (publication: ArtifactPublication) =>
 
 const writeArtifact = (
 	row: ArtifactRow,
-	pieceId: string,
+	input: ArtifactInput,
 	publication: ArtifactPublication,
 ) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
-		yield* verifyPieceExists(pieceId);
+		yield* validateCurrentStoredArtifactLineage(input.pieceId);
+		yield* verifyPieceExists(input.pieceId);
 		yield* requireCurrentMoorage(publication);
+		if (input.supersedesArtifactId !== undefined) {
+			yield* validateLandingSupersession(
+				input.supersedesArtifactId,
+				row.id,
+				input.pieceId,
+			);
+		}
 		yield* db.Artifact.create({
 			...row,
-			pieces: (pieces) => pieces.create({ pieceId }),
 		});
+		if (input.supersedesArtifactId !== undefined) {
+			yield* db.Artifact.where({ id: input.supersedesArtifactId }).update({
+				supersededByArtifactId: row.id,
+			});
+			return {
+				_tag: "superseded",
+				artifact: row,
+				supersededArtifactId: input.supersedesArtifactId,
+			} satisfies ArtifactLanding;
+		}
+		const current = yield* currentArtifactsForPiece(input.pieceId);
+		return {
+			_tag: "landed",
+			artifact: row,
+			otherCurrentArtifacts: current.filter(
+				(artifact) => artifact.id !== row.id,
+			),
+		} satisfies ArtifactLanding;
 	});
 
 export const landArtifact = (root: string, input: ArtifactInput) =>
@@ -57,16 +86,28 @@ export const landArtifact = (root: string, input: ArtifactInput) =>
 		const crypto = yield* Crypto.Crypto;
 		const feeds = yield* DomainFeeds;
 		const writer = yield* Writer;
+		const id = yield* crypto.randomUUIDv4.pipe(
+			Effect.mapError(artifactPublicationFailed("identify artifact")),
+		);
+		yield* verifyPieceExists(input.pieceId);
+		yield* validateCurrentStoredArtifactLineage(input.pieceId);
+		if (input.supersedesArtifactId !== undefined) {
+			yield* validateLandingSupersession(
+				input.supersedesArtifactId,
+				id,
+				input.pieceId,
+			);
+		}
 		const publication = yield* publishArtifact(root, input);
 		const row: ArtifactRow = {
 			authorAgentId: input.authorAgentId ?? null,
-			id: yield* crypto.randomUUIDv4.pipe(
-				Effect.mapError(artifactPublicationFailed("identify artifact")),
-			),
+			id,
+			pieceId: input.pieceId,
+			supersededByArtifactId: null,
 			title: input.title,
 			uri: publication.uri,
 		};
-		yield* writer.write(writeArtifact(row, input.pieceId, publication));
+		const landing = yield* writer.write(writeArtifact(row, input, publication));
 		yield* PubSub.publish(feeds.voyages, undefined);
-		return row;
+		return landing;
 	});

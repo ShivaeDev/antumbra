@@ -28,6 +28,13 @@ export const RewireRequest = Schema.Struct({
 });
 export type RewireRequest = typeof RewireRequest.Type;
 
+export const ArtifactSupersessionRequest = Schema.Struct({
+	successorArtifactId: Schema.String,
+	supersededArtifactId: Schema.String,
+});
+export type ArtifactSupersessionRequest =
+	typeof ArtifactSupersessionRequest.Type;
+
 // why: a board hangs off exactly one entity, so what it hangs off is a choice
 // between named shapes rather than an id beside a kind that could disagree.
 export const BoardTarget = Schema.Union([
@@ -75,6 +82,9 @@ export class VoyageSource extends Context.Service<
 			request: OpenVoyageRequest,
 		) => Effect.Effect<VoyageSummary, SightFailure>;
 		readonly park: (pieceId: string) => Effect.Effect<void, SightFailure>;
+		readonly removeArtifactSupersession: (
+			request: ArtifactSupersessionRequest,
+		) => Effect.Effect<void, SightFailure>;
 		readonly quay: Effect.Effect<QuayView, SightFailure>;
 		readonly quayFeed: Stream.Stream<QuayView, SightFailure>;
 		// why: the watcher is rung rather than waited on — what the pass costs
@@ -86,6 +96,9 @@ export class VoyageSource extends Context.Service<
 		readonly setFocus: (
 			voyageId: string,
 			focused: boolean,
+		) => Effect.Effect<void, SightFailure>;
+		readonly supersedeArtifact: (
+			request: ArtifactSupersessionRequest,
 		) => Effect.Effect<void, SightFailure>;
 		readonly unpark: (pieceId: string) => Effect.Effect<void, SightFailure>;
 		readonly voyage: (

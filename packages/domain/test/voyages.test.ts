@@ -183,7 +183,7 @@ it.live("a landed artifact carries its author and lands the piece", () =>
 				title: "the chart",
 				uri: "https://example.test/charts/reef.svg",
 			});
-			expect(artifact.authorAgentId).toBe("agent-cartographer");
+			expect(artifact.artifact.authorAgentId).toBe("agent-cartographer");
 			expect(yield* stateOf(voyages, voyage.id, "draw")).toBe("done");
 
 			const orphan = yield* Effect.flip(

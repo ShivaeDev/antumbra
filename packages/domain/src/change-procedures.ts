@@ -1,8 +1,4 @@
-import type {
-	StoredAgentSessionStatusInvalid,
-	StoredAgentStatusInvalid,
-	StoredResourceReclaimStateInvalid,
-} from "@antumbra/agent-runtime-vocabulary";
+import type { StoredResourceReclaimStateInvalid } from "@antumbra/agent-runtime-vocabulary";
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import type { PrismaError } from "@antumbra/persistence";
 import type {
@@ -27,12 +23,13 @@ import type { OpenChangeFailure, OpenChangeInput } from "#changes.ts";
 import type {
 	ResourceReclaimClaimed,
 	StoredChangeInvalid,
-	StoredPieceChangeInvalid,
 	UnknownChangeHostTag,
 } from "#errors.ts";
 import { type QuayReading, quayReading } from "#quay-view.ts";
-import type { InvalidSessionExecutionStatus } from "#session-execution-status.ts";
-import { VoyageWorldSource } from "#voyage-world.ts";
+import {
+	type VoyageWorldReadFailure,
+	VoyageWorldSource,
+} from "#voyage-world.ts";
 
 // why: what a host can do right now, said in the host's own words — the window
 // shows it, and a tool that cannot act says the same sentence back to the
@@ -79,15 +76,7 @@ export interface ChangeProcedures {
 	>;
 	// why: every change still owed, read across the whole fleet and grouped by
 	// where it lies, beside the pieces one made by hand can be adopted onto.
-	readonly quay: Effect.Effect<
-		QuayReading,
-		| InvalidSessionExecutionStatus
-		| PrismaError
-		| StoredAgentSessionStatusInvalid
-		| StoredAgentStatusInvalid
-		| StoredChangeInvalid
-		| StoredPieceChangeInvalid
-	>;
+	readonly quay: Effect.Effect<QuayReading, VoyageWorldReadFailure>;
 	readonly refresh: (
 		hostTag: string,
 	) => Effect.Effect<

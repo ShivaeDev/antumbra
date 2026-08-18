@@ -38,6 +38,7 @@ const piece: PieceRow = {
 const soundings: PieceView = {
 	...piece,
 	agents: [],
+	artifactHistory: [],
 	artifacts: [],
 	changes: [],
 	dependsOn: [],
@@ -55,6 +56,7 @@ const soundings: PieceView = {
 const chart: PieceView = {
 	...piece,
 	agents: [],
+	artifactHistory: [],
 	artifacts: [],
 	changes: [],
 	dependsOn: ["piece-1"],

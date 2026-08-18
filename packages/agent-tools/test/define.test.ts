@@ -10,12 +10,20 @@ import {
 	rewirePieceSpec,
 	unparkPieceSpec,
 } from "#captain.ts";
-import { landArtifactSpec, landReportSpec, standDownSpec } from "#crew.ts";
+import {
+	landArtifactSpec,
+	landReportSpec,
+	removeArtifactSupersessionSpec,
+	standDownSpec,
+	supersedeArtifactSpec,
+} from "#crew.ts";
 import { bind, defineTool } from "#define.ts";
 
 const specs = [
 	landReportSpec,
 	landArtifactSpec,
+	supersedeArtifactSpec,
+	removeArtifactSupersessionSpec,
 	charterPieceSpec,
 	launchPieceSpec,
 	parkPieceSpec,
@@ -43,6 +51,14 @@ it("every spec emits a closed object schema", () => {
 	}
 	expect(landReportSpec.inputSchema.required).toEqual(["body", "title"]);
 	expect(landArtifactSpec.inputSchema.required).toEqual(["title", "uri"]);
+	expect(supersedeArtifactSpec.inputSchema.required).toEqual([
+		"successorArtifactId",
+		"supersededArtifactId",
+	]);
+	expect(removeArtifactSupersessionSpec.inputSchema.required).toEqual([
+		"successorArtifactId",
+		"supersededArtifactId",
+	]);
 	expect(writeBoardSpec.inputSchema.required).toEqual([
 		"body",
 		"register",

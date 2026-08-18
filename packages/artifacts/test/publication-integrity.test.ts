@@ -225,7 +225,9 @@ it.effectDB(
 		}).pipe(Effect.provide(artifactLayer(fixture.published, platform)));
 
 		expect(state.replaced).toBe(true);
-		expect(readFileSync(fileURLToPath(artifact.uri), "utf8")).toBe("inside");
+		expect(readFileSync(fileURLToPath(artifact.artifact.uri), "utf8")).toBe(
+			"inside",
+		);
 		rmSync(fixture.root, { force: true, recursive: true });
 	},
 );

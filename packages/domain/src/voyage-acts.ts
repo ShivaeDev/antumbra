@@ -1,5 +1,6 @@
 import { BoardScope, Boards, EntryInput } from "@antumbra/boards";
 import type {
+	ArtifactSupersessionRequest,
 	BoardWriteRequest,
 	CharterPieceRequest,
 	OpenVoyageRequest,
@@ -45,12 +46,20 @@ export const makeVoyageActs = (reads: VoyageReads) =>
 				),
 			park: (pieceId: string) =>
 				voyages.park(pieceId).pipe(Effect.mapError(toFailure)),
+			removeArtifactSupersession: (request: ArtifactSupersessionRequest) =>
+				voyages
+					.removeArtifactSupersession(request)
+					.pipe(Effect.mapError(toFailure)),
 			rewire: (request: RewireRequest) =>
 				voyages
 					.rewire(request.pieceId, request.dependsOn)
 					.pipe(Effect.mapError(toFailure)),
 			setFocus: (voyageId: string, focused: boolean) =>
 				voyages.setFocus(voyageId, focused).pipe(Effect.mapError(toFailure)),
+			supersedeArtifact: (request: ArtifactSupersessionRequest) =>
+				voyages
+					.supersedeArtifact(request)
+					.pipe(Effect.asVoid, Effect.mapError(toFailure)),
 			unpark: (pieceId: string) =>
 				voyages.unpark(pieceId).pipe(Effect.mapError(toFailure)),
 			// why: an entry the window writes carries no author agent — a board

@@ -61,7 +61,10 @@ it.live("a landed local artifact survives removal of its moorage", () =>
 					title: "reef chart",
 					uri: "reef.svg",
 				}),
-			).toEqual({ ok: true, text: "artifact landed" });
+			).toEqual({
+				ok: true,
+				text: "artifact landed; other current artifacts: none; call supersede if this is a new version",
+			});
 			expect(yield* stateOf(voyage.id, alpha.id)).toBe("done");
 
 			const artifact = (yield* db.Artifact.all())[0];

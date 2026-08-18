@@ -1,9 +1,40 @@
-import { persistenceIt } from "@antumbra/persistence/testing";
+import { Database } from "@antumbra/persistence";
+import {
+	corruptTestArtifactPiece,
+	persistenceIt,
+	temporaryPersistence,
+} from "@antumbra/persistence/testing";
 import { expect } from "@effect/vitest";
 import { Effect } from "effect";
 import { VoyageWorldSource, VoyageWorldSourceLive } from "#voyage-world.ts";
 
 const it = persistenceIt();
+const corrupted = temporaryPersistence();
+
+it.afterAll(corrupted.remove);
+
+const piece = (id: string) => ({
+	charter: "draw the reef",
+	expectation: "a chart lands",
+	id,
+	launchedAt: null,
+	parkedAt: null,
+	role: "cartographer",
+	title: id,
+});
+
+const artifact = (id: string) => ({
+	authorAgentId: "agent-chart",
+	id,
+	supersededByArtifactId: null,
+	title: id,
+	uri: `https://example.test/${id}.svg`,
+});
+
+const readWorldFailure = Effect.gen(function* () {
+	const source = yield* VoyageWorldSource;
+	return yield* Effect.flip(source.read);
+}).pipe(Effect.provide(VoyageWorldSourceLive));
 
 it.effectDB(
 	"owns the aggregate read and preserves voyage birth order",
@@ -36,4 +67,75 @@ it.effectDB(
 			]);
 		}).pipe(Effect.provide(VoyageWorldSourceLive));
 	},
+);
+
+it.effectDB(
+	"refuses stored Artifact lineage that crosses producing Pieces",
+	function* (db) {
+		yield* db.Piece.create(piece("piece-one"));
+		yield* db.Piece.create(piece("piece-two"));
+		yield* db.Artifact.create({
+			...artifact("artifact-one"),
+			pieceId: "piece-one",
+		});
+		yield* db.Artifact.create({
+			...artifact("artifact-two"),
+			pieceId: "piece-two",
+		});
+		yield* db.Artifact.where({ id: "artifact-one" }).update({
+			supersededByArtifactId: "artifact-two",
+		});
+
+		const failure = yield* readWorldFailure;
+		expect(failure).toMatchObject({
+			_tag: "StoredArtifactLineageInvalid",
+			reason: "cross_piece",
+		});
+	},
+);
+
+it.effectDB("refuses stored cyclic Artifact lineage", function* (db) {
+	yield* db.Piece.create(piece("piece-one"));
+	for (const id of ["artifact-one", "artifact-two"]) {
+		yield* db.Artifact.create({
+			...artifact(id),
+			pieceId: "piece-one",
+		});
+	}
+	yield* db.Artifact.where({ id: "artifact-one" }).update({
+		supersededByArtifactId: "artifact-two",
+	});
+	yield* db.Artifact.where({ id: "artifact-two" }).update({
+		supersededByArtifactId: "artifact-one",
+	});
+
+	const failure = yield* readWorldFailure;
+	expect(failure).toMatchObject({
+		_tag: "StoredArtifactLineageInvalid",
+		reason: "cycle",
+	});
+});
+
+it.effect("refuses stored Artifact provenance without a Piece", () =>
+	Effect.gen(function* () {
+		const db = yield* Database;
+		yield* db.Piece.create(piece("piece-one"));
+		yield* db.Artifact.create({
+			...artifact("artifact-orphan"),
+			pieceId: "piece-one",
+		});
+		yield* Effect.sync(() =>
+			corruptTestArtifactPiece(
+				corrupted.database,
+				"artifact-orphan",
+				"piece-missing",
+			),
+		);
+
+		const failure = yield* readWorldFailure;
+		expect(failure).toMatchObject({
+			_tag: "StoredArtifactLineageInvalid",
+			reason: "provenance",
+		});
+	}).pipe(Effect.provide(corrupted.layer)),
 );

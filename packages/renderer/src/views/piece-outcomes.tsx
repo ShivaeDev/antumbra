@@ -23,7 +23,11 @@ const ArtifactChip = ({ artifact }: { readonly artifact: ArtifactView }) => {
 // than as one chip among the outcomes that were done the moment they landed.
 export const PieceOutcomes = ({ piece }: { readonly piece: PieceView }) => {
 	const written = piece.reports.length + piece.artifacts.length;
-	if (written === 0 && piece.changes.length === 0) {
+	if (
+		written === 0 &&
+		piece.artifactHistory.length === 0 &&
+		piece.changes.length === 0
+	) {
 		return null;
 	}
 	return (
@@ -41,6 +45,16 @@ export const PieceOutcomes = ({ piece }: { readonly piece: PieceView }) => {
 			{piece.changes.map((change) => (
 				<ChangeChip change={change} key={change.id} />
 			))}
+			{piece.artifactHistory.length === 0 ? null : (
+				<details>
+					<summary style={mutedStyle}>History</summary>
+					<div style={{ ...rowStyle, flexWrap: "wrap", paddingTop: "0.35rem" }}>
+						{piece.artifactHistory.map((artifact) => (
+							<ArtifactChip artifact={artifact} key={artifact.id} />
+						))}
+					</div>
+				</details>
+			)}
 		</div>
 	);
 };

@@ -14,9 +14,9 @@ export const ChangeLink = ({ change }: { readonly change: ChangeView }) => {
 		return <span style={mutedStyle}>{changeName(change)}</span>;
 	}
 	return (
-		<a href={change.url} style={{ color: toneOf(change), fontSize: "0.75rem" }}>
+		<span style={{ color: toneOf(change), fontSize: "0.75rem" }}>
 			{changeName(change)}
-		</a>
+		</span>
 	);
 };
 

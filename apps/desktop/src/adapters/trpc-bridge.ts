@@ -7,6 +7,10 @@ import {
 import { callTRPCProcedure, getTRPCErrorFromUnknown } from "@trpc/server";
 import { Result, Schema } from "effect";
 import { ipcMain } from "electron";
+import type {
+	DocumentIpcEvent,
+	MainDocumentAuthority,
+} from "#adapters/main-document-authority.ts";
 
 const decodeRequest = Schema.decodeUnknownResult(TrpcRequest);
 
@@ -40,8 +44,32 @@ const respond = async (
 	}
 };
 
-export const registerTrpcBridge = (router: AppRouter): void => {
-	ipcMain.handle(TRPC_CHANNEL, (event, raw: unknown) =>
-		respond(router, event.sender.id, raw),
+type BridgeExecutor = (senderId: number, raw: unknown) => Promise<TrpcResponse>;
+
+interface BridgeEvent extends DocumentIpcEvent {
+	readonly sender: DocumentIpcEvent["sender"] & { readonly id: number };
+}
+
+const unauthorized: TrpcResponse = {
+	error: { code: "UNAUTHORIZED", message: "unauthorized bridge sender" },
+	ok: false,
+};
+
+export const makeTrpcBridgeHandler =
+	(authority: MainDocumentAuthority, execute: BridgeExecutor) =>
+	(event: BridgeEvent, raw: unknown): Promise<TrpcResponse> => {
+		if (!authority.authorizes(event)) {
+			return Promise.resolve(unauthorized);
+		}
+		return execute(event.sender.id, raw);
+	};
+
+export const registerTrpcBridge = (
+	router: AppRouter,
+	authority: MainDocumentAuthority,
+): void => {
+	const handler = makeTrpcBridgeHandler(authority, (senderId, raw) =>
+		respond(router, senderId, raw),
 	);
+	ipcMain.handle(TRPC_CHANNEL, handler);
 };

@@ -1,12 +1,7 @@
 import type { BoardEntryView, PieceState, PieceView } from "@antumbra/contract";
 import { describe, expect, it } from "vitest";
 import { actsFor, captainAtWork } from "#voyages/acts.ts";
-import {
-	artifactHref,
-	authorLabel,
-	dependsOnLabel,
-	whenLabel,
-} from "#voyages/labels.ts";
+import { authorLabel, dependsOnLabel, whenLabel } from "#voyages/labels.ts";
 import { byLadder, bySalience } from "#voyages/order.ts";
 
 const piece = (
@@ -145,14 +140,5 @@ describe("authorLabel", () => {
 describe("whenLabel", () => {
 	it("reads a stamp down to the minute", () => {
 		expect(whenLabel("2026-08-15T09:10:33.000Z")).toBe("2026-08-15 09:10");
-	});
-});
-
-describe("artifactHref", () => {
-	it("links what lives on the web and shows what does not", () => {
-		expect(artifactHref("https://example.test/chart.png")).toBe(
-			"https://example.test/chart.png",
-		);
-		expect(artifactHref("/tmp/reef/chart.png")).toBeUndefined();
 	});
 });

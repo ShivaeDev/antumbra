@@ -1,18 +1,18 @@
 import {
 	type AppRouter,
-	SubscribeRequest,
 	type SubscriptionMessage,
 	subscriptionChannel,
 	TRPC_SUBSCRIBE_CHANNEL,
 	TRPC_UNSUBSCRIBE_CHANNEL,
-	UnsubscribeRequest,
 } from "@antumbra/contract";
 import { callTRPCProcedure, getTRPCErrorFromUnknown } from "@trpc/server";
-import { Result, Schema } from "effect";
-import { ipcMain, type WebContents } from "electron";
-
-const decodeSubscribe = Schema.decodeUnknownResult(SubscribeRequest);
-const decodeUnsubscribe = Schema.decodeUnknownResult(UnsubscribeRequest);
+import { Schema } from "effect";
+import { ipcMain } from "electron";
+import type { MainDocumentAuthority } from "#adapters/main-document-authority.ts";
+import {
+	makeTrpcSubscriptionHandlers,
+	type SubscriptionSender,
+} from "#adapters/trpc-subscription-handlers.ts";
 
 const SubscriptionProcedureResult = Schema.declare(
 	(value): value is AsyncIterable<unknown> =>
@@ -26,7 +26,7 @@ const decodeSubscriptionProcedureResult = Schema.decodeUnknownSync(
 );
 
 const pump = async (
-	sender: WebContents,
+	sender: SubscriptionSender,
 	id: string,
 	iterable: AsyncIterable<unknown>,
 	signal: AbortSignal,
@@ -50,7 +50,9 @@ const pump = async (
 			}
 			send({ data: step.value, type: "data" });
 		}
-		send({ type: "done" });
+		if (!signal.aborted) {
+			send({ type: "done" });
+		}
 	} catch (cause) {
 		if (!signal.aborted) {
 			send({ message: getTRPCErrorFromUnknown(cause).message, type: "error" });
@@ -58,80 +60,27 @@ const pump = async (
 	}
 };
 
-export const registerTrpcSubscriptions = (router: AppRouter): void => {
-	const bySender = new Map<number, Map<string, AbortController>>();
-
-	const dropSender = (senderId: number) => {
-		const live = bySender.get(senderId);
-		if (live === undefined) {
-			return;
-		}
-		bySender.delete(senderId);
-		for (const controller of live.values()) {
-			controller.abort();
-		}
-	};
-
-	const track = (sender: WebContents, id: string) => {
-		const controller = new AbortController();
-		const senderId = sender.id;
-		let live = bySender.get(senderId);
-		if (live === undefined) {
-			live = new Map();
-			bySender.set(senderId, live);
-			sender.once("destroyed", () => dropSender(senderId));
-			// why: a reload resets the renderer context — its listeners are gone,
-			// so every subscription of the old page must die with it.
-			sender.on("did-start-navigation", () => dropSender(senderId));
-		}
-		live.set(id, controller);
-		return controller;
-	};
-
-	ipcMain.on(TRPC_SUBSCRIBE_CHANNEL, (event, raw: unknown) => {
-		const decoded = decodeSubscribe(raw);
-		if (Result.isFailure(decoded)) {
-			return;
-		}
-		const request = decoded.success;
-		const controller = track(event.sender, request.id);
-		void (async () => {
-			try {
-				const iterable = decodeSubscriptionProcedureResult(
-					await callTRPCProcedure({
-						batchIndex: 0,
-						ctx: { senderId: event.sender.id },
-						getRawInput: () => Promise.resolve(request.input),
-						path: request.path,
-						router,
-						signal: controller.signal,
-						type: "subscription",
-					}),
-				);
-				await pump(event.sender, request.id, iterable, controller.signal);
-			} catch (cause) {
-				if (!event.sender.isDestroyed()) {
-					event.sender.send(subscriptionChannel(request.id), {
-						message: getTRPCErrorFromUnknown(cause).message,
-						type: "error",
-					} satisfies SubscriptionMessage);
-				}
-			} finally {
-				bySender.get(event.sender.id)?.delete(request.id);
-			}
-		})();
-	});
-
-	ipcMain.on(TRPC_UNSUBSCRIBE_CHANNEL, (event, raw: unknown) => {
-		const decoded = decodeUnsubscribe(raw);
-		if (Result.isFailure(decoded)) {
-			return;
-		}
-		const live = bySender.get(event.sender.id);
-		const controller = live?.get(decoded.success.id);
-		if (controller !== undefined) {
-			live?.delete(decoded.success.id);
-			controller.abort();
-		}
-	});
+export const registerTrpcSubscriptions = (
+	router: AppRouter,
+	authority: MainDocumentAuthority,
+): void => {
+	const handlers = makeTrpcSubscriptionHandlers(
+		authority,
+		async (sender, request, signal) => {
+			const iterable = decodeSubscriptionProcedureResult(
+				await callTRPCProcedure({
+					batchIndex: 0,
+					ctx: { senderId: sender.id },
+					getRawInput: () => Promise.resolve(request.input),
+					path: request.path,
+					router,
+					signal,
+					type: "subscription",
+				}),
+			);
+			await pump(sender, request.id, iterable, signal);
+		},
+	);
+	ipcMain.on(TRPC_SUBSCRIBE_CHANNEL, handlers.subscribe);
+	ipcMain.on(TRPC_UNSUBSCRIBE_CHANNEL, handlers.unsubscribe);
 };

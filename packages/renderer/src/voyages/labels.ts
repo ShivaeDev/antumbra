@@ -43,9 +43,3 @@ export const authorLabel = (authorAgentId: string | null): string =>
 
 export const whenLabel = (stamp: string): string =>
 	stamp.slice(0, 16).replace("T", " ");
-
-// why: artifacts are visual and for you — one that lives on the web opens,
-// and one that names a path on this machine is shown rather than offered as a
-// link that would go nowhere.
-export const artifactHref = (uri: string): string | undefined =>
-	uri.startsWith("http://") || uri.startsWith("https://") ? uri : undefined;

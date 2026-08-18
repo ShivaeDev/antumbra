@@ -21,6 +21,7 @@
 		"@types/react-dom": "catalog:",
 		"@typescript/native": "catalog:",
 		"effect": "catalog:",
+		"happy-dom": "catalog:",
 		"typescript": "catalog:",
 		"vitest": "catalog:"
 	},
@@ -31,8 +32,11 @@
 		"@trpc/client": "catalog:",
 		"@trpc/server": "catalog:",
 		"effect": "catalog:",
+		"mermaid": "catalog:",
 		"react": "catalog:",
 		"react-dom": "catalog:",
+		"react-markdown": "catalog:",
+		"remark-gfm": "catalog:",
 		"scheduler": "catalog:"
 	}
 }

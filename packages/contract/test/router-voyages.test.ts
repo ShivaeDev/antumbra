@@ -7,6 +7,15 @@ const callerOf = () =>
 	makeAppRouter(makeRuntime()).createCaller({ senderId: 7 });
 
 describe("makeAppRouter, on voyages", () => {
+	it.effect("reads verified Artifact Markdown on demand", () =>
+		Effect.gen(function* () {
+			const artifact = yield* Effect.promise(() =>
+				callerOf().artifactMarkdown({ artifactId: "artifact-chart" }),
+			);
+			expect(artifact.markdown).toBe("# The chart\n");
+		}),
+	);
+
 	it.effect("lists the voyages with their derived state and captain", () =>
 		Effect.gen(function* () {
 			const listed = yield* Effect.promise(() => callerOf().voyages());

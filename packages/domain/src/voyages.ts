@@ -84,6 +84,7 @@ export const VoyageProceduresLive = Layer.effect(VoyageProcedureService)(
 			),
 		);
 		return VoyageProcedureService.of({
+			artifactMarkdown: artifacts.readMarkdown,
 			charterPiece: pieces.charter,
 			hail: (voyageId) => Effect.provide(hailCaptain(voyageId), context),
 			landArtifact: artifacts.land,

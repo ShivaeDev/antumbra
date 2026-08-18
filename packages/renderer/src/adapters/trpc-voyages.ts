@@ -1,4 +1,5 @@
 import type {
+	ArtifactMarkdown,
 	BoardWriteRequest,
 	CharterPieceRequest,
 	OpenVoyageRequest,
@@ -43,6 +44,17 @@ export const watchVoyage = (
 		},
 	);
 	return () => subscription.unsubscribe();
+};
+
+export const readArtifactMarkdown = (
+	artifactId: string,
+	onDone: (artifact: ArtifactMarkdown) => void,
+	onError: OnError,
+): void => {
+	client.artifactMarkdown
+		.query({ artifactId })
+		.then(onDone)
+		.catch((cause: unknown) => onError(toError(cause).message));
 };
 
 export const openVoyage = (

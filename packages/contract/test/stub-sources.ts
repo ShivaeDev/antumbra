@@ -195,6 +195,14 @@ const voyageStub = Layer.succeed(VoyageSource, {
 		request.url === ""
 			? new SightFailure({ message: "github refused: no such change" })
 			: Effect.succeed({ ...shoalWarning, url: request.url }),
+	artifactMarkdown: (artifactId) =>
+		Effect.succeed({
+			artifactId,
+			byteSize: 15,
+			digest: "0".repeat(64),
+			markdown: "# The chart\n",
+			title: "The chart",
+		}),
 	charterPiece: (request) =>
 		Effect.succeed({ pieceId: `piece-for-${request.title}` }),
 	hail: () => Effect.succeed({ agentId: "agent-hailed" }),

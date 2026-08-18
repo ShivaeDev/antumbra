@@ -1,5 +1,10 @@
 export { AppInfo, AppInfoSource } from "#app-info.ts";
 export {
+	ArtifactHistoryView,
+	ArtifactMarkdown,
+	ArtifactView,
+} from "#artifact-views.ts";
+export {
 	type AntumbraBridge,
 	type BridgeRequest,
 	type BridgeSubscribeRequest,
@@ -48,8 +53,6 @@ export {
 	SpawnRequest,
 } from "#sight.ts";
 export {
-	ArtifactHistoryView,
-	ArtifactView,
 	BoardEntryView,
 	ChangeView,
 	CrewMemberView,
@@ -65,6 +68,7 @@ export {
 } from "#voyage-views.ts";
 export {
 	AdoptChangeRequest,
+	ArtifactMarkdownFailure,
 	ArtifactSupersessionRequest,
 	BoardTarget,
 	BoardWriteRequest,

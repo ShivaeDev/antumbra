@@ -2,6 +2,7 @@ import type {
 	ArtifactFailure,
 	ArtifactInput,
 	ArtifactLanding,
+	ArtifactMarkdown,
 	ArtifactSupersessionInput,
 } from "@antumbra/artifacts";
 import type { PrismaError } from "@antumbra/persistence";
@@ -29,6 +30,9 @@ export interface OpenVoyageInput {
 }
 
 export interface VoyageProcedures {
+	readonly artifactMarkdown: (
+		artifactId: string,
+	) => Effect.Effect<ArtifactMarkdown, ArtifactFailure>;
 	readonly charterPiece: (
 		input: CharterInput,
 	) => Effect.Effect<PieceRow, CharterFailure>;

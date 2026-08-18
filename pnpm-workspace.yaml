@@ -26,9 +26,13 @@ catalog:
   effect: 4.0.0-rc.108
   electron: 43.3.0
   electron-builder: 26.15.7
+  happy-dom: 20.11.2
   ignore: 7.0.6
+  mermaid: 11.3.0
   react: 19.2.8
   react-dom: 19.2.8
+  react-markdown: 10.1.0
+  remark-gfm: 4.0.1
   rolldown: 1.2.2
   scheduler: 0.27.0
   typescript: npm:@typescript/typescript6@6.0.2
@@ -39,6 +43,11 @@ savePrefix: ""
 catalogMode: strict
 
 overrides:
+  # Mermaid's newer compatible transitive releases lost the trust evidence
+  # accepted by the no-downgrade policy. These versions satisfy Mermaid 11.3.
+  "@mermaid-js/parser": 0.3.0
+  cytoscape: 3.33.1
+  langium: 3.0.0
   # `@prisma-next/cli-telemetry` asks for `^1.2.3`; 1.2.4 and 1.2.5 dropped the
   # provenance attestation earlier versions carried, which `trustPolicy:
   # no-downgrade` rejects. Drop the pin once an attested release lands.

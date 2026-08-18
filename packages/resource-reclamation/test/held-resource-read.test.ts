@@ -9,6 +9,8 @@ import { Effect, Layer, Ref } from "effect";
 import {
 	type HeldResource,
 	type HeldResourceRead,
+	HeldResourceRead as HeldResourceReadService,
+	ResourceReclaimRunnersLive,
 	ResourceReconciler,
 	ResourceReconcilerLive,
 } from "#index.ts";
@@ -23,7 +25,9 @@ const layer = <E, R>(
 	temporary: TemporaryPersistence,
 	read: Effect.Effect<HeldResourceRead<E>, never, R>,
 ) =>
-	ResourceReconcilerLive(read, new Map(), { cadenceMillis: 60_000 }).pipe(
+	ResourceReconcilerLive({ cadenceMillis: 60_000 }).pipe(
+		Layer.provide(Layer.effect(HeldResourceReadService, read)),
+		Layer.provide(ResourceReclaimRunnersLive(new Map())),
 		Layer.provideMerge(DomainFeedsLive),
 		Layer.provideMerge(temporary.layer),
 	);

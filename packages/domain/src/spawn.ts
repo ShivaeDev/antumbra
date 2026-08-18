@@ -1,12 +1,13 @@
 import { defineIntent, IntentExecution } from "@antumbra/kernel";
 import type { PrismaError } from "@antumbra/persistence";
 import type { AgentBackend, MooragePlan, Runner } from "@antumbra/plugin-api";
+import { UnknownRunnerError } from "@antumbra/plugin-api";
 import { ResourceReconciler } from "@antumbra/resource-reclamation";
 import { Cause, Effect } from "effect";
 import { makeCaptainToolCompiler } from "#captain-tools.ts";
 import { charterDelivery } from "#charter.ts";
 import { makeCrewToolCompiler } from "#crew-tools.ts";
-import { UnknownBackendTag, UnknownRunnerTag } from "#errors.ts";
+import { UnknownBackendTag } from "#errors.ts";
 import type { EventSink, SessionAttachment } from "#fabric.ts";
 import { makePrepareMoorage } from "#moorage-plan.ts";
 import { makeIsActivatedBirth } from "#spawn-activated.ts";
@@ -114,7 +115,7 @@ export const spawnKind = (runtime: SpawnRuntime) =>
 				}
 				const runner = runtime.runners.get(payload.runner);
 				if (runner === undefined) {
-					return yield* new UnknownRunnerTag({ tag: payload.runner });
+					return yield* new UnknownRunnerError({ tag: payload.runner });
 				}
 				yield* registration.ensure(payload);
 				const plan = yield* prepareMoorage(payload, runner).pipe(

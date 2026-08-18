@@ -1,16 +1,16 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database, Writer } from "@antumbra/persistence";
-import type { BerthSite, Runner } from "@antumbra/plugin-api";
+import type { BerthSite } from "@antumbra/plugin-api";
 import {
 	decodeStoredResourceReclaimState,
 	type ResourceReclaimState,
 } from "@antumbra/vocabulary/agent-runtime";
 import { Clock, Effect, PubSub } from "effect";
-import type { HeldResourceRead } from "#held-resource-read.ts";
 import {
 	type ClaimedBerth,
 	claimReclaimableBerths,
 } from "#resource-reclaim-claims.ts";
+import { ResourceReclaimRunners } from "#resource-reclaim-runners.ts";
 
 const site = (berth: ClaimedBerth): BerthSite => ({
 	branch: berth.branch,
@@ -63,55 +63,47 @@ const markDirty = (berth: ClaimedBerth, now: number) =>
 		);
 	});
 
-const runClaim = (
-	runners: ReadonlyMap<string, Runner>,
-	berth: ClaimedBerth,
-	now: number,
-) => {
-	const runner = runners.get(berth.runner);
-	if (runner === undefined) {
-		return Effect.logWarning("resource reclaim remains claimed", {
-			berthId: berth.id,
-			failure: `runner ${berth.runner} is unavailable`,
-		});
-	}
-	return runner.reclaim(site(berth)).pipe(
-		Effect.flatMap((verdict) =>
-			verdict._tag === "reclaimed"
-				? finishReclaim(berth)
-				: markDirty(berth, now),
-		),
-		Effect.catchCause((cause) =>
-			Effect.logWarning("resource reclaim remains claimed", {
-				berthId: berth.id,
-				failure: String(cause),
-			}),
-		),
-	);
-};
-
-export const runResourceReclaimPass = <E>(
-	heldResourceRead: HeldResourceRead<E>,
-	runners: ReadonlyMap<string, Runner>,
-) =>
+const runClaim = (berth: ClaimedBerth, now: number) =>
 	Effect.gen(function* () {
-		const feeds = yield* DomainFeeds;
-		const claims = yield* claimReclaimableBerths(
-			heldResourceRead,
-			new Set(runners.keys()),
-		);
-		const now = yield* Clock.currentTimeMillis;
-		if (claims.length > 0) {
-			yield* PubSub.publish(feeds.fleet, undefined);
-		}
-		yield* Effect.forEach(claims, (berth) => runClaim(runners, berth, now), {
-			concurrency: 1,
-			discard: true,
-		});
-		if (claims.length > 0) {
-			yield* PubSub.publish(feeds.fleet, undefined);
-			yield* Effect.logInfo("resource reclaim pass finished", {
-				claims: claims.length,
+		const runners = yield* ResourceReclaimRunners;
+		const runner = runners.get(berth.runner);
+		if (runner === undefined) {
+			return yield* Effect.logWarning("resource reclaim remains claimed", {
+				berthId: berth.id,
+				failure: `runner ${berth.runner} is unavailable`,
 			});
 		}
+		yield* runner.reclaim(site(berth)).pipe(
+			Effect.flatMap((verdict) =>
+				verdict._tag === "reclaimed"
+					? finishReclaim(berth)
+					: markDirty(berth, now),
+			),
+			Effect.catchCause((cause) =>
+				Effect.logWarning("resource reclaim remains claimed", {
+					berthId: berth.id,
+					failure: String(cause),
+				}),
+			),
+		);
 	});
+
+export const runResourceReclaimPass = Effect.gen(function* () {
+	const feeds = yield* DomainFeeds;
+	const runners = yield* ResourceReclaimRunners;
+	const claims = yield* claimReclaimableBerths(new Set(runners.keys()));
+	const now = yield* Clock.currentTimeMillis;
+	if (claims.length > 0) {
+		yield* PubSub.publish(feeds.fleet, undefined);
+	}
+	yield* Effect.forEach(claims, (berth) => runClaim(berth, now), {
+		concurrency: 1,
+		discard: true,
+	});
+	if (claims.length > 0) {
+		yield* PubSub.publish(feeds.fleet, undefined);
+		yield* Effect.logInfo("resource reclaim pass finished", {
+			claims: claims.length,
+		});
+	}
+});

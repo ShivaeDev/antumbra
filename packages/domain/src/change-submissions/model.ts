@@ -1,6 +1,10 @@
 import type { PrismaError } from "@antumbra/persistence";
 import type { PieceNotFound } from "@antumbra/pieces";
-import type { ChangeHostError, RunnerError } from "@antumbra/plugin-api";
+import type {
+	ChangeHostError,
+	RunnerError,
+	UnknownRunnerError,
+} from "@antumbra/plugin-api";
 import type { StoredResourceReclaimStateInvalid } from "@antumbra/vocabulary/agent-runtime";
 import type {
 	ChangeIdentityCollision,
@@ -14,7 +18,6 @@ import type {
 	ResourceReclaimClaimed,
 	StoredChangeInvalid,
 	UnknownChangeHostTag,
-	UnknownRunnerTag,
 } from "#errors.ts";
 
 export interface SubmitChangeInput {
@@ -47,7 +50,7 @@ export type SubmitChangeFailure =
 	| RunnerError
 	| StoredChangeInvalid
 	| StoredResourceReclaimStateInvalid
-	| UnknownRunnerTag;
+	| UnknownRunnerError;
 
 export type AdoptChangeFailure =
 	| ChangeHostError

@@ -1,7 +1,5 @@
-export type {
-	HeldResource,
-	HeldResourceRead,
-} from "#held-resource-read.ts";
+export type { HeldResource } from "#held-resource-read.ts";
+export { HeldResourceRead } from "#held-resource-read.ts";
 export {
 	ResourceReclaimClaimed,
 	ResourceReclaimClaimInvalid,
@@ -11,6 +9,10 @@ export {
 	ensureBerthResourcesUnclaimed,
 	ensureBranchResourcesUnclaimed,
 } from "#resource-reclaim-guard.ts";
+export {
+	ResourceReclaimRunners,
+	ResourceReclaimRunnersLive,
+} from "#resource-reclaim-runners.ts";
 export {
 	type ResourceReclamationHealth,
 	type ResourceReconcileOptions,

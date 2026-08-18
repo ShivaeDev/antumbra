@@ -28,8 +28,6 @@ export class UnknownBackendTag extends Data.TaggedError("UnknownBackendTag")<{
 	readonly tag: string;
 }> {}
 
-export { UnknownRunnerTag } from "@antumbra/plugin-api";
-
 export class UnknownChangeHostTag extends Data.TaggedError(
 	"UnknownChangeHostTag",
 )<{

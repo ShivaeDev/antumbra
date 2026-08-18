@@ -2,6 +2,7 @@ import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database, Writer } from "@antumbra/persistence";
 import { Pieces } from "@antumbra/pieces";
 import type { ChangeHostRepo } from "@antumbra/plugin-api";
+import { UnknownRunnerError } from "@antumbra/plugin-api";
 import {
 	ensureAgentResourcesUnclaimed,
 	ensureBerthResourcesUnclaimed,
@@ -19,7 +20,6 @@ import {
 	claimingHost,
 	repoNamed,
 } from "#change-submissions/repository.ts";
-import { UnknownRunnerTag } from "#errors.ts";
 
 export interface PreparedSubmission {
 	readonly hostTag: string;
@@ -67,7 +67,7 @@ export const prepareChange = (input: SubmitChangeInput, proposal?: Proposal) =>
 		const berth = yield* writer.write(berthFor(input.agentId, repo));
 		const runner = runners.get(berth.runner);
 		if (runner === undefined) {
-			return yield* new UnknownRunnerTag({ tag: berth.runner });
+			return yield* new UnknownRunnerError({ tag: berth.runner });
 		}
 		const evidence = yield* runner.captureChange(berth);
 		const candidate = preparedChange(

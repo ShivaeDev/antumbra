@@ -12,6 +12,7 @@ import type {
 	ChangeObservation,
 	Runner,
 } from "@antumbra/plugin-api";
+import type { HeldResource } from "@antumbra/resource-reclamation";
 import type { StoredResourceReclaimStateInvalid } from "@antumbra/vocabulary/agent-runtime";
 import { Context, Effect, Layer } from "effect";
 import type { ChangeRow } from "#change-rows.ts";
@@ -20,6 +21,7 @@ import type {
 	ChangeIdentityCollision,
 	ChangeObservationConflict,
 } from "#change-submissions/errors.ts";
+import { readHeldResources } from "#change-submissions/held-resources.ts";
 import type {
 	AdoptChangeFailure,
 	AdoptChangeInput,
@@ -43,6 +45,7 @@ import {
 import type {
 	ResourceReclaimClaimed,
 	StoredChangeInvalid,
+	StoredPieceChangeInvalid,
 	UnknownChangeHostTag,
 } from "#errors.ts";
 
@@ -52,6 +55,13 @@ export class ChangeSubmissions extends Context.Service<
 		readonly adopt: (
 			input: AdoptChangeInput,
 		) => Effect.Effect<ChangeRow, AdoptChangeFailure>;
+		readonly heldResources: (
+			resources: ReadonlyArray<HeldResource>,
+		) => Effect.Effect<
+			ReadonlyMap<string, string>,
+			PrismaError | StoredChangeInvalid | StoredPieceChangeInvalid,
+			WriteExecutors
+		>;
 		readonly observed: (
 			hostTag: string,
 			observations: ReadonlyArray<ChangeObservation>,
@@ -117,6 +127,8 @@ export const ChangeSubmissionsLive = (
 			);
 			return ChangeSubmissions.of({
 				adopt: (input) => Effect.provide(adoptSubmittedChange(input), context),
+				heldResources: (resources) =>
+					Effect.provideService(readHeldResources(resources), Database, db),
 				observed: (hostTag, observations) =>
 					Effect.provide(applyObservations(hostTag, observations), context),
 				open: (input) => Effect.provide(openSubmittedChange(input), context),

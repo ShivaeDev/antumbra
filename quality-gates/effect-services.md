@@ -26,3 +26,14 @@ service-parameter lint rule.
    may inject a narrow fake through a Layer. Neither exception permits service
    plumbing through production business functions. When touched legacy
    plumbing is removed, its active debt-baseline entry leaves with it.
+
+## Detailed guides
+
+- [Semantic ownership](effect-services/semantic-ownership.md) — keep database
+  access and domain inference with the capability that answers the question;
+  distinguish ownership inversion from valid filtering, relation loading, and
+  consumer reshaping.
+
+Quality feedback follows [Improving the gates](README.md#improving-the-gates):
+clarify why, record the reason, and promote only reusable guidance or
+mechanically provable rules.

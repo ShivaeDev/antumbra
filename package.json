@@ -15,7 +15,7 @@
 		"check": "biome check .",
 		"format": "biome check --write .",
 		"lint": "pnpm check && node script/lint.ts && pnpm lint:boundaries",
-		"lint:boundaries": "depcruise --config .dependency-cruiser.cjs apps packages",
+		"lint:boundaries": "node script/boundaries.ts",
 		"test": "pnpm --recursive --if-present test",
 		"test:guards": "vitest run script",
 		"typecheck": "pnpm --recursive --if-present typecheck",

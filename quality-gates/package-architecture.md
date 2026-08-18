@@ -1,12 +1,15 @@
 # Package Architecture
 
 Package manifests and exports own ordinary workspace edges.
-`.dependency-cruiser.cjs` contains only independent architectural
+`script/boundaries/policy/` contains only independent architectural
 prohibitions: boundaries that remain illegal even when a manifest declares
-the dependency. Its runner fails closed when source or dependency coverage is
-empty or any workspace source is absent. This gate judges what an import graph
-cannot: whether a package is one thing, whether it sits in the layer its name
-claims, and whether Effect services have the right composition and lifetime.
+the dependency, plus vocabulary subject access. Its fluent declarations contain
+no path expressions; one compiler produces the dependency-cruiser configuration
+and each rule's causal examples. The runner fails closed when source or
+dependency coverage is empty or any workspace source is absent. This gate
+judges what an import graph cannot: whether a package is one thing, whether it
+sits in the layer its name claims, and whether Effect services have the right
+composition and lifetime.
 
 ## Rules
 

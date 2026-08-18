@@ -1,205 +1,81 @@
 import { spawnSync } from "node:child_process";
 import {
+	globSync,
 	mkdirSync,
 	mkdtempSync,
+	readFileSync,
 	realpathSync,
 	rmSync,
 	writeFileSync,
 } from "node:fs";
-import { createRequire } from "node:module";
 import { tmpdir } from "node:os";
-import { dirname, join } from "node:path";
+import { dirname, join, relative, sep } from "node:path";
 import { fileURLToPath } from "node:url";
-import { Schema } from "effect";
 import { afterEach, describe, expect, it } from "vitest";
+import { compileBoundaryPolicy } from "#boundaries/compiler.ts";
+import { compiledBoundaryPolicy } from "#boundaries/config.ts";
 import { boundaryInventoryFailures } from "#boundaries/inventory.ts";
-
-const BoundaryConfig = Schema.Struct({
-	forbidden: Schema.Array(
-		Schema.Struct({
-			from: Schema.Struct({ path: Schema.String }),
-			name: Schema.String,
-			to: Schema.Struct({ path: Schema.String }),
-		}),
-	),
-});
-
-interface RuleFixture {
-	readonly from: string;
-	readonly illegal: string;
-	readonly legal: string;
-	readonly rule: string;
-}
+import type {
+	BoundaryRule,
+	FixtureEdge,
+	FixtureEndpoint,
+} from "#boundaries/model.ts";
+import { boundaryPolicy } from "#boundaries/policy.ts";
 
 const scriptDirectory = dirname(dirname(fileURLToPath(import.meta.url)));
 const repositoryRoot = dirname(scriptDirectory);
 const entry = join(scriptDirectory, "boundaries.ts");
-const require = createRequire(import.meta.url);
-const rawConfig: unknown = require(
-	join(repositoryRoot, ".dependency-cruiser.cjs"),
-);
-const config = Schema.decodeUnknownSync(BoundaryConfig)(rawConfig);
 const temporaryTrees: string[] = [];
+const firstRule = boundaryPolicy[0];
 
-const matchingRules = (from: string, to: string) =>
-	config.forbidden
-		.filter(
-			(rule) =>
-				new RegExp(rule.from.path).test(from) &&
-				new RegExp(rule.to.path).test(to),
-		)
-		.map(({ name }) => name);
+const endpointPath = (endpoint: FixtureEndpoint) =>
+	endpoint.kind === "workspace-file" ? endpoint.path : endpoint.name;
 
-const fixtures: readonly RuleFixture[] = [
-	{
-		from: "packages/agent-tools/src/tool.ts",
-		illegal: "packages/vocabulary/src/change.ts",
-		legal: "packages/vocabulary/src/board.ts",
-		rule: "agent-tools-uses-board-vocabulary",
-	},
-	{
-		from: "packages/artifacts/src/artifact.ts",
-		illegal: "packages/vocabulary/src/board.ts",
-		legal: "packages/vocabulary/src/agent-runtime.ts",
-		rule: "artifacts-uses-agent-runtime-vocabulary",
-	},
-	{
-		from: "packages/backend-codex/src/backend.ts",
-		illegal: "packages/vocabulary/src/change.ts",
-		legal: "packages/vocabulary/src/session-events.ts",
-		rule: "agent-backends-use-session-event-vocabulary",
-	},
-	{
-		from: "packages/boards/src/board.ts",
-		illegal: "packages/vocabulary/src/change.ts",
-		legal: "packages/vocabulary/src/board.ts",
-		rule: "boards-uses-board-vocabulary",
-	},
-	{
-		from: "packages/plugin-api/src/port.ts",
-		illegal: "packages/vocabulary/src/board.ts",
-		legal: "packages/vocabulary/src/change.ts",
-		rule: "plugin-api-uses-port-vocabulary",
-	},
-	{
-		from: "packages/renderer/src/view.ts",
-		illegal: "packages/vocabulary/src/change.ts",
-		legal: "packages/vocabulary/src/session-events.ts",
-		rule: "renderer-uses-session-event-vocabulary",
-	},
-	{
-		from: "packages/session-event-journal/src/journal.ts",
-		illegal: "packages/vocabulary/src/agent-runtime.ts",
-		legal: "packages/vocabulary/src/session-events.ts",
-		rule: "session-event-journal-uses-session-event-vocabulary",
-	},
-	{
-		from: "apps/desktop/src/main.ts",
-		illegal: "packages/pieces/src/piece.ts",
-		legal: "packages/domain/src/domain.ts",
-		rule: "desktop-uses-domain-facade",
-	},
-	{
-		from: "packages/domain/src/domain.ts",
-		illegal: "packages/git/src/git.ts",
-		legal: "packages/runner-local/src/runner.ts",
-		rule: "git-only-below-branch-adapters",
-	},
-	{
-		from: "packages/github/src/host.ts",
-		illegal: "packages/persistence/src/database.ts",
-		legal: "packages/plugin-api/src/change-host.ts",
-		rule: "github-imports-no-application-state",
-	},
-	{
-		from: "packages/github/src/host.ts",
-		illegal: "packages/contract/src/contract.ts",
-		legal: "packages/plugin-api/src/change-host.ts",
-		rule: "github-imports-no-client-or-agent-surface",
-	},
-	{
-		from: "packages/github/src/host.ts",
-		illegal: "packages/backend-codex/src/backend.ts",
-		legal: "packages/plugin-api/src/change-host.ts",
-		rule: "github-imports-no-sibling-adapters",
-	},
-	{
-		from: "packages/renderer/src/view.ts",
-		illegal: "packages/domain/src/domain.ts",
-		legal: "packages/contract/src/contract.ts",
-		rule: "renderer-imports-no-runtime",
-	},
-	{
-		from: "packages/renderer/src/view.ts",
-		illegal: "packages/github/src/host.ts",
-		legal: "packages/contract/src/contract.ts",
-		rule: "renderer-imports-no-host-infrastructure",
-	},
-	{
-		from: "packages/backend-claude/src/backend.ts",
-		illegal: "packages/domain/src/domain.ts",
-		legal: "packages/plugin-api/src/backend.ts",
-		rule: "adapters-never-import-the-domain",
-	},
-	{
-		from: "packages/domain/src/domain.ts",
-		illegal: "packages/backend-codex/src/backend.ts",
-		legal: "packages/plugin-api/src/backend.ts",
-		rule: "domain-knows-ports-not-providers",
-	},
-	{
-		from: "packages/domain/src/domain.ts",
-		illegal: "electron",
-		legal: "packages/plugin-api/src/backend.ts",
-		rule: "electron-only-in-desktop",
-	},
-	{
-		from: "packages/contract/src/contract.ts",
-		illegal: "packages/plugin-api/src/backend.ts",
-		legal: "packages/vocabulary/src/change.ts",
-		rule: "contract-imports-no-runtime-or-presentation",
-	},
-	{
-		from: "packages/agent-tools/src/tool.ts",
-		illegal: "packages/persistence/src/database.ts",
-		legal: "packages/plugin-api/src/backend.ts",
-		rule: "agent-tools-imports-no-runtime-or-implementation",
-	},
-	{
-		from: "packages/domain/src/domain.ts",
-		illegal: "apps/desktop/src/main.ts",
-		legal: "packages/plugin-api/src/backend.ts",
-		rule: "nothing-imports-desktop",
-	},
-	{
-		from: "packages/domain/src/domain.ts",
-		illegal: "@shivaedev/effect-prisma",
-		legal: "packages/plugin-api/src/backend.ts",
-		rule: "persistence-owns-the-db",
-	},
-];
-
-const seedTree = (fromPackage: string, targetPackage?: string) => {
-	const root = mkdtempSync(join(tmpdir(), "antumbra-boundaries-"));
-	temporaryTrees.push(root);
-	const from = join(root, "packages", fromPackage);
-	mkdirSync(from, { recursive: true });
-	if (targetPackage) {
-		const target = join(root, "packages", targetPackage);
-		mkdirSync(target, { recursive: true });
-		writeFileSync(join(target, "index.mjs"), "export const marker = true;\n");
-		writeFileSync(
-			join(from, "index.mjs"),
-			`export { marker } from "../${targetPackage}/index.mjs";\n`,
-		);
-	} else {
-		writeFileSync(join(from, "index.mjs"), "export const marker = true;\n");
+const moduleSpecifier = (from: string, to: FixtureEndpoint) => {
+	if (to.kind === "external-module") {
+		return to.name;
 	}
-	return realpathSync(root);
+	const path = relative(dirname(from), to.path).split(sep).join("/");
+	return path.startsWith(".") ? path : `./${path}`;
+};
+
+const seedTree = (edges: readonly FixtureEdge[]) => {
+	const root = realpathSync(
+		mkdtempSync(join(tmpdir(), "antumbra-boundaries-")),
+	);
+	temporaryTrees.push(root);
+	const imports = new Map<string, Set<string>>();
+	const workspaceFiles = new Set<string>();
+	for (const edge of edges) {
+		workspaceFiles.add(edge.from.path);
+		if (edge.to.kind === "workspace-file") {
+			workspaceFiles.add(edge.to.path);
+		}
+		const sourceImports = imports.get(edge.from.path) ?? new Set<string>();
+		sourceImports.add(moduleSpecifier(edge.from.path, edge.to));
+		imports.set(edge.from.path, sourceImports);
+	}
+	for (const path of workspaceFiles) {
+		const absolute = join(root, path);
+		mkdirSync(dirname(absolute), { recursive: true });
+		const sourceImports = [...(imports.get(path) ?? [])]
+			.sort()
+			.map((specifier) => `import "${specifier}";`);
+		writeFileSync(
+			absolute,
+			[...sourceImports, "export const marker = true;", ""].join("\n"),
+		);
+	}
+	return root;
 };
 
 const runBoundaries = (root: string) =>
 	spawnSync("node", [entry, root], { encoding: "utf8" });
+
+const replaceRule = (
+	rule: BoundaryRule,
+	change: Partial<Pick<BoundaryRule, "examples" | "rationale">>,
+): BoundaryRule => Object.assign({}, rule, change);
 
 afterEach(() => {
 	for (const tree of temporaryTrees.splice(0)) {
@@ -207,32 +83,109 @@ afterEach(() => {
 	}
 });
 
-describe("dependency boundary policy", () => {
-	it.each(fixtures)("keeps $rule causal", ({ from, illegal, legal, rule }) => {
-		expect(matchingRules(from, illegal)).toContain(rule);
-		expect(matchingRules(from, legal)).not.toContain(rule);
+describe("boundary policy compiler", () => {
+	it("keeps author declarations free of regular expressions", () => {
+		const policyRoot = join(repositoryRoot, "script/boundaries/policy");
+		for (const path of globSync("**/*.ts", { cwd: policyRoot })) {
+			expect(readFileSync(join(policyRoot, path), "utf8")).not.toMatch(
+				/\^|\(\?:|\[\^/,
+			);
+		}
 	});
 
-	it("reports an exact rule through dependency-cruiser", () => {
-		const result = runBoundaries(seedTree("contract", "plugin-api"));
-		expect(result.status).toBe(1);
-		expect(result.stderr).toContain(
-			"contract-imports-no-runtime-or-presentation",
+	it("derives one configuration rule and fixture from every declaration", () => {
+		const ruleNames = compiledBoundaryPolicy.configuration.forbidden.map(
+			({ name }) => name,
+		);
+		const fixtureNames = compiledBoundaryPolicy.fixtures.map(
+			({ rule }) => rule,
+		);
+		expect(ruleNames).toEqual(boundaryPolicy.map(({ name }) => name));
+		expect(fixtureNames).toEqual(ruleNames);
+		expect(new Set(ruleNames).size).toBe(21);
+	});
+
+	it("rejects duplicate rule names precisely", () => {
+		expect(() => compileBoundaryPolicy([firstRule, firstRule])).toThrow(
+			`Boundary rule name is duplicated: ${firstRule.name}`,
 		);
 	});
 
-	it("accepts the nearest legal dependency through dependency-cruiser", () => {
-		const result = runBoundaries(seedTree("contract", "vocabulary"));
+	it("rejects an illegal example that misses its rule", () => {
+		const broken = replaceRule(firstRule, {
+			examples: {
+				...firstRule.examples,
+				illegal: firstRule.examples.legal,
+			},
+		});
+		expect(() => compileBoundaryPolicy([broken])).toThrow(
+			`Illegal example for ${firstRule.name} must violate only that rule`,
+		);
+	});
+
+	it("rejects a legal example that crosses its rule", () => {
+		const broken = replaceRule(firstRule, {
+			examples: {
+				...firstRule.examples,
+				legal: firstRule.examples.illegal,
+			},
+		});
+		expect(() => compileBoundaryPolicy([broken])).toThrow(
+			`Legal example for ${firstRule.name} must pass every rule`,
+		);
+	});
+
+	it("rejects an empty rationale precisely", () => {
+		const broken = replaceRule(firstRule, { rationale: "" });
+		expect(() => compileBoundaryPolicy([broken])).toThrow(
+			`Boundary rule has no rationale: ${firstRule.name}`,
+		);
+	});
+});
+
+describe("dependency boundary policy", () => {
+	it("reports every generated illegal example under its exact rule", () => {
+		const result = runBoundaries(
+			seedTree(compiledBoundaryPolicy.fixtures.map(({ illegal }) => illegal)),
+		);
+		expect(result.status).toBe(1);
+		for (const { illegal, rule } of compiledBoundaryPolicy.fixtures) {
+			expect(result.stderr).toContain(
+				`${rule}: ${illegal.from.path} → ${endpointPath(illegal.to)}`,
+			);
+		}
+		const reportedRules = result.stderr
+			.split("\n")
+			.map((line) => line.slice(0, line.indexOf(":")))
+			.filter((name) =>
+				compiledBoundaryPolicy.fixtures.some(({ rule }) => rule === name),
+			);
+		expect(reportedRules).toHaveLength(21);
+	});
+
+	it("accepts every generated nearest legal example", () => {
+		const result = runBoundaries(
+			seedTree(compiledBoundaryPolicy.fixtures.map(({ legal }) => legal)),
+		);
 		expect(result.status).toBe(0);
-		expect(result.stdout).toContain("2 modules, 1 dependencies cruised");
+		expect(result.stdout).toContain("no dependency violations found");
 	});
 
 	it("fails closed when dependency-cruiser finds no dependencies", () => {
-		const result = runBoundaries(seedTree("contract"));
+		const edge = firstRule.examples.legal;
+		const root = seedTree([edge]);
+		writeFileSync(join(root, edge.from.path), "export const marker = true;\n");
+		const result = runBoundaries(root);
 		expect(result.status).toBe(1);
 		expect(result.stderr).toContain(
 			"dependency-cruiser inspected zero dependencies",
 		);
+	});
+
+	it("fails closed when dependency-cruiser finds no modules", () => {
+		expect(
+			boundaryInventoryFailures({ dependencies: 1, modules: [] }, []),
+		).toEqual(["dependency-cruiser inspected zero modules"]);
 	});
 
 	it("fails closed when an expected workspace source is absent", () => {

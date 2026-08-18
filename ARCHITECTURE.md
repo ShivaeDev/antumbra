@@ -82,8 +82,10 @@ requirements are closed. `packages/git` remains process infrastructure beneath
 Package manifests and exports are the source of truth for ordinary workspace
 edges. `dependency-cruiser` independently rejects architectural edges that a
 declared dependency must not make legal; its runner also fails when it cannot
-inspect every workspace source. The rules live in `.dependency-cruiser.cjs`
-and each carries its rationale. The
+inspect every workspace source. Authors declare each rule and its rationale
+through the fluent policy in `script/boundaries/policy/`; the compiler alone
+owns dependency-cruiser selectors and causal fixtures. The generated config
+entry is `.dependency-cruiser.mjs`. The
 [package-architecture](quality-gates/package-architecture.md) and
 [Effect-services](quality-gates/effect-services.md) gates cover responsibility,
 composition, and lifetime judgments an import graph cannot make.

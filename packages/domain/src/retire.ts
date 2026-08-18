@@ -1,6 +1,7 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { defineIntent, IntentExecution } from "@antumbra/kernel";
 import { Database, type WriteExecutors, Writer } from "@antumbra/persistence";
+import { ResourceReconciler } from "@antumbra/resource-reclamation";
 import {
 	decodeStoredAgentSessionStatus,
 	decodeStoredAgentStatus,
@@ -8,7 +9,6 @@ import {
 import { Effect, Option, PubSub, Schema } from "effect";
 import { AgentNotFound } from "#errors.ts";
 import { SessionFabric } from "#fabric.ts";
-import { ResourceReconciler } from "#resource-reconciler.ts";
 import { type AgentStatus, agentTransition } from "#status.ts";
 
 const RetirePayload = Schema.Struct({ agentId: Schema.String });

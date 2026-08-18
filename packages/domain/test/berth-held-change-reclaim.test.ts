@@ -19,6 +19,12 @@ const HELD = "agent-keeper:held";
 const AT_WORK = "agent-keeper:at-work";
 const SIBLING = "agent-keeper:sibling";
 const ELSEWHERE = "agent-keeper:elsewhere";
+const LANDED_REPLACEMENT = changeOf({
+	headRef: "work/keeper/replacement",
+	id: "change-landed-replacement",
+	repoId: "repo-reef",
+	stage: "landed",
+});
 
 const eventually = <A, E, R>(check: Effect.Effect<A, E, R>) =>
 	check.pipe(
@@ -137,6 +143,25 @@ const moored = (strandedAt: Date) =>
 		);
 	});
 
+const replaceWithdrawnChange = (now: number) =>
+	Effect.gen(function* () {
+		const db = yield* Database;
+		const writer = yield* Writer;
+		yield* writer.write(
+			db.Change.where({ id: "change-open" })
+				.update({ stage: "withdrawn", withdrawnAt: new Date(now) })
+				.pipe(
+					Effect.andThen(db.Change.create(LANDED_REPLACEMENT)),
+					Effect.andThen(
+						db.PieceChange.create({
+							changeId: "change-landed-replacement",
+							pieceId: "piece-open",
+						}),
+					),
+				),
+		);
+	});
+
 const berthStatuses = Effect.gen(function* () {
 	const db = yield* Database;
 	const rows = yield* db.Berth.all();
@@ -211,4 +236,33 @@ it.live(
 				),
 			);
 		}),
+);
+
+it.live("a landed replacement releases its withdrawn branch", () =>
+	Effect.gen(function* () {
+		const temporary = yield* acquireTemporaryPersistence;
+		const scripted = yield* makeScriptedBackend;
+		const recorder = yield* makeScriptedRunner;
+		const now = yield* Clock.currentTimeMillis;
+		yield* moored(new Date(now - EIGHT_DAYS_MILLIS)).pipe(
+			Effect.provide(temporary.layer),
+		);
+		yield* replaceWithdrawnChange(now).pipe(Effect.provide(temporary.layer));
+
+		yield* Effect.provide(
+			Effect.void,
+			domainKernelLayer(
+				temporary,
+				scripted.backend,
+				{},
+				recorder.runner,
+				new Map(),
+				{ cadenceMillis: 60_000 },
+			),
+		);
+
+		yield* berthStatuses
+			.pipe(Effect.tap(expectReclaimed))
+			.pipe(Effect.provide(temporary.layer));
+	}),
 );

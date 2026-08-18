@@ -1,9 +1,9 @@
 import { Database, Writer } from "@antumbra/persistence";
+import { ensureAgentResourcesUnclaimed } from "@antumbra/resource-reclamation";
 import { Clock, Effect, Option } from "effect";
 import { changeRow } from "#change-read.ts";
 import { PreparedChangeInvalid } from "#change-submissions/errors.ts";
 import type { Proposal } from "#change-submissions/model.ts";
-import { ensureAgentResourcesUnclaimed } from "#resource-reclaim-guard.ts";
 
 const requireStoredChange = (id: string) =>
 	Effect.gen(function* () {

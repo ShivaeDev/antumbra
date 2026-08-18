@@ -1,10 +1,10 @@
 import { Database } from "@antumbra/persistence";
 import type { ChangeHost, ChangeHostRepo } from "@antumbra/plugin-api";
+import { ensureAgentResourcesUnclaimed } from "@antumbra/resource-reclamation";
 import { Effect, Option } from "effect";
 import type { RepoBerth } from "#change-submissions/model.ts";
 import { ChangeHostRegistry } from "#change-submissions/registries.ts";
 import { BerthNotFound, NoChangeHost, RepoNotFound } from "#errors.ts";
-import { ensureAgentResourcesUnclaimed } from "#resource-reclaim-guard.ts";
 
 export const claimingHost = (
 	repo: ChangeHostRepo,

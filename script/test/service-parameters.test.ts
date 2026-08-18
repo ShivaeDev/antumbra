@@ -89,6 +89,23 @@ const useDirect = (direct: Direct) => direct;
 		]);
 	});
 
+	it("rejects relaying a runner registry once the registry is a service", () => {
+		const violations = check([
+			source(`
+import { Context } from "effect";
+interface Runner { readonly reclaim: () => Effect.Effect<void> }
+class ResourceReclaimRunners extends Context.Service<
+  ResourceReclaimRunners,
+  ReadonlyMap<string, Runner>
+>()("ResourceReclaimRunners") {}
+type Runners = Context.Service.Shape<typeof ResourceReclaimRunners>;
+const relay = (runners: Runners) => runners;
+`),
+		]);
+		expect(violations).toHaveLength(1);
+		expect(violations[0]?.message).toContain('"runners" of "relay"');
+	});
+
 	it("detects Writer-shaped, sink, sweep, and dispatch bundles", () => {
 		const violations = check([
 			source(`

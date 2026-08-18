@@ -16,6 +16,7 @@ import type {
 	Runner,
 	SessionHandle,
 } from "@antumbra/plugin-api";
+import type { ResourceReconcileOptions } from "@antumbra/resource-reclamation";
 import type { AgentEvent } from "@antumbra/vocabulary/session-events";
 import { NodeServices } from "@effect/platform-node";
 import { Effect, Layer, Option, Queue, Ref, Stream } from "effect";
@@ -24,7 +25,6 @@ import { ChangeWatcherLive } from "#change-watcher.ts";
 import { DispatcherLive, type DispatcherOptions } from "#dispatcher.ts";
 import { AgentDomain, AgentDomainLive } from "#domain.ts";
 import { KernelReachLive } from "#kernel-reach.ts";
-import type { ResourceReconcileOptions } from "#resource-reconciler.ts";
 import { SessionShutdownLive } from "#session-shutdown-live.ts";
 
 export interface ScriptedRunner {

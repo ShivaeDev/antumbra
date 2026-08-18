@@ -1,13 +1,13 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database, Writer } from "@antumbra/persistence";
 import type { ChangeObservation } from "@antumbra/plugin-api";
-import { Clock, Effect, Option, PubSub } from "effect";
-import type { ObservationAttachment } from "#change-submissions/observation-match.ts";
-import { reconcileObservation } from "#change-submissions/observation-projection.ts";
 import {
 	ensureAgentResourcesUnclaimed,
 	ensureBranchResourcesUnclaimed,
-} from "#resource-reclaim-guard.ts";
+} from "@antumbra/resource-reclamation";
+import { Clock, Effect, Option, PubSub } from "effect";
+import type { ObservationAttachment } from "#change-submissions/observation-match.ts";
+import { reconcileObservation } from "#change-submissions/observation-projection.ts";
 
 const ensureObservationUnclaimed = (
 	observation: ChangeObservation,

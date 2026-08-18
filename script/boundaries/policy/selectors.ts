@@ -7,6 +7,7 @@ export const capabilities = packages.named(
 	"artifacts",
 	"reports",
 	"repos",
+	"resource-reclamation",
 	"session-event-journal",
 );
 
@@ -19,6 +20,7 @@ export const domainAndCapabilities = packages.named(
 	"artifacts",
 	"reports",
 	"repos",
+	"resource-reclamation",
 	"session-event-journal",
 );
 

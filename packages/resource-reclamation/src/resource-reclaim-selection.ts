@@ -1,7 +1,7 @@
 import type { BerthStatus } from "@antumbra/vocabulary/agent-runtime";
 import { Effect } from "effect";
-import { ResourceReclaimClaimInvalid } from "#errors.ts";
-import type { readResourceReclaimState } from "#resource-reclaim-state.ts";
+import { ResourceReclaimClaimInvalid } from "#resource-reclaim-errors.ts";
+import type { ResourceReclaimSnapshot } from "#resource-reclaim-state.ts";
 
 export interface ClaimedBerth {
 	readonly agentId: string;
@@ -20,7 +20,6 @@ export interface ResourceReclaimSelection {
 	readonly needsClaim: boolean;
 }
 
-type ResourceReclaimSnapshot = Effect.Success<typeof readResourceReclaimState>;
 type ReclaimBerth = ResourceReclaimSnapshot["berths"][number];
 type ReclaimMoorage = ResourceReclaimSnapshot["moorages"][number];
 

@@ -2,6 +2,13 @@ import { Boards } from "@antumbra/boards";
 import { Database, type WriteExecutors } from "@antumbra/persistence";
 import type { AgentBackend, ChangeHost, Runner } from "@antumbra/plugin-api";
 import { Repos } from "@antumbra/repos";
+import {
+	HeldResourceRead,
+	ResourceReclaimRunnersLive,
+	type ResourceReconcileOptions,
+	ResourceReconciler,
+	ResourceReconcilerLive,
+} from "@antumbra/resource-reclamation";
 import { SessionEventJournal } from "@antumbra/session-event-journal";
 import { decodeStoredAgentStatus } from "@antumbra/vocabulary/agent-runtime";
 import { Effect, Layer } from "effect";
@@ -9,15 +16,11 @@ import { AGENTS_ALIVE_GAUGE, AgentDomain } from "#agent-domain-service.ts";
 import { compileAgentRecoveryDemands } from "#agent-recovery-demands.ts";
 import { makeCaptainToolCompiler } from "#captain-tools.ts";
 import { ChangeProcedureService } from "#change-procedures.ts";
+import { ChangeSubmissions } from "#change-submissions/service.ts";
 import { makeCrewToolCompiler } from "#crew-tools.ts";
 import { makeCurrentSessionReconciler } from "#current-session-reconcile.ts";
 import { domainCapabilities } from "#domain-capabilities.ts";
 import { type EventSink, SessionFabric, SessionFabricLive } from "#fabric.ts";
-import {
-	type ResourceReconcileOptions,
-	ResourceReconciler,
-	ResourceReconcilerLive,
-} from "#resource-reconciler.ts";
 import { makeRetireKind } from "#retire.ts";
 import { makeRecoveryKind } from "#session-recovery.ts";
 import type { SessionRecoveryContext } from "#session-recovery-context.ts";
@@ -29,6 +32,13 @@ import { isVoyageCaptainIdentity } from "#voyage-captain.ts";
 import { VoyageProcedureService } from "#voyage-procedures.ts";
 
 export { AGENTS_ALIVE_GAUGE, AgentDomain } from "#agent-domain-service.ts";
+
+const ChangeHeldResourceReadLive = Layer.effect(
+	HeldResourceRead,
+	Effect.map(ChangeSubmissions, (changes) => ({
+		held: changes.heldResources,
+	})),
+);
 
 // why: built before the kernel starts — the first resource pass must resume
 // durable claims before admission can authorize more work through them.
@@ -108,7 +118,12 @@ export const AgentDomainLive = (
 			};
 		}),
 	).pipe(
-		Layer.provide(ResourceReconcilerLive(runners, reclaimOptions)),
+		Layer.provide(
+			ResourceReconcilerLive(reclaimOptions).pipe(
+				Layer.provide(ChangeHeldResourceReadLive),
+				Layer.provide(ResourceReclaimRunnersLive(runners)),
+			),
+		),
 		Layer.provide(SessionFabricLive),
 		Layer.provideMerge(capabilities),
 	);

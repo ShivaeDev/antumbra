@@ -33,6 +33,10 @@ export class RunnerAuthRequired extends Data.TaggedError("RunnerAuthRequired")<{
 	}
 }
 
+export class UnknownRunnerError extends Data.TaggedError("UnknownRunnerError")<{
+	readonly tag: string;
+}> {}
+
 export type RunnerError =
 	| RunnerAuthRequired
 	| RunnerFailure

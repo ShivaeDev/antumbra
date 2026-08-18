@@ -49,6 +49,7 @@ obligation remains detached until needed. See
 | `packages/kernel`         | Intents, admission scheduling, lifecycle state machines         |
 | `packages/intent-demand`  | Recreates missing mortal Intents from closed durable-demand registrations |
 | `packages/domain-feeds`   | Shared post-commit domain change notifications                  |
+| `packages/resource-reclamation` | Replaceable-resource claims, guards, Runner cleanup, and recovery |
 | `packages/repos`          | Application repository registry and transactional lifecycle     |
 | `packages/pieces`         | Piece acts and their transactional graph invariants             |
 | `packages/boards`         | Board and mailbox storage invariants                            |
@@ -85,6 +86,12 @@ demand and Kernel-owned mortal Intents. Capabilities close typed discovery
 registrations before handing them down; the bridge imports only Kernel and
 Effect, performs an initial pass before runtime readiness, and repeats on wake
 or bounded patience without owning business truth or durable checkpoints.
+
+`resource-reclamation` owns the whole lifecycle of replaceable-resource claims:
+selection, transactional guards and claim creation, Runner cleanup, durable
+settlement, restart recovery, and the mortal reconcile loop. Domain supplies
+Change-backed held-resource evidence through an ambient-transaction read; the
+capability never imports Change truth, Domain, applications, or providers.
 
 Package manifests and exports are the source of truth for ordinary workspace
 edges. `dependency-cruiser` independently rejects architectural edges that a

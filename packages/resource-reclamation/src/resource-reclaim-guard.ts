@@ -1,7 +1,7 @@
 import { Database } from "@antumbra/persistence";
 import { decodeStoredResourceReclaimState } from "@antumbra/vocabulary/agent-runtime";
 import { Effect, Option } from "effect";
-import { ResourceReclaimClaimed } from "#errors.ts";
+import { ResourceReclaimClaimed } from "#resource-reclaim-errors.ts";
 
 const claimed = (
 	resourceKind: "Berth" | "Moorage",

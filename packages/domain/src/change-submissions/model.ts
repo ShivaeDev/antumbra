@@ -1,7 +1,7 @@
-import type { StoredResourceReclaimStateInvalid } from "@antumbra/agent-runtime-vocabulary";
 import type { PrismaError } from "@antumbra/persistence";
 import type { PieceNotFound } from "@antumbra/pieces";
 import type { ChangeHostError, RunnerError } from "@antumbra/plugin-api";
+import type { StoredResourceReclaimStateInvalid } from "@antumbra/vocabulary/agent-runtime";
 import type {
 	ChangeIdentityCollision,
 	ChangeObservationConflict,

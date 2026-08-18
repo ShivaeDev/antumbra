@@ -1,4 +1,4 @@
-import type { BerthStatus } from "@antumbra/agent-runtime-vocabulary";
+import type { BerthStatus } from "@antumbra/vocabulary/agent-runtime";
 import { Effect } from "effect";
 import { ResourceReclaimClaimInvalid } from "#errors.ts";
 import type { readResourceReclaimState } from "#resource-reclaim-state.ts";

@@ -3,7 +3,7 @@ import type {
 	ChangeMergeable,
 	ChangeReview,
 	ChangeStage,
-} from "@antumbra/change-vocabulary";
+} from "@antumbra/vocabulary/change";
 import type { ChangeRow } from "#change-rows.ts";
 import type { VoyageWorld } from "#voyage-rows.ts";
 

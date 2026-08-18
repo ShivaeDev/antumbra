@@ -1,10 +1,10 @@
-import { BoardRegisterSchema } from "@antumbra/board-vocabulary";
+import { BoardRegisterSchema } from "@antumbra/vocabulary/board";
 import {
 	ChangeChecks,
 	ChangeMergeable,
 	ChangeReview,
 	ChangeStage,
-} from "@antumbra/change-vocabulary";
+} from "@antumbra/vocabulary/change";
 import { Schema } from "effect";
 
 export const PieceAgentView = Schema.Struct({

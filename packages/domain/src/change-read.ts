@@ -3,7 +3,7 @@ import {
 	ChangeMergeable,
 	ChangeReview,
 	ChangeStage,
-} from "@antumbra/change-vocabulary";
+} from "@antumbra/vocabulary/change";
 import { Effect, Schema } from "effect";
 import type { ChangeRow } from "#change-rows.ts";
 import { StoredChangeInvalid } from "#errors.ts";

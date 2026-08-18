@@ -42,10 +42,7 @@ obligation remains detached until needed. See
 | ------------------------- | --------------------------------------------------------------- |
 | `apps/desktop`            | Electron shell: windows, native surfaces, composition           |
 | `packages/contract`       | Public typed IDL between renderer and main                      |
-| `packages/agent-runtime-vocabulary` | Agent, Session, Moorage, and Berth statuses (a leaf)     |
-| `packages/board-vocabulary` | Board register and owner-kind vocabulary (a leaf)                |
-| `packages/change-vocabulary` | Neutral Change and PieceChange vocabulary (a leaf)           |
-| `packages/session-events` | The neutral session-event vocabulary every side speaks (a leaf) |
+| `packages/vocabulary`     | Neutral Agent runtime, Board, Change, and Session-event language through explicit subject subpaths (a leaf) |
 | `packages/session-event-journal` | Durable Session event sequencing and native identity correlation |
 | `packages/plugin-api`     | The driven ports: agent backends, runners, plugin registration  |
 | `packages/agent-tools`    | The tools agents act through: schemas and binding, no transport |
@@ -67,13 +64,13 @@ obligation remains detached until needed. See
 
 ## Layers
 
-The workspace is hexagonal, and dependency direction is the point. Vocabulary
-packages are Effect-only leaves. `contract` is the public IDL layer and may
-depend on those lower vocabulary leaves, but never on a capability, port,
-adapter, domain, or app layer. `plugin-api` declares driven ports; `agent-tools`
-defines transport-free tools. Capability packages own business acts beneath
-the application-facing `domain` facade, while adapters implement ports without
-importing the domain.
+The workspace is hexagonal, and dependency direction is the point. The
+Effect-only `vocabulary` leaf exposes explicit subject subpaths and no generic
+root barrel. `contract` is the public IDL layer and may depend on that lower
+leaf, but never on a capability, port, adapter, domain, or app layer.
+`plugin-api` declares driven ports; `agent-tools` defines transport-free tools.
+Capability packages own business acts beneath the application-facing `domain`
+facade, while adapters implement ports without importing the domain.
 
 `apps/desktop` is the only composition root where adapters and use cases meet.
 Effect environments state runtime dependencies, capability services own their

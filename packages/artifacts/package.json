@@ -24,10 +24,10 @@
 		"vitest": "catalog:"
 	},
 	"dependencies": {
-		"@antumbra/agent-runtime-vocabulary": "workspace:*",
 		"@antumbra/domain-feeds": "workspace:*",
 		"@antumbra/persistence": "workspace:*",
 		"@antumbra/pieces": "workspace:*",
+		"@antumbra/vocabulary": "workspace:*",
 		"effect": "catalog:"
 	}
 }

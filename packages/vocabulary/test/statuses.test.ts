@@ -3,7 +3,7 @@ import {
 	decodeStoredAgentStatus,
 	decodeStoredBerthStatus,
 	decodeStoredMoorageStatus,
-} from "@antumbra/agent-runtime-vocabulary";
+} from "@antumbra/vocabulary/agent-runtime";
 import { expect, it } from "@effect/vitest";
 import { Result } from "effect";
 

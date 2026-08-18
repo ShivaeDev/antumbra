@@ -1,7 +1,3 @@
-import type {
-	StoredAgentSessionStatusInvalid,
-	StoredAgentStatusInvalid,
-} from "@antumbra/agent-runtime-vocabulary";
 import type { StoredArtifactLineageInvalid } from "@antumbra/artifacts";
 import {
 	type BoardOwnerNotFound,
@@ -12,6 +8,10 @@ import {
 	smoothBodies,
 } from "@antumbra/boards";
 import type { PrismaError } from "@antumbra/persistence";
+import type {
+	StoredAgentSessionStatusInvalid,
+	StoredAgentStatusInvalid,
+} from "@antumbra/vocabulary/agent-runtime";
 import { Effect, Option } from "effect";
 import { composeCaptainCharter } from "#charter-captain.ts";
 import type { SpawnRefused } from "#deps.ts";

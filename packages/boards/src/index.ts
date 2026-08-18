@@ -1,5 +1,5 @@
-export type { BoardRegister } from "@antumbra/board-vocabulary";
-export { StoredBoardOwnerKindInvalid } from "@antumbra/board-vocabulary";
+export type { BoardRegister } from "@antumbra/vocabulary/board";
+export { StoredBoardOwnerKindInvalid } from "@antumbra/vocabulary/board";
 export {
 	type BoardReadFailure,
 	Boards,

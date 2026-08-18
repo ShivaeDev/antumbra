@@ -1,4 +1,4 @@
-import { decodeStoredAgentStatus } from "@antumbra/agent-runtime-vocabulary";
+import { decodeStoredAgentStatus } from "@antumbra/vocabulary/agent-runtime";
 import { Effect, Option, PubSub } from "effect";
 import { type AgentDeps, provideExecutors } from "#deps.ts";
 import { AgentNotSpawnable } from "#errors.ts";

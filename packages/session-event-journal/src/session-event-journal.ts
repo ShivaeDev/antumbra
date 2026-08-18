@@ -1,6 +1,6 @@
 import { DomainFeeds, type StoredEvent } from "@antumbra/domain-feeds";
 import { Database, type WriteExecutors, Writer } from "@antumbra/persistence";
-import type { AgentEvent } from "@antumbra/session-events";
+import type { AgentEvent } from "@antumbra/vocabulary/session-events";
 import { Context, Data, Effect, Layer, Option, PubSub } from "effect";
 
 class SessionIdentityMissing extends Data.TaggedError(

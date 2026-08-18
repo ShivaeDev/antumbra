@@ -3,11 +3,11 @@ import type {
 	ChangeMergeable,
 	ChangeReview,
 	ChangeStage,
-} from "@antumbra/change-vocabulary";
+} from "@antumbra/vocabulary/change";
 import {
 	type PieceChangePurpose,
 	PieceChangePurpose as PieceChangePurposeSchema,
-} from "@antumbra/change-vocabulary";
+} from "@antumbra/vocabulary/change";
 import { Effect, Schema } from "effect";
 import { StoredPieceChangeInvalid } from "#errors.ts";
 

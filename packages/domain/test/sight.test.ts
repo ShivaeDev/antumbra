@@ -2,7 +2,7 @@ import { SightSource } from "@antumbra/contract";
 import { DomainFeeds, type StoredEvent } from "@antumbra/domain-feeds";
 import { Database, Writer } from "@antumbra/persistence";
 import type { TemporaryPersistence } from "@antumbra/persistence/testing";
-import type { AgentEvent } from "@antumbra/session-events";
+import type { AgentEvent } from "@antumbra/vocabulary/session-events";
 import { expect, it } from "@effect/vitest";
 import { Effect, Fiber, Layer, PubSub, Schedule, Stream } from "effect";
 import { SightSourceLive } from "#sight.ts";

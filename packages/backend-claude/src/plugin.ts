@@ -6,7 +6,7 @@ import {
 	type OpenSessionOptions,
 	type SessionHandle,
 } from "@antumbra/plugin-api";
-import type { AgentEvent } from "@antumbra/session-events";
+import type { AgentEvent } from "@antumbra/vocabulary/session-events";
 import { type Context, Effect, Option, Queue, Ref, Stream } from "effect";
 import { openRawSession, type RawSession } from "#adapters/session.ts";
 import { toAgentEvents } from "#mapping.ts";

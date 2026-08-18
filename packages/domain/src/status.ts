@@ -1,7 +1,7 @@
 import {
 	type AgentStatus,
 	AgentStatusSchema,
-} from "@antumbra/agent-runtime-vocabulary";
+} from "@antumbra/vocabulary/agent-runtime";
 import { Data, Result } from "effect";
 
 export { type AgentStatus, AgentStatusSchema };

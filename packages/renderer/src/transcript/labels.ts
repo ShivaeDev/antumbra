@@ -2,7 +2,7 @@ import type {
 	SessionOpened,
 	TurnCompleted,
 	UsageEvent,
-} from "@antumbra/session-events";
+} from "@antumbra/vocabulary/session-events";
 
 const seconds = (ms: number): string => `${(ms / 1000).toFixed(1)}s`;
 

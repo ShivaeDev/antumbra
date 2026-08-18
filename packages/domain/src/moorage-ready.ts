@@ -1,9 +1,9 @@
+import { DomainFeeds } from "@antumbra/domain-feeds";
+import { Database, type WriteExecutors, Writer } from "@antumbra/persistence";
 import {
 	decodeStoredBerthStatus,
 	decodeStoredMoorageStatus,
-} from "@antumbra/agent-runtime-vocabulary";
-import { DomainFeeds } from "@antumbra/domain-feeds";
-import { Database, type WriteExecutors, Writer } from "@antumbra/persistence";
+} from "@antumbra/vocabulary/agent-runtime";
 import { Effect, Option, PubSub } from "effect";
 import { ensureAgentResourcesUnclaimed } from "#resource-reclaim-guard.ts";
 import type { SpawnFields } from "#spawn.ts";

@@ -1,4 +1,4 @@
-import { BoardRegisterSchema } from "@antumbra/board-vocabulary";
+import { BoardRegisterSchema } from "@antumbra/vocabulary/board";
 import { Effect, Option, Schema } from "effect";
 import { StoredBoardEntryInvalid } from "#errors.ts";
 import {

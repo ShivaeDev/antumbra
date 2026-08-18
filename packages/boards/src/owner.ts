@@ -1,5 +1,5 @@
-import { decodeStoredBoardOwnerKind } from "@antumbra/board-vocabulary";
 import { Database } from "@antumbra/persistence";
+import { decodeStoredBoardOwnerKind } from "@antumbra/vocabulary/board";
 import { Effect, Option } from "effect";
 import { BoardOwnerNotFound } from "#errors.ts";
 import { type BoardOwner, BoardScope } from "#model.ts";

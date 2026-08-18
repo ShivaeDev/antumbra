@@ -1,10 +1,10 @@
-import { decodeStoredAgentStatus } from "@antumbra/agent-runtime-vocabulary";
 import { Boards } from "@antumbra/boards";
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database, type WriteExecutors, Writer } from "@antumbra/persistence";
 import type { AgentBackend, ChangeHost, Runner } from "@antumbra/plugin-api";
 import { Repos } from "@antumbra/repos";
 import { SessionEventJournal } from "@antumbra/session-event-journal";
+import { decodeStoredAgentStatus } from "@antumbra/vocabulary/agent-runtime";
 import { Effect, Layer } from "effect";
 import { AGENTS_ALIVE_GAUGE, AgentDomain } from "#agent-domain-service.ts";
 import { makeCaptainToolCompiler } from "#captain-tools.ts";

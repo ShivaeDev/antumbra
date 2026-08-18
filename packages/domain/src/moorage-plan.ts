@@ -1,10 +1,10 @@
-import {
-	decodeStoredBerthStatus,
-	decodeStoredMoorageStatus,
-} from "@antumbra/agent-runtime-vocabulary";
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database, type WriteExecutors, Writer } from "@antumbra/persistence";
 import type { MooragePlan, Runner } from "@antumbra/plugin-api";
+import {
+	decodeStoredBerthStatus,
+	decodeStoredMoorageStatus,
+} from "@antumbra/vocabulary/agent-runtime";
 import { Effect, Option, PubSub } from "effect";
 import { MooragePlanConflict } from "#errors.ts";
 import { ensureAgentResourcesUnclaimed } from "#resource-reclaim-guard.ts";

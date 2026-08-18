@@ -1,4 +1,4 @@
-import { BoardRegisterSchema } from "@antumbra/board-vocabulary";
+import { BoardRegisterSchema } from "@antumbra/vocabulary/board";
 import { Context, type Effect, Schema, type Stream } from "effect";
 import type { QuayView } from "#quay-views.ts";
 import type { SightFailure } from "#sight.ts";

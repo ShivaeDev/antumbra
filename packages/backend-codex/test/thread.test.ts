@@ -1,5 +1,5 @@
 import type { SessionHandle } from "@antumbra/plugin-api";
-import type { AgentEvent } from "@antumbra/session-events";
+import type { AgentEvent } from "@antumbra/vocabulary/session-events";
 import { expect, it } from "@effect/vitest";
 import {
 	Effect,

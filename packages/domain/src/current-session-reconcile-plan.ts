@@ -5,7 +5,7 @@ import {
 	decodeStoredAgentStatus,
 	type StoredAgentSessionStatusInvalid,
 	type StoredAgentStatusInvalid,
-} from "@antumbra/agent-runtime-vocabulary";
+} from "@antumbra/vocabulary/agent-runtime";
 import { Result } from "effect";
 import { newestSession } from "#current-session-order.ts";
 import { CurrentSessionInvalid } from "#errors.ts";

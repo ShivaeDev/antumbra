@@ -25,18 +25,13 @@ const capabilityPackages = [
 		name: "pieces",
 	},
 	{
-		allowed: ["board-vocabulary", "persistence", "domain-feeds"],
+		allowed: ["vocabulary", "persistence", "domain-feeds"],
 		rationale:
 			"Boards owns durable board and mailbox invariants. It may name the neutral Board vocabulary, write through persistence, and publish through domain-feeds, but it never reaches up into the domain facade, ports, adapters, or app.",
 		name: "boards",
 	},
 	{
-		allowed: [
-			"agent-runtime-vocabulary",
-			"pieces",
-			"persistence",
-			"domain-feeds",
-		],
+		allowed: ["vocabulary", "pieces", "persistence", "domain-feeds"],
 		rationale:
 			"Artifacts owns durable outcome publication. It may decode Moorage ownership through the runtime vocabulary, validate pieces, write through persistence, and publish through domain-feeds, but it never reaches up into the domain facade, ports, adapters, or app.",
 		name: "artifacts",
@@ -54,7 +49,7 @@ const capabilityPackages = [
 		name: "repos",
 	},
 	{
-		allowed: ["session-events", "persistence", "domain-feeds"],
+		allowed: ["vocabulary", "persistence", "domain-feeds"],
 		rationale:
 			"The Session event journal owns durable event sequencing and native Session identity correlation. It may speak the neutral Session event vocabulary, write through persistence, and publish through domain-feeds, but it never reaches up into the domain facade, ports, adapters, or app.",
 		name: "session-event-journal",
@@ -72,30 +67,78 @@ const capabilityRule = ({ allowed, name, rationale }) =>
 const capabilityNames = capabilityPackages.map(({ name }) => name);
 const capabilityPattern = alternatives(capabilityNames);
 const domainPattern = alternatives(["domain", ...capabilityNames]);
+const vocabularyConsumers = [
+	{
+		allowed: ["board"],
+		from: "^packages/agent-tools(?:/|$)",
+		name: "agent-tools-uses-board-vocabulary",
+		rationale:
+			"Agent tools name Board inputs, not unrelated runtime, Change, or Session-event vocabulary.",
+	},
+	{
+		allowed: ["agent-runtime"],
+		from: "^packages/artifacts(?:/|$)",
+		name: "artifacts-uses-agent-runtime-vocabulary",
+		rationale:
+			"Artifacts decode Moorage ownership and do not own Board, Change, or Session-event language.",
+	},
+	{
+		allowed: ["session-events"],
+		from: "^packages/backend-(claude|codex)(?:/|$)",
+		name: "agent-backends-use-session-event-vocabulary",
+		rationale:
+			"Agent backends translate provider traffic into neutral Session events and do not consume unrelated domain vocabulary.",
+	},
+	{
+		allowed: ["board"],
+		from: "^packages/boards(?:/|$)",
+		name: "boards-uses-board-vocabulary",
+		rationale:
+			"Boards owns Board storage invariants and names only the Board subject from the shared vocabulary leaf.",
+	},
+	{
+		allowed: ["change", "session-events"],
+		from: "^packages/plugin-api(?:/|$)",
+		name: "plugin-api-uses-port-vocabulary",
+		rationale:
+			"The driven ports name Change and Session-event vocabulary, not application runtime or Board subjects.",
+	},
+	{
+		allowed: ["session-events"],
+		from: "^packages/renderer(?:/|$)",
+		name: "renderer-uses-session-event-vocabulary",
+		rationale:
+			"The renderer receives other public words through contract; Session events are its only direct vocabulary subject.",
+	},
+	{
+		allowed: ["session-events"],
+		from: "^packages/session-event-journal(?:/|$)",
+		name: "session-event-journal-uses-session-event-vocabulary",
+		rationale:
+			"The Session event journal persists neutral Session events and does not consume unrelated vocabulary subjects.",
+	},
+];
+
+const vocabularyConsumerRule = ({ allowed, from, name, rationale }) =>
+	rule({
+		from,
+		name,
+		rationale,
+		to: `^packages/vocabulary/src/(?!${alternatives(
+			allowed.map((subject) => `${subject}(?:\\.ts|/)`),
+		)})`,
+	});
 
 module.exports = {
 	forbidden: [
 		...capabilityPackages.map(capabilityRule),
+		...vocabularyConsumers.map(vocabularyConsumerRule),
 		rule({
 			rationale:
-				"Agent runtime vocabulary is the neutral language shared by domain recovery and artifact ownership. It stays a leaf so neither capability drags the other's implementation with it.",
-			from: "^packages/agent-runtime-vocabulary",
-			name: "agent-runtime-vocabulary-is-a-leaf",
-			to: "^packages/(?!agent-runtime-vocabulary)|^apps/",
-		}),
-		rule({
-			rationale:
-				"Board vocabulary is the neutral language shared by Board storage, agent tools, and public views. It stays a leaf so no consumer drags another layer with it.",
-			from: "^packages/board-vocabulary",
-			name: "board-vocabulary-is-a-leaf",
-			to: "^packages/(?!board-vocabulary)|^apps/",
-		}),
-		rule({
-			rationale:
-				"Change vocabulary is the neutral language shared by hosts, durable projections, the public contract, and views. It stays a leaf so no consumer drags another layer with it.",
-			from: "^packages/change-vocabulary",
-			name: "change-vocabulary-is-a-leaf",
-			to: "^packages/(?!change-vocabulary)|^apps/",
+				"Vocabulary is Antumbra's neutral language leaf. Explicit subject subpaths let capabilities, ports, contracts, and views share canonical words without importing one another or creating a generic root barrel.",
+			from: "^packages/vocabulary(?:/|$)",
+			name: "vocabulary-is-a-leaf",
+			to: "^packages/(?!vocabulary(?:/|$))|^apps/",
 		}),
 		rule({
 			rationale:
@@ -127,10 +170,10 @@ module.exports = {
 		}),
 		rule({
 			rationale:
-				"The renderer is a pure web app: public vocabulary reaches it through contract, and session-events is its only direct vocabulary dependency. Electron, the desktop shell, and every other workspace package are out of bounds — this keeps windows disposable and a future remote surface possible.",
+				"The renderer is a pure web app: public vocabulary reaches it through contract, and vocabulary/session-events is its only direct vocabulary dependency. Electron, the desktop shell, and every other workspace package are out of bounds — this keeps windows disposable and a future remote surface possible.",
 			from: "^packages/renderer",
 			name: "renderer-pure-web",
-			to: `(^|/)electron(/|$)|${allowOnly(["renderer", "contract", "session-events"])}`,
+			to: `(^|/)electron(/|$)|${allowOnly(["renderer", "contract", "vocabulary"])}`,
 		}),
 		rule({
 			rationale:
@@ -155,24 +198,17 @@ module.exports = {
 		}),
 		rule({
 			rationale:
-				"The contract package is the IDL. It may name neutral Board, Change, and session-event vocabularies, but imports no capability, adapter, domain, or app layer.",
+				"The contract package is the IDL. It may name subjects from the neutral vocabulary leaf, but imports no capability, adapter, domain, or app layer.",
 			from: "^packages/contract",
 			name: "contract-has-only-vocabulary-dependency",
-			to: "^packages/(?!contract(?:/|$)|board-vocabulary(?:/|$)|change-vocabulary(?:/|$)|session-events(?:/|$))|^apps/",
+			to: "^packages/(?!contract(?:/|$)|vocabulary(?:/|$))|^apps/",
 		}),
 		rule({
 			rationale:
-				"The session-events package is the vocabulary every side speaks — ports, domain, and the renderer alike. It stays a leaf so importing it never drags a layer along.",
-			from: "^packages/session-events",
-			name: "session-events-is-a-leaf",
-			to: "^packages/(?!session-events)|^apps/",
-		}),
-		rule({
-			rationale:
-				"The tools an agent acts through are transport-free: they name the port and neutral Board vocabulary, never a capability, provider, or harness.",
+				"The tools an agent acts through are transport-free: they name the port and neutral vocabulary/board subject, never a capability, provider, or harness.",
 			from: "^packages/agent-tools",
 			name: "agent-tools-knows-only-the-port",
-			to: "^packages/(?!agent-tools(?:/|$)|board-vocabulary(?:/|$)|plugin-api(?:/|$))|^apps/",
+			to: "^packages/(?!agent-tools(?:/|$)|vocabulary(?:/|$)|plugin-api(?:/|$))|^apps/",
 		}),
 		rule({
 			rationale:

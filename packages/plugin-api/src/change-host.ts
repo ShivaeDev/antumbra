@@ -3,7 +3,7 @@ import type {
 	ChangeMergeable,
 	ChangeReview,
 	ChangeStage,
-} from "@antumbra/change-vocabulary";
+} from "@antumbra/vocabulary/change";
 import { Data, type Effect } from "effect";
 
 export interface ChangeHostRepo {

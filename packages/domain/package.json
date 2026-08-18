@@ -25,11 +25,9 @@
 		"vitest": "catalog:"
 	},
 	"dependencies": {
-		"@antumbra/agent-runtime-vocabulary": "workspace:*",
 		"@antumbra/agent-tools": "workspace:*",
 		"@antumbra/artifacts": "workspace:*",
 		"@antumbra/boards": "workspace:*",
-		"@antumbra/change-vocabulary": "workspace:*",
 		"@antumbra/contract": "workspace:*",
 		"@antumbra/domain-feeds": "workspace:*",
 		"@antumbra/kernel": "workspace:*",
@@ -39,7 +37,7 @@
 		"@antumbra/reports": "workspace:*",
 		"@antumbra/repos": "workspace:*",
 		"@antumbra/session-event-journal": "workspace:*",
-		"@antumbra/session-events": "workspace:*",
+		"@antumbra/vocabulary": "workspace:*",
 		"effect": "catalog:"
 	}
 }

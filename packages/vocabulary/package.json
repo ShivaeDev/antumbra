@@ -1,10 +1,13 @@
 {
-	"name": "@antumbra/session-events",
+	"name": "@antumbra/vocabulary",
 	"version": "0.0.0",
 	"private": true,
 	"type": "module",
 	"exports": {
-		".": "./src/index.ts"
+		"./agent-runtime": "./src/agent-runtime.ts",
+		"./board": "./src/board.ts",
+		"./change": "./src/change.ts",
+		"./session-events": "./src/session-events.ts"
 	},
 	"imports": {
 		"#*": "./src/*"

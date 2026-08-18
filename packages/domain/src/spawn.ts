@@ -1,36 +1,45 @@
 import { defineIntent, IntentExecution } from "@antumbra/kernel";
-import type { MooragePlan, Runner } from "@antumbra/plugin-api";
+import type { PrismaError } from "@antumbra/persistence";
+import type { AgentBackend, MooragePlan, Runner } from "@antumbra/plugin-api";
 import { Cause, Effect } from "effect";
 import { makeCaptainToolCompiler } from "#captain-tools.ts";
 import { charterDelivery } from "#charter.ts";
 import { makeCrewToolCompiler } from "#crew-tools.ts";
-import type { AgentDeps } from "#deps.ts";
 import { UnknownBackendTag, UnknownRunnerTag } from "#errors.ts";
-import type { SessionAttachment } from "#fabric.ts";
+import type { EventSink, SessionAttachment } from "#fabric.ts";
 import { makePrepareMoorage } from "#moorage-plan.ts";
 import { ResourceReconciler } from "#resource-reconciler.ts";
 import { makeIsActivatedBirth } from "#spawn-activated.ts";
 import { makeIsSpawnCancelling } from "#spawn-cancellation.ts";
 import { type SpawnFields, SpawnPayload } from "#spawn-fields.ts";
 import { spawnSessionIdentity } from "#spawn-identity.ts";
+import { spawnRegistration } from "#spawn-registration.ts";
 import { spawnResolution } from "#spawn-resolution.ts";
-import { ensureAgentRow } from "#spawn-rows.ts";
 import { makeSpawnSessionStart } from "#spawn-session-start.ts";
 import { isVoyageCaptainIdentity } from "#voyage-captain.ts";
 
 export type { SpawnFields } from "#spawn-fields.ts";
 
-export const makeSpawnKind = Effect.gen(function* () {
-	const delivery = yield* charterDelivery;
-	const compileCaptainTools = yield* makeCaptainToolCompiler;
-	const compileCrewTools = yield* makeCrewToolCompiler;
-	const prepareMoorage = yield* makePrepareMoorage;
-	const isActivatedBirth = yield* makeIsActivatedBirth;
-	const isCancelling = yield* makeIsSpawnCancelling;
-	const resources = yield* ResourceReconciler;
-	const resolution = yield* spawnResolution;
-	const startSession = yield* makeSpawnSessionStart;
-	return (deps: AgentDeps) => {
+interface SpawnRuntime {
+	readonly backends: ReadonlyMap<string, AgentBackend>;
+	readonly runners: ReadonlyMap<string, Runner>;
+	readonly sinkFor: (
+		sessionId: string,
+	) => Effect.Effect<EventSink, PrismaError>;
+}
+
+export const spawnKind = (runtime: SpawnRuntime) =>
+	Effect.gen(function* () {
+		const delivery = yield* charterDelivery;
+		const compileCaptainTools = yield* makeCaptainToolCompiler;
+		const compileCrewTools = yield* makeCrewToolCompiler;
+		const prepareMoorage = yield* makePrepareMoorage;
+		const isActivatedBirth = yield* makeIsActivatedBirth;
+		const isCancelling = yield* makeIsSpawnCancelling;
+		const registration = yield* spawnRegistration;
+		const resources = yield* ResourceReconciler;
+		const resolution = yield* spawnResolution;
+		const startSession = yield* makeSpawnSessionStart;
 		const admitSpawnSession = (
 			payload: SpawnFields,
 			attachment: SessionAttachment,
@@ -99,15 +108,15 @@ export const makeSpawnKind = Effect.gen(function* () {
 				if (yield* isActivatedBirth(payload)) {
 					return;
 				}
-				const backend = deps.backends.get(payload.backend);
+				const backend = runtime.backends.get(payload.backend);
 				if (backend === undefined) {
 					return yield* new UnknownBackendTag({ tag: payload.backend });
 				}
-				const runner = deps.runners.get(payload.runner);
+				const runner = runtime.runners.get(payload.runner);
 				if (runner === undefined) {
 					return yield* new UnknownRunnerTag({ tag: payload.runner });
 				}
-				yield* ensureAgentRow(deps, payload);
+				yield* registration.ensure(payload);
 				const plan = yield* prepareMoorage(payload, runner).pipe(
 					Effect.onError(settleUnlessTeardown(payload)),
 				);
@@ -119,7 +128,7 @@ export const makeSpawnKind = Effect.gen(function* () {
 					backend,
 					plan,
 					toolsFor(payload),
-					deps.sinkFor(payload.sessionId),
+					runtime.sinkFor(payload.sessionId),
 					(attachment) => admitSpawnSession(payload, attachment),
 					settleUnlessTeardown(payload),
 				);
@@ -133,5 +142,4 @@ export const makeSpawnKind = Effect.gen(function* () {
 			reclaim: "requeue",
 			tag: "agent/spawn",
 		});
-	};
-});
+	});

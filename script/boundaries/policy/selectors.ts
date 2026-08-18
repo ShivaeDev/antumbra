@@ -13,12 +13,18 @@ export const capabilities = packages.named(
 export const domainAndCapabilities = packages.named(
 	"domain",
 	"domain-feeds",
+	"intent-demand",
 	"pieces",
 	"boards",
 	"artifacts",
 	"reports",
 	"repos",
 	"session-event-journal",
+);
+
+export const domainAndCapabilitiesExceptIntentDemand = anyOf(
+	packages.named("domain"),
+	capabilities,
 );
 
 export const agentBackends = packages.inFamily("backend");

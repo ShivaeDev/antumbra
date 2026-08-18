@@ -159,6 +159,9 @@ importers:
       '@antumbra/github':
         specifier: workspace:*
         version: link:../../packages/github
+      '@antumbra/intent-demand':
+        specifier: workspace:*
+        version: link:../../packages/intent-demand
       '@antumbra/kernel':
         specifier: workspace:*
         version: link:../../packages/kernel
@@ -420,6 +423,9 @@ importers:
       '@antumbra/domain-feeds':
         specifier: workspace:*
         version: link:../domain-feeds
+      '@antumbra/intent-demand':
+        specifier: workspace:*
+        version: link:../intent-demand
       '@antumbra/kernel':
         specifier: workspace:*
         version: link:../kernel
@@ -519,6 +525,31 @@ importers:
       '@effect/platform-node':
         specifier: 'catalog:'
         version: 4.0.0-rc.108(effect@4.0.0-rc.108)(ioredis@5.11.1(supports-color@7.2.0))
+      effect:
+        specifier: 'catalog:'
+        version: 4.0.0-rc.108
+    devDependencies:
+      '@effect/vitest':
+        specifier: 'catalog:'
+        version: 4.0.0-rc.108(effect@4.0.0-rc.108)(vitest@4.1.9(@types/node@24.10.1)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0)))
+      '@types/node':
+        specifier: 'catalog:'
+        version: 24.10.1
+      '@typescript/native':
+        specifier: 'catalog:'
+        version: typescript@7.0.2
+      typescript:
+        specifier: 'catalog:'
+        version: '@typescript/typescript6@6.0.2'
+      vitest:
+        specifier: 'catalog:'
+        version: 4.1.9(@types/node@24.10.1)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0))
+
+  packages/intent-demand:
+    dependencies:
+      '@antumbra/kernel':
+        specifier: workspace:*
+        version: link:../kernel
       effect:
         specifier: 'catalog:'
         version: 4.0.0-rc.108

@@ -47,6 +47,7 @@ obligation remains detached until needed. See
 | `packages/plugin-api`     | The driven ports: agent backends, runners, plugin registration  |
 | `packages/agent-tools`    | The tools agents act through: schemas and binding, no transport |
 | `packages/kernel`         | Intents, admission scheduling, lifecycle state machines         |
+| `packages/intent-demand`  | Recreates missing mortal Intents from closed durable-demand registrations |
 | `packages/domain-feeds`   | Shared post-commit domain change notifications                  |
 | `packages/repos`          | Application repository registry and transactional lifecycle     |
 | `packages/pieces`         | Piece acts and their transactional graph invariants             |
@@ -78,6 +79,12 @@ transactions and post-commit signals, and Layers select implementations and
 lifetimes. Foreign callbacks cross adapter boundaries only after their Effect
 requirements are closed. `packages/git` remains process infrastructure beneath
 `runner-local`.
+
+`intent-demand` is the process-lifetime bridge between capability-owned durable
+demand and Kernel-owned mortal Intents. Capabilities close typed discovery
+registrations before handing them down; the bridge imports only Kernel and
+Effect, performs an initial pass before runtime readiness, and repeats on wake
+or bounded patience without owning business truth or durable checkpoints.
 
 Package manifests and exports are the source of truth for ordinary workspace
 edges. `dependency-cruiser` independently rejects architectural edges that a

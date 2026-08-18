@@ -1,4 +1,5 @@
 import { dirname, join } from "node:path";
+import { IntentDemandLive } from "@antumbra/intent-demand";
 import { KernelLive, type KernelOptions } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
 import {
@@ -24,7 +25,6 @@ import { DispatcherLive, type DispatcherOptions } from "#dispatcher.ts";
 import { AgentDomain, AgentDomainLive } from "#domain.ts";
 import { KernelReachLive } from "#kernel-reach.ts";
 import type { ResourceReconcileOptions } from "#resource-reconciler.ts";
-import { AgentRecoveryLive } from "#session-recovery-live.ts";
 import { SessionShutdownLive } from "#session-shutdown-live.ts";
 
 export interface ScriptedRunner {
@@ -205,7 +205,16 @@ export const domainKernelLayer = (
 	changeHosts: ReadonlyMap<string, ChangeHost> = new Map(),
 	reclaim: Partial<ResourceReconcileOptions> = {},
 ) =>
-	Layer.mergeAll(KernelReachLive, AgentRecoveryLive, SessionShutdownLive).pipe(
+	Layer.mergeAll(
+		KernelReachLive,
+		Layer.unwrap(
+			Effect.gen(function* () {
+				const domain = yield* AgentDomain;
+				return IntentDemandLive(domain.intentDemands);
+			}),
+		),
+		SessionShutdownLive,
+	).pipe(
 		Layer.provideMerge(
 			Layer.unwrap(
 				Effect.gen(function* () {

@@ -30,6 +30,7 @@
 		"@antumbra/boards": "workspace:*",
 		"@antumbra/contract": "workspace:*",
 		"@antumbra/domain-feeds": "workspace:*",
+		"@antumbra/intent-demand": "workspace:*",
 		"@antumbra/kernel": "workspace:*",
 		"@antumbra/persistence": "workspace:*",
 		"@antumbra/pieces": "workspace:*",

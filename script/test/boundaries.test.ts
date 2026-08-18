@@ -102,7 +102,7 @@ describe("boundary policy compiler", () => {
 		);
 		expect(ruleNames).toEqual(boundaryPolicy.map(({ name }) => name));
 		expect(fixtureNames).toEqual(ruleNames);
-		expect(new Set(ruleNames).size).toBe(21);
+		expect(new Set(ruleNames).size).toBe(22);
 	});
 
 	it("rejects duplicate rule names precisely", () => {
@@ -160,7 +160,7 @@ describe("dependency boundary policy", () => {
 			.filter((name) =>
 				compiledBoundaryPolicy.fixtures.some(({ rule }) => rule === name),
 			);
-		expect(reportedRules).toHaveLength(21);
+		expect(reportedRules).toHaveLength(22);
 	});
 
 	it("accepts every generated nearest legal example", () => {

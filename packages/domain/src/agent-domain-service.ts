@@ -1,4 +1,5 @@
 import type { BoardsService } from "@antumbra/boards";
+import type { IntentDemandRegistration } from "@antumbra/intent-demand";
 import type { AnyIntentKind, IntentKind } from "@antumbra/kernel";
 import type { PrismaError } from "@antumbra/persistence";
 import type { BackendFailure } from "@antumbra/plugin-api";
@@ -35,6 +36,7 @@ export class AgentDomain extends Context.Service<
 			sessionId: string,
 		) => Effect.Effect<void, BackendFailure | SessionNotLive>;
 		readonly kinds: ReadonlyArray<AnyIntentKind>;
+		readonly intentDemands: ReadonlyArray<IntentDemandRegistration>;
 		readonly repos: RepoRegistry;
 		readonly retryResourceReclaim: Effect.Effect<void>;
 		readonly recover: IntentKind<RecoveryFields>;

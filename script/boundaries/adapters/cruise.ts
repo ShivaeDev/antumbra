@@ -56,7 +56,7 @@ export const cruiseBoundaries = async ({
 		import("dependency-cruiser/config-utl/extract-depcruise-options"),
 	]);
 	const options = await extractOptions(
-		join(repositoryRoot, ".dependency-cruiser.cjs"),
+		join(repositoryRoot, ".dependency-cruiser.mjs"),
 	);
 	options.outputType = "json";
 	options.baseDir = analysisRoot;

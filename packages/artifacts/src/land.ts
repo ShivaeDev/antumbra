@@ -17,9 +17,6 @@ import { publishArtifact } from "#publication.ts";
 
 const requireCurrentMoorage = (publication: ArtifactPublication) =>
 	Effect.gen(function* () {
-		if (publication._tag === "external") {
-			return;
-		}
 		const db = yield* Database;
 		const row = yield* db.Moorage.where({
 			agentId: publication.agentId,
@@ -27,7 +24,7 @@ const requireCurrentMoorage = (publication: ArtifactPublication) =>
 		if (Option.isNone(row)) {
 			return yield* new ArtifactSourceNotOwned({
 				agentId: publication.agentId,
-				uri: publication.uri,
+				path: publication.basename,
 			});
 		}
 		const status = yield* Effect.fromResult(
@@ -36,7 +33,7 @@ const requireCurrentMoorage = (publication: ArtifactPublication) =>
 		if (status !== "ready" || row.value.root !== publication.moorageRoot) {
 			return yield* new ArtifactSourceNotOwned({
 				agentId: publication.agentId,
-				uri: publication.uri,
+				path: publication.basename,
 			});
 		}
 	});
@@ -101,11 +98,13 @@ export const landArtifact = (root: string, input: ArtifactInput) =>
 		const publication = yield* publishArtifact(root, input);
 		const row: ArtifactRow = {
 			authorAgentId: input.authorAgentId ?? null,
+			basename: publication.basename,
+			byteSize: publication.byteSize,
+			digest: publication.digest,
 			id,
 			pieceId: input.pieceId,
 			supersededByArtifactId: null,
 			title: input.title,
-			uri: publication.uri,
 		};
 		const landing = yield* writer.write(writeArtifact(row, input, publication));
 		yield* PubSub.publish(feeds.voyages, undefined);

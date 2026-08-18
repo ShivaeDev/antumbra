@@ -25,10 +25,12 @@ const piece = (id: string) => ({
 
 const artifact = (id: string) => ({
 	authorAgentId: "agent-chart",
+	basename: `${id}.md`,
+	byteSize: id.length,
+	digest: "0".repeat(64),
 	id,
 	supersededByArtifactId: null,
 	title: id,
-	uri: `https://example.test/${id}.svg`,
 });
 
 const readWorldFailure = Effect.gen(function* () {

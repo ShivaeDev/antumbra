@@ -37,11 +37,13 @@ export const repoRow = (row: RepoRow): RepoRow => ({
 
 export const artifactRow = (row: ArtifactRow): ArtifactRow => ({
 	authorAgentId: row.authorAgentId,
+	basename: row.basename,
+	byteSize: row.byteSize,
+	digest: row.digest,
 	id: row.id,
 	pieceId: row.pieceId,
 	supersededByArtifactId: row.supersededByArtifactId,
 	title: row.title,
-	uri: row.uri,
 });
 
 export const byId = <A extends { readonly id: string }>(

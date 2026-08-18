@@ -1,18 +1,20 @@
 export interface ArtifactInput {
 	readonly authorAgentId?: string;
+	readonly path: string;
 	readonly pieceId: string;
 	readonly supersedesArtifactId?: string;
 	readonly title: string;
-	readonly uri: string;
 }
 
 export interface ArtifactRow {
 	readonly authorAgentId: string | null;
+	readonly basename: string;
+	readonly byteSize: number;
+	readonly digest: string;
 	readonly id: string;
 	readonly pieceId: string;
 	readonly supersededByArtifactId: string | null;
 	readonly title: string;
-	readonly uri: string;
 }
 
 export type ArtifactActor =
@@ -37,16 +39,18 @@ export type ArtifactLanding =
 			readonly supersededArtifactId: string;
 	  };
 
-export interface ExternalPublication {
-	readonly _tag: "external";
-	readonly uri: string;
-}
-
-export interface LocalPublication {
-	readonly _tag: "local";
+export interface ArtifactPublication {
 	readonly agentId: string;
+	readonly basename: string;
+	readonly byteSize: number;
+	readonly digest: string;
 	readonly moorageRoot: string;
-	readonly uri: string;
 }
 
-export type ArtifactPublication = ExternalPublication | LocalPublication;
+export interface ArtifactMarkdown {
+	readonly artifactId: string;
+	readonly byteSize: number;
+	readonly digest: string;
+	readonly markdown: string;
+	readonly title: string;
+}

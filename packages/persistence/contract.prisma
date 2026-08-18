@@ -168,7 +168,9 @@ model Artifact {
   supersededByArtifactId String?  @unique
   authorAgentId          String?
   title                  String
-  uri                    String
+  digest                 String
+  byteSize               Int
+  basename               String
   createdAt              DateTime @default(now())
   piece                  Piece     @relation(fields: [pieceId], references: [id], onDelete: Restrict, onUpdate: Restrict)
   supersededBy           Artifact? @relation("ArtifactSupersession", fields: [supersededByArtifactId], references: [id], onDelete: Restrict, onUpdate: Restrict)

@@ -15,8 +15,10 @@ import { deleteSupersession, writeSupersession } from "#lineage/write.ts";
 import type {
 	ArtifactInput,
 	ArtifactLanding,
+	ArtifactMarkdown,
 	ArtifactSupersessionInput,
 } from "#model.ts";
+import { readArtifactMarkdown } from "#read.ts";
 
 export class Artifacts extends Context.Service<
 	Artifacts,
@@ -24,6 +26,9 @@ export class Artifacts extends Context.Service<
 		readonly land: (
 			input: ArtifactInput,
 		) => Effect.Effect<ArtifactLanding, ArtifactFailure>;
+		readonly readMarkdown: (
+			artifactId: string,
+		) => Effect.Effect<ArtifactMarkdown, ArtifactFailure>;
 		readonly removeSupersession: (
 			input: ArtifactSupersessionInput,
 		) => Effect.Effect<void, ArtifactFailure>;
@@ -68,6 +73,8 @@ export const ArtifactsLive = (root: string) =>
 				);
 			return {
 				land: (input) => Effect.provide(landArtifact(root, input), context),
+				readMarkdown: (artifactId) =>
+					Effect.provide(readArtifactMarkdown(root, artifactId), context),
 				removeSupersession,
 				supersede,
 			};

@@ -4,11 +4,13 @@ import { Effect } from "effect";
 
 const artifact = (id: string, supersededByArtifactId: string | null) => ({
 	authorAgentId: "agent-chart",
+	basename: `${id}.md`,
+	byteSize: id.length,
+	digest: "0".repeat(64),
 	id,
 	pieceId: "piece-chart",
 	supersededByArtifactId,
 	title: id,
-	uri: `https://example.test/${id}.svg`,
 });
 
 const failureOf = (artifacts: ReadonlyArray<ReturnType<typeof artifact>>) =>

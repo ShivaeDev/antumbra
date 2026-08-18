@@ -5,6 +5,7 @@ import { Database } from "#database.ts";
 import { WriterLive } from "#writer.ts";
 
 export interface PersistenceOptions {
+	readonly artifactsRoot: string;
 	readonly database: DatabaseFilePath;
 	readonly migrationsDirectory: string;
 }

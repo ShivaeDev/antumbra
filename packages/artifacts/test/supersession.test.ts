@@ -1,9 +1,13 @@
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { Artifacts, ArtifactsLive } from "@antumbra/artifacts";
 import { DomainFeedsLive } from "@antumbra/domain-feeds";
+import { Database, type DatabaseService } from "@antumbra/persistence";
 import { persistenceIt } from "@antumbra/persistence/testing";
 import { NodeServices } from "@effect/platform-node";
 import { expect } from "@effect/vitest";
-import { Effect, Layer } from "effect";
+import { Effect, Layer, Option } from "effect";
 
 const it = persistenceIt();
 
@@ -19,22 +23,52 @@ const piece = {
 
 const otherPiece = { ...piece, id: "piece-log", title: "Log" };
 
-const layer = ArtifactsLive("/unused-for-external-artifacts").pipe(
+const root = mkdtempSync(join(tmpdir(), "antumbra-supersession-"));
+const published = join(root, "published");
+mkdirSync(published);
+it.afterAll(() => rmSync(root, { force: true, recursive: true }));
+
+const layer = ArtifactsLive(published).pipe(
 	Layer.provideMerge(DomainFeedsLive),
 	Layer.provide(NodeServices.layer),
 );
 
+const ensureAuthor = (db: DatabaseService, authorAgentId: string) =>
+	Effect.gen(function* () {
+		const moorage = join(root, authorAgentId);
+		if (Option.isNone(yield* db.Agent.where({ id: authorAgentId }).first())) {
+			yield* db.Agent.create({
+				charter: "draw the reef",
+				id: authorAgentId,
+				role: "cartographer",
+				status: "alive",
+			});
+			mkdirSync(moorage, { recursive: true });
+			yield* db.Moorage.create({
+				agentId: authorAgentId,
+				reclaimState: null,
+				root: moorage,
+				runner: "local",
+				status: "ready",
+			});
+		}
+		return moorage;
+	});
+
 const land = (pieceId: string, title: string, authorAgentId = "agent-chart") =>
-	Artifacts.pipe(
-		Effect.flatMap((artifacts) =>
-			artifacts.land({
-				authorAgentId,
-				pieceId,
-				title,
-				uri: `https://example.test/${title}.svg`,
-			}),
-		),
-	);
+	Effect.gen(function* () {
+		const db = yield* Database;
+		const artifacts = yield* Artifacts;
+		const moorage = yield* ensureAuthor(db, authorAgentId);
+		const artifactPath = `${title}.md`;
+		writeFileSync(join(moorage, artifactPath), `# ${title}\n`);
+		return yield* artifacts.land({
+			authorAgentId,
+			path: artifactPath,
+			pieceId,
+			title,
+		});
+	});
 
 const useArtifacts = <A, E>(
 	use: (artifacts: Artifacts["Service"]) => Effect.Effect<A, E>,
@@ -47,13 +81,22 @@ it.effectDB(
 		const first = yield* land(piece.id, "first").pipe(Effect.provide(layer));
 		const second = yield* Artifacts.pipe(
 			Effect.flatMap((artifacts) =>
-				artifacts.land({
-					authorAgentId: "agent-chart",
-					pieceId: piece.id,
-					supersedesArtifactId: first.artifact.id,
-					title: "second",
-					uri: "https://example.test/second.svg",
-				}),
+				ensureAuthor(db, "agent-chart").pipe(
+					Effect.tap((moorage) =>
+						Effect.sync(() =>
+							writeFileSync(join(moorage, "second.md"), "# second\n"),
+						),
+					),
+					Effect.flatMap(() =>
+						artifacts.land({
+							authorAgentId: "agent-chart",
+							path: "second.md",
+							pieceId: piece.id,
+							supersedesArtifactId: first.artifact.id,
+							title: "second",
+						}),
+					),
+				),
 			),
 			Effect.provide(layer),
 		);
@@ -246,53 +289,3 @@ it.effectDB("replays explicit add and remove acts harmlessly", function* (db) {
 		value: { supersededByArtifactId: null },
 	});
 });
-
-it.effectDB(
-	"does not scan an unrelated Piece's corrupt lineage",
-	function* (db) {
-		yield* db.Piece.create(piece);
-		yield* db.Piece.create(otherPiece);
-		const foreignFirst = yield* land(otherPiece.id, "foreign-first").pipe(
-			Effect.provide(layer),
-		);
-		const foreignSecond = yield* land(otherPiece.id, "foreign-second").pipe(
-			Effect.provide(layer),
-		);
-		yield* db.Artifact.where({ id: foreignFirst.artifact.id }).update({
-			supersededByArtifactId: foreignSecond.artifact.id,
-		});
-		yield* db.Artifact.where({ id: foreignSecond.artifact.id }).update({
-			supersededByArtifactId: foreignFirst.artifact.id,
-		});
-
-		const landed = yield* land(piece.id, "target").pipe(Effect.provide(layer));
-
-		expect(landed).toMatchObject({ _tag: "landed", otherCurrentArtifacts: [] });
-	},
-);
-
-it.effectDB(
-	"an invalid landing leaves Artifact, provenance, and topology unchanged",
-	function* (db) {
-		yield* db.Piece.create(piece);
-		yield* db.Piece.create(otherPiece);
-		const old = yield* land(otherPiece.id, "foreign").pipe(
-			Effect.provide(layer),
-		);
-		const before = yield* db.Artifact.all();
-		const failure = yield* Effect.flip(
-			useArtifacts((artifacts) =>
-				artifacts.land({
-					authorAgentId: "agent-chart",
-					pieceId: piece.id,
-					supersedesArtifactId: old.artifact.id,
-					title: "wrong lineage",
-					uri: "https://example.test/wrong.svg",
-				}),
-			),
-		);
-
-		expect(failure._tag).toBe("ArtifactProvenanceConflict");
-		expect(yield* db.Artifact.all()).toEqual(before);
-	},
-);

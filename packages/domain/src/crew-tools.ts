@@ -33,16 +33,16 @@ const artifactInput = (
 	identity: SessionIdentity,
 	pieceId: string,
 	input: {
+		readonly path: string;
 		readonly supersedesArtifactId?: string | undefined;
 		readonly title: string;
-		readonly uri: string;
 	},
 ): ArtifactInput => {
 	const base = {
 		authorAgentId: identity.agentId,
+		path: input.path,
 		pieceId,
 		title: input.title,
-		uri: input.uri,
 	};
 	return input.supersedesArtifactId === undefined
 		? base

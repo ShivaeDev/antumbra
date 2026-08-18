@@ -1,3 +1,11 @@
+import { mkdirSync, writeFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import {
+	Database,
+	type DatabaseService,
+	type WriteExecutors,
+} from "@antumbra/persistence";
+import type { TemporaryPersistence } from "@antumbra/persistence/testing";
 import { expect, it } from "@effect/vitest";
 import { Effect, Option } from "effect";
 import { AgentDomain } from "#domain.ts";
@@ -41,14 +49,19 @@ const stateOf = (voyages: VoyageProcedures, voyageId: string, title: string) =>
 	);
 
 const withDomain = <A, E>(
-	body: (voyages: VoyageProcedures) => Effect.Effect<A, E, never>,
+	body: (
+		voyages: VoyageProcedures,
+		temporary: TemporaryPersistence,
+		db: DatabaseService,
+	) => Effect.Effect<A, E, WriteExecutors>,
 ) =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
 		const scripted = yield* makeScriptedBackend;
 		yield* Effect.gen(function* () {
+			const db = yield* Database;
 			const domain = yield* AgentDomain;
-			yield* body(domain.voyages);
+			yield* body(domain.voyages, temporary, db);
 		}).pipe(Effect.provide(domainKernelLayer(temporary, scripted.backend)));
 	});
 
@@ -172,16 +185,32 @@ it.live("a landed report is the only thing that makes a piece done", () =>
 );
 
 it.live("a landed artifact carries its author and lands the piece", () =>
-	withDomain((voyages) =>
+	withDomain((voyages, temporary, db) =>
 		Effect.gen(function* () {
 			const voyage = yield* openVoyage(voyages);
 			const piece = yield* charter(voyages, voyage.id, "draw");
 			yield* voyages.launch(piece.id);
+			const moorage = join(dirname(temporary.database), "manual-moorage");
+			mkdirSync(moorage);
+			writeFileSync(join(moorage, "reef.md"), "# Reef\n");
+			yield* db.Agent.create({
+				charter: "draw the reef",
+				id: "agent-cartographer",
+				role: "cartographer",
+				status: "alive",
+			});
+			yield* db.Moorage.create({
+				agentId: "agent-cartographer",
+				reclaimState: null,
+				root: moorage,
+				runner: "local",
+				status: "ready",
+			});
 			const artifact = yield* voyages.landArtifact({
 				authorAgentId: "agent-cartographer",
+				path: "reef.md",
 				pieceId: piece.id,
 				title: "the chart",
-				uri: "https://example.test/charts/reef.svg",
 			});
 			expect(artifact.artifact.authorAgentId).toBe("agent-cartographer");
 			expect(yield* stateOf(voyages, voyage.id, "draw")).toBe("done");

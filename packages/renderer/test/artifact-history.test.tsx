@@ -5,9 +5,10 @@ import { PieceOutcomes } from "#views/piece-outcomes.tsx";
 
 const artifact = {
 	authorAgentId: "agent-chart",
+	byteSize: 15,
+	digest: "0".repeat(64),
 	id: "artifact-current",
 	title: "Current chart",
-	uri: "https://example.test/current.svg",
 };
 
 const piece: PieceView = {
@@ -18,7 +19,6 @@ const piece: PieceView = {
 			id: "artifact-old",
 			successorArtifactId: artifact.id,
 			title: "Old chart",
-			uri: "https://example.test/old.svg",
 		},
 	],
 	artifacts: [artifact],

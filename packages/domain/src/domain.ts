@@ -1,6 +1,5 @@
 import { Boards } from "@antumbra/boards";
-import { DomainFeeds } from "@antumbra/domain-feeds";
-import { Database, type WriteExecutors, Writer } from "@antumbra/persistence";
+import { Database, type WriteExecutors } from "@antumbra/persistence";
 import type { AgentBackend, ChangeHost, Runner } from "@antumbra/plugin-api";
 import { Repos } from "@antumbra/repos";
 import { SessionEventJournal } from "@antumbra/session-event-journal";
@@ -10,7 +9,6 @@ import { AGENTS_ALIVE_GAUGE, AgentDomain } from "#agent-domain-service.ts";
 import { makeCaptainToolCompiler } from "#captain-tools.ts";
 import { ChangeProcedureService } from "#change-procedures.ts";
 import { makeCrewToolCompiler } from "#crew-tools.ts";
-import type { AgentDeps } from "#deps.ts";
 import { domainCapabilities } from "#domain-capabilities.ts";
 import { type EventSink, SessionFabric, SessionFabricLive } from "#fabric.ts";
 import {
@@ -24,7 +22,7 @@ import type { SessionRecoveryContext } from "#session-recovery-context.ts";
 import { SessionRecoveryRuntime } from "#session-recovery-runtime.ts";
 import { makeSessionRecoveryRuntime } from "#session-resume.ts";
 import { makeSiestaKind } from "#session-siesta.ts";
-import { makeSpawnKind } from "#spawn.ts";
+import { spawnKind } from "#spawn.ts";
 import { isVoyageCaptainIdentity } from "#voyage-captain.ts";
 import { VoyageProcedureService } from "#voyage-procedures.ts";
 
@@ -50,31 +48,17 @@ export const AgentDomainLive = (
 			const changes = yield* ChangeProcedureService;
 			const repos = yield* Repos;
 			const db = yield* Database;
-			const writer = yield* Writer;
 			const executors = yield* Effect.context<WriteExecutors>();
 			const fabric = yield* SessionFabric;
-			const feeds = yield* DomainFeeds;
 			const journal = yield* SessionEventJournal;
 			const sinkFor = (sessionId: string): Effect.Effect<EventSink> =>
 				Effect.succeed((event) => journal.record(sessionId, event));
 			const resourceReconciler = yield* ResourceReconciler;
 			const voyages = yield* VoyageProcedureService;
-			const deps: AgentDeps = {
-				backends,
-				changeHosts,
-				db,
-				executors,
-				fabric,
-				feeds,
-				runners,
-				sinkFor,
-				writer,
-			};
-			const makeSpawn = yield* makeSpawnKind;
+			const spawn = yield* spawnKind({ backends, runners, sinkFor });
 			const retire = yield* makeRetireKind;
 			const compileCaptainTools = yield* makeCaptainToolCompiler;
 			const compileCrewTools = yield* makeCrewToolCompiler;
-			const spawn = makeSpawn(deps);
 			const toolsFor = (context: SessionRecoveryContext) =>
 				isVoyageCaptainIdentity(context.role, context.identity)
 					? compileCaptainTools(context.identity)

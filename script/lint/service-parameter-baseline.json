@@ -1,11 +1,5 @@
 [
 	{
-		"callable": "activateAgent",
-		"file": "packages/domain/src/spawn-rows.ts",
-		"parameter": "deps",
-		"type": "AgentDeps"
-	},
-	{
 		"callable": "assignToPiece",
 		"file": "packages/domain/src/piece-assignment.ts",
 		"parameter": "deps",
@@ -14,12 +8,6 @@
 	{
 		"callable": "assignToVoyage",
 		"file": "packages/domain/src/voyage-assignment.ts",
-		"parameter": "deps",
-		"type": "AgentDeps"
-	},
-	{
-		"callable": "closeFailedSpawnRows",
-		"file": "packages/domain/src/spawn-rows.ts",
 		"parameter": "deps",
 		"type": "AgentDeps"
 	},
@@ -44,12 +32,6 @@
 	{
 		"callable": "provideExecutors",
 		"file": "packages/domain/src/deps.ts",
-		"parameter": "deps",
-		"type": "AgentDeps"
-	},
-	{
-		"callable": "settleSpawnFailure",
-		"file": "packages/domain/src/spawn-rows.ts",
 		"parameter": "deps",
 		"type": "AgentDeps"
 	},

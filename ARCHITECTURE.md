@@ -79,11 +79,14 @@ lifetimes. Foreign callbacks cross adapter boundaries only after their Effect
 requirements are closed. `packages/git` remains process infrastructure beneath
 `runner-local`.
 
-Dependency direction is enforced by `dependency-cruiser` in CI; the rules
-live in `.dependency-cruiser.cjs` and each carries its rationale.
-The [package-architecture](quality-gates/package-architecture.md) and
-[Effect-services](quality-gates/effect-services.md) gates cover the judgment
-those rules cannot make.
+Package manifests and exports are the source of truth for ordinary workspace
+edges. `dependency-cruiser` independently rejects architectural edges that a
+declared dependency must not make legal; its runner also fails when it cannot
+inspect every workspace source. The rules live in `.dependency-cruiser.cjs`
+and each carries its rationale. The
+[package-architecture](quality-gates/package-architecture.md) and
+[Effect-services](quality-gates/effect-services.md) gates cover responsibility,
+composition, and lifetime judgments an import graph cannot make.
 
 ## The kernel
 

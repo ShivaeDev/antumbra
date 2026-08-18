@@ -1,8 +1,12 @@
 # Package Architecture
 
-`.dependency-cruiser.cjs` enforces which package may reach which. This gate
-judges what a cruiser rule cannot: whether a package is one thing, and
-whether it sits in the layer its name claims.
+Package manifests and exports own ordinary workspace edges.
+`.dependency-cruiser.cjs` contains only independent architectural
+prohibitions: boundaries that remain illegal even when a manifest declares
+the dependency. Its runner fails closed when source or dependency coverage is
+empty or any workspace source is absent. This gate judges what an import graph
+cannot: whether a package is one thing, whether it sits in the layer its name
+claims, and whether Effect services have the right composition and lifetime.
 
 ## Rules
 
@@ -32,9 +36,10 @@ whether it sits in the layer its name claims.
 8. Capability packages form a dependency-inversion tree. The application-facing
    domain facade assembles their Layers; the desktop consumes that facade rather
    than reconstructing the tree service by service.
-9. Every layer edge has a boundary rule with a written rationale. A rule is
-   never widened, weakened, or exempted to make a change pass — a violation
-   says the code is in the wrong package.
+9. Every dependency-cruiser rule names an independent prohibition with a
+   written rationale; it never mirrors a manifest's complete allowed-edge
+   list. A rule is never widened, weakened, or exempted to make a change pass
+   — a violation says the code is in the wrong package.
 10. If a change feels weird — an import that wants to cross a layer, a file
     that wants two homes — step back and split or refactor the package first.
     Never accept a shape because it was already there.

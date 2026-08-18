@@ -36,11 +36,14 @@ const piece: PieceView = {
 };
 
 it("keeps superseded Artifacts behind an explicit History disclosure", () => {
-	const html = renderToStaticMarkup(<PieceOutcomes piece={piece} />);
+	const html = renderToStaticMarkup(
+		<PieceOutcomes onError={() => undefined} piece={piece} />,
+	);
 
 	expect(html).toContain("Current chart");
 	expect(html).toContain("History");
 	expect(html).toContain("Old chart");
+	expect(html).toContain('type="button"');
 	expect(html).not.toContain("<a");
 	expect(html).not.toContain("href=");
 });

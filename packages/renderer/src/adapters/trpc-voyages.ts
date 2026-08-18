@@ -65,6 +65,9 @@ export const focusVoyage = (
 export const hailCaptain = (voyageId: string, onError: OnError): void =>
 	fired(client.hailCaptain.mutate({ voyageId }), onError);
 
+export const openArtifact = (artifactId: string, onError: OnError): void =>
+	fired(client.openArtifact.mutate({ artifactId }), onError);
+
 export const charterPiece = (
 	request: CharterPieceRequest,
 	onDone: () => void,

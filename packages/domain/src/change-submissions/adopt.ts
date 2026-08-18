@@ -2,6 +2,10 @@ import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database, Writer } from "@antumbra/persistence";
 import { Pieces } from "@antumbra/pieces";
 import { ChangeHostUnavailable } from "@antumbra/plugin-api";
+import {
+	ensureAgentResourcesUnclaimed,
+	ensureBranchResourcesUnclaimed,
+} from "@antumbra/resource-reclamation";
 import { Clock, Effect, Option, PubSub } from "effect";
 import { activeChange, linkProduces } from "#change-submissions/links.ts";
 import type { AdoptChangeInput } from "#change-submissions/model.ts";
@@ -10,10 +14,6 @@ import { reconcileObservation } from "#change-submissions/observation-projection
 import { submissionKey } from "#change-submissions/prepared-row.ts";
 import { claimingHost, repoNamed } from "#change-submissions/repository.ts";
 import { proposedChange } from "#change-write.ts";
-import {
-	ensureAgentResourcesUnclaimed,
-	ensureBranchResourcesUnclaimed,
-} from "#resource-reclaim-guard.ts";
 
 const adoptionAttachment = (agentId: string | null, repoId: string) =>
 	Effect.gen(function* () {

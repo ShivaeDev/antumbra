@@ -1,10 +1,10 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database, type WriteExecutors, Writer } from "@antumbra/persistence";
 import type { MooragePlan } from "@antumbra/plugin-api";
+import { ensureAgentResourcesUnclaimed } from "@antumbra/resource-reclamation";
 import { decodeStoredAgentSessionStatus } from "@antumbra/vocabulary/agent-runtime";
 import { Effect, Option, PubSub } from "effect";
 import { AgentNotFound, AgentSessionConflict } from "#errors.ts";
-import { ensureAgentResourcesUnclaimed } from "#resource-reclaim-guard.ts";
 import type { SpawnFields } from "#spawn.ts";
 
 export const makeEnsureSessionRow = Effect.gen(function* () {

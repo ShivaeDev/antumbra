@@ -2,22 +2,23 @@ import { Boards } from "@antumbra/boards";
 import { Database, type WriteExecutors } from "@antumbra/persistence";
 import type { AgentBackend, ChangeHost, Runner } from "@antumbra/plugin-api";
 import { Repos } from "@antumbra/repos";
+import {
+	type ResourceReconcileOptions,
+	ResourceReconciler,
+	ResourceReconcilerLive,
+} from "@antumbra/resource-reclamation";
 import { SessionEventJournal } from "@antumbra/session-event-journal";
 import { decodeStoredAgentStatus } from "@antumbra/vocabulary/agent-runtime";
 import { Effect, Layer } from "effect";
 import { AGENTS_ALIVE_GAUGE, AgentDomain } from "#agent-domain-service.ts";
 import { compileAgentRecoveryDemands } from "#agent-recovery-demands.ts";
 import { makeCaptainToolCompiler } from "#captain-tools.ts";
+import { changeHeldResourceRead } from "#change-held-resource-read.ts";
 import { ChangeProcedureService } from "#change-procedures.ts";
 import { makeCrewToolCompiler } from "#crew-tools.ts";
 import { makeCurrentSessionReconciler } from "#current-session-reconcile.ts";
 import { domainCapabilities } from "#domain-capabilities.ts";
 import { type EventSink, SessionFabric, SessionFabricLive } from "#fabric.ts";
-import {
-	type ResourceReconcileOptions,
-	ResourceReconciler,
-	ResourceReconcilerLive,
-} from "#resource-reconciler.ts";
 import { makeRetireKind } from "#retire.ts";
 import { makeRecoveryKind } from "#session-recovery.ts";
 import type { SessionRecoveryContext } from "#session-recovery-context.ts";
@@ -108,7 +109,9 @@ export const AgentDomainLive = (
 			};
 		}),
 	).pipe(
-		Layer.provide(ResourceReconcilerLive(runners, reclaimOptions)),
+		Layer.provide(
+			ResourceReconcilerLive(changeHeldResourceRead, runners, reclaimOptions),
+		),
 		Layer.provide(SessionFabricLive),
 		Layer.provideMerge(capabilities),
 	);

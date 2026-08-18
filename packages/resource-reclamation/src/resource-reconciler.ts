@@ -1,8 +1,9 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database, type WriteExecutors, Writer } from "@antumbra/persistence";
 import type { Runner } from "@antumbra/plugin-api";
-import { Context, Effect, Layer, Queue, Semaphore } from "effect";
+import { Clock, Context, Effect, Layer, Queue, Ref, Semaphore } from "effect";
 import { pump } from "#feed-pump.ts";
+import type { HeldResourceRead } from "#held-resource-read.ts";
 import { runResourceReclaimPass } from "#resource-reclaim-pass.ts";
 
 export interface ResourceReconcileOptions {
@@ -16,18 +17,49 @@ const DEFAULTS: ResourceReconcileOptions = {
 export class ResourceReconciler extends Context.Service<
 	ResourceReconciler,
 	{
+		readonly health: Effect.Effect<ResourceReclamationHealth>;
 		readonly reconcile: Effect.Effect<void>;
 		readonly request: Effect.Effect<void>;
 	}
->()("@antumbra/domain/ResourceReconciler") {}
+>()("@antumbra/resource-reclamation/ResourceReconciler") {}
 
-const guardedPass = (runners: ReadonlyMap<string, Runner>) =>
-	runResourceReclaimPass(runners).pipe(
-		Effect.catchCause((cause) =>
-			Effect.logWarning("resource reclaim pass held uncertain durable truth", {
-				failure: String(cause),
-			}),
-		),
+export type ResourceReclamationHealth =
+	| { readonly state: "checking" }
+	| { readonly checkedAtMillis: number; readonly state: "healthy" }
+	| {
+			readonly failedAtMillis: number;
+			readonly failure: string;
+			readonly state: "degraded";
+	  };
+
+const guardedPass = <E>(
+	heldResourceRead: HeldResourceRead<E>,
+	health: Ref.Ref<ResourceReclamationHealth>,
+	runners: ReadonlyMap<string, Runner>,
+) =>
+	runResourceReclaimPass(heldResourceRead, runners).pipe(
+		Effect.matchCauseEffect({
+			onFailure: (cause) => {
+				const failure = String(cause);
+				return Clock.currentTimeMillis.pipe(
+					Effect.flatMap((failedAtMillis) =>
+						Ref.set(health, { failedAtMillis, failure, state: "degraded" }),
+					),
+					Effect.andThen(
+						Effect.logWarning(
+							"resource reclaim pass held uncertain durable truth",
+							{ failure },
+						),
+					),
+				);
+			},
+			onSuccess: () =>
+				Clock.currentTimeMillis.pipe(
+					Effect.flatMap((checkedAtMillis) =>
+						Ref.set(health, { checkedAtMillis, state: "healthy" }),
+					),
+				),
+		}),
 	);
 
 const cadenceLoop = (
@@ -42,7 +74,8 @@ const cadenceLoop = (
 		}
 	});
 
-export const ResourceReconcilerLive = (
+export const ResourceReconcilerLive = <E, R>(
+	heldResourceRead: Effect.Effect<HeldResourceRead<E>, never, R>,
 	runners: ReadonlyMap<string, Runner>,
 	overrides: Partial<ResourceReconcileOptions> = {},
 ) =>
@@ -51,6 +84,7 @@ export const ResourceReconcilerLive = (
 		Effect.gen(function* () {
 			const options = { ...DEFAULTS, ...overrides };
 			const db = yield* Database;
+			const heldRead = yield* heldResourceRead;
 			const feeds = yield* DomainFeeds;
 			const writer = yield* Writer;
 			const executors = yield* Effect.context<WriteExecutors>();
@@ -62,11 +96,17 @@ export const ResourceReconcilerLive = (
 				),
 			);
 			const gate = yield* Semaphore.make(1);
+			const health = yield* Ref.make<ResourceReclamationHealth>({
+				state: "checking",
+			});
 			const tick = yield* Queue.sliding<void>(1);
 			const reconcile = gate.withPermits(1)(
-				guardedPass(runners).pipe(Effect.provideContext(context)),
+				guardedPass(heldRead, health, runners).pipe(
+					Effect.provideContext(context),
+				),
 			);
 			const service = ResourceReconciler.of({
+				health: Ref.get(health),
 				reconcile,
 				request: Queue.offer(tick, undefined).pipe(Effect.asVoid),
 			});

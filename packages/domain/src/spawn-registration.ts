@@ -1,7 +1,7 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database, type WriteExecutors, Writer } from "@antumbra/persistence";
+import { ensureAgentResourcesUnclaimed } from "@antumbra/resource-reclamation";
 import { Effect, Option, PubSub } from "effect";
-import { ensureAgentResourcesUnclaimed } from "#resource-reclaim-guard.ts";
 import { reservationFor } from "#spawn-current-session.ts";
 import type { SpawnFields } from "#spawn-fields.ts";
 

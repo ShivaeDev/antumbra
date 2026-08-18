@@ -6,6 +6,7 @@ import {
 	type ResourceReclaimState,
 } from "@antumbra/vocabulary/agent-runtime";
 import { Clock, Effect, PubSub } from "effect";
+import type { HeldResourceRead } from "#held-resource-read.ts";
 import {
 	type ClaimedBerth,
 	claimReclaimableBerths,
@@ -89,10 +90,16 @@ const runClaim = (
 	);
 };
 
-export const runResourceReclaimPass = (runners: ReadonlyMap<string, Runner>) =>
+export const runResourceReclaimPass = <E>(
+	heldResourceRead: HeldResourceRead<E>,
+	runners: ReadonlyMap<string, Runner>,
+) =>
 	Effect.gen(function* () {
 		const feeds = yield* DomainFeeds;
-		const claims = yield* claimReclaimableBerths(new Set(runners.keys()));
+		const claims = yield* claimReclaimableBerths(
+			heldResourceRead,
+			new Set(runners.keys()),
+		);
 		const now = yield* Clock.currentTimeMillis;
 		if (claims.length > 0) {
 			yield* PubSub.publish(feeds.fleet, undefined);

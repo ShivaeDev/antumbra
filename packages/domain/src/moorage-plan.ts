@@ -1,13 +1,13 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database, type WriteExecutors, Writer } from "@antumbra/persistence";
 import type { MooragePlan, Runner } from "@antumbra/plugin-api";
+import { ensureAgentResourcesUnclaimed } from "@antumbra/resource-reclamation";
 import {
 	decodeStoredBerthStatus,
 	decodeStoredMoorageStatus,
 } from "@antumbra/vocabulary/agent-runtime";
 import { Effect, Option, PubSub } from "effect";
 import { MooragePlanConflict } from "#errors.ts";
-import { ensureAgentResourcesUnclaimed } from "#resource-reclaim-guard.ts";
 import type { SpawnFields } from "#spawn.ts";
 
 interface StoredBerthPlan {

@@ -1,6 +1,7 @@
 import { defineIntent, IntentExecution } from "@antumbra/kernel";
 import type { PrismaError } from "@antumbra/persistence";
 import type { AgentBackend, MooragePlan, Runner } from "@antumbra/plugin-api";
+import { ResourceReconciler } from "@antumbra/resource-reclamation";
 import { Cause, Effect } from "effect";
 import { makeCaptainToolCompiler } from "#captain-tools.ts";
 import { charterDelivery } from "#charter.ts";
@@ -8,7 +9,6 @@ import { makeCrewToolCompiler } from "#crew-tools.ts";
 import { UnknownBackendTag, UnknownRunnerTag } from "#errors.ts";
 import type { EventSink, SessionAttachment } from "#fabric.ts";
 import { makePrepareMoorage } from "#moorage-plan.ts";
-import { ResourceReconciler } from "#resource-reconciler.ts";
 import { makeIsActivatedBirth } from "#spawn-activated.ts";
 import { makeIsSpawnCancelling } from "#spawn-cancellation.ts";
 import { type SpawnFields, SpawnPayload } from "#spawn-fields.ts";

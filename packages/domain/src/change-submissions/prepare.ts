@@ -2,6 +2,10 @@ import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database, Writer } from "@antumbra/persistence";
 import { Pieces } from "@antumbra/pieces";
 import type { ChangeHostRepo } from "@antumbra/plugin-api";
+import {
+	ensureAgentResourcesUnclaimed,
+	ensureBerthResourcesUnclaimed,
+} from "@antumbra/resource-reclamation";
 import { Clock, Effect, Option, PubSub } from "effect";
 import { activeChange, linkProduces } from "#change-submissions/links.ts";
 import type { Proposal, SubmitChangeInput } from "#change-submissions/model.ts";
@@ -16,10 +20,6 @@ import {
 	repoNamed,
 } from "#change-submissions/repository.ts";
 import { UnknownRunnerTag } from "#errors.ts";
-import {
-	ensureAgentResourcesUnclaimed,
-	ensureBerthResourcesUnclaimed,
-} from "#resource-reclaim-guard.ts";
 
 export interface PreparedSubmission {
 	readonly hostTag: string;

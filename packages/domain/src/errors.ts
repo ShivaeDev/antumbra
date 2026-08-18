@@ -12,13 +12,13 @@ export {
 	VoyageNotFound,
 } from "@antumbra/pieces";
 export {
+	ResourceReclaimClaimed,
+	ResourceReclaimClaimInvalid,
+} from "@antumbra/resource-reclamation";
+export {
 	AgentSessionConflict,
 	CurrentSessionInvalid,
 } from "#current-session-errors.ts";
-export {
-	ResourceReclaimClaimed,
-	ResourceReclaimClaimInvalid,
-} from "#resource-reclaim-errors.ts";
 
 export class AgentNotFound extends Data.TaggedError("AgentNotFound")<{
 	readonly agentId: string;
@@ -28,9 +28,7 @@ export class UnknownBackendTag extends Data.TaggedError("UnknownBackendTag")<{
 	readonly tag: string;
 }> {}
 
-export class UnknownRunnerTag extends Data.TaggedError("UnknownRunnerTag")<{
-	readonly tag: string;
-}> {}
+export { UnknownRunnerTag } from "@antumbra/plugin-api";
 
 export class UnknownChangeHostTag extends Data.TaggedError(
 	"UnknownChangeHostTag",

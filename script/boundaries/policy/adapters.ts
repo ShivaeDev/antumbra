@@ -15,6 +15,26 @@ import {
 } from "#boundaries/policy/selectors.ts";
 
 export const adapterPolicy = [
+	fence("resource-reclamation-imports-no-domain-change-or-provider")
+		.because(
+			"Resource reclamation owns replaceable-resource claims and Runner cleanup through lower ports; Change truth is supplied through an ambient transaction read, while Domain, applications, and concrete providers stay outside the capability.",
+		)
+		.forbidsImportsFrom(packages.named("resource-reclamation"))
+		.to(anyOf(applications.all, packages.named("domain", "changes"), adapters))
+		.demonstratedBy({
+			illegal: importFrom(
+				files.inPackage(
+					"resource-reclamation",
+					"src/resource-reclaim-state.ts",
+				),
+			).to(files.inPackage("domain", "src/change-read.ts")),
+			legal: importFrom(
+				files.inPackage(
+					"resource-reclamation",
+					"src/resource-reclaim-state.ts",
+				),
+			).to(files.inPackage("persistence", "src/index.ts")),
+		}),
 	fence("intent-demand-imports-no-capability-truth")
 		.because(
 			"Intent demand bridges closed capability registrations to Kernel Intents; business truth, persistence, plugins, adapters, and applications stay outside that process-lifetime service.",

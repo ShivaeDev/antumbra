@@ -48,6 +48,7 @@ export {
 	type RunnerError,
 	RunnerFailure,
 	RunnerProvisionConflict,
+	UnknownRunnerTag,
 } from "#runner.ts";
 export {
 	DIRECT_TOOL_NAME,

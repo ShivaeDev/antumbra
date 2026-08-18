@@ -4,7 +4,6 @@ import { makeAppRouter } from "@antumbra/contract";
 import {
 	AgentDomain,
 	AgentDomainLive,
-	AgentRecoveryLive,
 	ChangeWatcherLive,
 	DispatcherLive,
 	drainActiveSessions,
@@ -14,6 +13,7 @@ import {
 	VoyageSourceLive,
 } from "@antumbra/domain";
 import { githubPlugin } from "@antumbra/github";
+import { IntentDemandLive } from "@antumbra/intent-demand";
 import { KernelLive } from "@antumbra/kernel";
 import {
 	databaseFileInDataDirectory,
@@ -95,7 +95,12 @@ const startOwner = () => {
 		VoyageSourceLive,
 		ChangeWatcherLive(),
 		DispatcherLive(),
-		AgentRecoveryLive,
+		Layer.unwrap(
+			Effect.gen(function* () {
+				const domain = yield* AgentDomain;
+				return IntentDemandLive(domain.intentDemands);
+			}),
+		),
 		KernelReachLive,
 		SessionShutdownLive,
 	).pipe(Layer.provideMerge(kernel), Layer.provideMerge(persistence));

@@ -96,7 +96,6 @@ export {
 	ResourceReconciler,
 } from "#resource-reconciler.ts";
 export type { RetireFields } from "#retire.ts";
-export { AgentRecoveryLive } from "#session-recovery-live.ts";
 export { drainActiveSessions } from "#session-shutdown.ts";
 export { SessionShutdownLive } from "#session-shutdown-live.ts";
 export { SightSourceLive } from "#sight.ts";

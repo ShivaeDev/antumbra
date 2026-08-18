@@ -25,6 +25,7 @@
 		"@antumbra/contract": "workspace:*",
 		"@antumbra/domain": "workspace:*",
 		"@antumbra/github": "workspace:*",
+		"@antumbra/intent-demand": "workspace:*",
 		"@antumbra/kernel": "workspace:*",
 		"@antumbra/persistence": "workspace:*",
 		"@antumbra/plugin-api": "workspace:*",

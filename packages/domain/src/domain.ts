@@ -6,9 +6,11 @@ import { SessionEventJournal } from "@antumbra/session-event-journal";
 import { decodeStoredAgentStatus } from "@antumbra/vocabulary/agent-runtime";
 import { Effect, Layer } from "effect";
 import { AGENTS_ALIVE_GAUGE, AgentDomain } from "#agent-domain-service.ts";
+import { compileAgentRecoveryDemands } from "#agent-recovery-demands.ts";
 import { makeCaptainToolCompiler } from "#captain-tools.ts";
 import { ChangeProcedureService } from "#change-procedures.ts";
 import { makeCrewToolCompiler } from "#crew-tools.ts";
+import { makeCurrentSessionReconciler } from "#current-session-reconcile.ts";
 import { domainCapabilities } from "#domain-capabilities.ts";
 import { type EventSink, SessionFabric, SessionFabricLive } from "#fabric.ts";
 import {
@@ -55,6 +57,8 @@ export const AgentDomainLive = (
 				Effect.succeed((event) => journal.record(sessionId, event));
 			const resourceReconciler = yield* ResourceReconciler;
 			const voyages = yield* VoyageProcedureService;
+			const reconcileCurrentSessions = yield* makeCurrentSessionReconciler;
+			yield* reconcileCurrentSessions;
 			const spawn = yield* spawnKind({ backends, runners, sinkFor });
 			const retire = yield* makeRetireKind;
 			const compileCaptainTools = yield* makeCaptainToolCompiler;
@@ -83,6 +87,7 @@ export const AgentDomainLive = (
 				Effect.provideContext(executors),
 			);
 			const siesta = yield* makeSiestaKind;
+			const intentDemands = yield* compileAgentRecoveryDemands(recover, siesta);
 			return {
 				backends: [...backends.keys()],
 				boards,
@@ -90,6 +95,7 @@ export const AgentDomainLive = (
 				closeSessionStarts: fabric.closeStarts,
 				gauges: { [AGENTS_ALIVE_GAUGE]: aliveAgents },
 				interruptSession: fabric.interrupt,
+				intentDemands,
 				kinds: [spawn, recover, retire, siesta],
 				repos,
 				retryResourceReclaim: resourceReconciler.reconcile,

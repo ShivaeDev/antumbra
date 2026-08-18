@@ -337,31 +337,10 @@
                   "kind": "scalar"
                 }
               },
-              "basename": {
-                "nullable": false,
-                "type": {
-                  "codecId": "sqlite/text@1",
-                  "kind": "scalar"
-                }
-              },
-              "byteSize": {
-                "nullable": false,
-                "type": {
-                  "codecId": "sqlite/integer@1",
-                  "kind": "scalar"
-                }
-              },
               "createdAt": {
                 "nullable": false,
                 "type": {
                   "codecId": "sqlite/datetime@1",
-                  "kind": "scalar"
-                }
-              },
-              "digest": {
-                "nullable": false,
-                "type": {
-                  "codecId": "sqlite/text@1",
                   "kind": "scalar"
                 }
               },
@@ -387,6 +366,13 @@
                 }
               },
               "title": {
+                "nullable": false,
+                "type": {
+                  "codecId": "sqlite/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "uri": {
                 "nullable": false,
                 "type": {
                   "codecId": "sqlite/text@1",
@@ -446,17 +432,8 @@
                 "authorAgentId": {
                   "column": "authorAgentId"
                 },
-                "basename": {
-                  "column": "basename"
-                },
-                "byteSize": {
-                  "column": "byteSize"
-                },
                 "createdAt": {
                   "column": "createdAt"
-                },
-                "digest": {
-                  "column": "digest"
                 },
                 "id": {
                   "column": "id"
@@ -469,6 +446,9 @@
                 },
                 "title": {
                   "column": "title"
+                },
+                "uri": {
+                  "column": "uri"
                 }
               },
               "namespaceId": "__unbound__",
@@ -2212,27 +2192,12 @@
                   "nativeType": "text",
                   "nullable": true
                 },
-                "basename": {
-                  "codecId": "sqlite/text@1",
-                  "nativeType": "text",
-                  "nullable": false
-                },
-                "byteSize": {
-                  "codecId": "sqlite/integer@1",
-                  "nativeType": "integer",
-                  "nullable": false
-                },
                 "createdAt": {
                   "codecId": "sqlite/datetime@1",
                   "default": {
                     "expression": "now()",
                     "kind": "function"
                   },
-                  "nativeType": "text",
-                  "nullable": false
-                },
-                "digest": {
-                  "codecId": "sqlite/text@1",
                   "nativeType": "text",
                   "nullable": false
                 },
@@ -2252,6 +2217,11 @@
                   "nullable": true
                 },
                 "title": {
+                  "codecId": "sqlite/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "uri": {
                   "codecId": "sqlite/text@1",
                   "nativeType": "text",
                   "nullable": false
@@ -3434,7 +3404,7 @@
         "id": "__unbound__"
       }
     },
-    "storageHash": "sha256:ad241ac4e17b7cf0d359e8be138d3865b236385bb508923ba5a0b5422bc307bc"
+    "storageHash": "sha256:7bed1b5421dd224911e12335de498920dc5a617efc49f82a1f0f06cf52446bbe"
   },
   "capabilities": {
     "sql": {

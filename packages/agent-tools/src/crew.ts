@@ -1,6 +1,20 @@
 import { Schema } from "effect";
 import { defineTool } from "#define.ts";
 
+const MoorageRelativeMarkdownPath = Schema.String.pipe(
+	Schema.check(
+		Schema.makeFilter(
+			(value: string) =>
+				(value.length > 0 &&
+					!value.startsWith("/") &&
+					!value.startsWith("\\") &&
+					!/^[A-Za-z]:[\\/]/.test(value) &&
+					!/^[A-Za-z][A-Za-z0-9+.-]*:/.test(value)) ||
+				"expected a relative path inside the current Moorage",
+		),
+	),
+);
+
 // why: descriptions are written for the model that reads them — imperative,
 // and saying when to call, because a tool the agent cannot place is a tool it
 // never reaches for.
@@ -22,8 +36,11 @@ export const landReportSpec = defineTool({
 
 export const landArtifactSpec = defineTool({
 	description:
-		"Land an artifact against your piece: something to look at rather than read — a file in your moorage, copied into durable storage, or an external URL. Call it for every result a person should see.",
+		"Land a Markdown artifact against your piece: a file in your moorage copied into immutable durable storage. Call it for every result a person should see.",
 	input: Schema.Struct({
+		path: MoorageRelativeMarkdownPath.annotate({
+			description: "A relative path to a UTF-8 Markdown file in your moorage.",
+		}),
 		supersedesArtifactId: Schema.optional(
 			Schema.String.annotate({
 				description:
@@ -32,9 +49,6 @@ export const landArtifactSpec = defineTool({
 		),
 		title: Schema.String.annotate({
 			description: "One line naming what this artifact shows.",
-		}),
-		uri: Schema.String.annotate({
-			description: "A path inside your moorage, or an http(s) URL.",
 		}),
 	}),
 	name: "land_artifact",

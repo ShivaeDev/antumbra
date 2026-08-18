@@ -9,7 +9,6 @@ import {
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { fileURLToPath } from "node:url";
 import { Artifacts, ArtifactsLive } from "@antumbra/artifacts";
 import { DomainFeeds, DomainFeedsLive } from "@antumbra/domain-feeds";
 import { Database, type DatabaseService } from "@antumbra/persistence";
@@ -86,28 +85,32 @@ const seed = (db: DatabaseService, root: string) =>
 it.effectDB(
 	"converges identical bytes without making commands exactly once",
 	function* (db) {
-		yield* withArtifacts((moorage) =>
+		yield* withArtifacts((moorage, published) =>
 			Effect.gen(function* () {
 				yield* seed(db, moorage);
-				writeFileSync(join(moorage, "reef.svg"), "<svg>reef</svg>");
+				writeFileSync(join(moorage, "reef.md"), "# Reef");
 				const artifacts = yield* Artifacts;
 				const input = {
 					authorAgentId: agent.id,
 					pieceId: piece.id,
 					title: "reef chart",
-					uri: "reef.svg",
+					path: "reef.md",
 				};
 				const first = yield* artifacts.land(input);
 				const replay = yield* artifacts.land(input);
-				writeFileSync(join(moorage, "reef.svg"), "<svg>new reef</svg>");
+				writeFileSync(join(moorage, "reef.md"), "# New reef");
 				const changed = yield* artifacts.land(input);
 
 				expect(replay.artifact.id).not.toBe(first.artifact.id);
-				expect(replay.artifact.uri).toBe(first.artifact.uri);
+				expect(replay.artifact.digest).toBe(first.artifact.digest);
 				expect(changed.artifact.id).not.toBe(first.artifact.id);
-				expect(changed.artifact.uri).not.toBe(first.artifact.uri);
+				expect(changed.artifact.digest).not.toBe(first.artifact.digest);
 				expect(yield* db.Artifact.all()).toHaveLength(3);
-				expect(existsSync(fileURLToPath(first.artifact.uri))).toBe(true);
+				expect(
+					existsSync(
+						join(published, first.artifact.digest, first.artifact.basename),
+					),
+				).toBe(true);
 			}),
 		);
 	},
@@ -119,16 +122,16 @@ it.effectDB(
 		yield* withArtifacts((moorage, published) =>
 			Effect.gen(function* () {
 				yield* seed(db, moorage);
-				const outside = join(published, "outside.svg");
-				writeFileSync(outside, "<svg>outside</svg>");
-				symlinkSync(outside, join(moorage, "escape.svg"));
+				const outside = join(published, "outside.md");
+				writeFileSync(outside, "# Outside");
+				symlinkSync(outside, join(moorage, "escape.md"));
 				const artifacts = yield* Artifacts;
 				const failure = yield* Effect.flip(
 					artifacts.land({
 						authorAgentId: agent.id,
 						pieceId: piece.id,
 						title: "escape",
-						uri: "escape.svg",
+						path: "escape.md",
 					}),
 				);
 
@@ -148,14 +151,14 @@ it.effectDB(
 				yield* db.Moorage.where({ agentId: agent.id }).update({
 					status: "future-moorage",
 				});
-				writeFileSync(join(moorage, "reef.svg"), "<svg>reef</svg>");
+				writeFileSync(join(moorage, "reef.md"), "# Reef");
 				const artifacts = yield* Artifacts;
 				const failure = yield* Effect.flip(
 					artifacts.land({
 						authorAgentId: agent.id,
 						pieceId: piece.id,
 						title: "reef chart",
-						uri: "reef.svg",
+						path: "reef.md",
 					}),
 				);
 
@@ -170,23 +173,6 @@ it.effectDB(
 	},
 );
 
-it.effectDB("keeps an external URL as a reference", function* (db) {
-	yield* withArtifacts(() =>
-		Effect.gen(function* () {
-			yield* db.Piece.create(piece);
-			const artifacts = yield* Artifacts;
-			const artifact = yield* artifacts.land({
-				pieceId: piece.id,
-				title: "hosted chart",
-				uri: "https://example.test/reef.svg",
-			});
-
-			expect(artifact.artifact.uri).toBe("https://example.test/reef.svg");
-			expect(yield* db.Artifact.all()).toHaveLength(1);
-		}),
-	);
-});
-
 it.effectDB(
 	"refuses known invalid supersession before publishing local bytes",
 	function* (db) {
@@ -195,25 +181,27 @@ it.effectDB(
 				yield* seed(db, moorage);
 				yield* db.Piece.create(otherPiece);
 				const artifacts = yield* Artifacts;
+				writeFileSync(join(moorage, "foreign.md"), "# Foreign");
 				const old = yield* artifacts.land({
 					authorAgentId: agent.id,
+					path: "foreign.md",
 					pieceId: otherPiece.id,
 					title: "foreign chart",
-					uri: "https://example.test/foreign.svg",
 				});
-				writeFileSync(join(moorage, "reef.svg"), "<svg>reef</svg>");
+				const beforePublished = readdirSync(published);
+				writeFileSync(join(moorage, "reef.md"), "# Reef");
 				const failure = yield* Effect.flip(
 					artifacts.land({
 						authorAgentId: agent.id,
 						pieceId: piece.id,
 						supersedesArtifactId: old.artifact.id,
 						title: "wrong lineage",
-						uri: "reef.svg",
+						path: "reef.md",
 					}),
 				);
 
 				expect(failure._tag).toBe("ArtifactProvenanceConflict");
-				expect(readdirSync(published)).toEqual([]);
+				expect(readdirSync(published)).toEqual(beforePublished);
 				expect(yield* db.Artifact.all()).toHaveLength(1);
 			}),
 		);
@@ -229,9 +217,10 @@ it.effectDB("refuses an orphan artifact without publishing", function* (db) {
 				const notices = yield* PubSub.subscribe(feeds.voyages);
 				const failure = yield* Effect.flip(
 					artifacts.land({
+						authorAgentId: agent.id,
+						path: "orphan.md",
 						pieceId: "missing-piece",
 						title: "orphan chart",
-						uri: "https://example.test/orphan.svg",
 					}),
 				);
 
@@ -257,7 +246,7 @@ it.effect(
 					const feeds = yield* DomainFeeds;
 					const notices = yield* PubSub.subscribe(feeds.voyages);
 					yield* seed(db, moorage);
-					writeFileSync(join(moorage, "reef.svg"), "<svg>reef</svg>");
+					writeFileSync(join(moorage, "reef.md"), "# Reef");
 					yield* Effect.sync(() =>
 						rejectTestOutcomeLinks(
 							rejectedLinkPersistence.database,
@@ -270,7 +259,7 @@ it.effect(
 							authorAgentId: agent.id,
 							pieceId: piece.id,
 							title: "rejected reef chart",
-							uri: "reef.svg",
+							path: "reef.md",
 						}),
 					);
 

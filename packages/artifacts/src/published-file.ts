@@ -1,22 +1,66 @@
-import { Crypto, Effect, FileSystem, Path, type PlatformError } from "effect";
+import {
+	Crypto,
+	Effect,
+	FileSystem,
+	Option,
+	Path,
+	type PlatformError,
+} from "effect";
+import { digestBytes, readOpened } from "#content.ts";
 import { ArtifactPublicationFailed } from "#errors.ts";
 import { syncOpened } from "#filesystem-durability.ts";
 
-const hex = (bytes: Uint8Array): string =>
-	Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("");
+const sameObject = (
+	opened: FileSystem.File.Info,
+	resolved: FileSystem.File.Info,
+): boolean =>
+	opened.dev === resolved.dev &&
+	Option.isSome(opened.ino) &&
+	Option.isSome(resolved.ino) &&
+	opened.ino.value === resolved.ino.value;
 
-const verifyPublished = (destination: string, digest: string) =>
-	Effect.gen(function* () {
-		const crypto = yield* Crypto.Crypto;
-		const fs = yield* FileSystem.FileSystem;
-		const bytes = yield* fs.readFile(destination);
-		const observed = hex(yield* crypto.digest("SHA-256", bytes));
-		if (observed !== digest) {
-			return yield* new ArtifactPublicationFailed({
-				detail: `published artifact digest mismatch at ${destination}`,
-			});
-		}
-	});
+const verifyPublished = (
+	destination: string,
+	digest: string,
+	byteSize: number,
+) =>
+	Effect.scoped(
+		Effect.gen(function* () {
+			const fs = yield* FileSystem.FileSystem;
+			const path = yield* Path.Path;
+			const file = yield* fs.open(destination, { flag: "r" });
+			const info = yield* file.stat;
+			const resolved = yield* fs.realPath(destination);
+			const canonicalParent = yield* fs.realPath(path.dirname(destination));
+			const canonicalDestination = path.join(
+				canonicalParent,
+				path.basename(destination),
+			);
+			const resolvedInfo = yield* fs.stat(resolved);
+			if (
+				resolved !== canonicalDestination ||
+				info.type !== "File" ||
+				resolvedInfo.type !== "File" ||
+				!sameObject(info, resolvedInfo)
+			) {
+				return yield* new ArtifactPublicationFailed({
+					detail: `published artifact path is not canonical at ${destination}`,
+				});
+			}
+			if (info.size !== BigInt(byteSize)) {
+				return yield* new ArtifactPublicationFailed({
+					detail: `published artifact size mismatch at ${destination}`,
+				});
+			}
+			const bytes = yield* readOpened(file, info.size);
+			const observedDigest = yield* digestBytes(bytes);
+			if (observedDigest !== digest) {
+				return yield* new ArtifactPublicationFailed({
+					detail: `published artifact digest mismatch at ${destination}`,
+				});
+			}
+		}),
+	);
 
 const syncDirectory = (destination: string) =>
 	Effect.gen(function* () {
@@ -24,9 +68,13 @@ const syncDirectory = (destination: string) =>
 		yield* syncOpened(path.dirname(destination));
 	});
 
-const ensureExistingDurable = (destination: string, digest: string) =>
+const ensureExistingDurable = (
+	destination: string,
+	digest: string,
+	byteSize: number,
+) =>
 	Effect.gen(function* () {
-		yield* verifyPublished(destination, digest);
+		yield* verifyPublished(destination, digest, byteSize);
 		yield* syncOpened(destination);
 		yield* syncDirectory(destination);
 	});
@@ -34,6 +82,7 @@ const ensureExistingDurable = (destination: string, digest: string) =>
 const recoverConcurrentPublish = (
 	destination: string,
 	digest: string,
+	byteSize: number,
 	cause: PlatformError.PlatformError,
 ) =>
 	Effect.gen(function* () {
@@ -41,7 +90,7 @@ const recoverConcurrentPublish = (
 		if (!(yield* fs.exists(destination))) {
 			return yield* Effect.fail(cause);
 		}
-		yield* ensureExistingDurable(destination, digest);
+		yield* ensureExistingDurable(destination, digest, byteSize);
 	});
 
 const writeSynced = (target: string, bytes: Uint8Array) =>
@@ -64,7 +113,7 @@ export const installPublished = (
 		const fs = yield* FileSystem.FileSystem;
 		const path = yield* Path.Path;
 		if (yield* fs.exists(destination)) {
-			yield* ensureExistingDurable(destination, digest);
+			yield* ensureExistingDurable(destination, digest, bytes.length);
 			return;
 		}
 		const temporary = path.join(
@@ -81,9 +130,12 @@ export const installPublished = (
 				Effect.catchIf(
 					(_error): _error is PlatformError.PlatformError => true,
 					(cause) =>
-						recoverConcurrentPublish(destination, digest, cause).pipe(
-							Effect.as(false),
-						),
+						recoverConcurrentPublish(
+							destination,
+							digest,
+							bytes.length,
+							cause,
+						).pipe(Effect.as(false)),
 				),
 			);
 			if (installed) {

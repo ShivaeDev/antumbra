@@ -7,7 +7,14 @@ import { Effect, Layer } from "effect";
 
 const it = persistenceIt();
 
-const layer = ArtifactsLive("/unused-for-external-artifacts").pipe(
+const root = mkdtempSync(join(tmpdir(), "antumbra-convergence-"));
+const moorage = join(root, "moorage");
+const published = join(root, "published");
+mkdirSync(moorage);
+mkdirSync(published);
+it.afterAll(() => rmSync(root, { force: true, recursive: true }));
+
+const layer = ArtifactsLive(published).pipe(
 	Layer.provideMerge(DomainFeedsLive),
 	Layer.provide(NodeServices.layer),
 );
@@ -22,14 +29,33 @@ it.effectDB("refuses two predecessors for one successor", function* (db) {
 		role: "cartographer",
 		title: "Chart",
 	});
+	yield* db.Agent.create({
+		charter: "draw the reef",
+		id: "agent-chart",
+		role: "cartographer",
+		status: "alive",
+	});
+	yield* db.Moorage.create({
+		agentId: "agent-chart",
+		reclaimState: null,
+		root: moorage,
+		runner: "local",
+		status: "ready",
+	});
 	const artifacts = yield* Artifacts.pipe(Effect.provide(layer));
 	const land = (title: string) =>
-		artifacts.land({
-			authorAgentId: "agent-chart",
-			pieceId: "piece-chart",
-			title,
-			uri: `https://example.test/${title}.svg`,
-		});
+		Effect.sync(() =>
+			writeFileSync(join(moorage, `${title}.md`), `# ${title}\n`),
+		).pipe(
+			Effect.andThen(
+				artifacts.land({
+					authorAgentId: "agent-chart",
+					path: `${title}.md`,
+					pieceId: "piece-chart",
+					title,
+				}),
+			),
+		);
 	const first = yield* land("first");
 	const second = yield* land("second");
 	const successor = yield* land("successor");
@@ -57,3 +83,7 @@ it.effectDB("refuses two predecessors for one successor", function* (db) {
 		value: { supersededByArtifactId: null },
 	});
 });
+
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";

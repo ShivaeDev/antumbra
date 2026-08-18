@@ -2,12 +2,20 @@ import type { PrismaError } from "@antumbra/persistence";
 import type { PieceNotFound } from "@antumbra/pieces";
 import type { StoredMoorageStatusInvalid } from "@antumbra/vocabulary/agent-runtime";
 import { Data } from "effect";
+import type { ArtifactContentInvalidReason } from "#content.ts";
 
 export class ArtifactSourceNotOwned extends Data.TaggedError(
 	"ArtifactSourceNotOwned",
 )<{
 	readonly agentId: string | null;
-	readonly uri: string;
+	readonly path: string;
+}> {}
+
+export class ArtifactContentInvalid extends Data.TaggedError(
+	"ArtifactContentInvalid",
+)<{
+	readonly path: string;
+	readonly reason: ArtifactContentInvalidReason;
 }> {}
 
 export class ArtifactPublicationFailed extends Data.TaggedError(
@@ -18,6 +26,23 @@ export class ArtifactPublicationFailed extends Data.TaggedError(
 
 export class ArtifactNotFound extends Data.TaggedError("ArtifactNotFound")<{
 	readonly artifactId: string;
+}> {}
+
+export type StoredArtifactContentInvalidReason =
+	| "basename"
+	| "digest"
+	| "missing"
+	| "not_file"
+	| "not_utf8"
+	| "path"
+	| "size"
+	| "too_large";
+
+export class StoredArtifactContentInvalid extends Data.TaggedError(
+	"StoredArtifactContentInvalid",
+)<{
+	readonly artifactId: string;
+	readonly reason: StoredArtifactContentInvalidReason;
 }> {}
 
 export class ArtifactProvenanceConflict extends Data.TaggedError(
@@ -79,6 +104,7 @@ export const artifactPublicationFailed =
 		});
 
 export type ArtifactFailure =
+	| ArtifactContentInvalid
 	| ArtifactLineageConflict
 	| ArtifactNotFound
 	| ArtifactPublicationFailed
@@ -89,4 +115,5 @@ export type ArtifactFailure =
 	| PieceNotFound
 	| PrismaError
 	| StoredArtifactLineageInvalid
+	| StoredArtifactContentInvalid
 	| StoredMoorageStatusInvalid;

@@ -1,7 +1,6 @@
 import { existsSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join, relative } from "node:path";
-import { fileURLToPath } from "node:url";
+import { dirname, join, relative } from "node:path";
 import { Database } from "@antumbra/persistence";
 import type { Runner } from "@antumbra/plugin-api";
 import { expect, it } from "@effect/vitest";
@@ -53,13 +52,13 @@ it.live("a landed local artifact survives removal of its moorage", () =>
 			const session = yield* eventually(
 				sessionFor(scripted, assignment.value.agentId),
 			);
-			const source = join(root, "reef.svg");
-			writeFileSync(source, "<svg>reef</svg>");
+			const source = join(root, "reef.md");
+			writeFileSync(source, "# Reef\n");
 
 			expect(
 				yield* callTool(session, "land_artifact", {
+					path: "reef.md",
 					title: "reef chart",
-					uri: "reef.svg",
 				}),
 			).toEqual({
 				ok: true,
@@ -68,8 +67,12 @@ it.live("a landed local artifact survives removal of its moorage", () =>
 			expect(yield* stateOf(voyage.id, alpha.id)).toBe("done");
 
 			const artifact = (yield* db.Artifact.all())[0];
-			expect(artifact?.uri.startsWith("file:")).toBe(true);
-			const published = fileURLToPath(artifact?.uri ?? "");
+			const published = join(
+				dirname(temporary.database),
+				"artifacts",
+				artifact?.digest ?? "",
+				artifact?.basename ?? "",
+			);
 			expect(relative(root, published).startsWith("..")).toBe(true);
 
 			rmSync(root, { force: true, recursive: true });

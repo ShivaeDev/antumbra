@@ -22,9 +22,10 @@ export type ReportView = typeof ReportView.Type;
 
 export const ArtifactView = Schema.Struct({
 	authorAgentId: Schema.NullOr(Schema.String),
+	byteSize: Schema.Number,
+	digest: Schema.String,
 	id: Schema.String,
 	title: Schema.String,
-	uri: Schema.String,
 });
 export type ArtifactView = typeof ArtifactView.Type;
 

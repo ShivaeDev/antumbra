@@ -7,7 +7,6 @@ import {
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { fileURLToPath } from "node:url";
 import { Artifacts, ArtifactsLive } from "@antumbra/artifacts";
 import { DomainFeedsLive } from "@antumbra/domain-feeds";
 import type { DatabaseService } from "@antumbra/persistence";
@@ -40,7 +39,7 @@ const makeFixture = (): Fixture => {
 		moorage,
 		published: join(root, "published"),
 		root,
-		source: join(moorage, "reef.svg"),
+		source: join(moorage, "reef.md"),
 	};
 };
 
@@ -176,7 +175,7 @@ it.effectDB(
 				authorAgentId: identity.agentId,
 				pieceId: identity.pieceId,
 				title: "reef chart",
-				uri: "reef.svg",
+				path: "reef.md",
 			};
 			const artifactsBefore = (yield* db.Artifact.all()).length;
 			const failure = yield* Effect.gen(function* () {
@@ -192,7 +191,15 @@ it.effectDB(
 				const artifacts = yield* Artifacts;
 				return yield* artifacts.land(input);
 			}).pipe(Effect.provide(layer));
-			expect(existsSync(fileURLToPath(artifact.artifact.uri))).toBe(true);
+			expect(
+				existsSync(
+					join(
+						fixture.published,
+						artifact.artifact.digest,
+						artifact.artifact.basename,
+					),
+				),
+			).toBe(true);
 			expect(yield* db.Artifact.all()).toHaveLength(artifactsBefore + 1);
 			rmSync(fixture.root, { force: true, recursive: true });
 		}

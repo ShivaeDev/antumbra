@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import {
 	lstatSync,
 	mkdirSync,
@@ -9,12 +10,16 @@ import {
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { basename, join } from "node:path";
-import { fileURLToPath } from "node:url";
 import { Artifacts, ArtifactsLive } from "@antumbra/artifacts";
 import { DomainFeedsLive } from "@antumbra/domain-feeds";
 import type { DatabaseService } from "@antumbra/persistence";
 import { persistenceIt } from "@antumbra/persistence/testing";
-import { NodeCrypto, NodeFileSystem, NodePath } from "@effect/platform-node";
+import {
+	NodeCrypto,
+	NodeFileSystem,
+	NodePath,
+	NodeServices,
+} from "@effect/platform-node";
 import { expect } from "@effect/vitest";
 import {
 	type Crypto,
@@ -40,7 +45,7 @@ const makeFixture = (): Fixture => {
 	const published = join(root, "published");
 	mkdirSync(moorage);
 	mkdirSync(published);
-	return { moorage, published, root, source: join(moorage, "reef.svg") };
+	return { moorage, published, root, source: join(moorage, "reef.md") };
 };
 
 const seed = (db: DatabaseService, moorage: string) =>
@@ -71,9 +76,9 @@ const seed = (db: DatabaseService, moorage: string) =>
 
 const input = {
 	authorAgentId: "agent-chart",
+	path: "reef.md",
 	pieceId: "piece-chart",
 	title: "reef chart",
-	uri: "reef.svg",
 };
 
 const wrappedFile = (
@@ -167,7 +172,7 @@ const replacementPlatform = (outside: string, state: ReplacementState) =>
 		FileSystem.FileSystem.of({
 			...fs,
 			stat: (path) => {
-				if (!path.endsWith("/moorage/reef.svg") || state.replaced) {
+				if (!path.endsWith("/moorage/reef.md") || state.replaced) {
 					return fs.stat(path);
 				}
 				return fs.stat(path).pipe(
@@ -213,7 +218,7 @@ it.effectDB(
 	"reads the same owned object when its path is replaced",
 	function* (db) {
 		const fixture = makeFixture();
-		const outside = join(fixture.root, "outside.svg");
+		const outside = join(fixture.root, "outside.md");
 		writeFileSync(fixture.source, "inside");
 		writeFileSync(outside, "outside");
 		const state = { replaced: false };
@@ -225,9 +230,38 @@ it.effectDB(
 		}).pipe(Effect.provide(artifactLayer(fixture.published, platform)));
 
 		expect(state.replaced).toBe(true);
-		expect(readFileSync(fileURLToPath(artifact.artifact.uri), "utf8")).toBe(
-			"inside",
-		);
+		expect(
+			readFileSync(
+				join(
+					fixture.published,
+					artifact.artifact.digest,
+					artifact.artifact.basename,
+				),
+				"utf8",
+			),
+		).toBe("inside");
 		rmSync(fixture.root, { force: true, recursive: true });
 	},
 );
+
+it.effectDB("refuses a substituted existing CAS destination", function* (db) {
+	const fixture = makeFixture();
+	const bytes = new TextEncoder().encode("inside");
+	const digest = createHash("sha256").update(bytes).digest("hex");
+	const directory = join(fixture.published, digest);
+	const outside = join(fixture.root, "outside.md");
+	writeFileSync(fixture.source, bytes);
+	writeFileSync(outside, bytes);
+	mkdirSync(directory);
+	symlinkSync(outside, join(directory, "reef.md"));
+	yield* seed(db, fixture.moorage);
+
+	const failure = yield* Effect.gen(function* () {
+		const artifacts = yield* Artifacts;
+		return yield* Effect.flip(artifacts.land(input));
+	}).pipe(Effect.provide(artifactLayer(fixture.published, NodeServices.layer)));
+
+	expect(failure).toMatchObject({ _tag: "ArtifactPublicationFailed" });
+	expect(yield* db.Artifact.all()).toEqual([]);
+	rmSync(fixture.root, { force: true, recursive: true });
+});

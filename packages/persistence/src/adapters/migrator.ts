@@ -1,5 +1,6 @@
 import { createSqliteControlClient } from "@prisma-next/sqlite/control";
 import { Data, Effect } from "effect";
+import { prepareArtifactCustodyMigration } from "#adapters/artifact-custody-preflight.ts";
 import contractJson from "#contract.json" with { type: "json" };
 import type { DatabaseFilePath } from "#data-dir.ts";
 
@@ -12,16 +13,24 @@ export interface MigrationReport {
 }
 
 export interface MigrationTarget {
+	readonly artifactsRoot?: string;
 	readonly contract?: unknown;
 	readonly database: DatabaseFilePath;
 	readonly migrationsDirectory: string;
 }
 
-export const applyMigrations = (
-	target: MigrationTarget,
+interface PreparedMigrationTarget extends MigrationTarget {
+	readonly contract: unknown;
+}
+
+const migrationFailure = (cause: unknown) =>
+	new MigrationFailure({ detail: String(cause) });
+
+export const applyPreparedMigrations = (
+	target: PreparedMigrationTarget,
 ): Effect.Effect<MigrationReport, MigrationFailure> =>
 	Effect.tryPromise({
-		catch: (cause) => new MigrationFailure({ detail: String(cause) }),
+		catch: migrationFailure,
 		try: async () => {
 			const client = createSqliteControlClient({
 				connection: target.database,
@@ -29,7 +38,7 @@ export const applyMigrations = (
 			await client.connect();
 			try {
 				const result = await client.migrate({
-					contract: target.contract ?? contractJson,
+					contract: target.contract,
 					migrationsDir: target.migrationsDirectory,
 				});
 				if (!result.ok) {
@@ -43,3 +52,27 @@ export const applyMigrations = (
 			}
 		},
 	});
+
+export const applyMigrations = (
+	target: MigrationTarget,
+): Effect.Effect<MigrationReport, MigrationFailure> => {
+	const contract = target.contract ?? contractJson;
+	return Effect.try({
+		catch: migrationFailure,
+		try: () =>
+			prepareArtifactCustodyMigration({
+				...(target.artifactsRoot === undefined
+					? {}
+					: { artifactsRoot: target.artifactsRoot }),
+				contract,
+				database: target.database,
+			}),
+	}).pipe(
+		Effect.andThen(
+			applyPreparedMigrations({
+				...target,
+				contract,
+			}),
+		),
+	);
+};

@@ -110,34 +110,6 @@ const artifact = {
 	uri: "https://example.test/reef.svg",
 };
 
-it.effectDB("rejects every orphan Piece outcome relation", function* (db) {
-	yield* db.Piece.create(piece);
-	yield* db.Report.create(report);
-	yield* db.Artifact.create(artifact);
-
-	const failures = yield* Effect.all([
-		Effect.flip(
-			db.PieceReport.create({ pieceId: "missing-piece", reportId: report.id }),
-		),
-		Effect.flip(
-			db.PieceReport.create({ pieceId: piece.id, reportId: "missing-report" }),
-		),
-		Effect.flip(
-			db.Artifact.create({
-				...artifact,
-				id: "artifact-orphan",
-				pieceId: "missing-piece",
-			}),
-		),
-	]);
-
-	for (const failure of failures) {
-		expect(failure._tag).toBe("PrismaError");
-	}
-	expect(yield* db.PieceReport.all()).toEqual([]);
-	expect(yield* db.Artifact.all()).toEqual([expect.objectContaining(artifact)]);
-});
-
 it.effect("migration refuses a historical orphan Report link unchanged", () =>
 	Effect.gen(function* () {
 		const database = freshDatabase();

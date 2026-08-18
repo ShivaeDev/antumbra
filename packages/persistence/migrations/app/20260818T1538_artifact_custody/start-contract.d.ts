@@ -16,7 +16,7 @@ import type {
 } from '@prisma-next/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'sha256:ad241ac4e17b7cf0d359e8be138d3865b236385bb508923ba5a0b5422bc307bc'>;
+  StorageHashBase<'sha256:7bed1b5421dd224911e12335de498920dc5a617efc49f82a1f0f06cf52446bbe'>;
 export type ExecutionHash = ExecutionHashBase<string>;
 export type ProfileHash =
   ProfileHashBase<'sha256:3cc333ecad9f3f4c7229370a9d2c37e908cdce0f8d2e9fb132d50605b024eff2'>;
@@ -61,9 +61,7 @@ export type FieldOutputTypes = {
       readonly supersededByArtifactId: CodecTypes['sqlite/text@1']['output'] | null;
       readonly authorAgentId: CodecTypes['sqlite/text@1']['output'] | null;
       readonly title: CodecTypes['sqlite/text@1']['output'];
-      readonly digest: CodecTypes['sqlite/text@1']['output'];
-      readonly byteSize: CodecTypes['sqlite/integer@1']['output'];
-      readonly basename: CodecTypes['sqlite/text@1']['output'];
+      readonly uri: CodecTypes['sqlite/text@1']['output'];
       readonly createdAt: CodecTypes['sqlite/datetime@1']['output'];
     };
     readonly Berth: {
@@ -266,9 +264,7 @@ export type FieldInputTypes = {
       readonly supersededByArtifactId: CodecTypes['sqlite/text@1']['input'] | null;
       readonly authorAgentId: CodecTypes['sqlite/text@1']['input'] | null;
       readonly title: CodecTypes['sqlite/text@1']['input'];
-      readonly digest: CodecTypes['sqlite/text@1']['input'];
-      readonly byteSize: CodecTypes['sqlite/integer@1']['input'];
-      readonly basename: CodecTypes['sqlite/text@1']['input'];
+      readonly uri: CodecTypes['sqlite/text@1']['input'];
       readonly createdAt: CodecTypes['sqlite/datetime@1']['input'];
     };
     readonly Berth: {
@@ -467,14 +463,12 @@ export type StorageColumnTypes = {
     };
     readonly artifact: {
       readonly authorAgentId: CodecTypes['sqlite/text@1']['output'] | null;
-      readonly basename: CodecTypes['sqlite/text@1']['output'];
-      readonly byteSize: CodecTypes['sqlite/integer@1']['output'];
       readonly createdAt: CodecTypes['sqlite/datetime@1']['output'];
-      readonly digest: CodecTypes['sqlite/text@1']['output'];
       readonly id: CodecTypes['sqlite/text@1']['output'];
       readonly pieceId: CodecTypes['sqlite/text@1']['output'];
       readonly supersededByArtifactId: CodecTypes['sqlite/text@1']['output'] | null;
       readonly title: CodecTypes['sqlite/text@1']['output'];
+      readonly uri: CodecTypes['sqlite/text@1']['output'];
     };
     readonly berth: {
       readonly agentId: CodecTypes['sqlite/text@1']['output'];
@@ -672,14 +666,12 @@ export type StorageColumnInputTypes = {
     };
     readonly artifact: {
       readonly authorAgentId: CodecTypes['sqlite/text@1']['input'] | null;
-      readonly basename: CodecTypes['sqlite/text@1']['input'];
-      readonly byteSize: CodecTypes['sqlite/integer@1']['input'];
       readonly createdAt: CodecTypes['sqlite/datetime@1']['input'];
-      readonly digest: CodecTypes['sqlite/text@1']['input'];
       readonly id: CodecTypes['sqlite/text@1']['input'];
       readonly pieceId: CodecTypes['sqlite/text@1']['input'];
       readonly supersededByArtifactId: CodecTypes['sqlite/text@1']['input'] | null;
       readonly title: CodecTypes['sqlite/text@1']['input'];
+      readonly uri: CodecTypes['sqlite/text@1']['input'];
     };
     readonly berth: {
       readonly agentId: CodecTypes['sqlite/text@1']['input'];
@@ -1023,17 +1015,7 @@ type ContractBase = Omit<
                   readonly codecId: 'sqlite/text@1';
                   readonly nullable: false;
                 };
-                readonly digest: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'sqlite/text@1';
-                  readonly nullable: false;
-                };
-                readonly byteSize: {
-                  readonly nativeType: 'integer';
-                  readonly codecId: 'sqlite/integer@1';
-                  readonly nullable: false;
-                };
-                readonly basename: {
+                readonly uri: {
                   readonly nativeType: 'text';
                   readonly codecId: 'sqlite/text@1';
                   readonly nullable: false;
@@ -2169,15 +2151,7 @@ type ContractBase = Omit<
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
               };
-              readonly digest: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
-              };
-              readonly byteSize: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/integer@1' };
-              };
-              readonly basename: {
+              readonly uri: {
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
               };
@@ -2230,9 +2204,7 @@ type ContractBase = Omit<
                 readonly supersededByArtifactId: { readonly column: 'supersededByArtifactId' };
                 readonly authorAgentId: { readonly column: 'authorAgentId' };
                 readonly title: { readonly column: 'title' };
-                readonly digest: { readonly column: 'digest' };
-                readonly byteSize: { readonly column: 'byteSize' };
-                readonly basename: { readonly column: 'basename' };
+                readonly uri: { readonly column: 'uri' };
                 readonly createdAt: { readonly column: 'createdAt' };
               };
             };

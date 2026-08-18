@@ -14,11 +14,13 @@ const piece: PieceRow = {
 
 const artifact = (id: string) => ({
 	authorAgentId: "agent-chart",
+	basename: `${id}.md`,
+	byteSize: id.length,
+	digest: "0".repeat(64),
 	id,
 	pieceId: piece.id,
 	supersededByArtifactId: id === "artifact-old" ? "artifact-new" : null,
 	title: id,
-	uri: `https://example.test/${id}.svg`,
 });
 
 const world: VoyageWorld = {

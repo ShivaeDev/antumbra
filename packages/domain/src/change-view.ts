@@ -1,10 +1,10 @@
+import type { ChangeRow } from "@antumbra/changes";
 import type {
 	ChangeChecks,
 	ChangeMergeable,
 	ChangeReview,
 	ChangeStage,
 } from "@antumbra/vocabulary/change";
-import type { ChangeRow } from "#change-rows.ts";
 import type { VoyageWorld } from "#voyage-rows.ts";
 
 // why: what a reader needs to place a change — where it stands, where it

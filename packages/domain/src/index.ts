@@ -24,16 +24,6 @@ export type {
 	ChangeHostCapabilityView,
 	ChangeProcedures,
 } from "#change-procedures.ts";
-export type {
-	ChangeRow,
-	PieceChangePurpose,
-	PieceChangeRow,
-} from "#change-rows.ts";
-export {
-	ChangeIdentityCollision,
-	ChangeObservationConflict,
-	PreparedChangeInvalid,
-} from "#change-submissions/errors.ts";
 export type { ChangeView } from "#change-view.ts";
 export { ChangeWatcherLive } from "#change-watcher.ts";
 export {
@@ -62,26 +52,14 @@ export {
 export {
 	AgentNotFound,
 	AgentNotSpawnable,
-	BerthNotFound,
 	EdgeWouldCycle,
-	NoChangeHost,
 	PieceNotFound,
-	RepoNotFound,
 	ResourceReclaimClaimed,
 	SessionNotLive,
-	StoredChangeInvalid,
-	StoredPieceChangeInvalid,
 	UnknownBackendTag,
-	UnknownChangeHostTag,
 } from "#errors.ts";
 export { KernelReachLive } from "#kernel-reach.ts";
-export {
-	changeStatus,
-	changesOfPiece,
-	type OutcomeStatus,
-	type OutcomeTally,
-	pieceOutcomeTally,
-} from "#outcome-status.ts";
+export { type OutcomeTally, pieceOutcomeTally } from "#outcome-status.ts";
 export {
 	donePieces,
 	landingPieces,

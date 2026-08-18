@@ -1,3 +1,4 @@
+export { ChangesLive } from "#change-submissions/live.ts";
 export type {
 	AdoptChangeFailure,
 	AdoptChangeInput,
@@ -6,7 +7,4 @@ export type {
 	SubmitChangeFailure,
 	SubmitChangeInput,
 } from "#change-submissions/model.ts";
-export {
-	ChangeSubmissions,
-	ChangeSubmissionsLive,
-} from "#change-submissions/service.ts";
+export { Changes } from "#change-submissions/service.ts";

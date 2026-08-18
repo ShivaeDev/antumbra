@@ -4,10 +4,9 @@ import {
 	openChangeSpec,
 	submitChangeSpec,
 } from "@antumbra/agent-tools";
+import { type ChangeRow, Changes } from "@antumbra/changes";
 import type { DirectTool } from "@antumbra/plugin-api";
 import { Effect } from "effect";
-import type { ChangeRow } from "#change-rows.ts";
-import { ChangeSubmissions } from "#change-submissions/change-submissions.ts";
 import { answered, onPiece } from "#tool-answers.ts";
 import type { SessionIdentity } from "#tool-identity.ts";
 
@@ -18,7 +17,7 @@ const said = (row: ChangeRow): string =>
 	`change ${row.stage}: ${row.url ?? "no url"} (id ${row.id})`;
 
 export const makeChangeToolCompiler = Effect.gen(function* () {
-	const submissions = yield* ChangeSubmissions;
+	const submissions = yield* Changes;
 	function changeTools(identity: SessionIdentity): ReadonlyArray<DirectTool> {
 		const open = bind(openChangeSpec, (input) =>
 			onPiece(identity, (pieceId) =>

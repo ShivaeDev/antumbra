@@ -1,3 +1,19 @@
+import type {
+	ChangeIdentityCollision,
+	ChangeObservationConflict,
+} from "@antumbra/changes";
+import {
+	type AdoptChangeFailure,
+	type AdoptChangeInput,
+	type ChangeRow,
+	Changes,
+	type OpenChangeFailure,
+	type OpenChangeInput,
+	type StoredChangeInvalid,
+	type SubmitChangeFailure,
+	type SubmitChangeInput,
+	type UnknownChangeHostTag,
+} from "@antumbra/changes";
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import type { PrismaError } from "@antumbra/persistence";
 import type {
@@ -7,24 +23,7 @@ import type {
 } from "@antumbra/plugin-api";
 import type { StoredResourceReclaimStateInvalid } from "@antumbra/vocabulary/agent-runtime";
 import { Context, Effect, Layer, PubSub } from "effect";
-import type { ChangeRow } from "#change-rows.ts";
-import {
-	type AdoptChangeFailure,
-	type AdoptChangeInput,
-	ChangeSubmissions,
-	type SubmitChangeFailure,
-	type SubmitChangeInput,
-} from "#change-submissions/change-submissions.ts";
-import type {
-	ChangeIdentityCollision,
-	ChangeObservationConflict,
-} from "#change-submissions/errors.ts";
-import type { OpenChangeFailure, OpenChangeInput } from "#changes.ts";
-import type {
-	ResourceReclaimClaimed,
-	StoredChangeInvalid,
-	UnknownChangeHostTag,
-} from "#errors.ts";
+import type { ResourceReclaimClaimed } from "#errors.ts";
 import { type QuayReading, quayReading } from "#quay-view.ts";
 import {
 	type VoyageWorldReadFailure,
@@ -105,7 +104,7 @@ export const ChangeProceduresLive = (hosts: ReadonlyMap<string, ChangeHost>) =>
 	Layer.effect(ChangeProcedureService)(
 		Effect.gen(function* () {
 			const feeds = yield* DomainFeeds;
-			const submissions = yield* ChangeSubmissions;
+			const submissions = yield* Changes;
 			const world = yield* VoyageWorldSource;
 			return ChangeProcedureService.of({
 				adopt: submissions.adopt,

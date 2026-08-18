@@ -1,7 +1,7 @@
+import type { ChangeRow } from "@antumbra/changes";
 import { Database, Writer } from "@antumbra/persistence";
 import type { ChangeStage } from "@antumbra/plugin-api";
 import { Effect } from "effect";
-import type { ChangeRow } from "#change-rows.ts";
 import { AgentDomain } from "#domain.ts";
 
 export const REEF_SOURCE = "/somewhere/reef";

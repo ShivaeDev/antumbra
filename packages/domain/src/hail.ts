@@ -7,6 +7,10 @@ import {
 	type StoredBoardOwnerKindInvalid,
 	smoothBodies,
 } from "@antumbra/boards";
+import type {
+	StoredChangeInvalid,
+	StoredPieceChangeInvalid,
+} from "@antumbra/changes";
 import type { PrismaError } from "@antumbra/persistence";
 import type {
 	StoredAgentSessionStatusInvalid,
@@ -18,8 +22,6 @@ import type { SpawnRefused } from "#deps.ts";
 import {
 	CaptainAlreadyHailed,
 	CaptainSessionUnavailable,
-	type StoredChangeInvalid,
-	type StoredPieceChangeInvalid,
 	VoyageNotFound,
 } from "#errors.ts";
 import { KernelReach } from "#kernel-reach.ts";

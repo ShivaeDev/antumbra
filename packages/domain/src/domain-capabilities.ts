@@ -1,5 +1,6 @@
 import { ArtifactsLive } from "@antumbra/artifacts";
 import { BoardsLive } from "@antumbra/boards";
+import { ChangesLive } from "@antumbra/changes";
 import { DomainFeedsLive } from "@antumbra/domain-feeds";
 import { PiecesLive } from "@antumbra/pieces";
 import type { ChangeHost, Runner } from "@antumbra/plugin-api";
@@ -9,7 +10,6 @@ import { SessionEventJournalLive } from "@antumbra/session-event-journal";
 import { Layer } from "effect";
 import { CaptainMembershipLive } from "#captain-membership.ts";
 import { ChangeProceduresLive } from "#change-procedures.ts";
-import { ChangeSubmissionsLive } from "#change-submissions/change-submissions.ts";
 import { KernelReachDeferredLive } from "#kernel-reach.ts";
 import { StandDownLive } from "#stand-down.ts";
 import { VoyageWorldSourceLive } from "#voyage-world.ts";
@@ -28,15 +28,15 @@ export const domainCapabilities = (
 		ReposLive,
 		SessionEventJournalLive,
 		KernelReachDeferredLive,
-		VoyageWorldSourceLive,
 	).pipe(Layer.provideMerge(DomainFeedsLive));
-	const submissions = ChangeSubmissionsLive(changeHosts, runners).pipe(
+	const changes = ChangesLive(changeHosts, runners).pipe(
 		Layer.provideMerge(foundations),
 	);
+	const world = VoyageWorldSourceLive.pipe(Layer.provideMerge(changes));
 	return Layer.mergeAll(
 		CaptainMembershipLive,
 		ChangeProceduresLive(changeHosts),
 		StandDownLive,
 		VoyageProceduresLive,
-	).pipe(Layer.provideMerge(submissions));
+	).pipe(Layer.provideMerge(world));
 };

@@ -2,7 +2,6 @@ import { type IntentStatus, Kernel } from "@antumbra/kernel";
 import { Database, Writer } from "@antumbra/persistence";
 import { expect, it } from "@effect/vitest";
 import { Effect, Option, Result, Stream } from "effect";
-import { freezeProposal } from "#change-submissions/proposal.ts";
 import { AgentDomain } from "#domain.ts";
 import { REEF_SOURCE, reefWithPiece } from "#test/change-fixtures.ts";
 import {
@@ -102,21 +101,13 @@ it.live(
 				const domain = yield* AgentDomain;
 				const { piece, repo } = yield* reefWithPiece;
 				yield* seedAgentResources("agent-boundary", "alive");
-				const prepared = yield* domain.changes.submit({
+				yield* domain.changes.submit({
 					agentId: "agent-boundary",
 					pieceId: piece.id,
 					repoName: repo.name,
 				});
 				yield* claimAgentResources("agent-boundary");
 
-				yield* expectClaimed(
-					freezeProposal(prepared.id, repo.defaultRef, {
-						base: null,
-						body: "must not leave claimed work",
-						draft: false,
-						title: "claimed",
-					}),
-				);
 				yield* expectClaimed(
 					domain.changes.open({
 						agentId: "agent-boundary",

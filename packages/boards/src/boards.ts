@@ -1,4 +1,3 @@
-import type { StoredBoardOwnerKindInvalid } from "@antumbra/board-vocabulary";
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import {
 	Database,
@@ -6,6 +5,7 @@ import {
 	type WriteExecutors,
 	Writer,
 } from "@antumbra/persistence";
+import type { StoredBoardOwnerKindInvalid } from "@antumbra/vocabulary/board";
 import { Context, Effect, Layer } from "effect";
 import type {
 	BoardOwnerNotFound,

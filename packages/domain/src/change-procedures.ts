@@ -1,4 +1,3 @@
-import type { StoredResourceReclaimStateInvalid } from "@antumbra/agent-runtime-vocabulary";
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import type { PrismaError } from "@antumbra/persistence";
 import type {
@@ -6,6 +5,7 @@ import type {
 	ChangeHostError,
 	ChangeObservation,
 } from "@antumbra/plugin-api";
+import type { StoredResourceReclaimStateInvalid } from "@antumbra/vocabulary/agent-runtime";
 import { Context, Effect, Layer, PubSub } from "effect";
 import type { ChangeRow } from "#change-rows.ts";
 import {

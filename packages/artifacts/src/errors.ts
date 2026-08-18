@@ -1,6 +1,6 @@
-import type { StoredMoorageStatusInvalid } from "@antumbra/agent-runtime-vocabulary";
 import type { PrismaError } from "@antumbra/persistence";
 import type { PieceNotFound } from "@antumbra/pieces";
+import type { StoredMoorageStatusInvalid } from "@antumbra/vocabulary/agent-runtime";
 import { Data } from "effect";
 
 export class ArtifactSourceNotOwned extends Data.TaggedError(

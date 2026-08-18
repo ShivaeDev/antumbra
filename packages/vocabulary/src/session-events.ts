@@ -10,10 +10,10 @@ export {
 	TurnCompleted,
 	TurnStatus,
 	UsageEvent,
-} from "#events.ts";
+} from "#session-events/events.ts";
 export {
 	HistoricalAgentEvent,
 	KnownAgentEvent,
 	projectHistoricalAgentEvent,
 	UnknownAgentEvent,
-} from "#historical.ts";
+} from "#session-events/historical.ts";

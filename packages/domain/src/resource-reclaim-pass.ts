@@ -1,10 +1,10 @@
-import {
-	decodeStoredResourceReclaimState,
-	type ResourceReclaimState,
-} from "@antumbra/agent-runtime-vocabulary";
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database, Writer } from "@antumbra/persistence";
 import type { BerthSite, Runner } from "@antumbra/plugin-api";
+import {
+	decodeStoredResourceReclaimState,
+	type ResourceReclaimState,
+} from "@antumbra/vocabulary/agent-runtime";
 import { Clock, Effect, PubSub } from "effect";
 import {
 	type ClaimedBerth,

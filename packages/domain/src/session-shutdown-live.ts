@@ -1,7 +1,7 @@
-import { decodeStoredAgentSessionStatus } from "@antumbra/agent-runtime-vocabulary";
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { type IntentStatus, Kernel } from "@antumbra/kernel";
 import { Database, type WriteExecutors, Writer } from "@antumbra/persistence";
+import { decodeStoredAgentSessionStatus } from "@antumbra/vocabulary/agent-runtime";
 import { Effect, Layer, Option, PubSub, Stream } from "effect";
 import { AgentDomain } from "#agent-domain-service.ts";
 import { decodeSessionExecutionStatus } from "#session-execution-status.ts";

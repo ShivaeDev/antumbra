@@ -1,11 +1,11 @@
+import { Database } from "@antumbra/persistence";
 import {
 	decodeStoredAgentSessionStatus,
 	decodeStoredAgentStatus,
 	decodeStoredBerthStatus,
 	decodeStoredMoorageStatus,
 	decodeStoredResourceReclaimState,
-} from "@antumbra/agent-runtime-vocabulary";
-import { Database } from "@antumbra/persistence";
+} from "@antumbra/vocabulary/agent-runtime";
 import { Effect } from "effect";
 import { changeRow } from "#change-read.ts";
 import { pieceChangeRow } from "#change-rows.ts";

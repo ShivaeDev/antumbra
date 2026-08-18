@@ -1,5 +1,5 @@
 import { expect, it } from "vitest";
-import { projectHistoricalAgentEvent } from "#historical.ts";
+import { projectHistoricalAgentEvent } from "#session-events/historical.ts";
 
 const raw = {
 	kind: "provider/message",

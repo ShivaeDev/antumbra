@@ -1,5 +1,5 @@
-import { decodeStoredAgentStatus } from "@antumbra/agent-runtime-vocabulary";
 import { Database } from "@antumbra/persistence";
+import { decodeStoredAgentStatus } from "@antumbra/vocabulary/agent-runtime";
 import { Effect, Option, Result } from "effect";
 import {
 	type CurrentSessionReconcilePlan,

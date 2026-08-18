@@ -1,5 +1,5 @@
 import type { SessionEvent } from "@antumbra/contract";
-import type { AgentEvent } from "@antumbra/session-events";
+import type { AgentEvent } from "@antumbra/vocabulary/session-events";
 import { openedLabel, turnLabel, usageLabel } from "#transcript/labels.ts";
 import type { TranscriptItem } from "#transcript/model.ts";
 

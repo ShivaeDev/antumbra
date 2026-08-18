@@ -1,5 +1,5 @@
-import { ResourceReclaimStateSchema } from "@antumbra/agent-runtime-vocabulary";
-import { HistoricalAgentEvent } from "@antumbra/session-events";
+import { ResourceReclaimStateSchema } from "@antumbra/vocabulary/agent-runtime";
+import { HistoricalAgentEvent } from "@antumbra/vocabulary/session-events";
 import { Context, Data, type Effect, Schema, type Stream } from "effect";
 
 export const SessionSummary = Schema.Struct({

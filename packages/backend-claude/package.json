@@ -25,7 +25,7 @@
 	"dependencies": {
 		"@anthropic-ai/claude-agent-sdk": "catalog:",
 		"@antumbra/plugin-api": "workspace:*",
-		"@antumbra/session-events": "workspace:*",
+		"@antumbra/vocabulary": "workspace:*",
 		"@modelcontextprotocol/sdk": "catalog:",
 		"effect": "catalog:"
 	}

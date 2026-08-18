@@ -1,10 +1,10 @@
-import type {
-	AgentSessionStatus,
-	AgentStatus,
-} from "@antumbra/agent-runtime-vocabulary";
 import type { ArtifactRow } from "@antumbra/artifacts";
 import type { EdgeRow, PieceRow } from "@antumbra/pieces";
 import type { ReportRow } from "@antumbra/reports";
+import type {
+	AgentSessionStatus,
+	AgentStatus,
+} from "@antumbra/vocabulary/agent-runtime";
 import type { ChangeRow, PieceChangeRow } from "#change-rows.ts";
 import type { SessionExecutionStatus } from "#session-execution-status.ts";
 

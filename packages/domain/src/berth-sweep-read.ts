@@ -1,5 +1,5 @@
-import { decodeStoredBerthStatus } from "@antumbra/agent-runtime-vocabulary";
 import { Database } from "@antumbra/persistence";
+import { decodeStoredBerthStatus } from "@antumbra/vocabulary/agent-runtime";
 import { Effect } from "effect";
 import { changeRow } from "#change-read.ts";
 import { pieceChangeRow } from "#change-rows.ts";

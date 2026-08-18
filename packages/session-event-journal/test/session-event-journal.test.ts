@@ -5,7 +5,7 @@ import {
 	SessionEventJournal,
 	SessionEventJournalLive,
 } from "@antumbra/session-event-journal";
-import type { AgentEvent } from "@antumbra/session-events";
+import type { AgentEvent } from "@antumbra/vocabulary/session-events";
 import { expect, it } from "@effect/vitest";
 import { Effect, Layer, Option, PubSub } from "effect";
 

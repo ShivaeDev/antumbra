@@ -1,4 +1,4 @@
-import type { AgentEvent } from "@antumbra/session-events";
+import type { AgentEvent } from "@antumbra/vocabulary/session-events";
 import {
 	Data,
 	type Effect,

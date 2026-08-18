@@ -1,4 +1,4 @@
-import { BoardRegisterSchema } from "@antumbra/board-vocabulary";
+import { BoardRegisterSchema } from "@antumbra/vocabulary/board";
 import { Schema } from "effect";
 import { defineTool } from "#define.ts";
 

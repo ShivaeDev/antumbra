@@ -1,5 +1,5 @@
 import { Option, Schema } from "effect";
-import { AgentEvent } from "#events.ts";
+import { AgentEvent } from "#session-events/events.ts";
 
 export const KnownAgentEvent = Schema.TaggedStruct("Known", {
 	event: AgentEvent,

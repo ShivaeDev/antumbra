@@ -1,4 +1,4 @@
-import type { BoardOwnerKind } from "@antumbra/board-vocabulary";
+import type { BoardOwnerKind } from "@antumbra/vocabulary/board";
 import { Data } from "effect";
 
 // why: a board hangs off one entity, so a missing owner is a mistake to

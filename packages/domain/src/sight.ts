@@ -8,7 +8,7 @@ import {
 import { DomainFeeds, type StoredEvent } from "@antumbra/domain-feeds";
 import { Kernel } from "@antumbra/kernel";
 import { Database, type WriteExecutors } from "@antumbra/persistence";
-import { projectHistoricalAgentEvent } from "@antumbra/session-events";
+import { projectHistoricalAgentEvent } from "@antumbra/vocabulary/session-events";
 import { Effect, Layer, PubSub, Stream } from "effect";
 import { AgentDomain } from "#domain.ts";
 import { toFailure } from "#sight-failure.ts";

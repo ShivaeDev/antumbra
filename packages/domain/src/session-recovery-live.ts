@@ -1,9 +1,9 @@
+import { Kernel } from "@antumbra/kernel";
+import { Database } from "@antumbra/persistence";
 import {
 	decodeStoredAgentSessionStatus,
 	decodeStoredAgentStatus,
-} from "@antumbra/agent-runtime-vocabulary";
-import { Kernel } from "@antumbra/kernel";
-import { Database } from "@antumbra/persistence";
+} from "@antumbra/vocabulary/agent-runtime";
 import { Effect, Layer, Result } from "effect";
 import { AgentDomain } from "#agent-domain-service.ts";
 import { makeCurrentSessionReconciler } from "#current-session-reconcile.ts";

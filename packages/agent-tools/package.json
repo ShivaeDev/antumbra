@@ -23,8 +23,8 @@
 		"vitest": "catalog:"
 	},
 	"dependencies": {
-		"@antumbra/board-vocabulary": "workspace:*",
 		"@antumbra/plugin-api": "workspace:*",
+		"@antumbra/vocabulary": "workspace:*",
 		"effect": "catalog:"
 	}
 }

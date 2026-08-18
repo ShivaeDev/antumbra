@@ -1,4 +1,3 @@
-import type { StoredAgentSessionStatusInvalid } from "@antumbra/agent-runtime-vocabulary";
 import type {
 	IntentNotFound,
 	IntentStatus,
@@ -7,6 +6,7 @@ import type {
 	UnregisteredIntentTag,
 } from "@antumbra/kernel";
 import type { PrismaError } from "@antumbra/persistence";
+import type { StoredAgentSessionStatusInvalid } from "@antumbra/vocabulary/agent-runtime";
 import { Context, Data, type Effect } from "effect";
 import type { InvalidSessionExecutionStatus } from "#session-execution-status.ts";
 

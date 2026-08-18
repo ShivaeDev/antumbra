@@ -26,7 +26,7 @@
 	},
 	"dependencies": {
 		"@antumbra/contract": "workspace:*",
-		"@antumbra/session-events": "workspace:*",
+		"@antumbra/vocabulary": "workspace:*",
 		"@effect/atom-react": "catalog:",
 		"@trpc/client": "catalog:",
 		"@trpc/server": "catalog:",

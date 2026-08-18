@@ -1,9 +1,9 @@
-import type { StoredAgentStatusInvalid } from "@antumbra/agent-runtime-vocabulary";
 import type { BoardsService } from "@antumbra/boards";
 import type { AnyIntentKind, IntentKind } from "@antumbra/kernel";
 import type { PrismaError } from "@antumbra/persistence";
 import type { BackendFailure } from "@antumbra/plugin-api";
 import type { RepoRegistry } from "@antumbra/repos";
+import type { StoredAgentStatusInvalid } from "@antumbra/vocabulary/agent-runtime";
 import { Context, type Effect } from "effect";
 import type { ChangeProcedures } from "#change-procedures.ts";
 import type { SessionNotLive } from "#errors.ts";

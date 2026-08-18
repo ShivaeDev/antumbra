@@ -15,7 +15,7 @@ import type {
 	Runner,
 	SessionHandle,
 } from "@antumbra/plugin-api";
-import type { AgentEvent } from "@antumbra/session-events";
+import type { AgentEvent } from "@antumbra/vocabulary/session-events";
 import { NodeServices } from "@effect/platform-node";
 import { Effect, Layer, Option, Queue, Ref, Stream } from "effect";
 import type { ObserveCadenceOptions } from "#change-cadence.ts";

@@ -1,4 +1,3 @@
-import type { StoredResourceReclaimStateInvalid } from "@antumbra/agent-runtime-vocabulary";
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import {
 	Database,
@@ -13,6 +12,7 @@ import type {
 	ChangeObservation,
 	Runner,
 } from "@antumbra/plugin-api";
+import type { StoredResourceReclaimStateInvalid } from "@antumbra/vocabulary/agent-runtime";
 import { Context, Effect, Layer } from "effect";
 import type { ChangeRow } from "#change-rows.ts";
 import { adoptSubmittedChange } from "#change-submissions/adopt.ts";

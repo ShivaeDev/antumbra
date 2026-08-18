@@ -1,9 +1,9 @@
+import { Database, type WriteExecutors } from "@antumbra/persistence";
 import {
 	decodeStoredAgentStatus,
 	decodeStoredBerthStatus,
 	decodeStoredMoorageStatus,
-} from "@antumbra/agent-runtime-vocabulary";
-import { Database, type WriteExecutors } from "@antumbra/persistence";
+} from "@antumbra/vocabulary/agent-runtime";
 import { Effect, Option } from "effect";
 import { makeCurrentSessionRecovery } from "#current-session-recovery.ts";
 import { recoveryHeld } from "#session-recovery-error.ts";

@@ -1,7 +1,7 @@
 import {
 	decodeStoredAgentSessionStatus,
 	decodeStoredAgentStatus,
-} from "@antumbra/agent-runtime-vocabulary";
+} from "@antumbra/vocabulary/agent-runtime";
 import { Effect } from "effect";
 import { AgentNotSpawnable, AgentSessionConflict } from "#errors.ts";
 import type { SpawnFields } from "#spawn.ts";

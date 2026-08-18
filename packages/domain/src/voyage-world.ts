@@ -1,10 +1,4 @@
 import {
-	decodeStoredAgentSessionStatus,
-	decodeStoredAgentStatus,
-	type StoredAgentSessionStatusInvalid,
-	type StoredAgentStatusInvalid,
-} from "@antumbra/agent-runtime-vocabulary";
-import {
 	type StoredArtifactLineageInvalid,
 	validateStoredArtifactLineage,
 } from "@antumbra/artifacts";
@@ -13,6 +7,12 @@ import {
 	type PrismaError,
 	type WriteExecutors,
 } from "@antumbra/persistence";
+import {
+	decodeStoredAgentSessionStatus,
+	decodeStoredAgentStatus,
+	type StoredAgentSessionStatusInvalid,
+	type StoredAgentStatusInvalid,
+} from "@antumbra/vocabulary/agent-runtime";
 import { Context, Effect, Layer } from "effect";
 import { changeRow } from "#change-read.ts";
 import { pieceChangeRow } from "#change-rows.ts";

@@ -13,11 +13,8 @@ import { makeIsActivatedBirth } from "#spawn-activated.ts";
 import { makeIsSpawnCancelling } from "#spawn-cancellation.ts";
 import { type SpawnFields, SpawnPayload } from "#spawn-fields.ts";
 import { spawnSessionIdentity } from "#spawn-identity.ts";
-import {
-	activateAgent,
-	ensureAgentRow,
-	settleSpawnFailure,
-} from "#spawn-rows.ts";
+import { spawnResolution } from "#spawn-resolution.ts";
+import { ensureAgentRow } from "#spawn-rows.ts";
 import { makeSpawnSessionStart } from "#spawn-session-start.ts";
 import { isVoyageCaptainIdentity } from "#voyage-captain.ts";
 
@@ -30,6 +27,7 @@ export const makeSpawnKind = Effect.gen(function* () {
 	const isActivatedBirth = yield* makeIsActivatedBirth;
 	const isCancelling = yield* makeIsSpawnCancelling;
 	const resources = yield* ResourceReconciler;
+	const resolution = yield* spawnResolution;
 	const startSession = yield* makeSpawnSessionStart;
 	return (deps: AgentDeps) => {
 		const admitSpawnSession = (
@@ -38,10 +36,10 @@ export const makeSpawnKind = Effect.gen(function* () {
 		) =>
 			Effect.gen(function* () {
 				yield* deliverCharterOnce(deps, payload, attachment.handle);
-				yield* activateAgent(deps, payload);
+				yield* resolution.activate(payload);
 			});
 		const settleAfterFailure = (payload: SpawnFields) =>
-			settleSpawnFailure(deps, payload).pipe(
+			resolution.settleFailure(payload).pipe(
 				Effect.tap(() => resources.request),
 				Effect.catchCause((cause) =>
 					Effect.logWarning(

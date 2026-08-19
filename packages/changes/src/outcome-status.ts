@@ -2,6 +2,11 @@ import type { ChangeRow, PieceChangeRow } from "#change-rows.ts";
 
 export type OutcomeStatus = "landed" | "pending" | "withdrawn";
 
+type ChangeStatusWorld = {
+	readonly changes: ReadonlyArray<ChangeRow>;
+	readonly pieceChanges: ReadonlyArray<PieceChangeRow>;
+};
+
 export const changeStatus = (row: ChangeRow): OutcomeStatus => {
 	if (row.stage === "landed") {
 		return "landed";
@@ -10,10 +15,7 @@ export const changeStatus = (row: ChangeRow): OutcomeStatus => {
 };
 
 export const changesOfPiece = (
-	world: {
-		readonly changes: ReadonlyArray<ChangeRow>;
-		readonly pieceChanges: ReadonlyArray<PieceChangeRow>;
-	},
+	world: ChangeStatusWorld,
 	pieceId: string,
 ): ReadonlyArray<ChangeRow> => {
 	const linked = new Set(
@@ -25,10 +27,7 @@ export const changesOfPiece = (
 };
 
 export const unresolvedChangesOfPiece = (
-	world: {
-		readonly changes: ReadonlyArray<ChangeRow>;
-		readonly pieceChanges: ReadonlyArray<PieceChangeRow>;
-	},
+	world: ChangeStatusWorld,
 	pieceId: string,
 ): ReadonlyArray<ChangeRow> => {
 	const changes = changesOfPiece(world, pieceId);
@@ -43,10 +42,9 @@ export const unresolvedChangesOfPiece = (
 	});
 };
 
-export const unresolvedChangeIds = (world: {
-	readonly changes: ReadonlyArray<ChangeRow>;
-	readonly pieceChanges: ReadonlyArray<PieceChangeRow>;
-}): ReadonlySet<string> => {
+export const unresolvedChangeIds = (
+	world: ChangeStatusWorld,
+): ReadonlySet<string> => {
 	const pieceIds = new Set(world.pieceChanges.map((link) => link.pieceId));
 	return new Set(
 		[...pieceIds].flatMap((pieceId) =>

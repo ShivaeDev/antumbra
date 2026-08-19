@@ -25,7 +25,11 @@ import { localRunnerPlugin } from "@antumbra/runner-local";
 import { NodeServices } from "@effect/platform-node";
 import { Effect, Layer, ManagedRuntime } from "effect";
 import { AppInfoSourceLive } from "#adapters/app-info.ts";
-import { ownerBoot, runBoot } from "#adapters/boot.ts";
+import {
+	ownerBoot,
+	runBoot,
+	runManagedRuntimeStartup,
+} from "#adapters/boot.ts";
 import { drainManagedRuntime } from "#adapters/graceful-shutdown.ts";
 import { activateInstalledCli } from "#adapters/installed-cli.ts";
 import { mainDocumentAuthority } from "#adapters/main-document-authority.ts";
@@ -123,7 +127,7 @@ const startOwner = () => {
 		yield* openMainWindow(mainDocumentAuthority);
 		yield* Effect.logInfo("bridge: window open");
 	});
-	return Effect.promise(() => runtime.runPromise(main));
+	return Effect.promise(() => runManagedRuntimeStartup(runtime, main));
 };
 
 runBoot(() =>

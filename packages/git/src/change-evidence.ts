@@ -27,7 +27,7 @@ const decodeIdentity = (output: string) =>
 		),
 	);
 
-export const captureWorktreeChange = Effect.fn("captureWorktreeChange")(
+export const captureWorktreeChange = Effect.fn("git.captureWorktreeChange")(
 	function* (
 		path: string,
 	): Effect.fn.Return<

@@ -84,7 +84,7 @@ export const addExistingWorktree = (
 		timeoutMillis: MUTATE_TIMEOUT_MILLIS,
 	}).pipe(Effect.asVoid);
 
-export const inspectWorktree = Effect.fn("inspectWorktree")(function* (
+export const inspectWorktree = Effect.fn("git.inspectWorktree")(function* (
 	path: string,
 ): Effect.fn.Return<
 	WorktreeState,

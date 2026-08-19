@@ -14,7 +14,7 @@ export const cloneMirror = (
 		timeoutMillis: REMOTE_TIMEOUT_MILLIS,
 	}).pipe(Effect.asVoid);
 
-export const refreshMirror = Effect.fn("refreshMirror")(function* (
+export const refreshMirror = Effect.fn("git.refreshMirror")(function* (
 	path: string,
 ): Effect.fn.Return<void, GitError, ChildProcessSpawner.ChildProcessSpawner> {
 	// why: a bare clone lacks branch refs, and repeating the refspec heals a

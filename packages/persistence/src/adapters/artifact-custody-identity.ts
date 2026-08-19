@@ -6,7 +6,7 @@ export interface LegacyArtifact {
 	readonly uri: string;
 }
 
-export interface LegacyArtifactIdentity {
+interface LegacyArtifactIdentity {
 	readonly digest: string;
 	readonly expected: string;
 	readonly storedBasename: string;

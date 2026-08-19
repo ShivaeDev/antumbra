@@ -54,7 +54,7 @@ export class ArtifactProvenanceConflict extends Data.TaggedError(
 	readonly supersededPieceId: string;
 }> {}
 
-export type ArtifactLineageConflictKind =
+type ArtifactLineageConflictKind =
 	| "cycle"
 	| "successor_artifact_already_has_predecessor"
 	| "superseded_artifact_already_has_successor";

@@ -17,7 +17,7 @@ import {
 	selectMatchedRow,
 } from "#change-submissions/observation-selection.ts";
 
-export interface ReconciledObservation {
+interface ReconciledObservation {
 	readonly changed: boolean;
 	readonly row: ChangeRow;
 }

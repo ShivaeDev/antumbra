@@ -6,7 +6,7 @@ export type ReclaimPolicy = "abandon" | "requeue";
 
 // why: payloads round-trip through a JSON column with no ambient context, so a
 // kind's schema must not demand decoding or encoding services.
-export type IntentPayloadSchema = Schema.Top & {
+type IntentPayloadSchema = Schema.Top & {
 	readonly DecodingServices: never;
 	readonly EncodingServices: never;
 };
@@ -20,7 +20,7 @@ export interface IntentKindOptions<PayloadSchema extends IntentPayloadSchema> {
 	readonly tag: string;
 }
 
-export interface RegisteredIntentKind {
+interface RegisteredIntentKind {
 	readonly reclaim: ReclaimPolicy;
 	readonly run: (
 		intentId: string,

@@ -5,11 +5,7 @@ import { Data, Option, Result, Schema } from "effect";
 export const BoardRegisterSchema = Schema.Literals(["rough", "smooth"]);
 export type BoardRegister = typeof BoardRegisterSchema.Type;
 
-export const BoardOwnerKindSchema = Schema.Literals([
-	"agent",
-	"piece",
-	"voyage",
-]);
+const BoardOwnerKindSchema = Schema.Literals(["agent", "piece", "voyage"]);
 export type BoardOwnerKind = typeof BoardOwnerKindSchema.Type;
 
 export class StoredBoardOwnerKindInvalid extends Data.TaggedError(

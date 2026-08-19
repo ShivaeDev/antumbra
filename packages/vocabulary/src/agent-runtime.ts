@@ -11,13 +11,13 @@ export const AgentStatusSchema = Schema.Literals([
 ]);
 export type AgentStatus = typeof AgentStatusSchema.Type;
 
-export const AgentSessionStatusSchema = Schema.Literals(["open", "closed"]);
+const AgentSessionStatusSchema = Schema.Literals(["open", "closed"]);
 export type AgentSessionStatus = typeof AgentSessionStatusSchema.Type;
 
-export const MoorageStatusSchema = Schema.Literals(["provisioning", "ready"]);
+const MoorageStatusSchema = Schema.Literals(["provisioning", "ready"]);
 export type MoorageStatus = typeof MoorageStatusSchema.Type;
 
-export const BerthStatusSchema = Schema.Literals([
+const BerthStatusSchema = Schema.Literals([
 	"provisioning",
 	"ready",
 	"stranded",

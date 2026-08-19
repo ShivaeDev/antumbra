@@ -4,7 +4,7 @@ import { Effect, Option } from "effect";
 import { BoardOwnerNotFound } from "#errors.ts";
 import { type BoardOwner, BoardScope } from "#model.ts";
 
-export const ownerOf = (scope: BoardScope): BoardOwner =>
+const ownerOf = (scope: BoardScope): BoardOwner =>
 	BoardScope.$match(scope, {
 		Agent: ({ agentId }): BoardOwner => ({
 			ownerId: agentId,

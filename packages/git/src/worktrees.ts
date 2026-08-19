@@ -84,29 +84,28 @@ export const addExistingWorktree = (
 		timeoutMillis: MUTATE_TIMEOUT_MILLIS,
 	}).pipe(Effect.asVoid);
 
-export const inspectWorktree = (
+export const inspectWorktree = Effect.fn("git.inspectWorktree")(function* (
 	path: string,
-): Effect.Effect<
+): Effect.fn.Return<
 	WorktreeState,
 	GitError,
 	ChildProcessSpawner.ChildProcessSpawner
-> =>
-	Effect.gen(function* () {
-		const status = yield* runGit({
-			args: ["-C", path, "status", "--porcelain"],
-			operation: "inspect-worktree",
-			timeoutMillis: INSPECT_TIMEOUT_MILLIS,
-		});
-		if (status.trim() !== "") {
-			return { _tag: "changed" as const };
-		}
-		const unpushedCommits = yield* countUnpushedCommits(
-			path,
-			"HEAD",
-			"inspect-worktree",
-		);
-		return { _tag: "clean" as const, unpushedCommits };
+> {
+	const status = yield* runGit({
+		args: ["-C", path, "status", "--porcelain"],
+		operation: "inspect-worktree",
+		timeoutMillis: INSPECT_TIMEOUT_MILLIS,
 	});
+	if (status.trim() !== "") {
+		return { _tag: "changed" as const };
+	}
+	const unpushedCommits = yield* countUnpushedCommits(
+		path,
+		"HEAD",
+		"inspect-worktree",
+	);
+	return { _tag: "clean" as const, unpushedCommits };
+});
 
 export const removeWorktree = (
 	mirror: string,

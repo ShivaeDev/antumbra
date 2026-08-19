@@ -5,6 +5,7 @@ import { forgetRepo } from "#forget.ts";
 import { listRepos } from "#list.ts";
 import type { RepoRegistry } from "#model.ts";
 import { registerRepo } from "#register.ts";
+import type { ReposServiceRequirements } from "#requirements.ts";
 
 export class Repos extends Context.Service<Repos, RepoRegistry>()(
 	"@antumbra/repos/Repos",
@@ -16,7 +17,7 @@ export const ReposLive = Layer.effect(Repos)(
 		const writer = yield* Writer;
 		const feeds = yield* DomainFeeds;
 		const executors = yield* Effect.context<WriteExecutors>();
-		const context = Context.merge(
+		const context: Context.Context<ReposServiceRequirements> = Context.merge(
 			executors,
 			Context.make(Database, db).pipe(
 				Context.add(Writer, writer),

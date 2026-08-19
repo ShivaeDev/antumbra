@@ -9,6 +9,7 @@ import {
 	type SubmitChangeInput,
 } from "@antumbra/changes";
 import { Effect } from "effect";
+import type { ChangesReturn } from "#changes-requirements.ts";
 
 export type {
 	AdoptChangeFailure,
@@ -19,17 +20,23 @@ export type {
 	SubmitChangeInput,
 } from "@antumbra/changes";
 
-export const adoptChange = (
+export const adoptChange = Effect.fn("changes.adoptChange")(function* (
 	input: AdoptChangeInput,
-): Effect.Effect<ChangeRow, AdoptChangeFailure, Changes> =>
-	Effect.flatMap(Changes, (changes) => changes.adopt(input));
+): ChangesReturn<ChangeRow, AdoptChangeFailure> {
+	const changes = yield* Changes;
+	return yield* changes.adopt(input);
+});
 
-export const openChange = (
+export const openChange = Effect.fn("changes.openChange")(function* (
 	input: OpenChangeInput,
-): Effect.Effect<ChangeRow, OpenChangeFailure, Changes> =>
-	Effect.flatMap(Changes, (changes) => changes.open(input));
+): ChangesReturn<ChangeRow, OpenChangeFailure> {
+	const changes = yield* Changes;
+	return yield* changes.open(input);
+});
 
-export const submitChange = (
+export const submitChange = Effect.fn("changes.submitChange")(function* (
 	input: SubmitChangeInput,
-): Effect.Effect<ChangeRow, SubmitChangeFailure, Changes> =>
-	Effect.flatMap(Changes, (changes) => changes.submit(input));
+): ChangesReturn<ChangeRow, SubmitChangeFailure> {
+	const changes = yield* Changes;
+	return yield* changes.submit(input);
+});

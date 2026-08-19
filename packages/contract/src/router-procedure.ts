@@ -8,7 +8,7 @@ import { initTRPC } from "@trpc/server";
 import { Context, Effect, Layer } from "effect";
 import type { AppInfoSource } from "#app-info.ts";
 import type { SightFailure, SightSource } from "#sight.ts";
-import type { VoyageSource } from "#voyages.ts";
+import type { ArtifactMarkdownFailure, VoyageSource } from "#voyages.ts";
 
 export interface RequestContext {
 	readonly senderId: number;
@@ -37,9 +37,13 @@ export type AppProcedure = ReturnType<typeof makeProcedure>;
 
 // why: every source states its refusals as one failure, and tRPC wants an
 // error rather than a typed channel — this is the single crossing.
-export const surface = <A, R>(effect: Effect.Effect<A, SightFailure, R>) =>
+export const surface = <A, R>(
+	effect: Effect.Effect<A, ArtifactMarkdownFailure | SightFailure, R>,
+) =>
 	effect.pipe(
-		Effect.catchTag("SightFailure", (failure) =>
-			internalServerError(failure.message),
-		),
+		Effect.catchTags({
+			ArtifactMarkdownFailure: (failure) =>
+				internalServerError(failure.message),
+			SightFailure: (failure) => internalServerError(failure.message),
+		}),
 	);

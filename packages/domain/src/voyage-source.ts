@@ -1,16 +1,23 @@
 import { Boards } from "@antumbra/boards";
-import { type AdoptChangeRequest, VoyageSource } from "@antumbra/contract";
+import {
+	type AdoptChangeRequest,
+	ArtifactMarkdownFailure,
+	VoyageSource,
+} from "@antumbra/contract";
 import { Context, Effect, Layer } from "effect";
 import { ChangeProcedureService } from "#change-procedures.ts";
 import { changeView } from "#change-view.ts";
 import { quaySeen } from "#quay-projection.ts";
-import { toFailure } from "#sight-failure.ts";
+import { failureMessage, toFailure } from "#sight-failure.ts";
 import { makeVoyageActs } from "#voyage-acts.ts";
 import { makeVoyageRefreshes } from "#voyage-feed.ts";
 import { VoyageProcedureService } from "#voyage-procedures.ts";
 import { changeSeen } from "#voyage-projection.ts";
 import { makeVoyageReads } from "#voyage-reads.ts";
 import { VoyageWorldSource } from "#voyage-world.ts";
+
+const artifactMarkdownFailure = (cause: unknown) =>
+	new ArtifactMarkdownFailure({ message: failureMessage(cause) });
 
 export const VoyageSourceLive = Layer.effect(VoyageSource)(
 	Effect.gen(function* () {
@@ -31,6 +38,10 @@ export const VoyageSourceLive = Layer.effect(VoyageSource)(
 		}).pipe(Effect.mapError(toFailure));
 		return {
 			...acts,
+			artifactMarkdown: (artifactId: string) =>
+				voyages
+					.artifactMarkdown(artifactId)
+					.pipe(Effect.mapError(artifactMarkdownFailure)),
 			// why: a change made by hand was opened by nobody this system spawned,
 			// so it is adopted with no agent behind it — the act of the person at
 			// the window, recorded as such rather than credited to the crew.

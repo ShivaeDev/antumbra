@@ -6,6 +6,7 @@ import {
 	ChangeStage,
 } from "@antumbra/vocabulary/change";
 import { Schema } from "effect";
+import { ArtifactHistoryView, ArtifactView } from "#artifact-views.ts";
 
 export const PieceAgentView = Schema.Struct({
 	agentId: Schema.String,
@@ -19,21 +20,6 @@ export const ReportView = Schema.Struct({
 	title: Schema.String,
 });
 export type ReportView = typeof ReportView.Type;
-
-export const ArtifactView = Schema.Struct({
-	authorAgentId: Schema.NullOr(Schema.String),
-	byteSize: Schema.Number,
-	digest: Schema.String,
-	id: Schema.String,
-	title: Schema.String,
-});
-export type ArtifactView = typeof ArtifactView.Type;
-
-export const ArtifactHistoryView = Schema.Struct({
-	...ArtifactView.fields,
-	successorArtifactId: Schema.String,
-});
-export type ArtifactHistoryView = typeof ArtifactHistoryView.Type;
 
 // why: a change lives on a host that speaks its own dialect, and the window is
 // shown only the neutral reading — where it stands and what the host last said

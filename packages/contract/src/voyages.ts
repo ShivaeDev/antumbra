@@ -1,5 +1,6 @@
 import { BoardRegisterSchema } from "@antumbra/vocabulary/board";
-import { Context, type Effect, Schema, type Stream } from "effect";
+import { Context, Data, type Effect, Schema, type Stream } from "effect";
+import type { ArtifactMarkdown } from "#artifact-views.ts";
 import type { QuayView } from "#quay-views.ts";
 import type { SightFailure } from "#sight.ts";
 import type { ChangeView, VoyageSummary, VoyageView } from "#voyage-views.ts";
@@ -34,6 +35,12 @@ export const ArtifactSupersessionRequest = Schema.Struct({
 });
 export type ArtifactSupersessionRequest =
 	typeof ArtifactSupersessionRequest.Type;
+
+export class ArtifactMarkdownFailure extends Data.TaggedError(
+	"ArtifactMarkdownFailure",
+)<{
+	readonly message: string;
+}> {}
 
 // why: a board hangs off exactly one entity, so what it hangs off is a choice
 // between named shapes rather than an id beside a kind that could disagree.
@@ -71,6 +78,9 @@ export class VoyageSource extends Context.Service<
 		readonly adoptChange: (
 			request: AdoptChangeRequest,
 		) => Effect.Effect<ChangeView, SightFailure>;
+		readonly artifactMarkdown: (
+			artifactId: string,
+		) => Effect.Effect<ArtifactMarkdown, ArtifactMarkdownFailure>;
 		readonly charterPiece: (
 			request: CharterPieceRequest,
 		) => Effect.Effect<CharterReceipt, SightFailure>;

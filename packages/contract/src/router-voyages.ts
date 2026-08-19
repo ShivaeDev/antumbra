@@ -1,4 +1,5 @@
 import { Schema } from "effect";
+import { ArtifactMarkdown } from "#artifact-views.ts";
 import { type AppProcedure, surface } from "#router-procedure.ts";
 import { VoyageSummary, VoyageView } from "#voyage-views.ts";
 import {
@@ -13,9 +14,17 @@ import {
 } from "#voyages.ts";
 
 const PieceRef = Schema.Struct({ pieceId: Schema.String });
+const ArtifactRef = Schema.Struct({ artifactId: Schema.String });
 const VoyageRef = Schema.Struct({ voyageId: Schema.String });
 
 export const voyageRoutes = (procedure: AppProcedure) => ({
+	artifactMarkdown: procedure
+		.input(ArtifactRef)
+		.output(ArtifactMarkdown)
+		.query(function* (input) {
+			const voyages = yield* VoyageSource;
+			return yield* surface(voyages.artifactMarkdown(input.artifactId));
+		}),
 	charterPiece: procedure
 		.input(CharterPieceRequest)
 		.output(CharterReceipt)

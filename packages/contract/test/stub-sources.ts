@@ -37,6 +37,7 @@ export const fleet = {
 				{
 					backend: "claude",
 					canInterrupt: true,
+					canSend: true,
 					cwd: "/tmp/reef",
 					id: "session-1",
 					status: "open",
@@ -177,6 +178,12 @@ const sightStub = Layer.succeed(SightSource, {
 			source: registration.source,
 		}),
 	retire: () => Effect.void,
+	send: (sessionId, text) =>
+		text === ""
+			? new SightFailure({
+					message: `a message with no words cannot reach session ${sessionId}`,
+				})
+			: Effect.void,
 	sessionEventFeed: (query) =>
 		Stream.fromArray(
 			storedEvents.filter((event) => event.seq >= query.fromSeq),

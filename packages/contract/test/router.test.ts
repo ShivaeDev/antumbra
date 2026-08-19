@@ -65,6 +65,21 @@ describe("makeAppRouter", () => {
 		}),
 	);
 
+	it.effect("carries the admiral's words to a session through sight", () =>
+		Effect.gen(function* () {
+			const runtime = makeRuntime();
+			const caller = makeAppRouter(runtime).createCaller({ senderId: 7 });
+			yield* Effect.promise(() =>
+				caller.sendToSession({ sessionId: "session-1", text: "come about" }),
+			);
+			const refused = yield* Effect.tryPromise(() =>
+				caller.sendToSession({ sessionId: "session-1", text: "" }),
+			).pipe(Effect.flip);
+			expect(String(refused.cause)).toContain("a message with no words");
+			yield* Effect.promise(() => runtime.dispose());
+		}),
+	);
+
 	it.effect("spawns through sight and returns the receipt", () =>
 		Effect.gen(function* () {
 			const runtime = makeRuntime();

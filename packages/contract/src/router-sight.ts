@@ -45,6 +45,12 @@ export const sightRoutes = (procedure: AppProcedure) => ({
 			const sight = yield* SightSource;
 			yield* surface(sight.retire(input.agentId));
 		}),
+	sendToSession: procedure
+		.input(Schema.Struct({ sessionId: Schema.String, text: Schema.String }))
+		.mutation(function* (input) {
+			const sight = yield* SightSource;
+			yield* surface(sight.send(input.sessionId, input.text));
+		}),
 	sessionEventFeed: procedure
 		.input(EventQuery)
 		.output(SessionEvent)

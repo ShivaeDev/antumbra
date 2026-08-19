@@ -5,6 +5,9 @@ import { Context, Data, type Effect, Schema, type Stream } from "effect";
 export const SessionSummary = Schema.Struct({
 	backend: Schema.String,
 	canInterrupt: Schema.Boolean,
+	// why: whether the admiral's words can reach this Session now, published as
+	// a capability so the view never reads raw Session execution state.
+	canSend: Schema.Boolean,
 	cwd: Schema.String,
 	id: Schema.String,
 	status: Schema.String,
@@ -96,6 +99,10 @@ export class SightSource extends Context.Service<
 			registration: RepoRegistration,
 		) => Effect.Effect<RepoSummary, SightFailure>;
 		readonly retire: (agentId: string) => Effect.Effect<void, SightFailure>;
+		readonly send: (
+			sessionId: string,
+			text: string,
+		) => Effect.Effect<void, SightFailure>;
 		readonly sessionEventFeed: (
 			query: EventQuery,
 		) => Stream.Stream<SessionEvent, SightFailure>;

@@ -11,6 +11,7 @@ import { Database, type WriteExecutors } from "@antumbra/persistence";
 import { projectHistoricalAgentEvent } from "@antumbra/vocabulary/session-events";
 import { Effect, Layer, PubSub, Stream } from "effect";
 import { AgentDomain } from "#domain.ts";
+import { SessionMessageEmpty } from "#errors.ts";
 import { toFailure } from "#sight-failure.ts";
 import { fleetSnapshot } from "#sight-fleet.ts";
 
@@ -108,6 +109,16 @@ export const SightSourceLive = Layer.effect(SightSource)(
 		const interrupt = (sessionId: string) =>
 			domain.interruptSession(sessionId).pipe(Effect.mapError(toFailure));
 
+		// why: the admiral speaks to a Session that is live right now; a Session
+		// with no attachment refuses rather than holding the words for later.
+		const send = (sessionId: string, text: string) =>
+			Effect.gen(function* () {
+				if (text.trim().length === 0) {
+					return yield* new SessionMessageEmpty({ sessionId });
+				}
+				yield* domain.sendToSession(sessionId, text);
+			}).pipe(Effect.mapError(toFailure));
+
 		const registerRepo = (registration: RepoRegistration) =>
 			domain.repos.register(registration).pipe(Effect.mapError(toFailure));
 
@@ -121,6 +132,7 @@ export const SightSourceLive = Layer.effect(SightSource)(
 			interrupt,
 			registerRepo,
 			retire,
+			send,
 			sessionEventFeed,
 			sessionEvents,
 			spawn,

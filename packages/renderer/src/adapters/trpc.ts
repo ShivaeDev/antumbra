@@ -77,6 +77,18 @@ export const interruptSession = (
 		.catch((cause: unknown) => onError(toError(cause).message));
 };
 
+export const sendToSession = (
+	sessionId: string,
+	text: string,
+	onDone: () => void,
+	onError: (message: string) => void,
+): void => {
+	client.sendToSession
+		.mutate({ sessionId, text })
+		.then(onDone)
+		.catch((cause: unknown) => onError(toError(cause).message));
+};
+
 export const registerRepo = (
 	registration: RepoRegistration,
 	onDone: (repo: RepoSummary) => void,

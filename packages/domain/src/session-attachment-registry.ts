@@ -4,7 +4,8 @@ import type {
 	OpenSessionOptions,
 } from "@antumbra/plugin-api";
 import { Effect, Exit, Ref, Semaphore } from "effect";
-import { SessionAttachmentFailure, SessionNotLive } from "#errors.ts";
+import type { SessionAttachmentFailure } from "#errors.ts";
+import { SessionNotLive } from "#errors.ts";
 import {
 	closeSessionAttachment,
 	type EventSink,
@@ -12,6 +13,7 @@ import {
 	openSessionAttachment,
 	type SessionAttachment,
 } from "#session-attachment.ts";
+import { occupancyRefusal } from "#session-attachment-occupancy.ts";
 
 interface Entry {
 	readonly agentId: string;
@@ -28,6 +30,10 @@ export interface SessionAttachmentRegistry {
 	) => Effect.Effect<void, BackendFailure | SessionAttachmentFailure | E, R>;
 	readonly interrupt: (
 		sessionId: string,
+	) => Effect.Effect<void, BackendFailure | SessionNotLive>;
+	readonly send: (
+		sessionId: string,
+		text: string,
 	) => Effect.Effect<void, BackendFailure | SessionNotLive>;
 	readonly stop: (sessionId: string) => Effect.Effect<void>;
 }
@@ -89,23 +95,11 @@ export const makeSessionAttachmentRegistry = Effect.gen(function* () {
 			yield* gate.withPermits(1)(
 				Effect.gen(function* () {
 					const current = yield* Ref.get(entries);
-					const occupied = [...current.values()].find(
-						(entry) => entry.agentId === agentId,
-					);
-					if (
-						occupied !== undefined &&
-						current.get(options.sessionId) !== occupied
-					) {
-						return yield* new SessionAttachmentFailure({
-							detail: `Agent ${agentId} already has a different attached Session`,
-						});
+					const refused = occupancyRefusal(current, agentId, options.sessionId);
+					if (refused !== undefined) {
+						return yield* refused;
 					}
 					let entry = current.get(options.sessionId);
-					if (entry !== undefined && entry.agentId !== agentId) {
-						return yield* new SessionAttachmentFailure({
-							detail: `Session ${options.sessionId} belongs to a different Agent`,
-						});
-					}
 					if (entry === undefined) {
 						const attachment = yield* openSessionAttachment(
 							backend,
@@ -128,16 +122,21 @@ export const makeSessionAttachmentRegistry = Effect.gen(function* () {
 				),
 			);
 		});
+	const liveHandle = (sessionId: string) =>
+		Effect.gen(function* () {
+			const entry = (yield* Ref.get(entries)).get(sessionId);
+			return entry === undefined
+				? yield* new SessionNotLive({ sessionId })
+				: entry.attachment.handle;
+		});
 	return {
 		attach,
 		interrupt: (sessionId) =>
-			Effect.gen(function* () {
-				const entry = (yield* Ref.get(entries)).get(sessionId);
-				if (entry === undefined) {
-					return yield* new SessionNotLive({ sessionId });
-				}
-				yield* entry.attachment.handle.interrupt;
-			}),
+			liveHandle(sessionId).pipe(Effect.flatMap((handle) => handle.interrupt)),
+		send: (sessionId, text) =>
+			liveHandle(sessionId).pipe(
+				Effect.flatMap((handle) => handle.queue(text)),
+			),
 		stop: remove,
 	} satisfies SessionAttachmentRegistry;
 });

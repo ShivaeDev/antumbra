@@ -50,6 +50,16 @@ export class SessionAttachmentFailure extends Data.TaggedError(
 	readonly detail: string;
 }> {}
 
+export class SessionMessageEmpty extends Data.TaggedError(
+	"SessionMessageEmpty",
+)<{
+	readonly sessionId: string;
+}> {
+	override get message(): string {
+		return `a message with no words cannot reach session ${this.sessionId}`;
+	}
+}
+
 export class SessionIdentityMissing extends Data.TaggedError(
 	"SessionIdentityMissing",
 )<{

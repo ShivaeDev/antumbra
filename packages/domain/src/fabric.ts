@@ -36,6 +36,10 @@ export interface SessionFabricService {
 		admit: (attachment: SessionAttachment) => Effect.Effect<void, E, R>,
 	) => Effect.Effect<void, BackendFailure | SessionAttachmentFailure | E, R>;
 	readonly reopenStarts: Effect.Effect<void>;
+	readonly send: (
+		sessionId: string,
+		text: string,
+	) => Effect.Effect<void, BackendFailure | SessionNotLive>;
 	readonly stop: (sessionId: string) => Effect.Effect<void>;
 	readonly withStartAdmission: <A, E, R>(
 		use: (permit: SessionStartPermit) => Effect.Effect<A, E, R>,
@@ -71,6 +75,7 @@ export const makeSessionFabric = Effect.gen(function* () {
 		closeStarts: startAdmission.close,
 		interrupt: attachments.interrupt,
 		reopenStarts: startAdmission.reopen,
+		send: attachments.send,
 		start,
 		stop,
 		withStartAdmission: (use) =>

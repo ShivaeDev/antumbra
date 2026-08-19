@@ -14,6 +14,7 @@ const renderFleet = (canInterrupt: boolean, executionStatus: string) => {
 					{
 						backend: "scripted",
 						canInterrupt,
+						canSend: canInterrupt,
 						cwd: "/tmp/reef",
 						executionStatus,
 						id: "session-1",

@@ -7,6 +7,7 @@ import { watchVoyages } from "#adapters/trpc-voyages.ts";
 import { FleetAside } from "#views/fleet-aside.tsx";
 import { type Mode, ModeStrip } from "#views/mode-strip.tsx";
 import { QuayPanel } from "#views/quay.tsx";
+import { SessionMessage } from "#views/session-message.tsx";
 import { TranscriptView } from "#views/transcript.tsx";
 import { VoyagePanel } from "#views/voyage.tsx";
 import { VoyagesAside } from "#views/voyages-aside.tsx";
@@ -33,12 +34,21 @@ const asideStyle: React.CSSProperties = {
 
 const emptyStyle: React.CSSProperties = { color: "#8a8f98", margin: "auto" };
 
+const sessionStyle: React.CSSProperties = {
+	display: "flex",
+	flex: 1,
+	flexDirection: "column",
+	minWidth: 0,
+};
+
 const MainSection = ({
+	fleet,
 	mode,
 	onError,
 	session,
 	voyage,
 }: {
+	readonly fleet: Fleet | undefined;
 	readonly mode: Mode;
 	readonly onError: (message: string) => void;
 	readonly session: string | undefined;
@@ -59,7 +69,10 @@ const MainSection = ({
 			select a session to watch its transcript
 		</section>
 	) : (
-		<TranscriptView sessionId={session} />
+		<section style={sessionStyle}>
+			<TranscriptView sessionId={session} />
+			<SessionMessage fleet={fleet} onError={onError} sessionId={session} />
+		</section>
 	);
 };
 
@@ -113,6 +126,7 @@ export const App = () => {
 				)}
 			</aside>
 			<MainSection
+				fleet={fleet}
 				mode={mode}
 				onError={setNotice}
 				session={session}

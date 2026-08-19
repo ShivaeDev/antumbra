@@ -53,6 +53,13 @@ overrides:
   # no-downgrade` rejects. Drop the pin once an attested release lands.
   "@vercel/detect-agent": 1.2.3
 
+packageExtensions:
+  # Langium 3 imports vscode-jsonrpc internals without declaring it directly.
+  # Keep those imports on the 8.x implementation supplied by its own server.
+  "langium@3.0.0":
+    dependencies:
+      vscode-jsonrpc: 8.2.0
+
 trustPolicyExclude:
   - "semver@5.7.2 || 6.3.1"
 

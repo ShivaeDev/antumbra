@@ -118,6 +118,8 @@ overrides:
   langium: 3.0.0
   '@vercel/detect-agent': 1.2.3
 
+packageExtensionsChecksum: sha256-Bw4Wch8fyGc+G1z5mR08UCa3eG3yVNmi+53vZ6M5rgg=
+
 importers:
 
   .:
@@ -7218,6 +7220,7 @@ snapshots:
     dependencies:
       chevrotain: 11.0.3
       chevrotain-allstar: 0.3.1(chevrotain@11.0.3)
+      vscode-jsonrpc: 8.2.0
       vscode-languageserver: 9.0.1
       vscode-languageserver-textdocument: 1.0.12
       vscode-uri: 3.0.8

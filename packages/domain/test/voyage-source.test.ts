@@ -126,6 +126,7 @@ it.live("a hail puts a captain and a crew row on what the window reads", () =>
 					const view = yield* source.voyage(opened.id);
 					expect(view.captain).toEqual({
 						agentId: hailed.agentId,
+						atWork: true,
 						status: "alive",
 					});
 					expect(view.crew).toEqual([

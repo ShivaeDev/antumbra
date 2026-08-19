@@ -24,15 +24,6 @@ export const executionSessionOfAgent = (
 		: open.find((session) => session.id === currentSessionId);
 };
 
-export const idleExecutionSessionsOfAgent = (
-	world: VoyageWorld,
-	agentId: string,
-): ReadonlyArray<AgentSessionRow> =>
-	[executionSessionOfAgent(world, agentId)].filter(
-		(session): session is AgentSessionRow =>
-			session?.executionStatus === "idle",
-	);
-
 export interface AssignedExecutionSession {
 	readonly agentId: string;
 	readonly sessionId: string;

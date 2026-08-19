@@ -1,5 +1,5 @@
 import { expect, it } from "@effect/vitest";
-import { Schema } from "effect";
+import { Option, Schema } from "effect";
 import {
 	BoardEntryView,
 	BoardWriteRequest,
@@ -7,6 +7,7 @@ import {
 	TRPC_FAILURE_CODES,
 	TrpcFailureCode,
 	TrpcRequest,
+	VoyageCaptainView,
 } from "#index.ts";
 
 it("rejects an arbitrary Board register at the public boundary", () => {
@@ -46,6 +47,17 @@ it("accepts every pinned tRPC failure code and no arbitrary word", () => {
 		expect(decode(code)._tag, code).toBe("Some");
 	}
 	expect(decode("FUTURE_FAILURE")._tag).toBe("None");
+});
+
+it("carries the captain's at-work judgment, never the status alone", () => {
+	const decode = Schema.decodeUnknownOption(VoyageCaptainView);
+	const stoodDown = decode({
+		agentId: "agent-1",
+		atWork: false,
+		status: "alive",
+	});
+	expect(Option.getOrNull(stoodDown)?.atWork).toBe(false);
+	expect(decode({ agentId: "agent-1", status: "alive" })._tag).toBe("None");
 });
 
 it("exposes the shared known-or-unknown historical event envelope", () => {

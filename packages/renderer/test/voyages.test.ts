@@ -1,7 +1,17 @@
-import type { BoardEntryView, PieceState, PieceView } from "@antumbra/contract";
+import type {
+	BoardEntryView,
+	PieceState,
+	PieceView,
+	VoyageCaptainView,
+} from "@antumbra/contract";
 import { describe, expect, it } from "vitest";
 import { actsFor, captainAtWork } from "#voyages/acts.ts";
-import { authorLabel, dependsOnLabel, whenLabel } from "#voyages/labels.ts";
+import {
+	authorLabel,
+	captainCallLabel,
+	dependsOnLabel,
+	whenLabel,
+} from "#voyages/labels.ts";
 import { byLadder, bySalience } from "#voyages/order.ts";
 
 const piece = (
@@ -24,6 +34,12 @@ const piece = (
 	role: "hand",
 	state,
 	title,
+});
+
+const captain = (status: string, atWork: boolean): VoyageCaptainView => ({
+	agentId: "agent-1",
+	atWork,
+	status,
 });
 
 const entry = (
@@ -91,21 +107,27 @@ describe("actsFor", () => {
 });
 
 describe("captainAtWork", () => {
-	it("a captain alive or being born is an address already", () => {
-		expect(captainAtWork({ agentId: "agent-1", status: "alive" })).toBe(true);
-		expect(captainAtWork({ agentId: "agent-1", status: "spawning" })).toBe(
-			true,
-		);
+	it("takes the domain's judgment rather than reading a status again", () => {
+		expect(captainAtWork(captain("alive", true))).toBe(true);
+		expect(captainAtWork(captain("spawning", true))).toBe(true);
 	});
 
-	it("no captain, or one that has stood down, leaves the voyage unaddressed", () => {
+	it("no captain, or one that stood down, leaves the voyage unaddressed", () => {
 		expect(captainAtWork(null)).toBe(false);
-		expect(captainAtWork({ agentId: "agent-1", status: "dormant" })).toBe(
-			false,
-		);
-		expect(captainAtWork({ agentId: "agent-1", status: "retired" })).toBe(
-			false,
-		);
+		expect(captainAtWork(captain("alive", false))).toBe(false);
+		expect(captainAtWork(captain("retired", false))).toBe(false);
+	});
+});
+
+describe("captainCallLabel", () => {
+	it("offers the wake to a captain that is alive but not at work", () => {
+		expect(captainCallLabel(captain("alive", false))).toBe("wake the captain");
+	});
+
+	it("offers the hail when no captain of this voyage can be woken", () => {
+		expect(captainCallLabel(null)).toBe("hail a captain");
+		expect(captainCallLabel(captain("retired", false))).toBe("hail a captain");
+		expect(captainCallLabel(captain("dormant", false))).toBe("hail a captain");
 	});
 });
 

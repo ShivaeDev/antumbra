@@ -10,7 +10,11 @@ import {
 	rowStyle,
 } from "#views/styles.ts";
 import { captainAtWork } from "#voyages/acts.ts";
-import { voyageStateColour, voyageStateLabel } from "#voyages/labels.ts";
+import {
+	captainCallLabel,
+	voyageStateColour,
+	voyageStateLabel,
+} from "#voyages/labels.ts";
 
 const countsLabel = (counts: VoyageSummary["counts"]): string =>
 	`${counts.done}/${counts.pieces} landed · ${counts.active} active · ${counts.ready} ready`;
@@ -30,7 +34,7 @@ const CaptainCell = ({
 				style={buttonStyle}
 				type="button"
 			>
-				hail
+				{captainCallLabel(captain)}
 			</button>
 		);
 	}

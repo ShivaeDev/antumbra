@@ -8,7 +8,11 @@ import {
 	rowStyle,
 } from "#views/styles.ts";
 import { captainAtWork } from "#voyages/acts.ts";
-import { voyageStateColour, voyageStateLabel } from "#voyages/labels.ts";
+import {
+	captainCallLabel,
+	voyageStateColour,
+	voyageStateLabel,
+} from "#voyages/labels.ts";
 
 const CaptainLine = ({
 	onError,
@@ -25,7 +29,7 @@ const CaptainLine = ({
 				style={buttonStyle}
 				type="button"
 			>
-				hail a captain
+				{captainCallLabel(captain)}
 			</button>
 		);
 	}

@@ -27,7 +27,7 @@ import {
 } from "#errors.ts";
 import { KernelReach } from "#kernel-reach.ts";
 import { CAPTAIN_ROLE, captainAtWork, captainOf } from "#voyage-captain.ts";
-import { idleExecutionSessionsOfAgent } from "#voyage-execution-selection.ts";
+import { executionSessionOfAgent } from "#voyage-execution-selection.ts";
 import { voyageView } from "#voyage-view.ts";
 import { VoyageWorldSource } from "#voyage-world.ts";
 
@@ -65,32 +65,31 @@ export const hailCaptain = (voyageId: string) =>
 		if (voyage === undefined) {
 			return yield* new VoyageNotFound({ voyageId });
 		}
+		// why: hailing a voyage that already has an alive captain asks for that
+		// captain to be reachable, never for a second one. Recovery is idempotent,
+		// so one act serves a captain that stood down, one whose attachment did
+		// not outlive its process, and one that is answering already.
+		const current = captainOf(world, voyageId);
+		if (Option.isSome(current) && current.value.status === "alive") {
+			const session = executionSessionOfAgent(world, current.value.agentId);
+			if (session === undefined) {
+				return yield* new CaptainSessionUnavailable({
+					agentId: current.value.agentId,
+					detail: "no open execution to resume",
+					voyageId,
+				});
+			}
+			const intentId = yield* reach.submitRecovery(session.id);
+			return { agentId: current.value.agentId, intentId };
+		}
+		// why: a captain still being born is at work and has no execution to
+		// resume yet, so answering the hail would give the voyage a second one.
 		const standing = captainAtWork(world, voyageId);
 		if (Option.isSome(standing)) {
 			return yield* new CaptainAlreadyHailed({
 				agentId: standing.value.agentId,
 				voyageId,
 			});
-		}
-		const current = captainOf(world, voyageId);
-		if (Option.isSome(current) && current.value.status === "alive") {
-			const sessions = idleExecutionSessionsOfAgent(
-				world,
-				current.value.agentId,
-			);
-			if (sessions.length !== 1) {
-				return yield* new CaptainSessionUnavailable({
-					agentId: current.value.agentId,
-					detail:
-						sessions.length === 0
-							? "no resumable execution is available"
-							: "more than one resumable execution is available",
-					voyageId,
-				});
-			}
-			const session = Option.getOrThrow(Option.fromUndefinedOr(sessions[0]));
-			const intentId = yield* reach.submitRecovery(session.id);
-			return { agentId: current.value.agentId, intentId };
 		}
 		const voyageSmoothLog = yield* boards
 			.read(BoardScope.Voyage({ voyageId }))

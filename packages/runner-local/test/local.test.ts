@@ -4,7 +4,7 @@ import { GitAuthRequired } from "@antumbra/git";
 import { describe, expect, it } from "@effect/vitest";
 import { Effect } from "effect";
 import { toRunnerError } from "#git-runtime.ts";
-import { AGENT, git, makeHarbor, provision } from "#test/harbor.ts";
+import { AGENT, berthing, git, makeHarbor, provision } from "#test/harbor.ts";
 
 const commonDirectory = (path: string) =>
 	git(["-C", path, "rev-parse", "--git-common-dir"]).pipe(
@@ -30,7 +30,7 @@ describe("local runner", () => {
 			const { runner, source } = yield* makeHarbor;
 			const moorage = yield* provision(runner, {
 				agentId: AGENT,
-				repos: [{ ref: "main", source }],
+				repos: [berthing(source)],
 			});
 			const berth = moorage.berths[0];
 			if (berth === undefined) {
@@ -49,7 +49,7 @@ describe("local runner", () => {
 			const { runner, source } = yield* makeHarbor;
 			const moorage = yield* provision(runner, {
 				agentId: AGENT,
-				repos: [{ ref: "main", source }],
+				repos: [berthing(source)],
 			});
 			const berth = moorage.berths[0];
 			if (berth === undefined) {
@@ -76,7 +76,7 @@ describe("local runner", () => {
 				const { runner, source } = yield* makeHarbor;
 				const moorage = yield* provision(runner, {
 					agentId: AGENT,
-					repos: [{ ref: "main", source }],
+					repos: [berthing(source)],
 				});
 				const berth = moorage.berths[0];
 				if (berth === undefined) {
@@ -111,7 +111,7 @@ describe("local runner", () => {
 			const { runner, source } = yield* makeHarbor;
 			const moorage = yield* provision(runner, {
 				agentId: AGENT,
-				repos: [{ ref: "main", source }],
+				repos: [berthing(source)],
 			});
 			const berth = moorage.berths[0];
 			if (berth === undefined) {
@@ -140,7 +140,7 @@ describe("local runner", () => {
 			const { runner, source } = yield* makeHarbor;
 			const moorage = yield* provision(runner, {
 				agentId: AGENT,
-				repos: [{ ref: "main", source }],
+				repos: [berthing(source)],
 			});
 			const berth = moorage.berths[0];
 			if (berth === undefined) {
@@ -161,7 +161,7 @@ describe("local runner", () => {
 			const { runner, source } = yield* makeHarbor;
 			const moorage = yield* provision(runner, {
 				agentId: AGENT,
-				repos: [{ ref: "main", source }],
+				repos: [berthing(source)],
 			});
 			const berth = moorage.berths[0];
 			if (berth === undefined) {
@@ -187,7 +187,7 @@ describe("local runner", () => {
 			const { runner, source } = yield* makeHarbor;
 			const moorage = yield* provision(runner, {
 				agentId: AGENT,
-				repos: [{ ref: "main", source }],
+				repos: [berthing(source)],
 			});
 			const berth = moorage.berths[0];
 			if (berth === undefined) {

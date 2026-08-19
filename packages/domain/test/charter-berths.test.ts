@@ -42,29 +42,33 @@ const piece: PieceRow = {
 
 const NO_LOGS = { pieceSmoothLog: [], voyageSmoothLog: [] };
 
+const MOORAGE = "/moorage/a1b2c3d4";
+
+const LEAD = `Your working directory is your moorage, ${MOORAGE}. Every repository below is a folder directly inside it, and everything else you write — notes, scratch, files you mean to land — belongs in the moorage itself, never above it.`;
+
 const antumbra: CharterBerth = {
 	branch: "work/a1b2c3d4/antumbra",
-	path: "/moorage/a1b2c3d4/antumbra",
+	folder: "./antumbra",
 	repo: "Antumbra",
 };
 
 const charts: CharterBerth = {
 	branch: "work/a1b2c3d4/reef-charts",
-	path: "/moorage/a1b2c3d4/reef-charts",
+	folder: "./reef-charts",
 	repo: "Reef-Charts",
 };
 
 const crewCharter = (berths: ReadonlyArray<CharterBerth>) =>
 	withBerths(
 		composeCrewCharter(voyage, piece, NO_LOGS),
-		berths,
+		{ berths, root: MOORAGE },
 		CREW_BERTH_ORDER,
 	);
 
 const captainCharter = (berths: ReadonlyArray<CharterBerth>) =>
 	withBerths(
 		composeCaptainCharter(voyage, [], { voyageSmoothLog: [] }),
-		berths,
+		{ berths, root: MOORAGE },
 		CAPTAIN_BERTH_ORDER,
 	);
 
@@ -74,24 +78,36 @@ it("an agent with no berths is told of none and ordered about none", () => {
 	expect(captainCharter([])).not.toContain("# Berths");
 });
 
-it("a berth is named by its registry name, its worktree and its branch", () => {
+it("the moorage the agent stands in leads the berths it holds", () => {
 	expect(crewCharter([antumbra])).toContain(
-		"# Berths\nAntumbra — worktree /moorage/a1b2c3d4/antumbra — branch work/a1b2c3d4/antumbra",
+		`# Berths\n${LEAD}\nAntumbra — ./antumbra — branch work/a1b2c3d4/antumbra`,
 	);
 });
 
-it("the registry name is printed, never the berth directory's slug", () => {
+it("the absolute moorage is stated once and every berth is relative", () => {
+	const text = crewCharter([antumbra, charts]);
+	expect(text.split(MOORAGE)).toHaveLength(2);
+	expect(text).not.toContain(`${MOORAGE}/antumbra`);
+});
+
+it("the moorage is named as the place scratch belongs, not only berths", () => {
+	expect(crewCharter([antumbra])).toContain(
+		"belongs in the moorage itself, never above it",
+	);
+});
+
+it("the registry name is printed, never the berth folder's slug", () => {
 	const text = crewCharter([antumbra]);
-	expect(text).toContain("Antumbra — worktree");
-	expect(text).not.toContain("antumbra — worktree");
+	expect(text).toContain("\nAntumbra — ./antumbra");
+	expect(text).not.toContain("\nantumbra —");
 });
 
 it("every berth is a line of its own", () => {
 	expect(crewCharter([antumbra, charts])).toContain(
 		[
-			"# Berths",
-			"Antumbra — worktree /moorage/a1b2c3d4/antumbra — branch work/a1b2c3d4/antumbra",
-			"Reef-Charts — worktree /moorage/a1b2c3d4/reef-charts — branch work/a1b2c3d4/reef-charts",
+			LEAD,
+			"Antumbra — ./antumbra — branch work/a1b2c3d4/antumbra",
+			"Reef-Charts — ./reef-charts — branch work/a1b2c3d4/reef-charts",
 		].join("\n"),
 	);
 });
@@ -107,7 +123,7 @@ it("the berth order joins the standing orders and precedes the berths", () => {
 
 it("a captain is told the same berths without crew tools it does not hold", () => {
 	const text = captainCharter([antumbra]);
-	expect(text).toContain("# Berths\nAntumbra — worktree");
+	expect(text).toContain(`# Berths\n${LEAD}\nAntumbra — ./antumbra`);
 	expect(text).toContain(CAPTAIN_BERTH_ORDER);
 	expect(text).not.toContain("`open_change`");
 });
@@ -126,7 +142,7 @@ const charterDelivered = (scripted: ScriptedBackend, agentId: string) =>
 		return sent[0] ?? (yield* Effect.fail("no charter yet"));
 	});
 
-it.live("a dispatched crew is told the worktree it was berthed in", () =>
+it.live("a dispatched crew is told the moorage folder it was berthed in", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
 		const scripted = yield* makeScriptedBackend;
@@ -150,8 +166,9 @@ it.live("a dispatched crew is told the worktree it was berthed in", () =>
 
 			const agentId = yield* eventually(crewOf(alpha.id));
 			const charter = yield* eventually(charterDelivered(scripted, agentId));
+			expect(charter).toContain(`your moorage, /tmp/moorage/${agentId}.`);
 			expect(charter).toContain(
-				`Reef-Charts — worktree /tmp/moorage/${agentId}/berth-0 — branch work/${agentId.slice(0, 8)}/berth-0`,
+				`Reef-Charts — ./berth-0 — branch work/${agentId.slice(0, 8)}/berth-0`,
 			);
 			expect(charter).toContain(CREW_BERTH_ORDER);
 		}).pipe(

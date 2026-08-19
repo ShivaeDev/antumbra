@@ -2,38 +2,48 @@ import { section } from "#charter-sections.ts";
 
 export interface CharterBerth {
 	readonly branch: string;
-	readonly path: string;
+	readonly folder: string;
 	readonly repo: string;
 }
 
-// why: the session opens in the moorage root, which holds the worktrees and is
-// no repository itself, and a berth directory is a slug of the source rather
-// than the name the registry answers to. An agent told neither has to list
-// directories and guess which repo it is looking at.
+export interface CharterMoorage {
+	readonly berths: ReadonlyArray<CharterBerth>;
+	readonly root: string;
+}
+
+// why: a berth folder is a lowered slug while the registry answers to the
+// name it was given, so an agent that reads only the folder spells the repo
+// wrong at the first change tool it reaches for.
 export const CREW_BERTH_ORDER =
-	"- Your session opens in the moorage root, which is no repository. Work inside a berth's worktree, never in that root and never in a mirror, and give `open_change`, `submit_change` and `adopt_change` the repo name exactly as the Berths section spells it — not the berth directory's name.";
+	"- Work inside a berth's folder, never in the moorage root itself and never in a mirror, and give `open_change`, `submit_change` and `adopt_change` the repo name exactly as the Berths section spells it — not the folder's name.";
 
 export const CAPTAIN_BERTH_ORDER =
-	"- Your session opens in the moorage root, which is no repository. The repos your crew is berthed in are the ones under Berths, spelled there as the registry knows them; a piece charter naming one spells it the same way.";
+	"- The repos your crew is berthed in are the ones under Berths, spelled there as the registry knows them; a piece charter naming one spells it the same way.";
 
 const berthLine = (berth: CharterBerth): string =>
-	`${berth.repo} — worktree ${berth.path} — branch ${berth.branch}`;
+	`${berth.repo} — ${berth.folder} — branch ${berth.branch}`;
+
+// why: an absolute path on every line read as folders scattered elsewhere.
+// The moorage is stated once as the place the agent already stands, and each
+// berth is where it sits when the agent lists that directory. Scratch is
+// placed in the same breath, because an agent that is told only about berths
+// writes its own files beside the moorage instead of inside it.
+const berthsBody = (moorage: CharterMoorage): string =>
+	[
+		`Your working directory is your moorage, ${moorage.root}. Every repository below is a folder directly inside it, and everything else you write — notes, scratch, files you mean to land — belongs in the moorage itself, never above it.`,
+		...moorage.berths.map(berthLine),
+	].join("\n");
 
 // why: berths are provisioned inside the spawn, after the charter text was
 // composed, so this is appended when the charter is delivered — the first
 // moment the worktrees it names exist.
 export const withBerths = (
 	charter: string,
-	berths: ReadonlyArray<CharterBerth>,
+	moorage: CharterMoorage,
 	standingOrder: string,
 ): string =>
-	berths.length === 0
+	moorage.berths.length === 0
 		? charter
-		: [
-				charter,
-				standingOrder,
-				"",
-				...section("Berths", berths.map(berthLine).join("\n")),
-			]
+		: [charter, standingOrder, "", ...section("Berths", berthsBody(moorage))]
 				.join("\n")
 				.trimEnd();

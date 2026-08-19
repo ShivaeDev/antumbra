@@ -148,7 +148,9 @@ it.live(
 			);
 			const plan = recorded.runner.plan({
 				agentId: payload.agentId,
-				repos: [{ ref: "main", source: "/somewhere/activated" }],
+				repos: [
+					{ ref: "main", slug: "activated", source: "/somewhere/activated" },
+				],
 			});
 			const seeded = yield* Effect.gen(function* () {
 				const kernel = yield* Kernel;
@@ -213,7 +215,9 @@ it.live(
 			const recorded = yield* makeScriptedRunner;
 			const plan = recorded.runner.plan({
 				agentId: payload.agentId,
-				repos: [{ ref: "main", source: "/somewhere/activated" }],
+				repos: [
+					{ ref: "main", slug: "activated", source: "/somewhere/activated" },
+				],
 			});
 			const intentId = yield* Effect.gen(function* () {
 				const db = yield* Database;

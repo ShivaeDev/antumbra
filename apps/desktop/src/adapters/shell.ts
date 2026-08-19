@@ -19,8 +19,8 @@ export const configureDataDirectory = (): string => {
 
 export const runnerRootsInDataDirectory = (
 	dataDirectory: string,
-): { readonly berthsRoot: string; readonly reposRoot: string } => ({
-	berthsRoot: join(dataDirectory, "berths"),
+): { readonly moorageRoot: string; readonly reposRoot: string } => ({
+	moorageRoot: join(dataDirectory, "moorage"),
 	reposRoot: join(dataDirectory, "repos"),
 });
 

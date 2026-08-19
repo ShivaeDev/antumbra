@@ -27,7 +27,7 @@ export const adapterPolicy = [
 					"resource-reclamation",
 					"src/resource-reclaim-state.ts",
 				),
-			).to(files.inPackage("domain", "src/change-read.ts")),
+			).to(files.inPackage("changes", "src/change-read.ts")),
 			legal: importFrom(
 				files.inPackage(
 					"resource-reclamation",
@@ -107,7 +107,7 @@ export const adapterPolicy = [
 		.because(
 			"The domain speaks to ports, never to the providers behind them. Naming a concrete adapter or a vendor SDK here would weld one provider into the use cases and make the next one a rewrite.",
 		)
-		.forbidsImportsFrom(packages.named("domain", "domain-feeds"))
+		.forbidsImportsFrom(packages.named("domain", "domain-feeds", "changes"))
 		.to(anyOf(adapters, modules.named("@anthropic-ai/claude-agent-sdk")))
 		.demonstratedBy({
 			illegal: importFrom(files.inPackage("domain", "src/domain.ts")).to(

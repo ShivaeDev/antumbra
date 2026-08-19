@@ -1,15 +1,27 @@
+import { ChangesLive } from "@antumbra/changes";
+import { DomainFeedsLive } from "@antumbra/domain-feeds";
 import { Database } from "@antumbra/persistence";
 import {
 	corruptTestArtifactPiece,
 	persistenceIt,
 	temporaryPersistence,
 } from "@antumbra/persistence/testing";
+import { PiecesLive } from "@antumbra/pieces";
 import { expect } from "@effect/vitest";
-import { Effect } from "effect";
+import { Effect, Layer } from "effect";
 import { VoyageWorldSource, VoyageWorldSourceLive } from "#voyage-world.ts";
 
 const it = persistenceIt();
 const corrupted = temporaryPersistence();
+
+const WorldLive = VoyageWorldSourceLive.pipe(
+	Layer.provideMerge(
+		ChangesLive(new Map(), new Map()).pipe(
+			Layer.provideMerge(PiecesLive),
+			Layer.provideMerge(DomainFeedsLive),
+		),
+	),
+);
 
 it.afterAll(corrupted.remove);
 
@@ -36,7 +48,7 @@ const artifact = (id: string) => ({
 const readWorldFailure = Effect.gen(function* () {
 	const source = yield* VoyageWorldSource;
 	return yield* Effect.flip(source.read);
-}).pipe(Effect.provide(VoyageWorldSourceLive));
+}).pipe(Effect.provide(WorldLive));
 
 it.effectDB(
 	"owns the aggregate read and preserves voyage birth order",
@@ -67,7 +79,7 @@ it.effectDB(
 				"older-voyage",
 				"newer-voyage",
 			]);
-		}).pipe(Effect.provide(VoyageWorldSourceLive));
+		}).pipe(Effect.provide(WorldLive));
 	},
 );
 

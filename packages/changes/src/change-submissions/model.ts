@@ -5,6 +5,7 @@ import type {
 	RunnerError,
 	UnknownRunnerError,
 } from "@antumbra/plugin-api";
+import type { ResourceReclaimClaimed } from "@antumbra/resource-reclamation";
 import type { StoredResourceReclaimStateInvalid } from "@antumbra/vocabulary/agent-runtime";
 import type {
 	ChangeIdentityCollision,
@@ -15,7 +16,6 @@ import type {
 	BerthNotFound,
 	NoChangeHost,
 	RepoNotFound,
-	ResourceReclaimClaimed,
 	StoredChangeInvalid,
 	UnknownChangeHostTag,
 } from "#errors.ts";

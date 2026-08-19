@@ -1,7 +1,7 @@
 import type { ArtifactRow } from "@antumbra/artifacts";
+import { changesOfPiece } from "@antumbra/changes";
 import type { ReportRow } from "@antumbra/reports";
 import { type ChangeView, changeView, repoNameOf } from "#change-view.ts";
-import { changesOfPiece } from "#outcome-status.ts";
 import { dependenciesOf, type PieceState } from "#piece-state.ts";
 import type { PieceRow, VoyageWorld } from "#voyage-rows.ts";
 

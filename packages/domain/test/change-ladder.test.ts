@@ -1,7 +1,7 @@
+import { type ChangeRow, changeStatus } from "@antumbra/changes";
 import type { ChangeStage } from "@antumbra/plugin-api";
 import { expect, it } from "@effect/vitest";
-import type { ChangeRow } from "#change-rows.ts";
-import { changeStatus, pieceOutcomeTally } from "#outcome-status.ts";
+import { pieceOutcomeTally } from "#outcome-status.ts";
 import { pieceStates } from "#piece-state.ts";
 import type { PieceRow, VoyageWorld } from "#voyage-rows.ts";
 

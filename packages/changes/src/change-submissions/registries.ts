@@ -4,12 +4,12 @@ import { Context, Layer } from "effect";
 export class ChangeHostRegistry extends Context.Service<
 	ChangeHostRegistry,
 	ReadonlyMap<string, ChangeHost>
->()("@antumbra/domain/ChangeHostRegistry") {}
+>()("@antumbra/changes/ChangeHostRegistry") {}
 
 export class RunnerRegistry extends Context.Service<
 	RunnerRegistry,
 	ReadonlyMap<string, Runner>
->()("@antumbra/domain/RunnerRegistry") {}
+>()("@antumbra/changes/RunnerRegistry") {}
 
 export const ChangeRegistriesLive = (
 	hosts: ReadonlyMap<string, ChangeHost>,

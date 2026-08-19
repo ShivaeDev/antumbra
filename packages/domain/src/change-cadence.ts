@@ -1,4 +1,4 @@
-import type { ChangeRow } from "#change-rows.ts";
+import type { ChangeRow } from "@antumbra/changes";
 
 export interface ObserveCadenceOptions {
 	readonly coldMillis: number;

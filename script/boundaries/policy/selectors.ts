@@ -2,6 +2,7 @@ import { anyOf, packages } from "#boundaries/dsl.ts";
 
 export const capabilities = packages.named(
 	"domain-feeds",
+	"changes",
 	"pieces",
 	"boards",
 	"artifacts",
@@ -14,6 +15,7 @@ export const capabilities = packages.named(
 export const domainAndCapabilities = packages.named(
 	"domain",
 	"domain-feeds",
+	"changes",
 	"intent-demand",
 	"pieces",
 	"boards",

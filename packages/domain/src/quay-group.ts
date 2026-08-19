@@ -1,6 +1,9 @@
-import type { ChangeRow } from "#change-rows.ts";
+import {
+	type ChangeRow,
+	changeStatus,
+	changesOfPiece,
+} from "@antumbra/changes";
 import type { ChangeView } from "#change-view.ts";
-import { changeStatus, changesOfPiece } from "#outcome-status.ts";
 import type { VoyageWorld } from "#voyage-rows.ts";
 
 export type QuayGroup =

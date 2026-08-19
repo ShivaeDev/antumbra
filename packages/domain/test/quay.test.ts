@@ -1,6 +1,6 @@
+import type { ChangeRow } from "@antumbra/changes";
 import type { ChangeChecks, ChangeStage } from "@antumbra/plugin-api";
 import { expect, it } from "@effect/vitest";
-import type { ChangeRow } from "#change-rows.ts";
 import { changeView } from "#change-view.ts";
 import { type QuayGroup, quayGroup } from "#quay-group.ts";
 import { quayPieces, quayRows } from "#quay-view.ts";

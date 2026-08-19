@@ -3,6 +3,11 @@ import {
 	validateStoredArtifactLineage,
 } from "@antumbra/artifacts";
 import {
+	Changes,
+	type StoredChangeInvalid,
+	type StoredPieceChangeInvalid,
+} from "@antumbra/changes";
+import {
 	Database,
 	type PrismaError,
 	type WriteExecutors,
@@ -14,9 +19,6 @@ import {
 	type StoredAgentStatusInvalid,
 } from "@antumbra/vocabulary/agent-runtime";
 import { Context, Effect, Layer } from "effect";
-import { changeRow } from "#change-read.ts";
-import { pieceChangeRow } from "#change-rows.ts";
-import type { StoredChangeInvalid, StoredPieceChangeInvalid } from "#errors.ts";
 import {
 	decodeSessionExecutionStatus,
 	type InvalidSessionExecutionStatus,
@@ -50,8 +52,9 @@ export class VoyageWorldSource extends Context.Service<
 const voyageWorld: Effect.Effect<
 	VoyageWorld,
 	VoyageWorldReadFailure,
-	Context.Service.Identifier<typeof Database> | WriteExecutors
+	Changes | Context.Service.Identifier<typeof Database> | WriteExecutors
 > = Effect.gen(function* () {
+	const changeSnapshot = yield* Changes;
 	const db = yield* Database;
 	// why: read in the order they were born, so the map that carries them
 	// keeps that order and the most recent of any set is its last entry.
@@ -63,14 +66,7 @@ const voyageWorld: Effect.Effect<
 			Effect.map((status) => [agent.id, status] as const),
 		),
 	);
-	const changes = yield* Effect.forEach(
-		yield* db.Change.orderBy((change) => change.createdAt.asc()).all(),
-		changeRow,
-	);
-	const pieceChanges = yield* Effect.forEach(
-		yield* db.PieceChange.all(),
-		pieceChangeRow,
-	);
+	const { changes, pieceChanges } = yield* changeSnapshot.snapshot;
 	const sessions = yield* Effect.forEach(
 		yield* db.AgentSession.all(),
 		(session) =>
@@ -124,9 +120,11 @@ const voyageWorld: Effect.Effect<
 
 export const VoyageWorldSourceLive = Layer.effect(VoyageWorldSource)(
 	Effect.gen(function* () {
+		const changes = yield* Changes;
 		const db = yield* Database;
 		const executors = yield* Effect.context<WriteExecutors>();
 		const read = voyageWorld.pipe(
+			Effect.provideService(Changes, changes),
 			Effect.provideService(Database, db),
 			Effect.provideContext(executors),
 		);

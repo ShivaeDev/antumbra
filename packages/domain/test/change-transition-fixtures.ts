@@ -1,7 +1,7 @@
+import type { ChangeRow } from "@antumbra/changes";
 import { Database } from "@antumbra/persistence";
 import type { ChangeObservation } from "@antumbra/plugin-api";
 import { Effect, Option } from "effect";
-import type { ChangeRow } from "#change-rows.ts";
 import { scriptedObservation } from "#test/scripted-host.ts";
 
 export const observed = (

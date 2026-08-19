@@ -1,4 +1,4 @@
-import type { ChangeRow } from "#change-rows.ts";
+import type { ChangeRow } from "@antumbra/changes";
 import { type ChangeView, changeView, repoNameOf } from "#change-view.ts";
 import { donePieces } from "#piece-state.ts";
 import { liesAtQuay, type QuayGroup, quayGroup } from "#quay-group.ts";

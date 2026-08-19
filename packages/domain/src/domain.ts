@@ -1,9 +1,9 @@
 import { Boards } from "@antumbra/boards";
+import { ChangeHeldResourceReadLive } from "@antumbra/changes";
 import { Database, type WriteExecutors } from "@antumbra/persistence";
 import type { AgentBackend, ChangeHost, Runner } from "@antumbra/plugin-api";
 import { Repos } from "@antumbra/repos";
 import {
-	HeldResourceRead,
 	ResourceReclaimRunnersLive,
 	type ResourceReconcileOptions,
 	ResourceReconciler,
@@ -16,7 +16,6 @@ import { AGENTS_ALIVE_GAUGE, AgentDomain } from "#agent-domain-service.ts";
 import { compileAgentRecoveryDemands } from "#agent-recovery-demands.ts";
 import { makeCaptainToolCompiler } from "#captain-tools.ts";
 import { ChangeProcedureService } from "#change-procedures.ts";
-import { ChangeSubmissions } from "#change-submissions/service.ts";
 import { makeCrewToolCompiler } from "#crew-tools.ts";
 import { makeCurrentSessionReconciler } from "#current-session-reconcile.ts";
 import { domainCapabilities } from "#domain-capabilities.ts";
@@ -32,13 +31,6 @@ import { isVoyageCaptainIdentity } from "#voyage-captain.ts";
 import { VoyageProcedureService } from "#voyage-procedures.ts";
 
 export { AGENTS_ALIVE_GAUGE, AgentDomain } from "#agent-domain-service.ts";
-
-const ChangeHeldResourceReadLive = Layer.effect(
-	HeldResourceRead,
-	Effect.map(ChangeSubmissions, (changes) => ({
-		held: changes.heldResources,
-	})),
-);
 
 // why: built before the kernel starts — the first resource pass must resume
 // durable claims before admission can authorize more work through them.

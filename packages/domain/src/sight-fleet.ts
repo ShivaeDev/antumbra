@@ -32,14 +32,18 @@ export const fleetSnapshot = (backends: ReadonlyArray<string>) =>
 					decodeStoredAgentSessionStatus(session.id, session.status),
 				),
 			}).pipe(
-				Effect.map(({ executionStatus, status }) => ({
-					agentId: session.agentId,
-					backend: session.backend,
-					canInterrupt: status === "open" && executionStatus === "active",
-					cwd: session.cwd,
-					id: session.id,
-					status,
-				})),
+				Effect.map(({ executionStatus, status }) => {
+					const running = status === "open" && executionStatus === "active";
+					return {
+						agentId: session.agentId,
+						backend: session.backend,
+						canInterrupt: running,
+						canSend: running,
+						cwd: session.cwd,
+						id: session.id,
+						status,
+					};
+				}),
 			),
 		);
 		const storedBerths = yield* db.Berth.orderBy((berth) =>
@@ -84,6 +88,7 @@ export const fleetSnapshot = (backends: ReadonlyArray<string>) =>
 				.map((session) => ({
 					backend: session.backend,
 					canInterrupt: session.canInterrupt,
+					canSend: session.canSend,
 					cwd: session.cwd,
 					id: session.id,
 					status: session.status,

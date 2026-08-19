@@ -42,6 +42,12 @@ export class AgentDomain extends Context.Service<
 		readonly recover: IntentKind<RecoveryFields>;
 		readonly reopenSessionStarts: Effect.Effect<void>;
 		readonly retire: IntentKind<RetireFields>;
+		// why: the admiral's own words take the turn-boundary lane — the domain
+		// picks the delivery verb, never the backend.
+		readonly sendToSession: (
+			sessionId: string,
+			text: string,
+		) => Effect.Effect<void, BackendFailure | SessionNotLive>;
 		readonly siesta: IntentKind<SiestaFields>;
 		readonly spawn: IntentKind<SpawnFields>;
 		readonly voyages: VoyageProcedures;

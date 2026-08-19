@@ -14,6 +14,7 @@ it("publishes interrupt capability without raw Session execution state", () => {
 					{
 						backend: "scripted",
 						canInterrupt: false,
+						canSend: false,
 						cwd: "/tmp/reef",
 						executionStatus: "idle",
 						id: "session-1",
@@ -30,6 +31,7 @@ it("publishes interrupt capability without raw Session execution state", () => {
 	expect(decoded.agents[0]?.sessions[0]).toEqual({
 		backend: "scripted",
 		canInterrupt: false,
+		canSend: false,
 		cwd: "/tmp/reef",
 		id: "session-1",
 		status: "open",

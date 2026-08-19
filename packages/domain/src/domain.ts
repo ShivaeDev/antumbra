@@ -104,6 +104,7 @@ export const AgentDomainLive = (
 				recover,
 				reopenSessionStarts: fabric.reopenStarts,
 				retire,
+				sendToSession: fabric.send,
 				siesta,
 				spawn,
 				voyages,

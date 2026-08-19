@@ -9,7 +9,7 @@ import { ReposLive } from "@antumbra/repos";
 import { SessionEventJournalLive } from "@antumbra/session-event-journal";
 import { Layer } from "effect";
 import { CaptainMembershipLive } from "#captain-membership.ts";
-import { ChangeProceduresLive } from "#change-procedures.ts";
+import { ChangeHosts, ChangeProcedureService } from "#change-procedures.ts";
 import { KernelReachDeferredLive } from "#kernel-reach.ts";
 import { StandDownLive } from "#stand-down.ts";
 import { VoyageWorldSourceLive } from "#voyage-world.ts";
@@ -35,7 +35,9 @@ export const domainCapabilities = (
 	const world = VoyageWorldSourceLive.pipe(Layer.provideMerge(changes));
 	return Layer.mergeAll(
 		CaptainMembershipLive,
-		ChangeProceduresLive(changeHosts),
+		ChangeProcedureService.layer.pipe(
+			Layer.provide(Layer.succeed(ChangeHosts)(changeHosts)),
+		),
 		StandDownLive,
 		VoyageProceduresLive,
 	).pipe(Layer.provideMerge(world));

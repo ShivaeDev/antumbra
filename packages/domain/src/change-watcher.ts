@@ -68,7 +68,8 @@ export const ChangeWatcherLive = (
 			//
 			// why: one queue per host rather than one shared — a ring must wake
 			// every host's loop, and a queue hands each value to one taker only.
-			yield* Effect.forEach(domain.changes.hostTags, (hostTag) =>
+			const hostTags = yield* domain.changes.hostTags();
+			yield* Effect.forEach(hostTags, (hostTag) =>
 				Effect.gen(function* () {
 					const tick = yield* Queue.sliding<void>(1);
 					yield* Effect.forkScoped(pump(feeds.changeRefresh, tick));

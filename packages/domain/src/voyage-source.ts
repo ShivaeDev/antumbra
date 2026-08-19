@@ -33,8 +33,8 @@ export const VoyageSourceLive = Layer.effect(VoyageSource)(
 		const acts = yield* Effect.provide(makeVoyageActs(reads), context);
 		const refreshes = yield* makeVoyageRefreshes;
 		const quay = Effect.gen(function* () {
-			const reading = yield* changes.quay;
-			return quaySeen(reading, yield* changes.capabilities);
+			const reading = yield* changes.quay();
+			return quaySeen(reading, yield* changes.capabilities());
 		}).pipe(Effect.mapError(toFailure));
 		return {
 			...acts,
@@ -52,7 +52,7 @@ export const VoyageSourceLive = Layer.effect(VoyageSource)(
 				),
 			quay,
 			quayFeed: refreshes(quay),
-			refreshChanges: changes.requestRefresh,
+			refreshChanges: changes.requestRefresh(),
 			voyage: reads.voyage,
 			voyageFeed: (voyageId: string) => refreshes(reads.voyage(voyageId)),
 			voyages: reads.voyages,

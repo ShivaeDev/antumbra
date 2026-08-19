@@ -92,6 +92,17 @@ const settled = (scripted: ScriptedHost) =>
 	});
 
 describe("watching open changes", () => {
+	it.live("projects every registered host capability", () =>
+		watched(SLOW, () =>
+			Effect.gen(function* () {
+				const domain = yield* AgentDomain;
+				expect(yield* domain.changes.capabilities()).toEqual([
+					{ available: true, detail: "scripted", tag: "scripted" },
+				]);
+			}),
+		),
+	);
+
 	it.live("asks again promptly when somebody rings", () =>
 		watched(SLOW, (scripted) =>
 			Effect.gen(function* () {
@@ -101,7 +112,7 @@ describe("watching open changes", () => {
 				yield* openedChange(piece.id, repo.name);
 				const quiet = yield* eventually(settled(scripted));
 
-				yield* domain.changes.requestRefresh;
+				yield* domain.changes.requestRefresh();
 
 				yield* eventually(
 					Effect.gen(function* () {

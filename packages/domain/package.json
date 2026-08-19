@@ -39,6 +39,7 @@
 		"@antumbra/reports": "workspace:*",
 		"@antumbra/repos": "workspace:*",
 		"@antumbra/resource-reclamation": "workspace:*",
+		"@antumbra/service-definition": "workspace:*",
 		"@antumbra/session-event-journal": "workspace:*",
 		"@antumbra/vocabulary": "workspace:*",
 		"effect": "catalog:"

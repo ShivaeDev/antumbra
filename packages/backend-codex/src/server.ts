@@ -13,7 +13,7 @@ import { type Request, requestOn } from "#requests.ts";
 import { answerServerRequest } from "#server-answers.ts";
 import { makeToolRegistry, type ToolRegistry } from "#tool-registry.ts";
 
-export interface CodexServerOptions {
+interface CodexServerOptions {
 	readonly spawn: () => LineProcess;
 }
 

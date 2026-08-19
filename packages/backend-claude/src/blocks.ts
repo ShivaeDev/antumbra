@@ -20,7 +20,7 @@ export const contentBlocks = (
 	return Array.isArray(content) ? content.filter(isRecord) : [];
 };
 
-export const textOf = (content: unknown): string => {
+const textOf = (content: unknown): string => {
 	if (typeof content === "string") {
 		return content;
 	}

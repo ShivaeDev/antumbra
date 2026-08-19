@@ -8,7 +8,7 @@ export interface LineProcess {
 	readonly write: (line: string) => void;
 }
 
-export interface SpawnLineProcessOptions {
+interface SpawnLineProcessOptions {
 	readonly args: ReadonlyArray<string>;
 	readonly command: string;
 	readonly cwd: string;

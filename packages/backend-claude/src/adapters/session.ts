@@ -9,7 +9,7 @@ import { InputQueue } from "#adapters/input-queue.ts";
 import { makeToolServer } from "#adapters/tool-server.ts";
 import { sessionOptions, type ToolAccess } from "#session-options.ts";
 
-export interface RawSessionOptions {
+interface RawSessionOptions {
 	readonly cwd: string;
 	// why: the Claude Code the host installed, never a bundled copy — the
 	// desktop shell finds it, the backend never guesses a path.
@@ -21,7 +21,7 @@ export interface RawSessionOptions {
 	readonly tools: ReadonlyArray<DirectTool>;
 }
 
-export interface RawEventListener {
+interface RawEventListener {
 	readonly end: () => void;
 	readonly event: (message: SDKMessage) => void;
 }

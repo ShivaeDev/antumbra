@@ -23,7 +23,7 @@ import {
 	withoutTurn,
 } from "#turn-state.ts";
 
-export interface TurnDriver {
+interface TurnDriver {
 	readonly interrupt: Effect.Effect<void, BackendFailure>;
 	readonly queue: (text: string) => Effect.Effect<void, BackendFailure>;
 	readonly steer: (text: string) => Effect.Effect<void, BackendFailure>;

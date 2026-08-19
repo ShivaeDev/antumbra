@@ -37,6 +37,7 @@
 		"@trpc/server": "catalog:",
 		"@types/node": "catalog:",
 		"@typescript/native": "catalog:",
+		"@vitejs/plugin-react": "catalog:",
 		"effect": "catalog:",
 		"electron": "catalog:",
 		"electron-builder": "catalog:",

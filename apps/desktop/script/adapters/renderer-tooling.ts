@@ -1,3 +1,4 @@
+import react from "@vitejs/plugin-react";
 import { Effect } from "effect";
 import { createServer, build as viteBuild } from "vite";
 
@@ -5,6 +6,7 @@ export const startRendererServer = (root: string, port: number) =>
 	Effect.promise(() =>
 		createServer({
 			configFile: false,
+			plugins: [react()],
 			root,
 			server: { port, strictPort: true },
 		}).then((server) => server.listen()),
@@ -16,6 +18,7 @@ export const buildRenderer = (root: string, outDir: string) =>
 			base: "./",
 			build: { emptyOutDir: true, outDir },
 			configFile: false,
+			plugins: [react()],
 			root,
 		}),
 	);

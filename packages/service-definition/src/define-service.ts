@@ -1,16 +1,10 @@
 import { Context, Effect, Layer, Record, type Scope } from "effect";
+import type { OperationProof, OperationRecord } from "#operation-proof.ts";
+import type {
+	RequirementRecord,
+	RequirementsOf,
+} from "#service-requirements.ts";
 
-type AnyOperation = (
-	...arguments_: ReadonlyArray<never>
-) => Effect.Effect<unknown, unknown, unknown>;
-type AnyOperationMember =
-	| AnyOperation
-	| Effect.Effect<unknown, unknown, unknown>;
-type OperationRecord = Readonly<Record<string, AnyOperationMember>>;
-type RequirementRecord = ReadonlyArray<Context.Service.Any>;
-
-type RequirementsOf<Requirements extends RequirementRecord> =
-	Context.Service.Identifier<Requirements[number]>;
 type BoundOperation<Member, Requirements> = Member extends (
 	...arguments_: infer Arguments
 ) => Effect.Effect<infer Success, infer Failure, infer Residual>
@@ -25,28 +19,14 @@ type ServiceShape<Operations extends OperationRecord, Requirements> = Readonly<{
 	[Name in keyof Operations]: BoundOperation<Operations[Name], Requirements>;
 }>;
 
-interface GenericOrOverloadedOperationsRequireAnInitializerEffect {
-	readonly _serviceDefinitionError: "generic and overloaded operations require an initializer Effect";
-}
-type SupportedOperation<Operation> = Operation extends AnyOperation
-	? Operation extends (...arguments_: infer Arguments) => infer Result
-		? ((...arguments_: Arguments) => Result) extends Operation
-			? Operation
-			: GenericOrOverloadedOperationsRequireAnInitializerEffect
-		: GenericOrOverloadedOperationsRequireAnInitializerEffect
-	: Operation;
-
-type SupportedOperations<Operations extends OperationRecord> = {
-	readonly [Name in keyof Operations]: SupportedOperation<Operations[Name]>;
-};
-
 interface DirectDefinition<
 	Identifier extends string,
 	Requirements extends RequirementRecord,
 	Operations extends OperationRecord,
 > {
 	readonly id: Identifier;
-	readonly operations: Operations & SupportedOperations<Operations>;
+	readonly operations: Operations &
+		OperationProof<Operations, RequirementsOf<Requirements>>;
 	readonly requires: Requirements;
 }
 
@@ -55,10 +35,13 @@ interface InitializerDefinition<
 	Requirements extends RequirementRecord,
 	Operations extends OperationRecord,
 	Failure,
-	Residual,
 > {
 	readonly id: Identifier;
-	readonly operations: Effect.Effect<Operations, Failure, Residual>;
+	readonly operations: Effect.Effect<
+		Operations,
+		Failure,
+		RequirementsOf<Requirements> | Scope.Scope
+	>;
 	readonly requires: Requirements;
 }
 
@@ -75,20 +58,18 @@ export function defineService<
 	const Requirements extends RequirementRecord,
 	const Operations extends OperationRecord,
 	Failure,
-	Residual,
 >(
 	definition: InitializerDefinition<
 		Identifier,
 		Requirements,
 		Operations,
-		Failure,
-		Residual
+		Failure
 	>,
 ): DefinedService<
 	Identifier,
 	Operations,
 	Failure,
-	Exclude<Residual, Scope.Scope>
+	RequirementsOf<Requirements>
 >;
 export function defineService<
 	const Identifier extends string,
@@ -109,7 +90,6 @@ export function defineService(
 				string,
 				RequirementRecord,
 				OperationRecord,
-				unknown,
 				unknown
 		  >,
 ) {

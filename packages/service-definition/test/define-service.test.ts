@@ -1,6 +1,7 @@
 import { describe, expect, it } from "@effect/vitest";
 import { Context, Effect, Layer, Ref } from "effect";
 import { defineService } from "#define-service.ts";
+import type { ServiceRequirements } from "#service-requirements.ts";
 
 class Declared extends Context.Service<
 	Declared,
@@ -11,14 +12,21 @@ class Residual extends Context.Service<Residual, { readonly value: string }>()(
 	"test/Residual",
 ) {}
 
+const requirements = [Declared, Residual] as const;
+type Requirements<
+	Success,
+	Failure = never,
+	Passthrough = never,
+> = ServiceRequirements<typeof requirements, Success, Failure, Passthrough>;
+
 const declaredIdentity = Effect.fn("runtimeDefinition.declaredIdentity")(
-	function* (): Effect.fn.Return<object, never, Declared> {
+	function* (): Requirements<object> {
 		return (yield* Declared).identity;
 	},
 );
 
 const residualValue = Effect.fn("runtimeDefinition.residualValue")(
-	function* (): Effect.fn.Return<string, never, Declared | Residual> {
+	function* (): Requirements<string> {
 		const declared = yield* Declared;
 		const residual = yield* Residual;
 		return `${declared.value}:${residual.value}`;
@@ -33,7 +41,7 @@ const residualWorkflow = Effect.gen(function* () {
 
 const RuntimeDefinition = defineService({
 	id: "test/RuntimeDefinition",
-	requires: [Declared],
+	requires: requirements,
 	operations: { declaredIdentity, residualValue, residualWorkflow },
 });
 
@@ -48,6 +56,10 @@ describe("defineService", () => {
 					Effect.as({ identity, value: "declared" }),
 				),
 			);
+			const dependencies = Layer.merge(
+				declared,
+				Layer.succeed(Residual)({ value: "residual" }),
+			);
 			const result = yield* Effect.gen(function* () {
 				const service = yield* RuntimeDefinition;
 				return yield* Effect.all([
@@ -55,15 +67,21 @@ describe("defineService", () => {
 					service.declaredIdentity(),
 				]);
 			}).pipe(
-				Effect.provide(RuntimeDefinition.layer.pipe(Layer.provide(declared))),
+				Effect.provide(
+					RuntimeDefinition.layer.pipe(Layer.provide(dependencies)),
+				),
 			);
 			expect(result).toEqual([identity, identity]);
 			expect(yield* Ref.get(acquisitions)).toBe(1);
 		}),
 	);
 
-	it.effect("leaves undeclared requirements at the call site", () =>
+	it.effect("closes declared requirements for functions and workflows", () =>
 		Effect.gen(function* () {
+			const dependencies = Layer.merge(
+				Layer.succeed(Declared)({ identity: {}, value: "declared" }),
+				Layer.succeed(Residual)({ value: "captured" }),
+			);
 			const program = Effect.gen(function* () {
 				const service = yield* RuntimeDefinition;
 				return yield* Effect.all([
@@ -72,18 +90,13 @@ describe("defineService", () => {
 				]);
 			}).pipe(
 				Effect.provide(
-					RuntimeDefinition.layer.pipe(
-						Layer.provide(
-							Layer.succeed(Declared)({ identity: {}, value: "declared" }),
-						),
-					),
+					RuntimeDefinition.layer.pipe(Layer.provide(dependencies)),
 				),
 			);
-			expect(
-				yield* program.pipe(
-					Effect.provideService(Residual, { value: "call-time" }),
-				),
-			).toEqual(["declared:call-time", "declared:call-time:workflow"]);
+			expect(yield* program).toEqual([
+				"declared:captured",
+				"declared:captured:workflow",
+			]);
 		}),
 	);
 
@@ -114,26 +127,33 @@ describe("defineService", () => {
 			Effect.gen(function* () {
 				const constructions = yield* Ref.make(0);
 				const finalizations = yield* Ref.make(0);
+				const identity = {};
 				const Stateful = defineService({
 					id: "test/Stateful",
-					requires: [],
+					requires: [Declared],
 					operations: Effect.gen(function* () {
+						const declared = yield* Declared;
 						yield* Ref.update(constructions, (count) => count + 1);
 						yield* Effect.addFinalizer(() =>
 							Ref.update(finalizations, (count) => count + 1),
 						);
-						const identity = {};
-						const current = Effect.succeed(identity);
+						const current = Effect.succeed(declared.identity);
 						return { current };
 					}),
 				});
+				const live = Stateful.layer.pipe(
+					Layer.provide(
+						Layer.succeed(Declared)({ identity, value: "stateful" }),
+					),
+				);
 				const values = yield* Effect.scoped(
 					Effect.gen(function* () {
 						const stateful = yield* Stateful;
 						return yield* Effect.all([stateful.current, stateful.current]);
-					}).pipe(Effect.provide(Stateful.layer)),
+					}).pipe(Effect.provide(live)),
 				);
 				expect(values[0]).toBe(values[1]);
+				expect(values[0]).toBe(identity);
 				expect(yield* Ref.get(constructions)).toBe(1);
 				expect(yield* Ref.get(finalizations)).toBe(1);
 			}),

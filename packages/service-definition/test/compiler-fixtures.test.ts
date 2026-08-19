@@ -37,7 +37,20 @@ describe("service definition compiler fixtures", () => {
 				);
 				expect(declaration).toContain("genericIdentity:");
 				expect(declaration).toContain("overloaded:");
+				expect(declaration).toContain("use:");
 				expect(declaration).toContain("...arguments_: number[]");
+				expect(declaration).toContain(
+					"Effect.Effect<number, FixtureFailure, never>",
+				);
+				expect(declaration).toContain(
+					'Layer<"fixture/Ordinary", never, Declared | Residual>',
+				);
+				expect(declaration).toContain(
+					'Layer<"fixture/Initialized", never, Declared | Residual>',
+				);
+				expect(declaration).toContain(
+					"Effect.Effect<Success, Failure, Residual>",
+				);
 				expect(declaration).toContain("readonly layer");
 			} finally {
 				rmSync(output, { force: true, recursive: true });
@@ -66,6 +79,55 @@ describe("service definition compiler fixtures", () => {
 				expect(diagnostics).toContain(
 					"GenericOrOverloadedOperationsRequireAnInitializerEffect",
 				);
+			});
+		}
+
+		it(`${compiler} rejects a direct undeclared residual requirement`, () => {
+			const result = compile(compiler, [
+				"--ignoreConfig",
+				"--noEmit",
+				"--strict",
+				"--skipLibCheck",
+				"--target",
+				"ESNext",
+				"--module",
+				"ESNext",
+				"--moduleResolution",
+				"Bundler",
+				"--allowImportingTsExtensions",
+				"test/fixtures/invalid/residual.ts",
+			]);
+			const diagnostics = result.stderr || result.stdout;
+			expect(result.status).not.toBe(0);
+			expect(diagnostics).toContain(
+				"OperationHasUndeclaredServiceRequirements",
+			);
+		});
+
+		for (const fixture of [
+			"requirement",
+			"generic-requirement",
+			"initializer",
+		] as const) {
+			it(`${compiler} rejects ${fixture} service leakage`, () => {
+				const result = compile(compiler, [
+					"--ignoreConfig",
+					"--noEmit",
+					"--strict",
+					"--skipLibCheck",
+					"--target",
+					"ESNext",
+					"--module",
+					"ESNext",
+					"--moduleResolution",
+					"Bundler",
+					"--allowImportingTsExtensions",
+					`test/fixtures/invalid/${fixture}.ts`,
+				]);
+				const diagnostics = result.stderr || result.stdout;
+				expect(result.status).not.toBe(0);
+				expect(diagnostics).toContain(`invalid/${fixture}.ts`);
+				expect(diagnostics).toContain("Secret");
 			});
 		}
 	}

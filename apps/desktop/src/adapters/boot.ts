@@ -1,4 +1,4 @@
-import { Effect } from "effect";
+import { Effect, type ManagedRuntime } from "effect";
 import { app } from "electron";
 
 export const ownerBoot = <A, E, R, E2, R2>(
@@ -10,6 +10,23 @@ export const ownerBoot = <A, E, R, E2, R2>(
 			owner ? Effect.suspend(start) : Effect.succeed(undefined),
 		),
 	);
+
+export const runManagedRuntimeStartup = <R, ER, A, E>(
+	runtime: ManagedRuntime.ManagedRuntime<R, ER>,
+	startup: Effect.Effect<A, E, R>,
+): Promise<A> =>
+	runtime.runPromise(startup).catch(async (cause: unknown) => {
+		try {
+			await runtime.dispose();
+		} catch (disposalCause) {
+			throw new AggregateError(
+				[cause, disposalCause],
+				`runtime startup failed: ${String(cause)}; runtime disposal also failed: ${String(disposalCause)}`,
+				{ cause },
+			);
+		}
+		throw cause;
+	});
 
 // why: a forked boot fiber dies invisibly — a failure here must reach
 // stderr and end the process, or the app sits windowless with no trace.

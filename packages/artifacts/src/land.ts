@@ -3,7 +3,11 @@ import { Database, Writer } from "@antumbra/persistence";
 import { verifyPieceExists } from "@antumbra/pieces";
 import { decodeStoredMoorageStatus } from "@antumbra/vocabulary/agent-runtime";
 import { Crypto, Effect, Option, PubSub } from "effect";
-import { ArtifactSourceNotOwned, artifactPublicationFailed } from "#errors.ts";
+import {
+	type ArtifactFailure,
+	ArtifactSourceNotOwned,
+	artifactPublicationFailed,
+} from "#errors.ts";
 import { currentArtifactsForPiece } from "#lineage/current.ts";
 import { validateCurrentStoredArtifactLineage } from "#lineage/piece-lineage.ts";
 import { validateLandingSupersession } from "#lineage/validation.ts";
@@ -14,6 +18,7 @@ import type {
 	ArtifactRow,
 } from "#model.ts";
 import { publishArtifact } from "#publication.ts";
+import type { ArtifactsReturn } from "#requirements.ts";
 
 const requireCurrentMoorage = (publication: ArtifactPublication) =>
 	Effect.gen(function* () {
@@ -78,35 +83,37 @@ const writeArtifact = (
 		} satisfies ArtifactLanding;
 	});
 
-export const landArtifact = (root: string, input: ArtifactInput) =>
-	Effect.gen(function* () {
-		const crypto = yield* Crypto.Crypto;
-		const feeds = yield* DomainFeeds;
-		const writer = yield* Writer;
-		const id = yield* crypto.randomUUIDv4.pipe(
-			Effect.mapError(artifactPublicationFailed("identify artifact")),
-		);
-		yield* verifyPieceExists(input.pieceId);
-		yield* validateCurrentStoredArtifactLineage(input.pieceId);
-		if (input.supersedesArtifactId !== undefined) {
-			yield* validateLandingSupersession(
-				input.supersedesArtifactId,
-				id,
-				input.pieceId,
-			);
-		}
-		const publication = yield* publishArtifact(root, input);
-		const row: ArtifactRow = {
-			authorAgentId: input.authorAgentId ?? null,
-			basename: publication.basename,
-			byteSize: publication.byteSize,
-			digest: publication.digest,
+export const landArtifact = Effect.fn("artifacts.landArtifact")(function* (
+	root: string,
+	input: ArtifactInput,
+): ArtifactsReturn<ArtifactLanding, ArtifactFailure> {
+	const crypto = yield* Crypto.Crypto;
+	const feeds = yield* DomainFeeds;
+	const writer = yield* Writer;
+	const id = yield* crypto.randomUUIDv4.pipe(
+		Effect.mapError(artifactPublicationFailed("identify artifact")),
+	);
+	yield* verifyPieceExists(input.pieceId);
+	yield* validateCurrentStoredArtifactLineage(input.pieceId);
+	if (input.supersedesArtifactId !== undefined) {
+		yield* validateLandingSupersession(
+			input.supersedesArtifactId,
 			id,
-			pieceId: input.pieceId,
-			supersededByArtifactId: null,
-			title: input.title,
-		};
-		const landing = yield* writer.write(writeArtifact(row, input, publication));
-		yield* PubSub.publish(feeds.voyages, undefined);
-		return landing;
-	});
+			input.pieceId,
+		);
+	}
+	const publication = yield* publishArtifact(root, input);
+	const row: ArtifactRow = {
+		authorAgentId: input.authorAgentId ?? null,
+		basename: publication.basename,
+		byteSize: publication.byteSize,
+		digest: publication.digest,
+		id,
+		pieceId: input.pieceId,
+		supersededByArtifactId: null,
+		title: input.title,
+	};
+	const landing = yield* writer.write(writeArtifact(row, input, publication));
+	yield* PubSub.publish(feeds.voyages, undefined);
+	return landing;
+});

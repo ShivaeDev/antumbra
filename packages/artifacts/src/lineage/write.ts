@@ -1,6 +1,7 @@
 import { Database } from "@antumbra/persistence";
 import { Effect, Option } from "effect";
 import {
+	type ArtifactFailure,
 	ArtifactLineageConflict,
 	ArtifactSupersessionNotFound,
 } from "#errors.ts";
@@ -12,9 +13,12 @@ import {
 	requireSharedPiece,
 } from "#lineage/validation.ts";
 import type { ArtifactSupersessionInput } from "#model.ts";
+import type { ArtifactsReturn } from "#requirements.ts";
 
-export const writeSupersession = (input: ArtifactSupersessionInput) =>
-	Effect.gen(function* () {
+export const writeSupersession = Effect.fn("artifacts.writeSupersession")(
+	function* (
+		input: ArtifactSupersessionInput,
+	): ArtifactsReturn<void, ArtifactFailure> {
 		const db = yield* Database;
 		const superseded = yield* requireArtifact(input.supersededArtifactId);
 		const successor = yield* requireArtifact(input.successorArtifactId);
@@ -59,10 +63,13 @@ export const writeSupersession = (input: ArtifactSupersessionInput) =>
 		yield* db.Artifact.where({ id: superseded.id }).update({
 			supersededByArtifactId: successor.id,
 		});
-	});
+	},
+);
 
-export const deleteSupersession = (input: ArtifactSupersessionInput) =>
-	Effect.gen(function* () {
+export const deleteSupersession = Effect.fn("artifacts.deleteSupersession")(
+	function* (
+		input: ArtifactSupersessionInput,
+	): ArtifactsReturn<void, ArtifactFailure> {
 		const db = yield* Database;
 		const superseded = yield* requireArtifact(input.supersededArtifactId);
 		const successor = yield* requireArtifact(input.successorArtifactId);
@@ -81,4 +88,5 @@ export const deleteSupersession = (input: ArtifactSupersessionInput) =>
 		yield* db.Artifact.where({ id: input.supersededArtifactId }).update({
 			supersededByArtifactId: null,
 		});
-	});
+	},
+);

@@ -1,11 +1,11 @@
 import { Database, type WriteExecutors } from "@antumbra/persistence";
 import { Effect, Option } from "effect";
-import type { SpawnFields } from "#spawn.ts";
 import {
 	storedAgentMatches,
 	storedBerthsMatch,
 	storedResourcesMatch,
 } from "#spawn-activated-match.ts";
+import type { SpawnFields } from "#spawn-fields.ts";
 
 export const makeIsActivatedBirth = Effect.gen(function* () {
 	const db = yield* Database;

@@ -4,7 +4,7 @@ import {
 } from "@antumbra/vocabulary/agent-runtime";
 import { Effect } from "effect";
 import { AgentNotSpawnable, AgentSessionConflict } from "#errors.ts";
-import type { SpawnFields } from "#spawn.ts";
+import type { SpawnFields } from "#spawn-fields.ts";
 import { agentTransition } from "#status.ts";
 
 interface StoredAgent {

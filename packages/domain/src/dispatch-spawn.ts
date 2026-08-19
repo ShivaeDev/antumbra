@@ -12,7 +12,7 @@ import {
 	recordSuccess,
 	releaseInFlight,
 } from "#dispatch-state.ts";
-import type { SpawnFields } from "#spawn.ts";
+import type { SpawnFields } from "#spawn-fields.ts";
 
 export interface DispatchPort {
 	readonly patienceMillis: number;

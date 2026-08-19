@@ -10,7 +10,7 @@ import {
 } from "@antumbra/vocabulary/agent-runtime";
 import { Effect, Result } from "effect";
 import { decodeSessionExecutionStatus } from "#session-execution-status.ts";
-import type { SpawnFields } from "#spawn.ts";
+import type { SpawnFields } from "#spawn-fields.ts";
 
 interface StoredAgent {
 	readonly charter: string;

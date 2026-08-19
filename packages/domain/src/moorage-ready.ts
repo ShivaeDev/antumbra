@@ -6,7 +6,7 @@ import {
 	decodeStoredMoorageStatus,
 } from "@antumbra/vocabulary/agent-runtime";
 import { Effect, Option, PubSub } from "effect";
-import type { SpawnFields } from "#spawn.ts";
+import type { SpawnFields } from "#spawn-fields.ts";
 
 export const makeMarkMoorageReady = Effect.gen(function* () {
 	const db = yield* Database;

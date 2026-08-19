@@ -61,6 +61,7 @@ export {
 	PieceCounts,
 	PieceState,
 	PieceView,
+	ReportMarkdown,
 	ReportView,
 	VoyageCaptainView,
 	VoyageState,

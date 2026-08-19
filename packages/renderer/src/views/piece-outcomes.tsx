@@ -1,11 +1,8 @@
-import type { PieceView, ReportView } from "@antumbra/contract";
+import type { PieceView } from "@antumbra/contract";
 import { ArtifactOutcomes } from "#views/artifact-outcomes.tsx";
 import { ChangeChip } from "#views/change-chip.tsx";
-import { columnStyle, mutedStyle, rowStyle } from "#views/styles.ts";
-
-const ReportChip = ({ report }: { readonly report: ReportView }) => (
-	<span style={mutedStyle}>📄 {report.title}</span>
-);
+import { ReportOutcomes } from "#views/report-outcomes.tsx";
+import { columnStyle } from "#views/styles.ts";
 
 // why: a change takes its time to land, so it reads as its own line rather
 // than as one chip among the outcomes that were done the moment they landed.
@@ -20,13 +17,7 @@ export const PieceOutcomes = ({ piece }: { readonly piece: PieceView }) => {
 	}
 	return (
 		<div style={columnStyle}>
-			{piece.reports.length === 0 ? null : (
-				<div style={{ ...rowStyle, flexWrap: "wrap" }}>
-					{piece.reports.map((report) => (
-						<ReportChip key={report.id} report={report} />
-					))}
-				</div>
-			)}
+			<ReportOutcomes reports={piece.reports} />
 			<ArtifactOutcomes
 				current={piece.artifacts}
 				history={piece.artifactHistory}

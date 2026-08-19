@@ -1,7 +1,7 @@
 import { Schema } from "effect";
 import { ArtifactMarkdown } from "#artifact-views.ts";
 import { type AppProcedure, surface } from "#router-procedure.ts";
-import { VoyageSummary, VoyageView } from "#voyage-views.ts";
+import { ReportMarkdown, VoyageSummary, VoyageView } from "#voyage-views.ts";
 import {
 	ArtifactSupersessionRequest,
 	BoardWriteRequest,
@@ -15,6 +15,7 @@ import {
 
 const PieceRef = Schema.Struct({ pieceId: Schema.String });
 const ArtifactRef = Schema.Struct({ artifactId: Schema.String });
+const ReportRef = Schema.Struct({ reportId: Schema.String });
 const VoyageRef = Schema.Struct({ voyageId: Schema.String });
 
 export const voyageRoutes = (procedure: AppProcedure) => ({
@@ -65,6 +66,13 @@ export const voyageRoutes = (procedure: AppProcedure) => ({
 		.mutation(function* (input) {
 			const voyages = yield* VoyageSource;
 			yield* surface(voyages.removeArtifactSupersession(input));
+		}),
+	reportMarkdown: procedure
+		.input(ReportRef)
+		.output(ReportMarkdown)
+		.query(function* (input) {
+			const voyages = yield* VoyageSource;
+			return yield* surface(voyages.reportMarkdown(input.reportId));
 		}),
 	rewirePiece: procedure.input(RewireRequest).mutation(function* (input) {
 		const voyages = yield* VoyageSource;

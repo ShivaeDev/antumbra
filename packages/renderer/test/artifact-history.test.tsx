@@ -9,7 +9,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { vi } from "vitest";
 import { PieceOutcomes } from "#views/piece-outcomes.tsx";
 
-const { readArtifactMarkdown } = vi.hoisted(() => ({
+const { readArtifactMarkdown, readReportMarkdown } = vi.hoisted(() => ({
 	readArtifactMarkdown: vi.fn(
 		(
 			artifactId: string,
@@ -33,9 +33,13 @@ const { readArtifactMarkdown } = vi.hoisted(() => ({
 			});
 		},
 	),
+	readReportMarkdown: vi.fn(),
 }));
 
-vi.mock("#adapters/trpc-voyages.ts", () => ({ readArtifactMarkdown }));
+vi.mock("#adapters/trpc-voyages.ts", () => ({
+	readArtifactMarkdown,
+	readReportMarkdown,
+}));
 vi.mock("mermaid", () => ({
 	default: {
 		initialize: vi.fn(),

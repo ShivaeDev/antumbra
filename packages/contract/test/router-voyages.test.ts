@@ -16,6 +16,29 @@ describe("makeAppRouter, on voyages", () => {
 		}),
 	);
 
+	it.effect("reads a landed report body on demand", () =>
+		Effect.gen(function* () {
+			const report = yield* Effect.promise(() =>
+				callerOf().reportMarkdown({ reportId: "report-soundings" }),
+			);
+			expect(report.authorAgentId).toBe("agent-sounder");
+			expect(report.markdown).toContain(
+				"The eastern shoal is steeper than charted.",
+			);
+		}),
+	);
+
+	it.effect(
+		"a report nobody landed surfaces as an error, not an empty body",
+		() =>
+			Effect.gen(function* () {
+				const outcome = yield* Effect.tryPromise(() =>
+					callerOf().reportMarkdown({ reportId: "ghost" }),
+				).pipe(Effect.flip);
+				expect(String(outcome.cause)).toContain("no such report: ghost");
+			}),
+	);
+
 	it.effect("lists the voyages with their derived state and captain", () =>
 		Effect.gen(function* () {
 			const listed = yield* Effect.promise(() => callerOf().voyages());

@@ -25,3 +25,4 @@ export {
 	supersedeArtifactSpec,
 } from "#crew.ts";
 export { bind, defineTool, type ToolSpec } from "#define.ts";
+export { readReportSpec } from "#reports.ts";

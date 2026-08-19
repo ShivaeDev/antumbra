@@ -5,7 +5,7 @@ import { Effect } from "effect";
 import { act } from "react";
 import { createRoot } from "react-dom/client";
 import { vi } from "vitest";
-import { ArtifactMarkdownView } from "#views/artifact-markdown.tsx";
+import { OutcomeMarkdownView } from "#views/outcome-markdown.tsx";
 
 it.effect("shows Mermaid failures without leaving a global error diagram", () =>
 	Effect.gen(function* () {
@@ -15,7 +15,7 @@ it.effect("shows Mermaid failures without leaving a global error diagram", () =>
 		yield* Effect.promise(() =>
 			act(() => {
 				root.render(
-					<ArtifactMarkdownView
+					<OutcomeMarkdownView
 						markdown={"```mermaid\nthis is not a diagram\n```"}
 					/>,
 				);
@@ -28,7 +28,7 @@ it.effect("shows Mermaid failures without leaving a global error diagram", () =>
 				expect(container.textContent).toContain("MermaidRenderError"),
 			),
 		);
-		expect(document.body.querySelector('[id^="dartifact-"]')).toBeNull();
+		expect(document.body.querySelector('[id^="doutcome-"]')).toBeNull();
 		yield* Effect.promise(() =>
 			act(() => {
 				root.unmount();

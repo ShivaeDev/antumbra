@@ -89,6 +89,7 @@ export const VoyageProceduresLive = Layer.effect(VoyageProcedureService)(
 			hail: (voyageId) => Effect.provide(hailCaptain(voyageId), context),
 			landArtifact: artifacts.land,
 			landReport: reports.land,
+			readReport: reports.read,
 			removeArtifactSupersession: (input) =>
 				artifacts.removeSupersession({ actor: { _tag: "admiral" }, ...input }),
 			launch: pieces.launch,

@@ -3,6 +3,7 @@ import type {
 	BoardWriteRequest,
 	CharterPieceRequest,
 	OpenVoyageRequest,
+	ReportMarkdown,
 	RewireRequest,
 	VoyageSummary,
 	VoyageView,
@@ -53,6 +54,17 @@ export const readArtifactMarkdown = (
 ): void => {
 	client.artifactMarkdown
 		.query({ artifactId })
+		.then(onDone)
+		.catch((cause: unknown) => onError(toError(cause).message));
+};
+
+export const readReportMarkdown = (
+	reportId: string,
+	onDone: (report: ReportMarkdown) => void,
+	onError: OnError,
+): void => {
+	client.reportMarkdown
+		.query({ reportId })
 		.then(onDone)
 		.catch((cause: unknown) => onError(toError(cause).message));
 };

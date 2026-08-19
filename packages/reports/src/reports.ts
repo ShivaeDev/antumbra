@@ -6,9 +6,10 @@ import {
 	Writer,
 } from "@antumbra/persistence";
 import type { PieceNotFound } from "@antumbra/pieces";
-import { Context, Effect, Layer } from "effect";
+import { Context, Effect, Layer, type Option } from "effect";
 import { landReport } from "#land.ts";
-import type { ReportInput, ReportRow } from "#model.ts";
+import type { ReportInput, ReportReading, ReportRow } from "#model.ts";
+import { readReport } from "#read.ts";
 
 export class Reports extends Context.Service<
 	Reports,
@@ -16,6 +17,9 @@ export class Reports extends Context.Service<
 		readonly land: (
 			input: ReportInput,
 		) => Effect.Effect<ReportRow, PieceNotFound | PrismaError>;
+		readonly read: (
+			reportId: string,
+		) => Effect.Effect<Option.Option<ReportReading>, PrismaError>;
 	}
 >()("@antumbra/reports/Reports") {}
 
@@ -34,6 +38,7 @@ export const ReportsLive = Layer.effect(Reports)(
 		);
 		return {
 			land: (input) => Effect.provide(landReport(input), context),
+			read: (reportId) => Effect.provide(readReport(reportId), context),
 		};
 	}),
 );

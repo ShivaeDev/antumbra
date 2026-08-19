@@ -15,6 +15,7 @@ import { Reports } from "@antumbra/reports";
 import { Effect } from "effect";
 import { makeBoardToolCompiler } from "#board-tools.ts";
 import { makeChangeToolCompiler } from "#change-tools.ts";
+import { makeReportToolCompiler } from "#report-tools.ts";
 import { StandDown } from "#stand-down.ts";
 import { answered, onPiece } from "#tool-answers.ts";
 import type { SessionIdentity } from "#tool-identity.ts";
@@ -57,6 +58,7 @@ export const makeCrewToolCompiler = Effect.gen(function* () {
 	const artifacts = yield* Artifacts;
 	const compileBoardTools = yield* makeBoardToolCompiler;
 	const compileChangeTools = yield* makeChangeToolCompiler;
+	const compileReportTools = yield* makeReportToolCompiler;
 	const reports = yield* Reports;
 	const standDown = yield* StandDown;
 	function crewTools(identity: SessionIdentity): ReadonlyArray<DirectTool> {
@@ -76,6 +78,7 @@ export const makeCrewToolCompiler = Effect.gen(function* () {
 					),
 				),
 			),
+			...compileReportTools(identity),
 			bind(landArtifactSpec, (input) =>
 				onPiece(identity, (pieceId) =>
 					answered(

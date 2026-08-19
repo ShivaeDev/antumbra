@@ -130,9 +130,9 @@ it.live("a hailed captain charters a chain that sails itself", () =>
 			expect(read.text).toContain(
 				`- ${charlie} charlie [done] depends on ${alpha}`,
 			);
-			expect(read.text).toContain("- soundings — report by");
-			expect(read.text).toContain("- eastern chart — report by");
-			expect(read.text).toContain("- western chart — report by");
+			expect(read.text).toContain("soundings — report by");
+			expect(read.text).toContain("eastern chart — report by");
+			expect(read.text).toContain("western chart — report by");
 			expect(read.text).toContain(`- ${hailed.agentId} [alive]`);
 
 			yield* voyageStateIs(voyage.id, "underWay");

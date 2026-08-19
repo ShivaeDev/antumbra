@@ -2,6 +2,7 @@ import { Effect } from "effect";
 import type { ChildProcessSpawner } from "effect/unstable/process";
 import { runGit } from "#command.ts";
 import type { GitError } from "#errors.ts";
+import type { GitReturn } from "#requirements.ts";
 import { INSPECT_TIMEOUT_MILLIS, REMOTE_TIMEOUT_MILLIS } from "#timeouts.ts";
 
 export const cloneMirror = (
@@ -16,7 +17,7 @@ export const cloneMirror = (
 
 export const refreshMirror = Effect.fn("git.refreshMirror")(function* (
 	path: string,
-): Effect.fn.Return<void, GitError, ChildProcessSpawner.ChildProcessSpawner> {
+): GitReturn<void> {
 	// why: a bare clone lacks branch refs, and repeating the refspec heals a
 	// clone interrupted between creation and its first refresh.
 	yield* runGit({

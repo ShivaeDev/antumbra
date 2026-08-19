@@ -1,7 +1,7 @@
 import { Effect, Schema } from "effect";
-import type { ChildProcessSpawner } from "effect/unstable/process";
 import { runGit } from "#command.ts";
-import { type GitError, GitOutputInvalid } from "#errors.ts";
+import { GitOutputInvalid } from "#errors.ts";
+import type { GitReturn } from "#requirements.ts";
 import { INSPECT_TIMEOUT_MILLIS } from "#timeouts.ts";
 
 export interface WorktreeChangeEvidence {
@@ -28,13 +28,7 @@ const decodeIdentity = (output: string) =>
 	);
 
 export const captureWorktreeChange = Effect.fn("git.captureWorktreeChange")(
-	function* (
-		path: string,
-	): Effect.fn.Return<
-		WorktreeChangeEvidence,
-		GitError,
-		ChildProcessSpawner.ChildProcessSpawner
-	> {
+	function* (path: string): GitReturn<WorktreeChangeEvidence> {
 		const identity = yield* runGit({
 			args: [
 				"-C",

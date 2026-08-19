@@ -2,6 +2,7 @@ import { Effect, Schema } from "effect";
 import type { ChildProcessSpawner } from "effect/unstable/process";
 import { runGit } from "#command.ts";
 import { type GitError, GitOutputInvalid } from "#errors.ts";
+import type { GitReturn } from "#requirements.ts";
 import { INSPECT_TIMEOUT_MILLIS, MUTATE_TIMEOUT_MILLIS } from "#timeouts.ts";
 
 export type WorktreeState =
@@ -86,11 +87,7 @@ export const addExistingWorktree = (
 
 export const inspectWorktree = Effect.fn("git.inspectWorktree")(function* (
 	path: string,
-): Effect.fn.Return<
-	WorktreeState,
-	GitError,
-	ChildProcessSpawner.ChildProcessSpawner
-> {
+): GitReturn<WorktreeState> {
 	const status = yield* runGit({
 		args: ["-C", path, "status", "--porcelain"],
 		operation: "inspect-worktree",

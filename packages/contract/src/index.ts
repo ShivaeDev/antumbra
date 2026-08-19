@@ -8,6 +8,7 @@ export {
 	type AntumbraBridge,
 	type BridgeRequest,
 	type BridgeSubscribeRequest,
+	OPEN_EXTERNAL_CHANNEL,
 	type SubscriptionMessage,
 	subscriptionChannel,
 	TRPC_CHANNEL,

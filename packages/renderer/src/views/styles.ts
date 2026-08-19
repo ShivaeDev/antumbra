@@ -56,6 +56,12 @@ export const pillStyle = (colour: string): React.CSSProperties => ({
 	padding: "0 0.45rem",
 });
 
+export const linkStyle: React.CSSProperties = {
+	color: "#7c9cff",
+	cursor: "pointer",
+	textDecoration: "underline",
+};
+
 export const quietButtonStyle: React.CSSProperties = {
 	...buttonStyle,
 	background: "none",

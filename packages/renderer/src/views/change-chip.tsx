@@ -1,4 +1,5 @@
 import type { ChangeView } from "@antumbra/contract";
+import { ExternalLink } from "#views/external-link.tsx";
 import { mutedStyle, rowStyle } from "#views/styles.ts";
 import { changeMarks, changeName } from "#voyages/change-marks.ts";
 
@@ -14,9 +15,12 @@ export const ChangeLink = ({ change }: { readonly change: ChangeView }) => {
 		return <span style={mutedStyle}>{changeName(change)}</span>;
 	}
 	return (
-		<span style={{ color: toneOf(change), fontSize: "0.75rem" }}>
+		<ExternalLink
+			style={{ color: toneOf(change), fontSize: "0.75rem" }}
+			url={change.url}
+		>
 			{changeName(change)}
-		</span>
+		</ExternalLink>
 	);
 };
 

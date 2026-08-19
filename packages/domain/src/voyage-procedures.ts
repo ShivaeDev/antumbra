@@ -13,7 +13,7 @@ import type {
 	PieceNotFound,
 	PieceRow,
 } from "@antumbra/pieces";
-import type { ReportInput, ReportRow } from "@antumbra/reports";
+import type { ReportInput, ReportReading, ReportRow } from "@antumbra/reports";
 import { Context, type Effect, type Option } from "effect";
 import type { VoyageNotFound } from "#errors.ts";
 import type { HailedCaptain, HailRefused } from "#hail.ts";
@@ -45,6 +45,9 @@ export interface VoyageProcedures {
 	readonly landReport: (
 		input: ReportInput,
 	) => Effect.Effect<ReportRow, PieceNotFound | PrismaError>;
+	readonly readReport: (
+		reportId: string,
+	) => Effect.Effect<Option.Option<ReportReading>, PrismaError>;
 	readonly removeArtifactSupersession: (
 		input: Omit<ArtifactSupersessionInput, "actor">,
 	) => Effect.Effect<void, ArtifactFailure>;

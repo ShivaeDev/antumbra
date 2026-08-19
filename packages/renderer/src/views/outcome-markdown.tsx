@@ -7,7 +7,7 @@ import { ExternalLink } from "#views/external-link.tsx";
 import { cardStyle, mutedStyle } from "#views/styles.ts";
 
 const MermaidDiagram = ({ source }: { readonly source: string }) => {
-	const id = `artifact-${useId().replaceAll(":", "")}`;
+	const id = `outcome-${useId().replaceAll(":", "")}`;
 	const [rendered, setRendered] = useState<
 		| { readonly _tag: "failed"; readonly message: string }
 		| { readonly _tag: "ready"; readonly svg: string }
@@ -40,7 +40,9 @@ const MermaidDiagram = ({ source }: { readonly source: string }) => {
 	);
 };
 
-export const ArtifactMarkdownView = ({
+// why: Reports and Artifacts are both agent-authored Markdown, so one viewer
+// renders both — a second rendering path would be a second security posture.
+export const OutcomeMarkdownView = ({
 	markdown,
 }: {
 	readonly markdown: string;

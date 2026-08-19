@@ -220,6 +220,15 @@ const voyageStub = Layer.succeed(VoyageSource, {
 	quayFeed: Stream.make(quayView),
 	refreshChanges: Effect.void,
 	removeArtifactSupersession: () => Effect.void,
+	reportMarkdown: (reportId) =>
+		reportId === "report-soundings"
+			? Effect.succeed({
+					authorAgentId: "agent-sounder",
+					markdown: "# Soundings\n\nThe eastern shoal is steeper than charted.",
+					reportId,
+					title: "Soundings",
+				})
+			: new SightFailure({ message: `no such report: ${reportId}` }),
 	rewire: () => Effect.void,
 	setFocus: () => Effect.void,
 	supersedeArtifact: () => Effect.void,

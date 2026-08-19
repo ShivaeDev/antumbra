@@ -28,6 +28,7 @@ const CAPTAIN_TOOLS = [
 	"unpark_piece",
 	"rewire_piece",
 	"read_voyage",
+	"read_report",
 	"read_mail",
 	"mark_read",
 	"write_board",

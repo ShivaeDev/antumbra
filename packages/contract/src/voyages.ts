@@ -3,7 +3,12 @@ import { Context, Data, type Effect, Schema, type Stream } from "effect";
 import type { ArtifactMarkdown } from "#artifact-views.ts";
 import type { QuayView } from "#quay-views.ts";
 import type { SightFailure } from "#sight.ts";
-import type { ChangeView, VoyageSummary, VoyageView } from "#voyage-views.ts";
+import type {
+	ChangeView,
+	ReportMarkdown,
+	VoyageSummary,
+	VoyageView,
+} from "#voyage-views.ts";
 
 export const OpenVoyageRequest = Schema.Struct({
 	backend: Schema.String,
@@ -100,6 +105,9 @@ export class VoyageSource extends Context.Service<
 		// why: the watcher is rung rather than waited on — what the pass costs
 		// stays the cadence's decision, so this asks and never promises news.
 		readonly refreshChanges: Effect.Effect<void, SightFailure>;
+		readonly reportMarkdown: (
+			reportId: string,
+		) => Effect.Effect<ReportMarkdown, SightFailure>;
 		readonly rewire: (
 			request: RewireRequest,
 		) => Effect.Effect<void, SightFailure>;

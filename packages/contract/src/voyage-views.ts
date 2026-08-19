@@ -21,6 +21,16 @@ export const ReportView = Schema.Struct({
 });
 export type ReportView = typeof ReportView.Type;
 
+// why: a report body is agent-authored prose, so it is read on demand rather
+// than carried on every voyage feed alongside the titles.
+export const ReportMarkdown = Schema.Struct({
+	authorAgentId: Schema.NullOr(Schema.String),
+	markdown: Schema.String,
+	reportId: Schema.String,
+	title: Schema.String,
+});
+export type ReportMarkdown = typeof ReportMarkdown.Type;
+
 // why: a change lives on a host that speaks its own dialect, and the window is
 // shown only the neutral reading — where it stands and what the host last said
 // — so nothing above the domain ever learns which host it is looking at. The

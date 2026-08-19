@@ -2,9 +2,12 @@ import { Boards } from "@antumbra/boards";
 import {
 	type AdoptChangeRequest,
 	ArtifactMarkdownFailure,
+	type ReportMarkdown,
+	SightFailure,
 	VoyageSource,
 } from "@antumbra/contract";
-import { Context, Effect, Layer } from "effect";
+import type { ReportReading } from "@antumbra/reports";
+import { Context, Effect, Layer, Option } from "effect";
 import { ChangeProcedureService } from "#change-procedures.ts";
 import { changeView } from "#change-view.ts";
 import { quaySeen } from "#quay-projection.ts";
@@ -18,6 +21,16 @@ import { VoyageWorldSource } from "#voyage-world.ts";
 
 const artifactMarkdownFailure = (cause: unknown) =>
 	new ArtifactMarkdownFailure({ message: failureMessage(cause) });
+
+const noSuchReport = (reportId: string) =>
+	new SightFailure({ message: `no such report: ${reportId}` });
+
+const reportMarkdown = (reading: ReportReading): ReportMarkdown => ({
+	authorAgentId: reading.authorAgentId,
+	markdown: reading.body,
+	reportId: reading.id,
+	title: reading.title,
+});
 
 export const VoyageSourceLive = Layer.effect(VoyageSource)(
 	Effect.gen(function* () {
@@ -53,6 +66,16 @@ export const VoyageSourceLive = Layer.effect(VoyageSource)(
 			quay,
 			quayFeed: refreshes(quay),
 			refreshChanges: changes.requestRefresh,
+			reportMarkdown: (reportId: string) =>
+				voyages.readReport(reportId).pipe(
+					Effect.mapError(toFailure),
+					Effect.flatMap(
+						Option.match({
+							onNone: () => noSuchReport(reportId),
+							onSome: (reading) => Effect.succeed(reportMarkdown(reading)),
+						}),
+					),
+				),
 			voyage: reads.voyage,
 			voyageFeed: (voyageId: string) => refreshes(reads.voyage(voyageId)),
 			voyages: reads.voyages,

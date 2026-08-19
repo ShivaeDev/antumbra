@@ -84,12 +84,10 @@ requirements are closed. `packages/git` remains process infrastructure beneath
 `runner-local`.
 
 `service-definition` is the Effect-only construction leaf for services whose
-operations and Layer come from one definition. Declared requirements are
-captured once per Layer instance, and direct operations cannot name services
-outside that one declaration. Stateful definitions construct their operation
-record once in the Layer scope; their explicitly typed generic callback
-requirements remain caller-owned. Direct generic or overloaded operation
-records are rejected rather than silently widened.
+direct operation record and Layer come from one definition. Declared
+requirements are captured once per Layer instance, and operations cannot name
+services outside that one declaration. Generic or overloaded operations are
+rejected rather than silently widened.
 
 `intent-demand` is the process-lifetime bridge between capability-owned durable
 demand and Kernel-owned mortal Intents. Capabilities close typed discovery

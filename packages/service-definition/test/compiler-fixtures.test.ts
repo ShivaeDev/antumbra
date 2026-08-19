@@ -35,21 +35,12 @@ describe("service definition compiler fixtures", () => {
 					join(output, "test/fixtures/valid.d.ts"),
 					"utf8",
 				);
-				expect(declaration).toContain("genericIdentity:");
-				expect(declaration).toContain("overloaded:");
-				expect(declaration).toContain("use:");
 				expect(declaration).toContain("...arguments_: number[]");
 				expect(declaration).toContain(
 					"Effect.Effect<number, FixtureFailure, never>",
 				);
 				expect(declaration).toContain(
 					'Layer<"fixture/Ordinary", never, Declared | Residual>',
-				);
-				expect(declaration).toContain(
-					'Layer<"fixture/Initialized", never, Declared | Residual>',
-				);
-				expect(declaration).toContain(
-					"Effect.Effect<Success, Failure, Residual>",
 				);
 				expect(declaration).toContain("readonly layer");
 			} finally {
@@ -77,10 +68,33 @@ describe("service definition compiler fixtures", () => {
 				expect(result.status).not.toBe(0);
 				expect(diagnostics).toContain(`invalid/${fixture}.ts`);
 				expect(diagnostics).toContain(
-					"GenericOrOverloadedOperationsRequireAnInitializerEffect",
+					"GenericOrOverloadedOperationsAreUnsupported",
 				);
 			});
 		}
+
+		it(`${compiler} rejects an Effect-valued operation initializer`, () => {
+			const result = compile(compiler, [
+				"--ignoreConfig",
+				"--noEmit",
+				"--strict",
+				"--skipLibCheck",
+				"--target",
+				"ESNext",
+				"--module",
+				"ESNext",
+				"--moduleResolution",
+				"Bundler",
+				"--allowImportingTsExtensions",
+				"test/fixtures/invalid/initializer.ts",
+			]);
+			const diagnostics = result.stderr || result.stdout;
+			expect(result.status).not.toBe(0);
+			expect(diagnostics).toContain("invalid/initializer.ts");
+			expect(diagnostics).toContain(
+				"Index signature for type 'string' is missing",
+			);
+		});
 
 		it(`${compiler} rejects a direct undeclared residual requirement`, () => {
 			const result = compile(compiler, [
@@ -104,11 +118,7 @@ describe("service definition compiler fixtures", () => {
 			);
 		});
 
-		for (const fixture of [
-			"requirement",
-			"generic-requirement",
-			"initializer",
-		] as const) {
+		for (const fixture of ["requirement", "generic-requirement"] as const) {
 			it(`${compiler} rejects ${fixture} service leakage`, () => {
 				const result = compile(compiler, [
 					"--ignoreConfig",

@@ -19,7 +19,7 @@ import { ChangeProcedureService } from "#change-procedures.ts";
 import { makeCrewToolCompiler } from "#crew-tools.ts";
 import { makeCurrentSessionReconciler } from "#current-session-reconcile.ts";
 import { domainCapabilities } from "#domain-capabilities.ts";
-import { type EventSink, SessionFabric } from "#fabric.ts";
+import { type EventSink, SessionFabric, SessionFabricLive } from "#fabric.ts";
 import { makeRetireKind } from "#retire.ts";
 import { makeRecoveryKind } from "#session-recovery.ts";
 import type { SessionRecoveryContext } from "#session-recovery-context.ts";
@@ -116,7 +116,7 @@ export const AgentDomainLive = (
 				Layer.provide(ResourceReclaimRunnersLive(runners)),
 			),
 		),
-		Layer.provide(SessionFabric.layer),
+		Layer.provide(SessionFabricLive),
 		Layer.provideMerge(capabilities),
 	);
 };

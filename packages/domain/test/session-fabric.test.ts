@@ -6,7 +6,7 @@ import type {
 import { expect, it } from "@effect/vitest";
 import { Deferred, Effect, Fiber, Option, Ref, Stream } from "effect";
 import { SessionAttachmentFailure } from "#errors.ts";
-import { SessionFabric } from "#fabric.ts";
+import { makeSessionFabric } from "#fabric.ts";
 
 const options: OpenSessionOptions = {
 	cwd: "/tmp/session-fabric",
@@ -20,7 +20,7 @@ it.live(
 	() =>
 		Effect.scoped(
 			Effect.gen(function* () {
-				const fabric = yield* SessionFabric;
+				const fabric = yield* makeSessionFabric;
 				const attempted = yield* Deferred.make<void>();
 				const admitted = yield* Deferred.make<void>();
 				yield* fabric.closeStarts;
@@ -43,7 +43,7 @@ it.live(
 				yield* fabric.reopenStarts;
 				yield* Fiber.join(waiting);
 				expect(yield* Deferred.isDone(admitted)).toBe(true);
-			}).pipe(Effect.provide(SessionFabric.layer)),
+			}),
 		),
 );
 
@@ -75,7 +75,7 @@ it.live("concurrent starts attach one backend handle per session", () =>
 					}),
 				tag: "scripted",
 			};
-			const fabric = yield* SessionFabric;
+			const fabric = yield* makeSessionFabric;
 			const first = yield* fabric
 				.withStartAdmission((permit) =>
 					fabric.start(
@@ -108,7 +108,7 @@ it.live("concurrent starts attach one backend handle per session", () =>
 			yield* Fiber.join(first);
 			yield* Fiber.join(second);
 			expect(yield* Ref.get(opens)).toBe(1);
-		}).pipe(Effect.provide(SessionFabric.layer)),
+		}),
 	),
 );
 
@@ -139,7 +139,7 @@ it.live("one Agent cannot attach two different Sessions", () =>
 					),
 				tag: "scripted",
 			};
-			const fabric = yield* SessionFabric;
+			const fabric = yield* makeSessionFabric;
 			const first = yield* fabric
 				.withStartAdmission((permit) =>
 					fabric.start(
@@ -171,7 +171,7 @@ it.live("one Agent cannot attach two different Sessions", () =>
 			const failure = yield* Effect.flip(Fiber.join(second));
 			expect(failure).toBeInstanceOf(SessionAttachmentFailure);
 			expect(yield* Ref.get(opens)).toBe(1);
-		}).pipe(Effect.provide(SessionFabric.layer)),
+		}),
 	),
 );
 
@@ -200,7 +200,7 @@ it.live(
 					openSession: () => Effect.succeed(handle),
 					tag: "scripted",
 				};
-				const fabric = yield* SessionFabric;
+				const fabric = yield* makeSessionFabric;
 				const failure = yield* Effect.flip(
 					fabric.withStartAdmission((permit) =>
 						fabric.start(
@@ -215,7 +215,7 @@ it.live(
 				);
 				expect(failure).toBeInstanceOf(SessionAttachmentFailure);
 				expect(failure.detail).toContain("durably record native identity");
-			}).pipe(Effect.provide(SessionFabric.layer)),
+			}),
 		),
 );
 
@@ -254,7 +254,7 @@ it.live("stop interrupts admission, closes once, and leaves retry fresh", () =>
 					}),
 				tag: "scripted",
 			};
-			const fabric = yield* SessionFabric;
+			const fabric = yield* makeSessionFabric;
 			const starting = yield* fabric
 				.withStartAdmission((permit) =>
 					fabric.start(
@@ -287,6 +287,6 @@ it.live("stop interrupts admission, closes once, and leaves retry fresh", () =>
 			);
 			expect(yield* Ref.get(opens)).toBe(2);
 			expect(yield* Ref.get(queued)).toBe(true);
-		}).pipe(Effect.provide(SessionFabric.layer)),
+		}),
 	),
 );

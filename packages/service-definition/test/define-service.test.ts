@@ -120,42 +120,4 @@ describe("defineService", () => {
 				expect(result).toBe(identity);
 			}),
 	);
-
-	it.effect(
-		"constructs shared state once and finalizes it with the layer scope",
-		() =>
-			Effect.gen(function* () {
-				const constructions = yield* Ref.make(0);
-				const finalizations = yield* Ref.make(0);
-				const identity = {};
-				const Stateful = defineService({
-					id: "test/Stateful",
-					requires: [Declared],
-					operations: Effect.gen(function* () {
-						const declared = yield* Declared;
-						yield* Ref.update(constructions, (count) => count + 1);
-						yield* Effect.addFinalizer(() =>
-							Ref.update(finalizations, (count) => count + 1),
-						);
-						const current = Effect.succeed(declared.identity);
-						return { current };
-					}),
-				});
-				const live = Stateful.layer.pipe(
-					Layer.provide(
-						Layer.succeed(Declared)({ identity, value: "stateful" }),
-					),
-				);
-				const values = yield* Effect.scoped(
-					Effect.gen(function* () {
-						const stateful = yield* Stateful;
-						return yield* Effect.all([stateful.current, stateful.current]);
-					}).pipe(Effect.provide(live)),
-				);
-				expect(values[0]).toBe(values[1]);
-				expect(values[0]).toBe(identity);
-				expect(yield* Ref.get(constructions)).toBe(1);
-				expect(yield* Ref.get(finalizations)).toBe(1);
-			}),
-	);
 });

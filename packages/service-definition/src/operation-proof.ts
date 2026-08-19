@@ -8,16 +8,16 @@ export type AnyOperationMember =
 	| Effect.Effect<unknown, unknown, unknown>;
 export type OperationRecord = Readonly<Record<string, AnyOperationMember>>;
 
-interface GenericOrOverloadedOperationsRequireAnInitializerEffect {
-	readonly _serviceDefinitionError: "generic and overloaded operations require an initializer Effect";
+interface GenericOrOverloadedOperationsAreUnsupported {
+	readonly _serviceDefinitionError: "generic and overloaded direct operations are unsupported";
 }
 
 type SupportedOperation<Operation> = Operation extends AnyOperation
 	? Operation extends (...arguments_: infer Arguments) => infer Result
 		? ((...arguments_: Arguments) => Result) extends Operation
 			? Operation
-			: GenericOrOverloadedOperationsRequireAnInitializerEffect
-		: GenericOrOverloadedOperationsRequireAnInitializerEffect
+			: GenericOrOverloadedOperationsAreUnsupported
+		: GenericOrOverloadedOperationsAreUnsupported
 	: Operation;
 
 type OperationRequirements<Operation> = Operation extends (

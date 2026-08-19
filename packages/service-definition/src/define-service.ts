@@ -1,4 +1,4 @@
-import { Context, Effect, Layer, Record, type Scope } from "effect";
+import { Context, Effect, Layer, Record } from "effect";
 import type { OperationProof, OperationRecord } from "#operation-proof.ts";
 import type {
 	RequirementRecord,
@@ -30,47 +30,19 @@ interface DirectDefinition<
 	readonly requires: Requirements;
 }
 
-interface InitializerDefinition<
-	Identifier extends string,
-	Requirements extends RequirementRecord,
-	Operations extends OperationRecord,
-	Failure,
-> {
-	readonly id: Identifier;
-	readonly operations: Effect.Effect<
-		Operations,
-		Failure,
-		RequirementsOf<Requirements> | Scope.Scope
-	>;
-	readonly requires: Requirements;
+interface RuntimeDefinition {
+	readonly id: string;
+	readonly operations: OperationRecord;
+	readonly requires: RequirementRecord;
 }
 
 type DefinedService<
 	Identifier extends string,
 	Shape,
-	Failure,
 	Requirements,
 > = Context.Service<Identifier, Shape> & {
-	readonly layer: Layer.Layer<Identifier, Failure, Requirements>;
+	readonly layer: Layer.Layer<Identifier, never, Requirements>;
 };
-export function defineService<
-	const Identifier extends string,
-	const Requirements extends RequirementRecord,
-	const Operations extends OperationRecord,
-	Failure,
->(
-	definition: InitializerDefinition<
-		Identifier,
-		Requirements,
-		Operations,
-		Failure
-	>,
-): DefinedService<
-	Identifier,
-	Operations,
-	Failure,
-	RequirementsOf<Requirements>
->;
 export function defineService<
 	const Identifier extends string,
 	const Requirements extends RequirementRecord,
@@ -80,31 +52,15 @@ export function defineService<
 ): DefinedService<
 	Identifier,
 	ServiceShape<Operations, RequirementsOf<Requirements>>,
-	never,
 	RequirementsOf<Requirements>
 >;
-export function defineService(
-	definition:
-		| DirectDefinition<string, RequirementRecord, OperationRecord>
-		| InitializerDefinition<
-				string,
-				RequirementRecord,
-				OperationRecord,
-				unknown
-		  >,
-) {
+export function defineService(definition: RuntimeDefinition): unknown {
 	const service = Context.Service<string, OperationRecord>(definition.id);
-	const operations = definition.operations;
-	if (Effect.isEffect(operations)) {
-		return Object.assign(service, {
-			layer: Layer.effect(service)(operations),
-		});
-	}
 	const layer = Layer.effect(service)(
 		Effect.gen(function* () {
 			const ambient = yield* Effect.context<string>();
 			const declared = Context.pick(...definition.requires)(ambient);
-			return Record.map(operations, (operation) =>
+			return Record.map(definition.operations, (operation) =>
 				Effect.isEffect(operation)
 					? Effect.provide(operation, declared)
 					: (...arguments_: ReadonlyArray<never>) =>

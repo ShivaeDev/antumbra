@@ -1,6 +1,7 @@
 import {
 	type BridgeRequest,
 	type BridgeSubscribeRequest,
+	OPEN_EXTERNAL_CHANNEL,
 	type SubscriptionMessage,
 	subscriptionChannel,
 	TRPC_CHANNEL,
@@ -10,6 +11,9 @@ import {
 import { contextBridge, ipcRenderer } from "electron";
 
 contextBridge.exposeInMainWorld("antumbra", {
+	openExternal: (url: string) => {
+		ipcRenderer.send(OPEN_EXTERNAL_CHANNEL, url);
+	},
 	subscribe: (
 		request: BridgeSubscribeRequest,
 		onMessage: (message: SubscriptionMessage) => void,

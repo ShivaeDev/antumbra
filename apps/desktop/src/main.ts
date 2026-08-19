@@ -34,6 +34,7 @@ import { drainManagedRuntime } from "#adapters/graceful-shutdown.ts";
 import { activateInstalledCli } from "#adapters/installed-cli.ts";
 import { mainDocumentAuthority } from "#adapters/main-document-authority.ts";
 import { openMainWindow } from "#adapters/main-window.ts";
+import { registerOpenExternal } from "#adapters/open-external.ts";
 import {
 	acquireDesktopOwnership,
 	artifactsInDataDirectory,
@@ -121,6 +122,7 @@ const startOwner = () => {
 		yield* Effect.sync(() => {
 			registerTrpcBridge(router, mainDocumentAuthority);
 			registerTrpcSubscriptions(router, mainDocumentAuthority);
+			registerOpenExternal(mainDocumentAuthority);
 		});
 		yield* quitWhenAllWindowsClosed;
 		yield* ensureInstallMarker;

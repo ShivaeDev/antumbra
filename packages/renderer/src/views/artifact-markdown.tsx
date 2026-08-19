@@ -3,6 +3,7 @@ import { useEffect, useId, useState } from "react";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { renderMermaid } from "#adapters/mermaid.ts";
+import { ExternalLink } from "#views/external-link.tsx";
 import { cardStyle, mutedStyle } from "#views/styles.ts";
 
 const MermaidDiagram = ({ source }: { readonly source: string }) => {
@@ -47,6 +48,12 @@ export const ArtifactMarkdownView = ({
 	<div style={{ ...cardStyle, overflowX: "auto", padding: "0.8rem 1rem" }}>
 		<Markdown
 			components={{
+				a: ({ children, href }) =>
+					href === undefined || href === "" ? (
+						<span>{children}</span>
+					) : (
+						<ExternalLink url={href}>{children}</ExternalLink>
+					),
 				code: ({ children, className, ...props }) => {
 					const source = String(children).replace(/\n$/, "");
 					return className === "language-mermaid" ? (

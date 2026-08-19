@@ -16,6 +16,10 @@ declare global {
 export const toError = (cause: unknown): Error =>
 	cause instanceof Error ? cause : new Error(String(cause));
 
+export const openExternal = (url: string): void => {
+	window.antumbra.openExternal(url);
+};
+
 interface LinkObserver {
 	readonly complete: () => void;
 	readonly error: (error: TRPCClientError<AppRouter>) => void;

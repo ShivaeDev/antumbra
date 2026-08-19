@@ -2,11 +2,23 @@ import { execFileSync } from "node:child_process";
 import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import type { ProvisionRequest, Runner } from "@antumbra/plugin-api";
+import type {
+	ProvisionRequest,
+	RepoRequest,
+	Runner,
+} from "@antumbra/plugin-api";
 import { Effect } from "effect";
 import { makeLocalRunner } from "#local.ts";
 
 export const AGENT = "0123456789abcdef";
+
+// why: the registry decides what a repository is called, so a request spells
+// the slug it wants berthed rather than leaving the runner to guess one.
+export const berthing = (source: string, slug = "source"): RepoRequest => ({
+	ref: "main",
+	slug,
+	source,
+});
 
 export const git = (args: ReadonlyArray<string>): Effect.Effect<string> =>
 	Effect.sync(() => execFileSync("git", args, { encoding: "utf8" }));
@@ -40,7 +52,7 @@ export const makeHarbor = Effect.gen(function* () {
 	const root = yield* acquireTempRoot;
 	const source = yield* makeSourceRepo(root);
 	const runner = makeLocalRunner({
-		berthsRoot: join(root, "berths"),
+		moorageRoot: join(root, "moorage"),
 		reposRoot: join(root, "repos"),
 	});
 	return { root, runner, source };

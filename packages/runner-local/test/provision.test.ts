@@ -4,6 +4,7 @@ import { expect, it } from "@effect/vitest";
 import { Effect } from "effect";
 import {
 	AGENT,
+	berthing,
 	git,
 	makeHarbor,
 	makeSourceRepo,
@@ -12,12 +13,12 @@ import {
 
 it.live("provisions a worktree on a work branch from the mirror", () =>
 	Effect.gen(function* () {
-		const { runner, source } = yield* makeHarbor;
+		const { root, runner, source } = yield* makeHarbor;
 		const moorage = yield* provision(runner, {
 			agentId: AGENT,
-			repos: [{ ref: "main", source }],
+			repos: [berthing(source)],
 		});
-		expect(moorage.root.endsWith(AGENT)).toBe(true);
+		expect(moorage.root).toBe(join(root, "moorage", AGENT));
 		expect(moorage.berths).toHaveLength(1);
 		const berth = moorage.berths[0];
 		expect(berth?.slug).toBe("source");
@@ -48,7 +49,7 @@ it.live("reconciles the same provision request twice", () =>
 		const { runner, source } = yield* makeHarbor;
 		const request = {
 			agentId: AGENT,
-			repos: [{ ref: "main", source }],
+			repos: [berthing(source)],
 		};
 		const first = yield* provision(runner, request);
 		yield* Effect.sync(() => rmSync(source, { recursive: true }));
@@ -63,14 +64,11 @@ it.live("creates only the missing berth after partial provision", () =>
 		const secondSource = yield* makeSourceRepo(join(root, "second"));
 		const first = yield* provision(runner, {
 			agentId: AGENT,
-			repos: [{ ref: "main", source }],
+			repos: [berthing(source)],
 		});
 		const reconciled = yield* provision(runner, {
 			agentId: AGENT,
-			repos: [
-				{ ref: "main", source },
-				{ ref: "main", source: secondSource },
-			],
+			repos: [berthing(source), berthing(secondSource, "second")],
 		});
 		expect(reconciled.berths[0]).toEqual(first.berths[0]);
 		expect(existsSync(reconciled.berths[1]?.path ?? "")).toBe(true);
@@ -82,7 +80,7 @@ it.live("fails closed when the planned path has another branch identity", () =>
 		const { runner, source } = yield* makeHarbor;
 		const plan = runner.plan({
 			agentId: AGENT,
-			repos: [{ ref: "main", source }],
+			repos: [berthing(source)],
 		});
 		const berth = plan.berths[0];
 		if (berth === undefined) {
@@ -100,13 +98,13 @@ it.live("fails closed on a same-branch worktree from another source", () =>
 		yield* runner.provision(
 			runner.plan({
 				agentId: "mirror-seed",
-				repos: [{ ref: "main", source }],
+				repos: [berthing(source)],
 			}),
 		);
 		const wrongSource = yield* makeSourceRepo(join(root, "wrong"));
 		const plan = runner.plan({
 			agentId: AGENT,
-			repos: [{ ref: "main", source }],
+			repos: [berthing(source)],
 		});
 		const berth = plan.berths[0];
 		if (berth === undefined) {
@@ -143,7 +141,7 @@ it.live("restores a planned path when its branch residue remains", () =>
 		const { runner, source } = yield* makeHarbor;
 		const plan = yield* provision(runner, {
 			agentId: AGENT,
-			repos: [{ ref: "main", source }],
+			repos: [berthing(source)],
 		});
 		const berth = plan.berths[0];
 		if (berth === undefined) {
@@ -180,7 +178,7 @@ it.live("prunes a stale registration before remounting its exact branch", () =>
 		const { runner, source } = yield* makeHarbor;
 		const plan = yield* provision(runner, {
 			agentId: AGENT,
-			repos: [{ ref: "main", source }],
+			repos: [berthing(source)],
 		});
 		const berth = plan.berths[0];
 		if (berth === undefined) {

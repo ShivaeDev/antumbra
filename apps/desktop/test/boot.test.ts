@@ -1,7 +1,17 @@
 import { describe, expect, it } from "@effect/vitest";
 import { Effect } from "effect";
 import { ownerBoot } from "#adapters/boot.ts";
-import { claimDesktopOwnership } from "#adapters/shell.ts";
+import {
+	claimDesktopOwnership,
+	runnerRootsInDataDirectory,
+} from "#adapters/shell.ts";
+
+it("gives every agent a moorage beside the mirrors it is cut from", () => {
+	expect(runnerRootsInDataDirectory("/data")).toEqual({
+		moorageRoot: "/data/moorage",
+		reposRoot: "/data/repos",
+	});
+});
 
 describe("desktop process ownership", () => {
 	it.effect(

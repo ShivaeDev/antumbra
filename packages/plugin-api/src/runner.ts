@@ -42,8 +42,12 @@ export type RunnerError =
 	| RunnerFailure
 	| RunnerProvisionConflict;
 
+// why: the slug travels with the request because the registry owns what a
+// repository is called. A runner deriving it again would be a second naming
+// authority, free to drift from the folder the agent was told to stand in.
 export interface RepoRequest {
 	readonly ref: string;
+	readonly slug: string;
 	readonly source: string;
 }
 

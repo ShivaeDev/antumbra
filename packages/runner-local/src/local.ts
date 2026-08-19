@@ -10,7 +10,7 @@ import { Effect } from "effect";
 import { ensureDirectory, pathExists } from "#adapters/fs.ts";
 import { captureChange } from "#change-evidence.ts";
 import { ensureMirror } from "#mirrors.ts";
-import { berthSlug, mirrorName, workBranch } from "#naming.ts";
+import { mirrorName, workBranch } from "#naming.ts";
 import {
 	createWorktree,
 	isClean,
@@ -22,33 +22,30 @@ import {
 } from "#worktrees.ts";
 
 export interface LocalRunnerRoots {
-	readonly berthsRoot: string;
+	readonly moorageRoot: string;
 	readonly reposRoot: string;
 }
 
+// why: the runner never invents a repository's name. It lays out the folder
+// the request already spells, so the berth an agent stands in and the name a
+// change tool answers to cannot drift apart.
 const planBerths = (
 	root: string,
 	request: ProvisionRequest,
-): ReadonlyArray<BerthPlan> => {
-	const taken = new Set<string>();
-	return request.repos.map((repo) => {
-		const slug = berthSlug(repo.source, taken);
-		taken.add(slug);
-		return {
-			branch: workBranch(request.agentId, slug),
-			path: join(root, slug),
-			ref: repo.ref,
-			slug,
-			source: repo.source,
-		};
-	});
-};
+): ReadonlyArray<BerthPlan> =>
+	request.repos.map((repo) => ({
+		branch: workBranch(request.agentId, repo.slug),
+		path: join(root, repo.slug),
+		ref: repo.ref,
+		slug: repo.slug,
+		source: repo.source,
+	}));
 
 const planMoorage = (
 	roots: LocalRunnerRoots,
 	request: ProvisionRequest,
 ): MooragePlan => {
-	const root = join(roots.berthsRoot, request.agentId);
+	const root = join(roots.moorageRoot, request.agentId);
 	return { berths: planBerths(root, request), root };
 };
 
@@ -57,7 +54,10 @@ const provisionInto = (roots: LocalRunnerRoots, plan: MooragePlan) =>
 		plan.berths,
 		(berth) =>
 			Effect.gen(function* () {
-				const mirror = join(roots.reposRoot, mirrorName(berth.source));
+				const mirror = join(
+					roots.reposRoot,
+					mirrorName(berth.slug, berth.source),
+				);
 				if (yield* pathExists(berth.path)) {
 					yield* verifyWorktree(mirror, berth);
 					return;
@@ -70,7 +70,7 @@ const provisionInto = (roots: LocalRunnerRoots, plan: MooragePlan) =>
 				}
 				// why: source access is the fallback only after durable mirror state
 				// proves there is no planned branch to recover locally.
-				yield* ensureMirror(roots.reposRoot, berth.source);
+				yield* ensureMirror(roots.reposRoot, berth);
 				yield* createWorktree(mirror, berth);
 			}),
 		{ concurrency: 1, discard: true },
@@ -90,7 +90,7 @@ export const makeLocalRunner = (roots: LocalRunnerRoots): Runner => ({
 		}),
 	reclaim: (site) =>
 		Effect.gen(function* () {
-			const mirror = join(roots.reposRoot, mirrorName(site.source));
+			const mirror = join(roots.reposRoot, mirrorName(site.slug, site.source));
 			if (!(yield* pathExists(site.path))) {
 				return yield* reclaimMissingWorktree(mirror, site);
 			}
@@ -102,7 +102,10 @@ export const makeLocalRunner = (roots: LocalRunnerRoots): Runner => ({
 			return { _tag: "reclaimed" as const };
 		}),
 	scrap: (site) =>
-		scrapWorktree(join(roots.reposRoot, mirrorName(site.source)), site),
+		scrapWorktree(
+			join(roots.reposRoot, mirrorName(site.slug, site.source)),
+			site,
+		),
 	tag: "local",
 });
 

@@ -1,7 +1,7 @@
 import { DomainFeeds, DomainFeedsLive } from "@antumbra/domain-feeds";
 import { Writer } from "@antumbra/persistence";
 import { persistenceIt } from "@antumbra/persistence/testing";
-import { Repos, ReposLive, repoName } from "@antumbra/repos";
+import { Repos, ReposLive, repoName, repoSlug } from "@antumbra/repos";
 import { expect } from "@effect/vitest";
 import { Effect, Layer, PubSub } from "effect";
 import { it } from "vitest";
@@ -14,6 +14,12 @@ it("derives the existing registration name from local and remote sources", () =>
 	expect(repoName("/somewhere/reef.git/")).toBe("reef");
 	expect(repoName("git@example.invalid:shoals.git")).toBe("shoals");
 	expect(repoName("/")).toBe("repo");
+});
+
+it("lowers the same name into the one spelling a folder and a ref carry", () => {
+	expect(repoSlug("/somewhere/Reef-Charts.git/")).toBe("reef-charts");
+	expect(repoSlug("git@example.invalid:Deep Shoals.git")).toBe("deep-shoals");
+	expect(repoSlug("/")).toBe("repo");
 });
 
 persistence.effectDB(
@@ -44,6 +50,30 @@ persistence.effectDB(
 						source: "/reefs/one",
 					},
 				]);
+				expect(yield* db.Repo.all()).toHaveLength(1);
+			}),
+		).pipe(Effect.provide(layer));
+	},
+);
+
+persistence.effectDB(
+	"refuses a second source that would berth in the first source's folder",
+	function* (db) {
+		yield* Effect.scoped(
+			Effect.gen(function* () {
+				const repos = yield* Repos;
+				yield* repos.register({
+					defaultRef: "main",
+					source: "/reefs/Reef-Charts",
+				});
+				const refusal = yield* Effect.flip(
+					repos.register({
+						defaultRef: "main",
+						source: "git@example.invalid:crew/reef-charts.git",
+					}),
+				);
+				expect(refusal.message).toContain("/reefs/Reef-Charts");
+				expect(refusal.message).toContain("reef-charts");
 				expect(yield* db.Repo.all()).toHaveLength(1);
 			}),
 		).pipe(Effect.provide(layer));

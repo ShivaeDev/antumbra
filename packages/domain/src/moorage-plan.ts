@@ -1,6 +1,7 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database, type WriteExecutors, Writer } from "@antumbra/persistence";
 import type { MooragePlan, Runner } from "@antumbra/plugin-api";
+import { repoSlug } from "@antumbra/repos";
 import { ensureAgentResourcesUnclaimed } from "@antumbra/resource-reclamation";
 import {
 	decodeStoredBerthStatus,
@@ -106,6 +107,7 @@ export const makePrepareMoorage = Effect.gen(function* () {
 				agentId: payload.agentId,
 				repos: repos.map((repo) => ({
 					ref: repo.defaultRef,
+					slug: repoSlug(repo.source),
 					source: repo.source,
 				})),
 			});

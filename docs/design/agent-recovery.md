@@ -161,10 +161,14 @@ interrupts a Session.
 Repositories are registered once at the app level. Each registration owns a
 bare mirror under app-managed data; before a provider Session opens, the runner
 provisions one Berth from each mirror into the Agent's current Moorage on a
-`work/…` branch. The Moorage folder is the Agent's current working directory
-and scratchpad. With no repositories registered, the Agent still receives a
-bare scratch Moorage. Narrowing repository visibility may later filter what
-an Agent sees, but it never binds repositories to a Piece or Voyage.
+`work/…` branch. The registry names every repository, and a registration whose
+name would claim the Berth folder another registered repository answers to is
+refused, so two Berths never share a folder or a branch. The Moorage folder is
+the Agent's current working directory and scratchpad, and every Berth is a
+folder directly inside it. With no repositories registered, the Agent still
+receives a bare scratch Moorage. Narrowing repository visibility may later
+filter what an Agent sees, but it never binds repositories to a Piece or
+Voyage.
 
 The same Moorage row survives physical loss and later reprovisioning. Ordinary
 provisioning reconciles that durable row with whatever folders and Berths

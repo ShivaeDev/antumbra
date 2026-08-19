@@ -4,12 +4,33 @@ import { Clock, Effect, Option } from "effect";
 import {
 	CAPTAIN_BERTH_ORDER,
 	type CharterBerth,
+	type CharterMoorage,
 	CREW_BERTH_ORDER,
 	withBerths,
 } from "#charter-berths.ts";
 import type { SpawnFields } from "#spawn.ts";
 import { spawnSessionIdentity } from "#spawn-identity.ts";
 import { isVoyageCaptainIdentity } from "#voyage-captain.ts";
+
+interface BerthRow {
+	readonly branch: string;
+	readonly slug: string;
+	readonly source: string;
+}
+
+// why: the berth carries the source it was cut from, and only the registry
+// row turns that into the name a change tool accepts — a berth whose repo was
+// forgotten can no longer be addressed and is left unnamed.
+const namedBerths = (
+	berths: ReadonlyArray<BerthRow>,
+	repos: ReadonlyArray<{ readonly name: string; readonly source: string }>,
+): ReadonlyArray<CharterBerth> =>
+	berths.flatMap((berth) => {
+		const repo = repos.find((row) => row.source === berth.source);
+		return repo === undefined
+			? []
+			: [{ branch: berth.branch, folder: `./${berth.slug}`, repo: repo.name }];
+	});
 
 const berthOrderFor = (payload: SpawnFields): string =>
 	isVoyageCaptainIdentity(payload.role, spawnSessionIdentity(payload))
@@ -22,23 +43,22 @@ export const charterDelivery = Effect.gen(function* () {
 	const executors = yield* Effect.context<WriteExecutors>();
 	const provide = <A, E>(effect: Effect.Effect<A, E, WriteExecutors>) =>
 		Effect.provideContext(effect, executors);
-	// why: the berth carries the source it was cut from, and only the registry
-	// row turns that into the name a change tool accepts — a berth whose repo
-	// was forgotten can no longer be addressed and is left unnamed.
-	const berthsOf = (agentId: string) =>
+	const moorageOf = (agentId: string) =>
 		Effect.gen(function* () {
+			const moorage = yield* db.Moorage.where({ agentId }).first();
+			if (Option.isNone(moorage)) {
+				return { berths: [], root: "" } satisfies CharterMoorage;
+			}
 			const berths = yield* db.Berth.where({ agentId })
 				.orderBy((berth) => berth.createdAt.asc())
 				.all();
 			const repos = yield* db.Repo.orderBy((repo) =>
 				repo.createdAt.asc(),
 			).all();
-			return berths.flatMap((berth): ReadonlyArray<CharterBerth> => {
-				const repo = repos.find((row) => row.source === berth.source);
-				return repo === undefined
-					? []
-					: [{ branch: berth.branch, path: berth.path, repo: repo.name }];
-			});
+			return {
+				berths: namedBerths(berths, repos),
+				root: moorage.value.root,
+			} satisfies CharterMoorage;
 		});
 	const stamp = (payload: SpawnFields) =>
 		Effect.gen(function* () {
@@ -61,9 +81,9 @@ export const charterDelivery = Effect.gen(function* () {
 			if (delivered) {
 				return;
 			}
-			const berths = yield* provide(berthsOf(payload.agentId));
+			const moorage = yield* provide(moorageOf(payload.agentId));
 			yield* handle.queue(
-				withBerths(payload.charter, berths, berthOrderFor(payload)),
+				withBerths(payload.charter, moorage, berthOrderFor(payload)),
 			);
 			yield* stamp(payload);
 		});

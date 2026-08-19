@@ -46,6 +46,7 @@ obligation remains detached until needed. See
 | `packages/session-event-journal` | Durable Session event sequencing and native identity correlation |
 | `packages/plugin-api`     | The driven ports: agent backends, runners, plugin registration  |
 | `packages/agent-tools`    | The tools agents act through: schemas and binding, no transport |
+| `packages/service-definition` | Effect-only inferred service definitions and their single Layer |
 | `packages/kernel`         | Intents, admission scheduling, lifecycle state machines         |
 | `packages/intent-demand`  | Recreates missing mortal Intents from closed durable-demand registrations |
 | `packages/domain-feeds`   | Shared post-commit domain change notifications                  |
@@ -81,6 +82,13 @@ transactions and post-commit signals, and Layers select implementations and
 lifetimes. Foreign callbacks cross adapter boundaries only after their Effect
 requirements are closed. `packages/git` remains process infrastructure beneath
 `runner-local`.
+
+`service-definition` is the Effect-only construction leaf for services whose
+operations and Layer come from one definition. Declared requirements are
+captured once per Layer instance while undeclared requirements remain visible
+to callers. Stateful definitions construct their operation record once in the
+Layer scope; direct generic or overloaded operation records are rejected rather
+than silently widened.
 
 `intent-demand` is the process-lifetime bridge between capability-owned durable
 demand and Kernel-owned mortal Intents. Capabilities close typed discovery

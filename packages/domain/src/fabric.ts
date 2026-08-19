@@ -3,7 +3,8 @@ import type {
 	BackendFailure,
 	OpenSessionOptions,
 } from "@antumbra/plugin-api";
-import { Context, Effect, Layer } from "effect";
+import { defineService } from "@antumbra/service-definition";
+import { Effect } from "effect";
 import type { SessionAttachmentFailure, SessionNotLive } from "#errors.ts";
 import type { EventSink, SessionAttachment } from "#session-attachment.ts";
 import { makeSessionAttachmentRegistry } from "#session-attachment-registry.ts";
@@ -22,60 +23,58 @@ const sessionStartPermit: SessionStartPermit = {
 	[SessionStartPermitTypeId]: true,
 };
 
-export interface SessionFabricService {
-	readonly closeStarts: Effect.Effect<void>;
-	readonly interrupt: (
-		sessionId: string,
-	) => Effect.Effect<void, BackendFailure | SessionNotLive>;
-	readonly start: <E, R>(
-		permit: SessionStartPermit,
-		agentId: string,
-		backend: AgentBackend,
-		options: OpenSessionOptions,
-		sink: EventSink,
-		admit: (attachment: SessionAttachment) => Effect.Effect<void, E, R>,
-	) => Effect.Effect<void, BackendFailure | SessionAttachmentFailure | E, R>;
-	readonly reopenStarts: Effect.Effect<void>;
-	readonly stop: (sessionId: string) => Effect.Effect<void>;
-	readonly withStartAdmission: <A, E, R>(
-		use: (permit: SessionStartPermit) => Effect.Effect<A, E, R>,
-	) => Effect.Effect<A, E, R>;
-}
-
-export class SessionFabric extends Context.Service<
-	SessionFabric,
-	SessionFabricService
->()("@antumbra/domain/SessionFabric") {}
-
 // why: live handles only, never persisted — rebuilt empty at boot. Registry
 // teardown is the single close path, so app shutdown cannot strand a provider.
-export const makeSessionFabric = Effect.gen(function* () {
-	const attachments = yield* makeSessionAttachmentRegistry;
-	const lifecycles = yield* makeSessionLifecycles;
-	const startAdmission = yield* makeSessionStartAdmission;
-	const start: SessionFabricService["start"] = (
-		_permit,
-		agentId,
-		backend,
-		options,
-		sink,
-		admit,
-	) =>
-		lifecycles.admit(
-			options.sessionId,
-			attachments.attach(agentId, backend, options, sink, admit),
+export const SessionFabric = defineService({
+	id: "@antumbra/domain/SessionFabric",
+	requires: [],
+	operations: Effect.gen(function* () {
+		const attachments = yield* makeSessionAttachmentRegistry;
+		const lifecycles = yield* makeSessionLifecycles;
+		const startAdmission = yield* makeSessionStartAdmission;
+		const interrupt = Effect.fn("sessionFabric.interrupt")(function* (
+			sessionId: string,
+		): Effect.fn.Return<void, BackendFailure | SessionNotLive> {
+			yield* attachments.interrupt(sessionId);
+		});
+		const start = Effect.fn("sessionFabric.start")(function* <E, R>(
+			_permit: SessionStartPermit,
+			agentId: string,
+			backend: AgentBackend,
+			options: OpenSessionOptions,
+			sink: EventSink,
+			admit: (attachment: SessionAttachment) => Effect.Effect<void, E, R>,
+		): Effect.fn.Return<
+			void,
+			BackendFailure | SessionAttachmentFailure | E,
+			R
+		> {
+			yield* lifecycles.admit(
+				options.sessionId,
+				attachments.attach(agentId, backend, options, sink, admit),
+			);
+		});
+		const stop = Effect.fn("sessionFabric.stop")(function* (
+			sessionId: string,
+		): Effect.fn.Return<void> {
+			yield* lifecycles.stop(sessionId, attachments.stop(sessionId));
+		});
+		const withStartAdmission = Effect.fn("sessionFabric.withStartAdmission")(
+			function* <A, E, R>(
+				use: (permit: SessionStartPermit) => Effect.Effect<A, E, R>,
+			): Effect.fn.Return<A, E, R> {
+				return yield* startAdmission.run(
+					Effect.suspend(() => use(sessionStartPermit)),
+				);
+			},
 		);
-	const stop: SessionFabricService["stop"] = (sessionId) =>
-		lifecycles.stop(sessionId, attachments.stop(sessionId));
-	return {
-		closeStarts: startAdmission.close,
-		interrupt: attachments.interrupt,
-		reopenStarts: startAdmission.reopen,
-		start,
-		stop,
-		withStartAdmission: (use) =>
-			startAdmission.run(Effect.suspend(() => use(sessionStartPermit))),
-	} satisfies SessionFabricService;
+		return {
+			closeStarts: startAdmission.close,
+			interrupt,
+			reopenStarts: startAdmission.reopen,
+			start,
+			stop,
+			withStartAdmission,
+		};
+	}),
 });
-
-export const SessionFabricLive = Layer.effect(SessionFabric)(makeSessionFabric);

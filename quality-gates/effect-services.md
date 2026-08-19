@@ -12,7 +12,9 @@ service-parameter lint rule.
    parameter.
 2. Layers provide implementations and close environments at composition roots.
    A Layer is the lifetime and sharing boundary; reconstructing service objects
-   ad hoc loses that identity.
+   ad hoc loses that identity. A service using the shared definition DSL owns
+   its inferred consumer shape and Layer in that one definition; it does not
+   recreate a parallel service interface or `Live` alias.
 3. A domain capability owns the whole business act: validation, transaction,
    durable writes, and notifications after commit. Its caller names the act and
    supplies only domain input.

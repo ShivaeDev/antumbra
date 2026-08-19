@@ -4,7 +4,7 @@ import { inputStyle } from "#views/styles.ts";
 // why: what a picker needs of a piece is what to call it — a piece from one
 // voyage is named by its title, one drawn from the whole fleet says which
 // voyage it belongs to, and the control learns neither.
-export interface PickablePiece {
+interface PickablePiece {
 	readonly id: string;
 	readonly label: string;
 }

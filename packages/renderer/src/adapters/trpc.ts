@@ -11,7 +11,7 @@ import type {
 import { Data, Effect } from "effect";
 import { client, toError } from "#adapters/bridge.ts";
 
-export class AppInfoLoadError extends Data.TaggedError("AppInfoLoadError")<{
+class AppInfoLoadError extends Data.TaggedError("AppInfoLoadError")<{
 	readonly message: string;
 }> {}
 

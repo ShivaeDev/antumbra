@@ -1,13 +1,9 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
-import {
-	Database,
-	type PrismaError,
-	type WriteExecutors,
-	Writer,
-} from "@antumbra/persistence";
+import { Database, type PrismaError, Writer } from "@antumbra/persistence";
 import { type PieceNotFound, verifyPieceExists } from "@antumbra/pieces";
-import { type Context, Effect, PubSub } from "effect";
+import { Effect, PubSub } from "effect";
 import type { ReportInput, ReportRow } from "#model.ts";
+import type { ReportsReturn } from "#requirements.ts";
 
 const writeReport = (row: ReportRow, pieceId: string) =>
 	Effect.gen(function* () {
@@ -24,14 +20,7 @@ const writeReport = (row: ReportRow, pieceId: string) =>
 
 export const landReport = Effect.fn("reports.landReport")(function* (
 	input: ReportInput,
-): Effect.fn.Return<
-	ReportRow,
-	PieceNotFound | PrismaError,
-	| Context.Service.Identifier<typeof Database>
-	| DomainFeeds
-	| WriteExecutors
-	| Writer
-> {
+): ReportsReturn<ReportRow, PieceNotFound | PrismaError> {
 	const feeds = yield* DomainFeeds;
 	const writer = yield* Writer;
 	const row: ReportRow = {

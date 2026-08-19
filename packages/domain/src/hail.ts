@@ -13,6 +13,7 @@ import type {
 } from "@antumbra/changes";
 import type { PrismaError } from "@antumbra/persistence";
 import type {
+	InvalidSessionExecutionStatus,
 	StoredAgentSessionStatusInvalid,
 	StoredAgentStatusInvalid,
 } from "@antumbra/vocabulary/agent-runtime";
@@ -25,7 +26,6 @@ import {
 	VoyageNotFound,
 } from "#errors.ts";
 import { KernelReach } from "#kernel-reach.ts";
-import type { InvalidSessionExecutionStatus } from "#session-execution-status.ts";
 import { CAPTAIN_ROLE, captainAtWork, captainOf } from "#voyage-captain.ts";
 import { idleExecutionSessionsOfAgent } from "#voyage-execution-selection.ts";
 import { voyageView } from "#voyage-view.ts";

@@ -1,4 +1,14 @@
 export {
+	decodeSessionExecutionStatus,
+	InvalidSessionExecutionStatus,
+	InvalidSessionExecutionTransition,
+	SESSION_EXECUTION_EVENTS,
+	type SessionExecutionEvent,
+	type SessionExecutionStatus,
+	SessionExecutionStatusSchema,
+	sessionExecutionTransition,
+} from "#agent-runtime/session-execution.ts";
+export {
 	type AgentSessionStatus,
 	AgentSessionStatusSchema,
 	type AgentStatus,

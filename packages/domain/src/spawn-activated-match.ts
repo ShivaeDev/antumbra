@@ -2,6 +2,7 @@ import {
 	type AgentSessionStatus,
 	type AgentStatus,
 	type BerthStatus,
+	decodeSessionExecutionStatus,
 	decodeStoredAgentSessionStatus,
 	decodeStoredAgentStatus,
 	decodeStoredBerthStatus,
@@ -9,7 +10,6 @@ import {
 	type MoorageStatus,
 } from "@antumbra/vocabulary/agent-runtime";
 import { Effect, Result } from "effect";
-import { decodeSessionExecutionStatus } from "#session-execution-status.ts";
 import type { SpawnFields } from "#spawn-fields.ts";
 
 interface StoredAgent {

@@ -3,7 +3,7 @@ import { atWork } from "#agent-at-work.ts";
 import {
 	assignedExecution,
 	executionSessionOfAgent,
-} from "#session-execution-selection.ts";
+} from "#voyage-execution-selection.ts";
 import type { AgentSessionRow, VoyageWorld } from "#voyage-rows.ts";
 
 const session = (

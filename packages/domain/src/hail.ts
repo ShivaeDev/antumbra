@@ -25,9 +25,9 @@ import {
 	VoyageNotFound,
 } from "#errors.ts";
 import { KernelReach } from "#kernel-reach.ts";
-import { idleExecutionSessionsOfAgent } from "#session-execution-selection.ts";
 import type { InvalidSessionExecutionStatus } from "#session-execution-status.ts";
 import { CAPTAIN_ROLE, captainAtWork, captainOf } from "#voyage-captain.ts";
+import { idleExecutionSessionsOfAgent } from "#voyage-execution-selection.ts";
 import { voyageView } from "#voyage-view.ts";
 import { VoyageWorldSource } from "#voyage-world.ts";
 

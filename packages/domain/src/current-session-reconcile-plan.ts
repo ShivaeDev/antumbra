@@ -7,8 +7,8 @@ import {
 	type StoredAgentStatusInvalid,
 } from "@antumbra/vocabulary/agent-runtime";
 import { Result } from "effect";
+import { CurrentSessionInvalid } from "#current-session-errors.ts";
 import { newestSession } from "#current-session-order.ts";
-import { CurrentSessionInvalid } from "#errors.ts";
 
 interface StoredAgent {
 	readonly currentSessionId: string | null;

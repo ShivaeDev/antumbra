@@ -14,26 +14,25 @@ export const cloneMirror = (
 		timeoutMillis: REMOTE_TIMEOUT_MILLIS,
 	}).pipe(Effect.asVoid);
 
-export const refreshMirror = (
+export const refreshMirror = Effect.fn("refreshMirror")(function* (
 	path: string,
-): Effect.Effect<void, GitError, ChildProcessSpawner.ChildProcessSpawner> =>
-	Effect.gen(function* () {
-		// why: a bare clone lacks branch refs, and repeating the refspec heals a
-		// clone interrupted between creation and its first refresh.
-		yield* runGit({
-			args: [
-				"-C",
-				path,
-				"config",
-				"remote.origin.fetch",
-				"+refs/heads/*:refs/remotes/origin/*",
-			],
-			operation: "refresh-mirror",
-			timeoutMillis: INSPECT_TIMEOUT_MILLIS,
-		});
-		yield* runGit({
-			args: ["-C", path, "fetch", "--quiet", "origin"],
-			operation: "refresh-mirror",
-			timeoutMillis: REMOTE_TIMEOUT_MILLIS,
-		});
+): Effect.fn.Return<void, GitError, ChildProcessSpawner.ChildProcessSpawner> {
+	// why: a bare clone lacks branch refs, and repeating the refspec heals a
+	// clone interrupted between creation and its first refresh.
+	yield* runGit({
+		args: [
+			"-C",
+			path,
+			"config",
+			"remote.origin.fetch",
+			"+refs/heads/*:refs/remotes/origin/*",
+		],
+		operation: "refresh-mirror",
+		timeoutMillis: INSPECT_TIMEOUT_MILLIS,
 	});
+	yield* runGit({
+		args: ["-C", path, "fetch", "--quiet", "origin"],
+		operation: "refresh-mirror",
+		timeoutMillis: REMOTE_TIMEOUT_MILLIS,
+	});
+});

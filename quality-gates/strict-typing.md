@@ -15,3 +15,7 @@ hatches. This gate judges the type design itself.
    type, not `string`.
 5. Data entering from outside (IPC, disk, subprocess, network) is decoded
    exactly once with Schema at the boundary — internal code never re-validates.
+6. Infer internal types from the owning value or function instead of restating
+   its inputs, success, and failure types. Annotate a public boundary when raw
+   inference would leak private names, weaken readonly views, or bypass a
+   package-owned type fence; that annotation is the single source of truth.

@@ -49,3 +49,7 @@ composition and lifetime.
 11. Leave coherent nearby debt cleaner when the change already touches the same
     responsibility. Use a follow-up only when that cleanup would materially
     widen or destabilize the change.
+12. Inside a package, import the module that owns a value or type directly. A
+    re-export-only intermediary is an internal barrel even when it is not named
+    `index.ts`; only entrypoints declared by the package manifest may aggregate
+    public API (`src/index.ts` is the root-entrypoint convention).

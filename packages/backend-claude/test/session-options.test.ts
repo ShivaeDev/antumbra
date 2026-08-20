@@ -1,6 +1,7 @@
 import { expect, it } from "@effect/vitest";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { Option } from "effect";
+import { mirroringSessionStore } from "#adapters/session-store.ts";
 import { sessionOptions } from "#session-options.ts";
 
 const server = new McpServer({ name: "antumbra", version: "0.0.0" });
@@ -9,6 +10,7 @@ const base = {
 	cwd: "/moorage/./crew",
 	executable: "/usr/bin/false",
 	resume: undefined,
+	store: mirroringSessionStore(() => {}),
 };
 
 it("a session without tools carries no server and no allowance", () => {

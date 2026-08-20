@@ -1,5 +1,5 @@
 import { resolve } from "node:path";
-import type { Options } from "@anthropic-ai/claude-agent-sdk";
+import type { Options, SessionStore } from "@anthropic-ai/claude-agent-sdk";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { Option } from "effect";
 import { TOOL_SERVER_NAME } from "#adapters/tool-server.ts";
@@ -13,6 +13,7 @@ interface SessionShape {
 	readonly cwd: string;
 	readonly executable: string;
 	readonly resume: string | undefined;
+	readonly store: SessionStore;
 	readonly tools: Option.Option<ToolAccess>;
 }
 
@@ -39,12 +40,17 @@ const served = (access: ToolAccess) => ({
 // it the provider forwards only a subsession's tool traffic, so everything a
 // delegated agent said would be missing from its transcript with nothing in
 // the stream to say so. The SDK never acknowledges the flag, so nothing here
-// waits for confirmation that it took.
+// waits for confirmation that it took. The transcript mirror is unconditional
+// beside it: the agents a workflow runs are forwarded on no lane at all, and
+// the mirror is the only place they exist. It flushes eagerly because a node
+// that opens a turn after it started working reads as one that started late.
 export const sessionOptions = (session: SessionShape): Options => ({
 	cwd: resolve(session.cwd),
 	forwardSubagentText: true,
 	pathToClaudeCodeExecutable: session.executable,
 	permissionMode: "auto",
+	sessionStore: session.store,
+	sessionStoreFlush: "eager",
 	...(session.resume === undefined ? {} : { resume: session.resume }),
 	...Option.match(session.tools, { onNone: () => ({}), onSome: served }),
 });

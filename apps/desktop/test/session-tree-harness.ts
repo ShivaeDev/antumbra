@@ -1,5 +1,9 @@
 import { dirname, join } from "node:path";
-import { openSessionMapping } from "@antumbra/backend-claude";
+import {
+	type Delivery,
+	laneEvents,
+	openSessionLanes,
+} from "@antumbra/backend-claude";
 import {
 	AgentDomain,
 	AgentDomainLive,
@@ -13,7 +17,6 @@ import {
 import type { AgentBackend, Runner, SessionHandle } from "@antumbra/plugin-api";
 import { NodeServices } from "@effect/platform-node";
 import { Effect, Layer, Option, Schedule, Stream } from "effect";
-import { rehearsalFrames } from "#test/session-tree-frames.ts";
 
 export const acquireTemporaryPersistence = Effect.acquireRelease(
 	Effect.sync(temporaryPersistence),
@@ -26,16 +29,18 @@ export const eventually = <A, E, R>(check: Effect.Effect<A, E, R>) =>
 		Effect.retry(Schedule.spaced(10).pipe(Schedule.upTo({ duration: 2000 }))),
 	);
 
-// why: the real claude mapping over a scripted frame script — the backend the
+// why: the real claude lanes over a scripted delivery script — the backend the
 // app registers, minus the process. What the domain receives is exactly what a
-// live session would produce, so the record this builds is the record it builds
-// in production, at zero model tokens.
-const scriptedClaude: AgentBackend = {
+// live session would produce on either lane, so the record this builds is the
+// record it builds in production, at zero model tokens.
+const scriptedClaude = (script: ReadonlyArray<Delivery>): AgentBackend => ({
 	capabilities: { fork: false, liveInterrupt: true, multiClient: false },
 	openSession: () =>
 		Effect.sync(() => {
-			const mapping = openSessionMapping();
-			const events = rehearsalFrames.flatMap((frame) => [...mapping(frame)]);
+			const lanes = openSessionLanes();
+			const events = script.flatMap((delivery) => [
+				...laneEvents(lanes, delivery),
+			]);
 			return {
 				events: Stream.fromArray(events),
 				interrupt: Effect.void,
@@ -45,7 +50,7 @@ const scriptedClaude: AgentBackend = {
 			} satisfies SessionHandle;
 		}),
 	tag: "claude",
-};
+});
 
 const runner: Runner = {
 	capabilities: { liveTerminal: false },
@@ -64,9 +69,13 @@ const runner: Runner = {
 	tag: "local",
 };
 
-const domainLayer = (temporary: TemporaryPersistence) =>
-	AgentDomainLive(
-		new Map([[scriptedClaude.tag, scriptedClaude]]),
+const domainLayer = (
+	temporary: TemporaryPersistence,
+	script: ReadonlyArray<Delivery>,
+) => {
+	const backend = scriptedClaude(script);
+	return AgentDomainLive(
+		new Map([[backend.tag, backend]]),
 		new Map([[runner.tag, runner]]),
 		new Map(),
 		join(dirname(temporary.database), "artifacts"),
@@ -74,8 +83,12 @@ const domainLayer = (temporary: TemporaryPersistence) =>
 		Layer.provide(NodeServices.layer),
 		Layer.provideMerge(temporary.layer),
 	);
+};
 
-export const rehearsalLayer = (temporary: TemporaryPersistence) =>
+export const rehearsalLayer = (
+	temporary: TemporaryPersistence,
+	script: ReadonlyArray<Delivery>,
+) =>
 	SightSourceLive.pipe(
 		Layer.provideMerge(
 			Layer.unwrap(
@@ -85,5 +98,5 @@ export const rehearsalLayer = (temporary: TemporaryPersistence) =>
 				}),
 			),
 		),
-		Layer.provideMerge(domainLayer(temporary)),
+		Layer.provideMerge(domainLayer(temporary, script)),
 	);

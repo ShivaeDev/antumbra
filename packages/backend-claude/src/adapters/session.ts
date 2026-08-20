@@ -6,6 +6,11 @@ import {
 import type { BackendFailure, DirectTool } from "@antumbra/plugin-api";
 import { type Context, type Effect, Option } from "effect";
 import { InputQueue } from "#adapters/input-queue.ts";
+import {
+	openSessionDeliveries,
+	type RawEventListener,
+} from "#adapters/session-delivery.ts";
+import { mirroringSessionStore } from "#adapters/session-store.ts";
 import { makeToolServer } from "#adapters/tool-server.ts";
 import { sessionOptions, type ToolAccess } from "#session-options.ts";
 
@@ -19,11 +24,6 @@ interface RawSessionOptions {
 	// with, so a handler logs through the app's logger rather than a bare one.
 	readonly services: Context.Context<never>;
 	readonly tools: ReadonlyArray<DirectTool>;
-}
-
-interface RawEventListener {
-	readonly end: () => void;
-	readonly event: (message: SDKMessage) => void;
 }
 
 export interface RawSession {
@@ -72,48 +72,33 @@ const toolAccess = (options: RawSessionOptions): Option.Option<ToolAccess> =>
 			});
 
 export const openRawSession = (options: RawSessionOptions): RawSession => {
-	// why: events reach consumers by push, never by awaiting the SDK iterator —
-	// a consumer waiting on the SDK's own promise cannot be shut down while the
-	// model is idle, which deadlocked session teardown. Ending is a signal;
-	// close() fires it immediately regardless of what the subprocess is doing.
-	const pendingEvents: SDKMessage[] = [];
-	let listener: RawEventListener | null = null;
-	let ended = false;
-	const deliver = (message: SDKMessage): void => {
-		if (listener === null) {
-			pendingEvents.push(message);
-			return;
-		}
-		listener.event(message);
-	};
-	const finish = (): void => {
-		if (ended) {
-			return;
-		}
-		ended = true;
-		listener?.end();
-	};
-
+	const deliveries = openSessionDeliveries();
 	// why: the SDK never says back what it was told, so the message the queue
 	// hands over is delivered as an event itself — one stream, one order, and
 	// the session's own words sit where the provider took them.
-	const input = new InputQueue(deliver);
+	const input = new InputQueue(deliveries.frame);
 	const live = query({
 		options: sessionOptions({
 			cwd: options.cwd,
 			executable: options.executable,
 			resume: options.resume,
+			store: mirroringSessionStore((write) =>
+				deliveries.deliver({ kind: "mirror", write }),
+			),
 			tools: toolAccess(options),
 		}),
 		prompt: input.stream(),
 	});
-	void consumeSdkMessages(live, input, deliver).finally(finish);
+	void consumeSdkMessages(live, input, deliveries.frame)
+		.then(() => deliveries.repair(options.cwd))
+		.finally(deliveries.finish);
 
 	return {
 		close: () => {
+			deliveries.stop();
 			input.close();
 			live.close();
-			finish();
+			deliveries.finish();
 		},
 		interrupt: async () => {
 			await live.interrupt();
@@ -122,14 +107,6 @@ export const openRawSession = (options: RawSessionOptions): RawSession => {
 		// why: "now" is the SDK's mid-turn injection lane — the steer verb of
 		// ruling-level precedence; queue is the turn-boundary default.
 		steer: (text) => input.push(userMessage(text, "now")),
-		subscribe: (next) => {
-			listener = next;
-			for (const message of pendingEvents.splice(0)) {
-				next.event(message);
-			}
-			if (ended) {
-				next.end();
-			}
-		},
+		subscribe: deliveries.subscribe,
 	};
 };

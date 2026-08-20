@@ -53,6 +53,31 @@ export const makeSessionTreeRows = Effect.gen(function* () {
 		db.AgentSession.where({ id: sessionId })
 			.update({ outcome, status: "closed" })
 			.pipe(Effect.asVoid);
+	// why: a lane that learns a node's name after its first words have to be
+	// journaled opens the node unnamed rather than holding its transcript. The
+	// name may still arrive, and filling a hole is not renaming: a label already
+	// written is what the record said this node was, and it stands.
+	const nameNode = (sessionId: string, label: string) =>
+		provide(
+			writer.write(
+				Effect.gen(function* () {
+					const row = yield* db.AgentSession.where({ id: sessionId }).first();
+					if (Option.isNone(row) || row.value.label !== null) {
+						return;
+					}
+					yield* db.AgentSession.where({ id: sessionId }).update({ label });
+				}),
+			),
+		).pipe(
+			Effect.asVoid,
+			Effect.catchCause((cause) =>
+				Effect.logError(
+					"a subsession label could not be filled in",
+					{ sessionId },
+					cause,
+				),
+			),
+		);
 	// why: written outside the journal's transaction on purpose — the fact being
 	// recorded is that the journal's own write failed, so it cannot travel on it.
 	const markIncomplete = (sessionId: string) =>
@@ -85,5 +110,5 @@ export const makeSessionTreeRows = Effect.gen(function* () {
 				).pipe(Effect.as(Option.none<StoredAgentSession>())),
 			),
 		);
-	return { closeNode, markIncomplete, openNode, rootRow };
+	return { closeNode, markIncomplete, nameNode, openNode, rootRow };
 });

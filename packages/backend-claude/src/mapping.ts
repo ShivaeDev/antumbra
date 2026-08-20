@@ -5,21 +5,16 @@ import type {
 	RawPayload,
 } from "@antumbra/vocabulary/session-events";
 import { blockEvent, contentBlocks } from "#blocks.ts";
+import { claudeRaw } from "#raw-payload.ts";
 import { spilledPreview } from "#spills.ts";
 import { openSubsessions } from "#subsessions.ts";
-
-const SOURCE = "claude";
 
 const rawOf = (message: SDKMessage): RawPayload => {
 	const subtype =
 		"subtype" in message && typeof message.subtype === "string"
 			? `/${message.subtype}`
 			: "";
-	return {
-		kind: `${message.type}${subtype}`,
-		payload: JSON.stringify(message),
-		source: SOURCE,
-	};
+	return claudeRaw(`${message.type}${subtype}`, message);
 };
 
 type ResultMessage = Extract<SDKMessage, { type: "result" }>;
@@ -90,7 +85,10 @@ const contentEvents = (
 	return events.length === 0 ? [{ raw, type: "raw" }] : events;
 };
 
-export type SessionMapping = (message: SDKMessage) => ReadonlyArray<AgentEvent>;
+export interface SessionMapping {
+	readonly frame: (message: SDKMessage) => ReadonlyArray<AgentEvent>;
+	readonly spawnerOf: (subsessionRef: string) => string | undefined;
+}
 
 // why: the domain's vocabulary is the contract; anything the SDK says that
 // has no neutral shape still lands in the log as raw, never dropped. A mapping
@@ -98,12 +96,20 @@ export type SessionMapping = (message: SDKMessage) => ReadonlyArray<AgentEvent>;
 // else here is decided by the frame in hand.
 export const openSessionMapping = (): SessionMapping => {
 	const subsessions = openSubsessions();
-	return (message) => {
+	const frame = (message: SDKMessage): ReadonlyArray<AgentEvent> => {
 		const raw = rawOf(message);
 		if (message.type === "system" && message.subtype === "init") {
 			return [{ nativeRef: message.session_id, raw, type: "session.opened" }];
 		}
-		if (message.type === "system" && message.subtype === "thinking_tokens") {
+		// why: progress is telemetry, and a record that kept every tick of it
+		// would drown the frames that say what happened. Estimates and running
+		// totals are dropped; what a progress frame names about the identity of
+		// the work is read elsewhere, before the frame reaches here.
+		if (
+			message.type === "system" &&
+			(message.subtype === "thinking_tokens" ||
+				message.subtype === "task_progress")
+		) {
 			return [];
 		}
 		if (message.type === "result") {
@@ -115,4 +121,5 @@ export const openSessionMapping = (): SessionMapping => {
 		}
 		return lifecycle.length === 0 ? [{ raw, type: "raw" }] : lifecycle;
 	};
+	return { frame, spawnerOf: subsessions.spawnerOf };
 };

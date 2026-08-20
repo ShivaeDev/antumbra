@@ -114,11 +114,11 @@ const agentReport: SDKUserMessage = {
 describe("claude frames map onto the neutral vocabulary", () => {
 	it("attributes a frame to the tool call that spawned it, or to no one", () => {
 		const mapping = openSessionMapping();
-		expect(mapping(toolResult(null))).toMatchObject([
+		expect(mapping.frame(toolResult(null))).toMatchObject([
 			{ ok: true, toolId: "toolu_09", type: "tool.completed" },
 		]);
-		expect(mapping(toolResult(null))[0]).not.toHaveProperty("origin");
-		expect(mapping(toolResult(AGENT_CALL))).toMatchObject([
+		expect(mapping.frame(toolResult(null))[0]).not.toHaveProperty("origin");
+		expect(mapping.frame(toolResult(AGENT_CALL))).toMatchObject([
 			{ origin: { spawnedBy: AGENT_CALL }, type: "tool.completed" },
 		]);
 	});
@@ -127,7 +127,7 @@ describe("claude frames map onto the neutral vocabulary", () => {
 	// pinned SDK message types, so the fixture carries it the way the binary does.
 	it("names the spawning node too when the spawner is itself a subsession", () => {
 		const nested = { ...toolResult(AGENT_CALL), parent_agent_id: SUBSESSION };
-		const [event] = openSessionMapping()(nested);
+		const [event] = openSessionMapping().frame(nested);
 		expect(event).toMatchObject({
 			origin: { parentNode: SUBSESSION, spawnedBy: AGENT_CALL },
 			type: "tool.completed",
@@ -136,7 +136,7 @@ describe("claude frames map onto the neutral vocabulary", () => {
 
 	it("opens a subsession for a delegated agent, never for a shell command", () => {
 		const mapping = openSessionMapping();
-		expect(mapping(started)).toEqual([
+		expect(mapping.frame(started)).toEqual([
 			{
 				charter:
 					"Read the domain session cluster and report what each file means",
@@ -152,7 +152,7 @@ describe("claude frames map onto the neutral vocabulary", () => {
 				type: "subsession.opened",
 			},
 		]);
-		expect(mapping(bashStarted)).toMatchObject([
+		expect(mapping.frame(bashStarted)).toMatchObject([
 			{ raw: { kind: "system/task_started" }, type: "raw" },
 		]);
 	});
@@ -160,7 +160,7 @@ describe("claude frames map onto the neutral vocabulary", () => {
 	// why: work spawned by a workflow arrives with no description, no subagent
 	// type, and no prompt. The opening still stands; it simply says less.
 	it("says only what the frame said when the provider named nothing", () => {
-		const [event] = openSessionMapping()(workflowStarted);
+		const [event] = openSessionMapping().frame(workflowStarted);
 		expect(event).toEqual({
 			raw: {
 				kind: "system/task_started",
@@ -175,8 +175,8 @@ describe("claude frames map onto the neutral vocabulary", () => {
 
 	it("ends the subsession when its task is patched terminal", () => {
 		const mapping = openSessionMapping();
-		mapping(started);
-		expect(mapping(updated(SUBSESSION))).toMatchObject([
+		mapping.frame(started);
+		expect(mapping.frame(updated(SUBSESSION))).toMatchObject([
 			{
 				outcome: "completed",
 				subsessionRef: SUBSESSION,
@@ -187,11 +187,11 @@ describe("claude frames map onto the neutral vocabulary", () => {
 
 	it("keeps a running task open and never reads a patch as an ending", () => {
 		const mapping = openSessionMapping();
-		mapping(started);
-		expect(mapping(updated(SUBSESSION, "running"))).toMatchObject([
+		mapping.frame(started);
+		expect(mapping.frame(updated(SUBSESSION, "running"))).toMatchObject([
 			{ raw: { kind: "system/task_updated" }, type: "raw" },
 		]);
-		expect(mapping(updated(SUBSESSION))).toMatchObject([
+		expect(mapping.frame(updated(SUBSESSION))).toMatchObject([
 			{ outcome: "completed", type: "subsession.ended" },
 		]);
 	});
@@ -201,8 +201,8 @@ describe("claude frames map onto the neutral vocabulary", () => {
 	// provider's own word stays readable in raw either way.
 	it("reads a task killed by force as an interrupted subsession", () => {
 		const mapping = openSessionMapping();
-		mapping(started);
-		const [event] = mapping(updated(SUBSESSION, "killed"));
+		mapping.frame(started);
+		const [event] = mapping.frame(updated(SUBSESSION, "killed"));
 		expect(event).toMatchObject({
 			outcome: "interrupted",
 			subsessionRef: SUBSESSION,
@@ -215,15 +215,15 @@ describe("claude frames map onto the neutral vocabulary", () => {
 
 	it("leaves a shell command's completion raw, and never ends a node twice", () => {
 		const mapping = openSessionMapping();
-		mapping(started);
-		mapping(bashStarted);
-		expect(mapping(updated("b7eseofo8"))).toMatchObject([
+		mapping.frame(started);
+		mapping.frame(bashStarted);
+		expect(mapping.frame(updated("b7eseofo8"))).toMatchObject([
 			{ raw: { kind: "system/task_updated" }, type: "raw" },
 		]);
-		expect(mapping(updated(SUBSESSION))).toMatchObject([
+		expect(mapping.frame(updated(SUBSESSION))).toMatchObject([
 			{ type: "subsession.ended" },
 		]);
-		expect(mapping(notified)).toMatchObject([
+		expect(mapping.frame(notified)).toMatchObject([
 			{ raw: { kind: "system/task_notification" }, type: "raw" },
 		]);
 	});
@@ -232,8 +232,8 @@ describe("claude frames map onto the neutral vocabulary", () => {
 	// first terminal frame is the one place the summary and usage reach the event.
 	it("closes on the notification when no patch preceded it", () => {
 		const mapping = openSessionMapping();
-		mapping(started);
-		expect(mapping(notified)).toMatchObject([
+		mapping.frame(started);
+		expect(mapping.frame(notified)).toMatchObject([
 			{
 				durationMs: 288529,
 				outcome: "completed",
@@ -247,8 +247,8 @@ describe("claude frames map onto the neutral vocabulary", () => {
 
 	it("reads the Agent tool's own result for the run's totals", () => {
 		const mapping = openSessionMapping();
-		mapping(started);
-		expect(mapping(agentReport)).toMatchObject([
+		mapping.frame(started);
+		expect(mapping.frame(agentReport)).toMatchObject([
 			{ ok: true, toolId: AGENT_CALL, type: "tool.completed" },
 			{
 				durationMs: 288529,

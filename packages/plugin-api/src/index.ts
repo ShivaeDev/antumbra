@@ -6,7 +6,6 @@ export type {
 } from "@antumbra/vocabulary/change";
 export {
 	type AgentBackend,
-	type BackendCapabilities,
 	BackendFailure,
 	type OpenSessionOptions,
 	type SessionHandle,
@@ -25,14 +24,8 @@ export {
 } from "#change-host.ts";
 export {
 	type AntumbraPlugin,
-	DuplicateBackendTag,
-	DuplicateChangeHostTag,
-	DuplicateRunnerTag,
 	makePluginHost,
 	type PluginContext,
-	type PluginHost,
-	type SecretsApi,
-	type SettingsApi,
 } from "#context.ts";
 export {
 	type BerthPlan,
@@ -44,7 +37,6 @@ export {
 	type RepoRequest,
 	type Runner,
 	RunnerAuthRequired,
-	type RunnerCapabilities,
 	type RunnerError,
 	RunnerFailure,
 	RunnerProvisionConflict,

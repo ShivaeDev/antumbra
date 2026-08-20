@@ -9,7 +9,7 @@ export interface ToolAccess {
 	readonly server: McpServer;
 }
 
-export interface SessionShape {
+interface SessionShape {
 	readonly cwd: string;
 	readonly executable: string;
 	readonly resume: string | undefined;

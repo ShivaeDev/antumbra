@@ -62,7 +62,7 @@ const throughGh =
 		);
 
 export const makeGitHubHost = (
-	options: GitHubHostOptions = { executable: GH_EXECUTABLE },
+	options: GitHubHostOptions,
 ): Effect.Effect<ChangeHost> =>
 	Effect.gen(function* () {
 		const cached = yield* makeCachedCapability(options.executable);

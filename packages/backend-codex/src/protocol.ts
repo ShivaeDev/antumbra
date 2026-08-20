@@ -11,7 +11,7 @@ export const PINNED_CLI_VERSION = "0.148.0-alpha.9";
 
 export const InitializeResponse = Schema.Struct({ userAgent: Schema.String });
 
-export const ThreadRef = Schema.Struct({ id: Schema.String });
+const ThreadRef = Schema.Struct({ id: Schema.String });
 
 export const ThreadResponse = Schema.Struct({ thread: ThreadRef });
 

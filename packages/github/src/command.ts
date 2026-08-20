@@ -3,7 +3,7 @@ import { ChildProcess, ChildProcessSpawner } from "effect/unstable/process";
 import { type GhError, type GhOperation, GhUnavailable } from "#errors.ts";
 import { acceptProcessOutput, decodeProcessOutput } from "#result.ts";
 
-export interface GhCommand {
+interface GhCommand {
 	readonly args: ReadonlyArray<string>;
 	readonly cwd?: string | undefined;
 	// why: the binary is named by the caller rather than found here, so a test

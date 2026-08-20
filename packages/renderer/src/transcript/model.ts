@@ -17,12 +17,12 @@ export interface TranscriptTool {
 	readonly result: string | undefined;
 	readonly seq: number;
 }
-export interface TranscriptTelemetry {
+interface TranscriptTelemetry {
 	readonly kind: "telemetry";
 	readonly label: string;
 	readonly seq: number;
 }
-export interface TranscriptRaw {
+interface TranscriptRaw {
 	readonly kind: "raw";
 	readonly label: string;
 	readonly payload: string;

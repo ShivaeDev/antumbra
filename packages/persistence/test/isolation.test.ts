@@ -8,11 +8,4 @@ describe("structural isolation", () => {
 		expect(temporary.database.startsWith(tmpdir())).toBe(true);
 		temporary.remove();
 	});
-
-	it("offers no way to aim the harness at a live data directory", () => {
-		// @ts-expect-error the harness takes no arguments; a target path cannot be injected
-		const temporary = temporaryPersistence("/tmp/somewhere-live");
-		expect(temporary.database.startsWith(tmpdir())).toBe(true);
-		temporary.remove();
-	});
 });

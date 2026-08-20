@@ -21,7 +21,7 @@ import {
 	repoNamed,
 } from "#change-submissions/repository.ts";
 
-export interface PreparedSubmission {
+interface PreparedSubmission {
 	readonly hostTag: string;
 	readonly repo: ChangeHostRepo;
 	readonly row: ReturnType<typeof preparedChange>;

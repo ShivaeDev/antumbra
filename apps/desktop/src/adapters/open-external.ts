@@ -24,7 +24,7 @@ export const browsableUrl = (raw: unknown): string | undefined => {
 		: parsed.href;
 };
 
-export type OpenInBrowser = (url: string) => void;
+type OpenInBrowser = (url: string) => void;
 
 export const makeOpenExternalHandler =
 	(authority: MainDocumentAuthority, open: OpenInBrowser) =>

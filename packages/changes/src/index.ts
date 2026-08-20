@@ -6,7 +6,6 @@ export type {
 export {
 	ChangeIdentityCollision,
 	ChangeObservationConflict,
-	PreparedChangeInvalid,
 } from "#change-submissions/errors.ts";
 export { ChangesLive } from "#change-submissions/live.ts";
 export type {
@@ -30,8 +29,5 @@ export { ChangeHeldResourceReadLive } from "#held-resource-read.ts";
 export {
 	changeStatus,
 	changesOfPiece,
-	type OutcomeStatus,
-	unresolvedChangeIds,
 	unresolvedChangesOfPiece,
 } from "#outcome-status.ts";
-export type { ChangeSnapshot } from "#snapshot.ts";

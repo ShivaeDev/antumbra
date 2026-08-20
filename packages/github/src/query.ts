@@ -10,7 +10,7 @@ export interface ObserveSelection {
 	readonly repoAlias: string;
 }
 
-export interface ObservePlan {
+interface ObservePlan {
 	readonly query: string;
 	readonly selections: ReadonlyArray<ObserveSelection>;
 }

@@ -2,10 +2,7 @@ import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 import { Effect } from "effect";
 import { app, BrowserWindow } from "electron";
-import {
-	type MainDocumentAuthority,
-	mainDocumentAuthority,
-} from "#adapters/main-document-authority.ts";
+import { mainDocumentAuthority } from "#adapters/main-document-authority.ts";
 import { selectRendererDocument } from "#adapters/renderer-document.ts";
 
 interface NavigationEvent {
@@ -47,9 +44,7 @@ const confineMainWindow = (contents: BrowserWindow["webContents"]): void =>
 		},
 	});
 
-export const openMainWindow = (
-	authority: MainDocumentAuthority = mainDocumentAuthority,
-) =>
+export const openMainWindow = () =>
 	Effect.gen(function* () {
 		const bundled = pathToFileURL(
 			join(import.meta.dirname, "renderer", "index.html"),
@@ -80,5 +75,5 @@ export const openMainWindow = (
 				new Error("main window did not load its trusted app document"),
 			);
 		}
-		authority.own(window.webContents, document);
+		mainDocumentAuthority.own(window.webContents, document);
 	});

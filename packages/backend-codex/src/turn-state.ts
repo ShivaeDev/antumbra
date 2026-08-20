@@ -13,7 +13,7 @@ export interface OpenTurnState {
 	readonly turn: Option.Option<string>;
 }
 
-export interface ClosedTurnState {
+interface ClosedTurnState {
 	readonly _tag: "closed";
 }
 

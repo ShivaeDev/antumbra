@@ -1,23 +1,8 @@
-export {
-	captureWorktreeChange,
-	type WorktreeChangeEvidence,
-} from "#change-evidence.ts";
-export {
-	GitAuthRequired,
-	GitCommandFailed,
-	type GitError,
-	GitOutputInvalid,
-	GitPushRefused,
-	GitTimedOut,
-	GitUnavailable,
-} from "#errors.ts";
+export { captureWorktreeChange } from "#change-evidence.ts";
+export { GitAuthRequired, type GitError, GitPushRefused } from "#errors.ts";
 export { cloneMirror, refreshMirror } from "#mirrors.ts";
 export { pushBranch } from "#push.ts";
-export {
-	branchExists,
-	inspectWorktreeIdentity,
-	type WorktreeIdentity,
-} from "#worktree-identity.ts";
+export { branchExists, inspectWorktreeIdentity } from "#worktree-identity.ts";
 export {
 	addExistingWorktree,
 	addWorktree,
@@ -26,5 +11,4 @@ export {
 	inspectWorktree,
 	pruneWorktrees,
 	removeWorktree,
-	type WorktreeState,
 } from "#worktrees.ts";

@@ -1,5 +1,1 @@
-export {
-	type ClaudePluginOptions,
-	claudeBackend,
-	claudePlugin,
-} from "#plugin.ts";
+export { claudePlugin } from "#plugin.ts";

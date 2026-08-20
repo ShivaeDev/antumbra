@@ -12,11 +12,7 @@ export {
 	rewirePieceSpec,
 	unparkPieceSpec,
 } from "#captain.ts";
-export {
-	adoptChangeSpec,
-	openChangeSpec,
-	submitChangeSpec,
-} from "#changes.ts";
+export { adoptChangeSpec, openChangeSpec, submitChangeSpec } from "#changes.ts";
 export {
 	landArtifactSpec,
 	landReportSpec,
@@ -24,5 +20,5 @@ export {
 	standDownSpec,
 	supersedeArtifactSpec,
 } from "#crew.ts";
-export { bind, defineTool, type ToolSpec } from "#define.ts";
+export { bind } from "#define.ts";
 export { readReportSpec } from "#reports.ts";

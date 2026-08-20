@@ -2,7 +2,6 @@ export type RpcId = number | string;
 
 export interface RpcError {
 	readonly code: number;
-	readonly data?: unknown;
 	readonly message: string;
 }
 
@@ -43,5 +42,5 @@ export const parseLine = (line: string): Record<string, unknown> | null => {
 
 export const errorOf = (raw: unknown): RpcError =>
 	isRpcError(raw)
-		? { code: raw.code, data: raw.data, message: raw.message }
+		? { code: raw.code, message: raw.message }
 		: { code: -32603, message: String(raw) };

@@ -17,7 +17,7 @@ import {
 	selectMatchedRow,
 } from "#change-submissions/observation-selection.ts";
 
-export interface ReconciledObservation {
+interface ReconciledObservation {
 	readonly changed: boolean;
 	readonly row: ChangeRow;
 }
@@ -109,7 +109,7 @@ export const reconcileObservation = (
 	hostTag: string,
 	observation: ChangeObservation,
 	now: number,
-	attachment: ObservationAttachment = { _tag: "Observed" },
+	attachment: ObservationAttachment,
 ) =>
 	Effect.gen(function* () {
 		const matches = yield* matchObservation(hostTag, observation, attachment);

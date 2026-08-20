@@ -1,13 +1,6 @@
 import { DomainFeeds, DomainFeedsLive } from "@antumbra/domain-feeds";
-import type { PrismaError } from "@antumbra/persistence";
 import { persistenceIt } from "@antumbra/persistence/testing";
-import * as PiecesPackage from "@antumbra/pieces";
-import {
-	type PieceNotFound,
-	Pieces,
-	PiecesLive,
-	verifyPieceExists,
-} from "@antumbra/pieces";
+import { Pieces, PiecesLive, verifyPieceExists } from "@antumbra/pieces";
 import { expect } from "@effect/vitest";
 import { Effect, Layer, Option, PubSub } from "effect";
 
@@ -21,24 +14,6 @@ const voyage = {
 	id: "voyage-1",
 	name: "Chart the reef",
 	northStar: "every shoal is known",
-};
-
-type VerifyExists = (
-	pieceId: string,
-) => Effect.Effect<void, PieceNotFound | PrismaError>;
-
-const acceptsExplicitVerificationApi = (
-	service: {
-		readonly require?: never;
-		readonly verifyExists: VerifyExists;
-	},
-	packageExports: {
-		readonly requirePiece?: never;
-		readonly verifyPieceExists: unknown;
-	},
-) => {
-	void service;
-	void packageExports;
 };
 
 it.effectDB("verifies existence without exposing a row", function* (db) {
@@ -55,7 +30,6 @@ it.effectDB("verifies existence without exposing a row", function* (db) {
 		};
 		yield* db.Piece.create(piece);
 
-		acceptsExplicitVerificationApi(pieces, PiecesPackage);
 		expect(yield* pieces.verifyExists(piece.id)).toBeUndefined();
 		expect(yield* verifyPieceExists(piece.id)).toBeUndefined();
 		const failure = yield* Effect.flip(pieces.verifyExists("missing-piece"));

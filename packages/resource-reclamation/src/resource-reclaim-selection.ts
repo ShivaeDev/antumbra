@@ -15,7 +15,7 @@ export interface ClaimedBerth {
 	readonly strandedAt: Date | null;
 }
 
-export interface ResourceReclaimSelection {
+interface ResourceReclaimSelection {
 	readonly berth: ClaimedBerth;
 	readonly needsClaim: boolean;
 }

@@ -2,7 +2,7 @@ import type { ChangeObservation } from "@antumbra/plugin-api";
 import { rawText } from "#change-projection.ts";
 import type { ChangeRow } from "#change-rows.ts";
 
-export interface ProposedChange {
+interface ProposedChange {
 	readonly body: string;
 	readonly host: string;
 	readonly now: number;

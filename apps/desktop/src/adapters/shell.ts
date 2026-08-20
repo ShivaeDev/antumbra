@@ -1,17 +1,50 @@
 import { mkdirSync } from "node:fs";
-import { join } from "node:path";
-import { Effect } from "effect";
+import { isAbsolute, join } from "node:path";
+import { Config, Effect } from "effect";
 import { app } from "electron";
 import { registerGracefulShutdown } from "#adapters/graceful-shutdown.ts";
 import type { OwnedWindow } from "#adapters/windows/registry.ts";
 
+export const DEV_USER_DATA_VARIABLE = "ANTUMBRA_DEV_USER_DATA";
+
 export const whenReady = Effect.promise(() => app.whenReady());
+
+interface DataDirectoryInput {
+	readonly appData: string;
+	readonly devOverride: string | undefined;
+	readonly isPackaged: boolean;
+}
 
 // why: dev and packaged runs must never share a data directory — a dev
 // session migrating ahead of the installed app would corrupt real state.
+// The override lets several dev instances hold separate state (Electron
+// scopes the single-instance lock per userData path); a packaged build
+// ignores it unconditionally, whatever the environment says. A set but
+// relative value is refused rather than resolved, because a directory that
+// depends on the working directory is the collision this exists to prevent.
+export const selectDataDirectory = (input: DataDirectoryInput): string => {
+	if (input.isPackaged) {
+		return join(input.appData, "Antumbra");
+	}
+	if (input.devOverride === undefined || input.devOverride === "") {
+		return join(input.appData, "Antumbra-Dev");
+	}
+	if (!isAbsolute(input.devOverride)) {
+		throw new Error(`${DEV_USER_DATA_VARIABLE} must be an absolute path`);
+	}
+	return input.devOverride;
+};
+
+const devUserDataOverride = Config.string(DEV_USER_DATA_VARIABLE).pipe(
+	Config.withDefault(""),
+);
+
 export const configureDataDirectory = (): string => {
-	const scope = app.isPackaged ? "Antumbra" : "Antumbra-Dev";
-	const directory = join(app.getPath("appData"), scope);
+	const directory = selectDataDirectory({
+		appData: app.getPath("appData"),
+		devOverride: Effect.runSync(devUserDataOverride),
+		isPackaged: app.isPackaged,
+	});
 	app.setPath("userData", directory);
 	mkdirSync(directory, { recursive: true });
 	return directory;
@@ -59,10 +92,10 @@ interface DesktopApplication {
 	readonly requestSingleInstanceLock: () => boolean;
 }
 
-// why: a second launch is a request for the app the admiral already has, and
-// the app is the console — never whichever detached window happens to sort
-// first, and never a second console beside the one already open.
-const focusOrOpenConsole = (
+// why: a launch handed to the owner and a click on the menu bar are the same
+// request — the app the admiral already has, which is the console. Never
+// whichever detached window sorts first, and never a second console.
+export const focusOrOpenConsole = (
 	registry: ConsoleWindows,
 	openConsole: Effect.Effect<void>,
 ) =>

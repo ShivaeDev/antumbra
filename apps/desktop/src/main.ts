@@ -15,9 +15,11 @@ import {
 	claimDesktopOwnership,
 	desktopApplication,
 	drainBeforeQuit,
+	focusOrOpenConsole,
 	quitWhenAllWindowsClosed,
 	whenReady,
 } from "#adapters/shell.ts";
+import { fleetTray } from "#adapters/tray.ts";
 import { registerTrpcBridge } from "#adapters/trpc-bridge.ts";
 import { registerTrpcSubscriptions } from "#adapters/trpc-subscriptions.ts";
 import { openConsole, rendererDocument } from "#adapters/windows/open.ts";
@@ -26,6 +28,9 @@ import {
 	type WindowShell,
 } from "#adapters/windows/registry.ts";
 import { WindowSourceLive } from "#adapters/windows/source.ts";
+
+const reveal = (shell: WindowShell) =>
+	focusOrOpenConsole(shell.registry, openConsole(shell));
 
 const startOwner = (shell: WindowShell) => {
 	// why: a migration or connect failure leaves no meaningful app to run, so
@@ -50,6 +55,11 @@ const startOwner = (shell: WindowShell) => {
 		yield* quitWhenAllWindowsClosed;
 		yield* ensureInstallMarker;
 		yield* openConsole(shell);
+		// why: the tray watches the fleet long after startup returns, so it runs
+		// as its own root fiber on the runtime. Every fiber the runtime starts is
+		// registered in the runtime's scope, so disposing it during the quit drain
+		// interrupts the feed subscription and destroys the icon with it.
+		yield* Effect.sync(() => runtime.runFork(fleetTray(reveal(shell))));
 		yield* Effect.logInfo("bridge: console open");
 	});
 	return Effect.promise(() => runManagedRuntimeStartup(runtime, main));

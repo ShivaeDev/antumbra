@@ -14,3 +14,5 @@ fields, states, and wire names.
   the Quay, and GitHub's mapping.
 - [Agent identity, resources, and recovery](agent-recovery.md) — durable Agent
   identity, internal execution, Moorage, restart, siesta, and reclamation.
+- [Renderer data layer](renderer-data-layer.md) — how the web UI receives fed
+  snapshots and one-shot answers from the bridge, and how a view adopts them.

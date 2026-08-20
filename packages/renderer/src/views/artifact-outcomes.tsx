@@ -1,6 +1,7 @@
-import type { ArtifactView } from "@antumbra/contract";
+import type { ArtifactMarkdown, ArtifactView } from "@antumbra/contract";
 import { useState } from "react";
 import { readArtifactMarkdown } from "#adapters/trpc-voyages.ts";
+import { type CallState, useCall } from "#hooks/call.ts";
 import {
 	OutcomeChips,
 	type OutcomeDetail,
@@ -9,6 +10,24 @@ import {
 } from "#views/outcome-detail.tsx";
 import { mutedStyle } from "#views/styles.ts";
 
+// why: while the read is in flight the pane is titled by the chip that was
+// clicked; once it lands the Artifact names itself.
+const detailOf = (
+	state: CallState<ArtifactMarkdown>,
+	asked: string,
+): OutcomeDetail | undefined => {
+	if (state._tag === "idle") return undefined;
+	if (state._tag === "pending") return { _tag: "loading", title: asked };
+	if (state._tag === "failed") {
+		return { _tag: "failed", message: state.message, title: asked };
+	}
+	return {
+		_tag: "loaded",
+		markdown: state.value.markdown,
+		title: state.value.title,
+	};
+};
+
 export const ArtifactOutcomes = ({
 	current,
 	history,
@@ -16,21 +35,15 @@ export const ArtifactOutcomes = ({
 	readonly current: ReadonlyArray<ArtifactView>;
 	readonly history: ReadonlyArray<ArtifactView>;
 }) => {
-	const [detail, setDetail] = useState<OutcomeDetail | undefined>(undefined);
+	const [asked, setAsked] = useState("");
+	const read = useCall<ArtifactMarkdown>();
 	const open = (artifact: OutcomeRef): void => {
-		setDetail({ _tag: "loading", title: artifact.title });
-		readArtifactMarkdown(
-			artifact.id,
-			(loaded) =>
-				setDetail({
-					_tag: "loaded",
-					markdown: loaded.markdown,
-					title: loaded.title,
-				}),
-			(message) =>
-				setDetail({ _tag: "failed", message, title: artifact.title }),
+		setAsked(artifact.title);
+		read.run((onDone, onError) =>
+			readArtifactMarkdown(artifact.id, onDone, onError),
 		);
 	};
+	const detail = detailOf(read.state, asked);
 	const loading = detail?._tag === "loading";
 	if (current.length === 0 && history.length === 0) return null;
 	return (
@@ -57,7 +70,7 @@ export const ArtifactOutcomes = ({
 			{detail === undefined ? null : (
 				<OutcomeDetailView
 					detail={detail}
-					onClose={() => setDetail(undefined)}
+					onClose={read.reset}
 					reading="reading Artifact…"
 				/>
 			)}

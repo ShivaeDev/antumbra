@@ -1,6 +1,7 @@
 import type { SessionEvent } from "@antumbra/contract";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { watchSessionEvents } from "#adapters/trpc.ts";
+import { useFeedLog } from "#hooks/feed.ts";
 import { deriveTranscript } from "#transcript/derive.ts";
 import type { TranscriptItem } from "#transcript/model.ts";
 import { ToolEvent } from "#views/tool-event.tsx";
@@ -67,19 +68,12 @@ export const TranscriptView = ({
 }: {
 	readonly sessionId: string;
 }) => {
-	const [events, setEvents] = useState<ReadonlyArray<SessionEvent>>([]);
-	const [feedError, setFeedError] = useState<string | undefined>(undefined);
 	const tailRef = useRef<HTMLDivElement>(null);
-
-	useEffect(() => {
-		setEvents([]);
-		setFeedError(undefined);
-		return watchSessionEvents(
-			{ fromSeq: 0, sessionId },
-			(event) => setEvents((current) => [...current, event]),
-			setFeedError,
-		);
-	}, [sessionId]);
+	const { error: feedError, value: events } = useFeedLog<SessionEvent>(
+		sessionId,
+		(onEvent, onError) =>
+			watchSessionEvents({ fromSeq: 0, sessionId }, onEvent, onError),
+	);
 
 	const count = events.length;
 	useEffect(() => {

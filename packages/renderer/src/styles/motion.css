@@ -1,0 +1,60 @@
+/* Overlay surfaces arrive and leave under their own power rather than through
+   an animation library. Radix holds an element in the tree until its closing
+   animation ends, so naming the keyframes here is all the exit needs. */
+
+@keyframes antumbra-surface-in {
+	from {
+		opacity: 0;
+		transform: scale(0.97);
+	}
+}
+
+@keyframes antumbra-surface-out {
+	to {
+		opacity: 0;
+		transform: scale(0.97);
+	}
+}
+
+@keyframes antumbra-veil-in {
+	from {
+		opacity: 0;
+	}
+}
+
+@keyframes antumbra-veil-out {
+	to {
+		opacity: 0;
+	}
+}
+
+@layer components {
+	[data-slot="tooltip-content"][data-state="delayed-open"],
+	[data-slot="tooltip-content"][data-state="instant-open"],
+	[data-slot="select-content"][data-state="open"],
+	[data-slot="dialog-content"][data-state="open"] {
+		animation: antumbra-surface-in 120ms ease-out;
+	}
+
+	[data-slot="tooltip-content"][data-state="closed"],
+	[data-slot="select-content"][data-state="closed"],
+	[data-slot="dialog-content"][data-state="closed"] {
+		animation: antumbra-surface-out 100ms ease-in;
+	}
+
+	[data-slot="dialog-overlay"][data-state="open"] {
+		animation: antumbra-veil-in 120ms ease-out;
+	}
+
+	[data-slot="dialog-overlay"][data-state="closed"] {
+		animation: antumbra-veil-out 100ms ease-in;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	@layer components {
+		[data-slot] {
+			animation-duration: 1ms;
+		}
+	}
+}

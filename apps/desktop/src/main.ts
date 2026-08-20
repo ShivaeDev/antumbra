@@ -1,7 +1,8 @@
 import { makeAppRouter } from "@antumbra/contract";
 import { drainActiveSessions } from "@antumbra/domain";
 import { ensureInstallMarker } from "@antumbra/persistence";
-import { Effect, Layer, ManagedRuntime } from "effect";
+import { NodeServices } from "@effect/platform-node";
+import { Effect, FileSystem, Layer, ManagedRuntime } from "effect";
 import { AppInfoSourceLive } from "#adapters/app-info.ts";
 import {
 	ownerBoot,
@@ -13,26 +14,45 @@ import { registerOpenExternal } from "#adapters/open-external.ts";
 import { applicationLayers } from "#adapters/runtime.ts";
 import {
 	claimDesktopOwnership,
+	configureDataDirectory,
 	desktopApplication,
 	drainBeforeQuit,
 	focusOrOpenConsole,
 	quitWhenAllWindowsClosed,
 	whenReady,
+	windowLayoutInDataDirectory,
 } from "#adapters/shell.ts";
 import { fleetTray } from "#adapters/tray.ts";
 import { registerTrpcBridge } from "#adapters/trpc-bridge.ts";
 import { registerTrpcSubscriptions } from "#adapters/trpc-subscriptions.ts";
+import {
+	fileLayoutStore,
+	type LayoutStore,
+} from "#adapters/windows/layout-store.ts";
+import { layoutWriter } from "#adapters/windows/layout-writer.ts";
 import { openConsole, rendererDocument } from "#adapters/windows/open.ts";
 import {
 	makeWindowRegistry,
 	type WindowShell,
 } from "#adapters/windows/registry.ts";
+import { restoreWindows } from "#adapters/windows/restore.ts";
 import { WindowSourceLive } from "#adapters/windows/source.ts";
+
+// why: a mode click and a selection are the same gesture repeated, so the
+// saves they cause are collapsed rather than written one for one.
+const LAYOUT_PATIENCE_MILLIS = 400;
 
 const reveal = (shell: WindowShell) =>
 	focusOrOpenConsole(shell.registry, openConsole(shell));
 
-const startOwner = (shell: WindowShell) => {
+const layoutStore = Effect.provide(
+	Effect.map(FileSystem.FileSystem, (fs) =>
+		fileLayoutStore(fs, windowLayoutInDataDirectory(configureDataDirectory())),
+	),
+	NodeServices.layer,
+);
+
+const startOwner = (shell: WindowShell, store: LayoutStore) => {
 	// why: a migration or connect failure leaves no meaningful app to run, so
 	// the persistence layer dies instead of threading an error type every
 	// consumer would have to carry.
@@ -54,7 +74,18 @@ const startOwner = (shell: WindowShell) => {
 		});
 		yield* quitWhenAllWindowsClosed;
 		yield* ensureInstallMarker;
-		yield* openConsole(shell);
+		const writer = yield* layoutWriter({
+			patience: LAYOUT_PATIENCE_MILLIS,
+			registry: shell.registry,
+			store,
+		});
+		yield* restoreWindows(shell, store);
+		// why: the roster is armed only once the restore has finished, so the
+		// windows being put back do not write themselves down as they appear.
+		yield* Effect.sync(() => {
+			shell.registry.onChanged(() => runtime.runFork(writer.note));
+			runtime.runFork(writer.run);
+		});
 		// why: the tray watches the fleet long after startup returns, so it runs
 		// as its own root fiber on the runtime. Every fiber the runtime starts is
 		// registered in the runtime's scope, so disposing it during the quit drain
@@ -68,12 +99,13 @@ const startOwner = (shell: WindowShell) => {
 const boot = Effect.gen(function* () {
 	const document = yield* Effect.orDie(rendererDocument);
 	const shell = { document, registry: makeWindowRegistry() };
+	const store = yield* layoutStore;
 	const ownership = claimDesktopOwnership(
 		desktopApplication,
 		shell.registry,
 		openConsole(shell),
 	);
-	return yield* ownerBoot(ownership, () => startOwner(shell));
+	return yield* ownerBoot(ownership, () => startOwner(shell, store));
 });
 
 runBoot(() => Effect.runPromise(boot));

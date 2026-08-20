@@ -5,6 +5,7 @@ import {
 	SessionFabric,
 } from "@antumbra/session-fabric";
 import { Effect, Option } from "effect";
+import { makeRefuseSubsessionAttach } from "#session-attach-roots.ts";
 import { RECOVERY_INSTRUCTION } from "#session-recovery.ts";
 import type { SessionRecoveryContext } from "#session-recovery-context.ts";
 import { SessionRecoveryHeld } from "#session-recovery-error.ts";
@@ -33,6 +34,7 @@ const admitRecoveredSession =
 export const makeSessionRecoveryRuntime = (deps: SessionResumeDeps) =>
 	Effect.gen(function* () {
 		const fabric = yield* SessionFabric;
+		const refuseSubsession = yield* makeRefuseSubsessionAttach;
 		return SessionRecoveryRuntime.of({
 			resume: (permit, context) => {
 				const backend = deps.backends.get(context.backend);
@@ -50,6 +52,7 @@ export const makeSessionRecoveryRuntime = (deps: SessionResumeDeps) =>
 					tools: deps.toolsFor(context),
 				};
 				return Effect.gen(function* () {
+					yield* refuseSubsession(context.identity.sessionId);
 					const sink = yield* deps.sinkFor(context.identity.sessionId);
 					yield* fabric.start(
 						permit,
@@ -62,6 +65,9 @@ export const makeSessionRecoveryRuntime = (deps: SessionResumeDeps) =>
 				}).pipe(
 					Effect.catchTag("SessionAttachmentFailure", (failure) =>
 						Effect.fail(new SessionRecoveryHeld({ detail: failure.detail })),
+					),
+					Effect.catchTag("SubsessionAttachRefused", (refused) =>
+						Effect.fail(new SessionRecoveryHeld({ detail: refused.message })),
 					),
 				);
 			},

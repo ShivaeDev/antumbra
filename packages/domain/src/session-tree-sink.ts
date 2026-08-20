@@ -27,7 +27,11 @@ export const makeSessionTreeSinks = Effect.gen(function* () {
 			// recorded — at depth two the caller is a node, not the root.
 			const routed = (event: AgentEvent) =>
 				Effect.gen(function* () {
-					const node = nodeOf(yield* Ref.get(tree), event);
+					const known = nodeOf(yield* Ref.get(tree), event);
+					// why: a node the record has never been told about is admitted on the
+					// first frame that names it, so what it said lands in its own journal
+					// rather than in the root's or nowhere at all.
+					const node = known ?? (yield* nodes.admitNode(event));
 					if (event.type === "tool.started") {
 						yield* Ref.update(
 							tree,

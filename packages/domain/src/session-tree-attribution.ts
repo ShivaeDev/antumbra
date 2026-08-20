@@ -1,6 +1,11 @@
 import type { AgentEvent, Origin } from "@antumbra/vocabulary/session-events";
 
+// why: `announced` separates a node the record was told about from one it
+// admitted on its own, having heard the node speak before anything named it.
+// The difference decides what a later opening means: a name for a node already
+// announced, or the adoption of one the record minted to keep its words.
 export interface TreeNode {
+	readonly announced: boolean;
 	readonly openedAt: number;
 	readonly sessionId: string;
 	readonly spawnerSessionId: string;
@@ -26,7 +31,7 @@ export const emptySessionTree: SessionTree = {
 	spawned: new Map(),
 };
 
-const originOf = (event: AgentEvent): Origin | undefined =>
+export const originOf = (event: AgentEvent): Origin | undefined =>
 	"origin" in event ? event.origin : undefined;
 
 // why: a frame names the tool call that spawned the node that produced it, and
@@ -50,12 +55,23 @@ export const nodeOf = (
 
 // why: the spawner is whoever made the tool call, which at depth two is the
 // depth-one node and not the root. Nothing in the opening frame says so; the
-// only record is the journal the matching tool.started was written to.
-export const callerOf = (
+// only record is the journal the matching tool.started was written to. A
+// provider that names the parent node instead of the call is answered from the
+// tree, and one that names neither leaves the node on the root that owns the
+// stream — never on nothing.
+export const spawnerOf = (
 	tree: SessionTree,
-	spawnedBy: string,
+	spawn: {
+		readonly parentRef?: string | undefined;
+		readonly spawnedBy: string;
+	},
 	root: string,
-): string => tree.callers.get(spawnedBy) ?? root;
+): string =>
+	tree.callers.get(spawn.spawnedBy) ??
+	(spawn.parentRef === undefined
+		? undefined
+		: tree.nodes.get(spawn.parentRef)?.sessionId) ??
+	root;
 
 export const withCaller =
 	(toolId: string, sessionId: string) =>
@@ -72,6 +88,20 @@ export const withNode =
 		open: new Set(tree.open).add(node.subsessionRef),
 		spawned: new Map(tree.spawned).set(spawnedBy, node),
 	});
+
+// why: adoption moves a node the record admitted for itself under the spawner
+// that finally announced it, and registers the call that did the spawning so
+// the node's siblings and its own children resolve through it afterwards.
+export const withAdopted =
+	(node: TreeNode, spawnedBy: string, spawnerSessionId: string) =>
+	(tree: SessionTree): SessionTree => {
+		const adopted: TreeNode = { ...node, announced: true, spawnerSessionId };
+		return {
+			...tree,
+			nodes: new Map(tree.nodes).set(adopted.subsessionRef, adopted),
+			spawned: new Map(tree.spawned).set(spawnedBy, adopted),
+		};
+	};
 
 export const withClosed =
 	(subsessionRef: string) =>

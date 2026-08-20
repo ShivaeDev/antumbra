@@ -8,7 +8,7 @@ import type { TreeNode } from "#session-tree-attribution.ts";
 // otherwise would put words in the provider's mouth. The envelope names
 // Antumbra as the source and carries what was actually seen, so a reader can
 // still tell which observation the hole came from.
-const observed = (kind: string, seen: unknown): RawPayload => ({
+export const observed = (kind: string, seen: unknown): RawPayload => ({
 	kind,
 	payload: JSON.stringify(seen),
 	source: "antumbra",
@@ -23,6 +23,24 @@ export const appendFailedGap = (
 	detail: `a ${lost.type} event could not be appended`,
 	gapKind: "append-failed",
 	raw: observed("journal/append-failed", { lost, sessionId }),
+	type: "subsession.gap",
+});
+
+// why: a node the record admitted from its own frames was already talking
+// before anything announced it, so its journal opens earlier than the row that
+// names it. Saying so is the difference between a reader dating the work to the
+// announcement and reading it for what it was.
+export const adoptedLateGap = (
+	node: TreeNode,
+	announcedAt: number,
+): AgentEvent => ({
+	detail: `this node was admitted from its own frames ${announcedAt - node.openedAt}ms before anything announced it`,
+	gapKind: "adopted-late",
+	raw: observed("session/adopted-late", {
+		admittedAt: node.openedAt,
+		announcedAt,
+		subsessionRef: node.subsessionRef,
+	}),
 	type: "subsession.gap",
 });
 

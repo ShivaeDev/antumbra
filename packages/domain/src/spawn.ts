@@ -1,15 +1,15 @@
 import { defineIntent, IntentExecution } from "@antumbra/kernel";
-import type { PrismaError } from "@antumbra/persistence";
 import type { AgentBackend, MooragePlan, Runner } from "@antumbra/plugin-api";
 import { UnknownRunnerError } from "@antumbra/plugin-api";
 import { ResourceReconciler } from "@antumbra/resource-reclamation";
-import type { EventSink, SessionAttachment } from "@antumbra/session-fabric";
+import type { SessionAttachment } from "@antumbra/session-fabric";
 import { Cause, Effect } from "effect";
 import { makeCaptainToolCompiler } from "#captain-tools.ts";
 import { charterDelivery } from "#charter.ts";
 import { makeCrewToolCompiler } from "#crew-tools.ts";
 import { UnknownBackendTag } from "#errors.ts";
 import { makePrepareMoorage } from "#moorage-plan.ts";
+import type { SinkFor } from "#session-tree-sink.ts";
 import { makeIsActivatedBirth } from "#spawn-activated.ts";
 import { makeIsSpawnCancelling } from "#spawn-cancellation.ts";
 import { type SpawnFields, SpawnPayload } from "#spawn-fields.ts";
@@ -24,9 +24,7 @@ export type { SpawnFields } from "#spawn-fields.ts";
 interface SpawnRuntime {
 	readonly backends: ReadonlyMap<string, AgentBackend>;
 	readonly runners: ReadonlyMap<string, Runner>;
-	readonly sinkFor: (
-		sessionId: string,
-	) => Effect.Effect<EventSink, PrismaError>;
+	readonly sinkFor: SinkFor;
 }
 
 export const spawnKind = (runtime: SpawnRuntime) =>
@@ -129,7 +127,7 @@ export const spawnKind = (runtime: SpawnRuntime) =>
 					backend,
 					plan,
 					toolsFor(payload),
-					runtime.sinkFor(payload.sessionId),
+					runtime.sinkFor(payload.sessionId, backend.audit),
 					(attachment) => admitSpawnSession(payload, attachment),
 					settleUnlessTeardown(payload),
 				);

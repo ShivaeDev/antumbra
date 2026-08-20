@@ -54,12 +54,8 @@ export const makeSessionTreeLifecycle = Effect.gen(function* () {
 				const adopted = yield* adopting.adopt(known, opened);
 				return yield* journaling.settle(known, opened, adopted);
 			});
-		const openNode = (opened: SubsessionOpened) =>
+		const mint = (opened: SubsessionOpened) =>
 			Effect.gen(function* () {
-				const known = (yield* Ref.get(tree)).nodes.get(opened.subsessionRef);
-				if (known !== undefined) {
-					return yield* announce(known, opened);
-				}
 				const root = yield* rows.rootRow(rootSessionId);
 				if (Option.isNone(root)) {
 					return false;
@@ -92,6 +88,24 @@ export const makeSessionTreeLifecycle = Effect.gen(function* () {
 					yield* Ref.update(tree, withNode(node, opened.spawnedBy));
 				}
 				return recorded;
+			});
+		// why: an announcement naming a reference this root already holds is a node
+		// resuming, not a second node. The row is reopened and what the announcement
+		// adds fills its holes; nothing is minted twice.
+		const openNode = (opened: SubsessionOpened) =>
+			Effect.gen(function* () {
+				const known = (yield* Ref.get(tree)).nodes.get(opened.subsessionRef);
+				if (known !== undefined) {
+					return yield* announce(known, opened);
+				}
+				const durable = yield* adopting.reopen(
+					opened.subsessionRef,
+					opened.spawnedBy,
+					opened,
+				);
+				return durable === undefined
+					? yield* mint(opened)
+					: yield* announce(durable, opened);
 			});
 		const closeNode = (ended: SubsessionEnded) =>
 			Effect.gen(function* () {

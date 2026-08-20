@@ -6,6 +6,7 @@ import {
 	type Scope,
 	type Stream,
 } from "effect";
+import type { SessionAudit } from "#session-audit.ts";
 import type { DirectTool } from "#tools.ts";
 
 // why: shaped from the widest backend protocol surveyed and narrowed per
@@ -55,6 +56,12 @@ export interface OpenSessionOptions {
 // why: opening is scoped — releasing the scope is the only way a session
 // process ends, so an abandoned handle can never leak a subprocess.
 export interface AgentBackend {
+	// why: what the provider can still be asked once its stream has stopped
+	// carrying a node — the reading that decides whether the record of that
+	// node is whole. It is a capability of the backend rather than of a live
+	// handle because the questions are about stored work, and the record asks
+	// them again long after the turn that produced it.
+	readonly audit: SessionAudit;
 	readonly capabilities: BackendCapabilities;
 	readonly openSession: (
 		options: OpenSessionOptions,

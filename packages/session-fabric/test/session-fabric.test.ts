@@ -6,6 +6,7 @@ import { makeSessionFabric } from "#fabric.ts";
 import {
 	idleHandle,
 	options,
+	refusingSink,
 	scriptedBackend,
 	sink,
 } from "#test/fabric-fixtures.ts";
@@ -134,7 +135,7 @@ it.live(
 							"agent-fabric",
 							backend,
 							options,
-							{ detached: Effect.void, record: () => Effect.succeed(false) },
+							refusingSink,
 							(attachment) => attachment.openedNativeRef.pipe(Effect.asVoid),
 						),
 					),

@@ -1,6 +1,5 @@
 import type { AgentBackend, DirectTool } from "@antumbra/plugin-api";
 import {
-	type EventSink,
 	type SessionAttachment,
 	SessionFabric,
 } from "@antumbra/session-fabric";
@@ -10,10 +9,11 @@ import { RECOVERY_INSTRUCTION } from "#session-recovery.ts";
 import type { SessionRecoveryContext } from "#session-recovery-context.ts";
 import { SessionRecoveryHeld } from "#session-recovery-error.ts";
 import { SessionRecoveryRuntime } from "#session-recovery-runtime.ts";
+import type { SinkFor } from "#session-tree-sink.ts";
 
 interface SessionResumeDeps {
 	readonly backends: ReadonlyMap<string, AgentBackend>;
-	readonly sinkFor: (sessionId: string) => Effect.Effect<EventSink>;
+	readonly sinkFor: SinkFor;
 	readonly toolsFor: (
 		context: SessionRecoveryContext,
 	) => ReadonlyArray<DirectTool>;
@@ -53,7 +53,10 @@ export const makeSessionRecoveryRuntime = (deps: SessionResumeDeps) =>
 				};
 				return Effect.gen(function* () {
 					yield* refuseSubsession(context.identity.sessionId);
-					const sink = yield* deps.sinkFor(context.identity.sessionId);
+					const sink = yield* deps.sinkFor(
+						context.identity.sessionId,
+						backend.audit,
+					);
 					yield* fabric.start(
 						permit,
 						context.identity.agentId,

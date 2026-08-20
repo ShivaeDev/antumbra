@@ -63,9 +63,12 @@ it.live("a delegated agent becomes a node of the Session tree", () =>
 				return;
 			}
 
+			// why: the node closed and was audited on the way out, and its gap
+			// ledger was empty — which is the only thing that ever says a node's
+			// record is whole. The one still open is still recording.
 			expect(node).toMatchObject({
 				agentId: receipt.agentId,
-				completeness: "recording",
+				completeness: "complete",
 				kind: "Explore",
 				label: "Map the session execution cluster",
 				outcome: "completed",
@@ -77,6 +80,7 @@ it.live("a delegated agent becomes a node of the Session tree", () =>
 			// call, so its parent is that node and never the root that owns the
 			// stream. Nothing in the frame says so; the tool call's journal does.
 			expect(nested).toMatchObject({
+				completeness: "recording",
 				parentSessionId: node.id,
 				rootSessionId: receipt.sessionId,
 				status: "open",

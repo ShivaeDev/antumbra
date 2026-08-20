@@ -37,10 +37,10 @@ const quay = (groups: ReadonlyArray<QuayGroup>): QuayView => ({
 describe("the quay's groups", () => {
 	it("reads top-down as attention deserved", () => {
 		expect(QUAY_GROUPS.map((group) => groupTitle[group])).toEqual([
-			"alongside",
-			"needs attention",
-			"checks running",
-			"draft",
+			"Alongside",
+			"Needs attention",
+			"Checks running",
+			"Draft",
 		]);
 	});
 

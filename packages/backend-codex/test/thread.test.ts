@@ -136,6 +136,29 @@ it.live("queue settles only when its text reaches a provider turn", () =>
 	}),
 );
 
+// why: codex reports the words of a turn as an item of its own, at the moment
+// it took them — nothing on this side may add a second telling of one input.
+it.live("queued words are said once, where codex reports taking them", () =>
+	Effect.gen(function* () {
+		const { events, fake, handle } = yield* openFake();
+		yield* seen(events, 1);
+		yield* handle.queue("sound the reef");
+		expect(yield* Queue.size(events)).toBe(0);
+		fake.notify("item/completed", {
+			item: {
+				content: [{ text: "sound the reef", text_elements: [], type: "text" }],
+				id: "u1",
+				type: "userMessage",
+			},
+			threadId: THREAD,
+			turnId: "turn-1",
+		});
+		expect(yield* seen(events, 1)).toMatchObject([
+			{ role: "user", text: "sound the reef", type: "message" },
+		]);
+	}),
+);
+
 it.live("closing a session fails text held before provider acceptance", () =>
 	Effect.gen(function* () {
 		const scope = yield* Scope.make();

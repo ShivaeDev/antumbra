@@ -3,8 +3,8 @@ import { Effect, Result, Schema } from "effect";
 import { ipcMain, shell } from "electron";
 import type {
 	DocumentIpcEvent,
-	MainDocumentAuthority,
-} from "#adapters/main-document-authority.ts";
+	WindowRegistry,
+} from "#adapters/windows/registry.ts";
 
 const decodeUrl = Schema.decodeUnknownResult(Schema.String);
 
@@ -27,9 +27,9 @@ export const browsableUrl = (raw: unknown): string | undefined => {
 type OpenInBrowser = (url: string) => void;
 
 export const makeOpenExternalHandler =
-	(authority: MainDocumentAuthority, open: OpenInBrowser) =>
+	(registry: WindowRegistry, open: OpenInBrowser) =>
 	(event: DocumentIpcEvent, raw: unknown): void => {
-		if (!authority.authorizes(event)) {
+		if (registry.owner(event) === undefined) {
 			return;
 		}
 		const url = browsableUrl(raw);
@@ -42,9 +42,7 @@ export const makeOpenExternalHandler =
 		open(url);
 	};
 
-export const registerOpenExternal = (
-	authority: MainDocumentAuthority,
-): void => {
+export const registerOpenExternal = (registry: WindowRegistry): void => {
 	const open = (url: string) => {
 		Effect.promise(() => shell.openExternal(url)).pipe(
 			Effect.catchCause((cause) =>
@@ -53,5 +51,5 @@ export const registerOpenExternal = (
 			Effect.runFork,
 		);
 	};
-	ipcMain.on(OPEN_EXTERNAL_CHANNEL, makeOpenExternalHandler(authority, open));
+	ipcMain.on(OPEN_EXTERNAL_CHANNEL, makeOpenExternalHandler(registry, open));
 };

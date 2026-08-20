@@ -4,6 +4,7 @@ import { type FixtureFeeds, staticFeeds } from "#fixtures/feeds.ts";
 import { info } from "#fixtures/fleet.ts";
 import { sightFixture } from "#fixtures/sight-source.ts";
 import { voyageFixture } from "#fixtures/voyage-source.ts";
+import { windowFixture } from "#fixtures/window-source.ts";
 
 export const makeRuntime = (feeds: FixtureFeeds = staticFeeds) =>
 	ManagedRuntime.make(
@@ -11,5 +12,6 @@ export const makeRuntime = (feeds: FixtureFeeds = staticFeeds) =>
 			Layer.succeed(AppInfoSource, { current: Effect.succeed(info) }),
 			sightFixture(feeds),
 			voyageFixture(feeds),
+			windowFixture,
 		),
 	);

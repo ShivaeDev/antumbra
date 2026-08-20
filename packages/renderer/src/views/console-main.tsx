@@ -1,13 +1,12 @@
-import type { Fleet, VoyageSummary } from "@antumbra/contract";
+import type { ConsoleMode, Fleet, VoyageSummary } from "@antumbra/contract";
 import { FleetSurface } from "#views/fleet-surface.tsx";
-import type { Mode } from "#views/mode-nav.tsx";
 import { QuayPanel } from "#views/quay.tsx";
 import { VoyagePanel } from "#views/voyage.tsx";
 import { VoyagesAside } from "#views/voyages-aside.tsx";
 
 interface ConsoleProps {
 	readonly fleet: Fleet | undefined;
-	readonly mode: Mode;
+	readonly mode: ConsoleMode;
 	readonly onError: (message: string) => void;
 	readonly onSession: (sessionId: string | undefined) => void;
 	readonly onVoyage: (voyageId: string) => void;

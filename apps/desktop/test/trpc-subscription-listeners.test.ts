@@ -1,60 +1,8 @@
 import { describe, expect, it } from "@effect/vitest";
 import { Effect } from "effect";
-import { makeMainDocumentAuthority } from "#adapters/main-document-authority.ts";
-import {
-	makeTrpcSubscriptionHandlers,
-	type SubscriptionSender,
-} from "#adapters/trpc-subscription-handlers.ts";
-
-interface Registration {
-	readonly listener: () => void;
-	readonly once: boolean;
-}
-
-interface CountingSender extends SubscriptionSender {
-	readonly destroy: () => void;
-	readonly document: string;
-	readonly listeners: (name: string) => number;
-	readonly navigate: () => void;
-}
-
-// why: the real sender is an EventEmitter that keeps every listener handed to
-// it and warns past ten. A double that holds only the newest one per name can
-// never show a pile-up, which is how listeners accrued here unnoticed.
-const countingSender = (senderId: number): CountingSender => {
-	const url = `file:///app/window-${senderId}.html`;
-	const registered = new Map<string, ReadonlyArray<Registration>>();
-	const add = (name: string, listener: () => void, once: boolean) => {
-		registered.set(name, [...(registered.get(name) ?? []), { listener, once }]);
-	};
-	const fire = (name: string) => {
-		const entries = registered.get(name) ?? [];
-		registered.set(
-			name,
-			entries.filter((entry) => !entry.once),
-		);
-		for (const entry of entries) {
-			entry.listener();
-		}
-	};
-	let destroyed = false;
-	return {
-		destroy: () => {
-			destroyed = true;
-			fire("destroyed");
-		},
-		document: url,
-		getURL: () => url,
-		id: senderId,
-		isDestroyed: () => destroyed,
-		listeners: (name) => (registered.get(name) ?? []).length,
-		mainFrame: { url },
-		navigate: () => fire("did-start-navigation"),
-		on: (name, listener) => add(name, listener, false),
-		once: (name, listener) => add(name, listener, true),
-		send: () => undefined,
-	};
-};
+import { makeTrpcSubscriptionHandlers } from "#adapters/trpc-subscription-handlers.ts";
+import { makeWindowRegistry } from "#adapters/windows/registry.ts";
+import { countingSender, eventFor, ownContents } from "#test/windows.ts";
 
 const request = (id: string) => ({ id, input: {}, path: "fleetFeed" });
 
@@ -65,13 +13,13 @@ describe("trpc subscription listeners", () => {
 		"keeps one listener pair per sender across repeated subscribe cycles",
 		() =>
 			Effect.gen(function* () {
-				const authority = makeMainDocumentAuthority();
-				const sender = countingSender(31);
-				authority.own(sender, sender.document);
-				const event = { sender, senderFrame: sender.mainFrame };
+				const registry = makeWindowRegistry();
+				const sender = countingSender("long-lived", 31);
+				ownContents(registry, sender, "long-lived");
+				const event = eventFor(sender);
 				const handlers = makeTrpcSubscriptionHandlers(
-					authority,
-					(_sender, _request, signal) =>
+					registry,
+					(_sender, _windowId, _request, signal) =>
 						new Promise<void>((resolve) => {
 							signal.addEventListener("abort", () => resolve());
 						}),
@@ -91,14 +39,14 @@ describe("trpc subscription listeners", () => {
 	);
 
 	it("re-subscribes after a navigation without attaching a second pair", () => {
-		const authority = makeMainDocumentAuthority();
-		const sender = countingSender(32);
-		authority.own(sender, sender.document);
-		const event = { sender, senderFrame: sender.mainFrame };
+		const registry = makeWindowRegistry();
+		const sender = countingSender("reloaded", 32);
+		ownContents(registry, sender, "reloaded");
+		const event = eventFor(sender);
 		const signals = new Map<string, AbortSignal>();
 		const handlers = makeTrpcSubscriptionHandlers(
-			authority,
-			(_sender, current, signal) => {
+			registry,
+			(_sender, _windowId, current, signal) => {
 				signals.set(current.id, signal);
 				return new Promise<void>(() => undefined);
 			},
@@ -116,14 +64,14 @@ describe("trpc subscription listeners", () => {
 
 	it.effect("aborts every live subscription when the sender is destroyed", () =>
 		Effect.gen(function* () {
-			const authority = makeMainDocumentAuthority();
-			const sender = countingSender(33);
-			authority.own(sender, sender.document);
-			const event = { sender, senderFrame: sender.mainFrame };
+			const registry = makeWindowRegistry();
+			const sender = countingSender("doomed", 33);
+			ownContents(registry, sender, "doomed");
+			const event = eventFor(sender);
 			const signals = new Map<string, AbortSignal>();
 			const handlers = makeTrpcSubscriptionHandlers(
-				authority,
-				(_sender, current, signal) => {
+				registry,
+				(_sender, _windowId, current, signal) => {
 					signals.set(current.id, signal);
 					return new Promise<void>((resolve) => {
 						signal.addEventListener("abort", () => resolve());

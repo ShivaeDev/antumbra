@@ -1,107 +1,28 @@
 import { describe, expect, it } from "@effect/vitest";
 import { Effect } from "effect";
-import {
-	type DocumentContents,
-	type DocumentFrame,
-	makeMainDocumentAuthority,
-} from "#adapters/main-document-authority.ts";
-import {
-	confineNavigation,
-	type NavigationPolicyHost,
-} from "#adapters/main-window.ts";
 import { makeTrpcBridgeHandler } from "#adapters/trpc-bridge.ts";
+import { makeTrpcSubscriptionHandlers } from "#adapters/trpc-subscription-handlers.ts";
+import { makeWindowRegistry } from "#adapters/windows/registry.ts";
 import {
-	makeTrpcSubscriptionHandlers,
-	type SubscriptionSender,
-} from "#adapters/trpc-subscription-handlers.ts";
-
-interface FakeContents extends DocumentContents {
-	destroyed: boolean;
-	document: string;
-}
-
-const contents = (id: string): FakeContents => {
-	const frame = { url: `file:///app/${id}.html` };
-	return {
-		destroyed: false,
-		document: frame.url,
-		getURL() {
-			return this.document;
-		},
-		isDestroyed() {
-			return this.destroyed;
-		},
-		mainFrame: frame,
-	};
-};
-
-const eventFor = <Sender extends DocumentContents>(
-	sender: Sender,
-	senderFrame: DocumentFrame | null = sender.mainFrame,
-) => ({ sender, senderFrame });
-
-describe("main document authority", () => {
-	it("accepts only the owned live main frame at its exact loaded document", () => {
-		const authority = makeMainDocumentAuthority();
-		const owned = contents("owned");
-		const foreign = contents("foreign");
-		expect(authority.authorizes(eventFor(owned))).toBe(false);
-		authority.own(owned, owned.document);
-
-		expect(authority.authorizes(eventFor(owned))).toBe(true);
-		expect(authority.authorizes(eventFor(foreign))).toBe(false);
-		expect(authority.authorizes(eventFor(owned, { url: owned.document }))).toBe(
-			false,
-		);
-		expect(authority.authorizes(eventFor(owned, null))).toBe(false);
-
-		owned.document = "https://escape.example/";
-		expect(authority.authorizes(eventFor(owned))).toBe(false);
-		owned.document = owned.mainFrame.url;
-		owned.destroyed = true;
-		expect(authority.authorizes(eventFor(owned))).toBe(false);
-	});
-
-	it("denies navigation, redirects, frame navigation, and new windows", () => {
-		const listeners = new Map<
-			string,
-			(event: { preventDefault(): void }) => void
-		>();
-		let openWindow: (() => { readonly action: "deny" }) | undefined;
-		const host: NavigationPolicyHost = {
-			onFrameNavigation: (listener) =>
-				listeners.set("will-frame-navigate", listener),
-			onNavigation: (listener) => listeners.set("will-navigate", listener),
-			onRedirect: (listener) => listeners.set("will-redirect", listener),
-			setWindowOpenHandler: (handler) => {
-				openWindow = handler;
-			},
-		};
-		confineNavigation(host);
-
-		for (const name of [
-			"will-navigate",
-			"will-frame-navigate",
-			"will-redirect",
-		]) {
-			let denied = false;
-			listeners.get(name)?.({ preventDefault: () => (denied = true) });
-			expect(denied, name).toBe(true);
-		}
-		expect(openWindow?.()).toEqual({ action: "deny" });
-	});
-});
+	consolePlace,
+	contents,
+	countingSender,
+	eventFor,
+	ownContents,
+	ownWindow,
+	transcriptPlace,
+} from "#test/windows.ts";
 
 describe("privileged IPC authority", () => {
 	it.effect("refuses invoke before decoding or executing foreign input", () =>
 		Effect.gen(function* () {
-			const authority = makeMainDocumentAuthority();
-			const owned = bridgeContents("owned");
-			const foreign = bridgeContents("foreign");
-			authority.own(owned, owned.document);
-			let executed = false;
-			const handler = makeTrpcBridgeHandler(authority, () => {
-				executed = true;
+			const registry = makeWindowRegistry();
+			ownWindow(registry, "console", consolePlace);
+			const child = ownWindow(registry, "child", transcriptPlace("session-1"));
+			const foreign = contents("foreign");
+			const executed: Array<string> = [];
+			const handler = makeTrpcBridgeHandler(registry, (windowId) => {
+				executed.push(windowId);
 				return Effect.runPromise(Effect.succeed({ data: "called", ok: true }));
 			});
 			let decoded = false;
@@ -114,20 +35,25 @@ describe("privileged IPC authority", () => {
 				ok: false,
 			});
 			expect(decoded).toBe(false);
-			expect(executed).toBe(false);
+			expect(executed).toEqual([]);
+
+			// why: the record that answered for a request is the window that asked,
+			// so a request can never be attributed to a neighbouring window.
+			yield* Effect.promise(() => handler(eventFor(child.contents), {}));
+			expect(executed).toEqual(["child"]);
 		}),
 	);
 
 	it("refuses foreign subscribe and unsubscribe before decode or lookup", () => {
-		const authority = makeMainDocumentAuthority();
-		const owned = subscriptionSender("owned", 17);
-		const foreign = subscriptionSender("foreign", 17);
-		authority.own(owned, owned.document);
+		const registry = makeWindowRegistry();
+		const owned = countingSender("owned", 17);
+		const foreign = countingSender("foreign", 17);
+		ownContents(registry, owned, "owned");
 		let signal: AbortSignal | undefined;
 		let starts = 0;
 		const handlers = makeTrpcSubscriptionHandlers(
-			authority,
-			(_sender, _request, current) => {
+			registry,
+			(_sender, _windowId, _request, current) => {
 				starts += 1;
 				signal = current;
 				return Effect.runPromise(Effect.never);
@@ -155,13 +81,13 @@ describe("privileged IPC authority", () => {
 	});
 
 	it("rejects a duplicate subscription id without replacing its live stream", () => {
-		const authority = makeMainDocumentAuthority();
-		const owned = subscriptionSender("owned", 17);
-		authority.own(owned, owned.document);
+		const registry = makeWindowRegistry();
+		const owned = countingSender("owned", 17);
+		ownContents(registry, owned, "owned");
 		const signals: AbortSignal[] = [];
 		const handlers = makeTrpcSubscriptionHandlers(
-			authority,
-			(_sender, _request, signal) => {
+			registry,
+			(_sender, _windowId, _request, signal) => {
 				signals.push(signal);
 				return Effect.runPromise(Effect.never);
 			},
@@ -179,13 +105,13 @@ describe("privileged IPC authority", () => {
 	});
 
 	it("isolates unsubscribe and clears every stream on navigation or destruction", () => {
-		const authority = makeMainDocumentAuthority();
-		const navigated = subscriptionSender("navigated", 21);
-		authority.own(navigated, navigated.document);
+		const registry = makeWindowRegistry();
+		const navigated = countingSender("navigated", 21);
+		ownContents(registry, navigated, "navigated");
 		const navigationSignals = new Map<string, AbortSignal>();
 		const navigationHandlers = makeTrpcSubscriptionHandlers(
-			authority,
-			(_sender, request, signal) => {
+			registry,
+			(_sender, _windowId, request, signal) => {
 				navigationSignals.set(request.id, signal);
 				return Effect.runPromise(Effect.never);
 			},
@@ -206,12 +132,12 @@ describe("privileged IPC authority", () => {
 		navigated.navigate();
 		expect(navigationSignals.get("bravo")?.aborted).toBe(true);
 
-		const destroyed = subscriptionSender("destroyed", 22);
-		authority.own(destroyed, destroyed.document);
+		const destroyed = countingSender("destroyed", 22);
+		ownContents(registry, destroyed, "destroyed");
 		let destructionSignal: AbortSignal | undefined;
 		const destructionHandlers = makeTrpcSubscriptionHandlers(
-			authority,
-			(_sender, _request, signal) => {
+			registry,
+			(_sender, _windowId, _request, signal) => {
 				destructionSignal = signal;
 				return Effect.runPromise(Effect.never);
 			},
@@ -224,42 +150,4 @@ describe("privileged IPC authority", () => {
 		destroyed.destroy();
 		expect(destructionSignal?.aborted).toBe(true);
 	});
-});
-
-interface FakeSubscriptionSender extends SubscriptionSender, FakeContents {
-	readonly destroy: () => void;
-	readonly navigate: () => void;
-}
-
-const subscriptionSender = (
-	documentId: string,
-	senderId: number,
-): FakeSubscriptionSender => {
-	const base = contents(documentId);
-	let destroyed: (() => void) | undefined;
-	let navigated: (() => void) | undefined;
-	const sender: FakeSubscriptionSender = {
-		...base,
-		destroy: () => {
-			sender.destroyed = true;
-			destroyed?.();
-		},
-		id: senderId,
-		navigate: () => navigated?.(),
-		on: (_name, listener) => {
-			navigated = listener;
-		},
-		once: (_name, listener) => {
-			destroyed = listener;
-		},
-		send: () => undefined,
-	};
-	return sender;
-};
-
-const bridgeContents = (
-	id: string,
-): FakeContents & { readonly id: number } => ({
-	...contents(id),
-	id: id.length,
 });

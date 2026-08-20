@@ -1,25 +1,40 @@
-import { useState } from "react";
+import type { ConsoleMode, ConsolePlace } from "@antumbra/contract";
+import { useEffect, useState } from "react";
 import { watchFleet } from "#adapters/trpc.ts";
 import { watchVoyages } from "#adapters/trpc-voyages.ts";
+import { rememberPlace } from "#adapters/trpc-windows.ts";
 import { useFeed } from "#hooks/feed.ts";
 import { ConsoleMain } from "#views/console-main.tsx";
-import type { Mode } from "#views/mode-nav.tsx";
 import { NavRail } from "#views/nav-rail.tsx";
 import { NoticeBar } from "#views/notice-bar.tsx";
 
-export const App = () => {
+export const ConsoleApp = ({ place }: { readonly place: ConsolePlace }) => {
 	const { error: fleetError, value: fleet } = useFeed("fleet", watchFleet);
 	const { error: voyagesError, value: voyages } = useFeed(
 		"voyages",
 		watchVoyages,
 	);
-	const [mode, setMode] = useState<Mode>("fleet");
-	const [session, setSession] = useState<string | undefined>(undefined);
-	const [voyage, setVoyage] = useState<string | undefined>(undefined);
+	const [mode, setMode] = useState<ConsoleMode>(place.mode);
+	const [session, setSession] = useState(place.sessionId ?? undefined);
+	const [voyage, setVoyage] = useState(place.voyageId ?? undefined);
 	const [notice, setNotice] = useState<string | undefined>(undefined);
 	const feedErrors = [fleetError, voyagesError].flatMap((error) =>
 		error === undefined ? [] : [error],
 	);
+
+	// why: where the console is pointed is main's to keep, so a reload comes
+	// back to it rather than to whatever a first render would have shown.
+	useEffect(() => {
+		rememberPlace(
+			{
+				mode,
+				role: "console",
+				sessionId: session ?? null,
+				voyageId: voyage ?? null,
+			},
+			setNotice,
+		);
+	}, [mode, session, voyage]);
 
 	return (
 		<div className="flex h-screen min-w-0 bg-background text-foreground">

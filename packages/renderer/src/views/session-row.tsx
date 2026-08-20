@@ -1,12 +1,18 @@
 import type { SessionSummary } from "@antumbra/contract";
+import { SquareArrowOutUpRightIcon } from "lucide-react";
 import { interruptSession } from "#adapters/trpc.ts";
+import { openWindow } from "#adapters/trpc-windows.ts";
 import { Badge } from "#components/ui/badge.tsx";
 import { Button } from "#components/ui/button.tsx";
 import { cn } from "#lib/utils.ts";
 
 // why: a session is how the admiral steps in — its row is the whole click
-// target for the transcript, and the interrupt sits outside that target so
-// opening one never risks stopping it.
+// target for the transcript beside the roster, and the acts sit outside that
+// target so opening one never risks stopping it.
+//
+// why: a transcript worth watching is worth watching beside the work, so a
+// session can also be given a window of its own. Main decides whether one is
+// minted; asking twice for the same session brings the first one forward.
 export const SessionRow = ({
 	onError,
 	onSelect,
@@ -39,6 +45,17 @@ export const SessionRow = ({
 				<Badge variant="outline">{session.status}</Badge>
 			)}
 		</button>
+		<Button
+			aria-label="Open in a window"
+			className="text-muted-foreground"
+			onClick={() =>
+				openWindow({ role: "transcript", sessionId: session.id }, onError)
+			}
+			size="icon"
+			variant="ghost"
+		>
+			<SquareArrowOutUpRightIcon />
+		</Button>
 		{session.canInterrupt ? (
 			<Button
 				onClick={() => interruptSession(session.id, onError)}

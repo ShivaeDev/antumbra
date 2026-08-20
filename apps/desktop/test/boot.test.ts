@@ -5,6 +5,13 @@ import {
 	claimDesktopOwnership,
 	runnerRootsInDataDirectory,
 } from "#adapters/shell.ts";
+import { makeWindowRegistry } from "#adapters/windows/registry.ts";
+import {
+	consolePlace,
+	handleFor,
+	ownWindow,
+	transcriptPlace,
+} from "#test/windows.ts";
 
 it("gives every agent a moorage beside the mirrors it is cut from", () => {
 	expect(runnerRootsInDataDirectory("/data")).toEqual({
@@ -46,16 +53,25 @@ describe("desktop process ownership", () => {
 			}),
 	);
 
-	it.effect("routes a second launch to a window in the owning process", () =>
+	// why: the console is the app. A detached window opened earlier must never
+	// stand in for it when a second launch is handed to the owning process.
+	it.effect("routes a second launch to the console in the owning process", () =>
 		Effect.gen(function* () {
 			const calls: Array<string> = [];
+			const registry = makeWindowRegistry();
+			ownWindow(
+				registry,
+				"child",
+				transcriptPlace("session-1"),
+				handleFor(calls, "child"),
+			);
+			ownWindow(
+				registry,
+				"console",
+				consolePlace,
+				handleFor(calls, "console", true),
+			);
 			let secondInstance: (() => void) | undefined;
-			const window = {
-				focus: () => calls.push("focus"),
-				isMinimized: () => true,
-				restore: () => calls.push("restore"),
-				show: () => calls.push("show"),
-			};
 			const claimed = yield* claimDesktopOwnership(
 				{
 					onSecondInstance: (listener) => {
@@ -64,13 +80,39 @@ describe("desktop process ownership", () => {
 					quit: () => calls.push("quit"),
 					requestSingleInstanceLock: () => true,
 				},
-				{ getAllWindows: () => [window] },
+				registry,
+				Effect.sync(() => calls.push("open")),
 			);
 			expect(claimed).toBe(true);
 			expect(secondInstance).toBeDefined();
 			secondInstance?.();
 			yield* Effect.yieldNow;
-			expect(calls).toEqual(["restore", "show", "focus"]);
+			expect(calls).toEqual([
+				"restore console",
+				"show console",
+				"focus console",
+			]);
+		}),
+	);
+
+	it.effect("opens the console when a second launch finds none open", () =>
+		Effect.gen(function* () {
+			const calls: Array<string> = [];
+			let secondInstance: (() => void) | undefined;
+			yield* claimDesktopOwnership(
+				{
+					onSecondInstance: (listener) => {
+						secondInstance = listener;
+					},
+					quit: () => calls.push("quit"),
+					requestSingleInstanceLock: () => true,
+				},
+				makeWindowRegistry(),
+				Effect.sync(() => calls.push("open")),
+			);
+			secondInstance?.();
+			yield* Effect.yieldNow;
+			expect(calls).toEqual(["open"]);
 		}),
 	);
 
@@ -85,7 +127,8 @@ describe("desktop process ownership", () => {
 						quit: () => calls.push("quit"),
 						requestSingleInstanceLock: () => false,
 					},
-					{ getAllWindows: () => [] },
+					makeWindowRegistry(),
+					Effect.void,
 				);
 				expect(claimed).toBe(false);
 				expect(calls).toEqual(["quit"]);

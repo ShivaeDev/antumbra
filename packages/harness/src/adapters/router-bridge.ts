@@ -8,10 +8,10 @@ import type {
 import { callTRPCProcedure, getTRPCErrorFromUnknown } from "@trpc/server";
 import { type Deliver, isAsyncIterable, pump } from "#adapters/feed-pump.ts";
 
-// why: a browser tab has no second process to authorise, so the request
-// origin every procedure reads is a single fixed sender rather than a window
-// id the desktop would have handed out.
-const origin = { senderId: 0 };
+// why: a browser tab has no main process to own a window, so the origin every
+// procedure reads is one fixed name rather than the id main would have minted
+// for a window it opened and verified.
+const origin = { windowId: "harness" };
 
 const invoke = async (
 	router: AppRouter,

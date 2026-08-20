@@ -1,7 +1,8 @@
+import type { ConsoleMode } from "@antumbra/contract";
 import { useAtomValue } from "@effect/atom-react";
 import { AsyncResult, Atom } from "effect/unstable/reactivity";
 import { loadAppInfo } from "#adapters/trpc.ts";
-import { type Mode, ModeNav } from "#views/mode-nav.tsx";
+import { ModeNav } from "#views/mode-nav.tsx";
 
 const appInfoAtom = Atom.make(loadAppInfo);
 
@@ -23,8 +24,8 @@ export const NavRail = ({
 	mode,
 	onMode,
 }: {
-	readonly mode: Mode;
-	readonly onMode: (mode: Mode) => void;
+	readonly mode: ConsoleMode;
+	readonly onMode: (mode: ConsoleMode) => void;
 }) => (
 	<div className="flex w-44 shrink-0 flex-col gap-4 border-r border-border bg-card px-2 py-3">
 		<header className="flex flex-col px-2">

@@ -1,16 +1,14 @@
+import type { ConsoleMode } from "@antumbra/contract";
 import { Anchor, type LucideIcon, Ship, Users } from "lucide-react";
 import { Button } from "#components/ui/button.tsx";
 import { cn } from "#lib/utils.ts";
 
-// why: the window watches three things — the fleet at work, the voyages the
-// work is for, and the quay where finished work waits on a host. They share
-// one window, so the rail says which is on show.
-export type Mode = "fleet" | "quay" | "voyages";
-
+// why: which of the three the console is pointed at belongs to the window, so
+// the rail offers the modes and main remembers the choice.
 interface ModeEntry {
 	readonly icon: LucideIcon;
 	readonly label: string;
-	readonly mode: Mode;
+	readonly mode: ConsoleMode;
 }
 
 const MODES: ReadonlyArray<ModeEntry> = [
@@ -23,8 +21,8 @@ export const ModeNav = ({
 	mode,
 	onMode,
 }: {
-	readonly mode: Mode;
-	readonly onMode: (mode: Mode) => void;
+	readonly mode: ConsoleMode;
+	readonly onMode: (mode: ConsoleMode) => void;
 }) => (
 	<nav className="flex flex-col gap-0.5">
 		{MODES.map((offered) => {

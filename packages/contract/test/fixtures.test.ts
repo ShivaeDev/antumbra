@@ -15,7 +15,9 @@ describe("the shipped fixtures", () => {
 	it.effect("keeps the static feeds at a single snapshot", () =>
 		Effect.gen(function* () {
 			const runtime = makeRuntime(staticFeeds);
-			const caller = makeAppRouter(runtime).createCaller({ senderId: 7 });
+			const caller = makeAppRouter(runtime).createCaller({
+				windowId: "console",
+			});
 			const opened = yield* Effect.promise(() => caller.fleetFeed());
 			const collected = yield* Stream.fromAsyncIterable(
 				opened,
@@ -28,7 +30,7 @@ describe("the shipped fixtures", () => {
 
 	it.effect("scripts the fleet as a snapshot and two later updates", () =>
 		Effect.gen(function* () {
-			const caller = feeds("5 millis").createCaller({ senderId: 7 });
+			const caller = feeds("5 millis").createCaller({ windowId: "console" });
 			const opened = yield* Effect.promise(() => caller.fleetFeed());
 			const collected = yield* Stream.fromAsyncIterable(
 				opened,
@@ -43,7 +45,7 @@ describe("the shipped fixtures", () => {
 		"scripts a voyage that gains a board entry and a launched piece",
 		() =>
 			Effect.gen(function* () {
-				const caller = feeds("5 millis").createCaller({ senderId: 7 });
+				const caller = feeds("5 millis").createCaller({ windowId: "console" });
 				const opened = yield* Effect.promise(() =>
 					caller.voyageFeed({ voyageId: reefView.id }),
 				);

@@ -67,7 +67,7 @@ export const QuayCard = ({ row }: { readonly row: QuayRow }) => (
 		<CardHeader className="grid-cols-[1fr_auto] gap-x-2">
 			<ChangeName row={row} />
 			<Badge
-				className="col-start-2 row-start-1 font-mono"
+				className="col-start-2 row-start-1 max-w-40 truncate font-mono"
 				title={row.change.repoName}
 				variant="outline"
 			>

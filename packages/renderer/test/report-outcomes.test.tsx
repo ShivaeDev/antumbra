@@ -62,7 +62,9 @@ const piece: PieceView = {
 };
 
 it("shows a landed report as an openable chip and nothing else", () => {
-	const html = renderToStaticMarkup(<PieceOutcomes piece={piece} />);
+	const html = renderToStaticMarkup(
+		<PieceOutcomes onError={() => undefined} piece={piece} />,
+	);
 
 	expect(html).toContain("Soundings");
 	expect(html).toContain("<button");
@@ -77,7 +79,7 @@ it.effect("reads and renders a report body on click", () =>
 		const root = createRoot(container);
 		yield* Effect.promise(() =>
 			act(() => {
-				root.render(<PieceOutcomes piece={piece} />);
+				root.render(<PieceOutcomes onError={() => undefined} piece={piece} />);
 				return Promise.resolve();
 			}),
 		);
@@ -121,7 +123,7 @@ it.effect("shows a report read failure in its detail", () =>
 		const root = createRoot(container);
 		yield* Effect.promise(() =>
 			act(() => {
-				root.render(<PieceOutcomes piece={piece} />);
+				root.render(<PieceOutcomes onError={() => undefined} piece={piece} />);
 				return Promise.resolve();
 			}),
 		);

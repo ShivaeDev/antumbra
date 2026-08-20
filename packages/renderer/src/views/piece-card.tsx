@@ -60,7 +60,7 @@ export const PieceCard = ({
 				</p>
 			)}
 			<AtWork piece={piece} />
-			<PieceOutcomes piece={piece} />
+			<PieceOutcomes onError={onError} piece={piece} />
 			<PieceActs onError={onError} piece={piece} pieces={pieces} />
 		</Card>
 	);

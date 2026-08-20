@@ -36,6 +36,10 @@ const { readArtifactMarkdown, readReportMarkdown } = vi.hoisted(() => ({
 	readReportMarkdown: vi.fn(),
 }));
 
+const { openWindow } = vi.hoisted(() => ({ openWindow: vi.fn() }));
+
+vi.mock("#adapters/trpc-windows.ts", () => ({ openWindow }));
+
 vi.mock("#adapters/trpc-voyages.ts", () => ({
 	readArtifactMarkdown,
 	readReportMarkdown,
@@ -80,7 +84,9 @@ const piece: PieceView = {
 };
 
 it("keeps superseded Artifacts behind an explicit History disclosure", () => {
-	const html = renderToStaticMarkup(<PieceOutcomes piece={piece} />);
+	const html = renderToStaticMarkup(
+		<PieceOutcomes onError={() => undefined} piece={piece} />,
+	);
 
 	expect(html).toContain("Current chart");
 	expect(html).toContain("History");
@@ -95,7 +101,7 @@ it.effect("reads and renders current and historical Artifacts on click", () =>
 		const root = createRoot(container);
 		yield* Effect.promise(() =>
 			act(() => {
-				root.render(<PieceOutcomes piece={piece} />);
+				root.render(<PieceOutcomes onError={() => undefined} piece={piece} />);
 				return Promise.resolve();
 			}),
 		);
@@ -146,6 +152,53 @@ it.effect("reads and renders current and historical Artifacts on click", () =>
 	}),
 );
 
+// why: the control names the Artifact on show, so it can never detach a
+// window onto whichever Artifact happened to be read first.
+it.effect("opens the Artifact on show in a window of its own", () =>
+	Effect.gen(function* () {
+		const container = document.createElement("div");
+		const root = createRoot(container);
+		yield* Effect.promise(() =>
+			act(() => {
+				root.render(<PieceOutcomes onError={() => undefined} piece={piece} />);
+				return Promise.resolve();
+			}),
+		);
+		container.querySelector("details")?.setAttribute("open", "");
+		const historical = [...container.querySelectorAll("button")].find(
+			(button) => button.textContent?.includes("Old chart"),
+		);
+		yield* Effect.promise(() =>
+			act(() => {
+				historical?.click();
+				return Promise.resolve();
+			}),
+		);
+
+		const detach = container.querySelector<HTMLButtonElement>(
+			'button[aria-label="Open in a window"]',
+		);
+		expect(detach).not.toBeNull();
+		yield* Effect.promise(() =>
+			act(() => {
+				detach?.click();
+				return Promise.resolve();
+			}),
+		);
+
+		expect(openWindow).toHaveBeenCalledWith(
+			{ artifactId: "artifact-old", role: "artifact" },
+			expect.any(Function),
+		);
+		yield* Effect.promise(() =>
+			act(() => {
+				root.unmount();
+				return Promise.resolve();
+			}),
+		);
+	}),
+);
+
 it.effect("shows an Artifact read failure in its detail", () =>
 	Effect.gen(function* () {
 		readArtifactMarkdown.mockImplementationOnce(
@@ -155,7 +208,7 @@ it.effect("shows an Artifact read failure in its detail", () =>
 		const root = createRoot(container);
 		yield* Effect.promise(() =>
 			act(() => {
-				root.render(<PieceOutcomes piece={piece} />);
+				root.render(<PieceOutcomes onError={() => undefined} piece={piece} />);
 				return Promise.resolve();
 			}),
 		);

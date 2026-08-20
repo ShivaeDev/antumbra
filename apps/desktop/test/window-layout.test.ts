@@ -6,7 +6,7 @@ import {
 	restorePlan,
 	writeLayout,
 } from "#adapters/windows/layout.ts";
-import { transcriptPlace } from "#test/windows.ts";
+import { artifactPlace, transcriptPlace } from "#test/windows.ts";
 
 const voyaging = {
 	mode: "voyages",
@@ -76,6 +76,28 @@ describe("window layout", () => {
 		const plan = restorePlan(readLayout(writeLayout(layout)));
 		expect(plan.children.map((child) => child.id)).toEqual(["a", "c"]);
 		expect(plan.focused).toBe("c");
+	});
+
+	// why: the layout writes down whatever a place is, so a role added to the
+	// union is remembered without the file learning anything about it — and an
+	// Artifact and a session wearing one id stay two windows, not one.
+	it("remembers an artifact window and keeps it apart from a session", () => {
+		const layout = layoutOf(
+			[
+				{ id: "console", place: defaultConsole },
+				{ id: "artifact", place: artifactPlace("subject-1") },
+				{ id: "twin", place: artifactPlace("subject-1") },
+				{ id: "session", place: transcriptPlace("subject-1") },
+			],
+			"artifact",
+		);
+
+		const plan = restorePlan(readLayout(writeLayout(layout)));
+		expect(plan.children.map((child) => child.id)).toEqual([
+			"artifact",
+			"session",
+		]);
+		expect(plan.children[0]?.place).toEqual(artifactPlace("subject-1"));
 	});
 
 	// why: a restart is meant to land where the work was left, so the mode and

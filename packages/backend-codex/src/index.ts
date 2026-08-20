@@ -1,1 +1,1 @@
-export { type CodexPluginOptions, codexBackend, codexPlugin } from "#plugin.ts";
+export { codexPlugin } from "#plugin.ts";

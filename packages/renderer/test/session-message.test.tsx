@@ -18,6 +18,7 @@ const fleetWith = (canSend: boolean, status: string): Fleet => ({
 		{
 			berths: [],
 			charter: "chart the reef",
+			diag: { currentSessionId: "session-1", intents: [] },
 			id: "agent-1",
 			role: "navigator",
 			sessions: [
@@ -26,6 +27,7 @@ const fleetWith = (canSend: boolean, status: string): Fleet => ({
 					canInterrupt: canSend,
 					canSend,
 					cwd: "/tmp/reef",
+					diag: { current: true, execution: "active", intents: [] },
 					id: "session-1",
 					status,
 				},
@@ -34,6 +36,7 @@ const fleetWith = (canSend: boolean, status: string): Fleet => ({
 		},
 	],
 	backends: ["scripted"],
+	diag: { intents: [] },
 	repos: [],
 });
 

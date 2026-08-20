@@ -11,7 +11,7 @@ import type { SessionNotLive } from "#errors.ts";
 import type { RetireFields } from "#retire.ts";
 import type { RecoveryFields } from "#session-recovery.ts";
 import type { SiestaFields } from "#session-siesta.ts";
-import type { SpawnFields } from "#spawn.ts";
+import type { SpawnFields } from "#spawn-fields.ts";
 import type { VoyageProcedures } from "#voyages.ts";
 
 // why: exposed but not installed as a gate — kernel gates are global, so a

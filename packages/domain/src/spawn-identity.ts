@@ -1,5 +1,5 @@
 import { Option } from "effect";
-import type { SpawnFields } from "#spawn.ts";
+import type { SpawnFields } from "#spawn-fields.ts";
 
 export const spawnSessionIdentity = (payload: SpawnFields) => ({
 	agentId: payload.agentId,

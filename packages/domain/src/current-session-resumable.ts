@@ -1,14 +1,14 @@
 import { Database } from "@antumbra/persistence";
-import { decodeStoredAgentStatus } from "@antumbra/vocabulary/agent-runtime";
+import {
+	decodeSessionExecutionStatus,
+	decodeStoredAgentStatus,
+	sessionExecutionTransition,
+} from "@antumbra/vocabulary/agent-runtime";
 import { Effect, Option, Result } from "effect";
 import {
 	type CurrentSessionReconcilePlan,
 	planCurrentSessionReconciliation,
 } from "#current-session-reconcile-plan.ts";
-import {
-	decodeSessionExecutionStatus,
-	sessionExecutionTransition,
-} from "#session-execution-status.ts";
 import { recoveryHeld } from "#session-recovery-error.ts";
 
 const heldInvalid = (failure: { readonly message: string }) =>

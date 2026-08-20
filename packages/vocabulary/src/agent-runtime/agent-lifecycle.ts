@@ -1,10 +1,8 @@
+import { Data, Result } from "effect";
 import {
 	type AgentStatus,
 	AgentStatusSchema,
-} from "@antumbra/vocabulary/agent-runtime";
-import { Data, Result } from "effect";
-
-export { type AgentStatus, AgentStatusSchema };
+} from "#agent-runtime/statuses.ts";
 
 export const AGENT_STATUS_EVENTS = ["activate", "reclaim", "retire"] as const;
 export type AgentStatusEvent = (typeof AGENT_STATUS_EVENTS)[number];

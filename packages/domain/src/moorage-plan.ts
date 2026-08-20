@@ -9,7 +9,7 @@ import {
 } from "@antumbra/vocabulary/agent-runtime";
 import { Effect, Option, PubSub } from "effect";
 import { MooragePlanConflict } from "#errors.ts";
-import type { SpawnFields } from "#spawn.ts";
+import type { SpawnFields } from "#spawn-fields.ts";
 
 interface StoredBerthPlan {
 	readonly branch: string;

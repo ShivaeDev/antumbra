@@ -1,4 +1,4 @@
-import { executionSessionOfAgent } from "#session-execution-selection.ts";
+import { executionSessionOfAgent } from "#voyage-execution-selection.ts";
 import type { VoyageWorld } from "#voyage-rows.ts";
 
 // why: a spawning Agent owns work before its Session row exists. Once alive,

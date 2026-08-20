@@ -2,11 +2,11 @@ import { defineIntentDemand } from "@antumbra/intent-demand";
 import type { IntentKind } from "@antumbra/kernel";
 import { Database, type WriteExecutors } from "@antumbra/persistence";
 import {
+	decodeSessionExecutionStatus,
 	decodeStoredAgentSessionStatus,
 	decodeStoredAgentStatus,
 } from "@antumbra/vocabulary/agent-runtime";
 import { Effect, Result } from "effect";
-import { decodeSessionExecutionStatus } from "#session-execution-status.ts";
 import type { RecoveryFields } from "#session-recovery.ts";
 import type { SiestaFields } from "#session-siesta.ts";
 

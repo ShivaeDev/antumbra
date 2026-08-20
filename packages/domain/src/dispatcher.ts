@@ -2,12 +2,12 @@ import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Kernel } from "@antumbra/kernel";
 import { Database, type WriteExecutors } from "@antumbra/persistence";
 import { Clock, Effect, Layer, Option, Queue, Ref } from "effect";
+import { AGENTS_ALIVE_GAUGE, AgentDomain } from "#agent-domain-service.ts";
 import { readyPieces } from "#dispatch-policy.ts";
 import { type DispatchPort, dispatchPiece } from "#dispatch-spawn.ts";
 import { dispatchable, makeDispatchState } from "#dispatch-state.ts";
-import { AGENTS_ALIVE_GAUGE, AgentDomain } from "#domain.ts";
 import { pump } from "#feed-pump.ts";
-import { assignedExecution } from "#session-execution-selection.ts";
+import { assignedExecution } from "#voyage-execution-selection.ts";
 import { VoyageWorldSource } from "#voyage-world.ts";
 
 export interface DispatcherOptions {

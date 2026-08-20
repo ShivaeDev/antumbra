@@ -1,7 +1,10 @@
 import type { AgentBackend, DirectTool } from "@antumbra/plugin-api";
+import {
+	type EventSink,
+	type SessionAttachment,
+	SessionFabric,
+} from "@antumbra/session-fabric";
 import { Effect, Option } from "effect";
-import { type SessionAttachment, SessionFabric } from "#fabric.ts";
-import type { EventSink } from "#session-attachment.ts";
 import { RECOVERY_INSTRUCTION } from "#session-recovery.ts";
 import type { SessionRecoveryContext } from "#session-recovery-context.ts";
 import { SessionRecoveryHeld } from "#session-recovery-error.ts";

@@ -3,12 +3,12 @@ import type {
 	DirectTool,
 	MooragePlan,
 } from "@antumbra/plugin-api";
-import { type Cause, Effect, Option } from "effect";
 import {
 	type EventSink,
 	type SessionAttachment,
 	SessionFabric,
-} from "#fabric.ts";
+} from "@antumbra/session-fabric";
+import { type Cause, Effect, Option } from "effect";
 import { makeMarkMoorageReady } from "#moorage-ready.ts";
 import { makeEnsureSessionRow } from "#moorage-session.ts";
 import type { SpawnFields } from "#spawn-fields.ts";

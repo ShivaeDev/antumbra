@@ -32,8 +32,8 @@ const WriteRow = ({
 	readonly scope: BoardTarget;
 }) => {
 	const [body, setBody] = useState("");
-	const [smooth, setSmooth] = useState(true);
-	const register = smooth ? "smooth" : "rough";
+	const [register, setRegister] =
+		useState<BoardEntryView["register"]>("smooth");
 	const write = () =>
 		writeBoard({ body, register, scope }, () => setBody(""), onError);
 	return (
@@ -47,7 +47,9 @@ const WriteRow = ({
 			/>
 			<div style={rowStyle}>
 				<button
-					onClick={() => setSmooth(!smooth)}
+					onClick={() =>
+						setRegister(register === "smooth" ? "rough" : "smooth")
+					}
 					style={buttonStyle}
 					type="button"
 				>

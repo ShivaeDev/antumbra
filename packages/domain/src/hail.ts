@@ -19,12 +19,12 @@ import type {
 } from "@antumbra/vocabulary/agent-runtime";
 import { Effect, Option } from "effect";
 import { composeCaptainCharter } from "#charter-captain.ts";
-import type { SpawnRefused } from "#deps.ts";
 import {
 	CaptainAlreadyHailed,
 	CaptainSessionUnavailable,
 	VoyageNotFound,
 } from "#errors.ts";
+import type { SpawnRefused } from "#kernel-reach.ts";
 import { KernelReach } from "#kernel-reach.ts";
 import { CAPTAIN_ROLE, captainAtWork, captainOf } from "#voyage-captain.ts";
 import { idleExecutionSessionsOfAgent } from "#voyage-execution-selection.ts";

@@ -1,9 +1,17 @@
-import { Kernel } from "@antumbra/kernel";
-import type { WriteExecutors } from "@antumbra/persistence";
+import {
+	Kernel,
+	type PayloadInvalid,
+	type UnregisteredIntentTag,
+} from "@antumbra/kernel";
+import type { PrismaError, WriteExecutors } from "@antumbra/persistence";
 import { Context, Deferred, Effect, Layer } from "effect";
 import { AgentDomain } from "#agent-domain-service.ts";
-import type { SpawnRefused } from "#deps.ts";
 import type { SpawnFields } from "#spawn-fields.ts";
+
+// why: the three ways the kernel can turn a submission away — a payload it
+// cannot decode, a tag no domain registered, or the write that records the
+// submission failing. Every act that reaches the kernel refuses this way.
+export type SpawnRefused = PayloadInvalid | PrismaError | UnregisteredIntentTag;
 
 export interface KernelReachService {
 	readonly queueSiesta: (sessionId: string) => Effect.Effect<void>;

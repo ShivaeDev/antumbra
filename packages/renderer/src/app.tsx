@@ -1,9 +1,10 @@
-import type { Fleet, VoyageSummary } from "@antumbra/contract";
+import type { Fleet } from "@antumbra/contract";
 import { useAtomValue } from "@effect/atom-react";
 import { AsyncResult, Atom } from "effect/unstable/reactivity";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { loadAppInfo, watchFleet } from "#adapters/trpc.ts";
 import { watchVoyages } from "#adapters/trpc-voyages.ts";
+import { useFeed } from "#hooks/feed.ts";
 import { FleetAside } from "#views/fleet-aside.tsx";
 import { type Mode, ModeStrip } from "#views/mode-strip.tsx";
 import { QuayPanel } from "#views/quay.tsx";
@@ -81,17 +82,25 @@ const MainSection = ({
 	);
 };
 
+const lost = (error: string | undefined): ReadonlyArray<string> =>
+	error === undefined ? [] : [`feed lost: ${error}`];
+
 export const App = () => {
 	const info = useAtomValue(appInfoAtom);
-	const [fleet, setFleet] = useState<Fleet | undefined>(undefined);
-	const [voyages, setVoyages] = useState<ReadonlyArray<VoyageSummary>>([]);
+	const { error: fleetError, value: fleet } = useFeed("fleet", watchFleet);
+	const { error: voyagesError, value: voyages } = useFeed(
+		"voyages",
+		watchVoyages,
+	);
 	const [mode, setMode] = useState<Mode>("fleet");
 	const [session, setSession] = useState<string | undefined>(undefined);
 	const [voyage, setVoyage] = useState<string | undefined>(undefined);
 	const [notice, setNotice] = useState<string | undefined>(undefined);
-
-	useEffect(() => watchFleet(setFleet, setNotice), []);
-	useEffect(() => watchVoyages(setVoyages, setNotice), []);
+	const notices = [
+		...(notice === undefined ? [] : [notice]),
+		...lost(fleetError),
+		...lost(voyagesError),
+	];
 
 	return (
 		<main style={mainStyle}>
@@ -107,9 +116,11 @@ export const App = () => {
 						})}
 					</span>
 				</header>
-				{notice === undefined ? null : (
-					<div style={{ color: "#ff7c7c", fontSize: "0.85rem" }}>{notice}</div>
-				)}
+				{notices.map((line) => (
+					<div key={line} style={{ color: "#ff7c7c", fontSize: "0.85rem" }}>
+						{line}
+					</div>
+				))}
 				<ModeStrip mode={mode} onMode={setMode} />
 				{/* why: the quay is read against the voyages the work is owed to, so
 				the aside keeps listing them rather than emptying itself. */}
@@ -126,7 +137,7 @@ export const App = () => {
 						onError={setNotice}
 						onSelect={setVoyage}
 						selected={voyage}
-						voyages={voyages}
+						voyages={voyages ?? []}
 					/>
 				)}
 			</aside>

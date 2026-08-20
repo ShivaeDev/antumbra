@@ -72,8 +72,15 @@ export const makeWindowRegistry = (): WindowRegistry => {
 			records().find((record) => record.place.role === "console"),
 		holding: (place) =>
 			records().find((record) => sameSubject(record.place, place)),
+		// why: the console is the app. A second one in the same process would be
+		// a second place the work is driven from, so ownership refuses it here
+		// rather than trusting every caller to have asked first.
 		own: (record) => {
-			if (owned.has(record.contents)) {
+			const taken =
+				owned.has(record.contents) ||
+				(record.place.role === "console" &&
+					records().some((held) => held.place.role === "console"));
+			if (taken) {
 				return false;
 			}
 			owned.set(record.contents, record);

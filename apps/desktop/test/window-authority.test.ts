@@ -83,6 +83,19 @@ describe("owned window registry", () => {
 		expect(registry.owner(eventFor(child.contents))?.id).toBe("impostor");
 	});
 
+	it("keeps one console and lets a released one be replaced", () => {
+		const registry = makeWindowRegistry();
+		ownWindow(registry, "console", consolePlace);
+		const second = ownWindow(registry, "second", consolePlace);
+
+		expect(registry.windowOf("second")).toBeUndefined();
+		expect(registry.consoleWindow()?.id).toBe("console");
+
+		registry.release(registry.consoleWindow()?.contents ?? second.contents);
+		expect(registry.own(second)).toBe(true);
+		expect(registry.consoleWindow()?.id).toBe("second");
+	});
+
 	it("destroys a window that did not land on the trusted document", () => {
 		const registry = makeWindowRegistry();
 		const sender = contents("child");

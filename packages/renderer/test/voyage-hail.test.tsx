@@ -51,19 +51,19 @@ const renderHeader = (captain: VoyageCaptainView | null) =>
 it("a captain at work is the address, so nothing offers to call another", () => {
 	const working = { ...stoodDown, atWork: true };
 	for (const rendered of [renderPanel(working), renderHeader(working)]) {
-		expect(rendered).not.toContain("hail");
-		expect(rendered).not.toContain("wake");
+		expect(rendered).not.toContain("Hail");
+		expect(rendered).not.toContain("Wake");
 	}
 });
 
 it("a captain that stood down is offered the wake, wherever it is shown", () => {
 	for (const rendered of [renderPanel(stoodDown), renderHeader(stoodDown)]) {
-		expect(rendered).toContain("wake the captain");
+		expect(rendered).toContain("Wake the captain");
 	}
 });
 
 it("a voyage with no captain is offered the hail, wherever it is shown", () => {
 	for (const rendered of [renderPanel(null), renderHeader(null)]) {
-		expect(rendered).toContain("hail a captain");
+		expect(rendered).toContain("Hail a captain");
 	}
 });

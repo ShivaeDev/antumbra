@@ -1,50 +1,11 @@
 import type { VoyageSummary } from "@antumbra/contract";
-import { focusVoyage, hailCaptain } from "#adapters/trpc-voyages.ts";
-import {
-	buttonStyle,
-	cardStyle,
-	columnStyle,
-	ellipsisStyle,
-	mutedStyle,
-	pillStyle,
-	quietButtonStyle,
-	rowStyle,
-} from "#views/styles.ts";
-import { captainAtWork } from "#voyages/acts.ts";
-import {
-	captainCallLabel,
-	voyageStateColour,
-	voyageStateLabel,
-} from "#voyages/labels.ts";
-
-const countsLabel = (counts: VoyageSummary["counts"]): string =>
-	`${counts.done}/${counts.pieces} landed · ${counts.active} active · ${counts.ready} ready`;
-
-const CaptainCell = ({
-	onError,
-	voyage,
-}: {
-	readonly onError: (message: string) => void;
-	readonly voyage: VoyageSummary;
-}) => {
-	const captain = voyage.captain;
-	if (!captainAtWork(captain)) {
-		return (
-			<button
-				onClick={() => hailCaptain(voyage.id, onError)}
-				style={buttonStyle}
-				type="button"
-			>
-				{captainCallLabel(captain)}
-			</button>
-		);
-	}
-	return (
-		<span style={mutedStyle}>
-			{captain.agentId.slice(0, 8)} · {captain.status}
-		</span>
-	);
-};
+import { Badge } from "#components/ui/badge.tsx";
+import { Card } from "#components/ui/card.tsx";
+import { cn } from "#lib/utils.ts";
+import { CaptainCall, FocusToggle } from "#views/voyage-acts.tsx";
+import { VoyageProgress } from "#views/voyage-progress.tsx";
+import { voyageStateLabel } from "#voyages/labels.ts";
+import { voyageTone } from "#voyages/tone.ts";
 
 const VoyageRow = ({
 	onError,
@@ -56,41 +17,48 @@ const VoyageRow = ({
 	readonly onSelect: (voyageId: string) => void;
 	readonly selected: string | undefined;
 	readonly voyage: VoyageSummary;
-}) => (
-	<div style={cardStyle}>
-		<div style={rowStyle}>
-			<button
-				onClick={() => onSelect(voyage.id)}
-				style={{
-					...quietButtonStyle,
-					...ellipsisStyle,
-					color: voyage.id === selected ? "#a48fff" : "#7c9cff",
-				}}
-				title={voyage.name}
-				type="button"
+}) => {
+	const current = voyage.id === selected;
+	return (
+		<li className="min-w-0">
+			<Card
+				className={cn(
+					"gap-2 transition-colors",
+					current
+						? "border-border-strong bg-accent"
+						: "hover:border-border-strong",
+				)}
 			>
-				{voyage.name}
-			</button>
-			<span style={pillStyle(voyageStateColour[voyage.state])}>
-				{voyageStateLabel[voyage.state]}
-			</span>
-		</div>
-		<span style={mutedStyle}>★ {voyage.northStar}</span>
-		<span style={mutedStyle}>{countsLabel(voyage.counts)}</span>
-		<div style={{ ...rowStyle, flexWrap: "wrap" }}>
-			<button
-				onClick={() =>
-					focusVoyage(voyage.id, voyage.focusedAt === null, onError)
-				}
-				style={buttonStyle}
-				type="button"
-			>
-				{voyage.focusedAt === null ? "focus" : "unfocus"}
-			</button>
-			<CaptainCell onError={onError} voyage={voyage} />
-		</div>
-	</div>
-);
+				<div className="flex min-w-0 items-start gap-1.5">
+					{/* why: a voyage is known by its whole name, so a long one wraps
+					inside the column instead of ending in an ellipsis the reader has
+					to hover to undo. */}
+					<button
+						aria-current={current ? "true" : undefined}
+						className="min-w-0 flex-1 rounded-sm text-left text-xs font-medium wrap-anywhere outline-none"
+						onClick={() => onSelect(voyage.id)}
+						type="button"
+					>
+						{voyage.name}
+					</button>
+					<Badge variant={voyageTone[voyage.state]}>
+						{voyageStateLabel[voyage.state]}
+					</Badge>
+					<FocusToggle onError={onError} voyage={voyage} />
+				</div>
+				<p className="min-w-0 text-2xs text-muted-foreground wrap-anywhere">
+					{voyage.northStar}
+				</p>
+				<VoyageProgress counts={voyage.counts} />
+				<CaptainCall
+					captain={voyage.captain}
+					onError={onError}
+					voyageId={voyage.id}
+				/>
+			</Card>
+		</li>
+	);
+};
 
 export const VoyagesPanel = ({
 	onError,
@@ -102,19 +70,25 @@ export const VoyagesPanel = ({
 	readonly onSelect: (voyageId: string) => void;
 	readonly selected: string | undefined;
 	readonly voyages: ReadonlyArray<VoyageSummary>;
-}) => (
-	<div style={columnStyle}>
-		{voyages.length === 0 ? (
-			<span style={mutedStyle}>no voyages open yet</span>
-		) : null}
-		{voyages.map((voyage) => (
-			<VoyageRow
-				key={voyage.id}
-				onError={onError}
-				onSelect={onSelect}
-				selected={selected}
-				voyage={voyage}
-			/>
-		))}
-	</div>
-);
+}) => {
+	if (voyages.length === 0) {
+		return (
+			<p className="text-2xs text-muted-foreground">
+				No voyages open yet — open one to chart work against a north star
+			</p>
+		);
+	}
+	return (
+		<ul className="flex min-w-0 flex-col gap-1.5">
+			{voyages.map((voyage) => (
+				<VoyageRow
+					key={voyage.id}
+					onError={onError}
+					onSelect={onSelect}
+					selected={selected}
+					voyage={voyage}
+				/>
+			))}
+		</ul>
+	);
+};

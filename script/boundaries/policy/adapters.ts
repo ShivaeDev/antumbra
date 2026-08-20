@@ -89,6 +89,32 @@ export const adapterPolicy = [
 				files.inPackage("contract", "src/contract.ts"),
 			),
 		}),
+	fence("harness-imports-no-runtime-or-host")
+		.because(
+			"The browser harness stands in for the desktop shell and nothing else: it composes the contract's router over the shipped fixtures and mounts the renderer. Reaching a real capability, port, provider, scheduler, or store would make it a second application rather than a way to look at the first.",
+		)
+		.forbidsImportsFrom(packages.named("harness"))
+		.to(
+			anyOf(
+				domainAndCapabilities,
+				packages.named(
+					"plugin-api",
+					"agent-tools",
+					"kernel",
+					"persistence",
+					"git",
+				),
+				adapters,
+			),
+		)
+		.demonstratedBy({
+			illegal: importFrom(files.inPackage("harness", "src/bridge.ts")).to(
+				files.inPackage("domain", "src/domain.ts"),
+			),
+			legal: importFrom(files.inPackage("harness", "src/bridge.ts")).to(
+				files.inPackage("contract", "src/contract.ts"),
+			),
+		}),
 	fence("adapters-never-import-the-domain")
 		.because(
 			"Adapters implement the driven ports and nothing else. A backend, runner or change host that reaches for the domain has stopped being replaceable — it would drag the use cases into every provider it serves.",

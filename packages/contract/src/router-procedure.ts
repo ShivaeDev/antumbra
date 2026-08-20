@@ -24,7 +24,14 @@ export type AppRuntime = EffectTRPCRuntime<
 	never
 >;
 
-export const trpc = initTRPC.context<RequestContext>().create();
+// why: tRPC's own guess at "am I on a server" refuses to build a router in a
+// browser, and the browser harness builds this one on purpose — it stands the
+// window up against fixture sources with no host process behind it. What that
+// guess protects is already held structurally: the boundary policy is what
+// keeps this router out of the renderer's own graph.
+export const trpc = initTRPC
+	.context<RequestContext>()
+	.create({ allowOutsideOfServer: true });
 
 const requestServices = makeRequestServices((context: RequestContext) =>
 	Layer.succeed(RequestOrigin, context),

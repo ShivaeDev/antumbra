@@ -24,7 +24,7 @@ const answerFor = (
 	if (request.method === "item/tool/call") {
 		return Effect.map(dynamicToolAnswer(tools, request.params), Option.some);
 	}
-	return Effect.succeed(Option.fromUndefinedOr(residualApproval(request)));
+	return Effect.succeed(residualApproval(request));
 };
 
 // why: every request the server makes gets an answer or an honest refusal of

@@ -1,3 +1,4 @@
+import { Option } from "effect";
 import type { RpcServerRequest } from "#adapters/rpc.ts";
 
 const DECLINED = "declined by antumbra: no approval consumer is wired yet";
@@ -6,24 +7,25 @@ const DECLINED = "declined by antumbra: no approval consumer is wired yet";
 // server asks us only for what the reviewer would not grant — and until an
 // approval consumer exists on our side, every residual prompt is declined
 // rather than silently accepted. Declining completes the item as declined;
-// the turn goes on.
+// the turn goes on. A method we serve no answer for is `None`, which the
+// caller turns into an honest refusal.
 export const residualApproval = (
 	request: RpcServerRequest,
-): unknown | undefined => {
+): Option.Option<unknown> => {
 	switch (request.method) {
 		case "item/commandExecution/requestApproval":
 		case "item/fileChange/requestApproval":
-			return { decision: "decline" };
+			return Option.some({ decision: "decline" });
 		case "item/permissions/requestApproval":
-			return { permissions: {}, scope: "turn" };
+			return Option.some({ permissions: {}, scope: "turn" });
 		case "item/tool/requestUserInput":
-			return { answers: {} };
+			return Option.some({ answers: {} });
 		case "mcpServer/elicitation/request":
-			return { _meta: null, action: "decline", content: null };
+			return Option.some({ _meta: null, action: "decline", content: null });
 		case "execCommandApproval":
 		case "applyPatchApproval":
-			return { decision: { denied: { rejection: DECLINED } } };
+			return Option.some({ decision: { denied: { rejection: DECLINED } } });
 		default:
-			return undefined;
+			return Option.none();
 	}
 };

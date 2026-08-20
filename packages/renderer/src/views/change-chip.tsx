@@ -1,33 +1,34 @@
 import type { ChangeView } from "@antumbra/contract";
+import { cn } from "#lib/utils.ts";
 import { ExternalLink } from "#views/external-link.tsx";
-import { mutedStyle, rowStyle } from "#views/styles.ts";
 import { changeMarks, changeName } from "#voyages/change-marks.ts";
 
 // why: a landed change is history rather than news, so it recedes beside the
 // ones still owed something.
 const toneOf = (change: ChangeView): string =>
-	change.stage === "landed" ? "#8a8f98" : "#7c9cff";
+	change.stage === "landed" ? "text-muted-foreground" : "text-link";
 
 // why: the change opens where the repo lives — the merge is done there, and a
 // window that embedded the host would be pretending otherwise.
 export const ChangeLink = ({ change }: { readonly change: ChangeView }) => {
 	if (change.url === null) {
-		return <span style={mutedStyle}>{changeName(change)}</span>;
+		return (
+			<span className="text-xs text-muted-foreground">
+				{changeName(change)}
+			</span>
+		);
 	}
 	return (
-		<ExternalLink
-			style={{ color: toneOf(change), fontSize: "0.75rem" }}
-			url={change.url}
-		>
+		<ExternalLink className={cn("text-xs", toneOf(change))} url={change.url}>
 			{changeName(change)}
 		</ExternalLink>
 	);
 };
 
 export const ChangeChip = ({ change }: { readonly change: ChangeView }) => (
-	<span style={{ ...rowStyle, gap: "0.35rem" }}>
-		<span style={mutedStyle}>⛵</span>
+	<span className="flex min-w-0 items-baseline gap-1.5 wrap-anywhere">
+		<span className="text-xs text-muted-foreground">⛵</span>
 		<ChangeLink change={change} />
-		<span style={mutedStyle}>{changeMarks(change)}</span>
+		<span className="text-xs text-muted-foreground">{changeMarks(change)}</span>
 	</span>
 );

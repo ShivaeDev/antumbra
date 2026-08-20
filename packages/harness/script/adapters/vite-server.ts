@@ -1,4 +1,5 @@
 import { join } from "node:path";
+import tailwind from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
 import { Effect } from "effect";
 import { createServer } from "vite";
@@ -11,7 +12,7 @@ export const startHarnessServer = (
 	Effect.promise(() =>
 		createServer({
 			configFile: false,
-			plugins: [react()],
+			plugins: [react(), tailwind()],
 			// why: the router's request-scoped services reach for node's
 			// async_hooks, which a browser has none of — the harness answers with
 			// its own single-continuation stand-in rather than asking the shared

@@ -4,7 +4,7 @@ import { makeAppRouter } from "#index.ts";
 import { makeRuntime, reefSummary, reefView } from "#test/stub-sources.ts";
 
 const callerOf = () =>
-	makeAppRouter(makeRuntime()).createCaller({ senderId: 7 });
+	makeAppRouter(makeRuntime()).createCaller({ windowId: "console" });
 
 describe("makeAppRouter, on voyages", () => {
 	it.effect("reads verified Artifact Markdown on demand", () =>

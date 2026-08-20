@@ -10,6 +10,9 @@ import {
 	VoyageSource,
 	type VoyageSummary,
 	type VoyageView,
+	type WindowPlace,
+	WindowRefused,
+	WindowSource,
 } from "#index.ts";
 
 export const info = {
@@ -249,11 +252,28 @@ const voyageStub = Layer.succeed(VoyageSource, {
 	writeBoard: () => Effect.void,
 });
 
+export const consoleWindow: WindowPlace = {
+	mode: "fleet",
+	role: "console",
+	sessionId: null,
+	voyageId: null,
+};
+
+const windowStub = Layer.succeed(WindowSource, {
+	open: (place) =>
+		place.role === "console"
+			? new WindowRefused({ reason: "console_is_not_a_target" })
+			: Effect.void,
+	place: Effect.succeed(consoleWindow),
+	remember: () => Effect.void,
+});
+
 export const makeRuntime = () =>
 	ManagedRuntime.make(
 		Layer.mergeAll(
 			Layer.succeed(AppInfoSource, { current: Effect.succeed(info) }),
 			sightStub,
 			voyageStub,
+			windowStub,
 		),
 	);

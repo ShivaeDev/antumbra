@@ -1,5 +1,6 @@
 import {
 	type EffectTRPCRuntime,
+	forbidden,
 	internalServerError,
 	makeEffectTRPC,
 	makeRequestServices,
@@ -9,9 +10,12 @@ import { Context, Effect, Layer } from "effect";
 import type { AppInfoSource } from "#app-info.ts";
 import type { SightFailure, SightSource } from "#sight.ts";
 import type { ArtifactMarkdownFailure, VoyageSource } from "#voyages.ts";
+import type { WindowRefused, WindowSource } from "#windows.ts";
 
+// why: main knows its windows by the record it owns for each one, so a request
+// carries which window asked rather than which page says it is.
 export interface RequestContext {
-	readonly senderId: number;
+	readonly windowId: string;
 }
 
 export class RequestOrigin extends Context.Service<
@@ -20,7 +24,7 @@ export class RequestOrigin extends Context.Service<
 >()("@antumbra/contract/RequestOrigin") {}
 
 export type AppRuntime = EffectTRPCRuntime<
-	AppInfoSource | SightSource | VoyageSource,
+	AppInfoSource | SightSource | VoyageSource | WindowSource,
 	never
 >;
 
@@ -38,12 +42,17 @@ export type AppProcedure = ReturnType<typeof makeProcedure>;
 // why: every source states its refusals as one failure, and tRPC wants an
 // error rather than a typed channel — this is the single crossing.
 export const surface = <A, R>(
-	effect: Effect.Effect<A, ArtifactMarkdownFailure | SightFailure, R>,
+	effect: Effect.Effect<
+		A,
+		ArtifactMarkdownFailure | SightFailure | WindowRefused,
+		R
+	>,
 ) =>
 	effect.pipe(
 		Effect.catchTags({
 			ArtifactMarkdownFailure: (failure) =>
 				internalServerError(failure.message),
 			SightFailure: (failure) => internalServerError(failure.message),
+			WindowRefused: (failure) => forbidden(failure.reason),
 		}),
 	);

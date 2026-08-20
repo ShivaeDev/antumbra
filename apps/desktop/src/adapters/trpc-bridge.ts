@@ -9,14 +9,14 @@ import { Result, Schema } from "effect";
 import { ipcMain } from "electron";
 import type {
 	DocumentIpcEvent,
-	MainDocumentAuthority,
-} from "#adapters/main-document-authority.ts";
+	WindowRegistry,
+} from "#adapters/windows/registry.ts";
 
 const decodeRequest = Schema.decodeUnknownResult(TrpcRequest);
 
 const respond = async (
 	router: AppRouter,
-	senderId: number,
+	windowId: string,
 	raw: unknown,
 ): Promise<TrpcResponse> => {
 	const decoded = decodeRequest(raw);
@@ -30,7 +30,7 @@ const respond = async (
 	try {
 		const data = await callTRPCProcedure({
 			batchIndex: 0,
-			ctx: { senderId },
+			ctx: { windowId },
 			getRawInput: () => Promise.resolve(request.input),
 			path: request.path,
 			router,
@@ -44,11 +44,7 @@ const respond = async (
 	}
 };
 
-type BridgeExecutor = (senderId: number, raw: unknown) => Promise<TrpcResponse>;
-
-interface BridgeEvent extends DocumentIpcEvent {
-	readonly sender: DocumentIpcEvent["sender"] & { readonly id: number };
-}
+type BridgeExecutor = (windowId: string, raw: unknown) => Promise<TrpcResponse>;
 
 const unauthorized: TrpcResponse = {
 	error: { code: "UNAUTHORIZED", message: "unauthorized bridge sender" },
@@ -56,20 +52,21 @@ const unauthorized: TrpcResponse = {
 };
 
 export const makeTrpcBridgeHandler =
-	(authority: MainDocumentAuthority, execute: BridgeExecutor) =>
-	(event: BridgeEvent, raw: unknown): Promise<TrpcResponse> => {
-		if (!authority.authorizes(event)) {
+	(registry: WindowRegistry, execute: BridgeExecutor) =>
+	(event: DocumentIpcEvent, raw: unknown): Promise<TrpcResponse> => {
+		const record = registry.owner(event);
+		if (record === undefined) {
 			return Promise.resolve(unauthorized);
 		}
-		return execute(event.sender.id, raw);
+		return execute(record.id, raw);
 	};
 
 export const registerTrpcBridge = (
 	router: AppRouter,
-	authority: MainDocumentAuthority,
+	registry: WindowRegistry,
 ): void => {
-	const handler = makeTrpcBridgeHandler(authority, (senderId, raw) =>
-		respond(router, senderId, raw),
+	const handler = makeTrpcBridgeHandler(registry, (windowId, raw) =>
+		respond(router, windowId, raw),
 	);
 	ipcMain.handle(TRPC_CHANNEL, handler);
 };

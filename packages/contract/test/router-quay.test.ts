@@ -4,7 +4,7 @@ import { makeAppRouter } from "#index.ts";
 import { makeRuntime, quayView } from "#test/stub-sources.ts";
 
 const callerOf = () =>
-	makeAppRouter(makeRuntime()).createCaller({ senderId: 7 });
+	makeAppRouter(makeRuntime()).createCaller({ windowId: "console" });
 
 describe("makeAppRouter, on the quay", () => {
 	it.effect("reads every open change with the hosts' capability", () =>

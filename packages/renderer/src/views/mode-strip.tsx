@@ -1,18 +1,14 @@
+import type { ConsoleMode } from "@antumbra/contract";
 import { buttonStyle, rowStyle } from "#views/styles.ts";
 
-// why: the window watches three things — the fleet at work, the voyages the
-// work is for, and the quay where finished work waits on a host. They share
-// one aside, so the strip says which is on show.
-export type Mode = "fleet" | "voyages" | "quay";
-
-const MODES: ReadonlyArray<Mode> = ["fleet", "voyages", "quay"];
+const MODES: ReadonlyArray<ConsoleMode> = ["fleet", "voyages", "quay"];
 
 export const ModeStrip = ({
 	mode,
 	onMode,
 }: {
-	readonly mode: Mode;
-	readonly onMode: (mode: Mode) => void;
+	readonly mode: ConsoleMode;
+	readonly onMode: (mode: ConsoleMode) => void;
 }) => (
 	<div style={rowStyle}>
 		{MODES.map((offered) => (

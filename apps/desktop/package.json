@@ -9,6 +9,7 @@
 	},
 	"imports": {
 		"#script/*": "./script/*",
+		"#test/*": "./test/*",
 		"#*": "./src/*"
 	},
 	"scripts": {

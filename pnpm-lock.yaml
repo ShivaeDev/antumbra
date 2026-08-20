@@ -516,6 +516,9 @@ importers:
       '@antumbra/session-event-journal':
         specifier: workspace:*
         version: link:../session-event-journal
+      '@antumbra/session-fabric':
+        specifier: workspace:*
+        version: link:../session-fabric
       '@antumbra/vocabulary':
         specifier: workspace:*
         version: link:../vocabulary
@@ -953,6 +956,34 @@ importers:
       '@antumbra/persistence':
         specifier: workspace:*
         version: link:../persistence
+      '@antumbra/vocabulary':
+        specifier: workspace:*
+        version: link:../vocabulary
+      effect:
+        specifier: 'catalog:'
+        version: 4.0.0-rc.108
+    devDependencies:
+      '@effect/vitest':
+        specifier: 'catalog:'
+        version: 4.0.0-rc.108(effect@4.0.0-rc.108)(vitest@4.1.9(@types/node@24.10.1)(happy-dom@20.11.2)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0)))
+      '@types/node':
+        specifier: 'catalog:'
+        version: 24.10.1
+      '@typescript/native':
+        specifier: 'catalog:'
+        version: typescript@7.0.2
+      typescript:
+        specifier: 'catalog:'
+        version: '@typescript/typescript6@6.0.2'
+      vitest:
+        specifier: 'catalog:'
+        version: 4.1.9(@types/node@24.10.1)(happy-dom@20.11.2)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0))
+
+  packages/session-fabric:
+    dependencies:
+      '@antumbra/plugin-api':
+        specifier: workspace:*
+        version: link:../plugin-api
       '@antumbra/vocabulary':
         specifier: workspace:*
         version: link:../vocabulary

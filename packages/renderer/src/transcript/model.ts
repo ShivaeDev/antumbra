@@ -1,15 +1,15 @@
-interface TranscriptMessage {
+export interface TranscriptMessage {
 	readonly kind: "message";
 	readonly role: "agent" | "user";
 	readonly seq: number;
 	readonly text: string;
 }
-interface TranscriptThinking {
+export interface TranscriptThinking {
 	readonly kind: "thinking";
 	readonly seq: number;
 	readonly text: string;
 }
-interface TranscriptTool {
+export interface TranscriptTool {
 	readonly input: string;
 	readonly kind: "tool";
 	readonly name: string;

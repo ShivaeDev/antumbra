@@ -10,9 +10,9 @@ import { makeSessionAttachmentRegistry } from "#session-attachment-registry.ts";
 import { makeSessionLifecycles } from "#session-lifecycle.ts";
 import { makeSessionStartAdmission } from "#session-start-admission.ts";
 
-export type { EventSink, SessionAttachment } from "#session-attachment.ts";
-
-const SessionStartPermitTypeId = Symbol("@antumbra/domain/SessionStartPermit");
+const SessionStartPermitTypeId = Symbol(
+	"@antumbra/session-fabric/SessionStartPermit",
+);
 
 export interface SessionStartPermit {
 	readonly [SessionStartPermitTypeId]: true;
@@ -50,7 +50,7 @@ export interface SessionFabricService {
 export class SessionFabric extends Context.Service<
 	SessionFabric,
 	SessionFabricService
->()("@antumbra/domain/SessionFabric") {}
+>()("@antumbra/session-fabric/SessionFabric") {}
 
 // why: live handles only, never persisted — rebuilt empty at boot. Registry
 // teardown is the single close path, so app shutdown cannot strand a provider.

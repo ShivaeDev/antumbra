@@ -1,8 +1,8 @@
 import { defineIntent, IntentExecution } from "@antumbra/kernel";
 import type { BackendFailure } from "@antumbra/plugin-api";
+import { SessionFabric } from "@antumbra/session-fabric";
 import { Effect, Option, Schema } from "effect";
 import { makeCurrentSessionRecovery } from "#current-session-recovery.ts";
-import { SessionFabric } from "#fabric.ts";
 import { makeSessionRecoveryContext } from "#session-recovery-context.ts";
 import type { SessionRecoveryHeld } from "#session-recovery-error.ts";
 import { SessionRecoveryRuntime } from "#session-recovery-runtime.ts";

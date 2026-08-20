@@ -1,12 +1,28 @@
 import type { SessionEvent } from "@antumbra/contract";
 import type { AgentEvent } from "@antumbra/vocabulary/session-events";
 import { openedLabel, turnLabel, usageLabel } from "#transcript/labels.ts";
-import type { TranscriptItem } from "#transcript/model.ts";
+import type {
+	TranscriptItem,
+	TranscriptMessage,
+	TranscriptThinking,
+} from "#transcript/model.ts";
 
 interface Derivation {
 	readonly items: TranscriptItem[];
 	readonly toolsById: Map<string, number>;
 }
+
+// why: a wordless thinking block is an event, not narration — providers emit
+// them by the hundred. Kept, it renders as a blank block that still spends the
+// transcript's spacing, opening a gap with nothing in it to explain the gap.
+const pushNarration = (
+	state: Derivation,
+	item: TranscriptMessage | TranscriptThinking,
+): void => {
+	if (item.text !== "") {
+		state.items.push(item);
+	}
+};
 
 const completeTool = (
 	state: Derivation,
@@ -30,15 +46,19 @@ const applyKnownEvent = (
 ): void => {
 	switch (event.type) {
 		case "message":
-			state.items.push({
+			pushNarration(state, {
 				kind: "message",
 				role: event.role,
 				seq,
-				text: event.text,
+				text: event.text.trim(),
 			});
 			return;
 		case "thinking":
-			state.items.push({ kind: "thinking", seq, text: event.text });
+			pushNarration(state, {
+				kind: "thinking",
+				seq,
+				text: event.text.trim(),
+			});
 			return;
 		case "tool.started":
 			state.toolsById.set(event.toolId, state.items.length);

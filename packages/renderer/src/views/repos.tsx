@@ -3,10 +3,12 @@ import { useState } from "react";
 import { forgetRepo, registerRepo } from "#adapters/trpc.ts";
 import {
 	buttonStyle,
+	ellipsisStyle,
 	inputStyle,
 	mutedStyle,
 	rowStyle,
 } from "#views/styles.ts";
+import { Truncated } from "#views/truncated.tsx";
 
 const RepoRow = ({
 	onError,
@@ -16,8 +18,10 @@ const RepoRow = ({
 	readonly repo: RepoSummary;
 }) => (
 	<div style={rowStyle}>
-		<strong>{repo.name}</strong>
-		<span style={mutedStyle}>{repo.source}</span>
+		<strong style={ellipsisStyle} title={repo.name}>
+			{repo.name}
+		</strong>
+		<Truncated style={mutedStyle} text={repo.source} />
 		<span style={mutedStyle}>{repo.defaultRef}</span>
 		<button
 			onClick={() => forgetRepo(repo.id, onError)}

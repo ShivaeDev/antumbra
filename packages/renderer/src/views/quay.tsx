@@ -13,6 +13,7 @@ const sectionStyle: React.CSSProperties = {
 	flexDirection: "column",
 	gap: "1.2rem",
 	minWidth: 0,
+	overflowX: "hidden",
 	overflowY: "auto",
 	padding: "1rem 1.4rem",
 };

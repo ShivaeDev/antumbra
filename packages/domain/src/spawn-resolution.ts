@@ -1,5 +1,6 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database, type WriteExecutors, Writer } from "@antumbra/persistence";
+import { SessionFabric } from "@antumbra/session-fabric";
 import {
 	type AgentStatus,
 	agentTransition,
@@ -7,7 +8,6 @@ import {
 } from "@antumbra/vocabulary/agent-runtime";
 import { Effect, Option, PubSub } from "effect";
 import { AgentNotSpawnable } from "#errors.ts";
-import { SessionFabric } from "#fabric.ts";
 import { activationFor, ensureSessionStatus } from "#spawn-current-session.ts";
 import type { SpawnFields } from "#spawn-fields.ts";
 

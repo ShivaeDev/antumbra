@@ -10,6 +10,11 @@ import {
 	ResourceReconcilerLive,
 } from "@antumbra/resource-reclamation";
 import { SessionEventJournal } from "@antumbra/session-event-journal";
+import {
+	type EventSink,
+	SessionFabric,
+	SessionFabricLive,
+} from "@antumbra/session-fabric";
 import { decodeStoredAgentStatus } from "@antumbra/vocabulary/agent-runtime";
 import { Effect, Layer } from "effect";
 import { AGENTS_ALIVE_GAUGE, AgentDomain } from "#agent-domain-service.ts";
@@ -19,7 +24,6 @@ import { ChangeProcedureService } from "#change-procedures.ts";
 import { makeCrewToolCompiler } from "#crew-tools.ts";
 import { makeCurrentSessionReconciler } from "#current-session-reconcile.ts";
 import { domainCapabilities } from "#domain-capabilities.ts";
-import { type EventSink, SessionFabric, SessionFabricLive } from "#fabric.ts";
 import { makeRetireKind } from "#retire.ts";
 import { makeRecoveryKind } from "#session-recovery.ts";
 import type { SessionRecoveryContext } from "#session-recovery-context.ts";

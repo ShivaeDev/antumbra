@@ -16,6 +16,10 @@ export {
 	ResourceReclaimClaimInvalid,
 } from "@antumbra/resource-reclamation";
 export {
+	SessionAttachmentFailure,
+	SessionNotLive,
+} from "@antumbra/session-fabric";
+export {
 	AgentSessionConflict,
 	CurrentSessionInvalid,
 } from "#current-session-errors.ts";
@@ -37,16 +41,6 @@ export class MooragePlanConflict extends Data.TaggedError(
 	"MooragePlanConflict",
 )<{
 	readonly agentId: string;
-	readonly detail: string;
-}> {}
-
-export class SessionNotLive extends Data.TaggedError("SessionNotLive")<{
-	readonly sessionId: string;
-}> {}
-
-export class SessionAttachmentFailure extends Data.TaggedError(
-	"SessionAttachmentFailure",
-)<{
 	readonly detail: string;
 }> {}
 

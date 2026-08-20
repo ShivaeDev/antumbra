@@ -56,6 +56,7 @@ obligation remains detached until needed. See
 | `packages/boards`         | Board and mailbox storage invariants                            |
 | `packages/artifacts`      | Durable artifact publication and landing                        |
 | `packages/reports`        | Durable report landing                                           |
+| `packages/session-fabric` | Live Session attachment, start admission, and stop lifecycle    |
 | `packages/domain`         | Application-facing use cases and capability Layer composition   |
 | `packages/git`            | Semantic Git operations over Effect's child-process port        |
 | `packages/github`         | GitHub change-host adapter: pull requests through `gh`           |
@@ -95,6 +96,13 @@ whole durable Change aggregate and supplies Change-backed held-resource evidence
 through an ambient-transaction read; Domain composes the two capabilities.
 Resource reclamation never imports Change truth, Domain, applications, or
 providers.
+
+`session-fabric` owns live Session attachment: opening a backend session,
+pumping its events, confirming native identity, and gating starts against stops.
+Everything it holds is process memory that may disappear at exit — handles,
+fibers, semaphores — rebuilt empty at boot, so the capability persists nothing
+and reaches no further than the driven ports. Domain composes it and supplies
+the durable event sink.
 
 Package manifests and exports are the source of truth for ordinary workspace
 edges. `dependency-cruiser` independently rejects architectural edges that a

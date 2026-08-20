@@ -106,4 +106,18 @@ export const vocabularyPolicy = [
 				files.inPackage("session-event-journal", "src/journal.ts"),
 			).to(files.inPackage("vocabulary", "src/session-events.ts")),
 		}),
+	vocabularyAccess("session-fabric-uses-session-event-vocabulary")
+		.because(
+			"The Session fabric pumps neutral Session events out of a live attachment and names no durable Agent, Board, or Change language.",
+		)
+		.for(packages.named("session-fabric"))
+		.allowsOnly("session-events")
+		.demonstratedBy({
+			illegal: importFrom(
+				files.inPackage("session-fabric", "src/session-attachment.ts"),
+			).to(files.inPackage("vocabulary", "src/change.ts")),
+			legal: importFrom(
+				files.inPackage("session-fabric", "src/session-attachment.ts"),
+			).to(files.inPackage("vocabulary", "src/session-events.ts")),
+		}),
 ] as const satisfies readonly BoundaryRule[];

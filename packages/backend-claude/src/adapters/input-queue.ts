@@ -18,11 +18,20 @@ const closedFailure = () =>
 // senders and is the only graceful end of the otherwise-pending iterator.
 export class InputQueue {
 	private readonly buffer: QueuedInput[] = [];
+	private readonly handOff: (message: SDKUserMessage) => void;
 	private pending: ((result: IteratorResult<SDKUserMessage>) => void) | null =
 		null;
 	private done = false;
 
+	// why: the pull is also the only honest place in the transcript for what a
+	// session was told — text still buffered here was never said to anyone, and
+	// text handed over mid-step belongs after the events that preceded it.
+	constructor(handOff: (message: SDKUserMessage) => void) {
+		this.handOff = handOff;
+	}
+
 	private accept(input: QueuedInput): void {
+		this.handOff(input.message);
 		Deferred.doneUnsafe(input.accepted, Effect.void);
 	}
 

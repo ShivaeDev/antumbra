@@ -1,13 +1,13 @@
 import type { AgentSummary, Fleet, RepoSummary } from "@antumbra/contract";
 import { Database } from "@antumbra/persistence";
 import {
+	decodeSessionExecutionStatus,
 	decodeStoredAgentSessionStatus,
 	decodeStoredAgentStatus,
 	decodeStoredBerthStatus,
 	decodeStoredResourceReclaimState,
 } from "@antumbra/vocabulary/agent-runtime";
 import { Effect } from "effect";
-import { decodeSessionExecutionStatus } from "#session-execution-status.ts";
 import { attributeIntents } from "#sight-diagnostics.ts";
 import type { PendingIntent } from "#sight-intents.ts";
 

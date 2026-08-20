@@ -3,13 +3,14 @@ import { defineIntent, IntentExecution } from "@antumbra/kernel";
 import { Database, type WriteExecutors, Writer } from "@antumbra/persistence";
 import { ResourceReconciler } from "@antumbra/resource-reclamation";
 import {
+	type AgentStatus,
+	agentTransition,
 	decodeStoredAgentSessionStatus,
 	decodeStoredAgentStatus,
 } from "@antumbra/vocabulary/agent-runtime";
 import { Effect, Option, PubSub, Schema } from "effect";
 import { AgentNotFound } from "#errors.ts";
 import { SessionFabric } from "#fabric.ts";
-import { type AgentStatus, agentTransition } from "#status.ts";
 
 const RetirePayload = Schema.Struct({ agentId: Schema.String });
 export type RetireFields = typeof RetirePayload.Type;

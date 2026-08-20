@@ -10,7 +10,7 @@ import { Kernel } from "@antumbra/kernel";
 import { Database, type WriteExecutors } from "@antumbra/persistence";
 import { projectHistoricalAgentEvent } from "@antumbra/vocabulary/session-events";
 import { Effect, Layer, PubSub, Stream } from "effect";
-import { AgentDomain } from "#domain.ts";
+import { AgentDomain } from "#agent-domain-service.ts";
 import { SessionMessageEmpty } from "#errors.ts";
 import { toFailure } from "#sight-failure.ts";
 import { fleetSnapshot } from "#sight-fleet.ts";

@@ -13,16 +13,14 @@ import {
 	type WriteExecutors,
 } from "@antumbra/persistence";
 import {
+	decodeSessionExecutionStatus,
 	decodeStoredAgentSessionStatus,
 	decodeStoredAgentStatus,
+	type InvalidSessionExecutionStatus,
 	type StoredAgentSessionStatusInvalid,
 	type StoredAgentStatusInvalid,
 } from "@antumbra/vocabulary/agent-runtime";
 import { Context, Effect, Layer } from "effect";
-import {
-	decodeSessionExecutionStatus,
-	type InvalidSessionExecutionStatus,
-} from "#session-execution-status.ts";
 import {
 	artifactRow,
 	byId,

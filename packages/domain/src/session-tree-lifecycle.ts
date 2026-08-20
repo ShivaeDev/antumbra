@@ -54,8 +54,20 @@ export const makeSessionTreeLifecycle = Effect.gen(function* () {
 						recorded ? Effect.void : appendFailed(node, event),
 					),
 				);
+		// why: a node this tree already holds has already been announced, so a
+		// second opening for the same reference is the provider saying more about
+		// one node rather than a second one. Nothing is journaled twice; only a
+		// name the row is still missing is taken from it.
+		const nameNode = (node: TreeNode, opened: SubsessionOpened) =>
+			opened.label === undefined
+				? Effect.succeed(true)
+				: rows.nameNode(node.sessionId, opened.label).pipe(Effect.as(true));
 		const openNode = (opened: SubsessionOpened) =>
 			Effect.gen(function* () {
+				const known = (yield* Ref.get(tree)).nodes.get(opened.subsessionRef);
+				if (known !== undefined) {
+					return yield* nameNode(known, opened);
+				}
 				const root = yield* rows.rootRow(rootSessionId);
 				if (Option.isNone(root)) {
 					return false;

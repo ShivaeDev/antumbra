@@ -33,6 +33,29 @@ it.live("records unique contiguous per-Session event sequences", () =>
 				const journal = yield* SessionEventJournal;
 				const writer = yield* Writer;
 				yield* writer.write(
+					db.Agent.create({
+						charter: "hold one sequence",
+						currentSessionId: "session-sequence",
+						id: "agent-sequence",
+						role: "test hand",
+						status: "alive",
+					}),
+				);
+				yield* writer.write(
+					db.AgentSession.create({
+						agentId: "agent-sequence",
+						backend: "scripted",
+						charterDeliveredAt: null,
+						cwd: "/tmp/agent-sequence",
+						executionStatus: "active",
+						id: "session-sequence",
+						nativeRef: null,
+						parentSessionId: null,
+						rootSessionId: "session-sequence",
+						status: "open",
+					}),
+				);
+				yield* writer.write(
 					db.SessionEvent.create({
 						kind: "message",
 						payload: JSON.stringify({

@@ -37,7 +37,12 @@ const createSession = (agentId: string, id: string) =>
 		}),
 	);
 
-it.live("recovery repairs to newest before allowing only that Session", () =>
+// why: an Agent can no longer hold two open Sessions — the durable law admits
+// one open root apiece — so the newest-wins repair this file used to prove now
+// lives at the migration boundary, against the legacy histories that can still
+// contain that state. What stays reachable through the public surface is the
+// rest of the guarantee: the Session an Agent holds is adopted, resumed, woken.
+it.live("adopts and wakes the one Session an Agent holds", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
 		const layer = Layer.merge(temporary.layer, DomainFeedsLive);
@@ -46,63 +51,30 @@ it.live("recovery repairs to newest before allowing only that Session", () =>
 			const writer = yield* Writer;
 			const current = yield* makeCurrentSessionRecovery;
 			yield* writer.write(
-				createAgent("agent-newest", null).pipe(
-					Effect.andThen(createSession("agent-newest", "session-a")),
-					Effect.andThen(createSession("agent-newest", "session-b")),
+				createAgent("agent-holding", null).pipe(
+					Effect.andThen(createSession("agent-holding", "session-held")),
 				),
 			);
 
-			expect(Option.isNone(yield* current.resumable("session-a"))).toBe(true);
-			expect(
-				Option.getOrThrow(yield* db.Agent.where({ id: "agent-newest" }).first())
-					.currentSessionId,
-			).toBe("session-b");
-			expect(
-				(yield* db.AgentSession.where({ agentId: "agent-newest" }).all()).map(
-					(session) => [session.id, session.status],
-				),
-			).toEqual([
-				["session-a", "closed"],
-				["session-b", "open"],
-			]);
-			expect(Option.isSome(yield* current.resumable("session-b"))).toBe(true);
+			expect(Option.isSome(yield* current.resumable("session-held"))).toBe(
+				true,
+			);
 			expect(
 				Option.getOrThrow(
-					yield* db.AgentSession.where({ id: "session-b" }).first(),
+					yield* db.Agent.where({ id: "agent-holding" }).first(),
+				).currentSessionId,
+			).toBe("session-held");
+			expect(
+				Option.getOrThrow(
+					yield* db.AgentSession.where({ id: "session-held" }).first(),
 				).executionStatus,
 			).toBe("idle");
-			yield* current.awaken("session-b");
+			yield* current.awaken("session-held");
 			expect(
 				Option.getOrThrow(
-					yield* db.AgentSession.where({ id: "session-b" }).first(),
+					yield* db.AgentSession.where({ id: "session-held" }).first(),
 				).executionStatus,
 			).toBe("active");
-		}).pipe(Effect.provide(layer));
-	}),
-);
-
-it.live("an explicit current Session closes newer stale history", () =>
-	Effect.gen(function* () {
-		const temporary = yield* acquireTemporaryPersistence;
-		const layer = Layer.merge(temporary.layer, DomainFeedsLive);
-		yield* Effect.gen(function* () {
-			const db = yield* Database;
-			const writer = yield* Writer;
-			const current = yield* makeCurrentSessionRecovery;
-			yield* writer.write(
-				createAgent("agent-explicit", "session-a").pipe(
-					Effect.andThen(createSession("agent-explicit", "session-a")),
-					Effect.andThen(createSession("agent-explicit", "session-b")),
-				),
-			);
-
-			expect(Option.isNone(yield* current.resumable("session-b"))).toBe(true);
-			expect(
-				Option.getOrThrow(
-					yield* db.AgentSession.where({ id: "session-b" }).first(),
-				).status,
-			).toBe("closed");
-			expect(Option.isSome(yield* current.resumable("session-a"))).toBe(true);
 		}).pipe(Effect.provide(layer));
 	}),
 );

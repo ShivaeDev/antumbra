@@ -1,9 +1,5 @@
 const SESSION_COLUMNS = `"id", "agentId", "backend", "cwd", "nativeRef", "status", "executionStatus", "charterDeliveredAt", "createdAt"`;
 
-// why: this guard runs after the recreate, so it re-selects the grown column
-// set and trips the primary key exactly like the guards before it.
-const ROOTED_SESSION_COLUMNS = `${SESSION_COLUMNS}, "outcome", "completeness", "label", "kind", "parentSessionId", "rootSessionId"`;
-
 // why: completeness is read off status, so an unknown status would be recorded
 // as unaudited truth nobody ever audited. Refuse the migration instead.
 export const REJECT_INVALID_SESSION_STATUS = `INSERT INTO "agentSession" (${SESSION_COLUMNS})
@@ -26,15 +22,35 @@ SELECT e."sessionId", e."seq", e."kind", e."payload", e."at"
 FROM "sessionEvent" e
 WHERE NOT EXISTS (SELECT 1 FROM "agentSession" s WHERE s."id" = e."sessionId")`;
 
-// why: the partial unique index makes one open root per Agent law. Prove the
-// surviving rows already honour it rather than failing inside the index.
-export const REJECT_SECOND_OPEN_ROOT = `INSERT INTO "agentSession" (${ROOTED_SESSION_COLUMNS})
-SELECT ${ROOTED_SESSION_COLUMNS}
-FROM "agentSession"
-WHERE "agentId" IN (
-  SELECT "agentId" FROM "agentSession"
-  WHERE "parentSessionId" IS NULL AND "status" = 'open'
-  GROUP BY "agentId" HAVING COUNT(*) > 1
+// why: an Agent holding several open Sessions is a state the fleet already
+// knows how to heal — boot recovery keeps the Session the Agent points at, or
+// the newest one when it points nowhere, and closes the rest. Refusing to
+// migrate such a database would strand it on the old schema over a condition
+// the product repairs on sight, so the migration performs that same repair and
+// the index becomes law afterwards. The ordering below is boot recovery's:
+// newest createdAt wins, ties broken by the larger id. Nothing is deleted —
+// the stale rows close, and the adoption step that follows records them as
+// unaudited, because nothing ever examined their completeness.
+export const CLOSE_STALE_OPEN_ROOTS = `UPDATE "agentSession" SET "status" = 'closed'
+WHERE "id" IN (
+  SELECT stale."id"
+  FROM "agentSession" stale
+  WHERE stale."parentSessionId" IS NULL AND stale."status" = 'open'
+    AND stale."id" <> COALESCE(
+      (SELECT pointed."id"
+       FROM "agent" holder
+       JOIN "agentSession" pointed ON pointed."id" = holder."currentSessionId"
+       WHERE holder."id" = stale."agentId"
+         AND pointed."agentId" = stale."agentId"
+         AND pointed."parentSessionId" IS NULL
+         AND pointed."status" = 'open'),
+      (SELECT newest."id"
+       FROM "agentSession" newest
+       WHERE newest."agentId" = stale."agentId"
+         AND newest."parentSessionId" IS NULL
+         AND newest."status" = 'open'
+       ORDER BY newest."createdAt" DESC, newest."id" DESC
+       LIMIT 1))
 )`;
 
 // why: the filter already pins status to 'open', so uniqueness over

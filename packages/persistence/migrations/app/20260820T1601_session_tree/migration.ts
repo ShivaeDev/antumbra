@@ -3,10 +3,10 @@ import type { Contract as End } from './end-contract';
 import endContract from './end-contract.json' with { type: 'json' };
 import {
   ADOPT_EXISTING_SESSIONS_AS_ROOTS,
+  CLOSE_STALE_OPEN_ROOTS,
   ONE_OPEN_ROOT_PER_AGENT,
   REJECT_INVALID_SESSION_STATUS,
   REJECT_ORPHAN_SESSION_EVENTS,
-  REJECT_SECOND_OPEN_ROOT,
 } from './guards.ts';
 import type { Contract as Start } from './start-contract';
 import startContract from './start-contract.json' with { type: 'json' };
@@ -54,6 +54,13 @@ export default class M extends Migration<Start, End> {
         this.addColumn({ table: 'agentSession', column: nullableText(column) }),
       ),
       dataTransform({
+        id: 'agentSession.tree.close-stale-open-roots',
+        label: 'Close every open root an Agent no longer holds',
+        table: 'agentSession',
+        description: 'repair Agents holding more than one open Session the way boot recovery does',
+        run: () => CLOSE_STALE_OPEN_ROOTS,
+      }),
+      dataTransform({
         id: 'agentSession.tree.adopt-existing-as-roots',
         label: 'Adopt every existing Session as its own tree root',
         table: 'agentSession',
@@ -76,13 +83,6 @@ export default class M extends Migration<Start, End> {
         tableName: 'sessionEvent',
         ...SESSION_EVENT_TABLE,
         operationClass: 'destructive',
-      }),
-      dataTransform({
-        id: 'agentSession.tree.guard-one-open-root',
-        label: 'Reject Agents holding a second open root Session',
-        table: 'agentSession',
-        description: 'fail before the index when an Agent already owns two open root Sessions',
-        run: () => REJECT_SECOND_OPEN_ROOT,
       }),
       rawSql({
         id: 'agentSession.tree.one-open-root-per-agent',

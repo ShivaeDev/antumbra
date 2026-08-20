@@ -268,6 +268,28 @@
     ]
   },
   {
+    "id": "agentSession.tree.close-stale-open-roots",
+    "label": "Close every open root an Agent no longer holds",
+    "summary": "repair Agents holding more than one open Session the way boot recovery does",
+    "operationClass": "data",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "table",
+        "name": "agentSession"
+      }
+    },
+    "precheck": [],
+    "execute": [
+      {
+        "description": "repair Agents holding more than one open Session the way boot recovery does",
+        "sql": "UPDATE \"agentSession\" SET \"status\" = 'closed'\nWHERE \"id\" IN (\n  SELECT stale.\"id\"\n  FROM \"agentSession\" stale\n  WHERE stale.\"parentSessionId\" IS NULL AND stale.\"status\" = 'open'\n    AND stale.\"id\" <> COALESCE(\n      (SELECT pointed.\"id\"\n       FROM \"agent\" holder\n       JOIN \"agentSession\" pointed ON pointed.\"id\" = holder.\"currentSessionId\"\n       WHERE holder.\"id\" = stale.\"agentId\"\n         AND pointed.\"agentId\" = stale.\"agentId\"\n         AND pointed.\"parentSessionId\" IS NULL\n         AND pointed.\"status\" = 'open'),\n      (SELECT newest.\"id\"\n       FROM \"agentSession\" newest\n       WHERE newest.\"agentId\" = stale.\"agentId\"\n         AND newest.\"parentSessionId\" IS NULL\n         AND newest.\"status\" = 'open'\n       ORDER BY newest.\"createdAt\" DESC, newest.\"id\" DESC\n       LIMIT 1))\n)"
+      }
+    ],
+    "postcheck": []
+  },
+  {
     "id": "agentSession.tree.adopt-existing-as-roots",
     "label": "Adopt every existing Session as its own tree root",
     "summary": "root each surviving Session at itself and record its unaudited completeness",
@@ -478,28 +500,6 @@
         "sql": "SELECT EXISTS (SELECT 1 FROM pragma_foreign_key_list('sessionEvent') f WHERE f.\"table\" = 'agentSession' GROUP BY f.id HAVING COUNT(*) = 1 AND SUM(CASE WHEN (f.\"from\", f.\"to\") IN (('sessionId', 'id')) THEN 1 ELSE 0 END) = 1)"
       }
     ]
-  },
-  {
-    "id": "agentSession.tree.guard-one-open-root",
-    "label": "Reject Agents holding a second open root Session",
-    "summary": "fail before the index when an Agent already owns two open root Sessions",
-    "operationClass": "data",
-    "target": {
-      "id": "sqlite",
-      "details": {
-        "schema": "main",
-        "objectType": "table",
-        "name": "agentSession"
-      }
-    },
-    "precheck": [],
-    "execute": [
-      {
-        "description": "fail before the index when an Agent already owns two open root Sessions",
-        "sql": "INSERT INTO \"agentSession\" (\"id\", \"agentId\", \"backend\", \"cwd\", \"nativeRef\", \"status\", \"executionStatus\", \"charterDeliveredAt\", \"createdAt\", \"outcome\", \"completeness\", \"label\", \"kind\", \"parentSessionId\", \"rootSessionId\")\nSELECT \"id\", \"agentId\", \"backend\", \"cwd\", \"nativeRef\", \"status\", \"executionStatus\", \"charterDeliveredAt\", \"createdAt\", \"outcome\", \"completeness\", \"label\", \"kind\", \"parentSessionId\", \"rootSessionId\"\nFROM \"agentSession\"\nWHERE \"agentId\" IN (\n  SELECT \"agentId\" FROM \"agentSession\"\n  WHERE \"parentSessionId\" IS NULL AND \"status\" = 'open'\n  GROUP BY \"agentId\" HAVING COUNT(*) > 1\n)"
-      }
-    ],
-    "postcheck": []
   },
   {
     "id": "agentSession.tree.one-open-root-per-agent",

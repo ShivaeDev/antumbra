@@ -6,7 +6,7 @@ import {
 	reefView,
 	soundings,
 } from "#fixtures/voyage.ts";
-import type { AgentSummary, SessionEvent } from "#sight.ts";
+import type { AgentSummary } from "#sight.ts";
 import type { VoyageSummary } from "#voyage-views.ts";
 
 // why: each of these is one turn of the script — the same reef a beat later,
@@ -86,18 +86,6 @@ export const shallowsSummary: VoyageSummary = {
 	name: "Sound the shallows",
 	northStar: "the shallows carry a keel",
 	state: "quiet",
-};
-
-export const laterEvent: SessionEvent = {
-	event: { _tag: "Unknown", kind: "assistant", payload: "{}" },
-	seq: 2,
-	sessionId: "session-1",
-};
-
-export const closingEvent: SessionEvent = {
-	event: { _tag: "Unknown", kind: "result", payload: "{}" },
-	seq: 3,
-	sessionId: "session-1",
 };
 
 export const checkingQuay = {

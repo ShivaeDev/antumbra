@@ -1,5 +1,6 @@
 import { Stream } from "effect";
-import { fleet, storedEvents } from "#fixtures/fleet.ts";
+import { fleet } from "#fixtures/fleet.ts";
+import { storedEvents } from "#fixtures/transcript.ts";
 import { quayView, reefSummary, reefView } from "#fixtures/voyage.ts";
 import type { QuayView } from "#quay-views.ts";
 import type { Fleet, SessionEvent } from "#sight.ts";

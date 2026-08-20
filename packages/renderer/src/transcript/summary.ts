@@ -92,9 +92,10 @@ const fromRecord = (input: Record<string, unknown>): string => {
 	return path === undefined ? oneLine(anyScalar(input) ?? "") : shortPath(path);
 };
 
-// why: backends hand the input over as either a JSON object or a bare string,
-// so both shapes collapse to the same single readable line.
-export const toolSummary = (input: string): string =>
+// why: a tool's input and a provider's raw payload both arrive as either a
+// JSON object or a bare string, and a reader wants the same thing from each —
+// one line saying what it is about, with the whole of it a disclosure away.
+export const summaryLine = (input: string): string =>
 	Option.match(decodeInput(input), {
 		onNone: () => oneLine(input),
 		onSome: fromRecord,

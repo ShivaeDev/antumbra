@@ -14,7 +14,6 @@ export {
 	ResourceReclaimRunnersLive,
 } from "#resource-reclaim-runners.ts";
 export {
-	type ResourceReclamationHealth,
 	type ResourceReconcileOptions,
 	ResourceReconciler,
 	ResourceReconcilerLive,

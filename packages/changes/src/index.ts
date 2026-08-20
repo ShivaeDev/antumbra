@@ -16,7 +16,6 @@ export {
 export {
 	ChangeIdentityCollision,
 	ChangeObservationConflict,
-	PreparedChangeInvalid,
 } from "#change-submissions/errors.ts";
 export {
 	BerthNotFound,
@@ -30,8 +29,5 @@ export { ChangeHeldResourceReadLive } from "#held-resource-read.ts";
 export {
 	changeStatus,
 	changesOfPiece,
-	type OutcomeStatus,
-	unresolvedChangeIds,
 	unresolvedChangesOfPiece,
 } from "#outcome-status.ts";
-export type { ChangeSnapshot } from "#snapshot.ts";

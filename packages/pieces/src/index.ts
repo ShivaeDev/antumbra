@@ -1,6 +1,5 @@
 export {
 	type CharterFailure,
-	type EdgeFailure,
 	EdgeWouldCycle,
 	PieceNotFound,
 	VoyageNotFound,

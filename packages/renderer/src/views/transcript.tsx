@@ -19,7 +19,7 @@ export const TranscriptView = ({
 			watchSessionEvents({ fromSeq: 0, sessionId }, onEvent, onError),
 	);
 	const items = deriveTranscript(events);
-	const { atTail, onScroll, pane, toTail } = useTail(items.length);
+	const { atTail, onScroll, pane, toTail } = useTail(events.length);
 
 	return (
 		<section className="relative flex min-w-0 flex-1 flex-col">

@@ -196,15 +196,15 @@ describe("claude frames map onto the neutral vocabulary", () => {
 		]);
 	});
 
-	// why: 'killed' is the provider's word and belongs to no vocabulary of ours.
-	// The node ends — the frame is terminal — but the outcome stays unknown and
-	// the provider's own word remains readable in raw.
-	it("ends on a terminal word it does not own without guessing which one", () => {
+	// why: a killed task was terminated by force, which this vocabulary calls
+	// interrupted — the same reading it gives a notification's 'stopped'. The
+	// provider's own word stays readable in raw either way.
+	it("reads a task killed by force as an interrupted subsession", () => {
 		const mapping = openSessionMapping();
 		mapping(started);
 		const [event] = mapping(updated(SUBSESSION, "killed"));
 		expect(event).toMatchObject({
-			outcome: "unknown",
+			outcome: "interrupted",
 			subsessionRef: SUBSESSION,
 			type: "subsession.ended",
 		});

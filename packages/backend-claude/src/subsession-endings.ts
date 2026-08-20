@@ -33,12 +33,15 @@ export const endedEvent = (raw: RawPayload, ending: Ending): AgentEvent => ({
 
 const LIVE = new Set(["paused", "pending", "running"]);
 
-// why: a terminal word this vocabulary does not own is recorded as unknown
-// rather than bent into the nearest one it does; the provider's own word stays
-// legible in raw, so nothing is lost by refusing to guess.
+// why: 'killed' is a word the provider declares for forced termination — the
+// same family as a notification's 'stopped' — so it translates to interrupted.
+// A word the provider never declared is another matter: that is recorded as
+// unknown rather than bent into the nearest one it does own, with the
+// provider's own word left legible in raw.
 const patchedOutcome = (status: string): typeof SubsessionOutcome.Type => {
 	if (status === "completed") return "completed";
-	return status === "failed" ? "failed" : "unknown";
+	if (status === "failed") return "failed";
+	return status === "killed" ? "interrupted" : "unknown";
 };
 
 // why: there is no task_completed message — a task ends by being patched out of

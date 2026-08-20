@@ -1,5 +1,5 @@
 import { BoardScope, EntryInput } from "@antumbra/boards";
-import { Database } from "@antumbra/persistence";
+import { Database, Writer } from "@antumbra/persistence";
 import { expect, it } from "@effect/vitest";
 import { Effect, Option } from "effect";
 import { AgentDomain } from "#domain.ts";
@@ -74,6 +74,7 @@ it.live("hailing a voyage brings it a captain and puts it under way", () =>
 			expect(view.state).toBe("underWay");
 			expect(Option.getOrThrow(view.captain)).toEqual({
 				agentId: hailed.agentId,
+				atWork: true,
 				status: "alive",
 			});
 
@@ -84,24 +85,69 @@ it.live("hailing a voyage brings it a captain and puts it under way", () =>
 	}),
 );
 
-it.live("a voyage whose captain is at work refuses a second hail", () =>
+it.live("a second hail reaches the captain the voyage already has", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
 		const scripted = yield* makeScriptedBackend;
 		yield* Effect.gen(function* () {
+			const db = yield* Database;
 			const domain = yield* AgentDomain;
 			const voyage = yield* openReefVoyage;
 			const hailed = yield* domain.voyages.hail(voyage.id);
 			yield* eventually(aliveAgent(hailed.agentId));
 
-			const refusal = yield* Effect.flip(domain.voyages.hail(voyage.id));
-			expect(refusal).toMatchObject({
-				_tag: "CaptainAlreadyHailed",
-				agentId: hailed.agentId,
-			});
+			const again = yield* domain.voyages.hail(voyage.id);
+			expect(again.agentId).toBe(hailed.agentId);
+			expect(
+				Option.getOrThrow(
+					yield* db.Intent.where({ id: again.intentId }).first(),
+				).tag,
+			).toBe("agent/recover");
+			expect(yield* db.Agent.all()).toHaveLength(1);
+			expect(yield* db.VoyageAgent.all()).toHaveLength(1);
 			expect(
 				yield* Effect.flip(domain.voyages.hail("no-such-voyage")),
 			).toMatchObject({ _tag: "VoyageNotFound" });
+		}).pipe(Effect.provide(domainKernelLayer(temporary, scripted.backend)));
+	}),
+);
+
+it.live("a hail is refused while the voyage's captain is being born", () =>
+	Effect.gen(function* () {
+		const temporary = yield* acquireTemporaryPersistence;
+		const scripted = yield* makeScriptedBackend;
+		yield* Effect.gen(function* () {
+			const db = yield* Database;
+			const domain = yield* AgentDomain;
+			const writer = yield* Writer;
+			const voyage = yield* openReefVoyage;
+			yield* writer.write(
+				db.Agent.create({
+					charter: "chart the reef",
+					currentSessionId: null,
+					id: "captain-newborn",
+					role: "captain",
+					status: "spawning",
+				}).pipe(
+					Effect.andThen(
+						db.VoyageAgent.create({
+							agentId: "captain-newborn",
+							role: "captain",
+							voyageId: voyage.id,
+						}),
+					),
+				),
+			);
+
+			const refusal = yield* Effect.flip(domain.voyages.hail(voyage.id));
+			expect(refusal).toMatchObject({
+				_tag: "CaptainAlreadyHailed",
+				agentId: "captain-newborn",
+			});
+			expect(refusal.message).toBe(
+				`voyage ${voyage.id} already has captain captain-newborn at work`,
+			);
+			expect(yield* db.Agent.all()).toHaveLength(1);
 		}).pipe(Effect.provide(domainKernelLayer(temporary, scripted.backend)));
 	}),
 );
@@ -151,6 +197,15 @@ it.live(
 						expect(session.executionStatus).toBe("idle");
 					}),
 				);
+
+				const sleeping = Option.getOrThrow(
+					yield* domain.voyages.read(voyage.id),
+				);
+				expect(Option.getOrThrow(sleeping.captain)).toEqual({
+					agentId: first.agentId,
+					atWork: false,
+					status: "alive",
+				});
 
 				const resumed = yield* domain.voyages.hail(voyage.id);
 				expect(resumed.agentId).toBe(first.agentId);
@@ -207,6 +262,7 @@ it.live(
 				const view = Option.getOrThrow(yield* domain.voyages.read(voyage.id));
 				expect(Option.getOrThrow(view.captain)).toEqual({
 					agentId: second.agentId,
+					atWork: true,
 					status: "alive",
 				});
 			}).pipe(Effect.provide(domainKernelLayer(temporary, scripted.backend)));

@@ -8,6 +8,7 @@ export const CAPTAIN_ROLE = "captain";
 
 export interface VoyageCaptain {
 	readonly agentId: string;
+	readonly atWork: boolean;
 	readonly status: string;
 }
 
@@ -34,8 +35,15 @@ const captains = (
 			member.role === CAPTAIN_ROLE && !isPieceAssigned(world, member.agentId),
 	);
 
-const asCaptain = (member: VoyageCrewMember): VoyageCaptain => ({
+// why: the captain a view carries answers whether a hail would be accepted,
+// and it answers with the same reading the hail itself refuses on — one truth
+// rather than a status the window has to interpret again.
+const asCaptain = (
+	world: VoyageWorld,
+	member: VoyageCrewMember,
+): VoyageCaptain => ({
 	agentId: member.agentId,
+	atWork: atWork(world, member.agentId),
 	status: member.status,
 });
 
@@ -58,7 +66,7 @@ export const captainAtWork = (
 		Option.fromUndefinedOr(
 			captains(world, voyageId).find((member) => atWork(world, member.agentId)),
 		),
-		asCaptain,
+		(member) => asCaptain(world, member),
 	);
 
 // why: a voyage may have been captained more than once, and a dormant captain
@@ -74,6 +82,6 @@ export const captainOf = (
 	}
 	return Option.map(
 		Option.fromUndefinedOr(hailedLast(world, captains(world, voyageId))),
-		asCaptain,
+		(member) => asCaptain(world, member),
 	);
 };

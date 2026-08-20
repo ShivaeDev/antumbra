@@ -74,7 +74,11 @@ export class CaptainAlreadyHailed extends Data.TaggedError(
 )<{
 	readonly agentId: string;
 	readonly voyageId: string;
-}> {}
+}> {
+	override get message(): string {
+		return `voyage ${this.voyageId} already has captain ${this.agentId} at work`;
+	}
+}
 
 export class CaptainSessionUnavailable extends Data.TaggedError(
 	"CaptainSessionUnavailable",

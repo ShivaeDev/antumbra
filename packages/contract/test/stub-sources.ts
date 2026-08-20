@@ -121,7 +121,7 @@ const chart: PieceView = {
 
 export const reefSummary: VoyageSummary = {
 	backend: "claude",
-	captain: { agentId: "agent-1", status: "alive" },
+	captain: { agentId: "agent-1", atWork: true, status: "alive" },
 	counts: { active: 1, done: 0, pieces: 2, ready: 0 },
 	focusedAt: "2026-08-15T09:00:00.000Z",
 	id: "voyage-1",

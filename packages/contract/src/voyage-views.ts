@@ -95,8 +95,12 @@ export const BoardEntryView = Schema.Struct({
 });
 export type BoardEntryView = typeof BoardEntryView.Type;
 
+// why: whether a captain is at work is the domain's own judgment — the same
+// reading that refuses a second hail — so a window offers the hail on this
+// field instead of reasoning a second time from the agent's status.
 export const VoyageCaptainView = Schema.Struct({
 	agentId: Schema.String,
+	atWork: Schema.Boolean,
 	status: Schema.String,
 });
 export type VoyageCaptainView = typeof VoyageCaptainView.Type;

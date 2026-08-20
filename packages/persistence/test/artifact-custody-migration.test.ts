@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import {
 	mkdirSync,
 	mkdtempSync,
+	readdirSync,
 	readFileSync,
 	realpathSync,
 	rmSync,
@@ -214,7 +215,7 @@ it.effect("stages idempotently across a crash before ordinary migration", () =>
 		const target = fixture();
 		yield* migrateToPredecessor(target.database);
 		installLegacyArtifact(target.database, target.artifactsRoot);
-		const preflight = { ...target, contract };
+		const preflight = { ...target };
 
 		yield* Effect.sync(() => prepareArtifactCustodyMigration(preflight));
 		expect(stageCount(target.database)).toBe(2);
@@ -233,9 +234,7 @@ it.effect("ordinary migration rejects stale or incomplete staging", () =>
 		const target = fixture();
 		yield* migrateToPredecessor(target.database);
 		installLegacyArtifact(target.database, target.artifactsRoot);
-		yield* Effect.sync(() =>
-			prepareArtifactCustodyMigration({ ...target, contract }),
-		);
+		yield* Effect.sync(() => prepareArtifactCustodyMigration({ ...target }));
 		const database = new DatabaseSync(target.database);
 		try {
 			database
@@ -259,6 +258,43 @@ it.effect("ordinary migration rejects stale or incomplete staging", () =>
 	}),
 );
 
+// why: staging was once pinned to the exact contract custody itself ends at,
+// so appending any later migration silently disabled the upgrade path for the
+// databases that still needed it. The premise worth pinning is that the chain
+// does continue past custody — without asserting it this test would quietly
+// degrade into a copy of the happy path the day custody became the tail again.
+it.effect("stages custody though the chain continues past it", () =>
+	Effect.gen(function* () {
+		expect(
+			readdirSync(join(packagedMigrationsDirectory, "app")).filter(
+				(name) => name > "20260818T1538_artifact_custody",
+			),
+		).not.toHaveLength(0);
+		const target = fixture();
+		yield* migrateToPredecessor(target.database);
+		const artifact = installLegacyArtifact(
+			target.database,
+			target.artifactsRoot,
+		);
+
+		yield* applyMigrations({
+			...target,
+			migrationsDirectory: packagedMigrationsDirectory,
+		});
+
+		const database = new DatabaseSync(target.database);
+		try {
+			expect(database.prepare(`SELECT * FROM "artifact"`).get()).toMatchObject(
+				artifact,
+			);
+		} finally {
+			database.close();
+		}
+		expect(artifactHasUri(target.database)).toBe(false);
+		expect(stageCount(target.database)).toBe(0);
+	}),
+);
+
 it.effect("requires every staged custody proof field", () =>
 	Effect.gen(function* () {
 		const requiredFields = [
@@ -276,9 +312,7 @@ it.effect("requires every staged custody proof field", () =>
 			const target = fixture();
 			yield* migrateToPredecessor(target.database);
 			installLegacyArtifact(target.database, target.artifactsRoot);
-			yield* Effect.sync(() =>
-				prepareArtifactCustodyMigration({ ...target, contract }),
-			);
+			yield* Effect.sync(() => prepareArtifactCustodyMigration({ ...target }));
 			removeStagedProof(target.database, key, field);
 
 			yield* Effect.flip(

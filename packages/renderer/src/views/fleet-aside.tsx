@@ -1,7 +1,6 @@
 import type { Fleet } from "@antumbra/contract";
 import { FleetPanel } from "#views/fleet.tsx";
-import { ReposPanel } from "#views/repos.tsx";
-import { SpawnForm } from "#views/spawn-form.tsx";
+import { FleetToolbar } from "#views/fleet-toolbar.tsx";
 
 export const FleetAside = ({
 	fleet,
@@ -15,8 +14,7 @@ export const FleetAside = ({
 	readonly selected: string | undefined;
 }) => (
 	<>
-		<ReposPanel onError={onError} repos={fleet?.repos ?? []} />
-		<SpawnForm backends={fleet?.backends ?? []} onError={onError} />
+		<FleetToolbar fleet={fleet} onError={onError} />
 		<FleetPanel
 			fleet={fleet}
 			onError={onError}

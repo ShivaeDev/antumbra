@@ -17,11 +17,9 @@ export {
 } from "#fsm.ts";
 export {
 	type AdmissionSnapshot,
-	cpuHeadroom,
 	type Gate,
 	gaugeCeiling,
 	maxConcurrency,
-	ramHeadroom,
 	settle,
 } from "#gate.ts";
 export {

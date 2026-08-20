@@ -109,7 +109,7 @@ export const reconcileObservation = (
 	hostTag: string,
 	observation: ChangeObservation,
 	now: number,
-	attachment: ObservationAttachment = { _tag: "Observed" },
+	attachment: ObservationAttachment,
 ) =>
 	Effect.gen(function* () {
 		const matches = yield* matchObservation(hostTag, observation, attachment);

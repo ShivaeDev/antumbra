@@ -126,7 +126,7 @@ const startOwner = () => {
 		});
 		yield* quitWhenAllWindowsClosed;
 		yield* ensureInstallMarker;
-		yield* openMainWindow(mainDocumentAuthority);
+		yield* openMainWindow();
 		yield* Effect.logInfo("bridge: window open");
 	});
 	return Effect.promise(() => runManagedRuntimeStartup(runtime, main));

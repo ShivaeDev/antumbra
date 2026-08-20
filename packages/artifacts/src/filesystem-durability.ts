@@ -25,10 +25,9 @@ const directoryExists = (target: string) =>
 
 const createDirectoryEntry = (target: string) =>
 	FileSystem.FileSystem.use((fs) =>
-		fs.makeDirectory(target).pipe(
-			Effect.as(true),
-			Effect.catchIf(hasReason("AlreadyExists"), () => Effect.succeed(false)),
-		),
+		fs
+			.makeDirectory(target)
+			.pipe(Effect.catchIf(hasReason("AlreadyExists"), () => Effect.void)),
 	);
 
 export const syncOpened = (target: string) =>
@@ -43,7 +42,7 @@ export const syncOpened = (target: string) =>
 export const ensureDurableDirectory = (
 	target: string,
 ): Effect.Effect<
-	boolean,
+	void,
 	ArtifactPublicationFailed | PlatformError.PlatformError,
 	FileSystem.FileSystem | Path.Path
 > =>
@@ -52,17 +51,16 @@ export const ensureDurableDirectory = (
 		const parent = path.dirname(target);
 		if (parent === target) {
 			yield* requireDirectory(target);
-			return false;
+			return;
 		}
 		if (yield* directoryExists(target)) {
 			yield* syncOpened(parent);
-			return false;
+			return;
 		}
 		if (!(yield* directoryExists(parent))) {
 			yield* ensureDurableDirectory(parent);
 		}
-		const created = yield* createDirectoryEntry(target);
+		yield* createDirectoryEntry(target);
 		yield* requireDirectory(target);
 		yield* syncOpened(parent);
-		return created;
 	});

@@ -7,14 +7,12 @@ import type {
 export type PieceAct = "launch" | "park" | "rewire" | "unpark";
 
 // why: a voyage refuses a second captain only while the first is at work, and
-// being born counts as at work — so the window offers the hail exactly when
-// this is false. A captain that has stood down is history, not an address.
-const AT_WORK: ReadonlySet<string> = new Set(["alive", "spawning"]);
-
+// the domain publishes that judgment on the view — so the window offers the
+// hail exactly when the domain would accept it, never on its own reading of
+// an agent's status.
 export const captainAtWork = (
 	captain: VoyageCaptainView | null,
-): captain is VoyageCaptainView =>
-	captain !== null && AT_WORK.has(captain.status);
+): captain is VoyageCaptainView => captain?.atWork === true;
 
 // why: a closed table rather than a chain of conditions — a piece offers the
 // verbs its derived state can accept, and a state that accepts none says so by

@@ -68,6 +68,12 @@ it.live("recovery repairs to newest before allowing only that Session", () =>
 				Option.getOrThrow(
 					yield* db.AgentSession.where({ id: "session-b" }).first(),
 				).executionStatus,
+			).toBe("idle");
+			yield* current.awaken("session-b");
+			expect(
+				Option.getOrThrow(
+					yield* db.AgentSession.where({ id: "session-b" }).first(),
+				).executionStatus,
 			).toBe("active");
 		}).pipe(Effect.provide(layer));
 	}),

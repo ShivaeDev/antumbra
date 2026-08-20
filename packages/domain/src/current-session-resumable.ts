@@ -2,7 +2,6 @@ import { Database } from "@antumbra/persistence";
 import {
 	decodeSessionExecutionStatus,
 	decodeStoredAgentStatus,
-	sessionExecutionTransition,
 } from "@antumbra/vocabulary/agent-runtime";
 import { Effect, Option, Result } from "effect";
 import {
@@ -58,26 +57,21 @@ export const makeCurrentSessionResumable = Effect.gen(function* () {
 					agent.currentSessionId ?? plan.pointers[0]?.currentSessionId ?? null,
 			};
 		});
-	const wake = (session: LoadedRows["session"], changed: boolean) =>
+	// why: a Session settling into siesta is finishing its execution rather than
+	// holding one open, so it is the one open Session a resume may not take.
+	const resumableExecution = (
+		session: LoadedRows["session"],
+		changed: boolean,
+	) =>
 		Effect.gen(function* () {
 			const execution = yield* Effect.fromResult(
 				decodeSessionExecutionStatus(session.id, session.executionStatus),
 			);
-			if (execution === "draining") {
-				return { changed, session: Option.none() };
-			}
-			if (execution === "active") {
-				return { changed, session: Option.some(session) };
-			}
-			const active = yield* Effect.fromResult(
-				sessionExecutionTransition(session.id, execution, "wake"),
-			);
-			yield* db.AgentSession.where({
-				executionStatus: "idle",
-				id: session.id,
-				status: "open",
-			}).update({ executionStatus: active });
-			return { changed: true, session: Option.some(session) };
+			return {
+				changed,
+				session:
+					execution === "draining" ? Option.none() : Option.some(session),
+			};
 		});
 	return (sessionId: string) =>
 		Effect.gen(function* () {
@@ -101,7 +95,7 @@ export const makeCurrentSessionResumable = Effect.gen(function* () {
 			}
 			const repaired = yield* applyRepair(agent, planned.success);
 			return repaired.currentSessionId === sessionId
-				? yield* wake(session, repaired.changed)
+				? yield* resumableExecution(session, repaired.changed)
 				: { changed: repaired.changed, session: Option.none() };
 		});
 });

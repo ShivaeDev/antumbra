@@ -1,4 +1,9 @@
-import type { PieceState, PieceView, VoyageState } from "@antumbra/contract";
+import type {
+	PieceState,
+	PieceView,
+	VoyageCaptainView,
+	VoyageState,
+} from "@antumbra/contract";
 
 export const voyageStateLabel: Readonly<Record<VoyageState, string>> = {
 	quiet: "quiet",
@@ -25,6 +30,12 @@ export const stateColour: Readonly<Record<PieceState, string>> = {
 	parked: "#c9a0ff",
 	ready: "#7c9cff",
 };
+
+// why: a captain that is alive but not at work is woken back into its own
+// conversation, while any other absence hails a fresh one — so the button
+// names which of the two the same act is about to do.
+export const captainCallLabel = (captain: VoyageCaptainView | null): string =>
+	captain?.status === "alive" ? "wake the captain" : "hail a captain";
 
 export const dependsOnLabel = (
 	piece: PieceView,

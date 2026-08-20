@@ -77,7 +77,7 @@ describe("changeMarks", () => {
 		expect(changeMarks(change("one", { stage: "landed" }))).toBe("✓ merged");
 	});
 
-	it("a word this build does not know shows as no mark at all", () => {
+	it("a mark the vocabulary leaves blank drops out of the line", () => {
 		expect(changeMarks(change("one", { review: "none" }))).toBe(
 			"open · ✓ · ⚓",
 		);

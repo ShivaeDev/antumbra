@@ -56,6 +56,19 @@ export const pillStyle = (colour: string): React.CSSProperties => ({
 	padding: "0 0.45rem",
 });
 
+// why: diagnostics are for the admiral who goes looking, so a chip sits a
+// shade below the muted text the row already uses and stays monospace, which
+// is how raw stored words read as raw rather than as product language.
+export const chipStyle: React.CSSProperties = {
+	border: "1px solid #2a2e35",
+	borderRadius: "3px",
+	color: "#6f757e",
+	fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace",
+	fontSize: "0.65rem",
+	padding: "0 0.3rem",
+	whiteSpace: "nowrap",
+};
+
 export const linkStyle: React.CSSProperties = {
 	color: "#7c9cff",
 	cursor: "pointer",

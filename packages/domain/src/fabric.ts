@@ -24,6 +24,7 @@ const sessionStartPermit: SessionStartPermit = {
 
 export interface SessionFabricService {
 	readonly closeStarts: Effect.Effect<void>;
+	readonly holds: (sessionId: string) => Effect.Effect<boolean>;
 	readonly interrupt: (
 		sessionId: string,
 	) => Effect.Effect<void, BackendFailure | SessionNotLive>;
@@ -73,6 +74,7 @@ export const makeSessionFabric = Effect.gen(function* () {
 		lifecycles.stop(sessionId, attachments.stop(sessionId));
 	return {
 		closeStarts: startAdmission.close,
+		holds: attachments.holds,
 		interrupt: attachments.interrupt,
 		reopenStarts: startAdmission.reopen,
 		send: attachments.send,

@@ -42,6 +42,12 @@ export {
 	SpawnRequest,
 } from "#sight.ts";
 export {
+	AgentDiagnostics,
+	FleetDiagnostics,
+	IntentDiagnostic,
+	SessionDiagnostics,
+} from "#sight-diagnostics.ts";
+export {
 	BoardEntryView,
 	ChangeView,
 	CrewMemberView,

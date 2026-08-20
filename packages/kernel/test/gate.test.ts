@@ -1,12 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { AdmissionSnapshot } from "#gate.ts";
-import {
-	cpuHeadroom,
-	gaugeCeiling,
-	maxConcurrency,
-	ramHeadroom,
-	settle,
-} from "#gate.ts";
+import { gaugeCeiling, maxConcurrency, settle } from "#gate.ts";
 
 const snapshot = (
 	partial: Partial<AdmissionSnapshot> = {},
@@ -62,12 +56,5 @@ describe("gaugeCeiling", () => {
 
 	it("never asks for a timed retry", () => {
 		expect(gaugeCeiling("x", 1).retryAfterMillis).toBeUndefined();
-	});
-});
-
-describe("headroom stubs", () => {
-	it("always admit until real measurement backends exist", () => {
-		expect(ramHeadroom().admits(snapshot({ runningCount: 1000 }))).toBe(true);
-		expect(cpuHeadroom().admits(snapshot({ runningCount: 1000 }))).toBe(true);
 	});
 });

@@ -4,19 +4,19 @@ export type {
 	PieceChangeRow,
 } from "#change-rows.ts";
 export {
-	type AdoptChangeFailure,
-	type AdoptChangeInput,
-	Changes,
-	ChangesLive,
-	type OpenChangeFailure,
-	type OpenChangeInput,
-	type SubmitChangeFailure,
-	type SubmitChangeInput,
-} from "#change-submissions/change-submissions.ts";
-export {
 	ChangeIdentityCollision,
 	ChangeObservationConflict,
 } from "#change-submissions/errors.ts";
+export { ChangesLive } from "#change-submissions/live.ts";
+export type {
+	AdoptChangeFailure,
+	AdoptChangeInput,
+	OpenChangeFailure,
+	OpenChangeInput,
+	SubmitChangeFailure,
+	SubmitChangeInput,
+} from "#change-submissions/model.ts";
+export { Changes } from "#change-submissions/service.ts";
 export {
 	BerthNotFound,
 	NoChangeHost,

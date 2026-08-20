@@ -8,8 +8,13 @@ import {
 	decodeStoredResourceReclaimState,
 } from "@antumbra/vocabulary/agent-runtime";
 import { Effect } from "effect";
+import { attributeIntents } from "#sight-diagnostics.ts";
+import type { PendingIntent } from "#sight-intents.ts";
 
-export const fleetSnapshot = (backends: ReadonlyArray<string>) =>
+export const fleetSnapshot = (
+	backends: ReadonlyArray<string>,
+	intents: ReadonlyArray<PendingIntent>,
+) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
 		const storedAgents = yield* db.Agent.orderBy((agent) =>
@@ -23,6 +28,14 @@ export const fleetSnapshot = (backends: ReadonlyArray<string>) =>
 		const sessions = yield* db.AgentSession.orderBy((session) =>
 			session.createdAt.asc(),
 		).all();
+		const pointers = new Map(
+			agents.map((agent) => [agent.id, agent.currentSessionId]),
+		);
+		const attribution = attributeIntents(
+			intents,
+			new Set(agents.map((agent) => agent.id)),
+			new Set(sessions.map((session) => session.id)),
+		);
 		const sessionSummaries = yield* Effect.forEach(sessions, (session) =>
 			Effect.all({
 				executionStatus: Effect.fromResult(
@@ -40,6 +53,11 @@ export const fleetSnapshot = (backends: ReadonlyArray<string>) =>
 						canInterrupt: running,
 						canSend: running,
 						cwd: session.cwd,
+						diag: {
+							current: pointers.get(session.agentId) === session.id,
+							execution: executionStatus,
+							intents: attribution.sessions.get(session.id) ?? [],
+						},
 						id: session.id,
 						status,
 					};
@@ -81,6 +99,10 @@ export const fleetSnapshot = (backends: ReadonlyArray<string>) =>
 					status: berth.status,
 				})),
 			charter: agent.charter,
+			diag: {
+				currentSessionId: agent.currentSessionId,
+				intents: attribution.agents.get(agent.id) ?? [],
+			},
 			id: agent.id,
 			role: agent.role,
 			sessions: sessionSummaries
@@ -90,10 +112,16 @@ export const fleetSnapshot = (backends: ReadonlyArray<string>) =>
 					canInterrupt: session.canInterrupt,
 					canSend: session.canSend,
 					cwd: session.cwd,
+					diag: session.diag,
 					id: session.id,
 					status: session.status,
 				})),
 			status: agent.status,
 		}));
-		return { agents: summaries, backends, repos } satisfies Fleet;
+		return {
+			agents: summaries,
+			backends,
+			diag: { intents: attribution.loose },
+			repos,
+		} satisfies Fleet;
 	});

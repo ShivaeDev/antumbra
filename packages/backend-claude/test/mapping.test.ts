@@ -36,14 +36,32 @@ const bashStarted: SDKMessage = {
 	uuid: "8500b49f-3cf4-4f15-9273-644688e1c207",
 };
 
-const updated = (taskId: string): SDKMessage => ({
-	patch: { end_time: 1787180346207, status: "completed" },
+type PatchStatus = NonNullable<
+	Extract<SDKMessage, { subtype: "task_updated" }>["patch"]["status"]
+>;
+
+const updated = (
+	taskId: string,
+	status: PatchStatus = "completed",
+): SDKMessage => ({
+	patch: { end_time: 1787180346207, status },
 	session_id: SESSION,
 	subtype: "task_updated",
 	task_id: taskId,
 	type: "system",
 	uuid: "c83158c1-38ad-4b69-b2f5-021106a5968b",
 });
+
+const workflowStarted: SDKMessage = {
+	description: "",
+	session_id: SESSION,
+	subtype: "task_started",
+	task_id: "cba0f4b1c2d3e4f50",
+	task_type: "local_agent",
+	tool_use_id: "toolu_01QDdKLxWhrFTnGZmv7ck2Hj",
+	type: "system",
+	uuid: "5a4b3c2d-1e0f-4a9b-8c7d-6e5f4a3b2c1d",
+};
 
 const notified: SDKMessage = {
 	output_file: `/private/tmp/claude-501/${SESSION}/tasks/${SUBSESSION}.output`,
@@ -139,16 +157,60 @@ describe("claude frames map onto the neutral vocabulary", () => {
 		]);
 	});
 
+	// why: work spawned by a workflow arrives with no description, no subagent
+	// type, and no prompt. The opening still stands; it simply says less.
+	it("says only what the frame said when the provider named nothing", () => {
+		const [event] = openSessionMapping()(workflowStarted);
+		expect(event).toEqual({
+			raw: {
+				kind: "system/task_started",
+				payload: JSON.stringify(workflowStarted),
+				source: "claude",
+			},
+			spawnedBy: "toolu_01QDdKLxWhrFTnGZmv7ck2Hj",
+			subsessionRef: "cba0f4b1c2d3e4f50",
+			type: "subsession.opened",
+		});
+	});
+
 	it("ends the subsession when its task is patched terminal", () => {
 		const mapping = openSessionMapping();
 		mapping(started);
 		expect(mapping(updated(SUBSESSION))).toMatchObject([
 			{
-				status: "completed",
+				outcome: "completed",
 				subsessionRef: SUBSESSION,
 				type: "subsession.ended",
 			},
 		]);
+	});
+
+	it("keeps a running task open and never reads a patch as an ending", () => {
+		const mapping = openSessionMapping();
+		mapping(started);
+		expect(mapping(updated(SUBSESSION, "running"))).toMatchObject([
+			{ raw: { kind: "system/task_updated" }, type: "raw" },
+		]);
+		expect(mapping(updated(SUBSESSION))).toMatchObject([
+			{ outcome: "completed", type: "subsession.ended" },
+		]);
+	});
+
+	// why: 'killed' is the provider's word and belongs to no vocabulary of ours.
+	// The node ends — the frame is terminal — but the outcome stays unknown and
+	// the provider's own word remains readable in raw.
+	it("ends on a terminal word it does not own without guessing which one", () => {
+		const mapping = openSessionMapping();
+		mapping(started);
+		const [event] = mapping(updated(SUBSESSION, "killed"));
+		expect(event).toMatchObject({
+			outcome: "unknown",
+			subsessionRef: SUBSESSION,
+			type: "subsession.ended",
+		});
+		expect(event).toMatchObject({
+			raw: { payload: JSON.stringify(updated(SUBSESSION, "killed")) },
+		});
 	});
 
 	it("leaves a shell command's completion raw, and never ends a node twice", () => {
@@ -174,7 +236,7 @@ describe("claude frames map onto the neutral vocabulary", () => {
 		expect(mapping(notified)).toMatchObject([
 			{
 				durationMs: 288529,
-				status: "completed",
+				outcome: "completed",
 				subsessionRef: SUBSESSION,
 				summary: "# Session execution cluster",
 				tokens: 75383,
@@ -190,7 +252,7 @@ describe("claude frames map onto the neutral vocabulary", () => {
 			{ ok: true, toolId: AGENT_CALL, type: "tool.completed" },
 			{
 				durationMs: 288529,
-				status: "completed",
+				outcome: "completed",
 				subsessionRef: SUBSESSION,
 				summary: "the cluster maps cleanly",
 				tokens: 75383,

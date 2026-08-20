@@ -128,8 +128,8 @@ describe("deriveTranscript", () => {
 			}),
 			row(1, {
 				durationMs: 6245,
+				outcome: "completed",
 				raw,
-				status: "completed",
 				subsessionRef: "a2b8c2a1b3d038e69",
 				tokens: 17080,
 				type: "subsession.ended",
@@ -141,6 +141,36 @@ describe("deriveTranscript", () => {
 		});
 		expect(items[1]).toMatchObject({
 			label: "subsession completed · 17080 tokens · 6.2s",
+		});
+	});
+
+	it("an opening the provider barely described still reads", () => {
+		const items = deriveTranscript([
+			row(0, {
+				raw,
+				spawnedBy: "toolu_01",
+				subsessionRef: "a2b8c2a1b3d038e69",
+				type: "subsession.opened",
+			}),
+		]);
+		expect(items[0]).toMatchObject({
+			kind: "telemetry",
+			label: "subsession opened",
+		});
+	});
+
+	it("a gap in observation is stated, not left as a silent hole", () => {
+		const items = deriveTranscript([
+			row(0, {
+				detail: "the stream detached mid-turn",
+				gapKind: "stream-detached",
+				raw,
+				type: "subsession.gap",
+			}),
+		]);
+		expect(items[0]).toMatchObject({
+			kind: "telemetry",
+			label: "subsession gap · stream-detached · the stream detached mid-turn",
 		});
 	});
 

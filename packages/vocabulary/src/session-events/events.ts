@@ -1,16 +1,14 @@
 import { Schema } from "effect";
+import { Raw, RawEvent } from "#session-events/raw.ts";
+import {
+	SubsessionEnded,
+	SubsessionGap,
+	SubsessionOpened,
+} from "#session-events/subsessions.ts";
 
 // why: the one vocabulary every side speaks — backends map their provider's
-// wire messages onto it, the log stores it, the renderer derives from it.
-// `raw` carries the provider payload verbatim on every event so the log
-// stays the wire truth while consumers stay backend-blind. This package is
-// a leaf on purpose: it must be importable by ports and views alike.
-const Raw = Schema.Struct({
-	kind: Schema.String,
-	payload: Schema.String,
-	source: Schema.String,
-});
-
+// wire messages onto it, the log stores it, the renderer derives from it. This
+// package is a leaf on purpose: it must be importable by ports and views alike.
 export const SessionOpened = Schema.Struct({
 	nativeRef: Schema.String,
 	raw: Raw,
@@ -83,44 +81,6 @@ export const TurnCompleted = Schema.Struct({
 	type: Schema.Literal("turn.completed"),
 });
 
-// why: a subsession is a nested provider conversation the session spawned
-// through a tool call — part of the session, never an Agent. The opened events
-// are the tree: one node and its parent edge, in the log, rebuildable. A
-// backend that maps one provider frame at a time cannot name parentRef, so it
-// stays optional and the edge is recovered on read by joining spawnedBy to the
-// origin of the tool.started row that spawned the node.
-export const SubsessionOpened = Schema.Struct({
-	charter: Schema.String,
-	kind: Schema.String,
-	label: Schema.String,
-	parentRef: Schema.optional(Schema.String),
-	raw: Raw,
-	spawnedBy: Schema.String,
-	subsessionRef: Schema.String,
-	type: Schema.Literal("subsession.opened"),
-});
-
-export const SubsessionStatus = Schema.Literals([
-	"completed",
-	"failed",
-	"killed",
-]);
-
-export const SubsessionEnded = Schema.Struct({
-	durationMs: Schema.optional(Schema.Number),
-	raw: Raw,
-	status: SubsessionStatus,
-	subsessionRef: Schema.String,
-	summary: Schema.optional(Schema.String),
-	tokens: Schema.optional(Schema.Number),
-	type: Schema.Literal("subsession.ended"),
-});
-
-export const RawEvent = Schema.Struct({
-	raw: Raw,
-	type: Schema.Literal("raw"),
-});
-
 export const AgentEvent = Schema.Union([
 	SessionOpened,
 	MessageEvent,
@@ -131,7 +91,7 @@ export const AgentEvent = Schema.Union([
 	TurnCompleted,
 	SubsessionOpened,
 	SubsessionEnded,
+	SubsessionGap,
 	RawEvent,
 ]);
 export type AgentEvent = typeof AgentEvent.Type;
-export type RawPayload = typeof Raw.Type;

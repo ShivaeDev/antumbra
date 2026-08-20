@@ -98,8 +98,8 @@ it("reads the subsession tree back out of the log", () => {
 	).toEqual({ _tag: "Known", event: opened });
 	const ended = {
 		durationMs: 6245,
+		outcome: "interrupted",
 		raw,
-		status: "completed",
 		subsessionRef: "a2b8c2a1b3d038e69",
 		tokens: 17080,
 		type: "subsession.ended",
@@ -107,6 +107,50 @@ it("reads the subsession tree back out of the log", () => {
 	expect(
 		projectHistoricalAgentEvent("subsession.ended", JSON.stringify(ended)),
 	).toEqual({ _tag: "Known", event: ended });
+});
+
+// why: a provider that names neither a subagent type, a description, nor a
+// recoverable charter still opened a subsession, and the log must be able to
+// say so without inventing the words it was not given.
+it("reads an opening that names nothing but the node and its spawner", () => {
+	const opened = {
+		raw,
+		spawnedBy: "toolu_01",
+		subsessionRef: "a2b8c2a1b3d038e69",
+		type: "subsession.opened",
+	} as const;
+	expect(
+		projectHistoricalAgentEvent("subsession.opened", JSON.stringify(opened)),
+	).toEqual({ _tag: "Known", event: opened });
+});
+
+it("reads a gap in observation back as the gap it was", () => {
+	const gap = {
+		detail: "the stream detached mid-turn",
+		gapKind: "stream-detached",
+		raw,
+		type: "subsession.gap",
+	} as const;
+	expect(
+		projectHistoricalAgentEvent("subsession.gap", JSON.stringify(gap)),
+	).toEqual({ _tag: "Known", event: gap });
+});
+
+// why: an end naming an outcome this vocabulary never had is exactly the case
+// the envelope exists for — the bytes stay whole and readable as evidence
+// instead of the projection failing or guessing a nearer word.
+it("keeps an end whose outcome this vocabulary does not know as raw evidence", () => {
+	const payload = JSON.stringify({
+		outcome: "killed",
+		raw,
+		subsessionRef: "a2b8c2a1b3d038e69",
+		type: "subsession.ended",
+	});
+	expect(projectHistoricalAgentEvent("subsession.ended", payload)).toEqual({
+		_tag: "Unknown",
+		kind: "subsession.ended",
+		payload,
+	});
 });
 
 it("keeps a provider RawEvent distinct from unknown historical data", () => {

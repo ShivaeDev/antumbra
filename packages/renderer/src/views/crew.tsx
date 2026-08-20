@@ -1,30 +1,37 @@
 import type { CrewMemberView } from "@antumbra/contract";
-import {
-	columnStyle,
-	ellipsisStyle,
-	headingStyle,
-	mutedStyle,
-	rowStyle,
-} from "#views/styles.ts";
+import { Badge } from "#components/ui/badge.tsx";
+import { Section, SectionHeading } from "#views/section.tsx";
 
 export const CrewPanel = ({
 	crew,
 }: {
 	readonly crew: ReadonlyArray<CrewMemberView>;
 }) => (
-	<div style={columnStyle}>
-		<h2 style={headingStyle}>crew</h2>
+	<Section>
+		<SectionHeading count={crew.length} title="Crew" />
 		{crew.length === 0 ? (
-			<span style={mutedStyle}>nobody hailed yet</span>
-		) : null}
-		{crew.map((member) => (
-			<div key={member.agentId} style={rowStyle}>
-				<strong style={ellipsisStyle} title={member.role}>
-					{member.role}
-				</strong>
-				<span style={mutedStyle}>{member.agentId.slice(0, 8)}</span>
-				<span style={mutedStyle}>{member.status}</span>
-			</div>
-		))}
-	</div>
+			<p className="text-2xs text-muted-foreground">
+				Nobody hailed yet — launching a piece brings its hand aboard
+			</p>
+		) : (
+			<ul className="flex min-w-0 flex-col gap-1">
+				{crew.map((member) => (
+					<li
+						className="flex min-w-0 items-center gap-2 text-xs"
+						key={member.agentId}
+					>
+						<span className="min-w-0 truncate font-medium" title={member.role}>
+							{member.role}
+						</span>
+						<span className="shrink-0 font-mono text-2xs text-muted-foreground">
+							{member.agentId.slice(0, 8)}
+						</span>
+						<Badge className="ml-auto" variant="outline">
+							{member.status}
+						</Badge>
+					</li>
+				))}
+			</ul>
+		)}
+	</Section>
 );

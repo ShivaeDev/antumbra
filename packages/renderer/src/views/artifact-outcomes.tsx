@@ -1,33 +1,17 @@
 import type { ArtifactMarkdown, ArtifactView } from "@antumbra/contract";
+import { ImageIcon, SquareArrowOutUpRightIcon } from "lucide-react";
 import { useState } from "react";
 import { readArtifactMarkdown } from "#adapters/trpc-voyages.ts";
 import { openWindow } from "#adapters/trpc-windows.ts";
-import { type CallState, useCall } from "#hooks/call.ts";
-import {
-	OutcomeChips,
-	type OutcomeDetail,
-	OutcomeDetailView,
-	type OutcomeRef,
-} from "#views/outcome-detail.tsx";
-import { mutedStyle, quietButtonStyle } from "#views/styles.ts";
+import { Button } from "#components/ui/button.tsx";
+import { useCall } from "#hooks/call.ts";
+import { OutcomeChips, OutcomeDetailView } from "#views/outcome-detail.tsx";
+import { detailOf, type OutcomeRef } from "#views/outcome-read.ts";
 
-// why: while the read is in flight the pane is titled by the chip that was
-// clicked; once it lands the Artifact names itself.
-const detailOf = (
-	state: CallState<ArtifactMarkdown>,
-	asked: string,
-): OutcomeDetail | undefined => {
-	if (state._tag === "idle") return undefined;
-	if (state._tag === "pending") return { _tag: "loading", title: asked };
-	if (state._tag === "failed") {
-		return { _tag: "failed", message: state.message, title: asked };
-	}
-	return {
-		_tag: "loaded",
-		markdown: state.value.markdown,
-		title: state.value.title,
-	};
-};
+const named = (artifact: ArtifactMarkdown) => ({
+	markdown: artifact.markdown,
+	title: artifact.title,
+});
 
 // why: asking twice for the same Artifact brings the window it already has
 // forward rather than minting a second one, so the control keeps being
@@ -39,13 +23,17 @@ const OpenInWindow = ({
 	readonly artifactId: string;
 	readonly onError: (message: string) => void;
 }) => (
-	<button
+	<Button
+		aria-label="Open in a window"
+		className="text-muted-foreground"
 		onClick={() => openWindow({ artifactId, role: "artifact" }, onError)}
-		style={quietButtonStyle}
+		size="icon"
+		title="Open in a window"
 		type="button"
+		variant="ghost"
 	>
-		open in a window
-	</button>
+		<SquareArrowOutUpRightIcon />
+	</Button>
 );
 
 export const ArtifactOutcomes = ({
@@ -65,24 +53,30 @@ export const ArtifactOutcomes = ({
 			readArtifactMarkdown(artifact.id, onDone, failed),
 		);
 	};
-	const detail = detailOf(read.state, asked?.title ?? "");
+	// why: the pane is titled by the chip that was clicked, but detaching a
+	// window needs the Artifact that chip named, so what was asked for is kept
+	// whole here rather than reduced to the title the shared reader wants.
+	const detail =
+		asked === undefined ? undefined : detailOf(read.state, asked.title, named);
 	const loading = detail?._tag === "loading";
 	if (current.length === 0 && history.length === 0) return null;
 	return (
 		<>
 			<OutcomeChips
 				disabled={loading}
-				icon="🖼"
+				icon={<ImageIcon />}
 				onOpen={open}
 				outcomes={current}
 			/>
 			{history.length === 0 ? null : (
 				<details>
-					<summary style={mutedStyle}>History</summary>
-					<div style={{ paddingTop: "0.35rem" }}>
+					<summary className="cursor-default text-2xs text-muted-foreground">
+						History
+					</summary>
+					<div className="pt-1.5">
 						<OutcomeChips
 							disabled={loading}
-							icon="🖼"
+							icon={<ImageIcon />}
 							onOpen={open}
 							outcomes={history}
 						/>
@@ -94,7 +88,7 @@ export const ArtifactOutcomes = ({
 					action={<OpenInWindow artifactId={asked.id} onError={onError} />}
 					detail={detail}
 					onClose={read.reset}
-					reading="reading Artifact…"
+					reading="Reading the Artifact…"
 				/>
 			)}
 		</>

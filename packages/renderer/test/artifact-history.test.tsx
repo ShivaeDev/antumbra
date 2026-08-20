@@ -175,10 +175,10 @@ it.effect("opens the Artifact on show in a window of its own", () =>
 			}),
 		);
 
-		const detach = [...container.querySelectorAll("button")].find((button) =>
-			button.textContent?.includes("open in a window"),
+		const detach = container.querySelector<HTMLButtonElement>(
+			'button[aria-label="Open in a window"]',
 		);
-		expect(detach).toBeDefined();
+		expect(detach).not.toBeNull();
 		yield* Effect.promise(() =>
 			act(() => {
 				detach?.click();

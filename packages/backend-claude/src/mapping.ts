@@ -1,9 +1,11 @@
 import type { SDKMessage } from "@anthropic-ai/claude-agent-sdk";
 import type {
 	AgentEvent,
+	Origin,
 	RawPayload,
 } from "@antumbra/vocabulary/session-events";
 import { blockEvent, contentBlocks } from "#blocks.ts";
+import { openSubsessions } from "#subsessions.ts";
 
 const SOURCE = "claude";
 
@@ -48,27 +50,67 @@ const resultEvents = (
 	];
 };
 
-// why: the domain's vocabulary is the contract; anything the SDK says that
-// has no neutral shape still lands in the log as raw, never dropped.
-export const toAgentEvents = (
-	message: SDKMessage,
+// why: attribution rides the frame itself. parent_tool_use_id names the tool
+// call that spawned the subsession this frame came from, and parent_agent_id
+// the spawner when the spawner is a subsession too. Neither absent means the
+// root session's own turn, so nothing is asserted about frames that predate
+// the field or come from a provider that does not send it.
+const originOf = (message: SDKMessage): Origin | undefined => {
+	const spawnedBy =
+		"parent_tool_use_id" in message &&
+		typeof message.parent_tool_use_id === "string"
+			? message.parent_tool_use_id
+			: undefined;
+	if (spawnedBy === undefined) {
+		return undefined;
+	}
+	return "parent_agent_id" in message &&
+		typeof message.parent_agent_id === "string"
+		? { parentNode: message.parent_agent_id, spawnedBy }
+		: { spawnedBy };
+};
+
+type ContentMessage = Extract<SDKMessage, { type: "assistant" | "user" }>;
+
+const contentEvents = (
+	raw: RawPayload,
+	message: ContentMessage,
+	lifecycle: ReadonlyArray<AgentEvent>,
 ): ReadonlyArray<AgentEvent> => {
-	const raw = rawOf(message);
-	if (message.type === "system" && message.subtype === "init") {
-		return [{ nativeRef: message.session_id, raw, type: "session.opened" }];
-	}
-	if (message.type === "system" && message.subtype === "thinking_tokens") {
-		return [];
-	}
-	if (message.type === "assistant" || message.type === "user") {
-		const role = message.type === "assistant" ? "agent" : "user";
-		const events = contentBlocks(message)
-			.map((block) => blockEvent(raw, role, block))
-			.filter((event): event is AgentEvent => event !== undefined);
-		return events.length === 0 ? [{ raw, type: "raw" }] : events;
-	}
-	if (message.type === "result") {
-		return resultEvents(raw, message);
-	}
-	return [{ raw, type: "raw" }];
+	const role = message.type === "assistant" ? "agent" : "user";
+	const origin = originOf(message);
+	const events = [
+		...contentBlocks(message)
+			.map((block) => blockEvent(raw, role, block, origin))
+			.filter((event): event is AgentEvent => event !== undefined),
+		...lifecycle,
+	];
+	return events.length === 0 ? [{ raw, type: "raw" }] : events;
+};
+
+export type SessionMapping = (message: SDKMessage) => ReadonlyArray<AgentEvent>;
+
+// why: the domain's vocabulary is the contract; anything the SDK says that
+// has no neutral shape still lands in the log as raw, never dropped. A mapping
+// is opened per session because subsession lifecycle spans frames — everything
+// else here is decided by the frame in hand.
+export const openSessionMapping = (): SessionMapping => {
+	const subsessions = openSubsessions();
+	return (message) => {
+		const raw = rawOf(message);
+		if (message.type === "system" && message.subtype === "init") {
+			return [{ nativeRef: message.session_id, raw, type: "session.opened" }];
+		}
+		if (message.type === "system" && message.subtype === "thinking_tokens") {
+			return [];
+		}
+		if (message.type === "result") {
+			return resultEvents(raw, message);
+		}
+		const lifecycle = subsessions.events(raw, message);
+		if (message.type === "assistant" || message.type === "user") {
+			return contentEvents(raw, message, lifecycle);
+		}
+		return lifecycle.length === 0 ? [{ raw, type: "raw" }] : lifecycle;
+	};
 };

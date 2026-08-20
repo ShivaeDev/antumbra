@@ -6,7 +6,7 @@ import { expect, it } from "@effect/vitest";
 import { Effect, Exit, Fiber } from "effect";
 import { InputQueue } from "#adapters/input-queue.ts";
 import { consumeSdkMessages } from "#adapters/session.ts";
-import { toAgentEvents } from "#mapping.ts";
+import { openSessionMapping } from "#mapping.ts";
 
 const message = (text: string): SDKUserMessage => ({
 	message: { content: text, role: "user" },
@@ -67,7 +67,8 @@ it.effect("words land behind the step they were handed over during", () =>
 		yield* Effect.promise(() => iterator.next());
 		yield* Fiber.join(receipt);
 		expect(delivered).toEqual([toolResult, message("steer for the reef")]);
-		expect(delivered.flatMap(toAgentEvents)).toMatchObject([
+		const mapping = openSessionMapping();
+		expect(delivered.flatMap((taken) => mapping(taken))).toMatchObject([
 			{ ok: true, output: "sounded", toolId: "tool-1", type: "tool.completed" },
 			{ role: "user", text: "steer for the reef", type: "message" },
 		]);

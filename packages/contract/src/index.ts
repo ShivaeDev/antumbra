@@ -27,6 +27,7 @@ export {
 	QuayView,
 } from "#quay-views.ts";
 export { type AppRouter, makeAppRouter } from "#router.ts";
+export { type RequestContext, RequestOrigin } from "#router-procedure.ts";
 export {
 	AgentSummary,
 	BerthSummary,
@@ -73,3 +74,11 @@ export {
 	RewireRequest,
 	VoyageSource,
 } from "#voyages.ts";
+export {
+	ConsoleMode,
+	ConsolePlace,
+	TranscriptPlace,
+	WindowPlace,
+	WindowRefused,
+	WindowSource,
+} from "#windows.ts";

@@ -18,9 +18,9 @@ export const TranscriptTool = ({ item }: { readonly item: ToolItem }) => (
 	<Disclosure
 		body={
 			<>
-				<Payload label="input" text={item.input} />
+				<Payload label="Input" text={item.input} />
 				{item.result === undefined ? null : (
-					<Payload label="result" text={item.result} />
+					<Payload label="Result" text={item.result} />
 				)}
 			</>
 		}

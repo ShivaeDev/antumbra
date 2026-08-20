@@ -29,7 +29,7 @@ export const Disclosure = ({
 					open && "rounded-b-none",
 				)}
 				onClick={() => setOpen(!open)}
-				title={open ? `hide ${subject}` : `show ${subject}`}
+				title={open ? `Hide ${subject}` : `Show ${subject}`}
 				type="button"
 			>
 				<Chevron className="size-3 shrink-0 text-muted-foreground" />

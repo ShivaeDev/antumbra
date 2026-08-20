@@ -1,21 +1,10 @@
+import { useState } from "react";
 import { watchQuay } from "#adapters/trpc-quay.ts";
+import { Button } from "#components/ui/button.tsx";
 import { useFeed } from "#hooks/feed.ts";
-import { QUAY_GROUPS, rowsIn } from "#quay/groups.ts";
-import { AdoptChangeForm } from "#views/adopt-change-form.tsx";
+import { type QuayFilter, rowsIn, shownGroups } from "#quay/groups.ts";
 import { QuayGroupPanel } from "#views/quay-group.tsx";
 import { QuayHeader } from "#views/quay-header.tsx";
-import { mutedStyle } from "#views/styles.ts";
-
-const sectionStyle: React.CSSProperties = {
-	display: "flex",
-	flex: 1,
-	flexDirection: "column",
-	gap: "1.2rem",
-	minWidth: 0,
-	overflowX: "hidden",
-	overflowY: "auto",
-	padding: "1rem 1.4rem",
-};
 
 export const QuayPanel = ({
 	onError,
@@ -23,29 +12,53 @@ export const QuayPanel = ({
 	readonly onError: (message: string) => void;
 }) => {
 	const { error: feedError, value: quay } = useFeed("quay", watchQuay);
+	const [only, setOnly] = useState<QuayFilter>("all");
 
 	if (quay === undefined) {
 		return (
-			<section style={{ color: "#8a8f98", margin: "auto" }}>
+			<section className="m-auto text-xs text-muted-foreground">
 				{feedError === undefined
 					? "taking a sight…"
 					: `feed lost: ${feedError}`}
 			</section>
 		);
 	}
+	const groups = shownGroups(only);
+	const shown = groups.reduce(
+		(total, group) => total + rowsIn(quay, group).length,
+		0,
+	);
 	return (
-		<section style={sectionStyle}>
-			{feedError === undefined ? null : (
-				<div style={{ color: "#ff7c7c" }}>feed lost: {feedError}</div>
-			)}
-			<QuayHeader hosts={quay.hosts} onError={onError} />
-			{quay.rows.length === 0 ? (
-				<span style={mutedStyle}>Nothing at the quay.</span>
-			) : null}
-			{QUAY_GROUPS.map((group) => (
-				<QuayGroupPanel group={group} key={group} rows={rowsIn(quay, group)} />
-			))}
-			<AdoptChangeForm onError={onError} pieces={quay.pieces} />
+		<section className="flex min-w-0 flex-1 flex-col bg-background font-sans text-foreground">
+			<QuayHeader onError={onError} onOnly={setOnly} only={only} view={quay} />
+			<div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto px-4 py-3">
+				{feedError === undefined ? null : (
+					<p className="text-xs text-destructive">feed lost: {feedError}</p>
+				)}
+				{quay.rows.length === 0 ? (
+					<p className="text-xs text-muted-foreground">
+						Nothing at the quay — a change shows up here once a piece opens one,
+						or once you adopt one by hand
+					</p>
+				) : null}
+				{groups.map((group) => (
+					<QuayGroupPanel
+						group={group}
+						key={group}
+						rows={rowsIn(quay, group)}
+					/>
+				))}
+				{quay.rows.length > 0 && shown === 0 ? (
+					<div className="flex flex-wrap items-center gap-2">
+						<span className="text-xs text-muted-foreground">
+							Nothing lies in that group right now
+						</span>
+						<Button onClick={() => setOnly("all")} size="sm" variant="ghost">
+							Show everything
+						</Button>
+					</div>
+				) : null}
+			</div>
 		</section>
 	);
 };

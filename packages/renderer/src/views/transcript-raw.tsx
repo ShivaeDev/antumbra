@@ -7,7 +7,7 @@ import { Disclosure, Payload } from "#views/transcript-disclosure.tsx";
 // named line and keeps every byte behind the same disclosure a call uses.
 export const TranscriptRaw = ({ item }: { readonly item: RawItem }) => (
 	<Disclosure
-		body={<Payload label="payload" text={item.payload} />}
+		body={<Payload label="Payload" text={item.payload} />}
 		name={
 			<span className="shrink-0 font-mono text-2xs text-muted-foreground">
 				{item.label}

@@ -7,3 +7,4 @@ export { makeRuntime } from "#fixtures/runtime.ts";
 export { makeScriptedFeeds, scriptedFeeds } from "#fixtures/scripted.ts";
 export { storedEvents } from "#fixtures/transcript.ts";
 export { quayView, reefSummary, reefView } from "#fixtures/voyage.ts";
+export { consoleWindow, windowFixture } from "#fixtures/window-source.ts";

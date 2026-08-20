@@ -1,13 +1,22 @@
 import { describe, expect, it } from "@effect/vitest";
+import { getTRPCErrorFromUnknown } from "@trpc/server";
 import { Effect, Stream } from "effect";
-import { fleet, info, makeRuntime, storedEvents } from "#fixtures.ts";
+import {
+	consoleWindow,
+	fleet,
+	info,
+	makeRuntime,
+	storedEvents,
+} from "#fixtures.ts";
 import { makeAppRouter } from "#index.ts";
 
 describe("makeAppRouter", () => {
 	it.effect("serves app info from the runtime's source", () =>
 		Effect.gen(function* () {
 			const runtime = makeRuntime();
-			const caller = makeAppRouter(runtime).createCaller({ senderId: 7 });
+			const caller = makeAppRouter(runtime).createCaller({
+				windowId: "console",
+			});
 			const served = yield* Effect.promise(() => caller.appInfo());
 			expect(served).toEqual(info);
 			yield* Effect.promise(() => runtime.dispose());
@@ -17,7 +26,9 @@ describe("makeAppRouter", () => {
 	it.effect("serves the fleet and event log through sight", () =>
 		Effect.gen(function* () {
 			const runtime = makeRuntime();
-			const caller = makeAppRouter(runtime).createCaller({ senderId: 7 });
+			const caller = makeAppRouter(runtime).createCaller({
+				windowId: "console",
+			});
 			const served = yield* Effect.promise(() => caller.fleet());
 			expect(served).toEqual(fleet);
 			const events = yield* Effect.promise(() =>
@@ -34,7 +45,9 @@ describe("makeAppRouter", () => {
 	it.effect("streams a subscription to completion", () =>
 		Effect.gen(function* () {
 			const runtime = makeRuntime();
-			const caller = makeAppRouter(runtime).createCaller({ senderId: 7 });
+			const caller = makeAppRouter(runtime).createCaller({
+				windowId: "console",
+			});
 			const iterable = yield* Effect.promise(() =>
 				caller.sessionEventFeed({ fromSeq: 0, sessionId: "session-1" }),
 			);
@@ -55,7 +68,9 @@ describe("makeAppRouter", () => {
 	it.effect("maps sight failures to trpc internal errors", () =>
 		Effect.gen(function* () {
 			const runtime = makeRuntime();
-			const caller = makeAppRouter(runtime).createCaller({ senderId: 7 });
+			const caller = makeAppRouter(runtime).createCaller({
+				windowId: "console",
+			});
 			const outcome = yield* Effect.tryPromise(() =>
 				caller.interruptSession({ sessionId: "ghost" }),
 			).pipe(Effect.flip);
@@ -67,7 +82,9 @@ describe("makeAppRouter", () => {
 	it.effect("carries the admiral's words to a session through sight", () =>
 		Effect.gen(function* () {
 			const runtime = makeRuntime();
-			const caller = makeAppRouter(runtime).createCaller({ senderId: 7 });
+			const caller = makeAppRouter(runtime).createCaller({
+				windowId: "console",
+			});
 			yield* Effect.promise(() =>
 				caller.sendToSession({ sessionId: "session-1", text: "come about" }),
 			);
@@ -82,7 +99,9 @@ describe("makeAppRouter", () => {
 	it.effect("spawns through sight and returns the receipt", () =>
 		Effect.gen(function* () {
 			const runtime = makeRuntime();
-			const caller = makeAppRouter(runtime).createCaller({ senderId: 7 });
+			const caller = makeAppRouter(runtime).createCaller({
+				windowId: "console",
+			});
 			const receipt = yield* Effect.promise(() =>
 				caller.spawnAgent({
 					backend: "claude",
@@ -101,7 +120,9 @@ describe("makeAppRouter", () => {
 	it.effect("registers a repo through sight and returns its summary", () =>
 		Effect.gen(function* () {
 			const runtime = makeRuntime();
-			const caller = makeAppRouter(runtime).createCaller({ senderId: 7 });
+			const caller = makeAppRouter(runtime).createCaller({
+				windowId: "console",
+			});
 			const registered = yield* Effect.promise(() =>
 				caller.registerRepo({ defaultRef: "trunk", source: "/tmp/shallows" }),
 			);
@@ -113,5 +134,28 @@ describe("makeAppRouter", () => {
 			});
 			yield* Effect.promise(() => runtime.dispose());
 		}),
+	);
+
+	// why: a window refused its request is refused, not broken — the renderer
+	// has to be able to tell a forbidden ask from a source that fell over.
+	it.effect(
+		"serves a window its place and surfaces refusals as forbidden",
+		() =>
+			Effect.gen(function* () {
+				const runtime = makeRuntime();
+				const caller = makeAppRouter(runtime).createCaller({
+					windowId: "console",
+				});
+				expect(yield* Effect.promise(() => caller.windowPlace())).toEqual(
+					consoleWindow,
+				);
+				const refused = yield* Effect.tryPromise(() =>
+					caller.openWindow(consoleWindow),
+				).pipe(Effect.flip);
+				const failure = getTRPCErrorFromUnknown(refused.cause);
+				expect(failure.code).toBe("FORBIDDEN");
+				expect(failure.message).toBe("console_is_not_a_target");
+				yield* Effect.promise(() => runtime.dispose());
+			}),
 	);
 });

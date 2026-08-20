@@ -1,14 +1,10 @@
 import type { RepoSummary } from "@antumbra/contract";
 import { useState } from "react";
 import { forgetRepo, registerRepo } from "#adapters/trpc.ts";
-import {
-	buttonStyle,
-	ellipsisStyle,
-	inputStyle,
-	mutedStyle,
-	rowStyle,
-} from "#views/styles.ts";
-import { Truncated } from "#views/truncated.tsx";
+import { Badge } from "#components/ui/badge.tsx";
+import { Button } from "#components/ui/button.tsx";
+import { Input } from "#components/ui/input.tsx";
+import { Field } from "#views/field.tsx";
 
 const RepoRow = ({
 	onError,
@@ -17,23 +13,30 @@ const RepoRow = ({
 	readonly onError: (message: string) => void;
 	readonly repo: RepoSummary;
 }) => (
-	<div style={rowStyle}>
-		<strong style={ellipsisStyle} title={repo.name}>
-			{repo.name}
-		</strong>
-		<Truncated style={mutedStyle} text={repo.source} />
-		<span style={mutedStyle}>{repo.defaultRef}</span>
-		<button
+	<div className="flex min-w-0 items-start gap-2 border-b border-border py-2 last:border-b-0">
+		<div className="flex min-w-0 flex-1 flex-col gap-0.5">
+			<div className="flex min-w-0 items-center gap-1.5">
+				<span className="min-w-0 text-xs font-medium wrap-anywhere">
+					{repo.name}
+				</span>
+				<Badge variant="outline">{repo.defaultRef}</Badge>
+			</div>
+			<span className="font-mono text-2xs text-muted-foreground wrap-anywhere">
+				{repo.source}
+			</span>
+		</div>
+		<Button
+			className="text-muted-foreground"
 			onClick={() => forgetRepo(repo.id, onError)}
-			style={buttonStyle}
-			type="button"
+			size="sm"
+			variant="ghost"
 		>
-			forget
-		</button>
+			Forget
+		</Button>
 	</div>
 );
 
-const AddRepoRow = ({
+const AddRepo = ({
 	onError,
 }: {
 	readonly onError: (message: string) => void;
@@ -44,44 +47,53 @@ const AddRepoRow = ({
 	const add = () =>
 		registerRepo({ defaultRef, source }, () => setSource(""), onError);
 	return (
-		<div style={rowStyle}>
-			<input
-				onChange={(e) => setSource(e.target.value)}
-				placeholder="source"
-				style={{ ...inputStyle, flex: 2, minWidth: 0 }}
-				value={source}
-			/>
-			<input
-				onChange={(e) => setDefaultRef(e.target.value)}
-				placeholder="ref"
-				style={{ ...inputStyle, flex: 1, minWidth: 0 }}
-				value={defaultRef}
-			/>
-			<button
-				disabled={!ready}
-				onClick={add}
-				style={{ ...buttonStyle, opacity: ready ? 1 : 0.5 }}
-				type="button"
-			>
-				add
-			</button>
+		<div className="flex items-end gap-2">
+			<div className="min-w-0 flex-1">
+				<Field label="Source">
+					<Input
+						aria-label="Source"
+						onChange={(event) => setSource(event.target.value)}
+						placeholder="path or url"
+						value={source}
+					/>
+				</Field>
+			</div>
+			<div className="w-24 shrink-0">
+				<Field label="Default ref">
+					<Input
+						aria-label="Default ref"
+						onChange={(event) => setDefaultRef(event.target.value)}
+						placeholder="main"
+						value={defaultRef}
+					/>
+				</Field>
+			</div>
+			<Button disabled={!ready} onClick={add} variant="outline">
+				Add
+			</Button>
 		</div>
 	);
 };
 
-export const ReposPanel = ({
+export const ReposList = ({
 	onError,
 	repos,
 }: {
 	readonly onError: (message: string) => void;
 	readonly repos: ReadonlyArray<RepoSummary>;
 }) => (
-	<div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
-		<h2 style={{ fontSize: "0.85rem", margin: 0 }}>repos</h2>
-		<span style={mutedStyle}>every agent is moored to all of them</span>
-		{repos.map((repo) => (
-			<RepoRow key={repo.id} onError={onError} repo={repo} />
-		))}
-		<AddRepoRow onError={onError} />
+	<div className="flex min-w-0 flex-col gap-3">
+		{repos.length === 0 ? (
+			<span className="text-xs text-muted-foreground">
+				no repositories yet — add one below
+			</span>
+		) : (
+			<div className="flex max-h-64 min-w-0 flex-col overflow-y-auto">
+				{repos.map((repo) => (
+					<RepoRow key={repo.id} onError={onError} repo={repo} />
+				))}
+			</div>
+		)}
+		<AddRepo onError={onError} />
 	</div>
 );

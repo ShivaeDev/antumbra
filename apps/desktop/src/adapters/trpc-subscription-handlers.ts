@@ -9,8 +9,8 @@ import { Result, Schema } from "effect";
 import type {
 	DocumentContents,
 	DocumentIpcEvent,
-	MainDocumentAuthority,
-} from "#adapters/main-document-authority.ts";
+	WindowRegistry,
+} from "#adapters/windows/registry.ts";
 
 const decodeSubscribe = Schema.decodeUnknownResult(SubscribeRequest);
 const decodeUnsubscribe = Schema.decodeUnknownResult(UnsubscribeRequest);
@@ -28,12 +28,13 @@ interface SubscriptionEvent extends DocumentIpcEvent {
 
 type StartSubscription = (
 	sender: SubscriptionSender,
+	windowId: string,
 	request: typeof SubscribeRequest.Type,
 	signal: AbortSignal,
 ) => Promise<void>;
 
 export const makeTrpcSubscriptionHandlers = (
-	authority: MainDocumentAuthority,
+	registry: WindowRegistry,
 	start: StartSubscription,
 ) => {
 	const bySender = new Map<number, Map<string, AbortController>>();
@@ -76,7 +77,8 @@ export const makeTrpcSubscriptionHandlers = (
 	};
 
 	const subscribe = (event: SubscriptionEvent, raw: unknown): void => {
-		if (!authority.authorizes(event)) {
+		const record = registry.owner(event);
+		if (record === undefined) {
 			return;
 		}
 		const decoded = decodeSubscribe(raw);
@@ -88,7 +90,7 @@ export const makeTrpcSubscriptionHandlers = (
 		if (controller === undefined) {
 			return;
 		}
-		void start(event.sender, request, controller.signal)
+		void start(event.sender, record.id, request, controller.signal)
 			.catch((cause: unknown) => {
 				if (!event.sender.isDestroyed()) {
 					event.sender.send(subscriptionChannel(request.id), {
@@ -106,7 +108,7 @@ export const makeTrpcSubscriptionHandlers = (
 	};
 
 	const unsubscribe = (event: SubscriptionEvent, raw: unknown): void => {
-		if (!authority.authorizes(event)) {
+		if (registry.owner(event) === undefined) {
 			return;
 		}
 		const decoded = decodeUnsubscribe(raw);

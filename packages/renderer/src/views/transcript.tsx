@@ -4,7 +4,6 @@ import { watchSessionEvents } from "#adapters/trpc.ts";
 import { Button } from "#components/ui/button.tsx";
 import { useFeedLog } from "#hooks/feed.ts";
 import { deriveTranscript } from "#transcript/derive.ts";
-import { TranscriptHeader } from "#views/transcript-header.tsx";
 import { TranscriptRow } from "#views/transcript-row.tsx";
 import { useTail } from "#views/transcript-tail.ts";
 
@@ -22,8 +21,7 @@ export const TranscriptView = ({
 	const { atTail, onScroll, pane, toTail } = useTail(events.length);
 
 	return (
-		<section className="relative flex min-w-0 flex-1 flex-col">
-			<TranscriptHeader count={items.length} sessionId={sessionId} />
+		<section className="relative flex min-h-0 min-w-0 flex-1 flex-col">
 			{feedError === undefined ? null : (
 				<div className="shrink-0 border-b border-destructive/40 bg-destructive/10 px-4 py-1.5 text-xs text-destructive">
 					feed lost: {feedError}
@@ -53,7 +51,7 @@ export const TranscriptView = ({
 					variant="secondary"
 				>
 					<ArrowDown />
-					jump to latest
+					Jump to latest
 				</Button>
 			)}
 		</section>

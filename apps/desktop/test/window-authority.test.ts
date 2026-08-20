@@ -4,6 +4,7 @@ import {
 	consolePlace,
 	contents,
 	eventFor,
+	framed,
 	handleFor,
 	ownWindow,
 	transcriptPlace,
@@ -24,11 +25,30 @@ describe("owned window registry", () => {
 		).toBeUndefined();
 		expect(registry.owner(eventFor(console.contents, null))).toBeUndefined();
 
-		console.contents.document = `${console.contents.document}?`;
+		const loaded = console.contents.document;
+		console.contents.document = `${loaded}?`;
 		expect(registry.owner(eventFor(console.contents))).toBeUndefined();
-		console.contents.document = console.contents.mainFrame.url;
+		console.contents.document = loaded;
 		console.contents.destroyed = true;
 		expect(registry.owner(eventFor(console.contents))).toBeUndefined();
+	});
+
+	// why: the frame carries its own address, and a frame that has moved while
+	// the contents still report the loaded document is the same escape.
+	it("refuses a main frame whose own url is not the owned document", () => {
+		const registry = makeWindowRegistry();
+		const document = "file:///app/console.html";
+		const drifted = framed(document, `${document}#board`);
+		registry.own({
+			contents: drifted,
+			document,
+			handle: handleFor([], "drifted"),
+			id: "drifted",
+			place: consolePlace,
+		});
+
+		expect(drifted.getURL()).toBe(document);
+		expect(registry.owner(eventFor(drifted))).toBeUndefined();
 	});
 
 	it("never lets one window's ownership answer for another", () => {

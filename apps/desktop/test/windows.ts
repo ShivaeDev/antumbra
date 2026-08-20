@@ -12,6 +12,18 @@ export interface FakeContents extends DocumentContents {
 	document: string;
 }
 
+export const framed = (document: string, frame: string): FakeContents => ({
+	destroyed: false,
+	document,
+	getURL() {
+		return this.document;
+	},
+	isDestroyed() {
+		return this.destroyed;
+	},
+	mainFrame: { url: frame },
+});
+
 export const contents = (id: string): FakeContents => {
 	const frame = { url: `file:///app/${id}.html` };
 	return {

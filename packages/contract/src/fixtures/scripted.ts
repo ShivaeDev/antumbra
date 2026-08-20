@@ -1,18 +1,21 @@
 import { type Duration, Effect, Stream } from "effect";
 import type { FixtureFeeds } from "#fixtures/feeds.ts";
-import { fleet, storedEvents } from "#fixtures/fleet.ts";
+import { fleet } from "#fixtures/fleet.ts";
 import {
 	answeredReef,
 	checkingQuay,
-	closingEvent,
 	crewedFleet,
 	landedQuay,
-	laterEvent,
 	mooredFleet,
 	shallowsSummary,
 	workingReef,
 	workingSummary,
 } from "#fixtures/scripted-turns.ts";
+import {
+	closingEvent,
+	laterEvent,
+	storedEvents,
+} from "#fixtures/transcript.ts";
 import { quayView, reefSummary, reefView } from "#fixtures/voyage.ts";
 import type { VoyageSummary } from "#voyage-views.ts";
 

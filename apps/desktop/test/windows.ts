@@ -24,20 +24,8 @@ export const framed = (document: string, frame: string): FakeContents => ({
 	mainFrame: { url: frame },
 });
 
-export const contents = (id: string): FakeContents => {
-	const frame = { url: `file:///app/${id}.html` };
-	return {
-		destroyed: false,
-		document: frame.url,
-		getURL() {
-			return this.document;
-		},
-		isDestroyed() {
-			return this.destroyed;
-		},
-		mainFrame: frame,
-	};
-};
+export const contents = (id: string): FakeContents =>
+	framed(`file:///app/${id}.html`, `file:///app/${id}.html`);
 
 export const eventFor = <Sender extends DocumentContents>(
 	sender: Sender,
@@ -68,13 +56,11 @@ export const handleFor = (
 	show: () => calls.push(`show ${name}`),
 });
 
-const silent: Array<string> = [];
-
 export const ownWindow = (
 	registry: WindowRegistry,
 	id: string,
 	place: WindowPlace,
-	handle: WindowHandle = handleFor(silent, id),
+	handle: WindowHandle = handleFor([], id),
 ): OwnedWindow & { readonly contents: FakeContents } => {
 	const sender = contents(id);
 	const record = {

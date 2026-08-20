@@ -28,6 +28,7 @@ export interface SessionAttachmentRegistry {
 		sink: EventSink,
 		admit: (attachment: SessionAttachment) => Effect.Effect<void, E, R>,
 	) => Effect.Effect<void, BackendFailure | SessionAttachmentFailure | E, R>;
+	readonly holds: (sessionId: string) => Effect.Effect<boolean>;
 	readonly interrupt: (
 		sessionId: string,
 	) => Effect.Effect<void, BackendFailure | SessionNotLive>;
@@ -131,6 +132,8 @@ export const makeSessionAttachmentRegistry = Effect.gen(function* () {
 		});
 	return {
 		attach,
+		holds: (sessionId) =>
+			Effect.map(Ref.get(entries), (current) => current.has(sessionId)),
 		interrupt: (sessionId) =>
 			liveHandle(sessionId).pipe(Effect.flatMap((handle) => handle.interrupt)),
 		send: (sessionId, text) =>

@@ -1,4 +1,5 @@
 import {
+	type AntumbraBridge,
 	type BridgeRequest,
 	type BridgeSubscribeRequest,
 	OPEN_EXTERNAL_CHANNEL,
@@ -7,6 +8,7 @@ import {
 	TRPC_CHANNEL,
 	TRPC_SUBSCRIBE_CHANNEL,
 	TRPC_UNSUBSCRIBE_CHANNEL,
+	type TrpcResponse,
 } from "@antumbra/contract/channels";
 import { contextBridge, ipcRenderer } from "electron";
 
@@ -28,5 +30,8 @@ contextBridge.exposeInMainWorld("antumbra", {
 			ipcRenderer.send(TRPC_UNSUBSCRIBE_CHANNEL, { id: request.id });
 		};
 	},
-	trpc: (request: BridgeRequest) => ipcRenderer.invoke(TRPC_CHANNEL, request),
-});
+	// why: ipcRenderer.invoke is Promise<any>, so the annotation is what stops
+	// electron's untyped reply at the boundary the renderer trusts.
+	trpc: (request: BridgeRequest): Promise<TrpcResponse> =>
+		ipcRenderer.invoke(TRPC_CHANNEL, request),
+} satisfies AntumbraBridge);

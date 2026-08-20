@@ -1,7 +1,6 @@
-import { DomainFeeds } from "@antumbra/domain-feeds";
+import { DomainFeeds, pump } from "@antumbra/domain-feeds";
 import { Database, type WriteExecutors, Writer } from "@antumbra/persistence";
 import { Clock, Context, Effect, Layer, Queue, Ref, Semaphore } from "effect";
-import { pump } from "#feed-pump.ts";
 import { HeldResourceRead } from "#held-resource-read.ts";
 import { runResourceReclaimPass } from "#resource-reclaim-pass.ts";
 import { ResourceReclaimRunners } from "#resource-reclaim-runners.ts";

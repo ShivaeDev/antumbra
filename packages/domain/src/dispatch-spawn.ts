@@ -3,7 +3,6 @@ import type { IntentStatus, IntentSubmission } from "@antumbra/kernel";
 import { Database, type WriteExecutors } from "@antumbra/persistence";
 import { Effect, Option, Queue, Stream } from "effect";
 import { composeCrewCharter } from "#charter-compose.ts";
-import type { SpawnRefused } from "#deps.ts";
 import type { ReadyPiece } from "#dispatch-policy.ts";
 import {
 	type DispatchState,
@@ -12,6 +11,7 @@ import {
 	recordSuccess,
 	releaseInFlight,
 } from "#dispatch-state.ts";
+import type { SpawnRefused } from "#kernel-reach.ts";
 import type { SpawnFields } from "#spawn-fields.ts";
 
 export interface DispatchPort {

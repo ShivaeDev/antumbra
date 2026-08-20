@@ -1,4 +1,10 @@
-import { Crypto, Effect, type FileSystem, Option } from "effect";
+import {
+	Crypto,
+	Effect,
+	type FileSystem,
+	Option,
+	type PlatformError,
+} from "effect";
 
 export const MAX_ARTIFACT_MARKDOWN_BYTES = 1_048_576;
 
@@ -54,7 +60,7 @@ export const readOpened = (
 	remaining: bigint,
 	chunks: ReadonlyArray<Uint8Array> = [],
 	length = 0,
-): Effect.Effect<Uint8Array, unknown> => {
+): Effect.Effect<Uint8Array, PlatformError.PlatformError> => {
 	if (remaining === 0n) {
 		return Effect.succeed(concatenate(chunks, length));
 	}

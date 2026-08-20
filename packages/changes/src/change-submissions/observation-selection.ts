@@ -36,11 +36,9 @@ export const matchesClaim = (
 
 const unattachedChangeId = (
 	attachment: Exclude<ObservationAttachment, { readonly _tag: "Observed" }>,
-	matches: ObservationMatches,
+	candidate: ChangeRow,
 ): string =>
-	attachment._tag === "Claimed"
-		? attachment.changeId
-		: (matches.preparedCandidates[0]?.id ?? "unclaimed");
+	attachment._tag === "Claimed" ? attachment.changeId : candidate.id;
 
 export const selectMatchedRow = (
 	matches: ObservationMatches,
@@ -67,14 +65,15 @@ export const selectMatchedRow = (
 		) {
 			return yield* observationConflict(attachment, hostTag, observation);
 		}
+		const candidate = matches.preparedCandidates[0];
 		if (
 			attachment._tag !== "Observed" &&
 			Option.isNone(matches.external) &&
 			Option.isNone(matches.prepared) &&
-			matches.preparedCandidates.length > 0
+			candidate !== undefined
 		) {
 			return yield* new ChangeObservationConflict({
-				changeId: unattachedChangeId(attachment, matches),
+				changeId: unattachedChangeId(attachment, candidate),
 				externalId: observation.externalId,
 				host: hostTag,
 			});

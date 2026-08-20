@@ -72,17 +72,6 @@ const toolAccess = (options: RawSessionOptions): Option.Option<ToolAccess> =>
 			});
 
 export const openRawSession = (options: RawSessionOptions): RawSession => {
-	const input = new InputQueue();
-	const live = query({
-		options: sessionOptions({
-			cwd: options.cwd,
-			executable: options.executable,
-			resume: options.resume,
-			tools: toolAccess(options),
-		}),
-		prompt: input.stream(),
-	});
-
 	// why: events reach consumers by push, never by awaiting the SDK iterator —
 	// a consumer waiting on the SDK's own promise cannot be shut down while the
 	// model is idle, which deadlocked session teardown. Ending is a signal;
@@ -104,6 +93,20 @@ export const openRawSession = (options: RawSessionOptions): RawSession => {
 		ended = true;
 		listener?.end();
 	};
+
+	// why: the SDK never says back what it was told, so the message the queue
+	// hands over is delivered as an event itself — one stream, one order, and
+	// the session's own words sit where the provider took them.
+	const input = new InputQueue(deliver);
+	const live = query({
+		options: sessionOptions({
+			cwd: options.cwd,
+			executable: options.executable,
+			resume: options.resume,
+			tools: toolAccess(options),
+		}),
+		prompt: input.stream(),
+	});
 	void consumeSdkMessages(live, input, deliver).finally(finish);
 
 	return {

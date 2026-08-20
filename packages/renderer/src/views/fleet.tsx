@@ -5,6 +5,11 @@ import type {
 	SessionSummary,
 } from "@antumbra/contract";
 import { interruptSession, retireAgent } from "#adapters/trpc.ts";
+import {
+	AgentDiagChips,
+	FleetDiagChips,
+	SessionDiagChips,
+} from "#views/diagnostics.tsx";
 import { buttonStyle, mutedStyle, rowStyle } from "#views/styles.ts";
 
 const BerthReclaimStatus = ({ berth }: { readonly berth: BerthSummary }) => {
@@ -51,6 +56,7 @@ const SessionRow = ({
 		</button>
 		<span style={mutedStyle}>{session.backend}</span>
 		<span style={mutedStyle}>{session.status}</span>
+		<SessionDiagChips diag={session.diag} />
 		{session.canInterrupt ? (
 			<button
 				onClick={() => interruptSession(session.id, onError)}
@@ -78,6 +84,7 @@ const AgentRow = ({
 		<div style={rowStyle}>
 			<strong>{agent.role}</strong>
 			<span style={mutedStyle}>{agent.status}</span>
+			<AgentDiagChips diag={agent.diag} />
 			{agent.status === "alive" ? (
 				<button
 					onClick={() => retireAgent(agent.id, onError)}
@@ -117,6 +124,7 @@ export const FleetPanel = ({
 	readonly selected: string | undefined;
 }) => (
 	<div style={{ display: "flex", flexDirection: "column", gap: "0.9rem" }}>
+		{fleet === undefined ? null : <FleetDiagChips diag={fleet.diag} />}
 		{(fleet?.agents ?? []).map((agent) => (
 			<AgentRow
 				agent={agent}

@@ -1,4 +1,5 @@
 import { Schema } from "effect";
+import { Origin } from "#session-events/origin.ts";
 import { Raw, RawEvent } from "#session-events/raw.ts";
 import {
 	SubsessionEnded,
@@ -14,17 +15,6 @@ export const SessionOpened = Schema.Struct({
 	raw: Raw,
 	type: Schema.Literal("session.opened"),
 });
-
-// why: work a session delegated is still the session's work, but the log must
-// not claim the session's own turn produced it. Origin rides the events a
-// subsession produced and is absent on the root session's own turns, so every
-// row written before it existed stays valid. Depth is never asserted here — it
-// is a property of the tree, walked from the opened events when read.
-export const Origin = Schema.Struct({
-	parentNode: Schema.optional(Schema.String),
-	spawnedBy: Schema.String,
-});
-export type Origin = typeof Origin.Type;
 
 export const MessageEvent = Schema.Struct({
 	origin: Schema.optional(Origin),

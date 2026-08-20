@@ -1,4 +1,5 @@
 import { Schema } from "effect";
+import { Origin } from "#session-events/origin.ts";
 import { Raw } from "#session-events/raw.ts";
 
 // why: a subsession is a nested provider conversation the session spawned
@@ -57,9 +58,14 @@ export const SubsessionGapKind = Schema.Literals([
 	"unknown",
 ]);
 
+// why: a gap observed inside a provider frame carries that frame's attribution,
+// so it is journaled where the loss happened rather than on the root that
+// happened to be listening. A gap the host observes about a node it already
+// knows needs no origin — it is written straight to that node's own journal.
 export const SubsessionGap = Schema.Struct({
 	detail: Schema.optional(Schema.String),
 	gapKind: SubsessionGapKind,
+	origin: Schema.optional(Origin),
 	raw: Raw,
 	type: Schema.Literal("subsession.gap"),
 });

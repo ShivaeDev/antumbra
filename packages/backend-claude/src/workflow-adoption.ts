@@ -47,11 +47,14 @@ const adoptedEnding = (agent: AdoptedAgent): AgentEvent => ({
 
 // why: a census that could not be taken leaves the record unable to say
 // whether it saw everything, and a session that ends looking complete when it
-// is not is the failure this whole lane exists to prevent.
+// is not is the failure this whole lane exists to prevent. The kind is the
+// escape hatch on purpose: nothing here found a missing node, the question was
+// never put, and a loss with no name of its own is written as unknown with the
+// detail saying plainly what happened rather than borrowed from a neighbour.
 export const censusGap = (failure: string): AgentEvent => ({
-	detail: `the provider's own census of this session's delegated agents could not be read: ${failure}`,
-	gapKind: "census-missing",
-	raw: claudeRaw("workflow/census-missing", { failure }),
+	detail: `subagent backfill source unreachable; this session's workflow census could not be checked: ${failure}`,
+	gapKind: "unknown",
+	raw: claudeRaw("workflow/census-unreadable", { failure }),
 	type: "subsession.gap",
 });
 

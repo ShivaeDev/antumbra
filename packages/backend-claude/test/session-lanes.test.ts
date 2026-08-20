@@ -107,3 +107,18 @@ it("an agent that spoke before it was named is named afterwards", () => {
 		{ outcome: "completed", subsessionRef: AGENT, type: "subsession.ended" },
 	]);
 });
+
+// why: a repair source that cannot be reached found no missing node — it was
+// never asked. The loss has no name of its own in this vocabulary, so it is
+// written as unknown and the detail carries what actually happened.
+it("a census that could not be taken is written down as such", () => {
+	const lanes = openSessionLanes();
+	expect(lanes.adopted({ agents: [], failure: "socket closed" })).toMatchObject(
+		[{ gapKind: "unknown", type: "subsession.gap" }],
+	);
+	const [gap] = lanes.adopted({ agents: [], failure: "socket closed" });
+	expect(gap).toHaveProperty(
+		"detail",
+		expect.stringContaining("could not be checked"),
+	);
+});

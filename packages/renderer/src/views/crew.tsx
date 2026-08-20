@@ -1,6 +1,7 @@
 import type { CrewMemberView } from "@antumbra/contract";
 import {
 	columnStyle,
+	ellipsisStyle,
 	headingStyle,
 	mutedStyle,
 	rowStyle,
@@ -18,7 +19,9 @@ export const CrewPanel = ({
 		) : null}
 		{crew.map((member) => (
 			<div key={member.agentId} style={rowStyle}>
-				<strong>{member.role}</strong>
+				<strong style={ellipsisStyle} title={member.role}>
+					{member.role}
+				</strong>
 				<span style={mutedStyle}>{member.agentId.slice(0, 8)}</span>
 				<span style={mutedStyle}>{member.status}</span>
 			</div>

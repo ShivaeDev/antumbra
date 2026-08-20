@@ -5,12 +5,19 @@ import type {
 	SessionSummary,
 } from "@antumbra/contract";
 import { interruptSession, retireAgent } from "#adapters/trpc.ts";
+import { AgentActivityChip } from "#views/agent-activity.tsx";
 import {
 	AgentDiagChips,
 	FleetDiagChips,
 	SessionDiagChips,
 } from "#views/diagnostics.tsx";
-import { buttonStyle, mutedStyle, rowStyle } from "#views/styles.ts";
+import {
+	buttonStyle,
+	ellipsisStyle,
+	mutedStyle,
+	rowStyle,
+} from "#views/styles.ts";
+import { Truncated } from "#views/truncated.tsx";
 
 const BerthReclaimStatus = ({ berth }: { readonly berth: BerthSummary }) => {
 	if (berth.reclaimState === "claimed") {
@@ -24,8 +31,9 @@ const BerthReclaimStatus = ({ berth }: { readonly berth: BerthSummary }) => {
 
 const BerthRow = ({ berth }: { readonly berth: BerthSummary }) => (
 	<div style={{ ...rowStyle, paddingLeft: "0.8rem" }}>
-		<span style={mutedStyle}>⚓ {berth.slug}</span>
-		<span style={mutedStyle}>{berth.branch}</span>
+		<span style={mutedStyle}>⚓</span>
+		<Truncated style={mutedStyle} text={berth.slug} />
+		<Truncated style={mutedStyle} text={berth.branch} />
 		<BerthReclaimStatus berth={berth} />
 	</div>
 );
@@ -82,8 +90,11 @@ const AgentRow = ({
 }) => (
 	<div>
 		<div style={rowStyle}>
-			<strong>{agent.role}</strong>
+			<strong style={ellipsisStyle} title={agent.role}>
+				{agent.role}
+			</strong>
 			<span style={mutedStyle}>{agent.status}</span>
+			<AgentActivityChip sessions={agent.sessions} />
 			<AgentDiagChips diag={agent.diag} />
 			{agent.status === "alive" ? (
 				<button

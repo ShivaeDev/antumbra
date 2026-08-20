@@ -35,6 +35,17 @@ describe("deriveTranscript", () => {
 		]);
 	});
 
+	it("drops narration with no words in it and trims what is left", () => {
+		const items = deriveTranscript([
+			message(0, "agent", "  hello, admiral  "),
+			message(1, "agent", ""),
+			row(2, { raw, text: "   ", type: "thinking" }),
+		]);
+		expect(items).toEqual([
+			{ kind: "message", role: "agent", seq: 0, text: "hello, admiral" },
+		]);
+	});
+
 	it("pairs tool.started with its tool.completed across events", () => {
 		const items = deriveTranscript([
 			row(0, {

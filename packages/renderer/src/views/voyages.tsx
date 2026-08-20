@@ -4,6 +4,7 @@ import {
 	buttonStyle,
 	cardStyle,
 	columnStyle,
+	ellipsisStyle,
 	mutedStyle,
 	pillStyle,
 	quietButtonStyle,
@@ -62,8 +63,10 @@ const VoyageRow = ({
 				onClick={() => onSelect(voyage.id)}
 				style={{
 					...quietButtonStyle,
+					...ellipsisStyle,
 					color: voyage.id === selected ? "#a48fff" : "#7c9cff",
 				}}
+				title={voyage.name}
 				type="button"
 			>
 				{voyage.name}
@@ -74,7 +77,7 @@ const VoyageRow = ({
 		</div>
 		<span style={mutedStyle}>★ {voyage.northStar}</span>
 		<span style={mutedStyle}>{countsLabel(voyage.counts)}</span>
-		<div style={rowStyle}>
+		<div style={{ ...rowStyle, flexWrap: "wrap" }}>
 			<button
 				onClick={() =>
 					focusVoyage(voyage.id, voyage.focusedAt === null, onError)

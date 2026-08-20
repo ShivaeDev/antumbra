@@ -3,10 +3,24 @@ import { useEffect, useRef, useState } from "react";
 import { watchSessionEvents } from "#adapters/trpc.ts";
 import { deriveTranscript } from "#transcript/derive.ts";
 import type { TranscriptItem } from "#transcript/model.ts";
+import { ToolEvent } from "#views/tool-event.tsx";
 
-const itemStyle: Record<TranscriptItem["kind"], React.CSSProperties> = {
-	message: { whiteSpace: "pre-wrap" },
-	raw: { color: "#8a8f98", fontFamily: "monospace", fontSize: "0.8rem" },
+const itemStyle: Record<
+	Exclude<TranscriptItem["kind"], "tool">,
+	React.CSSProperties
+> = {
+	message: { overflowWrap: "break-word", whiteSpace: "pre-wrap" },
+	// why: a provider's raw payload arrives as one unbroken line of tens of
+	// thousands of characters. It wraps and scrolls inside its own box so no
+	// single event can stretch the transcript sideways.
+	raw: {
+		color: "#8a8f98",
+		fontFamily: "monospace",
+		fontSize: "0.8rem",
+		maxHeight: "12rem",
+		overflow: "auto",
+		overflowWrap: "break-word",
+	},
 	telemetry: {
 		borderTop: "1px solid #2e323a",
 		color: "#8a8f98",
@@ -16,14 +30,8 @@ const itemStyle: Record<TranscriptItem["kind"], React.CSSProperties> = {
 	thinking: {
 		color: "#8a8f98",
 		fontStyle: "italic",
+		overflowWrap: "break-word",
 		whiteSpace: "pre-wrap",
-	},
-	tool: {
-		background: "#20242c",
-		borderRadius: "6px",
-		fontFamily: "monospace",
-		fontSize: "0.85rem",
-		padding: "0.5rem 0.7rem",
 	},
 };
 
@@ -42,20 +50,7 @@ const Item = ({ item }: { readonly item: TranscriptItem }) => {
 		return <div style={itemStyle.thinking}>{item.text}</div>;
 	}
 	if (item.kind === "tool") {
-		return (
-			<div style={itemStyle.tool}>
-				<div>
-					{item.ok === false ? "✗" : "⚙"} {item.name} {item.input}
-				</div>
-				{item.result === undefined ? null : (
-					<div style={{ color: "#8a8f98", marginTop: "0.3rem" }}>
-						{item.result.length > 600
-							? `${item.result.slice(0, 600)}…`
-							: item.result}
-					</div>
-				)}
-			</div>
-		);
+		return <ToolEvent item={item} />;
 	}
 	if (item.kind === "telemetry") {
 		return <div style={itemStyle.telemetry}>{item.label}</div>;
@@ -98,7 +93,7 @@ export const TranscriptView = ({
 				display: "flex",
 				flex: 1,
 				flexDirection: "column",
-				gap: "0.8rem",
+				gap: "0.6rem",
 				minWidth: 0,
 				overflowY: "auto",
 				padding: "1rem 1.4rem",

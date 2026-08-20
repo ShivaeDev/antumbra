@@ -22,11 +22,16 @@ const mainStyle: React.CSSProperties = {
 	height: "100vh",
 };
 
+// why: the aside is a fixed column, not a measuring stick — a long branch or
+// path inside it wraps or clips within its width instead of widening the
+// window or opening a sideways bar across the whole app.
 const asideStyle: React.CSSProperties = {
 	borderRight: "1px solid #2e323a",
 	display: "flex",
 	flexDirection: "column",
 	gap: "1.2rem",
+	minWidth: 0,
+	overflowX: "hidden",
 	overflowY: "auto",
 	padding: "1rem",
 	width: "20rem",

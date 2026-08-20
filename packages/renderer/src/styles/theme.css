@@ -1,0 +1,14 @@
+/* The renderer's single stylesheet. Source detection is switched off and the
+   scanned roots are named, so Tailwind never walks the workspace or a
+   node_modules tree looking for class names. */
+
+@import "tailwindcss" source(none);
+@import "@fontsource-variable/inter";
+@import "./tokens.css";
+@import "./bridge.css";
+@import "./base.css";
+@import "./prose.css";
+@import "./motion.css";
+
+@source "../";
+@source "../../index.html";

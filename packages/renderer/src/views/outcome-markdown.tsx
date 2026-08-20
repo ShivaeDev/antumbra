@@ -47,7 +47,10 @@ export const OutcomeMarkdownView = ({
 }: {
 	readonly markdown: string;
 }) => (
-	<div style={{ ...cardStyle, overflowX: "auto", padding: "0.8rem 1rem" }}>
+	<div
+		className="markdown"
+		style={{ ...cardStyle, overflowX: "auto", padding: "0.8rem 1rem" }}
+	>
 		<Markdown
 			components={{
 				a: ({ children, href }) =>

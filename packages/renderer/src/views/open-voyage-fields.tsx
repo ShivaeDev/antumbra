@@ -6,7 +6,8 @@ import {
 	SelectValue,
 } from "#components/ui/select.tsx";
 import { SelectItem } from "#components/ui/select-parts.tsx";
-import { FormField, textAreaClass } from "#views/form-field.tsx";
+import { Textarea } from "#components/ui/textarea.tsx";
+import { Field, LabelledField } from "#views/field.tsx";
 
 export interface VoyageDraft {
 	readonly backend: string;
@@ -53,21 +54,19 @@ const BackendField = ({
 	readonly draft: VoyageDraft;
 	readonly onChange: (draft: VoyageDraft) => void;
 }) => (
-	<FormField label="Backend">
-		{(id) => (
-			<Select
-				onValueChange={(backend) => onChange({ ...draft, backend })}
-				value={chosenBackend(backends, draft.backend)}
-			>
-				<SelectTrigger id={id}>
-					<SelectValue placeholder="Pick a backend" />
-				</SelectTrigger>
-				<SelectContent>
-					<BackendOptions backends={backends} />
-				</SelectContent>
-			</Select>
-		)}
-	</FormField>
+	<Field label="Backend">
+		<Select
+			onValueChange={(backend) => onChange({ ...draft, backend })}
+			value={chosenBackend(backends, draft.backend)}
+		>
+			<SelectTrigger aria-label="Backend">
+				<SelectValue placeholder="no backend registered" />
+			</SelectTrigger>
+			<SelectContent>
+				<BackendOptions backends={backends} />
+			</SelectContent>
+		</Select>
+	</Field>
 );
 
 export const VoyageFields = ({
@@ -80,7 +79,7 @@ export const VoyageFields = ({
 	readonly onChange: (draft: VoyageDraft) => void;
 }) => (
 	<div className="flex min-w-0 flex-col gap-3">
-		<FormField label="Name">
+		<LabelledField label="Name">
 			{(id) => (
 				<Input
 					id={id}
@@ -88,8 +87,8 @@ export const VoyageFields = ({
 					value={draft.name}
 				/>
 			)}
-		</FormField>
-		<FormField label="North star">
+		</LabelledField>
+		<LabelledField label="North star">
 			{(id) => (
 				<Input
 					id={id}
@@ -99,11 +98,10 @@ export const VoyageFields = ({
 					value={draft.northStar}
 				/>
 			)}
-		</FormField>
-		<FormField label="Context">
+		</LabelledField>
+		<LabelledField label="Context">
 			{(id) => (
-				<textarea
-					className={textAreaClass}
+				<Textarea
 					id={id}
 					onChange={(event) =>
 						onChange({ ...draft, context: event.target.value })
@@ -112,7 +110,7 @@ export const VoyageFields = ({
 					value={draft.context}
 				/>
 			)}
-		</FormField>
+		</LabelledField>
 		<BackendField backends={backends} draft={draft} onChange={onChange} />
 	</div>
 );

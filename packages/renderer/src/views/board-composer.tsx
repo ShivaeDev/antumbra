@@ -2,7 +2,8 @@ import type { BoardEntryView, BoardTarget } from "@antumbra/contract";
 import { useState } from "react";
 import { writeBoard } from "#adapters/trpc-voyages.ts";
 import { Button } from "#components/ui/button.tsx";
-import { FormField, textAreaClass } from "#views/form-field.tsx";
+import { Textarea } from "#components/ui/textarea.tsx";
+import { LabelledField } from "#views/field.tsx";
 import { boardRegisterLabel } from "#voyages/labels.ts";
 
 type Register = BoardEntryView["register"];
@@ -22,17 +23,16 @@ export const BoardComposer = ({
 		writeBoard({ body, register, scope }, () => setBody(""), onError);
 	return (
 		<div className="flex min-w-0 flex-col gap-2">
-			<FormField label="Write to the board">
+			<LabelledField label="Write to the board">
 				{(id) => (
-					<textarea
-						className={textAreaClass}
+					<Textarea
 						id={id}
 						onChange={(event) => setBody(event.target.value)}
 						rows={2}
 						value={body}
 					/>
 				)}
-			</FormField>
+			</LabelledField>
 			<div className="flex min-w-0 flex-wrap items-center gap-2">
 				<fieldset className="flex items-center gap-0.5 rounded-md border border-border p-0.5">
 					<legend className="sr-only">Register</legend>

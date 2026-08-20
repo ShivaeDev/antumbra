@@ -21,7 +21,7 @@ export const VoyagePanel = ({
 	if (voyage === undefined) {
 		return (
 			<section className="m-auto text-xs text-muted-foreground">
-				{error === undefined ? "Taking a sight…" : `Feed lost: ${error}`}
+				{error === undefined ? "taking a sight…" : `feed lost: ${error}`}
 			</section>
 		);
 	}
@@ -29,8 +29,8 @@ export const VoyagePanel = ({
 		<section className="@container flex min-h-0 min-w-0 flex-1 flex-col font-sans">
 			<VoyageHeader onError={onError} voyage={voyage} />
 			{error === undefined ? null : (
-				<p className="shrink-0 border-b border-destructive/40 bg-destructive/10 px-5 py-1.5 text-2xs text-destructive">
-					Feed lost: {error}
+				<p className="shrink-0 border-b border-destructive/40 bg-destructive/10 px-5 py-1.5 text-xs text-destructive">
+					feed lost: {error}
 				</p>
 			)}
 			{/* why: the pane scrolls the one way it was built to scroll; a long

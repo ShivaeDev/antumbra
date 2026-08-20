@@ -58,7 +58,7 @@ it("opening a voyage asks for the sidebar only once it is pressed", () => {
 
 	expect(html).toContain("Open voyage");
 	expect(html).not.toContain("North star");
-	expect(html).not.toContain("Pick a backend");
+	expect(html).not.toContain("no backend registered");
 });
 
 it("chartering a piece is offered from the heading, not spread under it", () => {

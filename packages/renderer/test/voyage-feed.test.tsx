@@ -96,7 +96,7 @@ it.effect("waits for the feed's first snapshot before drawing anything", () =>
 		yield* render(root, "voyage-1");
 
 		expect(watchVoyage).toHaveBeenCalledTimes(1);
-		expect(container.textContent).toContain("Taking a sight…");
+		expect(container.textContent).toContain("taking a sight…");
 
 		yield* push(() => opened[0]?.onVoyage(reefView));
 
@@ -132,7 +132,7 @@ it.effect("another voyage is another subscription and another picture", () =>
 		expect(unsubscribe).toHaveBeenCalledTimes(1);
 		expect(opened[1]?.voyageId).toBe("voyage-2");
 		expect(container.textContent).not.toContain("Chart the reef");
-		expect(container.textContent).toContain("Taking a sight…");
+		expect(container.textContent).toContain("taking a sight…");
 		yield* drop(root);
 	}),
 );
@@ -145,7 +145,7 @@ it.effect("says a lost feed over the last picture it was sent", () =>
 		yield* push(() => opened[0]?.onVoyage(named("Chart the reef")));
 		yield* push(() => opened[0]?.onError("the bridge closed"));
 
-		expect(container.textContent).toContain("Feed lost: the bridge closed");
+		expect(container.textContent).toContain("feed lost: the bridge closed");
 		expect(container.textContent).toContain("Chart the reef");
 		yield* drop(root);
 	}),

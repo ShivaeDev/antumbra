@@ -1,6 +1,7 @@
 import type { PieceView } from "@antumbra/contract";
 import { Input } from "#components/ui/input.tsx";
-import { FormField, textAreaClass } from "#views/form-field.tsx";
+import { Textarea } from "#components/ui/textarea.tsx";
+import { LabelledField } from "#views/field.tsx";
 import { PiecePicker, pickable } from "#views/piece-picker.tsx";
 
 export interface PieceDraft {
@@ -29,7 +30,7 @@ export const PieceFields = ({
 	readonly pieces: ReadonlyArray<PieceView>;
 }) => (
 	<div className="flex min-w-0 flex-col gap-3">
-		<FormField label="Title">
+		<LabelledField label="Title">
 			{(id) => (
 				<Input
 					id={id}
@@ -39,11 +40,10 @@ export const PieceFields = ({
 					value={draft.title}
 				/>
 			)}
-		</FormField>
-		<FormField label="Charter">
+		</LabelledField>
+		<LabelledField label="Charter">
 			{(id) => (
-				<textarea
-					className={textAreaClass}
+				<Textarea
 					id={id}
 					onChange={(event) =>
 						onChange({ ...draft, charter: event.target.value })
@@ -52,8 +52,8 @@ export const PieceFields = ({
 					value={draft.charter}
 				/>
 			)}
-		</FormField>
-		<FormField label="Expected outcome">
+		</LabelledField>
+		<LabelledField label="Expected outcome">
 			{(id) => (
 				<Input
 					id={id}
@@ -63,8 +63,8 @@ export const PieceFields = ({
 					value={draft.expectation}
 				/>
 			)}
-		</FormField>
-		<FormField label="Role">
+		</LabelledField>
+		<LabelledField label="Role">
 			{(id) => (
 				<Input
 					id={id}
@@ -72,8 +72,8 @@ export const PieceFields = ({
 					value={draft.role}
 				/>
 			)}
-		</FormField>
-		<FormField label="Depends on">
+		</LabelledField>
+		<LabelledField label="Depends on">
 			{(id) => (
 				<PiecePicker
 					chosen={draft.dependsOn}
@@ -82,6 +82,6 @@ export const PieceFields = ({
 					pieces={pickable(pieces)}
 				/>
 			)}
-		</FormField>
+		</LabelledField>
 	</div>
 );

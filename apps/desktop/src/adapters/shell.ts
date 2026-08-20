@@ -1,17 +1,50 @@
 import { mkdirSync } from "node:fs";
-import { join } from "node:path";
-import { Effect } from "effect";
+import { isAbsolute, join } from "node:path";
+import { Config, Effect } from "effect";
 import { app, BrowserWindow } from "electron";
 import { registerGracefulShutdown } from "#adapters/graceful-shutdown.ts";
 import { openMainWindow } from "#adapters/main-window.ts";
 
+export const DEV_USER_DATA_VARIABLE = "ANTUMBRA_DEV_USER_DATA";
+
 export const whenReady = Effect.promise(() => app.whenReady());
+
+interface DataDirectoryInput {
+	readonly appData: string;
+	readonly devOverride: string | undefined;
+	readonly isPackaged: boolean;
+}
 
 // why: dev and packaged runs must never share a data directory — a dev
 // session migrating ahead of the installed app would corrupt real state.
+// The override lets several dev instances hold separate state (Electron
+// scopes the single-instance lock per userData path); a packaged build
+// ignores it unconditionally, whatever the environment says. A set but
+// relative value is refused rather than resolved, because a directory that
+// depends on the working directory is the collision this exists to prevent.
+export const selectDataDirectory = (input: DataDirectoryInput): string => {
+	if (input.isPackaged) {
+		return join(input.appData, "Antumbra");
+	}
+	if (input.devOverride === undefined || input.devOverride === "") {
+		return join(input.appData, "Antumbra-Dev");
+	}
+	if (!isAbsolute(input.devOverride)) {
+		throw new Error(`${DEV_USER_DATA_VARIABLE} must be an absolute path`);
+	}
+	return input.devOverride;
+};
+
+const devUserDataOverride = Config.string(DEV_USER_DATA_VARIABLE).pipe(
+	Config.withDefault(""),
+);
+
 export const configureDataDirectory = (): string => {
-	const scope = app.isPackaged ? "Antumbra" : "Antumbra-Dev";
-	const directory = join(app.getPath("appData"), scope);
+	const directory = selectDataDirectory({
+		appData: app.getPath("appData"),
+		devOverride: Effect.runSync(devUserDataOverride),
+		isPackaged: app.isPackaged,
+	});
 	app.setPath("userData", directory);
 	mkdirSync(directory, { recursive: true });
 	return directory;
@@ -66,7 +99,7 @@ interface OwnedWindows {
 	readonly getAllWindows: () => ReadonlyArray<OwnedWindow>;
 }
 
-const focusOrOpenOwnedWindow = (windows: OwnedWindows) =>
+export const focusOrOpenOwnedWindow = (windows: OwnedWindows) =>
 	Effect.gen(function* () {
 		const window = windows.getAllWindows()[0];
 		if (window === undefined) {

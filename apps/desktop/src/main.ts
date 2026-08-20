@@ -45,6 +45,7 @@ import {
 	runnerRootsInDataDirectory,
 	whenReady,
 } from "#adapters/shell.ts";
+import { fleetTray } from "#adapters/tray.ts";
 import { registerTrpcBridge } from "#adapters/trpc-bridge.ts";
 import { registerTrpcSubscriptions } from "#adapters/trpc-subscriptions.ts";
 
@@ -127,6 +128,11 @@ const startOwner = () => {
 		yield* quitWhenAllWindowsClosed;
 		yield* ensureInstallMarker;
 		yield* openMainWindow();
+		// why: the tray watches the fleet long after startup returns, so it runs
+		// as its own root fiber on the runtime. Every fiber the runtime starts is
+		// registered in the runtime's scope, so disposing it during the quit drain
+		// interrupts the feed subscription and destroys the icon with it.
+		yield* Effect.sync(() => runtime.runFork(fleetTray));
 		yield* Effect.logInfo("bridge: window open");
 	});
 	return Effect.promise(() => runManagedRuntimeStartup(runtime, main));

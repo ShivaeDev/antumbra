@@ -51,6 +51,7 @@ Owner: [Changes and delivery](docs/design/changes-and-delivery.md)
 Owner: [Agent identity, resources, and recovery](docs/design/agent-recovery.md)
 
 - [**Agent**](docs/design/agent-recovery.md#three-truths-three-lifecycles) — a durable identity and responsibility, not a process or provider conversation.
+- [**Subsession**](docs/design/agent-recovery.md#activity-observation-and-delivery) — a nested provider conversation a session spawns through a tool call; part of the session's own record, forming a tree, and never an Agent.
 - [**Hail**](docs/design/agent-recovery.md#hailing-an-agent) — address an Agent by resuming it or establishing its execution context.
 - [**Moorage**](docs/design/agent-recovery.md#provisioning-and-resource-topology) — an Agent's current replaceable resource home.
 - [**Berth**](docs/design/agent-recovery.md#provisioning-and-resource-topology) — one repository worktree inside a Moorage.

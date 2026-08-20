@@ -88,7 +88,18 @@ The durable Session event sequence is the UI and audit source. Each observer
 subscribes to post-write publication before reading the log, then deduplicates
 by sequence as live events arrive. That ordering closes the read/subscription
 gap. Its neutral vocabulary covers opening, messages, thinking, tool start and
-completion, usage, provider-turn telemetry, and raw evidence. The transcript
+completion, usage, provider-turn telemetry, subsession opening and ending, and
+raw evidence.
+
+A **subsession** is a nested provider conversation a Session spawns through a
+tool call. It is part of that Session's own record and never an Agent: it has
+no durable identity, is never addressed directly, and dissolves when it
+returns. Every event names the node that produced it, so one Session reads as
+a tree whose root is the Session itself, and the opening events carry the
+tree's edges. Delegated work stays the Session's work, but the log says who
+actually did it.
+
+The transcript
 accumulates messages, pairs tool lifecycle events, and renders usage and turn
 events as visual rhythm rather than domain boundaries. Unknown kinds and
 provider payloads remain visible as raw evidence instead of taking the

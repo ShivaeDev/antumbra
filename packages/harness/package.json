@@ -1,0 +1,38 @@
+{
+	"name": "@antumbra/harness",
+	"version": "0.0.0",
+	"private": true,
+	"type": "module",
+	"exports": {
+		".": "./src/index.ts"
+	},
+	"imports": {
+		"#script/*": "./script/*",
+		"#*": "./src/*"
+	},
+	"scripts": {
+		"dev": "node script/dev.ts",
+		"test": "vitest run --passWithNoTests",
+		"typecheck": "tsc --noEmit",
+		"typecheck:compat": "tsc6 --noEmit"
+	},
+	"devDependencies": {
+		"@effect/vitest": "catalog:",
+		"@types/node": "catalog:",
+		"@types/react": "catalog:",
+		"@types/react-dom": "catalog:",
+		"@typescript/native": "catalog:",
+		"@vitejs/plugin-react": "catalog:",
+		"typescript": "catalog:",
+		"vite": "catalog:",
+		"vitest": "catalog:"
+	},
+	"dependencies": {
+		"@antumbra/contract": "workspace:*",
+		"@antumbra/renderer": "workspace:*",
+		"@trpc/server": "catalog:",
+		"effect": "catalog:",
+		"react": "catalog:",
+		"react-dom": "catalog:"
+	}
+}

@@ -74,6 +74,10 @@ export type { QuayPiece, QuayReading, QuayRow } from "#quay-view.ts";
 export type { RetireFields } from "#retire.ts";
 export { drainActiveSessions } from "#session-shutdown.ts";
 export { SessionShutdownLive } from "#session-shutdown-live.ts";
+export {
+	assembleSessionTree,
+	type SessionTreeRow,
+} from "#session-tree-view.ts";
 export { SightSourceLive } from "#sight.ts";
 export type { SpawnFields } from "#spawn.ts";
 export type { VoyageRow, VoyageWorld } from "#voyage-rows.ts";

@@ -1,4 +1,4 @@
-import type { SessionEvent } from "@antumbra/contract";
+import type { SessionEvent, SessionTreeNode } from "@antumbra/contract";
 import type { AgentEvent } from "@antumbra/vocabulary/session-events";
 import { describe, expect, it } from "vitest";
 import { deriveTranscript } from "#transcript/derive.ts";
@@ -10,6 +10,41 @@ const row = (seq: number, event: AgentEvent): SessionEvent => ({
 	seq,
 	sessionId: "session-1",
 });
+
+const SUBSESSION = "a2b8c2a1b3d038e69";
+
+// why: the tree names the node, so a marker in the parent's transcript wears
+// the tree's name rather than whatever the frame happened to say — the two
+// have to agree about one node, and the tree is the one that read the record.
+const child: SessionTreeNode = {
+	completeness: "complete",
+	depth: 1,
+	displayName: "Map the quay grouping",
+	id: "session-child",
+	nativeRef: SUBSESSION,
+	outcome: "completed",
+	status: "closed",
+};
+
+const delegated: ReadonlyArray<SessionEvent> = [
+	row(0, {
+		charter: "read the cluster",
+		kind: "Explore",
+		label: "Map session execution",
+		raw,
+		spawnedBy: "toolu_01",
+		subsessionRef: SUBSESSION,
+		type: "subsession.opened",
+	}),
+	row(1, {
+		durationMs: 6245,
+		outcome: "completed",
+		raw,
+		subsessionRef: SUBSESSION,
+		tokens: 17080,
+		type: "subsession.ended",
+	}),
+];
 
 const message = (seq: number, role: "agent" | "user", text: string) =>
 	row(seq, { raw, role, text, type: "message" });
@@ -115,36 +150,50 @@ describe("deriveTranscript", () => {
 		expect(items[3]).toMatchObject({ label: "turn interrupted · 2.3s" });
 	});
 
-	it("a subsession opening and ending reads as telemetry around its work", () => {
-		const items = deriveTranscript([
-			row(0, {
-				charter: "read the cluster",
-				kind: "Explore",
-				label: "Map session execution",
-				raw,
-				spawnedBy: "toolu_01",
-				subsessionRef: "a2b8c2a1b3d038e69",
-				type: "subsession.opened",
-			}),
-			row(1, {
-				durationMs: 6245,
+	it("delegation marks the spot the work left and points at the node holding it", () => {
+		const items = deriveTranscript(delegated, [child]);
+		expect(items).toEqual([
+			{
+				displayName: "Map the quay grouping",
+				kind: "delegation",
+				nodeId: "session-child",
+				outcome: undefined,
+				seq: 0,
+				state: "opened",
+			},
+			{
+				displayName: "Map the quay grouping",
+				kind: "delegation",
+				nodeId: "session-child",
 				outcome: "completed",
-				raw,
-				subsessionRef: "a2b8c2a1b3d038e69",
-				tokens: 17080,
-				type: "subsession.ended",
-			}),
+				seq: 1,
+				state: "ended",
+			},
 		]);
-		expect(items.map((item) => item.kind)).toEqual(["telemetry", "telemetry"]);
-		expect(items[0]).toMatchObject({
-			label: "subsession opened · Explore · Map session execution",
-		});
-		expect(items[1]).toMatchObject({
-			label: "subsession completed · 17080 tokens · 6.2s",
-		});
 	});
 
-	it("an opening the provider barely described still reads", () => {
+	it("a marker with no tree behind it still says what was handed off", () => {
+		expect(deriveTranscript(delegated)).toEqual([
+			{
+				displayName: "Map session execution",
+				kind: "delegation",
+				nodeId: undefined,
+				outcome: undefined,
+				seq: 0,
+				state: "opened",
+			},
+			{
+				displayName: "Unnamed Subagent",
+				kind: "delegation",
+				nodeId: undefined,
+				outcome: "completed",
+				seq: 1,
+				state: "ended",
+			},
+		]);
+	});
+
+	it("an opening the provider barely described is named outright", () => {
 		const items = deriveTranscript([
 			row(0, {
 				raw,
@@ -154,23 +203,25 @@ describe("deriveTranscript", () => {
 			}),
 		]);
 		expect(items[0]).toMatchObject({
-			kind: "telemetry",
-			label: "subsession opened",
+			displayName: "Unnamed Subagent",
+			kind: "delegation",
 		});
 	});
 
-	it("a gap in observation is stated, not left as a silent hole", () => {
+	it("a gap in observation is a notice in plain words, never an error", () => {
 		const items = deriveTranscript([
 			row(0, {
-				detail: "the stream detached mid-turn",
+				detail: "the stream detached 4200ms after this node opened",
 				gapKind: "stream-detached",
 				raw,
 				type: "subsession.gap",
 			}),
 		]);
-		expect(items[0]).toMatchObject({
-			kind: "telemetry",
-			label: "subsession gap · stream-detached · the stream detached mid-turn",
+		expect(items[0]).toEqual({
+			detail: "the stream detached 4200ms after this node opened",
+			kind: "notice",
+			seq: 0,
+			title: "the stream stopped before this work reported an ending",
 		});
 	});
 

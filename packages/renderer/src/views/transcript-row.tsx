@@ -1,5 +1,6 @@
 import { Separator } from "#components/ui/separator.tsx";
-import type { TranscriptItem } from "#transcript/model.ts";
+import type { TranscriptItem, TranscriptNotice } from "#transcript/model.ts";
+import { TranscriptDelegationMark } from "#views/transcript-delegation.tsx";
 import {
 	TranscriptMessage,
 	TranscriptThought,
@@ -35,7 +36,25 @@ const Telemetry = ({ label }: { readonly label: string }) => (
 	</div>
 );
 
-export const TranscriptRow = ({ item }: { readonly item: TranscriptItem }) => {
+// why: a gap says what this record did not see. It is set in the same muted
+// register as the rest of the margin, because nothing here broke and colouring
+// it would send the reader hunting for a fault.
+const Notice = ({ item }: { readonly item: TranscriptNotice }) => (
+	<div className="min-w-0 text-2xs text-muted-foreground">
+		<p>{item.title}</p>
+		{item.detail === undefined ? null : (
+			<p className="text-muted-foreground/80">{item.detail}</p>
+		)}
+	</div>
+);
+
+export const TranscriptRow = ({
+	item,
+	onOpenNode,
+}: {
+	readonly item: TranscriptItem;
+	readonly onOpenNode?: ((nodeId: string) => void) | undefined;
+}) => {
 	if (item.kind === "message") {
 		return (
 			<Gutter label={item.role}>
@@ -54,6 +73,16 @@ export const TranscriptRow = ({ item }: { readonly item: TranscriptItem }) => {
 		return (
 			<Gutter label="tool">
 				<TranscriptTool item={item} />
+			</Gutter>
+		);
+	}
+	if (item.kind === "delegation") {
+		return <TranscriptDelegationMark item={item} onOpenNode={onOpenNode} />;
+	}
+	if (item.kind === "notice") {
+		return (
+			<Gutter label="gap">
+				<Notice item={item} />
 			</Gutter>
 		);
 	}

@@ -5,6 +5,7 @@ import type {
 	RepoRegistration,
 	RepoSummary,
 	SessionEvent,
+	SessionTree,
 	SpawnReceipt,
 	SpawnRequest,
 } from "@antumbra/contract";
@@ -43,6 +44,21 @@ export const watchSessionEvents = (
 		onData: onEvent,
 		onError: (cause) => onError(toError(cause).message),
 	});
+	return () => subscription.unsubscribe();
+};
+
+export const watchSessionTree = (
+	rootSessionId: string,
+	onTree: (tree: SessionTree) => void,
+	onError: (message: string) => void,
+): Unsubscribe => {
+	const subscription = client.sessionTreeFeed.subscribe(
+		{ rootSessionId },
+		{
+			onData: onTree,
+			onError: (cause) => onError(toError(cause).message),
+		},
+	);
 	return () => subscription.unsubscribe();
 };
 

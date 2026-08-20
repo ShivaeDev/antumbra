@@ -10,6 +10,7 @@ import { toFailure } from "#sight-failure.ts";
 import { fleetSnapshot } from "#sight-fleet.ts";
 import { pendingIntents } from "#sight-intents.ts";
 import { makeSightSessionEvents } from "#sight-session-events.ts";
+import { makeSightSessionTree } from "#sight-session-tree.ts";
 
 export const SightSourceLive = Layer.effect(SightSource)(
 	Effect.gen(function* () {
@@ -20,6 +21,7 @@ export const SightSourceLive = Layer.effect(SightSource)(
 		const provide = yield* writeProvider;
 		const acts = yield* makeSightActs;
 		const events = yield* makeSightSessionEvents;
+		const tree = yield* makeSightSessionTree;
 
 		const fleet = pendingIntents.pipe(
 			Effect.provideService(AgentDomain, domain),
@@ -40,6 +42,6 @@ export const SightSourceLive = Layer.effect(SightSource)(
 			}),
 		);
 
-		return { ...acts, ...events, fleet, fleetFeed };
+		return { ...acts, ...events, ...tree, fleet, fleetFeed };
 	}),
 );

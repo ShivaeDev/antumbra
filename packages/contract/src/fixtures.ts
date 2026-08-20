@@ -5,6 +5,7 @@ export { type FixtureFeeds, staticFeeds } from "#fixtures/feeds.ts";
 export { fleet, info } from "#fixtures/fleet.ts";
 export { makeRuntime } from "#fixtures/runtime.ts";
 export { makeScriptedFeeds, scriptedFeeds } from "#fixtures/scripted.ts";
+export { sessionTree } from "#fixtures/session-tree.ts";
 export { storedEvents } from "#fixtures/transcript.ts";
 export { quayView, reefSummary, reefView } from "#fixtures/voyage.ts";
 export { consoleWindow, windowFixture } from "#fixtures/window-source.ts";

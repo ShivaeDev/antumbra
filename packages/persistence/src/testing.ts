@@ -9,6 +9,13 @@ import { Database } from "#database.ts";
 import { PersistenceLive } from "#layer.ts";
 
 export { rejectTestOutcomeLinks } from "#testing/outcome-links.ts";
+export {
+	allowTestChangeUpdates,
+	allowTestSessionOpenedWrites,
+	rejectTestChangeUpdates,
+	rejectTestSessionMessageWrites,
+	rejectTestSessionOpenedWrites,
+} from "#testing/refusals.ts";
 
 export const corruptTestArtifactPiece = (
 	databasePath: DatabaseFilePath,
@@ -87,57 +94,4 @@ export const corruptTestBoardEntry = (
 	const database = new DatabaseSync(databasePath);
 	database.prepare(statements[column]).run(value);
 	database.close();
-};
-
-export const rejectTestSessionOpenedWrites = (
-	databasePath: DatabaseFilePath,
-) => {
-	const database = new DatabaseSync(databasePath);
-	try {
-		database.exec(`
-			CREATE TRIGGER reject_session_opened
-			BEFORE INSERT ON "sessionEvent"
-			WHEN NEW."kind" = 'session.opened'
-			BEGIN
-				SELECT RAISE(FAIL, 'reject session.opened');
-			END
-		`);
-	} finally {
-		database.close();
-	}
-};
-
-export const allowTestSessionOpenedWrites = (
-	databasePath: DatabaseFilePath,
-) => {
-	const database = new DatabaseSync(databasePath);
-	try {
-		database.exec("DROP TRIGGER reject_session_opened");
-	} finally {
-		database.close();
-	}
-};
-
-export const rejectTestChangeUpdates = (databasePath: DatabaseFilePath) => {
-	const database = new DatabaseSync(databasePath);
-	try {
-		database.exec(`
-			CREATE TRIGGER reject_change_update
-			BEFORE UPDATE ON "change"
-			BEGIN
-				SELECT RAISE(FAIL, 'reject change update');
-			END
-		`);
-	} finally {
-		database.close();
-	}
-};
-
-export const allowTestChangeUpdates = (databasePath: DatabaseFilePath) => {
-	const database = new DatabaseSync(databasePath);
-	try {
-		database.exec("DROP TRIGGER reject_change_update");
-	} finally {
-		database.close();
-	}
 };

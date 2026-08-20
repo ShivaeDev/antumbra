@@ -41,3 +41,16 @@ it("resuming names the transcript the provider already has", () => {
 	});
 	expect(options.resume).toBe("native-1");
 });
+
+// why: without it the provider forwards only a delegated agent's tool traffic,
+// so everything the agent said would be missing from its transcript and nothing
+// in the stream would say so. No session wants less than that.
+it("every session asks for what its delegated agents said", () => {
+	expect(
+		sessionOptions({ ...base, tools: Option.none() }).forwardSubagentText,
+	).toBe(true);
+	expect(
+		sessionOptions({ ...base, resume: "native-1", tools: Option.none() })
+			.forwardSubagentText,
+	).toBe(true);
+});

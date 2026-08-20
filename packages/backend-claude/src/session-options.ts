@@ -35,9 +35,14 @@ const served = (access: ToolAccess) => ({
 // interchangeable with bypassPermissions. cwd is resolved because it keys the
 // SDK's transcript space — a non-canonical path silently forks it. No session
 // id is pre-assigned: the SDK mints one and reports it in system/init, the
-// same path codex threads take.
+// same path codex threads take. forwardSubagentText is unconditional: without
+// it the provider forwards only a subsession's tool traffic, so everything a
+// delegated agent said would be missing from its transcript with nothing in
+// the stream to say so. The SDK never acknowledges the flag, so nothing here
+// waits for confirmation that it took.
 export const sessionOptions = (session: SessionShape): Options => ({
 	cwd: resolve(session.cwd),
+	forwardSubagentText: true,
 	pathToClaudeCodeExecutable: session.executable,
 	permissionMode: "auto",
 	...(session.resume === undefined ? {} : { resume: session.resume }),

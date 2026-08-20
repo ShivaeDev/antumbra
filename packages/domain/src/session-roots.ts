@@ -15,3 +15,13 @@ export const rootSessionsOf = (agentId: string) =>
 export const isRootSession = (
 	session: Pick<StoredAgentSession, "parentSessionId">,
 ): boolean => session.parentSessionId === null;
+
+export const openSessions = { status: "open" } as const;
+
+// why: the one selection that asks for subsessions rather than roots, sanctioned
+// for the reconciler that has to find nodes nobody is listening to any more. It
+// lives beside the roots rule so both readings of `parentSessionId` are stated
+// in one place, and neither is a literal repeated at a query.
+export const nodeSessionsOnly = <Expression>(session: {
+	readonly parentSessionId: { readonly isNotNull: () => Expression };
+}): Expression => session.parentSessionId.isNotNull();

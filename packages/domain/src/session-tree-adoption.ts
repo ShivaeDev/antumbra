@@ -9,6 +9,7 @@ import {
 	withNode,
 } from "#session-tree-attribution.ts";
 import { adoptedLateGap, observed } from "#session-tree-gaps.ts";
+import { makeSessionTreeReopen } from "#session-tree-reopen.ts";
 import { makeSessionTreeRows } from "#session-tree-rows.ts";
 
 type SubsessionOpened = Extract<AgentEvent, { type: "subsession.opened" }>;
@@ -30,14 +31,12 @@ const admittedOpening = (node: string, seen: AgentEvent): AgentEvent => ({
 // waits to be told where it belongs.
 export const makeSessionTreeAdoption = Effect.gen(function* () {
 	const journal = yield* SessionEventJournal;
+	const reopening = yield* makeSessionTreeReopen;
 	const rows = yield* makeSessionTreeRows;
 	return (rootSessionId: string, tree: Ref.Ref<SessionTree>) => {
-		const admit = (origin: Origin, seen: AgentEvent) =>
+		const reopen = reopening(rootSessionId, tree);
+		const mint = (subsessionRef: string, origin: Origin, seen: AgentEvent) =>
 			Effect.gen(function* () {
-				const subsessionRef = origin.node;
-				if (subsessionRef === undefined) {
-					return undefined;
-				}
 				const root = yield* rows.rootRow(rootSessionId);
 				if (Option.isNone(root)) {
 					return undefined;
@@ -77,6 +76,18 @@ export const makeSessionTreeAdoption = Effect.gen(function* () {
 				yield* Ref.update(tree, withNode(node, origin.spawnedBy));
 				return node;
 			});
+		// why: a reference this root already holds is a node resuming rather than a
+		// second node, so the record is asked before anything is minted — a restart
+		// erases the tree in memory, never the tree that was written down.
+		const admit = (origin: Origin, seen: AgentEvent) =>
+			Effect.gen(function* () {
+				const subsessionRef = origin.node;
+				if (subsessionRef === undefined) {
+					return undefined;
+				}
+				const durable = yield* reopen(subsessionRef, origin.spawnedBy, seen);
+				return durable ?? (yield* mint(subsessionRef, origin, seen));
+			});
 		// why: the announcement is where the node's opening belongs — in the
 		// journal of the turn that made the call — so it is written there now
 		// rather than on the root the admission had to guess at. The gap on the
@@ -111,6 +122,6 @@ export const makeSessionTreeAdoption = Effect.gen(function* () {
 				}
 				return recorded;
 			});
-		return { admit, adopt };
+		return { admit, adopt, reopen };
 	};
 });

@@ -6,15 +6,16 @@ import {
 	type TemporaryPersistence,
 	temporaryPersistence,
 } from "@antumbra/persistence/testing";
-import type {
-	AgentBackend,
-	ChangeHost,
-	DirectTool,
-	MooragePlan,
-	OpenSessionOptions,
-	ProvisionRequest,
-	Runner,
-	SessionHandle,
+import {
+	type AgentBackend,
+	type ChangeHost,
+	type DirectTool,
+	type MooragePlan,
+	noSessionAudit,
+	type OpenSessionOptions,
+	type ProvisionRequest,
+	type Runner,
+	type SessionHandle,
 } from "@antumbra/plugin-api";
 import type { ResourceReconcileOptions } from "@antumbra/resource-reclamation";
 import type { AgentEvent } from "@antumbra/vocabulary/session-events";
@@ -100,6 +101,7 @@ export const makeScriptedBackend = Effect.gen(function* () {
 	);
 	const opened = yield* Ref.make<ReadonlyArray<OpenSessionOptions>>([]);
 	const backend: AgentBackend = {
+		audit: noSessionAudit,
 		capabilities: {
 			fork: false,
 			liveInterrupt: true,

@@ -43,6 +43,12 @@ export {
 	UnknownRunnerError,
 } from "#runner.ts";
 export {
+	type NodeAuditRequest,
+	noSessionAudit,
+	type SessionAudit,
+	type SessionCensusRequest,
+} from "#session-audit.ts";
+export {
 	DIRECT_TOOL_NAME,
 	type DirectTool,
 	type DirectToolOutcome,

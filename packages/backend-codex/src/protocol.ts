@@ -72,13 +72,33 @@ export const ThreadScoped = Schema.Struct({ threadId: Schema.String });
 // Only a thread codex sourced from a spawn is one: a reviewer, a compaction or
 // a memory pass names no parent here and so can never be admitted as a node,
 // which is how the guardians stay out of the record's tree by construction.
-export const SpawnedThread = Schema.Struct({
-	thread: Schema.Struct({
-		id: Schema.String,
-		source: Schema.Struct({
-			subAgent: Schema.Struct({
-				thread_spawn: Schema.Struct({ parent_thread_id: Schema.String }),
-			}),
+// why: what codex says about the spawn beside the parent it names — the agent
+// definition it ran, the name it gave the agent, the role it was cast in. They
+// are the only names a census has for a node nothing announced, and codex may
+// say none of them, so each is optional and absent means the record stays
+// silent rather than inventing one.
+const SpawnSource = Schema.Struct({
+	subAgent: Schema.Struct({
+		thread_spawn: Schema.Struct({
+			agent_nickname: Schema.optional(Schema.NullOr(Schema.String)),
+			agent_path: Schema.optional(Schema.NullOr(Schema.String)),
+			agent_role: Schema.optional(Schema.NullOr(Schema.String)),
+			parent_thread_id: Schema.String,
 		}),
 	}),
+});
+
+export const SpawnedThread = Schema.Struct({
+	thread: Schema.Struct({ id: Schema.String, source: SpawnSource }),
+});
+
+// why: the server's own listing of every thread spawned below one ancestor, at
+// any depth. Every row it returns is a spawn descendant and carries the source
+// that says whose — so a row this cannot decode is the pin having moved under
+// the slice, and the page is refused whole rather than quietly shortened. A
+// page it did not finish says so in a cursor, which is the difference between a
+// short answer and a whole one.
+export const ThreadListResponse = Schema.Struct({
+	data: Schema.Array(Schema.Struct({ id: Schema.String, source: SpawnSource })),
+	nextCursor: Schema.optional(Schema.NullOr(Schema.String)),
 });

@@ -25,6 +25,7 @@ import type { SessionRecoveryContext } from "#session-recovery-context.ts";
 import { SessionRecoveryRuntime } from "#session-recovery-runtime.ts";
 import { makeSessionRecoveryRuntime } from "#session-resume.ts";
 import { makeSiestaKind } from "#session-siesta.ts";
+import { makeSessionNodeReconciler } from "#session-tree-reconcile.ts";
 import { makeSessionTreeSinks } from "#session-tree-sink.ts";
 import { spawnKind } from "#spawn.ts";
 import { isVoyageCaptainIdentity } from "#voyage-captain.ts";
@@ -58,7 +59,12 @@ export const AgentDomainLive = (
 			const resourceReconciler = yield* ResourceReconciler;
 			const voyages = yield* VoyageProcedureService;
 			const reconcileCurrentSessions = yield* makeCurrentSessionReconciler;
+			const reconcileSessionNodes = yield* makeSessionNodeReconciler;
 			yield* reconcileCurrentSessions;
+			// why: nodes are reconciled after the roots that own them, because
+			// whether a node's acquisition can ever come back is a question about
+			// its root — and the roots have just been settled.
+			yield* reconcileSessionNodes;
 			const spawn = yield* spawnKind({ backends, runners, sinkFor });
 			const retire = yield* makeRetireKind;
 			const compileCaptainTools = yield* makeCaptainToolCompiler;

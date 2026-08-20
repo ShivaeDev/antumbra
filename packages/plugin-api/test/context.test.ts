@@ -3,8 +3,10 @@ import { Effect } from "effect";
 import type { AgentBackend } from "#backend.ts";
 import type { ChangeHost } from "#change-host.ts";
 import { makePluginHost } from "#context.ts";
+import { noSessionAudit } from "#session-audit.ts";
 
 const fakeBackend = (tag: string): AgentBackend => ({
+	audit: noSessionAudit,
 	capabilities: {
 		fork: false,
 		liveInterrupt: false,

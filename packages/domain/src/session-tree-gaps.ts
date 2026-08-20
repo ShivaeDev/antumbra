@@ -44,6 +44,30 @@ export const adoptedLateGap = (
 	type: "subsession.gap",
 });
 
+// why: a node still open when the app starts again lost the stream that fed it
+// with the process that held it, and the detach that would have said so never
+// ran. That is what this kind means, so it is written plainly rather than left
+// to a reader to infer from a row that stops without a word.
+export const processGoneGap = (sessionId: string): AgentEvent => ({
+	detail:
+		"the process holding this node's stream is gone; the detach that would have said so never ran",
+	gapKind: "stream-detached",
+	raw: observed("session/reconciled", { sessionId }),
+	type: "subsession.gap",
+});
+
+// why: a node whose detach was already journaled lost something else — nothing
+// ever reported how its work ended — and that loss has no name of its own here.
+// It takes the escape hatch with a plain detail rather than a second copy of a
+// neighbour's word.
+export const endingUnreportedGap = (sessionId: string): AgentEvent => ({
+	detail:
+		"this node was still open at startup with nothing left that could speak for it, and how its work ended was never reported",
+	gapKind: "unknown",
+	raw: observed("session/reconciled", { sessionId }),
+	type: "subsession.gap",
+});
+
 export const streamDetachedGap = (
 	node: TreeNode,
 	detachedAt: number,

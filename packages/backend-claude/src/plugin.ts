@@ -8,6 +8,7 @@ import {
 import type { AgentEvent } from "@antumbra/vocabulary/session-events";
 import { type Context, Effect, Option, Queue, Ref, Stream } from "effect";
 import { openRawSession, type RawSession } from "#adapters/session.ts";
+import { claudeAudit } from "#adapters/subagent-audit.ts";
 import { laneEvents, openSessionLanes } from "#session-lanes.ts";
 
 const failure = (detail: unknown) =>
@@ -84,6 +85,7 @@ const rawSession = (
 	);
 
 export const claudeBackend = (options: ClaudePluginOptions): AgentBackend => ({
+	audit: claudeAudit,
 	capabilities: {
 		fork: true,
 		liveInterrupt: true,

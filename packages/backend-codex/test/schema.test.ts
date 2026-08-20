@@ -133,17 +133,59 @@ describe("the codex protocol slice agrees with the pinned schema bundle", () => 
 	// why: a thread the record admits as a node must be one codex sourced from a
 	// spawn. The reviewer, compaction and memory threads are the other members of
 	// this union, and the slice decodes none of them — which is what keeps them
-	// out of the tree by construction rather than by vigilance.
+	// out of the tree by construction rather than by vigilance. The sweep reads
+	// the parent edge and the node's names out of this source itself rather than
+	// from a threadSource classification that is null in practice, so every field
+	// the record turns into a row is held here by name.
 	it("a spawned sub-agent thread is the only source that names a parent", () => {
 		const sources = bundle.definitions.SubAgentSource?.oneOf ?? [];
 		const spawn = sources.find(
 			(variant) => variant.title === "ThreadSpawnSubAgentSource",
 		);
-		expect(JSON.stringify(spawn?.properties?.thread_spawn)).toContain(
+		const source = JSON.stringify(spawn?.properties?.thread_spawn);
+		for (const field of [
 			"parent_thread_id",
-		);
+			"agent_path",
+			"agent_nickname",
+			"agent_role",
+		]) {
+			expect(source).toContain(field);
+		}
 		expect(sources.some((variant) => variant.enum?.includes("review"))).toBe(
 			true,
+		);
+		expect(bundle.definitions.Thread?.properties).toHaveProperty("source");
+	});
+
+	// why: the census asks codex for every thread spawned below one ancestor, and
+	// that parameter is the whole of the reading — the kind filter it replaced was
+	// blind to children whose first turn left no preview, and lost rows to its own
+	// pagination besides. A pin that renamed or dropped the ancestor filter would
+	// take the census's only source away, so the pin is held to it by name.
+	it("a census can ask for every thread spawned below one ancestor", () => {
+		const asked = bundle.definitions.ThreadListParams?.properties;
+		expect(asked).toHaveProperty("ancestorThreadId");
+		expect(asked).toHaveProperty("cursor");
+		expect(asked).toHaveProperty("limit");
+		const listed = bundle.definitions.ThreadListResponse?.properties;
+		expect(listed).toHaveProperty("data");
+		expect(listed).toHaveProperty("nextCursor");
+		const methods = (bundle.definitions.ClientRequest?.oneOf ?? []).flatMap(
+			(variant) => variant.properties?.method?.enum ?? [],
+		);
+		expect(methods).toContain("thread/list");
+	});
+
+	// why: the ancestor filter is experimental API, and app-server refuses it
+	// outright unless the connection asked for that surface at initialize. The
+	// capability is the census's licence to read at all, so a pin that renamed it
+	// would silence every census rather than change one answer.
+	it("the experimental surface the census reads is asked for at initialize", () => {
+		const capabilities = bundle.definitions.InitializeCapabilities?.properties;
+		expect(capabilities).toHaveProperty("experimentalApi");
+		expect(capabilities).toHaveProperty("optOutNotificationMethods");
+		expect(bundle.definitions.InitializeParams?.properties).toHaveProperty(
+			"capabilities",
 		);
 	});
 

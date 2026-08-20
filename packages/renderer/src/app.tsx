@@ -1,15 +1,18 @@
-import type { Fleet, VoyageSummary } from "@antumbra/contract";
+import type {
+	ConsoleMode,
+	ConsolePlace,
+	Fleet,
+	VoyageSummary,
+} from "@antumbra/contract";
 import { useAtomValue } from "@effect/atom-react";
 import { AsyncResult, Atom } from "effect/unstable/reactivity";
 import { useEffect, useState } from "react";
 import { loadAppInfo, watchFleet } from "#adapters/trpc.ts";
 import { watchVoyages } from "#adapters/trpc-voyages.ts";
+import { rememberPlace } from "#adapters/trpc-windows.ts";
+import { ConsoleMain } from "#views/console-main.tsx";
 import { FleetAside } from "#views/fleet-aside.tsx";
-import { type Mode, ModeStrip } from "#views/mode-strip.tsx";
-import { QuayPanel } from "#views/quay.tsx";
-import { SessionMessage } from "#views/session-message.tsx";
-import { TranscriptView } from "#views/transcript.tsx";
-import { VoyagePanel } from "#views/voyage.tsx";
+import { ModeStrip } from "#views/mode-strip.tsx";
 import { VoyagesAside } from "#views/voyages-aside.tsx";
 
 const appInfoAtom = Atom.make(loadAppInfo);
@@ -37,61 +40,30 @@ const asideStyle: React.CSSProperties = {
 	width: "20rem",
 };
 
-const emptyStyle: React.CSSProperties = { color: "#8a8f98", margin: "auto" };
-
-const sessionStyle: React.CSSProperties = {
-	display: "flex",
-	flex: 1,
-	flexDirection: "column",
-	minWidth: 0,
-};
-
-const MainSection = ({
-	fleet,
-	mode,
-	onError,
-	session,
-	voyage,
-}: {
-	readonly fleet: Fleet | undefined;
-	readonly mode: Mode;
-	readonly onError: (message: string) => void;
-	readonly session: string | undefined;
-	readonly voyage: string | undefined;
-}) => {
-	if (mode === "quay") {
-		return <QuayPanel onError={onError} />;
-	}
-	if (mode === "voyages") {
-		return voyage === undefined ? (
-			<section style={emptyStyle}>select a voyage to see its pieces</section>
-		) : (
-			<VoyagePanel onError={onError} voyageId={voyage} />
-		);
-	}
-	return session === undefined ? (
-		<section style={emptyStyle}>
-			select a session to watch its transcript
-		</section>
-	) : (
-		<section style={sessionStyle}>
-			<TranscriptView sessionId={session} />
-			<SessionMessage fleet={fleet} onError={onError} sessionId={session} />
-		</section>
-	);
-};
-
-export const App = () => {
+export const ConsoleApp = ({ place }: { readonly place: ConsolePlace }) => {
 	const info = useAtomValue(appInfoAtom);
 	const [fleet, setFleet] = useState<Fleet | undefined>(undefined);
 	const [voyages, setVoyages] = useState<ReadonlyArray<VoyageSummary>>([]);
-	const [mode, setMode] = useState<Mode>("fleet");
-	const [session, setSession] = useState<string | undefined>(undefined);
-	const [voyage, setVoyage] = useState<string | undefined>(undefined);
+	const [mode, setMode] = useState<ConsoleMode>(place.mode);
+	const [session, setSession] = useState(place.sessionId ?? undefined);
+	const [voyage, setVoyage] = useState(place.voyageId ?? undefined);
 	const [notice, setNotice] = useState<string | undefined>(undefined);
 
 	useEffect(() => watchFleet(setFleet, setNotice), []);
 	useEffect(() => watchVoyages(setVoyages, setNotice), []);
+	// why: where the console is pointed is main's to keep, so a reload comes
+	// back to it rather than to whatever a first render would have shown.
+	useEffect(() => {
+		rememberPlace(
+			{
+				mode,
+				role: "console",
+				sessionId: session ?? null,
+				voyageId: voyage ?? null,
+			},
+			setNotice,
+		);
+	}, [mode, session, voyage]);
 
 	return (
 		<main style={mainStyle}>
@@ -130,7 +102,7 @@ export const App = () => {
 					/>
 				)}
 			</aside>
-			<MainSection
+			<ConsoleMain
 				fleet={fleet}
 				mode={mode}
 				onError={setNotice}

@@ -6,3 +6,4 @@ export { fleet, info, storedEvents } from "#fixtures/fleet.ts";
 export { makeRuntime } from "#fixtures/runtime.ts";
 export { makeScriptedFeeds, scriptedFeeds } from "#fixtures/scripted.ts";
 export { quayView, reefSummary, reefView } from "#fixtures/voyage.ts";
+export { consoleWindow, windowFixture } from "#fixtures/window-source.ts";

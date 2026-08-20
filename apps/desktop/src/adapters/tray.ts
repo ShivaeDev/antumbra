@@ -2,8 +2,7 @@ import { Buffer } from "node:buffer";
 import process from "node:process";
 import { type Fleet, SightSource } from "@antumbra/contract";
 import { Effect, Stream } from "effect";
-import { BrowserWindow, nativeImage, Tray } from "electron";
-import { focusOrOpenOwnedWindow } from "#adapters/shell.ts";
+import { nativeImage, Tray } from "electron";
 
 const ICON_PIXELS = 32;
 const ICON_SCALE = 2;
@@ -111,14 +110,11 @@ const electronTrayHost: TrayHost = {
 
 // why: only macOS carries a title beside a menu-bar icon, so elsewhere the
 // count would have nowhere to go and no tray is claimed at all.
-export const fleetTray = Effect.gen(function* () {
-	if (process.platform !== "darwin") {
-		return;
-	}
-	const sight = yield* SightSource;
-	yield* runFleetTray(
-		electronTrayHost,
-		sight.fleetFeed,
-		focusOrOpenOwnedWindow(BrowserWindow),
-	);
-});
+export const fleetTray = (activate: Effect.Effect<void, unknown>) =>
+	Effect.gen(function* () {
+		if (process.platform !== "darwin") {
+			return;
+		}
+		const sight = yield* SightSource;
+		yield* runFleetTray(electronTrayHost, sight.fleetFeed, activate);
+	});

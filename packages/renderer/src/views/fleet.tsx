@@ -1,16 +1,8 @@
-import type {
-	AgentSummary,
-	BerthSummary,
-	Fleet,
-	SessionSummary,
-} from "@antumbra/contract";
-import { interruptSession, retireAgent } from "#adapters/trpc.ts";
+import type { AgentSummary, BerthSummary, Fleet } from "@antumbra/contract";
+import { retireAgent } from "#adapters/trpc.ts";
 import { AgentActivityChip } from "#views/agent-activity.tsx";
-import {
-	AgentDiagChips,
-	FleetDiagChips,
-	SessionDiagChips,
-} from "#views/diagnostics.tsx";
+import { AgentDiagChips, FleetDiagChips } from "#views/diagnostics.tsx";
+import { SessionRow } from "#views/session-row.tsx";
 import {
 	buttonStyle,
 	ellipsisStyle,
@@ -35,45 +27,6 @@ const BerthRow = ({ berth }: { readonly berth: BerthSummary }) => (
 		<Truncated style={mutedStyle} text={berth.slug} />
 		<Truncated style={mutedStyle} text={berth.branch} />
 		<BerthReclaimStatus berth={berth} />
-	</div>
-);
-
-const SessionRow = ({
-	onError,
-	onSelect,
-	selected,
-	session,
-}: {
-	readonly onError: (message: string) => void;
-	readonly onSelect: (sessionId: string) => void;
-	readonly selected: string | undefined;
-	readonly session: SessionSummary;
-}) => (
-	<div style={{ ...rowStyle, paddingLeft: "0.8rem" }}>
-		<button
-			onClick={() => onSelect(session.id)}
-			style={{
-				...buttonStyle,
-				background: "none",
-				color: session.id === selected ? "#a48fff" : "#7c9cff",
-				padding: 0,
-			}}
-			type="button"
-		>
-			{session.id.slice(0, 8)}
-		</button>
-		<span style={mutedStyle}>{session.backend}</span>
-		<span style={mutedStyle}>{session.status}</span>
-		<SessionDiagChips diag={session.diag} />
-		{session.canInterrupt ? (
-			<button
-				onClick={() => interruptSession(session.id, onError)}
-				style={buttonStyle}
-				type="button"
-			>
-				interrupt
-			</button>
-		) : null}
 	</div>
 );
 

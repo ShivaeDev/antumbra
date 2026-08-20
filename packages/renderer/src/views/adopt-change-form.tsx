@@ -1,69 +1,135 @@
 import type { QuayPiece } from "@antumbra/contract";
-import { useState } from "react";
+import { type ReactNode, useState } from "react";
 import { adoptChange } from "#adapters/trpc-quay.ts";
-import { PiecePicker } from "#views/piece-picker.tsx";
+import { Button } from "#components/ui/button.tsx";
+import { DialogFooter } from "#components/ui/dialog-sections.tsx";
+import { Input } from "#components/ui/input.tsx";
 import {
-	buttonStyle,
-	columnStyle,
-	inputStyle,
-	mutedStyle,
-} from "#views/styles.ts";
+	Select,
+	SelectContent,
+	SelectTrigger,
+	SelectValue,
+} from "#components/ui/select.tsx";
+import { SelectItem } from "#components/ui/select-parts.tsx";
+import { useCall } from "#hooks/call.ts";
 
-// why: the quay draws from the whole fleet, so a piece is named with the
-// voyage it belongs to — two voyages may well charter a piece by one title.
-const offered = (pieces: ReadonlyArray<QuayPiece>) =>
-	pieces.map((piece) => ({
-		id: piece.id,
-		label: `${piece.voyageName} › ${piece.title}`,
-	}));
+// why: a piece chartered by two voyages reaches the quay once per voyage, and
+// the form adopts onto the piece rather than onto the charter — so it is
+// offered once, under the first voyage that named it.
+const offered = (pieces: ReadonlyArray<QuayPiece>): ReadonlyArray<QuayPiece> =>
+	pieces.filter(
+		(piece, index) =>
+			pieces.findIndex((other) => other.id === piece.id) === index,
+	);
+
+const Field = ({
+	children,
+	label,
+}: {
+	readonly children: ReactNode;
+	readonly label: string;
+}) => (
+	<div className="flex flex-col gap-1">
+		<span className="text-2xs text-muted-foreground">{label}</span>
+		{children}
+	</div>
+);
+
+// why: the dialog drops its content when it closes, so the choice lives
+// exactly as long as the form does and the control is free to keep it.
+const PieceChoice = ({
+	choices,
+	onPiece,
+}: {
+	readonly choices: ReadonlyArray<QuayPiece>;
+	readonly onPiece: (pieceId: string) => void;
+}) => (
+	<Select onValueChange={onPiece}>
+		<SelectTrigger aria-label="Piece">
+			<SelectValue placeholder="Choose a piece" />
+		</SelectTrigger>
+		<SelectContent>
+			{choices.map((piece) => (
+				<SelectItem key={piece.id} value={piece.id}>
+					{piece.voyageName} › {piece.title}
+				</SelectItem>
+			))}
+		</SelectContent>
+	</Select>
+);
 
 export const AdoptChangeForm = ({
-	onError,
+	onAdopted,
 	pieces,
 }: {
-	readonly onError: (message: string) => void;
+	readonly onAdopted: () => void;
 	readonly pieces: ReadonlyArray<QuayPiece>;
 }) => {
 	const [pieceId, setPieceId] = useState<string | undefined>(undefined);
 	const [repoName, setRepoName] = useState("");
 	const [url, setUrl] = useState("");
+	const adopting = useCall<void>();
+	const choices = offered(pieces);
+	const busy = adopting.state._tag === "pending";
 	const ready = pieceId !== undefined && repoName !== "" && url !== "";
+
+	// why: the failure belongs beside the fields that caused it. The dialog
+	// covers the app's own notice line, so a message sent there would be read
+	// only after the reader gave up and closed this.
 	const adopt = () => {
 		if (pieceId === undefined) {
 			return;
 		}
-		adoptChange({ pieceId, repoName, url }, () => setUrl(""), onError);
+		adopting.run((onDone, onFailed) =>
+			adoptChange(
+				{ pieceId, repoName, url },
+				() => {
+					setUrl("");
+					onDone();
+					onAdopted();
+				},
+				onFailed,
+			),
+		);
 	};
+
+	if (choices.length === 0) {
+		return (
+			<p className="text-xs text-muted-foreground">
+				No piece is chartered yet — a change is adopted onto the piece that owes
+				it, so charter one first
+			</p>
+		);
+	}
 	return (
-		<div style={columnStyle}>
-			<span style={mutedStyle}>+ adopt a change opened by hand</span>
-			<PiecePicker
-				chosen={pieceId === undefined ? [] : [pieceId]}
-				// why: one change is adopted onto one piece, so the last option
-				// touched is the choice rather than the whole selection.
-				onChange={(chosen) => setPieceId(chosen.at(-1))}
-				pieces={offered(pieces)}
-			/>
-			<input
-				onChange={(event) => setRepoName(event.target.value)}
-				placeholder="repo"
-				style={inputStyle}
-				value={repoName}
-			/>
-			<input
-				onChange={(event) => setUrl(event.target.value)}
-				placeholder="url"
-				style={inputStyle}
-				value={url}
-			/>
-			<button
-				disabled={!ready}
-				onClick={adopt}
-				style={{ ...buttonStyle, opacity: ready ? 1 : 0.5 }}
-				type="button"
-			>
-				adopt
-			</button>
+		<div className="flex flex-col gap-3">
+			<Field label="Piece">
+				<PieceChoice choices={choices} onPiece={setPieceId} />
+			</Field>
+			<Field label="Repository">
+				<Input
+					aria-label="Repository"
+					onChange={(event) => setRepoName(event.target.value)}
+					placeholder="shoals"
+					value={repoName}
+				/>
+			</Field>
+			<Field label="Address">
+				<Input
+					aria-label="Address"
+					onChange={(event) => setUrl(event.target.value)}
+					placeholder="https://…"
+					value={url}
+				/>
+			</Field>
+			{adopting.state._tag === "failed" ? (
+				<p className="text-2xs text-destructive">{adopting.state.message}</p>
+			) : null}
+			<DialogFooter>
+				<Button disabled={!ready || busy} onClick={adopt} type="button">
+					{busy ? "Adopting…" : "Adopt"}
+				</Button>
+			</DialogFooter>
 		</div>
 	);
 };

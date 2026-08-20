@@ -1,33 +1,6 @@
 import type { QuayGroup, QuayRow } from "@antumbra/contract";
 import { groupTitle } from "#quay/groups.ts";
-import { ChangeLink } from "#views/change-chip.tsx";
-import {
-	cardStyle,
-	columnStyle,
-	headingStyle,
-	mutedStyle,
-	rowStyle,
-} from "#views/styles.ts";
-import { changeMarks } from "#voyages/change-marks.ts";
-import { whenLabel } from "#voyages/labels.ts";
-
-const QuayCard = ({ row }: { readonly row: QuayRow }) => (
-	<div style={cardStyle}>
-		<div style={{ ...rowStyle, flexWrap: "wrap" }}>
-			<strong>{row.change.repoName}</strong>
-			<ChangeLink change={row.change} />
-		</div>
-		<span style={mutedStyle}>
-			{row.voyageName} › {row.pieceTitle}
-		</span>
-		<div style={{ ...rowStyle, flexWrap: "wrap" }}>
-			<span style={mutedStyle}>{changeMarks(row.change)}</span>
-			<span style={mutedStyle}>
-				observed {whenLabel(row.change.observedAt)}
-			</span>
-		</div>
-	</div>
-);
+import { QuayCard } from "#views/quay-card.tsx";
 
 // why: a group nobody is waiting on says nothing worth a heading — the quay is
 // read for what is owed, and an empty rung is noise between the ones that are.
@@ -42,14 +15,17 @@ export const QuayGroupPanel = ({
 		return null;
 	}
 	return (
-		<div style={columnStyle}>
-			<h3 style={headingStyle}>{groupTitle[group]}</h3>
+		<section className="flex min-w-0 flex-col gap-1.5">
+			<div className="flex items-baseline gap-1.5">
+				<h3 className="text-xs font-medium">{groupTitle[group]}</h3>
+				<span className="text-2xs text-muted-foreground">{rows.length}</span>
+			</div>
 			{rows.map((row) => (
 				<QuayCard
 					key={`${row.change.id}/${row.pieceId}/${row.voyageId}`}
 					row={row}
 				/>
 			))}
-		</div>
+		</section>
 	);
 };

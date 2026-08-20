@@ -8,11 +8,11 @@ import {
 import { callTRPCProcedure, getTRPCErrorFromUnknown } from "@trpc/server";
 import { Schema } from "effect";
 import { ipcMain } from "electron";
-import type { MainDocumentAuthority } from "#adapters/main-document-authority.ts";
 import {
 	makeTrpcSubscriptionHandlers,
 	type SubscriptionSender,
 } from "#adapters/trpc-subscription-handlers.ts";
+import type { WindowRegistry } from "#adapters/windows/registry.ts";
 
 const SubscriptionProcedureResult = Schema.declare(
 	(value): value is AsyncIterable<unknown> =>
@@ -62,15 +62,15 @@ const pump = async (
 
 export const registerTrpcSubscriptions = (
 	router: AppRouter,
-	authority: MainDocumentAuthority,
+	registry: WindowRegistry,
 ): void => {
 	const handlers = makeTrpcSubscriptionHandlers(
-		authority,
-		async (sender, request, signal) => {
+		registry,
+		async (sender, windowId, request, signal) => {
 			const iterable = decodeSubscriptionProcedureResult(
 				await callTRPCProcedure({
 					batchIndex: 0,
-					ctx: { senderId: sender.id },
+					ctx: { windowId },
 					getRawInput: () => Promise.resolve(request.input),
 					path: request.path,
 					router,

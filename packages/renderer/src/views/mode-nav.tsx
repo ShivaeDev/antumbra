@@ -1,0 +1,47 @@
+import type { ConsoleMode } from "@antumbra/contract";
+import { Anchor, type LucideIcon, Ship, Users } from "lucide-react";
+import { Button } from "#components/ui/button.tsx";
+import { cn } from "#lib/utils.ts";
+
+// why: which of the three the console is pointed at belongs to the window, so
+// the rail offers the modes and main remembers the choice.
+interface ModeEntry {
+	readonly icon: LucideIcon;
+	readonly label: string;
+	readonly mode: ConsoleMode;
+}
+
+const MODES: ReadonlyArray<ModeEntry> = [
+	{ icon: Users, label: "Fleet", mode: "fleet" },
+	{ icon: Ship, label: "Voyages", mode: "voyages" },
+	{ icon: Anchor, label: "Quay", mode: "quay" },
+];
+
+export const ModeNav = ({
+	mode,
+	onMode,
+}: {
+	readonly mode: ConsoleMode;
+	readonly onMode: (mode: ConsoleMode) => void;
+}) => (
+	<nav className="flex flex-col gap-0.5">
+		{MODES.map((offered) => {
+			const showing = offered.mode === mode;
+			return (
+				<Button
+					aria-current={showing ? "page" : undefined}
+					className={cn(
+						"w-full justify-start",
+						showing ? undefined : "text-muted-foreground",
+					)}
+					key={offered.mode}
+					onClick={() => onMode(offered.mode)}
+					variant={showing ? "secondary" : "ghost"}
+				>
+					<offered.icon />
+					{offered.label}
+				</Button>
+			);
+		})}
+	</nav>
+);

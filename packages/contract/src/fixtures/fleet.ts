@@ -1,5 +1,5 @@
 import type { AppInfo } from "#app-info.ts";
-import type { Fleet, SessionEvent } from "#sight.ts";
+import type { Fleet } from "#sight.ts";
 
 export const info: AppInfo = {
 	chromeVersion: "138.0.0.0",
@@ -43,16 +43,3 @@ export const fleet: Fleet = {
 		{ defaultRef: "main", id: "repo-1", name: "shoals", source: "/tmp/shoals" },
 	],
 };
-
-export const storedEvents: ReadonlyArray<SessionEvent> = [
-	{
-		event: { _tag: "Unknown", kind: "system/init", payload: "{}" },
-		seq: 0,
-		sessionId: "session-1",
-	},
-	{
-		event: { _tag: "Unknown", kind: "assistant", payload: "{}" },
-		seq: 1,
-		sessionId: "session-1",
-	},
-];

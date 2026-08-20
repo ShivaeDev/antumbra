@@ -45,10 +45,11 @@ export const SessionMessage = ({
 		sendToSession(sessionId, text, () => setText(""), onError);
 	};
 	return (
-		<div className="flex min-w-0 flex-col gap-1 border-t border-border px-4 py-2">
+		<div className="flex min-w-0 shrink-0 flex-col gap-1 border-t border-border px-4 py-2">
 			<div className="flex min-w-0 items-center gap-2">
 				<Input
 					aria-label="Message this session"
+					className="flex-1"
 					disabled={blocked !== undefined}
 					onChange={(event) => setText(event.target.value)}
 					onKeyDown={(event) => {
@@ -61,7 +62,7 @@ export const SessionMessage = ({
 					title={blocked}
 					value={text}
 				/>
-				<Button disabled={!ready} onClick={send}>
+				<Button disabled={!ready} onClick={send} type="button">
 					Send
 				</Button>
 			</div>

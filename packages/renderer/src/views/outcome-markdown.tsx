@@ -1,78 +1,14 @@
-import { Cause, Effect, Exit } from "effect";
-import { useEffect, useId, useState } from "react";
-import Markdown from "react-markdown";
-import remarkGfm from "remark-gfm";
-import { renderMermaid } from "#adapters/mermaid.ts";
-import { ExternalLink } from "#views/external-link.tsx";
-import { cardStyle, mutedStyle } from "#views/styles.ts";
+import { MarkdownView } from "#views/markdown-view.tsx";
 
-const MermaidDiagram = ({ source }: { readonly source: string }) => {
-	const id = `outcome-${useId().replaceAll(":", "")}`;
-	const [rendered, setRendered] = useState<
-		| { readonly _tag: "failed"; readonly message: string }
-		| { readonly _tag: "ready"; readonly svg: string }
-		| { readonly _tag: "rendering" }
-	>({ _tag: "rendering" });
-
-	useEffect(() => {
-		setRendered({ _tag: "rendering" });
-		return Effect.runCallback(renderMermaid(id, source), {
-			onExit: Exit.match({
-				onFailure: (cause) =>
-					setRendered({ _tag: "failed", message: Cause.pretty(cause) }),
-				onSuccess: (svg) => setRendered({ _tag: "ready", svg }),
-			}),
-		});
-	}, [id, source]);
-
-	if (rendered._tag === "rendering") {
-		return <span style={mutedStyle}>rendering diagram…</span>;
-	}
-	if (rendered._tag === "failed") {
-		return <span style={{ color: "#ff7c7c" }}>{rendered.message}</span>;
-	}
-	return (
-		<span
-			data-mermaid={true}
-			dangerouslySetInnerHTML={{ __html: rendered.svg }}
-			style={{ display: "block" }}
-		/>
-	);
-};
-
-// why: Reports and Artifacts are both agent-authored Markdown, so one viewer
-// renders both — a second rendering path would be a second security posture.
+// why: an Outcome is read as a document, so it keeps the card the rest of the
+// detail pane uses; the Markdown itself is rendered by the shared viewer.
 export const OutcomeMarkdownView = ({
 	markdown,
 }: {
 	readonly markdown: string;
 }) => (
-	<div
-		className="markdown"
-		style={{ ...cardStyle, overflowX: "auto", padding: "0.8rem 1rem" }}
-	>
-		<Markdown
-			components={{
-				a: ({ children, href }) =>
-					href === undefined || href === "" ? (
-						<span>{children}</span>
-					) : (
-						<ExternalLink url={href}>{children}</ExternalLink>
-					),
-				code: ({ children, className, ...props }) => {
-					const source = String(children).replace(/\n$/, "");
-					return className === "language-mermaid" ? (
-						<MermaidDiagram source={source} />
-					) : (
-						<code className={className} {...props}>
-							{children}
-						</code>
-					);
-				},
-			}}
-			remarkPlugins={[remarkGfm]}
-		>
-			{markdown}
-		</Markdown>
-	</div>
+	<MarkdownView
+		className="overflow-x-auto rounded-lg border border-border bg-card px-3 py-2 text-card-foreground"
+		markdown={markdown}
+	/>
 );

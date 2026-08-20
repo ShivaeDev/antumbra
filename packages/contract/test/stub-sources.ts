@@ -31,6 +31,7 @@ export const fleet = {
 				},
 			],
 			charter: "chart the reef",
+			diag: { currentSessionId: "session-1", intents: [] },
 			id: "agent-1",
 			role: "navigator",
 			sessions: [
@@ -39,6 +40,7 @@ export const fleet = {
 					canInterrupt: true,
 					canSend: true,
 					cwd: "/tmp/reef",
+					diag: { current: true, execution: "active", intents: [] },
 					id: "session-1",
 					status: "open",
 				},
@@ -47,6 +49,7 @@ export const fleet = {
 		},
 	],
 	backends: ["claude"],
+	diag: { intents: [] },
 	repos: [
 		{ defaultRef: "main", id: "repo-1", name: "shoals", source: "/tmp/shoals" },
 	],

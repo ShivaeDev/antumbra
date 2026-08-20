@@ -78,7 +78,7 @@ it.live("stand down is accepted durably before the attachment drains", () =>
 			}).first();
 			const sessionBefore = yield* sessionRow;
 			expect(
-				(yield* fleetSnapshot(["scripted"])).agents[0]?.sessions[0]
+				(yield* fleetSnapshot(["scripted"], [])).agents[0]?.sessions[0]
 					?.canInterrupt,
 			).toBe(true);
 
@@ -89,7 +89,7 @@ it.live("stand down is accepted durably before the attachment drains", () =>
 			yield* Deferred.await(detaching);
 			expect((yield* sessionRow).executionStatus).toBe("draining");
 			expect(
-				(yield* fleetSnapshot(["scripted"])).agents[0]?.sessions[0]
+				(yield* fleetSnapshot(["scripted"], [])).agents[0]?.sessions[0]
 					?.canInterrupt,
 			).toBe(false);
 			expect(

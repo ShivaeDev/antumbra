@@ -14,6 +14,7 @@ import { AgentDomain } from "#domain.ts";
 import { SessionMessageEmpty } from "#errors.ts";
 import { toFailure } from "#sight-failure.ts";
 import { fleetSnapshot } from "#sight-fleet.ts";
+import { pendingIntents } from "#sight-intents.ts";
 
 const pastRehydrated =
 	(query: EventQuery, lastSeq: number) => (event: StoredEvent) =>
@@ -34,7 +35,10 @@ export const SightSourceLive = Layer.effect(SightSource)(
 		const executors = yield* Effect.context<WriteExecutors>();
 		const provide = <A, E>(effect: Effect.Effect<A, E, WriteExecutors>) =>
 			Effect.provideContext(effect, executors);
-		const fleet = fleetSnapshot(domain.backends).pipe(
+		const fleet = pendingIntents.pipe(
+			Effect.provideService(AgentDomain, domain),
+			Effect.provideService(Kernel, kernel),
+			Effect.flatMap((intents) => fleetSnapshot(domain.backends, intents)),
 			Effect.provideService(Database, db),
 			provide,
 			Effect.mapError(toFailure),

@@ -1,14 +1,20 @@
 import { ResourceReclaimStateSchema } from "@antumbra/vocabulary/agent-runtime";
 import { HistoricalAgentEvent } from "@antumbra/vocabulary/session-events";
 import { Context, Data, type Effect, Schema, type Stream } from "effect";
+import {
+	AgentDiagnostics,
+	FleetDiagnostics,
+	SessionDiagnostics,
+} from "#sight-diagnostics.ts";
 
 export const SessionSummary = Schema.Struct({
 	backend: Schema.String,
 	canInterrupt: Schema.Boolean,
 	// why: whether the admiral's words can reach this Session now, published as
-	// a capability so the view never reads raw Session execution state.
+	// a capability so no affordance is ever derived from raw execution state.
 	canSend: Schema.Boolean,
 	cwd: Schema.String,
+	diag: SessionDiagnostics,
 	id: Schema.String,
 	status: Schema.String,
 });
@@ -25,6 +31,7 @@ export type BerthSummary = typeof BerthSummary.Type;
 export const AgentSummary = Schema.Struct({
 	berths: Schema.Array(BerthSummary),
 	charter: Schema.String,
+	diag: AgentDiagnostics,
 	id: Schema.String,
 	role: Schema.String,
 	sessions: Schema.Array(SessionSummary),
@@ -46,6 +53,7 @@ export type RepoSummary = typeof RepoSummary.Type;
 export const Fleet = Schema.Struct({
 	agents: Schema.Array(AgentSummary),
 	backends: Schema.Array(Schema.String),
+	diag: FleetDiagnostics,
 	repos: Schema.Array(RepoSummary),
 });
 export type Fleet = typeof Fleet.Type;

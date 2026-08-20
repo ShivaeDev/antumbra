@@ -1,6 +1,5 @@
-import type { QuayView } from "@antumbra/contract";
-import { useEffect, useState } from "react";
 import { watchQuay } from "#adapters/trpc-quay.ts";
+import { useFeed } from "#hooks/feed.ts";
 import { QUAY_GROUPS, rowsIn } from "#quay/groups.ts";
 import { AdoptChangeForm } from "#views/adopt-change-form.tsx";
 import { QuayGroupPanel } from "#views/quay-group.tsx";
@@ -23,10 +22,7 @@ export const QuayPanel = ({
 }: {
 	readonly onError: (message: string) => void;
 }) => {
-	const [quay, setQuay] = useState<QuayView | undefined>(undefined);
-	const [feedError, setFeedError] = useState<string | undefined>(undefined);
-
-	useEffect(() => watchQuay(setQuay, setFeedError), []);
+	const { error: feedError, value: quay } = useFeed("quay", watchQuay);
 
 	if (quay === undefined) {
 		return (

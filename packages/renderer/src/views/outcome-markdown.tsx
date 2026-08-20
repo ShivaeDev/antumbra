@@ -4,7 +4,6 @@ import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { renderMermaid } from "#adapters/mermaid.ts";
 import { ExternalLink } from "#views/external-link.tsx";
-import { cardStyle, mutedStyle } from "#views/styles.ts";
 
 const MermaidDiagram = ({ source }: { readonly source: string }) => {
 	const id = `outcome-${useId().replaceAll(":", "")}`;
@@ -26,16 +25,24 @@ const MermaidDiagram = ({ source }: { readonly source: string }) => {
 	}, [id, source]);
 
 	if (rendered._tag === "rendering") {
-		return <span style={mutedStyle}>rendering diagram…</span>;
+		return (
+			<span className="text-2xs text-muted-foreground">
+				Rendering the diagram…
+			</span>
+		);
 	}
 	if (rendered._tag === "failed") {
-		return <span style={{ color: "#ff7c7c" }}>{rendered.message}</span>;
+		return (
+			<span className="text-2xs text-destructive wrap-anywhere">
+				{rendered.message}
+			</span>
+		);
 	}
 	return (
 		<span
+			className="block"
 			data-mermaid={true}
 			dangerouslySetInnerHTML={{ __html: rendered.svg }}
-			style={{ display: "block" }}
 		/>
 	);
 };
@@ -47,10 +54,7 @@ export const OutcomeMarkdownView = ({
 }: {
 	readonly markdown: string;
 }) => (
-	<div
-		className="markdown"
-		style={{ ...cardStyle, overflowX: "auto", padding: "0.8rem 1rem" }}
-	>
+	<div className="markdown min-w-0 overflow-x-auto rounded-md border border-border bg-card px-3 py-2.5">
 		<Markdown
 			components={{
 				a: ({ children, href }) =>

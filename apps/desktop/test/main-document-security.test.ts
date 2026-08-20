@@ -1,73 +1,17 @@
 import { describe, expect, it } from "@effect/vitest";
 import { Effect } from "effect";
 import { makeTrpcBridgeHandler } from "#adapters/trpc-bridge.ts";
-import {
-	makeTrpcSubscriptionHandlers,
-	type SubscriptionSender,
-} from "#adapters/trpc-subscription-handlers.ts";
-import {
-	makeWindowRegistry,
-	type WindowRegistry,
-} from "#adapters/windows/registry.ts";
+import { makeTrpcSubscriptionHandlers } from "#adapters/trpc-subscription-handlers.ts";
+import { makeWindowRegistry } from "#adapters/windows/registry.ts";
 import {
 	consolePlace,
 	contents,
+	countingSender,
 	eventFor,
-	type FakeContents,
+	ownContents,
 	ownWindow,
 	transcriptPlace,
 } from "#test/windows.ts";
-
-interface FakeSubscriptionSender extends SubscriptionSender, FakeContents {
-	readonly destroy: () => void;
-	readonly navigate: () => void;
-}
-
-const subscriptionSender = (
-	documentId: string,
-	senderId: number,
-): FakeSubscriptionSender => {
-	const base = contents(documentId);
-	let destroyed: (() => void) | undefined;
-	let navigated: (() => void) | undefined;
-	const sender: FakeSubscriptionSender = {
-		...base,
-		destroy: () => {
-			sender.destroyed = true;
-			destroyed?.();
-		},
-		id: senderId,
-		navigate: () => navigated?.(),
-		on: (_name, listener) => {
-			navigated = listener;
-		},
-		once: (_name, listener) => {
-			destroyed = listener;
-		},
-		send: () => undefined,
-	};
-	return sender;
-};
-
-const ownSender = (
-	registry: WindowRegistry,
-	sender: FakeSubscriptionSender,
-	id: string,
-): void => {
-	registry.own({
-		contents: sender,
-		document: sender.document,
-		handle: {
-			close: () => undefined,
-			focus: () => undefined,
-			isMinimized: () => false,
-			restore: () => undefined,
-			show: () => undefined,
-		},
-		id,
-		place: transcriptPlace(id),
-	});
-};
 
 describe("privileged IPC authority", () => {
 	it.effect("refuses invoke before decoding or executing foreign input", () =>
@@ -102,9 +46,9 @@ describe("privileged IPC authority", () => {
 
 	it("refuses foreign subscribe and unsubscribe before decode or lookup", () => {
 		const registry = makeWindowRegistry();
-		const owned = subscriptionSender("owned", 17);
-		const foreign = subscriptionSender("foreign", 17);
-		ownSender(registry, owned, "owned");
+		const owned = countingSender("owned", 17);
+		const foreign = countingSender("foreign", 17);
+		ownContents(registry, owned, "owned");
 		let signal: AbortSignal | undefined;
 		let starts = 0;
 		const handlers = makeTrpcSubscriptionHandlers(
@@ -138,8 +82,8 @@ describe("privileged IPC authority", () => {
 
 	it("rejects a duplicate subscription id without replacing its live stream", () => {
 		const registry = makeWindowRegistry();
-		const owned = subscriptionSender("owned", 17);
-		ownSender(registry, owned, "owned");
+		const owned = countingSender("owned", 17);
+		ownContents(registry, owned, "owned");
 		const signals: AbortSignal[] = [];
 		const handlers = makeTrpcSubscriptionHandlers(
 			registry,
@@ -162,8 +106,8 @@ describe("privileged IPC authority", () => {
 
 	it("isolates unsubscribe and clears every stream on navigation or destruction", () => {
 		const registry = makeWindowRegistry();
-		const navigated = subscriptionSender("navigated", 21);
-		ownSender(registry, navigated, "navigated");
+		const navigated = countingSender("navigated", 21);
+		ownContents(registry, navigated, "navigated");
 		const navigationSignals = new Map<string, AbortSignal>();
 		const navigationHandlers = makeTrpcSubscriptionHandlers(
 			registry,
@@ -188,8 +132,8 @@ describe("privileged IPC authority", () => {
 		navigated.navigate();
 		expect(navigationSignals.get("bravo")?.aborted).toBe(true);
 
-		const destroyed = subscriptionSender("destroyed", 22);
-		ownSender(registry, destroyed, "destroyed");
+		const destroyed = countingSender("destroyed", 22);
+		ownContents(registry, destroyed, "destroyed");
 		let destructionSignal: AbortSignal | undefined;
 		const destructionHandlers = makeTrpcSubscriptionHandlers(
 			registry,

@@ -66,7 +66,7 @@ interface OwnedWindows {
 	readonly getAllWindows: () => ReadonlyArray<OwnedWindow>;
 }
 
-const focusOrOpenOwnedWindow = (windows: OwnedWindows) =>
+export const focusOrOpenOwnedWindow = (windows: OwnedWindows) =>
 	Effect.gen(function* () {
 		const window = windows.getAllWindows()[0];
 		if (window === undefined) {

@@ -1,32 +1,15 @@
 import type { ArtifactMarkdown, ArtifactView } from "@antumbra/contract";
+import { ImageIcon } from "lucide-react";
 import { useState } from "react";
 import { readArtifactMarkdown } from "#adapters/trpc-voyages.ts";
-import { type CallState, useCall } from "#hooks/call.ts";
-import {
-	OutcomeChips,
-	type OutcomeDetail,
-	OutcomeDetailView,
-	type OutcomeRef,
-} from "#views/outcome-detail.tsx";
-import { mutedStyle } from "#views/styles.ts";
+import { useCall } from "#hooks/call.ts";
+import { OutcomeChips, OutcomeDetailView } from "#views/outcome-detail.tsx";
+import { detailOf, type OutcomeRef } from "#views/outcome-read.ts";
 
-// why: while the read is in flight the pane is titled by the chip that was
-// clicked; once it lands the Artifact names itself.
-const detailOf = (
-	state: CallState<ArtifactMarkdown>,
-	asked: string,
-): OutcomeDetail | undefined => {
-	if (state._tag === "idle") return undefined;
-	if (state._tag === "pending") return { _tag: "loading", title: asked };
-	if (state._tag === "failed") {
-		return { _tag: "failed", message: state.message, title: asked };
-	}
-	return {
-		_tag: "loaded",
-		markdown: state.value.markdown,
-		title: state.value.title,
-	};
-};
+const named = (artifact: ArtifactMarkdown) => ({
+	markdown: artifact.markdown,
+	title: artifact.title,
+});
 
 export const ArtifactOutcomes = ({
 	current,
@@ -43,24 +26,26 @@ export const ArtifactOutcomes = ({
 			readArtifactMarkdown(artifact.id, onDone, onError),
 		);
 	};
-	const detail = detailOf(read.state, asked);
+	const detail = detailOf(read.state, asked, named);
 	const loading = detail?._tag === "loading";
 	if (current.length === 0 && history.length === 0) return null;
 	return (
 		<>
 			<OutcomeChips
 				disabled={loading}
-				icon="🖼"
+				icon={<ImageIcon />}
 				onOpen={open}
 				outcomes={current}
 			/>
 			{history.length === 0 ? null : (
 				<details>
-					<summary style={mutedStyle}>History</summary>
-					<div style={{ paddingTop: "0.35rem" }}>
+					<summary className="cursor-default text-2xs text-muted-foreground">
+						History
+					</summary>
+					<div className="pt-1.5">
 						<OutcomeChips
 							disabled={loading}
-							icon="🖼"
+							icon={<ImageIcon />}
 							onOpen={open}
 							outcomes={history}
 						/>
@@ -71,7 +56,7 @@ export const ArtifactOutcomes = ({
 				<OutcomeDetailView
 					detail={detail}
 					onClose={read.reset}
-					reading="reading Artifact…"
+					reading="Reading the Artifact…"
 				/>
 			)}
 		</>

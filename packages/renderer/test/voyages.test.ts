@@ -121,13 +121,13 @@ describe("captainAtWork", () => {
 
 describe("captainCallLabel", () => {
 	it("offers the wake to a captain that is alive but not at work", () => {
-		expect(captainCallLabel(captain("alive", false))).toBe("wake the captain");
+		expect(captainCallLabel(captain("alive", false))).toBe("Wake the captain");
 	});
 
 	it("offers the hail when no captain of this voyage can be woken", () => {
-		expect(captainCallLabel(null)).toBe("hail a captain");
-		expect(captainCallLabel(captain("retired", false))).toBe("hail a captain");
-		expect(captainCallLabel(captain("dormant", false))).toBe("hail a captain");
+		expect(captainCallLabel(null)).toBe("Hail a captain");
+		expect(captainCallLabel(captain("retired", false))).toBe("Hail a captain");
+		expect(captainCallLabel(captain("dormant", false))).toBe("Hail a captain");
 	});
 });
 
@@ -138,7 +138,7 @@ describe("dependsOnLabel", () => {
 	it("names what gates a piece by title", () => {
 		const gated = piece("3", "charlie", "blocked", ["1", "2"]);
 		expect(dependsOnLabel(gated, [alpha, bravo, gated])).toBe(
-			"depends on: alpha, bravo",
+			"Depends on: alpha, bravo",
 		);
 	});
 
@@ -148,7 +148,7 @@ describe("dependsOnLabel", () => {
 
 	it("falls back to the id when the piece is not on the voyage", () => {
 		const gated = piece("3", "charlie", "blocked", ["elsewhere"]);
-		expect(dependsOnLabel(gated, [gated])).toBe("depends on: elsewhere");
+		expect(dependsOnLabel(gated, [gated])).toBe("Depends on: elsewhere");
 	});
 });
 

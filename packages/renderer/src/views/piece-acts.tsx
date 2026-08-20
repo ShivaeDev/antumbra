@@ -6,21 +6,10 @@ import {
 	rewirePiece,
 	unparkPiece,
 } from "#adapters/trpc-voyages.ts";
+import { Button } from "#components/ui/button.tsx";
 import { PiecePicker, pickable } from "#views/piece-picker.tsx";
-import { buttonStyle, columnStyle, rowStyle } from "#views/styles.ts";
 import { actsFor, type PieceAct } from "#voyages/acts.ts";
-
-const ActButton = ({
-	act,
-	onAct,
-}: {
-	readonly act: PieceAct;
-	readonly onAct: (act: PieceAct) => void;
-}) => (
-	<button onClick={() => onAct(act)} style={buttonStyle} type="button">
-		{act}
-	</button>
-);
+import { pieceActLabel } from "#voyages/labels.ts";
 
 export const PieceActs = ({
 	onError,
@@ -53,23 +42,40 @@ export const PieceActs = ({
 		setRewiring(false);
 	};
 	return (
-		<div style={columnStyle}>
-			<div style={rowStyle}>
+		<div className="flex min-w-0 flex-col gap-2">
+			<div className="flex min-w-0 flex-wrap items-center gap-1.5">
 				{actsFor(piece).map((offered) => (
-					<ActButton act={offered} key={offered} onAct={act} />
+					<Button
+						aria-expanded={offered === "rewire" ? rewiring : undefined}
+						key={offered}
+						onClick={() => act(offered)}
+						size="sm"
+						type="button"
+						variant="outline"
+					>
+						{pieceActLabel[offered]}
+					</Button>
 				))}
 			</div>
 			{rewiring ? (
-				<div style={columnStyle}>
+				<div className="flex min-w-0 flex-col gap-2 rounded-md border border-border bg-muted p-2">
+					<span className="text-2xs font-medium text-muted-foreground">
+						Depends on
+					</span>
 					<PiecePicker
 						chosen={dependsOn}
 						exclude={piece.id}
 						onChange={setDependsOn}
 						pieces={pickable(pieces)}
 					/>
-					<button onClick={rewire} style={buttonStyle} type="button">
-						save position
-					</button>
+					<Button
+						className="self-start"
+						onClick={rewire}
+						size="sm"
+						type="button"
+					>
+						Save position
+					</Button>
 				</div>
 			) : null}
 		</div>

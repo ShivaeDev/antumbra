@@ -1,14 +1,27 @@
 import type { PieceView } from "@antumbra/contract";
+import { PlusIcon } from "lucide-react";
 import { useState } from "react";
 import { charterPiece } from "#adapters/trpc-voyages.ts";
-import { PiecePicker, pickable } from "#views/piece-picker.tsx";
+import { Button } from "#components/ui/button.tsx";
 import {
-	buttonStyle,
-	columnStyle,
-	inputStyle,
-	mutedStyle,
-} from "#views/styles.ts";
+	Dialog,
+	DialogContent,
+	DialogTrigger,
+} from "#components/ui/dialog.tsx";
+import {
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+} from "#components/ui/dialog-sections.tsx";
+import {
+	emptyPiece,
+	type PieceDraft,
+	PieceFields,
+} from "#views/piece-fields.tsx";
 
+// why: chartering is how a voyage grows, but reading its pieces is what the
+// pane is for — so the form is one press away rather than always in the way.
 export const CharterPieceForm = ({
 	onError,
 	pieces,
@@ -18,64 +31,41 @@ export const CharterPieceForm = ({
 	readonly pieces: ReadonlyArray<PieceView>;
 	readonly voyageId: string;
 }) => {
-	const [title, setTitle] = useState("");
-	const [charter, setCharter] = useState("");
-	const [expectation, setExpectation] = useState("");
-	const [role, setRole] = useState("");
-	const [dependsOn, setDependsOn] = useState<ReadonlyArray<string>>([]);
-	const ready = title !== "" && charter !== "" && role !== "";
+	const [open, setOpen] = useState(false);
+	const [draft, setDraft] = useState<PieceDraft>(emptyPiece);
+	const ready = draft.title !== "" && draft.charter !== "" && draft.role !== "";
 	const submit = () =>
 		charterPiece(
-			{ charter, dependsOn, expectation, role, title, voyageId },
+			{ ...draft, voyageId },
 			() => {
-				setTitle("");
-				setCharter("");
-				setExpectation("");
-				setDependsOn([]);
+				setDraft(emptyPiece);
+				setOpen(false);
 			},
 			onError,
 		);
 	return (
-		<div style={columnStyle}>
-			<span style={mutedStyle}>+ charter piece</span>
-			<input
-				onChange={(event) => setTitle(event.target.value)}
-				placeholder="title"
-				style={inputStyle}
-				value={title}
-			/>
-			<textarea
-				onChange={(event) => setCharter(event.target.value)}
-				placeholder="charter"
-				rows={2}
-				style={inputStyle}
-				value={charter}
-			/>
-			<input
-				onChange={(event) => setExpectation(event.target.value)}
-				placeholder="expected outcome"
-				style={inputStyle}
-				value={expectation}
-			/>
-			<input
-				onChange={(event) => setRole(event.target.value)}
-				placeholder="role"
-				style={inputStyle}
-				value={role}
-			/>
-			<PiecePicker
-				chosen={dependsOn}
-				onChange={setDependsOn}
-				pieces={pickable(pieces)}
-			/>
-			<button
-				disabled={!ready}
-				onClick={submit}
-				style={{ ...buttonStyle, opacity: ready ? 1 : 0.5 }}
-				type="button"
-			>
-				charter
-			</button>
-		</div>
+		<Dialog onOpenChange={setOpen} open={open}>
+			<DialogTrigger asChild>
+				<Button size="sm" type="button" variant="outline">
+					<PlusIcon />
+					Charter piece
+				</Button>
+			</DialogTrigger>
+			<DialogContent>
+				<DialogHeader>
+					<DialogTitle>Charter a piece</DialogTitle>
+					<DialogDescription>
+						A piece needs a title, the charter it works to, and the role that
+						carries it. Name what it waits on to place it in the ladder.
+					</DialogDescription>
+				</DialogHeader>
+				<PieceFields draft={draft} onChange={setDraft} pieces={pieces} />
+				<DialogFooter>
+					<Button disabled={!ready} onClick={submit} type="button">
+						Charter piece
+					</Button>
+				</DialogFooter>
+			</DialogContent>
+		</Dialog>
 	);
 };

@@ -1,41 +1,51 @@
 import type {
+	BoardEntryView,
 	PieceState,
 	PieceView,
 	VoyageCaptainView,
 	VoyageState,
 } from "@antumbra/contract";
+import type { PieceAct } from "#voyages/acts.ts";
 
 export const voyageStateLabel: Readonly<Record<VoyageState, string>> = {
-	quiet: "quiet",
-	underWay: "under way",
+	quiet: "Quiet",
+	underWay: "Under way",
 };
 
-// why: a voyage is under way because its captain or a piece of it is at work,
-// so it wears the colour of work rather than of a setting someone chose.
-export const voyageStateColour: Readonly<Record<VoyageState, string>> = {
-	quiet: "#8a8f98",
-	underWay: "#7cd3a0",
+// why: every state the domain can publish is named here in the register the
+// window speaks, so a new one is a compile error rather than a wire spelling
+// leaking onto a badge.
+export const pieceStateLabel: Readonly<Record<PieceState, string>> = {
+	active: "Active",
+	blocked: "Blocked",
+	done: "Landed",
+	held: "Held",
+	landing: "Landing",
+	parked: "Parked",
+	ready: "Ready",
 };
 
-// why: the states read at a glance by colour rather than by reading — what is
-// moving is green, what waits is blue, what is stuck is amber, what is done
-// but for something landing elsewhere is teal, and what is finished or not yet
-// released recedes.
-export const stateColour: Readonly<Record<PieceState, string>> = {
-	active: "#7cd3a0",
-	blocked: "#ff9f5c",
-	done: "#8a8f98",
-	held: "#8a8f98",
-	landing: "#5cc8d3",
-	parked: "#c9a0ff",
-	ready: "#7c9cff",
+export const pieceActLabel: Readonly<Record<PieceAct, string>> = {
+	launch: "Launch",
+	park: "Park",
+	rewire: "Rewire",
+	unpark: "Unpark",
+};
+
+// why: the two registers are glossary terms, so the board calls them what the
+// rest of the system calls them rather than shortening them to fit a chip.
+export const boardRegisterLabel: Readonly<
+	Record<BoardEntryView["register"], string>
+> = {
+	rough: "Rough log",
+	smooth: "Smooth log",
 };
 
 // why: a captain that is alive but not at work is woken back into its own
 // conversation, while any other absence hails a fresh one — so the button
 // names which of the two the same act is about to do.
 export const captainCallLabel = (captain: VoyageCaptainView | null): string =>
-	captain?.status === "alive" ? "wake the captain" : "hail a captain";
+	captain?.status === "alive" ? "Wake the captain" : "Hail a captain";
 
 export const dependsOnLabel = (
 	piece: PieceView,
@@ -44,7 +54,7 @@ export const dependsOnLabel = (
 	const titles = piece.dependsOn.map(
 		(id) => pieces.find((other) => other.id === id)?.title ?? id,
 	);
-	return titles.length === 0 ? "" : `depends on: ${titles.join(", ")}`;
+	return titles.length === 0 ? "" : `Depends on: ${titles.join(", ")}`;
 };
 
 // why: a board records which of the crew wrote an entry, and an entry with no

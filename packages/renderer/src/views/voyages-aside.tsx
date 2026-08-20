@@ -1,5 +1,6 @@
 import type { VoyageSummary } from "@antumbra/contract";
 import { OpenVoyageForm } from "#views/open-voyage-form.tsx";
+import { SectionHeading } from "#views/section.tsx";
 import { VoyagesPanel } from "#views/voyages.tsx";
 
 export const VoyagesAside = ({
@@ -15,7 +16,8 @@ export const VoyagesAside = ({
 	readonly selected: string | undefined;
 	readonly voyages: ReadonlyArray<VoyageSummary>;
 }) => (
-	<>
+	<div className="flex min-w-0 flex-col gap-3 font-sans">
+		<SectionHeading count={voyages.length} title="Voyages" />
 		<OpenVoyageForm backends={backends} onError={onError} onOpened={onSelect} />
 		<VoyagesPanel
 			onError={onError}
@@ -23,5 +25,5 @@ export const VoyagesAside = ({
 			selected={selected}
 			voyages={voyages}
 		/>
-	</>
+	</div>
 );

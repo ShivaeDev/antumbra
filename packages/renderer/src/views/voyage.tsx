@@ -1,25 +1,10 @@
 import type { VoyageView } from "@antumbra/contract";
-import { useEffect, useState } from "react";
 import { watchVoyage } from "#adapters/trpc-voyages.ts";
+import { useFeed } from "#hooks/feed.ts";
 import { BoardPanel } from "#views/board.tsx";
 import { CrewPanel } from "#views/crew.tsx";
-import { CharterPieceForm } from "#views/piece-form.tsx";
 import { PiecesPanel } from "#views/pieces.tsx";
 import { VoyageHeader } from "#views/voyage-header.tsx";
-
-const sectionStyle: React.CSSProperties = {
-	display: "flex",
-	flex: 1,
-	flexDirection: "column",
-	gap: "1.2rem",
-	minWidth: 0,
-	// why: the pane scrolls the one way it was built to scroll; a long path or
-	// branch belongs inside its row, never in a sideways scrollbar over the
-	// whole voyage.
-	overflowX: "hidden",
-	overflowY: "auto",
-	padding: "1rem 1.4rem",
-};
 
 export const VoyagePanel = ({
 	onError,
@@ -28,42 +13,46 @@ export const VoyagePanel = ({
 	readonly onError: (message: string) => void;
 	readonly voyageId: string;
 }) => {
-	const [voyage, setVoyage] = useState<VoyageView | undefined>(undefined);
-	const [feedError, setFeedError] = useState<string | undefined>(undefined);
-
-	useEffect(() => {
-		setVoyage(undefined);
-		setFeedError(undefined);
-		return watchVoyage(voyageId, setVoyage, setFeedError);
-	}, [voyageId]);
+	const { error, value: voyage } = useFeed<VoyageView>(
+		voyageId,
+		(onVoyage, onFeedError) => watchVoyage(voyageId, onVoyage, onFeedError),
+	);
 
 	if (voyage === undefined) {
 		return (
-			<section style={{ color: "#8a8f98", margin: "auto" }}>
-				{feedError === undefined
-					? "taking a sight…"
-					: `feed lost: ${feedError}`}
+			<section className="m-auto text-xs text-muted-foreground">
+				{error === undefined ? "taking a sight…" : `feed lost: ${error}`}
 			</section>
 		);
 	}
 	return (
-		<section style={sectionStyle}>
-			{feedError === undefined ? null : (
-				<div style={{ color: "#ff7c7c" }}>feed lost: {feedError}</div>
-			)}
+		<section className="@container flex min-h-0 min-w-0 flex-1 flex-col font-sans">
 			<VoyageHeader onError={onError} voyage={voyage} />
-			<PiecesPanel onError={onError} pieces={voyage.pieces} />
-			<CharterPieceForm
-				onError={onError}
-				pieces={voyage.pieces}
-				voyageId={voyage.id}
-			/>
-			<CrewPanel crew={voyage.crew} />
-			<BoardPanel
-				entries={voyage.board}
-				onError={onError}
-				scope={{ kind: "voyage", voyageId: voyage.id }}
-			/>
+			{error === undefined ? null : (
+				<p className="shrink-0 border-b border-destructive/40 bg-destructive/10 px-5 py-1.5 text-xs text-destructive">
+					feed lost: {error}
+				</p>
+			)}
+			{/* why: the pane scrolls the one way it was built to scroll; a long
+			charter or branch belongs inside its row, never in a sideways bar over
+			the whole voyage. */}
+			<div className="min-h-0 min-w-0 flex-1 overflow-x-hidden overflow-y-auto">
+				<div className="grid min-w-0 grid-cols-1 items-start gap-6 px-5 py-4 @4xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] @4xl:gap-8">
+					<PiecesPanel
+						onError={onError}
+						pieces={voyage.pieces}
+						voyageId={voyage.id}
+					/>
+					<div className="flex min-w-0 flex-col gap-6">
+						<BoardPanel
+							entries={voyage.board}
+							onError={onError}
+							scope={{ kind: "voyage", voyageId: voyage.id }}
+						/>
+						<CrewPanel crew={voyage.crew} />
+					</div>
+				</div>
+			</div>
 		</section>
 	);
 };

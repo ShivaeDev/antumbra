@@ -1,12 +1,27 @@
+import { PlusIcon } from "lucide-react";
 import { useState } from "react";
 import { openVoyage } from "#adapters/trpc-voyages.ts";
+import { Button } from "#components/ui/button.tsx";
 import {
-	buttonStyle,
-	columnStyle,
-	inputStyle,
-	mutedStyle,
-} from "#views/styles.ts";
+	Dialog,
+	DialogContent,
+	DialogTrigger,
+} from "#components/ui/dialog.tsx";
+import {
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+} from "#components/ui/dialog-sections.tsx";
+import {
+	chosenBackend,
+	emptyDraft,
+	type VoyageDraft,
+	VoyageFields,
+} from "#views/open-voyage-fields.tsx";
 
+// why: opening a voyage is a rare act beside reading the ones already open, so
+// it asks for the sidebar only while it is being used.
 export const OpenVoyageForm = ({
 	backends,
 	onError,
@@ -16,64 +31,43 @@ export const OpenVoyageForm = ({
 	readonly onError: (message: string) => void;
 	readonly onOpened: (voyageId: string) => void;
 }) => {
-	const [name, setName] = useState("");
-	const [northStar, setNorthStar] = useState("");
-	const [context, setContext] = useState("");
-	const [backend, setBackend] = useState("");
-	const chosen = backends.includes(backend) ? backend : (backends[0] ?? "");
-	const ready = name !== "" && northStar !== "" && chosen !== "";
+	const [open, setOpen] = useState(false);
+	const [draft, setDraft] = useState<VoyageDraft>(emptyDraft);
+	const backend = chosenBackend(backends, draft.backend);
+	const ready = draft.name !== "" && draft.northStar !== "" && backend !== "";
 	const submit = () =>
 		openVoyage(
-			{ backend: chosen, context, name, northStar },
+			{ ...draft, backend },
 			(opened) => {
-				setName("");
-				setNorthStar("");
-				setContext("");
+				setDraft(emptyDraft);
+				setOpen(false);
 				onOpened(opened.id);
 			},
 			onError,
 		);
 	return (
-		<div style={columnStyle}>
-			<span style={mutedStyle}>+ open voyage</span>
-			<input
-				onChange={(event) => setName(event.target.value)}
-				placeholder="name"
-				style={inputStyle}
-				value={name}
-			/>
-			<input
-				onChange={(event) => setNorthStar(event.target.value)}
-				placeholder="north star"
-				style={inputStyle}
-				value={northStar}
-			/>
-			<textarea
-				onChange={(event) => setContext(event.target.value)}
-				placeholder="context"
-				rows={2}
-				style={inputStyle}
-				value={context}
-			/>
-			<select
-				onChange={(event) => setBackend(event.target.value)}
-				style={inputStyle}
-				value={chosen}
-			>
-				{backends.map((tag) => (
-					<option key={tag} value={tag}>
-						{tag}
-					</option>
-				))}
-			</select>
-			<button
-				disabled={!ready}
-				onClick={submit}
-				style={{ ...buttonStyle, opacity: ready ? 1 : 0.5 }}
-				type="button"
-			>
-				open
-			</button>
-		</div>
+		<Dialog onOpenChange={setOpen} open={open}>
+			<DialogTrigger asChild>
+				<Button className="w-full" type="button">
+					<PlusIcon />
+					Open voyage
+				</Button>
+			</DialogTrigger>
+			<DialogContent>
+				<DialogHeader>
+					<DialogTitle>Open a voyage</DialogTitle>
+					<DialogDescription>
+						A voyage needs a name and the north star it steers by. Everything
+						else is chartered later.
+					</DialogDescription>
+				</DialogHeader>
+				<VoyageFields backends={backends} draft={draft} onChange={setDraft} />
+				<DialogFooter>
+					<Button disabled={!ready} onClick={submit} type="button">
+						Open voyage
+					</Button>
+				</DialogFooter>
+			</DialogContent>
+		</Dialog>
 	);
 };

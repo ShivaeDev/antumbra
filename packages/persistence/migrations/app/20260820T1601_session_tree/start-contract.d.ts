@@ -16,7 +16,7 @@ import type {
 } from '@prisma-next/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'sha256:8a7a3ab4c870466fbba4fd91393adf0dd1a5a862c4cf9f62e94b8fb53cac8d6c'>;
+  StorageHashBase<'sha256:ad241ac4e17b7cf0d359e8be138d3865b236385bb508923ba5a0b5422bc307bc'>;
 export type ExecutionHash = ExecutionHashBase<string>;
 export type ProfileHash =
   ProfileHashBase<'sha256:3cc333ecad9f3f4c7229370a9d2c37e908cdce0f8d2e9fb132d50605b024eff2'>;
@@ -47,12 +47,6 @@ export type FieldOutputTypes = {
       readonly nativeRef: CodecTypes['sqlite/text@1']['output'] | null;
       readonly status: CodecTypes['sqlite/text@1']['output'];
       readonly executionStatus: CodecTypes['sqlite/text@1']['output'];
-      readonly outcome: CodecTypes['sqlite/text@1']['output'] | null;
-      readonly completeness: CodecTypes['sqlite/text@1']['output'];
-      readonly label: CodecTypes['sqlite/text@1']['output'] | null;
-      readonly kind: CodecTypes['sqlite/text@1']['output'] | null;
-      readonly parentSessionId: CodecTypes['sqlite/text@1']['output'] | null;
-      readonly rootSessionId: CodecTypes['sqlite/text@1']['output'];
       readonly charterDeliveredAt: CodecTypes['sqlite/datetime@1']['output'] | null;
       readonly createdAt: CodecTypes['sqlite/datetime@1']['output'];
     };
@@ -258,12 +252,6 @@ export type FieldInputTypes = {
       readonly nativeRef: CodecTypes['sqlite/text@1']['input'] | null;
       readonly status: CodecTypes['sqlite/text@1']['input'];
       readonly executionStatus: CodecTypes['sqlite/text@1']['input'];
-      readonly outcome: CodecTypes['sqlite/text@1']['input'] | null;
-      readonly completeness: CodecTypes['sqlite/text@1']['input'];
-      readonly label: CodecTypes['sqlite/text@1']['input'] | null;
-      readonly kind: CodecTypes['sqlite/text@1']['input'] | null;
-      readonly parentSessionId: CodecTypes['sqlite/text@1']['input'] | null;
-      readonly rootSessionId: CodecTypes['sqlite/text@1']['input'];
       readonly charterDeliveredAt: CodecTypes['sqlite/datetime@1']['input'] | null;
       readonly createdAt: CodecTypes['sqlite/datetime@1']['input'];
     };
@@ -465,17 +453,11 @@ export type StorageColumnTypes = {
       readonly agentId: CodecTypes['sqlite/text@1']['output'];
       readonly backend: CodecTypes['sqlite/text@1']['output'];
       readonly charterDeliveredAt: CodecTypes['sqlite/datetime@1']['output'] | null;
-      readonly completeness: CodecTypes['sqlite/text@1']['output'];
       readonly createdAt: CodecTypes['sqlite/datetime@1']['output'];
       readonly cwd: CodecTypes['sqlite/text@1']['output'];
       readonly executionStatus: CodecTypes['sqlite/text@1']['output'];
       readonly id: CodecTypes['sqlite/text@1']['output'];
-      readonly kind: CodecTypes['sqlite/text@1']['output'] | null;
-      readonly label: CodecTypes['sqlite/text@1']['output'] | null;
       readonly nativeRef: CodecTypes['sqlite/text@1']['output'] | null;
-      readonly outcome: CodecTypes['sqlite/text@1']['output'] | null;
-      readonly parentSessionId: CodecTypes['sqlite/text@1']['output'] | null;
-      readonly rootSessionId: CodecTypes['sqlite/text@1']['output'];
       readonly status: CodecTypes['sqlite/text@1']['output'];
     };
     readonly appMeta: {
@@ -676,17 +658,11 @@ export type StorageColumnInputTypes = {
       readonly agentId: CodecTypes['sqlite/text@1']['input'];
       readonly backend: CodecTypes['sqlite/text@1']['input'];
       readonly charterDeliveredAt: CodecTypes['sqlite/datetime@1']['input'] | null;
-      readonly completeness: CodecTypes['sqlite/text@1']['input'];
       readonly createdAt: CodecTypes['sqlite/datetime@1']['input'];
       readonly cwd: CodecTypes['sqlite/text@1']['input'];
       readonly executionStatus: CodecTypes['sqlite/text@1']['input'];
       readonly id: CodecTypes['sqlite/text@1']['input'];
-      readonly kind: CodecTypes['sqlite/text@1']['input'] | null;
-      readonly label: CodecTypes['sqlite/text@1']['input'] | null;
       readonly nativeRef: CodecTypes['sqlite/text@1']['input'] | null;
-      readonly outcome: CodecTypes['sqlite/text@1']['input'] | null;
-      readonly parentSessionId: CodecTypes['sqlite/text@1']['input'] | null;
-      readonly rootSessionId: CodecTypes['sqlite/text@1']['input'];
       readonly status: CodecTypes['sqlite/text@1']['input'];
     };
     readonly appMeta: {
@@ -979,40 +955,6 @@ type ContractBase = Omit<
                     readonly value: DefaultLiteralValue<'sqlite/text@1', 'active'>;
                   };
                 };
-                readonly outcome: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'sqlite/text@1';
-                  readonly nullable: true;
-                };
-                readonly completeness: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'sqlite/text@1';
-                  readonly nullable: false;
-                  readonly default: {
-                    readonly kind: 'literal';
-                    readonly value: DefaultLiteralValue<'sqlite/text@1', 'recording'>;
-                  };
-                };
-                readonly label: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'sqlite/text@1';
-                  readonly nullable: true;
-                };
-                readonly kind: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'sqlite/text@1';
-                  readonly nullable: true;
-                };
-                readonly parentSessionId: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'sqlite/text@1';
-                  readonly nullable: true;
-                };
-                readonly rootSessionId: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'sqlite/text@1';
-                  readonly nullable: false;
-                };
                 readonly charterDeliveredAt: {
                   readonly nativeType: 'text';
                   readonly codecId: 'sqlite/datetime@1';
@@ -1027,41 +969,8 @@ type ContractBase = Omit<
               };
               primaryKey: { readonly columns: readonly ['id'] };
               uniques: readonly [];
-              indexes: readonly [
-                { readonly columns: readonly ['agentId'] },
-                { readonly columns: readonly ['parentSessionId'] },
-                { readonly columns: readonly ['rootSessionId', 'status'] },
-              ];
-              foreignKeys: readonly [
-                {
-                  readonly source: {
-                    readonly namespaceId: '__unbound__' & NamespaceId;
-                    readonly tableName: 'agentSession';
-                    readonly columns: readonly ['parentSessionId'];
-                  };
-                  readonly target: {
-                    readonly namespaceId: '__unbound__' & NamespaceId;
-                    readonly tableName: 'agentSession';
-                    readonly columns: readonly ['id'];
-                  };
-                  readonly constraint: true;
-                  readonly index: true;
-                },
-                {
-                  readonly source: {
-                    readonly namespaceId: '__unbound__' & NamespaceId;
-                    readonly tableName: 'agentSession';
-                    readonly columns: readonly ['rootSessionId'];
-                  };
-                  readonly target: {
-                    readonly namespaceId: '__unbound__' & NamespaceId;
-                    readonly tableName: 'agentSession';
-                    readonly columns: readonly ['id'];
-                  };
-                  readonly constraint: true;
-                  readonly index: true;
-                },
-              ];
+              indexes: readonly [{ readonly columns: readonly ['agentId'] }];
+              foreignKeys: readonly [];
             };
             readonly appMeta: {
               columns: {
@@ -1932,22 +1841,7 @@ type ContractBase = Omit<
               primaryKey: { readonly columns: readonly ['sessionId', 'seq'] };
               uniques: readonly [];
               indexes: readonly [];
-              foreignKeys: readonly [
-                {
-                  readonly source: {
-                    readonly namespaceId: '__unbound__' & NamespaceId;
-                    readonly tableName: 'sessionEvent';
-                    readonly columns: readonly ['sessionId'];
-                  };
-                  readonly target: {
-                    readonly namespaceId: '__unbound__' & NamespaceId;
-                    readonly tableName: 'agentSession';
-                    readonly columns: readonly ['id'];
-                  };
-                  readonly constraint: true;
-                  readonly index: true;
-                },
-              ];
+              foreignKeys: readonly [];
             };
             readonly voyage: {
               columns: {
@@ -2201,30 +2095,6 @@ type ContractBase = Omit<
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
               };
-              readonly outcome: {
-                readonly nullable: true;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
-              };
-              readonly completeness: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
-              };
-              readonly label: {
-                readonly nullable: true;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
-              };
-              readonly kind: {
-                readonly nullable: true;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
-              };
-              readonly parentSessionId: {
-                readonly nullable: true;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
-              };
-              readonly rootSessionId: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
-              };
               readonly charterDeliveredAt: {
                 readonly nullable: true;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/datetime@1' };
@@ -2234,63 +2104,7 @@ type ContractBase = Omit<
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/datetime@1' };
               };
             };
-            readonly relations: {
-              readonly children: {
-                readonly to: {
-                  readonly namespace: '__unbound__' & NamespaceId;
-                  readonly model: 'AgentSession';
-                };
-                readonly cardinality: '1:N';
-                readonly on: {
-                  readonly localFields: readonly ['id'];
-                  readonly targetFields: readonly ['parentSessionId'];
-                };
-              };
-              readonly events: {
-                readonly to: {
-                  readonly namespace: '__unbound__' & NamespaceId;
-                  readonly model: 'SessionEvent';
-                };
-                readonly cardinality: '1:N';
-                readonly on: {
-                  readonly localFields: readonly ['id'];
-                  readonly targetFields: readonly ['sessionId'];
-                };
-              };
-              readonly nodes: {
-                readonly to: {
-                  readonly namespace: '__unbound__' & NamespaceId;
-                  readonly model: 'AgentSession';
-                };
-                readonly cardinality: '1:N';
-                readonly on: {
-                  readonly localFields: readonly ['id'];
-                  readonly targetFields: readonly ['rootSessionId'];
-                };
-              };
-              readonly parent: {
-                readonly to: {
-                  readonly namespace: '__unbound__' & NamespaceId;
-                  readonly model: 'AgentSession';
-                };
-                readonly cardinality: 'N:1';
-                readonly on: {
-                  readonly localFields: readonly ['parentSessionId'];
-                  readonly targetFields: readonly ['id'];
-                };
-              };
-              readonly root: {
-                readonly to: {
-                  readonly namespace: '__unbound__' & NamespaceId;
-                  readonly model: 'AgentSession';
-                };
-                readonly cardinality: 'N:1';
-                readonly on: {
-                  readonly localFields: readonly ['rootSessionId'];
-                  readonly targetFields: readonly ['id'];
-                };
-              };
-            };
+            readonly relations: Record<string, never>;
             readonly storage: {
               readonly table: 'agentSession';
               readonly namespaceId: '__unbound__';
@@ -2302,12 +2116,6 @@ type ContractBase = Omit<
                 readonly nativeRef: { readonly column: 'nativeRef' };
                 readonly status: { readonly column: 'status' };
                 readonly executionStatus: { readonly column: 'executionStatus' };
-                readonly outcome: { readonly column: 'outcome' };
-                readonly completeness: { readonly column: 'completeness' };
-                readonly label: { readonly column: 'label' };
-                readonly kind: { readonly column: 'kind' };
-                readonly parentSessionId: { readonly column: 'parentSessionId' };
-                readonly rootSessionId: { readonly column: 'rootSessionId' };
                 readonly charterDeliveredAt: { readonly column: 'charterDeliveredAt' };
                 readonly createdAt: { readonly column: 'createdAt' };
               };
@@ -3221,19 +3029,7 @@ type ContractBase = Omit<
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/datetime@1' };
               };
             };
-            readonly relations: {
-              readonly session: {
-                readonly to: {
-                  readonly namespace: '__unbound__' & NamespaceId;
-                  readonly model: 'AgentSession';
-                };
-                readonly cardinality: 'N:1';
-                readonly on: {
-                  readonly localFields: readonly ['sessionId'];
-                  readonly targetFields: readonly ['id'];
-                };
-              };
-            };
+            readonly relations: Record<string, never>;
             readonly storage: {
               readonly table: 'sessionEvent';
               readonly namespaceId: '__unbound__';

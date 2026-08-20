@@ -7,6 +7,7 @@ import {
 } from "@antumbra/vocabulary/agent-runtime";
 import { Effect, Layer, Option, PubSub, Stream } from "effect";
 import { AgentDomain } from "#agent-domain-service.ts";
+import { rootSessions } from "#session-roots.ts";
 import {
 	SessionShutdown,
 	SessionShutdownIncomplete,
@@ -56,7 +57,7 @@ export const makeSessionShutdownDrain = Effect.gen(function* () {
 	const markActiveSessionsDraining = provide(
 		writer.write(
 			Effect.gen(function* () {
-				const sessions = yield* db.AgentSession.all();
+				const sessions = yield* db.AgentSession.where(rootSessions).all();
 				const draining: Array<string> = [];
 				for (const session of sessions) {
 					const status = yield* Effect.fromResult(

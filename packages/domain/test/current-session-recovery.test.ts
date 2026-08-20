@@ -31,6 +31,8 @@ const createSession = (agentId: string, id: string) =>
 			executionStatus: "idle",
 			id,
 			nativeRef: `native-${id}`,
+			parentSessionId: null,
+			rootSessionId: id,
 			status: "open",
 		}),
 	);

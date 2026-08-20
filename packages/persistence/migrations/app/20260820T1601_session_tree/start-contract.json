@@ -209,13 +209,6 @@
                   "kind": "scalar"
                 }
               },
-              "completeness": {
-                "nullable": false,
-                "type": {
-                  "codecId": "sqlite/text@1",
-                  "kind": "scalar"
-                }
-              },
               "createdAt": {
                 "nullable": false,
                 "type": {
@@ -244,43 +237,8 @@
                   "kind": "scalar"
                 }
               },
-              "kind": {
-                "nullable": true,
-                "type": {
-                  "codecId": "sqlite/text@1",
-                  "kind": "scalar"
-                }
-              },
-              "label": {
-                "nullable": true,
-                "type": {
-                  "codecId": "sqlite/text@1",
-                  "kind": "scalar"
-                }
-              },
               "nativeRef": {
                 "nullable": true,
-                "type": {
-                  "codecId": "sqlite/text@1",
-                  "kind": "scalar"
-                }
-              },
-              "outcome": {
-                "nullable": true,
-                "type": {
-                  "codecId": "sqlite/text@1",
-                  "kind": "scalar"
-                }
-              },
-              "parentSessionId": {
-                "nullable": true,
-                "type": {
-                  "codecId": "sqlite/text@1",
-                  "kind": "scalar"
-                }
-              },
-              "rootSessionId": {
-                "nullable": false,
                 "type": {
                   "codecId": "sqlite/text@1",
                   "kind": "scalar"
@@ -294,83 +252,7 @@
                 }
               }
             },
-            "relations": {
-              "children": {
-                "cardinality": "1:N",
-                "on": {
-                  "localFields": [
-                    "id"
-                  ],
-                  "targetFields": [
-                    "parentSessionId"
-                  ]
-                },
-                "to": {
-                  "model": "AgentSession",
-                  "namespace": "__unbound__"
-                }
-              },
-              "events": {
-                "cardinality": "1:N",
-                "on": {
-                  "localFields": [
-                    "id"
-                  ],
-                  "targetFields": [
-                    "sessionId"
-                  ]
-                },
-                "to": {
-                  "model": "SessionEvent",
-                  "namespace": "__unbound__"
-                }
-              },
-              "nodes": {
-                "cardinality": "1:N",
-                "on": {
-                  "localFields": [
-                    "id"
-                  ],
-                  "targetFields": [
-                    "rootSessionId"
-                  ]
-                },
-                "to": {
-                  "model": "AgentSession",
-                  "namespace": "__unbound__"
-                }
-              },
-              "parent": {
-                "cardinality": "N:1",
-                "on": {
-                  "localFields": [
-                    "parentSessionId"
-                  ],
-                  "targetFields": [
-                    "id"
-                  ]
-                },
-                "to": {
-                  "model": "AgentSession",
-                  "namespace": "__unbound__"
-                }
-              },
-              "root": {
-                "cardinality": "N:1",
-                "on": {
-                  "localFields": [
-                    "rootSessionId"
-                  ],
-                  "targetFields": [
-                    "id"
-                  ]
-                },
-                "to": {
-                  "model": "AgentSession",
-                  "namespace": "__unbound__"
-                }
-              }
-            },
+            "relations": {},
             "storage": {
               "fields": {
                 "agentId": {
@@ -381,9 +263,6 @@
                 },
                 "charterDeliveredAt": {
                   "column": "charterDeliveredAt"
-                },
-                "completeness": {
-                  "column": "completeness"
                 },
                 "createdAt": {
                   "column": "createdAt"
@@ -397,23 +276,8 @@
                 "id": {
                   "column": "id"
                 },
-                "kind": {
-                  "column": "kind"
-                },
-                "label": {
-                  "column": "label"
-                },
                 "nativeRef": {
                   "column": "nativeRef"
-                },
-                "outcome": {
-                  "column": "outcome"
-                },
-                "parentSessionId": {
-                  "column": "parentSessionId"
-                },
-                "rootSessionId": {
-                  "column": "rootSessionId"
                 },
                 "status": {
                   "column": "status"
@@ -1973,23 +1837,7 @@
                 }
               }
             },
-            "relations": {
-              "session": {
-                "cardinality": "N:1",
-                "on": {
-                  "localFields": [
-                    "sessionId"
-                  ],
-                  "targetFields": [
-                    "id"
-                  ]
-                },
-                "to": {
-                  "model": "AgentSession",
-                  "namespace": "__unbound__"
-                }
-              }
-            },
+            "relations": {},
             "storage": {
               "fields": {
                 "at": {
@@ -2272,15 +2120,6 @@
                   "nativeType": "text",
                   "nullable": true
                 },
-                "completeness": {
-                  "codecId": "sqlite/text@1",
-                  "default": {
-                    "kind": "literal",
-                    "value": "recording"
-                  },
-                  "nativeType": "text",
-                  "nullable": false
-                },
                 "createdAt": {
                   "codecId": "sqlite/datetime@1",
                   "default": {
@@ -2309,35 +2148,10 @@
                   "nativeType": "text",
                   "nullable": false
                 },
-                "kind": {
-                  "codecId": "sqlite/text@1",
-                  "nativeType": "text",
-                  "nullable": true
-                },
-                "label": {
-                  "codecId": "sqlite/text@1",
-                  "nativeType": "text",
-                  "nullable": true
-                },
                 "nativeRef": {
                   "codecId": "sqlite/text@1",
                   "nativeType": "text",
                   "nullable": true
-                },
-                "outcome": {
-                  "codecId": "sqlite/text@1",
-                  "nativeType": "text",
-                  "nullable": true
-                },
-                "parentSessionId": {
-                  "codecId": "sqlite/text@1",
-                  "nativeType": "text",
-                  "nullable": true
-                },
-                "rootSessionId": {
-                  "codecId": "sqlite/text@1",
-                  "nativeType": "text",
-                  "nullable": false
                 },
                 "status": {
                   "codecId": "sqlite/text@1",
@@ -2345,63 +2159,11 @@
                   "nullable": false
                 }
               },
-              "foreignKeys": [
-                {
-                  "constraint": true,
-                  "index": true,
-                  "onDelete": "restrict",
-                  "onUpdate": "restrict",
-                  "source": {
-                    "columns": [
-                      "parentSessionId"
-                    ],
-                    "namespaceId": "__unbound__",
-                    "tableName": "agentSession"
-                  },
-                  "target": {
-                    "columns": [
-                      "id"
-                    ],
-                    "namespaceId": "__unbound__",
-                    "tableName": "agentSession"
-                  }
-                },
-                {
-                  "constraint": true,
-                  "index": true,
-                  "onDelete": "restrict",
-                  "onUpdate": "restrict",
-                  "source": {
-                    "columns": [
-                      "rootSessionId"
-                    ],
-                    "namespaceId": "__unbound__",
-                    "tableName": "agentSession"
-                  },
-                  "target": {
-                    "columns": [
-                      "id"
-                    ],
-                    "namespaceId": "__unbound__",
-                    "tableName": "agentSession"
-                  }
-                }
-              ],
+              "foreignKeys": [],
               "indexes": [
                 {
                   "columns": [
                     "agentId"
-                  ]
-                },
-                {
-                  "columns": [
-                    "parentSessionId"
-                  ]
-                },
-                {
-                  "columns": [
-                    "rootSessionId",
-                    "status"
                   ]
                 }
               ],
@@ -3534,28 +3296,7 @@
                   "nullable": false
                 }
               },
-              "foreignKeys": [
-                {
-                  "constraint": true,
-                  "index": true,
-                  "onDelete": "restrict",
-                  "onUpdate": "restrict",
-                  "source": {
-                    "columns": [
-                      "sessionId"
-                    ],
-                    "namespaceId": "__unbound__",
-                    "tableName": "sessionEvent"
-                  },
-                  "target": {
-                    "columns": [
-                      "id"
-                    ],
-                    "namespaceId": "__unbound__",
-                    "tableName": "agentSession"
-                  }
-                }
-              ],
+              "foreignKeys": [],
               "indexes": [],
               "primaryKey": {
                 "columns": [
@@ -3693,7 +3434,7 @@
         "id": "__unbound__"
       }
     },
-    "storageHash": "sha256:8a7a3ab4c870466fbba4fd91393adf0dd1a5a862c4cf9f62e94b8fb53cac8d6c"
+    "storageHash": "sha256:ad241ac4e17b7cf0d359e8be138d3865b236385bb508923ba5a0b5422bc307bc"
   },
   "capabilities": {
     "sql": {

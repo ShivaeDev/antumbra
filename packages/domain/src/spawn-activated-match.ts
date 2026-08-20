@@ -1,3 +1,4 @@
+import type { StoredAgentSession } from "@antumbra/persistence";
 import {
 	type AgentSessionStatus,
 	type AgentStatus,
@@ -10,6 +11,7 @@ import {
 	type MoorageStatus,
 } from "@antumbra/vocabulary/agent-runtime";
 import { Effect, Result } from "effect";
+import { isRootSession } from "#session-roots.ts";
 import type { SpawnFields } from "#spawn-fields.ts";
 
 interface StoredAgent {
@@ -33,16 +35,18 @@ interface StoredMoorage {
 	readonly status: unknown;
 }
 
-interface StoredSession {
-	readonly agentId: string;
-	readonly backend: string;
-	readonly charterDeliveredAt: Date | null;
-	readonly cwd: string;
-	readonly executionStatus: unknown;
-	readonly id: string;
-	readonly nativeRef: string | null;
-	readonly status: unknown;
-}
+type StoredSession = Pick<
+	StoredAgentSession,
+	| "agentId"
+	| "backend"
+	| "charterDeliveredAt"
+	| "cwd"
+	| "executionStatus"
+	| "id"
+	| "nativeRef"
+	| "parentSessionId"
+	| "status"
+>;
 
 const agentMatches = (
 	row: StoredAgent & { readonly status: AgentStatus },
@@ -61,7 +65,11 @@ const sessionMatches = (
 		payload.sessionId,
 		row.executionStatus,
 	);
+	// why: a spawn births a root. A subsession carries the same Agent and
+	// backend, so without this it could answer for the spawn that made its
+	// parent and let activation adopt a nested conversation as the Agent's own.
 	return (
+		isRootSession(row) &&
 		row.agentId === payload.agentId &&
 		row.backend === payload.backend &&
 		row.status === "open" &&

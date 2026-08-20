@@ -8,6 +8,7 @@ import {
 } from "@antumbra/vocabulary/agent-runtime";
 import { Effect, Result } from "effect";
 import type { RecoveryFields } from "#session-recovery.ts";
+import { rootSessions } from "#session-roots.ts";
 import type { SiestaFields } from "#session-siesta.ts";
 
 const sessionDemands = Effect.gen(function* () {
@@ -19,7 +20,7 @@ const sessionDemands = Effect.gen(function* () {
 				[agent.id, decodeStoredAgentStatus(agent.id, agent.status)] as const,
 		),
 	);
-	const sessions = yield* db.AgentSession.all();
+	const sessions = yield* db.AgentSession.where(rootSessions).all();
 	const recover: Array<RecoveryFields> = [];
 	const siesta: Array<SiestaFields> = [];
 	for (const session of sessions) {

@@ -82,6 +82,8 @@ const seedLegacySessions = Effect.gen(function* () {
 						executionStatus: "active",
 						id: sessionId,
 						nativeRef: `native-${sessionId}`,
+						parentSessionId: null,
+						rootSessionId: sessionId,
 						status: "open",
 					}),
 				),

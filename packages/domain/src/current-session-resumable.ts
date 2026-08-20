@@ -9,6 +9,7 @@ import {
 	planCurrentSessionReconciliation,
 } from "#current-session-reconcile-plan.ts";
 import { recoveryHeld } from "#session-recovery-error.ts";
+import { rootSessions, rootSessionsOf } from "#session-roots.ts";
 
 const heldInvalid = (failure: { readonly message: string }) =>
 	recoveryHeld(failure.message);
@@ -17,7 +18,10 @@ export const makeCurrentSessionResumable = Effect.gen(function* () {
 	const db = yield* Database;
 	const loadRows = (sessionId: string) =>
 		Effect.gen(function* () {
-			const stored = yield* db.AgentSession.where({ id: sessionId }).first();
+			const stored = yield* db.AgentSession.where({
+				id: sessionId,
+				...rootSessions,
+			}).first();
 			if (Option.isNone(stored)) {
 				return Option.none();
 			}
@@ -88,7 +92,7 @@ export const makeCurrentSessionResumable = Effect.gen(function* () {
 			}
 			const planned = planCurrentSessionReconciliation(
 				[agent],
-				yield* db.AgentSession.where({ agentId: agent.id }).all(),
+				yield* db.AgentSession.where(rootSessionsOf(agent.id)).all(),
 			);
 			if (Result.isFailure(planned)) {
 				return yield* heldInvalid(planned.failure);

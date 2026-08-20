@@ -127,6 +127,8 @@ it.live("records native identity before publishing the opening event", () =>
 					executionStatus: "active",
 					id: "session-opening",
 					nativeRef: null,
+					parentSessionId: null,
+					rootSessionId: "session-opening",
 					status: "open",
 				});
 

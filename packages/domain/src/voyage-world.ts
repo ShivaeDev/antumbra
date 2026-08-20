@@ -21,6 +21,7 @@ import {
 	type StoredAgentStatusInvalid,
 } from "@antumbra/vocabulary/agent-runtime";
 import { Context, Effect, Layer } from "effect";
+import { rootSessions } from "#session-roots.ts";
 import {
 	artifactRow,
 	byId,
@@ -66,7 +67,7 @@ const voyageWorld: Effect.Effect<
 	);
 	const { changes, pieceChanges } = yield* changeSnapshot.snapshot;
 	const sessions = yield* Effect.forEach(
-		yield* db.AgentSession.all(),
+		yield* db.AgentSession.where(rootSessions).all(),
 		(session) =>
 			Effect.all({
 				executionStatus: Effect.fromResult(

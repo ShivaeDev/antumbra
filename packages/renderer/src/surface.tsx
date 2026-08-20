@@ -8,18 +8,10 @@ import { TranscriptWindow } from "#views/transcript-window.tsx";
 
 const placeAtom = Atom.make(loadWindowPlace);
 
-const noticeStyle: React.CSSProperties = {
-	alignItems: "center",
-	background: "#16181d",
-	color: "#8a8f98",
-	display: "flex",
-	fontFamily: "system-ui",
-	height: "100vh",
-	justifyContent: "center",
-};
-
 const Notice = ({ words }: { readonly words: string }) => (
-	<main style={noticeStyle}>{words}</main>
+	<main className="flex h-screen items-center justify-center bg-background text-xs text-muted-foreground">
+		{words}
+	</main>
 );
 
 // why: a window main cannot place is not a console. Falling back to the main

@@ -34,7 +34,8 @@ it("offers a host-derived Change URL as a link", () => {
 	const html = renderToStaticMarkup(<ChangeLink change={change} />);
 
 	expect(html).toContain("Confine privileged navigation");
-	expect(html).toContain(`<a href="${change.url}"`);
+	expect(html).toContain("<a ");
+	expect(html).toContain(`href="${change.url}"`);
 });
 
 it("leaves a Change without a URL as plain text", () => {

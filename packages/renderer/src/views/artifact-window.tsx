@@ -3,19 +3,6 @@ import { useEffect } from "react";
 import { readArtifactMarkdown } from "#adapters/trpc-voyages.ts";
 import { useCall } from "#hooks/call.ts";
 import { OutcomeMarkdownView } from "#views/outcome-markdown.tsx";
-import { mutedStyle } from "#views/styles.ts";
-
-const windowStyle: React.CSSProperties = {
-	background: "#16181d",
-	color: "#e4e2dd",
-	display: "flex",
-	flexDirection: "column",
-	fontFamily: "system-ui",
-	height: "100vh",
-	minWidth: 0,
-	overflowY: "auto",
-	padding: "1.25rem",
-};
 
 // why: an Artifact is immutable once it has landed, so the window reads it
 // once and then has nothing to watch — no feed to keep open, nothing to
@@ -44,15 +31,17 @@ export const ArtifactWindow = ({
 	}, [state]);
 
 	return (
-		<main style={windowStyle}>
+		<main className="flex h-screen min-w-0 flex-col overflow-y-auto bg-background p-5 text-foreground">
 			{state._tag === "failed" ? (
-				<span style={{ color: "#ff7c7c" }}>{state.message}</span>
+				<span className="text-xs text-destructive wrap-anywhere">
+					{state.message}
+				</span>
 			) : null}
 			{state._tag === "done" ? (
 				<OutcomeMarkdownView markdown={state.value.markdown} />
 			) : null}
 			{state._tag === "done" || state._tag === "failed" ? null : (
-				<span style={mutedStyle}>reading Artifact…</span>
+				<span className="text-xs text-muted-foreground">reading Artifact…</span>
 			)}
 		</main>
 	);

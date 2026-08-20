@@ -31,6 +31,27 @@ it("routes an artifact window to its artifact, never a transcript", () => {
 	expect(markup).not.toContain("Antumbra");
 });
 
+// why: every window loads the one app document and therefore the one
+// stylesheet, so a shell that paints its own colours is drifting from the
+// console for no reason a reader could see.
+it("paints every window from the app's ground, never its own colour", () => {
+	const shells = [
+		renderToStaticMarkup(<PlacedSurface place={undefined} />),
+		renderToStaticMarkup(
+			<PlacedSurface place={{ role: "transcript", sessionId: "session-1" }} />,
+		),
+		renderToStaticMarkup(
+			<PlacedSurface place={{ artifactId: "artifact-1", role: "artifact" }} />,
+		),
+	];
+
+	for (const markup of shells) {
+		expect(markup).toContain("bg-background");
+		expect(markup).not.toMatch(/#[0-9a-f]{6}/i);
+		expect(markup).not.toContain("style=");
+	}
+});
+
 it("offers a window of its own for a session", () => {
 	const markup = renderToStaticMarkup(
 		<SessionRow

@@ -14,6 +14,16 @@ const messagePayload = JSON.stringify({
 	type: "message",
 });
 
+const toolPayload = (origin?: { parentNode: string; spawnedBy: string }) =>
+	JSON.stringify({
+		input: "{}",
+		name: "Grep",
+		...(origin === undefined ? {} : { origin }),
+		raw,
+		toolId: "tool-1",
+		type: "tool.started",
+	});
+
 it("accepts a known event only when its stored kind and decoded type agree", () => {
 	expect(projectHistoricalAgentEvent("message", messagePayload)).toEqual({
 		_tag: "Known",
@@ -44,6 +54,59 @@ it("preserves future, invalid JSON, and malformed known payload bytes exactly", 
 			payload,
 		});
 	}
+});
+
+it("reads rows written before attribution existed and rows carrying it", () => {
+	expect(projectHistoricalAgentEvent("tool.started", toolPayload())).toEqual({
+		_tag: "Known",
+		event: {
+			input: "{}",
+			name: "Grep",
+			raw,
+			toolId: "tool-1",
+			type: "tool.started",
+		},
+	});
+	const origin = { parentNode: "agent-1", spawnedBy: "toolu_01" };
+	expect(
+		projectHistoricalAgentEvent("tool.started", toolPayload(origin)),
+	).toEqual({
+		_tag: "Known",
+		event: {
+			input: "{}",
+			name: "Grep",
+			origin,
+			toolId: "tool-1",
+			raw,
+			type: "tool.started",
+		},
+	});
+});
+
+it("reads the subsession tree back out of the log", () => {
+	const opened = {
+		charter: "read the cluster",
+		kind: "Explore",
+		label: "Map session execution",
+		raw,
+		spawnedBy: "toolu_01",
+		subsessionRef: "a2b8c2a1b3d038e69",
+		type: "subsession.opened",
+	} as const;
+	expect(
+		projectHistoricalAgentEvent("subsession.opened", JSON.stringify(opened)),
+	).toEqual({ _tag: "Known", event: opened });
+	const ended = {
+		durationMs: 6245,
+		raw,
+		status: "completed",
+		subsessionRef: "a2b8c2a1b3d038e69",
+		tokens: 17080,
+		type: "subsession.ended",
+	} as const;
+	expect(
+		projectHistoricalAgentEvent("subsession.ended", JSON.stringify(ended)),
+	).toEqual({ _tag: "Known", event: ended });
 });
 
 it("keeps a provider RawEvent distinct from unknown historical data", () => {

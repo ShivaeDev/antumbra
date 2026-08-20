@@ -1,8 +1,12 @@
 export {
 	AgentEvent,
+	Origin,
 	RawEvent,
 	type RawPayload,
 	SessionOpened,
+	SubsessionEnded,
+	SubsessionOpened,
+	SubsessionStatus,
 	TurnCompleted,
 	TurnStatus,
 	UsageEvent,

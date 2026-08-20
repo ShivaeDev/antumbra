@@ -1,5 +1,7 @@
 import type {
 	SessionOpened,
+	SubsessionEnded,
+	SubsessionOpened,
 	TurnCompleted,
 	UsageEvent,
 } from "@antumbra/vocabulary/session-events";
@@ -22,3 +24,20 @@ export const turnLabel = (event: typeof TurnCompleted.Type): string =>
 
 export const openedLabel = (event: typeof SessionOpened.Type): string =>
 	`session opened · ${event.raw.source} ${event.nativeRef}`;
+
+export const subsessionOpenedLabel = (
+	event: typeof SubsessionOpened.Type,
+): string =>
+	[
+		`subsession opened · ${event.kind}`,
+		...(event.label === "" ? [] : [event.label]),
+	].join(" · ");
+
+export const subsessionEndedLabel = (
+	event: typeof SubsessionEnded.Type,
+): string =>
+	[
+		`subsession ${event.status}`,
+		...(event.tokens === undefined ? [] : [`${event.tokens} tokens`]),
+		...(event.durationMs === undefined ? [] : [seconds(event.durationMs)]),
+	].join(" · ");

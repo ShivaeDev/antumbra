@@ -1,6 +1,12 @@
 import type { SessionEvent } from "@antumbra/contract";
 import type { AgentEvent } from "@antumbra/vocabulary/session-events";
-import { openedLabel, turnLabel, usageLabel } from "#transcript/labels.ts";
+import {
+	openedLabel,
+	subsessionEndedLabel,
+	subsessionOpenedLabel,
+	turnLabel,
+	usageLabel,
+} from "#transcript/labels.ts";
 import type {
 	TranscriptItem,
 	TranscriptMessage,
@@ -82,6 +88,20 @@ const applyKnownEvent = (
 			return;
 		case "session.opened":
 			state.items.push({ kind: "telemetry", label: openedLabel(event), seq });
+			return;
+		case "subsession.opened":
+			state.items.push({
+				kind: "telemetry",
+				label: subsessionOpenedLabel(event),
+				seq,
+			});
+			return;
+		case "subsession.ended":
+			state.items.push({
+				kind: "telemetry",
+				label: subsessionEndedLabel(event),
+				seq,
+			});
 			return;
 		case "raw":
 			state.items.push({

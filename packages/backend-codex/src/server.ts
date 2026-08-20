@@ -11,6 +11,7 @@ import { codexFailure } from "#failure.ts";
 import { handshake } from "#handshake.ts";
 import { type Request, requestOn } from "#requests.ts";
 import { answerServerRequest } from "#server-answers.ts";
+import { openThreadClaims, type ThreadClaims } from "#thread-claims.ts";
 import { makeToolRegistry, type ToolRegistry } from "#tool-registry.ts";
 
 interface CodexServerOptions {
@@ -21,6 +22,10 @@ export interface CodexServer {
 	readonly exited: Effect.Effect<void>;
 	readonly notifications: PubSub.PubSub<RpcNotification>;
 	readonly request: Request;
+	// why: the tree of one session's delegated threads is broadcast on the same
+	// connection as every other session's, so which root owns which thread is
+	// held here, beside the tools, rather than in any one session's head.
+	readonly threads: ThreadClaims;
 	// why: the child is shared by every session, so the tools a session was
 	// opened with are held per thread here — a tool call arrives on the one
 	// connection naming only its thread.
@@ -60,6 +65,7 @@ export const makeCodexServer = (
 		const serverRequests = yield* Queue.unbounded<RpcServerRequest>();
 		const stderr = yield* Queue.unbounded<string>();
 		const tools = yield* makeToolRegistry;
+		const threads = openThreadClaims();
 		const child = yield* Effect.acquireRelease(
 			Effect.try({ catch: codexFailure, try: options.spawn }),
 			(process) => Effect.sync(() => process.kill()),
@@ -97,6 +103,7 @@ export const makeCodexServer = (
 			exited: Deferred.await(exited),
 			notifications,
 			request,
+			threads,
 			tools,
 		} satisfies CodexServer;
 	});

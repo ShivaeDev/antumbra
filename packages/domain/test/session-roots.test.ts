@@ -4,6 +4,10 @@ import type { TemporaryPersistence } from "@antumbra/persistence/testing";
 import { expect, it } from "@effect/vitest";
 import { Effect, Layer, Option } from "effect";
 import { makeCurrentSessionResumable } from "#current-session-resumable.ts";
+import {
+	makeRefuseSubsessionAttach,
+	SubsessionAttachRefused,
+} from "#session-attach-roots.ts";
 import { SightSourceLive } from "#sight.ts";
 import {
 	acquireTemporaryPersistence,
@@ -118,6 +122,39 @@ it.live("a subsession is never a resume target", () =>
 			expect(Option.isNone((yield* resumable("session-child")).session)).toBe(
 				true,
 			);
+		}).pipe(Effect.provide(sightLayer(temporary, scripted)));
+	}),
+);
+
+// why: selection keeps a child out of the paths only roots may take; this is
+// the seam underneath it, where an id becomes a live attachment. A caller that
+// came by a child id any other way is refused here, in the type rather than in
+// a comment.
+it.live("the attachment seam refuses a subsession id outright", () =>
+	Effect.gen(function* () {
+		const temporary = yield* acquireTemporaryPersistence;
+		const scripted = yield* makeScriptedBackend;
+		yield* Effect.gen(function* () {
+			const sight = yield* SightSource;
+			const receipt = yield* sight.spawn(spawnRequest);
+			yield* eventually(
+				Effect.gen(function* () {
+					const fleet = yield* sight.fleet;
+					expect(fleet.agents).not.toEqual([]);
+				}),
+			);
+			yield* openSubsession(
+				"session-child",
+				receipt.agentId,
+				receipt.sessionId,
+				receipt.sessionId,
+			);
+
+			const refuseSubsession = yield* makeRefuseSubsessionAttach;
+			yield* refuseSubsession(receipt.sessionId);
+			const refused = yield* Effect.flip(refuseSubsession("session-child"));
+			expect(refused).toBeInstanceOf(SubsessionAttachRefused);
+			expect(refused.message).toContain(receipt.sessionId);
 		}).pipe(Effect.provide(sightLayer(temporary, scripted)));
 	}),
 );

@@ -5,6 +5,12 @@ import {
 	openSessionLanes,
 } from "@antumbra/backend-claude";
 import {
+	openThreadClaims,
+	openThreadTree,
+	type RpcNotification,
+	threadOpened,
+} from "@antumbra/backend-codex";
+import {
 	AgentDomain,
 	AgentDomainLive,
 	SightSourceLive,
@@ -52,6 +58,37 @@ const scriptedClaude = (script: ReadonlyArray<Delivery>): AgentBackend => ({
 	tag: "claude",
 });
 
+// why: the real codex tree over a scripted broadcast — the notifications the
+// app-server sends for a session and for every thread it delegated to, minus
+// the process. The un-filtering, the attribution and the admissions are the
+// live ones, so the record this builds is the record it builds in production.
+const scriptedCodex = (
+	rootThread: string,
+	script: ReadonlyArray<RpcNotification>,
+): AgentBackend => ({
+	capabilities: { fork: true, liveInterrupt: true, multiClient: false },
+	openSession: () =>
+		Effect.sync(() => {
+			const tree = openThreadTree(rootThread, openThreadClaims());
+			const events = [
+				threadOpened(
+					"thread/start",
+					{ thread: { id: rootThread } },
+					rootThread,
+				),
+				...script.flatMap((notification) => tree.events(notification)),
+			];
+			return {
+				events: Stream.fromArray(events),
+				interrupt: Effect.void,
+				nativeRef: Effect.succeed(Option.some(rootThread)),
+				queue: () => Effect.void,
+				steer: () => Effect.void,
+			} satisfies SessionHandle;
+		}),
+	tag: "codex",
+});
+
 const runner: Runner = {
 	capabilities: { liveTerminal: false },
 	captureChange: (berth) =>
@@ -69,12 +106,8 @@ const runner: Runner = {
 	tag: "local",
 };
 
-const domainLayer = (
-	temporary: TemporaryPersistence,
-	script: ReadonlyArray<Delivery>,
-) => {
-	const backend = scriptedClaude(script);
-	return AgentDomainLive(
+const domainLayer = (temporary: TemporaryPersistence, backend: AgentBackend) =>
+	AgentDomainLive(
 		new Map([[backend.tag, backend]]),
 		new Map([[runner.tag, runner]]),
 		new Map(),
@@ -83,12 +116,8 @@ const domainLayer = (
 		Layer.provide(NodeServices.layer),
 		Layer.provideMerge(temporary.layer),
 	);
-};
 
-export const rehearsalLayer = (
-	temporary: TemporaryPersistence,
-	script: ReadonlyArray<Delivery>,
-) =>
+const sightLayer = (temporary: TemporaryPersistence, backend: AgentBackend) =>
 	SightSourceLive.pipe(
 		Layer.provideMerge(
 			Layer.unwrap(
@@ -98,5 +127,16 @@ export const rehearsalLayer = (
 				}),
 			),
 		),
-		Layer.provideMerge(domainLayer(temporary, script)),
+		Layer.provideMerge(domainLayer(temporary, backend)),
 	);
+
+export const rehearsalLayer = (
+	temporary: TemporaryPersistence,
+	script: ReadonlyArray<Delivery>,
+) => sightLayer(temporary, scriptedClaude(script));
+
+export const codexRehearsalLayer = (
+	temporary: TemporaryPersistence,
+	rootThread: string,
+	script: ReadonlyArray<RpcNotification>,
+) => sightLayer(temporary, scriptedCodex(rootThread, script));

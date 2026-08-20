@@ -87,6 +87,37 @@ const UserMessageItem = Schema.Struct({
 	type: Schema.Literal("userMessage"),
 });
 
+// why: the item a thread posts about an agent of its own — the announcement
+// this backend's tree is built from. The kinds are codex's own closed set, and
+// only `started` names a node: `interacted` says a running one was spoken to,
+// and `interrupted` is the provider's word for a forced ending.
+const SubAgentActivityItem = Schema.Struct({
+	...item,
+	agentPath: Schema.String,
+	agentThreadId: Schema.String,
+	kind: Schema.Literals(["started", "interacted", "interrupted"]),
+	type: Schema.Literal("subAgentActivity"),
+});
+
+// why: the call that spawns, drives, or closes an agent of this thread's own.
+// It reads as a tool call because that is what it is, and its id is what the
+// announcement that follows names as the call the node was spawned by.
+const CollabAgentToolCallItem = Schema.Struct({
+	...item,
+	prompt: Schema.optional(Schema.NullOr(Schema.String)),
+	receiverThreadIds: Schema.Array(Schema.String),
+	senderThreadId: Schema.String,
+	status: Schema.Literals(["inProgress", "completed", "failed"]),
+	tool: Schema.Literals([
+		"spawnAgent",
+		"sendInput",
+		"resumeAgent",
+		"wait",
+		"closeAgent",
+	]),
+	type: Schema.Literal("collabAgentToolCall"),
+});
+
 // why: only the modelled variants form the union, so a literal `type`
 // discriminates every member; anything else stays `unknown` and is logged raw
 // rather than decoded into a shape it does not have.
@@ -94,10 +125,12 @@ export const KnownItem = Schema.Union([
 	AgentMessageItem,
 	UserMessageItem,
 	ReasoningItem,
+	CollabAgentToolCallItem,
 	CommandExecutionItem,
 	DynamicToolCallItem,
 	FileChangeItem,
 	McpToolCallItem,
+	SubAgentActivityItem,
 	WebSearchItem,
 ]);
 export type KnownItem = typeof KnownItem.Type;

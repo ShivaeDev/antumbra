@@ -49,10 +49,15 @@ export const ToolCompleted = Schema.Struct({
 	type: Schema.Literal("tool.completed"),
 });
 
+// why: a provider whose delegated threads report their own spend and their own
+// turn endings says so on the same stream as the session's, so these carry the
+// same attribution the words do. Absent, as everywhere else, means the session's
+// own turn.
 export const UsageEvent = Schema.Struct({
 	costUsd: Schema.optional(Schema.Number),
 	inputTokens: Schema.Number,
 	model: Schema.optional(Schema.String),
+	origin: Schema.optional(Origin),
 	outputTokens: Schema.Number,
 	raw: Raw,
 	type: Schema.Literal("usage"),
@@ -66,6 +71,7 @@ export const TurnStatus = Schema.Literals([
 
 export const TurnCompleted = Schema.Struct({
 	durationMs: Schema.optional(Schema.Number),
+	origin: Schema.optional(Origin),
 	raw: Raw,
 	status: TurnStatus,
 	type: Schema.Literal("turn.completed"),

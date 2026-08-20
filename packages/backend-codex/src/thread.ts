@@ -1,44 +1,21 @@
 import type {
 	BackendFailure,
-	DirectTool,
 	OpenSessionOptions,
 	SessionHandle,
 } from "@antumbra/plugin-api";
 import type { AgentEvent } from "@antumbra/vocabulary/session-events";
 import { Effect, Option, PubSub, Schema, type Scope, Stream } from "effect";
 import type { RpcNotification } from "#adapters/rpc.ts";
-import { codexFailure } from "#failure.ts";
-import { rawOf, toAgentEvents } from "#mapping.ts";
-import { ThreadResponse, ThreadScoped } from "#protocol.ts";
+import { ThreadScoped } from "#protocol.ts";
 import type { CodexServer } from "#server.ts";
+import { openThread, threadIdOf, threadOpened } from "#thread-open.ts";
+import { openThreadTree } from "#thread-tree.ts";
 import { makeTurnDriver } from "#turns.ts";
 
-// why: the ruled v0 policy — writes confined to the moorage by codex's own
-// sandbox, escapes judged by codex's literal auto mode (an LLM reviewer),
-// never `approvalPolicy: never` and never a sandbox bypass.
-const THREAD_POLICY = {
-	approvalsReviewer: "auto_review",
-	sandbox: "workspace-write",
-};
-
-// why: the same name, description, and JSON Schema every backend is handed,
-// in the shape codex takes them. A thread opened with no tools sends no key at
-// all, so a session that acts through nothing looks exactly as it did.
-const dynamicTools = (tools: ReadonlyArray<DirectTool>) =>
-	tools.length === 0
-		? {}
-		: {
-				dynamicTools: tools.map((tool) => ({
-					description: tool.description,
-					inputSchema: tool.inputSchema,
-					name: tool.name,
-					type: "function",
-				})),
-			};
-
 const decodeScoped = Schema.decodeUnknownOption(ThreadScoped);
-const decodeThread = Schema.decodeUnknownOption(ThreadResponse);
 
+// why: the driver speaks for this session's own thread and no other — a turn
+// belonging to a node is the node's business, and this session may only read it.
 const forThread =
 	(threadId: string) =>
 	(notification: RpcNotification): boolean =>
@@ -47,50 +24,11 @@ const forThread =
 			onSome: (scoped) => scoped.threadId === threadId,
 		});
 
-const openThread = (server: CodexServer, options: OpenSessionOptions) =>
-	Option.match(options.resume, {
-		onNone: () =>
-			server
-				.request("thread/start", {
-					cwd: options.cwd,
-					...dynamicTools(options.tools),
-					...THREAD_POLICY,
-				})
-				.pipe(Effect.map((response) => ["thread/start", response] as const)),
-		// why: resume sends no specifications — codex keeps them in the thread's
-		// rollout — but the running process still has to be able to answer a call,
-		// so the tools are registered again either way.
-		onSome: (threadId) =>
-			server
-				.request("thread/resume", {
-					cwd: options.cwd,
-					threadId,
-					...THREAD_POLICY,
-				})
-				.pipe(Effect.map((response) => ["thread/resume", response] as const)),
-	});
-
-const threadIdOf = (method: string, response: unknown) =>
-	Option.match(decodeThread(response), {
-		onNone: () => Effect.fail(codexFailure(`${method} returned no thread`)),
-		onSome: ({ thread }) => Effect.succeed(thread.id),
-	});
-
-const opened = (
-	method: string,
-	response: unknown,
-	threadId: string,
-): AgentEvent => ({
-	nativeRef: threadId,
-	raw: rawOf(method, response),
-	type: "session.opened",
-});
-
 // why: both subscriptions are taken before the thread exists, so nothing
-// the server says about it can slip past; the thread id then selects the
-// session's slice of the shared stream. Item and turn events are one
-// projection, the turn driver another — the log never depends on the
-// driver having consumed anything.
+// the server says about it can slip past; the tree then selects this session's
+// slice of the shared stream — its own thread and the descendants it admitted.
+// Item and turn events are one projection, the turn driver another — the log
+// never depends on the driver having consumed anything.
 export const openThreadSession = (
 	server: CodexServer,
 	options: OpenSessionOptions,
@@ -101,23 +39,26 @@ export const openThreadSession = (
 		const [method, response] = yield* openThread(server, options);
 		const threadId = yield* threadIdOf(method, response);
 		yield* server.tools.register(threadId, options.tools);
-		yield* Effect.addFinalizer(() => server.tools.forget(threadId));
-		const own = forThread(threadId);
+		yield* Effect.addFinalizer(() =>
+			Effect.sync(() => server.threads.release(threadId)).pipe(
+				Effect.andThen(server.tools.forget(threadId)),
+			),
+		);
+		const tree = openThreadTree(threadId, server.threads);
 		const driver = yield* makeTurnDriver(server, threadId);
 		yield* Effect.forkScoped(
 			Stream.fromSubscription(forDriver).pipe(
-				Stream.filter(own),
+				Stream.filter(forThread(threadId)),
 				Stream.runForEach(driver.track),
 			),
 		);
 		const events: Stream.Stream<AgentEvent> = Stream.make(
-			opened(method, response, threadId),
+			threadOpened(method, response, threadId),
 		).pipe(
 			Stream.concat(
 				Stream.fromSubscription(forEvents).pipe(
-					Stream.filter(own),
 					Stream.flatMap((notification) =>
-						Stream.fromIterable(toAgentEvents(notification)),
+						Stream.fromIterable(tree.events(notification)),
 					),
 				),
 			),

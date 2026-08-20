@@ -7,16 +7,22 @@ import {
 import type { AgentEvent } from "@antumbra/vocabulary/session-events";
 import { Effect, Option } from "effect";
 
-type SubsessionOpened = Extract<AgentEvent, { type: "subsession.opened" }>;
 type SubsessionOutcome = Extract<
 	AgentEvent,
 	{ type: "subsession.ended" }
 >["outcome"];
 
 export interface NodeOpening {
-	readonly opened: SubsessionOpened;
+	readonly kind: string | null;
+	readonly label: string | null;
 	readonly sessionId: string;
 	readonly spawnerSessionId: string;
+}
+
+export interface NodeAdoption {
+	readonly kind: string | undefined;
+	readonly label: string | undefined;
+	readonly parentSessionId: string;
 }
 
 export const makeSessionTreeRows = Effect.gen(function* () {
@@ -38,8 +44,8 @@ export const makeSessionTreeRows = Effect.gen(function* () {
 			cwd: root.cwd,
 			executionStatus: "active",
 			id: node.sessionId,
-			kind: node.opened.kind ?? null,
-			label: node.opened.label ?? null,
+			kind: node.kind,
+			label: node.label,
 			nativeRef: null,
 			outcome: null,
 			parentSessionId: node.spawnerSessionId,
@@ -53,6 +59,26 @@ export const makeSessionTreeRows = Effect.gen(function* () {
 		db.AgentSession.where({ id: sessionId })
 			.update({ outcome, status: "closed" })
 			.pipe(Effect.asVoid);
+	// why: the announcement is the first thing to say where a node belongs and
+	// what it is, so it moves the row under the spawner that made the call. The
+	// display fields only fill holes: a value already written is what the record
+	// said this node was, and adoption is not licence to rename it.
+	const adoptNode = (sessionId: string, adoption: NodeAdoption) =>
+		Effect.gen(function* () {
+			const row = yield* db.AgentSession.where({ id: sessionId }).first();
+			if (Option.isNone(row)) {
+				return;
+			}
+			yield* db.AgentSession.where({ id: sessionId }).update({
+				...(row.value.kind === null && adoption.kind !== undefined
+					? { kind: adoption.kind }
+					: {}),
+				...(row.value.label === null && adoption.label !== undefined
+					? { label: adoption.label }
+					: {}),
+				parentSessionId: adoption.parentSessionId,
+			});
+		}).pipe(Effect.asVoid);
 	// why: a lane that learns a node's name after its first words have to be
 	// journaled opens the node unnamed rather than holding its transcript. The
 	// name may still arrive, and filling a hole is not renaming: a label already
@@ -110,5 +136,5 @@ export const makeSessionTreeRows = Effect.gen(function* () {
 				).pipe(Effect.as(Option.none<StoredAgentSession>())),
 			),
 		);
-	return { closeNode, markIncomplete, nameNode, openNode, rootRow };
+	return { adoptNode, closeNode, markIncomplete, nameNode, openNode, rootRow };
 });

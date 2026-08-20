@@ -37,5 +37,5 @@ it("offers a window of its own for a session", () => {
 			}}
 		/>,
 	);
-	expect(markup).toContain("open in window");
+	expect(markup).toContain("Open in a window");
 });

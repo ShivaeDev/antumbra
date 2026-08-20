@@ -1,11 +1,17 @@
 import type { SessionSummary } from "@antumbra/contract";
+import { SquareArrowOutUpRightIcon } from "lucide-react";
 import { interruptSession } from "#adapters/trpc.ts";
 import { openWindow } from "#adapters/trpc-windows.ts";
-import { SessionDiagChips } from "#views/diagnostics.tsx";
-import { buttonStyle, mutedStyle, rowStyle } from "#views/styles.ts";
+import { Badge } from "#components/ui/badge.tsx";
+import { Button } from "#components/ui/button.tsx";
+import { cn } from "#lib/utils.ts";
 
+// why: a session is how the admiral steps in — its row is the whole click
+// target for the transcript beside the roster, and the acts sit outside that
+// target so opening one never risks stopping it.
+//
 // why: a transcript worth watching is worth watching beside the work, so a
-// session can be given a window of its own. Main decides whether one is
+// session can also be given a window of its own. Main decides whether one is
 // minted; asking twice for the same session brings the first one forward.
 export const SessionRow = ({
 	onError,
@@ -18,39 +24,46 @@ export const SessionRow = ({
 	readonly selected: string | undefined;
 	readonly session: SessionSummary;
 }) => (
-	<div style={{ ...rowStyle, paddingLeft: "0.8rem" }}>
+	<div className="flex min-w-0 items-center gap-1">
 		<button
+			aria-current={session.id === selected ? "true" : undefined}
+			className={cn(
+				"flex min-w-0 flex-1 items-center gap-1.5 rounded-md px-1.5 py-1 text-left transition-colors hover:bg-accent",
+				session.id === selected ? "bg-secondary" : undefined,
+			)}
 			onClick={() => onSelect(session.id)}
-			style={{
-				...buttonStyle,
-				background: "none",
-				color: session.id === selected ? "#a48fff" : "#7c9cff",
-				padding: 0,
-			}}
 			type="button"
 		>
-			{session.id.slice(0, 8)}
+			<span className="shrink-0 font-mono text-2xs">
+				{session.id.slice(0, 8)}
+			</span>
+			<span className="min-w-0 flex-1 truncate text-2xs text-muted-foreground">
+				{session.backend}
+			</span>
+			{session.canInterrupt ? <Badge variant="success">working</Badge> : null}
+			{session.status === "open" ? null : (
+				<Badge variant="outline">{session.status}</Badge>
+			)}
 		</button>
-		<span style={mutedStyle}>{session.backend}</span>
-		<span style={mutedStyle}>{session.status}</span>
-		<SessionDiagChips diag={session.diag} />
-		<button
+		<Button
+			aria-label="Open in a window"
+			className="text-muted-foreground"
 			onClick={() =>
 				openWindow({ role: "transcript", sessionId: session.id }, onError)
 			}
-			style={buttonStyle}
-			type="button"
+			size="icon"
+			variant="ghost"
 		>
-			open in window
-		</button>
+			<SquareArrowOutUpRightIcon />
+		</Button>
 		{session.canInterrupt ? (
-			<button
+			<Button
 				onClick={() => interruptSession(session.id, onError)}
-				style={buttonStyle}
-				type="button"
+				size="sm"
+				variant="outline"
 			>
-				interrupt
-			</button>
+				Interrupt
+			</Button>
 		) : null}
 	</div>
 );

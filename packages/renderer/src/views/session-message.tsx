@@ -1,12 +1,8 @@
 import type { Fleet, SessionSummary } from "@antumbra/contract";
 import { useState } from "react";
 import { sendToSession } from "#adapters/trpc.ts";
-import {
-	buttonStyle,
-	inputStyle,
-	mutedStyle,
-	rowStyle,
-} from "#views/styles.ts";
+import { Button } from "#components/ui/button.tsx";
+import { Input } from "#components/ui/input.tsx";
 
 const sessionOf = (
 	fleet: Fleet | undefined,
@@ -30,14 +26,6 @@ const refusal = (session: SessionSummary | undefined): string | undefined => {
 		: `this session is ${session.status}`;
 };
 
-const boxStyle: React.CSSProperties = {
-	borderTop: "1px solid #2e323a",
-	display: "flex",
-	flexDirection: "column",
-	gap: "0.3rem",
-	padding: "0.7rem 1.4rem",
-};
-
 export const SessionMessage = ({
 	fleet,
 	onError,
@@ -57,9 +45,10 @@ export const SessionMessage = ({
 		sendToSession(sessionId, text, () => setText(""), onError);
 	};
 	return (
-		<div style={boxStyle}>
-			<div style={rowStyle}>
-				<input
+		<div className="flex min-w-0 flex-col gap-1 border-t border-border px-4 py-2">
+			<div className="flex min-w-0 items-center gap-2">
+				<Input
+					aria-label="Message this session"
 					disabled={blocked !== undefined}
 					onChange={(event) => setText(event.target.value)}
 					onKeyDown={(event) => {
@@ -69,20 +58,16 @@ export const SessionMessage = ({
 						}
 					}}
 					placeholder="say something to this session"
-					style={{ ...inputStyle, flex: 1 }}
 					title={blocked}
 					value={text}
 				/>
-				<button
-					disabled={!ready}
-					onClick={send}
-					style={{ ...buttonStyle, opacity: ready ? 1 : 0.5 }}
-					type="button"
-				>
-					send
-				</button>
+				<Button disabled={!ready} onClick={send}>
+					Send
+				</Button>
 			</div>
-			{blocked === undefined ? null : <span style={mutedStyle}>{blocked}</span>}
+			{blocked === undefined ? null : (
+				<span className="text-2xs text-muted-foreground">{blocked}</span>
+			)}
 		</div>
 	);
 };

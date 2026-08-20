@@ -1,80 +1,46 @@
-import type { AgentSummary, BerthSummary, Fleet } from "@antumbra/contract";
-import { retireAgent } from "#adapters/trpc.ts";
-import { AgentActivityChip } from "#views/agent-activity.tsx";
-import { AgentDiagChips, FleetDiagChips } from "#views/diagnostics.tsx";
-import { SessionRow } from "#views/session-row.tsx";
-import {
-	buttonStyle,
-	ellipsisStyle,
-	mutedStyle,
-	rowStyle,
-} from "#views/styles.ts";
-import { Truncated } from "#views/truncated.tsx";
+import type { Fleet } from "@antumbra/contract";
+import { rosterGroups } from "#fleet/roster.ts";
+import { FleetDiagChips } from "#views/diagnostics.tsx";
+import { FleetToolbar } from "#views/fleet-toolbar.tsx";
+import { RosterGroupPanel } from "#views/roster-group.tsx";
 
-const BerthReclaimStatus = ({ berth }: { readonly berth: BerthSummary }) => {
-	if (berth.reclaimState === "claimed") {
-		return <span style={{ color: "#ffb86b" }}>reclaiming</span>;
-	}
-	if (berth.status === "stranded") {
-		return <span style={{ color: "#ff7c7c" }}>stranded</span>;
-	}
-	return null;
-};
-
-const BerthRow = ({ berth }: { readonly berth: BerthSummary }) => (
-	<div style={{ ...rowStyle, paddingLeft: "0.8rem" }}>
-		<span style={mutedStyle}>⚓</span>
-		<Truncated style={mutedStyle} text={berth.slug} />
-		<Truncated style={mutedStyle} text={berth.branch} />
-		<BerthReclaimStatus berth={berth} />
-	</div>
-);
-
-const AgentRow = ({
-	agent,
+const Roster = ({
+	fleet,
 	onError,
 	onSelect,
 	selected,
 }: {
-	readonly agent: AgentSummary;
+	readonly fleet: Fleet | undefined;
 	readonly onError: (message: string) => void;
 	readonly onSelect: (sessionId: string) => void;
 	readonly selected: string | undefined;
-}) => (
-	<div>
-		<div style={rowStyle}>
-			<strong style={ellipsisStyle} title={agent.role}>
-				{agent.role}
-			</strong>
-			<span style={mutedStyle}>{agent.status}</span>
-			<AgentActivityChip sessions={agent.sessions} />
-			<AgentDiagChips diag={agent.diag} />
-			{agent.status === "alive" ? (
-				<button
-					onClick={() => retireAgent(agent.id, onError)}
-					style={buttonStyle}
-					type="button"
-				>
-					retire
-				</button>
-			) : null}
-		</div>
-		{agent.berths
-			.filter((berth) => berth.status !== "reclaimed")
-			.map((berth) => (
-				<BerthRow berth={berth} key={berth.slug} />
+}) => {
+	if (fleet === undefined) {
+		return (
+			<span className="text-xs text-muted-foreground">taking a sight…</span>
+		);
+	}
+	if (fleet.agents.length === 0) {
+		return (
+			<span className="text-xs text-muted-foreground">
+				No agents yet — spawn one to put it here
+			</span>
+		);
+	}
+	return (
+		<>
+			{rosterGroups(fleet.agents).map((group) => (
+				<RosterGroupPanel
+					group={group}
+					key={group.standing}
+					onError={onError}
+					onSelect={onSelect}
+					selected={selected}
+				/>
 			))}
-		{agent.sessions.map((session) => (
-			<SessionRow
-				key={session.id}
-				onError={onError}
-				onSelect={onSelect}
-				selected={selected}
-				session={session}
-			/>
-		))}
-	</div>
-);
+		</>
+	);
+};
 
 export const FleetPanel = ({
 	fleet,
@@ -87,16 +53,14 @@ export const FleetPanel = ({
 	readonly onSelect: (sessionId: string) => void;
 	readonly selected: string | undefined;
 }) => (
-	<div style={{ display: "flex", flexDirection: "column", gap: "0.9rem" }}>
+	<section className="flex min-h-0 min-w-0 flex-1 flex-col gap-4 overflow-y-auto p-4">
+		<FleetToolbar fleet={fleet} onError={onError} />
 		{fleet === undefined ? null : <FleetDiagChips diag={fleet.diag} />}
-		{(fleet?.agents ?? []).map((agent) => (
-			<AgentRow
-				agent={agent}
-				key={agent.id}
-				onError={onError}
-				onSelect={onSelect}
-				selected={selected}
-			/>
-		))}
-	</div>
+		<Roster
+			fleet={fleet}
+			onError={onError}
+			onSelect={onSelect}
+			selected={selected}
+		/>
+	</section>
 );

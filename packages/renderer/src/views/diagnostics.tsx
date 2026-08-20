@@ -4,10 +4,15 @@ import type {
 	IntentDiagnostic,
 	SessionDiagnostics,
 } from "@antumbra/contract";
-import { chipStyle, rowStyle } from "#views/styles.ts";
+import { Badge } from "#components/ui/badge.tsx";
 
+// why: diagnostics are for the admiral who goes looking, so a chip stays
+// monospace and unaccented, which is how raw stored words read as raw rather
+// than as product language.
 const Chip = ({ children }: { readonly children: string }) => (
-	<span style={chipStyle}>{children}</span>
+	<Badge className="font-mono" variant="outline">
+		{children}
+	</Badge>
 );
 
 // why: the raw words go out unedited. A chip that paraphrased stored state
@@ -55,7 +60,7 @@ export const FleetDiagChips = ({
 	readonly diag: FleetDiagnostics;
 }) =>
 	diag.intents.length === 0 ? null : (
-		<div style={{ ...rowStyle, flexWrap: "wrap" }}>
+		<div className="flex min-w-0 flex-wrap items-center gap-1">
 			<IntentChips intents={diag.intents} />
 		</div>
 	);

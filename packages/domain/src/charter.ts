@@ -8,7 +8,7 @@ import {
 	CREW_BERTH_ORDER,
 	withBerths,
 } from "#charter-berths.ts";
-import type { SpawnFields } from "#spawn.ts";
+import type { SpawnFields } from "#spawn-fields.ts";
 import { spawnSessionIdentity } from "#spawn-identity.ts";
 import { isVoyageCaptainIdentity } from "#voyage-captain.ts";
 

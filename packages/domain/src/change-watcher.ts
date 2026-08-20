@@ -1,11 +1,11 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Clock, Effect, Layer, Queue } from "effect";
+import { AgentDomain } from "#agent-domain-service.ts";
 import {
 	nextObserveDelayMillis,
 	type ObserveCadenceOptions,
 } from "#change-cadence.ts";
 import type { ChangeProcedures } from "#change-procedures.ts";
-import { AgentDomain } from "#domain.ts";
 import { pump } from "#feed-pump.ts";
 
 const DEFAULTS: ObserveCadenceOptions = {

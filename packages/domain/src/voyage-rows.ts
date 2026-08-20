@@ -5,8 +5,8 @@ import type { ReportRow } from "@antumbra/reports";
 import type {
 	AgentSessionStatus,
 	AgentStatus,
+	SessionExecutionStatus,
 } from "@antumbra/vocabulary/agent-runtime";
-import type { SessionExecutionStatus } from "#session-execution-status.ts";
 
 export type { EdgeRow, PieceRow } from "@antumbra/pieces";
 

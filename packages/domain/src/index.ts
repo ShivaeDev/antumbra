@@ -17,6 +17,15 @@ export {
 	ResourceReconciler,
 } from "@antumbra/resource-reclamation";
 export {
+	AGENT_STATUS_EVENTS,
+	AGENT_STATUSES,
+	type AgentStatus,
+	type AgentStatusEvent,
+	AgentStatusSchema,
+	agentTransition,
+	InvalidAgentTransition,
+} from "@antumbra/vocabulary/agent-runtime";
+export {
 	nextObserveDelayMillis,
 	type ObserveCadenceOptions,
 } from "#change-cadence.ts";
@@ -78,15 +87,6 @@ export { drainActiveSessions } from "#session-shutdown.ts";
 export { SessionShutdownLive } from "#session-shutdown-live.ts";
 export { SightSourceLive } from "#sight.ts";
 export type { SpawnFields } from "#spawn.ts";
-export {
-	AGENT_STATUS_EVENTS,
-	AGENT_STATUSES,
-	type AgentStatus,
-	type AgentStatusEvent,
-	AgentStatusSchema,
-	agentTransition,
-	InvalidAgentTransition,
-} from "#status.ts";
 export type { VoyageRow, VoyageWorld } from "#voyage-rows.ts";
 export { VoyageSourceLive } from "#voyage-source.ts";
 export type {

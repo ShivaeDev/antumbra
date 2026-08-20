@@ -3,7 +3,7 @@ import type { WriteExecutors } from "@antumbra/persistence";
 import { Context, Deferred, Effect, Layer } from "effect";
 import { AgentDomain } from "#agent-domain-service.ts";
 import type { SpawnRefused } from "#deps.ts";
-import type { SpawnFields } from "#spawn.ts";
+import type { SpawnFields } from "#spawn-fields.ts";
 
 export interface KernelReachService {
 	readonly queueSiesta: (sessionId: string) => Effect.Effect<void>;

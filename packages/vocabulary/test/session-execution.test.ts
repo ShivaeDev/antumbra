@@ -1,10 +1,10 @@
-import { expect, it } from "@effect/vitest";
-import { Option, Result, Schema } from "effect";
 import {
 	decodeSessionExecutionStatus,
 	SessionExecutionStatusSchema,
 	sessionExecutionTransition,
-} from "#session-execution-status.ts";
+} from "@antumbra/vocabulary/agent-runtime";
+import { expect, it } from "@effect/vitest";
+import { Option, Result, Schema } from "effect";
 
 it("keeps Session execution status closed and transitions explicit", () => {
 	const decode = Schema.decodeUnknownOption(SessionExecutionStatusSchema);

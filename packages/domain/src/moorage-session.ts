@@ -5,7 +5,7 @@ import { ensureAgentResourcesUnclaimed } from "@antumbra/resource-reclamation";
 import { decodeStoredAgentSessionStatus } from "@antumbra/vocabulary/agent-runtime";
 import { Effect, Option, PubSub } from "effect";
 import { AgentNotFound, AgentSessionConflict } from "#errors.ts";
-import type { SpawnFields } from "#spawn.ts";
+import type { SpawnFields } from "#spawn-fields.ts";
 
 export const makeEnsureSessionRow = Effect.gen(function* () {
 	const db = yield* Database;

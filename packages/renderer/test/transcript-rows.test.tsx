@@ -66,10 +66,11 @@ it("renders what the agent wrote as the Markdown it authored", () => {
 		kind: "message",
 		role: "agent",
 		seq: 0,
-		text: "# Soundings\n\nThe eastern shoal is steeper than charted.",
+		text: "# Soundings\n\nThe eastern shoal is steeper than `charted`.",
 	});
 	expect(shown).toContain("markdown");
 	expect(shown).toContain("<h1>Soundings</h1>");
+	expect(shown).toContain("<code>charted</code>");
 	expect(shown).toContain("agent");
 });
 

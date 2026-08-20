@@ -63,7 +63,10 @@ export const MarkdownView = ({
 					) : (
 						<ExternalLink url={href}>{children}</ExternalLink>
 					),
-				code: ({ children, className: codeClass, ...props }) => {
+				// why: react-markdown hands every component the syntax node it came
+				// from. It is not an attribute, and passing it on writes
+				// node="[object Object]" into the markup.
+				code: ({ children, className: codeClass, node: _node, ...props }) => {
 					const source = String(children).replace(/\n$/, "");
 					return codeClass === "language-mermaid" ? (
 						<MermaidDiagram source={source} />

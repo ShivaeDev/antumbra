@@ -1,0 +1,51 @@
+import { type Duration, Effect, Stream } from "effect";
+import type { FixtureFeeds } from "#fixtures/feeds.ts";
+import { fleet, storedEvents } from "#fixtures/fleet.ts";
+import {
+	answeredReef,
+	checkingQuay,
+	closingEvent,
+	crewedFleet,
+	landedQuay,
+	laterEvent,
+	mooredFleet,
+	shallowsSummary,
+	workingReef,
+	workingSummary,
+} from "#fixtures/scripted-turns.ts";
+import { quayView, reefSummary, reefView } from "#fixtures/voyage.ts";
+import type { VoyageSummary } from "#voyage-views.ts";
+
+const WATCHABLE_BEAT = "1500 millis";
+
+// why: a browser harness only proves a projection is live if the view changes
+// after it first paints, so every scripted feed opens on the snapshot the
+// static fixtures carry and then reworks it on a beat slow enough to watch.
+const paced =
+	(beat: Duration.Input) =>
+	<A>(opening: Stream.Stream<A>, ...rest: readonly A[]): Stream.Stream<A> =>
+		rest.reduce<Stream.Stream<A>>(
+			(stream, value) =>
+				Stream.concat(
+					stream,
+					Stream.fromEffect(Effect.as(Effect.sleep(beat), value)),
+				),
+			opening,
+		);
+
+export const makeScriptedFeeds = (beat: Duration.Input): FixtureFeeds => {
+	const step = paced(beat);
+	return {
+		events: step(Stream.fromArray(storedEvents), laterEvent, closingEvent),
+		fleet: step(Stream.make(fleet), crewedFleet, mooredFleet),
+		quay: step(Stream.make(quayView), checkingQuay, landedQuay),
+		voyage: step(Stream.make(reefView), answeredReef, workingReef),
+		voyages: step<ReadonlyArray<VoyageSummary>>(
+			Stream.make([reefSummary]),
+			[workingSummary],
+			[workingSummary, shallowsSummary],
+		),
+	};
+};
+
+export const scriptedFeeds: FixtureFeeds = makeScriptedFeeds(WATCHABLE_BEAT);

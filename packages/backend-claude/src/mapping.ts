@@ -5,6 +5,7 @@ import type {
 	RawPayload,
 } from "@antumbra/vocabulary/session-events";
 import { blockEvent, contentBlocks } from "#blocks.ts";
+import { spilledPreview } from "#spills.ts";
 import { openSubsessions } from "#subsessions.ts";
 
 const SOURCE = "claude";
@@ -83,6 +84,7 @@ const contentEvents = (
 		...contentBlocks(message)
 			.map((block) => blockEvent(raw, role, block, origin))
 			.filter((event): event is AgentEvent => event !== undefined),
+		...spilledPreview(raw, message, origin),
 		...lifecycle,
 	];
 	return events.length === 0 ? [{ raw, type: "raw" }] : events;

@@ -23,6 +23,7 @@ export const FleetSurface = ({
 		{session === undefined ? null : (
 			<SessionPane
 				fleet={fleet}
+				key={session}
 				onClose={() => onSelect(undefined)}
 				onError={onError}
 				sessionId={session}

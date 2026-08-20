@@ -1,5 +1,6 @@
 import { Schema } from "effect";
 import { type AppProcedure, surface } from "#router-procedure.ts";
+import { SessionTree } from "#session-tree.ts";
 import {
 	EventQuery,
 	Fleet,
@@ -64,6 +65,20 @@ export const sightRoutes = (procedure: AppProcedure) => ({
 		.query(function* (input) {
 			const sight = yield* SightSource;
 			return yield* surface(sight.sessionEvents(input));
+		}),
+	sessionTree: procedure
+		.input(Schema.Struct({ rootSessionId: Schema.String }))
+		.output(SessionTree)
+		.query(function* (input) {
+			const sight = yield* SightSource;
+			return yield* surface(sight.sessionTree(input.rootSessionId));
+		}),
+	sessionTreeFeed: procedure
+		.input(Schema.Struct({ rootSessionId: Schema.String }))
+		.output(SessionTree)
+		.subscription(function* (input) {
+			const sight = yield* SightSource;
+			return sight.sessionTreeFeed(input.rootSessionId);
 		}),
 	spawnAgent: procedure
 		.input(SpawnRequest)

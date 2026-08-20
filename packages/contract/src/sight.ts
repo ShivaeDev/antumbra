@@ -1,6 +1,7 @@
 import { ResourceReclaimStateSchema } from "@antumbra/vocabulary/agent-runtime";
 import { HistoricalAgentEvent } from "@antumbra/vocabulary/session-events";
 import { Context, Data, type Effect, Schema, type Stream } from "effect";
+import type { SessionTree } from "#session-tree.ts";
 import {
 	AgentDiagnostics,
 	FleetDiagnostics,
@@ -117,6 +118,14 @@ export class SightSource extends Context.Service<
 		readonly sessionEvents: (
 			query: EventQuery,
 		) => Effect.Effect<ReadonlyArray<SessionEvent>, SightFailure>;
+		// why: a tree is addressed by its root, because the root is the only part
+		// of a Session anything outside it may name.
+		readonly sessionTree: (
+			rootSessionId: string,
+		) => Effect.Effect<SessionTree, SightFailure>;
+		readonly sessionTreeFeed: (
+			rootSessionId: string,
+		) => Stream.Stream<SessionTree, SightFailure>;
 		readonly spawn: (
 			request: SpawnRequest,
 		) => Effect.Effect<SpawnReceipt, SightFailure>;

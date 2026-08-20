@@ -29,6 +29,12 @@ export {
 export { type AppRouter, makeAppRouter } from "#router.ts";
 export { type RequestContext, RequestOrigin } from "#router-procedure.ts";
 export {
+	SessionTree,
+	SessionTreeNode,
+	subsessionDisplayName,
+	UNNAMED_SUBSESSION,
+} from "#session-tree.ts";
+export {
 	AgentSummary,
 	BerthSummary,
 	EventQuery,

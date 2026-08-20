@@ -1,22 +1,24 @@
-import type { SessionEvent } from "@antumbra/contract";
+import type { SessionEvent, SessionTreeNode } from "@antumbra/contract";
 import type { AgentEvent } from "@antumbra/vocabulary/session-events";
 import {
-	openedLabel,
-	subsessionEndedLabel,
-	subsessionGapLabel,
-	subsessionOpenedLabel,
-	turnLabel,
-	usageLabel,
-} from "#transcript/labels.ts";
+	endedDelegation,
+	type NodesByRef,
+	nodesByRef,
+	openedDelegation,
+} from "#transcript/delegation.ts";
+import { gapNotice } from "#transcript/gaps.ts";
+import { openedLabel, turnLabel, usageLabel } from "#transcript/labels.ts";
 import type {
 	TranscriptItem,
 	TranscriptMessage,
 	TranscriptThinking,
 } from "#transcript/model.ts";
+import { openToolCalls, type ToolCalls } from "#transcript/tool-calls.ts";
 
 interface Derivation {
 	readonly items: TranscriptItem[];
-	readonly toolsById: Map<string, number>;
+	readonly nodes: NodesByRef;
+	readonly tools: ToolCalls;
 }
 
 // why: a wordless thinking block is an event, not narration — providers emit
@@ -33,19 +35,6 @@ const pushNarration = (
 
 const pushTelemetry = (state: Derivation, label: string, seq: number): void => {
 	state.items.push({ kind: "telemetry", label, seq });
-};
-
-const completeTool = (
-	state: Derivation,
-	toolId: string,
-	ok: boolean,
-	result: string,
-): void => {
-	const at = state.toolsById.get(toolId);
-	const tool = at === undefined ? undefined : state.items[at];
-	if (at !== undefined && tool !== undefined && tool.kind === "tool") {
-		state.items[at] = { ...tool, ok, result };
-	}
 };
 
 // why: the transcript is a pure derivation of a Known neutral event. Provider
@@ -72,8 +61,7 @@ const applyKnownEvent = (
 			});
 			return;
 		case "tool.started":
-			state.toolsById.set(event.toolId, state.items.length);
-			state.items.push({
+			state.tools.start(event.toolId, {
 				input: event.input,
 				kind: "tool",
 				name: event.name,
@@ -83,7 +71,7 @@ const applyKnownEvent = (
 			});
 			return;
 		case "tool.completed":
-			completeTool(state, event.toolId, event.ok, event.output);
+			state.tools.complete(event.toolId, event.ok, event.output);
 			return;
 		case "usage":
 			pushTelemetry(state, usageLabel(event), seq);
@@ -95,13 +83,13 @@ const applyKnownEvent = (
 			pushTelemetry(state, openedLabel(event), seq);
 			return;
 		case "subsession.opened":
-			pushTelemetry(state, subsessionOpenedLabel(event), seq);
+			state.items.push(openedDelegation(state.nodes, event, seq));
 			return;
 		case "subsession.ended":
-			pushTelemetry(state, subsessionEndedLabel(event), seq);
+			state.items.push(endedDelegation(state.nodes, event, seq));
 			return;
 		case "subsession.gap":
-			pushTelemetry(state, subsessionGapLabel(event), seq);
+			state.items.push(gapNotice(event, seq));
 			return;
 		case "raw":
 			state.items.push({
@@ -134,10 +122,20 @@ const applyEvent = (state: Derivation, row: SessionEvent): void => {
 	row.event satisfies never;
 };
 
+// why: the tree is walked at read time and handed in, because depth and a
+// node's name are facts about the record rather than about any one frame. A
+// caller with no tree — a detached transcript, a fixture — still derives every
+// item; delegation markers simply have nowhere to point.
 export const deriveTranscript = (
 	events: ReadonlyArray<SessionEvent>,
+	nodes: ReadonlyArray<SessionTreeNode> = [],
 ): ReadonlyArray<TranscriptItem> => {
-	const state: Derivation = { items: [], toolsById: new Map() };
+	const items: TranscriptItem[] = [];
+	const state: Derivation = {
+		items,
+		nodes: nodesByRef(nodes),
+		tools: openToolCalls(items),
+	};
 	for (const event of events) {
 		applyEvent(state, event);
 	}

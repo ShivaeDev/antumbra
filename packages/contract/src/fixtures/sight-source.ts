@@ -1,6 +1,7 @@
 import { Effect, Layer, Stream } from "effect";
 import type { FixtureFeeds } from "#fixtures/feeds.ts";
 import { fleet } from "#fixtures/fleet.ts";
+import { sessionTree } from "#fixtures/session-tree.ts";
 import { storedEvents } from "#fixtures/transcript.ts";
 import { SightFailure, SightSource } from "#sight.ts";
 
@@ -31,6 +32,10 @@ export const sightFixture = (feeds: FixtureFeeds) =>
 			Effect.succeed(
 				storedEvents.filter((event) => event.seq >= query.fromSeq),
 			),
+		sessionTree: (rootSessionId) =>
+			Effect.succeed({ ...sessionTree, rootSessionId }),
+		sessionTreeFeed: (rootSessionId) =>
+			Stream.make({ ...sessionTree, rootSessionId }),
 		spawn: (request) =>
 			Effect.succeed({
 				agentId: `agent-for-${request.role}`,

@@ -1,4 +1,4 @@
-import type { SessionEvent } from "@antumbra/contract";
+import type { SessionEvent, SessionTreeNode } from "@antumbra/contract";
 import { ArrowDown } from "lucide-react";
 import { watchSessionEvents } from "#adapters/trpc.ts";
 import { Button } from "#components/ui/button.tsx";
@@ -8,8 +8,12 @@ import { TranscriptRow } from "#views/transcript-row.tsx";
 import { useTail } from "#views/transcript-tail.ts";
 
 export const TranscriptView = ({
+	nodes = [],
+	onOpenNode,
 	sessionId,
 }: {
+	readonly nodes?: ReadonlyArray<SessionTreeNode> | undefined;
+	readonly onOpenNode?: ((nodeId: string) => void) | undefined;
 	readonly sessionId: string;
 }) => {
 	const { error: feedError, value: events } = useFeedLog<SessionEvent>(
@@ -17,7 +21,7 @@ export const TranscriptView = ({
 		(onEvent, onError) =>
 			watchSessionEvents({ fromSeq: 0, sessionId }, onEvent, onError),
 	);
-	const items = deriveTranscript(events);
+	const items = deriveTranscript(events, nodes);
 	const { atTail, onScroll, pane, toTail } = useTail(events.length);
 
 	return (
@@ -39,7 +43,11 @@ export const TranscriptView = ({
 					</p>
 				) : (
 					items.map((item, index) => (
-						<TranscriptRow item={item} key={`${item.seq}-${index}`} />
+						<TranscriptRow
+							item={item}
+							key={`${item.seq}-${index}`}
+							onOpenNode={onOpenNode}
+						/>
 					))
 				)}
 			</div>

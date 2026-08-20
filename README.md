@@ -21,6 +21,8 @@ Early development. Nothing to install or run yet.
 - [Glossary](GLOSSARY.md) — a short index of Antumbra's product language.
 - [Design guides](docs/design/README.md) — the relationships, acts, and rationale
   behind that language.
+- [Branding](docs/branding.md) — the wordmark, the dark palette, the type scale,
+  and the copy register.
 
 ## License
 

@@ -67,3 +67,18 @@ export const TokenUsageNotification = Schema.Struct({
 });
 
 export const ThreadScoped = Schema.Struct({ threadId: Schema.String });
+
+// why: the one notification that says a thread is a member of somebody's tree.
+// Only a thread codex sourced from a spawn is one: a reviewer, a compaction or
+// a memory pass names no parent here and so can never be admitted as a node,
+// which is how the guardians stay out of the record's tree by construction.
+export const SpawnedThread = Schema.Struct({
+	thread: Schema.Struct({
+		id: Schema.String,
+		source: Schema.Struct({
+			subAgent: Schema.Struct({
+				thread_spawn: Schema.Struct({ parent_thread_id: Schema.String }),
+			}),
+		}),
+	}),
+});

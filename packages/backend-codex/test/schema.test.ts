@@ -14,12 +14,15 @@ const EnumNode = Schema.Struct({
 	enum: Schema.optional(Schema.Array(Schema.String)),
 });
 const Variant = Schema.Struct({
+	enum: Schema.optional(Schema.Array(Schema.String)),
 	properties: Schema.optional(
 		Schema.Struct({
 			method: Schema.optional(EnumNode),
+			thread_spawn: Schema.optional(Schema.Unknown),
 			type: Schema.optional(EnumNode),
 		}),
 	),
+	title: Schema.optional(Schema.String),
 });
 const Definition = Schema.Struct({
 	enum: Schema.optional(Schema.Array(Schema.String)),
@@ -101,12 +104,46 @@ describe("the codex protocol slice agrees with the pinned schema bundle", () => 
 				"agentMessage",
 				"userMessage",
 				"reasoning",
+				"collabAgentToolCall",
 				"commandExecution",
 				"dynamicToolCall",
 				"fileChange",
 				"mcpToolCall",
+				"subAgentActivity",
 				"webSearch",
 			]),
+		);
+	});
+
+	it("the sub-agent words we fold on are the bundle's, verbatim", () => {
+		expect(enumOf("SubAgentActivityKind")).toEqual([
+			"started",
+			"interacted",
+			"interrupted",
+		]);
+		expect(enumOf("CollabAgentTool")).toEqual([
+			"spawnAgent",
+			"sendInput",
+			"resumeAgent",
+			"wait",
+			"closeAgent",
+		]);
+	});
+
+	// why: a thread the record admits as a node must be one codex sourced from a
+	// spawn. The reviewer, compaction and memory threads are the other members of
+	// this union, and the slice decodes none of them — which is what keeps them
+	// out of the tree by construction rather than by vigilance.
+	it("a spawned sub-agent thread is the only source that names a parent", () => {
+		const sources = bundle.definitions.SubAgentSource?.oneOf ?? [];
+		const spawn = sources.find(
+			(variant) => variant.title === "ThreadSpawnSubAgentSource",
+		);
+		expect(JSON.stringify(spawn?.properties?.thread_spawn)).toContain(
+			"parent_thread_id",
+		);
+		expect(sources.some((variant) => variant.enum?.includes("review"))).toBe(
+			true,
 		);
 	});
 
@@ -142,6 +179,11 @@ describe("the codex protocol slice agrees with the pinned schema bundle", () => 
 			"TurnCompletedNotification",
 			"ThreadTokenUsageUpdatedNotification",
 			"ThreadStatusChangedNotification",
+			"ThreadStartedNotification",
+			"ThreadClosedNotification",
+			"ItemGuardianApprovalReviewStartedNotification",
+			"ItemGuardianApprovalReviewCompletedNotification",
+			"GuardianWarningNotification",
 			"ThreadStartResponse",
 			"ThreadResumeResponse",
 			"TurnStartResponse",
@@ -158,8 +200,13 @@ describe("the codex protocol slice agrees with the pinned schema bundle", () => 
 		for (const method of [
 			"item/started",
 			"item/completed",
+			"item/autoApprovalReview/started",
+			"item/autoApprovalReview/completed",
+			"guardianWarning",
 			"turn/started",
 			"turn/completed",
+			"thread/started",
+			"thread/closed",
 			"thread/tokenUsage/updated",
 			...MUTED_NOTIFICATIONS,
 		]) {

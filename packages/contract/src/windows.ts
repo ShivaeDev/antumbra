@@ -25,7 +25,20 @@ export const TranscriptPlace = Schema.Struct({
 });
 export type TranscriptPlace = typeof TranscriptPlace.Type;
 
-export const WindowPlace = Schema.Union([ConsolePlace, TranscriptPlace]);
+// why: an artifact is immutable once landed, so a window onto one is a window
+// onto a fact that cannot change under it — which is what makes it worth
+// keeping open beside the work rather than inside it.
+export const ArtifactPlace = Schema.Struct({
+	artifactId: Schema.String,
+	role: Schema.Literal("artifact"),
+});
+export type ArtifactPlace = typeof ArtifactPlace.Type;
+
+export const WindowPlace = Schema.Union([
+	ConsolePlace,
+	TranscriptPlace,
+	ArtifactPlace,
+]);
 export type WindowPlace = typeof WindowPlace.Type;
 
 export class WindowRefused extends Data.TaggedError("WindowRefused")<{

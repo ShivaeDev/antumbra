@@ -1,4 +1,5 @@
 import type { WindowPlace } from "@antumbra/contract";
+import { sameSubject } from "#adapters/windows/subject.ts";
 
 export interface DocumentFrame {
 	readonly url: string;
@@ -50,13 +51,6 @@ export interface WindowRegistry {
 	readonly remember: (id: string, place: WindowPlace) => void;
 	readonly windowOf: (id: string) => OwnedWindow | undefined;
 }
-
-// why: a window is opened for one subject, so a second window for the same
-// subject is the same window asked for twice.
-const sameSubject = (held: WindowPlace, wanted: WindowPlace): boolean =>
-	held.role === "console"
-		? wanted.role === "console"
-		: wanted.role === held.role && wanted.sessionId === held.sessionId;
 
 // why: possession of the preload is not authority by itself — every bridge
 // entry proves it came from the one live main frame at the document the shell

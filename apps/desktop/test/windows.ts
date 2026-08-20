@@ -93,6 +93,11 @@ export const transcriptPlace = (sessionId: string): WindowPlace => ({
 	sessionId,
 });
 
+export const artifactPlace = (artifactId: string): WindowPlace => ({
+	artifactId,
+	role: "artifact",
+});
+
 export const handleFor = (
 	calls: Array<string>,
 	name: string,

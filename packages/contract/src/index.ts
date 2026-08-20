@@ -75,6 +75,7 @@ export {
 	VoyageSource,
 } from "#voyages.ts";
 export {
+	ArtifactPlace,
 	ConsoleMode,
 	ConsolePlace,
 	TranscriptPlace,

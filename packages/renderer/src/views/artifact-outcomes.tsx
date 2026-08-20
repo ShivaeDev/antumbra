@@ -1,6 +1,7 @@
 import type { ArtifactMarkdown, ArtifactView } from "@antumbra/contract";
 import { useState } from "react";
 import { readArtifactMarkdown } from "#adapters/trpc-voyages.ts";
+import { openWindow } from "#adapters/trpc-windows.ts";
 import { type CallState, useCall } from "#hooks/call.ts";
 import {
 	OutcomeChips,
@@ -8,7 +9,7 @@ import {
 	OutcomeDetailView,
 	type OutcomeRef,
 } from "#views/outcome-detail.tsx";
-import { mutedStyle } from "#views/styles.ts";
+import { mutedStyle, quietButtonStyle } from "#views/styles.ts";
 
 // why: while the read is in flight the pane is titled by the chip that was
 // clicked; once it lands the Artifact names itself.
@@ -28,22 +29,43 @@ const detailOf = (
 	};
 };
 
+// why: asking twice for the same Artifact brings the window it already has
+// forward rather than minting a second one, so the control keeps being
+// offered while that window is open.
+const OpenInWindow = ({
+	artifactId,
+	onError,
+}: {
+	readonly artifactId: string;
+	readonly onError: (message: string) => void;
+}) => (
+	<button
+		onClick={() => openWindow({ artifactId, role: "artifact" }, onError)}
+		style={quietButtonStyle}
+		type="button"
+	>
+		open in a window
+	</button>
+);
+
 export const ArtifactOutcomes = ({
 	current,
 	history,
+	onError,
 }: {
 	readonly current: ReadonlyArray<ArtifactView>;
 	readonly history: ReadonlyArray<ArtifactView>;
+	readonly onError: (message: string) => void;
 }) => {
-	const [asked, setAsked] = useState("");
+	const [asked, setAsked] = useState<OutcomeRef | undefined>(undefined);
 	const read = useCall<ArtifactMarkdown>();
 	const open = (artifact: OutcomeRef): void => {
-		setAsked(artifact.title);
-		read.run((onDone, onError) =>
-			readArtifactMarkdown(artifact.id, onDone, onError),
+		setAsked(artifact);
+		read.run((onDone, failed) =>
+			readArtifactMarkdown(artifact.id, onDone, failed),
 		);
 	};
-	const detail = detailOf(read.state, asked);
+	const detail = detailOf(read.state, asked?.title ?? "");
 	const loading = detail?._tag === "loading";
 	if (current.length === 0 && history.length === 0) return null;
 	return (
@@ -67,8 +89,9 @@ export const ArtifactOutcomes = ({
 					</div>
 				</details>
 			)}
-			{detail === undefined ? null : (
+			{detail === undefined || asked === undefined ? null : (
 				<OutcomeDetailView
+					action={<OpenInWindow artifactId={asked.id} onError={onError} />}
 					detail={detail}
 					onClose={read.reset}
 					reading="reading Artifact…"

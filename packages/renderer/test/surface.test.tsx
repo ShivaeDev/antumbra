@@ -20,6 +20,17 @@ it("renders a placed window's own subject", () => {
 	expect(markup).not.toContain("Antumbra");
 });
 
+// why: an artifact window and a transcript window are both children, so the
+// surface must tell them apart by role rather than by "not the console".
+it("routes an artifact window to its artifact, never a transcript", () => {
+	const markup = renderToStaticMarkup(
+		<PlacedSurface place={{ artifactId: "artifact-1", role: "artifact" }} />,
+	);
+	expect(markup).toContain("reading Artifact");
+	expect(markup).not.toContain("no events yet");
+	expect(markup).not.toContain("Antumbra");
+});
+
 it("offers a window of its own for a session", () => {
 	const markup = renderToStaticMarkup(
 		<SessionRow

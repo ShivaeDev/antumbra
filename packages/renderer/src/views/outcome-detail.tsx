@@ -50,11 +50,16 @@ export const OutcomeChips = ({
 	</div>
 );
 
+// why: an outcome that can be taken somewhere says so beside its own title.
+// The pane holds the slot and never learns what goes in it, so an outcome
+// with nowhere to go simply passes nothing.
 export const OutcomeDetailView = ({
+	action,
 	detail,
 	onClose,
 	reading,
 }: {
+	readonly action?: React.ReactNode;
 	readonly detail: OutcomeDetail;
 	readonly onClose: () => void;
 	readonly reading: string;
@@ -62,6 +67,7 @@ export const OutcomeDetailView = ({
 	<div style={columnStyle}>
 		<div style={rowStyle}>
 			<strong>{detail.title}</strong>
+			{detail._tag === "loading" ? null : action}
 			{detail._tag === "loading" ? null : (
 				<button onClick={onClose} style={quietButtonStyle} type="button">
 					close

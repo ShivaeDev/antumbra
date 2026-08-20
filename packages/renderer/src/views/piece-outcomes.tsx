@@ -6,7 +6,13 @@ import { columnStyle } from "#views/styles.ts";
 
 // why: a change takes its time to land, so it reads as its own line rather
 // than as one chip among the outcomes that were done the moment they landed.
-export const PieceOutcomes = ({ piece }: { readonly piece: PieceView }) => {
+export const PieceOutcomes = ({
+	onError,
+	piece,
+}: {
+	readonly onError: (message: string) => void;
+	readonly piece: PieceView;
+}) => {
 	if (
 		piece.reports.length === 0 &&
 		piece.artifacts.length === 0 &&
@@ -21,6 +27,7 @@ export const PieceOutcomes = ({ piece }: { readonly piece: PieceView }) => {
 			<ArtifactOutcomes
 				current={piece.artifacts}
 				history={piece.artifactHistory}
+				onError={onError}
 			/>
 			{piece.changes.map((change) => (
 				<ChangeChip change={change} key={change.id} />

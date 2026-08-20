@@ -3,6 +3,7 @@ import { useAtomValue } from "@effect/atom-react";
 import { AsyncResult, Atom } from "effect/unstable/reactivity";
 import { loadWindowPlace } from "#adapters/trpc-windows.ts";
 import { ConsoleApp } from "#app.tsx";
+import { ArtifactWindow } from "#views/artifact-window.tsx";
 import { TranscriptWindow } from "#views/transcript-window.tsx";
 
 const placeAtom = Atom.make(loadWindowPlace);
@@ -34,6 +35,9 @@ export const PlacedSurface = ({
 	}
 	if (place.role === "console") {
 		return <ConsoleApp place={place} />;
+	}
+	if (place.role === "artifact") {
+		return <ArtifactWindow artifactId={place.artifactId} />;
 	}
 	return <TranscriptWindow sessionId={place.sessionId} />;
 };

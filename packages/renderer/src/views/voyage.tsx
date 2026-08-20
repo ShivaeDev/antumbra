@@ -13,6 +13,10 @@ const sectionStyle: React.CSSProperties = {
 	flexDirection: "column",
 	gap: "1.2rem",
 	minWidth: 0,
+	// why: the pane scrolls the one way it was built to scroll; a long path or
+	// branch belongs inside its row, never in a sideways scrollbar over the
+	// whole voyage.
+	overflowX: "hidden",
 	overflowY: "auto",
 	padding: "1rem 1.4rem",
 };

@@ -48,8 +48,10 @@ export const VoyageHeader = ({
 	readonly voyage: VoyageView;
 }) => (
 	<header style={columnStyle}>
-		<div style={rowStyle}>
-			<h1 style={{ fontSize: "1.1rem", margin: 0 }}>{voyage.name}</h1>
+		<div style={{ ...rowStyle, flexWrap: "wrap" }}>
+			<h1 style={{ fontSize: "1.1rem", margin: 0, minWidth: 0 }}>
+				{voyage.name}
+			</h1>
 			<span style={pillStyle(voyageStateColour[voyage.state])}>
 				{voyageStateLabel[voyage.state]}
 			</span>

@@ -12,7 +12,12 @@ things that may disappear at exit, such as fibers, handles, subscriptions,
 semaphores, timers, and local indexes. The renderer is a pure web app and a
 stateless projection: it holds no durable state, reaches main only through one
 typed contract, and every window can reload at any moment and rehydrate.
-Agents running in the main process never notice a renderer reload.
+Agents running in the main process never notice a renderer reload. Where each
+window is pointed is main-owned shell state kept in the selected data
+directory, never domain truth and never a renderer's to hold: main mints a
+window's role, remembers where it moves within that role, and restores that
+arrangement on the next launch, so losing the file costs the arrangement and
+nothing else.
 
 Exactly one Antumbra desktop process owns the application and its selected
 local data directory at a time. Repeat launches are routed to that owner,

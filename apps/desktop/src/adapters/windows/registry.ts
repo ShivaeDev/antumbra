@@ -1,4 +1,5 @@
 import type { WindowPlace } from "@antumbra/contract";
+import { sameSubject } from "#adapters/windows/subject.ts";
 
 export interface DocumentFrame {
 	readonly url: string;
@@ -41,9 +42,13 @@ export interface WindowShell {
 }
 
 export interface WindowRegistry {
+	readonly all: () => ReadonlyArray<OwnedWindow>;
 	readonly children: () => ReadonlyArray<OwnedWindow>;
 	readonly consoleWindow: () => OwnedWindow | undefined;
+	readonly focused: () => string | undefined;
 	readonly holding: (place: WindowPlace) => OwnedWindow | undefined;
+	readonly noteFocus: (id: string) => void;
+	readonly onChanged: (listener: () => void) => void;
 	readonly own: (record: OwnedWindow) => boolean;
 	readonly owner: (event: DocumentIpcEvent) => OwnedWindow | undefined;
 	readonly release: (contents: DocumentContents) => void;
@@ -51,27 +56,43 @@ export interface WindowRegistry {
 	readonly windowOf: (id: string) => OwnedWindow | undefined;
 }
 
-// why: a window is opened for one subject, so a second window for the same
-// subject is the same window asked for twice.
-const sameSubject = (held: WindowPlace, wanted: WindowPlace): boolean =>
-	held.role === "console"
-		? wanted.role === "console"
-		: wanted.role === held.role && wanted.sessionId === held.sessionId;
-
 // why: possession of the preload is not authority by itself — every bridge
 // entry proves it came from the one live main frame at the document the shell
 // loaded for that window, so navigation, a reload the shell did not verify, or
 // another WebContents cannot inherit the powers of a window main owns.
 export const makeWindowRegistry = (): WindowRegistry => {
 	const owned = new Map<DocumentContents, OwnedWindow>();
+	const listeners = new Set<() => void>();
 	const records = (): ReadonlyArray<OwnedWindow> => [...owned.values()];
+	let inFront: string | undefined;
+	// why: the roster is what gets written down, so every change to it is
+	// announced from here — the one place that knows one happened — rather than
+	// from each caller that might have remembered to say so.
+	const changed = (): void => {
+		for (const listener of listeners) {
+			listener();
+		}
+	};
 	return {
+		all: records,
 		children: () =>
 			records().filter((record) => record.place.role !== "console"),
 		consoleWindow: () =>
 			records().find((record) => record.place.role === "console"),
+		focused: () => inFront,
 		holding: (place) =>
 			records().find((record) => sameSubject(record.place, place)),
+		// why: which window was in front is part of where the app was left, so a
+		// restart puts the same one there rather than whichever opened last.
+		noteFocus: (id) => {
+			if (inFront !== id) {
+				inFront = id;
+				changed();
+			}
+		},
+		onChanged: (listener) => {
+			listeners.add(listener);
+		},
 		// why: the console is the app. A second one in the same process would be
 		// a second place the work is driven from, so ownership refuses it here
 		// rather than trusting every caller to have asked first.
@@ -84,6 +105,7 @@ export const makeWindowRegistry = (): WindowRegistry => {
 				return false;
 			}
 			owned.set(record.contents, record);
+			changed();
 			return true;
 		},
 		owner: (event) => {
@@ -102,40 +124,20 @@ export const makeWindowRegistry = (): WindowRegistry => {
 				: undefined;
 		},
 		release: (contents) => {
-			owned.delete(contents);
+			if (inFront === owned.get(contents)?.id) {
+				inFront = undefined;
+			}
+			if (owned.delete(contents)) {
+				changed();
+			}
 		},
 		remember: (id, place) => {
 			const record = records().find((held) => held.id === id);
 			if (record !== undefined) {
 				owned.set(record.contents, { ...record, place });
+				changed();
 			}
 		},
 		windowOf: (id) => records().find((record) => record.id === id),
 	};
-};
-
-// why: a window that did not land on the trusted document is not merely
-// unowned — it is a live renderer at an address the shell never chose, so it
-// is destroyed rather than left open beside the app.
-export const adoptWindow = (
-	registry: WindowRegistry,
-	candidate: WindowCandidate,
-): OwnedWindow | undefined => {
-	const { destroy, ...record } = candidate;
-	if (record.contents.getURL() !== record.document) {
-		destroy();
-		return undefined;
-	}
-	return registry.own(record) ? record : undefined;
-};
-
-// why: children hang off the console; when it goes they go with it, rather
-// than keeping a windowless app alive around them.
-export const closeChildren = (
-	registry: WindowRegistry,
-	place: WindowPlace,
-): void => {
-	for (const child of place.role === "console" ? registry.children() : []) {
-		child.handle.close();
-	}
 };

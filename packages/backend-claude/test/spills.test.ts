@@ -28,7 +28,7 @@ const spilled = (parent: string | null): SDKUserMessage => ({
 });
 
 it("says where a tool result spilled, on the node that produced it", () => {
-	expect(openSessionMapping()(spilled(AGENT_CALL))).toMatchObject([
+	expect(openSessionMapping().frame(spilled(AGENT_CALL))).toMatchObject([
 		{ origin: { spawnedBy: AGENT_CALL }, type: "tool.completed" },
 		{
 			detail:
@@ -45,7 +45,7 @@ it("a result that fitted inline leaves no gap behind", () => {
 		...spilled(null),
 		tool_use_result: { stdout: "sounded" },
 	};
-	expect(openSessionMapping()(inline)).toMatchObject([
+	expect(openSessionMapping().frame(inline)).toMatchObject([
 		{ type: "tool.completed" },
 	]);
 });

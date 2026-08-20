@@ -1,4 +1,3 @@
-import type { SDKMessage } from "@anthropic-ai/claude-agent-sdk";
 import {
 	type AgentBackend,
 	type AntumbraPlugin,
@@ -9,7 +8,7 @@ import {
 import type { AgentEvent } from "@antumbra/vocabulary/session-events";
 import { type Context, Effect, Option, Queue, Ref, Stream } from "effect";
 import { openRawSession, type RawSession } from "#adapters/session.ts";
-import { openSessionMapping } from "#mapping.ts";
+import { laneEvents, openSessionLanes } from "#session-lanes.ts";
 
 const failure = (detail: unknown) =>
 	new BackendFailure({ detail: String(detail), tag: "claude" });
@@ -17,14 +16,15 @@ const failure = (detail: unknown) =>
 const rawEvents = (raw: RawSession): Stream.Stream<AgentEvent> =>
 	Stream.callback<AgentEvent>((queue) =>
 		Effect.sync(() => {
-			const mapping = openSessionMapping();
+			const lanes = openSessionLanes();
 			raw.subscribe({
-				end: () => Queue.endUnsafe(queue),
-				event: (message: SDKMessage) => {
-					for (const event of mapping(message)) {
+				deliver: (delivery) => {
+					for (const event of laneEvents(lanes, delivery)) {
 						Queue.offerUnsafe(queue, event);
 					}
 				},
+				end: () => Queue.endUnsafe(queue),
+				recorded: lanes.recorded,
 			});
 		}),
 	);

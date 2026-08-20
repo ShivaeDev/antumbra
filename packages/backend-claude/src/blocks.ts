@@ -1,4 +1,3 @@
-import type { SDKMessage } from "@anthropic-ai/claude-agent-sdk";
 import type {
 	AgentEvent,
 	Origin,
@@ -8,8 +7,11 @@ import type {
 export const isRecord = (value: unknown): value is Record<string, unknown> =>
 	typeof value === "object" && value !== null;
 
+// why: a frame the provider forwarded and a line it stored differ in their
+// envelopes and agree on their content, so the blocks are read structurally and
+// both lanes get the same reading of what was said.
 export const contentBlocks = (
-	message: SDKMessage,
+	message: object,
 ): ReadonlyArray<Record<string, unknown>> => {
 	if (!("message" in message) || !isRecord(message.message)) {
 		return [];

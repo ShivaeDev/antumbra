@@ -15,6 +15,7 @@ const LOCAL_AGENT = "local_agent";
 
 type SystemMessage = Extract<SDKMessage, { type: "system" }>;
 type TaskStarted = Extract<SystemMessage, { subtype: "task_started" }>;
+type Opened = Extract<AgentEvent, { type: "subsession.opened" }>;
 
 // why: a background shell command is a task too, and only local_agent tasks are
 // subsessions. task_id is the agent id the subsession's own frames are attributed
@@ -23,7 +24,7 @@ type TaskStarted = Extract<SystemMessage, { subtype: "task_started" }>;
 const openedEvent = (
 	raw: RawPayload,
 	message: TaskStarted,
-): AgentEvent | undefined => {
+): Opened | undefined => {
 	if (message.task_type !== LOCAL_AGENT || message.tool_use_id === undefined) {
 		return undefined;
 	}
@@ -45,6 +46,11 @@ export interface Subsessions {
 		raw: RawPayload,
 		message: SDKMessage,
 	) => ReadonlyArray<AgentEvent>;
+	// why: the tool call a node was spawned by is stated once, in the frame that
+	// started it, and is needed again long after that frame is gone — to attribute
+	// something recovered from the node's stored transcript back to the node. What
+	// this never forgets is therefore wider than what is still open.
+	readonly spawnerOf: (subsessionRef: string) => string | undefined;
 }
 
 // why: task_updated and task_notification name a task_id and never a task_type,
@@ -55,6 +61,7 @@ export interface Subsessions {
 // frames about the same id fall through to raw instead of ending it twice.
 export const openSubsessions = (): Subsessions => {
 	const open = new Set<string>();
+	const spawners = new Map<string, string>();
 	const close = (
 		raw: RawPayload,
 		ending: Ending | undefined,
@@ -73,6 +80,7 @@ export const openSubsessions = (): Subsessions => {
 					return [];
 				}
 				open.add(message.task_id);
+				spawners.set(message.task_id, opened.spawnedBy);
 				return [opened];
 			}
 			if (message.subtype === "task_updated") {
@@ -82,5 +90,6 @@ export const openSubsessions = (): Subsessions => {
 				? close(raw, notifiedEnding(message))
 				: [];
 		},
+		spawnerOf: (subsessionRef) => spawners.get(subsessionRef),
 	};
 };

@@ -8,6 +8,7 @@ import {
 	NATIVE_ROOT,
 	NESTED_SUBSESSION,
 	SUBSESSION,
+	streamRehearsal,
 } from "#test/session-tree-frames.ts";
 import {
 	acquireTemporaryPersistence,
@@ -80,7 +81,7 @@ it.live("a delegated agent becomes a node of the Session tree", () =>
 				rootSessionId: receipt.sessionId,
 				status: "open",
 			});
-		}).pipe(Effect.provide(rehearsalLayer(temporary)));
+		}).pipe(Effect.provide(rehearsalLayer(temporary, streamRehearsal)));
 	}),
 );
 
@@ -126,7 +127,7 @@ it.live("each node's journal holds what that node did, and only that", () =>
 				"session.opened",
 				"subsession.gap",
 			]);
-		}).pipe(Effect.provide(rehearsalLayer(temporary)));
+		}).pipe(Effect.provide(rehearsalLayer(temporary, streamRehearsal)));
 	}),
 );
 
@@ -164,7 +165,7 @@ it.live("the record keeps saying what it saw after the turn ended", () =>
 			// on its own key, rather than staying open with nothing to explain it.
 			const gap = (yield* journal(nested.id)).at(-1);
 			expect(gap?.payload).toContain("stream-detached");
-		}).pipe(Effect.provide(rehearsalLayer(temporary)));
+		}).pipe(Effect.provide(rehearsalLayer(temporary, streamRehearsal)));
 	}),
 );
 
@@ -202,7 +203,7 @@ it.live("a node whose journal refused an append is marked incomplete", () =>
 			// why: the opening is a fact about the spawner's turn, so a node that
 			// lost its own words is still known to have existed.
 			expect(yield* kindsOf(receipt.sessionId)).toContain("subsession.opened");
-		}).pipe(Effect.provide(rehearsalLayer(temporary)));
+		}).pipe(Effect.provide(rehearsalLayer(temporary, streamRehearsal)));
 	}),
 );
 
@@ -229,6 +230,6 @@ it.live("a node's opening never stands in for the root's own identity", () =>
 				(row) => row.kind === "subsession.opened",
 			);
 			expect(opening?.payload).toContain(AGENT_CALL);
-		}).pipe(Effect.provide(rehearsalLayer(temporary)));
+		}).pipe(Effect.provide(rehearsalLayer(temporary, streamRehearsal)));
 	}),
 );

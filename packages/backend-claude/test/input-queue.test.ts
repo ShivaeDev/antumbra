@@ -68,7 +68,7 @@ it.effect("words land behind the step they were handed over during", () =>
 		yield* Fiber.join(receipt);
 		expect(delivered).toEqual([toolResult, message("steer for the reef")]);
 		const mapping = openSessionMapping();
-		expect(delivered.flatMap((taken) => mapping(taken))).toMatchObject([
+		expect(delivered.flatMap((taken) => mapping.frame(taken))).toMatchObject([
 			{ ok: true, output: "sounded", toolId: "tool-1", type: "tool.completed" },
 			{ role: "user", text: "steer for the reef", type: "message" },
 		]);

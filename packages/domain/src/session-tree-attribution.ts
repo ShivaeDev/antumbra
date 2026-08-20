@@ -32,13 +32,20 @@ const originOf = (event: AgentEvent): Origin | undefined =>
 // why: a frame names the tool call that spawned the node that produced it, and
 // that node's opening named the same call — so the join is the tool id. A frame
 // whose call this tree has never seen belongs to the root that owns the stream,
-// never to nothing.
+// never to nothing. When the frame names the node itself the join is that
+// reference instead: siblings of one fanned-out call share a tool id and would
+// otherwise all read as the last of them to open.
 export const nodeOf = (
 	tree: SessionTree,
 	event: AgentEvent,
 ): TreeNode | undefined => {
 	const origin = originOf(event);
-	return origin === undefined ? undefined : tree.spawned.get(origin.spawnedBy);
+	if (origin === undefined) {
+		return undefined;
+	}
+	return origin.node === undefined
+		? tree.spawned.get(origin.spawnedBy)
+		: tree.nodes.get(origin.node);
 };
 
 // why: the spawner is whoever made the tool call, which at depth two is the

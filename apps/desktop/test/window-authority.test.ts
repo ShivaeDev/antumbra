@@ -1,5 +1,6 @@
 import { describe, expect, it } from "@effect/vitest";
-import { adoptWindow, makeWindowRegistry } from "#adapters/windows/registry.ts";
+import { adoptWindow } from "#adapters/windows/attach.ts";
+import { makeWindowRegistry } from "#adapters/windows/registry.ts";
 import {
 	consolePlace,
 	contents,

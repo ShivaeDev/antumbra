@@ -6,11 +6,11 @@ import {
 	revokeOnDocumentMutation,
 } from "#adapters/windows/confinement.ts";
 import { attachWindowLifecycle } from "#adapters/windows/lifecycle.ts";
-import {
-	adoptWindow,
-	closeChildren,
-	type OwnedWindow,
-	type WindowShell,
+import type {
+	OwnedWindow,
+	WindowCandidate,
+	WindowRegistry,
+	WindowShell,
 } from "#adapters/windows/registry.ts";
 
 export interface WindowOpening extends WindowShell {
@@ -18,6 +18,32 @@ export interface WindowOpening extends WindowShell {
 }
 
 type Adopt = (place: WindowPlace) => OwnedWindow | undefined;
+
+// why: a window that did not land on the trusted document is not merely
+// unowned — it is a live renderer at an address the shell never chose, so it
+// is destroyed rather than left open beside the app.
+export const adoptWindow = (
+	registry: WindowRegistry,
+	candidate: WindowCandidate,
+): OwnedWindow | undefined => {
+	const { destroy, ...record } = candidate;
+	if (record.contents.getURL() !== record.document) {
+		destroy();
+		return undefined;
+	}
+	return registry.own(record) ? record : undefined;
+};
+
+// why: children hang off the console; when it goes they go with it, rather
+// than keeping a windowless app alive around them.
+export const closeChildren = (
+	registry: WindowRegistry,
+	place: WindowPlace,
+): void => {
+	for (const child of place.role === "console" ? registry.children() : []) {
+		child.handle.close();
+	}
+};
 
 export const confineWindow = (window: BrowserWindow): void =>
 	confineNavigation({
@@ -58,6 +84,7 @@ const wire = (
 	adopt: Adopt,
 ): void => {
 	let place = record.place;
+	window.on("focus", () => opening.registry.noteFocus(record.id));
 	const release = () => {
 		place = opening.registry.windowOf(record.id)?.place ?? place;
 		opening.registry.release(window.webContents);

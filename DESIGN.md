@@ -90,6 +90,10 @@ Session, restart, siesta, handover, and reclamation behavior.
   stateless typed projections. They subscribe first, read the durable log, and
   deduplicate by sequence so observation has no gap. Views may offer only
   existing domain acts; killing one cannot affect an Agent or durable work.
+  The glass remembers nothing, so main remembers where it was pointed: a
+  window's role is minted when it opens and never travels in its address, and
+  the arrangement of windows is shell state main writes down, not something a
+  view keeps or a reload can invent.
 - **One vocabulary serves many backends.** The domain owns neutral Session
   events and delivery acts; adapters preserve provider payloads and native ids
   without making them authoritative. A second backend must fit the same model

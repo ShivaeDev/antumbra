@@ -1,7 +1,13 @@
 import { describe, expect, it } from "@effect/vitest";
 import { getTRPCErrorFromUnknown } from "@trpc/server";
 import { Effect, Stream } from "effect";
-import { consoleWindow, fleet, info, makeRuntime } from "#fixtures.ts";
+import {
+	consoleWindow,
+	fleet,
+	info,
+	makeRuntime,
+	storedEvents,
+} from "#fixtures.ts";
 import { makeAppRouter } from "#index.ts";
 
 describe("makeAppRouter", () => {
@@ -28,12 +34,10 @@ describe("makeAppRouter", () => {
 			const events = yield* Effect.promise(() =>
 				caller.sessionEvents({ fromSeq: 1, sessionId: "session-1" }),
 			);
-			expect(events.map((event) => event.seq)).toEqual([1]);
-			expect(events[0]?.event).toEqual({
-				_tag: "Unknown",
-				kind: "assistant",
-				payload: "{}",
-			});
+			expect(events.map((event) => event.seq)).toEqual(
+				storedEvents.slice(1).map((event) => event.seq),
+			);
+			expect(events.map((event) => event.event._tag)).toContain("Unknown");
 			yield* Effect.promise(() => runtime.dispose());
 		}),
 	);
@@ -51,11 +55,12 @@ describe("makeAppRouter", () => {
 				iterable,
 				(cause) => cause,
 			).pipe(Stream.runCollect);
-			expect(collected.map((event) => event.seq)).toEqual([0, 1]);
-			expect(collected.map((event) => event.event._tag)).toEqual([
-				"Unknown",
-				"Unknown",
-			]);
+			expect(collected.map((event) => event.seq)).toEqual(
+				storedEvents.map((event) => event.seq),
+			);
+			expect(collected.map((event) => event.event)).toEqual(
+				storedEvents.map((event) => event.event),
+			);
 			yield* Effect.promise(() => runtime.dispose());
 		}),
 	);

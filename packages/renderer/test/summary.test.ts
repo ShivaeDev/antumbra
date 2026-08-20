@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { toolSummary } from "#transcript/tool-summary.ts";
+import { summaryLine } from "#transcript/summary.ts";
 
-describe("toolSummary", () => {
+describe("summaryLine", () => {
 	it("says what the tool says a call is about before what it runs", () => {
 		expect(
-			toolSummary(
+			summaryLine(
 				JSON.stringify({
 					command: 'cd "/Users/navigator/charts" && grep -rn shoal .',
 					description: "Grep the charts for shoals",
@@ -15,7 +15,7 @@ describe("toolSummary", () => {
 
 	it("falls back to the argument the tool acts on when it names none", () => {
 		expect(
-			toolSummary(
+			summaryLine(
 				JSON.stringify({
 					command: 'cd "/Users/navigator/charts" && grep -rn shoal .',
 				}),
@@ -25,7 +25,7 @@ describe("toolSummary", () => {
 
 	it("keeps a path down to the two segments that tell files apart", () => {
 		expect(
-			toolSummary(
+			summaryLine(
 				JSON.stringify({
 					file_path: "/Users/navigator/charts/packages/renderer/src/app.tsx",
 					limit: 40,
@@ -35,14 +35,14 @@ describe("toolSummary", () => {
 	});
 
 	it("leaves a short path whole", () => {
-		expect(toolSummary(JSON.stringify({ path: "src/app.tsx" }))).toBe(
+		expect(summaryLine(JSON.stringify({ path: "src/app.tsx" }))).toBe(
 			"src/app.tsx",
 		);
 	});
 
 	it("leaves a URL whole — its host is the part worth reading", () => {
 		expect(
-			toolSummary(
+			summaryLine(
 				JSON.stringify({
 					prompt: "summarise",
 					url: "https://charts.example/atlantic/soundings",
@@ -53,30 +53,30 @@ describe("toolSummary", () => {
 
 	it("shows the first line and counts the rest", () => {
 		expect(
-			toolSummary(
+			summaryLine(
 				JSON.stringify({ command: "echo one\necho two\necho three" }),
 			),
 		).toBe("echo one +2");
 	});
 
 	it("reads a bare string input the same way as a record", () => {
-		expect(toolSummary('bash -lc "pnpm ready"')).toBe('bash -lc "pnpm ready"');
+		expect(summaryLine('bash -lc "pnpm ready"')).toBe('bash -lc "pnpm ready"');
 		expect(
-			toolSummary(
+			summaryLine(
 				"/Users/navigator/charts/one.ts\n/Users/navigator/charts/two.ts",
 			),
 		).toBe("…/charts/one.ts +1");
 	});
 
 	it("says what it was handed when the input decodes as nothing at all", () => {
-		expect(toolSummary('{"command":"pnpm ready"')).toBe(
+		expect(summaryLine('{"command":"pnpm ready"')).toBe(
 			'{"command":"pnpm ready"',
 		);
-		expect(toolSummary("")).toBe("");
+		expect(summaryLine("")).toBe("");
 	});
 
 	it("finds something to say in a record of unfamiliar keys", () => {
-		expect(toolSummary(JSON.stringify({ count: 3, flag: true }))).toBe("3");
-		expect(toolSummary(JSON.stringify({}))).toBe("");
+		expect(summaryLine(JSON.stringify({ count: 3, flag: true }))).toBe("3");
+		expect(summaryLine(JSON.stringify({}))).toBe("");
 	});
 });

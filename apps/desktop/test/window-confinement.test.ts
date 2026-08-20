@@ -1,14 +1,12 @@
 import { describe, expect, it } from "@effect/vitest";
+import { closeChildren } from "#adapters/windows/attach.ts";
 import {
 	confineNavigation,
 	type NavigationPolicyHost,
 	revokeOnDocumentMutation,
 } from "#adapters/windows/confinement.ts";
 import { attachWindowLifecycle } from "#adapters/windows/lifecycle.ts";
-import {
-	closeChildren,
-	makeWindowRegistry,
-} from "#adapters/windows/registry.ts";
+import { makeWindowRegistry } from "#adapters/windows/registry.ts";
 import {
 	consolePlace,
 	handleFor,

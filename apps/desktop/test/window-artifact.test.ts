@@ -5,10 +5,8 @@ import {
 } from "@antumbra/contract";
 import { describe, expect, it } from "@effect/vitest";
 import { Effect, Layer } from "effect";
-import {
-	closeChildren,
-	makeWindowRegistry,
-} from "#adapters/windows/registry.ts";
+import { closeChildren } from "#adapters/windows/attach.ts";
+import { makeWindowRegistry } from "#adapters/windows/registry.ts";
 import { WindowSourceLive } from "#adapters/windows/source.ts";
 import { subjectOf } from "#adapters/windows/subject.ts";
 import {

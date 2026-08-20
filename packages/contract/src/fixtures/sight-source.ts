@@ -1,6 +1,7 @@
 import { Effect, Layer, Stream } from "effect";
 import type { FixtureFeeds } from "#fixtures/feeds.ts";
-import { fleet, storedEvents } from "#fixtures/fleet.ts";
+import { fleet } from "#fixtures/fleet.ts";
+import { storedEvents } from "#fixtures/transcript.ts";
 import { SightFailure, SightSource } from "#sight.ts";
 
 export const sightFixture = (feeds: FixtureFeeds) =>

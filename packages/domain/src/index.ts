@@ -26,17 +26,6 @@ export type {
 } from "#change-procedures.ts";
 export type { ChangeView } from "#change-view.ts";
 export { ChangeWatcherLive } from "#change-watcher.ts";
-export {
-	type AdoptChangeFailure,
-	type AdoptChangeInput,
-	adoptChange,
-	type OpenChangeFailure,
-	type OpenChangeInput,
-	openChange,
-	type SubmitChangeFailure,
-	type SubmitChangeInput,
-	submitChange,
-} from "#changes.ts";
 export { composeCrewCharter } from "#charter-compose.ts";
 export {
 	nextBackoffMillis,

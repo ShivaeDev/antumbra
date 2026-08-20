@@ -1,0 +1,83 @@
+/* Preflight leaves borders at currentColor and the document unstyled. This
+   layer states the two things the whole app assumes: a window that is a frame
+   rather than a page, and a hairline that is the same colour everywhere. */
+
+@layer base {
+	*,
+	::after,
+	::before,
+	::backdrop,
+	::file-selector-button {
+		border-color: var(--border);
+	}
+
+	:root {
+		color-scheme: dark;
+	}
+
+	html {
+		block-size: 100%;
+		font-family: var(--font-sans);
+		-webkit-font-smoothing: antialiased;
+		text-rendering: optimizelegibility;
+	}
+
+	/* the window is the frame, not a page: the panes inside it do the
+	   scrolling, so the document itself never gains a bar of its own. */
+	body {
+		background-color: var(--background);
+		block-size: 100%;
+		color: var(--foreground);
+		font-size: var(--text-sm);
+		line-height: var(--text-sm--line-height);
+		overflow: hidden;
+	}
+
+	/* why: preflight flattens headings to the surrounding weight so that only
+	   utilities style them. Views here set a heading's size inline and lean on
+	   the browser for its weight, so the ladder is restored once, in one place,
+	   where any font-weight utility still overrides it. */
+	h1,
+	h2,
+	h3,
+	h4,
+	h5,
+	h6 {
+		font-weight: 600;
+	}
+
+	:focus-visible {
+		outline: 2px solid var(--ring);
+		outline-offset: 2px;
+	}
+
+	::selection {
+		background-color: color-mix(in oklab, var(--ring-light) 28%, transparent);
+		color: var(--foreground);
+	}
+
+	* {
+		scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+		scrollbar-width: thin;
+	}
+
+	*::-webkit-scrollbar {
+		block-size: 10px;
+		inline-size: 10px;
+	}
+
+	*::-webkit-scrollbar-track {
+		background: var(--scrollbar-track);
+	}
+
+	*::-webkit-scrollbar-thumb {
+		background-clip: content-box;
+		background-color: var(--scrollbar-thumb);
+		border: 3px solid transparent;
+		border-radius: 999px;
+	}
+
+	*::-webkit-scrollbar-thumb:hover {
+		background-color: var(--scrollbar-thumb-hover);
+	}
+}

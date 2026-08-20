@@ -18,6 +18,11 @@
 		"enabled": true,
 		"indentStyle": "tab"
 	},
+	"css": {
+		"parser": {
+			"tailwindDirectives": true
+		}
+	},
 	"plugins": [
 		{
 			"path": "./script/lint/plugins/effect-boundaries.grit",

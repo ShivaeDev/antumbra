@@ -1,0 +1,59 @@
+/* Antumbra is the pale outer shadow of an eclipse: the ground goes to
+   near-black and a single ring of warm light does all the pointing.
+
+   Two tiers live here. The first names the elevation ladder and the ink on it
+   — that is the identity, and it is the only place a literal colour appears.
+   The second assigns those steps to roles, so "a popover, a secondary button
+   and a hover fill all sit on the same step" is a fact you can read rather
+   than one you have to compare hex by hex.
+
+   Values are authored in OKLCH so the lightness steps are perceptually even;
+   the sRGB hex beside each is for eyeballing against a design tool. */
+
+:root {
+	--ground: oklch(16.5% 0.009 266); /* #0c0e12 */
+	--surface: oklch(20.5% 0.01 266); /* #15171c */
+	--raised: oklch(25% 0.012 266); /* #1f2228 */
+	--sunk: oklch(23% 0.012 264); /* #1a1d23 */
+
+	--ink: oklch(92.5% 0.008 85); /* #e9e6e0 */
+	--ink-muted: oklch(67% 0.012 262); /* #91959d */
+	--ink-faint: oklch(58% 0.012 262); /* #767a82 */
+
+	--rule: oklch(30% 0.014 264); /* #2a2e35 */
+	--rule-strong: oklch(37% 0.017 264); /* #3b4049 */
+
+	--ring-light: oklch(85% 0.075 80); /* #e8c996 */
+
+	--background: var(--ground);
+	--foreground: var(--ink);
+	--card: var(--surface);
+	--card-foreground: var(--ink);
+	--popover: var(--raised);
+	--popover-foreground: var(--ink);
+	--primary: var(--ring-light);
+	--primary-foreground: var(--ground);
+	--secondary: var(--raised);
+	--secondary-foreground: var(--ink);
+	--muted: var(--sunk);
+	--muted-foreground: var(--ink-muted);
+	--accent: var(--raised);
+	--accent-foreground: var(--ink);
+	--border: var(--rule);
+	--border-strong: var(--rule-strong);
+	--input: var(--sunk);
+	--ring: var(--ring-light);
+	--link: var(--ring-light);
+
+	--destructive: oklch(70% 0.16 22); /* #f17070 */
+	--destructive-foreground: var(--ground);
+	--success: oklch(76% 0.115 155); /* #71c791 */
+	--warning: oklch(78% 0.14 68); /* #f2a548 */
+	--info: oklch(72% 0.13 264); /* #7ba3f6 */
+
+	--radius: 0.375rem;
+
+	--scrollbar-thumb: var(--rule-strong);
+	--scrollbar-thumb-hover: var(--ink-faint);
+	--scrollbar-track: transparent;
+}

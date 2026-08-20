@@ -1,10 +1,11 @@
 import type { SDKMessage } from "@anthropic-ai/claude-agent-sdk";
 import type {
 	AgentEvent,
+	Origin,
 	RawPayload,
 } from "@antumbra/vocabulary/session-events";
 
-const isRecord = (value: unknown): value is Record<string, unknown> =>
+export const isRecord = (value: unknown): value is Record<string, unknown> =>
 	typeof value === "object" && value !== null;
 
 export const contentBlocks = (
@@ -20,7 +21,7 @@ export const contentBlocks = (
 	return Array.isArray(content) ? content.filter(isRecord) : [];
 };
 
-const textOf = (content: unknown): string => {
+export const textOf = (content: unknown): string => {
 	if (typeof content === "string") {
 		return content;
 	}
@@ -34,17 +35,20 @@ const textOf = (content: unknown): string => {
 };
 
 // why: one SDK message can carry several content blocks — each becomes its
-// own neutral event, all sharing the same raw payload.
+// own neutral event, all sharing the same raw payload and the same origin,
+// because a frame is produced by exactly one node of the session's tree.
 export const blockEvent = (
 	raw: RawPayload,
 	role: "agent" | "user",
 	block: Record<string, unknown>,
+	origin: Origin | undefined,
 ): AgentEvent | undefined => {
+	const from = origin === undefined ? {} : { origin };
 	if (block.type === "text" && typeof block.text === "string") {
-		return { raw, role, text: block.text, type: "message" };
+		return { ...from, raw, role, text: block.text, type: "message" };
 	}
 	if (block.type === "thinking" && typeof block.thinking === "string") {
-		return { raw, text: block.thinking, type: "thinking" };
+		return { ...from, raw, text: block.thinking, type: "thinking" };
 	}
 	if (
 		block.type === "tool_use" &&
@@ -52,6 +56,7 @@ export const blockEvent = (
 		typeof block.name === "string"
 	) {
 		return {
+			...from,
 			input: JSON.stringify(block.input),
 			name: block.name,
 			raw,
@@ -61,6 +66,7 @@ export const blockEvent = (
 	}
 	if (block.type === "tool_result" && typeof block.tool_use_id === "string") {
 		return {
+			...from,
 			ok: block.is_error !== true,
 			output: textOf(block.content),
 			raw,

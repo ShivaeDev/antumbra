@@ -1,6 +1,13 @@
 import type { SessionEvent } from "@antumbra/contract";
 import type { AgentEvent } from "@antumbra/vocabulary/session-events";
-import { openedLabel, turnLabel, usageLabel } from "#transcript/labels.ts";
+import {
+	openedLabel,
+	subsessionEndedLabel,
+	subsessionGapLabel,
+	subsessionOpenedLabel,
+	turnLabel,
+	usageLabel,
+} from "#transcript/labels.ts";
 import type {
 	TranscriptItem,
 	TranscriptMessage,
@@ -22,6 +29,10 @@ const pushNarration = (
 	if (item.text !== "") {
 		state.items.push(item);
 	}
+};
+
+const pushTelemetry = (state: Derivation, label: string, seq: number): void => {
+	state.items.push({ kind: "telemetry", label, seq });
 };
 
 const completeTool = (
@@ -75,13 +86,22 @@ const applyKnownEvent = (
 			completeTool(state, event.toolId, event.ok, event.output);
 			return;
 		case "usage":
-			state.items.push({ kind: "telemetry", label: usageLabel(event), seq });
+			pushTelemetry(state, usageLabel(event), seq);
 			return;
 		case "turn.completed":
-			state.items.push({ kind: "telemetry", label: turnLabel(event), seq });
+			pushTelemetry(state, turnLabel(event), seq);
 			return;
 		case "session.opened":
-			state.items.push({ kind: "telemetry", label: openedLabel(event), seq });
+			pushTelemetry(state, openedLabel(event), seq);
+			return;
+		case "subsession.opened":
+			pushTelemetry(state, subsessionOpenedLabel(event), seq);
+			return;
+		case "subsession.ended":
+			pushTelemetry(state, subsessionEndedLabel(event), seq);
+			return;
+		case "subsession.gap":
+			pushTelemetry(state, subsessionGapLabel(event), seq);
 			return;
 		case "raw":
 			state.items.push({

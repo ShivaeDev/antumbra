@@ -1,7 +1,6 @@
 export {
 	AgentEvent,
-	RawEvent,
-	type RawPayload,
+	Origin,
 	SessionOpened,
 	TurnCompleted,
 	TurnStatus,
@@ -11,3 +10,11 @@ export {
 	HistoricalAgentEvent,
 	projectHistoricalAgentEvent,
 } from "#session-events/historical.ts";
+export { RawEvent, type RawPayload } from "#session-events/raw.ts";
+export {
+	SubsessionEnded,
+	SubsessionGap,
+	SubsessionGapKind,
+	SubsessionOpened,
+	SubsessionOutcome,
+} from "#session-events/subsessions.ts";

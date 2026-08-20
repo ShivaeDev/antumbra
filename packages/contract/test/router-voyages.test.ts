@@ -1,7 +1,7 @@
 import { describe, expect, it } from "@effect/vitest";
 import { Effect, Stream } from "effect";
+import { makeRuntime, reefSummary, reefView } from "#fixtures.ts";
 import { makeAppRouter } from "#index.ts";
-import { makeRuntime, reefSummary, reefView } from "#test/stub-sources.ts";
 
 const callerOf = () =>
 	makeAppRouter(makeRuntime()).createCaller({ windowId: "console" });

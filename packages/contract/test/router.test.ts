@@ -1,8 +1,8 @@
 import { describe, expect, it } from "@effect/vitest";
 import { getTRPCErrorFromUnknown } from "@trpc/server";
 import { Effect, Stream } from "effect";
+import { consoleWindow, fleet, info, makeRuntime } from "#fixtures.ts";
 import { makeAppRouter } from "#index.ts";
-import { consoleWindow, fleet, info, makeRuntime } from "#test/stub-sources.ts";
 
 describe("makeAppRouter", () => {
 	it.effect("serves app info from the runtime's source", () =>

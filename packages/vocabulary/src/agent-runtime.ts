@@ -1,4 +1,11 @@
 export {
+	AGENT_STATUS_EVENTS,
+	AGENT_STATUSES,
+	type AgentStatusEvent,
+	agentTransition,
+	InvalidAgentTransition,
+} from "#agent-runtime/agent-lifecycle.ts";
+export {
 	decodeSessionExecutionStatus,
 	InvalidSessionExecutionStatus,
 	InvalidSessionExecutionTransition,

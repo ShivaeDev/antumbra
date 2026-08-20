@@ -1,12 +1,15 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database, type WriteExecutors, Writer } from "@antumbra/persistence";
-import { decodeStoredAgentStatus } from "@antumbra/vocabulary/agent-runtime";
+import {
+	type AgentStatus,
+	agentTransition,
+	decodeStoredAgentStatus,
+} from "@antumbra/vocabulary/agent-runtime";
 import { Effect, Option, PubSub } from "effect";
 import { AgentNotSpawnable } from "#errors.ts";
 import { SessionFabric } from "#fabric.ts";
 import { activationFor, ensureSessionStatus } from "#spawn-current-session.ts";
 import type { SpawnFields } from "#spawn-fields.ts";
-import { type AgentStatus, agentTransition } from "#status.ts";
 
 export const spawnResolution = Effect.gen(function* () {
 	const db = yield* Database;

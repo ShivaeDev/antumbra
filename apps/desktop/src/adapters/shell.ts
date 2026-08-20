@@ -1,9 +1,9 @@
 import { mkdirSync } from "node:fs";
 import { isAbsolute, join } from "node:path";
 import { Config, Effect } from "effect";
-import { app, BrowserWindow } from "electron";
+import { app } from "electron";
 import { registerGracefulShutdown } from "#adapters/graceful-shutdown.ts";
-import { openMainWindow } from "#adapters/main-window.ts";
+import type { OwnedWindow } from "#adapters/windows/registry.ts";
 
 export const DEV_USER_DATA_VARIABLE = "ANTUMBRA_DEV_USER_DATA";
 
@@ -82,28 +82,27 @@ export const drainBeforeQuit = <E>(shutdown: Effect.Effect<void, E>) =>
 		shutdown,
 	);
 
+interface ConsoleWindows {
+	readonly consoleWindow: () => OwnedWindow | undefined;
+}
+
 interface DesktopApplication {
 	readonly onSecondInstance: (listener: () => void) => void;
 	readonly quit: () => void;
 	readonly requestSingleInstanceLock: () => boolean;
 }
 
-interface OwnedWindow {
-	readonly focus: () => void;
-	readonly isMinimized: () => boolean;
-	readonly restore: () => void;
-	readonly show: () => void;
-}
-
-interface OwnedWindows {
-	readonly getAllWindows: () => ReadonlyArray<OwnedWindow>;
-}
-
-export const focusOrOpenOwnedWindow = (windows: OwnedWindows) =>
+// why: a launch handed to the owner and a click on the menu bar are the same
+// request — the app the admiral already has, which is the console. Never
+// whichever detached window sorts first, and never a second console.
+export const focusOrOpenConsole = (
+	registry: ConsoleWindows,
+	openConsole: Effect.Effect<void>,
+) =>
 	Effect.gen(function* () {
-		const window = windows.getAllWindows()[0];
+		const window = registry.consoleWindow()?.handle;
 		if (window === undefined) {
-			yield* openMainWindow();
+			yield* openConsole;
 			return;
 		}
 		if (window.isMinimized()) {
@@ -115,7 +114,8 @@ export const focusOrOpenOwnedWindow = (windows: OwnedWindows) =>
 
 export const claimDesktopOwnership = (
 	application: DesktopApplication,
-	windows: OwnedWindows,
+	registry: ConsoleWindows,
+	openConsole: Effect.Effect<void>,
 ) =>
 	Effect.sync(() => {
 		if (!application.requestSingleInstanceLock()) {
@@ -123,7 +123,7 @@ export const claimDesktopOwnership = (
 			return false;
 		}
 		application.onSecondInstance(() => {
-			focusOrOpenOwnedWindow(windows).pipe(
+			focusOrOpenConsole(registry, openConsole).pipe(
 				Effect.catchCause((cause) =>
 					Effect.logError("second launch handoff failed", cause),
 				),
@@ -133,13 +133,10 @@ export const claimDesktopOwnership = (
 		return true;
 	});
 
-export const acquireDesktopOwnership = claimDesktopOwnership(
-	{
-		onSecondInstance: (listener) => {
-			app.on("second-instance", listener);
-		},
-		quit: () => app.quit(),
-		requestSingleInstanceLock: () => app.requestSingleInstanceLock(),
+export const desktopApplication: DesktopApplication = {
+	onSecondInstance: (listener) => {
+		app.on("second-instance", listener);
 	},
-	BrowserWindow,
-);
+	quit: () => app.quit(),
+	requestSingleInstanceLock: () => app.requestSingleInstanceLock(),
+};

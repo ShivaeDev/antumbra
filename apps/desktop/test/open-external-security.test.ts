@@ -1,28 +1,12 @@
 import { describe, expect, it } from "@effect/vitest";
 import {
-	type DocumentContents,
-	makeMainDocumentAuthority,
-} from "#adapters/main-document-authority.ts";
-import {
 	browsableUrl,
 	makeOpenExternalHandler,
 } from "#adapters/open-external.ts";
+import { makeWindowRegistry } from "#adapters/windows/registry.ts";
+import { consolePlace, contents, eventFor, ownWindow } from "#test/windows.ts";
 
 const PULL = "https://github.com/example/antumbra/pull/42";
-
-const contents = (id: string): DocumentContents => {
-	const frame = { url: `file:///app/${id}.html` };
-	return {
-		getURL: () => frame.url,
-		isDestroyed: () => false,
-		mainFrame: frame,
-	};
-};
-
-const eventFor = (sender: DocumentContents) => ({
-	sender,
-	senderFrame: sender.mainFrame,
-});
 
 describe("external link policy", () => {
 	it("hands the browser only web addresses it can parse", () => {
@@ -47,20 +31,19 @@ describe("external link policy", () => {
 		}
 	});
 
-	it("opens nothing for a sender that is not the owned document", () => {
-		const authority = makeMainDocumentAuthority();
-		const owned = contents("owned");
+	it("opens nothing for a sender that is not an owned document", () => {
+		const registry = makeWindowRegistry();
+		const owned = ownWindow(registry, "console", consolePlace);
 		const foreign = contents("foreign");
-		authority.own(owned, owned.mainFrame.url);
 		const opened: string[] = [];
-		const handler = makeOpenExternalHandler(authority, (url) => {
+		const handler = makeOpenExternalHandler(registry, (url) => {
 			opened.push(url);
 		});
 
 		handler(eventFor(foreign), PULL);
 		expect(opened).toEqual([]);
 
-		handler(eventFor(owned), PULL);
+		handler(eventFor(owned.contents), PULL);
 		expect(opened).toEqual([PULL]);
 	});
 });

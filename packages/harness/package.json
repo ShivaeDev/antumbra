@@ -1,18 +1,17 @@
 {
-	"name": "@antumbra/contract",
+	"name": "@antumbra/harness",
 	"version": "0.0.0",
 	"private": true,
 	"type": "module",
 	"exports": {
-		".": "./src/index.ts",
-		"./channels": "./src/channels.ts",
-		"./fixtures": "./src/fixtures.ts"
+		".": "./src/index.ts"
 	},
 	"imports": {
-		"#test/*": "./test/*",
+		"#script/*": "./script/*",
 		"#*": "./src/*"
 	},
 	"scripts": {
+		"dev": "node script/dev.ts",
 		"test": "vitest run --passWithNoTests",
 		"typecheck": "tsc --noEmit",
 		"typecheck:compat": "tsc6 --noEmit"
@@ -20,15 +19,20 @@
 	"devDependencies": {
 		"@effect/vitest": "catalog:",
 		"@types/node": "catalog:",
+		"@types/react": "catalog:",
+		"@types/react-dom": "catalog:",
 		"@typescript/native": "catalog:",
-		"effect": "catalog:",
+		"@vitejs/plugin-react": "catalog:",
 		"typescript": "catalog:",
+		"vite": "catalog:",
 		"vitest": "catalog:"
 	},
 	"dependencies": {
-		"@antumbra/vocabulary": "workspace:*",
-		"@shivaedev/effect-trpc": "catalog:",
+		"@antumbra/contract": "workspace:*",
+		"@antumbra/renderer": "workspace:*",
 		"@trpc/server": "catalog:",
-		"effect": "catalog:"
+		"effect": "catalog:",
+		"react": "catalog:",
+		"react-dom": "catalog:"
 	}
 }

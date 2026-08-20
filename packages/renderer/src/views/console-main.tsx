@@ -5,7 +5,7 @@ import { QuayPanel } from "#views/quay.tsx";
 import { VoyagePanel } from "#views/voyage.tsx";
 import { VoyagesAside } from "#views/voyages-aside.tsx";
 
-interface SurfaceProps {
+interface ConsoleProps {
 	readonly fleet: Fleet | undefined;
 	readonly mode: Mode;
 	readonly onError: (message: string) => void;
@@ -16,7 +16,7 @@ interface SurfaceProps {
 	readonly voyages: ReadonlyArray<VoyageSummary>;
 }
 
-const MainSection = (props: SurfaceProps) => {
+const MainSection = (props: ConsoleProps) => {
 	if (props.mode === "quay") {
 		return <QuayPanel onError={props.onError} />;
 	}
@@ -35,7 +35,7 @@ const MainSection = (props: SurfaceProps) => {
 const ASIDE =
 	"flex w-80 shrink-0 flex-col gap-5 overflow-x-hidden overflow-y-auto border-r border-border p-3";
 
-export const ModeSurface = (props: SurfaceProps) =>
+export const ConsoleMain = (props: ConsoleProps) =>
 	props.mode === "fleet" ? (
 		<FleetSurface
 			fleet={props.fleet}

@@ -2,8 +2,8 @@ import { useState } from "react";
 import { watchFleet } from "#adapters/trpc.ts";
 import { watchVoyages } from "#adapters/trpc-voyages.ts";
 import { useFeed } from "#hooks/feed.ts";
+import { ConsoleMain } from "#views/console-main.tsx";
 import type { Mode } from "#views/mode-nav.tsx";
-import { ModeSurface } from "#views/mode-surface.tsx";
 import { NavRail } from "#views/nav-rail.tsx";
 import { NoticeBar } from "#views/notice-bar.tsx";
 
@@ -30,7 +30,7 @@ export const App = () => {
 					notice={notice}
 					onDismiss={() => setNotice(undefined)}
 				/>
-				<ModeSurface
+				<ConsoleMain
 					fleet={fleet}
 					mode={mode}
 					onError={setNotice}

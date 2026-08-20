@@ -35,7 +35,7 @@ const VoyageRow = ({
 					to hover to undo. */}
 					<button
 						aria-current={current ? "true" : undefined}
-						className="min-w-0 flex-1 rounded-sm text-left text-xs font-medium wrap-anywhere outline-none"
+						className="min-w-0 flex-1 rounded-sm text-left text-xs font-medium wrap-anywhere"
 						onClick={() => onSelect(voyage.id)}
 						type="button"
 					>

@@ -115,11 +115,14 @@ caller, or make its native session identifier authoritative.
 ## Resume before replace
 
 Normal recovery attaches the same AgentSession to the same provider-native
-session or thread. Antumbra's neutral event log is the UI and audit surface; it
-is not input for reconstructing a provider conversation.
+session or thread. The resumable unit is the root Session. A subsession has no
+attachment of its own, and resuming one would re-enter a conversation its root
+is still holding, so recovery, drain, and stop all address roots and let the
+subtree settle underneath. Antumbra's neutral event log is the UI and audit
+surface; it is not input for reconstructing a provider conversation.
 
-At startup, Antumbra resumes a durable Session whenever persisted evidence says
-its executive obligation may remain unfinished or provider acceptance still
+At startup, Antumbra resumes a durable root Session whenever persisted evidence
+says its executive obligation may remain unfinished or provider acceptance still
 needs reconciliation. A Session with no such obligation stays detached and
 attaches lazily when hailed or given work. Missing observers, an empty
 in-memory registry, or a dead watcher only remove current knowledge; they never
@@ -194,15 +197,16 @@ support until Antumbra can actually render and operate a terminal.
 
 ## Rest and reaping
 
-Standing an Agent down drains its work toward a safe holding point. A Session
-is reapable only after its provider work, tool calls, descendant Agent tree,
-and background obligations have all settled; resource pressure never
-interrupts an in-flight subtree. Long-lived concerns are externalized as
-subscriptions, durable Questions, and Board-backed mail rather than keeping a
-process attachment alive.
+Standing an Agent down drains its work toward a safe holding point. A root
+Session is reapable only after its provider work, tool calls, subsession
+subtree, descendant Agent tree, and background obligations have all settled; an
+open subsession means the record is still unaccounted for, and resource
+pressure never interrupts an in-flight subtree. Long-lived concerns are
+externalized as subscriptions, durable Questions, and Board-backed mail rather
+than keeping a process attachment alive.
 
-When pressure requires eviction, policy chooses among safe Sessions by which
-is least likely to wake soon. The durable Agent, Session identity, Board,
+When pressure requires eviction, policy chooses among safe root Sessions by
+which is least likely to wake soon. The durable Agent, Session identity, Board,
 mailbox, and recovery evidence remain, so losing the process attachment never
 becomes loss of work or identity.
 
@@ -213,7 +217,7 @@ identity, Session identity, and story are not cleanup targets. The evidence
 boundary and selection policy above govern every automated reclamation.
 
 Stand-down is a reversible siesta: it drains toward a safe holding point while
-preserving the Agent, its Moorage, and its resumable Sessions. Retirement is
+preserving the Agent, its Moorage, and its resumable root Sessions. Retirement is
 the explicit irreversible end of an Agent and normally drives terminal Moorage
 cleanup. Exceptional recovery may instead reclaim a broken or deliberately
 abandoned setup for a non-retired Agent; a later ordinary provision attempt

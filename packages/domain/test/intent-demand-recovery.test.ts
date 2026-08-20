@@ -33,6 +33,8 @@ it.effect("recovers later durable Session demand after a lost wake", () =>
 							executionStatus: "active",
 							id: "session-later-demand",
 							nativeRef: "native-later-demand",
+							parentSessionId: null,
+							rootSessionId: "session-later-demand",
 							status: "open",
 						}),
 					),

@@ -64,7 +64,6 @@ export const applyMigrations = (
 				...(target.artifactsRoot === undefined
 					? {}
 					: { artifactsRoot: target.artifactsRoot }),
-				contract,
 				database: target.database,
 			}),
 	}).pipe(

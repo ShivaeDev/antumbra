@@ -16,6 +16,8 @@ export {
 	sessionExecutionTransition,
 } from "#agent-runtime/session-execution.ts";
 export {
+	type AgentSessionCompleteness,
+	AgentSessionCompletenessSchema,
 	type AgentSessionStatus,
 	AgentSessionStatusSchema,
 	type AgentStatus,
@@ -28,14 +30,18 @@ export {
 	ResourceReclaimStateSchema,
 } from "#agent-runtime/statuses.ts";
 export {
-	decodeStoredAgentSessionStatus,
 	decodeStoredAgentStatus,
 	decodeStoredBerthStatus,
 	decodeStoredMoorageStatus,
 	decodeStoredResourceReclaimState,
-	StoredAgentSessionStatusInvalid,
 	StoredAgentStatusInvalid,
 	StoredBerthStatusInvalid,
 	StoredMoorageStatusInvalid,
 	StoredResourceReclaimStateInvalid,
 } from "#agent-runtime/stored.ts";
+export {
+	decodeStoredAgentSessionCompleteness,
+	decodeStoredAgentSessionStatus,
+	StoredAgentSessionCompletenessInvalid,
+	StoredAgentSessionStatusInvalid,
+} from "#agent-runtime/stored-session.ts";

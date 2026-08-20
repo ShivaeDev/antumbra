@@ -1,7 +1,5 @@
 import { Data, Option, Result, Schema } from "effect";
 import {
-	type AgentSessionStatus,
-	AgentSessionStatusSchema,
 	type AgentStatus,
 	AgentStatusSchema,
 	type BerthStatus,
@@ -20,17 +18,6 @@ export class StoredAgentStatusInvalid extends Data.TaggedError(
 }> {
 	override get message(): string {
 		return `stored Agent ${this.agentId} has invalid status: ${String(this.value)}`;
-	}
-}
-
-export class StoredAgentSessionStatusInvalid extends Data.TaggedError(
-	"StoredAgentSessionStatusInvalid",
-)<{
-	readonly sessionId: string;
-	readonly value: unknown;
-}> {
-	override get message(): string {
-		return `stored AgentSession ${this.sessionId} has invalid status: ${String(this.value)}`;
 	}
 }
 
@@ -76,16 +63,6 @@ export const decodeStoredAgentStatus = (
 	return Option.isSome(decoded)
 		? Result.succeed(decoded.value)
 		: Result.fail(new StoredAgentStatusInvalid({ agentId, value }));
-};
-
-export const decodeStoredAgentSessionStatus = (
-	sessionId: string,
-	value: unknown,
-): Result.Result<AgentSessionStatus, StoredAgentSessionStatusInvalid> => {
-	const decoded = Schema.decodeUnknownOption(AgentSessionStatusSchema)(value);
-	return Option.isSome(decoded)
-		? Result.succeed(decoded.value)
-		: Result.fail(new StoredAgentSessionStatusInvalid({ sessionId, value }));
 };
 
 export const decodeStoredMoorageStatus = (

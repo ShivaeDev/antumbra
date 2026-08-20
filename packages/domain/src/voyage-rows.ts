@@ -1,5 +1,6 @@
 import type { ArtifactRow } from "@antumbra/artifacts";
 import type { ChangeRow, PieceChangeRow } from "@antumbra/changes";
+import type { StoredAgentSession } from "@antumbra/persistence";
 import type { EdgeRow, PieceRow } from "@antumbra/pieces";
 import type { ReportRow } from "@antumbra/reports";
 import type {
@@ -37,13 +38,16 @@ export interface CrewRow {
 	readonly voyageId: string;
 }
 
-export interface AgentSessionRow {
-	readonly agentId: string;
-	readonly createdAt: Date;
+// why: the structural half is the stored row, so a column change reaches this
+// reader as a compile error; the statuses stay decoded words, because a
+// projection never passes a raw string on as durable vocabulary.
+export type AgentSessionRow = Pick<
+	StoredAgentSession,
+	"agentId" | "createdAt" | "id"
+> & {
 	readonly executionStatus: SessionExecutionStatus;
-	readonly id: string;
 	readonly status: AgentSessionStatus;
-}
+};
 
 export interface MembershipRow {
 	readonly pieceId: string;

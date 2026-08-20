@@ -10,31 +10,8 @@ import type { DatabaseFilePath } from "#data-dir.ts";
 
 const CUSTODY_FROM =
 	"sha256:7bed1b5421dd224911e12335de498920dc5a617efc49f82a1f0f06cf52446bbe";
-const CUSTODY_TO =
-	"sha256:ad241ac4e17b7cf0d359e8be138d3865b236385bb508923ba5a0b5422bc307bc";
 const ITEM_PREFIX = "migration:artifact-custody:item:";
 const MANIFEST_KEY = "migration:artifact-custody:manifest";
-
-const storageHashOf = (contract: unknown): string | undefined => {
-	if (
-		typeof contract !== "object" ||
-		contract === null ||
-		!("storage" in contract)
-	) {
-		return undefined;
-	}
-	const storage = contract.storage;
-	if (
-		typeof storage !== "object" ||
-		storage === null ||
-		!("storageHash" in storage)
-	) {
-		return undefined;
-	}
-	return typeof storage.storageHash === "string"
-		? storage.storageHash
-		: undefined;
-};
 
 const currentStorageHash = (database: DatabaseSync): string | undefined => {
 	const marker = database
@@ -105,14 +82,17 @@ const stageVerifiedArtifacts = (
 	}
 };
 
+// why: what decides whether custody needs staging is where the database
+// stands, never where the chain happens to end. Pinning it to the contract
+// custody itself produces would disable the whole upgrade path the moment a
+// later migration is appended, silently, for exactly the databases that still
+// need it. The chain is linear, so any run that starts at CUSTODY_FROM passes
+// through custody on its way anywhere; the migration's own staging guard still
+// refuses everything this stages but cannot verify.
 export const prepareArtifactCustodyMigration = (target: {
 	readonly artifactsRoot?: string;
-	readonly contract: unknown;
 	readonly database: DatabaseFilePath;
 }): void => {
-	if (storageHashOf(target.contract) !== CUSTODY_TO) {
-		return;
-	}
 	const database = new DatabaseSync(target.database);
 	try {
 		if (currentStorageHash(database) !== CUSTODY_FROM) {

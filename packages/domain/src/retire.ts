@@ -11,6 +11,7 @@ import {
 } from "@antumbra/vocabulary/agent-runtime";
 import { Effect, Option, PubSub, Schema } from "effect";
 import { AgentNotFound } from "#errors.ts";
+import { rootSessionsOf } from "#session-roots.ts";
 
 const RetirePayload = Schema.Struct({ agentId: Schema.String });
 export type RetireFields = typeof RetirePayload.Type;
@@ -24,6 +25,9 @@ export const makeRetireKind = Effect.gen(function* () {
 	const executors = yield* Effect.context<WriteExecutors>();
 	const provide = <A, E>(effect: Effect.Effect<A, E, WriteExecutors>) =>
 		Effect.provideContext(effect, executors);
+	// why: retirement settles the Agent's whole Session subtree, subsessions
+	// included — a closed root over a still-open child would claim the record
+	// finished while part of it is unaccounted for.
 	const closeRows = (agentId: string, next: AgentStatus) =>
 		writer.write(
 			db.Agent.where({ id: agentId })
@@ -34,9 +38,13 @@ export const makeRetireKind = Effect.gen(function* () {
 					),
 				),
 		);
+	// why: only a root is attached to the fabric. A subsession lives inside its
+	// root's provider conversation, so it has no attachment of its own to stop.
 	const stopSessions = (agentId: string) =>
 		Effect.gen(function* () {
-			const sessions = yield* provide(db.AgentSession.where({ agentId }).all());
+			const sessions = yield* provide(
+				db.AgentSession.where(rootSessionsOf(agentId)).all(),
+			);
 			yield* Effect.forEach(sessions, (session) =>
 				Effect.fromResult(
 					decodeStoredAgentSessionStatus(session.id, session.status),

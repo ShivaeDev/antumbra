@@ -46,14 +46,22 @@ export const makeEnsureSessionRow = Effect.gen(function* () {
 				}
 				return false;
 			}
+			// why: a spawn opens a root — no parent, and it roots its own tree.
+			// Subsession rows are born by the tree's own creator, never here.
 			yield* db.AgentSession.create({
 				agentId: payload.agentId,
 				backend: payload.backend,
 				charterDeliveredAt: null,
+				completeness: "recording",
 				cwd: plan.root,
 				executionStatus: "active",
 				id: payload.sessionId,
+				kind: null,
+				label: null,
 				nativeRef: null,
+				outcome: null,
+				parentSessionId: null,
+				rootSessionId: payload.sessionId,
 				status: "open",
 			});
 			return true;

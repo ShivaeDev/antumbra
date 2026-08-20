@@ -1,3 +1,4 @@
+import type { StoredAgentSession } from "@antumbra/persistence";
 import {
 	type AgentSessionStatus,
 	type AgentStatus,
@@ -16,12 +17,12 @@ interface StoredAgent {
 	readonly status: unknown;
 }
 
-interface StoredSession {
-	readonly agentId: string;
-	readonly createdAt: Date;
-	readonly id: string;
-	readonly status: unknown;
-}
+// why: the reconciler reads roots only, and the fields it reads are the stored
+// ones — deriving the shape keeps a column change a compile error here.
+type StoredSession = Pick<
+	StoredAgentSession,
+	"agentId" | "createdAt" | "id" | "status"
+>;
 
 interface DecodedAgent extends StoredAgent {
 	readonly status: AgentStatus;

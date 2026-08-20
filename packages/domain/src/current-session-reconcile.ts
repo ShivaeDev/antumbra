@@ -2,6 +2,7 @@ import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database, type WriteExecutors, Writer } from "@antumbra/persistence";
 import { Effect, PubSub, Result } from "effect";
 import { planCurrentSessionReconciliation } from "#current-session-reconcile-plan.ts";
+import { rootSessions } from "#session-roots.ts";
 
 export const makeCurrentSessionReconciler = Effect.gen(function* () {
 	const db = yield* Database;
@@ -15,7 +16,7 @@ export const makeCurrentSessionReconciler = Effect.gen(function* () {
 			Effect.gen(function* () {
 				const planned = planCurrentSessionReconciliation(
 					yield* db.Agent.all(),
-					yield* db.AgentSession.all(),
+					yield* db.AgentSession.where(rootSessions).all(),
 				);
 				if (Result.isFailure(planned)) {
 					return planned.failure._tag === "CurrentSessionInvalid"

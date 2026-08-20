@@ -8,6 +8,7 @@ import {
 	decodeStoredResourceReclaimState,
 } from "@antumbra/vocabulary/agent-runtime";
 import { Effect } from "effect";
+import { rootSessions } from "#session-roots.ts";
 import { attributeIntents } from "#sight-diagnostics.ts";
 import type { PendingIntent } from "#sight-intents.ts";
 
@@ -25,9 +26,9 @@ export const fleetSnapshot = (
 				Effect.map((status) => ({ ...agent, status })),
 			),
 		);
-		const sessions = yield* db.AgentSession.orderBy((session) =>
-			session.createdAt.asc(),
-		).all();
+		const sessions = yield* db.AgentSession.where(rootSessions)
+			.orderBy((session) => session.createdAt.asc())
+			.all();
 		const pointers = new Map(
 			agents.map((agent) => [agent.id, agent.currentSessionId]),
 		);

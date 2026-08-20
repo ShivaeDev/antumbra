@@ -1,0 +1,544 @@
+[
+  {
+    "id": "agentSession.tree.guard-session-status",
+    "label": "Reject unknown Session lifecycle truth",
+    "summary": "fail before backfill when a Session status is outside the durable vocabulary",
+    "operationClass": "data",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "table",
+        "name": "agentSession"
+      }
+    },
+    "precheck": [],
+    "execute": [
+      {
+        "description": "fail before backfill when a Session status is outside the durable vocabulary",
+        "sql": "INSERT INTO \"agentSession\" (\"id\", \"agentId\", \"backend\", \"cwd\", \"nativeRef\", \"status\", \"executionStatus\", \"charterDeliveredAt\", \"createdAt\")\nSELECT \"id\", \"agentId\", \"backend\", \"cwd\", \"nativeRef\", \"status\", \"executionStatus\", \"charterDeliveredAt\", \"createdAt\"\nFROM \"agentSession\" WHERE \"status\" NOT IN ('open', 'closed')"
+      }
+    ],
+    "postcheck": []
+  },
+  {
+    "id": "column.agentSession.outcome",
+    "label": "Add column outcome on agentSession",
+    "summary": "Adds column outcome on agentSession",
+    "operationClass": "additive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "column",
+        "name": "outcome",
+        "table": "agentSession"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"outcome\" is missing",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM pragma_table_info(?) WHERE \"name\" = ?",
+        "params": [
+          "agentSession",
+          "outcome"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"outcome\"",
+        "sql": "ALTER TABLE \"agentSession\" ADD COLUMN \"outcome\" TEXT"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"outcome\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM pragma_table_info(?) WHERE \"name\" = ?",
+        "params": [
+          "agentSession",
+          "outcome"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.agentSession.completeness",
+    "label": "Add column completeness on agentSession",
+    "summary": "Adds column completeness on agentSession",
+    "operationClass": "additive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "column",
+        "name": "completeness",
+        "table": "agentSession"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"completeness\" is missing",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM pragma_table_info(?) WHERE \"name\" = ?",
+        "params": [
+          "agentSession",
+          "completeness"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"completeness\"",
+        "sql": "ALTER TABLE \"agentSession\" ADD COLUMN \"completeness\" TEXT"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"completeness\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM pragma_table_info(?) WHERE \"name\" = ?",
+        "params": [
+          "agentSession",
+          "completeness"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.agentSession.label",
+    "label": "Add column label on agentSession",
+    "summary": "Adds column label on agentSession",
+    "operationClass": "additive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "column",
+        "name": "label",
+        "table": "agentSession"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"label\" is missing",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM pragma_table_info(?) WHERE \"name\" = ?",
+        "params": [
+          "agentSession",
+          "label"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"label\"",
+        "sql": "ALTER TABLE \"agentSession\" ADD COLUMN \"label\" TEXT"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"label\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM pragma_table_info(?) WHERE \"name\" = ?",
+        "params": [
+          "agentSession",
+          "label"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.agentSession.kind",
+    "label": "Add column kind on agentSession",
+    "summary": "Adds column kind on agentSession",
+    "operationClass": "additive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "column",
+        "name": "kind",
+        "table": "agentSession"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"kind\" is missing",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM pragma_table_info(?) WHERE \"name\" = ?",
+        "params": [
+          "agentSession",
+          "kind"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"kind\"",
+        "sql": "ALTER TABLE \"agentSession\" ADD COLUMN \"kind\" TEXT"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"kind\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM pragma_table_info(?) WHERE \"name\" = ?",
+        "params": [
+          "agentSession",
+          "kind"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.agentSession.parentSessionId",
+    "label": "Add column parentSessionId on agentSession",
+    "summary": "Adds column parentSessionId on agentSession",
+    "operationClass": "additive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "column",
+        "name": "parentSessionId",
+        "table": "agentSession"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"parentSessionId\" is missing",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM pragma_table_info(?) WHERE \"name\" = ?",
+        "params": [
+          "agentSession",
+          "parentSessionId"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"parentSessionId\"",
+        "sql": "ALTER TABLE \"agentSession\" ADD COLUMN \"parentSessionId\" TEXT"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"parentSessionId\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM pragma_table_info(?) WHERE \"name\" = ?",
+        "params": [
+          "agentSession",
+          "parentSessionId"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.agentSession.rootSessionId",
+    "label": "Add column rootSessionId on agentSession",
+    "summary": "Adds column rootSessionId on agentSession",
+    "operationClass": "additive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "column",
+        "name": "rootSessionId",
+        "table": "agentSession"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"rootSessionId\" is missing",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM pragma_table_info(?) WHERE \"name\" = ?",
+        "params": [
+          "agentSession",
+          "rootSessionId"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"rootSessionId\"",
+        "sql": "ALTER TABLE \"agentSession\" ADD COLUMN \"rootSessionId\" TEXT"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"rootSessionId\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM pragma_table_info(?) WHERE \"name\" = ?",
+        "params": [
+          "agentSession",
+          "rootSessionId"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "agentSession.tree.close-stale-open-roots",
+    "label": "Close every open root an Agent no longer holds",
+    "summary": "repair Agents holding more than one open Session the way boot recovery does",
+    "operationClass": "data",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "table",
+        "name": "agentSession"
+      }
+    },
+    "precheck": [],
+    "execute": [
+      {
+        "description": "repair Agents holding more than one open Session the way boot recovery does",
+        "sql": "UPDATE \"agentSession\" SET \"status\" = 'closed'\nWHERE \"id\" IN (\n  SELECT stale.\"id\"\n  FROM \"agentSession\" stale\n  WHERE stale.\"parentSessionId\" IS NULL AND stale.\"status\" = 'open'\n    AND stale.\"id\" <> COALESCE(\n      (SELECT pointed.\"id\"\n       FROM \"agent\" holder\n       JOIN \"agentSession\" pointed ON pointed.\"id\" = holder.\"currentSessionId\"\n       WHERE holder.\"id\" = stale.\"agentId\"\n         AND pointed.\"agentId\" = stale.\"agentId\"\n         AND pointed.\"parentSessionId\" IS NULL\n         AND pointed.\"status\" = 'open'),\n      (SELECT newest.\"id\"\n       FROM \"agentSession\" newest\n       WHERE newest.\"agentId\" = stale.\"agentId\"\n         AND newest.\"parentSessionId\" IS NULL\n         AND newest.\"status\" = 'open'\n       ORDER BY newest.\"createdAt\" DESC, newest.\"id\" DESC\n       LIMIT 1))\n)"
+      }
+    ],
+    "postcheck": []
+  },
+  {
+    "id": "agentSession.tree.adopt-existing-as-roots",
+    "label": "Adopt every existing Session as its own tree root",
+    "summary": "root each surviving Session at itself and record its unaudited completeness",
+    "operationClass": "data",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "table",
+        "name": "agentSession"
+      }
+    },
+    "precheck": [],
+    "execute": [
+      {
+        "description": "root each surviving Session at itself and record its unaudited completeness",
+        "sql": "UPDATE \"agentSession\" SET\n  \"rootSessionId\" = \"id\",\n  \"parentSessionId\" = NULL,\n  \"completeness\" = CASE \"status\" WHEN 'open' THEN 'recording' ELSE 'unaudited' END"
+      }
+    ],
+    "postcheck": []
+  },
+  {
+    "id": "recreateTable.agentSession",
+    "label": "Recreate table agentSession",
+    "summary": "Recreates table agentSession to apply schema changes: database/agentSession/foreign-key:parentSessionId->.agentSession(id); database/agentSession/foreign-key:rootSessionId->.agentSession(id)",
+    "operationClass": "destructive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "table",
+        "name": "agentSession"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"agentSession\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "table",
+          "agentSession"
+        ]
+      },
+      {
+        "description": "ensure temp table \"_prisma_new_agentSession\" does not exist",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "table",
+          "_prisma_new_agentSession"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create new table \"_prisma_new_agentSession\" with desired schema",
+        "sql": "CREATE TABLE \"_prisma_new_agentSession\" (\n  \"agentId\" TEXT NOT NULL,\n  \"backend\" TEXT DEFAULT 'claude' NOT NULL,\n  \"charterDeliveredAt\" TEXT,\n  \"completeness\" TEXT DEFAULT 'recording' NOT NULL,\n  \"createdAt\" TEXT DEFAULT (datetime('now')) NOT NULL,\n  \"cwd\" TEXT NOT NULL,\n  \"executionStatus\" TEXT DEFAULT 'active' NOT NULL,\n  \"id\" TEXT NOT NULL,\n  \"kind\" TEXT,\n  \"label\" TEXT,\n  \"nativeRef\" TEXT,\n  \"outcome\" TEXT,\n  \"parentSessionId\" TEXT,\n  \"rootSessionId\" TEXT NOT NULL,\n  \"status\" TEXT NOT NULL,\n  PRIMARY KEY (\"id\"),\n  FOREIGN KEY (\"parentSessionId\") REFERENCES \"agentSession\" (\"id\") ON DELETE RESTRICT ON UPDATE RESTRICT,\n  FOREIGN KEY (\"rootSessionId\") REFERENCES \"agentSession\" (\"id\") ON DELETE RESTRICT ON UPDATE RESTRICT\n)"
+      },
+      {
+        "description": "copy data from \"agentSession\" to \"_prisma_new_agentSession\"",
+        "sql": "INSERT INTO \"_prisma_new_agentSession\" (\"agentId\", \"backend\", \"charterDeliveredAt\", \"completeness\", \"createdAt\", \"cwd\", \"executionStatus\", \"id\", \"kind\", \"label\", \"nativeRef\", \"outcome\", \"parentSessionId\", \"rootSessionId\", \"status\") SELECT \"agentId\", \"backend\", \"charterDeliveredAt\", \"completeness\", \"createdAt\", \"cwd\", \"executionStatus\", \"id\", \"kind\", \"label\", \"nativeRef\", \"outcome\", \"parentSessionId\", \"rootSessionId\", \"status\" FROM \"agentSession\""
+      },
+      {
+        "description": "drop old table \"agentSession\"",
+        "sql": "DROP TABLE \"agentSession\""
+      },
+      {
+        "description": "rename \"_prisma_new_agentSession\" to \"agentSession\"",
+        "sql": "ALTER TABLE \"_prisma_new_agentSession\" RENAME TO \"agentSession\""
+      },
+      {
+        "description": "recreate index \"agentSession_agentId_idx\" on \"agentSession\"",
+        "sql": "CREATE INDEX \"agentSession_agentId_idx\" ON \"agentSession\" (\"agentId\")"
+      },
+      {
+        "description": "recreate index \"agentSession_parentSessionId_idx\" on \"agentSession\"",
+        "sql": "CREATE INDEX \"agentSession_parentSessionId_idx\" ON \"agentSession\" (\"parentSessionId\")"
+      },
+      {
+        "description": "recreate index \"agentSession_rootSessionId_idx\" on \"agentSession\"",
+        "sql": "CREATE INDEX \"agentSession_rootSessionId_idx\" ON \"agentSession\" (\"rootSessionId\")"
+      },
+      {
+        "description": "recreate index \"agentSession_rootSessionId_status_idx\" on \"agentSession\"",
+        "sql": "CREATE INDEX \"agentSession_rootSessionId_status_idx\" ON \"agentSession\" (\"rootSessionId\", \"status\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"agentSession\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "table",
+          "agentSession"
+        ]
+      },
+      {
+        "description": "verify temp table \"_prisma_new_agentSession\" is gone",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "table",
+          "_prisma_new_agentSession"
+        ]
+      },
+      {
+        "description": "verify foreign key (parentSessionId) → agentSession(id) on \"agentSession\"",
+        "sql": "SELECT EXISTS (SELECT 1 FROM pragma_foreign_key_list('agentSession') f WHERE f.\"table\" = 'agentSession' GROUP BY f.id HAVING COUNT(*) = 1 AND SUM(CASE WHEN (f.\"from\", f.\"to\") IN (('parentSessionId', 'id')) THEN 1 ELSE 0 END) = 1)"
+      },
+      {
+        "description": "verify foreign key (rootSessionId) → agentSession(id) on \"agentSession\"",
+        "sql": "SELECT EXISTS (SELECT 1 FROM pragma_foreign_key_list('agentSession') f WHERE f.\"table\" = 'agentSession' GROUP BY f.id HAVING COUNT(*) = 1 AND SUM(CASE WHEN (f.\"from\", f.\"to\") IN (('rootSessionId', 'id')) THEN 1 ELSE 0 END) = 1)"
+      }
+    ]
+  },
+  {
+    "id": "sessionEvent.session.guard-orphans",
+    "label": "Reject Session events with no Session",
+    "summary": "fail before the foreign key adopts events whose Session is missing",
+    "operationClass": "data",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "table",
+        "name": "sessionEvent"
+      }
+    },
+    "precheck": [],
+    "execute": [
+      {
+        "description": "fail before the foreign key adopts events whose Session is missing",
+        "sql": "INSERT INTO \"sessionEvent\" (\"sessionId\", \"seq\", \"kind\", \"payload\", \"at\")\nSELECT e.\"sessionId\", e.\"seq\", e.\"kind\", e.\"payload\", e.\"at\"\nFROM \"sessionEvent\" e\nWHERE NOT EXISTS (SELECT 1 FROM \"agentSession\" s WHERE s.\"id\" = e.\"sessionId\")"
+      }
+    ],
+    "postcheck": []
+  },
+  {
+    "id": "recreateTable.sessionEvent",
+    "label": "Recreate table sessionEvent",
+    "summary": "Recreates table sessionEvent to apply schema changes: database/sessionEvent/foreign-key:sessionId->.agentSession(id)",
+    "operationClass": "destructive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "table",
+        "name": "sessionEvent"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"sessionEvent\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "table",
+          "sessionEvent"
+        ]
+      },
+      {
+        "description": "ensure temp table \"_prisma_new_sessionEvent\" does not exist",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "table",
+          "_prisma_new_sessionEvent"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create new table \"_prisma_new_sessionEvent\" with desired schema",
+        "sql": "CREATE TABLE \"_prisma_new_sessionEvent\" (\n  \"at\" TEXT DEFAULT (datetime('now')) NOT NULL,\n  \"kind\" TEXT NOT NULL,\n  \"payload\" TEXT NOT NULL,\n  \"seq\" INTEGER NOT NULL,\n  \"sessionId\" TEXT NOT NULL,\n  PRIMARY KEY (\"sessionId\", \"seq\"),\n  FOREIGN KEY (\"sessionId\") REFERENCES \"agentSession\" (\"id\") ON DELETE RESTRICT ON UPDATE RESTRICT\n)"
+      },
+      {
+        "description": "copy data from \"sessionEvent\" to \"_prisma_new_sessionEvent\"",
+        "sql": "INSERT INTO \"_prisma_new_sessionEvent\" (\"at\", \"kind\", \"payload\", \"seq\", \"sessionId\") SELECT \"at\", \"kind\", \"payload\", \"seq\", \"sessionId\" FROM \"sessionEvent\""
+      },
+      {
+        "description": "drop old table \"sessionEvent\"",
+        "sql": "DROP TABLE \"sessionEvent\""
+      },
+      {
+        "description": "rename \"_prisma_new_sessionEvent\" to \"sessionEvent\"",
+        "sql": "ALTER TABLE \"_prisma_new_sessionEvent\" RENAME TO \"sessionEvent\""
+      },
+      {
+        "description": "recreate index \"sessionEvent_sessionId_idx\" on \"sessionEvent\"",
+        "sql": "CREATE INDEX \"sessionEvent_sessionId_idx\" ON \"sessionEvent\" (\"sessionId\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"sessionEvent\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "table",
+          "sessionEvent"
+        ]
+      },
+      {
+        "description": "verify temp table \"_prisma_new_sessionEvent\" is gone",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "table",
+          "_prisma_new_sessionEvent"
+        ]
+      },
+      {
+        "description": "verify foreign key (sessionId) → agentSession(id) on \"sessionEvent\"",
+        "sql": "SELECT EXISTS (SELECT 1 FROM pragma_foreign_key_list('sessionEvent') f WHERE f.\"table\" = 'agentSession' GROUP BY f.id HAVING COUNT(*) = 1 AND SUM(CASE WHEN (f.\"from\", f.\"to\") IN (('sessionId', 'id')) THEN 1 ELSE 0 END) = 1)"
+      }
+    ]
+  },
+  {
+    "id": "agentSession.tree.one-open-root-per-agent",
+    "label": "Admit one open root Session per Agent",
+    "summary": "partial unique index over open root Sessions; PSL cannot express a filtered unique index",
+    "operationClass": "additive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "index",
+        "name": "agentSession_one_open_root_per_agent"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"agentSession_one_open_root_per_agent\" does not exist",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "index",
+          "agentSession_one_open_root_per_agent"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "admit one open root Session per Agent",
+        "sql": "CREATE UNIQUE INDEX \"agentSession_one_open_root_per_agent\"\nON \"agentSession\" (\"agentId\", \"status\")\nWHERE \"parentSessionId\" IS NULL AND \"status\" = 'open'"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"agentSession_one_open_root_per_agent\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "index",
+          "agentSession_one_open_root_per_agent"
+        ]
+      }
+    ]
+  }
+]

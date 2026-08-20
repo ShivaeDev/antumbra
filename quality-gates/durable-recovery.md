@@ -27,21 +27,25 @@ durable truth. The governing concepts are in
 6. Absence is not a terminal event. An empty registry, closed process, dead
    watcher, or lost subscription never proves completion, closure, retirement,
    orphaning, or release.
-7. Resume every assigned Agent, AgentSession, provider-native session or thread,
-   native reference, and event sequence before spawning a replacement. Preserve
-   M:N assignments and Session succession; never recover an arbitrary first row
-   or replay the neutral event log as provider context. A successor is explicit
-   recovery policy, never silent fallback.
+7. Resume every assigned Agent, root AgentSession, provider-native session or
+   thread, native reference, and event sequence before spawning a replacement.
+   The root Session is the resumable unit: a subsession belongs to its root's
+   record, is never addressed on its own, and is never a resume, drain, or stop
+   target. Preserve M:N assignments and Session succession; never recover an
+   arbitrary first row or replay the neutral event log as provider context. A
+   successor is explicit recovery policy, never silent fallback.
 8. Initial and recovery instructions use at-least-once transport: retry when
    provider acceptance is unknown and make duplicates harmless. Durable
    mailbox addressing and marked-read state stay separate; sending never marks
    mail read.
-9. Stand-down is reversible siesta; retirement is irreversible Agent death.
-   Reclamation targets replaceable resources only: identity, boards,
-   transcripts, and story are never cleanup targets. Reprovisioning a
-   non-retired Agent reuses the same Moorage row. Automation fails closed on
-   dirty, unpushed, unauthenticated, or uncertain evidence; age may prioritize a
-   resource already proven safe, but never proves safety.
+9. Stand-down is reversible siesta; retirement is irreversible Agent death. A
+   root Session's whole subtree settles before it is reaped — an open
+   subsession means the record is still unaccounted for, and resource pressure
+   never interrupts one. Reclamation targets replaceable resources only:
+   identity, boards, transcripts, and story are never cleanup targets.
+   Reprovisioning a non-retired Agent reuses the same Moorage row. Automation
+   fails closed on dirty, unpushed, unauthenticated, or uncertain evidence; age
+   may prioritize a resource already proven safe, but never proves safety.
 10. Prove restart behavior by destroying and rebuilding the real persistence
     and Effect layers. A test that retains an in-memory service or mock has not
     crossed the recovery boundary it claims to exercise.

@@ -1,16 +1,6 @@
-import { createHash } from "node:crypto";
-import {
-	mkdirSync,
-	mkdtempSync,
-	readFileSync,
-	realpathSync,
-	rmSync,
-	writeFileSync,
-} from "node:fs";
-import { tmpdir } from "node:os";
+import { readdirSync } from "node:fs";
 import { join } from "node:path";
 import { DatabaseSync } from "node:sqlite";
-import { fileURLToPath, pathToFileURL } from "node:url";
 import { expect, it } from "@effect/vitest";
 import { Effect } from "effect";
 import { prepareArtifactCustodyMigration } from "#adapters/artifact-custody-preflight.ts";
@@ -19,132 +9,15 @@ import {
 	applyPreparedMigrations,
 } from "#adapters/migrator.ts";
 import contract from "#contract.json" with { type: "json" };
-import { brandDatabaseFilePath } from "#data-dir.ts";
+import {
+	artifactHasUri,
+	fixture,
+	installLegacyArtifact,
+	migrateToPredecessor,
+	removeStagedProof,
+	stageCount,
+} from "#test/artifact-custody-harness.ts";
 import { packagedMigrationsDirectory } from "#testing.ts";
-
-const predecessor: unknown = JSON.parse(
-	readFileSync(
-		fileURLToPath(
-			new URL(
-				"../migrations/app/20260818T1538_artifact_custody/start-contract.json",
-				import.meta.url,
-			),
-		),
-		"utf8",
-	),
-);
-
-const directories: string[] = [];
-
-it.afterAll(() => {
-	for (const directory of directories.splice(0)) {
-		rmSync(directory, { force: true, recursive: true });
-	}
-});
-
-const fixture = () => {
-	const directory = mkdtempSync(join(tmpdir(), "antumbra-custody-migration-"));
-	directories.push(directory);
-	const configuredRoot = join(directory, "artifacts");
-	mkdirSync(configuredRoot);
-	const artifactsRoot = realpathSync(configuredRoot);
-	return {
-		artifactsRoot,
-		database: brandDatabaseFilePath(join(directory, "antumbra.db")),
-	};
-};
-
-const migrateToPredecessor = (
-	database: ReturnType<typeof fixture>["database"],
-) =>
-	applyMigrations({
-		contract: predecessor,
-		database,
-		migrationsDirectory: packagedMigrationsDirectory,
-	});
-
-const installLegacyArtifact = (
-	databasePath: ReturnType<typeof fixture>["database"],
-	artifactsRoot: string,
-	options: {
-		readonly bytes?: Uint8Array;
-		readonly id?: string;
-		readonly uri?: string;
-	} = {},
-) => {
-	const bytes = options.bytes ?? new TextEncoder().encode("# Reef\n");
-	const id = options.id ?? "artifact-reef";
-	const digest = createHash("sha256").update(bytes).digest("hex");
-	const directory = join(artifactsRoot, digest);
-	mkdirSync(directory, { recursive: true });
-	const destination = join(directory, `${id}.md`);
-	writeFileSync(destination, bytes);
-	const database = new DatabaseSync(databasePath);
-	try {
-		database
-			.prepare(
-				`INSERT OR IGNORE INTO "piece" ("id", "title", "charter", "expectation", "role") VALUES ('piece-reef', 'Reef', 'chart', 'chart lands', 'cartographer')`,
-			)
-			.run();
-		database
-			.prepare(
-				`INSERT INTO "artifact" ("id", "pieceId", "title", "uri") VALUES (?, 'piece-reef', ?, ?)`,
-			)
-			.run(id, id, options.uri ?? pathToFileURL(destination).toString());
-	} finally {
-		database.close();
-	}
-	return { basename: `${id}.md`, byteSize: bytes.length, digest, id };
-};
-
-const stageCount = (databasePath: ReturnType<typeof fixture>["database"]) => {
-	const database = new DatabaseSync(databasePath);
-	try {
-		const row = database
-			.prepare(
-				`SELECT COUNT(*) AS "count" FROM "appMeta" WHERE "key" = 'migration:artifact-custody:manifest' OR "key" LIKE 'migration:artifact-custody:item:%'`,
-			)
-			.get();
-		return Number(row?.count);
-	} finally {
-		database.close();
-	}
-};
-
-const removeStagedProof = (
-	databasePath: ReturnType<typeof fixture>["database"],
-	key: "item" | "manifest",
-	field: string,
-) => {
-	const database = new DatabaseSync(databasePath);
-	try {
-		const selector =
-			key === "manifest"
-				? `"key" = 'migration:artifact-custody:manifest'`
-				: `"key" LIKE 'migration:artifact-custody:item:%'`;
-		database
-			.prepare(
-				`UPDATE "appMeta" SET "value" = json_remove("value", ?) WHERE ${selector}`,
-			)
-			.run(`$.${field}`);
-	} finally {
-		database.close();
-	}
-};
-
-const artifactHasUri = (
-	databasePath: ReturnType<typeof fixture>["database"],
-): boolean => {
-	const database = new DatabaseSync(databasePath);
-	try {
-		return database
-			.prepare(`PRAGMA table_info('artifact')`)
-			.all()
-			.some((row) => row.name === "uri");
-	} finally {
-		database.close();
-	}
-};
 
 it.effect(
 	"backfills only verified canonical CAS metadata and removes URI",
@@ -214,7 +87,7 @@ it.effect("stages idempotently across a crash before ordinary migration", () =>
 		const target = fixture();
 		yield* migrateToPredecessor(target.database);
 		installLegacyArtifact(target.database, target.artifactsRoot);
-		const preflight = { ...target, contract };
+		const preflight = { ...target };
 
 		yield* Effect.sync(() => prepareArtifactCustodyMigration(preflight));
 		expect(stageCount(target.database)).toBe(2);
@@ -233,9 +106,7 @@ it.effect("ordinary migration rejects stale or incomplete staging", () =>
 		const target = fixture();
 		yield* migrateToPredecessor(target.database);
 		installLegacyArtifact(target.database, target.artifactsRoot);
-		yield* Effect.sync(() =>
-			prepareArtifactCustodyMigration({ ...target, contract }),
-		);
+		yield* Effect.sync(() => prepareArtifactCustodyMigration({ ...target }));
 		const database = new DatabaseSync(target.database);
 		try {
 			database
@@ -259,6 +130,43 @@ it.effect("ordinary migration rejects stale or incomplete staging", () =>
 	}),
 );
 
+// why: staging was once pinned to the exact contract custody itself ends at,
+// so appending any later migration silently disabled the upgrade path for the
+// databases that still needed it. The premise worth pinning is that the chain
+// does continue past custody — without asserting it this test would quietly
+// degrade into a copy of the happy path the day custody became the tail again.
+it.effect("stages custody though the chain continues past it", () =>
+	Effect.gen(function* () {
+		expect(
+			readdirSync(join(packagedMigrationsDirectory, "app")).filter(
+				(name) => name > "20260818T1538_artifact_custody",
+			),
+		).not.toHaveLength(0);
+		const target = fixture();
+		yield* migrateToPredecessor(target.database);
+		const artifact = installLegacyArtifact(
+			target.database,
+			target.artifactsRoot,
+		);
+
+		yield* applyMigrations({
+			...target,
+			migrationsDirectory: packagedMigrationsDirectory,
+		});
+
+		const database = new DatabaseSync(target.database);
+		try {
+			expect(database.prepare(`SELECT * FROM "artifact"`).get()).toMatchObject(
+				artifact,
+			);
+		} finally {
+			database.close();
+		}
+		expect(artifactHasUri(target.database)).toBe(false);
+		expect(stageCount(target.database)).toBe(0);
+	}),
+);
+
 it.effect("requires every staged custody proof field", () =>
 	Effect.gen(function* () {
 		const requiredFields = [
@@ -276,9 +184,7 @@ it.effect("requires every staged custody proof field", () =>
 			const target = fixture();
 			yield* migrateToPredecessor(target.database);
 			installLegacyArtifact(target.database, target.artifactsRoot);
-			yield* Effect.sync(() =>
-				prepareArtifactCustodyMigration({ ...target, contract }),
-			);
+			yield* Effect.sync(() => prepareArtifactCustodyMigration({ ...target }));
 			removeStagedProof(target.database, key, field);
 
 			yield* Effect.flip(

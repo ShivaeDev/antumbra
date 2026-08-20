@@ -59,6 +59,8 @@ const seedResource = (seed: ResourceSeed) =>
 						executionStatus: "idle",
 						id: `${seed.agentId}:session`,
 						nativeRef: null,
+						parentSessionId: null,
+						rootSessionId: `${seed.agentId}:session`,
 						status: seed.sessionStatus,
 					});
 				}

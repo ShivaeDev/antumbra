@@ -50,10 +50,23 @@ model AgentSession {
   nativeRef          String?
   status             String
   executionStatus    String    @default("active")
+  outcome            String?
+  completeness       String    @default("recording")
+  label              String?
+  kind               String?
+  parentSessionId    String?
+  rootSessionId      String
   charterDeliveredAt DateTime?
   createdAt          DateTime  @default(now())
+  parent             AgentSession?  @relation("SessionTree", fields: [parentSessionId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  children           AgentSession[] @relation("SessionTree")
+  root               AgentSession   @relation("SessionRoot", fields: [rootSessionId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  nodes              AgentSession[] @relation("SessionRoot")
+  events             SessionEvent[]
 
   @@index([agentId])
+  @@index([parentSessionId])
+  @@index([rootSessionId, status])
 }
 
 model Berth {
@@ -91,6 +104,7 @@ model SessionEvent {
   kind      String
   payload   String
   at        DateTime @default(now())
+  session   AgentSession @relation(fields: [sessionId], references: [id], onDelete: Restrict, onUpdate: Restrict)
 
   @@id([sessionId, seq])
 }

@@ -1,4 +1,14 @@
+import { Option } from "effect";
 import type { LineProcess } from "#adapters/process.ts";
+
+// why: a test that needs codex to say something the standing answers do not
+// cover writes that one answer and nothing else. `None` falls through, so the
+// rest of the client keeps being exercised against the same fake every other
+// test uses rather than a second one written beside it.
+export type FakeAnswer = (
+	method: string,
+	params: unknown,
+) => Option.Option<unknown>;
 
 export interface FakeRequest {
 	readonly id: number;
@@ -50,7 +60,9 @@ const answer = (
 	}
 };
 
-export const makeFakeAppServer = (): FakeAppServer => {
+export const makeFakeAppServer = (
+	scripted: FakeAnswer = () => Option.none(),
+): FakeAppServer => {
 	let lineListener: ((line: string) => void) | null = null;
 	let exitListener: ((code: number | null) => void) | null = null;
 	let turnCounter = 0;
@@ -79,7 +91,12 @@ export const makeFakeAppServer = (): FakeAppServer => {
 		}
 		requests.push({ id, method, params });
 		queueMicrotask(() => {
-			send({ id, result: answer(method, params, nextTurn) });
+			send({
+				id,
+				result: Option.getOrElse(scripted(method, params), () =>
+					answer(method, params, nextTurn),
+				),
+			});
 		});
 	};
 	const process: LineProcess = {

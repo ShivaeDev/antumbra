@@ -23,6 +23,14 @@ import {
 import type { AgentBackend, Runner, SessionHandle } from "@antumbra/plugin-api";
 import { NodeServices } from "@effect/platform-node";
 import { Effect, Layer, Option, Schedule, Stream } from "effect";
+import {
+	type ScriptedSweep,
+	type StoredTranscripts,
+	scriptedClaudeAudit,
+	scriptedCodexAudit,
+	storedNothing,
+	sweptClean,
+} from "#test/session-tree-audits.ts";
 
 export const acquireTemporaryPersistence = Effect.acquireRelease(
 	Effect.sync(temporaryPersistence),
@@ -39,7 +47,11 @@ export const eventually = <A, E, R>(check: Effect.Effect<A, E, R>) =>
 // app registers, minus the process. What the domain receives is exactly what a
 // live session would produce on either lane, so the record this builds is the
 // record it builds in production, at zero model tokens.
-const scriptedClaude = (script: ReadonlyArray<Delivery>): AgentBackend => ({
+const scriptedClaude = (
+	script: ReadonlyArray<Delivery>,
+	stored: StoredTranscripts,
+): AgentBackend => ({
+	audit: scriptedClaudeAudit(stored),
 	capabilities: { fork: false, liveInterrupt: true, multiClient: false },
 	openSession: () =>
 		Effect.sync(() => {
@@ -65,7 +77,9 @@ const scriptedClaude = (script: ReadonlyArray<Delivery>): AgentBackend => ({
 const scriptedCodex = (
 	rootThread: string,
 	script: ReadonlyArray<RpcNotification>,
+	sweep: ScriptedSweep,
 ): AgentBackend => ({
+	audit: scriptedCodexAudit(sweep),
 	capabilities: { fork: true, liveInterrupt: true, multiClient: false },
 	openSession: () =>
 		Effect.sync(() => {
@@ -133,10 +147,12 @@ const sightLayer = (temporary: TemporaryPersistence, backend: AgentBackend) =>
 export const rehearsalLayer = (
 	temporary: TemporaryPersistence,
 	script: ReadonlyArray<Delivery>,
-) => sightLayer(temporary, scriptedClaude(script));
+	stored: StoredTranscripts = storedNothing,
+) => sightLayer(temporary, scriptedClaude(script, stored));
 
 export const codexRehearsalLayer = (
 	temporary: TemporaryPersistence,
 	rootThread: string,
 	script: ReadonlyArray<RpcNotification>,
-) => sightLayer(temporary, scriptedCodex(rootThread, script));
+	sweep: ScriptedSweep = sweptClean,
+) => sightLayer(temporary, scriptedCodex(rootThread, script, sweep));

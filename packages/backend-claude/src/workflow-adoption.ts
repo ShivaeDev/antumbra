@@ -17,7 +17,7 @@ export interface Repair {
 	readonly failure: string | undefined;
 }
 
-const originOf = (agent: AdoptedAgent): Origin => ({
+export const admissionOrigin = (agent: AdoptedAgent): Origin => ({
 	node: agent.agentId,
 	spawnedBy:
 		agent.messages[0]?.parent_tool_use_id ?? agentFileRef(agent.agentId),
@@ -58,17 +58,19 @@ export const censusGap = (failure: string): AgentEvent => ({
 	type: "subsession.gap",
 });
 
-// why: an agent the live mirror never delivered is still part of what this
-// Session did, and its transcript outlives the process that failed to forward
-// it. Kind is left unsaid: the repair source names the agent and its words,
-// never what the run asked it to be.
-export const adoptedEvents = (
+// why: an agent the live record never held is still part of what this Session
+// did, and its transcript outlives whatever failed to forward it. Kind is left
+// unsaid: a stored transcript names the agent and its words, never what the run
+// asked it to be. The loss that explains the admission is the caller's to name —
+// a mirror that dropped it and a census that found it are different findings.
+export const admissionEvents = (
 	agent: AdoptedAgent,
+	loss: (agent: AdoptedAgent, origin: Origin) => AgentEvent,
 ): ReadonlyArray<AgentEvent> => {
 	if (agent.messages.length === 0) {
 		return [];
 	}
-	const origin = originOf(agent);
+	const origin = admissionOrigin(agent);
 	return [
 		{
 			raw: claudeRaw("workflow/adopted-late", { agentId: agent.agentId }),
@@ -76,8 +78,11 @@ export const adoptedEvents = (
 			subsessionRef: agent.agentId,
 			type: "subsession.opened",
 		},
-		adoptedGap(agent, origin),
+		loss(agent, origin),
 		...agent.messages.flatMap((message) => transcriptEvents(message, origin)),
 		adoptedEnding(agent),
 	];
 };
+
+export const adoptedEvents = (agent: AdoptedAgent): ReadonlyArray<AgentEvent> =>
+	admissionEvents(agent, adoptedGap);

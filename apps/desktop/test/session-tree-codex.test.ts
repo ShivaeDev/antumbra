@@ -81,9 +81,11 @@ it.live(
 
 				// why: the record admitted this thread on its first word and was told
 				// what it was afterwards, so the name filled a hole the admission left.
+				// The audit at its close read the loss that says so still standing in
+				// its ledger, which is the whole of what incomplete means.
 				expect(tree.branch).toMatchObject({
 					agentId: receipt.agentId,
-					completeness: "recording",
+					completeness: "incomplete",
 					kind: BRANCH_AGENT,
 					parentSessionId: receipt.sessionId,
 					rootSessionId: receipt.sessionId,

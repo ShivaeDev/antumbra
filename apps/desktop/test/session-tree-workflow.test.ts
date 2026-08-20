@@ -72,7 +72,7 @@ it.live("every agent a workflow ran becomes a node of the Session tree", () =>
 			// and never on the tool call they happen to share.
 			expect(run.one).toMatchObject({
 				agentId: receipt.agentId,
-				completeness: "recording",
+				completeness: "complete",
 				kind: "workflow_agent",
 				label: "Audit: read the ledger",
 				outcome: "completed",
@@ -173,7 +173,11 @@ it.live("an agent the mirror missed is adopted, and says it was", () =>
 			// why: the census is the repair source and it says what an agent did,
 			// never how the run judged it, so the ending stays unknown rather than
 			// being inferred from a transcript that merely stopped.
+			// why: a node read back from a stored transcript carries the loss that
+			// explains it, and a ledger with anything in it is what incomplete
+			// means — the repair recovered the words, not the record of them.
 			expect(late).toMatchObject({
+				completeness: "incomplete",
 				kind: null,
 				label: null,
 				outcome: "unknown",

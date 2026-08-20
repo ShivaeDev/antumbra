@@ -4,7 +4,8 @@ import type {
 	BackendFailure,
 } from "@antumbra/plugin-api";
 import { Effect, RcRef } from "effect";
-import { spawnLineProcess } from "#adapters/process.ts";
+import { type LineProcess, spawnLineProcess } from "#adapters/process.ts";
+import { codexAudit } from "#adapters/thread-audit.ts";
 import { type CodexServer, makeCodexServer } from "#server.ts";
 import { openThreadSession } from "#thread.ts";
 
@@ -15,12 +16,24 @@ export interface CodexPluginOptions {
 	readonly cwd: string;
 }
 
+// why: how a child is started, handed round rather than the path it was
+// resolved from — the live server takes one and so does an audit, which opens a
+// child of its own for the one question it asks.
+const spawnAppServer = (options: CodexPluginOptions) => (): LineProcess =>
+	spawnLineProcess({
+		args: ["app-server"],
+		command: options.command,
+		cwd: options.cwd,
+	});
+
 // why: multiClient stays false over stdio — the protocol fans out to
 // several clients only behind a websocket listener, which nothing here
 // consumes yet; reporting the protocol's ability would be a lie about ours.
 export const codexBackend = (
 	server: RcRef.RcRef<CodexServer, BackendFailure>,
+	spawn: () => LineProcess,
 ): AgentBackend => ({
+	audit: codexAudit(server, spawn),
 	capabilities: {
 		fork: true,
 		liveInterrupt: true,
@@ -39,17 +52,11 @@ export const codexBackend = (
 export const codexPlugin = (options: CodexPluginOptions): AntumbraPlugin => ({
 	activate: (context) =>
 		Effect.gen(function* () {
+			const spawn = spawnAppServer(options);
 			const server = yield* RcRef.make({
-				acquire: makeCodexServer({
-					spawn: () =>
-						spawnLineProcess({
-							args: ["app-server"],
-							command: options.command,
-							cwd: options.cwd,
-						}),
-				}),
+				acquire: makeCodexServer({ spawn }),
 			});
-			yield* context.registerAgentBackend(codexBackend(server));
+			yield* context.registerAgentBackend(codexBackend(server, spawn));
 		}),
 	name: "codex",
 });

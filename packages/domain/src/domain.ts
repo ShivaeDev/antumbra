@@ -9,12 +9,7 @@ import {
 	ResourceReconciler,
 	ResourceReconcilerLive,
 } from "@antumbra/resource-reclamation";
-import { SessionEventJournal } from "@antumbra/session-event-journal";
-import {
-	type EventSink,
-	SessionFabric,
-	SessionFabricLive,
-} from "@antumbra/session-fabric";
+import { SessionFabric, SessionFabricLive } from "@antumbra/session-fabric";
 import { decodeStoredAgentStatus } from "@antumbra/vocabulary/agent-runtime";
 import { Effect, Layer } from "effect";
 import { AGENTS_ALIVE_GAUGE, AgentDomain } from "#agent-domain-service.ts";
@@ -30,6 +25,7 @@ import type { SessionRecoveryContext } from "#session-recovery-context.ts";
 import { SessionRecoveryRuntime } from "#session-recovery-runtime.ts";
 import { makeSessionRecoveryRuntime } from "#session-resume.ts";
 import { makeSiestaKind } from "#session-siesta.ts";
+import { makeSessionTreeSinks } from "#session-tree-sink.ts";
 import { spawnKind } from "#spawn.ts";
 import { isVoyageCaptainIdentity } from "#voyage-captain.ts";
 import { VoyageProcedureService } from "#voyage-procedures.ts";
@@ -58,9 +54,7 @@ export const AgentDomainLive = (
 			const db = yield* Database;
 			const executors = yield* Effect.context<WriteExecutors>();
 			const fabric = yield* SessionFabric;
-			const journal = yield* SessionEventJournal;
-			const sinkFor = (sessionId: string): Effect.Effect<EventSink> =>
-				Effect.succeed((event) => journal.record(sessionId, event));
+			const sinkFor = yield* makeSessionTreeSinks;
 			const resourceReconciler = yield* ResourceReconciler;
 			const voyages = yield* VoyageProcedureService;
 			const reconcileCurrentSessions = yield* makeCurrentSessionReconciler;

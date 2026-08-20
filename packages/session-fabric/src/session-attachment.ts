@@ -9,7 +9,14 @@ import { Effect, Exit, Scope, Stream } from "effect";
 import type { SessionAttachmentFailure } from "#errors.ts";
 import { makeOpeningConfirmation } from "#session-opening.ts";
 
-export type EventSink = (event: AgentEvent) => Effect.Effect<boolean>;
+export interface EventSink {
+	// why: the pump's end is itself a fact about the Session. Only the sink can
+	// say what was left unfinished when the provider stopped talking, and only
+	// the fabric knows the moment it stopped — so the fabric says when, and the
+	// sink decides what that silence means for the record.
+	readonly detached: Effect.Effect<void>;
+	readonly record: (event: AgentEvent) => Effect.Effect<boolean>;
+}
 
 export interface SessionAttachment {
 	readonly handle: SessionHandle;
@@ -40,8 +47,12 @@ export const openSessionAttachment = (
 				.openSession(options)
 				.pipe(Scope.provide(scope));
 			const opened = yield* makeOpeningConfirmation;
+			// why: the confirmation watches the pump, and the pump carries only what
+			// the provider said to the root Session. A node's opening is minted by
+			// the sink and written straight to that node's journal, so it never
+			// reaches here and can never stand in for the root's native identity.
 			const observe = (event: AgentEvent) =>
-				sink(event).pipe(
+				sink.record(event).pipe(
 					Effect.flatMap((persisted) => opened.observe(event, persisted)),
 					Effect.asVoid,
 				);
@@ -54,6 +65,7 @@ export const openSessionAttachment = (
 			yield* handle.events.pipe(
 				Stream.runForEach(observe),
 				Effect.tapError(opened.fail),
+				Effect.ensuring(sink.detached),
 				Effect.ensuring(opened.fail(endedBeforeOpening)),
 				Effect.catchCause((cause) =>
 					Effect.logError(

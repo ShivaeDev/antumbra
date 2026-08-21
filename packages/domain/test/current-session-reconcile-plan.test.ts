@@ -55,8 +55,43 @@ it("clears inactive pointers and closes inactive and orphan Sessions", () => {
 	);
 	expect(planned).toEqual(
 		Result.succeed({
+			agentsToReclaim: [],
 			pointers: [{ agentId: "agent-dormant", currentSessionId: null }],
 			sessionsToClose: ["session-dormant", "session-orphan"],
+		}),
+	);
+});
+
+it("reclaims an Agent holding neither a pointer nor an open Session", () => {
+	const planned = planCurrentSessionReconciliation(
+		[
+			agent("agent-alive", "alive", null),
+			agent("agent-spawning", "spawning", null),
+		],
+		[session("session-spent", "agent-alive", "closed")],
+	);
+	expect(planned).toEqual(
+		Result.succeed({
+			agentsToReclaim: [
+				{ agentId: "agent-alive", status: "dormant" },
+				{ agentId: "agent-spawning", status: "dormant" },
+			],
+			pointers: [],
+			sessionsToClose: [],
+		}),
+	);
+});
+
+it("leaves an Agent that still holds an open Session alone", () => {
+	const planned = planCurrentSessionReconciliation(
+		[agent("agent-alive", "alive", null)],
+		[session("session-held", "agent-alive", "open")],
+	);
+	expect(planned).toEqual(
+		Result.succeed({
+			agentsToReclaim: [],
+			pointers: [{ agentId: "agent-alive", currentSessionId: "session-held" }],
+			sessionsToClose: [],
 		}),
 	);
 });

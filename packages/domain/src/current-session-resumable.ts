@@ -41,6 +41,18 @@ export const makeCurrentSessionResumable = Effect.gen(function* () {
 		plan: CurrentSessionReconcilePlan,
 	) =>
 		Effect.gen(function* () {
+			// why: resume applies the same repair boot does, from the same plan —
+			// an Agent with nothing open is reclaimed here too, and the resume it
+			// was asked for then finds no Session to take, which is the truth.
+			yield* Effect.forEach(
+				plan.agentsToReclaim,
+				(reclaimed) =>
+					db.Agent.where({ id: reclaimed.agentId }).update({
+						currentSessionId: null,
+						status: reclaimed.status,
+					}),
+				{ discard: true },
+			);
 			yield* Effect.forEach(
 				plan.pointers,
 				(pointer) =>
@@ -56,7 +68,10 @@ export const makeCurrentSessionResumable = Effect.gen(function* () {
 				{ discard: true },
 			);
 			return {
-				changed: plan.pointers.length > 0 || plan.sessionsToClose.length > 0,
+				changed:
+					plan.agentsToReclaim.length > 0 ||
+					plan.pointers.length > 0 ||
+					plan.sessionsToClose.length > 0,
 				currentSessionId:
 					agent.currentSessionId ?? plan.pointers[0]?.currentSessionId ?? null,
 			};

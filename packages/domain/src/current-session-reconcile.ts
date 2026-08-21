@@ -24,6 +24,15 @@ export const makeCurrentSessionReconciler = Effect.gen(function* () {
 						: false;
 				}
 				yield* Effect.forEach(
+					planned.success.agentsToReclaim,
+					(reclaimed) =>
+						db.Agent.where({ id: reclaimed.agentId }).update({
+							currentSessionId: null,
+							status: reclaimed.status,
+						}),
+					{ discard: true },
+				);
+				yield* Effect.forEach(
 					planned.success.pointers,
 					(pointer) =>
 						db.Agent.where({ id: pointer.agentId }).update({
@@ -40,6 +49,7 @@ export const makeCurrentSessionReconciler = Effect.gen(function* () {
 					{ discard: true },
 				);
 				return (
+					planned.success.agentsToReclaim.length > 0 ||
 					planned.success.pointers.length > 0 ||
 					planned.success.sessionsToClose.length > 0
 				);

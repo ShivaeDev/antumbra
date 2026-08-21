@@ -1,5 +1,5 @@
 import { SightSource } from "@antumbra/contract";
-import { Database, Writer } from "@antumbra/persistence";
+import { Database, type NewAgentSession, Writer } from "@antumbra/persistence";
 import type { TemporaryPersistence } from "@antumbra/persistence/testing";
 import { expect, it } from "@effect/vitest";
 import { Effect, Layer, Option, Stream } from "effect";
@@ -62,7 +62,7 @@ const openNode = (
 				parentSessionId: parent.parentSessionId,
 				rootSessionId: parent.rootSessionId,
 				status: fields.status,
-			}),
+			} satisfies NewAgentSession),
 		);
 	});
 

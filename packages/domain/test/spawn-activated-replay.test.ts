@@ -1,5 +1,5 @@
 import { type Gate, type IntentStatus, Kernel } from "@antumbra/kernel";
-import { Database, Writer } from "@antumbra/persistence";
+import { Database, type NewAgentSession, Writer } from "@antumbra/persistence";
 import type { AgentBackend, MooragePlan } from "@antumbra/plugin-api";
 import { expect, it } from "@effect/vitest";
 import { Effect, Option, Ref, Schedule, Stream } from "effect";
@@ -97,7 +97,7 @@ const seedActivatedBoundary = (intentId: string, plan: MooragePlan) =>
 					parentSessionId: null,
 					rootSessionId: payload.sessionId,
 					status: "open",
-				});
+				} satisfies NewAgentSession);
 				yield* db.SessionEvent.create({
 					at: new Date(2),
 					kind: "message",

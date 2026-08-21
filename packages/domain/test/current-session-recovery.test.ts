@@ -1,5 +1,5 @@
 import { DomainFeedsLive } from "@antumbra/domain-feeds";
-import { Database, Writer } from "@antumbra/persistence";
+import { Database, type NewAgentSession, Writer } from "@antumbra/persistence";
 import { expect, it } from "@effect/vitest";
 import { Effect, Layer, Option } from "effect";
 import { makeCurrentSessionRecovery } from "#current-session-recovery.ts";
@@ -34,7 +34,7 @@ const createSession = (agentId: string, id: string) =>
 			parentSessionId: null,
 			rootSessionId: id,
 			status: "open",
-		}),
+		} satisfies NewAgentSession),
 	);
 
 // why: an Agent can no longer hold two open Sessions — the durable law admits

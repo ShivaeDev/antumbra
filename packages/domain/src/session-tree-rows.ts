@@ -1,5 +1,6 @@
 import {
 	Database,
+	type NewAgentSession,
 	type StoredAgentSession,
 	type WriteExecutors,
 	Writer,
@@ -51,7 +52,7 @@ export const makeSessionTreeRows = Effect.gen(function* () {
 			parentSessionId: node.spawnerSessionId,
 			rootSessionId: root.rootSessionId,
 			status: "open",
-		}).pipe(Effect.asVoid);
+		} satisfies NewAgentSession).pipe(Effect.asVoid);
 	// why: completeness is left where it stands. Whether the node's record is
 	// whole is a question about its gaps, and the audit that answers it reads
 	// them after the close rather than guessing at the moment of it.

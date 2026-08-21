@@ -1,5 +1,5 @@
 import { DomainFeeds, DomainFeedsLive } from "@antumbra/domain-feeds";
-import { Database, Writer } from "@antumbra/persistence";
+import { Database, type NewAgentSession, Writer } from "@antumbra/persistence";
 import { temporaryPersistence } from "@antumbra/persistence/testing";
 import {
 	SessionEventJournal,
@@ -53,7 +53,7 @@ it.live("records unique contiguous per-Session event sequences", () =>
 						parentSessionId: null,
 						rootSessionId: "session-sequence",
 						status: "open",
-					}),
+					} satisfies NewAgentSession),
 				);
 				yield* writer.write(
 					db.SessionEvent.create({
@@ -153,7 +153,7 @@ it.live("records native identity before publishing the opening event", () =>
 					parentSessionId: null,
 					rootSessionId: "session-opening",
 					status: "open",
-				});
+				} satisfies NewAgentSession);
 
 				expect(
 					yield* journal.record("session-opening", {

@@ -1,5 +1,5 @@
 import { SightSource } from "@antumbra/contract";
-import { Database, Writer } from "@antumbra/persistence";
+import { Database, type NewAgentSession, Writer } from "@antumbra/persistence";
 import type { TemporaryPersistence } from "@antumbra/persistence/testing";
 import { expect, it } from "@effect/vitest";
 import { Effect, Layer, Option } from "effect";
@@ -59,7 +59,7 @@ const openSubsession = (
 				parentSessionId,
 				rootSessionId,
 				status: "open",
-			}),
+			} satisfies NewAgentSession),
 		);
 	});
 

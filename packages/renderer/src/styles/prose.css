@@ -75,6 +75,13 @@
 		color: var(--ink-faint);
 	}
 
+	/* A message a person typed is read as what they typed. Markdown folds the
+	   line breaks they chose into one paragraph, so a typed message keeps them
+	   while every authored document still reflows. */
+	.markdown-typed p {
+		white-space: pre-line;
+	}
+
 	.markdown code {
 		background-color: var(--sunk);
 		border-radius: var(--radius-sm);

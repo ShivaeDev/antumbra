@@ -47,21 +47,3 @@ export const Disclosure = ({
 		</div>
 	);
 };
-
-// why: an input or an output is stored text a reader compares character by
-// character, which is what monospace is for here and the only place it earns
-// its use. It scrolls inside its own box so no payload stretches the pane.
-export const Payload = ({
-	label,
-	text,
-}: {
-	readonly label: string;
-	readonly text: string;
-}) => (
-	<div className="min-w-0">
-		<div className="text-2xs text-muted-foreground">{label}</div>
-		<pre className="max-h-72 overflow-auto whitespace-pre-wrap wrap-anywhere font-mono text-2xs">
-			{text}
-		</pre>
-	</div>
-);

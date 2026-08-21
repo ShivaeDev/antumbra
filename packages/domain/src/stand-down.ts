@@ -2,6 +2,7 @@ import { bind, standDownSpec } from "@antumbra/agent-tools";
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database, type WriteExecutors, Writer } from "@antumbra/persistence";
 import type { DirectTool } from "@antumbra/plugin-api";
+import { SessionFabric } from "@antumbra/session-fabric";
 import {
 	decodeSessionExecutionStatus,
 	decodeStoredAgentSessionStatus,
@@ -9,15 +10,14 @@ import {
 } from "@antumbra/vocabulary/agent-runtime";
 import { Context, Effect, Layer, Option, PubSub } from "effect";
 import { SessionIdentityMissing } from "#errors.ts";
-import { KernelReach } from "#kernel-reach.ts";
 import { answered } from "#tool-answers.ts";
 import type { SessionIdentity } from "#tool-identity.ts";
 
 const standDown = (identity: SessionIdentity) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
+		const fabric = yield* SessionFabric;
 		const feeds = yield* DomainFeeds;
-		const reach = yield* KernelReach;
 		const writer = yield* Writer;
 		const session = yield* db.AgentSession.where({
 			id: identity.sessionId,
@@ -46,7 +46,7 @@ const standDown = (identity: SessionIdentity) =>
 				sessionExecutionTransition(
 					identity.sessionId,
 					executionStatus,
-					"request-siesta",
+					"stand-down",
 				),
 			);
 			yield* writer.write(
@@ -57,7 +57,12 @@ const standDown = (identity: SessionIdentity) =>
 			yield* PubSub.publish(feeds.fleet, undefined);
 			yield* PubSub.publish(feeds.voyages, undefined);
 		}
-		yield* Effect.forkDetach(reach.queueSiesta(identity.sessionId));
+		// why: declaring there is nothing to do is not asking to be put away. The
+		// acquisition stays open and listening so the admiral's next words reach
+		// an Agent that is already there, and the mark is what lets the system
+		// decide later — by the clock, never by the Agent — that the process has
+		// been held for nothing long enough to reclaim.
+		yield* fabric.standDown(identity.sessionId);
 	});
 
 export class StandDown extends Context.Service<
@@ -70,15 +75,15 @@ export class StandDown extends Context.Service<
 export const StandDownLive = Layer.effect(StandDown)(
 	Effect.gen(function* () {
 		const db = yield* Database;
+		const fabric = yield* SessionFabric;
 		const feeds = yield* DomainFeeds;
-		const reach = yield* KernelReach;
 		const writer = yield* Writer;
 		const executors = yield* Effect.context<WriteExecutors>();
 		const context = Context.merge(
 			executors,
 			Context.make(Database, db).pipe(
 				Context.add(DomainFeeds, feeds),
-				Context.add(KernelReach, reach),
+				Context.add(SessionFabric, fabric),
 				Context.add(Writer, writer),
 			),
 		);
@@ -89,7 +94,7 @@ export const StandDownLive = Layer.effect(StandDown)(
 						identity,
 						standDownSpec.name,
 						Effect.provide(standDown(identity), context),
-						() => "standing down",
+						() => "standing by",
 					),
 				),
 		});

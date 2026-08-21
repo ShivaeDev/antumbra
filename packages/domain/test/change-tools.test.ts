@@ -161,7 +161,7 @@ it.live("a chain gated on a change sails across a boot", () =>
 			expect((yield* opened(crew, "reef")).ok).toBe(true);
 			expect(yield* callTool(crew, "stand_down", undefined)).toEqual({
 				ok: true,
-				text: "standing down",
+				text: "standing by",
 			});
 			yield* eventually(
 				Effect.gen(function* () {

@@ -10,6 +10,7 @@ import type { ChangeProcedures } from "#change-procedures.ts";
 import type { SessionNotLive } from "#errors.ts";
 import type { RetireFields } from "#retire.ts";
 import type { RecoveryFields } from "#session-recovery.ts";
+import type { SessionSendRefused } from "#session-send.ts";
 import type { SiestaFields } from "#session-siesta.ts";
 import type { SpawnFields } from "#spawn-fields.ts";
 import type { VoyageProcedures } from "#voyages.ts";
@@ -47,7 +48,12 @@ export class AgentDomain extends Context.Service<
 		readonly sendToSession: (
 			sessionId: string,
 			text: string,
-		) => Effect.Effect<void, BackendFailure | SessionNotLive>;
+		) => Effect.Effect<void, SessionSendRefused>;
+		// why: which root Sessions this process is holding right now. A projection
+		// asks the fabric because the row cannot know it, and the answer is what
+		// separates a Session listening with nothing to do from one whose process
+		// has been reclaimed.
+		readonly sessionsAttached: Effect.Effect<ReadonlySet<string>>;
 		readonly siesta: IntentKind<SiestaFields>;
 		readonly spawn: IntentKind<SpawnFields>;
 		readonly voyages: VoyageProcedures;

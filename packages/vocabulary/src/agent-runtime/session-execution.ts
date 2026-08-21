@@ -10,6 +10,7 @@ export type SessionExecutionStatus = typeof SessionExecutionStatusSchema.Type;
 export const SESSION_EXECUTION_EVENTS = [
 	"request-siesta",
 	"settle",
+	"stand-down",
 	"wake",
 ] as const;
 export type SessionExecutionEvent = (typeof SESSION_EXECUTION_EVENTS)[number];
@@ -29,11 +30,16 @@ export class InvalidSessionExecutionTransition extends Data.TaggedError(
 	readonly sessionId: string;
 }> {}
 
+// why: "idle" says the Session is not executing work; it says nothing about
+// whether a process is still attached to it. Standing down reaches idle while
+// the acquisition stays open and listening, and reclaiming that acquisition
+// later leaves the same row untouched — so a restart, which necessarily takes
+// every attachment with it, needs no repair to tell the truth.
 const TABLE: Record<
 	SessionExecutionStatus,
 	Partial<Record<SessionExecutionEvent, SessionExecutionStatus>>
 > = {
-	active: { "request-siesta": "draining" },
+	active: { "request-siesta": "draining", "stand-down": "idle" },
 	draining: { settle: "idle" },
 	idle: { wake: "active" },
 };

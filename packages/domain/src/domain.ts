@@ -24,6 +24,7 @@ import { makeRecoveryKind } from "#session-recovery.ts";
 import type { SessionRecoveryContext } from "#session-recovery-context.ts";
 import { SessionRecoveryRuntime } from "#session-recovery-runtime.ts";
 import { makeSessionRecoveryRuntime } from "#session-resume.ts";
+import { makeSessionSend } from "#session-send.ts";
 import { makeSiestaKind } from "#session-siesta.ts";
 import { makeSessionNodeReconciler } from "#session-tree-reconcile.ts";
 import { makeSessionTreeSinks } from "#session-tree-sink.ts";
@@ -94,6 +95,7 @@ export const AgentDomainLive = (
 			);
 			const siesta = yield* makeSiestaKind;
 			const intentDemands = yield* compileAgentRecoveryDemands(recover, siesta);
+			const sendToSession = yield* makeSessionSend;
 			return {
 				backends: [...backends.keys()],
 				boards,
@@ -108,7 +110,8 @@ export const AgentDomainLive = (
 				recover,
 				reopenSessionStarts: fabric.reopenStarts,
 				retire,
-				sendToSession: fabric.send,
+				sendToSession,
+				sessionsAttached: fabric.attached,
 				siesta,
 				spawn,
 				voyages,
@@ -121,7 +124,11 @@ export const AgentDomainLive = (
 				Layer.provide(ResourceReclaimRunnersLive(runners)),
 			),
 		),
-		Layer.provide(SessionFabricLive),
 		Layer.provideMerge(capabilities),
+		// why: the fabric stands under the capabilities as well as over them —
+		// standing down is a durable declaration and a runtime mark made in the
+		// same act, so the tool that makes it needs the same attachment registry
+		// the domain does.
+		Layer.provide(SessionFabricLive),
 	);
 };

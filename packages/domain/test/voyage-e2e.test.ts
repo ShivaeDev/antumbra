@@ -62,7 +62,7 @@ const landsAndStandsDown = (crew: ScriptedSession, title: string) =>
 		).toEqual({ ok: true, text: "report landed" });
 		expect(yield* callTool(crew, "stand_down", undefined)).toEqual({
 			ok: true,
-			text: "standing down",
+			text: "standing by",
 		});
 	});
 
@@ -138,7 +138,7 @@ it.live("a hailed captain charters a chain that sails itself", () =>
 			yield* voyageStateIs(voyage.id, "underWay");
 			expect(yield* callTool(captain, "stand_down", undefined)).toEqual({
 				ok: true,
-				text: "standing down",
+				text: "standing by",
 			});
 			yield* eventually(
 				Effect.gen(function* () {

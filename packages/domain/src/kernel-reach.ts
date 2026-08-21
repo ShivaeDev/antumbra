@@ -6,6 +6,7 @@ import {
 import type { PrismaError, WriteExecutors } from "@antumbra/persistence";
 import { Context, Deferred, Effect, Layer } from "effect";
 import { AgentDomain } from "#agent-domain-service.ts";
+import type { RecoveryFields } from "#session-recovery.ts";
 import type { SpawnFields } from "#spawn-fields.ts";
 
 // why: the three ways the kernel can turn a submission away — a payload it
@@ -16,7 +17,7 @@ export type SpawnRefused = PayloadInvalid | PrismaError | UnregisteredIntentTag;
 export interface KernelReachService {
 	readonly queueSiesta: (sessionId: string) => Effect.Effect<void>;
 	readonly submitRecovery: (
-		sessionId: string,
+		payload: RecoveryFields,
 	) => Effect.Effect<string, SpawnRefused>;
 	readonly submitSpawn: (
 		payload: SpawnFields,
@@ -48,8 +49,8 @@ export const KernelReachDeferredLive = Layer.unwrap(
 			Layer.succeed(KernelReach)({
 				queueSiesta: (sessionId) =>
 					withReach((reach) => reach.queueSiesta(sessionId)),
-				submitRecovery: (sessionId) =>
-					withReach((reach) => reach.submitRecovery(sessionId)),
+				submitRecovery: (payload) =>
+					withReach((reach) => reach.submitRecovery(payload)),
 				submitSpawn: (payload) =>
 					withReach((reach) => reach.submitSpawn(payload)),
 			}),
@@ -85,8 +86,8 @@ export const KernelReachLive = Layer.effectDiscard(
 						),
 					),
 				),
-			submitRecovery: (sessionId) =>
-				kernel.submit(domain.recover, { sessionId }).pipe(
+			submitRecovery: (payload) =>
+				kernel.submit(domain.recover, payload).pipe(
 					Effect.map((submission) => submission.id),
 					Effect.provideContext(executors),
 				),

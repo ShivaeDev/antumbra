@@ -16,6 +16,11 @@ export {
 	sessionExecutionTransition,
 } from "#agent-runtime/session-execution.ts";
 export {
+	type SessionPresence,
+	sessionPresence,
+	SessionPresenceSchema,
+} from "#agent-runtime/session-presence.ts";
+export {
 	type AgentSessionCompleteness,
 	AgentSessionCompletenessSchema,
 	type AgentSessionStatus,

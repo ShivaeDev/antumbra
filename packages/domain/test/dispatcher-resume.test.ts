@@ -121,7 +121,7 @@ it.live("a piece whose Agent survived a crash is not dispatched twice", () =>
 );
 
 it.live(
-	"assigned work wakes the same idle Agent and Session before spawn",
+	"assigned work wakes the same idle Agent where it stands, before spawn",
 	() =>
 		Effect.gen(function* () {
 			const temporary = yield* acquireTemporaryPersistence;
@@ -171,14 +171,15 @@ it.live(
 				yield* callTool(initial, "stand_down", undefined);
 				yield* eventually(
 					Effect.gen(function* () {
-						expect(yield* scripted.opened).toHaveLength(2);
-						const resumed = yield* sessionFor(scripted, assignment.agentId);
-						expect(yield* resumed.sent).toEqual([RECOVERY_INSTRUCTION]);
+						expect(yield* initial.sent).toContain(RECOVERY_INSTRUCTION);
 					}),
 				);
-				const secondOpen = (yield* scripted.opened)[1];
-				expect(secondOpen?.sessionId).toBe(session.id);
-				expect(secondOpen?.resume).toEqual(Option.some("native-assigned"));
+				// why: the Agent stood down but never left, so the work it was
+				// already holding reaches it where it stands — one provider
+				// session for the whole assignment, and no second conversation
+				// opened over the first.
+				expect(yield* scripted.opened).toHaveLength(1);
+				expect(yield* initial.closed).toBe(false);
 				expect(yield* db.Agent.all()).toHaveLength(1);
 				expect(yield* db.AgentSession.all()).toHaveLength(1);
 				expect(yield* db.PieceAgent.all()).toEqual([assignment]);

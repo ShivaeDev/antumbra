@@ -5,7 +5,6 @@ import {
 } from "@antumbra/session-fabric";
 import { Effect, Option } from "effect";
 import { makeRefuseSubsessionAttach } from "#session-attach-roots.ts";
-import { RECOVERY_INSTRUCTION } from "#session-recovery.ts";
 import type { SessionRecoveryContext } from "#session-recovery-context.ts";
 import { SessionRecoveryHeld } from "#session-recovery-error.ts";
 import { SessionRecoveryRuntime } from "#session-recovery-runtime.ts";
@@ -20,7 +19,8 @@ interface SessionResumeDeps {
 }
 
 const admitRecoveredSession =
-	(context: SessionRecoveryContext) => (attachment: SessionAttachment) =>
+	(context: SessionRecoveryContext, instruction: string) =>
+	(attachment: SessionAttachment) =>
 		Effect.gen(function* () {
 			const openedNativeRef = yield* attachment.openedNativeRef;
 			if (openedNativeRef !== context.nativeRef) {
@@ -28,7 +28,7 @@ const admitRecoveredSession =
 					detail: `provider resumed native session ${openedNativeRef}, expected ${context.nativeRef}`,
 				});
 			}
-			yield* attachment.handle.queue(RECOVERY_INSTRUCTION);
+			yield* attachment.handle.queue(instruction);
 		});
 
 export const makeSessionRecoveryRuntime = (deps: SessionResumeDeps) =>
@@ -36,7 +36,7 @@ export const makeSessionRecoveryRuntime = (deps: SessionResumeDeps) =>
 		const fabric = yield* SessionFabric;
 		const refuseSubsession = yield* makeRefuseSubsessionAttach;
 		return SessionRecoveryRuntime.of({
-			resume: (permit, context) => {
+			resume: (permit, context, instruction) => {
 				const backend = deps.backends.get(context.backend);
 				if (backend === undefined) {
 					return Effect.fail(
@@ -63,7 +63,7 @@ export const makeSessionRecoveryRuntime = (deps: SessionResumeDeps) =>
 						backend,
 						options,
 						sink,
-						admitRecoveredSession(context),
+						admitRecoveredSession(context, instruction),
 					);
 				}).pipe(
 					Effect.catchTag("SessionAttachmentFailure", (failure) =>

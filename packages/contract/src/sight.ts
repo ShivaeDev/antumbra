@@ -1,4 +1,7 @@
-import { ResourceReclaimStateSchema } from "@antumbra/vocabulary/agent-runtime";
+import {
+	ResourceReclaimStateSchema,
+	SessionPresenceSchema,
+} from "@antumbra/vocabulary/agent-runtime";
 import { HistoricalAgentEvent } from "@antumbra/vocabulary/session-events";
 import { Context, Data, type Effect, Schema, type Stream } from "effect";
 import type { SessionTree } from "#session-tree.ts";
@@ -17,6 +20,11 @@ export const SessionSummary = Schema.Struct({
 	cwd: Schema.String,
 	diag: SessionDiagnostics,
 	id: Schema.String,
+	// why: what the Session is doing about being spoken to, curated by the
+	// domain so a view never has to read execution state to word a footer. It
+	// stands beside the capabilities rather than replacing them: presence says
+	// what a reader is looking at, `canSend` says what they may do.
+	presence: SessionPresenceSchema,
 	status: Schema.String,
 });
 export type SessionSummary = typeof SessionSummary.Type;

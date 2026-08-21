@@ -99,7 +99,11 @@ it.live("a draining session shows its execution word beside its intent", () =>
 				(row) => row.id === receipt.sessionId,
 			);
 			expect(session?.diag.execution).toBe("draining");
-			expect(session?.canSend).toBe(false);
+			// why: draining is on its way to rest, not out of reach. The words
+			// wake it once the drain has settled, so the fleet keeps saying the
+			// admiral may speak to it.
+			expect(session?.canSend).toBe(true);
+			expect(session?.canInterrupt).toBe(false);
 			expect(words(session?.diag.intents ?? [])).toContain(
 				"session/siesta queued",
 			);

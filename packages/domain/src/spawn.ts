@@ -47,13 +47,18 @@ export const spawnKind = (runtime: SpawnRuntime) =>
 				yield* delivery.deliverOnce(payload, attachment.handle);
 				yield* resolution.activate(payload);
 			});
+		// why: settlement runs from teardown handlers, whose contract cannot carry
+		// a failure onward, so this is the last reader the refusal will ever have.
+		// It is recorded as an error rather than a warning because what it names
+		// is an Agent left spawning — work nothing will hand back on its own, and
+		// nothing short of the next boot's reconcile will release.
 		const settleAfterFailure = (payload: SpawnFields) =>
 			resolution.settleFailure(payload).pipe(
 				Effect.tap(() => resources.request),
 				Effect.catchCause((cause) =>
-					Effect.logWarning(
+					Effect.logError(
 						"spawn failure settlement failed",
-						{ agentId: payload.agentId },
+						{ agentId: payload.agentId, sessionId: payload.sessionId },
 						cause,
 					),
 				),

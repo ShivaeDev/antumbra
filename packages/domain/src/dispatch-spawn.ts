@@ -1,8 +1,9 @@
 import { BoardScope, Boards, smoothBodies } from "@antumbra/boards";
 import type { IntentStatus, IntentSubmission } from "@antumbra/kernel";
-import { Database, type WriteExecutors } from "@antumbra/persistence";
+import type { WriteExecutors } from "@antumbra/persistence";
 import { Effect, Option, Queue, Stream } from "effect";
 import { composeCrewCharter } from "#charter-compose.ts";
+import { accountOfIntent } from "#dispatch-failure-account.ts";
 import type { ReadyPiece } from "#dispatch-policy.ts";
 import {
 	type DispatchState,
@@ -35,14 +36,6 @@ const TERMINAL: ReadonlySet<IntentStatus> = new Set([
 	"succeeded",
 ]);
 
-const intentDetail = (intentId: string) =>
-	Effect.gen(function* () {
-		const db = yield* Database;
-		return yield* db.Intent.where({ id: intentId })
-			.first()
-			.pipe(Effect.map((row) => Option.map(row, (intent) => intent.detail)));
-	});
-
 const settle = (
 	port: DispatchPort,
 	pieceId: string,
@@ -56,9 +49,13 @@ const settle = (
 			return;
 		}
 		yield* recordFailure(port.state, pieceId, port.patienceMillis);
+		const intent = yield* accountOfIntent(intentId);
 		yield* Effect.logWarning("dispatch failed", {
-			detail: yield* intentDetail(intentId),
+			detail: intent.detail,
+			intentId,
 			pieceId,
+			status: intent.status,
+			tag: intent.tag,
 		});
 	});
 

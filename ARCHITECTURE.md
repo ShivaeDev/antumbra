@@ -62,14 +62,15 @@ obligation remains detached until needed. See
 | `packages/artifacts`      | Durable artifact publication and landing                        |
 | `packages/reports`        | Durable report landing                                           |
 | `packages/session-fabric` | Live Session attachment, start admission, and stop lifecycle    |
-| `packages/domain`         | Application-facing use cases and capability Layer composition   |
+| `packages/domain`         | Application-facing use cases and capability Layer composition; also owns the Session tree — node lifecycle and adoption, the gap ledger, the completeness audit, boot reconciliation of nodes nothing is listening to, and the tree read model the window subscribes to |
 | `packages/git`            | Semantic Git operations over Effect's child-process port        |
 | `packages/github`         | GitHub change-host adapter: pull requests through `gh`           |
 | `packages/backend-claude` | The Claude agent backend: one adapter for one provider          |
-| `packages/backend-codex`  | The Codex agent backend: one app-server child, threads on it    |
+| `packages/backend-codex`  | The Codex agent backend: one app-server child, threads on it. Delegated threads are read passively off that one connection, admitted to a root by claim on evidence, and refused an attach at the wire; the census runs on a dedicated short-lived audit connection that can only read |
 | `packages/runner-local`   | The local runner: processes and git worktrees on this machine   |
 | `packages/persistence`    | SQLite behind Effect layers; owns all database access           |
 | `packages/renderer`       | The web UI                                                      |
+| `packages/harness`        | Browser dev harness: the renderer over the contract's fixtures, without the shell |
 
 ## Layers
 

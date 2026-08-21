@@ -19,7 +19,11 @@ flowchart LR
 
 A Piece is work, an Agent is identity, and an AgentSession is execution. Those
 relations are not one-to-one: a Piece may assign several Agents, and an Agent
-may have several Sessions across handovers or explicit forks. Recovery follows
+may have several Sessions across handovers or explicit forks. Many rows across
+time is not many at once: an Agent has at most one open root Session, enforced
+by a partial unique index rather than by convention. Subsessions are exempt,
+because a root holds its whole subtree open while it works. A linked successor
+therefore requires its predecessor root closed first. Recovery follows
 each durable assignment and Session instead of selecting one row and treating
 the rest as finished. A failed provider conversation or resource never makes
 the Agent identity irrecoverable or releases its Piece assignment; recovery
@@ -88,15 +92,20 @@ The durable Session event sequence is the UI and audit source. Each observer
 subscribes to post-write publication before reading the log, then deduplicates
 by sequence as live events arrive. That ordering closes the read/subscription
 gap. Its neutral vocabulary covers opening, messages, thinking, tool start and
-completion, usage, provider-turn telemetry, subsession opening and ending, and
-raw evidence.
+completion, usage, provider-turn telemetry, subsession opening, ending, and
+gaps, and raw evidence. A subsession gap is where the record admits it stopped
+seeing, and a node's ledger of them is what its completeness is projected from.
 
 A **subsession** is a nested provider conversation a Session spawns through a
-tool call. It is part of that Session's own record and never an Agent: it has
-no durable identity, is never addressed directly, and dissolves when it
-returns. Every event names the node that produced it, so one Session reads as
-a tree whose root is the Session itself, and the opening events carry the
-tree's edges. Delegated work stays the Session's work, but the log says who
+tool call. It is part of that Session's own record and never an Agent, but it
+is durable in its own right: a Session row with its own id, its parent and root
+edges, the kind and label it opened under, an outcome, a completeness, and its
+own journal. A provider child driven again reopens the row it already has
+rather than minting a duplicate. Every event names the node that produced it,
+so one Session reads as a tree whose root is the Session itself, and the
+opening events carry the tree's edges. A node can be read on its own — the
+renderer opens a node's feed — while only the root is resumed, sent to, or
+stopped. Delegated work stays the Session's work, but the log says who
 actually did it.
 
 The transcript
@@ -111,6 +120,15 @@ Every backend implements two delivery acts. `steer` enters work already under
 way; `queue` waits for the provider's next full boundary. Precedence policy in
 the domain chooses the act. A backend cannot silently omit one, choose for the
 caller, or make its native session identifier authoritative.
+
+Delivery is not all a backend owes. Every backend also answers an **audit**,
+which reads and never attaches: a **census** asks what work a root spawned that
+the stream never carried, and a node audit asks what the provider still holds
+about one node. Both answer in the same neutral events a live frame produces,
+so a finding travels the one journal path the record already has instead of a
+second writer of its own. Neither may fail — a provider that cannot be asked is
+itself a fact about the record, and the lane says so with a gap rather than by
+failing. A backend with no second surface to read answers both with nothing.
 
 ## Resume before replace
 

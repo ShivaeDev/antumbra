@@ -50,7 +50,9 @@ detailed authority, course, Piece, dependency, and progress model.
 - **An Agent is a durable responsibility.** It is independent of a process,
   replaceable resources, and any provider conversation. Sessions are the
   Agent's internal executive layer; exact Session state is not user vocabulary
-  or an ordinary Fleet projection.
+  or an ordinary Fleet projection. Where the record's own words must reach a
+  reader at all — how a delegated node ended, how whole its record is — the
+  renderer says them in English rather than passing the stored token through.
 - **Agents are alive; Intents are events in their lives.** Spawn creates a
   pre-identified Agent with role and charter. Retire irreversibly ends that
   identity. A mortal Intent schedules an operation and never stands in for
@@ -98,9 +100,12 @@ Session, restart, siesta, handover, and reclamation behavior.
   events and delivery acts; adapters preserve provider payloads and native ids
   without making them authoritative. A second backend must fit the same model
   before the interface can claim neutrality.
-- **Every backend has both delivery boundaries.** `steer` enters running work;
-  `queue` waits for the next full provider boundary. The domain's precedence
-  policy chooses between them, never the adapter.
+- **Every backend has both delivery boundaries and one reading surface.**
+  `steer` enters running work; `queue` waits for the next full provider
+  boundary, and the domain's precedence policy chooses between them, never the
+  adapter. Beside them every backend answers an `audit` — a census of what a
+  root spawned and an audit of one node — which reads stored work, never
+  attaches, and reports what it finds as ordinary Session events.
 - **Unknown evidence stays evidence.** Raw or future event kinds render raw
   instead of taking the view down. Provider facts remain their own durable
   truth; observing a Change, Review, or message never invents another fact.

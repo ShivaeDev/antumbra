@@ -7,22 +7,12 @@ import { Clock, Effect, Exit, Ref, Semaphore } from "effect";
 import type { SessionAttachmentFailure } from "#errors.ts";
 import { SessionNotLive } from "#errors.ts";
 import {
-	closeSessionAttachment,
 	type EventSink,
-	type LiveSessionAttachment,
 	openSessionAttachment,
 	type SessionAttachment,
 } from "#session-attachment.ts";
+import { makeSessionAttachmentEntries } from "#session-attachment-entries.ts";
 import { occupancyRefusal } from "#session-attachment-occupancy.ts";
-
-interface Entry {
-	readonly agentId: string;
-	readonly attachment: LiveSessionAttachment;
-	// why: when the Agent said it had nothing left to do, in millis. Absent
-	// means it is working. It lives here because it is only ever true while
-	// this acquisition does — a restart takes both away together.
-	readonly idleSince: number | undefined;
-}
 
 export interface SessionAttachmentRegistry {
 	readonly attach: <E, R>(
@@ -48,7 +38,7 @@ export interface SessionAttachmentRegistry {
 }
 
 export const makeSessionAttachmentRegistry = Effect.gen(function* () {
-	const entries = yield* Ref.make<ReadonlyMap<string, Entry>>(new Map());
+	const entries = yield* makeSessionAttachmentEntries;
 	const agentGates = yield* Ref.make<ReadonlyMap<string, Semaphore.Semaphore>>(
 		new Map(),
 	);
@@ -62,42 +52,12 @@ export const makeSessionAttachmentRegistry = Effect.gen(function* () {
 					: [existing, current];
 			});
 		});
-	// why: taking the entry out of the map is the claim. Everything that ends an
-	// acquisition goes through here, so a detach and a send can never both
-	// believe they hold the same attachment.
-	const take = (sessionId: string, when: (entry: Entry) => boolean) =>
-		Effect.gen(function* () {
-			const entry = yield* Ref.modify(entries, (current) => {
-				const existing = current.get(sessionId);
-				if (existing === undefined || !when(existing)) {
-					return [undefined, current];
-				}
-				const next = new Map(current);
-				next.delete(sessionId);
-				return [existing, next];
-			});
-			if (entry !== undefined) {
-				yield* closeSessionAttachment(entry.attachment);
-			}
-			return entry !== undefined;
-		});
 	const remove = (sessionId: string) =>
-		take(sessionId, () => true).pipe(Effect.asVoid);
+		entries.take(sessionId, () => true).pipe(Effect.asVoid);
 	const removeOwned = (agentId: string, sessionId: string) =>
-		Effect.gen(function* () {
-			const entry = (yield* Ref.get(entries)).get(sessionId);
-			if (entry?.agentId === agentId) {
-				yield* remove(sessionId);
-			}
-		});
-	yield* Effect.addFinalizer(() =>
-		Effect.gen(function* () {
-			const remaining = yield* Ref.getAndSet(entries, new Map());
-			yield* Effect.forEach(remaining.values(), (entry) =>
-				closeSessionAttachment(entry.attachment),
-			);
-		}),
-	);
+		entries
+			.take(sessionId, (entry) => entry.agentId === agentId)
+			.pipe(Effect.asVoid);
 	const attach: SessionAttachmentRegistry["attach"] = (
 		agentId,
 		backend,
@@ -109,7 +69,7 @@ export const makeSessionAttachmentRegistry = Effect.gen(function* () {
 			const gate = yield* gateFor(agentId);
 			yield* gate.withPermits(1)(
 				Effect.gen(function* () {
-					const current = yield* Ref.get(entries);
+					const current = yield* entries.snapshot;
 					const refused = occupancyRefusal(current, agentId, options.sessionId);
 					if (refused !== undefined) {
 						return yield* refused;
@@ -121,15 +81,8 @@ export const makeSessionAttachmentRegistry = Effect.gen(function* () {
 							options,
 							sink,
 						);
-						const opened: Entry = {
-							agentId,
-							attachment,
-							idleSince: undefined,
-						};
-						yield* Ref.update(entries, (map) =>
-							new Map(map).set(options.sessionId, opened),
-						);
-						entry = opened;
+						entry = { agentId, attachment, idleSince: undefined };
+						yield* entries.insert(options.sessionId, entry);
 					}
 					yield* admit(entry.attachment);
 				}).pipe(
@@ -143,37 +96,23 @@ export const makeSessionAttachmentRegistry = Effect.gen(function* () {
 		});
 	const liveHandle = (sessionId: string) =>
 		Effect.gen(function* () {
-			const entry = (yield* Ref.get(entries)).get(sessionId);
+			const entry = (yield* entries.snapshot).get(sessionId);
 			return entry === undefined
 				? yield* new SessionNotLive({ sessionId })
 				: entry.attachment.handle;
-		});
-	const mark = (sessionId: string, idleSince: number | undefined) =>
-		Ref.update(entries, (current) => {
-			const existing = current.get(sessionId);
-			return existing === undefined
-				? current
-				: new Map(current).set(sessionId, { ...existing, idleSince });
 		});
 	// why: words arriving are the end of having nothing to do, and clearing the
 	// mark before the handle is read is what stops a reclaim that had already
 	// chosen this Session from taking the attachment out from under them.
 	const rousingHandle = (sessionId: string) =>
-		mark(sessionId, undefined).pipe(Effect.andThen(liveHandle(sessionId)));
+		entries
+			.mark(sessionId, undefined)
+			.pipe(Effect.andThen(liveHandle(sessionId)));
 	return {
 		attach,
-		attached: Effect.map(Ref.get(entries), (current) => new Set(current.keys())),
-		holds: (sessionId) =>
-			Effect.map(Ref.get(entries), (current) => current.has(sessionId)),
-		idleSince: Effect.map(
-			Ref.get(entries),
-			(current) =>
-				new Map(
-					[...current].flatMap(([sessionId, entry]) =>
-						entry.idleSince === undefined ? [] : [[sessionId, entry.idleSince]],
-					),
-				),
-		),
+		attached: entries.attached,
+		holds: entries.holds,
+		idleSince: entries.idleSince,
 		interrupt: (sessionId) =>
 			liveHandle(sessionId).pipe(Effect.flatMap((handle) => handle.interrupt)),
 		send: (sessionId, text) =>
@@ -181,9 +120,11 @@ export const makeSessionAttachmentRegistry = Effect.gen(function* () {
 				Effect.flatMap((handle) => handle.queue(text)),
 			),
 		standDown: (sessionId) =>
-			Effect.flatMap(Clock.currentTimeMillis, (now) => mark(sessionId, now)),
+			Effect.flatMap(Clock.currentTimeMillis, (now) =>
+				entries.mark(sessionId, now),
+			),
 		stop: remove,
 		stopIdle: (sessionId) =>
-			take(sessionId, (entry) => entry.idleSince !== undefined),
+			entries.take(sessionId, (entry) => entry.idleSince !== undefined),
 	} satisfies SessionAttachmentRegistry;
 });

@@ -1,11 +1,6 @@
 import type { AgentSummary, SessionSummary } from "@antumbra/contract";
 
-export type Standing =
-	| "asleep"
-	| "listening"
-	| "quiet"
-	| "retired"
-	| "working";
+export type Standing = "asleep" | "listening" | "quiet" | "retired" | "working";
 
 // why: the fleet publishes each Session's presence, so the roster no longer
 // has to treat every quiet agent alike — one listening with nothing to do and

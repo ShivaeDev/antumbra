@@ -33,7 +33,7 @@ const surveyor: AgentSummary = {
 			canSend: true,
 			cwd: "/tmp/eastern-shoal",
 			diag: { current: true, execution: "active", intents: [] },
-					presence: "working",
+			presence: "working",
 			id: "session-2",
 			status: "open",
 		},

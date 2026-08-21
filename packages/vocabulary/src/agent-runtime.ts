@@ -17,8 +17,8 @@ export {
 } from "#agent-runtime/session-execution.ts";
 export {
 	type SessionPresence,
-	sessionPresence,
 	SessionPresenceSchema,
+	sessionPresence,
 } from "#agent-runtime/session-presence.ts";
 export {
 	type AgentSessionCompleteness,

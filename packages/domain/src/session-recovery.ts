@@ -39,8 +39,7 @@ export const makeRecoveryKind = Effect.gen(function* () {
 		Effect.gen(function* () {
 			const idle = yield* fabric.idleSince;
 			const words =
-				message ??
-				(idle.has(sessionId) ? RECOVERY_INSTRUCTION : undefined);
+				message ?? (idle.has(sessionId) ? RECOVERY_INSTRUCTION : undefined);
 			if (words === undefined) {
 				return;
 			}

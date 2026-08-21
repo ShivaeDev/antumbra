@@ -30,9 +30,9 @@ it("keeps Session execution status closed and transitions explicit", () => {
 // about at a call site. Standing down reaches idle in one move because nothing
 // is torn down; draining is the move that ends an attachment.
 it("separates standing down from draining toward siesta", () => {
-	expect(sessionExecutionTransition("session-1", "active", "stand-down")).toEqual(
-		Result.succeed("idle"),
-	);
+	expect(
+		sessionExecutionTransition("session-1", "active", "stand-down"),
+	).toEqual(Result.succeed("idle"));
 	expect(
 		sessionExecutionTransition("session-1", "active", "request-siesta"),
 	).toEqual(Result.succeed("draining"));

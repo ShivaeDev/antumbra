@@ -179,18 +179,16 @@ it.effect("sends what was typed by key or by button and clears the box", () =>
 	}),
 );
 
-it.effect(
-	"keeps a blank message and a session that has ended quiet",
-	() =>
-		Effect.gen(function* () {
-			sendToSession.mockClear();
-			const { container, root } = yield* mounted(fleetWith("working"));
-			yield* step(() => write(container, "   "));
-			yield* step(() => pressEnter(container));
-			expect(sendToSession).not.toHaveBeenCalled();
-			yield* step(() => root.render(box(fleetWith("ended"))));
-			expect(container.querySelector("input")?.disabled).toBe(true);
-			expect(container.querySelector("button")?.disabled).toBe(true);
-			yield* step(() => root.unmount());
-		}),
+it.effect("keeps a blank message and a session that has ended quiet", () =>
+	Effect.gen(function* () {
+		sendToSession.mockClear();
+		const { container, root } = yield* mounted(fleetWith("working"));
+		yield* step(() => write(container, "   "));
+		yield* step(() => pressEnter(container));
+		expect(sendToSession).not.toHaveBeenCalled();
+		yield* step(() => root.render(box(fleetWith("ended"))));
+		expect(container.querySelector("input")?.disabled).toBe(true);
+		expect(container.querySelector("button")?.disabled).toBe(true);
+		yield* step(() => root.unmount());
+	}),
 );

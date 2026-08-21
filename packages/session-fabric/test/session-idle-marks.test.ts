@@ -64,18 +64,20 @@ it.live("a session that never stood down is not reclaimed as idle", () =>
 // either order, and the one that arrives second must not undo the first — so
 // speaking to a Session ends its idleness, and a reclaim that finds no idleness
 // leaves the attachment alone rather than taking it out from under the words.
-it.live("words end the idleness, and a reclaim arriving after them declines", () =>
-	Effect.scoped(
-		Effect.gen(function* () {
-			const { fabric, queued } = yield* standing;
-			yield* fabric.standDown(options.sessionId);
-			yield* fabric.send(options.sessionId, "one more thing");
-			expect(yield* fabric.idleSince).toEqual(new Map());
-			expect(yield* fabric.stopIdle(options.sessionId)).toBe(false);
-			expect(yield* fabric.holds(options.sessionId)).toBe(true);
-			expect(yield* Ref.get(queued)).toEqual(["one more thing"]);
-		}),
-	),
+it.live(
+	"words end the idleness, and a reclaim arriving after them declines",
+	() =>
+		Effect.scoped(
+			Effect.gen(function* () {
+				const { fabric, queued } = yield* standing;
+				yield* fabric.standDown(options.sessionId);
+				yield* fabric.send(options.sessionId, "one more thing");
+				expect(yield* fabric.idleSince).toEqual(new Map());
+				expect(yield* fabric.stopIdle(options.sessionId)).toBe(false);
+				expect(yield* fabric.holds(options.sessionId)).toBe(true);
+				expect(yield* Ref.get(queued)).toEqual(["one more thing"]);
+			}),
+		),
 );
 
 // why: and the other order. A reclaim that wins takes the attachment for good,

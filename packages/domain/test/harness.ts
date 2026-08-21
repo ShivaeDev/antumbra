@@ -25,7 +25,7 @@ import type { ObserveCadenceOptions } from "#change-cadence.ts";
 import { ChangeWatcherLive } from "#change-watcher.ts";
 import { DispatcherLive, type DispatcherOptions } from "#dispatcher.ts";
 import { AgentDomain, AgentDomainLive } from "#domain.ts";
-import { KernelReachLive } from "#kernel-reach.ts";
+import { KernelReachLive } from "#kernel-reach-live.ts";
 import { SessionShutdownLive } from "#session-shutdown-live.ts";
 
 export interface ScriptedRunner {

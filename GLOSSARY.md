@@ -53,6 +53,12 @@ Owner: [Agent identity, resources, and recovery](docs/design/agent-recovery.md)
 - [**Agent**](docs/design/agent-recovery.md#three-truths-three-lifecycles) — a durable identity and responsibility, not a process or provider conversation.
 - [**Session**](docs/design/agent-recovery.md#three-truths-three-lifecycles) — one provider execution owned by an Agent; the root session is the one the Agent runs directly, and subsessions nest beneath it.
 - [**Subsession**](docs/design/agent-recovery.md#activity-observation-and-delivery) — a nested provider conversation a session spawns through a tool call; part of the session's own record, forming a tree, and never an Agent.
+- [**Origin**](docs/design/agent-recovery.md#activity-observation-and-delivery) — the stamp saying which node of a session's tree produced an event; absent on the root's own turns.
+- [**Gap**](docs/design/agent-recovery.md#activity-observation-and-delivery) — a place the record admits it stopped seeing; the kinds are a closed set, and a loss with no kind of its own is unknown.
+- [**Completeness**](docs/design/agent-recovery.md#activity-observation-and-delivery) — what a session's record says about itself: recording while it is still being written, complete when its gap ledger is empty, incomplete when it is not, and unaudited for rows that closed before gaps were tracked.
+- [**Session outcome**](docs/design/agent-recovery.md#activity-observation-and-delivery) — how a delegated conversation stopped, in the four words Antumbra owns: completed, failed, interrupted, or unknown.
+- [**Audit**](docs/design/agent-recovery.md#activity-observation-and-delivery) — asking a backend what it still holds about work its stream has stopped carrying; it reads and never attaches.
+- [**Census**](docs/design/agent-recovery.md#activity-observation-and-delivery) — the audit that asks which subsessions a root spawned, so work the stream never carried is still counted.
 - [**Hail**](docs/design/agent-recovery.md#hailing-an-agent) — address an Agent by resuming it or establishing its execution context.
 - [**Moorage**](docs/design/agent-recovery.md#provisioning-and-resource-topology) — an Agent's current replaceable resource home.
 - [**Berth**](docs/design/agent-recovery.md#provisioning-and-resource-topology) — one repository worktree inside a Moorage.

@@ -183,7 +183,7 @@ describe("deriveTranscript", () => {
 				state: "opened",
 			},
 			{
-				displayName: "Unnamed Subagent",
+				displayName: "Unnamed subsession",
 				kind: "delegation",
 				nodeId: undefined,
 				outcome: "completed",
@@ -203,7 +203,7 @@ describe("deriveTranscript", () => {
 			}),
 		]);
 		expect(items[0]).toMatchObject({
-			displayName: "Unnamed Subagent",
+			displayName: "Unnamed subsession",
 			kind: "delegation",
 		});
 	});

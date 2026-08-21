@@ -47,6 +47,13 @@ export const SubsessionEnded = Schema.Struct({
 // why: observing a subsession is best-effort — a stream detaches, a preview
 // spills, a sidecar is absent — and the log must be able to say where it stopped
 // seeing rather than leave a silent hole a reader mistakes for idleness.
+//
+// why: "read-truncated" and "sidecar-absent" are reserved, not produced. Both
+// name a known loss that no path Antumbra reads today can observe: a truncated
+// read is noted only in the provider's own on-disk transcript, and under the
+// SDK entrypoint a delegated transcript arrives on the stream, so no sidecar
+// exists whose absence could be seen. They stay declared so a backend that can
+// observe either loss journals it without widening this set.
 export const SubsessionGapKind = Schema.Literals([
 	"adopted-late",
 	"stream-detached",

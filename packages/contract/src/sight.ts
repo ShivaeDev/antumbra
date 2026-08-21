@@ -119,7 +119,9 @@ export class SightSource extends Context.Service<
 			query: EventQuery,
 		) => Effect.Effect<ReadonlyArray<SessionEvent>, SightFailure>;
 		// why: a tree is addressed by its root, because the root is the only part
-		// of a Session anything outside it may name.
+		// of a Session anything outside it may resume or send to. Reading is
+		// narrower than that: a node id addresses that node's own event feed, so
+		// a reader can open the branch the words were actually said in.
 		readonly sessionTree: (
 			rootSessionId: string,
 		) => Effect.Effect<SessionTree, SightFailure>;

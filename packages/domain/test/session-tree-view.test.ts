@@ -108,7 +108,7 @@ describe("assembleSessionTree", () => {
 
 	it("says outright that nothing named a node", () => {
 		expect(named({})).toBe(UNNAMED_SUBSESSION);
-		expect(UNNAMED_SUBSESSION).toBe("Unnamed Subagent");
+		expect(UNNAMED_SUBSESSION).toBe("Unnamed subsession");
 	});
 
 	it("counts what is open against everything the tree holds", () => {

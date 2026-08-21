@@ -55,7 +55,7 @@ it("lists every node the tree holds and says how many are still open", () => {
 	expect(markup).toContain("2 of 4 open");
 	expect(markup).toContain("Map the quay grouping");
 	expect(markup).toContain("reef-surveyor");
-	expect(markup).toContain("Unnamed Subagent");
+	expect(markup).toContain("Unnamed subsession");
 });
 
 // why: the root is the Agent's own Session, so it wears the Agent's role
@@ -70,12 +70,36 @@ it("names the root after the Agent and indents the rest by their depth", () => {
 
 it("wears every completeness the audit can leave behind, quietly", () => {
 	const markup = renderToStaticMarkup(panel("session-1", () => undefined));
-	expect(markup).toContain(">recording<");
-	expect(markup).toContain(">complete<");
-	expect(markup).toContain(">incomplete<");
-	expect(markup).toContain(">unaudited<");
-	expect(markup).toContain(">completed<");
-	expect(markup).toContain(">unknown<");
+	expect(markup).toContain(">Not settled yet<");
+	expect(markup).toContain(">Nothing missing<");
+	expect(markup).toContain(">Parts missing<");
+	expect(markup).toContain(">Never checked<");
+});
+
+it("says how a node ended, and that an unfinished one has not", () => {
+	const markup = renderToStaticMarkup(panel("session-1", () => undefined));
+	expect(markup).toContain(">Finished<");
+	expect(markup).toContain(">Ending not seen<");
+	expect(markup).toContain(">Still open<");
+});
+
+// why: the words the record stores are durable facts, not labels. One reaching
+// a badge would make the schema the product's language and freeze it there,
+// because renaming it would then change what a reader is told.
+it("never shows a reader the word the record stored", () => {
+	const markup = renderToStaticMarkup(panel("session-1", () => undefined));
+	const stored = [
+		"complete",
+		"completed",
+		"incomplete",
+		"open",
+		"recording",
+		"unaudited",
+		"unknown",
+	];
+	for (const word of stored) {
+		expect(markup).not.toContain(`>${word}<`);
+	}
 });
 
 it.effect("a node is the click target that opens its own transcript", () =>
@@ -107,7 +131,8 @@ it("a delegation mark says what was handed off and how it ended", () => {
 	);
 	expect(markup).toContain("subsession");
 	expect(markup).toContain("Map the quay grouping");
-	expect(markup).toContain("completed");
+	expect(markup).toContain("Finished");
+	expect(markup).not.toContain(">completed<");
 });
 
 it.effect("a delegation mark leads to the node holding the work", () =>

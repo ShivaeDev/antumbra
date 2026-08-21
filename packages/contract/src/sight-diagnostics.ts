@@ -1,9 +1,13 @@
 import { Schema } from "effect";
 
 // why: the window publishes curated capabilities and keeps raw machinery out
-// of the view. Diagnostics are the one deliberate exception: durable words
-// travel only inside a `diag` field, so an admiral reading a live system can
-// see what it believes while no affordance is ever derived from these words.
+// of the view. Diagnostics are the deliberate exception among them: durable
+// words travel inside a `diag` field so an admiral reading a live system can
+// see what it believes. Durable words also reach the view as data the session
+// tree read model carries for a renderer to paraphrase; what holds for both is
+// that no affordance is ever derived from such a word — a capability is
+// published beside it, the way `SessionSummary` publishes `canSend` and
+// `canInterrupt`.
 
 // why: the durable Intent id travels with the chip so a state the admiral
 // reports can be found again in the log without another database read.

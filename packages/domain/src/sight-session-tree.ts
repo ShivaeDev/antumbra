@@ -5,6 +5,7 @@ import {
 	decodeStoredAgentSessionCompleteness,
 	decodeStoredAgentSessionStatus,
 } from "@antumbra/vocabulary/agent-runtime";
+import { decodeStoredSubsessionOutcome } from "@antumbra/vocabulary/session-events";
 import { Effect, PubSub, Stream } from "effect";
 import {
 	assembleSessionTree,
@@ -40,19 +41,22 @@ const readRow = (row: StoredAgentSession) =>
 		completeness: Effect.fromResult(
 			decodeStoredAgentSessionCompleteness(row.id, row.completeness),
 		),
+		outcome: Effect.fromResult(
+			decodeStoredSubsessionOutcome(row.id, row.outcome),
+		),
 		status: Effect.fromResult(
 			decodeStoredAgentSessionStatus(row.id, row.status),
 		),
 	}).pipe(
 		Effect.map(
-			({ completeness, status }) =>
+			({ completeness, outcome, status }) =>
 				({
 					completeness,
 					id: row.id,
 					kind: row.kind,
 					label: row.label,
 					nativeRef: row.nativeRef,
-					outcome: row.outcome,
+					outcome,
 					parentSessionId: row.parentSessionId,
 					status,
 				}) satisfies SessionTreeRow,

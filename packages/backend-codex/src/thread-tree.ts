@@ -29,10 +29,12 @@ export interface ThreadTree {
 
 // why: codex broadcasts the whole tree down the one connection this session
 // listens on, every frame stamped with the thread that spoke it. Reading a
-// delegated conversation therefore takes no second connection and no attaching
-// — only the willingness to stop filtering everything but this thread out. What
-// may be read is what this session was shown to own: a thread codex sourced
-// from a spawn of ours, or one an owned thread announced as its own.
+// delegated conversation as it happens therefore takes no second connection and
+// no attaching — only the willingness to stop filtering everything but this
+// thread out. The census that follows a silent stream is the one reader that
+// opens a connection of its own, and that one can only read. What may be read
+// here is what this session was shown to own: a thread codex sourced from a
+// spawn of ours, or one an owned thread announced as its own.
 export const openThreadTree = (
 	rootThreadId: string,
 	claims: ThreadClaims,

@@ -2,6 +2,7 @@ import {
 	AgentSessionCompletenessSchema,
 	AgentSessionStatusSchema,
 } from "@antumbra/vocabulary/agent-runtime";
+import { SubsessionOutcome } from "@antumbra/vocabulary/session-events";
 import { Schema } from "effect";
 
 // why: what a delegated conversation is called when nothing named it. The
@@ -9,7 +10,7 @@ import { Schema } from "effect";
 // delegation marker its tree does not hold has to reach the same fallback —
 // two implementations of one rule drift, and the drift shows as one node
 // wearing two names.
-export const UNNAMED_SUBSESSION = "Unnamed Subagent";
+export const UNNAMED_SUBSESSION = "Unnamed subsession";
 
 // why: a provider that names an agent by the file defining it stored a path,
 // not a name. The leaf without its extension is the name that path was already
@@ -52,7 +53,10 @@ export const SessionTreeNode = Schema.Struct({
 	// delegation marker in a parent's transcript names. It is the join between
 	// what the transcript says and which node it points at.
 	nativeRef: Schema.NullOr(Schema.String),
-	outcome: Schema.NullOr(Schema.String),
+	// why: how the node stopped, in the four words this vocabulary owns — a
+	// provider word with no counterpart was already narrowed to "unknown" before
+	// it was ever stored. Open nodes carry null because they have not stopped.
+	outcome: Schema.NullOr(SubsessionOutcome),
 	status: AgentSessionStatusSchema,
 });
 export type SessionTreeNode = typeof SessionTreeNode.Type;

@@ -17,7 +17,7 @@ export interface SessionTreeRow {
 	readonly kind: string | null;
 	readonly label: string | null;
 	readonly nativeRef: string | null;
-	readonly outcome: string | null;
+	readonly outcome: SessionTreeNode["outcome"];
 	readonly parentSessionId: string | null;
 	readonly status: AgentSessionStatus;
 }

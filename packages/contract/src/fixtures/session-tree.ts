@@ -37,7 +37,7 @@ export const sessionTree: SessionTree = {
 		{
 			completeness: "unaudited",
 			depth: 1,
-			displayName: "Unnamed Subagent",
+			displayName: "Unnamed subsession",
 			id: "session-1-node-3",
 			nativeRef: "task-0e93",
 			outcome: "unknown",

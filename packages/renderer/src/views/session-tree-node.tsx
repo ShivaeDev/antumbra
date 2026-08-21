@@ -1,9 +1,9 @@
 import type { SessionTreeNode } from "@antumbra/contract";
-import { Badge } from "#components/ui/badge.tsx";
 import { cn } from "#lib/utils.ts";
 import {
 	CompletenessBadge,
 	OutcomeBadge,
+	StatusBadge,
 } from "#views/session-tree-badges.tsx";
 
 // why: indentation is drawn from the depth the walk found, and it stops after
@@ -35,7 +35,7 @@ export const SessionTreeRow = ({
 		type="button"
 	>
 		<span className="min-w-0 flex-1 truncate text-2xs">{node.displayName}</span>
-		{node.status === "open" ? <Badge variant="outline">open</Badge> : null}
+		<StatusBadge status={node.status} />
 		<OutcomeBadge outcome={node.outcome} />
 		<CompletenessBadge completeness={node.completeness} />
 	</button>

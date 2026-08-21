@@ -12,6 +12,10 @@ export {
 export { Origin } from "#session-events/origin.ts";
 export { RawEvent, type RawPayload } from "#session-events/raw.ts";
 export {
+	decodeStoredSubsessionOutcome,
+	StoredSubsessionOutcomeInvalid,
+} from "#session-events/stored-outcome.ts";
+export {
 	SubsessionEnded,
 	SubsessionGap,
 	SubsessionGapKind,

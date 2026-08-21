@@ -1,3 +1,5 @@
+import type { SubsessionEnded } from "@antumbra/vocabulary/session-events";
+
 export interface TranscriptMessage {
 	readonly kind: "message";
 	readonly role: "agent" | "user";
@@ -36,7 +38,7 @@ export interface TranscriptDelegation {
 	readonly displayName: string;
 	readonly kind: "delegation";
 	readonly nodeId: string | undefined;
-	readonly outcome: string | undefined;
+	readonly outcome: (typeof SubsessionEnded.Type)["outcome"] | undefined;
 	readonly seq: number;
 	readonly state: "ended" | "opened";
 }

@@ -10,3 +10,4 @@ export { ensureInstallMarker } from "#install-marker.ts";
 export { PersistenceLive } from "#layer.ts";
 export type { StoredAgentSession } from "#rows.ts";
 export { Writer, WriterLive } from "#writer.ts";
+export type { NewAgentSession, NewRow } from "#writes.ts";

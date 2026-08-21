@@ -1,4 +1,4 @@
-import { Database, Writer } from "@antumbra/persistence";
+import { Database, type NewAgentSession, Writer } from "@antumbra/persistence";
 import { type Runner, RunnerFailure } from "@antumbra/plugin-api";
 import { expect, it } from "@effect/vitest";
 import { Effect, Option, Ref } from "effect";
@@ -62,7 +62,7 @@ const seedResource = (seed: ResourceSeed) =>
 						parentSessionId: null,
 						rootSessionId: `${seed.agentId}:session`,
 						status: seed.sessionStatus,
-					});
+					} satisfies NewAgentSession);
 				}
 			}),
 		);

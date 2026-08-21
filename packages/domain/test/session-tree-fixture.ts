@@ -1,5 +1,5 @@
 import { DomainFeedsLive } from "@antumbra/domain-feeds";
-import { Database, Writer } from "@antumbra/persistence";
+import { Database, type NewAgentSession, Writer } from "@antumbra/persistence";
 import type { TemporaryPersistence } from "@antumbra/persistence/testing";
 import type { SessionAudit } from "@antumbra/plugin-api";
 import { SessionEventJournalLive } from "@antumbra/session-event-journal";
@@ -64,7 +64,7 @@ export const seedSession = (session: SeededSession) =>
 				parentSessionId: session.parentSessionId ?? null,
 				rootSessionId: session.rootSessionId,
 				status: session.status ?? "open",
-			}),
+			} satisfies NewAgentSession),
 		);
 	});
 

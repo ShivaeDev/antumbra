@@ -1,5 +1,10 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
-import { Database, type WriteExecutors, Writer } from "@antumbra/persistence";
+import {
+	Database,
+	type NewAgentSession,
+	type WriteExecutors,
+	Writer,
+} from "@antumbra/persistence";
 import type { MooragePlan } from "@antumbra/plugin-api";
 import { ensureAgentResourcesUnclaimed } from "@antumbra/resource-reclamation";
 import { decodeStoredAgentSessionStatus } from "@antumbra/vocabulary/agent-runtime";
@@ -63,7 +68,7 @@ export const makeEnsureSessionRow = Effect.gen(function* () {
 				parentSessionId: null,
 				rootSessionId: payload.sessionId,
 				status: "open",
-			});
+			} satisfies NewAgentSession);
 			return true;
 		});
 	return (payload: SpawnFields, plan: MooragePlan) =>

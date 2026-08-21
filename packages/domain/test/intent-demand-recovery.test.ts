@@ -1,4 +1,4 @@
-import { Database, Writer } from "@antumbra/persistence";
+import { Database, type NewAgentSession, Writer } from "@antumbra/persistence";
 import { expect, it } from "@effect/vitest";
 import { Effect } from "effect";
 import { TestClock } from "effect/testing";
@@ -36,7 +36,7 @@ it.effect("recovers later durable Session demand after a lost wake", () =>
 							parentSessionId: null,
 							rootSessionId: "session-later-demand",
 							status: "open",
-						}),
+						} satisfies NewAgentSession),
 					),
 				),
 			);

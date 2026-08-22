@@ -13,7 +13,8 @@ import {
 } from "effect";
 import { IntentNotFound } from "#errors.ts";
 import { type IntentEvent, IntentStatusSchema, transition } from "#fsm.ts";
-import { type IntentChange, SchedulerState } from "#state.ts";
+import type { IntentChange } from "#kernel.ts";
+import { SchedulerState } from "#state.ts";
 import { intentWaitCause } from "#wait-cause.ts";
 
 // why: every status write is a read-transition-update against the FSM table

@@ -18,10 +18,10 @@ import { IntentNotFound, UnregisteredIntentTag } from "#errors.ts";
 import { IntentStatusSchema } from "#fsm.ts";
 import type { Gate } from "#gate.ts";
 import type { AnyIntentKind, IntentKind } from "#intent.ts";
-import { type IntentSubmission, Kernel } from "#kernel.ts";
+import { type IntentChange, type IntentSubmission, Kernel } from "#kernel.ts";
 import { reclaim } from "#reclaim.ts";
 import { announce, transitionRow } from "#scheduler.ts";
-import { type IntentChange, SchedulerState } from "#state.ts";
+import { SchedulerState } from "#state.ts";
 
 export interface KernelOptions {
 	readonly gates?: ReadonlyArray<Gate>;
@@ -144,6 +144,7 @@ export const KernelLive = (options: KernelOptions) =>
 					submitIntent(kind, payload, changes).pipe(
 						Effect.provideContext(context),
 					),
+				transitions: Stream.fromPubSub(state.pubsub),
 			};
 		}),
 	);

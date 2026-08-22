@@ -56,6 +56,7 @@ export {
 	SessionNotLive,
 	UnknownBackendTag,
 } from "#errors.ts";
+export { IntentFeedLive } from "#intent-feed.ts";
 export { KernelReachLive } from "#kernel-reach.ts";
 export { type OutcomeTally, pieceOutcomeTally } from "#outcome-status.ts";
 export {

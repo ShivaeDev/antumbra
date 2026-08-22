@@ -36,6 +36,7 @@
 		"@antumbra/persistence": "workspace:*",
 		"@antumbra/pieces": "workspace:*",
 		"@antumbra/plugin-api": "workspace:*",
+		"@antumbra/prompts": "workspace:*",
 		"@antumbra/reports": "workspace:*",
 		"@antumbra/repos": "workspace:*",
 		"@antumbra/resource-reclamation": "workspace:*",

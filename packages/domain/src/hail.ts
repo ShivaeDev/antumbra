@@ -12,13 +12,13 @@ import type {
 	StoredPieceChangeInvalid,
 } from "@antumbra/changes";
 import type { PrismaError } from "@antumbra/persistence";
+import { captainCharter } from "@antumbra/prompts";
 import type {
 	InvalidSessionExecutionStatus,
 	StoredAgentSessionStatusInvalid,
 	StoredAgentStatusInvalid,
 } from "@antumbra/vocabulary/agent-runtime";
 import { Effect, Option } from "effect";
-import { composeCaptainCharter } from "#charter-captain.ts";
 import {
 	CaptainAlreadyHailed,
 	CaptainSessionUnavailable,
@@ -26,6 +26,7 @@ import {
 } from "#errors.ts";
 import type { SpawnRefused } from "#kernel-reach.ts";
 import { KernelReach } from "#kernel-reach.ts";
+import { pieceLineWithOutcomes } from "#piece-line.ts";
 import { CAPTAIN_ROLE, captainAtWork, captainOf } from "#voyage-captain.ts";
 import { executionSessionOfAgent } from "#voyage-execution-selection.ts";
 import { voyageView } from "#voyage-view.ts";
@@ -101,8 +102,11 @@ export const hailCaptain = (voyageId: string) =>
 		const intentId = yield* reach.submitSpawn({
 			agentId,
 			backend: voyage.backend,
-			charter: composeCaptainCharter(voyage, voyageView(world, voyage).pieces, {
-				voyageSmoothLog,
+			charter: captainCharter({
+				context: voyage.context,
+				northStar: voyage.northStar,
+				pieceLines: voyageView(world, voyage).pieces.map(pieceLineWithOutcomes),
+				voyageLog: voyageSmoothLog,
 			}),
 			role: CAPTAIN_ROLE,
 			// why: the sole runner in v1 — the field becomes a choice when a

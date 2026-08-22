@@ -6,6 +6,7 @@ import type {
 	SpawnRequest,
 } from "@antumbra/contract";
 import { Kernel } from "@antumbra/kernel";
+import { admiralWords } from "@antumbra/prompts";
 import { Effect } from "effect";
 import { AgentDomain } from "#agent-domain-service.ts";
 import { SessionMessageEmpty } from "#errors.ts";
@@ -53,7 +54,10 @@ export const makeSightActs = Effect.gen(function* () {
 				if (text.trim().length === 0) {
 					return yield* new SessionMessageEmpty({ sessionId });
 				}
-				yield* domain.sendToSession(sessionId, text);
+				// why: this is where free-typed words enter the system, so it is
+				// where they enter the catalog — through the one template that
+				// exists to carry them, rather than by a seam relaxing its type.
+				yield* domain.sendToSession(sessionId, admiralWords({ words: text }));
 			}).pipe(Effect.mapError(toFailure)),
 		// why: the admiral's request and the clock's own are the same act, so both
 		// submit the same Intent and meet the same guard inside it. Nothing is

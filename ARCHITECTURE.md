@@ -49,6 +49,7 @@ obligation remains detached until needed. See
 | `packages/contract`       | Public typed IDL between renderer and main                      |
 | `packages/vocabulary`     | Neutral Agent runtime, Board, Change, and Session-event language through explicit subject subpaths (a leaf) |
 | `packages/session-event-journal` | Durable Session event sequencing and native identity correlation |
+| `packages/prompts`        | The catalog of everything an Agent can be told: one template per set of blanks, minting the branded type the delivery seams accept (a leaf) |
 | `packages/plugin-api`     | The driven ports: agent backends, runners, plugin registration  |
 | `packages/agent-tools`    | The tools agents act through: schemas and binding, no transport |
 | `packages/kernel`         | Intents, admission scheduling, lifecycle state machines         |
@@ -88,6 +89,14 @@ transactions and post-commit signals, and Layers select implementations and
 lifetimes. Foreign callbacks cross adapter boundaries only after their Effect
 requirements are closed. `packages/git` remains process infrastructure beneath
 `runner-local`.
+
+`prompts` is the other leaf, and it is a closed set rather than a language:
+every string an Agent is ever handed is a template there, each with its blanks
+in a Schema struct beside it. It mints a branded `AgentPrompt` and exports no
+way to make one, so the seams that deliver words — send, resume, charter
+delivery — name that type and prose assembled anywhere else does not compile.
+Words the admiral types are not an exception hidden in a seam; they are their
+own template, and the two places text enters from outside the process call it.
 
 `intent-demand` is the process-lifetime bridge between capability-owned durable
 demand and Kernel-owned mortal Intents. Capabilities close typed discovery

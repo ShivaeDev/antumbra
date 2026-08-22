@@ -1,8 +1,8 @@
 import { BoardScope, Boards, smoothBodies } from "@antumbra/boards";
 import type { IntentStatus, IntentSubmission } from "@antumbra/kernel";
 import type { WriteExecutors } from "@antumbra/persistence";
+import { crewCharter } from "@antumbra/prompts";
 import { Effect, Option, Queue, Stream } from "effect";
-import { composeCrewCharter } from "#charter-compose.ts";
 import { accountOfIntent } from "#dispatch-failure-account.ts";
 import type { ReadyPiece } from "#dispatch-policy.ts";
 import {
@@ -92,9 +92,14 @@ const charterFor = (candidate: ReadyPiece) =>
 		const pieceSmoothLog = yield* boards
 			.read(BoardScope.Piece({ pieceId: candidate.piece.id }))
 			.pipe(Effect.map(smoothBodies));
-		return composeCrewCharter(candidate.voyage, candidate.piece, {
-			pieceSmoothLog,
-			voyageSmoothLog,
+		return crewCharter({
+			context: candidate.voyage.context,
+			expectation: candidate.piece.expectation,
+			northStar: candidate.voyage.northStar,
+			pieceCharter: candidate.piece.charter,
+			pieceLog: pieceSmoothLog,
+			pieceTitle: candidate.piece.title,
+			voyageLog: voyageSmoothLog,
 		});
 	});
 

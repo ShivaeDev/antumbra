@@ -12,6 +12,6 @@ export const logSection = (
 	log: ReadonlyArray<string>,
 ): ReadonlyArray<string> => section(heading, log.join("\n\n"));
 
-export const charterText = (
+export const proseOf = (
 	sections: ReadonlyArray<ReadonlyArray<string>>,
 ): string => sections.flat().join("\n").trimEnd();

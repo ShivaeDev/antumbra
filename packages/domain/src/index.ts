@@ -35,7 +35,6 @@ export type {
 } from "#change-procedures.ts";
 export type { ChangeView } from "#change-view.ts";
 export { ChangeWatcherLive } from "#change-watcher.ts";
-export { composeCrewCharter } from "#charter-compose.ts";
 export {
 	nextBackoffMillis,
 	type ReadyPiece,

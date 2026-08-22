@@ -76,6 +76,36 @@ export const surfacePolicy = [
 				files.inPackage("plugin-api", "src/backend.ts"),
 			),
 		}),
+	fence("prompts-imports-no-caller")
+		.because(
+			"The prompt catalog is the whole of what an Agent can be told, and it sits beneath everything that tells it. A template that reached for domain truth, a port, a store or a view would make the words a function of the caller's layer instead of the blanks it was handed, and the catalog would stop being one directory a reader can trust to hold them all.",
+		)
+		.forbidsImportsFrom(packages.named("prompts"))
+		.to(
+			anyOf(
+				applications.all,
+				domainAndCapabilities,
+				packages.named(
+					"agent-tools",
+					"contract",
+					"git",
+					"harness",
+					"kernel",
+					"persistence",
+					"plugin-api",
+					"renderer",
+				),
+				adapters,
+			),
+		)
+		.demonstratedBy({
+			illegal: importFrom(files.inPackage("prompts", "src/situations.ts")).to(
+				files.inPackage("changes", "src/change-read.ts"),
+			),
+			legal: importFrom(files.inPackage("domain", "src/session-send.ts")).to(
+				files.inPackage("prompts", "src/index.ts"),
+			),
+		}),
 	fence("nothing-imports-desktop")
 		.because("Nothing imports the app shell; composition flows downward only.")
 		.forbidsImportsFrom(packages.all)

@@ -1,5 +1,10 @@
 import { defineIntent, IntentExecution } from "@antumbra/kernel";
 import type { BackendFailure } from "@antumbra/plugin-api";
+import {
+	type AgentPrompt,
+	admiralWords,
+	standingRecovery,
+} from "@antumbra/prompts";
 import { SessionFabric } from "@antumbra/session-fabric";
 import { Effect, Result, Schema } from "effect";
 import { makeCurrentSessionRecovery } from "#current-session-recovery.ts";
@@ -17,9 +22,6 @@ import {
 } from "#session-unresumable.ts";
 import { SessionWakePatience } from "#session-wake-patience.ts";
 
-export const RECOVERY_INSTRUCTION =
-	"Reconcile durable Antumbra truth and continue your assigned work.";
-
 // why: an explicit act may travel with the words that caused it, so waking a
 // Session and speaking to it are one intent rather than two the caller has to
 // sequence. Absent, the Session is being recovered on Antumbra's initiative
@@ -29,6 +31,13 @@ const RecoveryPayload = Schema.Struct({
 	sessionId: Schema.String,
 });
 export type RecoveryFields = typeof RecoveryPayload.Type;
+
+// why: the payload outlives the process that wrote it, so words that were the
+// admiral's when the Intent was submitted arrive here as ordinary stored text.
+// They re-enter the catalog through the same template that admitted them, and
+// nothing else on this path can turn a string into words an Agent hears.
+const carried = (message: string | undefined): AgentPrompt | undefined =>
+	message === undefined ? undefined : admiralWords({ words: message });
 
 const waitFor = (detail: string) =>
 	IntentExecution.use((execution) => execution.wait(detail));
@@ -46,11 +55,11 @@ export const makeRecoveryKind = Effect.gen(function* () {
 	// are delivered either way; the standing instruction reaches only a Session
 	// that said it had nothing to do, because one mid-turn is already doing the
 	// thing that instruction would ask for.
-	const delivered = (sessionId: string, message: string | undefined) =>
+	const delivered = (sessionId: string, message: AgentPrompt | undefined) =>
 		Effect.gen(function* () {
 			const idle = yield* fabric.idleSince;
 			const words =
-				message ?? (idle.has(sessionId) ? RECOVERY_INSTRUCTION : undefined);
+				message ?? (idle.has(sessionId) ? standingRecovery : undefined);
 			if (words === undefined) {
 				return;
 			}
@@ -74,7 +83,7 @@ export const makeRecoveryKind = Effect.gen(function* () {
 					}),
 				);
 	};
-	const admitted = (sessionId: string, message: string | undefined) =>
+	const admitted = (sessionId: string, message: AgentPrompt | undefined) =>
 		fabric.withStartAdmission((permit) =>
 			Effect.gen(function* () {
 				const context = yield* load(sessionId);
@@ -84,13 +93,13 @@ export const makeRecoveryKind = Effect.gen(function* () {
 				yield* runtime.resume(
 					permit,
 					context.success,
-					message ?? RECOVERY_INSTRUCTION,
+					message ?? standingRecovery,
 				);
 				const execution = yield* IntentExecution;
 				yield* execution.step("wake-session", recovery.awaken(sessionId));
 			}),
 		);
-	const resumed = (sessionId: string, message: string | undefined) =>
+	const resumed = (sessionId: string, message: AgentPrompt | undefined) =>
 		Effect.gen(function* () {
 			if (yield* fabric.holds(sessionId)) {
 				return yield* delivered(sessionId, message);
@@ -115,7 +124,7 @@ export const makeRecoveryKind = Effect.gen(function* () {
 		});
 	return defineIntent({
 		execute: ({ message, sessionId }) =>
-			resumed(sessionId, message).pipe(
+			resumed(sessionId, carried(message)).pipe(
 				Effect.catchTags({
 					BackendFailure: (failure: BackendFailure) => waitFor(failure.message),
 					SessionNotLive: () => waitFor("the attachment went before the words"),

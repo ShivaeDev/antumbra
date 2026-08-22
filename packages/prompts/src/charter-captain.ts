@@ -1,16 +1,22 @@
-import { charterText, logSection, section } from "#charter-sections.ts";
-import { pieceLineWithOutcomes } from "#piece-line.ts";
-import type { PieceView } from "#piece-view.ts";
-import type { VoyageRow } from "#voyage-rows.ts";
+import { Schema } from "effect";
+import { type AgentPrompt, agentPrompt } from "#mint.ts";
+import { logSection, proseOf, section } from "#prose.ts";
 
-export interface CaptainLogs {
-	readonly voyageSmoothLog: ReadonlyArray<string>;
-}
+export const CaptainCharter = Schema.Struct({
+	context: Schema.String,
+	northStar: Schema.String,
+	// why: a piece line is the voyage's own state rendered by the reader that
+	// owns it, so the catalog takes the finished lines as a blank rather than
+	// reaching for piece rows it would have to learn to read.
+	pieceLines: Schema.Array(Schema.String),
+	voyageLog: Schema.Array(Schema.String),
+});
+export type CaptainCharter = typeof CaptainCharter.Type;
 
 // why: the captain's tools are its authority, so the order names them and
 // says what each one means for the voyage — including that launching is a
 // release into the pool and not a wait.
-const CAPTAIN_STANDING_ORDER = [
+const STANDING_ORDER = [
 	"- You charter the work: `charter_piece` states a title, a charter, the outcome you expect, the role that suits it, and the pieces it waits on. Workers report; captains charter.",
 	"- `launch_piece` releases a piece into the pool. It is dispatched when its dependencies are done and there is room in the fleet — you do not wait for it, and a launched chain finishes on its own.",
 	"- `read_voyage` shows what has landed. `park_piece` pulls a piece back out of the pool, `unpark_piece` returns it, and `rewire_piece` changes what a piece waits on.",
@@ -22,15 +28,13 @@ const CAPTAIN_STANDING_ORDER = [
 // why: a captain is told the same three things every session — where the
 // voyage is going, what its board says, and where its pieces stand — because
 // its session is mortal and the voyage is not.
-export const composeCaptainCharter = (
-	voyage: VoyageRow,
-	pieces: ReadonlyArray<PieceView>,
-	logs: CaptainLogs,
-): string =>
-	charterText([
-		section("North star", voyage.northStar),
-		section("Context", voyage.context),
-		logSection("Voyage log", logs.voyageSmoothLog),
-		section("Pieces", pieces.map(pieceLineWithOutcomes).join("\n")),
-		section("Standing orders", CAPTAIN_STANDING_ORDER),
-	]);
+export const captainCharter = (input: CaptainCharter): AgentPrompt =>
+	agentPrompt(
+		proseOf([
+			section("North star", input.northStar),
+			section("Context", input.context),
+			logSection("Voyage log", input.voyageLog),
+			section("Pieces", input.pieceLines.join("\n")),
+			section("Standing orders", STANDING_ORDER),
+		]),
+	);

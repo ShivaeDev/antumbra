@@ -54,6 +54,11 @@ export class AgentDomain extends Context.Service<
 		// separates a Session listening with nothing to do from one whose process
 		// has been reclaimed.
 		readonly sessionsAttached: Effect.Effect<ReadonlySet<string>>;
+		// why: which root Sessions are carrying a delegated conversation on the
+		// stream they hold. Asked of the acquisition for the same reason
+		// attachment is: a node row says what the record still owes an ending,
+		// which is a different question from what is running now.
+		readonly sessionsDelegating: Effect.Effect<ReadonlySet<string>>;
 		readonly siesta: IntentKind<SiestaFields>;
 		readonly spawn: IntentKind<SpawnFields>;
 		readonly voyages: VoyageProcedures;

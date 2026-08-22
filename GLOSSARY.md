@@ -64,6 +64,6 @@ Owner: [Agent identity, resources, and recovery](docs/design/agent-recovery.md)
 - [**Berth**](docs/design/agent-recovery.md#provisioning-and-resource-topology) — one repository worktree inside a Moorage.
 - [**Stand down**](docs/design/agent-recovery.md#rest-and-reaping) — an Agent's own declaration that it has nothing left to do; it stays attached and reachable.
 - [**Idle**](docs/design/agent-recovery.md#rest-and-reaping) — a Session that has stood down and is listening with nothing to do.
-- [**Siesta**](docs/design/agent-recovery.md#rest-and-reaping) — the reversible rest a long-idle Session is put into by the clock; its process is reclaimed and speaking to it wakes it.
+- [**Siesta**](docs/design/agent-recovery.md#rest-and-reaping) — the reversible rest an idle Session is put into by the clock or by the admiral; its process is reclaimed and speaking to it wakes it.
 - [**Retirement**](docs/design/agent-recovery.md#reclamation-boundary) — the explicit irreversible end of an Agent identity.
 - [**Reconciliation**](docs/design/agent-recovery.md#durable-truth-and-disposable-execution) — repeatably compare durable truth with reality until they converge.

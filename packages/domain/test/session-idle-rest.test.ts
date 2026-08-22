@@ -2,8 +2,7 @@ import { SightSource } from "@antumbra/contract";
 import { Kernel } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
 import { expect, it } from "@effect/vitest";
-import { Clock, Effect } from "effect";
-import { AgentDomain } from "#domain.ts";
+import { Effect } from "effect";
 import { IDLE_SIESTA_AFTER_MILLIS } from "#session-idle.ts";
 import {
 	acquireTemporaryPersistence,
@@ -13,58 +12,13 @@ import {
 import {
 	HAND,
 	openedNatively,
+	passedAt,
 	presenceOf,
 	sessionRow,
 	sightLayer,
 	spawned,
 } from "#test/session-idle-fixture.ts";
 import { eventually, untilTerminal } from "#test/session-recovery-fixture.ts";
-
-const NANOS_PER_MILLI = 1_000_000n;
-
-// why: the pass reads the clock once and judges every mark against that one
-// moment, so running it with a clock further on is the same fact as the time
-// having gone by. Simulating the hour instead would put several hundred
-// background passes in the way, each crossing the database, and no count of
-// yields can promise they have all finished before the reading is taken.
-const aheadBy = (millis: number) =>
-	Clock.clockWith((clock) =>
-		Effect.succeed<Clock.Clock>({
-			currentTimeMillis: Effect.map(
-				clock.currentTimeMillis,
-				(now) => now + millis,
-			),
-			currentTimeMillisUnsafe: () => clock.currentTimeMillisUnsafe() + millis,
-			currentTimeNanos: Effect.map(
-				clock.currentTimeNanos,
-				(now) => now + BigInt(millis) * NANOS_PER_MILLI,
-			),
-			currentTimeNanosUnsafe: () =>
-				clock.currentTimeNanosUnsafe() + BigInt(millis) * NANOS_PER_MILLI,
-			monotonicTimeNanos: clock.monotonicTimeNanos,
-			monotonicTimeNanosUnsafe: () => clock.monotonicTimeNanosUnsafe(),
-			sleep: (duration) => clock.sleep(duration),
-		}),
-	);
-
-// why: the demand pass the app runs on its own timer, run by hand instead, so
-// the rehearsal awaits the pass rather than waiting for one to come around.
-const siestaPass = Effect.gen(function* () {
-	const domain = yield* AgentDomain;
-	const demand = domain.intentDemands.find(
-		(registration) => registration.tag === "session/siesta",
-	);
-	return demand === undefined
-		? yield* Effect.die("no siesta demand is registered")
-		: demand.pass;
-});
-
-const passedAt = (millis: number) =>
-	Effect.gen(function* () {
-		const pass = yield* siestaPass;
-		const clock = yield* aheadBy(millis);
-		yield* pass.pipe(Effect.provideService(Clock.Clock, clock));
-	});
 
 // why: the whole point of the correction. Saying "nothing to do" used to be the
 // same act as being put away, so an Agent that had finished was an Agent that

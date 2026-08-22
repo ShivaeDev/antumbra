@@ -1,11 +1,12 @@
 import { expect, it } from "@effect/vitest";
 import { Schema } from "effect";
-import { Fleet } from "#sight.ts";
+import { Fleet } from "#fleet.ts";
 
 const agentAround = (session: Record<string, unknown>) => ({
 	agents: [
 		{
 			berths: [],
+			canRetire: false,
 			charter: "chart the reef",
 			diag: { currentSessionId: "session-1", intents: [] },
 			id: "agent-1",
@@ -31,6 +32,7 @@ it("admits raw Session execution state only under diagnostics", () => {
 			backend: "scripted",
 			canInterrupt: false,
 			canSend: false,
+			canSleep: false,
 			cwd: "/tmp/reef",
 			diag: { current: true, execution: "draining", intents: [siesta] },
 			executionStatus: "draining",
@@ -44,6 +46,7 @@ it("admits raw Session execution state only under diagnostics", () => {
 		backend: "scripted",
 		canInterrupt: false,
 		canSend: false,
+		canSleep: false,
 		cwd: "/tmp/reef",
 		diag: { current: true, execution: "draining", intents: [siesta] },
 		id: "session-1",

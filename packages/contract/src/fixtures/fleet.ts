@@ -1,5 +1,5 @@
 import type { AppInfo } from "#app-info.ts";
-import type { Fleet } from "#sight.ts";
+import type { Fleet } from "#fleet.ts";
 
 export const info: AppInfo = {
 	chromeVersion: "138.0.0.0",
@@ -19,6 +19,7 @@ export const fleet: Fleet = {
 					status: "ready",
 				},
 			],
+			canRetire: false,
 			charter: "chart the reef",
 			diag: { currentSessionId: "session-1", intents: [] },
 			id: "agent-1",
@@ -28,6 +29,7 @@ export const fleet: Fleet = {
 					backend: "claude",
 					canInterrupt: true,
 					canSend: true,
+					canSleep: false,
 					cwd: "/tmp/reef",
 					diag: { current: true, execution: "active", intents: [] },
 					presence: "working",

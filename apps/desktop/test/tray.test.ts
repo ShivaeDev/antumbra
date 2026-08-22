@@ -13,6 +13,7 @@ const session = (id: string, canInterrupt: boolean): SessionSummary => ({
 	backend: "claude",
 	canInterrupt,
 	canSend: canInterrupt,
+	canSleep: false,
 	cwd: "/moorage",
 	diag: { current: true, execution: "active", intents: [] },
 	id,
@@ -25,6 +26,7 @@ const agent = (
 	sessions: ReadonlyArray<SessionSummary>,
 ): AgentSummary => ({
 	berths: [],
+	canRetire: false,
 	charter: "charter",
 	diag: { currentSessionId: sessions[0]?.id ?? null, intents: [] },
 	id,

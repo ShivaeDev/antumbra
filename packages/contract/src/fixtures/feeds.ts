@@ -2,8 +2,9 @@ import { Stream } from "effect";
 import { fleet } from "#fixtures/fleet.ts";
 import { storedEvents } from "#fixtures/transcript.ts";
 import { quayView, reefSummary, reefView } from "#fixtures/voyage.ts";
+import type { Fleet } from "#fleet.ts";
 import type { QuayView } from "#quay-views.ts";
-import type { Fleet, SessionEvent } from "#sight.ts";
+import type { SessionEvent } from "#sight.ts";
 import type { VoyageSummary, VoyageView } from "#voyage-views.ts";
 
 // why: every live projection the window watches is one field here, so a

@@ -1,11 +1,10 @@
 import { Schema } from "effect";
+import { Fleet, RepoSummary } from "#fleet.ts";
 import { type AppProcedure, surface } from "#router-procedure.ts";
 import { SessionTree } from "#session-tree.ts";
 import {
 	EventQuery,
-	Fleet,
 	RepoRegistration,
-	RepoSummary,
 	SessionEvent,
 	SightSource,
 	SpawnReceipt,
@@ -79,6 +78,12 @@ export const sightRoutes = (procedure: AppProcedure) => ({
 		.subscription(function* (input) {
 			const sight = yield* SightSource;
 			return sight.sessionTreeFeed(input.rootSessionId);
+		}),
+	sleepSession: procedure
+		.input(Schema.Struct({ sessionId: Schema.String }))
+		.mutation(function* (input) {
+			const sight = yield* SightSource;
+			yield* surface(sight.sleep(input.sessionId));
 		}),
 	spawnAgent: procedure
 		.input(SpawnRequest)

@@ -234,12 +234,14 @@ be spoken to.
 The two quiet states are reached by different things, and which thing matters.
 Standing down is a declaration, not a request to be put away: it drains work
 toward a safe holding point and leaves the Agent idle, attached, and reachable.
-Siesta is reached by the clock instead — a Session idle for longer than the
-threshold is put to rest by Antumbra, never by the Agent, which cannot ask to
-be reclaimed and cannot refuse to be. Idleness is therefore true only of a live
-process: a restart necessarily leaves every idle Session asleep, which is what
-the record already said, so boot has nothing to repair and reads them as
-ordinary resumable Sessions rather than as failures.
+Siesta is reached from outside the Agent instead — by the clock when a Session
+has been idle longer than the threshold, or by the admiral asking for it now —
+never by the Agent, which cannot ask to be reclaimed and cannot refuse to be.
+Both askers reach it through the same act and meet the same guard inside it, so
+there is one way a Session is put to rest and one way it wakes. Idleness is
+therefore true only of a live process: a restart necessarily leaves every idle
+Session asleep, which is what the record already said, so boot has nothing to
+repair and reads them as ordinary resumable Sessions rather than as failures.
 
 A root Session is reapable only after its provider work, tool calls, subsession
 subtree, descendant Agent tree, and background obligations have all settled; an
@@ -247,6 +249,18 @@ open subsession means the record is still unaccounted for, and resource
 pressure never interrupts an in-flight subtree. Long-lived concerns are
 externalized as subscriptions, durable Questions, and Board-backed mail rather
 than keeping a process attachment alive.
+
+Whether the subtree has settled is asked of the acquisition, not of the rows.
+Only a root is ever attached and every node under it rides that one stream, so
+a node the live stream opened and has not seen end is work reclaiming would cut
+off mid-sentence — while a node row left open by a stream that is already gone
+says only that the record never learned how it ended, which no amount of
+waiting will now change. Rest is therefore offered and performed only while
+nothing the current acquisition started is still speaking, and a request that
+arrives a moment too late is refused by name rather than quietly granted.
+Retirement answers to a weaker rule on purpose: it is withheld only while a
+Session is mid-turn, because ending an Agent is also what finally closes a
+subtree nothing else can settle.
 
 When pressure requires eviction, policy chooses among safe root Sessions by
 which is least likely to wake soon. The durable Agent, Session identity, Board,

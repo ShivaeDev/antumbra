@@ -6,7 +6,7 @@ import {
 	reefView,
 	soundings,
 } from "#fixtures/voyage.ts";
-import type { AgentSummary } from "#sight.ts";
+import type { AgentSummary } from "#fleet.ts";
 import type { VoyageSummary } from "#voyage-views.ts";
 
 // why: each of these is one turn of the script — the same reef a beat later,
@@ -22,6 +22,7 @@ const surveyor: AgentSummary = {
 			status: "ready",
 		},
 	],
+	canRetire: false,
 	charter: "sound the eastern shoal",
 	diag: { currentSessionId: "session-2", intents: [] },
 	id: "agent-2",
@@ -31,6 +32,7 @@ const surveyor: AgentSummary = {
 			backend: "claude",
 			canInterrupt: true,
 			canSend: true,
+			canSleep: false,
 			cwd: "/tmp/eastern-shoal",
 			diag: { current: true, execution: "active", intents: [] },
 			presence: "working",

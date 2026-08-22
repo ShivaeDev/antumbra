@@ -34,7 +34,7 @@ export const AgentCard = ({
 			<CardDescription className="line-clamp-2 wrap-anywhere">
 				{agent.charter}
 			</CardDescription>
-			{agent.status === "alive" ? (
+			{agent.canRetire ? (
 				<CardAction>
 					<Button
 						onClick={() => retireAgent(agent.id, onError)}

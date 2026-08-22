@@ -14,6 +14,13 @@ export {
 	type TrpcResponse,
 } from "#channels.ts";
 export {
+	AgentSummary,
+	BerthSummary,
+	Fleet,
+	RepoSummary,
+	SessionSummary,
+} from "#fleet.ts";
+export {
 	SubscribeRequest,
 	TrpcFailureCode,
 	TrpcRequest,
@@ -43,14 +50,9 @@ export {
 	UpdateSettings,
 } from "#settings.ts";
 export {
-	AgentSummary,
-	BerthSummary,
 	EventQuery,
-	Fleet,
 	RepoRegistration,
-	RepoSummary,
 	SessionEvent,
-	SessionSummary,
 	SightFailure,
 	SightSource,
 	SpawnReceipt,

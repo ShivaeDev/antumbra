@@ -1,22 +1,20 @@
 import type { AgentSummary, Fleet, RepoSummary } from "@antumbra/contract";
 import { Database } from "@antumbra/persistence";
 import {
-	decodeSessionExecutionStatus,
-	decodeStoredAgentSessionStatus,
 	decodeStoredAgentStatus,
 	decodeStoredBerthStatus,
 	decodeStoredResourceReclaimState,
-	sessionPresence,
 } from "@antumbra/vocabulary/agent-runtime";
 import { Effect } from "effect";
 import { rootSessions } from "#session-roots.ts";
 import { attributeIntents } from "#sight-diagnostics.ts";
+import { type FleetRuntime, sessionSummary } from "#sight-fleet-sessions.ts";
 import type { PendingIntent } from "#sight-intents.ts";
 
 export const fleetSnapshot = (
 	backends: ReadonlyArray<string>,
 	intents: ReadonlyArray<PendingIntent>,
-	attached: ReadonlySet<string>,
+	runtime: FleetRuntime,
 ) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
@@ -40,41 +38,7 @@ export const fleetSnapshot = (
 			new Set(sessions.map((session) => session.id)),
 		);
 		const sessionSummaries = yield* Effect.forEach(sessions, (session) =>
-			Effect.all({
-				executionStatus: Effect.fromResult(
-					decodeSessionExecutionStatus(session.id, session.executionStatus),
-				),
-				status: Effect.fromResult(
-					decodeStoredAgentSessionStatus(session.id, session.status),
-				),
-			}).pipe(
-				Effect.map(({ executionStatus, status }) => {
-					const running = status === "open" && executionStatus === "active";
-					return {
-						agentId: session.agentId,
-						backend: session.backend,
-						canInterrupt: running && attached.has(session.id),
-						// why: words reach every Session that has not ended — one that is
-						// listening takes them now, one whose process was reclaimed is
-						// woken by them — so the only Session the admiral cannot speak to
-						// is one there is nothing left to wake.
-						canSend: status === "open",
-						cwd: session.cwd,
-						diag: {
-							current: pointers.get(session.agentId) === session.id,
-							execution: executionStatus,
-							intents: attribution.sessions.get(session.id) ?? [],
-						},
-						id: session.id,
-						presence: sessionPresence({
-							attached: attached.has(session.id),
-							executionStatus,
-							open: status === "open",
-						}),
-						status,
-					};
-				}),
-			),
+			sessionSummary(session, runtime, attribution, pointers),
 		);
 		const storedBerths = yield* db.Berth.orderBy((berth) =>
 			berth.createdAt.asc(),
@@ -110,6 +74,16 @@ export const fleetSnapshot = (
 					slug: berth.slug,
 					status: berth.status,
 				})),
+			// why: ending an Agent stops whatever it is doing, so the act is
+			// withheld while any Session of its is mid-turn. It is deliberately a
+			// weaker rule than rest: retirement is what closes a subtree the record
+			// has stopped hearing from, and a tree nothing can settle would
+			// otherwise have no way out at all.
+			canRetire:
+				agent.status === "alive" &&
+				sessionSummaries
+					.filter((session) => session.agentId === agent.id)
+					.every((session) => session.retirable),
 			charter: agent.charter,
 			diag: {
 				currentSessionId: agent.currentSessionId,
@@ -123,6 +97,7 @@ export const fleetSnapshot = (
 					backend: session.backend,
 					canInterrupt: session.canInterrupt,
 					canSend: session.canSend,
+					canSleep: session.canSleep,
 					cwd: session.cwd,
 					diag: session.diag,
 					id: session.id,

@@ -23,6 +23,7 @@ export interface SightActs {
 		sessionId: string,
 		text: string,
 	) => Effect.Effect<void, SightFailure>;
+	readonly sleep: (sessionId: string) => Effect.Effect<void, SightFailure>;
 	readonly spawn: (
 		request: SpawnRequest,
 	) => Effect.Effect<SpawnReceipt, SightFailure>;
@@ -54,6 +55,16 @@ export const makeSightActs = Effect.gen(function* () {
 				}
 				yield* domain.sendToSession(sessionId, text);
 			}).pipe(Effect.mapError(toFailure)),
+		// why: the admiral's request and the clock's own are the same act, so both
+		// submit the same Intent and meet the same guard inside it. Nothing is
+		// checked here: a capability read from the last snapshot is a statement
+		// about a moment that has already passed, and the Intent is where the
+		// question gets asked of the present.
+		sleep: (sessionId) =>
+			provide(kernel.submit(domain.siesta, { sessionId })).pipe(
+				Effect.asVoid,
+				Effect.mapError(toFailure),
+			),
 		spawn: (request) =>
 			Effect.gen(function* () {
 				const agentId = crypto.randomUUID();

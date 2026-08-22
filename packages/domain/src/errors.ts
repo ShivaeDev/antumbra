@@ -20,6 +20,10 @@ export {
 	SessionNotLive,
 } from "@antumbra/session-fabric";
 export {
+	CaptainAlreadyHailed,
+	CaptainSessionUnavailable,
+} from "#captain-errors.ts";
+export {
 	AgentSessionConflict,
 	CurrentSessionInvalid,
 } from "#current-session-errors.ts";
@@ -98,6 +102,21 @@ export class SessionNotFound extends Data.TaggedError("SessionNotFound")<{
 	}
 }
 
+// why: only a root is ever attached, and the delegated conversations under it
+// ride that one acquisition — so putting it to rest would take their stream
+// away mid-sentence. The refusal is named rather than silent because whoever
+// asked was reading a moment that had already passed, and a Session that
+// quietly stayed awake would look exactly like one that had been put to rest.
+export class SessionStillDelegating extends Data.TaggedError(
+	"SessionStillDelegating",
+)<{
+	readonly sessionId: string;
+}> {
+	override get message(): string {
+		return `session ${this.sessionId} still has a delegated conversation under way and cannot be put to rest`;
+	}
+}
+
 // why: the one state that refuses words. Every other state either holds the
 // conversation open or can be woken back into it, so this refusal is the whole
 // set of ways an Agent can stop being reachable.
@@ -106,31 +125,5 @@ export class SessionEnded extends Data.TaggedError("SessionEnded")<{
 }> {
 	override get message(): string {
 		return `session ${this.sessionId} has ended and cannot be spoken to`;
-	}
-}
-
-// why: a voyage is under way because its captain is at work, so hailing a
-// second one while the first still is would give the voyage two accountable
-// addresses. The refusal names the captain it already has.
-export class CaptainAlreadyHailed extends Data.TaggedError(
-	"CaptainAlreadyHailed",
-)<{
-	readonly agentId: string;
-	readonly voyageId: string;
-}> {
-	override get message(): string {
-		return `voyage ${this.voyageId} already has captain ${this.agentId} at work`;
-	}
-}
-
-export class CaptainSessionUnavailable extends Data.TaggedError(
-	"CaptainSessionUnavailable",
-)<{
-	readonly agentId: string;
-	readonly detail: string;
-	readonly voyageId: string;
-}> {
-	override get message(): string {
-		return `captain ${this.agentId} cannot resume: ${this.detail}`;
 	}
 }

@@ -23,15 +23,19 @@ export const SightSourceLive = Layer.effect(SightSource)(
 		const events = yield* makeSightSessionEvents;
 		const tree = yield* makeSightSessionTree;
 
-		// why: the attachments are read in the same pass as the rows, so one
-		// snapshot never mixes what the record said a moment ago with what this
-		// process is holding now.
+		// why: the attachments and what they are carrying are read in the same pass
+		// as the rows, so one snapshot never mixes what the record said a moment
+		// ago with what this process is holding now.
 		const fleet = pendingIntents.pipe(
 			Effect.provideService(AgentDomain, domain),
 			Effect.provideService(Kernel, kernel),
 			Effect.flatMap((intents) =>
-				Effect.flatMap(domain.sessionsAttached, (attached) =>
-					fleetSnapshot(domain.backends, intents, attached),
+				Effect.flatMap(
+					Effect.all({
+						attached: domain.sessionsAttached,
+						delegating: domain.sessionsDelegating,
+					}),
+					(runtime) => fleetSnapshot(domain.backends, intents, runtime),
 				),
 			),
 			Effect.provideService(Database, db),

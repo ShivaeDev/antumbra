@@ -1,6 +1,6 @@
 import type { SessionSummary } from "@antumbra/contract";
 import { SquareArrowOutUpRightIcon } from "lucide-react";
-import { interruptSession } from "#adapters/trpc.ts";
+import { interruptSession, sleepSession } from "#adapters/trpc.ts";
 import { openWindow } from "#adapters/trpc-windows.ts";
 import { Badge } from "#components/ui/badge.tsx";
 import { Button } from "#components/ui/button.tsx";
@@ -76,6 +76,18 @@ export const SessionRow = ({
 				variant="outline"
 			>
 				Interrupt
+			</Button>
+		) : null}
+		{/* why: no confirmation. Rest is undone by speaking to the Session, so
+		    asking twice would guard against nothing — and the act is offered only
+		    when the whole tree is at rest, which is the guard that matters. */}
+		{session.canSleep ? (
+			<Button
+				onClick={() => sleepSession(session.id, onError)}
+				size="sm"
+				variant="outline"
+			>
+				Sleep
 			</Button>
 		) : null}
 	</div>

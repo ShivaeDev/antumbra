@@ -1,15 +1,22 @@
-import { charterText, logSection, section } from "#charter-sections.ts";
-import type { PieceRow, VoyageRow } from "#voyage-rows.ts";
+import { Schema } from "effect";
+import { type AgentPrompt, agentPrompt } from "#mint.ts";
+import { logSection, proseOf, section } from "#prose.ts";
 
-export interface CrewLogs {
-	readonly pieceSmoothLog: ReadonlyArray<string>;
-	readonly voyageSmoothLog: ReadonlyArray<string>;
-}
+export const CrewCharter = Schema.Struct({
+	context: Schema.String,
+	expectation: Schema.String,
+	northStar: Schema.String,
+	pieceCharter: Schema.String,
+	pieceLog: Schema.Array(Schema.String),
+	pieceTitle: Schema.String,
+	voyageLog: Schema.Array(Schema.String),
+});
+export type CrewCharter = typeof CrewCharter.Type;
 
 // why: the standing order names its tools, because a crew member that has to
 // infer how to act reports into the void. Chartering is absent from the set
 // and absent from the order: workers report, captains charter.
-const CREW_STANDING_ORDER = [
+const STANDING_ORDER = [
 	"- Land what you produce against your piece: `land_report` for prose another agent will read, `land_artifact` for something a person should look at. A piece is done when its outcomes land; nothing else marks it.",
 	"- Code changes are opened with `open_change` against the repo you were berthed in, or adopted with `adopt_change` if you opened one by hand. Opening is not landing: your piece completes when the change lands.",
 	"- Write anything your successor must know to your piece board with `write_board` — the smooth register for what stays true, the rough register for scratch. `read_board` shows what earlier hands left.",
@@ -21,17 +28,15 @@ const CREW_STANDING_ORDER = [
 // a model, not parsed — so it stays plain prose in a fixed order: where the
 // voyage is going, what surrounds it, the piece this agent answers to, what
 // earlier hands left behind, and how to act.
-export const composeCrewCharter = (
-	voyage: VoyageRow,
-	piece: PieceRow,
-	logs: CrewLogs,
-): string =>
-	charterText([
-		section("North star", voyage.northStar),
-		section("Context", voyage.context),
-		section(`Your piece: ${piece.title}`, piece.charter),
-		section("Expected outcome", piece.expectation),
-		logSection("Voyage log", logs.voyageSmoothLog),
-		logSection("Piece log", logs.pieceSmoothLog),
-		section("Standing orders", CREW_STANDING_ORDER),
-	]);
+export const crewCharter = (input: CrewCharter): AgentPrompt =>
+	agentPrompt(
+		proseOf([
+			section("North star", input.northStar),
+			section("Context", input.context),
+			section(`Your piece: ${input.pieceTitle}`, input.pieceCharter),
+			section("Expected outcome", input.expectation),
+			logSection("Voyage log", input.voyageLog),
+			logSection("Piece log", input.pieceLog),
+			section("Standing orders", STANDING_ORDER),
+		]),
+	);

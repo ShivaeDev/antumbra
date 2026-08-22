@@ -4,6 +4,7 @@ import {
 	type WriteExecutors,
 } from "@antumbra/persistence";
 import type { BackendFailure } from "@antumbra/plugin-api";
+import type { AgentPrompt } from "@antumbra/prompts";
 import { SessionFabric } from "@antumbra/session-fabric";
 import {
 	decodeStoredAgentSessionStatus,
@@ -56,11 +57,11 @@ export const makeSessionSend = Effect.gen(function* () {
 	// why: the wake is written after the words are taken, never before — a row
 	// claiming a Session is executing when the handover failed is durable truth
 	// nobody can see is false.
-	const deliver = (sessionId: string, text: string) =>
+	const deliver = (sessionId: string, text: AgentPrompt) =>
 		fabric
 			.send(sessionId, text)
 			.pipe(Effect.andThen(recovery.awaken(sessionId)));
-	const rouse = (sessionId: string, text: string) =>
+	const rouse = (sessionId: string, text: AgentPrompt) =>
 		reach.rouseSession({ message: text, sessionId }).pipe(
 			Effect.flatMap((wake) =>
 				Effect.forkIn(
@@ -91,7 +92,7 @@ export const makeSessionSend = Effect.gen(function* () {
 		});
 	return (
 		sessionId: string,
-		text: string,
+		text: AgentPrompt,
 	): Effect.Effect<void, SessionSendRefused> =>
 		Effect.gen(function* () {
 			yield* open(sessionId);

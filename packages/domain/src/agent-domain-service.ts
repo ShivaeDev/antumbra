@@ -3,6 +3,7 @@ import type { IntentDemandRegistration } from "@antumbra/intent-demand";
 import type { AnyIntentKind, IntentKind } from "@antumbra/kernel";
 import type { PrismaError } from "@antumbra/persistence";
 import type { BackendFailure } from "@antumbra/plugin-api";
+import type { AgentPrompt } from "@antumbra/prompts";
 import type { RepoRegistry } from "@antumbra/repos";
 import type { StoredAgentStatusInvalid } from "@antumbra/vocabulary/agent-runtime";
 import { Context, type Effect } from "effect";
@@ -44,10 +45,12 @@ export class AgentDomain extends Context.Service<
 		readonly reopenSessionStarts: Effect.Effect<void>;
 		readonly retire: IntentKind<RetireFields>;
 		// why: the admiral's own words take the turn-boundary lane — the domain
-		// picks the delivery verb, never the backend.
+		// picks the delivery verb, never the backend. The words themselves come
+		// from the catalog, so this seam names the branded type and prose
+		// assembled anywhere else does not compile.
 		readonly sendToSession: (
 			sessionId: string,
-			text: string,
+			text: AgentPrompt,
 		) => Effect.Effect<void, SessionSendRefused>;
 		// why: which root Sessions this process is holding right now. A projection
 		// asks the fabric because the row cannot know it, and the answer is what

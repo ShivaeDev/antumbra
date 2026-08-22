@@ -6,6 +6,7 @@ const session = (
 	id: string,
 	presence: SessionSummary["presence"],
 ): SessionSummary => ({
+	addressable: [],
 	backend: "scripted",
 	canInterrupt: presence === "working",
 	canSend: presence !== "ended",

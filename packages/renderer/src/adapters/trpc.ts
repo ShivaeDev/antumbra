@@ -6,6 +6,7 @@ import type {
 	RepoSummary,
 	SessionEvent,
 	SessionTree,
+	SituationDraft,
 	SpawnReceipt,
 	SpawnRequest,
 } from "@antumbra/contract";
@@ -112,6 +113,17 @@ export const sendToSession = (
 	client.sendToSession
 		.mutate({ sessionId, text })
 		.then(onDone)
+		.catch((cause: unknown) => onError(toError(cause).message));
+};
+
+export const situationDraft = (
+	draft: SituationDraft,
+	onDraft: (text: string) => void,
+	onError: (message: string) => void,
+): void => {
+	client.situationDraft
+		.query(draft)
+		.then(onDraft)
 		.catch((cause: unknown) => onError(toError(cause).message));
 };
 

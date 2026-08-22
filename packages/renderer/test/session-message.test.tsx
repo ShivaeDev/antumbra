@@ -34,6 +34,7 @@ const fleetWith = (
 			role: "navigator",
 			sessions: [
 				{
+					addressable: [],
 					backend: "scripted",
 					canInterrupt: presence === "working",
 					canSend: presence !== "ended",

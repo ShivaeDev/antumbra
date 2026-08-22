@@ -3,6 +3,7 @@ import {
 	SessionPresenceSchema,
 } from "@antumbra/vocabulary/agent-runtime";
 import { Schema } from "effect";
+import { SessionSituation } from "#session-situations.ts";
 import {
 	AgentDiagnostics,
 	FleetDiagnostics,
@@ -14,6 +15,11 @@ import {
 // shapes are the projection's contract, while the acts beside them are how the
 // projection is changed; the two move for different reasons.
 export const SessionSummary = Schema.Struct({
+	// why: the situations on this Session's Changes that the admiral can put it
+	// back on, published as a list rather than left for a view to work out from
+	// Change rows it would first have to be given. Empty is the ordinary case:
+	// nothing is wrong, or nothing can be said to this Session anyway.
+	addressable: Schema.Array(SessionSituation),
 	backend: Schema.String,
 	canInterrupt: Schema.Boolean,
 	// why: whether the admiral's words can reach this Session now, published as

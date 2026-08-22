@@ -29,6 +29,7 @@ const siesta = { id: "intent-1", kind: "session/siesta", state: "queued" };
 it("admits raw Session execution state only under diagnostics", () => {
 	const decoded = Schema.decodeUnknownSync(Fleet)(
 		agentAround({
+			addressable: [],
 			backend: "scripted",
 			canInterrupt: false,
 			canSend: false,
@@ -43,6 +44,7 @@ it("admits raw Session execution state only under diagnostics", () => {
 		}),
 	);
 	expect(decoded.agents[0]?.sessions[0]).toEqual({
+		addressable: [],
 		backend: "scripted",
 		canInterrupt: false,
 		canSend: false,

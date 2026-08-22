@@ -35,6 +35,7 @@ export {
 } from "#quay-views.ts";
 export { type AppRouter, makeAppRouter } from "#router.ts";
 export { type RequestContext, RequestOrigin } from "#router-procedure.ts";
+export { ChangeSituation, SessionSituation } from "#session-situations.ts";
 export {
 	SessionTree,
 	SessionTreeNode,
@@ -55,6 +56,7 @@ export {
 	SessionEvent,
 	SightFailure,
 	SightSource,
+	SituationDraft,
 	SpawnReceipt,
 	SpawnRequest,
 } from "#sight.ts";

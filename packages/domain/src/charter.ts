@@ -1,13 +1,7 @@
 import { Database, type WriteExecutors, Writer } from "@antumbra/persistence";
 import type { SessionHandle } from "@antumbra/plugin-api";
+import { type BerthedCharter, berthedCharter } from "@antumbra/prompts";
 import { Clock, Effect, Option } from "effect";
-import {
-	CAPTAIN_BERTH_ORDER,
-	type CharterBerth,
-	type CharterMoorage,
-	CREW_BERTH_ORDER,
-	withBerths,
-} from "#charter-berths.ts";
 import type { SpawnFields } from "#spawn-fields.ts";
 import { spawnSessionIdentity } from "#spawn-identity.ts";
 import { isVoyageCaptainIdentity } from "#voyage-captain.ts";
@@ -18,13 +12,15 @@ interface BerthRow {
 	readonly source: string;
 }
 
+type Moorage = Pick<BerthedCharter, "berths" | "moorageRoot">;
+
 // why: the berth carries the source it was cut from, and only the registry
 // row turns that into the name a change tool accepts — a berth whose repo was
 // forgotten can no longer be addressed and is left unnamed.
 const namedBerths = (
 	berths: ReadonlyArray<BerthRow>,
 	repos: ReadonlyArray<{ readonly name: string; readonly source: string }>,
-): ReadonlyArray<CharterBerth> =>
+): BerthedCharter["berths"] =>
 	berths.flatMap((berth) => {
 		const repo = repos.find((row) => row.source === berth.source);
 		return repo === undefined
@@ -32,10 +28,10 @@ const namedBerths = (
 			: [{ branch: berth.branch, folder: `./${berth.slug}`, repo: repo.name }];
 	});
 
-const berthOrderFor = (payload: SpawnFields): string =>
+const roleFor = (payload: SpawnFields): BerthedCharter["role"] =>
 	isVoyageCaptainIdentity(payload.role, spawnSessionIdentity(payload))
-		? CAPTAIN_BERTH_ORDER
-		: CREW_BERTH_ORDER;
+		? "captain"
+		: "crew";
 
 export const charterDelivery = Effect.gen(function* () {
 	const db = yield* Database;
@@ -47,7 +43,7 @@ export const charterDelivery = Effect.gen(function* () {
 		Effect.gen(function* () {
 			const moorage = yield* db.Moorage.where({ agentId }).first();
 			if (Option.isNone(moorage)) {
-				return { berths: [], root: "" } satisfies CharterMoorage;
+				return { berths: [], moorageRoot: "" } satisfies Moorage;
 			}
 			const berths = yield* db.Berth.where({ agentId })
 				.orderBy((berth) => berth.createdAt.asc())
@@ -57,8 +53,8 @@ export const charterDelivery = Effect.gen(function* () {
 			).all();
 			return {
 				berths: namedBerths(berths, repos),
-				root: moorage.value.root,
-			} satisfies CharterMoorage;
+				moorageRoot: moorage.value.root,
+			} satisfies Moorage;
 		});
 	const stamp = (payload: SpawnFields) =>
 		Effect.gen(function* () {
@@ -83,7 +79,11 @@ export const charterDelivery = Effect.gen(function* () {
 			}
 			const moorage = yield* provide(moorageOf(payload.agentId));
 			yield* handle.queue(
-				withBerths(payload.charter, moorage, berthOrderFor(payload)),
+				berthedCharter({
+					...moorage,
+					charter: payload.charter,
+					role: roleFor(payload),
+				}),
 			);
 			yield* stamp(payload);
 		});

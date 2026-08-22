@@ -1,14 +1,6 @@
 import { Database } from "@antumbra/persistence";
 import { expect, it } from "@effect/vitest";
 import { Effect } from "effect";
-import {
-	CAPTAIN_BERTH_ORDER,
-	type CharterBerth,
-	CREW_BERTH_ORDER,
-	withBerths,
-} from "#charter-berths.ts";
-import { composeCaptainCharter } from "#charter-captain.ts";
-import { composeCrewCharter } from "#charter-compose.ts";
 import { AgentDomain } from "#domain.ts";
 import {
 	acquireTemporaryPersistence,
@@ -19,114 +11,12 @@ import {
 	sessionFor,
 } from "#test/harness.ts";
 import { eventually, openReefVoyage, PATIENCE } from "#test/voyage-fixtures.ts";
-import type { PieceRow, VoyageRow } from "#voyage-rows.ts";
 
-const voyage: VoyageRow = {
-	backend: "scripted",
-	context: "the reef is uncharted",
-	focusedAt: null,
-	id: "voyage-1",
-	name: "Chart the reef",
-	northStar: "every shoal is known",
-};
-
-const piece: PieceRow = {
-	charter: "sound the shallows",
-	expectation: "soundings are landed",
-	id: "piece-1",
-	launchedAt: null,
-	parkedAt: null,
-	role: "hand",
-	title: "alpha",
-};
-
-const NO_LOGS = { pieceSmoothLog: [], voyageSmoothLog: [] };
-
-const MOORAGE = "/moorage/a1b2c3d4";
-
-const LEAD = `Your working directory is your moorage, ${MOORAGE}. Every repository below is a folder directly inside it, and everything else you write — notes, scratch, files you mean to land — belongs in the moorage itself, never above it.`;
-
-const antumbra: CharterBerth = {
-	branch: "work/a1b2c3d4/antumbra",
-	folder: "./antumbra",
-	repo: "Antumbra",
-};
-
-const charts: CharterBerth = {
-	branch: "work/a1b2c3d4/reef-charts",
-	folder: "./reef-charts",
-	repo: "Reef-Charts",
-};
-
-const crewCharter = (berths: ReadonlyArray<CharterBerth>) =>
-	withBerths(
-		composeCrewCharter(voyage, piece, NO_LOGS),
-		{ berths, root: MOORAGE },
-		CREW_BERTH_ORDER,
-	);
-
-const captainCharter = (berths: ReadonlyArray<CharterBerth>) =>
-	withBerths(
-		composeCaptainCharter(voyage, [], { voyageSmoothLog: [] }),
-		{ berths, root: MOORAGE },
-		CAPTAIN_BERTH_ORDER,
-	);
-
-it("an agent with no berths is told of none and ordered about none", () => {
-	expect(crewCharter([])).toBe(composeCrewCharter(voyage, piece, NO_LOGS));
-	expect(crewCharter([])).not.toContain("# Berths");
-	expect(captainCharter([])).not.toContain("# Berths");
-});
-
-it("the moorage the agent stands in leads the berths it holds", () => {
-	expect(crewCharter([antumbra])).toContain(
-		`# Berths\n${LEAD}\nAntumbra — ./antumbra — branch work/a1b2c3d4/antumbra`,
-	);
-});
-
-it("the absolute moorage is stated once and every berth is relative", () => {
-	const text = crewCharter([antumbra, charts]);
-	expect(text.split(MOORAGE)).toHaveLength(2);
-	expect(text).not.toContain(`${MOORAGE}/antumbra`);
-});
-
-it("the moorage is named as the place scratch belongs, not only berths", () => {
-	expect(crewCharter([antumbra])).toContain(
-		"belongs in the moorage itself, never above it",
-	);
-});
-
-it("the registry name is printed, never the berth folder's slug", () => {
-	const text = crewCharter([antumbra]);
-	expect(text).toContain("\nAntumbra — ./antumbra");
-	expect(text).not.toContain("\nantumbra —");
-});
-
-it("every berth is a line of its own", () => {
-	expect(crewCharter([antumbra, charts])).toContain(
-		[
-			LEAD,
-			"Antumbra — ./antumbra — branch work/a1b2c3d4/antumbra",
-			"Reef-Charts — ./reef-charts — branch work/a1b2c3d4/reef-charts",
-		].join("\n"),
-	);
-});
-
-it("the berth order joins the standing orders and precedes the berths", () => {
-	const text = crewCharter([antumbra]);
-	expect(text.indexOf("`stand_down`")).toBeLessThan(
-		text.indexOf(CREW_BERTH_ORDER),
-	);
-	expect(text.indexOf(CREW_BERTH_ORDER)).toBeLessThan(text.indexOf("# Berths"));
-	expect(text).toContain("`open_change`");
-});
-
-it("a captain is told the same berths without crew tools it does not hold", () => {
-	const text = captainCharter([antumbra]);
-	expect(text).toContain(`# Berths\n${LEAD}\nAntumbra — ./antumbra`);
-	expect(text).toContain(CAPTAIN_BERTH_ORDER);
-	expect(text).not.toContain("`open_change`");
-});
+// why: the catalog's own tests prove the berth order is composed; this one
+// proves the words that reach a dispatched crew are that order verbatim, so
+// the copy here is deliberate and a drift between them is the failure.
+const CREW_BERTH_ORDER =
+	"- Work inside a berth's folder, never in the moorage root itself and never in a mirror, and give `open_change`, `submit_change` and `adopt_change` the repo name exactly as the Berths section spells it — not the folder's name.";
 
 const crewOf = (pieceId: string) =>
 	Effect.gen(function* () {

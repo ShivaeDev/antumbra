@@ -29,6 +29,7 @@ const navigator = (canInterrupt: boolean, execution: string): AgentSummary => ({
 	role: "navigator-of-the-northern-approach",
 	sessions: [
 		{
+			addressable: [],
 			backend: "scripted",
 			canInterrupt,
 			canSend: canInterrupt,
@@ -69,6 +70,7 @@ const draining: AgentSummary = {
 	role: "navigator",
 	sessions: [
 		{
+			addressable: [],
 			backend: "scripted",
 			canInterrupt: false,
 			canSend: false,
@@ -143,6 +145,7 @@ const listening = (canSleep: boolean): AgentSummary => ({
 	...navigator(false, "idle"),
 	sessions: [
 		{
+			addressable: [],
 			backend: "scripted",
 			canInterrupt: false,
 			canSend: true,

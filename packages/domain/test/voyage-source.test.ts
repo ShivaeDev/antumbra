@@ -113,6 +113,31 @@ it.live("a board entry the window writes carries no author agent", () =>
 	}),
 );
 
+it.live("a voyage read carries each piece's own log", () =>
+	Effect.gen(function* () {
+		const temporary = yield* acquireTemporaryPersistence;
+		const scripted = yield* makeScriptedBackend;
+		yield* Effect.gen(function* () {
+			const source = yield* VoyageSource;
+			const opened = yield* source.open(reef);
+			const piece = yield* source.charterPiece(soundings(opened.id));
+			yield* source.writeBoard({
+				body: "## Sounding\n\nThe edge is **shallow**.",
+				register: "smooth",
+				scope: { kind: "piece", pieceId: piece.pieceId },
+			});
+
+			const view = yield* source.voyage(opened.id);
+			expect(view.pieces[0]?.board).toMatchObject([
+				{
+					body: "## Sounding\n\nThe edge is **shallow**.",
+					register: "smooth",
+				},
+			]);
+		}).pipe(Effect.provide(voyageLayer(temporary, scripted)));
+	}),
+);
+
 it.live("a hail puts a captain and a crew row on what the window reads", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;

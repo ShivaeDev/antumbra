@@ -68,10 +68,20 @@ export const PieceState = Schema.Literals([
 ]);
 export type PieceState = typeof PieceState.Type;
 
+export const BoardEntryView = Schema.Struct({
+	authorAgentId: Schema.NullOr(Schema.String),
+	body: Schema.String,
+	createdAt: Schema.String,
+	id: Schema.String,
+	register: BoardRegisterSchema,
+});
+export type BoardEntryView = typeof BoardEntryView.Type;
+
 export const PieceView = Schema.Struct({
 	agents: Schema.Array(PieceAgentView),
 	artifactHistory: Schema.Array(ArtifactHistoryView),
 	artifacts: Schema.Array(ArtifactView),
+	board: Schema.Array(BoardEntryView),
 	changes: Schema.Array(ChangeView),
 	charter: Schema.String,
 	dependsOn: Schema.Array(Schema.String),
@@ -85,15 +95,6 @@ export const PieceView = Schema.Struct({
 	title: Schema.String,
 });
 export type PieceView = typeof PieceView.Type;
-
-export const BoardEntryView = Schema.Struct({
-	authorAgentId: Schema.NullOr(Schema.String),
-	body: Schema.String,
-	createdAt: Schema.String,
-	id: Schema.String,
-	register: BoardRegisterSchema,
-});
-export type BoardEntryView = typeof BoardEntryView.Type;
 
 // why: whether a captain is at work is the domain's own judgment — the same
 // reading that refuses a second hail — so a window offers the hail on this

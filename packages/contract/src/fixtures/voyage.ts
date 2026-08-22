@@ -27,6 +27,15 @@ export const soundings: PieceView = {
 	agents: [{ agentId: "agent-2", status: "alive" }],
 	artifactHistory: [],
 	artifacts: [],
+	board: [
+		{
+			authorAgentId: "agent-2",
+			body: "## Latest sounding\n\nThe northern edge is **shallow**.",
+			createdAt: "2026-08-15T09:12:00.000Z",
+			id: "entry-piece-1",
+			register: "smooth",
+		},
+	],
 	changes: [shoalWarning],
 	charter: "sound the northern shoals",
 	dependsOn: [],
@@ -44,6 +53,7 @@ export const chart: PieceView = {
 	agents: [],
 	artifactHistory: [],
 	artifacts: [],
+	board: [],
 	changes: [],
 	charter: "draw the chart from the soundings",
 	dependsOn: ["piece-1"],

@@ -38,7 +38,10 @@ export const changeSeen = (change: DerivedChange): ChangeView => ({
 	url: change.url,
 });
 
-const pieceSeen = (piece: DerivedPiece): PieceView => ({
+const pieceSeen = (
+	piece: DerivedPiece,
+	board: ReadonlyArray<BoardEntryRow>,
+): PieceView => ({
 	agents: piece.agents.map((agent) => ({
 		agentId: agent.agentId,
 		status: agent.status,
@@ -58,6 +61,7 @@ const pieceSeen = (piece: DerivedPiece): PieceView => ({
 		id: artifact.id,
 		title: artifact.title,
 	})),
+	board: board.map(entrySeen),
 	changes: piece.changes.map(changeSeen),
 	charter: piece.charter,
 	dependsOn: piece.dependsOn,
@@ -107,6 +111,7 @@ export const summarySeen = (summary: DerivedSummary): VoyageSummary => ({
 export const voyageSeen = (
 	view: DerivedVoyage,
 	board: ReadonlyArray<BoardEntryRow>,
+	pieceBoards: ReadonlyMap<string, ReadonlyArray<BoardEntryRow>>,
 ): VoyageView => ({
 	...summarySeen(view),
 	board: board.map(entrySeen),
@@ -116,5 +121,7 @@ export const voyageSeen = (
 		role: member.role,
 		status: member.status,
 	})),
-	pieces: view.pieces.map(pieceSeen),
+	pieces: view.pieces.map((piece) =>
+		pieceSeen(piece, pieceBoards.get(piece.id) ?? []),
+	),
 });

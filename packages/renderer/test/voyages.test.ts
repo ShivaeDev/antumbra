@@ -23,6 +23,7 @@ const piece = (
 	agents: [],
 	artifactHistory: [],
 	artifacts: [],
+	board: [],
 	changes: [],
 	charter: `do ${title}`,
 	dependsOn,

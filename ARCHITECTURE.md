@@ -70,6 +70,7 @@ obligation remains detached until needed. See
 | `packages/backend-codex`  | The Codex agent backend: one app-server child, threads on it. Delegated threads are read passively off that one connection, admitted to a root by claim on evidence, and refused an attach at the wire; the census runs on a dedicated short-lived audit connection that can only read |
 | `packages/runner-local`   | The local runner: processes and git worktrees on this machine   |
 | `packages/persistence`    | SQLite behind Effect layers; owns all database access           |
+| `packages/trace-sink`     | Dev-only sink: finished spans and log entries into their own trace file |
 | `packages/renderer`       | The web UI                                                      |
 | `packages/harness`        | Browser dev harness: the renderer over the contract's fixtures, without the shell |
 
@@ -118,6 +119,16 @@ Everything it holds is process memory that may disappear at exit — handles,
 fibers, semaphores — rebuilt empty at boot, so the capability persists nothing
 and reaches no further than the driven ports. Domain composes it and supplies
 the durable event sink.
+
+`trace-sink` is a dev instrument and depends on nothing in the workspace. It
+provides an Effect Tracer and a second Logger that record finished spans and log
+entries into their own file in the dev data directory, pruned to the five most
+recent runs; the desktop shell installs it only when the app is not packaged, so
+a release carries no tracer at all. It is the one package besides `persistence`
+that may open a database, under a named sanctioned exception in the boundary
+policy, because the trace it writes is not durable truth and must never share
+the app's schema, migrations, or write path. See
+[dev tracing](docs/contributing/dev-tracing.md).
 
 Package manifests and exports are the source of truth for ordinary workspace
 edges. `dependency-cruiser` independently rejects architectural edges that a

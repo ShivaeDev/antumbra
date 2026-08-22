@@ -19,6 +19,7 @@ import type {
 	BoundaryRule,
 	FixtureEdge,
 	FixtureEndpoint,
+	SanctionedException,
 } from "#boundaries/model.ts";
 import { boundaryPolicy } from "#boundaries/policy.ts";
 
@@ -76,6 +77,23 @@ const replaceRule = (
 	rule: BoundaryRule,
 	change: Partial<Pick<BoundaryRule, "examples" | "rationale">>,
 ): BoundaryRule => Object.assign({}, rule, change);
+
+const databaseRule = compiledBoundaryPolicy.configuration.forbidden.find(
+	({ name }) => name === "persistence-owns-the-db",
+);
+
+const exceptionRule = (exception: SanctionedException): BoundaryRule => ({
+	examples: firstRule.examples,
+	from: {
+		excludedPackages: ["persistence"],
+		kind: "workspace-except",
+		sanctioned: [exception],
+	},
+	kind: "negative-fence",
+	name: "sanctioned-exception-under-test",
+	rationale: "A rule that exists to exercise sanctioned exception validation.",
+	to: { kind: "external-module", name: "node:sqlite" },
+});
 
 afterEach(() => {
 	for (const tree of temporaryTrees.splice(0)) {
@@ -140,6 +158,74 @@ describe("boundary policy compiler", () => {
 		expect(() => compileBoundaryPolicy([broken])).toThrow(
 			`Boundary rule has no rationale: ${firstRule.name}`,
 		);
+	});
+
+	it("rejects a sanctioned exception that states no ruling", () => {
+		expect(() =>
+			compileBoundaryPolicy([
+				exceptionRule({
+					package: "trace-sink",
+					rationale: "It writes its own file.",
+					ruling: "  ",
+				}),
+			]),
+		).toThrow(
+			"Sanctioned exception in sanctioned-exception-under-test needs a package, a ruling, and a rationale",
+		);
+	});
+
+	it("rejects a sanctioned exception that states no reason", () => {
+		expect(() =>
+			compileBoundaryPolicy([
+				exceptionRule({
+					package: "trace-sink",
+					rationale: "",
+					ruling: "dev trace sink",
+				}),
+			]),
+		).toThrow(
+			"Sanctioned exception in sanctioned-exception-under-test needs a package, a ruling, and a rationale",
+		);
+	});
+
+	it("rejects a sanctioned exception that names no package", () => {
+		expect(() =>
+			compileBoundaryPolicy([
+				exceptionRule({
+					package: "",
+					rationale: "It writes its own file.",
+					ruling: "dev trace sink",
+				}),
+			]),
+		).toThrow(
+			"Sanctioned exception in sanctioned-exception-under-test needs a package, a ruling, and a rationale",
+		);
+	});
+});
+
+describe("the sanctioned exception to persistence owning the database", () => {
+	it("carries its ruling and reason into the generated configuration", () => {
+		expect(databaseRule?.comment).toContain("dev trace sink");
+		expect(databaseRule?.comment).toContain("packages/trace-sink");
+		expect(databaseRule?.comment).toContain(
+			"Database access exists only behind the persistence package.",
+		);
+	});
+
+	it("exempts the sanctioned package and no neighbour of it", () => {
+		const consumers = new RegExp(databaseRule?.from.path ?? "$^");
+		expect(consumers.test("packages/trace-sink/src/adapters/database.ts")).toBe(
+			false,
+		);
+		expect(consumers.test("packages/trace-sink/test/trace-sink.test.ts")).toBe(
+			false,
+		);
+		expect(consumers.test("packages/persistence/src/database.ts")).toBe(false);
+		expect(consumers.test("packages/trace-sink-adjacent/src/store.ts")).toBe(
+			true,
+		);
+		expect(consumers.test("packages/domain/src/domain.ts")).toBe(true);
+		expect(consumers.test("apps/desktop/src/main.ts")).toBe(true);
 	});
 });
 

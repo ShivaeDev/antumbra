@@ -48,11 +48,19 @@ const onePass = (
 				yield* dispatchPiece(port, candidate, {
 					_tag: "resume",
 					sessionId: assigned.sessionId,
-				});
+				}).pipe(
+					Effect.annotateSpans({
+						agentId: assigned.agentId,
+						pieceId: candidate.piece.id,
+						sessionId: assigned.sessionId,
+					}),
+				);
 				continue;
 			}
 			if (budget > 0) {
-				yield* dispatchPiece(port, candidate, { _tag: "spawn" });
+				yield* dispatchPiece(port, candidate, { _tag: "spawn" }).pipe(
+					Effect.annotateSpans({ pieceId: candidate.piece.id }),
+				);
 				budget -= 1;
 			}
 		}

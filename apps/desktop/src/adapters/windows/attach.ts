@@ -5,7 +5,10 @@ import {
 	confineNavigation,
 	revokeOnDocumentMutation,
 } from "#adapters/windows/confinement.ts";
-import { attachWindowLifecycle } from "#adapters/windows/lifecycle.ts";
+import {
+	attachWindowLifecycle,
+	holdAuthority,
+} from "#adapters/windows/lifecycle.ts";
 import type {
 	OwnedWindow,
 	WindowCandidate,
@@ -83,15 +86,11 @@ const wire = (
 	record: OwnedWindow,
 	adopt: Adopt,
 ): void => {
-	let place = record.place;
+	const authority = holdAuthority(opening.registry, record);
 	window.on("focus", () => opening.registry.noteFocus(record.id));
-	const release = () => {
-		place = opening.registry.windowOf(record.id)?.place ?? place;
-		opening.registry.release(window.webContents);
-	};
 	const recover = () => {
 		window.webContents.once("did-finish-load", () => {
-			if (adopt(place) === undefined) {
+			if (adopt(authority.place()) === undefined) {
 				report("bridge: a reloaded window did not return to its document");
 			}
 		});
@@ -105,7 +104,7 @@ const wire = (
 			},
 		},
 		{
-			release,
+			release: authority.release,
 			report: () =>
 				report("bridge: a window left its trusted document and was closed"),
 		},
@@ -120,9 +119,9 @@ const wire = (
 			},
 		},
 		{
-			onClosed: () => closeChildren(opening.registry, place),
+			onClosed: () => closeChildren(opening.registry, authority.place()),
 			recover,
-			release,
+			release: authority.release,
 		},
 	);
 };

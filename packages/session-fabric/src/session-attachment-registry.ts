@@ -118,6 +118,7 @@ export const makeSessionAttachmentRegistry = Effect.gen(function* () {
 		send: (sessionId, text) =>
 			rousingHandle(sessionId).pipe(
 				Effect.flatMap((handle) => handle.queue(text)),
+				Effect.annotateSpans({ sessionId }),
 			),
 		standDown: (sessionId) =>
 			Effect.flatMap(Clock.currentTimeMillis, (now) =>

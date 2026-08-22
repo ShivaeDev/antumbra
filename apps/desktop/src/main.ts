@@ -22,6 +22,7 @@ import {
 	whenReady,
 	windowLayoutInDataDirectory,
 } from "#adapters/shell.ts";
+import { devTracing } from "#adapters/tracing.ts";
 import { fleetTray } from "#adapters/tray.ts";
 import { registerTrpcBridge } from "#adapters/trpc-bridge.ts";
 import { registerTrpcSubscriptions } from "#adapters/trpc-subscriptions.ts";
@@ -60,6 +61,7 @@ const startOwner = (shell: WindowShell, store: LayoutStore) => {
 		Layer.mergeAll(
 			AppInfoSourceLive,
 			WindowSourceLive(shell),
+			devTracing(),
 			Layer.orDie(applicationLayers()),
 		),
 	);

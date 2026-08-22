@@ -7,7 +7,8 @@ import {
 import { Effect, Option } from "effect";
 import { type CachedCapability, makeCachedCapability } from "#capability.ts";
 import type { GhError } from "#errors.ts";
-import { observeOne, observePulls, pullRefsOf } from "#observe.ts";
+import { observeOne } from "#observe.ts";
+import { observePulls, pullRefsOf } from "#observe-pass.ts";
 import { createPull, pushWorkBranch } from "#open.ts";
 import { type PullRequestRef, parsePullUrl } from "#pull-url.ts";
 import { GITHUB_TAG, toHostError } from "#runtime.ts";

@@ -14,11 +14,15 @@ interface GhFailureFields {
 // why: every one of these details is read by a model through a tool answer, so
 // each error says what happened in a sentence a reader can act on rather than
 // leaving the caller to assemble one.
+// why: three ways to end up holding no answer — gh is not installed, it never
+// came back in time, or GitHub itself fell over mid-request. They are one case
+// to every caller: nothing was learned, nothing is wrong with the question,
+// and asking it again later is the whole remedy.
 export class GhUnavailable extends Data.TaggedError(
 	"GhUnavailable",
 )<GhFailureFields> {
 	override get message(): string {
-		return `gh could not be run (${this.operation}): ${this.detail}`;
+		return `gh could not answer (${this.operation}): ${this.detail}`;
 	}
 }
 

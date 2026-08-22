@@ -40,6 +40,16 @@ const BRISK: ObserveCadenceOptions = {
 	warmMillis: 50,
 };
 
+// why: the backoff ceiling is the cold cadence, so proving a run of failures
+// reaches it needs a cold cadence a test can sit out — four steps above the
+// warm one rather than a quarter of an hour.
+const FALTERING: ObserveCadenceOptions = {
+	coldMillis: 80,
+	hotMillis: 20,
+	hotWindowMillis: 0,
+	warmMillis: 20,
+};
+
 const watched = <A, E, R>(
 	cadence: ObserveCadenceOptions,
 	body: (
@@ -155,6 +165,36 @@ describe("watching open changes", () => {
 
 				// why: the loop is still alive — a host that starts answering again
 				// is heard without anything being restarted.
+				yield* scripted.drive.refuse(null);
+				yield* scripted.drive.transition(repo.id, "1", { stage: "landed" });
+				yield* eventually(
+					Effect.gen(function* () {
+						expect(
+							(yield* domain.changes.watchableChanges("scripted")).length,
+						).toBe(0);
+					}),
+				);
+			}),
+		),
+	);
+
+	it.live("asks less often the longer a host goes on failing", () =>
+		watched(FALTERING, (scripted) =>
+			Effect.gen(function* () {
+				const domain = yield* AgentDomain;
+				const { piece, repo } = yield* reefWithPiece;
+				yield* berthed(CREW);
+				yield* openedChange(piece.id, repo.name);
+				yield* scripted.drive.refuse("the harbour master is asleep");
+
+				const before = yield* passes(scripted);
+				yield* Effect.sleep(500);
+				// why: at the cadence this fleet asks for, half a second of silence
+				// would cost twenty-five passes. Backing off spends what 20, 40, 80
+				// and the ceiling allow, and an outage costs the same shape of the
+				// morning rather than one call every warm period of it.
+				expect((yield* passes(scripted)) - before).toBeLessThan(12);
+
 				yield* scripted.drive.refuse(null);
 				yield* scripted.drive.transition(repo.id, "1", { stage: "landed" });
 				yield* eventually(

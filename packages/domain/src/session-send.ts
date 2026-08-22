@@ -61,20 +61,18 @@ export const makeSessionSend = Effect.gen(function* () {
 			.send(sessionId, text)
 			.pipe(Effect.andThen(recovery.awaken(sessionId)));
 	const rouse = (sessionId: string, text: string) =>
-		reach
-			.rouseSession({ message: text, sessionId })
-			.pipe(
-				Effect.flatMap((wake) =>
-					Effect.forkIn(
-						watchWake(sessionId, wake).pipe(
-							Effect.provideService(Database, db),
-							provide,
-						),
-						scope,
+		reach.rouseSession({ message: text, sessionId }).pipe(
+			Effect.flatMap((wake) =>
+				Effect.forkIn(
+					watchWake(sessionId, wake).pipe(
+						Effect.provideService(Database, db),
+						provide,
 					),
+					scope,
 				),
-				Effect.asVoid,
-			);
+			),
+			Effect.asVoid,
+		);
 	const open = (sessionId: string) =>
 		Effect.gen(function* () {
 			const session = yield* provide(

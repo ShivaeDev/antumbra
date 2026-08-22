@@ -40,9 +40,7 @@ export const watchWake = (sessionId: string, rouse: SessionRouse) =>
 	Effect.gen(function* () {
 		const stalled = yield* Effect.forkChild(
 			Effect.sleep(STALL_MILLIS).pipe(
-				Effect.andThen(
-					account(sessionId, rouse.id, "a wake has not settled"),
-				),
+				Effect.andThen(account(sessionId, rouse.id, "a wake has not settled")),
 			),
 		);
 		const status = yield* rouse.changes.pipe(

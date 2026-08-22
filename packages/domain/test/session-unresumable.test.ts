@@ -32,7 +32,11 @@ it("waits for an Agent still being born and refuses one with no way back", () =>
 	).toBe("wait");
 	for (const status of ["dormant", "retired"] as const) {
 		expect(
-			unresumableVerdict({ _tag: "agent-not-alive", agentId: "agent-a", status }),
+			unresumableVerdict({
+				_tag: "agent-not-alive",
+				agentId: "agent-a",
+				status,
+			}),
 		).toBe("refuse");
 	}
 });

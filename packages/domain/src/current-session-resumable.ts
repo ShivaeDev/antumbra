@@ -9,6 +9,7 @@ import {
 	type CurrentSessionReconcilePlan,
 	planCurrentSessionReconciliation,
 } from "#current-session-reconcile-plan.ts";
+import { makeCurrentSessionRepair } from "#current-session-repair.ts";
 import { recoveryHeld } from "#session-recovery-error.ts";
 import { rootSessions, rootSessionsOf } from "#session-roots.ts";
 import type { SessionUnresumable } from "#session-unresumable.ts";
@@ -19,6 +20,7 @@ const heldInvalid = (failure: { readonly message: string }) =>
 export const makeCurrentSessionResumable = Effect.gen(function* () {
 	const db = yield* Database;
 	const fabric = yield* SessionFabric;
+	const applyRepair = yield* makeCurrentSessionRepair;
 	const loadRows = (sessionId: string) =>
 		Effect.gen(function* () {
 			const stored = yield* db.AgentSession.where({
@@ -41,56 +43,6 @@ export const makeCurrentSessionResumable = Effect.gen(function* () {
 		>
 			? Rows
 			: never;
-	const applyRepair = (
-		agent: LoadedRows["agent"],
-		plan: CurrentSessionReconcilePlan,
-	) =>
-		Effect.gen(function* () {
-			// why: resume applies the same repair boot does, from the same plan —
-			// an Agent with nothing open is reclaimed here too, and the resume it
-			// was asked for then finds no Session to take, which is the truth.
-			yield* Effect.forEach(
-				plan.agentsToReclaim,
-				(reclaimed) =>
-					db.Agent.where({ id: reclaimed.agentId }).update({
-						currentSessionId: null,
-						status: reclaimed.status,
-					}),
-				{ discard: true },
-			);
-			yield* Effect.forEach(
-				plan.pointers,
-				(pointer) =>
-					db.Agent.where({
-						currentSessionId: null,
-						id: pointer.agentId,
-					}).update({ currentSessionId: pointer.currentSessionId }),
-				{ discard: true },
-			);
-			yield* Effect.forEach(
-				plan.sessionsToClose,
-				(id) => db.AgentSession.where({ id }).update({ status: "closed" }),
-				{ discard: true },
-			);
-			yield* Effect.forEach(
-				plan.executionsToSettle,
-				(settled) =>
-					db.AgentSession.where({
-						executionStatus: "draining",
-						id: settled.sessionId,
-					}).update({ executionStatus: settled.executionStatus }),
-				{ discard: true },
-			);
-			return {
-				changed:
-					plan.agentsToReclaim.length > 0 ||
-					plan.executionsToSettle.length > 0 ||
-					plan.pointers.length > 0 ||
-					plan.sessionsToClose.length > 0,
-				currentSessionId:
-					agent.currentSessionId ?? plan.pointers[0]?.currentSessionId ?? null,
-			};
-		});
 	// why: a Session settling into siesta is finishing its execution rather than
 	// holding one open, so it is the one open Session a resume may not take —
 	// unless the plan just settled it, in which case the drain belonged to a
@@ -146,7 +98,10 @@ export const makeCurrentSessionResumable = Effect.gen(function* () {
 			if (Result.isFailure(planned)) {
 				return yield* heldInvalid(planned.failure);
 			}
-			const repaired = yield* applyRepair(agent, planned.success);
+			const repaired = yield* applyRepair(
+				agent.currentSessionId,
+				planned.success,
+			);
 			return repaired.currentSessionId === sessionId
 				? yield* resumableExecution(session, planned.success, repaired.changed)
 				: {

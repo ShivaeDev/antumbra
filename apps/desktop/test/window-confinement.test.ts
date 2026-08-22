@@ -5,7 +5,10 @@ import {
 	type NavigationPolicyHost,
 	revokeOnDocumentMutation,
 } from "#adapters/windows/confinement.ts";
-import { attachWindowLifecycle } from "#adapters/windows/lifecycle.ts";
+import {
+	attachWindowLifecycle,
+	holdAuthority,
+} from "#adapters/windows/lifecycle.ts";
 import { makeWindowRegistry } from "#adapters/windows/registry.ts";
 import {
 	consolePlace,
@@ -92,6 +95,21 @@ describe("window confinement", () => {
 		expect(calls).toEqual(["release", "recover"]);
 		closed?.();
 		expect(calls).toEqual(["release", "recover", "release", "closed"]);
+	});
+
+	// why: where a window moved to lives in the registry only as long as its
+	// record does, so an ending reads it on the way out. Releasing first would
+	// leave both endings acting on the place the window opened at.
+	it("hands authority back and keeps the place the window last reported", () => {
+		const registry = makeWindowRegistry();
+		const record = ownWindow(registry, "child", transcriptPlace("session-1"));
+		const authority = holdAuthority(registry, record);
+
+		registry.remember("child", transcriptPlace("session-2"));
+		authority.release();
+
+		expect(registry.all()).toEqual([]);
+		expect(authority.place()).toEqual(transcriptPlace("session-2"));
 	});
 
 	it("takes every child down with the console and leaves a child's close alone", () => {

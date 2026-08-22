@@ -22,6 +22,7 @@ const fleetOf = (agents: ReadonlyArray<AgentSummary>): Fleet => ({
 
 const navigator = (canInterrupt: boolean, execution: string): AgentSummary => ({
 	berths: [],
+	canRetire: !canInterrupt,
 	charter: "chart the reef",
 	diag: { currentSessionId: "session-1", intents: [] },
 	id: "agent-1",
@@ -31,6 +32,7 @@ const navigator = (canInterrupt: boolean, execution: string): AgentSummary => ({
 			backend: "scripted",
 			canInterrupt,
 			canSend: canInterrupt,
+			canSleep: false,
 			cwd: "/tmp/reef",
 			diag: { current: true, execution, intents: [] },
 			id: "session-1",
@@ -70,6 +72,7 @@ const draining: AgentSummary = {
 			backend: "scripted",
 			canInterrupt: false,
 			canSend: false,
+			canSleep: false,
 			cwd: "/tmp/reef",
 			diag: { current: false, execution: "draining", intents: [recovering] },
 			id: "session-1",
@@ -120,11 +123,44 @@ it("keeps the spawn fields behind their dialog", () => {
 	expect(markup).not.toContain("what this agent is for");
 });
 
-it("offers no retirement for an agent that is already retired", () => {
-	const alive = render(fleetOf([navigator(false, "idle")]));
-	expect(alive).toContain("Retire");
+// why: retirement follows the published capability, never the stored status
+// word beside it. An Agent mid-turn reads "alive" exactly as a resting one
+// does, and ending it there would stop work nobody asked to stop.
+it("offers retirement only when the public capability allows it", () => {
+	const resting = render(fleetOf([navigator(false, "idle")]));
+	expect(resting).toContain("Retire");
+	const working = render(fleetOf([navigator(true, "active")]));
+	expect(working).not.toContain("Retire");
 	const gone = render(
-		fleetOf([{ ...navigator(false, "idle"), status: "retired" }]),
+		fleetOf([
+			{ ...navigator(false, "idle"), canRetire: false, status: "retired" },
+		]),
 	);
 	expect(gone).not.toContain("Retire");
+});
+
+const listening = (canSleep: boolean): AgentSummary => ({
+	...navigator(false, "idle"),
+	sessions: [
+		{
+			backend: "scripted",
+			canInterrupt: false,
+			canSend: true,
+			canSleep,
+			cwd: "/tmp/reef",
+			diag: { current: true, execution: "idle", intents: [] },
+			id: "session-1",
+			presence: "idle",
+			status: "open",
+		},
+	],
+});
+
+// why: rest is offered from the same published capability the act itself
+// re-checks, so a tree with a child still speaking simply has no button —
+// there is nothing the admiral could do about it, and a disabled control
+// would be a question with no answer.
+it("offers rest only when the public capability allows it", () => {
+	expect(render(fleetOf([listening(true)]))).toContain("Sleep");
+	expect(render(fleetOf([listening(false)]))).not.toContain("Sleep");
 });

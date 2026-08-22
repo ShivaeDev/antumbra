@@ -93,6 +93,16 @@ export const interruptSession = (
 		.catch((cause: unknown) => onError(toError(cause).message));
 };
 
+export const sleepSession = (
+	sessionId: string,
+	onError: (message: string) => void,
+): void => {
+	client.sleepSession
+		.mutate({ sessionId })
+		.then(() => undefined)
+		.catch((cause: unknown) => onError(toError(cause).message));
+};
+
 export const sendToSession = (
 	sessionId: string,
 	text: string,

@@ -11,7 +11,11 @@ import {
 } from "#session-tree-attribution.ts";
 import { streamDetachedGap } from "#session-tree-gaps.ts";
 import { makeSessionTreeLifecycle } from "#session-tree-lifecycle.ts";
+import { LiveDelegations } from "#session-tree-live.ts";
 import { makeSessionTreeSweeps } from "#session-tree-sweeps.ts";
+
+type SubsessionOpened = Extract<AgentEvent, { type: "subsession.opened" }>;
+type RecordEvent = (event: AgentEvent) => Effect.Effect<boolean>;
 
 // why: every frame the provider attributes to a node is journaled under that
 // node's own Session id, so a delegated conversation reads as its own
@@ -30,6 +34,7 @@ export const makeSessionTreeSinks = Effect.gen(function* () {
 	const journal = yield* SessionEventJournal;
 	const lifecycle = yield* makeSessionTreeLifecycle;
 	const sweepsFor = yield* makeSessionTreeSweeps;
+	const live = yield* LiveDelegations;
 	const sinkFor: SinkFor = (rootSessionId, audit) =>
 		Effect.gen(function* () {
 			const tree = yield* Ref.make(emptySessionTree);
@@ -55,30 +60,50 @@ export const makeSessionTreeSinks = Effect.gen(function* () {
 						? yield* journal.record(rootSessionId, event)
 						: yield* nodes.recordOn(node, event);
 				});
+			// why: an announcement carried by the stream is a child starting work
+			// now. The same announcement replayed out of a census is the record
+			// catching up on one that already ran, so only the first says the tree
+			// is delegating — otherwise every reconnect would report the children a
+			// census found as though they had just begun.
+			const opened = (event: SubsessionOpened, fromStream: boolean) =>
+				Effect.gen(function* () {
+					const recorded = yield* nodes.openNode(event);
+					const node = (yield* Ref.get(tree)).nodes.get(event.subsessionRef);
+					if (fromStream && node !== undefined) {
+						yield* live.began(rootSessionId, node.sessionId);
+					}
+					return recorded;
+				});
 			// why: the close is the moment the record can ask whether what it holds
 			// of this node is all there was, so the audit runs on the node the ending
 			// named and the projection lands on whatever the audit found. A census
 			// admits through this same path, which is why it is handed back in.
-			const record = (event: AgentEvent): Effect.Effect<boolean> => {
-				if (event.type === "subsession.opened") {
-					return nodes.openNode(event);
-				}
-				if (event.type !== "subsession.ended") {
-					return routed(event);
-				}
-				return Effect.gen(function* () {
-					const node = (yield* Ref.get(tree)).nodes.get(event.subsessionRef);
-					const recorded = yield* nodes.closeNode(event);
-					if (node !== undefined) {
-						yield* sweeps.closed(node.sessionId, record);
+			const recording = (fromStream: boolean): RecordEvent => {
+				const self: RecordEvent = (event) => {
+					if (event.type === "subsession.opened") {
+						return opened(event, fromStream);
 					}
-					return recorded;
-				});
+					if (event.type !== "subsession.ended") {
+						return routed(event);
+					}
+					return Effect.gen(function* () {
+						const node = (yield* Ref.get(tree)).nodes.get(event.subsessionRef);
+						const recorded = yield* nodes.closeNode(event);
+						if (node !== undefined) {
+							yield* live.ended(rootSessionId, node.sessionId);
+							yield* sweeps.closed(node.sessionId, recording(false));
+						}
+						return recorded;
+					});
+				};
+				return self;
 			};
+			const record = recording(true);
 			// why: silence is not an ending. A node whose stream stopped mid-run
 			// would otherwise stay open with nothing in its journal to say why, so
 			// the loss is written on the node's own key before the pump is gone.
 			const detached = Effect.gen(function* () {
+				yield* live.released(rootSessionId);
 				const stranded = openNodes(yield* Ref.get(tree));
 				if (stranded.length === 0) {
 					return;
@@ -92,7 +117,7 @@ export const makeSessionTreeSinks = Effect.gen(function* () {
 				);
 			});
 			return {
-				attached: sweeps.reconnected(record),
+				attached: sweeps.reconnected(recording(false)),
 				detached,
 				record,
 			} satisfies EventSink;

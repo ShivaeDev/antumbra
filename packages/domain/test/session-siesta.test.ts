@@ -68,8 +68,10 @@ it.live("stand down records the declaration and disturbs nothing else", () =>
 			const sessionBefore = yield* sessionRow;
 			const attached = yield* domain.sessionsAttached;
 			expect(
-				(yield* fleetSnapshot(["scripted"], [], attached)).agents[0]
-					?.sessions[0]?.canInterrupt,
+				(yield* fleetSnapshot(["scripted"], [], {
+					attached,
+					delegating: new Set(),
+				})).agents[0]?.sessions[0]?.canInterrupt,
 			).toBe(true);
 
 			expect(yield* callTool(live, "stand_down", undefined)).toEqual({
@@ -84,8 +86,10 @@ it.live("stand down records the declaration and disturbs nothing else", () =>
 			// why: nothing to interrupt, and still everything to say to.
 			const stillAttached = yield* domain.sessionsAttached;
 			expect(stillAttached.has(HAND.sessionId)).toBe(true);
-			const summary = (yield* fleetSnapshot(["scripted"], [], stillAttached))
-				.agents[0]?.sessions[0];
+			const summary = (yield* fleetSnapshot(["scripted"], [], {
+				attached: stillAttached,
+				delegating: new Set(),
+			})).agents[0]?.sessions[0];
 			expect(summary?.canInterrupt).toBe(false);
 			expect(summary?.canSend).toBe(true);
 			expect(summary?.presence).toBe("idle");

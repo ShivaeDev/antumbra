@@ -36,6 +36,7 @@ export const sightFixture = (feeds: FixtureFeeds) =>
 			Effect.succeed({ ...sessionTree, rootSessionId }),
 		sessionTreeFeed: (rootSessionId) =>
 			Stream.make({ ...sessionTree, rootSessionId }),
+		sleep: () => Effect.void,
 		spawn: (request) =>
 			Effect.succeed({
 				agentId: `agent-for-${request.role}`,

@@ -26,6 +26,7 @@ import { SessionRecoveryRuntime } from "#session-recovery-runtime.ts";
 import { makeSessionRecoveryRuntime } from "#session-resume.ts";
 import { makeSessionSend } from "#session-send.ts";
 import { makeSiestaKind } from "#session-siesta.ts";
+import { LiveDelegations, LiveDelegationsLive } from "#session-tree-live.ts";
 import { makeSessionNodeReconciler } from "#session-tree-reconcile.ts";
 import { makeSessionTreeSinks } from "#session-tree-sink.ts";
 import { spawnKind } from "#spawn.ts";
@@ -56,6 +57,7 @@ export const AgentDomainLive = (
 			const db = yield* Database;
 			const executors = yield* Effect.context<WriteExecutors>();
 			const fabric = yield* SessionFabric;
+			const live = yield* LiveDelegations;
 			const sinkFor = yield* makeSessionTreeSinks;
 			const resourceReconciler = yield* ResourceReconciler;
 			const voyages = yield* VoyageProcedureService;
@@ -112,12 +114,17 @@ export const AgentDomainLive = (
 				retire,
 				sendToSession,
 				sessionsAttached: fabric.attached,
+				sessionsDelegating: live.delegating,
 				siesta,
 				spawn,
 				voyages,
 			};
 		}),
 	).pipe(
+		// why: one registry for the whole domain, not one per sink — the readers
+		// that ask which trees are delegating are nowhere near the streams that
+		// answer, so the Layer is what makes it the same set on both sides.
+		Layer.provide(LiveDelegationsLive),
 		Layer.provide(
 			ResourceReconcilerLive(reclaimOptions).pipe(
 				Layer.provide(ChangeHeldResourceReadLive),

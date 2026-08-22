@@ -62,6 +62,7 @@ it("offers a window of its own for a session", () => {
 				backend: "scripted",
 				canInterrupt: false,
 				canSend: false,
+				canSleep: false,
 				cwd: "/tmp/reef",
 				diag: { current: true, execution: "idle", intents: [] },
 				id: "session-1",

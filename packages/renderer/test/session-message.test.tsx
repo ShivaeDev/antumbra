@@ -19,6 +19,7 @@ const fleetWith = (presence: Presence): Fleet => ({
 	agents: [
 		{
 			berths: [],
+			canRetire: presence !== "working",
 			charter: "chart the reef",
 			diag: { currentSessionId: "session-1", intents: [] },
 			id: "agent-1",
@@ -28,6 +29,7 @@ const fleetWith = (presence: Presence): Fleet => ({
 					backend: "scripted",
 					canInterrupt: presence === "working",
 					canSend: presence !== "ended",
+					canSleep: presence === "idle",
 					cwd: "/tmp/reef",
 					diag: { current: true, execution: "active", intents: [] },
 					id: "session-1",

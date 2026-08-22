@@ -1,71 +1,7 @@
-import {
-	ResourceReclaimStateSchema,
-	SessionPresenceSchema,
-} from "@antumbra/vocabulary/agent-runtime";
 import { HistoricalAgentEvent } from "@antumbra/vocabulary/session-events";
 import { Context, Data, type Effect, Schema, type Stream } from "effect";
+import type { Fleet, RepoSummary } from "#fleet.ts";
 import type { SessionTree } from "#session-tree.ts";
-import {
-	AgentDiagnostics,
-	FleetDiagnostics,
-	SessionDiagnostics,
-} from "#sight-diagnostics.ts";
-
-export const SessionSummary = Schema.Struct({
-	backend: Schema.String,
-	canInterrupt: Schema.Boolean,
-	// why: whether the admiral's words can reach this Session now, published as
-	// a capability so no affordance is ever derived from raw execution state.
-	canSend: Schema.Boolean,
-	cwd: Schema.String,
-	diag: SessionDiagnostics,
-	id: Schema.String,
-	// why: what the Session is doing about being spoken to, curated by the
-	// domain so a view never has to read execution state to word a footer. It
-	// stands beside the capabilities rather than replacing them: presence says
-	// what a reader is looking at, `canSend` says what they may do.
-	presence: SessionPresenceSchema,
-	status: Schema.String,
-});
-export type SessionSummary = typeof SessionSummary.Type;
-
-export const BerthSummary = Schema.Struct({
-	branch: Schema.String,
-	reclaimState: Schema.NullOr(ResourceReclaimStateSchema),
-	slug: Schema.String,
-	status: Schema.String,
-});
-export type BerthSummary = typeof BerthSummary.Type;
-
-export const AgentSummary = Schema.Struct({
-	berths: Schema.Array(BerthSummary),
-	charter: Schema.String,
-	diag: AgentDiagnostics,
-	id: Schema.String,
-	role: Schema.String,
-	sessions: Schema.Array(SessionSummary),
-	status: Schema.String,
-});
-export type AgentSummary = typeof AgentSummary.Type;
-
-export const RepoSummary = Schema.Struct({
-	defaultRef: Schema.String,
-	id: Schema.String,
-	name: Schema.String,
-	source: Schema.String,
-});
-export type RepoSummary = typeof RepoSummary.Type;
-
-// why: the fleet carries what every spawn is made of — the backends the host
-// registered and the repos every agent is moored to. The renderer offers
-// these, never a list of its own.
-export const Fleet = Schema.Struct({
-	agents: Schema.Array(AgentSummary),
-	backends: Schema.Array(Schema.String),
-	diag: FleetDiagnostics,
-	repos: Schema.Array(RepoSummary),
-});
-export type Fleet = typeof Fleet.Type;
 
 export const SessionEvent = Schema.Struct({
 	event: HistoricalAgentEvent,
@@ -136,6 +72,10 @@ export class SightSource extends Context.Service<
 		readonly sessionTreeFeed: (
 			rootSessionId: string,
 		) => Stream.Stream<SessionTree, SightFailure>;
+		// why: the admiral asking for the same rest the clock would have given an
+		// hour later. It goes through the one act that already knows how to give
+		// it, so there is one way a Session is put to rest and one way it wakes.
+		readonly sleep: (sessionId: string) => Effect.Effect<void, SightFailure>;
 		readonly spawn: (
 			request: SpawnRequest,
 		) => Effect.Effect<SpawnReceipt, SightFailure>;

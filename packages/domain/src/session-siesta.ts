@@ -8,6 +8,8 @@ import {
 	sessionExecutionTransition,
 } from "@antumbra/vocabulary/agent-runtime";
 import { Effect, Option, PubSub, Schema } from "effect";
+import { SessionStillDelegating } from "#errors.ts";
+import { LiveDelegations } from "#session-tree-live.ts";
 
 const SiestaPayload = Schema.Struct({ sessionId: Schema.String });
 export type SiestaFields = typeof SiestaPayload.Type;
@@ -16,6 +18,7 @@ export const makeSiestaKind = Effect.gen(function* () {
 	const db = yield* Database;
 	const feeds = yield* DomainFeeds;
 	const fabric = yield* SessionFabric;
+	const live = yield* LiveDelegations;
 	const writer = yield* Writer;
 	const executors = yield* Effect.context<WriteExecutors>();
 	const provide = <A, E>(effect: Effect.Effect<A, E, WriteExecutors>) =>
@@ -57,8 +60,18 @@ export const makeSiestaKind = Effect.gen(function* () {
 	// is listening. Nothing is written here, so a restart during the reclaim
 	// leaves exactly the truth a restart would have left anyway. The detach
 	// declines if words arrived first, and then there is nothing to announce.
+	// why: the reclaim takes the whole tree's stream away, because only a root is
+	// ever attached and its children ride that one acquisition. So a Session with
+	// a delegated conversation under way refuses rather than reclaiming: the
+	// caller that asked — a button the admiral pressed, or the clock — decided a
+	// moment ago, and a child may have started speaking since. The refusal names
+	// itself on the Intent so the record says why the rest did not happen, and
+	// the demand that asked is re-derived from durable truth on the next pass.
 	const reclaimIdle = (sessionId: string) =>
 		Effect.gen(function* () {
+			if ((yield* live.delegating).has(sessionId)) {
+				return yield* new SessionStillDelegating({ sessionId });
+			}
 			const execution = yield* IntentExecution;
 			yield* execution.step(
 				"detach-session",

@@ -6,16 +6,25 @@ import {
 	decodeSessionExecutionStatus,
 	decodeStoredAgentSessionStatus,
 	decodeStoredAgentStatus,
+	sessionPresence,
 } from "@antumbra/vocabulary/agent-runtime";
 import { Clock, Effect, Result } from "effect";
+import { sessionAtRest } from "#session-at-rest.ts";
 import { idleSessionsPastThreshold } from "#session-idle.ts";
 import type { RecoveryFields } from "#session-recovery.ts";
 import { rootSessions } from "#session-roots.ts";
 import type { SiestaFields } from "#session-siesta.ts";
+import { LiveDelegations } from "#session-tree-live.ts";
 
 const sessionDemands = Effect.gen(function* () {
 	const db = yield* Database;
 	const fabric = yield* SessionFabric;
+	const live = yield* LiveDelegations;
+	// why: the tree's own work counts as the Session's. A root whose child is
+	// still speaking is not at rest however long its own row has said idle,
+	// because reclaiming it takes away the stream that child is speaking on.
+	const delegating = yield* live.delegating;
+	const attached = yield* fabric.attached;
 	// why: the clock is read once per pass, so every Session in it is judged
 	// against the same moment.
 	const overdue = idleSessionsPastThreshold(
@@ -59,9 +68,22 @@ const sessionDemands = Effect.gen(function* () {
 		// system on this pass — the same reconciliation that finishes an
 		// interrupted drain, because both are the same question asked of the
 		// record: is a process still being held for nothing.
+		//
+		// why: the threshold is not the whole test. The clock asks for the same
+		// rest the admiral's own request has to satisfy, so a root the hour has
+		// come for waits while its tree is still speaking. A drain is exempt: it
+		// is shutdown finishing a decision already taken, not rest being chosen.
+		const restful = sessionAtRest({
+			delegating: delegating.has(session.id),
+			presence: sessionPresence({
+				attached: attached.has(session.id),
+				executionStatus,
+				open: true,
+			}),
+		});
 		if (
 			executionStatus === "draining" ||
-			(executionStatus === "idle" && overdue.has(session.id))
+			(overdue.has(session.id) && restful)
 		) {
 			siesta.push({ sessionId: session.id });
 		}
@@ -76,10 +98,12 @@ export const compileAgentRecoveryDemands = (
 	Effect.gen(function* () {
 		const db = yield* Database;
 		const fabric = yield* SessionFabric;
+		const live = yield* LiveDelegations;
 		const executors = yield* Effect.context<WriteExecutors>();
 		const discover = sessionDemands.pipe(
 			Effect.provideService(Database, db),
 			Effect.provideService(SessionFabric, fabric),
+			Effect.provideService(LiveDelegations, live),
 			Effect.provideContext(executors),
 		);
 		return [

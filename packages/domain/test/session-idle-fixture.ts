@@ -2,7 +2,7 @@ import { SightSource } from "@antumbra/contract";
 import { Kernel } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
 import { expect } from "@effect/vitest";
-import { Effect, Layer, Option } from "effect";
+import { Clock, Effect, Layer, Option } from "effect";
 import { AgentDomain } from "#domain.ts";
 import type { SpawnFields } from "#index.ts";
 import { SightSourceLive } from "#sight.ts";
@@ -12,6 +12,7 @@ import {
 	type ScriptedBackend,
 	sessionFor,
 } from "#test/harness.ts";
+import { aheadBy } from "#test/session-clock.ts";
 import {
 	eventually,
 	reportsNativeRef,
@@ -78,3 +79,22 @@ export const presenceOf = Effect.gen(function* () {
 		.find((row) => row.id === HAND.sessionId);
 	return Option.getOrThrow(Option.fromUndefinedOr(session));
 });
+
+// why: the demand pass the app runs on its own timer, run by hand instead, so
+// a rehearsal awaits the pass rather than waiting for one to come around.
+const siestaPass = Effect.gen(function* () {
+	const domain = yield* AgentDomain;
+	const demand = domain.intentDemands.find(
+		(registration) => registration.tag === "session/siesta",
+	);
+	return demand === undefined
+		? yield* Effect.die("no siesta demand is registered")
+		: demand.pass;
+});
+
+export const passedAt = (millis: number) =>
+	Effect.gen(function* () {
+		const pass = yield* siestaPass;
+		const clock = yield* aheadBy(millis);
+		yield* pass.pipe(Effect.provideService(Clock.Clock, clock));
+	});

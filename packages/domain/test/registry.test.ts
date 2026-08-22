@@ -136,7 +136,10 @@ it.live("the fleet snapshot carries the registry", () =>
 				defaultRef: "main",
 				source: "/reefs/one.git",
 			});
-			const fleet = yield* fleetSnapshot(["scripted"], [], new Set());
+			const fleet = yield* fleetSnapshot(["scripted"], [], {
+				attached: new Set(),
+				delegating: new Set(),
+			});
 			expect(fleet.repos).toEqual([
 				{
 					defaultRef: "main",

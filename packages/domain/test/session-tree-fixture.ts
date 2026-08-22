@@ -5,13 +5,16 @@ import type { SessionAudit } from "@antumbra/plugin-api";
 import { SessionEventJournalLive } from "@antumbra/session-event-journal";
 import type { AgentEvent } from "@antumbra/vocabulary/session-events";
 import { Effect, Layer, Ref } from "effect";
+import { LiveDelegationsLive } from "#session-tree-live.ts";
 
 // why: the tree's own machinery over a database and nothing else. These seams
 // answer about rows that closed while nothing was listening, so a rehearsal of
 // them starts from the rows rather than from a stream.
 export const treeLayer = (temporary: TemporaryPersistence) =>
 	SessionEventJournalLive.pipe(
-		Layer.provideMerge(Layer.merge(temporary.layer, DomainFeedsLive)),
+		Layer.provideMerge(
+			Layer.mergeAll(temporary.layer, DomainFeedsLive, LiveDelegationsLive),
+		),
 	);
 
 export interface SeededSession {

@@ -9,6 +9,7 @@ const session = (
 	backend: "scripted",
 	canInterrupt: presence === "working",
 	canSend: presence !== "ended",
+	canSleep: presence === "idle",
 	cwd: "/tmp/reef",
 	diag: { current: true, execution: "idle", intents: [] },
 	id,
@@ -22,6 +23,7 @@ const agent = (
 	sessions: ReadonlyArray<SessionSummary>,
 ): AgentSummary => ({
 	berths: [],
+	canRetire: status === "alive",
 	charter: "chart the reef",
 	diag: { currentSessionId: null, intents: [] },
 	id,

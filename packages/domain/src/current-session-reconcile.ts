@@ -1,11 +1,13 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database, type WriteExecutors, Writer } from "@antumbra/persistence";
+import { SessionFabric } from "@antumbra/session-fabric";
 import { Effect, PubSub, Result } from "effect";
 import { planCurrentSessionReconciliation } from "#current-session-reconcile-plan.ts";
 import { rootSessions } from "#session-roots.ts";
 
 export const makeCurrentSessionReconciler = Effect.gen(function* () {
 	const db = yield* Database;
+	const fabric = yield* SessionFabric;
 	const feeds = yield* DomainFeeds;
 	const writer = yield* Writer;
 	const executors = yield* Effect.context<WriteExecutors>();
@@ -17,6 +19,7 @@ export const makeCurrentSessionReconciler = Effect.gen(function* () {
 				const planned = planCurrentSessionReconciliation(
 					yield* db.Agent.all(),
 					yield* db.AgentSession.where(rootSessions).all(),
+					yield* fabric.attached,
 				);
 				if (Result.isFailure(planned)) {
 					return planned.failure._tag === "CurrentSessionInvalid"
@@ -48,8 +51,18 @@ export const makeCurrentSessionReconciler = Effect.gen(function* () {
 						}),
 					{ discard: true },
 				);
+				yield* Effect.forEach(
+					planned.success.executionsToSettle,
+					(settled) =>
+						db.AgentSession.where({
+							executionStatus: "draining",
+							id: settled.sessionId,
+						}).update({ executionStatus: settled.executionStatus }),
+					{ discard: true },
+				);
 				return (
 					planned.success.agentsToReclaim.length > 0 ||
+					planned.success.executionsToSettle.length > 0 ||
 					planned.success.pointers.length > 0 ||
 					planned.success.sessionsToClose.length > 0
 				);

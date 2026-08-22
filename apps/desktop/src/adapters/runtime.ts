@@ -5,6 +5,7 @@ import {
 	AgentDomainLive,
 	ChangeWatcherLive,
 	DispatcherLive,
+	IntentFeedLive,
 	KernelReachLive,
 	SessionShutdownLive,
 	SettingsSourceLive,
@@ -91,6 +92,7 @@ export const applicationLayers = () =>
 				return IntentDemandLive(domain.intentDemands);
 			}),
 		),
+		IntentFeedLive,
 		KernelReachLive,
 		SessionShutdownLive,
 	).pipe(

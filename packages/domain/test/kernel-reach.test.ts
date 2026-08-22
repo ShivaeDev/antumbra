@@ -1,5 +1,5 @@
 import { expect, it } from "@effect/vitest";
-import { Effect, Fiber, Ref } from "effect";
+import { Effect, Fiber, Ref, Stream } from "effect";
 import {
 	KernelReach,
 	KernelReachDeferredLive,
@@ -31,6 +31,12 @@ it.live("kernel reach waits for the one installed scheduler path", () =>
 
 		yield* installer.install({
 			queueSiesta: () => Effect.void,
+			rouseSession: () =>
+				Effect.succeed({
+					changes: Stream.empty,
+					id: "recovery-intent",
+					retried: false,
+				}),
 			submitRecovery: () => Effect.succeed("recovery-intent"),
 			submitSpawn: (payload) =>
 				Ref.set(received, payload).pipe(Effect.as("spawn-intent")),

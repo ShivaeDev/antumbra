@@ -25,6 +25,7 @@ import type { ObserveCadenceOptions } from "#change-cadence.ts";
 import { ChangeWatcherLive } from "#change-watcher.ts";
 import { DispatcherLive, type DispatcherOptions } from "#dispatcher.ts";
 import { AgentDomain, AgentDomainLive } from "#domain.ts";
+import { IntentFeedLive } from "#intent-feed.ts";
 import { KernelReachLive } from "#kernel-reach.ts";
 import { SessionShutdownLive } from "#session-shutdown-live.ts";
 import { SettingsSourceLive } from "#settings.ts";
@@ -209,6 +210,7 @@ export const domainKernelLayer = (
 	reclaim: Partial<ResourceReconcileOptions> = {},
 ) =>
 	Layer.mergeAll(
+		IntentFeedLive,
 		KernelReachLive,
 		Layer.unwrap(
 			Effect.gen(function* () {

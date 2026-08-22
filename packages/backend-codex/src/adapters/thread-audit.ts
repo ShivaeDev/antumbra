@@ -48,6 +48,13 @@ const sweepOn = (spawn: () => LineProcess, rootRef: string) =>
 		),
 	);
 
+// why: the sweep spawns a process of its own and waits on it. The reconnect
+// census runs inside the attachment a resume is opening, so one that never
+// comes back holds the admiral's words behind it. A census that could not be
+// taken in time is the same fact as one that could not be taken, and it is
+// said the same way — as a gap, never as an empty reading.
+const CENSUS_PATIENCE_MILLIS = 20_000;
+
 const census = (
 	server: RcRef.RcRef<CodexServer, BackendFailure>,
 	spawn: () => LineProcess,
@@ -62,6 +69,17 @@ const census = (
 				detail: failure.detail,
 			}).pipe(Effect.as([censusUnreadable(rootRef, failure.detail)])),
 		),
+		Effect.timeoutOrElse({
+			duration: CENSUS_PATIENCE_MILLIS,
+			orElse: () =>
+				Effect.logWarning("codex did not answer a census in time", {
+					rootRef,
+				}).pipe(
+					Effect.as([
+						censusUnreadable(rootRef, "codex did not answer in time"),
+					]),
+				),
+		}),
 	);
 
 export const codexAudit = (

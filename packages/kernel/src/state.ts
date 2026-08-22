@@ -6,14 +6,9 @@ import {
 	type Queue,
 	type Ref,
 } from "effect";
-import type { IntentStatus } from "#fsm.ts";
 import type { Gate } from "#gate.ts";
 import type { AnyIntentKind } from "#intent.ts";
-
-export interface IntentChange {
-	readonly id: string;
-	readonly status: IntentStatus;
-}
+import type { IntentChange } from "#kernel.ts";
 
 // why: the scheduler's runtime state is one package-private service, provided
 // only inside KernelLive and never exported from the package entry — the

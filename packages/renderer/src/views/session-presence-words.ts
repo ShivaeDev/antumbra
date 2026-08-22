@@ -18,3 +18,13 @@ export const presenceNote: Record<SessionPresence, string> = {
 	idle: "listening, with nothing to do",
 	working: "working",
 };
+
+// why: speaking to an asleep Session asks for a wake, and what the box said a
+// moment earlier — that it will wake when spoken to — stops being the news once
+// the asking is under way. Until the wake lands, the words are with the wake
+// and not with the Session, and the box that took them is the one place a
+// reader will look to find that out.
+export const wakeNote: Record<"parked" | "underway", string> = {
+	parked: "a wake is parked — the words it carries are still waiting to land",
+	underway: "waking — the words it carries land when it does",
+};

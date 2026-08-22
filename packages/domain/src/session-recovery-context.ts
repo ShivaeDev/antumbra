@@ -1,5 +1,5 @@
 import { Database, type WriteExecutors } from "@antumbra/persistence";
-import { Effect, Option } from "effect";
+import { Effect, Option, Result } from "effect";
 import { recoveryHeld } from "#session-recovery-error.ts";
 import { makeSessionRecoveryState } from "#session-recovery-state.ts";
 import type { SessionIdentity } from "#tool-identity.ts";
@@ -50,13 +50,13 @@ export const makeSessionRecoveryContext = Effect.gen(function* () {
 	return (sessionId: string) =>
 		Effect.gen(function* () {
 			const session = yield* state.resumableSession(sessionId);
-			if (Option.isNone(session)) {
-				return Option.none<SessionRecoveryContext>();
+			if (Result.isFailure(session)) {
+				return Result.fail(session.failure);
 			}
-			const row = session.value;
+			const row = session.success;
 			const agent = yield* state.aliveAgent(row.agentId);
-			if (Option.isNone(agent)) {
-				return Option.none<SessionRecoveryContext>();
+			if (Result.isFailure(agent)) {
+				return Result.fail(agent.failure);
 			}
 			yield* state.ensureResources(row.agentId, row.cwd, sessionId);
 			if (row.nativeRef === null) {
@@ -65,12 +65,12 @@ export const makeSessionRecoveryContext = Effect.gen(function* () {
 				);
 			}
 			const authority = yield* authorityFor(row.agentId, sessionId);
-			return Option.some({
+			return Result.succeed<SessionRecoveryContext>({
 				backend: row.backend,
 				cwd: row.cwd,
 				identity: { agentId: row.agentId, sessionId, ...authority },
 				nativeRef: row.nativeRef,
-				role: agent.value.role,
+				role: agent.success.role,
 			});
 		});
 });

@@ -1,3 +1,4 @@
+import { SettingsSource } from "@antumbra/contract";
 import { DomainFeeds, pump } from "@antumbra/domain-feeds";
 import { Kernel } from "@antumbra/kernel";
 import { Database, type WriteExecutors } from "@antumbra/persistence";
@@ -10,24 +11,27 @@ import { assignedExecution } from "#voyage-execution-selection.ts";
 import { VoyageWorldSource } from "#voyage-world.ts";
 
 export interface DispatcherOptions {
-	readonly maxAlive: number;
+	readonly maxAlive?: number;
 	readonly patienceMillis: number;
 }
 
-const DEFAULTS: DispatcherOptions = { maxAlive: 4, patienceMillis: 5000 };
+const DEFAULTS = { patienceMillis: 5000 } as const;
 
 const onePass = (
 	port: DispatchPort,
-	maxAlive: number,
+	maxAlive: number | undefined,
 	aliveAgents: Effect.Effect<number, unknown>,
 ) =>
 	Effect.gen(function* () {
 		const source = yield* VoyageWorldSource;
+		const settings = yield* SettingsSource;
+		const effectiveMaxAlive =
+			maxAlive ?? (yield* settings.current).maxParallelSessions;
 		const now = yield* Clock.currentTimeMillis;
 		const world = yield* source.read;
 		const allowed = yield* dispatchable(port.state, now);
 		const inFlight = (yield* Ref.get(port.state.inFlight)).size;
-		let budget = maxAlive - (yield* aliveAgents) - inFlight;
+		let budget = effectiveMaxAlive - (yield* aliveAgents) - inFlight;
 		for (const candidate of readyPieces(world)) {
 			if (!allowed(candidate.piece.id)) {
 				continue;

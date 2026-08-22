@@ -1,5 +1,6 @@
 import type { PieceView } from "@antumbra/contract";
 import { Badge } from "#components/ui/badge.tsx";
+import { BoardPanel } from "#views/board.tsx";
 import { MarkdownView } from "#views/markdown-view.tsx";
 import { PieceActs } from "#views/piece-acts.tsx";
 import { PieceOutcomes } from "#views/piece-outcomes.tsx";
@@ -45,6 +46,11 @@ export const PieceDetail = ({
 				</p>
 			)}
 			<AtWork piece={piece} />
+			<BoardPanel
+				entries={piece.board}
+				onError={onError}
+				scope={{ kind: "piece", pieceId: piece.id }}
+			/>
 			<PieceOutcomes onError={onError} piece={piece} />
 			<PieceActs onError={onError} piece={piece} pieces={pieces} />
 		</div>

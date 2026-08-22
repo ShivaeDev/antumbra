@@ -102,7 +102,10 @@ it.effect("waits for the feed's first snapshot before drawing anything", () =>
 
 		expect(container.textContent).toContain("Chart the reef");
 		expect(container.textContent).toContain("soundings");
-		expect(container.textContent).toContain("the reef shifts after a storm");
+		expect(container.textContent).not.toContain(
+			"the reef shifts after a storm",
+		);
+		expect(container.innerHTML).toContain('title="Show the board"');
 		yield* drop(root);
 	}),
 );

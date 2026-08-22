@@ -5,8 +5,10 @@ import {
 	AgentDomainLive,
 	ChangeWatcherLive,
 	DispatcherLive,
+	IntentFeedLive,
 	KernelReachLive,
 	SessionShutdownLive,
+	SettingsSourceLive,
 	SightSourceLive,
 	VoyageSourceLive,
 } from "@antumbra/domain";
@@ -90,6 +92,11 @@ export const applicationLayers = () =>
 				return IntentDemandLive(domain.intentDemands);
 			}),
 		),
+		IntentFeedLive,
 		KernelReachLive,
 		SessionShutdownLive,
-	).pipe(Layer.provideMerge(kernel), Layer.provideMerge(persistence));
+	).pipe(
+		Layer.provideMerge(kernel),
+		Layer.provideMerge(SettingsSourceLive),
+		Layer.provideMerge(persistence),
+	);

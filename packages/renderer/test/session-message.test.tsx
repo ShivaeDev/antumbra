@@ -14,8 +14,16 @@ const { sendToSession } = vi.hoisted(() => ({ sendToSession: vi.fn() }));
 vi.mock("#adapters/trpc.ts", () => ({ sendToSession }));
 
 type Presence = Fleet["agents"][number]["sessions"][number]["presence"];
+type Intent = Fleet["diag"]["intents"][number];
 
-const fleetWith = (presence: Presence): Fleet => ({
+const waking = (state: string): ReadonlyArray<Intent> => [
+	{ id: "intent-1", kind: "agent/recover", state },
+];
+
+const fleetWith = (
+	presence: Presence,
+	intents: ReadonlyArray<Intent> = [],
+): Fleet => ({
 	agents: [
 		{
 			berths: [],
@@ -31,7 +39,7 @@ const fleetWith = (presence: Presence): Fleet => ({
 					canSend: presence !== "ended",
 					canSleep: presence === "idle",
 					cwd: "/tmp/reef",
-					diag: { current: true, execution: "active", intents: [] },
+					diag: { current: true, execution: "active", intents },
 					id: "session-1",
 					presence,
 					status: presence === "ended" ? "closed" : "open",
@@ -130,6 +138,43 @@ it("never tells the admiral a session is not listening", () => {
 			"not listening",
 		);
 	}
+});
+
+// why: the send that roused rather than delivered is the whole reason this note
+// exists. Before it, the box repeated the invitation it had already been taken
+// up on, which reads as words that landed.
+it("says a wake is under way rather than repeating the invitation", () => {
+	const asking = renderToStaticMarkup(
+		box(fleetWith("asleep", waking("running"))),
+	);
+	expect(asking).toContain("waking — the words it carries land when it does");
+	expect(asking).not.toContain("it will wake when you speak to it");
+	expect(
+		renderToStaticMarkup(box(fleetWith("asleep", waking("queued")))),
+	).toContain("waking — the words it carries land when it does");
+});
+
+// why: a parked wake is the state this whole branch was built to make visible —
+// a send whose words are written down and going nowhere until something pushes
+// them. Saying "waking" there would be the silent success wearing a verb.
+it("says a parked wake is parked", () => {
+	const parked = renderToStaticMarkup(
+		box(fleetWith("asleep", waking("waiting"))),
+	);
+	expect(parked).toContain(
+		"a wake is parked — the words it carries are still waiting to land",
+	);
+	expect(parked).not.toContain("waking —");
+});
+
+// why: the note belongs to the wake, not to the presence, so a Session the
+// fleet already calls awake keeps it for as long as the recover is live — the
+// words are with the Intent until it succeeds either way.
+it("keeps the wake note while the recover outlives the sleep", () => {
+	expect(
+		renderToStaticMarkup(box(fleetWith("working", waking("running")))),
+	).toContain("waking — the words it carries land when it does");
+	expect(renderToStaticMarkup(box(fleetWith("idle")))).not.toContain("waking");
 });
 
 // why: only an ended Session closes the box. An asleep one takes the words and

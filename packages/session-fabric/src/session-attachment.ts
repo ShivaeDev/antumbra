@@ -68,11 +68,17 @@ export const openSessionAttachment = (
 			});
 			// why: a dead pump must be visible, never fatal — the session lives on
 			// and the gap in the event log is the trace.
+			// why: the opening is failed before the sink is told, because the sink's
+			// parting write is the record catching up and whoever is waiting on the
+			// opening is a caller with nothing to wait for any more. Told in the
+			// other order, a slow parting write turns a dead pump — a fact the
+			// waiter could act on — into a silence indistinguishable from a provider
+			// that simply never spoke.
 			yield* handle.events.pipe(
 				Stream.runForEach(observe),
 				Effect.tapError(opened.fail),
-				Effect.ensuring(sink.detached),
 				Effect.ensuring(opened.fail(endedBeforeOpening)),
+				Effect.ensuring(sink.detached),
 				Effect.catchCause((cause) =>
 					Effect.logError(
 						"event pump failed",

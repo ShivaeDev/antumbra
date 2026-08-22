@@ -1,11 +1,21 @@
 import { defineIntent, IntentExecution } from "@antumbra/kernel";
 import type { BackendFailure } from "@antumbra/plugin-api";
 import { SessionFabric } from "@antumbra/session-fabric";
-import { Effect, Option, Schema } from "effect";
+import { Effect, Result, Schema } from "effect";
 import { makeCurrentSessionRecovery } from "#current-session-recovery.ts";
 import { makeSessionRecoveryContext } from "#session-recovery-context.ts";
-import type { SessionRecoveryHeld } from "#session-recovery-error.ts";
+import {
+	recoveryHeld,
+	type SessionRecoveryHeld,
+} from "#session-recovery-error.ts";
 import { SessionRecoveryRuntime } from "#session-recovery-runtime.ts";
+import {
+	type SessionUnresumable,
+	SessionUnresumableRefused,
+	unresumableDetail,
+	unresumableVerdict,
+} from "#session-unresumable.ts";
+import { SessionWakePatience } from "#session-wake-patience.ts";
 
 export const RECOVERY_INSTRUCTION =
 	"Reconcile durable Antumbra truth and continue your assigned work.";
@@ -26,6 +36,7 @@ const waitFor = (detail: string) =>
 export const makeRecoveryKind = Effect.gen(function* () {
 	const load = yield* makeSessionRecoveryContext;
 	const fabric = yield* SessionFabric;
+	const patience = yield* SessionWakePatience;
 	const recovery = yield* makeCurrentSessionRecovery;
 	const runtime = yield* SessionRecoveryRuntime;
 	// why: a Session the fabric already holds needs no resume — it is either
@@ -47,24 +58,58 @@ export const makeRecoveryKind = Effect.gen(function* () {
 			const execution = yield* IntentExecution;
 			yield* execution.step("wake-session", recovery.awaken(sessionId));
 		});
+	// why: nothing to resume is never nothing to say. The reason decides between
+	// parking the Intent where a later act can pick it up and refusing it
+	// outright, and either way the sentence lands on the row — a recover that
+	// succeeded having done nothing is the silence this whole path is for.
+	const unresumable = (sessionId: string, reason: SessionUnresumable) => {
+		const detail = unresumableDetail(sessionId, reason);
+		return unresumableVerdict(reason) === "wait"
+			? waitFor(detail)
+			: Effect.fail(
+					new SessionUnresumableRefused({
+						detail,
+						reason: reason._tag,
+						sessionId,
+					}),
+				);
+	};
+	const admitted = (sessionId: string, message: string | undefined) =>
+		fabric.withStartAdmission((permit) =>
+			Effect.gen(function* () {
+				const context = yield* load(sessionId);
+				if (Result.isFailure(context)) {
+					return yield* unresumable(sessionId, context.failure);
+				}
+				yield* runtime.resume(
+					permit,
+					context.success,
+					message ?? RECOVERY_INSTRUCTION,
+				);
+				const execution = yield* IntentExecution;
+				yield* execution.step("wake-session", recovery.awaken(sessionId));
+			}),
+		);
 	const resumed = (sessionId: string, message: string | undefined) =>
 		Effect.gen(function* () {
 			if (yield* fabric.holds(sessionId)) {
 				return yield* delivered(sessionId, message);
 			}
-			yield* fabric.withStartAdmission((permit) =>
-				Effect.gen(function* () {
-					const context = yield* load(sessionId);
-					if (Option.isNone(context)) {
-						return;
-					}
-					yield* runtime.resume(
-						permit,
-						context.value,
-						message ?? RECOVERY_INSTRUCTION,
-					);
-					const execution = yield* IntentExecution;
-					yield* execution.step("wake-session", recovery.awaken(sessionId));
+			// why: every wait between here and a live attachment is somebody else's
+			// to end — the gate that stopped admitting starts, a provider reading its
+			// own storage, a stream that owes an opening frame — and none of them is
+			// obliged to. Unbounded, the Intent sits in "running" with nothing to
+			// read and the registry entry it left behind answers "held" to every
+			// later send. Bounded, the same silence becomes a reason on the row that
+			// a later send can push again, and unwinding takes the half-built
+			// attachment with it.
+			yield* admitted(sessionId, message).pipe(
+				Effect.timeoutOrElse({
+					duration: patience,
+					orElse: () =>
+						recoveryHeld(
+							`${sessionId} did not reach a live attachment within ${patience}ms`,
+						),
 				}),
 			);
 		});

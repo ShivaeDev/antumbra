@@ -14,20 +14,21 @@ import {
 import { Effect, Option } from "effect";
 import { makeCurrentSessionRecovery } from "#current-session-recovery.ts";
 import { SessionEnded, SessionNotFound } from "#errors.ts";
-import { KernelReach, type SpawnRefused } from "#kernel-reach.ts";
+import { KernelReach, type RouseRefused } from "#kernel-reach.ts";
 import {
 	makeRefuseSubsessionAttach,
 	type SubsessionAttachRefused,
 } from "#session-attach-roots.ts";
+import { watchWake } from "#session-wake-watch.ts";
 
 export type SessionSendRefused =
 	| BackendFailure
 	| InvalidSessionExecutionStatus
 	| InvalidSessionExecutionTransition
 	| PrismaError
+	| RouseRefused
 	| SessionEnded
 	| SessionNotFound
-	| SpawnRefused
 	| StoredAgentSessionStatusInvalid
 	| SubsessionAttachRefused;
 
@@ -44,6 +45,11 @@ export const makeSessionSend = Effect.gen(function* () {
 	const reach = yield* KernelReach;
 	const recovery = yield* makeCurrentSessionRecovery;
 	const refuseSubsession = yield* makeRefuseSubsessionAttach;
+	// why: the watch outlives the send that started it — the mutation returns as
+	// soon as the wake is on the record, and what happens to it afterwards is
+	// exactly the part nobody was reading. It belongs to the seam's own lifetime
+	// rather than to one request's.
+	const scope = yield* Effect.scope;
 	const executors = yield* Effect.context<WriteExecutors>();
 	const provide = <A, E>(effect: Effect.Effect<A, E, WriteExecutors>) =>
 		Effect.provideContext(effect, executors);
@@ -55,7 +61,18 @@ export const makeSessionSend = Effect.gen(function* () {
 			.send(sessionId, text)
 			.pipe(Effect.andThen(recovery.awaken(sessionId)));
 	const rouse = (sessionId: string, text: string) =>
-		reach.submitRecovery({ message: text, sessionId }).pipe(Effect.asVoid);
+		reach.rouseSession({ message: text, sessionId }).pipe(
+			Effect.flatMap((wake) =>
+				Effect.forkIn(
+					watchWake(sessionId, wake).pipe(
+						Effect.provideService(Database, db),
+						provide,
+					),
+					scope,
+				),
+			),
+			Effect.asVoid,
+		);
 	const open = (sessionId: string) =>
 		Effect.gen(function* () {
 			const session = yield* provide(

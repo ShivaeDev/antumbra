@@ -56,6 +56,7 @@ export {
 	SessionNotLive,
 	UnknownBackendTag,
 } from "#errors.ts";
+export { IntentFeedLive } from "#intent-feed.ts";
 export { KernelReachLive } from "#kernel-reach.ts";
 export { type OutcomeTally, pieceOutcomeTally } from "#outcome-status.ts";
 export {
@@ -78,6 +79,7 @@ export {
 	assembleSessionTree,
 	type SessionTreeRow,
 } from "#session-tree-view.ts";
+export { SettingsSourceLive } from "#settings.ts";
 export { SightSourceLive } from "#sight.ts";
 export type { SpawnFields } from "#spawn.ts";
 export type { VoyageRow, VoyageWorld } from "#voyage-rows.ts";

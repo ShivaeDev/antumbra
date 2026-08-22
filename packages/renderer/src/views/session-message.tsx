@@ -3,7 +3,9 @@ import { useState } from "react";
 import { sendToSession } from "#adapters/trpc.ts";
 import { Button } from "#components/ui/button.tsx";
 import { Input } from "#components/ui/input.tsx";
-import { presenceNote } from "#views/session-presence-words.ts";
+import { presenceNote, wakeNote } from "#views/session-presence-words.ts";
+
+const WAKE_KIND = "agent/recover";
 
 const sessionOf = (
 	fleet: Fleet | undefined,
@@ -24,6 +26,21 @@ const refusal = (session: SessionSummary | undefined): string | undefined => {
 	return session.canSend ? undefined : presenceNote[session.presence];
 };
 
+// why: a live recover is the send's own receipt — the mutation returning is
+// only the demand being written down, and the wake it asked for is the part
+// the admiral is waiting on. Reading it off the durable state rather than the
+// send's return keeps the box honest about a wake this window never asked for,
+// and about one still parked from an earlier send.
+const wake = (session: SessionSummary | undefined): string | undefined => {
+	const pending = session?.diag.intents.find(
+		(intent) => intent.kind === WAKE_KIND,
+	);
+	if (pending === undefined) {
+		return undefined;
+	}
+	return pending.state === "waiting" ? wakeNote.parked : wakeNote.underway;
+};
+
 const note = (session: SessionSummary | undefined): string | undefined =>
 	session === undefined || session.presence === "working"
 		? undefined
@@ -41,7 +58,7 @@ export const SessionMessage = ({
 	const [text, setText] = useState("");
 	const session = sessionOf(fleet, sessionId);
 	const blocked = refusal(session);
-	const standing = blocked ?? note(session);
+	const standing = blocked ?? wake(session) ?? note(session);
 	const ready = blocked === undefined && text.trim() !== "";
 	const send = () => {
 		if (!ready) {

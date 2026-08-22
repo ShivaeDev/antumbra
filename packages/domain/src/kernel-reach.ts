@@ -1,21 +1,23 @@
-import {
-	Kernel,
-	type PayloadInvalid,
-	type UnregisteredIntentTag,
-} from "@antumbra/kernel";
-import type { PrismaError, WriteExecutors } from "@antumbra/persistence";
+import { Kernel } from "@antumbra/kernel";
+import type { WriteExecutors } from "@antumbra/persistence";
 import { Context, Deferred, Effect, Layer } from "effect";
 import { AgentDomain } from "#agent-domain-service.ts";
+import {
+	makeRouseSession,
+	type RouseRefused,
+	type SessionRouse,
+	type SpawnRefused,
+} from "#kernel-rouse.ts";
 import type { RecoveryFields } from "#session-recovery.ts";
 import type { SpawnFields } from "#spawn-fields.ts";
 
-// why: the three ways the kernel can turn a submission away — a payload it
-// cannot decode, a tag no domain registered, or the write that records the
-// submission failing. Every act that reaches the kernel refuses this way.
-export type SpawnRefused = PayloadInvalid | PrismaError | UnregisteredIntentTag;
+export type { RouseRefused, SessionRouse, SpawnRefused };
 
 export interface KernelReachService {
 	readonly queueSiesta: (sessionId: string) => Effect.Effect<void>;
+	readonly rouseSession: (
+		payload: RecoveryFields,
+	) => Effect.Effect<SessionRouse, RouseRefused>;
 	readonly submitRecovery: (
 		payload: RecoveryFields,
 	) => Effect.Effect<string, SpawnRefused>;
@@ -49,6 +51,8 @@ export const KernelReachDeferredLive = Layer.unwrap(
 			Layer.succeed(KernelReach)({
 				queueSiesta: (sessionId) =>
 					withReach((reach) => reach.queueSiesta(sessionId)),
+				rouseSession: (payload) =>
+					withReach((reach) => reach.rouseSession(payload)),
 				submitRecovery: (payload) =>
 					withReach((reach) => reach.submitRecovery(payload)),
 				submitSpawn: (payload) =>
@@ -86,6 +90,7 @@ export const KernelReachLive = Layer.effectDiscard(
 						),
 					),
 				),
+			rouseSession: yield* makeRouseSession(domain.recover),
 			submitRecovery: (payload) =>
 				kernel.submit(domain.recover, payload).pipe(
 					Effect.map((submission) => submission.id),

@@ -1,49 +1,15 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
-import { type IntentStatus, Kernel } from "@antumbra/kernel";
+import { Kernel } from "@antumbra/kernel";
 import { Database, type WriteExecutors, Writer } from "@antumbra/persistence";
 import {
 	decodeSessionExecutionStatus,
 	decodeStoredAgentSessionStatus,
 } from "@antumbra/vocabulary/agent-runtime";
-import { Effect, Layer, Option, PubSub, Stream } from "effect";
+import { Effect, Layer, PubSub, Stream } from "effect";
 import { AgentDomain } from "#agent-domain-service.ts";
 import { rootSessions } from "#session-roots.ts";
-import {
-	SessionShutdown,
-	SessionShutdownIncomplete,
-} from "#session-shutdown.ts";
-
-const TERMINAL: ReadonlySet<IntentStatus> = new Set([
-	"cancelled",
-	"failed",
-	"succeeded",
-]);
-
-const requireSucceeded = (
-	intentId: string,
-	sessionId: string,
-	status: Option.Option<IntentStatus>,
-) =>
-	Option.match(status, {
-		onNone: () =>
-			Effect.fail(
-				new SessionShutdownIncomplete({
-					intentId,
-					sessionId,
-					status: "missing",
-				}),
-			),
-		onSome: (value) =>
-			value === "succeeded"
-				? Effect.void
-				: Effect.fail(
-						new SessionShutdownIncomplete({
-							intentId,
-							sessionId,
-							status: value,
-						}),
-					),
-	});
+import { SessionShutdown } from "#session-shutdown.ts";
+import { requireSiestaSucceeded, TERMINAL } from "#session-shutdown-verdict.ts";
 
 export const makeSessionShutdownDrain = Effect.gen(function* () {
 	const db = yield* Database;
@@ -98,7 +64,7 @@ export const makeSessionShutdownDrain = Effect.gen(function* () {
 				Stream.takeUntil((status) => TERMINAL.has(status)),
 				Stream.runLast,
 				Effect.flatMap((status) =>
-					requireSucceeded(intentId, sessionId, status),
+					requireSiestaSucceeded(intentId, sessionId, status),
 				),
 			),
 		);
@@ -131,9 +97,15 @@ export const makeSessionShutdownDrain = Effect.gen(function* () {
 			});
 		}
 	});
+	// why: starts are closed for the length of the drain and no longer. A quit
+	// that goes through takes the process with it, so reopening on the way out
+	// costs nothing; a quit that is refused, or a drain whose caller carries on
+	// regardless, leaves an application still running — and one that had closed
+	// its starts for good would park every later wake on a gate nothing reopens.
+	// Reopening on error alone was the narrower half of that.
 	return domain.closeSessionStarts.pipe(
 		Effect.andThen(drainOpenSessions),
-		Effect.onError(() => domain.reopenSessionStarts),
+		Effect.ensuring(domain.reopenSessionStarts),
 	);
 });
 

@@ -21,6 +21,15 @@ const soundings: PieceView = {
 	agents: [],
 	artifactHistory: [],
 	artifacts: [],
+	board: [
+		{
+			authorAgentId: null,
+			body: "## Log entry\n\nFound **two** shoals.",
+			createdAt: "2026-08-15T09:10:00.000Z",
+			id: "entry-1",
+			register: "smooth",
+		},
+	],
 	changes: [],
 	charter,
 	dependsOn: ["piece-2"],
@@ -127,8 +136,36 @@ it.effect("reads the charter as the document it is once opened", () =>
 		expect(shown).toContain("<code>three fathoms</code>");
 		expect(container.textContent).toContain("Depends on: the chart");
 		expect(container.textContent).toContain("Launch");
+		expect(container.textContent).toContain("Board");
+		expect(container.innerHTML).not.toContain("<h2>Log entry</h2>");
 		yield* drop(root);
 	}),
+);
+
+it.effect(
+	"exposes the piece log through the same collapsed Markdown control",
+	() =>
+		Effect.gen(function* () {
+			const { container, root } = mount();
+			yield* render(root, soundings);
+			yield* open(container);
+
+			const board = container.querySelector<HTMLButtonElement>(
+				'button[title="Show the board"]',
+			);
+			expect(board).not.toBeNull();
+			yield* Effect.promise(() =>
+				act(() => {
+					board?.click();
+					return Promise.resolve();
+				}),
+			);
+
+			expect(container.innerHTML).toContain("<h2>Log entry</h2>");
+			expect(container.innerHTML).toContain("<strong>two</strong>");
+			expect(container.textContent).toContain("Write to the board");
+			yield* drop(root);
+		}),
 );
 
 it.effect("closes again on the reader's word", () =>

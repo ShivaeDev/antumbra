@@ -5,7 +5,12 @@ import type { RequestOrigin } from "#router-procedure.ts";
 // the voyages the work is for, and the quay where finished work waits on a
 // host. Which one is on show belongs to the window, not to the page, so a
 // reloaded console comes back to what it was pointed at.
-export const ConsoleMode = Schema.Literals(["fleet", "voyages", "quay"]);
+export const ConsoleMode = Schema.Literals([
+	"fleet",
+	"voyages",
+	"quay",
+	"settings",
+]);
 export type ConsoleMode = typeof ConsoleMode.Type;
 
 // why: a window's role is minted by the shell and never travels in its URL.

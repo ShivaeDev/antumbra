@@ -15,15 +15,10 @@ import {
 	unresumableDetail,
 	unresumableVerdict,
 } from "#session-unresumable.ts";
+import { SessionWakePatience } from "#session-wake-patience.ts";
 
 export const RECOVERY_INSTRUCTION =
 	"Reconcile durable Antumbra truth and continue your assigned work.";
-
-// why: generous enough that a real resume — a provider session opened, its own
-// storage read back for work that ended while nothing was listening — finishes
-// well inside it, and short enough that a wake nobody can complete says so
-// while the admiral is still watching for it.
-export const WAKE_PATIENCE_MILLIS = 60_000;
 
 // why: an explicit act may travel with the words that caused it, so waking a
 // Session and speaking to it are one intent rather than two the caller has to
@@ -41,6 +36,7 @@ const waitFor = (detail: string) =>
 export const makeRecoveryKind = Effect.gen(function* () {
 	const load = yield* makeSessionRecoveryContext;
 	const fabric = yield* SessionFabric;
+	const patience = yield* SessionWakePatience;
 	const recovery = yield* makeCurrentSessionRecovery;
 	const runtime = yield* SessionRecoveryRuntime;
 	// why: a Session the fabric already holds needs no resume — it is either
@@ -109,10 +105,10 @@ export const makeRecoveryKind = Effect.gen(function* () {
 			// attachment with it.
 			yield* admitted(sessionId, message).pipe(
 				Effect.timeoutOrElse({
-					duration: WAKE_PATIENCE_MILLIS,
+					duration: patience,
 					orElse: () =>
 						recoveryHeld(
-							`${sessionId} did not reach a live attachment within ${WAKE_PATIENCE_MILLIS}ms`,
+							`${sessionId} did not reach a live attachment within ${patience}ms`,
 						),
 				}),
 			);

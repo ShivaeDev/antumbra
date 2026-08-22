@@ -105,9 +105,7 @@ export const makeSessionAttachmentRegistry = Effect.gen(function* () {
 	// mark before the handle is read is what stops a reclaim that had already
 	// chosen this Session from taking the attachment out from under them.
 	const rousingHandle = (sessionId: string) =>
-		entries
-			.mark(sessionId, undefined)
-			.pipe(Effect.andThen(liveHandle(sessionId)));
+		entries.rouse(sessionId).pipe(Effect.andThen(liveHandle(sessionId)));
 	return {
 		attach,
 		attached: entries.attached,
@@ -122,7 +120,7 @@ export const makeSessionAttachmentRegistry = Effect.gen(function* () {
 			),
 		standDown: (sessionId) =>
 			Effect.flatMap(Clock.currentTimeMillis, (now) =>
-				entries.mark(sessionId, now),
+				entries.rest(sessionId, now),
 			),
 		stop: remove,
 		stopIdle: (sessionId) =>

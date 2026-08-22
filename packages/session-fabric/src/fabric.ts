@@ -49,7 +49,8 @@ export interface SessionFabricService {
 		text: string,
 	) => Effect.Effect<void, BackendFailure | SessionNotLive>;
 	// why: the Agent's own declaration that it has nothing left to do. It keeps
-	// its acquisition; only the mark changes.
+	// its acquisition; only the mark changes, and only when the quiet is new —
+	// saying it again while already quiet leaves the moment where it was.
 	readonly standDown: (sessionId: string) => Effect.Effect<void>;
 	readonly stop: (sessionId: string) => Effect.Effect<void>;
 	// why: reclaim the acquisition only while it is still standing down.

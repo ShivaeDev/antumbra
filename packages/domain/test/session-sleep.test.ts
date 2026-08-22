@@ -13,6 +13,7 @@ import {
 } from "#test/harness.ts";
 import {
 	HAND,
+	laterBy,
 	openedNatively,
 	passedAt,
 	presenceOf,
@@ -149,6 +150,34 @@ it.live("a request that races a child starting refuses and names itself", () =>
 			expect(refused[0]?.detail).toContain("delegated conversation");
 			expect(yield* live.closed).toBe(false);
 			expect((yield* presenceOf).presence).toBe("idle");
+		}).pipe(Effect.provide(sightLayer(temporary, scripted)));
+	}),
+);
+
+// why: the hour measures quiet, not the last time the quiet was mentioned.
+// Some Agents stand down again every time they are hailed and find nothing to
+// do, and if each declaration started the hour over, the one Session that says
+// it most often would be the one never reclaimed.
+it.live("standing down again does not push the hour out", () =>
+	Effect.gen(function* () {
+		const temporary = yield* acquireTemporaryPersistence;
+		const scripted = yield* makeScriptedBackend;
+		yield* Effect.gen(function* () {
+			const kernel = yield* Kernel;
+			yield* spawned;
+			const live = yield* openedNatively(scripted);
+			yield* callTool(live, "stand_down", undefined);
+			yield* restingAt(true);
+
+			yield* laterBy(50 * 60_000, callTool(live, "stand_down", undefined));
+
+			yield* passedAt(IDLE_SIESTA_AFTER_MILLIS + 5 * 60_000);
+			const demanded = yield* siestaIntents;
+			expect(demanded).toHaveLength(1);
+			expect(yield* untilTerminal(kernel.changes(demanded[0]?.id ?? ""))).toBe(
+				"succeeded",
+			);
+			expect(yield* live.closed).toBe(true);
 		}).pipe(Effect.provide(sightLayer(temporary, scripted)));
 	}),
 );

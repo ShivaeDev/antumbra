@@ -8,7 +8,10 @@ import { Effect, Option } from "effect";
 import { toFailure } from "#sight-failure.ts";
 import { summarySeen, voyageSeen } from "#voyage-projection.ts";
 import { readVoyageView } from "#voyage-read.ts";
-import { voyageSummaries } from "#voyage-view.ts";
+import {
+	type VoyageView as DerivedVoyage,
+	voyageSummaries,
+} from "#voyage-view.ts";
 import { VoyageWorldSource } from "#voyage-world.ts";
 
 export interface VoyageReads {
@@ -36,6 +39,24 @@ export const makeVoyageReads = Effect.gen(function* () {
 		boards
 			.read(BoardScope.Voyage({ voyageId }))
 			.pipe(Effect.mapError(toFailure));
+	const pieceBoardsOf = (pieceIds: ReadonlyArray<string>) =>
+		Effect.forEach(pieceIds, (pieceId) =>
+			boards
+				.read(BoardScope.Piece({ pieceId }))
+				.pipe(Effect.map((entries) => [pieceId, entries] as const)),
+		).pipe(
+			Effect.map((entries) => new Map(entries)),
+			Effect.mapError(toFailure),
+		);
+	const seenVoyage = (voyageId: string, view: DerivedVoyage) =>
+		Effect.all({
+			board: boardOf(voyageId),
+			pieceBoards: pieceBoardsOf(view.pieces.map((piece) => piece.id)),
+		}).pipe(
+			Effect.map(({ board, pieceBoards }) =>
+				voyageSeen(view, board, pieceBoards),
+			),
+		);
 	const readVoyage = (voyageId: string) =>
 		readVoyageView(voyageId).pipe(
 			Effect.provideService(VoyageWorldSource, world),
@@ -43,10 +64,7 @@ export const makeVoyageReads = Effect.gen(function* () {
 			Effect.flatMap(
 				Option.match({
 					onNone: () => absent(voyageId),
-					onSome: (view) =>
-						boardOf(voyageId).pipe(
-							Effect.map((entries) => voyageSeen(view, entries)),
-						),
+					onSome: (view) => seenVoyage(voyageId, view),
 				}),
 			),
 		);

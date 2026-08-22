@@ -70,6 +70,7 @@ const piece: PieceView = {
 		},
 	],
 	artifacts: [artifact],
+	board: [],
 	changes: [],
 	charter: "draw the reef",
 	dependsOn: [],

@@ -13,7 +13,9 @@ const { sendToSession } = vi.hoisted(() => ({ sendToSession: vi.fn() }));
 
 vi.mock("#adapters/trpc.ts", () => ({ sendToSession }));
 
-const fleetWith = (canSend: boolean, status: string): Fleet => ({
+type Presence = Fleet["agents"][number]["sessions"][number]["presence"];
+
+const fleetWith = (presence: Presence): Fleet => ({
 	agents: [
 		{
 			berths: [],
@@ -24,12 +26,13 @@ const fleetWith = (canSend: boolean, status: string): Fleet => ({
 			sessions: [
 				{
 					backend: "scripted",
-					canInterrupt: canSend,
-					canSend,
+					canInterrupt: presence === "working",
+					canSend: presence !== "ended",
 					cwd: "/tmp/reef",
 					diag: { current: true, execution: "active", intents: [] },
 					id: "session-1",
-					status,
+					presence,
+					status: presence === "ended" ? "closed" : "open",
 				},
 			],
 			status: "alive",
@@ -93,20 +96,55 @@ const step = (change: () => void) =>
 		}),
 	);
 
-it("names why a session cannot be spoken to instead of going quiet", () => {
-	const listening = renderToStaticMarkup(box(fleetWith(true, "open")));
-	expect(listening).toContain("say something to this session");
-	expect(listening).not.toContain("this session is");
-	expect(renderToStaticMarkup(box(fleetWith(false, "open")))).toContain(
-		"this session is not listening right now",
+// why: the footer says who is listening, not whether the admiral is allowed to
+// speak. Three of the four states take words; only the ended one refuses, so
+// the box says what it will do rather than making a reader guess whether
+// sending is pointless.
+it("says who is listening rather than refusing to take the words", () => {
+	const working = renderToStaticMarkup(box(fleetWith("working")));
+	expect(working).toContain("say something to this session");
+	// why: a session taking a turn needs no footnote — the box is the answer.
+	expect(working).not.toContain("this session is");
+	expect(working).not.toContain("this session has");
+	expect(renderToStaticMarkup(box(fleetWith("idle")))).toContain(
+		"listening, with nothing to do",
 	);
-	expect(renderToStaticMarkup(box(fleetWith(false, "closed")))).toContain(
-		"this session is closed",
+	expect(renderToStaticMarkup(box(fleetWith("asleep")))).toContain(
+		"asleep — it will wake when you speak to it",
+	);
+	expect(renderToStaticMarkup(box(fleetWith("ended")))).toContain(
+		"this session has ended",
 	);
 	expect(renderToStaticMarkup(box(undefined))).toContain(
 		"this session is not on the fleet",
 	);
 });
+
+// why: the sentence the correction deleted. A Session that stood down or was
+// put to siesta is reachable, and no surface may tell a reader otherwise.
+it("never tells the admiral a session is not listening", () => {
+	for (const presence of ["working", "idle", "asleep", "ended"] as const) {
+		expect(renderToStaticMarkup(box(fleetWith(presence)))).not.toContain(
+			"not listening",
+		);
+	}
+});
+
+// why: only an ended Session closes the box. An asleep one takes the words and
+// wakes on them, so disabling the input there would be the old refusal wearing
+// a calmer sentence.
+it.effect("keeps the box open for every state but the one that has ended", () =>
+	Effect.gen(function* () {
+		for (const presence of ["working", "idle", "asleep"] as const) {
+			const { container, root } = yield* mounted(fleetWith(presence));
+			expect(container.querySelector("input")?.disabled).toBe(false);
+			yield* step(() => root.unmount());
+		}
+		const { container, root } = yield* mounted(fleetWith("ended"));
+		expect(container.querySelector("input")?.disabled).toBe(true);
+		yield* step(() => root.unmount());
+	}),
+);
 
 it.effect("sends what was typed by key or by button and clears the box", () =>
 	Effect.gen(function* () {
@@ -118,7 +156,7 @@ it.effect("sends what was typed by key or by button and clears the box", () =>
 				_onError: (message: string) => void,
 			) => onDone(),
 		);
-		const { container, root } = yield* mounted(fleetWith(true, "open"));
+		const { container, root } = yield* mounted(fleetWith("working"));
 		yield* step(() => write(container, "come about"));
 		yield* step(() => pressEnter(container));
 		expect(sendToSession).toHaveBeenLastCalledWith(
@@ -141,18 +179,16 @@ it.effect("sends what was typed by key or by button and clears the box", () =>
 	}),
 );
 
-it.effect(
-	"keeps a blank message and a session that is not listening quiet",
-	() =>
-		Effect.gen(function* () {
-			sendToSession.mockClear();
-			const { container, root } = yield* mounted(fleetWith(true, "open"));
-			yield* step(() => write(container, "   "));
-			yield* step(() => pressEnter(container));
-			expect(sendToSession).not.toHaveBeenCalled();
-			yield* step(() => root.render(box(fleetWith(false, "open"))));
-			expect(container.querySelector("input")?.disabled).toBe(true);
-			expect(container.querySelector("button")?.disabled).toBe(true);
-			yield* step(() => root.unmount());
-		}),
+it.effect("keeps a blank message and a session that has ended quiet", () =>
+	Effect.gen(function* () {
+		sendToSession.mockClear();
+		const { container, root } = yield* mounted(fleetWith("working"));
+		yield* step(() => write(container, "   "));
+		yield* step(() => pressEnter(container));
+		expect(sendToSession).not.toHaveBeenCalled();
+		yield* step(() => root.render(box(fleetWith("ended"))));
+		expect(container.querySelector("input")?.disabled).toBe(true);
+		expect(container.querySelector("button")?.disabled).toBe(true);
+		yield* step(() => root.unmount());
+	}),
 );

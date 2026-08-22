@@ -84,7 +84,7 @@ export const removeArtifactSupersessionSpec = defineTool({
 
 export const standDownSpec = defineTool({
 	description:
-		"Ask Antumbra to stand you down once your work is done and everything is landed. Antumbra accepts the request before detaching execution and preserves your Agent identity for later hails or work assignments.",
+		"Say you have nothing left to do, once your work is done and everything is landed. You stay open and listening: the admiral can still speak to you and you will answer, so call it rather than inventing more work. Antumbra puts you to rest on its own if the quiet lasts, and wakes you when someone speaks.",
 	input: Schema.Struct({}),
 	name: "stand_down",
 });

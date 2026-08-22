@@ -65,6 +65,7 @@ it("offers a window of its own for a session", () => {
 				cwd: "/tmp/reef",
 				diag: { current: true, execution: "idle", intents: [] },
 				id: "session-1",
+				presence: "idle",
 				status: "open",
 			}}
 		/>,

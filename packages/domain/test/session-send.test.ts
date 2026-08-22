@@ -89,7 +89,11 @@ it.live("a message with no words is refused before any delivery", () =>
 	}),
 );
 
-it.live("a session with no live attachment refuses the message", () =>
+// why: losing an attachment is not losing reachability — a Session whose
+// process went away is woken by being spoken to. The two refusals left are the
+// ones where there is nothing to wake: an identity that has ended, and an id
+// that never named a Session at all.
+it.live("only an ended session and an unknown id refuse the message", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
 		const scripted = yield* makeScriptedBackend;
@@ -104,12 +108,12 @@ it.live("a session with no live attachment refuses the message", () =>
 					expect(yield* session.closed).toBe(true);
 				}),
 			);
-			const closed = yield* Effect.flip(
+			const ended = yield* Effect.flip(
 				sight.send(receipt.sessionId, "still aboard?"),
 			);
-			expect(closed.message).toContain("SessionNotLive");
+			expect(ended.message).toContain("has ended and cannot be spoken to");
 			const ghost = yield* Effect.flip(sight.send("ghost", "anyone aboard?"));
-			expect(ghost.message).toContain("SessionNotLive");
+			expect(ghost.message).toContain("there is no session ghost on the fleet");
 			expect(yield* session.sent).toEqual([spawnRequest.charter]);
 		}).pipe(Effect.provide(sightLayer(temporary, scripted)));
 	}),

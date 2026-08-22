@@ -47,9 +47,10 @@ const rootedOrRefused = (
 // why: only a root may be attached to a provider. A subsession is part of its
 // root's record — its conversation is one the root is still holding, and on at
 // least one provider attaching to it mutates it — so handing a child's id to a
-// resume, a drain or a restore is refused here rather than reasoned about at
-// each caller. The roots-only selection upstream is what normally keeps a child
-// from getting this far; this is the seam that makes it impossible.
+// resume, a drain, a restore or a send is refused here rather than reasoned
+// about at each caller. The roots-only selection upstream is what normally
+// keeps a child from getting this far; this is the seam that makes it
+// impossible.
 export const makeRefuseSubsessionAttach = Effect.gen(function* () {
 	const db = yield* Database;
 	const executors = yield* Effect.context<WriteExecutors>();

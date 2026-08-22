@@ -6,6 +6,7 @@ import {
 	decodeStoredAgentStatus,
 	decodeStoredBerthStatus,
 	decodeStoredResourceReclaimState,
+	sessionPresence,
 } from "@antumbra/vocabulary/agent-runtime";
 import { Effect } from "effect";
 import { rootSessions } from "#session-roots.ts";
@@ -15,6 +16,7 @@ import type { PendingIntent } from "#sight-intents.ts";
 export const fleetSnapshot = (
 	backends: ReadonlyArray<string>,
 	intents: ReadonlyArray<PendingIntent>,
+	attached: ReadonlySet<string>,
 ) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
@@ -51,8 +53,12 @@ export const fleetSnapshot = (
 					return {
 						agentId: session.agentId,
 						backend: session.backend,
-						canInterrupt: running,
-						canSend: running,
+						canInterrupt: running && attached.has(session.id),
+						// why: words reach every Session that has not ended — one that is
+						// listening takes them now, one whose process was reclaimed is
+						// woken by them — so the only Session the admiral cannot speak to
+						// is one there is nothing left to wake.
+						canSend: status === "open",
 						cwd: session.cwd,
 						diag: {
 							current: pointers.get(session.agentId) === session.id,
@@ -60,6 +66,11 @@ export const fleetSnapshot = (
 							intents: attribution.sessions.get(session.id) ?? [],
 						},
 						id: session.id,
+						presence: sessionPresence({
+							attached: attached.has(session.id),
+							executionStatus,
+							open: status === "open",
+						}),
 						status,
 					};
 				}),
@@ -115,6 +126,7 @@ export const fleetSnapshot = (
 					cwd: session.cwd,
 					diag: session.diag,
 					id: session.id,
+					presence: session.presence,
 					status: session.status,
 				})),
 			status: agent.status,

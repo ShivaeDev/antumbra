@@ -4,14 +4,16 @@ import type {
 } from "#transcript/model.ts";
 import { MarkdownView } from "#views/markdown-view.tsx";
 
-// why: the two sides of a transcript are different kinds of text. What a
-// person typed is verbatim and stays as typed; what the agent wrote is
-// Markdown it authored, so it is rendered as the document it is.
+// why: both sides of a transcript write Markdown, so both are read as the
+// documents they are. A person's message keeps the fill that says a person
+// typed it, and the line breaks they typed, which Markdown would otherwise
+// fold into one paragraph.
 export const TranscriptMessage = ({ item }: { readonly item: MessageItem }) =>
 	item.role === "user" ? (
-		<div className="whitespace-pre-wrap wrap-anywhere rounded-md border border-border bg-secondary px-2.5 py-1.5 text-xs">
-			{item.text}
-		</div>
+		<MarkdownView
+			className="markdown-typed rounded-md border border-border bg-secondary px-2.5 py-1.5 text-xs"
+			markdown={item.text}
+		/>
 	) : (
 		<MarkdownView markdown={item.text} />
 	);

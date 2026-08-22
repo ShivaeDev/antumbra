@@ -47,3 +47,32 @@ it.live("a subsession's thread is refused at the attachment seam", () =>
 		}),
 	),
 );
+
+// why: waking a sleeping session is one act, not two — the conversation it
+// already has is re-entered and the words that woke it are said in it. A
+// `thread/start` here would strand the whole prior log, and words that never
+// reach a turn were never said to anyone.
+it.live(
+	"a woken thread carries the words that woke it into its first turn",
+	() =>
+		Effect.scoped(
+			Effect.gen(function* () {
+				const fake = makeFakeAppServer();
+				const server = yield* makeCodexServer({ spawn: () => fake.process });
+				const handle = yield* openThreadSession(
+					server,
+					options(Option.some(ROOT)),
+				);
+				yield* handle.queue("come about");
+				expect(fake.requests.map((request) => request.method)).toEqual([
+					"initialize",
+					"thread/resume",
+					"turn/start",
+				]);
+				expect(fake.requests.at(-1)?.params).toEqual({
+					input: [{ text: "come about", text_elements: [], type: "text" }],
+					threadId: ROOT,
+				});
+			}),
+		),
+);

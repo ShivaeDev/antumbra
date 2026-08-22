@@ -1,6 +1,7 @@
 import type { TranscriptRaw as RawItem } from "#transcript/model.ts";
 import { summaryLine } from "#transcript/summary.ts";
-import { Disclosure, Payload } from "#views/transcript-disclosure.tsx";
+import { Disclosure } from "#views/transcript-disclosure.tsx";
+import { Payload } from "#views/transcript-payload.tsx";
 
 // why: a provider's raw payload is one unbroken line of tens of thousands of
 // characters. Shown whole it buries the narration around it, so it reads as a

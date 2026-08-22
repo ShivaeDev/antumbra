@@ -30,6 +30,7 @@ export const fleet: Fleet = {
 					canSend: true,
 					cwd: "/tmp/reef",
 					diag: { current: true, execution: "active", intents: [] },
+					presence: "working",
 					id: "session-1",
 					status: "open",
 				},

@@ -186,7 +186,10 @@ Agent-directed mail is durable and board-backed. Addressing and marked-read
 state remain true without a Session attachment, and reading never writes a
 receipt. In v1 the admiral selects attention and the Agent pulls its mailbox;
 no mail arrival or external fact automatically attaches, resumes, or
-interrupts a Session.
+interrupts a Session. Speaking to a Session is not such a fact. It is the
+admiral's own intent, and intent is exactly what a wake is for — so a send, and
+nothing else, may resume an asleep Session. No notification, projection, timer,
+or background reconciliation ever does.
 
 ## Provisioning and resource topology
 
@@ -215,8 +218,30 @@ support until Antumbra can actually render and operate a terminal.
 
 ## Rest and reaping
 
-Standing an Agent down drains its work toward a safe holding point. A root
-Session is reapable only after its provider work, tool calls, subsession
+A root Session is in one of four states, and only the last of them refuses to
+be spoken to.
+
+- **Working** — taking a turn. Words queue and arrive at the next provider
+  boundary.
+- **Idle** — the Agent has said it has nothing left to do. The provider Session
+  stays open and listening and no tokens are spent holding it. Words arrive
+  immediately, because there is nothing to wake.
+- **Asleep** — the process attachment has been reclaimed. The Session row is
+  open and resumable, and words wake it: Antumbra resumes it through the same
+  machinery a hail uses and delivers them on arrival.
+- **Retired** — the identity has ended. This is the only state that refuses.
+
+The two quiet states are reached by different things, and which thing matters.
+Standing down is a declaration, not a request to be put away: it drains work
+toward a safe holding point and leaves the Agent idle, attached, and reachable.
+Siesta is reached by the clock instead — a Session idle for longer than the
+threshold is put to rest by Antumbra, never by the Agent, which cannot ask to
+be reclaimed and cannot refuse to be. Idleness is therefore true only of a live
+process: a restart necessarily leaves every idle Session asleep, which is what
+the record already said, so boot has nothing to repair and reads them as
+ordinary resumable Sessions rather than as failures.
+
+A root Session is reapable only after its provider work, tool calls, subsession
 subtree, descendant Agent tree, and background obligations have all settled; an
 open subsession means the record is still unaccounted for, and resource
 pressure never interrupts an in-flight subtree. Long-lived concerns are
@@ -234,10 +259,12 @@ Reclamation applies only to replaceable resources. Boards, transcripts, Agent
 identity, Session identity, and story are not cleanup targets. The evidence
 boundary and selection policy above govern every automated reclamation.
 
-Stand-down is a reversible siesta: it drains toward a safe holding point while
-preserving the Agent, its Moorage, and its resumable root Sessions. Retirement is
-the explicit irreversible end of an Agent and normally drives terminal Moorage
-cleanup. Exceptional recovery may instead reclaim a broken or deliberately
-abandoned setup for a non-retired Agent; a later ordinary provision attempt
-reuses the same Moorage row, reconciles surviving evidence, and recreates only
-what is absent. There is no separate resource-reset lifecycle.
+Stand-down leaves an Agent idle and reachable; siesta is the reversible rest a
+long-idle Session is later put into. Both preserve the Agent, its Moorage, and
+its resumable root Sessions, and either can be left by speaking to the Session.
+Retirement is the explicit irreversible end of an Agent and normally drives
+terminal Moorage cleanup. Exceptional recovery may instead reclaim a broken or
+deliberately abandoned setup for a non-retired Agent; a later ordinary
+provision attempt reuses the same Moorage row, reconciles surviving evidence,
+and recreates only what is absent. There is no separate resource-reset
+lifecycle.

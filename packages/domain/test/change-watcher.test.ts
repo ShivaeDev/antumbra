@@ -216,7 +216,7 @@ describe("a chain gated on a change", () => {
 				).toMatchObject({ ok: true });
 				expect(yield* callTool(crew, "stand_down", undefined)).toEqual({
 					ok: true,
-					text: "standing down",
+					text: "standing by",
 				});
 				yield* eventually(
 					Effect.gen(function* () {

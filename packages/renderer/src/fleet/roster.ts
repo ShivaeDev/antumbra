@@ -1,37 +1,43 @@
 import type { AgentSummary, SessionSummary } from "@antumbra/contract";
 
-export type Standing = "quiet" | "retired" | "waiting" | "working";
+export type Standing = "asleep" | "listening" | "quiet" | "retired" | "working";
 
-// why: the fleet publishes capabilities, not Session execution state, so the
-// roster says what the admiral may do to an agent right now — a session that
-// can be interrupted is one taking a turn — and never claims to know whether a
-// quiet session is idle or winding down.
+// why: the fleet publishes each Session's presence, so the roster no longer
+// has to treat every quiet agent alike — one listening with nothing to do and
+// one whose process was reclaimed read the same from outside and mean
+// different things to a reader deciding whom to speak to. An agent stands at
+// the liveliest of its sessions, because that is where it would be found.
 const activityOf = (sessions: ReadonlyArray<SessionSummary>): Standing => {
-	if (sessions.some((session) => session.canInterrupt)) {
+	if (sessions.some((session) => session.presence === "working")) {
 		return "working";
 	}
-	if (sessions.some((session) => session.status === "open")) {
-		return "waiting";
+	if (sessions.some((session) => session.presence === "idle")) {
+		return "listening";
 	}
-	return "quiet";
+	return sessions.some((session) => session.presence === "asleep")
+		? "asleep"
+		: "quiet";
 };
 
 export const standingOf = (agent: AgentSummary): Standing =>
 	agent.status === "alive" ? activityOf(agent.sessions) : "retired";
 
 export const STANDING_LABEL: Readonly<Record<Standing, string>> = {
+	asleep: "asleep",
+	listening: "listening",
 	quiet: "no session",
 	retired: "retired",
-	waiting: "waiting",
 	working: "working",
 };
 
 // why: the page answers who is working right now, so the order is the answer:
-// the agents taking a turn come first and the ones the admiral has finished
+// the agents taking a turn come first, then the ones who would answer at once,
+// then the ones who have to be woken, and the ones the admiral has finished
 // with come last.
 const ORDER: ReadonlyArray<Standing> = [
 	"working",
-	"waiting",
+	"listening",
+	"asleep",
 	"quiet",
 	"retired",
 ];

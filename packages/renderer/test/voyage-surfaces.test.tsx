@@ -75,5 +75,5 @@ it("every piece wears the state the domain derived for it", () => {
 	expect(html).toContain("Active");
 	expect(html).toContain("the chart");
 	expect(html).toContain("Held");
-	expect(html).toContain("Depends on: soundings");
+	expect(html).toContain("sound the northern shoals");
 });

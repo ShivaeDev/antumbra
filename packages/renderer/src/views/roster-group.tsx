@@ -8,9 +8,10 @@ import { cn } from "#lib/utils.ts";
 import { AgentCard } from "#views/agent-card.tsx";
 
 const DOT: Readonly<Record<Standing, string>> = {
+	asleep: "bg-border-strong",
+	listening: "bg-info",
 	quiet: "bg-muted-foreground",
 	retired: "bg-border-strong",
-	waiting: "bg-info",
 	working: "bg-success",
 };
 

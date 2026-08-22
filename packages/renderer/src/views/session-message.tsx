@@ -3,6 +3,7 @@ import { useState } from "react";
 import { sendToSession } from "#adapters/trpc.ts";
 import { Button } from "#components/ui/button.tsx";
 import { Input } from "#components/ui/input.tsx";
+import { presenceNote } from "#views/session-presence-words.ts";
 
 const sessionOf = (
 	fleet: Fleet | undefined,
@@ -12,19 +13,21 @@ const sessionOf = (
 		.flatMap((agent) => agent.sessions)
 		.find((session) => session.id === sessionId);
 
-// why: the fleet publishes whether words can reach a Session, never why it is
-// unreachable, so the refusal is named from what the view is allowed to know.
+// why: words reach a Session in every state but one, so the box is closed only
+// when there is nothing left to wake. What the rest say is a note about who is
+// listening, not an excuse — an asleep Session takes the words and comes back
+// with them, and the admiral should send without wondering whether to.
 const refusal = (session: SessionSummary | undefined): string | undefined => {
 	if (session === undefined) {
 		return "this session is not on the fleet";
 	}
-	if (session.canSend) {
-		return undefined;
-	}
-	return session.status === "open"
-		? "this session is not listening right now"
-		: `this session is ${session.status}`;
+	return session.canSend ? undefined : presenceNote[session.presence];
 };
+
+const note = (session: SessionSummary | undefined): string | undefined =>
+	session === undefined || session.presence === "working"
+		? undefined
+		: presenceNote[session.presence];
 
 export const SessionMessage = ({
 	fleet,
@@ -36,7 +39,9 @@ export const SessionMessage = ({
 	readonly sessionId: string;
 }) => {
 	const [text, setText] = useState("");
-	const blocked = refusal(sessionOf(fleet, sessionId));
+	const session = sessionOf(fleet, sessionId);
+	const blocked = refusal(session);
+	const standing = blocked ?? note(session);
 	const ready = blocked === undefined && text.trim() !== "";
 	const send = () => {
 		if (!ready) {
@@ -59,15 +64,15 @@ export const SessionMessage = ({
 						}
 					}}
 					placeholder="say something to this session"
-					title={blocked}
+					title={standing}
 					value={text}
 				/>
 				<Button disabled={!ready} onClick={send} type="button">
 					Send
 				</Button>
 			</div>
-			{blocked === undefined ? null : (
-				<span className="text-2xs text-muted-foreground">{blocked}</span>
+			{standing === undefined ? null : (
+				<span className="text-2xs text-muted-foreground">{standing}</span>
 			)}
 		</div>
 	);

@@ -16,6 +16,7 @@ const session = (id: string, canInterrupt: boolean): SessionSummary => ({
 	cwd: "/moorage",
 	diag: { current: true, execution: "active", intents: [] },
 	id,
+	presence: canInterrupt ? "working" : "ended",
 	status: canInterrupt ? "open" : "closed",
 });
 

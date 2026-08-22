@@ -1,8 +1,7 @@
 import { Kernel } from "@antumbra/kernel";
 import { Database, Writer } from "@antumbra/persistence";
-import type { AgentBackend } from "@antumbra/plugin-api";
 import { expect, it } from "@effect/vitest";
-import { Deferred, Effect, Option } from "effect";
+import { Effect, Option } from "effect";
 import { AgentDomain } from "#domain.ts";
 import type { SpawnFields } from "#index.ts";
 import { fleetSnapshot } from "#sight-fleet.ts";
@@ -36,24 +35,14 @@ const sessionRow = Effect.gen(function* () {
 	);
 });
 
-it.live("stand down is accepted durably before the attachment drains", () =>
+// why: standing down is a declaration, and the only durable trace of it is the
+// row saying the Session is no longer executing. Nothing else about the Agent
+// moves — identity, Moorage and the provider reference are all exactly as they
+// were, which is what makes the state reversible by a single message.
+it.live("stand down records the declaration and disturbs nothing else", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
 		const scripted = yield* makeScriptedBackend;
-		const detaching = yield* Deferred.make<void>();
-		const release = yield* Deferred.make<void>();
-		const backend: AgentBackend = {
-			...scripted.backend,
-			openSession: (options) =>
-				Effect.gen(function* () {
-					yield* Effect.addFinalizer(() =>
-						Deferred.succeed(detaching, undefined).pipe(
-							Effect.andThen(Deferred.await(release)),
-						),
-					);
-					return yield* scripted.backend.openSession(options);
-				}),
-		};
 
 		yield* Effect.gen(function* () {
 			const db = yield* Database;
@@ -77,33 +66,31 @@ it.live("stand down is accepted durably before the attachment drains", () =>
 				agentId: HAND.agentId,
 			}).first();
 			const sessionBefore = yield* sessionRow;
+			const attached = yield* domain.sessionsAttached;
 			expect(
-				(yield* fleetSnapshot(["scripted"], [])).agents[0]?.sessions[0]
-					?.canInterrupt,
+				(yield* fleetSnapshot(["scripted"], [], attached)).agents[0]
+					?.sessions[0]?.canInterrupt,
 			).toBe(true);
 
 			expect(yield* callTool(live, "stand_down", undefined)).toEqual({
 				ok: true,
-				text: "standing down",
+				text: "standing by",
 			});
-			yield* Deferred.await(detaching);
-			expect((yield* sessionRow).executionStatus).toBe("draining");
-			expect(
-				(yield* fleetSnapshot(["scripted"], [])).agents[0]?.sessions[0]
-					?.canInterrupt,
-			).toBe(false);
-			expect(
-				Option.getOrThrow(yield* db.Agent.where({ id: HAND.agentId }).first())
-					.status,
-			).toBe("alive");
-
-			yield* Deferred.succeed(release, undefined);
 			yield* eventually(
 				Effect.gen(function* () {
 					expect((yield* sessionRow).executionStatus).toBe("idle");
 				}),
 			);
-			expect(yield* live.closed).toBe(true);
+			// why: nothing to interrupt, and still everything to say to.
+			const stillAttached = yield* domain.sessionsAttached;
+			expect(stillAttached.has(HAND.sessionId)).toBe(true);
+			const summary = (yield* fleetSnapshot(["scripted"], [], stillAttached))
+				.agents[0]?.sessions[0];
+			expect(summary?.canInterrupt).toBe(false);
+			expect(summary?.canSend).toBe(true);
+			expect(summary?.presence).toBe("idle");
+			expect(yield* live.closed).toBe(false);
+
 			expect(yield* db.Agent.where({ id: HAND.agentId }).first()).toEqual(
 				agentBefore,
 			);
@@ -114,7 +101,11 @@ it.live("stand down is accepted durably before the attachment drains", () =>
 				...sessionBefore,
 				executionStatus: "idle",
 			});
-		}).pipe(Effect.provide(domainKernelLayer(temporary, backend)));
+			expect(
+				Option.getOrThrow(yield* db.Agent.where({ id: HAND.agentId }).first())
+					.status,
+			).toBe("alive");
+		}).pipe(Effect.provide(domainKernelLayer(temporary, scripted.backend)));
 	}),
 );
 
@@ -184,6 +175,8 @@ it.live("idle survives restart and addressed mail does not wake it", () =>
 					expect((yield* sessionRow).executionStatus).toBe("idle");
 				}),
 			);
+			// why: mail is a persisted fact, and persisted facts do not wake an
+			// Agent — only the admiral speaking to it does.
 			yield* domain.boards.mail({
 				authorAgentId: Option.none(),
 				body: "wait for explicit selection",

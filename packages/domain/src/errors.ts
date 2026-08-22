@@ -60,6 +60,25 @@ export class SessionIdentityMissing extends Data.TaggedError(
 	readonly sessionId: string;
 }> {}
 
+export class SessionNotFound extends Data.TaggedError("SessionNotFound")<{
+	readonly sessionId: string;
+}> {
+	override get message(): string {
+		return `there is no session ${this.sessionId} on the fleet`;
+	}
+}
+
+// why: the one state that refuses words. Every other state either holds the
+// conversation open or can be woken back into it, so this refusal is the whole
+// set of ways an Agent can stop being reachable.
+export class SessionEnded extends Data.TaggedError("SessionEnded")<{
+	readonly sessionId: string;
+}> {
+	override get message(): string {
+		return `session ${this.sessionId} has ended and cannot be spoken to`;
+	}
+}
+
 // why: a voyage is under way because its captain is at work, so hailing a
 // second one while the first still is would give the voyage two accountable
 // addresses. The refusal names the captain it already has.

@@ -16,10 +16,10 @@ export interface SessionLifecycles {
 		sessionId: string,
 		admission: Effect.Effect<void, E, R>,
 	) => Effect.Effect<void, SessionAttachmentFailure | E, R>;
-	readonly stop: <E, R>(
+	readonly stop: <A, E, R>(
 		sessionId: string,
-		teardown: Effect.Effect<void, E, R>,
-	) => Effect.Effect<void, E, R>;
+		teardown: Effect.Effect<A, E, R>,
+	) => Effect.Effect<A, E, R>;
 }
 
 const stopped = (signal: Deferred.Deferred<void>) =>
@@ -66,7 +66,7 @@ export const makeSessionLifecycles = Effect.gen(function* () {
 			const lifecycle = yield* lifecycleFor(sessionId);
 			// why: the signal precedes the permit wait, so attachment admission
 			// cannot outrun durable retirement and install work afterward.
-			yield* Effect.acquireUseRelease(
+			return yield* Effect.acquireUseRelease(
 				Effect.gen(function* () {
 					const replacement = yield* Deferred.make<void>();
 					const signal = yield* Ref.modify(lifecycle.stopState, (state) => [

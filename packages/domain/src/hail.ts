@@ -79,7 +79,7 @@ export const hailCaptain = (voyageId: string) =>
 					voyageId,
 				});
 			}
-			const intentId = yield* reach.submitRecovery(session.id);
+			const intentId = yield* reach.submitRecovery({ sessionId: session.id });
 			return { agentId: current.value.agentId, intentId };
 		}
 		// why: a captain still being born is at work and has no execution to

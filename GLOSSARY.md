@@ -62,7 +62,8 @@ Owner: [Agent identity, resources, and recovery](docs/design/agent-recovery.md)
 - [**Hail**](docs/design/agent-recovery.md#hailing-an-agent) — address an Agent by resuming it or establishing its execution context.
 - [**Moorage**](docs/design/agent-recovery.md#provisioning-and-resource-topology) — an Agent's current replaceable resource home.
 - [**Berth**](docs/design/agent-recovery.md#provisioning-and-resource-topology) — one repository worktree inside a Moorage.
-- [**Siesta**](docs/design/agent-recovery.md#reclamation-boundary) — the reversible rest reached by standing an Agent down.
-- [**Stand down**](docs/design/agent-recovery.md#reclamation-boundary) — drain an Agent to a safe holding point without retiring it.
+- [**Stand down**](docs/design/agent-recovery.md#rest-and-reaping) — an Agent's own declaration that it has nothing left to do; it stays attached and reachable.
+- [**Idle**](docs/design/agent-recovery.md#rest-and-reaping) — a Session that has stood down and is listening with nothing to do.
+- [**Siesta**](docs/design/agent-recovery.md#rest-and-reaping) — the reversible rest a long-idle Session is put into by the clock; its process is reclaimed and speaking to it wakes it.
 - [**Retirement**](docs/design/agent-recovery.md#reclamation-boundary) — the explicit irreversible end of an Agent identity.
 - [**Reconciliation**](docs/design/agent-recovery.md#durable-truth-and-disposable-execution) — repeatably compare durable truth with reality until they converge.

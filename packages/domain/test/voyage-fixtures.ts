@@ -1,5 +1,6 @@
 import { type IntentStatus, Kernel } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
+import { expect } from "@effect/vitest";
 import { Effect, Option, Schedule, Stream } from "effect";
 import { AgentDomain } from "#domain.ts";
 
@@ -16,6 +17,16 @@ export const eventually = <A, E, R>(check: Effect.Effect<A, E, R>) =>
 		Effect.catchDefect((defect) => Effect.fail(defect)),
 		Effect.retry(Schedule.spaced(10).pipe(Schedule.upTo({ duration: 3000 }))),
 	);
+
+export const aliveAgent = (agentId: string) =>
+	Effect.gen(function* () {
+		const db = yield* Database;
+		const agent = Option.getOrThrow(
+			yield* db.Agent.where({ id: agentId }).first(),
+		);
+		expect(agent.status).toBe("alive");
+		return agent;
+	});
 
 export const openReefVoyage = Effect.gen(function* () {
 	const domain = yield* AgentDomain;

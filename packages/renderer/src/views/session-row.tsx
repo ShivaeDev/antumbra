@@ -5,6 +5,20 @@ import { openWindow } from "#adapters/trpc-windows.ts";
 import { Badge } from "#components/ui/badge.tsx";
 import { Button } from "#components/ui/button.tsx";
 import { cn } from "#lib/utils.ts";
+import { presenceWords } from "#views/session-presence-words.ts";
+
+// why: only working is tinted. Listening and asleep are the ordinary quiet of
+// a fleet between tasks, and colouring them would spend the reader's attention
+// on rows that want nothing from them.
+const PRESENCE: Record<
+	SessionSummary["presence"],
+	React.ComponentProps<typeof Badge>["variant"]
+> = {
+	asleep: "outline",
+	ended: "outline",
+	idle: "secondary",
+	working: "success",
+};
 
 // why: a session is how the admiral steps in — its row is the whole click
 // target for the transcript beside the roster, and the acts sit outside that
@@ -40,10 +54,9 @@ export const SessionRow = ({
 			<span className="min-w-0 flex-1 truncate text-2xs text-muted-foreground">
 				{session.backend}
 			</span>
-			{session.canInterrupt ? <Badge variant="success">working</Badge> : null}
-			{session.status === "open" ? null : (
-				<Badge variant="outline">{session.status}</Badge>
-			)}
+			<Badge variant={PRESENCE[session.presence]}>
+				{presenceWords[session.presence]}
+			</Badge>
 		</button>
 		<Button
 			aria-label="Open in a window"

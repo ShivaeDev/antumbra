@@ -4,16 +4,16 @@ import { rosterGroups, standingOf } from "#fleet/roster.ts";
 
 const session = (
 	id: string,
-	canInterrupt: boolean,
-	status: string,
+	presence: SessionSummary["presence"],
 ): SessionSummary => ({
 	backend: "scripted",
-	canInterrupt,
-	canSend: canInterrupt,
+	canInterrupt: presence === "working",
+	canSend: presence !== "ended",
 	cwd: "/tmp/reef",
 	diag: { current: true, execution: "idle", intents: [] },
 	id,
-	status,
+	presence,
+	status: presence === "ended" ? "closed" : "open",
 });
 
 const agent = (
@@ -30,16 +30,38 @@ const agent = (
 	status,
 });
 
-const working = agent("working", "alive", [session("s1", true, "open")]);
-const waiting = agent("waiting", "alive", [session("s2", false, "open")]);
-const quiet = agent("quiet", "alive", [session("s3", false, "closed")]);
-const retired = agent("retired", "retired", [session("s4", true, "open")]);
+const working = agent("working", "alive", [session("s1", "working")]);
+const listening = agent("listening", "alive", [session("s2", "idle")]);
+const asleep = agent("asleep", "alive", [session("s3", "asleep")]);
+const quiet = agent("quiet", "alive", [session("s4", "ended")]);
+const retired = agent("retired", "retired", [session("s5", "working")]);
 
+// why: listening and asleep used to read alike, and the difference is the one
+// the admiral acts on — one answers at once, the other has to be woken first.
 it("reads an agent's standing from what the fleet publishes", () => {
 	expect(standingOf(working)).toBe("working");
-	expect(standingOf(waiting)).toBe("waiting");
+	expect(standingOf(listening)).toBe("listening");
+	expect(standingOf(asleep)).toBe("asleep");
 	expect(standingOf(quiet)).toBe("quiet");
 	expect(standingOf(agent("none", "alive", []))).toBe("quiet");
+});
+
+// why: an agent stands at the liveliest of its sessions, because that is the
+// one a reader looking for it would find it in.
+it("stands an agent at its liveliest session", () => {
+	expect(
+		standingOf(
+			agent("mixed", "alive", [session("s6", "asleep"), session("s7", "idle")]),
+		),
+	).toBe("listening");
+	expect(
+		standingOf(
+			agent("busy", "alive", [
+				session("s8", "asleep"),
+				session("s9", "working"),
+			]),
+		),
+	).toBe("working");
 });
 
 // why: an agent the admiral has finished with keeps no claim on attention,
@@ -49,10 +71,11 @@ it("counts a retired agent as retired however its sessions read", () => {
 });
 
 it("puts the agents taking a turn first and the retired ones last", () => {
-	const groups = rosterGroups([retired, quiet, waiting, working]);
+	const groups = rosterGroups([retired, quiet, asleep, listening, working]);
 	expect(groups.map((group) => group.standing)).toEqual([
 		"working",
-		"waiting",
+		"listening",
+		"asleep",
 		"quiet",
 		"retired",
 	]);

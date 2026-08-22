@@ -36,6 +36,7 @@ it("admits raw Session execution state only under diagnostics", () => {
 			executionStatus: "draining",
 			id: "session-1",
 			posture: "draining",
+			presence: "asleep",
 			status: "open",
 		}),
 	);
@@ -46,6 +47,7 @@ it("admits raw Session execution state only under diagnostics", () => {
 		cwd: "/tmp/reef",
 		diag: { current: true, execution: "draining", intents: [siesta] },
 		id: "session-1",
+		presence: "asleep",
 		status: "open",
 	});
 });

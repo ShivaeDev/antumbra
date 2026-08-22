@@ -245,7 +245,7 @@ it.live("standing down preserves the agent and session that called it", () =>
 			};
 			expect(yield* callTool(live, "stand_down", undefined)).toEqual({
 				ok: true,
-				text: "standing down",
+				text: "standing by",
 			});
 			yield* eventually(
 				Effect.gen(function* () {
@@ -255,9 +255,13 @@ it.live("standing down preserves the agent and session that called it", () =>
 					}).first();
 					expect(Option.getOrThrow(agent).status).toBe("alive");
 					expect(Option.getOrThrow(session).status).toBe("open");
-					expect(yield* live.closed).toBe(true);
+					expect(Option.getOrThrow(session).executionStatus).toBe("idle");
 				}),
 			);
+			// why: saying there is nothing left to do is not asking to be put
+			// away, so the provider session the Agent called from is still the
+			// one it is standing in.
+			expect(yield* live.closed).toBe(false);
 			expect(yield* db.Agent.where({ id: HAND.agentId }).first()).toEqual(
 				before.agent,
 			);

@@ -35,11 +35,15 @@ export const transitionRow = (
 		);
 		const status = yield* Effect.fromResult(transition(current, event));
 		const now = yield* Clock.currentTimeMillis;
-		yield* db.Intent.where({ id }).update({
-			detail: detail ?? null,
-			status,
-			updatedAt: new Date(now),
-		});
+		// why: detail is the last thing the intent had to say — the reason it
+		// waited, the cause it failed on, the note reclaim left. A move that
+		// carries none has nothing to add, so it leaves that record standing;
+		// writing null on every move is how a failure reason went missing
+		// between the write and whoever came to read it.
+		const written = { status, updatedAt: new Date(now) };
+		yield* db.Intent.where({ id }).update(
+			detail === undefined ? written : { ...written, detail },
+		);
 		return { id, status };
 	});
 

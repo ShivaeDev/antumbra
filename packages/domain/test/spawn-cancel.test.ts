@@ -84,9 +84,11 @@ it.live(
 				expect((yield* db.Intent.all()).map((row) => row.id)).toEqual([
 					submission.id,
 				]);
-				expect((yield* db.PieceAgent.all()).map((row) => row.agentId)).toEqual([
-					payload.agentId,
-				]);
+				// why: the plan survives because a berth half cut is a thing on disk
+				// that reclaim must still come for. The claim on the Piece does not:
+				// it was staked for a birth that never drew breath, and settlement
+				// withdraws it so the Piece is free of Agents that never served.
+				expect(yield* db.PieceAgent.all()).toEqual([]);
 				expect(yield* db.AgentSession.all()).toHaveLength(0);
 			}).pipe(
 				Effect.provide(

@@ -4,11 +4,14 @@ import { SessionFabric } from "@antumbra/session-fabric";
 import {
 	type AgentStatus,
 	agentTransition,
-	decodeStoredAgentStatus,
 } from "@antumbra/vocabulary/agent-runtime";
 import { Effect, Option, PubSub } from "effect";
 import { AgentNotSpawnable } from "#errors.ts";
-import { activationFor, ensureSessionStatus } from "#spawn-current-session.ts";
+import {
+	activationFor,
+	ensureSessionStatus,
+	settlementFor,
+} from "#spawn-current-session.ts";
 import type { SpawnFields } from "#spawn-fields.ts";
 
 export const spawnResolution = Effect.gen(function* () {
@@ -54,6 +57,20 @@ export const spawnResolution = Effect.gen(function* () {
 					}),
 				),
 			);
+	// why: the link registration wrote is a claim staked before the birth, not a
+	// record of crew that served. assignedExecution already passes over an
+	// assignment whose Agent is not alive, so withdrawing the claim costs
+	// dispatch nothing and is what stops a Piece collecting one dormant Agent
+	// for every attempt that never drew breath.
+	const releaseClaim = (payload: SpawnFields) => {
+		const pieceId = payload.pieceId;
+		return pieceId === undefined
+			? Effect.void
+			: db.PieceAgent.where({
+					agentId: payload.agentId,
+					pieceId,
+				}).deleteAll();
+	};
 	const settleFailureRows = (payload: SpawnFields) =>
 		Effect.gen(function* () {
 			const agent = yield* db.Agent.where({
@@ -62,13 +79,8 @@ export const spawnResolution = Effect.gen(function* () {
 			if (Option.isNone(agent)) {
 				return false;
 			}
-			const status = yield* Effect.fromResult(
-				decodeStoredAgentStatus(agent.value.id, agent.value.status),
-			);
-			if (
-				status !== "spawning" ||
-				agent.value.currentSessionId !== payload.sessionId
-			) {
+			const settlement = yield* settlementFor(agent.value, payload);
+			if (settlement === "settled") {
 				return false;
 			}
 			const session = yield* db.AgentSession.where({
@@ -77,8 +89,11 @@ export const spawnResolution = Effect.gen(function* () {
 			if (Option.isSome(session)) {
 				yield* ensureSessionStatus(session.value.id, session.value.status);
 			}
-			const next = yield* Effect.fromResult(agentTransition(status, "reclaim"));
+			const next = yield* Effect.fromResult(
+				agentTransition("spawning", "reclaim"),
+			);
 			yield* closeFailedRows(payload, next);
+			yield* releaseClaim(payload);
 			return true;
 		});
 	const settleFailure = (payload: SpawnFields) =>
@@ -87,6 +102,7 @@ export const spawnResolution = Effect.gen(function* () {
 			const changed = yield* provide(writer.write(settleFailureRows(payload)));
 			if (changed) {
 				yield* PubSub.publish(feeds.fleet, undefined);
+				yield* PubSub.publish(feeds.voyages, undefined);
 			}
 		});
 	return { activate, settleFailure };

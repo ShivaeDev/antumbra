@@ -14,9 +14,10 @@ export const spawnRegistration = Effect.gen(function* () {
 		Effect.provideContext(effect, executors);
 
 	// why: the link is written beside the agent row, not after the session opens,
-	// so a spawn that fails partway still leaves the piece pointing at the agent
-	// it was given — the derived state reads that agent's status and puts the
-	// piece back in the pool rather than losing the attempt.
+	// so every attempt on a piece is visible for as long as it is under way and
+	// two births can never both hold it. It is a claim, not a record of service:
+	// a birth that settles as failed withdraws it, so a piece is never left
+	// carrying agents that never drew breath.
 	const assignToPiece = (payload: SpawnFields) => {
 		const pieceId = payload.pieceId;
 		if (pieceId === undefined) {

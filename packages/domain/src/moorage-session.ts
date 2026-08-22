@@ -9,7 +9,12 @@ import type { MooragePlan } from "@antumbra/plugin-api";
 import { ensureAgentResourcesUnclaimed } from "@antumbra/resource-reclamation";
 import { decodeStoredAgentSessionStatus } from "@antumbra/vocabulary/agent-runtime";
 import { Effect, Option, PubSub } from "effect";
-import { AgentNotFound, AgentSessionConflict } from "#errors.ts";
+import {
+	AgentNotFound,
+	AgentRootAlreadyOpen,
+	AgentSessionConflict,
+} from "#errors.ts";
+import { openSessions, rootSessionsOf } from "#session-roots.ts";
 import type { SpawnFields } from "#spawn-fields.ts";
 
 export const makeEnsureSessionRow = Effect.gen(function* () {
@@ -19,38 +24,66 @@ export const makeEnsureSessionRow = Effect.gen(function* () {
 	const executors = yield* Effect.context<WriteExecutors>();
 	const provide = <A, E>(effect: Effect.Effect<A, E, WriteExecutors>) =>
 		Effect.provideContext(effect, executors);
+	const conflict = (payload: SpawnFields, currentSessionId: string | null) =>
+		new AgentSessionConflict({
+			agentId: payload.agentId,
+			currentSessionId,
+			sessionId: payload.sessionId,
+		});
+	// why: a replayed birth finds the row its earlier attempt wrote. It is this
+	// spawn's own only if the Agent owns it and it is still open; anything else
+	// under the same id belongs to a Session this spawn may not adopt.
+	const alreadyOpened = (
+		payload: SpawnFields,
+		currentSessionId: string | null,
+	) =>
+		Effect.gen(function* () {
+			const session = yield* db.AgentSession.where({
+				id: payload.sessionId,
+			}).first();
+			if (Option.isNone(session)) {
+				return false;
+			}
+			const status = yield* Effect.fromResult(
+				decodeStoredAgentSessionStatus(session.value.id, session.value.status),
+			);
+			return session.value.agentId === payload.agentId && status === "open"
+				? true
+				: yield* conflict(payload, currentSessionId);
+		});
+	// why: one open root per Agent is a rule the database also holds, as a
+	// partial unique index. Left to the index it arrives as a constraint
+	// violation with a redacted driver message behind it, which reaches the
+	// reader as an Intent that failed for no stated reason — so the rule is read
+	// first and refused by name, pointing at the Session already open.
+	const refuseSecondRoot = (payload: SpawnFields) =>
+		Effect.gen(function* () {
+			const openRoot = yield* db.AgentSession.where({
+				...rootSessionsOf(payload.agentId),
+				...openSessions,
+			}).first();
+			if (Option.isSome(openRoot)) {
+				return yield* new AgentRootAlreadyOpen({
+					agentId: payload.agentId,
+					openSessionId: openRoot.value.id,
+					sessionId: payload.sessionId,
+				});
+			}
+		});
 	const ensureSession = (payload: SpawnFields, plan: MooragePlan) =>
 		Effect.gen(function* () {
 			const agent = yield* db.Agent.where({ id: payload.agentId }).first();
 			if (Option.isNone(agent)) {
 				return yield* new AgentNotFound({ agentId: payload.agentId });
 			}
-			if (agent.value.currentSessionId !== payload.sessionId) {
-				return yield* new AgentSessionConflict({
-					agentId: payload.agentId,
-					currentSessionId: agent.value.currentSessionId,
-					sessionId: payload.sessionId,
-				});
+			const currentSessionId = agent.value.currentSessionId;
+			if (currentSessionId !== payload.sessionId) {
+				return yield* conflict(payload, currentSessionId);
 			}
-			const session = yield* db.AgentSession.where({
-				id: payload.sessionId,
-			}).first();
-			if (Option.isSome(session)) {
-				const status = yield* Effect.fromResult(
-					decodeStoredAgentSessionStatus(
-						session.value.id,
-						session.value.status,
-					),
-				);
-				if (session.value.agentId !== payload.agentId || status !== "open") {
-					return yield* new AgentSessionConflict({
-						agentId: payload.agentId,
-						currentSessionId: agent.value.currentSessionId,
-						sessionId: payload.sessionId,
-					});
-				}
+			if (yield* alreadyOpened(payload, currentSessionId)) {
 				return false;
 			}
+			yield* refuseSecondRoot(payload);
 			// why: a spawn opens a root — no parent, and it roots its own tree.
 			// Subsession rows are born by the tree's own creator, never here.
 			yield* db.AgentSession.create({

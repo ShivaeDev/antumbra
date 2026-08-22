@@ -1,38 +1,27 @@
-import type { StoredAgentSession } from "@antumbra/persistence";
 import {
-	type AgentSessionStatus,
 	type AgentStatus,
-	decodeStoredAgentSessionStatus,
-	decodeStoredAgentStatus,
+	agentTransition,
+	type InvalidAgentTransition,
 	type StoredAgentSessionStatusInvalid,
 	type StoredAgentStatusInvalid,
 } from "@antumbra/vocabulary/agent-runtime";
 import { Result } from "effect";
 import { CurrentSessionInvalid } from "#current-session-errors.ts";
 import { newestSession } from "#current-session-order.ts";
-
-interface StoredAgent {
-	readonly currentSessionId: string | null;
-	readonly id: string;
-	readonly status: unknown;
-}
-
-// why: the reconciler reads roots only, and the fields it reads are the stored
-// ones — deriving the shape keeps a column change a compile error here.
-type StoredSession = Pick<
-	StoredAgentSession,
-	"agentId" | "createdAt" | "id" | "status"
->;
-
-interface DecodedAgent extends StoredAgent {
-	readonly status: AgentStatus;
-}
-
-interface DecodedSession extends StoredSession {
-	readonly status: AgentSessionStatus;
-}
+import {
+	type DecodedAgent,
+	type DecodedSession,
+	decodeAgents,
+	decodeSessions,
+	type StoredAgent,
+	type StoredSession,
+} from "#current-session-reconcile-rows.ts";
 
 export interface CurrentSessionReconcilePlan {
+	readonly agentsToReclaim: ReadonlyArray<{
+		readonly agentId: string;
+		readonly status: AgentStatus;
+	}>;
 	readonly pointers: ReadonlyArray<{
 		readonly agentId: string;
 		readonly currentSessionId: string | null;
@@ -42,41 +31,22 @@ export interface CurrentSessionReconcilePlan {
 
 type PlanFailure =
 	| CurrentSessionInvalid
+	| InvalidAgentTransition
 	| StoredAgentSessionStatusInvalid
 	| StoredAgentStatusInvalid;
-
-const decodeAgents = (stored: ReadonlyArray<StoredAgent>) => {
-	const decoded: Array<DecodedAgent> = [];
-	for (const agent of stored) {
-		const status = decodeStoredAgentStatus(agent.id, agent.status);
-		if (Result.isFailure(status)) {
-			return Result.fail(status.failure);
-		}
-		decoded.push({ ...agent, status: status.success });
-	}
-	return Result.succeed(decoded);
-};
-
-const decodeSessions = (stored: ReadonlyArray<StoredSession>) => {
-	const decoded: Array<DecodedSession> = [];
-	for (const session of stored) {
-		const status = decodeStoredAgentSessionStatus(session.id, session.status);
-		if (Result.isFailure(status)) {
-			return Result.fail(status.failure);
-		}
-		decoded.push({ ...session, status: status.success });
-	}
-	return Result.succeed(decoded);
-};
 
 const planAgent = (
 	agent: DecodedAgent,
 	owned: ReadonlyArray<DecodedSession>,
 	allSessions: ReadonlyArray<DecodedSession>,
-): Result.Result<CurrentSessionReconcilePlan, CurrentSessionInvalid> => {
+): Result.Result<
+	CurrentSessionReconcilePlan,
+	CurrentSessionInvalid | InvalidAgentTransition
+> => {
 	const open = owned.filter((session) => session.status === "open");
 	if (agent.status === "dormant" || agent.status === "retired") {
 		return Result.succeed({
+			agentsToReclaim: [],
 			pointers:
 				agent.currentSessionId === null
 					? []
@@ -85,12 +55,26 @@ const planAgent = (
 		});
 	}
 	const currentId = agent.currentSessionId ?? newestSession(open)?.id ?? null;
+	// why: an alive or spawning Agent with neither a pointer nor an open root
+	// holds work it can never do — atWork fails closed on absent Session truth,
+	// so its Piece stays active and is never offered again. Accepting that state
+	// is how the deadlock survived; boot reclaims the Agent through the status
+	// table instead, and dormant is what hands the Piece back to the pool.
+	if (currentId === null) {
+		const reclaimed = agentTransition(agent.status, "reclaim");
+		return Result.isFailure(reclaimed)
+			? Result.fail(reclaimed.failure)
+			: Result.succeed({
+					agentsToReclaim: [{ agentId: agent.id, status: reclaimed.success }],
+					pointers: [],
+					sessionsToClose: [],
+				});
+	}
 	const current = owned.find((session) => session.id === currentId);
 	const reservedBirth =
 		agent.status === "spawning" &&
-		currentId !== null &&
 		!allSessions.some((session) => session.id === currentId);
-	if (currentId !== null && !reservedBirth && current?.status !== "open") {
+	if (!reservedBirth && current?.status !== "open") {
 		return Result.fail(
 			new CurrentSessionInvalid({
 				agentId: agent.id,
@@ -99,8 +83,9 @@ const planAgent = (
 		);
 	}
 	return Result.succeed({
+		agentsToReclaim: [],
 		pointers:
-			agent.currentSessionId === null && currentId !== null
+			agent.currentSessionId === null
 				? [{ agentId: agent.id, currentSessionId: currentId }]
 				: [],
 		sessionsToClose: open
@@ -121,6 +106,9 @@ export const planCurrentSessionReconciliation = (
 	if (Result.isFailure(decodedSessions)) {
 		return Result.fail(decodedSessions.failure);
 	}
+	const agentsToReclaim: Array<
+		CurrentSessionReconcilePlan["agentsToReclaim"][number]
+	> = [];
 	const pointers: Array<CurrentSessionReconcilePlan["pointers"][number]> = [];
 	const sessionsToClose: Array<string> = [];
 	for (const agent of decodedAgents.success) {
@@ -132,6 +120,7 @@ export const planCurrentSessionReconciliation = (
 		if (Result.isFailure(planned)) {
 			return planned;
 		}
+		agentsToReclaim.push(...planned.success.agentsToReclaim);
 		pointers.push(...planned.success.pointers);
 		sessionsToClose.push(...planned.success.sessionsToClose);
 	}
@@ -144,5 +133,5 @@ export const planCurrentSessionReconciliation = (
 			)
 			.map((session) => session.id),
 	);
-	return Result.succeed({ pointers, sessionsToClose });
+	return Result.succeed({ agentsToReclaim, pointers, sessionsToClose });
 };

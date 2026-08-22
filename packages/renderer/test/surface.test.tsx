@@ -59,6 +59,7 @@ it("offers a window of its own for a session", () => {
 			onSelect={() => undefined}
 			selected={undefined}
 			session={{
+				addressable: [],
 				backend: "scripted",
 				canInterrupt: false,
 				canSend: false,

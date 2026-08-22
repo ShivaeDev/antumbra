@@ -1,3 +1,4 @@
+import { Changes } from "@antumbra/changes";
 import type { AgentSummary, Fleet, RepoSummary } from "@antumbra/contract";
 import { Database } from "@antumbra/persistence";
 import {
@@ -7,6 +8,7 @@ import {
 } from "@antumbra/vocabulary/agent-runtime";
 import { Effect } from "effect";
 import { rootSessions } from "#session-roots.ts";
+import { situationsByAgent } from "#session-situations.ts";
 import { attributeIntents } from "#sight-diagnostics.ts";
 import { type FleetRuntime, sessionSummary } from "#sight-fleet-sessions.ts";
 import type { PendingIntent } from "#sight-intents.ts";
@@ -18,6 +20,7 @@ export const fleetSnapshot = (
 ) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
+		const changes = yield* Changes;
 		const storedAgents = yield* db.Agent.orderBy((agent) =>
 			agent.createdAt.asc(),
 		).all();
@@ -37,8 +40,17 @@ export const fleetSnapshot = (
 			new Set(agents.map((agent) => agent.id)),
 			new Set(sessions.map((session) => session.id)),
 		);
+		// why: the Changes an Agent is answering for are read in the same pass as
+		// its Sessions, through the capability that owns them rather than off the
+		// rows — a situation offered from a Change this snapshot never decoded
+		// would be an affordance standing on unread truth.
+		const snapshot = yield* changes.snapshot;
+		const situations = situationsByAgent(
+			{ ...snapshot, assignments: yield* db.PieceAgent.all() },
+			agents.map((agent) => agent.id),
+		);
 		const sessionSummaries = yield* Effect.forEach(sessions, (session) =>
-			sessionSummary(session, runtime, attribution, pointers),
+			sessionSummary(session, runtime, attribution, pointers, situations),
 		);
 		const storedBerths = yield* db.Berth.orderBy((berth) =>
 			berth.createdAt.asc(),
@@ -94,6 +106,7 @@ export const fleetSnapshot = (
 			sessions: sessionSummaries
 				.filter((session) => session.agentId === agent.id)
 				.map((session) => ({
+					addressable: session.addressable,
 					backend: session.backend,
 					canInterrupt: session.canInterrupt,
 					canSend: session.canSend,

@@ -26,6 +26,13 @@ export const fleet: Fleet = {
 			role: "navigator",
 			sessions: [
 				{
+					addressable: [
+						{
+							changeId: "change-1",
+							reference: "#42",
+							situation: "merge_conflicts",
+						},
+					],
 					backend: "claude",
 					canInterrupt: true,
 					canSend: true,

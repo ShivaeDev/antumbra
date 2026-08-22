@@ -36,6 +36,10 @@ export const sightFixture = (feeds: FixtureFeeds) =>
 			Effect.succeed({ ...sessionTree, rootSessionId }),
 		sessionTreeFeed: (rootSessionId) =>
 			Stream.make({ ...sessionTree, rootSessionId }),
+		situationDraft: (draft) =>
+			Effect.succeed(
+				`Change #42 in shoals has merge conflicts: work/agent-1/reef no longer merges cleanly into main. Resolve them on ${draft.changeId} and say what you resolved.`,
+			),
 		sleep: () => Effect.void,
 		spawn: (request) =>
 			Effect.succeed({

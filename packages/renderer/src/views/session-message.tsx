@@ -4,6 +4,7 @@ import { sendToSession } from "#adapters/trpc.ts";
 import { Button } from "#components/ui/button.tsx";
 import { Input } from "#components/ui/input.tsx";
 import { presenceNote, wakeNote } from "#views/session-presence-words.ts";
+import { SessionSituations } from "#views/session-situations.tsx";
 
 const WAKE_KIND = "agent/recover";
 
@@ -68,6 +69,13 @@ export const SessionMessage = ({
 	};
 	return (
 		<div className="flex min-w-0 shrink-0 flex-col gap-1 border-t border-border px-4 py-2">
+			{blocked === undefined && session !== undefined ? (
+				<SessionSituations
+					onError={onError}
+					sessionId={sessionId}
+					situations={session.addressable}
+				/>
+			) : null}
 			<div className="flex min-w-0 items-center gap-2">
 				<Input
 					aria-label="Message this session"

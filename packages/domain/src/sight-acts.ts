@@ -2,6 +2,7 @@ import type {
 	RepoRegistration,
 	RepoSummary,
 	SightFailure,
+	SituationDraft,
 	SpawnReceipt,
 	SpawnRequest,
 } from "@antumbra/contract";
@@ -12,6 +13,7 @@ import { AgentDomain } from "#agent-domain-service.ts";
 import { SessionMessageEmpty } from "#errors.ts";
 import { writeProvider } from "#sight-executors.ts";
 import { toFailure } from "#sight-failure.ts";
+import { makeSituationDraft } from "#situation-draft.ts";
 
 export interface SightActs {
 	readonly forgetRepo: (repoId: string) => Effect.Effect<void, SightFailure>;
@@ -24,6 +26,9 @@ export interface SightActs {
 		sessionId: string,
 		text: string,
 	) => Effect.Effect<void, SightFailure>;
+	readonly situationDraft: (
+		draft: SituationDraft,
+	) => Effect.Effect<string, SightFailure>;
 	readonly sleep: (sessionId: string) => Effect.Effect<void, SightFailure>;
 	readonly spawn: (
 		request: SpawnRequest,
@@ -34,6 +39,7 @@ export const makeSightActs = Effect.gen(function* () {
 	const domain = yield* AgentDomain;
 	const kernel = yield* Kernel;
 	const provide = yield* writeProvider;
+	const draft = yield* makeSituationDraft;
 
 	return {
 		forgetRepo: (repoId) =>
@@ -59,6 +65,8 @@ export const makeSightActs = Effect.gen(function* () {
 				// exists to carry them, rather than by a seam relaxing its type.
 				yield* domain.sendToSession(sessionId, admiralWords({ words: text }));
 			}).pipe(Effect.mapError(toFailure)),
+		situationDraft: (request) =>
+			draft(request).pipe(Effect.mapError(toFailure)),
 		// why: the admiral's request and the clock's own are the same act, so both
 		// submit the same Intent and meet the same guard inside it. Nothing is
 		// checked here: a capability read from the last snapshot is a statement

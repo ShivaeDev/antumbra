@@ -29,6 +29,7 @@ const surveyor: AgentSummary = {
 	role: "surveyor",
 	sessions: [
 		{
+			addressable: [],
 			backend: "claude",
 			canInterrupt: true,
 			canSend: true,

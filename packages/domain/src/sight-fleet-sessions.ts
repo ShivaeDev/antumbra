@@ -1,3 +1,4 @@
+import type { SessionSituation } from "@antumbra/contract";
 import type { StoredAgentSession } from "@antumbra/persistence";
 import {
 	decodeSessionExecutionStatus,
@@ -25,6 +26,7 @@ export const sessionSummary = (
 	runtime: FleetRuntime,
 	attribution: IntentAttribution,
 	pointers: ReadonlyMap<string, string | null>,
+	situations: ReadonlyMap<string, ReadonlyArray<SessionSituation>>,
 ) =>
 	Effect.all({
 		executionStatus: Effect.fromResult(
@@ -42,6 +44,11 @@ export const sessionSummary = (
 				open: status === "open",
 			});
 			return {
+				// why: a situation is only addressable if the words can get there,
+				// so it rides the same condition as `canSend` — offering a control
+				// on a Session nothing can reach would be a button that fails.
+				addressable:
+					status === "open" ? (situations.get(session.agentId) ?? []) : [],
 				agentId: session.agentId,
 				backend: session.backend,
 				canInterrupt: running && runtime.attached.has(session.id),

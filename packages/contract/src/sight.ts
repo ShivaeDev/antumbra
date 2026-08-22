@@ -1,6 +1,7 @@
 import { HistoricalAgentEvent } from "@antumbra/vocabulary/session-events";
 import { Context, Data, type Effect, Schema, type Stream } from "effect";
 import type { Fleet, RepoSummary } from "#fleet.ts";
+import { ChangeSituation } from "#session-situations.ts";
 import type { SessionTree } from "#session-tree.ts";
 
 export const SessionEvent = Schema.Struct({
@@ -34,6 +35,12 @@ export const SpawnReceipt = Schema.Struct({
 	sessionId: Schema.String,
 });
 export type SpawnReceipt = typeof SpawnReceipt.Type;
+
+export const SituationDraft = Schema.Struct({
+	changeId: Schema.String,
+	situation: ChangeSituation,
+});
+export type SituationDraft = typeof SituationDraft.Type;
 
 export class SightFailure extends Data.TaggedError("SightFailure")<{
 	readonly message: string;
@@ -72,6 +79,14 @@ export class SightSource extends Context.Service<
 		readonly sessionTreeFeed: (
 			rootSessionId: string,
 		) => Stream.Stream<SessionTree, SightFailure>;
+		// why: the words the situation would put in front of the admiral, read on
+		// demand rather than carried on every fleet snapshot — prose belongs to
+		// the one control that is about to show it, not to every row that has a
+		// Change. Drafting says nothing to anybody: the send is a separate act,
+		// and what it carries is whatever the admiral left in the box.
+		readonly situationDraft: (
+			draft: SituationDraft,
+		) => Effect.Effect<string, SightFailure>;
 		// why: the admiral asking for the same rest the clock would have given an
 		// hour later. It goes through the one act that already knows how to give
 		// it, so there is one way a Session is put to rest and one way it wakes.

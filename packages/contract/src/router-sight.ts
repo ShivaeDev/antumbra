@@ -7,6 +7,7 @@ import {
 	RepoRegistration,
 	SessionEvent,
 	SightSource,
+	SituationDraft,
 	SpawnReceipt,
 	SpawnRequest,
 } from "#sight.ts";
@@ -78,6 +79,13 @@ export const sightRoutes = (procedure: AppProcedure) => ({
 		.subscription(function* (input) {
 			const sight = yield* SightSource;
 			return sight.sessionTreeFeed(input.rootSessionId);
+		}),
+	situationDraft: procedure
+		.input(SituationDraft)
+		.output(Schema.String)
+		.query(function* (input) {
+			const sight = yield* SightSource;
+			return yield* surface(sight.situationDraft(input));
 		}),
 	sleepSession: procedure
 		.input(Schema.Struct({ sessionId: Schema.String }))

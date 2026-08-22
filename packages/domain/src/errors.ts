@@ -32,6 +32,19 @@ export class AgentNotFound extends Data.TaggedError("AgentNotFound")<{
 	readonly agentId: string;
 }> {}
 
+// why: a situation names a Change the host is presenting. One that has been
+// forgotten, or that the host never gave a name to, has no threads, no checks
+// and no merge to be blocked, so there is nothing to draft about it.
+export class ChangeNotAddressable extends Data.TaggedError(
+	"ChangeNotAddressable",
+)<{
+	readonly changeId: string;
+}> {
+	override get message(): string {
+		return `change ${this.changeId} is not open on a host that names it`;
+	}
+}
+
 export class UnknownBackendTag extends Data.TaggedError("UnknownBackendTag")<{
 	readonly tag: string;
 }> {}

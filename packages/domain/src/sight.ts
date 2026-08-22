@@ -1,3 +1,4 @@
+import { Changes } from "@antumbra/changes";
 import { SightSource } from "@antumbra/contract";
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Kernel } from "@antumbra/kernel";
@@ -14,6 +15,7 @@ import { makeSightSessionTree } from "#sight-session-tree.ts";
 
 export const SightSourceLive = Layer.effect(SightSource)(
 	Effect.gen(function* () {
+		const changes = yield* Changes;
 		const domain = yield* AgentDomain;
 		const feeds = yield* DomainFeeds;
 		const kernel = yield* Kernel;
@@ -38,6 +40,7 @@ export const SightSourceLive = Layer.effect(SightSource)(
 					(runtime) => fleetSnapshot(domain.backends, intents, runtime),
 				),
 			),
+			Effect.provideService(Changes, changes),
 			Effect.provideService(Database, db),
 			provide,
 			Effect.mapError(toFailure),

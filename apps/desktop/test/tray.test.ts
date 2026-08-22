@@ -10,6 +10,7 @@ import {
 } from "#adapters/tray.ts";
 
 const session = (id: string, canInterrupt: boolean): SessionSummary => ({
+	addressable: [],
 	backend: "claude",
 	canInterrupt,
 	canSend: canInterrupt,

@@ -11,6 +11,7 @@ import {
 } from "#current-session-reconcile-plan.ts";
 import { recoveryHeld } from "#session-recovery-error.ts";
 import { rootSessions, rootSessionsOf } from "#session-roots.ts";
+import type { SessionUnresumable } from "#session-unresumable.ts";
 
 const heldInvalid = (failure: { readonly message: string }) =>
 	recoveryHeld(failure.message);
@@ -25,16 +26,18 @@ export const makeCurrentSessionResumable = Effect.gen(function* () {
 				...rootSessions,
 			}).first();
 			if (Option.isNone(stored)) {
-				return Option.none();
+				return Result.fail<SessionUnresumable>({ _tag: "no-root" });
 			}
-			const agent = yield* db.Agent.where({ id: stored.value.agentId }).first();
+			const agentId = stored.value.agentId;
+			const agent = yield* db.Agent.where({ id: agentId }).first();
 			return Option.isNone(agent)
-				? Option.none()
-				: Option.some({ agent: agent.value, session: stored.value });
+				? Result.fail<SessionUnresumable>({ _tag: "no-agent", agentId })
+				: Result.succeed({ agent: agent.value, session: stored.value });
 		});
 	type LoadedRows =
-		Effect.Success<ReturnType<typeof loadRows>> extends Option.Option<
-			infer Rows
+		Effect.Success<ReturnType<typeof loadRows>> extends Result.Result<
+			infer Rows,
+			SessionUnresumable
 		>
 			? Rows
 			: never;
@@ -110,21 +113,30 @@ export const makeCurrentSessionResumable = Effect.gen(function* () {
 			return {
 				changed,
 				session:
-					execution === "draining" ? Option.none() : Option.some(session),
+					execution === "draining"
+						? Result.fail<SessionUnresumable>({ _tag: "draining" })
+						: Result.succeed(session),
 			};
 		});
 	return (sessionId: string) =>
 		Effect.gen(function* () {
 			const loaded = yield* loadRows(sessionId);
-			if (Option.isNone(loaded)) {
-				return { changed: false, session: Option.none() };
+			if (Result.isFailure(loaded)) {
+				return { changed: false, session: Result.fail(loaded.failure) };
 			}
-			const { agent, session } = loaded.value;
+			const { agent, session } = loaded.success;
 			const status = yield* Effect.fromResult(
 				decodeStoredAgentStatus(agent.id, agent.status),
 			).pipe(Effect.mapError(heldInvalid));
 			if (status !== "alive") {
-				return { changed: false, session: Option.none() };
+				return {
+					changed: false,
+					session: Result.fail<SessionUnresumable>({
+						_tag: "agent-not-alive",
+						agentId: agent.id,
+						status,
+					}),
+				};
 			}
 			const planned = planCurrentSessionReconciliation(
 				[agent],
@@ -137,6 +149,12 @@ export const makeCurrentSessionResumable = Effect.gen(function* () {
 			const repaired = yield* applyRepair(agent, planned.success);
 			return repaired.currentSessionId === sessionId
 				? yield* resumableExecution(session, planned.success, repaired.changed)
-				: { changed: repaired.changed, session: Option.none() };
+				: {
+						changed: repaired.changed,
+						session: Result.fail<SessionUnresumable>({
+							_tag: "not-current",
+							currentSessionId: repaired.currentSessionId,
+						}),
+					};
 		});
 });

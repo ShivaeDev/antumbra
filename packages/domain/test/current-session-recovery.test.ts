@@ -2,7 +2,7 @@ import { DomainFeedsLive } from "@antumbra/domain-feeds";
 import { Database, type NewAgentSession, Writer } from "@antumbra/persistence";
 import { SessionFabricLive } from "@antumbra/session-fabric";
 import { expect, it } from "@effect/vitest";
-import { Effect, Layer, Option } from "effect";
+import { Effect, Layer, Option, Result } from "effect";
 import { makeCurrentSessionRecovery } from "#current-session-recovery.ts";
 import { acquireTemporaryPersistence } from "#test/harness.ts";
 
@@ -61,7 +61,7 @@ it.live("adopts and wakes the one Session an Agent holds", () =>
 				),
 			);
 
-			expect(Option.isSome(yield* current.resumable("session-held"))).toBe(
+			expect(Result.isSuccess(yield* current.resumable("session-held"))).toBe(
 				true,
 			);
 			expect(
@@ -100,9 +100,11 @@ it.live("dormant Agents never regain an execution", () =>
 					Effect.andThen(createSession("agent-dormant", "session-dormant")),
 				),
 			);
-			expect(Option.isNone(yield* current.resumable("session-dormant"))).toBe(
-				true,
-			);
+			const refused = yield* current.resumable("session-dormant");
+			expect(Result.isFailure(refused)).toBe(true);
+			if (Result.isFailure(refused)) {
+				expect(refused.failure._tag).toBe("agent-not-alive");
+			}
 		}).pipe(Effect.provide(layer));
 	}),
 );

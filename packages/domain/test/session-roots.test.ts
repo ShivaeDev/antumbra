@@ -3,7 +3,7 @@ import { Database, type NewAgentSession, Writer } from "@antumbra/persistence";
 import type { TemporaryPersistence } from "@antumbra/persistence/testing";
 import { SessionFabricLive } from "@antumbra/session-fabric";
 import { expect, it } from "@effect/vitest";
-import { Effect, Layer, Option } from "effect";
+import { Effect, Layer, Result } from "effect";
 import { makeCurrentSessionResumable } from "#current-session-resumable.ts";
 import {
 	makeRefuseSubsessionAttach,
@@ -118,12 +118,14 @@ it.live("a subsession is never a resume target", () =>
 			);
 
 			const resumable = yield* makeCurrentSessionResumable;
-			expect(Option.isSome((yield* resumable(receipt.sessionId)).session)).toBe(
-				true,
-			);
-			expect(Option.isNone((yield* resumable("session-child")).session)).toBe(
-				true,
-			);
+			expect(
+				Result.isSuccess((yield* resumable(receipt.sessionId)).session),
+			).toBe(true);
+			const child = (yield* resumable("session-child")).session;
+			expect(Result.isFailure(child)).toBe(true);
+			if (Result.isFailure(child)) {
+				expect(child.failure._tag).toBe("no-root");
+			}
 		}).pipe(Effect.provide(sightLayer(temporary, scripted)));
 	}),
 );

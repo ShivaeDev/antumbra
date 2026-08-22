@@ -4,9 +4,10 @@ import {
 	decodeStoredBerthStatus,
 	decodeStoredMoorageStatus,
 } from "@antumbra/vocabulary/agent-runtime";
-import { Effect, Option } from "effect";
+import { Effect, Option, Result } from "effect";
 import { makeCurrentSessionRecovery } from "#current-session-recovery.ts";
 import { recoveryHeld } from "#session-recovery-error.ts";
+import type { SessionUnresumable } from "#session-unresumable.ts";
 
 const heldInvalid = (failure: { readonly message: string }) =>
 	recoveryHeld(failure.message);
@@ -21,12 +22,18 @@ export const makeSessionRecoveryState = Effect.gen(function* () {
 		Effect.gen(function* () {
 			const agent = yield* provide(db.Agent.where({ id: agentId }).first());
 			if (Option.isNone(agent)) {
-				return agent;
+				return Result.fail<SessionUnresumable>({ _tag: "no-agent", agentId });
 			}
 			const status = yield* Effect.fromResult(
 				decodeStoredAgentStatus(agent.value.id, agent.value.status),
 			).pipe(Effect.mapError(heldInvalid));
-			return status === "alive" ? agent : Option.none();
+			return status === "alive"
+				? Result.succeed(agent.value)
+				: Result.fail<SessionUnresumable>({
+						_tag: "agent-not-alive",
+						agentId,
+						status,
+					});
 		});
 	const ensureMoorage = (agentId: string, cwd: string, sessionId: string) =>
 		Effect.gen(function* () {

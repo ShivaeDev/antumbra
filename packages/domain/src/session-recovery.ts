@@ -1,11 +1,17 @@
 import { defineIntent, IntentExecution } from "@antumbra/kernel";
 import type { BackendFailure } from "@antumbra/plugin-api";
 import { SessionFabric } from "@antumbra/session-fabric";
-import { Effect, Option, Schema } from "effect";
+import { Effect, Result, Schema } from "effect";
 import { makeCurrentSessionRecovery } from "#current-session-recovery.ts";
 import { makeSessionRecoveryContext } from "#session-recovery-context.ts";
 import type { SessionRecoveryHeld } from "#session-recovery-error.ts";
 import { SessionRecoveryRuntime } from "#session-recovery-runtime.ts";
+import {
+	type SessionUnresumable,
+	SessionUnresumableRefused,
+	unresumableDetail,
+	unresumableVerdict,
+} from "#session-unresumable.ts";
 
 export const RECOVERY_INSTRUCTION =
 	"Reconcile durable Antumbra truth and continue your assigned work.";
@@ -47,6 +53,22 @@ export const makeRecoveryKind = Effect.gen(function* () {
 			const execution = yield* IntentExecution;
 			yield* execution.step("wake-session", recovery.awaken(sessionId));
 		});
+	// why: nothing to resume is never nothing to say. The reason decides between
+	// parking the Intent where a later act can pick it up and refusing it
+	// outright, and either way the sentence lands on the row — a recover that
+	// succeeded having done nothing is the silence this whole path is for.
+	const unresumable = (sessionId: string, reason: SessionUnresumable) => {
+		const detail = unresumableDetail(sessionId, reason);
+		return unresumableVerdict(reason) === "wait"
+			? waitFor(detail)
+			: Effect.fail(
+					new SessionUnresumableRefused({
+						detail,
+						reason: reason._tag,
+						sessionId,
+					}),
+				);
+	};
 	const resumed = (sessionId: string, message: string | undefined) =>
 		Effect.gen(function* () {
 			if (yield* fabric.holds(sessionId)) {
@@ -55,12 +77,12 @@ export const makeRecoveryKind = Effect.gen(function* () {
 			yield* fabric.withStartAdmission((permit) =>
 				Effect.gen(function* () {
 					const context = yield* load(sessionId);
-					if (Option.isNone(context)) {
-						return;
+					if (Result.isFailure(context)) {
+						return yield* unresumable(sessionId, context.failure);
 					}
 					yield* runtime.resume(
 						permit,
-						context.value,
+						context.success,
 						message ?? RECOVERY_INSTRUCTION,
 					);
 					const execution = yield* IntentExecution;

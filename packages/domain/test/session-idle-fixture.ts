@@ -92,9 +92,13 @@ const siestaPass = Effect.gen(function* () {
 		: demand.pass;
 });
 
+// why: a rehearsal that needs two moments cannot sit through the gap between
+// them, so the act runs against a clock further on — which is the same fact as
+// having waited, for everything that reads the time rather than sleeping on it.
+export const laterBy = <A, E, R>(millis: number, act: Effect.Effect<A, E, R>) =>
+	Effect.flatMap(aheadBy(millis), (clock) =>
+		act.pipe(Effect.provideService(Clock.Clock, clock)),
+	);
+
 export const passedAt = (millis: number) =>
-	Effect.gen(function* () {
-		const pass = yield* siestaPass;
-		const clock = yield* aheadBy(millis);
-		yield* pass.pipe(Effect.provideService(Clock.Clock, clock));
-	});
+	Effect.flatMap(siestaPass, (pass) => laterBy(millis, pass));

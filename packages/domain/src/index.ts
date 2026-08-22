@@ -78,6 +78,7 @@ export {
 	assembleSessionTree,
 	type SessionTreeRow,
 } from "#session-tree-view.ts";
+export { SettingsSourceLive } from "#settings.ts";
 export { SightSourceLive } from "#sight.ts";
 export type { SpawnFields } from "#spawn.ts";
 export type { VoyageRow, VoyageWorld } from "#voyage-rows.ts";

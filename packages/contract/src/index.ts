@@ -35,6 +35,14 @@ export {
 	UNNAMED_SUBSESSION,
 } from "#session-tree.ts";
 export {
+	DEFAULT_MAX_PARALLEL_SESSIONS,
+	MAX_MAX_PARALLEL_SESSIONS,
+	MIN_MAX_PARALLEL_SESSIONS,
+	Settings,
+	SettingsSource,
+	UpdateSettings,
+} from "#settings.ts";
+export {
 	AgentSummary,
 	BerthSummary,
 	EventQuery,

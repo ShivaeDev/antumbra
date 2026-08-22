@@ -27,6 +27,7 @@ import { DispatcherLive, type DispatcherOptions } from "#dispatcher.ts";
 import { AgentDomain, AgentDomainLive } from "#domain.ts";
 import { KernelReachLive } from "#kernel-reach.ts";
 import { SessionShutdownLive } from "#session-shutdown-live.ts";
+import { SettingsSourceLive } from "#settings.ts";
 
 export interface ScriptedRunner {
 	readonly provisioned: Effect.Effect<ReadonlyArray<MooragePlan>>;
@@ -249,6 +250,7 @@ export const dispatchingLayer = (
 	changeHosts: ReadonlyMap<string, ChangeHost> = new Map(),
 ) =>
 	DispatcherLive(dispatcher).pipe(
+		Layer.provideMerge(SettingsSourceLive),
 		Layer.provideMerge(
 			domainKernelLayer(temporary, backend, options, runner, changeHosts),
 		),

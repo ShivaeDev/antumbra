@@ -5,11 +5,16 @@ import { info } from "#fixtures/fleet.ts";
 import { sightFixture } from "#fixtures/sight-source.ts";
 import { voyageFixture } from "#fixtures/voyage-source.ts";
 import { windowFixture } from "#fixtures/window-source.ts";
+import { SettingsSource } from "#settings.ts";
 
 export const makeRuntime = (feeds: FixtureFeeds = staticFeeds) =>
 	ManagedRuntime.make(
 		Layer.mergeAll(
 			Layer.succeed(AppInfoSource, { current: Effect.succeed(info) }),
+			Layer.succeed(SettingsSource, {
+				current: Effect.succeed({ maxParallelSessions: 4 }),
+				update: (settings) => Effect.succeed(settings),
+			}),
 			sightFixture(feeds),
 			voyageFixture(feeds),
 			windowFixture,

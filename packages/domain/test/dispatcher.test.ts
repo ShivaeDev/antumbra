@@ -1,3 +1,4 @@
+import { SettingsSource } from "@antumbra/contract";
 import { expect, it } from "@effect/vitest";
 import { Effect, Option } from "effect";
 import { nextBackoffMillis } from "#dispatch-policy.ts";
@@ -105,6 +106,39 @@ it.live(
 				),
 			);
 		}),
+);
+
+it.live("applies a saved ceiling to subsequent launches without restart", () =>
+	Effect.gen(function* () {
+		const temporary = yield* acquireTemporaryPersistence;
+		const scripted = yield* makeScriptedBackend;
+		yield* Effect.gen(function* () {
+			const settings = yield* SettingsSource;
+			yield* settings.update({ maxParallelSessions: 1 });
+			const { alpha } = yield* chain;
+			yield* eventually(
+				Effect.gen(function* () {
+					expect(yield* assignedPieces).toEqual([alpha.id]);
+				}),
+			);
+			yield* land(alpha.id, "soundings");
+			yield* Effect.sleep(150);
+			expect(yield* assignedPieces).toEqual([alpha.id]);
+
+			yield* settings.update({ maxParallelSessions: 2 });
+			yield* eventually(
+				Effect.gen(function* () {
+					expect((yield* assignedPieces).length).toBe(2);
+				}),
+			);
+		}).pipe(
+			Effect.provide(
+				dispatchingLayer(temporary, scripted.backend, {
+					patienceMillis: 50,
+				}),
+			),
+		);
+	}),
 );
 
 it.live("a parked piece is never dispatched until it is unparked", () =>

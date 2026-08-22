@@ -1,6 +1,7 @@
 import type { ConsoleMode, Fleet, VoyageSummary } from "@antumbra/contract";
 import { FleetSurface } from "#views/fleet-surface.tsx";
 import { QuayPanel } from "#views/quay.tsx";
+import { SettingsPanel } from "#views/settings.tsx";
 import { VoyagePanel } from "#views/voyage.tsx";
 import { VoyagesAside } from "#views/voyages-aside.tsx";
 
@@ -16,6 +17,9 @@ interface ConsoleProps {
 }
 
 const MainSection = (props: ConsoleProps) => {
+	if (props.mode === "settings") {
+		return <SettingsPanel onError={props.onError} />;
+	}
 	if (props.mode === "quay") {
 		return <QuayPanel onError={props.onError} />;
 	}
@@ -34,15 +38,21 @@ const MainSection = (props: ConsoleProps) => {
 const ASIDE =
 	"flex w-80 shrink-0 flex-col gap-5 overflow-x-hidden overflow-y-auto border-r border-border p-3";
 
-export const ConsoleMain = (props: ConsoleProps) =>
-	props.mode === "fleet" ? (
-		<FleetSurface
-			fleet={props.fleet}
-			onError={props.onError}
-			onSelect={props.onSession}
-			session={props.session}
-		/>
-	) : (
+export const ConsoleMain = (props: ConsoleProps) => {
+	if (props.mode === "fleet") {
+		return (
+			<FleetSurface
+				fleet={props.fleet}
+				onError={props.onError}
+				onSelect={props.onSession}
+				session={props.session}
+			/>
+		);
+	}
+	if (props.mode === "settings") {
+		return <SettingsPanel onError={props.onError} />;
+	}
+	return (
 		<div className="flex min-h-0 min-w-0 flex-1">
 			<aside className={ASIDE}>
 				{/* why: the quay is read against the voyages the work is owed to, so
@@ -58,3 +68,4 @@ export const ConsoleMain = (props: ConsoleProps) =>
 			<MainSection {...props} />
 		</div>
 	);
+};

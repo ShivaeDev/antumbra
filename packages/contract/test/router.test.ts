@@ -23,6 +23,27 @@ describe("makeAppRouter", () => {
 		}),
 	);
 
+	it.effect(
+		"serves settings and rejects limits outside the positive range",
+		() =>
+			Effect.gen(function* () {
+				const runtime = makeRuntime();
+				const caller = makeAppRouter(runtime).createCaller({
+					windowId: "console",
+				});
+				expect(yield* Effect.promise(() => caller.settings())).toEqual({
+					maxParallelSessions: 4,
+				});
+				const refused = yield* Effect.tryPromise(() =>
+					caller.updateSettings({ maxParallelSessions: 0 }),
+				).pipe(Effect.flip);
+				expect(String(refused.cause)).toContain(
+					"Expected a value greater than or equal to 1",
+				);
+				yield* Effect.promise(() => runtime.dispose());
+			}),
+	);
+
 	it.effect("serves the fleet and event log through sight", () =>
 		Effect.gen(function* () {
 			const runtime = makeRuntime();

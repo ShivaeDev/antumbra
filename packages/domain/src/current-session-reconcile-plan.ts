@@ -2,6 +2,10 @@ import {
 	type AgentStatus,
 	agentTransition,
 	type InvalidAgentTransition,
+	type InvalidSessionExecutionStatus,
+	type InvalidSessionExecutionTransition,
+	type SessionExecutionStatus,
+	sessionExecutionTransition,
 	type StoredAgentSessionStatusInvalid,
 	type StoredAgentStatusInvalid,
 } from "@antumbra/vocabulary/agent-runtime";
@@ -22,6 +26,15 @@ export interface CurrentSessionReconcilePlan {
 		readonly agentId: string;
 		readonly status: AgentStatus;
 	}>;
+	// why: draining says a process is still finishing this Session's execution.
+	// Nothing but that process can settle it, so a draining row with no live
+	// attachment names a process that is gone — at boot, by definition, and at
+	// any other moment because the attachment registry is this process's own
+	// truth. Left standing, the row makes the Session unresumable forever.
+	readonly executionsToSettle: ReadonlyArray<{
+		readonly executionStatus: SessionExecutionStatus;
+		readonly sessionId: string;
+	}>;
 	readonly pointers: ReadonlyArray<{
 		readonly agentId: string;
 		readonly currentSessionId: string | null;
@@ -32,15 +45,19 @@ export interface CurrentSessionReconcilePlan {
 type PlanFailure =
 	| CurrentSessionInvalid
 	| InvalidAgentTransition
+	| InvalidSessionExecutionStatus
+	| InvalidSessionExecutionTransition
 	| StoredAgentSessionStatusInvalid
 	| StoredAgentStatusInvalid;
+
+type AgentPlan = Omit<CurrentSessionReconcilePlan, "executionsToSettle">;
 
 const planAgent = (
 	agent: DecodedAgent,
 	owned: ReadonlyArray<DecodedSession>,
 	allSessions: ReadonlyArray<DecodedSession>,
 ): Result.Result<
-	CurrentSessionReconcilePlan,
+	AgentPlan,
 	CurrentSessionInvalid | InvalidAgentTransition
 > => {
 	const open = owned.filter((session) => session.status === "open");
@@ -94,9 +111,47 @@ const planAgent = (
 	});
 };
 
+// why: only this process can finish a drain, so its own attachment registry is
+// what separates a Session still going out from one whose drain died with the
+// process that started it. At boot the set is empty, which is exactly the truth
+// a restart leaves behind.
+const planSettlements = (
+	sessions: ReadonlyArray<DecodedSession>,
+	closing: ReadonlySet<string>,
+	attached: ReadonlySet<string>,
+): Result.Result<
+	CurrentSessionReconcilePlan["executionsToSettle"],
+	InvalidSessionExecutionTransition
+> => {
+	const settled: Array<
+		CurrentSessionReconcilePlan["executionsToSettle"][number]
+	> = [];
+	for (const session of sessions) {
+		if (
+			session.status !== "open" ||
+			session.executionStatus !== "draining" ||
+			closing.has(session.id) ||
+			attached.has(session.id)
+		) {
+			continue;
+		}
+		const next = sessionExecutionTransition(
+			session.id,
+			session.executionStatus,
+			"settle",
+		);
+		if (Result.isFailure(next)) {
+			return Result.fail(next.failure);
+		}
+		settled.push({ executionStatus: next.success, sessionId: session.id });
+	}
+	return Result.succeed(settled);
+};
+
 export const planCurrentSessionReconciliation = (
 	storedAgents: ReadonlyArray<StoredAgent>,
 	storedSessions: ReadonlyArray<StoredSession>,
+	attached: ReadonlySet<string>,
 ): Result.Result<CurrentSessionReconcilePlan, PlanFailure> => {
 	const decodedAgents = decodeAgents(storedAgents);
 	if (Result.isFailure(decodedAgents)) {
@@ -118,7 +173,7 @@ export const planCurrentSessionReconciliation = (
 			decodedSessions.success,
 		);
 		if (Result.isFailure(planned)) {
-			return planned;
+			return Result.fail(planned.failure);
 		}
 		agentsToReclaim.push(...planned.success.agentsToReclaim);
 		pointers.push(...planned.success.pointers);
@@ -133,5 +188,18 @@ export const planCurrentSessionReconciliation = (
 			)
 			.map((session) => session.id),
 	);
-	return Result.succeed({ agentsToReclaim, pointers, sessionsToClose });
+	const settled = planSettlements(
+		decodedSessions.success,
+		new Set(sessionsToClose),
+		attached,
+	);
+	if (Result.isFailure(settled)) {
+		return Result.fail(settled.failure);
+	}
+	return Result.succeed({
+		agentsToReclaim,
+		executionsToSettle: settled.success,
+		pointers,
+		sessionsToClose,
+	});
 };

@@ -1,6 +1,7 @@
 import { SightSource } from "@antumbra/contract";
 import { Database, type NewAgentSession, Writer } from "@antumbra/persistence";
 import type { TemporaryPersistence } from "@antumbra/persistence/testing";
+import { SessionFabricLive } from "@antumbra/session-fabric";
 import { expect, it } from "@effect/vitest";
 import { Effect, Layer, Option } from "effect";
 import { makeCurrentSessionResumable } from "#current-session-resumable.ts";
@@ -23,6 +24,7 @@ const sightLayer = (
 ) =>
 	SightSourceLive.pipe(
 		Layer.provideMerge(domainKernelLayer(temporary, scripted.backend)),
+		Layer.provideMerge(SessionFabricLive),
 	);
 
 const spawnRequest = {

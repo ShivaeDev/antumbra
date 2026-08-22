@@ -1,5 +1,6 @@
 import { DomainFeedsLive } from "@antumbra/domain-feeds";
 import { Database, type NewAgentSession, Writer } from "@antumbra/persistence";
+import { SessionFabricLive } from "@antumbra/session-fabric";
 import { expect, it } from "@effect/vitest";
 import { Effect, Layer, Option } from "effect";
 import { makeCurrentSessionRecovery } from "#current-session-recovery.ts";
@@ -45,7 +46,11 @@ const createSession = (agentId: string, id: string) =>
 it.live("adopts and wakes the one Session an Agent holds", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
-		const layer = Layer.merge(temporary.layer, DomainFeedsLive);
+		const layer = Layer.mergeAll(
+			temporary.layer,
+			DomainFeedsLive,
+			SessionFabricLive,
+		);
 		yield* Effect.gen(function* () {
 			const db = yield* Database;
 			const writer = yield* Writer;
@@ -82,7 +87,11 @@ it.live("adopts and wakes the one Session an Agent holds", () =>
 it.live("dormant Agents never regain an execution", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
-		const layer = Layer.merge(temporary.layer, DomainFeedsLive);
+		const layer = Layer.mergeAll(
+			temporary.layer,
+			DomainFeedsLive,
+			SessionFabricLive,
+		);
 		yield* Effect.gen(function* () {
 			const writer = yield* Writer;
 			const current = yield* makeCurrentSessionRecovery;

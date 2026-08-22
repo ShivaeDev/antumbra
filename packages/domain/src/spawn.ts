@@ -1,23 +1,20 @@
 import { defineIntent, IntentExecution } from "@antumbra/kernel";
 import type { AgentBackend, MooragePlan, Runner } from "@antumbra/plugin-api";
 import { UnknownRunnerError } from "@antumbra/plugin-api";
-import { ResourceReconciler } from "@antumbra/resource-reclamation";
 import type { SessionAttachment } from "@antumbra/session-fabric";
-import { Cause, Effect } from "effect";
-import { makeCaptainToolCompiler } from "#captain-tools.ts";
+import { Effect } from "effect";
 import { charterDelivery } from "#charter.ts";
-import { makeCrewToolCompiler } from "#crew-tools.ts";
 import { UnknownBackendTag } from "#errors.ts";
 import { makePrepareMoorage } from "#moorage-plan.ts";
 import type { SinkFor } from "#session-tree-sink.ts";
 import { makeIsActivatedBirth } from "#spawn-activated.ts";
-import { makeIsSpawnCancelling } from "#spawn-cancellation.ts";
 import { type SpawnFields, SpawnPayload } from "#spawn-fields.ts";
-import { spawnSessionIdentity } from "#spawn-identity.ts";
 import { spawnRegistration } from "#spawn-registration.ts";
 import { spawnResolution } from "#spawn-resolution.ts";
 import { makeSpawnSessionStart } from "#spawn-session-start.ts";
-import { isVoyageCaptainIdentity } from "#voyage-captain.ts";
+import { makeSpawnTeardown } from "#spawn-teardown.ts";
+import { makeSpawnTools } from "#spawn-tools.ts";
+import { underSpawnedAgent } from "#spawn-trace.ts";
 
 export type { SpawnFields } from "#spawn-fields.ts";
 
@@ -30,15 +27,13 @@ interface SpawnRuntime {
 export const spawnKind = (runtime: SpawnRuntime) =>
 	Effect.gen(function* () {
 		const delivery = yield* charterDelivery;
-		const compileCaptainTools = yield* makeCaptainToolCompiler;
-		const compileCrewTools = yield* makeCrewToolCompiler;
 		const prepareMoorage = yield* makePrepareMoorage;
 		const isActivatedBirth = yield* makeIsActivatedBirth;
-		const isCancelling = yield* makeIsSpawnCancelling;
 		const registration = yield* spawnRegistration;
-		const resources = yield* ResourceReconciler;
 		const resolution = yield* spawnResolution;
 		const startSession = yield* makeSpawnSessionStart;
+		const teardown = yield* makeSpawnTeardown;
+		const toolsFor = yield* makeSpawnTools;
 		const admitSpawnSession = (
 			payload: SpawnFields,
 			attachment: SessionAttachment,
@@ -47,40 +42,6 @@ export const spawnKind = (runtime: SpawnRuntime) =>
 				yield* delivery.deliverOnce(payload, attachment.handle);
 				yield* resolution.activate(payload);
 			});
-		// why: settlement runs from teardown handlers, whose contract cannot carry
-		// a failure onward, so this is the last reader the refusal will ever have.
-		// It is recorded as an error rather than a warning because what it names
-		// is an Agent left spawning — work nothing will hand back on its own, and
-		// nothing short of the next boot's reconcile will release.
-		const settleAfterFailure = (payload: SpawnFields) =>
-			resolution.settleFailure(payload).pipe(
-				Effect.tap(() => resources.request),
-				Effect.catchCause((cause) =>
-					Effect.logError(
-						"spawn failure settlement failed",
-						{ agentId: payload.agentId, sessionId: payload.sessionId },
-						cause,
-					),
-				),
-			);
-		const settleCancellation = (payload: SpawnFields) =>
-			Effect.gen(function* () {
-				const execution = yield* IntentExecution;
-				if (yield* isCancelling(execution.intentId)) {
-					yield* settleAfterFailure(payload);
-				}
-			});
-		const settleUnlessTeardown =
-			(payload: SpawnFields) => (cause: Cause.Cause<unknown>) =>
-				Effect.gen(function* () {
-					if (!Cause.hasInterruptsOnly(cause)) {
-						yield* settleAfterFailure(payload);
-						return;
-					}
-					yield* settleCancellation(payload);
-				});
-		const failAfterSettlement = <E>(payload: SpawnFields, error: E) =>
-			settleAfterFailure(payload).pipe(Effect.andThen(Effect.fail(error)));
 		const reconcileMoorage = (
 			payload: SpawnFields,
 			runner: Runner,
@@ -91,22 +52,14 @@ export const spawnKind = (runtime: SpawnRuntime) =>
 				const reconcile = runner.provision(plan).pipe(
 					Effect.catchTags({
 						RunnerAuthRequired: (failure) => execution.wait(failure.message),
-						RunnerFailure: (failure) => failAfterSettlement(payload, failure),
+						RunnerFailure: (failure) =>
+							teardown.failAfterSettlement(payload, failure),
 						RunnerProvisionConflict: (failure) =>
 							execution.wait(failure.message),
 					}),
 				);
 				yield* execution.step("provision-moorage", reconcile);
 			});
-		// why: the session's tools are bound to this agent, this session, and what
-		// it answers to. Capability effects are closed here, before the callbacks
-		// cross into the provider SDK.
-		const toolsFor = (payload: SpawnFields) => {
-			const identity = spawnSessionIdentity(payload);
-			return isVoyageCaptainIdentity(payload.role, identity)
-				? compileCaptainTools(identity)
-				: compileCrewTools(identity);
-		};
 		const spawnAgent = (payload: SpawnFields) =>
 			Effect.gen(function* () {
 				if (yield* isActivatedBirth(payload)) {
@@ -122,10 +75,10 @@ export const spawnKind = (runtime: SpawnRuntime) =>
 				}
 				yield* registration.ensure(payload);
 				const plan = yield* prepareMoorage(payload, runner).pipe(
-					Effect.onError(settleUnlessTeardown(payload)),
+					Effect.onError(teardown.settleUnlessTeardown(payload)),
 				);
 				yield* reconcileMoorage(payload, runner, plan).pipe(
-					Effect.onInterrupt(() => settleCancellation(payload)),
+					Effect.onInterrupt(() => teardown.settleCancellation(payload)),
 				);
 				yield* startSession(
 					payload,
@@ -134,9 +87,9 @@ export const spawnKind = (runtime: SpawnRuntime) =>
 					toolsFor(payload),
 					runtime.sinkFor(payload.sessionId, backend.audit),
 					(attachment) => admitSpawnSession(payload, attachment),
-					settleUnlessTeardown(payload),
+					teardown.settleUnlessTeardown(payload),
 				);
-			});
+			}).pipe(underSpawnedAgent(payload));
 
 		return defineIntent({
 			execute: spawnAgent,

@@ -62,13 +62,40 @@ const auditNode = async (
 	}
 };
 
+// why: both reads reach the provider's own storage on disk, and a read that
+// never comes back is not a slow answer but no answer at all. The reconnect
+// census runs inside the attachment a resume is opening, so an unbounded one
+// holds the admiral's words behind a directory listing. Not being able to ask
+// in time is the same fact about the record as not being able to ask, and the
+// lane already has the word for it — so the deadline degrades to a gap rather
+// than to an empty reading, which would say the provider kept nothing.
+const AUDIT_PATIENCE_MILLIS = 20_000;
+
+const inTime = (
+	read: Effect.Effect<ReadonlyArray<AgentEvent>>,
+	said: string,
+): Effect.Effect<ReadonlyArray<AgentEvent>> =>
+	read.pipe(
+		Effect.timeoutOrElse({
+			duration: AUDIT_PATIENCE_MILLIS,
+			orElse: () => Effect.succeed([censusUnreadable(said)]),
+		}),
+	);
+
 // why: the audit's sanctioned read of the provider's own storage. Acquisition
 // still never tails disk — this runs after a node has stopped talking, asks
 // what the provider kept, and compares it with what the record holds.
 export const claudeAudit: SessionAudit = {
-	census: (request) => Effect.promise(() => takeCensus(request)),
+	census: (request) =>
+		inTime(
+			Effect.promise(() => takeCensus(request)),
+			`the census of ${request.rootRef} did not answer in time`,
+		),
 	node: (request) =>
 		Effect.flatMap(request.recorded, (recorded) =>
-			Effect.promise(() => auditNode(request, recorded)),
+			inTime(
+				Effect.promise(() => auditNode(request, recorded)),
+				`the transcript of ${request.nodeRef} did not answer in time`,
+			),
 		),
 };

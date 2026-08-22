@@ -131,9 +131,15 @@ export const makeSessionShutdownDrain = Effect.gen(function* () {
 			});
 		}
 	});
+	// why: starts are closed for the length of the drain and no longer. A quit
+	// that goes through takes the process with it, so reopening on the way out
+	// costs nothing; a quit that is refused, or a drain whose caller carries on
+	// regardless, leaves an application still running — and one that had closed
+	// its starts for good would park every later wake on a gate nothing reopens.
+	// Reopening on error alone was the narrower half of that.
 	return domain.closeSessionStarts.pipe(
 		Effect.andThen(drainOpenSessions),
-		Effect.onError(() => domain.reopenSessionStarts),
+		Effect.ensuring(domain.reopenSessionStarts),
 	);
 });
 

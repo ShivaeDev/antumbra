@@ -4,7 +4,10 @@ import { SessionFabric } from "@antumbra/session-fabric";
 import { Effect, Result, Schema } from "effect";
 import { makeCurrentSessionRecovery } from "#current-session-recovery.ts";
 import { makeSessionRecoveryContext } from "#session-recovery-context.ts";
-import type { SessionRecoveryHeld } from "#session-recovery-error.ts";
+import {
+	recoveryHeld,
+	type SessionRecoveryHeld,
+} from "#session-recovery-error.ts";
 import { SessionRecoveryRuntime } from "#session-recovery-runtime.ts";
 import {
 	type SessionUnresumable,
@@ -15,6 +18,12 @@ import {
 
 export const RECOVERY_INSTRUCTION =
 	"Reconcile durable Antumbra truth and continue your assigned work.";
+
+// why: generous enough that a real resume — a provider session opened, its own
+// storage read back for work that ended while nothing was listening — finishes
+// well inside it, and short enough that a wake nobody can complete says so
+// while the admiral is still watching for it.
+export const WAKE_PATIENCE_MILLIS = 60_000;
 
 // why: an explicit act may travel with the words that caused it, so waking a
 // Session and speaking to it are one intent rather than two the caller has to
@@ -69,24 +78,42 @@ export const makeRecoveryKind = Effect.gen(function* () {
 					}),
 				);
 	};
+	const admitted = (sessionId: string, message: string | undefined) =>
+		fabric.withStartAdmission((permit) =>
+			Effect.gen(function* () {
+				const context = yield* load(sessionId);
+				if (Result.isFailure(context)) {
+					return yield* unresumable(sessionId, context.failure);
+				}
+				yield* runtime.resume(
+					permit,
+					context.success,
+					message ?? RECOVERY_INSTRUCTION,
+				);
+				const execution = yield* IntentExecution;
+				yield* execution.step("wake-session", recovery.awaken(sessionId));
+			}),
+		);
 	const resumed = (sessionId: string, message: string | undefined) =>
 		Effect.gen(function* () {
 			if (yield* fabric.holds(sessionId)) {
 				return yield* delivered(sessionId, message);
 			}
-			yield* fabric.withStartAdmission((permit) =>
-				Effect.gen(function* () {
-					const context = yield* load(sessionId);
-					if (Result.isFailure(context)) {
-						return yield* unresumable(sessionId, context.failure);
-					}
-					yield* runtime.resume(
-						permit,
-						context.success,
-						message ?? RECOVERY_INSTRUCTION,
-					);
-					const execution = yield* IntentExecution;
-					yield* execution.step("wake-session", recovery.awaken(sessionId));
+			// why: every wait between here and a live attachment is somebody else's
+			// to end — the gate that stopped admitting starts, a provider reading its
+			// own storage, a stream that owes an opening frame — and none of them is
+			// obliged to. Unbounded, the Intent sits in "running" with nothing to
+			// read and the registry entry it left behind answers "held" to every
+			// later send. Bounded, the same silence becomes a reason on the row that
+			// a later send can push again, and unwinding takes the half-built
+			// attachment with it.
+			yield* admitted(sessionId, message).pipe(
+				Effect.timeoutOrElse({
+					duration: WAKE_PATIENCE_MILLIS,
+					orElse: () =>
+						recoveryHeld(
+							`${sessionId} did not reach a live attachment within ${WAKE_PATIENCE_MILLIS}ms`,
+						),
 				}),
 			);
 		});

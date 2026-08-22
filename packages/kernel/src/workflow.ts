@@ -103,6 +103,7 @@ export const makeIntentWorkflow = (
 			Effect.andThen(executeWorkflow(intentId, payloadJson)),
 			Effect.scoped,
 			Effect.provide(WorkflowEngine.layerMemory, { local: true }),
+			Effect.annotateSpans({ intentId }),
 		);
 	return { run };
 };

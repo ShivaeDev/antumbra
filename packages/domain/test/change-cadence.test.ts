@@ -1,7 +1,10 @@
 import type { ChangeRow } from "@antumbra/changes";
 import { describe, expect, it } from "@effect/vitest";
 import type { ObserveCadenceOptions } from "#change-cadence.ts";
-import { nextObserveDelayMillis } from "#change-cadence.ts";
+import {
+	nextObserveDelayMillis,
+	retryObserveDelayMillis,
+} from "#change-cadence.ts";
 
 const row = (fields: Partial<ChangeRow>): ChangeRow => ({
 	activityAt: new Date(0),
@@ -77,5 +80,27 @@ describe("how soon the next pass is worth making", () => {
 		expect(
 			at([row({ draftAt: new Date(0) }), row({ checks: "pending" })]),
 		).toBe(30);
+	});
+});
+
+describe("how long a host that could not answer is left alone", () => {
+	const after = (failures: number) =>
+		retryObserveDelayMillis(failures, CADENCE);
+
+	it("waits the warm cadence after one lost answer", () => {
+		expect(after(1)).toBe(180);
+	});
+
+	it("asks half as often for every failure that follows", () => {
+		expect(after(2)).toBe(360);
+		expect(after(3)).toBe(720);
+	});
+
+	// why: the ceiling is the cold cadence, so a host down all afternoon costs
+	// what a fleet with nothing to say costs — and is still noticed within one
+	// cold period of coming back.
+	it("never waits longer than a fleet with nothing to say", () => {
+		expect(after(4)).toBe(900);
+		expect(after(40)).toBe(900);
 	});
 });

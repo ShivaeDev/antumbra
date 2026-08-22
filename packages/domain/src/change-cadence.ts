@@ -37,3 +37,17 @@ export const nextObserveDelayMillis = (
 		? options.warmMillis
 		: options.coldMillis;
 };
+
+// why: a pass that failed says nothing about the fleet, so its own run of
+// failures decides when to ask again — the warm cadence for the first, half
+// as often for each one after it, and never rarer than a fleet with nothing
+// to say. A host having a bad hour costs a handful of calls rather than one
+// every warm period, and one that comes back is noticed within a cold one.
+export const retryObserveDelayMillis = (
+	consecutiveFailures: number,
+	options: ObserveCadenceOptions,
+): number =>
+	Math.min(
+		options.warmMillis * 2 ** Math.max(consecutiveFailures - 1, 0),
+		options.coldMillis,
+	);

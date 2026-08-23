@@ -29,6 +29,7 @@ export const attributeIntents = (
 	const loose: Array<IntentDiagnostic> = [];
 	for (const intent of intents) {
 		const mark: IntentDiagnostic = {
+			detail: intent.detail,
 			id: intent.id,
 			kind: intent.kind,
 			state: intent.state,

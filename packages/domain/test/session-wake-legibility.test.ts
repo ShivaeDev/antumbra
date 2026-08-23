@@ -45,8 +45,17 @@ it.live("a wake that cannot be taken parks with its reason on the fleet", () =>
 				}),
 			);
 			expect(parked.detail).toContain("authentication is required");
+			// why: the reason travels with the chip rather than staying on the row.
+			// A state with no reason beside it is the generic parked note the
+			// admiral could already see, and it sent them to the database to find
+			// out what had actually stopped the wake.
 			expect(wakeChips(yield* sight.fleet)).toEqual([
-				{ id: parked.id, kind: "agent/recover", state: "waiting" },
+				{
+					detail: parked.detail,
+					id: parked.id,
+					kind: "agent/recover",
+					state: "waiting",
+				},
 			]);
 			expect((yield* sessionRow).executionStatus).toBe("idle");
 		}).pipe(Effect.provide(wakeLayer(temporary, refusing, recorded.runner)));

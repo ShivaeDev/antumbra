@@ -11,7 +11,13 @@ import { Schema } from "effect";
 
 // why: the durable Intent id travels with the chip so a state the admiral
 // reports can be found again in the log without another database read.
+//
+// why: the detail is the sentence the Intent last recorded — the reason it
+// parked, the cause it failed on. Without it a reader saw "waiting" and had to
+// go to the database to find out what for, which is the same silence a state
+// with no reason always is.
 export const IntentDiagnostic = Schema.Struct({
+	detail: Schema.NullOr(Schema.String),
 	id: Schema.String,
 	kind: Schema.String,
 	state: Schema.String,

@@ -16,8 +16,11 @@ vi.mock("#adapters/trpc.ts", () => ({ sendToSession }));
 type Presence = Fleet["agents"][number]["sessions"][number]["presence"];
 type Intent = Fleet["diag"]["intents"][number];
 
-const waking = (state: string): ReadonlyArray<Intent> => [
-	{ id: "intent-1", kind: "agent/recover", state },
+const waking = (
+	state: string,
+	detail: string | null = null,
+): ReadonlyArray<Intent> => [
+	{ detail, id: "intent-1", kind: "agent/recover", state },
 ];
 
 const fleetWith = (
@@ -166,6 +169,31 @@ it("says a parked wake is parked", () => {
 		"a wake is parked — the words it carries are still waiting to land",
 	);
 	expect(parked).not.toContain("waking —");
+});
+
+// why: "parked" on its own is the state without the reason, which is what the
+// admiral was already looking at when nothing happened. The Intent's own
+// sentence goes out beside it, unedited, so the box says what stopped the wake
+// rather than only that something did.
+it("says what stopped a parked wake, in the wake's own words", () => {
+	const parked = renderToStaticMarkup(
+		box(fleetWith("asleep", waking("waiting", "authentication is required"))),
+	);
+	expect(parked).toContain("a wake is parked");
+	expect(parked).toContain("authentication is required");
+});
+
+// why: a wake with nothing recorded against it must not invent a reason, and an
+// ended Session has already been told the more final thing.
+it("adds no reason where the Intent recorded none", () => {
+	expect(
+		renderToStaticMarkup(box(fleetWith("asleep", waking("waiting")))),
+	).toContain("a wake is parked");
+	expect(
+		renderToStaticMarkup(
+			box(fleetWith("ended", waking("waiting", "the session has closed"))),
+		),
+	).not.toContain("the session has closed");
 });
 
 // why: the note belongs to the wake, not to the presence, so a Session the

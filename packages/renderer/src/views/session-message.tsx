@@ -1,9 +1,17 @@
-import type { Fleet, SessionSummary } from "@antumbra/contract";
+import type {
+	Fleet,
+	IntentDiagnostic,
+	SessionSummary,
+} from "@antumbra/contract";
 import { useState } from "react";
 import { sendToSession } from "#adapters/trpc.ts";
 import { Button } from "#components/ui/button.tsx";
 import { Input } from "#components/ui/input.tsx";
-import { presenceNote, wakeNote } from "#views/session-presence-words.ts";
+import {
+	presenceNote,
+	wakeNote,
+	wakeReason,
+} from "#views/session-presence-words.ts";
 import { SessionSituations } from "#views/session-situations.tsx";
 
 const WAKE_KIND = "agent/recover";
@@ -32,10 +40,12 @@ const refusal = (session: SessionSummary | undefined): string | undefined => {
 // the admiral is waiting on. Reading it off the durable state rather than the
 // send's return keeps the box honest about a wake this window never asked for,
 // and about one still parked from an earlier send.
-const wake = (session: SessionSummary | undefined): string | undefined => {
-	const pending = session?.diag.intents.find(
-		(intent) => intent.kind === WAKE_KIND,
-	);
+const wakeOf = (
+	session: SessionSummary | undefined,
+): IntentDiagnostic | undefined =>
+	session?.diag.intents.find((intent) => intent.kind === WAKE_KIND);
+
+const wake = (pending: IntentDiagnostic | undefined): string | undefined => {
 	if (pending === undefined) {
 		return undefined;
 	}
@@ -59,7 +69,16 @@ export const SessionMessage = ({
 	const [text, setText] = useState("");
 	const session = sessionOf(fleet, sessionId);
 	const blocked = refusal(session);
-	const standing = blocked ?? wake(session) ?? note(session);
+	const pending = wakeOf(session);
+	const waking = wake(pending);
+	const standing = blocked ?? waking ?? note(session);
+	// why: the wake's own sentence is what turns "parked" into something the
+	// admiral can act on, and it is only news while the wake is the standing
+	// note — a refusal has already said the more final thing.
+	const reason =
+		standing === waking && pending !== undefined
+			? wakeReason(pending.detail)
+			: undefined;
 	const ready = blocked === undefined && text.trim() !== "";
 	const send = () => {
 		if (!ready) {
@@ -98,6 +117,11 @@ export const SessionMessage = ({
 			</div>
 			{standing === undefined ? null : (
 				<span className="text-2xs text-muted-foreground">{standing}</span>
+			)}
+			{reason === undefined ? null : (
+				<span className="font-mono text-2xs text-muted-foreground">
+					{reason}
+				</span>
 			)}
 		</div>
 	);

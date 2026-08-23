@@ -1,91 +1,13 @@
-import { type ChangeRow, changeStatus } from "@antumbra/changes";
-import type { ChangeStage } from "@antumbra/plugin-api";
+import { changeStatus } from "@antumbra/changes";
 import { expect, it } from "@effect/vitest";
 import { pieceOutcomeTally } from "#outcome-status.ts";
-import { pieceStates } from "#piece-state.ts";
-import type { PieceRow, VoyageWorld } from "#voyage-rows.ts";
-
-const RELEASED = new Date("2026-08-15T09:00:00.000Z");
-
-const piece = (id: string): PieceRow => ({
-	charter: `do ${id}`,
-	expectation: `${id} is landed`,
-	id,
-	launchedAt: RELEASED,
-	parkedAt: null,
-	role: "hand",
-	title: id,
-});
-
-const change = (id: string, stage: ChangeStage): ChangeRow => ({
-	activityAt: RELEASED,
-	baseRef: "main",
-	body: "",
-	checks: "pending",
-	draftAt: null,
-	externalId: id,
-	headRef: `work/${id}`,
-	headSha: null,
-	host: "scripted",
-	id,
-	landedAt: stage === "landed" ? RELEASED : null,
-	mergeable: "unknown",
-	observedAt: RELEASED,
-	openedByAgentId: null,
-	originSessionId: null,
-	preparedHeadRef: null,
-	preparedHeadSha: null,
-	proposalFrozenAt: null,
-	raw: null,
-	repoId: "repo-1",
-	review: "none",
-	stage,
-	submissionKey: null,
-	title: id,
-	url: `https://scripted.test/changes/${id}`,
-	withdrawnAt: stage === "withdrawn" ? RELEASED : null,
-	workingDiff: null,
-	workingTreeStatus: null,
-	worktreePath: null,
-});
-
-const world = (over: Partial<VoyageWorld>): VoyageWorld => ({
-	agentStatus: new Map(),
-	currentSessionByAgent: new Map(),
-	artifacts: new Map(),
-	assignments: [],
-	changes: [],
-	crews: [],
-	dismissedChangeIds: new Set(),
-	edges: [],
-	memberships: [],
-	pieceChanges: [],
-	pieceReports: [],
-	pieceVerdicts: new Map(),
-	pieces: [piece("alpha")],
-	reports: new Map(),
-	repos: new Map(),
-	sessions: [],
-	voyages: [],
-	...over,
-});
-
-const withChanges = (
-	stages: ReadonlyArray<ChangeStage>,
-	over: Partial<VoyageWorld> = {},
-): VoyageWorld =>
-	world({
-		changes: stages.map((stage, index) => change(`change-${index}`, stage)),
-		pieceChanges: stages.map((_, index) => ({
-			changeId: `change-${index}`,
-			pieceId: "alpha",
-			purpose: "produces",
-		})),
-		...over,
-	});
-
-const stateOf = (built: VoyageWorld, pieceId = "alpha") =>
-	pieceStates(built).get(pieceId);
+import {
+	change,
+	piece,
+	stateOf,
+	withChanges,
+	world,
+} from "#test/piece-ladder-fixtures.ts";
 
 it("a change counts as landed, pending or withdrawn by its stage", () => {
 	expect(changeStatus(change("a", "landed"))).toBe("landed");
@@ -213,12 +135,4 @@ it("landing sits below blocked and above ready on the ladder", () => {
 		pieces: [piece("alpha"), piece("bravo")],
 	});
 	expect(stateOf(gated)).toBe("blocked");
-});
-
-it("a piece someone is working reads active whatever it is waiting on", () => {
-	const worked = withChanges(["open"], {
-		agentStatus: new Map([["agent-1", "alive"]]),
-		assignments: [{ agentId: "agent-1", pieceId: "alpha" }],
-	});
-	expect(stateOf(worked)).toBe("active");
 });

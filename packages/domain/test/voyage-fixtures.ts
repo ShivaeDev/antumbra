@@ -85,6 +85,24 @@ export const assignedPieces = Effect.gen(function* () {
 	return (yield* db.PieceAgent.all()).map((row) => row.pieceId);
 });
 
+// why: a piece is shipped only when all of its work is done, and a crew's own
+// farewell trails the outcome it landed — so a rehearsal that wants the
+// finished reading asks every hand to stand down first, the way the app waits
+// for one. The short retry is for the crew whose session the spawn has not
+// written yet, which is the same race reaching any fresh agent has; it is kept
+// brief so a caller can put this inside a loop of its own.
+export const standDownAll = (scripted: ScriptedBackend) =>
+	Effect.gen(function* () {
+		const db = yield* Database;
+		const alive = yield* db.Agent.where({ status: "alive" }).all();
+		yield* Effect.forEach(alive, (agent) =>
+			Effect.retry(
+				standDown(scripted, agent.id),
+				Schedule.spaced(10).pipe(Schedule.upTo({ duration: 500 })),
+			),
+		);
+	});
+
 // why: the farewell comes first, because that is the only order the app has.
 // Retirement is offered on a crew that has said it has nothing left to do and
 // refused on one mid-turn, so a rehearsal that retired straight out of a turn

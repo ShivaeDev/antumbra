@@ -122,6 +122,7 @@ it.effectDB(
 				agentId: "crew",
 				pieceId: "piece-reef",
 				repoName: "reef",
+				sessionId: "session-crew",
 			});
 			expect(prepared.stage).toBe("prepared");
 			expect(
@@ -137,6 +138,7 @@ it.effectDB(
 				draft: false,
 				pieceId: "piece-reef",
 				repoName: "reef",
+				sessionId: "session-crew",
 				title: "Chart the reef",
 			});
 			expect(opened).toMatchObject({

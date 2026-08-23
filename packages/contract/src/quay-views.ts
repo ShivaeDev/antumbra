@@ -15,6 +15,7 @@ export type QuayGroup = typeof QuayGroup.Type;
 export const QuayRow = Schema.Struct({
 	change: ChangeView,
 	group: QuayGroup,
+	originSessionId: Schema.NullOr(Schema.String),
 	pieceId: Schema.String,
 	pieceTitle: Schema.String,
 	voyageId: Schema.String,

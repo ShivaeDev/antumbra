@@ -1,5 +1,5 @@
 import type { SessionSituation } from "@antumbra/contract";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { sendToSession, situationDraft } from "#adapters/trpc.ts";
 import { Button } from "#components/ui/button.tsx";
 import { Dialog, DialogClose, DialogContent } from "#components/ui/dialog.tsx";
@@ -11,10 +11,7 @@ import {
 } from "#components/ui/dialog-sections.tsx";
 import { Textarea } from "#components/ui/textarea.tsx";
 import { situationLabel } from "#fleet/situations.ts";
-
-type Draft =
-	| { readonly _tag: "drafting" }
-	| { readonly _tag: "ready"; readonly text: string };
+import { useSessionDraft } from "#hooks/session-draft.ts";
 
 // why: the words are drafted for the admiral to read, not sent behind them. The
 // box opens holding what the catalog wrote, every edit is theirs, and the Send
@@ -31,22 +28,59 @@ export const SituationDialog = ({
 	readonly sessionId: string;
 	readonly situation: SessionSituation;
 }) => {
-	const [draft, setDraft] = useState<Draft>({ _tag: "drafting" });
+	const draft = useSessionDraft(
+		sessionId,
+		`situation:${situation.changeId}:${situation.situation}`,
+	);
+	const initialText = useRef(draft.text).current;
+	const [drafting, setDrafting] = useState(initialText === "");
+	const [sending, setSending] = useState(false);
 
 	useEffect(() => {
-		situationDraft(
-			{ changeId: situation.changeId, situation: situation.situation },
-			(text) => setDraft({ _tag: "ready", text }),
-			onError,
-		);
-	}, [onError, situation.changeId, situation.situation]);
-
-	const text = draft._tag === "ready" ? draft.text : "";
-	const send = () => {
-		if (text.trim() === "") {
+		if (initialText !== "") {
 			return;
 		}
-		sendToSession(sessionId, text, onClose, onError);
+		let open = true;
+		situationDraft(
+			{ changeId: situation.changeId, situation: situation.situation },
+			(text) => {
+				if (open) {
+					draft.setText(text);
+					setDrafting(false);
+				}
+			},
+			onError,
+		);
+		return () => {
+			open = false;
+		};
+	}, [
+		draft.setText,
+		initialText,
+		onError,
+		situation.changeId,
+		situation.situation,
+	]);
+
+	const send = () => {
+		if (sending || draft.text.trim() === "") {
+			return;
+		}
+		const sent = draft.capture();
+		setSending(true);
+		sendToSession(
+			sessionId,
+			sent.text,
+			() => {
+				draft.clear(sent);
+				setSending(false);
+				onClose();
+			},
+			(message) => {
+				setSending(false);
+				onError(message);
+			},
+		);
 	};
 	return (
 		<Dialog
@@ -67,18 +101,16 @@ export const SituationDialog = ({
 				</DialogHeader>
 				<Textarea
 					aria-label="Words to send"
-					disabled={draft._tag === "drafting"}
-					onChange={(event) =>
-						setDraft({ _tag: "ready", text: event.target.value })
-					}
+					disabled={drafting}
+					onChange={(event) => draft.setText(event.target.value)}
 					rows={8}
-					value={text}
+					value={draft.text}
 				/>
 				<DialogFooter>
 					<DialogClose asChild>
 						<Button variant="outline">Cancel</Button>
 					</DialogClose>
-					<Button disabled={text.trim() === ""} onClick={send}>
+					<Button disabled={sending || draft.text.trim() === ""} onClick={send}>
 						Send
 					</Button>
 				</DialogFooter>

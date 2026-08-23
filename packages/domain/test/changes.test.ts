@@ -30,6 +30,7 @@ it.live("a change opened by crew is written with the link to its piece", () =>
 			const row = yield* openedChange(piece.id, repo.name);
 			expect(row.stage).toBe("open");
 			expect(row.openedByAgentId).toBe(CREW);
+			expect(row.originSessionId).toBe("session-crew");
 			expect(row.url).toBe("https://scripted.test/changes/1");
 			expect(row.headRef).toBe(HEAD);
 			expect(row.baseRef).toBe("main");

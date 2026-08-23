@@ -33,6 +33,7 @@ const proposal = (pieceId = "piece-reef"): OpenChangeInput => ({
 	draft: false,
 	pieceId,
 	repoName: "reef",
+	sessionId: "session-crew",
 	title: "Chart the reef",
 });
 
@@ -135,11 +136,13 @@ it.effectDB("reuses one active submission claim across Pieces", function* (db) {
 			agentId: CREW,
 			pieceId: "piece-reef",
 			repoName: "reef",
+			sessionId: "session-crew",
 		});
 		const linked = yield* changes.submit({
 			agentId: CREW,
 			pieceId: "piece-west",
 			repoName: "reef",
+			sessionId: "session-crew",
 		});
 		expect(linked.id).toBe(first.id);
 		expect(yield* db.Change.all()).toHaveLength(1);
@@ -163,11 +166,13 @@ it.effectDB("serializes concurrent submission identity", function* (db) {
 					agentId: CREW,
 					pieceId: "piece-reef",
 					repoName: "reef",
+					sessionId: "session-crew",
 				}),
 				changes.submit({
 					agentId: CREW,
 					pieceId: "piece-reef",
 					repoName: "reef",
+					sessionId: "session-crew",
 				}),
 			],
 			{ concurrency: "unbounded" },
@@ -193,11 +198,13 @@ it.effectDB(
 				agentId: CREW,
 				pieceId: "piece-reef",
 				repoName: "reef",
+				sessionId: "session-crew",
 			});
 			const foreign = yield* changes.submit({
 				agentId: "agent-other",
 				pieceId: "piece-other",
 				repoName: "reef",
+				sessionId: "session-other",
 			});
 			yield* scripted.announce(
 				observation("88", {
@@ -241,6 +248,7 @@ it.effectDB(
 				agentId: CREW,
 				pieceId: "piece-reef",
 				repoName: "reef",
+				sessionId: "session-crew",
 			});
 			const landed = yield* changes.open(proposal());
 			expect(landed).toMatchObject({

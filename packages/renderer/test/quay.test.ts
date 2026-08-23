@@ -27,6 +27,7 @@ const quay = (groups: ReadonlyArray<QuayGroup>): QuayView => ({
 	rows: groups.map((group, index) => ({
 		change: change(`change-${index}`),
 		group,
+		originSessionId: null,
 		pieceId: "piece-1",
 		pieceTitle: "soundings",
 		voyageId: "voyage-1",

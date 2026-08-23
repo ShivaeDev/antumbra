@@ -6,7 +6,8 @@ import { Effect } from "effect";
 import { act } from "react";
 import { createRoot } from "react-dom/client";
 import { renderToStaticMarkup } from "react-dom/server";
-import { vi } from "vitest";
+import { beforeEach, vi } from "vitest";
+import { discardMissingSessionDrafts } from "#session-drafts/store.ts";
 import { SessionSituations } from "#views/session-situations.tsx";
 
 const { sendToSession, situationDraft } = vi.hoisted(() => ({
@@ -86,6 +87,12 @@ const rewrite = (text: string): void => {
 	area.dispatchEvent(new Event("input", { bubbles: true }));
 };
 
+beforeEach(() => {
+	discardMissingSessionDrafts(new Set());
+	sendToSession.mockReset();
+	situationDraft.mockReset();
+});
+
 it("offers a control for each published situation and none otherwise", () => {
 	expect(renderToStaticMarkup(controls([]))).toBe("");
 	const one = renderToStaticMarkup(controls([conflicts]));
@@ -141,6 +148,59 @@ it.effect("sends the edited words verbatim through the ordinary send", () =>
 			expect.any(Function),
 			expect.any(Function),
 		);
+		yield* step(() => root.unmount());
+	}),
+);
+
+it.effect("keeps an edited situation draft when the dialog is cancelled", () =>
+	Effect.gen(function* () {
+		situationDraft.mockImplementation(
+			(_draft: unknown, onDraft: (text: string) => void) => {
+				onDraft(DRAFT);
+			},
+		);
+		const { root } = yield* mounted([conflicts]);
+		yield* step(() => clickLabelled("Resolve conflicts"));
+		yield* step(() => rewrite(`${DRAFT} Keep this edit.`));
+		yield* step(() => clickLabelled("Cancel"));
+		yield* step(() => clickLabelled("Resolve conflicts"));
+		expect(composer()?.value).toBe(`${DRAFT} Keep this edit.`);
+		expect(situationDraft).toHaveBeenCalledTimes(1);
+		yield* step(() => root.unmount());
+	}),
+);
+
+it.effect("preserves a failed situation send and clears it on success", () =>
+	Effect.gen(function* () {
+		let done: () => void = () => undefined;
+		let fail: (message: string) => void = () => undefined;
+		situationDraft.mockImplementation(
+			(_draft: unknown, onDraft: (text: string) => void) => {
+				onDraft(DRAFT);
+			},
+		);
+		sendToSession.mockImplementation(
+			(
+				_sessionId: string,
+				_text: string,
+				onDone: () => void,
+				onError: (message: string) => void,
+			) => {
+				done = onDone;
+				fail = onError;
+			},
+		);
+		const { root } = yield* mounted([conflicts]);
+		yield* step(() => clickLabelled("Resolve conflicts"));
+		yield* step(() => rewrite(`${DRAFT} Keep this until sent.`));
+		yield* step(() => clickLabelled("Send"));
+		yield* step(() => fail("delivery refused"));
+		expect(composer()?.value).toBe(`${DRAFT} Keep this until sent.`);
+		yield* step(() => clickLabelled("Send"));
+		yield* step(done);
+		yield* step(() => clickLabelled("Resolve conflicts"));
+		expect(composer()?.value).toBe(DRAFT);
+		expect(situationDraft).toHaveBeenCalledTimes(2);
 		yield* step(() => root.unmount());
 	}),
 );

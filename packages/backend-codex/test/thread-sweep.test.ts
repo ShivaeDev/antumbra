@@ -8,8 +8,9 @@ const ROOT = "019ff334-ec21-7373-a31e-e8a0db309020";
 const FIRST = "019ff400-1111-7373-a31e-e8a0db309021";
 const SECOND = "019ff400-2222-7373-a31e-e8a0db309022";
 const THIRD = "019ff400-3333-7373-a31e-e8a0db309023";
+const FOURTH = "019ff400-4444-7373-a31e-e8a0db309024";
 
-const spawned = (id: string) => ({
+const spawned = (id: string, status: unknown = { type: "idle" }) => ({
 	id,
 	source: {
 		subAgent: {
@@ -22,6 +23,7 @@ const spawned = (id: string) => ({
 			},
 		},
 	},
+	status,
 });
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
@@ -103,6 +105,40 @@ it.live("the ancestor filter is asked for at initialize, or not at all", () =>
 		expect(isRecord(capabilities) ? capabilities.experimentalApi : false).toBe(
 			true,
 		);
+	}),
+);
+
+// why: one page, one thread per status codex can report. The sweep is the only
+// place the record ever learns that a child is still running after the stream
+// that carried it is gone, so which words mean "running" is held here by name.
+const statuses: FakeAnswer = (method) =>
+	method === "thread/list"
+		? Option.some({
+				data: [
+					spawned(FIRST, { activeFlags: [], type: "active" }),
+					spawned(SECOND, { type: "idle" }),
+					spawned(THIRD, { type: "notLoaded" }),
+					spawned(FOURTH, { type: "systemError" }),
+				],
+				nextCursor: null,
+			})
+		: Option.none();
+
+it.live("only an active thread reads as a child that is working", () =>
+	Effect.gen(function* () {
+		const { swept } = yield* sweep(statuses);
+		const found = swept._tag === "Success" ? swept.value : [];
+
+		// why: idle is a child between turns and notLoaded is one the server has
+		// not brought into memory; systemError is one that is not speaking on any
+		// stream either, so none of the three can still be producing frames. Only
+		// active holds a session away from rest — a child merely open never does.
+		expect(found.map((child) => [child.threadId, child.working])).toEqual([
+			[FIRST, true],
+			[SECOND, false],
+			[THIRD, false],
+			[FOURTH, false],
+		]);
 	}),
 );
 

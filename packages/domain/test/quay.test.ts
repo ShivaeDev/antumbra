@@ -33,6 +33,7 @@ const change = (id: string, over: Partial<ChangeRow> = {}): ChangeRow => ({
 	mergeable: "clean",
 	observedAt: MOMENT,
 	openedByAgentId: null,
+	originSessionId: null,
 	preparedHeadRef: null,
 	preparedHeadSha: null,
 	proposalFrozenAt: null,
@@ -145,6 +146,43 @@ it("a row names the repo, the piece and the voyage the change is owed to", () =>
 	expect(row?.change.repoName).toBe("shoals");
 	expect(row?.pieceTitle).toBe("alpha");
 	expect(row?.voyageName).toBe("Chart the reef");
+});
+
+it("a row carries the opener's canonical stored session association", () => {
+	const associated = onAlpha([
+		change("one", {
+			openedByAgentId: "agent-one",
+			originSessionId: "session-one",
+		}),
+	]);
+	const [row] = quayRows({
+		...associated,
+		currentSessionByAgent: new Map([["agent-one", "session-newer"]]),
+		sessions: [
+			{
+				agentId: "agent-one",
+				createdAt: MOMENT,
+				executionStatus: "idle",
+				id: "session-one",
+				status: "open",
+			},
+		],
+	});
+	expect(row?.originSessionId).toBe("session-one");
+});
+
+it("a row without a resolvable opener session admits there is no association", () => {
+	const [adopted] = quayRows(onAlpha([change("adopted")]));
+	const stale = onAlpha([
+		change("stale", {
+			openedByAgentId: "agent-one",
+			originSessionId: "session-missing",
+		}),
+	]);
+	const [unresolved] = quayRows(stale);
+
+	expect(adopted?.originSessionId).toBeNull();
+	expect(unresolved?.originSessionId).toBeNull();
 });
 
 it("the newest news is read first", () => {

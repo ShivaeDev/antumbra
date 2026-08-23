@@ -86,6 +86,7 @@ const openedChange = (pieceId: string, repoName: string) =>
 			draft: false,
 			pieceId,
 			repoName,
+			sessionId: "session-crew",
 			title: "chart the eastern spit",
 		});
 	});

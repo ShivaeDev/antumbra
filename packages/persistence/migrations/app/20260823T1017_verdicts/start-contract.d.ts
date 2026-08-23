@@ -16,7 +16,7 @@ import type {
 } from '@prisma-next/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'sha256:8d26ee3107c5b01a33916a19509f3a5c3f0b901a46175c5d990652abf63c7ef4'>;
+  StorageHashBase<'sha256:23bfa81ae6bfb666c2dc93a97c481185c40039fd25902414917c288237a25617'>;
 export type ExecutionHash = ExecutionHashBase<string>;
 export type ProfileHash =
   ProfileHashBase<'sha256:3cc333ecad9f3f4c7229370a9d2c37e908cdce0f8d2e9fb132d50605b024eff2'>;
@@ -152,11 +152,6 @@ export type FieldOutputTypes = {
       readonly activityAt: CodecTypes['sqlite/datetime@1']['output'];
       readonly observedAt: CodecTypes['sqlite/datetime@1']['output'];
     };
-    readonly ChangeVerdict: {
-      readonly changeId: CodecTypes['sqlite/text@1']['output'];
-      readonly verdict: CodecTypes['sqlite/text@1']['output'];
-      readonly landedAt: CodecTypes['sqlite/datetime@1']['output'];
-    };
     readonly Intent: {
       readonly id: CodecTypes['sqlite/text@1']['output'];
       readonly tag: CodecTypes['sqlite/text@1']['output'];
@@ -202,11 +197,6 @@ export type FieldOutputTypes = {
     readonly PieceReport: {
       readonly pieceId: CodecTypes['sqlite/text@1']['output'];
       readonly reportId: CodecTypes['sqlite/text@1']['output'];
-    };
-    readonly PieceVerdict: {
-      readonly pieceId: CodecTypes['sqlite/text@1']['output'];
-      readonly verdict: CodecTypes['sqlite/text@1']['output'];
-      readonly landedAt: CodecTypes['sqlite/datetime@1']['output'];
     };
     readonly Repo: {
       readonly id: CodecTypes['sqlite/text@1']['output'];
@@ -379,11 +369,6 @@ export type FieldInputTypes = {
       readonly activityAt: CodecTypes['sqlite/datetime@1']['input'];
       readonly observedAt: CodecTypes['sqlite/datetime@1']['input'];
     };
-    readonly ChangeVerdict: {
-      readonly changeId: CodecTypes['sqlite/text@1']['input'];
-      readonly verdict: CodecTypes['sqlite/text@1']['input'];
-      readonly landedAt: CodecTypes['sqlite/datetime@1']['input'];
-    };
     readonly Intent: {
       readonly id: CodecTypes['sqlite/text@1']['input'];
       readonly tag: CodecTypes['sqlite/text@1']['input'];
@@ -429,11 +414,6 @@ export type FieldInputTypes = {
     readonly PieceReport: {
       readonly pieceId: CodecTypes['sqlite/text@1']['input'];
       readonly reportId: CodecTypes['sqlite/text@1']['input'];
-    };
-    readonly PieceVerdict: {
-      readonly pieceId: CodecTypes['sqlite/text@1']['input'];
-      readonly verdict: CodecTypes['sqlite/text@1']['input'];
-      readonly landedAt: CodecTypes['sqlite/datetime@1']['input'];
     };
     readonly Repo: {
       readonly id: CodecTypes['sqlite/text@1']['input'];
@@ -606,11 +586,6 @@ export type StorageColumnTypes = {
       readonly observedAt: CodecTypes['sqlite/datetime@1']['output'];
       readonly toStage: CodecTypes['sqlite/text@1']['output'];
     };
-    readonly changeVerdict: {
-      readonly changeId: CodecTypes['sqlite/text@1']['output'];
-      readonly landedAt: CodecTypes['sqlite/datetime@1']['output'];
-      readonly verdict: CodecTypes['sqlite/text@1']['output'];
-    };
     readonly intent: {
       readonly createdAt: CodecTypes['sqlite/datetime@1']['output'];
       readonly detail: CodecTypes['sqlite/text@1']['output'] | null;
@@ -656,11 +631,6 @@ export type StorageColumnTypes = {
     readonly pieceReport: {
       readonly pieceId: CodecTypes['sqlite/text@1']['output'];
       readonly reportId: CodecTypes['sqlite/text@1']['output'];
-    };
-    readonly pieceVerdict: {
-      readonly landedAt: CodecTypes['sqlite/datetime@1']['output'];
-      readonly pieceId: CodecTypes['sqlite/text@1']['output'];
-      readonly verdict: CodecTypes['sqlite/text@1']['output'];
     };
     readonly repo: {
       readonly createdAt: CodecTypes['sqlite/datetime@1']['output'];
@@ -833,11 +803,6 @@ export type StorageColumnInputTypes = {
       readonly observedAt: CodecTypes['sqlite/datetime@1']['input'];
       readonly toStage: CodecTypes['sqlite/text@1']['input'];
     };
-    readonly changeVerdict: {
-      readonly changeId: CodecTypes['sqlite/text@1']['input'];
-      readonly landedAt: CodecTypes['sqlite/datetime@1']['input'];
-      readonly verdict: CodecTypes['sqlite/text@1']['input'];
-    };
     readonly intent: {
       readonly createdAt: CodecTypes['sqlite/datetime@1']['input'];
       readonly detail: CodecTypes['sqlite/text@1']['input'] | null;
@@ -883,11 +848,6 @@ export type StorageColumnInputTypes = {
     readonly pieceReport: {
       readonly pieceId: CodecTypes['sqlite/text@1']['input'];
       readonly reportId: CodecTypes['sqlite/text@1']['input'];
-    };
-    readonly pieceVerdict: {
-      readonly landedAt: CodecTypes['sqlite/datetime@1']['input'];
-      readonly pieceId: CodecTypes['sqlite/text@1']['input'];
-      readonly verdict: CodecTypes['sqlite/text@1']['input'];
     };
     readonly repo: {
       readonly createdAt: CodecTypes['sqlite/datetime@1']['input'];
@@ -1646,30 +1606,6 @@ type ContractBase = Omit<
               indexes: readonly [{ readonly columns: readonly ['changeId', 'activityAt'] }];
               foreignKeys: readonly [];
             };
-            readonly changeVerdict: {
-              columns: {
-                readonly changeId: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'sqlite/text@1';
-                  readonly nullable: false;
-                };
-                readonly verdict: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'sqlite/text@1';
-                  readonly nullable: false;
-                };
-                readonly landedAt: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'sqlite/datetime@1';
-                  readonly nullable: false;
-                  readonly default: { readonly kind: 'function'; readonly expression: 'now()' };
-                };
-              };
-              primaryKey: { readonly columns: readonly ['changeId'] };
-              uniques: readonly [];
-              indexes: readonly [];
-              foreignKeys: readonly [];
-            };
             readonly intent: {
               columns: {
                 readonly id: {
@@ -1924,30 +1860,6 @@ type ContractBase = Omit<
                   readonly index: true;
                 },
               ];
-            };
-            readonly pieceVerdict: {
-              columns: {
-                readonly pieceId: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'sqlite/text@1';
-                  readonly nullable: false;
-                };
-                readonly verdict: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'sqlite/text@1';
-                  readonly nullable: false;
-                };
-                readonly landedAt: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'sqlite/datetime@1';
-                  readonly nullable: false;
-                  readonly default: { readonly kind: 'function'; readonly expression: 'now()' };
-                };
-              };
-              primaryKey: { readonly columns: readonly ['pieceId'] };
-              uniques: readonly [];
-              indexes: readonly [];
-              foreignKeys: readonly [];
             };
             readonly repo: {
               columns: {
@@ -2247,14 +2159,6 @@ type ContractBase = Omit<
     readonly pieceChange: {
       readonly namespace: '__unbound__' & NamespaceId;
       readonly model: 'PieceChange';
-    };
-    readonly changeVerdict: {
-      readonly namespace: '__unbound__' & NamespaceId;
-      readonly model: 'ChangeVerdict';
-    };
-    readonly pieceVerdict: {
-      readonly namespace: '__unbound__' & NamespaceId;
-      readonly model: 'PieceVerdict';
     };
     readonly board: { readonly namespace: '__unbound__' & NamespaceId; readonly model: 'Board' };
     readonly boardEntry: {
@@ -2989,32 +2893,6 @@ type ContractBase = Omit<
               };
             };
           };
-          readonly ChangeVerdict: {
-            readonly fields: {
-              readonly changeId: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
-              };
-              readonly verdict: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
-              };
-              readonly landedAt: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/datetime@1' };
-              };
-            };
-            readonly relations: Record<string, never>;
-            readonly storage: {
-              readonly table: 'changeVerdict';
-              readonly namespaceId: '__unbound__';
-              readonly fields: {
-                readonly changeId: { readonly column: 'changeId' };
-                readonly verdict: { readonly column: 'verdict' };
-                readonly landedAt: { readonly column: 'landedAt' };
-              };
-            };
-          };
           readonly Intent: {
             readonly fields: {
               readonly id: {
@@ -3295,32 +3173,6 @@ type ContractBase = Omit<
               readonly fields: {
                 readonly pieceId: { readonly column: 'pieceId' };
                 readonly reportId: { readonly column: 'reportId' };
-              };
-            };
-          };
-          readonly PieceVerdict: {
-            readonly fields: {
-              readonly pieceId: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
-              };
-              readonly verdict: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
-              };
-              readonly landedAt: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/datetime@1' };
-              };
-            };
-            readonly relations: Record<string, never>;
-            readonly storage: {
-              readonly table: 'pieceVerdict';
-              readonly namespaceId: '__unbound__';
-              readonly fields: {
-                readonly pieceId: { readonly column: 'pieceId' };
-                readonly verdict: { readonly column: 'verdict' };
-                readonly landedAt: { readonly column: 'landedAt' };
               };
             };
           };

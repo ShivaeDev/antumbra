@@ -48,10 +48,6 @@
       "model": "ChangeTransition",
       "namespace": "__unbound__"
     },
-    "changeVerdict": {
-      "model": "ChangeVerdict",
-      "namespace": "__unbound__"
-    },
     "intent": {
       "model": "Intent",
       "namespace": "__unbound__"
@@ -78,10 +74,6 @@
     },
     "pieceReport": {
       "model": "PieceReport",
-      "namespace": "__unbound__"
-    },
-    "pieceVerdict": {
-      "model": "PieceVerdict",
       "namespace": "__unbound__"
     },
     "repo": {
@@ -1360,47 +1352,6 @@
               "table": "changeTransition"
             }
           },
-          "ChangeVerdict": {
-            "fields": {
-              "changeId": {
-                "nullable": false,
-                "type": {
-                  "codecId": "sqlite/text@1",
-                  "kind": "scalar"
-                }
-              },
-              "landedAt": {
-                "nullable": false,
-                "type": {
-                  "codecId": "sqlite/datetime@1",
-                  "kind": "scalar"
-                }
-              },
-              "verdict": {
-                "nullable": false,
-                "type": {
-                  "codecId": "sqlite/text@1",
-                  "kind": "scalar"
-                }
-              }
-            },
-            "relations": {},
-            "storage": {
-              "fields": {
-                "changeId": {
-                  "column": "changeId"
-                },
-                "landedAt": {
-                  "column": "landedAt"
-                },
-                "verdict": {
-                  "column": "verdict"
-                }
-              },
-              "namespaceId": "__unbound__",
-              "table": "changeVerdict"
-            }
-          },
           "Intent": {
             "fields": {
               "createdAt": {
@@ -1858,47 +1809,6 @@
               },
               "namespaceId": "__unbound__",
               "table": "pieceReport"
-            }
-          },
-          "PieceVerdict": {
-            "fields": {
-              "landedAt": {
-                "nullable": false,
-                "type": {
-                  "codecId": "sqlite/datetime@1",
-                  "kind": "scalar"
-                }
-              },
-              "pieceId": {
-                "nullable": false,
-                "type": {
-                  "codecId": "sqlite/text@1",
-                  "kind": "scalar"
-                }
-              },
-              "verdict": {
-                "nullable": false,
-                "type": {
-                  "codecId": "sqlite/text@1",
-                  "kind": "scalar"
-                }
-              }
-            },
-            "relations": {},
-            "storage": {
-              "fields": {
-                "landedAt": {
-                  "column": "landedAt"
-                },
-                "pieceId": {
-                  "column": "pieceId"
-                },
-                "verdict": {
-                  "column": "verdict"
-                }
-              },
-              "namespaceId": "__unbound__",
-              "table": "pieceVerdict"
             }
           },
           "Repo": {
@@ -3217,37 +3127,6 @@
               },
               "uniques": []
             },
-            "changeVerdict": {
-              "columns": {
-                "changeId": {
-                  "codecId": "sqlite/text@1",
-                  "nativeType": "text",
-                  "nullable": false
-                },
-                "landedAt": {
-                  "codecId": "sqlite/datetime@1",
-                  "default": {
-                    "expression": "now()",
-                    "kind": "function"
-                  },
-                  "nativeType": "text",
-                  "nullable": false
-                },
-                "verdict": {
-                  "codecId": "sqlite/text@1",
-                  "nativeType": "text",
-                  "nullable": false
-                }
-              },
-              "foreignKeys": [],
-              "indexes": [],
-              "primaryKey": {
-                "columns": [
-                  "changeId"
-                ]
-              },
-              "uniques": []
-            },
             "intent": {
               "columns": {
                 "createdAt": {
@@ -3595,37 +3474,6 @@
               },
               "uniques": []
             },
-            "pieceVerdict": {
-              "columns": {
-                "landedAt": {
-                  "codecId": "sqlite/datetime@1",
-                  "default": {
-                    "expression": "now()",
-                    "kind": "function"
-                  },
-                  "nativeType": "text",
-                  "nullable": false
-                },
-                "pieceId": {
-                  "codecId": "sqlite/text@1",
-                  "nativeType": "text",
-                  "nullable": false
-                },
-                "verdict": {
-                  "codecId": "sqlite/text@1",
-                  "nativeType": "text",
-                  "nullable": false
-                }
-              },
-              "foreignKeys": [],
-              "indexes": [],
-              "primaryKey": {
-                "columns": [
-                  "pieceId"
-                ]
-              },
-              "uniques": []
-            },
             "repo": {
               "columns": {
                 "createdAt": {
@@ -3936,7 +3784,7 @@
         "id": "__unbound__"
       }
     },
-    "storageHash": "sha256:8d26ee3107c5b01a33916a19509f3a5c3f0b901a46175c5d990652abf63c7ef4"
+    "storageHash": "sha256:23bfa81ae6bfb666c2dc93a97c481185c40039fd25902414917c288237a25617"
   },
   "capabilities": {
     "sql": {

@@ -43,6 +43,7 @@ vi.mock("#adapters/trpc-voyages.ts", () => ({
 	readArtifactMarkdown: vi.fn(),
 	readReportMarkdown: vi.fn(),
 	rewirePiece: vi.fn(),
+	setVoyageBackend: vi.fn(),
 	unparkPiece: vi.fn(),
 	watchVoyage,
 	writeBoard: vi.fn(),

@@ -1,12 +1,13 @@
-import type { SessionImageMediaType } from "@antumbra/vocabulary/session-input";
 import {
 	MAX_SESSION_IMAGE_EDGE,
 	MAX_SESSION_IMAGE_PIXELS,
 	MAX_SESSION_IMAGE_SOURCE_BYTES,
 	MAX_SESSION_IMAGE_STORED_BYTES,
+	type SessionImageMediaType,
 } from "@antumbra/vocabulary/session-input";
 import { Effect } from "effect";
 import sharp, { type Sharp } from "sharp";
+import { digestBytes } from "#digest.ts";
 import { SessionInputInvalid } from "#errors.ts";
 
 interface NormalizedImage {
@@ -123,7 +124,5 @@ export const normalizeImage = (
 		})),
 	);
 };
-
-import { digestBytes } from "#digest.ts";
 
 export type { NormalizedImage };

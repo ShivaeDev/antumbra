@@ -5,8 +5,8 @@ import type { PrismaError } from "@antumbra/persistence";
 import type { BackendFailure } from "@antumbra/plugin-api";
 import type { AgentPrompt } from "@antumbra/prompts";
 import type { RepoRegistry } from "@antumbra/repos";
+import type { SessionInputDraft } from "@antumbra/session-inputs";
 import type { StoredAgentStatusInvalid } from "@antumbra/vocabulary/agent-runtime";
-import type { SessionInputId } from "@antumbra/vocabulary/session-input";
 import { Context, type Effect } from "effect";
 import type { ChangeProcedures } from "#change-procedures.ts";
 import type { SessionNotLive } from "#errors.ts";
@@ -54,9 +54,12 @@ export class AgentDomain extends Context.Service<
 			sessionId: string,
 			text: AgentPrompt,
 		) => Effect.Effect<void, SessionSendRefused>;
+		// why: the draft arrives whole because admitting it and taking custody of
+		// it are one act — the backend is asked whether it can receive these parts
+		// before any of them is normalized or written down, which only holds while
+		// one seam owns both halves.
 		readonly sendSessionInput: (
-			sessionId: string,
-			inputId: SessionInputId,
+			draft: SessionInputDraft,
 		) => Effect.Effect<SessionSendReceipt, SessionSendRefused>;
 		// why: which root Sessions this process is holding right now. A projection
 		// asks the fabric because the row cannot know it, and the answer is what

@@ -77,15 +77,15 @@ export const makeSightActs = Effect.gen(function* () {
 				// exists to carry them, rather than by a seam relaxing its type.
 				yield* domain.sendToSession(sessionId, admiralWords({ words: text }));
 			}).pipe(Effect.mapError(toFailure)),
+		// why: the whole request goes to the one act that admits it and then takes
+		// custody of it, rather than being ingested here and judged afterwards — a
+		// refusal that has already spent disk is a refusal that left something
+		// behind for nobody to collect.
 		sendInput: (request) =>
-			Effect.gen(function* () {
-				yield* inputs.ingest(request);
-				const status = yield* domain.sendSessionInput(
-					request.sessionId,
-					request.id,
-				);
-				return { id: request.id, status };
-			}).pipe(Effect.mapError(toFailure)),
+			domain.sendSessionInput(request).pipe(
+				Effect.map((status) => ({ id: request.id, status })),
+				Effect.mapError(toFailure),
+			),
 		sessionImage: (request) =>
 			inputs.image(request).pipe(Effect.mapError(toFailure)),
 		situationDraft: (request) =>

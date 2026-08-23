@@ -2,7 +2,11 @@ import { Database, type WriteExecutors } from "@antumbra/persistence";
 import type { SessionInput } from "@antumbra/plugin-api";
 import type { AgentPrompt } from "@antumbra/prompts";
 import { SessionFabric } from "@antumbra/session-fabric";
-import { SessionInputNotFound, SessionInputs } from "@antumbra/session-inputs";
+import {
+	type SessionInputDraft,
+	SessionInputNotFound,
+	SessionInputs,
+} from "@antumbra/session-inputs";
 import { decodeStoredAgentSessionStatus } from "@antumbra/vocabulary/agent-runtime";
 import type { SessionInputId } from "@antumbra/vocabulary/session-input";
 import { Effect, Option } from "effect";
@@ -138,18 +142,26 @@ export const makeSessionSend = (imageInputBackends: ReadonlySet<string>) =>
 				Effect.andThen(inputs.mark(inputId, "queued_for_wake")),
 				Effect.as<SessionSendReceipt>("queued_for_wake"),
 			);
-		const sendInput = (sessionId: string, inputId: SessionInputId) =>
+		// why: taking custody is what costs disk and what outlives the request, so
+		// the backend is asked whether it can receive these parts at all before a
+		// single byte is normalized or installed. A text-only provider refuses with
+		// nothing written down for a later sweep to find.
+		const sendInput = (draft: SessionInputDraft) =>
 			Effect.gen(function* () {
+				const sessionId = draft.sessionId;
 				const session = yield* open(sessionId);
+				yield* admission.admitDraft(session.backend, draft.parts);
+				const inputId = draft.id;
+				const reading = yield* inputs.ingest(draft);
+				const replay = yield* admission.replayed(reading.status, inputId);
+				if (replay !== undefined) {
+					return replay;
+				}
 				const stored = yield* inputs.load(inputId);
 				if (stored.sessionId !== sessionId) {
 					return yield* new SessionInputNotFound({ inputId });
 				}
 				const input = admiralInput(stored.input);
-				const replay = yield* admission.replayed(stored.status, inputId);
-				if (replay !== undefined) {
-					return replay;
-				}
 				yield* admission.admit(session.backend, inputId, input);
 				if (!(yield* fabric.holds(sessionId))) {
 					return yield* queued(sessionId, inputId);

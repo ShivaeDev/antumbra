@@ -1,12 +1,9 @@
 import { Database } from "@antumbra/persistence";
 import { expect, it } from "@effect/vitest";
 import { Deferred, Effect, Fiber, Result } from "effect";
-import { AgentDomain } from "#domain.ts";
-import { domainKernelLayer } from "#test/domain-layers.ts";
-import {
-	acquireTemporaryPersistence,
-	makeScriptedBackend,
-} from "#test/harness.ts";
+import { domainCapabilityLayer } from "#test/domain-layers.ts";
+import { acquireTemporaryPersistence } from "#test/harness.ts";
+import { VoyageProcedureService } from "#voyage-procedures.ts";
 import type { VoyageProcedures } from "#voyages.ts";
 
 const withDomain = <A, E, R>(
@@ -14,11 +11,10 @@ const withDomain = <A, E, R>(
 ) =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
-		const scripted = yield* makeScriptedBackend;
 		yield* Effect.gen(function* () {
-			const domain = yield* AgentDomain;
-			yield* body(domain.voyages);
-		}).pipe(Effect.provide(domainKernelLayer(temporary, scripted.backend)));
+			const voyages = yield* VoyageProcedureService;
+			yield* body(voyages);
+		}).pipe(Effect.provide(domainCapabilityLayer(temporary)));
 	});
 
 const openVoyage = (voyages: VoyageProcedures) =>

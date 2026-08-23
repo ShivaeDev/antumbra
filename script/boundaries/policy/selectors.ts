@@ -11,6 +11,7 @@ export const capabilities = packages.named(
 	"resource-reclamation",
 	"session-event-journal",
 	"session-fabric",
+	"session-inputs",
 );
 
 export const domainAndCapabilities = packages.named(
@@ -26,6 +27,7 @@ export const domainAndCapabilities = packages.named(
 	"resource-reclamation",
 	"session-event-journal",
 	"session-fabric",
+	"session-inputs",
 );
 
 export const domainAndCapabilitiesExceptIntentDemand = anyOf(

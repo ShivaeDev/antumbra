@@ -47,6 +47,7 @@ catalog:
   remark-gfm: 4.0.1
   rolldown: 1.2.2
   scheduler: 0.27.0
+  sharp: 0.35.3
   tailwind-merge: 3.6.0
   tailwindcss: 4.3.3
   typescript: npm:@typescript/typescript6@6.0.2
@@ -91,3 +92,4 @@ allowBuilds:
   electron-winstaller: false
   esbuild: true
   msgpackr-extract: false
+  sharp: true

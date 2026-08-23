@@ -9,6 +9,7 @@ const fakeBackend = (tag: string): AgentBackend => ({
 	audit: noSessionAudit,
 	capabilities: {
 		fork: false,
+		imageInput: false,
 		liveInterrupt: false,
 		multiClient: false,
 	},

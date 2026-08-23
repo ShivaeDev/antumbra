@@ -15,6 +15,7 @@ import type { PendingIntent } from "#sight-intents.ts";
 
 export const fleetSnapshot = (
 	backends: ReadonlyArray<string>,
+	imageInputBackends: ReadonlySet<string>,
 	intents: ReadonlyArray<PendingIntent>,
 	runtime: FleetRuntime,
 ) =>
@@ -50,7 +51,14 @@ export const fleetSnapshot = (
 			agents.map((agent) => agent.id),
 		);
 		const sessionSummaries = yield* Effect.forEach(sessions, (session) =>
-			sessionSummary(session, runtime, attribution, pointers, situations),
+			sessionSummary(
+				session,
+				imageInputBackends,
+				runtime,
+				attribution,
+				pointers,
+				situations,
+			),
 		);
 		const storedBerths = yield* db.Berth.orderBy((berth) =>
 			berth.createdAt.asc(),
@@ -108,6 +116,7 @@ export const fleetSnapshot = (
 				.map((session) => ({
 					addressable: session.addressable,
 					backend: session.backend,
+					canAttachImages: session.canAttachImages,
 					canInterrupt: session.canInterrupt,
 					canSend: session.canSend,
 					canSleep: session.canSleep,

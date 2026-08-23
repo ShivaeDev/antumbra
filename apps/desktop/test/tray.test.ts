@@ -12,6 +12,7 @@ import {
 const session = (id: string, canInterrupt: boolean): SessionSummary => ({
 	addressable: [],
 	backend: "claude",
+	canAttachImages: false,
 	canInterrupt,
 	canSend: canInterrupt,
 	canSleep: false,

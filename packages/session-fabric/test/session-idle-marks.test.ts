@@ -7,6 +7,7 @@ import {
 	options,
 	scriptedBackend,
 	sink,
+	textInput,
 } from "#test/fabric-fixtures.ts";
 
 const standing = Effect.gen(function* () {
@@ -14,7 +15,13 @@ const standing = Effect.gen(function* () {
 	const backend = scriptedBackend(() =>
 		Effect.succeed({
 			...idleHandle,
-			queue: (text: string) => Ref.update(queued, (all) => [...all, text]),
+			queue: (input) =>
+				Ref.update(queued, (all) => [
+					...all,
+					...input.parts.flatMap((part) =>
+						part.type === "text" ? [part.text] : [],
+					),
+				]),
 		}),
 	);
 	const fabric = yield* makeSessionFabric;
@@ -71,7 +78,7 @@ it.live(
 			Effect.gen(function* () {
 				const { fabric, queued } = yield* standing;
 				yield* fabric.standDown(options.sessionId);
-				yield* fabric.send(options.sessionId, "one more thing");
+				yield* fabric.send(options.sessionId, textInput("one more thing"));
 				expect(yield* fabric.idleSince).toEqual(new Map());
 				expect(yield* fabric.stopIdle(options.sessionId)).toBe(false);
 				expect(yield* fabric.holds(options.sessionId)).toBe(true);
@@ -92,7 +99,7 @@ it.live("a reclaim takes the attachment of a session still standing down", () =>
 			expect(yield* fabric.holds(options.sessionId)).toBe(false);
 			expect(yield* fabric.attached).toEqual(new Set());
 			const gone = yield* Effect.flip(
-				fabric.send(options.sessionId, "still aboard?"),
+				fabric.send(options.sessionId, textInput("still aboard?")),
 			);
 			expect(gone).toBeInstanceOf(SessionNotLive);
 			expect(yield* Ref.get(queued)).toEqual([]);
@@ -132,7 +139,7 @@ it.live("an ending words have overtaken leaves no mark", () =>
 		Effect.gen(function* () {
 			const { fabric } = yield* standing;
 			expect(yield* fabric.stirrings(options.sessionId)).toBe(0);
-			yield* fabric.send(options.sessionId, "one more thing");
+			yield* fabric.send(options.sessionId, textInput("one more thing"));
 			expect(yield* fabric.stirrings(options.sessionId)).toBe(1);
 
 			expect(yield* fabric.turnEnded(options.sessionId, 0)).toBe(false);
@@ -145,7 +152,7 @@ it.live("an ending words have overtaken leaves no mark", () =>
 
 			// why: and the words after that end the quiet again, exactly as they end
 			// the quiet a declaration left.
-			yield* fabric.send(options.sessionId, "and another");
+			yield* fabric.send(options.sessionId, textInput("and another"));
 			expect(yield* fabric.idleSince).toEqual(new Map());
 			expect(yield* fabric.stirrings(options.sessionId)).toBe(2);
 		}),

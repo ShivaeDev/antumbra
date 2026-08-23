@@ -3,7 +3,9 @@ import { expect, it } from "@effect/vitest";
 import type { Effect } from "effect";
 import type { makeSessionSend } from "#session-send.ts";
 
-type SessionSend = Effect.Success<typeof makeSessionSend>;
+type SessionSend = Effect.Success<
+	ReturnType<typeof makeSessionSend>
+>["sendPrompt"];
 type Words = Parameters<SessionSend>[1];
 
 // why: this declaration is the regression proof. The send seam is the last

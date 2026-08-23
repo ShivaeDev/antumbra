@@ -1,4 +1,4 @@
-import type { BackendFailure } from "@antumbra/plugin-api";
+import type { BackendFailure, SessionInput } from "@antumbra/plugin-api";
 import { Effect, Option, Schema } from "effect";
 import { codexFailure } from "#failure.ts";
 import { TurnResponse } from "#protocol.ts";
@@ -8,8 +8,12 @@ const INTERRUPT_TIMEOUT_MS = 5_000;
 
 const decodeTurnResponse = Schema.decodeUnknownOption(TurnResponse);
 
-const textInput = (texts: ReadonlyArray<string>) =>
-	texts.map((text) => ({ text, text_elements: [], type: "text" }));
+const userInput = (input: SessionInput) =>
+	input.parts.map((part) =>
+		part.type === "text"
+			? { text: part.text, text_elements: [], type: "text" }
+			: { path: part.path, type: "localImage" },
+	);
 
 const turnIdOf = (response: unknown) =>
 	Option.match(decodeTurnResponse(response), {
@@ -28,11 +32,11 @@ const nothingToInterrupt = (failure: BackendFailure): boolean =>
 export interface TurnRequests {
 	readonly interrupt: (turnId: string) => Effect.Effect<void, BackendFailure>;
 	readonly start: (
-		texts: ReadonlyArray<string>,
+		input: SessionInput,
 	) => Effect.Effect<string, BackendFailure>;
 	readonly steer: (
 		turnId: string,
-		text: string,
+		input: SessionInput,
 	) => Effect.Effect<void, BackendFailure>;
 }
 
@@ -51,15 +55,20 @@ export const turnRequests = (
 				Effect.asVoid,
 				Effect.catchIf(nothingToInterrupt, () => Effect.void),
 			),
-	start: (texts) =>
+	start: (input) =>
 		server
-			.request("turn/start", { input: textInput(texts), threadId })
+			.request("turn/start", {
+				clientUserMessageId: input.id,
+				input: userInput(input),
+				threadId,
+			})
 			.pipe(Effect.flatMap(turnIdOf)),
-	steer: (turnId, text) =>
+	steer: (turnId, input) =>
 		server
 			.request("turn/steer", {
+				clientUserMessageId: input.id,
 				expectedTurnId: turnId,
-				input: textInput([text]),
+				input: userInput(input),
 				threadId,
 			})
 			.pipe(Effect.asVoid),

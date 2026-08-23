@@ -37,7 +37,13 @@ export const SightSourceLive = Layer.effect(SightSource)(
 						attached: domain.sessionsAttached,
 						delegating: domain.sessionsDelegating,
 					}),
-					(runtime) => fleetSnapshot(domain.backends, intents, runtime),
+					(runtime) =>
+						fleetSnapshot(
+							domain.backends,
+							domain.imageInputBackends,
+							intents,
+							runtime,
+						),
 				),
 			),
 			Effect.provideService(Changes, changes),

@@ -1,6 +1,12 @@
 import { Schema } from "effect";
 import { Fleet, RepoSummary } from "#fleet.ts";
 import { type AppProcedure, surface } from "#router-procedure.ts";
+import {
+	SessionImage,
+	SessionImageRequest,
+	SessionInputReceipt,
+	SessionInputRequest,
+} from "#session-inputs.ts";
 import { SessionTree } from "#session-tree.ts";
 import {
 	EventQuery,
@@ -58,6 +64,12 @@ export const sightRoutes = (procedure: AppProcedure) => ({
 			const sight = yield* SightSource;
 			yield* surface(sight.send(input.sessionId, input.text));
 		}),
+	sendSessionInput: procedure
+		.input(SessionInputRequest)
+		.output(SessionInputReceipt)
+		.mutation(function* (input) {
+			return yield* surface((yield* SightSource).sendInput(input));
+		}),
 	sessionEventFeed: procedure
 		.input(EventQuery)
 		.output(SessionEvent)
@@ -71,6 +83,12 @@ export const sightRoutes = (procedure: AppProcedure) => ({
 		.query(function* (input) {
 			const sight = yield* SightSource;
 			return yield* surface(sight.sessionEvents(input));
+		}),
+	sessionImage: procedure
+		.input(SessionImageRequest)
+		.output(SessionImage)
+		.query(function* (input) {
+			return yield* surface((yield* SightSource).sessionImage(input));
 		}),
 	sessionTree: procedure
 		.input(Schema.Struct({ rootSessionId: Schema.String }))

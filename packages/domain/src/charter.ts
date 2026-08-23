@@ -2,6 +2,7 @@ import { Database, type WriteExecutors, Writer } from "@antumbra/persistence";
 import type { SessionHandle } from "@antumbra/plugin-api";
 import { type BerthedCharter, berthedCharter } from "@antumbra/prompts";
 import { Clock, Effect, Option } from "effect";
+import { promptInput } from "#session-input.ts";
 import type { SpawnFields } from "#spawn-fields.ts";
 import { spawnSessionIdentity } from "#spawn-identity.ts";
 import { isVoyageCaptainIdentity } from "#voyage-captain.ts";
@@ -79,11 +80,13 @@ export const charterDelivery = Effect.gen(function* () {
 			}
 			const moorage = yield* provide(moorageOf(payload.agentId));
 			yield* handle.queue(
-				berthedCharter({
-					...moorage,
-					charter: payload.charter,
-					role: roleFor(payload),
-				}),
+				promptInput(
+					berthedCharter({
+						...moorage,
+						charter: payload.charter,
+						role: roleFor(payload),
+					}),
+				),
 			);
 			yield* stamp(payload);
 		});

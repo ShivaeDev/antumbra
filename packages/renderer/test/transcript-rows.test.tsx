@@ -72,7 +72,14 @@ const noise: TranscriptItem = {
 
 it("renders what the agent wrote as the Markdown it authored", () => {
 	const shown = markup({
+		inputId: undefined,
 		kind: "message",
+		parts: [
+			{
+				text: "# Soundings\n\nThe eastern shoal is steeper than `charted`.",
+				type: "text",
+			},
+		],
 		role: "agent",
 		seq: 0,
 		text: "# Soundings\n\nThe eastern shoal is steeper than `charted`.",
@@ -85,7 +92,14 @@ it("renders what the agent wrote as the Markdown it authored", () => {
 
 it("reads what a person typed as the Markdown they wrote it in", () => {
 	const shown = markup({
+		inputId: undefined,
 		kind: "message",
+		parts: [
+			{
+				text: "## Soundings\n\n- the eastern shoal\n- the western shoal",
+				type: "text",
+			},
+		],
 		role: "user",
 		seq: 1,
 		text: "## Soundings\n\n- the eastern shoal\n- the western shoal",
@@ -99,7 +113,14 @@ it("reads what a person typed as the Markdown they wrote it in", () => {
 
 it("keeps a wide code block inside the message that carries it", () => {
 	const shown = markup({
+		inputId: undefined,
 		kind: "message",
+		parts: [
+			{
+				text: "```sh\npnpm ready --filter @antumbra/renderer\n```",
+				type: "text",
+			},
+		],
 		role: "agent",
 		seq: 2,
 		text: "```sh\npnpm ready --filter @antumbra/renderer\n```",

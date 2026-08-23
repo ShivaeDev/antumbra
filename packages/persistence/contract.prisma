@@ -63,6 +63,7 @@ model AgentSession {
   root               AgentSession   @relation("SessionRoot", fields: [rootSessionId], references: [id], onDelete: Restrict, onUpdate: Restrict)
   nodes              AgentSession[] @relation("SessionRoot")
   events             SessionEvent[]
+  inputs             SessionInput[]
 
   @@index([agentId])
   @@index([parentSessionId])
@@ -107,6 +108,43 @@ model SessionEvent {
   session   AgentSession @relation(fields: [sessionId], references: [id], onDelete: Restrict, onUpdate: Restrict)
 
   @@id([sessionId, seq])
+}
+
+model SessionInput {
+  id             String   @id
+  sessionId      String
+  requestDigest  String
+  deliveryStatus String
+  createdAt      DateTime @default(now())
+  session        AgentSession @relation(fields: [sessionId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  parts          SessionInputPart[]
+
+  @@index([sessionId, createdAt])
+}
+
+model SessionAttachment {
+  id        String   @id
+  digest    String   @unique
+  mediaType String
+  byteSize  Int
+  width     Int
+  height    Int
+  createdAt DateTime @default(now())
+  parts     SessionInputPart[]
+}
+
+model SessionInputPart {
+  inputId      String
+  position     Int
+  kind         String
+  text         String?
+  attachmentId String?
+  displayName  String?
+  input        SessionInput @relation(fields: [inputId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  attachment   SessionAttachment? @relation(fields: [attachmentId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+
+  @@id([inputId, position])
+  @@index([attachmentId])
 }
 
 model Voyage {

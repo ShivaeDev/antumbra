@@ -1,6 +1,5 @@
 import type { PrismaError } from "@antumbra/persistence";
-import type { BackendFailure } from "@antumbra/plugin-api";
-import type { AgentPrompt } from "@antumbra/prompts";
+import type { BackendFailure, SessionInput } from "@antumbra/plugin-api";
 import type { SessionStartPermit } from "@antumbra/session-fabric";
 import { Context, type Effect } from "effect";
 import type { SessionRecoveryContext } from "#session-recovery-context.ts";
@@ -17,7 +16,7 @@ export class SessionRecoveryRuntime extends Context.Service<
 		readonly resume: (
 			permit: SessionStartPermit,
 			context: SessionRecoveryContext,
-			instruction: AgentPrompt,
+			instruction: SessionInput,
 		) => Effect.Effect<
 			void,
 			BackendFailure | PrismaError | SessionRecoveryHeld

@@ -9,6 +9,7 @@
 		"./board": "./src/board.ts",
 		"./change": "./src/change.ts",
 		"./session-events": "./src/session-events.ts",
+		"./session-input": "./src/session-input.ts",
 		"./verdict": "./src/verdict.ts"
 	},
 	"imports": {

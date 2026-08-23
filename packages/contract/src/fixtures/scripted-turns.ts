@@ -31,6 +31,7 @@ const surveyor: AgentSummary = {
 		{
 			addressable: [],
 			backend: "claude",
+			canAttachImages: false,
 			canInterrupt: true,
 			canSend: true,
 			canSleep: false,

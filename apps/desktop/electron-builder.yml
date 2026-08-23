@@ -1,6 +1,9 @@
 appId: dev.shivae.antumbra
 productName: Antumbra
 electronVersion: 43.3.0
+# why: sharp ships N-API prebuilds, which are ABI-stable across Node and
+# Electron, so there is nothing to rebuild against this Electron version and a
+# rebuild would only need a toolchain the build host may not have.
 npmRebuild: false
 directories:
   output: release
@@ -9,10 +12,21 @@ files:
   # why: Antumbra drives the Claude Code the user installed; the SDK's
   # bundled platform binaries would only add ~270 MB that is never spawned.
   - "!**/node_modules/@anthropic-ai/claude-agent-sdk-*/**"
+# why: a .node file cannot be loaded from inside the asar archive — the loader
+# needs a real path on disk. sharp's own module and the @img/sharp-<platform>
+# prebuild it resolves are the only native code Antumbra loads, so they are the
+# only things unpacked beside it.
+asarUnpack:
+  - "**/node_modules/sharp/**"
+  - "**/node_modules/@img/**"
 extraResources:
   - from: out/persistence
     to: persistence
 mac:
+  # why: single-architecture on purpose. Only the @img/sharp-* prebuild for the
+  # installing host is present after a workspace install, so a universal or
+  # cross-architecture target would pack an app whose image handling is missing
+  # its binary on the other half. Building both means installing both first.
   target:
     - dmg
   identity: null

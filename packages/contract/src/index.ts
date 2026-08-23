@@ -2,6 +2,16 @@ export {
 	AGENT_BACKEND_TAGS,
 	type AgentBackendTag,
 } from "@antumbra/vocabulary/agent-backend";
+// why: the composer and the transcript say the same words about an input that
+// the capability storing it does, and the renderer already reads every other
+// public word through this IDL. The Session-input subject is re-exported here
+// so that stays one door rather than a second one into the vocabulary leaf.
+export {
+	MAX_SESSION_IMAGE_SOURCE_BYTES,
+	MAX_SESSION_IMAGES,
+	SessionInputId,
+	type SessionMessagePart,
+} from "@antumbra/vocabulary/session-input";
 export { AppInfo, AppInfoSource } from "#app-info.ts";
 export { ArtifactMarkdown, ArtifactView } from "#artifact-views.ts";
 export { ChangeView } from "#change-views.ts";
@@ -40,6 +50,13 @@ export {
 } from "#quay-views.ts";
 export { type AppRouter, makeAppRouter } from "#router.ts";
 export { type RequestContext, RequestOrigin } from "#router-procedure.ts";
+export {
+	SessionImage,
+	SessionImageRequest,
+	SessionInputDraftPart,
+	SessionInputReceipt,
+	SessionInputRequest,
+} from "#session-inputs.ts";
 export { ChangeSituation, SessionSituation } from "#session-situations.ts";
 export {
 	SessionTree,

@@ -13,6 +13,7 @@ import {
 } from "effect";
 import { makeCodexServer } from "#server.ts";
 import { type FakeAppServer, makeFakeAppServer } from "#test/fake.ts";
+import { textInput } from "#test/input.ts";
 import { openThreadSession } from "#thread.ts";
 
 const THREAD = "thread-1";
@@ -114,23 +115,28 @@ it.live("only this thread's notifications become events; items map", () =>
 it.live("queue settles only when its text reaches a provider turn", () =>
 	Effect.gen(function* () {
 		const { fake, handle } = yield* openFake();
-		yield* handle.queue("first");
+		yield* handle.queue(textInput("first"));
 		expect(methods(fake).at(-1)).toBe("turn/start");
-		const second = yield* Effect.forkScoped(handle.queue("second"));
+		const second = yield* Effect.forkScoped(handle.queue(textInput("second")));
 		yield* Effect.yieldNow;
-		const third = yield* Effect.forkScoped(handle.queue("third"));
+		const third = yield* Effect.forkScoped(handle.queue(textInput("third")));
 		yield* Effect.yieldNow;
 		expect(methods(fake).filter((m) => m === "turn/start")).toHaveLength(1);
 		expect(second.pollUnsafe()).toBeUndefined();
 		expect(third.pollUnsafe()).toBeUndefined();
 		turnCompleted(fake, "turn-1");
 		yield* Fiber.join(second);
+		expect(third.pollUnsafe()).toBeUndefined();
+		expect(fake.requests.at(-1)?.params).toEqual({
+			clientUserMessageId: "00000000-0000-4000-8000-000000000001",
+			input: [{ text: "second", text_elements: [], type: "text" }],
+			threadId: THREAD,
+		});
+		turnCompleted(fake, "turn-2");
 		yield* Fiber.join(third);
 		expect(fake.requests.at(-1)?.params).toEqual({
-			input: [
-				{ text: "second", text_elements: [], type: "text" },
-				{ text: "third", text_elements: [], type: "text" },
-			],
+			clientUserMessageId: "00000000-0000-4000-8000-000000000001",
+			input: [{ text: "third", text_elements: [], type: "text" }],
 			threadId: THREAD,
 		});
 	}),
@@ -142,7 +148,7 @@ it.live("queued words are said once, where codex reports taking them", () =>
 	Effect.gen(function* () {
 		const { events, fake, handle } = yield* openFake();
 		yield* seen(events, 1);
-		yield* handle.queue("sound the reef");
+		yield* handle.queue(textInput("sound the reef"));
 		expect(yield* Queue.size(events)).toBe(0);
 		fake.notify("item/completed", {
 			item: {
@@ -174,8 +180,8 @@ it.live("closing a session fails text held before provider acceptance", () =>
 			),
 			Scope.provide(scope),
 		);
-		yield* handle.queue("first");
-		const held = yield* Effect.forkChild(handle.queue("held"));
+		yield* handle.queue(textInput("first"));
+		const held = yield* Effect.forkChild(handle.queue(textInput("held")));
 		yield* Effect.yieldNow;
 		yield* Scope.close(scope, Exit.void);
 		expect(Exit.isFailure(yield* Effect.exit(Fiber.join(held)))).toBe(true);
@@ -185,8 +191,8 @@ it.live("closing a session fails text held before provider acceptance", () =>
 it.live("provider termination fails text held before acceptance", () =>
 	Effect.gen(function* () {
 		const { fake, handle } = yield* openFake();
-		yield* handle.queue("first");
-		const held = yield* Effect.forkChild(handle.queue("held"));
+		yield* handle.queue(textInput("first"));
+		const held = yield* Effect.forkChild(handle.queue(textInput("held")));
 		yield* Effect.yieldNow;
 		fake.exit();
 		yield* Effect.yieldNow;
@@ -198,9 +204,9 @@ it.live("provider termination fails text held before acceptance", () =>
 it.live("steer rides the active turn and starts one when idle", () =>
 	Effect.gen(function* () {
 		const { fake, handle } = yield* openFake();
-		yield* handle.steer("go left");
+		yield* handle.steer(textInput("go left"));
 		expect(fake.requests.at(-1)?.method).toBe("turn/start");
-		yield* handle.steer("no, right");
+		yield* handle.steer(textInput("no, right"));
 		const steer = fake.requests.at(-1);
 		expect(steer?.method).toBe("turn/steer");
 		expect(steer?.params).toMatchObject({
@@ -215,7 +221,7 @@ it.live("interrupt targets the active turn and is a no-op when idle", () =>
 		const { fake, handle } = yield* openFake();
 		yield* handle.interrupt;
 		expect(methods(fake)).not.toContain("turn/interrupt");
-		yield* handle.queue("work");
+		yield* handle.queue(textInput("work"));
 		turnStarted(fake, "turn-1");
 		yield* handle.interrupt;
 		expect(fake.requests.at(-1)).toMatchObject({

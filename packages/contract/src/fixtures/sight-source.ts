@@ -27,6 +27,14 @@ export const sightFixture = (feeds: FixtureFeeds) =>
 						message: `a message with no words cannot reach session ${sessionId}`,
 					})
 				: Effect.void,
+		sendInput: (request) =>
+			Effect.succeed({ id: request.id, status: "accepted" as const }),
+		sessionImage: () =>
+			Effect.succeed({
+				bytes: new Uint8Array(),
+				mediaType: "image/png" as const,
+				name: "fixture.png",
+			}),
 		sessionEventFeed: (query) =>
 			Stream.filter(feeds.events, (event) => event.seq >= query.fromSeq),
 		sessionEvents: (query) =>

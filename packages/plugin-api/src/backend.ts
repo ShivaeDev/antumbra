@@ -9,10 +9,34 @@ import {
 import type { SessionAudit } from "#session-audit.ts";
 import type { DirectTool } from "#tools.ts";
 
+export interface SessionInputImagePart {
+	readonly attachmentId: string;
+	readonly mediaType: "image/jpeg" | "image/png" | "image/webp";
+	readonly path: string;
+	readonly position: number;
+	readonly type: "image";
+}
+
+export interface SessionInputTextPart {
+	readonly text: string;
+	readonly type: "text";
+}
+
+export interface SessionInput {
+	readonly id?: string | undefined;
+	readonly parts: readonly [
+		SessionInputImagePart | SessionInputTextPart,
+		...(SessionInputImagePart | SessionInputTextPart)[],
+	];
+}
+
 // why: shaped from the widest backend protocol surveyed and narrowed per
 // backend — the Claude SDK surface is not the interface ceiling.
 export interface BackendCapabilities {
 	readonly fork: boolean;
+	// why: older/external plugins omit this additive capability and therefore
+	// remain fail-closed text-only until they explicitly prove their image path.
+	readonly imageInput?: boolean;
 	readonly liveInterrupt: boolean;
 	readonly multiClient: boolean;
 }
@@ -39,8 +63,8 @@ export interface SessionHandle {
 	// reports it — our session id stays authoritative; this is what resume
 	// hands back to the provider.
 	readonly nativeRef: Effect.Effect<Option.Option<string>>;
-	readonly queue: (text: string) => Effect.Effect<void, BackendFailure>;
-	readonly steer: (text: string) => Effect.Effect<void, BackendFailure>;
+	readonly queue: (input: SessionInput) => Effect.Effect<void, BackendFailure>;
+	readonly steer: (input: SessionInput) => Effect.Effect<void, BackendFailure>;
 }
 
 export interface OpenSessionOptions {

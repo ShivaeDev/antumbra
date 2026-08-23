@@ -23,6 +23,7 @@ export interface FleetRuntime {
 // read together but they are not the same question.
 export const sessionSummary = (
 	session: StoredAgentSession,
+	imageInputBackends: ReadonlySet<string>,
 	runtime: FleetRuntime,
 	attribution: IntentAttribution,
 	pointers: ReadonlyMap<string, string | null>,
@@ -51,6 +52,7 @@ export const sessionSummary = (
 					status === "open" ? (situations.get(session.agentId) ?? []) : [],
 				agentId: session.agentId,
 				backend: session.backend,
+				canAttachImages: imageInputBackends.has(session.backend),
 				canInterrupt: running && runtime.attached.has(session.id),
 				// why: words reach every Session that has not ended — one that is
 				// listening takes them now, one whose process was reclaimed is woken

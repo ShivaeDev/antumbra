@@ -21,6 +21,7 @@ export const SessionSummary = Schema.Struct({
 	// nothing is wrong, or nothing can be said to this Session anyway.
 	addressable: Schema.Array(SessionSituation),
 	backend: Schema.String,
+	canAttachImages: Schema.Boolean,
 	canInterrupt: Schema.Boolean,
 	// why: whether the admiral's words can reach this Session now, published as
 	// a capability so no affordance is ever derived from raw execution state.

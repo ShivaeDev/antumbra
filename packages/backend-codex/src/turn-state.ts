@@ -1,10 +1,10 @@
-import type { BackendFailure } from "@antumbra/plugin-api";
+import type { BackendFailure, SessionInput } from "@antumbra/plugin-api";
 import { type Deferred, Effect, Option, Ref } from "effect";
 import { codexFailure } from "#failure.ts";
 
 export interface PendingInput {
 	readonly accepted: Deferred.Deferred<void, BackendFailure>;
-	readonly text: string;
+	readonly input: SessionInput;
 }
 
 export interface OpenTurnState {

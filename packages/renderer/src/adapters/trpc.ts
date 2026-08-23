@@ -9,6 +9,20 @@ import type {
 import { Data, Effect } from "effect";
 import { client, toError } from "#adapters/bridge.ts";
 
+export {
+	interruptSession,
+	loadSessionImage,
+	sendSessionInput,
+	sendToSession,
+	sleepSession,
+} from "#adapters/trpc-session.ts";
+export {
+	type Unsubscribe,
+	watchFleet,
+	watchSessionEvents,
+	watchSessionTree,
+} from "#adapters/trpc-watches.ts";
+
 class AppInfoLoadError extends Data.TaggedError("AppInfoLoadError")<{
 	readonly message: string;
 }> {}
@@ -18,13 +32,6 @@ export const loadAppInfo: Effect.Effect<AppInfo, AppInfoLoadError> =
 		catch: (cause) => new AppInfoLoadError({ message: String(cause) }),
 		try: () => client.appInfo.query(),
 	});
-
-export {
-	type Unsubscribe,
-	watchFleet,
-	watchSessionEvents,
-	watchSessionTree,
-} from "#adapters/trpc-watches.ts";
 
 export const spawnAgent = (
 	request: SpawnRequest,
@@ -54,38 +61,6 @@ export const retirePieceCrew = (
 	client.retirePieceCrew
 		.mutate({ pieceId })
 		.then(() => undefined)
-		.catch((cause: unknown) => onError(toError(cause).message));
-};
-
-export const interruptSession = (
-	sessionId: string,
-	onError: (message: string) => void,
-): void => {
-	client.interruptSession
-		.mutate({ sessionId })
-		.then(() => undefined)
-		.catch((cause: unknown) => onError(toError(cause).message));
-};
-
-export const sleepSession = (
-	sessionId: string,
-	onError: (message: string) => void,
-): void => {
-	client.sleepSession
-		.mutate({ sessionId })
-		.then(() => undefined)
-		.catch((cause: unknown) => onError(toError(cause).message));
-};
-
-export const sendToSession = (
-	sessionId: string,
-	text: string,
-	onDone: () => void,
-	onError: (message: string) => void,
-): void => {
-	client.sendToSession
-		.mutate({ sessionId, text })
-		.then(onDone)
 		.catch((cause: unknown) => onError(toError(cause).message));
 };
 

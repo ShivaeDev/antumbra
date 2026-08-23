@@ -9,6 +9,9 @@ export {
 	BackendFailure,
 	type OpenSessionOptions,
 	type SessionHandle,
+	type SessionInput,
+	type SessionInputImagePart,
+	type SessionInputTextPart,
 } from "#backend.ts";
 export {
 	type ChangeHost,

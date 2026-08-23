@@ -76,6 +76,7 @@ it.live("a landing piece gates its dependents until the change lands", () =>
 				draft: false,
 				pieceId: alpha.id,
 				repoName: "reef",
+				sessionId: "session-crew",
 				title: "chart the eastern spit",
 			});
 			yield* retireOneAlive;

@@ -30,6 +30,7 @@ export interface ChangeRow {
 	readonly mergeable: ChangeMergeable;
 	readonly observedAt: Date;
 	readonly openedByAgentId: string | null;
+	readonly originSessionId: string | null;
 	readonly preparedHeadRef: string | null;
 	readonly preparedHeadSha: string | null;
 	readonly proposalFrozenAt: Date | null;

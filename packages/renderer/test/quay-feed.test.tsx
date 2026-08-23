@@ -54,6 +54,7 @@ const snapshot = (title: string): QuayView => ({
 				url: null,
 			},
 			group: "alongside",
+			originSessionId: null,
 			pieceId: "piece-1",
 			pieceTitle: "soundings",
 			voyageId: "voyage-1",

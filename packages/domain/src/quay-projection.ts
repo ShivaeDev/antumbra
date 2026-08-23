@@ -23,6 +23,7 @@ export const quaySeen = (
 	rows: reading.rows.map((row) => ({
 		change: changeSeen(row.change),
 		group: row.group,
+		originSessionId: row.originSessionId,
 		pieceId: row.pieceId,
 		pieceTitle: row.pieceTitle,
 		voyageId: row.voyageId,

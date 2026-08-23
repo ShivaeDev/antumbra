@@ -31,6 +31,7 @@ const opened = Effect.flatMap(Changes, (changes) =>
 		draft: false,
 		pieceId: "piece-reef",
 		repoName: "reef",
+		sessionId: "session-crew",
 		title: "Chart the reef",
 	}),
 );
@@ -73,6 +74,7 @@ it.live("rebuilds prepared truth and keeps its Berth held", () =>
 				agentId: CREW,
 				pieceId: "piece-reef",
 				repoName: "reef",
+				sessionId: "session-crew",
 			});
 		}).pipe(Effect.provide(layer()), Effect.provide(temporary.layer));
 
@@ -84,6 +86,7 @@ it.live("rebuilds prepared truth and keeps its Berth held", () =>
 				agentId: CREW,
 				pieceId: "piece-reef",
 				repoName: "reef",
+				sessionId: "session-crew",
 			});
 			const berths = yield* db.Berth.where({ agentId: CREW }).all();
 			return {

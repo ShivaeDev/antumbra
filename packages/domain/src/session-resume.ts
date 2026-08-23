@@ -23,13 +23,25 @@ const admitRecoveredSession =
 	(context: SessionRecoveryContext, instruction: AgentPrompt) =>
 	(attachment: SessionAttachment) =>
 		Effect.gen(function* () {
+			// why: the words go first and the opening is awaited after, which is the
+			// order a spawn already delivers its charter in. A provider may hold its
+			// opening frame until it has heard something — the identity it announces
+			// is a fact about a conversation that has started — so awaiting the frame
+			// before speaking is each side waiting for the other, and the wake dies
+			// on its patience with the provider never having said a word.
+			//
+			// why: the cost is one instruction heard by a Session that turns out to
+			// be the wrong one. The check still stands and still stops the
+			// attachment, so a mismatch costs a sentence read by a conversation
+			// nothing else will reach — accepted, because the alternative is that no
+			// resume on such a provider ever completes at all.
+			yield* attachment.handle.queue(instruction);
 			const openedNativeRef = yield* attachment.openedNativeRef;
 			if (openedNativeRef !== context.nativeRef) {
 				return yield* new SessionRecoveryHeld({
 					detail: `provider resumed native session ${openedNativeRef}, expected ${context.nativeRef}`,
 				});
 			}
-			yield* attachment.handle.queue(instruction);
 		});
 
 export const makeSessionRecoveryRuntime = (deps: SessionResumeDeps) =>

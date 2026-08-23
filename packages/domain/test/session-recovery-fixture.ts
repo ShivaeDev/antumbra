@@ -87,7 +87,7 @@ export const reportsNativeRef = (
 			),
 });
 
-const emitOpened = (
+export const emitOpened = (
 	scripted: ScriptedBackend,
 	sessionId: string,
 	nativeRef: string,

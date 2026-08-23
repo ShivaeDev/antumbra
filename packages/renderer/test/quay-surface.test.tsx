@@ -27,6 +27,7 @@ const { opened, openWindow, watchQuay } = vi.hoisted(() => {
 
 vi.mock("#adapters/trpc-quay.ts", () => ({
 	adoptChange: vi.fn(),
+	dismissChange: vi.fn(),
 	refreshChanges: vi.fn(),
 	watchQuay,
 }));

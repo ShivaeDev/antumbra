@@ -16,6 +16,7 @@ export const voyageStateLabel: Readonly<Record<VoyageState, string>> = {
 // window speaks, so a new one is a compile error rather than a wire spelling
 // leaking onto a badge.
 export const pieceStateLabel: Readonly<Record<PieceState, string>> = {
+	abandoned: "Abandoned",
 	active: "Active",
 	blocked: "Blocked",
 	done: "Landed",
@@ -30,6 +31,7 @@ export const pieceActLabel: Readonly<Record<PieceAct, string>> = {
 	park: "Park",
 	rewire: "Rewire",
 	unpark: "Unpark",
+	workNow: "Work now",
 };
 
 // why: the two registers are glossary terms, so the board calls them what the

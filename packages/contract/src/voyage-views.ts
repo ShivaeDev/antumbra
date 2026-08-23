@@ -1,12 +1,7 @@
 import { BoardRegisterSchema } from "@antumbra/vocabulary/board";
-import {
-	ChangeChecks,
-	ChangeMergeable,
-	ChangeReview,
-	ChangeStage,
-} from "@antumbra/vocabulary/change";
 import { Schema } from "effect";
 import { ArtifactHistoryView, ArtifactView } from "#artifact-views.ts";
+import { ChangeView } from "#change-views.ts";
 
 export const PieceAgentView = Schema.Struct({
 	agentId: Schema.String,
@@ -31,33 +26,14 @@ export const ReportMarkdown = Schema.Struct({
 });
 export type ReportMarkdown = typeof ReportMarkdown.Type;
 
-// why: a change lives on a host that speaks its own dialect, and the window is
-// shown only the neutral reading — where it stands and what the host last said
-// — so nothing above the domain ever learns which host it is looking at. The
-// repo reaches a reader by name; the id is what the rest of the system joins on.
-export const ChangeView = Schema.Struct({
-	activityAt: Schema.String,
-	checks: ChangeChecks,
-	externalId: Schema.NullOr(Schema.String),
-	host: Schema.String,
-	id: Schema.String,
-	isDraft: Schema.Boolean,
-	mergeable: ChangeMergeable,
-	observedAt: Schema.String,
-	repoId: Schema.String,
-	repoName: Schema.String,
-	review: ChangeReview,
-	stage: ChangeStage,
-	title: Schema.String,
-	url: Schema.NullOr(Schema.String),
-});
-export type ChangeView = typeof ChangeView.Type;
-
-// why: a piece's state is derived from its edges, its stamps, who is at work
-// on it and what it is still waiting to land — the contract carries the
-// outcome of that ladder so a window renders what the domain concluded
-// instead of concluding it again.
+// why: a piece's state is derived from its edges, its stamps, the verdicts
+// landed on it, who is at work on it and what it is still waiting to land —
+// the contract carries the outcome of that ladder so a window renders what the
+// domain concluded instead of concluding it again. Abandoned is one of these
+// words rather than a mark on done, because a piece written off and a piece
+// delivered are not the same news however alike they are to sort.
 export const PieceState = Schema.Literals([
+	"abandoned",
 	"active",
 	"blocked",
 	"done",

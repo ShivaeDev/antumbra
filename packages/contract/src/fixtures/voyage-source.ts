@@ -28,7 +28,9 @@ export const voyageFixture = (feeds: FixtureFeeds) =>
 			}),
 		charterPiece: (request) =>
 			Effect.succeed({ pieceId: `piece-for-${request.title}` }),
+		dismissChange: () => Effect.void,
 		hail: () => Effect.succeed({ agentId: "agent-hailed" }),
+		landPieceVerdict: () => Effect.void,
 		launch: () => Effect.void,
 		open: (request) => Effect.succeed({ ...reefSummary, name: request.name }),
 		park: () => Effect.void,
@@ -60,5 +62,6 @@ export const voyageFixture = (feeds: FixtureFeeds) =>
 				: Stream.fail(noSuchVoyage(voyageId)),
 		voyages: Effect.succeed([reefSummary]),
 		voyagesFeed: feeds.voyages,
+		workPieceNow: () => Effect.succeed({ agentId: "agent-crewed" }),
 		writeBoard: () => Effect.void,
 	});

@@ -2,11 +2,12 @@ import type { PieceState, VoyageState } from "@antumbra/contract";
 
 export type Tone = "info" | "outline" | "secondary" | "success" | "warning";
 
-// why: seven piece states but four tiers of attention — what is moving, what
+// why: eight piece states but four tiers of attention — what is moving, what
 // waits on something outside itself, what is stuck, and what is at rest. The
 // tone says which tier a row belongs to and the word beside it says exactly
-// which state earned that tier, so colour never has to carry seven meanings.
+// which state earned that tier, so colour never has to carry eight meanings.
 export const pieceTone: Readonly<Record<PieceState, Tone>> = {
+	abandoned: "outline",
 	active: "success",
 	blocked: "warning",
 	done: "outline",

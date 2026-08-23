@@ -59,13 +59,12 @@ export { IntentFeedLive } from "#intent-feed.ts";
 export { KernelReachLive } from "#kernel-reach.ts";
 export { type OutcomeTally, pieceOutcomeTally } from "#outcome-status.ts";
 export {
+	abandonedPieces,
 	donePieces,
 	landingPieces,
 	PIECE_STATES,
 	type PieceState,
 	pieceStates,
-	type VoyageState,
-	voyageState,
 	wouldCycle,
 } from "#piece-state.ts";
 export type { PieceView } from "#piece-view.ts";
@@ -83,6 +82,7 @@ export { SightSourceLive } from "#sight.ts";
 export type { SpawnFields } from "#spawn.ts";
 export type { VoyageRow, VoyageWorld } from "#voyage-rows.ts";
 export { VoyageSourceLive } from "#voyage-source.ts";
+export { type VoyageState, voyageState } from "#voyage-state.ts";
 export type {
 	PieceCounts,
 	VoyageSummary,

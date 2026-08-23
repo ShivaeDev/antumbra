@@ -1,6 +1,5 @@
 import type { ChangeRow } from "@antumbra/changes";
 import { type ChangeView, changeView, repoNameOf } from "#change-view.ts";
-import { donePieces } from "#piece-state.ts";
 import { liesAtQuay, type QuayGroup, quayGroup } from "#quay-group.ts";
 import type { VoyageWorld } from "#voyage-rows.ts";
 
@@ -60,9 +59,11 @@ const berthingsOf = (
 
 const rowsOfChange = (
 	world: VoyageWorld,
-	done: ReadonlySet<string>,
 	change: ChangeRow,
 ): ReadonlyArray<QuayRow> => {
+	if (!liesAtQuay(world, change)) {
+		return [];
+	}
 	const view = changeView(repoNameOf(world, change.repoId), change);
 	const group = quayGroup(view);
 	// why: the Change keeps the immutable Session identity bound to the tool
@@ -80,7 +81,6 @@ const rowsOfChange = (
 			: null;
 	return world.pieceChanges
 		.filter((link) => link.changeId === change.id)
-		.filter((link) => liesAtQuay(world, done, change, link.pieceId))
 		.flatMap((link) =>
 			berthingsOf(world, link.pieceId).map((berthing) => ({
 				...berthing,
@@ -96,12 +96,10 @@ const rowsOfChange = (
 const byActivity = (left: QuayRow, right: QuayRow): number =>
 	right.change.activityAt.getTime() - left.change.activityAt.getTime();
 
-export const quayRows = (world: VoyageWorld): ReadonlyArray<QuayRow> => {
-	const done = donePieces(world);
-	return world.changes
-		.flatMap((change) => rowsOfChange(world, done, change))
+export const quayRows = (world: VoyageWorld): ReadonlyArray<QuayRow> =>
+	world.changes
+		.flatMap((change) => rowsOfChange(world, change))
 		.sort(byActivity);
-};
 
 // why: a change made by hand is adopted onto a piece that has none yet, so
 // every piece of every voyage is offered rather than the ones already shown.

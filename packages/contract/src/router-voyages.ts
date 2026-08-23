@@ -1,17 +1,19 @@
 import { Schema } from "effect";
 import { ArtifactMarkdown } from "#artifact-views.ts";
 import { type AppProcedure, surface } from "#router-procedure.ts";
-import { ReportMarkdown, VoyageSummary, VoyageView } from "#voyage-views.ts";
 import {
 	ArtifactSupersessionRequest,
 	BoardWriteRequest,
 	CharterPieceRequest,
 	CharterReceipt,
+	CrewReceipt,
 	HailReceipt,
 	OpenVoyageRequest,
+	PieceVerdictRequest,
 	RewireRequest,
-	VoyageSource,
-} from "#voyages.ts";
+} from "#voyage-requests.ts";
+import { ReportMarkdown, VoyageSummary, VoyageView } from "#voyage-views.ts";
+import { VoyageSource } from "#voyages.ts";
 
 const PieceRef = Schema.Struct({ pieceId: Schema.String });
 const ArtifactRef = Schema.Struct({ artifactId: Schema.String });
@@ -45,6 +47,12 @@ export const voyageRoutes = (procedure: AppProcedure) => ({
 		.mutation(function* (input) {
 			const voyages = yield* VoyageSource;
 			return yield* surface(voyages.hail(input.voyageId));
+		}),
+	landPieceVerdict: procedure
+		.input(PieceVerdictRequest)
+		.mutation(function* (input) {
+			const voyages = yield* VoyageSource;
+			yield* surface(voyages.landPieceVerdict(input));
 		}),
 	launchPiece: procedure.input(PieceRef).mutation(function* (input) {
 		const voyages = yield* VoyageSource;
@@ -111,6 +119,13 @@ export const voyageRoutes = (procedure: AppProcedure) => ({
 		.subscription(function* () {
 			const voyages = yield* VoyageSource;
 			return voyages.voyagesFeed;
+		}),
+	workPieceNow: procedure
+		.input(PieceRef)
+		.output(CrewReceipt)
+		.mutation(function* (input) {
+			const voyages = yield* VoyageSource;
+			return yield* surface(voyages.workPieceNow(input.pieceId));
 		}),
 	writeBoard: procedure.input(BoardWriteRequest).mutation(function* (input) {
 		const voyages = yield* VoyageSource;

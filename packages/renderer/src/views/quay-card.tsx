@@ -16,6 +16,7 @@ import {
 	changeNumber,
 	hasLanded,
 } from "#quay/marks.ts";
+import { QuayDismiss } from "#views/quay-dismiss.tsx";
 import { whenLabel } from "#voyages/labels.ts";
 
 const TONE_VARIANTS: Readonly<
@@ -121,6 +122,7 @@ export const QuayCard = ({
 					{mark.label}
 				</Badge>
 			))}
+			<QuayDismiss onError={onError} row={row} />
 			<OriginSession onError={onError} row={row} />
 			<span className="shrink-0 pl-2 text-2xs text-muted-foreground">
 				moved {whenLabel(row.change.activityAt)}

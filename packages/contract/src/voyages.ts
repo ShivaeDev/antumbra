@@ -1,81 +1,31 @@
-import { BoardRegisterSchema } from "@antumbra/vocabulary/board";
-import { Context, Data, type Effect, Schema, type Stream } from "effect";
+import { Context, Data, type Effect, type Stream } from "effect";
 import type { ArtifactMarkdown } from "#artifact-views.ts";
+import type { ChangeView } from "#change-views.ts";
 import type { QuayView } from "#quay-views.ts";
 import type { SightFailure } from "#sight.ts";
 import type {
-	ChangeView,
+	AdoptChangeRequest,
+	ArtifactSupersessionRequest,
+	BoardWriteRequest,
+	CharterPieceRequest,
+	CharterReceipt,
+	CrewReceipt,
+	HailReceipt,
+	OpenVoyageRequest,
+	PieceVerdictRequest,
+	RewireRequest,
+} from "#voyage-requests.ts";
+import type {
 	ReportMarkdown,
 	VoyageSummary,
 	VoyageView,
 } from "#voyage-views.ts";
-
-export const OpenVoyageRequest = Schema.Struct({
-	backend: Schema.String,
-	context: Schema.String,
-	name: Schema.String,
-	northStar: Schema.String,
-});
-export type OpenVoyageRequest = typeof OpenVoyageRequest.Type;
-
-export const CharterPieceRequest = Schema.Struct({
-	charter: Schema.String,
-	dependsOn: Schema.Array(Schema.String),
-	expectation: Schema.String,
-	role: Schema.String,
-	title: Schema.String,
-	voyageId: Schema.String,
-});
-export type CharterPieceRequest = typeof CharterPieceRequest.Type;
-
-export const RewireRequest = Schema.Struct({
-	dependsOn: Schema.Array(Schema.String),
-	pieceId: Schema.String,
-});
-export type RewireRequest = typeof RewireRequest.Type;
-
-export const ArtifactSupersessionRequest = Schema.Struct({
-	successorArtifactId: Schema.String,
-	supersededArtifactId: Schema.String,
-});
-export type ArtifactSupersessionRequest =
-	typeof ArtifactSupersessionRequest.Type;
 
 export class ArtifactMarkdownFailure extends Data.TaggedError(
 	"ArtifactMarkdownFailure",
 )<{
 	readonly message: string;
 }> {}
-
-// why: a board hangs off exactly one entity, so what it hangs off is a choice
-// between named shapes rather than an id beside a kind that could disagree.
-export const BoardTarget = Schema.Union([
-	Schema.Struct({ kind: Schema.Literal("piece"), pieceId: Schema.String }),
-	Schema.Struct({ kind: Schema.Literal("voyage"), voyageId: Schema.String }),
-]);
-export type BoardTarget = typeof BoardTarget.Type;
-
-export const BoardWriteRequest = Schema.Struct({
-	body: Schema.String,
-	register: BoardRegisterSchema,
-	scope: BoardTarget,
-});
-export type BoardWriteRequest = typeof BoardWriteRequest.Type;
-
-// why: a change opened by hand is linked to its piece by url — the host is
-// asked what it is, so the window sends what a person can read off a page.
-export const AdoptChangeRequest = Schema.Struct({
-	pieceId: Schema.String,
-	repoName: Schema.String,
-	url: Schema.String,
-});
-export type AdoptChangeRequest = typeof AdoptChangeRequest.Type;
-
-export const HailReceipt = Schema.Struct({ agentId: Schema.String });
-export type HailReceipt = typeof HailReceipt.Type;
-
-export const CharterReceipt = Schema.Struct({ pieceId: Schema.String });
-export type CharterReceipt = typeof CharterReceipt.Type;
 
 export class VoyageSource extends Context.Service<
 	VoyageSource,
@@ -89,9 +39,15 @@ export class VoyageSource extends Context.Service<
 		readonly charterPiece: (
 			request: CharterPieceRequest,
 		) => Effect.Effect<CharterReceipt, SightFailure>;
+		readonly dismissChange: (
+			changeId: string,
+		) => Effect.Effect<void, SightFailure>;
 		readonly hail: (
 			voyageId: string,
 		) => Effect.Effect<HailReceipt, SightFailure>;
+		readonly landPieceVerdict: (
+			request: PieceVerdictRequest,
+		) => Effect.Effect<void, SightFailure>;
 		readonly launch: (pieceId: string) => Effect.Effect<void, SightFailure>;
 		readonly open: (
 			request: OpenVoyageRequest,
@@ -130,6 +86,9 @@ export class VoyageSource extends Context.Service<
 			ReadonlyArray<VoyageSummary>,
 			SightFailure
 		>;
+		readonly workPieceNow: (
+			pieceId: string,
+		) => Effect.Effect<CrewReceipt, SightFailure>;
 		readonly writeBoard: (
 			request: BoardWriteRequest,
 		) => Effect.Effect<void, SightFailure>;

@@ -1,6 +1,6 @@
+import type { ChangeView } from "#change-views.ts";
 import type { QuayView } from "#quay-views.ts";
 import type {
-	ChangeView,
 	PieceView,
 	VoyageSummary,
 	VoyageView,

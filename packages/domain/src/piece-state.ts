@@ -1,13 +1,12 @@
 import type { EdgeRow, PieceRow } from "@antumbra/pieces";
-import { Option } from "effect";
 import { atWork } from "#agent-at-work.ts";
 import { pieceOutcomeTally } from "#outcome-status.ts";
-import { captainAtWork } from "#voyage-captain.ts";
 import type { VoyageWorld } from "#voyage-rows.ts";
 
 export { wouldCycle } from "@antumbra/pieces";
 
 export const PIECE_STATES = [
+	"abandoned",
 	"active",
 	"blocked",
 	"done",
@@ -17,8 +16,6 @@ export const PIECE_STATES = [
 	"ready",
 ] as const;
 export type PieceState = (typeof PIECE_STATES)[number];
-
-export type VoyageState = "quiet" | "underWay";
 
 export const dependenciesOf = (
 	edges: ReadonlyArray<EdgeRow>,
@@ -46,6 +43,18 @@ export const landingPieces = (world: VoyageWorld): ReadonlySet<string> =>
 			.map((piece) => piece.id),
 	);
 
+// why: abandoned is a meaning, not a decoration on done — a piece nobody will
+// finish is not a piece that landed, and reading one as the other is how a
+// fleet loses track of what it actually delivered. Nothing else holds behind
+// it either: a dependency the admiral has written off will never land, so it
+// stops gating its dependents the moment the verdict does.
+export const abandonedPieces = (world: VoyageWorld): ReadonlySet<string> =>
+	new Set(
+		world.pieces
+			.filter((piece) => world.pieceVerdicts.get(piece.id) === "abandoned")
+			.map((piece) => piece.id),
+	);
+
 export const workingAssignees = (
 	world: VoyageWorld,
 	pieceId: string,
@@ -55,13 +64,21 @@ export const workingAssignees = (
 		.filter((assignment) => atWork(world, assignment.agentId))
 		.map((assignment) => assignment.agentId);
 
+interface Settled {
+	readonly abandoned: ReadonlySet<string>;
+	readonly done: ReadonlySet<string>;
+	readonly landing: ReadonlySet<string>;
+}
+
 const stateOf = (
 	world: VoyageWorld,
-	done: ReadonlySet<string>,
-	landing: ReadonlySet<string>,
+	settled: Settled,
 	piece: PieceRow,
 ): PieceState => {
-	if (done.has(piece.id)) {
+	if (settled.abandoned.has(piece.id)) {
+		return "abandoned";
+	}
+	if (settled.done.has(piece.id)) {
 		return "done";
 	}
 	if (workingAssignees(world, piece.id).length > 0) {
@@ -74,49 +91,31 @@ const stateOf = (
 		return "held";
 	}
 	const blocked = dependenciesOf(world.edges, piece.id).some(
-		(dependency) => !done.has(dependency),
+		(dependency) =>
+			!settled.done.has(dependency) && !settled.abandoned.has(dependency),
 	);
 	if (blocked) {
 		return "blocked";
 	}
-	return landing.has(piece.id) ? "landing" : "ready";
+	return settled.landing.has(piece.id) ? "landing" : "ready";
 };
 
 // why: the ladder is the whole definition of a piece's state — no column
 // stores it, so every reader walks these branches in this order and a piece
-// can never hold two states at once. A pending outcome holds a piece out of
-// the pool without a crew: nobody is working it, and nothing will be spawned
-// for it until what it is waiting on lands.
+// can never hold two states at once. A verdict is read here exactly like a
+// stamp is: it supplies a landed fact and this order decides what the piece
+// reads as. A pending outcome holds a piece out of the pool without a crew:
+// nobody is working it, and nothing will be spawned for it until what it is
+// waiting on lands.
 export const pieceStates = (
 	world: VoyageWorld,
 ): ReadonlyMap<string, PieceState> => {
-	const done = donePieces(world);
-	const landing = landingPieces(world);
+	const settled: Settled = {
+		abandoned: abandonedPieces(world),
+		done: donePieces(world),
+		landing: landingPieces(world),
+	};
 	return new Map(
-		world.pieces.map((piece) => [
-			piece.id,
-			stateOf(world, done, landing, piece),
-		]),
+		world.pieces.map((piece) => [piece.id, stateOf(world, settled, piece)]),
 	);
-};
-
-export const piecesOfVoyage = (
-	world: VoyageWorld,
-	voyageId: string,
-): ReadonlyArray<string> =>
-	world.memberships
-		.filter((membership) => membership.voyageId === voyageId)
-		.map((membership) => membership.pieceId);
-
-export const voyageState = (
-	world: VoyageWorld,
-	states: ReadonlyMap<string, PieceState>,
-	voyageId: string,
-): VoyageState => {
-	const working = piecesOfVoyage(world, voyageId).some(
-		(pieceId) => states.get(pieceId) === "active",
-	);
-	return working || Option.isSome(captainAtWork(world, voyageId))
-		? "underWay"
-		: "quiet";
 };

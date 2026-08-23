@@ -64,7 +64,9 @@ it.live("boot settles a drain whose process is gone, and a send wakes it", () =>
 // why: a resume that opens and then says nothing about who it is was the
 // production hang — the Intent sat in "running" with no reason and the
 // half-built attachment answered "held" to every later send. The bound turns it
-// into a reason a second send can push, and the registry lets go on the way out.
+// into a reason a second send can push, and the registry lets go on the way
+// out. The second send repeats the words on purpose: the same words are the
+// same demand, which is the case where a send pushes the row that is there.
 it.live(
 	"a resume that never confirms its opening stops holding the Session",
 	() =>
@@ -90,7 +92,7 @@ it.live(
 				expect((yield* sessionRow).executionStatus).toBe("idle");
 
 				yield* Ref.set(allowed, true);
-				yield* sight.send(payload.sessionId, "still asking");
+				yield* sight.send(payload.sessionId, "are you there");
 				yield* eventually(
 					Effect.gen(function* () {
 						const row = yield* onlyRecovery;

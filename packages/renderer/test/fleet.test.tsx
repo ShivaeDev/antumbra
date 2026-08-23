@@ -60,9 +60,24 @@ it("offers interrupt only when the public capability allows it", () => {
 	expect(stranded).toContain("active");
 });
 
-const recovering = { id: "intent-1", kind: "agent/recover", state: "waiting" };
-const retiring = { id: "intent-2", kind: "agent/retire", state: "queued" };
-const spawning = { id: "intent-3", kind: "agent/spawn", state: "queued" };
+const recovering = {
+	detail: null,
+	id: "intent-1",
+	kind: "agent/recover",
+	state: "waiting",
+};
+const retiring = {
+	detail: null,
+	id: "intent-2",
+	kind: "agent/retire",
+	state: "queued",
+};
+const spawning = {
+	detail: null,
+	id: "intent-3",
+	kind: "agent/spawn",
+	state: "queued",
+};
 
 const draining: AgentSummary = {
 	...navigator(false, "draining"),

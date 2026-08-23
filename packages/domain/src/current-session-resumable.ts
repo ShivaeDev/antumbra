@@ -2,6 +2,7 @@ import { Database } from "@antumbra/persistence";
 import { SessionFabric } from "@antumbra/session-fabric";
 import {
 	decodeSessionExecutionStatus,
+	decodeStoredAgentSessionStatus,
 	decodeStoredAgentStatus,
 } from "@antumbra/vocabulary/agent-runtime";
 import { Effect, Option, Result } from "effect";
@@ -29,6 +30,16 @@ export const makeCurrentSessionResumable = Effect.gen(function* () {
 			}).first();
 			if (Option.isNone(stored)) {
 				return Result.fail<SessionUnresumable>({ _tag: "no-root" });
+			}
+			// why: a closed root is named here rather than left to the pointer check
+			// downstream, which read it as "not current" and told the wake to wait
+			// for a pointer that can never come back to it. A row that exists and is
+			// over is a different truth from there being no row at all.
+			const status = yield* Effect.fromResult(
+				decodeStoredAgentSessionStatus(sessionId, stored.value.status),
+			).pipe(Effect.mapError(heldInvalid));
+			if (status !== "open") {
+				return Result.fail<SessionUnresumable>({ _tag: "session-closed" });
 			}
 			const agentId = stored.value.agentId;
 			const agent = yield* db.Agent.where({ id: agentId }).first();

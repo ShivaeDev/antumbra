@@ -63,27 +63,24 @@ it.live("a wake that cannot be taken parks with its reason on the fleet", () =>
 );
 
 // why: the two halves of the ruling, on the two reasons a live fleet actually
-// produces. A pointer that moved can move back, so the Intent waits with the
-// sentence on it; an Agent with no way back to alive is refused, and the
-// refusal is the sentence rather than a stack trace.
+// produces. A pointer that moved can move back while both Sessions are open, so
+// the Intent waits with the sentence on it; an Agent with no way back to alive
+// is refused, and the refusal is the sentence rather than a stack trace.
 it.live("a wake with nothing to resume waits or refuses by what it found", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
 		const { recorded, scripted } = yield* sleepingRoot(temporary);
 		const backend = reportsNativeRef(scripted.backend, scripted, NATIVE);
-		// why: an Agent holds one open Session at a time, so the pointer only ever
-		// moves by the old one closing and a new one taking its place. That is the
-		// state a stale send meets, and the only one "not-current" can be reached
-		// from — a pointer aimed at nothing is a different fault with its own
-		// repair, and the rehearsal would be watching that instead.
+		// why: the pointer moves when a newer Session takes over, and for the
+		// moment before reconciliation catches up both are open. That moment is
+		// the only one "not-current" can honestly be reached from — once the older
+		// row is closed the wake is refused on that instead, because a closed
+		// Session is not a pointer that can come back.
 		const succeeded = Effect.gen(function* () {
 			const db = yield* Database;
 			const writer = yield* Writer;
 			yield* writer.write(
 				Effect.gen(function* () {
-					yield* db.AgentSession.where({ id: payload.sessionId }).update({
-						status: "closed",
-					});
 					yield* db.AgentSession.create({
 						agentId: payload.agentId,
 						backend: "scripted",
@@ -139,7 +136,7 @@ it.live("a wake with nothing to resume waits or refuses by what it found", () =>
 
 			yield* retire;
 			const gone = yield* kernel.submit(domain.recover, {
-				sessionId: payload.sessionId,
+				sessionId: "session-elsewhere",
 			});
 			const refused = yield* eventually(
 				Effect.gen(function* () {

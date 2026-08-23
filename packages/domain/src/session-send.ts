@@ -87,6 +87,11 @@ export const makeSessionSend = Effect.gen(function* () {
 				decodeStoredAgentSessionStatus(sessionId, session.value.status),
 			);
 			if (status !== "open") {
+				// why: refusing here is also the moment the system learns this
+				// Session is over, and any wake still parked for it is carrying
+				// words nothing can ever deliver. They are settled on the way out,
+				// so a demand that cannot be met never keeps looking pending.
+				yield* reach.settleWakes(sessionId);
 				return yield* new SessionEnded({ sessionId });
 			}
 		});

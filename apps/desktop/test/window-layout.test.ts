@@ -9,6 +9,7 @@ import {
 import { artifactPlace, transcriptPlace } from "#test/windows.ts";
 
 const voyaging = {
+	changeId: "change-7",
 	mode: "voyages",
 	role: "console",
 	sessionId: null,
@@ -24,7 +25,8 @@ describe("window layout", () => {
 			"",
 			"not json at all",
 			"[]",
-			'{"version":2,"focused":null,"windows":[]}',
+			'{"version":3,"focused":null,"windows":[]}',
+			'{"version":1,"focused":null,"windows":[]}',
 			'{"version":1,"focused":null}',
 			'{"version":1,"focused":null,"windows":[{"id":"a","place":{"role":"wat"}}]}',
 		];

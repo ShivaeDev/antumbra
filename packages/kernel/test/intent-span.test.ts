@@ -45,7 +45,10 @@ const collecting = (): Collector => {
 // intent, which is where the spawn seam sets them.
 const provision = Effect.void.pipe(
 	Effect.withSpan("moorage.provision"),
-	Effect.annotateSpans({ agentId: "agent-traced", sessionId: "session-traced" }),
+	Effect.annotateSpans({
+		agentId: "agent-traced",
+		sessionId: "session-traced",
+	}),
 );
 
 const kind = defineIntent({

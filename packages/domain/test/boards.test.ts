@@ -4,9 +4,9 @@ import { deleteTestAgent } from "@antumbra/persistence/testing";
 import { expect, it } from "@effect/vitest";
 import { Effect, Option } from "effect";
 import { AgentDomain } from "#domain.ts";
+import { domainKernelLayer } from "#test/domain-layers.ts";
 import {
 	acquireTemporaryPersistence,
-	domainKernelLayer,
 	makeScriptedBackend,
 } from "#test/harness.ts";
 import { openReefVoyage } from "#test/voyage-fixtures.ts";

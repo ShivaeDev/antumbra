@@ -2,9 +2,9 @@ import { Database, type NewAgentSession, Writer } from "@antumbra/persistence";
 import { expect, it } from "@effect/vitest";
 import { Effect } from "effect";
 import { TestClock } from "effect/testing";
+import { domainKernelLayer } from "#test/domain-layers.ts";
 import {
 	acquireTemporaryPersistence,
-	domainKernelLayer,
 	makeScriptedBackend,
 } from "#test/harness.ts";
 

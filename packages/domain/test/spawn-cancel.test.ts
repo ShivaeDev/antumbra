@@ -5,9 +5,9 @@ import { expect, it } from "@effect/vitest";
 import { Deferred, Effect, Option, Stream } from "effect";
 import { AgentDomain } from "#domain.ts";
 import type { SpawnFields } from "#index.ts";
+import { domainKernelLayer } from "#test/domain-layers.ts";
 import {
 	acquireTemporaryPersistence,
-	domainKernelLayer,
 	makeScriptedBackend,
 	makeScriptedRunner,
 } from "#test/harness.ts";

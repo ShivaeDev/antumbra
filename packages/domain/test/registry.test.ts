@@ -5,9 +5,9 @@ import { Effect, Option, Stream } from "effect";
 import { AgentDomain } from "#domain.ts";
 import type { SpawnFields } from "#index.ts";
 import { fleetSnapshot } from "#sight-fleet.ts";
+import { domainKernelLayer } from "#test/domain-layers.ts";
 import {
 	acquireTemporaryPersistence,
-	domainKernelLayer,
 	makeScriptedBackend,
 	makeScriptedRunner,
 } from "#test/harness.ts";

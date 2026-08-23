@@ -7,8 +7,8 @@ import { expect } from "@effect/vitest";
 import { Effect, Layer, Option, Ref } from "effect";
 import { SessionWakePatience } from "#session-wake-patience.ts";
 import { SightSourceLive } from "#sight.ts";
+import { domainKernelLayer } from "#test/domain-layers.ts";
 import {
-	domainKernelLayer,
 	makeScriptedBackend,
 	makeScriptedRunner,
 	type ScriptedBackend,

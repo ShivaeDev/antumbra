@@ -2,9 +2,9 @@ import { Database, Writer } from "@antumbra/persistence";
 import { expect, it } from "@effect/vitest";
 import { Effect } from "effect";
 import { AGENTS_ALIVE_GAUGE, AgentDomain } from "#domain.ts";
+import { domainKernelLayer } from "#test/domain-layers.ts";
 import {
 	acquireTemporaryPersistence,
-	domainKernelLayer,
 	makeScriptedBackend,
 } from "#test/harness.ts";
 

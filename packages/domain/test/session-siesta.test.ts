@@ -5,10 +5,10 @@ import { Effect, Option } from "effect";
 import { AgentDomain } from "#domain.ts";
 import type { SpawnFields } from "#index.ts";
 import { fleetSnapshot } from "#sight-fleet.ts";
+import { domainKernelLayer } from "#test/domain-layers.ts";
 import {
 	acquireTemporaryPersistence,
 	callTool,
-	domainKernelLayer,
 	makeScriptedBackend,
 	rawOf,
 	sessionFor,

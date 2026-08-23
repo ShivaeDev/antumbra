@@ -7,9 +7,9 @@ import { Effect, Layer } from "effect";
 import { AgentDomain } from "#domain.ts";
 import { SightSourceLive } from "#sight.ts";
 import { attributeIntents } from "#sight-diagnostics.ts";
+import { domainKernelLayer } from "#test/domain-layers.ts";
 import {
 	acquireTemporaryPersistence,
-	domainKernelLayer,
 	makeScriptedBackend,
 	type ScriptedBackend,
 } from "#test/harness.ts";

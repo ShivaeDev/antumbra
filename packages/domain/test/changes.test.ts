@@ -10,10 +10,10 @@ import {
 	openedChange,
 	withHost,
 } from "#test/change-submission-fixtures.ts";
+import { domainKernelLayer } from "#test/domain-layers.ts";
 import {
 	acquireTemporaryPersistence,
 	changeHostsOf,
-	domainKernelLayer,
 	makeScriptedBackend,
 	passiveRunner,
 } from "#test/harness.ts";

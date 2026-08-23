@@ -3,9 +3,9 @@ import { Database, Writer } from "@antumbra/persistence";
 import { expect, it } from "@effect/vitest";
 import { Effect, Option, Ref } from "effect";
 import { AgentDomain } from "#domain.ts";
+import { domainKernelLayer } from "#test/domain-layers.ts";
 import {
 	acquireTemporaryPersistence,
-	domainKernelLayer,
 	makeScriptedBackend,
 	makeScriptedRunner,
 	rawOf,

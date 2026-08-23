@@ -4,10 +4,10 @@ import { expect, it } from "@effect/vitest";
 import { Deferred, Effect, Fiber, Option, Result } from "effect";
 import { AgentDomain } from "#domain.ts";
 import { REEF_SOURCE, reefWithPiece } from "#test/change-fixtures.ts";
+import { domainKernelLayer } from "#test/domain-layers.ts";
 import {
 	acquireTemporaryPersistence,
 	changeHostsOf,
-	domainKernelLayer,
 	makeScriptedBackend,
 	passiveRunner,
 } from "#test/harness.ts";

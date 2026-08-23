@@ -5,10 +5,10 @@ import { Database } from "@antumbra/persistence";
 import type { Runner } from "@antumbra/plugin-api";
 import { expect, it } from "@effect/vitest";
 import { Effect, Option } from "effect";
+import { dispatchingLayer } from "#test/domain-layers.ts";
 import {
 	acquireTemporaryPersistence,
 	callTool,
-	dispatchingLayer,
 	makeScriptedBackend,
 	sessionFor,
 } from "#test/harness.ts";

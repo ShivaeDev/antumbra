@@ -6,9 +6,9 @@ import { Deferred, Effect, Fiber, Option } from "effect";
 import { AgentDomain } from "#domain.ts";
 import { drainActiveSessions } from "#session-shutdown.ts";
 import type { SpawnFields } from "#spawn.ts";
+import { domainKernelLayer } from "#test/domain-layers.ts";
 import {
 	acquireTemporaryPersistence,
-	domainKernelLayer,
 	makeScriptedBackend,
 	makeScriptedRunner,
 } from "#test/harness.ts";

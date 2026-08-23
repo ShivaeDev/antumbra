@@ -2,9 +2,9 @@ import { Database } from "@antumbra/persistence";
 import { expect, it } from "@effect/vitest";
 import { Deferred, Effect, Fiber, Result } from "effect";
 import { AgentDomain } from "#domain.ts";
+import { domainKernelLayer } from "#test/domain-layers.ts";
 import {
 	acquireTemporaryPersistence,
-	domainKernelLayer,
 	makeScriptedBackend,
 } from "#test/harness.ts";
 import type { VoyageProcedures } from "#voyages.ts";

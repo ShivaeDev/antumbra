@@ -6,12 +6,8 @@ import { Clock, Effect, Layer, Option } from "effect";
 import { AgentDomain } from "#domain.ts";
 import type { SpawnFields } from "#index.ts";
 import { SightSourceLive } from "#sight.ts";
-import {
-	domainKernelLayer,
-	rawOf,
-	type ScriptedBackend,
-	sessionFor,
-} from "#test/harness.ts";
+import { domainKernelLayer } from "#test/domain-layers.ts";
+import { rawOf, type ScriptedBackend, sessionFor } from "#test/harness.ts";
 import { aheadBy } from "#test/session-clock.ts";
 import {
 	eventually,

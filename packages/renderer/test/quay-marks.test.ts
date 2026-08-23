@@ -32,6 +32,7 @@ const quay = (
 			...(row.observedAt === undefined ? {} : { observedAt: row.observedAt }),
 		}),
 		group: row.group,
+		originSessionId: null,
 		pieceId: "piece-1",
 		pieceTitle: "soundings",
 		voyageId: "voyage-1",

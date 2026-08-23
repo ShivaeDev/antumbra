@@ -105,6 +105,7 @@ it.live(
 					agentId: "agent-boundary",
 					pieceId: piece.id,
 					repoName: repo.name,
+					sessionId: "session-boundary",
 				});
 				yield* claimAgentResources("agent-boundary");
 
@@ -116,6 +117,7 @@ it.live(
 						draft: false,
 						pieceId: piece.id,
 						repoName: repo.name,
+						sessionId: "session-boundary",
 						title: "claimed",
 					}),
 				);

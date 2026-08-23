@@ -14,6 +14,7 @@ export interface QuayBerthing {
 export interface QuayRow extends QuayBerthing {
 	readonly change: ChangeView;
 	readonly group: QuayGroup;
+	readonly originSessionId: string | null;
 }
 
 export interface QuayPiece {
@@ -64,6 +65,19 @@ const rowsOfChange = (
 ): ReadonlyArray<QuayRow> => {
 	const view = changeView(repoNameOf(world, change.repoId), change);
 	const group = quayGroup(view);
+	// why: the Change keeps the immutable Session identity bound to the tool
+	// that created it. Legacy or adopted rows have none, and a stale or
+	// cross-Agent identity is incomplete truth rather than a link.
+	const originSessionId =
+		change.originSessionId !== null &&
+		change.openedByAgentId !== null &&
+		world.sessions.some(
+			(session) =>
+				session.id === change.originSessionId &&
+				session.agentId === change.openedByAgentId,
+		)
+			? change.originSessionId
+			: null;
 	return world.pieceChanges
 		.filter((link) => link.changeId === change.id)
 		.filter((link) => liesAtQuay(world, done, change, link.pieceId))
@@ -72,6 +86,7 @@ const rowsOfChange = (
 				...berthing,
 				change: view,
 				group,
+				originSessionId,
 			})),
 		);
 };

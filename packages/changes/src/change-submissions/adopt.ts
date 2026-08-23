@@ -76,6 +76,7 @@ export const adoptSubmittedChange = (input: AdoptChangeInput) =>
 							now,
 							observation,
 							openedByAgentId: input.agentId,
+							originSessionId: null,
 							repoId: repo.id,
 						}),
 					onSome: (result) => result.row,

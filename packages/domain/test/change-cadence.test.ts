@@ -21,6 +21,7 @@ const row = (fields: Partial<ChangeRow>): ChangeRow => ({
 	mergeable: "unknown",
 	observedAt: new Date(0),
 	openedByAgentId: null,
+	originSessionId: null,
 	preparedHeadRef: null,
 	preparedHeadSha: null,
 	proposalFrozenAt: null,

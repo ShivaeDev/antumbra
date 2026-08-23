@@ -16,7 +16,7 @@ import type {
 } from '@prisma-next/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'sha256:1f6b5b9212c63888ff554e1770c8020bde68573c2570ba16af95fc93124a130f'>;
+  StorageHashBase<'sha256:8a7a3ab4c870466fbba4fd91393adf0dd1a5a862c4cf9f62e94b8fb53cac8d6c'>;
 export type ExecutionHash = ExecutionHashBase<string>;
 export type ProfileHash =
   ProfileHashBase<'sha256:3cc333ecad9f3f4c7229370a9d2c37e908cdce0f8d2e9fb132d50605b024eff2'>;
@@ -136,7 +136,6 @@ export type FieldOutputTypes = {
       readonly review: CodecTypes['sqlite/text@1']['output'];
       readonly mergeable: CodecTypes['sqlite/text@1']['output'];
       readonly openedByAgentId: CodecTypes['sqlite/text@1']['output'] | null;
-      readonly originSessionId: CodecTypes['sqlite/text@1']['output'] | null;
       readonly raw: CodecTypes['sqlite/text@1']['output'] | null;
       readonly activityAt: CodecTypes['sqlite/datetime@1']['output'];
       readonly observedAt: CodecTypes['sqlite/datetime@1']['output'];
@@ -348,7 +347,6 @@ export type FieldInputTypes = {
       readonly review: CodecTypes['sqlite/text@1']['input'];
       readonly mergeable: CodecTypes['sqlite/text@1']['input'];
       readonly openedByAgentId: CodecTypes['sqlite/text@1']['input'] | null;
-      readonly originSessionId: CodecTypes['sqlite/text@1']['input'] | null;
       readonly raw: CodecTypes['sqlite/text@1']['input'] | null;
       readonly activityAt: CodecTypes['sqlite/datetime@1']['input'];
       readonly observedAt: CodecTypes['sqlite/datetime@1']['input'];
@@ -552,7 +550,6 @@ export type StorageColumnTypes = {
       readonly mergeable: CodecTypes['sqlite/text@1']['output'];
       readonly observedAt: CodecTypes['sqlite/datetime@1']['output'];
       readonly openedByAgentId: CodecTypes['sqlite/text@1']['output'] | null;
-      readonly originSessionId: CodecTypes['sqlite/text@1']['output'] | null;
       readonly preparedHeadRef: CodecTypes['sqlite/text@1']['output'] | null;
       readonly preparedHeadSha: CodecTypes['sqlite/text@1']['output'] | null;
       readonly proposalFrozenAt: CodecTypes['sqlite/datetime@1']['output'] | null;
@@ -764,7 +761,6 @@ export type StorageColumnInputTypes = {
       readonly mergeable: CodecTypes['sqlite/text@1']['input'];
       readonly observedAt: CodecTypes['sqlite/datetime@1']['input'];
       readonly openedByAgentId: CodecTypes['sqlite/text@1']['input'] | null;
-      readonly originSessionId: CodecTypes['sqlite/text@1']['input'] | null;
       readonly preparedHeadRef: CodecTypes['sqlite/text@1']['input'] | null;
       readonly preparedHeadSha: CodecTypes['sqlite/text@1']['input'] | null;
       readonly proposalFrozenAt: CodecTypes['sqlite/datetime@1']['input'] | null;
@@ -1496,11 +1492,6 @@ type ContractBase = Omit<
                   readonly nullable: false;
                 };
                 readonly openedByAgentId: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'sqlite/text@1';
-                  readonly nullable: true;
-                };
-                readonly originSessionId: {
                   readonly nativeType: 'text';
                   readonly codecId: 'sqlite/text@1';
                   readonly nullable: true;
@@ -2737,10 +2728,6 @@ type ContractBase = Omit<
                 readonly nullable: true;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
               };
-              readonly originSessionId: {
-                readonly nullable: true;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
-              };
               readonly raw: {
                 readonly nullable: true;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
@@ -2794,7 +2781,6 @@ type ContractBase = Omit<
                 readonly review: { readonly column: 'review' };
                 readonly mergeable: { readonly column: 'mergeable' };
                 readonly openedByAgentId: { readonly column: 'openedByAgentId' };
-                readonly originSessionId: { readonly column: 'originSessionId' };
                 readonly raw: { readonly column: 'raw' };
                 readonly activityAt: { readonly column: 'activityAt' };
                 readonly observedAt: { readonly column: 'observedAt' };

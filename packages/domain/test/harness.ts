@@ -20,13 +20,14 @@ import {
 import type { ResourceReconcileOptions } from "@antumbra/resource-reclamation";
 import type { AgentEvent } from "@antumbra/vocabulary/session-events";
 import { NodeServices } from "@effect/platform-node";
-import { Effect, Layer, Option, Queue, Ref, Stream } from "effect";
+import { Effect, Layer, Option, Queue, Ref, Schedule, Stream } from "effect";
 import type { ObserveCadenceOptions } from "#change-cadence.ts";
 import { ChangeWatcherLive } from "#change-watcher.ts";
 import { DispatcherLive, type DispatcherOptions } from "#dispatcher.ts";
 import { AgentDomain, AgentDomainLive } from "#domain.ts";
 import { IntentFeedLive } from "#intent-feed.ts";
 import { KernelReachLive } from "#kernel-reach.ts";
+import { rootSessionsOf } from "#session-roots.ts";
 import { SessionShutdownLive } from "#session-shutdown-live.ts";
 import { SettingsSourceLive } from "#settings.ts";
 
@@ -176,6 +177,28 @@ export const callTool = (
 		},
 	);
 
+// why: the farewell a crew says for itself, said by hand. Retirement is offered
+// on a session that has declared it has nothing left to do and refused on one
+// mid-turn, so a rehearsal reaches it by the one door the app has. The request
+// is accepted before the record catches up and rest is read off the record, so
+// this waits for the row rather than for the tool's answer.
+export const standDown = (scripted: ScriptedBackend, agentId: string) =>
+	Effect.gen(function* () {
+		const db = yield* Database;
+		const live = yield* sessionFor(scripted, agentId);
+		const settled = yield* callTool(live, "stand_down", undefined);
+		const roots = db.AgentSession.where(rootSessionsOf(agentId)).all();
+		yield* Effect.retry(
+			Effect.flatMap(roots, (rows) =>
+				rows.every((row) => row.executionStatus === "idle")
+					? Effect.void
+					: Effect.fail("the session is still working"),
+			),
+			Schedule.spaced(10).pipe(Schedule.upTo({ duration: 2000 })),
+		);
+		return settled;
+	});
+
 export const passiveRunner: Runner = {
 	captureChange: (berth) =>
 		Effect.succeed({
@@ -240,6 +263,9 @@ export const domainKernelLayer = (
 				reclaim,
 			).pipe(Layer.provide(NodeServices.layer)),
 		),
+		// why: the domain's own clock-driven passes read the catalog, so the
+		// settings stand under it here exactly as they do in the app.
+		Layer.provideMerge(SettingsSourceLive),
 		Layer.provideMerge(temporary.layer),
 	);
 
@@ -252,7 +278,6 @@ export const dispatchingLayer = (
 	changeHosts: ReadonlyMap<string, ChangeHost> = new Map(),
 ) =>
 	DispatcherLive(dispatcher).pipe(
-		Layer.provideMerge(SettingsSourceLive),
 		Layer.provideMerge(
 			domainKernelLayer(temporary, backend, options, runner, changeHosts),
 		),

@@ -45,6 +45,22 @@ export class ChangeNotAddressable extends Data.TaggedError(
 	}
 }
 
+// why: a retire is asked for by a button or by the clock, both reading a
+// moment that had already passed — so the act asks again as it runs, and names
+// the refusal so the record says why the crew is still sailing. It asks the
+// weaker question on purpose: retirement is the only thing that closes a tree
+// the record has stopped hearing from, and hiding it behind the whole tree
+// settling would seal the one exit a stranded tree has. Ending an Agent
+// mid-turn still severs work it is doing, so that alone refuses.
+export class AgentStillWorking extends Data.TaggedError("AgentStillWorking")<{
+	readonly agentId: string;
+	readonly sessionId: string;
+}> {
+	override get message(): string {
+		return `agent ${this.agentId} is working in session ${this.sessionId} and cannot be retired`;
+	}
+}
+
 export class UnknownBackendTag extends Data.TaggedError("UnknownBackendTag")<{
 	readonly tag: string;
 }> {}

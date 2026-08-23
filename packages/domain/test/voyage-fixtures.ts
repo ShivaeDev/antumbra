@@ -3,6 +3,7 @@ import { Database } from "@antumbra/persistence";
 import { expect } from "@effect/vitest";
 import { Effect, Option, Schedule, Stream } from "effect";
 import { AgentDomain } from "#domain.ts";
+import { type ScriptedBackend, standDown } from "#test/harness.ts";
 
 export const PATIENCE = { maxAlive: 4, patienceMillis: 50 };
 
@@ -84,16 +85,24 @@ export const assignedPieces = Effect.gen(function* () {
 	return (yield* db.PieceAgent.all()).map((row) => row.pieceId);
 });
 
-export const retireOneAlive = Effect.gen(function* () {
-	const db = yield* Database;
-	const kernel = yield* Kernel;
-	const domain = yield* AgentDomain;
-	const alive = yield* db.Agent.where({ status: "alive" }).all();
-	const submission = yield* kernel.submit(domain.retire, {
-		agentId: alive[0]?.id ?? "",
+// why: the farewell comes first, because that is the only order the app has.
+// Retirement is offered on a crew that has said it has nothing left to do and
+// refused on one mid-turn, so a rehearsal that retired straight out of a turn
+// would be rehearsing an act nothing can ask for.
+export const retireOneAlive = (scripted: ScriptedBackend) =>
+	Effect.gen(function* () {
+		const db = yield* Database;
+		const kernel = yield* Kernel;
+		const domain = yield* AgentDomain;
+		const alive = yield* db.Agent.where({ status: "alive" }).all();
+		const agentId = alive[0]?.id ?? "";
+		yield* Effect.retry(
+			standDown(scripted, agentId),
+			Schedule.spaced(10).pipe(Schedule.upTo({ duration: 2000 })),
+		);
+		const submission = yield* kernel.submit(domain.retire, { agentId });
+		return yield* submission.changes.pipe(
+			Stream.takeUntil((status) => TERMINAL.has(status)),
+			Stream.runLast,
+		);
 	});
-	return yield* submission.changes.pipe(
-		Stream.takeUntil((status) => TERMINAL.has(status)),
-		Stream.runLast,
-	);
-});

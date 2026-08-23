@@ -10,6 +10,7 @@ import {
 	domainKernelLayer,
 	makeScriptedBackend,
 	makeScriptedRunner,
+	standDown,
 } from "#test/harness.ts";
 
 const TERMINAL: ReadonlySet<IntentStatus> = new Set([
@@ -75,6 +76,7 @@ it.live("retirement rings the reconciler without waiting for cadence", () =>
 				payload("retire-trigger"),
 			);
 			expect(yield* untilTerminal(spawn.changes)).toBe("succeeded");
+			yield* standDown(backend, "agent-retire-trigger");
 			const retire = yield* kernel.submit(domain.retire, {
 				agentId: "agent-retire-trigger",
 			});

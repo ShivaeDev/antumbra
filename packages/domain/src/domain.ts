@@ -20,6 +20,7 @@ import { makeCrewToolCompiler } from "#crew-tools.ts";
 import { makeCurrentSessionReconciler } from "#current-session-reconcile.ts";
 import { domainCapabilities } from "#domain-capabilities.ts";
 import { makeRetireKind } from "#retire.ts";
+import { compileRetireSweepDemands } from "#retire-sweep-demands.ts";
 import { makeRecoveryKind } from "#session-recovery.ts";
 import type { SessionRecoveryContext } from "#session-recovery-context.ts";
 import { SessionRecoveryRuntime } from "#session-recovery-runtime.ts";
@@ -96,7 +97,14 @@ export const AgentDomainLive = (
 				Effect.provideContext(executors),
 			);
 			const siesta = yield* makeSiestaKind;
-			const intentDemands = yield* compileAgentRecoveryDemands(recover, siesta);
+			// why: the clock's two errands are separate sources on one loop — one
+			// asks whether a process is being held for nothing, the other whether an
+			// identity is being held for nothing. They read different truths and are
+			// governed differently, so they are compiled apart and run together.
+			const intentDemands = [
+				...(yield* compileAgentRecoveryDemands(recover, siesta)),
+				...(yield* compileRetireSweepDemands(retire)),
+			];
 			const sendToSession = yield* makeSessionSend;
 			return {
 				backends: [...backends.keys()],

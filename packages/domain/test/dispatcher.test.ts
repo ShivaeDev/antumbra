@@ -82,7 +82,7 @@ it.live(
 				yield* Effect.sleep(300);
 				expect(yield* assignedPieces).toEqual([alpha.id]);
 
-				yield* retireOneAlive;
+				yield* retireOneAlive(scripted);
 				yield* eventually(
 					Effect.gen(function* () {
 						expect((yield* assignedPieces).length).toBe(2);
@@ -91,7 +91,7 @@ it.live(
 				yield* Effect.sleep(300);
 				expect((yield* assignedPieces).length).toBe(2);
 
-				yield* retireOneAlive;
+				yield* retireOneAlive(scripted);
 				yield* eventually(
 					Effect.gen(function* () {
 						expect((yield* assignedPieces).length).toBe(3);

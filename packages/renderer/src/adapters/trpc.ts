@@ -84,6 +84,16 @@ export const retireAgent = (
 		.catch((cause: unknown) => onError(toError(cause).message));
 };
 
+export const retirePieceCrew = (
+	pieceId: string,
+	onError: (message: string) => void,
+): void => {
+	client.retirePieceCrew
+		.mutate({ pieceId })
+		.then(() => undefined)
+		.catch((cause: unknown) => onError(toError(cause).message));
+};
+
 export const interruptSession = (
 	sessionId: string,
 	onError: (message: string) => void,

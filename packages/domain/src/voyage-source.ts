@@ -8,6 +8,7 @@ import {
 } from "@antumbra/contract";
 import type { ReportReading } from "@antumbra/reports";
 import { Context, Effect, Layer, Option } from "effect";
+import { AgentDomain } from "#agent-domain-service.ts";
 import { ChangeProcedureService } from "#change-procedures.ts";
 import { changeView } from "#change-view.ts";
 import { quaySeen } from "#quay-projection.ts";
@@ -36,13 +37,22 @@ export const VoyageSourceLive = Layer.effect(VoyageSource)(
 	Effect.gen(function* () {
 		const boards = yield* Boards;
 		const changes = yield* ChangeProcedureService;
+		const domain = yield* AgentDomain;
 		const voyages = yield* VoyageProcedureService;
 		const world = yield* VoyageWorldSource;
 		const context = Context.make(Boards, boards).pipe(
 			Context.add(VoyageProcedureService, voyages),
 			Context.add(VoyageWorldSource, world),
 		);
-		const reads = yield* Effect.provide(makeVoyageReads, context);
+		// why: what this process is holding is asked of the domain rather than of
+		// the rows, for the same reason the fleet asks — a row still saying active
+		// has outlived the process that made it true, and a crew is only quiet if
+		// the thing that would be speaking for it is quiet.
+		const runtime = Effect.all({
+			attached: domain.sessionsAttached,
+			delegating: domain.sessionsDelegating,
+		});
+		const reads = yield* Effect.provide(makeVoyageReads(runtime), context);
 		const acts = yield* Effect.provide(makeVoyageActs(reads), context);
 		const refreshes = yield* makeVoyageRefreshes;
 		const quay = Effect.gen(function* () {

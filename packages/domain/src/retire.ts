@@ -6,11 +6,14 @@ import { SessionFabric } from "@antumbra/session-fabric";
 import {
 	type AgentStatus,
 	agentTransition,
+	decodeSessionExecutionStatus,
 	decodeStoredAgentSessionStatus,
 	decodeStoredAgentStatus,
+	sessionPresence,
 } from "@antumbra/vocabulary/agent-runtime";
 import { Effect, Option, PubSub, Schema } from "effect";
-import { AgentNotFound } from "#errors.ts";
+import { AgentNotFound, AgentStillWorking } from "#errors.ts";
+import { sessionRetirable } from "#session-at-rest.ts";
 import { rootSessionsOf } from "#session-roots.ts";
 
 const RetirePayload = Schema.Struct({ agentId: Schema.String });
@@ -52,6 +55,38 @@ export const makeRetireKind = Effect.gen(function* () {
 			);
 			yield* Effect.forEach(sessions, (session) => fabric.stop(session.id));
 		});
+	// why: whoever submitted this read a capability off a snapshot, and a turn
+	// may have begun since. The question is asked again here, of the present,
+	// and it is the weak rule rather than rest: a tree still carrying a
+	// delegated conversation, or one whose stream is long gone, is exactly what
+	// retirement exists to close. Only an Agent with a turn under way right now
+	// has work that ending it would sever.
+	const refuseWorking = (agentId: string) =>
+		Effect.gen(function* () {
+			const attached = yield* fabric.attached;
+			const sessions = yield* provide(
+				db.AgentSession.where(rootSessionsOf(agentId)).all(),
+			);
+			for (const session of sessions) {
+				const status = yield* Effect.fromResult(
+					decodeStoredAgentSessionStatus(session.id, session.status),
+				);
+				const executionStatus = yield* Effect.fromResult(
+					decodeSessionExecutionStatus(session.id, session.executionStatus),
+				);
+				const presence = sessionPresence({
+					attached: attached.has(session.id),
+					executionStatus,
+					open: status === "open",
+				});
+				if (!sessionRetirable(presence)) {
+					return yield* new AgentStillWorking({
+						agentId,
+						sessionId: session.id,
+					});
+				}
+			}
+		});
 	const retireAgent = (agentId: string) =>
 		Effect.gen(function* () {
 			const agent = yield* provide(db.Agent.where({ id: agentId }).first());
@@ -64,6 +99,7 @@ export const makeRetireKind = Effect.gen(function* () {
 			if (status === "retired") {
 				return;
 			}
+			yield* refuseWorking(agentId);
 			const next = yield* Effect.fromResult(agentTransition(status, "retire"));
 			const execution = yield* IntentExecution;
 			yield* execution.step("stop-sessions", stopSessions(agentId));

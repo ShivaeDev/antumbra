@@ -1,4 +1,4 @@
-import { readdirSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { MAX_SESSION_IMAGES } from "@antumbra/vocabulary/session-input";
@@ -20,13 +20,8 @@ const guardSources = () =>
 	readdirSync(guardsRoot, { withFileTypes: true })
 		.filter((entry) => entry.isDirectory())
 		.map((entry) => join(guardsRoot, entry.name, "guards.ts"))
-		.flatMap((path) => {
-			try {
-				return [readFileSync(path, "utf8")];
-			} catch {
-				return [];
-			}
-		});
+		.filter((path) => existsSync(path))
+		.map((path) => readFileSync(path, "utf8"));
 
 it("the durable image ceiling is the one the vocabulary declares", () => {
 	const ceilings = guardSources().flatMap((source) =>

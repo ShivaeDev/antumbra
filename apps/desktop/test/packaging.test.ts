@@ -1,8 +1,8 @@
-import { readFileSync } from "node:fs";
-import { createRequire } from "node:module";
+import { readdirSync, readFileSync, realpathSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { expect, it } from "@effect/vitest";
+import { Schema } from "effect";
 import { MAIN_EXTERNALS } from "#script/adapters/externals.ts";
 
 // why: the mac job packages a real dmg, which is the only thing that proves the
@@ -12,9 +12,18 @@ import { MAIN_EXTERNALS } from "#script/adapters/externals.ts";
 const desktopRoot = dirname(dirname(fileURLToPath(import.meta.url)));
 const read = (name: string) => readFileSync(join(desktopRoot, name), "utf8");
 
-const manifest = JSON.parse(read("package.json")) as {
-	readonly dependencies: Readonly<Record<string, string>>;
-};
+const Packed = Schema.Struct({
+	dependencies: Schema.Record(Schema.String, Schema.String),
+});
+const Prebuilt = Schema.Struct({
+	optionalDependencies: Schema.Record(Schema.String, Schema.String),
+});
+
+const packedManifest: unknown = JSON.parse(read("package.json"));
+const packed = Object.keys(
+	Schema.decodeUnknownSync(Packed)(packedManifest).dependencies,
+);
+
 const builderConfig = read("electron-builder.yml");
 // why: the why-comments in that file name the shapes they exist to rule out,
 // so a search for one has to read what the file declares rather than what it
@@ -46,7 +55,6 @@ const listUnder = (key: string): ReadonlyArray<string> => {
 const PREBUILD = /^@img\/sharp-(?!libvips-)/;
 
 it("packs every module the main bundle leaves out of itself", () => {
-	const packed = Object.keys(manifest.dependencies);
 	// why: electron is the host rather than cargo, so it is the one external
 	// that must not be packed. Everything else the bundle refuses to inline has
 	// to arrive some other way, and a production dependency is that way.
@@ -73,28 +81,21 @@ it("asks for no architecture the installed prebuilds cannot fill", () => {
 	expect(builderDeclarations).not.toContain("universal");
 });
 
-// why: sharp resolves its prebuild from its own module directory, so this looks
-// for one the same way — the walk an install actually produced, rather than a
+// why: sharp loads its binary from a scoped package sitting beside it in the
+// same node_modules — the shape the unpack glob above names. Reading that
+// directory reads the layout an install actually produced, rather than a
 // platform name written down here and left to rot.
-it("finds a prebuild where sharp itself will look for one", () => {
-	const sharpManifestPath = createRequire(import.meta.url).resolve(
-		"sharp/package.json",
+it("installs a prebuild beside sharp for the host it packs for", () => {
+	const sharpRoot = realpathSync(join(desktopRoot, "node_modules", "sharp"));
+	const declared: unknown = JSON.parse(
+		readFileSync(join(sharpRoot, "package.json"), "utf8"),
 	);
-	const sharpManifest = JSON.parse(readFileSync(sharpManifestPath, "utf8")) as {
-		readonly optionalDependencies?: Readonly<Record<string, string>>;
-	};
-	const fromSharp = createRequire(sharpManifestPath);
-	const prebuilds = Object.keys(sharpManifest.optionalDependencies ?? {}).filter(
-		(name) => PREBUILD.test(name),
+	const prebuilds = Object.keys(
+		Schema.decodeUnknownSync(Prebuilt)(declared).optionalDependencies,
+	).filter((name) => PREBUILD.test(name));
+	const beside = readdirSync(join(dirname(sharpRoot), "@img")).map(
+		(name) => `@img/${name}`,
 	);
-	const installed = prebuilds.filter((name) => {
-		try {
-			fromSharp.resolve(`${name}/package.json`);
-			return true;
-		} catch {
-			return false;
-		}
-	});
 	expect(prebuilds.length).toBeGreaterThan(0);
-	expect(installed.length).toBeGreaterThan(0);
+	expect(prebuilds.filter((name) => beside.includes(name))).not.toHaveLength(0);
 });

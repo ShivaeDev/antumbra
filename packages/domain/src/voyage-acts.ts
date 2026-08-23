@@ -6,6 +6,7 @@ import type {
 	OpenVoyageRequest,
 	PieceVerdictRequest,
 	RewireRequest,
+	VoyageBackendRequest,
 } from "@antumbra/contract";
 import { Effect, Match, Option } from "effect";
 import { toFailure } from "#sight-failure.ts";
@@ -61,6 +62,10 @@ export const makeVoyageActs = (reads: VoyageReads) =>
 			rewire: (request: RewireRequest) =>
 				voyages
 					.rewire(request.pieceId, request.dependsOn)
+					.pipe(Effect.mapError(toFailure)),
+			setBackend: (request: VoyageBackendRequest) =>
+				voyages
+					.setBackend(request.voyageId, request.backend)
 					.pipe(Effect.mapError(toFailure)),
 			setFocus: (voyageId: string, focused: boolean) =>
 				voyages.setFocus(voyageId, focused).pipe(Effect.mapError(toFailure)),

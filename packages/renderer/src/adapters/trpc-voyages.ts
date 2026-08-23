@@ -6,6 +6,7 @@ import type {
 	PieceVerdictRequest,
 	ReportMarkdown,
 	RewireRequest,
+	VoyageBackendRequest,
 	VoyageSummary,
 	VoyageView,
 } from "@antumbra/contract";
@@ -86,6 +87,11 @@ export const focusVoyage = (
 	focused: boolean,
 	onError: OnError,
 ): void => fired(client.focusVoyage.mutate({ focused, voyageId }), onError);
+
+export const setVoyageBackend = (
+	request: VoyageBackendRequest,
+	onError: OnError,
+): void => fired(client.setVoyageBackend.mutate(request), onError);
 
 export const hailCaptain = (voyageId: string, onError: OnError): void =>
 	fired(client.hailCaptain.mutate({ voyageId }), onError);

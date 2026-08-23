@@ -82,6 +82,7 @@ export const eventFor = <Sender extends DocumentContents>(
 ) => ({ sender, senderFrame });
 
 export const consolePlace = {
+	changeId: null,
 	mode: "fleet",
 	role: "console",
 	sessionId: null,

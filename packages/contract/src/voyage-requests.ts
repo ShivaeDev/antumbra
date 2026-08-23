@@ -1,3 +1,4 @@
+import { AgentBackendTagSchema } from "@antumbra/vocabulary/agent-backend";
 import { BoardRegisterSchema } from "@antumbra/vocabulary/board";
 import { PieceVerdict } from "@antumbra/vocabulary/verdict";
 import { Schema } from "effect";
@@ -9,6 +10,12 @@ export const OpenVoyageRequest = Schema.Struct({
 	northStar: Schema.String,
 });
 export type OpenVoyageRequest = typeof OpenVoyageRequest.Type;
+
+export const VoyageBackendRequest = Schema.Struct({
+	backend: AgentBackendTagSchema,
+	voyageId: Schema.String,
+});
+export type VoyageBackendRequest = typeof VoyageBackendRequest.Type;
 
 export const CharterPieceRequest = Schema.Struct({
 	charter: Schema.String,

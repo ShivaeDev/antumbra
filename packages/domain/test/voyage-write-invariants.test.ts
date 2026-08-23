@@ -1,12 +1,13 @@
 import { Database } from "@antumbra/persistence";
 import { expect, it } from "@effect/vitest";
-import { Deferred, Effect, Fiber, Result } from "effect";
+import { Deferred, Effect, Fiber, Option, Result } from "effect";
 import { AgentDomain } from "#domain.ts";
 import {
 	acquireTemporaryPersistence,
 	domainKernelLayer,
 	makeScriptedBackend,
 } from "#test/harness.ts";
+import { aliveAgent, eventually } from "#test/voyage-fixtures.ts";
 import type { VoyageProcedures } from "#voyages.ts";
 
 const withDomain = <A, E, R>(
@@ -120,6 +121,38 @@ it.live("a refused rewire preserves the previous dependencies", () =>
 			expect(
 				yield* db.PieceEdge.where({ toPieceId: beta.id }).all(),
 			).toMatchObject([{ fromPieceId: alpha.id, toPieceId: beta.id }]);
+		}),
+	),
+);
+
+it.live(
+	"a switched backend retargets the voyage and no session already open",
+	() =>
+		withDomain((voyages) =>
+			Effect.gen(function* () {
+				const db = yield* Database;
+				const voyage = yield* openVoyage(voyages);
+				const hailed = yield* voyages.hail(voyage.id);
+				yield* eventually(aliveAgent(hailed.agentId));
+
+				yield* voyages.setBackend(voyage.id, "codex");
+
+				const stored = yield* db.Voyage.where({ id: voyage.id }).first();
+				expect(Option.getOrThrow(stored).backend).toBe("codex");
+				expect(
+					(yield* db.AgentSession.all()).map((session) => session.backend),
+				).toEqual(["scripted"]);
+			}),
+		),
+);
+
+it.live("switching the backend of an absent voyage is a tagged refusal", () =>
+	withDomain((voyages) =>
+		Effect.gen(function* () {
+			const failure = yield* Effect.flip(
+				voyages.setBackend("missing", "codex"),
+			);
+			expect(failure).toMatchObject({ _tag: "VoyageNotFound" });
 		}),
 	),
 );

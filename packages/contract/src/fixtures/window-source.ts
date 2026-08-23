@@ -2,6 +2,7 @@ import { Effect, Layer } from "effect";
 import { type WindowPlace, WindowRefused, WindowSource } from "#windows.ts";
 
 export const consoleWindow: WindowPlace = {
+	changeId: null,
 	mode: "fleet",
 	role: "console",
 	sessionId: null,

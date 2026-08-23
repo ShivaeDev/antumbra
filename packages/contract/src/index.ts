@@ -1,3 +1,7 @@
+export {
+	AGENT_BACKEND_TAGS,
+	type AgentBackendTag,
+} from "@antumbra/vocabulary/agent-backend";
 export { AppInfo, AppInfoSource } from "#app-info.ts";
 export { ArtifactMarkdown, ArtifactView } from "#artifact-views.ts";
 export { ChangeView } from "#change-views.ts";
@@ -43,14 +47,20 @@ export {
 	subsessionDisplayName,
 	UNNAMED_SUBSESSION,
 } from "#session-tree.ts";
+export { SETTING_KEYS, SETTINGS, SettingKey } from "#settings/catalog.ts";
 export {
-	DEFAULT_MAX_PARALLEL_SESSIONS,
-	MAX_MAX_PARALLEL_SESSIONS,
-	MIN_MAX_PARALLEL_SESSIONS,
+	type SettingCount,
+	type SettingDeclaration,
+	type SettingFlag,
+	SettingValue,
+} from "#settings/declaration.ts";
+export {
+	SettingChange,
+	SettingRefused,
 	Settings,
+	SettingsReading,
 	SettingsSource,
-	UpdateSettings,
-} from "#settings.ts";
+} from "#settings/readings.ts";
 export {
 	EventQuery,
 	RepoRegistration,
@@ -80,6 +90,7 @@ export {
 	OpenVoyageRequest,
 	PieceVerdictRequest,
 	RewireRequest,
+	VoyageBackendRequest,
 } from "#voyage-requests.ts";
 export {
 	BoardEntryView,

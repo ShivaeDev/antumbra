@@ -38,6 +38,8 @@ const snapshot = (title: string): QuayView => ({
 	pieces: [],
 	rows: [
 		{
+			baseRef: "main",
+			body: "Warn the harbour.",
 			change: {
 				activityAt: "2026-08-19T09:20:00.000Z",
 				checks: "green",
@@ -55,6 +57,8 @@ const snapshot = (title: string): QuayView => ({
 				url: null,
 			},
 			group: "alongside",
+			headRef: "work/warning",
+			headSha: "0123456789abcdef",
 			originSessionId: null,
 			pieceId: "piece-1",
 			pieceTitle: "soundings",
@@ -72,7 +76,13 @@ const mount = (): { container: HTMLElement; root: Root } => {
 const render = (root: Root): Effect.Effect<void> =>
 	Effect.promise(() =>
 		act(() => {
-			root.render(<QuayPanel onError={() => undefined} />);
+			root.render(
+				<QuayPanel
+					onError={() => undefined}
+					onSelect={() => undefined}
+					selectedId={undefined}
+				/>,
+			);
 			return Promise.resolve();
 		}),
 	);

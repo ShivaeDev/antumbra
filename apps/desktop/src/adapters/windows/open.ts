@@ -67,6 +67,7 @@ export const openConsole = (shell: WindowShell) =>
 		openWindow({
 			...shell,
 			place: {
+				changeId: null,
 				mode: "fleet",
 				role: "console",
 				sessionId: null,

@@ -14,6 +14,7 @@ import type {
 	OpenVoyageRequest,
 	PieceVerdictRequest,
 	RewireRequest,
+	VoyageBackendRequest,
 } from "#voyage-requests.ts";
 import type {
 	ReportMarkdown,
@@ -66,6 +67,11 @@ export class VoyageSource extends Context.Service<
 		) => Effect.Effect<ReportMarkdown, SightFailure>;
 		readonly rewire: (
 			request: RewireRequest,
+		) => Effect.Effect<void, SightFailure>;
+		// why: a voyage's backend is where its next spawns go — every agent
+		// already sailing keeps the backend it was born on.
+		readonly setBackend: (
+			request: VoyageBackendRequest,
 		) => Effect.Effect<void, SightFailure>;
 		readonly setFocus: (
 			voyageId: string,

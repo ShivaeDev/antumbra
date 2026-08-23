@@ -153,9 +153,22 @@ it("a dismissed change leaves the quay and its needs-attention group", () => {
 	).toEqual([]);
 });
 
-it("a row names the repo, the piece and the voyage the change is owed to", () => {
-	const [row] = quayRows(onAlpha([change("one")]));
+it("a row carries its pull request detail and where the change is owed", () => {
+	const [row] = quayRows(
+		onAlpha([
+			change("one", {
+				baseRef: "release",
+				body: "## Why\n\nWarn the harbour.",
+				headRef: "work/warning",
+				headSha: "0123456789abcdef",
+			}),
+		]),
+	);
 	expect(row?.change.repoName).toBe("shoals");
+	expect(row?.body).toBe("## Why\n\nWarn the harbour.");
+	expect(row?.headRef).toBe("work/warning");
+	expect(row?.baseRef).toBe("release");
+	expect(row?.headSha).toBe("0123456789abcdef");
 	expect(row?.pieceTitle).toBe("alpha");
 	expect(row?.voyageName).toBe("Chart the reef");
 });

@@ -1,6 +1,6 @@
-import type { ChangeView, QuayGroup, QuayView } from "@antumbra/contract";
+import type { ChangeView } from "@antumbra/contract";
 import { describe, expect, it } from "vitest";
-import { groupTitle, QUAY_GROUPS, rowsIn } from "#quay/groups.ts";
+import { groupTitle, QUAY_GROUPS } from "#quay/groups.ts";
 import { changeMarks, changeName } from "#voyages/change-marks.ts";
 
 const change = (id: string, over: Partial<ChangeView> = {}): ChangeView => ({
@@ -21,20 +21,6 @@ const change = (id: string, over: Partial<ChangeView> = {}): ChangeView => ({
 	...over,
 });
 
-const quay = (groups: ReadonlyArray<QuayGroup>): QuayView => ({
-	hosts: [{ available: true, detail: "signed in as navigator", tag: "github" }],
-	pieces: [],
-	rows: groups.map((group, index) => ({
-		change: change(`change-${index}`),
-		group,
-		originSessionId: null,
-		pieceId: "piece-1",
-		pieceTitle: "soundings",
-		voyageId: "voyage-1",
-		voyageName: "Chart the reef",
-	})),
-});
-
 describe("the quay's groups", () => {
 	it("reads top-down as attention deserved", () => {
 		expect(QUAY_GROUPS.map((group) => groupTitle[group])).toEqual([
@@ -43,20 +29,6 @@ describe("the quay's groups", () => {
 			"Checks running",
 			"Draft",
 		]);
-	});
-
-	it("shows each group only the changes that lie in it", () => {
-		const view = quay(["draft", "alongside", "draft"]);
-		expect(rowsIn(view, "draft").map((row) => row.change.id)).toEqual([
-			"change-0",
-			"change-2",
-		]);
-		expect(rowsIn(view, "checksRunning")).toEqual([]);
-	});
-
-	it("an empty quay has nothing in any group", () => {
-		const view = quay([]);
-		expect(QUAY_GROUPS.flatMap((group) => rowsIn(view, group))).toEqual([]);
 	});
 });
 

@@ -38,13 +38,16 @@ vi.mock("#adapters/trpc-voyages.ts", () => ({
 	charterPiece: vi.fn(),
 	focusVoyage: vi.fn(),
 	hailCaptain: vi.fn(),
+	landPieceVerdict: vi.fn(),
 	launchPiece: vi.fn(),
 	parkPiece: vi.fn(),
 	readArtifactMarkdown: vi.fn(),
 	readReportMarkdown: vi.fn(),
 	rewirePiece: vi.fn(),
+	setVoyageBackend: vi.fn(),
 	unparkPiece: vi.fn(),
 	watchVoyage,
+	workPieceNow: vi.fn(),
 	writeBoard: vi.fn(),
 }));
 vi.mock("mermaid", () => ({

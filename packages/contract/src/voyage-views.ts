@@ -58,6 +58,12 @@ export const PieceView = Schema.Struct({
 	artifactHistory: Schema.Array(ArtifactHistoryView),
 	artifacts: Schema.Array(ArtifactView),
 	board: Schema.Array(BoardEntryView),
+	// why: whether the hands that finished this piece may be released now — it
+	// has landed and every agent claiming it has gone quiet. It is published
+	// rather than derived because a window can see neither half: what counts as
+	// landed is the outcome ladder's judgment, and what counts as quiet depends
+	// on what this process is still holding, which no row of a piece says.
+	canRetireCrew: Schema.Boolean,
 	changes: Schema.Array(ChangeView),
 	charter: Schema.String,
 	dependsOn: Schema.Array(Schema.String),

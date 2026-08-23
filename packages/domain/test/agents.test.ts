@@ -15,6 +15,7 @@ import {
 	makeScriptedBackend,
 	makeScriptedRunner,
 	rawOf,
+	standDown,
 } from "#test/harness.ts";
 
 const TERMINAL: ReadonlySet<IntentStatus> = new Set([
@@ -253,6 +254,7 @@ it.live("retire closes the session, the rows, and is idempotent", () =>
 		yield* Effect.gen(function* () {
 			const db = yield* Database;
 			yield* submitSpawn(spawnPayload("c"));
+			yield* standDown(scripted, "agent-c");
 			const first = yield* submitRetire({ agentId: "agent-c" });
 			expect(first).toBe("succeeded");
 			const agent = yield* db.Agent.where({ id: "agent-c" }).first();
@@ -280,6 +282,7 @@ it.live("the alive-agents gauge tracks births and deaths", () =>
 			expect(yield* gauge).toBe(0);
 			yield* submitSpawn(spawnPayload("e"));
 			expect(yield* gauge).toBe(1);
+			yield* standDown(scripted, "agent-e");
 			yield* submitRetire({ agentId: "agent-e" });
 			expect(yield* gauge).toBe(0);
 		}).pipe(Effect.provide(domainKernelLayer(temporary, scripted.backend)));

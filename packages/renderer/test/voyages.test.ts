@@ -24,6 +24,7 @@ const piece = (
 	artifactHistory: [],
 	artifacts: [],
 	board: [],
+	canRetireCrew: false,
 	changes: [],
 	charter: `do ${title}`,
 	dependsOn,

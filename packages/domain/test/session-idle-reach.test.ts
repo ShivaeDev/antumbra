@@ -9,6 +9,7 @@ import {
 	callTool,
 	makeScriptedBackend,
 	sessionFor,
+	standDown,
 } from "#test/harness.ts";
 import {
 	HAND,
@@ -78,6 +79,7 @@ it.live("a send to a retired agent's session refuses", () =>
 			const sight = yield* SightSource;
 			yield* spawned;
 			const live = yield* openedNatively(scripted);
+			yield* standDown(scripted, HAND.agentId);
 			yield* sight.retire(HAND.agentId);
 			yield* eventually(
 				Effect.gen(function* () {

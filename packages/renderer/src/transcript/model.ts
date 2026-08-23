@@ -1,8 +1,5 @@
+import type { SessionInputId, SessionMessagePart } from "@antumbra/contract";
 import type { SubsessionEnded } from "@antumbra/vocabulary/session-events";
-import type {
-	SessionInputId,
-	SessionMessagePart,
-} from "@antumbra/vocabulary/session-input";
 
 export interface TranscriptMessage {
 	readonly inputId: SessionInputId | undefined;

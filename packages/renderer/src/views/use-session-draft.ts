@@ -1,4 +1,4 @@
-import { SessionInputId } from "@antumbra/vocabulary/session-input";
+import { SessionInputId } from "@antumbra/contract";
 import { useRef, useState } from "react";
 import { readSessionInputRequest } from "#adapters/session-input.ts";
 import { sendSessionInput } from "#adapters/trpc.ts";

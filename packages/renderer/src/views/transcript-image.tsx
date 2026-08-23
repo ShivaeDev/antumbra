@@ -1,4 +1,4 @@
-import type { SessionInputId } from "@antumbra/vocabulary/session-input";
+import type { SessionInputId } from "@antumbra/contract";
 import { useEffect, useState } from "react";
 import { loadSessionImage } from "#adapters/trpc.ts";
 import { Button } from "#components/ui/button.tsx";

@@ -1,5 +1,4 @@
-import type { SessionInputRequest } from "@antumbra/contract";
-import type { SessionInputId } from "@antumbra/vocabulary/session-input";
+import type { SessionInputId, SessionInputRequest } from "@antumbra/contract";
 import type { DraftImage } from "#views/session-draft.ts";
 
 const buildRequest = async (

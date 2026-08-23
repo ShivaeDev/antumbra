@@ -1,7 +1,7 @@
 import {
 	MAX_SESSION_IMAGE_SOURCE_BYTES,
 	MAX_SESSION_IMAGES,
-} from "@antumbra/vocabulary/session-input";
+} from "@antumbra/contract";
 
 const TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 const EXTENSIONS = [".jpeg", ".jpg", ".png", ".webp"];

@@ -12,8 +12,12 @@ export interface QuayBerthing {
 }
 
 export interface QuayRow extends QuayBerthing {
+	readonly baseRef: string;
+	readonly body: string;
 	readonly change: ChangeView;
 	readonly group: QuayGroup;
+	readonly headRef: string;
+	readonly headSha: string | null;
 	readonly originSessionId: string | null;
 }
 
@@ -84,8 +88,12 @@ const rowsOfChange = (
 		.flatMap((link) =>
 			berthingsOf(world, link.pieceId).map((berthing) => ({
 				...berthing,
+				baseRef: change.baseRef,
+				body: change.body,
 				change: view,
 				group,
+				headRef: change.headRef,
+				headSha: change.headSha,
 				originSessionId,
 			})),
 		);

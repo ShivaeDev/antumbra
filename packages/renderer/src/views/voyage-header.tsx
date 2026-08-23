@@ -1,6 +1,10 @@
 import type { VoyageView } from "@antumbra/contract";
 import { Badge } from "#components/ui/badge.tsx";
-import { CaptainCall, FocusToggle } from "#views/voyage-acts.tsx";
+import {
+	BackendSwitch,
+	CaptainCall,
+	FocusToggle,
+} from "#views/voyage-acts.tsx";
 import { VoyageProgress } from "#views/voyage-progress.tsx";
 import { voyageStateLabel } from "#voyages/labels.ts";
 import { voyageTone } from "#voyages/tone.ts";
@@ -18,6 +22,7 @@ export const VoyageHeader = ({
 			<Badge variant={voyageTone[voyage.state]}>
 				{voyageStateLabel[voyage.state]}
 			</Badge>
+			<BackendSwitch onError={onError} voyage={voyage} />
 			<CaptainCall
 				captain={voyage.captain}
 				onError={onError}

@@ -1,9 +1,8 @@
 import { Context, Data, type Effect, Schema } from "effect";
 import type { RequestOrigin } from "#router-procedure.ts";
 
-// why: the console shows one of three things at a time — the fleet at work,
-// the voyages the work is for, and the quay where finished work waits on a
-// host. Which one is on show belongs to the window, not to the page, so a
+// why: the console shows one section at a time — fleet, voyages, quay or
+// settings. Which one is on show belongs to the window, not to the page, so a
 // reloaded console comes back to what it was pointed at.
 export const ConsoleMode = Schema.Literals([
 	"fleet",
@@ -17,6 +16,7 @@ export type ConsoleMode = typeof ConsoleMode.Type;
 // The URL is what proves a window's authority, so a page able to name its own
 // role would be a page able to name its own powers.
 export const ConsolePlace = Schema.Struct({
+	changeId: Schema.NullOr(Schema.String),
 	mode: ConsoleMode,
 	role: Schema.Literal("console"),
 	sessionId: Schema.NullOr(Schema.String),

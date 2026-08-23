@@ -1,12 +1,14 @@
 import { expect, it } from "@effect/vitest";
 import { Option, Schema } from "effect";
 import {
+	AGENT_BACKEND_TAGS,
 	BoardEntryView,
 	BoardWriteRequest,
 	SessionEvent,
 	TRPC_FAILURE_CODES,
 	TrpcFailureCode,
 	TrpcRequest,
+	VoyageBackendRequest,
 	VoyageCaptainView,
 } from "#index.ts";
 
@@ -26,6 +28,18 @@ it("rejects an arbitrary Board register at the public boundary", () => {
 			scope: { kind: "voyage", voyageId: "voyage-1" },
 		})._tag,
 	).toBe("None");
+});
+
+it("accepts every known agent backend and no arbitrary tag", () => {
+	const decode = (backend: string) =>
+		Schema.decodeUnknownOption(VoyageBackendRequest)({
+			backend,
+			voyageId: "voyage-1",
+		})._tag;
+	for (const backend of AGENT_BACKEND_TAGS) {
+		expect(decode(backend), backend).toBe("Some");
+	}
+	expect(decode("future-backend")).toBe("None");
 });
 
 it("rejects arbitrary operation kinds at the invoke boundary", () => {

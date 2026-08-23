@@ -12,6 +12,11 @@ export interface Entry {
 	// working. It lives here because it is only ever true while this
 	// acquisition does — a restart takes both away together.
 	readonly idleSince: number | undefined;
+	// why: how many times words have reached this Session. A count rather than a
+	// moment, because the only question ever asked of it is whether anything has
+	// been said since a reading was taken — which is how an ending that arrives
+	// after the next turn has already begun is told from one that ends the last.
+	readonly stirrings: number;
 }
 
 export interface SessionAttachmentEntries {
@@ -23,8 +28,17 @@ export interface SessionAttachmentEntries {
 	// An Agent that repeats itself keeps the moment it first fell quiet, or the
 	// hour would start over on every repetition and never come around.
 	readonly rest: (sessionId: string, since: number) => Effect.Effect<void>;
+	// why: the same rest, refused when the count taken before the caller made up
+	// its mind is no longer the count now. Reading and marking are one step here
+	// because that is the only way words landing between them cannot be lost.
+	readonly restUnstirred: (
+		sessionId: string,
+		since: number,
+		stirrings: number,
+	) => Effect.Effect<boolean>;
 	readonly rouse: (sessionId: string) => Effect.Effect<void>;
 	readonly snapshot: Effect.Effect<ReadonlyMap<string, Entry>>;
+	readonly stirrings: (sessionId: string) => Effect.Effect<number>;
 	// why: taking the entry out of the map is the claim. Everything that ends an
 	// acquisition goes through here, so a detach and a send can never both
 	// believe they hold the same attachment.
@@ -39,18 +53,25 @@ export interface SessionAttachmentEntries {
 // so closing is never done twice and never left undone.
 export const makeSessionAttachmentEntries = Effect.gen(function* () {
 	const entries = yield* Ref.make<ReadonlyMap<string, Entry>>(new Map());
-	const remark = (
-		sessionId: string,
-		next: (entry: Entry) => number | undefined,
-	) =>
+	const revise = (sessionId: string, next: (entry: Entry) => Entry) =>
 		Ref.update(entries, (current) => {
 			const existing = current.get(sessionId);
 			return existing === undefined
 				? current
-				: new Map(current).set(sessionId, {
-						...existing,
-						idleSince: next(existing),
-					});
+				: new Map(current).set(sessionId, next(existing));
+		});
+	const restUnstirred: SessionAttachmentEntries["restUnstirred"] = (
+		sessionId,
+		since,
+		stirrings,
+	) =>
+		Ref.modify(entries, (current) => {
+			const existing = current.get(sessionId);
+			if (existing === undefined || existing.stirrings !== stirrings) {
+				return [false, current];
+			}
+			const rested = { ...existing, idleSince: existing.idleSince ?? since };
+			return [true, new Map(current).set(sessionId, rested)];
 		});
 	const take: SessionAttachmentEntries["take"] = (sessionId, when) =>
 		Effect.gen(function* () {
@@ -95,9 +116,23 @@ export const makeSessionAttachmentEntries = Effect.gen(function* () {
 		insert: (sessionId, entry) =>
 			Ref.update(entries, (current) => new Map(current).set(sessionId, entry)),
 		rest: (sessionId, since) =>
-			remark(sessionId, (entry) => entry.idleSince ?? since),
-		rouse: (sessionId) => remark(sessionId, () => undefined),
+			revise(sessionId, (entry) => ({
+				...entry,
+				idleSince: entry.idleSince ?? since,
+			})),
+		restUnstirred,
+		rouse: (sessionId) =>
+			revise(sessionId, (entry) => ({
+				...entry,
+				idleSince: undefined,
+				stirrings: entry.stirrings + 1,
+			})),
 		snapshot: Ref.get(entries),
+		stirrings: (sessionId) =>
+			Effect.map(
+				Ref.get(entries),
+				(current) => current.get(sessionId)?.stirrings ?? 0,
+			),
 		take,
 	} satisfies SessionAttachmentEntries;
 });

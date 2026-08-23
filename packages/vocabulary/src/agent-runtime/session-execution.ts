@@ -11,6 +11,7 @@ export const SESSION_EXECUTION_EVENTS = [
 	"request-siesta",
 	"settle",
 	"stand-down",
+	"turn-completed",
 	"wake",
 ] as const;
 export type SessionExecutionEvent = (typeof SESSION_EXECUTION_EVENTS)[number];
@@ -35,11 +36,20 @@ export class InvalidSessionExecutionTransition extends Data.TaggedError(
 // the acquisition stays open and listening, and reclaiming that acquisition
 // later leaves the same row untouched — so a restart, which necessarily takes
 // every attachment with it, needs no repair to tell the truth.
+// why: stopping and declaring are two acts, and both reach idle without either
+// standing in for the other. A stand-down is the Agent saying it has nothing
+// left to do; a completed turn is the provider saying this one is over. The
+// second is the only ending a backend whose Agents were never given the first
+// can offer, and the record keeps the two apart forever.
 const TABLE: Record<
 	SessionExecutionStatus,
 	Partial<Record<SessionExecutionEvent, SessionExecutionStatus>>
 > = {
-	active: { "request-siesta": "draining", "stand-down": "idle" },
+	active: {
+		"request-siesta": "draining",
+		"stand-down": "idle",
+		"turn-completed": "idle",
+	},
 	draining: { settle: "idle" },
 	idle: { wake: "active" },
 };

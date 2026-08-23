@@ -48,6 +48,26 @@ it("separates standing down from draining toward siesta", () => {
 	);
 });
 
+// why: a turn ending is the other way to stop executing, and it is named in the
+// table rather than borrowing the declaration's name — a log that could not
+// tell the two apart would have the Agent declaring things it never said. It is
+// guarded the same way: an ending only settles a Session that was running.
+it("separates a completed turn from the declaration that stands down", () => {
+	expect(
+		sessionExecutionTransition("session-1", "active", "turn-completed"),
+	).toEqual(Result.succeed("idle"));
+	expect(
+		Result.isFailure(
+			sessionExecutionTransition("session-1", "idle", "turn-completed"),
+		),
+	).toBe(true);
+	expect(
+		Result.isFailure(
+			sessionExecutionTransition("session-1", "draining", "turn-completed"),
+		),
+	).toBe(true);
+});
+
 // why: a presence is read from the record and this process together, so the
 // same row means different things depending on whether anything is listening.
 it("tells listening from asleep by the attachment, not the row", () => {

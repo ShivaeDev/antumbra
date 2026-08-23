@@ -28,3 +28,10 @@ export const wakeNote: Record<"parked" | "underway", string> = {
 	parked: "a wake is parked — the words it carries are still waiting to land",
 	underway: "waking — the words it carries land when it does",
 };
+
+// why: the note says the wake is stuck; only the Intent's own sentence says
+// what stopped it, and that sentence was reaching the database and stopping
+// there. It goes out unedited, because a paraphrase of a durable reason is one
+// more projection for a reader to distrust.
+export const wakeReason = (detail: string | null): string | undefined =>
+	detail === null || detail.trim() === "" ? undefined : detail;

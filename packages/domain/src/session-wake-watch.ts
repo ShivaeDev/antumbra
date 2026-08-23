@@ -1,5 +1,5 @@
 import type { IntentStatus } from "@antumbra/kernel";
-import { Effect, Fiber, Option, Stream } from "effect";
+import { Effect, Fiber, Stream } from "effect";
 import { accountOfIntent } from "#dispatch-failure-account.ts";
 import type { SessionRouse } from "#kernel-reach.ts";
 
@@ -13,11 +13,14 @@ const SETTLED: ReadonlySet<IntentStatus> = new Set([
 	"waiting",
 ]);
 
-// why: generous, because a real resume opens a provider session and reads back
-// what happened while nothing was listening. It is a floor under legibility and
-// never a deadline on the work: passing it says the wake has not settled, and
-// the watch keeps running in case it still does.
-const STALL_MILLIS = 90_000;
+// why: the stall warning is only news while the wake can still be saved, so the
+// threshold is a fraction of the patience the wake is measured against rather
+// than a constant standing beside it. Set above the patience — as a flat ninety
+// seconds was against a bound of sixty — the wake is dead and settled before
+// the warning is ever due, and the one report that says "nothing at all is
+// happening" could not fire on this path at all.
+const stallOf = (patienceMillis: number) =>
+	Math.max(1, Math.floor(patienceMillis / 2));
 
 const account = (sessionId: string, intentId: string, said: string) =>
 	Effect.gen(function* () {
@@ -31,26 +34,26 @@ const account = (sessionId: string, intentId: string, said: string) =>
 		});
 	});
 
-// why: the whole of what the admiral's send knows about its own wake. The
-// mutation that asked for it returns the moment the Intent is on the record,
-// so without this the send has no reader at all: a wake that parked, failed,
-// was cancelled, or simply never moved would leave nothing behind but a row
-// somebody would have to go and look for.
-export const watchWake = (sessionId: string, rouse: SessionRouse) =>
+// why: what the send can say about its own wake that the wake cannot say about
+// itself — that nothing has happened yet. Why it ended is accounted for on the
+// Intent's own path, because a wake requeued by boot reclaim has no send
+// standing over it and would otherwise end in silence.
+export const watchWake = (
+	sessionId: string,
+	rouse: SessionRouse,
+	patienceMillis: number,
+) =>
 	Effect.gen(function* () {
 		const stalled = yield* Effect.forkChild(
-			Effect.sleep(STALL_MILLIS).pipe(
+			Effect.sleep(stallOf(patienceMillis)).pipe(
 				Effect.andThen(account(sessionId, rouse.id, "a wake has not settled")),
 			),
 		);
-		const status = yield* rouse.changes.pipe(
+		yield* rouse.changes.pipe(
 			Stream.takeUntil((state) => SETTLED.has(state)),
 			Stream.runLast,
 		);
 		yield* Fiber.interrupt(stalled);
-		if (Option.isSome(status) && status.value !== "succeeded") {
-			yield* account(sessionId, rouse.id, "a wake did not reach the session");
-		}
 	}).pipe(
 		Effect.catchCause((cause) =>
 			Effect.logWarning(

@@ -139,7 +139,7 @@ it.live("an ending words have overtaken leaves no mark", () =>
 		Effect.gen(function* () {
 			const { fabric } = yield* standing;
 			expect(yield* fabric.stirrings(options.sessionId)).toBe(0);
-			yield* fabric.send(options.sessionId, "one more thing");
+			yield* fabric.send(options.sessionId, textInput("one more thing"));
 			expect(yield* fabric.stirrings(options.sessionId)).toBe(1);
 
 			expect(yield* fabric.turnEnded(options.sessionId, 0)).toBe(false);
@@ -152,7 +152,7 @@ it.live("an ending words have overtaken leaves no mark", () =>
 
 			// why: and the words after that end the quiet again, exactly as they end
 			// the quiet a declaration left.
-			yield* fabric.send(options.sessionId, "and another");
+			yield* fabric.send(options.sessionId, textInput("and another"));
 			expect(yield* fabric.idleSince).toEqual(new Map());
 			expect(yield* fabric.stirrings(options.sessionId)).toBe(2);
 		}),

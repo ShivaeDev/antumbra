@@ -92,8 +92,20 @@
       "model": "Report",
       "namespace": "__unbound__"
     },
+    "sessionAttachment": {
+      "model": "SessionAttachment",
+      "namespace": "__unbound__"
+    },
     "sessionEvent": {
       "model": "SessionEvent",
+      "namespace": "__unbound__"
+    },
+    "sessionInput": {
+      "model": "SessionInput",
+      "namespace": "__unbound__"
+    },
+    "sessionInputPart": {
+      "model": "SessionInputPart",
       "namespace": "__unbound__"
     },
     "setting": {
@@ -334,6 +346,21 @@
                 },
                 "to": {
                   "model": "SessionEvent",
+                  "namespace": "__unbound__"
+                }
+              },
+              "inputs": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "sessionId"
+                  ]
+                },
+                "to": {
+                  "model": "SessionInput",
                   "namespace": "__unbound__"
                 }
               },
@@ -2039,6 +2066,103 @@
               "table": "report"
             }
           },
+          "SessionAttachment": {
+            "fields": {
+              "byteSize": {
+                "nullable": false,
+                "type": {
+                  "codecId": "sqlite/integer@1",
+                  "kind": "scalar"
+                }
+              },
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "sqlite/datetime@1",
+                  "kind": "scalar"
+                }
+              },
+              "digest": {
+                "nullable": false,
+                "type": {
+                  "codecId": "sqlite/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "height": {
+                "nullable": false,
+                "type": {
+                  "codecId": "sqlite/integer@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "sqlite/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "mediaType": {
+                "nullable": false,
+                "type": {
+                  "codecId": "sqlite/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "width": {
+                "nullable": false,
+                "type": {
+                  "codecId": "sqlite/integer@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "parts": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "attachmentId"
+                  ]
+                },
+                "to": {
+                  "model": "SessionInputPart",
+                  "namespace": "__unbound__"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "byteSize": {
+                  "column": "byteSize"
+                },
+                "createdAt": {
+                  "column": "createdAt"
+                },
+                "digest": {
+                  "column": "digest"
+                },
+                "height": {
+                  "column": "height"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "mediaType": {
+                  "column": "mediaType"
+                },
+                "width": {
+                  "column": "width"
+                }
+              },
+              "namespaceId": "__unbound__",
+              "table": "sessionAttachment"
+            }
+          },
           "SessionEvent": {
             "fields": {
               "at": {
@@ -2114,6 +2238,200 @@
               },
               "namespaceId": "__unbound__",
               "table": "sessionEvent"
+            }
+          },
+          "SessionInput": {
+            "fields": {
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "sqlite/datetime@1",
+                  "kind": "scalar"
+                }
+              },
+              "deliveryStatus": {
+                "nullable": false,
+                "type": {
+                  "codecId": "sqlite/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "sqlite/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "requestDigest": {
+                "nullable": false,
+                "type": {
+                  "codecId": "sqlite/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "sessionId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "sqlite/text@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "parts": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "inputId"
+                  ]
+                },
+                "to": {
+                  "model": "SessionInputPart",
+                  "namespace": "__unbound__"
+                }
+              },
+              "session": {
+                "cardinality": "N:1",
+                "on": {
+                  "localFields": [
+                    "sessionId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "AgentSession",
+                  "namespace": "__unbound__"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "createdAt": {
+                  "column": "createdAt"
+                },
+                "deliveryStatus": {
+                  "column": "deliveryStatus"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "requestDigest": {
+                  "column": "requestDigest"
+                },
+                "sessionId": {
+                  "column": "sessionId"
+                }
+              },
+              "namespaceId": "__unbound__",
+              "table": "sessionInput"
+            }
+          },
+          "SessionInputPart": {
+            "fields": {
+              "attachmentId": {
+                "nullable": true,
+                "type": {
+                  "codecId": "sqlite/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "displayName": {
+                "nullable": true,
+                "type": {
+                  "codecId": "sqlite/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "inputId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "sqlite/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "kind": {
+                "nullable": false,
+                "type": {
+                  "codecId": "sqlite/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "position": {
+                "nullable": false,
+                "type": {
+                  "codecId": "sqlite/integer@1",
+                  "kind": "scalar"
+                }
+              },
+              "text": {
+                "nullable": true,
+                "type": {
+                  "codecId": "sqlite/text@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "attachment": {
+                "cardinality": "N:1",
+                "on": {
+                  "localFields": [
+                    "attachmentId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "SessionAttachment",
+                  "namespace": "__unbound__"
+                }
+              },
+              "input": {
+                "cardinality": "N:1",
+                "on": {
+                  "localFields": [
+                    "inputId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "SessionInput",
+                  "namespace": "__unbound__"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "attachmentId": {
+                  "column": "attachmentId"
+                },
+                "displayName": {
+                  "column": "displayName"
+                },
+                "inputId": {
+                  "column": "inputId"
+                },
+                "kind": {
+                  "column": "kind"
+                },
+                "position": {
+                  "column": "position"
+                },
+                "text": {
+                  "column": "text"
+                }
+              },
+              "namespaceId": "__unbound__",
+              "table": "sessionInputPart"
             }
           },
           "Setting": {
@@ -3714,6 +4032,63 @@
               },
               "uniques": []
             },
+            "sessionAttachment": {
+              "columns": {
+                "byteSize": {
+                  "codecId": "sqlite/integer@1",
+                  "nativeType": "integer",
+                  "nullable": false
+                },
+                "createdAt": {
+                  "codecId": "sqlite/datetime@1",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "digest": {
+                  "codecId": "sqlite/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "height": {
+                  "codecId": "sqlite/integer@1",
+                  "nativeType": "integer",
+                  "nullable": false
+                },
+                "id": {
+                  "codecId": "sqlite/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "mediaType": {
+                  "codecId": "sqlite/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "width": {
+                  "codecId": "sqlite/integer@1",
+                  "nativeType": "integer",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [],
+              "indexes": [],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": [
+                {
+                  "columns": [
+                    "digest"
+                  ]
+                }
+              ]
+            },
             "sessionEvent": {
               "columns": {
                 "at": {
@@ -3773,6 +4148,165 @@
                 "columns": [
                   "sessionId",
                   "seq"
+                ]
+              },
+              "uniques": []
+            },
+            "sessionInput": {
+              "columns": {
+                "createdAt": {
+                  "codecId": "sqlite/datetime@1",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "deliveryStatus": {
+                  "codecId": "sqlite/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "id": {
+                  "codecId": "sqlite/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "requestDigest": {
+                  "codecId": "sqlite/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "sessionId": {
+                  "codecId": "sqlite/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [
+                {
+                  "constraint": true,
+                  "index": true,
+                  "onDelete": "restrict",
+                  "onUpdate": "restrict",
+                  "source": {
+                    "columns": [
+                      "sessionId"
+                    ],
+                    "namespaceId": "__unbound__",
+                    "tableName": "sessionInput"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "__unbound__",
+                    "tableName": "agentSession"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "sessionId",
+                    "createdAt"
+                  ]
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": []
+            },
+            "sessionInputPart": {
+              "columns": {
+                "attachmentId": {
+                  "codecId": "sqlite/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "displayName": {
+                  "codecId": "sqlite/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "inputId": {
+                  "codecId": "sqlite/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "kind": {
+                  "codecId": "sqlite/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "position": {
+                  "codecId": "sqlite/integer@1",
+                  "nativeType": "integer",
+                  "nullable": false
+                },
+                "text": {
+                  "codecId": "sqlite/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                }
+              },
+              "foreignKeys": [
+                {
+                  "constraint": true,
+                  "index": true,
+                  "onDelete": "restrict",
+                  "onUpdate": "restrict",
+                  "source": {
+                    "columns": [
+                      "inputId"
+                    ],
+                    "namespaceId": "__unbound__",
+                    "tableName": "sessionInputPart"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "__unbound__",
+                    "tableName": "sessionInput"
+                  }
+                },
+                {
+                  "constraint": true,
+                  "index": true,
+                  "onDelete": "restrict",
+                  "onUpdate": "restrict",
+                  "source": {
+                    "columns": [
+                      "attachmentId"
+                    ],
+                    "namespaceId": "__unbound__",
+                    "tableName": "sessionInputPart"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "__unbound__",
+                    "tableName": "sessionAttachment"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "attachmentId"
+                  ]
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "inputId",
+                  "position"
                 ]
               },
               "uniques": []
@@ -3936,7 +4470,7 @@
         "id": "__unbound__"
       }
     },
-    "storageHash": "sha256:8d26ee3107c5b01a33916a19509f3a5c3f0b901a46175c5d990652abf63c7ef4"
+    "storageHash": "sha256:41284b39316d9214226c6d6ea4efe8d3d9f2c9248420eb2a6434d72eb7c361b7"
   },
   "capabilities": {
     "sql": {

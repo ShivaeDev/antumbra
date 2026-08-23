@@ -16,7 +16,7 @@ import type {
 } from '@prisma-next/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'sha256:8d26ee3107c5b01a33916a19509f3a5c3f0b901a46175c5d990652abf63c7ef4'>;
+  StorageHashBase<'sha256:41284b39316d9214226c6d6ea4efe8d3d9f2c9248420eb2a6434d72eb7c361b7'>;
 export type ExecutionHash = ExecutionHashBase<string>;
 export type ProfileHash =
   ProfileHashBase<'sha256:3cc333ecad9f3f4c7229370a9d2c37e908cdce0f8d2e9fb132d50605b024eff2'>;
@@ -222,12 +222,36 @@ export type FieldOutputTypes = {
       readonly body: CodecTypes['sqlite/text@1']['output'];
       readonly createdAt: CodecTypes['sqlite/datetime@1']['output'];
     };
+    readonly SessionAttachment: {
+      readonly id: CodecTypes['sqlite/text@1']['output'];
+      readonly digest: CodecTypes['sqlite/text@1']['output'];
+      readonly mediaType: CodecTypes['sqlite/text@1']['output'];
+      readonly byteSize: CodecTypes['sqlite/integer@1']['output'];
+      readonly width: CodecTypes['sqlite/integer@1']['output'];
+      readonly height: CodecTypes['sqlite/integer@1']['output'];
+      readonly createdAt: CodecTypes['sqlite/datetime@1']['output'];
+    };
     readonly SessionEvent: {
       readonly sessionId: CodecTypes['sqlite/text@1']['output'];
       readonly seq: CodecTypes['sqlite/integer@1']['output'];
       readonly kind: CodecTypes['sqlite/text@1']['output'];
       readonly payload: CodecTypes['sqlite/text@1']['output'];
       readonly at: CodecTypes['sqlite/datetime@1']['output'];
+    };
+    readonly SessionInput: {
+      readonly id: CodecTypes['sqlite/text@1']['output'];
+      readonly sessionId: CodecTypes['sqlite/text@1']['output'];
+      readonly requestDigest: CodecTypes['sqlite/text@1']['output'];
+      readonly deliveryStatus: CodecTypes['sqlite/text@1']['output'];
+      readonly createdAt: CodecTypes['sqlite/datetime@1']['output'];
+    };
+    readonly SessionInputPart: {
+      readonly inputId: CodecTypes['sqlite/text@1']['output'];
+      readonly position: CodecTypes['sqlite/integer@1']['output'];
+      readonly kind: CodecTypes['sqlite/text@1']['output'];
+      readonly text: CodecTypes['sqlite/text@1']['output'] | null;
+      readonly attachmentId: CodecTypes['sqlite/text@1']['output'] | null;
+      readonly displayName: CodecTypes['sqlite/text@1']['output'] | null;
     };
     readonly Setting: {
       readonly key: CodecTypes['sqlite/text@1']['output'];
@@ -449,12 +473,36 @@ export type FieldInputTypes = {
       readonly body: CodecTypes['sqlite/text@1']['input'];
       readonly createdAt: CodecTypes['sqlite/datetime@1']['input'];
     };
+    readonly SessionAttachment: {
+      readonly id: CodecTypes['sqlite/text@1']['input'];
+      readonly digest: CodecTypes['sqlite/text@1']['input'];
+      readonly mediaType: CodecTypes['sqlite/text@1']['input'];
+      readonly byteSize: CodecTypes['sqlite/integer@1']['input'];
+      readonly width: CodecTypes['sqlite/integer@1']['input'];
+      readonly height: CodecTypes['sqlite/integer@1']['input'];
+      readonly createdAt: CodecTypes['sqlite/datetime@1']['input'];
+    };
     readonly SessionEvent: {
       readonly sessionId: CodecTypes['sqlite/text@1']['input'];
       readonly seq: CodecTypes['sqlite/integer@1']['input'];
       readonly kind: CodecTypes['sqlite/text@1']['input'];
       readonly payload: CodecTypes['sqlite/text@1']['input'];
       readonly at: CodecTypes['sqlite/datetime@1']['input'];
+    };
+    readonly SessionInput: {
+      readonly id: CodecTypes['sqlite/text@1']['input'];
+      readonly sessionId: CodecTypes['sqlite/text@1']['input'];
+      readonly requestDigest: CodecTypes['sqlite/text@1']['input'];
+      readonly deliveryStatus: CodecTypes['sqlite/text@1']['input'];
+      readonly createdAt: CodecTypes['sqlite/datetime@1']['input'];
+    };
+    readonly SessionInputPart: {
+      readonly inputId: CodecTypes['sqlite/text@1']['input'];
+      readonly position: CodecTypes['sqlite/integer@1']['input'];
+      readonly kind: CodecTypes['sqlite/text@1']['input'];
+      readonly text: CodecTypes['sqlite/text@1']['input'] | null;
+      readonly attachmentId: CodecTypes['sqlite/text@1']['input'] | null;
+      readonly displayName: CodecTypes['sqlite/text@1']['input'] | null;
     };
     readonly Setting: {
       readonly key: CodecTypes['sqlite/text@1']['input'];
@@ -676,12 +724,36 @@ export type StorageColumnTypes = {
       readonly id: CodecTypes['sqlite/text@1']['output'];
       readonly title: CodecTypes['sqlite/text@1']['output'];
     };
+    readonly sessionAttachment: {
+      readonly byteSize: CodecTypes['sqlite/integer@1']['output'];
+      readonly createdAt: CodecTypes['sqlite/datetime@1']['output'];
+      readonly digest: CodecTypes['sqlite/text@1']['output'];
+      readonly height: CodecTypes['sqlite/integer@1']['output'];
+      readonly id: CodecTypes['sqlite/text@1']['output'];
+      readonly mediaType: CodecTypes['sqlite/text@1']['output'];
+      readonly width: CodecTypes['sqlite/integer@1']['output'];
+    };
     readonly sessionEvent: {
       readonly at: CodecTypes['sqlite/datetime@1']['output'];
       readonly kind: CodecTypes['sqlite/text@1']['output'];
       readonly payload: CodecTypes['sqlite/text@1']['output'];
       readonly seq: CodecTypes['sqlite/integer@1']['output'];
       readonly sessionId: CodecTypes['sqlite/text@1']['output'];
+    };
+    readonly sessionInput: {
+      readonly createdAt: CodecTypes['sqlite/datetime@1']['output'];
+      readonly deliveryStatus: CodecTypes['sqlite/text@1']['output'];
+      readonly id: CodecTypes['sqlite/text@1']['output'];
+      readonly requestDigest: CodecTypes['sqlite/text@1']['output'];
+      readonly sessionId: CodecTypes['sqlite/text@1']['output'];
+    };
+    readonly sessionInputPart: {
+      readonly attachmentId: CodecTypes['sqlite/text@1']['output'] | null;
+      readonly displayName: CodecTypes['sqlite/text@1']['output'] | null;
+      readonly inputId: CodecTypes['sqlite/text@1']['output'];
+      readonly kind: CodecTypes['sqlite/text@1']['output'];
+      readonly position: CodecTypes['sqlite/integer@1']['output'];
+      readonly text: CodecTypes['sqlite/text@1']['output'] | null;
     };
     readonly setting: {
       readonly key: CodecTypes['sqlite/text@1']['output'];
@@ -903,12 +975,36 @@ export type StorageColumnInputTypes = {
       readonly id: CodecTypes['sqlite/text@1']['input'];
       readonly title: CodecTypes['sqlite/text@1']['input'];
     };
+    readonly sessionAttachment: {
+      readonly byteSize: CodecTypes['sqlite/integer@1']['input'];
+      readonly createdAt: CodecTypes['sqlite/datetime@1']['input'];
+      readonly digest: CodecTypes['sqlite/text@1']['input'];
+      readonly height: CodecTypes['sqlite/integer@1']['input'];
+      readonly id: CodecTypes['sqlite/text@1']['input'];
+      readonly mediaType: CodecTypes['sqlite/text@1']['input'];
+      readonly width: CodecTypes['sqlite/integer@1']['input'];
+    };
     readonly sessionEvent: {
       readonly at: CodecTypes['sqlite/datetime@1']['input'];
       readonly kind: CodecTypes['sqlite/text@1']['input'];
       readonly payload: CodecTypes['sqlite/text@1']['input'];
       readonly seq: CodecTypes['sqlite/integer@1']['input'];
       readonly sessionId: CodecTypes['sqlite/text@1']['input'];
+    };
+    readonly sessionInput: {
+      readonly createdAt: CodecTypes['sqlite/datetime@1']['input'];
+      readonly deliveryStatus: CodecTypes['sqlite/text@1']['input'];
+      readonly id: CodecTypes['sqlite/text@1']['input'];
+      readonly requestDigest: CodecTypes['sqlite/text@1']['input'];
+      readonly sessionId: CodecTypes['sqlite/text@1']['input'];
+    };
+    readonly sessionInputPart: {
+      readonly attachmentId: CodecTypes['sqlite/text@1']['input'] | null;
+      readonly displayName: CodecTypes['sqlite/text@1']['input'] | null;
+      readonly inputId: CodecTypes['sqlite/text@1']['input'];
+      readonly kind: CodecTypes['sqlite/text@1']['input'];
+      readonly position: CodecTypes['sqlite/integer@1']['input'];
+      readonly text: CodecTypes['sqlite/text@1']['input'] | null;
     };
     readonly setting: {
       readonly key: CodecTypes['sqlite/text@1']['input'];
@@ -2017,6 +2113,50 @@ type ContractBase = Omit<
               indexes: readonly [];
               foreignKeys: readonly [];
             };
+            readonly sessionAttachment: {
+              columns: {
+                readonly id: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'sqlite/text@1';
+                  readonly nullable: false;
+                };
+                readonly digest: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'sqlite/text@1';
+                  readonly nullable: false;
+                };
+                readonly mediaType: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'sqlite/text@1';
+                  readonly nullable: false;
+                };
+                readonly byteSize: {
+                  readonly nativeType: 'integer';
+                  readonly codecId: 'sqlite/integer@1';
+                  readonly nullable: false;
+                };
+                readonly width: {
+                  readonly nativeType: 'integer';
+                  readonly codecId: 'sqlite/integer@1';
+                  readonly nullable: false;
+                };
+                readonly height: {
+                  readonly nativeType: 'integer';
+                  readonly codecId: 'sqlite/integer@1';
+                  readonly nullable: false;
+                };
+                readonly createdAt: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'sqlite/datetime@1';
+                  readonly nullable: false;
+                  readonly default: { readonly kind: 'function'; readonly expression: 'now()' };
+                };
+              };
+              primaryKey: { readonly columns: readonly ['id'] };
+              uniques: readonly [{ readonly columns: readonly ['digest'] }];
+              indexes: readonly [];
+              foreignKeys: readonly [];
+            };
             readonly sessionEvent: {
               columns: {
                 readonly sessionId: {
@@ -2059,6 +2199,122 @@ type ContractBase = Omit<
                   readonly target: {
                     readonly namespaceId: '__unbound__' & NamespaceId;
                     readonly tableName: 'agentSession';
+                    readonly columns: readonly ['id'];
+                  };
+                  readonly constraint: true;
+                  readonly index: true;
+                },
+              ];
+            };
+            readonly sessionInput: {
+              columns: {
+                readonly id: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'sqlite/text@1';
+                  readonly nullable: false;
+                };
+                readonly sessionId: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'sqlite/text@1';
+                  readonly nullable: false;
+                };
+                readonly requestDigest: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'sqlite/text@1';
+                  readonly nullable: false;
+                };
+                readonly deliveryStatus: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'sqlite/text@1';
+                  readonly nullable: false;
+                };
+                readonly createdAt: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'sqlite/datetime@1';
+                  readonly nullable: false;
+                  readonly default: { readonly kind: 'function'; readonly expression: 'now()' };
+                };
+              };
+              primaryKey: { readonly columns: readonly ['id'] };
+              uniques: readonly [];
+              indexes: readonly [{ readonly columns: readonly ['sessionId', 'createdAt'] }];
+              foreignKeys: readonly [
+                {
+                  readonly source: {
+                    readonly namespaceId: '__unbound__' & NamespaceId;
+                    readonly tableName: 'sessionInput';
+                    readonly columns: readonly ['sessionId'];
+                  };
+                  readonly target: {
+                    readonly namespaceId: '__unbound__' & NamespaceId;
+                    readonly tableName: 'agentSession';
+                    readonly columns: readonly ['id'];
+                  };
+                  readonly constraint: true;
+                  readonly index: true;
+                },
+              ];
+            };
+            readonly sessionInputPart: {
+              columns: {
+                readonly inputId: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'sqlite/text@1';
+                  readonly nullable: false;
+                };
+                readonly position: {
+                  readonly nativeType: 'integer';
+                  readonly codecId: 'sqlite/integer@1';
+                  readonly nullable: false;
+                };
+                readonly kind: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'sqlite/text@1';
+                  readonly nullable: false;
+                };
+                readonly text: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'sqlite/text@1';
+                  readonly nullable: true;
+                };
+                readonly attachmentId: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'sqlite/text@1';
+                  readonly nullable: true;
+                };
+                readonly displayName: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'sqlite/text@1';
+                  readonly nullable: true;
+                };
+              };
+              primaryKey: { readonly columns: readonly ['inputId', 'position'] };
+              uniques: readonly [];
+              indexes: readonly [{ readonly columns: readonly ['attachmentId'] }];
+              foreignKeys: readonly [
+                {
+                  readonly source: {
+                    readonly namespaceId: '__unbound__' & NamespaceId;
+                    readonly tableName: 'sessionInputPart';
+                    readonly columns: readonly ['inputId'];
+                  };
+                  readonly target: {
+                    readonly namespaceId: '__unbound__' & NamespaceId;
+                    readonly tableName: 'sessionInput';
+                    readonly columns: readonly ['id'];
+                  };
+                  readonly constraint: true;
+                  readonly index: true;
+                },
+                {
+                  readonly source: {
+                    readonly namespaceId: '__unbound__' & NamespaceId;
+                    readonly tableName: 'sessionInputPart';
+                    readonly columns: readonly ['attachmentId'];
+                  };
+                  readonly target: {
+                    readonly namespaceId: '__unbound__' & NamespaceId;
+                    readonly tableName: 'sessionAttachment';
                     readonly columns: readonly ['id'];
                   };
                   readonly constraint: true;
@@ -2211,6 +2467,18 @@ type ContractBase = Omit<
     readonly sessionEvent: {
       readonly namespace: '__unbound__' & NamespaceId;
       readonly model: 'SessionEvent';
+    };
+    readonly sessionInput: {
+      readonly namespace: '__unbound__' & NamespaceId;
+      readonly model: 'SessionInput';
+    };
+    readonly sessionAttachment: {
+      readonly namespace: '__unbound__' & NamespaceId;
+      readonly model: 'SessionAttachment';
+    };
+    readonly sessionInputPart: {
+      readonly namespace: '__unbound__' & NamespaceId;
+      readonly model: 'SessionInputPart';
     };
     readonly voyage: { readonly namespace: '__unbound__' & NamespaceId; readonly model: 'Voyage' };
     readonly piece: { readonly namespace: '__unbound__' & NamespaceId; readonly model: 'Piece' };
@@ -2403,6 +2671,17 @@ type ContractBase = Omit<
                 readonly to: {
                   readonly namespace: '__unbound__' & NamespaceId;
                   readonly model: 'SessionEvent';
+                };
+                readonly cardinality: '1:N';
+                readonly on: {
+                  readonly localFields: readonly ['id'];
+                  readonly targetFields: readonly ['sessionId'];
+                };
+              };
+              readonly inputs: {
+                readonly to: {
+                  readonly namespace: '__unbound__' & NamespaceId;
+                  readonly model: 'SessionInput';
                 };
                 readonly cardinality: '1:N';
                 readonly on: {
@@ -3408,6 +3687,64 @@ type ContractBase = Omit<
               };
             };
           };
+          readonly SessionAttachment: {
+            readonly fields: {
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
+              };
+              readonly digest: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
+              };
+              readonly mediaType: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
+              };
+              readonly byteSize: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/integer@1' };
+              };
+              readonly width: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/integer@1' };
+              };
+              readonly height: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/integer@1' };
+              };
+              readonly createdAt: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/datetime@1' };
+              };
+            };
+            readonly relations: {
+              readonly parts: {
+                readonly to: {
+                  readonly namespace: '__unbound__' & NamespaceId;
+                  readonly model: 'SessionInputPart';
+                };
+                readonly cardinality: '1:N';
+                readonly on: {
+                  readonly localFields: readonly ['id'];
+                  readonly targetFields: readonly ['attachmentId'];
+                };
+              };
+            };
+            readonly storage: {
+              readonly table: 'sessionAttachment';
+              readonly namespaceId: '__unbound__';
+              readonly fields: {
+                readonly id: { readonly column: 'id' };
+                readonly digest: { readonly column: 'digest' };
+                readonly mediaType: { readonly column: 'mediaType' };
+                readonly byteSize: { readonly column: 'byteSize' };
+                readonly width: { readonly column: 'width' };
+                readonly height: { readonly column: 'height' };
+                readonly createdAt: { readonly column: 'createdAt' };
+              };
+            };
+          };
           readonly SessionEvent: {
             readonly fields: {
               readonly sessionId: {
@@ -3453,6 +3790,129 @@ type ContractBase = Omit<
                 readonly kind: { readonly column: 'kind' };
                 readonly payload: { readonly column: 'payload' };
                 readonly at: { readonly column: 'at' };
+              };
+            };
+          };
+          readonly SessionInput: {
+            readonly fields: {
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
+              };
+              readonly sessionId: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
+              };
+              readonly requestDigest: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
+              };
+              readonly deliveryStatus: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
+              };
+              readonly createdAt: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/datetime@1' };
+              };
+            };
+            readonly relations: {
+              readonly parts: {
+                readonly to: {
+                  readonly namespace: '__unbound__' & NamespaceId;
+                  readonly model: 'SessionInputPart';
+                };
+                readonly cardinality: '1:N';
+                readonly on: {
+                  readonly localFields: readonly ['id'];
+                  readonly targetFields: readonly ['inputId'];
+                };
+              };
+              readonly session: {
+                readonly to: {
+                  readonly namespace: '__unbound__' & NamespaceId;
+                  readonly model: 'AgentSession';
+                };
+                readonly cardinality: 'N:1';
+                readonly on: {
+                  readonly localFields: readonly ['sessionId'];
+                  readonly targetFields: readonly ['id'];
+                };
+              };
+            };
+            readonly storage: {
+              readonly table: 'sessionInput';
+              readonly namespaceId: '__unbound__';
+              readonly fields: {
+                readonly id: { readonly column: 'id' };
+                readonly sessionId: { readonly column: 'sessionId' };
+                readonly requestDigest: { readonly column: 'requestDigest' };
+                readonly deliveryStatus: { readonly column: 'deliveryStatus' };
+                readonly createdAt: { readonly column: 'createdAt' };
+              };
+            };
+          };
+          readonly SessionInputPart: {
+            readonly fields: {
+              readonly inputId: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
+              };
+              readonly position: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/integer@1' };
+              };
+              readonly kind: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
+              };
+              readonly text: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
+              };
+              readonly attachmentId: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
+              };
+              readonly displayName: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
+              };
+            };
+            readonly relations: {
+              readonly attachment: {
+                readonly to: {
+                  readonly namespace: '__unbound__' & NamespaceId;
+                  readonly model: 'SessionAttachment';
+                };
+                readonly cardinality: 'N:1';
+                readonly on: {
+                  readonly localFields: readonly ['attachmentId'];
+                  readonly targetFields: readonly ['id'];
+                };
+              };
+              readonly input: {
+                readonly to: {
+                  readonly namespace: '__unbound__' & NamespaceId;
+                  readonly model: 'SessionInput';
+                };
+                readonly cardinality: 'N:1';
+                readonly on: {
+                  readonly localFields: readonly ['inputId'];
+                  readonly targetFields: readonly ['id'];
+                };
+              };
+            };
+            readonly storage: {
+              readonly table: 'sessionInputPart';
+              readonly namespaceId: '__unbound__';
+              readonly fields: {
+                readonly inputId: { readonly column: 'inputId' };
+                readonly position: { readonly column: 'position' };
+                readonly kind: { readonly column: 'kind' };
+                readonly text: { readonly column: 'text' };
+                readonly attachmentId: { readonly column: 'attachmentId' };
+                readonly displayName: { readonly column: 'displayName' };
               };
             };
           };

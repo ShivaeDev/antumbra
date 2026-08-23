@@ -1,19 +1,21 @@
 import type { BackendFailure } from "@antumbra/plugin-api";
 import { Effect, Option, Schema } from "effect";
 import { codexFailure } from "#failure.ts";
-import { ThreadListResponse } from "#protocol.ts";
+import { ThreadListResponse, type ThreadStatus } from "#protocol.ts";
 import type { Request } from "#requests.ts";
 
 // why: one delegated thread as codex names it — the parent it was spawned from,
-// and whatever codex called the agent that ran in it. The names are optional
-// because codex does not always give them, and an absent one leaves the record
-// silent rather than filled with a guess.
+// whatever codex called the agent that ran in it, and whether a turn is under
+// way in it right now. The names are optional because codex does not always
+// give them, and an absent one leaves the record silent rather than filled with
+// a guess.
 export interface SpawnedChild {
 	readonly agentNickname: string | undefined;
 	readonly agentPath: string | undefined;
 	readonly agentRole: string | undefined;
 	readonly parentThreadId: string;
 	readonly threadId: string;
+	readonly working: boolean;
 }
 
 // why: what a sweep concluded, for the rehearsals and callers that hold one.
@@ -34,6 +36,13 @@ const decodeListing = Schema.decodeUnknownOption(ThreadListResponse);
 const named = (value: string | null | undefined): string | undefined =>
 	value === null ? undefined : value;
 
+// why: only `active` is work. `idle` is a child between turns, `notLoaded` is
+// one the server has not even brought into memory, and `systemError` is one
+// that is not speaking on any stream — none of the three can still be producing
+// frames, so none of them is a reason to hold a session away from rest.
+const isWorking = (status: typeof ThreadStatus.Type): boolean =>
+	status.type === "active";
+
 const childrenOf = (
 	listed: typeof ThreadListResponse.Type,
 ): ReadonlyArray<SpawnedChild> =>
@@ -45,6 +54,7 @@ const childrenOf = (
 			agentRole: named(spawn.agent_role),
 			parentThreadId: spawn.parent_thread_id,
 			threadId: thread.id,
+			working: isWorking(thread.status),
 		};
 	});
 

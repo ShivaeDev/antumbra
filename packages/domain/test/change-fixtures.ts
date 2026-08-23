@@ -32,6 +32,7 @@ export const changeOf = (fields: ChangeFields): ChangeRow => ({
 	mergeable: "clean",
 	observedAt: OBSERVED,
 	openedByAgentId: null,
+	originSessionId: null,
 	preparedHeadRef: null,
 	preparedHeadSha: null,
 	proposalFrozenAt: null,

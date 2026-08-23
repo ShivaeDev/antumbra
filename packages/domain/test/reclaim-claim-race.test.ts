@@ -90,6 +90,7 @@ it.live(
 						agentId: AGENT_ID,
 						pieceId: piece.id,
 						repoName: repo.name,
+						sessionId: "session-boundary",
 					}),
 				);
 				yield* Deferred.succeed(releaseRunner, undefined);

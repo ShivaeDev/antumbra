@@ -1,6 +1,8 @@
 import type { QuayRow } from "@antumbra/contract";
 import { openExternal } from "#adapters/bridge.ts";
+import { openWindow } from "#adapters/trpc-windows.ts";
 import { Badge } from "#components/ui/badge.tsx";
+import { Button } from "#components/ui/button.tsx";
 import {
 	Card,
 	CardContent,
@@ -60,9 +62,45 @@ const ChangeName = ({ row }: { readonly row: QuayRow }) => {
 	);
 };
 
+const OriginSession = ({
+	onError,
+	row,
+}: {
+	readonly onError: (message: string) => void;
+	readonly row: QuayRow;
+}) => {
+	const sessionId = row.originSessionId;
+	if (sessionId === null) {
+		return (
+			<span className="ml-auto shrink-0 pl-2 text-2xs text-muted-foreground">
+				No linked session
+			</span>
+		);
+	}
+	return (
+		<Button
+			aria-label="Open originating session"
+			className="ml-auto h-auto px-1 py-0 font-mono text-2xs"
+			onClick={() => openWindow({ role: "transcript", sessionId }, onError)}
+			size="sm"
+			title={`Open session ${sessionId}`}
+			type="button"
+			variant="link"
+		>
+			Session {sessionId.slice(0, 8)}
+		</Button>
+	);
+};
+
 // why: three marks in three fixed places — checks, review, merge — so a card
 // is read by where its colour sits rather than by parsing a run of words.
-export const QuayCard = ({ row }: { readonly row: QuayRow }) => (
+export const QuayCard = ({
+	onError,
+	row,
+}: {
+	readonly onError: (message: string) => void;
+	readonly row: QuayRow;
+}) => (
 	<Card className={cn("gap-1", hasLanded(row.change) && "opacity-60")}>
 		<CardHeader className="grid-cols-[1fr_auto] gap-x-2">
 			<ChangeName row={row} />
@@ -83,7 +121,8 @@ export const QuayCard = ({ row }: { readonly row: QuayRow }) => (
 					{mark.label}
 				</Badge>
 			))}
-			<span className="ml-auto shrink-0 pl-2 text-2xs text-muted-foreground">
+			<OriginSession onError={onError} row={row} />
+			<span className="shrink-0 pl-2 text-2xs text-muted-foreground">
 				moved {whenLabel(row.change.activityAt)}
 			</span>
 		</CardContent>

@@ -92,13 +92,36 @@ export const SpawnedThread = Schema.Struct({
 	thread: Schema.Struct({ id: Schema.String, source: SpawnSource }),
 });
 
+// why: codex's own runtime word for a thread, required on every row it lists.
+// `active` is the one variant that means a turn is under way in it; the flags
+// name what a running turn is waiting on, which does not change that it is
+// running and which nothing here reads — so they are typed as the strings codex
+// sends rather than pinned to a spelling, because a flag added later must not
+// refuse a whole census over a word this slice never consults.
+export const ThreadStatus = Schema.Union([
+	Schema.Struct({
+		activeFlags: Schema.Array(Schema.String),
+		type: Schema.Literal("active"),
+	}),
+	Schema.Struct({ type: Schema.Literal("idle") }),
+	Schema.Struct({ type: Schema.Literal("notLoaded") }),
+	Schema.Struct({ type: Schema.Literal("systemError") }),
+]);
+
 // why: the server's own listing of every thread spawned below one ancestor, at
 // any depth. Every row it returns is a spawn descendant and carries the source
-// that says whose — so a row this cannot decode is the pin having moved under
-// the slice, and the page is refused whole rather than quietly shortened. A
-// page it did not finish says so in a cursor, which is the difference between a
-// short answer and a whole one.
+// that says whose, and the status that says whether it is working right now —
+// so a row this cannot decode is the pin having moved under the slice, and the
+// page is refused whole rather than quietly shortened. A page it did not finish
+// says so in a cursor, which is the difference between a short answer and a
+// whole one.
 export const ThreadListResponse = Schema.Struct({
-	data: Schema.Array(Schema.Struct({ id: Schema.String, source: SpawnSource })),
+	data: Schema.Array(
+		Schema.Struct({
+			id: Schema.String,
+			source: SpawnSource,
+			status: ThreadStatus,
+		}),
+	),
 	nextCursor: Schema.optional(Schema.NullOr(Schema.String)),
 });

@@ -63,6 +63,7 @@ export const changeRow = (row: StoredChange) =>
 				mergeable: vocabulary.mergeable,
 				observedAt: row.observedAt,
 				openedByAgentId: row.openedByAgentId,
+				originSessionId: row.originSessionId,
 				preparedHeadRef: row.preparedHeadRef,
 				preparedHeadSha: row.preparedHeadSha,
 				proposalFrozenAt: row.proposalFrozenAt,

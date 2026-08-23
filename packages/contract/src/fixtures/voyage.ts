@@ -104,6 +104,7 @@ export const quayView: QuayView = {
 		{
 			change: shoalWarning,
 			group: "alongside",
+			originSessionId: "session-1",
 			pieceId: "piece-1",
 			pieceTitle: "soundings",
 			voyageId: "voyage-1",

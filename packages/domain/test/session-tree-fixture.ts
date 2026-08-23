@@ -1,7 +1,7 @@
 import { DomainFeedsLive } from "@antumbra/domain-feeds";
 import { Database, type NewAgentSession, Writer } from "@antumbra/persistence";
 import type { TemporaryPersistence } from "@antumbra/persistence/testing";
-import type { SessionAudit } from "@antumbra/plugin-api";
+import type { SessionAudit, SessionCensus } from "@antumbra/plugin-api";
 import { SessionEventJournalLive } from "@antumbra/session-event-journal";
 import type { AgentEvent } from "@antumbra/vocabulary/session-events";
 import { Effect, Layer, Ref } from "effect";
@@ -102,9 +102,17 @@ export const scriptedLane = (findings: ReadonlyArray<AgentEvent>) =>
 	Effect.gen(function* () {
 		const reads = yield* Ref.make(0);
 		const audit: SessionAudit = {
-			census: () => Effect.succeed([]),
+			census: () => Effect.succeed({ events: [], nodes: [] }),
 			node: () =>
 				Ref.update(reads, (count) => count + 1).pipe(Effect.as(findings)),
 		};
 		return { audit, readings: Ref.get(reads) } satisfies ScriptedLane;
 	});
+
+// why: a lane whose census is written by hand — the provider's listing of a
+// tree's children and its word on what each of them is doing, so a rehearsal
+// can hold the delegation seam to the listing and nothing else.
+export const censusLane = (census: SessionCensus): SessionAudit => ({
+	census: () => Effect.succeed(census),
+	node: () => Effect.succeed([]),
+});

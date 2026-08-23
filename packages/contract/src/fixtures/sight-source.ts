@@ -20,12 +20,20 @@ export const sightFixture = (feeds: FixtureFeeds) =>
 				source: registration.source,
 			}),
 		retire: () => Effect.void,
+		sendInput: (request) =>
+			Effect.succeed({ id: request.id, status: "accepted" as const }),
 		send: (sessionId, text) =>
 			text === ""
 				? new SightFailure({
 						message: `a message with no words cannot reach session ${sessionId}`,
 					})
 				: Effect.void,
+		sessionImage: () =>
+			Effect.succeed({
+				bytes: new Uint8Array(),
+				mediaType: "image/png" as const,
+				name: "fixture.png",
+			}),
 		sessionEventFeed: (query) =>
 			Stream.filter(feeds.events, (event) => event.seq >= query.fromSeq),
 		sessionEvents: (query) =>

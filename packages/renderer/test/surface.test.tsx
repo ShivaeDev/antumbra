@@ -61,6 +61,7 @@ it("offers a window of its own for a session", () => {
 			session={{
 				addressable: [],
 				backend: "scripted",
+				canAttachImages: false,
 				canInterrupt: false,
 				canSend: false,
 				canSleep: false,

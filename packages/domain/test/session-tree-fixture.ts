@@ -11,7 +11,7 @@ import { LiveDelegationsLive } from "#session-tree-live.ts";
 // answer about rows that closed while nothing was listening, so a rehearsal of
 // them starts from the rows rather than from a stream.
 export const treeLayer = (temporary: TemporaryPersistence) =>
-	SessionEventJournalLive.pipe(
+	SessionEventJournalLive().pipe(
 		Layer.provideMerge(
 			Layer.mergeAll(temporary.layer, DomainFeedsLive, LiveDelegationsLive),
 		),

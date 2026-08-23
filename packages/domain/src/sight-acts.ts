@@ -1,6 +1,10 @@
 import type {
 	RepoRegistration,
 	RepoSummary,
+	SessionImage,
+	SessionImageRequest,
+	SessionInputReceipt,
+	SessionInputRequest,
 	SightFailure,
 	SituationDraft,
 	SpawnReceipt,
@@ -8,6 +12,7 @@ import type {
 } from "@antumbra/contract";
 import { Kernel } from "@antumbra/kernel";
 import { admiralWords } from "@antumbra/prompts";
+import { SessionInputs } from "@antumbra/session-inputs";
 import { Effect } from "effect";
 import { AgentDomain } from "#agent-domain-service.ts";
 import { SessionMessageEmpty } from "#errors.ts";
@@ -26,6 +31,12 @@ export interface SightActs {
 		sessionId: string,
 		text: string,
 	) => Effect.Effect<void, SightFailure>;
+	readonly sendInput: (
+		request: SessionInputRequest,
+	) => Effect.Effect<SessionInputReceipt, SightFailure>;
+	readonly sessionImage: (
+		request: SessionImageRequest,
+	) => Effect.Effect<SessionImage, SightFailure>;
 	readonly situationDraft: (
 		draft: SituationDraft,
 	) => Effect.Effect<string, SightFailure>;
@@ -38,6 +49,7 @@ export interface SightActs {
 export const makeSightActs = Effect.gen(function* () {
 	const domain = yield* AgentDomain;
 	const kernel = yield* Kernel;
+	const inputs = yield* SessionInputs;
 	const provide = yield* writeProvider;
 	const draft = yield* makeSituationDraft;
 
@@ -65,6 +77,17 @@ export const makeSightActs = Effect.gen(function* () {
 				// exists to carry them, rather than by a seam relaxing its type.
 				yield* domain.sendToSession(sessionId, admiralWords({ words: text }));
 			}).pipe(Effect.mapError(toFailure)),
+		sendInput: (request) =>
+			Effect.gen(function* () {
+				yield* inputs.ingest(request);
+				const status = yield* domain.sendSessionInput(
+					request.sessionId,
+					request.id,
+				);
+				return { id: request.id, status };
+			}).pipe(Effect.mapError(toFailure)),
+		sessionImage: (request) =>
+			inputs.image(request).pipe(Effect.mapError(toFailure)),
 		situationDraft: (request) =>
 			draft(request).pipe(Effect.mapError(toFailure)),
 		// why: the admiral's request and the clock's own are the same act, so both

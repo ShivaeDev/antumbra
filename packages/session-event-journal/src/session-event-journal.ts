@@ -27,47 +27,52 @@ export class SessionEventJournal extends Context.Service<
 	}
 >()("@antumbra/session-event-journal/SessionEventJournal") {}
 
-export const SessionEventJournalLive = Layer.effect(
-	SessionEventJournal,
-	Effect.gen(function* () {
-		const feeds = yield* DomainFeeds;
-		const writer = yield* Writer;
-		const executors = yield* Effect.context<WriteExecutors>();
-		const appendAll = yield* makeJournalAppends;
-		const throughput = yield* makeJournalThroughput;
-		const appendAndAnnounce = <E>(write: JournalWrite<E>) =>
-			Effect.gen(function* () {
-				const stored = yield* writer.write(
-					Effect.andThen(write.rows, appendAll(write.appends)),
-				);
-				yield* Effect.forEach(
-					stored,
-					(row) => PubSub.publish(feeds.events, row),
-					{ discard: true },
-				);
-			});
-		const recordTogether = <E>(write: JournalWrite<E>) =>
-			throughput.measure(
-				write.appends.length,
-				appendAndAnnounce(write).pipe(
-					Effect.provideContext(executors),
-					Effect.as(true),
-					// why: one failed append must not end the pump; sequence allocation
-					// and insert shared one transaction, so a failure leaves no hidden
-					// gap.
-					Effect.catchCause((cause) =>
-						Effect.logError(
-							"event append failed",
-							{ sessionIds: write.appends.map((append) => append.sessionId) },
-							cause,
-						).pipe(Effect.as(false)),
+const appendFailed = (appends: ReadonlyArray<JournalAppend>, cause: unknown) =>
+	Effect.logError(
+		"event append failed",
+		{ sessionIds: appends.map((append) => append.sessionId) },
+		cause,
+	).pipe(Effect.as(false));
+
+export const SessionEventJournalLive = (rawEvidenceRoot?: string) =>
+	Layer.effect(
+		SessionEventJournal,
+		Effect.gen(function* () {
+			const feeds = yield* DomainFeeds;
+			const writer = yield* Writer;
+			const executors = yield* Effect.context<WriteExecutors>();
+			const appendAll = yield* makeJournalAppends(rawEvidenceRoot);
+			const throughput = yield* makeJournalThroughput;
+			const appendAndAnnounce = <E>(write: JournalWrite<E>) =>
+				Effect.gen(function* () {
+					const stored = yield* writer.write(
+						Effect.andThen(write.rows, appendAll(write.appends)),
+					);
+					yield* Effect.forEach(
+						stored,
+						(row) => PubSub.publish(feeds.events, row),
+						{ discard: true },
+					);
+				});
+			const recordTogether = <E>(write: JournalWrite<E>) =>
+				throughput.measure(
+					write.appends.length,
+					appendAndAnnounce(write).pipe(
+						Effect.provideContext(executors),
+						Effect.as(true),
+						// why: one failed append must not end the pump; sequence allocation
+						// and insert shared one transaction, so a failure leaves no hidden
+						// gap.
+						Effect.catchCause((cause) => appendFailed(write.appends, cause)),
 					),
-				),
-			);
-		return {
-			record: (sessionId, event) =>
-				recordTogether({ appends: [{ event, sessionId }], rows: Effect.void }),
-			recordTogether,
-		};
-	}),
-);
+				);
+			return {
+				record: (sessionId, event) =>
+					recordTogether({
+						appends: [{ event, sessionId }],
+						rows: Effect.void,
+					}),
+				recordTogether,
+			};
+		}),
+	);

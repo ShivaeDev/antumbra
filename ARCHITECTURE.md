@@ -49,6 +49,7 @@ obligation remains detached until needed. See
 | `packages/contract`       | Public typed IDL between renderer and main                      |
 | `packages/vocabulary`     | Neutral Agent runtime, Board, Change, and Session-event language through explicit subject subpaths (a leaf) |
 | `packages/session-event-journal` | Durable Session event sequencing and native identity correlation |
+| `packages/session-inputs` | Ordered durable Session inputs, validated image custody, delivery readings, and transcript thumbnails |
 | `packages/prompts`        | The catalog of everything an Agent can be told: one template per set of blanks, minting the branded type the delivery seams accept (a leaf) |
 | `packages/plugin-api`     | The driven ports: agent backends, runners, plugin registration  |
 | `packages/agent-tools`    | The tools agents act through: schemas and binding, no transport |
@@ -119,6 +120,14 @@ Everything it holds is process memory that may disappear at exit — handles,
 fibers, semaphores — rebuilt empty at boot, so the capability persists nothing
 and reaches no further than the driven ports. Domain composes it and supplies
 the durable event sink.
+
+`session-inputs` owns human message ingestion before transport. Source images
+are bounded, decoded, normalized, and installed in app-owned content-addressed
+custody; SQLite stores only ordered metadata and delivery readings. Recovery
+carries an input id, never bytes or a renderer path. `session-event-journal`
+likewise externalizes image-bearing or large raw provider envelopes into
+restrictive local CAS evidence so exact wire truth survives without copying
+paths or base64 through SQLite and every renderer feed.
 
 `trace-sink` is a dev instrument and depends on nothing in the workspace. It
 provides an Effect Tracer and a second Logger that record finished spans and log

@@ -1,7 +1,13 @@
 import type { SubsessionEnded } from "@antumbra/vocabulary/session-events";
+import type {
+	SessionInputId,
+	SessionMessagePart,
+} from "@antumbra/vocabulary/session-input";
 
 export interface TranscriptMessage {
+	readonly inputId: SessionInputId | undefined;
 	readonly kind: "message";
+	readonly parts: ReadonlyArray<SessionMessagePart>;
 	readonly role: "agent" | "user";
 	readonly seq: number;
 	readonly text: string;

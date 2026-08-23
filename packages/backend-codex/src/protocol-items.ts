@@ -1,5 +1,6 @@
 import { Schema } from "effect";
 import { TurnError } from "#protocol.ts";
+import { UserMessageItem } from "#protocol-user-item.ts";
 
 // why: the thread-item slice of the protocol, split from the envelope schemas
 // so each file stays one readable page. Decoding is lenient: unknown fields
@@ -79,12 +80,6 @@ const WebSearchItem = Schema.Struct({
 	...item,
 	query: Schema.String,
 	type: Schema.Literal("webSearch"),
-});
-
-const UserMessageItem = Schema.Struct({
-	...item,
-	content: Schema.Array(ContentPart),
-	type: Schema.Literal("userMessage"),
 });
 
 // why: the item a thread posts about an agent of its own — the announcement

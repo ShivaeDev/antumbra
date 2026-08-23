@@ -2,6 +2,7 @@ import type {
 	AgentBackend,
 	BackendFailure,
 	OpenSessionOptions,
+	SessionInput,
 } from "@antumbra/plugin-api";
 import { Clock, Effect, Exit, Ref, Semaphore } from "effect";
 import type { SessionAttachmentFailure } from "#errors.ts";
@@ -30,7 +31,7 @@ export interface SessionAttachmentRegistry {
 	) => Effect.Effect<void, BackendFailure | SessionNotLive>;
 	readonly send: (
 		sessionId: string,
-		text: string,
+		input: SessionInput,
 	) => Effect.Effect<void, BackendFailure | SessionNotLive>;
 	readonly standDown: (sessionId: string) => Effect.Effect<void>;
 	readonly stop: (sessionId: string) => Effect.Effect<void>;
@@ -113,9 +114,9 @@ export const makeSessionAttachmentRegistry = Effect.gen(function* () {
 		idleSince: entries.idleSince,
 		interrupt: (sessionId) =>
 			liveHandle(sessionId).pipe(Effect.flatMap((handle) => handle.interrupt)),
-		send: (sessionId, text) =>
+		send: (sessionId, input) =>
 			rousingHandle(sessionId).pipe(
-				Effect.flatMap((handle) => handle.queue(text)),
+				Effect.flatMap((handle) => handle.queue(input)),
 				Effect.annotateSpans({ sessionId }),
 			),
 		standDown: (sessionId) =>

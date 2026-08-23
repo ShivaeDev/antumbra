@@ -34,6 +34,7 @@ export const fleet: Fleet = {
 						},
 					],
 					backend: "claude",
+					canAttachImages: false,
 					canInterrupt: true,
 					canSend: true,
 					canSleep: false,

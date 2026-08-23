@@ -1,10 +1,8 @@
 import type {
 	AppInfo,
-	EventQuery,
 	Fleet,
 	RepoRegistration,
 	RepoSummary,
-	SessionEvent,
 	SessionTree,
 	SituationDraft,
 	SpawnReceipt,
@@ -12,6 +10,17 @@ import type {
 } from "@antumbra/contract";
 import { Data, Effect } from "effect";
 import { client, toError } from "#adapters/bridge.ts";
+import type { Unsubscribe } from "#adapters/trpc-session.ts";
+
+export {
+	interruptSession,
+	loadSessionImage,
+	sendSessionInput,
+	sendToSession,
+	sleepSession,
+	type Unsubscribe,
+	watchSessionEvents,
+} from "#adapters/trpc-session.ts";
 
 class AppInfoLoadError extends Data.TaggedError("AppInfoLoadError")<{
 	readonly message: string;
@@ -23,26 +32,12 @@ export const loadAppInfo: Effect.Effect<AppInfo, AppInfoLoadError> =
 		try: () => client.appInfo.query(),
 	});
 
-export type Unsubscribe = () => void;
-
 export const watchFleet = (
 	onFleet: (fleet: Fleet) => void,
 	onError: (message: string) => void,
 ): Unsubscribe => {
 	const subscription = client.fleetFeed.subscribe(undefined, {
 		onData: onFleet,
-		onError: (cause) => onError(toError(cause).message),
-	});
-	return () => subscription.unsubscribe();
-};
-
-export const watchSessionEvents = (
-	query: EventQuery,
-	onEvent: (event: SessionEvent) => void,
-	onError: (message: string) => void,
-): Unsubscribe => {
-	const subscription = client.sessionEventFeed.subscribe(query, {
-		onData: onEvent,
 		onError: (cause) => onError(toError(cause).message),
 	});
 	return () => subscription.unsubscribe();
@@ -81,38 +76,6 @@ export const retireAgent = (
 	client.retireAgent
 		.mutate({ agentId })
 		.then(() => undefined)
-		.catch((cause: unknown) => onError(toError(cause).message));
-};
-
-export const interruptSession = (
-	sessionId: string,
-	onError: (message: string) => void,
-): void => {
-	client.interruptSession
-		.mutate({ sessionId })
-		.then(() => undefined)
-		.catch((cause: unknown) => onError(toError(cause).message));
-};
-
-export const sleepSession = (
-	sessionId: string,
-	onError: (message: string) => void,
-): void => {
-	client.sleepSession
-		.mutate({ sessionId })
-		.then(() => undefined)
-		.catch((cause: unknown) => onError(toError(cause).message));
-};
-
-export const sendToSession = (
-	sessionId: string,
-	text: string,
-	onDone: () => void,
-	onError: (message: string) => void,
-): void => {
-	client.sendToSession
-		.mutate({ sessionId, text })
-		.then(onDone)
 		.catch((cause: unknown) => onError(toError(cause).message));
 };
 

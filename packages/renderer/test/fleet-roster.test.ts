@@ -8,6 +8,7 @@ const session = (
 ): SessionSummary => ({
 	addressable: [],
 	backend: "scripted",
+	canAttachImages: false,
 	canInterrupt: presence === "working",
 	canSend: presence !== "ended",
 	canSleep: presence === "idle",

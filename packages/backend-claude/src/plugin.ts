@@ -4,6 +4,7 @@ import {
 	BackendFailure,
 	type OpenSessionOptions,
 	type SessionHandle,
+	type SessionInput,
 } from "@antumbra/plugin-api";
 import type { AgentEvent } from "@antumbra/vocabulary/session-events";
 import { type Context, Effect, Option, Queue, Ref, Stream } from "effect";
@@ -13,6 +14,19 @@ import { laneEvents, openSessionLanes } from "#session-lanes.ts";
 
 const failure = (detail: unknown) =>
 	new BackendFailure({ detail: String(detail), tag: "claude" });
+
+const textOnly = (
+	input: SessionInput,
+): Effect.Effect<string, BackendFailure> => {
+	const texts = input.parts.flatMap((part) =>
+		part.type === "text" ? [part.text] : [],
+	);
+	return texts.length === input.parts.length
+		? Effect.succeed(texts.join("\n"))
+		: Effect.fail(
+				failure("image input is not enabled for this installed Claude backend"),
+			);
+};
 
 const rawEvents = (raw: RawSession): Stream.Stream<AgentEvent> =>
 	Stream.callback<AgentEvent>((queue) =>
@@ -52,8 +66,8 @@ const makeHandle = (raw: RawSession) =>
 				try: () => raw.interrupt(),
 			}),
 			nativeRef: Ref.get(nativeRef),
-			queue: (text) => raw.queue(text),
-			steer: (text) => raw.steer(text),
+			queue: (input) => Effect.flatMap(textOnly(input), raw.queue),
+			steer: (input) => Effect.flatMap(textOnly(input), raw.steer),
 		}),
 	);
 
@@ -88,6 +102,7 @@ export const claudeBackend = (options: ClaudePluginOptions): AgentBackend => ({
 	audit: claudeAudit,
 	capabilities: {
 		fork: true,
+		imageInput: false,
 		liveInterrupt: true,
 		multiClient: false,
 	},

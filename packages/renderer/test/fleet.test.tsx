@@ -31,6 +31,7 @@ const navigator = (canInterrupt: boolean, execution: string): AgentSummary => ({
 		{
 			addressable: [],
 			backend: "scripted",
+			canAttachImages: false,
 			canInterrupt,
 			canSend: canInterrupt,
 			canSleep: false,
@@ -72,6 +73,7 @@ const draining: AgentSummary = {
 		{
 			addressable: [],
 			backend: "scripted",
+			canAttachImages: false,
 			canInterrupt: false,
 			canSend: false,
 			canSleep: false,
@@ -147,6 +149,7 @@ const listening = (canSleep: boolean): AgentSummary => ({
 		{
 			addressable: [],
 			backend: "scripted",
+			canAttachImages: false,
 			canInterrupt: false,
 			canSend: true,
 			canSleep,

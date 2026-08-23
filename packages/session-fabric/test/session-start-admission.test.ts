@@ -7,6 +7,7 @@ import {
 	options,
 	scriptedBackend,
 	sink,
+	textInput,
 } from "#test/fabric-fixtures.ts";
 
 it.live(
@@ -75,7 +76,7 @@ it.live("stop interrupts admission, closes once, and leaves retry fresh", () =>
 						backend,
 						options,
 						sink,
-						(attachment) => attachment.handle.queue("recover"),
+						(attachment) => attachment.handle.queue(textInput("recover")),
 					),
 				)
 				.pipe(Effect.forkChild);
@@ -94,7 +95,7 @@ it.live("stop interrupts admission, closes once, and leaves retry fresh", () =>
 					backend,
 					options,
 					sink,
-					(attachment) => attachment.handle.queue("retry"),
+					(attachment) => attachment.handle.queue(textInput("retry")),
 				),
 			);
 			expect(yield* Ref.get(opens)).toBe(2);

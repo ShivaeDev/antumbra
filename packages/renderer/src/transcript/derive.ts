@@ -8,6 +8,7 @@ import {
 } from "#transcript/delegation.ts";
 import { gapNotice } from "#transcript/gaps.ts";
 import { openedLabel, turnLabel, usageLabel } from "#transcript/labels.ts";
+import { transcriptMessage } from "#transcript/message.ts";
 import type {
 	TranscriptItem,
 	TranscriptMessage,
@@ -28,7 +29,11 @@ const pushNarration = (
 	state: Derivation,
 	item: TranscriptMessage | TranscriptThinking,
 ): void => {
-	if (item.text !== "") {
+	if (
+		item.text !== "" ||
+		(item.kind === "message" &&
+			item.parts.some((part) => part.type === "image"))
+	) {
 		state.items.push(item);
 	}
 };
@@ -46,12 +51,7 @@ const applyKnownEvent = (
 ): void => {
 	switch (event.type) {
 		case "message":
-			pushNarration(state, {
-				kind: "message",
-				role: event.role,
-				seq,
-				text: event.text.trim(),
-			});
+			pushNarration(state, transcriptMessage(event, seq));
 			return;
 		case "thinking":
 			pushNarration(state, {

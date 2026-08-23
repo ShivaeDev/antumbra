@@ -1,5 +1,8 @@
-import type { AgentBackend, DirectTool } from "@antumbra/plugin-api";
-import type { AgentPrompt } from "@antumbra/prompts";
+import type {
+	AgentBackend,
+	DirectTool,
+	SessionInput,
+} from "@antumbra/plugin-api";
 import {
 	type SessionAttachment,
 	SessionFabric,
@@ -20,7 +23,7 @@ interface SessionResumeDeps {
 }
 
 const admitRecoveredSession =
-	(context: SessionRecoveryContext, instruction: AgentPrompt) =>
+	(context: SessionRecoveryContext, instruction: SessionInput) =>
 	(attachment: SessionAttachment) =>
 		Effect.gen(function* () {
 			const openedNativeRef = yield* attachment.openedNativeRef;

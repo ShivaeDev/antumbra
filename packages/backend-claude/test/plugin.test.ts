@@ -14,6 +14,7 @@ it.effect("the claude plugin registers its backend through the host", () =>
 		expect(claude).toBeDefined();
 		expect(claude?.capabilities).toEqual({
 			fork: true,
+			imageInput: false,
 			liveInterrupt: true,
 			multiClient: false,
 		});

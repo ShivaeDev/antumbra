@@ -52,7 +52,12 @@ const scriptedClaude = (
 	stored: StoredTranscripts,
 ): AgentBackend => ({
 	audit: scriptedClaudeAudit(stored),
-	capabilities: { fork: false, liveInterrupt: true, multiClient: false },
+	capabilities: {
+		fork: false,
+		imageInput: false,
+		liveInterrupt: true,
+		multiClient: false,
+	},
 	openSession: () =>
 		Effect.sync(() => {
 			const lanes = openSessionLanes();
@@ -80,7 +85,12 @@ const scriptedCodex = (
 	sweep: ScriptedSweep,
 ): AgentBackend => ({
 	audit: scriptedCodexAudit(sweep),
-	capabilities: { fork: true, liveInterrupt: true, multiClient: false },
+	capabilities: {
+		fork: true,
+		imageInput: true,
+		liveInterrupt: true,
+		multiClient: false,
+	},
 	openSession: () =>
 		Effect.sync(() => {
 			const tree = openThreadTree(rootThread, openThreadClaims());
@@ -126,6 +136,7 @@ const domainLayer = (temporary: TemporaryPersistence, backend: AgentBackend) =>
 		new Map([[runner.tag, runner]]),
 		new Map(),
 		join(dirname(temporary.database), "artifacts"),
+		join(dirname(temporary.database), "session-inputs"),
 	).pipe(
 		Layer.provide(NodeServices.layer),
 		Layer.provideMerge(temporary.layer),

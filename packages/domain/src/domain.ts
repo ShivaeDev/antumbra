@@ -10,6 +10,7 @@ import {
 	ResourceReconcilerLive,
 } from "@antumbra/resource-reclamation";
 import { SessionFabric, SessionFabricLive } from "@antumbra/session-fabric";
+import { SessionInputsLive } from "@antumbra/session-inputs";
 import { decodeStoredAgentStatus } from "@antumbra/vocabulary/agent-runtime";
 import { Effect, Layer } from "effect";
 import { AGENTS_ALIVE_GAUGE, AgentDomain } from "#agent-domain-service.ts";
@@ -19,6 +20,7 @@ import { ChangeProcedureService } from "#change-procedures.ts";
 import { makeCrewToolCompiler } from "#crew-tools.ts";
 import { makeCurrentSessionReconciler } from "#current-session-reconcile.ts";
 import { domainCapabilities } from "#domain-capabilities.ts";
+import { imageInputBackendsOf } from "#image-input-backends.ts";
 import { makeRetireKind } from "#retire.ts";
 import { makeRecoveryKind } from "#session-recovery.ts";
 import type { SessionRecoveryContext } from "#session-recovery-context.ts";
@@ -42,6 +44,7 @@ export const AgentDomainLive = (
 	runners: ReadonlyMap<string, Runner>,
 	changeHosts: ReadonlyMap<string, ChangeHost>,
 	artifactsDirectory: string,
+	sessionInputsDirectory: string,
 	reclaimOptions: Partial<ResourceReconcileOptions> = {},
 ) => {
 	const capabilities = domainCapabilities(
@@ -97,7 +100,8 @@ export const AgentDomainLive = (
 			);
 			const siesta = yield* makeSiestaKind;
 			const intentDemands = yield* compileAgentRecoveryDemands(recover, siesta);
-			const sendToSession = yield* makeSessionSend;
+			const imageInputBackends = imageInputBackendsOf(backends);
+			const sessionSend = yield* makeSessionSend(imageInputBackends);
 			return {
 				backends: [...backends.keys()],
 				boards,
@@ -105,6 +109,7 @@ export const AgentDomainLive = (
 				closeSessionStarts: fabric.closeStarts,
 				gauges: { [AGENTS_ALIVE_GAUGE]: aliveAgents },
 				interruptSession: fabric.interrupt,
+				imageInputBackends,
 				intentDemands,
 				kinds: [spawn, recover, retire, siesta],
 				repos,
@@ -112,7 +117,8 @@ export const AgentDomainLive = (
 				recover,
 				reopenSessionStarts: fabric.reopenStarts,
 				retire,
-				sendToSession,
+				sendSessionInput: sessionSend.sendInput,
+				sendToSession: sessionSend.sendPrompt,
 				sessionsAttached: fabric.attached,
 				sessionsDelegating: live.delegating,
 				siesta,
@@ -137,5 +143,6 @@ export const AgentDomainLive = (
 		// same act, so the tool that makes it needs the same attachment registry
 		// the domain does.
 		Layer.provide(SessionFabricLive),
+		Layer.provideMerge(SessionInputsLive(sessionInputsDirectory)),
 	);
 };

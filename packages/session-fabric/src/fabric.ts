@@ -2,6 +2,7 @@ import type {
 	AgentBackend,
 	BackendFailure,
 	OpenSessionOptions,
+	SessionInput,
 } from "@antumbra/plugin-api";
 import { Context, Effect, Layer } from "effect";
 import type { SessionAttachmentFailure, SessionNotLive } from "#errors.ts";
@@ -46,7 +47,7 @@ export interface SessionFabricService {
 	readonly reopenStarts: Effect.Effect<void>;
 	readonly send: (
 		sessionId: string,
-		text: string,
+		input: SessionInput,
 	) => Effect.Effect<void, BackendFailure | SessionNotLive>;
 	// why: the Agent's own declaration that it has nothing left to do. It keeps
 	// its acquisition; only the mark changes, and only when the quiet is new —

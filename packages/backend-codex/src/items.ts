@@ -4,6 +4,7 @@ import type {
 } from "@antumbra/vocabulary/session-events";
 import { Option, Schema } from "effect";
 import { KnownItem } from "#protocol-items.ts";
+import { userMessageEvent } from "#user-message-item.ts";
 
 type Item<T extends KnownItem["type"]> = Extract<KnownItem, { type: T }>;
 
@@ -91,11 +92,6 @@ const toolOutcome = (
 const reasoningText = (item: Item<"reasoning">): string =>
 	[...(item.summary ?? []), ...(item.content ?? [])].join("\n");
 
-const userText = (item: Item<"userMessage">): string =>
-	item.content
-		.flatMap((part) => (part.text === undefined ? [] : [part.text]))
-		.join("\n");
-
 // why: a started tool item is the only start worth an event — message and
 // reasoning starts carry no text yet, their completion is the whole item.
 const knownStarted = (raw: RawPayload, item: KnownItem): AgentEvent[] => {
@@ -127,7 +123,7 @@ const knownCompleted = (raw: RawPayload, item: KnownItem): AgentEvent[] => {
 		case "agentMessage":
 			return [{ raw, role: "agent", text: item.text, type: "message" }];
 		case "userMessage":
-			return [{ raw, role: "user", text: userText(item), type: "message" }];
+			return [userMessageEvent(item, raw)];
 		case "reasoning": {
 			const text = reasoningText(item);
 			return text.length === 0 ? [] : [{ raw, text, type: "thinking" }];

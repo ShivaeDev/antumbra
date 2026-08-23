@@ -47,6 +47,7 @@ export const TranscriptView = ({
 							item={item}
 							key={`${item.seq}-${index}`}
 							onOpenNode={onOpenNode}
+							sessionId={sessionId}
 						/>
 					))
 				)}

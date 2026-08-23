@@ -3,6 +3,7 @@ import {
 	noSessionAudit,
 	type OpenSessionOptions,
 	type SessionHandle,
+	type SessionInput,
 } from "@antumbra/plugin-api";
 import { Effect, Option, Stream } from "effect";
 import type { EventSink } from "#session-attachment.ts";
@@ -30,6 +31,10 @@ export const options: OpenSessionOptions = {
 	tools: [],
 };
 
+export const textInput = (text: string): SessionInput => ({
+	parts: [{ text, type: "text" }],
+});
+
 export const idleHandle: SessionHandle = {
 	events: Stream.empty,
 	interrupt: Effect.void,
@@ -42,7 +47,12 @@ export const scriptedBackend = (
 	openSession: AgentBackend["openSession"],
 ): AgentBackend => ({
 	audit: noSessionAudit,
-	capabilities: { fork: false, liveInterrupt: true, multiClient: false },
+	capabilities: {
+		fork: false,
+		imageInput: false,
+		liveInterrupt: true,
+		multiClient: false,
+	},
 	openSession,
 	tag: "scripted",
 });

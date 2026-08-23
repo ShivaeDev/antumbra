@@ -1,18 +1,21 @@
 import { defineIntent, IntentExecution } from "@antumbra/kernel";
 import type { BackendFailure } from "@antumbra/plugin-api";
-import {
-	type AgentPrompt,
-	admiralWords,
-	standingRecovery,
-} from "@antumbra/prompts";
+import { standingRecovery } from "@antumbra/prompts";
 import { SessionFabric } from "@antumbra/session-fabric";
-import { Effect, Result, Schema } from "effect";
+import { SessionInputs } from "@antumbra/session-inputs";
+import { Effect, Result } from "effect";
 import { makeCurrentSessionRecovery } from "#current-session-recovery.ts";
+import { promptInput } from "#session-input.ts";
 import { makeSessionRecoveryContext } from "#session-recovery-context.ts";
 import {
 	recoveryHeld,
 	type SessionRecoveryHeld,
 } from "#session-recovery-error.ts";
+import {
+	type CarriedInput,
+	makeLoadCarriedInput,
+	RecoveryPayload,
+} from "#session-recovery-input.ts";
 import { SessionRecoveryRuntime } from "#session-recovery-runtime.ts";
 import {
 	type SessionUnresumable,
@@ -26,18 +29,7 @@ import { SessionWakePatience } from "#session-wake-patience.ts";
 // Session and speaking to it are one intent rather than two the caller has to
 // sequence. Absent, the Session is being recovered on Antumbra's initiative
 // and hears the standing instruction instead.
-const RecoveryPayload = Schema.Struct({
-	message: Schema.optional(Schema.String),
-	sessionId: Schema.String,
-});
-export type RecoveryFields = typeof RecoveryPayload.Type;
-
-// why: the payload outlives the process that wrote it, so words that were the
-// admiral's when the Intent was submitted arrive here as ordinary stored text.
-// They re-enter the catalog through the same template that admitted them, and
-// nothing else on this path can turn a string into words an Agent hears.
-const carried = (message: string | undefined): AgentPrompt | undefined =>
-	message === undefined ? undefined : admiralWords({ words: message });
+export type { RecoveryFields } from "#session-recovery-input.ts";
 
 const waitFor = (detail: string) =>
 	IntentExecution.use((execution) => execution.wait(detail));
@@ -45,6 +37,8 @@ const waitFor = (detail: string) =>
 export const makeRecoveryKind = Effect.gen(function* () {
 	const load = yield* makeSessionRecoveryContext;
 	const fabric = yield* SessionFabric;
+	const inputs = yield* SessionInputs;
+	const loadCarriedInput = yield* makeLoadCarriedInput;
 	const patience = yield* SessionWakePatience;
 	const recovery = yield* makeCurrentSessionRecovery;
 	const runtime = yield* SessionRecoveryRuntime;
@@ -55,15 +49,19 @@ export const makeRecoveryKind = Effect.gen(function* () {
 	// are delivered either way; the standing instruction reaches only a Session
 	// that said it had nothing to do, because one mid-turn is already doing the
 	// thing that instruction would ask for.
-	const delivered = (sessionId: string, message: AgentPrompt | undefined) =>
+	const delivered = (sessionId: string, carriedInput: CarriedInput) =>
 		Effect.gen(function* () {
 			const idle = yield* fabric.idleSince;
-			const words =
-				message ?? (idle.has(sessionId) ? standingRecovery : undefined);
-			if (words === undefined) {
+			const input =
+				carriedInput.input ??
+				(idle.has(sessionId) ? promptInput(standingRecovery) : undefined);
+			if (input === undefined) {
 				return;
 			}
-			yield* fabric.send(sessionId, words);
+			yield* fabric.send(sessionId, input);
+			if (carriedInput.inputId !== undefined) {
+				yield* inputs.mark(carriedInput.inputId, "accepted");
+			}
 			const execution = yield* IntentExecution;
 			yield* execution.step("wake-session", recovery.awaken(sessionId));
 		});
@@ -83,7 +81,7 @@ export const makeRecoveryKind = Effect.gen(function* () {
 					}),
 				);
 	};
-	const admitted = (sessionId: string, message: AgentPrompt | undefined) =>
+	const admitted = (sessionId: string, carriedInput: CarriedInput) =>
 		fabric.withStartAdmission((permit) =>
 			Effect.gen(function* () {
 				const context = yield* load(sessionId);
@@ -93,16 +91,19 @@ export const makeRecoveryKind = Effect.gen(function* () {
 				yield* runtime.resume(
 					permit,
 					context.success,
-					message ?? standingRecovery,
+					carriedInput.input ?? promptInput(standingRecovery),
 				);
+				if (carriedInput.inputId !== undefined) {
+					yield* inputs.mark(carriedInput.inputId, "accepted");
+				}
 				const execution = yield* IntentExecution;
 				yield* execution.step("wake-session", recovery.awaken(sessionId));
 			}),
 		);
-	const resumed = (sessionId: string, message: AgentPrompt | undefined) =>
+	const resumed = (sessionId: string, carriedInput: CarriedInput) =>
 		Effect.gen(function* () {
 			if (yield* fabric.holds(sessionId)) {
-				return yield* delivered(sessionId, message);
+				return yield* delivered(sessionId, carriedInput);
 			}
 			// why: every wait between here and a live attachment is somebody else's
 			// to end — the gate that stopped admitting starts, a provider reading its
@@ -112,7 +113,7 @@ export const makeRecoveryKind = Effect.gen(function* () {
 			// later send. Bounded, the same silence becomes a reason on the row that
 			// a later send can push again, and unwinding takes the half-built
 			// attachment with it.
-			yield* admitted(sessionId, message).pipe(
+			yield* admitted(sessionId, carriedInput).pipe(
 				Effect.timeoutOrElse({
 					duration: patience,
 					orElse: () =>
@@ -123,8 +124,10 @@ export const makeRecoveryKind = Effect.gen(function* () {
 			);
 		});
 	return defineIntent({
-		execute: ({ message, sessionId }) =>
-			resumed(sessionId, carried(message)).pipe(
+		execute: (fields) =>
+			Effect.flatMap(loadCarriedInput(fields), (input) =>
+				resumed(fields.sessionId, input),
+			).pipe(
 				Effect.catchTags({
 					BackendFailure: (failure: BackendFailure) => waitFor(failure.message),
 					SessionNotLive: () => waitFor("the attachment went before the words"),

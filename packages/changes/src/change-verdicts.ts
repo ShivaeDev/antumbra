@@ -1,4 +1,8 @@
-import { Database, type PrismaError } from "@antumbra/persistence";
+import {
+	Database,
+	type PrismaError,
+	type WriteExecutors,
+} from "@antumbra/persistence";
 import {
 	type ChangeVerdict,
 	ChangeVerdict as ChangeVerdictSchema,
@@ -34,7 +38,7 @@ export const changeVerdictRow = (row: {
 export const readDismissedChangeIds: Effect.Effect<
 	ReadonlySet<string>,
 	PrismaError | StoredChangeVerdictInvalid,
-	Context.Service.Identifier<typeof Database>
+	Context.Service.Identifier<typeof Database> | WriteExecutors
 > = Effect.gen(function* () {
 	const db = yield* Database;
 	const rows = yield* Effect.forEach(

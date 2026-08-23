@@ -4,6 +4,7 @@ import { BoardPanel } from "#views/board.tsx";
 import { MarkdownView } from "#views/markdown-view.tsx";
 import { PieceActs } from "#views/piece-acts.tsx";
 import { PieceOutcomes } from "#views/piece-outcomes.tsx";
+import { PieceRetire } from "#views/piece-retire.tsx";
 import { dependsOnLabel } from "#voyages/labels.ts";
 
 const AtWork = ({ piece }: { readonly piece: PieceView }) => {
@@ -53,6 +54,7 @@ export const PieceDetail = ({
 			/>
 			<PieceOutcomes onError={onError} piece={piece} />
 			<PieceActs onError={onError} piece={piece} pieces={pieces} />
+			<PieceRetire onError={onError} piece={piece} />
 		</div>
 	);
 };

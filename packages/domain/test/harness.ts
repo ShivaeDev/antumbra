@@ -1,7 +1,6 @@
 import { dirname, join } from "node:path";
 import { IntentDemandLive } from "@antumbra/intent-demand";
 import { KernelLive, type KernelOptions } from "@antumbra/kernel";
-import { Database } from "@antumbra/persistence";
 import {
 	type TemporaryPersistence,
 	temporaryPersistence,
@@ -168,33 +167,7 @@ export const makeScriptedBackend = Effect.gen(function* () {
 	} satisfies ScriptedBackend;
 });
 
-// why: a test reaches an agent the way the app does — through the session row
-// the spawn wrote — so nothing has to be threaded out of the intent.
-export const sessionFor = (scripted: ScriptedBackend, agentId: string) =>
-	Effect.gen(function* () {
-		const db = yield* Database;
-		const row = (yield* db.AgentSession.where({ agentId }).all())[0];
-		if (row === undefined) {
-			return yield* Effect.fail("no session yet");
-		}
-		const live = yield* scripted.session(row.id);
-		return live === undefined
-			? yield* Effect.fail("the session is not scripted")
-			: live;
-	});
-
-export const callTool = (
-	session: ScriptedSession,
-	name: string,
-	args: unknown,
-) =>
-	Option.match(
-		Option.fromUndefinedOr(session.tools.find((tool) => tool.name === name)),
-		{
-			onNone: () => Effect.die(`the session has no ${name} tool`),
-			onSome: (tool) => tool.call(args),
-		},
-	);
+export { callTool, sessionFor, standDown } from "#test/session-reach.ts";
 
 export const passiveRunner: Runner = {
 	captureChange: (berth) =>
@@ -261,6 +234,9 @@ export const domainKernelLayer = (
 				reclaim,
 			).pipe(Layer.provide(NodeServices.layer)),
 		),
+		// why: the domain's own clock-driven passes read the catalog, so the
+		// settings stand under it here exactly as they do in the app.
+		Layer.provideMerge(SettingsSourceLive),
 		Layer.provideMerge(temporary.layer),
 	);
 
@@ -273,7 +249,6 @@ export const dispatchingLayer = (
 	changeHosts: ReadonlyMap<string, ChangeHost> = new Map(),
 ) =>
 	DispatcherLive(dispatcher).pipe(
-		Layer.provideMerge(SettingsSourceLive),
 		Layer.provideMerge(
 			domainKernelLayer(temporary, backend, options, runner, changeHosts),
 		),

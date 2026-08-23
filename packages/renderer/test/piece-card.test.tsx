@@ -30,6 +30,7 @@ const soundings: PieceView = {
 			register: "smooth",
 		},
 	],
+	canRetireCrew: false,
 	changes: [],
 	charter,
 	dependsOn: ["piece-2"],

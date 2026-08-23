@@ -102,6 +102,10 @@ export class SightSource extends Context.Service<
 			registration: RepoRegistration,
 		) => Effect.Effect<RepoSummary, SightFailure>;
 		readonly retire: (agentId: string) => Effect.Effect<void, SightFailure>;
+		// why: releasing the hands that finished a piece is one act, not one per
+		// agent — the piece is what the admiral is looking at, and which agents
+		// answer for it is the claim's business rather than the window's.
+		readonly retireCrew: (pieceId: string) => Effect.Effect<void, SightFailure>;
 		readonly send: (
 			sessionId: string,
 			text: string,

@@ -1,6 +1,4 @@
 import type {
-	EventQuery,
-	SessionEvent,
 	SessionImageRequest,
 	SessionInputReceipt,
 	SessionInputRequest,
@@ -9,20 +7,12 @@ import { SessionImage } from "@antumbra/contract";
 import { Result, Schema } from "effect";
 import { client, toError } from "#adapters/bridge.ts";
 
-export type Unsubscribe = () => void;
-const decodeSessionImage = Schema.decodeUnknownResult(SessionImage);
+// why: the acts addressed at one Session, which is a narrower thing than the
+// acts addressed at the fleet. Speaking to a Session, putting it to rest, and
+// reading back what it was handed all name the same subject, and none of them
+// is a standing question — those live with the other feeds.
 
-export const watchSessionEvents = (
-	query: EventQuery,
-	onEvent: (event: SessionEvent) => void,
-	onError: (message: string) => void,
-): Unsubscribe => {
-	const subscription = client.sessionEventFeed.subscribe(query, {
-		onData: onEvent,
-		onError: (cause) => onError(toError(cause).message),
-	});
-	return () => subscription.unsubscribe();
-};
+const decodeSessionImage = Schema.decodeUnknownResult(SessionImage);
 
 export const interruptSession = (
 	sessionId: string,

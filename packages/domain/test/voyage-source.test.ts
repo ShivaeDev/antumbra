@@ -228,7 +228,7 @@ it.live("the feed follows an agent's status with no voyage row touched", () =>
 				source.voyageFeed(opened.id),
 				captainRetired,
 			);
-			yield* retireOneAlive;
+			yield* retireOneAlive(scripted);
 			const seen = yield* Fiber.join(watcher);
 			expect(seen[0]?.captain?.agentId).toBe(hailed.agentId);
 			expect(seen[0]?.state).toBe("quiet");

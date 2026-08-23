@@ -12,6 +12,7 @@ import {
 	makeScriptedBackend,
 	rawOf,
 	type ScriptedBackend,
+	standDown,
 } from "#test/harness.ts";
 
 const eventually = <A, E, R>(check: Effect.Effect<A, E, R>) =>
@@ -220,6 +221,7 @@ it.live("retire through sight lands on the fleet as retired and closed", () =>
 					expect(agent?.status).toBe("alive");
 				}),
 			);
+			yield* standDown(scripted, receipt.agentId);
 			yield* sight.retire(receipt.agentId);
 			yield* eventually(
 				Effect.gen(function* () {

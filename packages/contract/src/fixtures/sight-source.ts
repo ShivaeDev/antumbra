@@ -20,14 +20,15 @@ export const sightFixture = (feeds: FixtureFeeds) =>
 				source: registration.source,
 			}),
 		retire: () => Effect.void,
-		sendInput: (request) =>
-			Effect.succeed({ id: request.id, status: "accepted" as const }),
+		retireCrew: () => Effect.void,
 		send: (sessionId, text) =>
 			text === ""
 				? new SightFailure({
 						message: `a message with no words cannot reach session ${sessionId}`,
 					})
 				: Effect.void,
+		sendInput: (request) =>
+			Effect.succeed({ id: request.id, status: "accepted" as const }),
 		sessionImage: () =>
 			Effect.succeed({
 				bytes: new Uint8Array(),

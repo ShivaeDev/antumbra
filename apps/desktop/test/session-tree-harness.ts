@@ -13,6 +13,7 @@ import {
 import {
 	AgentDomain,
 	AgentDomainLive,
+	SettingsSourceLive,
 	SightSourceLive,
 } from "@antumbra/domain";
 import { KernelLive } from "@antumbra/kernel";
@@ -139,6 +140,7 @@ const domainLayer = (temporary: TemporaryPersistence, backend: AgentBackend) =>
 		join(dirname(temporary.database), "session-inputs"),
 	).pipe(
 		Layer.provide(NodeServices.layer),
+		Layer.provideMerge(SettingsSourceLive),
 		Layer.provideMerge(temporary.layer),
 	);
 

@@ -1,16 +1,13 @@
 import type {
 	AppInfo,
-	Fleet,
 	RepoRegistration,
 	RepoSummary,
-	SessionTree,
 	SituationDraft,
 	SpawnReceipt,
 	SpawnRequest,
 } from "@antumbra/contract";
 import { Data, Effect } from "effect";
 import { client, toError } from "#adapters/bridge.ts";
-import type { Unsubscribe } from "#adapters/trpc-session.ts";
 
 export {
 	interruptSession,
@@ -18,9 +15,13 @@ export {
 	sendSessionInput,
 	sendToSession,
 	sleepSession,
-	type Unsubscribe,
-	watchSessionEvents,
 } from "#adapters/trpc-session.ts";
+export {
+	type Unsubscribe,
+	watchFleet,
+	watchSessionEvents,
+	watchSessionTree,
+} from "#adapters/trpc-watches.ts";
 
 class AppInfoLoadError extends Data.TaggedError("AppInfoLoadError")<{
 	readonly message: string;
@@ -31,32 +32,6 @@ export const loadAppInfo: Effect.Effect<AppInfo, AppInfoLoadError> =
 		catch: (cause) => new AppInfoLoadError({ message: String(cause) }),
 		try: () => client.appInfo.query(),
 	});
-
-export const watchFleet = (
-	onFleet: (fleet: Fleet) => void,
-	onError: (message: string) => void,
-): Unsubscribe => {
-	const subscription = client.fleetFeed.subscribe(undefined, {
-		onData: onFleet,
-		onError: (cause) => onError(toError(cause).message),
-	});
-	return () => subscription.unsubscribe();
-};
-
-export const watchSessionTree = (
-	rootSessionId: string,
-	onTree: (tree: SessionTree) => void,
-	onError: (message: string) => void,
-): Unsubscribe => {
-	const subscription = client.sessionTreeFeed.subscribe(
-		{ rootSessionId },
-		{
-			onData: onTree,
-			onError: (cause) => onError(toError(cause).message),
-		},
-	);
-	return () => subscription.unsubscribe();
-};
 
 export const spawnAgent = (
 	request: SpawnRequest,
@@ -75,6 +50,16 @@ export const retireAgent = (
 ): void => {
 	client.retireAgent
 		.mutate({ agentId })
+		.then(() => undefined)
+		.catch((cause: unknown) => onError(toError(cause).message));
+};
+
+export const retirePieceCrew = (
+	pieceId: string,
+	onError: (message: string) => void,
+): void => {
+	client.retirePieceCrew
+		.mutate({ pieceId })
 		.then(() => undefined)
 		.catch((cause: unknown) => onError(toError(cause).message));
 };

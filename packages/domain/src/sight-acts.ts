@@ -11,11 +11,13 @@ import type {
 	SpawnRequest,
 } from "@antumbra/contract";
 import { Kernel } from "@antumbra/kernel";
+import { Database } from "@antumbra/persistence";
 import { admiralWords } from "@antumbra/prompts";
 import { SessionInputs } from "@antumbra/session-inputs";
 import { Effect } from "effect";
 import { AgentDomain } from "#agent-domain-service.ts";
 import { SessionMessageEmpty } from "#errors.ts";
+import { retirePieceCrew } from "#retire-crew.ts";
 import { writeProvider } from "#sight-executors.ts";
 import { toFailure } from "#sight-failure.ts";
 import { makeSituationDraft } from "#situation-draft.ts";
@@ -27,6 +29,7 @@ export interface SightActs {
 		registration: RepoRegistration,
 	) => Effect.Effect<RepoSummary, SightFailure>;
 	readonly retire: (agentId: string) => Effect.Effect<void, SightFailure>;
+	readonly retireCrew: (pieceId: string) => Effect.Effect<void, SightFailure>;
 	readonly send: (
 		sessionId: string,
 		text: string,
@@ -47,6 +50,7 @@ export interface SightActs {
 }
 
 export const makeSightActs = Effect.gen(function* () {
+	const db = yield* Database;
 	const domain = yield* AgentDomain;
 	const kernel = yield* Kernel;
 	const inputs = yield* SessionInputs;
@@ -65,6 +69,13 @@ export const makeSightActs = Effect.gen(function* () {
 				Effect.asVoid,
 				Effect.mapError(toFailure),
 			),
+		retireCrew: (pieceId) =>
+			provide(
+				retirePieceCrew(domain.retire, pieceId).pipe(
+					Effect.provideService(Database, db),
+					Effect.provideService(Kernel, kernel),
+				),
+			).pipe(Effect.mapError(toFailure)),
 		// why: the admiral speaks to a Session that is live right now; a Session
 		// with no attachment refuses rather than holding the words for later.
 		send: (sessionId, text) =>

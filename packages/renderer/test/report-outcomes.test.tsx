@@ -47,6 +47,7 @@ const piece: PieceView = {
 	artifactHistory: [],
 	artifacts: [],
 	board: [],
+	canRetireCrew: false,
 	changes: [],
 	charter: "sound the eastern shoal",
 	dependsOn: [],

@@ -82,15 +82,6 @@ minimumReleaseAgeIgnoreMissingTime: false
 minimumReleaseAgeStrict: true
 minimumReleaseAgeExclude:
   - "@shivaedev/*"
-  # The 4.0 release candidate is younger than the quarantine window. Pinned to
-  # the exact versions in the catalog, never the package name, so a fresh
-  # release cannot slip in unreviewed; the last entry is a transitive
-  # dependency of @effect/platform-node. Remove all four once 2026-08-19
-  # passes and the window covers them.
-  - "effect@4.0.0-rc.108"
-  - "@effect/vitest@4.0.0-rc.108"
-  - "@effect/platform-node@4.0.0-rc.108"
-  - "@effect/platform-node-shared@4.0.0-rc.108"
 trustPolicy: no-downgrade
 trustLockfile: false
 blockExoticSubdeps: true

@@ -5,6 +5,7 @@ import {
 import {
 	Changes,
 	type StoredChangeInvalid,
+	type StoredChangeVerdictInvalid,
 	type StoredPieceChangeInvalid,
 } from "@antumbra/changes";
 import {
@@ -12,6 +13,10 @@ import {
 	type PrismaError,
 	type WriteExecutors,
 } from "@antumbra/persistence";
+import {
+	readPieceVerdicts,
+	type StoredPieceVerdictInvalid,
+} from "@antumbra/pieces";
 import {
 	decodeSessionExecutionStatus,
 	decodeStoredAgentSessionStatus,
@@ -39,7 +44,9 @@ export type VoyageWorldReadFailure =
 	| StoredAgentSessionStatusInvalid
 	| StoredAgentStatusInvalid
 	| StoredChangeInvalid
-	| StoredPieceChangeInvalid;
+	| StoredChangeVerdictInvalid
+	| StoredPieceChangeInvalid
+	| StoredPieceVerdictInvalid;
 
 export class VoyageWorldSource extends Context.Service<
 	VoyageWorldSource,
@@ -65,7 +72,8 @@ const voyageWorld: Effect.Effect<
 			Effect.map((status) => [agent.id, status] as const),
 		),
 	);
-	const { changes, pieceChanges } = yield* changeSnapshot.snapshot;
+	const { changes, dismissedChangeIds, pieceChanges } =
+		yield* changeSnapshot.snapshot;
 	const sessions = yield* Effect.forEach(
 		yield* db.AgentSession.where(rootSessions).all(),
 		(session) =>
@@ -103,10 +111,12 @@ const voyageWorld: Effect.Effect<
 		assignments: yield* db.PieceAgent.all(),
 		changes,
 		crews: yield* db.VoyageAgent.all(),
+		dismissedChangeIds,
 		edges: yield* db.PieceEdge.all(),
 		memberships: yield* db.VoyagePiece.all(),
 		pieceChanges,
 		pieceReports: yield* db.PieceReport.all(),
+		pieceVerdicts: yield* readPieceVerdicts,
 		pieces,
 		reports: byId((yield* db.Report.all()).map(reportRow)),
 		repos: byId((yield* db.Repo.all()).map(repoRow)),

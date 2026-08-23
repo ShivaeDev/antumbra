@@ -7,16 +7,25 @@ import { type Context, Effect } from "effect";
 import { changeRow } from "#change-read.ts";
 import type { ChangeRow, PieceChangeRow } from "#change-rows.ts";
 import { pieceChangeRow } from "#change-rows.ts";
-import type { StoredChangeInvalid, StoredPieceChangeInvalid } from "#errors.ts";
+import { readDismissedChangeIds } from "#change-verdicts.ts";
+import type {
+	StoredChangeInvalid,
+	StoredChangeVerdictInvalid,
+	StoredPieceChangeInvalid,
+} from "#errors.ts";
 
 export interface ChangeSnapshot {
 	readonly changes: ReadonlyArray<ChangeRow>;
+	readonly dismissedChangeIds: ReadonlySet<string>;
 	readonly pieceChanges: ReadonlyArray<PieceChangeRow>;
 }
 
 export const readChangeSnapshot: Effect.Effect<
 	ChangeSnapshot,
-	PrismaError | StoredChangeInvalid | StoredPieceChangeInvalid,
+	| PrismaError
+	| StoredChangeInvalid
+	| StoredChangeVerdictInvalid
+	| StoredPieceChangeInvalid,
 	Context.Service.Identifier<typeof Database> | WriteExecutors
 > = Effect.gen(function* () {
 	const db = yield* Database;
@@ -30,5 +39,9 @@ export const readChangeSnapshot: Effect.Effect<
 		yield* db.PieceChange.all(),
 		pieceChangeRow,
 	);
-	return { changes, pieceChanges };
+	return {
+		changes,
+		dismissedChangeIds: yield* readDismissedChangeIds,
+		pieceChanges,
+	};
 });

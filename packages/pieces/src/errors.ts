@@ -14,5 +14,16 @@ export class VoyageNotFound extends Data.TaggedError("VoyageNotFound")<{
 	readonly voyageId: string;
 }> {}
 
+export class StoredPieceVerdictInvalid extends Data.TaggedError(
+	"StoredPieceVerdictInvalid",
+)<{
+	readonly detail: string;
+	readonly pieceId: string;
+}> {
+	override get message(): string {
+		return `stored verdict on Piece ${this.pieceId} is invalid: ${this.detail}`;
+	}
+}
+
 export type EdgeFailure = EdgeWouldCycle | PieceNotFound | PrismaError;
 export type CharterFailure = EdgeFailure | VoyageNotFound;

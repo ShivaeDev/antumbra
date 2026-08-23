@@ -20,7 +20,10 @@ import type {
 	SubmitChangeInput,
 } from "#change-submissions/model.ts";
 import type {
+	ChangeNotFound,
+	ChangeStillAlive,
 	StoredChangeInvalid,
+	StoredChangeVerdictInvalid,
 	StoredPieceChangeInvalid,
 	UnknownChangeHostTag,
 } from "#errors.ts";
@@ -32,11 +35,20 @@ export class Changes extends Context.Service<
 		readonly adopt: (
 			input: AdoptChangeInput,
 		) => Effect.Effect<ChangeRow, AdoptChangeFailure>;
+		// why: the admiral's terminal acknowledgement of a change that died at its
+		// host. It settles what the change is still owed without deleting the
+		// record of what happened to it.
+		readonly dismiss: (
+			changeId: string,
+		) => Effect.Effect<void, ChangeNotFound | ChangeStillAlive | PrismaError>;
 		readonly heldResources: (
 			resources: ReadonlyArray<HeldResource>,
 		) => Effect.Effect<
 			ReadonlyMap<string, string>,
-			PrismaError | StoredChangeInvalid | StoredPieceChangeInvalid,
+			| PrismaError
+			| StoredChangeInvalid
+			| StoredChangeVerdictInvalid
+			| StoredPieceChangeInvalid,
 			WriteExecutors
 		>;
 		readonly observed: (
@@ -69,7 +81,10 @@ export class Changes extends Context.Service<
 		>;
 		readonly snapshot: Effect.Effect<
 			ChangeSnapshot,
-			PrismaError | StoredChangeInvalid | StoredPieceChangeInvalid
+			| PrismaError
+			| StoredChangeInvalid
+			| StoredChangeVerdictInvalid
+			| StoredPieceChangeInvalid
 		>;
 		readonly submit: (
 			input: SubmitChangeInput,

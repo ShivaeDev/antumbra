@@ -9,6 +9,7 @@ export {
 export {
 	EdgeWouldCycle,
 	PieceNotFound,
+	StoredPieceVerdictInvalid,
 	VoyageNotFound,
 } from "@antumbra/pieces";
 export {
@@ -27,6 +28,11 @@ export {
 	AgentSessionConflict,
 	CurrentSessionInvalid,
 } from "#current-session-errors.ts";
+export {
+	PieceAbandoned,
+	PieceAlreadyCrewed,
+	PieceNotOnVoyage,
+} from "#piece-work-errors.ts";
 
 export class AgentNotFound extends Data.TaggedError("AgentNotFound")<{
 	readonly agentId: string;

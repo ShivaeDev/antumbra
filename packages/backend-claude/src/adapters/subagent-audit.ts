@@ -86,10 +86,16 @@ const inTime = (
 // still never tails disk — this runs after a node has stopped talking, asks
 // what the provider kept, and compares it with what the record holds.
 export const claudeAudit: SessionAudit = {
+	// why: this provider says when a delegated agent finished, on the stream that
+	// carried it, so nothing here needs a second word on which children are
+	// running. The census lists nobody and speaks only about what was missed.
 	census: (request) =>
-		inTime(
-			Effect.promise(() => takeCensus(request)),
-			`the census of ${request.rootRef} did not answer in time`,
+		Effect.map(
+			inTime(
+				Effect.promise(() => takeCensus(request)),
+				`the census of ${request.rootRef} did not answer in time`,
+			),
+			(events) => ({ events, nodes: [] }),
 		),
 	node: (request) =>
 		Effect.flatMap(request.recorded, (recorded) =>

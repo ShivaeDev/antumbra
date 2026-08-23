@@ -21,6 +21,26 @@ export interface SessionCensusRequest {
 	readonly rootRef: string;
 }
 
+// why: one node a census listed, and the provider's own word on whether a turn
+// is under way in it right now. Working is a fact about the child and never
+// about its row: a row stays open until something ends it, and a provider that
+// never says a child finished would otherwise leave one open for good.
+export interface CensusedNode {
+	readonly nodeRef: string;
+	readonly working: boolean;
+}
+
+// why: what a census concluded. The events are the findings the record
+// journals; the nodes are the listing they were read from. The listing cannot
+// ride on the events, because the children it has most to say about are the
+// ones the record already knows — for those a census has nothing to announce
+// and everything to confirm. A census that could not be taken lists nobody,
+// which asserts nothing rather than calling a whole tree at rest.
+export interface SessionCensus {
+	readonly events: ReadonlyArray<AgentEvent>;
+	readonly nodes: ReadonlyArray<CensusedNode>;
+}
+
 // why: an audit reads and never attaches. Both answers are neutral events the
 // record journals as it journals a live frame, so a finding travels the one
 // path the log already has instead of a second writer of its own. Neither can
@@ -29,7 +49,7 @@ export interface SessionCensusRequest {
 export interface SessionAudit {
 	readonly census: (
 		request: SessionCensusRequest,
-	) => Effect.Effect<ReadonlyArray<AgentEvent>>;
+	) => Effect.Effect<SessionCensus>;
 	readonly node: (
 		request: NodeAuditRequest,
 	) => Effect.Effect<ReadonlyArray<AgentEvent>>;
@@ -40,6 +60,6 @@ export interface SessionAudit {
 // than leaving the capability optional, which would read as "perhaps" at every
 // call site that has to decide what an absent audit means.
 export const noSessionAudit: SessionAudit = {
-	census: () => Effect.succeed([]),
+	census: () => Effect.succeed({ events: [], nodes: [] }),
 	node: () => Effect.succeed([]),
 };

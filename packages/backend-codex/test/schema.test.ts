@@ -28,6 +28,7 @@ const Definition = Schema.Struct({
 	enum: Schema.optional(Schema.Array(Schema.String)),
 	oneOf: Schema.optional(Schema.Array(Variant)),
 	properties: Schema.optional(Schema.Record(Schema.String, Schema.Unknown)),
+	required: Schema.optional(Schema.Array(Schema.String)),
 });
 const SchemaFile = Schema.Struct({
 	definitions: Schema.Record(Schema.String, Definition),
@@ -174,6 +175,21 @@ describe("the codex protocol slice agrees with the pinned schema bundle", () => 
 			(variant) => variant.properties?.method?.enum ?? [],
 		);
 		expect(methods).toContain("thread/list");
+	});
+
+	// why: every row a listing returns carries a status, and it is the only word
+	// the record ever gets about whether a delegated child is still running once
+	// the stream that carried it is gone. A pin that renamed a variant, or made
+	// the field optional, would leave a census unable to tell a working child
+	// from a resting one — so the four words and the requirement are held here.
+	it("every listed thread says whether work is under way in it", () => {
+		expect(bundle.definitions.Thread?.required ?? []).toContain("status");
+		expect(variantTypes("ThreadStatus")).toEqual([
+			"notLoaded",
+			"idle",
+			"systemError",
+			"active",
+		]);
 	});
 
 	// why: the ancestor filter is experimental API, and app-server refuses it

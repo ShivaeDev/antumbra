@@ -34,8 +34,13 @@ export interface SessionAttachmentRegistry {
 		input: SessionInput,
 	) => Effect.Effect<void, BackendFailure | SessionNotLive>;
 	readonly standDown: (sessionId: string) => Effect.Effect<void>;
+	readonly stirrings: (sessionId: string) => Effect.Effect<number>;
 	readonly stop: (sessionId: string) => Effect.Effect<void>;
 	readonly stopIdle: (sessionId: string) => Effect.Effect<boolean>;
+	readonly turnEnded: (
+		sessionId: string,
+		stirrings: number,
+	) => Effect.Effect<boolean>;
 }
 
 export const makeSessionAttachmentRegistry = Effect.gen(function* () {
@@ -82,7 +87,12 @@ export const makeSessionAttachmentRegistry = Effect.gen(function* () {
 							options,
 							sink,
 						);
-						entry = { agentId, attachment, idleSince: undefined };
+						entry = {
+							agentId,
+							attachment,
+							idleSince: undefined,
+							stirrings: 0,
+						};
 						yield* entries.insert(options.sessionId, entry);
 					}
 					yield* admit(entry.attachment);
@@ -123,8 +133,13 @@ export const makeSessionAttachmentRegistry = Effect.gen(function* () {
 			Effect.flatMap(Clock.currentTimeMillis, (now) =>
 				entries.rest(sessionId, now),
 			),
+		stirrings: entries.stirrings,
 		stop: remove,
 		stopIdle: (sessionId) =>
 			entries.take(sessionId, (entry) => entry.idleSince !== undefined),
+		turnEnded: (sessionId, stirrings) =>
+			Effect.flatMap(Clock.currentTimeMillis, (now) =>
+				entries.restUnstirred(sessionId, now, stirrings),
+			),
 	} satisfies SessionAttachmentRegistry;
 });

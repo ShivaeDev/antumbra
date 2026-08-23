@@ -165,7 +165,15 @@ it.live(
 				expect(yield* db.Agent.all()).toHaveLength(1);
 				expect(yield* db.AgentSession.all()).toHaveLength(1);
 				expect(yield* db.VoyageAgent.all()).toHaveLength(1);
-				expect(yield* executionOf(session.id)).toBe("active");
+				// why: a resume hands over its words before it confirms the opening,
+				// so the provider having heard them is not yet the resume being over.
+				// The row that says this Session is working is written once the
+				// attachment stands, which is a moment later.
+				yield* eventually(
+					Effect.gen(function* () {
+						expect(yield* executionOf(session.id)).toBe("active");
+					}),
+				);
 			}).pipe(Effect.provide(domainKernelLayer(temporary, backend)));
 		}),
 );

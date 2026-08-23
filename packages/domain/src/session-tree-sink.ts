@@ -13,6 +13,7 @@ import { streamDetachedGap } from "#session-tree-gaps.ts";
 import { makeSessionTreeLifecycle } from "#session-tree-lifecycle.ts";
 import { LiveDelegations } from "#session-tree-live.ts";
 import { makeSessionTreeSweeps } from "#session-tree-sweeps.ts";
+import { makeSessionTurnRests } from "#session-turn-rest.ts";
 
 type SubsessionOpened = Extract<AgentEvent, { type: "subsession.opened" }>;
 type RecordEvent = (event: AgentEvent) => Effect.Effect<boolean>;
@@ -35,6 +36,7 @@ export const makeSessionTreeSinks = Effect.gen(function* () {
 	const lifecycle = yield* makeSessionTreeLifecycle;
 	const sweepsFor = yield* makeSessionTreeSweeps;
 	const live = yield* LiveDelegations;
+	const turnRestFor = yield* makeSessionTurnRests;
 	const sinkFor: SinkFor = (rootSessionId, audit) =>
 		Effect.gen(function* () {
 			const tree = yield* Ref.make(emptySessionTree);
@@ -52,6 +54,7 @@ export const makeSessionTreeSinks = Effect.gen(function* () {
 					? live.began(rootSessionId, nodeSessionId)
 					: live.ended(rootSessionId, nodeSessionId);
 			const sweeps = yield* sweepsFor(audit, rootSessionId, censused);
+			const turns = yield* turnRestFor(rootSessionId);
 			// why: a tool call is remembered against the journal it was written to,
 			// because that is the only place the spawner of the node it starts is
 			// recorded — at depth two the caller is a node, not the root.
@@ -110,7 +113,12 @@ export const makeSessionTreeSinks = Effect.gen(function* () {
 				};
 				return self;
 			};
-			const record = recording(true);
+			// why: only a frame arriving live says what the Session is doing now. A
+			// census replays what it already did, and an ending replayed there would
+			// rest a Session that has been given new work since.
+			const streamed = recording(true);
+			const record: RecordEvent = (event) =>
+				streamed(event).pipe(Effect.tap(() => turns.observed(event)));
 			// why: silence is not an ending. A node whose stream stopped mid-run
 			// would otherwise stay open with nothing in its journal to say why, so
 			// the loss is written on the node's own key before the pump is gone.

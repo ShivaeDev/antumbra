@@ -3,9 +3,8 @@ import { refreshChanges } from "#adapters/trpc-quay.ts";
 import { Badge } from "#components/ui/badge.tsx";
 import { Button } from "#components/ui/button.tsx";
 import { useCall } from "#hooks/call.ts";
-import { lastSight, type QuayFilter } from "#quay/groups.ts";
+import { lastSight } from "#quay/groups.ts";
 import { AdoptChangeDialog } from "#views/adopt-change-dialog.tsx";
-import { QuayFilterBar } from "#views/quay-filter.tsx";
 import { whenLabel } from "#voyages/labels.ts";
 
 // why: a host that cannot act says so in its own words — signed in as whom, or
@@ -20,15 +19,27 @@ const HostLine = ({ host }: { readonly host: HostCapabilityView }) => (
 	</div>
 );
 
+const HeaderTitle = ({ sighted }: { readonly sighted: string | undefined }) => (
+	<div>
+		<div className="flex items-baseline gap-2">
+			<h2 className="text-base">The quay</h2>
+			{sighted === undefined ? null : (
+				<span className="text-2xs text-muted-foreground">
+					sighted {whenLabel(sighted)}
+				</span>
+			)}
+		</div>
+		<p className="text-2xs text-muted-foreground">
+			Pull requests waiting on review, checks or merge.
+		</p>
+	</div>
+);
+
 export const QuayHeader = ({
 	onError,
-	onOnly,
-	only,
 	view,
 }: {
 	readonly onError: (message: string) => void;
-	readonly onOnly: (only: QuayFilter) => void;
-	readonly only: QuayFilter;
 	readonly view: QuayView;
 }) => {
 	const asking = useCall<void>();
@@ -40,13 +51,8 @@ export const QuayHeader = ({
 	};
 	return (
 		<header className="flex flex-col gap-2 border-border border-b px-4 py-3">
-			<div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-				<h2 className="text-base">The quay</h2>
-				{sighted === undefined ? null : (
-					<span className="text-2xs text-muted-foreground">
-						sighted {whenLabel(sighted)}
-					</span>
-				)}
+			<div className="flex flex-wrap items-start gap-x-3 gap-y-1">
+				<HeaderTitle sighted={sighted} />
 				<div className="ml-auto flex items-center gap-1.5">
 					<AdoptChangeDialog pieces={view.pieces} />
 					<Button
@@ -59,7 +65,6 @@ export const QuayHeader = ({
 					</Button>
 				</div>
 			</div>
-			<QuayFilterBar onOnly={onOnly} only={only} view={view} />
 			{view.hosts.length === 0 ? (
 				<span className="text-2xs text-muted-foreground">
 					No change host is registered

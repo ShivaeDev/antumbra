@@ -331,3 +331,9 @@ model BoardOwner {
 
   @@unique([ownerKind, ownerId])
 }
+
+model Setting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @default(now())
+}

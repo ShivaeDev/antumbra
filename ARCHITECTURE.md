@@ -100,6 +100,15 @@ delivery — name that type and prose assembled anywhere else does not compile.
 Words the admiral types are not an exception hidden in a seam; they are their
 own template, and the two places text enters from outside the process call it.
 
+Settings are a closed set too, and they live in `contract` because the window
+and the work both read them. One catalog holds every setting an admiral can
+change: its key, the Schema its value must satisfy, the value Antumbra uses
+until someone says otherwise, and the sentence a surface shows. A key the
+catalog does not hold cannot be read, stored, or drawn, so a feature wanting a
+knob adds a line there rather than a flag of its own. A row exists only where
+someone overrode the catalog, reads go through to the rows every time, and a
+stored value that no longer decodes gives way to the declared one.
+
 `intent-demand` is the process-lifetime bridge between capability-owned durable
 demand and Kernel-owned mortal Intents. Capabilities close typed discovery
 registrations before handing them down; the bridge imports only Kernel and

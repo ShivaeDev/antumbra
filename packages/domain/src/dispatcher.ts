@@ -26,7 +26,7 @@ const onePass = (
 		const source = yield* VoyageWorldSource;
 		const settings = yield* SettingsSource;
 		const effectiveMaxAlive =
-			maxAlive ?? (yield* settings.current).maxParallelSessions;
+			maxAlive ?? (yield* settings.current).settings.maxParallelSessions;
 		const now = yield* Clock.currentTimeMillis;
 		const world = yield* source.read;
 		const allowed = yield* dispatchable(port.state, now);

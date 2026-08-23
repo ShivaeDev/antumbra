@@ -17,7 +17,10 @@ export const SessionMessage = ({
 	readonly onError: (message: string) => void;
 	readonly sessionId: string;
 }) => {
-	const { blocked, session, standing } = sessionMessageState(fleet, sessionId);
+	const { blocked, reason, session, standing } = sessionMessageState(
+		fleet,
+		sessionId,
+	);
 	const fileInput = useRef<HTMLInputElement>(null);
 	const draft = useSessionDraft({
 		canAttach: session?.canAttachImages ?? false,
@@ -116,6 +119,11 @@ export const SessionMessage = ({
 			) : null}
 			{standing === undefined ? null : (
 				<span className="text-2xs text-muted-foreground">{standing}</span>
+			)}
+			{reason === undefined ? null : (
+				<span className="font-mono text-2xs text-muted-foreground">
+					{reason}
+				</span>
 			)}
 			{draft.issue === undefined ? null : (
 				<span className="text-2xs text-destructive" role="alert">

@@ -61,7 +61,15 @@ const sessionDemands = Effect.gen(function* () {
 		const executionStatus = yield* Effect.fromResult(
 			decodeSessionExecutionStatus(session.id, session.executionStatus),
 		);
-		if (executionStatus === "active") {
+		const held = attached.has(session.id);
+		// why: a row saying active outlives the process that made it true, so the
+		// fact recover answers is the missing attachment rather than the row. A
+		// Session this process still holds already has the one thing a resume
+		// would go and get, and recovering it again changes nothing the demand
+		// reads — so the ask would repeat every pass for as long as the execution
+		// lasts. Asking only for the ones nothing is holding is what lets the
+		// demand go quiet: the resume it caused is what makes it ineligible.
+		if (executionStatus === "active" && !held) {
 			recover.push({ sessionId: session.id });
 		}
 		// why: an idle Session held past the threshold is put to siesta by the
@@ -76,7 +84,7 @@ const sessionDemands = Effect.gen(function* () {
 		const restful = sessionAtRest({
 			delegating: delegating.has(session.id),
 			presence: sessionPresence({
-				attached: attached.has(session.id),
+				attached: held,
 				executionStatus,
 				open: true,
 			}),

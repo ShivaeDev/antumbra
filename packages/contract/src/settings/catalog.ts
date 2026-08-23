@@ -1,0 +1,38 @@
+import { Schema } from "effect";
+import { count, flag, type SettingDeclaration } from "#settings/declaration.ts";
+
+export const SETTING_KEYS = [
+	"maxParallelSessions",
+	"retireRestMinutes",
+	"retireSweep",
+] as const;
+
+export const SettingKey = Schema.Literals(SETTING_KEYS);
+export type SettingKey = typeof SettingKey.Type;
+
+// why: this is the whole of what the admiral can set. A key that is not here
+// has no schema, no value to fall back to and no sentence to show, so nothing
+// can read it, store it or draw it — which is what stops the next feature from
+// growing a flag of its own beside this list.
+export const SETTINGS = {
+	maxParallelSessions: count({
+		description: "How many agent sessions may run at once.",
+		fallback: 4,
+		least: 1,
+		most: 64,
+		title: "Maximum parallel sessions",
+	}),
+	retireRestMinutes: count({
+		description:
+			"How long an agent must have rested before the sweep may retire it.",
+		fallback: 15,
+		least: 1,
+		most: 1440,
+		title: "Rest before retirement, in minutes",
+	}),
+	retireSweep: flag({
+		description: "Retire agents that have rested longer than the threshold.",
+		fallback: true,
+		title: "Retire rested agents",
+	}),
+} as const satisfies Record<SettingKey, SettingDeclaration>;

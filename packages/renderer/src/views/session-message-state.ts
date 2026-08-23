@@ -1,5 +1,13 @@
-import type { Fleet, SessionSummary } from "@antumbra/contract";
-import { presenceNote, wakeNote } from "#views/session-presence-words.ts";
+import type {
+	Fleet,
+	IntentDiagnostic,
+	SessionSummary,
+} from "@antumbra/contract";
+import {
+	presenceNote,
+	wakeNote,
+	wakeReason,
+} from "#views/session-presence-words.ts";
 
 const WAKE_KIND = "agent/recover";
 
@@ -16,10 +24,17 @@ const refusal = (session: SessionSummary | undefined): string | undefined => {
 	return session.canSend ? undefined : presenceNote[session.presence];
 };
 
-const wake = (session: SessionSummary | undefined): string | undefined => {
-	const pending = session?.diag.intents.find(
-		(intent) => intent.kind === WAKE_KIND,
-	);
+// why: a live recover is the send's own receipt — the mutation returning is
+// only the demand being written down, and the wake it asked for is the part the
+// admiral is waiting on. Reading it off the durable state rather than the send's
+// return keeps the box honest about a wake this window never asked for, and
+// about one still parked from an earlier send.
+const wakeOf = (
+	session: SessionSummary | undefined,
+): IntentDiagnostic | undefined =>
+	session?.diag.intents.find((intent) => intent.kind === WAKE_KIND);
+
+const wake = (pending: IntentDiagnostic | undefined): string | undefined => {
 	if (pending === undefined) return undefined;
 	return pending.state === "waiting" ? wakeNote.parked : wakeNote.underway;
 };
@@ -35,9 +50,19 @@ export const sessionMessageState = (
 ) => {
 	const session = sessionOf(fleet, sessionId);
 	const blocked = refusal(session);
+	const pending = wakeOf(session);
+	const waking = wake(pending);
+	const standing = blocked ?? waking ?? note(session);
 	return {
 		blocked,
+		// why: the wake's own sentence is what turns "parked" into something the
+		// admiral can act on, and it is only news while the wake is the standing
+		// note — a refusal has already said the more final thing.
+		reason:
+			standing === waking && pending !== undefined
+				? wakeReason(pending.detail)
+				: undefined,
 		session,
-		standing: blocked ?? wake(session) ?? note(session),
+		standing,
 	};
 };

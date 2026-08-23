@@ -8,7 +8,7 @@ import {
 	makeRuntime,
 	storedEvents,
 } from "#fixtures.ts";
-import { makeAppRouter } from "#index.ts";
+import { makeAppRouter, SETTING_KEYS, SETTINGS } from "#index.ts";
 
 describe("makeAppRouter", () => {
 	it.effect("serves app info from the runtime's source", () =>
@@ -23,25 +23,27 @@ describe("makeAppRouter", () => {
 		}),
 	);
 
-	it.effect(
-		"serves settings and rejects limits outside the positive range",
-		() =>
-			Effect.gen(function* () {
-				const runtime = makeRuntime();
-				const caller = makeAppRouter(runtime).createCaller({
-					windowId: "console",
-				});
-				expect(yield* Effect.promise(() => caller.settings())).toEqual({
-					maxParallelSessions: 4,
-				});
-				const refused = yield* Effect.tryPromise(() =>
-					caller.updateSettings({ maxParallelSessions: 0 }),
-				).pipe(Effect.flip);
-				expect(String(refused.cause)).toContain(
-					"Expected a value greater than or equal to 1",
-				);
-				yield* Effect.promise(() => runtime.dispose());
-			}),
+	it.effect("serves every declared setting and refuses an undeclared key", () =>
+		Effect.gen(function* () {
+			const runtime = makeRuntime();
+			const caller = makeAppRouter(runtime).createCaller({
+				windowId: "console",
+			});
+			const served = yield* Effect.promise(() => caller.settings());
+			expect(served.settings).toEqual({
+				maxParallelSessions: SETTINGS.maxParallelSessions.fallback,
+				retireRestMinutes: SETTINGS.retireRestMinutes.fallback,
+				retireSweep: SETTINGS.retireSweep.fallback,
+			});
+			const refused = yield* Effect.tryPromise(() =>
+				// @ts-expect-error a key the catalog never declared is not a setting.
+				caller.changeSetting({ key: "retireEverything", value: true }),
+			).pipe(Effect.flip);
+			expect(String(refused.cause)).toBe(
+				`TRPCError: Expected ${SETTING_KEYS.map((key) => `"${key}"`).join(" | ")}`,
+			);
+			yield* Effect.promise(() => runtime.dispose());
+		}),
 	);
 
 	it.effect("serves the fleet and event log through sight", () =>

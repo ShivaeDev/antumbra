@@ -4,6 +4,7 @@ import { AgentDomain } from "#agent-domain-service.ts";
 
 export interface PendingIntent {
 	readonly agentId: string | null;
+	readonly detail: string | null;
 	readonly id: string;
 	readonly kind: string;
 	readonly sessionId: string | null;
@@ -23,6 +24,7 @@ const collect = <Payload extends IntentSubject>(kind: IntentKind<Payload>) =>
 			(intent) =>
 				({
 					agentId: intent.payload.agentId ?? null,
+					detail: intent.detail,
 					id: intent.id,
 					kind: kind.tag,
 					sessionId: intent.payload.sessionId ?? null,

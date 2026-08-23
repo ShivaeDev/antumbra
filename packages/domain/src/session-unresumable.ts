@@ -4,8 +4,8 @@ import {
 } from "@antumbra/vocabulary/agent-runtime";
 import { Data, Result } from "effect";
 
-// why: "there is nothing here to resume" is five separate truths, and a resume
-// that answers all five with the same silence reports work it never did as
+// why: "there is nothing here to resume" is six separate truths, and a resume
+// that answers all six with the same silence reports work it never did as
 // done. Each is named so the Intent can say which one it met, and so the
 // choice between waiting for it to change and refusing outright is made once,
 // here, rather than at each reader.
@@ -18,7 +18,8 @@ export type SessionUnresumable =
 	| { readonly _tag: "draining" }
 	| { readonly _tag: "no-agent"; readonly agentId: string }
 	| { readonly _tag: "no-root" }
-	| { readonly _tag: "not-current"; readonly currentSessionId: string | null };
+	| { readonly _tag: "not-current"; readonly currentSessionId: string | null }
+	| { readonly _tag: "session-closed" };
 
 export type UnresumableVerdict = "refuse" | "wait";
 
@@ -44,6 +45,12 @@ export const unresumableVerdict = (
 			return "refuse";
 		case "not-current":
 			return "wait";
+		// why: a closed Session is the one refusal that reads like a wait and is
+		// not. Nothing reopens it — the send that would push the wake refuses
+		// first, and boot reclaim only requeues what was running — so a wake
+		// parked against it would hold the admiral's words for ever.
+		case "session-closed":
+			return "refuse";
 	}
 };
 
@@ -64,6 +71,8 @@ export const unresumableDetail = (
 			return reason.currentSessionId === null
 				? `the Agent holds no current Session, so ${sessionId} is not the one to resume`
 				: `the Agent is on ${reason.currentSessionId}, not ${sessionId}`;
+		case "session-closed":
+			return `${sessionId} has closed, and a closed Session has no conversation left to resume`;
 	}
 };
 

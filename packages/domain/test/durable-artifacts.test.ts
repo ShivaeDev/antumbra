@@ -11,6 +11,7 @@ import {
 	callTool,
 	makeScriptedBackend,
 	sessionFor,
+	standDown,
 } from "#test/harness.ts";
 import { chain, eventually, PATIENCE, stateOf } from "#test/voyage-fixtures.ts";
 
@@ -64,6 +65,11 @@ it.live("a landed local artifact survives removal of its moorage", () =>
 				ok: true,
 				text: "artifact landed; other current artifacts: none; call supersede if this is a new version",
 			});
+			// why: the artifact is the outcome, but the hand that landed it is still
+			// aboard, and a piece is shipped only when all of its work is done. What
+			// this rehearsal is about is the file outliving its moorage, so the crew
+			// says it is finished and the reading settles on done.
+			yield* standDown(scripted, assignment.value.agentId);
 			expect(yield* stateOf(voyage.id, alpha.id)).toBe("done");
 
 			const artifact = (yield* db.Artifact.all())[0];

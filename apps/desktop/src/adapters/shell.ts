@@ -50,22 +50,12 @@ export const configureDataDirectory = (): string => {
 	return directory;
 };
 
-export const runnerRootsInDataDirectory = (
-	dataDirectory: string,
-): { readonly moorageRoot: string; readonly reposRoot: string } => ({
-	moorageRoot: join(dataDirectory, "moorage"),
-	reposRoot: join(dataDirectory, "repos"),
-});
-
-export const artifactsInDataDirectory = (dataDirectory: string): string =>
-	join(dataDirectory, "artifacts");
-
-// why: where the windows were is shell state, not domain truth — it sits in
-// the data directory beside the artifacts rather than in the persistence
-// database, whose migrations carry contract hashes that layout must never
-// have a say in.
-export const windowLayoutInDataDirectory = (dataDirectory: string): string =>
-	join(dataDirectory, "windows.json");
+export {
+	artifactsInDataDirectory,
+	runnerRootsInDataDirectory,
+	sessionInputsInDataDirectory,
+	windowLayoutInDataDirectory,
+} from "#adapters/data-paths.ts";
 
 export const persistenceMigrationsDirectory = (): string =>
 	app.isPackaged

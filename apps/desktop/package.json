@@ -50,6 +50,7 @@
 		"vitest": "catalog:"
 	},
 	"dependencies": {
-		"@anthropic-ai/claude-agent-sdk": "catalog:"
+		"@anthropic-ai/claude-agent-sdk": "catalog:",
+		"sharp": "catalog:"
 	}
 }

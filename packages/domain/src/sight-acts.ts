@@ -1,6 +1,10 @@
 import type {
 	RepoRegistration,
 	RepoSummary,
+	SessionImage,
+	SessionImageRequest,
+	SessionInputReceipt,
+	SessionInputRequest,
 	SightFailure,
 	SituationDraft,
 	SpawnReceipt,
@@ -9,6 +13,7 @@ import type {
 import { Kernel } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
 import { admiralWords } from "@antumbra/prompts";
+import { SessionInputs } from "@antumbra/session-inputs";
 import { Effect } from "effect";
 import { AgentDomain } from "#agent-domain-service.ts";
 import { SessionMessageEmpty } from "#errors.ts";
@@ -29,6 +34,12 @@ export interface SightActs {
 		sessionId: string,
 		text: string,
 	) => Effect.Effect<void, SightFailure>;
+	readonly sendInput: (
+		request: SessionInputRequest,
+	) => Effect.Effect<SessionInputReceipt, SightFailure>;
+	readonly sessionImage: (
+		request: SessionImageRequest,
+	) => Effect.Effect<SessionImage, SightFailure>;
 	readonly situationDraft: (
 		draft: SituationDraft,
 	) => Effect.Effect<string, SightFailure>;
@@ -42,6 +53,7 @@ export const makeSightActs = Effect.gen(function* () {
 	const db = yield* Database;
 	const domain = yield* AgentDomain;
 	const kernel = yield* Kernel;
+	const inputs = yield* SessionInputs;
 	const provide = yield* writeProvider;
 	const draft = yield* makeSituationDraft;
 
@@ -76,6 +88,17 @@ export const makeSightActs = Effect.gen(function* () {
 				// exists to carry them, rather than by a seam relaxing its type.
 				yield* domain.sendToSession(sessionId, admiralWords({ words: text }));
 			}).pipe(Effect.mapError(toFailure)),
+		// why: the whole request goes to the one act that admits it and then takes
+		// custody of it, rather than being ingested here and judged afterwards — a
+		// refusal that has already spent disk is a refusal that left something
+		// behind for nobody to collect.
+		sendInput: (request) =>
+			domain.sendSessionInput(request).pipe(
+				Effect.map((status) => ({ id: request.id, status })),
+				Effect.mapError(toFailure),
+			),
+		sessionImage: (request) =>
+			inputs.image(request).pipe(Effect.mapError(toFailure)),
 		situationDraft: (request) =>
 			draft(request).pipe(Effect.mapError(toFailure)),
 		// why: the admiral's request and the clock's own are the same act, so both

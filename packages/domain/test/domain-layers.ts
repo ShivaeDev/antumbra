@@ -22,6 +22,9 @@ import { fakeKernelReach } from "#test/kernel-reach-fixture.ts";
 const artifactsDirectory = (temporary: TemporaryPersistence) =>
 	join(dirname(temporary.database), "artifacts");
 
+const sessionInputsDirectory = (temporary: TemporaryPersistence) =>
+	join(dirname(temporary.database), "session-inputs");
+
 const fakeKernelReachLive = Layer.effectDiscard(
 	Effect.gen(function* () {
 		const installer = yield* KernelReachInstaller;
@@ -80,6 +83,7 @@ export const domainKernelLayer = (
 				new Map([[runner.tag, runner]]),
 				changeHosts,
 				artifactsDirectory(temporary),
+				sessionInputsDirectory(temporary),
 				reclaim,
 			).pipe(Layer.provide(NodeServices.layer)),
 		),

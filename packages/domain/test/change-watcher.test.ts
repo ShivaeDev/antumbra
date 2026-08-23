@@ -19,6 +19,7 @@ import {
 	assignedPieces,
 	eventually,
 	openReefVoyage,
+	standDownAll,
 	stateOf,
 } from "#test/voyage-fixtures.ts";
 
@@ -124,7 +125,7 @@ describe("watching open changes", () => {
 	);
 
 	it.live("keeps asking while a change is open and stops when it lands", () =>
-		watched(BRISK, (scripted) =>
+		watched(BRISK, (scripted, backend) =>
 			Effect.gen(function* () {
 				const { piece, repo, voyage } = yield* reefWithPiece;
 				yield* berthed(CREW);
@@ -136,8 +137,14 @@ describe("watching open changes", () => {
 				expect(yield* passes(scripted)).toBeGreaterThan(early);
 
 				yield* scripted.drive.transition(repo.id, "1", { stage: "landed" });
+				// why: the piece is launched, so the pool may have put a hand on it
+				// before the change row existed — whether it did is a race this test
+				// has no stake in. A piece reads shipped only once its crew is
+				// finished, so any hand is asked to stand down before the reading is
+				// taken, and the loop settles the same way whether or not one came.
 				yield* eventually(
 					Effect.gen(function* () {
+						yield* Effect.ignore(standDownAll(backend));
 						expect(yield* stateOf(voyage.id, piece.id)).toBe("done");
 					}),
 				);

@@ -120,4 +120,18 @@ export const vocabularyPolicy = [
 				files.inPackage("session-fabric", "src/session-attachment.ts"),
 			).to(files.inPackage("vocabulary", "src/session-events.ts")),
 		}),
+	vocabularyAccess("session-inputs-uses-session-input-vocabulary")
+		.because(
+			"Session inputs take custody of what the admiral is about to say and name only the Session-input subject; runtime, Board, Change, and Session-event language belong to the seams that carry the words onward.",
+		)
+		.for(packages.named("session-inputs"))
+		.allowsOnly("session-input")
+		.demonstratedBy({
+			illegal: importFrom(
+				files.inPackage("session-inputs", "src/session-inputs.ts"),
+			).to(files.inPackage("vocabulary", "src/session-events.ts")),
+			legal: importFrom(
+				files.inPackage("session-inputs", "src/session-inputs.ts"),
+			).to(files.inPackage("vocabulary", "src/session-input.ts")),
+		}),
 ] as const satisfies readonly BoundaryRule[];

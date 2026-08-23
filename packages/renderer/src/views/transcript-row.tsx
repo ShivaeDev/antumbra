@@ -51,14 +51,16 @@ const Notice = ({ item }: { readonly item: TranscriptNotice }) => (
 export const TranscriptRow = ({
 	item,
 	onOpenNode,
+	sessionId = "",
 }: {
 	readonly item: TranscriptItem;
 	readonly onOpenNode?: ((nodeId: string) => void) | undefined;
+	readonly sessionId?: string | undefined;
 }) => {
 	if (item.kind === "message") {
 		return (
 			<Gutter label={item.role}>
-				<TranscriptMessage item={item} />
+				<TranscriptMessage item={item} sessionId={sessionId} />
 			</Gutter>
 		);
 	}

@@ -2,6 +2,7 @@ import type { BackendFailure } from "@antumbra/plugin-api";
 import { expect, it } from "@effect/vitest";
 import { Deferred, Effect, Exit, Fiber, Ref, Semaphore } from "effect";
 import { makeQueuedTurns } from "#queued-turns.ts";
+import { textInput } from "#test/input.ts";
 import type { TurnRequests } from "#turn-requests.ts";
 import { idle, SESSION_CLOSED, type TurnState } from "#turn-state.ts";
 
@@ -26,7 +27,7 @@ it.effect("close fails a send whose turn/start has not been accepted", () =>
 			requests,
 			Deferred.await(closure),
 		);
-		const delivery = yield* Effect.forkChild(queued.queue("held"));
+		const delivery = yield* Effect.forkChild(queued.queue(textInput("held")));
 		yield* Deferred.await(started);
 		yield* Deferred.fail(closure, SESSION_CLOSED);
 		yield* queued.close;

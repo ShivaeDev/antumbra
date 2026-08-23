@@ -29,6 +29,7 @@ import {
 	configureDataDirectory,
 	persistenceMigrationsDirectory,
 	runnerRootsInDataDirectory,
+	sessionInputsInDataDirectory,
 } from "#adapters/shell.ts";
 
 const persistence = Layer.unwrap(
@@ -66,6 +67,7 @@ const agents = Layer.unwrap(
 			yield* host.runners,
 			yield* host.changeHosts,
 			artifactsInDataDirectory(configureDataDirectory()),
+			sessionInputsInDataDirectory(configureDataDirectory()),
 		).pipe(Layer.provide(NodeServices.layer));
 	}),
 );

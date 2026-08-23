@@ -5,13 +5,14 @@ import type { PrismaError } from "@antumbra/persistence";
 import type { BackendFailure } from "@antumbra/plugin-api";
 import type { AgentPrompt } from "@antumbra/prompts";
 import type { RepoRegistry } from "@antumbra/repos";
+import type { SessionInputDraft } from "@antumbra/session-inputs";
 import type { StoredAgentStatusInvalid } from "@antumbra/vocabulary/agent-runtime";
 import { Context, type Effect } from "effect";
 import type { ChangeProcedures } from "#change-procedures.ts";
 import type { SessionNotLive } from "#errors.ts";
 import type { RetireFields } from "#retire.ts";
 import type { RecoveryFields } from "#session-recovery.ts";
-import type { SessionSendRefused } from "#session-send.ts";
+import type { SessionSendReceipt, SessionSendRefused } from "#session-send.ts";
 import type { SiestaFields } from "#session-siesta.ts";
 import type { SpawnFields } from "#spawn-fields.ts";
 import type { VoyageProcedures } from "#voyages.ts";
@@ -38,6 +39,7 @@ export class AgentDomain extends Context.Service<
 			sessionId: string,
 		) => Effect.Effect<void, BackendFailure | SessionNotLive>;
 		readonly kinds: ReadonlyArray<AnyIntentKind>;
+		readonly imageInputBackends: ReadonlySet<string>;
 		readonly intentDemands: ReadonlyArray<IntentDemandRegistration>;
 		readonly repos: RepoRegistry;
 		readonly retryResourceReclaim: Effect.Effect<void>;
@@ -52,6 +54,13 @@ export class AgentDomain extends Context.Service<
 			sessionId: string,
 			text: AgentPrompt,
 		) => Effect.Effect<void, SessionSendRefused>;
+		// why: the draft arrives whole because admitting it and taking custody of
+		// it are one act — the backend is asked whether it can receive these parts
+		// before any of them is normalized or written down, which only holds while
+		// one seam owns both halves.
+		readonly sendSessionInput: (
+			draft: SessionInputDraft,
+		) => Effect.Effect<SessionSendReceipt, SessionSendRefused>;
 		// why: which root Sessions this process is holding right now. A projection
 		// asks the fabric because the row cannot know it, and the answer is what
 		// separates a Session listening with nothing to do from one whose process

@@ -11,6 +11,7 @@ import {
 	callTool,
 	makeScriptedBackend,
 	type ScriptedBackend,
+	standDown,
 } from "#test/harness.ts";
 import { chain, eventually, PATIENCE, stateOf } from "#test/voyage-fixtures.ts";
 
@@ -81,6 +82,10 @@ it.live(
 				expect(reports).toMatchObject([
 					{ authorAgentId: agentId, title: "soundings" },
 				]);
+				// why: the report is the outcome, but the hand that wrote it is still
+				// aboard — a piece is shipped only when all of its work is done, so
+				// the crew says it is finished before the piece can read done.
+				yield* standDown(scripted, agentId);
 				yield* eventually(
 					Effect.gen(function* () {
 						expect(yield* stateOf(voyage.id, alpha.id)).toBe("done");

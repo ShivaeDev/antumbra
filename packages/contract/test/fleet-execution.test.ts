@@ -36,6 +36,7 @@ it("admits raw Session execution state only under diagnostics", () => {
 		agentAround({
 			addressable: [],
 			backend: "scripted",
+			canAttachImages: false,
 			canInterrupt: false,
 			canSend: false,
 			canSleep: false,
@@ -51,6 +52,7 @@ it("admits raw Session execution state only under diagnostics", () => {
 	expect(decoded.agents[0]?.sessions[0]).toEqual({
 		addressable: [],
 		backend: "scripted",
+		canAttachImages: false,
 		canInterrupt: false,
 		canSend: false,
 		canSleep: false,

@@ -1,6 +1,5 @@
 import { Boards } from "@antumbra/boards";
 import { ChangeHeldResourceReadLive } from "@antumbra/changes";
-import { Database, type WriteExecutors } from "@antumbra/persistence";
 import type { AgentBackend, ChangeHost, Runner } from "@antumbra/plugin-api";
 import { Repos } from "@antumbra/repos";
 import {
@@ -10,15 +9,17 @@ import {
 	ResourceReconcilerLive,
 } from "@antumbra/resource-reclamation";
 import { SessionFabric, SessionFabricLive } from "@antumbra/session-fabric";
-import { decodeStoredAgentStatus } from "@antumbra/vocabulary/agent-runtime";
+import { SessionInputsLive } from "@antumbra/session-inputs";
 import { Effect, Layer } from "effect";
 import { AGENTS_ALIVE_GAUGE, AgentDomain } from "#agent-domain-service.ts";
 import { compileAgentRecoveryDemands } from "#agent-recovery-demands.ts";
+import { makeAliveAgentCount } from "#agents-alive.ts";
 import { makeCaptainToolCompiler } from "#captain-tools.ts";
 import { ChangeProcedureService } from "#change-procedures.ts";
 import { makeCrewToolCompiler } from "#crew-tools.ts";
 import { makeCurrentSessionReconciler } from "#current-session-reconcile.ts";
 import { domainCapabilities } from "#domain-capabilities.ts";
+import { imageInputBackendsOf } from "#image-input-backends.ts";
 import { makeRetireKind } from "#retire.ts";
 import { compileRetireSweepDemands } from "#retire-sweep-demands.ts";
 import { makeRecoveryKind } from "#session-recovery.ts";
@@ -43,6 +44,7 @@ export const AgentDomainLive = (
 	runners: ReadonlyMap<string, Runner>,
 	changeHosts: ReadonlyMap<string, ChangeHost>,
 	artifactsDirectory: string,
+	sessionInputsDirectory: string,
 	reclaimOptions: Partial<ResourceReconcileOptions> = {},
 ) => {
 	const capabilities = domainCapabilities(
@@ -55,8 +57,6 @@ export const AgentDomainLive = (
 			const boards = yield* Boards;
 			const changes = yield* ChangeProcedureService;
 			const repos = yield* Repos;
-			const db = yield* Database;
-			const executors = yield* Effect.context<WriteExecutors>();
 			const fabric = yield* SessionFabric;
 			const live = yield* LiveDelegations;
 			const sinkFor = yield* makeSessionTreeSinks;
@@ -85,17 +85,7 @@ export const AgentDomainLive = (
 			const recover = yield* makeRecoveryKind.pipe(
 				Effect.provideService(SessionRecoveryRuntime, recoveryRuntime),
 			);
-			const aliveAgents = db.Agent.all().pipe(
-				Effect.flatMap((agents) =>
-					Effect.forEach(agents, (agent) =>
-						Effect.fromResult(decodeStoredAgentStatus(agent.id, agent.status)),
-					),
-				),
-				Effect.map(
-					(statuses) => statuses.filter((status) => status === "alive").length,
-				),
-				Effect.provideContext(executors),
-			);
+			const aliveAgents = yield* makeAliveAgentCount;
 			const siesta = yield* makeSiestaKind;
 			// why: the clock's two errands are separate sources on one loop — one
 			// asks whether a process is being held for nothing, the other whether an
@@ -105,7 +95,8 @@ export const AgentDomainLive = (
 				...(yield* compileAgentRecoveryDemands(recover, siesta)),
 				...(yield* compileRetireSweepDemands(retire)),
 			];
-			const sendToSession = yield* makeSessionSend;
+			const imageInputBackends = imageInputBackendsOf(backends);
+			const sessionSend = yield* makeSessionSend(imageInputBackends);
 			return {
 				backends: [...backends.keys()],
 				boards,
@@ -113,6 +104,7 @@ export const AgentDomainLive = (
 				closeSessionStarts: fabric.closeStarts,
 				gauges: { [AGENTS_ALIVE_GAUGE]: aliveAgents },
 				interruptSession: fabric.interrupt,
+				imageInputBackends,
 				intentDemands,
 				kinds: [spawn, recover, retire, siesta],
 				repos,
@@ -120,7 +112,8 @@ export const AgentDomainLive = (
 				recover,
 				reopenSessionStarts: fabric.reopenStarts,
 				retire,
-				sendToSession,
+				sendSessionInput: sessionSend.sendInput,
+				sendToSession: sessionSend.sendPrompt,
 				sessionsAttached: fabric.attached,
 				sessionsDelegating: live.delegating,
 				siesta,
@@ -145,5 +138,6 @@ export const AgentDomainLive = (
 		// same act, so the tool that makes it needs the same attachment registry
 		// the domain does.
 		Layer.provide(SessionFabricLive),
+		Layer.provideMerge(SessionInputsLive(sessionInputsDirectory)),
 	);
 };

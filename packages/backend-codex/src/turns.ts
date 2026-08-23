@@ -1,4 +1,4 @@
-import type { BackendFailure } from "@antumbra/plugin-api";
+import type { BackendFailure, SessionInput } from "@antumbra/plugin-api";
 import {
 	Deferred,
 	Effect,
@@ -25,8 +25,8 @@ import {
 
 interface TurnDriver {
 	readonly interrupt: Effect.Effect<void, BackendFailure>;
-	readonly queue: (text: string) => Effect.Effect<void, BackendFailure>;
-	readonly steer: (text: string) => Effect.Effect<void, BackendFailure>;
+	readonly queue: (input: SessionInput) => Effect.Effect<void, BackendFailure>;
+	readonly steer: (input: SessionInput) => Effect.Effect<void, BackendFailure>;
 	readonly track: (notification: RpcNotification) => Effect.Effect<void>;
 }
 
@@ -67,28 +67,28 @@ export const makeTurnDriver = (
 		yield* Effect.addFinalizer(() => closeDelivery);
 		yield* Effect.forkScoped(server.exited.pipe(Effect.andThen(closeDelivery)));
 
-		const startSteered = (text: string) =>
+		const startSteered = (input: SessionInput) =>
 			requests
-				.start([text])
+				.start(input)
 				.pipe(Effect.flatMap((turnId) => recordAcceptedTurn(state, turnId)));
 
-		const steerActive = (turnId: string, text: string) =>
-			requests.steer(turnId, text).pipe(
+		const steerActive = (turnId: string, input: SessionInput) =>
+			requests.steer(turnId, input).pipe(
 				Effect.andThen(requireOpen(state)),
-				Effect.catchIf(notSteerable, () => startSteered(text)),
+				Effect.catchIf(notSteerable, () => startSteered(input)),
 			);
 
-		const steerNow = (current: TurnState, text: string) =>
+		const steerNow = (current: TurnState, input: SessionInput) =>
 			current._tag === "closed"
 				? Effect.fail(SESSION_CLOSED)
 				: Option.match(current.turn, {
-						onNone: () => startSteered(text),
-						onSome: (turnId) => steerActive(turnId, text),
+						onNone: () => startSteered(input),
+						onSome: (turnId) => steerActive(turnId, input),
 					});
 
-		const steer = (text: string) =>
+		const steer = (input: SessionInput) =>
 			Ref.get(state)
-				.pipe(Effect.flatMap((current) => steerNow(current, text)))
+				.pipe(Effect.flatMap((current) => steerNow(current, input)))
 				.pipe(gate.withPermit, Effect.raceFirst(failWhenClosed));
 
 		const interrupt = Ref.get(state).pipe(

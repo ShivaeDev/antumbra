@@ -16,6 +16,7 @@ import {
 	openReefVoyage,
 	PATIENCE,
 	retireOneAlive,
+	standDownAll,
 	stateOf,
 } from "#test/voyage-fixtures.ts";
 
@@ -51,6 +52,10 @@ it.live("a launched chain sails on its own as outcomes land", () =>
 
 			yield* land(bravo.id, "eastern chart");
 			yield* land(charlie.id, "western chart");
+			// why: the outcomes are all in, but a voyage falls quiet only once its
+			// crews are finished too — each piece still has a hand on it until that
+			// hand says otherwise, and the farewell trails the work it landed.
+			yield* standDownAll(scripted);
 			const domain = yield* AgentDomain;
 			const view = Option.getOrThrow(yield* domain.voyages.read(voyage.id));
 			expect(view.pieces.map((piece) => piece.state)).toEqual([

@@ -36,6 +36,7 @@ export const codexBackend = (
 	audit: codexAudit(server, spawn),
 	capabilities: {
 		fork: true,
+		imageInput: true,
 		liveInterrupt: true,
 		multiClient: false,
 	},

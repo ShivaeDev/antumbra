@@ -1,7 +1,7 @@
 import type { Fleet } from "@antumbra/contract";
 import { Database, Writer } from "@antumbra/persistence";
 import type { TemporaryPersistence } from "@antumbra/persistence/testing";
-import type { AgentBackend, Runner } from "@antumbra/plugin-api";
+import type { AgentBackend, Runner, SessionInput } from "@antumbra/plugin-api";
 import { SessionFabricLive } from "@antumbra/session-fabric";
 import { expect } from "@effect/vitest";
 import { Effect, Layer, Option, Ref } from "effect";
@@ -67,8 +67,8 @@ export const opensWhenSpokenTo = (
 			);
 			return {
 				...handle,
-				queue: (text: string) =>
-					handle.queue(text).pipe(Effect.andThen(announce)),
+				queue: (input: SessionInput) =>
+					handle.queue(input).pipe(Effect.andThen(announce)),
 			};
 		}),
 });

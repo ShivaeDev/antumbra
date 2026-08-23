@@ -40,15 +40,22 @@ export const makeQueuedTurns = (
 	requests: TurnRequests,
 	failWhenClosed: Effect.Effect<never, BackendFailure>,
 ) => {
-	const recordStarted = (current: OpenTurnState, turnId: string) =>
+	const recordStarted = (
+		current: OpenTurnState,
+		acceptedInput: PendingInput,
+		turnId: string,
+	) =>
 		Ref.modify(state, (latest) =>
 			latest._tag === "closed"
 				? [false, latest]
-				: [true, withTurn(idle, turnId)],
+				: [
+						true,
+						withTurn({ ...latest, pending: latest.pending.slice(1) }, turnId),
+					],
 		).pipe(
 			Effect.flatMap((open) =>
 				open
-					? acceptPending(current.pending)
+					? acceptPending([acceptedInput])
 					: failPending(current.pending, SESSION_CLOSED),
 			),
 		);
@@ -63,13 +70,18 @@ export const makeQueuedTurns = (
 			),
 		);
 
-	const startTurn = (current: OpenTurnState) =>
-		requests.start(current.pending.map((input) => input.text)).pipe(
+	const startTurn = (current: OpenTurnState) => {
+		const [next] = current.pending;
+		if (next === undefined) {
+			return Effect.void;
+		}
+		return requests.start(next.input).pipe(
 			Effect.matchEffect({
 				onFailure: (failure) => recordFailed(current, failure),
-				onSuccess: (turnId) => recordStarted(current, turnId),
+				onSuccess: (turnId) => recordStarted(current, next, turnId),
 			}),
 		);
+	};
 
 	const flush = Ref.get(state).pipe(
 		Effect.flatMap((current) =>
@@ -79,10 +91,10 @@ export const makeQueuedTurns = (
 		),
 	);
 
-	const queue = (text: string) =>
+	const queue = (sessionInput: PendingInput["input"]) =>
 		Effect.gen(function* () {
 			const accepted = yield* Deferred.make<void, BackendFailure>();
-			const input: PendingInput = { accepted, text };
+			const input: PendingInput = { accepted, input: sessionInput };
 			yield* Ref.modify(state, (current) =>
 				current._tag === "closed"
 					? [false, current]

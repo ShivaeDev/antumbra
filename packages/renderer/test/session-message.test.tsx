@@ -9,9 +9,9 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { vi } from "vitest";
 import { SessionMessage } from "#views/session-message.tsx";
 
-const { sendToSession } = vi.hoisted(() => ({ sendToSession: vi.fn() }));
+const { sendSessionInput } = vi.hoisted(() => ({ sendSessionInput: vi.fn() }));
 
-vi.mock("#adapters/trpc.ts", () => ({ sendToSession }));
+vi.mock("#adapters/trpc.ts", () => ({ sendSessionInput }));
 
 type Presence = Fleet["agents"][number]["sessions"][number]["presence"];
 type Intent = Fleet["diag"]["intents"][number];
@@ -26,6 +26,7 @@ const waking = (
 const fleetWith = (
 	presence: Presence,
 	intents: ReadonlyArray<Intent> = [],
+	canAttachImages = true,
 ): Fleet => ({
 	agents: [
 		{
@@ -39,6 +40,7 @@ const fleetWith = (
 				{
 					addressable: [],
 					backend: "scripted",
+					canAttachImages,
 					canInterrupt: presence === "working",
 					canSend: presence !== "ended",
 					canSleep: presence === "idle",
@@ -68,12 +70,12 @@ const box = (fleet: Fleet | undefined) => (
 // why: React tracks the value it last rendered, so typing has to go through
 // the element's own value setter or the change never reaches the component.
 const nativeValue = Object.getOwnPropertyDescriptor(
-	HTMLInputElement.prototype,
+	HTMLTextAreaElement.prototype,
 	"value",
 )?.set;
 
 const write = (container: HTMLElement, text: string): void => {
-	const input = container.querySelector("input");
+	const input = container.querySelector("textarea");
 	if (input === null || nativeValue === undefined) {
 		return;
 	}
@@ -83,7 +85,7 @@ const write = (container: HTMLElement, text: string): void => {
 
 const pressEnter = (container: HTMLElement): void => {
 	container
-		.querySelector("input")
+		.querySelector("textarea")
 		?.dispatchEvent(
 			new KeyboardEvent("keydown", { bubbles: true, key: "Enter" }),
 		);
@@ -213,58 +215,70 @@ it.effect("keeps the box open for every state but the one that has ended", () =>
 	Effect.gen(function* () {
 		for (const presence of ["working", "idle", "asleep"] as const) {
 			const { container, root } = yield* mounted(fleetWith(presence));
-			expect(container.querySelector("input")?.disabled).toBe(false);
+			expect(container.querySelector("textarea")?.disabled).toBe(false);
 			yield* step(() => root.unmount());
 		}
 		const { container, root } = yield* mounted(fleetWith("ended"));
-		expect(container.querySelector("input")?.disabled).toBe(true);
+		expect(container.querySelector("textarea")?.disabled).toBe(true);
 		yield* step(() => root.unmount());
 	}),
 );
 
 it.effect("sends what was typed by key or by button and clears the box", () =>
 	Effect.gen(function* () {
-		sendToSession.mockImplementation(
+		sendSessionInput.mockImplementation(
 			(
-				_sessionId: string,
-				_text: string,
-				onDone: () => void,
+				_request: unknown,
+				onDone: (receipt: { status: "accepted" }) => void,
 				_onError: (message: string) => void,
-			) => onDone(),
+			) => onDone({ status: "accepted" }),
 		);
 		const { container, root } = yield* mounted(fleetWith("working"));
 		yield* step(() => write(container, "come about"));
 		yield* step(() => pressEnter(container));
-		expect(sendToSession).toHaveBeenLastCalledWith(
-			"session-1",
-			"come about",
+		expect(sendSessionInput).toHaveBeenLastCalledWith(
+			expect.objectContaining({
+				id: expect.any(String),
+				parts: [{ text: "come about", type: "text" }],
+				sessionId: "session-1",
+			}),
 			expect.any(Function),
 			expect.any(Function),
 		);
-		expect(container.querySelector("input")?.value).toBe("");
+		expect(container.querySelector("textarea")?.value).toBe("");
 		yield* step(() => write(container, "mind the reef"));
-		yield* step(() => container.querySelector("button")?.click());
-		expect(sendToSession).toHaveBeenLastCalledWith(
-			"session-1",
-			"mind the reef",
+		yield* step(() =>
+			Array.from(container.querySelectorAll("button"))
+				.find((button) => button.textContent === "Send")
+				?.click(),
+		);
+		expect(sendSessionInput).toHaveBeenLastCalledWith(
+			expect.objectContaining({
+				parts: [{ text: "mind the reef", type: "text" }],
+				sessionId: "session-1",
+			}),
 			expect.any(Function),
 			expect.any(Function),
 		);
-		expect(sendToSession).toHaveBeenCalledTimes(2);
+		expect(sendSessionInput).toHaveBeenCalledTimes(2);
 		yield* step(() => root.unmount());
 	}),
 );
 
 it.effect("keeps a blank message and a session that has ended quiet", () =>
 	Effect.gen(function* () {
-		sendToSession.mockClear();
+		sendSessionInput.mockClear();
 		const { container, root } = yield* mounted(fleetWith("working"));
 		yield* step(() => write(container, "   "));
 		yield* step(() => pressEnter(container));
-		expect(sendToSession).not.toHaveBeenCalled();
+		expect(sendSessionInput).not.toHaveBeenCalled();
 		yield* step(() => root.render(box(fleetWith("ended"))));
-		expect(container.querySelector("input")?.disabled).toBe(true);
-		expect(container.querySelector("button")?.disabled).toBe(true);
+		expect(container.querySelector("textarea")?.disabled).toBe(true);
+		expect(
+			Array.from(container.querySelectorAll("button")).find(
+				(button) => button.textContent === "Send",
+			)?.disabled,
+		).toBe(true);
 		yield* step(() => root.unmount());
 	}),
 );
@@ -276,7 +290,7 @@ it.effect("restores unsent words after the composer is remounted", () =>
 		yield* step(() => first.root.unmount());
 
 		const returned = yield* mounted(fleetWith("working"));
-		expect(returned.container.querySelector("input")?.value).toBe(
+		expect(returned.container.querySelector("textarea")?.value).toBe(
 			"hold this course",
 		);
 		yield* step(() => returned.root.unmount());

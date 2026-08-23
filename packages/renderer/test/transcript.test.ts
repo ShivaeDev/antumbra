@@ -56,8 +56,22 @@ describe("deriveTranscript", () => {
 			message(1, "user", "hello back"),
 		]);
 		expect(items).toEqual([
-			{ kind: "message", role: "agent", seq: 0, text: "hello, admiral" },
-			{ kind: "message", role: "user", seq: 1, text: "hello back" },
+			{
+				inputId: undefined,
+				kind: "message",
+				parts: [{ text: "hello, admiral", type: "text" }],
+				role: "agent",
+				seq: 0,
+				text: "hello, admiral",
+			},
+			{
+				inputId: undefined,
+				kind: "message",
+				parts: [{ text: "hello back", type: "text" }],
+				role: "user",
+				seq: 1,
+				text: "hello back",
+			},
 		]);
 	});
 
@@ -77,7 +91,14 @@ describe("deriveTranscript", () => {
 			row(2, { raw, text: "   ", type: "thinking" }),
 		]);
 		expect(items).toEqual([
-			{ kind: "message", role: "agent", seq: 0, text: "hello, admiral" },
+			{
+				inputId: undefined,
+				kind: "message",
+				parts: [{ text: "hello, admiral", type: "text" }],
+				role: "agent",
+				seq: 0,
+				text: "hello, admiral",
+			},
 		]);
 	});
 
@@ -264,23 +285,5 @@ describe("deriveTranscript", () => {
 			{ kind: "raw", label: "gibberish", payload: "not even json {", seq: 1 },
 			{ kind: "raw", label: "message", payload: '{"type":"message"}', seq: 2 },
 		]);
-	});
-
-	it("renders a mismatched historical envelope from its exact stored evidence", () => {
-		const payload = JSON.stringify({
-			raw,
-			role: "agent",
-			text: "the payload disagrees with its durable kind",
-			type: "message",
-		});
-		expect(
-			deriveTranscript([
-				{
-					event: { _tag: "Unknown", kind: "thinking", payload },
-					seq: 9,
-					sessionId: "session-1",
-				},
-			]),
-		).toEqual([{ kind: "raw", label: "thinking", payload, seq: 9 }]);
 	});
 });

@@ -119,6 +119,40 @@ describe("makeAppRouter", () => {
 		}),
 	);
 
+	it.effect("carries image bytes through the typed session routes", () =>
+		Effect.gen(function* () {
+			const runtime = makeRuntime();
+			const caller = makeAppRouter(runtime).createCaller({
+				windowId: "console",
+			});
+			const id = "00000000-0000-4000-8000-000000000021" as const;
+			const receipt = yield* Effect.promise(() =>
+				caller.sendSessionInput({
+					id,
+					parts: [
+						{
+							bytes: new Uint8Array([137, 80, 78, 71]),
+							declaredMediaType: "image/png",
+							name: "reef.png",
+							type: "image",
+						},
+					],
+					sessionId: "session-1",
+				}),
+			);
+			expect(receipt).toEqual({ id, status: "accepted" });
+			const image = yield* Effect.promise(() =>
+				caller.sessionImage({
+					inputId: id,
+					position: 0,
+					sessionId: "session-1",
+				}),
+			);
+			expect(image.bytes).toBeInstanceOf(Uint8Array);
+			yield* Effect.promise(() => runtime.dispose());
+		}),
+	);
+
 	it.effect("spawns through sight and returns the receipt", () =>
 		Effect.gen(function* () {
 			const runtime = makeRuntime();

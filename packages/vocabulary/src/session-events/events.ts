@@ -6,6 +6,7 @@ import {
 	SubsessionGap,
 	SubsessionOpened,
 } from "#session-events/subsessions.ts";
+import { SessionInputId, SessionMessagePart } from "#session-input.ts";
 
 // why: the one vocabulary every side speaks — backends map their provider's
 // wire messages onto it, the log stores it, the renderer derives from it. This
@@ -17,7 +18,9 @@ export const SessionOpened = Schema.Struct({
 });
 
 export const MessageEvent = Schema.Struct({
+	inputId: Schema.optional(SessionInputId),
 	origin: Schema.optional(Origin),
+	parts: Schema.optional(Schema.Array(SessionMessagePart)),
 	raw: Raw,
 	role: Schema.Literals(["agent", "user"]),
 	text: Schema.String,

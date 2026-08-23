@@ -50,6 +50,13 @@ export {
 } from "#quay-views.ts";
 export { type AppRouter, makeAppRouter } from "#router.ts";
 export { type RequestContext, RequestOrigin } from "#router-procedure.ts";
+export {
+	SessionImage,
+	SessionImageRequest,
+	SessionInputDraftPart,
+	SessionInputReceipt,
+	SessionInputRequest,
+} from "#session-inputs.ts";
 export { ChangeSituation, SessionSituation } from "#session-situations.ts";
 export {
 	SessionTree,
@@ -75,11 +82,6 @@ export {
 	EventQuery,
 	RepoRegistration,
 	SessionEvent,
-	SessionImage,
-	SessionImageRequest,
-	SessionInputDraftPart,
-	SessionInputReceipt,
-	SessionInputRequest,
 	SightFailure,
 	SightSource,
 	SituationDraft,

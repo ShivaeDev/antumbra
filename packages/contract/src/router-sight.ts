@@ -1,15 +1,17 @@
 import { Schema } from "effect";
 import { Fleet, RepoSummary } from "#fleet.ts";
 import { type AppProcedure, surface } from "#router-procedure.ts";
+import {
+	SessionImage,
+	SessionImageRequest,
+	SessionInputReceipt,
+	SessionInputRequest,
+} from "#session-inputs.ts";
 import { SessionTree } from "#session-tree.ts";
 import {
 	EventQuery,
 	RepoRegistration,
 	SessionEvent,
-	SessionImage,
-	SessionImageRequest,
-	SessionInputReceipt,
-	SessionInputRequest,
 	SightSource,
 	SituationDraft,
 	SpawnReceipt,

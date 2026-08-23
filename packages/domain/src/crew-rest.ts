@@ -1,6 +1,6 @@
 import { sessionPresence } from "@antumbra/vocabulary/agent-runtime";
 import type { PieceView } from "#piece-view.ts";
-import { sessionAtRest } from "#session-at-rest.ts";
+import { sessionAtRest, sessionRetirable } from "#session-at-rest.ts";
 import type { AgentSessionRow, VoyageWorld } from "#voyage-rows.ts";
 
 // why: what this process is holding and what those holdings are carrying. The
@@ -30,6 +30,15 @@ const restful = (runtime: CrewRuntime, session: AgentSessionRow): boolean =>
 		}),
 	});
 
+const working = (runtime: CrewRuntime, session: AgentSessionRow): boolean =>
+	!sessionRetirable(
+		sessionPresence({
+			attached: runtime.attached.has(session.id),
+			executionStatus: session.executionStatus,
+			open: true,
+		}),
+	);
+
 // why: an Agent rests when every open Session it answers through rests, and
 // the sessions it rested in are carried out beside it because the clock has a
 // second question to ask of exactly those — how long. An Agent with no open
@@ -48,6 +57,24 @@ export const restingCrew = (
 				? [[agentId, roots.map((session) => session.id)] as const]
 				: [];
 		}),
+	);
+
+// why: the weaker reading, for the crew of a piece the admiral has written
+// off. It is the guard's own rule rather than rest, said here so eligibility
+// and execution ask the same question — a pass that proposed what the guard
+// refuses would resubmit on every tick, because only an Intent still in flight
+// is deduplicated and a refused one is not.
+export const retirableCrew = (
+	world: VoyageWorld,
+	runtime: CrewRuntime,
+): ReadonlySet<string> =>
+	new Set(
+		[...world.agentStatus].flatMap(([agentId, status]) =>
+			status === "alive" &&
+			openRootsOf(world, agentId).every((session) => !working(runtime, session))
+				? [agentId]
+				: [],
+		),
 	);
 
 // why: the button's own eligibility, said here beside the rule it stands on.

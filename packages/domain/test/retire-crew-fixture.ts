@@ -80,3 +80,7 @@ const retirePass = Effect.gen(function* () {
 // everything that reads the time rather than sleeping on it.
 export const sweptAt = (millis: number) =>
 	Effect.flatMap(retirePass, (pass) => laterBy(millis, pass));
+
+// why: the same pass with the clock left where it is — the next one the app
+// would have run anyway. What it proves is that nothing had to be waited out.
+export const swept = Effect.flatten(retirePass);

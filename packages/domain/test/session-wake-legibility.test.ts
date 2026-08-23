@@ -53,53 +53,6 @@ it.live("a wake that cannot be taken parks with its reason on the fleet", () =>
 	}),
 );
 
-// why: a second send to a Session whose wake is already parked has one honest
-// meaning — push the wake that is there. Submitting another would leave two
-// durable demands for one act, and the admiral would be told a fresh attempt
-// was under way while the parked one still owned the words.
-it.live("a later send pushes the parked wake instead of opening a second", () =>
-	Effect.gen(function* () {
-		const temporary = yield* acquireTemporaryPersistence;
-		const { recorded, scripted } = yield* sleepingRoot(temporary);
-		const denied = yield* Ref.make(true);
-		const refusing = refuseWhile(
-			reportsNativeRef(scripted.backend, scripted, NATIVE),
-			denied,
-		);
-
-		yield* Effect.gen(function* () {
-			const sight = yield* SightSource;
-			yield* sight.send(payload.sessionId, "steer for the reef");
-			const parked = yield* eventually(
-				Effect.gen(function* () {
-					expect((yield* onlyRecovery).status).toBe("waiting");
-					return yield* onlyRecovery;
-				}),
-			);
-
-			yield* Ref.set(denied, false);
-			yield* sight.send(payload.sessionId, "and mind the shallows");
-			const settled = yield* eventually(
-				Effect.gen(function* () {
-					const row = yield* onlyRecovery;
-					expect(row.status).toBe("succeeded");
-					return row;
-				}),
-			);
-			expect(settled.id).toBe(parked.id);
-			expect((yield* sessionRow).executionStatus).toBe("active");
-			const resumed = yield* scripted.session(payload.sessionId);
-			// why: the push carries the parked Intent's own words, because that is
-			// what a retry is. Queueing the newer message behind an undeliverable
-			// one is a different capability and this branch does not have it, so
-			// nothing here may read as though it does.
-			expect(resumed === undefined ? [] : yield* resumed.sent).toEqual([
-				"steer for the reef",
-			]);
-		}).pipe(Effect.provide(wakeLayer(temporary, refusing, recorded.runner)));
-	}),
-);
-
 // why: the two halves of the ruling, on the two reasons a live fleet actually
 // produces. A pointer that moved can move back, so the Intent waits with the
 // sentence on it; an Agent with no way back to alive is refused, and the

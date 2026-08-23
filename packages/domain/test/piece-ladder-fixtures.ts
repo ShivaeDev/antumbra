@@ -1,0 +1,120 @@
+import type { ChangeRow } from "@antumbra/changes";
+import type { ChangeStage } from "@antumbra/plugin-api";
+import type { SessionExecutionStatus } from "@antumbra/vocabulary/agent-runtime";
+import { pieceStates } from "#piece-state.ts";
+import type { AgentSessionRow, PieceRow, VoyageWorld } from "#voyage-rows.ts";
+
+// why: the ladder is derived from whole tables rather than from a row, so a
+// rehearsal of it builds a world. These are the smallest worlds that still say
+// something true, shared by the rehearsals of what counts as an outcome and by
+// the rehearsals of who is still at work, because both ask the same ladder.
+
+export const RELEASED = new Date("2026-08-15T09:00:00.000Z");
+
+export const piece = (id: string): PieceRow => ({
+	charter: `do ${id}`,
+	expectation: `${id} is landed`,
+	id,
+	launchedAt: RELEASED,
+	parkedAt: null,
+	role: "hand",
+	title: id,
+});
+
+export const change = (id: string, stage: ChangeStage): ChangeRow => ({
+	activityAt: RELEASED,
+	baseRef: "main",
+	body: "",
+	checks: "pending",
+	draftAt: null,
+	externalId: id,
+	headRef: `work/${id}`,
+	headSha: null,
+	host: "scripted",
+	id,
+	landedAt: stage === "landed" ? RELEASED : null,
+	mergeable: "unknown",
+	observedAt: RELEASED,
+	openedByAgentId: null,
+	originSessionId: null,
+	preparedHeadRef: null,
+	preparedHeadSha: null,
+	proposalFrozenAt: null,
+	raw: null,
+	repoId: "repo-1",
+	review: "none",
+	stage,
+	submissionKey: null,
+	title: id,
+	url: `https://scripted.test/changes/${id}`,
+	withdrawnAt: stage === "withdrawn" ? RELEASED : null,
+	workingDiff: null,
+	workingTreeStatus: null,
+	worktreePath: null,
+});
+
+export const world = (over: Partial<VoyageWorld>): VoyageWorld => ({
+	agentStatus: new Map(),
+	currentSessionByAgent: new Map(),
+	artifacts: new Map(),
+	assignments: [],
+	changes: [],
+	crews: [],
+	dismissedChangeIds: new Set(),
+	edges: [],
+	memberships: [],
+	pieceChanges: [],
+	pieceReports: [],
+	pieceVerdicts: new Map(),
+	pieces: [piece("alpha")],
+	reports: new Map(),
+	repos: new Map(),
+	sessions: [],
+	voyages: [],
+	...over,
+});
+
+export const withChanges = (
+	stages: ReadonlyArray<ChangeStage>,
+	over: Partial<VoyageWorld> = {},
+): VoyageWorld =>
+	world({
+		changes: stages.map((stage, index) => change(`change-${index}`, stage)),
+		pieceChanges: stages.map((_, index) => ({
+			changeId: `change-${index}`,
+			pieceId: "alpha",
+			purpose: "produces",
+		})),
+		...over,
+	});
+
+export const stateOf = (built: VoyageWorld, pieceId = "alpha") =>
+	pieceStates(built).get(pieceId);
+
+export const session = (
+	execution: SessionExecutionStatus,
+): AgentSessionRow => ({
+	agentId: "agent-1",
+	createdAt: RELEASED,
+	executionStatus: execution,
+	id: "session-1",
+	status: "open",
+});
+
+// why: a crew is a claim plus a session that is not idle, which is the whole of
+// what the ladder asks about — the claim says whose piece it is and the session
+// says whether that hand is still on it.
+export const crewing = (
+	pieceId: string,
+	executionStatus: SessionExecutionStatus,
+): Partial<VoyageWorld> => ({
+	agentStatus: new Map([["agent-1", "alive"]]),
+	assignments: [{ agentId: "agent-1", pieceId }],
+	currentSessionByAgent: new Map([["agent-1", "session-1"]]),
+	sessions: [session(executionStatus)],
+});
+
+export const finished = (built: VoyageWorld): VoyageWorld => ({
+	...built,
+	sessions: [session("idle")],
+});

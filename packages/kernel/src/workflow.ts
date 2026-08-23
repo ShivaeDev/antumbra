@@ -103,6 +103,13 @@ export const makeIntentWorkflow = (
 			Effect.andThen(executeWorkflow(intentId, payloadJson)),
 			Effect.scoped,
 			Effect.provide(WorkflowEngine.layerMemory, { local: true }),
+			// why: the drain fiber that admits an intent carries no span, so an
+			// intent's work recorded nothing and the id annotated below it had
+			// nothing to attach to. The name is the kind — a bounded set — and the
+			// ids stay annotations, so a trace is read by kind rather than by a
+			// name per intent. It roots on purpose: an intent outlives whatever
+			// asked for it, so its trace is its own and not a caller's.
+			Effect.withSpan(`intent ${tag}`, { root: true }),
 			Effect.annotateSpans({ intentId }),
 		);
 	return { run };

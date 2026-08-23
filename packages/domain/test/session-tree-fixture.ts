@@ -3,17 +3,25 @@ import { Database, type NewAgentSession, Writer } from "@antumbra/persistence";
 import type { TemporaryPersistence } from "@antumbra/persistence/testing";
 import type { SessionAudit, SessionCensus } from "@antumbra/plugin-api";
 import { SessionEventJournalLive } from "@antumbra/session-event-journal";
+import { SessionFabricLive } from "@antumbra/session-fabric";
 import type { AgentEvent } from "@antumbra/vocabulary/session-events";
 import { Effect, Layer, Ref } from "effect";
 import { LiveDelegationsLive } from "#session-tree-live.ts";
 
 // why: the tree's own machinery over a database and nothing else. These seams
 // answer about rows that closed while nothing was listening, so a rehearsal of
-// them starts from the rows rather than from a stream.
+// them starts from the rows rather than from a stream. The fabric stands here
+// with no acquisition in it, which is the truthful shape for a rehearsal whose
+// events never came through one.
 export const treeLayer = (temporary: TemporaryPersistence) =>
 	SessionEventJournalLive.pipe(
 		Layer.provideMerge(
-			Layer.mergeAll(temporary.layer, DomainFeedsLive, LiveDelegationsLive),
+			Layer.mergeAll(
+				temporary.layer,
+				DomainFeedsLive,
+				LiveDelegationsLive,
+				SessionFabricLive,
+			),
 		),
 	);
 

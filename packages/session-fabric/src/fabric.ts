@@ -52,11 +52,23 @@ export interface SessionFabricService {
 	// its acquisition; only the mark changes, and only when the quiet is new —
 	// saying it again while already quiet leaves the moment where it was.
 	readonly standDown: (sessionId: string) => Effect.Effect<void>;
+	// why: how many times words have reached a Session. Whoever acts on
+	// something the Session did takes the count first and hands it back when it
+	// commits, so an act built on a reading words have overtaken refuses.
+	readonly stirrings: (sessionId: string) => Effect.Effect<number>;
 	readonly stop: (sessionId: string) => Effect.Effect<void>;
 	// why: reclaim the acquisition only while it is still standing down.
 	// Answering false is how a Session that was spoken to in the meantime keeps
 	// the attachment a reclaim had already chosen to take.
 	readonly stopIdle: (sessionId: string) => Effect.Effect<boolean>;
+	// why: a turn ending is a Session falling quiet without declaring it, and it
+	// leaves the same mark standing down leaves — the clock reads one mark, not
+	// two. It refuses when words have reached the Session since the count was
+	// taken, so an ending overtaken by the next turn cannot put it to rest.
+	readonly turnEnded: (
+		sessionId: string,
+		stirrings: number,
+	) => Effect.Effect<boolean>;
 	readonly withStartAdmission: <A, E, R>(
 		use: (permit: SessionStartPermit) => Effect.Effect<A, E, R>,
 	) => Effect.Effect<A, E, R>;
@@ -113,8 +125,10 @@ export const makeSessionFabric = Effect.gen(function* () {
 		send: attachments.send,
 		standDown: attachments.standDown,
 		start,
+		stirrings: attachments.stirrings,
 		stop,
 		stopIdle,
+		turnEnded: attachments.turnEnded,
 		withStartAdmission: (use) =>
 			startAdmission.run(Effect.suspend(() => use(sessionStartPermit))),
 	} satisfies SessionFabricService;

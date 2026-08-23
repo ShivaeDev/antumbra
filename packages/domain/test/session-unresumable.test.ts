@@ -18,6 +18,9 @@ it("waits only where the state still has a way out", () => {
 	expect(unresumableVerdict({ _tag: "no-agent", agentId: "agent-a" })).toBe(
 		"refuse",
 	);
+	// why: a closed Session reads like a wait and is not one. Nothing reopens it,
+	// so parking a wake there holds the admiral's words for ever.
+	expect(unresumableVerdict({ _tag: "session-closed" })).toBe("refuse");
 });
 
 // why: the Agent lifecycle table decides this, not a list kept here — spawning
@@ -49,6 +52,7 @@ it("says which truth it met, naming the Session and what stood in the way", () =
 		{ _tag: "no-root" },
 		{ _tag: "not-current", currentSessionId: "session-b" },
 		{ _tag: "not-current", currentSessionId: null },
+		{ _tag: "session-closed" },
 	];
 	for (const reason of reasons) {
 		expect(unresumableDetail("session-a", reason).length).toBeGreaterThan(0);
@@ -68,5 +72,8 @@ it("says which truth it met, naming the Session and what stood in the way", () =
 	).toContain("session-b");
 	expect(unresumableDetail("session-a", { _tag: "draining" })).toContain(
 		"session-a",
+	);
+	expect(unresumableDetail("session-a", { _tag: "session-closed" })).toContain(
+		"has closed",
 	);
 });

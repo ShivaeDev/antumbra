@@ -8,6 +8,7 @@ interface ProposedChange {
 	readonly now: number;
 	readonly observation: ChangeObservation;
 	readonly openedByAgentId: string | null;
+	readonly originSessionId: string | null;
 	readonly repoId: string;
 }
 
@@ -32,6 +33,7 @@ export const proposedChange = (fields: ProposedChange): ChangeRow => {
 		mergeable: observation.mergeable,
 		observedAt: new Date(now),
 		openedByAgentId: fields.openedByAgentId,
+		originSessionId: fields.originSessionId,
 		preparedHeadRef: null,
 		preparedHeadSha: null,
 		proposalFrozenAt: null,

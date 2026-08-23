@@ -4,6 +4,7 @@ import { watchFleet } from "#adapters/trpc.ts";
 import { watchVoyages } from "#adapters/trpc-voyages.ts";
 import { rememberPlace } from "#adapters/trpc-windows.ts";
 import { useFeed } from "#hooks/feed.ts";
+import { discardMissingSessionDrafts } from "#session-drafts/store.ts";
 import { ConsoleMain } from "#views/console-main.tsx";
 import { NavRail } from "#views/nav-rail.tsx";
 import { NoticeBar } from "#views/notice-bar.tsx";
@@ -15,6 +16,7 @@ export const ConsoleApp = ({ place }: { readonly place: ConsolePlace }) => {
 		watchVoyages,
 	);
 	const [mode, setMode] = useState<ConsoleMode>(place.mode);
+	const [change, setChange] = useState(place.changeId ?? undefined);
 	const [session, setSession] = useState(place.sessionId ?? undefined);
 	const [voyage, setVoyage] = useState(place.voyageId ?? undefined);
 	const [notice, setNotice] = useState<string | undefined>(undefined);
@@ -27,6 +29,7 @@ export const ConsoleApp = ({ place }: { readonly place: ConsolePlace }) => {
 	useEffect(() => {
 		rememberPlace(
 			{
+				changeId: change ?? null,
 				mode,
 				role: "console",
 				sessionId: session ?? null,
@@ -34,7 +37,21 @@ export const ConsoleApp = ({ place }: { readonly place: ConsolePlace }) => {
 			},
 			setNotice,
 		);
-	}, [mode, session, voyage]);
+	}, [change, mode, session, voyage]);
+
+	// why: Sessions ordinarily remain in the durable fleet after they end. Only
+	// absence from a complete fleet sight means a stored local draft has lost
+	// its subject and may be discarded.
+	useEffect(() => {
+		if (fleet === undefined) {
+			return;
+		}
+		discardMissingSessionDrafts(
+			new Set(
+				fleet.agents.flatMap((agent) => agent.sessions.map((held) => held.id)),
+			),
+		);
+	}, [fleet]);
 
 	return (
 		<div className="flex h-screen min-w-0 bg-background text-foreground">
@@ -46,8 +63,10 @@ export const ConsoleApp = ({ place }: { readonly place: ConsolePlace }) => {
 					onDismiss={() => setNotice(undefined)}
 				/>
 				<ConsoleMain
+					change={change}
 					fleet={fleet}
 					mode={mode}
+					onChange={setChange}
 					onError={setNotice}
 					onSession={setSession}
 					onVoyage={setVoyage}

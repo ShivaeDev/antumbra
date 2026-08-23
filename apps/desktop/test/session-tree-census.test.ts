@@ -32,6 +32,7 @@ const sweptChild = (threadId: string, parentThreadId: string) => ({
 	agentRole: undefined,
 	parentThreadId,
 	threadId,
+	working: false,
 });
 
 // why: the census has one source, and it is the one reading shown to be
@@ -47,6 +48,7 @@ const oneMissed: CensusSweep = [
 		agentRole: "purser",
 		parentThreadId: BRANCH_THREAD,
 		threadId: MISSED_THREAD,
+		working: false,
 	},
 ];
 

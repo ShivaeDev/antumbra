@@ -268,3 +268,17 @@ it.effect("keeps a blank message and a session that has ended quiet", () =>
 		yield* step(() => root.unmount());
 	}),
 );
+
+it.effect("restores unsent words after the composer is remounted", () =>
+	Effect.gen(function* () {
+		const first = yield* mounted(fleetWith("working"));
+		yield* step(() => write(first.container, "hold this course"));
+		yield* step(() => first.root.unmount());
+
+		const returned = yield* mounted(fleetWith("working"));
+		expect(returned.container.querySelector("input")?.value).toBe(
+			"hold this course",
+		);
+		yield* step(() => returned.root.unmount());
+	}),
+);

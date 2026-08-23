@@ -2,7 +2,7 @@ import type { SessionMessage } from "@anthropic-ai/claude-agent-sdk";
 import { censusFindings, transcriptFindings } from "@antumbra/backend-claude";
 import {
 	type CensusSweep,
-	censusEvents,
+	censusOf,
 	censusUnreadable,
 } from "@antumbra/backend-codex";
 import type { SessionAudit } from "@antumbra/plugin-api";
@@ -41,13 +41,14 @@ export const scriptedClaudeAudit = (
 	stored: StoredTranscripts,
 ): SessionAudit => ({
 	census: (request) =>
-		Effect.succeed(
-			censusFindings(
+		Effect.succeed({
+			events: censusFindings(
 				[...stored]
 					.filter(([agentId]) => !request.admitted(agentId))
 					.map(([agentId, messages]) => ({ agentId, messages })),
 			),
-		),
+			nodes: [],
+		}),
 	node: (request) =>
 		Effect.map(request.recorded, (recorded) =>
 			transcriptFindings(
@@ -75,8 +76,8 @@ export const scriptedCodexAudit = (sweep: ScriptedSweep): SessionAudit => ({
 	census: (request) =>
 		Effect.succeed(
 			sweep === SWEEP_REFUSED
-				? [censusUnreadable(request.rootRef, REFUSED)]
-				: censusEvents(request.admitted, sweep),
+				? censusUnreadable(request.rootRef, REFUSED)
+				: censusOf(request.admitted, sweep),
 		),
 	node: () => Effect.succeed([]),
 });

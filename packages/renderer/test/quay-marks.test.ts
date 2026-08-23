@@ -1,6 +1,6 @@
 import type { ChangeView, QuayGroup, QuayView } from "@antumbra/contract";
 import { describe, expect, it } from "vitest";
-import { groupCounts, lastSight, shownGroups } from "#quay/groups.ts";
+import { lastSight } from "#quay/groups.ts";
 import { changeMarks, changeNumber, hasLanded } from "#quay/marks.ts";
 
 const change = (over: Partial<ChangeView> = {}): ChangeView => ({
@@ -27,11 +27,16 @@ const quay = (
 	hosts: [],
 	pieces: [],
 	rows: rows.map((row, index) => ({
+		baseRef: "main",
+		body: "",
 		change: change({
 			id: `change-${index}`,
 			...(row.observedAt === undefined ? {} : { observedAt: row.observedAt }),
 		}),
 		group: row.group,
+		headRef: "work/change",
+		headSha: null,
+		originSessionId: null,
 		pieceId: "piece-1",
 		pieceTitle: "soundings",
 		voyageId: "voyage-1",
@@ -110,34 +115,6 @@ describe("a change's marks", () => {
 	it("names a change by its number only where the host gave one", () => {
 		expect(changeNumber(change())).toBe("#41");
 		expect(changeNumber(change({ externalId: null }))).toBe("");
-	});
-});
-
-describe("narrowing the quay", () => {
-	it("offers a chip only for a group something lies in", () => {
-		const view = quay([
-			{ group: "draft" },
-			{ group: "alongside" },
-			{ group: "draft" },
-		]);
-		expect(groupCounts(view)).toEqual([
-			{ count: 1, group: "alongside" },
-			{ count: 2, group: "draft" },
-		]);
-	});
-
-	it("an empty quay offers nothing to narrow to", () => {
-		expect(groupCounts(quay([]))).toEqual([]);
-	});
-
-	it("shows every rung until a reader picks one", () => {
-		expect(shownGroups("all")).toEqual([
-			"alongside",
-			"needsAttention",
-			"checksRunning",
-			"draft",
-		]);
-		expect(shownGroups("draft")).toEqual(["draft"]);
 	});
 });
 

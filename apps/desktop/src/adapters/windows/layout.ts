@@ -14,7 +14,7 @@ export type RememberedWindow = typeof RememberedWindow.Type;
 // guesses about what its fields once meant.
 export const WindowLayout = Schema.Struct({
 	focused: Schema.NullOr(Schema.String),
-	version: Schema.Literal(1),
+	version: Schema.Literal(2),
 	windows: Schema.Array(RememberedWindow),
 });
 export type WindowLayout = typeof WindowLayout.Type;
@@ -24,6 +24,7 @@ const decodeLayout = Schema.decodeUnknownResult(
 );
 
 export const defaultConsole = {
+	changeId: null,
 	mode: "fleet",
 	role: "console",
 	sessionId: null,
@@ -33,7 +34,7 @@ export const defaultConsole = {
 export const layoutOf = (
 	windows: ReadonlyArray<RememberedWindow>,
 	focused: string | null,
-): WindowLayout => ({ focused, version: 1, windows });
+): WindowLayout => ({ focused, version: 2, windows });
 
 // why: window layout is glass, not truth. A file that cannot be read is a
 // layout we do not have, which is a state the app already knows how to be in —

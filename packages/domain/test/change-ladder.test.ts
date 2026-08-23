@@ -32,6 +32,7 @@ const change = (id: string, stage: ChangeStage): ChangeRow => ({
 	mergeable: "unknown",
 	observedAt: RELEASED,
 	openedByAgentId: null,
+	originSessionId: null,
 	preparedHeadRef: null,
 	preparedHeadSha: null,
 	proposalFrozenAt: null,

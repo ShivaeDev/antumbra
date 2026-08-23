@@ -1,4 +1,6 @@
-import type { SessionPresence } from "@antumbra/vocabulary/agent-runtime";
+import type { SessionSummary } from "@antumbra/contract";
+
+type SessionPresence = SessionSummary["presence"];
 
 // why: the four presences are said in plain English here and nowhere else, the
 // way session-outcome-words.ts is the one home for how a delegated node ended.

@@ -1,8 +1,8 @@
 import { SightSource } from "@antumbra/contract";
 import { Kernel } from "@antumbra/kernel";
-import { Database, type NewAgentSession, Writer } from "@antumbra/persistence";
+import { Database, Writer } from "@antumbra/persistence";
 import { expect, it } from "@effect/vitest";
-import { Effect, Option, Ref } from "effect";
+import { Effect, Ref } from "effect";
 import { AgentDomain } from "#domain.ts";
 import { acquireTemporaryPersistence } from "#test/harness.ts";
 import {
@@ -62,49 +62,18 @@ it.live("a wake that cannot be taken parks with its reason on the fleet", () =>
 	}),
 );
 
-// why: the two halves of the ruling, on the two reasons a live fleet actually
-// produces. A pointer that moved can move back while both Sessions are open, so
-// the Intent waits with the sentence on it; an Agent with no way back to alive
-// is refused, and the refusal is the sentence rather than a stack trace.
-it.live("a wake with nothing to resume waits or refuses by what it found", () =>
+// why: an Agent with no way back to alive is refused rather than parked, and
+// the refusal is the sentence a reader came for rather than a stack trace. The
+// other reason a live fleet produces — the pointer aimed somewhere else — no
+// longer reaches this shape: an Agent holds one open root at a time, so a
+// pointer that has moved means the older root is closed, and a closed root is
+// now refused on its own truth. That refusal is rehearsed beside the wake it
+// settles, and the pointer's own sentence where the verdict is decided.
+it.live("a wake into a retired Agent refuses with the reason it found", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
 		const { recorded, scripted } = yield* sleepingRoot(temporary);
 		const backend = reportsNativeRef(scripted.backend, scripted, NATIVE);
-		// why: the pointer moves when a newer Session takes over, and for the
-		// moment before reconciliation catches up both are open. That moment is
-		// the only one "not-current" can honestly be reached from — once the older
-		// row is closed the wake is refused on that instead, because a closed
-		// Session is not a pointer that can come back.
-		const succeeded = Effect.gen(function* () {
-			const db = yield* Database;
-			const writer = yield* Writer;
-			yield* writer.write(
-				Effect.gen(function* () {
-					yield* db.AgentSession.create({
-						agentId: payload.agentId,
-						backend: "scripted",
-						charterDeliveredAt: new Date(1),
-						createdAt: new Date(2),
-						cwd: "/somewhere/session-resume",
-						executionStatus: "idle",
-						id: "session-elsewhere",
-						nativeRef: "native-elsewhere",
-						parentSessionId: null,
-						rootSessionId: "session-elsewhere",
-						status: "open",
-					} satisfies NewAgentSession);
-				}),
-			);
-		});
-		const point = (currentSessionId: string | null) =>
-			Effect.gen(function* () {
-				const db = yield* Database;
-				const writer = yield* Writer;
-				yield* writer.write(
-					db.Agent.where({ id: payload.agentId }).update({ currentSessionId }),
-				);
-			});
 		const retire = Effect.gen(function* () {
 			const db = yield* Database;
 			const writer = yield* Writer;
@@ -116,35 +85,11 @@ it.live("a wake with nothing to resume waits or refuses by what it found", () =>
 		yield* Effect.gen(function* () {
 			const domain = yield* AgentDomain;
 			const kernel = yield* Kernel;
-			yield* succeeded;
-			yield* point("session-elsewhere");
-			const moved = yield* kernel.submit(domain.recover, {
-				sessionId: payload.sessionId,
-			});
-			const waited = yield* eventually(
-				Effect.gen(function* () {
-					const row = Option.getOrThrow(
-						yield* Database.use((db) =>
-							db.Intent.where({ id: moved.id }).first(),
-						),
-					);
-					expect(row.status).toBe("waiting");
-					return row;
-				}),
-			);
-			expect(waited.detail).toContain("the Agent is on session-elsewhere");
-
 			yield* retire;
-			const gone = yield* kernel.submit(domain.recover, {
-				sessionId: "session-elsewhere",
-			});
+			yield* kernel.submit(domain.recover, { sessionId: payload.sessionId });
 			const refused = yield* eventually(
 				Effect.gen(function* () {
-					const row = Option.getOrThrow(
-						yield* Database.use((db) =>
-							db.Intent.where({ id: gone.id }).first(),
-						),
-					);
+					const row = yield* onlyRecovery;
 					expect(row.status).toBe("failed");
 					return row;
 				}),

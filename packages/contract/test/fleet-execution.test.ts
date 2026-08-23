@@ -20,7 +20,12 @@ const agentAround = (session: Record<string, unknown>) => ({
 	repos: [],
 });
 
-const siesta = { id: "intent-1", kind: "session/siesta", state: "queued" };
+const siesta = {
+	detail: null,
+	id: "intent-1",
+	kind: "session/siesta",
+	state: "queued",
+};
 
 // why: the discipline this test has always guarded is that raw Session
 // execution state is never an ordinary Session field the view can mistake for

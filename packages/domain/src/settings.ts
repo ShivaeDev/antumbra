@@ -1,65 +1,25 @@
-import {
-	DEFAULT_MAX_PARALLEL_SESSIONS,
-	Settings,
-	SettingsSource,
-	type UpdateSettings,
-} from "@antumbra/contract";
+import { SettingsSource } from "@antumbra/contract";
 import { Database, type WriteExecutors, Writer } from "@antumbra/persistence";
-import { Clock, Effect, Layer, Option, Schema } from "effect";
+import { Context, Effect, Layer } from "effect";
+import { changeSetting } from "#settings-change.ts";
+import { readSettings } from "#settings-reading.ts";
 
-const KEY = "settings:max-parallel-sessions";
-
-const decode = (value: string | undefined) =>
-	value === undefined
-		? Effect.succeed({ maxParallelSessions: DEFAULT_MAX_PARALLEL_SESSIONS })
-		: Schema.decodeUnknownEffect(Settings)({
-				maxParallelSessions: Number(value),
-			});
-
-const persist = (settings: UpdateSettings) =>
-	Effect.gen(function* () {
-		const db = yield* Database;
-		const writer = yield* Writer;
-		const now = yield* Clock.currentTimeMillis;
-		return yield* writer.write(
-			Effect.gen(function* () {
-				const exists = yield* db.AppMeta.where({ key: KEY }).exists();
-				if (exists) {
-					yield* db.AppMeta.where({ key: KEY }).update({
-						updatedAt: new Date(now),
-						value: String(settings.maxParallelSessions),
-					});
-				} else {
-					yield* db.AppMeta.create({
-						key: KEY,
-						value: String(settings.maxParallelSessions),
-					});
-				}
-				return settings;
-			}),
-		);
-	});
-
+// why: settings are read on every pass of the loops that consult them, so the
+// source reads through to the rows each time rather than holding a copy.
+// There is nothing here to keep in step with a write, and a change is live on
+// the next pass without anyone ringing a bell.
 export const SettingsSourceLive = Layer.effect(SettingsSource)(
 	Effect.gen(function* () {
 		const db = yield* Database;
 		const writer = yield* Writer;
 		const executors = yield* Effect.context<WriteExecutors>();
-		const current = Effect.gen(function* () {
-			const row = yield* db.AppMeta.where({ key: KEY }).first();
-			return yield* decode(
-				Option.match(row, {
-					onNone: () => undefined,
-					onSome: (found) => found.value,
-				}),
-			);
-		}).pipe(Effect.provideContext(executors));
-		const update = (settings: UpdateSettings) =>
-			persist(settings).pipe(
-				Effect.provideService(Database, db),
-				Effect.provideService(Writer, writer),
-				Effect.provideContext(executors),
-			);
-		return { current, update };
+		const context = Context.merge(
+			executors,
+			Context.make(Database, db).pipe(Context.add(Writer, writer)),
+		);
+		return {
+			change: (change) => Effect.provide(changeSetting(change), context),
+			current: Effect.provide(readSettings, context),
+		};
 	}),
 );

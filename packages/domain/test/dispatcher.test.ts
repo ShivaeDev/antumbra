@@ -3,9 +3,9 @@ import { expect, it } from "@effect/vitest";
 import { Effect, Option } from "effect";
 import { nextBackoffMillis } from "#dispatch-policy.ts";
 import { AgentDomain } from "#domain.ts";
+import { dispatchingLayer } from "#test/domain-layers.ts";
 import {
 	acquireTemporaryPersistence,
-	dispatchingLayer,
 	makeScriptedBackend,
 } from "#test/harness.ts";
 import {

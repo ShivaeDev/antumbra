@@ -2,10 +2,10 @@ import { Database } from "@antumbra/persistence";
 import { expect, it } from "@effect/vitest";
 import { Effect, Option } from "effect";
 import { AgentDomain } from "#domain.ts";
+import { dispatchingLayer } from "#test/domain-layers.ts";
 import {
 	acquireTemporaryPersistence,
 	callTool,
-	dispatchingLayer,
 	makeScriptedBackend,
 	type ScriptedBackend,
 	type ScriptedSession,

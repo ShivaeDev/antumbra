@@ -3,11 +3,10 @@ import type { ReportRow } from "@antumbra/reports";
 import { expect, it } from "@effect/vitest";
 import { Effect } from "effect";
 import { AgentDomain } from "#domain.ts";
+import { dispatchingLayer, domainKernelLayer } from "#test/domain-layers.ts";
 import {
 	acquireTemporaryPersistence,
 	callTool,
-	dispatchingLayer,
-	domainKernelLayer,
 	makeScriptedBackend,
 	type ScriptedBackend,
 	type ScriptedSession,

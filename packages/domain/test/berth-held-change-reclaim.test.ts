@@ -5,9 +5,9 @@ import { Clock, Effect, Ref, Schedule } from "effect";
 import { AgentDomain } from "#domain.ts";
 import { changeOf, REEF_SOURCE } from "#test/change-fixtures.ts";
 import { observed } from "#test/change-transition-fixtures.ts";
+import { domainKernelLayer } from "#test/domain-layers.ts";
 import {
 	acquireTemporaryPersistence,
-	domainKernelLayer,
 	makeScriptedBackend,
 	makeScriptedRunner,
 } from "#test/harness.ts";

@@ -5,11 +5,10 @@ import { expect, it } from "@effect/vitest";
 import { Effect, Option } from "effect";
 import { AgentDomain } from "#domain.ts";
 import type { SpawnFields } from "#index.ts";
+import { dispatchingLayer, domainKernelLayer } from "#test/domain-layers.ts";
 import {
 	acquireTemporaryPersistence,
 	callTool,
-	dispatchingLayer,
-	domainKernelLayer,
 	makeScriptedBackend,
 	rawOf,
 	sessionFor,

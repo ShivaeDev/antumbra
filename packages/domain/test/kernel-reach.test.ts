@@ -1,11 +1,12 @@
 import { expect, it } from "@effect/vitest";
-import { Effect, Fiber, Ref, Stream } from "effect";
+import { Effect, Fiber, Ref } from "effect";
 import {
 	KernelReach,
 	KernelReachDeferredLive,
 	KernelReachInstaller,
 } from "#kernel-reach.ts";
 import type { SpawnFields } from "#spawn.ts";
+import { fakeKernelReach } from "#test/kernel-reach-fixture.ts";
 
 const spawn: SpawnFields = {
 	agentId: "agent-late",
@@ -30,15 +31,7 @@ it.live("kernel reach waits for the one installed scheduler path", () =>
 		expect(yield* Ref.get(completed)).toBe(false);
 
 		yield* installer.install({
-			queueSiesta: () => Effect.void,
-			rouseSession: () =>
-				Effect.succeed({
-					changes: Stream.empty,
-					id: "recovery-intent",
-					retried: false,
-				}),
-			settleWakes: () => Effect.void,
-			submitRecovery: () => Effect.succeed("recovery-intent"),
+			...fakeKernelReach,
 			submitSpawn: (payload) =>
 				Ref.set(received, payload).pipe(Effect.as("spawn-intent")),
 		});

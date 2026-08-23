@@ -10,9 +10,9 @@ import { expect, it } from "@effect/vitest";
 import { Effect, Option } from "effect";
 import { AgentDomain } from "#domain.ts";
 import { wouldCycle } from "#piece-state.ts";
+import { domainKernelLayer } from "#test/domain-layers.ts";
 import {
 	acquireTemporaryPersistence,
-	domainKernelLayer,
 	makeScriptedBackend,
 } from "#test/harness.ts";
 import type { VoyageProcedures } from "#voyages.ts";

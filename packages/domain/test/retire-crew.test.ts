@@ -5,9 +5,9 @@ import { expect, it } from "@effect/vitest";
 import { Effect, Layer, Option } from "effect";
 import { AgentDomain } from "#domain.ts";
 import { SightSourceLive } from "#sight.ts";
+import { domainKernelLayer } from "#test/domain-layers.ts";
 import {
 	acquireTemporaryPersistence,
-	domainKernelLayer,
 	makeScriptedBackend,
 	type ScriptedBackend,
 	standDown,

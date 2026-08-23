@@ -2,9 +2,9 @@ import { SettingsSource } from "@antumbra/contract";
 import { Database } from "@antumbra/persistence";
 import { expect, it } from "@effect/vitest";
 import { Effect, Option } from "effect";
+import { domainKernelLayer } from "#test/domain-layers.ts";
 import {
 	acquireTemporaryPersistence,
-	domainKernelLayer,
 	makeScriptedBackend,
 	type ScriptedBackend,
 	standDown,

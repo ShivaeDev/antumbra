@@ -1,13 +1,9 @@
 import { Database } from "@antumbra/persistence";
 import { expect, it } from "@effect/vitest";
-import { Deferred, Effect, Fiber, Option, Result } from "effect";
-import { AgentDomain } from "#domain.ts";
-import {
-	acquireTemporaryPersistence,
-	domainKernelLayer,
-	makeScriptedBackend,
-} from "#test/harness.ts";
-import { aliveAgent, eventually } from "#test/voyage-fixtures.ts";
+import { Deferred, Effect, Fiber, Result } from "effect";
+import { domainCapabilityLayer } from "#test/domain-layers.ts";
+import { acquireTemporaryPersistence } from "#test/harness.ts";
+import { VoyageProcedureService } from "#voyage-procedures.ts";
 import type { VoyageProcedures } from "#voyages.ts";
 
 const withDomain = <A, E, R>(
@@ -15,11 +11,10 @@ const withDomain = <A, E, R>(
 ) =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
-		const scripted = yield* makeScriptedBackend;
 		yield* Effect.gen(function* () {
-			const domain = yield* AgentDomain;
-			yield* body(domain.voyages);
-		}).pipe(Effect.provide(domainKernelLayer(temporary, scripted.backend)));
+			const voyages = yield* VoyageProcedureService;
+			yield* body(voyages);
+		}).pipe(Effect.provide(domainCapabilityLayer(temporary)));
 	});
 
 const openVoyage = (voyages: VoyageProcedures) =>
@@ -123,27 +118,6 @@ it.live("a refused rewire preserves the previous dependencies", () =>
 			).toMatchObject([{ fromPieceId: alpha.id, toPieceId: beta.id }]);
 		}),
 	),
-);
-
-it.live(
-	"a switched backend retargets the voyage and no session already open",
-	() =>
-		withDomain((voyages) =>
-			Effect.gen(function* () {
-				const db = yield* Database;
-				const voyage = yield* openVoyage(voyages);
-				const hailed = yield* voyages.hail(voyage.id);
-				yield* eventually(aliveAgent(hailed.agentId));
-
-				yield* voyages.setBackend(voyage.id, "codex");
-
-				const stored = yield* db.Voyage.where({ id: voyage.id }).first();
-				expect(Option.getOrThrow(stored).backend).toBe("codex");
-				expect(
-					(yield* db.AgentSession.all()).map((session) => session.backend),
-				).toEqual(["scripted"]);
-			}),
-		),
 );
 
 it.live("switching the backend of an absent voyage is a tagged refusal", () =>

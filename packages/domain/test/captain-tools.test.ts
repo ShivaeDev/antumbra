@@ -2,10 +2,10 @@ import { BoardScope } from "@antumbra/boards";
 import { expect, it } from "@effect/vitest";
 import { Effect } from "effect";
 import { AgentDomain } from "#domain.ts";
+import { domainKernelLayer } from "#test/domain-layers.ts";
 import {
 	acquireTemporaryPersistence,
 	callTool,
-	domainKernelLayer,
 	makeScriptedBackend,
 	type ScriptedBackend,
 	type ScriptedSession,

@@ -9,9 +9,9 @@ import { expect, it } from "@effect/vitest";
 import { Deferred, Effect, Option, Schedule, Stream } from "effect";
 import { AGENTS_ALIVE_GAUGE, AgentDomain } from "#domain.ts";
 import type { RetireFields, SpawnFields } from "#index.ts";
+import { domainKernelLayer } from "#test/domain-layers.ts";
 import {
 	acquireTemporaryPersistence,
-	domainKernelLayer,
 	makeScriptedBackend,
 	makeScriptedRunner,
 	rawOf,

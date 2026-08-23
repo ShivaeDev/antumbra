@@ -10,11 +10,8 @@ import { expect } from "@effect/vitest";
 import { Effect, Option, Ref, Schedule, Stream } from "effect";
 import { AgentDomain } from "#domain.ts";
 import type { SpawnFields } from "#index.ts";
-import {
-	domainKernelLayer,
-	rawOf,
-	type ScriptedBackend,
-} from "#test/harness.ts";
+import { domainKernelLayer } from "#test/domain-layers.ts";
+import { rawOf, type ScriptedBackend } from "#test/harness.ts";
 
 export const RECOVERY_INSTRUCTION =
 	"Reconcile durable Antumbra truth and continue your assigned work.";

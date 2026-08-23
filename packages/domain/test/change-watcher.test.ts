@@ -4,6 +4,7 @@ import { Effect } from "effect";
 import type { ObserveCadenceOptions } from "#change-cadence.ts";
 import { AgentDomain } from "#domain.ts";
 import { berthed, REEF_SOURCE, reefWithPiece } from "#test/change-fixtures.ts";
+import { watchingLayer } from "#test/domain-layers.ts";
 import {
 	acquireTemporaryPersistence,
 	callTool,
@@ -12,7 +13,6 @@ import {
 	makeScriptedRunner,
 	type ScriptedBackend,
 	sessionFor,
-	watchingLayer,
 } from "#test/harness.ts";
 import { makeScriptedHost, type ScriptedHost } from "#test/scripted-host.ts";
 import {

@@ -5,9 +5,9 @@ import { Effect, Option } from "effect";
 import { TestClock } from "effect/testing";
 import { AgentDomain } from "#domain.ts";
 import type { SpawnFields } from "#index.ts";
+import { domainKernelLayer } from "#test/domain-layers.ts";
 import {
 	acquireTemporaryPersistence,
-	domainKernelLayer,
 	makeScriptedBackend,
 	makeScriptedRunner,
 } from "#test/harness.ts";

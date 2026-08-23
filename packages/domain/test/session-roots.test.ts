@@ -10,9 +10,9 @@ import {
 	SubsessionAttachRefused,
 } from "#session-attach-roots.ts";
 import { SightSourceLive } from "#sight.ts";
+import { domainKernelLayer } from "#test/domain-layers.ts";
 import {
 	acquireTemporaryPersistence,
-	domainKernelLayer,
 	makeScriptedBackend,
 	type ScriptedBackend,
 } from "#test/harness.ts";

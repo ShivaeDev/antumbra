@@ -6,9 +6,9 @@ import type { AgentEvent } from "@antumbra/vocabulary/session-events";
 import { expect, it } from "@effect/vitest";
 import { Effect, Fiber, Layer, PubSub, Schedule, Stream } from "effect";
 import { SightSourceLive } from "#sight.ts";
+import { domainKernelLayer } from "#test/domain-layers.ts";
 import {
 	acquireTemporaryPersistence,
-	domainKernelLayer,
 	makeScriptedBackend,
 	rawOf,
 	type ScriptedBackend,

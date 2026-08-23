@@ -5,9 +5,9 @@ import { SessionInputId } from "@antumbra/vocabulary/session-input";
 import { expect, it } from "@effect/vitest";
 import { Effect, Layer, Schedule } from "effect";
 import { SightSourceLive } from "#sight.ts";
+import { domainKernelLayer } from "#test/domain-layers.ts";
 import {
 	acquireTemporaryPersistence,
-	domainKernelLayer,
 	makeScriptedBackend,
 	type ScriptedBackend,
 	type ScriptedSession,

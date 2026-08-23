@@ -21,8 +21,12 @@ export const quaySeen = (
 		voyageName: piece.voyageName,
 	})),
 	rows: reading.rows.map((row) => ({
+		baseRef: row.baseRef,
+		body: row.body,
 		change: changeSeen(row.change),
 		group: row.group,
+		headRef: row.headRef,
+		headSha: row.headSha,
 		originSessionId: row.originSessionId,
 		pieceId: row.pieceId,
 		pieceTitle: row.pieceTitle,

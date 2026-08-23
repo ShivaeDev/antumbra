@@ -16,6 +16,7 @@ export const ConsoleApp = ({ place }: { readonly place: ConsolePlace }) => {
 		watchVoyages,
 	);
 	const [mode, setMode] = useState<ConsoleMode>(place.mode);
+	const [change, setChange] = useState(place.changeId ?? undefined);
 	const [session, setSession] = useState(place.sessionId ?? undefined);
 	const [voyage, setVoyage] = useState(place.voyageId ?? undefined);
 	const [notice, setNotice] = useState<string | undefined>(undefined);
@@ -28,6 +29,7 @@ export const ConsoleApp = ({ place }: { readonly place: ConsolePlace }) => {
 	useEffect(() => {
 		rememberPlace(
 			{
+				changeId: change ?? null,
 				mode,
 				role: "console",
 				sessionId: session ?? null,
@@ -35,7 +37,7 @@ export const ConsoleApp = ({ place }: { readonly place: ConsolePlace }) => {
 			},
 			setNotice,
 		);
-	}, [mode, session, voyage]);
+	}, [change, mode, session, voyage]);
 
 	// why: Sessions ordinarily remain in the durable fleet after they end. Only
 	// absence from a complete fleet sight means a stored local draft has lost
@@ -61,8 +63,10 @@ export const ConsoleApp = ({ place }: { readonly place: ConsolePlace }) => {
 					onDismiss={() => setNotice(undefined)}
 				/>
 				<ConsoleMain
+					change={change}
 					fleet={fleet}
 					mode={mode}
+					onChange={setChange}
 					onError={setNotice}
 					onSession={setSession}
 					onVoyage={setVoyage}

@@ -6,8 +6,10 @@ import { VoyagePanel } from "#views/voyage.tsx";
 import { VoyagesAside } from "#views/voyages-aside.tsx";
 
 interface ConsoleProps {
+	readonly change: string | undefined;
 	readonly fleet: Fleet | undefined;
 	readonly mode: ConsoleMode;
+	readonly onChange: (changeId: string | undefined) => void;
 	readonly onError: (message: string) => void;
 	readonly onSession: (sessionId: string | undefined) => void;
 	readonly onVoyage: (voyageId: string) => void;
@@ -15,22 +17,6 @@ interface ConsoleProps {
 	readonly voyage: string | undefined;
 	readonly voyages: ReadonlyArray<VoyageSummary>;
 }
-
-const MainSection = (props: ConsoleProps) => {
-	if (props.mode === "settings") {
-		return <SettingsPanel onError={props.onError} />;
-	}
-	if (props.mode === "quay") {
-		return <QuayPanel onError={props.onError} />;
-	}
-	return props.voyage === undefined ? (
-		<section className="m-auto text-xs text-muted-foreground">
-			select a voyage to see its pieces
-		</section>
-	) : (
-		<VoyagePanel onError={props.onError} voyageId={props.voyage} />
-	);
-};
 
 // why: the aside is a fixed column, not a measuring stick — a long branch or
 // path inside it wraps or clips within its width instead of widening the
@@ -52,6 +38,15 @@ export const ConsoleMain = (props: ConsoleProps) => {
 	if (props.mode === "settings") {
 		return <SettingsPanel onError={props.onError} />;
 	}
+	if (props.mode === "quay") {
+		return (
+			<QuayPanel
+				onError={props.onError}
+				onSelect={props.onChange}
+				selectedId={props.change}
+			/>
+		);
+	}
 	return (
 		<div className="flex min-h-0 min-w-0 flex-1">
 			<aside className={ASIDE}>
@@ -65,7 +60,13 @@ export const ConsoleMain = (props: ConsoleProps) => {
 					voyages={props.voyages}
 				/>
 			</aside>
-			<MainSection {...props} />
+			{props.voyage === undefined ? (
+				<section className="m-auto text-xs text-muted-foreground">
+					select a voyage to see its pieces
+				</section>
+			) : (
+				<VoyagePanel onError={props.onError} voyageId={props.voyage} />
+			)}
 		</div>
 	);
 };

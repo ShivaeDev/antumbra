@@ -31,6 +31,7 @@ const opened = Effect.flatMap(Changes, (changes) =>
 		draft: false,
 		pieceId: "piece-reef",
 		repoName: "reef",
+		sessionId: "session-crew",
 		title: "Chart the reef",
 	}),
 );
@@ -62,6 +63,7 @@ it.effectDB(
 				agentId: CREW,
 				pieceId: "piece-reef",
 				repoName: "reef",
+				sessionId: "session-crew",
 			});
 			yield* scripted.announce(
 				observation(
@@ -102,6 +104,7 @@ it.effectDB(
 				agentId: CREW,
 				pieceId: "piece-reef",
 				repoName: "reef",
+				sessionId: "session-crew",
 			});
 			const [attached] = yield* changes.observed("scripted", [
 				observation("41", {
@@ -141,6 +144,7 @@ it.effectDB(
 				agentId: CREW,
 				pieceId: "piece-reef",
 				repoName: "reef",
+				sessionId: "session-crew",
 			});
 			yield* scripted.transition("repo-reef", "1", { stage: "open" });
 			const collision = yield* Effect.flip(changes.refresh("scripted"));

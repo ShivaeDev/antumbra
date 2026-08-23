@@ -12,9 +12,17 @@ export const QuayGroup = Schema.Literals([
 ]);
 export type QuayGroup = typeof QuayGroup.Type;
 
+// why: description and branch facts belong only to the Quay's selected detail;
+// voyage change chips keep their smaller ChangeView while this projection
+// carries the neutral pull-request metadata already held by the Change.
 export const QuayRow = Schema.Struct({
+	baseRef: Schema.String,
+	body: Schema.String,
 	change: ChangeView,
 	group: QuayGroup,
+	headRef: Schema.String,
+	headSha: Schema.NullOr(Schema.String),
+	originSessionId: Schema.NullOr(Schema.String),
 	pieceId: Schema.String,
 	pieceTitle: Schema.String,
 	voyageId: Schema.String,

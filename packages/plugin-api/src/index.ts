@@ -43,9 +43,11 @@ export {
 	UnknownRunnerError,
 } from "#runner.ts";
 export {
+	type CensusedNode,
 	type NodeAuditRequest,
 	noSessionAudit,
 	type SessionAudit,
+	type SessionCensus,
 	type SessionCensusRequest,
 } from "#session-audit.ts";
 export {

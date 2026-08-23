@@ -102,8 +102,13 @@ export const quayView: QuayView = {
 	],
 	rows: [
 		{
+			baseRef: "main",
+			body: "Warn navigators before the northern shoal catches another keel.",
 			change: shoalWarning,
 			group: "alongside",
+			headRef: "work/agent-1/reef",
+			headSha: "0123456789abcdef0123456789abcdef01234567",
+			originSessionId: "session-1",
 			pieceId: "piece-1",
 			pieceTitle: "soundings",
 			voyageId: "voyage-1",

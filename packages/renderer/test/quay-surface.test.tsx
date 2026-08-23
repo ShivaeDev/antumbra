@@ -1,10 +1,11 @@
-// why: @vitest-environment happy-dom exercises the real click boundary.
+// why: @vitest-environment happy-dom exercises selection, controls and actions
+// through the same DOM boundaries a keyboard or pointer uses.
 
-import type { QuayGroup, QuayView } from "@antumbra/contract";
+import type { QuayGroup, QuayRow, QuayView } from "@antumbra/contract";
 import { expect, it } from "@effect/vitest";
 import { Effect } from "effect";
 import { act } from "react";
-import { createRoot, type Root } from "react-dom/client";
+import { createRoot } from "react-dom/client";
 import { beforeEach, vi } from "vitest";
 import { QuayPanel } from "#views/quay.tsx";
 
@@ -13,10 +14,12 @@ interface Opened {
 	readonly onQuay: (quay: QuayView) => void;
 }
 
-const { opened, watchQuay } = vi.hoisted(() => {
+const { opened, openExternal, openWindow, watchQuay } = vi.hoisted(() => {
 	const opened: Array<Opened> = [];
 	return {
 		opened,
+		openExternal: vi.fn(),
+		openWindow: vi.fn(),
 		watchQuay: vi.fn((onQuay: Opened["onQuay"], onError: Opened["onError"]) => {
 			opened.push({ onError, onQuay });
 			return vi.fn();
@@ -24,48 +27,58 @@ const { opened, watchQuay } = vi.hoisted(() => {
 	};
 });
 
+vi.mock("#adapters/bridge.ts", () => ({ openExternal }));
 vi.mock("#adapters/trpc-quay.ts", () => ({
 	adoptChange: vi.fn(),
 	refreshChanges: vi.fn(),
 	watchQuay,
 }));
+vi.mock("#adapters/trpc-windows.ts", () => ({ openWindow }));
 
-const row = (group: QuayGroup, title: string) => ({
+const row = (
+	group: QuayGroup,
+	title: string,
+	over: Partial<QuayRow> = {},
+): QuayRow => ({
+	baseRef: "main",
+	body: "## Why\n\nKeep the channel safe.",
 	change: {
 		activityAt: "2026-08-19T09:20:00.000Z",
-		checks: "green" as const,
-		externalId: "41",
+		checks: "green",
+		externalId: group === "draft" ? "42" : "41",
 		host: "github",
 		id: `change-${title}`,
 		isDraft: group === "draft",
-		mergeable: "clean" as const,
+		mergeable: "clean",
 		observedAt: "2026-08-19T09:22:00.000Z",
-		repoId: "repo-1",
-		repoName: "shoals",
-		review: "approved" as const,
-		stage: "open" as const,
+		repoId: group === "draft" ? "repo-2" : "repo-1",
+		repoName: group === "draft" ? "harbour" : "shoals",
+		review: "approved",
+		stage: "open",
 		title,
-		url: null,
+		url: `https://github.test/pull/${group === "draft" ? "42" : "41"}`,
 	},
 	group,
+	headRef: `work/${title.replaceAll(" ", "-")}`,
+	headSha: "0123456789abcdef0123456789abcdef01234567",
+	originSessionId: "019c1234-session-origin",
 	pieceId: "piece-1",
-	pieceTitle: "soundings",
+	pieceTitle: "Soundings",
 	voyageId: "voyage-1",
 	voyageName: "Chart the reef",
+	...over,
 });
 
+const alongside = row("alongside", "sound the channel");
+const draft = row("draft", "sketch the buoy", {
+	originSessionId: null,
+	pieceId: "piece-2",
+	pieceTitle: "Chart",
+});
 const snapshot: QuayView = {
 	hosts: [{ available: true, detail: "signed in as navigator", tag: "github" }],
-	pieces: [{ id: "piece-1", title: "soundings", voyageName: "Chart the reef" }],
-	rows: [
-		row("alongside", "sound the channel"),
-		row("draft", "sketch the buoy"),
-	],
-};
-
-const mount = (): { container: HTMLElement; root: Root } => {
-	const container = document.createElement("div");
-	return { container, root: createRoot(container) };
+	pieces: [{ id: "piece-1", title: "Soundings", voyageName: "Chart the reef" }],
+	rows: [alongside, draft],
 };
 
 const settle = (change: () => void): Effect.Effect<void> =>
@@ -76,74 +89,159 @@ const settle = (change: () => void): Effect.Effect<void> =>
 		}),
 	);
 
-const showing = (root: Root, container: HTMLElement): Effect.Effect<string> =>
-	Effect.gen(function* () {
-		yield* settle(() => {
-			root.render(<QuayPanel onError={() => undefined} />);
-		});
-		yield* settle(() => opened.at(-1)?.onQuay(snapshot));
-		return container.textContent ?? "";
-	});
+const nativeValue = Object.getOwnPropertyDescriptor(
+	HTMLInputElement.prototype,
+	"value",
+)?.set;
 
-const press = (
-	container: HTMLElement,
-	label: string,
-): Effect.Effect<string> => {
-	const pressed = [...container.querySelectorAll("button")].find((button) =>
-		(button.textContent ?? "").startsWith(label),
-	);
-	return Effect.gen(function* () {
-		yield* settle(() =>
-			pressed?.dispatchEvent(new MouseEvent("click", { bubbles: true })),
-		);
-		return container.textContent ?? "";
-	});
+const mount = (selectedId: string | undefined, onSelect = vi.fn()) => {
+	const container = document.createElement("div");
+	const root = createRoot(container);
+	return { container, onSelect, root, selectedId };
 };
+
+const showing = (
+	mounted: ReturnType<typeof mount>,
+	view: QuayView = snapshot,
+): Effect.Effect<void> =>
+	Effect.gen(function* () {
+		yield* settle(() =>
+			mounted.root.render(
+				<QuayPanel
+					onError={() => undefined}
+					onSelect={mounted.onSelect}
+					selectedId={mounted.selectedId}
+				/>,
+			),
+		);
+		yield* settle(() => opened.at(-1)?.onQuay(view));
+	});
 
 beforeEach(() => {
 	opened.length = 0;
+	openExternal.mockClear();
+	openWindow.mockClear();
 	watchQuay.mockClear();
 });
 
-it.effect("narrows the quay to the group a reader picked", () =>
+it.effect(
+	"presents the selected pull request as an accessible master/detail",
+	() =>
+		Effect.gen(function* () {
+			const mounted = mount(alongside.change.id);
+			yield* showing(mounted);
+
+			expect(
+				mounted.container.querySelector('nav[aria-label="Pull requests"]'),
+			).not.toBeNull();
+			expect(
+				mounted.container.querySelector('button[aria-current="true"]')
+					?.textContent,
+			).toContain("sound the channel");
+			expect(mounted.container.textContent).toContain("Keep the channel safe.");
+			expect(mounted.container.textContent).toContain("work/sound-the-channel");
+			expect(mounted.container.textContent).toContain("Soundings");
+			expect(
+				mounted.container.querySelector('label[for="quay-search"]'),
+			).not.toBeNull();
+
+			const session = mounted.container.querySelector<HTMLButtonElement>(
+				'button[aria-label="Open originating session"]',
+			);
+			yield* settle(() => session?.click());
+			expect(openWindow).toHaveBeenCalledWith(
+				{ role: "transcript", sessionId: "019c1234-session-origin" },
+				expect.any(Function),
+			);
+			yield* settle(() => mounted.root.unmount());
+		}),
+);
+
+it.effect(
+	"selects a pull request through the persisted selection boundary",
+	() =>
+		Effect.gen(function* () {
+			const mounted = mount(undefined);
+			yield* showing(mounted);
+			const choice = [...mounted.container.querySelectorAll("button")].find(
+				(button) => button.textContent?.includes("sketch the buoy") === true,
+			);
+
+			yield* settle(() => choice?.click());
+			expect(mounted.onSelect).toHaveBeenCalledWith(draft.change.id);
+			yield* settle(() => mounted.root.unmount());
+		}),
+);
+
+it.effect("opens the external pull request from its detail action", () =>
 	Effect.gen(function* () {
-		const { container, root } = mount();
-		const everything = yield* showing(root, container);
+		const mounted = mount(alongside.change.id);
+		yield* showing(mounted);
+		const link = [...mounted.container.querySelectorAll("a")].find(
+			(anchor) => anchor.textContent?.includes("Open pull request") === true,
+		);
 
-		expect(everything).toContain("sound the channel");
-		expect(everything).toContain("sketch the buoy");
-
-		const drafts = yield* press(container, "Draft");
-
-		expect(drafts).toContain("sketch the buoy");
-		expect(drafts).not.toContain("sound the channel");
-
-		const back = yield* press(container, "Everything");
-
-		expect(back).toContain("sound the channel");
-		yield* settle(() => root.unmount());
+		yield* settle(() => link?.click());
+		expect(openExternal).toHaveBeenCalledWith(alongside.change.url);
+		yield* settle(() => mounted.root.unmount());
 	}),
 );
 
-it.effect("keeps adopting behind its own button rather than on the page", () =>
+it.effect("keeps an honest state for an unlinked or missing selection", () =>
 	Effect.gen(function* () {
-		const { container, root } = mount();
-		const drawn = yield* showing(root, container);
+		const unlinked = mount(draft.change.id);
+		yield* showing(unlinked);
+		expect(unlinked.container.textContent).toContain("No linked session");
+		expect(
+			unlinked.container.querySelector(
+				'button[aria-label="Open originating session"]',
+			),
+		).toBeNull();
+		yield* settle(() => unlinked.root.unmount());
 
-		expect(drawn).toContain("Adopt a change");
-		expect(container.querySelector("input")).toBeNull();
-		yield* settle(() => root.unmount());
+		const missing = mount("change-gone");
+		yield* showing(missing);
+		expect(missing.container.textContent).toContain(
+			"Pull request no longer at the quay",
+		);
+		const back = [...missing.container.querySelectorAll("button")].find(
+			(button) =>
+				button.textContent?.includes("Back to pull requests") === true,
+		);
+		yield* settle(() => back?.click());
+		expect(missing.onSelect).toHaveBeenCalledWith(undefined);
+		yield* settle(() => missing.root.unmount());
 	}),
 );
 
-it.effect("reads a change's state as marks rather than a run of glyphs", () =>
+it.effect("searches and explains a filter with no results", () =>
 	Effect.gen(function* () {
-		const { container, root } = mount();
-		const drawn = yield* showing(root, container);
+		const mounted = mount(undefined);
+		yield* showing(mounted);
+		const search =
+			mounted.container.querySelector<HTMLInputElement>("#quay-search");
+		yield* settle(() => {
+			if (search !== null && nativeValue !== undefined) {
+				nativeValue.call(search, "nothing matches this");
+				search.dispatchEvent(new Event("input", { bubbles: true }));
+			}
+		});
 
-		expect(drawn).toContain("checks passed");
-		expect(drawn).toContain("approved");
-		expect(drawn).toContain("merges cleanly");
-		yield* settle(() => root.unmount());
+		expect(mounted.container.textContent).toContain(
+			"No pull requests match these filters.",
+		);
+		expect(mounted.container.textContent).toContain("Clear filters");
+		yield* settle(() => mounted.root.unmount());
+	}),
+);
+
+it.effect("explains an empty quay before there is anything to select", () =>
+	Effect.gen(function* () {
+		const mounted = mount(undefined);
+		yield* showing(mounted, { ...snapshot, rows: [] });
+
+		expect(mounted.container.textContent).toContain("Nothing at the quay");
+		expect(mounted.container.textContent).toContain("0 of 0 pull requests");
+		yield* settle(() => mounted.root.unmount());
 	}),
 );

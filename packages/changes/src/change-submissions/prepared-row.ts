@@ -32,6 +32,7 @@ export const preparedChange = (
 	mergeable: "unknown",
 	observedAt: new Date(now),
 	openedByAgentId: input.agentId,
+	originSessionId: input.sessionId,
 	preparedHeadRef: evidence.branch,
 	preparedHeadSha: evidence.headSha,
 	proposalFrozenAt: proposal === undefined ? null : new Date(now),

@@ -29,20 +29,20 @@ const withoutNode = (
 	return next;
 };
 
-// why: which roots have a delegated conversation the stream they hold started
-// and has not seen finish. It is memory on purpose, the way the attachment set
+// why: which roots have a child at work right now — never which have a child
+// whose row is merely open. It is memory on purpose, the way the attachment set
 // is: a node is only ever reachable through the stream that opened it, so an
 // acquisition that is gone can never carry another frame of its children's
-// work. Losing it is safe in the one direction that matters — a restart leaves
-// a fleet delegating nothing, which is exactly true of a fleet holding no
-// streams.
+// work. A restart therefore starts it empty, and the census a reattach takes is
+// what fills it in again from the provider's own word about which children are
+// running — the one account of them that outlives a stream.
 export class LiveDelegations extends Context.Service<
 	LiveDelegations,
 	{
-		// why: census findings never begin one. A census reports work the stream
-		// never carried, which is by construction work that is no longer under way
-		// on it, so admitting one names a node the record was missing rather than
-		// a child that is running.
+		// why: an admission is not one. A node the census was first to name is a
+		// row the record was missing, not proof of a child at work — only the
+		// stream carrying its frames, or the provider's own word that a turn is
+		// under way in it, says that much.
 		readonly began: (
 			rootSessionId: string,
 			nodeSessionId: string,

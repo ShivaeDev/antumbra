@@ -112,6 +112,7 @@ persistence.effectDB(
 							mergeable: "clean",
 							observedAt: OBSERVED,
 							openedByAgentId: null,
+							originSessionId: null,
 							preparedHeadRef: null,
 							preparedHeadSha: null,
 							proposalFrozenAt: null,

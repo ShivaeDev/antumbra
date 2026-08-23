@@ -17,6 +17,7 @@ const change = (overrides: Partial<ChangeRow>): ChangeRow => ({
 	mergeable: "clean",
 	observedAt: new Date(0),
 	openedByAgentId: null,
+	originSessionId: null,
 	preparedHeadRef: null,
 	preparedHeadSha: null,
 	proposalFrozenAt: null,

@@ -1,8 +1,9 @@
 import type { StoredAgentSession } from "@antumbra/persistence";
-import type { SessionAudit } from "@antumbra/plugin-api";
+import type { SessionAudit, SessionCensus } from "@antumbra/plugin-api";
 import type { AgentEvent } from "@antumbra/vocabulary/session-events";
 import { Effect, Option, Ref } from "effect";
 import { makeSessionTreeAudits } from "#session-tree-audit.ts";
+import { type Censused, settleCensusedWork } from "#session-tree-census.ts";
 import { makeSessionTreeLedger } from "#session-tree-ledger.ts";
 import { makeSessionTreeRows } from "#session-tree-rows.ts";
 
@@ -15,7 +16,7 @@ export const makeSessionTreeSweeps = Effect.gen(function* () {
 	const audits = yield* makeSessionTreeAudits;
 	const ledger = yield* makeSessionTreeLedger;
 	const rows = yield* makeSessionTreeRows;
-	return (lane: SessionAudit, rootSessionId: string) =>
+	return (lane: SessionAudit, rootSessionId: string, censused: Censused) =>
 		Effect.gen(function* () {
 			const taking = yield* Ref.make(false);
 			const said = yield* Ref.make<ReadonlySet<string>>(new Set());
@@ -43,6 +44,15 @@ export const makeSessionTreeSweeps = Effect.gen(function* () {
 					yield* Ref.set(taking, true);
 					yield* take.pipe(Effect.ensuring(Ref.set(taking, false)));
 				});
+			// why: the rows are read again rather than reused, because a child this
+			// census just admitted has one now that it did not have when the reading
+			// began — and that child is the whole reason a census is taken.
+			const settled = (root: StoredAgentSession, found: SessionCensus) =>
+				found.nodes.length === 0
+					? Effect.void
+					: Effect.flatMap(ledger.nodeRows(root.id), (rows) =>
+							settleCensusedWork(rows, found.nodes, censused),
+						);
 			const take = (
 				root: StoredAgentSession,
 				rootRef: string,
@@ -60,10 +70,11 @@ export const makeSessionTreeSweeps = Effect.gen(function* () {
 						cwd: root.cwd,
 						rootRef,
 					});
-					yield* Effect.forEach(yield* unsaid(found), record, {
+					yield* Effect.forEach(yield* unsaid(found.events), record, {
 						concurrency: 1,
 						discard: true,
 					});
+					yield* settled(root, found);
 				});
 			const census = (root: StoredAgentSession, record: RecordEvent) =>
 				root.nativeRef === null

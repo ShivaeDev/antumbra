@@ -39,7 +39,19 @@ export const makeSessionTreeSinks = Effect.gen(function* () {
 		Effect.gen(function* () {
 			const tree = yield* Ref.make(emptySessionTree);
 			const nodes = lifecycle(rootSessionId, tree);
-			const sweeps = yield* sweepsFor(audit, rootSessionId);
+			// why: delegating tracks children that are working, never rows that are
+			// open, so a census answers it directly. A child the provider says is not
+			// running releases whatever delegation was held for it — otherwise a lane
+			// that never announces a finish leaves a tree delegating for good. One it
+			// says is running holds a delegation whether or not this life ever carried
+			// its frames, which is what makes rest truthful after a restart: the
+			// registry starts empty, and the census is then the only account of a
+			// child that is genuinely still going.
+			const censused = (nodeSessionId: string, working: boolean) =>
+				working
+					? live.began(rootSessionId, nodeSessionId)
+					: live.ended(rootSessionId, nodeSessionId);
+			const sweeps = yield* sweepsFor(audit, rootSessionId, censused);
 			// why: a tool call is remembered against the journal it was written to,
 			// because that is the only place the spawner of the node it starts is
 			// recorded — at depth two the caller is a node, not the root.

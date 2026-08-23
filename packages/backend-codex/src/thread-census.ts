@@ -1,3 +1,4 @@
+import type { SessionCensus } from "@antumbra/plugin-api";
 import type { AgentEvent } from "@antumbra/vocabulary/session-events";
 import { rawOf } from "#mapping.ts";
 import type { CensusSweep, SpawnedChild } from "#thread-sweep.ts";
@@ -7,16 +8,22 @@ const SWEEP = "thread/list";
 // why: the census has one source, and asking it is the whole of the reading —
 // so a sweep that could not be taken leaves the record unable to say whether it
 // saw everything, which is itself a fact about how complete this session is.
-// Nothing is guessed in either direction: nothing is admitted, and no thread is
-// called present or absent on the strength of an answer that never came.
+// Nothing is guessed in either direction: nothing is admitted, no thread is
+// called present or absent on the strength of an answer that never came, and
+// the listing is empty because an unread sweep names nobody as working or done.
 export const censusUnreadable = (
 	rootThreadId: string,
 	failure: string,
-): AgentEvent => ({
-	detail: `codex could not be asked which threads this session delegated to, so its census could not be checked: ${failure}`,
-	gapKind: "unknown",
-	raw: rawOf(SWEEP, { ancestorThreadId: rootThreadId }),
-	type: "subsession.gap",
+): SessionCensus => ({
+	events: [
+		{
+			detail: `codex could not be asked which threads this session delegated to, so its census could not be checked: ${failure}`,
+			gapKind: "unknown",
+			raw: rawOf(SWEEP, { ancestorThreadId: rootThreadId }),
+			type: "subsession.gap",
+		},
+	],
+	nodes: [],
 });
 
 // why: codex's own word for where the thread belongs, and its own words for
@@ -50,11 +57,22 @@ const missed = (child: SpawnedChild): AgentEvent => ({
 // why: a child the sweep proves and the record never admitted is admitted now,
 // on the provider's own word for where it belongs. It is not ended: a codex
 // child is re-driven across activations, and saying it stopped would be a guess
-// this census cannot make.
-export const censusEvents = (
+// this census cannot make — the row's outcome is a separate question from
+// whether anything is running in it.
+//
+// why: the listing covers every child the sweep named, admitted or not. An
+// admission is news and is announced once; whether a child is working is true
+// again at every reading, and is most worth having about the children the
+// record has known all along.
+export const censusOf = (
 	admitted: (threadId: string) => boolean,
 	sweep: CensusSweep,
-): ReadonlyArray<AgentEvent> =>
-	sweep
+): SessionCensus => ({
+	events: sweep
 		.filter((child) => !admitted(child.threadId))
-		.flatMap((child) => [opening(child), missed(child)]);
+		.flatMap((child) => [opening(child), missed(child)]),
+	nodes: sweep.map((child) => ({
+		nodeRef: child.threadId,
+		working: child.working,
+	})),
+});

@@ -27,7 +27,11 @@ export const dependenciesOf = (
 
 // why: done is at least one outcome landed and none still pending — an
 // outcome that takes its time to land keeps the piece short of done however
-// much else has already landed against it.
+// much else has already landed against it. This stays the tally and nothing
+// else, because it is also what releases a piece's dependents: work that
+// landed un-gates what waited on it whether or not the crew that landed it
+// has finished saying so. Who is still at work is asked one rung up, where it
+// decides what this piece reads as rather than what may sail behind it.
 export const donePieces = (world: VoyageWorld): ReadonlySet<string> =>
 	new Set(
 		world.pieces
@@ -47,7 +51,9 @@ export const landingPieces = (world: VoyageWorld): ReadonlySet<string> =>
 // finish is not a piece that landed, and reading one as the other is how a
 // fleet loses track of what it actually delivered. Nothing else holds behind
 // it either: a dependency the admiral has written off will never land, so it
-// stops gating its dependents the moment the verdict does.
+// stops gating its dependents the moment the verdict does. The verdict is read
+// without asking what the crew is doing, because writing a piece off is the
+// decision to stop rather than a report of having stopped.
 export const abandonedPieces = (world: VoyageWorld): ReadonlySet<string> =>
 	new Set(
 		world.pieces
@@ -78,11 +84,11 @@ const stateOf = (
 	if (settled.abandoned.has(piece.id)) {
 		return "abandoned";
 	}
-	if (settled.done.has(piece.id)) {
-		return "done";
-	}
 	if (workingAssignees(world, piece.id).length > 0) {
 		return "active";
+	}
+	if (settled.done.has(piece.id)) {
+		return "done";
 	}
 	if (piece.parkedAt !== null) {
 		return "parked";
@@ -104,9 +110,14 @@ const stateOf = (
 // stores it, so every reader walks these branches in this order and a piece
 // can never hold two states at once. A verdict is read here exactly like a
 // stamp is: it supplies a landed fact and this order decides what the piece
-// reads as. A pending outcome holds a piece out of the pool without a crew:
-// nobody is working it, and nothing will be spawned for it until what it is
-// waiting on lands.
+// reads as. A piece is shipped only when all of its work is done, so a crew
+// still at work is asked about before the tally underneath it: asking for
+// work again on a finished piece puts that piece back in progress where it
+// can be seen, and it reads done again once the crew is finished and the
+// outcomes stand. Abandoned outranks even that, because writing a piece off
+// is a decision to stop rather than a report of having stopped. A pending
+// outcome holds a piece out of the pool without a crew: nobody is working it,
+// and nothing will be spawned for it until what it is waiting on lands.
 export const pieceStates = (
 	world: VoyageWorld,
 ): ReadonlyMap<string, PieceState> => {

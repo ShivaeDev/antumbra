@@ -132,11 +132,11 @@ it.live("a piece the ladder has finished with can still be asked to run", () =>
 			expect(yield* db.PieceAgent.all()).toMatchObject([
 				{ agentId: crewed.agentId, pieceId: piece.id },
 			]);
-			// why: doneness is about what landed, not about who is at work, and the
-			// ladder reads the outcome first — so a finished piece being run again
-			// keeps saying it landed. The crew is real all the same, which is why
+			// why: a piece is shipped when all of its work is done, and a hand on
+			// it is work that is not. So the redo is visible the moment the crew
+			// takes it — the piece leaves done and reads active, which is also why
 			// asking twice is refused.
-			expect(yield* stateOf(voyage.id, piece.id)).toBe("done");
+			expect(yield* stateOf(voyage.id, piece.id)).toBe("active");
 			expect(
 				yield* Effect.flip(domain.voyages.workNow(piece.id)),
 			).toMatchObject({ _tag: "PieceAlreadyCrewed" });

@@ -1,19 +1,11 @@
 import { Schema } from "effect";
 import { Origin } from "#session-events/origin.ts";
 
-const RawEvidence = Schema.Struct({
-	byteSize: Schema.Number,
-	digest: Schema.String,
-	storage: Schema.Literal("local-cas"),
-});
-
-// why: `raw` carries the provider payload verbatim while it is small and safe
-// to inline. Image-bearing or large evidence instead names its exact local CAS
-// bytes so paths/base64 do not flow through SQLite and every transcript feed.
-// A payload no member gives a neutral shape to still lands rather than being
-// dropped.
+// why: `raw` carries the provider payload verbatim on every event so the log
+// stays the wire truth while consumers stay backend-blind. A payload no member
+// gives a neutral shape to is still evidence, so it lands as its own event
+// rather than being dropped.
 export const Raw = Schema.Struct({
-	evidence: Schema.optional(RawEvidence),
 	kind: Schema.String,
 	payload: Schema.String,
 	source: Schema.String,

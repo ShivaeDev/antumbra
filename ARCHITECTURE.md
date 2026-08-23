@@ -133,10 +133,7 @@ the durable event sink.
 `session-inputs` owns human message ingestion before transport. Source images
 are bounded, decoded, normalized, and installed in app-owned content-addressed
 custody; SQLite stores only ordered metadata and delivery readings. Recovery
-carries an input id, never bytes or a renderer path. `session-event-journal`
-likewise externalizes image-bearing or large raw provider envelopes into
-restrictive local CAS evidence so exact wire truth survives without copying
-paths or base64 through SQLite and every renderer feed.
+carries an input id, never bytes or a renderer path.
 
 `trace-sink` is a dev instrument and depends on nothing in the workspace. It
 provides an Effect Tracer and a second Logger that record finished spans and log

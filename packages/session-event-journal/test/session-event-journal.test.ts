@@ -1,5 +1,3 @@
-import { existsSync, readFileSync, statSync } from "node:fs";
-import { dirname, join } from "node:path";
 import { DomainFeeds, DomainFeedsLive } from "@antumbra/domain-feeds";
 import { Database, type NewAgentSession, Writer } from "@antumbra/persistence";
 import { temporaryPersistence } from "@antumbra/persistence/testing";
@@ -22,84 +20,8 @@ const acquireTemporaryPersistence = Effect.acquireRelease(
 	(temporary) => Effect.sync(temporary.remove),
 );
 
-const journalLayer = SessionEventJournalLive().pipe(
+const journalLayer = SessionEventJournalLive.pipe(
 	Layer.provideMerge(DomainFeedsLive),
-);
-
-it.live(
-	"externalizes image-bearing raw evidence without losing exact bytes",
-	() =>
-		Effect.scoped(
-			Effect.gen(function* () {
-				const temporary = yield* acquireTemporaryPersistence;
-				const evidenceRoot = join(dirname(temporary.database), "raw-evidence");
-				yield* Effect.gen(function* () {
-					const db = yield* Database;
-					const journal = yield* SessionEventJournal;
-					const writer = yield* Writer;
-					yield* writer.write(
-						db.Agent.create({
-							charter: "protect image evidence",
-							currentSessionId: "session-evidence",
-							id: "agent-evidence",
-							role: "test hand",
-							status: "alive",
-						}),
-					);
-					yield* writer.write(
-						db.AgentSession.create({
-							agentId: "agent-evidence",
-							backend: "codex",
-							charterDeliveredAt: null,
-							cwd: "/tmp/agent-evidence",
-							executionStatus: "active",
-							id: "session-evidence",
-							nativeRef: null,
-							parentSessionId: null,
-							rootSessionId: "session-evidence",
-							status: "open",
-						} satisfies NewAgentSession),
-					);
-					const payload = JSON.stringify({
-						content: [{ path: "/private/cas/image.png", type: "localImage" }],
-					});
-					expect(
-						yield* journal.record("session-evidence", {
-							raw: { kind: "item/completed", payload, source: "codex" },
-							role: "user",
-							text: "inspect it",
-							type: "message",
-						}),
-					).toBe(true);
-					const row = Option.getOrThrow(
-						yield* db.SessionEvent.where({
-							sessionId: "session-evidence",
-						}).first(),
-					);
-					const stored = JSON.parse(row.payload);
-					expect(stored.raw.payload).not.toContain("/private/cas");
-					expect(stored.raw.evidence).toMatchObject({
-						byteSize: new TextEncoder().encode(payload).length,
-						storage: "local-cas",
-					});
-					const path = join(
-						evidenceRoot,
-						stored.raw.evidence.digest,
-						"payload.json",
-					);
-					expect(existsSync(path)).toBe(true);
-					expect(readFileSync(path, "utf8")).toBe(payload);
-					expect(statSync(path).mode & 0o777).toBe(0o600);
-				}).pipe(
-					Effect.provide(
-						SessionEventJournalLive(evidenceRoot).pipe(
-							Layer.provideMerge(DomainFeedsLive),
-							Layer.provideMerge(temporary.layer),
-						),
-					),
-				);
-			}),
-		),
 );
 
 it.live("records unique contiguous per-Session event sequences", () =>

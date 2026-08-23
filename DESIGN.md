@@ -107,11 +107,8 @@ Session, restart, siesta, handover, and reclamation behavior.
   root spawned and an audit of one node — which reads stored work, never
   attaches, and reports what it finds as ordinary Session events.
 - **Unknown evidence stays evidence.** Raw or future event kinds render raw
-  instead of taking the view down. Small safe envelopes remain inline;
-  image-bearing or large raw envelopes keep their exact bytes in restrictive
-  app-owned CAS and put an explicit digest/size reference in the event log.
-  Provider facts remain their own durable truth; observing a Change, Review,
-  or message never invents another fact.
+  instead of taking the view down. Provider facts remain their own durable
+  truth; observing a Change, Review, or message never invents another fact.
 - **Approvals are decisions, not booleans.** When approval behavior ships, it
   must preserve who decided, what was decided, and the scope of that decision.
 

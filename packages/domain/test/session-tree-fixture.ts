@@ -14,7 +14,7 @@ import { LiveDelegationsLive } from "#session-tree-live.ts";
 // with no acquisition in it, which is the truthful shape for a rehearsal whose
 // events never came through one.
 export const treeLayer = (temporary: TemporaryPersistence) =>
-	SessionEventJournalLive().pipe(
+	SessionEventJournalLive.pipe(
 		Layer.provideMerge(
 			Layer.mergeAll(
 				temporary.layer,

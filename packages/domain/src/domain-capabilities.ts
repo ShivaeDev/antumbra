@@ -1,4 +1,3 @@
-import { dirname, join } from "node:path";
 import { ArtifactsLive } from "@antumbra/artifacts";
 import { BoardsLive } from "@antumbra/boards";
 import { ChangesLive } from "@antumbra/changes";
@@ -27,9 +26,7 @@ export const domainCapabilities = (
 		ArtifactsLive(artifactsDirectory),
 		ReportsLive,
 		ReposLive,
-		SessionEventJournalLive(
-			join(dirname(artifactsDirectory), "session-event-evidence"),
-		),
+		SessionEventJournalLive,
 		KernelReachDeferredLive,
 	).pipe(Layer.provideMerge(DomainFeedsLive));
 	const changes = ChangesLive(changeHosts, runners).pipe(

@@ -30,24 +30,35 @@ const backingChange = (
 	);
 };
 
+// why: the reading joins four tables, so it takes them by name rather than by
+// position — a caller that hands the dismissals where the links go would
+// otherwise pin every berth on the fleet.
+export interface BerthHolding {
+	readonly berths: ReadonlyArray<BerthBranch>;
+	readonly changes: ReadonlyArray<ChangeRow>;
+	readonly dismissedChangeIds: ReadonlySet<string>;
+	readonly pieceChanges: ReadonlyArray<PieceChangeRow>;
+	readonly repos: ReadonlyArray<RepoSource>;
+}
+
 // why: the crew that must answer red checks or a review needs the worktree the
 // change was written in, and its branch is right there with its reflog. Which
 // changes still want an answer is the outcome model's word, never a stage this
-// file names. Each held berth carries the unresolved change holding it, so a
-// sweep can say why.
+// file names — so a change that died with nothing replacing it releases its
+// berth here without this rule learning what death is. Each held berth carries
+// the unresolved change holding it, so a sweep can say why.
 export const heldBerths = (
-	berths: ReadonlyArray<BerthBranch>,
-	changes: ReadonlyArray<ChangeRow>,
-	repos: ReadonlyArray<RepoSource>,
-	pieceChanges: ReadonlyArray<PieceChangeRow>,
+	holding: BerthHolding,
 ): ReadonlyMap<string, string> => {
 	const repoOfSource = new Map(
-		repos.map((repo) => [repo.source, repo.id] as const),
+		holding.repos.map((repo) => [repo.source, repo.id] as const),
 	);
-	const unresolvedIds = unresolvedChangeIds({ changes, pieceChanges });
-	const unresolved = changes.filter((change) => unresolvedIds.has(change.id));
+	const unresolvedIds = unresolvedChangeIds(holding);
+	const unresolved = holding.changes.filter((change) =>
+		unresolvedIds.has(change.id),
+	);
 	const held = new Map<string, string>();
-	for (const berth of berths) {
+	for (const berth of holding.berths) {
 		const backing = backingChange(berth, unresolved, repoOfSource);
 		if (backing !== undefined) {
 			held.set(berth.id, backing.id);

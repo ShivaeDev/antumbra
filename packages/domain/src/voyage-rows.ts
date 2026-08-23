@@ -1,7 +1,7 @@
 import type { ArtifactRow } from "@antumbra/artifacts";
 import type { ChangeRow, PieceChangeRow } from "@antumbra/changes";
 import type { StoredAgentSession } from "@antumbra/persistence";
-import type { EdgeRow, PieceRow } from "@antumbra/pieces";
+import type { EdgeRow, PieceRow, PieceVerdict } from "@antumbra/pieces";
 import type { ReportRow } from "@antumbra/reports";
 import type {
 	AgentSessionStatus,
@@ -69,10 +69,15 @@ export interface VoyageWorld {
 	readonly assignments: ReadonlyArray<AssignmentRow>;
 	readonly changes: ReadonlyArray<ChangeRow>;
 	readonly crews: ReadonlyArray<CrewRow>;
+	// why: the two verdicts the admiral can land. Both are stored facts the
+	// derivations read like any other row — a dismissal settles what a dead
+	// change is owed, a piece verdict is an outcome that counts among the landed.
+	readonly dismissedChangeIds: ReadonlySet<string>;
 	readonly edges: ReadonlyArray<EdgeRow>;
 	readonly memberships: ReadonlyArray<MembershipRow>;
 	readonly pieceChanges: ReadonlyArray<PieceChangeRow>;
 	readonly pieceReports: ReadonlyArray<ReportLinkRow>;
+	readonly pieceVerdicts: ReadonlyMap<string, PieceVerdict>;
 	readonly pieces: ReadonlyArray<PieceRow>;
 	readonly reports: ReadonlyMap<string, ReportRow>;
 	readonly repos: ReadonlyMap<string, RepoRow>;

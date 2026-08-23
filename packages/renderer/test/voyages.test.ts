@@ -62,6 +62,7 @@ describe("byLadder", () => {
 			piece("1", "alpha", "active"),
 			piece("3", "charlie", "ready"),
 			piece("5", "echo", "parked"),
+			piece("6", "foxtrot", "abandoned"),
 		]);
 		expect(ordered.map((row) => row.title)).toEqual([
 			"alpha",
@@ -69,6 +70,7 @@ describe("byLadder", () => {
 			"charlie",
 			"echo",
 			"delta",
+			"foxtrot",
 		]);
 	});
 });
@@ -92,18 +94,32 @@ describe("bySalience", () => {
 
 describe("actsFor", () => {
 	it("offers only the verbs a piece's derived state can accept", () => {
-		expect(actsFor(piece("1", "alpha", "held"))).toEqual(["launch", "rewire"]);
+		expect(actsFor(piece("1", "alpha", "held"))).toEqual([
+			"launch",
+			"workNow",
+			"rewire",
+		]);
 		expect(actsFor(piece("1", "alpha", "ready"))).toEqual(["park", "rewire"]);
-		expect(actsFor(piece("1", "alpha", "blocked"))).toEqual(["park", "rewire"]);
+		expect(actsFor(piece("1", "alpha", "blocked"))).toEqual([
+			"park",
+			"workNow",
+			"rewire",
+		]);
 		expect(actsFor(piece("1", "alpha", "parked"))).toEqual([
 			"unpark",
 			"rewire",
 		]);
 	});
 
-	it("an active or landed piece offers nothing but repositioning", () => {
+	it("an active or abandoned piece offers nothing but repositioning", () => {
 		expect(actsFor(piece("1", "alpha", "active"))).toEqual(["rewire"]);
-		expect(actsFor(piece("1", "alpha", "done"))).toEqual(["rewire"]);
+		expect(actsFor(piece("1", "alpha", "abandoned"))).toEqual(["rewire"]);
+	});
+
+	// why: the redo lever — a piece that derived done from a landed report
+	// while its code died with a closed change has no other honest way to run.
+	it("a landed piece can still be asked to run again", () => {
+		expect(actsFor(piece("1", "alpha", "done"))).toEqual(["workNow", "rewire"]);
 	});
 });
 

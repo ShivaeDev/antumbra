@@ -63,6 +63,11 @@ export const VoyageSourceLive = Layer.effect(VoyageSource)(
 					Effect.map((row) => changeSeen(changeView(request.repoName, row))),
 					Effect.mapError(toFailure),
 				),
+			// why: the admiral's own verdict on a change nobody will finish, so it
+			// is recorded as the act of the person at the window — no agent asked
+			// for it and none is credited with it.
+			dismissChange: (changeId: string) =>
+				changes.dismiss(changeId).pipe(Effect.mapError(toFailure)),
 			quay,
 			quayFeed: refreshes(quay),
 			refreshChanges: changes.requestRefresh,

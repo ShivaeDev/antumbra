@@ -8,8 +8,9 @@
 		"./agent-runtime": "./src/agent-runtime.ts",
 		"./board": "./src/board.ts",
 		"./change": "./src/change.ts",
+		"./session-events": "./src/session-events.ts",
 		"./session-input": "./src/session-input.ts",
-		"./session-events": "./src/session-events.ts"
+		"./verdict": "./src/verdict.ts"
 	},
 	"imports": {
 		"#*": "./src/*"

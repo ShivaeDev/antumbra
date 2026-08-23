@@ -27,6 +27,16 @@ export const refreshChanges = (onDone: () => void, onError: OnError): void => {
 		});
 };
 
+// why: the verdict on a change that died at its host. It leaves the quay on
+// the next feed rather than on the click, because what lies at the quay is the
+// domain's reading and never the window's guess about it.
+export const dismissChange = (changeId: string, onError: OnError): void => {
+	client.dismissChange
+		.mutate({ changeId })
+		.then(() => undefined)
+		.catch((cause: unknown) => onError(toError(cause).message));
+};
+
 export const adoptChange = (
 	request: AdoptChangeRequest,
 	onDone: () => void,

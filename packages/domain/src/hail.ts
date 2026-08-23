@@ -1,4 +1,3 @@
-import type { StoredArtifactLineageInvalid } from "@antumbra/artifacts";
 import {
 	type BoardOwnerNotFound,
 	BoardScope,
@@ -7,17 +6,7 @@ import {
 	type StoredBoardOwnerKindInvalid,
 	smoothBodies,
 } from "@antumbra/boards";
-import type {
-	StoredChangeInvalid,
-	StoredPieceChangeInvalid,
-} from "@antumbra/changes";
-import type { PrismaError } from "@antumbra/persistence";
 import { captainCharter } from "@antumbra/prompts";
-import type {
-	InvalidSessionExecutionStatus,
-	StoredAgentSessionStatusInvalid,
-	StoredAgentStatusInvalid,
-} from "@antumbra/vocabulary/agent-runtime";
 import { Effect, Option } from "effect";
 import {
 	CaptainAlreadyHailed,
@@ -30,28 +19,28 @@ import { pieceLineWithOutcomes } from "#piece-line.ts";
 import { CAPTAIN_ROLE, captainAtWork, captainOf } from "#voyage-captain.ts";
 import { executionSessionOfAgent } from "#voyage-execution-selection.ts";
 import { voyageView } from "#voyage-view.ts";
-import { VoyageWorldSource } from "#voyage-world.ts";
+import {
+	type VoyageWorldReadFailure,
+	VoyageWorldSource,
+} from "#voyage-world.ts";
 
 export interface HailedCaptain {
 	readonly agentId: string;
 	readonly intentId: string;
 }
 
+// why: a hail reads the whole voyage world, so every way that reading can fail
+// is a way a hail can be refused — named as the one union rather than copied
+// out member by member, which is how this list fell behind the world it reads.
 export type HailRefused =
 	| BoardOwnerNotFound
 	| CaptainAlreadyHailed
 	| CaptainSessionUnavailable
-	| InvalidSessionExecutionStatus
-	| PrismaError
 	| SpawnRefused
-	| StoredAgentSessionStatusInvalid
-	| StoredAgentStatusInvalid
-	| StoredArtifactLineageInvalid
 	| StoredBoardEntryInvalid
 	| StoredBoardOwnerKindInvalid
-	| StoredChangeInvalid
-	| StoredPieceChangeInvalid
-	| VoyageNotFound;
+	| VoyageNotFound
+	| VoyageWorldReadFailure;
 
 // why: hailing materializes the role for the voyage as it stands right now —
 // north star, board and pieces are read at the moment of the hail, because a

@@ -821,6 +821,9 @@ importers:
       '@antumbra/persistence':
         specifier: workspace:*
         version: link:../persistence
+      '@antumbra/vocabulary':
+        specifier: workspace:*
+        version: link:../vocabulary
       effect:
         specifier: 'catalog:'
         version: 4.0.0-rc.108

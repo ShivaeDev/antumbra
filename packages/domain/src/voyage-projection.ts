@@ -88,8 +88,8 @@ export const entrySeen = (entry: BoardEntryRow): BoardEntryView => ({
 });
 
 // why: a window asks how far a voyage has come, not for a tally per state —
-// so the six derived counts reach it as the three that answer that question
-// and the total they were counted from.
+// so every derived count reaches it as the three that answer that question and
+// the total they were counted from.
 const countsSeen = (counts: DerivedCounts): PieceCounts => ({
 	active: counts.active,
 	done: counts.done,

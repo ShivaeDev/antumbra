@@ -1,7 +1,8 @@
+import { ChangeView } from "#change-views.ts";
 import { QuayView } from "#quay-views.ts";
 import { type AppProcedure, surface } from "#router-procedure.ts";
-import { ChangeView } from "#voyage-views.ts";
-import { AdoptChangeRequest, VoyageSource } from "#voyages.ts";
+import { AdoptChangeRequest, DismissChangeRequest } from "#voyage-requests.ts";
+import { VoyageSource } from "#voyages.ts";
 
 export const quayRoutes = (procedure: AppProcedure) => ({
 	adoptChange: procedure
@@ -10,6 +11,14 @@ export const quayRoutes = (procedure: AppProcedure) => ({
 		.mutation(function* (input) {
 			const voyages = yield* VoyageSource;
 			return yield* surface(voyages.adoptChange(input));
+		}),
+	// why: the terminal verb for a change that died at its host — the quay is
+	// where it waits, so the quay is where it is answered.
+	dismissChange: procedure
+		.input(DismissChangeRequest)
+		.mutation(function* (input) {
+			const voyages = yield* VoyageSource;
+			yield* surface(voyages.dismissChange(input.changeId));
 		}),
 	quay: procedure.output(QuayView).query(function* () {
 		const voyages = yield* VoyageSource;

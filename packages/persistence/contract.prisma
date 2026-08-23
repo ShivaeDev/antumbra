@@ -297,6 +297,18 @@ model PieceChange {
   @@index([changeId])
 }
 
+model ChangeVerdict {
+  changeId String   @id
+  verdict  String
+  landedAt DateTime @default(now())
+}
+
+model PieceVerdict {
+  pieceId  String   @id
+  verdict  String
+  landedAt DateTime @default(now())
+}
+
 model Board {
   id        String   @id
   createdAt DateTime @default(now())

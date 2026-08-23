@@ -1,8 +1,4 @@
-import {
-	type ChangeRow,
-	changeStatus,
-	changesOfPiece,
-} from "@antumbra/changes";
+import type { ChangeRow } from "@antumbra/changes";
 import type { ChangeView } from "#change-view.ts";
 import type { VoyageWorld } from "#voyage-rows.ts";
 
@@ -36,24 +32,10 @@ export const quayGroup = (change: ChangeView): QuayGroup => {
 		: "checksRunning";
 };
 
-const pendingOn = (world: VoyageWorld, pieceId: string): boolean =>
-	changesOfPiece(world, pieceId).some(
-		(change) => changeStatus(change) === "pending",
-	);
-
-// why: a landed change leaves the quay the moment it lands. A withdrawn one
-// stays under needs attention until a replacement is under way or has landed.
-export const liesAtQuay = (
-	world: VoyageWorld,
-	done: ReadonlySet<string>,
-	change: ChangeRow,
-	pieceId: string,
-): boolean => {
-	if (change.stage === "landed") {
-		return false;
-	}
-	if (change.stage !== "withdrawn") {
-		return true;
-	}
-	return !done.has(pieceId) && !pendingOn(world, pieceId);
-};
+// why: a change leaves the quay for one of two reasons — it landed, or the
+// admiral dismissed it. Nothing else takes it off the list, because a change
+// that is neither is still owed something and hiding it is how a dead end is
+// made: a closed change that quietly disappeared while it still counted was
+// the whole of the trouble. So it waits here, wanting a hand or a verdict.
+export const liesAtQuay = (world: VoyageWorld, change: ChangeRow): boolean =>
+	change.stage !== "landed" && !world.dismissedChangeIds.has(change.id);

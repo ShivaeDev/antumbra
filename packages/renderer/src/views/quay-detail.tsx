@@ -7,6 +7,7 @@ import type { QuayChange } from "#quay/changes.ts";
 import { changeNumber } from "#quay/marks.ts";
 import { ExternalLink } from "#views/external-link.tsx";
 import { QuayDescription } from "#views/quay-description.tsx";
+import { QuayDismiss } from "#views/quay-dismiss.tsx";
 import { QuayStatus } from "#views/quay-status.tsx";
 import { QuayWork } from "#views/quay-work.tsx";
 import { SectionHeading } from "#views/section.tsx";
@@ -39,7 +40,13 @@ const OriginSession = ({
 	);
 };
 
-const DetailHeader = ({ item }: { readonly item: QuayChange }) => {
+const DetailHeader = ({
+	item,
+	onError,
+}: {
+	readonly item: QuayChange;
+	readonly onError: (message: string) => void;
+}) => {
 	const number = changeNumber(item.change);
 	return (
 		<header className="flex flex-wrap items-start gap-3 border-border border-b pb-4">
@@ -58,6 +65,7 @@ const DetailHeader = ({ item }: { readonly item: QuayChange }) => {
 					{item.change.title}
 				</h2>
 			</div>
+			<QuayDismiss item={item} onError={onError} />
 			{item.change.url === null ? null : (
 				<ExternalLink
 					className={cn(buttonVariants({ variant: "default" }), "no-underline")}
@@ -89,7 +97,7 @@ export const QuayDetail = ({
 			>
 				<ArrowLeft /> Back to pull requests
 			</Button>
-			<DetailHeader item={item} />
+			<DetailHeader item={item} onError={onError} />
 			<QuayStatus item={item} />
 			<QuayDescription item={item} />
 			<section className="flex flex-col gap-2">

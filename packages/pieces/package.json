@@ -25,6 +25,7 @@
 	"dependencies": {
 		"@antumbra/domain-feeds": "workspace:*",
 		"@antumbra/persistence": "workspace:*",
+		"@antumbra/vocabulary": "workspace:*",
 		"effect": "catalog:"
 	}
 }

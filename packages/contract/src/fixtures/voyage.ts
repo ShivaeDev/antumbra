@@ -1,10 +1,6 @@
+import type { ChangeView } from "#change-views.ts";
 import type { QuayView } from "#quay-views.ts";
-import type {
-	ChangeView,
-	PieceView,
-	VoyageSummary,
-	VoyageView,
-} from "#voyage-views.ts";
+import type { PieceView, VoyageSummary, VoyageView } from "#voyage-views.ts";
 
 export const shoalWarning: ChangeView = {
 	activityAt: "2026-08-15T09:20:00.000Z",

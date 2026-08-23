@@ -5,7 +5,9 @@ import type {
 import {
 	type AdoptChangeFailure,
 	type AdoptChangeInput,
+	type ChangeNotFound,
 	type ChangeRow,
+	type ChangeStillAlive,
 	Changes,
 	type OpenChangeFailure,
 	type OpenChangeInput,
@@ -44,6 +46,12 @@ export interface ChangeProcedures {
 		input: AdoptChangeInput,
 	) => Effect.Effect<ChangeRow, AdoptChangeFailure>;
 	readonly capabilities: Effect.Effect<ReadonlyArray<ChangeHostCapabilityView>>;
+	// why: the verb a change closed without merging never had. It settles what
+	// the change is owed and takes it off the quay without pretending it landed
+	// and without forgetting that it existed.
+	readonly dismiss: (
+		changeId: string,
+	) => Effect.Effect<void, ChangeNotFound | ChangeStillAlive | PrismaError>;
 	readonly hostTags: ReadonlyArray<string>;
 	// why: the seam a host that pushes reaches, beside the one a host that is
 	// polled reaches — both hand the domain the same neutral observations.
@@ -115,6 +123,7 @@ export const ChangeProceduresLive = (hosts: ReadonlyMap<string, ChangeHost>) =>
 						tag: host.tag,
 					})),
 				),
+				dismiss: submissions.dismiss,
 				hostTags: [...hosts.keys()],
 				observed: submissions.observed,
 				open: submissions.open,

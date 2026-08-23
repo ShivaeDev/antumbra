@@ -1,5 +1,5 @@
 import { Schema } from "effect";
-import { ChangeView } from "#voyage-views.ts";
+import { ChangeView } from "#change-views.ts";
 
 // why: the quay reads by where a change lies rather than by which host holds
 // it — ready to merge, still running, wanting a hand, or not offered yet. The

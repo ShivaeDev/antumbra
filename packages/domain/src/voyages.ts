@@ -8,6 +8,7 @@ import type { AgentBackendTag } from "@antumbra/vocabulary/agent-backend";
 import { Clock, Context, Effect, Layer, PubSub } from "effect";
 import { hailCaptain } from "#hail.ts";
 import { KernelReach } from "#kernel-reach.ts";
+import { workPieceNow } from "#piece-work.ts";
 import {
 	type OpenVoyageInput,
 	VoyageProcedureService,
@@ -105,6 +106,7 @@ export const VoyageProceduresLive = Layer.effect(VoyageProcedureService)(
 			charterPiece: pieces.charter,
 			hail: (voyageId) => Effect.provide(hailCaptain(voyageId), context),
 			landArtifact: artifacts.land,
+			landPieceVerdict: pieces.landVerdict,
 			landReport: reports.land,
 			readReport: reports.read,
 			removeArtifactSupersession: (input) =>
@@ -128,6 +130,7 @@ export const VoyageProceduresLive = Layer.effect(VoyageProcedureService)(
 			supersedeArtifact: (input) =>
 				artifacts.supersede({ actor: { _tag: "admiral" }, ...input }),
 			unpark: (pieceId) => pieces.park(pieceId, false),
+			workNow: (pieceId) => Effect.provide(workPieceNow(pieceId), context),
 		} satisfies VoyageProcedures);
 	}),
 );

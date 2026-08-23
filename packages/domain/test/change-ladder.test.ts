@@ -56,10 +56,12 @@ const world = (over: Partial<VoyageWorld>): VoyageWorld => ({
 	assignments: [],
 	changes: [],
 	crews: [],
+	dismissedChangeIds: new Set(),
 	edges: [],
 	memberships: [],
 	pieceChanges: [],
 	pieceReports: [],
+	pieceVerdicts: new Map(),
 	pieces: [piece("alpha")],
 	reports: new Map(),
 	repos: new Map(),
@@ -135,20 +137,74 @@ it("a piece is done when every change of it has landed", () => {
 	expect(stateOf(built)).toBe("done");
 });
 
-it("a withdrawn change keeps the piece unfinished until a replacement lands", () => {
+it("a withdrawn change with nothing replacing it stops counting at all", () => {
 	const built = withChanges(["withdrawn"]);
-	expect(pieceOutcomeTally(built, "alpha")).toEqual({ landed: 0, pending: 1 });
-	expect(stateOf(built)).toBe("landing");
+	expect(pieceOutcomeTally(built, "alpha")).toEqual({ landed: 0, pending: 0 });
+	expect(stateOf(built)).toBe("ready");
+});
 
+it("a withdrawn change counts only while a replacement is under way", () => {
+	expect(
+		pieceOutcomeTally(withChanges(["withdrawn", "open"]), "alpha"),
+	).toEqual({ landed: 0, pending: 2 });
+	expect(
+		pieceOutcomeTally(withChanges(["withdrawn", "prepared"]), "alpha"),
+	).toEqual({ landed: 0, pending: 2 });
+	expect(
+		pieceOutcomeTally(withChanges(["withdrawn", "landed"]), "alpha"),
+	).toEqual({ landed: 1, pending: 0 });
+	expect(stateOf(withChanges(["withdrawn", "landed"]))).toBe("done");
+});
+
+it("a dismissed change counts for nothing even while a sibling is open", () => {
+	const built = withChanges(["withdrawn", "open"], {
+		dismissedChangeIds: new Set(["change-0"]),
+	});
+	expect(pieceOutcomeTally(built, "alpha")).toEqual({ landed: 0, pending: 1 });
+});
+
+it("a withdrawn change alone leaves a reported piece done rather than landing", () => {
 	const reported = withChanges(["withdrawn"], {
 		pieceReports: [{ pieceId: "alpha", reportId: "report-1" }],
 	});
 	expect(pieceOutcomeTally(reported, "alpha")).toEqual({
 		landed: 1,
-		pending: 1,
+		pending: 0,
 	});
-	expect(stateOf(reported)).toBe("landing");
-	expect(stateOf(withChanges(["withdrawn", "landed"]))).toBe("done");
+	expect(stateOf(reported)).toBe("done");
+});
+
+it("a delivered verdict is a landed outcome and the ladder derives done", () => {
+	const built = world({ pieceVerdicts: new Map([["alpha", "delivered"]]) });
+	expect(pieceOutcomeTally(built, "alpha")).toEqual({ landed: 1, pending: 0 });
+	expect(stateOf(built)).toBe("done");
+});
+
+it("a delivered verdict does not outrank a change still on its way", () => {
+	const built = withChanges(["open"], {
+		pieceVerdicts: new Map([["alpha", "delivered"]]),
+	});
+	expect(stateOf(built)).toBe("landing");
+});
+
+it("an abandoned piece reads abandoned rather than done", () => {
+	const built = world({ pieceVerdicts: new Map([["alpha", "abandoned"]]) });
+	expect(pieceOutcomeTally(built, "alpha")).toEqual({ landed: 1, pending: 0 });
+	expect(stateOf(built)).toBe("abandoned");
+});
+
+it("an abandoned piece stops gating what depended on it", () => {
+	const built = world({
+		changes: [change("change-0", "open")],
+		edges: [{ fromPieceId: "bravo", toPieceId: "alpha" }],
+		pieceChanges: [
+			{ changeId: "change-0", pieceId: "bravo", purpose: "produces" },
+		],
+		pieceVerdicts: new Map([["bravo", "abandoned"]]),
+		pieces: [piece("alpha"), piece("bravo")],
+	});
+	expect(stateOf(built, "bravo")).toBe("abandoned");
+	expect(stateOf(built)).toBe("ready");
 });
 
 it("landing sits below blocked and above ready on the ladder", () => {

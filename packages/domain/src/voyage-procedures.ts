@@ -12,12 +12,14 @@ import type {
 	EdgeWouldCycle,
 	PieceNotFound,
 	PieceRow,
+	PieceVerdict,
 } from "@antumbra/pieces";
 import type { ReportInput, ReportReading, ReportRow } from "@antumbra/reports";
 import type { AgentBackendTag } from "@antumbra/vocabulary/agent-backend";
 import { Context, type Effect, type Option } from "effect";
 import type { VoyageNotFound } from "#errors.ts";
 import type { HailedCaptain, HailRefused } from "#hail.ts";
+import type { CrewedPiece, WorkRefused } from "#piece-work.ts";
 import type { VoyageRow } from "#voyage-rows.ts";
 import type { VoyageSummary, VoyageView } from "#voyage-view.ts";
 import type { VoyageWorldReadFailure } from "#voyage-world.ts";
@@ -43,6 +45,10 @@ export interface VoyageProcedures {
 	readonly landArtifact: (
 		input: ArtifactInput,
 	) => Effect.Effect<ArtifactLanding, ArtifactFailure>;
+	readonly landPieceVerdict: (
+		pieceId: string,
+		verdict: PieceVerdict,
+	) => Effect.Effect<void, PieceNotFound | PrismaError>;
 	readonly landReport: (
 		input: ReportInput,
 	) => Effect.Effect<ReportRow, PieceNotFound | PrismaError>;
@@ -86,6 +92,12 @@ export interface VoyageProcedures {
 	readonly unpark: (
 		pieceId: string,
 	) => Effect.Effect<void, PieceNotFound | PrismaError>;
+	// why: the admiral reaching past the ready ladder for one named piece —
+	// the same shape as the hail, and the only way to run a piece the ladder
+	// has already finished with.
+	readonly workNow: (
+		pieceId: string,
+	) => Effect.Effect<CrewedPiece, WorkRefused>;
 }
 
 export class VoyageProcedureService extends Context.Service<

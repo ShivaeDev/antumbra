@@ -5,9 +5,11 @@ import {
 	type WriteExecutors,
 	Writer,
 } from "@antumbra/persistence";
+import type { PieceVerdict } from "@antumbra/vocabulary/verdict";
 import { Context, Effect, Layer } from "effect";
 import { charter } from "#charter.ts";
 import type { CharterFailure, EdgeFailure, PieceNotFound } from "#errors.ts";
+import { landVerdict } from "#land-verdict.ts";
 import { launch } from "#launch.ts";
 import type { CharterInput, PieceRow } from "#model.ts";
 import { park } from "#park.ts";
@@ -20,6 +22,12 @@ export class Pieces extends Context.Service<
 		readonly charter: (
 			input: CharterInput,
 		) => Effect.Effect<PieceRow, CharterFailure>;
+		// why: an outcome the admiral lands by hand, for the piece no crew can
+		// finish saying anything about. It joins the tally; it never sets a state.
+		readonly landVerdict: (
+			pieceId: string,
+			verdict: PieceVerdict,
+		) => Effect.Effect<void, PieceNotFound | PrismaError>;
 		readonly launch: (
 			pieceId: string,
 		) => Effect.Effect<void, PieceNotFound | PrismaError>;
@@ -52,6 +60,8 @@ export const PiecesLive = Layer.effect(Pieces)(
 		);
 		return {
 			charter: (input) => Effect.provide(charter(input), context),
+			landVerdict: (pieceId, verdict) =>
+				Effect.provide(landVerdict(pieceId, verdict), context),
 			launch: (pieceId) => Effect.provide(launch(pieceId), context),
 			park: (pieceId, parked) => Effect.provide(park(pieceId, parked), context),
 			setDependencies: (pieceId, dependsOn) =>

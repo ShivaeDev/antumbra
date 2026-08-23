@@ -150,6 +150,7 @@ it.effectDB(
 			expect(yield* scripted.openings).toHaveLength(1);
 			expect(yield* changes.snapshot).toEqual({
 				changes: [opened],
+				dismissedChangeIds: new Set(),
 				pieceChanges: [
 					{
 						changeId: opened.id,

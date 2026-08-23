@@ -18,6 +18,7 @@ import {
 	RunnerRegistry,
 } from "#change-submissions/registries.ts";
 import { Changes } from "#change-submissions/service.ts";
+import { dismissChange } from "#dismiss.ts";
 import { readChangeSnapshot } from "#snapshot.ts";
 
 export const ChangesLive = (
@@ -45,6 +46,7 @@ export const ChangesLive = (
 			);
 			return Changes.of({
 				adopt: (input) => Effect.provide(adoptSubmittedChange(input), context),
+				dismiss: (changeId) => Effect.provide(dismissChange(changeId), context),
 				heldResources: (resources) =>
 					Effect.provideService(readHeldResources(resources), Database, db),
 				observed: (hostTag, observations) =>

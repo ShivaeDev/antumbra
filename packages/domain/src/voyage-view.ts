@@ -1,15 +1,14 @@
 import type { Option } from "effect";
-import {
-	type PieceState,
-	pieceStates,
-	piecesOfVoyage,
-	type VoyageState,
-	voyageState,
-} from "#piece-state.ts";
+import { type PieceState, pieceStates } from "#piece-state.ts";
 import { type PieceView, pieceView } from "#piece-view.ts";
 import { captainOf, type VoyageCaptain } from "#voyage-captain.ts";
 import { crewOf, type VoyageCrewMember } from "#voyage-crew.ts";
 import type { PieceRow, VoyageRow, VoyageWorld } from "#voyage-rows.ts";
+import {
+	piecesOfVoyage,
+	type VoyageState,
+	voyageState,
+} from "#voyage-state.ts";
 
 export type PieceCounts = Readonly<Record<PieceState, number>>;
 
@@ -42,6 +41,7 @@ const countStates = (states: ReadonlyArray<PieceState>): PieceCounts => {
 	const held = (state: PieceState) =>
 		states.filter((candidate) => candidate === state).length;
 	return {
+		abandoned: held("abandoned"),
 		active: held("active"),
 		blocked: held("blocked"),
 		done: held("done"),

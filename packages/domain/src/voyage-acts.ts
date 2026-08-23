@@ -4,6 +4,7 @@ import type {
 	BoardWriteRequest,
 	CharterPieceRequest,
 	OpenVoyageRequest,
+	PieceVerdictRequest,
 	RewireRequest,
 	VoyageBackendRequest,
 } from "@antumbra/contract";
@@ -38,6 +39,13 @@ export const makeVoyageActs = (reads: VoyageReads) =>
 					Effect.map((captain) => ({ agentId: captain.agentId })),
 					Effect.mapError(toFailure),
 				),
+			// why: the verdict is landed, never asserted — what the piece then
+			// reads as is still the ladder's answer, so this act hands back
+			// nothing for a window to mistake for one.
+			landPieceVerdict: (request: PieceVerdictRequest) =>
+				voyages
+					.landPieceVerdict(request.pieceId, request.verdict)
+					.pipe(Effect.mapError(toFailure)),
 			launch: (pieceId: string) =>
 				voyages.launch(pieceId).pipe(Effect.mapError(toFailure)),
 			open: (request: OpenVoyageRequest) =>
@@ -67,6 +75,11 @@ export const makeVoyageActs = (reads: VoyageReads) =>
 					.pipe(Effect.asVoid, Effect.mapError(toFailure)),
 			unpark: (pieceId: string) =>
 				voyages.unpark(pieceId).pipe(Effect.mapError(toFailure)),
+			workPieceNow: (pieceId: string) =>
+				voyages.workNow(pieceId).pipe(
+					Effect.map((crewed) => ({ agentId: crewed.agentId })),
+					Effect.mapError(toFailure),
+				),
 			// why: an entry the window writes carries no author agent — a board
 			// records which of the crew wrote it, and you are not of the crew.
 			writeBoard: (request: BoardWriteRequest) =>

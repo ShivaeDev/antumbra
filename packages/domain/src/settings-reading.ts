@@ -25,7 +25,9 @@ const override = (declaration: SettingDeclaration, raw: string | undefined) => {
 		return Option.none();
 	}
 	const parsed = storedValue(raw);
-	return Option.isSome(parsed) ? declaration.decode(parsed.value) : Option.none();
+	return Option.isSome(parsed)
+		? declaration.decode(parsed.value)
+		: Option.none();
 };
 
 const chosen = (key: SettingKey, raw: string | undefined) => {

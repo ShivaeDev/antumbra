@@ -1,4 +1,4 @@
-import { Option, Schema } from "effect";
+import { type Option, Schema } from "effect";
 
 // why: a setting holds one of a small closed set of values at every crossing —
 // the JSON text in its row, the payload of a change, the field a view draws.

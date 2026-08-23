@@ -8,7 +8,7 @@ import {
 	makeRuntime,
 	storedEvents,
 } from "#fixtures.ts";
-import { makeAppRouter, SETTINGS } from "#index.ts";
+import { makeAppRouter, SETTING_KEYS, SETTINGS } from "#index.ts";
 
 describe("makeAppRouter", () => {
 	it.effect("serves app info from the runtime's source", () =>
@@ -39,7 +39,9 @@ describe("makeAppRouter", () => {
 				// @ts-expect-error a key the catalog never declared is not a setting.
 				caller.changeSetting({ key: "retireEverything", value: true }),
 			).pipe(Effect.flip);
-			expect(String(refused.cause)).toContain("retireEverything");
+			expect(String(refused.cause)).toBe(
+				`TRPCError: Expected ${SETTING_KEYS.map((key) => `"${key}"`).join(" | ")}`,
+			);
 			yield* Effect.promise(() => runtime.dispose());
 		}),
 	);

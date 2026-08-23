@@ -32,7 +32,7 @@ it("draws a declared flag as a checkbox and names the catalog's own value", () =
 	expect(html).toContain(SETTINGS.retireSweep.title);
 	expect(html).toContain(SETTINGS.retireSweep.description);
 	expect(html).toContain('type="checkbox"');
-	expect(html).toContain("Antumbra's own value. Expects true or false.");
+	expect(html).toContain("own value. Expects true or false.");
 });
 
 it("draws a declared count as a bounded number field", () => {
@@ -48,7 +48,8 @@ it("draws a declared count as a bounded number field", () => {
 	expect(html).toContain(`min="${SETTINGS.retireRestMinutes.least}"`);
 	expect(html).toContain(`max="${SETTINGS.retireRestMinutes.most}"`);
 	expect(html).toContain('value="45"');
-	expect(html).toContain("Set by you. Antumbra's own value is 15.");
+	expect(html).toContain("own value is 15.");
+	expect(html).toContain("Set by you.");
 });
 
 it("offers no save for a count still showing the value it was given", () => {

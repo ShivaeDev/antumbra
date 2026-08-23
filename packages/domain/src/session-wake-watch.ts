@@ -2,7 +2,6 @@ import type { IntentStatus } from "@antumbra/kernel";
 import { Effect, Fiber, Stream } from "effect";
 import { accountOfIntent } from "#dispatch-failure-account.ts";
 import type { SessionRouse } from "#kernel-reach.ts";
-import { SessionWakePatience } from "#session-wake-patience.ts";
 
 // why: a wake that parked is as finished as one that failed, from the send's
 // point of view — nothing is coming without another act — so waiting settles
@@ -39,11 +38,14 @@ const account = (sessionId: string, intentId: string, said: string) =>
 // itself — that nothing has happened yet. Why it ended is accounted for on the
 // Intent's own path, because a wake requeued by boot reclaim has no send
 // standing over it and would otherwise end in silence.
-export const watchWake = (sessionId: string, rouse: SessionRouse) =>
+export const watchWake = (
+	sessionId: string,
+	rouse: SessionRouse,
+	patienceMillis: number,
+) =>
 	Effect.gen(function* () {
-		const patience = yield* SessionWakePatience;
 		const stalled = yield* Effect.forkChild(
-			Effect.sleep(stallOf(patience)).pipe(
+			Effect.sleep(stallOf(patienceMillis)).pipe(
 				Effect.andThen(account(sessionId, rouse.id, "a wake has not settled")),
 			),
 		);

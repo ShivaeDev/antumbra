@@ -20,6 +20,7 @@ import {
 	makeRefuseSubsessionAttach,
 	type SubsessionAttachRefused,
 } from "#session-attach-roots.ts";
+import { SessionWakePatience } from "#session-wake-patience.ts";
 import { watchWake } from "#session-wake-watch.ts";
 
 export type SessionSendRefused =
@@ -51,6 +52,10 @@ export const makeSessionSend = Effect.gen(function* () {
 	// exactly the part nobody was reading. It belongs to the seam's own lifetime
 	// rather than to one request's.
 	const scope = yield* Effect.scope;
+	// why: the watch warns ahead of the bound the wake is actually measured
+	// against, so it reads that bound here — where the Intent that enforces it
+	// reads its own — rather than from whatever fiber happens to run the watch.
+	const patience = yield* SessionWakePatience;
 	const executors = yield* Effect.context<WriteExecutors>();
 	const provide = <A, E>(effect: Effect.Effect<A, E, WriteExecutors>) =>
 		Effect.provideContext(effect, executors);
@@ -65,7 +70,7 @@ export const makeSessionSend = Effect.gen(function* () {
 		reach.rouseSession({ message: text, sessionId }).pipe(
 			Effect.flatMap((wake) =>
 				Effect.forkIn(
-					watchWake(sessionId, wake).pipe(
+					watchWake(sessionId, wake, patience).pipe(
 						Effect.provideService(Database, db),
 						provide,
 					),

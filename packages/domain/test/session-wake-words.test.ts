@@ -22,7 +22,7 @@ import {
 // heard a two-day-old sentence four times and never heard a word the admiral
 // had actually just typed. A retry re-runs the payload as written, so newer
 // words can only travel on a row of their own.
-it.live("a later send delivers the words it was given, not the parked ones", () =>
+it.live("a later send delivers its own words, not the parked ones", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
 		const { recorded, scripted } = yield* sleepingRoot(temporary);
@@ -57,7 +57,9 @@ it.live("a later send delivers the words it was given, not the parked ones", () 
 			);
 			// why: the demand that carried the stale words is cancelled rather than
 			// left parked, because a wake still waiting can still fire them.
-			expect(rows.find((row) => row.id === parked.id)?.status).toBe("cancelled");
+			expect(rows.find((row) => row.id === parked.id)?.status).toBe(
+				"cancelled",
+			);
 			expect((yield* sessionRow).executionStatus).toBe("active");
 			const resumed = yield* scripted.session(payload.sessionId);
 			expect(resumed === undefined ? [] : yield* resumed.sent).toEqual([

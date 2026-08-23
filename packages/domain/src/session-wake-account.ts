@@ -11,7 +11,11 @@ export const accountedWake = <A, E, R>(
 	wake: Effect.Effect<A, E, R>,
 ) =>
 	wake.pipe(
-		Effect.tapErrorCause((cause) =>
-			Effect.logWarning("a wake did not reach the session", { sessionId }, cause),
+		Effect.tapCause((cause) =>
+			Effect.logWarning(
+				"a wake did not reach the session",
+				{ sessionId },
+				cause,
+			),
 		),
 	);

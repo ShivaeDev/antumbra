@@ -170,7 +170,15 @@ it.live(
 				expect(session.nativeRef).toBe("native-durable");
 				const resumed = yield* scripted.session(payload.sessionId);
 				expect(resumed).toBeDefined();
-				expect(resumed === undefined ? [] : yield* resumed.sent).toEqual([]);
+				// why: the instruction goes to the provider before it says which
+				// conversation it opened, because a provider that opens on its first
+				// message will not say otherwise. The wrong conversation therefore
+				// hears one sentence, and that is the whole of what it gets: the
+				// identity check still stops the attachment, and nothing durable
+				// moves to it.
+				expect(resumed === undefined ? [] : yield* resumed.sent).toEqual([
+					RECOVERY_INSTRUCTION,
+				]);
 			}).pipe(
 				Effect.provide(
 					domainKernelLayer(temporary, forked, {}, recorded.runner),
@@ -179,7 +187,7 @@ it.live(
 		}),
 );
 
-it.live("a failed durable opening append waits before sending recovery", () =>
+it.live("a failed durable opening append waits without taking the Session", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
 		const scripted = yield* makeScriptedBackend;
@@ -211,7 +219,13 @@ it.live("a failed durable opening append waits before sending recovery", () =>
 			expect(events.map((event) => event.seq)).toEqual([0, 1]);
 			const resumed = yield* scripted.session(payload.sessionId);
 			expect(resumed).toBeDefined();
-			expect(resumed === undefined ? [] : yield* resumed.sent).toEqual([]);
+			// why: the words reach the provider before the opening is confirmed, so
+			// an attachment that then fails to record its identity has already said
+			// its sentence. What it must not do is keep the Session, and the parked
+			// row with the durable log untouched is that.
+			expect(resumed === undefined ? [] : yield* resumed.sent).toEqual([
+				RECOVERY_INSTRUCTION,
+			]);
 
 			yield* Effect.sync(() =>
 				allowTestSessionOpenedWrites(temporary.database),

@@ -34,7 +34,7 @@ const closeRoot = Effect.gen(function* () {
 // row sat in "waiting" for ever with the admiral's words inside it and the fleet
 // showed a demand that was going nowhere. Refusing the send is also the moment
 // the system learns the Session is over, so it is where the wake is settled.
-it.live("a wake for a Session that has closed is settled, not left pending", () =>
+it.live("a wake for a closed Session settles instead of waiting", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
 		const { recorded, scripted } = yield* sleepingRoot(temporary);
@@ -54,7 +54,9 @@ it.live("a wake for a Session that has closed is settled, not left pending", () 
 			);
 
 			yield* closeRoot;
-			yield* Effect.flip(sight.send(payload.sessionId, "and mind the shallows"));
+			yield* Effect.flip(
+				sight.send(payload.sessionId, "and mind the shallows"),
+			);
 			const settled = yield* eventually(
 				Effect.gen(function* () {
 					const row = yield* onlyRecovery;

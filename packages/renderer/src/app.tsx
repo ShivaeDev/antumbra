@@ -4,6 +4,7 @@ import { watchFleet } from "#adapters/trpc.ts";
 import { watchVoyages } from "#adapters/trpc-voyages.ts";
 import { rememberPlace } from "#adapters/trpc-windows.ts";
 import { useFeed } from "#hooks/feed.ts";
+import { discardMissingSessionDrafts } from "#session-drafts/store.ts";
 import { ConsoleMain } from "#views/console-main.tsx";
 import { NavRail } from "#views/nav-rail.tsx";
 import { NoticeBar } from "#views/notice-bar.tsx";
@@ -35,6 +36,20 @@ export const ConsoleApp = ({ place }: { readonly place: ConsolePlace }) => {
 			setNotice,
 		);
 	}, [mode, session, voyage]);
+
+	// why: Sessions ordinarily remain in the durable fleet after they end. Only
+	// absence from a complete fleet sight means a stored local draft has lost
+	// its subject and may be discarded.
+	useEffect(() => {
+		if (fleet === undefined) {
+			return;
+		}
+		discardMissingSessionDrafts(
+			new Set(
+				fleet.agents.flatMap((agent) => agent.sessions.map((held) => held.id)),
+			),
+		);
+	}, [fleet]);
 
 	return (
 		<div className="flex h-screen min-w-0 bg-background text-foreground">

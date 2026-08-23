@@ -3,6 +3,7 @@ import { useState } from "react";
 import { sendToSession } from "#adapters/trpc.ts";
 import { Button } from "#components/ui/button.tsx";
 import { Input } from "#components/ui/input.tsx";
+import { useSessionDraft } from "#hooks/session-draft.ts";
 import { presenceNote, wakeNote } from "#views/session-presence-words.ts";
 import { SessionSituations } from "#views/session-situations.tsx";
 
@@ -56,16 +57,30 @@ export const SessionMessage = ({
 	readonly onError: (message: string) => void;
 	readonly sessionId: string;
 }) => {
-	const [text, setText] = useState("");
+	const draft = useSessionDraft(sessionId, "message");
+	const [sending, setSending] = useState(false);
 	const session = sessionOf(fleet, sessionId);
 	const blocked = refusal(session);
 	const standing = blocked ?? wake(session) ?? note(session);
-	const ready = blocked === undefined && text.trim() !== "";
+	const ready = blocked === undefined && !sending && draft.text.trim() !== "";
 	const send = () => {
 		if (!ready) {
 			return;
 		}
-		sendToSession(sessionId, text, () => setText(""), onError);
+		const sent = draft.capture();
+		setSending(true);
+		sendToSession(
+			sessionId,
+			sent.text,
+			() => {
+				draft.clear(sent);
+				setSending(false);
+			},
+			(message) => {
+				setSending(false);
+				onError(message);
+			},
+		);
 	};
 	return (
 		<div className="flex min-w-0 shrink-0 flex-col gap-1 border-t border-border px-4 py-2">
@@ -81,7 +96,7 @@ export const SessionMessage = ({
 					aria-label="Message this session"
 					className="flex-1"
 					disabled={blocked !== undefined}
-					onChange={(event) => setText(event.target.value)}
+					onChange={(event) => draft.setText(event.target.value)}
 					onKeyDown={(event) => {
 						if (event.key === "Enter") {
 							event.preventDefault();
@@ -90,7 +105,7 @@ export const SessionMessage = ({
 					}}
 					placeholder="say something to this session"
 					title={standing}
-					value={text}
+					value={draft.text}
 				/>
 				<Button disabled={!ready} onClick={send} type="button">
 					Send

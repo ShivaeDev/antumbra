@@ -1,12 +1,6 @@
 import { Database, type WriteExecutors } from "@antumbra/persistence";
-import type { SessionInput } from "@antumbra/plugin-api";
 import type { AgentPrompt } from "@antumbra/prompts";
 import { SessionFabric } from "@antumbra/session-fabric";
-import {
-	type SessionInputDraft,
-	SessionInputNotFound,
-	SessionInputs,
-} from "@antumbra/session-inputs";
 import { decodeStoredAgentSessionStatus } from "@antumbra/vocabulary/agent-runtime";
 import type { SessionInputId } from "@antumbra/vocabulary/session-input";
 import { Effect, Option } from "effect";
@@ -14,9 +8,8 @@ import { makeCurrentSessionRecovery } from "#current-session-recovery.ts";
 import { SessionEnded, SessionNotFound } from "#errors.ts";
 import { KernelReach, type SessionRouse } from "#kernel-reach.ts";
 import { makeRefuseSubsessionAttach } from "#session-attach-roots.ts";
-import { admiralInput, promptInput } from "#session-input.ts";
-import { makeSessionInputAdmission } from "#session-input-admission.ts";
-import type { SessionSendReceipt } from "#session-send-errors.ts";
+import { promptInput } from "#session-input.ts";
+import { makeSendInput } from "#session-send-input.ts";
 import { SessionWakePatience } from "#session-wake-patience.ts";
 import { watchWake } from "#session-wake-watch.ts";
 
@@ -36,8 +29,6 @@ export const makeSessionSend = (imageInputBackends: ReadonlySet<string>) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
 		const fabric = yield* SessionFabric;
-		const inputs = yield* SessionInputs;
-		const admission = yield* makeSessionInputAdmission(imageInputBackends);
 		const reach = yield* KernelReach;
 		const recovery = yield* makeCurrentSessionRecovery;
 		const refuseSubsession = yield* makeRefuseSubsessionAttach;
@@ -114,64 +105,10 @@ export const makeSessionSend = (imageInputBackends: ReadonlySet<string>) =>
 				// durable truth nobody can see is false.
 				yield* recovery.awaken(sessionId);
 			});
-		const accepted = (
-			sessionId: string,
-			inputId: SessionInputId,
-			input: SessionInput,
-		) => {
-			// why: the wake is written after the words are taken, never before — a row
-			// claiming a Session is executing when the handover failed is durable truth
-			// nobody can see is false.
-			const afterHandoff = recovery.awaken(sessionId).pipe(
-				Effect.andThen(inputs.mark(inputId, "accepted")),
-				Effect.as<SessionSendReceipt>("accepted"),
-				// why: once the provider accepted the input, a later database failure
-				// loses receipt certainty. Persist ambiguity before exposing that error so
-				// an explicit retry cannot blindly duplicate the logical message.
-				Effect.tapError(() => inputs.mark(inputId, "ambiguous")),
-			);
-			return fabric.send(sessionId, input).pipe(
-				Effect.andThen(afterHandoff),
-				Effect.tapErrorTag("BackendFailure", () =>
-					inputs.mark(inputId, "ambiguous"),
-				),
-			);
-		};
-		const queued = (sessionId: string, inputId: SessionInputId) =>
-			rouseInput(sessionId, inputId).pipe(
-				Effect.andThen(inputs.mark(inputId, "queued_for_wake")),
-				Effect.as<SessionSendReceipt>("queued_for_wake"),
-			);
-		// why: taking custody is what costs disk and what outlives the request, so
-		// the backend is asked whether it can receive these parts at all before a
-		// single byte is normalized or installed. A text-only provider refuses with
-		// nothing written down for a later sweep to find.
-		const sendInput = (draft: SessionInputDraft) =>
-			Effect.gen(function* () {
-				const sessionId = draft.sessionId;
-				const session = yield* open(sessionId);
-				yield* admission.admitDraft(session.backend, draft.parts);
-				const inputId = draft.id;
-				const reading = yield* inputs.ingest(draft);
-				const replay = yield* admission.replayed(reading.status, inputId);
-				if (replay !== undefined) {
-					return replay;
-				}
-				const stored = yield* inputs.load(inputId);
-				if (stored.sessionId !== sessionId) {
-					return yield* new SessionInputNotFound({ inputId });
-				}
-				const input = admiralInput(stored.input);
-				yield* admission.admit(session.backend, inputId, input);
-				if (!(yield* fabric.holds(sessionId))) {
-					return yield* queued(sessionId, inputId);
-				}
-				// why: the attachment can go between being seen and being spoken to —
-				// a reclaim settling in the same breath — and the words follow it into
-				// the resume rather than being reported as a refusal.
-				return yield* accepted(sessionId, inputId, input).pipe(
-					Effect.catchTag("SessionNotLive", () => queued(sessionId, inputId)),
-				);
-			});
+		const sendInput = yield* makeSendInput(
+			imageInputBackends,
+			open,
+			rouseInput,
+		);
 		return { sendInput, sendPrompt };
 	});

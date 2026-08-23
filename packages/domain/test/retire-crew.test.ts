@@ -12,12 +12,7 @@ import {
 	type ScriptedBackend,
 	standDown,
 } from "#test/harness.ts";
-import {
-	born,
-	chartered,
-	handFor,
-	landed,
-} from "#test/retire-crew-fixture.ts";
+import { born, chartered, handFor, landed } from "#test/retire-crew-fixture.ts";
 import { eventually } from "#test/session-recovery-fixture.ts";
 
 const SOUNDER = "agent-sounder";
@@ -41,31 +36,33 @@ const retiredAgents = Effect.gen(function* () {
 // why: two hands on the landed piece and one on another. The act is scoped by
 // the claims staked on the piece, so the third is untouched however quiet it is
 // — a crew is released piece by piece, never fleet-wide.
-it.live("retiring a piece's crew retires exactly the agents claimed to it", () =>
-	Effect.gen(function* () {
-		const temporary = yield* acquireTemporaryPersistence;
-		const scripted = yield* makeScriptedBackend;
-		yield* Effect.gen(function* () {
-			const sight = yield* SightSource;
-			const { pieceId, voyageId } = yield* chartered;
-			const other = yield* chartered;
-			yield* born(handFor(SOUNDER, pieceId, voyageId));
-			yield* born(handFor(MATE, pieceId, voyageId));
-			yield* born(handFor(ELSEWHERE, other.pieceId, other.voyageId));
-			yield* landed(pieceId);
-			yield* standDown(scripted, SOUNDER);
-			yield* standDown(scripted, MATE);
-			yield* standDown(scripted, ELSEWHERE);
+it.live(
+	"retiring a piece's crew retires exactly the agents claimed to it",
+	() =>
+		Effect.gen(function* () {
+			const temporary = yield* acquireTemporaryPersistence;
+			const scripted = yield* makeScriptedBackend;
+			yield* Effect.gen(function* () {
+				const sight = yield* SightSource;
+				const { pieceId, voyageId } = yield* chartered;
+				const other = yield* chartered;
+				yield* born(handFor(SOUNDER, pieceId, voyageId));
+				yield* born(handFor(MATE, pieceId, voyageId));
+				yield* born(handFor(ELSEWHERE, other.pieceId, other.voyageId));
+				yield* landed(pieceId);
+				yield* standDown(scripted, SOUNDER);
+				yield* standDown(scripted, MATE);
+				yield* standDown(scripted, ELSEWHERE);
 
-			yield* sight.retireCrew(pieceId);
+				yield* sight.retireCrew(pieceId);
 
-			yield* eventually(
-				Effect.gen(function* () {
-					expect(yield* retiredAgents).toEqual([MATE, SOUNDER].toSorted());
-				}),
-			);
-		}).pipe(Effect.provide(sightLayer(temporary, scripted)));
-	}),
+				yield* eventually(
+					Effect.gen(function* () {
+						expect(yield* retiredAgents).toEqual([MATE, SOUNDER].toSorted());
+					}),
+				);
+			}).pipe(Effect.provide(sightLayer(temporary, scripted)));
+		}),
 );
 
 // why: a captain answers to a voyage, never to a piece, so it holds no claim on

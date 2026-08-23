@@ -33,6 +33,13 @@ export {
 	PieceAlreadyCrewed,
 	PieceNotOnVoyage,
 } from "#piece-work-errors.ts";
+export {
+	SessionEnded,
+	SessionIdentityMissing,
+	SessionMessageEmpty,
+	SessionNotFound,
+	SessionStillDelegating,
+} from "#session-errors.ts";
 
 export class AgentNotFound extends Data.TaggedError("AgentNotFound")<{
 	readonly agentId: string;
@@ -112,53 +119,3 @@ export class MooragePlanConflict extends Data.TaggedError(
 	readonly agentId: string;
 	readonly detail: string;
 }> {}
-
-export class SessionMessageEmpty extends Data.TaggedError(
-	"SessionMessageEmpty",
-)<{
-	readonly sessionId: string;
-}> {
-	override get message(): string {
-		return `a message with no words cannot reach session ${this.sessionId}`;
-	}
-}
-
-export class SessionIdentityMissing extends Data.TaggedError(
-	"SessionIdentityMissing",
-)<{
-	readonly sessionId: string;
-}> {}
-
-export class SessionNotFound extends Data.TaggedError("SessionNotFound")<{
-	readonly sessionId: string;
-}> {
-	override get message(): string {
-		return `there is no session ${this.sessionId} on the fleet`;
-	}
-}
-
-// why: only a root is ever attached, and the delegated conversations under it
-// ride that one acquisition — so putting it to rest would take their stream
-// away mid-sentence. The refusal is named rather than silent because whoever
-// asked was reading a moment that had already passed, and a Session that
-// quietly stayed awake would look exactly like one that had been put to rest.
-export class SessionStillDelegating extends Data.TaggedError(
-	"SessionStillDelegating",
-)<{
-	readonly sessionId: string;
-}> {
-	override get message(): string {
-		return `session ${this.sessionId} still has a delegated conversation under way and cannot be put to rest`;
-	}
-}
-
-// why: the one state that refuses words. Every other state either holds the
-// conversation open or can be woken back into it, so this refusal is the whole
-// set of ways an Agent can stop being reachable.
-export class SessionEnded extends Data.TaggedError("SessionEnded")<{
-	readonly sessionId: string;
-}> {
-	override get message(): string {
-		return `session ${this.sessionId} has ended and cannot be spoken to`;
-	}
-}

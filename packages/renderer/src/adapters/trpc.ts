@@ -1,11 +1,7 @@
 import type {
 	AppInfo,
-	EventQuery,
-	Fleet,
 	RepoRegistration,
 	RepoSummary,
-	SessionEvent,
-	SessionTree,
 	SituationDraft,
 	SpawnReceipt,
 	SpawnRequest,
@@ -23,45 +19,12 @@ export const loadAppInfo: Effect.Effect<AppInfo, AppInfoLoadError> =
 		try: () => client.appInfo.query(),
 	});
 
-export type Unsubscribe = () => void;
-
-export const watchFleet = (
-	onFleet: (fleet: Fleet) => void,
-	onError: (message: string) => void,
-): Unsubscribe => {
-	const subscription = client.fleetFeed.subscribe(undefined, {
-		onData: onFleet,
-		onError: (cause) => onError(toError(cause).message),
-	});
-	return () => subscription.unsubscribe();
-};
-
-export const watchSessionEvents = (
-	query: EventQuery,
-	onEvent: (event: SessionEvent) => void,
-	onError: (message: string) => void,
-): Unsubscribe => {
-	const subscription = client.sessionEventFeed.subscribe(query, {
-		onData: onEvent,
-		onError: (cause) => onError(toError(cause).message),
-	});
-	return () => subscription.unsubscribe();
-};
-
-export const watchSessionTree = (
-	rootSessionId: string,
-	onTree: (tree: SessionTree) => void,
-	onError: (message: string) => void,
-): Unsubscribe => {
-	const subscription = client.sessionTreeFeed.subscribe(
-		{ rootSessionId },
-		{
-			onData: onTree,
-			onError: (cause) => onError(toError(cause).message),
-		},
-	);
-	return () => subscription.unsubscribe();
-};
+export {
+	type Unsubscribe,
+	watchFleet,
+	watchSessionEvents,
+	watchSessionTree,
+} from "#adapters/trpc-watches.ts";
 
 export const spawnAgent = (
 	request: SpawnRequest,

@@ -84,20 +84,22 @@ it.live("a done piece's agent still inside the threshold is left alone", () =>
 
 // why: rest is not the trigger — landing is. An agent quiet for a day on work
 // that never landed is waiting, and the sweep has nothing to say about it.
-it.live("a piece not yet done is never swept however long its agent rests", () =>
-	Effect.gen(function* () {
-		const temporary = yield* acquireTemporaryPersistence;
-		const scripted = yield* makeScriptedBackend;
-		yield* Effect.gen(function* () {
-			const { pieceId, voyageId } = yield* chartered;
-			yield* born(handFor(HAND, pieceId, voyageId));
-			yield* standDown(scripted, HAND);
+it.live(
+	"a piece not yet done is never swept however long its agent rests",
+	() =>
+		Effect.gen(function* () {
+			const temporary = yield* acquireTemporaryPersistence;
+			const scripted = yield* makeScriptedBackend;
+			yield* Effect.gen(function* () {
+				const { pieceId, voyageId } = yield* chartered;
+				yield* born(handFor(HAND, pieceId, voyageId));
+				yield* standDown(scripted, HAND);
 
-			yield* sweptAt(24 * 60 * MINUTE_MILLIS);
+				yield* sweptAt(24 * 60 * MINUTE_MILLIS);
 
-			expect(yield* retireIntents).toEqual([]);
-		}).pipe(Effect.provide(domainKernelLayer(temporary, scripted.backend)));
-	}),
+				expect(yield* retireIntents).toEqual([]);
+			}).pipe(Effect.provide(domainKernelLayer(temporary, scripted.backend)));
+		}),
 );
 
 // why: the flag is the admiral's whole answer to the sweep. Turned off, the

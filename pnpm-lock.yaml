@@ -205,6 +205,9 @@ importers:
       '@anthropic-ai/claude-agent-sdk':
         specifier: 'catalog:'
         version: 0.3.225(@anthropic-ai/sdk@0.116.0(zod@4.4.3))(@modelcontextprotocol/sdk@1.30.0(supports-color@7.2.0)(zod@4.4.3))(zod@4.4.3)
+      sharp:
+        specifier: 'catalog:'
+        version: 0.35.3(@types/node@24.10.1)
     devDependencies:
       '@antumbra/backend-claude':
         specifier: workspace:*

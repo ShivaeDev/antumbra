@@ -88,10 +88,6 @@
       "model": "SessionEvent",
       "namespace": "__unbound__"
     },
-    "setting": {
-      "model": "Setting",
-      "namespace": "__unbound__"
-    },
     "voyage": {
       "model": "Voyage",
       "namespace": "__unbound__"
@@ -2026,47 +2022,6 @@
               "table": "sessionEvent"
             }
           },
-          "Setting": {
-            "fields": {
-              "key": {
-                "nullable": false,
-                "type": {
-                  "codecId": "sqlite/text@1",
-                  "kind": "scalar"
-                }
-              },
-              "updatedAt": {
-                "nullable": false,
-                "type": {
-                  "codecId": "sqlite/datetime@1",
-                  "kind": "scalar"
-                }
-              },
-              "value": {
-                "nullable": false,
-                "type": {
-                  "codecId": "sqlite/text@1",
-                  "kind": "scalar"
-                }
-              }
-            },
-            "relations": {},
-            "storage": {
-              "fields": {
-                "key": {
-                  "column": "key"
-                },
-                "updatedAt": {
-                  "column": "updatedAt"
-                },
-                "value": {
-                  "column": "value"
-                }
-              },
-              "namespaceId": "__unbound__",
-              "table": "setting"
-            }
-          },
           "Voyage": {
             "fields": {
               "backend": {
@@ -3625,37 +3580,6 @@
               },
               "uniques": []
             },
-            "setting": {
-              "columns": {
-                "key": {
-                  "codecId": "sqlite/text@1",
-                  "nativeType": "text",
-                  "nullable": false
-                },
-                "updatedAt": {
-                  "codecId": "sqlite/datetime@1",
-                  "default": {
-                    "expression": "now()",
-                    "kind": "function"
-                  },
-                  "nativeType": "text",
-                  "nullable": false
-                },
-                "value": {
-                  "codecId": "sqlite/text@1",
-                  "nativeType": "text",
-                  "nullable": false
-                }
-              },
-              "foreignKeys": [],
-              "indexes": [],
-              "primaryKey": {
-                "columns": [
-                  "key"
-                ]
-              },
-              "uniques": []
-            },
             "voyage": {
               "columns": {
                 "backend": {
@@ -3784,7 +3708,7 @@
         "id": "__unbound__"
       }
     },
-    "storageHash": "sha256:23bfa81ae6bfb666c2dc93a97c481185c40039fd25902414917c288237a25617"
+    "storageHash": "sha256:1f6b5b9212c63888ff554e1770c8020bde68573c2570ba16af95fc93124a130f"
   },
   "capabilities": {
     "sql": {

@@ -10,6 +10,11 @@
 		"reason": "Compile-time proof that a create row omitting a NOT NULL column without a default fails to typecheck; the pragma goes unused, and the build fails, if that looseness ever returns."
 	},
 	{
+		"file": "packages/contract/test/router.test.ts",
+		"pragma": "@ts-expect-error",
+		"reason": "Compile-time proof that only a declared setting can be changed: a key the settings catalog does not hold must fail to typecheck, and the pragma goes unused, failing the build, if the catalog ever stops being the whole set."
+	},
+	{
 		"file": "packages/domain/test/agent-prompt-seam.test.ts",
 		"pragma": "@ts-expect-error",
 		"reason": "Compile-time proof that the send seam refuses a bare string: only the prompt catalog mints what an Agent may hear, and the pragma goes unused, failing the build, if that guarantee is ever relaxed."

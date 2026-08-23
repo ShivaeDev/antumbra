@@ -45,6 +45,7 @@ export const QuayPanel = ({
 					<QuayGroupPanel
 						group={group}
 						key={group}
+						onError={onError}
 						rows={rowsIn(quay, group)}
 					/>
 				))}

@@ -24,6 +24,7 @@ export interface SubmitChangeInput {
 	readonly agentId: string;
 	readonly pieceId: string;
 	readonly repoName: string;
+	readonly sessionId: string;
 }
 
 export interface AdoptChangeInput {

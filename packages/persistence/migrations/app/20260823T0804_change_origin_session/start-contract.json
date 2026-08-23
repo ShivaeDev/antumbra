@@ -1073,13 +1073,6 @@
                   "kind": "scalar"
                 }
               },
-              "originSessionId": {
-                "nullable": true,
-                "type": {
-                  "codecId": "sqlite/text@1",
-                  "kind": "scalar"
-                }
-              },
               "preparedHeadRef": {
                 "nullable": true,
                 "type": {
@@ -1226,9 +1219,6 @@
                 },
                 "openedByAgentId": {
                   "column": "openedByAgentId"
-                },
-                "originSessionId": {
-                  "column": "originSessionId"
                 },
                 "preparedHeadRef": {
                   "column": "preparedHeadRef"
@@ -2923,11 +2913,6 @@
                   "nativeType": "text",
                   "nullable": true
                 },
-                "originSessionId": {
-                  "codecId": "sqlite/text@1",
-                  "nativeType": "text",
-                  "nullable": true
-                },
                 "preparedHeadRef": {
                   "codecId": "sqlite/text@1",
                   "nativeType": "text",
@@ -3708,7 +3693,7 @@
         "id": "__unbound__"
       }
     },
-    "storageHash": "sha256:1f6b5b9212c63888ff554e1770c8020bde68573c2570ba16af95fc93124a130f"
+    "storageHash": "sha256:8a7a3ab4c870466fbba4fd91393adf0dd1a5a862c4cf9f62e94b8fb53cac8d6c"
   },
   "capabilities": {
     "sql": {

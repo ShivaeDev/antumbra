@@ -6,9 +6,11 @@ import { QuayCard } from "#views/quay-card.tsx";
 // read for what is owed, and an empty rung is noise between the ones that are.
 export const QuayGroupPanel = ({
 	group,
+	onError,
 	rows,
 }: {
 	readonly group: QuayGroup;
+	readonly onError: (message: string) => void;
 	readonly rows: ReadonlyArray<QuayRow>;
 }) => {
 	if (rows.length === 0) {
@@ -23,6 +25,7 @@ export const QuayGroupPanel = ({
 			{rows.map((row) => (
 				<QuayCard
 					key={`${row.change.id}/${row.pieceId}/${row.voyageId}`}
+					onError={onError}
 					row={row}
 				/>
 			))}

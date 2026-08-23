@@ -226,6 +226,7 @@ model Change {
   review          String
   mergeable       String
   openedByAgentId String?
+  originSessionId String?
   raw             String?
   activityAt      DateTime
   observedAt      DateTime

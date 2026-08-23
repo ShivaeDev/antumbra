@@ -43,6 +43,7 @@ export const openedChange = (pieceId: string, repoName: string) =>
 			draft: false,
 			pieceId,
 			repoName,
+			sessionId: "session-crew",
 			title: "chart the eastern spit",
 		});
 	});
@@ -54,5 +55,6 @@ export const submittedChange = (pieceId: string, repoName: string) =>
 			agentId: CREW,
 			pieceId,
 			repoName,
+			sessionId: "session-crew",
 		});
 	});

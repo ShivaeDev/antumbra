@@ -29,6 +29,38 @@ export class StoredPieceChangeInvalid extends Data.TaggedError(
 	}
 }
 
+export class StoredChangeVerdictInvalid extends Data.TaggedError(
+	"StoredChangeVerdictInvalid",
+)<{
+	readonly changeId: string;
+	readonly detail: string;
+}> {
+	override get message(): string {
+		return `stored verdict on Change ${this.changeId} is invalid: ${this.detail}`;
+	}
+}
+
+export class ChangeNotFound extends Data.TaggedError("ChangeNotFound")<{
+	readonly changeId: string;
+}> {
+	override get message(): string {
+		return `there is no change ${this.changeId}`;
+	}
+}
+
+// why: dismissing is the terminal acknowledgement of a change that died
+// without landing. One still alive at its host has a real answer coming, and
+// settling it here would be a verdict about something nobody has finished
+// saying.
+export class ChangeStillAlive extends Data.TaggedError("ChangeStillAlive")<{
+	readonly changeId: string;
+	readonly stage: string;
+}> {
+	override get message(): string {
+		return `change ${this.changeId} is ${this.stage} and has not died, so there is nothing to dismiss`;
+	}
+}
+
 export class RepoNotFound extends Data.TaggedError("RepoNotFound")<{
 	readonly repoName: string;
 }> {

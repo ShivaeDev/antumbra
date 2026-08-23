@@ -82,7 +82,7 @@ it.live(
 				yield* Effect.sleep(300);
 				expect(yield* assignedPieces).toEqual([alpha.id]);
 
-				yield* retireOneAlive;
+				yield* retireOneAlive(scripted);
 				yield* eventually(
 					Effect.gen(function* () {
 						expect((yield* assignedPieces).length).toBe(2);
@@ -91,7 +91,7 @@ it.live(
 				yield* Effect.sleep(300);
 				expect((yield* assignedPieces).length).toBe(2);
 
-				yield* retireOneAlive;
+				yield* retireOneAlive(scripted);
 				yield* eventually(
 					Effect.gen(function* () {
 						expect((yield* assignedPieces).length).toBe(3);
@@ -114,7 +114,7 @@ it.live("applies a saved ceiling to subsequent launches without restart", () =>
 		const scripted = yield* makeScriptedBackend;
 		yield* Effect.gen(function* () {
 			const settings = yield* SettingsSource;
-			yield* settings.update({ maxParallelSessions: 1 });
+			yield* settings.change({ key: "maxParallelSessions", value: 1 });
 			const { alpha } = yield* chain;
 			yield* eventually(
 				Effect.gen(function* () {
@@ -125,7 +125,7 @@ it.live("applies a saved ceiling to subsequent launches without restart", () =>
 			yield* Effect.sleep(150);
 			expect(yield* assignedPieces).toEqual([alpha.id]);
 
-			yield* settings.update({ maxParallelSessions: 2 });
+			yield* settings.change({ key: "maxParallelSessions", value: 2 });
 			yield* eventually(
 				Effect.gen(function* () {
 					expect((yield* assignedPieces).length).toBe(2);

@@ -58,10 +58,12 @@ const world = (over: Partial<VoyageWorld>): VoyageWorld => ({
 	assignments: [],
 	changes: [],
 	crews: [],
+	dismissedChangeIds: new Set(),
 	edges: [],
 	memberships: [{ pieceId: "alpha", voyageId: "voyage-1" }],
 	pieceChanges: [],
 	pieceReports: [],
+	pieceVerdicts: new Map(),
 	pieces: [piece("alpha")],
 	reports: new Map(),
 	repos: new Map([["repo-1", { id: "repo-1", name: "shoals" }]]),
@@ -134,16 +136,39 @@ it("a landed change leaves the quay; a withdrawn one stays until answered", () =
 	expect(withdrawn?.map((row) => row.group)).toEqual(["needsAttention"]);
 });
 
-it("a withdrawn change leaves once the piece is waiting on another", () => {
+// why: the dead end this ruling was written for — a closed change that
+// quietly disappeared behind a replacement while it still counted as pending,
+// leaving nothing to look at and nothing to press.
+it("a withdrawn change stays in sight while a replacement is under way", () => {
 	const rows = quayRows(
 		onAlpha([change("one", { stage: "withdrawn" }), change("two")]),
 	);
-	expect(rows.map((row) => row.change.id)).toEqual(["two"]);
+	expect(rows.map((row) => row.change.id).sort()).toEqual(["one", "two"]);
 });
 
-it("a row names the repo, the piece and the voyage the change is owed to", () => {
-	const [row] = quayRows(onAlpha([change("one")]));
+it("a dismissed change leaves the quay and its needs-attention group", () => {
+	const withdrawn = onAlpha([change("one", { stage: "withdrawn" })]);
+	expect(
+		quayRows({ ...withdrawn, dismissedChangeIds: new Set(["one"]) }),
+	).toEqual([]);
+});
+
+it("a row carries its pull request detail and where the change is owed", () => {
+	const [row] = quayRows(
+		onAlpha([
+			change("one", {
+				baseRef: "release",
+				body: "## Why\n\nWarn the harbour.",
+				headRef: "work/warning",
+				headSha: "0123456789abcdef",
+			}),
+		]),
+	);
 	expect(row?.change.repoName).toBe("shoals");
+	expect(row?.body).toBe("## Why\n\nWarn the harbour.");
+	expect(row?.headRef).toBe("work/warning");
+	expect(row?.baseRef).toBe("release");
+	expect(row?.headSha).toBe("0123456789abcdef");
 	expect(row?.pieceTitle).toBe("alpha");
 	expect(row?.voyageName).toBe("Chart the reef");
 });

@@ -1,8 +1,7 @@
-import { BoardScope, Boards, smoothBodies } from "@antumbra/boards";
 import type { IntentStatus, IntentSubmission } from "@antumbra/kernel";
 import type { WriteExecutors } from "@antumbra/persistence";
-import { crewCharter } from "@antumbra/prompts";
 import { Effect, Option, Queue, Stream } from "effect";
+import { charterFor } from "#crew-charter.ts";
 import { accountOfIntent } from "#dispatch-failure-account.ts";
 import type { ReadyPiece } from "#dispatch-policy.ts";
 import {
@@ -80,29 +79,6 @@ const watchDispatch = (
 		Effect.andThen(Queue.offer(port.state.tick, undefined)),
 	);
 
-// why: the boards are read here, in the pass, rather than inside the pure
-// composer — what a piece is told at birth is a fact about the moment it is
-// dispatched, and the composer stays a function of its inputs.
-const charterFor = (candidate: ReadyPiece) =>
-	Effect.gen(function* () {
-		const boards = yield* Boards;
-		const voyageSmoothLog = yield* boards
-			.read(BoardScope.Voyage({ voyageId: candidate.voyage.id }))
-			.pipe(Effect.map(smoothBodies));
-		const pieceSmoothLog = yield* boards
-			.read(BoardScope.Piece({ pieceId: candidate.piece.id }))
-			.pipe(Effect.map(smoothBodies));
-		return crewCharter({
-			context: candidate.voyage.context,
-			expectation: candidate.piece.expectation,
-			northStar: candidate.voyage.northStar,
-			pieceCharter: candidate.piece.charter,
-			pieceLog: pieceSmoothLog,
-			pieceTitle: candidate.piece.title,
-			voyageLog: voyageSmoothLog,
-		});
-	});
-
 export const dispatchPiece = (
 	port: DispatchPort,
 	candidate: ReadyPiece,
@@ -124,7 +100,7 @@ export const dispatchPiece = (
 		const submission = yield* port.submit({
 			agentId,
 			backend: candidate.voyage.backend,
-			charter: yield* charterFor(candidate),
+			charter: yield* charterFor(candidate.piece, candidate.voyage),
 			pieceId,
 			// why: the sole runner in v1 — the field becomes a choice when a
 			// second runner exists to choose between.

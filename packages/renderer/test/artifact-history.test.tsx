@@ -71,6 +71,7 @@ const piece: PieceView = {
 	],
 	artifacts: [artifact],
 	board: [],
+	canRetireCrew: false,
 	changes: [],
 	charter: "draw the reef",
 	dependsOn: [],

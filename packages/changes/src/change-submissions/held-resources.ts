@@ -3,6 +3,7 @@ import type { HeldResource } from "@antumbra/resource-reclamation";
 import { Effect, Option } from "effect";
 import { changeRow } from "#change-read.ts";
 import { pieceChangeRow } from "#change-rows.ts";
+import { readDismissedChangeIds } from "#change-verdicts.ts";
 import { heldBerths } from "#held-berths.ts";
 
 const heldResource = (resource: HeldResource) =>
@@ -46,7 +47,13 @@ const heldResource = (resource: HeldResource) =>
 			),
 			changeRow,
 		);
-		return heldBerths([resource], changes, [repo.value], links);
+		return heldBerths({
+			berths: [resource],
+			changes,
+			dismissedChangeIds: yield* readDismissedChangeIds,
+			pieceChanges: links,
+			repos: [repo.value],
+		});
 	});
 
 export const readHeldResources = (resources: ReadonlyArray<HeldResource>) =>

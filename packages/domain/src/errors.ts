@@ -9,6 +9,7 @@ export {
 export {
 	EdgeWouldCycle,
 	PieceNotFound,
+	StoredPieceVerdictInvalid,
 	VoyageNotFound,
 } from "@antumbra/pieces";
 export {
@@ -27,6 +28,18 @@ export {
 	AgentSessionConflict,
 	CurrentSessionInvalid,
 } from "#current-session-errors.ts";
+export {
+	PieceAbandoned,
+	PieceAlreadyCrewed,
+	PieceNotOnVoyage,
+} from "#piece-work-errors.ts";
+export {
+	SessionEnded,
+	SessionIdentityMissing,
+	SessionMessageEmpty,
+	SessionNotFound,
+	SessionStillDelegating,
+} from "#session-errors.ts";
 
 export class AgentNotFound extends Data.TaggedError("AgentNotFound")<{
 	readonly agentId: string;
@@ -42,6 +55,22 @@ export class ChangeNotAddressable extends Data.TaggedError(
 }> {
 	override get message(): string {
 		return `change ${this.changeId} is not open on a host that names it`;
+	}
+}
+
+// why: a retire is asked for by a button or by the clock, both reading a
+// moment that had already passed — so the act asks again as it runs, and names
+// the refusal so the record says why the crew is still sailing. It asks the
+// weaker question on purpose: retirement is the only thing that closes a tree
+// the record has stopped hearing from, and hiding it behind the whole tree
+// settling would seal the one exit a stranded tree has. Ending an Agent
+// mid-turn still severs work it is doing, so that alone refuses.
+export class AgentStillWorking extends Data.TaggedError("AgentStillWorking")<{
+	readonly agentId: string;
+	readonly sessionId: string;
+}> {
+	override get message(): string {
+		return `agent ${this.agentId} is working in session ${this.sessionId} and cannot be retired`;
 	}
 }
 
@@ -90,53 +119,3 @@ export class MooragePlanConflict extends Data.TaggedError(
 	readonly agentId: string;
 	readonly detail: string;
 }> {}
-
-export class SessionMessageEmpty extends Data.TaggedError(
-	"SessionMessageEmpty",
-)<{
-	readonly sessionId: string;
-}> {
-	override get message(): string {
-		return `a message with no words cannot reach session ${this.sessionId}`;
-	}
-}
-
-export class SessionIdentityMissing extends Data.TaggedError(
-	"SessionIdentityMissing",
-)<{
-	readonly sessionId: string;
-}> {}
-
-export class SessionNotFound extends Data.TaggedError("SessionNotFound")<{
-	readonly sessionId: string;
-}> {
-	override get message(): string {
-		return `there is no session ${this.sessionId} on the fleet`;
-	}
-}
-
-// why: only a root is ever attached, and the delegated conversations under it
-// ride that one acquisition — so putting it to rest would take their stream
-// away mid-sentence. The refusal is named rather than silent because whoever
-// asked was reading a moment that had already passed, and a Session that
-// quietly stayed awake would look exactly like one that had been put to rest.
-export class SessionStillDelegating extends Data.TaggedError(
-	"SessionStillDelegating",
-)<{
-	readonly sessionId: string;
-}> {
-	override get message(): string {
-		return `session ${this.sessionId} still has a delegated conversation under way and cannot be put to rest`;
-	}
-}
-
-// why: the one state that refuses words. Every other state either holds the
-// conversation open or can be woken back into it, so this refusal is the whole
-// set of ways an Agent can stop being reachable.
-export class SessionEnded extends Data.TaggedError("SessionEnded")<{
-	readonly sessionId: string;
-}> {
-	override get message(): string {
-		return `session ${this.sessionId} has ended and cannot be spoken to`;
-	}
-}

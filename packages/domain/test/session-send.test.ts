@@ -9,6 +9,7 @@ import {
 	makeScriptedBackend,
 	type ScriptedBackend,
 	type ScriptedSession,
+	standDown,
 } from "#test/harness.ts";
 
 const eventually = <A, E, R>(check: Effect.Effect<A, E, R>) =>
@@ -102,6 +103,7 @@ it.live("only an ended session and an unknown id refuse the message", () =>
 			const receipt = yield* sight.spawn(spawnRequest);
 			const session = yield* liveSession(scripted, receipt.sessionId);
 			yield* chartered(session);
+			yield* standDown(scripted, receipt.agentId);
 			yield* sight.retire(receipt.agentId);
 			yield* eventually(
 				Effect.gen(function* () {

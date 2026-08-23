@@ -255,6 +255,7 @@ it.live("the list carries every voyage with its piece counts and focus", () =>
 			expect(listed[0]?.focusedAt).not.toBeNull();
 			expect(listed[0]?.state).toBe("quiet");
 			expect(listed[0]?.counts).toEqual({
+				abandoned: 0,
 				active: 0,
 				blocked: 0,
 				done: 0,

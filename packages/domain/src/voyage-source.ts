@@ -8,6 +8,7 @@ import {
 } from "@antumbra/contract";
 import type { ReportReading } from "@antumbra/reports";
 import { Context, Effect, Layer, Option } from "effect";
+import { AgentDomain } from "#agent-domain-service.ts";
 import { ChangeProcedureService } from "#change-procedures.ts";
 import { changeView } from "#change-view.ts";
 import { quaySeen } from "#quay-projection.ts";
@@ -36,13 +37,22 @@ export const VoyageSourceLive = Layer.effect(VoyageSource)(
 	Effect.gen(function* () {
 		const boards = yield* Boards;
 		const changes = yield* ChangeProcedureService;
+		const domain = yield* AgentDomain;
 		const voyages = yield* VoyageProcedureService;
 		const world = yield* VoyageWorldSource;
 		const context = Context.make(Boards, boards).pipe(
 			Context.add(VoyageProcedureService, voyages),
 			Context.add(VoyageWorldSource, world),
 		);
-		const reads = yield* Effect.provide(makeVoyageReads, context);
+		// why: what this process is holding is asked of the domain rather than of
+		// the rows, for the same reason the fleet asks — a row still saying active
+		// has outlived the process that made it true, and a crew is only quiet if
+		// the thing that would be speaking for it is quiet.
+		const runtime = Effect.all({
+			attached: domain.sessionsAttached,
+			delegating: domain.sessionsDelegating,
+		});
+		const reads = yield* Effect.provide(makeVoyageReads(runtime), context);
 		const acts = yield* Effect.provide(makeVoyageActs(reads), context);
 		const refreshes = yield* makeVoyageRefreshes;
 		const quay = Effect.gen(function* () {
@@ -63,6 +73,11 @@ export const VoyageSourceLive = Layer.effect(VoyageSource)(
 					Effect.map((row) => changeSeen(changeView(request.repoName, row))),
 					Effect.mapError(toFailure),
 				),
+			// why: the admiral's own verdict on a change nobody will finish, so it
+			// is recorded as the act of the person at the window — no agent asked
+			// for it and none is credited with it.
+			dismissChange: (changeId: string) =>
+				changes.dismiss(changeId).pipe(Effect.mapError(toFailure)),
 			quay,
 			quayFeed: refreshes(quay),
 			refreshChanges: changes.requestRefresh,

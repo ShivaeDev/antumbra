@@ -1,5 +1,5 @@
 import { Schema } from "effect";
-import { ChangeView } from "#voyage-views.ts";
+import { ChangeView } from "#change-views.ts";
 
 // why: the quay reads by where a change lies rather than by which host holds
 // it — ready to merge, still running, wanting a hand, or not offered yet. The
@@ -12,9 +12,16 @@ export const QuayGroup = Schema.Literals([
 ]);
 export type QuayGroup = typeof QuayGroup.Type;
 
+// why: description and branch facts belong only to the Quay's selected detail;
+// voyage change chips keep their smaller ChangeView while this projection
+// carries the neutral pull-request metadata already held by the Change.
 export const QuayRow = Schema.Struct({
+	baseRef: Schema.String,
+	body: Schema.String,
 	change: ChangeView,
 	group: QuayGroup,
+	headRef: Schema.String,
+	headSha: Schema.NullOr(Schema.String),
 	originSessionId: Schema.NullOr(Schema.String),
 	pieceId: Schema.String,
 	pieceTitle: Schema.String,

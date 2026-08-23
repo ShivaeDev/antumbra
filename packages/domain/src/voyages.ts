@@ -4,9 +4,11 @@ import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database, type WriteExecutors, Writer } from "@antumbra/persistence";
 import { Pieces } from "@antumbra/pieces";
 import { Reports } from "@antumbra/reports";
+import type { AgentBackendTag } from "@antumbra/vocabulary/agent-backend";
 import { Clock, Context, Effect, Layer, PubSub } from "effect";
 import { hailCaptain } from "#hail.ts";
 import { KernelReach } from "#kernel-reach.ts";
+import { workPieceNow } from "#piece-work.ts";
 import {
 	type OpenVoyageInput,
 	VoyageProcedureService,
@@ -40,6 +42,22 @@ const openVoyage = (input: OpenVoyageInput) =>
 		yield* writer.write(db.Voyage.create(row));
 		yield* announce;
 		return row;
+	});
+
+// why: the spawn paths read this column at the moment they spawn, so a switch
+// retargets what the voyage does next and never what is already running — an
+// agent's backend is written onto its own session row at its birth.
+const setBackend = (voyageId: string, backend: AgentBackendTag) =>
+	Effect.gen(function* () {
+		const db = yield* Database;
+		const writer = yield* Writer;
+		yield* writer.write(
+			Effect.gen(function* () {
+				yield* requireVoyage(voyageId);
+				yield* db.Voyage.where({ id: voyageId }).update({ backend });
+			}),
+		);
+		yield* announce;
 	});
 
 // why: focus is a stamped moment rather than a flag so the dispatcher can
@@ -88,6 +106,7 @@ export const VoyageProceduresLive = Layer.effect(VoyageProcedureService)(
 			charterPiece: pieces.charter,
 			hail: (voyageId) => Effect.provide(hailCaptain(voyageId), context),
 			landArtifact: artifacts.land,
+			landPieceVerdict: pieces.landVerdict,
 			landReport: reports.land,
 			readReport: reports.read,
 			removeArtifactSupersession: (input) =>
@@ -104,11 +123,14 @@ export const VoyageProceduresLive = Layer.effect(VoyageProcedureService)(
 			// capability names the exact act. Literal set-dependency semantics land
 			// separately.
 			rewire: pieces.setDependencies,
+			setBackend: (voyageId, backend) =>
+				Effect.provide(setBackend(voyageId, backend), context),
 			setFocus: (voyageId, focused) =>
 				Effect.provide(setFocus(voyageId, focused), context),
 			supersedeArtifact: (input) =>
 				artifacts.supersede({ actor: { _tag: "admiral" }, ...input }),
 			unpark: (pieceId) => pieces.park(pieceId, false),
+			workNow: (pieceId) => Effect.provide(workPieceNow(pieceId), context),
 		} satisfies VoyageProcedures);
 	}),
 );

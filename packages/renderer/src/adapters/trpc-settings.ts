@@ -1,8 +1,8 @@
-import type { Settings, UpdateSettings } from "@antumbra/contract";
+import type { SettingChange, SettingsReading } from "@antumbra/contract";
 import { client, toError } from "#adapters/bridge.ts";
 
 export const loadSettings = (
-	onDone: (settings: Settings) => void,
+	onDone: (reading: SettingsReading) => void,
 	onError: (message: string) => void,
 ): void => {
 	client.settings
@@ -11,13 +11,13 @@ export const loadSettings = (
 		.catch((cause: unknown) => onError(toError(cause).message));
 };
 
-export const saveSettings = (
-	settings: UpdateSettings,
-	onDone: (saved: Settings) => void,
+export const changeSetting = (
+	change: SettingChange,
+	onDone: (reading: SettingsReading) => void,
 	onError: (message: string) => void,
 ): void => {
-	client.updateSettings
-		.mutate(settings)
+	client.changeSetting
+		.mutate(change)
 		.then(onDone)
 		.catch((cause: unknown) => onError(toError(cause).message));
 };

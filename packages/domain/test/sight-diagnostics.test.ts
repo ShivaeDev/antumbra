@@ -118,6 +118,7 @@ it("attributes a pending intent to the most specific row that exists", () => {
 		[
 			{
 				agentId: "agent-1",
+				detail: "waiting on a berth",
 				id: "intent-1",
 				kind: "agent/spawn",
 				sessionId: "session-1",
@@ -125,6 +126,7 @@ it("attributes a pending intent to the most specific row that exists", () => {
 			},
 			{
 				agentId: "agent-1",
+				detail: null,
 				id: "intent-2",
 				kind: "agent/retire",
 				sessionId: null,
@@ -132,6 +134,7 @@ it("attributes a pending intent to the most specific row that exists", () => {
 			},
 			{
 				agentId: "agent-2",
+				detail: null,
 				id: "intent-3",
 				kind: "agent/spawn",
 				sessionId: "session-2",
@@ -141,13 +144,20 @@ it("attributes a pending intent to the most specific row that exists", () => {
 		new Set(["agent-1"]),
 		new Set(["session-1"]),
 	);
+	// why: the reason travels with the mark, so attribution carries a sentence
+	// the reader will otherwise have to go to the database for.
 	expect(attribution.sessions.get("session-1")).toEqual([
-		{ id: "intent-1", kind: "agent/spawn", state: "running" },
+		{
+			detail: "waiting on a berth",
+			id: "intent-1",
+			kind: "agent/spawn",
+			state: "running",
+		},
 	]);
 	expect(attribution.agents.get("agent-1")).toEqual([
-		{ id: "intent-2", kind: "agent/retire", state: "queued" },
+		{ detail: null, id: "intent-2", kind: "agent/retire", state: "queued" },
 	]);
 	expect(attribution.loose).toEqual([
-		{ id: "intent-3", kind: "agent/spawn", state: "queued" },
+		{ detail: null, id: "intent-3", kind: "agent/spawn", state: "queued" },
 	]);
 });

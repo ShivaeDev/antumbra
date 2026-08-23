@@ -114,3 +114,22 @@ landed Outcomes and pending obligations, never declared, and done work remains
 available as the parent of a follow-up. A captain launching through an Agent
 tool and the admiral launching through the app express the same durable demand;
 neither starts a hidden Voyage-level process.
+
+## Verdicts
+
+Some things the fleet cannot settle on its own. A Change that closed without
+merging may be a dead end or a step on the way to a replacement; a Piece whose
+work is finished in the admiral's judgment may have no landed Outcome to show
+for it. A **verdict** is the admiral's own word about such a case, and it is
+stored as a landed fact the derivations read like any other row — never as an
+answer written over what they conclude. Dismissing a Change settles what it is
+owed without editing how it died. A Piece verdict of delivered or abandoned is
+an outcome, so the ladder counts it among the landed and still derives the
+state; abandoned is a state of its own rather than done wearing a badge,
+because the two mean different things to everyone reading the board.
+
+A Change that closed without merging counts as a pending obligation only while
+a replacement on the same Piece is being prepared or is already open. With no
+live sibling it is a dead end rather than work in flight: it stops gating the
+Piece, releases the berth it was written in, and waits for a verdict — visible,
+never load-bearing.

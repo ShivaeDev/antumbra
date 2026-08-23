@@ -5,6 +5,7 @@ import {
 	parkPiece,
 	rewirePiece,
 	unparkPiece,
+	workPieceNow,
 } from "#adapters/trpc-voyages.ts";
 import { Button } from "#components/ui/button.tsx";
 import { PiecePicker, pickable } from "#views/piece-picker.tsx";
@@ -31,6 +32,9 @@ export const PieceActs = ({
 		}
 		if (chosen === "unpark") {
 			return unparkPiece(piece.id, onError);
+		}
+		if (chosen === "workNow") {
+			return workPieceNow(piece.id, onError);
 		}
 		// why: the picker opens on what the piece depends on right now, not on
 		// what it depended on when the row was first drawn.

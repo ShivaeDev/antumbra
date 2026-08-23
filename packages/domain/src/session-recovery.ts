@@ -20,6 +20,7 @@ import {
 	unresumableDetail,
 	unresumableVerdict,
 } from "#session-unresumable.ts";
+import { accountedWake } from "#session-wake-account.ts";
 import { SessionWakePatience } from "#session-wake-patience.ts";
 
 // why: an explicit act may travel with the words that caused it, so waking a
@@ -124,13 +125,18 @@ export const makeRecoveryKind = Effect.gen(function* () {
 		});
 	return defineIntent({
 		execute: ({ message, sessionId }) =>
-			resumed(sessionId, carried(message)).pipe(
-				Effect.catchTags({
-					BackendFailure: (failure: BackendFailure) => waitFor(failure.message),
-					SessionNotLive: () => waitFor("the attachment went before the words"),
-					SessionRecoveryHeld: (failure: SessionRecoveryHeld) =>
-						waitFor(failure.detail),
-				}),
+			accountedWake(
+				sessionId,
+				resumed(sessionId, carried(message)).pipe(
+					Effect.catchTags({
+						BackendFailure: (failure: BackendFailure) =>
+							waitFor(failure.message),
+						SessionNotLive: () =>
+							waitFor("the attachment went before the words"),
+						SessionRecoveryHeld: (failure: SessionRecoveryHeld) =>
+							waitFor(failure.detail),
+					}),
+				),
 			),
 		payload: RecoveryPayload,
 		reclaim: "requeue",

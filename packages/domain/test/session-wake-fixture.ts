@@ -14,6 +14,7 @@ import {
 	type ScriptedBackend,
 } from "#test/harness.ts";
 import {
+	emitOpened,
 	payload,
 	reportsNativeRef,
 	seedResumableAgent,
@@ -40,6 +41,36 @@ export const confirmsWhen = (
 					: backend.openSession(options),
 			),
 		),
+});
+
+// why: a provider that runs its model on a stream of input has nothing to open
+// about until the stream carries something — it answers the open, then says who
+// it resumed as only once the first message arrives. The scripted double could
+// not hold that shape at all: it announced itself at open time, so every
+// rehearsal met a provider more forthcoming than the real one, and the order a
+// resume speaks in was never under test.
+export const opensWhenSpokenTo = (
+	backend: AgentBackend,
+	scripted: ScriptedBackend,
+): AgentBackend => ({
+	...backend,
+	openSession: (options) =>
+		Effect.gen(function* () {
+			const handle = yield* backend.openSession(options);
+			const said = yield* Ref.make(false);
+			const announce = Ref.modify(said, (already) => [already, true]).pipe(
+				Effect.flatMap((already) =>
+					already || Option.isNone(options.resume)
+						? Effect.void
+						: emitOpened(scripted, options.sessionId, NATIVE),
+				),
+			);
+			return {
+				...handle,
+				queue: (text: string) =>
+					handle.queue(text).pipe(Effect.andThen(announce)),
+			};
+		}),
 });
 
 export const wakeLayer = (

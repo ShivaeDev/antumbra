@@ -1,10 +1,6 @@
+import type { ChangeView } from "#change-views.ts";
 import type { QuayView } from "#quay-views.ts";
-import type {
-	ChangeView,
-	PieceView,
-	VoyageSummary,
-	VoyageView,
-} from "#voyage-views.ts";
+import type { PieceView, VoyageSummary, VoyageView } from "#voyage-views.ts";
 
 export const shoalWarning: ChangeView = {
 	activityAt: "2026-08-15T09:20:00.000Z",
@@ -36,6 +32,7 @@ export const soundings: PieceView = {
 			register: "smooth",
 		},
 	],
+	canRetireCrew: false,
 	changes: [shoalWarning],
 	charter: "sound the northern shoals",
 	dependsOn: [],
@@ -54,6 +51,7 @@ export const chart: PieceView = {
 	artifactHistory: [],
 	artifacts: [],
 	board: [],
+	canRetireCrew: false,
 	changes: [],
 	charter: "draw the chart from the soundings",
 	dependsOn: ["piece-1"],
@@ -102,8 +100,12 @@ export const quayView: QuayView = {
 	],
 	rows: [
 		{
+			baseRef: "main",
+			body: "Warn navigators before the northern shoal catches another keel.",
 			change: shoalWarning,
 			group: "alongside",
+			headRef: "work/agent-1/reef",
+			headSha: "0123456789abcdef0123456789abcdef01234567",
 			originSessionId: "session-1",
 			pieceId: "piece-1",
 			pieceTitle: "soundings",

@@ -20,6 +20,7 @@ export const sightFixture = (feeds: FixtureFeeds) =>
 				source: registration.source,
 			}),
 		retire: () => Effect.void,
+		retireCrew: () => Effect.void,
 		send: (sessionId, text) =>
 			text === ""
 				? new SightFailure({

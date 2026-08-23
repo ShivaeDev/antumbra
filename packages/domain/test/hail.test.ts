@@ -150,7 +150,7 @@ it.live(
 				const first = yield* domain.voyages.hail(voyage.id);
 				yield* eventually(aliveAgent(first.agentId));
 
-				yield* retireOneAlive;
+				yield* retireOneAlive(scripted);
 				yield* eventually(
 					Effect.gen(function* () {
 						const view = Option.getOrThrow(

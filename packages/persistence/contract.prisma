@@ -259,6 +259,18 @@ model PieceChange {
   @@index([changeId])
 }
 
+model ChangeVerdict {
+  changeId String   @id
+  verdict  String
+  landedAt DateTime @default(now())
+}
+
+model PieceVerdict {
+  pieceId  String   @id
+  verdict  String
+  landedAt DateTime @default(now())
+}
+
 model Board {
   id        String   @id
   createdAt DateTime @default(now())
@@ -292,4 +304,10 @@ model BoardOwner {
   ownerId   String
 
   @@unique([ownerKind, ownerId])
+}
+
+model Setting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @default(now())
 }

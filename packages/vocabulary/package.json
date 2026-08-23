@@ -4,10 +4,12 @@
 	"private": true,
 	"type": "module",
 	"exports": {
+		"./agent-backend": "./src/agent-backend.ts",
 		"./agent-runtime": "./src/agent-runtime.ts",
 		"./board": "./src/board.ts",
 		"./change": "./src/change.ts",
-		"./session-events": "./src/session-events.ts"
+		"./session-events": "./src/session-events.ts",
+		"./verdict": "./src/verdict.ts"
 	},
 	"imports": {
 		"#*": "./src/*"

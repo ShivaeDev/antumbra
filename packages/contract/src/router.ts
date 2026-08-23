@@ -4,7 +4,11 @@ import { quayRoutes } from "#router-quay.ts";
 import { sightRoutes } from "#router-sight.ts";
 import { voyageRoutes } from "#router-voyages.ts";
 import { windowRoutes } from "#router-windows.ts";
-import { Settings, SettingsSource, UpdateSettings } from "#settings.ts";
+import {
+	SettingChange,
+	SettingsReading,
+	SettingsSource,
+} from "#settings/readings.ts";
 
 export const makeAppRouter = (runtime: AppRuntime) => {
 	const procedure = makeProcedure(runtime);
@@ -13,15 +17,15 @@ export const makeAppRouter = (runtime: AppRuntime) => {
 			const source = yield* AppInfoSource;
 			return yield* source.current;
 		}),
-		settings: procedure.output(Settings).query(function* () {
+		changeSetting: procedure
+			.input(SettingChange)
+			.output(SettingsReading)
+			.mutation(function* (input) {
+				return yield* (yield* SettingsSource).change(input);
+			}),
+		settings: procedure.output(SettingsReading).query(function* () {
 			return yield* (yield* SettingsSource).current;
 		}),
-		updateSettings: procedure
-			.input(UpdateSettings)
-			.output(Settings)
-			.mutation(function* (input) {
-				return yield* (yield* SettingsSource).update(input);
-			}),
 		...quayRoutes(procedure),
 		...sightRoutes(procedure),
 		...voyageRoutes(procedure),

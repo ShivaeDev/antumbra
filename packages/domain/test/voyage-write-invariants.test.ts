@@ -120,6 +120,17 @@ it.live("a refused rewire preserves the previous dependencies", () =>
 	),
 );
 
+it.live("switching the backend of an absent voyage is a tagged refusal", () =>
+	withDomain((voyages) =>
+		Effect.gen(function* () {
+			const failure = yield* Effect.flip(
+				voyages.setBackend("missing", "codex"),
+			);
+			expect(failure).toMatchObject({ _tag: "VoyageNotFound" });
+		}),
+	),
+);
+
 it.live("focusing an absent voyage is a tagged refusal", () =>
 	withDomain((voyages) =>
 		Effect.gen(function* () {

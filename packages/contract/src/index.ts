@@ -1,3 +1,7 @@
+export {
+	AGENT_BACKEND_TAGS,
+	type AgentBackendTag,
+} from "@antumbra/vocabulary/agent-backend";
 export { AppInfo, AppInfoSource } from "#app-info.ts";
 export { ArtifactMarkdown, ArtifactView } from "#artifact-views.ts";
 export {
@@ -96,6 +100,7 @@ export {
 	CharterPieceRequest,
 	OpenVoyageRequest,
 	RewireRequest,
+	VoyageBackendRequest,
 	VoyageSource,
 } from "#voyages.ts";
 export {

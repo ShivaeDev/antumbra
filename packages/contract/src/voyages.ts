@@ -1,3 +1,4 @@
+import { AgentBackendTagSchema } from "@antumbra/vocabulary/agent-backend";
 import { BoardRegisterSchema } from "@antumbra/vocabulary/board";
 import { Context, Data, type Effect, Schema, type Stream } from "effect";
 import type { ArtifactMarkdown } from "#artifact-views.ts";
@@ -17,6 +18,12 @@ export const OpenVoyageRequest = Schema.Struct({
 	northStar: Schema.String,
 });
 export type OpenVoyageRequest = typeof OpenVoyageRequest.Type;
+
+export const VoyageBackendRequest = Schema.Struct({
+	backend: AgentBackendTagSchema,
+	voyageId: Schema.String,
+});
+export type VoyageBackendRequest = typeof VoyageBackendRequest.Type;
 
 export const CharterPieceRequest = Schema.Struct({
 	charter: Schema.String,
@@ -110,6 +117,11 @@ export class VoyageSource extends Context.Service<
 		) => Effect.Effect<ReportMarkdown, SightFailure>;
 		readonly rewire: (
 			request: RewireRequest,
+		) => Effect.Effect<void, SightFailure>;
+		// why: a voyage's backend is where its next spawns go — every agent
+		// already sailing keeps the backend it was born on.
+		readonly setBackend: (
+			request: VoyageBackendRequest,
 		) => Effect.Effect<void, SightFailure>;
 		readonly setFocus: (
 			voyageId: string,

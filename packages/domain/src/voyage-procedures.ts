@@ -14,6 +14,7 @@ import type {
 	PieceRow,
 } from "@antumbra/pieces";
 import type { ReportInput, ReportReading, ReportRow } from "@antumbra/reports";
+import type { AgentBackendTag } from "@antumbra/vocabulary/agent-backend";
 import { Context, type Effect, type Option } from "effect";
 import type { VoyageNotFound } from "#errors.ts";
 import type { HailedCaptain, HailRefused } from "#hail.ts";
@@ -71,6 +72,10 @@ export interface VoyageProcedures {
 		pieceId: string,
 		dependsOn: ReadonlyArray<string>,
 	) => Effect.Effect<void, EdgeWouldCycle | PieceNotFound | PrismaError>;
+	readonly setBackend: (
+		voyageId: string,
+		backend: AgentBackendTag,
+	) => Effect.Effect<void, PrismaError | VoyageNotFound>;
 	readonly setFocus: (
 		voyageId: string,
 		focused: boolean,

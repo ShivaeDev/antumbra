@@ -14,23 +14,27 @@ interface Opened {
 	readonly onQuay: (quay: QuayView) => void;
 }
 
-const { opened, openExternal, openWindow, watchQuay } = vi.hoisted(() => {
-	const opened: Array<Opened> = [];
-	return {
-		opened,
-		openExternal: vi.fn(),
-		openWindow: vi.fn(),
-		watchQuay: vi.fn((onQuay: Opened["onQuay"], onError: Opened["onError"]) => {
-			opened.push({ onError, onQuay });
-			return vi.fn();
-		}),
-	};
-});
+const { dismissChange, opened, openExternal, openWindow, watchQuay } =
+	vi.hoisted(() => {
+		const opened: Array<Opened> = [];
+		return {
+			dismissChange: vi.fn(),
+			opened,
+			openExternal: vi.fn(),
+			openWindow: vi.fn(),
+			watchQuay: vi.fn(
+				(onQuay: Opened["onQuay"], onError: Opened["onError"]) => {
+					opened.push({ onError, onQuay });
+					return vi.fn();
+				},
+			),
+		};
+	});
 
 vi.mock("#adapters/bridge.ts", () => ({ openExternal }));
 vi.mock("#adapters/trpc-quay.ts", () => ({
 	adoptChange: vi.fn(),
-	dismissChange: vi.fn(),
+	dismissChange,
 	refreshChanges: vi.fn(),
 	watchQuay,
 }));
@@ -76,6 +80,16 @@ const draft = row("draft", "sketch the buoy", {
 	pieceId: "piece-2",
 	pieceTitle: "Chart",
 });
+const withdrawn = row("needsAttention", "cut the shoal channel", {
+	change: {
+		...alongside.change,
+		id: "change-withdrawn",
+		stage: "withdrawn",
+		title: "cut the shoal channel",
+	},
+	pieceId: "piece-3",
+	pieceTitle: "Shoal",
+});
 const snapshot: QuayView = {
 	hosts: [{ available: true, detail: "signed in as navigator", tag: "github" }],
 	pieces: [{ id: "piece-1", title: "Soundings", voyageName: "Chart the reef" }],
@@ -118,8 +132,14 @@ const showing = (
 		yield* settle(() => opened.at(-1)?.onQuay(view));
 	});
 
+const dismissal = (mounted: ReturnType<typeof mount>) =>
+	[...mounted.container.querySelectorAll("button")].find(
+		(button) => button.textContent?.includes("Dismiss") === true,
+	);
+
 beforeEach(() => {
 	opened.length = 0;
+	dismissChange.mockClear();
 	openExternal.mockClear();
 	openWindow.mockClear();
 	watchQuay.mockClear();
@@ -233,6 +253,30 @@ it.effect("searches and explains a filter with no results", () =>
 		);
 		expect(mounted.container.textContent).toContain("Clear filters");
 		yield* settle(() => mounted.root.unmount());
+	}),
+);
+
+// why: the verb only a person can supply, offered only where no host will ever
+// settle the change for us — a pull request still alive is not the admiral's to
+// dismiss, so the button is absent rather than disabled.
+it.effect("offers the dismissal only on a pull request that died", () =>
+	Effect.gen(function* () {
+		const alive = mount(alongside.change.id);
+		yield* showing(alive);
+		expect(dismissal(alive)).toBeUndefined();
+		yield* settle(() => alive.root.unmount());
+
+		const dead = mount(withdrawn.change.id);
+		yield* showing(dead, { ...snapshot, rows: [alongside, draft, withdrawn] });
+		const button = dismissal(dead);
+		expect(button).toBeDefined();
+
+		yield* settle(() => button?.click());
+		expect(dismissChange).toHaveBeenCalledWith(
+			withdrawn.change.id,
+			expect.any(Function),
+		);
+		yield* settle(() => dead.root.unmount());
 	}),
 );
 

@@ -1,6 +1,6 @@
 import { DomainFeeds, DomainFeedsLive } from "@antumbra/domain-feeds";
 import { Database, type NewAgentSession, Writer } from "@antumbra/persistence";
-import { temporaryPersistence } from "@antumbra/persistence/testing";
+import { acquireTemporaryPersistence } from "@antumbra/persistence/testing";
 import {
 	SessionEventJournal,
 	SessionEventJournalLive,
@@ -14,11 +14,6 @@ const rawOf = (kind: string): AgentEvent["raw"] => ({
 	payload: "{}",
 	source: "scripted",
 });
-
-const acquireTemporaryPersistence = Effect.acquireRelease(
-	Effect.sync(temporaryPersistence),
-	(temporary) => Effect.sync(temporary.remove),
-);
 
 const journalLayer = SessionEventJournalLive.pipe(
 	Layer.provideMerge(DomainFeedsLive),

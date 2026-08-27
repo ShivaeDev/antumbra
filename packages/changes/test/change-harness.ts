@@ -1,6 +1,8 @@
 import { DomainFeedsLive } from "@antumbra/domain-feeds";
 import { Database } from "@antumbra/persistence";
-import { temporaryPersistence } from "@antumbra/persistence/testing";
+
+export { acquireTemporaryPersistence } from "@antumbra/persistence/testing";
+
 import { PiecesLive } from "@antumbra/pieces";
 import type {
 	ChangeHost,
@@ -15,11 +17,6 @@ import { ChangesLive } from "#index.ts";
 export const CREW = "agent-crew";
 export const HEAD = `work/${CREW}/berth-0`;
 export const REEF_SOURCE = "/somewhere/reef";
-
-export const acquireTemporaryPersistence = Effect.acquireRelease(
-	Effect.sync(temporaryPersistence),
-	(temporary) => Effect.sync(temporary.remove),
-);
 
 export const passiveRunner: Runner = {
 	captureChange: (berth) =>

@@ -1,15 +1,12 @@
 import {
+	acquireTemporaryPersistence,
 	type TemporaryPersistence,
-	temporaryPersistence,
 } from "@antumbra/persistence/testing";
-import { Effect, Layer, Stream } from "effect";
+import { Layer, Stream } from "effect";
 import { type IntentStatus, isTerminalIntentStatus } from "#fsm.ts";
 import { KernelLive, type KernelOptions } from "#layer.ts";
 
-export const acquireTemporaryPersistence = Effect.acquireRelease(
-	Effect.sync(temporaryPersistence),
-	(temporary) => Effect.sync(temporary.remove),
-);
+export { acquireTemporaryPersistence };
 
 export const kernelLayer = (
 	temporary: TemporaryPersistence,

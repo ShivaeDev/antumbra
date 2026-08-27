@@ -1,4 +1,5 @@
-import { temporaryPersistence } from "@antumbra/persistence/testing";
+export { acquireTemporaryPersistence } from "@antumbra/persistence/testing";
+
 import {
 	type AgentBackend,
 	type ChangeHost,
@@ -50,11 +51,6 @@ export const makeScriptedRunner = Effect.gen(function* () {
 	};
 	return { provisioned: Ref.get(plans), runner } satisfies ScriptedRunner;
 });
-
-export const acquireTemporaryPersistence = Effect.acquireRelease(
-	Effect.sync(temporaryPersistence),
-	(temporary) => Effect.sync(temporary.remove),
-);
 
 export interface ScriptedSession {
 	readonly closed: Effect.Effect<boolean>;

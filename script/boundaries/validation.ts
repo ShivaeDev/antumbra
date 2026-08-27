@@ -10,7 +10,7 @@ class BoundaryPolicyInvalid extends Data.TaggedError("BoundaryPolicyInvalid")<{
 	readonly message: string;
 }> {}
 
-const failPolicy = (message: string): never =>
+export const failPolicy = (message: string): never =>
 	Effect.runSync(Effect.fail(new BoundaryPolicyInvalid({ message })));
 
 const endpointPath = (endpoint: FixtureEdge["to"]) =>

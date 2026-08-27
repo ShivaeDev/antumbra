@@ -93,3 +93,16 @@ export interface BoundaryFixture {
 	readonly legal: FixtureEdge;
 	readonly rule: string;
 }
+
+export interface BoundaryPolicyInventory {
+	readonly applications: readonly string[];
+	readonly packages: readonly string[];
+	readonly vocabularySubjects: readonly string[];
+}
+
+export interface BoundaryDependency {
+	readonly couldNotResolve: boolean;
+	readonly from: string;
+	readonly resolved: string;
+	readonly specifier: string;
+}

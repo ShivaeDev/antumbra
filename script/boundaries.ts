@@ -25,6 +25,7 @@ const program = Effect.tryPromise({
 		const failures = boundaryInventoryFailures(
 			{
 				dependencies: report.totalDependenciesCruised,
+				dependencyEvidence: report.dependencyEvidence,
 				modules: report.modules,
 			},
 			expectedBoundarySources(analysisRoot, sourceRoots),

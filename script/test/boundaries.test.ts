@@ -13,7 +13,10 @@ import { dirname, join, relative, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, describe, expect, it } from "vitest";
 import { compileBoundaryPolicy } from "#boundaries/compiler.ts";
-import { compiledBoundaryPolicy } from "#boundaries/config.ts";
+import {
+	boundaryPolicyInventory,
+	compiledBoundaryPolicy,
+} from "#boundaries/config.ts";
 import { boundaryInventoryFailures } from "#boundaries/inventory.ts";
 import type {
 	BoundaryRule,
@@ -124,9 +127,9 @@ describe("boundary policy compiler", () => {
 	});
 
 	it("rejects duplicate rule names precisely", () => {
-		expect(() => compileBoundaryPolicy([firstRule, firstRule])).toThrow(
-			`Boundary rule name is duplicated: ${firstRule.name}`,
-		);
+		expect(() =>
+			compileBoundaryPolicy([firstRule, firstRule], boundaryPolicyInventory),
+		).toThrow(`Boundary rule name is duplicated: ${firstRule.name}`);
 	});
 
 	it("rejects an illegal example that misses its rule", () => {
@@ -136,7 +139,9 @@ describe("boundary policy compiler", () => {
 				illegal: firstRule.examples.legal,
 			},
 		});
-		expect(() => compileBoundaryPolicy([broken])).toThrow(
+		expect(() =>
+			compileBoundaryPolicy([broken], boundaryPolicyInventory),
+		).toThrow(
 			`Illegal example for ${firstRule.name} must violate only that rule`,
 		);
 	});
@@ -148,58 +153,45 @@ describe("boundary policy compiler", () => {
 				legal: firstRule.examples.illegal,
 			},
 		});
-		expect(() => compileBoundaryPolicy([broken])).toThrow(
-			`Legal example for ${firstRule.name} must pass every rule`,
-		);
+		expect(() =>
+			compileBoundaryPolicy([broken], boundaryPolicyInventory),
+		).toThrow(`Legal example for ${firstRule.name} must pass every rule`);
 	});
 
 	it("rejects an empty rationale precisely", () => {
 		const broken = replaceRule(firstRule, { rationale: "" });
-		expect(() => compileBoundaryPolicy([broken])).toThrow(
-			`Boundary rule has no rationale: ${firstRule.name}`,
-		);
+		expect(() =>
+			compileBoundaryPolicy([broken], boundaryPolicyInventory),
+		).toThrow(`Boundary rule has no rationale: ${firstRule.name}`);
 	});
 
-	it("rejects a sanctioned exception that states no ruling", () => {
-		expect(() =>
-			compileBoundaryPolicy([
-				exceptionRule({
-					package: "trace-sink",
-					rationale: "It writes its own file.",
-					ruling: "  ",
-				}),
-			]),
-		).toThrow(
-			"Sanctioned exception in sanctioned-exception-under-test needs a package, a ruling, and a rationale",
-		);
-	});
-
-	it("rejects a sanctioned exception that states no reason", () => {
-		expect(() =>
-			compileBoundaryPolicy([
-				exceptionRule({
-					package: "trace-sink",
-					rationale: "",
-					ruling: "dev trace sink",
-				}),
-			]),
-		).toThrow(
-			"Sanctioned exception in sanctioned-exception-under-test needs a package, a ruling, and a rationale",
-		);
-	});
-
-	it("rejects a sanctioned exception that names no package", () => {
-		expect(() =>
-			compileBoundaryPolicy([
-				exceptionRule({
-					package: "",
-					rationale: "It writes its own file.",
-					ruling: "dev trace sink",
-				}),
-			]),
-		).toThrow(
-			"Sanctioned exception in sanctioned-exception-under-test needs a package, a ruling, and a rationale",
-		);
+	it("rejects incomplete sanctioned exceptions", () => {
+		for (const exception of [
+			{
+				package: "trace-sink",
+				rationale: "It writes its own file.",
+				ruling: "  ",
+			},
+			{
+				package: "trace-sink",
+				rationale: "",
+				ruling: "dev trace sink",
+			},
+			{
+				package: "",
+				rationale: "It writes its own file.",
+				ruling: "dev trace sink",
+			},
+		]) {
+			expect(() =>
+				compileBoundaryPolicy(
+					[exceptionRule(exception)],
+					boundaryPolicyInventory,
+				),
+			).toThrow(
+				"Sanctioned exception in sanctioned-exception-under-test needs a package, a ruling, and a rationale",
+			);
+		}
 	});
 });
 
@@ -272,14 +264,21 @@ describe("dependency boundary policy", () => {
 
 	it("fails closed when dependency-cruiser finds no modules", () => {
 		expect(
-			boundaryInventoryFailures({ dependencies: 1, modules: [] }, []),
+			boundaryInventoryFailures(
+				{ dependencies: 1, dependencyEvidence: [], modules: [] },
+				[],
+			),
 		).toEqual(["dependency-cruiser inspected zero modules"]);
 	});
 
 	it("fails closed when an expected workspace source is absent", () => {
 		expect(
 			boundaryInventoryFailures(
-				{ dependencies: 1, modules: ["packages/a/index.ts"] },
+				{
+					dependencies: 1,
+					dependencyEvidence: [],
+					modules: ["packages/a/index.ts"],
+				},
 				["packages/a/index.ts", "packages/b/index.ts"],
 			),
 		).toEqual([

@@ -24,11 +24,11 @@ const sessionDemands = Effect.gen(function* () {
 	// still speaking is not at rest however long its own row has said idle,
 	// because reclaiming it takes away the stream that child is speaking on.
 	const delegating = yield* live.delegating();
-	const attached = yield* fabric.attached;
+	const attached = yield* fabric.attached();
 	// why: the clock is read once per pass, so every Session in it is judged
 	// against the same moment.
 	const overdue = idleSessionsPastThreshold(
-		yield* fabric.idleSince,
+		yield* fabric.idleSince(),
 		yield* Clock.currentTimeMillis,
 	);
 	const agents = yield* db.Agent.all();

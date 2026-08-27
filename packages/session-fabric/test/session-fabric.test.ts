@@ -2,7 +2,7 @@ import type { AgentBackend, SessionHandle } from "@antumbra/plugin-api";
 import { expect, it } from "@effect/vitest";
 import { Deferred, Effect, Fiber, Ref, Stream } from "effect";
 import { SessionAttachmentFailure } from "#errors.ts";
-import { makeSessionFabric } from "#fabric.ts";
+import { SessionFabric } from "#fabric.ts";
 import {
 	idleHandle,
 	options,
@@ -25,7 +25,7 @@ it.live("concurrent starts attach one backend handle per session", () =>
 					return idleHandle;
 				}),
 			);
-			const fabric = yield* makeSessionFabric;
+			const fabric = yield* SessionFabric;
 			const first = yield* fabric
 				.withStartAdmission((permit) =>
 					fabric.start(
@@ -59,7 +59,7 @@ it.live("concurrent starts attach one backend handle per session", () =>
 			yield* Fiber.join(second);
 			expect(yield* Ref.get(opens)).toBe(1);
 		}),
-	),
+	).pipe(Effect.provide(SessionFabric.layer, { local: true })),
 );
 
 it.live("one Agent cannot attach two different Sessions", () =>
@@ -75,7 +75,7 @@ it.live("one Agent cannot attach two different Sessions", () =>
 					Effect.as(idleHandle),
 				),
 			);
-			const fabric = yield* makeSessionFabric;
+			const fabric = yield* SessionFabric;
 			const first = yield* fabric
 				.withStartAdmission((permit) =>
 					fabric.start(
@@ -108,7 +108,7 @@ it.live("one Agent cannot attach two different Sessions", () =>
 			expect(failure).toBeInstanceOf(SessionAttachmentFailure);
 			expect(yield* Ref.get(opens)).toBe(1);
 		}),
-	),
+	).pipe(Effect.provide(SessionFabric.layer, { local: true })),
 );
 
 it.live(
@@ -127,7 +127,7 @@ it.live(
 				const backend: AgentBackend = scriptedBackend(() =>
 					Effect.succeed(handle),
 				);
-				const fabric = yield* makeSessionFabric;
+				const fabric = yield* SessionFabric;
 				const failure = yield* Effect.flip(
 					fabric.withStartAdmission((permit) =>
 						fabric.start(
@@ -143,5 +143,5 @@ it.live(
 				expect(failure).toBeInstanceOf(SessionAttachmentFailure);
 				expect(failure.detail).toContain("durably record native identity");
 			}),
-		),
+		).pipe(Effect.provide(SessionFabric.layer, { local: true })),
 );

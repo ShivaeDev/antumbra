@@ -1,42 +1,29 @@
 import type { Effect, Scope } from "effect";
+import type {
+	AnyMethod,
+	GenericMethodDescriptor,
+	HasDistinctCallSignatures,
+} from "#generic-method.ts";
+import type {
+	RequirementRecord,
+	RequirementsOf,
+} from "#service-requirements.ts";
 
-export type AnyMethod = (
-	...arguments_: ReadonlyArray<never>
-) => Effect.Effect<unknown, unknown, unknown>;
+export type MethodEntry = AnyMethod | GenericMethodDescriptor<AnyMethod>;
 
 export type MethodRecord = Readonly<Record<string, AnyMethod>>;
+
+export type MethodInventory = Readonly<Record<string, unknown>>;
+
+export type RuntimeMethodInventory = Readonly<Record<string, MethodEntry>>;
 
 interface GenericOrStructurallyOverloadedMethodsAreUnsupported {
 	readonly _serviceDefinitionError: "generic and structurally overloaded methods are unsupported";
 }
 
-type Same<Left, Right> =
-	(<Value>() => Value extends Left ? 1 : 2) extends <
-		Value,
-	>() => Value extends Right ? 1 : 2
-		? true
-		: false;
-
-type HasDistinctCallSignatures<Method> = Method extends {
-	(...arguments_: infer FirstArguments): infer FirstResult;
-	(...arguments_: infer LastArguments): infer LastResult;
+interface GenericMethodWithDeclaredRequirementsIsUnsupported {
+	readonly _serviceDefinitionError: "generic methods cannot subtract declared service requirements";
 }
-	? Same<FirstArguments, LastArguments> extends true
-		? Same<FirstResult, LastResult> extends true
-			? false
-			: true
-		: true
-	: false;
-
-type SupportedMethod<Method> = Method extends AnyMethod
-	? HasDistinctCallSignatures<Method> extends true
-		? GenericOrStructurallyOverloadedMethodsAreUnsupported
-		: Method extends (...arguments_: infer Arguments) => infer Result
-			? ((...arguments_: Arguments) => Result) extends Method
-				? Method
-				: GenericOrStructurallyOverloadedMethodsAreUnsupported
-			: GenericOrStructurallyOverloadedMethodsAreUnsupported
-	: Method;
 
 type MethodRequirements<Method> = Method extends (
 	...arguments_: ReadonlyArray<never>
@@ -48,11 +35,40 @@ interface MethodHasUndeclaredServiceRequirements {
 	readonly _serviceDefinitionError: "method has service requirements absent from the service declaration";
 }
 
-export type MethodProof<Methods extends MethodRecord, Requirements> = {
-	readonly [Name in keyof Methods]: SupportedMethod<Methods[Name]> &
-		([
-			Exclude<MethodRequirements<Methods[Name]>, Requirements | Scope.Scope>,
-		] extends [never]
-			? Methods[Name]
-			: MethodHasUndeclaredServiceRequirements);
+interface ServiceMembersMustBeMethods {
+	readonly _serviceDefinitionError: "service members must be methods";
+}
+
+type OrdinaryMethodProof<Method, Requirements extends RequirementRecord> = [
+	Exclude<
+		MethodRequirements<Method>,
+		RequirementsOf<Requirements> | Scope.Scope
+	>,
+] extends [never]
+	? Method
+	: MethodHasUndeclaredServiceRequirements;
+
+type SupportedMethod<Method, Requirements extends RequirementRecord> =
+	Method extends GenericMethodDescriptor<AnyMethod>
+		? Requirements extends readonly []
+			? Method
+			: GenericMethodWithDeclaredRequirementsIsUnsupported
+		: Method extends AnyMethod
+			? HasDistinctCallSignatures<Method> extends true
+				? GenericOrStructurallyOverloadedMethodsAreUnsupported
+				: Method extends (...arguments_: infer Arguments) => infer Result
+					? ((...arguments_: Arguments) => Result) extends Method
+						? OrdinaryMethodProof<Method, Requirements>
+						: GenericOrStructurallyOverloadedMethodsAreUnsupported
+					: GenericOrStructurallyOverloadedMethodsAreUnsupported
+			: ServiceMembersMustBeMethods;
+
+export type MethodProof<
+	Methods extends MethodInventory,
+	Requirements extends RequirementRecord,
+> = {
+	readonly [Name in keyof Methods]: SupportedMethod<
+		Methods[Name],
+		Requirements
+	>;
 };

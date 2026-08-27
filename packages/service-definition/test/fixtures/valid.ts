@@ -1,8 +1,9 @@
 import {
 	defineService,
+	genericMethod,
 	type ServiceRequirements,
 } from "@antumbra/service-definition";
-import { Context, Data, Effect, type PubSub, type Scope } from "effect";
+import { Context, Data, Effect, Layer, type PubSub, type Scope } from "effect";
 
 class Declared extends Context.Service<Declared, { readonly value: string }>()(
 	"fixture/Declared",
@@ -17,6 +18,10 @@ export class InitializationFailure extends Data.TaggedError(
 )<{ readonly detail: string }> {}
 
 export class MethodFailure extends Data.TaggedError("MethodFailure")<{
+	readonly detail: string;
+}> {}
+
+export class GenericFailure extends Data.TaggedError("GenericFailure")<{
 	readonly detail: string;
 }> {}
 
@@ -81,4 +86,33 @@ export const Stateless = defineService({
 		ready: Effect.fn("stateless.ready")(() => Effect.succeed(true as const)),
 	}),
 	requires: [],
+});
+
+const preserve = Effect.fn("generic.preserve")(
+	<Success, Failure, Requirements>(
+		effect: Effect.Effect<Success, Failure, Requirements>,
+	): Effect.Effect<
+		{ readonly value: Success },
+		Failure | GenericFailure,
+		Requirements
+	> => Effect.map(effect, (value) => ({ value })),
+);
+
+export const Generic = defineService({
+	id: "fixture/Generic",
+	initialize: Effect.void,
+	methods: () => ({ preserve: genericMethod(preserve) }),
+	requires: [],
+});
+
+export const genericLayer = Generic.layer;
+
+export const genericFake = Layer.succeed(Generic)({
+	preserve: <Success, Failure, Requirements>(
+		effect: Effect.Effect<Success, Failure, Requirements>,
+	): Effect.Effect<
+		{ readonly value: Success },
+		Failure | GenericFailure,
+		Requirements
+	> => Effect.map(effect, (value) => ({ value })),
 });

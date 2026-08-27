@@ -63,7 +63,7 @@ export const makeRetireKind = Effect.gen(function* () {
 	// has work that ending it would sever.
 	const refuseWorking = (agentId: string) =>
 		Effect.gen(function* () {
-			const attached = yield* fabric.attached;
+			const attached = yield* fabric.attached();
 			const sessions = yield* provide(
 				db.AgentSession.where(rootSessionsOf(agentId)).all(),
 			);

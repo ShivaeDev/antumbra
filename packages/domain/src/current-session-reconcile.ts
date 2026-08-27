@@ -19,7 +19,7 @@ export const makeCurrentSessionReconciler = Effect.gen(function* () {
 				const planned = planCurrentSessionReconciliation(
 					yield* db.Agent.all(),
 					yield* db.AgentSession.where(rootSessions).all(),
-					yield* fabric.attached,
+					yield* fabric.attached(),
 				);
 				if (Result.isFailure(planned)) {
 					return planned.failure._tag === "CurrentSessionInvalid"

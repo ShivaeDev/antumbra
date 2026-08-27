@@ -52,7 +52,7 @@ export const makeRecoveryKind = Effect.gen(function* () {
 	// thing that instruction would ask for.
 	const delivered = (sessionId: string, carriedInput: CarriedInput) =>
 		Effect.gen(function* () {
-			const idle = yield* fabric.idleSince;
+			const idle = yield* fabric.idleSince();
 			const input =
 				carriedInput.input ??
 				(idle.has(sessionId) ? promptInput(standingRecovery) : undefined);

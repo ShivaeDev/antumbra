@@ -65,7 +65,7 @@ const seedTree = seedRoot.pipe(
 
 const restingRoots = Effect.gen(function* () {
 	const live = yield* LiveDelegations;
-	const delegating = yield* live.delegating;
+	const delegating = yield* live.delegating();
 	return sessionAtRest({ delegating: delegating.has(ROOT), presence: "idle" });
 });
 

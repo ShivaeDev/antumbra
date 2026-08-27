@@ -69,7 +69,7 @@ export const makeSiestaKind = Effect.gen(function* () {
 	// the demand that asked is re-derived from durable truth on the next pass.
 	const reclaimIdle = (sessionId: string) =>
 		Effect.gen(function* () {
-			if ((yield* live.delegating).has(sessionId)) {
+			if ((yield* live.delegating()).has(sessionId)) {
 				return yield* new SessionStillDelegating({ sessionId });
 			}
 			const execution = yield* IntentExecution;

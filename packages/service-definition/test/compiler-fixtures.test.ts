@@ -70,12 +70,15 @@ describe("service definition compiler fixtures", () => {
 			"caller-requirement":
 				"missing the following properties from type 'Scope'",
 			fake: "second",
-			generic: "GenericOrOverloadedMethodsAreUnsupported",
+			generic: "GenericOrStructurallyOverloadedMethodsAreUnsupported",
 			"initializer-requirement": "InitializerHasUndeclaredServiceRequirements",
 			"method-requirement": "MethodHasUndeclaredServiceRequirements",
 			"method-value": "not assignable",
-			overloaded: "GenericOrOverloadedMethodsAreUnsupported",
+			overloaded: "GenericOrStructurallyOverloadedMethodsAreUnsupported",
+			"overloaded-broad":
+				"GenericOrStructurallyOverloadedMethodsAreUnsupported",
 			"private-state": "Property 'secret' does not exist",
+			"scope-requirement": "ScopeCannotBeDeclaredAsAServiceRequirement",
 		} as const;
 
 		for (const [fixture, expectedDiagnostic] of Object.entries(

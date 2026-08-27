@@ -1,6 +1,7 @@
 import { Context, Effect, Layer, Record } from "effect";
 import type { InitializerProof } from "#initializer-proof.ts";
 import type { AnyMethod, MethodProof, MethodRecord } from "#method-proof.ts";
+import type { RequirementProof } from "#requirement-proof.ts";
 import type {
 	RequirementRecord,
 	RequirementsOf,
@@ -30,7 +31,7 @@ interface ServiceDefinition<
 	readonly methods: (
 		state: Effect.Success<Initializer>,
 	) => Methods & MethodProof<Methods, RequirementsOf<Requirements>>;
-	readonly requires: Requirements;
+	readonly requires: Requirements & RequirementProof<Requirements>;
 }
 
 interface RuntimeDefinition<State> {

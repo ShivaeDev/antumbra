@@ -15,7 +15,10 @@ service-parameter lint rule.
    ad hoc loses that identity. A service using the shared definition constructor
    declares its requirements once, initializes private state once, and derives
    its public methods and Layer from the same definition. Initializer state is
-   never part of the public service shape.
+   never part of the public service shape. Methods are ordinary non-generic
+   single-signature functions. The constructor rejects overload distinctions
+   TypeScript preserves; redundant declarations erased to one structural
+   signature are not observable to a type-level API.
 3. A domain capability owns the whole business act: validation, transaction,
    durable writes, and notifications after commit. Its caller names the act and
    supplies only domain input.

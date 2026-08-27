@@ -6,16 +6,36 @@ export type AnyMethod = (
 
 export type MethodRecord = Readonly<Record<string, AnyMethod>>;
 
-interface GenericOrOverloadedMethodsAreUnsupported {
-	readonly _serviceDefinitionError: "generic and overloaded methods are unsupported";
+interface GenericOrStructurallyOverloadedMethodsAreUnsupported {
+	readonly _serviceDefinitionError: "generic and structurally overloaded methods are unsupported";
 }
 
+type Same<Left, Right> =
+	(<Value>() => Value extends Left ? 1 : 2) extends <
+		Value,
+	>() => Value extends Right ? 1 : 2
+		? true
+		: false;
+
+type HasDistinctCallSignatures<Method> = Method extends {
+	(...arguments_: infer FirstArguments): infer FirstResult;
+	(...arguments_: infer LastArguments): infer LastResult;
+}
+	? Same<FirstArguments, LastArguments> extends true
+		? Same<FirstResult, LastResult> extends true
+			? false
+			: true
+		: true
+	: false;
+
 type SupportedMethod<Method> = Method extends AnyMethod
-	? Method extends (...arguments_: infer Arguments) => infer Result
-		? ((...arguments_: Arguments) => Result) extends Method
-			? Method
-			: GenericOrOverloadedMethodsAreUnsupported
-		: GenericOrOverloadedMethodsAreUnsupported
+	? HasDistinctCallSignatures<Method> extends true
+		? GenericOrStructurallyOverloadedMethodsAreUnsupported
+		: Method extends (...arguments_: infer Arguments) => infer Result
+			? ((...arguments_: Arguments) => Result) extends Method
+				? Method
+				: GenericOrStructurallyOverloadedMethodsAreUnsupported
+			: GenericOrStructurallyOverloadedMethodsAreUnsupported
 	: Method;
 
 type MethodRequirements<Method> = Method extends (

@@ -6,6 +6,7 @@ import { documentationViolations } from "#lint/rules/documentation.ts";
 import { manifestViolations } from "#lint/rules/manifests.ts";
 import { nestingViolations } from "#lint/rules/nesting.ts";
 import { pragmaViolations } from "#lint/rules/pragmas.ts";
+import { serviceDefinitionAssemblyViolations } from "#lint/rules/service-definition-assembly.ts";
 import { serviceParameterViolations } from "#lint/rules/service-parameters.ts";
 import { structureViolations } from "#lint/rules/structure.ts";
 import type { Violation } from "#lint/violation.ts";
@@ -25,6 +26,7 @@ export const lint = (
 				Effect.sync(() => commentViolations(inventory)),
 				Effect.sync(() => pragmaViolations(inventory)),
 				Effect.sync(() => manifestViolations(inventory)),
+				Effect.sync(() => serviceDefinitionAssemblyViolations(inventory)),
 				Effect.sync(() => serviceParameterViolations(inventory)),
 				contractViolations(inventory),
 			],

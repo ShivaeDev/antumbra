@@ -1,18 +1,8 @@
-import { Effect, Layer, Logger, References } from "effect";
+import { Logger } from "effect";
 import { logRowOf } from "#log-row.ts";
-import { TraceSink } from "#sink.ts";
+import type { Recorder } from "#recorder.ts";
 
-const traceLogger = Effect.map(TraceSink, (sink) =>
+export const makeTraceLogger = (recorder: Recorder) =>
 	Logger.make<unknown, void>((options) => {
-		sink.recordLog(logRowOf(options));
-	}),
-);
-
-// why: the trace database is only the one place to look if the logs a dev run
-// emits actually reach it, and Effect filters Debug out before any logger sees
-// it. The console keeps its entries too: this logger joins the existing set
-// rather than replacing it.
-export const TraceLoggerLive = Layer.merge(
-	Logger.layer([traceLogger], { mergeWithExisting: true }),
-	Layer.succeed(References.MinimumLogLevel, "Debug"),
-);
+		recorder.recordLog(logRowOf(options));
+	});

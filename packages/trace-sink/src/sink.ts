@@ -1,22 +1,11 @@
 import { join } from "node:path";
-import { Cause, Clock, Context, Effect, Layer, type Scope } from "effect";
+import { Cause, Clock, Effect, type Scope } from "effect";
 import { openTraceDatabase } from "#adapters/database.ts";
-import type { LogRow } from "#log-row.ts";
-import { makeRecorder } from "#recorder.ts";
-import type { SpanRecorder } from "#span-recorder.ts";
+import { makeRecorder, type Recorder } from "#recorder.ts";
 
 export const TRACE_DATABASE_FILE = "traces.db";
 
 const DISABLED = "dev trace sink disabled";
-
-export interface TraceSinkService extends SpanRecorder {
-	readonly recordLog: (row: LogRow) => void;
-	readonly runId: string;
-}
-
-export class TraceSink extends Context.Service<TraceSink, TraceSinkService>()(
-	"@antumbra/trace-sink/TraceSink",
-) {}
 
 export interface TraceSinkOptions {
 	readonly appVersion: string;
@@ -45,7 +34,7 @@ const openOrWarn = (options: TraceSinkOptions, runId: string, at: number) =>
 
 export const makeTraceSink = (
 	options: TraceSinkOptions,
-): Effect.Effect<TraceSinkService, never, Scope.Scope> =>
+): Effect.Effect<Recorder, never, Scope.Scope> =>
 	Effect.gen(function* () {
 		const runId = crypto.randomUUID();
 		const startedAtMillis = yield* Clock.currentTimeMillis;
@@ -54,7 +43,11 @@ export const makeTraceSink = (
 			(open) => Effect.sync(() => open?.close()),
 		);
 		if (database === undefined) {
-			return { recordLog: () => undefined, recordSpan: () => undefined, runId };
+			return {
+				flush: Effect.void,
+				recordLog: () => undefined,
+				recordSpan: () => undefined,
+			};
 		}
 		const recorder = makeRecorder(database);
 		yield* Effect.addFinalizer(() => recorder.flush);
@@ -64,13 +57,5 @@ export const makeTraceSink = (
 				Effect.forever,
 			),
 		);
-		return {
-			recordLog: recorder.recordLog,
-			recordSpan: recorder.recordSpan,
-			runId,
-		};
+		return recorder;
 	});
-
-export const TraceSinkLive = (
-	options: TraceSinkOptions,
-): Layer.Layer<TraceSink> => Layer.effect(TraceSink)(makeTraceSink(options));

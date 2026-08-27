@@ -12,7 +12,10 @@ service-parameter lint rule.
    parameter.
 2. Layers provide implementations and close environments at composition roots.
    A Layer is the lifetime and sharing boundary; reconstructing service objects
-   ad hoc loses that identity.
+   ad hoc loses that identity. A service using the shared definition constructor
+   declares its requirements once, initializes private state once, and derives
+   its public methods and Layer from the same definition. Initializer state is
+   never part of the public service shape.
 3. A domain capability owns the whole business act: validation, transaction,
    durable writes, and notifications after commit. Its caller names the act and
    supplies only domain input.

@@ -53,6 +53,7 @@ obligation remains detached until needed. See
 | `packages/prompts`        | The catalog of everything an Agent can be told: one template per set of blanks, minting the branded type the delivery seams accept (a leaf) |
 | `packages/plugin-api`     | The driven ports: agent backends, runners, plugin registration  |
 | `packages/agent-tools`    | The tools agents act through: schemas and binding, no transport |
+| `packages/service-definition` | One constructor for inferred process-lifetime Effect services |
 | `packages/kernel`         | Intents, admission scheduling, lifecycle state machines         |
 | `packages/intent-demand`  | Recreates missing mortal Intents from closed durable-demand registrations |
 | `packages/domain-feeds`   | Shared post-commit domain change notifications                  |
@@ -91,6 +92,11 @@ transactions and post-commit signals, and Layers select implementations and
 lifetimes. Foreign callbacks cross adapter boundaries only after their Effect
 requirements are closed. `packages/git` remains process infrastructure beneath
 `runner-local`.
+
+`service-definition` is the Effect-only construction leaf for process-lifetime
+services. One definition initializes private state and constructs the public
+method shape once per Layer instance. The Layer supplies only the definition's
+declared services; method-owned Scope remains visible to callers.
 
 `prompts` is the other leaf, and it is a closed set rather than a language:
 every string an Agent is ever handed is a template there, each with its blanks

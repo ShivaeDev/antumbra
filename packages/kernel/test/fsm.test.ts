@@ -5,6 +5,7 @@ import {
 	INTENT_STATUSES,
 	type IntentEvent,
 	type IntentStatus,
+	isTerminalIntentStatus,
 	transition,
 } from "#fsm.ts";
 
@@ -59,11 +60,12 @@ describe("intent FSM", () => {
 		}
 	});
 
-	it("keeps terminal statuses absorbing", () => {
-		for (const from of ["cancelled", "failed", "succeeded"] as const) {
-			for (const event of INTENT_EVENTS) {
-				expect(Result.isFailure(transition(from, event))).toBe(true);
-			}
+	it("classifies exactly the absorbing statuses as terminal", () => {
+		for (const status of INTENT_STATUSES) {
+			const isAbsorbing = INTENT_EVENTS.every((event) =>
+				Result.isFailure(transition(status, event)),
+			);
+			expect(isTerminalIntentStatus(status)).toBe(isAbsorbing);
 		}
 	});
 });

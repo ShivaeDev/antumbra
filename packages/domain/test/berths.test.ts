@@ -1,4 +1,4 @@
-import { type IntentStatus, Kernel } from "@antumbra/kernel";
+import { isTerminalIntentStatus, Kernel } from "@antumbra/kernel";
 import { Database, Writer } from "@antumbra/persistence";
 import type { Runner } from "@antumbra/plugin-api";
 import { expect, it } from "@effect/vitest";
@@ -12,12 +12,6 @@ import {
 	makeScriptedBackend,
 	makeScriptedRunner,
 } from "#test/harness.ts";
-
-const TERMINAL: ReadonlySet<IntentStatus> = new Set([
-	"cancelled",
-	"failed",
-	"succeeded",
-]);
 
 const EIGHT_DAYS_MILLIS = 8 * 24 * 60 * 60 * 1000;
 
@@ -39,7 +33,7 @@ const submitSpawn = Effect.gen(function* () {
 	});
 	const submission = yield* kernel.submit(domain.spawn, sweepPayload);
 	return yield* submission.changes.pipe(
-		Stream.takeUntil((status) => TERMINAL.has(status)),
+		Stream.takeUntil(isTerminalIntentStatus),
 		Stream.runLast,
 		Effect.map(Option.getOrThrow),
 	);

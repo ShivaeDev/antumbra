@@ -1,4 +1,8 @@
-import { type IntentStatus, Kernel } from "@antumbra/kernel";
+import {
+	type IntentStatus,
+	isTerminalIntentStatus,
+	Kernel,
+} from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
 import type { AgentBackend } from "@antumbra/plugin-api";
 import { expect, it } from "@effect/vitest";
@@ -12,12 +16,6 @@ import {
 	makeScriptedRunner,
 } from "#test/harness.ts";
 
-const TERMINAL: ReadonlySet<IntentStatus> = new Set([
-	"cancelled",
-	"failed",
-	"succeeded",
-]);
-
 const payload: SpawnFields = {
 	agentId: "agent-running",
 	backend: "scripted",
@@ -30,7 +28,7 @@ const payload: SpawnFields = {
 
 const untilTerminal = <E, R>(changes: Stream.Stream<IntentStatus, E, R>) =>
 	changes.pipe(
-		Stream.takeUntil((status) => TERMINAL.has(status)),
+		Stream.takeUntil(isTerminalIntentStatus),
 		Stream.runLast,
 		Effect.map(Option.getOrThrow),
 	);

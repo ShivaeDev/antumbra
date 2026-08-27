@@ -1,4 +1,8 @@
-import { type IntentStatus, Kernel } from "@antumbra/kernel";
+import {
+	type IntentStatus,
+	isTerminalIntentStatus,
+	Kernel,
+} from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
 import {
 	type MooragePlan,
@@ -16,12 +20,6 @@ import {
 	makeScriptedBackend,
 	makeScriptedRunner,
 } from "#test/harness.ts";
-
-const TERMINAL: ReadonlySet<IntentStatus> = new Set([
-	"cancelled",
-	"failed",
-	"succeeded",
-]);
 
 const authPayload: SpawnFields = {
 	agentId: "agent-auth",
@@ -140,9 +138,7 @@ it.live(
 				});
 				yield* kernel.retry(intentId);
 				expect(
-					yield* until(kernel.changes(intentId), (status) =>
-						TERMINAL.has(status),
-					),
+					yield* until(kernel.changes(intentId), isTerminalIntentStatus),
 				).toBe("succeeded");
 				const tried = yield* Ref.get(attempts);
 				expect(tried).toHaveLength(2);
@@ -197,7 +193,7 @@ it.live("a provision conflict holds the same plan for explicit retry", () =>
 			expect(
 				yield* until(
 					submission.changes,
-					(status) => status === "waiting" || TERMINAL.has(status),
+					(status) => status === "waiting" || isTerminalIntentStatus(status),
 				),
 			).toBe("waiting");
 			const held = Option.getOrThrow(
@@ -207,9 +203,7 @@ it.live("a provision conflict holds the same plan for explicit retry", () =>
 			expect(yield* agentStatus("agent-conflict")).toBe("spawning");
 			yield* kernel.retry(submission.id);
 			expect(
-				yield* until(kernel.changes(submission.id), (status) =>
-					TERMINAL.has(status),
-				),
+				yield* until(kernel.changes(submission.id), isTerminalIntentStatus),
 			).toBe("succeeded");
 			const tried = yield* Ref.get(attempts);
 			expect(tried).toHaveLength(2);

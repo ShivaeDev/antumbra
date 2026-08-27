@@ -1,4 +1,8 @@
-import { type IntentStatus, Kernel } from "@antumbra/kernel";
+import {
+	type IntentStatus,
+	isTerminalIntentStatus,
+	Kernel,
+} from "@antumbra/kernel";
 import { Database, Writer } from "@antumbra/persistence";
 import type { TemporaryPersistence } from "@antumbra/persistence/testing";
 import {
@@ -15,11 +19,6 @@ import { rawOf, type ScriptedBackend } from "#test/harness.ts";
 
 export const RECOVERY_INSTRUCTION =
 	"Reconcile durable Antumbra truth and continue your assigned work.";
-const TERMINAL: ReadonlySet<IntentStatus> = new Set([
-	"cancelled",
-	"failed",
-	"succeeded",
-]);
 export const payload: SpawnFields = {
 	agentId: "agent-resume",
 	backend: "scripted",
@@ -34,7 +33,7 @@ export const untilTerminal = <E, R>(
 	changes: Stream.Stream<IntentStatus, E, R>,
 ) =>
 	changes.pipe(
-		Stream.takeUntil((status) => TERMINAL.has(status)),
+		Stream.takeUntil(isTerminalIntentStatus),
 		Stream.runLast,
 		Effect.map(Option.getOrThrow),
 	);

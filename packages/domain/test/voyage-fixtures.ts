@@ -1,4 +1,4 @@
-import { type IntentStatus, Kernel } from "@antumbra/kernel";
+import { isTerminalIntentStatus, Kernel } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
 import { expect } from "@effect/vitest";
 import { Effect, Option, Schedule, Stream } from "effect";
@@ -6,12 +6,6 @@ import { AgentDomain } from "#domain.ts";
 import { type ScriptedBackend, standDown } from "#test/harness.ts";
 
 export const PATIENCE = { maxAlive: 4, patienceMillis: 50 };
-
-const TERMINAL: ReadonlySet<IntentStatus> = new Set([
-	"cancelled",
-	"failed",
-	"succeeded",
-]);
 
 export const eventually = <A, E, R>(check: Effect.Effect<A, E, R>) =>
 	check.pipe(
@@ -120,7 +114,7 @@ export const retireOneAlive = (scripted: ScriptedBackend) =>
 		);
 		const submission = yield* kernel.submit(domain.retire, { agentId });
 		return yield* submission.changes.pipe(
-			Stream.takeUntil((status) => TERMINAL.has(status)),
+			Stream.takeUntil(isTerminalIntentStatus),
 			Stream.runLast,
 		);
 	});

@@ -1,4 +1,4 @@
-import type { IntentStatus } from "@antumbra/kernel";
+import { type IntentStatus, isTerminalIntentStatus } from "@antumbra/kernel";
 import { Effect, Fiber, Stream } from "effect";
 import { accountOfIntent } from "#dispatch-failure-account.ts";
 import type { SessionRouse } from "#kernel-reach.ts";
@@ -6,12 +6,8 @@ import type { SessionRouse } from "#kernel-reach.ts";
 // why: a wake that parked is as finished as one that failed, from the send's
 // point of view — nothing is coming without another act — so waiting settles
 // the watch alongside the terminal three.
-const SETTLED: ReadonlySet<IntentStatus> = new Set([
-	"cancelled",
-	"failed",
-	"succeeded",
-	"waiting",
-]);
+const isWakeSettled = (status: IntentStatus) =>
+	status === "waiting" || isTerminalIntentStatus(status);
 
 // why: the stall warning is only news while the wake can still be saved, so the
 // threshold is a fraction of the patience the wake is measured against rather
@@ -49,10 +45,7 @@ export const watchWake = (
 				Effect.andThen(account(sessionId, rouse.id, "a wake has not settled")),
 			),
 		);
-		yield* rouse.changes.pipe(
-			Stream.takeUntil((state) => SETTLED.has(state)),
-			Stream.runLast,
-		);
+		yield* rouse.changes.pipe(Stream.takeUntil(isWakeSettled), Stream.runLast);
 		yield* Fiber.interrupt(stalled);
 	}).pipe(
 		Effect.catchCause((cause) =>

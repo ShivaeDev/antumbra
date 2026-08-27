@@ -18,7 +18,11 @@ service-parameter lint rule.
    never part of the public service shape. Methods are ordinary non-generic
    single-signature functions. The constructor rejects overload distinctions
    TypeScript preserves; redundant declarations erased to one structural
-   signature are not observable to a type-level API.
+   signature are not observable to a type-level API. The definition file is
+   assembly only: each public operation and nontrivial initializer is a named
+   `Effect.fn` export in its own focused file. Referencing those exports beside
+   `Effect.void`, requirements, and the derived Layer keeps the definition a
+   readable inventory instead of a second implementation home.
 3. A domain capability owns the whole business act: validation, transaction,
    durable writes, and notifications after commit. Its caller names the act and
    supplies only domain input.

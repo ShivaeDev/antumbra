@@ -2,7 +2,7 @@ import { expect, it } from "@effect/vitest";
 import { Effect, Ref } from "effect";
 import { TestClock } from "effect/testing";
 import { SessionNotLive } from "#errors.ts";
-import { makeSessionFabric } from "#fabric.ts";
+import { SessionFabric } from "#fabric.ts";
 import {
 	idleHandle,
 	options,
@@ -10,6 +10,8 @@ import {
 	sink,
 	textInput,
 } from "#test/fabric-fixtures.ts";
+
+const withFabric = Effect.provide(SessionFabric.layer, { local: true });
 
 const standing = Effect.gen(function* () {
 	const queued = yield* Ref.make<ReadonlyArray<string>>([]);
@@ -25,7 +27,7 @@ const standing = Effect.gen(function* () {
 				]),
 		}),
 	);
-	const fabric = yield* makeSessionFabric;
+	const fabric = yield* SessionFabric;
 	yield* fabric.withStartAdmission((permit) =>
 		fabric.start(
 			permit,
@@ -46,14 +48,14 @@ it.live("standing down keeps the acquisition and remembers when it began", () =>
 	Effect.scoped(
 		Effect.gen(function* () {
 			const { fabric } = yield* standing;
-			expect(yield* fabric.idleSince).toEqual(new Map());
+			expect(yield* fabric.idleSince()).toEqual(new Map());
 			yield* fabric.standDown(options.sessionId);
 			expect(yield* fabric.holds(options.sessionId)).toBe(true);
 			expect(
-				(yield* fabric.idleSince).get(options.sessionId),
+				(yield* fabric.idleSince()).get(options.sessionId),
 			).toBeGreaterThanOrEqual(0);
 		}),
-	),
+	).pipe(withFabric),
 );
 
 // why: a Session mid-turn is not the idle path's to take, however long the
@@ -65,7 +67,7 @@ it.live("a session that never stood down is not reclaimed as idle", () =>
 			expect(yield* fabric.stopIdle(options.sessionId)).toBe(false);
 			expect(yield* fabric.holds(options.sessionId)).toBe(true);
 		}),
-	),
+	).pipe(withFabric),
 );
 
 // why: the race the whole design turns on. Words and a reclaim can arrive in
@@ -80,12 +82,12 @@ it.live(
 				const { fabric, queued } = yield* standing;
 				yield* fabric.standDown(options.sessionId);
 				yield* fabric.send(options.sessionId, textInput("one more thing"));
-				expect(yield* fabric.idleSince).toEqual(new Map());
+				expect(yield* fabric.idleSince()).toEqual(new Map());
 				expect(yield* fabric.stopIdle(options.sessionId)).toBe(false);
 				expect(yield* fabric.holds(options.sessionId)).toBe(true);
 				expect(yield* Ref.get(queued)).toEqual(["one more thing"]);
 			}),
-		),
+		).pipe(withFabric),
 );
 
 // why: and the other order. A reclaim that wins takes the attachment for good,
@@ -98,14 +100,14 @@ it.live("a reclaim takes the attachment of a session still standing down", () =>
 			yield* fabric.standDown(options.sessionId);
 			expect(yield* fabric.stopIdle(options.sessionId)).toBe(true);
 			expect(yield* fabric.holds(options.sessionId)).toBe(false);
-			expect(yield* fabric.attached).toEqual(new Set());
+			expect(yield* fabric.attached()).toEqual(new Set());
 			const gone = yield* Effect.flip(
 				fabric.send(options.sessionId, textInput("still aboard?")),
 			);
 			expect(gone).toBeInstanceOf(SessionNotLive);
 			expect(yield* Ref.get(queued)).toEqual([]);
 		}),
-	),
+	).pipe(withFabric),
 );
 
 // why: one mark, reached two ways. A turn ending is the provider saying the
@@ -117,18 +119,18 @@ it.effect("an ending leaves the same mark a declaration left, once", () =>
 		Effect.gen(function* () {
 			const { fabric } = yield* standing;
 			yield* fabric.standDown(options.sessionId);
-			const declared = (yield* fabric.idleSince).get(options.sessionId);
+			const declared = (yield* fabric.idleSince()).get(options.sessionId);
 			yield* TestClock.adjust(20);
 
 			expect(yield* fabric.turnEnded(options.sessionId, 0)).toBe(true);
-			expect((yield* fabric.idleSince).get(options.sessionId)).toBe(declared);
+			expect((yield* fabric.idleSince()).get(options.sessionId)).toBe(declared);
 			yield* TestClock.adjust(20);
 
 			expect(yield* fabric.turnEnded(options.sessionId, 0)).toBe(true);
-			expect((yield* fabric.idleSince).get(options.sessionId)).toBe(declared);
+			expect((yield* fabric.idleSince()).get(options.sessionId)).toBe(declared);
 			expect(yield* fabric.holds(options.sessionId)).toBe(true);
 		}),
-	),
+	).pipe(withFabric),
 );
 
 // why: the count is what tells an ending that belongs to the turn just over
@@ -144,18 +146,18 @@ it.live("an ending words have overtaken leaves no mark", () =>
 			expect(yield* fabric.stirrings(options.sessionId)).toBe(1);
 
 			expect(yield* fabric.turnEnded(options.sessionId, 0)).toBe(false);
-			expect(yield* fabric.idleSince).toEqual(new Map());
+			expect(yield* fabric.idleSince()).toEqual(new Map());
 
 			expect(yield* fabric.turnEnded(options.sessionId, 1)).toBe(true);
 			expect(
-				(yield* fabric.idleSince).get(options.sessionId),
+				(yield* fabric.idleSince()).get(options.sessionId),
 			).toBeGreaterThanOrEqual(0);
 
 			// why: and the words after that end the quiet again, exactly as they end
 			// the quiet a declaration left.
 			yield* fabric.send(options.sessionId, textInput("and another"));
-			expect(yield* fabric.idleSince).toEqual(new Map());
+			expect(yield* fabric.idleSince()).toEqual(new Map());
 			expect(yield* fabric.stirrings(options.sessionId)).toBe(2);
 		}),
-	),
+	).pipe(withFabric),
 );

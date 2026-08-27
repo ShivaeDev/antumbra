@@ -1,7 +1,7 @@
 import { expect, it } from "@effect/vitest";
 import { Deferred, Effect, Fiber, Ref } from "effect";
 import { SessionAttachmentFailure } from "#errors.ts";
-import { makeSessionFabric } from "#fabric.ts";
+import { SessionFabric } from "#fabric.ts";
 import {
 	idleHandle,
 	options,
@@ -15,10 +15,10 @@ it.live(
 	() =>
 		Effect.scoped(
 			Effect.gen(function* () {
-				const fabric = yield* makeSessionFabric;
+				const fabric = yield* SessionFabric;
 				const attempted = yield* Deferred.make<void>();
 				const admitted = yield* Deferred.make<void>();
-				yield* fabric.closeStarts;
+				yield* fabric.closeStarts();
 				const waiting = yield* Deferred.succeed(attempted, undefined).pipe(
 					Effect.andThen(
 						fabric.withStartAdmission(() =>
@@ -35,11 +35,11 @@ it.live(
 				expect(waiting.pollUnsafe()).toBeUndefined();
 				expect(yield* Deferred.isDone(admitted)).toBe(false);
 
-				yield* fabric.reopenStarts;
+				yield* fabric.reopenStarts();
 				yield* Fiber.join(waiting);
 				expect(yield* Deferred.isDone(admitted)).toBe(true);
 			}),
-		),
+		).pipe(Effect.provide(SessionFabric.layer, { local: true })),
 );
 
 it.live("stop interrupts admission, closes once, and leaves retry fresh", () =>
@@ -67,7 +67,7 @@ it.live("stop interrupts admission, closes once, and leaves retry fresh", () =>
 					return handle;
 				}),
 			);
-			const fabric = yield* makeSessionFabric;
+			const fabric = yield* SessionFabric;
 			const starting = yield* fabric
 				.withStartAdmission((permit) =>
 					fabric.start(
@@ -101,5 +101,5 @@ it.live("stop interrupts admission, closes once, and leaves retry fresh", () =>
 			expect(yield* Ref.get(opens)).toBe(2);
 			expect(yield* Ref.get(queued)).toBe(true);
 		}),
-	),
+	).pipe(Effect.provide(SessionFabric.layer, { local: true })),
 );

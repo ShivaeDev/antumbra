@@ -15,12 +15,18 @@ service-parameter lint rule.
    ad hoc loses that identity. A service using the shared definition constructor
    declares its requirements once, initializes private state once, and derives
    its public methods and Layer from the same definition. Initializer state is
-   never part of the public service shape. Methods are ordinary non-generic
-   single-signature functions. The constructor rejects overload distinctions
-   TypeScript preserves; redundant declarations erased to one structural
-   signature are not observable to a type-level API. The definition file is
-   assembly only: each public operation and nontrivial initializer is a named
-   `Effect.fn` export in its own focused file. Referencing those exports beside
+   never part of the public service shape. Methods are single-signature
+   functions. A requirement-free definition may explicitly wrap a higher-rank
+   generic operation with `genericMethod` in its method inventory, preserving
+   the exact signature without entering declared-service subtraction. Only
+   genuinely higher-rank operations are marked. The descriptor is unwrapped
+   from the public service and cannot appear in a definition with declared
+   requirements; every unmarked operation retains the dependency proof. The
+   constructor rejects overload distinctions TypeScript
+   preserves; redundant declarations erased to one structural signature are
+   not observable to a type-level API. The definition file is assembly only:
+   each public operation and nontrivial initializer is a named `Effect.fn`
+   export in its own focused file. Referencing those exports beside
    `Effect.void`, requirements, and the derived Layer keeps the definition a
    readable inventory instead of a second implementation home.
 3. A domain capability owns the whole business act: validation, transaction,

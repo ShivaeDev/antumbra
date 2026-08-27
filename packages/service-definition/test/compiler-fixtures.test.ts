@@ -21,6 +21,7 @@ const compile = (compiler: "tsc" | "tsc6", arguments_: ReadonlyArray<string>) =>
 const invalidArguments = (fixture: string) => [
 	"--ignoreConfig",
 	"--noEmit",
+	"--noErrorTruncation",
 	"--strict",
 	"--skipLibCheck",
 	"--target",
@@ -58,6 +59,13 @@ describe("service definition compiler fixtures", () => {
 				expect(declaration).toContain(
 					'Layer<"fixture/Ordinary", InitializationFailure, Declared | Residual>',
 				);
+				expect(declaration).toContain(
+					"preserve: <Success, Failure, Requirements>",
+				);
+				expect(declaration).toContain(
+					"readonly value: Success;\n    }, Failure | GenericFailure, Requirements>",
+				);
+				expect(declaration).toContain('Layer<"fixture/Generic", never, never>');
 				expect(declaration).not.toContain("PrivateState");
 				expect(declaration).not.toContain("initialize");
 				expect(declaration).not.toContain("methods");
@@ -71,6 +79,10 @@ describe("service definition compiler fixtures", () => {
 				"missing the following properties from type 'Scope'",
 			fake: "second",
 			generic: "GenericOrStructurallyOverloadedMethodsAreUnsupported",
+			"generic-declared-requirement":
+				"GenericMethodWithDeclaredRequirementsIsUnsupported",
+			"generic-marker-overloaded":
+				"GenericOrStructurallyOverloadedMethodsAreUnsupported",
 			"initializer-requirement": "InitializerHasUndeclaredServiceRequirements",
 			"method-requirement": "MethodHasUndeclaredServiceRequirements",
 			"method-value": "not assignable",
@@ -78,6 +90,8 @@ describe("service definition compiler fixtures", () => {
 			"overloaded-broad":
 				"GenericOrStructurallyOverloadedMethodsAreUnsupported",
 			"private-state": "Property 'secret' does not exist",
+			"requirement-free-ordinary-requirement":
+				"MethodHasUndeclaredServiceRequirements",
 			"scope-requirement": "ScopeCannotBeDeclaredAsAServiceRequirement",
 		} as const;
 

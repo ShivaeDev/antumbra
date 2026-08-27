@@ -96,7 +96,10 @@ requirements are closed. `packages/git` remains process infrastructure beneath
 `service-definition` is the Effect-only construction leaf for process-lifetime
 services. One definition initializes private state and constructs the public
 method shape once per Layer instance. The Layer supplies only the definition's
-declared services; method-owned Scope remains visible to callers.
+declared services; method-owned Scope remains visible to callers. A definition
+with no declared services may explicitly mark higher-rank generic methods for
+exact preservation; marked methods never enter declared-requirement subtraction
+and ordinary methods retain the dependency proof.
 
 `prompts` is the other leaf, and it is a closed set rather than a language:
 every string an Agent is ever handed is a template there, each with its blanks

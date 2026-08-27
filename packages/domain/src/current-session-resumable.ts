@@ -104,7 +104,7 @@ export const makeCurrentSessionResumable = Effect.gen(function* () {
 			const planned = planCurrentSessionReconciliation(
 				[agent],
 				yield* db.AgentSession.where(rootSessionsOf(agent.id)).all(),
-				yield* fabric.attached,
+				yield* fabric.attached(),
 			);
 			if (Result.isFailure(planned)) {
 				return yield* heldInvalid(planned.failure);

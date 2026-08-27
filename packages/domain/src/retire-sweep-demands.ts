@@ -32,7 +32,7 @@ const sweptCrew = Effect.gen(function* () {
 	}
 	const world = yield* source.read;
 	const runtime = {
-		attached: yield* fabric.attached,
+		attached: yield* fabric.attached(),
 		delegating: yield* live.delegating(),
 	};
 	const resting = restingCrew(world, runtime);
@@ -40,7 +40,7 @@ const sweptCrew = Effect.gen(function* () {
 	// why: the clock and the marks are read once per pass, so every Agent in it
 	// is judged against the same moment.
 	const now = yield* Clock.currentTimeMillis;
-	const idleSince = yield* fabric.idleSince;
+	const idleSince = yield* fabric.idleSince();
 	const restedLongEnough = (sessionIds: ReadonlyArray<string>) =>
 		sessionIds.every((sessionId) => {
 			const since = idleSince.get(sessionId);

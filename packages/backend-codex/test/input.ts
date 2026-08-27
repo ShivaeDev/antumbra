@@ -1,7 +1,6 @@
 import type { SessionInput } from "@antumbra/plugin-api";
-import { SessionInputId } from "@antumbra/vocabulary/session-input";
 
-const ID = SessionInputId.make("00000000-0000-4000-8000-000000000001");
+const ID = "00000000-0000-4000-8000-000000000001";
 
 export const textInput = (text: string): SessionInput => ({
 	id: ID,

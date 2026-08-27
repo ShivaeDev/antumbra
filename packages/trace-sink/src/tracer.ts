@@ -1,5 +1,4 @@
-import { Effect, type Exit, Layer, Tracer } from "effect";
-import { TraceSink } from "#sink.ts";
+import { type Exit, Tracer } from "effect";
 import type { SpanRecorder } from "#span-recorder.ts";
 
 type NativeSpanOptions = ConstructorParameters<typeof Tracer.NativeSpan>[0];
@@ -25,7 +24,3 @@ export const makeRecordingTracer = (recorder: SpanRecorder): Tracer.Tracer =>
 	Tracer.make({
 		span: (options) => new RecordedSpan(options, recorder.recordSpan),
 	});
-
-export const TracerLive = Layer.effect(Tracer.Tracer)(
-	Effect.map(TraceSink, makeRecordingTracer),
-);

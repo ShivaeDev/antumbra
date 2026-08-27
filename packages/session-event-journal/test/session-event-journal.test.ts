@@ -1,5 +1,5 @@
 import { DomainFeeds, DomainFeedsLive } from "@antumbra/domain-feeds";
-import { Database, type NewAgentSession, Writer } from "@antumbra/persistence";
+import { Database, type NewAgentSession } from "@antumbra/persistence";
 import { acquireTemporaryPersistence } from "@antumbra/persistence/testing";
 import {
 	SessionEventJournal,
@@ -15,6 +15,13 @@ const rawOf = (kind: string): AgentEvent["raw"] => ({
 	source: "scripted",
 });
 
+const MISSING_SESSION_EVENT: AgentEvent = {
+	raw: rawOf("missing-session"),
+	role: "agent",
+	text: "must not outlive its row refusal",
+	type: "message",
+};
+
 const journalLayer = SessionEventJournalLive.pipe(
 	Layer.provideMerge(DomainFeedsLive),
 );
@@ -26,43 +33,36 @@ it.live("records unique contiguous per-Session event sequences", () =>
 			yield* Effect.gen(function* () {
 				const db = yield* Database;
 				const journal = yield* SessionEventJournal;
-				const writer = yield* Writer;
-				yield* writer.write(
-					db.Agent.create({
-						charter: "hold one sequence",
-						currentSessionId: "session-sequence",
-						id: "agent-sequence",
-						role: "test hand",
-						status: "alive",
+				yield* db.Agent.create({
+					charter: "hold one sequence",
+					currentSessionId: "session-sequence",
+					id: "agent-sequence",
+					role: "test hand",
+					status: "alive",
+				});
+				yield* db.AgentSession.create({
+					agentId: "agent-sequence",
+					backend: "scripted",
+					charterDeliveredAt: null,
+					cwd: "/tmp/agent-sequence",
+					executionStatus: "active",
+					id: "session-sequence",
+					nativeRef: null,
+					parentSessionId: null,
+					rootSessionId: "session-sequence",
+					status: "open",
+				} satisfies NewAgentSession);
+				yield* db.SessionEvent.create({
+					kind: "message",
+					payload: JSON.stringify({
+						raw: rawOf("seed"),
+						role: "agent",
+						text: "seed",
+						type: "message",
 					}),
-				);
-				yield* writer.write(
-					db.AgentSession.create({
-						agentId: "agent-sequence",
-						backend: "scripted",
-						charterDeliveredAt: null,
-						cwd: "/tmp/agent-sequence",
-						executionStatus: "active",
-						id: "session-sequence",
-						nativeRef: null,
-						parentSessionId: null,
-						rootSessionId: "session-sequence",
-						status: "open",
-					} satisfies NewAgentSession),
-				);
-				yield* writer.write(
-					db.SessionEvent.create({
-						kind: "message",
-						payload: JSON.stringify({
-							raw: rawOf("seed"),
-							role: "agent",
-							text: "seed",
-							type: "message",
-						}),
-						seq: 0,
-						sessionId: "session-sequence",
-					}),
-				);
+					seq: 0,
+					sessionId: "session-sequence",
+				});
 				yield* Effect.all(
 					[
 						journal.record("session-sequence", {
@@ -114,6 +114,37 @@ it.live("does not acknowledge an opening event without a durable Session", () =>
 				expect(
 					yield* db.SessionEvent.where({ sessionId: "session-missing" }).all(),
 				).toEqual([]);
+			}).pipe(
+				Effect.provide(journalLayer.pipe(Layer.provideMerge(temporary.layer))),
+			);
+		}),
+	),
+);
+
+it.live("rolls caller rows back when their journal append is refused", () =>
+	Effect.scoped(
+		Effect.gen(function* () {
+			const temporary = yield* acquireTemporaryPersistence;
+			yield* Effect.gen(function* () {
+				const db = yield* Database;
+				const journal = yield* SessionEventJournal;
+				const recorded = yield* journal.recordTogether({
+					appends: [
+						{
+							event: MISSING_SESSION_EVENT,
+							sessionId: "session-missing",
+						},
+					],
+					rows: db.AppMeta.create({
+						key: "journal-rollback-probe",
+						value: "written before the refused append",
+					}).pipe(Effect.asVoid),
+				});
+
+				expect(recorded).toBe(false);
+				expect(
+					yield* db.AppMeta.where({ key: "journal-rollback-probe" }).exists(),
+				).toBe(false);
 			}).pipe(
 				Effect.provide(journalLayer.pipe(Layer.provideMerge(temporary.layer))),
 			);

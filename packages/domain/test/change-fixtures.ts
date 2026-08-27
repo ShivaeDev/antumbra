@@ -1,5 +1,5 @@
 import type { ChangeRow } from "@antumbra/changes";
-import { Database, Writer } from "@antumbra/persistence";
+import { Database } from "@antumbra/persistence";
 import type { ChangeStage } from "@antumbra/plugin-api";
 import { Effect } from "effect";
 import { AgentDomain } from "#domain.ts";
@@ -55,22 +55,19 @@ export const changeOf = (fields: ChangeFields): ChangeRow => ({
 export const berthed = (agentId: string, source = REEF_SOURCE) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
-		const writer = yield* Writer;
-		yield* writer.write(
-			db.Berth.create({
-				agentId,
-				branch: `work/${agentId}/berth-0`,
-				id: `${agentId}:berth-0`,
-				path: `/tmp/moorage/${agentId}/berth-0`,
-				reclaimState: null,
-				ref: "main",
-				runner: "local",
-				slug: "berth-0",
-				source,
-				status: "ready",
-				strandedAt: null,
-			}),
-		);
+		yield* db.Berth.create({
+			agentId,
+			branch: `work/${agentId}/berth-0`,
+			id: `${agentId}:berth-0`,
+			path: `/tmp/moorage/${agentId}/berth-0`,
+			reclaimState: null,
+			ref: "main",
+			runner: "local",
+			slug: "berth-0",
+			source,
+			status: "ready",
+			strandedAt: null,
+		});
 	});
 
 export const reefWithPiece = Effect.gen(function* () {

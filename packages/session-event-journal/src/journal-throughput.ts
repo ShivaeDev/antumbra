@@ -17,11 +17,11 @@ const advanced = (current: Tally, settled: Tally): Tally => ({
 });
 
 // why: journaling a session tree writes once per node instead of once per
-// session, and every one of those writes queues behind the single write permit
-// SQLite allows. Counting them in memory and reporting on a fixed stride keeps
-// the observation far cheaper than the writes it observes, so throughput is a
-// number in the log rather than a suspicion. The tally describes this process
-// and resets with it; durable truth is the log itself.
+// session, and each batch owns one Database transaction. Counting appends in
+// memory and reporting on a fixed stride keeps the observation far cheaper
+// than the writes it observes, so throughput is a number in the log rather
+// than a suspicion. The tally describes this process and resets with it;
+// durable truth is the log itself.
 export const makeJournalThroughput = Effect.gen(function* () {
 	const tally = yield* Ref.make(EMPTY);
 	const report = (due: Tally) =>

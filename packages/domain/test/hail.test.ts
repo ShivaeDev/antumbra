@@ -1,5 +1,5 @@
 import { BoardScope, EntryInput } from "@antumbra/boards";
-import { Database, Writer } from "@antumbra/persistence";
+import { Database } from "@antumbra/persistence";
 import { expect, it } from "@effect/vitest";
 import { Effect, Option } from "effect";
 import { AgentDomain } from "#domain.ts";
@@ -30,6 +30,28 @@ const CAPTAIN_TOOLS = [
 	"read_board",
 	"stand_down",
 ];
+
+const seedSpawningCaptain = (voyageId: string) =>
+	Effect.gen(function* () {
+		const db = yield* Database;
+		yield* db.transaction(
+			Effect.gen(function* () {
+				yield* Database;
+				yield* db.Agent.create({
+					charter: "chart the reef",
+					currentSessionId: null,
+					id: "captain-newborn",
+					role: "captain",
+					status: "spawning",
+				});
+				yield* db.VoyageAgent.create({
+					agentId: "captain-newborn",
+					role: "captain",
+					voyageId,
+				});
+			}),
+		);
+	});
 
 it.live("hailing a voyage brings it a captain and puts it under way", () =>
 	Effect.gen(function* () {
@@ -104,25 +126,8 @@ it.live("a hail is refused while the voyage's captain is being born", () =>
 		yield* Effect.gen(function* () {
 			const db = yield* Database;
 			const domain = yield* AgentDomain;
-			const writer = yield* Writer;
 			const voyage = yield* openReefVoyage;
-			yield* writer.write(
-				db.Agent.create({
-					charter: "chart the reef",
-					currentSessionId: null,
-					id: "captain-newborn",
-					role: "captain",
-					status: "spawning",
-				}).pipe(
-					Effect.andThen(
-						db.VoyageAgent.create({
-							agentId: "captain-newborn",
-							role: "captain",
-							voyageId: voyage.id,
-						}),
-					),
-				),
-			);
+			yield* seedSpawningCaptain(voyage.id);
 
 			const refusal = yield* Effect.flip(domain.voyages.hail(voyage.id));
 			expect(refusal).toMatchObject({

@@ -1,9 +1,4 @@
-import {
-	Database,
-	type PrismaError,
-	type WriteExecutors,
-	Writer,
-} from "@antumbra/persistence";
+import { Database, type PrismaError } from "@antumbra/persistence";
 import type { SessionInputId } from "@antumbra/vocabulary/session-input";
 import { Context, Effect, Layer, Option } from "effect";
 import { digestRequest } from "#digest.ts";
@@ -58,12 +53,7 @@ export const SessionInputsLive = (root: string) =>
 	Layer.effect(SessionInputs)(
 		Effect.gen(function* () {
 			const db = yield* Database;
-			const writer = yield* Writer;
-			const executors = yield* Effect.context<WriteExecutors>();
-			const context = Context.merge(
-				executors,
-				Context.make(Database, db).pipe(Context.add(Writer, writer)),
-			);
+			const context = Context.make(Database, db);
 			const ingest = (draft: SessionInputDraft) =>
 				Effect.gen(function* () {
 					const existing = yield* db.SessionInput.where({
@@ -88,12 +78,10 @@ export const SessionInputsLive = (root: string) =>
 				inputId: SessionInputId,
 				status: SessionInputDeliveryStatus,
 			) =>
-				writer
-					.write(
-						db.SessionInput.where({ id: inputId }).update({
-							deliveryStatus: status,
-						}),
-					)
+				db.SessionInput.where({ id: inputId })
+					.update({
+						deliveryStatus: status,
+					})
 					.pipe(Effect.asVoid, Effect.provide(context));
 			return {
 				image: (request) =>

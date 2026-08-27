@@ -1,8 +1,4 @@
-import {
-	Database,
-	type PrismaError,
-	type WriteExecutors,
-} from "@antumbra/persistence";
+import { Database, type PrismaError } from "@antumbra/persistence";
 import { type Context, Effect } from "effect";
 import { changeRow } from "#change-read.ts";
 import type { ChangeRow, PieceChangeRow } from "#change-rows.ts";
@@ -26,7 +22,7 @@ export const readChangeSnapshot: Effect.Effect<
 	| StoredChangeInvalid
 	| StoredChangeVerdictInvalid
 	| StoredPieceChangeInvalid,
-	Context.Service.Identifier<typeof Database> | WriteExecutors
+	Context.Service.Identifier<typeof Database>
 > = Effect.gen(function* () {
 	const db = yield* Database;
 	// why: Changes own their historical order; consumers receive the decoded

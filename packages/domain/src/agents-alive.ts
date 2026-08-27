@@ -1,4 +1,4 @@
-import { Database, type WriteExecutors } from "@antumbra/persistence";
+import { Database } from "@antumbra/persistence";
 import { decodeStoredAgentStatus } from "@antumbra/vocabulary/agent-runtime";
 import { Effect } from "effect";
 
@@ -8,7 +8,6 @@ import { Effect } from "effect";
 // about who happens to be holding a transaction.
 export const makeAliveAgentCount = Effect.gen(function* () {
 	const db = yield* Database;
-	const executors = yield* Effect.context<WriteExecutors>();
 	return db.Agent.all().pipe(
 		Effect.flatMap((agents) =>
 			Effect.forEach(agents, (agent) =>
@@ -18,6 +17,5 @@ export const makeAliveAgentCount = Effect.gen(function* () {
 		Effect.map(
 			(statuses) => statuses.filter((status) => status === "alive").length,
 		),
-		Effect.provideContext(executors),
 	);
 });

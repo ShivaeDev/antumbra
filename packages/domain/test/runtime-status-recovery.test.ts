@@ -1,4 +1,4 @@
-import { Database, Writer } from "@antumbra/persistence";
+import { Database } from "@antumbra/persistence";
 import { expect, it } from "@effect/vitest";
 import { Effect, Option } from "effect";
 import { domainKernelLayer } from "#test/domain-layers.ts";
@@ -27,12 +27,9 @@ it.live("an unknown Agent status becomes visible held recovery truth", () =>
 		);
 		yield* Effect.gen(function* () {
 			const db = yield* Database;
-			const writer = yield* Writer;
-			yield* writer.write(
-				db.Agent.where({ id: payload.agentId }).update({
-					status: "future-agent",
-				}),
-			);
+			yield* db.Agent.where({ id: payload.agentId }).update({
+				status: "future-agent",
+			});
 		}).pipe(Effect.provide(temporary.layer));
 
 		yield* Effect.gen(function* () {
@@ -65,12 +62,9 @@ it.live("a reclaimed Berth is valid recovery truth that is not ready", () =>
 		);
 		yield* Effect.gen(function* () {
 			const db = yield* Database;
-			const writer = yield* Writer;
-			yield* writer.write(
-				db.Berth.where({ agentId: payload.agentId }).update({
-					status: "reclaimed",
-				}),
-			);
+			yield* db.Berth.where({ agentId: payload.agentId }).update({
+				status: "reclaimed",
+			});
 		}).pipe(Effect.provide(temporary.layer));
 
 		yield* Effect.gen(function* () {

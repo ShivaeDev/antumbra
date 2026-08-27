@@ -1,4 +1,4 @@
-import type { PrismaError, WriteExecutors } from "@antumbra/persistence";
+import type { PrismaError } from "@antumbra/persistence";
 import { Context, type Effect, type Stream } from "effect";
 import type {
 	IntentNotFound,
@@ -24,7 +24,7 @@ export interface IntentSubmission {
 	readonly changes: Stream.Stream<
 		IntentStatus,
 		IntentNotFound | PrismaError,
-		WriteExecutors
+		never
 	>;
 	readonly id: string;
 }
@@ -45,28 +45,24 @@ export class Kernel extends Context.Service<
 		) => Effect.Effect<
 			ReadonlyArray<ActiveIntent<Payload>>,
 			StoredIntentInvalid | UnregisteredIntentTag | PrismaError,
-			WriteExecutors
+			never
 		>;
 		readonly cancel: (
 			id: string,
 		) => Effect.Effect<
 			void,
 			IntentNotFound | InvalidTransition | PrismaError,
-			WriteExecutors
+			never
 		>;
 		readonly changes: (
 			id: string,
-		) => Stream.Stream<
-			IntentStatus,
-			IntentNotFound | PrismaError,
-			WriteExecutors
-		>;
+		) => Stream.Stream<IntentStatus, IntentNotFound | PrismaError, never>;
 		readonly retry: (
 			id: string,
 		) => Effect.Effect<
 			void,
 			IntentNotFound | InvalidTransition | PrismaError,
-			WriteExecutors
+			never
 		>;
 		readonly submit: <Payload>(
 			kind: IntentKind<Payload>,
@@ -74,7 +70,7 @@ export class Kernel extends Context.Service<
 		) => Effect.Effect<
 			IntentSubmission,
 			PayloadInvalid | UnregisteredIntentTag | PrismaError,
-			WriteExecutors
+			never
 		>;
 		// why: `changes` answers about one Intent to whoever asked for it, and a
 		// reader watching the whole board has no id to ask about. The scheduler

@@ -1,10 +1,6 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
-import {
-	Database,
-	type DatabaseService,
-	type WriteExecutors,
-} from "@antumbra/persistence";
+import { Database, type DatabaseService } from "@antumbra/persistence";
 import type { TemporaryPersistence } from "@antumbra/persistence/testing";
 import { expect, it } from "@effect/vitest";
 import { Effect, Option } from "effect";
@@ -53,7 +49,7 @@ const withDomain = <A, E>(
 		voyages: VoyageProcedures,
 		temporary: TemporaryPersistence,
 		db: DatabaseService,
-	) => Effect.Effect<A, E, WriteExecutors>,
+	) => Effect.Effect<A, E, never>,
 ) =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;

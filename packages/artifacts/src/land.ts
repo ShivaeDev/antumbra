@@ -1,5 +1,5 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
-import { Database, Writer } from "@antumbra/persistence";
+import { Database } from "@antumbra/persistence";
 import { verifyPieceExists } from "@antumbra/pieces";
 import { decodeStoredMoorageStatus } from "@antumbra/vocabulary/agent-runtime";
 import { Crypto, Effect, Option } from "effect";
@@ -80,9 +80,9 @@ const writeArtifact = (
 
 export const landArtifact = (root: string, input: ArtifactInput) =>
 	Effect.gen(function* () {
+		const db = yield* Database;
 		const crypto = yield* Crypto.Crypto;
 		const feeds = yield* DomainFeeds;
-		const writer = yield* Writer;
 		const id = yield* crypto.randomUUIDv4.pipe(
 			Effect.mapError(artifactPublicationFailed("identify artifact")),
 		);
@@ -106,7 +106,10 @@ export const landArtifact = (root: string, input: ArtifactInput) =>
 			supersededByArtifactId: null,
 			title: input.title,
 		};
-		const landing = yield* writer.write(writeArtifact(row, input, publication));
+		const write = writeArtifact(row, input, publication);
+		const landing = yield* input.supersedesArtifactId === undefined
+			? write
+			: db.transaction(write);
 		yield* feeds.publishVoyageRefresh();
 		return landing;
 	});

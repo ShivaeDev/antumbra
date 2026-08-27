@@ -1,5 +1,5 @@
 import { DomainFeedsLive } from "@antumbra/domain-feeds";
-import { Database, type NewAgentSession, Writer } from "@antumbra/persistence";
+import { Database, type NewAgentSession } from "@antumbra/persistence";
 import type { MooragePlan } from "@antumbra/plugin-api";
 import { expect, it } from "@effect/vitest";
 import { Effect, Layer } from "effect";
@@ -55,9 +55,8 @@ it.live("a second open root is refused by name, not by the index", () =>
 		const temporary = yield* acquireTemporaryPersistence;
 		yield* Effect.gen(function* () {
 			const db = yield* Database;
-			const writer = yield* Writer;
 			const ensureSessionRow = yield* makeEnsureSessionRow;
-			yield* writer.write(seed);
+			yield* db.transaction(seed);
 
 			const refusal = yield* Effect.flip(ensureSessionRow(payload, plan));
 			expect(refusal._tag).toBe("AgentRootAlreadyOpen");

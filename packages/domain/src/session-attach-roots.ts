@@ -1,8 +1,4 @@
-import {
-	Database,
-	type StoredAgentSession,
-	type WriteExecutors,
-} from "@antumbra/persistence";
+import { Database, type StoredAgentSession } from "@antumbra/persistence";
 import { type Cause, Data, Effect, Option } from "effect";
 import { isRootSession } from "#session-roots.ts";
 
@@ -53,12 +49,10 @@ const rootedOrRefused = (
 // impossible.
 export const makeRefuseSubsessionAttach = Effect.gen(function* () {
 	const db = yield* Database;
-	const executors = yield* Effect.context<WriteExecutors>();
 	return (sessionId: string) =>
 		db.AgentSession.where({ id: sessionId })
 			.first()
 			.pipe(
-				Effect.provideContext(executors),
 				Effect.catchCause((cause) => unreadable(sessionId, cause)),
 				Effect.flatMap((row) => rootedOrRefused(sessionId, row)),
 			);

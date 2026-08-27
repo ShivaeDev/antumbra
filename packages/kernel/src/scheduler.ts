@@ -1,72 +1,7 @@
-import { Database, Writer } from "@antumbra/persistence";
-import {
-	Cause,
-	Clock,
-	Deferred,
-	Effect,
-	Exit,
-	Option,
-	PubSub,
-	Queue,
-	Ref,
-	Schema,
-} from "effect";
-import { IntentNotFound } from "#errors.ts";
-import { type IntentEvent, IntentStatusSchema, transition } from "#fsm.ts";
-import type { IntentChange } from "#kernel.ts";
+import { Cause, Deferred, Effect, Exit, Option, Ref } from "effect";
 import { SchedulerState } from "#state.ts";
+import { applyTransition } from "#transitions.ts";
 import { intentWaitCause } from "#wait-cause.ts";
-
-// why: every status write is a read-transition-update against the FSM table
-// inside the single write lane, so concurrent transitions serialize and an
-// illegal move can never reach the row.
-export const transitionRow = (
-	id: string,
-	event: IntentEvent,
-	detail?: string,
-) =>
-	Effect.gen(function* () {
-		const db = yield* Database;
-		const row = yield* db.Intent.where({ id }).first();
-		if (Option.isNone(row)) {
-			return yield* new IntentNotFound({ id });
-		}
-		const current = yield* Effect.orDie(
-			Schema.decodeUnknownEffect(IntentStatusSchema)(row.value.status),
-		);
-		const status = yield* Effect.fromResult(transition(current, event));
-		const now = yield* Clock.currentTimeMillis;
-		// why: detail is the last thing the intent had to say — the reason it
-		// waited, the cause it failed on, the note reclaim left. A move that
-		// carries none has nothing to add, so it leaves that record standing;
-		// writing null on every move is how a failure reason went missing
-		// between the write and whoever came to read it.
-		const written = { status, updatedAt: new Date(now) };
-		yield* db.Intent.where({ id }).update(
-			detail === undefined ? written : { ...written, detail },
-		);
-		return { id, status };
-	});
-
-export const announce = (change: IntentChange) =>
-	Effect.gen(function* () {
-		const state = yield* SchedulerState;
-		yield* Ref.set(state.lastChangeAt, yield* Clock.currentTimeMillis);
-		yield* PubSub.publish(state.pubsub, change);
-		yield* Queue.offer(state.tick, undefined);
-	});
-
-export const applyTransition = (
-	id: string,
-	event: IntentEvent,
-	detail?: string,
-) =>
-	Effect.gen(function* () {
-		const writer = yield* Writer;
-		const change = yield* writer.write(transitionRow(id, event, detail));
-		yield* announce(change);
-		return change;
-	});
 
 const settleInterrupt = (id: string) =>
 	applyTransition(id, "interrupt").pipe(

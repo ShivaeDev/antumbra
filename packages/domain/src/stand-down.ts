@@ -1,6 +1,6 @@
 import { bind, standDownSpec } from "@antumbra/agent-tools";
 import { DomainFeeds } from "@antumbra/domain-feeds";
-import { Database, type WriteExecutors, Writer } from "@antumbra/persistence";
+import { Database } from "@antumbra/persistence";
 import type { DirectTool } from "@antumbra/plugin-api";
 import { SessionFabric } from "@antumbra/session-fabric";
 import {
@@ -18,7 +18,6 @@ const standDown = (identity: SessionIdentity) =>
 		const db = yield* Database;
 		const fabric = yield* SessionFabric;
 		const feeds = yield* DomainFeeds;
-		const writer = yield* Writer;
 		const session = yield* db.AgentSession.where({
 			id: identity.sessionId,
 		}).first();
@@ -49,13 +48,15 @@ const standDown = (identity: SessionIdentity) =>
 					"stand-down",
 				),
 			);
-			yield* writer.write(
-				db.AgentSession.where({ id: identity.sessionId }).update({
-					executionStatus: next,
-				}),
-			);
-			yield* feeds.publishFleetRefresh();
-			yield* feeds.publishVoyageRefresh();
+			const updated = yield* db.AgentSession.where({
+				executionStatus: session.value.executionStatus,
+				id: identity.sessionId,
+				status: "open",
+			}).update({ executionStatus: next });
+			if (updated !== null) {
+				yield* feeds.publishFleetRefresh();
+				yield* feeds.publishVoyageRefresh();
+			}
 		}
 		// why: declaring there is nothing to do is not asking to be put away. The
 		// acquisition stays open and listening so the admiral's next words reach
@@ -77,15 +78,9 @@ export const StandDownLive = Layer.effect(StandDown)(
 		const db = yield* Database;
 		const fabric = yield* SessionFabric;
 		const feeds = yield* DomainFeeds;
-		const writer = yield* Writer;
-		const executors = yield* Effect.context<WriteExecutors>();
-		const context = Context.merge(
-			executors,
-			Context.make(Database, db).pipe(
-				Context.add(DomainFeeds, feeds),
-				Context.add(SessionFabric, fabric),
-				Context.add(Writer, writer),
-			),
+		const context = Context.make(Database, db).pipe(
+			Context.add(DomainFeeds, feeds),
+			Context.add(SessionFabric, fabric),
 		);
 		return StandDown.of({
 			tool: (identity) =>

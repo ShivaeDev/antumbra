@@ -1,8 +1,4 @@
-import {
-	Database,
-	type StoredAgentSession,
-	type WriteExecutors,
-} from "@antumbra/persistence";
+import { Database, type StoredAgentSession } from "@antumbra/persistence";
 import { SessionEventJournal } from "@antumbra/session-event-journal";
 import type { AgentEvent } from "@antumbra/vocabulary/session-events";
 import { Effect, Option } from "effect";
@@ -48,9 +44,7 @@ export const makeSessionNodeReconciler = Effect.gen(function* () {
 	const audits = yield* makeSessionTreeAudits;
 	const ledger = yield* makeSessionTreeLedger;
 	const rows = yield* makeSessionTreeRows;
-	const executors = yield* Effect.context<WriteExecutors>();
 	const spawners = db.Agent.all().pipe(
-		Effect.provideContext(executors),
 		Effect.map((all) =>
 			Option.some<ReadonlyMap<string, Spawner>>(
 				new Map(all.map((agent) => [agent.id, agent])),

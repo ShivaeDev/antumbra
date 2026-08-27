@@ -2,7 +2,6 @@ import { Effect, Layer } from "effect";
 import { applyMigrations } from "#adapters/migrator.ts";
 import type { DatabaseFilePath } from "#data-dir.ts";
 import { Database } from "#database.ts";
-import { WriterLive } from "#writer.ts";
 
 export interface PersistenceOptions {
 	readonly artifactsRoot: string;
@@ -14,12 +13,8 @@ export interface PersistenceOptions {
 // connect-time pragmas, so the database layer is unwrapped from the
 // migration effect instead of being merged beside it.
 export const PersistenceLive = (options: PersistenceOptions) =>
-	WriterLive.pipe(
-		Layer.provideMerge(
-			Layer.unwrap(
-				Effect.map(applyMigrations(options), () =>
-					Database.layer({ path: options.database }),
-				),
-			),
+	Layer.unwrap(
+		Effect.map(applyMigrations(options), () =>
+			Database.layer({ path: options.database }),
 		),
 	);

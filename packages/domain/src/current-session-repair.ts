@@ -14,44 +14,42 @@ export const makeCurrentSessionRepair = Effect.gen(function* () {
 	const db = yield* Database;
 	return (currentSessionId: string | null, plan: CurrentSessionReconcilePlan) =>
 		Effect.gen(function* () {
-			yield* Effect.forEach(
+			const reclaimed = yield* Effect.forEach(
 				plan.agentsToReclaim,
 				(reclaimed) =>
-					db.Agent.where({ id: reclaimed.agentId }).update({
+					db.Agent.where({
+						currentSessionId: null,
+						id: reclaimed.agentId,
+						status: reclaimed.fromStatus,
+					}).update({
 						currentSessionId: null,
 						status: reclaimed.status,
 					}),
-				{ discard: true },
 			);
-			yield* Effect.forEach(
-				plan.pointers,
-				(pointer) =>
-					db.Agent.where({
-						currentSessionId: null,
-						id: pointer.agentId,
-					}).update({ currentSessionId: pointer.currentSessionId }),
-				{ discard: true },
+			const pointed = yield* Effect.forEach(plan.pointers, (pointer) =>
+				db.Agent.where({
+					currentSessionId: pointer.fromCurrentSessionId,
+					id: pointer.agentId,
+				}).update({ currentSessionId: pointer.currentSessionId }),
 			);
-			yield* Effect.forEach(
-				plan.sessionsToClose,
-				(id) => db.AgentSession.where({ id }).update({ status: "closed" }),
-				{ discard: true },
+			const closed = yield* Effect.forEach(plan.sessionsToClose, (id) =>
+				db.AgentSession.where({ id, status: "open" }).update({
+					status: "closed",
+				}),
 			);
-			yield* Effect.forEach(
+			const settled = yield* Effect.forEach(
 				plan.executionsToSettle,
 				(settled) =>
 					db.AgentSession.where({
 						executionStatus: "draining",
 						id: settled.sessionId,
 					}).update({ executionStatus: settled.executionStatus }),
-				{ discard: true },
+			);
+			const changed = [...reclaimed, ...pointed, ...closed, ...settled].some(
+				(row) => row !== null,
 			);
 			return {
-				changed:
-					plan.agentsToReclaim.length > 0 ||
-					plan.executionsToSettle.length > 0 ||
-					plan.pointers.length > 0 ||
-					plan.sessionsToClose.length > 0,
+				changed,
 				currentSessionId:
 					currentSessionId ?? plan.pointers[0]?.currentSessionId ?? null,
 			} satisfies CurrentSessionRepair;

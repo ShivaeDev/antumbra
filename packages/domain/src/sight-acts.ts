@@ -18,7 +18,6 @@ import { Effect } from "effect";
 import { AgentDomain } from "#agent-domain-service.ts";
 import { SessionMessageEmpty } from "#errors.ts";
 import { retirePieceCrew } from "#retire-crew.ts";
-import { writeProvider } from "#sight-executors.ts";
 import { toFailure } from "#sight-failure.ts";
 import { makeSituationDraft } from "#situation-draft.ts";
 
@@ -54,7 +53,6 @@ export const makeSightActs = Effect.gen(function* () {
 	const domain = yield* AgentDomain;
 	const kernel = yield* Kernel;
 	const inputs = yield* SessionInputs;
-	const provide = yield* writeProvider;
 	const draft = yield* makeSituationDraft;
 
 	return {
@@ -65,17 +63,15 @@ export const makeSightActs = Effect.gen(function* () {
 		registerRepo: (registration) =>
 			domain.repos.register(registration).pipe(Effect.mapError(toFailure)),
 		retire: (agentId) =>
-			provide(kernel.submit(domain.retire, { agentId })).pipe(
-				Effect.asVoid,
+			kernel
+				.submit(domain.retire, { agentId })
+				.pipe(Effect.asVoid, Effect.mapError(toFailure)),
+		retireCrew: (pieceId) =>
+			retirePieceCrew(domain.retire, pieceId).pipe(
+				Effect.provideService(Database, db),
+				Effect.provideService(Kernel, kernel),
 				Effect.mapError(toFailure),
 			),
-		retireCrew: (pieceId) =>
-			provide(
-				retirePieceCrew(domain.retire, pieceId).pipe(
-					Effect.provideService(Database, db),
-					Effect.provideService(Kernel, kernel),
-				),
-			).pipe(Effect.mapError(toFailure)),
 		// why: the admiral speaks to a Session that is live right now; a Session
 		// with no attachment refuses rather than holding the words for later.
 		send: (sessionId, text) =>
@@ -107,26 +103,23 @@ export const makeSightActs = Effect.gen(function* () {
 		// about a moment that has already passed, and the Intent is where the
 		// question gets asked of the present.
 		sleep: (sessionId) =>
-			provide(kernel.submit(domain.siesta, { sessionId })).pipe(
-				Effect.asVoid,
-				Effect.mapError(toFailure),
-			),
+			kernel
+				.submit(domain.siesta, { sessionId })
+				.pipe(Effect.asVoid, Effect.mapError(toFailure)),
 		spawn: (request) =>
 			Effect.gen(function* () {
 				const agentId = crypto.randomUUID();
 				const sessionId = crypto.randomUUID();
-				yield* provide(
-					kernel.submit(domain.spawn, {
-						agentId,
-						backend: request.backend,
-						charter: request.charter,
-						role: request.role,
-						// why: the sole runner in v1 — the field joins the contract when
-						// a second runner exists to choose between.
-						runner: "local",
-						sessionId,
-					}),
-				);
+				yield* kernel.submit(domain.spawn, {
+					agentId,
+					backend: request.backend,
+					charter: request.charter,
+					role: request.role,
+					// why: the sole runner in v1 — the field joins the contract when
+					// a second runner exists to choose between.
+					runner: "local",
+					sessionId,
+				});
 				return { agentId, sessionId };
 			}).pipe(Effect.mapError(toFailure)),
 	} satisfies SightActs;

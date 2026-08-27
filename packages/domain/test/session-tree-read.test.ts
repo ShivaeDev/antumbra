@@ -1,5 +1,5 @@
 import { SightSource } from "@antumbra/contract";
-import { Database, type NewAgentSession, Writer } from "@antumbra/persistence";
+import { Database, type NewAgentSession } from "@antumbra/persistence";
 import type { TemporaryPersistence } from "@antumbra/persistence/testing";
 import { expect, it } from "@effect/vitest";
 import { Effect, Layer, Option, Stream } from "effect";
@@ -45,25 +45,22 @@ const openNode = (
 ) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
-		const writer = yield* Writer;
-		yield* writer.write(
-			db.AgentSession.create({
-				agentId,
-				backend: "scripted",
-				charterDeliveredAt: null,
-				completeness: fields.completeness,
-				cwd: `/tmp/moorage/${agentId}`,
-				executionStatus: "active",
-				id,
-				kind: fields.kind,
-				label: fields.label,
-				nativeRef: `native-${id}`,
-				outcome: fields.outcome,
-				parentSessionId: parent.parentSessionId,
-				rootSessionId: parent.rootSessionId,
-				status: fields.status,
-			} satisfies NewAgentSession),
-		);
+		yield* db.AgentSession.create({
+			agentId,
+			backend: "scripted",
+			charterDeliveredAt: null,
+			completeness: fields.completeness,
+			cwd: `/tmp/moorage/${agentId}`,
+			executionStatus: "active",
+			id,
+			kind: fields.kind,
+			label: fields.label,
+			nativeRef: `native-${id}`,
+			outcome: fields.outcome,
+			parentSessionId: parent.parentSessionId,
+			rootSessionId: parent.rootSessionId,
+			status: fields.status,
+		} satisfies NewAgentSession);
 	});
 
 const rooted = (rootSessionId: string) => ({

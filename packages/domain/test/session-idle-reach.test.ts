@@ -1,6 +1,6 @@
 import { SightSource } from "@antumbra/contract";
 import { Kernel } from "@antumbra/kernel";
-import { Database, type NewAgentSession, Writer } from "@antumbra/persistence";
+import { Database, type NewAgentSession } from "@antumbra/persistence";
 import { SessionInputId } from "@antumbra/vocabulary/session-input";
 import { expect, it } from "@effect/vitest";
 import { Effect, Option } from "effect";
@@ -178,25 +178,22 @@ it.live("a send addressed at a subsession is still refused", () =>
 		yield* Effect.gen(function* () {
 			const db = yield* Database;
 			const sight = yield* SightSource;
-			const writer = yield* Writer;
 			yield* spawned;
 			yield* openedNatively(scripted);
-			yield* writer.write(
-				db.AgentSession.create({
-					agentId: HAND.agentId,
-					backend: "scripted",
-					createdAt: new Date(2),
-					cwd: "/tmp/agent-idle",
-					executionStatus: "active",
-					id: "session-idle-child",
-					kind: "task",
-					label: "sound the reef",
-					nativeRef: "native-idle-child",
-					parentSessionId: HAND.sessionId,
-					rootSessionId: HAND.sessionId,
-					status: "open",
-				} satisfies NewAgentSession),
-			);
+			yield* db.AgentSession.create({
+				agentId: HAND.agentId,
+				backend: "scripted",
+				createdAt: new Date(2),
+				cwd: "/tmp/agent-idle",
+				executionStatus: "active",
+				id: "session-idle-child",
+				kind: "task",
+				label: "sound the reef",
+				nativeRef: "native-idle-child",
+				parentSessionId: HAND.sessionId,
+				rootSessionId: HAND.sessionId,
+				status: "open",
+			} satisfies NewAgentSession);
 			const refused = yield* Effect.flip(
 				sight.send("session-idle-child", "answer me directly"),
 			);

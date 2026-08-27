@@ -1,8 +1,4 @@
-import {
-	Database,
-	type PrismaError,
-	type WriteExecutors,
-} from "@antumbra/persistence";
+import { Database, type PrismaError } from "@antumbra/persistence";
 import type {
 	SessionInput,
 	SessionInputImagePart,
@@ -68,7 +64,7 @@ const storedPart = (
 ): Effect.Effect<
 	SessionInputImagePart | SessionInputTextPart,
 	PrismaError | SessionInputCustodyFailed | StoredSessionInputInvalid,
-	Context.Service.Identifier<typeof Database> | WriteExecutors
+	Context.Service.Identifier<typeof Database>
 > => {
 	if (
 		part.kind === "text" &&
@@ -98,7 +94,7 @@ export const readStoredInput = (
 	| SessionInputCustodyFailed
 	| SessionInputNotFound
 	| StoredSessionInputInvalid,
-	Context.Service.Identifier<typeof Database> | WriteExecutors
+	Context.Service.Identifier<typeof Database>
 > =>
 	Effect.gen(function* () {
 		const db = yield* Database;

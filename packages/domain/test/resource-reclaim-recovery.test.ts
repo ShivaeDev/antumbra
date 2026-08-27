@@ -1,4 +1,4 @@
-import { Database, type NewAgentSession, Writer } from "@antumbra/persistence";
+import { Database, type NewAgentSession } from "@antumbra/persistence";
 import { type Runner, RunnerFailure } from "@antumbra/plugin-api";
 import { expect, it } from "@effect/vitest";
 import { Effect, Option, Ref } from "effect";
@@ -20,10 +20,10 @@ interface ResourceSeed {
 const seedResource = (seed: ResourceSeed) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
-		const writer = yield* Writer;
 		const berthId = `${seed.agentId}:berth-0`;
-		yield* writer.write(
+		yield* db.transaction(
 			Effect.gen(function* () {
+				yield* Database;
 				yield* db.Agent.create({
 					charter: `keep ${seed.agentId} truthful`,
 					id: seed.agentId,
@@ -199,12 +199,9 @@ it.live("an unknown durable claim word holds every external effect", () =>
 		}).pipe(Effect.provide(temporary.layer));
 		yield* Effect.gen(function* () {
 			const db = yield* Database;
-			const writer = yield* Writer;
-			yield* writer.write(
-				db.Berth.where({ agentId: "agent-unknown-claim" }).update({
-					reclaimState: "future-claim",
-				}),
-			);
+			yield* db.Berth.where({ agentId: "agent-unknown-claim" }).update({
+				reclaimState: "future-claim",
+			});
 		}).pipe(Effect.provide(temporary.layer));
 		const runner: Runner = {
 			...passiveRunner,

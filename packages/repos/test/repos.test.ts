@@ -1,5 +1,5 @@
 import { DomainFeeds, DomainFeedsLive } from "@antumbra/domain-feeds";
-import { Writer } from "@antumbra/persistence";
+import { Database } from "@antumbra/persistence";
 import { persistenceIt } from "@antumbra/persistence/testing";
 import { Repos, ReposLive, repoName, repoSlug } from "@antumbra/repos";
 import { expect } from "@effect/vitest";
@@ -9,6 +9,59 @@ import { it } from "vitest";
 const persistence = persistenceIt();
 const layer = ReposLive.pipe(Layer.provideMerge(DomainFeedsLive));
 const OBSERVED = new Date("2026-08-17T00:00:00.000Z");
+
+const seedChangeGraph = (repoId: string) =>
+	Effect.gen(function* () {
+		const db = yield* Database;
+		yield* db.transaction(
+			Effect.gen(function* () {
+				yield* Database;
+				yield* db.Change.create({
+					activityAt: OBSERVED,
+					baseRef: "main",
+					body: "",
+					checks: "none",
+					draftAt: null,
+					externalId: "1",
+					headRef: "work/reef",
+					headSha: null,
+					host: "scripted",
+					id: "change-1",
+					landedAt: null,
+					mergeable: "clean",
+					observedAt: OBSERVED,
+					openedByAgentId: null,
+					originSessionId: null,
+					preparedHeadRef: null,
+					preparedHeadSha: null,
+					proposalFrozenAt: null,
+					raw: null,
+					repoId,
+					review: "none",
+					stage: "open",
+					submissionKey: null,
+					title: "change-1",
+					url: null,
+					withdrawnAt: null,
+					workingDiff: null,
+					workingTreeStatus: null,
+					worktreePath: null,
+				});
+				yield* db.ChangeTransition.create({
+					activityAt: OBSERVED,
+					changeId: "change-1",
+					fromStage: "prepared",
+					id: "transition-1",
+					observedAt: OBSERVED,
+					toStage: "open",
+				});
+				yield* db.PieceChange.create({
+					changeId: "change-1",
+					pieceId: "piece-1",
+				});
+			}),
+		);
+	});
 
 it("derives the existing registration name from local and remote sources", () => {
 	expect(repoName("/somewhere/reef.git/")).toBe("reef");
@@ -87,7 +140,6 @@ persistence.effectDB(
 			Effect.gen(function* () {
 				const feeds = yield* DomainFeeds;
 				const repos = yield* Repos;
-				const writer = yield* Writer;
 				const fleetNotices = yield* feeds.subscribeFleetRefresh();
 				const voyageNotices = yield* feeds.subscribeVoyageRefresh();
 				const repo = yield* repos.register({
@@ -95,53 +147,7 @@ persistence.effectDB(
 					source: "/reefs/one",
 				});
 				yield* PubSub.take(fleetNotices);
-				yield* writer.write(
-					Effect.all([
-						db.Change.create({
-							activityAt: OBSERVED,
-							baseRef: "main",
-							body: "",
-							checks: "none",
-							draftAt: null,
-							externalId: "1",
-							headRef: "work/reef",
-							headSha: null,
-							host: "scripted",
-							id: "change-1",
-							landedAt: null,
-							mergeable: "clean",
-							observedAt: OBSERVED,
-							openedByAgentId: null,
-							originSessionId: null,
-							preparedHeadRef: null,
-							preparedHeadSha: null,
-							proposalFrozenAt: null,
-							raw: null,
-							repoId: repo.id,
-							review: "none",
-							stage: "open",
-							submissionKey: null,
-							title: "change-1",
-							url: null,
-							withdrawnAt: null,
-							workingDiff: null,
-							workingTreeStatus: null,
-							worktreePath: null,
-						}),
-						db.ChangeTransition.create({
-							activityAt: OBSERVED,
-							changeId: "change-1",
-							fromStage: "prepared",
-							id: "transition-1",
-							observedAt: OBSERVED,
-							toStage: "open",
-						}),
-						db.PieceChange.create({
-							changeId: "change-1",
-							pieceId: "piece-1",
-						}),
-					]),
-				);
+				yield* seedChangeGraph(repo.id);
 
 				yield* repos.forget(repo.id);
 

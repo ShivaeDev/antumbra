@@ -1,4 +1,4 @@
-import { Database, type WriteExecutors } from "@antumbra/persistence";
+import { Database } from "@antumbra/persistence";
 import type { AgentPrompt } from "@antumbra/prompts";
 import { SessionFabric } from "@antumbra/session-fabric";
 import { decodeStoredAgentSessionStatus } from "@antumbra/vocabulary/agent-runtime";
@@ -41,14 +41,10 @@ export const makeSessionSend = (imageInputBackends: ReadonlySet<string>) =>
 		// against, so it reads that bound here — where the Intent that enforces it
 		// reads its own — rather than from whatever fiber happens to run the watch.
 		const patience = yield* SessionWakePatience;
-		const executors = yield* Effect.context<WriteExecutors>();
-		const provide = <A, E>(effect: Effect.Effect<A, E, WriteExecutors>) =>
-			Effect.provideContext(effect, executors);
 		const watch = (sessionId: string, wake: SessionRouse) =>
 			Effect.forkIn(
 				watchWake(sessionId, wake, patience).pipe(
 					Effect.provideService(Database, db),
-					provide,
 				),
 				scope,
 			);
@@ -64,9 +60,7 @@ export const makeSessionSend = (imageInputBackends: ReadonlySet<string>) =>
 			);
 		const open = (sessionId: string) =>
 			Effect.gen(function* () {
-				const session = yield* provide(
-					db.AgentSession.where({ id: sessionId }).first(),
-				);
+				const session = yield* db.AgentSession.where({ id: sessionId }).first();
 				if (Option.isNone(session)) {
 					return yield* new SessionNotFound({ sessionId });
 				}

@@ -1,4 +1,4 @@
-import { Database, Writer } from "@antumbra/persistence";
+import { Database } from "@antumbra/persistence";
 import { expect, it } from "@effect/vitest";
 import { Effect, Option } from "effect";
 import { AgentDomain } from "#domain.ts";
@@ -23,7 +23,6 @@ it.live("a boot frees a Piece its Agent can no longer work", () =>
 
 		const held = yield* Effect.gen(function* () {
 			const db = yield* Database;
-			const writer = yield* Writer;
 			const domain = yield* AgentDomain;
 			const voyage = yield* openReefVoyage;
 			const piece = yield* domain.voyages.charterPiece({
@@ -35,16 +34,18 @@ it.live("a boot frees a Piece its Agent can no longer work", () =>
 				voyageId: voyage.id,
 			});
 			yield* domain.voyages.launch(piece.id);
-			yield* writer.write(
-				db.Agent.create({
-					charter: "sound the shallows",
-					currentSessionId: null,
-					id: STRANDED,
-					role: "hand",
-					status: "alive",
-				}).pipe(
-					Effect.andThen(
-						db.PieceAgent.create({ agentId: STRANDED, pieceId: piece.id }),
+			yield* db.transaction(
+				Database.use(() =>
+					db.Agent.create({
+						charter: "sound the shallows",
+						currentSessionId: null,
+						id: STRANDED,
+						role: "hand",
+						status: "alive",
+					}).pipe(
+						Effect.andThen(
+							db.PieceAgent.create({ agentId: STRANDED, pieceId: piece.id }),
+						),
 					),
 				),
 			);

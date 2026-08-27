@@ -1,4 +1,4 @@
-import { Database, Writer } from "@antumbra/persistence";
+import { Database } from "@antumbra/persistence";
 import { ensureAgentResourcesUnclaimed } from "@antumbra/resource-reclamation";
 import { Clock, Effect, Option } from "effect";
 import { changeRow } from "#change-read.ts";
@@ -26,33 +26,33 @@ export const freezeProposal = (
 ) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
-		const writer = yield* Writer;
 		const now = yield* Clock.currentTimeMillis;
-		return yield* writer.write(
-			Effect.gen(function* () {
-				const row = yield* requireStoredChange(changeId);
-				if (row.openedByAgentId !== null) {
-					yield* ensureAgentResourcesUnclaimed(row.openedByAgentId);
-				}
-				if (row.proposalFrozenAt !== null) {
-					return row;
-				}
-				const frozen = {
-					...row,
-					baseRef: proposal.base ?? defaultRef,
-					body: proposal.body,
-					draftAt: proposal.draft ? new Date(now) : null,
-					proposalFrozenAt: new Date(now),
-					title: proposal.title,
-				};
-				yield* db.Change.where({ id: row.id }).update({
-					baseRef: frozen.baseRef,
-					body: frozen.body,
-					draftAt: frozen.draftAt,
-					proposalFrozenAt: frozen.proposalFrozenAt,
-					title: frozen.title,
-				});
-				return frozen;
-			}),
-		);
+		return yield* Effect.gen(function* () {
+			const row = yield* requireStoredChange(changeId);
+			if (row.openedByAgentId !== null) {
+				yield* ensureAgentResourcesUnclaimed(row.openedByAgentId);
+			}
+			if (row.proposalFrozenAt !== null) {
+				return row;
+			}
+			const frozen = {
+				...row,
+				baseRef: proposal.base ?? defaultRef,
+				body: proposal.body,
+				draftAt: proposal.draft ? new Date(now) : null,
+				proposalFrozenAt: new Date(now),
+				title: proposal.title,
+			};
+			const updated = yield* db.Change.where({
+				id: row.id,
+				proposalFrozenAt: null,
+			}).update({
+				baseRef: frozen.baseRef,
+				body: frozen.body,
+				draftAt: frozen.draftAt,
+				proposalFrozenAt: frozen.proposalFrozenAt,
+				title: frozen.title,
+			});
+			return updated === null ? yield* requireStoredChange(changeId) : frozen;
+		});
 	});

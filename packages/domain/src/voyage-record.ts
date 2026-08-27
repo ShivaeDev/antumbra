@@ -1,8 +1,4 @@
-import {
-	Database,
-	type PrismaError,
-	type WriteExecutors,
-} from "@antumbra/persistence";
+import { Database, type PrismaError } from "@antumbra/persistence";
 import { type Context, Effect, Option } from "effect";
 import { VoyageNotFound } from "#errors.ts";
 import type { VoyageRow } from "#voyage-rows.ts";
@@ -12,7 +8,7 @@ export const requireVoyage = (
 ): Effect.Effect<
 	VoyageRow,
 	PrismaError | VoyageNotFound,
-	Context.Service.Identifier<typeof Database> | WriteExecutors
+	Context.Service.Identifier<typeof Database>
 > =>
 	Database.pipe(
 		Effect.flatMap((db) => db.Voyage.where({ id: voyageId }).first()),

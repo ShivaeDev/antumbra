@@ -61,8 +61,8 @@ catalogs:
       specifier: 1.2.16
       version: 1.2.16
     '@shivaedev/effect-prisma':
-      specifier: 0.5.3
-      version: 0.5.3
+      specifier: 0.6.0
+      version: 0.6.0
     '@shivaedev/effect-trpc':
       specifier: 0.3.2
       version: 0.3.2
@@ -804,7 +804,7 @@ importers:
         version: 0.15.0(@typescript/typescript6@6.0.2)(typanion@3.14.0)
       '@shivaedev/effect-prisma':
         specifier: 'catalog:'
-        version: 0.5.3(@effect/vitest@4.0.0-rc.108(effect@4.0.0-rc.108)(vitest@4.1.9(@types/node@24.10.1)(happy-dom@20.11.2)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0))))(@typescript/typescript6@6.0.2)(effect@4.0.0-rc.108)(typanion@3.14.0)
+        version: 0.6.0(@effect/vitest@4.0.0-rc.108(effect@4.0.0-rc.108)(vitest@4.1.9(@types/node@24.10.1)(happy-dom@20.11.2)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0))))(@typescript/typescript6@6.0.2)(effect@4.0.0-rc.108)(typanion@3.14.0)
       effect:
         specifier: 'catalog:'
         version: 4.0.0-rc.108
@@ -2802,8 +2802,8 @@ packages:
   '@rolldown/pluginutils@1.0.1':
     resolution: {integrity: sha512-2j9bGt5Jh8hj+vPtgzPtl72j0yRxHAyumoo6TNfAjsLB04UtpSvPbPcDcBMxz7n+9CYB0c1GxQFxYRg2jimqGw==}
 
-  '@shivaedev/effect-prisma@0.5.3':
-    resolution: {integrity: sha512-JGx/Lqk1uGwA0tKX/M2WBA7EQNFAML2T0fWS3AyRkiYDa+kzc3f833LC07BcOhlj3f7EZzIEHU8nL+ECr4eWaA==}
+  '@shivaedev/effect-prisma@0.6.0':
+    resolution: {integrity: sha512-eRLlOzxNsxQmY+0djQ1r6oPnIM/daS+RkB9s6PWM7x35IOwGK7vx7zmU+B76sYLIZTLCwX6J1zIQsz5JtcRuPQ==}
     engines: {node: '>=24'}
     hasBin: true
     peerDependencies:
@@ -7245,7 +7245,7 @@ snapshots:
 
   '@rolldown/pluginutils@1.0.1': {}
 
-  '@shivaedev/effect-prisma@0.5.3(@effect/vitest@4.0.0-rc.108(effect@4.0.0-rc.108)(vitest@4.1.9(@types/node@24.10.1)(happy-dom@20.11.2)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0))))(@typescript/typescript6@6.0.2)(effect@4.0.0-rc.108)(typanion@3.14.0)':
+  '@shivaedev/effect-prisma@0.6.0(@effect/vitest@4.0.0-rc.108(effect@4.0.0-rc.108)(vitest@4.1.9(@types/node@24.10.1)(happy-dom@20.11.2)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0))))(@typescript/typescript6@6.0.2)(effect@4.0.0-rc.108)(typanion@3.14.0)':
     dependencies:
       '@prisma-next/contract': 0.15.0(@typescript/typescript6@6.0.2)
       '@prisma-next/postgres': 0.15.0(@typescript/typescript6@6.0.2)(typanion@3.14.0)

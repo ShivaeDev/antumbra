@@ -1,4 +1,4 @@
-import { Database, Writer } from "@antumbra/persistence";
+import { Database } from "@antumbra/persistence";
 import type { Runner } from "@antumbra/plugin-api";
 import { expect, it } from "@effect/vitest";
 import { Deferred, Effect, Fiber, Option, Result } from "effect";
@@ -18,36 +18,38 @@ const BERTH_ID = `${AGENT_ID}:berth-0`;
 
 const seedRetiredBerth = Effect.gen(function* () {
 	const db = yield* Database;
-	const writer = yield* Writer;
-	yield* writer.write(
-		Effect.all([
-			db.Agent.create({
-				charter: "preserve cleanup ownership",
-				id: AGENT_ID,
-				role: "keeper",
-				status: "retired",
-			}),
-			db.Moorage.create({
-				agentId: AGENT_ID,
-				reclaimState: null,
-				root: `/tmp/moorage/${AGENT_ID}`,
-				runner: "local",
-				status: "ready",
-			}),
-			db.Berth.create({
-				agentId: AGENT_ID,
-				branch: `work/${AGENT_ID}/berth-0`,
-				id: BERTH_ID,
-				path: `/tmp/moorage/${AGENT_ID}/berth-0`,
-				reclaimState: null,
-				ref: "main",
-				runner: "local",
-				slug: "berth-0",
-				source: REEF_SOURCE,
-				status: "ready",
-				strandedAt: null,
-			}),
-		]),
+	yield* db.transaction(
+		Effect.gen(function* () {
+			yield* Database;
+			yield* Effect.all([
+				db.Agent.create({
+					charter: "preserve cleanup ownership",
+					id: AGENT_ID,
+					role: "keeper",
+					status: "retired",
+				}),
+				db.Moorage.create({
+					agentId: AGENT_ID,
+					reclaimState: null,
+					root: `/tmp/moorage/${AGENT_ID}`,
+					runner: "local",
+					status: "ready",
+				}),
+				db.Berth.create({
+					agentId: AGENT_ID,
+					branch: `work/${AGENT_ID}/berth-0`,
+					id: BERTH_ID,
+					path: `/tmp/moorage/${AGENT_ID}/berth-0`,
+					reclaimState: null,
+					ref: "main",
+					runner: "local",
+					slug: "berth-0",
+					source: REEF_SOURCE,
+					status: "ready",
+					strandedAt: null,
+				}),
+			]);
+		}),
 	);
 });
 

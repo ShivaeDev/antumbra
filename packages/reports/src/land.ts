@@ -1,10 +1,5 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
-import {
-	Database,
-	type PrismaError,
-	type WriteExecutors,
-	Writer,
-} from "@antumbra/persistence";
+import { Database, type PrismaError } from "@antumbra/persistence";
 import { type PieceNotFound, verifyPieceExists } from "@antumbra/pieces";
 import { type Context, Effect } from "effect";
 import type { ReportInput, ReportRow } from "#model.ts";
@@ -29,18 +24,15 @@ export const landReport = Effect.fn("reports.landReport")(function* (
 	PieceNotFound | PrismaError,
 	| Context.Service.Identifier<typeof Database>
 	| Context.Service.Identifier<typeof DomainFeeds>
-	| WriteExecutors
-	| Writer
 > {
 	const feeds = yield* DomainFeeds;
-	const writer = yield* Writer;
 	const row: ReportRow = {
 		authorAgentId: input.authorAgentId ?? null,
 		body: input.body,
 		id: crypto.randomUUID(),
 		title: input.title,
 	};
-	yield* writer.write(writeReport(row, input.pieceId));
+	yield* writeReport(row, input.pieceId);
 	yield* feeds.publishVoyageRefresh();
 	return row;
 });

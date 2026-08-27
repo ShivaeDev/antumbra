@@ -1,5 +1,5 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
-import { Writer } from "@antumbra/persistence";
+import { Database } from "@antumbra/persistence";
 import { Effect } from "effect";
 import { plannedEdges, writeEdges } from "#edges.ts";
 import { verifyPieceExists } from "#rows.ts";
@@ -9,10 +9,11 @@ export const setDependencies = (
 	dependsOn: ReadonlyArray<string>,
 ) =>
 	Effect.gen(function* () {
+		const db = yield* Database;
 		const feeds = yield* DomainFeeds;
-		const writer = yield* Writer;
-		yield* writer.write(
+		yield* db.transaction(
 			Effect.gen(function* () {
+				yield* Database;
 				yield* verifyPieceExists(pieceId);
 				const edges = yield* plannedEdges(pieceId, dependsOn);
 				yield* writeEdges(pieceId, edges);

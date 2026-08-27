@@ -1,5 +1,5 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
-import { Database, type WriteExecutors, Writer } from "@antumbra/persistence";
+import { Database } from "@antumbra/persistence";
 import {
 	Clock,
 	Context,
@@ -92,24 +92,18 @@ export const ResourceReconcilerLive = (
 			const feeds = yield* DomainFeeds;
 			const heldResourceRead = yield* HeldResourceRead;
 			const runners = yield* ResourceReclaimRunners;
-			const writer = yield* Writer;
-			const executors = yield* Effect.context<WriteExecutors>();
-			const context = Context.merge(
-				executors,
-				Context.make(Database, db).pipe(
-					Context.add(DomainFeeds, feeds),
-					Context.add(HeldResourceRead, heldResourceRead),
-					Context.add(ResourceReclaimRunners, runners),
-					Context.add(Writer, writer),
-				),
-			);
 			const gate = yield* Semaphore.make(1);
 			const health = yield* Ref.make<ResourceReclamationHealth>({
 				state: "checking",
 			});
 			const tick = yield* Queue.sliding<void>(1);
 			const reconcile = gate.withPermits(1)(
-				guardedPass(health).pipe(Effect.provideContext(context)),
+				guardedPass(health).pipe(
+					Effect.provideService(Database, db),
+					Effect.provideService(DomainFeeds, feeds),
+					Effect.provideService(HeldResourceRead, heldResourceRead),
+					Effect.provideService(ResourceReclaimRunners, runners),
+				),
 			);
 			const service = ResourceReconciler.of({
 				health: Ref.get(health),

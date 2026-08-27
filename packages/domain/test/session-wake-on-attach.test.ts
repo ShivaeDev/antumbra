@@ -1,5 +1,5 @@
 import { Kernel } from "@antumbra/kernel";
-import { Database, Writer } from "@antumbra/persistence";
+import { Database } from "@antumbra/persistence";
 import { expect, it } from "@effect/vitest";
 import { Effect, Option, Ref } from "effect";
 import { AgentDomain } from "#domain.ts";
@@ -32,12 +32,9 @@ const executionStatusOf = (sessionId: string) =>
 const sleep = (sessionId: string) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
-		const writer = yield* Writer;
-		yield* writer.write(
-			db.AgentSession.where({ id: sessionId }).update({
-				executionStatus: "idle",
-			}),
-		);
+		yield* db.AgentSession.where({ id: sessionId }).update({
+			executionStatus: "idle",
+		});
 	});
 
 it.live("a Session wakes when its resume attaches, and not before", () =>

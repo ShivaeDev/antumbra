@@ -1,5 +1,5 @@
 import { DomainFeedsLive } from "@antumbra/domain-feeds";
-import { Database, type PrismaError, Writer } from "@antumbra/persistence";
+import { Database, type PrismaError } from "@antumbra/persistence";
 import {
 	acquireTemporaryPersistence,
 	type TemporaryPersistence,
@@ -60,15 +60,16 @@ it.live("reads held evidence through the caller transaction executor", () =>
 		const temporary = yield* acquireTemporaryPersistence;
 		yield* Effect.gen(function* () {
 			const db = yield* Database;
-			const writer = yield* Writer;
 			const read = yield* repoHeldResourceRead;
-			const held = yield* writer.write(
-				db.Repo.create({
-					defaultRef: "main",
-					id: "repo-transaction",
-					name: "transaction",
-					source: "/repo/transaction",
-				}).pipe(Effect.andThen(read.held([TRANSACTION_RESOURCE]))),
+			const held = yield* db.transaction(
+				Database.use(() =>
+					db.Repo.create({
+						defaultRef: "main",
+						id: "repo-transaction",
+						name: "transaction",
+						source: "/repo/transaction",
+					}).pipe(Effect.andThen(read.held([TRANSACTION_RESOURCE]))),
+				),
 			);
 			expect(held.get("berth-transaction")).toBe("held");
 		}).pipe(Effect.provide(temporary.layer));

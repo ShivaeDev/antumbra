@@ -1,5 +1,5 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
-import { Database, Writer } from "@antumbra/persistence";
+import { Database } from "@antumbra/persistence";
 import { Effect, Option } from "effect";
 import { ChangeNotFound, ChangeStillAlive } from "#errors.ts";
 
@@ -20,8 +20,21 @@ const landVerdict = (changeId: string) =>
 		if (Option.isSome(standing)) {
 			return false;
 		}
-		yield* db.ChangeVerdict.create({ changeId, verdict: "dismissed" });
-		return true;
+		return yield* db.ChangeVerdict.create({
+			changeId,
+			verdict: "dismissed",
+		}).pipe(
+			Effect.as(true),
+			Effect.catchTag("PrismaError", (failure) =>
+				db.ChangeVerdict.where({ changeId })
+					.exists()
+					.pipe(
+						Effect.flatMap((exists) =>
+							exists ? Effect.succeed(false) : Effect.fail(failure),
+						),
+					),
+			),
+		);
 	});
 
 // why: the terminal acknowledgement a dead change never had. It settles what
@@ -31,8 +44,7 @@ const landVerdict = (changeId: string) =>
 export const dismissChange = (changeId: string) =>
 	Effect.gen(function* () {
 		const feeds = yield* DomainFeeds;
-		const writer = yield* Writer;
-		const landed = yield* writer.write(landVerdict(changeId));
+		const landed = yield* landVerdict(changeId);
 		if (landed) {
 			yield* feeds.publishVoyageRefresh();
 		}

@@ -1,5 +1,5 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
-import { type WriteExecutors, Writer } from "@antumbra/persistence";
+import { Database } from "@antumbra/persistence";
 import type { AgentEvent } from "@antumbra/vocabulary/session-events";
 import { Context, Effect, Layer } from "effect";
 import { type JournalAppend, makeJournalAppends } from "#journal-append.ts";
@@ -11,7 +11,7 @@ export interface JournalWrite<E> {
 	// The sessionEvent foreign key refuses an event whose Session has no row, so
 	// the rows go first and inside the same transaction — either the node exists
 	// and its opening is in the log, or neither ever happened.
-	readonly rows: Effect.Effect<void, E, WriteExecutors>;
+	readonly rows: Effect.Effect<void, E, never>;
 }
 
 export class SessionEventJournal extends Context.Service<
@@ -30,15 +30,18 @@ export class SessionEventJournal extends Context.Service<
 export const SessionEventJournalLive = Layer.effect(
 	SessionEventJournal,
 	Effect.gen(function* () {
+		const db = yield* Database;
 		const feeds = yield* DomainFeeds;
-		const writer = yield* Writer;
-		const executors = yield* Effect.context<WriteExecutors>();
 		const appendAll = yield* makeJournalAppends;
 		const throughput = yield* makeJournalThroughput;
 		const appendAndAnnounce = <E>(write: JournalWrite<E>) =>
 			Effect.gen(function* () {
-				const stored = yield* writer.write(
-					Effect.andThen(write.rows, appendAll(write.appends)),
+				const stored = yield* db.transaction(
+					Effect.gen(function* () {
+						yield* Database;
+						yield* write.rows;
+						return yield* appendAll(write.appends);
+					}),
 				);
 				yield* Effect.forEach(stored, (row) => feeds.publishSessionEvent(row), {
 					discard: true,
@@ -48,11 +51,7 @@ export const SessionEventJournalLive = Layer.effect(
 			throughput.measure(
 				write.appends.length,
 				appendAndAnnounce(write).pipe(
-					Effect.provideContext(executors),
 					Effect.as(true),
-					// why: one failed append must not end the pump; sequence allocation
-					// and insert shared one transaction, so a failure leaves no hidden
-					// gap.
 					Effect.catchCause((cause) =>
 						Effect.logError(
 							"event append failed",

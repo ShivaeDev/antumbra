@@ -1,11 +1,11 @@
-import { Database, Writer } from "@antumbra/persistence";
+import { Database } from "@antumbra/persistence";
 import { expect, it } from "@effect/vitest";
 import { Effect, Option, Schema, Stream } from "effect";
 import type { IntentStatus } from "#fsm.ts";
 import { defineIntent } from "#intent.ts";
 import { Kernel } from "#kernel.ts";
-import { transitionRow } from "#scheduler.ts";
 import { acquireTemporaryPersistence, kernelLayer } from "#test/harness.ts";
+import { transitionRow } from "#transitions.ts";
 import { IntentExecution } from "#workflow.ts";
 
 const EMPTY = Schema.Struct({});
@@ -29,30 +29,25 @@ it.live("a move that carries no detail leaves the last reason standing", () =>
 		const temporary = yield* acquireTemporaryPersistence;
 		yield* Effect.gen(function* () {
 			const db = yield* Database;
-			const writer = yield* Writer;
-			yield* writer.write(
-				db.Intent.create({
-					detail: LOCKED,
-					id: "intent-detail",
-					payload: "{}",
-					status: "waiting",
-					tag: "test/detail",
-				}),
-			);
+			yield* db.Intent.create({
+				detail: LOCKED,
+				id: "intent-detail",
+				payload: "{}",
+				status: "waiting",
+				tag: "test/detail",
+			});
 
-			yield* writer.write(transitionRow("intent-detail", "retry"));
+			yield* transitionRow("intent-detail", "retry");
 			const queued = yield* rowOf("intent-detail");
 			expect(queued.status).toBe("queued");
 			expect(queued.detail).toBe(LOCKED);
 
-			yield* writer.write(transitionRow("intent-detail", "admit"));
+			yield* transitionRow("intent-detail", "admit");
 			const running = yield* rowOf("intent-detail");
 			expect(running.status).toBe("running");
 			expect(running.detail).toBe(LOCKED);
 
-			yield* writer.write(
-				transitionRow("intent-detail", "fail", "the key is bent"),
-			);
+			yield* transitionRow("intent-detail", "fail", "the key is bent");
 			const failed = yield* rowOf("intent-detail");
 			expect(failed.status).toBe("failed");
 			expect(failed.detail).toBe("the key is bent");

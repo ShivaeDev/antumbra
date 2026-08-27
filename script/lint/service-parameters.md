@@ -6,11 +6,10 @@ TypeScript program and follows symbol identity, generic constraints, inferred
 parameters, factory returns, interfaces, aliases, and destructuring so a new
 spelling or wrapper around an old dependency does not evade the rule.
 
-It recognizes Effect `Context.Service` and `Context.Tag` classes, database
-service/executor types, non-empty `Context.Context` values, and structural
-`write` capabilities backed by `WriteExecutors`. An `Effect` or `Stream` whose
-environment mentions a service is a computation, not a manually passed service
-value, and is not debt by itself.
+It recognizes Effect `Context.Service` and `Context.Tag` classes, the database
+service type, and non-empty `Context.Context` values. An `Effect` or `Stream`
+whose environment mentions a service is a computation, not a manually passed
+service value, and is not debt by itself.
 
 `service-parameter-allowance.json` freezes the exact debt that existed when the
 guard landed and never changes. `service-parameter-baseline.json` starts as the

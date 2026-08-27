@@ -7,7 +7,7 @@ import { nodeContextVerdict } from "#lint/rules/service-context-verdict.ts";
 import { canonicalSymbol } from "#lint/rules/service-symbol.ts";
 import { nodeIsComputation } from "#lint/rules/service-type-kinds.ts";
 
-const SERVICE_NAMES = new Set(["DatabaseService", "WriteExecutors"]);
+const SERVICE_NAMES = new Set(["DatabaseService"]);
 const COMPUTATIONS = ["Effect", "Stream"] as const;
 
 const presentTypeNode = (node: ts.TypeNode | undefined): node is ts.TypeNode =>

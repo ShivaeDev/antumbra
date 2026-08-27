@@ -1,4 +1,4 @@
-import { Database, Writer } from "@antumbra/persistence";
+import { Database } from "@antumbra/persistence";
 import {
 	Clock,
 	Context,
@@ -18,8 +18,8 @@ import type { AnyIntentKind, IntentKind } from "#intent.ts";
 import { changesFor } from "#intent-changes.ts";
 import { type IntentChange, type IntentSubmission, Kernel } from "#kernel.ts";
 import { reclaim } from "#reclaim.ts";
-import { announce, transitionRow } from "#scheduler.ts";
 import { SchedulerState } from "#state.ts";
+import { announce, transitionRow } from "#transitions.ts";
 
 export interface KernelOptions {
 	readonly gates?: ReadonlyArray<Gate>;
@@ -41,24 +41,20 @@ const submitIntent = <Payload>(
 		const encoded = yield* kind.encode(payload);
 		const id = yield* nextId;
 		const db = yield* Database;
-		const writer = yield* Writer;
-		yield* writer.write(
-			db.Intent.create({
-				detail: null,
-				id,
-				payload: encoded,
-				status: "queued",
-				tag: kind.tag,
-			}),
-		);
+		yield* db.Intent.create({
+			detail: null,
+			id,
+			payload: encoded,
+			status: "queued",
+			tag: kind.tag,
+		});
 		yield* announce({ id, status: "queued" });
 		return { changes: changes(id), id };
 	});
 
 const cancelIntent = (id: string) =>
 	Effect.gen(function* () {
-		const writer = yield* Writer;
-		const change = yield* writer.write(transitionRow(id, "cancel"));
+		const change = yield* transitionRow(id, "cancel");
 		yield* announce(change);
 		if (change.status === "cancelling") {
 			const { running } = yield* SchedulerState;
@@ -71,8 +67,7 @@ const cancelIntent = (id: string) =>
 
 const retryIntent = (id: string) =>
 	Effect.gen(function* () {
-		const writer = yield* Writer;
-		const change = yield* writer.write(transitionRow(id, "retry"));
+		const change = yield* transitionRow(id, "retry");
 		yield* announce(change);
 	});
 
@@ -98,7 +93,6 @@ export const KernelLive = (options: KernelOptions) =>
 			};
 			const context = Context.make(SchedulerState, state).pipe(
 				Context.add(Database, yield* Database),
-				Context.add(Writer, yield* Writer),
 			);
 			const changes = (id: string) =>
 				changesFor(id).pipe(Stream.provideContext(context));

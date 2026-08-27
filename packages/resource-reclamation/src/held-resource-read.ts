@@ -1,4 +1,3 @@
-import type { WriteExecutors } from "@antumbra/persistence";
 import { Context, type Effect } from "effect";
 
 export interface HeldResource {
@@ -10,7 +9,7 @@ export interface HeldResource {
 export interface HeldResourceRead<E> {
 	readonly held: (
 		resources: ReadonlyArray<HeldResource>,
-	) => Effect.Effect<ReadonlyMap<string, string>, E, WriteExecutors>;
+	) => Effect.Effect<ReadonlyMap<string, string>, E, never>;
 }
 
 export const HeldResourceRead = Context.Service<HeldResourceRead<unknown>>(

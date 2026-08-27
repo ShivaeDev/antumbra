@@ -1,23 +1,28 @@
-import { Effect } from "effect";
+import { Effect, Option } from "effect";
 import { Database } from "#database.ts";
-import { Writer } from "#writer.ts";
 
 export const ensureInstallMarker = Effect.gen(function* () {
 	const db = yield* Database;
-	const writer = yield* Writer;
-	return yield* writer.write(
-		Effect.gen(function* () {
-			const meta = db.AppMeta;
-			const existing = yield* meta.where({ key: "install_id" }).all();
-			const current = existing[0];
-			if (current !== undefined) {
-				return current.value;
-			}
-			const created = yield* meta.create({
-				key: "install_id",
-				value: crypto.randomUUID(),
-			});
-			return created.value;
-		}),
+	const meta = db.AppMeta;
+	const existing = yield* meta.where({ key: "install_id" }).first();
+	if (Option.isSome(existing)) {
+		return existing.value.value;
+	}
+	const value = crypto.randomUUID();
+	return yield* meta.create({ key: "install_id", value }).pipe(
+		Effect.as(value),
+		Effect.catchTag("PrismaError", (failure) =>
+			meta
+				.where({ key: "install_id" })
+				.first()
+				.pipe(
+					Effect.flatMap(
+						Option.match({
+							onNone: () => Effect.fail(failure),
+							onSome: (row) => Effect.succeed(row.value),
+						}),
+					),
+				),
+		),
 	);
 });

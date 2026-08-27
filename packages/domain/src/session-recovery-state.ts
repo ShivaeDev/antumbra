@@ -1,4 +1,4 @@
-import { Database, type WriteExecutors } from "@antumbra/persistence";
+import { Database } from "@antumbra/persistence";
 import {
 	decodeStoredAgentStatus,
 	decodeStoredBerthStatus,
@@ -15,12 +15,9 @@ const heldInvalid = (failure: { readonly message: string }) =>
 export const makeSessionRecoveryState = Effect.gen(function* () {
 	const db = yield* Database;
 	const currentSession = yield* makeCurrentSessionRecovery;
-	const executors = yield* Effect.context<WriteExecutors>();
-	const provide = <A, E>(effect: Effect.Effect<A, E, WriteExecutors>) =>
-		Effect.provideContext(effect, executors);
 	const aliveAgent = (agentId: string) =>
 		Effect.gen(function* () {
-			const agent = yield* provide(db.Agent.where({ id: agentId }).first());
+			const agent = yield* db.Agent.where({ id: agentId }).first();
 			if (Option.isNone(agent)) {
 				return Result.fail<SessionUnresumable>({ _tag: "no-agent", agentId });
 			}
@@ -37,7 +34,7 @@ export const makeSessionRecoveryState = Effect.gen(function* () {
 		});
 	const ensureMoorage = (agentId: string, cwd: string, sessionId: string) =>
 		Effect.gen(function* () {
-			const moorage = yield* provide(db.Moorage.where({ agentId }).first());
+			const moorage = yield* db.Moorage.where({ agentId }).first();
 			if (Option.isNone(moorage)) {
 				return yield* recoveryHeld(
 					`${sessionId} is waiting for its ready Moorage`,
@@ -54,7 +51,7 @@ export const makeSessionRecoveryState = Effect.gen(function* () {
 		});
 	const ensureBerths = (agentId: string, sessionId: string) =>
 		Effect.gen(function* () {
-			const berths = yield* provide(db.Berth.where({ agentId }).all());
+			const berths = yield* db.Berth.where({ agentId }).all();
 			const statuses = yield* Effect.forEach(berths, (berth) =>
 				Effect.fromResult(decodeStoredBerthStatus(berth.id, berth.status)).pipe(
 					Effect.mapError(heldInvalid),

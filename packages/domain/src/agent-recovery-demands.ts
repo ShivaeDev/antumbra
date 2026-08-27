@@ -1,6 +1,6 @@
 import { defineIntentDemand } from "@antumbra/intent-demand";
 import type { IntentKind } from "@antumbra/kernel";
-import { Database, type WriteExecutors } from "@antumbra/persistence";
+import { Database } from "@antumbra/persistence";
 import { SessionFabric } from "@antumbra/session-fabric";
 import {
 	decodeSessionExecutionStatus,
@@ -107,12 +107,10 @@ export const compileAgentRecoveryDemands = (
 		const db = yield* Database;
 		const fabric = yield* SessionFabric;
 		const live = yield* LiveDelegations;
-		const executors = yield* Effect.context<WriteExecutors>();
 		const discover = sessionDemands.pipe(
 			Effect.provideService(Database, db),
 			Effect.provideService(SessionFabric, fabric),
 			Effect.provideService(LiveDelegations, live),
-			Effect.provideContext(executors),
 		);
 		return [
 			defineIntentDemand({

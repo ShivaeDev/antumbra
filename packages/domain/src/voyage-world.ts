@@ -8,11 +8,7 @@ import {
 	type StoredChangeVerdictInvalid,
 	type StoredPieceChangeInvalid,
 } from "@antumbra/changes";
-import {
-	Database,
-	type PrismaError,
-	type WriteExecutors,
-} from "@antumbra/persistence";
+import { Database, type PrismaError } from "@antumbra/persistence";
 import {
 	readPieceVerdicts,
 	type StoredPieceVerdictInvalid,
@@ -58,7 +54,7 @@ export class VoyageWorldSource extends Context.Service<
 const voyageWorld: Effect.Effect<
 	VoyageWorld,
 	VoyageWorldReadFailure,
-	Changes | Context.Service.Identifier<typeof Database> | WriteExecutors
+	Changes | Context.Service.Identifier<typeof Database>
 > = Effect.gen(function* () {
 	const changeSnapshot = yield* Changes;
 	const db = yield* Database;
@@ -131,11 +127,9 @@ export const VoyageWorldSourceLive = Layer.effect(VoyageWorldSource)(
 	Effect.gen(function* () {
 		const changes = yield* Changes;
 		const db = yield* Database;
-		const executors = yield* Effect.context<WriteExecutors>();
 		const read = voyageWorld.pipe(
 			Effect.provideService(Changes, changes),
 			Effect.provideService(Database, db),
-			Effect.provideContext(executors),
 		);
 		return { read };
 	}),

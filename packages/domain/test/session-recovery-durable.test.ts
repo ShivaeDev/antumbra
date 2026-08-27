@@ -1,5 +1,5 @@
 import { Kernel } from "@antumbra/kernel";
-import { Database, Writer } from "@antumbra/persistence";
+import { Database } from "@antumbra/persistence";
 import {
 	allowTestSessionOpenedWrites,
 	rejectTestSessionOpenedWrites,
@@ -117,13 +117,10 @@ it.live(
 			);
 			const before = yield* Effect.gen(function* () {
 				const db = yield* Database;
-				const writer = yield* Writer;
-				yield* writer.write(
-					db.PieceAgent.create({
-						agentId: payload.agentId,
-						pieceId: "piece-other",
-					}),
-				);
+				yield* db.PieceAgent.create({
+					agentId: payload.agentId,
+					pieceId: "piece-other",
+				});
 				return yield* durableRows;
 			}).pipe(Effect.provide(temporary.layer));
 			yield* Effect.gen(function* () {

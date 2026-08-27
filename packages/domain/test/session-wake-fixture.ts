@@ -1,5 +1,5 @@
 import type { Fleet } from "@antumbra/contract";
-import { Database, Writer } from "@antumbra/persistence";
+import { Database } from "@antumbra/persistence";
 import type { TemporaryPersistence } from "@antumbra/persistence/testing";
 import type { AgentBackend, Runner, SessionInput } from "@antumbra/plugin-api";
 import { SessionFabricLive } from "@antumbra/session-fabric";
@@ -121,12 +121,9 @@ export const wakeChips = (fleet: Fleet) =>
 // the second: an asleep root nothing is already reaching for.
 export const asleep = Effect.gen(function* () {
 	const db = yield* Database;
-	const writer = yield* Writer;
-	yield* writer.write(
-		db.AgentSession.where({ id: payload.sessionId }).update({
-			executionStatus: "idle",
-		}),
-	);
+	yield* db.AgentSession.where({ id: payload.sessionId }).update({
+		executionStatus: "idle",
+	});
 });
 
 export const sleepingRoot = (temporary: TemporaryPersistence) =>

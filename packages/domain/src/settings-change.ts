@@ -5,7 +5,7 @@ import {
 	SettingRefused,
 	type SettingValue,
 } from "@antumbra/contract";
-import { Database, Writer } from "@antumbra/persistence";
+import { Database } from "@antumbra/persistence";
 import { Clock, Effect, Option } from "effect";
 import { readSettings } from "#settings-reading.ts";
 
@@ -29,7 +29,17 @@ const store = (key: SettingKey, value: SettingValue, now: number) =>
 			});
 			return;
 		}
-		yield* db.Setting.create({ key, value: encoded });
+		yield* db.Setting.create({ key, value: encoded }).pipe(
+			Effect.catchTag("PrismaError", (failure) =>
+				db.Setting.where({ key })
+					.update({ updatedAt: new Date(now), value: encoded })
+					.pipe(
+						Effect.flatMap((updated) =>
+							updated === null ? Effect.fail(failure) : Effect.void,
+						),
+					),
+			),
+		);
 	});
 
 const accept = (change: SettingChange) => {
@@ -46,8 +56,7 @@ const accept = (change: SettingChange) => {
 export const changeSetting = (change: SettingChange) =>
 	Effect.gen(function* () {
 		const value = yield* accept(change);
-		const writer = yield* Writer;
 		const now = yield* Clock.currentTimeMillis;
-		yield* writer.write(store(change.key, value, now));
+		yield* store(change.key, value, now);
 		return yield* readSettings;
 	});

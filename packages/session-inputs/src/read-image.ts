@@ -1,8 +1,4 @@
-import {
-	Database,
-	type PrismaError,
-	type WriteExecutors,
-} from "@antumbra/persistence";
+import { Database, type PrismaError } from "@antumbra/persistence";
 import { SessionImageMediaType } from "@antumbra/vocabulary/session-input";
 import { type Context, Effect, Option, Schema } from "effect";
 import { readImage } from "#adapters/custody.ts";
@@ -32,7 +28,7 @@ export const readStoredImage = (
 	| SessionInputCustodyFailed
 	| SessionInputNotFound
 	| StoredSessionInputInvalid,
-	Context.Service.Identifier<typeof Database> | WriteExecutors
+	Context.Service.Identifier<typeof Database>
 > =>
 	Effect.gen(function* () {
 		const db = yield* Database;

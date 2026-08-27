@@ -1,6 +1,6 @@
 import { SightSource } from "@antumbra/contract";
 import { Kernel } from "@antumbra/kernel";
-import { Database, Writer } from "@antumbra/persistence";
+import { Database } from "@antumbra/persistence";
 import { SessionFabric } from "@antumbra/session-fabric";
 import { expect, it } from "@effect/vitest";
 import { Effect, Fiber, Option, Ref, Stream } from "effect";
@@ -34,12 +34,9 @@ it.live("boot settles a drain whose process is gone, and a send wakes it", () =>
 		const { recorded, scripted } = yield* sleepingRoot(temporary);
 		yield* Effect.gen(function* () {
 			const db = yield* Database;
-			const writer = yield* Writer;
-			yield* writer.write(
-				db.AgentSession.where({ id: payload.sessionId }).update({
-					executionStatus: "draining",
-				}),
-			);
+			yield* db.AgentSession.where({ id: payload.sessionId }).update({
+				executionStatus: "draining",
+			});
 		}).pipe(Effect.provide(temporary.layer));
 		const backend = reportsNativeRef(scripted.backend, scripted, NATIVE);
 

@@ -70,7 +70,7 @@ const inferred = ({ db } = makeDeps()) => db;
 		const violations = check([
 			source(
 				`import type { Context as RuntimeContext } from "effect/Context";
-type WriteExecutors = { readonly transaction: true };
+type DatabaseService = { readonly query: () => void };
 type Runtime<R = never> = RuntimeContext<R>;
 type EmptyRuntime = RuntimeContext<never & { readonly token: string }>;
 type EmptyAlias = Runtime<never>;
@@ -79,7 +79,7 @@ declare const makeEmptyAlias: () => EmptyAlias;
 declare const makeRuntime: () => RuntimeContext<{ readonly token: string }>;
 const makeRuntimeAlias = makeRuntime;
 const runtimeAlias = makeRuntimeAlias();
-const use = <R extends WriteExecutors>(services: Runtime<R>) => services;
+const use = <R extends DatabaseService>(services: Runtime<R>) => services;
 const empty = (services: Runtime<never>) => services;
 const emptyDefault = (services: Runtime) => services;
 const emptyAlias = (services: EmptyRuntime) => services;
@@ -107,11 +107,11 @@ const renamed = (services: RuntimeContext<{ readonly token: string }>) => servic
 			check([
 				source(
 					`import { Effect as ProgramType } from "effect";
-type WriteExecutors = { readonly transaction: true };
+type DatabaseService = { readonly query: () => void };
 type Program<R> = ProgramType<void, never, R>;
-type Handler = () => Program<WriteExecutors>;
-interface Options { readonly execute: () => Program<WriteExecutors> }
-const execute = (program: Program<WriteExecutors>) => program;
+type Handler = () => Program<DatabaseService>;
+interface Options { readonly execute: () => Program<DatabaseService> }
+const execute = (program: Program<DatabaseService>) => program;
 const handle = (handler: Handler) => handler;
 const define = (options: Options) => options;
 `,

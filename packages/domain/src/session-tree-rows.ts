@@ -2,8 +2,6 @@ import {
 	Database,
 	type NewAgentSession,
 	type StoredAgentSession,
-	type WriteExecutors,
-	Writer,
 } from "@antumbra/persistence";
 import type { AgentEvent } from "@antumbra/vocabulary/session-events";
 import { Effect, Option } from "effect";
@@ -28,10 +26,6 @@ export interface NodeAdoption {
 
 export const makeSessionTreeRows = Effect.gen(function* () {
 	const db = yield* Database;
-	const writer = yield* Writer;
-	const executors = yield* Effect.context<WriteExecutors>();
-	const provide = <A, E>(effect: Effect.Effect<A, E, WriteExecutors>) =>
-		Effect.provideContext(effect, executors);
 	// why: a node inherits the Agent, the root and the workspace from the row
 	// that owns the tree rather than from anything the provider said, so a
 	// subsession can never be attributed to another Agent or rooted elsewhere.
@@ -70,7 +64,12 @@ export const makeSessionTreeRows = Effect.gen(function* () {
 			if (Option.isNone(row)) {
 				return;
 			}
-			yield* db.AgentSession.where({ id: sessionId }).update({
+			yield* db.AgentSession.where({
+				id: sessionId,
+				kind: row.value.kind,
+				label: row.value.label,
+				parentSessionId: row.value.parentSessionId,
+			}).update({
 				...(row.value.kind === null && adoption.kind !== undefined
 					? { kind: adoption.kind }
 					: {}),
@@ -85,17 +84,15 @@ export const makeSessionTreeRows = Effect.gen(function* () {
 	// name may still arrive, and filling a hole is not renaming: a label already
 	// written is what the record said this node was, and it stands.
 	const nameNode = (sessionId: string, label: string) =>
-		provide(
-			writer.write(
-				Effect.gen(function* () {
-					const row = yield* db.AgentSession.where({ id: sessionId }).first();
-					if (Option.isNone(row) || row.value.label !== null) {
-						return;
-					}
-					yield* db.AgentSession.where({ id: sessionId }).update({ label });
-				}),
-			),
-		).pipe(
+		Effect.gen(function* () {
+			const row = yield* db.AgentSession.where({ id: sessionId }).first();
+			if (Option.isNone(row) || row.value.label !== null) {
+				return;
+			}
+			yield* db.AgentSession.where({ id: sessionId, label: null }).update({
+				label,
+			});
+		}).pipe(
 			Effect.asVoid,
 			Effect.catchCause((cause) =>
 				Effect.logError(
@@ -108,34 +105,34 @@ export const makeSessionTreeRows = Effect.gen(function* () {
 	// why: written outside the journal's transaction on purpose — the fact being
 	// recorded is that the journal's own write failed, so it cannot travel on it.
 	const markIncomplete = (sessionId: string) =>
-		provide(
-			writer.write(
-				db.AgentSession.where({ id: sessionId }).update({
-					completeness: "incomplete",
-				}),
-			),
-		).pipe(
-			Effect.asVoid,
-			Effect.catchCause((cause) =>
-				Effect.logError(
-					"session completeness could not be marked incomplete",
-					{ sessionId },
-					cause,
+		db.AgentSession.where({ id: sessionId })
+			.update({
+				completeness: "incomplete",
+			})
+			.pipe(
+				Effect.asVoid,
+				Effect.catchCause((cause) =>
+					Effect.logError(
+						"session completeness could not be marked incomplete",
+						{ sessionId },
+						cause,
+					),
 				),
-			),
-		);
+			);
 	// why: a node inherits from a row that must already exist — the spawn wrote
 	// it before the stream was attached. A read that cannot answer is refusal,
 	// not absence: nothing is minted, so no node is rooted on a guess.
 	const rootRow = (sessionId: string) =>
-		provide(db.AgentSession.where({ id: sessionId }).first()).pipe(
-			Effect.catchCause((cause) =>
-				Effect.logError(
-					"the root Session of a subsession could not be read",
-					{ sessionId },
-					cause,
-				).pipe(Effect.as(Option.none<StoredAgentSession>())),
-			),
-		);
+		db.AgentSession.where({ id: sessionId })
+			.first()
+			.pipe(
+				Effect.catchCause((cause) =>
+					Effect.logError(
+						"the root Session of a subsession could not be read",
+						{ sessionId },
+						cause,
+					).pipe(Effect.as(Option.none<StoredAgentSession>())),
+				),
+			);
 	return { adoptNode, closeNode, markIncomplete, nameNode, openNode, rootRow };
 });

@@ -1,5 +1,5 @@
 import { BoardScope, EntryInput } from "@antumbra/boards";
-import { Database, Writer } from "@antumbra/persistence";
+import { Database } from "@antumbra/persistence";
 import { deleteTestAgent } from "@antumbra/persistence/testing";
 import { expect, it } from "@effect/vitest";
 import { Effect, Option } from "effect";
@@ -23,15 +23,12 @@ const withDomain = <A, E, R>(body: Effect.Effect<A, E, R>) =>
 const hand = (agentId: string) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
-		const writer = yield* Writer;
-		yield* writer.write(
-			db.Agent.create({
-				charter: "sound the shallows",
-				id: agentId,
-				role: "hand",
-				status: "alive",
-			}),
-		);
+		yield* db.Agent.create({
+			charter: "sound the shallows",
+			id: agentId,
+			role: "hand",
+			status: "alive",
+		});
 		return BoardScope.Agent({ agentId });
 	});
 
@@ -189,24 +186,21 @@ it.live("the log reads in its own order, not the clock's", () =>
 	withDomain(
 		Effect.gen(function* () {
 			const db = yield* Database;
-			const writer = yield* Writer;
 			const domain = yield* AgentDomain;
 			const voyage = yield* openReefVoyage;
 			const scope = BoardScope.Voyage({ voyageId: voyage.id });
 			const boardId = yield* domain.boards.ensure(scope);
 			const tied = new Date("2026-08-16T00:00:00.000Z");
 			yield* Effect.forEach([2, 1], (seq) =>
-				writer.write(
-					db.BoardEntry.create({
-						authorAgentId: null,
-						boardId,
-						body: `entry ${seq}`,
-						createdAt: tied,
-						id: `entry-${seq}`,
-						register: "smooth",
-						seq,
-					}),
-				),
+				db.BoardEntry.create({
+					authorAgentId: null,
+					boardId,
+					body: `entry ${seq}`,
+					createdAt: tied,
+					id: `entry-${seq}`,
+					register: "smooth",
+					seq,
+				}),
 			);
 			expect((yield* domain.boards.read(scope)).map((row) => row.body)).toEqual(
 				["entry 1", "entry 2"],
@@ -237,7 +231,6 @@ it.live("one board cannot be linked to owners of two different kinds", () =>
 	withDomain(
 		Effect.gen(function* () {
 			const db = yield* Database;
-			const writer = yield* Writer;
 			const domain = yield* AgentDomain;
 			const voyage = yield* openReefVoyage;
 			const agent = yield* hand("agent-1");
@@ -245,13 +238,11 @@ it.live("one board cannot be linked to owners of two different kinds", () =>
 				BoardScope.Voyage({ voyageId: voyage.id }),
 			);
 			const collision = yield* Effect.exit(
-				writer.write(
-					db.BoardOwner.create({
-						boardId,
-						ownerId: agent.agentId,
-						ownerKind: "agent",
-					}),
-				),
+				db.BoardOwner.create({
+					boardId,
+					ownerId: agent.agentId,
+					ownerKind: "agent",
+				}),
 			);
 			expect(collision._tag).toBe("Failure");
 			expect(yield* db.BoardOwner.all()).toMatchObject([

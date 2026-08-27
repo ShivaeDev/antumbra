@@ -1,5 +1,5 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
-import { Database, Writer } from "@antumbra/persistence";
+import { Database } from "@antumbra/persistence";
 import type { ChangeObservation } from "@antumbra/plugin-api";
 import {
 	ensureAgentResourcesUnclaimed,
@@ -36,20 +36,25 @@ export const applyObservations = (
 		return Effect.succeed([]);
 	}
 	return Effect.gen(function* () {
+		const db = yield* Database;
 		const feeds = yield* DomainFeeds;
-		const writer = yield* Writer;
 		const now = yield* Clock.currentTimeMillis;
-		const results = yield* writer.write(
-			Effect.forEach(
-				observations,
-				(observation) =>
-					ensureObservationUnclaimed(observation, attachment).pipe(
-						Effect.andThen(
-							reconcileObservation(hostTag, observation, now, attachment),
-						),
-					),
-				{ concurrency: 1 },
-			),
+		const results = yield* Effect.forEach(
+			observations,
+			(observation) =>
+				db.transaction(
+					Effect.gen(function* () {
+						yield* Database;
+						yield* ensureObservationUnclaimed(observation, attachment);
+						return yield* reconcileObservation(
+							hostTag,
+							observation,
+							now,
+							attachment,
+						);
+					}),
+				),
+			{ concurrency: 1 },
 		);
 		const reconciled = results.flatMap((result) =>
 			Option.isSome(result) ? [result.value] : [],

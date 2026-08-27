@@ -3,7 +3,7 @@ import {
 	isTerminalIntentStatus,
 	Kernel,
 } from "@antumbra/kernel";
-import { Database, Writer } from "@antumbra/persistence";
+import { Database } from "@antumbra/persistence";
 import { expect, it } from "@effect/vitest";
 import { Effect, Option, Result, Stream } from "effect";
 import { AgentDomain } from "#domain.ts";
@@ -27,53 +27,54 @@ const untilTerminal = <E, R>(changes: Stream.Stream<IntentStatus, E, R>) =>
 const seedAgentResources = (agentId: string, status: string) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
-		const writer = yield* Writer;
-		yield* writer.write(
-			Effect.all([
-				db.Agent.create({
-					charter: "claimed resources open no work",
-					id: agentId,
-					role: "keeper",
-					status,
-				}),
-				db.Moorage.create({
-					agentId,
-					reclaimState: null,
-					root: `/tmp/moorage/${agentId}`,
-					runner: "local",
-					status: "ready",
-				}),
-				db.Berth.create({
-					agentId,
-					branch: `work/${agentId}/berth-0`,
-					id: `${agentId}:berth-0`,
-					path: `/tmp/moorage/${agentId}/berth-0`,
-					reclaimState: null,
-					ref: "main",
-					runner: "local",
-					slug: "berth-0",
-					source: REEF_SOURCE,
-					status: "ready",
-					strandedAt: null,
-				}),
-			]),
+		yield* db.transaction(
+			Effect.gen(function* () {
+				yield* Database;
+				yield* Effect.all([
+					db.Agent.create({
+						charter: "claimed resources open no work",
+						id: agentId,
+						role: "keeper",
+						status,
+					}),
+					db.Moorage.create({
+						agentId,
+						reclaimState: null,
+						root: `/tmp/moorage/${agentId}`,
+						runner: "local",
+						status: "ready",
+					}),
+					db.Berth.create({
+						agentId,
+						branch: `work/${agentId}/berth-0`,
+						id: `${agentId}:berth-0`,
+						path: `/tmp/moorage/${agentId}/berth-0`,
+						reclaimState: null,
+						ref: "main",
+						runner: "local",
+						slug: "berth-0",
+						source: REEF_SOURCE,
+						status: "ready",
+						strandedAt: null,
+					}),
+				]);
+			}),
 		);
 	});
 
 const claimAgentResources = (agentId: string) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
-		const writer = yield* Writer;
-		yield* writer.write(
-			db.Moorage.where({ agentId })
-				.update({ reclaimState: "claimed" })
-				.pipe(
-					Effect.andThen(
-						db.Berth.where({ agentId }).update({
-							reclaimState: "claimed",
-						}),
-					),
-				),
+		yield* db.transaction(
+			Effect.gen(function* () {
+				yield* Database;
+				yield* db.Moorage.where({ agentId }).update({
+					reclaimState: "claimed",
+				});
+				yield* db.Berth.where({ agentId }).update({
+					reclaimState: "claimed",
+				});
+			}),
 		);
 	});
 

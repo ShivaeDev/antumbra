@@ -1,5 +1,5 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
-import { Database, type WriteExecutors, Writer } from "@antumbra/persistence";
+import { Database } from "@antumbra/persistence";
 import { Pieces } from "@antumbra/pieces";
 import type { ChangeHost, Runner } from "@antumbra/plugin-api";
 import { Context, Effect, Layer } from "effect";
@@ -32,17 +32,11 @@ export const ChangesLive = (
 			const feeds = yield* DomainFeeds;
 			const pieces = yield* Pieces;
 			const runnerRegistry = yield* RunnerRegistry;
-			const writer = yield* Writer;
-			const executors = yield* Effect.context<WriteExecutors>();
-			const context = Context.merge(
-				executors,
-				Context.make(Database, db).pipe(
-					Context.add(ChangeHostRegistry, changeHostRegistry),
-					Context.add(DomainFeeds, feeds),
-					Context.add(Pieces, pieces),
-					Context.add(RunnerRegistry, runnerRegistry),
-					Context.add(Writer, writer),
-				),
+			const context = Context.make(Database, db).pipe(
+				Context.add(ChangeHostRegistry, changeHostRegistry),
+				Context.add(DomainFeeds, feeds),
+				Context.add(Pieces, pieces),
+				Context.add(RunnerRegistry, runnerRegistry),
 			);
 			return Changes.of({
 				adopt: (input) => Effect.provide(adoptSubmittedChange(input), context),

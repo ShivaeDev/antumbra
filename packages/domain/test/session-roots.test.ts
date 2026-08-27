@@ -1,5 +1,5 @@
 import { SightSource } from "@antumbra/contract";
-import { Database, type NewAgentSession, Writer } from "@antumbra/persistence";
+import { Database, type NewAgentSession } from "@antumbra/persistence";
 import type { TemporaryPersistence } from "@antumbra/persistence/testing";
 import { SessionFabricLive } from "@antumbra/session-fabric";
 import { expect, it } from "@effect/vitest";
@@ -44,25 +44,22 @@ const openSubsession = (
 ) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
-		const writer = yield* Writer;
-		yield* writer.write(
-			db.AgentSession.create({
-				agentId,
-				backend: "scripted",
-				charterDeliveredAt: null,
-				completeness: "recording",
-				cwd: `/tmp/moorage/${agentId}`,
-				executionStatus: "active",
-				id,
-				kind: "task",
-				label: "delegated reef survey",
-				nativeRef: null,
-				outcome: null,
-				parentSessionId,
-				rootSessionId,
-				status: "open",
-			} satisfies NewAgentSession),
-		);
+		yield* db.AgentSession.create({
+			agentId,
+			backend: "scripted",
+			charterDeliveredAt: null,
+			completeness: "recording",
+			cwd: `/tmp/moorage/${agentId}`,
+			executionStatus: "active",
+			id,
+			kind: "task",
+			label: "delegated reef survey",
+			nativeRef: null,
+			outcome: null,
+			parentSessionId,
+			rootSessionId,
+			status: "open",
+		} satisfies NewAgentSession);
 	});
 
 it.live("the fleet lists root Sessions and never a subsession", () =>

@@ -1,6 +1,6 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { isTerminalIntentStatus, Kernel } from "@antumbra/kernel";
-import { Database, type WriteExecutors, Writer } from "@antumbra/persistence";
+import { Database } from "@antumbra/persistence";
 import {
 	decodeSessionExecutionStatus,
 	decodeStoredAgentSessionStatus,
@@ -16,53 +16,43 @@ export const makeSessionShutdownDrain = Effect.gen(function* () {
 	const domain = yield* AgentDomain;
 	const feeds = yield* DomainFeeds;
 	const kernel = yield* Kernel;
-	const writer = yield* Writer;
-	const executors = yield* Effect.context<WriteExecutors>();
-	const provide = <A, E>(effect: Effect.Effect<A, E, WriteExecutors>) =>
-		Effect.provideContext(effect, executors);
-	const markActiveSessionsDraining = provide(
-		writer.write(
-			Effect.gen(function* () {
-				const sessions = yield* db.AgentSession.where(rootSessions).all();
-				const draining: Array<string> = [];
-				for (const session of sessions) {
-					const status = yield* Effect.fromResult(
-						decodeStoredAgentSessionStatus(session.id, session.status),
-					);
-					if (status !== "open") {
-						continue;
-					}
-					const executionStatus = yield* Effect.fromResult(
-						decodeSessionExecutionStatus(session.id, session.executionStatus),
-					);
-					if (executionStatus === "idle") {
-						continue;
-					}
-					draining.push(session.id);
-					if (executionStatus === "active") {
-						yield* db.AgentSession.where({
-							executionStatus: "active",
-							id: session.id,
-							status: "open",
-						}).update({ executionStatus: "draining" });
-					}
-				}
-				return draining;
-			}),
-		),
-	);
+	const markActiveSessionsDraining = Effect.gen(function* () {
+		const sessions = yield* db.AgentSession.where(rootSessions).all();
+		const draining: Array<string> = [];
+		for (const session of sessions) {
+			const status = yield* Effect.fromResult(
+				decodeStoredAgentSessionStatus(session.id, session.status),
+			);
+			if (status !== "open") {
+				continue;
+			}
+			const executionStatus = yield* Effect.fromResult(
+				decodeSessionExecutionStatus(session.id, session.executionStatus),
+			);
+			if (executionStatus === "idle") {
+				continue;
+			}
+			draining.push(session.id);
+			if (executionStatus === "active") {
+				yield* db.AgentSession.where({
+					executionStatus: "active",
+					id: session.id,
+					status: "open",
+				}).update({ executionStatus: "draining" });
+			}
+		}
+		return draining;
+	});
 	const announce = Effect.all(
 		[feeds.publishFleetRefresh(), feeds.publishVoyageRefresh()],
 		{ concurrency: 1 },
 	).pipe(Effect.asVoid);
 	const waitForSiesta = (sessionId: string, intentId: string) =>
-		provide(
-			kernel.changes(intentId).pipe(
-				Stream.takeUntil(isTerminalIntentStatus),
-				Stream.runLast,
-				Effect.flatMap((status) =>
-					requireSiestaSucceeded(intentId, sessionId, status),
-				),
+		kernel.changes(intentId).pipe(
+			Stream.takeUntil(isTerminalIntentStatus),
+			Stream.runLast,
+			Effect.flatMap((status) =>
+				requireSiestaSucceeded(intentId, sessionId, status),
 			),
 		);
 	const drainOpenSessions = Effect.gen(function* () {
@@ -72,7 +62,7 @@ export const makeSessionShutdownDrain = Effect.gen(function* () {
 				return;
 			}
 			yield* announce;
-			const siestas = yield* provide(kernel.active(domain.siesta));
+			const siestas = yield* kernel.active(domain.siesta);
 			const drainSession = (sessionId: string) => {
 				const current = siestas.filter(
 					(intent) => intent.payload.sessionId === sessionId,
@@ -81,7 +71,7 @@ export const makeSessionShutdownDrain = Effect.gen(function* () {
 					const intents =
 						current.length > 0
 							? current
-							: [yield* provide(kernel.submit(domain.siesta, { sessionId }))];
+							: [yield* kernel.submit(domain.siesta, { sessionId })];
 					yield* Effect.forEach(
 						intents,
 						(intent) => waitForSiesta(sessionId, intent.id),

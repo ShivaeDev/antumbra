@@ -1,9 +1,4 @@
-import {
-	Database,
-	type PrismaError,
-	type WriteExecutors,
-	Writer,
-} from "@antumbra/persistence";
+import { Database, type PrismaError } from "@antumbra/persistence";
 import { type Context, Effect, Option } from "effect";
 import { publishImage } from "#adapters/custody.ts";
 import type {
@@ -88,9 +83,10 @@ export const storePreparedInput = (
 	| SessionInputConflict
 	| SessionInputCustodyFailed
 	| StoredSessionInputInvalid,
-	Context.Service.Identifier<typeof Database> | WriteExecutors | Writer
+	Context.Service.Identifier<typeof Database>
 > =>
 	Effect.gen(function* () {
+		const db = yield* Database;
 		for (const part of prepared.parts) {
 			if (part.type === "image") {
 				yield* publishImage(
@@ -101,6 +97,5 @@ export const storePreparedInput = (
 				);
 			}
 		}
-		const writer = yield* Writer;
-		return yield* writer.write(writeInput(prepared));
+		return yield* db.transaction(writeInput(prepared));
 	});

@@ -1,7 +1,7 @@
 import { SettingsSource } from "@antumbra/contract";
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Kernel } from "@antumbra/kernel";
-import { Database, type WriteExecutors } from "@antumbra/persistence";
+import { Database } from "@antumbra/persistence";
 import { Clock, Effect, Layer, Option, Queue, Ref } from "effect";
 import { AGENTS_ALIVE_GAUGE, AgentDomain } from "#agent-domain-service.ts";
 import { readyPieces } from "#dispatch-policy.ts";
@@ -103,7 +103,6 @@ export const DispatcherLive = (overrides: Partial<DispatcherOptions> = {}) =>
 			const feeds = yield* DomainFeeds;
 			const kernel = yield* Kernel;
 			const db = yield* Database;
-			const executors = yield* Effect.context<WriteExecutors>();
 			const state = yield* makeDispatchState;
 			const port: DispatchPort = {
 				patienceMillis: options.patienceMillis,
@@ -118,7 +117,6 @@ export const DispatcherLive = (overrides: Partial<DispatcherOptions> = {}) =>
 			yield* Effect.forkScoped(
 				dispatchLoop(port, options, aliveAgents).pipe(
 					Effect.provideService(Database, db),
-					Effect.provideContext(executors),
 				),
 			);
 			yield* Effect.forkScoped(

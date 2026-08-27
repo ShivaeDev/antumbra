@@ -1,4 +1,4 @@
-import { Option } from "effect";
+import { Effect, Option } from "effect";
 import type { LineProcess } from "#adapters/process.ts";
 
 // why: a test that needs codex to say something the standing answers do not
@@ -16,12 +16,17 @@ export interface FakeRequest {
 	readonly params: unknown;
 }
 
+interface FakeResponse {
+	readonly id: number | string;
+	readonly result: unknown;
+}
+
 export interface FakeAppServer {
 	readonly exit: () => void;
 	readonly notify: (method: string, params: unknown) => void;
 	readonly process: LineProcess;
 	readonly requests: FakeRequest[];
-	readonly responses: Array<{ id: number | string; result: unknown }>;
+	readonly responseById: (id: number | string) => Effect.Effect<unknown>;
 	readonly serverRequest: (id: number, method: string, params: unknown) => void;
 }
 
@@ -71,7 +76,23 @@ export const makeFakeAppServer = (
 		return turnCounter;
 	};
 	const requests: FakeRequest[] = [];
-	const responses: Array<{ id: number | string; result: unknown }> = [];
+	const responses: FakeResponse[] = [];
+	const responseWaiters = new Map<
+		number | string,
+		Array<(result: unknown) => void>
+	>();
+	const responseById = (id: number | string) =>
+		Effect.promise(() => {
+			const response = responses.find((candidate) => candidate.id === id);
+			if (response !== undefined) {
+				return Promise.resolve(response.result);
+			}
+			return new Promise<unknown>((resolve) => {
+				const waiting = responseWaiters.get(id) ?? [];
+				waiting.push(resolve);
+				responseWaiters.set(id, waiting);
+			});
+		});
 	const send = (message: Record<string, unknown>) =>
 		lineListener?.(JSON.stringify({ jsonrpc: "2.0", ...message }));
 	const receive = (line: string): void => {
@@ -83,6 +104,10 @@ export const makeFakeAppServer = (
 		if (typeof method !== "string") {
 			if (typeof id === "number" || typeof id === "string") {
 				responses.push({ id, result: message.result });
+				for (const resolve of responseWaiters.get(id) ?? []) {
+					resolve(message.result);
+				}
+				responseWaiters.delete(id);
 			}
 			return;
 		}
@@ -117,7 +142,7 @@ export const makeFakeAppServer = (
 		notify: (method, params) => send({ method, params }),
 		process,
 		requests,
-		responses,
+		responseById,
 		serverRequest: (id, method, params) => send({ id, method, params }),
 	};
 };

@@ -1,17 +1,11 @@
 import type { DirectTool } from "@antumbra/plugin-api";
 import { expect, it } from "@effect/vitest";
-import { Effect, Option, Ref, Schedule } from "effect";
+import { Effect, Option, Ref } from "effect";
 import { makeCodexServer } from "#server.ts";
-import { type FakeAppServer, makeFakeAppServer } from "#test/fake.ts";
+import { makeFakeAppServer } from "#test/fake.ts";
 import { openThreadSession } from "#thread.ts";
 
 const THREAD = "thread-1";
-
-const eventually = <A, E, R>(check: Effect.Effect<A, E, R>) =>
-	check.pipe(
-		Effect.catchDefect((defect) => Effect.fail(defect)),
-		Effect.retry(Schedule.spaced(5).pipe(Schedule.upTo({ duration: 2000 }))),
-	);
 
 const landReport = (calls: Ref.Ref<ReadonlyArray<unknown>>): DirectTool => ({
 	call: (args) =>
@@ -41,15 +35,6 @@ const openWithTools = (resume: Option.Option<string> = Option.none()) =>
 		});
 		return { calls, fake };
 	});
-
-const replied = (fake: FakeAppServer, id: number) =>
-	eventually(
-		Effect.sync(() => {
-			const reply = fake.responses.find((response) => response.id === id);
-			expect(reply, `no reply to ${id}`).toBeDefined();
-			return reply?.result;
-		}),
-	);
 
 it.live("a thread starts with the tools its session was opened with", () =>
 	Effect.gen(function* () {
@@ -84,7 +69,7 @@ it.live("a tool call runs the tool and answers with its outcome", () =>
 			tool: "land_report",
 			turnId: "turn-1",
 		});
-		expect(yield* replied(fake, 7)).toEqual({
+		expect(yield* fake.responseById(7)).toEqual({
 			contentItems: [{ text: "report landed", type: "inputText" }],
 			success: true,
 		});
@@ -104,7 +89,7 @@ it.live(
 				tool: "launch_the_boats",
 				turnId: "turn-1",
 			});
-			expect(yield* replied(fake, 8)).toMatchObject({ success: false });
+			expect(yield* fake.responseById(8)).toMatchObject({ success: false });
 		}),
 );
 
@@ -112,7 +97,7 @@ it.live("the clock the server reads is ours, in whole seconds", () =>
 	Effect.gen(function* () {
 		const { fake } = yield* openWithTools();
 		fake.serverRequest(9, "currentTime/read", { threadId: THREAD });
-		const answer = yield* replied(fake, 9);
+		const answer = yield* fake.responseById(9);
 		expect(answer).toMatchObject({ currentTimeAt: expect.any(Number) });
 	}),
 );
@@ -127,6 +112,6 @@ it.live("a resumed thread can still answer a call", () =>
 			tool: "land_report",
 			turnId: "turn-1",
 		});
-		expect(yield* replied(fake, 10)).toMatchObject({ success: true });
+		expect(yield* fake.responseById(10)).toMatchObject({ success: true });
 	}),
 );

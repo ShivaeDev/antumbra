@@ -8,7 +8,6 @@ import {
 	Fiber,
 	Option,
 	Queue,
-	Schedule,
 	Scope,
 	Stream,
 } from "effect";
@@ -18,12 +17,6 @@ import { textInput } from "#test/input.ts";
 import { openThreadSession } from "#thread.ts";
 
 const THREAD = "thread-1";
-
-const eventually = <A, E, R>(check: Effect.Effect<A, E, R>) =>
-	check.pipe(
-		Effect.catchDefect((defect) => Effect.fail(defect)),
-		Effect.retry(Schedule.spaced(5).pipe(Schedule.upTo({ duration: 2000 }))),
-	);
 
 const openFake = (resume: Option.Option<string> = Option.none()) =>
 	Effect.gen(function* () {
@@ -57,15 +50,6 @@ const turnCompleted = (fake: FakeAppServer, id: string, status = "completed") =>
 		turn: { durationMs: 12, id, items: [], status },
 	});
 
-const seen = (events: Queue.Queue<AgentEvent>, count: number) =>
-	eventually(
-		Queue.size(events).pipe(
-			Effect.flatMap((size) =>
-				size >= count ? Queue.takeAll(events) : Effect.fail("not yet"),
-			),
-		),
-	);
-
 it.live("the handshake runs, a thread opens, and session.opened names it", () =>
 	Effect.gen(function* () {
 		const { events, fake, handle } = yield* openFake();
@@ -76,7 +60,7 @@ it.live("the handshake runs, a thread opens, and session.opened names it", () =>
 			sandbox: "workspace-write",
 		});
 		expect(yield* handle.nativeRef).toEqual(Option.some(THREAD));
-		const [opened] = yield* seen(events, 1);
+		const opened = yield* Queue.take(events);
 		expect(opened?.type).toBe("session.opened");
 		expect(opened?.type === "session.opened" && opened.nativeRef).toBe(THREAD);
 	}),
@@ -93,7 +77,7 @@ it.live("resume hands the native ref back as threadId", () =>
 it.live("only this thread's notifications become events; items map", () =>
 	Effect.gen(function* () {
 		const { events, fake } = yield* openFake();
-		yield* seen(events, 1);
+		yield* Queue.take(events);
 		fake.notify("item/completed", {
 			item: { id: "msg", text: "pong", type: "agentMessage" },
 			threadId: "someone-else",
@@ -104,7 +88,7 @@ it.live("only this thread's notifications become events; items map", () =>
 			threadId: THREAD,
 			turnId: "t",
 		});
-		const [message] = yield* seen(events, 1);
+		const message = yield* Queue.take(events);
 		expect(message).toMatchObject({
 			role: "agent",
 			text: "pong",
@@ -148,7 +132,7 @@ it.live("queue settles only when its text reaches a provider turn", () =>
 it.live("queued words are said once, where codex reports taking them", () =>
 	Effect.gen(function* () {
 		const { events, fake, handle } = yield* openFake();
-		yield* seen(events, 1);
+		yield* Queue.take(events);
 		yield* handle.queue(textInput("sound the reef"));
 		expect(yield* Queue.size(events)).toBe(0);
 		fake.notify("item/completed", {
@@ -160,8 +144,13 @@ it.live("queued words are said once, where codex reports taking them", () =>
 			threadId: THREAD,
 			turnId: "turn-1",
 		});
-		expect(yield* seen(events, 1)).toMatchObject([
+		turnCompleted(fake, "turn-1");
+		expect([
+			yield* Queue.take(events),
+			yield* Queue.take(events),
+		]).toMatchObject([
 			{ role: "user", text: "sound the reef", type: "message" },
+			{ type: "turn.completed" },
 		]);
 	}),
 );
@@ -235,21 +224,15 @@ it.live("interrupt targets the active turn and is a no-op when idle", () =>
 it.live("a residual approval is declined and lands in the log as raw", () =>
 	Effect.gen(function* () {
 		const { events, fake } = yield* openFake();
-		yield* seen(events, 1);
+		yield* Queue.take(events);
 		fake.serverRequest(0, "item/commandExecution/requestApproval", {
 			command: "rm -rf /",
 			itemId: "call-1",
 			threadId: THREAD,
 			turnId: "turn-1",
 		});
-		yield* eventually(
-			Effect.sync(() => {
-				expect(fake.responses).toEqual([
-					{ id: 0, result: { decision: "decline" } },
-				]);
-			}),
-		);
-		const [asked] = yield* seen(events, 1);
+		expect(yield* fake.responseById(0)).toEqual({ decision: "decline" });
+		const asked = yield* Queue.take(events);
 		expect(asked?.type).toBe("raw");
 		expect(asked?.raw.kind).toBe("item/commandExecution/requestApproval");
 	}),

@@ -2,6 +2,7 @@ import type { SessionHandle } from "@antumbra/plugin-api";
 import type { AgentEvent } from "@antumbra/vocabulary/session-events";
 import { expect, it } from "@effect/vitest";
 import {
+	Deferred,
 	Effect,
 	Exit,
 	Fiber,
@@ -266,12 +267,18 @@ it.live(
 				sessionId: "session-1",
 				tools: [],
 			});
+			const turnRecorded = yield* Deferred.make<void>();
 			const collector = yield* handle.events.pipe(
+				Stream.tap((event) =>
+					event.type === "turn.completed"
+						? Deferred.succeed(turnRecorded, undefined)
+						: Effect.void,
+				),
 				Stream.runCollect,
 				Effect.forkScoped,
 			);
 			turnCompleted(fake, "turn-1", "interrupted");
-			yield* Effect.sleep(20);
+			yield* Deferred.await(turnRecorded);
 			fake.exit();
 			const events = yield* Fiber.join(collector);
 			expect(events.map((event) => event.type)).toEqual([

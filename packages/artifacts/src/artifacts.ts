@@ -3,6 +3,7 @@ import { Database } from "@antumbra/persistence";
 import { Context, Crypto, Effect, FileSystem, Layer, Path } from "effect";
 import type { ArtifactFailure } from "#errors.ts";
 import { landArtifact } from "#land.ts";
+import { commitArtifactLineage } from "#lineage/transaction.ts";
 import { deleteSupersession, writeSupersession } from "#lineage/write.ts";
 import type {
 	ArtifactInput,
@@ -54,7 +55,9 @@ export const ArtifactsLive = (root: string) =>
 				);
 			const supersede = (input: ArtifactSupersessionInput) =>
 				Effect.provide(
-					write(writeSupersession(input)).pipe(Effect.asVoid),
+					write(commitArtifactLineage(writeSupersession(input))).pipe(
+						Effect.asVoid,
+					),
 					context,
 				);
 			return {

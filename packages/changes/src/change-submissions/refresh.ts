@@ -13,7 +13,7 @@ export const watchableChanges = (hostTag: string) =>
 		return (yield* Effect.forEach(
 			yield* db.Change.where({ host: hostTag }).all(),
 			changeRow,
-		)).filter((row) => row.stage === "open" || row.stage === "withdrawn");
+		)).filter((row) => row.stage === "open");
 	});
 
 const changeRef = (

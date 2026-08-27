@@ -1,7 +1,7 @@
 import { Database } from "@antumbra/persistence";
 import type { Runner } from "@antumbra/plugin-api";
 import { expect, it } from "@effect/vitest";
-import { Deferred, Effect, Fiber, Option, Result } from "effect";
+import { Effect, Option, Ref, Result } from "effect";
 import { AgentDomain } from "#domain.ts";
 import { REEF_SOURCE, reefWithPiece } from "#test/change-fixtures.ts";
 import { domainKernelLayer } from "#test/domain-layers.ts";
@@ -54,39 +54,25 @@ const seedRetiredBerth = Effect.gen(function* () {
 });
 
 it.live(
-	"a durable cleanup claim excludes change preparation before runner effects",
+	"a terminal Agent cannot prepare new local work before reclamation claims it",
 	() =>
 		Effect.gen(function* () {
 			const temporary = yield* acquireTemporaryPersistence;
 			const backend = yield* makeScriptedBackend;
 			const host = yield* makeScriptedHost();
-			const reachedRunner = yield* Deferred.make<void>();
-			const releaseRunner = yield* Deferred.make<void>();
+			const captures = yield* Ref.make(0);
 			const runner: Runner = {
 				...passiveRunner,
-				reclaim: () =>
-					Deferred.succeed(reachedRunner, undefined).pipe(
-						Effect.andThen(Deferred.await(releaseRunner)),
-						Effect.as({ _tag: "reclaimed" as const }),
+				captureChange: (berth) =>
+					Ref.update(captures, (count) => count + 1).pipe(
+						Effect.andThen(passiveRunner.captureChange(berth)),
 					),
 			};
 			yield* Effect.gen(function* () {
+				const db = yield* Database;
 				const domain = yield* AgentDomain;
 				const { piece, repo } = yield* reefWithPiece;
 				yield* seedRetiredBerth;
-				const cleanup = yield* Effect.forkScoped(domain.retryResourceReclaim);
-				yield* Deferred.await(reachedRunner);
-				const db = yield* Database;
-				expect(
-					(yield* db.Moorage.where({ agentId: AGENT_ID }).first()).pipe(
-						Option.getOrThrow,
-					).reclaimState,
-				).toBe("claimed");
-				expect(
-					(yield* db.Berth.where({ id: BERTH_ID }).first()).pipe(
-						Option.getOrThrow,
-					).reclaimState,
-				).toBe("claimed");
 				const prepared = yield* Effect.result(
 					domain.changes.submit({
 						agentId: AGENT_ID,
@@ -95,15 +81,27 @@ it.live(
 						sessionId: "session-boundary",
 					}),
 				);
-				yield* Deferred.succeed(releaseRunner, undefined);
-				yield* Fiber.join(cleanup);
 				expect(Result.isFailure(prepared)).toBe(true);
 				if (Result.isFailure(prepared)) {
 					expect(prepared.failure).toMatchObject({
-						_tag: "ResourceReclaimClaimed",
+						_tag: "ResourceOwnerUnavailable",
 						agentId: AGENT_ID,
+						status: "retired",
 					});
 				}
+				expect(yield* db.Change.all()).toEqual([]);
+				expect(yield* db.PieceChange.all()).toEqual([]);
+				expect(yield* Ref.get(captures)).toBe(0);
+				expect(
+					(yield* db.Moorage.where({ agentId: AGENT_ID }).first()).pipe(
+						Option.getOrThrow,
+					).reclaimState,
+				).toBeNull();
+				expect(
+					(yield* db.Berth.where({ id: BERTH_ID }).first()).pipe(
+						Option.getOrThrow,
+					).reclaimState,
+				).toBeNull();
 			}).pipe(
 				Effect.provide(
 					domainKernelLayer(

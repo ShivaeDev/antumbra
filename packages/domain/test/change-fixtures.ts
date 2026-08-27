@@ -55,6 +55,12 @@ export const changeOf = (fields: ChangeFields): ChangeRow => ({
 export const berthed = (agentId: string, source = REEF_SOURCE) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
+		yield* db.Agent.create({
+			charter: `chart ${source}`,
+			id: agentId,
+			role: "crew",
+			status: "alive",
+		});
 		yield* db.Berth.create({
 			agentId,
 			branch: `work/${agentId}/berth-0`,

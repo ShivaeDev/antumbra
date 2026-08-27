@@ -1,6 +1,7 @@
 import type { BerthStatus } from "@antumbra/vocabulary/agent-runtime";
 import { Effect } from "effect";
-import { ResourceReclaimClaimInvalid } from "#resource-reclaim-errors.ts";
+import { invalidResourceReclaimClaim } from "#resource-reclaim-claim-shape.ts";
+import type { ResourceReclaimClaimInvalid } from "#resource-reclaim-errors.ts";
 import type { ResourceReclaimSnapshot } from "#resource-reclaim-state.ts";
 
 export interface ClaimedBerth {
@@ -49,37 +50,6 @@ const eligibleAgentIds = (
 		}),
 	);
 
-const claimShapeError = (
-	state: ResourceReclaimSnapshot,
-	moorageOf: ReadonlyMap<string, ReclaimMoorage>,
-): ResourceReclaimClaimInvalid | undefined => {
-	for (const moorage of state.moorages) {
-		if (
-			moorage.reclaimState === "claimed" &&
-			!state.berths.some(
-				(berth) =>
-					berth.agentId === moorage.agentId && berth.reclaimState === "claimed",
-			)
-		) {
-			return new ResourceReclaimClaimInvalid({
-				agentId: moorage.agentId,
-				detail: "Moorage is claimed without an exact Berth",
-			});
-		}
-	}
-	for (const berth of state.berths) {
-		if (
-			berth.reclaimState === "claimed" &&
-			moorageOf.get(berth.agentId)?.reclaimState !== "claimed"
-		) {
-			return new ResourceReclaimClaimInvalid({
-				agentId: berth.agentId,
-				detail: `Berth ${berth.id} is claimed without its Moorage`,
-			});
-		}
-	}
-};
-
 const isNewClaimCandidate = (
 	berth: ReclaimBerth,
 	moorage: ReclaimMoorage | undefined,
@@ -106,11 +76,11 @@ export const selectResourceReclaimBerths = (
 	const moorageOf = new Map(
 		state.moorages.map((moorage) => [moorage.agentId, moorage] as const),
 	);
-	const invalid = claimShapeError(state, moorageOf);
+	const eligibleAgents = eligibleAgentIds(state, moorageOf);
+	const invalid = invalidResourceReclaimClaim(state, moorageOf, eligibleAgents);
 	if (invalid !== undefined) {
 		return Effect.fail(invalid);
 	}
-	const eligibleAgents = eligibleAgentIds(state, moorageOf);
 	const heldAgents = new Set(
 		state.berths
 			.filter((berth) => state.held.has(berth.id))

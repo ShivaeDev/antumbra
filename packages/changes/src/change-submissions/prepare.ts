@@ -4,7 +4,7 @@ import { Pieces } from "@antumbra/pieces";
 import type { ChangeHostRepo } from "@antumbra/plugin-api";
 import { UnknownRunnerError } from "@antumbra/plugin-api";
 import {
-	ensureAgentResourcesUnclaimed,
+	ensureAgentCanOwnLocalWork,
 	ensureBerthResourcesUnclaimed,
 } from "@antumbra/resource-reclamation";
 import { Clock, Effect, Option, Result } from "effect";
@@ -37,7 +37,7 @@ export const prepareChange = (input: SubmitChangeInput, proposal?: Proposal) =>
 		const repo = yield* repoNamed(input.repoName);
 		const key = submissionKey(input.agentId, repo.id);
 		const linked = yield* Effect.gen(function* () {
-			yield* ensureAgentResourcesUnclaimed(input.agentId);
+			yield* ensureAgentCanOwnLocalWork(input.agentId);
 			const existing = yield* activeChange(key);
 			if (Option.isNone(existing)) {
 				return Option.none<{
@@ -76,6 +76,7 @@ export const prepareChange = (input: SubmitChangeInput, proposal?: Proposal) =>
 			proposal,
 		);
 		const stored = yield* Effect.gen(function* () {
+			yield* ensureAgentCanOwnLocalWork(input.agentId);
 			yield* ensureBerthResourcesUnclaimed(berth.id);
 			const raced = yield* activeChange(key);
 			let row: ReturnType<typeof preparedChange>;

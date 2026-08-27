@@ -72,8 +72,15 @@ export const createBerth = (
 	source = REEF_SOURCE,
 	branch = `work/${agentId}/berth-0`,
 ) =>
-	Effect.flatMap(Database, (db) =>
-		db.Berth.create({
+	Effect.gen(function* () {
+		const db = yield* Database;
+		yield* db.Agent.create({
+			charter: `chart ${source}`,
+			id: agentId,
+			role: "crew",
+			status: "alive",
+		});
+		yield* db.Berth.create({
 			agentId,
 			branch,
 			id: `${agentId}:berth-0`,
@@ -85,8 +92,8 @@ export const createBerth = (
 			source,
 			status: "ready",
 			strandedAt: null,
-		}),
-	);
+		});
+	});
 
 interface ObservationFields {
 	readonly baseRef: string;

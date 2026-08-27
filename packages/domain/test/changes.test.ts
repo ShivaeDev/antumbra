@@ -78,6 +78,12 @@ it.live(
 				expect(noRepo._tag).toBe("RepoNotFound");
 				expect(noRepo.message).toContain("shoals");
 
+				yield* db.Agent.create({
+					charter: "chart the reef",
+					id: CREW,
+					role: "crew",
+					status: "alive",
+				});
 				const noBerth = yield* Effect.flip(openedChange(piece.id, repo.name));
 				expect(noBerth._tag).toBe("BerthNotFound");
 				expect(noBerth.message).toContain("reef");
@@ -121,6 +127,12 @@ it.live(
 				const db = yield* Database;
 				const domain = yield* AgentDomain;
 				const { piece, repo, voyage } = yield* reefWithPiece;
+				yield* db.Agent.create({
+					charter: "chart the reef",
+					id: CREW,
+					role: "crew",
+					status: "alive",
+				});
 				const second = yield* domain.voyages.charterPiece({
 					charter: "draw the chart",
 					dependsOn: [],

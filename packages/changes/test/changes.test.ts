@@ -88,6 +88,12 @@ it.effectDB(
 		yield* Effect.gen(function* () {
 			const changes = yield* Changes;
 			yield* Effect.all([
+				db.Agent.create({
+					charter: "chart the reef",
+					id: "crew",
+					role: "crew",
+					status: "alive",
+				}),
 				db.Piece.create({
 					charter: "sound the reef",
 					expectation: "the change lands",

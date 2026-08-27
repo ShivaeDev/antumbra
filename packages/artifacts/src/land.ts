@@ -6,6 +6,7 @@ import { Crypto, Effect, Option } from "effect";
 import { ArtifactSourceNotOwned, artifactPublicationFailed } from "#errors.ts";
 import { currentArtifactsForPiece } from "#lineage/current.ts";
 import { validateCurrentStoredArtifactLineage } from "#lineage/piece-lineage.ts";
+import { commitArtifactLineage } from "#lineage/transaction.ts";
 import { validateLandingSupersession } from "#lineage/validation.ts";
 import type {
 	ArtifactInput,
@@ -80,7 +81,6 @@ const writeArtifact = (
 
 export const landArtifact = (root: string, input: ArtifactInput) =>
 	Effect.gen(function* () {
-		const db = yield* Database;
 		const crypto = yield* Crypto.Crypto;
 		const feeds = yield* DomainFeeds;
 		const id = yield* crypto.randomUUIDv4.pipe(
@@ -109,7 +109,7 @@ export const landArtifact = (root: string, input: ArtifactInput) =>
 		const write = writeArtifact(row, input, publication);
 		const landing = yield* input.supersedesArtifactId === undefined
 			? write
-			: db.transaction(write);
+			: commitArtifactLineage(write);
 		yield* feeds.publishVoyageRefresh();
 		return landing;
 	});

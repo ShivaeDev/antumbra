@@ -5,7 +5,7 @@ import {
 	type PrismaError,
 } from "@antumbra/persistence";
 import type { MooragePlan } from "@antumbra/plugin-api";
-import { ensureAgentResourcesUnclaimed } from "@antumbra/resource-reclamation";
+import { ensureAgentCanOwnLocalWork } from "@antumbra/resource-reclamation";
 import { decodeStoredAgentSessionStatus } from "@antumbra/vocabulary/agent-runtime";
 import { Effect, Option } from "effect";
 import {
@@ -117,9 +117,7 @@ export const makeEnsureSessionRow = Effect.gen(function* () {
 		});
 	return (payload: SpawnFields, plan: MooragePlan) =>
 		Effect.gen(function* () {
-			const created = yield* ensureAgentResourcesUnclaimed(
-				payload.agentId,
-			).pipe(
+			const created = yield* ensureAgentCanOwnLocalWork(payload.agentId).pipe(
 				Effect.provideService(Database, db),
 				Effect.andThen(ensureSession(payload, plan)),
 			);

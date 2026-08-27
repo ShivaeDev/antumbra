@@ -1,6 +1,6 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database, type PrismaError } from "@antumbra/persistence";
-import { ensureAgentResourcesUnclaimed } from "@antumbra/resource-reclamation";
+import { ensureAgentCanOwnLocalWork } from "@antumbra/resource-reclamation";
 import { Effect, Option } from "effect";
 import type { SpawnFields } from "#spawn-fields.ts";
 
@@ -21,7 +21,7 @@ export const makeSpawnAssignments = Effect.gen(function* () {
 			);
 	const storePieceAssignment = (payload: SpawnFields, pieceId: string) =>
 		Effect.gen(function* () {
-			yield* ensureAgentResourcesUnclaimed(payload.agentId).pipe(
+			yield* ensureAgentCanOwnLocalWork(payload.agentId).pipe(
 				Effect.provideService(Database, db),
 			);
 			const existing = yield* db.PieceAgent.where({
@@ -66,7 +66,7 @@ export const makeSpawnAssignments = Effect.gen(function* () {
 			);
 	const storeVoyageAssignment = (payload: SpawnFields, voyageId: string) =>
 		Effect.gen(function* () {
-			yield* ensureAgentResourcesUnclaimed(payload.agentId).pipe(
+			yield* ensureAgentCanOwnLocalWork(payload.agentId).pipe(
 				Effect.provideService(Database, db),
 			);
 			const existing = yield* db.VoyageAgent.where({

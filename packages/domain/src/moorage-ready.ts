@@ -1,6 +1,6 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database } from "@antumbra/persistence";
-import { ensureAgentResourcesUnclaimed } from "@antumbra/resource-reclamation";
+import { ensureAgentCanOwnLocalWork } from "@antumbra/resource-reclamation";
 import {
 	decodeStoredBerthStatus,
 	decodeStoredMoorageStatus,
@@ -12,7 +12,7 @@ export const makeMarkMoorageReady = Effect.gen(function* () {
 	const db = yield* Database;
 	const feeds = yield* DomainFeeds;
 	const ensureUnclaimed = (agentId: string) =>
-		ensureAgentResourcesUnclaimed(agentId).pipe(
+		ensureAgentCanOwnLocalWork(agentId).pipe(
 			Effect.provideService(Database, db),
 		);
 	const readyRows = (payload: SpawnFields) =>

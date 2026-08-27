@@ -3,7 +3,7 @@ import { Database } from "@antumbra/persistence";
 import { Pieces } from "@antumbra/pieces";
 import { ChangeHostUnavailable } from "@antumbra/plugin-api";
 import {
-	ensureAgentResourcesUnclaimed,
+	ensureAgentCanOwnLocalWork,
 	ensureBranchResourcesUnclaimed,
 } from "@antumbra/resource-reclamation";
 import { Clock, Effect, Option } from "effect";
@@ -42,7 +42,7 @@ export const adoptSubmittedChange = (input: AdoptChangeInput) =>
 		yield* pieces.verifyExists(input.pieceId);
 		const repo = yield* repoNamed(input.repoName);
 		if (input.agentId !== null) {
-			yield* ensureAgentResourcesUnclaimed(input.agentId);
+			yield* ensureAgentCanOwnLocalWork(input.agentId);
 		}
 		const host = yield* claimingHost(repo);
 		const capability = yield* host.capability;
@@ -58,7 +58,7 @@ export const adoptSubmittedChange = (input: AdoptChangeInput) =>
 			Effect.gen(function* () {
 				yield* Database;
 				if (input.agentId !== null) {
-					yield* ensureAgentResourcesUnclaimed(input.agentId);
+					yield* ensureAgentCanOwnLocalWork(input.agentId);
 				}
 				yield* ensureBranchResourcesUnclaimed(repo.source, observation.headRef);
 				const attachment = yield* adoptionAttachment(input.agentId, repo.id);

@@ -3,12 +3,33 @@ import { Database } from "@antumbra/persistence";
 import { persistenceIt } from "@antumbra/persistence/testing";
 import { Repos, ReposLive, repoName, repoSlug } from "@antumbra/repos";
 import { expect } from "@effect/vitest";
-import { Effect, Layer, PubSub } from "effect";
+import { Effect, Layer, PubSub, Result } from "effect";
 import { it } from "vitest";
 
 const persistence = persistenceIt();
 const layer = ReposLive.pipe(Layer.provideMerge(DomainFeedsLive));
 const OBSERVED = new Date("2026-08-17T00:00:00.000Z");
+
+const registerConcurrentSlug = Effect.gen(function* () {
+	const repos = yield* Repos;
+	return yield* Effect.all(
+		[
+			Effect.result(
+				repos.register({
+					defaultRef: "main",
+					source: "/reefs/Concurrent-Charts",
+				}),
+			),
+			Effect.result(
+				repos.register({
+					defaultRef: "main",
+					source: "git@example.invalid:crew/concurrent-charts.git",
+				}),
+			),
+		],
+		{ concurrency: "unbounded" },
+	);
+});
 
 const seedChangeGraph = (repoId: string) =>
 	Effect.gen(function* () {
@@ -130,6 +151,20 @@ persistence.effectDB(
 				expect(yield* db.Repo.all()).toHaveLength(1);
 			}),
 		).pipe(Effect.provide(layer));
+	},
+);
+
+persistence.effectDB(
+	"admits only one of two concurrent sources with the same derived slug",
+	function* (db) {
+		const results = yield* Effect.scoped(registerConcurrentSlug).pipe(
+			Effect.provide(layer),
+		);
+		expect(results.filter(Result.isSuccess)).toHaveLength(1);
+		const failures = results.filter(Result.isFailure);
+		expect(failures).toHaveLength(1);
+		expect(failures[0]?.failure._tag).toBe("RepoSlugTaken");
+		expect(yield* db.Repo.all()).toHaveLength(1);
 	},
 );
 

@@ -5,7 +5,7 @@ import {
 	type AgentStatus,
 	agentTransition,
 } from "@antumbra/vocabulary/agent-runtime";
-import { Effect, Option, PubSub } from "effect";
+import { Effect, Option } from "effect";
 import { AgentNotSpawnable } from "#errors.ts";
 import {
 	activationFor,
@@ -44,7 +44,7 @@ export const spawnResolution = Effect.gen(function* () {
 		Effect.gen(function* () {
 			const changed = yield* provide(writer.write(activateRows(payload)));
 			if (changed) {
-				yield* PubSub.publish(feeds.fleet, undefined);
+				yield* feeds.publishFleetRefresh();
 			}
 		});
 	const closeFailedRows = (payload: SpawnFields, status: AgentStatus) =>
@@ -101,8 +101,8 @@ export const spawnResolution = Effect.gen(function* () {
 			yield* fabric.stop(payload.sessionId);
 			const changed = yield* provide(writer.write(settleFailureRows(payload)));
 			if (changed) {
-				yield* PubSub.publish(feeds.fleet, undefined);
-				yield* PubSub.publish(feeds.voyages, undefined);
+				yield* feeds.publishFleetRefresh();
+				yield* feeds.publishVoyageRefresh();
 			}
 		});
 	return { activate, settleFailure };

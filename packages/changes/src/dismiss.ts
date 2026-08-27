@@ -1,6 +1,6 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database, Writer } from "@antumbra/persistence";
-import { Effect, Option, PubSub } from "effect";
+import { Effect, Option } from "effect";
 import { ChangeNotFound, ChangeStillAlive } from "#errors.ts";
 
 const landVerdict = (changeId: string) =>
@@ -34,6 +34,6 @@ export const dismissChange = (changeId: string) =>
 		const writer = yield* Writer;
 		const landed = yield* writer.write(landVerdict(changeId));
 		if (landed) {
-			yield* PubSub.publish(feeds.voyages, undefined);
+			yield* feeds.publishVoyageRefresh();
 		}
 	});

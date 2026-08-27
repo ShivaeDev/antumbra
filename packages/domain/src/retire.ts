@@ -11,7 +11,7 @@ import {
 	decodeStoredAgentStatus,
 	sessionPresence,
 } from "@antumbra/vocabulary/agent-runtime";
-import { Effect, Option, PubSub, Schema } from "effect";
+import { Effect, Option, Schema } from "effect";
 import { AgentNotFound, AgentStillWorking } from "#errors.ts";
 import { sessionRetirable } from "#session-at-rest.ts";
 import { rootSessionsOf } from "#session-roots.ts";
@@ -110,10 +110,7 @@ export const makeRetireKind = Effect.gen(function* () {
 					additionalAttempts: 1,
 				},
 			);
-			yield* execution.step(
-				"publish-fleet",
-				PubSub.publish(feeds.fleet, undefined),
-			);
+			yield* execution.step("publish-fleet", feeds.publishFleetRefresh());
 		});
 	return defineIntent({
 		execute: (payload) =>

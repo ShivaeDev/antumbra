@@ -1,6 +1,6 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Kernel } from "@antumbra/kernel";
-import { Effect, Layer, PubSub, Stream } from "effect";
+import { Effect, Layer, Stream } from "effect";
 
 // why: an Intent's whole life is invisible in the fleet's rows — a recover
 // parked in waiting changes no Agent and no Session — so nothing rang the feed
@@ -15,7 +15,7 @@ export const IntentFeedLive = Layer.effectDiscard(
 		const kernel = yield* Kernel;
 		yield* Effect.forkScoped(
 			kernel.transitions.pipe(
-				Stream.runForEach(() => PubSub.publish(feeds.fleet, undefined)),
+				Stream.runForEach(() => feeds.publishFleetRefresh()),
 			),
 		);
 	}),

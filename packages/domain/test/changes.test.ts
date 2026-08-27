@@ -1,7 +1,7 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database } from "@antumbra/persistence";
 import { expect, it } from "@effect/vitest";
-import { Effect, Option, PubSub, Stream } from "effect";
+import { Effect, Option, Stream } from "effect";
 import { AgentDomain } from "#domain.ts";
 import { berthed, reefWithPiece } from "#test/change-fixtures.ts";
 import {
@@ -179,7 +179,7 @@ it.live("a landed change flips its piece done and wakes the voyage feed", () =>
 
 			const heard = yield* Effect.scoped(
 				Effect.gen(function* () {
-					const subscription = yield* PubSub.subscribe(feeds.voyages);
+					const subscription = yield* feeds.subscribeVoyageRefresh();
 					yield* domain.changes.refresh("scripted");
 					return yield* Stream.fromSubscription(subscription).pipe(
 						Stream.take(1),

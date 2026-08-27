@@ -1,6 +1,15 @@
-import { DomainFeeds, pump } from "@antumbra/domain-feeds";
+import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database, type WriteExecutors, Writer } from "@antumbra/persistence";
-import { Clock, Context, Effect, Layer, Queue, Ref, Semaphore } from "effect";
+import {
+	Clock,
+	Context,
+	Effect,
+	Layer,
+	Queue,
+	Ref,
+	Semaphore,
+	Stream,
+} from "effect";
 import { HeldResourceRead } from "#held-resource-read.ts";
 import { runResourceReclaimPass } from "#resource-reclaim-pass.ts";
 import { ResourceReclaimRunners } from "#resource-reclaim-runners.ts";
@@ -110,7 +119,14 @@ export const ResourceReconcilerLive = (
 			// why: boot waits for the first pass, so kernel admission never starts
 			// against a durable claim that only a later background fiber would see.
 			yield* reconcile;
-			yield* Effect.forkScoped(pump(feeds.resourceReclaim, tick));
+			yield* Effect.forkScoped(
+				Effect.gen(function* () {
+					const subscription = yield* feeds.subscribeResourceReclaim();
+					yield* Stream.fromSubscription(subscription).pipe(
+						Stream.runForEach(() => Queue.offer(tick, undefined)),
+					);
+				}),
+			);
 			yield* Effect.forkScoped(
 				cadenceLoop(reconcile, tick, options.cadenceMillis),
 			);

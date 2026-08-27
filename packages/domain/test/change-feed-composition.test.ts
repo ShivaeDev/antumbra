@@ -1,6 +1,6 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { expect, it } from "@effect/vitest";
-import { Effect, Option, PubSub, Stream } from "effect";
+import { Effect, Option, Stream } from "effect";
 import { AgentDomain } from "#domain.ts";
 import { berthed, reefWithPiece } from "#test/change-fixtures.ts";
 import {
@@ -28,7 +28,7 @@ it.live("linking another Piece to an active Change wakes Voyage readers", () =>
 
 			const heard = yield* Effect.scoped(
 				Effect.gen(function* () {
-					const subscription = yield* PubSub.subscribe(feeds.voyages);
+					const subscription = yield* feeds.subscribeVoyageRefresh();
 					const linked = yield* submittedChange(second.id, repo.name);
 					expect(linked.id).toBe(first.id);
 					return yield* Stream.fromSubscription(subscription).pipe(

@@ -1,14 +1,6 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database, type WriteExecutors, Writer } from "@antumbra/persistence";
-import {
-	Context,
-	Crypto,
-	Effect,
-	FileSystem,
-	Layer,
-	Path,
-	PubSub,
-} from "effect";
+import { Context, Crypto, Effect, FileSystem, Layer, Path } from "effect";
 import type { ArtifactFailure } from "#errors.ts";
 import { landArtifact } from "#land.ts";
 import { deleteSupersession, writeSupersession } from "#lineage/write.ts";
@@ -58,7 +50,7 @@ export const ArtifactsLive = (root: string) =>
 					Context.add(Path.Path, path),
 				),
 			);
-			const announce = PubSub.publish(feeds.voyages, undefined);
+			const announce = feeds.publishVoyageRefresh();
 			const write = <A, E, R>(program: Effect.Effect<A, E, R>) =>
 				writer.write(program).pipe(Effect.tap(() => announce));
 			const removeSupersession = (input: ArtifactSupersessionInput) =>

@@ -1,7 +1,7 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database, Writer } from "@antumbra/persistence";
 import type { PieceVerdict } from "@antumbra/vocabulary/verdict";
-import { Effect, Option, PubSub } from "effect";
+import { Effect, Option } from "effect";
 import { verifyPieceExists } from "#rows.ts";
 
 const writeVerdict = (pieceId: string, verdict: PieceVerdict) =>
@@ -30,6 +30,6 @@ export const landVerdict = (pieceId: string, verdict: PieceVerdict) =>
 		const writer = yield* Writer;
 		const changed = yield* writer.write(writeVerdict(pieceId, verdict));
 		if (changed) {
-			yield* PubSub.publish(feeds.voyages, undefined);
+			yield* feeds.publishVoyageRefresh();
 		}
 	});

@@ -8,7 +8,7 @@ import {
 	decodeStoredAgentSessionStatus,
 	sessionExecutionTransition,
 } from "@antumbra/vocabulary/agent-runtime";
-import { Context, Effect, Layer, Option, PubSub } from "effect";
+import { Context, Effect, Layer, Option } from "effect";
 import { SessionIdentityMissing } from "#errors.ts";
 import { answered } from "#tool-answers.ts";
 import type { SessionIdentity } from "#tool-identity.ts";
@@ -54,8 +54,8 @@ const standDown = (identity: SessionIdentity) =>
 					executionStatus: next,
 				}),
 			);
-			yield* PubSub.publish(feeds.fleet, undefined);
-			yield* PubSub.publish(feeds.voyages, undefined);
+			yield* feeds.publishFleetRefresh();
+			yield* feeds.publishVoyageRefresh();
 		}
 		// why: declaring there is nothing to do is not asking to be put away. The
 		// acquisition stays open and listening so the admiral's next words reach

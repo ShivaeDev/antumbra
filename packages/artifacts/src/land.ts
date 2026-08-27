@@ -2,7 +2,7 @@ import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database, Writer } from "@antumbra/persistence";
 import { verifyPieceExists } from "@antumbra/pieces";
 import { decodeStoredMoorageStatus } from "@antumbra/vocabulary/agent-runtime";
-import { Crypto, Effect, Option, PubSub } from "effect";
+import { Crypto, Effect, Option } from "effect";
 import { ArtifactSourceNotOwned, artifactPublicationFailed } from "#errors.ts";
 import { currentArtifactsForPiece } from "#lineage/current.ts";
 import { validateCurrentStoredArtifactLineage } from "#lineage/piece-lineage.ts";
@@ -107,6 +107,6 @@ export const landArtifact = (root: string, input: ArtifactInput) =>
 			title: input.title,
 		};
 		const landing = yield* writer.write(writeArtifact(row, input, publication));
-		yield* PubSub.publish(feeds.voyages, undefined);
+		yield* feeds.publishVoyageRefresh();
 		return landing;
 	});

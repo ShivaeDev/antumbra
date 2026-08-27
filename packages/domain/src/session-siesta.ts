@@ -7,7 +7,7 @@ import {
 	decodeStoredAgentSessionStatus,
 	sessionExecutionTransition,
 } from "@antumbra/vocabulary/agent-runtime";
-import { Effect, Option, PubSub, Schema } from "effect";
+import { Effect, Option, Schema } from "effect";
 import { SessionStillDelegating } from "#errors.ts";
 import { LiveDelegations } from "#session-tree-live.ts";
 
@@ -24,10 +24,7 @@ export const makeSiestaKind = Effect.gen(function* () {
 	const provide = <A, E>(effect: Effect.Effect<A, E, WriteExecutors>) =>
 		Effect.provideContext(effect, executors);
 	const announce = Effect.all(
-		[
-			PubSub.publish(feeds.fleet, undefined),
-			PubSub.publish(feeds.voyages, undefined),
-		],
+		[feeds.publishFleetRefresh(), feeds.publishVoyageRefresh()],
 		{ concurrency: 1 },
 	).pipe(Effect.asVoid);
 	// why: a Session shutdown drained has work to finish before the process may

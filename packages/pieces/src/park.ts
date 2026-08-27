@@ -1,6 +1,6 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database, Writer } from "@antumbra/persistence";
-import { Clock, Effect, PubSub } from "effect";
+import { Clock, Effect } from "effect";
 import { verifyPieceExists } from "#rows.ts";
 
 export const park = (pieceId: string, parked: boolean) =>
@@ -17,5 +17,5 @@ export const park = (pieceId: string, parked: boolean) =>
 				});
 			}),
 		);
-		yield* PubSub.publish(feeds.voyages, undefined);
+		yield* feeds.publishVoyageRefresh();
 	});

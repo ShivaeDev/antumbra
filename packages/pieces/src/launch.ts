@@ -1,6 +1,6 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database, Writer } from "@antumbra/persistence";
-import { Clock, Effect, Option, PubSub } from "effect";
+import { Clock, Effect, Option } from "effect";
 import { PieceNotFound } from "#errors.ts";
 
 const loadPiece = (pieceId: string) =>
@@ -33,6 +33,6 @@ export const launch = (pieceId: string) =>
 			}),
 		);
 		if (launched) {
-			yield* PubSub.publish(feeds.voyages, undefined);
+			yield* feeds.publishVoyageRefresh();
 		}
 	});

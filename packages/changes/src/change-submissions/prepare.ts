@@ -7,7 +7,7 @@ import {
 	ensureAgentResourcesUnclaimed,
 	ensureBerthResourcesUnclaimed,
 } from "@antumbra/resource-reclamation";
-import { Clock, Effect, Option, PubSub } from "effect";
+import { Clock, Effect, Option } from "effect";
 import { activeChange, linkProduces } from "#change-submissions/links.ts";
 import type { Proposal, SubmitChangeInput } from "#change-submissions/model.ts";
 import {
@@ -55,7 +55,7 @@ export const prepareChange = (input: SubmitChangeInput, proposal?: Proposal) =>
 		);
 		if (Option.isSome(linked)) {
 			if (linked.value.linked) {
-				yield* PubSub.publish(feeds.voyages, undefined);
+				yield* feeds.publishVoyageRefresh();
 			}
 			return {
 				hostTag: linked.value.row.host,
@@ -93,7 +93,7 @@ export const prepareChange = (input: SubmitChangeInput, proposal?: Proposal) =>
 			}),
 		);
 		if (stored.changed) {
-			yield* PubSub.publish(feeds.voyages, undefined);
+			yield* feeds.publishVoyageRefresh();
 		}
 		return {
 			hostTag: stored.row.host,

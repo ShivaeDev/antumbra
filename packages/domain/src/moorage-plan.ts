@@ -7,7 +7,7 @@ import {
 	decodeStoredBerthStatus,
 	decodeStoredMoorageStatus,
 } from "@antumbra/vocabulary/agent-runtime";
-import { Effect, Option, PubSub } from "effect";
+import { Effect, Option } from "effect";
 import { MooragePlanConflict } from "#errors.ts";
 import type { SpawnFields } from "#spawn-fields.ts";
 
@@ -118,7 +118,7 @@ export const makePrepareMoorage = Effect.gen(function* () {
 					),
 				),
 			);
-			yield* PubSub.publish(feeds.fleet, undefined);
+			yield* feeds.publishFleetRefresh();
 			return plan;
 		});
 });

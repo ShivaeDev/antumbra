@@ -15,11 +15,14 @@
 		"typecheck:compat": "tsc6 --noEmit"
 	},
 	"devDependencies": {
+		"@effect/vitest": "catalog:",
+		"@types/node": "catalog:",
 		"@typescript/native": "catalog:",
 		"typescript": "catalog:",
 		"vitest": "catalog:"
 	},
 	"dependencies": {
+		"@antumbra/service-definition": "workspace:*",
 		"effect": "catalog:"
 	}
 }

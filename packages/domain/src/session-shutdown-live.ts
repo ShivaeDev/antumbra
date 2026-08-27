@@ -5,7 +5,7 @@ import {
 	decodeSessionExecutionStatus,
 	decodeStoredAgentSessionStatus,
 } from "@antumbra/vocabulary/agent-runtime";
-import { Effect, Layer, PubSub, Stream } from "effect";
+import { Effect, Layer, Stream } from "effect";
 import { AgentDomain } from "#agent-domain-service.ts";
 import { rootSessions } from "#session-roots.ts";
 import { SessionShutdown } from "#session-shutdown.ts";
@@ -52,10 +52,7 @@ export const makeSessionShutdownDrain = Effect.gen(function* () {
 		),
 	);
 	const announce = Effect.all(
-		[
-			PubSub.publish(feeds.fleet, undefined),
-			PubSub.publish(feeds.voyages, undefined),
-		],
+		[feeds.publishFleetRefresh(), feeds.publishVoyageRefresh()],
 		{ concurrency: 1 },
 	).pipe(Effect.asVoid);
 	const waitForSiesta = (sessionId: string, intentId: string) =>

@@ -1,6 +1,6 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database, Writer } from "@antumbra/persistence";
-import { Effect, Option, PubSub } from "effect";
+import { Effect, Option } from "effect";
 import { RepoSlugTaken } from "#errors.ts";
 import { summarizeRepo } from "#list.ts";
 import type { RepoRegistration } from "#model.ts";
@@ -40,7 +40,7 @@ export const registerRepo = (registration: RepoRegistration) =>
 					defaultRef: registration.defaultRef,
 				}),
 			);
-			yield* PubSub.publish(feeds.fleet, undefined);
+			yield* feeds.publishFleetRefresh();
 			return summarizeRepo({ ...existing.value, ...registration });
 		}
 		yield* refuseTakenSlug(registration.source);
@@ -51,6 +51,6 @@ export const registerRepo = (registration: RepoRegistration) =>
 			source: registration.source,
 		};
 		yield* writer.write(db.Repo.create(row));
-		yield* PubSub.publish(feeds.fleet, undefined);
+		yield* feeds.publishFleetRefresh();
 		return summarizeRepo(row);
 	});

@@ -1,6 +1,6 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { type WriteExecutors, Writer } from "@antumbra/persistence";
-import { Effect, PubSub } from "effect";
+import { Effect } from "effect";
 import { makeCurrentSessionResumable } from "#current-session-resumable.ts";
 import { makeCurrentSessionWake } from "#current-session-wake.ts";
 
@@ -13,10 +13,7 @@ export const makeCurrentSessionRecovery = Effect.gen(function* () {
 	const provide = <A, E>(effect: Effect.Effect<A, E, WriteExecutors>) =>
 		Effect.provideContext(effect, executors);
 	const announce = Effect.all(
-		[
-			PubSub.publish(feeds.fleet, undefined),
-			PubSub.publish(feeds.voyages, undefined),
-		],
+		[feeds.publishFleetRefresh(), feeds.publishVoyageRefresh()],
 		{ concurrency: 1 },
 	).pipe(Effect.asVoid);
 	const resumable = (sessionId: string) =>

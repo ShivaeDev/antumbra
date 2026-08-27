@@ -1,7 +1,7 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { type WriteExecutors, Writer } from "@antumbra/persistence";
 import type { AgentEvent } from "@antumbra/vocabulary/session-events";
-import { Context, Effect, Layer, PubSub } from "effect";
+import { Context, Effect, Layer } from "effect";
 import { type JournalAppend, makeJournalAppends } from "#journal-append.ts";
 import { makeJournalThroughput } from "#journal-throughput.ts";
 
@@ -40,11 +40,9 @@ export const SessionEventJournalLive = Layer.effect(
 				const stored = yield* writer.write(
 					Effect.andThen(write.rows, appendAll(write.appends)),
 				);
-				yield* Effect.forEach(
-					stored,
-					(row) => PubSub.publish(feeds.events, row),
-					{ discard: true },
-				);
+				yield* Effect.forEach(stored, (row) => feeds.publishSessionEvent(row), {
+					discard: true,
+				});
 			});
 		const recordTogether = <E>(write: JournalWrite<E>) =>
 			throughput.measure(

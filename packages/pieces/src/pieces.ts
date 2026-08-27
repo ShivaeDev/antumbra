@@ -15,6 +15,7 @@ import type { CharterInput, PieceRow } from "#model.ts";
 import { park } from "#park.ts";
 import { verifyPieceExists } from "#rows.ts";
 import { setDependencies } from "#set-dependencies.ts";
+import { memberPieceIds } from "#voyage-membership.ts";
 
 export class Pieces extends Context.Service<
 	Pieces,
@@ -31,6 +32,9 @@ export class Pieces extends Context.Service<
 		readonly launch: (
 			pieceId: string,
 		) => Effect.Effect<void, PieceNotFound | PrismaError>;
+		readonly membersOfVoyage: (
+			voyageId: string,
+		) => Effect.Effect<ReadonlySet<string>, PrismaError>;
 		readonly park: (
 			pieceId: string,
 			parked: boolean,
@@ -63,6 +67,8 @@ export const PiecesLive = Layer.effect(Pieces)(
 			landVerdict: (pieceId, verdict) =>
 				Effect.provide(landVerdict(pieceId, verdict), context),
 			launch: (pieceId) => Effect.provide(launch(pieceId), context),
+			membersOfVoyage: (voyageId) =>
+				Effect.provide(memberPieceIds(voyageId), context),
 			park: (pieceId, parked) => Effect.provide(park(pieceId, parked), context),
 			setDependencies: (pieceId, dependsOn) =>
 				Effect.provide(setDependencies(pieceId, dependsOn), context),

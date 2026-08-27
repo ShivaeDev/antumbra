@@ -40,6 +40,32 @@ it.effectDB("verifies existence without exposing a row", function* (db) {
 	}).pipe(Effect.provide(layer));
 });
 
+it.effectDB("answers voyage membership without exposing rows", function* (db) {
+	yield* Effect.gen(function* () {
+		const pieces = yield* Pieces;
+		const member = {
+			charter: "sound the shallows",
+			expectation: "the soundings are landed",
+			id: "piece-member",
+			launchedAt: null,
+			parkedAt: null,
+			role: "hand",
+			title: "Sound",
+		};
+		yield* db.Voyage.create(voyage);
+		yield* db.Piece.create(member);
+		yield* db.VoyagePiece.create({
+			pieceId: member.id,
+			voyageId: voyage.id,
+		});
+
+		expect(yield* pieces.membersOfVoyage(voyage.id)).toEqual(
+			new Set([member.id]),
+		);
+		expect(yield* pieces.membersOfVoyage("missing-voyage")).toEqual(new Set());
+	}).pipe(Effect.provide(layer));
+});
+
 it.effectDB(
 	"owns piece transactions and publishes only committed changes",
 	function* (db) {

@@ -18,8 +18,8 @@ import {
 } from "@antumbra/domain";
 import { KernelLive } from "@antumbra/kernel";
 import {
+	acquireTemporaryPersistence,
 	type TemporaryPersistence,
-	temporaryPersistence,
 } from "@antumbra/persistence/testing";
 import type { AgentBackend, Runner, SessionHandle } from "@antumbra/plugin-api";
 import { NodeServices } from "@effect/platform-node";
@@ -33,10 +33,7 @@ import {
 	sweptClean,
 } from "#test/session-tree-audits.ts";
 
-export const acquireTemporaryPersistence = Effect.acquireRelease(
-	Effect.sync(temporaryPersistence),
-	(temporary) => Effect.sync(temporary.remove),
-);
+export { acquireTemporaryPersistence };
 
 export const eventually = <A, E, R>(check: Effect.Effect<A, E, R>) =>
 	check.pipe(

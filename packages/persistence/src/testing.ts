@@ -4,6 +4,7 @@ import { join } from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import { fileURLToPath } from "node:url";
 import { makeDatabaseIt } from "@shivaedev/effect-prisma/testing";
+import { Effect } from "effect";
 import { brandDatabaseFilePath, type DatabaseFilePath } from "#data-dir.ts";
 import { Database } from "#database.ts";
 import { PersistenceLive } from "#layer.ts";
@@ -61,6 +62,11 @@ export const temporaryPersistence = (): TemporaryPersistence => {
 		remove: () => rmSync(directory, { force: true, recursive: true }),
 	};
 };
+
+export const acquireTemporaryPersistence = Effect.acquireRelease(
+	Effect.sync(temporaryPersistence),
+	(temporary) => Effect.sync(temporary.remove),
+);
 
 export const persistenceIt = () => {
 	const temporary = temporaryPersistence();

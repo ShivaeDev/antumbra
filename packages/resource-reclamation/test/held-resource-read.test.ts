@@ -1,8 +1,8 @@
 import { DomainFeedsLive } from "@antumbra/domain-feeds";
 import { Database, type PrismaError, Writer } from "@antumbra/persistence";
 import {
+	acquireTemporaryPersistence,
 	type TemporaryPersistence,
-	temporaryPersistence,
 } from "@antumbra/persistence/testing";
 import { expect, it } from "@effect/vitest";
 import { Effect, Layer, Ref } from "effect";
@@ -15,11 +15,6 @@ import {
 	ResourceReconcilerLive,
 } from "#index.ts";
 import { ResourceReclaimClaimInvalid } from "#resource-reclaim-errors.ts";
-
-const acquireTemporaryPersistence = Effect.acquireRelease(
-	Effect.sync(temporaryPersistence),
-	(temporary) => Effect.sync(temporary.remove),
-);
 
 const layer = <E, R>(
 	temporary: TemporaryPersistence,

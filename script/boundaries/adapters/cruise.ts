@@ -5,7 +5,18 @@ import { pathToFileURL } from "node:url";
 import { Schema } from "effect";
 
 const CruiseReport = Schema.Struct({
-	modules: Schema.Array(Schema.Struct({ source: Schema.String })),
+	modules: Schema.Array(
+		Schema.Struct({
+			dependencies: Schema.Array(
+				Schema.Struct({
+					couldNotResolve: Schema.optional(Schema.Boolean),
+					module: Schema.String,
+					resolved: Schema.String,
+				}),
+			),
+			source: Schema.String,
+		}),
+	),
 	summary: Schema.Struct({
 		error: Schema.Number,
 		totalCruised: Schema.Number,
@@ -67,6 +78,14 @@ export const cruiseBoundaries = async ({
 			: cruiseResult.output,
 	);
 	return {
+		dependencyEvidence: report.modules.flatMap(({ dependencies, source }) =>
+			dependencies.map((dependency) => ({
+				couldNotResolve: dependency.couldNotResolve === true,
+				from: source,
+				resolved: dependency.resolved,
+				specifier: dependency.module,
+			})),
+		),
 		modules: report.modules.map(({ source }) => source),
 		totalCruised: report.summary.totalCruised,
 		totalDependenciesCruised: report.summary.totalDependenciesCruised,

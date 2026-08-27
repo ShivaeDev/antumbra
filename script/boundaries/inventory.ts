@@ -1,11 +1,13 @@
 import { readdirSync } from "node:fs";
 import { join, relative, sep } from "node:path";
+import type { BoundaryDependency } from "#boundaries/model.ts";
 
 const sourceExtension = /\.(?:[cm]?[jt]sx?)$/;
 const excludedDirectory = new Set(["dist", "node_modules", "out"]);
 
 export interface BoundaryInventory {
 	readonly dependencies: number;
+	readonly dependencyEvidence: readonly BoundaryDependency[];
 	readonly modules: readonly string[];
 }
 
@@ -38,6 +40,16 @@ export const boundaryInventoryFailures = (
 	}
 	if (inventory.dependencies === 0) {
 		failures.push("dependency-cruiser inspected zero dependencies");
+	}
+	for (const dependency of inventory.dependencyEvidence) {
+		if (
+			dependency.specifier.startsWith("@antumbra/") &&
+			dependency.couldNotResolve
+		) {
+			failures.push(
+				`dependency-cruiser could not resolve workspace specifier ${dependency.specifier} from ${dependency.from}`,
+			);
+		}
 	}
 	const covered = new Set(inventory.modules);
 	const missing = expectedSources.filter((source) => !covered.has(source));

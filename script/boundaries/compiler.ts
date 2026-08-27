@@ -2,9 +2,11 @@ import { describeException, sanctionedOf } from "#boundaries/exceptions.ts";
 import { compileSelector, escapeExpression } from "#boundaries/expressions.ts";
 import type {
 	BoundaryFixture,
+	BoundaryPolicyInventory,
 	BoundaryRule,
 	CompiledBoundaryRule,
 } from "#boundaries/model.ts";
+import { validatePolicyInventory } from "#boundaries/policy-inventory.ts";
 import { validatePolicy } from "#boundaries/validation.ts";
 
 const compileRule = (rule: BoundaryRule): CompiledBoundaryRule => ({
@@ -26,7 +28,11 @@ const compileRule = (rule: BoundaryRule): CompiledBoundaryRule => ({
 	},
 });
 
-export const compileBoundaryPolicy = (policy: readonly BoundaryRule[]) => {
+export const compileBoundaryPolicy = (
+	policy: readonly BoundaryRule[],
+	inventory: BoundaryPolicyInventory,
+) => {
+	validatePolicyInventory(policy, inventory);
 	const forbidden = policy.map(compileRule);
 	validatePolicy(policy, forbidden);
 	return {
@@ -34,6 +40,10 @@ export const compileBoundaryPolicy = (policy: readonly BoundaryRule[]) => {
 			forbidden,
 			options: {
 				doNotFollow: { path: "node_modules" },
+				enhancedResolveOptions: {
+					conditionNames: ["import"],
+					exportsFields: ["exports"],
+				},
 				exclude: { path: "(^|/)(dist|out|node_modules)(/|$)" },
 				tsPreCompilationDeps: true,
 			},

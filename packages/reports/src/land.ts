@@ -6,7 +6,7 @@ import {
 	Writer,
 } from "@antumbra/persistence";
 import { type PieceNotFound, verifyPieceExists } from "@antumbra/pieces";
-import { type Context, Effect, PubSub } from "effect";
+import { type Context, Effect } from "effect";
 import type { ReportInput, ReportRow } from "#model.ts";
 
 const writeReport = (row: ReportRow, pieceId: string) =>
@@ -28,7 +28,7 @@ export const landReport = Effect.fn("reports.landReport")(function* (
 	ReportRow,
 	PieceNotFound | PrismaError,
 	| Context.Service.Identifier<typeof Database>
-	| DomainFeeds
+	| Context.Service.Identifier<typeof DomainFeeds>
 	| WriteExecutors
 	| Writer
 > {
@@ -41,6 +41,6 @@ export const landReport = Effect.fn("reports.landReport")(function* (
 		title: input.title,
 	};
 	yield* writer.write(writeReport(row, input.pieceId));
-	yield* PubSub.publish(feeds.voyages, undefined);
+	yield* feeds.publishVoyageRefresh();
 	return row;
 });

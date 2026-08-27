@@ -5,7 +5,7 @@ import {
 	ensureAgentResourcesUnclaimed,
 	ensureBranchResourcesUnclaimed,
 } from "@antumbra/resource-reclamation";
-import { Clock, Effect, Option, PubSub } from "effect";
+import { Clock, Effect, Option } from "effect";
 import type { ObservationAttachment } from "#change-submissions/observation-match.ts";
 import { reconcileObservation } from "#change-submissions/observation-projection.ts";
 
@@ -56,10 +56,7 @@ export const applyObservations = (
 		);
 		if (reconciled.some((result) => result.changed)) {
 			yield* Effect.all(
-				[
-					PubSub.publish(feeds.resourceReclaim, undefined),
-					PubSub.publish(feeds.voyages, undefined),
-				],
+				[feeds.publishResourceReclaim(), feeds.publishVoyageRefresh()],
 				{ discard: true },
 			);
 		}

@@ -1,6 +1,6 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database, Writer } from "@antumbra/persistence";
-import { Clock, Effect, Option, PubSub } from "effect";
+import { Clock, Effect, Option } from "effect";
 import { appendedEntry, nextSequence, storedEntryVariant } from "#entries.ts";
 import { type BoardEntryRow, BoardScope, type EntryInput } from "#model.ts";
 import { linkBoard, linkedBoardId, requireBoardOwner } from "#owner.ts";
@@ -79,7 +79,7 @@ export const writeEntry = (scope: BoardScope, input: EntryInput) =>
 			Voyage: () => true,
 		});
 		if (result.written && publishesVoyage) {
-			yield* PubSub.publish(feeds.voyages, undefined);
+			yield* feeds.publishVoyageRefresh();
 		}
 		return result.row;
 	});

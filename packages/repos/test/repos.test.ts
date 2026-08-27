@@ -29,7 +29,7 @@ persistence.effectDB(
 			Effect.gen(function* () {
 				const feeds = yield* DomainFeeds;
 				const repos = yield* Repos;
-				const notices = yield* PubSub.subscribe(feeds.fleet);
+				const notices = yield* feeds.subscribeFleetRefresh();
 				const first = yield* repos.register({
 					defaultRef: "main",
 					source: "/reefs/one",
@@ -88,8 +88,8 @@ persistence.effectDB(
 				const feeds = yield* DomainFeeds;
 				const repos = yield* Repos;
 				const writer = yield* Writer;
-				const fleetNotices = yield* PubSub.subscribe(feeds.fleet);
-				const voyageNotices = yield* PubSub.subscribe(feeds.voyages);
+				const fleetNotices = yield* feeds.subscribeFleetRefresh();
+				const voyageNotices = yield* feeds.subscribeVoyageRefresh();
 				const repo = yield* repos.register({
 					defaultRef: "main",
 					source: "/reefs/one",

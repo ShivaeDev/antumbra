@@ -1,4 +1,4 @@
-import { DomainFeeds, pump } from "@antumbra/domain-feeds";
+import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Cause, Clock, Effect, Layer, Queue, Ref } from "effect";
 import { AgentDomain } from "#agent-domain-service.ts";
 import {
@@ -7,6 +7,7 @@ import {
 	retryObserveDelayMillis,
 } from "#change-cadence.ts";
 import type { ChangeProcedures } from "#change-procedures.ts";
+import { runRefreshes } from "#feed-refreshes.ts";
 
 const DEFAULTS: ObserveCadenceOptions = {
 	coldMillis: 900_000,
@@ -92,7 +93,9 @@ export const ChangeWatcherLive = (
 			yield* Effect.forEach(domain.changes.hostTags, (hostTag) =>
 				Effect.gen(function* () {
 					const tick = yield* Queue.sliding<void>(1);
-					yield* Effect.forkScoped(pump(feeds.changeRefresh, tick));
+					yield* Effect.forkScoped(
+						runRefreshes(feeds.subscribeChangeRefresh(), tick),
+					);
 					yield* Effect.forkScoped(
 						watchOneHost(domain.changes, hostTag, options, tick),
 					);

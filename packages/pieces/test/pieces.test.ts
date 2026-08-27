@@ -47,7 +47,7 @@ it.effectDB(
 			Effect.gen(function* () {
 				const feeds = yield* DomainFeeds;
 				const pieces = yield* Pieces;
-				const notices = yield* PubSub.subscribe(feeds.voyages);
+				const notices = yield* feeds.subscribeVoyageRefresh();
 				yield* db.Voyage.create(voyage);
 
 				const piece = yield* pieces.charter({
@@ -80,7 +80,7 @@ it.effectDB(
 			Effect.gen(function* () {
 				const feeds = yield* DomainFeeds;
 				const pieces = yield* Pieces;
-				const notices = yield* PubSub.subscribe(feeds.voyages);
+				const notices = yield* feeds.subscribeVoyageRefresh();
 				const failure = yield* Effect.flip(
 					pieces.charter({
 						charter: "sail nowhere",

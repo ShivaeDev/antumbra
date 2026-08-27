@@ -108,7 +108,7 @@ it.effectDB(
 			Effect.gen(function* () {
 				const boards = yield* Boards;
 				const feeds = yield* DomainFeeds;
-				const notices = yield* PubSub.subscribe(feeds.voyages);
+				const notices = yield* feeds.subscribeVoyageRefresh();
 				yield* db.Agent.create({
 					charter: "take in selected mail",
 					id: "agent-mailbox",

@@ -5,7 +5,7 @@ import {
 	decodeStoredResourceReclaimState,
 	type ResourceReclaimState,
 } from "@antumbra/vocabulary/agent-runtime";
-import { Clock, Effect, PubSub } from "effect";
+import { Clock, Effect } from "effect";
 import {
 	type ClaimedBerth,
 	claimReclaimableBerths,
@@ -94,14 +94,14 @@ export const runResourceReclaimPass = Effect.gen(function* () {
 	const claims = yield* claimReclaimableBerths(new Set(runners.keys()));
 	const now = yield* Clock.currentTimeMillis;
 	if (claims.length > 0) {
-		yield* PubSub.publish(feeds.fleet, undefined);
+		yield* feeds.publishFleetRefresh();
 	}
 	yield* Effect.forEach(claims, (berth) => runClaim(berth, now), {
 		concurrency: 1,
 		discard: true,
 	});
 	if (claims.length > 0) {
-		yield* PubSub.publish(feeds.fleet, undefined);
+		yield* feeds.publishFleetRefresh();
 		yield* Effect.logInfo("resource reclaim pass finished", {
 			claims: claims.length,
 		});

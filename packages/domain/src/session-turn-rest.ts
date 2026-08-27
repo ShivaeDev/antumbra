@@ -7,7 +7,7 @@ import {
 	sessionExecutionTransition,
 } from "@antumbra/vocabulary/agent-runtime";
 import type { AgentEvent } from "@antumbra/vocabulary/session-events";
-import { Effect, Option, PubSub, Ref } from "effect";
+import { Effect, Option, Ref } from "effect";
 import { originOf } from "#session-tree-attribution.ts";
 
 export interface SessionTurnRest {
@@ -29,10 +29,7 @@ export const makeSessionTurnRests = Effect.gen(function* () {
 	const provide = <A, E>(effect: Effect.Effect<A, E, WriteExecutors>) =>
 		Effect.provideContext(effect, executors);
 	const announce = Effect.all(
-		[
-			PubSub.publish(feeds.fleet, undefined),
-			PubSub.publish(feeds.voyages, undefined),
-		],
+		[feeds.publishFleetRefresh(), feeds.publishVoyageRefresh()],
 		{ concurrency: 1 },
 	).pipe(Effect.asVoid);
 	const settle = (sessionId: string, stirrings: number) =>

@@ -1,6 +1,6 @@
 import type { SightFailure } from "@antumbra/contract";
 import { DomainFeeds } from "@antumbra/domain-feeds";
-import { Effect, PubSub, Stream } from "effect";
+import { Effect, Stream } from "effect";
 
 // why: what a voyage looks like is a function of its own rows and of who is
 // at work — an agent going alive or retiring moves a piece between active and
@@ -10,8 +10,8 @@ import { Effect, PubSub, Stream } from "effect";
 export const makeVoyageRefreshes = Effect.gen(function* () {
 	const feeds = yield* DomainFeeds;
 	const ticks = Effect.gen(function* () {
-		const voyageWrites = yield* PubSub.subscribe(feeds.voyages);
-		const fleetWrites = yield* PubSub.subscribe(feeds.fleet);
+		const voyageWrites = yield* feeds.subscribeVoyageRefresh();
+		const fleetWrites = yield* feeds.subscribeFleetRefresh();
 		return Stream.merge(
 			Stream.fromSubscription(voyageWrites),
 			Stream.fromSubscription(fleetWrites),

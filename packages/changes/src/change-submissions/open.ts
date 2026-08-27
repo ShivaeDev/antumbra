@@ -1,6 +1,6 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { ChangeHostUnavailable } from "@antumbra/plugin-api";
-import { Effect, PubSub } from "effect";
+import { Effect } from "effect";
 import type { ChangeRow } from "#change-rows.ts";
 import {
 	ChangeObservationConflict,
@@ -90,6 +90,6 @@ export const openSubmittedChange = (input: OpenChangeInput) =>
 				host: host.tag,
 			});
 		}
-		yield* PubSub.publish(feeds.changeRefresh, undefined);
+		yield* feeds.publishChangeRefresh();
 		return row;
 	});

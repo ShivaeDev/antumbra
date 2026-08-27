@@ -3,7 +3,7 @@ import { SightSource } from "@antumbra/contract";
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Kernel } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
-import { Effect, Layer, PubSub, Stream } from "effect";
+import { Effect, Layer, Stream } from "effect";
 import { AgentDomain } from "#agent-domain-service.ts";
 import { makeSightActs } from "#sight-acts.ts";
 import { writeProvider } from "#sight-executors.ts";
@@ -54,7 +54,7 @@ export const SightSourceLive = Layer.effect(SightSource)(
 
 		const fleetFeed = Stream.unwrap(
 			Effect.gen(function* () {
-				const subscription = yield* PubSub.subscribe(feeds.fleet);
+				const subscription = yield* feeds.subscribeFleetRefresh();
 				const refresh = Stream.fromSubscription(subscription).pipe(
 					Stream.mapEffect(() => fleet),
 				);

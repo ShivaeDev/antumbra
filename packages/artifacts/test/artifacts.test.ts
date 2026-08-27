@@ -214,7 +214,7 @@ it.effectDB("refuses an orphan artifact without publishing", function* (db) {
 			Effect.gen(function* () {
 				const artifacts = yield* Artifacts;
 				const feeds = yield* DomainFeeds;
-				const notices = yield* PubSub.subscribe(feeds.voyages);
+				const notices = yield* feeds.subscribeVoyageRefresh();
 				const failure = yield* Effect.flip(
 					artifacts.land({
 						authorAgentId: agent.id,
@@ -244,7 +244,7 @@ it.effect(
 					const db = yield* Database;
 					const artifacts = yield* Artifacts;
 					const feeds = yield* DomainFeeds;
-					const notices = yield* PubSub.subscribe(feeds.voyages);
+					const notices = yield* feeds.subscribeVoyageRefresh();
 					yield* seed(db, moorage);
 					writeFileSync(join(moorage, "reef.md"), "# Reef");
 					yield* Effect.sync(() =>

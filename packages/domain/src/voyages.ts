@@ -5,7 +5,7 @@ import { Database, type WriteExecutors, Writer } from "@antumbra/persistence";
 import { Pieces } from "@antumbra/pieces";
 import { Reports } from "@antumbra/reports";
 import type { AgentBackendTag } from "@antumbra/vocabulary/agent-backend";
-import { Clock, Context, Effect, Layer, PubSub } from "effect";
+import { Clock, Context, Effect, Layer } from "effect";
 import { hailCaptain } from "#hail.ts";
 import { KernelReach } from "#kernel-reach.ts";
 import { workPieceNow } from "#piece-work.ts";
@@ -23,7 +23,7 @@ import { VoyageWorldSource } from "#voyage-world.ts";
 export type { OpenVoyageInput, VoyageProcedures } from "#voyage-procedures.ts";
 
 const announce = DomainFeeds.pipe(
-	Effect.flatMap((feeds) => PubSub.publish(feeds.voyages, undefined)),
+	Effect.flatMap((feeds) => feeds.publishVoyageRefresh()),
 );
 
 const openVoyage = (input: OpenVoyageInput) =>

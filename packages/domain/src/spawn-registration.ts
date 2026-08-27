@@ -1,7 +1,7 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database, type WriteExecutors, Writer } from "@antumbra/persistence";
 import { ensureAgentResourcesUnclaimed } from "@antumbra/resource-reclamation";
-import { Effect, Option, PubSub } from "effect";
+import { Effect, Option } from "effect";
 import { reservationFor } from "#spawn-current-session.ts";
 import type { SpawnFields } from "#spawn-fields.ts";
 
@@ -46,7 +46,7 @@ export const spawnRegistration = Effect.gen(function* () {
 				),
 			);
 			if (created) {
-				yield* PubSub.publish(feeds.voyages, undefined);
+				yield* feeds.publishVoyageRefresh();
 			}
 		});
 	};
@@ -84,7 +84,7 @@ export const spawnRegistration = Effect.gen(function* () {
 				),
 			);
 			if (created) {
-				yield* PubSub.publish(feeds.voyages, undefined);
+				yield* feeds.publishVoyageRefresh();
 			}
 		});
 	};
@@ -119,8 +119,8 @@ export const spawnRegistration = Effect.gen(function* () {
 		Effect.gen(function* () {
 			const changed = yield* provide(writer.write(ensureRows(payload)));
 			if (changed) {
-				yield* PubSub.publish(feeds.fleet, undefined);
-				yield* PubSub.publish(feeds.voyages, undefined);
+				yield* feeds.publishFleetRefresh();
+				yield* feeds.publishVoyageRefresh();
 			}
 			yield* assignToPiece(payload);
 			yield* assignToVoyage(payload);

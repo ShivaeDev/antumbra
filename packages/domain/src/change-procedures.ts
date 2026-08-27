@@ -24,7 +24,7 @@ import type {
 	ChangeObservation,
 } from "@antumbra/plugin-api";
 import type { StoredResourceReclaimStateInvalid } from "@antumbra/vocabulary/agent-runtime";
-import { Context, Effect, Layer, PubSub } from "effect";
+import { Context, Effect, Layer } from "effect";
 import type { ResourceReclaimClaimed } from "#errors.ts";
 import { type QuayReading, quayReading } from "#quay-view.ts";
 import {
@@ -129,7 +129,7 @@ export const ChangeProceduresLive = (hosts: ReadonlyMap<string, ChangeHost>) =>
 				open: submissions.open,
 				quay: world.read.pipe(Effect.map(quayReading)),
 				refresh: submissions.refresh,
-				requestRefresh: PubSub.publish(feeds.changeRefresh, undefined),
+				requestRefresh: feeds.publishChangeRefresh(),
 				submit: submissions.submit,
 				watchableChanges: submissions.watchable,
 			});

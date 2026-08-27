@@ -6,7 +6,7 @@ import {
 	ensureAgentResourcesUnclaimed,
 	ensureBranchResourcesUnclaimed,
 } from "@antumbra/resource-reclamation";
-import { Clock, Effect, Option, PubSub } from "effect";
+import { Clock, Effect, Option } from "effect";
 import { activeChange, linkProduces } from "#change-submissions/links.ts";
 import type { AdoptChangeInput } from "#change-submissions/model.ts";
 import type { ObservationAttachment } from "#change-submissions/observation-match.ts";
@@ -95,8 +95,8 @@ export const adoptSubmittedChange = (input: AdoptChangeInput) =>
 			}),
 		);
 		if (adopted.changed) {
-			yield* PubSub.publish(feeds.voyages, undefined);
+			yield* feeds.publishVoyageRefresh();
 		}
-		yield* PubSub.publish(feeds.changeRefresh, undefined);
+		yield* feeds.publishChangeRefresh();
 		return adopted.row;
 	});

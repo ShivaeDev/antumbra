@@ -4,7 +4,7 @@ import { Database, Writer } from "@antumbra/persistence";
 import type { TemporaryPersistence } from "@antumbra/persistence/testing";
 import type { AgentEvent } from "@antumbra/vocabulary/session-events";
 import { expect, it } from "@effect/vitest";
-import { Effect, Fiber, Layer, PubSub, Schedule, Stream } from "effect";
+import { Effect, Fiber, Layer, Schedule, Stream } from "effect";
 import { SightSourceLive } from "#sight.ts";
 import { domainKernelLayer } from "#test/domain-layers.ts";
 import {
@@ -158,7 +158,7 @@ it.live(
 					sessionId: receipt.sessionId,
 				};
 				yield* writer.write(db.SessionEvent.create(liveMismatch));
-				yield* PubSub.publish(feeds.events, liveMismatch);
+				yield* feeds.publishSessionEvent(liveMismatch);
 				const events = yield* Fiber.join(collector);
 				expect(events.map((event) => event.seq)).toEqual([0, 1, 2, 3]);
 				expect(events.map((event) => event.event._tag)).toEqual([

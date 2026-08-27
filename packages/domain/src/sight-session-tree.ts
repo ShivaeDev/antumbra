@@ -6,7 +6,7 @@ import {
 	decodeStoredAgentSessionStatus,
 } from "@antumbra/vocabulary/agent-runtime";
 import { decodeStoredSubsessionOutcome } from "@antumbra/vocabulary/session-events";
-import { Effect, PubSub, Stream } from "effect";
+import { Effect, Stream } from "effect";
 import {
 	assembleSessionTree,
 	type SessionTreeRow,
@@ -90,7 +90,7 @@ export const makeSightSessionTree = Effect.gen(function* () {
 		sessionTreeFeed: (rootSessionId) =>
 			Stream.unwrap(
 				Effect.gen(function* () {
-					const subscription = yield* PubSub.subscribe(feeds.events);
+					const subscription = yield* feeds.subscribeSessionEvents();
 					const current = yield* sessionTree(rootSessionId);
 					const live = Stream.fromSubscription(subscription).pipe(
 						Stream.filter(shapesATree),

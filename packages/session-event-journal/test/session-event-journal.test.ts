@@ -134,7 +134,7 @@ it.live("records native identity before publishing the opening event", () =>
 				const db = yield* Database;
 				const feeds = yield* DomainFeeds;
 				const journal = yield* SessionEventJournal;
-				const events = yield* PubSub.subscribe(feeds.events);
+				const events = yield* feeds.subscribeSessionEvents();
 				yield* db.Agent.create({
 					charter: "chart the journal",
 					currentSessionId: "session-opening",

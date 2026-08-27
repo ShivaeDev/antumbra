@@ -8,7 +8,7 @@ import {
 import type { MooragePlan } from "@antumbra/plugin-api";
 import { ensureAgentResourcesUnclaimed } from "@antumbra/resource-reclamation";
 import { decodeStoredAgentSessionStatus } from "@antumbra/vocabulary/agent-runtime";
-import { Effect, Option, PubSub } from "effect";
+import { Effect, Option } from "effect";
 import {
 	AgentNotFound,
 	AgentRootAlreadyOpen,
@@ -115,8 +115,8 @@ export const makeEnsureSessionRow = Effect.gen(function* () {
 				),
 			);
 			if (created) {
-				yield* PubSub.publish(feeds.fleet, undefined);
-				yield* PubSub.publish(feeds.voyages, undefined);
+				yield* feeds.publishFleetRefresh();
+				yield* feeds.publishVoyageRefresh();
 			}
 		});
 });

@@ -6,7 +6,7 @@ import type {
 import { DomainFeeds, type StoredEvent } from "@antumbra/domain-feeds";
 import { Database } from "@antumbra/persistence";
 import { projectHistoricalAgentEvent } from "@antumbra/vocabulary/session-events";
-import { Effect, PubSub, Stream } from "effect";
+import { Effect, Stream } from "effect";
 import { writeProvider } from "#sight-executors.ts";
 import { toFailure } from "#sight-failure.ts";
 
@@ -55,7 +55,7 @@ export const makeSightSessionEvents = Effect.gen(function* () {
 		sessionEventFeed: (query) =>
 			Stream.unwrap(
 				Effect.gen(function* () {
-					const subscription = yield* PubSub.subscribe(feeds.events);
+					const subscription = yield* feeds.subscribeSessionEvents();
 					const rehydrated = yield* sessionEvents(query);
 					const lastSeq = rehydrated.at(-1)?.seq ?? query.fromSeq - 1;
 					const live = Stream.fromSubscription(subscription).pipe(

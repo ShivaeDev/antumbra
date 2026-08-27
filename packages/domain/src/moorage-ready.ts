@@ -5,7 +5,7 @@ import {
 	decodeStoredBerthStatus,
 	decodeStoredMoorageStatus,
 } from "@antumbra/vocabulary/agent-runtime";
-import { Effect, Option, PubSub } from "effect";
+import { Effect, Option } from "effect";
 import type { SpawnFields } from "#spawn-fields.ts";
 
 export const makeMarkMoorageReady = Effect.gen(function* () {
@@ -55,6 +55,6 @@ export const makeMarkMoorageReady = Effect.gen(function* () {
 					),
 				),
 			);
-			yield* PubSub.publish(feeds.fleet, undefined);
+			yield* feeds.publishFleetRefresh();
 		});
 });

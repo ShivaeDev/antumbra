@@ -32,7 +32,7 @@ it.effectDB(
 			Effect.gen(function* () {
 				const feeds = yield* DomainFeeds;
 				const reports = yield* Reports;
-				const notices = yield* PubSub.subscribe(feeds.voyages);
+				const notices = yield* feeds.subscribeVoyageRefresh();
 				yield* db.Piece.create(piece);
 
 				const report = yield* reports.land({
@@ -62,7 +62,7 @@ it.effectDB("refuses an orphan report without publishing", function* (db) {
 		Effect.gen(function* () {
 			const feeds = yield* DomainFeeds;
 			const reports = yield* Reports;
-			const notices = yield* PubSub.subscribe(feeds.voyages);
+			const notices = yield* feeds.subscribeVoyageRefresh();
 			const failure = yield* Effect.flip(
 				reports.land({
 					body: "depths measured",
@@ -88,7 +88,7 @@ it.effect("rolls back a Report whose Piece link is rejected", () =>
 			const db = yield* Database;
 			const feeds = yield* DomainFeeds;
 			const reports = yield* Reports;
-			const notices = yield* PubSub.subscribe(feeds.voyages);
+			const notices = yield* feeds.subscribeVoyageRefresh();
 			yield* db.Piece.create(piece);
 			yield* Effect.sync(() =>
 				rejectTestOutcomeLinks(rejectedLinkPersistence.database, "report"),

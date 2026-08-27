@@ -1,7 +1,7 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database, type WriteExecutors, Writer } from "@antumbra/persistence";
 import { SessionFabric } from "@antumbra/session-fabric";
-import { Effect, PubSub, Result } from "effect";
+import { Effect, Result } from "effect";
 import { planCurrentSessionReconciliation } from "#current-session-reconcile-plan.ts";
 import { rootSessions } from "#session-roots.ts";
 
@@ -73,10 +73,7 @@ export const makeCurrentSessionReconciler = Effect.gen(function* () {
 		Effect.tap((changed) =>
 			changed
 				? Effect.all(
-						[
-							PubSub.publish(feeds.fleet, undefined),
-							PubSub.publish(feeds.voyages, undefined),
-						],
+						[feeds.publishFleetRefresh(), feeds.publishVoyageRefresh()],
 						{ concurrency: 1 },
 					).pipe(Effect.asVoid)
 				: Effect.void,

@@ -1,6 +1,6 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database, Writer } from "@antumbra/persistence";
-import { Effect, PubSub } from "effect";
+import { Effect } from "effect";
 
 const deleteRepoGraph = (id: string) =>
 	Effect.gen(function* () {
@@ -28,7 +28,7 @@ export const forgetRepo = (id: string) =>
 		const writer = yield* Writer;
 		yield* writer.write(deleteRepoGraph(id));
 		yield* Effect.all([
-			PubSub.publish(feeds.fleet, undefined),
-			PubSub.publish(feeds.voyages, undefined),
+			feeds.publishFleetRefresh(),
+			feeds.publishVoyageRefresh(),
 		]);
 	});

@@ -607,10 +607,16 @@ importers:
 
   packages/domain-feeds:
     dependencies:
+      '@antumbra/service-definition':
+        specifier: workspace:*
+        version: link:../service-definition
       effect:
         specifier: 'catalog:'
         version: 4.0.0-rc.108
     devDependencies:
+      '@effect/vitest':
+        specifier: 'catalog:'
+        version: 4.0.0-rc.108(effect@4.0.0-rc.108)(vitest@4.1.9(@types/node@26.1.2)(happy-dom@20.11.2)(vite@8.2.0(@types/node@26.1.2)(esbuild@0.28.1)(jiti@2.7.0)))
       '@typescript/native':
         specifier: 'catalog:'
         version: typescript@7.0.2
@@ -5924,6 +5930,11 @@ snapshots:
     dependencies:
       effect: 4.0.0-rc.108
       vitest: 4.1.9(@types/node@24.10.1)(happy-dom@20.11.2)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0))
+
+  '@effect/vitest@4.0.0-rc.108(effect@4.0.0-rc.108)(vitest@4.1.9(@types/node@26.1.2)(happy-dom@20.11.2)(vite@8.2.0(@types/node@26.1.2)(esbuild@0.28.1)(jiti@2.7.0)))':
+    dependencies:
+      effect: 4.0.0-rc.108
+      vitest: 4.1.9(@types/node@26.1.2)(happy-dom@20.11.2)(vite@8.2.0(@types/node@26.1.2)(esbuild@0.28.1)(jiti@2.7.0))
 
   '@electron-internal/extract-zip@1.0.5': {}
 

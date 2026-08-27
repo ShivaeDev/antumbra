@@ -1,5 +1,6 @@
 import { expect, it } from "@effect/vitest";
 import { Effect, Ref } from "effect";
+import { TestClock } from "effect/testing";
 import { SessionNotLive } from "#errors.ts";
 import { makeSessionFabric } from "#fabric.ts";
 import {
@@ -111,17 +112,17 @@ it.live("a reclaim takes the attachment of a session still standing down", () =>
 // work is over and a declaration is the Agent saying it, and the clock reads
 // neither — it reads the moment the quiet began, which is whichever of them
 // came first and never the last one to repeat it.
-it.live("an ending leaves the same mark a declaration left, once", () =>
+it.effect("an ending leaves the same mark a declaration left, once", () =>
 	Effect.scoped(
 		Effect.gen(function* () {
 			const { fabric } = yield* standing;
 			yield* fabric.standDown(options.sessionId);
 			const declared = (yield* fabric.idleSince).get(options.sessionId);
-			yield* Effect.sleep(20);
+			yield* TestClock.adjust(20);
 
 			expect(yield* fabric.turnEnded(options.sessionId, 0)).toBe(true);
 			expect((yield* fabric.idleSince).get(options.sessionId)).toBe(declared);
-			yield* Effect.sleep(20);
+			yield* TestClock.adjust(20);
 
 			expect(yield* fabric.turnEnded(options.sessionId, 0)).toBe(true);
 			expect((yield* fabric.idleSince).get(options.sessionId)).toBe(declared);

@@ -1,4 +1,8 @@
-import type { IntentStatus, IntentSubmission } from "@antumbra/kernel";
+import {
+	type IntentStatus,
+	type IntentSubmission,
+	isTerminalIntentStatus,
+} from "@antumbra/kernel";
 import type { WriteExecutors } from "@antumbra/persistence";
 import { Effect, Option, Queue, Stream } from "effect";
 import { charterFor } from "#crew-charter.ts";
@@ -28,12 +32,6 @@ export interface DispatchPort {
 export type DispatchTarget =
 	| { readonly _tag: "resume"; readonly sessionId: string }
 	| { readonly _tag: "spawn" };
-
-const TERMINAL: ReadonlySet<IntentStatus> = new Set([
-	"cancelled",
-	"failed",
-	"succeeded",
-]);
 
 const settle = (
 	port: DispatchPort,
@@ -67,7 +65,7 @@ const watchDispatch = (
 	submission: IntentSubmission,
 ) =>
 	submission.changes.pipe(
-		Stream.takeUntil((status) => TERMINAL.has(status)),
+		Stream.takeUntil(isTerminalIntentStatus),
 		Stream.runLast,
 		Effect.flatMap((status) => settle(port, pieceId, submission.id, status)),
 		Effect.catchCause((cause) =>

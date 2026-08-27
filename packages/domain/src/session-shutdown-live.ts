@@ -1,5 +1,5 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
-import { Kernel } from "@antumbra/kernel";
+import { isTerminalIntentStatus, Kernel } from "@antumbra/kernel";
 import { Database, type WriteExecutors, Writer } from "@antumbra/persistence";
 import {
 	decodeSessionExecutionStatus,
@@ -9,7 +9,7 @@ import { Effect, Layer, PubSub, Stream } from "effect";
 import { AgentDomain } from "#agent-domain-service.ts";
 import { rootSessions } from "#session-roots.ts";
 import { SessionShutdown } from "#session-shutdown.ts";
-import { requireSiestaSucceeded, TERMINAL } from "#session-shutdown-verdict.ts";
+import { requireSiestaSucceeded } from "#session-shutdown-verdict.ts";
 
 export const makeSessionShutdownDrain = Effect.gen(function* () {
 	const db = yield* Database;
@@ -61,7 +61,7 @@ export const makeSessionShutdownDrain = Effect.gen(function* () {
 	const waitForSiesta = (sessionId: string, intentId: string) =>
 		provide(
 			kernel.changes(intentId).pipe(
-				Stream.takeUntil((status) => TERMINAL.has(status)),
+				Stream.takeUntil(isTerminalIntentStatus),
 				Stream.runLast,
 				Effect.flatMap((status) =>
 					requireSiestaSucceeded(intentId, sessionId, status),

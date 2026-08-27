@@ -10,6 +10,8 @@ export {
 	type IntentEvent,
 	type IntentStatus,
 	InvalidTransition,
+	isTerminalIntentStatus,
+	type TerminalIntentStatus,
 	transition,
 } from "#fsm.ts";
 export {

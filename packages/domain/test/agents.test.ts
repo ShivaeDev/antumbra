@@ -1,4 +1,8 @@
-import { type IntentStatus, Kernel } from "@antumbra/kernel";
+import {
+	type IntentStatus,
+	isTerminalIntentStatus,
+	Kernel,
+} from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
 import {
 	type AgentBackend,
@@ -18,15 +22,9 @@ import {
 	standDown,
 } from "#test/harness.ts";
 
-const TERMINAL: ReadonlySet<IntentStatus> = new Set([
-	"cancelled",
-	"failed",
-	"succeeded",
-]);
-
 const untilTerminal = <E, R>(changes: Stream.Stream<IntentStatus, E, R>) =>
 	changes.pipe(
-		Stream.takeUntil((status) => TERMINAL.has(status)),
+		Stream.takeUntil(isTerminalIntentStatus),
 		Stream.runLast,
 		Effect.map(Option.getOrThrow),
 	);

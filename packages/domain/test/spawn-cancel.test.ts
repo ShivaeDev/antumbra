@@ -1,4 +1,8 @@
-import { type IntentStatus, Kernel } from "@antumbra/kernel";
+import {
+	type IntentStatus,
+	isTerminalIntentStatus,
+	Kernel,
+} from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
 import type { Runner } from "@antumbra/plugin-api";
 import { expect, it } from "@effect/vitest";
@@ -23,15 +27,9 @@ const payload: SpawnFields = {
 	sessionId: "session-cancel",
 };
 
-const TERMINAL: ReadonlySet<IntentStatus> = new Set([
-	"cancelled",
-	"failed",
-	"succeeded",
-]);
-
 const untilTerminal = <E, R>(changes: Stream.Stream<IntentStatus, E, R>) =>
 	changes.pipe(
-		Stream.takeUntil((status) => TERMINAL.has(status)),
+		Stream.takeUntil(isTerminalIntentStatus),
 		Stream.runLast,
 		Effect.map(Option.getOrThrow),
 	);

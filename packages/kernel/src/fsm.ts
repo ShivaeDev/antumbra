@@ -69,6 +69,14 @@ export const ActiveIntentStatusSchema = Schema.Literals([
 ]);
 export type ActiveIntentStatus = typeof ActiveIntentStatusSchema.Type;
 
+export type TerminalIntentStatus = Exclude<IntentStatus, ActiveIntentStatus>;
+
+const isActiveIntentStatus = Schema.is(ActiveIntentStatusSchema);
+
+export const isTerminalIntentStatus = (
+	status: IntentStatus,
+): status is TerminalIntentStatus => !isActiveIntentStatus(status);
+
 export const transition = (
 	from: IntentStatus,
 	event: IntentEvent,

@@ -1,4 +1,4 @@
-import { type IntentStatus, Kernel } from "@antumbra/kernel";
+import { isTerminalIntentStatus, Kernel } from "@antumbra/kernel";
 import type { BerthPlan } from "@antumbra/plugin-api";
 import { expect, it } from "@effect/vitest";
 import { Effect, Option, Stream } from "effect";
@@ -11,12 +11,6 @@ import {
 	makeScriptedBackend,
 	makeScriptedRunner,
 } from "#test/harness.ts";
-
-const TERMINAL: ReadonlySet<IntentStatus> = new Set([
-	"cancelled",
-	"failed",
-	"succeeded",
-]);
 
 const spawnPayload = (suffix: string): SpawnFields => ({
 	agentId: `agent-${suffix}`,
@@ -33,7 +27,7 @@ const submitSpawn = (suffix: string) =>
 		const domain = yield* AgentDomain;
 		const submission = yield* kernel.submit(domain.spawn, spawnPayload(suffix));
 		return yield* submission.changes.pipe(
-			Stream.takeUntil((status) => TERMINAL.has(status)),
+			Stream.takeUntil(isTerminalIntentStatus),
 			Stream.runLast,
 			Effect.map(Option.getOrThrow),
 		);

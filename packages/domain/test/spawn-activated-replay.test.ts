@@ -1,4 +1,9 @@
-import { type Gate, type IntentStatus, Kernel } from "@antumbra/kernel";
+import {
+	type Gate,
+	type IntentStatus,
+	isTerminalIntentStatus,
+	Kernel,
+} from "@antumbra/kernel";
 import { Database, type NewAgentSession, Writer } from "@antumbra/persistence";
 import type { AgentBackend, MooragePlan } from "@antumbra/plugin-api";
 import { expect, it } from "@effect/vitest";
@@ -13,11 +18,6 @@ import {
 } from "#test/harness.ts";
 import { reportsNativeRef } from "#test/session-recovery-fixture.ts";
 
-const TERMINAL: ReadonlySet<IntentStatus> = new Set([
-	"cancelled",
-	"failed",
-	"succeeded",
-]);
 const CLOSED: Gate = { admits: () => false, id: "test/closed" };
 const payload: SpawnFields = {
 	agentId: "agent-activated",
@@ -32,7 +32,7 @@ const payload: SpawnFields = {
 
 const untilTerminal = <E, R>(changes: Stream.Stream<IntentStatus, E, R>) =>
 	changes.pipe(
-		Stream.takeUntil((status) => TERMINAL.has(status)),
+		Stream.takeUntil(isTerminalIntentStatus),
 		Stream.runLast,
 		Effect.map(Option.getOrThrow),
 	);

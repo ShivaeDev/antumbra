@@ -3,7 +3,7 @@ import {
 	temporaryPersistence,
 } from "@antumbra/persistence/testing";
 import { Effect, Layer, Stream } from "effect";
-import type { IntentStatus } from "#fsm.ts";
+import { type IntentStatus, isTerminalIntentStatus } from "#fsm.ts";
 import { KernelLive, type KernelOptions } from "#layer.ts";
 
 export const acquireTemporaryPersistence = Effect.acquireRelease(
@@ -16,16 +16,6 @@ export const kernelLayer = (
 	options: KernelOptions,
 ) => KernelLive(options).pipe(Layer.provideMerge(temporary.layer));
 
-const TERMINAL: ReadonlySet<IntentStatus> = new Set([
-	"cancelled",
-	"failed",
-	"succeeded",
-]);
-
 export const statusesUntilTerminal = <E, R>(
 	changes: Stream.Stream<IntentStatus, E, R>,
-) =>
-	changes.pipe(
-		Stream.takeUntil((status) => TERMINAL.has(status)),
-		Stream.runCollect,
-	);
+) => changes.pipe(Stream.takeUntil(isTerminalIntentStatus), Stream.runCollect);

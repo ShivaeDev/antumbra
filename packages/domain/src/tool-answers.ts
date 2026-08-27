@@ -20,10 +20,10 @@ export const onPiece = (
 
 // why: a captain acts on the voyage it was hailed for and on nothing else,
 // so the voyage is never an argument a call could get wrong.
-export const onVoyage = (
+export const onVoyage = <E, R>(
 	identity: SessionIdentity,
-	act: (voyageId: string) => Effect.Effect<DirectToolOutcome>,
-): Effect.Effect<DirectToolOutcome> =>
+	act: (voyageId: string) => Effect.Effect<DirectToolOutcome, E, R>,
+): Effect.Effect<DirectToolOutcome, E, R> =>
 	Option.match(identity.voyageId, {
 		onNone: () => Effect.succeed(refused("you are not on a voyage")),
 		onSome: act,

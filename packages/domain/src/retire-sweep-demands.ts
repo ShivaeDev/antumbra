@@ -33,7 +33,7 @@ const sweptCrew = Effect.gen(function* () {
 	const world = yield* source.read;
 	const runtime = {
 		attached: yield* fabric.attached,
-		delegating: yield* live.delegating,
+		delegating: yield* live.delegating(),
 	};
 	const resting = restingCrew(world, runtime);
 	const retirable = retirableCrew(world, runtime);

@@ -1,0 +1,96 @@
+import { spawnSync } from "node:child_process";
+import { mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { fileURLToPath } from "node:url";
+import { describe, expect, it } from "vitest";
+
+const packageDirectory = fileURLToPath(new URL("..", import.meta.url));
+const workspaceDirectory = fileURLToPath(new URL("../../..", import.meta.url));
+
+const compile = (compiler: "tsc" | "tsc6", arguments_: ReadonlyArray<string>) =>
+	spawnSync(
+		join(workspaceDirectory, "node_modules", ".bin", compiler),
+		arguments_,
+		{
+			cwd: packageDirectory,
+			encoding: "utf8",
+		},
+	);
+
+const invalidArguments = (fixture: string) => [
+	"--ignoreConfig",
+	"--noEmit",
+	"--strict",
+	"--skipLibCheck",
+	"--target",
+	"ESNext",
+	"--module",
+	"ESNext",
+	"--moduleResolution",
+	"Bundler",
+	"--allowImportingTsExtensions",
+	`test/fixtures/invalid/${fixture}.ts`,
+];
+
+describe("service definition compiler fixtures", () => {
+	for (const compiler of ["tsc", "tsc6"] as const) {
+		it(`${compiler} emits only the initialized public service surface`, () => {
+			const output = mkdtempSync(join(tmpdir(), `antumbra-${compiler}-`));
+			try {
+				const result = compile(compiler, [
+					"-p",
+					"test/fixtures/tsconfig.json",
+					"--outDir",
+					output,
+				]);
+				expect(result.stderr || result.stdout).toBe("");
+				expect(result.status).toBe(0);
+				const declaration = readFileSync(
+					join(output, "test/fixtures/valid.d.ts"),
+					"utf8",
+				);
+				expect(declaration).toContain("...arguments_: number[]");
+				expect(declaration).toContain(
+					"Effect.Effect<number, MethodFailure, never>",
+				);
+				expect(declaration).toContain("Scope.Scope");
+				expect(declaration).toContain(
+					'Layer<"fixture/Ordinary", InitializationFailure, Declared | Residual>',
+				);
+				expect(declaration).not.toContain("PrivateState");
+				expect(declaration).not.toContain("initialize");
+				expect(declaration).not.toContain("methods");
+			} finally {
+				rmSync(output, { force: true, recursive: true });
+			}
+		});
+
+		const invalidFixtures = {
+			"caller-requirement":
+				"missing the following properties from type 'Scope'",
+			fake: "second",
+			generic: "GenericOrStructurallyOverloadedMethodsAreUnsupported",
+			"initializer-requirement": "InitializerHasUndeclaredServiceRequirements",
+			"method-requirement": "MethodHasUndeclaredServiceRequirements",
+			"method-value": "not assignable",
+			overloaded: "GenericOrStructurallyOverloadedMethodsAreUnsupported",
+			"overloaded-broad":
+				"GenericOrStructurallyOverloadedMethodsAreUnsupported",
+			"private-state": "Property 'secret' does not exist",
+			"scope-requirement": "ScopeCannotBeDeclaredAsAServiceRequirement",
+		} as const;
+
+		for (const [fixture, expectedDiagnostic] of Object.entries(
+			invalidFixtures,
+		)) {
+			it(`${compiler} rejects ${fixture}`, () => {
+				const result = compile(compiler, invalidArguments(fixture));
+				const diagnostics = result.stderr || result.stdout;
+				expect(result.status).not.toBe(0);
+				expect(diagnostics).toContain(`invalid/${fixture}.ts`);
+				expect(diagnostics).toContain(expectedDiagnostic);
+			});
+		}
+	}
+});

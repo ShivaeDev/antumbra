@@ -43,6 +43,7 @@
 		"@antumbra/session-event-journal": "workspace:*",
 		"@antumbra/session-fabric": "workspace:*",
 		"@antumbra/session-inputs": "workspace:*",
+		"@antumbra/service-definition": "workspace:*",
 		"@antumbra/vocabulary": "workspace:*",
 		"effect": "catalog:"
 	}

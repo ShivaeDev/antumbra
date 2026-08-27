@@ -115,7 +115,7 @@ export const AgentDomainLive = (
 				sendSessionInput: sessionSend.sendInput,
 				sendToSession: sessionSend.sendPrompt,
 				sessionsAttached: fabric.attached,
-				sessionsDelegating: live.delegating,
+				sessionsDelegating: live.delegating(),
 				siesta,
 				spawn,
 				voyages,

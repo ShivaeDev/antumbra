@@ -1,4 +1,5 @@
 import type {
+	RulingGatedPieceView,
 	RulingReclassificationView,
 	RulingSubjectView,
 	RulingView,
@@ -9,13 +10,6 @@ import type {
 	RulingSubject,
 } from "@antumbra/rulings";
 import { Option } from "effect";
-
-RulingGatedPieceView,
-	RulingSubjectView,
-	RulingView,
-} from "@antumbra/contract"
-
-import type { Ruling, RulingSubject } from "@antumbra/rulings";
 import type { PieceRow, VoyageWorld } from "#voyage-rows.ts";
 
 // why: a subject reaches the window as the word that named it — the id of the
@@ -46,7 +40,6 @@ const reclassificationSeen = (
 	}),
 });
 
-export const rulingSeen = (ruling: Ruling): RulingView => ({
 const berthedIn = (
 	world: VoyageWorld,
 	piece: PieceRow,

@@ -70,6 +70,7 @@ const piece: PieceView = {
 		},
 	],
 	artifacts: [artifact],
+	awaitingRulings: [],
 	board: [],
 	canRetireCrew: false,
 	changes: [],

@@ -46,5 +46,8 @@ export const rule = Effect.fn("rulings.rule")(function* (input: RulingVerdict) {
 	const now = yield* Clock.currentTimeMillis;
 	const ruled = yield* db.transaction(writeVerdict(input, new Date(now)));
 	yield* feeds.publishRulingRefresh();
+	// why: an answer releases every piece the ruling held, so readiness has
+	// changed for readers that never asked about rulings at all.
+	yield* feeds.publishVoyageRefresh();
 	return ruled;
 });

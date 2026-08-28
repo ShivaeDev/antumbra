@@ -32,6 +32,7 @@ const world = (over: Partial<VoyageWorld>): VoyageWorld => ({
 	pieceChanges: [],
 	pieceReports: [],
 	pieceVerdicts: new Map(),
+	rulingGates: [],
 	pieces: [],
 	reports: new Map(),
 	repos: new Map(),

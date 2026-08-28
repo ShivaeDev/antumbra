@@ -16,7 +16,7 @@ import type {
 } from '@prisma-next/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'sha256:dcc1ec7624fa7618d33ebed1b3c9fdb5bbf64fcea561864f91ce959234ac0036'>;
+  StorageHashBase<'sha256:d38dbf3e3cac41b2e172890f98f9ff43bb206a243555677410a247e06cd8bbcb'>;
 export type ExecutionHash = ExecutionHashBase<string>;
 export type ProfileHash =
   ProfileHashBase<'sha256:3cc333ecad9f3f4c7229370a9d2c37e908cdce0f8d2e9fb132d50605b024eff2'>;
@@ -241,11 +241,6 @@ export type FieldOutputTypes = {
       readonly position: CodecTypes['sqlite/integer@1']['output'];
       readonly label: CodecTypes['sqlite/text@1']['output'];
       readonly detail: CodecTypes['sqlite/text@1']['output'] | null;
-    };
-    readonly RulingGate: {
-      readonly id: CodecTypes['sqlite/text@1']['output'];
-      readonly rulingId: CodecTypes['sqlite/text@1']['output'];
-      readonly pieceId: CodecTypes['sqlite/text@1']['output'];
     };
     readonly RulingSubject: {
       readonly id: CodecTypes['sqlite/text@1']['output'];
@@ -528,11 +523,6 @@ export type FieldInputTypes = {
       readonly label: CodecTypes['sqlite/text@1']['input'];
       readonly detail: CodecTypes['sqlite/text@1']['input'] | null;
     };
-    readonly RulingGate: {
-      readonly id: CodecTypes['sqlite/text@1']['input'];
-      readonly rulingId: CodecTypes['sqlite/text@1']['input'];
-      readonly pieceId: CodecTypes['sqlite/text@1']['input'];
-    };
     readonly RulingSubject: {
       readonly id: CodecTypes['sqlite/text@1']['input'];
       readonly rulingId: CodecTypes['sqlite/text@1']['input'];
@@ -814,11 +804,6 @@ export type StorageColumnTypes = {
       readonly position: CodecTypes['sqlite/integer@1']['output'];
       readonly rulingId: CodecTypes['sqlite/text@1']['output'];
     };
-    readonly rulingGate: {
-      readonly id: CodecTypes['sqlite/text@1']['output'];
-      readonly pieceId: CodecTypes['sqlite/text@1']['output'];
-      readonly rulingId: CodecTypes['sqlite/text@1']['output'];
-    };
     readonly rulingSubject: {
       readonly agentId: CodecTypes['sqlite/text@1']['output'] | null;
       readonly id: CodecTypes['sqlite/text@1']['output'];
@@ -1098,11 +1083,6 @@ export type StorageColumnInputTypes = {
       readonly id: CodecTypes['sqlite/text@1']['input'];
       readonly label: CodecTypes['sqlite/text@1']['input'];
       readonly position: CodecTypes['sqlite/integer@1']['input'];
-      readonly rulingId: CodecTypes['sqlite/text@1']['input'];
-    };
-    readonly rulingGate: {
-      readonly id: CodecTypes['sqlite/text@1']['input'];
-      readonly pieceId: CodecTypes['sqlite/text@1']['input'];
       readonly rulingId: CodecTypes['sqlite/text@1']['input'];
     };
     readonly rulingSubject: {
@@ -2394,58 +2374,6 @@ type ContractBase = Omit<
                 },
               ];
             };
-            readonly rulingGate: {
-              columns: {
-                readonly id: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'sqlite/text@1';
-                  readonly nullable: false;
-                };
-                readonly rulingId: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'sqlite/text@1';
-                  readonly nullable: false;
-                };
-                readonly pieceId: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'sqlite/text@1';
-                  readonly nullable: false;
-                };
-              };
-              primaryKey: { readonly columns: readonly ['id'] };
-              uniques: readonly [{ readonly columns: readonly ['rulingId', 'pieceId'] }];
-              indexes: readonly [];
-              foreignKeys: readonly [
-                {
-                  readonly source: {
-                    readonly namespaceId: '__unbound__' & NamespaceId;
-                    readonly tableName: 'rulingGate';
-                    readonly columns: readonly ['rulingId'];
-                  };
-                  readonly target: {
-                    readonly namespaceId: '__unbound__' & NamespaceId;
-                    readonly tableName: 'ruling';
-                    readonly columns: readonly ['id'];
-                  };
-                  readonly constraint: true;
-                  readonly index: true;
-                },
-                {
-                  readonly source: {
-                    readonly namespaceId: '__unbound__' & NamespaceId;
-                    readonly tableName: 'rulingGate';
-                    readonly columns: readonly ['pieceId'];
-                  };
-                  readonly target: {
-                    readonly namespaceId: '__unbound__' & NamespaceId;
-                    readonly tableName: 'piece';
-                    readonly columns: readonly ['id'];
-                  };
-                  readonly constraint: true;
-                  readonly index: true;
-                },
-              ];
-            };
             readonly rulingSubject: {
               columns: {
                 readonly id: {
@@ -2997,10 +2925,6 @@ type ContractBase = Omit<
     readonly rulingSubject: {
       readonly namespace: '__unbound__' & NamespaceId;
       readonly model: 'RulingSubject';
-    };
-    readonly rulingGate: {
-      readonly namespace: '__unbound__' & NamespaceId;
-      readonly model: 'RulingGate';
     };
     readonly setting: {
       readonly namespace: '__unbound__' & NamespaceId;
@@ -3932,17 +3856,6 @@ type ContractBase = Omit<
                   readonly targetFields: readonly ['pieceId'];
                 };
               };
-              readonly rulingGates: {
-                readonly to: {
-                  readonly namespace: '__unbound__' & NamespaceId;
-                  readonly model: 'RulingGate';
-                };
-                readonly cardinality: '1:N';
-                readonly on: {
-                  readonly localFields: readonly ['id'];
-                  readonly targetFields: readonly ['pieceId'];
-                };
-              };
               readonly rulingSubjects: {
                 readonly to: {
                   readonly namespace: '__unbound__' & NamespaceId;
@@ -4279,17 +4192,6 @@ type ContractBase = Omit<
                   readonly targetFields: readonly ['rulingId'];
                 };
               };
-              readonly gates: {
-                readonly to: {
-                  readonly namespace: '__unbound__' & NamespaceId;
-                  readonly model: 'RulingGate';
-                };
-                readonly cardinality: '1:N';
-                readonly on: {
-                  readonly localFields: readonly ['id'];
-                  readonly targetFields: readonly ['rulingId'];
-                };
-              };
               readonly requester: {
                 readonly to: {
                   readonly namespace: '__unbound__' & NamespaceId;
@@ -4387,55 +4289,6 @@ type ContractBase = Omit<
                 readonly position: { readonly column: 'position' };
                 readonly label: { readonly column: 'label' };
                 readonly detail: { readonly column: 'detail' };
-              };
-            };
-          };
-          readonly RulingGate: {
-            readonly fields: {
-              readonly id: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
-              };
-              readonly rulingId: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
-              };
-              readonly pieceId: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
-              };
-            };
-            readonly relations: {
-              readonly piece: {
-                readonly to: {
-                  readonly namespace: '__unbound__' & NamespaceId;
-                  readonly model: 'Piece';
-                };
-                readonly cardinality: 'N:1';
-                readonly on: {
-                  readonly localFields: readonly ['pieceId'];
-                  readonly targetFields: readonly ['id'];
-                };
-              };
-              readonly ruling: {
-                readonly to: {
-                  readonly namespace: '__unbound__' & NamespaceId;
-                  readonly model: 'Ruling';
-                };
-                readonly cardinality: 'N:1';
-                readonly on: {
-                  readonly localFields: readonly ['rulingId'];
-                  readonly targetFields: readonly ['id'];
-                };
-              };
-            };
-            readonly storage: {
-              readonly table: 'rulingGate';
-              readonly namespaceId: '__unbound__';
-              readonly fields: {
-                readonly id: { readonly column: 'id' };
-                readonly rulingId: { readonly column: 'rulingId' };
-                readonly pieceId: { readonly column: 'pieceId' };
               };
             };
           };

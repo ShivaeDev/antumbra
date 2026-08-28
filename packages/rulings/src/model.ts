@@ -30,6 +30,18 @@ export interface RulingRequest {
 	readonly urgency: RulingUrgency;
 }
 
+// why: the ruling and the pieces it holds are named in one act, because a gate
+// that landed without its ruling would be a hold nothing can release.
+export interface RulingGateInput {
+	readonly pieceIds: ReadonlyArray<string>;
+	readonly rulingId: string;
+}
+
+export interface RulingGate {
+	readonly pieceId: string;
+	readonly rulingId: string;
+}
+
 export interface RulingVerdict {
 	readonly answer: string;
 	readonly by: RulingAuthority;
@@ -58,6 +70,7 @@ export interface Ruling {
 	readonly choices: ReadonlyArray<RulingChoice>;
 	readonly context: string;
 	readonly createdAt: Date;
+	readonly gatedPieceIds: ReadonlyArray<string>;
 	readonly id: string;
 	readonly question: string;
 	readonly radius: RulingRadius;

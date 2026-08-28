@@ -64,6 +64,7 @@ const world = (over: Partial<VoyageWorld>): VoyageWorld => ({
 	pieceChanges: [],
 	pieceReports: [],
 	pieceVerdicts: new Map(),
+	rulingGates: [],
 	pieces: [piece("alpha")],
 	reports: new Map(),
 	repos: new Map([["repo-1", { id: "repo-1", name: "shoals" }]]),

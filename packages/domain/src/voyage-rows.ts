@@ -3,6 +3,7 @@ import type { ChangeRow, PieceChangeRow } from "@antumbra/changes";
 import type { StoredAgentSession } from "@antumbra/persistence";
 import type { EdgeRow, PieceRow, PieceVerdict } from "@antumbra/pieces";
 import type { ReportRow } from "@antumbra/reports";
+import type { RulingGate } from "@antumbra/rulings";
 import type {
 	AgentSessionStatus,
 	AgentStatus,
@@ -81,6 +82,9 @@ export interface VoyageWorld {
 	readonly pieces: ReadonlyArray<PieceRow>;
 	readonly reports: ReadonlyMap<string, ReportRow>;
 	readonly repos: ReadonlyMap<string, RepoRow>;
+	// why: only the gates whose ruling is still open — a gate an answer released
+	// is history, and readiness reads holds rather than history.
+	readonly rulingGates: ReadonlyArray<RulingGate>;
 	readonly sessions: ReadonlyArray<AgentSessionRow>;
 	readonly voyages: ReadonlyArray<VoyageRow>;
 }

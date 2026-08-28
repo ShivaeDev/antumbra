@@ -21,6 +21,7 @@ const soundings: PieceView = {
 	agents: [],
 	artifactHistory: [],
 	artifacts: [],
+	awaitingRulings: ["ruling-1"],
 	board: [
 		{
 			authorAgentId: null,
@@ -109,6 +110,7 @@ it("holds the charter, the ladder and the acts until the card is opened", () => 
 	const shown = renderToStaticMarkup(card(soundings));
 
 	expect(shown).not.toContain("Depends on");
+	expect(shown).not.toContain("Awaiting ruling");
 	expect(shown).not.toContain("Launch");
 	expect(shown).toContain('aria-expanded="false"');
 });
@@ -136,6 +138,7 @@ it.effect("reads the charter as the document it is once opened", () =>
 		expect(shown).toContain("<strong>every</strong>");
 		expect(shown).toContain("<code>three fathoms</code>");
 		expect(container.textContent).toContain("Depends on: the chart");
+		expect(container.textContent).toContain("Awaiting ruling: ruling-1");
 		expect(container.textContent).toContain("Launch");
 		expect(container.textContent).toContain("Board");
 		expect(container.innerHTML).not.toContain("<h2>Log entry</h2>");

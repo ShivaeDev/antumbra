@@ -173,6 +173,7 @@ model Piece {
   reports     PieceReport[]
   artifacts   Artifact[]
   rulingSubjects RulingSubject[]
+  rulingGates RulingGate[]
 }
 
 model VoyagePiece {
@@ -365,6 +366,7 @@ model Ruling {
   answerChoice     RulingChoice?  @relation("RulingAnswer", fields: [answerChoiceId], references: [id], onDelete: Restrict, onUpdate: Restrict)
   choices          RulingChoice[] @relation("RulingChoices")
   subjects         RulingSubject[]
+  gates            RulingGate[]
 
   @@index([ruledAt])
 }
@@ -397,6 +399,16 @@ model RulingSubject {
   agent    Agent?  @relation(fields: [agentId], references: [id], onDelete: Restrict, onUpdate: Restrict)
 
   @@index([tag])
+}
+
+model RulingGate {
+  id       String @id
+  rulingId String
+  pieceId  String
+  ruling   Ruling @relation(fields: [rulingId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  piece    Piece  @relation(fields: [pieceId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+
+  @@unique([rulingId, pieceId])
 }
 
 model Setting {

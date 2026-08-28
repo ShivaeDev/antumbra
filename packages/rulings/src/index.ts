@@ -1,6 +1,8 @@
 export {
 	RulingAlreadyRuled,
 	RulingChoiceUnknown,
+	type RulingGateFailure,
+	RulingGatePieceMissing,
 	RulingNotFound,
 	type RulingReadFailure,
 	type RulingRequestFailure,
@@ -12,6 +14,8 @@ export type {
 	RulingAnswer,
 	RulingChoice,
 	RulingChoiceInput,
+	RulingGate,
+	RulingGateInput,
 	RulingRequest,
 	RulingSubject,
 	RulingVerdict,

@@ -1,13 +1,13 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
-import { Database, Writer } from "@antumbra/persistence";
+import { Database } from "@antumbra/persistence";
 import { Pieces } from "@antumbra/pieces";
 import type { ChangeHostRepo } from "@antumbra/plugin-api";
 import { UnknownRunnerError } from "@antumbra/plugin-api";
 import {
-	ensureAgentResourcesUnclaimed,
+	ensureAgentCanOwnLocalWork,
 	ensureBerthResourcesUnclaimed,
 } from "@antumbra/resource-reclamation";
-import { Clock, Effect, Option } from "effect";
+import { Clock, Effect, Option, Result } from "effect";
 import { activeChange, linkProduces } from "#change-submissions/links.ts";
 import type { Proposal, SubmitChangeInput } from "#change-submissions/model.ts";
 import {
@@ -33,26 +33,23 @@ export const prepareChange = (input: SubmitChangeInput, proposal?: Proposal) =>
 		const feeds = yield* DomainFeeds;
 		const pieces = yield* Pieces;
 		const runners = yield* RunnerRegistry;
-		const writer = yield* Writer;
 		yield* pieces.verifyExists(input.pieceId);
 		const repo = yield* repoNamed(input.repoName);
 		const key = submissionKey(input.agentId, repo.id);
-		const linked = yield* writer.write(
-			Effect.gen(function* () {
-				yield* ensureAgentResourcesUnclaimed(input.agentId);
-				const existing = yield* activeChange(key);
-				if (Option.isNone(existing)) {
-					return Option.none<{
-						readonly linked: boolean;
-						readonly row: ReturnType<typeof preparedChange>;
-					}>();
-				}
-				return Option.some({
-					linked: yield* linkProduces(input.pieceId, existing.value.id),
-					row: existing.value,
-				});
-			}),
-		);
+		const linked = yield* Effect.gen(function* () {
+			yield* ensureAgentCanOwnLocalWork(input.agentId);
+			const existing = yield* activeChange(key);
+			if (Option.isNone(existing)) {
+				return Option.none<{
+					readonly linked: boolean;
+					readonly row: ReturnType<typeof preparedChange>;
+				}>();
+			}
+			return Option.some({
+				linked: yield* linkProduces(input.pieceId, existing.value.id),
+				row: existing.value,
+			});
+		});
 		if (Option.isSome(linked)) {
 			if (linked.value.linked) {
 				yield* feeds.publishVoyageRefresh();
@@ -64,7 +61,7 @@ export const prepareChange = (input: SubmitChangeInput, proposal?: Proposal) =>
 			} satisfies PreparedSubmission;
 		}
 		const host = yield* claimingHost(repo);
-		const berth = yield* writer.write(berthFor(input.agentId, repo));
+		const berth = yield* berthFor(input.agentId, repo);
 		const runner = runners.get(berth.runner);
 		if (runner === undefined) {
 			return yield* new UnknownRunnerError({ tag: berth.runner });
@@ -78,20 +75,30 @@ export const prepareChange = (input: SubmitChangeInput, proposal?: Proposal) =>
 			yield* Clock.currentTimeMillis,
 			proposal,
 		);
-		const stored = yield* writer.write(
-			Effect.gen(function* () {
-				yield* ensureBerthResourcesUnclaimed(berth.id);
-				const raced = yield* activeChange(key);
-				const row = Option.getOrElse(raced, () => candidate);
-				let created = false;
-				if (Option.isNone(raced)) {
-					yield* db.Change.create(row);
+		const stored = yield* Effect.gen(function* () {
+			yield* ensureAgentCanOwnLocalWork(input.agentId);
+			yield* ensureBerthResourcesUnclaimed(berth.id);
+			const raced = yield* activeChange(key);
+			let row: ReturnType<typeof preparedChange>;
+			let created = false;
+			if (Option.isSome(raced)) {
+				row = raced.value;
+			} else {
+				const inserted = yield* Effect.result(db.Change.create(candidate));
+				if (Result.isSuccess(inserted)) {
+					row = candidate;
 					created = true;
+				} else {
+					const winner = yield* activeChange(key);
+					if (Option.isNone(winner)) {
+						return yield* inserted.failure;
+					}
+					row = winner.value;
 				}
-				const linked = yield* linkProduces(input.pieceId, row.id);
-				return { changed: created || linked, row };
-			}),
-		);
+			}
+			const linked = yield* linkProduces(input.pieceId, row.id);
+			return { changed: created || linked, row };
+		});
 		if (stored.changed) {
 			yield* feeds.publishVoyageRefresh();
 		}

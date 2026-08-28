@@ -1,5 +1,5 @@
 import { DomainFeedsLive } from "@antumbra/domain-feeds";
-import { applyMigrations, Database, WriterLive } from "@antumbra/persistence";
+import { applyMigrations, Database } from "@antumbra/persistence";
 import {
 	packagedMigrationsDirectory,
 	temporaryPersistence,
@@ -30,9 +30,7 @@ const databaseLayer = Database.layer({
 		},
 	],
 });
-const boardsLayer = Layer.merge(WriterLive, DomainFeedsLive).pipe(
-	Layer.provideMerge(databaseLayer),
-);
+const boardsLayer = DomainFeedsLive.pipe(Layer.provideMerge(databaseLayer));
 
 const rowsWith = (field: string, value: unknown) =>
 	observedRows.filter((row) => row[field] === value);

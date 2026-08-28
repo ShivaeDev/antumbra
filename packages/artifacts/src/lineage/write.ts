@@ -1,4 +1,4 @@
-import { Database } from "@antumbra/persistence";
+import { Database, type PrismaError } from "@antumbra/persistence";
 import { Effect, Option } from "effect";
 import {
 	ArtifactLineageConflict,
@@ -12,6 +12,25 @@ import {
 	requireSharedPiece,
 } from "#lineage/validation.ts";
 import type { ArtifactSupersessionInput } from "#model.ts";
+
+const recoverSupersessionWrite = (
+	input: ArtifactSupersessionInput,
+	failure: PrismaError,
+) =>
+	Effect.gen(function* () {
+		const db = yield* Database;
+		const claimed = yield* db.Artifact.where({
+			supersededByArtifactId: input.successorArtifactId,
+		}).exists();
+		if (claimed) {
+			return yield* new ArtifactLineageConflict({
+				conflict: "successor_artifact_already_has_predecessor",
+				successorArtifactId: input.successorArtifactId,
+				supersededArtifactId: input.supersededArtifactId,
+			});
+		}
+		return yield* failure;
+	});
 
 export const writeSupersession = (input: ArtifactSupersessionInput) =>
 	Effect.gen(function* () {
@@ -56,9 +75,26 @@ export const writeSupersession = (input: ArtifactSupersessionInput) =>
 				supersededArtifactId: superseded.id,
 			});
 		}
-		yield* db.Artifact.where({ id: superseded.id }).update({
-			supersededByArtifactId: successor.id,
-		});
+		const updated = yield* db.Artifact.where({
+			id: superseded.id,
+			supersededByArtifactId: null,
+		})
+			.update({ supersededByArtifactId: successor.id })
+			.pipe(
+				Effect.catchTag("PrismaError", (failure) =>
+					recoverSupersessionWrite(input, failure),
+				),
+			);
+		if (updated === null) {
+			const current = yield* requireArtifact(input.supersededArtifactId);
+			if (current.supersededByArtifactId !== input.successorArtifactId) {
+				return yield* new ArtifactLineageConflict({
+					conflict: "superseded_artifact_already_has_successor",
+					successorArtifactId: input.successorArtifactId,
+					supersededArtifactId: input.supersededArtifactId,
+				});
+			}
+		}
 	});
 
 export const deleteSupersession = (input: ArtifactSupersessionInput) =>
@@ -78,7 +114,17 @@ export const deleteSupersession = (input: ArtifactSupersessionInput) =>
 				supersededArtifactId: input.supersededArtifactId,
 			});
 		}
-		yield* db.Artifact.where({ id: input.supersededArtifactId }).update({
-			supersededByArtifactId: null,
-		});
+		const updated = yield* db.Artifact.where({
+			id: input.supersededArtifactId,
+			supersededByArtifactId: input.successorArtifactId,
+		}).update({ supersededByArtifactId: null });
+		if (updated === null) {
+			const current = yield* requireArtifact(input.supersededArtifactId);
+			if (current.supersededByArtifactId !== null) {
+				return yield* new ArtifactSupersessionNotFound({
+					successorArtifactId: input.successorArtifactId,
+					supersededArtifactId: input.supersededArtifactId,
+				});
+			}
+		}
 	});

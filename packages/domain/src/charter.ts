@@ -1,4 +1,4 @@
-import { Database, type WriteExecutors, Writer } from "@antumbra/persistence";
+import { Database } from "@antumbra/persistence";
 import type { SessionHandle } from "@antumbra/plugin-api";
 import { type BerthedCharter, berthedCharter } from "@antumbra/prompts";
 import { Clock, Effect, Option } from "effect";
@@ -36,10 +36,6 @@ const roleFor = (payload: SpawnFields): BerthedCharter["role"] =>
 
 export const charterDelivery = Effect.gen(function* () {
 	const db = yield* Database;
-	const writer = yield* Writer;
-	const executors = yield* Effect.context<WriteExecutors>();
-	const provide = <A, E>(effect: Effect.Effect<A, E, WriteExecutors>) =>
-		Effect.provideContext(effect, executors);
 	const moorageOf = (agentId: string) =>
 		Effect.gen(function* () {
 			const moorage = yield* db.Moorage.where({ agentId }).first();
@@ -60,25 +56,24 @@ export const charterDelivery = Effect.gen(function* () {
 	const stamp = (payload: SpawnFields) =>
 		Effect.gen(function* () {
 			const now = yield* Clock.currentTimeMillis;
-			yield* provide(
-				writer.write(
-					db.AgentSession.where({ id: payload.sessionId }).update({
-						charterDeliveredAt: new Date(now),
-					}),
-				),
-			);
+			yield* db.AgentSession.where({
+				charterDeliveredAt: null,
+				id: payload.sessionId,
+			}).update({
+				charterDeliveredAt: new Date(now),
+			});
 		});
 	const deliverOnce = (payload: SpawnFields, handle: SessionHandle) =>
 		Effect.gen(function* () {
-			const session = yield* provide(
-				db.AgentSession.where({ id: payload.sessionId }).first(),
-			);
+			const session = yield* db.AgentSession.where({
+				id: payload.sessionId,
+			}).first();
 			const delivered =
 				Option.isSome(session) && session.value.charterDeliveredAt !== null;
 			if (delivered) {
 				return;
 			}
-			const moorage = yield* provide(moorageOf(payload.agentId));
+			const moorage = yield* moorageOf(payload.agentId);
 			yield* handle.queue(
 				promptInput(
 					berthedCharter({

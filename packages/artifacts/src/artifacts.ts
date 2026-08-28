@@ -1,8 +1,9 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
-import { Database, type WriteExecutors, Writer } from "@antumbra/persistence";
+import { Database } from "@antumbra/persistence";
 import { Context, Crypto, Effect, FileSystem, Layer, Path } from "effect";
 import type { ArtifactFailure } from "#errors.ts";
 import { landArtifact } from "#land.ts";
+import { commitArtifactLineage } from "#lineage/transaction.ts";
 import { deleteSupersession, writeSupersession } from "#lineage/write.ts";
 import type {
 	ArtifactInput,
@@ -35,24 +36,18 @@ export const ArtifactsLive = (root: string) =>
 		Effect.gen(function* () {
 			const db = yield* Database;
 			const feeds = yield* DomainFeeds;
-			const writer = yield* Writer;
 			const crypto = yield* Crypto.Crypto;
 			const fs = yield* FileSystem.FileSystem;
 			const path = yield* Path.Path;
-			const executors = yield* Effect.context<WriteExecutors>();
-			const context = Context.merge(
-				executors,
-				Context.make(Database, db).pipe(
-					Context.add(DomainFeeds, feeds),
-					Context.add(Writer, writer),
-					Context.add(Crypto.Crypto, crypto),
-					Context.add(FileSystem.FileSystem, fs),
-					Context.add(Path.Path, path),
-				),
+			const context = Context.make(Database, db).pipe(
+				Context.add(DomainFeeds, feeds),
+				Context.add(Crypto.Crypto, crypto),
+				Context.add(FileSystem.FileSystem, fs),
+				Context.add(Path.Path, path),
 			);
 			const announce = feeds.publishVoyageRefresh();
 			const write = <A, E, R>(program: Effect.Effect<A, E, R>) =>
-				writer.write(program).pipe(Effect.tap(() => announce));
+				program.pipe(Effect.tap(() => announce));
 			const removeSupersession = (input: ArtifactSupersessionInput) =>
 				Effect.provide(
 					write(deleteSupersession(input)).pipe(Effect.asVoid),
@@ -60,7 +55,9 @@ export const ArtifactsLive = (root: string) =>
 				);
 			const supersede = (input: ArtifactSupersessionInput) =>
 				Effect.provide(
-					write(writeSupersession(input)).pipe(Effect.asVoid),
+					write(commitArtifactLineage(writeSupersession(input))).pipe(
+						Effect.asVoid,
+					),
 					context,
 				);
 			return {

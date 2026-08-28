@@ -7,8 +7,8 @@ import {
 	type StoredIntentInvalid,
 	type UnregisteredIntentTag,
 } from "@antumbra/kernel";
-import type { PrismaError, WriteExecutors } from "@antumbra/persistence";
-import { Effect, Stream } from "effect";
+import type { PrismaError } from "@antumbra/persistence";
+import { Effect, type Stream } from "effect";
 import type { RecoveryFields } from "#session-recovery.ts";
 
 // why: the three ways the kernel can turn a submission away — a payload it
@@ -39,9 +39,8 @@ export interface SessionRouse {
 export const makeRouseSession = (recover: IntentKind<RecoveryFields>) =>
 	Effect.gen(function* () {
 		const kernel = yield* Kernel;
-		const executors = yield* Effect.context<WriteExecutors>();
 		const watched = (id: string, retried: boolean): SessionRouse => ({
-			changes: kernel.changes(id).pipe(Stream.provideContext(executors)),
+			changes: kernel.changes(id),
 			id,
 			retried,
 		});
@@ -95,5 +94,5 @@ export const makeRouseSession = (recover: IntentKind<RecoveryFields>) =>
 				return yield* parked === undefined
 					? submitted(payload)
 					: pushed(parked.id, parked.payload.message, payload);
-			}).pipe(Effect.provideContext(executors));
+			});
 	});

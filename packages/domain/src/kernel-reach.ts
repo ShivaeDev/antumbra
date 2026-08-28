@@ -1,5 +1,4 @@
 import { Kernel } from "@antumbra/kernel";
-import type { WriteExecutors } from "@antumbra/persistence";
 import { Context, Deferred, Effect, Layer } from "effect";
 import { AgentDomain } from "#agent-domain-service.ts";
 import {
@@ -83,12 +82,10 @@ export const KernelReachLive = Layer.effectDiscard(
 		const domain = yield* AgentDomain;
 		const installer = yield* KernelReachInstaller;
 		const kernel = yield* Kernel;
-		const executors = yield* Effect.context<WriteExecutors>();
 		const reach: KernelReachService = {
 			queueSiesta: (sessionId) =>
 				kernel.submit(domain.siesta, { sessionId }).pipe(
 					Effect.asVoid,
-					Effect.provideContext(executors),
 					Effect.catchCause((cause) =>
 						Effect.logWarning(
 							"a stand down could not be queued",
@@ -100,18 +97,16 @@ export const KernelReachLive = Layer.effectDiscard(
 			rouseSession: yield* makeRouseSession(domain.recover),
 			settleWakes: yield* makeSettleWakes(domain.recover),
 			submitRecovery: (payload) =>
-				kernel.submit(domain.recover, payload).pipe(
-					Effect.map((submission) => submission.id),
-					Effect.provideContext(executors),
-				),
+				kernel
+					.submit(domain.recover, payload)
+					.pipe(Effect.map((submission) => submission.id)),
 			// why: a hail is answered rather than fired and forgotten — the caller
 			// is a window or a router waiting on the intent it just asked for, so
 			// the submission's id travels back and refusals stay on the channel.
 			submitSpawn: (payload) =>
-				kernel.submit(domain.spawn, payload).pipe(
-					Effect.map((submission) => submission.id),
-					Effect.provideContext(executors),
-				),
+				kernel
+					.submit(domain.spawn, payload)
+					.pipe(Effect.map((submission) => submission.id)),
 		};
 		yield* installer.install(reach);
 	}),

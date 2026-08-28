@@ -1,6 +1,6 @@
 import { SightSource } from "@antumbra/contract";
 import { DomainFeeds, type StoredEvent } from "@antumbra/domain-feeds";
-import { Database, Writer } from "@antumbra/persistence";
+import { Database } from "@antumbra/persistence";
 import type { TemporaryPersistence } from "@antumbra/persistence/testing";
 import type { AgentEvent } from "@antumbra/vocabulary/session-events";
 import { expect, it } from "@effect/vitest";
@@ -95,7 +95,6 @@ it.live("fleet projection rejects an unknown stored Agent status", () =>
 		yield* Effect.gen(function* () {
 			const db = yield* Database;
 			const sight = yield* SightSource;
-			const writer = yield* Writer;
 			const receipt = yield* sight.spawn(spawnRequest);
 			yield* eventually(
 				Effect.gen(function* () {
@@ -105,11 +104,9 @@ it.live("fleet projection rejects an unknown stored Agent status", () =>
 					).toBe("alive");
 				}),
 			);
-			yield* writer.write(
-				db.Agent.where({ id: receipt.agentId }).update({
-					status: "future-agent",
-				}),
-			);
+			yield* db.Agent.where({ id: receipt.agentId }).update({
+				status: "future-agent",
+			});
 			const failure = yield* Effect.flip(sight.fleet);
 			expect(failure._tag).toBe("SightFailure");
 			expect(failure.message).toContain("future-agent");
@@ -127,7 +124,6 @@ it.live(
 				const db = yield* Database;
 				const feeds = yield* DomainFeeds;
 				const sight = yield* SightSource;
-				const writer = yield* Writer;
 				const receipt = yield* sight.spawn(spawnRequest);
 				const session = yield* liveSession(scripted, receipt.sessionId);
 				yield* session.emit(note(0));
@@ -147,7 +143,7 @@ it.live(
 					seq: 2,
 					sessionId: receipt.sessionId,
 				};
-				yield* writer.write(db.SessionEvent.create(rehydratedUnknown));
+				yield* db.SessionEvent.create(rehydratedUnknown);
 				const collector = yield* sight
 					.sessionEventFeed({ fromSeq: 0, sessionId: receipt.sessionId })
 					.pipe(Stream.take(4), Stream.runCollect, Effect.forkChild);
@@ -157,7 +153,7 @@ it.live(
 					seq: 3,
 					sessionId: receipt.sessionId,
 				};
-				yield* writer.write(db.SessionEvent.create(liveMismatch));
+				yield* db.SessionEvent.create(liveMismatch);
 				yield* feeds.publishSessionEvent(liveMismatch);
 				const events = yield* Fiber.join(collector);
 				expect(events.map((event) => event.seq)).toEqual([0, 1, 2, 3]);

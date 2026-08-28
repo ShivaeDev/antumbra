@@ -1,8 +1,8 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
-import { Database, type WriteExecutors, Writer } from "@antumbra/persistence";
+import { Database } from "@antumbra/persistence";
 import type { MooragePlan, Runner } from "@antumbra/plugin-api";
 import { repoSlug } from "@antumbra/repos";
-import { ensureAgentResourcesUnclaimed } from "@antumbra/resource-reclamation";
+import { ensureAgentCanOwnLocalWork } from "@antumbra/resource-reclamation";
 import {
 	decodeStoredBerthStatus,
 	decodeStoredMoorageStatus,
@@ -35,13 +35,9 @@ const planFromRows = (
 
 export const makePrepareMoorage = Effect.gen(function* () {
 	const db = yield* Database;
-	const writer = yield* Writer;
 	const feeds = yield* DomainFeeds;
-	const executors = yield* Effect.context<WriteExecutors>();
-	const provide = <A, E>(effect: Effect.Effect<A, E, WriteExecutors>) =>
-		Effect.provideContext(effect, executors);
 	const ensureUnclaimed = (agentId: string) =>
-		ensureAgentResourcesUnclaimed(agentId).pipe(
+		ensureAgentCanOwnLocalWork(agentId).pipe(
 			Effect.provideService(Database, db),
 		);
 	const loadPlan = (payload: SpawnFields) =>
@@ -96,13 +92,13 @@ export const makePrepareMoorage = Effect.gen(function* () {
 		);
 	return (payload: SpawnFields, runner: Runner) =>
 		Effect.gen(function* () {
-			const stored = yield* provide(writer.write(loadPlan(payload)));
+			const stored = yield* loadPlan(payload);
 			if (Option.isSome(stored)) {
 				return stored.value;
 			}
-			const repos = yield* provide(
-				db.Repo.orderBy((repo) => repo.createdAt.asc()).all(),
-			);
+			const repos = yield* db.Repo.orderBy((repo) =>
+				repo.createdAt.asc(),
+			).all();
 			const plan = runner.plan({
 				agentId: payload.agentId,
 				repos: repos.map((repo) => ({
@@ -111,12 +107,12 @@ export const makePrepareMoorage = Effect.gen(function* () {
 					source: repo.source,
 				})),
 			});
-			yield* provide(
-				writer.write(
-					ensureUnclaimed(payload.agentId).pipe(
-						Effect.andThen(persistPlan(payload, plan)),
-					),
-				),
+			yield* db.transaction(
+				Effect.gen(function* () {
+					yield* Database;
+					yield* ensureUnclaimed(payload.agentId);
+					yield* persistPlan(payload, plan);
+				}),
 			);
 			yield* feeds.publishFleetRefresh();
 			return plan;

@@ -13,6 +13,7 @@ export {
 	VoyageNotFound,
 } from "@antumbra/pieces";
 export {
+	ResourceOwnerUnavailable,
 	ResourceReclaimClaimed,
 	ResourceReclaimClaimInvalid,
 } from "@antumbra/resource-reclamation";

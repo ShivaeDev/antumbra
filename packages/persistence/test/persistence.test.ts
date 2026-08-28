@@ -1,11 +1,9 @@
 import { DatabaseSync } from "node:sqlite";
 import { makeDatabaseIt } from "@shivaedev/effect-prisma/testing";
-import { Effect, Ref } from "effect";
 import { expect } from "vitest";
 import { Database } from "#database.ts";
 import { ensureInstallMarker } from "#install-marker.ts";
 import { temporaryPersistence } from "#testing.ts";
-import { Writer } from "#writer.ts";
 
 const temporary = temporaryPersistence();
 
@@ -47,23 +45,4 @@ it.effectDB("rolls the previous test's writes back", function* (db) {
 	expect(yield* db.AppMeta.where({ key: "datetime-probe" }).exists()).toBe(
 		false,
 	);
-});
-
-it.effectDB("serializes concurrent writes behind one permit", function* () {
-	const writer = yield* Writer;
-	const active = yield* Ref.make(0);
-	const peak = yield* Ref.make(0);
-
-	const job = writer.write(
-		Effect.gen(function* () {
-			const running = yield* Ref.updateAndGet(active, (n) => n + 1);
-			yield* Ref.update(peak, (p) => Math.max(p, running));
-			yield* Effect.yieldNow;
-			yield* Ref.update(active, (n) => n - 1);
-		}),
-	);
-
-	yield* Effect.all([job, job, job], { concurrency: "unbounded" });
-
-	expect(yield* Ref.get(peak)).toBe(1);
 });

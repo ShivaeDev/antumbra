@@ -3,7 +3,7 @@ import {
 	isTerminalIntentStatus,
 	Kernel,
 } from "@antumbra/kernel";
-import { Database, Writer } from "@antumbra/persistence";
+import { Database } from "@antumbra/persistence";
 import { type Runner, RunnerFailure } from "@antumbra/plugin-api";
 import { expect, it } from "@effect/vitest";
 import { Effect, Option, Ref, Schedule, Stream } from "effect";
@@ -135,36 +135,38 @@ it.live("bounded cadence self-heals a lost lifecycle ring", () =>
 		const runner = reclaimedRunner(recorded.runner, calls);
 		yield* Effect.gen(function* () {
 			const db = yield* Database;
-			const writer = yield* Writer;
-			yield* writer.write(
-				Effect.all([
-					db.Agent.create({
-						charter: "cadence must find this",
-						id: "agent-cadence",
-						role: "keeper",
-						status: "retired",
-					}),
-					db.Moorage.create({
-						agentId: "agent-cadence",
-						reclaimState: null,
-						root: "/tmp/moorage/agent-cadence",
-						runner: "local",
-						status: "ready",
-					}),
-					db.Berth.create({
-						agentId: "agent-cadence",
-						branch: "work/agent-cadence/berth-0",
-						id: "agent-cadence:berth-0",
-						path: "/tmp/moorage/agent-cadence/berth-0",
-						reclaimState: null,
-						ref: "main",
-						runner: "local",
-						slug: "berth-0",
-						source: "/somewhere/cadence",
-						status: "ready",
-						strandedAt: null,
-					}),
-				]),
+			yield* db.transaction(
+				Effect.gen(function* () {
+					yield* Database;
+					yield* Effect.all([
+						db.Agent.create({
+							charter: "cadence must find this",
+							id: "agent-cadence",
+							role: "keeper",
+							status: "retired",
+						}),
+						db.Moorage.create({
+							agentId: "agent-cadence",
+							reclaimState: null,
+							root: "/tmp/moorage/agent-cadence",
+							runner: "local",
+							status: "ready",
+						}),
+						db.Berth.create({
+							agentId: "agent-cadence",
+							branch: "work/agent-cadence/berth-0",
+							id: "agent-cadence:berth-0",
+							path: "/tmp/moorage/agent-cadence/berth-0",
+							reclaimState: null,
+							ref: "main",
+							runner: "local",
+							slug: "berth-0",
+							source: "/somewhere/cadence",
+							status: "ready",
+							strandedAt: null,
+						}),
+					]);
+				}),
 			);
 			yield* eventually(
 				Effect.gen(function* () {

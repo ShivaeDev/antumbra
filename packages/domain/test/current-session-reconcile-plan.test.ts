@@ -64,7 +64,13 @@ it("clears inactive pointers and closes inactive and orphan Sessions", () => {
 		Result.succeed({
 			agentsToReclaim: [],
 			executionsToSettle: [],
-			pointers: [{ agentId: "agent-dormant", currentSessionId: null }],
+			pointers: [
+				{
+					agentId: "agent-dormant",
+					currentSessionId: null,
+					fromCurrentSessionId: "session-dormant",
+				},
+			],
 			sessionsToClose: ["session-dormant", "session-orphan"],
 		}),
 	);
@@ -82,8 +88,16 @@ it("reclaims an Agent holding neither a pointer nor an open Session", () => {
 	expect(planned).toEqual(
 		Result.succeed({
 			agentsToReclaim: [
-				{ agentId: "agent-alive", status: "dormant" },
-				{ agentId: "agent-spawning", status: "dormant" },
+				{
+					agentId: "agent-alive",
+					fromStatus: "alive",
+					status: "dormant",
+				},
+				{
+					agentId: "agent-spawning",
+					fromStatus: "spawning",
+					status: "dormant",
+				},
 			],
 			executionsToSettle: [],
 			pointers: [],
@@ -102,7 +116,13 @@ it("leaves an Agent that still holds an open Session alone", () => {
 		Result.succeed({
 			agentsToReclaim: [],
 			executionsToSettle: [],
-			pointers: [{ agentId: "agent-alive", currentSessionId: "session-held" }],
+			pointers: [
+				{
+					agentId: "agent-alive",
+					currentSessionId: "session-held",
+					fromCurrentSessionId: null,
+				},
+			],
 			sessionsToClose: [],
 		}),
 	);
@@ -159,7 +179,13 @@ it("does not settle a draining Session it is closing", () => {
 		Result.succeed({
 			agentsToReclaim: [],
 			executionsToSettle: [],
-			pointers: [{ agentId: "agent-dormant", currentSessionId: null }],
+			pointers: [
+				{
+					agentId: "agent-dormant",
+					currentSessionId: null,
+					fromCurrentSessionId: "session-drained",
+				},
+			],
 			sessionsToClose: ["session-drained"],
 		}),
 	);

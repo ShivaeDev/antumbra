@@ -3,7 +3,7 @@ import {
 	isTerminalIntentStatus,
 	Kernel,
 } from "@antumbra/kernel";
-import { Database, Writer } from "@antumbra/persistence";
+import { Database } from "@antumbra/persistence";
 import type { TemporaryPersistence } from "@antumbra/persistence/testing";
 import {
 	type AgentBackend,
@@ -119,20 +119,17 @@ export const seedResumableAgent = (
 ) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
-		const writer = yield* Writer;
 		const kernel = yield* Kernel;
 		const domain = yield* AgentDomain;
-		yield* writer.write(
-			db.Piece.create({
-				charter: "keep going",
-				expectation: "durable progress",
-				id: payload.pieceId ?? "",
-				launchedAt: new Date(1),
-				parkedAt: null,
-				role: payload.role,
-				title: "resume a session",
-			}),
-		);
+		yield* db.Piece.create({
+			charter: "keep going",
+			expectation: "durable progress",
+			id: payload.pieceId ?? "",
+			launchedAt: new Date(1),
+			parkedAt: null,
+			role: payload.role,
+			title: "resume a session",
+		});
 		yield* domain.repos.register({
 			defaultRef: "main",
 			source: "/somewhere/session-resume",

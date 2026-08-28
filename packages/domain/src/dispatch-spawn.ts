@@ -3,7 +3,6 @@ import {
 	type IntentSubmission,
 	isTerminalIntentStatus,
 } from "@antumbra/kernel";
-import type { WriteExecutors } from "@antumbra/persistence";
 import { Effect, Option, Queue, Stream } from "effect";
 import { charterFor } from "#crew-charter.ts";
 import { accountOfIntent } from "#dispatch-failure-account.ts";
@@ -23,10 +22,10 @@ export interface DispatchPort {
 	readonly state: DispatchState;
 	readonly resume: (
 		sessionId: string,
-	) => Effect.Effect<IntentSubmission, SpawnRefused, WriteExecutors>;
+	) => Effect.Effect<IntentSubmission, SpawnRefused, never>;
 	readonly submit: (
 		payload: SpawnFields,
-	) => Effect.Effect<IntentSubmission, SpawnRefused, WriteExecutors>;
+	) => Effect.Effect<IntentSubmission, SpawnRefused, never>;
 }
 
 export type DispatchTarget =

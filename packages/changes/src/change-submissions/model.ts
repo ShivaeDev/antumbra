@@ -5,8 +5,14 @@ import type {
 	RunnerError,
 	UnknownRunnerError,
 } from "@antumbra/plugin-api";
-import type { ResourceReclaimClaimed } from "@antumbra/resource-reclamation";
-import type { StoredResourceReclaimStateInvalid } from "@antumbra/vocabulary/agent-runtime";
+import type {
+	ResourceOwnerUnavailable,
+	ResourceReclaimClaimed,
+} from "@antumbra/resource-reclamation";
+import type {
+	StoredAgentStatusInvalid,
+	StoredResourceReclaimStateInvalid,
+} from "@antumbra/vocabulary/agent-runtime";
 import type {
 	ChangeIdentityCollision,
 	ChangeObservationConflict,
@@ -47,8 +53,10 @@ export type SubmitChangeFailure =
 	| PieceNotFound
 	| PrismaError
 	| RepoNotFound
+	| ResourceOwnerUnavailable
 	| ResourceReclaimClaimed
 	| RunnerError
+	| StoredAgentStatusInvalid
 	| StoredChangeInvalid
 	| StoredResourceReclaimStateInvalid
 	| UnknownRunnerError;
@@ -61,7 +69,9 @@ export type AdoptChangeFailure =
 	| PieceNotFound
 	| PrismaError
 	| RepoNotFound
+	| ResourceOwnerUnavailable
 	| ResourceReclaimClaimed
+	| StoredAgentStatusInvalid
 	| StoredChangeInvalid
 	| StoredResourceReclaimStateInvalid;
 

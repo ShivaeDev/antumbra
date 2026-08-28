@@ -1,5 +1,5 @@
 import { isTerminalIntentStatus, Kernel } from "@antumbra/kernel";
-import { Database, Writer } from "@antumbra/persistence";
+import { Database } from "@antumbra/persistence";
 import type { Runner } from "@antumbra/plugin-api";
 import { expect, it } from "@effect/vitest";
 import { Clock, Effect, Option, Ref, Stream } from "effect";
@@ -48,17 +48,19 @@ const berthRow = Effect.gen(function* () {
 
 const detachSweepAgent = Effect.gen(function* () {
 	const db = yield* Database;
-	const writer = yield* Writer;
-	yield* writer.write(
-		db.Agent.where({ id: sweepPayload.agentId })
-			.update({ status: "dormant" })
-			.pipe(
-				Effect.andThen(
-					db.AgentSession.where({ id: sweepPayload.sessionId }).update({
-						status: "closed",
-					}),
-				),
-			),
+	yield* db.transaction(
+		Effect.gen(function* () {
+			yield* Database;
+			yield* db.Agent.where({ id: sweepPayload.agentId })
+				.update({ status: "dormant" })
+				.pipe(
+					Effect.andThen(
+						db.AgentSession.where({ id: sweepPayload.sessionId }).update({
+							status: "closed",
+						}),
+					),
+				);
+		}),
 	);
 });
 
@@ -108,12 +110,9 @@ it.live("an old dirty berth stays stranded without destructive cleanup", () =>
 		const oldStrandedAt = new Date(now - EIGHT_DAYS_MILLIS);
 		yield* Effect.gen(function* () {
 			const db = yield* Database;
-			const writer = yield* Writer;
-			yield* writer.write(
-				db.Berth.where({ id: "agent-sweep:berth-0" }).update({
-					strandedAt: oldStrandedAt,
-				}),
-			);
+			yield* db.Berth.where({ id: "agent-sweep:berth-0" }).update({
+				strandedAt: oldStrandedAt,
+			});
 		}).pipe(Effect.provide(temporary.layer));
 
 		yield* Effect.provide(

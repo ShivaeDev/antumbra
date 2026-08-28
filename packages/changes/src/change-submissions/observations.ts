@@ -1,13 +1,17 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
-import { Database, Writer } from "@antumbra/persistence";
+import { Database, type PrismaError } from "@antumbra/persistence";
 import type { ChangeObservation } from "@antumbra/plugin-api";
 import {
 	ensureAgentResourcesUnclaimed,
 	ensureBranchResourcesUnclaimed,
 } from "@antumbra/resource-reclamation";
-import { Clock, Effect, Option } from "effect";
+import { Clock, Effect, Option, Result } from "effect";
 import type { ObservationAttachment } from "#change-submissions/observation-match.ts";
 import { reconcileObservation } from "#change-submissions/observation-projection.ts";
+
+const transientConnection = (failure: PrismaError): boolean =>
+	failure.reason._tag === "PrismaConnectionFailure" &&
+	failure.reason.transient === true;
 
 const ensureObservationUnclaimed = (
 	observation: ChangeObservation,
@@ -27,6 +31,42 @@ const ensureObservationUnclaimed = (
 		}
 	});
 
+const applyObservation = (
+	hostTag: string,
+	observation: ChangeObservation,
+	now: number,
+	attachment: ObservationAttachment,
+) =>
+	Effect.gen(function* () {
+		const db = yield* Database;
+		while (true) {
+			const attempted = yield* Effect.result(
+				db.transaction(
+					Effect.gen(function* () {
+						yield* Database;
+						yield* ensureObservationUnclaimed(observation, attachment);
+						return yield* reconcileObservation(
+							hostTag,
+							observation,
+							now,
+							attachment,
+						);
+					}),
+				),
+			);
+			if (Result.isSuccess(attempted)) {
+				return attempted.success;
+			}
+			if (
+				attempted.failure._tag !== "PrismaError" ||
+				!transientConnection(attempted.failure)
+			) {
+				return yield* attempted.failure;
+			}
+			yield* Effect.yieldNow;
+		}
+	});
+
 export const applyObservations = (
 	hostTag: string,
 	observations: ReadonlyArray<ChangeObservation>,
@@ -37,19 +77,11 @@ export const applyObservations = (
 	}
 	return Effect.gen(function* () {
 		const feeds = yield* DomainFeeds;
-		const writer = yield* Writer;
 		const now = yield* Clock.currentTimeMillis;
-		const results = yield* writer.write(
-			Effect.forEach(
-				observations,
-				(observation) =>
-					ensureObservationUnclaimed(observation, attachment).pipe(
-						Effect.andThen(
-							reconcileObservation(hostTag, observation, now, attachment),
-						),
-					),
-				{ concurrency: 1 },
-			),
+		const results = yield* Effect.forEach(
+			observations,
+			(observation) => applyObservation(hostTag, observation, now, attachment),
+			{ concurrency: 1 },
 		);
 		const reconciled = results.flatMap((result) =>
 			Option.isSome(result) ? [result.value] : [],

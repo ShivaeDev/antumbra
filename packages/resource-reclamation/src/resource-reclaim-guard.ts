@@ -1,7 +1,31 @@
 import { Database } from "@antumbra/persistence";
-import { decodeStoredResourceReclaimState } from "@antumbra/vocabulary/agent-runtime";
+import {
+	decodeStoredAgentStatus,
+	decodeStoredResourceReclaimState,
+} from "@antumbra/vocabulary/agent-runtime";
 import { Effect, Option } from "effect";
-import { ResourceReclaimClaimed } from "#resource-reclaim-errors.ts";
+import {
+	ResourceOwnerUnavailable,
+	ResourceReclaimClaimed,
+} from "#resource-reclaim-errors.ts";
+
+const requireAvailableAgent = (agentId: string) =>
+	Effect.gen(function* () {
+		const db = yield* Database;
+		const agent = yield* db.Agent.where({ id: agentId }).first();
+		if (Option.isNone(agent)) {
+			return yield* new ResourceOwnerUnavailable({
+				agentId,
+				status: "missing",
+			});
+		}
+		const status = yield* Effect.fromResult(
+			decodeStoredAgentStatus(agentId, agent.value.status),
+		);
+		if (status === "dormant" || status === "retired") {
+			return yield* new ResourceOwnerUnavailable({ agentId, status });
+		}
+	});
 
 const claimed = (
 	resourceKind: "Berth" | "Moorage",
@@ -62,6 +86,11 @@ export const ensureBerthResourcesUnclaimed = (berthId: string) =>
 			);
 		}
 	});
+
+export const ensureAgentCanOwnLocalWork = (agentId: string) =>
+	requireAvailableAgent(agentId).pipe(
+		Effect.andThen(ensureAgentResourcesUnclaimed(agentId)),
+	);
 
 export const ensureBranchResourcesUnclaimed = (
 	source: string,

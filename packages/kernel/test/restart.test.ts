@@ -1,12 +1,7 @@
-import {
-	Database,
-	type DatabaseService,
-	type WriteExecutors,
-	Writer,
-} from "@antumbra/persistence";
+import { Database, type DatabaseService } from "@antumbra/persistence";
 import type { TemporaryPersistence } from "@antumbra/persistence/testing";
 import { expect, it } from "@effect/vitest";
-import { type Context, Deferred, Effect, Option, Ref, Schema } from "effect";
+import { Deferred, Effect, Option, Ref, Schema } from "effect";
 import { defineIntent, type ReclaimPolicy } from "#intent.ts";
 import { Kernel } from "#kernel.ts";
 import {
@@ -18,24 +13,18 @@ import { IntentExecution } from "#workflow.ts";
 
 const EMPTY = Schema.Struct({});
 
-const ensureMarker = (
-	db: DatabaseService,
-	writer: Writer["Service"],
-	executors: Context.Context<WriteExecutors>,
-) =>
+const ensureMarker = (db: DatabaseService) =>
 	Effect.gen(function* () {
 		const marker = yield* db.Agent.where({ id: "restart-marker" }).first();
 		if (Option.isNone(marker)) {
-			yield* writer.write(
-				db.Agent.create({
-					charter: "durable activity marker",
-					id: "restart-marker",
-					role: "test",
-					status: "dormant",
-				}),
-			);
+			yield* db.Agent.create({
+				charter: "durable activity marker",
+				id: "restart-marker",
+				role: "test",
+				status: "dormant",
+			});
 		}
-	}).pipe(Effect.provideContext(executors));
+	});
 
 const describeRow = (
 	row: Option.Option<{
@@ -117,13 +106,11 @@ it.live("restart reruns activities and reconciles completed durable work", () =>
 		const temporary = yield* acquireTemporaryPersistence;
 		yield* Effect.gen(function* () {
 			const db = yield* Database;
-			const writer = yield* Writer;
-			const executors = yield* Effect.context<WriteExecutors>();
 			const entered = yield* Ref.make(0);
 			const started = yield* Deferred.make<void>();
 			const hold = yield* Deferred.make<void>();
 			const establish = Ref.update(entered, (count) => count + 1).pipe(
-				Effect.andThen(ensureMarker(db, writer, executors)),
+				Effect.andThen(ensureMarker(db)),
 			);
 			const kind = defineIntent({
 				execute: () =>

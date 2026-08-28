@@ -1,4 +1,4 @@
-import { Database, Writer } from "@antumbra/persistence";
+import { Database } from "@antumbra/persistence";
 import { expect, it } from "@effect/vitest";
 import { Effect } from "effect";
 import { AgentDomain } from "#domain.ts";
@@ -28,9 +28,9 @@ const registeredRepo = Effect.gen(function* () {
 const storeUnsafeChangeBerth = (repoId: string) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
-		const writer = yield* Writer;
-		yield* writer.write(
+		yield* db.transaction(
 			Effect.gen(function* () {
+				yield* Database;
 				yield* db.Berth.create({
 					agentId: "agent-gone",
 					branch: "work/agent/reef",
@@ -60,9 +60,9 @@ const storeUnsafeChangeBerth = (repoId: string) =>
 const storeUnsafePieceChangeBerth = (repoId: string, pieceId: string) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
-		const writer = yield* Writer;
-		yield* writer.write(
+		yield* db.transaction(
 			Effect.gen(function* () {
+				yield* Database;
 				yield* db.Berth.create({
 					agentId: "agent-gone",
 					branch: "work/agent/reef",
@@ -98,19 +98,16 @@ it.live("a direct Change read fails typed on invalid durable vocabulary", () =>
 		Effect.gen(function* () {
 			const db = yield* Database;
 			const domain = yield* AgentDomain;
-			const writer = yield* Writer;
 			const repo = yield* registeredRepo;
-			yield* writer.write(
-				db.Change.create({
-					...changeOf({
-						headRef: "work/agent/reef",
-						id: "change-invalid",
-						repoId: repo.id,
-						stage: "open",
-					}),
-					stage: "future_stage",
+			yield* db.Change.create({
+				...changeOf({
+					headRef: "work/agent/reef",
+					id: "change-invalid",
+					repoId: repo.id,
+					stage: "open",
 				}),
-			);
+				stage: "future_stage",
+			});
 
 			const failure = yield* Effect.flip(domain.voyages.list);
 			expect(failure).toMatchObject({
@@ -126,7 +123,6 @@ it.live("a direct PieceChange read fails typed on invalid purpose", () =>
 		Effect.gen(function* () {
 			const db = yield* Database;
 			const domain = yield* AgentDomain;
-			const writer = yield* Writer;
 			const repo = yield* registeredRepo;
 			const voyage = yield* domain.voyages.open({
 				backend: "scripted",
@@ -142,8 +138,9 @@ it.live("a direct PieceChange read fails typed on invalid purpose", () =>
 				title: "soundings",
 				voyageId: voyage.id,
 			});
-			yield* writer.write(
+			yield* db.transaction(
 				Effect.gen(function* () {
+					yield* Database;
 					yield* db.Change.create(
 						changeOf({
 							headRef: "work/agent/reef",

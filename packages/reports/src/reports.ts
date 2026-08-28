@@ -1,10 +1,5 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
-import {
-	Database,
-	type PrismaError,
-	type WriteExecutors,
-	Writer,
-} from "@antumbra/persistence";
+import { Database, type PrismaError } from "@antumbra/persistence";
 import type { PieceNotFound } from "@antumbra/pieces";
 import { Context, Effect, Layer, type Option } from "effect";
 import { landReport } from "#land.ts";
@@ -27,14 +22,8 @@ export const ReportsLive = Layer.effect(Reports)(
 	Effect.gen(function* () {
 		const db = yield* Database;
 		const feeds = yield* DomainFeeds;
-		const writer = yield* Writer;
-		const executors = yield* Effect.context<WriteExecutors>();
-		const context = Context.merge(
-			executors,
-			Context.make(Database, db).pipe(
-				Context.add(DomainFeeds, feeds),
-				Context.add(Writer, writer),
-			),
+		const context = Context.make(Database, db).pipe(
+			Context.add(DomainFeeds, feeds),
 		);
 		return {
 			land: (input) => Effect.provide(landReport(input), context),

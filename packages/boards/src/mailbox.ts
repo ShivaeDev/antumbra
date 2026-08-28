@@ -1,4 +1,4 @@
-import { Database, Writer } from "@antumbra/persistence";
+import { Database } from "@antumbra/persistence";
 import { Effect } from "effect";
 import { MailNotAddressed } from "#errors.ts";
 import { BoardScope, EntryInput, type MailInput } from "#model.ts";
@@ -13,6 +13,22 @@ const readIds = (receipts: ReadonlyArray<{ readonly entryId: string }>) =>
 const mailEntries = (agentId: string) =>
 	readBoard(mailbox(agentId)).pipe(
 		Effect.map((entries) => entries.filter((entry) => entry.kind === "mail")),
+	);
+
+const storeReceipt = (entryId: string) =>
+	Database.use((db) =>
+		db.BoardEntryReceipt.create({ entryId }).pipe(
+			Effect.asVoid,
+			Effect.catchTag("PrismaError", (failure) =>
+				db.BoardEntryReceipt.where({ entryId })
+					.exists()
+					.pipe(
+						Effect.flatMap((exists) =>
+							exists ? Effect.void : Effect.fail(failure),
+						),
+					),
+			),
+		),
 	);
 
 export const mail = (input: MailInput) =>
@@ -41,7 +57,6 @@ export const markMailRead = (
 ) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
-		const writer = yield* Writer;
 		const entries = yield* mailEntries(agentId);
 		const addressed = new Set(entries.map((entry) => entry.id));
 		const requested = new Set(entryIds);
@@ -49,13 +64,10 @@ export const markMailRead = (
 		if (stray !== undefined) {
 			return yield* new MailNotAddressed({ agentId, entryId: stray });
 		}
-		yield* writer.write(
-			Effect.gen(function* () {
-				const read = readIds(yield* db.BoardEntryReceipt.select("entryId"));
-				yield* Effect.forEach(
-					[...requested].filter((entryId) => !read.has(entryId)),
-					(entryId) => db.BoardEntryReceipt.create({ entryId }),
-				);
-			}),
+		const read = readIds(yield* db.BoardEntryReceipt.select("entryId"));
+		yield* Effect.forEach(
+			[...requested].filter((entryId) => !read.has(entryId)),
+			storeReceipt,
+			{ discard: true },
 		);
 	});

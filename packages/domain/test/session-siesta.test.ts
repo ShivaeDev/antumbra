@@ -1,5 +1,5 @@
 import { Kernel } from "@antumbra/kernel";
-import { Database, Writer } from "@antumbra/persistence";
+import { Database } from "@antumbra/persistence";
 import { expect, it } from "@effect/vitest";
 import { Effect, Option } from "effect";
 import { AgentDomain } from "#domain.ts";
@@ -128,12 +128,9 @@ it.live(
 
 			yield* Effect.gen(function* () {
 				const db = yield* Database;
-				const writer = yield* Writer;
-				yield* writer.write(
-					db.AgentSession.where({ id: HAND.sessionId }).update({
-						executionStatus: "draining",
-					}),
-				);
+				yield* db.AgentSession.where({ id: HAND.sessionId }).update({
+					executionStatus: "draining",
+				});
 			}).pipe(Effect.provide(temporary.layer));
 
 			yield* Effect.gen(function* () {

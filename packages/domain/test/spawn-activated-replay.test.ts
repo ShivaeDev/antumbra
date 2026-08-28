@@ -4,7 +4,7 @@ import {
 	isTerminalIntentStatus,
 	Kernel,
 } from "@antumbra/kernel";
-import { Database, type NewAgentSession, Writer } from "@antumbra/persistence";
+import { Database, type NewAgentSession } from "@antumbra/persistence";
 import type { AgentBackend, MooragePlan } from "@antumbra/plugin-api";
 import { expect, it } from "@effect/vitest";
 import { Effect, Option, Ref, Schedule, Stream } from "effect";
@@ -46,10 +46,10 @@ const eventually = <A, E, R>(check: Effect.Effect<A, E, R>) =>
 const seedActivatedBoundary = (intentId: string, plan: MooragePlan) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
-		const writer = yield* Writer;
 		const berth = Option.getOrThrow(Option.fromUndefinedOr(plan.berths[0]));
-		yield* writer.write(
+		yield* db.transaction(
 			Effect.gen(function* () {
+				yield* Database;
 				yield* db.Agent.create({
 					charter: payload.charter,
 					currentSessionId: payload.sessionId,
@@ -225,18 +225,15 @@ it.live(
 				const db = yield* Database;
 				const kernel = yield* Kernel;
 				const domain = yield* AgentDomain;
-				const writer = yield* Writer;
 				yield* domain.repos.register({
 					defaultRef: "main",
 					source: "/somewhere/activated",
 				});
 				const submission = yield* kernel.submit(domain.spawn, payload);
 				yield* seedActivatedBoundary(submission.id, plan);
-				yield* writer.write(
-					db.Agent.where({ id: payload.agentId }).update({
-						status: "future-agent",
-					}),
-				);
+				yield* db.Agent.where({ id: payload.agentId }).update({
+					status: "future-agent",
+				});
 				return submission.id;
 			}).pipe(
 				Effect.provide(

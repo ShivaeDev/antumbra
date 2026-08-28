@@ -1,5 +1,5 @@
 import { Changes } from "@antumbra/changes";
-import { Database, Writer } from "@antumbra/persistence";
+import { Database } from "@antumbra/persistence";
 import {
 	allowTestChangeUpdates,
 	rejectTestChangeUpdates,
@@ -81,7 +81,6 @@ it.live("rebuilds prepared truth and keeps its Berth held", () =>
 		const rebuilt = yield* Effect.gen(function* () {
 			const changes = yield* Changes;
 			const db = yield* Database;
-			const writer = yield* Writer;
 			const row = yield* changes.submit({
 				agentId: CREW,
 				pieceId: "piece-reef",
@@ -90,7 +89,7 @@ it.live("rebuilds prepared truth and keeps its Berth held", () =>
 			});
 			const berths = yield* db.Berth.where({ agentId: CREW }).all();
 			return {
-				held: yield* writer.write(changes.heldResources(berths)),
+				held: yield* changes.heldResources(berths),
 				row,
 			};
 		}).pipe(Effect.provide(layer()), Effect.provide(temporary.layer));

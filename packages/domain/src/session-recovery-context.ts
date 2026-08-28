@@ -1,4 +1,4 @@
-import { Database, type WriteExecutors } from "@antumbra/persistence";
+import { Database } from "@antumbra/persistence";
 import { Effect, Option, Result } from "effect";
 import { recoveryHeld } from "#session-recovery-error.ts";
 import { makeSessionRecoveryState } from "#session-recovery-state.ts";
@@ -15,9 +15,6 @@ export interface SessionRecoveryContext {
 export const makeSessionRecoveryContext = Effect.gen(function* () {
 	const db = yield* Database;
 	const state = yield* makeSessionRecoveryState;
-	const executors = yield* Effect.context<WriteExecutors>();
-	const provide = <A, E>(effect: Effect.Effect<A, E, WriteExecutors>) =>
-		Effect.provideContext(effect, executors);
 	const oneAssignment = (
 		kind: "Piece" | "Voyage",
 		sessionId: string,
@@ -32,8 +29,8 @@ export const makeSessionRecoveryContext = Effect.gen(function* () {
 	};
 	const authorityFor = (agentId: string, sessionId: string) =>
 		Effect.gen(function* () {
-			const pieces = yield* provide(db.PieceAgent.where({ agentId }).all());
-			const voyages = yield* provide(db.VoyageAgent.where({ agentId }).all());
+			const pieces = yield* db.PieceAgent.where({ agentId }).all();
+			const voyages = yield* db.VoyageAgent.where({ agentId }).all();
 			return {
 				pieceId: yield* oneAssignment(
 					"Piece",

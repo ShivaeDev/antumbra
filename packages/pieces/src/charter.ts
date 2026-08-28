@@ -1,5 +1,5 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
-import { Database, Writer } from "@antumbra/persistence";
+import { Database } from "@antumbra/persistence";
 import { Effect } from "effect";
 import { plannedEdges, writeEdges } from "#edges.ts";
 import type { CharterInput, PieceRow } from "#model.ts";
@@ -9,7 +9,6 @@ export const charter = (input: CharterInput) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
 		const feeds = yield* DomainFeeds;
-		const writer = yield* Writer;
 		const pieceId = crypto.randomUUID();
 		const row: PieceRow = {
 			charter: input.charter,
@@ -20,8 +19,9 @@ export const charter = (input: CharterInput) =>
 			role: input.role,
 			title: input.title,
 		};
-		yield* writer.write(
+		yield* db.transaction(
 			Effect.gen(function* () {
+				yield* Database;
 				yield* verifyVoyageExists(input.voyageId);
 				const edges = yield* plannedEdges(pieceId, input.dependsOn);
 				yield* db.Piece.create(row);

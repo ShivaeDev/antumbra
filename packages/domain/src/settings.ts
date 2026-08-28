@@ -1,5 +1,5 @@
 import { SettingsSource } from "@antumbra/contract";
-import { Database, type WriteExecutors, Writer } from "@antumbra/persistence";
+import { Database } from "@antumbra/persistence";
 import { Context, Effect, Layer } from "effect";
 import { changeSetting } from "#settings-change.ts";
 import { readSettings } from "#settings-reading.ts";
@@ -11,12 +11,7 @@ import { readSettings } from "#settings-reading.ts";
 export const SettingsSourceLive = Layer.effect(SettingsSource)(
 	Effect.gen(function* () {
 		const db = yield* Database;
-		const writer = yield* Writer;
-		const executors = yield* Effect.context<WriteExecutors>();
-		const context = Context.merge(
-			executors,
-			Context.make(Database, db).pipe(Context.add(Writer, writer)),
-		);
+		const context = Context.make(Database, db);
 		return {
 			change: (change) => Effect.provide(changeSetting(change), context),
 			current: Effect.provide(readSettings, context),

@@ -16,11 +16,10 @@ import {
 	observationConflict,
 	selectMatchedRow,
 } from "#change-submissions/observation-selection.ts";
-
-interface ReconciledObservation {
-	readonly changed: boolean;
-	readonly row: ChangeRow;
-}
+import {
+	commitObservationProjection,
+	type ReconciledObservation,
+} from "#change-submissions/observation-write.ts";
 
 const isStale = (row: ChangeRow, observation: ChangeObservation): boolean =>
 	row.stage !== "prepared" && observation.activityAt < row.activityAt.getTime();
@@ -42,29 +41,8 @@ const isEqualTimeReplay = (
 	next.activityAt.getTime() === row.activityAt.getTime() &&
 	(sameProjectedFacts(row, next) || (next.stage !== row.stage && !append));
 
-const updateProjection = (row: ChangeRow) =>
-	Effect.gen(function* () {
-		const db = yield* Database;
-		yield* db.Change.where({ id: row.id }).update({
-			activityAt: row.activityAt,
-			baseRef: row.baseRef,
-			checks: row.checks,
-			draftAt: row.draftAt,
-			externalId: row.externalId,
-			headRef: row.headRef,
-			headSha: row.headSha,
-			landedAt: row.landedAt,
-			mergeable: row.mergeable,
-			observedAt: row.observedAt,
-			raw: row.raw,
-			review: row.review,
-			stage: row.stage,
-			submissionKey: row.submissionKey,
-			title: row.title,
-			url: row.url,
-			withdrawnAt: row.withdrawnAt,
-		});
-	});
+const isTerminal = (row: ChangeRow): boolean =>
+	row.stage === "landed" || row.stage === "withdrawn";
 
 const updateMatchedRow = (
 	row: ChangeRow,
@@ -75,16 +53,21 @@ const updateMatchedRow = (
 ) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
+		if (isTerminal(row)) {
+			if (observation.stage !== row.stage) {
+				yield* Effect.logWarning(
+					"a terminal change was observed in another stage",
+					{
+						changeId: row.id,
+						observed: observation.stage,
+						stage: row.stage,
+					},
+				);
+			}
+			return { changed: false, row } satisfies ReconciledObservation;
+		}
 		if (attachment._tag === "Claimed" && !matchesClaim(row, attachment)) {
 			return yield* observationConflict(attachment, hostTag, observation);
-		}
-		if (row.stage === "landed" && observation.stage !== "landed") {
-			yield* Effect.logWarning("a settled change was observed unsettled", {
-				changeId: row.id,
-				observed: observation.stage,
-				stage: row.stage,
-			});
-			return { changed: false, row } satisfies ReconciledObservation;
 		}
 		if (isStale(row, observation)) {
 			return { changed: false, row } satisfies ReconciledObservation;
@@ -98,11 +81,7 @@ const updateMatchedRow = (
 		if (isEqualTimeReplay(row, next, append)) {
 			return { changed: false, row } satisfies ReconciledObservation;
 		}
-		if (append) {
-			yield* db.ChangeTransition.create(transition);
-		}
-		yield* updateProjection(next);
-		return { changed: true, row: next } satisfies ReconciledObservation;
+		return yield* commitObservationProjection(row, next, transition, append);
 	});
 
 export const reconcileObservation = (

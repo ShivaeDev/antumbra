@@ -14,14 +14,26 @@ import type {
 export interface AgentReconcilePlan {
 	readonly agentsToReclaim: ReadonlyArray<{
 		readonly agentId: string;
+		readonly fromStatus: AgentStatus;
 		readonly status: AgentStatus;
 	}>;
 	readonly pointers: ReadonlyArray<{
 		readonly agentId: string;
 		readonly currentSessionId: string | null;
+		readonly fromCurrentSessionId: string | null;
 	}>;
 	readonly sessionsToClose: ReadonlyArray<string>;
 }
+
+const pointerChange = (
+	agentId: string,
+	fromCurrentSessionId: string | null,
+	currentSessionId: string | null,
+): AgentReconcilePlan["pointers"][number] => ({
+	agentId,
+	currentSessionId,
+	fromCurrentSessionId,
+});
 
 export const planAgent = (
 	agent: DecodedAgent,
@@ -38,7 +50,7 @@ export const planAgent = (
 			pointers:
 				agent.currentSessionId === null
 					? []
-					: [{ agentId: agent.id, currentSessionId: null }],
+					: [pointerChange(agent.id, agent.currentSessionId, null)],
 			sessionsToClose: open.map((session) => session.id),
 		});
 	}
@@ -53,7 +65,13 @@ export const planAgent = (
 		return Result.isFailure(reclaimed)
 			? Result.fail(reclaimed.failure)
 			: Result.succeed({
-					agentsToReclaim: [{ agentId: agent.id, status: reclaimed.success }],
+					agentsToReclaim: [
+						{
+							agentId: agent.id,
+							fromStatus: agent.status,
+							status: reclaimed.success,
+						},
+					],
 					pointers: [],
 					sessionsToClose: [],
 				});
@@ -74,7 +92,7 @@ export const planAgent = (
 		agentsToReclaim: [],
 		pointers:
 			agent.currentSessionId === null
-				? [{ agentId: agent.id, currentSessionId: currentId }]
+				? [pointerChange(agent.id, null, currentId)]
 				: [],
 		sessionsToClose: open
 			.filter((session) => session.id !== currentId)

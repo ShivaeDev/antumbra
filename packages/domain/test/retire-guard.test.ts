@@ -1,5 +1,5 @@
 import { Kernel } from "@antumbra/kernel";
-import { Database, type NewAgentSession, Writer } from "@antumbra/persistence";
+import { Database, type NewAgentSession } from "@antumbra/persistence";
 import { expect, it } from "@effect/vitest";
 import { Effect, Option } from "effect";
 import { AgentDomain } from "#domain.ts";
@@ -24,6 +24,42 @@ const retiring = (agentId: string) =>
 		const status = yield* untilTerminal(submission.changes);
 		const intent = yield* db.Intent.where({ id: submission.id }).first();
 		return { detail: Option.getOrThrow(intent).detail, status };
+	});
+
+const seedRetirementRows = (input: {
+	readonly agentId: string;
+	readonly agentStatus: string;
+	readonly currentSessionId: string | null;
+	readonly executionStatus: string;
+	readonly sessionId: string;
+}) =>
+	Effect.gen(function* () {
+		const db = yield* Database;
+		yield* db.transaction(
+			Effect.gen(function* () {
+				yield* Database;
+				yield* db.Agent.create({
+					charter: "sound the northern shoals",
+					currentSessionId: input.currentSessionId,
+					id: input.agentId,
+					role: "hand",
+					status: input.agentStatus,
+				});
+				yield* db.AgentSession.create({
+					agentId: input.agentId,
+					backend: "scripted",
+					charterDeliveredAt: new Date(1),
+					createdAt: new Date(1),
+					cwd: `/tmp/${input.agentId}`,
+					executionStatus: input.executionStatus,
+					id: input.sessionId,
+					nativeRef: `native-${input.agentId}`,
+					parentSessionId: null,
+					rootSessionId: input.sessionId,
+					status: "open",
+				} satisfies NewAgentSession);
+			}),
+		);
 	});
 
 // why: the button and the sweep both read a moment that had already passed, so
@@ -79,32 +115,13 @@ it.live("retiring an agent whose tree is stranded is not refused", () =>
 		const scripted = yield* makeScriptedBackend;
 		yield* Effect.gen(function* () {
 			const db = yield* Database;
-			const writer = yield* Writer;
-			yield* writer.write(
-				db.Agent.create({
-					charter: "sound the northern shoals",
-					currentSessionId: `session-${STRANDED}`,
-					id: STRANDED,
-					role: "hand",
-					status: "alive",
-				}).pipe(
-					Effect.andThen(
-						db.AgentSession.create({
-							agentId: STRANDED,
-							backend: "scripted",
-							charterDeliveredAt: new Date(1),
-							createdAt: new Date(1),
-							cwd: `/tmp/${STRANDED}`,
-							executionStatus: "active",
-							id: `session-${STRANDED}`,
-							nativeRef: `native-${STRANDED}`,
-							parentSessionId: null,
-							rootSessionId: `session-${STRANDED}`,
-							status: "open",
-						} satisfies NewAgentSession),
-					),
-				),
-			);
+			yield* seedRetirementRows({
+				agentId: STRANDED,
+				agentStatus: "alive",
+				currentSessionId: `session-${STRANDED}`,
+				executionStatus: "active",
+				sessionId: `session-${STRANDED}`,
+			});
 
 			expect((yield* retiring(STRANDED)).status).toBe("succeeded");
 
@@ -116,4 +133,32 @@ it.live("retiring an agent whose tree is stranded is not refused", () =>
 			expect(Option.getOrThrow(session).status).toBe("closed");
 		}).pipe(Effect.provide(domainKernelLayer(temporary, scripted.backend)));
 	}),
+);
+
+it.live(
+	"a retried retirement closes Sessions left behind the terminal row",
+	() =>
+		Effect.gen(function* () {
+			const temporary = yield* acquireTemporaryPersistence;
+			const scripted = yield* makeScriptedBackend;
+			const agentId = "agent-retired-prefix";
+			const sessionId = "session-retired-prefix";
+			yield* Effect.gen(function* () {
+				const db = yield* Database;
+				yield* seedRetirementRows({
+					agentId,
+					agentStatus: "retired",
+					currentSessionId: null,
+					executionStatus: "idle",
+					sessionId,
+				});
+
+				expect((yield* retiring(agentId)).status).toBe("succeeded");
+				expect(
+					Option.getOrThrow(
+						yield* db.AgentSession.where({ id: sessionId }).first(),
+					).status,
+				).toBe("closed");
+			}).pipe(Effect.provide(domainKernelLayer(temporary, scripted.backend)));
+		}),
 );

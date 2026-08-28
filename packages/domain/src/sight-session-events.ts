@@ -7,7 +7,6 @@ import { DomainFeeds, type StoredEvent } from "@antumbra/domain-feeds";
 import { Database } from "@antumbra/persistence";
 import { projectHistoricalAgentEvent } from "@antumbra/vocabulary/session-events";
 import { Effect, Stream } from "effect";
-import { writeProvider } from "#sight-executors.ts";
 import { toFailure } from "#sight-failure.ts";
 
 export interface SightSessionEvents {
@@ -32,21 +31,19 @@ const projectSessionEvent = (row: StoredEvent): SessionEvent => ({
 export const makeSightSessionEvents = Effect.gen(function* () {
 	const feeds = yield* DomainFeeds;
 	const db = yield* Database;
-	const provide = yield* writeProvider;
 
 	const sessionEvents = (query: EventQuery) =>
-		provide(
-			db.SessionEvent.where({ sessionId: query.sessionId })
-				.orderBy((event) => event.seq.asc())
-				.all(),
-		).pipe(
-			Effect.map((rows) =>
-				rows
-					.filter((event) => event.seq >= query.fromSeq)
-					.map(projectSessionEvent),
-			),
-			Effect.mapError(toFailure),
-		);
+		db.SessionEvent.where({ sessionId: query.sessionId })
+			.orderBy((event) => event.seq.asc())
+			.all()
+			.pipe(
+				Effect.map((rows) =>
+					rows
+						.filter((event) => event.seq >= query.fromSeq)
+						.map(projectSessionEvent),
+				),
+				Effect.mapError(toFailure),
+			);
 
 	return {
 		// why: subscribe before reading the log, then admit only live events past

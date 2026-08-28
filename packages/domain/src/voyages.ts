@@ -1,7 +1,7 @@
 import { Artifacts } from "@antumbra/artifacts";
 import { Boards } from "@antumbra/boards";
 import { DomainFeeds } from "@antumbra/domain-feeds";
-import { Database, type WriteExecutors, Writer } from "@antumbra/persistence";
+import { Database } from "@antumbra/persistence";
 import { Pieces } from "@antumbra/pieces";
 import { Reports } from "@antumbra/reports";
 import type { AgentBackendTag } from "@antumbra/vocabulary/agent-backend";
@@ -29,7 +29,6 @@ const announce = DomainFeeds.pipe(
 const openVoyage = (input: OpenVoyageInput) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
-		const writer = yield* Writer;
 		const now = yield* Clock.currentTimeMillis;
 		const row: VoyageRow = {
 			backend: input.backend,
@@ -39,7 +38,7 @@ const openVoyage = (input: OpenVoyageInput) =>
 			name: input.name,
 			northStar: input.northStar,
 		};
-		yield* writer.write(db.Voyage.create(row));
+		yield* db.Voyage.create(row);
 		yield* announce;
 		return row;
 	});
@@ -50,13 +49,10 @@ const openVoyage = (input: OpenVoyageInput) =>
 const setBackend = (voyageId: string, backend: AgentBackendTag) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
-		const writer = yield* Writer;
-		yield* writer.write(
-			Effect.gen(function* () {
-				yield* requireVoyage(voyageId);
-				yield* db.Voyage.where({ id: voyageId }).update({ backend });
-			}),
-		);
+		yield* Effect.gen(function* () {
+			yield* requireVoyage(voyageId);
+			yield* db.Voyage.where({ id: voyageId }).update({ backend });
+		});
 		yield* announce;
 	});
 
@@ -66,16 +62,13 @@ const setBackend = (voyageId: string, backend: AgentBackendTag) =>
 const setFocus = (voyageId: string, focused: boolean) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
-		const writer = yield* Writer;
 		const now = yield* Clock.currentTimeMillis;
-		yield* writer.write(
-			Effect.gen(function* () {
-				yield* requireVoyage(voyageId);
-				yield* db.Voyage.where({ id: voyageId }).update({
-					focusedAt: focused ? new Date(now) : null,
-				});
-			}),
-		);
+		yield* Effect.gen(function* () {
+			yield* requireVoyage(voyageId);
+			yield* db.Voyage.where({ id: voyageId }).update({
+				focusedAt: focused ? new Date(now) : null,
+			});
+		});
 		yield* announce;
 	});
 
@@ -89,17 +82,11 @@ export const VoyageProceduresLive = Layer.effect(VoyageProcedureService)(
 		const pieces = yield* Pieces;
 		const reports = yield* Reports;
 		const world = yield* VoyageWorldSource;
-		const writer = yield* Writer;
-		const executors = yield* Effect.context<WriteExecutors>();
-		const context = Context.merge(
-			executors,
-			Context.make(Boards, boards).pipe(
-				Context.add(Database, db),
-				Context.add(DomainFeeds, feeds),
-				Context.add(KernelReach, reach),
-				Context.add(VoyageWorldSource, world),
-				Context.add(Writer, writer),
-			),
+		const context = Context.make(Boards, boards).pipe(
+			Context.add(Database, db),
+			Context.add(DomainFeeds, feeds),
+			Context.add(KernelReach, reach),
+			Context.add(VoyageWorldSource, world),
 		);
 		return VoyageProcedureService.of({
 			artifactMarkdown: artifacts.readMarkdown,

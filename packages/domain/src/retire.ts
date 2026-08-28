@@ -1,6 +1,6 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { defineIntent, IntentExecution } from "@antumbra/kernel";
-import { Database, type WriteExecutors, Writer } from "@antumbra/persistence";
+import { Database } from "@antumbra/persistence";
 import { ResourceReconciler } from "@antumbra/resource-reclamation";
 import { SessionFabric } from "@antumbra/session-fabric";
 import {
@@ -24,30 +24,29 @@ export const makeRetireKind = Effect.gen(function* () {
 	const feeds = yield* DomainFeeds;
 	const fabric = yield* SessionFabric;
 	const resources = yield* ResourceReconciler;
-	const writer = yield* Writer;
-	const executors = yield* Effect.context<WriteExecutors>();
-	const provide = <A, E>(effect: Effect.Effect<A, E, WriteExecutors>) =>
-		Effect.provideContext(effect, executors);
 	// why: retirement settles the Agent's whole Session subtree, subsessions
 	// included — a closed root over a still-open child would claim the record
 	// finished while part of it is unaccounted for.
-	const closeRows = (agentId: string, next: AgentStatus) =>
-		writer.write(
-			db.Agent.where({ id: agentId })
-				.update({ currentSessionId: null, status: next })
-				.pipe(
-					Effect.andThen(
-						db.AgentSession.where({ agentId }).update({ status: "closed" }),
-					),
-				),
-		);
+	const closeAgent = (
+		agentId: string,
+		current: AgentStatus,
+		next: AgentStatus,
+	) =>
+		db.Agent.where({ id: agentId, status: current }).update({
+			currentSessionId: null,
+			status: next,
+		});
+	const closeSessions = (agentId: string) =>
+		db.AgentSession.where({ agentId, status: "open" }).update({
+			status: "closed",
+		});
 	// why: only a root is attached to the fabric. A subsession lives inside its
 	// root's provider conversation, so it has no attachment of its own to stop.
 	const stopSessions = (agentId: string) =>
 		Effect.gen(function* () {
-			const sessions = yield* provide(
-				db.AgentSession.where(rootSessionsOf(agentId)).all(),
-			);
+			const sessions = yield* db.AgentSession.where(
+				rootSessionsOf(agentId),
+			).all();
 			yield* Effect.forEach(sessions, (session) =>
 				Effect.fromResult(
 					decodeStoredAgentSessionStatus(session.id, session.status),
@@ -64,9 +63,9 @@ export const makeRetireKind = Effect.gen(function* () {
 	const refuseWorking = (agentId: string) =>
 		Effect.gen(function* () {
 			const attached = yield* fabric.attached();
-			const sessions = yield* provide(
-				db.AgentSession.where(rootSessionsOf(agentId)).all(),
-			);
+			const sessions = yield* db.AgentSession.where(
+				rootSessionsOf(agentId),
+			).all();
 			for (const session of sessions) {
 				const status = yield* Effect.fromResult(
 					decodeStoredAgentSessionStatus(session.id, session.status),
@@ -89,27 +88,29 @@ export const makeRetireKind = Effect.gen(function* () {
 		});
 	const retireAgent = (agentId: string) =>
 		Effect.gen(function* () {
-			const agent = yield* provide(db.Agent.where({ id: agentId }).first());
+			const agent = yield* db.Agent.where({ id: agentId }).first();
 			if (Option.isNone(agent)) {
 				return yield* new AgentNotFound({ agentId });
 			}
 			const status = yield* Effect.fromResult(
 				decodeStoredAgentStatus(agent.value.id, agent.value.status),
 			);
-			if (status === "retired") {
-				return;
-			}
-			yield* refuseWorking(agentId);
-			const next = yield* Effect.fromResult(agentTransition(status, "retire"));
 			const execution = yield* IntentExecution;
+			if (status !== "retired") {
+				yield* refuseWorking(agentId);
+				const next = yield* Effect.fromResult(
+					agentTransition(status, "retire"),
+				);
+				yield* execution.step(
+					"close-records",
+					closeAgent(agentId, status, next),
+					{ additionalAttempts: 1 },
+				);
+			}
 			yield* execution.step("stop-sessions", stopSessions(agentId));
-			yield* execution.step(
-				"close-records",
-				provide(closeRows(agentId, next)),
-				{
-					additionalAttempts: 1,
-				},
-			);
+			yield* execution.step("close-sessions", closeSessions(agentId), {
+				additionalAttempts: 1,
+			});
 			yield* execution.step("publish-fleet", feeds.publishFleetRefresh());
 		});
 	return defineIntent({

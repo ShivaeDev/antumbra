@@ -1,5 +1,5 @@
 import { Kernel } from "@antumbra/kernel";
-import { Database, Writer } from "@antumbra/persistence";
+import { Database } from "@antumbra/persistence";
 import { expect, it } from "@effect/vitest";
 import { Effect, Option } from "effect";
 import { AgentDomain } from "#domain.ts";
@@ -27,14 +27,11 @@ it.live("retire never overwrites an unknown stored Session status", () =>
 			const db = yield* Database;
 			const domain = yield* AgentDomain;
 			const kernel = yield* Kernel;
-			const writer = yield* Writer;
 			const spawn = yield* kernel.submit(domain.spawn, payload);
 			expect(yield* untilTerminal(spawn.changes)).toBe("succeeded");
-			yield* writer.write(
-				db.AgentSession.where({ id: payload.sessionId }).update({
-					status: "future-session",
-				}),
-			);
+			yield* db.AgentSession.where({ id: payload.sessionId }).update({
+				status: "future-session",
+			});
 			const retirement = yield* kernel.submit(domain.retire, {
 				agentId: payload.agentId,
 			});

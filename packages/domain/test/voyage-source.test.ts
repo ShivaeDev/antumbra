@@ -3,7 +3,7 @@ import {
 	VoyageSource,
 	type VoyageView,
 } from "@antumbra/contract";
-import { Database, Writer } from "@antumbra/persistence";
+import { Database } from "@antumbra/persistence";
 import type { TemporaryPersistence } from "@antumbra/persistence/testing";
 import { expect, it } from "@effect/vitest";
 import { Deferred, Effect, Fiber, Layer, Stream } from "effect";
@@ -171,7 +171,6 @@ it.live("voyage projection rejects an unknown stored Agent status", () =>
 		yield* Effect.gen(function* () {
 			const db = yield* Database;
 			const source = yield* VoyageSource;
-			const writer = yield* Writer;
 			const opened = yield* source.open(reef);
 			const hailed = yield* source.hail(opened.id);
 			yield* eventually(
@@ -180,11 +179,9 @@ it.live("voyage projection rejects an unknown stored Agent status", () =>
 					expect(view.captain?.status).toBe("alive");
 				}),
 			);
-			yield* writer.write(
-				db.Agent.where({ id: hailed.agentId }).update({
-					status: "future-agent",
-				}),
-			);
+			yield* db.Agent.where({ id: hailed.agentId }).update({
+				status: "future-agent",
+			});
 			const failure = yield* Effect.flip(source.voyage(opened.id));
 			expect(failure._tag).toBe("SightFailure");
 			expect(failure.message).toContain("future-agent");

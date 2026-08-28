@@ -1,9 +1,9 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
-import { Database, Writer } from "@antumbra/persistence";
+import { Database } from "@antumbra/persistence";
 import { Pieces } from "@antumbra/pieces";
 import { ChangeHostUnavailable } from "@antumbra/plugin-api";
 import {
-	ensureAgentResourcesUnclaimed,
+	ensureAgentCanOwnLocalWork,
 	ensureBranchResourcesUnclaimed,
 } from "@antumbra/resource-reclamation";
 import { Clock, Effect, Option } from "effect";
@@ -39,11 +39,10 @@ export const adoptSubmittedChange = (input: AdoptChangeInput) =>
 		const db = yield* Database;
 		const feeds = yield* DomainFeeds;
 		const pieces = yield* Pieces;
-		const writer = yield* Writer;
 		yield* pieces.verifyExists(input.pieceId);
 		const repo = yield* repoNamed(input.repoName);
 		if (input.agentId !== null) {
-			yield* writer.write(ensureAgentResourcesUnclaimed(input.agentId));
+			yield* ensureAgentCanOwnLocalWork(input.agentId);
 		}
 		const host = yield* claimingHost(repo);
 		const capability = yield* host.capability;
@@ -55,10 +54,11 @@ export const adoptSubmittedChange = (input: AdoptChangeInput) =>
 		}
 		const observation = yield* host.adopt(input.url, repo);
 		const now = yield* Clock.currentTimeMillis;
-		const adopted = yield* writer.write(
+		const adopted = yield* db.transaction(
 			Effect.gen(function* () {
+				yield* Database;
 				if (input.agentId !== null) {
-					yield* ensureAgentResourcesUnclaimed(input.agentId);
+					yield* ensureAgentCanOwnLocalWork(input.agentId);
 				}
 				yield* ensureBranchResourcesUnclaimed(repo.source, observation.headRef);
 				const attachment = yield* adoptionAttachment(input.agentId, repo.id);

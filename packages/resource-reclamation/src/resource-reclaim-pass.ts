@@ -1,5 +1,5 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
-import { Database, Writer } from "@antumbra/persistence";
+import { Database } from "@antumbra/persistence";
 import type { BerthSite } from "@antumbra/plugin-api";
 import {
 	decodeStoredResourceReclaimState,
@@ -22,9 +22,9 @@ const site = (berth: ClaimedBerth): BerthSite => ({
 const finishReclaim = (berth: ClaimedBerth) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
-		const writer = yield* Writer;
-		yield* writer.write(
+		yield* db.transaction(
 			Effect.gen(function* () {
+				yield* Database;
 				yield* db.Berth.where({ id: berth.id }).update({
 					reclaimState: null,
 					status: "reclaimed",
@@ -54,13 +54,10 @@ const finishReclaim = (berth: ClaimedBerth) =>
 const markDirty = (berth: ClaimedBerth, now: number) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
-		const writer = yield* Writer;
-		yield* writer.write(
-			db.Berth.where({ id: berth.id }).update({
-				status: "stranded",
-				strandedAt: berth.strandedAt ?? new Date(now),
-			}),
-		);
+		yield* db.Berth.where({ id: berth.id }).update({
+			status: "stranded",
+			strandedAt: berth.strandedAt ?? new Date(now),
+		});
 	});
 
 const runClaim = (berth: ClaimedBerth, now: number) =>

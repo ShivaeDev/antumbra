@@ -147,8 +147,7 @@ it.effectDB(
 				sessionId: "session-crew",
 			});
 			yield* scripted.transition("repo-reef", "1", { stage: "open" });
-			const collision = yield* Effect.flip(changes.refresh("scripted"));
-			expect(collision._tag).toBe("ChangeIdentityCollision");
+			expect(yield* changes.refresh("scripted")).toEqual([]);
 			const rows = yield* db.Change.all();
 			expect(rows).toHaveLength(2);
 			expect(rows.find((row) => row.id === first.id)?.stage).toBe("withdrawn");
@@ -162,7 +161,7 @@ it.effectDB(
 );
 
 it.effectDB(
-	"orders, reopens, and idempotently replays transitions",
+	"orders transitions and never reopens a terminal Change",
 	function* (db) {
 		const scripted = yield* makeScriptedHost;
 		yield* seed;
@@ -176,7 +175,7 @@ it.effectDB(
 			yield* changes.observed("scripted", [reopened]);
 			expect(
 				Option.getOrThrow(yield* db.Change.where({ id: row.id }).first()).stage,
-			).toBe("open");
+			).toBe("withdrawn");
 			expect(
 				(yield* db.ChangeTransition.where({ changeId: row.id }).all()).map(
 					(transition) => [transition.fromStage, transition.toStage],
@@ -184,8 +183,83 @@ it.effectDB(
 			).toEqual([
 				["prepared", "open"],
 				["open", "withdrawn"],
-				["withdrawn", "open"],
 			]);
+		}).pipe(Effect.provide(changesLayer([scripted.host])));
+	},
+);
+
+it.effectDB(
+	"keeps same-stage observations from mutating terminal Changes",
+	function* (db) {
+		const scripted = yield* makeScriptedHost;
+		yield* seed;
+		yield* Effect.gen(function* () {
+			const changes = yield* Changes;
+			const first = yield* opened;
+			const landed = Option.getOrThrow(
+				Option.fromNullishOr(
+					(yield* changes.observed("scripted", [
+						observed(first, 1, { stage: "landed" }),
+					]))[0],
+				),
+			);
+			const second = yield* opened;
+			const withdrawn = Option.getOrThrow(
+				Option.fromNullishOr(
+					(yield* changes.observed("scripted", [
+						observed(second, 1, { stage: "withdrawn" }),
+					]))[0],
+				),
+			);
+			const terminal = [
+				{ row: landed, stage: "landed" },
+				{ row: withdrawn, stage: "withdrawn" },
+			] as const;
+			const beforeRows = yield* Effect.forEach(terminal, ({ row }) =>
+				db.Change.where({ id: row.id })
+					.first()
+					.pipe(Effect.map(Option.getOrThrow)),
+			);
+			const beforeTransitions = yield* db.ChangeTransition.all();
+			expect(
+				yield* changes.observed(
+					"scripted",
+					terminal.map(({ row, stage }) =>
+						observed(row, 10, {
+							stage,
+							title: `mutated ${stage}`,
+						}),
+					),
+				),
+			).toEqual(terminal.map(({ row }) => row));
+			expect(
+				yield* Effect.forEach(terminal, ({ row }) =>
+					db.Change.where({ id: row.id })
+						.first()
+						.pipe(Effect.map(Option.getOrThrow)),
+				),
+			).toEqual(beforeRows);
+			expect(yield* db.ChangeTransition.all()).toEqual(beforeTransitions);
+		}).pipe(Effect.provide(changesLayer([scripted.host])));
+	},
+);
+
+it.effectDB(
+	"settles existing host evidence after the owning Agent becomes terminal",
+	function* (db) {
+		const scripted = yield* makeScriptedHost;
+		yield* seed;
+		yield* Effect.gen(function* () {
+			const changes = yield* Changes;
+			const row = yield* opened;
+			yield* db.Agent.where({ id: CREW }).update({ status: "retired" });
+			const [settled] = yield* changes.observed("scripted", [
+				observed(row, 1, { stage: "landed" }),
+			]);
+			expect(settled?.stage).toBe("landed");
+			expect(
+				Option.getOrThrow(yield* db.Change.where({ id: row.id }).first()).stage,
+			).toBe("landed");
 		}).pipe(Effect.provide(changesLayer([scripted.host])));
 	},
 );

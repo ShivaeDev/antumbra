@@ -1,6 +1,6 @@
 import { SightSource } from "@antumbra/contract";
 import { type Gate, Kernel } from "@antumbra/kernel";
-import { Database, Writer } from "@antumbra/persistence";
+import { Database } from "@antumbra/persistence";
 import type { TemporaryPersistence } from "@antumbra/persistence/testing";
 import { expect, it } from "@effect/vitest";
 import { Effect, Layer } from "effect";
@@ -74,7 +74,6 @@ it.live("a draining session shows its execution word beside its intent", () =>
 			const domain = yield* AgentDomain;
 			const kernel = yield* Kernel;
 			const sight = yield* SightSource;
-			const writer = yield* Writer;
 			const receipt = yield* sight.spawn(spawnRequest);
 			yield* eventually(
 				Effect.gen(function* () {
@@ -87,11 +86,9 @@ it.live("a draining session shows its execution word beside its intent", () =>
 				}),
 			);
 			hold.open = false;
-			yield* writer.write(
-				db.AgentSession.where({ id: receipt.sessionId }).update({
-					executionStatus: "draining",
-				}),
-			);
+			yield* db.AgentSession.where({ id: receipt.sessionId }).update({
+				executionStatus: "draining",
+			});
 			yield* kernel.submit(domain.siesta, { sessionId: receipt.sessionId });
 			const fleet = yield* sight.fleet;
 			const agent = fleet.agents.find((row) => row.id === receipt.agentId);

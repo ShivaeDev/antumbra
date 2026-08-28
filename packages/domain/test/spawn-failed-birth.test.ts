@@ -5,10 +5,12 @@ import {
 } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
 import { type AgentBackend, BackendFailure } from "@antumbra/plugin-api";
+import { SessionFabricLive } from "@antumbra/session-fabric";
 import { expect, it } from "@effect/vitest";
 import { Effect, Option, Stream } from "effect";
 import { AgentDomain } from "#domain.ts";
 import type { SpawnFields } from "#index.ts";
+import { spawnResolution } from "#spawn-resolution.ts";
 import { domainKernelLayer } from "#test/domain-layers.ts";
 import {
 	acquireTemporaryPersistence,
@@ -38,6 +40,21 @@ const birth = (
 	sessionId: `session-${suffix}`,
 	voyageId,
 });
+
+const restoreFailedBirthPrefix = (payload: SpawnFields) =>
+	Effect.gen(function* () {
+		const db = yield* Database;
+		const pieceId = Option.getOrThrow(Option.fromUndefinedOr(payload.pieceId));
+		yield* db.transaction(
+			Effect.gen(function* () {
+				yield* Database;
+				yield* db.PieceAgent.create({ agentId: payload.agentId, pieceId });
+				yield* db.AgentSession.where({ id: payload.sessionId }).update({
+					status: "open",
+				});
+			}),
+		);
+	});
 
 // why: registration stakes the Piece before the birth settles, so two attempts
 // that never drew breath used to leave two dormant Agents standing against one
@@ -73,20 +90,35 @@ it.live("births that fail leave no claim standing on their Piece", () =>
 			});
 			yield* domain.voyages.launch(piece.id);
 
-			for (const suffix of ["stillborn-one", "stillborn-two"]) {
-				const submission = yield* kernel.submit(
-					domain.spawn,
-					birth(suffix, piece.id, voyage.id),
-				);
-				expect(yield* untilTerminal(submission.changes)).toBe("failed");
-				expect(
-					Option.getOrThrow(
-						yield* db.Agent.where({ id: `agent-${suffix}` }).first(),
-					).status,
-				).toBe("dormant");
-				const intent = yield* db.Intent.where({ id: submission.id }).first();
-				expect(Option.getOrThrow(intent).detail).toContain("open denied");
-			}
+			const failBirth = (suffix: string) =>
+				Effect.gen(function* () {
+					const payload = birth(suffix, piece.id, voyage.id);
+					const submission = yield* kernel.submit(domain.spawn, payload);
+					expect(yield* untilTerminal(submission.changes)).toBe("failed");
+					expect(
+						Option.getOrThrow(
+							yield* db.Agent.where({ id: `agent-${suffix}` }).first(),
+						).status,
+					).toBe("dormant");
+					const intent = yield* db.Intent.where({ id: submission.id }).first();
+					expect(Option.getOrThrow(intent).detail).toContain("open denied");
+				});
+			yield* failBirth("stillborn-one");
+			yield* failBirth("stillborn-two");
+			const replay = birth("stillborn-one", piece.id, voyage.id);
+			yield* restoreFailedBirthPrefix(replay);
+			const resolution = yield* spawnResolution.pipe(
+				Effect.provide(SessionFabricLive),
+			);
+			yield* resolution.settleFailure(replay);
+			expect(
+				yield* db.PieceAgent.where({ agentId: replay.agentId }).all(),
+			).toEqual([]);
+			expect(
+				Option.getOrThrow(
+					yield* db.AgentSession.where({ id: replay.sessionId }).first(),
+				).status,
+			).toBe("closed");
 
 			expect(yield* db.PieceAgent.where({ pieceId: piece.id }).all()).toEqual(
 				[],

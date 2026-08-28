@@ -2,11 +2,10 @@ import { DomainFeeds } from "@antumbra/domain-feeds";
 import {
 	Database,
 	type NewAgentSession,
-	type WriteExecutors,
-	Writer,
+	type PrismaError,
 } from "@antumbra/persistence";
 import type { MooragePlan } from "@antumbra/plugin-api";
-import { ensureAgentResourcesUnclaimed } from "@antumbra/resource-reclamation";
+import { ensureAgentCanOwnLocalWork } from "@antumbra/resource-reclamation";
 import { decodeStoredAgentSessionStatus } from "@antumbra/vocabulary/agent-runtime";
 import { Effect, Option } from "effect";
 import {
@@ -19,11 +18,7 @@ import type { SpawnFields } from "#spawn-fields.ts";
 
 export const makeEnsureSessionRow = Effect.gen(function* () {
 	const db = yield* Database;
-	const writer = yield* Writer;
 	const feeds = yield* DomainFeeds;
-	const executors = yield* Effect.context<WriteExecutors>();
-	const provide = <A, E>(effect: Effect.Effect<A, E, WriteExecutors>) =>
-		Effect.provideContext(effect, executors);
 	const conflict = (payload: SpawnFields, currentSessionId: string | null) =>
 		new AgentSessionConflict({
 			agentId: payload.agentId,
@@ -70,6 +65,18 @@ export const makeEnsureSessionRow = Effect.gen(function* () {
 				});
 			}
 		});
+	const recoverSessionCreate = (
+		payload: SpawnFields,
+		currentSessionId: string | null,
+		failure: PrismaError,
+	) =>
+		Effect.gen(function* () {
+			if (yield* alreadyOpened(payload, currentSessionId)) {
+				return false;
+			}
+			yield* refuseSecondRoot(payload);
+			return yield* failure;
+		});
 	const ensureSession = (payload: SpawnFields, plan: MooragePlan) =>
 		Effect.gen(function* () {
 			const agent = yield* db.Agent.where({ id: payload.agentId }).first();
@@ -86,7 +93,7 @@ export const makeEnsureSessionRow = Effect.gen(function* () {
 			yield* refuseSecondRoot(payload);
 			// why: a spawn opens a root — no parent, and it roots its own tree.
 			// Subsession rows are born by the tree's own creator, never here.
-			yield* db.AgentSession.create({
+			return yield* db.AgentSession.create({
 				agentId: payload.agentId,
 				backend: payload.backend,
 				charterDeliveredAt: null,
@@ -101,18 +108,18 @@ export const makeEnsureSessionRow = Effect.gen(function* () {
 				parentSessionId: null,
 				rootSessionId: payload.sessionId,
 				status: "open",
-			} satisfies NewAgentSession);
-			return true;
+			} satisfies NewAgentSession).pipe(
+				Effect.as(true),
+				Effect.catchTag("PrismaError", (failure) =>
+					recoverSessionCreate(payload, currentSessionId, failure),
+				),
+			);
 		});
 	return (payload: SpawnFields, plan: MooragePlan) =>
 		Effect.gen(function* () {
-			const created = yield* provide(
-				writer.write(
-					ensureAgentResourcesUnclaimed(payload.agentId).pipe(
-						Effect.provideService(Database, db),
-						Effect.andThen(ensureSession(payload, plan)),
-					),
-				),
+			const created = yield* ensureAgentCanOwnLocalWork(payload.agentId).pipe(
+				Effect.provideService(Database, db),
+				Effect.andThen(ensureSession(payload, plan)),
 			);
 			if (created) {
 				yield* feeds.publishFleetRefresh();

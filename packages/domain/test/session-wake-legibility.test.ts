@@ -1,6 +1,6 @@
 import { SightSource } from "@antumbra/contract";
 import { Kernel } from "@antumbra/kernel";
-import { Database, Writer } from "@antumbra/persistence";
+import { Database } from "@antumbra/persistence";
 import { expect, it } from "@effect/vitest";
 import { Effect, Ref } from "effect";
 import { AgentDomain } from "#domain.ts";
@@ -76,10 +76,9 @@ it.live("a wake into a retired Agent refuses with the reason it found", () =>
 		const backend = reportsNativeRef(scripted.backend, scripted, NATIVE);
 		const retire = Effect.gen(function* () {
 			const db = yield* Database;
-			const writer = yield* Writer;
-			yield* writer.write(
-				db.Agent.where({ id: payload.agentId }).update({ status: "retired" }),
-			);
+			yield* db.Agent.where({ id: payload.agentId }).update({
+				status: "retired",
+			});
 		});
 
 		yield* Effect.gen(function* () {

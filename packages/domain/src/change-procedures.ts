@@ -73,8 +73,8 @@ export interface ChangeProcedures {
 	readonly submit: (
 		input: SubmitChangeInput,
 	) => Effect.Effect<ChangeRow, SubmitChangeFailure>;
-	// why: what can still change at a host — open changes can settle and
-	// withdrawn ones can reopen. The set also decides the next pass cadence.
+	// why: what can still change at a host — open changes can settle. The set
+	// also decides the next pass cadence.
 	readonly watchableChanges: (
 		hostTag: string,
 	) => Effect.Effect<

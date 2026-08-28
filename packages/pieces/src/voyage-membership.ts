@@ -1,8 +1,4 @@
-import {
-	Database,
-	type PrismaError,
-	type WriteExecutors,
-} from "@antumbra/persistence";
+import { Database, type PrismaError } from "@antumbra/persistence";
 import { type Context, Effect } from "effect";
 
 export const memberPieceIds = Effect.fn("pieces.memberPieceIds")(function* (
@@ -10,7 +6,7 @@ export const memberPieceIds = Effect.fn("pieces.memberPieceIds")(function* (
 ): Effect.fn.Return<
 	ReadonlySet<string>,
 	PrismaError,
-	Context.Service.Identifier<typeof Database> | WriteExecutors
+	Context.Service.Identifier<typeof Database>
 > {
 	const db = yield* Database;
 	const rows = yield* db.VoyagePiece.where({ voyageId }).all();

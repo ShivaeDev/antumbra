@@ -1,5 +1,5 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
-import { Database, Writer } from "@antumbra/persistence";
+import { Database, type PrismaError } from "@antumbra/persistence";
 import { Effect, Option } from "effect";
 import { RepoSlugTaken } from "#errors.ts";
 import { summarizeRepo } from "#list.ts";
@@ -24,22 +24,33 @@ const refuseTakenSlug = (source: string) =>
 		}
 	});
 
+const recoverRepoCreate = (
+	registration: RepoRegistration,
+	failure: PrismaError,
+) =>
+	Effect.gen(function* () {
+		const db = yield* Database;
+		const bySource = db.Repo.where({ source: registration.source });
+		const winner = yield* bySource.first();
+		if (Option.isNone(winner)) {
+			return yield* failure;
+		}
+		yield* bySource.update({ defaultRef: registration.defaultRef });
+		return { ...winner.value, ...registration };
+	});
+
 // why: registering is idempotent by source — the same repo entered twice
 // refreshes its default ref instead of duplicating its berths on every spawn.
 export const registerRepo = (registration: RepoRegistration) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
 		const feeds = yield* DomainFeeds;
-		const writer = yield* Writer;
-		const existing = yield* db.Repo.where({
-			source: registration.source,
-		}).first();
+		const bySource = db.Repo.where({ source: registration.source });
+		const existing = yield* bySource.first();
 		if (Option.isSome(existing)) {
-			yield* writer.write(
-				db.Repo.where({ id: existing.value.id }).update({
-					defaultRef: registration.defaultRef,
-				}),
-			);
+			yield* bySource.update({
+				defaultRef: registration.defaultRef,
+			});
 			yield* feeds.publishFleetRefresh();
 			return summarizeRepo({ ...existing.value, ...registration });
 		}
@@ -50,7 +61,12 @@ export const registerRepo = (registration: RepoRegistration) =>
 			name: repoName(registration.source),
 			source: registration.source,
 		};
-		yield* writer.write(db.Repo.create(row));
+		const stored = yield* db.Repo.create(row).pipe(
+			Effect.as(row),
+			Effect.catchTag("PrismaError", (failure) =>
+				recoverRepoCreate(registration, failure),
+			),
+		);
 		yield* feeds.publishFleetRefresh();
-		return summarizeRepo(row);
+		return summarizeRepo(stored);
 	});

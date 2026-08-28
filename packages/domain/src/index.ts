@@ -51,6 +51,7 @@ export {
 	AgentNotSpawnable,
 	EdgeWouldCycle,
 	PieceNotFound,
+	ResourceOwnerUnavailable,
 	ResourceReclaimClaimed,
 	SessionNotLive,
 	UnknownBackendTag,

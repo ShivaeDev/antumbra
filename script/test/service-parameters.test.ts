@@ -39,11 +39,10 @@ describe("Effect service parameter debt ratchet", () => {
 		const violations = check([
 			source(`
 type DatabaseService = { readonly query: () => void };
-type WriteExecutors = { readonly transaction: true };
 interface AgentDeps { readonly db: DatabaseService }
 interface NestedDeps { readonly agent: AgentDeps }
 const direct = (db: DatabaseService) => db;
-const context = (services: Context.Context<WriteExecutors>) => services;
+const context = (services: Context.Context<DatabaseService>) => services;
 const nested = (deps: NestedDeps) => deps;
 `),
 		]);
@@ -106,24 +105,21 @@ const relay = (runners: Runners) => runners;
 		expect(violations[0]?.message).toContain('"runners" of "relay"');
 	});
 
-	it("detects Writer-shaped, sink, sweep, and dispatch bundles", () => {
+	it("detects nested database service bundles", () => {
 		const violations = check([
 			source(`
 type DatabaseService = { readonly query: () => void };
-type WriteExecutors = { readonly transaction: true };
-interface SweepWriter {
-  readonly write: <A>(program: Effect.Effect<A, never, WriteExecutors>) => Effect.Effect<A>;
-}
-interface SinkContext { readonly writer: SweepWriter }
+interface QueryPort { readonly db: DatabaseService }
+interface SinkContext { readonly queries: QueryPort }
 interface DispatchPort { readonly db: DatabaseService }
-const sweep = (writer: SweepWriter) => writer;
+const query = (port: QueryPort) => port;
 const sink = (context: SinkContext) => context;
 const dispatch = (port: DispatchPort) => port;
 `),
 		]);
 		expect(violations).toHaveLength(3);
 		expect(violations.map((violation) => violation.message)).toEqual([
-			expect.stringContaining('"SweepWriter"'),
+			expect.stringContaining('"QueryPort"'),
 			expect.stringContaining('"SinkContext"'),
 			expect.stringContaining('"DispatchPort"'),
 		]);
@@ -134,10 +130,10 @@ const dispatch = (port: DispatchPort) => port;
 			check([
 				source(`
 import { Effect } from "effect";
-type WriteExecutors = { readonly transaction: true };
-const program = (effect: Effect.Effect<void, never, WriteExecutors>) => effect;
+type DatabaseService = { readonly query: () => void };
+const program = (effect: Effect.Effect<void, never, DatabaseService>) => effect;
 interface IntentOptions {
-  readonly execute: () => Effect.Effect<void, never, WriteExecutors>;
+  readonly execute: () => Effect.Effect<void, never, DatabaseService>;
 }
 const define = (options: IntentOptions) => options;
 `),

@@ -1,5 +1,5 @@
 import { BoardScope } from "@antumbra/boards";
-import { Database, Writer } from "@antumbra/persistence";
+import { Database } from "@antumbra/persistence";
 import { corruptTestBoardEntry } from "@antumbra/persistence/testing";
 import { expect, it } from "@effect/vitest";
 import { Effect, Option } from "effect";
@@ -15,15 +15,12 @@ const AGENT_ID = "agent-mailbox";
 const createAgent = (agentId: string) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
-		const writer = yield* Writer;
-		yield* writer.write(
-			db.Agent.create({
-				charter: "take in addressed mail",
-				id: agentId,
-				role: "hand",
-				status: "alive",
-			}),
-		);
+		yield* db.Agent.create({
+			charter: "take in addressed mail",
+			id: agentId,
+			role: "hand",
+			status: "alive",
+		});
 	});
 
 const addressedMail = (toAgentId = AGENT_ID) => ({

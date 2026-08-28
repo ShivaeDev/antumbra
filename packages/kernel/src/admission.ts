@@ -1,8 +1,9 @@
 import { Database } from "@antumbra/persistence";
 import { Clock, Effect, Option, Queue, Ref } from "effect";
 import type { AdmissionSnapshot, Gate } from "#gate.ts";
-import { applyTransition, startIntent } from "#scheduler.ts";
+import { startIntent } from "#scheduler.ts";
 import { SchedulerState } from "#state.ts";
+import { applyTransition } from "#transitions.ts";
 
 type AdmitOutcome =
 	| { readonly _tag: "blocked"; readonly retryMillis: Option.Option<number> }

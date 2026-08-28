@@ -1,10 +1,5 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
-import {
-	Database,
-	type PrismaError,
-	type WriteExecutors,
-	Writer,
-} from "@antumbra/persistence";
+import { Database, type PrismaError } from "@antumbra/persistence";
 import type { StoredBoardOwnerKindInvalid } from "@antumbra/vocabulary/board";
 import { Context, Effect, Layer } from "effect";
 import type {
@@ -72,15 +67,9 @@ export type BoardsService = Context.Service.Shape<typeof Boards>;
 export const BoardsLive = Layer.effect(Boards)(
 	Effect.gen(function* () {
 		const db = yield* Database;
-		const writer = yield* Writer;
 		const feeds = yield* DomainFeeds;
-		const executors = yield* Effect.context<WriteExecutors>();
-		const context = Context.merge(
-			executors,
-			Context.make(Database, db).pipe(
-				Context.add(Writer, writer),
-				Context.add(DomainFeeds, feeds),
-			),
+		const context = Context.make(Database, db).pipe(
+			Context.add(DomainFeeds, feeds),
 		);
 		return {
 			ensure: (scope) => Effect.provide(ensureBoard(scope), context),

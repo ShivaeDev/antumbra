@@ -11,7 +11,6 @@ import {
 	assembleSessionTree,
 	type SessionTreeRow,
 } from "#session-tree-view.ts";
-import { writeProvider } from "#sight-executors.ts";
 import { toFailure } from "#sight-failure.ts";
 
 export interface SightSessionTree {
@@ -66,20 +65,18 @@ const readRow = (row: StoredAgentSession) =>
 export const makeSightSessionTree = Effect.gen(function* () {
 	const feeds = yield* DomainFeeds;
 	const db = yield* Database;
-	const provide = yield* writeProvider;
 
 	// why: one scan answers the whole tree — its shape and both its counts —
 	// rather than a query per node or a query per status.
 	const sessionTree = (rootSessionId: string) =>
-		provide(
-			db.AgentSession.where({ rootSessionId })
-				.orderBy((session) => session.createdAt.asc())
-				.all(),
-		).pipe(
-			Effect.flatMap((rows) => Effect.forEach(rows, readRow)),
-			Effect.map((rows) => assembleSessionTree(rootSessionId, rows)),
-			Effect.mapError(toFailure),
-		);
+		db.AgentSession.where({ rootSessionId })
+			.orderBy((session) => session.createdAt.asc())
+			.all()
+			.pipe(
+				Effect.flatMap((rows) => Effect.forEach(rows, readRow)),
+				Effect.map((rows) => assembleSessionTree(rootSessionId, rows)),
+				Effect.mapError(toFailure),
+			);
 
 	return {
 		sessionTree,

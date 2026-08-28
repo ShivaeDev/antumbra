@@ -1,5 +1,5 @@
 import { Kernel } from "@antumbra/kernel";
-import { Database, type NewAgentSession, Writer } from "@antumbra/persistence";
+import { Database, type NewAgentSession } from "@antumbra/persistence";
 import { expect, it } from "@effect/vitest";
 import { Effect, Option } from "effect";
 import { TestClock } from "effect/testing";
@@ -54,38 +54,42 @@ const executionStatusOf = (sessionId: string) =>
 		).executionStatus;
 	});
 
+const seedLaterDemand = Effect.gen(function* () {
+	const db = yield* Database;
+	yield* db.transaction(
+		Effect.gen(function* () {
+			yield* Database;
+			yield* db.Agent.create({
+				charter: "recover bounded durable demand",
+				currentSessionId: "session-later-demand",
+				id: "agent-later-demand",
+				role: "test hand",
+				status: "alive",
+			});
+			yield* db.AgentSession.create({
+				agentId: "agent-later-demand",
+				backend: "scripted",
+				charterDeliveredAt: new Date(1),
+				createdAt: new Date(1),
+				cwd: "/tmp/agent-later-demand",
+				executionStatus: "active",
+				id: "session-later-demand",
+				nativeRef: "native-later-demand",
+				parentSessionId: null,
+				rootSessionId: "session-later-demand",
+				status: "open",
+			} satisfies NewAgentSession);
+		}),
+	);
+});
+
 it.effect("recovers later durable Session demand after a lost wake", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
 		const scripted = yield* makeScriptedBackend;
 		yield* Effect.gen(function* () {
 			const db = yield* Database;
-			const writer = yield* Writer;
-			yield* writer.write(
-				db.Agent.create({
-					charter: "recover bounded durable demand",
-					currentSessionId: "session-later-demand",
-					id: "agent-later-demand",
-					role: "test hand",
-					status: "alive",
-				}).pipe(
-					Effect.andThen(
-						db.AgentSession.create({
-							agentId: "agent-later-demand",
-							backend: "scripted",
-							charterDeliveredAt: new Date(1),
-							createdAt: new Date(1),
-							cwd: "/tmp/agent-later-demand",
-							executionStatus: "active",
-							id: "session-later-demand",
-							nativeRef: "native-later-demand",
-							parentSessionId: null,
-							rootSessionId: "session-later-demand",
-							status: "open",
-						} satisfies NewAgentSession),
-					),
-				),
-			);
+			yield* seedLaterDemand;
 			yield* TestClock.adjust(5_000);
 			yield* Effect.yieldNow;
 			expect(

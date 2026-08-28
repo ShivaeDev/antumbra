@@ -1,5 +1,5 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
-import { Database, Writer } from "@antumbra/persistence";
+import { Database } from "@antumbra/persistence";
 import { Effect } from "effect";
 
 const deleteRepoGraph = (id: string) =>
@@ -24,9 +24,9 @@ const deleteRepoGraph = (id: string) =>
 // address them, so links and transition history leave in the same transaction.
 export const forgetRepo = (id: string) =>
 	Effect.gen(function* () {
+		const db = yield* Database;
 		const feeds = yield* DomainFeeds;
-		const writer = yield* Writer;
-		yield* writer.write(deleteRepoGraph(id));
+		yield* db.transaction(deleteRepoGraph(id));
 		yield* Effect.all([
 			feeds.publishFleetRefresh(),
 			feeds.publishVoyageRefresh(),

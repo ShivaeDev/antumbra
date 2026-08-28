@@ -1,6 +1,6 @@
 import { SightSource } from "@antumbra/contract";
 import { Kernel } from "@antumbra/kernel";
-import { Database, Writer } from "@antumbra/persistence";
+import { Database } from "@antumbra/persistence";
 import { expect, it } from "@effect/vitest";
 import { Effect, Ref } from "effect";
 import { AgentDomain } from "#domain.ts";
@@ -20,12 +20,9 @@ import {
 
 const closeRoot = Effect.gen(function* () {
 	const db = yield* Database;
-	const writer = yield* Writer;
-	yield* writer.write(
-		db.AgentSession.where({ id: payload.sessionId }).update({
-			status: "closed",
-		}),
-	);
+	yield* db.AgentSession.where({ id: payload.sessionId }).update({
+		status: "closed",
+	});
 });
 
 // why: the permanently undeliverable wake. A Session that closes after its wake

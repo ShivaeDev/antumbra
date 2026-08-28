@@ -1,5 +1,4 @@
 import { type IntentKind, Kernel } from "@antumbra/kernel";
-import type { WriteExecutors } from "@antumbra/persistence";
 import { Effect } from "effect";
 import type { RecoveryFields } from "#session-recovery.ts";
 
@@ -16,7 +15,6 @@ import type { RecoveryFields } from "#session-recovery.ts";
 export const makeSettleWakes = (recover: IntentKind<RecoveryFields>) =>
 	Effect.gen(function* () {
 		const kernel = yield* Kernel;
-		const executors = yield* Effect.context<WriteExecutors>();
 		const push = (id: string) =>
 			kernel.retry(id).pipe(
 				Effect.catchTags({
@@ -37,10 +35,6 @@ export const makeSettleWakes = (recover: IntentKind<RecoveryFields>) =>
 					discard: true,
 				});
 			}).pipe(
-				Effect.provideContext(executors),
-				// why: settling is housekeeping alongside an answer the caller is
-				// already giving, so it says what went wrong and lets that answer
-				// through rather than replacing it with a second failure.
 				Effect.catchCause((cause) =>
 					Effect.logWarning(
 						"a parked wake could not be settled",

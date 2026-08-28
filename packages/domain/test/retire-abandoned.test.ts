@@ -1,4 +1,4 @@
-import { Database, Writer } from "@antumbra/persistence";
+import { Database } from "@antumbra/persistence";
 import { expect, it } from "@effect/vitest";
 import { Effect, Option } from "effect";
 import { AgentDomain } from "#domain.ts";
@@ -57,23 +57,25 @@ const writtenOffPiece = (scripted: ScriptedBackend, quiet: boolean) =>
 const closedWithoutVerdict = (scripted: ScriptedBackend) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
-		const writer = yield* Writer;
 		const { pieceId, voyageId } = yield* chartered;
 		yield* born(handFor(HAND, pieceId, voyageId));
 		yield* landed(pieceId);
 		yield* standDown(scripted, HAND);
-		yield* writer.write(
-			Effect.all([
-				db.Change.create(
-					changeOf({
-						headRef: `work/${HAND}/berth-0`,
-						id: "change-closed",
-						repoId: "repo-reef",
-						stage: "withdrawn",
-					}),
-				),
-				db.PieceChange.create({ changeId: "change-closed", pieceId }),
-			]),
+		yield* db.transaction(
+			Effect.gen(function* () {
+				yield* Database;
+				yield* Effect.all([
+					db.Change.create(
+						changeOf({
+							headRef: `work/${HAND}/berth-0`,
+							id: "change-closed",
+							repoId: "repo-reef",
+							stage: "withdrawn",
+						}),
+					),
+					db.PieceChange.create({ changeId: "change-closed", pieceId }),
+				]);
+			}),
 		);
 		return { pieceId, voyageId };
 	});

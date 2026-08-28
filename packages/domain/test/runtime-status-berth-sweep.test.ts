@@ -1,4 +1,4 @@
-import { Database, Writer } from "@antumbra/persistence";
+import { Database } from "@antumbra/persistence";
 import type { Runner } from "@antumbra/plugin-api";
 import { expect, it } from "@effect/vitest";
 import { Effect, Option, Ref } from "effect";
@@ -8,6 +8,34 @@ import {
 	makeScriptedBackend,
 	makeScriptedRunner,
 } from "#test/harness.ts";
+
+const seedInvalidSweep = Effect.gen(function* () {
+	const db = yield* Database;
+	yield* db.transaction(
+		Effect.gen(function* () {
+			yield* Database;
+			yield* db.Agent.create({
+				charter: "preserve uncertain resources",
+				id: "agent-invalid-sweep",
+				role: "keeper",
+				status: "future-agent",
+			});
+			yield* db.Berth.create({
+				agentId: "agent-invalid-sweep",
+				branch: "work/keeper/uncertain",
+				id: "agent-invalid-sweep:uncertain",
+				path: "/tmp/moorage/agent-invalid-sweep/uncertain",
+				reclaimState: null,
+				ref: "main",
+				runner: "local",
+				slug: "uncertain",
+				source: "/somewhere/uncertain",
+				status: "ready",
+				strandedAt: null,
+			});
+		}),
+	);
+});
 
 it.live("invalid Agent truth skips the complete reclaim sweep unchanged", () =>
 	Effect.gen(function* () {
@@ -22,34 +50,7 @@ it.live("invalid Agent truth skips the complete reclaim sweep unchanged", () =>
 					Effect.as({ _tag: "reclaimed" as const }),
 				),
 		};
-		yield* Effect.gen(function* () {
-			const db = yield* Database;
-			const writer = yield* Writer;
-			yield* writer.write(
-				db.Agent.create({
-					charter: "preserve uncertain resources",
-					id: "agent-invalid-sweep",
-					role: "keeper",
-					status: "future-agent",
-				}).pipe(
-					Effect.andThen(
-						db.Berth.create({
-							agentId: "agent-invalid-sweep",
-							branch: "work/keeper/uncertain",
-							id: "agent-invalid-sweep:uncertain",
-							path: "/tmp/moorage/agent-invalid-sweep/uncertain",
-							reclaimState: null,
-							ref: "main",
-							runner: "local",
-							slug: "uncertain",
-							source: "/somewhere/uncertain",
-							status: "ready",
-							strandedAt: null,
-						}),
-					),
-				),
-			);
-		}).pipe(Effect.provide(temporary.layer));
+		yield* seedInvalidSweep.pipe(Effect.provide(temporary.layer));
 
 		yield* Effect.provide(
 			Effect.void,

@@ -1,6 +1,6 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
-import { Database, type WriteExecutors, Writer } from "@antumbra/persistence";
-import { ensureAgentResourcesUnclaimed } from "@antumbra/resource-reclamation";
+import { Database } from "@antumbra/persistence";
+import { ensureAgentCanOwnLocalWork } from "@antumbra/resource-reclamation";
 import {
 	decodeStoredBerthStatus,
 	decodeStoredMoorageStatus,
@@ -10,30 +10,26 @@ import type { SpawnFields } from "#spawn-fields.ts";
 
 export const makeMarkMoorageReady = Effect.gen(function* () {
 	const db = yield* Database;
-	const writer = yield* Writer;
 	const feeds = yield* DomainFeeds;
-	const executors = yield* Effect.context<WriteExecutors>();
-	const provide = <A, E>(effect: Effect.Effect<A, E, WriteExecutors>) =>
-		Effect.provideContext(effect, executors);
 	const ensureUnclaimed = (agentId: string) =>
-		ensureAgentResourcesUnclaimed(agentId).pipe(
+		ensureAgentCanOwnLocalWork(agentId).pipe(
 			Effect.provideService(Database, db),
 		);
 	const readyRows = (payload: SpawnFields) =>
-		db.Moorage.where({ agentId: payload.agentId })
+		db.Berth.where({ agentId: payload.agentId })
 			.update({ status: "ready" })
 			.pipe(
 				Effect.andThen(
-					db.Berth.where({ agentId: payload.agentId }).update({
+					db.Moorage.where({ agentId: payload.agentId }).update({
 						status: "ready",
 					}),
 				),
 			);
 	return (payload: SpawnFields) =>
 		Effect.gen(function* () {
-			const moorage = yield* provide(
-				db.Moorage.where({ agentId: payload.agentId }).first(),
-			);
+			const moorage = yield* db.Moorage.where({
+				agentId: payload.agentId,
+			}).first();
 			if (Option.isSome(moorage)) {
 				yield* Effect.fromResult(
 					decodeStoredMoorageStatus(
@@ -42,18 +38,12 @@ export const makeMarkMoorageReady = Effect.gen(function* () {
 					),
 				);
 			}
-			const berths = yield* provide(
-				db.Berth.where({ agentId: payload.agentId }).all(),
-			);
+			const berths = yield* db.Berth.where({ agentId: payload.agentId }).all();
 			yield* Effect.forEach(berths, (berth) =>
 				Effect.fromResult(decodeStoredBerthStatus(berth.id, berth.status)),
 			);
-			yield* provide(
-				writer.write(
-					ensureUnclaimed(payload.agentId).pipe(
-						Effect.andThen(readyRows(payload)),
-					),
-				),
+			yield* ensureUnclaimed(payload.agentId).pipe(
+				Effect.andThen(readyRows(payload)),
 			);
 			yield* feeds.publishFleetRefresh();
 		});

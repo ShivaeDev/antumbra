@@ -1,6 +1,6 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { defineIntent, IntentExecution } from "@antumbra/kernel";
-import { Database, type WriteExecutors, Writer } from "@antumbra/persistence";
+import { Database } from "@antumbra/persistence";
 import { SessionFabric } from "@antumbra/session-fabric";
 import {
 	decodeSessionExecutionStatus,
@@ -19,10 +19,6 @@ export const makeSiestaKind = Effect.gen(function* () {
 	const feeds = yield* DomainFeeds;
 	const fabric = yield* SessionFabric;
 	const live = yield* LiveDelegations;
-	const writer = yield* Writer;
-	const executors = yield* Effect.context<WriteExecutors>();
-	const provide = <A, E>(effect: Effect.Effect<A, E, WriteExecutors>) =>
-		Effect.provideContext(effect, executors);
 	const announce = Effect.all(
 		[feeds.publishFleetRefresh(), feeds.publishVoyageRefresh()],
 		{ concurrency: 1 },
@@ -39,15 +35,11 @@ export const makeSiestaKind = Effect.gen(function* () {
 			);
 			yield* execution.step(
 				"settle-idle",
-				provide(
-					writer.write(
-						db.AgentSession.where({
-							id: sessionId,
-							executionStatus: "draining",
-							status: "open",
-						}).update({ executionStatus: next }),
-					),
-				),
+				db.AgentSession.where({
+					id: sessionId,
+					executionStatus: "draining",
+					status: "open",
+				}).update({ executionStatus: next }),
 				{ additionalAttempts: 1 },
 			);
 			yield* execution.step("publish-session-execution", announce);
@@ -79,9 +71,7 @@ export const makeSiestaKind = Effect.gen(function* () {
 		});
 	const settleSiesta = (sessionId: string) =>
 		Effect.gen(function* () {
-			const session = yield* provide(
-				db.AgentSession.where({ id: sessionId }).first(),
-			);
+			const session = yield* db.AgentSession.where({ id: sessionId }).first();
 			if (Option.isNone(session)) {
 				return;
 			}

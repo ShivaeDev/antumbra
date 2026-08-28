@@ -1,10 +1,12 @@
 export type { HeldResource } from "#held-resource-read.ts";
 export { HeldResourceRead } from "#held-resource-read.ts";
 export {
+	ResourceOwnerUnavailable,
 	ResourceReclaimClaimed,
 	ResourceReclaimClaimInvalid,
 } from "#resource-reclaim-errors.ts";
 export {
+	ensureAgentCanOwnLocalWork,
 	ensureAgentResourcesUnclaimed,
 	ensureBerthResourcesUnclaimed,
 	ensureBranchResourcesUnclaimed,

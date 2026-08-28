@@ -1,5 +1,5 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
-import { Database, type WriteExecutors, Writer } from "@antumbra/persistence";
+import { Database } from "@antumbra/persistence";
 import { SessionFabric } from "@antumbra/session-fabric";
 import {
 	decodeSessionExecutionStatus,
@@ -24,10 +24,6 @@ export const makeSessionTurnRests = Effect.gen(function* () {
 	const db = yield* Database;
 	const fabric = yield* SessionFabric;
 	const feeds = yield* DomainFeeds;
-	const writer = yield* Writer;
-	const executors = yield* Effect.context<WriteExecutors>();
-	const provide = <A, E>(effect: Effect.Effect<A, E, WriteExecutors>) =>
-		Effect.provideContext(effect, executors);
 	const announce = Effect.all(
 		[feeds.publishFleetRefresh(), feeds.publishVoyageRefresh()],
 		{ concurrency: 1 },
@@ -50,26 +46,25 @@ export const makeSessionTurnRests = Effect.gen(function* () {
 			const next = yield* Effect.fromResult(
 				sessionExecutionTransition(sessionId, execution, "turn-completed"),
 			);
-			// why: the count is taken again with the write permit already held, so
-			// words arriving from here on cannot reach the row before this does.
-			// They wait for the permit, find the Session idle, and wake it — which
-			// is what keeps a genuinely re-activated Session working.
+			// why: the count is taken again immediately before the guarded row move.
+			// A concurrent wake wins the execution-state compare-and-set, leaving the
+			// Session active instead of letting a stale ending put it back to rest.
 			if ((yield* fabric.stirrings(sessionId)) !== stirrings) {
 				return false;
 			}
-			yield* db.AgentSession.where({
+			const updated = yield* db.AgentSession.where({
 				executionStatus: "active",
 				id: sessionId,
 				status: "open",
 			}).update({ executionStatus: next });
-			return true;
+			return updated !== null;
 		});
 	// why: the mark is left whether or not the row moved — a Session already
 	// idle is untouched by a further ending, and the mark it already carries
 	// keeps the moment its quiet began rather than restarting the hour.
 	const ended = (sessionId: string, stirrings: number) =>
 		Effect.gen(function* () {
-			const moved = yield* provide(writer.write(settle(sessionId, stirrings)));
+			const moved = yield* settle(sessionId, stirrings);
 			yield* fabric.turnEnded(sessionId, stirrings);
 			if (moved) {
 				yield* announce;

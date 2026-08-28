@@ -1,4 +1,4 @@
-import { Database, Writer } from "@antumbra/persistence";
+import { Database } from "@antumbra/persistence";
 import { expect, it } from "@effect/vitest";
 import { Effect } from "effect";
 import { AGENTS_ALIVE_GAUGE, AgentDomain } from "#domain.ts";
@@ -15,24 +15,19 @@ it.live("the alive gauge rejects unknown durable Agent truth", () =>
 		yield* Effect.gen(function* () {
 			const db = yield* Database;
 			const domain = yield* AgentDomain;
-			const writer = yield* Writer;
 			for (const [id, status] of [
 				["agent-spawning", "spawning"],
 				["agent-alive", "alive"],
 				["agent-dormant", "dormant"],
 				["agent-retired", "retired"],
 			] as const) {
-				yield* writer.write(
-					db.Agent.create({ charter: id, id, role: "keeper", status }),
-				);
+				yield* db.Agent.create({ charter: id, id, role: "keeper", status });
 			}
 			const gauge = domain.gauges[AGENTS_ALIVE_GAUGE] ?? Effect.succeed(-1);
 			expect(yield* gauge).toBe(1);
-			yield* writer.write(
-				db.Agent.where({ id: "agent-dormant" }).update({
-					status: "future-agent",
-				}),
-			);
+			yield* db.Agent.where({ id: "agent-dormant" }).update({
+				status: "future-agent",
+			});
 			const failure = yield* Effect.flip(gauge);
 			expect(failure).toMatchObject({
 				_tag: "StoredAgentStatusInvalid",

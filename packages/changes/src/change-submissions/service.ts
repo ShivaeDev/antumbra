@@ -1,4 +1,4 @@
-import type { PrismaError, WriteExecutors } from "@antumbra/persistence";
+import type { PrismaError } from "@antumbra/persistence";
 import type { ChangeHostError, ChangeObservation } from "@antumbra/plugin-api";
 import type {
 	HeldResource,
@@ -49,7 +49,7 @@ export class Changes extends Context.Service<
 			| StoredChangeInvalid
 			| StoredChangeVerdictInvalid
 			| StoredPieceChangeInvalid,
-			WriteExecutors
+			never
 		>;
 		readonly observed: (
 			hostTag: string,

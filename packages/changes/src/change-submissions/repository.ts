@@ -1,6 +1,6 @@
 import { Database } from "@antumbra/persistence";
 import type { ChangeHost, ChangeHostRepo } from "@antumbra/plugin-api";
-import { ensureAgentResourcesUnclaimed } from "@antumbra/resource-reclamation";
+import { ensureAgentCanOwnLocalWork } from "@antumbra/resource-reclamation";
 import { Effect, Option } from "effect";
 import type { RepoBerth } from "#change-submissions/model.ts";
 import { ChangeHostRegistry } from "#change-submissions/registries.ts";
@@ -38,7 +38,7 @@ export const repoNamed = (repoName: string) =>
 export const berthFor = (agentId: string, repo: ChangeHostRepo) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
-		yield* ensureAgentResourcesUnclaimed(agentId);
+		yield* ensureAgentCanOwnLocalWork(agentId);
 		const berths = yield* db.Berth.where({ agentId }).all();
 		const berth = berths.find((candidate) => candidate.source === repo.source);
 		return berth === undefined

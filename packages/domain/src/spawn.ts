@@ -9,7 +9,7 @@ import { makePrepareMoorage } from "#moorage-plan.ts";
 import type { SinkFor } from "#session-tree-sink.ts";
 import { makeIsActivatedBirth } from "#spawn-activated.ts";
 import { type SpawnFields, SpawnPayload } from "#spawn-fields.ts";
-import { spawnRegistration } from "#spawn-registration.ts";
+import { spawnRegistration } from "#spawn-registration/service.ts";
 import { spawnResolution } from "#spawn-resolution.ts";
 import { makeSpawnSessionStart } from "#spawn-session-start.ts";
 import { makeSpawnTeardown } from "#spawn-teardown.ts";

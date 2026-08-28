@@ -1,8 +1,26 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
-import { Database, Writer } from "@antumbra/persistence";
+import { Database, type PrismaError } from "@antumbra/persistence";
 import type { PieceVerdict } from "@antumbra/vocabulary/verdict";
 import { Effect, Option } from "effect";
 import { verifyPieceExists } from "#rows.ts";
+
+const recoverVerdictCreate = (
+	pieceId: string,
+	verdict: PieceVerdict,
+	failure: PrismaError,
+) =>
+	Effect.gen(function* () {
+		const db = yield* Database;
+		const winner = yield* db.PieceVerdict.where({ pieceId }).first();
+		if (Option.isNone(winner)) {
+			return yield* failure;
+		}
+		if (winner.value.verdict === verdict) {
+			return false;
+		}
+		yield* db.PieceVerdict.where({ pieceId }).update({ verdict });
+		return true;
+	});
 
 const writeVerdict = (pieceId: string, verdict: PieceVerdict) =>
 	Effect.gen(function* () {
@@ -10,8 +28,12 @@ const writeVerdict = (pieceId: string, verdict: PieceVerdict) =>
 		yield* verifyPieceExists(pieceId);
 		const standing = yield* db.PieceVerdict.where({ pieceId }).first();
 		if (Option.isNone(standing)) {
-			yield* db.PieceVerdict.create({ pieceId, verdict });
-			return true;
+			return yield* db.PieceVerdict.create({ pieceId, verdict }).pipe(
+				Effect.as(true),
+				Effect.catchTag("PrismaError", (failure) =>
+					recoverVerdictCreate(pieceId, verdict, failure),
+				),
+			);
 		}
 		if (standing.value.verdict === verdict) {
 			return false;
@@ -27,8 +49,7 @@ const writeVerdict = (pieceId: string, verdict: PieceVerdict) =>
 export const landVerdict = (pieceId: string, verdict: PieceVerdict) =>
 	Effect.gen(function* () {
 		const feeds = yield* DomainFeeds;
-		const writer = yield* Writer;
-		const changed = yield* writer.write(writeVerdict(pieceId, verdict));
+		const changed = yield* writeVerdict(pieceId, verdict);
 		if (changed) {
 			yield* feeds.publishVoyageRefresh();
 		}

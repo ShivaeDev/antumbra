@@ -1,10 +1,5 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
-import {
-	Database,
-	type PrismaError,
-	type WriteExecutors,
-	Writer,
-} from "@antumbra/persistence";
+import { Database, type PrismaError } from "@antumbra/persistence";
 import type { PieceVerdict } from "@antumbra/vocabulary/verdict";
 import { Context, Effect, Layer } from "effect";
 import { charter } from "#charter.ts";
@@ -52,15 +47,9 @@ export class Pieces extends Context.Service<
 export const PiecesLive = Layer.effect(Pieces)(
 	Effect.gen(function* () {
 		const db = yield* Database;
-		const writer = yield* Writer;
 		const feeds = yield* DomainFeeds;
-		const executors = yield* Effect.context<WriteExecutors>();
-		const context = Context.merge(
-			executors,
-			Context.make(Database, db).pipe(
-				Context.add(Writer, writer),
-				Context.add(DomainFeeds, feeds),
-			),
+		const context = Context.make(Database, db).pipe(
+			Context.add(DomainFeeds, feeds),
 		);
 		return {
 			charter: (input) => Effect.provide(charter(input), context),

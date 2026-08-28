@@ -4,7 +4,7 @@ import type { CheckedSource } from "#lint/rules/service-parameter-program.ts";
 import { canonicalSymbol } from "#lint/rules/service-symbol.ts";
 import { typeNodeMentionsService } from "#lint/rules/service-type-node.ts";
 
-const SERVICE_NAMES = new Set(["DatabaseService", "WriteExecutors"]);
+const SERVICE_NAMES = new Set(["DatabaseService"]);
 
 const symbolOf = (
 	checker: ts.TypeChecker,

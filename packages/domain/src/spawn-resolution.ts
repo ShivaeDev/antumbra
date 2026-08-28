@@ -1,9 +1,10 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
-import { Database, type WriteExecutors, Writer } from "@antumbra/persistence";
+import { Database } from "@antumbra/persistence";
 import { SessionFabric } from "@antumbra/session-fabric";
 import {
 	type AgentStatus,
 	agentTransition,
+	decodeStoredAgentStatus,
 } from "@antumbra/vocabulary/agent-runtime";
 import { Effect, Option } from "effect";
 import { AgentNotSpawnable } from "#errors.ts";
@@ -16,12 +17,8 @@ import type { SpawnFields } from "#spawn-fields.ts";
 
 export const spawnResolution = Effect.gen(function* () {
 	const db = yield* Database;
-	const executors = yield* Effect.context<WriteExecutors>();
 	const fabric = yield* SessionFabric;
 	const feeds = yield* DomainFeeds;
-	const writer = yield* Writer;
-	const provide = <A, E>(effect: Effect.Effect<A, E, WriteExecutors>) =>
-		Effect.provideContext(effect, executors);
 	const activateRows = (payload: SpawnFields) =>
 		Effect.gen(function* () {
 			const stored = yield* db.Agent.where({
@@ -37,26 +34,30 @@ export const spawnResolution = Effect.gen(function* () {
 			if (next === null) {
 				return false;
 			}
-			yield* db.Agent.where({ id: payload.agentId }).update({ status: next });
-			return true;
+			const updated = yield* db.Agent.where({
+				currentSessionId: payload.sessionId,
+				id: payload.agentId,
+				status: stored.value.status,
+			}).update({ status: next });
+			return updated !== null;
 		});
 	const activate = (payload: SpawnFields) =>
 		Effect.gen(function* () {
-			const changed = yield* provide(writer.write(activateRows(payload)));
+			const changed = yield* activateRows(payload);
 			if (changed) {
 				yield* feeds.publishFleetRefresh();
 			}
 		});
-	const closeFailedRows = (payload: SpawnFields, status: AgentStatus) =>
-		db.Agent.where({ id: payload.agentId })
-			.update({ currentSessionId: null, status })
-			.pipe(
-				Effect.andThen(
-					db.AgentSession.where({ id: payload.sessionId }).update({
-						status: "closed",
-					}),
-				),
-			);
+	const settleAgent = (payload: SpawnFields, status: AgentStatus) =>
+		db.Agent.where({
+			currentSessionId: payload.sessionId,
+			id: payload.agentId,
+			status: "spawning",
+		}).update({ currentSessionId: null, status });
+	const closeFailedSession = (payload: SpawnFields) =>
+		db.AgentSession.where({ id: payload.sessionId, status: "open" }).update({
+			status: "closed",
+		});
 	// why: the link registration wrote is a claim staked before the birth, not a
 	// record of crew that served. assignedExecution already passes over an
 	// assignment whose Agent is not alive, so withdrawing the claim costs
@@ -80,7 +81,10 @@ export const spawnResolution = Effect.gen(function* () {
 				return false;
 			}
 			const settlement = yield* settlementFor(agent.value, payload);
-			if (settlement === "settled") {
+			const status = yield* Effect.fromResult(
+				decodeStoredAgentStatus(agent.value.id, agent.value.status),
+			);
+			if (settlement === "settled" && status !== "dormant") {
 				return false;
 			}
 			const session = yield* db.AgentSession.where({
@@ -89,17 +93,20 @@ export const spawnResolution = Effect.gen(function* () {
 			if (Option.isSome(session)) {
 				yield* ensureSessionStatus(session.value.id, session.value.status);
 			}
-			const next = yield* Effect.fromResult(
-				agentTransition("spawning", "reclaim"),
-			);
-			yield* closeFailedRows(payload, next);
+			if (settlement === "reclaim") {
+				const next = yield* Effect.fromResult(
+					agentTransition("spawning", "reclaim"),
+				);
+				yield* settleAgent(payload, next);
+			}
+			yield* closeFailedSession(payload);
 			yield* releaseClaim(payload);
 			return true;
 		});
 	const settleFailure = (payload: SpawnFields) =>
 		Effect.gen(function* () {
 			yield* fabric.stop(payload.sessionId);
-			const changed = yield* provide(writer.write(settleFailureRows(payload)));
+			const changed = yield* settleFailureRows(payload);
 			if (changed) {
 				yield* feeds.publishFleetRefresh();
 				yield* feeds.publishVoyageRefresh();

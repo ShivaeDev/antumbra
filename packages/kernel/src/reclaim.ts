@@ -1,8 +1,8 @@
-import { Database, Writer } from "@antumbra/persistence";
+import { Database } from "@antumbra/persistence";
 import { Effect } from "effect";
 import type { AnyIntentKind } from "#intent.ts";
-import { announce, transitionRow } from "#scheduler.ts";
 import { SchedulerState } from "#state.ts";
+import { announce, transitionRow } from "#transitions.ts";
 
 interface ReclaimPlan {
 	readonly detail?: string;
@@ -43,18 +43,15 @@ const settleStrandedCancelling = Effect.gen(function* () {
 	);
 });
 
-// why: reclaim runs before the scheduler exists, so rows stranded by the
-// previous process settle per policy in one write transaction and only then
-// does admission start.
+// why: reclaim runs before the scheduler exists. Each row settles through its
+// own guarded transition, and admission starts only after the whole resumable
+// pass succeeds.
 export const reclaim = Effect.gen(function* () {
-	const writer = yield* Writer;
-	const settled = yield* writer.write(
-		Effect.gen(function* () {
-			const running = yield* settleStrandedRunning;
-			const cancelling = yield* settleStrandedCancelling;
-			return [...running, ...cancelling];
-		}),
-	);
+	const settled = yield* Effect.gen(function* () {
+		const running = yield* settleStrandedRunning;
+		const cancelling = yield* settleStrandedCancelling;
+		return [...running, ...cancelling];
+	});
 	if (settled.length > 0) {
 		yield* Effect.logInfo("reclaim settled stranded intents", {
 			count: settled.length,

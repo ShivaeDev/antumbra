@@ -1,6 +1,6 @@
 import { BoardScope } from "@antumbra/boards";
 import { Kernel } from "@antumbra/kernel";
-import { Database, Writer } from "@antumbra/persistence";
+import { Database } from "@antumbra/persistence";
 import { expect, it } from "@effect/vitest";
 import { Effect, Option } from "effect";
 import { AgentDomain } from "#domain.ts";
@@ -49,7 +49,6 @@ it.live(
 			const selected = yield* Effect.gen(function* () {
 				const db = yield* Database;
 				const domain = yield* AgentDomain;
-				const writer = yield* Writer;
 				const { alpha, voyage } = yield* chain;
 				const decoy = yield* domain.voyages.open({
 					backend: "scripted",
@@ -61,9 +60,7 @@ it.live(
 				const live = yield* eventually(
 					sessionFor(scripted, assignment.agentId),
 				);
-				yield* writer.write(
-					db.VoyagePiece.create({ pieceId: alpha.id, voyageId: decoy.id }),
-				);
+				yield* db.VoyagePiece.create({ pieceId: alpha.id, voyageId: decoy.id });
 				expect(
 					new Set(
 						(yield* db.VoyagePiece.where({ pieceId: alpha.id }).all()).map(

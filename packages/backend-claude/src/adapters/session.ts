@@ -4,25 +4,26 @@ import {
 	type SDKUserMessage,
 } from "@anthropic-ai/claude-agent-sdk";
 import type { BackendFailure, DirectTool } from "@antumbra/plugin-api";
-import { type Context, type Effect, Option } from "effect";
+import { type Effect, Option } from "effect";
 import { InputQueue } from "#adapters/input-queue.ts";
 import {
 	openSessionDeliveries,
 	type RawEventListener,
 } from "#adapters/session-delivery.ts";
 import { mirroringSessionStore } from "#adapters/session-store.ts";
-import { makeToolServer } from "#adapters/tool-server.ts";
+import { makeToolServer, type ToolCall } from "#adapters/tool-server.ts";
 import { sessionOptions, type ToolAccess } from "#session-options.ts";
 
 interface RawSessionOptions {
+	// why: a tool call runs as a fiber the session's scope owns, so it can wait
+	// for something outside the session without holding any other call up and
+	// without outliving the session that offered it.
+	readonly call: ToolCall;
 	readonly cwd: string;
 	// why: the Claude Code the host installed, never a bundled copy — the
 	// desktop shell finds it, the backend never guesses a path.
 	readonly executable: string;
 	readonly resume: string | undefined;
-	// why: the tools run their handlers on the services the session was opened
-	// with, so a handler logs through the app's logger rather than a bare one.
-	readonly services: Context.Context<never>;
 	readonly tools: ReadonlyArray<DirectTool>;
 }
 
@@ -68,7 +69,7 @@ const toolAccess = (options: RawSessionOptions): Option.Option<ToolAccess> =>
 		? Option.none()
 		: Option.some({
 				names: options.tools.map((tool) => tool.name),
-				server: makeToolServer(options.tools, options.services),
+				server: makeToolServer(options.tools, options.call),
 			});
 
 export const openRawSession = (options: RawSessionOptions): RawSession => {

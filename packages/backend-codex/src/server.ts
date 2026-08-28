@@ -89,9 +89,16 @@ export const makeCodexServer = (
 		child.onExit(() => {
 			Deferred.doneUnsafe(exited, Effect.void);
 		});
+		// why: an answer may wait — a tool call can be asking for a ruling — so
+		// each request gets its own fiber. Answering them in turn would let one
+		// waiting call hold up every other thread on the shared connection, and
+		// app-server correlates replies by request id, so nothing depends on
+		// them coming back in the order they were asked.
 		yield* Effect.forkScoped(
 			Queue.take(serverRequests).pipe(
-				Effect.flatMap((request) => answerServerRequest(rpc, tools, request)),
+				Effect.flatMap((request) =>
+					Effect.forkScoped(answerServerRequest(rpc, tools, request)),
+				),
 				Effect.forever,
 				Effect.ignore,
 			),

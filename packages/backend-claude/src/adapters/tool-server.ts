@@ -1,12 +1,19 @@
-import type { DirectTool } from "@antumbra/plugin-api";
+import type { DirectTool, DirectToolOutcome } from "@antumbra/plugin-api";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import {
 	CallToolRequestSchema,
 	ListToolsRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
-import { type Context, Effect } from "effect";
 
 export const TOOL_SERVER_NAME = "antumbra";
+
+// why: MCP hands the handler a promise boundary, so the session supplies the
+// one way a call may be run — the promise settles when the call's own fiber
+// does, and that fiber belongs to the session rather than to this request.
+export type ToolCall = (
+	tool: DirectTool,
+	args: unknown,
+) => Promise<DirectToolOutcome>;
 
 const listed = (tool: DirectTool) => ({
 	// why: without alwaysLoad the model has to search for a tool before it can
@@ -24,14 +31,11 @@ const said = (text: string, ok: boolean) => ({
 
 // why: the SDK's own tool() helper takes zod schemas, which this workspace does
 // not ship; the low-level handlers take the JSON Schema every tool already
-// carries, so serving tools adds no second schema library. Handlers are
-// promise-shaped because MCP's are — each runs its Effect on the session's own
-// services, so a tool logs and reads time like everything else in the process.
+// carries, so serving tools adds no second schema library.
 export const makeToolServer = (
 	tools: ReadonlyArray<DirectTool>,
-	services: Context.Context<never>,
+	call: ToolCall,
 ): McpServer => {
-	const run = Effect.runPromiseWith(services);
 	const byName = new Map(tools.map((tool) => [tool.name, tool]));
 	const server = new McpServer({ name: TOOL_SERVER_NAME, version: "0.0.0" });
 	server.server.registerCapabilities({ tools: { listChanged: true } });
@@ -46,7 +50,7 @@ export const makeToolServer = (
 				false,
 			);
 		}
-		const outcome = await run(tool.call(request.params.arguments));
+		const outcome = await call(tool, request.params.arguments);
 		return said(outcome.text, outcome.ok);
 	});
 	return server;

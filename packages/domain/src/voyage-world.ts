@@ -13,6 +13,7 @@ import {
 	readPieceVerdicts,
 	type StoredPieceVerdictInvalid,
 } from "@antumbra/pieces";
+import { Rulings } from "@antumbra/rulings";
 import {
 	decodeSessionExecutionStatus,
 	decodeStoredAgentSessionStatus,
@@ -54,10 +55,13 @@ export class VoyageWorldSource extends Context.Service<
 const voyageWorld: Effect.Effect<
 	VoyageWorld,
 	VoyageWorldReadFailure,
-	Changes | Context.Service.Identifier<typeof Database>
+	| Changes
+	| Context.Service.Identifier<typeof Database>
+	| Context.Service.Identifier<typeof Rulings>
 > = Effect.gen(function* () {
 	const changeSnapshot = yield* Changes;
 	const db = yield* Database;
+	const rulings = yield* Rulings;
 	// why: read in the order they were born, so the map that carries them
 	// keeps that order and the most recent of any set is its last entry.
 	const agents = yield* db.Agent.orderBy((agent) =>
@@ -116,6 +120,7 @@ const voyageWorld: Effect.Effect<
 		pieces,
 		reports: byId((yield* db.Report.all()).map(reportRow)),
 		repos: byId((yield* db.Repo.all()).map(repoRow)),
+		rulingGates: yield* rulings.openGates(),
 		sessions,
 		voyages: (yield* db.Voyage.orderBy((voyage) =>
 			voyage.createdAt.asc(),
@@ -127,9 +132,11 @@ export const VoyageWorldSourceLive = Layer.effect(VoyageWorldSource)(
 	Effect.gen(function* () {
 		const changes = yield* Changes;
 		const db = yield* Database;
+		const rulings = yield* Rulings;
 		const read = voyageWorld.pipe(
 			Effect.provideService(Changes, changes),
 			Effect.provideService(Database, db),
+			Effect.provideService(Rulings, rulings),
 		);
 		return { read };
 	}),

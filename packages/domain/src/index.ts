@@ -73,6 +73,7 @@ export type { QuayGroup } from "#quay-group.ts";
 export type { QuayPiece, QuayReading, QuayRow } from "#quay-view.ts";
 export type { RetireFields } from "#retire.ts";
 export { RulingDeliveryLive } from "#ruling-delivery.ts";
+export { RulingSourceLive } from "#ruling-source.ts";
 export { drainActiveSessions } from "#session-shutdown.ts";
 export { SessionShutdownLive } from "#session-shutdown-live.ts";
 export {

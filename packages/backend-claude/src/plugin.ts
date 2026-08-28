@@ -7,9 +7,11 @@ import {
 	type SessionInput,
 } from "@antumbra/plugin-api";
 import type { AgentEvent } from "@antumbra/vocabulary/session-events";
-import { type Context, Effect, Option, Queue, Ref, Stream } from "effect";
+import { Effect, Option, Queue, Ref, Stream } from "effect";
 import { openRawSession, type RawSession } from "#adapters/session.ts";
+import { sessionToolCall } from "#adapters/session-tools.ts";
 import { claudeAudit } from "#adapters/subagent-audit.ts";
+import type { ToolCall } from "#adapters/tool-server.ts";
 import { laneEvents, openSessionLanes } from "#session-lanes.ts";
 
 const failure = (detail: unknown) =>
@@ -76,22 +78,21 @@ export interface ClaudePluginOptions {
 }
 
 // why: opening is scoped, so an abandoned handle can never leave the SDK
-// subprocess running; the session's services travel with it because the tools
-// it was opened with run their handlers on them.
+// subprocess running.
 const rawSession = (
 	options: ClaudePluginOptions,
 	session: OpenSessionOptions,
-	services: Context.Context<never>,
+	call: ToolCall,
 ) =>
 	Effect.acquireRelease(
 		Effect.try({
 			catch: failure,
 			try: () =>
 				openRawSession({
+					call,
 					cwd: session.cwd,
 					executable: options.executable,
 					resume: Option.getOrUndefined(session.resume),
-					services,
 					tools: session.tools,
 				}),
 		}),
@@ -107,8 +108,8 @@ export const claudeBackend = (options: ClaudePluginOptions): AgentBackend => ({
 		multiClient: false,
 	},
 	openSession: (session) =>
-		Effect.context<never>().pipe(
-			Effect.flatMap((services) => rawSession(options, session, services)),
+		sessionToolCall.pipe(
+			Effect.flatMap((call) => rawSession(options, session, call)),
 			Effect.flatMap(makeHandle),
 		),
 	tag: "claude",

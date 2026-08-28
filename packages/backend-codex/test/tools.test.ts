@@ -1,6 +1,6 @@
 import type { DirectTool } from "@antumbra/plugin-api";
 import { expect, it } from "@effect/vitest";
-import { Effect, Option, Ref } from "effect";
+import { Deferred, Effect, Exit, Option, Ref, Scope } from "effect";
 import { makeCodexServer } from "#server.ts";
 import { makeFakeAppServer } from "#test/fake.ts";
 import { openThreadSession } from "#thread.ts";
@@ -20,6 +20,28 @@ const landReport = (calls: Ref.Ref<ReadonlyArray<unknown>>): DirectTool => ({
 		type: "object",
 	},
 	name: "land_report",
+});
+
+const waitForRuling = (
+	started: Deferred.Deferred<void>,
+	interrupted: Deferred.Deferred<void>,
+): DirectTool => ({
+	call: () =>
+		Deferred.succeed(started, undefined).pipe(
+			Effect.andThen(Effect.never),
+			Effect.onInterrupt(() => Deferred.succeed(interrupted, undefined)),
+		),
+	description: "Wait for a ruling.",
+	inputSchema: { properties: {}, type: "object" },
+	name: "wait_for_ruling",
+});
+
+const toolCall = (id: number, threadId: string, tool: string) => ({
+	arguments: {},
+	callId: `call-${id}`,
+	threadId,
+	tool,
+	turnId: "turn-1",
 });
 
 const openWithTools = (resume: Option.Option<string> = Option.none()) =>
@@ -113,5 +135,57 @@ it.live("a resumed thread can still answer a call", () =>
 			turnId: "turn-1",
 		});
 		expect(yield* fake.responseById(10)).toMatchObject({ success: true });
+	}),
+);
+
+// why: one thread waits on a ruling that never comes while a second thread on
+// the same child is opened beside it; the waiter has a scope of its own so the
+// test can close that one session and leave the child and the other running.
+const openBesideWaiter = Effect.gen(function* () {
+	const started = yield* Deferred.make<void>();
+	const interrupted = yield* Deferred.make<void>();
+	const calls = yield* Ref.make<ReadonlyArray<unknown>>([]);
+	const fake = makeFakeAppServer();
+	const server = yield* makeCodexServer({ spawn: () => fake.process });
+	const waiter = yield* Effect.flatMap(Effect.scope, Scope.fork);
+	yield* openThreadSession(server, {
+		cwd: "/moorage",
+		resume: Option.none(),
+		sessionId: "session-1",
+		tools: [waitForRuling(started, interrupted)],
+	}).pipe(Scope.provide(waiter));
+	yield* openThreadSession(server, {
+		cwd: "/moorage",
+		resume: Option.some("thread-2"),
+		sessionId: "session-2",
+		tools: [landReport(calls)],
+	});
+	fake.serverRequest(
+		11,
+		"item/tool/call",
+		toolCall(11, THREAD, "wait_for_ruling"),
+	);
+	yield* Deferred.await(started);
+	return { fake, interrupted, waiter };
+});
+
+it.live("a call waiting on one thread holds up no other thread's call", () =>
+	Effect.gen(function* () {
+		const { fake } = yield* openBesideWaiter;
+		fake.serverRequest(
+			12,
+			"item/tool/call",
+			toolCall(12, "thread-2", "land_report"),
+		);
+		expect(yield* fake.responseById(12)).toMatchObject({ success: true });
+	}),
+);
+
+it.live("closing the waiting session interrupts its call and answers it", () =>
+	Effect.gen(function* () {
+		const { fake, interrupted, waiter } = yield* openBesideWaiter;
+		yield* Scope.close(waiter, Exit.void);
+		yield* Deferred.await(interrupted);
+		expect(yield* fake.responseById(11)).toMatchObject({ success: false });
 	}),
 );

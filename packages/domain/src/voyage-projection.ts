@@ -63,6 +63,7 @@ const pieceSeen = (
 		id: artifact.id,
 		title: artifact.title,
 	})),
+	awaitingRulings: piece.awaitingRulings,
 	board: board.map(entrySeen),
 	canRetireCrew: crewReleasable(piece, resting),
 	changes: piece.changes.map(changeSeen),

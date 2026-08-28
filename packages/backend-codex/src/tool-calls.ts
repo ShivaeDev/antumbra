@@ -1,4 +1,3 @@
-import type { DirectTool } from "@antumbra/plugin-api";
 import { Effect, Option, Schema } from "effect";
 import { DynamicToolCallParams } from "#protocol.ts";
 import type { ToolRegistry } from "#tool-registry.ts";
@@ -12,22 +11,15 @@ const answer = (text: string, success: boolean) => ({
 
 const decodeCall = Schema.decodeUnknownOption(DynamicToolCallParams);
 
-const served = (tool: DirectTool, args: unknown) =>
-	tool
-		.call(args)
-		.pipe(Effect.map((outcome) => answer(outcome.text, outcome.ok)));
-
 type Call = typeof DynamicToolCallParams.Type;
 
 const callNamed = (tools: ToolRegistry, call: Call) =>
-	tools.lookup(call.threadId, call.tool).pipe(
-		Effect.flatMap(
+	tools.call(call.threadId, call.tool, call.arguments).pipe(
+		Effect.map(
 			Option.match({
 				onNone: () =>
-					Effect.succeed(
-						answer(`antumbra serves no tool named ${call.tool}`, false),
-					),
-				onSome: (tool) => served(tool, call.arguments),
+					answer(`antumbra serves no tool named ${call.tool}`, false),
+				onSome: (outcome) => answer(outcome.text, outcome.ok),
 			}),
 		),
 	);

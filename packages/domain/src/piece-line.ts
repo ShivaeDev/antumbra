@@ -8,6 +8,11 @@ const dependsOn = (piece: PieceView): string =>
 		? ""
 		: `depends on ${[...piece.dependsOn].sort().join(", ")}`;
 
+const awaitsRuling = (piece: PieceView): string =>
+	piece.awaitingRulings.length === 0
+		? ""
+		: `awaits ruling ${[...piece.awaitingRulings].sort().join(", ")}`;
+
 const landedTitles = (piece: PieceView): ReadonlyArray<string> => [
 	...piece.reports.map((report) => report.title),
 	...piece.artifacts.map((artifact) => artifact.title),
@@ -16,7 +21,13 @@ const landedTitles = (piece: PieceView): ReadonlyArray<string> => [
 // why: one line per piece, in a shape a model can scan and a test can assert:
 // what it is, where it stands, and what still gates it.
 export const pieceLine = (piece: PieceView): string =>
-	parts([`- ${piece.id}`, piece.title, `[${piece.state}]`, dependsOn(piece)]);
+	parts([
+		`- ${piece.id}`,
+		piece.title,
+		`[${piece.state}]`,
+		dependsOn(piece),
+		awaitsRuling(piece),
+	]);
 
 export const pieceLineWithOutcomes = (piece: PieceView): string => {
 	const landed = landedTitles(piece);

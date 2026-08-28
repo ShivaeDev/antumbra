@@ -61,6 +61,17 @@ export const abandonedPieces = (world: VoyageWorld): ReadonlySet<string> =>
 			.map((piece) => piece.id),
 	);
 
+// why: a ruling is a node in the piece graph — an open one holds every piece
+// it gates the way an unlanded dependency does, and readiness comes back the
+// moment it is ruled without anyone editing an edge.
+export const awaitingRulingsOf = (
+	world: VoyageWorld,
+	pieceId: string,
+): ReadonlyArray<string> =>
+	world.rulingGates
+		.filter((gate) => gate.pieceId === pieceId)
+		.map((gate) => gate.rulingId);
+
 export const workingAssignees = (
 	world: VoyageWorld,
 	pieceId: string,
@@ -95,6 +106,9 @@ const stateOf = (
 	}
 	if (piece.launchedAt === null) {
 		return "held";
+	}
+	if (awaitingRulingsOf(world, piece.id).length > 0) {
+		return "blocked";
 	}
 	const blocked = dependenciesOf(world.edges, piece.id).some(
 		(dependency) =>

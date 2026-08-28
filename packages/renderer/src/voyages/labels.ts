@@ -59,6 +59,11 @@ export const dependsOnLabel = (
 	return titles.length === 0 ? "" : `Depends on: ${titles.join(", ")}`;
 };
 
+export const awaitingRulingsLabel = (piece: PieceView): string =>
+	piece.awaitingRulings.length === 0
+		? ""
+		: `Awaiting ruling: ${piece.awaitingRulings.join(", ")}`;
+
 // why: a board records which of the crew wrote an entry, and an entry with no
 // author agent is one you wrote yourself.
 export const authorLabel = (authorAgentId: string | null): string =>

@@ -9,6 +9,10 @@ vi.mock("#views/quay.tsx", () => ({
 	),
 }));
 
+vi.mock("#views/rulings.tsx", () => ({
+	RulingsPanel: () => <section>open rulings</section>,
+}));
+
 const render = (mode: ConsoleMode): string =>
 	renderToStaticMarkup(
 		<ConsoleMain
@@ -40,6 +44,14 @@ it("gives Quay the whole workspace without the voyage rail", () => {
 	const markup = render("quay");
 
 	expect(markup).toContain("pull request change-7");
+	expect(markup).not.toContain("Unrelated voyage");
+	expect(markup).not.toContain("<aside");
+});
+
+it("gives Rulings the whole workspace without the voyage rail", () => {
+	const markup = render("rulings");
+
+	expect(markup).toContain("open rulings");
 	expect(markup).not.toContain("Unrelated voyage");
 	expect(markup).not.toContain("<aside");
 });

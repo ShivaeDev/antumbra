@@ -1,6 +1,7 @@
 import { Boards } from "@antumbra/boards";
 import { DomainFeeds } from "@antumbra/domain-feeds";
-import { type Ruling, Rulings } from "@antumbra/rulings";
+import { Database } from "@antumbra/persistence";
+import { type Ruling, type RulingAnswer, Rulings } from "@antumbra/rulings";
 import { Effect, Layer, Option, Stream } from "effect";
 import { rulingAnswerMail } from "#ruling-answer-mail.ts";
 
@@ -8,24 +9,39 @@ const guarded = <A, R>(act: Effect.Effect<A, unknown, R>, said: string) =>
 	act.pipe(Effect.catchCause((cause) => Effect.logError(said, cause)));
 
 // why: the mailbox deduplicates by source reference, so the send is safe to
-// repeat and the mark may lag it. A crash between the two costs one replayed
-// send that lands on the entry already there, never a second answer.
+// repeat and the mark may lag it. The send and the mark are one transaction:
+// they take their turn behind a verdict landing beside them instead of
+// committing into the middle of it, and a pass that overlaps another finds
+// the mark already set and sends nothing.
+const mailAndMark = (ruling: Ruling, answer: RulingAnswer) =>
+	Effect.gen(function* () {
+		const db = yield* Database;
+		const boards = yield* Boards;
+		const rulings = yield* Rulings;
+		const row = yield* db.Ruling.where({ id: ruling.id })
+			.select("deliveredAt")
+			.first();
+		if (Option.isNone(row) || row.value.deliveredAt !== null) {
+			return;
+		}
+		yield* boards.mail({
+			authorAgentId: Option.none(),
+			body: rulingAnswerMail(ruling, answer),
+			precedence: "priority",
+			sourceRef: `ruling:${ruling.id}`,
+			toAgentId: ruling.requesterAgentId,
+		});
+		yield* rulings.markDelivered(ruling.id);
+	});
+
 const deliverOne = (ruling: Ruling) =>
 	Effect.gen(function* () {
 		const answer = ruling.answer;
 		if (Option.isNone(answer)) {
 			return;
 		}
-		const boards = yield* Boards;
-		const rulings = yield* Rulings;
-		yield* boards.mail({
-			authorAgentId: Option.none(),
-			body: rulingAnswerMail(ruling, answer.value),
-			precedence: "priority",
-			sourceRef: `ruling:${ruling.id}`,
-			toAgentId: ruling.requesterAgentId,
-		});
-		yield* rulings.markDelivered(ruling.id);
+		const db = yield* Database;
+		yield* db.transaction(mailAndMark(ruling, answer.value));
 	});
 
 const onePass = Effect.gen(function* () {

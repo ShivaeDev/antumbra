@@ -11,6 +11,14 @@ export class RulingAlreadyRuled extends Data.TaggedError("RulingAlreadyRuled")<{
 	readonly rulingId: string;
 }> {}
 
+// why: a gate hangs a piece on an answer, so naming a piece the fleet does not
+// have refuses the gate rather than storing a hold nothing can ever release.
+export class RulingGatePieceMissing extends Data.TaggedError(
+	"RulingGatePieceMissing",
+)<{
+	readonly pieceId: string;
+}> {}
+
 export class RulingChoiceUnknown extends Data.TaggedError(
 	"RulingChoiceUnknown",
 )<{
@@ -40,6 +48,12 @@ export type RulingRequestFailure = RulingReadFailure | RulingSubjectMissing;
 export type RulingVerdictFailure =
 	| RulingAlreadyRuled
 	| RulingChoiceUnknown
+	| RulingNotFound
+	| RulingReadFailure;
+
+export type RulingGateFailure =
+	| RulingAlreadyRuled
+	| RulingGatePieceMissing
 	| RulingNotFound
 	| RulingReadFailure;
 

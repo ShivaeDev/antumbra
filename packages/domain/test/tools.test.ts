@@ -71,6 +71,7 @@ it.live(
 					"read_board",
 					"request_ruling",
 					"stand_down",
+					"read_rulings",
 				]);
 
 				const outcome = yield* callTool(live, "land_report", {

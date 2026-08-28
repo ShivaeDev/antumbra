@@ -10,6 +10,7 @@ import {
 	type ScriptedBackend,
 	sessionFor,
 } from "#test/harness.ts";
+import { onPiece, ruled, seedAsker, unruled } from "#test/ruling-fixtures.ts";
 import { eventually, openReefVoyage, PATIENCE } from "#test/voyage-fixtures.ts";
 
 const crewOf = (pieceId: string) =>
@@ -63,6 +64,63 @@ it.live("a dispatched crew is told the smooth log, never the rough one", () =>
 			expect(charter).toContain("the eastern approach is safe");
 			expect(charter).toContain("the last hand reached the reef edge");
 			expect(charter).not.toContain("the swell is running");
+		}).pipe(
+			Effect.provide(dispatchingLayer(temporary, scripted.backend, PATIENCE)),
+		);
+	}),
+);
+
+// why: what binds a crew is decided by the record, not by the crew — a ruling
+// about its piece or about the whole fleet is in its charter before it asks,
+// and one about another piece or still open is not.
+it.live("a dispatched crew is told the standing rulings that bind it", () =>
+	Effect.gen(function* () {
+		const temporary = yield* acquireTemporaryPersistence;
+		const scripted = yield* makeScriptedBackend;
+		yield* Effect.gen(function* () {
+			const domain = yield* AgentDomain;
+			const reef = yield* openReefVoyage;
+			const charter = (title: string) =>
+				domain.voyages.charterPiece({
+					charter: `do ${title}`,
+					dependsOn: [],
+					expectation: `${title} is landed`,
+					role: "hand",
+					title,
+					voyageId: reef.id,
+				});
+			const alpha = yield* charter("alpha");
+			const bravo = yield* charter("bravo");
+			yield* seedAsker;
+			yield* ruled("which reading do we trust?", "trust the soundings", {
+				radius: "fleet",
+				subjects: [],
+			});
+			yield* ruled("may alpha dredge the reef?", "no", {
+				radius: "piece",
+				subjects: onPiece(alpha.id),
+			});
+			yield* unruled("may alpha anchor overnight?", {
+				radius: "piece",
+				subjects: onPiece(alpha.id),
+			});
+			yield* ruled("may bravo dredge the reef?", "yes", {
+				radius: "piece",
+				subjects: onPiece(bravo.id),
+			});
+			yield* domain.voyages.launch(alpha.id);
+
+			const agentId = yield* eventually(crewOf(alpha.id));
+			const charterText = yield* eventually(
+				charterDelivered(scripted, agentId),
+			);
+			expect(charterText).toContain("# Standing rulings");
+			expect(charterText).toContain(
+				"which reading do we trust? — trust the soundings",
+			);
+			expect(charterText).toContain("may alpha dredge the reef? — no");
+			expect(charterText).not.toContain("anchor overnight");
+			expect(charterText).not.toContain("may bravo dredge");
 		}).pipe(
 			Effect.provide(dispatchingLayer(temporary, scripted.backend, PATIENCE)),
 		);

@@ -7,6 +7,7 @@ import {
 	temporaryPersistence,
 } from "@antumbra/persistence/testing";
 import { PiecesLive } from "@antumbra/pieces";
+import { RulingsLive } from "@antumbra/rulings";
 import { expect } from "@effect/vitest";
 import { Effect, Layer } from "effect";
 import { VoyageWorldSource, VoyageWorldSourceLive } from "#voyage-world.ts";
@@ -18,6 +19,7 @@ const WorldLive = VoyageWorldSourceLive.pipe(
 	Layer.provideMerge(
 		ChangesLive(new Map(), new Map()).pipe(
 			Layer.provideMerge(PiecesLive),
+			Layer.provideMerge(RulingsLive),
 			Layer.provideMerge(DomainFeedsLive),
 		),
 	),

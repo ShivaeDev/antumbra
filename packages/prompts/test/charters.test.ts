@@ -2,6 +2,11 @@ import { expect, it } from "@effect/vitest";
 import { captainCharter } from "#charter-captain.ts";
 import { type CrewCharter, crewCharter } from "#charter-crew.ts";
 
+const RULING_LINES = [
+	"- ruling-1 (binds the whole fleet) which reading do we trust? — trust the soundings",
+	"- ruling-2 (binds one piece) may the reef be dredged? — no",
+];
+
 const CREW: CrewCharter = {
 	context: "the reef is uncharted",
 	expectation: "soundings are landed",
@@ -9,6 +14,7 @@ const CREW: CrewCharter = {
 	pieceCharter: "sound the shallows",
 	pieceLog: [],
 	pieceTitle: "alpha",
+	rulings: [],
 	voyageLog: [],
 };
 
@@ -46,6 +52,7 @@ it("a captain charter lists the pieces and the captain standing order", () => {
 			"- piece-1 alpha [done] landed: soundings",
 			"- piece-2 bravo [ready] depends on piece-1",
 		],
+		rulings: [],
 		voyageLog: ["the eastern approach is safe"],
 	});
 	expect(text).toContain("# Voyage log\nthe eastern approach is safe");
@@ -62,7 +69,50 @@ it("a captain of a voyage with no pieces is told about no pieces", () => {
 			context: "the reef is uncharted",
 			northStar: "every shoal is known",
 			pieceLines: [],
+			rulings: [],
 			voyageLog: [],
 		}),
 	).not.toContain("# Pieces");
+});
+
+it("standing rulings are a section of both charters, one line each", () => {
+	const crew = crewCharter({ ...CREW, rulings: RULING_LINES });
+	expect(crew).toContain(`# Standing rulings\n${RULING_LINES.join("\n\n")}`);
+	const captain = captainCharter({
+		context: "the reef is uncharted",
+		northStar: "every shoal is known",
+		pieceLines: [],
+		rulings: RULING_LINES,
+		voyageLog: [],
+	});
+	expect(captain).toContain(`# Standing rulings\n${RULING_LINES.join("\n\n")}`);
+});
+
+it("an agent nothing binds is not told about rulings it does not have", () => {
+	expect(crewCharter(CREW)).not.toContain("# Standing rulings");
+	expect(
+		captainCharter({
+			context: "the reef is uncharted",
+			northStar: "every shoal is known",
+			pieceLines: [],
+			rulings: [],
+			voyageLog: [],
+		}),
+	).not.toContain("# Standing rulings");
+});
+
+it("both standing orders say to read rulings before asking for one", () => {
+	for (const text of [
+		crewCharter(CREW),
+		captainCharter({
+			context: "the reef is uncharted",
+			northStar: "every shoal is known",
+			pieceLines: [],
+			rulings: [],
+			voyageLog: [],
+		}),
+	]) {
+		expect(text).toContain("`read_rulings`");
+		expect(text).toContain("`request_ruling`");
+	}
 });

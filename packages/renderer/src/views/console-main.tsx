@@ -1,6 +1,7 @@
 import type { ConsoleMode, Fleet, VoyageSummary } from "@antumbra/contract";
 import { FleetSurface } from "#views/fleet-surface.tsx";
 import { QuayPanel } from "#views/quay.tsx";
+import { RulingsPanel } from "#views/rulings.tsx";
 import { SettingsPanel } from "#views/settings.tsx";
 import { VoyagePanel } from "#views/voyage.tsx";
 import { VoyagesAside } from "#views/voyages-aside.tsx";
@@ -46,6 +47,11 @@ export const ConsoleMain = (props: ConsoleProps) => {
 				selectedId={props.change}
 			/>
 		);
+	}
+	// why: a ruling is answered against its own context and question, not
+	// against a voyage, so the rail of voyages would only be a distraction.
+	if (props.mode === "rulings") {
+		return <RulingsPanel onError={props.onError} />;
 	}
 	return (
 		<div className="flex min-h-0 min-w-0 flex-1">

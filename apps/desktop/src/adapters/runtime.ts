@@ -7,6 +7,7 @@ import {
 	DispatcherLive,
 	IntentFeedLive,
 	KernelReachLive,
+	RulingSourceLive,
 	SessionShutdownLive,
 	SettingsSourceLive,
 	SightSourceLive,
@@ -84,6 +85,7 @@ const kernel = Layer.unwrap(
 // followed whether or not a window is watching.
 export const applicationLayers = () =>
 	Layer.mergeAll(
+		RulingSourceLive,
 		SightSourceLive,
 		VoyageSourceLive,
 		ChangeWatcherLive(),

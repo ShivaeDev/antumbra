@@ -1,10 +1,17 @@
 import type { ConsoleMode } from "@antumbra/contract";
-import { Anchor, type LucideIcon, Settings, Ship, Users } from "lucide-react";
+import {
+	Anchor,
+	Gavel,
+	type LucideIcon,
+	Settings,
+	Ship,
+	Users,
+} from "lucide-react";
 import { Button } from "#components/ui/button.tsx";
 import { cn } from "#lib/utils.ts";
 
-// why: which of the three the console is pointed at belongs to the window, so
-// the rail offers the modes and main remembers the choice.
+// why: which of them the console is pointed at belongs to the window, so the
+// rail offers the modes and main remembers the choice.
 interface ModeEntry {
 	readonly icon: LucideIcon;
 	readonly label: string;
@@ -15,6 +22,7 @@ const MODES: ReadonlyArray<ModeEntry> = [
 	{ icon: Users, label: "Fleet", mode: "fleet" },
 	{ icon: Ship, label: "Voyages", mode: "voyages" },
 	{ icon: Anchor, label: "Quay", mode: "quay" },
+	{ icon: Gavel, label: "Rulings", mode: "rulings" },
 	{ icon: Settings, label: "Settings", mode: "settings" },
 ];
 

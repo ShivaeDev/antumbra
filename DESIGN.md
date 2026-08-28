@@ -19,7 +19,7 @@ tests own exact implemented fields, states, wire names, and current behavior.
   granularity. SIGHT, PLOT, SAIL, and DRIFT are the Voyage's sequential story;
   work crosses a Leg boundary whenever its edges allow.
 - **Pieces are places, not processes.** A Piece is durable work with context,
-  links, memory, questions, and zero or more typed Outcomes. Agents act for it
+  links, memory, and zero or more typed Outcomes. Agents act for it
   through mortal Intents; nothing executes inside the Piece.
 - **Work topology permits multiplicity.** Pieces depend on Pieces and link to
   assigned Agents, execution contexts, and Outcomes without one-to-one
@@ -124,14 +124,25 @@ Session, restart, siesta, handover, and reclamation behavior.
 - **Smoothing advances a frontier without erasing evidence.** It appends a
   provenance-bearing summary and conditionally moves the selected frontier;
   every source remains reachable.
-- **Reach and interruption are different.** Questions and mail land durably
-  before policy decides whether, when, and how to interrupt. In v1 the admiral
-  chooses what an idle Agent receives; persisted facts do not wake one.
-- **Questions stay where they arose.** A Question is a stable typed Board
-  entry. Raises route that identity through authority; rulings and withdrawals
-  derive its state, and precedent remains appended and supersedable. Rulings
-  exist at every authority level; a captain's rulings form an audit trail the
-  admiral can inspect and overrule.
+- **Reach and interruption are different.** Ruling requests and mail land
+  durably before policy decides whether, when, and how to interrupt. In v1 the
+  admiral chooses what an idle Agent receives; persisted facts do not wake one.
+- **A Ruling is a record, not a Board entry.** One typed record binds the
+  context, the question, and the answer, and the answer is read in the light
+  of its question. The Board keeps the free-form log and the small asks between
+  agents; rulings have their own lifecycle and typed scope.
+- **Rulings climb the ladder on two declared axes.** Radius says how widely
+  the answer applies and which authority may give it; urgency says whether
+  the asker holds. Every captain on the way up may rule within its radius,
+  add context, or reclassify by appending; the admiral overrules by
+  superseding, never by editing.
+- **A Ruling gates work as its own node.** Pieces may depend on an open
+  ruling as they depend on Pieces; blockage is derived and readiness returns
+  when it is ruled. A Ruling is never an Outcome and is owned by no Piece or
+  Voyage.
+- **Standing rulings are smoothed, never edited.** Reclassification,
+  consolidation, and retirement append with provenance, and dedicated agents
+  do that work rather than captains.
 - **Anyone may all stop.** Escalation can hold one asker, one Voyage, or the
   fleet. The system makes the stop loud and reliable; misuse is handled as a
   conversation afterwards.
@@ -141,7 +152,9 @@ Session, restart, siesta, handover, and reclamation behavior.
   coordination; Agents supply judgment.
 
 The [attention and memory guide](docs/design/attention-and-memory.md) owns
-Boards, smoothing, questions, rulings, mail, heave-to, and precedence.
+Boards, smoothing, mail, heave-to, and precedence. The
+[rulings guide](docs/design/rulings.md) owns the Ruling record, its axes and
+subjects, the authority ladder, gating, smoothing, and reach.
 
 ## Outcomes and delivery
 
@@ -201,8 +214,8 @@ Outcome relationships, Change stages, the Quay, and the GitHub mapping.
 - **Simulability.** Domain verbs, state machines, admission, and coordination
   run under test with scripted Agents and zero model tokens.
 - **Reify what must outlive an attention gap.** Intents carry compute gaps,
-  Boards carry coordination gaps, mail carries delivery gaps, and Questions
-  carry human-attention gaps.
+  Boards carry coordination gaps, mail carries delivery gaps, and Rulings
+  carry decision gaps.
 - **Make the wrong thing unrepresentable.** Prefer closed transitions, typed
   state, derived truth, and idempotent convergence over warnings and fallback.
 - **Defer what the cone hides.** Build one swappable pure seam for unknowable

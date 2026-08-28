@@ -58,7 +58,8 @@ announces, and a direct message never replaces durable shared state.
 Four lanes state why attention is wanted:
 
 - **escalation** means work is blocked and always reaches the admiral;
-- **decision point** asks for a ruling while work continues;
+- **decision point** requests a ruling; whether work continues is the
+  request's declared urgency;
 - **finding** records something outside the author's job for a relevant scope;
   and
 - **grievance** records friction for aggregate review without demanding an
@@ -68,25 +69,14 @@ An escalation also states its containment: hold the asker, hold the Voyage, or
 all stop. Anyone may pull all stop. The system makes it loud; social correction
 comes afterwards rather than weakening the emergency rail.
 
-## Questions and rulings
+## Rulings
 
-A **Question** is a typed Board entry with stable identity on the scope where
-the fork arose. Raises route that same Question through the authority ladder;
-they may add an addressee, importance, context pointer, take, or severity
-change without copying the Question into a new object. Rulings and withdrawals
-that reference it derive whether it remains open.
-
-Rulings are scoped, supersedable precedent appended to the Board where they
-bind. Every authority level can rule within its scope. A captain's rulings form
-an audit trail the admiral can inspect and overrule; supersession appends the
-new precedent rather than erasing the old one. Agents check precedent before
-asking. A reversible, two-way-door Question may expire and be re-raised for a
-provisional lower-level ruling. An expensive-to-undo one-way-door Question
-never times out.
-
-Reach and interruption are separate. The Question always lands durably.
-Whether it pages someone now is computed from its importance and the admiral's
-standing posture for that scope; the asker does not declare interruption.
+A decision that needs an authority is a **Ruling**: its own typed record, not
+a Board entry, owned by the [rulings guide](rulings.md). What stays on the
+Board is the small ask between agents, findings, and grievances. A ruling
+request always lands durably; whether it pages someone now is computed from
+its declared urgency and radius and the admiral's standing posture for that
+scope, and the asker does not declare interruption.
 
 ## Heave to
 

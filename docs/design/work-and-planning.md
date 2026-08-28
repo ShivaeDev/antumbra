@@ -67,7 +67,7 @@ allow it.
 ## Pieces
 
 A **Piece** is a bounded place for durable work. It holds its charter, Board,
-links, questions, intent history, and zero or more typed expected Outcomes;
+links, intent history, and zero or more typed expected Outcomes;
 nothing executes inside it. Agents act on its behalf through mortal Intents.
 
 Pieces depend on Pieces. Their links to assigned Agents, execution contexts,

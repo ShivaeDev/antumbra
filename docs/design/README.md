@@ -8,8 +8,10 @@ fields, states, and wire names.
 
 - [Work and planning](work-and-planning.md) — authority, Voyages, course
   revision, Pieces, dependencies, and progress.
-- [Attention and memory](attention-and-memory.md) — Boards, questions, mail,
-  interruption, precedent, and smoothing.
+- [Attention and memory](attention-and-memory.md) — Boards, mail,
+  interruption, and smoothing.
+- [Rulings](rulings.md) — the Ruling record, radius and urgency, subjects, the
+  authority ladder, gating, standing rulings, and reach.
 - [Changes and delivery](changes-and-delivery.md) — Outcomes, durable landing,
   the Quay, and GitHub's mapping.
 - [Agent identity, resources, and recovery](agent-recovery.md) — durable Agent

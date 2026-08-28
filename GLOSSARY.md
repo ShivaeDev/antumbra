@@ -30,9 +30,14 @@ Owner: [Attention and memory](docs/design/attention-and-memory.md)
 - [**Smooth log**](docs/design/attention-and-memory.md#boards-and-registers) — the Board register for distilled successor context.
 - [**Smoothing**](docs/design/attention-and-memory.md#smoothing) — advancing a Board's useful frontier without erasing its sources.
 - [**Attention lanes**](docs/design/attention-and-memory.md#attention-lanes) — escalation, decision point, finding, and grievance.
-- [**Question**](docs/design/attention-and-memory.md#questions-and-rulings) — a durable fork recorded on the Board where it arose and routed for a ruling.
 - [**Heave to**](docs/design/attention-and-memory.md#heave-to) — discussion mode that keeps the Agent's context from moving on.
 - [**Precedence**](docs/design/attention-and-memory.md#mail-and-precedence) — routine, priority, and flash ordering for Agent mail.
+
+## Rulings
+
+Owner: [Rulings](docs/design/rulings.md)
+
+- [**Ruling**](docs/design/rulings.md#the-ruling-record) — one typed record binding the context, the question, and the answer an authority gives; an agent requests it, a captain or the admiral rules on it.
 
 ## Changes and delivery
 

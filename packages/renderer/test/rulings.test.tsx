@@ -28,7 +28,12 @@ const { opened, ruleOn, watchOpenRulings } = vi.hoisted(() => {
 	};
 });
 
-vi.mock("#adapters/trpc-rulings.ts", () => ({ ruleOn, watchOpenRulings }));
+vi.mock("#adapters/trpc-rulings.ts", () => ({
+	ruleOn,
+	supersedeRuling: vi.fn(),
+	watchOpenRulings,
+	watchStandingRulings: vi.fn(() => vi.fn()),
+}));
 
 const shoal: RulingView = {
 	choices: [

@@ -1,6 +1,13 @@
 import { describe, expect, it } from "@effect/vitest";
 import { Effect, Stream } from "effect";
-import { makeRuntime, openRulings, soundingReading } from "#fixtures.ts";
+import {
+	berthReclaim,
+	chartAuthority,
+	makeRuntime,
+	openRulings,
+	soundingReading,
+	standingRulings,
+} from "#fixtures.ts";
 import { makeAppRouter } from "#index.ts";
 
 const callerOf = () =>
@@ -51,6 +58,61 @@ describe("makeAppRouter, on the rulings", () => {
 			).pipe(Effect.flip);
 			expect(String(outcome.cause)).toContain("no open ruling: ruling-adrift");
 		}),
+	);
+
+	it.effect("reads the standing rulings newest first with their answers", () =>
+		Effect.gen(function* () {
+			const read = yield* Effect.promise(() => callerOf().standingRulings());
+			expect(read).toEqual(standingRulings);
+			expect(read.rulings.map((ruling) => ruling.chosen)).toEqual([
+				null,
+				"trust the soundings",
+			]);
+		}),
+	);
+
+	it.effect("the standing feed carries the set to a watching window", () =>
+		Effect.gen(function* () {
+			const iterable = yield* Effect.promise(() =>
+				callerOf().standingRulingsFeed(),
+			);
+			const collected = yield* Stream.fromAsyncIterable(
+				iterable,
+				(cause) => cause,
+			).pipe(Stream.runCollect);
+			expect(collected.map((view) => view.rulings.length)).toEqual([2]);
+		}),
+	);
+
+	it.effect("superseding answers with both rulings it bound together", () =>
+		Effect.gen(function* () {
+			const superseded = yield* Effect.promise(() =>
+				callerOf().supersedeRuling({
+					byRulingId: berthReclaim.id,
+					rulingId: chartAuthority.id,
+				}),
+			);
+			expect(superseded).toEqual({
+				byRulingId: berthReclaim.id,
+				rulingId: chartAuthority.id,
+			});
+		}),
+	);
+
+	it.effect(
+		"a ruling that does not stand comes back refused in its own words",
+		() =>
+			Effect.gen(function* () {
+				const outcome = yield* Effect.tryPromise(() =>
+					callerOf().supersedeRuling({
+						byRulingId: berthReclaim.id,
+						rulingId: soundingReading.id,
+					}),
+				).pipe(Effect.flip);
+				expect(String(outcome.cause)).toContain(
+					`no standing ruling: ${soundingReading.id}`,
+				);
+			}),
 	);
 
 	// why: the words are what a later reader is left with, so an empty answer

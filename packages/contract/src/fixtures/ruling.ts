@@ -1,4 +1,9 @@
-import type { OpenRulingsView, RulingView } from "#rulings-views.ts";
+import type {
+	OpenRulingsView,
+	RulingView,
+	StandingRulingsView,
+	StandingRulingView,
+} from "#rulings-views.ts";
 
 export const soundingReading: RulingView = {
 	choices: [
@@ -38,4 +43,32 @@ export const berthNaming: RulingView = {
 
 export const openRulings: OpenRulingsView = {
 	rulings: [soundingReading, berthNaming],
+};
+
+export const berthReclaim: StandingRulingView = {
+	answer: "a berth is reclaimed only once its branch is pushed",
+	chosen: null,
+	id: "ruling-10",
+	question: "When may a berth be reclaimed?",
+	radius: "fleet",
+	ruledAt: "2026-08-14T16:20:00.000Z",
+	ruledBy: "admiral",
+	subjects: [],
+	urgency: "pressing",
+};
+
+export const chartAuthority: StandingRulingView = {
+	answer: "the surveyed depth wins over the printed one",
+	chosen: "trust the soundings",
+	id: "ruling-11",
+	question: "Which depth is charted when survey and chart disagree?",
+	radius: "voyage",
+	ruledAt: "2026-08-13T11:00:00.000Z",
+	ruledBy: "admiral",
+	subjects: [{ kind: "voyage", label: "voyage-1" }],
+	urgency: "blocking",
+};
+
+export const standingRulings: StandingRulingsView = {
+	rulings: [berthReclaim, chartAuthority],
 };

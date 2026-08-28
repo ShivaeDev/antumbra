@@ -19,6 +19,27 @@ export class RulingGatePieceMissing extends Data.TaggedError(
 	readonly pieceId: string;
 }> {}
 
+// why: a ruling stands once ruled, so only a ruled ruling can be superseded
+// and only a ruled ruling can supersede — an open question binds nothing yet.
+export class RulingNotRuled extends Data.TaggedError("RulingNotRuled")<{
+	readonly rulingId: string;
+}> {}
+
+export class RulingSupersedesItself extends Data.TaggedError(
+	"RulingSupersedesItself",
+)<{
+	readonly rulingId: string;
+}> {}
+
+// why: supersession appends once with provenance; a second one would rewrite
+// which ruling took the old one's place, and standing rulings are never edited.
+export class RulingAlreadySuperseded extends Data.TaggedError(
+	"RulingAlreadySuperseded",
+)<{
+	readonly byRulingId: string;
+	readonly rulingId: string;
+}> {}
+
 export class RulingChoiceUnknown extends Data.TaggedError(
 	"RulingChoiceUnknown",
 )<{
@@ -49,5 +70,12 @@ export type RulingGateFailure =
 	| RulingGatePieceMissing
 	| RulingNotFound
 	| RulingReadFailure;
+
+export type RulingSupersessionFailure =
+	| RulingAlreadySuperseded
+	| RulingNotFound
+	| RulingNotRuled
+	| RulingReadFailure
+	| RulingSupersedesItself;
 
 export type RulingLookupFailure = RulingNotFound | RulingReadFailure;

@@ -2231,27 +2231,6 @@
                   "kind": "scalar"
                 }
               },
-              "supersededAt": {
-                "nullable": true,
-                "type": {
-                  "codecId": "sqlite/datetime@1",
-                  "kind": "scalar"
-                }
-              },
-              "supersededBy": {
-                "nullable": true,
-                "type": {
-                  "codecId": "sqlite/text@1",
-                  "kind": "scalar"
-                }
-              },
-              "supersededById": {
-                "nullable": true,
-                "type": {
-                  "codecId": "sqlite/text@1",
-                  "kind": "scalar"
-                }
-              },
               "urgency": {
                 "nullable": false,
                 "type": {
@@ -2335,36 +2314,6 @@
                   "model": "RulingSubject",
                   "namespace": "__unbound__"
                 }
-              },
-              "supersededByRuling": {
-                "cardinality": "N:1",
-                "on": {
-                  "localFields": [
-                    "supersededById"
-                  ],
-                  "targetFields": [
-                    "id"
-                  ]
-                },
-                "to": {
-                  "model": "Ruling",
-                  "namespace": "__unbound__"
-                }
-              },
-              "supersedes": {
-                "cardinality": "1:N",
-                "on": {
-                  "localFields": [
-                    "id"
-                  ],
-                  "targetFields": [
-                    "supersededById"
-                  ]
-                },
-                "to": {
-                  "model": "Ruling",
-                  "namespace": "__unbound__"
-                }
               }
             },
             "storage": {
@@ -2398,15 +2347,6 @@
                 },
                 "ruledBy": {
                   "column": "ruledBy"
-                },
-                "supersededAt": {
-                  "column": "supersededAt"
-                },
-                "supersededBy": {
-                  "column": "supersededBy"
-                },
-                "supersededById": {
-                  "column": "supersededById"
                 },
                 "urgency": {
                   "column": "urgency"
@@ -4785,21 +4725,6 @@
                   "nativeType": "text",
                   "nullable": true
                 },
-                "supersededAt": {
-                  "codecId": "sqlite/datetime@1",
-                  "nativeType": "text",
-                  "nullable": true
-                },
-                "supersededBy": {
-                  "codecId": "sqlite/text@1",
-                  "nativeType": "text",
-                  "nullable": true
-                },
-                "supersededById": {
-                  "codecId": "sqlite/text@1",
-                  "nativeType": "text",
-                  "nullable": true
-                },
                 "urgency": {
                   "codecId": "sqlite/text@1",
                   "nativeType": "text",
@@ -4846,37 +4771,12 @@
                     "namespaceId": "__unbound__",
                     "tableName": "rulingChoice"
                   }
-                },
-                {
-                  "constraint": true,
-                  "index": true,
-                  "onDelete": "restrict",
-                  "onUpdate": "restrict",
-                  "source": {
-                    "columns": [
-                      "supersededById"
-                    ],
-                    "namespaceId": "__unbound__",
-                    "tableName": "ruling"
-                  },
-                  "target": {
-                    "columns": [
-                      "id"
-                    ],
-                    "namespaceId": "__unbound__",
-                    "tableName": "ruling"
-                  }
                 }
               ],
               "indexes": [
                 {
                   "columns": [
                     "ruledAt"
-                  ]
-                },
-                {
-                  "columns": [
-                    "supersededById"
                   ]
                 }
               ],
@@ -5624,7 +5524,7 @@
         "id": "__unbound__"
       }
     },
-    "storageHash": "sha256:b0370edd498868af87e840dffafe906c5078e93f2ab19aa904b8cb420731e61b"
+    "storageHash": "sha256:dcc1ec7624fa7618d33ebed1b3c9fdb5bbf64fcea561864f91ce959234ac0036"
   },
   "capabilities": {
     "sql": {

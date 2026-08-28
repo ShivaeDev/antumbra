@@ -1,4 +1,9 @@
-import type { OpenRulingsView, RuleRequest } from "@antumbra/contract";
+import type {
+	OpenRulingsView,
+	RuleRequest,
+	StandingRulingsView,
+	SupersedeRequest,
+} from "@antumbra/contract";
 import { client, toError } from "#adapters/bridge.ts";
 import type { Unsubscribe } from "#adapters/trpc.ts";
 
@@ -30,3 +35,22 @@ export const watchOpenRulings = (
 // window's guess about it.
 export const ruleOn = (request: RuleRequest, onError: OnError): void =>
 	fired(client.ruleOn.mutate(request), onError);
+
+export const watchStandingRulings = (
+	onRulings: (rulings: StandingRulingsView) => void,
+	onError: OnError,
+): Unsubscribe => {
+	const subscription = client.standingRulingsFeed.subscribe(undefined, {
+		onData: onRulings,
+		onError: (cause) => onError(toError(cause).message),
+	});
+	return () => subscription.unsubscribe();
+};
+
+// why: a superseded ruling leaves the standing set on the next feed for the
+// same reason a ruled one leaves the open set — what stands is the record's
+// reading, never the window's guess.
+export const supersedeRuling = (
+	request: SupersedeRequest,
+	onError: OnError,
+): void => fired(client.supersedeRuling.mutate(request), onError);

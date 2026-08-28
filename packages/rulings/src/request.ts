@@ -25,6 +25,9 @@ const requested = (input: RulingRequest, nowMillis: number): StoredRuling => ({
 	requesterAgentId: input.requesterAgentId,
 	ruledAt: null,
 	ruledBy: null,
+	supersededAt: null,
+	supersededBy: null,
+	supersededById: null,
 	urgency: input.urgency,
 });
 

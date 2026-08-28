@@ -6,7 +6,7 @@ import {
 import { Effect, Option } from "effect";
 import { RulingNotFound } from "#errors.ts";
 import type { Ruling, RulingChoice, StoredRuling } from "#model.ts";
-import { storedAnswer, storedSubject } from "#stored.ts";
+import { storedAnswer, storedSubject, storedSupersession } from "#stored.ts";
 
 const choicesOf = (rulingId: string) =>
 	Effect.gen(function* () {
@@ -55,6 +55,7 @@ export const loadRuling = (row: StoredRuling) =>
 			),
 			requesterAgentId: row.requesterAgentId,
 			subjects: yield* subjectsOf(row.id),
+			supersession: yield* storedSupersession(row),
 			urgency: yield* Effect.fromResult(
 				decodeStoredRulingUrgency(row.id, row.urgency),
 			),

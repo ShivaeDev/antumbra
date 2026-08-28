@@ -1,4 +1,5 @@
 import {
+	RulingAuthoritySchema,
 	RulingRadiusSchema,
 	RulingSubjectKindSchema,
 	RulingUrgencySchema,
@@ -44,3 +45,25 @@ export const OpenRulingsView = Schema.Struct({
 	rulings: Schema.Array(RulingView),
 });
 export type OpenRulingsView = typeof OpenRulingsView.Type;
+
+// why: a standing ruling reaches the window as what binds — the question, the
+// answer read in its light, and who ruled when — rather than as the request it
+// began as; the label of a picked choice travels so the pick reads as words.
+export const StandingRulingView = Schema.Struct({
+	answer: Schema.String,
+	chosen: Schema.NullOr(Schema.String),
+	id: Schema.String,
+	question: Schema.String,
+	radius: RulingRadiusSchema,
+	ruledAt: Schema.String,
+	ruledBy: RulingAuthoritySchema,
+	subjects: Schema.Array(RulingSubjectView),
+	urgency: RulingUrgencySchema,
+});
+export type StandingRulingView = typeof StandingRulingView.Type;
+
+// why: newest first, so the latest word about a scope is the first one met.
+export const StandingRulingsView = Schema.Struct({
+	rulings: Schema.Array(StandingRulingView),
+});
+export type StandingRulingsView = typeof StandingRulingsView.Type;

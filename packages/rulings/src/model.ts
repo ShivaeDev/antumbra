@@ -49,6 +49,21 @@ export interface RulingVerdict {
 	readonly rulingId: string;
 }
 
+// why: the admiral overrules a ruling below by superseding it with a later
+// one; the old ruling keeps its record and gains only who did it, when, and
+// which ruling now speaks for its scope.
+export interface RulingSupersedeInput {
+	readonly by: RulingAuthority;
+	readonly byRulingId: string;
+	readonly rulingId: string;
+}
+
+export interface RulingSupersession {
+	readonly at: Date;
+	readonly by: RulingAuthority;
+	readonly byRulingId: string;
+}
+
 export interface RulingChoice {
 	readonly detail: string | null;
 	readonly id: string;
@@ -76,6 +91,7 @@ export interface Ruling {
 	readonly radius: RulingRadius;
 	readonly requesterAgentId: string;
 	readonly subjects: ReadonlyArray<RulingSubject>;
+	readonly supersession: Option.Option<RulingSupersession>;
 	readonly urgency: RulingUrgency;
 }
 
@@ -90,6 +106,9 @@ export interface StoredRuling {
 	readonly requesterAgentId: string;
 	readonly ruledAt: Date | null;
 	readonly ruledBy: string | null;
+	readonly supersededAt: Date | null;
+	readonly supersededBy: string | null;
+	readonly supersededById: string | null;
 	readonly urgency: string;
 }
 

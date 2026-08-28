@@ -7,9 +7,9 @@ import type { ReportInput, ReportRow } from "#model.ts";
 const writeReport = (row: ReportRow, pieceId: string) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
-		// why: an outcome and its piece link are one transaction, with existence
-		// checked inside that transaction, so neither an orphan nor false done state
-		// can become durable.
+		// why: the precheck names a missing Piece, while the FK-backed nested create
+		// commits the outcome and its Piece link together so neither an orphan nor
+		// false done state can become durable.
 		yield* verifyPieceExists(pieceId);
 		yield* db.Report.create({
 			...row,

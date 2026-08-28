@@ -3,10 +3,12 @@ import type { DirectTool } from "@antumbra/plugin-api";
 import {
 	type Ruling,
 	type RulingChoiceInput,
+	type RulingRequest,
 	type RulingSubject,
 	Rulings,
 } from "@antumbra/rulings";
 import { Effect, Option } from "effect";
+import { heldSaid, makeRulingHold } from "#ruling-hold.ts";
 import { answered } from "#tool-answers.ts";
 import type { SessionIdentity } from "#tool-identity.ts";
 
@@ -47,24 +49,35 @@ const choiceOf = (choice: {
 const said = (ruling: Ruling): string =>
 	`ruling ${ruling.id} requested — ${ruling.radius} radius, ${ruling.urgency}. The answer reaches you as mail; nothing here waits for it.`;
 
+type Ask = (typeof requestRulingSpec)["input"]["Type"];
+
+const requestOf = (identity: SessionIdentity, input: Ask): RulingRequest => ({
+	choices: (input.choices ?? []).map(choiceOf),
+	context: input.context,
+	question: input.question,
+	radius: input.radius,
+	requesterAgentId: identity.agentId,
+	subjects: subjectsOf(identity, input.tags),
+	urgency: input.urgency,
+});
+
+// why: urgency decides whether the asker holds. A blocking call is the answer's
+// own road back and returns only when the ruling lands; every other urgency
+// returns at once and hears the answer as mail.
 export const makeRulingToolCompiler = Effect.gen(function* () {
 	const rulings = yield* Rulings;
+	const hold = yield* makeRulingHold;
 	return (identity: SessionIdentity): ReadonlyArray<DirectTool> => [
-		bind(requestRulingSpec, (input) =>
-			answered(
-				identity,
-				requestRulingSpec.name,
-				rulings.request({
-					choices: (input.choices ?? []).map(choiceOf),
-					context: input.context,
-					question: input.question,
-					radius: input.radius,
-					requesterAgentId: identity.agentId,
-					subjects: subjectsOf(identity, input.tags),
-					urgency: input.urgency,
-				}),
-				said,
-			),
-		),
+		bind(requestRulingSpec, (input) => {
+			const request = requestOf(identity, input);
+			return request.urgency === "blocking"
+				? answered(identity, requestRulingSpec.name, hold(request), heldSaid)
+				: answered(
+						identity,
+						requestRulingSpec.name,
+						rulings.request(request),
+						said,
+					);
+		}),
 	];
 });

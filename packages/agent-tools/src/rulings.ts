@@ -12,7 +12,7 @@ const Radius = RulingRadiusSchema.annotate({
 
 const Urgency = RulingUrgencySchema.annotate({
 	description:
-		"How badly you need the answer: `blocking` means you cannot go on without it, `pressing` means you keep working while the work it gates waits, `eventual` means nothing waits.",
+		"How badly you need the answer: `blocking` means you cannot go on without it and this call holds until it is ruled, `pressing` means you keep working while the work it gates waits, `eventual` means nothing waits.",
 });
 
 const Choices = Schema.Array(
@@ -33,7 +33,7 @@ const Choices = Schema.Array(
 
 export const requestRulingSpec = defineTool({
 	description:
-		"Request a ruling: a decision that is not yours to make, recorded with the context and question that give the answer its meaning. Ask when a choice belongs to the authority above you, not when you can read the answer off the record. The request lands durably and this call returns at once — the answer reaches you as mail, so keep working on everything the ruling does not decide and stop only on what it does.",
+		"Request a ruling: a decision that is not yours to make, recorded with the context and question that give the answer its meaning. Ask when a choice belongs to the authority above you, not when you can read the answer off the record. The request lands durably. Declared `blocking`, this call does not return until the ruling lands and then returns the answer itself; declared anything else it returns at once and the answer reaches you as mail, so keep working on everything the ruling does not decide and stop only on what it does.",
 	input: Schema.Struct({
 		choices: Schema.optional(Choices),
 		context: Schema.String.annotate({

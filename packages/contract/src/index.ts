@@ -59,6 +59,7 @@ export {
 export {
 	OpenRulingsView,
 	RulingChoiceView,
+	RulingGatedPieceView,
 	RulingSubjectView,
 	RulingView,
 	StandingRulingsView,

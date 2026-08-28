@@ -1,10 +1,12 @@
 import type {
+	RulingGatedPieceView,
 	RulingSubjectView,
 	RulingView,
 	StandingRulingView,
 } from "@antumbra/contract";
 import type { Ruling, RulingAnswer, RulingSubject } from "@antumbra/rulings";
 import { Option } from "effect";
+import type { PieceRow, VoyageWorld } from "#voyage-rows.ts";
 
 // why: a subject reaches the window as the word that named it — the id of the
 // row it points at, or the tag itself when the concept has no row of its own.
@@ -13,13 +15,41 @@ const subjectSeen = (subject: RulingSubject): RulingSubjectView =>
 		? { kind: subject.kind, label: subject.tag }
 		: { kind: subject.kind, label: subject.id };
 
-export const rulingSeen = (ruling: Ruling): RulingView => ({
+const berthedIn = (
+	world: VoyageWorld,
+	piece: PieceRow,
+): ReadonlyArray<RulingGatedPieceView> =>
+	world.memberships
+		.filter((membership) => membership.pieceId === piece.id)
+		.map((membership) =>
+			world.voyages.find((row) => row.id === membership.voyageId),
+		)
+		.filter((voyage) => voyage !== undefined)
+		.map((voyage) => ({
+			pieceId: piece.id,
+			title: piece.title,
+			voyageId: voyage.id,
+			voyageName: voyage.name,
+		}));
+
+// why: a gated piece is named once per voyage it was chartered for, so the
+// admiral reads what a ruling releases by the places the work is owed to.
+const gatedPiecesSeen = (
+	world: VoyageWorld,
+	pieceIds: ReadonlyArray<string>,
+): ReadonlyArray<RulingGatedPieceView> =>
+	world.pieces
+		.filter((piece) => pieceIds.includes(piece.id))
+		.flatMap((piece) => berthedIn(world, piece));
+
+export const rulingSeen = (ruling: Ruling, world: VoyageWorld): RulingView => ({
 	choices: ruling.choices.map((choice) => ({
 		detail: choice.detail,
 		id: choice.id,
 		label: choice.label,
 	})),
 	context: ruling.context,
+	gatedPieces: gatedPiecesSeen(world, ruling.gatedPieceIds),
 	id: ruling.id,
 	question: ruling.question,
 	radius: ruling.radius,

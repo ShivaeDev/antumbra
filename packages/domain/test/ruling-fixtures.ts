@@ -8,7 +8,7 @@ import { Effect } from "effect";
 
 // why: a ruling is requested by an agent the record knows, so a rehearsal
 // seeds one asker that takes no slot in the fleet before it asks anything.
-const ASKER = "agent-asker";
+export const ASKER = "agent-asker";
 
 export const seedAsker = Effect.gen(function* () {
 	const db = yield* Database;
@@ -30,6 +30,7 @@ const ask = (
 		return yield* rulings.request({
 			choices: [],
 			context: `context of: ${question}`,
+			gates: [],
 			question,
 			requesterAgentId: ASKER,
 			urgency: "pressing",

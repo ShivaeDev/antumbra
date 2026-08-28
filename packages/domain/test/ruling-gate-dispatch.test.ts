@@ -30,6 +30,7 @@ const requestedRuling = Effect.gen(function* () {
 	return yield* rulings.request({
 		choices: [],
 		context: "the reef chart disagrees with the soundings",
+		gates: [],
 		question: "which reading do we trust?",
 		radius: "voyage",
 		requesterAgentId: askerId,

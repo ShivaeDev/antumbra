@@ -10,12 +10,12 @@ import { agentBackends } from "#boundaries/policy/selectors.ts";
 // why: a surface translates between the fleet and something outside it, so it
 // names only the subjects that cross that particular boundary.
 export const vocabularySurfacePolicy = [
-	vocabularyAccess("agent-tools-uses-board-vocabulary")
+	vocabularyAccess("agent-tools-uses-board-and-ruling-vocabulary")
 		.because(
-			"Agent tools name Board inputs, not unrelated runtime, Change, or Session-event vocabulary.",
+			"Agent tools name Board and Ruling inputs, not unrelated runtime, Change, or Session-event vocabulary.",
 		)
 		.for(packages.named("agent-tools"))
-		.allowsOnly("board")
+		.allowsOnly("board", "ruling")
 		.demonstratedBy({
 			illegal: importFrom(files.inPackage("agent-tools", "src/tool.ts")).to(
 				files.inPackage("vocabulary", "src/change.ts"),

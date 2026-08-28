@@ -1,3 +1,4 @@
+import { ChangesLive } from "@antumbra/changes";
 import {
 	type OpenRulingsView,
 	type RulingFailure,
@@ -7,20 +8,26 @@ import {
 import { DomainFeedsLive } from "@antumbra/domain-feeds";
 import { Database } from "@antumbra/persistence";
 import { persistenceIt } from "@antumbra/persistence/testing";
+import { PiecesLive } from "@antumbra/pieces";
 import { Rulings, RulingsLive } from "@antumbra/rulings";
 import { expect } from "@effect/vitest";
 import { Deferred, Effect, Fiber, Layer, Option, Stream } from "effect";
 import { RulingSourceLive } from "#ruling-source.ts";
+import { VoyageWorldSourceLive } from "#voyage-world.ts";
 
 const it = persistenceIt();
 
 const layer = RulingSourceLive.pipe(
+	Layer.provideMerge(VoyageWorldSourceLive),
+	Layer.provideMerge(ChangesLive(new Map(), new Map())),
+	Layer.provideMerge(PiecesLive),
 	Layer.provideMerge(RulingsLive),
 	Layer.provideMerge(DomainFeedsLive),
 );
 
 const requesterId = "agent-surveyor";
 const voyageId = "voyage-reef";
+const pieceId = "piece-course";
 
 const seedFleet = Effect.gen(function* () {
 	const db = yield* Database;
@@ -37,6 +44,14 @@ const seedFleet = Effect.gen(function* () {
 		name: "Chart the reef",
 		northStar: "every shoal is known",
 	});
+	yield* db.Piece.create({
+		charter: "plot a course over the shoal",
+		expectation: "a course is plotted",
+		id: pieceId,
+		role: "navigator",
+		title: "Plot the course",
+	});
+	yield* db.VoyagePiece.create({ pieceId, voyageId });
 });
 
 const asked = {
@@ -45,6 +60,7 @@ const asked = {
 		{ label: "trust the chart" },
 	],
 	context: "the chart and the soundings disagree over the eastern shoal",
+	gates: [],
 	question: "which reading do we plot against?",
 	radius: "voyage",
 	requesterAgentId: requesterId,
@@ -77,6 +93,8 @@ const watchUntil = <A>(
 const anyOpen = (view: OpenRulingsView) => view.rulings.length > 0;
 const noneOpen = (view: OpenRulingsView) => view.rulings.length === 0;
 const oneStanding = (view: StandingRulingsView) => view.rulings.length === 1;
+const anyGated = (view: OpenRulingsView) =>
+	view.rulings.some((ruling) => ruling.gatedPieces.length > 0);
 
 it.effectDB(
 	"the open feed carries a request the moment it lands",
@@ -101,6 +119,7 @@ it.effectDB(
 						{ detail: null, id: expect.any(String), label: "trust the chart" },
 					],
 					context: asked.context,
+					gatedPieces: [],
 					id: expect.any(String),
 					question: asked.question,
 					radius: "voyage",
@@ -111,6 +130,34 @@ it.effectDB(
 						{ kind: "tag", label: "surveying" },
 					]),
 					urgency: "blocking",
+				},
+			]);
+		}).pipe(Effect.provide(layer));
+	},
+);
+
+// why: the admiral prioritises a ruling by what it releases, so a gate that
+// lands after the request reaches the window as the piece's title and voyage
+// without anyone asking again.
+it.effectDB(
+	"the open feed names the piece a gate holds the moment it lands",
+	function* () {
+		yield* Effect.gen(function* () {
+			yield* seedFleet;
+			const rulings = yield* Rulings;
+			const source = yield* RulingSource;
+			const requested = yield* rulings.request(asked);
+			const watcher = yield* watchUntil(source.openFeed, anyGated);
+
+			yield* rulings.gate({ pieceIds: [pieceId], rulingId: requested.id });
+
+			const seen = yield* Fiber.join(watcher);
+			expect(seen[0]?.rulings[0]?.gatedPieces).toEqual([
+				{
+					pieceId,
+					title: "Plot the course",
+					voyageId,
+					voyageName: "Chart the reef",
 				},
 			]);
 		}).pipe(Effect.provide(layer));

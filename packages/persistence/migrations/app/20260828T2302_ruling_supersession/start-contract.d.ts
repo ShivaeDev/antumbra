@@ -16,7 +16,7 @@ import type {
 } from '@prisma-next/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'sha256:ca8613e90746068f19d887f1c3f882501a682565c70ead3d69130bc79a8342ed'>;
+  StorageHashBase<'sha256:61565310d4ddcff2eb62a75d87235e229fe87254363e9ef22a56e9585df849ff'>;
 export type ExecutionHash = ExecutionHashBase<string>;
 export type ProfileHash =
   ProfileHashBase<'sha256:3cc333ecad9f3f4c7229370a9d2c37e908cdce0f8d2e9fb132d50605b024eff2'>;
@@ -233,9 +233,6 @@ export type FieldOutputTypes = {
       readonly answerChoiceId: CodecTypes['sqlite/text@1']['output'] | null;
       readonly ruledBy: CodecTypes['sqlite/text@1']['output'] | null;
       readonly ruledAt: CodecTypes['sqlite/datetime@1']['output'] | null;
-      readonly supersededById: CodecTypes['sqlite/text@1']['output'] | null;
-      readonly supersededAt: CodecTypes['sqlite/datetime@1']['output'] | null;
-      readonly supersededBy: CodecTypes['sqlite/text@1']['output'] | null;
       readonly deliveredAt: CodecTypes['sqlite/datetime@1']['output'] | null;
       readonly createdAt: CodecTypes['sqlite/datetime@1']['output'];
     };
@@ -523,9 +520,6 @@ export type FieldInputTypes = {
       readonly answerChoiceId: CodecTypes['sqlite/text@1']['input'] | null;
       readonly ruledBy: CodecTypes['sqlite/text@1']['input'] | null;
       readonly ruledAt: CodecTypes['sqlite/datetime@1']['input'] | null;
-      readonly supersededById: CodecTypes['sqlite/text@1']['input'] | null;
-      readonly supersededAt: CodecTypes['sqlite/datetime@1']['input'] | null;
-      readonly supersededBy: CodecTypes['sqlite/text@1']['input'] | null;
       readonly deliveredAt: CodecTypes['sqlite/datetime@1']['input'] | null;
       readonly createdAt: CodecTypes['sqlite/datetime@1']['input'];
     };
@@ -814,9 +808,6 @@ export type StorageColumnTypes = {
       readonly requesterAgentId: CodecTypes['sqlite/text@1']['output'];
       readonly ruledAt: CodecTypes['sqlite/datetime@1']['output'] | null;
       readonly ruledBy: CodecTypes['sqlite/text@1']['output'] | null;
-      readonly supersededAt: CodecTypes['sqlite/datetime@1']['output'] | null;
-      readonly supersededBy: CodecTypes['sqlite/text@1']['output'] | null;
-      readonly supersededById: CodecTypes['sqlite/text@1']['output'] | null;
       readonly urgency: CodecTypes['sqlite/text@1']['output'];
     };
     readonly rulingChoice: {
@@ -1104,9 +1095,6 @@ export type StorageColumnInputTypes = {
       readonly requesterAgentId: CodecTypes['sqlite/text@1']['input'];
       readonly ruledAt: CodecTypes['sqlite/datetime@1']['input'] | null;
       readonly ruledBy: CodecTypes['sqlite/text@1']['input'] | null;
-      readonly supersededAt: CodecTypes['sqlite/datetime@1']['input'] | null;
-      readonly supersededBy: CodecTypes['sqlite/text@1']['input'] | null;
-      readonly supersededById: CodecTypes['sqlite/text@1']['input'] | null;
       readonly urgency: CodecTypes['sqlite/text@1']['input'];
     };
     readonly rulingChoice: {
@@ -2321,21 +2309,6 @@ type ContractBase = Omit<
                   readonly codecId: 'sqlite/datetime@1';
                   readonly nullable: true;
                 };
-                readonly supersededById: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'sqlite/text@1';
-                  readonly nullable: true;
-                };
-                readonly supersededAt: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'sqlite/datetime@1';
-                  readonly nullable: true;
-                };
-                readonly supersededBy: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'sqlite/text@1';
-                  readonly nullable: true;
-                };
                 readonly deliveredAt: {
                   readonly nativeType: 'text';
                   readonly codecId: 'sqlite/datetime@1';
@@ -2350,10 +2323,7 @@ type ContractBase = Omit<
               };
               primaryKey: { readonly columns: readonly ['id'] };
               uniques: readonly [];
-              indexes: readonly [
-                { readonly columns: readonly ['ruledAt'] },
-                { readonly columns: readonly ['supersededById'] },
-              ];
+              indexes: readonly [{ readonly columns: readonly ['ruledAt'] }];
               foreignKeys: readonly [
                 {
                   readonly source: {
@@ -2378,20 +2348,6 @@ type ContractBase = Omit<
                   readonly target: {
                     readonly namespaceId: '__unbound__' & NamespaceId;
                     readonly tableName: 'rulingChoice';
-                    readonly columns: readonly ['id'];
-                  };
-                  readonly constraint: true;
-                  readonly index: true;
-                },
-                {
-                  readonly source: {
-                    readonly namespaceId: '__unbound__' & NamespaceId;
-                    readonly tableName: 'ruling';
-                    readonly columns: readonly ['supersededById'];
-                  };
-                  readonly target: {
-                    readonly namespaceId: '__unbound__' & NamespaceId;
-                    readonly tableName: 'ruling';
                     readonly columns: readonly ['id'];
                   };
                   readonly constraint: true;
@@ -4304,18 +4260,6 @@ type ContractBase = Omit<
                 readonly nullable: true;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/datetime@1' };
               };
-              readonly supersededById: {
-                readonly nullable: true;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
-              };
-              readonly supersededAt: {
-                readonly nullable: true;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/datetime@1' };
-              };
-              readonly supersededBy: {
-                readonly nullable: true;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
-              };
               readonly deliveredAt: {
                 readonly nullable: true;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/datetime@1' };
@@ -4381,28 +4325,6 @@ type ContractBase = Omit<
                   readonly targetFields: readonly ['rulingId'];
                 };
               };
-              readonly supersededByRuling: {
-                readonly to: {
-                  readonly namespace: '__unbound__' & NamespaceId;
-                  readonly model: 'Ruling';
-                };
-                readonly cardinality: 'N:1';
-                readonly on: {
-                  readonly localFields: readonly ['supersededById'];
-                  readonly targetFields: readonly ['id'];
-                };
-              };
-              readonly supersedes: {
-                readonly to: {
-                  readonly namespace: '__unbound__' & NamespaceId;
-                  readonly model: 'Ruling';
-                };
-                readonly cardinality: '1:N';
-                readonly on: {
-                  readonly localFields: readonly ['id'];
-                  readonly targetFields: readonly ['supersededById'];
-                };
-              };
             };
             readonly storage: {
               readonly table: 'ruling';
@@ -4418,9 +4340,6 @@ type ContractBase = Omit<
                 readonly answerChoiceId: { readonly column: 'answerChoiceId' };
                 readonly ruledBy: { readonly column: 'ruledBy' };
                 readonly ruledAt: { readonly column: 'ruledAt' };
-                readonly supersededById: { readonly column: 'supersededById' };
-                readonly supersededAt: { readonly column: 'supersededAt' };
-                readonly supersededBy: { readonly column: 'supersededBy' };
                 readonly deliveredAt: { readonly column: 'deliveredAt' };
                 readonly createdAt: { readonly column: 'createdAt' };
               };

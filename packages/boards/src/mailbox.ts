@@ -51,10 +51,7 @@ export const unreadMail = (agentId: string) =>
 		return entries.filter((entry) => !read.has(entry.id));
 	});
 
-export const markMailRead = (
-	agentId: string,
-	entryIds: ReadonlyArray<string>,
-) =>
+const receiptsFor = (agentId: string, entryIds: ReadonlyArray<string>) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
 		const entries = yield* mailEntries(agentId);
@@ -71,3 +68,8 @@ export const markMailRead = (
 			{ discard: true },
 		);
 	});
+
+export const markMailRead = (
+	agentId: string,
+	entryIds: ReadonlyArray<string>,
+) => Database.use((db) => db.transaction(receiptsFor(agentId, entryIds)));

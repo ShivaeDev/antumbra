@@ -1,6 +1,7 @@
 import type { RulingSubjectView, RulingView } from "@antumbra/contract";
 import { Badge } from "#components/ui/badge.tsx";
 import {
+	rulingGatedPieceLabel,
 	rulingRadiusLabel,
 	rulingSubjectLabel,
 	rulingUrgencyLabel,
@@ -43,6 +44,11 @@ export const RulingCard = ({
 			</div>
 		)}
 		<h3 className="min-w-0 text-sm font-medium">{ruling.question}</h3>
+		{ruling.gatedPieces.length === 0 ? null : (
+			<p className="min-w-0 text-2xs text-muted-foreground">
+				Unblocks: {ruling.gatedPieces.map(rulingGatedPieceLabel).join(", ")}
+			</p>
+		)}
 		{/* why: the context is the asker's own prose and is read in the same
 		register every other agent-written passage is. */}
 		<MarkdownView

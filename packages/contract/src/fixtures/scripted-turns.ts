@@ -112,3 +112,27 @@ export const landedQuay = {
 		change: { ...row.change, stage: "landed" as const },
 	})),
 };
+
+// why: a request that holds its asker lands ahead of what was already open,
+// so the set the admiral meets is reordered rather than appended to.
+const courseCall: RulingView = {
+	choices: [{ detail: null, id: "choice-3", label: "hold the course" }],
+	context:
+		"The flagship and the surveyor disagree on which repository the chart lives in.",
+	gatedPieces: [],
+	id: "ruling-3",
+	question: "Where does the chart belong?",
+	radius: "fleet",
+	requestedAt: "2026-08-15T10:05:00.000Z",
+	requesterAgentId: "agent-1",
+	subjects: [{ kind: "tag", label: "charting" }],
+	urgency: "blocking",
+};
+
+export const urgentRulings: OpenRulingsView = {
+	rulings: [courseCall, soundingReading, berthNaming],
+};
+
+export const ruledRulings: OpenRulingsView = {
+	rulings: [courseCall, berthNaming],
+};

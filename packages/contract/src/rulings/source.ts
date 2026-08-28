@@ -4,8 +4,8 @@ import type {
 	RuleRequest,
 	RulingReclassifiedReceipt,
 	RulingRuledReceipt,
-} from "#rulings-requests.ts";
-import type { OpenRulingsView } from "#rulings-views.ts";
+} from "#rulings/requests.ts";
+import type { OpenRulingsView } from "#rulings/views.ts";
 
 export class RulingFailure extends Data.TaggedError("RulingFailure")<{
 	readonly message: string;

@@ -1,7 +1,7 @@
 import { Effect, Layer } from "effect";
 import type { FixtureFeeds } from "#fixtures/feeds.ts";
 import { openRulings } from "#fixtures/ruling.ts";
-import { RulingRefused, RulingSource } from "#rulings.ts";
+import { RulingRefused, RulingSource } from "#rulings/source.ts";
 
 const known = new Set(openRulings.rulings.map((ruling) => ruling.id));
 

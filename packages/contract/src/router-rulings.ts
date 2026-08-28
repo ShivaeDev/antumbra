@@ -1,12 +1,12 @@
 import { type AppProcedure, surface } from "#router-procedure.ts";
-import { RulingSource } from "#rulings.ts";
 import {
 	ReclassifyRequest,
 	RuleRequest,
 	RulingReclassifiedReceipt,
 	RulingRuledReceipt,
-} from "#rulings-requests.ts";
-import { OpenRulingsView } from "#rulings-views.ts";
+} from "#rulings/requests.ts";
+import { RulingSource } from "#rulings/source.ts";
+import { OpenRulingsView } from "#rulings/views.ts";
 
 export const rulingRoutes = (procedure: AppProcedure) => ({
 	openRulings: procedure.output(OpenRulingsView).query(function* () {

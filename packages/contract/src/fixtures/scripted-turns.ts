@@ -8,7 +8,7 @@ import {
 	soundings,
 } from "#fixtures/voyage.ts";
 import type { AgentSummary } from "#fleet.ts";
-import type { OpenRulingsView, RulingView } from "#rulings-views.ts";
+import type { OpenRulingsView, RulingView } from "#rulings/views.ts";
 import type { VoyageSummary } from "#voyage-views.ts";
 
 // why: each of these is one turn of the script — the same reef a beat later,

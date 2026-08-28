@@ -1,4 +1,4 @@
-import type { OpenRulingsView, RulingView } from "#rulings-views.ts";
+import type { OpenRulingsView, RulingView } from "#rulings/views.ts";
 
 export const soundingReading: RulingView = {
 	choices: [

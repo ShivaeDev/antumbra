@@ -59,6 +59,7 @@ const asked = {
 		{ label: "trust the chart" },
 	],
 	context: "the chart and the soundings disagree over the eastern shoal",
+	gates: [],
 	question: "which reading do we plot against?",
 	radius: "voyage",
 	requesterAgentId: requesterId,

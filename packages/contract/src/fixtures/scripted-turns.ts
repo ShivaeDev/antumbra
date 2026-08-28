@@ -121,6 +121,7 @@ const courseCall: RulingView = {
 	choices: [{ detail: null, id: "choice-3", label: "hold the course" }],
 	context:
 		"The flagship and the surveyor disagree on which repository the chart lives in.",
+	gatedPieces: [],
 	id: "ruling-3",
 	question: "Where does the chart belong?",
 	radius: "fleet",

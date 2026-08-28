@@ -13,6 +13,7 @@ import { Effect, Layer } from "effect";
 import { makeRulingRefreshes } from "#ruling-feed.ts";
 import { rulingSeen } from "#ruling-projection.ts";
 import { failureMessage } from "#sight-failure.ts";
+import { VoyageWorldSource } from "#voyage-world.ts";
 
 const toFailure = (cause: unknown): RulingFailure =>
 	new RulingFailure({ message: failureMessage(cause) });
@@ -59,9 +60,12 @@ const verdictOf = (request: RuleRequest): RulingVerdict =>
 export const RulingSourceLive = Layer.effect(RulingSource)(
 	Effect.gen(function* () {
 		const rulings = yield* Rulings;
+		const world = yield* VoyageWorldSource;
 		const refreshes = yield* makeRulingRefreshes;
-		const open = rulings.open().pipe(
-			Effect.map((all) => ({ rulings: all.map(rulingSeen) })),
+		const open = Effect.all({ open: rulings.open(), rows: world.read }).pipe(
+			Effect.map(({ open, rows }) => ({
+				rulings: open.map((ruling) => rulingSeen(ruling, rows)),
+			})),
 			Effect.mapError(toFailure),
 		);
 		return {

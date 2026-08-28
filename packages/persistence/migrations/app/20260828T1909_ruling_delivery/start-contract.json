@@ -2189,13 +2189,6 @@
                   "kind": "scalar"
                 }
               },
-              "deliveredAt": {
-                "nullable": true,
-                "type": {
-                  "codecId": "sqlite/datetime@1",
-                  "kind": "scalar"
-                }
-              },
               "id": {
                 "nullable": false,
                 "type": {
@@ -2336,9 +2329,6 @@
                 },
                 "createdAt": {
                   "column": "createdAt"
-                },
-                "deliveredAt": {
-                  "column": "deliveredAt"
                 },
                 "id": {
                   "column": "id"
@@ -4705,11 +4695,6 @@
                   "nativeType": "text",
                   "nullable": false
                 },
-                "deliveredAt": {
-                  "codecId": "sqlite/datetime@1",
-                  "nativeType": "text",
-                  "nullable": true
-                },
                 "id": {
                   "codecId": "sqlite/text@1",
                   "nativeType": "text",
@@ -5539,7 +5524,7 @@
         "id": "__unbound__"
       }
     },
-    "storageHash": "sha256:61565310d4ddcff2eb62a75d87235e229fe87254363e9ef22a56e9585df849ff"
+    "storageHash": "sha256:dcc1ec7624fa7618d33ebed1b3c9fdb5bbf64fcea561864f91ce959234ac0036"
   },
   "capabilities": {
     "sql": {

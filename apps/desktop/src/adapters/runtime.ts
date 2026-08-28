@@ -7,6 +7,7 @@ import {
 	DispatcherLive,
 	IntentFeedLive,
 	KernelReachLive,
+	RulingDeliveryLive,
 	RulingSourceLive,
 	SessionShutdownLive,
 	SettingsSourceLive,
@@ -98,6 +99,7 @@ export const applicationLayers = () =>
 		),
 		IntentFeedLive,
 		KernelReachLive,
+		RulingDeliveryLive,
 		SessionShutdownLive,
 	).pipe(
 		Layer.provideMerge(kernel),

@@ -19,6 +19,7 @@ const requested = (input: RulingRequest, nowMillis: number): StoredRuling => ({
 	answerChoiceId: null,
 	context: input.context,
 	createdAt: new Date(nowMillis),
+	deliveredAt: null,
 	id: crypto.randomUUID(),
 	question: input.question,
 	radius: input.radius,

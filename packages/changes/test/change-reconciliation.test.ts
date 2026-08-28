@@ -189,6 +189,62 @@ it.effectDB(
 );
 
 it.effectDB(
+	"keeps same-stage observations from mutating terminal Changes",
+	function* (db) {
+		const scripted = yield* makeScriptedHost;
+		yield* seed;
+		yield* Effect.gen(function* () {
+			const changes = yield* Changes;
+			const first = yield* opened;
+			const landed = Option.getOrThrow(
+				Option.fromNullishOr(
+					(yield* changes.observed("scripted", [
+						observed(first, 1, { stage: "landed" }),
+					]))[0],
+				),
+			);
+			const second = yield* opened;
+			const withdrawn = Option.getOrThrow(
+				Option.fromNullishOr(
+					(yield* changes.observed("scripted", [
+						observed(second, 1, { stage: "withdrawn" }),
+					]))[0],
+				),
+			);
+			const terminal = [
+				{ row: landed, stage: "landed" },
+				{ row: withdrawn, stage: "withdrawn" },
+			] as const;
+			const beforeRows = yield* Effect.forEach(terminal, ({ row }) =>
+				db.Change.where({ id: row.id })
+					.first()
+					.pipe(Effect.map(Option.getOrThrow)),
+			);
+			const beforeTransitions = yield* db.ChangeTransition.all();
+			expect(
+				yield* changes.observed(
+					"scripted",
+					terminal.map(({ row, stage }) =>
+						observed(row, 10, {
+							stage,
+							title: `mutated ${stage}`,
+						}),
+					),
+				),
+			).toEqual(terminal.map(({ row }) => row));
+			expect(
+				yield* Effect.forEach(terminal, ({ row }) =>
+					db.Change.where({ id: row.id })
+						.first()
+						.pipe(Effect.map(Option.getOrThrow)),
+				),
+			).toEqual(beforeRows);
+			expect(yield* db.ChangeTransition.all()).toEqual(beforeTransitions);
+		}).pipe(Effect.provide(changesLayer([scripted.host])));
+	},
+);
+
+it.effectDB(
 	"settles existing host evidence after the owning Agent becomes terminal",
 	function* (db) {
 		const scripted = yield* makeScriptedHost;

@@ -41,12 +41,8 @@ const isEqualTimeReplay = (
 	next.activityAt.getTime() === row.activityAt.getTime() &&
 	(sameProjectedFacts(row, next) || (next.stage !== row.stage && !append));
 
-const contradictsTerminalStage = (
-	row: ChangeRow,
-	observation: ChangeObservation,
-): boolean =>
-	(row.stage === "landed" || row.stage === "withdrawn") &&
-	observation.stage !== row.stage;
+const isTerminal = (row: ChangeRow): boolean =>
+	row.stage === "landed" || row.stage === "withdrawn";
 
 const updateMatchedRow = (
 	row: ChangeRow,
@@ -57,19 +53,21 @@ const updateMatchedRow = (
 ) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
+		if (isTerminal(row)) {
+			if (observation.stage !== row.stage) {
+				yield* Effect.logWarning(
+					"a terminal change was observed in another stage",
+					{
+						changeId: row.id,
+						observed: observation.stage,
+						stage: row.stage,
+					},
+				);
+			}
+			return { changed: false, row } satisfies ReconciledObservation;
+		}
 		if (attachment._tag === "Claimed" && !matchesClaim(row, attachment)) {
 			return yield* observationConflict(attachment, hostTag, observation);
-		}
-		if (contradictsTerminalStage(row, observation)) {
-			yield* Effect.logWarning(
-				"a terminal change was observed in another stage",
-				{
-					changeId: row.id,
-					observed: observation.stage,
-					stage: row.stage,
-				},
-			);
-			return { changed: false, row } satisfies ReconciledObservation;
 		}
 		if (isStale(row, observation)) {
 			return { changed: false, row } satisfies ReconciledObservation;

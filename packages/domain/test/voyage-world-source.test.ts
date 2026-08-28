@@ -101,6 +101,7 @@ it.effectDB(
 			const asked = yield* rulings.request({
 				choices: [],
 				context: "the chart and the soundings disagree",
+				gates: [],
 				question: "which reading do we plot against?",
 				radius: "piece",
 				requesterAgentId: "agent-asker",

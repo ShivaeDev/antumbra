@@ -38,8 +38,11 @@ export interface RulingGateInput {
 	readonly rulingId: string;
 }
 
+// why: a piece held by a ruling names the question that holds it, so the
+// gate carries the question and no reader has to look the ruling up.
 export interface RulingGate {
 	readonly pieceId: string;
+	readonly question: string;
 	readonly rulingId: string;
 }
 

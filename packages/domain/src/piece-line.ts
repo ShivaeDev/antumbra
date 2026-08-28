@@ -11,7 +11,10 @@ const dependsOn = (piece: PieceView): string =>
 const awaitsRuling = (piece: PieceView): string =>
 	piece.awaitingRulings.length === 0
 		? ""
-		: `awaits ruling ${[...piece.awaitingRulings].sort().join(", ")}`;
+		: `awaits ruling ${[...piece.awaitingRulings]
+				.sort((left, right) => left.rulingId.localeCompare(right.rulingId))
+				.map((ruling) => `${ruling.rulingId}: ${ruling.question}`)
+				.join("; ")}`;
 
 const landedTitles = (piece: PieceView): ReadonlyArray<string> => [
 	...piece.reports.map((report) => report.title),

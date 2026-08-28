@@ -7,15 +7,16 @@ import type { RulingGate } from "#model.ts";
 // is history rather than a hold.
 export const openGates = Effect.fn("rulings.openGates")(function* () {
 	const db = yield* Database;
-	const unruled = new Set(
-		(yield* db.Ruling.where({ ruledAt: null }).select("id").all()).map(
-			(row) => row.id,
-		),
+	const unruled = new Map(
+		(yield* db.Ruling.where({ ruledAt: null })
+			.select("id", "question")
+			.all()).map((row) => [row.id, row.question] as const),
 	);
 	const rows = yield* db.RulingGate.all();
-	return rows
-		.filter((row) => unruled.has(row.rulingId))
-		.map(
-			(row): RulingGate => ({ pieceId: row.pieceId, rulingId: row.rulingId }),
-		);
+	return rows.flatMap((row): ReadonlyArray<RulingGate> => {
+		const question = unruled.get(row.rulingId);
+		return question === undefined
+			? []
+			: [{ pieceId: row.pieceId, question, rulingId: row.rulingId }];
+	});
 });

@@ -63,7 +63,10 @@ const pieceSeen = (
 		id: artifact.id,
 		title: artifact.title,
 	})),
-	awaitingRulings: piece.awaitingRulings,
+	awaitingRulings: piece.awaitingRulings.map((ruling) => ({
+		question: ruling.question,
+		rulingId: ruling.rulingId,
+	})),
 	board: board.map(entrySeen),
 	canRetireCrew: crewReleasable(piece, resting),
 	changes: piece.changes.map(changeSeen),

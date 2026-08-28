@@ -1,6 +1,11 @@
 import { type AppProcedure, surface } from "#router-procedure.ts";
 import { RulingSource } from "#rulings.ts";
-import { RuleRequest, RulingRuledReceipt } from "#rulings-requests.ts";
+import {
+	ReclassifyRequest,
+	RuleRequest,
+	RulingReclassifiedReceipt,
+	RulingRuledReceipt,
+} from "#rulings-requests.ts";
 import { OpenRulingsView } from "#rulings-views.ts";
 
 export const rulingRoutes = (procedure: AppProcedure) => ({
@@ -12,6 +17,13 @@ export const rulingRoutes = (procedure: AppProcedure) => ({
 		const rulings = yield* RulingSource;
 		return rulings.openFeed;
 	}),
+	reclassifyRuling: procedure
+		.input(ReclassifyRequest)
+		.output(RulingReclassifiedReceipt)
+		.mutation(function* (input) {
+			const rulings = yield* RulingSource;
+			return yield* surface(rulings.reclassify(input));
+		}),
 	ruleOn: procedure
 		.input(RuleRequest)
 		.output(RulingRuledReceipt)

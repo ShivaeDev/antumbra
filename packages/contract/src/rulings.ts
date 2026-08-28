@@ -1,5 +1,10 @@
 import { Context, Data, type Effect, type Stream } from "effect";
-import type { RuleRequest, RulingRuledReceipt } from "#rulings-requests.ts";
+import type {
+	ReclassifyRequest,
+	RuleRequest,
+	RulingReclassifiedReceipt,
+	RulingRuledReceipt,
+} from "#rulings-requests.ts";
 import type { OpenRulingsView } from "#rulings-views.ts";
 
 export class RulingFailure extends Data.TaggedError("RulingFailure")<{
@@ -18,6 +23,12 @@ export class RulingSource extends Context.Service<
 	{
 		readonly open: Effect.Effect<OpenRulingsView, RulingFailure>;
 		readonly openFeed: Stream.Stream<OpenRulingsView, RulingFailure>;
+		readonly reclassify: (
+			request: ReclassifyRequest,
+		) => Effect.Effect<
+			RulingReclassifiedReceipt,
+			RulingFailure | RulingRefused
+		>;
 		readonly rule: (
 			request: RuleRequest,
 		) => Effect.Effect<RulingRuledReceipt, RulingFailure | RulingRefused>;

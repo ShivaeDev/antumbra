@@ -367,6 +367,7 @@ model Ruling {
   choices          RulingChoice[] @relation("RulingChoices")
   subjects         RulingSubject[]
   gates            RulingGate[]
+  reclassifications RulingReclassification[]
 
   @@index([ruledAt])
 }
@@ -409,6 +410,19 @@ model RulingGate {
   piece    Piece  @relation(fields: [pieceId], references: [id], onDelete: Restrict, onUpdate: Restrict)
 
   @@unique([rulingId, pieceId])
+}
+
+model RulingReclassification {
+  id       String   @id
+  rulingId String
+  by       String
+  radius   String?
+  urgency  String?
+  note     String?
+  at       DateTime
+  ruling   Ruling   @relation(fields: [rulingId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+
+  @@index([rulingId])
 }
 
 model Setting {

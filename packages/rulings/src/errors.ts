@@ -34,6 +34,14 @@ export class RulingSubjectMissing extends Data.TaggedError(
 	readonly subject: RulingSubject;
 }> {}
 
+// why: a reclassification that names no axis would append a row saying
+// nothing, so it is refused before anything is written.
+export class RulingReclassificationEmpty extends Data.TaggedError(
+	"RulingReclassificationEmpty",
+)<{
+	readonly rulingId: string;
+}> {}
+
 export type RulingReadFailure = PrismaError | StoredRulingValueInvalid;
 
 export type RulingRequestFailure = RulingReadFailure | RulingSubjectMissing;
@@ -49,5 +57,11 @@ export type RulingGateFailure =
 	| RulingGatePieceMissing
 	| RulingNotFound
 	| RulingReadFailure;
+
+export type RulingReclassifyFailure =
+	| RulingAlreadyRuled
+	| RulingNotFound
+	| RulingReadFailure
+	| RulingReclassificationEmpty;
 
 export type RulingLookupFailure = RulingNotFound | RulingReadFailure;

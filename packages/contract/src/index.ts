@@ -51,10 +51,16 @@ export {
 export { type AppRouter, makeAppRouter } from "#router.ts";
 export { type RequestContext, RequestOrigin } from "#router-procedure.ts";
 export { RulingFailure, RulingRefused, RulingSource } from "#rulings.ts";
-export { RuleRequest, RulingRuledReceipt } from "#rulings-requests.ts";
+export {
+	ReclassifyRequest,
+	RuleRequest,
+	RulingReclassifiedReceipt,
+	RulingRuledReceipt,
+} from "#rulings-requests.ts";
 export {
 	OpenRulingsView,
 	RulingChoiceView,
+	RulingReclassificationView,
 	RulingSubjectView,
 	RulingView,
 } from "#rulings-views.ts";

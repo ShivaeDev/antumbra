@@ -6,6 +6,11 @@ import type {
 } from "@antumbra/vocabulary/ruling";
 import type { Option } from "effect";
 
+export interface RulingAxes {
+	readonly radius: RulingRadius;
+	readonly urgency: RulingUrgency;
+}
+
 export type RulingReferenceKind = Exclude<RulingSubjectKind, "tag">;
 
 // why: scope is typed as subject plus radius, so a subject is either a row the
@@ -49,6 +54,24 @@ export interface RulingVerdict {
 	readonly rulingId: string;
 }
 
+export interface RulingReclassifyInput {
+	readonly by: RulingAuthority;
+	readonly note?: string;
+	readonly radius?: RulingRadius;
+	readonly rulingId: string;
+	readonly urgency?: RulingUrgency;
+}
+
+// why: a reclassification appends beside the asker's declaration and never
+// over it, so each carries who set which axis, when, and any words beside it.
+export interface RulingReclassification {
+	readonly at: Date;
+	readonly by: RulingAuthority;
+	readonly note: Option.Option<string>;
+	readonly radius: Option.Option<RulingRadius>;
+	readonly urgency: Option.Option<RulingUrgency>;
+}
+
 export interface RulingChoice {
 	readonly detail: string | null;
 	readonly id: string;
@@ -64,16 +87,20 @@ export interface RulingAnswer {
 }
 
 // why: the context, the question, and the answer are one record because an
-// answer read apart from its question loses the scope that bounds it.
+// answer read apart from its question loses the scope that bounds it. The
+// axes are the effective ones — the latest word an authority set on each,
+// else what the asker declared — and the declaration stays beside them.
 export interface Ruling {
 	readonly answer: Option.Option<RulingAnswer>;
 	readonly choices: ReadonlyArray<RulingChoice>;
 	readonly context: string;
 	readonly createdAt: Date;
+	readonly declared: RulingAxes;
 	readonly gatedPieceIds: ReadonlyArray<string>;
 	readonly id: string;
 	readonly question: string;
 	readonly radius: RulingRadius;
+	readonly reclassifications: ReadonlyArray<RulingReclassification>;
 	readonly requesterAgentId: string;
 	readonly subjects: ReadonlyArray<RulingSubject>;
 	readonly urgency: RulingUrgency;
@@ -91,6 +118,14 @@ export interface StoredRuling {
 	readonly ruledAt: Date | null;
 	readonly ruledBy: string | null;
 	readonly urgency: string;
+}
+
+export interface StoredRulingReclassification {
+	readonly at: Date;
+	readonly by: string;
+	readonly note: string | null;
+	readonly radius: string | null;
+	readonly urgency: string | null;
 }
 
 export interface StoredRulingSubject {

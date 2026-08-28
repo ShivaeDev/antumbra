@@ -1,12 +1,10 @@
 import type { RulingSubjectView, RulingView } from "@antumbra/contract";
 import { Badge } from "#components/ui/badge.tsx";
-import {
-	rulingRadiusLabel,
-	rulingSubjectLabel,
-	rulingUrgencyLabel,
-	rulingUrgencyTone,
-} from "#rulings/labels.ts";
+import { rulingSubjectLabel } from "#rulings/labels.ts";
 import { MarkdownView } from "#views/markdown-view.tsx";
+import { RulingAxes } from "#views/ruling-axes.tsx";
+import { RulingReclassifications } from "#views/ruling-reclassifications.tsx";
+import { RulingReclassify } from "#views/ruling-reclassify.tsx";
 import { RulingVerdict } from "#views/ruling-verdict.tsx";
 import { whenLabel } from "#voyages/labels.ts";
 
@@ -22,10 +20,7 @@ export const RulingCard = ({
 }) => (
 	<li className="flex min-w-0 flex-col gap-2 rounded-md border border-border bg-card px-3 py-2.5">
 		<div className="flex min-w-0 flex-wrap items-center gap-2">
-			<Badge variant={rulingUrgencyTone[ruling.urgency]}>
-				{rulingUrgencyLabel[ruling.urgency]}
-			</Badge>
-			<Badge variant="outline">{rulingRadiusLabel[ruling.radius]}</Badge>
+			<RulingAxes ruling={ruling} />
 			<span className="min-w-0 truncate font-mono text-2xs text-muted-foreground">
 				{ruling.requesterAgentId}
 			</span>
@@ -49,6 +44,8 @@ export const RulingCard = ({
 			className="text-xs text-muted-foreground"
 			markdown={ruling.context}
 		/>
+		<RulingReclassifications reclassifications={ruling.reclassifications} />
+		<RulingReclassify onError={onError} ruling={ruling} />
 		<RulingVerdict onError={onError} ruling={ruling} />
 	</li>
 );

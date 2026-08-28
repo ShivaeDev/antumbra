@@ -4,9 +4,14 @@ import {
 	decodeStoredRulingUrgency,
 } from "@antumbra/vocabulary/ruling";
 import { Effect, Option } from "effect";
+import { effectiveAxes } from "#axes.ts";
 import { RulingNotFound } from "#errors.ts";
-import type { Ruling, RulingChoice, StoredRuling } from "#model.ts";
-import { storedAnswer, storedSubject } from "#stored.ts";
+import type { Ruling, RulingAxes, RulingChoice, StoredRuling } from "#model.ts";
+import {
+	storedAnswer,
+	storedReclassification,
+	storedSubject,
+} from "#stored.ts";
 
 const choicesOf = (rulingId: string) =>
 	Effect.gen(function* () {
@@ -33,6 +38,29 @@ const gatedPieceIdsOf = (rulingId: string) =>
 		return rows.map((row) => row.pieceId);
 	});
 
+const reclassificationsOf = (rulingId: string) =>
+	Effect.gen(function* () {
+		const db = yield* Database;
+		const rows = yield* db.RulingReclassification.where({ rulingId })
+			.orderBy((row) => row.at.asc())
+			.all();
+		return yield* Effect.forEach(rows, (row) =>
+			storedReclassification(rulingId, row),
+		);
+	});
+
+const declaredOf = (row: StoredRuling) =>
+	Effect.gen(function* () {
+		return {
+			radius: yield* Effect.fromResult(
+				decodeStoredRulingRadius(row.id, row.radius),
+			),
+			urgency: yield* Effect.fromResult(
+				decodeStoredRulingUrgency(row.id, row.urgency),
+			),
+		} satisfies RulingAxes;
+	});
+
 const subjectsOf = (rulingId: string) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
@@ -42,22 +70,21 @@ const subjectsOf = (rulingId: string) =>
 
 export const loadRuling = (row: StoredRuling) =>
 	Effect.gen(function* () {
+		const declared = yield* declaredOf(row);
+		const reclassifications = yield* reclassificationsOf(row.id);
 		return {
 			answer: yield* storedAnswer(row),
 			choices: yield* choicesOf(row.id),
 			context: row.context,
 			createdAt: row.createdAt,
+			declared,
 			gatedPieceIds: yield* gatedPieceIdsOf(row.id),
 			id: row.id,
 			question: row.question,
-			radius: yield* Effect.fromResult(
-				decodeStoredRulingRadius(row.id, row.radius),
-			),
+			reclassifications,
 			requesterAgentId: row.requesterAgentId,
 			subjects: yield* subjectsOf(row.id),
-			urgency: yield* Effect.fromResult(
-				decodeStoredRulingUrgency(row.id, row.urgency),
-			),
+			...effectiveAxes(declared, reclassifications),
 		} satisfies Ruling;
 	});
 

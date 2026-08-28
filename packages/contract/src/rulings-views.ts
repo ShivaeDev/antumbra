@@ -1,4 +1,5 @@
 import {
+	RulingAuthoritySchema,
 	RulingRadiusSchema,
 	RulingSubjectKindSchema,
 	RulingUrgencySchema,
@@ -23,14 +24,34 @@ export const RulingSubjectView = Schema.Struct({
 });
 export type RulingSubjectView = typeof RulingSubjectView.Type;
 
+export const RulingAxesView = Schema.Struct({
+	radius: RulingRadiusSchema,
+	urgency: RulingUrgencySchema,
+});
+export type RulingAxesView = typeof RulingAxesView.Type;
+
+// why: a reclassification is read beside the asker's declaration, so the
+// window is told who set which axis, when, and any words beside it.
+export const RulingReclassificationView = Schema.Struct({
+	at: Schema.String,
+	by: RulingAuthoritySchema,
+	note: Schema.optional(Schema.String),
+	radius: Schema.optional(RulingRadiusSchema),
+	urgency: Schema.optional(RulingUrgencySchema),
+});
+export type RulingReclassificationView = typeof RulingReclassificationView.Type;
+
 // why: the context, the question and the choices travel together because an
-// answer read apart from its question loses the scope that bounds it.
+// answer read apart from its question loses the scope that bounds it. The
+// axes are the effective ones; the declaration travels beside them.
 export const RulingView = Schema.Struct({
 	choices: Schema.Array(RulingChoiceView),
 	context: Schema.String,
+	declared: RulingAxesView,
 	id: Schema.String,
 	question: Schema.String,
 	radius: RulingRadiusSchema,
+	reclassifications: Schema.Array(RulingReclassificationView),
 	requestedAt: Schema.String,
 	requesterAgentId: Schema.String,
 	subjects: Schema.Array(RulingSubjectView),

@@ -55,6 +55,7 @@ export { RuleRequest, RulingRuledReceipt } from "#rulings-requests.ts";
 export {
 	OpenRulingsView,
 	RulingChoiceView,
+	RulingGatedPieceView,
 	RulingSubjectView,
 	RulingView,
 } from "#rulings-views.ts";

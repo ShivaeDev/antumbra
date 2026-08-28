@@ -30,6 +30,7 @@ const ask = (
 		return yield* rulings.request({
 			choices: [],
 			context: `context of: ${question}`,
+			gates: [],
 			question,
 			requesterAgentId: ASKER,
 			urgency: "pressing",

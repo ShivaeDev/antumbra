@@ -32,6 +32,7 @@ const askedAndRuled = (question: string, answer: string) =>
 		const requested = yield* rulings.request({
 			choices: [{ label: "resurvey" }],
 			context: "the chart disagrees with what we sounded",
+			gates: [],
 			question,
 			radius: "voyage",
 			requesterAgentId: ASKER,

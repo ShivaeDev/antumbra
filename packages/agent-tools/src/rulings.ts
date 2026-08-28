@@ -40,6 +40,12 @@ export const requestRulingSpec = defineTool({
 			description:
 				"The situation behind the question: why you are asking and how the work arrived here. The wider the radius, the richer this must be, because the answer will be read long after you.",
 		}),
+		gates: Schema.optional(
+			Schema.Array(Schema.String).annotate({
+				description:
+					"Ids of Pieces in your voyage that cannot start until this is ruled. The scheduler holds them until the answer lands, and the admiral sees exactly what the ruling unblocks.",
+			}),
+		),
 		question: Schema.String.annotate({
 			description:
 				"The question itself, in whatever shape fits: yes or no, choose one, rank, or free prose.",

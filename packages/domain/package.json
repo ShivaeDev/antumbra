@@ -39,6 +39,7 @@
 		"@antumbra/prompts": "workspace:*",
 		"@antumbra/reports": "workspace:*",
 		"@antumbra/repos": "workspace:*",
+		"@antumbra/rulings": "workspace:*",
 		"@antumbra/resource-reclamation": "workspace:*",
 		"@antumbra/session-event-journal": "workspace:*",
 		"@antumbra/session-fabric": "workspace:*",

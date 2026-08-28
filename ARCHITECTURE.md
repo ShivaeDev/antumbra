@@ -47,7 +47,7 @@ obligation remains detached until needed. See
 | ------------------------- | --------------------------------------------------------------- |
 | `apps/desktop`            | Electron shell: windows, native surfaces, composition           |
 | `packages/contract`       | Public typed IDL between renderer and main                      |
-| `packages/vocabulary`     | Neutral Agent runtime, Board, Change, and Session-event language through explicit subject subpaths (a leaf) |
+| `packages/vocabulary`     | Neutral Agent runtime, Board, Change, Ruling, and Session-event language through explicit subject subpaths (a leaf) |
 | `packages/session-event-journal` | Durable Session event sequencing and native identity correlation |
 | `packages/session-inputs` | Ordered durable Session inputs, validated image custody, delivery readings, and transcript thumbnails |
 | `packages/prompts`        | The catalog of everything an Agent can be told: one template per set of blanks, minting the branded type the delivery seams accept (a leaf) |
@@ -62,6 +62,7 @@ obligation remains detached until needed. See
 | `packages/repos`          | Application repository registry and transactional lifecycle     |
 | `packages/pieces`         | Piece acts and their transactional graph invariants             |
 | `packages/boards`         | Board and mailbox storage invariants                            |
+| `packages/rulings`        | The Ruling record: requests, answers, and the readings of open and standing rulings |
 | `packages/artifacts`      | Durable artifact publication and landing                        |
 | `packages/reports`        | Durable report landing                                           |
 | `packages/session-fabric` | Live Session attachment, start admission, and stop lifecycle    |

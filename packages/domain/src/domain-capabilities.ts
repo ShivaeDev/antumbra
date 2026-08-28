@@ -6,6 +6,7 @@ import { PiecesLive } from "@antumbra/pieces";
 import type { ChangeHost, Runner } from "@antumbra/plugin-api";
 import { ReportsLive } from "@antumbra/reports";
 import { ReposLive } from "@antumbra/repos";
+import { RulingsLive } from "@antumbra/rulings";
 import { SessionEventJournalLive } from "@antumbra/session-event-journal";
 import { Layer } from "effect";
 import { CaptainMembershipLive } from "#captain-membership.ts";
@@ -26,6 +27,7 @@ export const domainCapabilities = (
 		ArtifactsLive(artifactsDirectory),
 		ReportsLive,
 		ReposLive,
+		RulingsLive,
 		SessionEventJournalLive,
 		KernelReachDeferredLive,
 	).pipe(Layer.provideMerge(DomainFeedsLive));

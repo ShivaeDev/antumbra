@@ -1,19 +1,13 @@
 {
-	"name": "@antumbra/vocabulary",
+	"name": "@antumbra/rulings",
 	"version": "0.0.0",
 	"private": true,
 	"type": "module",
 	"exports": {
-		"./agent-backend": "./src/agent-backend.ts",
-		"./agent-runtime": "./src/agent-runtime.ts",
-		"./board": "./src/board.ts",
-		"./change": "./src/change.ts",
-		"./ruling": "./src/ruling.ts",
-		"./session-events": "./src/session-events.ts",
-		"./session-input": "./src/session-input.ts",
-		"./verdict": "./src/verdict.ts"
+		".": "./src/index.ts"
 	},
 	"imports": {
+		"#test/*": "./test/*",
 		"#*": "./src/*"
 	},
 	"scripts": {
@@ -25,11 +19,14 @@
 		"@effect/vitest": "catalog:",
 		"@types/node": "catalog:",
 		"@typescript/native": "catalog:",
-		"effect": "catalog:",
 		"typescript": "catalog:",
 		"vitest": "catalog:"
 	},
 	"dependencies": {
+		"@antumbra/domain-feeds": "workspace:*",
+		"@antumbra/persistence": "workspace:*",
+		"@antumbra/service-definition": "workspace:*",
+		"@antumbra/vocabulary": "workspace:*",
 		"effect": "catalog:"
 	}
 }

@@ -50,7 +50,7 @@ export {
 } from "#quay-views.ts";
 export { type AppRouter, makeAppRouter } from "#router.ts";
 export { type RequestContext, RequestOrigin } from "#router-procedure.ts";
-export * from "#rulings/index.ts";
+export * from "#rulings/surface.ts";
 export {
 	SessionImage,
 	SessionImageRequest,

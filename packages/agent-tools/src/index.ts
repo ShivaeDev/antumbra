@@ -23,3 +23,4 @@ export {
 export { bind } from "#define.ts";
 export { readReportSpec } from "#reports.ts";
 export { readRulingsSpec } from "#ruling-readings.ts";
+export { requestRulingSpec } from "#rulings.ts";

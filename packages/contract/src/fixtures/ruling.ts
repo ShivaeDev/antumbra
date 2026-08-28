@@ -12,6 +12,14 @@ export const soundingReading: RulingView = {
 	context:
 		"The eastern shoal sounds two metres shallower than the chart says, and the next piece plots a course over it.",
 	declared: { radius: "voyage", urgency: "pressing" },
+	gatedPieces: [
+		{
+			pieceId: "piece-2",
+			title: "the chart",
+			voyageId: "voyage-1",
+			voyageName: "Chart the reef",
+		},
+	],
 	id: "ruling-1",
 	question: "Which reading do we plot the course against?",
 	radius: "voyage",
@@ -37,6 +45,7 @@ export const berthNaming: RulingView = {
 	context:
 		"Two repositories name their default branch differently and the berths inherit the disagreement.",
 	declared: { radius: "fleet", urgency: "eventual" },
+	gatedPieces: [],
 	id: "ruling-2",
 	question: "What do we call the branch a berth is cut from?",
 	radius: "fleet",

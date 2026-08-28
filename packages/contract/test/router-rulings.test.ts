@@ -15,6 +15,9 @@ describe("makeAppRouter, on the rulings", () => {
 				"trust the soundings",
 				"trust the chart",
 			]);
+			expect(read.rulings.map((ruling) => ruling.gatedPieces.length)).toEqual([
+				1, 0,
+			]);
 		}),
 	);
 

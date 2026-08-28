@@ -122,6 +122,7 @@ const courseCall: RulingView = {
 	context:
 		"The flagship and the surveyor disagree on which repository the chart lives in.",
 	declared: { radius: "fleet", urgency: "blocking" },
+	gatedPieces: [],
 	id: "ruling-3",
 	question: "Where does the chart belong?",
 	radius: "fleet",

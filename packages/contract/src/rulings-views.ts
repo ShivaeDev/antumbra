@@ -40,6 +40,15 @@ export const RulingReclassificationView = Schema.Struct({
 	urgency: Schema.optional(RulingUrgencySchema),
 });
 export type RulingReclassificationView = typeof RulingReclassificationView.Type;
+// why: a ruling is prioritised by what it releases, so every piece it holds
+// reaches the window by title and voyage rather than as an id to look up.
+export const RulingGatedPieceView = Schema.Struct({
+	pieceId: Schema.String,
+	title: Schema.String,
+	voyageId: Schema.String,
+	voyageName: Schema.String,
+});
+export type RulingGatedPieceView = typeof RulingGatedPieceView.Type;
 
 // why: the context, the question and the choices travel together because an
 // answer read apart from its question loses the scope that bounds it. The
@@ -48,6 +57,7 @@ export const RulingView = Schema.Struct({
 	choices: Schema.Array(RulingChoiceView),
 	context: Schema.String,
 	declared: RulingAxesView,
+	gatedPieces: Schema.Array(RulingGatedPieceView),
 	id: Schema.String,
 	question: Schema.String,
 	radius: RulingRadiusSchema,

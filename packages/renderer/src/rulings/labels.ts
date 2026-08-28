@@ -1,6 +1,7 @@
 import { RulingView } from "@antumbra/contract";
 import type { Tone } from "#voyages/tone.ts";
 
+type GatedPiece = RulingView["gatedPieces"][number];
 type Radius = RulingView["radius"];
 type SubjectKind = RulingView["subjects"][number]["kind"];
 type Urgency = RulingView["urgency"];
@@ -40,3 +41,6 @@ export const rulingSubjectLabel: Readonly<Record<SubjectKind, string>> = {
 	tag: "Tag",
 	voyage: "Voyage",
 };
+
+export const rulingGatedPieceLabel = (piece: GatedPiece): string =>
+	`${piece.title} (${piece.voyageName})`;

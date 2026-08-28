@@ -16,6 +16,7 @@ import {
 	toRulingFailure,
 	verdictFailure,
 } from "#ruling-refusals.ts";
+import { VoyageWorldSource } from "#voyage-world.ts";
 
 // why: the window is the admiral's hand, so what it sends is ruled by the
 // admiral — no other authority sits on the ladder yet. A choice nobody picked
@@ -47,9 +48,12 @@ const reclassificationOf = (
 export const RulingSourceLive = Layer.effect(RulingSource)(
 	Effect.gen(function* () {
 		const rulings = yield* Rulings;
+		const world = yield* VoyageWorldSource;
 		const refreshes = yield* makeRulingRefreshes;
-		const open = rulings.open().pipe(
-			Effect.map((all) => ({ rulings: all.map(rulingSeen) })),
+		const open = Effect.all({ open: rulings.open(), rows: world.read }).pipe(
+			Effect.map(({ open, rows }) => ({
+				rulings: open.map((ruling) => rulingSeen(ruling, rows)),
+			})),
 			Effect.mapError(toRulingFailure),
 		);
 		return {

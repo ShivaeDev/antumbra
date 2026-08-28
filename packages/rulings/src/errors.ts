@@ -32,7 +32,14 @@ export class RulingSubjectMissing extends Data.TaggedError(
 	"RulingSubjectMissing",
 )<{
 	readonly subject: RulingSubject;
-}> {}
+}> {
+	override get message(): string {
+		const subject = this.subject;
+		const named =
+			subject.kind === "tag" ? subject.tag : `${subject.kind} ${subject.id}`;
+		return `the fleet has no ${named}`;
+	}
+}
 
 // why: a reclassification that names no axis would append a row saying
 // nothing, so it is refused before anything is written.
@@ -44,7 +51,10 @@ export class RulingReclassificationEmpty extends Data.TaggedError(
 
 export type RulingReadFailure = PrismaError | StoredRulingValueInvalid;
 
-export type RulingRequestFailure = RulingReadFailure | RulingSubjectMissing;
+export type RulingRequestFailure =
+	| RulingGatePieceMissing
+	| RulingReadFailure
+	| RulingSubjectMissing;
 
 export type RulingVerdictFailure =
 	| RulingAlreadyRuled

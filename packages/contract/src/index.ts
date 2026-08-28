@@ -60,6 +60,7 @@ export {
 export {
 	OpenRulingsView,
 	RulingChoiceView,
+	RulingGatedPieceView,
 	RulingReclassificationView,
 	RulingSubjectView,
 	RulingView,

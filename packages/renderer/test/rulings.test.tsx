@@ -48,6 +48,14 @@ const shoal: RulingView = {
 	],
 	context: "The eastern shoal sounds two metres shallower than the chart says.",
 	declared: { radius: "voyage", urgency: "pressing" },
+	gatedPieces: [
+		{
+			pieceId: "piece-2",
+			title: "the chart",
+			voyageId: "voyage-1",
+			voyageName: "Chart the reef",
+		},
+	],
 	id: "ruling-1",
 	question: "Which reading do we plot against?",
 	radius: "voyage",
@@ -69,6 +77,7 @@ const berths: RulingView = {
 	choices: [],
 	context: "Two repositories name their default branch differently.",
 	declared: { radius: "fleet", urgency: "eventual" },
+	gatedPieces: [],
 	id: "ruling-2",
 	question: "What do we call the branch a berth is cut from?",
 	radius: "fleet",
@@ -163,6 +172,19 @@ it.effect("shows every open ruling in the order the feed sent them", () =>
 		expect(mounted.container.textContent).toContain("agent-surveyor");
 		expect(mounted.container.textContent).toContain("Tag: surveying");
 		expect(mounted.container.textContent).toContain("two metres shallower");
+		expect(mounted.container.textContent).toContain(
+			"Unblocks: the chart (Chart the reef)",
+		);
+		yield* settle(() => mounted.root.unmount());
+	}),
+);
+
+it.effect("says nothing about unblocking on a ruling that gates nothing", () =>
+	Effect.gen(function* () {
+		const mounted = mount();
+		yield* showing(mounted, { rulings: [berths] });
+
+		expect(mounted.container.textContent).not.toContain("Unblocks");
 		yield* settle(() => mounted.root.unmount());
 	}),
 );

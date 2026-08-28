@@ -53,6 +53,7 @@ export { type RequestContext, RequestOrigin } from "#router-procedure.ts";
 export { RulingFailure, RulingRefused, RulingSource } from "#rulings.ts";
 export { RuleRequest, RulingRuledReceipt } from "#rulings-requests.ts";
 export {
+	AwaitingRulingView,
 	OpenRulingsView,
 	RulingChoiceView,
 	RulingGatedPieceView,

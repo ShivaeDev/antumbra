@@ -16,7 +16,9 @@ const reef = {
 
 const gated = world({
 	memberships: [{ pieceId: "alpha", voyageId: "voyage-1" }],
-	rulingGates: [{ pieceId: "alpha", rulingId: "ruling-1" }],
+	rulingGates: [
+		{ pieceId: "alpha", question: "which reef?", rulingId: "ruling-1" },
+	],
 	voyages: [reef],
 });
 
@@ -44,11 +46,13 @@ it("the dispatcher never sees a gated piece as ready", () => {
 	]);
 });
 
-it("a piece names the rulings holding it", () => {
+it("a piece names the rulings holding it by their questions", () => {
 	const view = pieceView(gated, pieceStates(gated), piece("alpha"));
-	expect(view.awaitingRulings).toEqual(["ruling-1"]);
+	expect(view.awaitingRulings).toEqual([
+		{ question: "which reef?", rulingId: "ruling-1" },
+	]);
 	expect(pieceLine(view)).toBe(
-		"- alpha alpha [blocked] awaits ruling ruling-1",
+		"- alpha alpha [blocked] awaits ruling ruling-1: which reef?",
 	);
 	expect(
 		pieceView(released, pieceStates(released), piece("alpha")).awaitingRulings,

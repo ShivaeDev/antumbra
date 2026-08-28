@@ -8,7 +8,7 @@ import { describe, expect, it } from "vitest";
 import { actsFor, captainAtWork } from "#voyages/acts.ts";
 import {
 	authorLabel,
-	awaitingRulingsLabel,
+	awaitingRulingLabel,
 	captainCallLabel,
 	dependsOnLabel,
 	whenLabel,
@@ -151,14 +151,11 @@ describe("captainCallLabel", () => {
 	});
 });
 
-describe("awaitingRulingsLabel", () => {
-	it("names the rulings holding a piece", () => {
-		const held = {
-			...piece("3", "charlie", "blocked"),
-			awaitingRulings: ["r-1", "r-2"],
-		};
-		expect(awaitingRulingsLabel(held)).toBe("Awaiting ruling: r-1, r-2");
-		expect(awaitingRulingsLabel(piece("1", "alpha", "ready"))).toBe("");
+describe("awaitingRulingLabel", () => {
+	it("names the ruling holding a piece by its question", () => {
+		expect(
+			awaitingRulingLabel({ question: "which reef?", rulingId: "r-1" }),
+		).toBe("Awaiting ruling r-1: which reef?");
 	});
 });
 

@@ -21,7 +21,7 @@ it.effectDB("holds the pieces a request names until it is ruled", function* () {
 			expect(gated.gatedPieceIds).toEqual([pieceId]);
 			expect(yield* PubSub.take(readiness)).toBeUndefined();
 			expect(yield* rulings.openGates()).toEqual([
-				{ pieceId, rulingId: requested.id },
+				{ pieceId, question: asked.question, rulingId: requested.id },
 			]);
 		}),
 	).pipe(Effect.provide(layer));

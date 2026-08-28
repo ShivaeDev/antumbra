@@ -7,7 +7,7 @@ import {
 	temporaryPersistence,
 } from "@antumbra/persistence/testing";
 import { PiecesLive } from "@antumbra/pieces";
-import { RulingsLive } from "@antumbra/rulings";
+import { Rulings, RulingsLive } from "@antumbra/rulings";
 import { expect } from "@effect/vitest";
 import { Effect, Layer } from "effect";
 import { VoyageWorldSource, VoyageWorldSourceLive } from "#voyage-world.ts";
@@ -80,6 +80,43 @@ it.effectDB(
 			expect(world.voyages.map((voyage) => voyage.id)).toEqual([
 				"older-voyage",
 				"newer-voyage",
+			]);
+		}).pipe(Effect.provide(WorldLive));
+	},
+);
+
+it.effectDB(
+	"names the question of each open ruling on its gate",
+	function* (db) {
+		yield* db.Agent.create({
+			charter: "ask what the chart cannot answer",
+			id: "agent-asker",
+			role: "hand",
+			status: "dormant",
+		});
+		yield* db.Piece.create(piece("piece-one"));
+
+		yield* Effect.gen(function* () {
+			const rulings = yield* Rulings;
+			const asked = yield* rulings.request({
+				choices: [],
+				context: "the chart and the soundings disagree",
+				question: "which reading do we plot against?",
+				radius: "piece",
+				requesterAgentId: "agent-asker",
+				subjects: [],
+				urgency: "pressing",
+			});
+			yield* rulings.gate({ pieceIds: ["piece-one"], rulingId: asked.id });
+
+			const source = yield* VoyageWorldSource;
+			const world = yield* source.read;
+			expect(world.rulingGates).toEqual([
+				{
+					pieceId: "piece-one",
+					question: "which reading do we plot against?",
+					rulingId: asked.id,
+				},
 			]);
 		}).pipe(Effect.provide(WorldLive));
 	},

@@ -12,6 +12,8 @@ import type {
 
 export type { EdgeRow, PieceRow } from "@antumbra/pieces";
 
+export type AwaitingRuling = Pick<RulingGate, "question" | "rulingId">;
+
 export interface VoyageRow {
 	readonly backend: string;
 	readonly context: string;

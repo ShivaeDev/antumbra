@@ -3,12 +3,14 @@ import type { Context } from "effect";
 import { makePublishChangeRefresh } from "#publish-change-refresh.ts";
 import { makePublishFleetRefresh } from "#publish-fleet-refresh.ts";
 import { makePublishResourceReclaim } from "#publish-resource-reclaim.ts";
+import { makePublishRulingRefresh } from "#publish-ruling-refresh.ts";
 import { makePublishSessionEvent } from "#publish-session-event.ts";
 import { makePublishVoyageRefresh } from "#publish-voyage-refresh.ts";
 import { initializeDomainFeeds } from "#state.ts";
 import { makeSubscribeChangeRefresh } from "#subscribe-change-refresh.ts";
 import { makeSubscribeFleetRefresh } from "#subscribe-fleet-refresh.ts";
 import { makeSubscribeResourceReclaim } from "#subscribe-resource-reclaim.ts";
+import { makeSubscribeRulingRefresh } from "#subscribe-ruling-refresh.ts";
 import { makeSubscribeSessionEvents } from "#subscribe-session-events.ts";
 import { makeSubscribeVoyageRefresh } from "#subscribe-voyage-refresh.ts";
 
@@ -21,6 +23,7 @@ export const DomainFeeds = defineService({
 		publishChangeRefresh: makePublishChangeRefresh(feeds.changeRefresh),
 		publishFleetRefresh: makePublishFleetRefresh(feeds.fleet),
 		publishResourceReclaim: makePublishResourceReclaim(feeds.resourceReclaim),
+		publishRulingRefresh: makePublishRulingRefresh(feeds.rulings),
 		publishSessionEvent: makePublishSessionEvent(feeds.events),
 		publishVoyageRefresh: makePublishVoyageRefresh(feeds.voyages),
 		subscribeChangeRefresh: makeSubscribeChangeRefresh(feeds.changeRefresh),
@@ -28,6 +31,7 @@ export const DomainFeeds = defineService({
 		subscribeResourceReclaim: makeSubscribeResourceReclaim(
 			feeds.resourceReclaim,
 		),
+		subscribeRulingRefresh: makeSubscribeRulingRefresh(feeds.rulings),
 		subscribeSessionEvents: makeSubscribeSessionEvents(feeds.events),
 		subscribeVoyageRefresh: makeSubscribeVoyageRefresh(feeds.voyages),
 	}),

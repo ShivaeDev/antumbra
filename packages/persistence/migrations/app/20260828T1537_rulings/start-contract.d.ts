@@ -16,7 +16,7 @@ import type {
 } from '@prisma-next/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'sha256:d38dbf3e3cac41b2e172890f98f9ff43bb206a243555677410a247e06cd8bbcb'>;
+  StorageHashBase<'sha256:41284b39316d9214226c6d6ea4efe8d3d9f2c9248420eb2a6434d72eb7c361b7'>;
 export type ExecutionHash = ExecutionHashBase<string>;
 export type ProfileHash =
   ProfileHashBase<'sha256:3cc333ecad9f3f4c7229370a9d2c37e908cdce0f8d2e9fb132d50605b024eff2'>;
@@ -221,36 +221,6 @@ export type FieldOutputTypes = {
       readonly title: CodecTypes['sqlite/text@1']['output'];
       readonly body: CodecTypes['sqlite/text@1']['output'];
       readonly createdAt: CodecTypes['sqlite/datetime@1']['output'];
-    };
-    readonly Ruling: {
-      readonly id: CodecTypes['sqlite/text@1']['output'];
-      readonly requesterAgentId: CodecTypes['sqlite/text@1']['output'];
-      readonly radius: CodecTypes['sqlite/text@1']['output'];
-      readonly urgency: CodecTypes['sqlite/text@1']['output'];
-      readonly context: CodecTypes['sqlite/text@1']['output'];
-      readonly question: CodecTypes['sqlite/text@1']['output'];
-      readonly answer: CodecTypes['sqlite/text@1']['output'] | null;
-      readonly answerChoiceId: CodecTypes['sqlite/text@1']['output'] | null;
-      readonly ruledBy: CodecTypes['sqlite/text@1']['output'] | null;
-      readonly ruledAt: CodecTypes['sqlite/datetime@1']['output'] | null;
-      readonly createdAt: CodecTypes['sqlite/datetime@1']['output'];
-    };
-    readonly RulingChoice: {
-      readonly id: CodecTypes['sqlite/text@1']['output'];
-      readonly rulingId: CodecTypes['sqlite/text@1']['output'];
-      readonly position: CodecTypes['sqlite/integer@1']['output'];
-      readonly label: CodecTypes['sqlite/text@1']['output'];
-      readonly detail: CodecTypes['sqlite/text@1']['output'] | null;
-    };
-    readonly RulingSubject: {
-      readonly id: CodecTypes['sqlite/text@1']['output'];
-      readonly rulingId: CodecTypes['sqlite/text@1']['output'];
-      readonly kind: CodecTypes['sqlite/text@1']['output'];
-      readonly repoId: CodecTypes['sqlite/text@1']['output'] | null;
-      readonly voyageId: CodecTypes['sqlite/text@1']['output'] | null;
-      readonly pieceId: CodecTypes['sqlite/text@1']['output'] | null;
-      readonly agentId: CodecTypes['sqlite/text@1']['output'] | null;
-      readonly tag: CodecTypes['sqlite/text@1']['output'] | null;
     };
     readonly SessionAttachment: {
       readonly id: CodecTypes['sqlite/text@1']['output'];
@@ -503,36 +473,6 @@ export type FieldInputTypes = {
       readonly body: CodecTypes['sqlite/text@1']['input'];
       readonly createdAt: CodecTypes['sqlite/datetime@1']['input'];
     };
-    readonly Ruling: {
-      readonly id: CodecTypes['sqlite/text@1']['input'];
-      readonly requesterAgentId: CodecTypes['sqlite/text@1']['input'];
-      readonly radius: CodecTypes['sqlite/text@1']['input'];
-      readonly urgency: CodecTypes['sqlite/text@1']['input'];
-      readonly context: CodecTypes['sqlite/text@1']['input'];
-      readonly question: CodecTypes['sqlite/text@1']['input'];
-      readonly answer: CodecTypes['sqlite/text@1']['input'] | null;
-      readonly answerChoiceId: CodecTypes['sqlite/text@1']['input'] | null;
-      readonly ruledBy: CodecTypes['sqlite/text@1']['input'] | null;
-      readonly ruledAt: CodecTypes['sqlite/datetime@1']['input'] | null;
-      readonly createdAt: CodecTypes['sqlite/datetime@1']['input'];
-    };
-    readonly RulingChoice: {
-      readonly id: CodecTypes['sqlite/text@1']['input'];
-      readonly rulingId: CodecTypes['sqlite/text@1']['input'];
-      readonly position: CodecTypes['sqlite/integer@1']['input'];
-      readonly label: CodecTypes['sqlite/text@1']['input'];
-      readonly detail: CodecTypes['sqlite/text@1']['input'] | null;
-    };
-    readonly RulingSubject: {
-      readonly id: CodecTypes['sqlite/text@1']['input'];
-      readonly rulingId: CodecTypes['sqlite/text@1']['input'];
-      readonly kind: CodecTypes['sqlite/text@1']['input'];
-      readonly repoId: CodecTypes['sqlite/text@1']['input'] | null;
-      readonly voyageId: CodecTypes['sqlite/text@1']['input'] | null;
-      readonly pieceId: CodecTypes['sqlite/text@1']['input'] | null;
-      readonly agentId: CodecTypes['sqlite/text@1']['input'] | null;
-      readonly tag: CodecTypes['sqlite/text@1']['input'] | null;
-    };
     readonly SessionAttachment: {
       readonly id: CodecTypes['sqlite/text@1']['input'];
       readonly digest: CodecTypes['sqlite/text@1']['input'];
@@ -784,36 +724,6 @@ export type StorageColumnTypes = {
       readonly id: CodecTypes['sqlite/text@1']['output'];
       readonly title: CodecTypes['sqlite/text@1']['output'];
     };
-    readonly ruling: {
-      readonly answer: CodecTypes['sqlite/text@1']['output'] | null;
-      readonly answerChoiceId: CodecTypes['sqlite/text@1']['output'] | null;
-      readonly context: CodecTypes['sqlite/text@1']['output'];
-      readonly createdAt: CodecTypes['sqlite/datetime@1']['output'];
-      readonly id: CodecTypes['sqlite/text@1']['output'];
-      readonly question: CodecTypes['sqlite/text@1']['output'];
-      readonly radius: CodecTypes['sqlite/text@1']['output'];
-      readonly requesterAgentId: CodecTypes['sqlite/text@1']['output'];
-      readonly ruledAt: CodecTypes['sqlite/datetime@1']['output'] | null;
-      readonly ruledBy: CodecTypes['sqlite/text@1']['output'] | null;
-      readonly urgency: CodecTypes['sqlite/text@1']['output'];
-    };
-    readonly rulingChoice: {
-      readonly detail: CodecTypes['sqlite/text@1']['output'] | null;
-      readonly id: CodecTypes['sqlite/text@1']['output'];
-      readonly label: CodecTypes['sqlite/text@1']['output'];
-      readonly position: CodecTypes['sqlite/integer@1']['output'];
-      readonly rulingId: CodecTypes['sqlite/text@1']['output'];
-    };
-    readonly rulingSubject: {
-      readonly agentId: CodecTypes['sqlite/text@1']['output'] | null;
-      readonly id: CodecTypes['sqlite/text@1']['output'];
-      readonly kind: CodecTypes['sqlite/text@1']['output'];
-      readonly pieceId: CodecTypes['sqlite/text@1']['output'] | null;
-      readonly repoId: CodecTypes['sqlite/text@1']['output'] | null;
-      readonly rulingId: CodecTypes['sqlite/text@1']['output'];
-      readonly tag: CodecTypes['sqlite/text@1']['output'] | null;
-      readonly voyageId: CodecTypes['sqlite/text@1']['output'] | null;
-    };
     readonly sessionAttachment: {
       readonly byteSize: CodecTypes['sqlite/integer@1']['output'];
       readonly createdAt: CodecTypes['sqlite/datetime@1']['output'];
@@ -1064,36 +974,6 @@ export type StorageColumnInputTypes = {
       readonly createdAt: CodecTypes['sqlite/datetime@1']['input'];
       readonly id: CodecTypes['sqlite/text@1']['input'];
       readonly title: CodecTypes['sqlite/text@1']['input'];
-    };
-    readonly ruling: {
-      readonly answer: CodecTypes['sqlite/text@1']['input'] | null;
-      readonly answerChoiceId: CodecTypes['sqlite/text@1']['input'] | null;
-      readonly context: CodecTypes['sqlite/text@1']['input'];
-      readonly createdAt: CodecTypes['sqlite/datetime@1']['input'];
-      readonly id: CodecTypes['sqlite/text@1']['input'];
-      readonly question: CodecTypes['sqlite/text@1']['input'];
-      readonly radius: CodecTypes['sqlite/text@1']['input'];
-      readonly requesterAgentId: CodecTypes['sqlite/text@1']['input'];
-      readonly ruledAt: CodecTypes['sqlite/datetime@1']['input'] | null;
-      readonly ruledBy: CodecTypes['sqlite/text@1']['input'] | null;
-      readonly urgency: CodecTypes['sqlite/text@1']['input'];
-    };
-    readonly rulingChoice: {
-      readonly detail: CodecTypes['sqlite/text@1']['input'] | null;
-      readonly id: CodecTypes['sqlite/text@1']['input'];
-      readonly label: CodecTypes['sqlite/text@1']['input'];
-      readonly position: CodecTypes['sqlite/integer@1']['input'];
-      readonly rulingId: CodecTypes['sqlite/text@1']['input'];
-    };
-    readonly rulingSubject: {
-      readonly agentId: CodecTypes['sqlite/text@1']['input'] | null;
-      readonly id: CodecTypes['sqlite/text@1']['input'];
-      readonly kind: CodecTypes['sqlite/text@1']['input'];
-      readonly pieceId: CodecTypes['sqlite/text@1']['input'] | null;
-      readonly repoId: CodecTypes['sqlite/text@1']['input'] | null;
-      readonly rulingId: CodecTypes['sqlite/text@1']['input'];
-      readonly tag: CodecTypes['sqlite/text@1']['input'] | null;
-      readonly voyageId: CodecTypes['sqlite/text@1']['input'] | null;
     };
     readonly sessionAttachment: {
       readonly byteSize: CodecTypes['sqlite/integer@1']['input'];
@@ -2233,266 +2113,6 @@ type ContractBase = Omit<
               indexes: readonly [];
               foreignKeys: readonly [];
             };
-            readonly ruling: {
-              columns: {
-                readonly id: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'sqlite/text@1';
-                  readonly nullable: false;
-                };
-                readonly requesterAgentId: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'sqlite/text@1';
-                  readonly nullable: false;
-                };
-                readonly radius: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'sqlite/text@1';
-                  readonly nullable: false;
-                };
-                readonly urgency: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'sqlite/text@1';
-                  readonly nullable: false;
-                };
-                readonly context: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'sqlite/text@1';
-                  readonly nullable: false;
-                };
-                readonly question: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'sqlite/text@1';
-                  readonly nullable: false;
-                };
-                readonly answer: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'sqlite/text@1';
-                  readonly nullable: true;
-                };
-                readonly answerChoiceId: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'sqlite/text@1';
-                  readonly nullable: true;
-                };
-                readonly ruledBy: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'sqlite/text@1';
-                  readonly nullable: true;
-                };
-                readonly ruledAt: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'sqlite/datetime@1';
-                  readonly nullable: true;
-                };
-                readonly createdAt: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'sqlite/datetime@1';
-                  readonly nullable: false;
-                  readonly default: { readonly kind: 'function'; readonly expression: 'now()' };
-                };
-              };
-              primaryKey: { readonly columns: readonly ['id'] };
-              uniques: readonly [];
-              indexes: readonly [{ readonly columns: readonly ['ruledAt'] }];
-              foreignKeys: readonly [
-                {
-                  readonly source: {
-                    readonly namespaceId: '__unbound__' & NamespaceId;
-                    readonly tableName: 'ruling';
-                    readonly columns: readonly ['requesterAgentId'];
-                  };
-                  readonly target: {
-                    readonly namespaceId: '__unbound__' & NamespaceId;
-                    readonly tableName: 'agent';
-                    readonly columns: readonly ['id'];
-                  };
-                  readonly constraint: true;
-                  readonly index: true;
-                },
-                {
-                  readonly source: {
-                    readonly namespaceId: '__unbound__' & NamespaceId;
-                    readonly tableName: 'ruling';
-                    readonly columns: readonly ['answerChoiceId'];
-                  };
-                  readonly target: {
-                    readonly namespaceId: '__unbound__' & NamespaceId;
-                    readonly tableName: 'rulingChoice';
-                    readonly columns: readonly ['id'];
-                  };
-                  readonly constraint: true;
-                  readonly index: true;
-                },
-              ];
-            };
-            readonly rulingChoice: {
-              columns: {
-                readonly id: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'sqlite/text@1';
-                  readonly nullable: false;
-                };
-                readonly rulingId: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'sqlite/text@1';
-                  readonly nullable: false;
-                };
-                readonly position: {
-                  readonly nativeType: 'integer';
-                  readonly codecId: 'sqlite/integer@1';
-                  readonly nullable: false;
-                };
-                readonly label: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'sqlite/text@1';
-                  readonly nullable: false;
-                };
-                readonly detail: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'sqlite/text@1';
-                  readonly nullable: true;
-                };
-              };
-              primaryKey: { readonly columns: readonly ['id'] };
-              uniques: readonly [{ readonly columns: readonly ['rulingId', 'position'] }];
-              indexes: readonly [];
-              foreignKeys: readonly [
-                {
-                  readonly source: {
-                    readonly namespaceId: '__unbound__' & NamespaceId;
-                    readonly tableName: 'rulingChoice';
-                    readonly columns: readonly ['rulingId'];
-                  };
-                  readonly target: {
-                    readonly namespaceId: '__unbound__' & NamespaceId;
-                    readonly tableName: 'ruling';
-                    readonly columns: readonly ['id'];
-                  };
-                  readonly constraint: true;
-                  readonly index: true;
-                },
-              ];
-            };
-            readonly rulingSubject: {
-              columns: {
-                readonly id: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'sqlite/text@1';
-                  readonly nullable: false;
-                };
-                readonly rulingId: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'sqlite/text@1';
-                  readonly nullable: false;
-                };
-                readonly kind: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'sqlite/text@1';
-                  readonly nullable: false;
-                };
-                readonly repoId: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'sqlite/text@1';
-                  readonly nullable: true;
-                };
-                readonly voyageId: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'sqlite/text@1';
-                  readonly nullable: true;
-                };
-                readonly pieceId: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'sqlite/text@1';
-                  readonly nullable: true;
-                };
-                readonly agentId: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'sqlite/text@1';
-                  readonly nullable: true;
-                };
-                readonly tag: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'sqlite/text@1';
-                  readonly nullable: true;
-                };
-              };
-              primaryKey: { readonly columns: readonly ['id'] };
-              uniques: readonly [];
-              indexes: readonly [{ readonly columns: readonly ['tag'] }];
-              foreignKeys: readonly [
-                {
-                  readonly source: {
-                    readonly namespaceId: '__unbound__' & NamespaceId;
-                    readonly tableName: 'rulingSubject';
-                    readonly columns: readonly ['rulingId'];
-                  };
-                  readonly target: {
-                    readonly namespaceId: '__unbound__' & NamespaceId;
-                    readonly tableName: 'ruling';
-                    readonly columns: readonly ['id'];
-                  };
-                  readonly constraint: true;
-                  readonly index: true;
-                },
-                {
-                  readonly source: {
-                    readonly namespaceId: '__unbound__' & NamespaceId;
-                    readonly tableName: 'rulingSubject';
-                    readonly columns: readonly ['repoId'];
-                  };
-                  readonly target: {
-                    readonly namespaceId: '__unbound__' & NamespaceId;
-                    readonly tableName: 'repo';
-                    readonly columns: readonly ['id'];
-                  };
-                  readonly constraint: true;
-                  readonly index: true;
-                },
-                {
-                  readonly source: {
-                    readonly namespaceId: '__unbound__' & NamespaceId;
-                    readonly tableName: 'rulingSubject';
-                    readonly columns: readonly ['voyageId'];
-                  };
-                  readonly target: {
-                    readonly namespaceId: '__unbound__' & NamespaceId;
-                    readonly tableName: 'voyage';
-                    readonly columns: readonly ['id'];
-                  };
-                  readonly constraint: true;
-                  readonly index: true;
-                },
-                {
-                  readonly source: {
-                    readonly namespaceId: '__unbound__' & NamespaceId;
-                    readonly tableName: 'rulingSubject';
-                    readonly columns: readonly ['pieceId'];
-                  };
-                  readonly target: {
-                    readonly namespaceId: '__unbound__' & NamespaceId;
-                    readonly tableName: 'piece';
-                    readonly columns: readonly ['id'];
-                  };
-                  readonly constraint: true;
-                  readonly index: true;
-                },
-                {
-                  readonly source: {
-                    readonly namespaceId: '__unbound__' & NamespaceId;
-                    readonly tableName: 'rulingSubject';
-                    readonly columns: readonly ['agentId'];
-                  };
-                  readonly target: {
-                    readonly namespaceId: '__unbound__' & NamespaceId;
-                    readonly tableName: 'agent';
-                    readonly columns: readonly ['id'];
-                  };
-                  readonly constraint: true;
-                  readonly index: true;
-                },
-              ];
-            };
             readonly sessionAttachment: {
               columns: {
                 readonly id: {
@@ -2917,15 +2537,6 @@ type ContractBase = Omit<
       readonly namespace: '__unbound__' & NamespaceId;
       readonly model: 'BoardOwner';
     };
-    readonly ruling: { readonly namespace: '__unbound__' & NamespaceId; readonly model: 'Ruling' };
-    readonly rulingChoice: {
-      readonly namespace: '__unbound__' & NamespaceId;
-      readonly model: 'RulingChoice';
-    };
-    readonly rulingSubject: {
-      readonly namespace: '__unbound__' & NamespaceId;
-      readonly model: 'RulingSubject';
-    };
     readonly setting: {
       readonly namespace: '__unbound__' & NamespaceId;
       readonly model: 'Setting';
@@ -2966,30 +2577,7 @@ type ContractBase = Omit<
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/datetime@1' };
               };
             };
-            readonly relations: {
-              readonly rulingSubjects: {
-                readonly to: {
-                  readonly namespace: '__unbound__' & NamespaceId;
-                  readonly model: 'RulingSubject';
-                };
-                readonly cardinality: '1:N';
-                readonly on: {
-                  readonly localFields: readonly ['id'];
-                  readonly targetFields: readonly ['agentId'];
-                };
-              };
-              readonly rulings: {
-                readonly to: {
-                  readonly namespace: '__unbound__' & NamespaceId;
-                  readonly model: 'Ruling';
-                };
-                readonly cardinality: '1:N';
-                readonly on: {
-                  readonly localFields: readonly ['id'];
-                  readonly targetFields: readonly ['requesterAgentId'];
-                };
-              };
-            };
+            readonly relations: Record<string, never>;
             readonly storage: {
               readonly table: 'agent';
               readonly namespaceId: '__unbound__';
@@ -3856,17 +3444,6 @@ type ContractBase = Omit<
                   readonly targetFields: readonly ['pieceId'];
                 };
               };
-              readonly rulingSubjects: {
-                readonly to: {
-                  readonly namespace: '__unbound__' & NamespaceId;
-                  readonly model: 'RulingSubject';
-                };
-                readonly cardinality: '1:N';
-                readonly on: {
-                  readonly localFields: readonly ['id'];
-                  readonly targetFields: readonly ['pieceId'];
-                };
-              };
             };
             readonly storage: {
               readonly table: 'piece';
@@ -4049,19 +3626,7 @@ type ContractBase = Omit<
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/datetime@1' };
               };
             };
-            readonly relations: {
-              readonly rulingSubjects: {
-                readonly to: {
-                  readonly namespace: '__unbound__' & NamespaceId;
-                  readonly model: 'RulingSubject';
-                };
-                readonly cardinality: '1:N';
-                readonly on: {
-                  readonly localFields: readonly ['id'];
-                  readonly targetFields: readonly ['repoId'];
-                };
-              };
-            };
+            readonly relations: Record<string, never>;
             readonly storage: {
               readonly table: 'repo';
               readonly namespaceId: '__unbound__';
@@ -4119,283 +3684,6 @@ type ContractBase = Omit<
                 readonly title: { readonly column: 'title' };
                 readonly body: { readonly column: 'body' };
                 readonly createdAt: { readonly column: 'createdAt' };
-              };
-            };
-          };
-          readonly Ruling: {
-            readonly fields: {
-              readonly id: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
-              };
-              readonly requesterAgentId: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
-              };
-              readonly radius: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
-              };
-              readonly urgency: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
-              };
-              readonly context: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
-              };
-              readonly question: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
-              };
-              readonly answer: {
-                readonly nullable: true;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
-              };
-              readonly answerChoiceId: {
-                readonly nullable: true;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
-              };
-              readonly ruledBy: {
-                readonly nullable: true;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
-              };
-              readonly ruledAt: {
-                readonly nullable: true;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/datetime@1' };
-              };
-              readonly createdAt: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/datetime@1' };
-              };
-            };
-            readonly relations: {
-              readonly answerChoice: {
-                readonly to: {
-                  readonly namespace: '__unbound__' & NamespaceId;
-                  readonly model: 'RulingChoice';
-                };
-                readonly cardinality: 'N:1';
-                readonly on: {
-                  readonly localFields: readonly ['answerChoiceId'];
-                  readonly targetFields: readonly ['id'];
-                };
-              };
-              readonly choices: {
-                readonly to: {
-                  readonly namespace: '__unbound__' & NamespaceId;
-                  readonly model: 'RulingChoice';
-                };
-                readonly cardinality: '1:N';
-                readonly on: {
-                  readonly localFields: readonly ['id'];
-                  readonly targetFields: readonly ['rulingId'];
-                };
-              };
-              readonly requester: {
-                readonly to: {
-                  readonly namespace: '__unbound__' & NamespaceId;
-                  readonly model: 'Agent';
-                };
-                readonly cardinality: 'N:1';
-                readonly on: {
-                  readonly localFields: readonly ['requesterAgentId'];
-                  readonly targetFields: readonly ['id'];
-                };
-              };
-              readonly subjects: {
-                readonly to: {
-                  readonly namespace: '__unbound__' & NamespaceId;
-                  readonly model: 'RulingSubject';
-                };
-                readonly cardinality: '1:N';
-                readonly on: {
-                  readonly localFields: readonly ['id'];
-                  readonly targetFields: readonly ['rulingId'];
-                };
-              };
-            };
-            readonly storage: {
-              readonly table: 'ruling';
-              readonly namespaceId: '__unbound__';
-              readonly fields: {
-                readonly id: { readonly column: 'id' };
-                readonly requesterAgentId: { readonly column: 'requesterAgentId' };
-                readonly radius: { readonly column: 'radius' };
-                readonly urgency: { readonly column: 'urgency' };
-                readonly context: { readonly column: 'context' };
-                readonly question: { readonly column: 'question' };
-                readonly answer: { readonly column: 'answer' };
-                readonly answerChoiceId: { readonly column: 'answerChoiceId' };
-                readonly ruledBy: { readonly column: 'ruledBy' };
-                readonly ruledAt: { readonly column: 'ruledAt' };
-                readonly createdAt: { readonly column: 'createdAt' };
-              };
-            };
-          };
-          readonly RulingChoice: {
-            readonly fields: {
-              readonly id: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
-              };
-              readonly rulingId: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
-              };
-              readonly position: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/integer@1' };
-              };
-              readonly label: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
-              };
-              readonly detail: {
-                readonly nullable: true;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
-              };
-            };
-            readonly relations: {
-              readonly answered: {
-                readonly to: {
-                  readonly namespace: '__unbound__' & NamespaceId;
-                  readonly model: 'Ruling';
-                };
-                readonly cardinality: '1:N';
-                readonly on: {
-                  readonly localFields: readonly ['id'];
-                  readonly targetFields: readonly ['answerChoiceId'];
-                };
-              };
-              readonly ruling: {
-                readonly to: {
-                  readonly namespace: '__unbound__' & NamespaceId;
-                  readonly model: 'Ruling';
-                };
-                readonly cardinality: 'N:1';
-                readonly on: {
-                  readonly localFields: readonly ['rulingId'];
-                  readonly targetFields: readonly ['id'];
-                };
-              };
-            };
-            readonly storage: {
-              readonly table: 'rulingChoice';
-              readonly namespaceId: '__unbound__';
-              readonly fields: {
-                readonly id: { readonly column: 'id' };
-                readonly rulingId: { readonly column: 'rulingId' };
-                readonly position: { readonly column: 'position' };
-                readonly label: { readonly column: 'label' };
-                readonly detail: { readonly column: 'detail' };
-              };
-            };
-          };
-          readonly RulingSubject: {
-            readonly fields: {
-              readonly id: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
-              };
-              readonly rulingId: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
-              };
-              readonly kind: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
-              };
-              readonly repoId: {
-                readonly nullable: true;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
-              };
-              readonly voyageId: {
-                readonly nullable: true;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
-              };
-              readonly pieceId: {
-                readonly nullable: true;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
-              };
-              readonly agentId: {
-                readonly nullable: true;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
-              };
-              readonly tag: {
-                readonly nullable: true;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
-              };
-            };
-            readonly relations: {
-              readonly agent: {
-                readonly to: {
-                  readonly namespace: '__unbound__' & NamespaceId;
-                  readonly model: 'Agent';
-                };
-                readonly cardinality: 'N:1';
-                readonly on: {
-                  readonly localFields: readonly ['agentId'];
-                  readonly targetFields: readonly ['id'];
-                };
-              };
-              readonly piece: {
-                readonly to: {
-                  readonly namespace: '__unbound__' & NamespaceId;
-                  readonly model: 'Piece';
-                };
-                readonly cardinality: 'N:1';
-                readonly on: {
-                  readonly localFields: readonly ['pieceId'];
-                  readonly targetFields: readonly ['id'];
-                };
-              };
-              readonly repo: {
-                readonly to: {
-                  readonly namespace: '__unbound__' & NamespaceId;
-                  readonly model: 'Repo';
-                };
-                readonly cardinality: 'N:1';
-                readonly on: {
-                  readonly localFields: readonly ['repoId'];
-                  readonly targetFields: readonly ['id'];
-                };
-              };
-              readonly ruling: {
-                readonly to: {
-                  readonly namespace: '__unbound__' & NamespaceId;
-                  readonly model: 'Ruling';
-                };
-                readonly cardinality: 'N:1';
-                readonly on: {
-                  readonly localFields: readonly ['rulingId'];
-                  readonly targetFields: readonly ['id'];
-                };
-              };
-              readonly voyage: {
-                readonly to: {
-                  readonly namespace: '__unbound__' & NamespaceId;
-                  readonly model: 'Voyage';
-                };
-                readonly cardinality: 'N:1';
-                readonly on: {
-                  readonly localFields: readonly ['voyageId'];
-                  readonly targetFields: readonly ['id'];
-                };
-              };
-            };
-            readonly storage: {
-              readonly table: 'rulingSubject';
-              readonly namespaceId: '__unbound__';
-              readonly fields: {
-                readonly id: { readonly column: 'id' };
-                readonly rulingId: { readonly column: 'rulingId' };
-                readonly kind: { readonly column: 'kind' };
-                readonly repoId: { readonly column: 'repoId' };
-                readonly voyageId: { readonly column: 'voyageId' };
-                readonly pieceId: { readonly column: 'pieceId' };
-                readonly agentId: { readonly column: 'agentId' };
-                readonly tag: { readonly column: 'tag' };
               };
             };
           };
@@ -4685,19 +3973,7 @@ type ContractBase = Omit<
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/datetime@1' };
               };
             };
-            readonly relations: {
-              readonly rulingSubjects: {
-                readonly to: {
-                  readonly namespace: '__unbound__' & NamespaceId;
-                  readonly model: 'RulingSubject';
-                };
-                readonly cardinality: '1:N';
-                readonly on: {
-                  readonly localFields: readonly ['id'];
-                  readonly targetFields: readonly ['voyageId'];
-                };
-              };
-            };
+            readonly relations: Record<string, never>;
             readonly storage: {
               readonly table: 'voyage';
               readonly namespaceId: '__unbound__';

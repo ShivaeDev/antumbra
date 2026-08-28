@@ -1,0 +1,535 @@
+[
+  {
+    "id": "table.ruling",
+    "label": "Create table ruling",
+    "summary": "Creates table ruling with required columns",
+    "operationClass": "additive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "table",
+        "name": "ruling"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"ruling\" does not exist",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "table",
+          "ruling"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"ruling\"",
+        "sql": "CREATE TABLE \"ruling\" (\n  \"answer\" TEXT,\n  \"answerChoiceId\" TEXT,\n  \"context\" TEXT NOT NULL,\n  \"createdAt\" TEXT NOT NULL DEFAULT (datetime('now')),\n  \"id\" TEXT NOT NULL,\n  \"question\" TEXT NOT NULL,\n  \"radius\" TEXT NOT NULL,\n  \"requesterAgentId\" TEXT NOT NULL,\n  \"ruledAt\" TEXT,\n  \"ruledBy\" TEXT,\n  \"urgency\" TEXT NOT NULL,\n  PRIMARY KEY (\"id\"),\n  FOREIGN KEY (\"requesterAgentId\") REFERENCES \"agent\" (\"id\") ON DELETE RESTRICT ON UPDATE RESTRICT,\n  FOREIGN KEY (\"answerChoiceId\") REFERENCES \"rulingChoice\" (\"id\") ON DELETE RESTRICT ON UPDATE RESTRICT\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"ruling\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "table",
+          "ruling"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.rulingChoice",
+    "label": "Create table rulingChoice",
+    "summary": "Creates table rulingChoice with required columns",
+    "operationClass": "additive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "table",
+        "name": "rulingChoice"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"rulingChoice\" does not exist",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "table",
+          "rulingChoice"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"rulingChoice\"",
+        "sql": "CREATE TABLE \"rulingChoice\" (\n  \"detail\" TEXT,\n  \"id\" TEXT NOT NULL,\n  \"label\" TEXT NOT NULL,\n  \"position\" INTEGER NOT NULL,\n  \"rulingId\" TEXT NOT NULL,\n  PRIMARY KEY (\"id\"),\n  UNIQUE (\"rulingId\", \"position\"),\n  FOREIGN KEY (\"rulingId\") REFERENCES \"ruling\" (\"id\") ON DELETE RESTRICT ON UPDATE RESTRICT\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"rulingChoice\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "table",
+          "rulingChoice"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.rulingSubject",
+    "label": "Create table rulingSubject",
+    "summary": "Creates table rulingSubject with required columns",
+    "operationClass": "additive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "table",
+        "name": "rulingSubject"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"rulingSubject\" does not exist",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "table",
+          "rulingSubject"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"rulingSubject\"",
+        "sql": "CREATE TABLE \"rulingSubject\" (\n  \"agentId\" TEXT,\n  \"id\" TEXT NOT NULL,\n  \"kind\" TEXT NOT NULL,\n  \"pieceId\" TEXT,\n  \"repoId\" TEXT,\n  \"rulingId\" TEXT NOT NULL,\n  \"tag\" TEXT,\n  \"voyageId\" TEXT,\n  PRIMARY KEY (\"id\"),\n  FOREIGN KEY (\"rulingId\") REFERENCES \"ruling\" (\"id\") ON DELETE RESTRICT ON UPDATE RESTRICT,\n  FOREIGN KEY (\"repoId\") REFERENCES \"repo\" (\"id\") ON DELETE RESTRICT ON UPDATE RESTRICT,\n  FOREIGN KEY (\"voyageId\") REFERENCES \"voyage\" (\"id\") ON DELETE RESTRICT ON UPDATE RESTRICT,\n  FOREIGN KEY (\"pieceId\") REFERENCES \"piece\" (\"id\") ON DELETE RESTRICT ON UPDATE RESTRICT,\n  FOREIGN KEY (\"agentId\") REFERENCES \"agent\" (\"id\") ON DELETE RESTRICT ON UPDATE RESTRICT\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"rulingSubject\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "table",
+          "rulingSubject"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.ruling.ruling_ruledAt_idx",
+    "label": "Create index ruling_ruledAt_idx on ruling",
+    "summary": "Creates index ruling_ruledAt_idx on ruling",
+    "operationClass": "additive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "index",
+        "name": "ruling_ruledAt_idx",
+        "table": "ruling"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"ruling_ruledAt_idx\" is missing",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "index",
+          "ruling_ruledAt_idx"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"ruling_ruledAt_idx\"",
+        "sql": "CREATE INDEX \"ruling_ruledAt_idx\" ON \"ruling\" (\"ruledAt\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"ruling_ruledAt_idx\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "index",
+          "ruling_ruledAt_idx"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.ruling.ruling_requesterAgentId_idx",
+    "label": "Create index ruling_requesterAgentId_idx on ruling",
+    "summary": "Creates index ruling_requesterAgentId_idx on ruling",
+    "operationClass": "additive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "index",
+        "name": "ruling_requesterAgentId_idx",
+        "table": "ruling"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"ruling_requesterAgentId_idx\" is missing",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "index",
+          "ruling_requesterAgentId_idx"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"ruling_requesterAgentId_idx\"",
+        "sql": "CREATE INDEX \"ruling_requesterAgentId_idx\" ON \"ruling\" (\"requesterAgentId\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"ruling_requesterAgentId_idx\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "index",
+          "ruling_requesterAgentId_idx"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.ruling.ruling_answerChoiceId_idx",
+    "label": "Create index ruling_answerChoiceId_idx on ruling",
+    "summary": "Creates index ruling_answerChoiceId_idx on ruling",
+    "operationClass": "additive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "index",
+        "name": "ruling_answerChoiceId_idx",
+        "table": "ruling"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"ruling_answerChoiceId_idx\" is missing",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "index",
+          "ruling_answerChoiceId_idx"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"ruling_answerChoiceId_idx\"",
+        "sql": "CREATE INDEX \"ruling_answerChoiceId_idx\" ON \"ruling\" (\"answerChoiceId\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"ruling_answerChoiceId_idx\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "index",
+          "ruling_answerChoiceId_idx"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.rulingChoice.rulingChoice_rulingId_idx",
+    "label": "Create index rulingChoice_rulingId_idx on rulingChoice",
+    "summary": "Creates index rulingChoice_rulingId_idx on rulingChoice",
+    "operationClass": "additive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "index",
+        "name": "rulingChoice_rulingId_idx",
+        "table": "rulingChoice"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"rulingChoice_rulingId_idx\" is missing",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "index",
+          "rulingChoice_rulingId_idx"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"rulingChoice_rulingId_idx\"",
+        "sql": "CREATE INDEX \"rulingChoice_rulingId_idx\" ON \"rulingChoice\" (\"rulingId\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"rulingChoice_rulingId_idx\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "index",
+          "rulingChoice_rulingId_idx"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.rulingSubject.rulingSubject_tag_idx",
+    "label": "Create index rulingSubject_tag_idx on rulingSubject",
+    "summary": "Creates index rulingSubject_tag_idx on rulingSubject",
+    "operationClass": "additive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "index",
+        "name": "rulingSubject_tag_idx",
+        "table": "rulingSubject"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"rulingSubject_tag_idx\" is missing",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "index",
+          "rulingSubject_tag_idx"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"rulingSubject_tag_idx\"",
+        "sql": "CREATE INDEX \"rulingSubject_tag_idx\" ON \"rulingSubject\" (\"tag\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"rulingSubject_tag_idx\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "index",
+          "rulingSubject_tag_idx"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.rulingSubject.rulingSubject_rulingId_idx",
+    "label": "Create index rulingSubject_rulingId_idx on rulingSubject",
+    "summary": "Creates index rulingSubject_rulingId_idx on rulingSubject",
+    "operationClass": "additive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "index",
+        "name": "rulingSubject_rulingId_idx",
+        "table": "rulingSubject"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"rulingSubject_rulingId_idx\" is missing",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "index",
+          "rulingSubject_rulingId_idx"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"rulingSubject_rulingId_idx\"",
+        "sql": "CREATE INDEX \"rulingSubject_rulingId_idx\" ON \"rulingSubject\" (\"rulingId\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"rulingSubject_rulingId_idx\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "index",
+          "rulingSubject_rulingId_idx"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.rulingSubject.rulingSubject_repoId_idx",
+    "label": "Create index rulingSubject_repoId_idx on rulingSubject",
+    "summary": "Creates index rulingSubject_repoId_idx on rulingSubject",
+    "operationClass": "additive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "index",
+        "name": "rulingSubject_repoId_idx",
+        "table": "rulingSubject"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"rulingSubject_repoId_idx\" is missing",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "index",
+          "rulingSubject_repoId_idx"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"rulingSubject_repoId_idx\"",
+        "sql": "CREATE INDEX \"rulingSubject_repoId_idx\" ON \"rulingSubject\" (\"repoId\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"rulingSubject_repoId_idx\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "index",
+          "rulingSubject_repoId_idx"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.rulingSubject.rulingSubject_voyageId_idx",
+    "label": "Create index rulingSubject_voyageId_idx on rulingSubject",
+    "summary": "Creates index rulingSubject_voyageId_idx on rulingSubject",
+    "operationClass": "additive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "index",
+        "name": "rulingSubject_voyageId_idx",
+        "table": "rulingSubject"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"rulingSubject_voyageId_idx\" is missing",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "index",
+          "rulingSubject_voyageId_idx"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"rulingSubject_voyageId_idx\"",
+        "sql": "CREATE INDEX \"rulingSubject_voyageId_idx\" ON \"rulingSubject\" (\"voyageId\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"rulingSubject_voyageId_idx\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "index",
+          "rulingSubject_voyageId_idx"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.rulingSubject.rulingSubject_pieceId_idx",
+    "label": "Create index rulingSubject_pieceId_idx on rulingSubject",
+    "summary": "Creates index rulingSubject_pieceId_idx on rulingSubject",
+    "operationClass": "additive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "index",
+        "name": "rulingSubject_pieceId_idx",
+        "table": "rulingSubject"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"rulingSubject_pieceId_idx\" is missing",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "index",
+          "rulingSubject_pieceId_idx"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"rulingSubject_pieceId_idx\"",
+        "sql": "CREATE INDEX \"rulingSubject_pieceId_idx\" ON \"rulingSubject\" (\"pieceId\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"rulingSubject_pieceId_idx\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "index",
+          "rulingSubject_pieceId_idx"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.rulingSubject.rulingSubject_agentId_idx",
+    "label": "Create index rulingSubject_agentId_idx on rulingSubject",
+    "summary": "Creates index rulingSubject_agentId_idx on rulingSubject",
+    "operationClass": "additive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "index",
+        "name": "rulingSubject_agentId_idx",
+        "table": "rulingSubject"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"rulingSubject_agentId_idx\" is missing",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "index",
+          "rulingSubject_agentId_idx"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"rulingSubject_agentId_idx\"",
+        "sql": "CREATE INDEX \"rulingSubject_agentId_idx\" ON \"rulingSubject\" (\"agentId\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"rulingSubject_agentId_idx\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "index",
+          "rulingSubject_agentId_idx"
+        ]
+      }
+    ]
+  }
+]

@@ -26,6 +26,8 @@ model Agent {
   currentSessionId String?  @unique
   createdAt        DateTime @default(now())
   updatedAt        DateTime @default(now())
+  rulings          Ruling[]
+  rulingSubjects   RulingSubject[]
 
   @@index([status])
 }
@@ -95,6 +97,7 @@ model Repo {
   source     String
   defaultRef String
   createdAt  DateTime @default(now())
+  rulingSubjects RulingSubject[]
 
   @@unique([source])
 }
@@ -155,6 +158,7 @@ model Voyage {
   focusedAt DateTime?
   backend   String
   createdAt DateTime  @default(now())
+  rulingSubjects RulingSubject[]
 }
 
 model Piece {
@@ -168,6 +172,7 @@ model Piece {
   createdAt   DateTime  @default(now())
   reports     PieceReport[]
   artifacts   Artifact[]
+  rulingSubjects RulingSubject[]
 }
 
 model VoyagePiece {
@@ -342,6 +347,56 @@ model BoardOwner {
   ownerId   String
 
   @@unique([ownerKind, ownerId])
+}
+
+model Ruling {
+  id               String    @id
+  requesterAgentId String
+  radius           String
+  urgency          String
+  context          String
+  question         String
+  answer           String?
+  answerChoiceId   String?
+  ruledBy          String?
+  ruledAt          DateTime?
+  createdAt        DateTime  @default(now())
+  requester        Agent          @relation(fields: [requesterAgentId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  answerChoice     RulingChoice?  @relation("RulingAnswer", fields: [answerChoiceId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  choices          RulingChoice[] @relation("RulingChoices")
+  subjects         RulingSubject[]
+
+  @@index([ruledAt])
+}
+
+model RulingChoice {
+  id       String  @id
+  rulingId String
+  position Int
+  label    String
+  detail   String?
+  ruling   Ruling  @relation("RulingChoices", fields: [rulingId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  answered Ruling[] @relation("RulingAnswer")
+
+  @@unique([rulingId, position])
+}
+
+model RulingSubject {
+  id       String  @id
+  rulingId String
+  kind     String
+  repoId   String?
+  voyageId String?
+  pieceId  String?
+  agentId  String?
+  tag      String?
+  ruling   Ruling  @relation(fields: [rulingId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  repo     Repo?   @relation(fields: [repoId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  voyage   Voyage? @relation(fields: [voyageId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  piece    Piece?  @relation(fields: [pieceId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  agent    Agent?  @relation(fields: [agentId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+
+  @@index([tag])
 }
 
 model Setting {

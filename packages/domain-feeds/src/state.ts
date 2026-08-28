@@ -6,6 +6,7 @@ export interface DomainFeedState {
 	readonly events: PubSub.PubSub<StoredEvent>;
 	readonly fleet: PubSub.PubSub<void>;
 	readonly resourceReclaim: PubSub.PubSub<void>;
+	readonly rulings: PubSub.PubSub<void>;
 	readonly voyages: PubSub.PubSub<void>;
 }
 
@@ -16,6 +17,7 @@ export const initializeDomainFeeds = Effect.fn("domainFeeds.initialize")(
 			events: yield* PubSub.unbounded<StoredEvent>(),
 			fleet: yield* PubSub.unbounded<void>(),
 			resourceReclaim: yield* PubSub.unbounded<void>(),
+			rulings: yield* PubSub.unbounded<void>(),
 			voyages: yield* PubSub.unbounded<void>(),
 		};
 	},

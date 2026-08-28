@@ -42,6 +42,24 @@ describe("the shipped fixtures", () => {
 	);
 
 	it.effect(
+		"scripts rulings that gain an urgent one and lose a ruled one",
+		() =>
+			Effect.gen(function* () {
+				const caller = feeds("5 millis").createCaller({ windowId: "console" });
+				const opened = yield* Effect.promise(() => caller.openRulingsFeed());
+				const collected = yield* Stream.fromAsyncIterable(
+					opened,
+					(cause) => cause,
+				).pipe(Stream.runCollect);
+				expect(collected.map((seen) => seen.rulings.length)).toEqual([2, 3, 2]);
+				expect(collected.at(-1)?.rulings.map((seen) => seen.id)).toEqual([
+					"ruling-3",
+					"ruling-2",
+				]);
+			}),
+	);
+
+	it.effect(
 		"scripts a voyage that gains a board entry and a launched piece",
 		() =>
 			Effect.gen(function* () {

@@ -1,4 +1,5 @@
 import {
+	conflict,
 	type EffectTRPCRuntime,
 	forbidden,
 	internalServerError,
@@ -8,6 +9,7 @@ import {
 import { initTRPC } from "@trpc/server";
 import { Context, Effect, Layer } from "effect";
 import type { AppInfoSource } from "#app-info.ts";
+import type { RulingFailure, RulingRefused, RulingSource } from "#rulings.ts";
 import type { SettingsSource } from "#settings/readings.ts";
 import type { SightFailure, SightSource } from "#sight.ts";
 import type { ArtifactMarkdownFailure, VoyageSource } from "#voyages.ts";
@@ -25,7 +27,12 @@ export class RequestOrigin extends Context.Service<
 >()("@antumbra/contract/RequestOrigin") {}
 
 export type AppRuntime = EffectTRPCRuntime<
-	AppInfoSource | SettingsSource | SightSource | VoyageSource | WindowSource,
+	| AppInfoSource
+	| RulingSource
+	| SettingsSource
+	| SightSource
+	| VoyageSource
+	| WindowSource,
 	never
 >;
 
@@ -52,7 +59,11 @@ export type AppProcedure = ReturnType<typeof makeProcedure>;
 export const surface = <A, R>(
 	effect: Effect.Effect<
 		A,
-		ArtifactMarkdownFailure | SightFailure | WindowRefused,
+		| ArtifactMarkdownFailure
+		| RulingFailure
+		| RulingRefused
+		| SightFailure
+		| WindowRefused,
 		R
 	>,
 ) =>
@@ -60,6 +71,10 @@ export const surface = <A, R>(
 		Effect.catchTags({
 			ArtifactMarkdownFailure: (failure) =>
 				internalServerError(failure.message),
+			RulingFailure: (failure) => internalServerError(failure.message),
+			// why: a ruling already answered or never asked is a request the
+			// record has outrun, not a window without the right to make it.
+			RulingRefused: (failure) => conflict(failure.reason),
 			SightFailure: (failure) => internalServerError(failure.message),
 			WindowRefused: (failure) => forbidden(failure.reason),
 		}),

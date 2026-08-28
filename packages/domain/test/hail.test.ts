@@ -29,6 +29,7 @@ const CAPTAIN_TOOLS = [
 	"write_board",
 	"read_board",
 	"stand_down",
+	"read_rulings",
 ];
 
 const seedSpawningCaptain = (voyageId: string) =>

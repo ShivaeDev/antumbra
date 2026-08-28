@@ -3,6 +3,7 @@ import type {
 	StoredBoardEntryInvalid,
 	StoredBoardOwnerKindInvalid,
 } from "@antumbra/boards";
+import type { RulingReadFailure } from "@antumbra/rulings";
 import { Effect } from "effect";
 import { charterFor } from "#crew-charter.ts";
 import { PieceNotFound } from "#errors.ts";
@@ -30,6 +31,7 @@ export type WorkRefused =
 	| PieceAlreadyCrewed
 	| PieceNotFound
 	| PieceNotOnVoyage
+	| RulingReadFailure
 	| SpawnRefused
 	| StoredBoardEntryInvalid
 	| StoredBoardOwnerKindInvalid
@@ -76,7 +78,7 @@ export const workPieceNow = (pieceId: string) =>
 		const intentId = yield* reach.submitSpawn({
 			agentId,
 			backend: voyage.backend,
-			charter: yield* charterFor(piece, voyage),
+			charter: yield* charterFor(piece, voyage, agentId),
 			pieceId,
 			role: piece.role,
 			// why: the sole runner in v1 — the field becomes a choice when a

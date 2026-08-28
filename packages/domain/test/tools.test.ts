@@ -70,6 +70,7 @@ it.live(
 					"write_board",
 					"read_board",
 					"stand_down",
+					"read_rulings",
 				]);
 
 				const outcome = yield* callTool(live, "land_report", {

@@ -4,6 +4,7 @@ import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database } from "@antumbra/persistence";
 import { Pieces } from "@antumbra/pieces";
 import { Reports } from "@antumbra/reports";
+import { Rulings } from "@antumbra/rulings";
 import type { AgentBackendTag } from "@antumbra/vocabulary/agent-backend";
 import { Clock, Context, Effect, Layer } from "effect";
 import { hailCaptain } from "#hail.ts";
@@ -81,11 +82,13 @@ export const VoyageProceduresLive = Layer.effect(VoyageProcedureService)(
 		const reach = yield* KernelReach;
 		const pieces = yield* Pieces;
 		const reports = yield* Reports;
+		const rulings = yield* Rulings;
 		const world = yield* VoyageWorldSource;
 		const context = Context.make(Boards, boards).pipe(
 			Context.add(Database, db),
 			Context.add(DomainFeeds, feeds),
 			Context.add(KernelReach, reach),
+			Context.add(Rulings, rulings),
 			Context.add(VoyageWorldSource, world),
 		);
 		return VoyageProcedureService.of({

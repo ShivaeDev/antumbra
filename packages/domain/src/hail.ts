@@ -7,6 +7,7 @@ import {
 	smoothBodies,
 } from "@antumbra/boards";
 import { captainCharter } from "@antumbra/prompts";
+import type { RulingReadFailure } from "@antumbra/rulings";
 import { Effect, Option } from "effect";
 import {
 	CaptainAlreadyHailed,
@@ -16,6 +17,7 @@ import {
 import type { SpawnRefused } from "#kernel-reach.ts";
 import { KernelReach } from "#kernel-reach.ts";
 import { pieceLineWithOutcomes } from "#piece-line.ts";
+import { rulingLine, standingRulingsFor } from "#standing-rulings.ts";
 import { CAPTAIN_ROLE, captainAtWork, captainOf } from "#voyage-captain.ts";
 import { executionSessionOfAgent } from "#voyage-execution-selection.ts";
 import { voyageView } from "#voyage-view.ts";
@@ -36,6 +38,7 @@ export type HailRefused =
 	| BoardOwnerNotFound
 	| CaptainAlreadyHailed
 	| CaptainSessionUnavailable
+	| RulingReadFailure
 	| SpawnRefused
 	| StoredBoardEntryInvalid
 	| StoredBoardOwnerKindInvalid
@@ -85,6 +88,11 @@ export const hailCaptain = (voyageId: string) =>
 			.read(BoardScope.Voyage({ voyageId }))
 			.pipe(Effect.map(smoothBodies));
 		const agentId = crypto.randomUUID();
+		const bindingRulings = yield* standingRulingsFor({
+			agentId,
+			pieceId: Option.none(),
+			voyageId: Option.some(voyageId),
+		});
 		// why: the hail is answered from the window or the router, never from
 		// inside a session, so it may wait for the kernel to be reachable and
 		// hand back the intent it just asked for.
@@ -95,6 +103,7 @@ export const hailCaptain = (voyageId: string) =>
 				context: voyage.context,
 				northStar: voyage.northStar,
 				pieceLines: voyageView(world, voyage).pieces.map(pieceLineWithOutcomes),
+				rulings: bindingRulings.map(rulingLine),
 				voyageLog: voyageSmoothLog,
 			}),
 			role: CAPTAIN_ROLE,

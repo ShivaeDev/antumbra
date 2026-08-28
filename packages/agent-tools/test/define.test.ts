@@ -18,6 +18,7 @@ import {
 	supersedeArtifactSpec,
 } from "#crew.ts";
 import { bind, defineTool } from "#define.ts";
+import { readRulingsSpec } from "#ruling-readings.ts";
 
 const specs = [
 	landReportSpec,
@@ -33,6 +34,7 @@ const specs = [
 	readBoardSpec,
 	writeBoardSpec,
 	standDownSpec,
+	readRulingsSpec,
 ];
 
 it("every spec is named the way both harnesses accept", () => {
@@ -79,6 +81,14 @@ it("every spec emits a closed object schema", () => {
 		"dependsOn",
 		"pieceId",
 	]);
+	expect(readRulingsSpec.inputSchema).not.toHaveProperty("required");
+	expect(readRulingsSpec.inputSchema.properties).toMatchObject({
+		tags: {
+			anyOf: expect.arrayContaining([
+				expect.objectContaining({ items: { type: "string" }, type: "array" }),
+			]),
+		},
+	});
 	expect(readVoyageSpec.inputSchema).toEqual(standDownSpec.inputSchema);
 	expect(standDownSpec.inputSchema).toEqual({
 		additionalProperties: false,

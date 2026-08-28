@@ -35,6 +35,9 @@ export const openSubmittedChange = (input: OpenChangeInput) =>
 			prepared.repo.defaultRef,
 			input,
 		);
+		if (snapshot.stage !== "prepared" || snapshot.externalId !== null) {
+			return snapshot;
+		}
 		const host = hosts.get(prepared.hostTag);
 		if (host === undefined) {
 			return yield* new UnknownChangeHostTag({ tag: prepared.hostTag });

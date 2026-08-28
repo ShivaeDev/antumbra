@@ -1,35 +1,17 @@
 import { DomainFeeds, DomainFeedsLive } from "@antumbra/domain-feeds";
-import { Database } from "@antumbra/persistence";
-import { persistenceIt } from "@antumbra/persistence/testing";
+import { applyMigrations, Database } from "@antumbra/persistence";
+import {
+	acquireTemporaryPersistence,
+	packagedMigrationsDirectory,
+	persistenceIt,
+} from "@antumbra/persistence/testing";
 import { Repos, ReposLive, repoName, repoSlug } from "@antumbra/repos";
-import { expect } from "@effect/vitest";
-import { Effect, Layer, PubSub, Result } from "effect";
-import { it } from "vitest";
+import { expect, it } from "@effect/vitest";
+import { Deferred, Effect, Fiber, Layer, PubSub, Result } from "effect";
 
 const persistence = persistenceIt();
 const layer = ReposLive.pipe(Layer.provideMerge(DomainFeedsLive));
 const OBSERVED = new Date("2026-08-17T00:00:00.000Z");
-
-const registerConcurrentSlug = Effect.gen(function* () {
-	const repos = yield* Repos;
-	return yield* Effect.all(
-		[
-			Effect.result(
-				repos.register({
-					defaultRef: "main",
-					source: "/reefs/Concurrent-Charts",
-				}),
-			),
-			Effect.result(
-				repos.register({
-					defaultRef: "main",
-					source: "git@example.invalid:crew/concurrent-charts.git",
-				}),
-			),
-		],
-		{ concurrency: "unbounded" },
-	);
-});
 
 const seedChangeGraph = (repoId: string) =>
 	Effect.gen(function* () {
@@ -154,18 +136,71 @@ persistence.effectDB(
 	},
 );
 
-persistence.effectDB(
+const concurrentSlugRegistration = Effect.gen(function* () {
+	const temporary = yield* acquireTemporaryPersistence;
+	yield* applyMigrations({
+		database: temporary.database,
+		migrationsDirectory: packagedMigrationsDirectory,
+	});
+	const firstQueryReached = Promise.withResolvers<void>();
+	const releaseFirstQuery = Promise.withResolvers<void>();
+	let queryCalls = 0;
+	const databaseLayer = Database.layer({
+		path: temporary.database,
+		middleware: [
+			{
+				name: "hold-first-repo-registration-query",
+				beforeExecute() {
+					queryCalls += 1;
+					if (queryCalls === 1) {
+						firstQueryReached.resolve();
+						return releaseFirstQuery.promise;
+					}
+				},
+			},
+		],
+	});
+	yield* Effect.gen(function* () {
+		const db = yield* Database;
+		const repos = yield* Repos;
+		yield* Effect.gen(function* () {
+			const first = yield* Effect.forkScoped(
+				repos.register({
+					defaultRef: "main",
+					source: "/reefs/Concurrent-Charts",
+				}),
+			);
+			yield* Effect.promise(() => firstQueryReached.promise);
+			const secondStarted = yield* Deferred.make<void>();
+			const conflictingRegistration = repos.register({
+				defaultRef: "main",
+				source: "git@example.invalid:crew/concurrent-charts.git",
+			});
+			const second = yield* Effect.forkScoped(
+				Deferred.succeed(secondStarted, undefined).pipe(
+					Effect.andThen(Effect.result(conflictingRegistration)),
+				),
+			);
+			yield* Deferred.await(secondStarted);
+			yield* Effect.promise(
+				() => new Promise<void>((resolve) => setImmediate(resolve)),
+			);
+			expect(queryCalls).toBe(1);
+			releaseFirstQuery.resolve();
+			yield* Fiber.join(first);
+			const secondResult = yield* Fiber.join(second);
+			expect(Result.isFailure(secondResult)).toBe(true);
+			if (Result.isFailure(secondResult)) {
+				expect(secondResult.failure._tag).toBe("RepoSlugTaken");
+			}
+			expect(yield* db.Repo.all()).toHaveLength(1);
+		}).pipe(Effect.ensuring(Effect.sync(() => releaseFirstQuery.resolve())));
+	}).pipe(Effect.provide(layer.pipe(Layer.provideMerge(databaseLayer))));
+});
+
+it.live(
 	"admits only one of two concurrent sources with the same derived slug",
-	function* (db) {
-		const results = yield* Effect.scoped(registerConcurrentSlug).pipe(
-			Effect.provide(layer),
-		);
-		expect(results.filter(Result.isSuccess)).toHaveLength(1);
-		const failures = results.filter(Result.isFailure);
-		expect(failures).toHaveLength(1);
-		expect(failures[0]?.failure._tag).toBe("RepoSlugTaken");
-		expect(yield* db.Repo.all()).toHaveLength(1);
-	},
+	() => concurrentSlugRegistration,
 );
 
 persistence.effectDB(

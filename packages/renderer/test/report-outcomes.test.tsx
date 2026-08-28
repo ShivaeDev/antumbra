@@ -46,6 +46,7 @@ const piece: PieceView = {
 	agents: [],
 	artifactHistory: [],
 	artifacts: [],
+	awaitingRulings: [],
 	board: [],
 	canRetireCrew: false,
 	changes: [],

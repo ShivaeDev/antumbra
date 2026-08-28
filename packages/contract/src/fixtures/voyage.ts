@@ -23,6 +23,7 @@ export const soundings: PieceView = {
 	agents: [{ agentId: "agent-2", status: "alive" }],
 	artifactHistory: [],
 	artifacts: [],
+	awaitingRulings: [],
 	board: [
 		{
 			authorAgentId: "agent-2",
@@ -50,6 +51,7 @@ export const chart: PieceView = {
 	agents: [],
 	artifactHistory: [],
 	artifacts: [],
+	awaitingRulings: [],
 	board: [],
 	canRetireCrew: false,
 	changes: [],

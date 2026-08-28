@@ -24,6 +24,15 @@ const choicesOf = (rulingId: string) =>
 		);
 	});
 
+const gatedPieceIdsOf = (rulingId: string) =>
+	Effect.gen(function* () {
+		const db = yield* Database;
+		const rows = yield* db.RulingGate.where({ rulingId })
+			.select("pieceId")
+			.all();
+		return rows.map((row) => row.pieceId);
+	});
+
 const subjectsOf = (rulingId: string) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
@@ -38,6 +47,7 @@ export const loadRuling = (row: StoredRuling) =>
 			choices: yield* choicesOf(row.id),
 			context: row.context,
 			createdAt: row.createdAt,
+			gatedPieceIds: yield* gatedPieceIdsOf(row.id),
 			id: row.id,
 			question: row.question,
 			radius: yield* Effect.fromResult(

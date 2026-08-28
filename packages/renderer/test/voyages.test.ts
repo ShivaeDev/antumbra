@@ -8,6 +8,7 @@ import { describe, expect, it } from "vitest";
 import { actsFor, captainAtWork } from "#voyages/acts.ts";
 import {
 	authorLabel,
+	awaitingRulingsLabel,
 	captainCallLabel,
 	dependsOnLabel,
 	whenLabel,
@@ -23,6 +24,7 @@ const piece = (
 	agents: [],
 	artifactHistory: [],
 	artifacts: [],
+	awaitingRulings: [],
 	board: [],
 	canRetireCrew: false,
 	changes: [],
@@ -146,6 +148,17 @@ describe("captainCallLabel", () => {
 		expect(captainCallLabel(null)).toBe("Hail a captain");
 		expect(captainCallLabel(captain("retired", false))).toBe("Hail a captain");
 		expect(captainCallLabel(captain("dormant", false))).toBe("Hail a captain");
+	});
+});
+
+describe("awaitingRulingsLabel", () => {
+	it("names the rulings holding a piece", () => {
+		const held = {
+			...piece("3", "charlie", "blocked"),
+			awaitingRulings: ["r-1", "r-2"],
+		};
+		expect(awaitingRulingsLabel(held)).toBe("Awaiting ruling: r-1, r-2");
+		expect(awaitingRulingsLabel(piece("1", "alpha", "ready"))).toBe("");
 	});
 });
 

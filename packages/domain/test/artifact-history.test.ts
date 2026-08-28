@@ -39,6 +39,7 @@ const world: VoyageWorld = {
 	pieceChanges: [],
 	pieceReports: [],
 	pieceVerdicts: new Map(),
+	rulingGates: [],
 	pieces: [piece],
 	reports: new Map(),
 	repos: new Map(),

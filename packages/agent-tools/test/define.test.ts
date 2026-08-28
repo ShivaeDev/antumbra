@@ -18,6 +18,7 @@ import {
 	supersedeArtifactSpec,
 } from "#crew.ts";
 import { bind, defineTool } from "#define.ts";
+import { requestRulingSpec } from "#rulings.ts";
 
 const specs = [
 	landReportSpec,
@@ -32,6 +33,7 @@ const specs = [
 	readVoyageSpec,
 	readBoardSpec,
 	writeBoardSpec,
+	requestRulingSpec,
 	standDownSpec,
 ];
 
@@ -65,6 +67,12 @@ it("every spec emits a closed object schema", () => {
 		"scope",
 	]);
 	expect(readBoardSpec.inputSchema.required).toEqual(["scope"]);
+	expect(requestRulingSpec.inputSchema.required).toEqual([
+		"context",
+		"question",
+		"radius",
+		"urgency",
+	]);
 	expect(charterPieceSpec.inputSchema.required).toEqual([
 		"charter",
 		"dependsOn",

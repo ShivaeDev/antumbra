@@ -71,6 +71,7 @@ export interface StoredRuling {
 	readonly answerChoiceId: string | null;
 	readonly context: string;
 	readonly createdAt: Date;
+	readonly deliveredAt: Date | null;
 	readonly id: string;
 	readonly question: string;
 	readonly radius: string;

@@ -24,7 +24,14 @@ export class RulingSubjectMissing extends Data.TaggedError(
 	"RulingSubjectMissing",
 )<{
 	readonly subject: RulingSubject;
-}> {}
+}> {
+	override get message(): string {
+		const subject = this.subject;
+		const named =
+			subject.kind === "tag" ? subject.tag : `${subject.kind} ${subject.id}`;
+		return `the fleet has no ${named}`;
+	}
+}
 
 export type RulingReadFailure = PrismaError | StoredRulingValueInvalid;
 

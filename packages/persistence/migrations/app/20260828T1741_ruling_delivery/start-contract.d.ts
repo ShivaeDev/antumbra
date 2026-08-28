@@ -16,7 +16,7 @@ import type {
 } from '@prisma-next/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'sha256:f389e2c559ddceb0a7f437e4096d48d9b27254021fa108c145bbe1b3153b7f20'>;
+  StorageHashBase<'sha256:d38dbf3e3cac41b2e172890f98f9ff43bb206a243555677410a247e06cd8bbcb'>;
 export type ExecutionHash = ExecutionHashBase<string>;
 export type ProfileHash =
   ProfileHashBase<'sha256:3cc333ecad9f3f4c7229370a9d2c37e908cdce0f8d2e9fb132d50605b024eff2'>;
@@ -233,7 +233,6 @@ export type FieldOutputTypes = {
       readonly answerChoiceId: CodecTypes['sqlite/text@1']['output'] | null;
       readonly ruledBy: CodecTypes['sqlite/text@1']['output'] | null;
       readonly ruledAt: CodecTypes['sqlite/datetime@1']['output'] | null;
-      readonly deliveredAt: CodecTypes['sqlite/datetime@1']['output'] | null;
       readonly createdAt: CodecTypes['sqlite/datetime@1']['output'];
     };
     readonly RulingChoice: {
@@ -515,7 +514,6 @@ export type FieldInputTypes = {
       readonly answerChoiceId: CodecTypes['sqlite/text@1']['input'] | null;
       readonly ruledBy: CodecTypes['sqlite/text@1']['input'] | null;
       readonly ruledAt: CodecTypes['sqlite/datetime@1']['input'] | null;
-      readonly deliveredAt: CodecTypes['sqlite/datetime@1']['input'] | null;
       readonly createdAt: CodecTypes['sqlite/datetime@1']['input'];
     };
     readonly RulingChoice: {
@@ -791,7 +789,6 @@ export type StorageColumnTypes = {
       readonly answerChoiceId: CodecTypes['sqlite/text@1']['output'] | null;
       readonly context: CodecTypes['sqlite/text@1']['output'];
       readonly createdAt: CodecTypes['sqlite/datetime@1']['output'];
-      readonly deliveredAt: CodecTypes['sqlite/datetime@1']['output'] | null;
       readonly id: CodecTypes['sqlite/text@1']['output'];
       readonly question: CodecTypes['sqlite/text@1']['output'];
       readonly radius: CodecTypes['sqlite/text@1']['output'];
@@ -1073,7 +1070,6 @@ export type StorageColumnInputTypes = {
       readonly answerChoiceId: CodecTypes['sqlite/text@1']['input'] | null;
       readonly context: CodecTypes['sqlite/text@1']['input'];
       readonly createdAt: CodecTypes['sqlite/datetime@1']['input'];
-      readonly deliveredAt: CodecTypes['sqlite/datetime@1']['input'] | null;
       readonly id: CodecTypes['sqlite/text@1']['input'];
       readonly question: CodecTypes['sqlite/text@1']['input'];
       readonly radius: CodecTypes['sqlite/text@1']['input'];
@@ -2285,11 +2281,6 @@ type ContractBase = Omit<
                   readonly nullable: true;
                 };
                 readonly ruledAt: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'sqlite/datetime@1';
-                  readonly nullable: true;
-                };
-                readonly deliveredAt: {
                   readonly nativeType: 'text';
                   readonly codecId: 'sqlite/datetime@1';
                   readonly nullable: true;
@@ -4173,10 +4164,6 @@ type ContractBase = Omit<
                 readonly nullable: true;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/datetime@1' };
               };
-              readonly deliveredAt: {
-                readonly nullable: true;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/datetime@1' };
-              };
               readonly createdAt: {
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/datetime@1' };
@@ -4242,7 +4229,6 @@ type ContractBase = Omit<
                 readonly answerChoiceId: { readonly column: 'answerChoiceId' };
                 readonly ruledBy: { readonly column: 'ruledBy' };
                 readonly ruledAt: { readonly column: 'ruledAt' };
-                readonly deliveredAt: { readonly column: 'deliveredAt' };
                 readonly createdAt: { readonly column: 'createdAt' };
               };
             };

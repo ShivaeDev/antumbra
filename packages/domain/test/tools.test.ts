@@ -69,6 +69,7 @@ it.live(
 					"mark_read",
 					"write_board",
 					"read_board",
+					"request_ruling",
 					"stand_down",
 				]);
 

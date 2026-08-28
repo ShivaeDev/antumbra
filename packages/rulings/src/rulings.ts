@@ -2,7 +2,9 @@ import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database } from "@antumbra/persistence";
 import { defineService } from "@antumbra/service-definition";
 import { Effect } from "effect";
+import { awaitingDelivery } from "#awaiting-delivery.ts";
 import { get } from "#get.ts";
+import { markDelivered } from "#mark-delivered.ts";
 import { open } from "#open.ts";
 import { request } from "#request.ts";
 import { rule } from "#rule.ts";
@@ -15,7 +17,15 @@ const requirements = [Database, DomainFeeds] as const;
 export const Rulings = defineService({
 	id: "@antumbra/rulings/Rulings",
 	initialize: Effect.void,
-	methods: () => ({ get, open, request, rule, standing }),
+	methods: () => ({
+		awaitingDelivery,
+		get,
+		markDelivered,
+		open,
+		request,
+		rule,
+		standing,
+	}),
 	requires: requirements,
 });
 

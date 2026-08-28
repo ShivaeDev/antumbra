@@ -360,6 +360,7 @@ model Ruling {
   answerChoiceId   String?
   ruledBy          String?
   ruledAt          DateTime?
+  deliveredAt      DateTime?
   createdAt        DateTime  @default(now())
   requester        Agent          @relation(fields: [requesterAgentId], references: [id], onDelete: Restrict, onUpdate: Restrict)
   answerChoice     RulingChoice?  @relation("RulingAnswer", fields: [answerChoiceId], references: [id], onDelete: Restrict, onUpdate: Restrict)

@@ -22,3 +22,4 @@ export {
 } from "#crew.ts";
 export { bind } from "#define.ts";
 export { readReportSpec } from "#reports.ts";
+export { requestRulingSpec } from "#rulings.ts";

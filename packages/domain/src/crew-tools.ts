@@ -17,6 +17,7 @@ import { makeBoardToolCompiler } from "#board-tools.ts";
 import { makeChangeToolCompiler } from "#change-tools.ts";
 import { makeReportToolCompiler } from "#report-tools.ts";
 import { makeRulingReadingToolCompiler } from "#ruling-reading-tools.ts";
+import { makeRulingToolCompiler } from "#ruling-tools.ts";
 import { StandDown } from "#stand-down.ts";
 import { answered, onPiece } from "#tool-answers.ts";
 import type { SessionIdentity } from "#tool-identity.ts";
@@ -60,6 +61,7 @@ export const makeCrewToolCompiler = Effect.gen(function* () {
 	const compileBoardTools = yield* makeBoardToolCompiler;
 	const compileChangeTools = yield* makeChangeToolCompiler;
 	const compileReportTools = yield* makeReportToolCompiler;
+	const compileRulingTools = yield* makeRulingToolCompiler;
 	const compileRulingReadingTools = yield* makeRulingReadingToolCompiler;
 	const reports = yield* Reports;
 	const standDown = yield* StandDown;
@@ -115,6 +117,7 @@ export const makeCrewToolCompiler = Effect.gen(function* () {
 			),
 			...compileChangeTools(identity),
 			...compileBoardTools(identity),
+			...compileRulingTools(identity),
 			standDown.tool(identity),
 			...compileRulingReadingTools(identity),
 		];

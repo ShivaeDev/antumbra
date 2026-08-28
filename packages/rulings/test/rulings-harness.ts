@@ -46,6 +46,7 @@ export const seedFleet = Effect.gen(function* () {
 export const asked = {
 	choices: [],
 	context: "the reef chart disagrees with the soundings",
+	gates: [],
 	question: "which reading do we trust?",
 	radius: "voyage",
 	requesterAgentId: requesterId,

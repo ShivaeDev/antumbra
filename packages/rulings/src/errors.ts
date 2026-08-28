@@ -43,7 +43,10 @@ export class RulingSubjectMissing extends Data.TaggedError(
 
 export type RulingReadFailure = PrismaError | StoredRulingValueInvalid;
 
-export type RulingRequestFailure = RulingReadFailure | RulingSubjectMissing;
+export type RulingRequestFailure =
+	| RulingGatePieceMissing
+	| RulingReadFailure
+	| RulingSubjectMissing;
 
 export type RulingVerdictFailure =
 	| RulingAlreadyRuled

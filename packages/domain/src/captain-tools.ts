@@ -7,6 +7,7 @@ import { CaptainMembership } from "#captain-membership.ts";
 import { makePieceVerbToolCompiler } from "#captain-pieces.ts";
 import { VoyageNotFound } from "#errors.ts";
 import { makeReportToolCompiler } from "#report-tools.ts";
+import { makeRulingReadingToolCompiler } from "#ruling-reading-tools.ts";
 import { StandDown } from "#stand-down.ts";
 import { answered, onVoyage } from "#tool-answers.ts";
 import type { SessionIdentity } from "#tool-identity.ts";
@@ -33,6 +34,7 @@ export const makeCaptainToolCompiler = Effect.gen(function* () {
 	const pieceVerbTools = yield* makePieceVerbToolCompiler;
 	const compileBoardTools = yield* makeBoardToolCompiler;
 	const compileReportTools = yield* makeReportToolCompiler;
+	const compileRulingReadingTools = yield* makeRulingReadingToolCompiler;
 	const standDown = yield* StandDown;
 	const world = yield* VoyageWorldSource;
 	return (identity: SessionIdentity): ReadonlyArray<DirectTool> => [
@@ -69,5 +71,6 @@ export const makeCaptainToolCompiler = Effect.gen(function* () {
 		...compileReportTools(identity),
 		...compileBoardTools(identity),
 		standDown.tool(identity),
+		...compileRulingReadingTools(identity),
 	];
 });

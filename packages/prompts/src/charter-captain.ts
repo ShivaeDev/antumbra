@@ -9,6 +9,7 @@ export const CaptainCharter = Schema.Struct({
 	// owns it, so the catalog takes the finished lines as a blank rather than
 	// reaching for piece rows it would have to learn to read.
 	pieceLines: Schema.Array(Schema.String),
+	rulings: Schema.Array(Schema.String),
 	voyageLog: Schema.Array(Schema.String),
 });
 export type CaptainCharter = typeof CaptainCharter.Type;
@@ -22,12 +23,13 @@ const STANDING_ORDER = [
 	"- `read_voyage` shows what has landed. `park_piece` pulls a piece back out of the pool, `unpark_piece` returns it, and `rewire_piece` changes what a piece waits on.",
 	"- `read_report` gives you a landed report in full, by the id `read_voyage` shows beside it. Workers report; captains read what they said.",
 	"- `write_board` in the smooth register is how you talk to your successor: write what the next captain of this voyage must know, and nothing the record already holds. `read_board` shows what earlier captains left.",
+	"- Read what binds you before you ask: the standing rulings above already decide part of this voyage, `read_rulings` gives you every one of them in full, and `request_ruling` carries a question above you to whoever may answer it.",
 	"- Call `stand_down` when the voyage is quiet, or when there is nothing for you to do until something lands. You are hailed again when you are wanted.",
 ].join("\n");
 
-// why: a captain is told the same three things every session — where the
-// voyage is going, what its board says, and where its pieces stand — because
-// its session is mortal and the voyage is not.
+// why: a captain is told the same four things every session — where the
+// voyage is going, what its board says, where its pieces stand, and what has
+// already been ruled — because its session is mortal and the voyage is not.
 export const captainCharter = (input: CaptainCharter): AgentPrompt =>
 	agentPrompt(
 		proseOf([
@@ -35,6 +37,7 @@ export const captainCharter = (input: CaptainCharter): AgentPrompt =>
 			section("Context", input.context),
 			logSection("Voyage log", input.voyageLog),
 			section("Pieces", input.pieceLines.join("\n")),
+			logSection("Standing rulings", input.rulings),
 			section("Standing orders", STANDING_ORDER),
 		]),
 	);

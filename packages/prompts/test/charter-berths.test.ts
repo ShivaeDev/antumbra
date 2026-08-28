@@ -34,6 +34,7 @@ const CREW = crewCharter({
 	pieceCharter: "sound the shallows",
 	pieceLog: [],
 	pieceTitle: "alpha",
+	rulings: [],
 	voyageLog: [],
 });
 
@@ -41,6 +42,7 @@ const CAPTAIN = captainCharter({
 	context: "the reef is uncharted",
 	northStar: "every shoal is known",
 	pieceLines: [],
+	rulings: [],
 	voyageLog: [],
 });
 

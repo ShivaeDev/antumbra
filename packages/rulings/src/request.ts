@@ -4,6 +4,7 @@ import { Clock, Effect } from "effect";
 import { appendGate, requirePiece } from "#gate-rows.ts";
 import type { RulingRequest } from "#model.ts";
 import { loadRuling } from "#read.ts";
+import { requesterColumns } from "#requester.ts";
 import type { StoredRuling } from "#stored-rows.ts";
 import { subjectRow, verifySubject } from "#subjects.ts";
 
@@ -16,7 +17,10 @@ const choiceRows = (rulingId: string, input: RulingRequest) =>
 		rulingId,
 	}));
 
-const requested = (input: RulingRequest, nowMillis: number): StoredRuling => ({
+export const requested = (
+	input: RulingRequest,
+	nowMillis: number,
+): StoredRuling => ({
 	answer: null,
 	answerChoiceId: null,
 	context: input.context,
@@ -25,7 +29,7 @@ const requested = (input: RulingRequest, nowMillis: number): StoredRuling => ({
 	id: crypto.randomUUID(),
 	question: input.question,
 	radius: input.radius,
-	requesterAgentId: input.requesterAgentId,
+	...requesterColumns(input.requester),
 	ruledAt: null,
 	ruledBy: null,
 	supersededAt: null,
@@ -34,7 +38,7 @@ const requested = (input: RulingRequest, nowMillis: number): StoredRuling => ({
 	urgency: input.urgency,
 });
 
-const writeRequest = (row: StoredRuling, input: RulingRequest) =>
+export const writeRequest = (row: StoredRuling, input: RulingRequest) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
 		yield* Effect.forEach(input.subjects, verifySubject);

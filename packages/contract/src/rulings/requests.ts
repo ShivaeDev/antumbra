@@ -19,6 +19,35 @@ export const RulingRuledReceipt = Schema.Struct({
 });
 export type RulingRuledReceipt = typeof RulingRuledReceipt.Type;
 
+// why: an authority that wants a standing rule asks and answers one ruling at
+// once, so a proclamation carries the whole record: the context that gives the
+// answer its meaning, the question, both axes, and the words that settle it. A
+// pick is named by the label it is written with, because no choice has an id
+// until the proclamation lands.
+export const ProclaimRequest = Schema.Struct({
+	answer: Schema.NonEmptyString,
+	choices: Schema.optional(
+		Schema.Array(
+			Schema.Struct({
+				detail: Schema.optional(Schema.String),
+				label: Schema.NonEmptyString,
+			}),
+		),
+	),
+	chosenChoice: Schema.optional(Schema.String),
+	context: Schema.NonEmptyString,
+	question: Schema.NonEmptyString,
+	radius: RulingRadiusSchema,
+	tags: Schema.optional(Schema.Array(Schema.NonEmptyString)),
+	urgency: RulingUrgencySchema,
+});
+export type ProclaimRequest = typeof ProclaimRequest.Type;
+
+export const RulingProclaimedReceipt = Schema.Struct({
+	rulingId: Schema.String,
+});
+export type RulingProclaimedReceipt = typeof RulingProclaimedReceipt.Type;
+
 // why: an authority may move either axis or both, and the words beside the
 // move are optional — the record keeps who moved what, with or without them.
 export const ReclassifyRequest = Schema.Struct({

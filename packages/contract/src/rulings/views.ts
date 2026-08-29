@@ -24,6 +24,18 @@ export const RulingSubjectView = Schema.Struct({
 });
 export type RulingSubjectView = typeof RulingSubjectView.Type;
 
+// why: a ruling is asked by an agent or proclaimed by an authority, and the
+// window says which in its own words — the asker's id means nothing when the
+// admiral wrote the question for itself.
+export const RulingRequesterView = Schema.Union([
+	Schema.Struct({ agentId: Schema.String, kind: Schema.Literal("agent") }),
+	Schema.Struct({
+		by: RulingAuthoritySchema,
+		kind: Schema.Literal("authority"),
+	}),
+]);
+export type RulingRequesterView = typeof RulingRequesterView.Type;
+
 export const RulingAxesView = Schema.Struct({
 	radius: RulingRadiusSchema,
 	urgency: RulingUrgencySchema,
@@ -71,7 +83,7 @@ export const RulingView = Schema.Struct({
 	radius: RulingRadiusSchema,
 	reclassifications: Schema.Array(RulingReclassificationView),
 	requestedAt: Schema.String,
-	requesterAgentId: Schema.String,
+	requester: RulingRequesterView,
 	subjects: Schema.Array(RulingSubjectView),
 	urgency: RulingUrgencySchema,
 });

@@ -20,6 +20,8 @@ const { openFeeds, standingFeeds, supersedeRuling } = vi.hoisted(() => {
 });
 
 vi.mock("#adapters/trpc-rulings.ts", () => ({
+	proclaimRuling: vi.fn(),
+	reclassifyRuling: vi.fn(),
 	ruleOn: vi.fn(),
 	supersedeRuling,
 	watchOpenRulings: (onRulings: (view: OpenRulingsView) => void) => {
@@ -119,7 +121,7 @@ it.effect("lists what stands newest first with who ruled and what", () =>
 		const mounted = mount();
 		yield* showing(mounted, [berthReclaim, chartAuthority]);
 
-		const questions = [...mounted.container.querySelectorAll("h3")].map(
+		const questions = [...mounted.container.querySelectorAll("li h3")].map(
 			(heading) => heading.textContent,
 		);
 		expect(questions).toEqual([berthReclaim.question, chartAuthority.question]);

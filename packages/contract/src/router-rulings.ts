@@ -1,7 +1,9 @@
 import { type AppProcedure, surface } from "#router-procedure.ts";
 import {
+	ProclaimRequest,
 	ReclassifyRequest,
 	RuleRequest,
+	RulingProclaimedReceipt,
 	RulingReclassifiedReceipt,
 	RulingRuledReceipt,
 	RulingSupersededReceipt,
@@ -19,6 +21,13 @@ export const rulingRoutes = (procedure: AppProcedure) => ({
 		const rulings = yield* RulingSource;
 		return rulings.openFeed;
 	}),
+	proclaimRuling: procedure
+		.input(ProclaimRequest)
+		.output(RulingProclaimedReceipt)
+		.mutation(function* (input) {
+			const rulings = yield* RulingSource;
+			return yield* surface(rulings.proclaim(input));
+		}),
 	reclassifyRuling: procedure
 		.input(ReclassifyRequest)
 		.output(RulingReclassifiedReceipt)

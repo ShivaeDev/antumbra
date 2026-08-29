@@ -7,6 +7,7 @@ import { Effect, Option } from "effect";
 import { effectiveAxes } from "#axes.ts";
 import { RulingNotFound } from "#errors.ts";
 import type { Ruling, RulingAxes, RulingChoice } from "#model.ts";
+import { storedRequester } from "#requester.ts";
 import {
 	storedAnswer,
 	storedReclassification,
@@ -84,7 +85,7 @@ export const loadRuling = (row: StoredRuling) =>
 			id: row.id,
 			question: row.question,
 			reclassifications,
-			requesterAgentId: row.requesterAgentId,
+			requester: yield* storedRequester(row),
 			subjects: yield* subjectsOf(row.id),
 			supersession: yield* storedSupersession(row),
 			...effectiveAxes(declared, reclassifications),

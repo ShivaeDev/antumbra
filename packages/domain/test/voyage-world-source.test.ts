@@ -104,7 +104,7 @@ it.effectDB(
 				gates: [],
 				question: "which reading do we plot against?",
 				radius: "piece",
-				requesterAgentId: "agent-asker",
+				requester: { agentId: "agent-asker", kind: "agent" },
 				subjects: [],
 				urgency: "pressing",
 			});

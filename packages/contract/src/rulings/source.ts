@@ -1,7 +1,9 @@
 import { Context, Data, type Effect, type Stream } from "effect";
 import type {
+	ProclaimRequest,
 	ReclassifyRequest,
 	RuleRequest,
+	RulingProclaimedReceipt,
 	RulingReclassifiedReceipt,
 	RulingRuledReceipt,
 	RulingSupersededReceipt,
@@ -13,9 +15,9 @@ export class RulingFailure extends Data.TaggedError("RulingFailure")<{
 	readonly message: string;
 }> {}
 
-// why: a verdict or a supersession that does not land is not a broken window —
-// the ruling was answered already, was never asked, names a choice it never
-// offered, or does not stand. The reason is the sentence the admiral is shown
+// why: a verdict, a proclamation or a supersession that does not land is not a
+// broken window — the ruling was answered already, was never asked, names a
+// choice or a subject the fleet never had, or does not stand. The reason is the sentence the admiral is shown
 // rather than a code to branch on.
 export class RulingRefused extends Data.TaggedError("RulingRefused")<{
 	readonly reason: string;
@@ -26,6 +28,9 @@ export class RulingSource extends Context.Service<
 	{
 		readonly open: Effect.Effect<OpenRulingsView, RulingFailure>;
 		readonly openFeed: Stream.Stream<OpenRulingsView, RulingFailure>;
+		readonly proclaim: (
+			request: ProclaimRequest,
+		) => Effect.Effect<RulingProclaimedReceipt, RulingFailure | RulingRefused>;
 		readonly reclassify: (
 			request: ReclassifyRequest,
 		) => Effect.Effect<

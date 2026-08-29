@@ -1,5 +1,6 @@
 import { RulingFailure, RulingRefused } from "@antumbra/contract";
 import type {
+	RulingProclaimFailure,
 	RulingReclassifyFailure,
 	RulingVerdictFailure,
 } from "@antumbra/rulings";
@@ -26,6 +27,24 @@ export const verdictFailure = (
 			});
 		case "RulingNotFound":
 			return new RulingRefused({ reason: `no open ruling: ${cause.rulingId}` });
+		default:
+			return toRulingFailure(cause);
+	}
+};
+
+// why: a proclamation is a request and a verdict in one act, so it is refused
+// for either's reasons — a subject the fleet has not got, or a pick naming none
+// of the choices the proclamation itself wrote.
+export const proclaimFailure = (
+	cause: RulingProclaimFailure,
+): RulingFailure | RulingRefused => {
+	switch (cause._tag) {
+		case "RulingChoiceUnknown":
+			return new RulingRefused({
+				reason: `the proclamation never offered choice ${cause.choiceId}`,
+			});
+		case "RulingSubjectMissing":
+			return new RulingRefused({ reason: cause.message });
 		default:
 			return toRulingFailure(cause);
 	}

@@ -35,7 +35,7 @@ const askedAndRuled = (question: string, answer: string) =>
 			gates: [],
 			question,
 			radius: "voyage",
-			requesterAgentId: ASKER,
+			requester: { agentId: ASKER, kind: "agent" },
 			subjects: [],
 			urgency: "pressing",
 		});

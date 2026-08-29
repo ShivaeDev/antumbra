@@ -24,7 +24,7 @@ const courseCall: RulingView = {
 	radius: "fleet",
 	reclassifications: [],
 	requestedAt: "2026-08-15T10:05:00.000Z",
-	requesterAgentId: "agent-1",
+	requester: { agentId: "agent-1", kind: "agent" },
 	subjects: [{ kind: "tag", label: "charting" }],
 	urgency: "blocking",
 };
@@ -51,10 +51,28 @@ const soundingsRuled: StandingRulingView = {
 	urgency: soundingReading.urgency,
 };
 
+// why: a proclamation is asked and answered in one act, so it never passes
+// through the open set — it appears among what stands the moment it lands.
+const dredgingProclaimed: StandingRulingView = {
+	answer: "no voyage dredges a channel it did not survey first",
+	chosen: null,
+	id: "ruling-12",
+	question: "May a voyage dredge a channel?",
+	radius: "fleet",
+	ruledAt: "2026-08-15T10:20:00.000Z",
+	ruledBy: "admiral",
+	subjects: [{ kind: "tag", label: "dredging" }],
+	urgency: "eventual",
+};
+
 export const grownStanding: StandingRulingsView = {
 	rulings: [soundingsRuled, berthReclaim, chartAuthority],
 };
 
 export const supersededStanding: StandingRulingsView = {
 	rulings: [soundingsRuled, berthReclaim],
+};
+
+export const proclaimedStanding: StandingRulingsView = {
+	rulings: [dredgingProclaimed, soundingsRuled, berthReclaim],
 };

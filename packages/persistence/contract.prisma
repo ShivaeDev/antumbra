@@ -352,29 +352,30 @@ model BoardOwner {
 }
 
 model Ruling {
-  id               String    @id
-  requesterAgentId String
-  radius           String
-  urgency          String
-  context          String
-  question         String
-  answer           String?
-  answerChoiceId   String?
-  ruledBy          String?
-  ruledAt          DateTime?
-  supersededById   String?
-  supersededAt     DateTime?
-  supersededBy     String?
-  deliveredAt      DateTime?
-  createdAt        DateTime  @default(now())
-  requester        Agent          @relation(fields: [requesterAgentId], references: [id], onDelete: Restrict, onUpdate: Restrict)
-  answerChoice     RulingChoice?  @relation("RulingAnswer", fields: [answerChoiceId], references: [id], onDelete: Restrict, onUpdate: Restrict)
-  supersededByRuling Ruling?      @relation("RulingSupersession", fields: [supersededById], references: [id], onDelete: Restrict, onUpdate: Restrict)
-  supersedes       Ruling[]       @relation("RulingSupersession")
-  choices          RulingChoice[] @relation("RulingChoices")
-  subjects         RulingSubject[]
-  gates            RulingGate[]
-  reclassifications RulingReclassification[]
+  id                 String    @id
+  requesterAgentId   String?
+  requesterAuthority String?
+  radius             String
+  urgency            String
+  context            String
+  question           String
+  answer             String?
+  answerChoiceId     String?
+  ruledBy            String?
+  ruledAt            DateTime?
+  supersededById     String?
+  supersededAt       DateTime?
+  supersededBy       String?
+  deliveredAt        DateTime?
+  createdAt          DateTime  @default(now())
+  requester          Agent?         @relation(fields: [requesterAgentId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  answerChoice       RulingChoice?  @relation("RulingAnswer", fields: [answerChoiceId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  supersededByRuling Ruling?        @relation("RulingSupersession", fields: [supersededById], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  supersedes         Ruling[]       @relation("RulingSupersession")
+  choices            RulingChoice[] @relation("RulingChoices")
+  subjects           RulingSubject[]
+  gates              RulingGate[]
+  reclassifications  RulingReclassification[]
 
   @@index([ruledAt])
   @@index([supersededById])

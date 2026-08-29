@@ -32,7 +32,7 @@ const ask = (
 			context: `context of: ${question}`,
 			gates: [],
 			question,
-			requesterAgentId: ASKER,
+			requester: { agentId: ASKER, kind: "agent" },
 			urgency: "pressing",
 			...scope,
 		});
@@ -47,6 +47,26 @@ export const ruled = (
 		const rulings = yield* Rulings;
 		const asked = yield* ask(question, scope);
 		return yield* rulings.rule({ answer, by: "admiral", rulingId: asked.id });
+	});
+
+// why: an authority that wants a standing rule asks and answers a ruling of
+// its own, so a rehearsal writes one the same way the window does.
+export const proclaimed = (
+	question: string,
+	answer: string,
+	scope: Pick<RulingRequest, "radius" | "subjects">,
+) =>
+	Effect.gen(function* () {
+		const rulings = yield* Rulings;
+		return yield* rulings.proclaim({
+			answer,
+			by: "admiral",
+			choices: [],
+			context: `context of: ${question}`,
+			question,
+			urgency: "pressing",
+			...scope,
+		});
 	});
 
 export const unruled = ask;

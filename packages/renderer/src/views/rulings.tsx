@@ -5,6 +5,7 @@ import {
 } from "#adapters/trpc-rulings.ts";
 import { useFeed } from "#hooks/feed.ts";
 import { RulingCard } from "#views/ruling-card.tsx";
+import { RulingProclaim } from "#views/ruling-proclaim.tsx";
 import { StandingRulings } from "#views/standing-rulings.tsx";
 
 const Header = ({ open }: { readonly open: OpenRulingsView }) => (
@@ -78,6 +79,7 @@ export const RulingsPanel = ({
 				</p>
 			)}
 			<div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto">
+				<RulingProclaim onError={onError} />
 				<RulingList onError={onError} open={open} />
 				<StandingRulings
 					error={standing.error}

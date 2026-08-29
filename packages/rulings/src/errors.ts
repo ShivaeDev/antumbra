@@ -83,6 +83,8 @@ export type RulingVerdictFailure =
 	| RulingNotFound
 	| RulingReadFailure;
 
+export type RulingProclaimFailure = RulingRequestFailure | RulingVerdictFailure;
+
 export type RulingGateFailure =
 	| RulingAlreadyRuled
 	| RulingGatePieceMissing

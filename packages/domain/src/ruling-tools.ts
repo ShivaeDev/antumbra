@@ -2,7 +2,6 @@ import { bind, requestRulingSpec } from "@antumbra/agent-tools";
 import type { DirectTool, DirectToolOutcome } from "@antumbra/plugin-api";
 import {
 	type Ruling,
-	type RulingChoiceInput,
 	type RulingRequest,
 	type RulingSubject,
 	Rulings,
@@ -10,6 +9,7 @@ import {
 import { Effect, Option } from "effect";
 import { CaptainMembership } from "#captain-membership.ts";
 import { heldSaid, makeRulingHold } from "#ruling-hold.ts";
+import { choiceOf, tagSubjects } from "#ruling-inputs.ts";
 import { answered } from "#tool-answers.ts";
 import type { SessionIdentity } from "#tool-identity.ts";
 
@@ -36,16 +36,8 @@ const subjectsOf = (
 	tags: ReadonlyArray<string> | undefined,
 ): ReadonlyArray<RulingSubject> => [
 	...identitySubjects(identity),
-	...(tags ?? []).map((tag): RulingSubject => ({ kind: "tag", tag })),
+	...tagSubjects(tags),
 ];
-
-const choiceOf = (choice: {
-	readonly detail?: string | undefined;
-	readonly label: string;
-}): RulingChoiceInput =>
-	choice.detail === undefined
-		? { label: choice.label }
-		: { detail: choice.detail, label: choice.label };
 
 const holds = (ruling: Ruling): string =>
 	ruling.gatedPieceIds.length === 0
@@ -67,7 +59,7 @@ const requestOf = (
 	gates,
 	question: input.question,
 	radius: input.radius,
-	requesterAgentId: identity.agentId,
+	requester: { agentId: identity.agentId, kind: "agent" },
 	subjects: subjectsOf(identity, input.tags),
 	urgency: input.urgency,
 });

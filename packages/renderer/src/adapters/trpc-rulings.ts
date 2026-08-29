@@ -1,5 +1,6 @@
 import type {
 	OpenRulingsView,
+	ProclaimRequest,
 	ReclassifyRequest,
 	RuleRequest,
 	StandingRulingsView,
@@ -62,3 +63,10 @@ export const reclassifyRuling = (
 	request: ReclassifyRequest,
 	onError: OnError,
 ): void => fired(client.reclassifyRuling.mutate(request), onError);
+
+// why: a proclamation is asked and answered in one act, so it never joins the
+// open set — it reaches the window on the standing feed the moment it lands.
+export const proclaimRuling = (
+	request: ProclaimRequest,
+	onError: OnError,
+): void => fired(client.proclaimRuling.mutate(request), onError);

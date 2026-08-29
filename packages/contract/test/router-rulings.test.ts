@@ -5,6 +5,7 @@ import {
 	chartAuthority,
 	makeRuntime,
 	openRulings,
+	proclaimedRulingId,
 	soundingReading,
 	standingRulings,
 } from "#fixtures.ts";
@@ -137,6 +138,39 @@ describe("makeAppRouter, on the rulings", () => {
 				callerOf().reclassifyRuling({ rulingId: soundingReading.id }),
 			).pipe(Effect.flip);
 			expect(String(outcome.cause)).toContain("names no axis");
+		}),
+	);
+
+	// why: an authority that wants a standing rule asks and answers one ruling,
+	// so the whole record travels in a single call and one ruling comes back.
+	it.effect("proclaiming answers with the ruling it made stand", () =>
+		Effect.gen(function* () {
+			const proclaimed = yield* Effect.promise(() =>
+				callerOf().proclaimRuling({
+					answer: "survey a channel before dredging it",
+					context: "two voyages dredged a channel nobody had surveyed",
+					question: "May a voyage dredge a channel?",
+					radius: "fleet",
+					tags: ["dredging"],
+					urgency: "eventual",
+				}),
+			);
+			expect(proclaimed).toEqual({ rulingId: proclaimedRulingId });
+		}),
+	);
+
+	it.effect("refuses a proclamation with no words to stand on", () =>
+		Effect.gen(function* () {
+			const outcome = yield* Effect.tryPromise(() =>
+				callerOf().proclaimRuling({
+					answer: "",
+					context: "two voyages dredged a channel nobody had surveyed",
+					question: "May a voyage dredge a channel?",
+					radius: "fleet",
+					urgency: "eventual",
+				}),
+			).pipe(Effect.flip);
+			expect(String(outcome.cause)).toContain("length of at least 1");
 		}),
 	);
 

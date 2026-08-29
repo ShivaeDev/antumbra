@@ -116,7 +116,7 @@ it.live("a second hail reaches the captain the voyage already has", () =>
 				Option.getOrThrow(
 					yield* db.Intent.where({ id: again.intentId }).first(),
 				).tag,
-			).toBe("agent/recover");
+			).toBe("agent/wake");
 			expect(yield* db.Agent.all()).toHaveLength(1);
 			expect(yield* db.VoyageAgent.all()).toHaveLength(1);
 			expect(

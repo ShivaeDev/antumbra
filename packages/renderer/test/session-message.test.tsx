@@ -20,7 +20,7 @@ const waking = (
 	state: string,
 	detail: string | null = null,
 ): ReadonlyArray<Intent> => [
-	{ detail, id: "intent-1", kind: "agent/recover", state },
+	{ detail, id: "intent-1", kind: "agent/wake", state },
 ];
 
 const fleetWith = (

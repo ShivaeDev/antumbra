@@ -8,10 +8,10 @@ import { makeReopenStarts } from "#operations/reopen-starts.ts";
 import { makeSend } from "#operations/send.ts";
 import { makeStandDown } from "#operations/stand-down.ts";
 import { makeStart } from "#operations/start.ts";
-import { makeStirrings } from "#operations/stirrings.ts";
 import { makeStop } from "#operations/stop.ts";
 import { makeStopIdle } from "#operations/stop-idle.ts";
 import { makeTurnEnded } from "#operations/turn-ended.ts";
+import { makeTurnMark } from "#operations/turn-mark.ts";
 import { makeWithStartAdmission } from "#operations/with-start-admission.ts";
 import { initializeSessionFabric } from "#session-fabric-state.ts";
 
@@ -28,10 +28,10 @@ export const SessionFabric = defineService({
 		send: makeSend(state.attachments),
 		standDown: makeStandDown(state.attachments),
 		start: genericMethod(makeStart(state.attachments, state.lifecycles)),
-		stirrings: makeStirrings(state.attachments),
 		stop: makeStop(state.attachments, state.lifecycles),
 		stopIdle: makeStopIdle(state.attachments, state.lifecycles),
 		turnEnded: makeTurnEnded(state.attachments),
+		turnMark: makeTurnMark(state.attachments),
 		withStartAdmission: genericMethod(
 			makeWithStartAdmission(state.startAdmission),
 		),

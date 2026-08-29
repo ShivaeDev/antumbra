@@ -7,7 +7,7 @@ import {
 	type SessionRouse,
 	type SpawnRefused,
 } from "#kernel-rouse.ts";
-import type { RecoveryFields } from "#session-recovery.ts";
+import type { WakeFields } from "#session-wake.ts";
 import { makeSettleWakes } from "#session-wake-settle.ts";
 import type { SpawnFields } from "#spawn-fields.ts";
 
@@ -16,17 +16,17 @@ export type { RouseRefused, SessionRouse, SpawnRefused };
 export interface KernelReachService {
 	readonly queueSiesta: (sessionId: string) => Effect.Effect<void>;
 	readonly rouseSession: (
-		payload: RecoveryFields,
+		payload: WakeFields,
 	) => Effect.Effect<SessionRouse, RouseRefused>;
 	// why: the one act that reaches backwards. A Session found closed leaves
 	// wakes behind that nothing in the system will ever push again, and the seam
 	// that refuses the send is the place that knows it has just found one.
 	readonly settleWakes: (sessionId: string) => Effect.Effect<void>;
-	readonly submitRecovery: (
-		payload: RecoveryFields,
-	) => Effect.Effect<string, SpawnRefused>;
 	readonly submitSpawn: (
 		payload: SpawnFields,
+	) => Effect.Effect<string, SpawnRefused>;
+	readonly submitWake: (
+		payload: WakeFields,
 	) => Effect.Effect<string, SpawnRefused>;
 }
 
@@ -59,10 +59,10 @@ export const KernelReachDeferredLive = Layer.unwrap(
 					withReach((reach) => reach.rouseSession(payload)),
 				settleWakes: (sessionId) =>
 					withReach((reach) => reach.settleWakes(sessionId)),
-				submitRecovery: (payload) =>
-					withReach((reach) => reach.submitRecovery(payload)),
 				submitSpawn: (payload) =>
 					withReach((reach) => reach.submitSpawn(payload)),
+				submitWake: (payload) =>
+					withReach((reach) => reach.submitWake(payload)),
 			}),
 			Layer.succeed(KernelReachInstaller)({
 				install: (reach) =>
@@ -94,18 +94,18 @@ export const KernelReachLive = Layer.effectDiscard(
 						),
 					),
 				),
-			rouseSession: yield* makeRouseSession(domain.recover),
-			settleWakes: yield* makeSettleWakes(domain.recover),
-			submitRecovery: (payload) =>
-				kernel
-					.submit(domain.recover, payload)
-					.pipe(Effect.map((submission) => submission.id)),
+			rouseSession: yield* makeRouseSession(domain.wake),
+			settleWakes: yield* makeSettleWakes(domain.wake),
 			// why: a hail is answered rather than fired and forgotten — the caller
 			// is a window or a router waiting on the intent it just asked for, so
 			// the submission's id travels back and refusals stay on the channel.
 			submitSpawn: (payload) =>
 				kernel
 					.submit(domain.spawn, payload)
+					.pipe(Effect.map((submission) => submission.id)),
+			submitWake: (payload) =>
+				kernel
+					.submit(domain.wake, payload)
 					.pipe(Effect.map((submission) => submission.id)),
 		};
 		yield* installer.install(reach);

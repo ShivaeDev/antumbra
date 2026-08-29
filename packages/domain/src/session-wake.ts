@@ -1,6 +1,6 @@
 import { defineIntent, IntentExecution } from "@antumbra/kernel";
 import type { BackendFailure } from "@antumbra/plugin-api";
-import { standingRecovery } from "@antumbra/prompts";
+import { wakeWords } from "@antumbra/prompts";
 import { SessionFabric } from "@antumbra/session-fabric";
 import { SessionInputs } from "@antumbra/session-inputs";
 import { Effect, Result } from "effect";
@@ -11,31 +11,25 @@ import {
 	recoveryHeld,
 	type SessionRecoveryHeld,
 } from "#session-recovery-error.ts";
+import { SessionRecoveryRuntime } from "#session-recovery-runtime.ts";
+import { unresumable, waitFor } from "#session-unresumable.ts";
+import { accountedWake } from "#session-wake-account.ts";
 import {
 	type CarriedInput,
 	makeLoadCarriedInput,
-	RecoveryPayload,
-} from "#session-recovery-input.ts";
-import { SessionRecoveryRuntime } from "#session-recovery-runtime.ts";
-import {
-	type SessionUnresumable,
-	SessionUnresumableRefused,
-	unresumableDetail,
-	unresumableVerdict,
-} from "#session-unresumable.ts";
-import { accountedWake } from "#session-wake-account.ts";
+	WakePayload,
+} from "#session-wake-input.ts";
 import { SessionWakePatience } from "#session-wake-patience.ts";
 
-// why: an explicit act may travel with the words that caused it, so waking a
-// Session and speaking to it are one intent rather than two the caller has to
-// sequence. Absent, the Session is being recovered on Antumbra's initiative
-// and hears the standing instruction instead.
-export type { RecoveryFields } from "#session-recovery-input.ts";
+// why: the only act that puts a Session back on a provider, and nothing asks
+// for it unasked — a hail, a send, or a Piece already assigned to this Session
+// submits one. The words that caused it may travel with it, so waking a Session
+// and speaking to it are one intent rather than two the caller has to sequence.
+// Absent, the wake is an address rather than a message and the Session hears
+// the standing instruction instead.
+export type { WakeFields } from "#session-wake-input.ts";
 
-const waitFor = (detail: string) =>
-	IntentExecution.use((execution) => execution.wait(detail));
-
-export const makeRecoveryKind = Effect.gen(function* () {
+export const makeWakeKind = Effect.gen(function* () {
 	const load = yield* makeSessionRecoveryContext;
 	const fabric = yield* SessionFabric;
 	const inputs = yield* SessionInputs;
@@ -55,7 +49,7 @@ export const makeRecoveryKind = Effect.gen(function* () {
 			const idle = yield* fabric.idleSince();
 			const input =
 				carriedInput.input ??
-				(idle.has(sessionId) ? promptInput(standingRecovery) : undefined);
+				(idle.has(sessionId) ? promptInput(wakeWords) : undefined);
 			if (input === undefined) {
 				return;
 			}
@@ -66,22 +60,6 @@ export const makeRecoveryKind = Effect.gen(function* () {
 			const execution = yield* IntentExecution;
 			yield* execution.step("wake-session", recovery.awaken(sessionId));
 		});
-	// why: nothing to resume is never nothing to say. The reason decides between
-	// parking the Intent where a later act can pick it up and refusing it
-	// outright, and either way the sentence lands on the row — a recover that
-	// succeeded having done nothing is the silence this whole path is for.
-	const unresumable = (sessionId: string, reason: SessionUnresumable) => {
-		const detail = unresumableDetail(sessionId, reason);
-		return unresumableVerdict(reason) === "wait"
-			? waitFor(detail)
-			: Effect.fail(
-					new SessionUnresumableRefused({
-						detail,
-						reason: reason._tag,
-						sessionId,
-					}),
-				);
-	};
 	const admitted = (sessionId: string, carriedInput: CarriedInput) =>
 		fabric.withStartAdmission((permit) =>
 			Effect.gen(function* () {
@@ -92,7 +70,7 @@ export const makeRecoveryKind = Effect.gen(function* () {
 				yield* runtime.resume(
 					permit,
 					context.success,
-					carriedInput.input ?? promptInput(standingRecovery),
+					carriedInput.input ?? promptInput(wakeWords),
 				);
 				if (carriedInput.inputId !== undefined) {
 					yield* inputs.mark(carriedInput.inputId, "accepted");
@@ -141,8 +119,8 @@ export const makeRecoveryKind = Effect.gen(function* () {
 					}),
 				),
 			),
-		payload: RecoveryPayload,
+		payload: WakePayload,
 		reclaim: "requeue",
-		tag: "agent/recover",
+		tag: "agent/wake",
 	});
 });

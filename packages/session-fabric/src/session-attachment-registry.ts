@@ -14,6 +14,7 @@ import {
 } from "#session-attachment.ts";
 import { makeSessionAttachmentEntries } from "#session-attachment-entries.ts";
 import { occupancyRefusal } from "#session-attachment-occupancy.ts";
+import type { SessionTurnEnding, SessionTurnMark } from "#session-turn.ts";
 
 export interface SessionAttachmentRegistry {
 	readonly attach: <E, R>(
@@ -34,13 +35,15 @@ export interface SessionAttachmentRegistry {
 		input: SessionInput,
 	) => Effect.Effect<void, BackendFailure | SessionNotLive>;
 	readonly standDown: (sessionId: string) => Effect.Effect<void>;
-	readonly stirrings: (sessionId: string) => Effect.Effect<number>;
 	readonly stop: (sessionId: string) => Effect.Effect<void>;
 	readonly stopIdle: (sessionId: string) => Effect.Effect<boolean>;
 	readonly turnEnded: (
 		sessionId: string,
-		stirrings: number,
-	) => Effect.Effect<boolean>;
+		mark: SessionTurnMark | undefined,
+	) => Effect.Effect<SessionTurnEnding>;
+	readonly turnMark: (
+		sessionId: string,
+	) => Effect.Effect<SessionTurnMark | undefined>;
 }
 
 export const makeSessionAttachmentRegistry = Effect.gen(function* () {
@@ -80,22 +83,17 @@ export const makeSessionAttachmentRegistry = Effect.gen(function* () {
 					if (refused !== undefined) {
 						return yield* refused;
 					}
-					let entry = current.get(options.sessionId);
-					if (entry === undefined) {
-						const attachment = yield* openSessionAttachment(
-							backend,
-							options,
-							sink,
-						);
-						entry = {
+					let attachment = current.get(options.sessionId)?.attachment;
+					if (attachment === undefined) {
+						attachment = yield* openSessionAttachment(backend, options, sink);
+						yield* entries.insert(options.sessionId, {
 							agentId,
 							attachment,
 							idleSince: undefined,
 							stirrings: 0,
-						};
-						yield* entries.insert(options.sessionId, entry);
+						});
 					}
-					yield* admit(entry.attachment);
+					yield* admit(attachment);
 				}).pipe(
 					Effect.onExit((exit) =>
 						Exit.isFailure(exit)
@@ -133,13 +131,13 @@ export const makeSessionAttachmentRegistry = Effect.gen(function* () {
 			Effect.flatMap(Clock.currentTimeMillis, (now) =>
 				entries.rest(sessionId, now),
 			),
-		stirrings: entries.stirrings,
 		stop: remove,
 		stopIdle: (sessionId) =>
 			entries.take(sessionId, (entry) => entry.idleSince !== undefined),
-		turnEnded: (sessionId, stirrings) =>
+		turnEnded: (sessionId, mark) =>
 			Effect.flatMap(Clock.currentTimeMillis, (now) =>
-				entries.restUnstirred(sessionId, now, stirrings),
+				entries.endTurn(sessionId, now, mark),
 			),
+		turnMark: entries.turnMark,
 	} satisfies SessionAttachmentRegistry;
 });

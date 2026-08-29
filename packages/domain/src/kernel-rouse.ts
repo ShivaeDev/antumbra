@@ -9,7 +9,7 @@ import {
 } from "@antumbra/kernel";
 import type { PrismaError } from "@antumbra/persistence";
 import { Effect, type Stream } from "effect";
-import type { RecoveryFields } from "#session-recovery.ts";
+import type { WakeFields } from "#session-wake.ts";
 
 // why: the three ways the kernel can turn a submission away — a payload it
 // cannot decode, a tag no domain registered, or the write that records the
@@ -36,7 +36,7 @@ export interface SessionRouse {
 // since, and nothing else in the system will ever ask again. What "settles"
 // means depends on the words: the same words are the same demand and it is
 // pushed, and different words are a different demand that replaces it.
-export const makeRouseSession = (recover: IntentKind<RecoveryFields>) =>
+export const makeRouseSession = (wake: IntentKind<WakeFields>) =>
 	Effect.gen(function* () {
 		const kernel = yield* Kernel;
 		const watched = (id: string, retried: boolean): SessionRouse => ({
@@ -44,9 +44,9 @@ export const makeRouseSession = (recover: IntentKind<RecoveryFields>) =>
 			id,
 			retried,
 		});
-		const submitted = (payload: RecoveryFields) =>
+		const submitted = (payload: WakeFields) =>
 			kernel
-				.submit(recover, payload)
+				.submit(wake, payload)
 				.pipe(Effect.map((submission) => watched(submission.id, false)));
 		// why: a retry re-runs the row exactly as it was written, and the kernel
 		// offers no way to rewrite a payload — so words that differ from the ones
@@ -54,7 +54,7 @@ export const makeRouseSession = (recover: IntentKind<RecoveryFields>) =>
 		// message is written down and then discarded in favour of an older one.
 		// The parked row is cancelled before the new one is submitted, because a
 		// wake left waiting still carries its stale words and can still fire them.
-		const replaced = (id: string, payload: RecoveryFields) =>
+		const replaced = (id: string, payload: WakeFields) =>
 			kernel.cancel(id).pipe(
 				Effect.catchTags({
 					IntentNotFound: () => Effect.void,
@@ -65,12 +65,12 @@ export const makeRouseSession = (recover: IntentKind<RecoveryFields>) =>
 		// why: a parked wake that moved on between the read and the push is a wake
 		// nobody has to push — but it may also have moved to a terminal status, and
 		// the admiral is still owed one. Submitting is the answer to both, because
-		// a recover meeting an attachment that arrived meanwhile only hands the
+		// a wake meeting an attachment that arrived meanwhile only hands the
 		// words over.
 		const pushed = (
 			id: string,
 			carried: string | undefined,
-			payload: RecoveryFields,
+			payload: WakeFields,
 		) =>
 			carried !== payload.message
 				? replaced(id, payload)
@@ -81,11 +81,9 @@ export const makeRouseSession = (recover: IntentKind<RecoveryFields>) =>
 							InvalidTransition: () => submitted(payload),
 						}),
 					);
-		return (
-			payload: RecoveryFields,
-		): Effect.Effect<SessionRouse, RouseRefused> =>
+		return (payload: WakeFields): Effect.Effect<SessionRouse, RouseRefused> =>
 			Effect.gen(function* () {
-				const active = yield* kernel.active(recover);
+				const active = yield* kernel.active(wake);
 				const parked = active.find(
 					(intent) =>
 						intent.payload.sessionId === payload.sessionId &&

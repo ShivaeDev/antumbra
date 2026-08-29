@@ -2,7 +2,7 @@ import type { SessionSummary } from "@antumbra/contract";
 
 type SessionPresence = SessionSummary["presence"];
 
-// why: the four presences are said in plain English here and nowhere else, the
+// why: the five presences are said in plain English here and nowhere else, the
 // way session-outcome-words.ts is the one home for how a delegated node ended.
 // The chip is what a reader glances at; the note is what the send box says
 // underneath, and it answers the only question the admiral is really asking —
@@ -11,13 +11,20 @@ export const presenceWords: Record<SessionPresence, string> = {
 	asleep: "asleep",
 	ended: "ended",
 	idle: "listening",
+	stranded: "stranded",
 	working: "working",
 };
 
+// why: asleep and stranded are both quiet and both wake on being spoken to, and
+// the note is where they stop reading alike. One was rested on purpose and has
+// nothing left to do; the other lost its process mid-turn, so the work it was
+// doing is still outstanding and nothing but the admiral will pick it back up.
 export const presenceNote: Record<SessionPresence, string> = {
 	asleep: "asleep — it will wake when you speak to it",
 	ended: "this session has ended",
 	idle: "listening, with nothing to do",
+	stranded:
+		"stranded — its process is gone and its work was never finished; speak to it to take it back up",
 	working: "working",
 };
 

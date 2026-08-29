@@ -18,7 +18,7 @@ import {
 	reportsNativeRef,
 	seedResumableAgent,
 	untilTerminal,
-	waitingRecovery,
+	waitingWake,
 } from "#test/session-recovery-fixture.ts";
 import { openReefVoyage } from "#test/voyage-fixtures.ts";
 
@@ -58,10 +58,10 @@ it.live("a Session wakes when its resume attaches, and not before", () =>
 		yield* Effect.gen(function* () {
 			const domain = yield* AgentDomain;
 			const kernel = yield* Kernel;
-			const submission = yield* kernel.submit(domain.recover, {
+			const submission = yield* kernel.submit(domain.wake, {
 				sessionId: payload.sessionId,
 			});
-			const held = yield* eventually(waitingRecovery);
+			const held = yield* eventually(waitingWake);
 			expect(held.detail).toContain("authentication is required");
 			expect(yield* executionStatusOf(payload.sessionId)).toBe("idle");
 

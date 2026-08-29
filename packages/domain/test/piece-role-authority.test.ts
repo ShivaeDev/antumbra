@@ -10,7 +10,7 @@ import {
 	rawOf,
 	sessionFor,
 } from "#test/harness.ts";
-import { reportsNativeRef } from "#test/session-recovery-fixture.ts";
+import { hail, reportsNativeRef } from "#test/session-recovery-fixture.ts";
 import { eventually, openReefVoyage, PATIENCE } from "#test/voyage-fixtures.ts";
 
 const firstAssignment = Effect.gen(function* () {
@@ -82,7 +82,11 @@ it.live("a Piece role named captain remains crew across Session recovery", () =>
 					expect(stored.nativeRef).toBe("native-piece-captain-role");
 				}),
 			);
-			return { agentId: assignment.agentId, voyageId: voyage.id };
+			return {
+				agentId: assignment.agentId,
+				sessionId: session.id,
+				voyageId: voyage.id,
+			};
 		}).pipe(
 			Effect.provide(dispatchingLayer(temporary, scripted.backend, PATIENCE)),
 		);
@@ -94,6 +98,7 @@ it.live("a Piece role named captain remains crew across Session recovery", () =>
 		);
 		yield* Effect.gen(function* () {
 			const domain = yield* AgentDomain;
+			yield* hail(selected.sessionId);
 			yield* eventually(
 				Effect.gen(function* () {
 					expect(yield* scripted.opened).toHaveLength(2);

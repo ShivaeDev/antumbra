@@ -110,15 +110,13 @@ it.live(
 						sessionId: HAND.sessionId,
 					}),
 				).toEqual({ id, status: "queued_for_wake" });
-				const recoveries = yield* db.Intent.where({
-					tag: "agent/recover",
+				const wakes = yield* db.Intent.where({
+					tag: "agent/wake",
 				}).all();
-				expect(recoveries.some((intent) => intent.payload.includes(id))).toBe(
+				expect(wakes.some((intent) => intent.payload.includes(id))).toBe(true);
+				expect(wakes.every((intent) => !intent.payload.includes("iVBOR"))).toBe(
 					true,
 				);
-				expect(
-					recoveries.every((intent) => !intent.payload.includes("iVBOR")),
-				).toBe(true);
 				yield* eventually(
 					Effect.gen(function* () {
 						expect(yield* scripted.opened).toHaveLength(2);

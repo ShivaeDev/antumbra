@@ -11,12 +11,16 @@ import {
 import { Clock, Effect, Result } from "effect";
 import { sessionAtRest } from "#session-at-rest.ts";
 import { idleSessionsPastThreshold } from "#session-idle.ts";
-import type { RecoveryFields } from "#session-recovery.ts";
 import { rootSessions } from "#session-roots.ts";
 import type { SiestaFields } from "#session-siesta.ts";
 import { LiveDelegations } from "#session-tree-live.ts";
 
-const sessionDemands = Effect.gen(function* () {
+// why: the clock asks one thing of the record — is a process being held for
+// nothing — and it asks it of Sessions this process is actually holding. It
+// never asks the opposite question. A Session whose process is gone is
+// stranded, and stranding is reported, not repaired: only a send or a hail
+// takes a Session back up, so nothing here goes looking for one to resume.
+const siestaDemands = Effect.gen(function* () {
 	const db = yield* Database;
 	const fabric = yield* SessionFabric;
 	const live = yield* LiveDelegations;
@@ -39,16 +43,17 @@ const sessionDemands = Effect.gen(function* () {
 		),
 	);
 	const sessions = yield* db.AgentSession.where(rootSessions).all();
-	const recover: Array<RecoveryFields> = [];
 	const siesta: Array<SiestaFields> = [];
 	for (const session of sessions) {
 		const status = decodeStoredAgentSessionStatus(session.id, session.status);
 		const agentStatus = agentStatuses.get(session.agentId);
+		// why: a row the vocabulary cannot read is left alone rather than acted
+		// on. The projection that publishes it refuses out loud already, and a
+		// sweep is the wrong place to learn what a word means.
 		if (
 			Result.isFailure(status) ||
 			(agentStatus !== undefined && Result.isFailure(agentStatus))
 		) {
-			recover.push({ sessionId: session.id });
 			continue;
 		}
 		if (
@@ -61,17 +66,6 @@ const sessionDemands = Effect.gen(function* () {
 		const executionStatus = yield* Effect.fromResult(
 			decodeSessionExecutionStatus(session.id, session.executionStatus),
 		);
-		const held = attached.has(session.id);
-		// why: a row saying active outlives the process that made it true, so the
-		// fact recover answers is the missing attachment rather than the row. A
-		// Session this process still holds already has the one thing a resume
-		// would go and get, and recovering it again changes nothing the demand
-		// reads — so the ask would repeat every pass for as long as the execution
-		// lasts. Asking only for the ones nothing is holding is what lets the
-		// demand go quiet: the resume it caused is what makes it ineligible.
-		if (executionStatus === "active" && !held) {
-			recover.push({ sessionId: session.id });
-		}
 		// why: an idle Session held past the threshold is put to siesta by the
 		// system on this pass — the same reconciliation that finishes an
 		// interrupted drain, because both are the same question asked of the
@@ -84,7 +78,7 @@ const sessionDemands = Effect.gen(function* () {
 		const restful = sessionAtRest({
 			delegating: delegating.has(session.id),
 			presence: sessionPresence({
-				attached: held,
+				attached: attached.has(session.id),
 				executionStatus,
 				open: true,
 			}),
@@ -96,30 +90,21 @@ const sessionDemands = Effect.gen(function* () {
 			siesta.push({ sessionId: session.id });
 		}
 	}
-	return { recover, siesta };
+	return siesta;
 });
 
-export const compileAgentRecoveryDemands = (
-	recover: IntentKind<RecoveryFields>,
-	siesta: IntentKind<SiestaFields>,
-) =>
+export const compileSessionSiestaDemands = (siesta: IntentKind<SiestaFields>) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
 		const fabric = yield* SessionFabric;
 		const live = yield* LiveDelegations;
-		const discover = sessionDemands.pipe(
-			Effect.provideService(Database, db),
-			Effect.provideService(SessionFabric, fabric),
-			Effect.provideService(LiveDelegations, live),
-		);
 		return [
 			defineIntentDemand({
-				eligible: discover.pipe(Effect.map(({ recover: demand }) => demand)),
-				identify: ({ sessionId }) => sessionId,
-				kind: recover,
-			}),
-			defineIntentDemand({
-				eligible: discover.pipe(Effect.map(({ siesta: demand }) => demand)),
+				eligible: siestaDemands.pipe(
+					Effect.provideService(Database, db),
+					Effect.provideService(SessionFabric, fabric),
+					Effect.provideService(LiveDelegations, live),
+				),
 				identify: ({ sessionId }) => sessionId,
 				kind: siesta,
 			}),

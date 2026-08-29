@@ -13,7 +13,7 @@ import {
 } from "#test/session-recovery-fixture.ts";
 import {
 	NATIVE,
-	onlyRecovery,
+	onlyWake,
 	sleepingRoot,
 	wakeLayer,
 } from "#test/session-wake-fixture.ts";
@@ -46,7 +46,7 @@ it.live("a wake for a closed Session settles instead of waiting", () =>
 			yield* sight.send(payload.sessionId, "steer for the reef");
 			yield* eventually(
 				Effect.gen(function* () {
-					expect((yield* onlyRecovery).status).toBe("waiting");
+					expect((yield* onlyWake).status).toBe("waiting");
 				}),
 			);
 
@@ -56,7 +56,7 @@ it.live("a wake for a closed Session settles instead of waiting", () =>
 			);
 			const settled = yield* eventually(
 				Effect.gen(function* () {
-					const row = yield* onlyRecovery;
+					const row = yield* onlyWake;
 					expect(row.status).toBe("failed");
 					return row;
 				}),
@@ -80,10 +80,10 @@ it.live("a closed Session refuses a wake rather than parking it again", () =>
 			const domain = yield* AgentDomain;
 			const kernel = yield* Kernel;
 			yield* closeRoot;
-			yield* kernel.submit(domain.recover, { sessionId: payload.sessionId });
+			yield* kernel.submit(domain.wake, { sessionId: payload.sessionId });
 			const refused = yield* eventually(
 				Effect.gen(function* () {
-					const row = yield* onlyRecovery;
+					const row = yield* onlyWake;
 					expect(row.status).toBe("failed");
 					return row;
 				}),

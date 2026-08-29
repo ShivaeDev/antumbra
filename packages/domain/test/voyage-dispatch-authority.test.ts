@@ -13,7 +13,7 @@ import {
 	rawOf,
 	sessionFor,
 } from "#test/harness.ts";
-import { reportsNativeRef } from "#test/session-recovery-fixture.ts";
+import { hail, reportsNativeRef } from "#test/session-recovery-fixture.ts";
 import { chain, eventually, PATIENCE } from "#test/voyage-fixtures.ts";
 
 const HAND: SpawnFields = {
@@ -111,6 +111,7 @@ it.live(
 				return {
 					agentId: assignment.agentId,
 					decoyId: decoy.id,
+					sessionId: session.id,
 					voyageId: voyage.id,
 				};
 			}).pipe(
@@ -125,6 +126,7 @@ it.live(
 			yield* Effect.gen(function* () {
 				const db = yield* Database;
 				const domain = yield* AgentDomain;
+				yield* hail(selected.sessionId);
 				yield* eventually(
 					Effect.gen(function* () {
 						expect(yield* scripted.opened).toHaveLength(2);

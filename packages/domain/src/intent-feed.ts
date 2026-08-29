@@ -2,7 +2,7 @@ import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Kernel } from "@antumbra/kernel";
 import { Effect, Layer, Stream } from "effect";
 
-// why: an Intent's whole life is invisible in the fleet's rows — a recover
+// why: an Intent's whole life is invisible in the fleet's rows — a wake
 // parked in waiting changes no Agent and no Session — so nothing rang the feed
 // when one moved, and the diagnostics beside the fleet only ever refreshed on
 // whatever unrelated write happened next. The kernel already fans every move

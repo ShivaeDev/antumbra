@@ -12,17 +12,21 @@ import {
 import {
 	durableRows,
 	eventually,
+	hail,
 	payload,
-	RECOVERY_INSTRUCTION,
 	refuseWhile,
 	reportsNativeRef,
 	seedResumableAgent,
 	untilTerminal,
-	waitingRecovery,
+	WAKE_INSTRUCTION,
+	waitingWake,
 } from "#test/session-recovery-fixture.ts";
 
+// why: the rebuild does not go and fetch the Session — nothing does. The
+// admiral hails the stranded root, and what the hail reaches is the same
+// provider conversation and the same durable sequence the old process left.
 it.live(
-	"rebuild resumes the same native session and durable event sequence",
+	"a hail after a rebuild resumes the same native session and sequence",
 	() =>
 		Effect.gen(function* () {
 			const temporary = yield* acquireTemporaryPersistence;
@@ -42,13 +46,14 @@ it.live(
 
 			yield* Effect.gen(function* () {
 				const db = yield* Database;
+				yield* hail(payload.sessionId);
 				const resumed = yield* eventually(
 					Effect.gen(function* () {
 						const live = yield* scripted.session(payload.sessionId);
 						expect(yield* scripted.opened).toHaveLength(2);
 						expect(live).toBeDefined();
 						const attached = Option.getOrThrow(Option.fromUndefinedOr(live));
-						expect(yield* attached.sent).toEqual([RECOVERY_INSTRUCTION]);
+						expect(yield* attached.sent).toEqual([WAKE_INSTRUCTION]);
 						return attached;
 					}),
 				);
@@ -107,7 +112,8 @@ it.live("provider refusal waits without rewriting durable identity", () =>
 		);
 
 		const recoveryId = yield* Effect.gen(function* () {
-			const held = yield* eventually(waitingRecovery);
+			yield* hail(payload.sessionId);
+			const held = yield* eventually(waitingWake);
 			expect(held.detail).toContain("authentication is required");
 			expect(yield* durableRows).toEqual(before);
 			return held.id;
@@ -120,7 +126,7 @@ it.live("provider refusal waits without rewriting durable identity", () =>
 		yield* Effect.gen(function* () {
 			const db = yield* Database;
 			const kernel = yield* Kernel;
-			const held = yield* db.Intent.where({ tag: "agent/recover" }).all();
+			const held = yield* db.Intent.where({ tag: "agent/wake" }).all();
 			expect(held.map((intent) => intent.id)).toEqual([recoveryId]);
 			expect(held[0]?.status).toBe("waiting");
 			yield* kernel.retry(recoveryId);
@@ -130,7 +136,7 @@ it.live("provider refusal waits without rewriting durable identity", () =>
 			const resumed = yield* scripted.session(payload.sessionId);
 			expect(resumed).toBeDefined();
 			expect(resumed === undefined ? [] : yield* resumed.sent).toEqual([
-				RECOVERY_INSTRUCTION,
+				WAKE_INSTRUCTION,
 			]);
 		}).pipe(
 			Effect.provide(
@@ -161,7 +167,8 @@ it.live(
 
 			yield* Effect.gen(function* () {
 				const db = yield* Database;
-				const held = yield* eventually(waitingRecovery);
+				yield* hail(payload.sessionId);
+				const held = yield* eventually(waitingWake);
 				expect(held.detail).toContain("native-durable");
 				expect(held.detail).toContain("native-other");
 				expect(yield* durableRows).toEqual(before);
@@ -178,7 +185,7 @@ it.live(
 				// identity check still stops the attachment, and nothing durable
 				// moves to it.
 				expect(resumed === undefined ? [] : yield* resumed.sent).toEqual([
-					RECOVERY_INSTRUCTION,
+					WAKE_INSTRUCTION,
 				]);
 			}).pipe(
 				Effect.provide(

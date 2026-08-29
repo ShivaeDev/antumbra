@@ -16,7 +16,7 @@ import {
 	makeScriptedBackend,
 	makeScriptedRunner,
 } from "#test/harness.ts";
-import { reportsNativeRef } from "#test/session-recovery-fixture.ts";
+import { hail, reportsNativeRef } from "#test/session-recovery-fixture.ts";
 
 const CLOSED: Gate = { admits: () => false, id: "test/closed" };
 const payload: SpawnFields = {
@@ -183,6 +183,8 @@ it.live(
 				expect({ ...after, transcript: seeded.before.transcript }).toEqual(
 					seeded.before,
 				);
+				expect(yield* Ref.get(opens)).toBe(0);
+				yield* hail(payload.sessionId);
 				yield* eventually(
 					Effect.gen(function* () {
 						expect({

@@ -19,8 +19,8 @@ const alive = (spawner: Spawner): boolean => {
 // why: the predicate. A node dies with its acquisition, and its acquisition is
 // the root's stream — so a node is provably gone only when its root can never
 // carry one again. A closed root is resumable exactly when it is the current
-// Session of a living Agent, which is the same rule recovery itself applies; a
-// root that is still open, or that recovery could still take, leaves its nodes
+// Session of a living Agent, which is the same rule a wake itself applies; a
+// root that is still open, or that a wake could still take, leaves its nodes
 // undecidable and therefore untouched. Backgrounded work outliving a turn and
 // children re-driven across activations are why this is never inferred from
 // silence.

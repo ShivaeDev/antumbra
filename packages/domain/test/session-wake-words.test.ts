@@ -10,11 +10,11 @@ import {
 } from "#test/session-recovery-fixture.ts";
 import {
 	NATIVE,
-	onlyRecovery,
-	recoveries,
+	onlyWake,
 	sessionRow,
 	sleepingRoot,
 	wakeLayer,
+	wakes,
 } from "#test/session-wake-fixture.ts";
 
 // why: the live report this pins. Four sends went out over two days, each one
@@ -37,7 +37,7 @@ it.live("a later send delivers its own words, not the parked ones", () =>
 			yield* sight.send(payload.sessionId, "steer for the reef");
 			const parked = yield* eventually(
 				Effect.gen(function* () {
-					const row = yield* onlyRecovery;
+					const row = yield* onlyWake;
 					expect(row.status).toBe("waiting");
 					return row;
 				}),
@@ -47,7 +47,7 @@ it.live("a later send delivers its own words, not the parked ones", () =>
 			yield* sight.send(payload.sessionId, "and mind the shallows");
 			const rows = yield* eventually(
 				Effect.gen(function* () {
-					const all = yield* recoveries;
+					const all = yield* wakes;
 					expect(all.map((row) => row.status).sort()).toEqual([
 						"cancelled",
 						"succeeded",
@@ -87,7 +87,7 @@ it.live("a send repeating itself pushes the wake that is already there", () =>
 			yield* sight.send(payload.sessionId, "steer for the reef");
 			const parked = yield* eventually(
 				Effect.gen(function* () {
-					const row = yield* onlyRecovery;
+					const row = yield* onlyWake;
 					expect(row.status).toBe("waiting");
 					return row;
 				}),
@@ -97,7 +97,7 @@ it.live("a send repeating itself pushes the wake that is already there", () =>
 			yield* sight.send(payload.sessionId, "steer for the reef");
 			const settled = yield* eventually(
 				Effect.gen(function* () {
-					const row = yield* onlyRecovery;
+					const row = yield* onlyWake;
 					expect(row.status).toBe("succeeded");
 					return row;
 				}),

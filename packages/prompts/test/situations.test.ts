@@ -5,7 +5,7 @@ import {
 	mergeConflicts,
 	unresolvedReviews,
 } from "#situations.ts";
-import { standingRecovery } from "#standing.ts";
+import { wakeWords } from "#wake.ts";
 
 const FACTS = {
 	headRef: "chart-the-shoals",
@@ -53,8 +53,8 @@ it("no situation invents host detail the record does not hold", () => {
 	}
 });
 
-it("the standing instruction is one fixed sentence with no blanks", () => {
-	expect(standingRecovery).toBe(
+it("the wake instruction is one fixed sentence with no blanks", () => {
+	expect(wakeWords).toBe(
 		"Reconcile durable Antumbra truth and continue your assigned work.",
 	);
 });

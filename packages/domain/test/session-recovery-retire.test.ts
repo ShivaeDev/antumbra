@@ -12,15 +12,16 @@ import {
 } from "#test/harness.ts";
 import {
 	eventually,
+	hail,
 	payload,
-	RECOVERY_INSTRUCTION,
 	reportsNativeRef,
 	seedResumableAgent,
 	untilTerminal,
-	waitingRecovery,
+	WAKE_INSTRUCTION,
+	waitingWake,
 } from "#test/session-recovery-fixture.ts";
 
-it.live("retirement cancels a recovery attachment blocked while opening", () =>
+it.live("retirement cancels a wake attachment blocked while opening", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
 		const scripted = yield* makeScriptedBackend;
@@ -53,6 +54,7 @@ it.live("retirement cancels a recovery attachment blocked while opening", () =>
 			const db = yield* Database;
 			const kernel = yield* Kernel;
 			const domain = yield* AgentDomain;
+			yield* hail(payload.sessionId);
 			yield* Deferred.await(opening);
 			const retirement = yield* kernel.submit(domain.retire, {
 				agentId: payload.agentId,
@@ -61,7 +63,7 @@ it.live("retirement cancels a recovery attachment blocked while opening", () =>
 			yield* Deferred.succeed(release, undefined);
 			yield* eventually(
 				Effect.gen(function* () {
-					const held = yield* waitingRecovery;
+					const held = yield* waitingWake;
 					expect(held.detail).toContain("stopped while attaching");
 					const agent = Option.getOrThrow(
 						yield* db.Agent.where({ id: payload.agentId }).first(),
@@ -79,7 +81,7 @@ it.live("retirement cancels a recovery attachment blocked while opening", () =>
 					expect(original).toBeDefined();
 					expect(
 						original === undefined ? [] : yield* original.sent,
-					).not.toContain(RECOVERY_INSTRUCTION);
+					).not.toContain(WAKE_INSTRUCTION);
 					expect(original !== undefined && (yield* original.closed)).toBe(true);
 				}),
 			);

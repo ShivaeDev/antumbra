@@ -12,7 +12,6 @@ import { SessionFabric, SessionFabricLive } from "@antumbra/session-fabric";
 import { SessionInputsLive } from "@antumbra/session-inputs";
 import { Effect, Layer } from "effect";
 import { AGENTS_ALIVE_GAUGE, AgentDomain } from "#agent-domain-service.ts";
-import { compileAgentRecoveryDemands } from "#agent-recovery-demands.ts";
 import { makeAliveAgentCount } from "#agents-alive.ts";
 import { ChangeProcedureService } from "#change-procedures.ts";
 import { makeCurrentSessionReconciler } from "#current-session-reconcile.ts";
@@ -20,15 +19,16 @@ import { domainCapabilities } from "#domain-capabilities.ts";
 import { imageInputBackendsOf } from "#image-input-backends.ts";
 import { makeRetireKind } from "#retire.ts";
 import { compileRetireSweepDemands } from "#retire-sweep-demands.ts";
-import { makeRecoveryKind } from "#session-recovery.ts";
 import type { SessionRecoveryContext } from "#session-recovery-context.ts";
 import { SessionRecoveryRuntime } from "#session-recovery-runtime.ts";
 import { makeSessionRecoveryRuntime } from "#session-resume.ts";
 import { makeSessionSend } from "#session-send.ts";
 import { makeSiestaKind } from "#session-siesta.ts";
+import { compileSessionSiestaDemands } from "#session-siesta-demands.ts";
 import { LiveDelegations, LiveDelegationsLive } from "#session-tree-live.ts";
 import { makeSessionNodeReconciler } from "#session-tree-reconcile.ts";
 import { makeSessionTreeSinks } from "#session-tree-sink.ts";
+import { makeWakeKind } from "#session-wake.ts";
 import { spawnKind } from "#spawn.ts";
 import { makeAgentToolCompiler } from "#spawn-tools.ts";
 import { VoyageProcedureService } from "#voyage-procedures.ts";
@@ -77,7 +77,7 @@ export const AgentDomainLive = (
 				sinkFor,
 				toolsFor,
 			});
-			const recover = yield* makeRecoveryKind.pipe(
+			const wake = yield* makeWakeKind.pipe(
 				Effect.provideService(SessionRecoveryRuntime, recoveryRuntime),
 			);
 			const aliveAgents = yield* makeAliveAgentCount;
@@ -86,8 +86,10 @@ export const AgentDomainLive = (
 			// asks whether a process is being held for nothing, the other whether an
 			// identity is being held for nothing. They read different truths and are
 			// governed differently, so they are compiled apart and run together.
+			// Neither of them ever puts a Session back on a provider: a Session that
+			// lost its process is reported as stranded and waits to be spoken to.
 			const intentDemands = [
-				...(yield* compileAgentRecoveryDemands(recover, siesta)),
+				...(yield* compileSessionSiestaDemands(siesta)),
 				...(yield* compileRetireSweepDemands(retire)),
 			];
 			const imageInputBackends = imageInputBackendsOf(backends);
@@ -101,10 +103,9 @@ export const AgentDomainLive = (
 				interruptSession: fabric.interrupt,
 				imageInputBackends,
 				intentDemands,
-				kinds: [spawn, recover, retire, siesta],
+				kinds: [spawn, retire, siesta, wake],
 				repos,
 				retryResourceReclaim: resourceReconciler.reconcile,
-				recover,
 				reopenSessionStarts: fabric.reopenStarts(),
 				retire,
 				sendSessionInput: sessionSend.sendInput,
@@ -114,6 +115,7 @@ export const AgentDomainLive = (
 				siesta,
 				spawn,
 				voyages,
+				wake,
 			};
 		}),
 	).pipe(

@@ -12,10 +12,12 @@ import type {
 	RulingReferenceKind,
 	RulingSubject,
 	RulingSupersession,
+} from "#model.ts";
+import type {
 	StoredRuling,
 	StoredRulingReclassification,
 	StoredRulingSubject,
-} from "#model.ts";
+} from "#stored-rows.ts";
 
 const REFERENCE_COLUMN: Readonly<
 	Record<RulingReferenceKind, (row: StoredRulingSubject) => string | null>

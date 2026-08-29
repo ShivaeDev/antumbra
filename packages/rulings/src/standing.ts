@@ -1,7 +1,8 @@
 import { Database } from "@antumbra/persistence";
 import { Effect } from "effect";
-import type { RulingSubject, StoredRuling } from "#model.ts";
+import type { RulingSubject } from "#model.ts";
 import { loadRuling } from "#read.ts";
+import type { StoredRuling } from "#stored-rows.ts";
 import { subjectColumns } from "#subjects.ts";
 
 const subjectMatches = (filter: ReadonlyArray<RulingSubject>) =>

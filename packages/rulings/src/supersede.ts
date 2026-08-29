@@ -6,8 +6,9 @@ import {
 	RulingNotRuled,
 	RulingSupersedesItself,
 } from "#errors.ts";
-import type { RulingSupersedeInput, StoredRuling } from "#model.ts";
+import type { RulingSupersedeInput } from "#model.ts";
 import { loadRuling, requireRuling } from "#read.ts";
+import type { StoredRuling } from "#stored-rows.ts";
 
 const requireStanding = (rulingId: string) =>
 	Effect.gen(function* () {

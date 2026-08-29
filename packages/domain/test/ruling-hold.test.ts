@@ -136,3 +136,40 @@ it.live("an interrupted hold leaves the ruling open for mail to answer", () =>
 		}).pipe(Effect.provide(domainKernelLayer(temporary, scripted.backend)));
 	}),
 );
+
+it.live("a live hold owns the answer and no mail repeats it", () =>
+	Effect.gen(function* () {
+		const temporary = yield* acquireTemporaryPersistence;
+		const scripted = yield* makeScriptedBackend;
+		yield* Effect.gen(function* () {
+			const db = yield* Database;
+			yield* seedAsker;
+			const held = yield* Effect.forkChild(ask("blocking"));
+			const blocking = yield* requested("blocking");
+
+			yield* ruleOn(blocking.id);
+			const outcome = yield* Fiber.join(held);
+			expect(outcome.text).toContain("your hold is over");
+			const answered = Option.getOrThrow(
+				yield* db.Ruling.where({ id: blocking.id }).first(),
+			);
+			expect(answered.deliveredAt).toBeInstanceOf(Date);
+
+			// why: a ruling nobody held is the barrier — its mail can only arrive
+			// from a delivery pass that walked the record after the hold let go, so
+			// one entry addressed to it proves the held answer was never mailed.
+			yield* ask("pressing");
+			const unheld = yield* requested("pressing");
+			yield* ruleOn(unheld.id);
+
+			const entries = yield* eventually(
+				Effect.gen(function* () {
+					const read = yield* mailbox;
+					expect(read).toHaveLength(1);
+					return read;
+				}),
+			);
+			expect(entries[0]?.sourceRef).toBe(`ruling:${unheld.id}`);
+		}).pipe(Effect.provide(domainKernelLayer(temporary, scripted.backend)));
+	}),
+);

@@ -7,6 +7,7 @@ import {
 } from "@antumbra/rulings";
 import { Effect, Option, PubSub } from "effect";
 import { rulingAnswerMail } from "#ruling-answer-mail.ts";
+import { RulingHolds } from "#ruling-holds.ts";
 
 export interface RuledRuling {
 	readonly answer: RulingAnswer;
@@ -25,9 +26,12 @@ export const heldSaid = ({ answer, ruling }: RuledRuling): string =>
 // subscription is taken before the request is written, so a verdict landing
 // between the write and the first read rings a notice that is still queued;
 // each notice is followed by a read, because the record — never the ring —
-// says whether the answer landed.
+// says whether the answer landed. The hold is registered the moment the id
+// exists and marks the answer delivered before it lets go, so the asker that
+// heard the answer here is not told it again by mail.
 export const makeRulingHold = Effect.gen(function* () {
 	const feeds = yield* DomainFeeds;
+	const holds = yield* RulingHolds;
 	const rulings = yield* Rulings;
 	const untilRuled = (notices: PubSub.Subscription<void>, rulingId: string) =>
 		Effect.gen(function* () {
@@ -43,7 +47,10 @@ export const makeRulingHold = Effect.gen(function* () {
 			Effect.gen(function* () {
 				const notices = yield* feeds.subscribeRulingRefresh();
 				const requested = yield* rulings.request(input);
-				return yield* untilRuled(notices, requested.id);
+				yield* holds.holding(requested.id);
+				const ruled = yield* untilRuled(notices, requested.id);
+				yield* rulings.markDelivered(requested.id);
+				return ruled;
 			}),
 		);
 });

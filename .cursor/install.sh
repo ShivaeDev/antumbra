@@ -35,5 +35,13 @@ hash -r
 node --version
 pnpm --version
 
+# The base image signs every commit through an SSH agent over a host socket,
+# which stalls Antumbra's concurrent git-backed `it.live` suites until they time
+# out. `start.sh` turns signing off on each boot; do it here too so just-in-time
+# setups (which run install after the image configures git, but may not reach
+# start) are covered as well. See start.sh for the full rationale.
+git config --global commit.gpgsign false
+git config --global tag.gpgsign false
+
 cd "$repo_root"
 pnpm install --frozen-lockfile

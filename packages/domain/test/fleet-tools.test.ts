@@ -16,6 +16,7 @@ import { eventually, openReefVoyage } from "#test/voyage-fixtures.ts";
 const FLAGSHIP_ID = "voyage-flagship";
 
 const FLEET_TOOLS = [
+	"read_fleet",
 	"open_voyage",
 	"charter_piece_on_voyage",
 	"proclaim_ruling",
@@ -100,6 +101,47 @@ it.live("the flagship's captain holds the fleet acts and a captain's own", () =>
 			);
 		}).pipe(Effect.provide(domainKernelLayer(temporary, scripted.backend)));
 	}),
+);
+
+it.live("the flagship's captain reads every voyage in the fleet", () =>
+	withFlagshipCaptain((captain) =>
+		Effect.gen(function* () {
+			const domain = yield* AgentDomain;
+			const reef = yield* openReefVoyage;
+			const sounding = yield* domain.voyages.charterPiece({
+				charter: "sound the eastern shoal",
+				dependsOn: [],
+				expectation: "the shoal is sounded",
+				role: "hand",
+				title: "sounding",
+				voyageId: reef.id,
+			});
+			yield* domain.voyages.charterPiece({
+				charter: "draw the eastern shoal",
+				dependsOn: [sounding.id],
+				expectation: "the shoal is drawn",
+				role: "hand",
+				title: "drawing",
+				voyageId: reef.id,
+			});
+			const flagship = Option.getOrThrow(
+				(yield* domain.voyages.read(FLAGSHIP_ID)).pipe(
+					Option.flatMap((view) => view.captain),
+				),
+			);
+
+			const read = yield* callTool(captain, "read_fleet", {});
+
+			expect(read.ok).toBe(true);
+			expect(read.text).toContain(`- ${FLAGSHIP_ID} Flagship [`);
+			expect(read.text).toContain(
+				`flagship · scripted · 0 pieces (0 unlaunched, 0 parked, 0 landed) · captain ${flagship.agentId} [alive] · last stirred 20`,
+			);
+			expect(read.text).toContain(
+				`- ${reef.id} Chart the reef [quiet] · voyage · scripted · 2 pieces (2 unlaunched, 0 parked, 0 landed) · captain none · never stirred\n  north star: every shoal is known`,
+			);
+		}),
+	),
 );
 
 it.live("the flagship's captain opens a voyage on the fleet's default", () =>

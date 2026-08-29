@@ -85,10 +85,12 @@ somewhere to navigate to.
 On the admiral's word the flagship captain may open a Voyage, charter a Piece
 on a named Voyage, and proclaim a fleet ruling as the `flagship` authority. It
 also rules on the requests that climb to it, as that same
-authority, and passes up what only the admiral may settle. These are the
-ordinary domain acts, called by an agent that happens to sit at the top; the
-flagship gets no private verbs and no act the admiral could not perform
-directly.
+authority, and passes up what only the admiral may settle. Beside those acts
+it reads the fleet whole — every Voyage, where it stands, and who captains
+it — because a Voyage it charters onto is one it has to be able to name.
+These are the ordinary domain acts, called by an agent that happens to sit at
+the top; the flagship gets no private verbs and no act the admiral could not
+perform directly.
 
 Everything it does lands on the fleet Board, so what was done in the admiral's
 name reads as one story rather than as changes discovered later across

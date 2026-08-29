@@ -1,6 +1,7 @@
 import type { Option } from "effect";
 import { type PieceState, pieceStates } from "#piece-state.ts";
 import { type PieceView, pieceView } from "#piece-view.ts";
+import { lastStirredAt } from "#voyage-activity.ts";
 import { captainOf, type VoyageCaptain } from "#voyage-captain.ts";
 import { crewOf, type VoyageCrewMember } from "#voyage-crew.ts";
 import type { PieceRow, VoyageRow, VoyageWorld } from "#voyage-rows.ts";
@@ -19,6 +20,7 @@ export interface VoyageView extends VoyageRow {
 	readonly captain: Option.Option<VoyageCaptain>;
 	readonly counts: PieceCounts;
 	readonly crew: ReadonlyArray<VoyageCrewMember>;
+	readonly lastStirredAt: Date | null;
 	readonly pieces: ReadonlyArray<PieceView>;
 	readonly state: VoyageState;
 }
@@ -26,6 +28,7 @@ export interface VoyageView extends VoyageRow {
 export interface VoyageSummary extends VoyageRow {
 	readonly captain: Option.Option<VoyageCaptain>;
 	readonly counts: PieceCounts;
+	readonly lastStirredAt: Date | null;
 	readonly state: VoyageState;
 }
 
@@ -65,6 +68,7 @@ export const voyageView = (
 		captain: captainOf(world, voyage.id),
 		counts: countStates(pieces.map((piece) => piece.state)),
 		crew: crewOf(world, voyage.id),
+		lastStirredAt: lastStirredAt(world, voyage.id),
 		pieces,
 		state: voyageState(world, states, voyage.id),
 	};
@@ -83,6 +87,7 @@ export const voyageSummaries = (
 				return state === undefined ? [] : [state];
 			}),
 		),
+		lastStirredAt: lastStirredAt(world, voyage.id),
 		state: voyageState(world, states, voyage.id),
 	}));
 };

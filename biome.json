@@ -7,6 +7,7 @@
 			"!**/out",
 			"!**/coverage",
 			"!**/release",
+			"!!.worktrees",
 			"!packages/persistence/contract.json",
 			"!packages/persistence/contract.d.ts",
 			"!packages/persistence/migrations",

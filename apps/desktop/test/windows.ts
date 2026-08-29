@@ -83,7 +83,7 @@ export const eventFor = <Sender extends DocumentContents>(
 
 export const consolePlace = {
 	changeId: null,
-	mode: "fleet",
+	mode: "flagship",
 	role: "console",
 	sessionId: null,
 	voyageId: null,

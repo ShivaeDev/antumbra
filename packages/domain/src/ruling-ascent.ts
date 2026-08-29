@@ -4,6 +4,7 @@ import { type Ruling, Rulings } from "@antumbra/rulings";
 import { Effect, Layer, Option, Stream } from "effect";
 import { rulingAscentMail } from "#ruling-ascent-mail.ts";
 import { captainOf } from "#voyage-captain.ts";
+import { voyageWorldTicks } from "#voyage-feed.ts";
 import { VoyageWorldSource } from "#voyage-world.ts";
 
 const guarded = <A, R>(act: Effect.Effect<A, unknown, R>, said: string) =>
@@ -77,11 +78,18 @@ export const RulingAscentLive = Layer.effectDiscard(
 		// read and the subscription climbs on the next ring rather than waiting
 		// for one that never comes.
 		const notices = yield* feeds.subscribeRulingRefresh();
+		// why: who may answer is read off the voyage world rather than off the
+		// ruling record, so the world changing is as much a reason to walk what
+		// is owed as a ruling write is — a request raised while the flagship had
+		// no captain climbs on the hail instead of on the next ruling.
+		const world = yield* voyageWorldTicks(feeds);
 		const pass = guarded(onePass, "the ruling ascent pass failed");
 		yield* Effect.forkScoped(
 			pass.pipe(
 				Effect.andThen(
-					Stream.fromSubscription(notices).pipe(Stream.runForEach(() => pass)),
+					Stream.merge(Stream.fromSubscription(notices), world).pipe(
+						Stream.runForEach(() => pass),
+					),
 				),
 			),
 		);

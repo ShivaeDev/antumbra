@@ -27,6 +27,15 @@ export const verdictFailure = (
 			});
 		case "RulingNotFound":
 			return new RulingRefused({ reason: `no open ruling: ${cause.rulingId}` });
+		// why: which rung may answer follows from how widely the answer will
+		// apply, so a verdict from a rung that does not reach the radius is the
+		// record refusing a request rather than this process failing — it comes
+		// back naming the radius and the rung, the way every other refusal names
+		// what was wrong with what was sent.
+		case "RulingOutsideAuthority":
+			return new RulingRefused({
+				reason: `ruling ${cause.rulingId} binds at ${cause.radius} radius, where the ${cause.by} does not rule`,
+			});
 		default:
 			return toRulingFailure(cause);
 	}

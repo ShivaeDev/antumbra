@@ -165,26 +165,29 @@ it.live("a request that binds one voyage does not climb to the flagship", () =>
 	}),
 );
 
-it.live("a request asked before the flagship is captained climbs later", () =>
-	Effect.gen(function* () {
-		const temporary = yield* acquireTemporaryPersistence;
-		const scripted = yield* makeScriptedBackend;
-		yield* Effect.gen(function* () {
-			const db = yield* Database;
-			const feeds = yield* DomainFeeds;
-			yield* seedAsker;
-			yield* openFlagship;
+// why: nothing rings the ruling feed between the request and the hail, so the
+// mail arriving proves the hail itself woke the ascent — not a later write that
+// happened to walk the record again.
+it.live(
+	"a request asked before the flagship is captained climbs on the hail",
+	() =>
+		Effect.gen(function* () {
+			const temporary = yield* acquireTemporaryPersistence;
+			const scripted = yield* makeScriptedBackend;
+			yield* Effect.gen(function* () {
+				const db = yield* Database;
+				yield* seedAsker;
+				yield* openFlagship;
 
-			const rulingId = yield* ask("may we dredge?", "fleet");
-			expect(yield* db.BoardEntry.all()).toEqual([]);
+				const rulingId = yield* ask("may we dredge?", "fleet");
+				expect(yield* db.BoardEntry.all()).toEqual([]);
 
-			const captain = yield* hailFlagshipCaptain(scripted);
-			yield* feeds.publishRulingRefresh();
+				const captain = yield* hailFlagshipCaptain(scripted);
 
-			const entries = yield* carried(captain, 1);
-			expect(entries[0]?.sourceRef).toBe(`ruling-ascent:${rulingId}`);
-		}).pipe(Effect.provide(domainKernelLayer(temporary, scripted.backend)));
-	}),
+				const entries = yield* carried(captain, 1);
+				expect(entries[0]?.sourceRef).toBe(`ruling-ascent:${rulingId}`);
+			}).pipe(Effect.provide(domainKernelLayer(temporary, scripted.backend)));
+		}),
 );
 
 it.live("the flagship captain's own request does not climb back to it", () =>

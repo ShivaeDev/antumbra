@@ -247,8 +247,8 @@ A root Session is reapable only after its provider work, tool calls, subsession
 subtree, descendant Agent tree, and background obligations have all settled; an
 open subsession means the record is still unaccounted for, and resource
 pressure never interrupts an in-flight subtree. Long-lived concerns are
-externalized as subscriptions, durable Questions, and Board-backed mail rather
-than keeping a process attachment alive.
+externalized as subscriptions, open [rulings](rulings.md), and Board-backed
+mail rather than keeping a process attachment alive.
 
 Whether the subtree has settled is asked of the acquisition, not of the rows.
 Only a root is ever attached and every node under it rides that one stream, so

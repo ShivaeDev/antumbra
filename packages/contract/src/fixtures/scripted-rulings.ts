@@ -9,7 +9,7 @@ import type {
 	RulingView,
 	StandingRulingsView,
 	StandingRulingView,
-} from "#rulings-views.ts";
+} from "#rulings/views.ts";
 
 // why: a request that holds its asker lands ahead of what was already open,
 // so the set the admiral meets is reordered rather than appended to.

@@ -1,48 +1,27 @@
 import {
+	type ReclassifyRequest,
 	type RuleRequest,
 	RulingFailure,
-	RulingRefused,
 	RulingSource,
 	type StandingRulingsView,
 	type SupersedeRequest,
 } from "@antumbra/contract";
 import {
 	type Ruling,
+	type RulingReclassifyInput,
 	Rulings,
 	type RulingVerdict,
-	type RulingVerdictFailure,
 } from "@antumbra/rulings";
 import { Effect, Layer, Option } from "effect";
 import { makeRulingRefreshes } from "#ruling-feed.ts";
 import { rulingSeen, standingRulingSeen } from "#ruling-projection.ts";
+import {
+	reclassifyFailure,
+	toRulingFailure,
+	verdictFailure,
+} from "#ruling-refusals.ts";
 import { supersessionFailure } from "#ruling-supersession.ts";
-import { failureMessage } from "#sight-failure.ts";
 import { VoyageWorldSource } from "#voyage-world.ts";
-
-const toFailure = (cause: unknown): RulingFailure =>
-	new RulingFailure({ message: failureMessage(cause) });
-
-// why: the three ways a verdict fails to land are things the record knows and
-// the window does not, so each comes back as the sentence that says which —
-// anything else is this process failing rather than the request being wrong.
-const verdictFailure = (
-	cause: RulingVerdictFailure,
-): RulingFailure | RulingRefused => {
-	switch (cause._tag) {
-		case "RulingAlreadyRuled":
-			return new RulingRefused({
-				reason: `ruling ${cause.rulingId} was already ruled`,
-			});
-		case "RulingChoiceUnknown":
-			return new RulingRefused({
-				reason: `ruling ${cause.rulingId} never offered choice ${cause.choiceId}`,
-			});
-		case "RulingNotFound":
-			return new RulingRefused({ reason: `no open ruling: ${cause.rulingId}` });
-		default:
-			return toFailure(cause);
-	}
-};
 
 // why: the window is the admiral's hand, so what it sends is ruled by the
 // admiral — no other authority sits on the ladder yet. A choice nobody picked
@@ -74,6 +53,16 @@ const standingSeen = (
 		onSome: (answer) => Effect.succeed(standingRulingSeen(ruling, answer)),
 	});
 
+const reclassificationOf = (
+	request: ReclassifyRequest,
+): RulingReclassifyInput => ({
+	by: "admiral",
+	rulingId: request.rulingId,
+	...(request.note === undefined ? {} : { note: request.note }),
+	...(request.radius === undefined ? {} : { radius: request.radius }),
+	...(request.urgency === undefined ? {} : { urgency: request.urgency }),
+});
+
 export const RulingSourceLive = Layer.effect(RulingSource)(
 	Effect.gen(function* () {
 		const rulings = yield* Rulings;
@@ -83,16 +72,21 @@ export const RulingSourceLive = Layer.effect(RulingSource)(
 			Effect.map(({ open, rows }) => ({
 				rulings: open.map((ruling) => rulingSeen(ruling, rows)),
 			})),
-			Effect.mapError(toFailure),
+			Effect.mapError(toRulingFailure),
 		);
 		const standing = rulings.standing([]).pipe(
-			Effect.mapError(toFailure),
+			Effect.mapError(toRulingFailure),
 			Effect.flatMap((all) => Effect.forEach(all, standingSeen)),
 			Effect.map((seen) => ({ rulings: seen })),
 		);
 		return {
 			open,
 			openFeed: refreshes(open),
+			reclassify: (request: ReclassifyRequest) =>
+				rulings.reclassify(reclassificationOf(request)).pipe(
+					Effect.map((moved) => ({ rulingId: moved.id })),
+					Effect.mapError(reclassifyFailure),
+				),
 			rule: (request: RuleRequest) =>
 				rulings.rule(verdictOf(request)).pipe(
 					Effect.map((ruled) => ({ rulingId: ruled.id })),

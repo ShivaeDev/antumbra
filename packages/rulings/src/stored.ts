@@ -1,15 +1,19 @@
 import {
 	decodeStoredRulingAuthority,
+	decodeStoredRulingRadius,
 	decodeStoredRulingSubjectKind,
+	decodeStoredRulingUrgency,
 	StoredRulingValueInvalid,
 } from "@antumbra/vocabulary/ruling";
-import { Effect, Option } from "effect";
+import { Effect, Option, type Result } from "effect";
 import type {
 	RulingAnswer,
+	RulingReclassification,
 	RulingReferenceKind,
 	RulingSubject,
 	RulingSupersession,
 	StoredRuling,
+	StoredRulingReclassification,
 	StoredRulingSubject,
 } from "#model.ts";
 
@@ -94,4 +98,36 @@ export const storedSupersession = (row: StoredRuling) =>
 			),
 			byRulingId: row.supersededById,
 		});
+	});
+
+const storedAxis = <Value>(
+	decode: (
+		rulingId: string,
+		value: string,
+	) => Result.Result<Value, StoredRulingValueInvalid>,
+	rulingId: string,
+	value: string | null,
+) =>
+	value === null
+		? Effect.succeed(Option.none<Value>())
+		: Effect.map(Effect.fromResult(decode(rulingId, value)), Option.some);
+
+export const storedReclassification = (
+	rulingId: string,
+	row: StoredRulingReclassification,
+) =>
+	Effect.gen(function* () {
+		return {
+			at: row.at,
+			by: yield* Effect.fromResult(
+				decodeStoredRulingAuthority(rulingId, row.by),
+			),
+			note: Option.fromNullOr(row.note),
+			radius: yield* storedAxis(decodeStoredRulingRadius, rulingId, row.radius),
+			urgency: yield* storedAxis(
+				decodeStoredRulingUrgency,
+				rulingId,
+				row.urgency,
+			),
+		} satisfies RulingReclassification;
 	});

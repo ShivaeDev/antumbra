@@ -1,5 +1,6 @@
 import type {
 	OpenRulingsView,
+	ReclassifyRequest,
 	RuleRequest,
 	StandingRulingsView,
 	SupersedeRequest,
@@ -54,3 +55,10 @@ export const supersedeRuling = (
 	request: SupersedeRequest,
 	onError: OnError,
 ): void => fired(client.supersedeRuling.mutate(request), onError);
+
+// why: the reclassified axes reach the card on the next feed, because where a
+// ruling now sits in the open set is the record's reading, not the window's.
+export const reclassifyRuling = (
+	request: ReclassifyRequest,
+	onError: OnError,
+): void => fired(client.reclassifyRuling.mutate(request), onError);

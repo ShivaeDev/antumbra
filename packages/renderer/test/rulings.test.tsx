@@ -14,21 +14,25 @@ interface Opened {
 	readonly onRulings: (rulings: OpenRulingsView) => void;
 }
 
-const { opened, ruleOn, watchOpenRulings } = vi.hoisted(() => {
-	const held: Array<Opened> = [];
-	return {
-		opened: held,
-		ruleOn: vi.fn(),
-		watchOpenRulings: vi.fn(
-			(onRulings: Opened["onRulings"], onError: Opened["onError"]) => {
-				held.push({ onError, onRulings });
-				return vi.fn();
-			},
-		),
-	};
-});
+const { opened, reclassifyRuling, ruleOn, watchOpenRulings } = vi.hoisted(
+	() => {
+		const held: Array<Opened> = [];
+		return {
+			opened: held,
+			reclassifyRuling: vi.fn(),
+			ruleOn: vi.fn(),
+			watchOpenRulings: vi.fn(
+				(onRulings: Opened["onRulings"], onError: Opened["onError"]) => {
+					held.push({ onError, onRulings });
+					return vi.fn();
+				},
+			),
+		};
+	},
+);
 
 vi.mock("#adapters/trpc-rulings.ts", () => ({
+	reclassifyRuling,
 	ruleOn,
 	supersedeRuling: vi.fn(),
 	watchOpenRulings,
@@ -45,6 +49,7 @@ const shoal: RulingView = {
 		{ detail: null, id: "choice-2", label: "trust the chart" },
 	],
 	context: "The eastern shoal sounds two metres shallower than the chart says.",
+	declared: { radius: "voyage", urgency: "pressing" },
 	gatedPieces: [
 		{
 			pieceId: "piece-2",
@@ -56,6 +61,14 @@ const shoal: RulingView = {
 	id: "ruling-1",
 	question: "Which reading do we plot against?",
 	radius: "voyage",
+	reclassifications: [
+		{
+			at: "2026-08-15T09:50:00.000Z",
+			by: "admiral",
+			note: "nothing plots until this lands",
+			urgency: "blocking",
+		},
+	],
 	requestedAt: "2026-08-15T09:40:00.000Z",
 	requesterAgentId: "agent-surveyor",
 	subjects: [{ kind: "tag", label: "surveying" }],
@@ -65,10 +78,12 @@ const shoal: RulingView = {
 const berths: RulingView = {
 	choices: [],
 	context: "Two repositories name their default branch differently.",
+	declared: { radius: "fleet", urgency: "eventual" },
 	gatedPieces: [],
 	id: "ruling-2",
 	question: "What do we call the branch a berth is cut from?",
 	radius: "fleet",
+	reclassifications: [],
 	requestedAt: "2026-08-15T08:10:00.000Z",
 	requesterAgentId: "agent-bosun",
 	subjects: [],
@@ -121,8 +136,26 @@ const answering = (
 		}
 	});
 
+const choosing = (
+	mounted: ReturnType<typeof mount>,
+	label: string,
+	word: string,
+): Effect.Effect<void> =>
+	settle(() => {
+		const box = [...mounted.container.querySelectorAll("select")].find(
+			(select) =>
+				mounted.container.querySelector(`label[for="${select.id}"]`)
+					?.textContent === label,
+		);
+		if (box !== undefined) {
+			box.value = word;
+			box.dispatchEvent(new Event("change", { bubbles: true }));
+		}
+	});
+
 beforeEach(() => {
 	opened.length = 0;
+	reclassifyRuling.mockClear();
 	ruleOn.mockClear();
 	watchOpenRulings.mockClear();
 });
@@ -223,6 +256,43 @@ it.effect("says so when nothing is waiting on the admiral", () =>
 
 		expect(mounted.container.textContent).toContain(
 			"Nothing is waiting on you",
+		);
+		yield* settle(() => mounted.root.unmount());
+	}),
+);
+
+// why: the badges say where a ruling stands now, and the asker's own word is
+// shown only where an authority moved it.
+it.effect("shows the declared axis only where it was moved", () =>
+	Effect.gen(function* () {
+		const mounted = mount();
+		yield* showing(mounted);
+
+		const [moved, unmoved] = [...mounted.container.querySelectorAll("li")];
+		expect(moved?.textContent).toContain("Holding the asker");
+		expect(moved?.textContent).toContain("declared pressing");
+		expect(moved?.textContent).not.toContain("declared voyage");
+		expect(moved?.textContent).toContain(
+			"admiral set urgency blocking — nothing plots until this lands",
+		);
+		expect(unmoved?.textContent).not.toContain("declared");
+		yield* settle(() => mounted.root.unmount());
+	}),
+);
+
+it.effect("reclassifies with only the axis that moved", () =>
+	Effect.gen(function* () {
+		const mounted = mount();
+		yield* showing(mounted, { rulings: [shoal] });
+
+		yield* settle(() => buttonSaying(mounted, "Reclassify")?.click());
+		expect(reclassifyRuling).not.toHaveBeenCalled();
+		yield* choosing(mounted, "Radius", "fleet");
+		yield* settle(() => buttonSaying(mounted, "Reclassify")?.click());
+
+		expect(reclassifyRuling).toHaveBeenCalledWith(
+			{ radius: "fleet", rulingId: "ruling-1" },
+			expect.any(Function),
 		);
 		yield* settle(() => mounted.root.unmount());
 	}),

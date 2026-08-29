@@ -1,4 +1,4 @@
-import type { RulingView, StandingRulingView } from "@antumbra/contract";
+import { RulingView, type StandingRulingView } from "@antumbra/contract";
 import type { Tone } from "#voyages/tone.ts";
 
 type GatedPiece = RulingView["gatedPieces"][number];
@@ -29,6 +29,11 @@ export const rulingRadiusLabel: Readonly<Record<Radius, string>> = {
 	piece: "Binds one piece",
 	voyage: "Binds the voyage",
 };
+
+// why: the words an authority may set an axis to are the IDL's own, read off
+// the view's schema so the control offers exactly what the record accepts.
+export const rulingRadii = RulingView.fields.radius.literals;
+export const rulingUrgencies = RulingView.fields.urgency.literals;
 
 export const rulingSubjectLabel: Readonly<Record<SubjectKind, string>> = {
 	agent: "Agent",

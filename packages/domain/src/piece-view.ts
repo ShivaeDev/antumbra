@@ -7,7 +7,7 @@ import {
 	dependenciesOf,
 	type PieceState,
 } from "#piece-state.ts";
-import type { PieceRow, VoyageWorld } from "#voyage-rows.ts";
+import type { AwaitingRuling, PieceRow, VoyageWorld } from "#voyage-rows.ts";
 
 export interface PieceAgentView {
 	readonly agentId: string;
@@ -17,7 +17,7 @@ export interface PieceAgentView {
 export interface PieceView extends PieceRow {
 	readonly agents: ReadonlyArray<PieceAgentView>;
 	readonly artifacts: ReadonlyArray<ArtifactRow>;
-	readonly awaitingRulings: ReadonlyArray<string>;
+	readonly awaitingRulings: ReadonlyArray<AwaitingRuling>;
 	readonly artifactHistory: ReadonlyArray<
 		ArtifactRow & { readonly successorArtifactId: string }
 	>;

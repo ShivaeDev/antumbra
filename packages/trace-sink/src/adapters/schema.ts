@@ -57,9 +57,11 @@ export const INSERT_LOG = `INSERT INTO logs (
 	run_id, at_millis, level, message, annotations, fiber_id, trace_id, span_id
 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
 
-// why: retention is stated once here as the newest runs to keep; every delete
-// below is the same window read the same way, so a run is never half-pruned.
-export const RETAINED_RUNS = 5;
+// why: retention is stated once here as the newest runs to keep — the run being
+// read and the one before it to compare it against, which is as far back as a
+// dev trace is ever asked about; every delete below is the same window read the
+// same way, so a run is never half-pruned.
+export const RETAINED_RUNS = 2;
 
 const RETAINED = `SELECT run_id FROM runs ORDER BY started_at_millis DESC, run_id DESC LIMIT ${RETAINED_RUNS}`;
 

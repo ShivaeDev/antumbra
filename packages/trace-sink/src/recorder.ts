@@ -6,6 +6,7 @@ import { type SpanRow, spanRowOf } from "#span-row.ts";
 
 const BUFFER_CAPACITY = 20_000;
 const DISABLED = "dev trace sink disabled";
+const ORM_SPAN_PREFIX = "prisma.";
 
 export interface Recorder {
 	readonly flush: Effect.Effect<void>;
@@ -17,6 +18,13 @@ interface RecorderState {
 	degraded: boolean;
 	warning: string | undefined;
 }
+
+// why: the ORM opens a span per query, which outnumbers the domain spans a
+// reader came for by three orders of magnitude and is what turns this file into
+// hundreds of megabytes of index. What a query cost is the database's story and
+// is asked of the database; the trace is here to say what the workspace did.
+const recordable = (span: Tracer.Span): boolean =>
+	span.sampled && !span.name.startsWith(ORM_SPAN_PREFIX);
 
 const rowsOf = (span: Tracer.Span): readonly SpanRow[] => {
 	const row = spanRowOf(span);
@@ -67,7 +75,7 @@ export const makeRecorder = (database: TraceDatabase): Recorder => {
 			}
 		},
 		recordSpan: (span) => {
-			if (span.sampled && !state.degraded && !spans.push(span)) {
+			if (recordable(span) && !state.degraded && !spans.push(span)) {
 				standDown("the span buffer overflowed");
 			}
 		},

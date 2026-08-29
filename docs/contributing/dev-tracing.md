@@ -6,8 +6,18 @@ whatever `ANTUMBRA_DEV_USER_DATA` names. A packaged run installs no tracer, adds
 no second logger, and writes no trace database.
 
 Open the file with any SQLite client. It holds three tables: `runs`, `spans`,
-and `logs`. Startup keeps the five most recent runs and deletes the rest, so the
-file stays small and old runs are gone rather than stale.
+and `logs`. Startup keeps the two most recent runs — the one being read and the
+one before it — and deletes the rest, so the file stays small and old runs are
+gone rather than stale.
+
+## What is not recorded
+
+Spans named `prisma.*` are dropped at the sink rather than written. The ORM
+opens one per query, which outnumbers the spans of a run's actual work by three
+orders of magnitude, and the file it produced was mostly index. Ask the database
+what a query cost; ask the trace what the workspace did. One consequence: a span
+opened inside `db.transaction` keeps the `parent_span_id` of the transaction
+span, and that row is not in the file.
 
 ## What is in a span
 

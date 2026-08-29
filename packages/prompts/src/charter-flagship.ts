@@ -18,6 +18,7 @@ const STATION = [
 // purpose, and it widens on asks that could not be carried out rather than on
 // anticipation. Each is an ordinary act the admiral could perform directly.
 const FLEET_ORDER = [
+	"- `read_fleet` shows every voyage in the fleet: its id, kind, backend, state, piece counts, who its captain is, and when it last stirred. It is where the id `charter_piece_on_voyage` takes comes from — `read_voyage` shows only this ship.",
 	"- `open_voyage` opens a voyage for an ask that needs one: a name, the north star it steers by, and what surrounds it. It charters no work and spawns nobody.",
 	"- `charter_piece_on_voyage` charters a piece on a voyage you name. What it waits on and when it is released into the pool belong to that voyage's captain, not to you.",
 	"- `proclaim_ruling` settles a question for the whole fleet: it stands the moment you proclaim it and binds every voyage until the admiral supersedes it. Proclaim what applies fleet-wide; anything narrower belongs to the voyage it is about, and anything only the admiral may settle goes to the admiral.",

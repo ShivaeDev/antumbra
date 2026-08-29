@@ -1,8 +1,6 @@
-import type { PrismaError } from "@antumbra/persistence";
 import type {
 	RulingAuthority,
 	RulingRadius,
-	StoredRulingValueInvalid,
 } from "@antumbra/vocabulary/ruling";
 import { Data } from "effect";
 import type { RulingSubject } from "#model.ts";
@@ -90,39 +88,32 @@ export class RulingReclassificationEmpty extends Data.TaggedError(
 	readonly rulingId: string;
 }> {}
 
-export type RulingReadFailure = PrismaError | StoredRulingValueInvalid;
+// why: a request that already climbed past a rung is no longer that rung's to
+// settle. The record is what a later reader trusts to say the answer came from
+// the authority the question was owed to when it was given.
+export class RulingBelowRung extends Data.TaggedError("RulingBelowRung")<{
+	readonly by: RulingAuthority;
+	readonly rulingId: string;
+	readonly rung: RulingAuthority | null;
+}> {
+	override get message(): string {
+		return this.rung === null
+			? `ruling ${this.rulingId} waits on nobody`
+			: `ruling ${this.rulingId} waits on the ${this.rung}, above the ${this.by}`;
+	}
+}
 
-export type RulingRequestFailure =
-	| RulingGatePieceMissing
-	| RulingReadFailure
-	| RulingSubjectMissing;
-
-export type RulingVerdictFailure =
-	| RulingAlreadyRuled
-	| RulingChoiceUnknown
-	| RulingNotFound
-	| RulingOutsideAuthority
-	| RulingReadFailure;
-
-export type RulingProclaimFailure = RulingRequestFailure | RulingVerdictFailure;
-
-export type RulingGateFailure =
-	| RulingAlreadyRuled
-	| RulingGatePieceMissing
-	| RulingNotFound
-	| RulingReadFailure;
-
-export type RulingSupersessionFailure =
-	| RulingAlreadySuperseded
-	| RulingNotFound
-	| RulingNotRuled
-	| RulingReadFailure
-	| RulingSupersedesItself;
-
-export type RulingReclassifyFailure =
-	| RulingAlreadyRuled
-	| RulingNotFound
-	| RulingReadFailure
-	| RulingReclassificationEmpty;
-
-export type RulingLookupFailure = RulingNotFound | RulingReadFailure;
+// why: only the rung a question is owed to may carry it further up, so a
+// captain cannot push a question that never reached it and no rung can move
+// one that already climbed past.
+export class RulingNotAtRung extends Data.TaggedError("RulingNotAtRung")<{
+	readonly by: RulingAuthority;
+	readonly rulingId: string;
+	readonly rung: RulingAuthority | null;
+}> {
+	override get message(): string {
+		return this.rung === null
+			? `ruling ${this.rulingId} waits on nobody`
+			: `ruling ${this.rulingId} waits on the ${this.rung}, not on the ${this.by}`;
+	}
+}

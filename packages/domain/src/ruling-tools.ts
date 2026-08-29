@@ -1,43 +1,16 @@
 import { bind, requestRulingSpec } from "@antumbra/agent-tools";
 import type { DirectTool, DirectToolOutcome } from "@antumbra/plugin-api";
-import {
-	type Ruling,
-	type RulingRequest,
-	type RulingSubject,
-	Rulings,
-} from "@antumbra/rulings";
-import { Effect, Option } from "effect";
+import { type Ruling, type RulingRequest, Rulings } from "@antumbra/rulings";
+import type { RulingAuthority } from "@antumbra/vocabulary/ruling";
+import { Effect } from "effect";
 import { CaptainMembership } from "#captain-membership.ts";
 import { heldSaid, makeRulingHold } from "#ruling-hold.ts";
-import { choiceOf, tagSubjects } from "#ruling-inputs.ts";
+import { choiceOf } from "#ruling-inputs.ts";
+import { rungAsked } from "#ruling-station.ts";
+import { subjectsOf } from "#ruling-subjects.ts";
 import { answered } from "#tool-answers.ts";
 import type { SessionIdentity } from "#tool-identity.ts";
-
-// why: the asker never names its own scope. Where the work sits is durable
-// truth the session was opened with, so a ruling can never be filed against a
-// piece or voyage the agent is not on, and the agent itself is always a
-// subject: what binds it is readable from its own record afterwards.
-const identitySubjects = (
-	identity: SessionIdentity,
-): ReadonlyArray<RulingSubject> => [
-	...Option.match(identity.pieceId, {
-		onNone: (): ReadonlyArray<RulingSubject> => [],
-		onSome: (id): ReadonlyArray<RulingSubject> => [{ id, kind: "piece" }],
-	}),
-	...Option.match(identity.voyageId, {
-		onNone: (): ReadonlyArray<RulingSubject> => [],
-		onSome: (id): ReadonlyArray<RulingSubject> => [{ id, kind: "voyage" }],
-	}),
-	{ id: identity.agentId, kind: "agent" },
-];
-
-const subjectsOf = (
-	identity: SessionIdentity,
-	tags: ReadonlyArray<string> | undefined,
-): ReadonlyArray<RulingSubject> => [
-	...identitySubjects(identity),
-	...tagSubjects(tags),
-];
+import { VoyageWorldSource } from "#voyage-world.ts";
 
 const holds = (ruling: Ruling): string =>
 	ruling.gatedPieceIds.length === 0
@@ -53,6 +26,7 @@ const requestOf = (
 	identity: SessionIdentity,
 	input: Ask,
 	gates: ReadonlyArray<string>,
+	rung: RulingAuthority,
 ): RulingRequest => ({
 	choices: (input.choices ?? []).map(choiceOf),
 	context: input.context,
@@ -60,6 +34,7 @@ const requestOf = (
 	question: input.question,
 	radius: input.radius,
 	requester: { agentId: identity.agentId, kind: "agent" },
+	rung,
 	subjects: subjectsOf(identity, input.tags),
 	urgency: input.urgency,
 });
@@ -71,21 +46,41 @@ export const makeRulingToolCompiler = Effect.gen(function* () {
 	const membership = yield* CaptainMembership;
 	const rulings = yield* Rulings;
 	const hold = yield* makeRulingHold;
+	const world = yield* VoyageWorldSource;
+	// why: the rung a request waits on is the asker's station read off the
+	// record, never something the asker names. A record nobody can read leaves
+	// the question with the admiral, who meets every open ruling in the window.
+	const rungFor = (identity: SessionIdentity) =>
+		world.read.pipe(
+			Effect.map((rows) => rungAsked(rows, identity)),
+			Effect.orElseSucceed((): RulingAuthority => "admiral"),
+		);
 	const requestFrom = (
 		identity: SessionIdentity,
 		input: Ask,
 		gates: ReadonlyArray<string>,
-	): Effect.Effect<DirectToolOutcome> => {
-		const request = requestOf(identity, input, gates);
-		return request.urgency === "blocking"
-			? answered(identity, requestRulingSpec.name, hold(request), heldSaid)
-			: answered(
-					identity,
-					requestRulingSpec.name,
-					rulings.request(request),
-					said,
-				);
-	};
+	): Effect.Effect<DirectToolOutcome> =>
+		Effect.gen(function* () {
+			const request = requestOf(
+				identity,
+				input,
+				gates,
+				yield* rungFor(identity),
+			);
+			return request.urgency === "blocking"
+				? yield* answered(
+						identity,
+						requestRulingSpec.name,
+						hold(request),
+						heldSaid,
+					)
+				: yield* answered(
+						identity,
+						requestRulingSpec.name,
+						rulings.request(request),
+						said,
+					);
+		});
 	// why: a hold reaches only the asker's own voyage — crew and captain alike
 	// may hold sibling pieces, and an agent on no voyage holds nothing. The
 	// membership read refuses before the request is written, so a request

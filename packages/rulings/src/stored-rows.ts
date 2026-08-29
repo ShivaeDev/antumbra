@@ -13,6 +13,8 @@ export interface StoredRuling {
 	readonly requesterAuthority: string | null;
 	readonly ruledAt: Date | null;
 	readonly ruledBy: string | null;
+	readonly ruledByAgentId: string | null;
+	readonly rung: string | null;
 	readonly supersededAt: Date | null;
 	readonly supersededBy: string | null;
 	readonly supersededById: string | null;
@@ -22,6 +24,7 @@ export interface StoredRuling {
 export interface StoredRulingReclassification {
 	readonly at: Date;
 	readonly by: string;
+	readonly byAgentId: string | null;
 	readonly note: string | null;
 	readonly radius: string | null;
 	readonly urgency: string | null;

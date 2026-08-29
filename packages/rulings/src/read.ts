@@ -11,10 +11,11 @@ import { storedRequester } from "#requester.ts";
 import {
 	storedAnswer,
 	storedReclassification,
-	storedSubject,
+	storedRung,
 	storedSupersession,
 } from "#stored.ts";
 import type { StoredRuling } from "#stored-rows.ts";
+import { storedSubject } from "#stored-subjects.ts";
 
 const choicesOf = (rulingId: string) =>
 	Effect.gen(function* () {
@@ -86,6 +87,7 @@ export const loadRuling = (row: StoredRuling) =>
 			question: row.question,
 			reclassifications,
 			requester: yield* storedRequester(row),
+			rung: yield* storedRung(row),
 			subjects: yield* subjectsOf(row.id),
 			supersession: yield* storedSupersession(row),
 			...effectiveAxes(declared, reclassifications),

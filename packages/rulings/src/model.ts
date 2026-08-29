@@ -27,63 +27,11 @@ export type RulingRequester =
 	| { readonly agentId: string; readonly kind: "agent" }
 	| { readonly by: RulingAuthority; readonly kind: "authority" };
 
-export interface RulingChoiceInput {
-	readonly detail?: string;
-	readonly label: string;
-}
-
-// why: the pieces a request holds are named in the same act as the question,
-// so a hold never lands without the ruling that can release it.
-export interface RulingRequest {
-	readonly choices: ReadonlyArray<RulingChoiceInput>;
-	readonly context: string;
-	readonly gates: ReadonlyArray<string>;
-	readonly question: string;
-	readonly radius: RulingRadius;
-	readonly requester: RulingRequester;
-	readonly subjects: ReadonlyArray<RulingSubject>;
-	readonly urgency: RulingUrgency;
-}
-
-export interface RulingGateInput {
-	readonly pieceIds: ReadonlyArray<string>;
-	readonly rulingId: string;
-}
-
 // why: a piece held by a ruling names the question that holds it, so the
 // gate carries the question and no reader has to look the ruling up.
 export interface RulingGate {
 	readonly pieceId: string;
 	readonly question: string;
-	readonly rulingId: string;
-}
-
-export interface RulingVerdict {
-	readonly answer: string;
-	readonly by: RulingAuthority;
-	readonly choiceId?: string;
-	readonly rulingId: string;
-}
-
-// why: an authority that wants a standing rule asks and answers a ruling of
-// its own, so the context that gives the answer its meaning is never missing.
-// A picked choice is named by its label, because the ids do not exist yet.
-export interface RulingProclamation extends RulingAxes {
-	readonly answer: string;
-	readonly by: RulingAuthority;
-	readonly choices: ReadonlyArray<RulingChoiceInput>;
-	readonly chosenChoice?: string;
-	readonly context: string;
-	readonly question: string;
-	readonly subjects: ReadonlyArray<RulingSubject>;
-}
-
-// why: the admiral overrules a ruling below by superseding it with a later
-// one; the old ruling keeps its record and gains only who did it, when, and
-// which ruling now speaks for its scope.
-export interface RulingSupersedeInput {
-	readonly by: RulingAuthority;
-	readonly byRulingId: string;
 	readonly rulingId: string;
 }
 
@@ -93,19 +41,14 @@ export interface RulingSupersession {
 	readonly byRulingId: string;
 }
 
-export interface RulingReclassifyInput {
-	readonly by: RulingAuthority;
-	readonly note?: string;
-	readonly radius?: RulingRadius;
-	readonly rulingId: string;
-	readonly urgency?: RulingUrgency;
-}
-
 // why: a reclassification appends beside the asker's declaration and never
 // over it, so each carries who set which axis, when, and any words beside it.
+// A row that moved neither axis is a rung passing the question up with what
+// it knew, because reclassifying refuses to name no axis at all.
 export interface RulingReclassification {
 	readonly at: Date;
 	readonly by: RulingAuthority;
+	readonly byAgentId: Option.Option<string>;
 	readonly note: Option.Option<string>;
 	readonly radius: Option.Option<RulingRadius>;
 	readonly urgency: Option.Option<RulingUrgency>;
@@ -121,6 +64,7 @@ export interface RulingChoice {
 export interface RulingAnswer {
 	readonly at: Date;
 	readonly by: RulingAuthority;
+	readonly byAgentId: Option.Option<string>;
 	readonly choiceId: Option.Option<string>;
 	readonly text: string;
 }
@@ -128,7 +72,9 @@ export interface RulingAnswer {
 // why: the context, the question, and the answer are one record because an
 // answer read apart from its question loses the scope that bounds it. The
 // axes are the effective ones — the latest word an authority set on each,
-// else what the asker declared — and the declaration stays beside them.
+// else what the asker declared — and the declaration stays beside them. The
+// rung is the one authority the open question is owed to; a rule an authority
+// wrote for itself was never owed to anybody and names none.
 export interface Ruling {
 	readonly answer: Option.Option<RulingAnswer>;
 	readonly choices: ReadonlyArray<RulingChoice>;
@@ -141,6 +87,7 @@ export interface Ruling {
 	readonly radius: RulingRadius;
 	readonly reclassifications: ReadonlyArray<RulingReclassification>;
 	readonly requester: RulingRequester;
+	readonly rung: Option.Option<RulingAuthority>;
 	readonly subjects: ReadonlyArray<RulingSubject>;
 	readonly supersession: Option.Option<RulingSupersession>;
 	readonly urgency: RulingUrgency;

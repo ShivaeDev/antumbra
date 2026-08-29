@@ -47,6 +47,13 @@ export const seedFleet = Effect.gen(function* () {
 		title: "Plot the course",
 	});
 	yield* db.VoyagePiece.create({ pieceId, voyageId });
+	// why: the rung a question waits on is read off the asker's crew row, so a
+	// rehearsal that wants the window's own reading crews the asker first.
+	yield* db.VoyageAgent.create({
+		agentId: requesterId,
+		role: "hand",
+		voyageId,
+	});
 });
 
 export const asked = {
@@ -59,6 +66,7 @@ export const asked = {
 	question: "which reading do we plot against?",
 	radius: "voyage",
 	requester: { agentId: requesterId, kind: "agent" },
+	rung: "captain",
 	subjects: [
 		{ id: voyageId, kind: "voyage" },
 		{ kind: "tag", tag: "surveying" },

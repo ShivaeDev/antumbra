@@ -31,13 +31,19 @@ export const soundingReading: RulingView = {
 	reclassifications: [
 		{
 			at: "2026-08-15T09:50:00.000Z",
-			by: "admiral",
+			by: "captain",
+			byAgentId: "agent-3",
 			note: "the surveyor cannot plot anything until this lands",
 			urgency: "blocking",
 		},
 	],
 	requestedAt: "2026-08-15T09:40:00.000Z",
 	requester: { agentId: "agent-2", kind: "agent" },
+	rung: {
+		kind: "captain",
+		voyageId: "voyage-1",
+		voyageName: "Chart the reef",
+	},
 	subjects: [
 		{ kind: "voyage", label: "voyage-1" },
 		{ kind: "tag", label: "surveying" },
@@ -57,6 +63,7 @@ export const berthNaming: RulingView = {
 	reclassifications: [],
 	requestedAt: "2026-08-15T08:10:00.000Z",
 	requester: { agentId: "agent-1", kind: "agent" },
+	rung: { kind: "flagship" },
 	subjects: [{ kind: "repo", label: "repo-1" }],
 	urgency: "eventual",
 };
@@ -73,6 +80,7 @@ export const berthReclaim: StandingRulingView = {
 	radius: "fleet",
 	ruledAt: "2026-08-14T16:20:00.000Z",
 	ruledBy: "admiral",
+	ruledByAgentId: null,
 	subjects: [],
 	urgency: "pressing",
 };
@@ -84,7 +92,8 @@ export const chartAuthority: StandingRulingView = {
 	question: "Which depth is charted when survey and chart disagree?",
 	radius: "voyage",
 	ruledAt: "2026-08-13T11:00:00.000Z",
-	ruledBy: "admiral",
+	ruledBy: "captain",
+	ruledByAgentId: "agent-3",
 	subjects: [{ kind: "voyage", label: "voyage-1" }],
 	urgency: "blocking",
 };

@@ -42,6 +42,7 @@ const berthReclaim: StandingRulingView = {
 	radius: "fleet",
 	ruledAt: "2026-08-14T16:20:00.000Z",
 	ruledBy: "admiral",
+	ruledByAgentId: null,
 	subjects: [],
 	urgency: "pressing",
 };
@@ -53,7 +54,8 @@ const chartAuthority: StandingRulingView = {
 	question: "Which depth is charted when survey and chart disagree?",
 	radius: "voyage",
 	ruledAt: "2026-08-13T11:00:00.000Z",
-	ruledBy: "flagship",
+	ruledBy: "captain",
+	ruledByAgentId: "agent-mate",
 	subjects: [{ kind: "voyage", label: "voyage-1" }],
 	urgency: "blocking",
 };
@@ -127,7 +129,9 @@ it.effect("lists what stands newest first with who ruled and what", () =>
 		expect(questions).toEqual([berthReclaim.question, chartAuthority.question]);
 		expect(mounted.container.textContent).toContain(berthReclaim.answer);
 		expect(mounted.container.textContent).toContain("ruled by the admiral");
-		expect(mounted.container.textContent).toContain("ruled by the flagship");
+		expect(mounted.container.textContent).toContain(
+			"ruled by captain agent-mate",
+		);
 		expect(mounted.container.textContent).toContain(
 			"chose: trust the soundings",
 		);

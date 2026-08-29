@@ -12,7 +12,9 @@ import type {
 } from "#rulings/views.ts";
 
 // why: a request that holds its asker lands ahead of what was already open,
-// so the set the admiral meets is reordered rather than appended to.
+// so the set the admiral meets is reordered rather than appended to. It has
+// climbed the whole ladder: the flagship passed it up with what it knew, so it
+// waits on the admiral with a rung's note beside the asker's own words.
 const courseCall: RulingView = {
 	choices: [{ detail: null, id: "choice-3", label: "hold the course" }],
 	context:
@@ -22,9 +24,17 @@ const courseCall: RulingView = {
 	id: "ruling-3",
 	question: "Where does the chart belong?",
 	radius: "fleet",
-	reclassifications: [],
+	reclassifications: [
+		{
+			at: "2026-08-15T10:07:00.000Z",
+			by: "flagship",
+			byAgentId: "agent-4",
+			note: "both repositories are the admiral's to name; I have nothing to add",
+		},
+	],
 	requestedAt: "2026-08-15T10:05:00.000Z",
 	requester: { agentId: "agent-1", kind: "agent" },
+	rung: { kind: "admiral" },
 	subjects: [{ kind: "tag", label: "charting" }],
 	urgency: "blocking",
 };
@@ -47,6 +57,7 @@ const soundingsRuled: StandingRulingView = {
 	radius: soundingReading.radius,
 	ruledAt: "2026-08-15T10:12:00.000Z",
 	ruledBy: "admiral",
+	ruledByAgentId: null,
 	subjects: soundingReading.subjects,
 	urgency: soundingReading.urgency,
 };
@@ -61,6 +72,7 @@ const dredgingProclaimed: StandingRulingView = {
 	radius: "fleet",
 	ruledAt: "2026-08-15T10:20:00.000Z",
 	ruledBy: "admiral",
+	ruledByAgentId: null,
 	subjects: [{ kind: "tag", label: "dredging" }],
 	urgency: "eventual",
 };

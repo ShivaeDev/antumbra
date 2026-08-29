@@ -2,11 +2,11 @@ import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database } from "@antumbra/persistence";
 import { Clock, Effect } from "effect";
 import type {
-	Ruling,
 	RulingProclamation,
 	RulingRequest,
 	RulingVerdict,
-} from "#model.ts";
+} from "#acts.ts";
+import type { Ruling } from "#model.ts";
 import { requested, writeRequest } from "#request.ts";
 import { writeVerdict } from "#rule.ts";
 
@@ -17,6 +17,7 @@ const askedOf = (input: RulingProclamation): RulingRequest => ({
 	question: input.question,
 	radius: input.radius,
 	requester: { by: input.by, kind: "authority" },
+	rung: null,
 	subjects: input.subjects,
 	urgency: input.urgency,
 });

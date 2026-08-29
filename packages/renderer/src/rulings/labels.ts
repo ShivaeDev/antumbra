@@ -3,6 +3,7 @@ import type { Tone } from "#voyages/tone.ts";
 
 type GatedPiece = RulingView["gatedPieces"][number];
 type Radius = RulingView["radius"];
+type Rung = RulingView["rung"];
 type SubjectKind = RulingView["subjects"][number]["kind"];
 type Urgency = RulingView["urgency"];
 type Authority = StandingRulingView["ruledBy"];
@@ -46,8 +47,32 @@ export const rulingSubjectLabel: Readonly<Record<SubjectKind, string>> = {
 
 export const rulingAuthorityLabel: Readonly<Record<Authority, string>> = {
 	admiral: "the admiral",
+	captain: "a captain",
 	flagship: "the flagship",
 };
+
+// why: a captain is one of many, so an answer or a move it made is read as the
+// agent that made it; the flagship and the admiral are each one office.
+export const rulingActorLabel = (
+	by: Authority,
+	agentId: string | null,
+): string =>
+	by === "captain" && agentId !== null
+		? `captain ${agentId}`
+		: rulingAuthorityLabel[by];
+
+const RUNG_LABEL: Readonly<Record<"admiral" | "flagship", string>> = {
+	admiral: "waits on you",
+	flagship: "waits on the flagship",
+};
+
+// why: an open ruling is met by the admiral beside what it is still owed to,
+// so the window says whose turn it is — and names the ship when the turn
+// belongs to a captain, since "the captain" alone names nobody.
+export const rulingRungLabel = (rung: Rung): string =>
+	rung.kind === "captain"
+		? `waits on the captain of ${rung.voyageName}`
+		: RUNG_LABEL[rung.kind];
 
 // why: who asked is read as words: an authority that wrote a rule for itself
 // names itself, and an agent is named by the id the fleet knows it by.

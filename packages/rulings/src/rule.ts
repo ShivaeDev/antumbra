@@ -1,13 +1,15 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database } from "@antumbra/persistence";
 import { Clock, Effect, Option } from "effect";
-import { answersAt } from "#authority.ts";
+import type { RulingVerdict } from "#acts.ts";
+import { answersAt, reachesRung } from "#authority.ts";
 import {
 	RulingAlreadyRuled,
+	RulingBelowRung,
 	RulingChoiceUnknown,
 	RulingOutsideAuthority,
 } from "#errors.ts";
-import type { RulingVerdict } from "#model.ts";
+import type { Ruling } from "#model.ts";
 import { loadRuling, requireRuling } from "#read.ts";
 
 const offeredChoice = (input: RulingVerdict) =>
@@ -26,15 +28,19 @@ const offeredChoice = (input: RulingVerdict) =>
 			: yield* new RulingChoiceUnknown({ choiceId, rulingId: input.rulingId });
 	});
 
-// why: the radius the verdict is measured against is the effective one, not
-// what the asker declared — a captain that pushed the question up or down
-// moved who may settle it along with how widely the answer will apply.
-export const writeVerdict = (input: RulingVerdict, at: Date) =>
+// why: the two refusals answer different questions. The rung says whose turn
+// it still is — a question that climbed past a captain is no longer that
+// captain's — and reach says how far the answerer may bind, measured against
+// the effective radius rather than what the asker declared.
+const admits = (open: Ruling, input: RulingVerdict) =>
 	Effect.gen(function* () {
-		const db = yield* Database;
-		const open = yield* loadRuling(yield* requireRuling(input.rulingId));
-		if (Option.isSome(open.answer)) {
-			return yield* new RulingAlreadyRuled({ rulingId: input.rulingId });
+		const rung = open.rung;
+		if (Option.isSome(rung) && !reachesRung(input.by, rung.value)) {
+			return yield* new RulingBelowRung({
+				by: input.by,
+				rulingId: input.rulingId,
+				rung: rung.value,
+			});
 		}
 		if (!answersAt(input.by, open.radius)) {
 			return yield* new RulingOutsideAuthority({
@@ -43,12 +49,23 @@ export const writeVerdict = (input: RulingVerdict, at: Date) =>
 				rulingId: input.rulingId,
 			});
 		}
+	});
+
+export const writeVerdict = (input: RulingVerdict, at: Date) =>
+	Effect.gen(function* () {
+		const db = yield* Database;
+		const open = yield* loadRuling(yield* requireRuling(input.rulingId));
+		if (Option.isSome(open.answer)) {
+			return yield* new RulingAlreadyRuled({ rulingId: input.rulingId });
+		}
+		yield* admits(open, input);
 		const answerChoiceId = yield* offeredChoice(input);
 		yield* db.Ruling.where({ id: input.rulingId }).update({
 			answer: input.answer,
 			answerChoiceId,
 			ruledAt: at,
 			ruledBy: input.by,
+			ruledByAgentId: input.byAgentId ?? null,
 		});
 		return yield* loadRuling(yield* requireRuling(input.rulingId));
 	});

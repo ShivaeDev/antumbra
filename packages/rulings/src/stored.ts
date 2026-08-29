@@ -1,62 +1,28 @@
 import {
 	decodeStoredRulingAuthority,
 	decodeStoredRulingRadius,
-	decodeStoredRulingSubjectKind,
 	decodeStoredRulingUrgency,
+	type RulingAuthority,
 	StoredRulingValueInvalid,
 } from "@antumbra/vocabulary/ruling";
 import { Effect, Option, type Result } from "effect";
 import type {
 	RulingAnswer,
 	RulingReclassification,
-	RulingReferenceKind,
-	RulingSubject,
 	RulingSupersession,
 } from "#model.ts";
 import type {
 	StoredRuling,
 	StoredRulingReclassification,
-	StoredRulingSubject,
 } from "#stored-rows.ts";
-
-const REFERENCE_COLUMN: Readonly<
-	Record<RulingReferenceKind, (row: StoredRulingSubject) => string | null>
-> = {
-	agent: (row) => row.agentId,
-	piece: (row) => row.pieceId,
-	repo: (row) => row.repoId,
-	voyage: (row) => row.voyageId,
-};
 
 const invalid = (field: string, rulingId: string, value: unknown) =>
 	new StoredRulingValueInvalid({ field, rulingId, value });
 
-const reference = (
-	rulingId: string,
-	kind: RulingReferenceKind,
-	row: StoredRulingSubject,
-) => {
-	const id = REFERENCE_COLUMN[kind](row);
-	return id === null
-		? Effect.fail(invalid("subject reference", rulingId, row))
-		: Effect.succeed<RulingSubject>({ id, kind });
-};
-
-export const storedSubject = (rulingId: string, row: StoredRulingSubject) =>
-	Effect.gen(function* () {
-		const kind = yield* Effect.fromResult(
-			decodeStoredRulingSubjectKind(rulingId, row.kind),
-		);
-		if (kind !== "tag") {
-			return yield* reference(rulingId, kind, row);
-		}
-		return row.tag === null
-			? yield* invalid("subject tag", rulingId, row)
-			: ({ kind, tag: row.tag } satisfies RulingSubject);
-	});
-
 // why: a ruling is unruled or fully ruled; a row holding only part of an answer
 // is corruption rather than a half-answered question the readers must model.
+// The agent beside the rung is optional: the admiral rules from the window and
+// is no agent the fleet has a row for.
 export const storedAnswer = (row: StoredRuling) =>
 	Effect.gen(function* () {
 		const parts = [row.answer, row.ruledAt, row.ruledBy].filter(
@@ -73,9 +39,29 @@ export const storedAnswer = (row: StoredRuling) =>
 			by: yield* Effect.fromResult(
 				decodeStoredRulingAuthority(row.id, row.ruledBy),
 			),
+			byAgentId: Option.fromNullOr(row.ruledByAgentId),
 			choiceId: Option.fromNullOr(row.answerChoiceId),
 			text: row.answer,
 		});
+	});
+
+// why: an agent's question is always owed to one rung and a rule an authority
+// wrote for itself is owed to nobody, so a row carrying the wrong one of the
+// two is corruption rather than a third kind of question the readers must model.
+export const storedRung = (row: StoredRuling) =>
+	Effect.gen(function* () {
+		const asked = row.requesterAgentId !== null;
+		if (row.rung === null) {
+			return asked
+				? yield* invalid("rung", row.id, row)
+				: Option.none<RulingAuthority>();
+		}
+		if (!asked) {
+			return yield* invalid("rung", row.id, row);
+		}
+		return Option.some(
+			yield* Effect.fromResult(decodeStoredRulingAuthority(row.id, row.rung)),
+		);
 	});
 
 // why: supersession is one appended fact with its provenance; a row naming
@@ -124,6 +110,7 @@ export const storedReclassification = (
 			by: yield* Effect.fromResult(
 				decodeStoredRulingAuthority(rulingId, row.by),
 			),
+			byAgentId: Option.fromNullOr(row.byAgentId),
 			note: Option.fromNullOr(row.note),
 			radius: yield* storedAxis(decodeStoredRulingRadius, rulingId, row.radius),
 			urgency: yield* storedAxis(

@@ -3,6 +3,7 @@ import { Badge } from "#components/ui/badge.tsx";
 import {
 	rulingGatedPieceLabel,
 	rulingRequesterLabel,
+	rulingRungLabel,
 	rulingSubjectLabel,
 } from "#rulings/labels.ts";
 import { MarkdownView } from "#views/markdown-view.tsx";
@@ -32,6 +33,12 @@ export const RulingCard = ({
 				asked {whenLabel(ruling.requestedAt)}
 			</span>
 		</div>
+		{/* why: the admiral may rule anything, so the rung is not a lock on the
+		card — it says whose turn the fleet believes it is, and a ruling still
+		climbing is one the admiral may leave alone. */}
+		<p className="min-w-0 text-2xs text-muted-foreground">
+			{rulingRungLabel(ruling.rung)}
+		</p>
 		{ruling.subjects.length === 0 ? null : (
 			<div className="flex min-w-0 flex-wrap items-center gap-1">
 				{ruling.subjects.map((subject) => (

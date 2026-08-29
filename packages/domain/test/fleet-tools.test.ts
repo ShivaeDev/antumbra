@@ -19,7 +19,6 @@ const FLEET_TOOLS = [
 	"open_voyage",
 	"charter_piece_on_voyage",
 	"proclaim_ruling",
-	"rule_on",
 ];
 
 const RULE = {
@@ -93,6 +92,12 @@ it.live("the flagship's captain holds the fleet acts and a captain's own", () =>
 				expect(toolNames(captain)).not.toContain(name);
 			}
 			expect(toolNames(captain)).toContain("charter_piece");
+			// why: the ladder's first rung is a voyage's own captain, so ruling and
+			// passing a question up are a captain's acts; the flagship holds them by
+			// being a captain too rather than by being the fleet's.
+			expect(toolNames(captain)).toEqual(
+				expect.arrayContaining(["rule_on", "pass_up", "reclassify_ruling"]),
+			);
 		}).pipe(Effect.provide(domainKernelLayer(temporary, scripted.backend)));
 	}),
 );

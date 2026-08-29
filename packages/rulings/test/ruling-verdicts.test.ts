@@ -2,7 +2,13 @@ import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Rulings } from "@antumbra/rulings";
 import { expect } from "@effect/vitest";
 import { Effect, Option, PubSub } from "effect";
-import { asked, it, layer, seedFleet } from "#test/rulings-harness.ts";
+import {
+	asked,
+	it,
+	layer,
+	requesterId,
+	seedFleet,
+} from "#test/rulings-harness.ts";
 
 const offered = {
 	...asked,
@@ -129,30 +135,84 @@ it.effectDB("refuses to rule a ruling nothing asked", function* () {
 	}).pipe(Effect.provide(layer));
 });
 
+it.effectDB("refuses an authority the radius reaches past", function* () {
+	yield* Effect.gen(function* () {
+		yield* seedFleet;
+		const rulings = yield* Rulings;
+		const requested = yield* rulings.request({ ...asked, radius: "fleet" });
+
+		const failure = yield* Effect.flip(
+			rulings.rule({
+				answer: "trust the soundings",
+				by: "captain",
+				rulingId: requested.id,
+			}),
+		);
+
+		expect(failure).toMatchObject({
+			_tag: "RulingOutsideAuthority",
+			by: "captain",
+			radius: "fleet",
+			rulingId: requested.id,
+		});
+		expect(Option.isNone((yield* rulings.get(requested.id)).answer)).toBe(true);
+	}).pipe(Effect.provide(layer));
+});
+
+// why: a question that climbed past a captain is no longer that captain's,
+// however narrow it is — the rung refuses before reach is even asked about.
+it.effectDB("refuses an authority below the rung it waits on", function* () {
+	yield* Effect.gen(function* () {
+		yield* seedFleet;
+		const rulings = yield* Rulings;
+		const requested = yield* rulings.request({ ...asked, rung: "admiral" });
+
+		const failure = yield* Effect.flip(
+			rulings.rule({
+				answer: "trust the soundings",
+				by: "flagship",
+				rulingId: requested.id,
+			}),
+		);
+
+		expect(failure).toMatchObject({
+			_tag: "RulingBelowRung",
+			by: "flagship",
+			rulingId: requested.id,
+			rung: "admiral",
+		});
+		expect(Option.isNone((yield* rulings.get(requested.id)).answer)).toBe(true);
+	}).pipe(Effect.provide(layer));
+});
+
+// why: captains are many, so an answer from one is only trustworthy if the
+// record says which one gave it; the admiral rules from the window as nobody.
 it.effectDB(
-	"refuses an authority the ruling's radius is not for",
+	"names the agent that ruled, and nobody for the admiral",
 	function* () {
 		yield* Effect.gen(function* () {
 			yield* seedFleet;
 			const rulings = yield* Rulings;
-			const requested = yield* rulings.request(asked);
+			const byCaptain = yield* rulings.request(asked);
+			const fromWindow = yield* rulings.request(asked);
 
-			const failure = yield* Effect.flip(
-				rulings.rule({
-					answer: "trust the soundings",
-					by: "flagship",
-					rulingId: requested.id,
-				}),
-			);
-
-			expect(failure).toMatchObject({
-				_tag: "RulingOutsideAuthority",
-				by: "flagship",
-				radius: "voyage",
-				rulingId: requested.id,
+			const ruled = yield* rulings.rule({
+				answer: "trust the soundings",
+				by: "captain",
+				byAgentId: requesterId,
+				rulingId: byCaptain.id,
 			});
-			expect(Option.isNone((yield* rulings.get(requested.id)).answer)).toBe(
-				true,
+			const decreed = yield* rulings.rule({
+				answer: "trust the chart",
+				by: "admiral",
+				rulingId: fromWindow.id,
+			});
+
+			expect(Option.getOrThrow(ruled.answer).byAgentId).toEqual(
+				Option.some(requesterId),
+			);
+			expect(Option.getOrThrow(decreed.answer).byAgentId).toEqual(
+				Option.none(),
 			);
 		}).pipe(Effect.provide(layer));
 	},

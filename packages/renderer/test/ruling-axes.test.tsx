@@ -38,12 +38,14 @@ const moved: RulingView = {
 		{
 			at: "2026-08-15T09:50:00.000Z",
 			by: "admiral",
+			byAgentId: null,
 			note: "nothing plots until this lands",
 			urgency: "blocking",
 		},
 	],
 	requestedAt: "2026-08-15T09:40:00.000Z",
 	requester: { agentId: "agent-surveyor", kind: "agent" },
+	rung: { kind: "admiral" },
 	subjects: [],
 	urgency: "blocking",
 };
@@ -59,6 +61,7 @@ const unmoved: RulingView = {
 	reclassifications: [],
 	requestedAt: "2026-08-15T08:10:00.000Z",
 	requester: { agentId: "agent-bosun", kind: "agent" },
+	rung: { kind: "flagship" },
 	subjects: [],
 	urgency: "eventual",
 };

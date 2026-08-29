@@ -30,6 +30,9 @@ const CAPTAIN_TOOLS = [
 	"write_board",
 	"read_board",
 	"request_ruling",
+	"rule_on",
+	"pass_up",
+	"reclassify_ruling",
 	"stand_down",
 	"read_rulings",
 ];

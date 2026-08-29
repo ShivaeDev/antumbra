@@ -1,8 +1,8 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database } from "@antumbra/persistence";
 import { Clock, Effect } from "effect";
+import type { RulingRequest } from "#acts.ts";
 import { appendGate, requirePiece } from "#gate-rows.ts";
-import type { RulingRequest } from "#model.ts";
 import { loadRuling } from "#read.ts";
 import { requesterColumns } from "#requester.ts";
 import type { StoredRuling } from "#stored-rows.ts";
@@ -32,6 +32,8 @@ export const requested = (
 	...requesterColumns(input.requester),
 	ruledAt: null,
 	ruledBy: null,
+	ruledByAgentId: null,
+	rung: input.rung,
 	supersededAt: null,
 	supersededBy: null,
 	supersededById: null,

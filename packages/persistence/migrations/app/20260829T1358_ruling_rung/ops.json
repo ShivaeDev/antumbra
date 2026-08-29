@@ -1,0 +1,417 @@
+[
+  {
+    "id": "column.ruling.ruledByAgentId",
+    "label": "Add column ruledByAgentId on ruling",
+    "summary": "Adds column ruledByAgentId on ruling",
+    "operationClass": "additive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "column",
+        "name": "ruledByAgentId",
+        "table": "ruling"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"ruledByAgentId\" is missing",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM pragma_table_info(?) WHERE \"name\" = ?",
+        "params": [
+          "ruling",
+          "ruledByAgentId"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"ruledByAgentId\"",
+        "sql": "ALTER TABLE \"ruling\" ADD COLUMN \"ruledByAgentId\" TEXT"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"ruledByAgentId\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM pragma_table_info(?) WHERE \"name\" = ?",
+        "params": [
+          "ruling",
+          "ruledByAgentId"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.ruling.rung",
+    "label": "Add column rung on ruling",
+    "summary": "Adds column rung on ruling",
+    "operationClass": "additive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "column",
+        "name": "rung",
+        "table": "ruling"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"rung\" is missing",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM pragma_table_info(?) WHERE \"name\" = ?",
+        "params": [
+          "ruling",
+          "rung"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"rung\"",
+        "sql": "ALTER TABLE \"ruling\" ADD COLUMN \"rung\" TEXT"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"rung\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM pragma_table_info(?) WHERE \"name\" = ?",
+        "params": [
+          "ruling",
+          "rung"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.rulingReclassification.byAgentId",
+    "label": "Add column byAgentId on rulingReclassification",
+    "summary": "Adds column byAgentId on rulingReclassification",
+    "operationClass": "additive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "column",
+        "name": "byAgentId",
+        "table": "rulingReclassification"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"byAgentId\" is missing",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM pragma_table_info(?) WHERE \"name\" = ?",
+        "params": [
+          "rulingReclassification",
+          "byAgentId"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"byAgentId\"",
+        "sql": "ALTER TABLE \"rulingReclassification\" ADD COLUMN \"byAgentId\" TEXT"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"byAgentId\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM pragma_table_info(?) WHERE \"name\" = ?",
+        "params": [
+          "rulingReclassification",
+          "byAgentId"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.ruling.ruling_ruledByAgentId_idx",
+    "label": "Create index ruling_ruledByAgentId_idx on ruling",
+    "summary": "Creates index ruling_ruledByAgentId_idx on ruling",
+    "operationClass": "additive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "index",
+        "name": "ruling_ruledByAgentId_idx",
+        "table": "ruling"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"ruling_ruledByAgentId_idx\" is missing",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "index",
+          "ruling_ruledByAgentId_idx"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"ruling_ruledByAgentId_idx\"",
+        "sql": "CREATE INDEX \"ruling_ruledByAgentId_idx\" ON \"ruling\" (\"ruledByAgentId\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"ruling_ruledByAgentId_idx\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "index",
+          "ruling_ruledByAgentId_idx"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.rulingReclassification.rulingReclassification_byAgentId_idx",
+    "label": "Create index rulingReclassification_byAgentId_idx on rulingReclassification",
+    "summary": "Creates index rulingReclassification_byAgentId_idx on rulingReclassification",
+    "operationClass": "additive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "index",
+        "name": "rulingReclassification_byAgentId_idx",
+        "table": "rulingReclassification"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"rulingReclassification_byAgentId_idx\" is missing",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "index",
+          "rulingReclassification_byAgentId_idx"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"rulingReclassification_byAgentId_idx\"",
+        "sql": "CREATE INDEX \"rulingReclassification_byAgentId_idx\" ON \"rulingReclassification\" (\"byAgentId\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"rulingReclassification_byAgentId_idx\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "index",
+          "rulingReclassification_byAgentId_idx"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "recreateTable.ruling",
+    "label": "Recreate table ruling",
+    "summary": "Recreates table ruling to apply schema changes: database/ruling/foreign-key:ruledByAgentId->.agent(id)",
+    "operationClass": "destructive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "table",
+        "name": "ruling"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"ruling\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "table",
+          "ruling"
+        ]
+      },
+      {
+        "description": "ensure temp table \"_prisma_new_ruling\" does not exist",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "table",
+          "_prisma_new_ruling"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create new table \"_prisma_new_ruling\" with desired schema",
+        "sql": "CREATE TABLE \"_prisma_new_ruling\" (\n  \"answer\" TEXT,\n  \"answerChoiceId\" TEXT,\n  \"context\" TEXT NOT NULL,\n  \"createdAt\" TEXT DEFAULT (datetime('now')) NOT NULL,\n  \"deliveredAt\" TEXT,\n  \"id\" TEXT NOT NULL,\n  \"question\" TEXT NOT NULL,\n  \"radius\" TEXT NOT NULL,\n  \"requesterAgentId\" TEXT,\n  \"requesterAuthority\" TEXT,\n  \"ruledAt\" TEXT,\n  \"ruledBy\" TEXT,\n  \"ruledByAgentId\" TEXT,\n  \"rung\" TEXT,\n  \"supersededAt\" TEXT,\n  \"supersededBy\" TEXT,\n  \"supersededById\" TEXT,\n  \"urgency\" TEXT NOT NULL,\n  PRIMARY KEY (\"id\"),\n  FOREIGN KEY (\"requesterAgentId\") REFERENCES \"agent\" (\"id\") ON DELETE RESTRICT ON UPDATE RESTRICT,\n  FOREIGN KEY (\"ruledByAgentId\") REFERENCES \"agent\" (\"id\") ON DELETE RESTRICT ON UPDATE RESTRICT,\n  FOREIGN KEY (\"answerChoiceId\") REFERENCES \"rulingChoice\" (\"id\") ON DELETE RESTRICT ON UPDATE RESTRICT,\n  FOREIGN KEY (\"supersededById\") REFERENCES \"ruling\" (\"id\") ON DELETE RESTRICT ON UPDATE RESTRICT\n)"
+      },
+      {
+        "description": "copy data from \"ruling\" to \"_prisma_new_ruling\"",
+        "sql": "INSERT INTO \"_prisma_new_ruling\" (\"answer\", \"answerChoiceId\", \"context\", \"createdAt\", \"deliveredAt\", \"id\", \"question\", \"radius\", \"requesterAgentId\", \"requesterAuthority\", \"ruledAt\", \"ruledBy\", \"supersededAt\", \"supersededBy\", \"supersededById\", \"urgency\") SELECT \"answer\", \"answerChoiceId\", \"context\", \"createdAt\", \"deliveredAt\", \"id\", \"question\", \"radius\", \"requesterAgentId\", \"requesterAuthority\", \"ruledAt\", \"ruledBy\", \"supersededAt\", \"supersededBy\", \"supersededById\", \"urgency\" FROM \"ruling\""
+      },
+      {
+        "description": "drop old table \"ruling\"",
+        "sql": "DROP TABLE \"ruling\""
+      },
+      {
+        "description": "rename \"_prisma_new_ruling\" to \"ruling\"",
+        "sql": "ALTER TABLE \"_prisma_new_ruling\" RENAME TO \"ruling\""
+      },
+      {
+        "description": "recreate index \"ruling_ruledAt_idx\" on \"ruling\"",
+        "sql": "CREATE INDEX \"ruling_ruledAt_idx\" ON \"ruling\" (\"ruledAt\")"
+      },
+      {
+        "description": "recreate index \"ruling_supersededById_idx\" on \"ruling\"",
+        "sql": "CREATE INDEX \"ruling_supersededById_idx\" ON \"ruling\" (\"supersededById\")"
+      },
+      {
+        "description": "recreate index \"ruling_requesterAgentId_idx\" on \"ruling\"",
+        "sql": "CREATE INDEX \"ruling_requesterAgentId_idx\" ON \"ruling\" (\"requesterAgentId\")"
+      },
+      {
+        "description": "recreate index \"ruling_ruledByAgentId_idx\" on \"ruling\"",
+        "sql": "CREATE INDEX \"ruling_ruledByAgentId_idx\" ON \"ruling\" (\"ruledByAgentId\")"
+      },
+      {
+        "description": "recreate index \"ruling_answerChoiceId_idx\" on \"ruling\"",
+        "sql": "CREATE INDEX \"ruling_answerChoiceId_idx\" ON \"ruling\" (\"answerChoiceId\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"ruling\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "table",
+          "ruling"
+        ]
+      },
+      {
+        "description": "verify temp table \"_prisma_new_ruling\" is gone",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "table",
+          "_prisma_new_ruling"
+        ]
+      },
+      {
+        "description": "verify foreign key (requesterAgentId) → agent(id) on \"ruling\"",
+        "sql": "SELECT EXISTS (SELECT 1 FROM pragma_foreign_key_list('ruling') f WHERE f.\"table\" = 'agent' GROUP BY f.id HAVING COUNT(*) = 1 AND SUM(CASE WHEN (f.\"from\", f.\"to\") IN (('requesterAgentId', 'id')) THEN 1 ELSE 0 END) = 1)"
+      },
+      {
+        "description": "verify foreign key (ruledByAgentId) → agent(id) on \"ruling\"",
+        "sql": "SELECT EXISTS (SELECT 1 FROM pragma_foreign_key_list('ruling') f WHERE f.\"table\" = 'agent' GROUP BY f.id HAVING COUNT(*) = 1 AND SUM(CASE WHEN (f.\"from\", f.\"to\") IN (('ruledByAgentId', 'id')) THEN 1 ELSE 0 END) = 1)"
+      },
+      {
+        "description": "verify foreign key (answerChoiceId) → rulingChoice(id) on \"ruling\"",
+        "sql": "SELECT EXISTS (SELECT 1 FROM pragma_foreign_key_list('ruling') f WHERE f.\"table\" = 'rulingChoice' GROUP BY f.id HAVING COUNT(*) = 1 AND SUM(CASE WHEN (f.\"from\", f.\"to\") IN (('answerChoiceId', 'id')) THEN 1 ELSE 0 END) = 1)"
+      },
+      {
+        "description": "verify foreign key (supersededById) → ruling(id) on \"ruling\"",
+        "sql": "SELECT EXISTS (SELECT 1 FROM pragma_foreign_key_list('ruling') f WHERE f.\"table\" = 'ruling' GROUP BY f.id HAVING COUNT(*) = 1 AND SUM(CASE WHEN (f.\"from\", f.\"to\") IN (('supersededById', 'id')) THEN 1 ELSE 0 END) = 1)"
+      }
+    ]
+  },
+  {
+    "id": "ruling.rung.place-open-rulings",
+    "label": "Place every open ruling on the rung its asker waits on",
+    "summary": "read the rung off the asker the way a new request does, so no open ruling waits on nobody",
+    "operationClass": "data",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "table",
+        "name": "ruling"
+      }
+    },
+    "precheck": [],
+    "execute": [
+      {
+        "description": "read the rung off the asker the way a new request does, so no open ruling waits on nobody",
+        "sql": "UPDATE \"ruling\" SET \"rung\" = COALESCE((\n  SELECT CASE\n    WHEN \"voyageAgent\".\"role\" <> 'captain' THEN 'captain'\n    WHEN EXISTS (\n      SELECT 1 FROM \"pieceAgent\"\n      WHERE \"pieceAgent\".\"agentId\" = \"ruling\".\"requesterAgentId\"\n    ) THEN 'captain'\n    WHEN \"voyage\".\"kind\" = 'flagship' THEN 'admiral'\n    ELSE 'flagship'\n  END\n  FROM \"voyageAgent\"\n  JOIN \"voyage\" ON \"voyage\".\"id\" = \"voyageAgent\".\"voyageId\"\n  WHERE \"voyageAgent\".\"agentId\" = \"ruling\".\"requesterAgentId\"\n  LIMIT 1\n), 'admiral')\nWHERE \"ruledAt\" IS NULL AND \"requesterAgentId\" IS NOT NULL"
+      }
+    ],
+    "postcheck": []
+  },
+  {
+    "id": "recreateTable.rulingReclassification",
+    "label": "Recreate table rulingReclassification",
+    "summary": "Recreates table rulingReclassification to apply schema changes: database/rulingReclassification/foreign-key:byAgentId->.agent(id)",
+    "operationClass": "destructive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "table",
+        "name": "rulingReclassification"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"rulingReclassification\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "table",
+          "rulingReclassification"
+        ]
+      },
+      {
+        "description": "ensure temp table \"_prisma_new_rulingReclassification\" does not exist",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "table",
+          "_prisma_new_rulingReclassification"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create new table \"_prisma_new_rulingReclassification\" with desired schema",
+        "sql": "CREATE TABLE \"_prisma_new_rulingReclassification\" (\n  \"at\" TEXT NOT NULL,\n  \"by\" TEXT NOT NULL,\n  \"byAgentId\" TEXT,\n  \"id\" TEXT NOT NULL,\n  \"note\" TEXT,\n  \"radius\" TEXT,\n  \"rulingId\" TEXT NOT NULL,\n  \"urgency\" TEXT,\n  PRIMARY KEY (\"id\"),\n  FOREIGN KEY (\"rulingId\") REFERENCES \"ruling\" (\"id\") ON DELETE RESTRICT ON UPDATE RESTRICT,\n  FOREIGN KEY (\"byAgentId\") REFERENCES \"agent\" (\"id\") ON DELETE RESTRICT ON UPDATE RESTRICT\n)"
+      },
+      {
+        "description": "copy data from \"rulingReclassification\" to \"_prisma_new_rulingReclassification\"",
+        "sql": "INSERT INTO \"_prisma_new_rulingReclassification\" (\"at\", \"by\", \"id\", \"note\", \"radius\", \"rulingId\", \"urgency\") SELECT \"at\", \"by\", \"id\", \"note\", \"radius\", \"rulingId\", \"urgency\" FROM \"rulingReclassification\""
+      },
+      {
+        "description": "drop old table \"rulingReclassification\"",
+        "sql": "DROP TABLE \"rulingReclassification\""
+      },
+      {
+        "description": "rename \"_prisma_new_rulingReclassification\" to \"rulingReclassification\"",
+        "sql": "ALTER TABLE \"_prisma_new_rulingReclassification\" RENAME TO \"rulingReclassification\""
+      },
+      {
+        "description": "recreate index \"rulingReclassification_rulingId_idx\" on \"rulingReclassification\"",
+        "sql": "CREATE INDEX \"rulingReclassification_rulingId_idx\" ON \"rulingReclassification\" (\"rulingId\")"
+      },
+      {
+        "description": "recreate index \"rulingReclassification_byAgentId_idx\" on \"rulingReclassification\"",
+        "sql": "CREATE INDEX \"rulingReclassification_byAgentId_idx\" ON \"rulingReclassification\" (\"byAgentId\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"rulingReclassification\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "table",
+          "rulingReclassification"
+        ]
+      },
+      {
+        "description": "verify temp table \"_prisma_new_rulingReclassification\" is gone",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "table",
+          "_prisma_new_rulingReclassification"
+        ]
+      },
+      {
+        "description": "verify foreign key (rulingId) → ruling(id) on \"rulingReclassification\"",
+        "sql": "SELECT EXISTS (SELECT 1 FROM pragma_foreign_key_list('rulingReclassification') f WHERE f.\"table\" = 'ruling' GROUP BY f.id HAVING COUNT(*) = 1 AND SUM(CASE WHEN (f.\"from\", f.\"to\") IN (('rulingId', 'id')) THEN 1 ELSE 0 END) = 1)"
+      },
+      {
+        "description": "verify foreign key (byAgentId) → agent(id) on \"rulingReclassification\"",
+        "sql": "SELECT EXISTS (SELECT 1 FROM pragma_foreign_key_list('rulingReclassification') f WHERE f.\"table\" = 'agent' GROUP BY f.id HAVING COUNT(*) = 1 AND SUM(CASE WHEN (f.\"from\", f.\"to\") IN (('byAgentId', 'id')) THEN 1 ELSE 0 END) = 1)"
+      }
+    ]
+  }
+]

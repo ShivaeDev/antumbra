@@ -1,12 +1,12 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database } from "@antumbra/persistence";
 import { Clock, Effect } from "effect";
+import type { RulingSupersedeInput } from "#acts.ts";
 import {
 	RulingAlreadySuperseded,
 	RulingNotRuled,
 	RulingSupersedesItself,
 } from "#errors.ts";
-import type { RulingSupersedeInput } from "#model.ts";
 import { loadRuling, requireRuling } from "#read.ts";
 import type { StoredRuling } from "#stored-rows.ts";
 

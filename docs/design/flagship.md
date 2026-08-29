@@ -61,11 +61,12 @@ No radius is reserved for the admiral by construction: what the admiral holds
 is a standing right over every rung, not a rung of their own that the ladder
 keeps empty.
 
-The flagship captain now holds the fleet rung: a fleet-radius request reaches
-it as mail like everything else that reaches an agent, and it rules on that
-request with a tool of its own. Everything narrower still reaches the admiral,
-because voyage captains have not joined the ladder yet. That is a stage, not
-the shape.
+The flagship captain holds the rung above every voyage captain: a request its
+own captain would not settle reaches it as mail like everything else that
+reaches an agent, and it rules on that request with the same tool every captain
+has. Its reach is the fleet's, so nothing that climbs to it is too narrow for
+it to answer, and what only the admiral may settle it passes up with what it
+knows.
 
 ## Talking to it
 
@@ -83,8 +84,8 @@ somewhere to navigate to.
 
 On the admiral's word the flagship captain may open a Voyage, charter a Piece
 on a named Voyage, and proclaim a fleet ruling as the `flagship` authority. It
-also rules on the fleet-radius requests that climb to it, as that same
-authority, and refuses a narrower one by naming whose it is. These are the
+also rules on the requests that climb to it, as that same
+authority, and passes up what only the admiral may settle. These are the
 ordinary domain acts, called by an agent that happens to sit at the top; the
 flagship gets no private verbs and no act the admiral could not perform
 directly.
@@ -116,6 +117,6 @@ Which acts join the flagship captain's set, and on what evidence. The set so
 far covers opening work and settling fleet-wide questions; the missing ones
 should be named by asks the captain could not carry out, not by anticipation.
 
-When voyage captains join the ladder. Until they do, every request that is not
-fleet-wide still reaches the admiral, and the flagship captain's own load is
-the evidence for how much a captain rung absorbs.
+How much a rung absorbs. Voyage captains now hold the first rung, so what
+still climbs past them to the flagship and on to the admiral is the evidence
+for whether the ladder carries its weight or merely forwards it.

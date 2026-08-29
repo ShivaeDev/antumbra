@@ -23,9 +23,12 @@ const decodeLayout = Schema.decodeUnknownResult(
 	Schema.fromJsonString(WindowLayout),
 );
 
+// why: the console opens on the flagship because the fleet's highest-level
+// agent is somewhere to talk, not somewhere to navigate to — a first run lands
+// in the captain's conversation rather than on a dashboard about the fleet.
 export const defaultConsole = {
 	changeId: null,
-	mode: "fleet",
+	mode: "flagship",
 	role: "console",
 	sessionId: null,
 	voyageId: null,

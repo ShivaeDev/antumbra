@@ -11,10 +11,13 @@ import type {
 	RulingReclassification,
 	RulingReferenceKind,
 	RulingSubject,
+	RulingSupersession,
+} from "#model.ts";
+import type {
 	StoredRuling,
 	StoredRulingReclassification,
 	StoredRulingSubject,
-} from "#model.ts";
+} from "#stored-rows.ts";
 
 const REFERENCE_COLUMN: Readonly<
 	Record<RulingReferenceKind, (row: StoredRulingSubject) => string | null>
@@ -72,6 +75,30 @@ export const storedAnswer = (row: StoredRuling) =>
 			),
 			choiceId: Option.fromNullOr(row.answerChoiceId),
 			text: row.answer,
+		});
+	});
+
+// why: supersession is one appended fact with its provenance; a row naming
+// the ruling that took over without who did it or when is corruption.
+export const storedSupersession = (row: StoredRuling) =>
+	Effect.gen(function* () {
+		const parts = [row.supersededAt, row.supersededBy, row.supersededById];
+		if (parts.every((part) => part === null)) {
+			return Option.none<RulingSupersession>();
+		}
+		if (
+			row.supersededAt === null ||
+			row.supersededBy === null ||
+			row.supersededById === null
+		) {
+			return yield* invalid("supersession", row.id, row);
+		}
+		return Option.some<RulingSupersession>({
+			at: row.supersededAt,
+			by: yield* Effect.fromResult(
+				decodeStoredRulingAuthority(row.id, row.supersededBy),
+			),
+			byRulingId: row.supersededById,
 		});
 	});
 

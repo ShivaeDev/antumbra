@@ -33,3 +33,17 @@ export const RulingReclassifiedReceipt = Schema.Struct({
 	rulingId: Schema.String,
 });
 export type RulingReclassifiedReceipt = typeof RulingReclassifiedReceipt.Type;
+
+// why: superseding names two standing rulings and nothing else — the words
+// that take over are already on the later ruling, so none travel here.
+export const SupersedeRequest = Schema.Struct({
+	byRulingId: Schema.String,
+	rulingId: Schema.String,
+});
+export type SupersedeRequest = typeof SupersedeRequest.Type;
+
+export const RulingSupersededReceipt = Schema.Struct({
+	byRulingId: Schema.String,
+	rulingId: Schema.String,
+});
+export type RulingSupersededReceipt = typeof RulingSupersededReceipt.Type;

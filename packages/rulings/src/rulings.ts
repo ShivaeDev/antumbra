@@ -12,6 +12,7 @@ import { reclassify } from "#reclassify.ts";
 import { request } from "#request.ts";
 import { rule } from "#rule.ts";
 import { standing } from "#standing.ts";
+import { supersede } from "#supersede.ts";
 
 const requirements = [Database, DomainFeeds] as const;
 
@@ -31,6 +32,7 @@ export const Rulings = defineService({
 		request,
 		rule,
 		standing,
+		supersede,
 	}),
 	requires: requirements,
 });

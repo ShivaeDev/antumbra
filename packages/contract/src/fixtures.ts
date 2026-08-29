@@ -3,7 +3,14 @@
 // and the router tests read the same reef from the same module.
 export { type FixtureFeeds, staticFeeds } from "#fixtures/feeds.ts";
 export { fleet, info } from "#fixtures/fleet.ts";
-export { berthNaming, openRulings, soundingReading } from "#fixtures/ruling.ts";
+export {
+	berthNaming,
+	berthReclaim,
+	chartAuthority,
+	openRulings,
+	soundingReading,
+	standingRulings,
+} from "#fixtures/ruling.ts";
 export { makeRuntime } from "#fixtures/runtime.ts";
 export { makeScriptedFeeds, scriptedFeeds } from "#fixtures/scripted.ts";
 export { sessionTree } from "#fixtures/session-tree.ts";

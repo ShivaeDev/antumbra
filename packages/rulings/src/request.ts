@@ -2,8 +2,9 @@ import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database } from "@antumbra/persistence";
 import { Clock, Effect } from "effect";
 import { appendGate, requirePiece } from "#gate-rows.ts";
-import type { RulingRequest, StoredRuling } from "#model.ts";
+import type { RulingRequest } from "#model.ts";
 import { loadRuling } from "#read.ts";
+import type { StoredRuling } from "#stored-rows.ts";
 import { subjectRow, verifySubject } from "#subjects.ts";
 
 const choiceRows = (rulingId: string, input: RulingRequest) =>
@@ -27,6 +28,9 @@ const requested = (input: RulingRequest, nowMillis: number): StoredRuling => ({
 	requesterAgentId: input.requesterAgentId,
 	ruledAt: null,
 	ruledBy: null,
+	supersededAt: null,
+	supersededBy: null,
+	supersededById: null,
 	urgency: input.urgency,
 });
 

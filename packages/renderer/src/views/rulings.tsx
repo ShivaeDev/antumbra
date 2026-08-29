@@ -1,7 +1,11 @@
 import type { OpenRulingsView } from "@antumbra/contract";
-import { watchOpenRulings } from "#adapters/trpc-rulings.ts";
+import {
+	watchOpenRulings,
+	watchStandingRulings,
+} from "#adapters/trpc-rulings.ts";
 import { useFeed } from "#hooks/feed.ts";
 import { RulingCard } from "#views/ruling-card.tsx";
+import { StandingRulings } from "#views/standing-rulings.tsx";
 
 const Header = ({ open }: { readonly open: OpenRulingsView }) => (
 	<header className="flex flex-col gap-1 border-b border-border px-4 py-3">
@@ -48,6 +52,7 @@ export const RulingsPanel = ({
 		"rulings",
 		watchOpenRulings,
 	);
+	const standing = useFeed("standing-rulings", watchStandingRulings);
 
 	if (open === undefined) {
 		return (
@@ -74,6 +79,11 @@ export const RulingsPanel = ({
 			)}
 			<div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto">
 				<RulingList onError={onError} open={open} />
+				<StandingRulings
+					error={standing.error}
+					onError={onError}
+					standing={standing.value}
+				/>
 			</div>
 		</section>
 	);

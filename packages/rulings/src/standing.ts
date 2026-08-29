@@ -1,7 +1,8 @@
 import { Database } from "@antumbra/persistence";
 import { Effect } from "effect";
-import type { RulingSubject, StoredRuling } from "#model.ts";
+import type { RulingSubject } from "#model.ts";
 import { loadRuling } from "#read.ts";
+import type { StoredRuling } from "#stored-rows.ts";
 import { subjectColumns } from "#subjects.ts";
 
 const subjectMatches = (filter: ReadonlyArray<RulingSubject>) =>
@@ -25,14 +26,16 @@ const scoped = (
 		return rows.filter((row) => matched.has(row.id));
 	});
 
-// why: a ruling stands once ruled, and precedent is read newest first so the
-// latest word about a scope is the first one an asker meets.
+// why: a ruling stands once ruled and until it is superseded, and precedent is
+// read newest first so the latest word about a scope is the first one an
+// asker meets. A superseded ruling stays reachable by id; it just binds no one.
 export const standing = Effect.fn("rulings.standing")(function* (
 	filter: ReadonlyArray<RulingSubject>,
 ) {
 	const db = yield* Database;
-	const rows = yield* db.Ruling.where((ruling) => ruling.ruledAt.isNotNull())
+	const ruled = yield* db.Ruling.where((ruling) => ruling.ruledAt.isNotNull())
 		.orderBy((ruling) => ruling.ruledAt.desc())
 		.all();
+	const rows = ruled.filter((row) => row.supersededById === null);
 	return yield* Effect.forEach(yield* scoped(rows, filter), loadRuling);
 });

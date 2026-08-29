@@ -34,7 +34,9 @@ const { opened, reclassifyRuling, ruleOn, watchOpenRulings } = vi.hoisted(
 vi.mock("#adapters/trpc-rulings.ts", () => ({
 	reclassifyRuling,
 	ruleOn,
+	supersedeRuling: vi.fn(),
 	watchOpenRulings,
+	watchStandingRulings: vi.fn(() => vi.fn()),
 }));
 
 const shoal: RulingView = {

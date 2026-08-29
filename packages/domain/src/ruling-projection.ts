@@ -3,9 +3,11 @@ import type {
 	RulingReclassificationView,
 	RulingSubjectView,
 	RulingView,
+	StandingRulingView,
 } from "@antumbra/contract";
 import type {
 	Ruling,
+	RulingAnswer,
 	RulingReclassification,
 	RulingSubject,
 } from "@antumbra/rulings";
@@ -82,6 +84,35 @@ export const rulingSeen = (ruling: Ruling, world: VoyageWorld): RulingView => ({
 	reclassifications: ruling.reclassifications.map(reclassificationSeen),
 	requestedAt: ruling.createdAt.toISOString(),
 	requesterAgentId: ruling.requesterAgentId,
+	subjects: ruling.subjects.map(subjectSeen),
+	urgency: ruling.urgency,
+});
+
+// why: a pick reaches the window as the words the asker offered, because a
+// choice id means nothing once the question it belonged to is read as answered.
+const chosenLabel = (ruling: Ruling, answer: RulingAnswer): string | null =>
+	Option.getOrNull(
+		Option.flatMap(answer.choiceId, (choiceId) =>
+			Option.map(
+				Option.fromUndefinedOr(
+					ruling.choices.find((choice) => choice.id === choiceId),
+				),
+				(choice) => choice.label,
+			),
+		),
+	);
+
+export const standingRulingSeen = (
+	ruling: Ruling,
+	answer: RulingAnswer,
+): StandingRulingView => ({
+	answer: answer.text,
+	chosen: chosenLabel(ruling, answer),
+	id: ruling.id,
+	question: ruling.question,
+	radius: ruling.radius,
+	ruledAt: answer.at.toISOString(),
+	ruledBy: answer.by,
 	subjects: ruling.subjects.map(subjectSeen),
 	urgency: ruling.urgency,
 });

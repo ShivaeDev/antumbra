@@ -1,9 +1,10 @@
 import { Effect, Layer } from "effect";
 import type { FixtureFeeds } from "#fixtures/feeds.ts";
-import { openRulings } from "#fixtures/ruling.ts";
+import { openRulings, standingRulings } from "#fixtures/ruling.ts";
 import { RulingRefused, RulingSource } from "#rulings/source.ts";
 
 const known = new Set(openRulings.rulings.map((ruling) => ruling.id));
+const standing = new Set(standingRulings.rulings.map((ruling) => ruling.id));
 
 const onOpen = (rulingId: string) =>
 	known.has(rulingId)
@@ -11,8 +12,9 @@ const onOpen = (rulingId: string) =>
 		: new RulingRefused({ reason: `no open ruling: ${rulingId}` });
 
 // why: the fixture refuses exactly what the record refuses — a ruling nobody
-// asked, a reclassification naming no axis — so a window standing on fixtures
-// meets the same sentence a live host would give it rather than a stub.
+// asked, a reclassification naming no axis, a supersession of one that does
+// not stand — so a window standing on fixtures meets the same sentence a live
+// host would give it rather than a stub.
 export const rulingFixture = (feeds: FixtureFeeds) =>
 	Layer.succeed(RulingSource, {
 		open: Effect.succeed(openRulings),
@@ -24,4 +26,12 @@ export const rulingFixture = (feeds: FixtureFeeds) =>
 					})
 				: onOpen(request.rulingId),
 		rule: (request) => onOpen(request.rulingId),
+		standing: Effect.succeed(standingRulings),
+		standingFeed: feeds.standing,
+		supersede: (request) =>
+			standing.has(request.rulingId) && standing.has(request.byRulingId)
+				? Effect.succeed(request)
+				: new RulingRefused({
+						reason: `no standing ruling: ${request.rulingId}`,
+					}),
 	});

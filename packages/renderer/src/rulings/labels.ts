@@ -1,10 +1,11 @@
-import { RulingView } from "@antumbra/contract";
+import { RulingView, type StandingRulingView } from "@antumbra/contract";
 import type { Tone } from "#voyages/tone.ts";
 
 type GatedPiece = RulingView["gatedPieces"][number];
 type Radius = RulingView["radius"];
 type SubjectKind = RulingView["subjects"][number]["kind"];
 type Urgency = RulingView["urgency"];
+type Authority = StandingRulingView["ruledBy"];
 
 // why: every word the record can publish is named here in the register the
 // window speaks, so a new one is a compile error rather than a wire spelling
@@ -42,5 +43,8 @@ export const rulingSubjectLabel: Readonly<Record<SubjectKind, string>> = {
 	voyage: "Voyage",
 };
 
+export const rulingAuthorityLabel: Readonly<Record<Authority, string>> = {
+	admiral: "the admiral",
+};
 export const rulingGatedPieceLabel = (piece: GatedPiece): string =>
 	`${piece.title} (${piece.voyageName})`;

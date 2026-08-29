@@ -20,6 +20,13 @@ export type RulingSubject =
 	| { readonly id: string; readonly kind: RulingReferenceKind }
 	| { readonly kind: "tag"; readonly tag: string };
 
+// why: a ruling is requested by an agent or by an authority proclaiming a rule
+// of its own — never both and never neither, so one value says which rather
+// than two columns every reader has to reconcile.
+export type RulingRequester =
+	| { readonly agentId: string; readonly kind: "agent" }
+	| { readonly by: RulingAuthority; readonly kind: "authority" };
+
 export interface RulingChoiceInput {
 	readonly detail?: string;
 	readonly label: string;
@@ -33,7 +40,7 @@ export interface RulingRequest {
 	readonly gates: ReadonlyArray<string>;
 	readonly question: string;
 	readonly radius: RulingRadius;
-	readonly requesterAgentId: string;
+	readonly requester: RulingRequester;
 	readonly subjects: ReadonlyArray<RulingSubject>;
 	readonly urgency: RulingUrgency;
 }
@@ -56,6 +63,19 @@ export interface RulingVerdict {
 	readonly by: RulingAuthority;
 	readonly choiceId?: string;
 	readonly rulingId: string;
+}
+
+// why: an authority that wants a standing rule asks and answers a ruling of
+// its own, so the context that gives the answer its meaning is never missing.
+// A picked choice is named by its label, because the ids do not exist yet.
+export interface RulingProclamation extends RulingAxes {
+	readonly answer: string;
+	readonly by: RulingAuthority;
+	readonly choices: ReadonlyArray<RulingChoiceInput>;
+	readonly chosenChoice?: string;
+	readonly context: string;
+	readonly question: string;
+	readonly subjects: ReadonlyArray<RulingSubject>;
 }
 
 // why: the admiral overrules a ruling below by superseding it with a later
@@ -120,7 +140,7 @@ export interface Ruling {
 	readonly question: string;
 	readonly radius: RulingRadius;
 	readonly reclassifications: ReadonlyArray<RulingReclassification>;
-	readonly requesterAgentId: string;
+	readonly requester: RulingRequester;
 	readonly subjects: ReadonlyArray<RulingSubject>;
 	readonly supersession: Option.Option<RulingSupersession>;
 	readonly urgency: RulingUrgency;

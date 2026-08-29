@@ -11,6 +11,7 @@ export {
 	soundingReading,
 	standingRulings,
 } from "#fixtures/ruling.ts";
+export { proclaimedRulingId } from "#fixtures/ruling-source.ts";
 export { makeRuntime } from "#fixtures/runtime.ts";
 export { makeScriptedFeeds, scriptedFeeds } from "#fixtures/scripted.ts";
 export { sessionTree } from "#fixtures/session-tree.ts";

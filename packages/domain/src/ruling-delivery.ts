@@ -13,7 +13,7 @@ const guarded = <A, R>(act: Effect.Effect<A, unknown, R>, said: string) =>
 // they take their turn behind a verdict landing beside them instead of
 // committing into the middle of it, and a pass that overlaps another finds
 // the mark already set and sends nothing.
-const mailAndMark = (ruling: Ruling, answer: RulingAnswer) =>
+const mailAndMark = (ruling: Ruling, answer: RulingAnswer, toAgentId: string) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
 		const boards = yield* Boards;
@@ -29,19 +29,22 @@ const mailAndMark = (ruling: Ruling, answer: RulingAnswer) =>
 			body: rulingAnswerMail(ruling, answer),
 			precedence: "priority",
 			sourceRef: `ruling:${ruling.id}`,
-			toAgentId: ruling.requesterAgentId,
+			toAgentId,
 		});
 		yield* rulings.markDelivered(ruling.id);
 	});
 
+// why: a ruling an authority proclaimed for itself owes no mail — the asker
+// and the answer are the same hand, and no agent is waiting on the road back.
 const deliverOne = (ruling: Ruling) =>
 	Effect.gen(function* () {
 		const answer = ruling.answer;
-		if (Option.isNone(answer)) {
+		const requester = ruling.requester;
+		if (Option.isNone(answer) || requester.kind !== "agent") {
 			return;
 		}
 		const db = yield* Database;
-		yield* db.transaction(mailAndMark(ruling, answer.value));
+		yield* db.transaction(mailAndMark(ruling, answer.value, requester.agentId));
 	});
 
 const onePass = Effect.gen(function* () {

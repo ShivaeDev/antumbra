@@ -64,6 +64,14 @@ const chosen = (ruling: Ruling, answer: RulingAnswer): string => {
 	});
 };
 
+// why: an authority that wants a standing rule asks and answers a ruling of
+// its own, so a reader is told the rule was proclaimed rather than left to read
+// it as an agent's question that happened to be answered.
+const askedBy = (ruling: Ruling): string =>
+	ruling.requester.kind === "authority"
+		? `proclaimed by the ${ruling.requester.by}`
+		: `asked by ${ruling.requester.agentId}`;
+
 // why: an answer is read in the light of its question, so who ruled and when
 // travel with the words rather than being left for another lookup.
 const verdictOf = (ruling: Ruling): string =>
@@ -74,7 +82,7 @@ const verdictOf = (ruling: Ruling): string =>
 	});
 
 export const rulingLine = (ruling: Ruling): string =>
-	`- ${ruling.id} (${REACH[ruling.radius]}) ${ruling.question} — ${verdictOf(ruling)}`;
+	`- ${ruling.id} (${REACH[ruling.radius]}, ${askedBy(ruling)}) ${ruling.question} — ${verdictOf(ruling)}`;
 
 export const rulingBlock = (ruling: Ruling): string =>
 	[
@@ -82,4 +90,5 @@ export const rulingBlock = (ruling: Ruling): string =>
 		`Question: ${ruling.question}`,
 		`Context: ${ruling.context}`,
 		`Answer: ${verdictOf(ruling)}`,
+		`This ruling was ${askedBy(ruling)}.`,
 	].join("\n");

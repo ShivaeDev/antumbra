@@ -2222,14 +2222,7 @@
                 }
               },
               "requesterAgentId": {
-                "nullable": true,
-                "type": {
-                  "codecId": "sqlite/text@1",
-                  "kind": "scalar"
-                }
-              },
-              "requesterAuthority": {
-                "nullable": true,
+                "nullable": false,
                 "type": {
                   "codecId": "sqlite/text@1",
                   "kind": "scalar"
@@ -2428,9 +2421,6 @@
                 },
                 "requesterAgentId": {
                   "column": "requesterAgentId"
-                },
-                "requesterAuthority": {
-                  "column": "requesterAuthority"
                 },
                 "ruledAt": {
                   "column": "ruledAt"
@@ -4914,12 +4904,7 @@
                 "requesterAgentId": {
                   "codecId": "sqlite/text@1",
                   "nativeType": "text",
-                  "nullable": true
-                },
-                "requesterAuthority": {
-                  "codecId": "sqlite/text@1",
-                  "nativeType": "text",
-                  "nullable": true
+                  "nullable": false
                 },
                 "ruledAt": {
                   "codecId": "sqlite/datetime@1",
@@ -5844,7 +5829,7 @@
         "id": "__unbound__"
       }
     },
-    "storageHash": "sha256:86e4612ca67e847f4b87640c55fa21133b43d356264cc95742ab52dd6461bfd8"
+    "storageHash": "sha256:5567af7d596b751390cc19c38fb2567d7e2557dd51f63026836ac0e18a86bd41"
   },
   "capabilities": {
     "sql": {

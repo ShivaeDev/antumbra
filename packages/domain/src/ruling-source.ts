@@ -1,4 +1,5 @@
 import {
+	type ProclaimRequest,
 	type ReclassifyRequest,
 	type RuleRequest,
 	RulingFailure,
@@ -8,14 +9,17 @@ import {
 } from "@antumbra/contract";
 import {
 	type Ruling,
+	type RulingProclamation,
 	type RulingReclassifyInput,
 	Rulings,
 	type RulingVerdict,
 } from "@antumbra/rulings";
 import { Effect, Layer, Option } from "effect";
 import { makeRulingRefreshes } from "#ruling-feed.ts";
+import { choiceOf, tagSubjects } from "#ruling-inputs.ts";
 import { rulingSeen, standingRulingSeen } from "#ruling-projection.ts";
 import {
+	proclaimFailure,
 	reclassifyFailure,
 	toRulingFailure,
 	verdictFailure,
@@ -53,6 +57,23 @@ const standingSeen = (
 		onSome: (answer) => Effect.succeed(standingRulingSeen(ruling, answer)),
 	});
 
+// why: the admiral proclaiming from the window is the asker as well as the
+// authority, and it stands on no piece or voyage while it writes a rule — so
+// free tags are the whole of the scope a proclamation may name.
+const proclamationOf = (request: ProclaimRequest): RulingProclamation => ({
+	answer: request.answer,
+	by: "admiral",
+	choices: (request.choices ?? []).map(choiceOf),
+	context: request.context,
+	question: request.question,
+	radius: request.radius,
+	subjects: tagSubjects(request.tags),
+	urgency: request.urgency,
+	...(request.chosenChoice === undefined
+		? {}
+		: { chosenChoice: request.chosenChoice }),
+});
+
 const reclassificationOf = (
 	request: ReclassifyRequest,
 ): RulingReclassifyInput => ({
@@ -82,6 +103,11 @@ export const RulingSourceLive = Layer.effect(RulingSource)(
 		return {
 			open,
 			openFeed: refreshes(open),
+			proclaim: (request: ProclaimRequest) =>
+				rulings.proclaim(proclamationOf(request)).pipe(
+					Effect.map((proclaimed) => ({ rulingId: proclaimed.id })),
+					Effect.mapError(proclaimFailure),
+				),
 			reclassify: (request: ReclassifyRequest) =>
 				rulings.reclassify(reclassificationOf(request)).pipe(
 					Effect.map((moved) => ({ rulingId: moved.id })),

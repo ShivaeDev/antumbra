@@ -9,7 +9,8 @@ export interface StoredRuling {
 	readonly id: string;
 	readonly question: string;
 	readonly radius: string;
-	readonly requesterAgentId: string;
+	readonly requesterAgentId: string | null;
+	readonly requesterAuthority: string | null;
 	readonly ruledAt: Date | null;
 	readonly ruledBy: string | null;
 	readonly supersededAt: Date | null;

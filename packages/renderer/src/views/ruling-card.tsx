@@ -1,6 +1,10 @@
 import type { RulingSubjectView, RulingView } from "@antumbra/contract";
 import { Badge } from "#components/ui/badge.tsx";
-import { rulingGatedPieceLabel, rulingSubjectLabel } from "#rulings/labels.ts";
+import {
+	rulingGatedPieceLabel,
+	rulingRequesterLabel,
+	rulingSubjectLabel,
+} from "#rulings/labels.ts";
 import { MarkdownView } from "#views/markdown-view.tsx";
 import { RulingAxes } from "#views/ruling-axes.tsx";
 import { RulingReclassifications } from "#views/ruling-reclassifications.tsx";
@@ -22,7 +26,7 @@ export const RulingCard = ({
 		<div className="flex min-w-0 flex-wrap items-center gap-2">
 			<RulingAxes ruling={ruling} />
 			<span className="min-w-0 truncate font-mono text-2xs text-muted-foreground">
-				{ruling.requesterAgentId}
+				{rulingRequesterLabel(ruling.requester)}
 			</span>
 			<span className="ml-auto shrink-0 text-2xs text-muted-foreground tabular-nums">
 				asked {whenLabel(ruling.requestedAt)}

@@ -1,6 +1,8 @@
 export {
+	ProclaimRequest,
 	ReclassifyRequest,
 	RuleRequest,
+	RulingProclaimedReceipt,
 	RulingReclassifiedReceipt,
 	RulingRuledReceipt,
 	RulingSupersededReceipt,
@@ -13,6 +15,7 @@ export {
 	RulingChoiceView,
 	RulingGatedPieceView,
 	RulingReclassificationView,
+	RulingRequesterView,
 	RulingSubjectView,
 	RulingView,
 	StandingRulingsView,

@@ -18,6 +18,7 @@ export {
 	RulingGatedPieceView,
 	RulingReclassificationView,
 	RulingRequesterView,
+	RulingRungView,
 	RulingSubjectView,
 	RulingView,
 	StandingRulingsView,

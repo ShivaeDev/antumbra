@@ -50,6 +50,7 @@ export const asked = {
 	question: "which reading do we trust?",
 	radius: "voyage",
 	requester: { agentId: requesterId, kind: "agent" },
+	rung: "captain",
 	subjects: [],
 	urgency: "pressing",
 } as const;

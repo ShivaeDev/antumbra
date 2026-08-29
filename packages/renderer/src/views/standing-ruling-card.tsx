@@ -1,7 +1,7 @@
 import type { RulingSubjectView, StandingRulingView } from "@antumbra/contract";
 import { Badge } from "#components/ui/badge.tsx";
 import {
-	rulingAuthorityLabel,
+	rulingActorLabel,
 	rulingRadiusLabel,
 	rulingSubjectLabel,
 } from "#rulings/labels.ts";
@@ -32,7 +32,7 @@ export const StandingRulingCard = ({
 				</Badge>
 			))}
 			<span className="ml-auto shrink-0 text-2xs text-muted-foreground tabular-nums">
-				ruled by {rulingAuthorityLabel[ruling.ruledBy]}{" "}
+				ruled by {rulingActorLabel(ruling.ruledBy, ruling.ruledByAgentId)}{" "}
 				{whenLabel(ruling.ruledAt)}
 			</span>
 		</div>

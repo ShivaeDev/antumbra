@@ -43,6 +43,24 @@ it.effectDB("stores the choices a request offers in order", function* (db) {
 	}).pipe(Effect.provide(layer));
 });
 
+// why: a question waits on exactly one rung from the moment it is asked, so
+// the ascent never has to guess who is owed it from the radius alone.
+it.effectDB("stores the rung the asker's request waits on", function* () {
+	yield* Effect.gen(function* () {
+		yield* seedFleet;
+		const rulings = yield* Rulings;
+
+		const fromCrew = yield* rulings.request(asked);
+		const fromCaptain = yield* rulings.request({ ...asked, rung: "flagship" });
+
+		expect(fromCrew.rung).toEqual(Option.some("captain"));
+		expect(fromCaptain.rung).toEqual(Option.some("flagship"));
+		expect((yield* rulings.get(fromCrew.id)).rung).toEqual(
+			Option.some("captain"),
+		);
+	}).pipe(Effect.provide(layer));
+});
+
 it.effectDB("stores every subject a request names", function* (db) {
 	yield* Effect.gen(function* () {
 		yield* seedFleet;

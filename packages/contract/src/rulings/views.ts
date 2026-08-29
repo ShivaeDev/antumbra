@@ -43,10 +43,13 @@ export const RulingAxesView = Schema.Struct({
 export type RulingAxesView = typeof RulingAxesView.Type;
 
 // why: a reclassification is read beside the asker's declaration, so the
-// window is told who set which axis, when, and any words beside it.
+// window is told who set which axis, when, and any words beside it. The agent
+// travels beside the rung, because one of many captains is not read off the
+// rung alone; a row that moved neither axis is a rung passing the question up.
 export const RulingReclassificationView = Schema.Struct({
 	at: Schema.String,
 	by: RulingAuthoritySchema,
+	byAgentId: Schema.NullOr(Schema.String),
 	note: Schema.optional(Schema.String),
 	radius: Schema.optional(RulingRadiusSchema),
 	urgency: Schema.optional(RulingUrgencySchema),
@@ -70,6 +73,19 @@ export const AwaitingRulingView = Schema.Struct({
 });
 export type AwaitingRulingView = typeof AwaitingRulingView.Type;
 
+// why: an open ruling waits on exactly one rung, and the window says which in
+// its own words. A captain rung names the voyage whose captain holds it,
+// because "the captain" alone names no one in a fleet of them.
+export const RulingRungView = Schema.Union([
+	Schema.Struct({
+		kind: Schema.Literal("captain"),
+		voyageId: Schema.String,
+		voyageName: Schema.String,
+	}),
+	Schema.Struct({ kind: Schema.Literals(["flagship", "admiral"]) }),
+]);
+export type RulingRungView = typeof RulingRungView.Type;
+
 // why: the context, the question and the choices travel together because an
 // answer read apart from its question loses the scope that bounds it. The
 // axes are the effective ones; the declaration travels beside them.
@@ -84,6 +100,7 @@ export const RulingView = Schema.Struct({
 	reclassifications: Schema.Array(RulingReclassificationView),
 	requestedAt: Schema.String,
 	requester: RulingRequesterView,
+	rung: RulingRungView,
 	subjects: Schema.Array(RulingSubjectView),
 	urgency: RulingUrgencySchema,
 });
@@ -109,6 +126,7 @@ export const StandingRulingView = Schema.Struct({
 	radius: RulingRadiusSchema,
 	ruledAt: Schema.String,
 	ruledBy: RulingAuthoritySchema,
+	ruledByAgentId: Schema.NullOr(Schema.String),
 	stale: Schema.Boolean,
 	subjects: Schema.Array(RulingSubjectView),
 	urgency: RulingUrgencySchema,

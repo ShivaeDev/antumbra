@@ -49,6 +49,9 @@ it.effectDB(
 					reclassifications: [],
 					requestedAt: expect.any(String),
 					requester: { agentId: requesterId, kind: "agent" },
+					// why: the window meets an open ruling beside whose turn it is, and
+					// a captain rung reaches it as the ship whose captain holds it.
+					rung: { kind: "captain", voyageId, voyageName: "Chart the reef" },
 					subjects: expect.arrayContaining([
 						{ kind: "voyage", label: voyageId },
 						{ kind: "tag", label: "surveying" },
@@ -246,6 +249,7 @@ it.effectDB("a proclamation stands without ever being open", function* () {
 				radius: "fleet",
 				ruledAt: expect.any(String),
 				ruledBy: "admiral",
+				ruledByAgentId: null,
 				stale: false,
 				subjects: [{ kind: "tag", label: "dredging" }],
 				urgency: "eventual",

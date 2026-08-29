@@ -8,13 +8,10 @@ import { effectiveAxes } from "#axes.ts";
 import { RulingNotFound } from "#errors.ts";
 import type { Ruling, RulingAxes, RulingChoice } from "#model.ts";
 import { storedRequester } from "#requester.ts";
-import {
-	storedAnswer,
-	storedReclassification,
-	storedSubject,
-} from "#stored.ts";
+import { storedAnswer, storedReclassification, storedRung } from "#stored.ts";
 import { storedSupersession, storedWithdrawal } from "#stored-retirement.ts";
 import type { StoredRuling } from "#stored-rows.ts";
+import { storedSubject } from "#stored-subjects.ts";
 
 const choicesOf = (rulingId: string) =>
 	Effect.gen(function* () {
@@ -89,6 +86,7 @@ export const loadRuling = (row: StoredRuling) =>
 			question: row.question,
 			reclassifications,
 			requester: yield* storedRequester(row),
+			rung: yield* storedRung(row),
 			subjects: yield* subjectsOf(row.id),
 			supersession: yield* storedSupersession(row),
 			withdrawal: yield* storedWithdrawal(row),

@@ -63,13 +63,19 @@ const shoal: RulingView = {
 	reclassifications: [
 		{
 			at: "2026-08-15T09:50:00.000Z",
-			by: "admiral",
+			by: "captain",
+			byAgentId: "agent-mate",
 			note: "nothing plots until this lands",
 			urgency: "blocking",
 		},
 	],
 	requestedAt: "2026-08-15T09:40:00.000Z",
 	requester: { agentId: "agent-surveyor", kind: "agent" },
+	rung: {
+		kind: "captain",
+		voyageId: "voyage-1",
+		voyageName: "Chart the reef",
+	},
 	subjects: [{ kind: "tag", label: "surveying" }],
 	urgency: "blocking",
 };
@@ -85,6 +91,7 @@ const berths: RulingView = {
 	reclassifications: [],
 	requestedAt: "2026-08-15T08:10:00.000Z",
 	requester: { agentId: "agent-bosun", kind: "agent" },
+	rung: { kind: "flagship" },
 	subjects: [],
 	urgency: "eventual",
 };
@@ -157,6 +164,52 @@ it.effect("shows every open ruling in the order the feed sent them", () =>
 		expect(mounted.container.textContent).toContain("two metres shallower");
 		expect(mounted.container.textContent).toContain(
 			"Unblocks: the chart (Chart the reef)",
+		);
+		yield* settle(() => mounted.root.unmount());
+	}),
+);
+
+// why: the admiral meets every open ruling in the window, so each one says
+// whose turn it is — what nobody has been asked yet reads differently from
+// what a captain is sitting on.
+it.effect("says what rung each open ruling is still waiting on", () =>
+	Effect.gen(function* () {
+		const mounted = mount();
+		yield* showing(mounted);
+
+		expect(mounted.container.textContent).toContain(
+			"waits on the captain of Chart the reef",
+		);
+		expect(mounted.container.textContent).toContain("waits on the flagship");
+		expect(mounted.container.textContent).toContain(
+			"captain agent-mate set urgency blocking",
+		);
+		yield* settle(() => mounted.root.unmount());
+	}),
+);
+
+it.effect("reads a move that touched no axis as a question passed up", () =>
+	Effect.gen(function* () {
+		const mounted = mount();
+		yield* showing(mounted, {
+			rulings: [
+				{
+					...shoal,
+					reclassifications: [
+						{
+							at: "2026-08-15T09:55:00.000Z",
+							by: "captain",
+							byAgentId: "agent-mate",
+							note: "the other ship charts the same reef",
+						},
+					],
+					rung: { kind: "flagship" },
+				},
+			],
+		});
+
+		expect(mounted.container.textContent).toContain(
+			"captain agent-mate passed it up — the other ship charts the same reef",
 		);
 		yield* settle(() => mounted.root.unmount());
 	}),

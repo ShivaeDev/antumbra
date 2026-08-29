@@ -1,8 +1,8 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database } from "@antumbra/persistence";
 import { Clock, Effect } from "effect";
+import type { RulingReclassifyInput } from "#acts.ts";
 import { RulingAlreadyRuled, RulingReclassificationEmpty } from "#errors.ts";
-import type { RulingReclassifyInput } from "#model.ts";
 import { loadRuling, requireRuling } from "#read.ts";
 
 const writeReclassification = (input: RulingReclassifyInput, at: Date) =>
@@ -15,6 +15,7 @@ const writeReclassification = (input: RulingReclassifyInput, at: Date) =>
 		yield* db.RulingReclassification.create({
 			at,
 			by: input.by,
+			byAgentId: input.byAgentId ?? null,
 			id: crypto.randomUUID(),
 			note: input.note ?? null,
 			radius: input.radius ?? null,

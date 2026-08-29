@@ -97,6 +97,7 @@ it.effectDB("keeps an authority's own request open until ruled", function* () {
 		const ruling = yield* rulings.request({
 			...asked,
 			requester: { by: "admiral", kind: "authority" },
+			rung: null,
 		});
 
 		expect(ruling.requester).toEqual({ by: "admiral", kind: "authority" });

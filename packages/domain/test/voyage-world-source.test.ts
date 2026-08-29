@@ -105,6 +105,7 @@ it.effectDB(
 				question: "which reading do we plot against?",
 				radius: "piece",
 				requester: { agentId: "agent-asker", kind: "agent" },
+				rung: "admiral",
 				subjects: [],
 				urgency: "pressing",
 			});

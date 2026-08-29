@@ -70,9 +70,20 @@ A request climbs. Its voyage captain sees it first, then the
 within its radius, add context the asker did not have, or reclassify radius
 and urgency before passing it up.
 The admiral may overrule any ruling below by superseding it; a captain's
-rulings form an audit trail the admiral can read. The flagship captain answers
-at fleet radius; until voyage captains sit on the ladder, everything narrower
-still reaches the admiral. That is a stage, not the shape.
+rulings form an audit trail the admiral can read.
+
+A request waits on one rung at a time, and the rung is read off the asker's
+station rather than off the question: a crew member's request waits on its
+voyage's captain, a captain's on the flagship captain, the flagship captain's
+on the admiral. An authority that proclaims a rule of its own waits on nobody.
+The rung that holds a request either answers it — within its radius — or
+passes it up one step with a note, which is how context accumulates on the way.
+A verdict from below the rung a request waits on is refused: a question that
+climbed past a captain is no longer that captain's to settle. Radius decides
+reach separately: a voyage captain answers at `piece` and `voyage`, the
+flagship at any radius, and the admiral over all of it. Every verdict and every
+reclassification an agent gives records which agent gave it beside the rung it
+spoke for, because one captain among many is not named by its rung alone.
 
 ## Rulings gate Pieces
 

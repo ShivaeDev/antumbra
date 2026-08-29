@@ -5,6 +5,8 @@ import { Effect, Option } from "effect";
 import { makeBoardToolCompiler } from "#board-tools.ts";
 import { CaptainMembership } from "#captain-membership.ts";
 import { makePieceVerbToolCompiler } from "#captain-pieces.ts";
+import { makeCaptainRulingMoveToolCompiler } from "#captain-ruling-moves.ts";
+import { makeCaptainVerdictToolCompiler } from "#captain-verdicts.ts";
 import { VoyageNotFound } from "#errors.ts";
 import { makeReportToolCompiler } from "#report-tools.ts";
 import { makeRulingReadingToolCompiler } from "#ruling-reading-tools.ts";
@@ -26,9 +28,10 @@ const voyageOrGone = (voyageId: string) =>
 		),
 	);
 
-// why: the captain's set is its authority — it charters and positions work and
-// reads where the voyage stands, but it lands no outcomes: workers report,
-// captains charter, and the rule is the set rather than a request to behave.
+// why: the captain's set is its authority — it charters and positions work,
+// reads where the voyage stands, and settles what its crew brings up, but it
+// lands no outcomes: workers report, captains charter, and the rule is the set
+// rather than a request to behave.
 export const makeCaptainToolCompiler = Effect.gen(function* () {
 	const membership = yield* CaptainMembership;
 	const pieces = yield* Pieces;
@@ -37,6 +40,8 @@ export const makeCaptainToolCompiler = Effect.gen(function* () {
 	const compileReportTools = yield* makeReportToolCompiler;
 	const compileRulingTools = yield* makeRulingToolCompiler;
 	const compileRulingReadingTools = yield* makeRulingReadingToolCompiler;
+	const compileVerdictTools = yield* makeCaptainVerdictToolCompiler;
+	const compileRulingMoveTools = yield* makeCaptainRulingMoveToolCompiler;
 	const standDown = yield* StandDown;
 	const world = yield* VoyageWorldSource;
 	return (identity: SessionIdentity): ReadonlyArray<DirectTool> => [
@@ -73,6 +78,8 @@ export const makeCaptainToolCompiler = Effect.gen(function* () {
 		...compileReportTools(identity),
 		...compileBoardTools(identity),
 		...compileRulingTools(identity),
+		...compileVerdictTools(identity),
+		...compileRulingMoveTools(identity),
 		standDown.tool(identity),
 		...compileRulingReadingTools(identity),
 	];

@@ -5,6 +5,7 @@ import {
 	Rulings,
 } from "@antumbra/rulings";
 import { Effect, Option } from "effect";
+import { ruledByWords } from "#ruling-words.ts";
 
 // why: an agent is reached as the thing it is — a piece, a voyage, an identity
 // — so the seams that open a context hand over what they know and nothing has
@@ -78,7 +79,7 @@ const verdictOf = (ruling: Ruling): string =>
 	Option.match(ruling.answer, {
 		onNone: () => "not ruled yet",
 		onSome: (answer) =>
-			`${answer.text}${chosen(ruling, answer)} — ruled by the ${answer.by} on ${answer.at.toISOString()}`,
+			`${answer.text}${chosen(ruling, answer)} — ruled by ${ruledByWords(answer)} on ${answer.at.toISOString()}`,
 	});
 
 export const rulingLine = (ruling: Ruling): string =>

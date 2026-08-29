@@ -25,8 +25,12 @@ export {
 	charterVoyagePieceSpec,
 	openVoyageSpec,
 	proclaimRulingSpec,
-	ruleOnSpec,
 } from "#fleet.ts";
 export { readReportSpec } from "#reports.ts";
 export { readRulingsSpec } from "#ruling-readings.ts";
+export {
+	passUpSpec,
+	reclassifyRulingSpec,
+	ruleOnSpec,
+} from "#ruling-verdicts.ts";
 export { requestRulingSpec } from "#rulings.ts";

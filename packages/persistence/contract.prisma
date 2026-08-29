@@ -26,7 +26,9 @@ model Agent {
   currentSessionId String?  @unique
   createdAt        DateTime @default(now())
   updatedAt        DateTime @default(now())
-  rulings          Ruling[]
+  rulings          Ruling[]       @relation("RulingRequester")
+  rulingVerdicts   Ruling[]       @relation("RulingRuledBy")
+  rulingMoves      RulingReclassification[]
   rulingSubjects   RulingSubject[]
 
   @@index([status])
@@ -362,6 +364,7 @@ model Ruling {
   answer             String?
   answerChoiceId     String?
   ruledBy            String?
+  ruledByAgentId     String?
   ruledAt            DateTime?
   supersededById     String?
   supersededAt       DateTime?
@@ -370,8 +373,10 @@ model Ruling {
   withdrawnBy        String?
   withdrawnNote      String?
   deliveredAt        DateTime?
+  rung               String?
   createdAt          DateTime  @default(now())
-  requester          Agent?         @relation(fields: [requesterAgentId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  requester          Agent?         @relation("RulingRequester", fields: [requesterAgentId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  ruledByAgent       Agent?         @relation("RulingRuledBy", fields: [ruledByAgentId], references: [id], onDelete: Restrict, onUpdate: Restrict)
   answerChoice       RulingChoice?  @relation("RulingAnswer", fields: [answerChoiceId], references: [id], onDelete: Restrict, onUpdate: Restrict)
   supersededByRuling Ruling?        @relation("RulingSupersession", fields: [supersededById], references: [id], onDelete: Restrict, onUpdate: Restrict)
   supersedes         Ruling[]       @relation("RulingSupersession")
@@ -425,14 +430,16 @@ model RulingGate {
 }
 
 model RulingReclassification {
-  id       String   @id
-  rulingId String
-  by       String
-  radius   String?
-  urgency  String?
-  note     String?
-  at       DateTime
-  ruling   Ruling   @relation(fields: [rulingId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  id        String   @id
+  rulingId  String
+  by        String
+  byAgentId String?
+  radius    String?
+  urgency   String?
+  note      String?
+  at        DateTime
+  ruling    Ruling   @relation(fields: [rulingId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  byAgent   Agent?   @relation(fields: [byAgentId], references: [id], onDelete: Restrict, onUpdate: Restrict)
 
   @@index([rulingId])
 }

@@ -3,7 +3,13 @@ import { Rulings } from "@antumbra/rulings";
 import { expect } from "@effect/vitest";
 import { Effect, Option, PubSub } from "effect";
 import { TestClock } from "effect/testing";
-import { asked, it, layer, seedFleet } from "#test/rulings-harness.ts";
+import {
+	asked,
+	it,
+	layer,
+	requesterId,
+	seedFleet,
+} from "#test/rulings-harness.ts";
 
 it.effectDB("appends each word beside the asker's declaration", function* () {
 	yield* Effect.scoped(
@@ -15,7 +21,8 @@ it.effectDB("appends each word beside the asker's declaration", function* () {
 			const notices = yield* feeds.subscribeRulingRefresh();
 
 			yield* rulings.reclassify({
-				by: "admiral",
+				by: "captain",
+				byAgentId: requesterId,
 				note: "the surveyor cannot move until this lands",
 				rulingId: requested.id,
 				urgency: "blocking",
@@ -37,7 +44,8 @@ it.effectDB("appends each word beside the asker's declaration", function* () {
 			expect(reclassified.reclassifications).toEqual([
 				{
 					at: expect.any(Date),
-					by: "admiral",
+					by: "captain",
+					byAgentId: Option.some(requesterId),
 					note: Option.some("the surveyor cannot move until this lands"),
 					radius: Option.none(),
 					urgency: Option.some("blocking"),
@@ -45,6 +53,7 @@ it.effectDB("appends each word beside the asker's declaration", function* () {
 				{
 					at: expect.any(Date),
 					by: "admiral",
+					byAgentId: Option.none(),
 					note: Option.none(),
 					radius: Option.some("fleet"),
 					urgency: Option.none(),

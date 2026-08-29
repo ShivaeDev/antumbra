@@ -34,6 +34,7 @@ const requestedRuling = Effect.gen(function* () {
 		question: "which reading do we trust?",
 		radius: "voyage",
 		requester: { agentId: askerId, kind: "agent" },
+		rung: "admiral",
 		subjects: [],
 		urgency: "pressing",
 	});

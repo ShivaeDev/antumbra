@@ -33,6 +33,7 @@ const ask = (
 			gates: [],
 			question,
 			requester: { agentId: ASKER, kind: "agent" },
+			rung: "admiral",
 			urgency: "pressing",
 			...scope,
 		});

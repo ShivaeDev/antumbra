@@ -47,6 +47,7 @@ it.effectDB(
 					radius: "voyage",
 					ruledAt: expect.any(String),
 					ruledBy: "admiral",
+					ruledByAgentId: null,
 					stale: false,
 					subjects: expect.arrayContaining([
 						{ kind: "voyage", label: voyageId },

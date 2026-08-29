@@ -1,5 +1,6 @@
 import type { Ruling, RulingAnswer } from "@antumbra/rulings";
 import { Option } from "effect";
+import { ruledByWords } from "#ruling-words.ts";
 
 const labelOf = (ruling: Ruling, choiceId: string): string =>
 	ruling.choices.find((choice) => choice.id === choiceId)?.label ?? choiceId;
@@ -18,6 +19,6 @@ export const rulingAnswerMail = (
 			onNone: (): ReadonlyArray<string> => [],
 			onSome: (choiceId) => [`Chosen: ${labelOf(ruling, choiceId)}`],
 		}),
-		`Ruled by the ${answer.by} at ${answer.at.toISOString()}.`,
+		`Ruled by ${ruledByWords(answer)} at ${answer.at.toISOString()}.`,
 		`Ruling ${ruling.id}.`,
 	].join("\n");

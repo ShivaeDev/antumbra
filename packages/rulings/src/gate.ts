@@ -1,9 +1,9 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database } from "@antumbra/persistence";
 import { Effect } from "effect";
+import type { RulingGateInput } from "#acts.ts";
 import { RulingAlreadyRuled } from "#errors.ts";
 import { appendGate, requirePiece } from "#gate-rows.ts";
-import type { RulingGateInput } from "#model.ts";
 import { loadRuling, requireRuling } from "#read.ts";
 
 const writeGates = (input: RulingGateInput) =>

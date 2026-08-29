@@ -17,6 +17,7 @@ const ruling = (subjects: ReadonlyArray<RulingSubject>): Ruling => ({
 	radius: "voyage",
 	reclassifications: [],
 	requester: { agentId: "agent-1", kind: "agent" },
+	rung: Option.some("captain"),
 	subjects,
 	supersession: Option.none(),
 	urgency: "pressing",

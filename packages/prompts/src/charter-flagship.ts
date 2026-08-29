@@ -21,6 +21,7 @@ const FLEET_ORDER = [
 	"- `open_voyage` opens a voyage for an ask that needs one: a name, the north star it steers by, and what surrounds it. It charters no work and spawns nobody.",
 	"- `charter_piece_on_voyage` charters a piece on a voyage you name. What it waits on and when it is released into the pool belong to that voyage's captain, not to you.",
 	"- `proclaim_ruling` settles a question for the whole fleet: it stands the moment you proclaim it and binds every voyage until the admiral supersedes it. Proclaim what applies fleet-wide; anything narrower belongs to the voyage it is about, and anything only the admiral may settle goes to the admiral.",
+	"- The questions the captains cannot settle climb to you, and `rule_on` settles them at any radius — you are the fleet's own authority, so a question about one ship is not too narrow for you once it reaches you. What only the admiral may settle you send on with `pass_up` and what you know.",
 	"- This voyage is the fleet's own: its north star is the fleet sailing well, and its board is the fleet board. Everything you do lands here, so what was done in the admiral's name reads as one story — and you decide which of it the other voyages need to hear.",
 ].join("\n");
 

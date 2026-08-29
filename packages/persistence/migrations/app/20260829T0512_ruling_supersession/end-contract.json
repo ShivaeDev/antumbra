@@ -104,6 +104,10 @@
       "model": "RulingGate",
       "namespace": "__unbound__"
     },
+    "rulingReclassification": {
+      "model": "RulingReclassification",
+      "namespace": "__unbound__"
+    },
     "rulingSubject": {
       "model": "RulingSubject",
       "namespace": "__unbound__"
@@ -2313,6 +2317,21 @@
                   "namespace": "__unbound__"
                 }
               },
+              "reclassifications": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "rulingId"
+                  ]
+                },
+                "to": {
+                  "model": "RulingReclassification",
+                  "namespace": "__unbound__"
+                }
+              },
               "requester": {
                 "cardinality": "N:1",
                 "on": {
@@ -2588,6 +2607,103 @@
               },
               "namespaceId": "__unbound__",
               "table": "rulingGate"
+            }
+          },
+          "RulingReclassification": {
+            "fields": {
+              "at": {
+                "nullable": false,
+                "type": {
+                  "codecId": "sqlite/datetime@1",
+                  "kind": "scalar"
+                }
+              },
+              "by": {
+                "nullable": false,
+                "type": {
+                  "codecId": "sqlite/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "sqlite/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "note": {
+                "nullable": true,
+                "type": {
+                  "codecId": "sqlite/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "radius": {
+                "nullable": true,
+                "type": {
+                  "codecId": "sqlite/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "rulingId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "sqlite/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "urgency": {
+                "nullable": true,
+                "type": {
+                  "codecId": "sqlite/text@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "ruling": {
+                "cardinality": "N:1",
+                "on": {
+                  "localFields": [
+                    "rulingId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Ruling",
+                  "namespace": "__unbound__"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "at": {
+                  "column": "at"
+                },
+                "by": {
+                  "column": "by"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "note": {
+                  "column": "note"
+                },
+                "radius": {
+                  "column": "radius"
+                },
+                "rulingId": {
+                  "column": "rulingId"
+                },
+                "urgency": {
+                  "column": "urgency"
+                }
+              },
+              "namespaceId": "__unbound__",
+              "table": "rulingReclassification"
             }
           },
           "RulingSubject": {
@@ -5042,6 +5158,80 @@
                 }
               ]
             },
+            "rulingReclassification": {
+              "columns": {
+                "at": {
+                  "codecId": "sqlite/datetime@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "by": {
+                  "codecId": "sqlite/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "id": {
+                  "codecId": "sqlite/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "note": {
+                  "codecId": "sqlite/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "radius": {
+                  "codecId": "sqlite/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "rulingId": {
+                  "codecId": "sqlite/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "urgency": {
+                  "codecId": "sqlite/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                }
+              },
+              "foreignKeys": [
+                {
+                  "constraint": true,
+                  "index": true,
+                  "onDelete": "restrict",
+                  "onUpdate": "restrict",
+                  "source": {
+                    "columns": [
+                      "rulingId"
+                    ],
+                    "namespaceId": "__unbound__",
+                    "tableName": "rulingReclassification"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "__unbound__",
+                    "tableName": "ruling"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "rulingId"
+                  ]
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": []
+            },
             "rulingSubject": {
               "columns": {
                 "agentId": {
@@ -5639,7 +5829,7 @@
         "id": "__unbound__"
       }
     },
-    "storageHash": "sha256:ca8613e90746068f19d887f1c3f882501a682565c70ead3d69130bc79a8342ed"
+    "storageHash": "sha256:5567af7d596b751390cc19c38fb2567d7e2557dd51f63026836ac0e18a86bd41"
   },
   "capabilities": {
     "sql": {

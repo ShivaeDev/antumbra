@@ -4,12 +4,14 @@ import { pieceLine } from "#piece-line.ts";
 import { pieceStates } from "#piece-state.ts";
 import { pieceView } from "#piece-view.ts";
 import { piece, stateOf, world } from "#test/piece-ladder-fixtures.ts";
+import type { VoyageRow } from "#voyage-rows.ts";
 
-const reef = {
+const reef: VoyageRow = {
 	backend: "scripted",
 	context: "the reef is uncharted",
 	focusedAt: null,
 	id: "voyage-1",
+	kind: "voyage",
 	name: "Chart the reef",
 	northStar: "every shoal is known",
 };

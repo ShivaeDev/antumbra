@@ -11,7 +11,8 @@
 		"./ruling": "./src/ruling.ts",
 		"./session-events": "./src/session-events.ts",
 		"./session-input": "./src/session-input.ts",
-		"./verdict": "./src/verdict.ts"
+		"./verdict": "./src/verdict.ts",
+		"./voyage": "./src/voyage.ts"
 	},
 	"imports": {
 		"#*": "./src/*"

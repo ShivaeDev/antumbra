@@ -32,6 +32,7 @@ const render = (mode: ConsoleMode): string =>
 					counts: { active: 0, done: 0, pieces: 0, ready: 0 },
 					focusedAt: null,
 					id: "voyage-1",
+					kind: "voyage",
 					name: "Unrelated voyage",
 					northStar: "not part of quay navigation",
 					state: "quiet",

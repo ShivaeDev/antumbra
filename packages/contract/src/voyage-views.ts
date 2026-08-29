@@ -1,4 +1,5 @@
 import { BoardRegisterSchema } from "@antumbra/vocabulary/board";
+import { VoyageKindSchema } from "@antumbra/vocabulary/voyage";
 import { Schema } from "effect";
 import { ArtifactHistoryView, ArtifactView } from "#artifact-views.ts";
 import { ChangeView } from "#change-views.ts";
@@ -118,6 +119,9 @@ export const VoyageSummary = Schema.Struct({
 	counts: PieceCounts,
 	focusedAt: Schema.NullOr(Schema.String),
 	id: Schema.String,
+	// why: which voyage speaks for the fleet is durable truth the window is
+	// told, never a name it recognises or a position it trusts.
+	kind: VoyageKindSchema,
 	name: Schema.String,
 	northStar: Schema.String,
 	state: VoyageState,

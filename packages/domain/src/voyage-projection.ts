@@ -110,6 +110,7 @@ export const summarySeen = (summary: DerivedSummary): VoyageSummary => ({
 	counts: countsSeen(summary.counts),
 	focusedAt: stamp(summary.focusedAt),
 	id: summary.id,
+	kind: summary.kind,
 	name: summary.name,
 	northStar: summary.northStar,
 	state: summary.state,

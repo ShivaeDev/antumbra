@@ -3319,13 +3319,6 @@
                   "kind": "scalar"
                 }
               },
-              "kind": {
-                "nullable": false,
-                "type": {
-                  "codecId": "sqlite/text@1",
-                  "kind": "scalar"
-                }
-              },
               "name": {
                 "nullable": false,
                 "type": {
@@ -3374,9 +3367,6 @@
                 },
                 "id": {
                   "column": "id"
-                },
-                "kind": {
-                  "column": "kind"
                 },
                 "name": {
                   "column": "name"
@@ -5742,15 +5732,6 @@
                   "nativeType": "text",
                   "nullable": false
                 },
-                "kind": {
-                  "codecId": "sqlite/text@1",
-                  "default": {
-                    "kind": "literal",
-                    "value": "voyage"
-                  },
-                  "nativeType": "text",
-                  "nullable": false
-                },
                 "name": {
                   "codecId": "sqlite/text@1",
                   "nativeType": "text",
@@ -5848,7 +5829,7 @@
         "id": "__unbound__"
       }
     },
-    "storageHash": "sha256:141a1f5fcaf20371e6e9e4e7d0984d4e76c181630cdd50383f9895bea28a7c19"
+    "storageHash": "sha256:5567af7d596b751390cc19c38fb2567d7e2557dd51f63026836ac0e18a86bd41"
   },
   "capabilities": {
     "sql": {

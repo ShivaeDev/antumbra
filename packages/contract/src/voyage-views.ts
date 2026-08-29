@@ -2,7 +2,7 @@ import { BoardRegisterSchema } from "@antumbra/vocabulary/board";
 import { Schema } from "effect";
 import { ArtifactHistoryView, ArtifactView } from "#artifact-views.ts";
 import { ChangeView } from "#change-views.ts";
-import { AwaitingRulingView } from "#rulings-views.ts";
+import { AwaitingRulingView } from "#rulings/views.ts";
 
 export const PieceAgentView = Schema.Struct({
 	agentId: Schema.String,

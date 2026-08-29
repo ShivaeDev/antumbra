@@ -1,4 +1,8 @@
-import type { OpenRulingsView, RuleRequest } from "@antumbra/contract";
+import type {
+	OpenRulingsView,
+	ReclassifyRequest,
+	RuleRequest,
+} from "@antumbra/contract";
 import { client, toError } from "#adapters/bridge.ts";
 import type { Unsubscribe } from "#adapters/trpc.ts";
 
@@ -30,3 +34,10 @@ export const watchOpenRulings = (
 // window's guess about it.
 export const ruleOn = (request: RuleRequest, onError: OnError): void =>
 	fired(client.ruleOn.mutate(request), onError);
+
+// why: the reclassified axes reach the card on the next feed, because where a
+// ruling now sits in the open set is the record's reading, not the window's.
+export const reclassifyRuling = (
+	request: ReclassifyRequest,
+	onError: OnError,
+): void => fired(client.reclassifyRuling.mutate(request), onError);

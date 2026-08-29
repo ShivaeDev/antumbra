@@ -117,10 +117,12 @@ it.effectDB(
 						{ detail: null, id: expect.any(String), label: "trust the chart" },
 					],
 					context: asked.context,
+					declared: { radius: "voyage", urgency: "blocking" },
 					gatedPieces: [],
 					id: expect.any(String),
 					question: asked.question,
 					radius: "voyage",
+					reclassifications: [],
 					requestedAt: expect.any(String),
 					requesterAgentId: requesterId,
 					subjects: expect.arrayContaining([
@@ -238,6 +240,58 @@ it.effectDB("refuses a verdict on a ruling nothing asked", function* () {
 		expect(refused).toMatchObject({
 			_tag: "RulingRefused",
 			reason: "no open ruling: ruling-adrift",
+		});
+	}).pipe(Effect.provide(layer));
+});
+
+// why: the window orders and badges by the axes as they stand now, and still
+// shows what the asker declared beside them, so both travel in the view.
+it.effectDB("a reclassification is seen beside the declaration", function* () {
+	yield* Effect.gen(function* () {
+		yield* seedFleet;
+		const rulings = yield* Rulings;
+		const source = yield* RulingSource;
+		const requested = yield* rulings.request(asked);
+
+		const receipt = yield* source.reclassify({
+			note: "every voyage plots over this shoal",
+			radius: "fleet",
+			rulingId: requested.id,
+		});
+
+		expect(receipt).toEqual({ rulingId: requested.id });
+		const open = yield* source.open;
+		expect(open.rulings[0]).toMatchObject({
+			declared: { radius: "voyage", urgency: "blocking" },
+			radius: "fleet",
+			reclassifications: [
+				{
+					at: expect.any(String),
+					by: "admiral",
+					note: "every voyage plots over this shoal",
+					radius: "fleet",
+				},
+			],
+			urgency: "blocking",
+		});
+		expect(open.rulings[0]?.reclassifications[0]).not.toHaveProperty("urgency");
+	}).pipe(Effect.provide(layer));
+});
+
+it.effectDB("refuses a reclassification naming no axis", function* () {
+	yield* Effect.gen(function* () {
+		yield* seedFleet;
+		const rulings = yield* Rulings;
+		const source = yield* RulingSource;
+		const requested = yield* rulings.request(asked);
+
+		const refused = yield* Effect.flip(
+			source.reclassify({ note: "no move", rulingId: requested.id }),
+		);
+
+		expect(refused).toMatchObject({
+			_tag: "RulingRefused",
+			reason: `reclassifying ${requested.id} names no axis`,
 		});
 	}).pipe(Effect.provide(layer));
 });

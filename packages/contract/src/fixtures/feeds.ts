@@ -5,7 +5,7 @@ import { storedEvents } from "#fixtures/transcript.ts";
 import { quayView, reefSummary, reefView } from "#fixtures/voyage.ts";
 import type { Fleet } from "#fleet.ts";
 import type { QuayView } from "#quay-views.ts";
-import type { OpenRulingsView } from "#rulings-views.ts";
+import type { OpenRulingsView } from "#rulings/views.ts";
 import type { SessionEvent } from "#sight.ts";
 import type { VoyageSummary, VoyageView } from "#voyage-views.ts";
 

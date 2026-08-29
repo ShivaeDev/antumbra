@@ -8,6 +8,7 @@ import { get } from "#get.ts";
 import { markDelivered } from "#mark-delivered.ts";
 import { open } from "#open.ts";
 import { openGates } from "#open-gates.ts";
+import { reclassify } from "#reclassify.ts";
 import { request } from "#request.ts";
 import { rule } from "#rule.ts";
 import { standing } from "#standing.ts";
@@ -26,6 +27,7 @@ export const Rulings = defineService({
 		markDelivered,
 		open,
 		openGates,
+		reclassify,
 		request,
 		rule,
 		standing,

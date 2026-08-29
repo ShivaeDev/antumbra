@@ -1,4 +1,4 @@
-import type { OpenRulingsView, RulingView } from "#rulings-views.ts";
+import type { OpenRulingsView, RulingView } from "#rulings/views.ts";
 
 export const soundingReading: RulingView = {
 	choices: [
@@ -11,6 +11,7 @@ export const soundingReading: RulingView = {
 	],
 	context:
 		"The eastern shoal sounds two metres shallower than the chart says, and the next piece plots a course over it.",
+	declared: { radius: "voyage", urgency: "pressing" },
 	gatedPieces: [
 		{
 			pieceId: "piece-2",
@@ -22,6 +23,14 @@ export const soundingReading: RulingView = {
 	id: "ruling-1",
 	question: "Which reading do we plot the course against?",
 	radius: "voyage",
+	reclassifications: [
+		{
+			at: "2026-08-15T09:50:00.000Z",
+			by: "admiral",
+			note: "the surveyor cannot plot anything until this lands",
+			urgency: "blocking",
+		},
+	],
 	requestedAt: "2026-08-15T09:40:00.000Z",
 	requesterAgentId: "agent-2",
 	subjects: [
@@ -35,10 +44,12 @@ export const berthNaming: RulingView = {
 	choices: [],
 	context:
 		"Two repositories name their default branch differently and the berths inherit the disagreement.",
+	declared: { radius: "fleet", urgency: "eventual" },
 	gatedPieces: [],
 	id: "ruling-2",
 	question: "What do we call the branch a berth is cut from?",
 	radius: "fleet",
+	reclassifications: [],
 	requestedAt: "2026-08-15T08:10:00.000Z",
 	requesterAgentId: "agent-1",
 	subjects: [{ kind: "repo", label: "repo-1" }],

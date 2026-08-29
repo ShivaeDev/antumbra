@@ -56,6 +56,28 @@ describe("makeAppRouter, on the rulings", () => {
 		}),
 	);
 
+	it.effect("reclassifying one answers with the ruling it moved", () =>
+		Effect.gen(function* () {
+			const moved = yield* Effect.promise(() =>
+				callerOf().reclassifyRuling({
+					note: "the whole fleet plots over this shoal",
+					radius: "fleet",
+					rulingId: soundingReading.id,
+				}),
+			);
+			expect(moved).toEqual({ rulingId: soundingReading.id });
+		}),
+	);
+
+	it.effect("a reclassification naming no axis comes back refused", () =>
+		Effect.gen(function* () {
+			const outcome = yield* Effect.tryPromise(() =>
+				callerOf().reclassifyRuling({ rulingId: soundingReading.id }),
+			).pipe(Effect.flip);
+			expect(String(outcome.cause)).toContain("names no axis");
+		}),
+	);
+
 	// why: the words are what a later reader is left with, so an empty answer
 	// never reaches the record — the boundary refuses it before the source does.
 	it.effect("refuses a verdict with no words beside it", () =>

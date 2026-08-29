@@ -22,9 +22,10 @@ export const RulingSubjectKindSchema = Schema.Literals([
 ]);
 export type RulingSubjectKind = typeof RulingSubjectKindSchema.Type;
 
-// why: captains join the ladder later; until they do, the admiral answers at
-// every level, and the stored word says so rather than implying it.
-export const RulingAuthoritySchema = Schema.Literals(["admiral"]);
+// why: the flagship captain is the first rung below the admiral to be filled,
+// so a stored answer names which of the two gave it. Voyage captains join the
+// ladder later; until they do, everything narrower still reaches the admiral.
+export const RulingAuthoritySchema = Schema.Literals(["admiral", "flagship"]);
 export type RulingAuthority = typeof RulingAuthoritySchema.Type;
 
 export class StoredRulingValueInvalid extends Data.TaggedError(

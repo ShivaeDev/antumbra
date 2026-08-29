@@ -6,9 +6,9 @@ import {
 	type StoredBoardOwnerKindInvalid,
 	smoothBodies,
 } from "@antumbra/boards";
-import { captainCharter } from "@antumbra/prompts";
 import type { RulingReadFailure } from "@antumbra/rulings";
 import { Effect, Option } from "effect";
+import { charterForKind } from "#charter-flagship.ts";
 import {
 	CaptainAlreadyHailed,
 	CaptainSessionUnavailable,
@@ -99,7 +99,7 @@ export const hailCaptain = (voyageId: string) =>
 		const intentId = yield* reach.submitSpawn({
 			agentId,
 			backend: voyage.backend,
-			charter: captainCharter({
+			charter: charterForKind(voyage.kind, {
 				context: voyage.context,
 				northStar: voyage.northStar,
 				pieceLines: voyageView(world, voyage).pieces.map(pieceLineWithOutcomes),

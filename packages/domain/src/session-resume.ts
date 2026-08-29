@@ -19,7 +19,7 @@ interface SessionResumeDeps {
 	readonly sinkFor: SinkFor;
 	readonly toolsFor: (
 		context: SessionRecoveryContext,
-	) => ReadonlyArray<DirectTool>;
+	) => Effect.Effect<ReadonlyArray<DirectTool>>;
 }
 
 const admitRecoveredSession =
@@ -61,12 +61,6 @@ export const makeSessionRecoveryRuntime = (deps: SessionResumeDeps) =>
 						}),
 					);
 				}
-				const options = {
-					cwd: context.cwd,
-					resume: Option.some(context.nativeRef),
-					sessionId: context.identity.sessionId,
-					tools: deps.toolsFor(context),
-				};
 				return Effect.gen(function* () {
 					yield* refuseSubsession(context.identity.sessionId);
 					const sink = yield* deps.sinkFor(
@@ -77,7 +71,12 @@ export const makeSessionRecoveryRuntime = (deps: SessionResumeDeps) =>
 						permit,
 						context.identity.agentId,
 						backend,
-						options,
+						{
+							cwd: context.cwd,
+							resume: Option.some(context.nativeRef),
+							sessionId: context.identity.sessionId,
+							tools: yield* deps.toolsFor(context),
+						},
 						sink,
 						admitRecoveredSession(context, instruction),
 					);

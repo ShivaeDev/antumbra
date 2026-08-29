@@ -25,6 +25,24 @@ export const isVoyageCaptainIdentity = (
 	Option.isSome(identity.voyageId) &&
 	Option.isNone(identity.pieceId);
 
+// why: the fleet's highest-level agent is not a rank of its own — it is the
+// captain of the one voyage whose kind speaks for the fleet. The kind is read
+// off the same world every other reading of a captain's voyage comes from, so
+// a voyage that stopped being the flagship stops conferring the station.
+export const isFlagshipCaptainIdentity = (
+	world: VoyageWorld,
+	role: string,
+	identity: SessionIdentity,
+): boolean =>
+	isVoyageCaptainIdentity(role, identity) &&
+	Option.match(identity.voyageId, {
+		onNone: () => false,
+		onSome: (voyageId) =>
+			world.voyages.some(
+				(voyage) => voyage.id === voyageId && voyage.kind === "flagship",
+			),
+	});
+
 const isPieceAssigned = (world: VoyageWorld, agentId: string) =>
 	world.assignments.some((assignment) => assignment.agentId === agentId);
 

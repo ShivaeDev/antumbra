@@ -21,6 +21,11 @@ export {
 	supersedeArtifactSpec,
 } from "#crew.ts";
 export { bind } from "#define.ts";
+export {
+	charterVoyagePieceSpec,
+	openVoyageSpec,
+	proclaimRulingSpec,
+} from "#fleet.ts";
 export { readReportSpec } from "#reports.ts";
 export { readRulingsSpec } from "#ruling-readings.ts";
 export { requestRulingSpec } from "#rulings.ts";

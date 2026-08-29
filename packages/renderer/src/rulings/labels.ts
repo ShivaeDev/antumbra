@@ -46,6 +46,7 @@ export const rulingSubjectLabel: Readonly<Record<SubjectKind, string>> = {
 
 export const rulingAuthorityLabel: Readonly<Record<Authority, string>> = {
 	admiral: "the admiral",
+	flagship: "the flagship",
 };
 
 // why: who asked is read as words: an authority that wrote a rule for itself

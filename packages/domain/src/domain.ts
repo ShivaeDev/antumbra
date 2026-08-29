@@ -14,9 +14,7 @@ import { Effect, Layer } from "effect";
 import { AGENTS_ALIVE_GAUGE, AgentDomain } from "#agent-domain-service.ts";
 import { compileAgentRecoveryDemands } from "#agent-recovery-demands.ts";
 import { makeAliveAgentCount } from "#agents-alive.ts";
-import { makeCaptainToolCompiler } from "#captain-tools.ts";
 import { ChangeProcedureService } from "#change-procedures.ts";
-import { makeCrewToolCompiler } from "#crew-tools.ts";
 import { makeCurrentSessionReconciler } from "#current-session-reconcile.ts";
 import { domainCapabilities } from "#domain-capabilities.ts";
 import { imageInputBackendsOf } from "#image-input-backends.ts";
@@ -32,7 +30,7 @@ import { LiveDelegations, LiveDelegationsLive } from "#session-tree-live.ts";
 import { makeSessionNodeReconciler } from "#session-tree-reconcile.ts";
 import { makeSessionTreeSinks } from "#session-tree-sink.ts";
 import { spawnKind } from "#spawn.ts";
-import { isVoyageCaptainIdentity } from "#voyage-captain.ts";
+import { makeAgentToolCompiler } from "#spawn-tools.ts";
 import { VoyageProcedureService } from "#voyage-procedures.ts";
 
 export { AGENTS_ALIVE_GAUGE, AgentDomain } from "#agent-domain-service.ts";
@@ -71,12 +69,9 @@ export const AgentDomainLive = (
 			yield* reconcileSessionNodes;
 			const spawn = yield* spawnKind({ backends, runners, sinkFor });
 			const retire = yield* makeRetireKind;
-			const compileCaptainTools = yield* makeCaptainToolCompiler;
-			const compileCrewTools = yield* makeCrewToolCompiler;
+			const compileTools = yield* makeAgentToolCompiler;
 			const toolsFor = (context: SessionRecoveryContext) =>
-				isVoyageCaptainIdentity(context.role, context.identity)
-					? compileCaptainTools(context.identity)
-					: compileCrewTools(context.identity);
+				compileTools(context.role, context.identity);
 			const recoveryRuntime = yield* makeSessionRecoveryRuntime({
 				backends,
 				sinkFor,

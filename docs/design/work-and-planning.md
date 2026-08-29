@@ -22,9 +22,9 @@ Work is chartered to Agents through explicit assignments. Agents never shop
 for or select their own work from the pool; reconciliation acts on the durable
 demand and assignments captains and the admiral have established.
 
-The fleet-wide concern lives on a distinguished flagship Voyage whose north
-star is the fleet sailing well. Fleet-level rulings and findings belong there,
-while the flagship's captain decides what needs broadcasting.
+The fleet-wide concern lives on a distinguished **flagship** Voyage, and its
+captain is the highest-level agent in the fleet. The
+[flagship guide](flagship.md) owns both.
 
 ## Voyages and their course
 

@@ -12,6 +12,8 @@ fields, states, and wire names.
   interruption, and smoothing.
 - [Rulings](rulings.md) — the Ruling record, radius and urgency, subjects, the
   authority ladder, gating, standing rulings, and reach.
+- [The flagship](flagship.md) — the one flagship Voyage, its captain, that
+  captain's rung on the ladder, and what it may do for the admiral.
 - [Changes and delivery](changes-and-delivery.md) — Outcomes, durable landing,
   the Quay, and GitHub's mapping.
 - [Agent identity, resources, and recovery](agent-recovery.md) — durable Agent

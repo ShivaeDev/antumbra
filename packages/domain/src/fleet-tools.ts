@@ -3,6 +3,7 @@ import {
 	charterVoyagePieceSpec,
 	openVoyageSpec,
 	proclaimRulingSpec,
+	readFleetSpec,
 } from "@antumbra/agent-tools";
 import { Pieces } from "@antumbra/pieces";
 import type { DirectTool } from "@antumbra/plugin-api";
@@ -14,6 +15,7 @@ import {
 import { AGENT_BACKEND_TAGS } from "@antumbra/vocabulary/agent-backend";
 import { Effect } from "effect";
 import { makeCaptainToolCompiler } from "#captain-tools.ts";
+import { renderFleet } from "#fleet-render.ts";
 import { tagSubjects } from "#ruling-inputs.ts";
 import { answered } from "#tool-answers.ts";
 import type { SessionIdentity } from "#tool-identity.ts";
@@ -57,6 +59,9 @@ export const makeFleetToolCompiler = Effect.gen(function* () {
 	const voyages = yield* VoyageProcedureService;
 	return (identity: SessionIdentity): ReadonlyArray<DirectTool> => [
 		...compileCaptainTools(identity),
+		bind(readFleetSpec, () =>
+			answered(identity, readFleetSpec.name, voyages.list, renderFleet),
+		),
 		bind(openVoyageSpec, (input) =>
 			answered(
 				identity,

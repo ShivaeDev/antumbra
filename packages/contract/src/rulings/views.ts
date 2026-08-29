@@ -116,6 +116,8 @@ export type OpenRulingsView = typeof OpenRulingsView.Type;
 // why: a standing ruling reaches the window as what binds — the question, the
 // answer read in its light, and who ruled when — rather than as the request it
 // began as; the label of a picked choice travels so the pick reads as words.
+// Staleness is derived where the work is known and travels as one word, so the
+// window never joins a ruling's subjects against what became of them.
 export const StandingRulingView = Schema.Struct({
 	answer: Schema.String,
 	chosen: Schema.NullOr(Schema.String),
@@ -125,6 +127,7 @@ export const StandingRulingView = Schema.Struct({
 	ruledAt: Schema.String,
 	ruledBy: RulingAuthoritySchema,
 	ruledByAgentId: Schema.NullOr(Schema.String),
+	stale: Schema.Boolean,
 	subjects: Schema.Array(RulingSubjectView),
 	urgency: RulingUrgencySchema,
 });

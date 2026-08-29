@@ -92,6 +92,47 @@ it.effectDB("reads the latest word on each axis", function* () {
 	}).pipe(Effect.provide(layer));
 });
 
+// why: two words about one ruling can land in the same millisecond, and the
+// effective axes are the last word on each — so the order is settled by the
+// record rather than by whatever the database happened to hand back.
+it.effectDB(
+	"settles reclassifications that share a millisecond",
+	function* (db) {
+		yield* Effect.gen(function* () {
+			yield* seedFleet;
+			const rulings = yield* Rulings;
+			const requested = yield* rulings.request(asked);
+			const at = new Date("2026-08-29T09:00:00.000Z");
+			yield* db.RulingReclassification.create({
+				at,
+				by: "admiral",
+				id: "reclassification-later",
+				note: null,
+				radius: "piece",
+				rulingId: requested.id,
+				urgency: null,
+			});
+			yield* db.RulingReclassification.create({
+				at,
+				by: "admiral",
+				id: "reclassification-earlier",
+				note: null,
+				radius: "fleet",
+				rulingId: requested.id,
+				urgency: null,
+			});
+
+			const read = yield* rulings.get(requested.id);
+
+			expect(read.reclassifications.map((row) => row.radius)).toEqual([
+				Option.some("fleet"),
+				Option.some("piece"),
+			]);
+			expect(read.radius).toBe("piece");
+		}).pipe(Effect.provide(layer));
+	},
+);
+
 it.effectDB("meets the open set in its reclassified order", function* () {
 	yield* Effect.gen(function* () {
 		yield* seedFleet;

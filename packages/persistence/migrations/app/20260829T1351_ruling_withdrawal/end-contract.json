@@ -202,21 +202,6 @@
               }
             },
             "relations": {
-              "rulingMoves": {
-                "cardinality": "1:N",
-                "on": {
-                  "localFields": [
-                    "id"
-                  ],
-                  "targetFields": [
-                    "byAgentId"
-                  ]
-                },
-                "to": {
-                  "model": "RulingReclassification",
-                  "namespace": "__unbound__"
-                }
-              },
               "rulingSubjects": {
                 "cardinality": "1:N",
                 "on": {
@@ -229,21 +214,6 @@
                 },
                 "to": {
                   "model": "RulingSubject",
-                  "namespace": "__unbound__"
-                }
-              },
-              "rulingVerdicts": {
-                "cardinality": "1:N",
-                "on": {
-                  "localFields": [
-                    "id"
-                  ],
-                  "targetFields": [
-                    "ruledByAgentId"
-                  ]
-                },
-                "to": {
-                  "model": "Ruling",
                   "namespace": "__unbound__"
                 }
               },
@@ -2279,20 +2249,6 @@
                   "kind": "scalar"
                 }
               },
-              "ruledByAgentId": {
-                "nullable": true,
-                "type": {
-                  "codecId": "sqlite/text@1",
-                  "kind": "scalar"
-                }
-              },
-              "rung": {
-                "nullable": true,
-                "type": {
-                  "codecId": "sqlite/text@1",
-                  "kind": "scalar"
-                }
-              },
               "supersededAt": {
                 "nullable": true,
                 "type": {
@@ -2316,6 +2272,27 @@
               },
               "urgency": {
                 "nullable": false,
+                "type": {
+                  "codecId": "sqlite/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "withdrawnAt": {
+                "nullable": true,
+                "type": {
+                  "codecId": "sqlite/datetime@1",
+                  "kind": "scalar"
+                }
+              },
+              "withdrawnBy": {
+                "nullable": true,
+                "type": {
+                  "codecId": "sqlite/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "withdrawnNote": {
+                "nullable": true,
                 "type": {
                   "codecId": "sqlite/text@1",
                   "kind": "scalar"
@@ -2388,21 +2365,6 @@
                 "on": {
                   "localFields": [
                     "requesterAgentId"
-                  ],
-                  "targetFields": [
-                    "id"
-                  ]
-                },
-                "to": {
-                  "model": "Agent",
-                  "namespace": "__unbound__"
-                }
-              },
-              "ruledByAgent": {
-                "cardinality": "N:1",
-                "on": {
-                  "localFields": [
-                    "ruledByAgentId"
                   ],
                   "targetFields": [
                     "id"
@@ -2497,12 +2459,6 @@
                 "ruledBy": {
                   "column": "ruledBy"
                 },
-                "ruledByAgentId": {
-                  "column": "ruledByAgentId"
-                },
-                "rung": {
-                  "column": "rung"
-                },
                 "supersededAt": {
                   "column": "supersededAt"
                 },
@@ -2514,6 +2470,15 @@
                 },
                 "urgency": {
                   "column": "urgency"
+                },
+                "withdrawnAt": {
+                  "column": "withdrawnAt"
+                },
+                "withdrawnBy": {
+                  "column": "withdrawnBy"
+                },
+                "withdrawnNote": {
+                  "column": "withdrawnNote"
                 }
               },
               "namespaceId": "__unbound__",
@@ -2700,13 +2665,6 @@
                   "kind": "scalar"
                 }
               },
-              "byAgentId": {
-                "nullable": true,
-                "type": {
-                  "codecId": "sqlite/text@1",
-                  "kind": "scalar"
-                }
-              },
               "id": {
                 "nullable": false,
                 "type": {
@@ -2744,21 +2702,6 @@
               }
             },
             "relations": {
-              "byAgent": {
-                "cardinality": "N:1",
-                "on": {
-                  "localFields": [
-                    "byAgentId"
-                  ],
-                  "targetFields": [
-                    "id"
-                  ]
-                },
-                "to": {
-                  "model": "Agent",
-                  "namespace": "__unbound__"
-                }
-              },
               "ruling": {
                 "cardinality": "N:1",
                 "on": {
@@ -2782,9 +2725,6 @@
                 },
                 "by": {
                   "column": "by"
-                },
-                "byAgentId": {
-                  "column": "byAgentId"
                 },
                 "id": {
                   "column": "id"
@@ -5031,16 +4971,6 @@
                   "nativeType": "text",
                   "nullable": true
                 },
-                "ruledByAgentId": {
-                  "codecId": "sqlite/text@1",
-                  "nativeType": "text",
-                  "nullable": true
-                },
-                "rung": {
-                  "codecId": "sqlite/text@1",
-                  "nativeType": "text",
-                  "nullable": true
-                },
                 "supersededAt": {
                   "codecId": "sqlite/datetime@1",
                   "nativeType": "text",
@@ -5060,6 +4990,21 @@
                   "codecId": "sqlite/text@1",
                   "nativeType": "text",
                   "nullable": false
+                },
+                "withdrawnAt": {
+                  "codecId": "sqlite/datetime@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "withdrawnBy": {
+                  "codecId": "sqlite/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "withdrawnNote": {
+                  "codecId": "sqlite/text@1",
+                  "nativeType": "text",
+                  "nullable": true
                 }
               },
               "foreignKeys": [
@@ -5071,26 +5016,6 @@
                   "source": {
                     "columns": [
                       "requesterAgentId"
-                    ],
-                    "namespaceId": "__unbound__",
-                    "tableName": "ruling"
-                  },
-                  "target": {
-                    "columns": [
-                      "id"
-                    ],
-                    "namespaceId": "__unbound__",
-                    "tableName": "agent"
-                  }
-                },
-                {
-                  "constraint": true,
-                  "index": true,
-                  "onDelete": "restrict",
-                  "onUpdate": "restrict",
-                  "source": {
-                    "columns": [
-                      "ruledByAgentId"
                     ],
                     "namespaceId": "__unbound__",
                     "tableName": "ruling"
@@ -5315,11 +5240,6 @@
                   "nativeType": "text",
                   "nullable": false
                 },
-                "byAgentId": {
-                  "codecId": "sqlite/text@1",
-                  "nativeType": "text",
-                  "nullable": true
-                },
                 "id": {
                   "codecId": "sqlite/text@1",
                   "nativeType": "text",
@@ -5365,26 +5285,6 @@
                     ],
                     "namespaceId": "__unbound__",
                     "tableName": "ruling"
-                  }
-                },
-                {
-                  "constraint": true,
-                  "index": true,
-                  "onDelete": "restrict",
-                  "onUpdate": "restrict",
-                  "source": {
-                    "columns": [
-                      "byAgentId"
-                    ],
-                    "namespaceId": "__unbound__",
-                    "tableName": "rulingReclassification"
-                  },
-                  "target": {
-                    "columns": [
-                      "id"
-                    ],
-                    "namespaceId": "__unbound__",
-                    "tableName": "agent"
                   }
                 }
               ],
@@ -6008,7 +5908,7 @@
         "id": "__unbound__"
       }
     },
-    "storageHash": "sha256:5f71da2e5c6a9a3b32838c9342ceb640fd2c09981823ce1d5a650c997337e972"
+    "storageHash": "sha256:063e45fc4cf03d16a38327d54e9f06aa2a92f2d82f449e5800cc6195265553f3"
   },
   "capabilities": {
     "sql": {

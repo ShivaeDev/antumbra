@@ -19,6 +19,9 @@ export interface StoredRuling {
 	readonly supersededBy: string | null;
 	readonly supersededById: string | null;
 	readonly urgency: string;
+	readonly withdrawnAt: Date | null;
+	readonly withdrawnBy: string | null;
+	readonly withdrawnNote: string | null;
 }
 
 export interface StoredRulingReclassification {

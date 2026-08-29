@@ -1,9 +1,7 @@
-import {
-	decodeStoredRulingSubjectKind,
-	StoredRulingValueInvalid,
-} from "@antumbra/vocabulary/ruling";
+import { decodeStoredRulingSubjectKind } from "@antumbra/vocabulary/ruling";
 import { Effect } from "effect";
 import type { RulingReferenceKind, RulingSubject } from "#model.ts";
+import { invalidRulingValue } from "#stored.ts";
 import type { StoredRulingSubject } from "#stored-rows.ts";
 
 const REFERENCE_COLUMN: Readonly<
@@ -15,9 +13,6 @@ const REFERENCE_COLUMN: Readonly<
 	voyage: (row) => row.voyageId,
 };
 
-const invalid = (field: string, rulingId: string, value: unknown) =>
-	new StoredRulingValueInvalid({ field, rulingId, value });
-
 const reference = (
 	rulingId: string,
 	kind: RulingReferenceKind,
@@ -25,7 +20,7 @@ const reference = (
 ) => {
 	const id = REFERENCE_COLUMN[kind](row);
 	return id === null
-		? Effect.fail(invalid("subject reference", rulingId, row))
+		? Effect.fail(invalidRulingValue("subject reference", rulingId, row))
 		: Effect.succeed<RulingSubject>({ id, kind });
 };
 
@@ -38,6 +33,6 @@ export const storedSubject = (rulingId: string, row: StoredRulingSubject) =>
 			return yield* reference(rulingId, kind, row);
 		}
 		return row.tag === null
-			? yield* invalid("subject tag", rulingId, row)
+			? yield* invalidRulingValue("subject tag", rulingId, row)
 			: ({ kind, tag: row.tag } satisfies RulingSubject);
 	});

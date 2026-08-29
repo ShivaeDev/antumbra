@@ -9,6 +9,7 @@ import {
 	confineWindow,
 	type WindowOpening,
 } from "#adapters/windows/attach.ts";
+import { defaultConsole } from "#adapters/windows/layout.ts";
 import type { WindowShell } from "#adapters/windows/registry.ts";
 
 // why: one document string serves every window; which window is which lives in
@@ -63,15 +64,4 @@ export const openWindow = (opening: WindowOpening) =>
 // why: the app is one console — a launch, a second launch, and a console that
 // was closed while children stayed open all end at the same single window.
 export const openConsole = (shell: WindowShell) =>
-	Effect.asVoid(
-		openWindow({
-			...shell,
-			place: {
-				changeId: null,
-				mode: "fleet",
-				role: "console",
-				sessionId: null,
-				voyageId: null,
-			},
-		}),
-	);
+	Effect.asVoid(openWindow({ ...shell, place: defaultConsole }));

@@ -369,6 +369,9 @@ model Ruling {
   supersededById     String?
   supersededAt       DateTime?
   supersededBy       String?
+  withdrawnAt        DateTime?
+  withdrawnBy        String?
+  withdrawnNote      String?
   deliveredAt        DateTime?
   rung               String?
   createdAt          DateTime  @default(now())

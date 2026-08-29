@@ -55,15 +55,6 @@ export interface RulingProclamation extends RulingAxes {
 	readonly subjects: ReadonlyArray<RulingSubject>;
 }
 
-// why: the admiral overrules a ruling below by superseding it with a later
-// one; the old ruling keeps its record and gains only who did it, when, and
-// which ruling now speaks for its scope.
-export interface RulingSupersedeInput {
-	readonly by: RulingAuthority;
-	readonly byRulingId: string;
-	readonly rulingId: string;
-}
-
 export interface RulingReclassifyInput {
 	readonly by: RulingAuthority;
 	readonly byAgentId?: string;

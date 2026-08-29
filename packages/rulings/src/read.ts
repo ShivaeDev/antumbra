@@ -8,12 +8,8 @@ import { effectiveAxes } from "#axes.ts";
 import { RulingNotFound } from "#errors.ts";
 import type { Ruling, RulingAxes, RulingChoice } from "#model.ts";
 import { storedRequester } from "#requester.ts";
-import {
-	storedAnswer,
-	storedReclassification,
-	storedRung,
-	storedSupersession,
-} from "#stored.ts";
+import { storedAnswer, storedReclassification, storedRung } from "#stored.ts";
+import { storedSupersession, storedWithdrawal } from "#stored-retirement.ts";
 import type { StoredRuling } from "#stored-rows.ts";
 import { storedSubject } from "#stored-subjects.ts";
 
@@ -45,8 +41,11 @@ const gatedPieceIdsOf = (rulingId: string) =>
 const reclassificationsOf = (rulingId: string) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
+		// why: `at` is a millisecond and two words about one ruling can share it,
+		// so the id settles the tie — the fold that reads the latest word on each
+		// axis must not depend on what order rows came back in.
 		const rows = yield* db.RulingReclassification.where({ rulingId })
-			.orderBy((row) => row.at.asc())
+			.orderBy([(row) => row.at.asc(), (row) => row.id.asc()])
 			.all();
 		return yield* Effect.forEach(rows, (row) =>
 			storedReclassification(rulingId, row),
@@ -90,6 +89,7 @@ export const loadRuling = (row: StoredRuling) =>
 			rung: yield* storedRung(row),
 			subjects: yield* subjectsOf(row.id),
 			supersession: yield* storedSupersession(row),
+			withdrawal: yield* storedWithdrawal(row),
 			...effectiveAxes(declared, reclassifications),
 		} satisfies Ruling;
 	});

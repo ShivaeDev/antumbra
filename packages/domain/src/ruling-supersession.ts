@@ -13,6 +13,10 @@ export const supersessionFailure = (
 			return new RulingRefused({
 				reason: `ruling ${cause.rulingId} was already superseded by ${cause.byRulingId}`,
 			});
+		case "RulingAlreadyWithdrawn":
+			return new RulingRefused({
+				reason: `ruling ${cause.rulingId} was already withdrawn`,
+			});
 		case "RulingNotFound":
 			return new RulingRefused({ reason: `no ruling: ${cause.rulingId}` });
 		case "RulingNotRuled":

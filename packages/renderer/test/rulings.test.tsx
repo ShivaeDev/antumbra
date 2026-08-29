@@ -35,6 +35,7 @@ vi.mock("#adapters/trpc-rulings.ts", () => ({
 	supersedeRuling: vi.fn(),
 	watchOpenRulings,
 	watchStandingRulings: vi.fn(() => vi.fn()),
+	withdrawRuling: vi.fn(),
 }));
 
 const shoal: RulingView = {

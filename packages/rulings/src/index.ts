@@ -6,13 +6,13 @@ export type {
 	RulingProclamation,
 	RulingReclassifyInput,
 	RulingRequest,
-	RulingSupersedeInput,
 	RulingVerdict,
 } from "#acts.ts";
 export { answersAt, reachesRung } from "#authority.ts";
 export {
 	RulingAlreadyRuled,
 	RulingAlreadySuperseded,
+	RulingAlreadyWithdrawn,
 	RulingBelowRung,
 	RulingChoiceUnknown,
 	RulingGatePieceMissing,
@@ -33,6 +33,7 @@ export type {
 	RulingRequestFailure,
 	RulingSupersessionFailure,
 	RulingVerdictFailure,
+	RulingWithdrawalFailure,
 } from "#failures.ts";
 export type {
 	Ruling,
@@ -43,6 +44,11 @@ export type {
 	RulingReclassification,
 	RulingRequester,
 	RulingSubject,
-	RulingSupersession,
 } from "#model.ts";
+export type {
+	RulingSupersedeInput,
+	RulingSupersession,
+	RulingWithdrawal,
+	RulingWithdrawInput,
+} from "#retirement.ts";
 export { Rulings, RulingsLive } from "#rulings.ts";

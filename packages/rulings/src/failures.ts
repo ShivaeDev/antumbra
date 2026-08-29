@@ -3,6 +3,7 @@ import type { StoredRulingValueInvalid } from "@antumbra/vocabulary/ruling";
 import type {
 	RulingAlreadyRuled,
 	RulingAlreadySuperseded,
+	RulingAlreadyWithdrawn,
 	RulingBelowRung,
 	RulingChoiceUnknown,
 	RulingGatePieceMissing,
@@ -40,10 +41,18 @@ export type RulingGateFailure =
 
 export type RulingSupersessionFailure =
 	| RulingAlreadySuperseded
+	| RulingAlreadyWithdrawn
 	| RulingNotFound
 	| RulingNotRuled
 	| RulingReadFailure
 	| RulingSupersedesItself;
+
+export type RulingWithdrawalFailure =
+	| RulingAlreadySuperseded
+	| RulingAlreadyWithdrawn
+	| RulingNotFound
+	| RulingNotRuled
+	| RulingReadFailure;
 
 export type RulingReclassifyFailure =
 	| RulingAlreadyRuled

@@ -6,18 +6,17 @@ import {
 	StoredRulingValueInvalid,
 } from "@antumbra/vocabulary/ruling";
 import { Effect, Option, type Result } from "effect";
-import type {
-	RulingAnswer,
-	RulingReclassification,
-	RulingSupersession,
-} from "#model.ts";
+import type { RulingAnswer, RulingReclassification } from "#model.ts";
 import type {
 	StoredRuling,
 	StoredRulingReclassification,
 } from "#stored-rows.ts";
 
-const invalid = (field: string, rulingId: string, value: unknown) =>
-	new StoredRulingValueInvalid({ field, rulingId, value });
+export const invalidRulingValue = (
+	field: string,
+	rulingId: string,
+	value: unknown,
+) => new StoredRulingValueInvalid({ field, rulingId, value });
 
 // why: a ruling is unruled or fully ruled; a row holding only part of an answer
 // is corruption rather than a half-answered question the readers must model.
@@ -32,7 +31,7 @@ export const storedAnswer = (row: StoredRuling) =>
 			return Option.none<RulingAnswer>();
 		}
 		if (row.answer === null || row.ruledAt === null || row.ruledBy === null) {
-			return yield* invalid("answer", row.id, row);
+			return yield* invalidRulingValue("answer", row.id, row);
 		}
 		return Option.some<RulingAnswer>({
 			at: row.ruledAt,
@@ -53,39 +52,15 @@ export const storedRung = (row: StoredRuling) =>
 		const asked = row.requesterAgentId !== null;
 		if (row.rung === null) {
 			return asked
-				? yield* invalid("rung", row.id, row)
+				? yield* invalidRulingValue("rung", row.id, row)
 				: Option.none<RulingAuthority>();
 		}
 		if (!asked) {
-			return yield* invalid("rung", row.id, row);
+			return yield* invalidRulingValue("rung", row.id, row);
 		}
 		return Option.some(
 			yield* Effect.fromResult(decodeStoredRulingAuthority(row.id, row.rung)),
 		);
-	});
-
-// why: supersession is one appended fact with its provenance; a row naming
-// the ruling that took over without who did it or when is corruption.
-export const storedSupersession = (row: StoredRuling) =>
-	Effect.gen(function* () {
-		const parts = [row.supersededAt, row.supersededBy, row.supersededById];
-		if (parts.every((part) => part === null)) {
-			return Option.none<RulingSupersession>();
-		}
-		if (
-			row.supersededAt === null ||
-			row.supersededBy === null ||
-			row.supersededById === null
-		) {
-			return yield* invalid("supersession", row.id, row);
-		}
-		return Option.some<RulingSupersession>({
-			at: row.supersededAt,
-			by: yield* Effect.fromResult(
-				decodeStoredRulingAuthority(row.id, row.supersededBy),
-			),
-			byRulingId: row.supersededById,
-		});
 	});
 
 const storedAxis = <Value>(

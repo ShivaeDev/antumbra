@@ -250,6 +250,7 @@ it.effectDB("a proclamation stands without ever being open", function* () {
 				ruledAt: expect.any(String),
 				ruledBy: "admiral",
 				ruledByAgentId: null,
+				stale: false,
 				subjects: [{ kind: "tag", label: "dredging" }],
 				urgency: "eventual",
 			},

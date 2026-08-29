@@ -7,7 +7,9 @@ import type {
 	RulingReclassifiedReceipt,
 	RulingRuledReceipt,
 	RulingSupersededReceipt,
+	RulingWithdrawnReceipt,
 	SupersedeRequest,
+	WithdrawRequest,
 } from "#rulings/requests.ts";
 import type { OpenRulingsView, StandingRulingsView } from "#rulings/views.ts";
 
@@ -45,5 +47,8 @@ export class RulingSource extends Context.Service<
 		readonly supersede: (
 			request: SupersedeRequest,
 		) => Effect.Effect<RulingSupersededReceipt, RulingFailure | RulingRefused>;
+		readonly withdraw: (
+			request: WithdrawRequest,
+		) => Effect.Effect<RulingWithdrawnReceipt, RulingFailure | RulingRefused>;
 	}
 >()("@antumbra/contract/RulingSource") {}

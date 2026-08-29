@@ -100,7 +100,7 @@ independent of what the requesting Piece lands.
 
 ## Standing rulings and smoothing
 
-A ruling **stands** once ruled and until it is superseded. The standing set
+A ruling **stands** once ruled and until it is retired. The standing set
 of a scope needs smoothing as a Board does: rulings get superseded, stop
 mattering, could be combined into one broader rule, or lose the question
 that gave them meaning. Smoothing a scope's rulings means reclassifying,
@@ -108,6 +108,21 @@ pushing a ruling upward where it turns out to apply more widely,
 consolidating, and retiring — always by appending with provenance, with
 every source still reachable. Dedicated agents do that work; a captain's
 context is not spent on it.
+
+Retiring has two shapes. A ruling is **superseded** when a later ruling takes
+over its scope, and **withdrawn** when an authority retires it with no
+successor — the question stopped mattering rather than getting a different
+answer. A withdrawal appends who withdrew it, when, and a note saying why;
+the note stands where the successor would have, so nobody later meets a rule
+that stopped applying for no stated reason. Both leave the standing set,
+neither edits the record, and both stay reachable by id.
+
+A standing ruling is **stale** when it names at least one Piece or Voyage and
+every one of them has concluded. Staleness is derived from the state of that
+work rather than stored on the ruling, and it is surfaced rather than acted
+on: a stale ruling binds every agent it names until an authority withdraws
+it. Tags, repositories and Agents outlive any amount of work, so they neither
+age a ruling nor keep it fresh.
 
 ## Reach
 

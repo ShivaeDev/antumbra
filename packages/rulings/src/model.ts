@@ -5,6 +5,7 @@ import type {
 	RulingUrgency,
 } from "@antumbra/vocabulary/ruling";
 import type { Option } from "effect";
+import type { RulingSupersession, RulingWithdrawal } from "#retirement.ts";
 
 export interface RulingAxes {
 	readonly radius: RulingRadius;
@@ -33,12 +34,6 @@ export interface RulingGate {
 	readonly pieceId: string;
 	readonly question: string;
 	readonly rulingId: string;
-}
-
-export interface RulingSupersession {
-	readonly at: Date;
-	readonly by: RulingAuthority;
-	readonly byRulingId: string;
 }
 
 // why: a reclassification appends beside the asker's declaration and never
@@ -91,4 +86,5 @@ export interface Ruling {
 	readonly subjects: ReadonlyArray<RulingSubject>;
 	readonly supersession: Option.Option<RulingSupersession>;
 	readonly urgency: RulingUrgency;
+	readonly withdrawal: Option.Option<RulingWithdrawal>;
 }

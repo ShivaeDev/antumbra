@@ -16,7 +16,7 @@ import type {
 } from '@prisma-next/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'sha256:5f71da2e5c6a9a3b32838c9342ceb640fd2c09981823ce1d5a650c997337e972'>;
+  StorageHashBase<'sha256:2f5c9c0c9913b1efdf91e8e5e0502ca9239ddcb7dc81f3d7553ee343851bc4c1'>;
 export type ExecutionHash = ExecutionHashBase<string>;
 export type ProfileHash =
   ProfileHashBase<'sha256:3cc333ecad9f3f4c7229370a9d2c37e908cdce0f8d2e9fb132d50605b024eff2'>;
@@ -238,6 +238,9 @@ export type FieldOutputTypes = {
       readonly supersededById: CodecTypes['sqlite/text@1']['output'] | null;
       readonly supersededAt: CodecTypes['sqlite/datetime@1']['output'] | null;
       readonly supersededBy: CodecTypes['sqlite/text@1']['output'] | null;
+      readonly withdrawnAt: CodecTypes['sqlite/datetime@1']['output'] | null;
+      readonly withdrawnBy: CodecTypes['sqlite/text@1']['output'] | null;
+      readonly withdrawnNote: CodecTypes['sqlite/text@1']['output'] | null;
       readonly deliveredAt: CodecTypes['sqlite/datetime@1']['output'] | null;
       readonly rung: CodecTypes['sqlite/text@1']['output'] | null;
       readonly createdAt: CodecTypes['sqlite/datetime@1']['output'];
@@ -542,6 +545,9 @@ export type FieldInputTypes = {
       readonly supersededById: CodecTypes['sqlite/text@1']['input'] | null;
       readonly supersededAt: CodecTypes['sqlite/datetime@1']['input'] | null;
       readonly supersededBy: CodecTypes['sqlite/text@1']['input'] | null;
+      readonly withdrawnAt: CodecTypes['sqlite/datetime@1']['input'] | null;
+      readonly withdrawnBy: CodecTypes['sqlite/text@1']['input'] | null;
+      readonly withdrawnNote: CodecTypes['sqlite/text@1']['input'] | null;
       readonly deliveredAt: CodecTypes['sqlite/datetime@1']['input'] | null;
       readonly rung: CodecTypes['sqlite/text@1']['input'] | null;
       readonly createdAt: CodecTypes['sqlite/datetime@1']['input'];
@@ -849,6 +855,9 @@ export type StorageColumnTypes = {
       readonly supersededBy: CodecTypes['sqlite/text@1']['output'] | null;
       readonly supersededById: CodecTypes['sqlite/text@1']['output'] | null;
       readonly urgency: CodecTypes['sqlite/text@1']['output'];
+      readonly withdrawnAt: CodecTypes['sqlite/datetime@1']['output'] | null;
+      readonly withdrawnBy: CodecTypes['sqlite/text@1']['output'] | null;
+      readonly withdrawnNote: CodecTypes['sqlite/text@1']['output'] | null;
     };
     readonly rulingChoice: {
       readonly detail: CodecTypes['sqlite/text@1']['output'] | null;
@@ -1153,6 +1162,9 @@ export type StorageColumnInputTypes = {
       readonly supersededBy: CodecTypes['sqlite/text@1']['input'] | null;
       readonly supersededById: CodecTypes['sqlite/text@1']['input'] | null;
       readonly urgency: CodecTypes['sqlite/text@1']['input'];
+      readonly withdrawnAt: CodecTypes['sqlite/datetime@1']['input'] | null;
+      readonly withdrawnBy: CodecTypes['sqlite/text@1']['input'] | null;
+      readonly withdrawnNote: CodecTypes['sqlite/text@1']['input'] | null;
     };
     readonly rulingChoice: {
       readonly detail: CodecTypes['sqlite/text@1']['input'] | null;
@@ -2398,6 +2410,21 @@ type ContractBase = Omit<
                   readonly nullable: true;
                 };
                 readonly supersededBy: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'sqlite/text@1';
+                  readonly nullable: true;
+                };
+                readonly withdrawnAt: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'sqlite/datetime@1';
+                  readonly nullable: true;
+                };
+                readonly withdrawnBy: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'sqlite/text@1';
+                  readonly nullable: true;
+                };
+                readonly withdrawnNote: {
                   readonly nativeType: 'text';
                   readonly codecId: 'sqlite/text@1';
                   readonly nullable: true;
@@ -4521,6 +4548,18 @@ type ContractBase = Omit<
                 readonly nullable: true;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
               };
+              readonly withdrawnAt: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/datetime@1' };
+              };
+              readonly withdrawnBy: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
+              };
+              readonly withdrawnNote: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
+              };
               readonly deliveredAt: {
                 readonly nullable: true;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/datetime@1' };
@@ -4654,6 +4693,9 @@ type ContractBase = Omit<
                 readonly supersededById: { readonly column: 'supersededById' };
                 readonly supersededAt: { readonly column: 'supersededAt' };
                 readonly supersededBy: { readonly column: 'supersededBy' };
+                readonly withdrawnAt: { readonly column: 'withdrawnAt' };
+                readonly withdrawnBy: { readonly column: 'withdrawnBy' };
+                readonly withdrawnNote: { readonly column: 'withdrawnNote' };
                 readonly deliveredAt: { readonly column: 'deliveredAt' };
                 readonly rung: { readonly column: 'rung' };
                 readonly createdAt: { readonly column: 'createdAt' };

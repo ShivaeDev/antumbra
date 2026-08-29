@@ -233,20 +233,21 @@ it.live(
 		),
 );
 
-it.live("a question asked before the rung is held climbs once it is", () =>
+// why: nothing rings the ruling feed between the question and the hail, so the
+// mail arriving proves the hail itself woke the ascent — not a later write that
+// happened to walk the record again.
+it.live("a question asked before its rung is held climbs on the hail", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
 		const scripted = yield* makeScriptedBackend;
 		yield* Effect.gen(function* () {
 			const db = yield* Database;
-			const feeds = yield* DomainFeeds;
 			const reefId = yield* crewReef;
 
 			const rulingId = yield* ask("which reading do we trust?", "captain");
 			expect(yield* db.BoardEntry.all()).toEqual([]);
 
 			const captain = yield* hailCaptain(scripted, reefId);
-			yield* feeds.publishRulingRefresh();
 
 			const entries = yield* carried(captain, 1);
 			expect(entries[0]?.sourceRef).toBe(`ruling-ascent:${rulingId}`);

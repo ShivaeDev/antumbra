@@ -48,6 +48,15 @@ const attachment = (sessionId: string) =>
 		Effect.annotateSpans({ sessionId }),
 	);
 
+const readThroughOrm = (sessionId: string) =>
+	Effect.void.pipe(
+		Effect.withSpan("prisma.Intent.all", {
+			attributes: { "db.system": "postgresql" },
+		}),
+		Effect.withSpan("fabric.openAttachment"),
+		Effect.annotateSpans({ sessionId }),
+	);
+
 describe("dev trace sink", () => {
 	it.effect("makes a run's spans queryable by the Session they belong to", () =>
 		Effect.gen(function* () {
@@ -124,6 +133,20 @@ describe("dev trace sink", () => {
 				"session-5",
 				"session-6",
 			]);
+		}),
+	);
+
+	it.effect("records the domain's spans and not the ORM's query spans", () =>
+		Effect.gen(function* () {
+			const directory = yield* temporaryDirectory;
+			yield* wholeRun(directory, readThroughOrm("session-d"));
+			const rows = readRows(
+				directory,
+				"SELECT name, session_id FROM spans ORDER BY name",
+				[],
+			);
+			expect(rows.map((row) => row.name)).toEqual(["fabric.openAttachment"]);
+			expect(rows[0]?.session_id).toBe("session-d");
 		}),
 	);
 });

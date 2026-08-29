@@ -1,5 +1,5 @@
 import { expect, it } from "@effect/vitest";
-import { Effect } from "effect";
+import { Effect, Option } from "effect";
 import type { AgentBackend } from "#backend.ts";
 import type { ChangeHost } from "#change-host.ts";
 import { makePluginHost } from "#context.ts";
@@ -26,9 +26,13 @@ const fakeChangeHost = (tag: string): ChangeHost => ({
 	tag,
 });
 
+const emptyHost = makePluginHost({
+	findExecutable: () => Effect.succeed(Option.none<string>()),
+});
+
 it.effect("collects registered backends by tag", () =>
 	Effect.gen(function* () {
-		const host = yield* makePluginHost;
+		const host = yield* emptyHost;
 		yield* host.context.registerAgentBackend(fakeBackend("claude"));
 		yield* host.context.registerAgentBackend(fakeBackend("codex"));
 		const backends = yield* host.backends;
@@ -38,7 +42,7 @@ it.effect("collects registered backends by tag", () =>
 
 it.effect("rejects a second backend with the same tag", () =>
 	Effect.gen(function* () {
-		const host = yield* makePluginHost;
+		const host = yield* emptyHost;
 		yield* host.context.registerAgentBackend(fakeBackend("claude"));
 		const outcome = yield* host.context
 			.registerAgentBackend(fakeBackend("claude"))
@@ -49,7 +53,7 @@ it.effect("rejects a second backend with the same tag", () =>
 
 it.effect("collects registered change hosts by tag", () =>
 	Effect.gen(function* () {
-		const host = yield* makePluginHost;
+		const host = yield* emptyHost;
 		yield* host.context.registerChangeHost(fakeChangeHost("github"));
 		const hosts = yield* host.changeHosts;
 		expect([...hosts.keys()]).toEqual(["github"]);
@@ -58,7 +62,7 @@ it.effect("collects registered change hosts by tag", () =>
 
 it.effect("rejects a second change host with the same tag", () =>
 	Effect.gen(function* () {
-		const host = yield* makePluginHost;
+		const host = yield* emptyHost;
 		yield* host.context.registerChangeHost(fakeChangeHost("github"));
 		const outcome = yield* host.context
 			.registerChangeHost(fakeChangeHost("github"))
@@ -69,7 +73,7 @@ it.effect("rejects a second change host with the same tag", () =>
 
 it.effect("secrets and settings are declared but empty in v0", () =>
 	Effect.gen(function* () {
-		const host = yield* makePluginHost;
+		const host = yield* emptyHost;
 		const secret = yield* host.context.secrets.get("anything");
 		const setting = yield* host.context.settings.get("anything");
 		expect(secret._tag).toBe("None");

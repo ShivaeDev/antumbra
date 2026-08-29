@@ -73,14 +73,14 @@ const makeHandle = (raw: RawSession) =>
 		}),
 	);
 
-export interface ClaudePluginOptions {
+export interface ClaudeBackendOptions {
 	readonly executable: string;
 }
 
 // why: opening is scoped, so an abandoned handle can never leave the SDK
 // subprocess running.
 const rawSession = (
-	options: ClaudePluginOptions,
+	options: ClaudeBackendOptions,
 	session: OpenSessionOptions,
 	call: ToolCall,
 ) =>
@@ -99,7 +99,7 @@ const rawSession = (
 		(raw) => Effect.sync(() => raw.close()),
 	);
 
-export const claudeBackend = (options: ClaudePluginOptions): AgentBackend => ({
+export const claudeBackend = (options: ClaudeBackendOptions): AgentBackend => ({
 	audit: claudeAudit,
 	capabilities: {
 		fork: true,
@@ -115,7 +115,21 @@ export const claudeBackend = (options: ClaudePluginOptions): AgentBackend => ({
 	tag: "claude",
 });
 
-export const claudePlugin = (options: ClaudePluginOptions): AntumbraPlugin => ({
-	activate: (context) => context.registerAgentBackend(claudeBackend(options)),
+// why: Antumbra drives the CLI the user installed and bundles none — the
+// backend is offered only when one is found, because a backend that cannot
+// spawn is not a backend.
+export const claudePlugin = (): AntumbraPlugin => ({
+	activate: (context) =>
+		Effect.flatMap(
+			context.findExecutable("claude"),
+			Option.match({
+				onNone: () =>
+					Effect.logWarning(
+						"claude: no executable found on the login PATH; backend not registered",
+					),
+				onSome: (executable) =>
+					context.registerAgentBackend(claudeBackend({ executable })),
+			}),
+		),
 	name: "claude",
 });

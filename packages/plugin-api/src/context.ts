@@ -28,6 +28,11 @@ export interface SettingsApi {
 }
 
 export interface PluginContext {
+	// why: a backend plugin drives a CLI the user installed; the host knows
+	// where to look for it, the plugin knows the name to look for.
+	readonly findExecutable: (
+		name: string,
+	) => Effect.Effect<Option.Option<string>>;
 	readonly registerAgentBackend: (
 		backend: AgentBackend,
 	) => Effect.Effect<void, DuplicateBackendTag>;
@@ -73,39 +78,41 @@ const registerInto =
 			yield* Ref.set(registry, new Map(current).set(entry.tag, entry));
 		});
 
-export const makePluginHost = Effect.gen(function* () {
-	const backendRegistry = yield* Ref.make<ReadonlyMap<string, AgentBackend>>(
-		new Map(),
-	);
-	const runnerRegistry = yield* Ref.make<ReadonlyMap<string, Runner>>(
-		new Map(),
-	);
-	const changeHostRegistry = yield* Ref.make<ReadonlyMap<string, ChangeHost>>(
-		new Map(),
-	);
-	const empty = {
-		get: () => Effect.succeed(Option.none<string>()),
-	};
-	const context: PluginContext = {
-		registerAgentBackend: registerInto(
-			backendRegistry,
-			(tag) => new DuplicateBackendTag({ tag }),
-		),
-		registerChangeHost: registerInto(
-			changeHostRegistry,
-			(tag) => new DuplicateChangeHostTag({ tag }),
-		),
-		registerRunner: registerInto(
-			runnerRegistry,
-			(tag) => new DuplicateRunnerTag({ tag }),
-		),
-		secrets: empty,
-		settings: empty,
-	};
-	return {
-		backends: Ref.get(backendRegistry),
-		changeHosts: Ref.get(changeHostRegistry),
-		context,
-		runners: Ref.get(runnerRegistry),
-	} satisfies PluginHost;
-});
+export const makePluginHost = (host: Pick<PluginContext, "findExecutable">) =>
+	Effect.gen(function* () {
+		const backendRegistry = yield* Ref.make<ReadonlyMap<string, AgentBackend>>(
+			new Map(),
+		);
+		const runnerRegistry = yield* Ref.make<ReadonlyMap<string, Runner>>(
+			new Map(),
+		);
+		const changeHostRegistry = yield* Ref.make<ReadonlyMap<string, ChangeHost>>(
+			new Map(),
+		);
+		const empty = {
+			get: () => Effect.succeed(Option.none<string>()),
+		};
+		const context: PluginContext = {
+			findExecutable: host.findExecutable,
+			registerAgentBackend: registerInto(
+				backendRegistry,
+				(tag) => new DuplicateBackendTag({ tag }),
+			),
+			registerChangeHost: registerInto(
+				changeHostRegistry,
+				(tag) => new DuplicateChangeHostTag({ tag }),
+			),
+			registerRunner: registerInto(
+				runnerRegistry,
+				(tag) => new DuplicateRunnerTag({ tag }),
+			),
+			secrets: empty,
+			settings: empty,
+		};
+		return {
+			backends: Ref.get(backendRegistry),
+			changeHosts: Ref.get(changeHostRegistry),
+			context,
+			runners: Ref.get(runnerRegistry),
+		} satisfies PluginHost;
+	});

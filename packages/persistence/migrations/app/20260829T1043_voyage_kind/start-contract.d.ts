@@ -16,7 +16,7 @@ import type {
 } from '@prisma-next/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'sha256:141a1f5fcaf20371e6e9e4e7d0984d4e76c181630cdd50383f9895bea28a7c19'>;
+  StorageHashBase<'sha256:5567af7d596b751390cc19c38fb2567d7e2557dd51f63026836ac0e18a86bd41'>;
 export type ExecutionHash = ExecutionHashBase<string>;
 export type ProfileHash =
   ProfileHashBase<'sha256:3cc333ecad9f3f4c7229370a9d2c37e908cdce0f8d2e9fb132d50605b024eff2'>;
@@ -308,7 +308,6 @@ export type FieldOutputTypes = {
     };
     readonly Voyage: {
       readonly id: CodecTypes['sqlite/text@1']['output'];
-      readonly kind: CodecTypes['sqlite/text@1']['output'];
       readonly name: CodecTypes['sqlite/text@1']['output'];
       readonly northStar: CodecTypes['sqlite/text@1']['output'];
       readonly context: CodecTypes['sqlite/text@1']['output'];
@@ -608,7 +607,6 @@ export type FieldInputTypes = {
     };
     readonly Voyage: {
       readonly id: CodecTypes['sqlite/text@1']['input'];
-      readonly kind: CodecTypes['sqlite/text@1']['input'];
       readonly name: CodecTypes['sqlite/text@1']['input'];
       readonly northStar: CodecTypes['sqlite/text@1']['input'];
       readonly context: CodecTypes['sqlite/text@1']['input'];
@@ -912,7 +910,6 @@ export type StorageColumnTypes = {
       readonly createdAt: CodecTypes['sqlite/datetime@1']['output'];
       readonly focusedAt: CodecTypes['sqlite/datetime@1']['output'] | null;
       readonly id: CodecTypes['sqlite/text@1']['output'];
-      readonly kind: CodecTypes['sqlite/text@1']['output'];
       readonly name: CodecTypes['sqlite/text@1']['output'];
       readonly northStar: CodecTypes['sqlite/text@1']['output'];
     };
@@ -1212,7 +1209,6 @@ export type StorageColumnInputTypes = {
       readonly createdAt: CodecTypes['sqlite/datetime@1']['input'];
       readonly focusedAt: CodecTypes['sqlite/datetime@1']['input'] | null;
       readonly id: CodecTypes['sqlite/text@1']['input'];
-      readonly kind: CodecTypes['sqlite/text@1']['input'];
       readonly name: CodecTypes['sqlite/text@1']['input'];
       readonly northStar: CodecTypes['sqlite/text@1']['input'];
     };
@@ -2955,15 +2951,6 @@ type ContractBase = Omit<
                   readonly nativeType: 'text';
                   readonly codecId: 'sqlite/text@1';
                   readonly nullable: false;
-                };
-                readonly kind: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'sqlite/text@1';
-                  readonly nullable: false;
-                  readonly default: {
-                    readonly kind: 'literal';
-                    readonly value: DefaultLiteralValue<'sqlite/text@1', 'voyage'>;
-                  };
                 };
                 readonly name: {
                   readonly nativeType: 'text';
@@ -5082,10 +5069,6 @@ type ContractBase = Omit<
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
               };
-              readonly kind: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
-              };
               readonly name: {
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
@@ -5129,7 +5112,6 @@ type ContractBase = Omit<
               readonly namespaceId: '__unbound__';
               readonly fields: {
                 readonly id: { readonly column: 'id' };
-                readonly kind: { readonly column: 'kind' };
                 readonly name: { readonly column: 'name' };
                 readonly northStar: { readonly column: 'northStar' };
                 readonly context: { readonly column: 'context' };

@@ -27,6 +27,8 @@ const announce = DomainFeeds.pipe(
 	Effect.flatMap((feeds) => feeds.publishVoyageRefresh()),
 );
 
+// why: the flagship is not something anyone opens — the fleet is born with
+// exactly one, so this act writes an ordinary voyage and nothing else.
 const openVoyage = (input: OpenVoyageInput) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
@@ -36,6 +38,7 @@ const openVoyage = (input: OpenVoyageInput) =>
 			context: input.context,
 			focusedAt: input.focused === true ? new Date(now) : null,
 			id: crypto.randomUUID(),
+			kind: "voyage",
 			name: input.name,
 			northStar: input.northStar,
 		};

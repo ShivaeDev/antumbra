@@ -1,3 +1,4 @@
+import type { VoyageSummary } from "@antumbra/contract";
 import { reefSummary, reefView } from "@antumbra/contract/fixtures";
 import { expect, it } from "@effect/vitest";
 import { renderToStaticMarkup } from "react-dom/server";
@@ -23,6 +24,24 @@ const aside = () =>
 			onSelect={() => undefined}
 			selected={undefined}
 			voyages={[reefSummary]}
+		/>,
+	);
+
+const flagshipSummary: VoyageSummary = {
+	...reefSummary,
+	id: "voyage-flagship",
+	kind: "flagship",
+	name: "Flagship",
+	northStar: "The fleet sails well.",
+};
+
+const fleet = () =>
+	renderToStaticMarkup(
+		<VoyagesPanel
+			onError={() => undefined}
+			onSelect={() => undefined}
+			selected={undefined}
+			voyages={[reefSummary, flagshipSummary]}
 		/>,
 	);
 
@@ -76,4 +95,15 @@ it("every piece wears the state the domain derived for it", () => {
 	expect(html).toContain("the chart");
 	expect(html).toContain("Held");
 	expect(html).toContain("sound the northern shoals");
+});
+
+it("the fleet's own voyage leads the list wearing its mark", () => {
+	const html = fleet();
+
+	expect(html).toContain("Flagship");
+	expect(html.indexOf("Flagship")).toBeLessThan(html.indexOf("Chart the reef"));
+});
+
+it("an ordinary voyage wears no mark of its own", () => {
+	expect(list()).not.toContain("Flagship");
 });

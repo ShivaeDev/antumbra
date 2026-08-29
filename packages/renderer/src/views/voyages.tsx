@@ -4,7 +4,8 @@ import { Card } from "#components/ui/card.tsx";
 import { cn } from "#lib/utils.ts";
 import { CaptainCall, FocusToggle } from "#views/voyage-acts.tsx";
 import { VoyageProgress } from "#views/voyage-progress.tsx";
-import { voyageStateLabel } from "#voyages/labels.ts";
+import { voyageKindMark, voyageStateLabel } from "#voyages/labels.ts";
+import { byFlagship } from "#voyages/order.ts";
 import { voyageTone } from "#voyages/tone.ts";
 
 const VoyageRow = ({
@@ -19,6 +20,7 @@ const VoyageRow = ({
 	readonly voyage: VoyageSummary;
 }) => {
 	const current = voyage.id === selected;
+	const mark = voyageKindMark[voyage.kind];
 	return (
 		<li className="min-w-0">
 			<Card
@@ -41,6 +43,7 @@ const VoyageRow = ({
 					>
 						{voyage.name}
 					</button>
+					{mark === null ? null : <Badge variant="info">{mark}</Badge>}
 					<Badge variant={voyageTone[voyage.state]}>
 						{voyageStateLabel[voyage.state]}
 					</Badge>
@@ -80,7 +83,7 @@ export const VoyagesPanel = ({
 	}
 	return (
 		<ul className="flex min-w-0 flex-col gap-1.5">
-			{voyages.map((voyage) => (
+			{byFlagship(voyages).map((voyage) => (
 				<VoyageRow
 					key={voyage.id}
 					onError={onError}

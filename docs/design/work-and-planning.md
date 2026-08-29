@@ -24,7 +24,10 @@ demand and assignments captains and the admiral have established.
 
 The fleet-wide concern lives on a distinguished flagship Voyage whose north
 star is the fleet sailing well. Fleet-level rulings and findings belong there,
-while the flagship's captain decides what needs broadcasting.
+while the flagship's captain decides what needs broadcasting. The fleet has
+exactly one flagship and it exists from first run: startup writes the record
+if it is missing and refuses a second, and its captain is born on the first
+hail like every other captain.
 
 ## Voyages and their course
 

@@ -88,6 +88,7 @@ export const shallowsSummary: VoyageSummary = {
 	counts: { active: 0, done: 0, pieces: 1, ready: 1 },
 	focusedAt: null,
 	id: "voyage-2",
+	kind: "voyage",
 	name: "Sound the shallows",
 	northStar: "the shallows carry a keel",
 	state: "quiet",

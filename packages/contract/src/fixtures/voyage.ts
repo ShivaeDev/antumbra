@@ -73,6 +73,7 @@ export const reefSummary: VoyageSummary = {
 	counts: { active: 1, done: 0, pieces: 2, ready: 0 },
 	focusedAt: "2026-08-15T09:00:00.000Z",
 	id: "voyage-1",
+	kind: "voyage",
 	name: "Chart the reef",
 	northStar: "every shoal is known",
 	state: "underWay",

@@ -152,6 +152,7 @@ model SessionInputPart {
 
 model Voyage {
   id        String    @id
+  kind      String    @default("voyage")
   name      String
   northStar String
   context   String

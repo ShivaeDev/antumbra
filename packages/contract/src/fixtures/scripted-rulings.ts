@@ -17,9 +17,12 @@ const courseCall: RulingView = {
 	choices: [{ detail: null, id: "choice-3", label: "hold the course" }],
 	context:
 		"The flagship and the surveyor disagree on which repository the chart lives in.",
+	declared: { radius: "fleet", urgency: "blocking" },
+	gatedPieces: [],
 	id: "ruling-3",
 	question: "Where does the chart belong?",
 	radius: "fleet",
+	reclassifications: [],
 	requestedAt: "2026-08-15T10:05:00.000Z",
 	requesterAgentId: "agent-1",
 	subjects: [{ kind: "tag", label: "charting" }],

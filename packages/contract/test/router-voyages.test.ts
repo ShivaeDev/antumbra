@@ -1,6 +1,11 @@
 import { describe, expect, it } from "@effect/vitest";
 import { Effect, Stream } from "effect";
-import { makeRuntime, reefSummary, reefView } from "#fixtures.ts";
+import {
+	flagshipSummary,
+	makeRuntime,
+	reefSummary,
+	reefView,
+} from "#fixtures.ts";
 import { makeAppRouter } from "#index.ts";
 
 const callerOf = () =>
@@ -42,7 +47,7 @@ describe("makeAppRouter, on voyages", () => {
 	it.effect("lists the voyages with their derived state and captain", () =>
 		Effect.gen(function* () {
 			const listed = yield* Effect.promise(() => callerOf().voyages());
-			expect(listed).toEqual([reefSummary]);
+			expect(listed).toEqual([flagshipSummary, reefSummary]);
 		}),
 	);
 

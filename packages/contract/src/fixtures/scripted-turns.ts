@@ -84,7 +84,12 @@ export const workingSummary = { ...reefSummary, counts: workingReef.counts };
 
 export const shallowsSummary: VoyageSummary = {
 	...reefSummary,
-	captain: { agentId: "agent-2", atWork: true, status: "alive" },
+	captain: {
+		agentId: "agent-2",
+		atWork: true,
+		sessionId: "session-2",
+		status: "alive",
+	},
 	counts: { active: 0, done: 0, pieces: 1, ready: 1 },
 	focusedAt: null,
 	id: "voyage-2",

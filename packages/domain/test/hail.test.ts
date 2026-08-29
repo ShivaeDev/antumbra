@@ -14,6 +14,7 @@ import {
 	eventually,
 	openReefVoyage,
 	retireOneAlive,
+	sessionIdOf,
 } from "#test/voyage-fixtures.ts";
 
 const CAPTAIN_TOOLS = [
@@ -84,6 +85,7 @@ it.live("hailing a voyage brings it a captain and puts it under way", () =>
 			expect(Option.getOrThrow(view.captain)).toEqual({
 				agentId: hailed.agentId,
 				atWork: true,
+				sessionId: yield* sessionIdOf(hailed.agentId),
 				status: "alive",
 			});
 
@@ -176,6 +178,7 @@ it.live(
 				expect(Option.getOrThrow(view.captain)).toEqual({
 					agentId: second.agentId,
 					atWork: true,
+					sessionId: yield* sessionIdOf(second.agentId),
 					status: "alive",
 				});
 			}).pipe(Effect.provide(domainKernelLayer(temporary, scripted.backend)));

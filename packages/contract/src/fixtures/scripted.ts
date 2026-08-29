@@ -1,5 +1,6 @@
 import { type Duration, Effect, Stream } from "effect";
 import type { FixtureFeeds } from "#fixtures/feeds.ts";
+import { flagshipSummary } from "#fixtures/flagship.ts";
 import { fleet } from "#fixtures/fleet.ts";
 import { openRulings, standingRulings } from "#fixtures/ruling.ts";
 import {
@@ -57,9 +58,9 @@ export const makeScriptedFeeds = (beat: Duration.Input): FixtureFeeds => {
 		),
 		voyage: step(Stream.make(reefView), answeredReef, workingReef),
 		voyages: step<ReadonlyArray<VoyageSummary>>(
-			Stream.make([reefSummary]),
-			[workingSummary],
-			[workingSummary, shallowsSummary],
+			Stream.make([flagshipSummary, reefSummary]),
+			[flagshipSummary, workingSummary],
+			[flagshipSummary, workingSummary, shallowsSummary],
 		),
 	};
 };

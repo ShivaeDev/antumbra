@@ -31,6 +31,7 @@ const view = (captain: VoyageCaptainView | null): VoyageView => ({
 const stoodDown: VoyageCaptainView = {
 	agentId: "agent-1",
 	atWork: false,
+	sessionId: "session-1",
 	status: "alive",
 };
 

@@ -13,7 +13,11 @@ import {
 	makeScriptedBackend,
 	type ScriptedBackend,
 } from "#test/harness.ts";
-import { eventually, retireOneAlive } from "#test/voyage-fixtures.ts";
+import {
+	eventually,
+	retireOneAlive,
+	sessionIdOf,
+} from "#test/voyage-fixtures.ts";
 import { VoyageSourceLive } from "#voyage-source.ts";
 
 const voyageLayer = (
@@ -152,6 +156,7 @@ it.live("a hail puts a captain and a crew row on what the window reads", () =>
 					expect(view.captain).toEqual({
 						agentId: hailed.agentId,
 						atWork: true,
+						sessionId: yield* sessionIdOf(hailed.agentId),
 						status: "alive",
 					});
 					expect(view.crew).toEqual([

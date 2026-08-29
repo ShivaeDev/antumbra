@@ -1,4 +1,5 @@
 import type { ConsoleMode, Fleet, VoyageSummary } from "@antumbra/contract";
+import { FlagshipPanel } from "#views/flagship.tsx";
 import { FleetSurface } from "#views/fleet-surface.tsx";
 import { QuayPanel } from "#views/quay.tsx";
 import { RulingsPanel } from "#views/rulings.tsx";
@@ -26,6 +27,15 @@ const ASIDE =
 	"flex w-80 shrink-0 flex-col gap-5 overflow-x-hidden overflow-y-auto border-r border-border p-3";
 
 export const ConsoleMain = (props: ConsoleProps) => {
+	if (props.mode === "flagship") {
+		return (
+			<FlagshipPanel
+				fleet={props.fleet}
+				onError={props.onError}
+				voyages={props.voyages}
+			/>
+		);
+	}
 	if (props.mode === "fleet") {
 		return (
 			<FleetSurface

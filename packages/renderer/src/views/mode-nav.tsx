@@ -1,6 +1,7 @@
 import type { ConsoleMode } from "@antumbra/contract";
 import {
 	Anchor,
+	Flag,
 	Gavel,
 	type LucideIcon,
 	Settings,
@@ -18,7 +19,10 @@ interface ModeEntry {
 	readonly mode: ConsoleMode;
 }
 
+// why: the flagship leads because it is where the admiral speaks rather than
+// reads — every other mode is somewhere to navigate to, and this one is not.
 const MODES: ReadonlyArray<ModeEntry> = [
+	{ icon: Flag, label: "Flagship", mode: "flagship" },
 	{ icon: Users, label: "Fleet", mode: "fleet" },
 	{ icon: Ship, label: "Voyages", mode: "voyages" },
 	{ icon: Anchor, label: "Quay", mode: "quay" },

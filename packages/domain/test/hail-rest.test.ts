@@ -96,6 +96,7 @@ it.live(
 				expect(Option.getOrThrow(sleeping.captain)).toEqual({
 					agentId: first.agentId,
 					atWork: false,
+					sessionId: session.id,
 					status: "alive",
 				});
 

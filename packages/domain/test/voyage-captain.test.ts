@@ -59,6 +59,7 @@ it("a captain that stood down is the voyage's address and not at work", () => {
 	expect(captain(stoodDown)).toEqual({
 		agentId: "agent-1",
 		atWork: false,
+		sessionId: "session-agent-1",
 		status: "alive",
 	});
 });
@@ -80,6 +81,7 @@ it("a retired or dormant captain of record stays history, never at work", () => 
 		expect(captain(past)).toEqual({
 			agentId: "agent-1",
 			atWork: false,
+			sessionId: null,
 			status,
 		});
 	}

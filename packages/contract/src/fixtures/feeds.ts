@@ -1,4 +1,5 @@
 import { Stream } from "effect";
+import { flagshipSummary } from "#fixtures/flagship.ts";
 import { fleet } from "#fixtures/fleet.ts";
 import { openRulings, standingRulings } from "#fixtures/ruling.ts";
 import { storedEvents } from "#fixtures/transcript.ts";
@@ -29,5 +30,5 @@ export const staticFeeds: FixtureFeeds = {
 	rulings: Stream.make(openRulings),
 	standing: Stream.make(standingRulings),
 	voyage: Stream.make(reefView),
-	voyages: Stream.make([reefSummary]),
+	voyages: Stream.make([flagshipSummary, reefSummary]),
 };

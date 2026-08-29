@@ -68,9 +68,11 @@ it("carries the captain's at-work judgment, never the status alone", () => {
 	const stoodDown = decode({
 		agentId: "agent-1",
 		atWork: false,
+		sessionId: "session-1",
 		status: "alive",
 	});
 	expect(Option.getOrNull(stoodDown)?.atWork).toBe(false);
+	expect(Option.getOrNull(stoodDown)?.sessionId).toBe("session-1");
 	expect(decode({ agentId: "agent-1", status: "alive" })._tag).toBe("None");
 });
 

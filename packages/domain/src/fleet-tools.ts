@@ -1,6 +1,7 @@
 import {
 	bind,
 	charterVoyagePieceSpec,
+	hailCaptainSpec,
 	openVoyageSpec,
 	proclaimRulingSpec,
 	readFleetSpec,
@@ -16,6 +17,7 @@ import { AGENT_BACKEND_TAGS } from "@antumbra/vocabulary/agent-backend";
 import { Effect } from "effect";
 import { makeCaptainToolCompiler } from "#captain-tools.ts";
 import { renderFleet } from "#fleet-render.ts";
+import type { HailedCaptain } from "#hail.ts";
 import { tagSubjects } from "#ruling-inputs.ts";
 import { answered } from "#tool-answers.ts";
 import type { SessionIdentity } from "#tool-identity.ts";
@@ -43,6 +45,9 @@ const proclamationOf = (input: Proclaimed): RulingProclamation => ({
 	subjects: tagSubjects(input.tags),
 	urgency: input.urgency,
 });
+
+const hailed = (voyageId: string) => (captain: HailedCaptain) =>
+	`hailed captain ${captain.agentId} of voyage ${voyageId} — intent ${captain.intentId}`;
 
 const proclaimed = (ruling: Ruling): string =>
 	`ruling ${ruling.id} proclaimed by the flagship — it binds the whole fleet until the admiral supersedes it`;
@@ -88,6 +93,14 @@ export const makeFleetToolCompiler = Effect.gen(function* () {
 					voyageId: input.voyageId,
 				}),
 				(piece) => `chartered ${piece.id} on voyage ${input.voyageId}`,
+			),
+		),
+		bind(hailCaptainSpec, (input) =>
+			answered(
+				identity,
+				hailCaptainSpec.name,
+				voyages.hail(input.voyageId),
+				hailed(input.voyageId),
 			),
 		),
 		bind(proclaimRulingSpec, (input) =>

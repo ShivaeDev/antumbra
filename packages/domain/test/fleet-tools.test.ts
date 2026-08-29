@@ -1,24 +1,27 @@
 import { Database } from "@antumbra/persistence";
 import { expect, it } from "@effect/vitest";
-import { type Context, Effect, Option } from "effect";
+import { Effect, Option } from "effect";
 import { AgentDomain } from "#domain.ts";
 import { domainKernelLayer } from "#test/domain-layers.ts";
+import {
+	FLAGSHIP_ID,
+	hailedCaptain,
+	openFlagship,
+	toolNames,
+	withFlagshipCaptain,
+} from "#test/flagship-fixtures.ts";
 import {
 	acquireTemporaryPersistence,
 	callTool,
 	makeScriptedBackend,
-	type ScriptedBackend,
-	type ScriptedSession,
-	sessionFor,
 } from "#test/harness.ts";
-import { eventually, openReefVoyage } from "#test/voyage-fixtures.ts";
-
-const FLAGSHIP_ID = "voyage-flagship";
+import { openReefVoyage } from "#test/voyage-fixtures.ts";
 
 const FLEET_TOOLS = [
 	"read_fleet",
 	"open_voyage",
 	"charter_piece_on_voyage",
+	"hail_captain",
 	"proclaim_ruling",
 ];
 
@@ -30,47 +33,6 @@ const RULE = {
 	tags: ["dredging"],
 	urgency: "eventual",
 };
-
-const openFlagship = Effect.gen(function* () {
-	const db = yield* Database;
-	yield* db.Voyage.create({
-		backend: "scripted",
-		context: "Fleet-level rulings and findings belong here.",
-		focusedAt: null,
-		id: FLAGSHIP_ID,
-		kind: "flagship",
-		name: "Flagship",
-		northStar: "The fleet sails well.",
-	});
-});
-
-const hailedCaptain = (scripted: ScriptedBackend, voyageId: string) =>
-	Effect.gen(function* () {
-		const domain = yield* AgentDomain;
-		const hailed = yield* domain.voyages.hail(voyageId);
-		return yield* eventually(sessionFor(scripted, hailed.agentId));
-	});
-
-const toolNames = (session: ScriptedSession): ReadonlyArray<string> =>
-	session.tools.map((tool) => tool.name);
-
-const withFlagshipCaptain = <A, E>(
-	body: (
-		captain: ScriptedSession,
-	) => Effect.Effect<
-		A,
-		E,
-		AgentDomain | Context.Service.Identifier<typeof Database>
-	>,
-) =>
-	Effect.gen(function* () {
-		const temporary = yield* acquireTemporaryPersistence;
-		const scripted = yield* makeScriptedBackend;
-		yield* Effect.gen(function* () {
-			yield* openFlagship;
-			yield* body(yield* hailedCaptain(scripted, FLAGSHIP_ID));
-		}).pipe(Effect.provide(domainKernelLayer(temporary, scripted.backend)));
-	});
 
 it.live("the flagship's captain holds the fleet acts and a captain's own", () =>
 	Effect.gen(function* () {

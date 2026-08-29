@@ -4,6 +4,8 @@ import { watchSessionEvents } from "#adapters/trpc.ts";
 import { Button } from "#components/ui/button.tsx";
 import { useFeedLog } from "#hooks/feed.ts";
 import { deriveTranscript } from "#transcript/derive.ts";
+import { sessionStanding } from "#transcript/standing.ts";
+import { SessionStandingBar } from "#views/session-standing.tsx";
 import { TranscriptRow } from "#views/transcript-row.tsx";
 import { useTail } from "#views/transcript-tail.ts";
 
@@ -22,6 +24,7 @@ export const TranscriptView = ({
 			watchSessionEvents({ fromSeq: 0, sessionId }, onEvent, onError),
 	);
 	const items = deriveTranscript(events, nodes);
+	const standing = sessionStanding(events);
 	const { atTail, onScroll, pane, toTail } = useTail(events.length);
 
 	return (
@@ -54,7 +57,7 @@ export const TranscriptView = ({
 			</div>
 			{atTail ? null : (
 				<Button
-					className="absolute right-4 bottom-3 shadow-lg"
+					className="absolute right-4 bottom-9 shadow-lg"
 					onClick={toTail}
 					size="sm"
 					variant="secondary"
@@ -63,6 +66,7 @@ export const TranscriptView = ({
 					Jump to latest
 				</Button>
 			)}
+			<SessionStandingBar standing={standing} />
 		</section>
 	);
 };

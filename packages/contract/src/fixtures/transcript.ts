@@ -5,13 +5,13 @@ import type { SessionEvent } from "#sight.ts";
 // in it, so the scripted session carries one of every kind the view draws —
 // both sides speaking, a thought, a call that worked, a call that failed, a
 // provider payload and the telemetry between turns.
-const raw = (kind: string, payload: string) => ({
+export const raw = (kind: string, payload: string) => ({
 	kind,
 	payload,
 	source: "claude",
 });
 
-const known = (seq: number, event: AgentEvent): SessionEvent => ({
+export const known = (seq: number, event: AgentEvent): SessionEvent => ({
 	event: { _tag: "Known", event },
 	seq,
 	sessionId: "session-1",
@@ -101,11 +101,14 @@ export const storedEvents: ReadonlyArray<SessionEvent> = [
 		sessionId: "session-1",
 	},
 	known(10, {
+		cacheReadTokens: 4820,
+		cacheWriteTokens: 12100,
 		costUsd: 0.0412,
-		inputTokens: 18420,
+		cumulativeCostUsd: 0.0412,
+		inputTokens: 1500,
 		model: "claude-fable-5",
 		outputTokens: 730,
-		raw: raw("usage", '{"input":18420}'),
+		raw: raw("usage", '{"input":1500}'),
 		type: "usage",
 	}),
 	known(11, {
@@ -114,18 +117,9 @@ export const storedEvents: ReadonlyArray<SessionEvent> = [
 		status: "completed",
 		type: "turn.completed",
 	}),
+	known(12, {
+		raw: raw("system/session_state_changed", '{"state":"idle"}'),
+		state: "idle",
+		type: "session.state",
+	}),
 ];
-
-export const laterEvent: SessionEvent = known(12, {
-	raw: raw("assistant", '{"role":"assistant"}'),
-	role: "agent",
-	text: "Reading the grouping now — the cut-off belongs where the rows are bucketed, not where they are drawn.",
-	type: "message",
-});
-
-export const closingEvent: SessionEvent = known(13, {
-	durationMs: 4100,
-	raw: raw("result", '{"status":"completed"}'),
-	status: "completed",
-	type: "turn.completed",
-});

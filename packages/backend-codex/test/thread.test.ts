@@ -267,6 +267,7 @@ it.live(
 			expect(events.map((event) => event.type)).toEqual([
 				"session.opened",
 				"turn.completed",
+				"session.state",
 			]);
 			expect(events[1]).toMatchObject({
 				durationMs: 12,

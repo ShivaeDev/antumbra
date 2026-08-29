@@ -55,7 +55,14 @@ export const TurnNotification = Schema.Struct({
 	turn: Turn,
 });
 
+// why: codex splits the input three ways and this record keeps all three —
+// cached input is what a resume served out of the cache, cache-write is what it
+// paid to put there. `cacheWriteInputTokens` carries a default on the wire and
+// so may be absent; the other two are always sent. Reasoning tokens are already
+// inside `outputTokens` and are not read again here.
 const TokenBreakdown = Schema.Struct({
+	cachedInputTokens: Schema.Number,
+	cacheWriteInputTokens: Schema.optional(Schema.Number),
 	inputTokens: Schema.Number,
 	outputTokens: Schema.Number,
 });
@@ -124,4 +131,13 @@ export const ThreadListResponse = Schema.Struct({
 		}),
 	),
 	nextCursor: Schema.optional(Schema.NullOr(Schema.String)),
+});
+
+// why: codex's level signal for one thread, the same fact claude sends as
+// session_state_changed. It is the only place the waiting flags appear, and a
+// waiting flag is the difference between a turn that is thinking and one that
+// is stalled on somebody answering.
+export const ThreadStatusNotification = Schema.Struct({
+	status: ThreadStatus,
+	threadId: Schema.String,
 });

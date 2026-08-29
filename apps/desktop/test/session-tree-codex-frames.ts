@@ -125,8 +125,22 @@ export const codexRehearsal: ReadonlyArray<RpcNotification> = [
 		params: {
 			threadId: BRANCH_THREAD,
 			tokenUsage: {
-				last: { inputTokens: 812, outputTokens: 96 },
-				total: { inputTokens: 4812, outputTokens: 640 },
+				last: {
+					cacheWriteInputTokens: 128,
+					cachedInputTokens: 640,
+					inputTokens: 812,
+					outputTokens: 96,
+					reasoningOutputTokens: 12,
+					totalTokens: 1548,
+				},
+				total: {
+					cacheWriteInputTokens: 512,
+					cachedInputTokens: 3200,
+					inputTokens: 4812,
+					outputTokens: 640,
+					reasoningOutputTokens: 64,
+					totalTokens: 8524,
+				},
 			},
 			turnId: TURN,
 		},

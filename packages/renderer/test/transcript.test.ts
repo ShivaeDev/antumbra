@@ -166,7 +166,7 @@ describe("deriveTranscript", () => {
 			label: "session opened · codex thread-9",
 		});
 		expect(items[2]).toMatchObject({
-			label: "usage · claude-fable-5 · 120→30 tokens · $0.0042",
+			label: "usage · claude-fable-5 · in 120 · out 30 · turn $0.0042",
 		});
 		expect(items[3]).toMatchObject({ label: "turn interrupted · 2.3s" });
 	});

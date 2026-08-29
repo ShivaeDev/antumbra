@@ -199,6 +199,7 @@ describe("codex notifications map onto the neutral vocabulary", () => {
 		});
 		expect(completed).toMatchObject([
 			{ durationMs: 6245, status: "completed", type: "turn.completed" },
+			{ state: "idle", type: "session.state" },
 		]);
 		const interrupted = toAgentEvents({
 			method: "turn/completed",
@@ -216,6 +217,7 @@ describe("codex notifications map onto the neutral vocabulary", () => {
 		});
 		expect(interrupted).toMatchObject([
 			{ status: "interrupted", type: "turn.completed" },
+			{ state: "idle", type: "session.state" },
 		]);
 	});
 
@@ -247,11 +249,11 @@ describe("codex notifications map onto the neutral vocabulary", () => {
 
 	it("everything else is raw under its method name", () => {
 		const events = toAgentEvents({
-			method: "thread/status/changed",
-			params: { status: { activeFlags: [], type: "active" }, threadId: THREAD },
+			method: "thread/name/updated",
+			params: { name: "sound the eastern shoal", threadId: THREAD },
 		});
 		expect(events).toMatchObject([
-			{ raw: { kind: "thread/status/changed" }, type: "raw" },
+			{ raw: { kind: "thread/name/updated" }, type: "raw" },
 		]);
 	});
 });

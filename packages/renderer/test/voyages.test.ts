@@ -44,6 +44,7 @@ const piece = (
 const captain = (status: string, atWork: boolean): VoyageCaptainView => ({
 	agentId: "agent-1",
 	atWork,
+	sessionId: "session-1",
 	status,
 });
 

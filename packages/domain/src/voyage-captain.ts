@@ -2,6 +2,7 @@ import { Option } from "effect";
 import { atWork } from "#agent-at-work.ts";
 import type { SessionIdentity } from "#tool-identity.ts";
 import { crewOf, type VoyageCrewMember } from "#voyage-crew.ts";
+import { executionSessionOfAgent } from "#voyage-execution-selection.ts";
 import type { VoyageWorld } from "#voyage-rows.ts";
 
 export const CAPTAIN_ROLE = "captain";
@@ -9,6 +10,7 @@ export const CAPTAIN_ROLE = "captain";
 export interface VoyageCaptain {
 	readonly agentId: string;
 	readonly atWork: boolean;
+	readonly sessionId: string | null;
 	readonly status: string;
 }
 
@@ -37,13 +39,19 @@ const captains = (
 
 // why: the captain a view carries answers whether a hail would be accepted,
 // and it answers with the same reading the hail itself refuses on — one truth
-// rather than a status the window has to interpret again.
+// rather than a status the window has to interpret again. The session is that
+// same reading again: it is the one a hail resumes, and a hail resumes nothing
+// for a captain whose agent is no longer alive.
 const asCaptain = (
 	world: VoyageWorld,
 	member: VoyageCrewMember,
 ): VoyageCaptain => ({
 	agentId: member.agentId,
 	atWork: atWork(world, member.agentId),
+	sessionId:
+		member.status === "alive"
+			? (executionSessionOfAgent(world, member.agentId)?.id ?? null)
+			: null,
 	status: member.status,
 });
 

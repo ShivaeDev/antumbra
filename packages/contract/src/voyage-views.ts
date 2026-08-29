@@ -89,6 +89,11 @@ export type PieceView = typeof PieceView.Type;
 export const VoyageCaptainView = Schema.Struct({
 	agentId: Schema.String,
 	atWork: Schema.Boolean,
+	// why: the session a hail would resume, so a window opens the captain's own
+	// conversation rather than choosing among the sessions an agent has had.
+	// Null while there is none to speak into — no captain yet, one still being
+	// born, or a captain of record whose agent is history.
+	sessionId: Schema.NullOr(Schema.String),
 	status: Schema.String,
 });
 export type VoyageCaptainView = typeof VoyageCaptainView.Type;

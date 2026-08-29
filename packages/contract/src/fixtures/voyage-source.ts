@@ -1,5 +1,6 @@
 import { Effect, Layer, Stream } from "effect";
 import type { FixtureFeeds } from "#fixtures/feeds.ts";
+import { flagshipSummary, flagshipView } from "#fixtures/flagship.ts";
 import {
 	quayView,
 	reefSummary,
@@ -11,6 +12,11 @@ import { VoyageSource } from "#voyages.ts";
 
 const noSuchVoyage = (voyageId: string) =>
 	new SightFailure({ message: `no such voyage: ${voyageId}` });
+
+// why: the fleet's own voyage is on the list the window reads, so it answers
+// when it is opened — a listed voyage that refuses to be read would be a
+// fixture teaching the window a failure the host does not have.
+const views = [reefView, flagshipView];
 
 export const voyageFixture = (feeds: FixtureFeeds) =>
 	Layer.succeed(VoyageSource, {
@@ -53,15 +59,20 @@ export const voyageFixture = (feeds: FixtureFeeds) =>
 		setFocus: () => Effect.void,
 		supersedeArtifact: () => Effect.void,
 		unpark: () => Effect.void,
-		voyage: (voyageId) =>
-			voyageId === reefView.id
-				? Effect.succeed(reefView)
-				: noSuchVoyage(voyageId),
-		voyageFeed: (voyageId) =>
-			voyageId === reefView.id
-				? feeds.voyage
-				: Stream.fail(noSuchVoyage(voyageId)),
-		voyages: Effect.succeed([reefSummary]),
+		voyage: (voyageId) => {
+			const view = views.find((held) => held.id === voyageId);
+			return view === undefined ? noSuchVoyage(voyageId) : Effect.succeed(view);
+		},
+		voyageFeed: (voyageId) => {
+			if (voyageId === reefView.id) {
+				return feeds.voyage;
+			}
+			const view = views.find((held) => held.id === voyageId);
+			return view === undefined
+				? Stream.fail(noSuchVoyage(voyageId))
+				: Stream.make(view);
+		},
+		voyages: Effect.succeed([flagshipSummary, reefSummary]),
 		voyagesFeed: feeds.voyages,
 		workPieceNow: () => Effect.succeed({ agentId: "agent-crewed" }),
 		writeBoard: () => Effect.void,

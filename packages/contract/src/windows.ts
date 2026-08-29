@@ -1,10 +1,11 @@
 import { Context, Data, type Effect, Schema } from "effect";
 import type { RequestOrigin } from "#router-procedure.ts";
 
-// why: the console shows one section at a time — fleet, voyages, quay,
-// rulings or settings. Which one is on show belongs to the window, not to the
-// page, so a reloaded console comes back to what it was pointed at.
+// why: the console shows one section at a time — flagship, fleet, voyages,
+// quay, rulings or settings. Which one is on show belongs to the window, not
+// to the page, so a reloaded console comes back to what it was pointed at.
 export const ConsoleMode = Schema.Literals([
+	"flagship",
 	"fleet",
 	"voyages",
 	"quay",

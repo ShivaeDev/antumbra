@@ -1,4 +1,5 @@
 import type { ConsoleMode } from "@antumbra/contract";
+import { flagshipSummary } from "@antumbra/contract/fixtures";
 import { renderToStaticMarkup } from "react-dom/server";
 import { expect, it, vi } from "vitest";
 import { ConsoleMain } from "#views/console-main.tsx";
@@ -26,6 +27,7 @@ const render = (mode: ConsoleMode): string =>
 			session={undefined}
 			voyage={undefined}
 			voyages={[
+				flagshipSummary,
 				{
 					backend: "codex",
 					captain: null,
@@ -53,6 +55,14 @@ it("gives Rulings the whole workspace without the voyage rail", () => {
 	const markup = render("rulings");
 
 	expect(markup).toContain("open rulings");
+	expect(markup).not.toContain("Unrelated voyage");
+	expect(markup).not.toContain("<aside");
+});
+
+it("gives the flagship the whole workspace without the voyage rail", () => {
+	const markup = render("flagship");
+
+	expect(markup).toContain("the flagship captain has no conversation open yet");
 	expect(markup).not.toContain("Unrelated voyage");
 	expect(markup).not.toContain("<aside");
 });

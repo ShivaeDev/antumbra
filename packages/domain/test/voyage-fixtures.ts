@@ -23,6 +23,16 @@ export const aliveAgent = (agentId: string) =>
 		return agent;
 	});
 
+// why: the Session a spawn wrote for an Agent, read from the row rather than
+// threaded out of the hail — so an assertion about the captain a window reads
+// names the conversation that captain answers on.
+export const sessionIdOf = (agentId: string) =>
+	Effect.gen(function* () {
+		const db = yield* Database;
+		const rows = yield* db.AgentSession.where({ agentId }).all();
+		return Option.getOrThrow(Option.fromUndefinedOr(rows[0])).id;
+	});
+
 export const openReefVoyage = Effect.gen(function* () {
 	const domain = yield* AgentDomain;
 	return yield* domain.voyages.open({

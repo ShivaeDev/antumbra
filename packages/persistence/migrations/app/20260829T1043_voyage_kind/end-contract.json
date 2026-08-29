@@ -2222,14 +2222,7 @@
                 }
               },
               "requesterAgentId": {
-                "nullable": true,
-                "type": {
-                  "codecId": "sqlite/text@1",
-                  "kind": "scalar"
-                }
-              },
-              "requesterAuthority": {
-                "nullable": true,
+                "nullable": false,
                 "type": {
                   "codecId": "sqlite/text@1",
                   "kind": "scalar"
@@ -2428,9 +2421,6 @@
                 },
                 "requesterAgentId": {
                   "column": "requesterAgentId"
-                },
-                "requesterAuthority": {
-                  "column": "requesterAuthority"
                 },
                 "ruledAt": {
                   "column": "ruledAt"
@@ -3329,6 +3319,13 @@
                   "kind": "scalar"
                 }
               },
+              "kind": {
+                "nullable": false,
+                "type": {
+                  "codecId": "sqlite/text@1",
+                  "kind": "scalar"
+                }
+              },
               "name": {
                 "nullable": false,
                 "type": {
@@ -3377,6 +3374,9 @@
                 },
                 "id": {
                   "column": "id"
+                },
+                "kind": {
+                  "column": "kind"
                 },
                 "name": {
                   "column": "name"
@@ -4914,12 +4914,7 @@
                 "requesterAgentId": {
                   "codecId": "sqlite/text@1",
                   "nativeType": "text",
-                  "nullable": true
-                },
-                "requesterAuthority": {
-                  "codecId": "sqlite/text@1",
-                  "nativeType": "text",
-                  "nullable": true
+                  "nullable": false
                 },
                 "ruledAt": {
                   "codecId": "sqlite/datetime@1",
@@ -5747,6 +5742,15 @@
                   "nativeType": "text",
                   "nullable": false
                 },
+                "kind": {
+                  "codecId": "sqlite/text@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "voyage"
+                  },
+                  "nativeType": "text",
+                  "nullable": false
+                },
                 "name": {
                   "codecId": "sqlite/text@1",
                   "nativeType": "text",
@@ -5844,7 +5848,7 @@
         "id": "__unbound__"
       }
     },
-    "storageHash": "sha256:86e4612ca67e847f4b87640c55fa21133b43d356264cc95742ab52dd6461bfd8"
+    "storageHash": "sha256:141a1f5fcaf20371e6e9e4e7d0984d4e76c181630cdd50383f9895bea28a7c19"
   },
   "capabilities": {
     "sql": {

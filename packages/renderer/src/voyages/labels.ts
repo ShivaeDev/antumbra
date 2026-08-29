@@ -5,12 +5,23 @@ import type {
 	PieceView,
 	VoyageCaptainView,
 	VoyageState,
+	VoyageSummary,
 } from "@antumbra/contract";
 import type { PieceAct } from "#voyages/acts.ts";
 
 export const voyageStateLabel: Readonly<Record<VoyageState, string>> = {
 	quiet: "Quiet",
 	underWay: "Under way",
+};
+
+// why: only the fleet's own voyage earns a mark of its own — an ordinary
+// voyage is the unmarked case, and a kind added later has to say here which
+// of the two it is rather than defaulting into silence.
+export const voyageKindMark: Readonly<
+	Record<VoyageSummary["kind"], string | null>
+> = {
+	flagship: "Flagship",
+	voyage: null,
 };
 
 // why: every state the domain can publish is named here in the register the

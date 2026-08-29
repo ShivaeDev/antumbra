@@ -9,6 +9,7 @@ import type {
 	AgentStatus,
 	SessionExecutionStatus,
 } from "@antumbra/vocabulary/agent-runtime";
+import type { VoyageKind } from "@antumbra/vocabulary/voyage";
 
 export type { EdgeRow, PieceRow } from "@antumbra/pieces";
 
@@ -19,6 +20,10 @@ export interface VoyageRow {
 	readonly context: string;
 	readonly focusedAt: Date | null;
 	readonly id: string;
+	// why: the fleet's own voyage is told apart by this word rather than by its
+	// name or its place in the list, so every reader that joins on a voyage
+	// learns which one speaks for the fleet from the row itself.
+	readonly kind: VoyageKind;
 	readonly name: string;
 	readonly northStar: string;
 }

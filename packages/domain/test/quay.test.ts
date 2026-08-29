@@ -75,6 +75,7 @@ const world = (over: Partial<VoyageWorld>): VoyageWorld => ({
 			context: "the reef is uncharted",
 			focusedAt: null,
 			id: "voyage-1",
+			kind: "voyage",
 			name: "Chart the reef",
 			northStar: "every shoal is known",
 		},

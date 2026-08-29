@@ -14,6 +14,7 @@ const summary = (captain: VoyageCaptainView | null): VoyageSummary => ({
 	counts: { active: 0, done: 0, pieces: 0, ready: 0 },
 	focusedAt: null,
 	id: "voyage-1",
+	kind: "voyage",
 	name: "Chart the reef",
 	northStar: "every shoal is known",
 	state: "quiet",

@@ -3,6 +3,7 @@ import type {
 	PieceState,
 	PieceView,
 	VoyageCaptainView,
+	VoyageSummary,
 } from "@antumbra/contract";
 import { describe, expect, it } from "vitest";
 import { actsFor, captainAtWork } from "#voyages/acts.ts";
@@ -13,7 +14,7 @@ import {
 	dependsOnLabel,
 	whenLabel,
 } from "#voyages/labels.ts";
-import { byLadder, bySalience } from "#voyages/order.ts";
+import { byFlagship, byLadder, bySalience } from "#voyages/order.ts";
 
 const piece = (
 	id: string,
@@ -190,5 +191,36 @@ describe("authorLabel", () => {
 describe("whenLabel", () => {
 	it("reads a stamp down to the minute", () => {
 		expect(whenLabel("2026-08-15T09:10:33.000Z")).toBe("2026-08-15 09:10");
+	});
+});
+
+describe("byFlagship", () => {
+	const voyage = (id: string, kind: VoyageSummary["kind"]): VoyageSummary => ({
+		backend: "scripted",
+		captain: null,
+		counts: { active: 0, done: 0, pieces: 0, ready: 0 },
+		focusedAt: null,
+		id,
+		kind,
+		name: id,
+		northStar: `${id} sails`,
+		state: "quiet",
+	});
+
+	it("leads with the fleet's own voyage and keeps the rest in order", () => {
+		const ordered = byFlagship([
+			voyage("reef", "voyage"),
+			voyage("fleet", "flagship"),
+			voyage("shallows", "voyage"),
+		]);
+		expect(ordered.map((row) => row.id)).toEqual(["fleet", "reef", "shallows"]);
+	});
+
+	it("a list without the flagship is left as it was", () => {
+		const ordered = byFlagship([
+			voyage("reef", "voyage"),
+			voyage("shallows", "voyage"),
+		]);
+		expect(ordered.map((row) => row.id)).toEqual(["reef", "shallows"]);
 	});
 });

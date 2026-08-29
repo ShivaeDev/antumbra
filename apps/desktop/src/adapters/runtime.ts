@@ -5,6 +5,7 @@ import {
 	AgentDomainLive,
 	ChangeWatcherLive,
 	DispatcherLive,
+	FlagshipLive,
 	IntentFeedLive,
 	KernelReachLive,
 	RulingDeliveryLive,
@@ -97,6 +98,7 @@ export const applicationLayers = () =>
 				return IntentDemandLive(domain.intentDemands);
 			}),
 		),
+		FlagshipLive,
 		IntentFeedLive,
 		KernelReachLive,
 		RulingDeliveryLive,

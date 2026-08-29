@@ -15,24 +15,22 @@ import {
 } from "@antumbra/pieces";
 import { Rulings } from "@antumbra/rulings";
 import {
-	decodeSessionExecutionStatus,
-	decodeStoredAgentSessionStatus,
 	decodeStoredAgentStatus,
 	type InvalidSessionExecutionStatus,
 	type StoredAgentSessionStatusInvalid,
 	type StoredAgentStatusInvalid,
 } from "@antumbra/vocabulary/agent-runtime";
+import type { StoredVoyageKindInvalid } from "@antumbra/vocabulary/voyage";
 import { Context, Effect, Layer } from "effect";
-import { rootSessions } from "#session-roots.ts";
 import {
 	artifactRow,
 	byId,
 	pieceRow,
 	repoRow,
 	reportRow,
-	voyageRow,
 } from "#voyage-row-projection.ts";
 import type { VoyageWorld } from "#voyage-rows.ts";
+import { readRootSessions, readVoyages } from "#voyage-world-reads.ts";
 
 export type VoyageWorldReadFailure =
 	| InvalidSessionExecutionStatus
@@ -43,7 +41,8 @@ export type VoyageWorldReadFailure =
 	| StoredChangeInvalid
 	| StoredChangeVerdictInvalid
 	| StoredPieceChangeInvalid
-	| StoredPieceVerdictInvalid;
+	| StoredPieceVerdictInvalid
+	| StoredVoyageKindInvalid;
 
 export class VoyageWorldSource extends Context.Service<
 	VoyageWorldSource,
@@ -74,26 +73,6 @@ const voyageWorld: Effect.Effect<
 	);
 	const { changes, dismissedChangeIds, pieceChanges } =
 		yield* changeSnapshot.snapshot;
-	const sessions = yield* Effect.forEach(
-		yield* db.AgentSession.where(rootSessions).all(),
-		(session) =>
-			Effect.all({
-				executionStatus: Effect.fromResult(
-					decodeSessionExecutionStatus(session.id, session.executionStatus),
-				),
-				status: Effect.fromResult(
-					decodeStoredAgentSessionStatus(session.id, session.status),
-				),
-			}).pipe(
-				Effect.map(({ executionStatus, status }) => ({
-					agentId: session.agentId,
-					createdAt: session.createdAt,
-					executionStatus,
-					id: session.id,
-					status,
-				})),
-			),
-	);
 	const artifacts = (yield* db.Artifact.all()).map(artifactRow);
 	const pieces = (yield* db.Piece.orderBy((piece) =>
 		piece.createdAt.asc(),
@@ -121,10 +100,8 @@ const voyageWorld: Effect.Effect<
 		reports: byId((yield* db.Report.all()).map(reportRow)),
 		repos: byId((yield* db.Repo.all()).map(repoRow)),
 		rulingGates: yield* rulings.openGates(),
-		sessions,
-		voyages: (yield* db.Voyage.orderBy((voyage) =>
-			voyage.createdAt.asc(),
-		).all()).map(voyageRow),
+		sessions: yield* readRootSessions,
+		voyages: yield* readVoyages,
 	} satisfies VoyageWorld;
 });
 

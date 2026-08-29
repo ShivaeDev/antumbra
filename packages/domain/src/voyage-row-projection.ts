@@ -1,14 +1,19 @@
 import type { ArtifactRow } from "@antumbra/artifacts";
 import type { ReportRow } from "@antumbra/reports";
+import type { VoyageKind } from "@antumbra/vocabulary/voyage";
 import type { PieceRow, RepoRow, VoyageRow } from "#voyage-rows.ts";
 
 // why: entity rows reach a reader whole, and the stored shape carries fields
 // the views have no use for. Each projection declares exactly what survives.
-export const voyageRow = (row: VoyageRow): VoyageRow => ({
+export const voyageRow = (
+	row: Omit<VoyageRow, "kind">,
+	kind: VoyageKind,
+): VoyageRow => ({
 	backend: row.backend,
 	context: row.context,
 	focusedAt: row.focusedAt,
 	id: row.id,
+	kind,
 	name: row.name,
 	northStar: row.northStar,
 });

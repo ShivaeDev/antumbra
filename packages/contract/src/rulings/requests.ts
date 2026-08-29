@@ -76,3 +76,17 @@ export const RulingSupersededReceipt = Schema.Struct({
 	rulingId: Schema.String,
 });
 export type RulingSupersededReceipt = typeof RulingSupersededReceipt.Type;
+
+// why: a withdrawal names no successor, so the note is the whole of what it
+// leaves behind — the words a later reader gets instead of the ruling that
+// would otherwise have taken over.
+export const WithdrawRequest = Schema.Struct({
+	note: Schema.NonEmptyString,
+	rulingId: Schema.String,
+});
+export type WithdrawRequest = typeof WithdrawRequest.Type;
+
+export const RulingWithdrawnReceipt = Schema.Struct({
+	rulingId: Schema.String,
+});
+export type RulingWithdrawnReceipt = typeof RulingWithdrawnReceipt.Type;

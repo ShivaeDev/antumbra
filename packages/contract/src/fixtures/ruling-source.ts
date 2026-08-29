@@ -15,10 +15,16 @@ const onOpen = (rulingId: string) =>
 		? Effect.succeed({ rulingId })
 		: new RulingRefused({ reason: `no open ruling: ${rulingId}` });
 
+const onStanding = (rulingId: string) =>
+	standing.has(rulingId)
+		? Effect.succeed({ rulingId })
+		: new RulingRefused({ reason: `no standing ruling: ${rulingId}` });
+
 // why: the fixture refuses exactly what the record refuses — a ruling nobody
 // asked, a proclamation with no words to stand on, a reclassification naming no
-// axis, a supersession of one that does not stand — so a window standing on
-// fixtures meets the same sentence a live host would give it rather than a stub.
+// axis, a supersession or a withdrawal of one that does not stand — so a window
+// standing on fixtures meets the same sentence a live host would give it rather
+// than a stub.
 export const rulingFixture = (feeds: FixtureFeeds) =>
 	Layer.succeed(RulingSource, {
 		open: Effect.succeed(openRulings),
@@ -42,4 +48,5 @@ export const rulingFixture = (feeds: FixtureFeeds) =>
 				: new RulingRefused({
 						reason: `no standing ruling: ${request.rulingId}`,
 					}),
+		withdraw: (request) => onStanding(request.rulingId),
 	});

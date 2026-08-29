@@ -7,8 +7,10 @@ import {
 	grownStanding,
 	proclaimedStanding,
 	ruledRulings,
+	staleStanding,
 	supersededStanding,
 	urgentRulings,
+	withdrawnStanding,
 } from "#fixtures/scripted-rulings.ts";
 import {
 	answeredReef,
@@ -57,6 +59,8 @@ export const makeScriptedFeeds = (beat: Duration.Input): FixtureFeeds => {
 			grownStanding,
 			supersededStanding,
 			proclaimedStanding,
+			staleStanding,
+			withdrawnStanding,
 		),
 		voyage: step(Stream.make(reefView), answeredReef, workingReef),
 		voyages: step<ReadonlyArray<VoyageSummary>>(

@@ -119,6 +119,32 @@ describe("makeAppRouter, on the rulings", () => {
 			}),
 	);
 
+	it.effect("withdrawing answers with the ruling it retired", () =>
+		Effect.gen(function* () {
+			const withdrawn = yield* Effect.promise(() =>
+				callerOf().withdrawRuling({
+					note: "no berth outlives its branch any more",
+					rulingId: berthReclaim.id,
+				}),
+			);
+			expect(withdrawn).toEqual({ rulingId: berthReclaim.id });
+		}),
+	);
+
+	it.effect("a withdrawal of one that never stood comes back refused", () =>
+		Effect.gen(function* () {
+			const outcome = yield* Effect.tryPromise(() =>
+				callerOf().withdrawRuling({
+					note: "it was never ruled",
+					rulingId: soundingReading.id,
+				}),
+			).pipe(Effect.flip);
+			expect(String(outcome.cause)).toContain(
+				`no standing ruling: ${soundingReading.id}`,
+			);
+		}),
+	);
+
 	it.effect("reclassifying one answers with the ruling it moved", () =>
 		Effect.gen(function* () {
 			const moved = yield* Effect.promise(() =>

@@ -47,6 +47,7 @@ const soundingsRuled: StandingRulingView = {
 	radius: soundingReading.radius,
 	ruledAt: "2026-08-15T10:12:00.000Z",
 	ruledBy: "admiral",
+	stale: false,
 	subjects: soundingReading.subjects,
 	urgency: soundingReading.urgency,
 };
@@ -61,6 +62,7 @@ const dredgingProclaimed: StandingRulingView = {
 	radius: "fleet",
 	ruledAt: "2026-08-15T10:20:00.000Z",
 	ruledBy: "admiral",
+	stale: false,
 	subjects: [{ kind: "tag", label: "dredging" }],
 	urgency: "eventual",
 };
@@ -75,4 +77,17 @@ export const supersededStanding: StandingRulingsView = {
 
 export const proclaimedStanding: StandingRulingsView = {
 	rulings: [dredgingProclaimed, soundingsRuled, berthReclaim],
+};
+
+// why: the reef the soundings ruling was written for finishes, so the ruling
+// reads stale without leaving the standing set — it binds every agent it named
+// until the admiral withdraws it.
+const soundingsStale: StandingRulingView = { ...soundingsRuled, stale: true };
+
+export const staleStanding: StandingRulingsView = {
+	rulings: [dredgingProclaimed, soundingsStale, berthReclaim],
+};
+
+export const withdrawnStanding: StandingRulingsView = {
+	rulings: [dredgingProclaimed, berthReclaim],
 };

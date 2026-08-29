@@ -5,6 +5,7 @@ import type {
 	RulingUrgency,
 } from "@antumbra/vocabulary/ruling";
 import type { Option } from "effect";
+import type { RulingSupersession, RulingWithdrawal } from "#retirement.ts";
 
 export interface RulingAxes {
 	readonly radius: RulingRadius;
@@ -78,21 +79,6 @@ export interface RulingProclamation extends RulingAxes {
 	readonly subjects: ReadonlyArray<RulingSubject>;
 }
 
-// why: the admiral overrules a ruling below by superseding it with a later
-// one; the old ruling keeps its record and gains only who did it, when, and
-// which ruling now speaks for its scope.
-export interface RulingSupersedeInput {
-	readonly by: RulingAuthority;
-	readonly byRulingId: string;
-	readonly rulingId: string;
-}
-
-export interface RulingSupersession {
-	readonly at: Date;
-	readonly by: RulingAuthority;
-	readonly byRulingId: string;
-}
-
 export interface RulingReclassifyInput {
 	readonly by: RulingAuthority;
 	readonly note?: string;
@@ -144,4 +130,5 @@ export interface Ruling {
 	readonly subjects: ReadonlyArray<RulingSubject>;
 	readonly supersession: Option.Option<RulingSupersession>;
 	readonly urgency: RulingUrgency;
+	readonly withdrawal: Option.Option<RulingWithdrawal>;
 }

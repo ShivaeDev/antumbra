@@ -7,7 +7,9 @@ import {
 	RulingReclassifiedReceipt,
 	RulingRuledReceipt,
 	RulingSupersededReceipt,
+	RulingWithdrawnReceipt,
 	SupersedeRequest,
+	WithdrawRequest,
 } from "#rulings/requests.ts";
 import { RulingSource } from "#rulings/source.ts";
 import { OpenRulingsView, StandingRulingsView } from "#rulings/views.ts";
@@ -58,5 +60,12 @@ export const rulingRoutes = (procedure: AppProcedure) => ({
 		.mutation(function* (input) {
 			const rulings = yield* RulingSource;
 			return yield* surface(rulings.supersede(input));
+		}),
+	withdrawRuling: procedure
+		.input(WithdrawRequest)
+		.output(RulingWithdrawnReceipt)
+		.mutation(function* (input) {
+			const rulings = yield* RulingSource;
+			return yield* surface(rulings.withdraw(input));
 		}),
 });

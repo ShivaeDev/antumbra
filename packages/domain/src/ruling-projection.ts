@@ -105,6 +105,7 @@ const chosenLabel = (ruling: Ruling, answer: RulingAnswer): string | null =>
 export const standingRulingSeen = (
 	ruling: Ruling,
 	answer: RulingAnswer,
+	stale: boolean,
 ): StandingRulingView => ({
 	answer: answer.text,
 	chosen: chosenLabel(ruling, answer),
@@ -113,6 +114,7 @@ export const standingRulingSeen = (
 	radius: ruling.radius,
 	ruledAt: answer.at.toISOString(),
 	ruledBy: answer.by,
+	stale,
 	subjects: ruling.subjects.map(subjectSeen),
 	urgency: ruling.urgency,
 });

@@ -6,17 +6,16 @@ import {
 	RulingSource,
 	type StandingRulingsView,
 	type SupersedeRequest,
+	type WithdrawRequest,
 } from "@antumbra/contract";
-import {
-	type Ruling,
-	type RulingProclamation,
-	type RulingReclassifyInput,
-	Rulings,
-	type RulingVerdict,
-} from "@antumbra/rulings";
+import { type Ruling, Rulings } from "@antumbra/rulings";
 import { Effect, Layer, Option } from "effect";
 import { makeRulingRefreshes } from "#ruling-feed.ts";
-import { choiceOf, tagSubjects } from "#ruling-inputs.ts";
+import {
+	proclamationOf,
+	reclassificationOf,
+	verdictOf,
+} from "#ruling-inputs.ts";
 import { rulingSeen, standingRulingSeen } from "#ruling-projection.ts";
 import {
 	proclaimFailure,
@@ -24,65 +23,25 @@ import {
 	toRulingFailure,
 	verdictFailure,
 } from "#ruling-refusals.ts";
+import { rulingStaleness } from "#ruling-staleness.ts";
 import { supersessionFailure } from "#ruling-supersession.ts";
+import { withdrawalFailure } from "#ruling-withdrawal.ts";
 import { VoyageWorldSource } from "#voyage-world.ts";
-
-// why: the window is the admiral's hand, so what it sends is ruled by the
-// admiral — no other authority sits on the ladder yet. A choice nobody picked
-// is left off the verdict rather than carried as an empty one.
-const verdictOf = (request: RuleRequest): RulingVerdict =>
-	request.choiceId === undefined
-		? {
-				answer: request.answer,
-				by: "admiral",
-				rulingId: request.rulingId,
-			}
-		: {
-				answer: request.answer,
-				by: "admiral",
-				choiceId: request.choiceId,
-				rulingId: request.rulingId,
-			};
 
 // why: the standing set is ruled by construction, so a ruling met there with
 // no answer is the record contradicting itself rather than a view to skip.
 const standingSeen = (
 	ruling: Ruling,
+	stale: boolean,
 ): Effect.Effect<StandingRulingsView["rulings"][number], RulingFailure> =>
 	Option.match(ruling.answer, {
 		onNone: () =>
 			new RulingFailure({
 				message: `ruling ${ruling.id} stands without an answer`,
 			}),
-		onSome: (answer) => Effect.succeed(standingRulingSeen(ruling, answer)),
+		onSome: (answer) =>
+			Effect.succeed(standingRulingSeen(ruling, answer, stale)),
 	});
-
-// why: the admiral proclaiming from the window is the asker as well as the
-// authority, and it stands on no piece or voyage while it writes a rule — so
-// free tags are the whole of the scope a proclamation may name.
-const proclamationOf = (request: ProclaimRequest): RulingProclamation => ({
-	answer: request.answer,
-	by: "admiral",
-	choices: (request.choices ?? []).map(choiceOf),
-	context: request.context,
-	question: request.question,
-	radius: request.radius,
-	subjects: tagSubjects(request.tags),
-	urgency: request.urgency,
-	...(request.chosenChoice === undefined
-		? {}
-		: { chosenChoice: request.chosenChoice }),
-});
-
-const reclassificationOf = (
-	request: ReclassifyRequest,
-): RulingReclassifyInput => ({
-	by: "admiral",
-	rulingId: request.rulingId,
-	...(request.note === undefined ? {} : { note: request.note }),
-	...(request.radius === undefined ? {} : { radius: request.radius }),
-	...(request.urgency === undefined ? {} : { urgency: request.urgency }),
-});
 
 export const RulingSourceLive = Layer.effect(RulingSource)(
 	Effect.gen(function* () {
@@ -95,9 +54,19 @@ export const RulingSourceLive = Layer.effect(RulingSource)(
 			})),
 			Effect.mapError(toRulingFailure),
 		);
-		const standing = rulings.standing([]).pipe(
+		// why: staleness is a reading of the work a ruling names, so what stands
+		// is projected against the same world the open set is read against.
+		const standing = Effect.all({
+			ruled: rulings.standing([]),
+			rows: world.read,
+		}).pipe(
 			Effect.mapError(toRulingFailure),
-			Effect.flatMap((all) => Effect.forEach(all, standingSeen)),
+			Effect.flatMap(({ ruled, rows }) => {
+				const stale = rulingStaleness(rows);
+				return Effect.forEach(ruled, (ruling) =>
+					standingSeen(ruling, stale(ruling)),
+				);
+			}),
 			Effect.map((seen) => ({ rulings: seen })),
 		);
 		return {
@@ -128,6 +97,13 @@ export const RulingSourceLive = Layer.effect(RulingSource)(
 					}),
 					Effect.mapError(supersessionFailure),
 				),
+			withdraw: (request: WithdrawRequest) =>
+				rulings
+					.withdraw({ ...request, by: "admiral" })
+					.pipe(
+						Effect.as({ rulingId: request.rulingId }),
+						Effect.mapError(withdrawalFailure),
+					),
 		};
 	}),
 );

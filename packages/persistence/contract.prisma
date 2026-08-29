@@ -366,6 +366,9 @@ model Ruling {
   supersededById     String?
   supersededAt       DateTime?
   supersededBy       String?
+  withdrawnAt        DateTime?
+  withdrawnBy        String?
+  withdrawnNote      String?
   deliveredAt        DateTime?
   createdAt          DateTime  @default(now())
   requester          Agent?         @relation(fields: [requesterAgentId], references: [id], onDelete: Restrict, onUpdate: Restrict)

@@ -102,6 +102,19 @@ describe("window layout", () => {
 		expect(plan.children[0]?.place).toEqual(artifactPlace("subject-1"));
 	});
 
+	// why: where a fresh console opens is a product decision, not an incidental
+	// default, so the flagship tab is pinned rather than left to whichever mode
+	// the literal happens to name.
+	it("opens a first run on the flagship", () => {
+		expect(restorePlan(undefined).consoleWindow.place).toEqual({
+			changeId: null,
+			mode: "flagship",
+			role: "console",
+			sessionId: null,
+			voyageId: null,
+		});
+	});
+
 	// why: a restart is meant to land where the work was left, so the mode and
 	// the selection survive the round trip through the file, not just the role.
 	it("carries a console's mode and selection through the file", () => {

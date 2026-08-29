@@ -76,5 +76,7 @@ Owner: [Agent identity, resources, and recovery](docs/design/agent-recovery.md)
 - [**Stand down**](docs/design/agent-recovery.md#rest-and-reaping) — an Agent's own declaration that it has nothing left to do; it stays attached and reachable.
 - [**Idle**](docs/design/agent-recovery.md#rest-and-reaping) — a Session that has stood down and is listening with nothing to do.
 - [**Siesta**](docs/design/agent-recovery.md#rest-and-reaping) — the reversible rest an idle Session is put into by the clock or by the admiral; its process is reclaimed and speaking to it wakes it.
+- [**Stranded**](docs/design/agent-recovery.md#rest-and-reaping) — a Session whose process is gone with its work unfinished; nothing resumes it, and a hail or a send is what takes it back up.
+- [**Wake**](docs/design/agent-recovery.md#resume-before-replace) — the one act that puts a Session back on a provider; only a hail, a send, or a Piece already assigned to that Session asks for one.
 - [**Retirement**](docs/design/agent-recovery.md#reclamation-boundary) — the explicit irreversible end of an Agent identity.
 - [**Reconciliation**](docs/design/agent-recovery.md#durable-truth-and-disposable-execution) — repeatably compare durable truth with reality until they converge.

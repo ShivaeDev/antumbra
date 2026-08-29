@@ -1,6 +1,6 @@
 import { type IntentKind, Kernel } from "@antumbra/kernel";
 import { Effect } from "effect";
-import type { RecoveryFields } from "#session-recovery.ts";
+import type { WakeFields } from "#session-wake.ts";
 
 // why: a wake parked against a Session that has since closed is a demand no act
 // can ever complete. The send that would push it refuses on the closed Session
@@ -10,9 +10,9 @@ import type { RecoveryFields } from "#session-recovery.ts";
 //
 // why: pushing the row is how it reaches its own verdict rather than being
 // cancelled from outside. A cancel carries no sentence, so the row would settle
-// still wearing whatever reason it parked with; a push makes the recover run,
+// still wearing whatever reason it parked with; a push makes the wake run,
 // find the closed Session, and refuse with the reason written on it.
-export const makeSettleWakes = (recover: IntentKind<RecoveryFields>) =>
+export const makeSettleWakes = (wake: IntentKind<WakeFields>) =>
 	Effect.gen(function* () {
 		const kernel = yield* Kernel;
 		const push = (id: string) =>
@@ -24,7 +24,7 @@ export const makeSettleWakes = (recover: IntentKind<RecoveryFields>) =>
 			);
 		return (sessionId: string): Effect.Effect<void> =>
 			Effect.gen(function* () {
-				const active = yield* kernel.active(recover);
+				const active = yield* kernel.active(wake);
 				const parked = active.filter(
 					(intent) =>
 						intent.payload.sessionId === sessionId &&

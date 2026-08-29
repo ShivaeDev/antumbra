@@ -11,9 +11,9 @@ import { Context, type Effect } from "effect";
 import type { ChangeProcedures } from "#change-procedures.ts";
 import type { SessionNotLive } from "#errors.ts";
 import type { RetireFields } from "#retire.ts";
-import type { RecoveryFields } from "#session-recovery.ts";
 import type { SessionSendReceipt, SessionSendRefused } from "#session-send.ts";
 import type { SiestaFields } from "#session-siesta.ts";
+import type { WakeFields } from "#session-wake.ts";
 import type { SpawnFields } from "#spawn-fields.ts";
 import type { VoyageProcedures } from "#voyages.ts";
 
@@ -43,7 +43,6 @@ export class AgentDomain extends Context.Service<
 		readonly intentDemands: ReadonlyArray<IntentDemandRegistration>;
 		readonly repos: RepoRegistry;
 		readonly retryResourceReclaim: Effect.Effect<void>;
-		readonly recover: IntentKind<RecoveryFields>;
 		readonly reopenSessionStarts: Effect.Effect<void>;
 		readonly retire: IntentKind<RetireFields>;
 		// why: the admiral's own words take the turn-boundary lane — the domain
@@ -73,6 +72,10 @@ export class AgentDomain extends Context.Service<
 		readonly sessionsDelegating: Effect.Effect<ReadonlySet<string>>;
 		readonly siesta: IntentKind<SiestaFields>;
 		readonly spawn: IntentKind<SpawnFields>;
+		// why: the one act that puts a Session back on a provider. Nothing in
+		// Antumbra asks for it on its own — a hail, a send, or a Piece already
+		// assigned to this Session is what submits one.
+		readonly wake: IntentKind<WakeFields>;
 		readonly voyages: VoyageProcedures;
 	}
 >()("@antumbra/domain/AgentDomain") {}

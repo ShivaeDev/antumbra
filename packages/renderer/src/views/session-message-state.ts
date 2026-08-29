@@ -9,7 +9,7 @@ import {
 	wakeReason,
 } from "#views/session-presence-words.ts";
 
-const WAKE_KIND = "agent/recover";
+const WAKE_KIND = "agent/wake";
 
 const sessionOf = (
 	fleet: Fleet | undefined,
@@ -24,7 +24,7 @@ const refusal = (session: SessionSummary | undefined): string | undefined => {
 	return session.canSend ? undefined : presenceNote[session.presence];
 };
 
-// why: a live recover is the send's own receipt — the mutation returning is
+// why: a live wake is the send's own receipt — the mutation returning is
 // only the demand being written down, and the wake it asked for is the part the
 // admiral is waiting on. Reading it off the durable state rather than the send's
 // return keeps the box honest about a wake this window never asked for, and

@@ -15,11 +15,12 @@ import {
 import {
 	durableRows,
 	eventually,
+	hail,
 	payload,
-	RECOVERY_INSTRUCTION,
 	reportsNativeRef,
 	seedResumableAgent,
-	waitingRecovery,
+	WAKE_INSTRUCTION,
+	waitingWake,
 } from "#test/session-recovery-fixture.ts";
 
 // why: what a resume does when the record itself is the thing that will not
@@ -53,7 +54,8 @@ it.live(
 			yield* Effect.gen(function* () {
 				const db = yield* Database;
 				const kernel = yield* Kernel;
-				const held = yield* eventually(waitingRecovery);
+				yield* hail(payload.sessionId);
+				const held = yield* eventually(waitingWake);
 				expect(held.detail).toContain("durably record native identity");
 				expect(yield* durableRows).toEqual(before);
 				const events = yield* db.SessionEvent.where({
@@ -69,7 +71,7 @@ it.live(
 				// its sentence. What it must not do is keep the Session, and the parked
 				// row with the durable log untouched is that.
 				expect(resumed === undefined ? [] : yield* resumed.sent).toEqual([
-					RECOVERY_INSTRUCTION,
+					WAKE_INSTRUCTION,
 				]);
 
 				yield* Effect.sync(() =>
@@ -84,7 +86,7 @@ it.live(
 						const attached = yield* scripted.session(payload.sessionId);
 						expect(attached).toBeDefined();
 						expect(attached === undefined ? [] : yield* attached.sent).toEqual([
-							RECOVERY_INSTRUCTION,
+							WAKE_INSTRUCTION,
 						]);
 					}),
 				);
@@ -124,7 +126,8 @@ it.live(
 				return yield* durableRows;
 			}).pipe(Effect.provide(temporary.layer));
 			yield* Effect.gen(function* () {
-				const held = yield* eventually(waitingRecovery);
+				yield* hail(payload.sessionId);
+				const held = yield* eventually(waitingWake);
 				expect(held.detail).toContain("ambiguous current Piece authority");
 				expect(yield* durableRows).toEqual(before);
 			}).pipe(

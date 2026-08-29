@@ -5,7 +5,7 @@ import { Effect } from "effect";
 import { acquireTemporaryPersistence } from "#test/harness.ts";
 import { eventually, payload } from "#test/session-recovery-fixture.ts";
 import {
-	onlyRecovery,
+	onlyWake,
 	opensWhenSpokenTo,
 	sessionRow,
 	sleepingRoot,
@@ -33,7 +33,7 @@ it.live(
 				yield* sight.send(payload.sessionId, "come about");
 				yield* eventually(
 					Effect.gen(function* () {
-						expect((yield* onlyRecovery).status).toBe("succeeded");
+						expect((yield* onlyWake).status).toBe("succeeded");
 						expect((yield* sessionRow).executionStatus).toBe("active");
 					}),
 				);

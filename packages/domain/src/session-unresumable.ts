@@ -1,8 +1,9 @@
+import { IntentExecution } from "@antumbra/kernel";
 import {
 	type AgentStatus,
 	agentTransition,
 } from "@antumbra/vocabulary/agent-runtime";
-import { Data, Result } from "effect";
+import { Data, Effect, Result } from "effect";
 
 // why: "there is nothing here to resume" is six separate truths, and a resume
 // that answers all six with the same silence reports work it never did as
@@ -90,3 +91,23 @@ export class SessionUnresumableRefused extends Data.TaggedError(
 		return `Session ${this.sessionId} cannot be resumed: ${this.detail}`;
 	}
 }
+
+export const waitFor = (detail: string) =>
+	IntentExecution.use((execution) => execution.wait(detail));
+
+// why: nothing to resume is never nothing to say. The reason decides between
+// parking the Intent where a later act can pick it up and refusing it
+// outright, and either way the sentence lands on the row — a wake that
+// succeeded having done nothing is the silence this whole path is for.
+export const unresumable = (sessionId: string, reason: SessionUnresumable) => {
+	const detail = unresumableDetail(sessionId, reason);
+	return unresumableVerdict(reason) === "wait"
+		? waitFor(detail)
+		: Effect.fail(
+				new SessionUnresumableRefused({
+					detail,
+					reason: reason._tag,
+					sessionId,
+				}),
+			);
+};

@@ -1,4 +1,4 @@
-import { admiralWords, standingRecovery } from "@antumbra/prompts";
+import { admiralWords, wakeWords } from "@antumbra/prompts";
 import { expect, it } from "@effect/vitest";
 import type { Effect } from "effect";
 import type { makeSessionSend } from "#session-send.ts";
@@ -13,7 +13,7 @@ type Words = Parameters<SessionSend>[1];
 // catalog minted. If a bare string ever satisfies it again, the pragma below
 // becomes unused and the build fails.
 const fromCatalog: Words = admiralWords({ words: "come about" });
-const standing: Words = standingRecovery;
+const standing: Words = wakeWords;
 // @ts-expect-error prose the catalog never wrote is not something an Agent may hear.
 const assembledHere: Words = "come about";
 

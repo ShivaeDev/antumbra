@@ -7,9 +7,10 @@ import { Button } from "#components/ui/button.tsx";
 import { cn } from "#lib/utils.ts";
 import { presenceWords } from "#views/session-presence-words.ts";
 
-// why: only working is tinted. Listening and asleep are the ordinary quiet of
-// a fleet between tasks, and colouring them would spend the reader's attention
-// on rows that want nothing from them.
+// why: working and stranded are tinted. Listening and asleep are the ordinary
+// quiet of a fleet between tasks, and colouring them would spend the reader's
+// attention on rows that want nothing from them — while a stranded session has
+// work nobody is doing, which is exactly what wants the attention.
 const PRESENCE: Record<
 	SessionSummary["presence"],
 	React.ComponentProps<typeof Badge>["variant"]
@@ -17,6 +18,7 @@ const PRESENCE: Record<
 	asleep: "outline",
 	ended: "outline",
 	idle: "secondary",
+	stranded: "warning",
 	working: "success",
 };
 

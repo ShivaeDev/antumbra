@@ -8,6 +8,6 @@ export const fakeKernelReach: KernelReachService = {
 	queueSiesta: () => unexpected("queueSiesta"),
 	rouseSession: () => unexpected("rouseSession"),
 	settleWakes: () => unexpected("settleWakes"),
-	submitRecovery: () => unexpected("submitRecovery"),
 	submitSpawn: () => unexpected("submitSpawn"),
+	submitWake: () => unexpected("submitWake"),
 };

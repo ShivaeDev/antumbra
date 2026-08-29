@@ -9,12 +9,13 @@ import {
 } from "#test/harness.ts";
 import {
 	eventually,
+	hail,
 	payload,
 	seedResumableAgent,
-	waitingRecovery,
+	waitingWake,
 } from "#test/session-recovery-fixture.ts";
 
-it.live("an unknown Agent status becomes visible held recovery truth", () =>
+it.live("an unknown Agent status becomes a visible held wake", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
 		const scripted = yield* makeScriptedBackend;
@@ -34,7 +35,8 @@ it.live("an unknown Agent status becomes visible held recovery truth", () =>
 
 		yield* Effect.gen(function* () {
 			const db = yield* Database;
-			const held = yield* eventually(waitingRecovery);
+			yield* hail(payload.sessionId);
+			const held = yield* eventually(waitingWake);
 			expect(held.detail).toContain("stored Agent agent-resume");
 			expect(held.detail).toContain("future-agent");
 			const agent = Option.getOrThrow(
@@ -49,7 +51,7 @@ it.live("an unknown Agent status becomes visible held recovery truth", () =>
 	}),
 );
 
-it.live("a reclaimed Berth is valid recovery truth that is not ready", () =>
+it.live("a reclaimed Berth is valid durable truth that is not ready", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
 		const scripted = yield* makeScriptedBackend;
@@ -68,7 +70,8 @@ it.live("a reclaimed Berth is valid recovery truth that is not ready", () =>
 		}).pipe(Effect.provide(temporary.layer));
 
 		yield* Effect.gen(function* () {
-			const held = yield* eventually(waitingRecovery);
+			yield* hail(payload.sessionId);
+			const held = yield* eventually(waitingWake);
 			expect(held.detail).toContain("waiting for its ready Berths");
 			expect(held.detail).not.toContain("invalid Berth status");
 		}).pipe(

@@ -77,12 +77,35 @@ it("tells listening from asleep by the attachment, not the row", () => {
 	expect(
 		sessionPresence({ attached: true, executionStatus: "active", open: true }),
 	).toBe("working");
-	// why: a row still saying it is executing has outlived the process that made
-	// that true, and the reading that survives a restart is the honest one.
-	expect(
-		sessionPresence({ attached: false, executionStatus: "active", open: true }),
-	).toBe("asleep");
 	expect(
 		sessionPresence({ attached: true, executionStatus: "active", open: false }),
+	).toBe("ended");
+});
+
+// why: the two quiet readings a missing attachment can have, and the whole
+// reason they are separate words. One was rested on purpose and owes nothing;
+// the other has a row still claiming a turn that no process is taking, so its
+// work never finished and only a hail picks it back up.
+it("tells stranded from asleep by what the row still claims", () => {
+	expect(
+		sessionPresence({ attached: false, executionStatus: "active", open: true }),
+	).toBe("stranded");
+	expect(
+		sessionPresence({ attached: false, executionStatus: "idle", open: true }),
+	).toBe("asleep");
+	expect(
+		sessionPresence({
+			attached: false,
+			executionStatus: "draining",
+			open: true,
+		}),
+	).toBe("asleep");
+	// why: a closed Session is over however its execution column reads.
+	expect(
+		sessionPresence({
+			attached: false,
+			executionStatus: "active",
+			open: false,
+		}),
 	).toBe("ended");
 });

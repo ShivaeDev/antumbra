@@ -61,10 +61,10 @@ it("offers interrupt only when the public capability allows it", () => {
 	expect(stranded).toContain("active");
 });
 
-const recovering = {
+const waking = {
 	detail: null,
 	id: "intent-1",
-	kind: "agent/recover",
+	kind: "agent/wake",
 	state: "waiting",
 };
 const retiring = {
@@ -93,7 +93,7 @@ const draining: AgentSummary = {
 			canSend: false,
 			canSleep: false,
 			cwd: "/tmp/reef",
-			diag: { current: false, execution: "draining", intents: [recovering] },
+			diag: { current: false, execution: "draining", intents: [waking] },
 			id: "session-1",
 			presence: "asleep",
 			status: "open",
@@ -107,7 +107,7 @@ it("renders the raw execution and intent words as chips", () => {
 		diag: { intents: [spawning] },
 	});
 	expect(markup).toContain("draining");
-	expect(markup).toContain("intent: agent/recover waiting");
+	expect(markup).toContain("intent: agent/wake waiting");
 	expect(markup).toContain("intent: agent/retire queued");
 	expect(markup).toContain("intent: agent/spawn queued");
 	expect(markup).toContain("current none");

@@ -13,9 +13,9 @@ import {
 	sessionFor,
 } from "#test/harness.ts";
 import {
-	RECOVERY_INSTRUCTION,
 	reportsNativeRef,
 	untilTerminal,
+	WAKE_INSTRUCTION,
 } from "#test/session-recovery-fixture.ts";
 import {
 	aliveAgent,
@@ -104,7 +104,7 @@ it.live(
 				expect(resumed.agentId).toBe(first.agentId);
 				yield* eventually(
 					Effect.gen(function* () {
-						expect(yield* initial.sent).toContain(RECOVERY_INSTRUCTION);
+						expect(yield* initial.sent).toContain(WAKE_INSTRUCTION);
 					}),
 				);
 				// why: an idle captain never left, so the hail reaches it where it
@@ -157,7 +157,7 @@ it.live(
 					Effect.gen(function* () {
 						expect(yield* scripted.opened).toHaveLength(2);
 						const current = yield* sessionFor(scripted, first.agentId);
-						expect(yield* current.sent).toEqual([RECOVERY_INSTRUCTION]);
+						expect(yield* current.sent).toEqual([WAKE_INSTRUCTION]);
 					}),
 				);
 				const reopened = (yield* scripted.opened)[1];

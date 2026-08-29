@@ -124,13 +124,14 @@ export const makeSessionTreeSinks = Effect.gen(function* () {
 			// the loss is written on the node's own key before the pump is gone.
 			const detached = Effect.gen(function* () {
 				yield* live.released(rootSessionId);
-				const stranded = openNodes(yield* Ref.get(tree));
-				if (stranded.length === 0) {
+				yield* turns.stranded;
+				const unfinished = openNodes(yield* Ref.get(tree));
+				if (unfinished.length === 0) {
 					return;
 				}
 				const detachedAt = yield* Clock.currentTimeMillis;
 				yield* Effect.forEach(
-					stranded,
+					unfinished,
 					(node) =>
 						journal.record(node.sessionId, streamDetachedGap(node, detachedAt)),
 					{ concurrency: 1, discard: true },

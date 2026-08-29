@@ -122,18 +122,19 @@ it.effect("an ending leaves the same mark a declaration left, once", () =>
 			const declared = (yield* fabric.idleSince()).get(options.sessionId);
 			yield* TestClock.adjust(20);
 
-			expect(yield* fabric.turnEnded(options.sessionId, 0)).toBe(true);
+			const mark = yield* fabric.turnMark(options.sessionId);
+			expect(yield* fabric.turnEnded(options.sessionId, mark)).toBe("rested");
 			expect((yield* fabric.idleSince()).get(options.sessionId)).toBe(declared);
 			yield* TestClock.adjust(20);
 
-			expect(yield* fabric.turnEnded(options.sessionId, 0)).toBe(true);
+			expect(yield* fabric.turnEnded(options.sessionId, mark)).toBe("rested");
 			expect((yield* fabric.idleSince()).get(options.sessionId)).toBe(declared);
 			expect(yield* fabric.holds(options.sessionId)).toBe(true);
 		}),
 	).pipe(withFabric),
 );
 
-// why: the count is what tells an ending that belongs to the turn just over
+// why: the mark is what tells an ending that belongs to the turn just over
 // from one the next turn's words have already overtaken. The overtaken one
 // leaves no mark at all — a Session with work in front of it is not resting —
 // and the ending taken after the words is the one that counts.
@@ -141,14 +142,18 @@ it.live("an ending words have overtaken leaves no mark", () =>
 	Effect.scoped(
 		Effect.gen(function* () {
 			const { fabric } = yield* standing;
-			expect(yield* fabric.stirrings(options.sessionId)).toBe(0);
+			const before = yield* fabric.turnMark(options.sessionId);
+			expect(before?.stirrings).toBe(0);
 			yield* fabric.send(options.sessionId, textInput("one more thing"));
-			expect(yield* fabric.stirrings(options.sessionId)).toBe(1);
+			const after = yield* fabric.turnMark(options.sessionId);
+			expect(after?.stirrings).toBe(1);
 
-			expect(yield* fabric.turnEnded(options.sessionId, 0)).toBe(false);
+			expect(yield* fabric.turnEnded(options.sessionId, before)).toBe(
+				"overtaken",
+			);
 			expect(yield* fabric.idleSince()).toEqual(new Map());
 
-			expect(yield* fabric.turnEnded(options.sessionId, 1)).toBe(true);
+			expect(yield* fabric.turnEnded(options.sessionId, after)).toBe("rested");
 			expect(
 				(yield* fabric.idleSince()).get(options.sessionId),
 			).toBeGreaterThanOrEqual(0);
@@ -157,7 +162,23 @@ it.live("an ending words have overtaken leaves no mark", () =>
 			// the quiet a declaration left.
 			yield* fabric.send(options.sessionId, textInput("and another"));
 			expect(yield* fabric.idleSince()).toEqual(new Map());
-			expect(yield* fabric.stirrings(options.sessionId)).toBe(2);
+			expect((yield* fabric.turnMark(options.sessionId))?.stirrings).toBe(2);
+		}),
+	).pipe(withFabric),
+);
+
+// why: an ending that arrives with nothing holding the Session is the one the
+// old count could not tell from a mismatch, because an absent entry answered
+// zero. It settles: a Session nothing is attached to has no next turn for the
+// ending to be overtaken by.
+it.effect("an ending nothing is holding is stranded rather than refused", () =>
+	Effect.scoped(
+		Effect.gen(function* () {
+			const { fabric } = yield* standing;
+			const mark = yield* fabric.turnMark(options.sessionId);
+			yield* fabric.stop(options.sessionId);
+			expect(yield* fabric.turnMark(options.sessionId)).toBeUndefined();
+			expect(yield* fabric.turnEnded(options.sessionId, mark)).toBe("stranded");
 		}),
 	).pipe(withFabric),
 );

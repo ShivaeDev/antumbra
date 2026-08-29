@@ -10,12 +10,12 @@ import { SessionInputId } from "@antumbra/vocabulary/session-input";
 import { Effect, Schema } from "effect";
 import { admiralInput, promptInput } from "#session-input.ts";
 
-export const RecoveryPayload = Schema.Struct({
+export const WakePayload = Schema.Struct({
 	inputId: Schema.optional(SessionInputId),
 	message: Schema.optional(Schema.String),
 	sessionId: Schema.String,
 });
-export type RecoveryFields = typeof RecoveryPayload.Type;
+export type WakeFields = typeof WakePayload.Type;
 
 export interface CarriedInput {
 	readonly input: SessionInput | undefined;
@@ -25,7 +25,7 @@ export interface CarriedInput {
 export const makeLoadCarriedInput = Effect.gen(function* () {
 	const inputs = yield* SessionInputs;
 	return (
-		fields: RecoveryFields,
+		fields: WakeFields,
 	): Effect.Effect<CarriedInput, PrismaError | SessionInputFailure> =>
 		Effect.gen(function* () {
 			if (fields.inputId !== undefined) {

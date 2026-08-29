@@ -139,27 +139,29 @@ is still holding, so recovery, drain, and stop all address roots and let the
 subtree settle underneath. Antumbra's neutral event log is the UI and audit
 surface; it is not input for reconstructing a provider conversation.
 
-At startup, Antumbra resumes a durable root Session whenever persisted evidence
-says its executive obligation may remain unfinished or provider acceptance still
-needs reconciliation. A Session with no such obligation stays detached and
-attaches lazily when hailed or given work. Missing observers, an empty
-in-memory registry, or a dead watcher only remove current knowledge; they never
-mean an Agent retired, a Session closed, a Moorage orphaned, or a claim
-released. The executive distinction remains internal recovery machinery, not
-product vocabulary or an ordinary Fleet presentation.
+Nothing resumes a Session on its own. Startup reconciles the durable rows and
+stops there: every Session comes back detached, and one whose row still says it
+was executing is **stranded** rather than repaired. No timer, sweep, projection,
+or boot pass ever opens a provider conversation to find out how a Session is
+doing. A wake is submitted by a hail, by a send, or by the dispatcher handing a
+Session a Piece already assigned to it — three explicit acts, each one asked for
+by somebody.
 
-Initial and recovery instructions use ordinary at-least-once delivery. After a
-successful native attach, recovery durably queues one recovery instruction. If
-exit or transport failure obscures whether the provider accepted an
-instruction, a retry may send a duplicate; missing it is worse than repeating
-an idempotent one. A provider send is not durable evidence that an Agent read
-its mail.
+Missing observers, an empty in-memory registry, or a dead watcher only remove
+current knowledge; they never mean an Agent retired, a Session closed, a Moorage
+orphaned, or a claim released.
 
-If the provider transcript or native session is unavailable, recovery holds
-visibly. Starting a linked successor Session is an explicit choice, preserves
-the same Agent, and carries a crash-recovery charter plus the available files,
-notes, and predecessor link. It is never an automatic substitute for normal
-resume.
+Initial and wake instructions use ordinary at-least-once delivery. After a
+successful native attach, the wake durably queues one instruction. If exit or
+transport failure obscures whether the provider accepted an instruction, a retry
+may send a duplicate; missing it is worse than repeating an idempotent one. A
+provider send is not durable evidence that an Agent read its mail.
+
+If the provider transcript or native session is unavailable, the wake holds
+visibly and says on its own row why. Nothing pushes it again; the admiral does.
+Starting a linked successor Session is an explicit choice, preserves the same
+Agent, and carries a crash-recovery charter plus the available files, notes, and
+predecessor link. It is never an automatic substitute for normal resume.
 
 ## Hailing an Agent
 
@@ -218,7 +220,7 @@ support until Antumbra can actually render and operate a terminal.
 
 ## Rest and reaping
 
-A root Session is in one of four states, and only the last of them refuses to
+A root Session is in one of five states, and only the last of them refuses to
 be spoken to.
 
 - **Working** — taking a turn. Words queue and arrive at the next provider
@@ -226,9 +228,14 @@ be spoken to.
 - **Idle** — the Agent has said it has nothing left to do. The provider Session
   stays open and listening and no tokens are spent holding it. Words arrive
   immediately, because there is nothing to wake.
-- **Asleep** — the process attachment has been reclaimed. The Session row is
-  open and resumable, and words wake it: Antumbra resumes it through the same
-  machinery a hail uses and delivers them on arrival.
+- **Asleep** — the process attachment was given up on purpose, from a Session
+  that had nothing left to do. The Session row is open and resumable, and words
+  wake it: Antumbra resumes it through the same machinery a hail uses and
+  delivers them on arrival.
+- **Stranded** — the process attachment is gone and the row still says the
+  Session was executing, so the work it was doing never finished. Nothing goes
+  and fetches it back. It is shown as stranded so the admiral can see it
+  happened and hail it, and the moment its stream ended is written to the log.
 - **Retired** — the identity has ended. This is the only state that refuses.
 
 The two quiet states are reached by different things, and which thing matters.
@@ -242,6 +249,13 @@ there is one way a Session is put to rest and one way it wakes. Idleness is
 therefore true only of a live process: a restart necessarily leaves every idle
 Session asleep, which is what the record already said, so boot has nothing to
 repair and reads them as ordinary resumable Sessions rather than as failures.
+
+A Session that was working when its process went is the other case, and it is
+not rest at all. Its turn ends with nobody listening, so the ending settles the
+row the way any ending does — an ending nothing is holding is nobody's to
+refuse — and the Session reads asleep from then on. Where no ending ever
+arrives, the row keeps saying it was executing and the Session reads stranded
+until it is hailed.
 
 A root Session is reapable only after its provider work, tool calls, subsession
 subtree, descendant Agent tree, and background obligations have all settled; an

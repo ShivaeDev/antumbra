@@ -7,11 +7,14 @@ import {
 import { cn } from "#lib/utils.ts";
 import { AgentCard } from "#views/agent-card.tsx";
 
+// why: stranded is the one quiet standing that wants something from the
+// reader, so it is the only one that is tinted at all beside working.
 const DOT: Readonly<Record<Standing, string>> = {
 	asleep: "bg-border-strong",
 	listening: "bg-info",
 	quiet: "bg-muted-foreground",
 	retired: "bg-border-strong",
+	stranded: "bg-warning",
 	working: "bg-success",
 };
 

@@ -59,7 +59,7 @@ export const hailCaptain = (voyageId: string) =>
 			return yield* new VoyageNotFound({ voyageId });
 		}
 		// why: hailing a voyage that already has an alive captain asks for that
-		// captain to be reachable, never for a second one. Recovery is idempotent,
+		// captain to be reachable, never for a second one. A wake is idempotent,
 		// so one act serves a captain that stood down, one whose attachment did
 		// not outlive its process, and one that is answering already.
 		const current = captainOf(world, voyageId);
@@ -72,7 +72,7 @@ export const hailCaptain = (voyageId: string) =>
 					voyageId,
 				});
 			}
-			const intentId = yield* reach.submitRecovery({ sessionId: session.id });
+			const intentId = yield* reach.submitWake({ sessionId: session.id });
 			return { agentId: current.value.agentId, intentId };
 		}
 		// why: a captain still being born is at work and has no execution to

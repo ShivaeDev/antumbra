@@ -15,4 +15,4 @@ export {
 	UnresolvedReviews,
 	unresolvedReviews,
 } from "#situations.ts";
-export { standingRecovery } from "#standing.ts";
+export { wakeWords } from "#wake.ts";

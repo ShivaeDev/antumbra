@@ -97,13 +97,13 @@ export const sessionRow = Effect.gen(function* () {
 	);
 });
 
-export const recoveries = Effect.gen(function* () {
+export const wakes = Effect.gen(function* () {
 	const db = yield* Database;
-	return yield* db.Intent.where({ tag: "agent/recover" }).all();
+	return yield* db.Intent.where({ tag: "agent/wake" }).all();
 });
 
-export const onlyRecovery = Effect.gen(function* () {
-	const rows = yield* recoveries;
+export const onlyWake = Effect.gen(function* () {
+	const rows = yield* wakes;
 	expect(rows).toHaveLength(1);
 	return Option.getOrThrow(Option.fromUndefinedOr(rows[0]));
 });
@@ -113,12 +113,12 @@ export const wakeChips = (fleet: Fleet) =>
 		.flatMap((agent) => agent.sessions)
 		.filter((session) => session.id === payload.sessionId)
 		.flatMap((session) => session.diag.intents)
-		.filter((intent) => intent.kind === "agent/recover");
+		.filter((intent) => intent.kind === "agent/wake");
 
-// why: boot recovery resumes a Session the rows still call active, which is a
-// different act from the admiral speaking to one that went to sleep while the
-// application watched. Putting the row to idle first is how the rehearsal gets
-// the second: an asleep root nothing is already reaching for.
+// why: a root the rows still call active is stranded, which is a different
+// state from one that went to sleep while the application watched. Putting the
+// row to idle first is how the rehearsal gets the second: an asleep root
+// nothing is already reaching for.
 export const asleep = Effect.gen(function* () {
 	const db = yield* Database;
 	yield* db.AgentSession.where({ id: payload.sessionId }).update({

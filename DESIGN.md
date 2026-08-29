@@ -72,9 +72,12 @@ captain, and what that captain answers and does.
 - **Voyages sail by Piece launch, not play.** Launch records durable demand.
   Reconciliation creates or cancels dispatch attempts as eligibility changes;
   a blocked desired Piece needs no sleeping workflow.
-- **Recovery resumes before it replaces.** Normal restart restores the same
-  Agent, Antumbra Session, and provider-native conversation. A successor or
-  fork is explicit, linked, and never invented from a missing process handle.
+- **Recovery resumes before it replaces.** A wake restores the same Agent,
+  Antumbra Session, and provider-native conversation. It is asked for — a hail,
+  a send, or a Piece assigned to that Session — and never guessed at by a timer
+  or a boot pass; a Session whose process went with work unfinished is shown as
+  stranded until somebody hails it. A successor or fork is explicit, linked, and
+  never invented from a missing process handle.
 - **Sessions recede.** Humans and Agents hail, address, inspect, and direct the
   durable Agent and its work. Antumbra manages execution machinery beneath
   that surface.

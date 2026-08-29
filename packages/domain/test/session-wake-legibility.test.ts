@@ -13,7 +13,7 @@ import {
 } from "#test/session-recovery-fixture.ts";
 import {
 	NATIVE,
-	onlyRecovery,
+	onlyWake,
 	sessionRow,
 	sleepingRoot,
 	wakeChips,
@@ -39,7 +39,7 @@ it.live("a wake that cannot be taken parks with its reason on the fleet", () =>
 			yield* sight.send(payload.sessionId, "steer for the reef");
 			const parked = yield* eventually(
 				Effect.gen(function* () {
-					const row = yield* onlyRecovery;
+					const row = yield* onlyWake;
 					expect(row.status).toBe("waiting");
 					return row;
 				}),
@@ -53,7 +53,7 @@ it.live("a wake that cannot be taken parks with its reason on the fleet", () =>
 				{
 					detail: parked.detail,
 					id: parked.id,
-					kind: "agent/recover",
+					kind: "agent/wake",
 					state: "waiting",
 				},
 			]);
@@ -85,10 +85,10 @@ it.live("a wake into a retired Agent refuses with the reason it found", () =>
 			const domain = yield* AgentDomain;
 			const kernel = yield* Kernel;
 			yield* retire;
-			yield* kernel.submit(domain.recover, { sessionId: payload.sessionId });
+			yield* kernel.submit(domain.wake, { sessionId: payload.sessionId });
 			const refused = yield* eventually(
 				Effect.gen(function* () {
-					const row = yield* onlyRecovery;
+					const row = yield* onlyWake;
 					expect(row.status).toBe("failed");
 					return row;
 				}),

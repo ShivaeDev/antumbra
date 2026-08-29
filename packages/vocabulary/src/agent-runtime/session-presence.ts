@@ -1,15 +1,17 @@
 import { Schema } from "effect";
 
-// why: the four ways a Session can be present to the admiral, derived from the
-// record and this process together rather than stored. "idle" and "asleep"
-// both read as quiet from outside, and the difference — whether anything is
-// still listening — is exactly what decides whether words are handed over or
-// have to wake something first, so it is published rather than left to be
-// guessed from execution state.
+// why: the five ways a Session can be present to the admiral, derived from the
+// record and this process together rather than stored. "idle", "asleep" and
+// "stranded" all read as quiet from outside, and the differences — whether
+// anything is still listening, and whether the work it was doing ever finished
+// — are what decide whether words are handed over, wake something, or are the
+// only thing that will ever pick the work back up. So they are published rather
+// than left to be guessed from execution state.
 export const SessionPresenceSchema = Schema.Literals([
 	"working",
 	"idle",
 	"asleep",
+	"stranded",
 	"ended",
 ]);
 export type SessionPresence = typeof SessionPresenceSchema.Type;
@@ -22,11 +24,13 @@ export const sessionPresence = (input: {
 	if (!input.open) {
 		return "ended";
 	}
-	// why: an attachment is what listening is made of. Without one the Session
-	// is asleep whatever the row last recorded, because a row still saying
-	// "active" has outlived the process that made it true.
+	// why: an attachment is what listening is made of. Without one, a row still
+	// saying "active" has outlived the process that made it true and the turn it
+	// was taking ended with nobody there — that is stranding, and it is a
+	// different fact from a Session that was rested on purpose. Nothing goes and
+	// fetches a stranded Session back; a send or a hail is what does.
 	if (!input.attached) {
-		return "asleep";
+		return input.executionStatus === "active" ? "stranded" : "asleep";
 	}
 	if (input.executionStatus === "active") {
 		return "working";

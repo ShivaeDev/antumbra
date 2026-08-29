@@ -17,7 +17,7 @@ import type { SpawnFields } from "#index.ts";
 import { domainKernelLayer } from "#test/domain-layers.ts";
 import { rawOf, type ScriptedBackend } from "#test/harness.ts";
 
-export const RECOVERY_INSTRUCTION =
+export const WAKE_INSTRUCTION =
 	"Reconcile durable Antumbra truth and continue your assigned work.";
 export const payload: SpawnFields = {
 	agentId: "agent-resume",
@@ -170,10 +170,21 @@ export const seedResumableAgent = (
 		return yield* durableRows;
 	}).pipe(Effect.provide(domainKernelLayer(temporary, backend, {}, runner)));
 
-export const waitingRecovery = Effect.gen(function* () {
+export const waitingWake = Effect.gen(function* () {
 	const db = yield* Database;
-	const rows = yield* db.Intent.where({ tag: "agent/recover" }).all();
+	const rows = yield* db.Intent.where({ tag: "agent/wake" }).all();
 	expect(rows).toHaveLength(1);
 	expect(rows[0]?.status).toBe("waiting");
 	return Option.getOrThrow(Option.fromUndefinedOr(rows[0]));
 });
+
+// why: nothing puts a Session back on a provider on its own any more, so every
+// rehearsal that used to wait for a sweep to notice now does what the admiral
+// would do — it hails the stranded Session by hand and watches the same
+// machinery run.
+export const hail = (sessionId: string) =>
+	Effect.gen(function* () {
+		const domain = yield* AgentDomain;
+		const kernel = yield* Kernel;
+		return yield* kernel.submit(domain.wake, { sessionId });
+	});

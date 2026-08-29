@@ -88,7 +88,7 @@ const closeAndHoldRecovery = (scripted: ScriptedBackend) =>
 		const domain = yield* AgentDomain;
 		const kernel = yield* Kernel;
 		yield* domain.closeSessionStarts;
-		const submission = yield* kernel.submit(domain.recover, {
+		const submission = yield* kernel.submit(domain.wake, {
 			sessionId: recoveryPayload.sessionId,
 		});
 		yield* eventually(

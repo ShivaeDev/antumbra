@@ -13,8 +13,8 @@ import {
 	sessionFor,
 } from "#test/harness.ts";
 import {
-	RECOVERY_INSTRUCTION,
 	reportsNativeRef,
+	WAKE_INSTRUCTION,
 } from "#test/session-recovery-fixture.ts";
 import {
 	assignedPieces,
@@ -171,7 +171,7 @@ it.live(
 				yield* callTool(initial, "stand_down", undefined);
 				yield* eventually(
 					Effect.gen(function* () {
-						expect(yield* initial.sent).toContain(RECOVERY_INSTRUCTION);
+						expect(yield* initial.sent).toContain(WAKE_INSTRUCTION);
 					}),
 				);
 				// why: the Agent stood down but never left, so the work it was

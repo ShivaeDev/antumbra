@@ -107,7 +107,7 @@ export const DispatcherLive = (overrides: Partial<DispatcherOptions> = {}) =>
 			const port: DispatchPort = {
 				patienceMillis: options.patienceMillis,
 				state,
-				resume: (sessionId) => kernel.submit(domain.recover, { sessionId }),
+				resume: (sessionId) => kernel.submit(domain.wake, { sessionId }),
 				submit: (payload) => kernel.submit(domain.spawn, payload),
 			};
 			const aliveAgents = Option.getOrElse(

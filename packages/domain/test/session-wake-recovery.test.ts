@@ -18,7 +18,7 @@ import {
 import {
 	confirmsWhen,
 	NATIVE,
-	onlyRecovery,
+	onlyWake,
 	sessionRow,
 	sleepingRoot,
 	wakeLayer,
@@ -46,7 +46,7 @@ it.live("boot settles a drain whose process is gone, and a send wakes it", () =>
 			yield* sight.send(payload.sessionId, "carry on");
 			yield* eventually(
 				Effect.gen(function* () {
-					expect((yield* onlyRecovery).status).toBe("succeeded");
+					expect((yield* onlyWake).status).toBe("succeeded");
 					expect((yield* sessionRow).executionStatus).toBe("active");
 				}),
 			);
@@ -79,7 +79,7 @@ it.live(
 				yield* sight.send(payload.sessionId, "are you there");
 				const parked = yield* eventually(
 					Effect.gen(function* () {
-						const row = yield* onlyRecovery;
+						const row = yield* onlyWake;
 						expect(row.status).toBe("waiting");
 						return row;
 					}),
@@ -92,7 +92,7 @@ it.live(
 				yield* sight.send(payload.sessionId, "are you there");
 				yield* eventually(
 					Effect.gen(function* () {
-						const row = yield* onlyRecovery;
+						const row = yield* onlyWake;
 						expect(row.id).toBe(parked.id);
 						expect(row.status).toBe("succeeded");
 						expect((yield* sessionRow).executionStatus).toBe("active");
@@ -105,7 +105,7 @@ it.live(
 		}),
 );
 
-// why: agent/recover is requeued by reclaim, so an Intent the old process left
+// why: agent/wake is requeued by reclaim, so an Intent the old process left
 // running comes back carrying words that were never said. It must say them
 // once, to the Session it now reaches, and not leave a second demand behind.
 it.live("a wake requeued after a restart says its words once", () =>
@@ -120,7 +120,7 @@ it.live("a wake requeued after a restart says its words once", () =>
 			yield* sight.send(payload.sessionId, "come about");
 			return yield* eventually(
 				Effect.gen(function* () {
-					const row = yield* onlyRecovery;
+					const row = yield* onlyWake;
 					expect(row.status).toBe("running");
 					return row;
 				}),
@@ -131,7 +131,7 @@ it.live("a wake requeued after a restart says its words once", () =>
 		yield* Effect.gen(function* () {
 			yield* eventually(
 				Effect.gen(function* () {
-					const row = yield* onlyRecovery;
+					const row = yield* onlyWake;
 					expect(row.id).toBe(running.id);
 					expect(row.status).toBe("succeeded");
 				}),
@@ -179,7 +179,7 @@ it.live("an Intent moving is enough to ring the fleet feed", () =>
 					}),
 				),
 			);
-			const ghost = yield* kernel.submit(domain.recover, {
+			const ghost = yield* kernel.submit(domain.wake, {
 				sessionId: "session-ghost",
 			});
 			const row = yield* eventually(

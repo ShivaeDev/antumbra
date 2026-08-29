@@ -10,7 +10,7 @@ import {
 	type ChildProcess,
 	ChildProcessSpawner,
 } from "effect/unstable/process";
-import { inspectWorktree, refreshMirror } from "#index.ts";
+import { fastForwardWorktree, inspectWorktree, refreshMirror } from "#index.ts";
 
 interface ScriptedOutput {
 	readonly exitCode: number;
@@ -193,6 +193,51 @@ describe("Effect Git", () => {
 				return expect.unreachable("git command was not captured");
 			}
 			expect(command.options.forceKillAfter).toBe(5_000);
+		});
+	});
+
+	it.effect(
+		"fast-forwards a worktree whose head is behind the origin ref",
+		() => {
+			const fake = scriptedGit([success(""), success("Fast-forward\n")]);
+			return Effect.gen(function* () {
+				const verdict = yield* fastForwardWorktree("/repo", "main").pipe(
+					Effect.provide(fake.layer),
+				);
+				expect(verdict).toEqual({ _tag: "advanced" });
+				const merge = fake.commands[1];
+				if (merge === undefined || merge._tag !== "StandardCommand") {
+					return expect.unreachable("merge command was not captured");
+				}
+				expect(merge.args).toContain("--ff-only");
+			});
+		},
+	);
+
+	it.effect("refuses without merging when the head has its own commits", () => {
+		const fake = scriptedGit([{ exitCode: 1, stderr: "", stdout: "" }]);
+		return Effect.gen(function* () {
+			const verdict = yield* fastForwardWorktree("/repo", "main").pipe(
+				Effect.provide(fake.layer),
+			);
+			expect(verdict).toEqual({ _tag: "refused" });
+			expect(fake.commands).toHaveLength(1);
+		});
+	});
+
+	it.effect("keeps an unresolvable origin ref a failure, not a refusal", () => {
+		const fake = scriptedGit([
+			{
+				exitCode: 128,
+				stderr: "fatal: Not a valid object name origin/gone",
+				stdout: "",
+			},
+		]);
+		return Effect.gen(function* () {
+			const failure = yield* Effect.flip(
+				fastForwardWorktree("/repo", "gone").pipe(Effect.provide(fake.layer)),
+			);
+			expect(failure._tag).toBe("GitCommandFailed");
 		});
 	});
 

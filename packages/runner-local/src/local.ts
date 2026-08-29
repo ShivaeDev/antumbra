@@ -8,6 +8,7 @@ import type {
 } from "@antumbra/plugin-api";
 import { Effect } from "effect";
 import { ensureDirectory, pathExists } from "#adapters/fs.ts";
+import { refreshBerth } from "#berth-refresh.ts";
 import { captureChange } from "#change-evidence.ts";
 import { ensureMirror } from "#mirrors.ts";
 import { mirrorName, workBranch } from "#naming.ts";
@@ -60,16 +61,17 @@ const provisionInto = (roots: LocalRunnerRoots, plan: MooragePlan) =>
 				);
 				if (yield* pathExists(berth.path)) {
 					yield* verifyWorktree(mirror, berth);
-					return;
+					return yield* refreshBerth(mirror, berth);
 				}
 				if (
 					(yield* pathExists(mirror)) &&
 					(yield* remountWorktree(mirror, berth))
 				) {
-					return;
+					return yield* refreshBerth(mirror, berth);
 				}
-				// why: source access is the fallback only after durable mirror state
-				// proves there is no planned branch to recover locally.
+				// why: a berth is cut from the source only after durable mirror state
+				// proves there is no planned branch to recover locally; the refresh
+				// above reaches the source too, but never decides whether one exists.
 				yield* ensureMirror(roots.reposRoot, berth);
 				yield* createWorktree(mirror, berth);
 			}),

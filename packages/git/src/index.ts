@@ -1,5 +1,6 @@
 export { captureWorktreeChange } from "#change-evidence.ts";
 export { GitAuthRequired, type GitError, GitPushRefused } from "#errors.ts";
+export { type FastForwardVerdict, fastForwardWorktree } from "#fast-forward.ts";
 export { cloneMirror, refreshMirror } from "#mirrors.ts";
 export { pushBranch } from "#push.ts";
 export { branchExists, inspectWorktreeIdentity } from "#worktree-identity.ts";

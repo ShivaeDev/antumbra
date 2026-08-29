@@ -23,6 +23,14 @@ export const berthing = (source: string, slug = "source"): RepoRequest => ({
 export const git = (args: ReadonlyArray<string>): Effect.Effect<string> =>
 	Effect.sync(() => execFileSync("git", args, { encoding: "utf8" }));
 
+export const head = (path: string): Effect.Effect<string> =>
+	git(["-C", path, "rev-parse", "HEAD"]).pipe(Effect.map((sha) => sha.trim()));
+
+export const commonDirectory = (path: string): Effect.Effect<string> =>
+	git(["-C", path, "rev-parse", "--git-common-dir"]).pipe(
+		Effect.map((output) => output.trim()),
+	);
+
 export const provision = (runner: Runner, request: ProvisionRequest) => {
 	const plan = runner.plan(request);
 	return runner.provision(plan).pipe(Effect.as(plan));

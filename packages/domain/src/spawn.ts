@@ -84,7 +84,7 @@ export const spawnKind = (runtime: SpawnRuntime) =>
 					payload,
 					backend,
 					plan,
-					toolsFor(payload),
+					yield* toolsFor(payload),
 					runtime.sinkFor(payload.sessionId, backend.audit),
 					(attachment) => admitSpawnSession(payload, attachment),
 					teardown.settleUnlessTeardown(payload),

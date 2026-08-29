@@ -17,7 +17,7 @@ export type CaptainCharter = typeof CaptainCharter.Type;
 // why: the captain's tools are its authority, so the order names them and
 // says what each one means for the voyage — including that launching is a
 // release into the pool and not a wait.
-const STANDING_ORDER = [
+export const CAPTAIN_STANDING_ORDER = [
 	"- You charter the work: `charter_piece` states a title, a charter, the outcome you expect, the role that suits it, and the pieces it waits on. Workers report; captains charter.",
 	"- `launch_piece` releases a piece into the pool. It is dispatched when its dependencies are done and there is room in the fleet — you do not wait for it, and a launched chain finishes on its own.",
 	"- `read_voyage` shows what has landed. `park_piece` pulls a piece back out of the pool, `unpark_piece` returns it, and `rewire_piece` changes what a piece waits on.",
@@ -38,6 +38,6 @@ export const captainCharter = (input: CaptainCharter): AgentPrompt =>
 			logSection("Voyage log", input.voyageLog),
 			section("Pieces", input.pieceLines.join("\n")),
 			logSection("Standing rulings", input.rulings),
-			section("Standing orders", STANDING_ORDER),
+			section("Standing orders", CAPTAIN_STANDING_ORDER),
 		]),
 	);

@@ -1,0 +1,96 @@
+import {
+	bind,
+	charterVoyagePieceSpec,
+	openVoyageSpec,
+	proclaimRulingSpec,
+} from "@antumbra/agent-tools";
+import { Pieces } from "@antumbra/pieces";
+import type { DirectTool } from "@antumbra/plugin-api";
+import {
+	type Ruling,
+	type RulingProclamation,
+	Rulings,
+} from "@antumbra/rulings";
+import { AGENT_BACKEND_TAGS } from "@antumbra/vocabulary/agent-backend";
+import { Effect } from "effect";
+import { makeCaptainToolCompiler } from "#captain-tools.ts";
+import { tagSubjects } from "#ruling-inputs.ts";
+import { answered } from "#tool-answers.ts";
+import type { SessionIdentity } from "#tool-identity.ts";
+import { VoyageProcedureService } from "#voyage-procedures.ts";
+
+// why: an opened voyage points at the first backend this app ships, the way a
+// window draft that names none falls back to the first one offered. The
+// admiral switches it afterwards like any other voyage's, so the tool asks a
+// model for nothing it would only be guessing at.
+const [FIRST_BACKEND] = AGENT_BACKEND_TAGS;
+
+type Proclaimed = (typeof proclaimRulingSpec)["input"]["Type"];
+
+// why: the radius belongs to the tool rather than to the caller — the flagship
+// captain is the fleet's authority, and proclaiming below fleet radius is not
+// among the acts the guide gives it. It stands on the flagship while it writes
+// a fleet rule, so free tags are the whole of the scope it may name.
+const proclamationOf = (input: Proclaimed): RulingProclamation => ({
+	answer: input.answer,
+	by: "flagship",
+	choices: [],
+	context: input.context,
+	question: input.question,
+	radius: "fleet",
+	subjects: tagSubjects(input.tags),
+	urgency: input.urgency,
+});
+
+const proclaimed = (ruling: Ruling): string =>
+	`ruling ${ruling.id} proclaimed by the flagship — it binds the whole fleet until the admiral supersedes it`;
+
+// why: the fleet set is the captain set plus what only the flagship's captain
+// may do. It keeps every captain tool because the flagship is a voyage like
+// any other and still has to be conned; the three additions are the acts the
+// admiral's own agent carries out on the fleet rather than on one ship.
+export const makeFleetToolCompiler = Effect.gen(function* () {
+	const compileCaptainTools = yield* makeCaptainToolCompiler;
+	const pieces = yield* Pieces;
+	const rulings = yield* Rulings;
+	const voyages = yield* VoyageProcedureService;
+	return (identity: SessionIdentity): ReadonlyArray<DirectTool> => [
+		...compileCaptainTools(identity),
+		bind(openVoyageSpec, (input) =>
+			answered(
+				identity,
+				openVoyageSpec.name,
+				voyages.open({
+					backend: FIRST_BACKEND,
+					context: input.context,
+					name: input.name,
+					northStar: input.northStar,
+				}),
+				(voyage) => `opened voyage ${voyage.id}`,
+			),
+		),
+		bind(charterVoyagePieceSpec, (input) =>
+			answered(
+				identity,
+				charterVoyagePieceSpec.name,
+				pieces.charter({
+					charter: input.charter,
+					dependsOn: [],
+					expectation: input.expectation,
+					role: input.role,
+					title: input.title,
+					voyageId: input.voyageId,
+				}),
+				(piece) => `chartered ${piece.id} on voyage ${input.voyageId}`,
+			),
+		),
+		bind(proclaimRulingSpec, (input) =>
+			answered(
+				identity,
+				proclaimRulingSpec.name,
+				rulings.proclaim(proclamationOf(input)),
+				proclaimed,
+			),
+		),
+	];
+});

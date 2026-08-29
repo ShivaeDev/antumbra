@@ -37,7 +37,7 @@ export const soundingReading: RulingView = {
 		},
 	],
 	requestedAt: "2026-08-15T09:40:00.000Z",
-	requesterAgentId: "agent-2",
+	requester: { agentId: "agent-2", kind: "agent" },
 	subjects: [
 		{ kind: "voyage", label: "voyage-1" },
 		{ kind: "tag", label: "surveying" },
@@ -56,7 +56,7 @@ export const berthNaming: RulingView = {
 	radius: "fleet",
 	reclassifications: [],
 	requestedAt: "2026-08-15T08:10:00.000Z",
-	requesterAgentId: "agent-1",
+	requester: { agentId: "agent-1", kind: "agent" },
 	subjects: [{ kind: "repo", label: "repo-1" }],
 	urgency: "eventual",
 };

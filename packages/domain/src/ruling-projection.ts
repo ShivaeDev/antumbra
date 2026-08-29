@@ -83,7 +83,7 @@ export const rulingSeen = (ruling: Ruling, world: VoyageWorld): RulingView => ({
 	radius: ruling.radius,
 	reclassifications: ruling.reclassifications.map(reclassificationSeen),
 	requestedAt: ruling.createdAt.toISOString(),
-	requesterAgentId: ruling.requesterAgentId,
+	requester: ruling.requester,
 	subjects: ruling.subjects.map(subjectSeen),
 	urgency: ruling.urgency,
 });

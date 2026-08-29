@@ -3,8 +3,8 @@ import { persistenceIt } from "@antumbra/persistence/testing";
 import { Rulings, RulingsLive } from "@antumbra/rulings";
 import { expect } from "@effect/vitest";
 import { Effect, Layer, Option } from "effect";
-import { standingRulingsFor } from "#standing-rulings.ts";
-import { seedAsker, unruled } from "#test/ruling-fixtures.ts";
+import { rulingLine, standingRulingsFor } from "#standing-rulings.ts";
+import { proclaimed, seedAsker, unruled } from "#test/ruling-fixtures.ts";
 
 const it = persistenceIt();
 
@@ -42,5 +42,24 @@ it.effectDB("binds by the radius a ruling was reclassified to", function* () {
 		const bound = yield* standingRulingsFor(stranger);
 
 		expect(bound.map((ruling) => ruling.id)).toEqual([widened.id]);
+	}).pipe(Effect.provide(layer));
+});
+
+// why: a rule the admiral wrote for itself reads as proclaimed rather than as
+// an agent's question that happened to be answered, because who asked is part
+// of how far the answer reaches.
+it.effectDB("names the admiral as the one who proclaimed a rule", function* () {
+	yield* Effect.gen(function* () {
+		const rulings = yield* Rulings;
+		yield* proclaimed("may any voyage dredge?", "never", {
+			radius: "fleet",
+			subjects: [],
+		});
+
+		const [standing] = yield* rulings.standing([]);
+
+		expect(standing === undefined ? "" : rulingLine(standing)).toContain(
+			"proclaimed by the admiral",
+		);
 	}).pipe(Effect.provide(layer));
 });

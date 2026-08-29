@@ -4,6 +4,7 @@ import { fleet } from "#fixtures/fleet.ts";
 import { openRulings, standingRulings } from "#fixtures/ruling.ts";
 import {
 	grownStanding,
+	proclaimedStanding,
 	ruledRulings,
 	supersededStanding,
 	urgentRulings,
@@ -54,6 +55,7 @@ export const makeScriptedFeeds = (beat: Duration.Input): FixtureFeeds => {
 			Stream.make(standingRulings),
 			grownStanding,
 			supersededStanding,
+			proclaimedStanding,
 		),
 		voyage: step(Stream.make(reefView), answeredReef, workingReef),
 		voyages: step<ReadonlyArray<VoyageSummary>>(

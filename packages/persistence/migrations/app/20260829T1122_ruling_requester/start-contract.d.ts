@@ -16,7 +16,7 @@ import type {
 } from '@prisma-next/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'sha256:46f7d112bddd6391e1e202313eb38f06249837985acdefb76da9177eb03d7c06'>;
+  StorageHashBase<'sha256:141a1f5fcaf20371e6e9e4e7d0984d4e76c181630cdd50383f9895bea28a7c19'>;
 export type ExecutionHash = ExecutionHashBase<string>;
 export type ProfileHash =
   ProfileHashBase<'sha256:3cc333ecad9f3f4c7229370a9d2c37e908cdce0f8d2e9fb132d50605b024eff2'>;
@@ -224,8 +224,7 @@ export type FieldOutputTypes = {
     };
     readonly Ruling: {
       readonly id: CodecTypes['sqlite/text@1']['output'];
-      readonly requesterAgentId: CodecTypes['sqlite/text@1']['output'] | null;
-      readonly requesterAuthority: CodecTypes['sqlite/text@1']['output'] | null;
+      readonly requesterAgentId: CodecTypes['sqlite/text@1']['output'];
       readonly radius: CodecTypes['sqlite/text@1']['output'];
       readonly urgency: CodecTypes['sqlite/text@1']['output'];
       readonly context: CodecTypes['sqlite/text@1']['output'];
@@ -525,8 +524,7 @@ export type FieldInputTypes = {
     };
     readonly Ruling: {
       readonly id: CodecTypes['sqlite/text@1']['input'];
-      readonly requesterAgentId: CodecTypes['sqlite/text@1']['input'] | null;
-      readonly requesterAuthority: CodecTypes['sqlite/text@1']['input'] | null;
+      readonly requesterAgentId: CodecTypes['sqlite/text@1']['input'];
       readonly radius: CodecTypes['sqlite/text@1']['input'];
       readonly urgency: CodecTypes['sqlite/text@1']['input'];
       readonly context: CodecTypes['sqlite/text@1']['input'];
@@ -833,8 +831,7 @@ export type StorageColumnTypes = {
       readonly id: CodecTypes['sqlite/text@1']['output'];
       readonly question: CodecTypes['sqlite/text@1']['output'];
       readonly radius: CodecTypes['sqlite/text@1']['output'];
-      readonly requesterAgentId: CodecTypes['sqlite/text@1']['output'] | null;
-      readonly requesterAuthority: CodecTypes['sqlite/text@1']['output'] | null;
+      readonly requesterAgentId: CodecTypes['sqlite/text@1']['output'];
       readonly ruledAt: CodecTypes['sqlite/datetime@1']['output'] | null;
       readonly ruledBy: CodecTypes['sqlite/text@1']['output'] | null;
       readonly supersededAt: CodecTypes['sqlite/datetime@1']['output'] | null;
@@ -1134,8 +1131,7 @@ export type StorageColumnInputTypes = {
       readonly id: CodecTypes['sqlite/text@1']['input'];
       readonly question: CodecTypes['sqlite/text@1']['input'];
       readonly radius: CodecTypes['sqlite/text@1']['input'];
-      readonly requesterAgentId: CodecTypes['sqlite/text@1']['input'] | null;
-      readonly requesterAuthority: CodecTypes['sqlite/text@1']['input'] | null;
+      readonly requesterAgentId: CodecTypes['sqlite/text@1']['input'];
       readonly ruledAt: CodecTypes['sqlite/datetime@1']['input'] | null;
       readonly ruledBy: CodecTypes['sqlite/text@1']['input'] | null;
       readonly supersededAt: CodecTypes['sqlite/datetime@1']['input'] | null;
@@ -2323,12 +2319,7 @@ type ContractBase = Omit<
                 readonly requesterAgentId: {
                   readonly nativeType: 'text';
                   readonly codecId: 'sqlite/text@1';
-                  readonly nullable: true;
-                };
-                readonly requesterAuthority: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'sqlite/text@1';
-                  readonly nullable: true;
+                  readonly nullable: false;
                 };
                 readonly radius: {
                   readonly nativeType: 'text';
@@ -4389,11 +4380,7 @@ type ContractBase = Omit<
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
               };
               readonly requesterAgentId: {
-                readonly nullable: true;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
-              };
-              readonly requesterAuthority: {
-                readonly nullable: true;
+                readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
               };
               readonly radius: {
@@ -4545,7 +4532,6 @@ type ContractBase = Omit<
               readonly fields: {
                 readonly id: { readonly column: 'id' };
                 readonly requesterAgentId: { readonly column: 'requesterAgentId' };
-                readonly requesterAuthority: { readonly column: 'requesterAuthority' };
                 readonly radius: { readonly column: 'radius' };
                 readonly urgency: { readonly column: 'urgency' };
                 readonly context: { readonly column: 'context' };

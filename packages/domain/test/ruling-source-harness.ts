@@ -58,7 +58,7 @@ export const asked = {
 	gates: [],
 	question: "which reading do we plot against?",
 	radius: "voyage",
-	requesterAgentId: requesterId,
+	requester: { agentId: requesterId, kind: "agent" },
 	subjects: [
 		{ id: voyageId, kind: "voyage" },
 		{ kind: "tag", tag: "surveying" },

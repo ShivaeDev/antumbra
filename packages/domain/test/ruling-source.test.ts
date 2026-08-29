@@ -48,7 +48,7 @@ it.effectDB(
 					radius: "voyage",
 					reclassifications: [],
 					requestedAt: expect.any(String),
-					requesterAgentId: requesterId,
+					requester: { agentId: requesterId, kind: "agent" },
 					subjects: expect.arrayContaining([
 						{ kind: "voyage", label: voyageId },
 						{ kind: "tag", label: "surveying" },
@@ -219,3 +219,62 @@ it.effectDB("refuses a reclassification naming no axis", function* () {
 		});
 	}).pipe(Effect.provide(layer));
 });
+
+// why: a rule the admiral writes for itself is asked and answered in one act,
+// so it never passes through the open set the window watches.
+it.effectDB("a proclamation stands without ever being open", function* () {
+	yield* Effect.gen(function* () {
+		const source = yield* RulingSource;
+
+		const receipt = yield* source.proclaim({
+			answer: "survey a channel before dredging it",
+			context: "two voyages dredged a channel nobody had surveyed",
+			question: "May a voyage dredge a channel?",
+			radius: "fleet",
+			tags: ["dredging"],
+			urgency: "eventual",
+		});
+
+		expect(yield* source.open).toEqual({ rulings: [] });
+		const standing = yield* source.standing;
+		expect(standing.rulings).toEqual([
+			{
+				answer: "survey a channel before dredging it",
+				chosen: null,
+				id: receipt.rulingId,
+				question: "May a voyage dredge a channel?",
+				radius: "fleet",
+				ruledAt: expect.any(String),
+				ruledBy: "admiral",
+				subjects: [{ kind: "tag", label: "dredging" }],
+				urgency: "eventual",
+			},
+		]);
+	}).pipe(Effect.provide(layer));
+});
+
+it.effectDB(
+	"refuses a proclamation picking a choice it never made",
+	function* () {
+		yield* Effect.gen(function* () {
+			const source = yield* RulingSource;
+
+			const refused = yield* Effect.flip(
+				source.proclaim({
+					answer: "survey a channel before dredging it",
+					choices: [{ label: "survey first" }],
+					chosenChoice: "dredge freely",
+					context: "two voyages dredged a channel nobody had surveyed",
+					question: "May a voyage dredge a channel?",
+					radius: "fleet",
+					urgency: "eventual",
+				}),
+			);
+
+			expect(refused).toMatchObject({
+				_tag: "RulingRefused",
+				reason: "the proclamation never offered choice dredge freely",
+			});
+		}).pipe(Effect.provide(layer));
+	},
+);

@@ -33,7 +33,7 @@ const requestedRuling = Effect.gen(function* () {
 		gates: [],
 		question: "which reading do we trust?",
 		radius: "voyage",
-		requesterAgentId: askerId,
+		requester: { agentId: askerId, kind: "agent" },
 		subjects: [],
 		urgency: "pressing",
 	});

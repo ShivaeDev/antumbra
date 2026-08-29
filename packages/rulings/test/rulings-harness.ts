@@ -49,7 +49,7 @@ export const asked = {
 	gates: [],
 	question: "which reading do we trust?",
 	radius: "voyage",
-	requesterAgentId: requesterId,
+	requester: { agentId: requesterId, kind: "agent" },
 	subjects: [],
 	urgency: "pressing",
 } as const;

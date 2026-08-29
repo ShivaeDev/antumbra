@@ -6,6 +6,7 @@ type Radius = RulingView["radius"];
 type SubjectKind = RulingView["subjects"][number]["kind"];
 type Urgency = RulingView["urgency"];
 type Authority = StandingRulingView["ruledBy"];
+type Requester = RulingView["requester"];
 
 // why: every word the record can publish is named here in the register the
 // window speaks, so a new one is a compile error rather than a wire spelling
@@ -46,5 +47,13 @@ export const rulingSubjectLabel: Readonly<Record<SubjectKind, string>> = {
 export const rulingAuthorityLabel: Readonly<Record<Authority, string>> = {
 	admiral: "the admiral",
 };
+
+// why: who asked is read as words: an authority that wrote a rule for itself
+// names itself, and an agent is named by the id the fleet knows it by.
+export const rulingRequesterLabel = (requester: Requester): string =>
+	requester.kind === "authority"
+		? `asked by ${rulingAuthorityLabel[requester.by]}`
+		: requester.agentId;
+
 export const rulingGatedPieceLabel = (piece: GatedPiece): string =>
 	`${piece.title} (${piece.voyageName})`;

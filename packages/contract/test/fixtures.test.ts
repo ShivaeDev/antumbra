@@ -60,7 +60,7 @@ describe("the shipped fixtures", () => {
 	);
 
 	it.effect(
-		"scripts standing rulings that gain the ruled one and lose a superseded one",
+		"scripts standing rulings gaining a ruled one, losing a superseded one, then gaining a proclaimed one",
 		() =>
 			Effect.gen(function* () {
 				const caller = feeds("5 millis").createCaller({ windowId: "console" });
@@ -71,8 +71,11 @@ describe("the shipped fixtures", () => {
 					opened,
 					(cause) => cause,
 				).pipe(Stream.runCollect);
-				expect(collected.map((seen) => seen.rulings.length)).toEqual([2, 3, 2]);
+				expect(collected.map((seen) => seen.rulings.length)).toEqual([
+					2, 3, 2, 3,
+				]);
 				expect(collected.at(-1)?.rulings.map((seen) => seen.id)).toEqual([
+					"ruling-12",
 					"ruling-1",
 					"ruling-10",
 				]);

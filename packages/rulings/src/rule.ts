@@ -21,7 +21,7 @@ const offeredChoice = (input: RulingVerdict) =>
 			: yield* new RulingChoiceUnknown({ choiceId, rulingId: input.rulingId });
 	});
 
-const writeVerdict = (input: RulingVerdict, at: Date) =>
+export const writeVerdict = (input: RulingVerdict, at: Date) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
 		const row = yield* requireRuling(input.rulingId);

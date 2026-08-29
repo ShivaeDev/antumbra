@@ -65,9 +65,10 @@ prose alone.
 
 ## The authority ladder
 
-A request climbs. Its voyage captain sees it first, then the flagship
-captain, then the admiral. Each may rule within its radius, add context the
-asker did not have, or reclassify radius and urgency before passing it up.
+A request climbs. Its voyage captain sees it first, then the
+[flagship captain](flagship.md#on-the-ladder), then the admiral. Each may rule
+within its radius, add context the asker did not have, or reclassify radius
+and urgency before passing it up.
 The admiral may overrule any ruling below by superseding it; a captain's
 rulings form an audit trail the admiral can read. Until captains sit on the
 ladder, the admiral answers at every level. That is a stage, not the shape.

@@ -12,6 +12,7 @@ import { Layer } from "effect";
 import { CaptainMembershipLive } from "#captain-membership.ts";
 import { ChangeProceduresLive } from "#change-procedures.ts";
 import { KernelReachDeferredLive } from "#kernel-reach.ts";
+import { RulingHoldsLive } from "#ruling-holds.ts";
 import { StandDownLive } from "#stand-down.ts";
 import { VoyageWorldSourceLive } from "#voyage-world.ts";
 import { VoyageProceduresLive } from "#voyages.ts";
@@ -27,6 +28,7 @@ export const domainCapabilities = (
 		ArtifactsLive(artifactsDirectory),
 		ReportsLive,
 		ReposLive,
+		RulingHoldsLive,
 		RulingsLive,
 		SessionEventJournalLive,
 		KernelReachDeferredLive,

@@ -1,6 +1,7 @@
 import { expect, it } from "@effect/vitest";
 import { captainCharter } from "#charter-captain.ts";
 import { type CrewCharter, crewCharter } from "#charter-crew.ts";
+import { flagshipCharter } from "#charter-flagship.ts";
 
 const RULING_LINES = [
 	"- ruling-1 (binds the whole fleet) which reading do we trust? — trust the soundings",
@@ -61,6 +62,28 @@ it("a captain charter lists the pieces and the captain standing order", () => {
 	expect(text).toContain("`charter_piece`");
 	expect(text).toContain("`launch_piece`");
 	expect(text).not.toContain("`land_report`");
+});
+
+it("a flagship charter names the fleet acts beside a captain's own", () => {
+	const text = flagshipCharter({
+		context: "Fleet-level rulings and findings belong here.",
+		northStar: "The fleet sails well.",
+		pieceLines: [],
+		rulings: [],
+		voyageLog: [],
+	});
+	expect(text).toContain("`read_fleet`");
+	expect(text).toContain("`charter_piece_on_voyage`");
+	expect(text).toContain("`charter_piece`");
+	expect(
+		captainCharter({
+			context: "the reef is uncharted",
+			northStar: "every shoal is known",
+			pieceLines: [],
+			rulings: [],
+			voyageLog: [],
+		}),
+	).not.toContain("`read_fleet`");
 });
 
 it("a captain of a voyage with no pieces is told about no pieces", () => {

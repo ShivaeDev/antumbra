@@ -77,3 +77,13 @@ export const proclaimRulingSpec = defineTool({
 	}),
 	name: "proclaim_ruling",
 });
+
+// why: the one reading the fleet acts stand on. A piece is chartered onto a
+// voyage by id, and nothing else the flagship holds says which ids exist —
+// `read_voyage` shows the ship it is on and no other.
+export const readFleetSpec = defineTool({
+	description:
+		"Read the fleet: every voyage under sail, with its id, kind, backend, state, piece counts, captain, and when it last stirred. Call it to learn which voyages exist — the id `charter_piece_on_voyage` takes is the one shown here.",
+	input: Schema.Struct({}),
+	name: "read_fleet",
+});

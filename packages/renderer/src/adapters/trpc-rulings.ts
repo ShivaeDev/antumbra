@@ -5,6 +5,7 @@ import type {
 	RuleRequest,
 	StandingRulingsView,
 	SupersedeRequest,
+	WithdrawRequest,
 } from "@antumbra/contract";
 import { client, toError } from "#adapters/bridge.ts";
 import type { Unsubscribe } from "#adapters/trpc.ts";
@@ -56,6 +57,14 @@ export const supersedeRuling = (
 	request: SupersedeRequest,
 	onError: OnError,
 ): void => fired(client.supersedeRuling.mutate(request), onError);
+
+// why: a withdrawn ruling leaves the standing set on the next feed like a
+// superseded one, and the words that retired it go with the act rather than
+// waiting for the window to ask what to store beside it.
+export const withdrawRuling = (
+	request: WithdrawRequest,
+	onError: OnError,
+): void => fired(client.withdrawRuling.mutate(request), onError);
 
 // why: the reclassified axes reach the card on the next feed, because where a
 // ruling now sits in the open set is the record's reading, not the window's.

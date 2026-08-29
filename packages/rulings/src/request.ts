@@ -36,6 +36,9 @@ export const requested = (
 	supersededBy: null,
 	supersededById: null,
 	urgency: input.urgency,
+	withdrawnAt: null,
+	withdrawnBy: null,
+	withdrawnNote: null,
 });
 
 export const writeRequest = (row: StoredRuling, input: RulingRequest) =>

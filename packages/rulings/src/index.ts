@@ -1,6 +1,7 @@
 export {
 	RulingAlreadyRuled,
 	RulingAlreadySuperseded,
+	RulingAlreadyWithdrawn,
 	RulingChoiceUnknown,
 	type RulingGateFailure,
 	RulingGatePieceMissing,
@@ -16,6 +17,7 @@ export {
 	RulingSupersedesItself,
 	type RulingSupersessionFailure,
 	type RulingVerdictFailure,
+	type RulingWithdrawalFailure,
 } from "#errors.ts";
 export type {
 	Ruling,
@@ -31,8 +33,12 @@ export type {
 	RulingRequest,
 	RulingRequester,
 	RulingSubject,
-	RulingSupersedeInput,
-	RulingSupersession,
 	RulingVerdict,
 } from "#model.ts";
+export type {
+	RulingSupersedeInput,
+	RulingSupersession,
+	RulingWithdrawal,
+	RulingWithdrawInput,
+} from "#retirement.ts";
 export { Rulings, RulingsLive } from "#rulings.ts";

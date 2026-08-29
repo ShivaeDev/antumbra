@@ -15,6 +15,7 @@ import { request } from "#request.ts";
 import { rule } from "#rule.ts";
 import { standing } from "#standing.ts";
 import { supersede } from "#supersede.ts";
+import { withdraw } from "#withdraw.ts";
 
 const requirements = [Database, DomainFeeds] as const;
 
@@ -37,6 +38,7 @@ export const Rulings = defineService({
 		rule,
 		standing,
 		supersede,
+		withdraw,
 	}),
 	requires: requirements,
 });

@@ -73,6 +73,7 @@ export const berthReclaim: StandingRulingView = {
 	radius: "fleet",
 	ruledAt: "2026-08-14T16:20:00.000Z",
 	ruledBy: "admiral",
+	stale: false,
 	subjects: [],
 	urgency: "pressing",
 };
@@ -85,6 +86,7 @@ export const chartAuthority: StandingRulingView = {
 	radius: "voyage",
 	ruledAt: "2026-08-13T11:00:00.000Z",
 	ruledBy: "admiral",
+	stale: false,
 	subjects: [{ kind: "voyage", label: "voyage-1" }],
 	urgency: "blocking",
 };

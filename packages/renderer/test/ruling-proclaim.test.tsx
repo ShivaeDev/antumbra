@@ -24,6 +24,7 @@ vi.mock("#adapters/trpc-rulings.ts", () => ({
 		return () => undefined;
 	},
 	watchStandingRulings: () => () => undefined,
+	withdrawRuling: vi.fn(),
 }));
 
 const settle = (change: () => void): Effect.Effect<void> =>

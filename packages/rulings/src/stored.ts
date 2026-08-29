@@ -11,7 +11,6 @@ import type {
 	RulingReclassification,
 	RulingReferenceKind,
 	RulingSubject,
-	RulingSupersession,
 } from "#model.ts";
 import type {
 	StoredRuling,
@@ -28,8 +27,11 @@ const REFERENCE_COLUMN: Readonly<
 	voyage: (row) => row.voyageId,
 };
 
-const invalid = (field: string, rulingId: string, value: unknown) =>
-	new StoredRulingValueInvalid({ field, rulingId, value });
+export const invalidRulingValue = (
+	field: string,
+	rulingId: string,
+	value: unknown,
+) => new StoredRulingValueInvalid({ field, rulingId, value });
 
 const reference = (
 	rulingId: string,
@@ -38,7 +40,7 @@ const reference = (
 ) => {
 	const id = REFERENCE_COLUMN[kind](row);
 	return id === null
-		? Effect.fail(invalid("subject reference", rulingId, row))
+		? Effect.fail(invalidRulingValue("subject reference", rulingId, row))
 		: Effect.succeed<RulingSubject>({ id, kind });
 };
 
@@ -51,7 +53,7 @@ export const storedSubject = (rulingId: string, row: StoredRulingSubject) =>
 			return yield* reference(rulingId, kind, row);
 		}
 		return row.tag === null
-			? yield* invalid("subject tag", rulingId, row)
+			? yield* invalidRulingValue("subject tag", rulingId, row)
 			: ({ kind, tag: row.tag } satisfies RulingSubject);
 	});
 
@@ -66,7 +68,7 @@ export const storedAnswer = (row: StoredRuling) =>
 			return Option.none<RulingAnswer>();
 		}
 		if (row.answer === null || row.ruledAt === null || row.ruledBy === null) {
-			return yield* invalid("answer", row.id, row);
+			return yield* invalidRulingValue("answer", row.id, row);
 		}
 		return Option.some<RulingAnswer>({
 			at: row.ruledAt,
@@ -75,30 +77,6 @@ export const storedAnswer = (row: StoredRuling) =>
 			),
 			choiceId: Option.fromNullOr(row.answerChoiceId),
 			text: row.answer,
-		});
-	});
-
-// why: supersession is one appended fact with its provenance; a row naming
-// the ruling that took over without who did it or when is corruption.
-export const storedSupersession = (row: StoredRuling) =>
-	Effect.gen(function* () {
-		const parts = [row.supersededAt, row.supersededBy, row.supersededById];
-		if (parts.every((part) => part === null)) {
-			return Option.none<RulingSupersession>();
-		}
-		if (
-			row.supersededAt === null ||
-			row.supersededBy === null ||
-			row.supersededById === null
-		) {
-			return yield* invalid("supersession", row.id, row);
-		}
-		return Option.some<RulingSupersession>({
-			at: row.supersededAt,
-			by: yield* Effect.fromResult(
-				decodeStoredRulingAuthority(row.id, row.supersededBy),
-			),
-			byRulingId: row.supersededById,
 		});
 	});
 

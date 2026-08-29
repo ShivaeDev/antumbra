@@ -1,5 +1,37 @@
-import type { StandingRulingsView } from "@antumbra/contract";
-import { StandingRulingCard } from "#views/standing-ruling-card.tsx";
+import type {
+	StandingRulingsView,
+	StandingRulingView,
+} from "@antumbra/contract";
+import { StandingRulingList } from "#views/standing-ruling-list.tsx";
+
+// why: a stale ruling still binds every agent it names, so it is grouped where
+// the admiral can see it rather than dropped or dimmed — the work it was
+// written for has finished, and only a withdrawal ends it.
+const Stale = ({
+	onError,
+	stale,
+	standing,
+}: {
+	readonly onError: (message: string) => void;
+	readonly stale: ReadonlyArray<StandingRulingView>;
+	readonly standing: ReadonlyArray<StandingRulingView>;
+}) =>
+	stale.length === 0 ? null : (
+		<section className="flex min-w-0 flex-col border-t border-border">
+			<header className="flex flex-col gap-1 px-4 pt-3 pb-2">
+				<h3 className="text-sm">Stale</h3>
+				<p className="text-2xs text-muted-foreground">
+					Every piece and voyage these name has finished. They bind until you
+					withdraw them.
+				</p>
+			</header>
+			<StandingRulingList
+				listed={stale}
+				onError={onError}
+				standing={standing}
+			/>
+		</section>
+	);
 
 const Standing = ({
 	error,
@@ -23,21 +55,26 @@ const Standing = ({
 		return (
 			<p className="px-4 py-3 text-xs text-muted-foreground">
 				Nothing stands yet. A ruling stands here from the moment it is ruled
-				until a later one supersedes it.
+				until a later one supersedes it or you withdraw it.
 			</p>
 		);
 	}
+	const binding = standing.rulings.filter((ruling) => !ruling.stale);
 	return (
-		<ul className="flex min-w-0 flex-col gap-2 px-4 pb-4">
-			{standing.rulings.map((ruling) => (
-				<StandingRulingCard
-					key={ruling.id}
+		<>
+			{binding.length === 0 ? null : (
+				<StandingRulingList
+					listed={binding}
 					onError={onError}
-					others={standing.rulings.filter((other) => other.id !== ruling.id)}
-					ruling={ruling}
+					standing={standing.rulings}
 				/>
-			))}
-		</ul>
+			)}
+			<Stale
+				onError={onError}
+				stale={standing.rulings.filter((ruling) => ruling.stale)}
+				standing={standing.rulings}
+			/>
+		</>
 	);
 };
 
@@ -64,7 +101,7 @@ export const StandingRulings = ({
 			</div>
 			<p className="text-2xs text-muted-foreground">
 				What binds the fleet now, newest first. A ruling is never edited; a
-				later one supersedes it.
+				later one supersedes it, or the admiral withdraws it.
 			</p>
 		</header>
 		<Standing error={error} onError={onError} standing={standing} />

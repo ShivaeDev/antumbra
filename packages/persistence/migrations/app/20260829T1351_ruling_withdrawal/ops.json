@@ -1,0 +1,125 @@
+[
+  {
+    "id": "column.ruling.withdrawnAt",
+    "label": "Add column withdrawnAt on ruling",
+    "summary": "Adds column withdrawnAt on ruling",
+    "operationClass": "additive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "column",
+        "name": "withdrawnAt",
+        "table": "ruling"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"withdrawnAt\" is missing",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM pragma_table_info(?) WHERE \"name\" = ?",
+        "params": [
+          "ruling",
+          "withdrawnAt"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"withdrawnAt\"",
+        "sql": "ALTER TABLE \"ruling\" ADD COLUMN \"withdrawnAt\" TEXT"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"withdrawnAt\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM pragma_table_info(?) WHERE \"name\" = ?",
+        "params": [
+          "ruling",
+          "withdrawnAt"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.ruling.withdrawnBy",
+    "label": "Add column withdrawnBy on ruling",
+    "summary": "Adds column withdrawnBy on ruling",
+    "operationClass": "additive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "column",
+        "name": "withdrawnBy",
+        "table": "ruling"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"withdrawnBy\" is missing",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM pragma_table_info(?) WHERE \"name\" = ?",
+        "params": [
+          "ruling",
+          "withdrawnBy"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"withdrawnBy\"",
+        "sql": "ALTER TABLE \"ruling\" ADD COLUMN \"withdrawnBy\" TEXT"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"withdrawnBy\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM pragma_table_info(?) WHERE \"name\" = ?",
+        "params": [
+          "ruling",
+          "withdrawnBy"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.ruling.withdrawnNote",
+    "label": "Add column withdrawnNote on ruling",
+    "summary": "Adds column withdrawnNote on ruling",
+    "operationClass": "additive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "column",
+        "name": "withdrawnNote",
+        "table": "ruling"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"withdrawnNote\" is missing",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM pragma_table_info(?) WHERE \"name\" = ?",
+        "params": [
+          "ruling",
+          "withdrawnNote"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"withdrawnNote\"",
+        "sql": "ALTER TABLE \"ruling\" ADD COLUMN \"withdrawnNote\" TEXT"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"withdrawnNote\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM pragma_table_info(?) WHERE \"name\" = ?",
+        "params": [
+          "ruling",
+          "withdrawnNote"
+        ]
+      }
+    ]
+  }
+]

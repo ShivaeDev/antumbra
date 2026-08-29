@@ -2276,27 +2276,6 @@
                   "codecId": "sqlite/text@1",
                   "kind": "scalar"
                 }
-              },
-              "withdrawnAt": {
-                "nullable": true,
-                "type": {
-                  "codecId": "sqlite/datetime@1",
-                  "kind": "scalar"
-                }
-              },
-              "withdrawnBy": {
-                "nullable": true,
-                "type": {
-                  "codecId": "sqlite/text@1",
-                  "kind": "scalar"
-                }
-              },
-              "withdrawnNote": {
-                "nullable": true,
-                "type": {
-                  "codecId": "sqlite/text@1",
-                  "kind": "scalar"
-                }
               }
             },
             "relations": {
@@ -2470,15 +2449,6 @@
                 },
                 "urgency": {
                   "column": "urgency"
-                },
-                "withdrawnAt": {
-                  "column": "withdrawnAt"
-                },
-                "withdrawnBy": {
-                  "column": "withdrawnBy"
-                },
-                "withdrawnNote": {
-                  "column": "withdrawnNote"
                 }
               },
               "namespaceId": "__unbound__",
@@ -4990,21 +4960,6 @@
                   "codecId": "sqlite/text@1",
                   "nativeType": "text",
                   "nullable": false
-                },
-                "withdrawnAt": {
-                  "codecId": "sqlite/datetime@1",
-                  "nativeType": "text",
-                  "nullable": true
-                },
-                "withdrawnBy": {
-                  "codecId": "sqlite/text@1",
-                  "nativeType": "text",
-                  "nullable": true
-                },
-                "withdrawnNote": {
-                  "codecId": "sqlite/text@1",
-                  "nativeType": "text",
-                  "nullable": true
                 }
               },
               "foreignKeys": [
@@ -5908,7 +5863,7 @@
         "id": "__unbound__"
       }
     },
-    "storageHash": "sha256:063e45fc4cf03d16a38327d54e9f06aa2a92f2d82f449e5800cc6195265553f3"
+    "storageHash": "sha256:46f7d112bddd6391e1e202313eb38f06249837985acdefb76da9177eb03d7c06"
   },
   "capabilities": {
     "sql": {

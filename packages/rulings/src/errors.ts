@@ -44,6 +44,15 @@ export class RulingAlreadySuperseded extends Data.TaggedError(
 	readonly rulingId: string;
 }> {}
 
+// why: a withdrawn ruling has already left the standing set with the words
+// that retired it; withdrawing or superseding it again would rewrite why it
+// stopped applying, and a standing ruling is never edited.
+export class RulingAlreadyWithdrawn extends Data.TaggedError(
+	"RulingAlreadyWithdrawn",
+)<{
+	readonly rulingId: string;
+}> {}
+
 export class RulingChoiceUnknown extends Data.TaggedError(
 	"RulingChoiceUnknown",
 )<{
@@ -114,10 +123,18 @@ export type RulingGateFailure =
 
 export type RulingSupersessionFailure =
 	| RulingAlreadySuperseded
+	| RulingAlreadyWithdrawn
 	| RulingNotFound
 	| RulingNotRuled
 	| RulingReadFailure
 	| RulingSupersedesItself;
+
+export type RulingWithdrawalFailure =
+	| RulingAlreadySuperseded
+	| RulingAlreadyWithdrawn
+	| RulingNotFound
+	| RulingNotRuled
+	| RulingReadFailure;
 
 export type RulingReclassifyFailure =
 	| RulingAlreadyRuled

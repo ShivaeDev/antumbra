@@ -12,8 +12,8 @@ import {
 	storedAnswer,
 	storedReclassification,
 	storedSubject,
-	storedSupersession,
 } from "#stored.ts";
+import { storedSupersession, storedWithdrawal } from "#stored-retirement.ts";
 import type { StoredRuling } from "#stored-rows.ts";
 
 const choicesOf = (rulingId: string) =>
@@ -91,6 +91,7 @@ export const loadRuling = (row: StoredRuling) =>
 			requester: yield* storedRequester(row),
 			subjects: yield* subjectsOf(row.id),
 			supersession: yield* storedSupersession(row),
+			withdrawal: yield* storedWithdrawal(row),
 			...effectiveAxes(declared, reclassifications),
 		} satisfies Ruling;
 	});

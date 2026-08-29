@@ -13,11 +13,17 @@ import { createRoot } from "react-dom/client";
 import { beforeEach, vi } from "vitest";
 import { RulingsPanel } from "#views/rulings.tsx";
 
-const { openFeeds, standingFeeds, supersedeRuling } = vi.hoisted(() => {
-	const open: Array<(view: OpenRulingsView) => void> = [];
-	const standing: Array<(view: StandingRulingsView) => void> = [];
-	return { openFeeds: open, standingFeeds: standing, supersedeRuling: vi.fn() };
-});
+const { openFeeds, standingFeeds, supersedeRuling, withdrawRuling } =
+	vi.hoisted(() => {
+		const open: Array<(view: OpenRulingsView) => void> = [];
+		const standing: Array<(view: StandingRulingsView) => void> = [];
+		return {
+			openFeeds: open,
+			standingFeeds: standing,
+			supersedeRuling: vi.fn(),
+			withdrawRuling: vi.fn(),
+		};
+	});
 
 vi.mock("#adapters/trpc-rulings.ts", () => ({
 	proclaimRuling: vi.fn(),
@@ -32,6 +38,7 @@ vi.mock("#adapters/trpc-rulings.ts", () => ({
 		standingFeeds.push(onRulings);
 		return () => undefined;
 	},
+	withdrawRuling,
 }));
 
 const berthReclaim: StandingRulingView = {
@@ -42,6 +49,7 @@ const berthReclaim: StandingRulingView = {
 	radius: "fleet",
 	ruledAt: "2026-08-14T16:20:00.000Z",
 	ruledBy: "admiral",
+	stale: false,
 	subjects: [],
 	urgency: "pressing",
 };
@@ -54,6 +62,7 @@ const chartAuthority: StandingRulingView = {
 	radius: "voyage",
 	ruledAt: "2026-08-13T11:00:00.000Z",
 	ruledBy: "flagship",
+	stale: false,
 	subjects: [{ kind: "voyage", label: "voyage-1" }],
 	urgency: "blocking",
 };
@@ -110,10 +119,38 @@ const picking = (
 		);
 	});
 
+const writing = (
+	mounted: ReturnType<typeof mount>,
+	label: string,
+	words: string,
+): Effect.Effect<void> =>
+	settle(() => {
+		const tag = [...mounted.container.querySelectorAll("label")].find(
+			(each) => each.textContent === label,
+		);
+		const box = mounted.container.querySelector<HTMLInputElement>(
+			`[id="${tag?.htmlFor}"]`,
+		);
+		const set = Object.getOwnPropertyDescriptor(
+			HTMLInputElement.prototype,
+			"value",
+		)?.set;
+		if (box !== null && set !== undefined) {
+			set.call(box, words);
+			box.dispatchEvent(new Event("input", { bubbles: true }));
+		}
+	});
+
+const questionsIn = (list: Element | undefined): ReadonlyArray<string | null> =>
+	[...(list?.querySelectorAll("li h3") ?? [])].map(
+		(heading) => heading.textContent,
+	);
+
 beforeEach(() => {
 	openFeeds.length = 0;
 	standingFeeds.length = 0;
 	supersedeRuling.mockClear();
+	withdrawRuling.mockClear();
 });
 
 it.effect("lists what stands newest first with who ruled and what", () =>
@@ -183,6 +220,62 @@ it.effect("says so when nothing stands yet", () =>
 		yield* showing(mounted, []);
 
 		expect(mounted.container.textContent).toContain("Nothing stands yet");
+		yield* settle(() => mounted.root.unmount());
+	}),
+);
+
+it.effect("withdraws a standing ruling with the words that retire it", () =>
+	Effect.gen(function* () {
+		const mounted = mount();
+		yield* showing(mounted, [berthReclaim]);
+
+		yield* writing(mounted, "Withdraw because…", "berths are gone entirely");
+		yield* settle(() => buttonSaying(mounted, "Withdraw")?.click());
+
+		expect(withdrawRuling).toHaveBeenCalledWith(
+			{ note: "berths are gone entirely", rulingId: berthReclaim.id },
+			expect.any(Function),
+		);
+		yield* settle(() => mounted.root.unmount());
+	}),
+);
+
+// why: the note stands where a successor would, so a withdrawal with nothing
+// written leaves a rule retired for no stated reason and never leaves here.
+it.effect("never sends a withdrawal with no words", () =>
+	Effect.gen(function* () {
+		const mounted = mount();
+		yield* showing(mounted, [berthReclaim]);
+
+		yield* settle(() => buttonSaying(mounted, "Withdraw")?.click());
+
+		expect(withdrawRuling).not.toHaveBeenCalled();
+		yield* settle(() => mounted.root.unmount());
+	}),
+);
+
+it.effect("gathers what has gone stale under its own heading", () =>
+	Effect.gen(function* () {
+		const mounted = mount();
+		yield* showing(mounted, [berthReclaim, { ...chartAuthority, stale: true }]);
+
+		const lists = [...mounted.container.querySelectorAll("ul")];
+		expect(questionsIn(lists[0])).toEqual([berthReclaim.question]);
+		expect(questionsIn(lists[1])).toEqual([chartAuthority.question]);
+		expect(mounted.container.textContent).toContain(
+			"They bind until you withdraw them",
+		);
+		yield* settle(() => mounted.root.unmount());
+	}),
+);
+
+it.effect("names no stale heading while every ruling still applies", () =>
+	Effect.gen(function* () {
+		const mounted = mount();
+		yield* showing(mounted, [berthReclaim, chartAuthority]);
+
+		expect(mounted.container.querySelectorAll("ul")).toHaveLength(1);
+		expect(mounted.container.textContent).not.toContain("Stale");
 		yield* settle(() => mounted.root.unmount());
 	}),
 );

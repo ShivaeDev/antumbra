@@ -1,29 +1,11 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database } from "@antumbra/persistence";
 import { Clock, Effect } from "effect";
-import {
-	RulingAlreadySuperseded,
-	RulingNotRuled,
-	RulingSupersedesItself,
-} from "#errors.ts";
-import type { RulingSupersedeInput } from "#model.ts";
+import { RulingSupersedesItself } from "#errors.ts";
 import { loadRuling, requireRuling } from "#read.ts";
+import type { RulingSupersedeInput } from "#retirement.ts";
+import { requireStanding } from "#standing-row.ts";
 import type { StoredRuling } from "#stored-rows.ts";
-
-const requireStanding = (rulingId: string) =>
-	Effect.gen(function* () {
-		const row = yield* requireRuling(rulingId);
-		if (row.ruledAt === null) {
-			return yield* new RulingNotRuled({ rulingId });
-		}
-		if (row.supersededById !== null) {
-			return yield* new RulingAlreadySuperseded({
-				byRulingId: row.supersededById,
-				rulingId,
-			});
-		}
-		return row;
-	});
 
 const writeSupersession = (input: RulingSupersedeInput, at: Date) =>
 	Effect.gen(function* () {

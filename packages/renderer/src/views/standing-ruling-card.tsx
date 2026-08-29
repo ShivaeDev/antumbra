@@ -6,6 +6,7 @@ import {
 	rulingSubjectLabel,
 } from "#rulings/labels.ts";
 import { RulingSupersede } from "#views/ruling-supersede.tsx";
+import { RulingWithdraw } from "#views/ruling-withdraw.tsx";
 import { whenLabel } from "#voyages/labels.ts";
 
 const subjectKey = (subject: RulingSubjectView): string =>
@@ -43,5 +44,6 @@ export const StandingRulingCard = ({
 			</p>
 		)}
 		<RulingSupersede onError={onError} others={others} ruling={ruling} />
+		<RulingWithdraw onError={onError} ruling={ruling} />
 	</li>
 );

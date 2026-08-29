@@ -6,6 +6,7 @@ export {
 	RulingGatePieceMissing,
 	RulingNotFound,
 	RulingNotRuled,
+	RulingOutsideAuthority,
 	type RulingProclaimFailure,
 	type RulingReadFailure,
 	RulingReclassificationEmpty,

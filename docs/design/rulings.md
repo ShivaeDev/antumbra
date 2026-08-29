@@ -70,8 +70,9 @@ A request climbs. Its voyage captain sees it first, then the
 within its radius, add context the asker did not have, or reclassify radius
 and urgency before passing it up.
 The admiral may overrule any ruling below by superseding it; a captain's
-rulings form an audit trail the admiral can read. Until captains sit on the
-ladder, the admiral answers at every level. That is a stage, not the shape.
+rulings form an audit trail the admiral can read. The flagship captain answers
+at fleet radius; until voyage captains sit on the ladder, everything narrower
+still reaches the admiral. That is a stage, not the shape.
 
 ## Rulings gate Pieces
 

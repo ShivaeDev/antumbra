@@ -77,3 +77,28 @@ export const proclaimRulingSpec = defineTool({
 	}),
 	name: "proclaim_ruling",
 });
+
+// why: a fleet-radius request reaches the flagship captain as mail like
+// everything else, so the verdict needs a verb of its own — the answer is
+// given here, on the record, rather than written back as words on a board.
+export const ruleOnSpec = defineTool({
+	description:
+		"Rule on a ruling that has climbed to you: settle a question an agent asked whose answer will bind the whole fleet. Your answer stands from the moment you give it and is read long after the work that asked for it, so answer the question that was actually asked and say how far the answer reaches. Rule only what is yours: anything binding one piece or one voyage belongs to that voyage's captain, and a question only the admiral may settle is left open for the admiral with whatever context you can add.",
+	input: Schema.Struct({
+		answer: Schema.String.annotate({
+			description:
+				"The decision itself, in the words the asker and every later reader will read.",
+		}),
+		choice: Schema.optional(
+			Schema.String.annotate({
+				description:
+					"The label of one of the choices the asker offered, when your answer is one of them. Your own words stand beside it either way.",
+			}),
+		),
+		rulingId: Schema.String.annotate({
+			description:
+				"The id of the ruling you are answering, as your mail names it.",
+		}),
+	}),
+	name: "rule_on",
+});

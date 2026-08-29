@@ -1,4 +1,5 @@
 import type { RulingReclassificationView } from "@antumbra/contract";
+import { rulingAuthorityLabel } from "#rulings/labels.ts";
 import { whenLabel } from "#voyages/labels.ts";
 
 const moves = (reclassification: RulingReclassificationView): string =>
@@ -28,7 +29,8 @@ export const RulingReclassifications = ({
 					key={`${reclassification.at}:${moves(reclassification)}`}
 				>
 					<span className="min-w-0">
-						{reclassification.by} set {moves(reclassification)}
+						{rulingAuthorityLabel[reclassification.by]} set{" "}
+						{moves(reclassification)}
 						{reclassification.note === undefined
 							? null
 							: ` — ${reclassification.note}`}

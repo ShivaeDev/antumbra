@@ -2,6 +2,7 @@ import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database } from "@antumbra/persistence";
 import { defineService } from "@antumbra/service-definition";
 import { Effect } from "effect";
+import { awaitingAscent } from "#awaiting-ascent.ts";
 import { awaitingDelivery } from "#awaiting-delivery.ts";
 import { gate } from "#gate.ts";
 import { get } from "#get.ts";
@@ -23,6 +24,7 @@ export const Rulings = defineService({
 	id: "@antumbra/rulings/Rulings",
 	initialize: Effect.void,
 	methods: () => ({
+		awaitingAscent,
 		awaitingDelivery,
 		gate,
 		get,

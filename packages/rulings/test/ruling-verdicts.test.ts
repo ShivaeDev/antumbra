@@ -128,3 +128,48 @@ it.effectDB("refuses to rule a ruling nothing asked", function* () {
 		});
 	}).pipe(Effect.provide(layer));
 });
+
+it.effectDB(
+	"refuses an authority the ruling's radius is not for",
+	function* () {
+		yield* Effect.gen(function* () {
+			yield* seedFleet;
+			const rulings = yield* Rulings;
+			const requested = yield* rulings.request(asked);
+
+			const failure = yield* Effect.flip(
+				rulings.rule({
+					answer: "trust the soundings",
+					by: "flagship",
+					rulingId: requested.id,
+				}),
+			);
+
+			expect(failure).toMatchObject({
+				_tag: "RulingOutsideAuthority",
+				by: "flagship",
+				radius: "voyage",
+				rulingId: requested.id,
+			});
+			expect(Option.isNone((yield* rulings.get(requested.id)).answer)).toBe(
+				true,
+			);
+		}).pipe(Effect.provide(layer));
+	},
+);
+
+it.effectDB("lets the flagship answer what binds the fleet", function* () {
+	yield* Effect.gen(function* () {
+		yield* seedFleet;
+		const rulings = yield* Rulings;
+		const requested = yield* rulings.request({ ...asked, radius: "fleet" });
+
+		const ruled = yield* rulings.rule({
+			answer: "trust the soundings",
+			by: "flagship",
+			rulingId: requested.id,
+		});
+
+		expect(Option.getOrThrow(ruled.answer).by).toBe("flagship");
+	}).pipe(Effect.provide(layer));
+});

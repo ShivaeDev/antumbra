@@ -8,6 +8,7 @@ import {
 	FlagshipLive,
 	IntentFeedLive,
 	KernelReachLive,
+	RulingAscentLive,
 	RulingDeliveryLive,
 	RulingSourceLive,
 	SessionShutdownLive,
@@ -101,6 +102,7 @@ export const applicationLayers = () =>
 		FlagshipLive,
 		IntentFeedLive,
 		KernelReachLive,
+		RulingAscentLive,
 		RulingDeliveryLive,
 		SessionShutdownLive,
 	).pipe(

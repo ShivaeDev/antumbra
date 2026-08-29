@@ -1,7 +1,12 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database } from "@antumbra/persistence";
-import { Clock, Effect } from "effect";
-import { RulingAlreadyRuled, RulingChoiceUnknown } from "#errors.ts";
+import { Clock, Effect, Option } from "effect";
+import { answersAt } from "#authority.ts";
+import {
+	RulingAlreadyRuled,
+	RulingChoiceUnknown,
+	RulingOutsideAuthority,
+} from "#errors.ts";
 import type { RulingVerdict } from "#model.ts";
 import { loadRuling, requireRuling } from "#read.ts";
 
@@ -21,12 +26,22 @@ const offeredChoice = (input: RulingVerdict) =>
 			: yield* new RulingChoiceUnknown({ choiceId, rulingId: input.rulingId });
 	});
 
+// why: the radius the verdict is measured against is the effective one, not
+// what the asker declared — a captain that pushed the question up or down
+// moved who may settle it along with how widely the answer will apply.
 export const writeVerdict = (input: RulingVerdict, at: Date) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
-		const row = yield* requireRuling(input.rulingId);
-		if (row.ruledAt !== null) {
+		const open = yield* loadRuling(yield* requireRuling(input.rulingId));
+		if (Option.isSome(open.answer)) {
 			return yield* new RulingAlreadyRuled({ rulingId: input.rulingId });
+		}
+		if (!answersAt(input.by, open.radius)) {
+			return yield* new RulingOutsideAuthority({
+				by: input.by,
+				radius: open.radius,
+				rulingId: input.rulingId,
+			});
 		}
 		const answerChoiceId = yield* offeredChoice(input);
 		yield* db.Ruling.where({ id: input.rulingId }).update({

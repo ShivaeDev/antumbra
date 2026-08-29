@@ -14,6 +14,7 @@ import {
 import { AGENT_BACKEND_TAGS } from "@antumbra/vocabulary/agent-backend";
 import { Effect } from "effect";
 import { makeCaptainToolCompiler } from "#captain-tools.ts";
+import { makeFleetVerdictToolCompiler } from "#fleet-verdicts.ts";
 import { tagSubjects } from "#ruling-inputs.ts";
 import { answered } from "#tool-answers.ts";
 import type { SessionIdentity } from "#tool-identity.ts";
@@ -47,15 +48,17 @@ const proclaimed = (ruling: Ruling): string =>
 
 // why: the fleet set is the captain set plus what only the flagship's captain
 // may do. It keeps every captain tool because the flagship is a voyage like
-// any other and still has to be conned; the three additions are the acts the
+// any other and still has to be conned; the additions are the acts the
 // admiral's own agent carries out on the fleet rather than on one ship.
 export const makeFleetToolCompiler = Effect.gen(function* () {
 	const compileCaptainTools = yield* makeCaptainToolCompiler;
+	const compileVerdictTools = yield* makeFleetVerdictToolCompiler;
 	const pieces = yield* Pieces;
 	const rulings = yield* Rulings;
 	const voyages = yield* VoyageProcedureService;
 	return (identity: SessionIdentity): ReadonlyArray<DirectTool> => [
 		...compileCaptainTools(identity),
+		...compileVerdictTools(identity),
 		bind(openVoyageSpec, (input) =>
 			answered(
 				identity,

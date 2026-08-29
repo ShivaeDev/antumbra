@@ -61,9 +61,11 @@ No radius is reserved for the admiral by construction: what the admiral holds
 is a standing right over every rung, not a rung of their own that the ladder
 keeps empty.
 
-Until this lands the admiral answers at every rung. That is a stage, not the
-shape. The flagship captain joining the ladder is the first rung to be filled;
-voyage captains join after it.
+The flagship captain now holds the fleet rung: a fleet-radius request reaches
+it as mail like everything else that reaches an agent, and it rules on that
+request with a tool of its own. Everything narrower still reaches the admiral,
+because voyage captains have not joined the ladder yet. That is a stage, not
+the shape.
 
 ## Talking to it
 
@@ -80,10 +82,12 @@ somewhere to navigate to.
 ## What it does
 
 On the admiral's word the flagship captain may open a Voyage, charter a Piece
-on a named Voyage, and proclaim a fleet ruling as the `flagship` authority.
-These are the ordinary domain acts, called by an agent that happens to sit at
-the top; the flagship gets no private verbs and no act the admiral could not
-perform directly.
+on a named Voyage, and proclaim a fleet ruling as the `flagship` authority. It
+also rules on the fleet-radius requests that climb to it, as that same
+authority, and refuses a narrower one by naming whose it is. These are the
+ordinary domain acts, called by an agent that happens to sit at the top; the
+flagship gets no private verbs and no act the admiral could not perform
+directly.
 
 Everything it does lands on the fleet Board, so what was done in the admiral's
 name reads as one story rather than as changes discovered later across
@@ -108,8 +112,8 @@ Pieces hold the durable work and agents act for them through mortal Intents.
 
 ## Open questions
 
-Which acts join the flagship captain's set, and on what evidence. The first
-three cover opening work and settling fleet-wide questions; the missing ones
+Which acts join the flagship captain's set, and on what evidence. The set so
+far covers opening work and settling fleet-wide questions; the missing ones
 should be named by asks the captain could not carry out, not by anticipation.
 
 When voyage captains join the ladder. Until they do, every request that is not

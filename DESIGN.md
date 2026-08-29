@@ -41,9 +41,16 @@ tests own exact implemented fields, states, wire names, and current behavior.
   a fresh context over the durable record without requiring permanent crew.
 - **Work is chartered, never shopped.** Captains assign work to Agents; Agents
   do not select work for themselves from a pool.
+- **The fleet sails on one flagship.** Exactly one Voyage's kind is flagship;
+  its north star is the fleet's and its Board is the fleet Board, so there is
+  no fleet record beside the Voyages. Its captain is the highest-level agent
+  in the fleet, answers rulings of fleet radius, and acts for the admiral
+  through ordinary domain acts rather than private ones.
 
 The [work and planning guide](docs/design/work-and-planning.md) owns the
-detailed authority, course, Piece, dependency, and progress model.
+detailed authority, course, Piece, dependency, and progress model. The
+[flagship guide](docs/design/flagship.md) owns the flagship Voyage, its
+captain, and what that captain answers and does.
 
 ## Agents and execution
 

@@ -39,6 +39,12 @@ Owner: [Rulings](docs/design/rulings.md)
 
 - [**Ruling**](docs/design/rulings.md#the-ruling-record) — one typed record binding the context, the question, and the answer an authority gives; an agent requests it, a captain or the admiral rules on it.
 
+## The flagship
+
+Owner: [The flagship](docs/design/flagship.md)
+
+- [**Flagship**](docs/design/flagship.md#the-flagship-voyage) — the one Voyage carrying the fleet's own north star, Board, and highest-level captain.
+
 ## Changes and delivery
 
 Owner: [Changes and delivery](docs/design/changes-and-delivery.md)

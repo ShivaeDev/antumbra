@@ -1,7 +1,7 @@
 import type { EdgeRow, PieceRow } from "@antumbra/pieces";
 import { atWork } from "#agent-at-work.ts";
 import { pieceOutcomeTally } from "#outcome-status.ts";
-import type { VoyageWorld } from "#voyage-rows.ts";
+import type { AwaitingRuling, VoyageWorld } from "#voyage-rows.ts";
 
 export { wouldCycle } from "@antumbra/pieces";
 
@@ -67,10 +67,10 @@ export const abandonedPieces = (world: VoyageWorld): ReadonlySet<string> =>
 export const awaitingRulingsOf = (
 	world: VoyageWorld,
 	pieceId: string,
-): ReadonlyArray<string> =>
+): ReadonlyArray<AwaitingRuling> =>
 	world.rulingGates
 		.filter((gate) => gate.pieceId === pieceId)
-		.map((gate) => gate.rulingId);
+		.map((gate) => ({ question: gate.question, rulingId: gate.rulingId }));
 
 export const workingAssignees = (
 	world: VoyageWorld,

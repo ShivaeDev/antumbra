@@ -2,6 +2,7 @@ import { BoardRegisterSchema } from "@antumbra/vocabulary/board";
 import { Schema } from "effect";
 import { ArtifactHistoryView, ArtifactView } from "#artifact-views.ts";
 import { ChangeView } from "#change-views.ts";
+import { AwaitingRulingView } from "#rulings/views.ts";
 
 export const PieceAgentView = Schema.Struct({
 	agentId: Schema.String,
@@ -57,9 +58,9 @@ export const PieceView = Schema.Struct({
 	agents: Schema.Array(PieceAgentView),
 	artifactHistory: Schema.Array(ArtifactHistoryView),
 	artifacts: Schema.Array(ArtifactView),
-	// why: the open rulings holding this piece, so a window can say which
-	// ruling a blocked piece waits on rather than only that it waits.
-	awaitingRulings: Schema.Array(Schema.String),
+	// why: the open rulings holding this piece, each with its question, so a
+	// window can say what a blocked piece waits on rather than only that it waits.
+	awaitingRulings: Schema.Array(AwaitingRulingView),
 	board: Schema.Array(BoardEntryView),
 	// why: whether the hands that finished this piece may be released now — it
 	// has landed and every agent claiming it has gone quiet. It is published

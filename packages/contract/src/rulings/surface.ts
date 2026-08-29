@@ -6,6 +6,7 @@ export {
 } from "#rulings/requests.ts";
 export { RulingFailure, RulingRefused, RulingSource } from "#rulings/source.ts";
 export {
+	AwaitingRulingView,
 	OpenRulingsView,
 	RulingChoiceView,
 	RulingGatedPieceView,

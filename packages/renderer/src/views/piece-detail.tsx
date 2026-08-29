@@ -5,7 +5,7 @@ import { MarkdownView } from "#views/markdown-view.tsx";
 import { PieceActs } from "#views/piece-acts.tsx";
 import { PieceOutcomes } from "#views/piece-outcomes.tsx";
 import { PieceRetire } from "#views/piece-retire.tsx";
-import { awaitingRulingsLabel, dependsOnLabel } from "#voyages/labels.ts";
+import { awaitingRulingLabel, dependsOnLabel } from "#voyages/labels.ts";
 
 const AtWork = ({ piece }: { readonly piece: PieceView }) => {
 	if (piece.agents.length === 0) {
@@ -36,7 +36,6 @@ export const PieceDetail = ({
 	readonly pieces: ReadonlyArray<PieceView>;
 }) => {
 	const depends = dependsOnLabel(piece, pieces);
-	const awaiting = awaitingRulingsLabel(piece);
 	return (
 		<div className="flex min-w-0 flex-col gap-2 border-t border-border px-2.5 py-2">
 			{piece.charter === "" ? null : (
@@ -47,11 +46,15 @@ export const PieceDetail = ({
 					{depends}
 				</p>
 			)}
-			{awaiting === "" ? null : (
-				<p className="min-w-0 text-2xs text-muted-foreground wrap-anywhere">
-					{awaiting}
+			{piece.awaitingRulings.map((ruling) => (
+				<p
+					className="min-w-0 truncate text-2xs text-muted-foreground"
+					key={ruling.rulingId}
+					title={awaitingRulingLabel(ruling)}
+				>
+					{awaitingRulingLabel(ruling)}
 				</p>
-			)}
+			))}
 			<AtWork piece={piece} />
 			<BoardPanel
 				entries={piece.board}

@@ -50,6 +50,14 @@ export const RulingGatedPieceView = Schema.Struct({
 });
 export type RulingGatedPieceView = typeof RulingGatedPieceView.Type;
 
+// why: a piece held by a ruling names the question that holds it, so a
+// window can say what a blocked piece waits on without looking the id up.
+export const AwaitingRulingView = Schema.Struct({
+	question: Schema.String,
+	rulingId: Schema.String,
+});
+export type AwaitingRulingView = typeof AwaitingRulingView.Type;
+
 // why: the context, the question and the choices travel together because an
 // answer read apart from its question loses the scope that bounds it. The
 // axes are the effective ones; the declaration travels beside them.

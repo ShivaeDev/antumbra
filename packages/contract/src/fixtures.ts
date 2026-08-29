@@ -17,6 +17,7 @@ export { makeRuntime } from "#fixtures/runtime.ts";
 export { makeScriptedFeeds, scriptedFeeds } from "#fixtures/scripted.ts";
 export { sessionTree } from "#fixtures/session-tree.ts";
 export { storedEvents } from "#fixtures/transcript.ts";
+export { sessionJournal } from "#fixtures/transcript-resume.ts";
 export {
 	quayView,
 	reefSummary,

@@ -2,7 +2,7 @@ import { Stream } from "effect";
 import { flagshipSummary } from "#fixtures/flagship.ts";
 import { fleet } from "#fixtures/fleet.ts";
 import { openRulings, standingRulings } from "#fixtures/ruling.ts";
-import { storedEvents } from "#fixtures/transcript.ts";
+import { sessionJournal } from "#fixtures/transcript-resume.ts";
 import { quayView, reefSummary, reefView } from "#fixtures/voyage.ts";
 import type { Fleet } from "#fleet.ts";
 import type { QuayView } from "#quay-views.ts";
@@ -24,7 +24,7 @@ export interface FixtureFeeds {
 }
 
 export const staticFeeds: FixtureFeeds = {
-	events: Stream.fromArray(storedEvents),
+	events: Stream.fromArray(sessionJournal),
 	fleet: Stream.make(fleet),
 	quay: Stream.make(quayView),
 	rulings: Stream.make(openRulings),

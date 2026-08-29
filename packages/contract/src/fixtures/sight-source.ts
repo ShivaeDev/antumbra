@@ -2,7 +2,7 @@ import { Effect, Layer, Stream } from "effect";
 import type { FixtureFeeds } from "#fixtures/feeds.ts";
 import { fleet } from "#fixtures/fleet.ts";
 import { sessionTree } from "#fixtures/session-tree.ts";
-import { storedEvents } from "#fixtures/transcript.ts";
+import { sessionJournal } from "#fixtures/transcript-resume.ts";
 import { SightFailure, SightSource } from "#sight.ts";
 
 export const sightFixture = (feeds: FixtureFeeds) =>
@@ -39,7 +39,7 @@ export const sightFixture = (feeds: FixtureFeeds) =>
 			Stream.filter(feeds.events, (event) => event.seq >= query.fromSeq),
 		sessionEvents: (query) =>
 			Effect.succeed(
-				storedEvents.filter((event) => event.seq >= query.fromSeq),
+				sessionJournal.filter((event) => event.seq >= query.fromSeq),
 			),
 		sessionTree: (rootSessionId) =>
 			Effect.succeed({ ...sessionTree, rootSessionId }),

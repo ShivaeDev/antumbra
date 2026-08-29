@@ -6,7 +6,7 @@ import {
 	fleet,
 	info,
 	makeRuntime,
-	storedEvents,
+	sessionJournal,
 } from "#fixtures.ts";
 import { makeAppRouter, SETTING_KEYS, SETTINGS } from "#index.ts";
 
@@ -58,7 +58,7 @@ describe("makeAppRouter", () => {
 				caller.sessionEvents({ fromSeq: 1, sessionId: "session-1" }),
 			);
 			expect(events.map((event) => event.seq)).toEqual(
-				storedEvents.slice(1).map((event) => event.seq),
+				sessionJournal.slice(1).map((event) => event.seq),
 			);
 			expect(events.map((event) => event.event._tag)).toContain("Unknown");
 			yield* Effect.promise(() => runtime.dispose());
@@ -79,10 +79,10 @@ describe("makeAppRouter", () => {
 				(cause) => cause,
 			).pipe(Stream.runCollect);
 			expect(collected.map((event) => event.seq)).toEqual(
-				storedEvents.map((event) => event.seq),
+				sessionJournal.map((event) => event.seq),
 			);
 			expect(collected.map((event) => event.event)).toEqual(
-				storedEvents.map((event) => event.event),
+				sessionJournal.map((event) => event.event),
 			);
 			yield* Effect.promise(() => runtime.dispose());
 		}),

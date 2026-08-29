@@ -22,11 +22,14 @@ import {
 	workingReef,
 	workingSummary,
 } from "#fixtures/scripted-turns.ts";
+import { storedEvents } from "#fixtures/transcript.ts";
 import {
+	cachedTurnEvents,
 	closingEvent,
 	laterEvent,
-	storedEvents,
-} from "#fixtures/transcript.ts";
+	restingEvent,
+	wokenEvents,
+} from "#fixtures/transcript-resume.ts";
 import { quayView, reefSummary, reefView } from "#fixtures/voyage.ts";
 import type { VoyageSummary } from "#voyage-views.ts";
 
@@ -50,7 +53,18 @@ const paced =
 export const makeScriptedFeeds = (beat: Duration.Input): FixtureFeeds => {
 	const step = paced(beat);
 	return {
-		events: step(Stream.fromArray(storedEvents), laterEvent, closingEvent),
+		// why: the second half of this script is a resume — the session wakes,
+		// picks up a background task, answers out of an almost entirely cached
+		// context and settles again. It is the beat the usage split exists for,
+		// so the harness shows it rather than only the first cold turn.
+		events: step(
+			Stream.fromArray(storedEvents),
+			...wokenEvents,
+			laterEvent,
+			...cachedTurnEvents,
+			closingEvent,
+			restingEvent,
+		),
 		fleet: step(Stream.make(fleet), crewedFleet, mooredFleet),
 		quay: step(Stream.make(quayView), checkingQuay, landedQuay),
 		rulings: step(Stream.make(openRulings), urgentRulings, ruledRulings),

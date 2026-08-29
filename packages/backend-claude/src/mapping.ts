@@ -6,8 +6,10 @@ import type {
 } from "@antumbra/vocabulary/session-events";
 import { blockEvent, contentBlocks } from "#blocks.ts";
 import { claudeRaw } from "#raw-payload.ts";
+import { systemEvents } from "#session-state.ts";
 import { spilledPreview } from "#spills.ts";
 import { openSubsessions } from "#subsessions.ts";
+import { openTurnUsage } from "#turn-usage.ts";
 
 const rawOf = (message: SDKMessage): RawPayload => {
 	const subtype =
@@ -26,24 +28,6 @@ const turnStatus = (message: ResultMessage) => {
 		return "interrupted";
 	}
 	return message.is_error ? "failed" : "completed";
-};
-
-const resultEvents = (
-	raw: RawPayload,
-	message: ResultMessage,
-): ReadonlyArray<AgentEvent> => {
-	const status = turnStatus(message);
-	const usage: AgentEvent = {
-		costUsd: message.total_cost_usd,
-		inputTokens: message.usage.input_tokens,
-		outputTokens: message.usage.output_tokens,
-		raw,
-		type: "usage",
-	};
-	return [
-		usage,
-		{ durationMs: message.duration_ms, raw, status, type: "turn.completed" },
-	];
 };
 
 // why: attribution rides the frame itself. parent_tool_use_id names the tool
@@ -96,24 +80,28 @@ export interface SessionMapping {
 // else here is decided by the frame in hand.
 export const openSessionMapping = (): SessionMapping => {
 	const subsessions = openSubsessions();
+	const turns = openTurnUsage();
 	const frame = (message: SDKMessage): ReadonlyArray<AgentEvent> => {
 		const raw = rawOf(message);
-		if (message.type === "system" && message.subtype === "init") {
-			return [{ nativeRef: message.session_id, raw, type: "session.opened" }];
-		}
-		// why: progress is telemetry, and a record that kept every tick of it
-		// would drown the frames that say what happened. Estimates and running
-		// totals are dropped; what a progress frame names about the identity of
-		// the work is read elsewhere, before the frame reaches here.
-		if (
-			message.type === "system" &&
-			(message.subtype === "thinking_tokens" ||
-				message.subtype === "task_progress")
-		) {
-			return [];
+		// why: the SDK calls session_state_changed the authoritative turn-over
+		// signal and sends the whole background set on every membership change.
+		// Both are the harness telling this record what it is doing; letting
+		// them fall through to raw threw away the one thing worth keeping.
+		const system =
+			message.type === "system" ? systemEvents(raw, message) : undefined;
+		if (system !== undefined) {
+			return system;
 		}
 		if (message.type === "result") {
-			return resultEvents(raw, message);
+			return [
+				turns.usage(raw, message),
+				{
+					durationMs: message.duration_ms,
+					raw,
+					status: turnStatus(message),
+					type: "turn.completed",
+				},
+			];
 		}
 		const lifecycle = subsessions.events(raw, message);
 		if (message.type === "assistant" || message.type === "user") {

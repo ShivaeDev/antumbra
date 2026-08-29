@@ -1,88 +1,21 @@
-import { readFileSync } from "node:fs";
-import { Schema } from "effect";
 import { describe, expect, it } from "vitest";
 import { MUTED_NOTIFICATIONS } from "#handshake.ts";
 import { TurnStatus } from "#protocol.ts";
 import { ExecutionStatus, KnownItem } from "#protocol-items.ts";
+import {
+	bundle,
+	currentTimeResponse,
+	enumOf,
+	literalsOf,
+	methodsOf,
+	serverNotifications,
+	serverRequests,
+	toolCallResponse,
+	variantTypes,
+} from "#test/schema-bundle.ts";
 
-// why: app-server negotiates no protocol version, so the vendored schema
-// files for the pinned CLI are the contract; this test holds every literal,
-// type, and method name our hand-written slice relies on to them.
-// Regenerate with `codex app-server generate-json-schema --out <dir>` when
-// the pin moves, and let this test say what changed.
-const EnumNode = Schema.Struct({
-	enum: Schema.optional(Schema.Array(Schema.String)),
-});
-const Variant = Schema.Struct({
-	enum: Schema.optional(Schema.Array(Schema.String)),
-	properties: Schema.optional(
-		Schema.Struct({
-			method: Schema.optional(EnumNode),
-			thread_spawn: Schema.optional(Schema.Unknown),
-			type: Schema.optional(EnumNode),
-		}),
-	),
-	title: Schema.optional(Schema.String),
-});
-const Definition = Schema.Struct({
-	enum: Schema.optional(Schema.Array(Schema.String)),
-	oneOf: Schema.optional(Schema.Array(Variant)),
-	properties: Schema.optional(Schema.Record(Schema.String, Schema.Unknown)),
-	required: Schema.optional(Schema.Array(Schema.String)),
-});
-const SchemaFile = Schema.Struct({
-	definitions: Schema.Record(Schema.String, Definition),
-	oneOf: Schema.optional(Schema.Array(Variant)),
-});
-type SchemaFile = typeof SchemaFile.Type;
-const decodeSchemaFile = Schema.decodeUnknownSync(
-	Schema.fromJsonString(SchemaFile),
-);
-const ResponseFile = Schema.Struct({
-	required: Schema.Array(Schema.String),
-});
-const decodeResponseFile = Schema.decodeUnknownSync(
-	Schema.fromJsonString(ResponseFile),
-);
-const read = (name: string): string =>
-	readFileSync(new URL(`../src/schema/${name}`, import.meta.url), "utf8");
-
-const load = (name: string): SchemaFile => decodeSchemaFile(read(name));
-const loadResponse = (name: string): typeof ResponseFile.Type =>
-	decodeResponseFile(read(name));
-
-const bundle = load("codex_app_server_protocol.v2.schemas.json");
-const serverRequests = load("ServerRequest.json");
-const serverNotifications = load("ServerNotification.json");
-const toolCallResponse = loadResponse("DynamicToolCallResponse.json");
-const currentTimeResponse = loadResponse("CurrentTimeReadResponse.json");
-
-const methodsOf = (file: SchemaFile): ReadonlyArray<string> =>
-	(file.oneOf ?? []).flatMap((variant) => {
-		const values = variant.properties?.method?.enum;
-		return values ?? [];
-	});
-
-const enumOf = (name: string): ReadonlyArray<string> => {
-	const definition = bundle.definitions[name];
-	const values = definition?.enum;
-	return values ?? [];
-};
-
-const literalsOf = (schema: { readonly ast: unknown }): ReadonlyArray<string> =>
-	JSON.stringify(schema.ast)
-		.match(/"literal":"([^"]+)"/g)
-		?.map((hit) => hit.slice('"literal":"'.length, -1)) ?? [];
-
-const variantTypes = (name: string): ReadonlyArray<string> => {
-	const definition = bundle.definitions[name];
-	const variants = definition?.oneOf;
-	if (!Array.isArray(variants)) {
-		return [];
-	}
-	return variants.flatMap((variant) => variant.properties?.type?.enum ?? []);
-};
-
+// why: this test holds every literal, type, and method name the hand-written
+// slice relies on to the pinned bundle.
 describe("the codex protocol slice agrees with the pinned schema bundle", () => {
 	it("turn and execution statuses are the bundle's enums, verbatim", () => {
 		expect([...literalsOf(TurnStatus)].sort()).toEqual(
@@ -265,6 +198,7 @@ describe("the codex protocol slice agrees with the pinned schema bundle", () => 
 			"turn/completed",
 			"thread/started",
 			"thread/closed",
+			"thread/status/changed",
 			"thread/tokenUsage/updated",
 			...MUTED_NOTIFICATIONS,
 		]) {

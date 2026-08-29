@@ -1,18 +1,42 @@
 import type {
+	SessionBackgroundEvent,
 	SessionOpened,
+	SessionState,
+	SessionStateEvent,
 	TurnCompleted,
-	UsageEvent,
 } from "@antumbra/vocabulary/session-events";
 
 const seconds = (ms: number): string => `${(ms / 1000).toFixed(1)}s`;
 
-export const usageLabel = (event: typeof UsageEvent.Type): string =>
-	[
-		"usage",
-		...(event.model === undefined ? [] : [event.model]),
-		`${event.inputTokens}→${event.outputTokens} tokens`,
-		...(event.costUsd === undefined ? [] : [`$${event.costUsd.toFixed(4)}`]),
-	].join(" · ");
+export const stateWords: Record<SessionState, string> = {
+	"awaiting-input": "awaiting input",
+	idle: "idle",
+	running: "running",
+};
+
+export const stateLabel = (event: typeof SessionStateEvent.Type): string =>
+	`state · ${stateWords[event.state]}`;
+
+const DESCRIPTION = 60;
+
+const taskWords = (
+	task: (typeof SessionBackgroundEvent.Type)["tasks"][number],
+): string => {
+	const said = task.description.trim();
+	const short =
+		said.length > DESCRIPTION ? `${said.slice(0, DESCRIPTION - 1)}…` : said;
+	return short === "" ? task.kind : `${task.kind} ${short}`;
+};
+
+// why: an empty set is the provider saying the last background task finished,
+// which is worth a line of its own — a reader who saw two start needs to see
+// them go, and a silent row would read as the record having stopped watching.
+export const backgroundLabel = (
+	event: typeof SessionBackgroundEvent.Type,
+): string =>
+	event.tasks.length === 0
+		? "background · nothing running"
+		: `background · ${event.tasks.length} · ${event.tasks.map(taskWords).join(", ")}`;
 
 export const turnLabel = (event: typeof TurnCompleted.Type): string =>
 	[

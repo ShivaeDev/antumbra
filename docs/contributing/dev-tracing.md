@@ -6,9 +6,8 @@ whatever `ANTUMBRA_DEV_USER_DATA` names. A packaged run installs no tracer, adds
 no second logger, and writes no trace database.
 
 Open the file with any SQLite client. It holds three tables: `runs`, `spans`,
-and `logs`. Startup keeps the two most recent runs — the one being read and the
-one before it — and deletes the rest, so the file stays small and old runs are
-gone rather than stale.
+and `logs`. Startup keeps the five most recent runs and deletes the rest, so the
+file stays small and old runs are gone rather than stale.
 
 ## What is not recorded
 

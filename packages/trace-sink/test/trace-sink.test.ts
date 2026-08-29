@@ -112,7 +112,7 @@ describe("dev trace sink", () => {
 		}),
 	);
 
-	it.effect("prunes every run older than the two it retains", () =>
+	it.effect("prunes every run older than the five it retains", () =>
 		Effect.gen(function* () {
 			const directory = yield* temporaryDirectory;
 			for (const index of RUNS) {
@@ -120,13 +120,16 @@ describe("dev trace sink", () => {
 				yield* TestClock.adjust("1 minute");
 			}
 			const runs = readRows(directory, "SELECT run_id FROM runs", []);
-			expect(runs.length).toBe(2);
+			expect(runs.length).toBe(5);
 			const sessions = readRows(
 				directory,
 				"SELECT DISTINCT session_id FROM spans ORDER BY session_id",
 				[],
 			);
 			expect(sessions.map((row) => row.session_id)).toEqual([
+				"session-2",
+				"session-3",
+				"session-4",
 				"session-5",
 				"session-6",
 			]);

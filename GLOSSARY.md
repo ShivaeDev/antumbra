@@ -14,7 +14,6 @@ Owner: [Work and planning](docs/design/work-and-planning.md)
 - [**Crew**](docs/design/work-and-planning.md#authority-and-staffing) — Agents assigned to a Voyage's Pieces.
 - [**Polaris**](docs/design/work-and-planning.md#voyages-and-their-course) — the fixed north star a Voyage moves toward but never reaches.
 - [**Voyage**](docs/design/work-and-planning.md#voyages-and-their-course) — a ship under sail for an objective, with its charted work and memory.
-- [**Flagship**](docs/design/work-and-planning.md#authority-and-staffing) — the fleet's own Voyage, whose north star is the fleet sailing well; there is exactly one and it exists from first run.
 - [**Ephemeris**](docs/design/work-and-planning.md#ephemerides-and-the-cone-of-uncertainty) — a revisable forecast of the course, not a promise.
 - [**Cone of uncertainty**](docs/design/work-and-planning.md#ephemerides-and-the-cone-of-uncertainty) — the horizon inside which waypoints can be chosen honestly.
 - [**Leg**](docs/design/work-and-planning.md#legs) — one SIGHT, PLOT, SAIL, DRIFT planning loop.

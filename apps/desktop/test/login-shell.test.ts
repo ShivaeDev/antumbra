@@ -1,47 +1,55 @@
-import { chmodSync, mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
+import {
+	chmodSync,
+	mkdirSync,
+	mkdtempSync,
+	symlinkSync,
+	writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
-import { delimiter, join } from "node:path";
-import { Option } from "effect";
-import { describe, expect, it } from "vitest";
-import { betweenFences, firstExecutable } from "#adapters/login-shell.ts";
+import { join } from "node:path";
+import { expect, it } from "@effect/vitest";
+import { ConfigProvider, Effect, Option } from "effect";
+import { findOnLoginPath } from "#adapters/login-shell.ts";
 
-const FENCE = "\u001f";
+const root = mkdtempSync(join(tmpdir(), "antumbra-login-path-"));
+const bin = join(root, "bin");
+mkdirSync(bin);
 
-describe("the login-shell probe reads only what sits between the fences", () => {
-	it("ignores whatever the rc files print around the answer", () => {
-		expect(
-			betweenFences(`motd\n${FENCE}/usr/bin:/opt/x/bin${FENCE}\n`),
-		).toEqual(Option.some("/usr/bin:/opt/x/bin"));
-	});
+const script = (file: string, body: string) => {
+	writeFileSync(file, body);
+	chmodSync(file, 0o755);
+	return file;
+};
 
-	it("is none when the fences never arrive", () => {
-		expect(betweenFences("prompt hangs here")).toEqual(Option.none());
-		expect(betweenFences(`${FENCE}half`)).toEqual(Option.none());
-	});
-});
+const launcher = script(join(root, "launcher"), "#!/bin/sh\nexit 0\n");
+const linked = join(bin, "codex");
+symlinkSync(launcher, linked);
 
-describe("firstExecutable walks the PATH in order", () => {
-	const root = mkdtempSync(join(tmpdir(), "antumbra-path-"));
-	const first = join(root, "first");
-	const second = join(root, "second");
-	mkdirSync(first);
-	mkdirSync(second);
-	const make = (directory: string, name: string, mode: number) => {
-		const file = join(directory, name);
-		writeFileSync(file, "#!/bin/sh\n");
-		chmodSync(file, mode);
-		return file;
-	};
-	const searchPath = [first, second].join(delimiter);
+// why: the probe runs the user's shell as an interactive login shell; this
+// stand-in answers with a PATH the test owns and runs the probe command as any
+// shell would.
+const shell = script(
+	join(root, "fake-login-shell"),
+	`#!/bin/sh\nPATH="${bin}"\nexport PATH\nexec /bin/sh -c "$2"\n`,
+);
 
-	it("skips a non-executable file and takes the first executable one", () => {
-		make(first, "tool", 0o644);
-		const wanted = make(second, "tool", 0o755);
-		expect(firstExecutable("tool", searchPath)).toEqual(Option.some(wanted));
-	});
+const onFakeLoginShell = <A>(effect: Effect.Effect<A>) =>
+	Effect.provideService(
+		effect,
+		ConfigProvider.ConfigProvider,
+		ConfigProvider.fromEnvRecord({ SHELL: shell }),
+	);
 
-	it("is none when nothing on the path is executable by that name", () => {
-		expect(firstExecutable("missing", searchPath)).toEqual(Option.none());
-		expect(firstExecutable("tool", "")).toEqual(Option.none());
-	});
-});
+it.effect("hands back the symlink the login PATH holds, not its target", () =>
+	Effect.gen(function* () {
+		const found = yield* onFakeLoginShell(findOnLoginPath("codex"));
+		expect(found).toEqual(Option.some(linked));
+	}),
+);
+
+it.effect("is none when the login PATH holds no such executable", () =>
+	Effect.gen(function* () {
+		const found = yield* onFakeLoginShell(findOnLoginPath("nowhere"));
+		expect(found).toEqual(Option.none());
+	}),
+);

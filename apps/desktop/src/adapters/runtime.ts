@@ -27,7 +27,7 @@ import { makePluginHost } from "@antumbra/plugin-api";
 import { localRunnerPlugin } from "@antumbra/runner-local";
 import { NodeServices } from "@effect/platform-node";
 import { Effect, Layer } from "effect";
-import { activateInstalledCli } from "#adapters/installed-cli.ts";
+import { findOnLoginPath } from "#adapters/login-shell.ts";
 import {
 	artifactsInDataDirectory,
 	configureDataDirectory,
@@ -48,17 +48,15 @@ const persistence = Layer.unwrap(
 
 const agents = Layer.unwrap(
 	Effect.gen(function* () {
-		const host = yield* makePluginHost;
+		const host = yield* makePluginHost({ findExecutable: findOnLoginPath });
 		const runnerPlugin = localRunnerPlugin(
 			runnerRootsInDataDirectory(configureDataDirectory()),
 		);
-		yield* activateInstalledCli(host.context, "claude", (executable) =>
-			claudePlugin({ executable }),
-		);
+		yield* Effect.orDie(claudePlugin().activate(host.context));
 		// why: the codex child runs from the data directory; threads get their
 		// own cwd per session.
-		yield* activateInstalledCli(host.context, "codex", (command) =>
-			codexPlugin({ command, cwd: configureDataDirectory() }),
+		yield* Effect.orDie(
+			codexPlugin({ cwd: configureDataDirectory() }).activate(host.context),
 		);
 		yield* Effect.orDie(runnerPlugin.activate(host.context));
 		// why: registered unconditionally, unlike the agent CLIs — a change host

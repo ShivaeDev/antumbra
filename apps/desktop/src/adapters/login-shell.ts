@@ -1,13 +1,12 @@
 import { execFile } from "node:child_process";
 import { accessSync, constants } from "node:fs";
-import { realpath } from "node:fs/promises";
 import { delimiter, join } from "node:path";
 import { Config, Effect, Option } from "effect";
 
 const FENCE = "\u001f";
 const PROBE_TIMEOUT_MS = 5_000;
 
-export const betweenFences = (output: string): Option.Option<string> => {
+const betweenFences = (output: string): Option.Option<string> => {
 	const start = output.indexOf(FENCE);
 	const end = output.indexOf(FENCE, start + 1);
 	return start >= 0 && end > start
@@ -24,7 +23,10 @@ const isExecutable = (file: string): boolean => {
 	}
 };
 
-export const firstExecutable = (
+// why: the path a CLI is found under is the name it answers to — a launcher
+// reached through a symlink dispatches on the name it was invoked as, so the
+// hit is handed back as found and never canonicalized.
+const firstExecutable = (
 	name: string,
 	searchPath: string,
 ): Option.Option<string> =>
@@ -59,26 +61,11 @@ const loginShellPath: Effect.Effect<Option.Option<string>> = Config.string(
 	Effect.orElseSucceed(() => Option.none()),
 );
 
-// why: realpath hands the binary its canonical location — a symlinked CLI
-// looks for helper executables beside the path it was invoked as, and finds
-// nothing beside the symlink.
-const canonical = (file: string): Effect.Effect<Option.Option<string>> =>
-	Effect.tryPromise(() => realpath(file)).pipe(
-		Effect.map(Option.some),
-		Effect.orElseSucceed(() => Option.none()),
-	);
-
-export const resolveOnLoginPath = (
+export const findOnLoginPath = (
 	name: string,
 ): Effect.Effect<Option.Option<string>> =>
 	loginShellPath.pipe(
 		Effect.map(
 			Option.flatMap((searchPath) => firstExecutable(name, searchPath)),
-		),
-		Effect.flatMap(
-			Option.match({
-				onNone: () => Effect.succeed(Option.none()),
-				onSome: canonical,
-			}),
 		),
 	);

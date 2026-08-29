@@ -1,6 +1,5 @@
 import { execFile } from "node:child_process";
 import { accessSync, constants } from "node:fs";
-import { realpath } from "node:fs/promises";
 import { delimiter, join } from "node:path";
 import { Config, Effect, Option } from "effect";
 
@@ -24,17 +23,19 @@ const isExecutable = (file: string): boolean => {
 	}
 };
 
-export const firstExecutable = (
+// why: the path a CLI is found under is the name it answers to — multi-call
+// binaries dispatch on argv[0], so resolving a symlink to its target invokes a
+// different tool. Every match is offered in PATH order because the first entry
+// bearing the name need not be the tool that owns it.
+export const executableCandidates = (
 	name: string,
 	searchPath: string,
-): Option.Option<string> =>
-	Option.fromNullishOr(
-		searchPath
-			.split(delimiter)
-			.filter((directory) => directory !== "")
-			.map((directory) => join(directory, name))
-			.find(isExecutable),
-	);
+): readonly string[] =>
+	searchPath
+		.split(delimiter)
+		.filter((directory) => directory !== "")
+		.map((directory) => join(directory, name))
+		.filter(isExecutable);
 
 const probe = (shell: string): Promise<string> =>
 	new Promise<string>((resolve, reject) => {
@@ -59,26 +60,14 @@ const loginShellPath: Effect.Effect<Option.Option<string>> = Config.string(
 	Effect.orElseSucceed(() => Option.none()),
 );
 
-// why: realpath hands the binary its canonical location — a symlinked CLI
-// looks for helper executables beside the path it was invoked as, and finds
-// nothing beside the symlink.
-const canonical = (file: string): Effect.Effect<Option.Option<string>> =>
-	Effect.tryPromise(() => realpath(file)).pipe(
-		Effect.map(Option.some),
-		Effect.orElseSucceed(() => Option.none()),
-	);
-
-export const resolveOnLoginPath = (
+export const candidatesOnLoginPath = (
 	name: string,
-): Effect.Effect<Option.Option<string>> =>
+): Effect.Effect<readonly string[]> =>
 	loginShellPath.pipe(
 		Effect.map(
-			Option.flatMap((searchPath) => firstExecutable(name, searchPath)),
-		),
-		Effect.flatMap(
 			Option.match({
-				onNone: () => Effect.succeed(Option.none()),
-				onSome: canonical,
+				onNone: (): readonly string[] => [],
+				onSome: (searchPath) => executableCandidates(name, searchPath),
 			}),
 		),
 	);

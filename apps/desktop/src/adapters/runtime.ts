@@ -52,12 +52,15 @@ const agents = Layer.unwrap(
 		const runnerPlugin = localRunnerPlugin(
 			runnerRootsInDataDirectory(configureDataDirectory()),
 		);
-		yield* activateInstalledCli(host.context, "claude", (executable) =>
-			claudePlugin({ executable }),
+		yield* activateInstalledCli(
+			host.context,
+			"claude",
+			/claude/i,
+			(executable) => claudePlugin({ executable }),
 		);
 		// why: the codex child runs from the data directory; threads get their
 		// own cwd per session.
-		yield* activateInstalledCli(host.context, "codex", (command) =>
+		yield* activateInstalledCli(host.context, "codex", /codex/i, (command) =>
 			codexPlugin({ command, cwd: configureDataDirectory() }),
 		);
 		yield* Effect.orDie(runnerPlugin.activate(host.context));

@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import { delimiter, join } from "node:path";
 import { Option } from "effect";
 import { describe, expect, it } from "vitest";
-import { betweenFences, firstExecutable } from "#adapters/login-shell.ts";
+import { betweenFences, executableCandidates } from "#adapters/login-shell.ts";
 
 const FENCE = "\u001f";
 
@@ -20,7 +20,7 @@ describe("the login-shell probe reads only what sits between the fences", () => 
 	});
 });
 
-describe("firstExecutable walks the PATH in order", () => {
+describe("executableCandidates walks the PATH in order", () => {
 	const root = mkdtempSync(join(tmpdir(), "antumbra-path-"));
 	const first = join(root, "first");
 	const second = join(root, "second");
@@ -34,14 +34,16 @@ describe("firstExecutable walks the PATH in order", () => {
 	};
 	const searchPath = [first, second].join(delimiter);
 
-	it("skips a non-executable file and takes the first executable one", () => {
+	it("skips a non-executable file and keeps the executable ones in order", () => {
 		make(first, "tool", 0o644);
-		const wanted = make(second, "tool", 0o755);
-		expect(firstExecutable("tool", searchPath)).toEqual(Option.some(wanted));
+		const later = make(second, "tool", 0o755);
+		expect(executableCandidates("tool", searchPath)).toEqual([later]);
+		const earlier = make(first, "tool", 0o755);
+		expect(executableCandidates("tool", searchPath)).toEqual([earlier, later]);
 	});
 
-	it("is none when nothing on the path is executable by that name", () => {
-		expect(firstExecutable("missing", searchPath)).toEqual(Option.none());
-		expect(firstExecutable("tool", "")).toEqual(Option.none());
+	it("is empty when nothing on the path is executable by that name", () => {
+		expect(executableCandidates("missing", searchPath)).toEqual([]);
+		expect(executableCandidates("tool", "")).toEqual([]);
 	});
 });

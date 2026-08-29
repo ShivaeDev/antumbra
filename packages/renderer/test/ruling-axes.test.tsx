@@ -130,7 +130,7 @@ it.effect("shows the declared axis only where it was moved", () =>
 		expect(first?.textContent).toContain("declared pressing");
 		expect(first?.textContent).not.toContain("declared voyage");
 		expect(first?.textContent).toContain(
-			"admiral set urgency blocking — nothing plots until this lands",
+			"the admiral set urgency blocking — nothing plots until this lands",
 		);
 		expect(second?.textContent).not.toContain("declared");
 		yield* settle(() => mounted.root.unmount());

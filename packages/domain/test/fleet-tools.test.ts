@@ -19,6 +19,7 @@ const FLEET_TOOLS = [
 	"open_voyage",
 	"charter_piece_on_voyage",
 	"proclaim_ruling",
+	"rule_on",
 ];
 
 const RULE = {

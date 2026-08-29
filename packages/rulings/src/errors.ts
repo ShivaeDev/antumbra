@@ -1,5 +1,9 @@
 import type { PrismaError } from "@antumbra/persistence";
-import type { StoredRulingValueInvalid } from "@antumbra/vocabulary/ruling";
+import type {
+	RulingAuthority,
+	RulingRadius,
+	StoredRulingValueInvalid,
+} from "@antumbra/vocabulary/ruling";
 import { Data } from "effect";
 import type { RulingSubject } from "#model.ts";
 
@@ -47,6 +51,22 @@ export class RulingChoiceUnknown extends Data.TaggedError(
 	readonly rulingId: string;
 }> {}
 
+// why: which authority may answer is decided by how widely the answer will
+// apply, so a verdict from a rung that does not reach the ruling's radius is
+// refused rather than stored — the record is what later readers trust to say
+// the answer was given by someone entitled to give it.
+export class RulingOutsideAuthority extends Data.TaggedError(
+	"RulingOutsideAuthority",
+)<{
+	readonly by: RulingAuthority;
+	readonly radius: RulingRadius;
+	readonly rulingId: string;
+}> {
+	override get message(): string {
+		return `the ${this.by} does not rule at ${this.radius} radius`;
+	}
+}
+
 // why: scope is never left as prose, so a subject naming something the fleet
 // does not have refuses the whole request rather than storing a dangling word.
 export class RulingSubjectMissing extends Data.TaggedError(
@@ -81,6 +101,7 @@ export type RulingVerdictFailure =
 	| RulingAlreadyRuled
 	| RulingChoiceUnknown
 	| RulingNotFound
+	| RulingOutsideAuthority
 	| RulingReadFailure;
 
 export type RulingProclaimFailure = RulingRequestFailure | RulingVerdictFailure;

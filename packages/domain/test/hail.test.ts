@@ -14,6 +14,7 @@ import {
 	eventually,
 	openReefVoyage,
 	retireOneAlive,
+	seedSpawningCaptain,
 	sessionIdOf,
 } from "#test/voyage-fixtures.ts";
 
@@ -36,28 +37,6 @@ const CAPTAIN_TOOLS = [
 	"stand_down",
 	"read_rulings",
 ];
-
-const seedSpawningCaptain = (voyageId: string) =>
-	Effect.gen(function* () {
-		const db = yield* Database;
-		yield* db.transaction(
-			Effect.gen(function* () {
-				yield* Database;
-				yield* db.Agent.create({
-					charter: "chart the reef",
-					currentSessionId: null,
-					id: "captain-newborn",
-					role: "captain",
-					status: "spawning",
-				});
-				yield* db.VoyageAgent.create({
-					agentId: "captain-newborn",
-					role: "captain",
-					voyageId,
-				});
-			}),
-		);
-	});
 
 it.live("hailing a voyage brings it a captain and puts it under way", () =>
 	Effect.gen(function* () {

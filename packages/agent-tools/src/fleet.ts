@@ -3,11 +3,12 @@ import { Schema } from "effect";
 import { defineTool } from "#define.ts";
 
 // why: the fleet-level acts, and only what the guide names: opening work,
-// chartering it on a voyage that is not the caller's, and settling a question
-// for the whole fleet. Nothing here is a verb the admiral could not perform.
+// chartering it on a voyage that is not the caller's, hailing that voyage's
+// captain, and settling a question for the whole fleet. Nothing here is a
+// verb the admiral could not perform.
 export const openVoyageSpec = defineTool({
 	description:
-		"Open a voyage: a ship under sail for an objective, with its own north star, board, and chartered work. Opening it charters no work and spawns nobody — its captain is hailed when it is time to sail. It sails on the fleet's default agent backend, which the admiral switches like any other voyage's.",
+		"Open a voyage: a ship under sail for an objective, with its own north star, board, and chartered work. Opening it charters no work and wakes nobody — the voyage has no captain until `hail_captain` brings it one. It sails on the fleet's default agent backend, which the admiral switches like any other voyage's.",
 	input: Schema.Struct({
 		context: Schema.String.annotate({
 			description:
@@ -26,7 +27,7 @@ export const openVoyageSpec = defineTool({
 
 export const charterVoyagePieceSpec = defineTool({
 	description:
-		"Charter a piece on a voyage you name: a bounded unit of work with a stated outcome. It is chartered where you put it and nothing else — what it waits on, and when it is released into the pool, belong to that voyage's own captain.",
+		"Charter a piece on a voyage you name: a bounded unit of work with a stated outcome. It is a write to that voyage's record and nothing else — nobody is woken, and the piece sits held until that voyage's own captain launches it. What it waits on, and when it is released into the pool, belong to that captain; `hail_captain` is how you reach them.",
 	input: Schema.Struct({
 		charter: Schema.String.annotate({
 			description:
@@ -47,6 +48,20 @@ export const charterVoyagePieceSpec = defineTool({
 		}),
 	}),
 	name: "charter_piece_on_voyage",
+});
+
+// why: chartering is a silent write by the admiral's own choice, so waking
+// the captain who will read it is a separate, deliberate act — the same hail
+// the admiral's Hail button sends, bound to the flagship and to nobody else.
+export const hailCaptainSpec = defineTool({
+	description:
+		"Hail a voyage's captain: wake the captain it has, or bring it one if it has none, so the voyage is under way. It is the only way you reach another voyage's captain — chartering on a voyage wakes nobody. A hail of a captain already at work reaches that captain and never a second one; a hail while one is still being born is refused, as is a hail of a voyage the fleet has not got. It answers with the captain's agent id and the id of the wake or spawn it asked for.",
+	input: Schema.Struct({
+		voyageId: Schema.String.annotate({
+			description: "The id of the voyage whose captain is hailed.",
+		}),
+	}),
+	name: "hail_captain",
 });
 
 export const proclaimRulingSpec = defineTool({
@@ -83,7 +98,7 @@ export const proclaimRulingSpec = defineTool({
 // `read_voyage` shows the ship it is on and no other.
 export const readFleetSpec = defineTool({
 	description:
-		"Read the fleet: every voyage under sail, with its id, kind, backend, state, piece counts, captain, and when it last stirred. Call it to learn which voyages exist — the id `charter_piece_on_voyage` takes is the one shown here.",
+		"Read the fleet: every voyage under sail, with its id, kind, backend, state, piece counts, captain, and when it last stirred. Call it to learn which voyages exist — the id `charter_piece_on_voyage` and `hail_captain` take is the one shown here.",
 	input: Schema.Struct({}),
 	name: "read_fleet",
 });

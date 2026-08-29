@@ -74,6 +74,7 @@ it("a flagship charter names the fleet acts beside a captain's own", () => {
 	});
 	expect(text).toContain("`read_fleet`");
 	expect(text).toContain("`charter_piece_on_voyage`");
+	expect(text).toContain("`hail_captain`");
 	expect(text).toContain("`charter_piece`");
 	expect(
 		captainCharter({

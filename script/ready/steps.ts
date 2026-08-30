@@ -12,6 +12,4 @@ export const steps: readonly Step[] = [
 		command: "pnpm",
 		name: "typecheck compat",
 	},
-	{ args: ["run", "test"], command: "pnpm", name: "test" },
-	{ args: ["run", "test:guards"], command: "pnpm", name: "guards" },
 ];

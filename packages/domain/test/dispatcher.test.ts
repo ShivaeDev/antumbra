@@ -184,6 +184,15 @@ itApp.effectApp(
 		expect(yield* stateOf(voyage.id, piece.id)).toBe("parked");
 
 		yield* domain.voyages.unpark(piece.id);
-		expect(yield* eventually(assigned)).toEqual([piece.id]);
+		expect(
+			yield* eventually(() =>
+				assigned().pipe(
+					Effect.filterOrFail(
+						(ids) => ids.length === 1,
+						() => "not yet",
+					),
+				),
+			),
+		).toEqual([piece.id]);
 	},
 );

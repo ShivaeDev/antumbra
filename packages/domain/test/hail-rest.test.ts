@@ -139,8 +139,8 @@ it.live(
 				const kernel = yield* Kernel;
 				const { first, initial, session, voyage } =
 					yield* captainStoodDown(scripted);
-				// why: the siesta stands in for the hour the clock would otherwise
-				// have to pass; the threshold itself is rehearsed where it lives.
+				// why: the siesta stands in for the configured wait the clock would
+				// otherwise have to pass; the threshold itself is rehearsed where it lives.
 				const siesta = yield* kernel.submit(domain.siesta, {
 					sessionId: session.id,
 				});

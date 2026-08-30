@@ -19,7 +19,6 @@ export {
 	SessionNotFound,
 	SessionStillDelegating,
 } from "#session-errors.ts";
-export { IDLE_SIESTA_AFTER_MILLIS } from "#session-idle.ts";
 export { promptInput } from "#session-input.ts";
 export {
 	type RouseRefused,

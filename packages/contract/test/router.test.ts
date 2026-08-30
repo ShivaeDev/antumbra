@@ -32,6 +32,7 @@ describe("makeAppRouter", () => {
 			const served = yield* Effect.promise(() => caller.settings());
 			expect(served.settings).toEqual({
 				maxParallelSessions: SETTINGS.maxParallelSessions.fallback,
+				idleSiestaMinutes: SETTINGS.idleSiestaMinutes.fallback,
 				retireRestMinutes: SETTINGS.retireRestMinutes.fallback,
 				retireSweep: SETTINGS.retireSweep.fallback,
 			});

@@ -16,6 +16,7 @@ const reading: SettingsReading = {
 	overridden: [],
 	settings: {
 		maxParallelSessions: SETTINGS.maxParallelSessions.fallback,
+		idleSiestaMinutes: SETTINGS.idleSiestaMinutes.fallback,
 		retireRestMinutes: SETTINGS.retireRestMinutes.fallback,
 		retireSweep: SETTINGS.retireSweep.fallback,
 	},

@@ -1,7 +1,6 @@
 import { SightSource } from "@antumbra/contract";
 import { Kernel } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
-import { IDLE_SIESTA_AFTER_MILLIS } from "@antumbra/sessions";
 import { expect, it } from "@effect/vitest";
 import { Effect } from "effect";
 import {
@@ -12,6 +11,7 @@ import {
 	type ScriptedSession,
 } from "#test/harness.ts";
 import {
+	DEFAULT_IDLE_SIESTA_AFTER_MILLIS,
 	HAND,
 	laterBy,
 	openedNatively,
@@ -86,7 +86,7 @@ it.live(
 );
 
 // why: one machinery, two callers. The admiral's request is the clock's own
-// act asked for early, so it leaves exactly the state the hour would have —
+// act asked for early, so it leaves exactly the state the threshold would —
 // the process gone, the record untouched and still resumable.
 it.live(
 	"the admiral's request rests a session through the clock's own act",
@@ -154,11 +154,11 @@ it.live("a request that races a child starting refuses and names itself", () =>
 	}),
 );
 
-// why: the hour measures quiet, not the last time the quiet was mentioned.
+// why: the threshold measures quiet, not the last time quiet was mentioned.
 // Some Agents stand down again every time they are hailed and find nothing to
-// do, and if each declaration started the hour over, the one Session that says
+// do, and if each declaration started the wait over, the one Session that says
 // it most often would be the one never reclaimed.
-it.live("standing down again does not push the hour out", () =>
+it.live("standing down again does not push the idle wait out", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
 		const scripted = yield* makeScriptedBackend;
@@ -171,7 +171,7 @@ it.live("standing down again does not push the hour out", () =>
 
 			yield* laterBy(50 * 60_000, callTool(live, "stand_down", undefined));
 
-			yield* passedAt(IDLE_SIESTA_AFTER_MILLIS + 5 * 60_000);
+			yield* passedAt(DEFAULT_IDLE_SIESTA_AFTER_MILLIS + 5 * 60_000);
 			const demanded = yield* siestaIntents;
 			expect(demanded).toHaveLength(1);
 			expect(yield* untilTerminal(kernel.changes(demanded[0]?.id ?? ""))).toBe(
@@ -182,7 +182,7 @@ it.live("standing down again does not push the hour out", () =>
 	}),
 );
 
-// why: the hour is not licence to sever a tree. The clock asks for the same
+// why: the threshold is not licence to sever a tree. The clock asks for the same
 // rest the admiral does and waits behind the same rule, so a root left idle
 // overnight with a child still running is passed over until the child ends.
 it.live("the clock waits for the tree before it reclaims", () =>
@@ -197,13 +197,13 @@ it.live("the clock waits for the tree before it reclaims", () =>
 			yield* callTool(live, "stand_down", undefined);
 			yield* restingAt(false);
 
-			yield* passedAt(IDLE_SIESTA_AFTER_MILLIS + 60_000);
+			yield* passedAt(DEFAULT_IDLE_SIESTA_AFTER_MILLIS + 60_000);
 			expect(yield* siestaIntents).toEqual([]);
 			expect(yield* live.closed).toBe(false);
 
 			yield* finishes(live);
 			yield* restingAt(true);
-			yield* passedAt(IDLE_SIESTA_AFTER_MILLIS + 60_000);
+			yield* passedAt(DEFAULT_IDLE_SIESTA_AFTER_MILLIS + 60_000);
 			const demanded = yield* siestaIntents;
 			expect(demanded).toHaveLength(1);
 			expect(yield* untilTerminal(kernel.changes(demanded[0]?.id ?? ""))).toBe(

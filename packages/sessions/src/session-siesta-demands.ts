@@ -1,3 +1,4 @@
+import { SettingsSource } from "@antumbra/contract";
 import { defineIntentDemand } from "@antumbra/intent-demand";
 import type { IntentKind } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
@@ -15,6 +16,8 @@ import { rootSessions } from "#session-roots.ts";
 import type { SiestaFields } from "#session-siesta.ts";
 import { LiveDelegations } from "#session-tree-live.ts";
 
+const MILLIS_PER_MINUTE = 60_000;
+
 // why: the clock asks one thing of the record — is a process being held for
 // nothing — and it asks it of Sessions this process is actually holding. It
 // never asks the opposite question. A Session whose process is gone is
@@ -24,6 +27,10 @@ const siestaDemands = Effect.gen(function* () {
 	const db = yield* Database;
 	const fabric = yield* SessionFabric;
 	const live = yield* LiveDelegations;
+	const settings = yield* SettingsSource;
+	// why: the catalog is read through on every pass, so a changed wait governs
+	// the next judgment without a cached policy or a separate wakeup.
+	const { settings: chosen } = yield* settings.current;
 	// why: the tree's own work counts as the Session's. A root whose child is
 	// still speaking is not at rest however long its own row has said idle,
 	// because reclaiming it takes away the stream that child is speaking on.
@@ -34,6 +41,7 @@ const siestaDemands = Effect.gen(function* () {
 	const overdue = idleSessionsPastThreshold(
 		yield* fabric.idleSince(),
 		yield* Clock.currentTimeMillis,
+		chosen.idleSiestaMinutes * MILLIS_PER_MINUTE,
 	);
 	const agents = yield* db.Agent.all();
 	const agentStatuses = new Map(
@@ -72,7 +80,7 @@ const siestaDemands = Effect.gen(function* () {
 		// record: is a process still being held for nothing.
 		//
 		// why: the threshold is not the whole test. The clock asks for the same
-		// rest the admiral's own request has to satisfy, so a root the hour has
+		// rest the admiral's own request has to satisfy, so a root whose wait has
 		// come for waits while its tree is still speaking. A drain is exempt: it
 		// is shutdown finishing a decision already taken, not rest being chosen.
 		const restful = sessionAtRest({
@@ -98,12 +106,14 @@ export const compileSessionSiestaDemands = (siesta: IntentKind<SiestaFields>) =>
 		const db = yield* Database;
 		const fabric = yield* SessionFabric;
 		const live = yield* LiveDelegations;
+		const settings = yield* SettingsSource;
 		return [
 			defineIntentDemand({
 				eligible: siestaDemands.pipe(
 					Effect.provideService(Database, db),
 					Effect.provideService(SessionFabric, fabric),
 					Effect.provideService(LiveDelegations, live),
+					Effect.provideService(SettingsSource, settings),
 				),
 				identify: ({ sessionId }) => sessionId,
 				kind: siesta,

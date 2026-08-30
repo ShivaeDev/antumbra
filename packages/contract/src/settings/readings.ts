@@ -7,6 +7,7 @@ import { SettingValue } from "#settings/declaration.ts";
 // struct field the catalog does not declare has no default to fall back to.
 const fields: { readonly [K in SettingKey]: (typeof SETTINGS)[K]["value"] } = {
 	maxParallelSessions: SETTINGS.maxParallelSessions.value,
+	idleSiestaMinutes: SETTINGS.idleSiestaMinutes.value,
 	retireRestMinutes: SETTINGS.retireRestMinutes.value,
 	retireSweep: SETTINGS.retireSweep.value,
 };

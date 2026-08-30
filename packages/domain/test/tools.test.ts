@@ -55,6 +55,7 @@ it.live("a crew member lands a report against the piece it was spawned for", () 
 				"submit_change",
 				"open_change",
 				"adopt_change",
+				"read_voyage",
 				"read_mail",
 				"mark_read",
 				"write_board",
@@ -72,9 +73,6 @@ it.live("a crew member lands a report against the piece it was spawned for", () 
 
 			const reports = yield* db.Report.all();
 			expect(reports).toMatchObject([{ authorAgentId: agentId, title: "soundings" }]);
-			// why: the report is the outcome, but the hand that wrote it is still
-			// aboard — a piece is shipped only when all of its work is done, so
-			// the crew says it is finished before the piece can read done.
 			yield* standDown(scripted, agentId);
 			yield* eventually(
 				Effect.gen(function* () {
@@ -238,9 +236,6 @@ it.live("standing down preserves the agent and session that called it", () =>
 					expect(Option.getOrThrow(session).executionStatus).toBe("idle");
 				}),
 			);
-			// why: saying there is nothing left to do is not asking to be put
-			// away, so the provider session the Agent called from is still the
-			// one it is standing in.
 			expect(yield* live.closed).toBe(false);
 			expect(yield* db.Agent.where({ id: HAND.agentId }).first()).toEqual(before.agent);
 			expect(yield* db.Moorage.where({ agentId: HAND.agentId }).first()).toEqual(before.moorage);

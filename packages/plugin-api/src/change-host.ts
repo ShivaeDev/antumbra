@@ -14,17 +14,13 @@ export interface ChangeHostBerth {
 }
 
 export interface OpenChangeRequest {
-	// why: a null base means the repo's own default ref — the caller states
-	// which branch it wants only when it wants something other than the trunk.
 	readonly base: string | null;
 	readonly berth: ChangeHostBerth;
 	readonly body: string;
 	readonly draft: boolean;
 	readonly headSha: string;
 	readonly repo: ChangeHostRepo;
-	// why: this is the immutable prepared Change id. Repeating open for the same
-	// host, repo id, and submission id must return the accepted observation, or
-	// fail without attempting another external create when acceptance is unknown.
+	// Repeating this id must return the accepted observation or refuse without creating another change.
 	readonly submissionId: string;
 	readonly title: string;
 }
@@ -34,10 +30,6 @@ export interface ChangeRef {
 	readonly repo: ChangeHostRepo;
 }
 
-// why: the host speaks its own dialect (numbers, merge-state statuses, review
-// decisions); the domain keeps one neutral vocabulary and stores the raw
-// payload beside it, so a second host maps onto the same columns and no
-// consumer ever learns which host it is reading.
 export interface ChangeObservation {
 	readonly activityAt: number;
 	readonly baseRef: string;

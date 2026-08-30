@@ -24,8 +24,6 @@ export interface SettingsApi {
 }
 
 export interface PluginContext {
-	// why: a backend plugin drives a CLI the user installed; the host knows
-	// where to look for it, the plugin knows the name to look for.
 	readonly findExecutable: (name: string) => Effect.Effect<Option.Option<string>>;
 	readonly registerAgentBackend: (backend: AgentBackend) => Effect.Effect<void, DuplicateBackendTag>;
 	readonly registerChangeHost: (host: ChangeHost) => Effect.Effect<void, DuplicateChangeHostTag>;
@@ -34,10 +32,6 @@ export interface PluginContext {
 	readonly settings: SettingsApi;
 }
 
-// why: activation is scoped to the host that runs it — a plugin may hold a
-// resource that outlives any one session (a shared provider process, a
-// connection) and it is released when the host layer tears down, never
-// leaked and never tied to a session's lifetime.
 export interface AntumbraPlugin {
 	readonly activate: (context: PluginContext) => Effect.Effect<void, unknown, Scope.Scope>;
 	readonly name: string;

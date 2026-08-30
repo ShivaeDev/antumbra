@@ -1,6 +1,6 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database } from "@antumbra/persistence";
-import { Clock, Context, Effect, Layer, Queue, Ref, Semaphore, Stream } from "effect";
+import { Clock, Context, Effect, Layer, Queue, Ref, Stream } from "effect";
 import { HeldResourceRead } from "#held-resource-read.ts";
 import { runResourceReclaimPass } from "#resource-reclaim-pass.ts";
 import { ResourceReclaimRunners } from "#resource-reclaim-runners.ts";
@@ -67,26 +67,21 @@ export const ResourceReconcilerLive = (overrides: Partial<ResourceReconcileOptio
 			const feeds = yield* DomainFeeds;
 			const heldResourceRead = yield* HeldResourceRead;
 			const runners = yield* ResourceReclaimRunners;
-			const gate = yield* Semaphore.make(1);
 			const health = yield* Ref.make<ResourceReclamationHealth>({
 				state: "checking",
 			});
 			const tick = yield* Queue.sliding<void>(1);
-			const reconcile = gate.withPermits(1)(
-				guardedPass(health).pipe(
-					Effect.provideService(Database, db),
-					Effect.provideService(DomainFeeds, feeds),
-					Effect.provideService(HeldResourceRead, heldResourceRead),
-					Effect.provideService(ResourceReclaimRunners, runners),
-				),
+			const reconcile = guardedPass(health).pipe(
+				Effect.provideService(Database, db),
+				Effect.provideService(DomainFeeds, feeds),
+				Effect.provideService(HeldResourceRead, heldResourceRead),
+				Effect.provideService(ResourceReclaimRunners, runners),
 			);
 			const service = ResourceReconciler.of({
 				health: Ref.get(health),
 				reconcile,
 				request: Queue.offer(tick, undefined).pipe(Effect.asVoid),
 			});
-			// why: boot waits for the first pass, so kernel admission never starts
-			// against a durable claim that only a later background fiber would see.
 			yield* reconcile;
 			yield* Effect.forkScoped(
 				Effect.gen(function* () {

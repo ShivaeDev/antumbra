@@ -1,14 +1,18 @@
 import type { SessionTreeNode } from "@antumbra/contract";
 import { cn } from "#lib/utils.ts";
-import { CompletenessBadge, OutcomeBadge, StatusBadge } from "#views/session-tree-badges.tsx";
+import { outcomeWords } from "#views/session-outcome-words.ts";
 
-// why: indentation is drawn from the depth the walk found, and it stops after
-// four steps. A tree deep enough to run out of steps has already told the
-// reader what it is, and squeezing the name to keep indenting would cost more
-// than the nesting is worth.
 const INDENTS = ["pl-1.5", "pl-4", "pl-6", "pl-8", "pl-10"] as const;
 
 const indentOf = (depth: number): string => INDENTS[Math.min(depth, INDENTS.length - 1)] ?? INDENTS[0];
+
+const stateOf = (node: SessionTreeNode): string => {
+	let state = "Open";
+	if (node.status === "closed") {
+		state = node.outcome === null ? "Closed" : outcomeWords[node.outcome];
+	}
+	return node.completeness === "incomplete" ? `${state} · Record incomplete` : state;
+};
 
 export const SessionTreeRow = ({
 	node,
@@ -30,8 +34,6 @@ export const SessionTreeRow = ({
 		type="button"
 	>
 		<span className="min-w-0 flex-1 truncate text-2xs">{node.displayName}</span>
-		<StatusBadge status={node.status} />
-		<OutcomeBadge outcome={node.outcome} />
-		<CompletenessBadge completeness={node.completeness} />
+		<span className="shrink-0 text-2xs text-muted-foreground">{stateOf(node)}</span>
 	</button>
 );

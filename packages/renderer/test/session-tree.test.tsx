@@ -1,5 +1,6 @@
-// why: @vitest-environment happy-dom draws the tree the way the pane does.
+// @vitest-environment happy-dom
 
+import type { SessionTree } from "@antumbra/contract";
 import { sessionTree } from "@antumbra/contract/fixtures";
 import { expect, it } from "@effect/vitest";
 import { Effect } from "effect";
@@ -43,52 +44,22 @@ const drop = (root: Root): Effect.Effect<void> =>
 		}),
 	);
 
-it("lists every node the tree holds and says how many are still open", () => {
+it("collapses delegated sessions into their durable open count", () => {
 	const markup = renderToStaticMarkup(panel("session-1", () => undefined));
-	expect(markup).toContain("session tree");
-	expect(markup).toContain("2 of 4 open");
-	expect(markup).toContain("Map the quay grouping");
-	expect(markup).toContain("reef-surveyor");
-	expect(markup).toContain("Unnamed subsession");
+	expect(markup).toContain("3 subsessions · 1 open");
+	expect(markup).toContain('aria-expanded="false"');
+	expect(markup).not.toContain("Map the quay grouping");
 });
 
-// why: the root is the Agent's own Session, so it wears the Agent's role
-// rather than the last resort of a rule written for subsessions.
-it("names the root after the Agent and indents the rest by their depth", () => {
-	const markup = renderToStaticMarkup(panel("session-1", () => undefined));
-	expect(markup).toContain(">navigator<");
-	expect(markup).toContain("pl-1.5");
-	expect(markup).toContain("pl-4");
-	expect(markup).toContain("pl-6");
+it("hides a tree with no delegated session", () => {
+	const rootOnly: SessionTree = { ...sessionTree, alive: 1, nodes: sessionTree.nodes.slice(0, 1), total: 1 };
+	const markup = renderToStaticMarkup(
+		<SessionTreePanel error={undefined} onSelect={() => undefined} rootName="navigator" selected="session-1" tree={rootOnly} />,
+	);
+	expect(markup).toBe("");
 });
 
-it("wears every completeness the audit can leave behind, quietly", () => {
-	const markup = renderToStaticMarkup(panel("session-1", () => undefined));
-	expect(markup).toContain(">Not settled yet<");
-	expect(markup).toContain(">Nothing missing<");
-	expect(markup).toContain(">Parts missing<");
-	expect(markup).toContain(">Never checked<");
-});
-
-it("says how a node ended, and that an unfinished one has not", () => {
-	const markup = renderToStaticMarkup(panel("session-1", () => undefined));
-	expect(markup).toContain(">Finished<");
-	expect(markup).toContain(">Ending not seen<");
-	expect(markup).toContain(">Still open<");
-});
-
-// why: the words the record stores are durable facts, not labels. One reaching
-// a badge would make the schema the product's language and freeze it there,
-// because renaming it would then change what a reader is told.
-it("never shows a reader the word the record stored", () => {
-	const markup = renderToStaticMarkup(panel("session-1", () => undefined));
-	const stored = ["complete", "completed", "incomplete", "open", "recording", "unaudited", "unknown"];
-	for (const word of stored) {
-		expect(markup).not.toContain(`>${word}<`);
-	}
-});
-
-it.effect("a node is the click target that opens its own transcript", () =>
+it.effect("expands to plain session states and opens the selected transcript", () =>
 	Effect.gen(function* () {
 		const opened: string[] = [];
 		const { container, root } = mount();
@@ -96,7 +67,11 @@ it.effect("a node is the click target that opens its own transcript", () =>
 			root,
 			panel("session-1", (id) => opened.push(id)),
 		);
-		yield* clickAt(container, 2);
+		yield* clickAt(container, 0);
+		expect(container.textContent).toContain("navigatorOpen");
+		expect(container.textContent).toContain("Map the quay groupingFinished");
+		expect(container.textContent).toContain("reef-surveyorOpen · Record incomplete");
+		yield* clickAt(container, 3);
 		expect(opened).toEqual(["session-1-node-2"]);
 		yield* drop(root);
 	}),
@@ -130,8 +105,6 @@ it.effect("a delegation mark leads to the node holding the work", () =>
 	}),
 );
 
-// why: a marker the tree cannot place is still a fact about the transcript, so
-// it is drawn and simply leads nowhere rather than being dropped or faked.
 it("a mark with no node behind it is drawn without a link", () => {
 	const markup = renderToStaticMarkup(<TranscriptRow item={{ ...delegation, nodeId: undefined }} onOpenNode={() => undefined} />);
 	expect(markup).toContain("Map the quay grouping");

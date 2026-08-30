@@ -29,8 +29,9 @@ export const seedFleet = Effect.gen(function* () {
 		status: "alive",
 	});
 	yield* db.Voyage.create({
-		backend: "scripted",
+		captainBackend: "scripted",
 		context: "the reef is uncharted",
+		crewBackend: "scripted",
 		id: voyageId,
 		name: "Chart the reef",
 		northStar: "every shoal is known",

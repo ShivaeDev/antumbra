@@ -15,10 +15,7 @@ export interface TraceDatabase {
 	readonly write: (spans: readonly SpanRow[], logs: readonly LogRow[]) => void;
 }
 
-// why: WAL keeps the writer from blocking whoever is reading the trace while the
-// app runs, and NORMAL means a flush does not wait on a disk sync. Losing the
-// last few spans to a hard crash is the right trade for a dev-only record.
-const PRAGMAS = ["PRAGMA journal_mode = WAL", "PRAGMA synchronous = NORMAL", "PRAGMA busy_timeout = 2000"] as const;
+const PRAGMAS = ["PRAGMA journal_mode = WAL", "PRAGMA synchronous = NORMAL"] as const;
 
 const spanValues = (runId: string, span: SpanRow): readonly SQLInputValue[] => [
 	runId,
@@ -77,18 +74,7 @@ export const openTraceDatabase = (run: TraceRun): TraceDatabase => {
 		}
 	};
 	return {
-		close: () => {
-			database.close();
-		},
-		write: (spans, logs) => {
-			database.exec("BEGIN IMMEDIATE");
-			try {
-				append(spans, logs);
-				database.exec("COMMIT");
-			} catch (cause) {
-				database.exec("ROLLBACK");
-				throw cause;
-			}
-		},
+		close: () => database.close(),
+		write: append,
 	};
 };

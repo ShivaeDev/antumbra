@@ -4,6 +4,7 @@ import { Database } from "@antumbra/persistence";
 import { rootSessions, situationsByAgent } from "@antumbra/sessions";
 import { decodeStoredAgentStatus, decodeStoredBerthStatus, decodeStoredResourceReclaimState } from "@antumbra/vocabulary/agent-runtime";
 import { Effect } from "effect";
+import { workOf } from "#agent-work.ts";
 import type { BackendCapacityReading } from "#backend-capacity.ts";
 import { attributeIntents } from "#sight-diagnostics.ts";
 import { type FleetRuntime, sessionSummary } from "#sight-fleet-sessions.ts";
@@ -33,8 +34,9 @@ export const fleetSnapshot = (
 		// rows — a situation offered from a Change this snapshot never decoded
 		// would be an affordance standing on unread truth.
 		const snapshot = yield* changes.snapshot;
+		const assignments = yield* db.PieceAgent.orderBy((assignment) => assignment.assignedAt.asc()).all();
 		const situations = situationsByAgent(
-			{ ...snapshot, assignments: yield* db.PieceAgent.all() },
+			{ ...snapshot, assignments },
 			agents.map((agent) => agent.id),
 		);
 		const sessionSummaries = yield* Effect.forEach(sessions, (session) =>
@@ -53,6 +55,13 @@ export const fleetSnapshot = (
 			name: repo.name,
 			source: repo.source,
 		}));
+		const work = {
+			assignments,
+			crews: yield* db.VoyageAgent.all(),
+			memberships: yield* db.VoyagePiece.all(),
+			pieces: yield* db.Piece.all(),
+			voyages: yield* db.Voyage.all(),
+		};
 		const summaries: ReadonlyArray<AgentSummary> = agents.map((agent) => ({
 			berths: berths
 				.filter((berth) => berth.agentId === agent.id)
@@ -91,6 +100,7 @@ export const fleetSnapshot = (
 					status: session.status,
 				})),
 			status: agent.status,
+			work: workOf(work, agent.id),
 		}));
 		return {
 			agents: summaries,

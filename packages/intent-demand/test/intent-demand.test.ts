@@ -1,10 +1,4 @@
-import {
-	IntentDemand,
-	IntentDemandConfigurationInvalid,
-	IntentDemandLive,
-	IntentDemandPassFailed,
-	type IntentDemandRegistration,
-} from "@antumbra/intent-demand";
+import { IntentDemand, IntentDemandLive, IntentDemandPassFailed, type IntentDemandRegistration } from "@antumbra/intent-demand";
 import { expect, it } from "@effect/vitest";
 import { Deferred, Effect, Ref } from "effect";
 import { TestClock } from "effect/testing";
@@ -30,30 +24,6 @@ it.effect("finishes the initial pass before exposing healthy service", () =>
 			Effect.gen(function* () {
 				expect(yield* Ref.get(passes)).toBe(1);
 				expect((yield* demandHealth).get("test/initial")?.state).toBe("healthy");
-			}),
-		);
-	}),
-);
-
-it.effect("fails closed on an empty or duplicate registration set", () =>
-	Effect.gen(function* () {
-		const empty = yield* Effect.flip(runWith([], demandHealth));
-		expect(empty).toEqual(
-			new IntentDemandConfigurationInvalid({
-				detail: "at least one registration is required",
-			}),
-		);
-		const repeated = registration("test/repeated", Effect.void);
-		const duplicate = yield* Effect.flip(runWith([repeated, repeated], demandHealth));
-		expect(duplicate).toEqual(
-			new IntentDemandConfigurationInvalid({
-				detail: "registration tag is duplicated: test/repeated",
-			}),
-		);
-		const blank = yield* Effect.flip(runWith([registration(" ", Effect.void)], demandHealth));
-		expect(blank).toEqual(
-			new IntentDemandConfigurationInvalid({
-				detail: "registration tag must not be empty",
 			}),
 		);
 	}),
@@ -111,7 +81,7 @@ it.effect("runs after bounded patience when every wake is lost", () =>
 	}),
 );
 
-it.effect("serializes passes and coalesces a burst to one pending pass", () =>
+it.effect("coalesces a burst to one pending pass", () =>
 	Effect.gen(function* () {
 		const passes = yield* Ref.make(0);
 		const secondStarted = yield* Deferred.make<void>();

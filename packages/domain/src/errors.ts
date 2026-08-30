@@ -15,7 +15,6 @@ export {
 export {
 	ResourceOwnerUnavailable,
 	ResourceReclaimClaimed,
-	ResourceReclaimClaimInvalid,
 } from "@antumbra/resource-reclamation";
 export {
 	SessionAttachmentFailure,

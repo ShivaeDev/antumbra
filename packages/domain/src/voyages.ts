@@ -21,15 +21,14 @@ export type { OpenVoyageInput, VoyageProcedures } from "#voyage-procedures.ts";
 
 const announce = DomainFeeds.pipe(Effect.flatMap((feeds) => feeds.publishVoyageRefresh()));
 
-// why: the flagship is not something anyone opens — the fleet is born with
-// exactly one, so this act writes an ordinary voyage and nothing else.
 const openVoyage = (input: OpenVoyageInput) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
 		const now = yield* Clock.currentTimeMillis;
 		const row: VoyageRow = {
-			backend: input.backend,
+			captainBackend: input.backend,
 			context: input.context,
+			crewBackend: input.backend,
 			focusedAt: input.focused === true ? new Date(now) : null,
 			id: crypto.randomUUID(),
 			kind: "voyage",
@@ -41,16 +40,19 @@ const openVoyage = (input: OpenVoyageInput) =>
 		return row;
 	});
 
-// why: the spawn paths read this column at the moment they spawn, so a switch
-// retargets what the voyage does next and never what is already running — an
-// agent's backend is written onto its own session row at its birth.
-const setBackend = (voyageId: string, backend: AgentBackendTag) =>
+const setCaptainBackend = (voyageId: string, backend: AgentBackendTag) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
-		yield* Effect.gen(function* () {
-			yield* requireVoyage(voyageId);
-			yield* db.Voyage.where({ id: voyageId }).update({ backend });
-		});
+		yield* requireVoyage(voyageId);
+		yield* db.Voyage.where({ id: voyageId }).update({ captainBackend: backend });
+		yield* announce;
+	});
+
+const setCrewBackend = (voyageId: string, backend: AgentBackendTag) =>
+	Effect.gen(function* () {
+		const db = yield* Database;
+		yield* requireVoyage(voyageId);
+		yield* db.Voyage.where({ id: voyageId }).update({ crewBackend: backend });
 		yield* announce;
 	});
 
@@ -106,7 +108,8 @@ export const VoyageProceduresLive = Layer.effect(VoyageProcedureService)(
 			// capability names the exact act. Literal set-dependency semantics land
 			// separately.
 			rewire: pieces.setDependencies,
-			setBackend: (voyageId, backend) => Effect.provide(setBackend(voyageId, backend), context),
+			setCaptainBackend: (voyageId, backend) => Effect.provide(setCaptainBackend(voyageId, backend), context),
+			setCrewBackend: (voyageId, backend) => Effect.provide(setCrewBackend(voyageId, backend), context),
 			setFocus: (voyageId, focused) => Effect.provide(setFocus(voyageId, focused), context),
 			supersedeArtifact: (input) => artifacts.supersede({ actor: { _tag: "admiral" }, ...input }),
 			unpark: (pieceId) => pieces.park(pieceId, false),

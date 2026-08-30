@@ -17,6 +17,7 @@ export const ConsoleApp = ({ place }: { readonly place: ConsolePlace }) => {
 	const [mode, setMode] = useState<ConsoleMode>(place.mode);
 	const [change, setChange] = useState(place.changeId ?? undefined);
 	const [session, setSession] = useState(place.sessionId ?? undefined);
+	const [piece, setPiece] = useState(place.pieceId ?? undefined);
 	const [voyage, setVoyage] = useState(place.voyageId ?? undefined);
 	const [notice, setNotice] = useState<string | undefined>(undefined);
 	const [settings, setSettings] = useState<SettingsReading | undefined>(undefined);
@@ -33,13 +34,14 @@ export const ConsoleApp = ({ place }: { readonly place: ConsolePlace }) => {
 			{
 				changeId: change ?? null,
 				mode,
+				pieceId: piece ?? null,
 				role: "console",
 				sessionId: session ?? null,
 				voyageId: voyage ?? null,
 			},
 			setNotice,
 		);
-	}, [change, mode, session, voyage]);
+	}, [change, mode, piece, session, voyage]);
 
 	// why: Sessions ordinarily remain in the durable fleet after they end. Only
 	// absence from a complete fleet sight means a stored local draft has lost
@@ -63,9 +65,19 @@ export const ConsoleApp = ({ place }: { readonly place: ConsolePlace }) => {
 					mode={mode}
 					onChange={setChange}
 					onError={setNotice}
+					onPiece={(voyageId, pieceId) => {
+						setMode("voyages");
+						setVoyage(voyageId);
+						setPiece(pieceId);
+					}}
 					onSession={setSession}
 					onSettings={setSettings}
-					onVoyage={setVoyage}
+					onVoyage={(voyageId) => {
+						setMode("voyages");
+						setVoyage(voyageId);
+						setPiece(undefined);
+					}}
+					piece={piece}
 					session={session}
 					settings={settings}
 					voyage={voyage}

@@ -1,7 +1,4 @@
 import type { BerthStatus } from "@antumbra/vocabulary/agent-runtime";
-import { Effect } from "effect";
-import { invalidResourceReclaimClaim } from "#resource-reclaim-claim-shape.ts";
-import type { ResourceReclaimClaimInvalid } from "#resource-reclaim-errors.ts";
 import type { ResourceReclaimSnapshot } from "#resource-reclaim-state.ts";
 
 export interface ClaimedBerth {
@@ -57,22 +54,16 @@ const isNewClaimCandidate = (
 export const selectResourceReclaimBerths = (
 	state: ResourceReclaimSnapshot,
 	runnerTags: ReadonlySet<string>,
-): Effect.Effect<ReadonlyArray<ResourceReclaimSelection>, ResourceReclaimClaimInvalid> => {
+): ReadonlyArray<ResourceReclaimSelection> => {
 	const moorageOf = new Map(state.moorages.map((moorage) => [moorage.agentId, moorage] as const));
 	const eligibleAgents = eligibleAgentIds(state, moorageOf);
-	const invalid = invalidResourceReclaimClaim(state, moorageOf, eligibleAgents);
-	if (invalid !== undefined) {
-		return Effect.fail(invalid);
-	}
 	const heldAgents = new Set(state.berths.filter((berth) => state.held.has(berth.id)).map((berth) => berth.agentId));
-	return Effect.succeed(
-		state.berths.flatMap<ResourceReclaimSelection>((berth) => {
-			if (berth.reclaimState === "claimed") {
-				return [{ berth, needsClaim: false }];
-			}
-			return isNewClaimCandidate(berth, moorageOf.get(berth.agentId), eligibleAgents, heldAgents, state.held, runnerTags)
-				? [{ berth, needsClaim: true }]
-				: [];
-		}),
-	);
+	return state.berths.flatMap<ResourceReclaimSelection>((berth) => {
+		if (berth.reclaimState === "claimed") {
+			return [{ berth, needsClaim: false }];
+		}
+		return isNewClaimCandidate(berth, moorageOf.get(berth.agentId), eligibleAgents, heldAgents, state.held, runnerTags)
+			? [{ berth, needsClaim: true }]
+			: [];
+	});
 };

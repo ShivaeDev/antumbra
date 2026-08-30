@@ -26,6 +26,7 @@ const agent = (id: string, sessions: ReadonlyArray<SessionSummary>): AgentSummar
 	role: "crew",
 	sessions,
 	status: "alive",
+	work: [],
 });
 
 const fleetOf = (agents: ReadonlyArray<AgentSummary>): Fleet => ({

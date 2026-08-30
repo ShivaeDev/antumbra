@@ -34,7 +34,8 @@ export interface VoyageProcedures {
 	readonly park: (pieceId: string) => Effect.Effect<void, PieceNotFound | PrismaError>;
 	readonly read: (voyageId: string) => Effect.Effect<Option.Option<VoyageView>, VoyageWorldReadFailure>;
 	readonly rewire: (pieceId: string, dependsOn: ReadonlyArray<string>) => Effect.Effect<void, EdgeWouldCycle | PieceNotFound | PrismaError>;
-	readonly setBackend: (voyageId: string, backend: AgentBackendTag) => Effect.Effect<void, PrismaError | VoyageNotFound>;
+	readonly setCaptainBackend: (voyageId: string, backend: AgentBackendTag) => Effect.Effect<void, PrismaError | VoyageNotFound>;
+	readonly setCrewBackend: (voyageId: string, backend: AgentBackendTag) => Effect.Effect<void, PrismaError | VoyageNotFound>;
 	readonly setFocus: (voyageId: string, focused: boolean) => Effect.Effect<void, PrismaError | VoyageNotFound>;
 	readonly supersedeArtifact: (input: Omit<ArtifactSupersessionInput, "actor">) => Effect.Effect<void, ArtifactFailure>;
 	readonly unpark: (pieceId: string) => Effect.Effect<void, PieceNotFound | PrismaError>;

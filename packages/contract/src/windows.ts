@@ -13,6 +13,7 @@ export type ConsoleMode = typeof ConsoleMode.Type;
 export const ConsolePlace = Schema.Struct({
 	changeId: Schema.NullOr(Schema.String),
 	mode: ConsoleMode,
+	pieceId: Schema.optional(Schema.NullOr(Schema.String)),
 	role: Schema.Literal("console"),
 	sessionId: Schema.NullOr(Schema.String),
 	voyageId: Schema.NullOr(Schema.String),

@@ -6,10 +6,6 @@ export const SETTING_KEYS = ["foldToolCalls", "maxParallelSessions", "idleSiesta
 export const SettingKey = Schema.Literals(SETTING_KEYS);
 export type SettingKey = typeof SettingKey.Type;
 
-// why: this is the whole of what the admiral can set. A key that is not here
-// has no schema, no value to fall back to and no sentence to show, so nothing
-// can read it, store it or draw it — which is what stops the next feature from
-// growing a flag of its own beside this list.
 export const SETTINGS = {
 	foldToolCalls: flag({
 		description: "Fold a run of tool calls between messages into one line that says how many were made.",

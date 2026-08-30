@@ -38,8 +38,9 @@ const seedAsker = (voyageId: string) =>
 const openFlagship = Effect.gen(function* () {
 	const db = yield* Database;
 	yield* db.Voyage.create({
-		backend: "scripted",
+		captainBackend: "scripted",
 		context: "Fleet-level rulings and findings belong here.",
+		crewBackend: "scripted",
 		focusedAt: null,
 		id: FLAGSHIP_ID,
 		kind: "flagship",

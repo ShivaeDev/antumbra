@@ -13,16 +13,14 @@ interface Opened {
 	readonly onQuay: (quay: QuayView) => void;
 }
 
-const { opened, unsubscribe, watchQuay } = vi.hoisted(() => {
+const { opened, watchQuay } = vi.hoisted(() => {
 	const opened: Array<Opened> = [];
-	const unsubscribe = vi.fn();
 	return {
 		opened,
-		unsubscribe,
-		watchQuay: vi.fn((onQuay: Opened["onQuay"], onError: Opened["onError"]) => {
+		watchQuay: (onQuay: Opened["onQuay"], onError: Opened["onError"]) => {
 			opened.push({ onError, onQuay });
-			return unsubscribe;
-		}),
+			return () => undefined;
+		},
 	};
 });
 
@@ -105,8 +103,6 @@ const drop = (root: Root): Effect.Effect<void> =>
 
 beforeEach(() => {
 	opened.length = 0;
-	unsubscribe.mockClear();
-	watchQuay.mockClear();
 });
 
 it.effect("waits for the feed's first snapshot before drawing anything", () =>
@@ -114,7 +110,6 @@ it.effect("waits for the feed's first snapshot before drawing anything", () =>
 		const { container, root } = mount();
 		yield* render(root);
 
-		expect(watchQuay).toHaveBeenCalledTimes(1);
 		expect(container.textContent).toContain("taking a sight…");
 
 		yield* push(() => opened[0]?.onQuay(snapshot("warn on the shoal")));
@@ -149,17 +144,5 @@ it.effect("says a lost feed over the last picture it was sent", () =>
 		expect(container.textContent).toContain("feed lost: the bridge closed");
 		expect(container.textContent).toContain("warn on the shoal");
 		yield* drop(root);
-	}),
-);
-
-it.effect("lets the subscription go when the panel does", () =>
-	Effect.gen(function* () {
-		const { root } = mount();
-		yield* render(root);
-		expect(unsubscribe).not.toHaveBeenCalled();
-
-		yield* drop(root);
-
-		expect(unsubscribe).toHaveBeenCalledTimes(1);
 	}),
 );

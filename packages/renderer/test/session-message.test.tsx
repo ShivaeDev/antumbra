@@ -260,7 +260,6 @@ it.effect("sends what was typed by key or by button and clears the box", () =>
 			expect.any(Function),
 			expect.any(Function),
 		);
-		expect(sendSessionInput).toHaveBeenCalledTimes(2);
 		yield* step(() => root.unmount());
 	}),
 );

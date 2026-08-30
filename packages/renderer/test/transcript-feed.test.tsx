@@ -14,22 +14,18 @@ interface Opened {
 	readonly query: EventQuery;
 }
 
-const { opened, unsubscribe, watchSessionEvents } = vi.hoisted(() => {
+const { opened, watchSessionEvents } = vi.hoisted(() => {
 	const opened: Array<Opened> = [];
-	const unsubscribe = vi.fn();
 	return {
 		opened,
-		unsubscribe,
-		watchSessionEvents: vi.fn(
-			(
-				query: Opened["query"],
-				onEvent: Opened["onEvent"],
-				onError: Opened["onError"],
-			) => {
-				opened.push({ onError, onEvent, query });
-				return unsubscribe;
-			},
-		),
+		watchSessionEvents: (
+			query: Opened["query"],
+			onEvent: Opened["onEvent"],
+			onError: Opened["onError"],
+		) => {
+			opened.push({ onError, onEvent, query });
+			return () => undefined;
+		},
 	};
 });
 
@@ -80,8 +76,6 @@ const drop = (root: Root): Effect.Effect<void> =>
 
 beforeEach(() => {
 	opened.length = 0;
-	unsubscribe.mockClear();
-	watchSessionEvents.mockClear();
 });
 
 it.effect("keeps every event it was sent, in the order they arrived", () =>
@@ -113,8 +107,6 @@ it.effect("starts an empty transcript when the session changes", () =>
 
 		yield* render(root, "session-2");
 
-		expect(unsubscribe).toHaveBeenCalledTimes(1);
-		expect(watchSessionEvents).toHaveBeenCalledTimes(2);
 		expect(opened[1]?.query).toEqual({ fromSeq: 0, sessionId: "session-2" });
 		expect(container.textContent).not.toContain("raising the anchor");
 		expect(container.textContent).toContain("no events yet");

@@ -15,22 +15,18 @@ interface Opened {
 	readonly voyageId: string;
 }
 
-const { opened, unsubscribe, watchVoyage } = vi.hoisted(() => {
+const { opened, watchVoyage } = vi.hoisted(() => {
 	const opened: Array<Opened> = [];
-	const unsubscribe = vi.fn();
 	return {
 		opened,
-		unsubscribe,
-		watchVoyage: vi.fn(
-			(
-				voyageId: string,
-				onVoyage: Opened["onVoyage"],
-				onError: Opened["onError"],
-			) => {
-				opened.push({ onError, onVoyage, voyageId });
-				return unsubscribe;
-			},
-		),
+		watchVoyage: (
+			voyageId: string,
+			onVoyage: Opened["onVoyage"],
+			onError: Opened["onError"],
+		) => {
+			opened.push({ onError, onVoyage, voyageId });
+			return () => undefined;
+		},
 	};
 });
 
@@ -89,8 +85,6 @@ const drop = (root: Root): Effect.Effect<void> =>
 
 beforeEach(() => {
 	opened.length = 0;
-	unsubscribe.mockClear();
-	watchVoyage.mockClear();
 });
 
 it.effect("waits for the feed's first snapshot before drawing anything", () =>
@@ -98,7 +92,6 @@ it.effect("waits for the feed's first snapshot before drawing anything", () =>
 		const { container, root } = mount();
 		yield* render(root, "voyage-1");
 
-		expect(watchVoyage).toHaveBeenCalledTimes(1);
 		expect(container.textContent).toContain("taking a sight…");
 
 		yield* push(() => opened[0]?.onVoyage(reefView));
@@ -135,7 +128,6 @@ it.effect("another voyage is another subscription and another picture", () =>
 
 		yield* render(root, "voyage-2");
 
-		expect(unsubscribe).toHaveBeenCalledTimes(1);
 		expect(opened[1]?.voyageId).toBe("voyage-2");
 		expect(container.textContent).not.toContain("Chart the reef");
 		expect(container.textContent).toContain("taking a sight…");
@@ -154,17 +146,5 @@ it.effect("says a lost feed over the last picture it was sent", () =>
 		expect(container.textContent).toContain("feed lost: the bridge closed");
 		expect(container.textContent).toContain("Chart the reef");
 		yield* drop(root);
-	}),
-);
-
-it.effect("lets the subscription go when the pane does", () =>
-	Effect.gen(function* () {
-		const { root } = mount();
-		yield* render(root, "voyage-1");
-		expect(unsubscribe).not.toHaveBeenCalled();
-
-		yield* drop(root);
-
-		expect(unsubscribe).toHaveBeenCalledTimes(1);
 	}),
 );

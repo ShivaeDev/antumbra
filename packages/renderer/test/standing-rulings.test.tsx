@@ -1,5 +1,4 @@
-// why: @vitest-environment happy-dom drives the standing list and the pick of
-// a superseding ruling through the same DOM boundaries a keyboard uses.
+// @vitest-environment happy-dom
 
 import type { OpenRulingsView, StandingRulingsView, StandingRulingView } from "@antumbra/contract";
 import { expect, it } from "@effect/vitest";
@@ -144,7 +143,9 @@ it.effect("supersedes a ruling with the later one picked for it", () =>
 		const mounted = mount();
 		yield* showing(mounted, [berthReclaim, chartAuthority]);
 
+		expect(buttonSaying(mounted, "Supersede")?.disabled).toBe(true);
 		yield* picking(mounted, chartAuthority.question);
+		expect(buttonSaying(mounted, "Supersede")?.disabled).toBe(false);
 		yield* settle(() => buttonSaying(mounted, "Supersede")?.click());
 
 		expect(supersedeRuling).toHaveBeenCalledWith({ byRulingId: chartAuthority.id, rulingId: berthReclaim.id }, expect.any(Function));
@@ -152,20 +153,6 @@ it.effect("supersedes a ruling with the later one picked for it", () =>
 	}),
 );
 
-it.effect("never sends a supersession with nothing picked", () =>
-	Effect.gen(function* () {
-		const mounted = mount();
-		yield* showing(mounted, [berthReclaim, chartAuthority]);
-
-		yield* settle(() => buttonSaying(mounted, "Supersede")?.click());
-
-		expect(supersedeRuling).not.toHaveBeenCalled();
-		yield* settle(() => mounted.root.unmount());
-	}),
-);
-
-// why: a ruling standing alone has nothing that could take its place, so the
-// control does not offer an empty pick.
 it.effect("offers no supersession when one ruling stands alone", () =>
 	Effect.gen(function* () {
 		const mounted = mount();
@@ -192,24 +179,12 @@ it.effect("withdraws a standing ruling with the words that retire it", () =>
 		const mounted = mount();
 		yield* showing(mounted, [berthReclaim]);
 
+		expect(buttonSaying(mounted, "Withdraw")?.disabled).toBe(true);
 		yield* writing(mounted, "Withdraw because…", "berths are gone entirely");
+		expect(buttonSaying(mounted, "Withdraw")?.disabled).toBe(false);
 		yield* settle(() => buttonSaying(mounted, "Withdraw")?.click());
 
 		expect(withdrawRuling).toHaveBeenCalledWith({ note: "berths are gone entirely", rulingId: berthReclaim.id }, expect.any(Function));
-		yield* settle(() => mounted.root.unmount());
-	}),
-);
-
-// why: the note stands where a successor would, so a withdrawal with nothing
-// written leaves a rule retired for no stated reason and never leaves here.
-it.effect("never sends a withdrawal with no words", () =>
-	Effect.gen(function* () {
-		const mounted = mount();
-		yield* showing(mounted, [berthReclaim]);
-
-		yield* settle(() => buttonSaying(mounted, "Withdraw")?.click());
-
-		expect(withdrawRuling).not.toHaveBeenCalled();
 		yield* settle(() => mounted.root.unmount());
 	}),
 );

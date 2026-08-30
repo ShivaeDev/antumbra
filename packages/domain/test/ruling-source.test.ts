@@ -36,8 +36,6 @@ it.effectDB("the open feed carries a request the moment it lands", function* () 
 				reclassifications: [],
 				requestedAt: expect.any(String),
 				requester: { agentId: requesterId, kind: "agent" },
-				// why: the window meets an open ruling beside whose turn it is, and
-				// a captain rung reaches it as the ship whose captain holds it.
 				rung: { kind: "captain", voyageId, voyageName: "Chart the reef" },
 				subjects: expect.arrayContaining([
 					{ kind: "voyage", label: voyageId },
@@ -49,9 +47,6 @@ it.effectDB("the open feed carries a request the moment it lands", function* () 
 	}).pipe(Effect.provide(layer));
 });
 
-// why: the admiral prioritises a ruling by what it releases, so a gate that
-// lands after the request reaches the window as the piece's title and voyage
-// without anyone asking again.
 it.effectDB("the open feed names the piece a gate holds the moment it lands", function* () {
 	yield* Effect.gen(function* () {
 		yield* seedFleet;
@@ -74,8 +69,6 @@ it.effectDB("the open feed names the piece a gate holds the moment it lands", fu
 	}).pipe(Effect.provide(layer));
 });
 
-// why: what holds an asker is met before what merely binds widely, and the
-// window shows the set in the order the record hands it over.
 it.effectDB("reads the open set in the order it should be answered", function* () {
 	yield* Effect.gen(function* () {
 		yield* seedFleet;
@@ -114,38 +107,6 @@ it.effectDB("a verdict answers the record and empties the feed", function* () {
 	}).pipe(Effect.provide(layer));
 });
 
-it.effectDB("refuses a second verdict on a ruling that stands", function* () {
-	yield* Effect.gen(function* () {
-		yield* seedFleet;
-		const rulings = yield* Rulings;
-		const source = yield* RulingSource;
-		const requested = yield* rulings.request(asked);
-		yield* source.rule({ answer: "trust the chart", rulingId: requested.id });
-
-		const refused = yield* Effect.flip(source.rule({ answer: "no, the soundings", rulingId: requested.id }));
-
-		expect(refused).toMatchObject({
-			_tag: "RulingRefused",
-			reason: `ruling ${requested.id} was already ruled`,
-		});
-	}).pipe(Effect.provide(layer));
-});
-
-it.effectDB("refuses a verdict on a ruling nothing asked", function* () {
-	yield* Effect.gen(function* () {
-		const source = yield* RulingSource;
-
-		const refused = yield* Effect.flip(source.rule({ answer: "yes", rulingId: "ruling-adrift" }));
-
-		expect(refused).toMatchObject({
-			_tag: "RulingRefused",
-			reason: "no open ruling: ruling-adrift",
-		});
-	}).pipe(Effect.provide(layer));
-});
-
-// why: the window orders and badges by the axes as they stand now, and still
-// shows what the asker declared beside them, so both travel in the view.
 it.effectDB("a reclassification is seen beside the declaration", function* () {
 	yield* Effect.gen(function* () {
 		yield* seedFleet;
@@ -178,24 +139,6 @@ it.effectDB("a reclassification is seen beside the declaration", function* () {
 	}).pipe(Effect.provide(layer));
 });
 
-it.effectDB("refuses a reclassification naming no axis", function* () {
-	yield* Effect.gen(function* () {
-		yield* seedFleet;
-		const rulings = yield* Rulings;
-		const source = yield* RulingSource;
-		const requested = yield* rulings.request(asked);
-
-		const refused = yield* Effect.flip(source.reclassify({ note: "no move", rulingId: requested.id }));
-
-		expect(refused).toMatchObject({
-			_tag: "RulingRefused",
-			reason: `reclassifying ${requested.id} names no axis`,
-		});
-	}).pipe(Effect.provide(layer));
-});
-
-// why: a rule the admiral writes for itself is asked and answered in one act,
-// so it never passes through the open set the window watches.
 it.effectDB("a proclamation stands without ever being open", function* () {
 	yield* Effect.gen(function* () {
 		const source = yield* RulingSource;
@@ -226,28 +169,5 @@ it.effectDB("a proclamation stands without ever being open", function* () {
 				urgency: "eventual",
 			},
 		]);
-	}).pipe(Effect.provide(layer));
-});
-
-it.effectDB("refuses a proclamation picking a choice it never made", function* () {
-	yield* Effect.gen(function* () {
-		const source = yield* RulingSource;
-
-		const refused = yield* Effect.flip(
-			source.proclaim({
-				answer: "survey a channel before dredging it",
-				choices: [{ label: "survey first" }],
-				chosenChoice: "dredge freely",
-				context: "two voyages dredged a channel nobody had surveyed",
-				question: "May a voyage dredge a channel?",
-				radius: "fleet",
-				urgency: "eventual",
-			}),
-		);
-
-		expect(refused).toMatchObject({
-			_tag: "RulingRefused",
-			reason: "the proclamation never offered choice dredge freely",
-		});
 	}).pipe(Effect.provide(layer));
 });

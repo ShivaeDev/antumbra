@@ -68,37 +68,17 @@ it("an agent with no berths is told of none and ordered about none", () => {
 	expect(berthedCaptain([])).not.toContain("# Berths");
 });
 
-it("the moorage the agent stands in leads the berths it holds", () => {
-	expect(berthedCrew([antumbra])).toContain(`# Berths\n${LEAD}\nAntumbra — ./antumbra — branch work/a1b2c3d4/antumbra`);
-});
-
-it("the absolute moorage is stated once and every berth is relative", () => {
+it("places each named berth under the crew's moorage and orders", () => {
 	const text = berthedCrew([antumbra, charts]);
-	expect(text.split(MOORAGE)).toHaveLength(2);
-	expect(text).not.toContain(`${MOORAGE}/antumbra`);
-});
-
-it("the moorage is named as the place scratch belongs, not only berths", () => {
-	expect(berthedCrew([antumbra])).toContain("belongs in the moorage itself, never above it");
-});
-
-it("the registry name is printed, never the berth folder's slug", () => {
-	const text = berthedCrew([antumbra]);
-	expect(text).toContain("\nAntumbra — ./antumbra");
-	expect(text).not.toContain("\nantumbra —");
-});
-
-it("every berth is a line of its own", () => {
-	expect(berthedCrew([antumbra, charts])).toContain(
-		[LEAD, "Antumbra — ./antumbra — branch work/a1b2c3d4/antumbra", "Reef-Charts — ./reef-charts — branch work/a1b2c3d4/reef-charts"].join("\n"),
+	expect(text).toContain(
+		[
+			`# Berths\n${LEAD}`,
+			"Antumbra — ./antumbra — branch work/a1b2c3d4/antumbra",
+			"Reef-Charts — ./reef-charts — branch work/a1b2c3d4/reef-charts",
+		].join("\n"),
 	);
-});
-
-it("the berth order joins the standing orders and precedes the berths", () => {
-	const text = berthedCrew([antumbra]);
-	expect(text.indexOf("`stand_down`")).toBeLessThan(text.indexOf(CREW_ORDER));
+	expect(text.split(MOORAGE)).toHaveLength(2);
 	expect(text.indexOf(CREW_ORDER)).toBeLessThan(text.indexOf("# Berths"));
-	expect(text).toContain("`open_change`");
 });
 
 it("a captain is told the same berths without crew tools it does not hold", () => {

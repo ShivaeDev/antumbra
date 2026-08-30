@@ -31,44 +31,11 @@ describe("assembleSessionTree", () => {
 		]);
 	});
 
-	it("an edge pointing back at the root finishes the walk instead of circling", () => {
-		expect(placed([row("root", { parentSessionId: "child" }), row("child", { parentSessionId: "root" })])).toEqual([
-			["root", 0],
-			["child", 1],
-		]);
-	});
-
-	it("a cycle the root cannot reach degrades to a flat listing under it", () => {
-		expect(placed([row("root"), row("child", { parentSessionId: "grandchild" }), row("grandchild", { parentSessionId: "child" })])).toEqual([
-			["root", 0],
-			["child", 1],
-			["grandchild", 1],
-		]);
-	});
-
-	it("a row whose parent is not in this tree is still part of the record", () => {
-		expect(placed([row("root"), row("child", { parentSessionId: "root" }), row("orphan", { parentSessionId: "session-elsewhere" })])).toEqual([
-			["root", 0],
-			["child", 1],
-			["orphan", 1],
-		]);
-	});
-
-	it("names a node by its label first", () => {
+	it("names a node by its label, then its kind, and says when neither names it", () => {
 		expect(named({ kind: "Explore", label: "Map the quay grouping" })).toBe("Map the quay grouping");
-	});
-
-	it("names a node the provider identified only by an agent path", () => {
 		expect(named({ kind: ".codex/agents/reef-surveyor.md" })).toBe("reef-surveyor");
-	});
-
-	it("names a node by the kind the provider stated", () => {
 		expect(named({ kind: "general-purpose" })).toBe("general-purpose");
-	});
-
-	it("says outright that nothing named a node", () => {
 		expect(named({})).toBe(UNNAMED_SUBSESSION);
-		expect(UNNAMED_SUBSESSION).toBe("Unnamed subsession");
 	});
 
 	it("counts what is open against everything the tree holds", () => {

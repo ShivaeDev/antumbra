@@ -4,6 +4,7 @@ export type GitOperation =
 	| "clone-mirror"
 	| "refresh-mirror"
 	| "add-worktree"
+	| "fast-forward-worktree"
 	| "inspect-branch"
 	| "inspect-worktree"
 	| "remove-worktree"

@@ -6,10 +6,6 @@ const storedValue = Schema.decodeUnknownOption(Schema.fromJsonString(SettingValu
 
 const decodeSettings = Schema.decodeUnknownEffect(Settings);
 
-// why: a row whose JSON no longer decodes was written against a declaration
-// that has since moved on — a narrowed range, a kind that changed. The
-// catalog's own value is the one that is always meaningful, so a shipped
-// narrowing costs that override rather than the whole reading.
 const override = (declaration: SettingDeclaration, raw: string | undefined) => {
 	if (raw === undefined) {
 		return Option.none();
@@ -24,10 +20,6 @@ const chosen = (key: SettingKey, raw: string | undefined) => {
 	return Option.isSome(stored) ? { key, overridden: true, value: stored.value } : { key, overridden: false, value: declaration.fallback };
 };
 
-// why: the assembled record crosses back through the catalog's own schemas
-// rather than being asserted into shape. That is what a boundary read owes,
-// and it also means a declaration whose default breaks its own rule fails
-// here rather than reaching a caller that trusted the type.
 export const readSettings = Effect.gen(function* () {
 	const db = yield* Database;
 	const rows = yield* db.Setting.all();

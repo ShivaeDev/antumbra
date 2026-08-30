@@ -6,7 +6,7 @@ import {
 import { Database } from "@antumbra/persistence";
 import { type Runner, RunnerFailure } from "@antumbra/plugin-api";
 import { expect, it } from "@effect/vitest";
-import { Effect, Option, Ref, Schedule, Stream } from "effect";
+import { Effect, Option, Ref, Stream } from "effect";
 import { AgentDomain } from "#domain.ts";
 import type { SpawnFields } from "#index.ts";
 import { domainKernelLayer } from "#test/domain-layers.ts";
@@ -16,18 +16,13 @@ import {
 	makeScriptedRunner,
 	standDown,
 } from "#test/harness.ts";
+import { eventually } from "#test/voyage-fixtures.ts";
 
 const untilTerminal = <E, R>(changes: Stream.Stream<IntentStatus, E, R>) =>
 	changes.pipe(
 		Stream.takeUntil(isTerminalIntentStatus),
 		Stream.runLast,
 		Effect.map(Option.getOrThrow),
-	);
-
-const eventually = <A, E, R>(check: Effect.Effect<A, E, R>) =>
-	check.pipe(
-		Effect.catchDefect((defect) => Effect.fail(defect)),
-		Effect.retry(Schedule.spaced(10).pipe(Schedule.upTo({ duration: 2000 }))),
 	);
 
 const payload = (suffix: string): SpawnFields => ({

@@ -8,9 +8,7 @@ import { openSessionMapping } from "#mapping.ts";
 // the ones the mapping happens to read today.
 const SESSION = "57723c86-0b0c-4db1-9c79-1ae37fc5ef4a";
 
-const stateFrame = (
-	state: "idle" | "requires_action" | "running",
-): SDKMessage => ({
+const stateFrame = (state: "idle" | "requires_action" | "running"): SDKMessage => ({
 	session_id: SESSION,
 	state,
 	subtype: "session_state_changed",
@@ -34,12 +32,7 @@ const tasksFrame = (
 
 type ResultMessage = Extract<SDKMessage, { type: "result" }>;
 
-const usageOf = (
-	input: number,
-	cacheRead: number,
-	cacheWrite: number,
-	output: number,
-): ResultMessage["usage"] => ({
+const usageOf = (input: number, cacheRead: number, cacheWrite: number, output: number): ResultMessage["usage"] => ({
 	cache_creation: {
 		ephemeral_1h_input_tokens: 0,
 		ephemeral_5m_input_tokens: cacheWrite,
@@ -57,11 +50,7 @@ const usageOf = (
 	speed: "standard",
 });
 
-const result = (
-	totalCostUsd: number,
-	usage: ResultMessage["usage"],
-	models: ReadonlyArray<string> = ["claude-opus-5"],
-): SDKMessage => ({
+const result = (totalCostUsd: number, usage: ResultMessage["usage"], models: ReadonlyArray<string> = ["claude-opus-5"]): SDKMessage => ({
 	duration_api_ms: 9000,
 	duration_ms: 12300,
 	is_error: false,
@@ -95,15 +84,9 @@ const result = (
 describe("the harness's own account of a session is kept", () => {
 	it("keeps every state word, and calls requires_action awaiting input", () => {
 		const mapping = openSessionMapping();
-		expect(mapping.frame(stateFrame("running"))).toMatchObject([
-			{ state: "running", type: "session.state" },
-		]);
-		expect(mapping.frame(stateFrame("requires_action"))).toMatchObject([
-			{ state: "awaiting-input", type: "session.state" },
-		]);
-		expect(mapping.frame(stateFrame("idle"))).toMatchObject([
-			{ raw: { kind: "system/session_state_changed" }, state: "idle" },
-		]);
+		expect(mapping.frame(stateFrame("running"))).toMatchObject([{ state: "running", type: "session.state" }]);
+		expect(mapping.frame(stateFrame("requires_action"))).toMatchObject([{ state: "awaiting-input", type: "session.state" }]);
+		expect(mapping.frame(stateFrame("idle"))).toMatchObject([{ raw: { kind: "system/session_state_changed" }, state: "idle" }]);
 	});
 
 	it("takes the whole background set, and an empty one as the answer it is", () => {
@@ -136,16 +119,12 @@ describe("the harness's own account of a session is kept", () => {
 				type: "session.background",
 			},
 		]);
-		expect(mapping.frame(tasksFrame([]))).toMatchObject([
-			{ tasks: [], type: "session.background" },
-		]);
+		expect(mapping.frame(tasksFrame([]))).toMatchObject([{ tasks: [], type: "session.background" }]);
 	});
 
 	it("splits a turn's tokens four ways and names the model that answered", () => {
 		const mapping = openSessionMapping();
-		const [usage] = mapping.frame(
-			result(0.0412, usageOf(1500, 4820, 12100, 730)),
-		);
+		const [usage] = mapping.frame(result(0.0412, usageOf(1500, 4820, 12100, 730)));
 		expect(usage).toEqual({
 			cacheReadTokens: 4820,
 			cacheWriteTokens: 12100,
@@ -188,9 +167,7 @@ describe("the harness's own account of a session is kept", () => {
 	// turn several of them answered has no one model to name.
 	it("names no model when more than one answered", () => {
 		const mapping = openSessionMapping();
-		const [usage] = mapping.frame(
-			result(0.01, usageOf(10, 0, 0, 2), ["claude-opus-5", "claude-haiku-5"]),
-		);
+		const [usage] = mapping.frame(result(0.01, usageOf(10, 0, 0, 2), ["claude-opus-5", "claude-haiku-5"]));
 		expect(usage).not.toHaveProperty("model");
 	});
 });

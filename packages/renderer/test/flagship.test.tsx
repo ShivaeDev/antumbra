@@ -1,18 +1,12 @@
 import type { VoyageSummary } from "@antumbra/contract";
-import {
-	flagshipSummary,
-	fleet,
-	reefSummary,
-} from "@antumbra/contract/fixtures";
+import { flagshipSummary, fleet, reefSummary } from "@antumbra/contract/fixtures";
 import { expect, it } from "@effect/vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import { FlagshipPanel } from "#views/flagship.tsx";
 import { ModeNav } from "#views/mode-nav.tsx";
 
 const render = (voyages: ReadonlyArray<VoyageSummary>): string =>
-	renderToStaticMarkup(
-		<FlagshipPanel fleet={fleet} onError={() => undefined} voyages={voyages} />,
-	);
+	renderToStaticMarkup(<FlagshipPanel fleet={fleet} foldToolCalls={false} onError={() => undefined} voyages={voyages} />);
 
 const captained: VoyageSummary = {
 	...flagshipSummary,
@@ -25,9 +19,7 @@ const captained: VoyageSummary = {
 };
 
 it("offers the flagship first, because it is where the admiral speaks", () => {
-	const html = renderToStaticMarkup(
-		<ModeNav mode="flagship" onMode={() => undefined} />,
-	);
+	const html = renderToStaticMarkup(<ModeNav mode="flagship" onMode={() => undefined} />);
 
 	expect(html).toContain("Flagship");
 	expect(html.indexOf("Flagship")).toBeLessThan(html.indexOf("Fleet"));

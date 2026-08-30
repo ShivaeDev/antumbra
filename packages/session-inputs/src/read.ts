@@ -1,31 +1,17 @@
 import { Database, type PrismaError } from "@antumbra/persistence";
-import type {
-	SessionInput,
-	SessionInputImagePart,
-	SessionInputTextPart,
-} from "@antumbra/plugin-api";
+import type { SessionInput, SessionInputImagePart, SessionInputTextPart } from "@antumbra/plugin-api";
 import { SessionImageMediaType } from "@antumbra/vocabulary/session-input";
 import { type Context, Effect, Option, Schema } from "effect";
 import { imagePath, readImage } from "#adapters/custody.ts";
-import {
-	type SessionInputCustodyFailed,
-	type SessionInputNotFound,
-	StoredSessionInputInvalid,
-} from "#errors.ts";
+import { type SessionInputCustodyFailed, type SessionInputNotFound, StoredSessionInputInvalid } from "#errors.ts";
 import type { SessionInputDeliveryStatus, StoredSessionInput } from "#model.ts";
 import { deliveryStatus, requireInput } from "#stored.ts";
 
 const decodeMediaType = Schema.decodeUnknownOption(SessionImageMediaType);
 
-const invalid = (inputId: string, detail: string) =>
-	new StoredSessionInputInvalid({ detail, inputId });
+const invalid = (inputId: string, detail: string) => new StoredSessionInputInvalid({ detail, inputId });
 
-const imagePart = (
-	root: string,
-	inputId: string,
-	position: number,
-	id: string,
-) =>
+const imagePart = (root: string, inputId: string, position: number, id: string) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
 		const stored = yield* db.SessionAttachment.where({ id }).first();
@@ -37,12 +23,7 @@ const imagePart = (
 		if (Option.isNone(mediaType)) {
 			return yield* invalid(inputId, `part ${position} has unknown media type`);
 		}
-		yield* readImage(
-			root,
-			attachment.digest,
-			mediaType.value,
-			attachment.byteSize,
-		);
+		yield* readImage(root, attachment.digest, mediaType.value, attachment.byteSize);
 		return {
 			attachmentId: attachment.id,
 			mediaType: mediaType.value,
@@ -66,23 +47,13 @@ const storedPart = (
 	PrismaError | SessionInputCustodyFailed | StoredSessionInputInvalid,
 	Context.Service.Identifier<typeof Database>
 > => {
-	if (
-		part.kind === "text" &&
-		part.text !== null &&
-		part.attachmentId === null
-	) {
+	if (part.kind === "text" && part.text !== null && part.attachmentId === null) {
 		return Effect.succeed({ text: part.text, type: "text" });
 	}
-	if (
-		part.kind === "image" &&
-		part.text === null &&
-		part.attachmentId !== null
-	) {
+	if (part.kind === "image" && part.text === null && part.attachmentId !== null) {
 		return imagePart(root, inputId, part.position, part.attachmentId);
 	}
-	return Effect.fail(
-		invalid(inputId, `part ${part.position} has invalid shape`),
-	);
+	return Effect.fail(invalid(inputId, `part ${part.position} has invalid shape`));
 };
 
 export const readStoredInput = (
@@ -90,10 +61,7 @@ export const readStoredInput = (
 	inputId: string,
 ): Effect.Effect<
 	StoredSessionInput,
-	| PrismaError
-	| SessionInputCustodyFailed
-	| SessionInputNotFound
-	| StoredSessionInputInvalid,
+	PrismaError | SessionInputCustodyFailed | SessionInputNotFound | StoredSessionInputInvalid,
 	Context.Service.Identifier<typeof Database>
 > =>
 	Effect.gen(function* () {
@@ -104,9 +72,7 @@ export const readStoredInput = (
 			.all();
 		const parts = yield* Effect.forEach(rows, (part, index) => {
 			if (part.position !== index) {
-				return Effect.fail(
-					invalid(inputId, "part positions are not contiguous"),
-				);
+				return Effect.fail(invalid(inputId, "part positions are not contiguous"));
 			}
 			return storedPart(root, inputId, part);
 		});
@@ -118,9 +84,7 @@ export const readStoredInput = (
 		return {
 			input,
 			sessionId: stored.sessionId,
-			status: yield* Effect.fromResult(
-				deliveryStatus(inputId, stored.deliveryStatus),
-			),
+			status: yield* Effect.fromResult(deliveryStatus(inputId, stored.deliveryStatus)),
 		};
 	});
 

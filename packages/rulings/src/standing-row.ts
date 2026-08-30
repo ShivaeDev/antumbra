@@ -1,9 +1,5 @@
 import { Effect } from "effect";
-import {
-	RulingAlreadySuperseded,
-	RulingAlreadyWithdrawn,
-	RulingNotRuled,
-} from "#errors.ts";
+import { RulingAlreadySuperseded, RulingAlreadyWithdrawn, RulingNotRuled } from "#errors.ts";
 import { requireRuling } from "#read.ts";
 
 // why: both acts that retire a ruling ask the same question first — does this

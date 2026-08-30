@@ -38,29 +38,15 @@ export const PieceDetail = ({
 	const depends = dependsOnLabel(piece, pieces);
 	return (
 		<div className="flex min-w-0 flex-col gap-2 border-t border-border px-2.5 py-2">
-			{piece.charter === "" ? null : (
-				<MarkdownView className="text-xs" markdown={piece.charter} />
-			)}
-			{depends === "" ? null : (
-				<p className="min-w-0 text-2xs text-muted-foreground wrap-anywhere">
-					{depends}
-				</p>
-			)}
+			{piece.charter === "" ? null : <MarkdownView className="text-xs" markdown={piece.charter} />}
+			{depends === "" ? null : <p className="min-w-0 text-2xs text-muted-foreground wrap-anywhere">{depends}</p>}
 			{piece.awaitingRulings.map((ruling) => (
-				<p
-					className="min-w-0 truncate text-2xs text-muted-foreground"
-					key={ruling.rulingId}
-					title={awaitingRulingLabel(ruling)}
-				>
+				<p className="min-w-0 truncate text-2xs text-muted-foreground" key={ruling.rulingId} title={awaitingRulingLabel(ruling)}>
 					{awaitingRulingLabel(ruling)}
 				</p>
 			))}
 			<AtWork piece={piece} />
-			<BoardPanel
-				entries={piece.board}
-				onError={onError}
-				scope={{ kind: "piece", pieceId: piece.id }}
-			/>
+			<BoardPanel entries={piece.board} onError={onError} scope={{ kind: "piece", pieceId: piece.id }} />
 			<PieceOutcomes onError={onError} piece={piece} />
 			<PieceActs onError={onError} piece={piece} pieces={pieces} />
 			<PieceRetire onError={onError} piece={piece} />

@@ -19,8 +19,8 @@ export interface Entry {
 }
 
 // why: quiet already under way is not disturbed by being declared again. An
-// Agent that repeats itself keeps the moment it first fell quiet, or the hour
-// would start over on every repetition and never come around.
+// Agent that repeats itself keeps the moment it first fell quiet, or the chosen
+// wait would start over on every repetition and never come around.
 export const rested = (entry: Entry, since: number): Entry => ({
 	...entry,
 	idleSince: entry.idleSince ?? since,

@@ -1,15 +1,7 @@
-import type {
-	BackendCapacityController,
-	BackendFailure,
-} from "@antumbra/plugin-api";
+import type { BackendCapacityController, BackendFailure } from "@antumbra/plugin-api";
 import { Deferred, Effect, PubSub, Queue, type Scope } from "effect";
 import type { LineProcess } from "#adapters/process.ts";
-import {
-	connectRpc,
-	type RpcConnection,
-	type RpcNotification,
-	type RpcServerRequest,
-} from "#adapters/rpc.ts";
+import { connectRpc, type RpcConnection, type RpcNotification, type RpcServerRequest } from "#adapters/rpc.ts";
 import { codexFailure } from "#failure.ts";
 import { handshake } from "#handshake.ts";
 import { rawOf } from "#mapping.ts";
@@ -67,18 +59,15 @@ const wire = (
 // session — the topology codex itself documents and its own clients use. It
 // lives as long as the scope that made it; a dead child ends every
 // session's stream through `exited`.
-export const makeCodexServer = (
-	options: CodexServerOptions,
-): Effect.Effect<CodexServer, BackendFailure, Scope.Scope> =>
+export const makeCodexServer = (options: CodexServerOptions): Effect.Effect<CodexServer, BackendFailure, Scope.Scope> =>
 	Effect.gen(function* () {
 		const notifications = yield* PubSub.unbounded<RpcNotification>();
 		const serverRequests = yield* Queue.unbounded<RpcServerRequest>();
 		const stderr = yield* Queue.unbounded<string>();
 		const tools = yield* makeToolRegistry;
 		const threads = openThreadClaims();
-		const child = yield* Effect.acquireRelease(
-			Effect.try({ catch: codexFailure, try: options.spawn }),
-			(process) => Effect.sync(() => process.kill()),
+		const child = yield* Effect.acquireRelease(Effect.try({ catch: codexFailure, try: options.spawn }), (process) =>
+			Effect.sync(() => process.kill()),
 		);
 		const rpc = connectRpc(child);
 		wire(rpc, notifications, serverRequests, options.observeCapacity);
@@ -89,9 +78,7 @@ export const makeCodexServer = (
 		});
 		yield* Effect.forkScoped(
 			Queue.take(stderr).pipe(
-				Effect.flatMap((text) =>
-					Effect.logWarning("codex app-server", { stderr: text }),
-				),
+				Effect.flatMap((text) => Effect.logWarning("codex app-server", { stderr: text })),
 				Effect.forever,
 			),
 		);
@@ -106,9 +93,7 @@ export const makeCodexServer = (
 		// them coming back in the order they were asked.
 		yield* Effect.forkScoped(
 			Queue.take(serverRequests).pipe(
-				Effect.flatMap((request) =>
-					Effect.forkScoped(answerServerRequest(rpc, tools, request)),
-				),
+				Effect.flatMap((request) => Effect.forkScoped(answerServerRequest(rpc, tools, request))),
 				Effect.forever,
 				Effect.ignore,
 			),

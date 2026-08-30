@@ -2,8 +2,7 @@ import { Schema } from "effect";
 import { defineTool } from "#define.ts";
 
 const Repo = Schema.String.annotate({
-	description:
-		"The name of the repo you are berthed in, as the registry knows it.",
+	description: "The name of the repo you are berthed in, as the registry knows it.",
 });
 
 export const openChangeSpec = defineTool({
@@ -12,18 +11,15 @@ export const openChangeSpec = defineTool({
 	input: Schema.Struct({
 		base: Schema.optionalKey(
 			Schema.String.annotate({
-				description:
-					"The branch the change is proposed against. Leave it out for the repo's default.",
+				description: "The branch the change is proposed against. Leave it out for the repo's default.",
 			}),
 		),
 		body: Schema.String.annotate({
-			description:
-				"What the change does and why, written for whoever reviews it.",
+			description: "What the change does and why, written for whoever reviews it.",
 		}),
 		draft: Schema.optionalKey(
 			Schema.Boolean.annotate({
-				description:
-					"True while the change is not ready to be reviewed. Defaults to false.",
+				description: "True while the change is not ready to be reviewed. Defaults to false.",
 			}),
 		),
 		repo: Repo,

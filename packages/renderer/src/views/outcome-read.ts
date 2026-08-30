@@ -27,11 +27,7 @@ export interface NamedMarkdown {
 // clicked; once it lands the outcome names itself. Reports and Artifacts
 // differ only in how they spell that name, so they hand it in rather than
 // each keeping a copy of the same four branches.
-export const detailOf = <A>(
-	state: CallState<A>,
-	asked: string,
-	name: (value: A) => NamedMarkdown,
-): OutcomeDetail | undefined => {
+export const detailOf = <A>(state: CallState<A>, asked: string, name: (value: A) => NamedMarkdown): OutcomeDetail | undefined => {
 	if (state._tag === "idle") return undefined;
 	if (state._tag === "pending") return { _tag: "loading", title: asked };
 	if (state._tag === "failed") {

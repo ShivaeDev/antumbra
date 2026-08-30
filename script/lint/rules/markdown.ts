@@ -49,20 +49,14 @@ const withoutInlineCode = (line: string): string => {
 	return result;
 };
 
-const markdownLines = (
-	document: TextFile,
-	stripInlineCode: boolean,
-): readonly MarkdownLine[] => {
+const markdownLines = (document: TextFile, stripInlineCode: boolean): readonly MarkdownLine[] => {
 	const lines: MarkdownLine[] = [];
 	let fence: string | undefined;
 	document.raw.split("\n").forEach((raw, index) => {
 		if (fence !== undefined) {
 			const closing = raw.trim();
 			const fenceCharacter = fence.charAt(0);
-			if (
-				closing.length >= fence.length &&
-				[...closing].every((character) => character === fenceCharacter)
-			) {
+			if (closing.length >= fence.length && [...closing].every((character) => character === fenceCharacter)) {
 				fence = undefined;
 			}
 			return;
@@ -80,12 +74,9 @@ const markdownLines = (
 	return lines;
 };
 
-export const markdownProseLines = (
-	document: TextFile,
-): readonly MarkdownLine[] => markdownLines(document, true);
+export const markdownProseLines = (document: TextFile): readonly MarkdownLine[] => markdownLines(document, true);
 
-const referenceKey = (label: string): string =>
-	label.trim().replace(/\s+/g, " ").toLocaleLowerCase("en");
+const referenceKey = (label: string): string => label.trim().replace(/\s+/g, " ").toLocaleLowerCase("en");
 
 export const linksOf = (document: TextFile): readonly MarkdownLink[] => {
 	const lines = markdownProseLines(document);
@@ -93,10 +84,7 @@ export const linksOf = (document: TextFile): readonly MarkdownLink[] => {
 	for (const line of lines) {
 		const definition = REFERENCE_DEFINITION.exec(line.raw);
 		if (definition !== null) {
-			definitions.set(
-				referenceKey(definition[1] ?? ""),
-				destination(definition[2] ?? ""),
-			);
+			definitions.set(referenceKey(definition[1] ?? ""), destination(definition[2] ?? ""));
 		}
 	}
 	return lines.flatMap((line) => [

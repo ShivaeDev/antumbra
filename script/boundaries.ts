@@ -4,21 +4,15 @@ import { fileURLToPath } from "node:url";
 import { NodeRuntime } from "@effect/platform-node";
 import { Cause, Console, Effect } from "effect";
 import { cruiseBoundaries } from "#boundaries/adapters/cruise.ts";
-import {
-	boundaryInventoryFailures,
-	expectedBoundarySources,
-} from "#boundaries/inventory.ts";
+import { boundaryInventoryFailures, expectedBoundarySources } from "#boundaries/inventory.ts";
 
 const scriptDirectory = dirname(fileURLToPath(import.meta.url));
 const repositoryRoot = dirname(scriptDirectory);
 const analysisRoot = resolve(process.argv[2] ?? repositoryRoot);
-const sourceRoots = ["apps", "packages"].filter((sourceRoot) =>
-	existsSync(join(analysisRoot, sourceRoot)),
-);
+const sourceRoots = ["apps", "packages"].filter((sourceRoot) => existsSync(join(analysisRoot, sourceRoot)));
 
 const program = Effect.tryPromise({
-	catch: (cause) =>
-		cause instanceof Error ? cause : new Error("Boundary analysis failed"),
+	catch: (cause) => (cause instanceof Error ? cause : new Error("Boundary analysis failed")),
 	try: () => cruiseBoundaries({ analysisRoot, repositoryRoot, sourceRoots }),
 }).pipe(
 	Effect.flatMap((report) => {
@@ -30,9 +24,7 @@ const program = Effect.tryPromise({
 			},
 			expectedBoundarySources(analysisRoot, sourceRoots),
 		);
-		const violations = report.violations.map(
-			({ from, rule, to }) => `${rule}: ${from} → ${to}`,
-		);
+		const violations = report.violations.map(({ from, rule, to }) => `${rule}: ${from} → ${to}`);
 		const failed = failures.length > 0 || violations.length > 0;
 		const summary = failed
 			? [...violations, ...failures].join("\n")

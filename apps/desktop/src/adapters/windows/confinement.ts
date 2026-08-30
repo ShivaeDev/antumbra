@@ -3,14 +3,10 @@ interface NavigationEvent {
 }
 
 export interface NavigationPolicyHost {
-	readonly onFrameNavigation: (
-		listener: (event: NavigationEvent) => void,
-	) => void;
+	readonly onFrameNavigation: (listener: (event: NavigationEvent) => void) => void;
 	readonly onNavigation: (listener: (event: NavigationEvent) => void) => void;
 	readonly onRedirect: (listener: (event: NavigationEvent) => void) => void;
-	readonly setWindowOpenHandler: (
-		handler: () => { readonly action: "deny" },
-	) => void;
+	readonly setWindowOpenHandler: (handler: () => { readonly action: "deny" }) => void;
 }
 
 export const confineNavigation = (contents: NavigationPolicyHost): void => {
@@ -36,10 +32,7 @@ export interface DocumentMutationWatch {
 // confinement never sees it. The only safe reading is that the trusted
 // document is gone: authority is dropped before the window is destroyed, and
 // the event is reported because nothing else would say why a window vanished.
-export const revokeOnDocumentMutation = (
-	host: DocumentMutationHost,
-	watch: DocumentMutationWatch,
-): void => {
+export const revokeOnDocumentMutation = (host: DocumentMutationHost, watch: DocumentMutationWatch): void => {
 	host.onDocumentMutation(() => {
 		watch.release();
 		host.destroy();

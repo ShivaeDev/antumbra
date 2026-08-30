@@ -27,10 +27,7 @@ const applyEvent = (state: Derivation, row: SessionEvent): void => {
 // node's name are facts about the record rather than about any one frame. A
 // caller with no tree — a detached transcript, a fixture — still derives every
 // item; delegation markers simply have nowhere to point.
-export const deriveTranscript = (
-	events: ReadonlyArray<SessionEvent>,
-	nodes: ReadonlyArray<SessionTreeNode> = [],
-): ReadonlyArray<TranscriptItem> => {
+export const deriveTranscript = (events: ReadonlyArray<SessionEvent>, nodes: ReadonlyArray<SessionTreeNode> = []): ReadonlyArray<TranscriptItem> => {
 	const items: TranscriptItem[] = [];
 	const state: Derivation = {
 		items,

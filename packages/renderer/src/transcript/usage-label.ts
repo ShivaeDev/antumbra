@@ -12,8 +12,7 @@ export const cacheShare = (event: Usage): number | undefined => {
 	if (event.cacheReadTokens === undefined) {
 		return undefined;
 	}
-	const supplied =
-		event.inputTokens + event.cacheReadTokens + (event.cacheWriteTokens ?? 0);
+	const supplied = event.inputTokens + event.cacheReadTokens + (event.cacheWriteTokens ?? 0);
 	return supplied === 0 ? undefined : event.cacheReadTokens / supplied;
 };
 
@@ -33,16 +32,10 @@ export const usageLabel = (event: Usage): string =>
 		"usage",
 		...(event.model === undefined ? [] : [event.model]),
 		`in ${event.inputTokens}`,
-		...(event.cacheReadTokens === undefined
-			? []
-			: [`cache read ${event.cacheReadTokens}`]),
-		...(event.cacheWriteTokens === undefined
-			? []
-			: [`cache write ${event.cacheWriteTokens}`]),
+		...(event.cacheReadTokens === undefined ? [] : [`cache read ${event.cacheReadTokens}`]),
+		...(event.cacheWriteTokens === undefined ? [] : [`cache write ${event.cacheWriteTokens}`]),
 		`out ${event.outputTokens}`,
 		...share(event),
 		...(event.costUsd === undefined ? [] : [`turn ${money(event.costUsd)}`]),
-		...(event.cumulativeCostUsd === undefined
-			? []
-			: [`total ${money(event.cumulativeCostUsd)}`]),
+		...(event.cumulativeCostUsd === undefined ? [] : [`total ${money(event.cumulativeCostUsd)}`]),
 	].join(" · ");

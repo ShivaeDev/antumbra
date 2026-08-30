@@ -3,11 +3,7 @@ import type { Runner } from "@antumbra/plugin-api";
 import { expect, it } from "@effect/vitest";
 import { Effect, Option, Ref } from "effect";
 import { domainKernelLayer } from "#test/domain-layers.ts";
-import {
-	acquireTemporaryPersistence,
-	makeScriptedBackend,
-	makeScriptedRunner,
-} from "#test/harness.ts";
+import { acquireTemporaryPersistence, makeScriptedBackend, makeScriptedRunner } from "#test/harness.ts";
 
 const seedInvalidSweep = Effect.gen(function* () {
 	const db = yield* Database;
@@ -45,17 +41,11 @@ it.live("invalid Agent truth skips the complete reclaim sweep unchanged", () =>
 		const reclaims = yield* Ref.make(0);
 		const runner: Runner = {
 			...recorder.runner,
-			reclaim: () =>
-				Ref.update(reclaims, (count) => count + 1).pipe(
-					Effect.as({ _tag: "reclaimed" as const }),
-				),
+			reclaim: () => Ref.update(reclaims, (count) => count + 1).pipe(Effect.as({ _tag: "reclaimed" as const })),
 		};
 		yield* seedInvalidSweep.pipe(Effect.provide(temporary.layer));
 
-		yield* Effect.provide(
-			Effect.void,
-			domainKernelLayer(temporary, scripted.backend, {}, runner),
-		);
+		yield* Effect.provide(Effect.void, domainKernelLayer(temporary, scripted.backend, {}, runner));
 		expect(yield* Ref.get(reclaims)).toBe(0);
 		const status = yield* Effect.gen(function* () {
 			const db = yield* Database;

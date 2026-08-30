@@ -44,39 +44,21 @@ type Mounted = ReturnType<typeof mount>;
 
 // why: the panel opens on an empty set so the only controls on the page are
 // the proclamation's own, and nothing here can be read off a ruling card.
-const showing = (
-	mounted: Mounted,
-	onError: (message: string) => void,
-): Effect.Effect<void> =>
+const showing = (mounted: Mounted, onError: (message: string) => void): Effect.Effect<void> =>
 	Effect.gen(function* () {
-		yield* settle(() =>
-			mounted.root.render(<RulingsPanel onError={onError} />),
-		);
+		yield* settle(() => mounted.root.render(<RulingsPanel onError={onError} />));
 		yield* settle(() => opened.at(-1)?.({ rulings: [] }));
 	});
 
 const fieldNamed = (mounted: Mounted, label: string) => {
-	const tag = [...mounted.container.querySelectorAll("label")].find(
-		(each) => each.textContent === label,
-	);
-	return tag === undefined
-		? null
-		: mounted.container.querySelector<HTMLElement>(`[id="${tag.htmlFor}"]`);
+	const tag = [...mounted.container.querySelectorAll("label")].find((each) => each.textContent === label);
+	return tag === undefined ? null : mounted.container.querySelector<HTMLElement>(`[id="${tag.htmlFor}"]`);
 };
 
 const valueSetter = (box: HTMLElement) =>
-	Object.getOwnPropertyDescriptor(
-		box instanceof HTMLTextAreaElement
-			? HTMLTextAreaElement.prototype
-			: HTMLInputElement.prototype,
-		"value",
-	)?.set;
+	Object.getOwnPropertyDescriptor(box instanceof HTMLTextAreaElement ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype, "value")?.set;
 
-const writing = (
-	mounted: Mounted,
-	label: string,
-	words: string,
-): Effect.Effect<void> =>
+const writing = (mounted: Mounted, label: string, words: string): Effect.Effect<void> =>
 	settle(() => {
 		const box = fieldNamed(mounted, label);
 		const set = box === null ? undefined : valueSetter(box);
@@ -86,11 +68,7 @@ const writing = (
 		}
 	});
 
-const choosing = (
-	mounted: Mounted,
-	label: string,
-	word: string,
-): Effect.Effect<void> =>
+const choosing = (mounted: Mounted, label: string, word: string): Effect.Effect<void> =>
 	settle(() => {
 		const box = fieldNamed(mounted, label);
 		if (box instanceof HTMLSelectElement) {
@@ -100,20 +78,12 @@ const choosing = (
 	});
 
 const proclaiming = (mounted: Mounted): Effect.Effect<void> =>
-	settle(() =>
-		[...mounted.container.querySelectorAll("button")]
-			.find((button) => button.textContent?.includes("Proclaim") === true)
-			?.click(),
-	);
+	settle(() => [...mounted.container.querySelectorAll("button")].find((button) => button.textContent?.includes("Proclaim") === true)?.click());
 
 const wroteTheRule = (mounted: Mounted): Effect.Effect<void> =>
 	Effect.gen(function* () {
 		yield* writing(mounted, "Question", "May a voyage dredge a channel?");
-		yield* writing(
-			mounted,
-			"Context",
-			"Two voyages dredged without surveying.",
-		);
+		yield* writing(mounted, "Context", "Two voyages dredged without surveying.");
 		yield* writing(mounted, "Your answer", "Survey the channel first, always.");
 	});
 
@@ -181,11 +151,9 @@ it.effect("never proclaims a rule missing its context or its answer", () =>
 it.effect("shows the words a refused proclamation came back with", () =>
 	Effect.gen(function* () {
 		const refusals: Array<string> = [];
-		proclaimRuling.mockImplementation(
-			(_request: unknown, onError: (message: string) => void) => {
-				onError("the fleet has no tag dredging");
-			},
-		);
+		proclaimRuling.mockImplementation((_request: unknown, onError: (message: string) => void) => {
+			onError("the fleet has no tag dredging");
+		});
 		const mounted = mount();
 		yield* showing(mounted, (message) => refusals.push(message));
 

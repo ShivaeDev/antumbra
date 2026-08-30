@@ -24,24 +24,13 @@ const openOrWarn = (options: TraceSinkOptions, runId: string, at: number) =>
 			runId,
 			startedAtMillis: at,
 		}),
-	).pipe(
-		Effect.catchCause((cause) =>
-			Effect.logWarning(`${DISABLED}: ${Cause.pretty(cause)}`).pipe(
-				Effect.as(undefined),
-			),
-		),
-	);
+	).pipe(Effect.catchCause((cause) => Effect.logWarning(`${DISABLED}: ${Cause.pretty(cause)}`).pipe(Effect.as(undefined))));
 
-export const makeTraceSink = (
-	options: TraceSinkOptions,
-): Effect.Effect<Recorder, never, Scope.Scope> =>
+export const makeTraceSink = (options: TraceSinkOptions): Effect.Effect<Recorder, never, Scope.Scope> =>
 	Effect.gen(function* () {
 		const runId = crypto.randomUUID();
 		const startedAtMillis = yield* Clock.currentTimeMillis;
-		const database = yield* Effect.acquireRelease(
-			openOrWarn(options, runId, startedAtMillis),
-			(open) => Effect.sync(() => open?.close()),
-		);
+		const database = yield* Effect.acquireRelease(openOrWarn(options, runId, startedAtMillis), (open) => Effect.sync(() => open?.close()));
 		if (database === undefined) {
 			return {
 				flush: Effect.void,
@@ -51,11 +40,6 @@ export const makeTraceSink = (
 		}
 		const recorder = makeRecorder(database);
 		yield* Effect.addFinalizer(() => recorder.flush);
-		yield* Effect.forkScoped(
-			Effect.sleep(options.flushMillis).pipe(
-				Effect.andThen(recorder.flush),
-				Effect.forever,
-			),
-		);
+		yield* Effect.forkScoped(Effect.sleep(options.flushMillis).pipe(Effect.andThen(recorder.flush), Effect.forever));
 		return recorder;
 	});

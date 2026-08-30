@@ -1,9 +1,6 @@
 import { useRef, useState } from "react";
 
-export type Call<A> = (
-	onDone: (value: A) => void,
-	onError: (message: string) => void,
-) => void;
+export type Call<A> = (onDone: (value: A) => void, onError: (message: string) => void) => void;
 
 export type CallState<A> =
 	| { readonly _tag: "done"; readonly value: A }

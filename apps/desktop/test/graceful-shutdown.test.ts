@@ -14,22 +14,14 @@ const runShutdownAttempt = (
 ) => {
 	const result =
 		attempt === 1
-			? Deferred.succeed(firstAttemptStarted, undefined).pipe(
-					Effect.andThen(Effect.fail("drain failed")),
-				)
-			: Deferred.await(releaseRetry).pipe(
-					Effect.andThen(Ref.update(calls, (all) => [...all, "dispose"])),
-				);
-	return Ref.update(calls, (all) => [...all, "drain"]).pipe(
-		Effect.andThen(result),
-	);
+			? Deferred.succeed(firstAttemptStarted, undefined).pipe(Effect.andThen(Effect.fail("drain failed")))
+			: Deferred.await(releaseRetry).pipe(Effect.andThen(Ref.update(calls, (all) => [...all, "dispose"])));
+	return Ref.update(calls, (all) => [...all, "drain"]).pipe(Effect.andThen(result));
 };
 
 it.effect("coalesces quit requests and permits exit only after shutdown", () =>
 	Effect.gen(function* () {
-		let beforeQuit:
-			| ((event: { readonly preventDefault: () => void }) => void)
-			| undefined;
+		let beforeQuit: ((event: { readonly preventDefault: () => void }) => void) | undefined;
 		const calls = yield* Ref.make<ReadonlyArray<string>>([]);
 		const release = yield* Deferred.make<void>();
 		const exited = yield* Deferred.make<void>();
@@ -77,9 +69,7 @@ it.effect("coalesces quit requests and permits exit only after shutdown", () =>
 
 it.effect("retries shutdown after failure and permits exactly one exit", () =>
 	Effect.gen(function* () {
-		let beforeQuit:
-			| ((event: { readonly preventDefault: () => void }) => void)
-			| undefined;
+		let beforeQuit: ((event: { readonly preventDefault: () => void }) => void) | undefined;
 		const calls = yield* Ref.make<ReadonlyArray<string>>([]);
 		const attempts = yield* Ref.make(0);
 		const firstAttemptStarted = yield* Deferred.make<void>();
@@ -93,9 +83,7 @@ it.effect("retries shutdown after failure and permits exactly one exit", () =>
 			});
 		};
 		const shutdown = Ref.updateAndGet(attempts, (attempt) => attempt + 1).pipe(
-			Effect.flatMap((attempt) =>
-				runShutdownAttempt(attempt, calls, firstAttemptStarted, releaseRetry),
-			),
+			Effect.flatMap((attempt) => runShutdownAttempt(attempt, calls, firstAttemptStarted, releaseRetry)),
 		);
 		yield* registerGracefulShutdown(
 			{

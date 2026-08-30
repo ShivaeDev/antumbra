@@ -5,20 +5,8 @@ import { expect, it } from "@effect/vitest";
 import { Effect, Ref } from "effect";
 import { AgentDomain } from "#domain.ts";
 import { acquireTemporaryPersistence } from "#test/harness.ts";
-import {
-	eventually,
-	payload,
-	refuseWhile,
-	reportsNativeRef,
-} from "#test/session-recovery-fixture.ts";
-import {
-	NATIVE,
-	onlyWake,
-	sessionRow,
-	sleepingRoot,
-	wakeChips,
-	wakeLayer,
-} from "#test/session-wake-fixture.ts";
+import { eventually, payload, refuseWhile, reportsNativeRef } from "#test/session-recovery-fixture.ts";
+import { NATIVE, onlyWake, sessionRow, sleepingRoot, wakeChips, wakeLayer } from "#test/session-wake-fixture.ts";
 
 // why: the live report the whole branch answers — the admiral sent to an asleep
 // root, the mutation succeeded, and nothing observable happened. The wake that
@@ -29,10 +17,7 @@ it.live("a wake that cannot be taken parks with its reason on the fleet", () =>
 		const temporary = yield* acquireTemporaryPersistence;
 		const { recorded, scripted } = yield* sleepingRoot(temporary);
 		const denied = yield* Ref.make(true);
-		const refusing = refuseWhile(
-			reportsNativeRef(scripted.backend, scripted, NATIVE),
-			denied,
-		);
+		const refusing = refuseWhile(reportsNativeRef(scripted.backend, scripted, NATIVE), denied);
 
 		yield* Effect.gen(function* () {
 			const sight = yield* SightSource;

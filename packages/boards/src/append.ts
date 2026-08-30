@@ -30,11 +30,7 @@ const recoverAppend = (
 	nowMillis: number,
 	attempted: BoardEntryRow,
 	failure: PrismaError,
-): Effect.Effect<
-	AppendResult,
-	BoardSourceConflict | PrismaError | StoredBoardEntryInvalid,
-	Context.Service.Identifier<typeof Database>
-> =>
+): Effect.Effect<AppendResult, BoardSourceConflict | PrismaError | StoredBoardEntryInvalid, Context.Service.Identifier<typeof Database>> =>
 	Effect.gen(function* () {
 		const prior = yield* priorEntry(boardId, input);
 		if (Option.isSome(prior)) {
@@ -58,11 +54,7 @@ export function appendEntry(
 	boardId: string,
 	input: EntryInput,
 	nowMillis: number,
-): Effect.Effect<
-	AppendResult,
-	BoardSourceConflict | PrismaError | StoredBoardEntryInvalid,
-	Context.Service.Identifier<typeof Database>
-> {
+): Effect.Effect<AppendResult, BoardSourceConflict | PrismaError | StoredBoardEntryInvalid, Context.Service.Identifier<typeof Database>> {
 	return Effect.gen(function* () {
 		const db = yield* Database;
 		const prior = yield* priorEntry(boardId, input);
@@ -82,9 +74,7 @@ export function appendEntry(
 		});
 		return yield* db.BoardEntry.create({ ...row, boardId }).pipe(
 			Effect.as({ row, written: true } satisfies AppendResult),
-			Effect.catchTag("PrismaError", (failure) =>
-				recoverAppend(boardId, input, nowMillis, row, failure),
-			),
+			Effect.catchTag("PrismaError", (failure) => recoverAppend(boardId, input, nowMillis, row, failure)),
 		);
 	});
 }

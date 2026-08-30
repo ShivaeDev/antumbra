@@ -20,9 +20,7 @@ function childContextState(
 	if (ts.isExpressionWithTypeArguments(child)) {
 		return heritageContextState(child, checker, substitutions, active);
 	}
-	return ts.isTypeNode(child)
-		? nodeContextState(child, checker, substitutions, active)
-		: childrenContextState(child, checker, substitutions, active);
+	return ts.isTypeNode(child) ? nodeContextState(child, checker, substitutions, active) : childrenContextState(child, checker, substitutions, active);
 }
 
 function childrenContextState(
@@ -46,29 +44,18 @@ const declarationContextState = (
 	substitutions: ReadonlyMap<ts.Symbol, ts.TypeNode>,
 	active: Set<ts.Symbol>,
 ): ContextState => {
-	const next = contextSubstitutions(
-		declaration,
-		arguments_,
-		checker,
-		substitutions,
-	);
+	const next = contextSubstitutions(declaration, arguments_, checker, substitutions);
 	if (ts.isTypeAliasDeclaration(declaration)) {
 		return nodeContextState(declaration.type, checker, next, active);
 	}
 	let state: ContextState;
 	for (const heritage of declaration.heritageClauses ?? []) {
 		for (const type of heritage.types) {
-			state = combineContextStates(
-				state,
-				heritageContextState(type, checker, next, active),
-			);
+			state = combineContextStates(state, heritageContextState(type, checker, next, active));
 		}
 	}
 	for (const member of declaration.members) {
-		state = combineContextStates(
-			state,
-			childrenContextState(member, checker, next, active),
-		);
+		state = combineContextStates(state, childrenContextState(member, checker, next, active));
 	}
 	return state;
 };
@@ -82,23 +69,13 @@ function heritageContextState(
 	if (effectValue(node.expression, checker) === "Context") {
 		return contextArgumentsState(node.typeArguments, checker, substitutions);
 	}
-	const symbol = canonicalSymbol(
-		checker,
-		checker.getSymbolAtLocation(node.expression),
-	);
-	const declaration =
-		symbol === undefined ? undefined : contextDeclaration(symbol);
+	const symbol = canonicalSymbol(checker, checker.getSymbolAtLocation(node.expression));
+	const declaration = symbol === undefined ? undefined : contextDeclaration(symbol);
 	if (symbol === undefined || declaration === undefined || active.has(symbol)) {
 		return childrenContextState(node, checker, substitutions, active);
 	}
 	active.add(symbol);
-	const state = declarationContextState(
-		declaration,
-		node.typeArguments,
-		checker,
-		substitutions,
-		active,
-	);
+	const state = declarationContextState(declaration, node.typeArguments, checker, substitutions, active);
 	active.delete(symbol);
 	return state;
 }
@@ -113,25 +90,11 @@ export function nodeContextState(
 		if (isEffectTypeReference(node, checker, "Context")) {
 			return contextArgumentsState(node.typeArguments, checker, substitutions);
 		}
-		const symbol = canonicalSymbol(
-			checker,
-			checker.getSymbolAtLocation(node.typeName),
-		);
-		const declaration =
-			symbol === undefined ? undefined : contextDeclaration(symbol);
-		if (
-			symbol !== undefined &&
-			declaration !== undefined &&
-			!active.has(symbol)
-		) {
+		const symbol = canonicalSymbol(checker, checker.getSymbolAtLocation(node.typeName));
+		const declaration = symbol === undefined ? undefined : contextDeclaration(symbol);
+		if (symbol !== undefined && declaration !== undefined && !active.has(symbol)) {
 			active.add(symbol);
-			const state = declarationContextState(
-				declaration,
-				node.typeArguments,
-				checker,
-				substitutions,
-				active,
-			);
+			const state = declarationContextState(declaration, node.typeArguments, checker, substitutions, active);
 			active.delete(symbol);
 			if (state !== undefined) return state;
 		}

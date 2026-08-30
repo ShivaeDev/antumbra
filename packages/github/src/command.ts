@@ -53,9 +53,7 @@ const collectRaw = (command: GhCommand) =>
 		),
 	);
 
-export const runGh = (
-	command: GhCommand,
-): Effect.Effect<string, GhError, ChildProcessSpawner.ChildProcessSpawner> =>
+export const runGh = (command: GhCommand): Effect.Effect<string, GhError, ChildProcessSpawner.ChildProcessSpawner> =>
 	collectRaw(command).pipe(
 		Effect.flatMap((output) => decodeProcessOutput(command.operation, output)),
 		Effect.timeoutOrElse({

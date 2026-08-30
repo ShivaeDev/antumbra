@@ -25,9 +25,7 @@ const backingChange = (
 	repoOfSource: ReadonlyMap<string, string>,
 ): ChangeRow | undefined => {
 	const repoId = repoOfSource.get(berth.source);
-	return unresolved.find(
-		(change) => change.repoId === repoId && change.headRef === berth.branch,
-	);
+	return unresolved.find((change) => change.repoId === repoId && change.headRef === berth.branch);
 };
 
 // why: the reading joins four tables, so it takes them by name rather than by
@@ -47,16 +45,10 @@ export interface BerthHolding {
 // file names — so a change that died with nothing replacing it releases its
 // berth here without this rule learning what death is. Each held berth carries
 // the unresolved change holding it, so a sweep can say why.
-export const heldBerths = (
-	holding: BerthHolding,
-): ReadonlyMap<string, string> => {
-	const repoOfSource = new Map(
-		holding.repos.map((repo) => [repo.source, repo.id] as const),
-	);
+export const heldBerths = (holding: BerthHolding): ReadonlyMap<string, string> => {
+	const repoOfSource = new Map(holding.repos.map((repo) => [repo.source, repo.id] as const));
 	const unresolvedIds = unresolvedChangeIds(holding);
-	const unresolved = holding.changes.filter((change) =>
-		unresolvedIds.has(change.id),
-	);
+	const unresolved = holding.changes.filter((change) => unresolvedIds.has(change.id));
 	const held = new Map<string, string>();
 	for (const berth of holding.berths) {
 		const backing = backingChange(berth, unresolved, repoOfSource);

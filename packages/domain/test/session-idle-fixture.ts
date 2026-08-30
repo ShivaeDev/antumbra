@@ -1,21 +1,14 @@
-import { SightSource } from "@antumbra/contract";
+import { SETTINGS, SightSource } from "@antumbra/contract";
 import { Kernel } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
 import { expect } from "@effect/vitest";
 import { Clock, Effect, Layer, Option } from "effect";
 import { AgentDomain } from "#domain.ts";
 import type { SpawnFields } from "#index.ts";
-import {
-	domainKernelLayer,
-	sightSourceTestLayer,
-} from "#test/domain-layers.ts";
+import { domainKernelLayer, sightSourceTestLayer } from "#test/domain-layers.ts";
 import { rawOf, type ScriptedBackend, sessionFor } from "#test/harness.ts";
 import { aheadBy } from "#test/session-clock.ts";
-import {
-	eventually,
-	reportsNativeRef,
-	untilTerminal,
-} from "#test/session-recovery-fixture.ts";
+import { eventually, reportsNativeRef, untilTerminal } from "#test/session-recovery-fixture.ts";
 
 export const HAND: SpawnFields = {
 	agentId: "agent-idle",
@@ -26,25 +19,15 @@ export const HAND: SpawnFields = {
 	sessionId: "session-idle",
 };
 
+export const DEFAULT_IDLE_SIESTA_AFTER_MILLIS = SETTINGS.idleSiestaMinutes.fallback * 60_000;
+
 export const sessionRow = Effect.gen(function* () {
 	const db = yield* Database;
-	return Option.getOrThrow(
-		yield* db.AgentSession.where({ id: HAND.sessionId }).first(),
-	);
+	return Option.getOrThrow(yield* db.AgentSession.where({ id: HAND.sessionId }).first());
 });
 
-export const sightLayer = (
-	temporary: Parameters<typeof domainKernelLayer>[0],
-	scripted: ScriptedBackend,
-) =>
-	sightSourceTestLayer.pipe(
-		Layer.provideMerge(
-			domainKernelLayer(
-				temporary,
-				reportsNativeRef(scripted.backend, scripted, "native-idle"),
-			),
-		),
-	);
+export const sightLayer = (temporary: Parameters<typeof domainKernelLayer>[0], scripted: ScriptedBackend) =>
+	sightSourceTestLayer.pipe(Layer.provideMerge(domainKernelLayer(temporary, reportsNativeRef(scripted.backend, scripted, "native-idle"))));
 
 export const spawned = Effect.gen(function* () {
 	const domain = yield* AgentDomain;
@@ -72,9 +55,7 @@ export const openedNatively = (scripted: ScriptedBackend) =>
 export const presenceOf = Effect.gen(function* () {
 	const sight = yield* SightSource;
 	const fleet = yield* sight.fleet;
-	const session = fleet.agents
-		.flatMap((agent) => agent.sessions)
-		.find((row) => row.id === HAND.sessionId);
+	const session = fleet.agents.flatMap((agent) => agent.sessions).find((row) => row.id === HAND.sessionId);
 	return Option.getOrThrow(Option.fromUndefinedOr(session));
 });
 
@@ -82,21 +63,14 @@ export const presenceOf = Effect.gen(function* () {
 // a rehearsal awaits the pass rather than waiting for one to come around.
 const siestaPass = Effect.gen(function* () {
 	const domain = yield* AgentDomain;
-	const demand = domain.intentDemands.find(
-		(registration) => registration.tag === "session/siesta",
-	);
-	return demand === undefined
-		? yield* Effect.die("no siesta demand is registered")
-		: demand.pass;
+	const demand = domain.intentDemands.find((registration) => registration.tag === "session/siesta");
+	return demand === undefined ? yield* Effect.die("no siesta demand is registered") : demand.pass;
 });
 
 // why: a rehearsal that needs two moments cannot sit through the gap between
 // them, so the act runs against a clock further on — which is the same fact as
 // having waited, for everything that reads the time rather than sleeping on it.
 export const laterBy = <A, E, R>(millis: number, act: Effect.Effect<A, E, R>) =>
-	Effect.flatMap(aheadBy(millis), (clock) =>
-		act.pipe(Effect.provideService(Clock.Clock, clock)),
-	);
+	Effect.flatMap(aheadBy(millis), (clock) => act.pipe(Effect.provideService(Clock.Clock, clock)));
 
-export const passedAt = (millis: number) =>
-	Effect.flatMap(siestaPass, (pass) => laterBy(millis, pass));
+export const passedAt = (millis: number) => Effect.flatMap(siestaPass, (pass) => laterBy(millis, pass));

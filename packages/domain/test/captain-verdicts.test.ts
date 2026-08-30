@@ -1,13 +1,7 @@
 import { Rulings } from "@antumbra/rulings";
 import { expect, it } from "@effect/vitest";
 import { Effect, Option } from "effect";
-import {
-	ask,
-	delivered,
-	standing,
-	unruled,
-	withLadder,
-} from "#test/captain-verdict-fixtures.ts";
+import { ask, delivered, standing, unruled, withLadder } from "#test/captain-verdict-fixtures.ts";
 import { callTool } from "#test/harness.ts";
 
 it.live("a captain settles the question its own crew asked", () =>
@@ -89,9 +83,7 @@ it.live("a question a captain passes up becomes the flagship's", () =>
 				text: `ruling ${asked.id} passed up — it waits on the rung above you now, with your note beside the asker's own words`,
 			});
 			expect(outcome.ok).toBe(true);
-			expect(Option.getOrThrow((yield* standing(asked.id)).answer).by).toBe(
-				"flagship",
-			);
+			expect(Option.getOrThrow((yield* standing(asked.id)).answer).by).toBe("flagship");
 		}),
 	),
 );

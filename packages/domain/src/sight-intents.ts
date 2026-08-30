@@ -38,14 +38,6 @@ const collect = <Payload extends IntentSubject>(kind: IntentKind<Payload>) =>
 // the state that otherwise has to be read out of the database by hand.
 export const pendingIntents = Effect.gen(function* () {
 	const domain = yield* AgentDomain;
-	const groups = yield* Effect.all(
-		[
-			collect(domain.spawn),
-			collect(domain.retire),
-			collect(domain.siesta),
-			collect(domain.wake),
-		],
-		{ concurrency: 1 },
-	);
+	const groups = yield* Effect.all([collect(domain.spawn), collect(domain.retire), collect(domain.siesta), collect(domain.wake)], { concurrency: 1 });
 	return groups.flat();
 });

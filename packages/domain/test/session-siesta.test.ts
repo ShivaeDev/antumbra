@@ -6,18 +6,8 @@ import { AgentDomain } from "#domain.ts";
 import type { SpawnFields } from "#index.ts";
 import { fleetSnapshot } from "#sight-fleet.ts";
 import { domainKernelLayer } from "#test/domain-layers.ts";
-import {
-	acquireTemporaryPersistence,
-	callTool,
-	makeScriptedBackend,
-	rawOf,
-	sessionFor,
-} from "#test/harness.ts";
-import {
-	eventually,
-	reportsNativeRef,
-	untilTerminal,
-} from "#test/session-recovery-fixture.ts";
+import { acquireTemporaryPersistence, callTool, makeScriptedBackend, rawOf, sessionFor } from "#test/harness.ts";
+import { eventually, reportsNativeRef, untilTerminal } from "#test/session-recovery-fixture.ts";
 
 const HAND: SpawnFields = {
 	agentId: "agent-siesta",
@@ -30,9 +20,7 @@ const HAND: SpawnFields = {
 
 const sessionRow = Effect.gen(function* () {
 	const db = yield* Database;
-	return Option.getOrThrow(
-		yield* db.AgentSession.where({ id: HAND.sessionId }).first(),
-	);
+	return Option.getOrThrow(yield* db.AgentSession.where({ id: HAND.sessionId }).first());
 });
 
 // why: standing down is a declaration, and the only durable trace of it is the
@@ -95,64 +83,51 @@ it.live("stand down records the declaration and disturbs nothing else", () =>
 			expect(summary?.presence).toBe("idle");
 			expect(yield* live.closed).toBe(false);
 
-			expect(yield* db.Agent.where({ id: HAND.agentId }).first()).toEqual(
-				agentBefore,
-			);
-			expect(
-				yield* db.Moorage.where({ agentId: HAND.agentId }).first(),
-			).toEqual(moorageBefore);
+			expect(yield* db.Agent.where({ id: HAND.agentId }).first()).toEqual(agentBefore);
+			expect(yield* db.Moorage.where({ agentId: HAND.agentId }).first()).toEqual(moorageBefore);
 			expect(yield* sessionRow).toEqual({
 				...sessionBefore,
 				executionStatus: "idle",
 			});
-			expect(
-				Option.getOrThrow(yield* db.Agent.where({ id: HAND.agentId }).first())
-					.status,
-			).toBe("alive");
+			expect(Option.getOrThrow(yield* db.Agent.where({ id: HAND.agentId }).first()).status).toBe("alive");
 		}).pipe(Effect.provide(domainKernelLayer(temporary, scripted.backend)));
 	}),
 );
 
-it.live(
-	"boot settles a draining Session without recovering its provider thread",
-	() =>
-		Effect.gen(function* () {
-			const temporary = yield* acquireTemporaryPersistence;
-			const scripted = yield* makeScriptedBackend;
-			yield* Effect.gen(function* () {
-				const domain = yield* AgentDomain;
-				const kernel = yield* Kernel;
-				const submission = yield* kernel.submit(domain.spawn, HAND);
-				expect(yield* untilTerminal(submission.changes)).toBe("succeeded");
-			}).pipe(Effect.provide(domainKernelLayer(temporary, scripted.backend)));
+it.live("boot settles a draining Session without recovering its provider thread", () =>
+	Effect.gen(function* () {
+		const temporary = yield* acquireTemporaryPersistence;
+		const scripted = yield* makeScriptedBackend;
+		yield* Effect.gen(function* () {
+			const domain = yield* AgentDomain;
+			const kernel = yield* Kernel;
+			const submission = yield* kernel.submit(domain.spawn, HAND);
+			expect(yield* untilTerminal(submission.changes)).toBe("succeeded");
+		}).pipe(Effect.provide(domainKernelLayer(temporary, scripted.backend)));
 
-			yield* Effect.gen(function* () {
-				const db = yield* Database;
-				yield* db.AgentSession.where({ id: HAND.sessionId }).update({
-					executionStatus: "draining",
-				});
-			}).pipe(Effect.provide(temporary.layer));
+		yield* Effect.gen(function* () {
+			const db = yield* Database;
+			yield* db.AgentSession.where({ id: HAND.sessionId }).update({
+				executionStatus: "draining",
+			});
+		}).pipe(Effect.provide(temporary.layer));
 
-			yield* Effect.gen(function* () {
-				yield* eventually(
-					Effect.gen(function* () {
-						expect((yield* sessionRow).executionStatus).toBe("idle");
-					}),
-				);
-				expect(yield* scripted.opened).toHaveLength(1);
-			}).pipe(Effect.provide(domainKernelLayer(temporary, scripted.backend)));
-		}),
+		yield* Effect.gen(function* () {
+			yield* eventually(
+				Effect.gen(function* () {
+					expect((yield* sessionRow).executionStatus).toBe("idle");
+				}),
+			);
+			expect(yield* scripted.opened).toHaveLength(1);
+		}).pipe(Effect.provide(domainKernelLayer(temporary, scripted.backend)));
+	}),
 );
 
 it.live("idle survives restart and addressed mail does not wake it", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
 		const scripted = yield* makeScriptedBackend;
-		const backend = reportsNativeRef(
-			scripted.backend,
-			scripted,
-			"native-siesta",
-		);
+		const backend = reportsNativeRef(scripted.backend, scripted, "native-siesta");
 		const before = yield* Effect.gen(function* () {
 			const db = yield* Database;
 			const domain = yield* AgentDomain;
@@ -198,12 +173,8 @@ it.live("idle survives restart and addressed mail does not wake it", () =>
 			const db = yield* Database;
 			yield* Effect.sleep(100);
 			expect(yield* scripted.opened).toHaveLength(1);
-			expect(yield* db.Agent.where({ id: HAND.agentId }).first()).toEqual(
-				before.agent,
-			);
-			expect(
-				yield* db.Moorage.where({ agentId: HAND.agentId }).first(),
-			).toEqual(before.moorage);
+			expect(yield* db.Agent.where({ id: HAND.agentId }).first()).toEqual(before.agent);
+			expect(yield* db.Moorage.where({ agentId: HAND.agentId }).first()).toEqual(before.moorage);
 			expect(yield* sessionRow).toEqual(before.session);
 		}).pipe(Effect.provide(domainKernelLayer(temporary, backend)));
 	}),

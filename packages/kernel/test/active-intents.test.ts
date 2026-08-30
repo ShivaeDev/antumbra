@@ -5,20 +5,13 @@ import type { IntentStatus } from "#fsm.ts";
 import { type Gate, maxConcurrency } from "#gate.ts";
 import { defineIntent } from "#intent.ts";
 import { Kernel } from "#kernel.ts";
-import {
-	acquireTemporaryPersistence,
-	kernelLayer,
-	statusesUntilTerminal,
-} from "#test/harness.ts";
+import { acquireTemporaryPersistence, kernelLayer, statusesUntilTerminal } from "#test/harness.ts";
 import { IntentExecution } from "#workflow.ts";
 
 const Mode = Schema.Literals(["cancel", "queued", "run", "wait"]);
 const Payload = Schema.Struct({ mode: Mode });
 
-const until = <E, R>(
-	changes: Stream.Stream<IntentStatus, E, R>,
-	status: IntentStatus,
-) =>
+const until = <E, R>(changes: Stream.Stream<IntentStatus, E, R>, status: IntentStatus) =>
 	changes.pipe(
 		Stream.takeUntil((current) => current === status),
 		Stream.runDrain,
@@ -34,21 +27,13 @@ it.live("returns decoded payloads for every nonterminal status", () =>
 		const kind = defineIntent({
 			execute: (payload) => {
 				if (payload.mode === "wait") {
-					return IntentExecution.use((execution) =>
-						execution.wait("operator input required"),
-					);
+					return IntentExecution.use((execution) => execution.wait("operator input required"));
 				}
 				if (payload.mode === "run") {
-					return Deferred.succeed(runStarted, undefined).pipe(
-						Effect.andThen(Deferred.await(runRelease)),
-					);
+					return Deferred.succeed(runStarted, undefined).pipe(Effect.andThen(Deferred.await(runRelease)));
 				}
 				if (payload.mode === "cancel") {
-					return Deferred.succeed(cancelStarted, undefined).pipe(
-						Effect.andThen(
-							Effect.uninterruptible(Deferred.await(cancelRelease)),
-						),
-					);
+					return Deferred.succeed(cancelStarted, undefined).pipe(Effect.andThen(Effect.uninterruptible(Deferred.await(cancelRelease))));
 				}
 				return Effect.void;
 			},
@@ -106,12 +91,7 @@ it.live("returns decoded payloads for every nonterminal status", () =>
 
 const CLOSED: Gate = { admits: () => false, id: "test/closed" };
 
-const seedIntent = (fields: {
-	readonly id: string;
-	readonly payload: string;
-	readonly status: string;
-	readonly tag: string;
-}) =>
+const seedIntent = (fields: { readonly id: string; readonly payload: string; readonly status: string; readonly tag: string }) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
 		yield* db.Intent.create({ ...fields, detail: null });
@@ -137,11 +117,7 @@ it.live("fails closed when an active payload is malformed", () =>
 				_tag: "StoredIntentInvalid",
 				id: "intent-invalid-payload",
 			});
-		}).pipe(
-			Effect.provide(
-				kernelLayer(temporary, { gates: [CLOSED], kinds: [kind] }),
-			),
-		);
+		}).pipe(Effect.provide(kernelLayer(temporary, { gates: [CLOSED], kinds: [kind] })));
 	}),
 );
 
@@ -182,9 +158,7 @@ it.live("rejects active queries for an unregistered kind instance", () =>
 		const impostor = defineIntent(options);
 		yield* Effect.gen(function* () {
 			const kernel = yield* Kernel;
-			expect((yield* Effect.flip(kernel.active(impostor)))._tag).toBe(
-				"UnregisteredIntentTag",
-			);
+			expect((yield* Effect.flip(kernel.active(impostor)))._tag).toBe("UnregisteredIntentTag");
 		}).pipe(Effect.provide(kernelLayer(temporary, { kinds: [registered] })));
 	}),
 );

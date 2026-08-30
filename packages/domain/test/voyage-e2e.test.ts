@@ -4,26 +4,10 @@ import { Effect, Option } from "effect";
 import { TestClock } from "effect/testing";
 import { AgentDomain } from "#domain.ts";
 import { dispatchingLayer } from "#test/domain-layers.ts";
-import {
-	acquireTemporaryPersistence,
-	callTool,
-	makeScriptedBackend,
-	type ScriptedBackend,
-	type ScriptedSession,
-	sessionFor,
-} from "#test/harness.ts";
-import {
-	assignedPieces,
-	eventually,
-	openReefVoyage,
-	PATIENCE,
-} from "#test/voyage-fixtures.ts";
+import { acquireTemporaryPersistence, callTool, makeScriptedBackend, type ScriptedBackend, type ScriptedSession, sessionFor } from "#test/harness.ts";
+import { assignedPieces, eventually, openReefVoyage, PATIENCE } from "#test/voyage-fixtures.ts";
 
-const chartered = (
-	captain: ScriptedSession,
-	title: string,
-	dependsOn: ReadonlyArray<string>,
-) =>
+const chartered = (captain: ScriptedSession, title: string, dependsOn: ReadonlyArray<string>) =>
 	Effect.gen(function* () {
 		const outcome = yield* callTool(captain, "charter_piece", {
 			charter: `do ${title}`,
@@ -48,9 +32,7 @@ const crewOn = (scripted: ScriptedBackend, pieceId: string) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
 		const row = (yield* db.PieceAgent.where({ pieceId }).all())[0];
-		return row === undefined
-			? yield* Effect.fail("no crew yet")
-			: yield* sessionFor(scripted, row.agentId);
+		return row === undefined ? yield* Effect.fail("no crew yet") : yield* sessionFor(scripted, row.agentId);
 	});
 
 const landsAndStandsDown = (crew: ScriptedSession, title: string) =>
@@ -87,9 +69,7 @@ it.effect("a hailed captain charters a chain that sails itself", () =>
 			const domain = yield* AgentDomain;
 			const voyage = yield* openReefVoyage;
 			const hailed = yield* domain.voyages.hail(voyage.id);
-			const captain = yield* TestClock.withLive(
-				eventually(sessionFor(scripted, hailed.agentId)),
-			);
+			const captain = yield* TestClock.withLive(eventually(sessionFor(scripted, hailed.agentId)));
 
 			const alpha = yield* chartered(captain, "alpha", []);
 			const bravo = yield* chartered(captain, "bravo", [alpha]);
@@ -108,10 +88,7 @@ it.effect("a hailed captain charters a chain that sails itself", () =>
 			yield* TestClock.adjust(200);
 			expect(yield* assignedPieces).toEqual([alpha]);
 
-			yield* landsAndStandsDown(
-				yield* TestClock.withLive(eventually(crewOn(scripted, alpha))),
-				"soundings",
-			);
+			yield* landsAndStandsDown(yield* TestClock.withLive(eventually(crewOn(scripted, alpha))), "soundings");
 
 			yield* TestClock.withLive(
 				eventually(
@@ -120,23 +97,13 @@ it.effect("a hailed captain charters a chain that sails itself", () =>
 					}),
 				),
 			);
-			yield* landsAndStandsDown(
-				yield* TestClock.withLive(eventually(crewOn(scripted, bravo))),
-				"eastern chart",
-			);
-			yield* landsAndStandsDown(
-				yield* TestClock.withLive(eventually(crewOn(scripted, charlie))),
-				"western chart",
-			);
+			yield* landsAndStandsDown(yield* TestClock.withLive(eventually(crewOn(scripted, bravo))), "eastern chart");
+			yield* landsAndStandsDown(yield* TestClock.withLive(eventually(crewOn(scripted, charlie))), "western chart");
 
 			const read = yield* callTool(captain, "read_voyage", {});
 			expect(read.text).toContain(`- ${alpha} alpha [done]`);
-			expect(read.text).toContain(
-				`- ${bravo} bravo [done] depends on ${alpha}`,
-			);
-			expect(read.text).toContain(
-				`- ${charlie} charlie [done] depends on ${alpha}`,
-			);
+			expect(read.text).toContain(`- ${bravo} bravo [done] depends on ${alpha}`);
+			expect(read.text).toContain(`- ${charlie} charlie [done] depends on ${alpha}`);
 			expect(read.text).toContain("soundings — report by");
 			expect(read.text).toContain("eastern chart — report by");
 			expect(read.text).toContain("western chart — report by");
@@ -151,16 +118,10 @@ it.effect("a hailed captain charters a chain that sails itself", () =>
 				eventually(
 					Effect.gen(function* () {
 						const view = yield* voyageStateIs(voyage.id, "quiet");
-						expect(view.pieces.map((piece) => piece.state)).toEqual([
-							"done",
-							"done",
-							"done",
-						]);
+						expect(view.pieces.map((piece) => piece.state)).toEqual(["done", "done", "done"]);
 					}),
 				),
 			);
-		}).pipe(
-			Effect.provide(dispatchingLayer(temporary, scripted.backend, PATIENCE)),
-		);
+		}).pipe(Effect.provide(dispatchingLayer(temporary, scripted.backend, PATIENCE)));
 	}),
 );

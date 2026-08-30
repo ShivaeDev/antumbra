@@ -46,16 +46,11 @@ const publish = (key: string, text: string): void => {
 	}
 };
 
-export const readSessionDraft = (draft: SessionDraftRef): string =>
-	current(draftStorageKey(draft));
+export const readSessionDraft = (draft: SessionDraftRef): string => current(draftStorageKey(draft));
 
-export const writeSessionDraft = (draft: SessionDraftRef, text: string): void =>
-	publish(draftStorageKey(draft), text);
+export const writeSessionDraft = (draft: SessionDraftRef, text: string): void => publish(draftStorageKey(draft), text);
 
-export const watchSessionDraft = (
-	draft: SessionDraftRef,
-	listener: () => void,
-): (() => void) => {
+export const watchSessionDraft = (draft: SessionDraftRef, listener: () => void): (() => void) => {
 	const key = draftStorageKey(draft);
 	const watching = listeners.get(key) ?? new Set<() => void>();
 	watching.add(listener);
@@ -68,17 +63,12 @@ export const watchSessionDraft = (
 	};
 };
 
-export const captureSessionDraft = (
-	draft: SessionDraftRef,
-): SessionDraftSnapshot => {
+export const captureSessionDraft = (draft: SessionDraftRef): SessionDraftSnapshot => {
 	const key = draftStorageKey(draft);
 	return { text: current(key), version: versions.get(key) ?? 0 };
 };
 
-export const clearUnchangedSessionDraft = (
-	draft: SessionDraftRef,
-	snapshot: SessionDraftSnapshot,
-): boolean => {
+export const clearUnchangedSessionDraft = (draft: SessionDraftRef, snapshot: SessionDraftSnapshot): boolean => {
 	const key = draftStorageKey(draft);
 	if ((versions.get(key) ?? 0) !== snapshot.version) {
 		return false;
@@ -87,9 +77,7 @@ export const clearUnchangedSessionDraft = (
 	return true;
 };
 
-export const discardMissingSessionDrafts = (
-	sessionIds: ReadonlySet<string>,
-): void => {
+export const discardMissingSessionDrafts = (sessionIds: ReadonlySet<string>): void => {
 	const keys = new Set([...cache.keys(), ...storedDraftKeys()]);
 	for (const key of keys) {
 		const sessionId = sessionIdFromDraftKey(key);

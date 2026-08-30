@@ -4,10 +4,7 @@ import { Effect } from "effect";
 
 // why: only the JSON artifacts are needed to replay migrations at runtime;
 // the authored migration.ts files stay authoring-time only.
-export const copyPersistenceAssets = (
-	desktopRoot: string,
-	workspaceRoot: string,
-) =>
+export const copyPersistenceAssets = (desktopRoot: string, workspaceRoot: string) =>
 	Effect.sync(() => {
 		const source = join(workspaceRoot, "packages", "persistence", "migrations");
 		const target = join(desktopRoot, "out", "persistence", "migrations");

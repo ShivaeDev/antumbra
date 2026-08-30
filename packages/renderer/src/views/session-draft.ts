@@ -1,7 +1,4 @@
-import {
-	MAX_SESSION_IMAGE_SOURCE_BYTES,
-	MAX_SESSION_IMAGES,
-} from "@antumbra/contract";
+import { MAX_SESSION_IMAGE_SOURCE_BYTES, MAX_SESSION_IMAGES } from "@antumbra/contract";
 
 const TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 const EXTENSIONS = [".jpeg", ".jpg", ".png", ".webp"];
@@ -12,10 +9,7 @@ export interface DraftImage {
 	readonly url: string;
 }
 
-export const imageFileIssue = (
-	file: File,
-	currentCount: number,
-): string | undefined => {
+export const imageFileIssue = (file: File, currentCount: number): string | undefined => {
 	if (currentCount >= MAX_SESSION_IMAGES) {
 		return `too_many_images: attach no more than ${MAX_SESSION_IMAGES} images`;
 	}
@@ -35,9 +29,7 @@ export const makeDraftImage = (file: File): DraftImage => ({
 	url: URL.createObjectURL(file),
 });
 
-export const filesFromClipboard = (
-	items: DataTransferItemList,
-): ReadonlyArray<File> =>
+export const filesFromClipboard = (items: DataTransferItemList): ReadonlyArray<File> =>
 	Array.from(items).flatMap((item) => {
 		const file = item.kind === "file" ? item.getAsFile() : null;
 		return file === null ? [] : [file];

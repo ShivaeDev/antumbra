@@ -28,10 +28,7 @@ import { spawnKind } from "#spawn.ts";
 import { makeAgentToolCompiler } from "#spawn-tools.ts";
 import { VoyageProcedureService } from "#voyage-procedures.ts";
 
-export const makeAgentDomain = (
-	backends: ReadonlyMap<string, AgentBackend>,
-	runners: ReadonlyMap<string, Runner>,
-) =>
+export const makeAgentDomain = (backends: ReadonlyMap<string, AgentBackend>, runners: ReadonlyMap<string, Runner>) =>
 	Effect.gen(function* () {
 		const boards = yield* Boards;
 		const changes = yield* ChangeProcedureService;
@@ -57,16 +54,13 @@ export const makeAgentDomain = (
 		});
 		const retire = yield* makeRetireKind;
 		const compileTools = yield* makeAgentToolCompiler;
-		const toolsFor = (context: SessionRecoveryContext) =>
-			compileTools(context.role, context.identity);
+		const toolsFor = (context: SessionRecoveryContext) => compileTools(context.role, context.identity);
 		const recoveryRuntime = yield* makeSessionRecoveryRuntime({
 			backends,
 			sinkFor,
 			toolsFor,
 		});
-		const wake = yield* makeWakeKind(backendCapacities).pipe(
-			Effect.provideService(SessionRecoveryRuntime, recoveryRuntime),
-		);
+		const wake = yield* makeWakeKind(backendCapacities).pipe(Effect.provideService(SessionRecoveryRuntime, recoveryRuntime));
 		const aliveAgents = yield* makeAliveAgentCount;
 		const siesta = yield* makeSiestaKind;
 		// why: the clock's two errands are separate sources on one loop — one
@@ -75,15 +69,9 @@ export const makeAgentDomain = (
 		// governed differently, so they are compiled apart and run together.
 		// Neither of them ever puts a Session back on a provider: a Session that
 		// lost its process is reported as stranded and waits to be spoken to.
-		const intentDemands = [
-			...(yield* compileSessionSiestaDemands(siesta)),
-			...(yield* compileRetireSweepDemands(retire)),
-		];
+		const intentDemands = [...(yield* compileSessionSiestaDemands(siesta)), ...(yield* compileRetireSweepDemands(retire))];
 		const imageInputBackends = imageInputBackendsOf(backends);
-		const sessionSend = yield* makeSessionSend(
-			imageInputBackends,
-			backendCapacities,
-		);
+		const sessionSend = yield* makeSessionSend(imageInputBackends, backendCapacities);
 		return {
 			backendCapacities,
 			backends: [...backends.keys()],

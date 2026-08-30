@@ -19,8 +19,7 @@ const named = (kind: "application" | "package", names: readonly string[]) =>
 
 export const applications = {
 	all: { kind: "all-applications" } satisfies ImportTarget,
-	named: (...names: readonly string[]): ImportTarget =>
-		named("application", names),
+	named: (...names: readonly string[]): ImportTarget => named("application", names),
 };
 
 export const packages = {
@@ -58,10 +57,7 @@ export const sanctioned = (ruling: string) => ({
 	}),
 });
 
-const workspaceSource = (
-	excludedPackages: readonly string[],
-	exceptions: readonly SanctionedException[],
-): WorkspaceExcept => ({
+const workspaceSource = (excludedPackages: readonly string[], exceptions: readonly SanctionedException[]): WorkspaceExcept => ({
 	excludedPackages,
 	kind: "workspace-except",
 	sanctioned: exceptions,
@@ -69,24 +65,17 @@ const workspaceSource = (
 
 export const workspaceExcept = (...excludedPackages: readonly string[]) => ({
 	...workspaceSource(excludedPackages, []),
-	sanctioning: (...exceptions: readonly SanctionedException[]): ImportSource =>
-		workspaceSource(excludedPackages, exceptions),
+	sanctioning: (...exceptions: readonly SanctionedException[]): ImportSource => workspaceSource(excludedPackages, exceptions),
 });
 
-const workspaceFile = (
-	root: WorkspaceRoot,
-	name: string,
-	path: string,
-): WorkspaceFixtureEndpoint => ({
+const workspaceFile = (root: WorkspaceRoot, name: string, path: string): WorkspaceFixtureEndpoint => ({
 	kind: "workspace-file",
 	path: `${root}/${name}/${path}`,
 });
 
 export const files = {
-	inApplication: (name: string, path: string): WorkspaceFixtureEndpoint =>
-		workspaceFile("apps", name, path),
-	inPackage: (name: string, path: string): WorkspaceFixtureEndpoint =>
-		workspaceFile("packages", name, path),
+	inApplication: (name: string, path: string): WorkspaceFixtureEndpoint => workspaceFile("apps", name, path),
+	inPackage: (name: string, path: string): WorkspaceFixtureEndpoint => workspaceFile("packages", name, path),
 	module: (name: string): FixtureEndpoint => ({
 		kind: "external-module",
 		name,

@@ -1,16 +1,7 @@
 import type { PrismaError } from "@antumbra/persistence";
 import { Context, type Effect, type Stream } from "effect";
-import type {
-	IntentNotFound,
-	PayloadInvalid,
-	StoredIntentInvalid,
-	UnregisteredIntentTag,
-} from "#errors.ts";
-import type {
-	ActiveIntentStatus,
-	IntentStatus,
-	InvalidTransition,
-} from "#fsm.ts";
+import type { IntentNotFound, PayloadInvalid, StoredIntentInvalid, UnregisteredIntentTag } from "#errors.ts";
+import type { ActiveIntentStatus, IntentStatus, InvalidTransition } from "#fsm.ts";
 import type { IntentKind } from "#intent.ts";
 
 export interface ActiveIntent<Payload> {
@@ -21,11 +12,7 @@ export interface ActiveIntent<Payload> {
 }
 
 export interface IntentSubmission {
-	readonly changes: Stream.Stream<
-		IntentStatus,
-		IntentNotFound | PrismaError,
-		never
-	>;
+	readonly changes: Stream.Stream<IntentStatus, IntentNotFound | PrismaError, never>;
 	readonly id: string;
 }
 
@@ -42,40 +29,15 @@ export class Kernel extends Context.Service<
 	{
 		readonly active: <Payload>(
 			kind: IntentKind<Payload>,
-		) => Effect.Effect<
-			ReadonlyArray<ActiveIntent<Payload>>,
-			StoredIntentInvalid | UnregisteredIntentTag | PrismaError,
-			never
-		>;
-		readonly cancel: (
-			id: string,
-		) => Effect.Effect<
-			void,
-			IntentNotFound | InvalidTransition | PrismaError,
-			never
-		>;
-		readonly changes: (
-			id: string,
-		) => Stream.Stream<IntentStatus, IntentNotFound | PrismaError, never>;
-		readonly retry: (
-			id: string,
-		) => Effect.Effect<
-			void,
-			IntentNotFound | InvalidTransition | PrismaError,
-			never
-		>;
-		readonly retryIfWaiting: (
-			id: string,
-			expectedDetail: string,
-		) => Effect.Effect<boolean, PrismaError, never>;
+		) => Effect.Effect<ReadonlyArray<ActiveIntent<Payload>>, StoredIntentInvalid | UnregisteredIntentTag | PrismaError, never>;
+		readonly cancel: (id: string) => Effect.Effect<void, IntentNotFound | InvalidTransition | PrismaError, never>;
+		readonly changes: (id: string) => Stream.Stream<IntentStatus, IntentNotFound | PrismaError, never>;
+		readonly retry: (id: string) => Effect.Effect<void, IntentNotFound | InvalidTransition | PrismaError, never>;
+		readonly retryIfWaiting: (id: string, expectedDetail: string) => Effect.Effect<boolean, PrismaError, never>;
 		readonly submit: <Payload>(
 			kind: IntentKind<Payload>,
 			payload: NoInfer<Payload>,
-		) => Effect.Effect<
-			IntentSubmission,
-			PayloadInvalid | UnregisteredIntentTag | PrismaError,
-			never
-		>;
+		) => Effect.Effect<IntentSubmission, PayloadInvalid | UnregisteredIntentTag | PrismaError, never>;
 		// why: `changes` answers about one Intent to whoever asked for it, and a
 		// reader watching the whole board has no id to ask about. The scheduler
 		// already fans every move out to observe it; this is that same fan-out

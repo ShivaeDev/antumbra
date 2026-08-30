@@ -1,23 +1,11 @@
 import type { SDKMessage } from "@anthropic-ai/claude-agent-sdk";
-import type {
-	AgentEvent,
-	Origin,
-	RawPayload,
-} from "@antumbra/vocabulary/session-events";
+import type { AgentEvent, Origin, RawPayload } from "@antumbra/vocabulary/session-events";
 import { blockEvent, contentBlocks } from "#blocks.ts";
-import { claudeRaw } from "#raw-payload.ts";
+import { rawOf } from "#raw-payload.ts";
 import { systemEvents } from "#session-state.ts";
 import { spilledPreview } from "#spills.ts";
 import { openSubsessions } from "#subsessions.ts";
 import { openTurnUsage } from "#turn-usage.ts";
-
-const rawOf = (message: SDKMessage): RawPayload => {
-	const subtype =
-		"subtype" in message && typeof message.subtype === "string"
-			? `/${message.subtype}`
-			: "";
-	return claudeRaw(`${message.type}${subtype}`, message);
-};
 
 type ResultMessage = Extract<SDKMessage, { type: "result" }>;
 
@@ -36,27 +24,18 @@ const turnStatus = (message: ResultMessage) => {
 // root session's own turn, so nothing is asserted about frames that predate
 // the field or come from a provider that does not send it.
 const originOf = (message: SDKMessage): Origin | undefined => {
-	const spawnedBy =
-		"parent_tool_use_id" in message &&
-		typeof message.parent_tool_use_id === "string"
-			? message.parent_tool_use_id
-			: undefined;
+	const spawnedBy = "parent_tool_use_id" in message && typeof message.parent_tool_use_id === "string" ? message.parent_tool_use_id : undefined;
 	if (spawnedBy === undefined) {
 		return undefined;
 	}
-	return "parent_agent_id" in message &&
-		typeof message.parent_agent_id === "string"
+	return "parent_agent_id" in message && typeof message.parent_agent_id === "string"
 		? { parentNode: message.parent_agent_id, spawnedBy }
 		: { spawnedBy };
 };
 
 type ContentMessage = Extract<SDKMessage, { type: "assistant" | "user" }>;
 
-const contentEvents = (
-	raw: RawPayload,
-	message: ContentMessage,
-	lifecycle: ReadonlyArray<AgentEvent>,
-): ReadonlyArray<AgentEvent> => {
+const contentEvents = (raw: RawPayload, message: ContentMessage, lifecycle: ReadonlyArray<AgentEvent>): ReadonlyArray<AgentEvent> => {
 	const role = message.type === "assistant" ? "agent" : "user";
 	const origin = originOf(message);
 	const events = [
@@ -87,8 +66,7 @@ export const openSessionMapping = (): SessionMapping => {
 		// signal and sends the whole background set on every membership change.
 		// Both are the harness telling this record what it is doing; letting
 		// them fall through to raw threw away the one thing worth keeping.
-		const system =
-			message.type === "system" ? systemEvents(raw, message) : undefined;
+		const system = message.type === "system" ? systemEvents(raw, message) : undefined;
 		if (system !== undefined) {
 			return system;
 		}

@@ -1,8 +1,5 @@
 import type { SDKMessage } from "@anthropic-ai/claude-agent-sdk";
-import {
-	type BackendCapacityController,
-	makeBackendCapacityController,
-} from "@antumbra/plugin-api";
+import { type BackendCapacityController, makeBackendCapacityController } from "@antumbra/plugin-api";
 import { it } from "@effect/vitest";
 import { Effect, Option } from "effect";
 import { describe, expect } from "vitest";
@@ -45,11 +42,7 @@ const apiRetry: SDKMessage = {
 	uuid: "2b3c4d5e-6f7a-4b8c-9d0e-1f2a3b4c5d6e",
 };
 
-const recordCapacityObservedFrame = (
-	delivered: SDKMessage[],
-	frame: SDKMessage,
-	observations: number,
-) => {
+const recordCapacityObservedFrame = (delivered: SDKMessage[], frame: SDKMessage, observations: number) => {
 	delivered.push(frame);
 	expect(openSessionMapping().frame(frame)[0]?.raw).toEqual(rawOf(frame));
 	expect(observations).toBe(delivered.length);
@@ -80,11 +73,7 @@ describe("claude capacity evidence", () => {
 	});
 
 	it("makes an approaching usage window visible as a warning", () => {
-		expect(
-			Option.getOrThrow(
-				classifyClaudeCapacity(rawOf(rateLimit("allowed_warning"))),
-			),
-		).toEqual({
+		expect(Option.getOrThrow(classifyClaudeCapacity(rawOf(rateLimit("allowed_warning"))))).toEqual({
 			detail: "Claude five-hour usage is approaching its limit",
 			reason: "usage-limit",
 			resetsAt: RESET_SECONDS * 1_000,
@@ -94,24 +83,18 @@ describe("claude capacity evidence", () => {
 	});
 
 	it("publishes an allowed reading as available", () => {
-		expect(
-			Option.getOrThrow(classifyClaudeCapacity(rawOf(rateLimit("allowed")))),
-		).toEqual({ status: "available" });
+		expect(Option.getOrThrow(classifyClaudeCapacity(rawOf(rateLimit("allowed"))))).toEqual({ status: "available" });
 	});
 
 	it("leaves provider-managed API retries unclassified", () => {
 		expect(Option.isNone(classifyClaudeCapacity(rawOf(apiRetry)))).toBe(true);
-		expect(openSessionMapping().frame(apiRetry)).toMatchObject([
-			{ raw: { kind: "system/api_retry", source: "claude" }, type: "raw" },
-		]);
+		expect(openSessionMapping().frame(apiRetry)).toMatchObject([{ raw: { kind: "system/api_retry", source: "claude" }, type: "raw" }]);
 	});
 
 	it.effect("feeds every live SDK frame to capacity exactly once", () =>
 		Effect.scoped(
 			Effect.gen(function* () {
-				const controller = yield* makeBackendCapacityController(
-					classifyClaudeCapacity,
-				);
+				const controller = yield* makeBackendCapacityController(classifyClaudeCapacity);
 				let observations = 0;
 				const counting: BackendCapacityController = {
 					observe: (raw, observedAt) => {
@@ -132,19 +115,11 @@ describe("claude capacity evidence", () => {
 				};
 
 				yield* Effect.promise(() =>
-					consumeSdkMessages(
-						live,
-						input,
-						(frame) =>
-							recordCapacityObservedFrame(delivered, frame, observations),
-						counting.observe,
-					),
+					consumeSdkMessages(live, input, (frame) => recordCapacityObservedFrame(delivered, frame, observations), counting.observe),
 				);
 				expect(delivered).toEqual(frames);
 				expect(observations).toBe(2);
-				expect(
-					Option.getOrThrow(yield* controller.source.current),
-				).toMatchObject({
+				expect(Option.getOrThrow(yield* controller.source.current)).toMatchObject({
 					observedAt: expect.any(Number),
 					reason: "usage-limit",
 					status: "blocked",

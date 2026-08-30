@@ -1,28 +1,15 @@
 import * as SelectPrimitive from "@radix-ui/react-select";
 import { ChevronDownIcon } from "lucide-react";
-import {
-	SelectScrollDownButton,
-	SelectScrollUpButton,
-} from "#components/ui/select-parts.tsx";
+import { SelectScrollDownButton, SelectScrollUpButton } from "#components/ui/select-parts.tsx";
 import { cn } from "#lib/utils.ts";
 
-export const Select = (
-	props: React.ComponentProps<typeof SelectPrimitive.Root>,
-) => <SelectPrimitive.Root data-slot="select" {...props} />;
+export const Select = (props: React.ComponentProps<typeof SelectPrimitive.Root>) => <SelectPrimitive.Root data-slot="select" {...props} />;
 
-export const SelectGroup = (
-	props: React.ComponentProps<typeof SelectPrimitive.Group>,
-) => <SelectPrimitive.Group data-slot="select-group" {...props} />;
+export const SelectValue = (props: React.ComponentProps<typeof SelectPrimitive.Value>) => (
+	<SelectPrimitive.Value data-slot="select-value" {...props} />
+);
 
-export const SelectValue = (
-	props: React.ComponentProps<typeof SelectPrimitive.Value>,
-) => <SelectPrimitive.Value data-slot="select-value" {...props} />;
-
-export const SelectTrigger = ({
-	children,
-	className,
-	...props
-}: React.ComponentProps<typeof SelectPrimitive.Trigger>) => (
+export const SelectTrigger = ({ children, className, ...props }: React.ComponentProps<typeof SelectPrimitive.Trigger>) => (
 	<SelectPrimitive.Trigger
 		className={cn(
 			"flex h-7 w-full min-w-0 items-center justify-between gap-1.5 rounded-md border border-border bg-input px-2 text-xs text-foreground outline-none transition-colors",
@@ -42,12 +29,7 @@ export const SelectTrigger = ({
 	</SelectPrimitive.Trigger>
 );
 
-export const SelectContent = ({
-	children,
-	className,
-	position = "popper",
-	...props
-}: React.ComponentProps<typeof SelectPrimitive.Content>) => (
+export const SelectContent = ({ children, className, position = "popper", ...props }: React.ComponentProps<typeof SelectPrimitive.Content>) => (
 	<SelectPrimitive.Portal>
 		<SelectPrimitive.Content
 			className={cn(
@@ -62,11 +44,7 @@ export const SelectContent = ({
 		>
 			<SelectScrollUpButton />
 			<SelectPrimitive.Viewport
-				className={cn(
-					"p-1",
-					position === "popper" &&
-						"h-(--radix-select-trigger-height) w-full min-w-(--radix-select-trigger-width) scroll-my-1",
-				)}
+				className={cn("p-1", position === "popper" && "h-(--radix-select-trigger-height) w-full min-w-(--radix-select-trigger-width) scroll-my-1")}
 			>
 				{children}
 			</SelectPrimitive.Viewport>

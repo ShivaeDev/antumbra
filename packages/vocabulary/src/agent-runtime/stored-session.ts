@@ -6,9 +6,7 @@ import {
 	AgentSessionStatusSchema,
 } from "#agent-runtime/statuses.ts";
 
-export class StoredAgentSessionStatusInvalid extends Data.TaggedError(
-	"StoredAgentSessionStatusInvalid",
-)<{
+export class StoredAgentSessionStatusInvalid extends Data.TaggedError("StoredAgentSessionStatusInvalid")<{
 	readonly sessionId: string;
 	readonly value: unknown;
 }> {
@@ -17,9 +15,7 @@ export class StoredAgentSessionStatusInvalid extends Data.TaggedError(
 	}
 }
 
-export class StoredAgentSessionCompletenessInvalid extends Data.TaggedError(
-	"StoredAgentSessionCompletenessInvalid",
-)<{
+export class StoredAgentSessionCompletenessInvalid extends Data.TaggedError("StoredAgentSessionCompletenessInvalid")<{
 	readonly sessionId: string;
 	readonly value: unknown;
 }> {
@@ -33,24 +29,13 @@ export const decodeStoredAgentSessionStatus = (
 	value: unknown,
 ): Result.Result<AgentSessionStatus, StoredAgentSessionStatusInvalid> => {
 	const decoded = Schema.decodeUnknownOption(AgentSessionStatusSchema)(value);
-	return Option.isSome(decoded)
-		? Result.succeed(decoded.value)
-		: Result.fail(new StoredAgentSessionStatusInvalid({ sessionId, value }));
+	return Option.isSome(decoded) ? Result.succeed(decoded.value) : Result.fail(new StoredAgentSessionStatusInvalid({ sessionId, value }));
 };
 
 export const decodeStoredAgentSessionCompleteness = (
 	sessionId: string,
 	value: unknown,
-): Result.Result<
-	AgentSessionCompleteness,
-	StoredAgentSessionCompletenessInvalid
-> => {
-	const decoded = Schema.decodeUnknownOption(AgentSessionCompletenessSchema)(
-		value,
-	);
-	return Option.isSome(decoded)
-		? Result.succeed(decoded.value)
-		: Result.fail(
-				new StoredAgentSessionCompletenessInvalid({ sessionId, value }),
-			);
+): Result.Result<AgentSessionCompleteness, StoredAgentSessionCompletenessInvalid> => {
+	const decoded = Schema.decodeUnknownOption(AgentSessionCompletenessSchema)(value);
+	return Option.isSome(decoded) ? Result.succeed(decoded.value) : Result.fail(new StoredAgentSessionCompletenessInvalid({ sessionId, value }));
 };

@@ -17,13 +17,7 @@ const entries: ReadonlyArray<BoardEntryView> = [
 	},
 ];
 
-const panel = () => (
-	<BoardPanel
-		entries={entries}
-		onError={() => undefined}
-		scope={{ kind: "voyage", voyageId: "voyage-1" }}
-	/>
-);
+const panel = () => <BoardPanel entries={entries} onError={() => undefined} scope={{ kind: "voyage", voyageId: "voyage-1" }} />;
 
 const mount = (): { container: HTMLElement; root: Root } => {
 	const container = document.createElement("div");
@@ -38,36 +32,34 @@ const clickHeading = (container: HTMLElement): Effect.Effect<void> =>
 		}),
 	);
 
-it.effect(
-	"keeps a log collapsed until asked, then reads its entries as Markdown",
-	() =>
-		Effect.gen(function* () {
-			const { container, root } = mount();
-			yield* Effect.promise(() =>
-				act(() => {
-					root.render(panel());
-					return Promise.resolve();
-				}),
-			);
+it.effect("keeps a log collapsed until asked, then reads its entries as Markdown", () =>
+	Effect.gen(function* () {
+		const { container, root } = mount();
+		yield* Effect.promise(() =>
+			act(() => {
+				root.render(panel());
+				return Promise.resolve();
+			}),
+		);
 
-			expect(container.innerHTML).toContain('aria-expanded="false"');
-			expect(container.innerHTML).not.toContain("<h1>");
-			expect(container.textContent).not.toContain("Write to the board");
+		expect(container.innerHTML).toContain('aria-expanded="false"');
+		expect(container.innerHTML).not.toContain("<h1>");
+		expect(container.textContent).not.toContain("Write to the board");
 
-			yield* clickHeading(container);
+		yield* clickHeading(container);
 
-			expect(container.innerHTML).toContain('aria-expanded="true"');
-			expect(container.innerHTML).toContain("<h1>Soundings</h1>");
-			expect(container.innerHTML).toContain("<strong>shallow</strong>");
-			expect(container.textContent).toContain("Write to the board");
+		expect(container.innerHTML).toContain('aria-expanded="true"');
+		expect(container.innerHTML).toContain("<h1>Soundings</h1>");
+		expect(container.innerHTML).toContain("<strong>shallow</strong>");
+		expect(container.textContent).toContain("Write to the board");
 
-			yield* clickHeading(container);
-			expect(container.innerHTML).not.toContain("<h1>");
-			yield* Effect.promise(() =>
-				act(() => {
-					root.unmount();
-					return Promise.resolve();
-				}),
-			);
-		}),
+		yield* clickHeading(container);
+		expect(container.innerHTML).not.toContain("<h1>");
+		yield* Effect.promise(() =>
+			act(() => {
+				root.unmount();
+				return Promise.resolve();
+			}),
+		);
+	}),
 );

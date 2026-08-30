@@ -1,15 +1,6 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database } from "@antumbra/persistence";
-import {
-	Clock,
-	Context,
-	Effect,
-	Layer,
-	Queue,
-	Ref,
-	Semaphore,
-	Stream,
-} from "effect";
+import { Clock, Context, Effect, Layer, Queue, Ref, Semaphore, Stream } from "effect";
 import { HeldResourceRead } from "#held-resource-read.ts";
 import { runResourceReclaimPass } from "#resource-reclaim-pass.ts";
 import { ResourceReclaimRunners } from "#resource-reclaim-runners.ts";
@@ -40,26 +31,16 @@ export type ResourceReclamationHealth =
 			readonly state: "degraded";
 	  };
 
-const markDegraded = (
-	health: Ref.Ref<ResourceReclamationHealth>,
-	cause: unknown,
-) =>
+const markDegraded = (health: Ref.Ref<ResourceReclamationHealth>, cause: unknown) =>
 	Effect.gen(function* () {
 		const failedAtMillis = yield* Clock.currentTimeMillis;
 		const failure = String(cause);
 		yield* Ref.set(health, { failedAtMillis, failure, state: "degraded" });
-		yield* Effect.logWarning(
-			"resource reclaim pass held uncertain durable truth",
-			{ failure },
-		);
+		yield* Effect.logWarning("resource reclaim pass held uncertain durable truth", { failure });
 	});
 
 const markHealthy = (health: Ref.Ref<ResourceReclamationHealth>) =>
-	Clock.currentTimeMillis.pipe(
-		Effect.flatMap((checkedAtMillis) =>
-			Ref.set(health, { checkedAtMillis, state: "healthy" }),
-		),
-	);
+	Clock.currentTimeMillis.pipe(Effect.flatMap((checkedAtMillis) => Ref.set(health, { checkedAtMillis, state: "healthy" })));
 
 const guardedPass = (health: Ref.Ref<ResourceReclamationHealth>) =>
 	runResourceReclaimPass.pipe(
@@ -69,11 +50,7 @@ const guardedPass = (health: Ref.Ref<ResourceReclamationHealth>) =>
 		}),
 	);
 
-const cadenceLoop = (
-	reconcile: Effect.Effect<void>,
-	tick: Queue.Queue<void>,
-	cadenceMillis: number,
-): Effect.Effect<never> =>
+const cadenceLoop = (reconcile: Effect.Effect<void>, tick: Queue.Queue<void>, cadenceMillis: number): Effect.Effect<never> =>
 	Effect.gen(function* () {
 		while (true) {
 			yield* Effect.timeoutOption(Queue.take(tick), cadenceMillis);
@@ -81,9 +58,7 @@ const cadenceLoop = (
 		}
 	});
 
-export const ResourceReconcilerLive = (
-	overrides: Partial<ResourceReconcileOptions> = {},
-) =>
+export const ResourceReconcilerLive = (overrides: Partial<ResourceReconcileOptions> = {}) =>
 	Layer.effect(
 		ResourceReconciler,
 		Effect.gen(function* () {
@@ -116,14 +91,10 @@ export const ResourceReconcilerLive = (
 			yield* Effect.forkScoped(
 				Effect.gen(function* () {
 					const subscription = yield* feeds.subscribeResourceReclaim();
-					yield* Stream.fromSubscription(subscription).pipe(
-						Stream.runForEach(() => Queue.offer(tick, undefined)),
-					);
+					yield* Stream.fromSubscription(subscription).pipe(Stream.runForEach(() => Queue.offer(tick, undefined)));
 				}),
 			);
-			yield* Effect.forkScoped(
-				cadenceLoop(reconcile, tick, options.cadenceMillis),
-			);
+			yield* Effect.forkScoped(cadenceLoop(reconcile, tick, options.cadenceMillis));
 			return service;
 		}),
 	);

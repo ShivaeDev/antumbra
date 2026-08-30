@@ -1,12 +1,6 @@
 import { BackendFailure } from "@antumbra/plugin-api";
 
 const describe = (detail: unknown): string =>
-	typeof detail === "object" &&
-	detail !== null &&
-	"message" in detail &&
-	typeof detail.message === "string"
-		? detail.message
-		: String(detail);
+	typeof detail === "object" && detail !== null && "message" in detail && typeof detail.message === "string" ? detail.message : String(detail);
 
-export const codexFailure = (detail: unknown): BackendFailure =>
-	new BackendFailure({ detail: describe(detail), tag: "codex" });
+export const codexFailure = (detail: unknown): BackendFailure => new BackendFailure({ detail: describe(detail), tag: "codex" });

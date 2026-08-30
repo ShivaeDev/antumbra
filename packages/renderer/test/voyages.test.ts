@@ -1,27 +1,10 @@
-import type {
-	BoardEntryView,
-	PieceState,
-	PieceView,
-	VoyageCaptainView,
-	VoyageSummary,
-} from "@antumbra/contract";
+import type { BoardEntryView, PieceState, PieceView, VoyageCaptainView, VoyageSummary } from "@antumbra/contract";
 import { describe, expect, it } from "vitest";
 import { actsFor, captainAtWork } from "#voyages/acts.ts";
-import {
-	authorLabel,
-	awaitingRulingLabel,
-	captainCallLabel,
-	dependsOnLabel,
-	whenLabel,
-} from "#voyages/labels.ts";
+import { authorLabel, awaitingRulingLabel, captainCallLabel, dependsOnLabel, whenLabel } from "#voyages/labels.ts";
 import { byFlagship, byLadder, bySalience } from "#voyages/order.ts";
 
-const piece = (
-	id: string,
-	title: string,
-	state: PieceState,
-	dependsOn: ReadonlyArray<string> = [],
-): PieceView => ({
+const piece = (id: string, title: string, state: PieceState, dependsOn: ReadonlyArray<string> = []): PieceView => ({
 	agents: [],
 	artifactHistory: [],
 	artifacts: [],
@@ -48,10 +31,7 @@ const captain = (status: string, atWork: boolean): VoyageCaptainView => ({
 	status,
 });
 
-const entry = (
-	id: string,
-	register: BoardEntryView["register"],
-): BoardEntryView => ({
+const entry = (id: string, register: BoardEntryView["register"]): BoardEntryView => ({
 	authorAgentId: null,
 	body: id,
 	createdAt: "2026-08-15T09:10:00.000Z",
@@ -69,51 +49,23 @@ describe("byLadder", () => {
 			piece("5", "echo", "parked"),
 			piece("6", "foxtrot", "abandoned"),
 		]);
-		expect(ordered.map((row) => row.title)).toEqual([
-			"alpha",
-			"bravo",
-			"charlie",
-			"echo",
-			"delta",
-			"foxtrot",
-		]);
+		expect(ordered.map((row) => row.title)).toEqual(["alpha", "bravo", "charlie", "echo", "delta", "foxtrot"]);
 	});
 });
 
 describe("bySalience", () => {
 	it("leads with the smooth log and keeps each register in order", () => {
-		const ordered = bySalience([
-			entry("rough-1", "rough"),
-			entry("smooth-1", "smooth"),
-			entry("rough-2", "rough"),
-			entry("smooth-2", "smooth"),
-		]);
-		expect(ordered.map((row) => row.id)).toEqual([
-			"smooth-1",
-			"smooth-2",
-			"rough-1",
-			"rough-2",
-		]);
+		const ordered = bySalience([entry("rough-1", "rough"), entry("smooth-1", "smooth"), entry("rough-2", "rough"), entry("smooth-2", "smooth")]);
+		expect(ordered.map((row) => row.id)).toEqual(["smooth-1", "smooth-2", "rough-1", "rough-2"]);
 	});
 });
 
 describe("actsFor", () => {
 	it("offers only the verbs a piece's derived state can accept", () => {
-		expect(actsFor(piece("1", "alpha", "held"))).toEqual([
-			"launch",
-			"workNow",
-			"rewire",
-		]);
+		expect(actsFor(piece("1", "alpha", "held"))).toEqual(["launch", "workNow", "rewire"]);
 		expect(actsFor(piece("1", "alpha", "ready"))).toEqual(["park", "rewire"]);
-		expect(actsFor(piece("1", "alpha", "blocked"))).toEqual([
-			"park",
-			"workNow",
-			"rewire",
-		]);
-		expect(actsFor(piece("1", "alpha", "parked"))).toEqual([
-			"unpark",
-			"rewire",
-		]);
+		expect(actsFor(piece("1", "alpha", "blocked"))).toEqual(["park", "workNow", "rewire"]);
+		expect(actsFor(piece("1", "alpha", "parked"))).toEqual(["unpark", "rewire"]);
 	});
 
 	it("an active or abandoned piece offers nothing but repositioning", () => {
@@ -155,9 +107,7 @@ describe("captainCallLabel", () => {
 
 describe("awaitingRulingLabel", () => {
 	it("names the ruling holding a piece by its question", () => {
-		expect(
-			awaitingRulingLabel({ question: "which reef?", rulingId: "r-1" }),
-		).toBe("Awaiting ruling r-1: which reef?");
+		expect(awaitingRulingLabel({ question: "which reef?", rulingId: "r-1" })).toBe("Awaiting ruling r-1: which reef?");
 	});
 });
 
@@ -167,9 +117,7 @@ describe("dependsOnLabel", () => {
 
 	it("names what gates a piece by title", () => {
 		const gated = piece("3", "charlie", "blocked", ["1", "2"]);
-		expect(dependsOnLabel(gated, [alpha, bravo, gated])).toBe(
-			"Depends on: alpha, bravo",
-		);
+		expect(dependsOnLabel(gated, [alpha, bravo, gated])).toBe("Depends on: alpha, bravo");
 	});
 
 	it("says nothing for a piece nothing gates", () => {
@@ -209,19 +157,12 @@ describe("byFlagship", () => {
 	});
 
 	it("leads with the fleet's own voyage and keeps the rest in order", () => {
-		const ordered = byFlagship([
-			voyage("reef", "voyage"),
-			voyage("fleet", "flagship"),
-			voyage("shallows", "voyage"),
-		]);
+		const ordered = byFlagship([voyage("reef", "voyage"), voyage("fleet", "flagship"), voyage("shallows", "voyage")]);
 		expect(ordered.map((row) => row.id)).toEqual(["fleet", "reef", "shallows"]);
 	});
 
 	it("a list without the flagship is left as it was", () => {
-		const ordered = byFlagship([
-			voyage("reef", "voyage"),
-			voyage("shallows", "voyage"),
-		]);
+		const ordered = byFlagship([voyage("reef", "voyage"), voyage("shallows", "voyage")]);
 		expect(ordered.map((row) => row.id)).toEqual(["reef", "shallows"]);
 	});
 });

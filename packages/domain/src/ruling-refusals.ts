@@ -1,21 +1,14 @@
 import { RulingFailure, RulingRefused } from "@antumbra/contract";
-import type {
-	RulingProclaimFailure,
-	RulingReclassifyFailure,
-	RulingVerdictFailure,
-} from "@antumbra/rulings";
+import type { RulingProclaimFailure, RulingReclassifyFailure, RulingVerdictFailure } from "@antumbra/rulings";
 import { failureMessage } from "#sight-failure.ts";
 
-export const toRulingFailure = (cause: unknown): RulingFailure =>
-	new RulingFailure({ message: failureMessage(cause) });
+export const toRulingFailure = (cause: unknown): RulingFailure => new RulingFailure({ message: failureMessage(cause) });
 
 // why: the ways a verdict or a reclassification fails to land are things the
 // record knows and the window does not, so each comes back as the sentence
 // that says which — anything else is this process failing rather than the
 // request being wrong.
-export const verdictFailure = (
-	cause: RulingVerdictFailure,
-): RulingFailure | RulingRefused => {
+export const verdictFailure = (cause: RulingVerdictFailure): RulingFailure | RulingRefused => {
 	switch (cause._tag) {
 		case "RulingAlreadyRuled":
 			return new RulingRefused({
@@ -44,9 +37,7 @@ export const verdictFailure = (
 // why: a proclamation is a request and a verdict in one act, so it is refused
 // for either's reasons — a subject the fleet has not got, or a pick naming none
 // of the choices the proclamation itself wrote.
-export const proclaimFailure = (
-	cause: RulingProclaimFailure,
-): RulingFailure | RulingRefused => {
+export const proclaimFailure = (cause: RulingProclaimFailure): RulingFailure | RulingRefused => {
 	switch (cause._tag) {
 		case "RulingChoiceUnknown":
 			return new RulingRefused({
@@ -59,9 +50,7 @@ export const proclaimFailure = (
 	}
 };
 
-export const reclassifyFailure = (
-	cause: RulingReclassifyFailure,
-): RulingFailure | RulingRefused => {
+export const reclassifyFailure = (cause: RulingReclassifyFailure): RulingFailure | RulingRefused => {
 	switch (cause._tag) {
 		case "RulingAlreadyRuled":
 			return new RulingRefused({

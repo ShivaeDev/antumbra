@@ -1,15 +1,8 @@
-import type {
-	AgentEvent,
-	RawPayload,
-} from "@antumbra/vocabulary/session-events";
+import type { AgentEvent, RawPayload } from "@antumbra/vocabulary/session-events";
 import { Option, Schema } from "effect";
 import type { RpcNotification } from "#adapters/rpc.ts";
 import { itemCompleted, itemStarted } from "#items.ts";
-import {
-	ItemNotification,
-	TokenUsageNotification,
-	TurnNotification,
-} from "#protocol.ts";
+import { ItemNotification, TokenUsageNotification, TurnNotification } from "#protocol.ts";
 import { threadStateEvents } from "#thread-state.ts";
 
 const decodeTurn = Schema.decodeUnknownOption(TurnNotification);
@@ -22,9 +15,7 @@ export const rawOf = (kind: string, payload: unknown): RawPayload => ({
 	source: "codex",
 });
 
-const turnStatus = (
-	status: typeof TurnNotification.Type.turn.status,
-): "completed" | "failed" | "interrupted" =>
+const turnStatus = (status: typeof TurnNotification.Type.turn.status): "completed" | "failed" | "interrupted" =>
 	status === "inProgress" ? "completed" : status;
 
 // why: the turn edges are codex's own busy bookends, and a turn ending is the
@@ -33,18 +24,14 @@ const turnStatus = (
 // flags, and the edges are the only ones tied to a turn id. Both are what
 // codex said, and the last one to arrive is what the session is doing.
 const turnStarted = (raw: RawPayload, params: unknown): AgentEvent[] =>
-	Option.isNone(decodeTurn(params))
-		? [{ raw, type: "raw" }]
-		: [{ raw, state: "running", type: "session.state" }];
+	Option.isNone(decodeTurn(params)) ? [{ raw, type: "raw" }] : [{ raw, state: "running", type: "session.state" }];
 
 const turnCompleted = (raw: RawPayload, params: unknown): AgentEvent[] =>
 	Option.match(decodeTurn(params), {
 		onNone: () => [{ raw, type: "raw" }],
 		onSome: ({ turn }) => [
 			{
-				...(turn.durationMs === null || turn.durationMs === undefined
-					? {}
-					: { durationMs: turn.durationMs }),
+				...(turn.durationMs === null || turn.durationMs === undefined ? {} : { durationMs: turn.durationMs }),
 				raw,
 				status: turnStatus(turn.status),
 				type: "turn.completed",
@@ -63,9 +50,7 @@ const tokenUsage = (raw: RawPayload, params: unknown): AgentEvent[] =>
 		onSome: ({ tokenUsage }) => [
 			{
 				cacheReadTokens: tokenUsage.last.cachedInputTokens,
-				...(tokenUsage.last.cacheWriteInputTokens === undefined
-					? {}
-					: { cacheWriteTokens: tokenUsage.last.cacheWriteInputTokens }),
+				...(tokenUsage.last.cacheWriteInputTokens === undefined ? {} : { cacheWriteTokens: tokenUsage.last.cacheWriteInputTokens }),
 				inputTokens: tokenUsage.last.inputTokens,
 				outputTokens: tokenUsage.last.outputTokens,
 				raw,
@@ -74,11 +59,7 @@ const tokenUsage = (raw: RawPayload, params: unknown): AgentEvent[] =>
 		],
 	});
 
-const itemEvents = (
-	raw: RawPayload,
-	params: unknown,
-	project: typeof itemStarted,
-): AgentEvent[] =>
+const itemEvents = (raw: RawPayload, params: unknown, project: typeof itemStarted): AgentEvent[] =>
 	Option.match(decodeItem(params), {
 		onNone: () => [{ raw, type: "raw" }],
 		onSome: ({ item }) => project(raw, item),

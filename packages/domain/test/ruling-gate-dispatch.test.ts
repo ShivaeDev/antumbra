@@ -5,17 +5,8 @@ import { Effect } from "effect";
 import { TestClock } from "effect/testing";
 import { AgentDomain } from "#domain.ts";
 import { dispatchingLayer } from "#test/domain-layers.ts";
-import {
-	acquireTemporaryPersistence,
-	makeScriptedBackend,
-} from "#test/harness.ts";
-import {
-	assignedPieces,
-	eventually,
-	openReefVoyage,
-	PATIENCE,
-	stateOf,
-} from "#test/voyage-fixtures.ts";
+import { acquireTemporaryPersistence, makeScriptedBackend } from "#test/harness.ts";
+import { assignedPieces, eventually, openReefVoyage, PATIENCE, stateOf } from "#test/voyage-fixtures.ts";
 
 const askerId = "agent-asker";
 
@@ -76,8 +67,6 @@ it.effect("a gated piece is not dispatched until its ruling lands", () =>
 					}),
 				),
 			);
-		}).pipe(
-			Effect.provide(dispatchingLayer(temporary, scripted.backend, PATIENCE)),
-		);
+		}).pipe(Effect.provide(dispatchingLayer(temporary, scripted.backend, PATIENCE)));
 	}),
 );

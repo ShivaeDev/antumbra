@@ -12,17 +12,14 @@ export interface SessionDraftRef {
 // why: unsent words belong to this renderer installation, not to Antumbra's
 // durable event record. Browser storage survives its navigation and reloads
 // without turning a local draft into server or cross-device truth.
-const safely = <A>(evaluate: () => A, fallback: A): A =>
-	Result.getOrElse(Result.try(evaluate), () => fallback);
+const safely = <A>(evaluate: () => A, fallback: A): A => Result.getOrElse(Result.try(evaluate), () => fallback);
 
-const browserStorage = (): Storage | undefined =>
-	safely(() => window.localStorage, undefined);
+const browserStorage = (): Storage | undefined => safely(() => window.localStorage, undefined);
 
 export const draftStorageKey = (draft: SessionDraftRef): string =>
 	`${PREFIX}${encodeURIComponent(draft.sessionId)}/${encodeURIComponent(draft.slot)}`;
 
-export const readStoredDraft = (key: string): string =>
-	safely(() => browserStorage()?.getItem(key) ?? "", "");
+export const readStoredDraft = (key: string): string => safely(() => browserStorage()?.getItem(key) ?? "", "");
 
 export const writeStoredDraft = (key: string, text: string): void => {
 	safely(() => {
@@ -39,13 +36,7 @@ export const storedDraftKeys = (): ReadonlyArray<string> => {
 	if (storage === undefined) {
 		return [];
 	}
-	return safely(
-		() =>
-			Array.from({ length: storage.length }, (_, index) =>
-				storage.key(index),
-			).flatMap((key) => (key === null ? [] : [key])),
-		[],
-	);
+	return safely(() => Array.from({ length: storage.length }, (_, index) => storage.key(index)).flatMap((key) => (key === null ? [] : [key])), []);
 };
 
 export const sessionIdFromDraftKey = (key: string): string | undefined => {
@@ -56,8 +47,5 @@ export const sessionIdFromDraftKey = (key: string): string | undefined => {
 	if (separator < 0) {
 		return undefined;
 	}
-	return safely(
-		() => decodeURIComponent(key.slice(PREFIX.length, separator)),
-		undefined,
-	);
+	return safely(() => decodeURIComponent(key.slice(PREFIX.length, separator)), undefined);
 };

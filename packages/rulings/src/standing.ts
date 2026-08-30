@@ -6,8 +6,7 @@ import type { StoredRuling } from "#stored-rows.ts";
 
 type SubjectKind = RulingSubject["kind"];
 
-const named = (subject: RulingSubject): string =>
-	subject.kind === "tag" ? subject.tag : subject.id;
+const named = (subject: RulingSubject): string => (subject.kind === "tag" ? subject.tag : subject.id);
 
 // why: exactly one column carries a subject, so entries of one kind differ only
 // in what that column must hold — the whole kind is asked for in one query
@@ -26,31 +25,21 @@ const kindMatches = (kind: SubjectKind, values: ReadonlyArray<string>) =>
 		return yield* matching[kind].select("rulingId").all();
 	});
 
-const byKind = (
-	filter: ReadonlyArray<RulingSubject>,
-): ReadonlyArray<readonly [SubjectKind, ReadonlyArray<string>]> => {
+const byKind = (filter: ReadonlyArray<RulingSubject>): ReadonlyArray<readonly [SubjectKind, ReadonlyArray<string>]> => {
 	const kinds = new Map<SubjectKind, Array<string>>();
 	for (const subject of filter) {
-		kinds.set(subject.kind, [
-			...(kinds.get(subject.kind) ?? []),
-			named(subject),
-		]);
+		kinds.set(subject.kind, [...(kinds.get(subject.kind) ?? []), named(subject)]);
 	}
 	return [...kinds];
 };
 
 const subjectMatches = (filter: ReadonlyArray<RulingSubject>) =>
 	Effect.gen(function* () {
-		const found = yield* Effect.forEach(byKind(filter), ([kind, values]) =>
-			kindMatches(kind, values),
-		);
+		const found = yield* Effect.forEach(byKind(filter), ([kind, values]) => kindMatches(kind, values));
 		return new Set(found.flat().map((row) => row.rulingId));
 	});
 
-const scoped = (
-	rows: ReadonlyArray<StoredRuling>,
-	filter: ReadonlyArray<RulingSubject>,
-) =>
+const scoped = (rows: ReadonlyArray<StoredRuling>, filter: ReadonlyArray<RulingSubject>) =>
 	Effect.gen(function* () {
 		if (filter.length === 0) {
 			return rows;
@@ -67,19 +56,14 @@ const scoped = (
 // be ruled in the same millisecond, and then the one raised later reads as the
 // later word — an order the record settles rather than one the query plan
 // happens to pick.
-export const standing = Effect.fn("rulings.standing")(function* (
-	filter: ReadonlyArray<RulingSubject>,
-) {
+export const standing = Effect.fn("rulings.standing")(function* (filter: ReadonlyArray<RulingSubject>) {
 	const db = yield* Database;
 	const rows = yield* db.Ruling.where({
 		supersededById: null,
 		withdrawnAt: null,
 	})
 		.where((ruling) => ruling.ruledAt.isNotNull())
-		.orderBy([
-			(ruling) => ruling.ruledAt.desc(),
-			(ruling) => ruling.createdAt.desc(),
-		])
+		.orderBy([(ruling) => ruling.ruledAt.desc(), (ruling) => ruling.createdAt.desc()])
 		.all();
 	return yield* Effect.forEach(yield* scoped(rows, filter), loadRuling);
 });

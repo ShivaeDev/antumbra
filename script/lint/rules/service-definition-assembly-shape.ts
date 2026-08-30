@@ -23,18 +23,14 @@ export const serviceDefinitionProblems = (
 	if (config === undefined || !ts.isObjectLiteralExpression(config)) {
 		return [{ message: "Inline the service inventory.", node: definition }];
 	}
-	const found: ServiceAssemblyProblem[] = invalidServiceMembers(config).map(
-		(node) => ({
-			message:
-				"List id, initialize, methods, and requires directly; computed members and spreads cannot hide the service inventory.",
-			node,
-		}),
-	);
+	const found: ServiceAssemblyProblem[] = invalidServiceMembers(config).map((node) => ({
+		message: "List id, initialize, methods, and requires directly; computed members and spreads cannot hide the service inventory.",
+		node,
+	}));
 	const initialize = serviceProperty(config, "initialize")?.initializer;
 	if (
 		initialize !== undefined &&
-		(!ts.isIdentifier(unwrapExpression(initialize)) ||
-			!imports.has(unwrapExpression(initialize).getText())) &&
+		(!ts.isIdentifier(unwrapExpression(initialize)) || !imports.has(unwrapExpression(initialize).getText())) &&
 		!isEffectVoid(unwrapExpression(initialize), effects)
 	) {
 		found.push({
@@ -55,8 +51,7 @@ export const serviceDefinitionProblems = (
 	for (const operation of methods?.properties ?? []) {
 		if (!isOperationReference(operation, imports)) {
 			found.push({
-				message:
-					"Reference a named operation export or call its named state factory.",
+				message: "Reference a named operation export or call its named state factory.",
 				node: operation,
 			});
 		}

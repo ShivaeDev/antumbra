@@ -3,8 +3,7 @@ import { expect, it } from "@effect/vitest";
 import { Effect, Option } from "effect";
 import { claudePlugin } from "#plugin.ts";
 
-const hostFinding = (claude: Option.Option<string>) =>
-	makePluginHost({ findExecutable: () => Effect.succeed(claude) });
+const hostFinding = (claude: Option.Option<string>) => makePluginHost({ findExecutable: () => Effect.succeed(claude) });
 
 it.effect("the claude plugin registers its backend for the CLI it finds", () =>
 	Effect.scoped(

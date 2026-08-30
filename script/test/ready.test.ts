@@ -25,10 +25,7 @@ const recordingReport = (lines: string[]): Report => ({
 		}),
 });
 
-const run = (
-	names: readonly string[],
-	failing: string | undefined,
-): { readonly ok: boolean } & Recorded => {
+const run = (names: readonly string[], failing: string | undefined): { readonly ok: boolean } & Recorded => {
 	const executed: string[] = [];
 	const lines: string[] = [];
 	const exec = (step: Step): Effect.Effect<StepResult> =>
@@ -36,9 +33,7 @@ const run = (
 			executed.push(step.name);
 			return { exitCode: step.name === failing ? 2 : 0, output: "captured" };
 		});
-	const ok = Effect.runSync(
-		runReady(names.map(stepNamed), exec, recordingReport(lines)),
-	);
+	const ok = Effect.runSync(runReady(names.map(stepNamed), exec, recordingReport(lines)));
 	return { executed, lines, ok };
 };
 
@@ -47,12 +42,7 @@ describe("ready runner", () => {
 		const { executed, lines, ok } = run(["one", "two", "three"], undefined);
 		expect(ok).toBe(true);
 		expect(executed).toEqual(["one", "two", "three"]);
-		expect(lines).toEqual([
-			"passed one",
-			"passed two",
-			"passed three",
-			"summary 3/3",
-		]);
+		expect(lines).toEqual(["passed one", "passed two", "passed three", "summary 3/3"]);
 	});
 
 	it("stops at the first failure and reports how far it got", () => {

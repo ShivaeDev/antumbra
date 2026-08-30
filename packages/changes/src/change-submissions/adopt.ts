@@ -2,10 +2,7 @@ import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database } from "@antumbra/persistence";
 import { Pieces } from "@antumbra/pieces";
 import { ChangeHostUnavailable } from "@antumbra/plugin-api";
-import {
-	ensureAgentCanOwnLocalWork,
-	ensureBranchResourcesUnclaimed,
-} from "@antumbra/resource-reclamation";
+import { ensureAgentCanOwnLocalWork, ensureBranchResourcesUnclaimed } from "@antumbra/resource-reclamation";
 import { Clock, Effect, Option } from "effect";
 import { activeChange, linkProduces } from "#change-submissions/links.ts";
 import type { AdoptChangeInput } from "#change-submissions/model.ts";
@@ -62,12 +59,7 @@ export const adoptSubmittedChange = (input: AdoptChangeInput) =>
 				}
 				yield* ensureBranchResourcesUnclaimed(repo.source, observation.headRef);
 				const attachment = yield* adoptionAttachment(input.agentId, repo.id);
-				const reconciled = yield* reconcileObservation(
-					host.tag,
-					observation,
-					now,
-					attachment,
-				);
+				const reconciled = yield* reconcileObservation(host.tag, observation, now, attachment);
 				const row = Option.match(reconciled, {
 					onNone: () =>
 						proposedChange({
@@ -86,10 +78,7 @@ export const adoptSubmittedChange = (input: AdoptChangeInput) =>
 				}
 				const linked = yield* linkProduces(input.pieceId, row.id);
 				return {
-					changed:
-						linked ||
-						Option.isNone(reconciled) ||
-						(Option.isSome(reconciled) && reconciled.value.changed),
+					changed: linked || Option.isNone(reconciled) || (Option.isSome(reconciled) && reconciled.value.changed),
 					row,
 				};
 			}),

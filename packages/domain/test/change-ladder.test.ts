@@ -1,13 +1,7 @@
 import { changeStatus } from "@antumbra/changes";
 import { expect, it } from "@effect/vitest";
 import { pieceOutcomeTally } from "#outcome-status.ts";
-import {
-	change,
-	piece,
-	stateOf,
-	withChanges,
-	world,
-} from "#test/piece-ladder-fixtures.ts";
+import { change, piece, stateOf, withChanges, world } from "#test/piece-ladder-fixtures.ts";
 
 it("a change counts as landed, pending or withdrawn by its stage", () => {
 	expect(changeStatus(change("a", "landed"))).toBe("landed");
@@ -66,15 +60,9 @@ it("a withdrawn change with nothing replacing it stops counting at all", () => {
 });
 
 it("a withdrawn change counts only while a replacement is under way", () => {
-	expect(
-		pieceOutcomeTally(withChanges(["withdrawn", "open"]), "alpha"),
-	).toEqual({ landed: 0, pending: 2 });
-	expect(
-		pieceOutcomeTally(withChanges(["withdrawn", "prepared"]), "alpha"),
-	).toEqual({ landed: 0, pending: 2 });
-	expect(
-		pieceOutcomeTally(withChanges(["withdrawn", "landed"]), "alpha"),
-	).toEqual({ landed: 1, pending: 0 });
+	expect(pieceOutcomeTally(withChanges(["withdrawn", "open"]), "alpha")).toEqual({ landed: 0, pending: 2 });
+	expect(pieceOutcomeTally(withChanges(["withdrawn", "prepared"]), "alpha")).toEqual({ landed: 0, pending: 2 });
+	expect(pieceOutcomeTally(withChanges(["withdrawn", "landed"]), "alpha")).toEqual({ landed: 1, pending: 0 });
 	expect(stateOf(withChanges(["withdrawn", "landed"]))).toBe("done");
 });
 
@@ -119,9 +107,7 @@ it("an abandoned piece stops gating what depended on it", () => {
 	const built = world({
 		changes: [change("change-0", "open")],
 		edges: [{ fromPieceId: "bravo", toPieceId: "alpha" }],
-		pieceChanges: [
-			{ changeId: "change-0", pieceId: "bravo", purpose: "produces" },
-		],
+		pieceChanges: [{ changeId: "change-0", pieceId: "bravo", purpose: "produces" }],
 		pieceVerdicts: new Map([["bravo", "abandoned"]]),
 		pieces: [piece("alpha"), piece("bravo")],
 	});

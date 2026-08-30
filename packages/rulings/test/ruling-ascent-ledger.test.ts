@@ -58,28 +58,25 @@ it.effectDB("stops owing an ask once it is ruled", function* () {
 	}).pipe(Effect.provide(layer));
 });
 
-it.effectDB(
-	"leaves a proclamation to the authority that wrote it",
-	function* () {
-		yield* Effect.gen(function* () {
-			yield* seedFleet;
-			const rulings = yield* Rulings;
+it.effectDB("leaves a proclamation to the authority that wrote it", function* () {
+	yield* Effect.gen(function* () {
+		yield* seedFleet;
+		const rulings = yield* Rulings;
 
-			yield* rulings.proclaim({
-				answer: "survey first, always",
-				by: "admiral",
-				choices: [],
-				context: "two voyages dredged each other's soundings",
-				question: "may a voyage dredge what it has not surveyed?",
-				radius: "fleet",
-				subjects: [],
-				urgency: "eventual",
-			});
+		yield* rulings.proclaim({
+			answer: "survey first, always",
+			by: "admiral",
+			choices: [],
+			context: "two voyages dredged each other's soundings",
+			question: "may a voyage dredge what it has not surveyed?",
+			radius: "fleet",
+			subjects: [],
+			urgency: "eventual",
+		});
 
-			expect(yield* climbing).toEqual([]);
-		}).pipe(Effect.provide(layer));
-	},
-);
+		expect(yield* climbing).toEqual([]);
+	}).pipe(Effect.provide(layer));
+});
 
 // why: the rung, not the radius, says who is owed the question — a captain
 // that pushes a narrow question up owes it to the flagship all the same.

@@ -24,10 +24,7 @@ const configs = (root: string) => [
 	},
 ];
 
-export const bundleMainAndPreload = (root: string) =>
-	Effect.promise(() =>
-		Promise.all(configs(root).map((config) => build(config))),
-	);
+export const bundleMainAndPreload = (root: string) => Effect.promise(() => Promise.all(configs(root).map((config) => build(config))));
 
 export const watchMainAndPreload = (root: string, onRebuild: () => void) =>
 	Effect.callback<BundleWatcher>((resume) => {
@@ -48,5 +45,4 @@ export const watchMainAndPreload = (root: string, onRebuild: () => void) =>
 		});
 	});
 
-export const closeWatcher = (watcher: BundleWatcher) =>
-	Effect.promise(() => watcher.close());
+export const closeWatcher = (watcher: BundleWatcher) => Effect.promise(() => watcher.close());

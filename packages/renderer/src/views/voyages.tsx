@@ -23,14 +23,7 @@ const VoyageRow = ({
 	const mark = voyageKindMark[voyage.kind];
 	return (
 		<li className="min-w-0">
-			<Card
-				className={cn(
-					"gap-2 transition-colors",
-					current
-						? "border-border-strong bg-accent"
-						: "hover:border-border-strong",
-				)}
-			>
+			<Card className={cn("gap-2 transition-colors", current ? "border-border-strong bg-accent" : "hover:border-border-strong")}>
 				<div className="flex min-w-0 items-start gap-1.5">
 					{/* why: a voyage is known by its whole name, so a long one wraps
 					inside the column instead of ending in an ellipsis the reader has
@@ -44,20 +37,12 @@ const VoyageRow = ({
 						{voyage.name}
 					</button>
 					{mark === null ? null : <Badge variant="info">{mark}</Badge>}
-					<Badge variant={voyageTone[voyage.state]}>
-						{voyageStateLabel[voyage.state]}
-					</Badge>
+					<Badge variant={voyageTone[voyage.state]}>{voyageStateLabel[voyage.state]}</Badge>
 					<FocusToggle onError={onError} voyage={voyage} />
 				</div>
-				<p className="min-w-0 text-2xs text-muted-foreground wrap-anywhere">
-					{voyage.northStar}
-				</p>
+				<p className="min-w-0 text-2xs text-muted-foreground wrap-anywhere">{voyage.northStar}</p>
 				<VoyageProgress counts={voyage.counts} />
-				<CaptainCall
-					captain={voyage.captain}
-					onError={onError}
-					voyageId={voyage.id}
-				/>
+				<CaptainCall captain={voyage.captain} onError={onError} voyageId={voyage.id} />
 			</Card>
 		</li>
 	);
@@ -75,22 +60,12 @@ export const VoyagesPanel = ({
 	readonly voyages: ReadonlyArray<VoyageSummary>;
 }) => {
 	if (voyages.length === 0) {
-		return (
-			<p className="text-2xs text-muted-foreground">
-				No voyages open yet — open one to chart work against a north star
-			</p>
-		);
+		return <p className="text-2xs text-muted-foreground">No voyages open yet — open one to chart work against a north star</p>;
 	}
 	return (
 		<ul className="flex min-w-0 flex-col gap-1.5">
 			{byFlagship(voyages).map((voyage) => (
-				<VoyageRow
-					key={voyage.id}
-					onError={onError}
-					onSelect={onSelect}
-					selected={selected}
-					voyage={voyage}
-				/>
+				<VoyageRow key={voyage.id} onError={onError} onSelect={onSelect} selected={selected} voyage={voyage} />
 			))}
 		</ul>
 	);

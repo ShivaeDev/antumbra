@@ -1,12 +1,7 @@
 import { BoardRegisterSchema } from "@antumbra/vocabulary/board";
 import { Effect, Option, Schema } from "effect";
 import { StoredBoardEntryInvalid } from "#errors.ts";
-import {
-	type AppendFields,
-	type BoardEntryRow,
-	type BoardEntryVariant,
-	EntryInput,
-} from "#model.ts";
+import { type AppendFields, type BoardEntryRow, type BoardEntryVariant, EntryInput } from "#model.ts";
 
 // why: this is the disk boundary. Unknown entry vocabulary is corruption, not
 // a quiet note or routine precedence, so decoding fails before projection.
@@ -40,23 +35,13 @@ export const entryRow = (row: unknown) =>
 			(cause) =>
 				new StoredBoardEntryInvalid({
 					detail: String(cause),
-					entryId:
-						typeof row === "object" &&
-						row !== null &&
-						"id" in row &&
-						typeof row.id === "string"
-							? row.id
-							: "unknown",
+					entryId: typeof row === "object" && row !== null && "id" in row && typeof row.id === "string" ? row.id : "unknown",
 				}),
 		),
 	);
 
-export const smoothBodies = (
-	entries: ReadonlyArray<BoardEntryRow>,
-): ReadonlyArray<string> =>
-	entries
-		.filter((entry) => entry.register === "smooth")
-		.map((entry) => entry.body);
+export const smoothBodies = (entries: ReadonlyArray<BoardEntryRow>): ReadonlyArray<string> =>
+	entries.filter((entry) => entry.register === "smooth").map((entry) => entry.body);
 
 export const nextSequence = (last: Option.Option<{ readonly seq: number }>) =>
 	Option.match(last, {
@@ -78,10 +63,7 @@ export const storedEntryVariant = (input: EntryInput): BoardEntryVariant =>
 		}),
 	});
 
-export const appendedEntry = (
-	input: EntryInput,
-	fields: AppendFields,
-): BoardEntryRow => {
+export const appendedEntry = (input: EntryInput, fields: AppendFields): BoardEntryRow => {
 	const row = {
 		authorAgentId: Option.getOrElse(input.authorAgentId, () => null),
 		body: input.body,

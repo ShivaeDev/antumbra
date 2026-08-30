@@ -3,13 +3,7 @@ import { expect, it } from "@effect/vitest";
 import { Effect } from "effect";
 import { AgentDomain } from "#domain.ts";
 import { dispatchingLayer } from "#test/domain-layers.ts";
-import {
-	acquireTemporaryPersistence,
-	makeScriptedBackend,
-	makeScriptedRunner,
-	type ScriptedBackend,
-	sessionFor,
-} from "#test/harness.ts";
+import { acquireTemporaryPersistence, makeScriptedBackend, makeScriptedRunner, type ScriptedBackend, sessionFor } from "#test/harness.ts";
 import { eventually, openReefVoyage, PATIENCE } from "#test/voyage-fixtures.ts";
 
 // why: the catalog's own tests prove the berth order is composed; this one
@@ -57,20 +51,8 @@ it.live("a dispatched crew is told the moorage folder it was berthed in", () =>
 			const agentId = yield* eventually(crewOf(alpha.id));
 			const charter = yield* eventually(charterDelivered(scripted, agentId));
 			expect(charter).toContain(`your moorage, /tmp/moorage/${agentId}.`);
-			expect(charter).toContain(
-				`Reef-Charts — ./berth-0 — branch work/${agentId.slice(0, 8)}/berth-0`,
-			);
+			expect(charter).toContain(`Reef-Charts — ./berth-0 — branch work/${agentId.slice(0, 8)}/berth-0`);
 			expect(charter).toContain(CREW_BERTH_ORDER);
-		}).pipe(
-			Effect.provide(
-				dispatchingLayer(
-					temporary,
-					scripted.backend,
-					PATIENCE,
-					{},
-					recorder.runner,
-				),
-			),
-		);
+		}).pipe(Effect.provide(dispatchingLayer(temporary, scripted.backend, PATIENCE, {}, recorder.runner)));
 	}),
 );

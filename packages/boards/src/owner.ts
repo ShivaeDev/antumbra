@@ -37,14 +37,8 @@ export const linkedBoardId = (scope: BoardScope) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
 		const owner = ownerOf(scope);
-		const storedKinds = yield* db.BoardOwner.where({ ownerId: owner.ownerId })
-			.select("ownerKind")
-			.all();
-		yield* Effect.forEach(storedKinds, (row) =>
-			Effect.fromResult(
-				decodeStoredBoardOwnerKind(owner.ownerId, row.ownerKind),
-			),
-		);
+		const storedKinds = yield* db.BoardOwner.where({ ownerId: owner.ownerId }).select("ownerKind").all();
+		yield* Effect.forEach(storedKinds, (row) => Effect.fromResult(decodeStoredBoardOwnerKind(owner.ownerId, row.ownerKind)));
 		return yield* db.BoardOwner.where(ownerOf(scope))
 			.select("boardId")
 			.first()

@@ -6,10 +6,7 @@ type OnError = (message: string) => void;
 
 // why: the feed opens with what is at the quay now and stays current after —
 // a window that reloads rehydrates from it rather than asking twice.
-export const watchQuay = (
-	onQuay: (quay: QuayView) => void,
-	onError: OnError,
-): Unsubscribe => {
+export const watchQuay = (onQuay: (quay: QuayView) => void, onError: OnError): Unsubscribe => {
 	const subscription = client.quayFeed.subscribe(undefined, {
 		onData: onQuay,
 		onError: (cause) => onError(toError(cause).message),
@@ -37,11 +34,7 @@ export const dismissChange = (changeId: string, onError: OnError): void => {
 		.catch((cause: unknown) => onError(toError(cause).message));
 };
 
-export const adoptChange = (
-	request: AdoptChangeRequest,
-	onDone: () => void,
-	onError: OnError,
-): void => {
+export const adoptChange = (request: AdoptChangeRequest, onDone: () => void, onError: OnError): void => {
 	client.adoptChange
 		.mutate(request)
 		.then(onDone)

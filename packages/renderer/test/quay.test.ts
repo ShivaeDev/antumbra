@@ -23,12 +23,7 @@ const change = (id: string, over: Partial<ChangeView> = {}): ChangeView => ({
 
 describe("the quay's groups", () => {
 	it("reads top-down as attention deserved", () => {
-		expect(QUAY_GROUPS.map((group) => groupTitle[group])).toEqual([
-			"Alongside",
-			"Needs attention",
-			"Checks running",
-			"Draft",
-		]);
+		expect(QUAY_GROUPS.map((group) => groupTitle[group])).toEqual(["Alongside", "Needs attention", "Checks running", "Draft"]);
 	});
 });
 
@@ -51,17 +46,13 @@ describe("changeMarks", () => {
 	});
 
 	it("a mark the vocabulary leaves blank drops out of the line", () => {
-		expect(changeMarks(change("one", { review: "none" }))).toBe(
-			"open · ✓ · ⚓",
-		);
+		expect(changeMarks(change("one", { review: "none" }))).toBe("open · ✓ · ⚓");
 	});
 });
 
 describe("changeName", () => {
 	it("names a change by its number where the host gave one", () => {
 		expect(changeName(change("one"))).toBe("#41 warn on the northern shoal");
-		expect(changeName(change("one", { externalId: null }))).toBe(
-			"warn on the northern shoal",
-		);
+		expect(changeName(change("one", { externalId: null }))).toBe("warn on the northern shoal");
 	});
 });

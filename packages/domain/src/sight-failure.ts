@@ -13,5 +13,4 @@ export const failureMessage = (cause: unknown): string => {
 	return String(cause);
 };
 
-export const toFailure = (cause: unknown): SightFailure =>
-	new SightFailure({ message: failureMessage(cause) });
+export const toFailure = (cause: unknown): SightFailure => new SightFailure({ message: failureMessage(cause) });

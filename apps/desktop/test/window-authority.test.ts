@@ -1,15 +1,7 @@
 import { describe, expect, it } from "@effect/vitest";
 import { adoptWindow } from "#adapters/windows/attach.ts";
 import { makeWindowRegistry } from "#adapters/windows/registry.ts";
-import {
-	consolePlace,
-	contents,
-	eventFor,
-	framed,
-	handleFor,
-	ownWindow,
-	transcriptPlace,
-} from "#test/windows.ts";
+import { consolePlace, contents, eventFor, framed, handleFor, ownWindow, transcriptPlace } from "#test/windows.ts";
 
 describe("owned window registry", () => {
 	it("accepts only an owned live main frame at its own loaded document", () => {
@@ -19,11 +11,7 @@ describe("owned window registry", () => {
 
 		expect(registry.owner(eventFor(console.contents))?.id).toBe("console");
 		expect(registry.owner(eventFor(foreign))).toBeUndefined();
-		expect(
-			registry.owner(
-				eventFor(console.contents, { url: console.contents.document }),
-			),
-		).toBeUndefined();
+		expect(registry.owner(eventFor(console.contents, { url: console.contents.document }))).toBeUndefined();
 		expect(registry.owner(eventFor(console.contents, null))).toBeUndefined();
 
 		const loaded = console.contents.document;
@@ -126,9 +114,7 @@ describe("owned window registry", () => {
 		expect(registry.children().map((held) => held.id)).toEqual(["child"]);
 		expect(registry.holding(transcriptPlace("session-1"))?.id).toBe("child");
 		expect(registry.holding(transcriptPlace("session-2"))).toBeUndefined();
-		expect(registry.windowOf("child")?.place).toEqual(
-			transcriptPlace("session-1"),
-		);
+		expect(registry.windowOf("child")?.place).toEqual(transcriptPlace("session-1"));
 
 		registry.release(child.contents);
 		expect(registry.children()).toEqual([]);

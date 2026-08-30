@@ -12,10 +12,7 @@ const EMPTY = Schema.Struct({});
 
 const LOCKED = "the chart room is locked";
 
-const rowOf = (id: string) =>
-	Database.use((db) => db.Intent.where({ id }).first()).pipe(
-		Effect.map(Option.getOrThrow),
-	);
+const rowOf = (id: string) => Database.use((db) => db.Intent.where({ id }).first()).pipe(Effect.map(Option.getOrThrow));
 
 const untilWaiting = <E, R>(changes: Stream.Stream<IntentStatus, E, R>) =>
 	changes.pipe(

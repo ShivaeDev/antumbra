@@ -1,12 +1,5 @@
 import { spawnSync } from "node:child_process";
-import {
-	mkdirSync,
-	mkdtempSync,
-	realpathSync,
-	rmSync,
-	symlinkSync,
-	writeFileSync,
-} from "node:fs";
+import { mkdirSync, mkdtempSync, realpathSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -16,27 +9,16 @@ const scriptDirectory = dirname(dirname(fileURLToPath(import.meta.url)));
 const entry = join(scriptDirectory, "boundaries.ts");
 const roots: string[] = [];
 
-const seedBareImport = (
-	importedSubject: string,
-	exportedSubjects: readonly string[],
-) => {
+const seedBareImport = (importedSubject: string, exportedSubjects: readonly string[]) => {
 	const root = realpathSync(mkdtempSync(join(tmpdir(), "antumbra-boundary-")));
 	roots.push(root);
 	const renderer = join(root, "packages/renderer/src/view.ts");
 	const vocabulary = join(root, "packages/vocabulary");
 	mkdirSync(dirname(renderer), { recursive: true });
 	mkdirSync(join(vocabulary, "src"), { recursive: true });
-	writeFileSync(
-		renderer,
-		`import "@antumbra/vocabulary/${importedSubject}";\nexport {};\n`,
-	);
-	const exports = Object.fromEntries(
-		exportedSubjects.map((subject) => [`./${subject}`, `./src/${subject}.ts`]),
-	);
-	writeFileSync(
-		join(vocabulary, "package.json"),
-		JSON.stringify({ exports, name: "@antumbra/vocabulary", type: "module" }),
-	);
+	writeFileSync(renderer, `import "@antumbra/vocabulary/${importedSubject}";\nexport {};\n`);
+	const exports = Object.fromEntries(exportedSubjects.map((subject) => [`./${subject}`, `./src/${subject}.ts`]));
+	writeFileSync(join(vocabulary, "package.json"), JSON.stringify({ exports, name: "@antumbra/vocabulary", type: "module" }));
 	for (const subject of exportedSubjects) {
 		writeFileSync(join(vocabulary, `src/${subject}.ts`), "export {};\n");
 	}
@@ -46,8 +28,7 @@ const seedBareImport = (
 	return root;
 };
 
-const run = (root: string) =>
-	spawnSync("node", [entry, root], { encoding: "utf8" });
+const run = (root: string) => spawnSync("node", [entry, root], { encoding: "utf8" });
 
 afterEach(() => {
 	for (const root of roots.splice(0)) {

@@ -16,18 +16,10 @@ const stateWord = ({ outcome, state }: TranscriptDelegation): string => {
 // so the mark that stands where they were has to be the way to reach them. A
 // node the tree cannot place still marks the spot; it just does not lead
 // anywhere, which is the truth rather than a dead link.
-const Name = ({
-	item,
-	onOpenNode,
-}: {
-	readonly item: TranscriptDelegation;
-	readonly onOpenNode: ((nodeId: string) => void) | undefined;
-}) => {
+const Name = ({ item, onOpenNode }: { readonly item: TranscriptDelegation; readonly onOpenNode: ((nodeId: string) => void) | undefined }) => {
 	const nodeId = item.nodeId;
 	if (nodeId === undefined || onOpenNode === undefined) {
-		return (
-			<span className="min-w-0 truncate text-2xs">{item.displayName}</span>
-		);
+		return <span className="min-w-0 truncate text-2xs">{item.displayName}</span>;
 	}
 	return (
 		<button
@@ -51,9 +43,7 @@ export const TranscriptDelegationMark = ({
 		<Separator className="flex-1" />
 		<span className="shrink-0 text-2xs text-muted-foreground">subsession</span>
 		<Name item={item} onOpenNode={onOpenNode} />
-		<span className="shrink-0 text-2xs text-muted-foreground">
-			{stateWord(item)}
-		</span>
+		<span className="shrink-0 text-2xs text-muted-foreground">{stateWord(item)}</span>
 		<Separator className="flex-1" />
 	</div>
 );

@@ -21,46 +21,31 @@ export interface ObservationMatches {
 	readonly preparedCandidates: ReadonlyArray<ChangeRow>;
 }
 
-const decodedOptional = <A extends Parameters<typeof changeRow>[0]>(
-	row: Option.Option<A>,
-) =>
+const decodedOptional = <A extends Parameters<typeof changeRow>[0]>(row: Option.Option<A>) =>
 	Option.match(row, {
 		onNone: () => Effect.succeed(Option.none<ChangeRow>()),
 		onSome: (stored) => Effect.map(changeRow(stored), Option.some),
 	});
 
 const hasSubmissionClaim = (row: ChangeRow): boolean =>
-	row.openedByAgentId !== null &&
-	row.submissionKey === submissionKey(row.openedByAgentId, row.repoId);
+	row.openedByAgentId !== null && row.submissionKey === submissionKey(row.openedByAgentId, row.repoId);
 
-const selectedPrepared = (
-	candidates: ReadonlyArray<ChangeRow>,
-	attachment: ObservationAttachment,
-): Option.Option<ChangeRow> => {
+const selectedPrepared = (candidates: ReadonlyArray<ChangeRow>, attachment: ObservationAttachment): Option.Option<ChangeRow> => {
 	if (attachment._tag === "ExternalOnly") {
 		return Option.none();
 	}
 	if (attachment._tag === "Observed") {
 		const candidate = candidates[0];
-		return candidates.length === 1 && candidate !== undefined
-			? Option.some(candidate)
-			: Option.none();
+		return candidates.length === 1 && candidate !== undefined ? Option.some(candidate) : Option.none();
 	}
 	return Option.fromUndefinedOr(
 		candidates.find(
-			(row) =>
-				row.openedByAgentId === attachment.agentId &&
-				row.submissionKey === attachment.submissionKey &&
-				row.id === attachment.changeId,
+			(row) => row.openedByAgentId === attachment.agentId && row.submissionKey === attachment.submissionKey && row.id === attachment.changeId,
 		),
 	);
 };
 
-export const matchObservation = (
-	hostTag: string,
-	observation: ChangeObservation,
-	attachment: ObservationAttachment,
-) =>
+export const matchObservation = (hostTag: string, observation: ChangeObservation, attachment: ObservationAttachment) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
 		const external = yield* db.Change.where({

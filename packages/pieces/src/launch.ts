@@ -7,9 +7,7 @@ const loadPiece = (pieceId: string) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
 		const row = yield* db.Piece.where({ id: pieceId }).first();
-		return Option.isNone(row)
-			? yield* new PieceNotFound({ pieceId })
-			: row.value;
+		return Option.isNone(row) ? yield* new PieceNotFound({ pieceId }) : row.value;
 	});
 
 export const launch = (pieceId: string) =>

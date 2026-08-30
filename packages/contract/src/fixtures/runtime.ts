@@ -15,7 +15,9 @@ import { type SettingsReading, SettingsSource } from "#settings/readings.ts";
 const reading: SettingsReading = {
 	overridden: [],
 	settings: {
+		foldToolCalls: SETTINGS.foldToolCalls.fallback,
 		maxParallelSessions: SETTINGS.maxParallelSessions.fallback,
+		idleSiestaMinutes: SETTINGS.idleSiestaMinutes.fallback,
 		retireRestMinutes: SETTINGS.retireRestMinutes.fallback,
 		retireSweep: SETTINGS.retireSweep.fallback,
 	},

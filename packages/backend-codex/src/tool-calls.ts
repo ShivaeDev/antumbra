@@ -17,8 +17,7 @@ const callNamed = (tools: ToolRegistry, call: Call) =>
 	tools.call(call.threadId, call.tool, call.arguments).pipe(
 		Effect.map(
 			Option.match({
-				onNone: () =>
-					answer(`antumbra serves no tool named ${call.tool}`, false),
+				onNone: () => answer(`antumbra serves no tool named ${call.tool}`, false),
 				onSome: (outcome) => answer(outcome.text, outcome.ok),
 			}),
 		),
@@ -29,7 +28,6 @@ const callNamed = (tools: ToolRegistry, call: Call) =>
 // would learn nothing it could act on.
 export const dynamicToolAnswer = (tools: ToolRegistry, params: unknown) =>
 	Option.match(decodeCall(params), {
-		onNone: () =>
-			Effect.succeed(answer("antumbra could not read that tool call", false)),
+		onNone: () => Effect.succeed(answer("antumbra could not read that tool call", false)),
 		onSome: (call) => callNamed(tools, call),
 	});

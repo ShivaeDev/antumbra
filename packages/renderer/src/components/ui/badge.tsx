@@ -32,11 +32,5 @@ export const Badge = ({
 		readonly asChild?: boolean;
 	}) => {
 	const Element = asChild ? Slot : "span";
-	return (
-		<Element
-			className={cn(badgeVariants({ className, variant }))}
-			data-slot="badge"
-			{...props}
-		/>
-	);
+	return <Element className={cn(badgeVariants({ className, variant }))} data-slot="badge" {...props} />;
 };

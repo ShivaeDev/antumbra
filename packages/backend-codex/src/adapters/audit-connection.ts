@@ -26,16 +26,11 @@ export interface AuditConnection {
 // requests are answered the way the backend answers them everywhere: with what
 // the method deserves, or an honest refusal, and never with silence, which
 // would hang whatever asked.
-export const openAuditConnection = (
-	spawn: () => LineProcess,
-): Effect.Effect<AuditConnection, BackendFailure, Scope.Scope> =>
+export const openAuditConnection = (spawn: () => LineProcess): Effect.Effect<AuditConnection, BackendFailure, Scope.Scope> =>
 	Effect.gen(function* () {
 		const tools = yield* makeToolRegistry;
 		const serverRequests = yield* Queue.unbounded<RpcServerRequest>();
-		const child = yield* Effect.acquireRelease(
-			Effect.try({ catch: codexFailure, try: spawn }),
-			(process) => Effect.sync(() => process.kill()),
-		);
+		const child = yield* Effect.acquireRelease(Effect.try({ catch: codexFailure, try: spawn }), (process) => Effect.sync(() => process.kill()));
 		const rpc = connectRpc(child);
 		rpc.onServerRequest((request) => {
 			Queue.offerUnsafe(serverRequests, request);

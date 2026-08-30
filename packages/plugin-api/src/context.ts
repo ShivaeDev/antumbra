@@ -3,9 +3,7 @@ import type { AgentBackend } from "#backend.ts";
 import type { ChangeHost } from "#change-host.ts";
 import type { Runner } from "#runner.ts";
 
-export class DuplicateBackendTag extends Data.TaggedError(
-	"DuplicateBackendTag",
-)<{
+export class DuplicateBackendTag extends Data.TaggedError("DuplicateBackendTag")<{
 	readonly tag: string;
 }> {}
 
@@ -13,9 +11,7 @@ export class DuplicateRunnerTag extends Data.TaggedError("DuplicateRunnerTag")<{
 	readonly tag: string;
 }> {}
 
-export class DuplicateChangeHostTag extends Data.TaggedError(
-	"DuplicateChangeHostTag",
-)<{
+export class DuplicateChangeHostTag extends Data.TaggedError("DuplicateChangeHostTag")<{
 	readonly tag: string;
 }> {}
 
@@ -30,18 +26,10 @@ export interface SettingsApi {
 export interface PluginContext {
 	// why: a backend plugin drives a CLI the user installed; the host knows
 	// where to look for it, the plugin knows the name to look for.
-	readonly findExecutable: (
-		name: string,
-	) => Effect.Effect<Option.Option<string>>;
-	readonly registerAgentBackend: (
-		backend: AgentBackend,
-	) => Effect.Effect<void, DuplicateBackendTag>;
-	readonly registerChangeHost: (
-		host: ChangeHost,
-	) => Effect.Effect<void, DuplicateChangeHostTag>;
-	readonly registerRunner: (
-		runner: Runner,
-	) => Effect.Effect<void, DuplicateRunnerTag>;
+	readonly findExecutable: (name: string) => Effect.Effect<Option.Option<string>>;
+	readonly registerAgentBackend: (backend: AgentBackend) => Effect.Effect<void, DuplicateBackendTag>;
+	readonly registerChangeHost: (host: ChangeHost) => Effect.Effect<void, DuplicateChangeHostTag>;
+	readonly registerRunner: (runner: Runner) => Effect.Effect<void, DuplicateRunnerTag>;
 	readonly secrets: SecretsApi;
 	readonly settings: SettingsApi;
 }
@@ -51,9 +39,7 @@ export interface PluginContext {
 // connection) and it is released when the host layer tears down, never
 // leaked and never tied to a session's lifetime.
 export interface AntumbraPlugin {
-	readonly activate: (
-		context: PluginContext,
-	) => Effect.Effect<void, unknown, Scope.Scope>;
+	readonly activate: (context: PluginContext) => Effect.Effect<void, unknown, Scope.Scope>;
 	readonly name: string;
 }
 
@@ -65,10 +51,7 @@ export interface PluginHost {
 }
 
 const registerInto =
-	<Registered extends { readonly tag: string }, Failure>(
-		registry: Ref.Ref<ReadonlyMap<string, Registered>>,
-		duplicate: (tag: string) => Failure,
-	) =>
+	<Registered extends { readonly tag: string }, Failure>(registry: Ref.Ref<ReadonlyMap<string, Registered>>, duplicate: (tag: string) => Failure) =>
 	(entry: Registered): Effect.Effect<void, Failure> =>
 		Effect.gen(function* () {
 			const current = yield* Ref.get(registry);
@@ -80,32 +63,17 @@ const registerInto =
 
 export const makePluginHost = (host: Pick<PluginContext, "findExecutable">) =>
 	Effect.gen(function* () {
-		const backendRegistry = yield* Ref.make<ReadonlyMap<string, AgentBackend>>(
-			new Map(),
-		);
-		const runnerRegistry = yield* Ref.make<ReadonlyMap<string, Runner>>(
-			new Map(),
-		);
-		const changeHostRegistry = yield* Ref.make<ReadonlyMap<string, ChangeHost>>(
-			new Map(),
-		);
+		const backendRegistry = yield* Ref.make<ReadonlyMap<string, AgentBackend>>(new Map());
+		const runnerRegistry = yield* Ref.make<ReadonlyMap<string, Runner>>(new Map());
+		const changeHostRegistry = yield* Ref.make<ReadonlyMap<string, ChangeHost>>(new Map());
 		const empty = {
 			get: () => Effect.succeed(Option.none<string>()),
 		};
 		const context: PluginContext = {
 			findExecutable: host.findExecutable,
-			registerAgentBackend: registerInto(
-				backendRegistry,
-				(tag) => new DuplicateBackendTag({ tag }),
-			),
-			registerChangeHost: registerInto(
-				changeHostRegistry,
-				(tag) => new DuplicateChangeHostTag({ tag }),
-			),
-			registerRunner: registerInto(
-				runnerRegistry,
-				(tag) => new DuplicateRunnerTag({ tag }),
-			),
+			registerAgentBackend: registerInto(backendRegistry, (tag) => new DuplicateBackendTag({ tag })),
+			registerChangeHost: registerInto(changeHostRegistry, (tag) => new DuplicateChangeHostTag({ tag })),
+			registerRunner: registerInto(runnerRegistry, (tag) => new DuplicateRunnerTag({ tag })),
 			secrets: empty,
 			settings: empty,
 		};

@@ -14,10 +14,7 @@ const currentTime = Clock.currentTimeMillis.pipe(
 	})),
 );
 
-const answerFor = (
-	tools: ToolRegistry,
-	request: RpcServerRequest,
-): Effect.Effect<Option.Option<unknown>> => {
+const answerFor = (tools: ToolRegistry, request: RpcServerRequest): Effect.Effect<Option.Option<unknown>> => {
 	if (request.method === "currentTime/read") {
 		return Effect.map(currentTime, Option.some);
 	}
@@ -29,11 +26,7 @@ const answerFor = (
 
 // why: every request the server makes gets an answer or an honest refusal of
 // the method — never silence, which would hang the item that asked.
-export const answerServerRequest = (
-	rpc: RpcConnection,
-	tools: ToolRegistry,
-	request: RpcServerRequest,
-): Effect.Effect<void> =>
+export const answerServerRequest = (rpc: RpcConnection, tools: ToolRegistry, request: RpcServerRequest): Effect.Effect<void> =>
 	answerFor(tools, request).pipe(
 		Effect.flatMap((answer) =>
 			Effect.sync(() =>

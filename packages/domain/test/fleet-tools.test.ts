@@ -133,8 +133,6 @@ it.live("the flagship's captain reads a voyage it names", () =>
 			expect(read.text).toContain("# Chart the reef [quiet]");
 			expect(read.text).toContain(`- ${sounding.id} sounding [done]`);
 			expect(read.text).toContain(`- ${landed.id} eastern soundings — report`);
-			// why: naming no voyage still reads the ship the captain is on, so the
-			// widened form takes nothing away from the one every captain holds.
 			expect((yield* callTool(captain, "read_voyage", {})).text).toContain(
 				"# Flagship",
 			);

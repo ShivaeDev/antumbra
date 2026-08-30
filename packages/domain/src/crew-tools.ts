@@ -21,6 +21,7 @@ import { makeRulingToolCompiler } from "#ruling-tools.ts";
 import { StandDown } from "#stand-down.ts";
 import { answered, onPiece } from "#tool-answers.ts";
 import type { SessionIdentity } from "#tool-identity.ts";
+import { makeVoyageReadingToolCompiler } from "#voyage-reading-tools.ts";
 
 const artifactLandingAnswer = (landing: ArtifactLanding): string => {
 	if (landing._tag === "superseded") {
@@ -63,6 +64,7 @@ export const makeCrewToolCompiler = Effect.gen(function* () {
 	const compileReportTools = yield* makeReportToolCompiler;
 	const compileRulingTools = yield* makeRulingToolCompiler;
 	const compileRulingReadingTools = yield* makeRulingReadingToolCompiler;
+	const compileVoyageReadingTools = yield* makeVoyageReadingToolCompiler;
 	const reports = yield* Reports;
 	const standDown = yield* StandDown;
 	function crewTools(identity: SessionIdentity): ReadonlyArray<DirectTool> {
@@ -116,6 +118,7 @@ export const makeCrewToolCompiler = Effect.gen(function* () {
 				),
 			),
 			...compileChangeTools(identity),
+			...compileVoyageReadingTools(identity),
 			...compileBoardTools(identity),
 			...compileRulingTools(identity),
 			standDown.tool(identity),

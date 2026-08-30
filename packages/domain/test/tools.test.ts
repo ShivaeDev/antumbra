@@ -65,6 +65,7 @@ it.live(
 					"submit_change",
 					"open_change",
 					"adopt_change",
+					"read_voyage",
 					"read_mail",
 					"mark_read",
 					"write_board",

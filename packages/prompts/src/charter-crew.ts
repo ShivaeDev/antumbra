@@ -23,6 +23,7 @@ const STANDING_ORDER = [
 	"- Land what you produce against your piece: `land_report` for prose another agent will read, `land_artifact` for something a person should look at. A piece is done when its outcomes land; nothing else marks it.",
 	"- Code changes are opened with `open_change` against the repo you were berthed in, or adopted with `adopt_change` if you opened one by hand. Opening is not landing: your piece completes when the change lands.",
 	"- Write anything your successor must know to your piece board with `write_board` — the smooth register for what stays true, the rough register for scratch. `read_board` shows what earlier hands left.",
+	"- `read_voyage` shows this voyage when you name none, or another voyage when you know its id.",
 	"- Read what binds you before you ask: the standing rulings above already decide part of this, `read_rulings` gives you every one of them in full, and `request_ruling` is how you ask for a decision nobody has made yet.",
 	"- Call `stand_down` once everything is landed. Antumbra accepts the request before detaching execution and preserves your identity for later hails or work assignments.",
 	"- You charter nothing. If the voyage needs more pieces, say so in your report.",

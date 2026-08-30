@@ -5,7 +5,6 @@ import {
 	openVoyageSpec,
 	proclaimRulingSpec,
 	readFleetSpec,
-	readVoyageSpec,
 } from "@antumbra/agent-tools";
 import { Pieces } from "@antumbra/pieces";
 import type { DirectTool } from "@antumbra/plugin-api";
@@ -15,17 +14,14 @@ import {
 	Rulings,
 } from "@antumbra/rulings";
 import { AGENT_BACKEND_TAGS } from "@antumbra/vocabulary/agent-backend";
-import { Effect, Option } from "effect";
+import { Effect } from "effect";
 import { makeCaptainToolCompiler } from "#captain-tools.ts";
-import { VoyageNotFound } from "#errors.ts";
 import { renderFleet } from "#fleet-render.ts";
-import { widenedBy } from "#fleet-widening.ts";
 import type { HailedCaptain } from "#hail.ts";
 import { tagSubjects } from "#ruling-inputs.ts";
-import { answered, onVoyage } from "#tool-answers.ts";
+import { answered } from "#tool-answers.ts";
 import type { SessionIdentity } from "#tool-identity.ts";
 import { VoyageProcedureService } from "#voyage-procedures.ts";
-import { renderVoyage } from "#voyage-render.ts";
 
 // why: an opened voyage points at the first backend this app ships, the way a
 // window draft that names none falls back to the first one offered. The
@@ -66,26 +62,7 @@ export const makeFleetToolCompiler = Effect.gen(function* () {
 	const pieces = yield* Pieces;
 	const rulings = yield* Rulings;
 	const voyages = yield* VoyageProcedureService;
-	const readsVoyage = (identity: SessionIdentity, voyageId: string) =>
-		answered(
-			identity,
-			readVoyageSpec.name,
-			voyages.read(voyageId).pipe(
-				Effect.flatMap((view) =>
-					Option.match(view, {
-						onNone: () => new VoyageNotFound({ voyageId }),
-						onSome: (found) => Effect.succeed(found),
-					}),
-				),
-			),
-			renderVoyage,
-		);
 	const fleetActs = (identity: SessionIdentity): ReadonlyArray<DirectTool> => [
-		bind(readVoyageSpec, (input) =>
-			input.voyageId === undefined
-				? onVoyage(identity, (own) => readsVoyage(identity, own))
-				: readsVoyage(identity, input.voyageId),
-		),
 		bind(readFleetSpec, () =>
 			answered(identity, readFleetSpec.name, voyages.list, renderFleet),
 		),
@@ -134,6 +111,8 @@ export const makeFleetToolCompiler = Effect.gen(function* () {
 			),
 		),
 	];
-	return (identity: SessionIdentity): ReadonlyArray<DirectTool> =>
-		widenedBy(compileCaptainTools(identity), fleetActs(identity));
+	return (identity: SessionIdentity): ReadonlyArray<DirectTool> => [
+		...compileCaptainTools(identity),
+		...fleetActs(identity),
+	];
 });

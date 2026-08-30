@@ -1,10 +1,4 @@
-import {
-	anyOf,
-	fence,
-	files,
-	importFrom,
-	packages,
-} from "#boundaries/dsl.ts";
+import { anyOf, fence, files, importFrom, packages } from "#boundaries/dsl.ts";
 import type { BoundaryRule } from "#boundaries/model.ts";
 import {
 	adapters,

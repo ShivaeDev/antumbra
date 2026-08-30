@@ -30,13 +30,6 @@ export const makeJournalAppends = Effect.gen(function* () {
 				});
 				return;
 			}
-			if (durable !== event.nativeRef) {
-				yield* Effect.logWarning("session native identity mismatch", {
-					durableNativeRef: durable,
-					reportedNativeRef: event.nativeRef,
-					sessionId,
-				});
-			}
 		}).pipe(Effect.asVoid);
 	};
 	const appendOne = ({ event, sessionId }: JournalAppend) =>
@@ -49,8 +42,6 @@ export const makeJournalAppends = Effect.gen(function* () {
 				onNone: () => 0,
 				onSome: (row) => row.seq + 1,
 			});
-			// why: the row kind is the neutral event type; the whole neutral event
-			// (raw provider payload included) is the row payload.
 			const row: StoredEvent = {
 				kind: event.type,
 				payload: JSON.stringify(event),
@@ -61,8 +52,5 @@ export const makeJournalAppends = Effect.gen(function* () {
 			yield* recordNativeRef(sessionId, event);
 			return row;
 		});
-	// why: appends run one after another inside the caller's transaction because
-	// two of them can name the same Session, and a sequence read concurrently
-	// with its own insert would hand out the same number twice.
 	return (appends: ReadonlyArray<JournalAppend>) => Effect.forEach(appends, appendOne, { concurrency: 1 });
 });

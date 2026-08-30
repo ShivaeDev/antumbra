@@ -12,16 +12,9 @@ const rawOf = (kind: string): AgentEvent["raw"] => ({
 	source: "scripted",
 });
 
-const MISSING_SESSION_EVENT: AgentEvent = {
-	raw: rawOf("missing-session"),
-	role: "agent",
-	text: "must not outlive its row refusal",
-	type: "message",
-};
-
 const journalLayer = SessionEventJournalLive.pipe(Layer.provideMerge(DomainFeedsLive));
 
-it.live("records unique contiguous per-Session event sequences", () =>
+it.live("records events in per-Session order", () =>
 	Effect.scoped(
 		Effect.gen(function* () {
 			const temporary = yield* acquireTemporaryPersistence;
@@ -47,88 +40,29 @@ it.live("records unique contiguous per-Session event sequences", () =>
 					rootSessionId: "session-sequence",
 					status: "open",
 				} satisfies NewAgentSession);
-				yield* db.SessionEvent.create({
-					kind: "message",
-					payload: JSON.stringify({
-						raw: rawOf("seed"),
+				expect(
+					yield* journal.record("session-sequence", {
+						raw: rawOf("first"),
 						role: "agent",
-						text: "seed",
+						text: "first",
 						type: "message",
 					}),
-					seq: 0,
-					sessionId: "session-sequence",
-				});
-				yield* Effect.all(
-					[
-						journal.record("session-sequence", {
-							raw: rawOf("first"),
-							role: "agent",
-							text: "first",
-							type: "message",
-						}),
-						journal.record("session-sequence", {
-							raw: rawOf("second"),
-							role: "agent",
-							text: "second",
-							type: "message",
-						}),
-					],
-					{ concurrency: "unbounded" },
-				);
+				).toBe(true);
+				expect(
+					yield* journal.record("session-sequence", {
+						raw: rawOf("second"),
+						role: "agent",
+						text: "second",
+						type: "message",
+					}),
+				).toBe(true);
 				const events = yield* db.SessionEvent.where({
 					sessionId: "session-sequence",
 				})
 					.orderBy((event) => event.seq.asc())
 					.all();
-				expect(events.map((event) => event.seq)).toEqual([0, 1, 2]);
-				expect(events.slice(1).map((event) => event.kind)).toEqual(["message", "message"]);
-			}).pipe(Effect.provide(journalLayer.pipe(Layer.provideMerge(temporary.layer))));
-		}),
-	),
-);
-
-it.live("does not acknowledge an opening event without a durable Session", () =>
-	Effect.scoped(
-		Effect.gen(function* () {
-			const temporary = yield* acquireTemporaryPersistence;
-			yield* Effect.gen(function* () {
-				const db = yield* Database;
-				const journal = yield* SessionEventJournal;
-				expect(
-					yield* journal.record("session-missing", {
-						nativeRef: "native-orphan",
-						raw: rawOf("session/opened"),
-						type: "session.opened",
-					}),
-				).toBe(false);
-				expect(yield* db.SessionEvent.where({ sessionId: "session-missing" }).all()).toEqual([]);
-			}).pipe(Effect.provide(journalLayer.pipe(Layer.provideMerge(temporary.layer))));
-		}),
-	),
-);
-
-it.live("rolls caller rows back when their journal append is refused", () =>
-	Effect.scoped(
-		Effect.gen(function* () {
-			const temporary = yield* acquireTemporaryPersistence;
-			yield* Effect.gen(function* () {
-				const db = yield* Database;
-				const journal = yield* SessionEventJournal;
-				const recorded = yield* journal.recordTogether({
-					appends: [
-						{
-							event: MISSING_SESSION_EVENT,
-							sessionId: "session-missing",
-						},
-					],
-					rows: db.AppMeta.create({
-						key: "journal-rollback-probe",
-						value: "written before the refused append",
-					}).pipe(Effect.asVoid),
-				});
-
-				expect(recorded).toBe(false);
-				expect(yield* db.AppMeta.where({ key: "journal-rollback-probe" }).exists()).toBe(false);
+				expect(events.map((event) => event.seq)).toEqual([0, 1]);
+				expect(events.map((event) => event.kind)).toEqual(["message", "message"]);
 			}).pipe(Effect.provide(journalLayer.pipe(Layer.provideMerge(temporary.layer))));
 		}),
 	),

@@ -7,13 +7,9 @@ import { writeEntry } from "#write.ts";
 
 const mailbox = (agentId: string): BoardScope => BoardScope.Agent({ agentId });
 
-const readIds = (receipts: ReadonlyArray<{ readonly entryId: string }>) =>
-	new Set(receipts.map((receipt) => receipt.entryId));
+const readIds = (receipts: ReadonlyArray<{ readonly entryId: string }>) => new Set(receipts.map((receipt) => receipt.entryId));
 
-const mailEntries = (agentId: string) =>
-	readBoard(mailbox(agentId)).pipe(
-		Effect.map((entries) => entries.filter((entry) => entry.kind === "mail")),
-	);
+const mailEntries = (agentId: string) => readBoard(mailbox(agentId)).pipe(Effect.map((entries) => entries.filter((entry) => entry.kind === "mail")));
 
 const storeReceipt = (entryId: string) =>
 	Database.use((db) =>
@@ -22,11 +18,7 @@ const storeReceipt = (entryId: string) =>
 			Effect.catchTag("PrismaError", (failure) =>
 				db.BoardEntryReceipt.where({ entryId })
 					.exists()
-					.pipe(
-						Effect.flatMap((exists) =>
-							exists ? Effect.void : Effect.fail(failure),
-						),
-					),
+					.pipe(Effect.flatMap((exists) => (exists ? Effect.void : Effect.fail(failure)))),
 			),
 		),
 	);
@@ -69,7 +61,5 @@ const receiptsFor = (agentId: string, entryIds: ReadonlyArray<string>) =>
 		);
 	});
 
-export const markMailRead = (
-	agentId: string,
-	entryIds: ReadonlyArray<string>,
-) => Database.use((db) => db.transaction(receiptsFor(agentId, entryIds)));
+export const markMailRead = (agentId: string, entryIds: ReadonlyArray<string>) =>
+	Database.use((db) => db.transaction(receiptsFor(agentId, entryIds))).pipe(Effect.asVoid);

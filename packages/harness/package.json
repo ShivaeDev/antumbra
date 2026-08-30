@@ -12,7 +12,7 @@
 	},
 	"scripts": {
 		"dev": "node script/dev.ts",
-		"test": "vitest run --passWithNoTests",
+		"test": "vitest run",
 		"typecheck": "tsc --noEmit",
 		"typecheck:compat": "tsc6 --noEmit"
 	},

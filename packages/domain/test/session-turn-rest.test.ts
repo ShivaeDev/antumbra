@@ -3,15 +3,9 @@ import { Kernel } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
 import { expect, it } from "@effect/vitest";
 import { Effect } from "effect";
-import { IDLE_SIESTA_AFTER_MILLIS } from "#session-idle.ts";
+import { acquireTemporaryPersistence, callTool, makeScriptedBackend, rawOf, type ScriptedSession } from "#test/harness.ts";
 import {
-	acquireTemporaryPersistence,
-	callTool,
-	makeScriptedBackend,
-	rawOf,
-	type ScriptedSession,
-} from "#test/harness.ts";
-import {
+	DEFAULT_IDLE_SIESTA_AFTER_MILLIS,
 	HAND,
 	openedNatively,
 	passedAt,
@@ -142,7 +136,7 @@ it.live("a turn ending is never written down as a declaration", () =>
 
 // why: words are the end of having nothing to do, whichever act began the
 // quiet. The mark a turn ending left is cleared by them exactly as a
-// declaration's would be, so the hour never comes around on a Session that has
+// declaration's would be, so the threshold never reaches a Session that has
 // been given something to do.
 it.live("words after a completed turn put the session back to work", () =>
 	Effect.gen(function* () {
@@ -160,7 +154,7 @@ it.live("words after a completed turn put the session back to work", () =>
 			expect((yield* presenceOf).presence).toBe("working");
 			expect(yield* live.sent).toEqual([HAND.charter, "one more thing"]);
 
-			yield* passedAt(IDLE_SIESTA_AFTER_MILLIS + 60_000);
+			yield* passedAt(DEFAULT_IDLE_SIESTA_AFTER_MILLIS + 60_000);
 			expect(yield* siestaIntents).toEqual([]);
 			expect(yield* live.closed).toBe(false);
 		}).pipe(Effect.provide(sightLayer(temporary, scripted)));
@@ -215,18 +209,16 @@ it.live("the tree still holds back rest after the root's turn ends", () =>
 			yield* settled;
 			yield* restingAt(false);
 
-			yield* passedAt(IDLE_SIESTA_AFTER_MILLIS + 60_000);
+			yield* passedAt(DEFAULT_IDLE_SIESTA_AFTER_MILLIS + 60_000);
 			expect(yield* siestaIntents).toEqual([]);
 			expect(yield* live.closed).toBe(false);
 
 			yield* finishes(live);
 			yield* restingAt(true);
-			yield* passedAt(IDLE_SIESTA_AFTER_MILLIS + 60_000);
+			yield* passedAt(DEFAULT_IDLE_SIESTA_AFTER_MILLIS + 60_000);
 			const demanded = yield* siestaIntents;
 			expect(demanded).toHaveLength(1);
-			expect(yield* untilTerminal(kernel.changes(demanded[0]?.id ?? ""))).toBe(
-				"succeeded",
-			);
+			expect(yield* untilTerminal(kernel.changes(demanded[0]?.id ?? ""))).toBe("succeeded");
 			expect(yield* live.closed).toBe(true);
 		}).pipe(Effect.provide(sightLayer(temporary, scripted)));
 	}),

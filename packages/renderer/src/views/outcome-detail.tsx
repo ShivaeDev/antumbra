@@ -49,33 +49,16 @@ export const OutcomeDetailView = ({
 }) => (
 	<div className="flex min-w-0 flex-col gap-2 rounded-md border border-border bg-popover px-2.5 py-2">
 		<div className="flex min-w-0 items-start gap-2">
-			<h3 className="min-w-0 flex-1 text-xs font-medium wrap-anywhere">
-				{detail.title}
-			</h3>
+			<h3 className="min-w-0 flex-1 text-xs font-medium wrap-anywhere">{detail.title}</h3>
 			{detail._tag === "loading" ? null : action}
 			{detail._tag === "loading" ? null : (
-				<Button
-					aria-label="Close"
-					onClick={onClose}
-					size="icon"
-					title="Close"
-					type="button"
-					variant="ghost"
-				>
+				<Button aria-label="Close" onClick={onClose} size="icon" title="Close" type="button" variant="ghost">
 					<XIcon />
 				</Button>
 			)}
 		</div>
-		{detail._tag === "loading" ? (
-			<p className="text-2xs text-muted-foreground">{reading}</p>
-		) : null}
-		{detail._tag === "failed" ? (
-			<p className="text-2xs text-destructive wrap-anywhere">
-				{detail.message}
-			</p>
-		) : null}
-		{detail._tag === "loaded" ? (
-			<OutcomeMarkdownView markdown={detail.markdown} />
-		) : null}
+		{detail._tag === "loading" ? <p className="text-2xs text-muted-foreground">{reading}</p> : null}
+		{detail._tag === "failed" ? <p className="text-2xs text-destructive wrap-anywhere">{detail.message}</p> : null}
+		{detail._tag === "loaded" ? <OutcomeMarkdownView markdown={detail.markdown} /> : null}
 	</div>
 );

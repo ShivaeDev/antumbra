@@ -18,10 +18,7 @@ const TITLES: Record<GapKind, string> = {
 	unknown: "part of this work was not observed",
 };
 
-export const gapNotice = (
-	event: typeof SubsessionGap.Type,
-	seq: number,
-): TranscriptNotice => ({
+export const gapNotice = (event: typeof SubsessionGap.Type, seq: number): TranscriptNotice => ({
 	detail: event.detail,
 	kind: "notice",
 	seq,

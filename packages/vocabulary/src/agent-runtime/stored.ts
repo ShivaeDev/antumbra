@@ -10,9 +10,7 @@ import {
 	ResourceReclaimStateSchema,
 } from "#agent-runtime/statuses.ts";
 
-export class StoredAgentStatusInvalid extends Data.TaggedError(
-	"StoredAgentStatusInvalid",
-)<{
+export class StoredAgentStatusInvalid extends Data.TaggedError("StoredAgentStatusInvalid")<{
 	readonly agentId: string;
 	readonly value: unknown;
 }> {
@@ -21,9 +19,7 @@ export class StoredAgentStatusInvalid extends Data.TaggedError(
 	}
 }
 
-export class StoredMoorageStatusInvalid extends Data.TaggedError(
-	"StoredMoorageStatusInvalid",
-)<{
+export class StoredMoorageStatusInvalid extends Data.TaggedError("StoredMoorageStatusInvalid")<{
 	readonly agentId: string;
 	readonly value: unknown;
 }> {
@@ -32,9 +28,7 @@ export class StoredMoorageStatusInvalid extends Data.TaggedError(
 	}
 }
 
-export class StoredBerthStatusInvalid extends Data.TaggedError(
-	"StoredBerthStatusInvalid",
-)<{
+export class StoredBerthStatusInvalid extends Data.TaggedError("StoredBerthStatusInvalid")<{
 	readonly berthId: string;
 	readonly value: unknown;
 }> {
@@ -43,9 +37,7 @@ export class StoredBerthStatusInvalid extends Data.TaggedError(
 	}
 }
 
-export class StoredResourceReclaimStateInvalid extends Data.TaggedError(
-	"StoredResourceReclaimStateInvalid",
-)<{
+export class StoredResourceReclaimStateInvalid extends Data.TaggedError("StoredResourceReclaimStateInvalid")<{
 	readonly resourceId: string;
 	readonly resourceKind: "Berth" | "Moorage";
 	readonly value: unknown;
@@ -55,44 +47,26 @@ export class StoredResourceReclaimStateInvalid extends Data.TaggedError(
 	}
 }
 
-export const decodeStoredAgentStatus = (
-	agentId: string,
-	value: unknown,
-): Result.Result<AgentStatus, StoredAgentStatusInvalid> => {
+export const decodeStoredAgentStatus = (agentId: string, value: unknown): Result.Result<AgentStatus, StoredAgentStatusInvalid> => {
 	const decoded = Schema.decodeUnknownOption(AgentStatusSchema)(value);
-	return Option.isSome(decoded)
-		? Result.succeed(decoded.value)
-		: Result.fail(new StoredAgentStatusInvalid({ agentId, value }));
+	return Option.isSome(decoded) ? Result.succeed(decoded.value) : Result.fail(new StoredAgentStatusInvalid({ agentId, value }));
 };
 
-export const decodeStoredMoorageStatus = (
-	agentId: string,
-	value: unknown,
-): Result.Result<MoorageStatus, StoredMoorageStatusInvalid> => {
+export const decodeStoredMoorageStatus = (agentId: string, value: unknown): Result.Result<MoorageStatus, StoredMoorageStatusInvalid> => {
 	const decoded = Schema.decodeUnknownOption(MoorageStatusSchema)(value);
-	return Option.isSome(decoded)
-		? Result.succeed(decoded.value)
-		: Result.fail(new StoredMoorageStatusInvalid({ agentId, value }));
+	return Option.isSome(decoded) ? Result.succeed(decoded.value) : Result.fail(new StoredMoorageStatusInvalid({ agentId, value }));
 };
 
-export const decodeStoredBerthStatus = (
-	berthId: string,
-	value: unknown,
-): Result.Result<BerthStatus, StoredBerthStatusInvalid> => {
+export const decodeStoredBerthStatus = (berthId: string, value: unknown): Result.Result<BerthStatus, StoredBerthStatusInvalid> => {
 	const decoded = Schema.decodeUnknownOption(BerthStatusSchema)(value);
-	return Option.isSome(decoded)
-		? Result.succeed(decoded.value)
-		: Result.fail(new StoredBerthStatusInvalid({ berthId, value }));
+	return Option.isSome(decoded) ? Result.succeed(decoded.value) : Result.fail(new StoredBerthStatusInvalid({ berthId, value }));
 };
 
 export const decodeStoredResourceReclaimState = (
 	resourceKind: "Berth" | "Moorage",
 	resourceId: string,
 	value: unknown,
-): Result.Result<
-	ResourceReclaimState | null,
-	StoredResourceReclaimStateInvalid
-> => {
+): Result.Result<ResourceReclaimState | null, StoredResourceReclaimStateInvalid> => {
 	if (value === null) {
 		return Result.succeed(null);
 	}

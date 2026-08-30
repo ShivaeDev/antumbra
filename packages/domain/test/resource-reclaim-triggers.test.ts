@@ -1,34 +1,16 @@
-import {
-	type IntentStatus,
-	isTerminalIntentStatus,
-	Kernel,
-} from "@antumbra/kernel";
+import { type IntentStatus, isTerminalIntentStatus, Kernel } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
 import { type Runner, RunnerFailure } from "@antumbra/plugin-api";
 import { expect, it } from "@effect/vitest";
-import { Effect, Option, Ref, Schedule, Stream } from "effect";
+import { Effect, Option, Ref, Stream } from "effect";
 import { AgentDomain } from "#domain.ts";
 import type { SpawnFields } from "#index.ts";
 import { domainKernelLayer } from "#test/domain-layers.ts";
-import {
-	acquireTemporaryPersistence,
-	makeScriptedBackend,
-	makeScriptedRunner,
-	standDown,
-} from "#test/harness.ts";
+import { acquireTemporaryPersistence, makeScriptedBackend, makeScriptedRunner, standDown } from "#test/harness.ts";
+import { eventually } from "#test/voyage-fixtures.ts";
 
 const untilTerminal = <E, R>(changes: Stream.Stream<IntentStatus, E, R>) =>
-	changes.pipe(
-		Stream.takeUntil(isTerminalIntentStatus),
-		Stream.runLast,
-		Effect.map(Option.getOrThrow),
-	);
-
-const eventually = <A, E, R>(check: Effect.Effect<A, E, R>) =>
-	check.pipe(
-		Effect.catchDefect((defect) => Effect.fail(defect)),
-		Effect.retry(Schedule.spaced(10).pipe(Schedule.upTo({ duration: 2000 }))),
-	);
+	changes.pipe(Stream.takeUntil(isTerminalIntentStatus), Stream.runLast, Effect.map(Option.getOrThrow));
 
 const payload = (suffix: string): SpawnFields => ({
 	agentId: `agent-${suffix}`,
@@ -41,10 +23,7 @@ const payload = (suffix: string): SpawnFields => ({
 
 const reclaimedRunner = (base: Runner, calls: Ref.Ref<number>): Runner => ({
 	...base,
-	reclaim: () =>
-		Ref.update(calls, (count) => count + 1).pipe(
-			Effect.as({ _tag: "reclaimed" as const }),
-		),
+	reclaim: () => Ref.update(calls, (count) => count + 1).pipe(Effect.as({ _tag: "reclaimed" as const })),
 });
 
 const reclaimedBerth = (agentId: string) =>
@@ -69,10 +48,7 @@ it.live("retirement rings the reconciler without waiting for cadence", () =>
 				defaultRef: "main",
 				source: "/somewhere/retire-trigger",
 			});
-			const spawn = yield* kernel.submit(
-				domain.spawn,
-				payload("retire-trigger"),
-			);
+			const spawn = yield* kernel.submit(domain.spawn, payload("retire-trigger"));
 			expect(yield* untilTerminal(spawn.changes)).toBe("succeeded");
 			yield* standDown(backend, "agent-retire-trigger");
 			const retire = yield* kernel.submit(domain.retire, {
@@ -85,9 +61,7 @@ it.live("retirement rings the reconciler without waiting for cadence", () =>
 					yield* reclaimedBerth("agent-retire-trigger");
 				}),
 			);
-		}).pipe(
-			Effect.provide(domainKernelLayer(temporary, backend.backend, {}, runner)),
-		);
+		}).pipe(Effect.provide(domainKernelLayer(temporary, backend.backend, {}, runner)));
 	}),
 );
 
@@ -99,8 +73,7 @@ it.live("failed setup rings the same reconciler", () =>
 		const calls = yield* Ref.make(0);
 		const runner: Runner = {
 			...reclaimedRunner(recorded.runner, calls),
-			provision: () =>
-				new RunnerFailure({ detail: "setup abandoned", tag: "local" }),
+			provision: () => new RunnerFailure({ detail: "setup abandoned", tag: "local" }),
 		};
 		yield* Effect.gen(function* () {
 			const domain = yield* AgentDomain;
@@ -109,10 +82,7 @@ it.live("failed setup rings the same reconciler", () =>
 				defaultRef: "main",
 				source: "/somewhere/failed-trigger",
 			});
-			const spawn = yield* kernel.submit(
-				domain.spawn,
-				payload("failed-trigger"),
-			);
+			const spawn = yield* kernel.submit(domain.spawn, payload("failed-trigger"));
 			expect(yield* untilTerminal(spawn.changes)).toBe("failed");
 			yield* eventually(
 				Effect.gen(function* () {
@@ -120,9 +90,7 @@ it.live("failed setup rings the same reconciler", () =>
 					yield* reclaimedBerth("agent-failed-trigger");
 				}),
 			);
-		}).pipe(
-			Effect.provide(domainKernelLayer(temporary, backend.backend, {}, runner)),
-		);
+		}).pipe(Effect.provide(domainKernelLayer(temporary, backend.backend, {}, runner)));
 	}),
 );
 

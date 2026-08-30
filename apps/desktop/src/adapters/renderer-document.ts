@@ -3,9 +3,9 @@ import { Data, Effect } from "effect";
 const RENDERER_URL_FLAG = "--renderer-url=";
 const DEV_RENDERER_DOCUMENT = "http://localhost:5183/";
 
-export class RendererDocumentRefused extends Data.TaggedError(
-	"RendererDocumentRefused",
-)<{ readonly reason: "ambiguous_override" | "invalid_override" }> {}
+export class RendererDocumentRefused extends Data.TaggedError("RendererDocumentRefused")<{
+	readonly reason: "ambiguous_override" | "invalid_override";
+}> {}
 
 interface RendererDocumentInput {
 	readonly arguments: ReadonlyArray<string>;
@@ -19,9 +19,7 @@ export const selectRendererDocument = (input: RendererDocumentInput) => {
 	if (input.isPackaged) {
 		return Effect.succeed(input.bundled);
 	}
-	const overrides = input.arguments.filter((argument) =>
-		argument.startsWith(RENDERER_URL_FLAG),
-	);
+	const overrides = input.arguments.filter((argument) => argument.startsWith(RENDERER_URL_FLAG));
 	if (overrides.length === 0) {
 		return Effect.succeed(input.bundled);
 	}

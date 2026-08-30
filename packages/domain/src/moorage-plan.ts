@@ -3,10 +3,7 @@ import { Database } from "@antumbra/persistence";
 import type { MooragePlan, Runner } from "@antumbra/plugin-api";
 import { repoSlug } from "@antumbra/repos";
 import { ensureAgentCanOwnLocalWork } from "@antumbra/resource-reclamation";
-import {
-	decodeStoredBerthStatus,
-	decodeStoredMoorageStatus,
-} from "@antumbra/vocabulary/agent-runtime";
+import { decodeStoredBerthStatus, decodeStoredMoorageStatus } from "@antumbra/vocabulary/agent-runtime";
 import { Effect, Option } from "effect";
 import { MooragePlanConflict } from "#errors.ts";
 import type { SpawnFields } from "#spawn-fields.ts";
@@ -19,10 +16,7 @@ interface StoredBerthPlan {
 	readonly source: string;
 }
 
-const planFromRows = (
-	root: string,
-	berths: ReadonlyArray<StoredBerthPlan>,
-): MooragePlan => ({
+const planFromRows = (root: string, berths: ReadonlyArray<StoredBerthPlan>): MooragePlan => ({
 	berths: berths.map((berth) => ({
 		branch: berth.branch,
 		path: berth.path,
@@ -36,10 +30,7 @@ const planFromRows = (
 export const makePrepareMoorage = Effect.gen(function* () {
 	const db = yield* Database;
 	const feeds = yield* DomainFeeds;
-	const ensureUnclaimed = (agentId: string) =>
-		ensureAgentCanOwnLocalWork(agentId).pipe(
-			Effect.provideService(Database, db),
-		);
+	const ensureUnclaimed = (agentId: string) => ensureAgentCanOwnLocalWork(agentId).pipe(Effect.provideService(Database, db));
 	const loadPlan = (payload: SpawnFields) =>
 		Effect.gen(function* () {
 			yield* ensureUnclaimed(payload.agentId);
@@ -53,15 +44,11 @@ export const makePrepareMoorage = Effect.gen(function* () {
 					detail: `stored runner ${row.value.runner} does not match ${payload.runner}`,
 				});
 			}
-			yield* Effect.fromResult(
-				decodeStoredMoorageStatus(row.value.agentId, row.value.status),
-			);
+			yield* Effect.fromResult(decodeStoredMoorageStatus(row.value.agentId, row.value.status));
 			const berths = yield* db.Berth.where({ agentId: payload.agentId })
 				.orderBy((berth) => berth.createdAt.asc())
 				.all();
-			yield* Effect.forEach(berths, (berth) =>
-				Effect.fromResult(decodeStoredBerthStatus(berth.id, berth.status)),
-			);
+			yield* Effect.forEach(berths, (berth) => Effect.fromResult(decodeStoredBerthStatus(berth.id, berth.status)));
 			return Option.some(planFromRows(row.value.root, berths));
 		});
 	const persistPlan = (payload: SpawnFields, plan: MooragePlan) =>
@@ -96,9 +83,7 @@ export const makePrepareMoorage = Effect.gen(function* () {
 			if (Option.isSome(stored)) {
 				return stored.value;
 			}
-			const repos = yield* db.Repo.orderBy((repo) =>
-				repo.createdAt.asc(),
-			).all();
+			const repos = yield* db.Repo.orderBy((repo) => repo.createdAt.asc()).all();
 			const plan = runner.plan({
 				agentId: payload.agentId,
 				repos: repos.map((repo) => ({

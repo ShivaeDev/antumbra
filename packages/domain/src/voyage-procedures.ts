@@ -1,19 +1,6 @@
-import type {
-	ArtifactFailure,
-	ArtifactInput,
-	ArtifactLanding,
-	ArtifactMarkdown,
-	ArtifactSupersessionInput,
-} from "@antumbra/artifacts";
+import type { ArtifactFailure, ArtifactInput, ArtifactLanding, ArtifactMarkdown, ArtifactSupersessionInput } from "@antumbra/artifacts";
 import type { PrismaError } from "@antumbra/persistence";
-import type {
-	CharterFailure,
-	CharterInput,
-	EdgeWouldCycle,
-	PieceNotFound,
-	PieceRow,
-	PieceVerdict,
-} from "@antumbra/pieces";
+import type { CharterFailure, CharterInput, EdgeWouldCycle, PieceNotFound, PieceRow, PieceVerdict } from "@antumbra/pieces";
 import type { ReportInput, ReportReading, ReportRow } from "@antumbra/reports";
 import type { AgentBackendTag } from "@antumbra/vocabulary/agent-backend";
 import { Context, type Effect, type Option } from "effect";
@@ -25,9 +12,6 @@ import type { VoyageSummary, VoyageView } from "#voyage-view.ts";
 import type { VoyageWorldReadFailure } from "#voyage-world.ts";
 
 export interface OpenVoyageInput {
-	// why: a voyage opens with its captain and its crew on the same backend and
-	// is split afterwards — asking twice at the moment of opening would be
-	// asking about a crew nobody has chartered work for yet.
 	readonly backend: string;
 	readonly context: string;
 	readonly focused?: boolean;
@@ -36,78 +20,29 @@ export interface OpenVoyageInput {
 }
 
 export interface VoyageProcedures {
-	readonly artifactMarkdown: (
-		artifactId: string,
-	) => Effect.Effect<ArtifactMarkdown, ArtifactFailure>;
-	readonly charterPiece: (
-		input: CharterInput,
-	) => Effect.Effect<PieceRow, CharterFailure>;
-	readonly hail: (
-		voyageId: string,
-	) => Effect.Effect<HailedCaptain, HailRefused>;
-	readonly landArtifact: (
-		input: ArtifactInput,
-	) => Effect.Effect<ArtifactLanding, ArtifactFailure>;
-	readonly landPieceVerdict: (
-		pieceId: string,
-		verdict: PieceVerdict,
-	) => Effect.Effect<void, PieceNotFound | PrismaError>;
-	readonly landReport: (
-		input: ReportInput,
-	) => Effect.Effect<ReportRow, PieceNotFound | PrismaError>;
-	readonly readReport: (
-		reportId: string,
-	) => Effect.Effect<Option.Option<ReportReading>, PrismaError>;
-	readonly removeArtifactSupersession: (
-		input: Omit<ArtifactSupersessionInput, "actor">,
-	) => Effect.Effect<void, ArtifactFailure>;
-	readonly launch: (
-		pieceId: string,
-	) => Effect.Effect<void, PieceNotFound | PrismaError>;
-	readonly list: Effect.Effect<
-		ReadonlyArray<VoyageSummary>,
-		VoyageWorldReadFailure
-	>;
-	readonly open: (
-		input: OpenVoyageInput,
-	) => Effect.Effect<VoyageRow, PrismaError>;
-	readonly park: (
-		pieceId: string,
-	) => Effect.Effect<void, PieceNotFound | PrismaError>;
-	readonly read: (
-		voyageId: string,
-	) => Effect.Effect<Option.Option<VoyageView>, VoyageWorldReadFailure>;
-	readonly rewire: (
-		pieceId: string,
-		dependsOn: ReadonlyArray<string>,
-	) => Effect.Effect<void, EdgeWouldCycle | PieceNotFound | PrismaError>;
-	readonly setCaptainBackend: (
-		voyageId: string,
-		backend: AgentBackendTag,
-	) => Effect.Effect<void, PrismaError | VoyageNotFound>;
-	readonly setCrewBackend: (
-		voyageId: string,
-		backend: AgentBackendTag,
-	) => Effect.Effect<void, PrismaError | VoyageNotFound>;
-	readonly setFocus: (
-		voyageId: string,
-		focused: boolean,
-	) => Effect.Effect<void, PrismaError | VoyageNotFound>;
-	readonly supersedeArtifact: (
-		input: Omit<ArtifactSupersessionInput, "actor">,
-	) => Effect.Effect<void, ArtifactFailure>;
-	readonly unpark: (
-		pieceId: string,
-	) => Effect.Effect<void, PieceNotFound | PrismaError>;
+	readonly artifactMarkdown: (artifactId: string) => Effect.Effect<ArtifactMarkdown, ArtifactFailure>;
+	readonly charterPiece: (input: CharterInput) => Effect.Effect<PieceRow, CharterFailure>;
+	readonly hail: (voyageId: string) => Effect.Effect<HailedCaptain, HailRefused>;
+	readonly landArtifact: (input: ArtifactInput) => Effect.Effect<ArtifactLanding, ArtifactFailure>;
+	readonly landPieceVerdict: (pieceId: string, verdict: PieceVerdict) => Effect.Effect<void, PieceNotFound | PrismaError>;
+	readonly landReport: (input: ReportInput) => Effect.Effect<ReportRow, PieceNotFound | PrismaError>;
+	readonly readReport: (reportId: string) => Effect.Effect<Option.Option<ReportReading>, PrismaError>;
+	readonly removeArtifactSupersession: (input: Omit<ArtifactSupersessionInput, "actor">) => Effect.Effect<void, ArtifactFailure>;
+	readonly launch: (pieceId: string) => Effect.Effect<void, PieceNotFound | PrismaError>;
+	readonly list: Effect.Effect<ReadonlyArray<VoyageSummary>, VoyageWorldReadFailure>;
+	readonly open: (input: OpenVoyageInput) => Effect.Effect<VoyageRow, PrismaError>;
+	readonly park: (pieceId: string) => Effect.Effect<void, PieceNotFound | PrismaError>;
+	readonly read: (voyageId: string) => Effect.Effect<Option.Option<VoyageView>, VoyageWorldReadFailure>;
+	readonly rewire: (pieceId: string, dependsOn: ReadonlyArray<string>) => Effect.Effect<void, EdgeWouldCycle | PieceNotFound | PrismaError>;
+	readonly setCaptainBackend: (voyageId: string, backend: AgentBackendTag) => Effect.Effect<void, PrismaError | VoyageNotFound>;
+	readonly setCrewBackend: (voyageId: string, backend: AgentBackendTag) => Effect.Effect<void, PrismaError | VoyageNotFound>;
+	readonly setFocus: (voyageId: string, focused: boolean) => Effect.Effect<void, PrismaError | VoyageNotFound>;
+	readonly supersedeArtifact: (input: Omit<ArtifactSupersessionInput, "actor">) => Effect.Effect<void, ArtifactFailure>;
+	readonly unpark: (pieceId: string) => Effect.Effect<void, PieceNotFound | PrismaError>;
 	// why: the admiral reaching past the ready ladder for one named piece —
 	// the same shape as the hail, and the only way to run a piece the ladder
 	// has already finished with.
-	readonly workNow: (
-		pieceId: string,
-	) => Effect.Effect<CrewedPiece, WorkRefused>;
+	readonly workNow: (pieceId: string) => Effect.Effect<CrewedPiece, WorkRefused>;
 }
 
-export class VoyageProcedureService extends Context.Service<
-	VoyageProcedureService,
-	VoyageProcedures
->()("@antumbra/domain/VoyageProcedures") {}
+export class VoyageProcedureService extends Context.Service<VoyageProcedureService, VoyageProcedures>()("@antumbra/domain/VoyageProcedures") {}

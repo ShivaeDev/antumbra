@@ -18,21 +18,13 @@ import {
 // slice relies on to the pinned bundle.
 describe("the codex protocol slice agrees with the pinned schema bundle", () => {
 	it("turn and execution statuses are the bundle's enums, verbatim", () => {
-		expect([...literalsOf(TurnStatus)].sort()).toEqual(
-			[...enumOf("TurnStatus")].sort(),
-		);
-		expect([...literalsOf(ExecutionStatus)].sort()).toEqual(
-			[...enumOf("CommandExecutionStatus")].sort(),
-		);
-		expect([...literalsOf(ExecutionStatus)].sort()).toEqual(
-			[...enumOf("PatchApplyStatus")].sort(),
-		);
+		expect([...literalsOf(TurnStatus)].sort()).toEqual([...enumOf("TurnStatus")].sort());
+		expect([...literalsOf(ExecutionStatus)].sort()).toEqual([...enumOf("CommandExecutionStatus")].sort());
+		expect([...literalsOf(ExecutionStatus)].sort()).toEqual([...enumOf("PatchApplyStatus")].sort());
 	});
 
 	it("every modelled item variant is a ThreadItem variant", () => {
-		const modelled = literalsOf(KnownItem).filter((literal) =>
-			variantTypes("ThreadItem").includes(literal),
-		);
+		const modelled = literalsOf(KnownItem).filter((literal) => variantTypes("ThreadItem").includes(literal));
 		expect(new Set(modelled)).toEqual(
 			new Set([
 				"agentMessage",
@@ -50,18 +42,8 @@ describe("the codex protocol slice agrees with the pinned schema bundle", () => 
 	});
 
 	it("the sub-agent words we fold on are the bundle's, verbatim", () => {
-		expect(enumOf("SubAgentActivityKind")).toEqual([
-			"started",
-			"interacted",
-			"interrupted",
-		]);
-		expect(enumOf("CollabAgentTool")).toEqual([
-			"spawnAgent",
-			"sendInput",
-			"resumeAgent",
-			"wait",
-			"closeAgent",
-		]);
+		expect(enumOf("SubAgentActivityKind")).toEqual(["started", "interacted", "interrupted"]);
+		expect(enumOf("CollabAgentTool")).toEqual(["spawnAgent", "sendInput", "resumeAgent", "wait", "closeAgent"]);
 	});
 
 	// why: a thread the record admits as a node must be one codex sourced from a
@@ -73,21 +55,12 @@ describe("the codex protocol slice agrees with the pinned schema bundle", () => 
 	// the record turns into a row is held here by name.
 	it("a spawned sub-agent thread is the only source that names a parent", () => {
 		const sources = bundle.definitions.SubAgentSource?.oneOf ?? [];
-		const spawn = sources.find(
-			(variant) => variant.title === "ThreadSpawnSubAgentSource",
-		);
+		const spawn = sources.find((variant) => variant.title === "ThreadSpawnSubAgentSource");
 		const source = JSON.stringify(spawn?.properties?.thread_spawn);
-		for (const field of [
-			"parent_thread_id",
-			"agent_path",
-			"agent_nickname",
-			"agent_role",
-		]) {
+		for (const field of ["parent_thread_id", "agent_path", "agent_nickname", "agent_role"]) {
 			expect(source).toContain(field);
 		}
-		expect(sources.some((variant) => variant.enum?.includes("review"))).toBe(
-			true,
-		);
+		expect(sources.some((variant) => variant.enum?.includes("review"))).toBe(true);
 		expect(bundle.definitions.Thread?.properties).toHaveProperty("source");
 	});
 
@@ -104,9 +77,7 @@ describe("the codex protocol slice agrees with the pinned schema bundle", () => 
 		const listed = bundle.definitions.ThreadListResponse?.properties;
 		expect(listed).toHaveProperty("data");
 		expect(listed).toHaveProperty("nextCursor");
-		const methods = (bundle.definitions.ClientRequest?.oneOf ?? []).flatMap(
-			(variant) => variant.properties?.method?.enum ?? [],
-		);
+		const methods = (bundle.definitions.ClientRequest?.oneOf ?? []).flatMap((variant) => variant.properties?.method?.enum ?? []);
 		expect(methods).toContain("thread/list");
 	});
 
@@ -117,12 +88,7 @@ describe("the codex protocol slice agrees with the pinned schema bundle", () => 
 	// from a resting one — so the four words and the requirement are held here.
 	it("every listed thread says whether work is under way in it", () => {
 		expect(bundle.definitions.Thread?.required ?? []).toContain("status");
-		expect(variantTypes("ThreadStatus")).toEqual([
-			"notLoaded",
-			"idle",
-			"systemError",
-			"active",
-		]);
+		expect(variantTypes("ThreadStatus")).toEqual(["notLoaded", "idle", "systemError", "active"]);
 	});
 
 	// why: the ancestor filter is experimental API, and app-server refuses it
@@ -133,9 +99,7 @@ describe("the codex protocol slice agrees with the pinned schema bundle", () => 
 		const capabilities = bundle.definitions.InitializeCapabilities?.properties;
 		expect(capabilities).toHaveProperty("experimentalApi");
 		expect(capabilities).toHaveProperty("optOutNotificationMethods");
-		expect(bundle.definitions.InitializeParams?.properties).toHaveProperty(
-			"capabilities",
-		);
+		expect(bundle.definitions.InitializeParams?.properties).toHaveProperty("capabilities");
 	});
 
 	it("a thread may be started with the tools we serve", () => {
@@ -144,11 +108,7 @@ describe("the codex protocol slice agrees with the pinned schema bundle", () => 
 		const spec = bundle.definitions.DynamicToolSpec?.oneOf;
 		expect(Array.isArray(spec) && spec.length > 0).toBe(true);
 		expect(variantTypes("DynamicToolSpec")).toContain("function");
-		expect(enumOf("DynamicToolCallStatus")).toEqual([
-			"inProgress",
-			"completed",
-			"failed",
-		]);
+		expect(enumOf("DynamicToolCallStatus")).toEqual(["inProgress", "completed", "failed"]);
 	});
 
 	it("the answers we send carry every field the server requires", () => {
@@ -184,6 +144,18 @@ describe("the codex protocol slice agrees with the pinned schema bundle", () => 
 		]) {
 			expect(bundle.definitions[name], name).toBeDefined();
 		}
+	});
+
+	// why: provider exhaustion is a semantic decision over the pinned error
+	// notification, not a message-string heuristic. If any of these fields or
+	// the terminal literal moves, the capacity classifier must be reconciled.
+	it("a terminal usage-limit error carries the fields capacity admission reads", () => {
+		const notification = bundle.definitions.ErrorNotification;
+		expect(notification?.required).toEqual(expect.arrayContaining(["error", "threadId", "turnId", "willRetry"]));
+		expect(notification?.properties).toHaveProperty("willRetry");
+		expect(bundle.definitions.TurnError?.properties).toHaveProperty("codexErrorInfo");
+		expect(JSON.stringify(bundle.definitions.CodexErrorInfo)).toContain("usageLimitExceeded");
+		expect(methodsOf(serverNotifications)).toContain("error");
 	});
 
 	it("every notification method we consume or mute is one the server sends", () => {

@@ -1,10 +1,6 @@
 import { expect, it } from "@effect/vitest";
 import { Effect, Fiber, Ref } from "effect";
-import {
-	KernelReach,
-	KernelReachDeferredLive,
-	KernelReachInstaller,
-} from "#kernel-reach.ts";
+import { KernelReach, KernelReachDeferredLive, KernelReachInstaller } from "#kernel-reach.ts";
 import type { SpawnFields } from "#spawn.ts";
 import { fakeKernelReach } from "#test/kernel-reach-fixture.ts";
 
@@ -32,8 +28,7 @@ it.live("kernel reach waits for the one installed scheduler path", () =>
 
 		yield* installer.install({
 			...fakeKernelReach,
-			submitSpawn: (payload) =>
-				Ref.set(received, payload).pipe(Effect.as("spawn-intent")),
+			submitSpawn: (payload) => Ref.set(received, payload).pipe(Effect.as("spawn-intent")),
 		});
 
 		expect(yield* Fiber.join(waiting)).toBe("spawn-intent");

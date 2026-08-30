@@ -16,5 +16,4 @@ const annotations = (payload: SpawnFields) =>
 // of by walking each span back through its parents. The names are the ones the
 // trace sink lifts out of a span's attributes into columns of its own; the
 // Intent id is already annotated by the kernel around every Intent it runs.
-export const underSpawnedAgent = (payload: SpawnFields) =>
-	Effect.annotateSpans(annotations(payload));
+export const underSpawnedAgent = (payload: SpawnFields) => Effect.annotateSpans(annotations(payload));

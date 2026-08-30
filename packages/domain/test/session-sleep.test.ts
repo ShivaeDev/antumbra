@@ -3,15 +3,9 @@ import { Kernel } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
 import { expect, it } from "@effect/vitest";
 import { Effect } from "effect";
-import { IDLE_SIESTA_AFTER_MILLIS } from "#session-idle.ts";
+import { acquireTemporaryPersistence, callTool, makeScriptedBackend, rawOf, type ScriptedSession } from "#test/harness.ts";
 import {
-	acquireTemporaryPersistence,
-	callTool,
-	makeScriptedBackend,
-	rawOf,
-	type ScriptedSession,
-} from "#test/harness.ts";
-import {
+	DEFAULT_IDLE_SIESTA_AFTER_MILLIS,
 	HAND,
 	laterBy,
 	openedNatively,
@@ -62,62 +56,56 @@ const siestaIntents = Effect.gen(function* () {
 // said it is finished is not at rest while something it delegated is still
 // speaking. The act is withheld rather than offered and refused, because the
 // admiral could do nothing about a child mid-sentence anyway.
-it.live(
-	"rest is withheld while a delegated conversation is still speaking",
-	() =>
-		Effect.gen(function* () {
-			const temporary = yield* acquireTemporaryPersistence;
-			const scripted = yield* makeScriptedBackend;
-			yield* Effect.gen(function* () {
-				yield* spawned;
-				const live = yield* openedNatively(scripted);
-				yield* delegates(live);
-				yield* callTool(live, "stand_down", undefined);
+it.live("rest is withheld while a delegated conversation is still speaking", () =>
+	Effect.gen(function* () {
+		const temporary = yield* acquireTemporaryPersistence;
+		const scripted = yield* makeScriptedBackend;
+		yield* Effect.gen(function* () {
+			yield* spawned;
+			const live = yield* openedNatively(scripted);
+			yield* delegates(live);
+			yield* callTool(live, "stand_down", undefined);
 
-				// why: the root's own row says idle and the reader still sees no rest
-				// on offer — which is the whole difference this predicate makes.
-				yield* restingAt(false);
-				expect((yield* sessionRow).executionStatus).toBe("idle");
+			// why: the root's own row says idle and the reader still sees no rest
+			// on offer — which is the whole difference this predicate makes.
+			yield* restingAt(false);
+			expect((yield* sessionRow).executionStatus).toBe("idle");
 
-				yield* finishes(live);
-				yield* restingAt(true);
-			}).pipe(Effect.provide(sightLayer(temporary, scripted)));
-		}),
+			yield* finishes(live);
+			yield* restingAt(true);
+		}).pipe(Effect.provide(sightLayer(temporary, scripted)));
+	}),
 );
 
 // why: one machinery, two callers. The admiral's request is the clock's own
-// act asked for early, so it leaves exactly the state the hour would have —
+// act asked for early, so it leaves exactly the state the threshold would —
 // the process gone, the record untouched and still resumable.
-it.live(
-	"the admiral's request rests a session through the clock's own act",
-	() =>
-		Effect.gen(function* () {
-			const temporary = yield* acquireTemporaryPersistence;
-			const scripted = yield* makeScriptedBackend;
-			yield* Effect.gen(function* () {
-				const kernel = yield* Kernel;
-				const sight = yield* SightSource;
-				yield* spawned;
-				const live = yield* openedNatively(scripted);
-				yield* callTool(live, "stand_down", undefined);
-				yield* restingAt(true);
+it.live("the admiral's request rests a session through the clock's own act", () =>
+	Effect.gen(function* () {
+		const temporary = yield* acquireTemporaryPersistence;
+		const scripted = yield* makeScriptedBackend;
+		yield* Effect.gen(function* () {
+			const kernel = yield* Kernel;
+			const sight = yield* SightSource;
+			yield* spawned;
+			const live = yield* openedNatively(scripted);
+			yield* callTool(live, "stand_down", undefined);
+			yield* restingAt(true);
 
-				yield* sight.sleep(HAND.sessionId);
-				const asked = yield* siestaIntents;
-				expect(asked).toHaveLength(1);
-				expect(asked[0]?.payload).toContain(HAND.sessionId);
-				expect(yield* untilTerminal(kernel.changes(asked[0]?.id ?? ""))).toBe(
-					"succeeded",
-				);
+			yield* sight.sleep(HAND.sessionId);
+			const asked = yield* siestaIntents;
+			expect(asked).toHaveLength(1);
+			expect(asked[0]?.payload).toContain(HAND.sessionId);
+			expect(yield* untilTerminal(kernel.changes(asked[0]?.id ?? ""))).toBe("succeeded");
 
-				expect(yield* live.closed).toBe(true);
-				const row = yield* sessionRow;
-				expect(row.status).toBe("open");
-				expect(row.executionStatus).toBe("idle");
-				expect(row.nativeRef).toBe("native-idle");
-				expect((yield* presenceOf).presence).toBe("asleep");
-			}).pipe(Effect.provide(sightLayer(temporary, scripted)));
-		}),
+			expect(yield* live.closed).toBe(true);
+			const row = yield* sessionRow;
+			expect(row.status).toBe("open");
+			expect(row.executionStatus).toBe("idle");
+			expect(row.nativeRef).toBe("native-idle");
+			expect((yield* presenceOf).presence).toBe("asleep");
+		}).pipe(Effect.provide(sightLayer(temporary, scripted)));
+	}),
 );
 
 // why: the capability was read from a snapshot, so the button can always be a
@@ -140,9 +128,7 @@ it.live("a request that races a child starting refuses and names itself", () =>
 			yield* sight.sleep(HAND.sessionId);
 			const asked = yield* siestaIntents;
 			expect(asked).toHaveLength(1);
-			expect(yield* untilTerminal(kernel.changes(asked[0]?.id ?? ""))).toBe(
-				"failed",
-			);
+			expect(yield* untilTerminal(kernel.changes(asked[0]?.id ?? ""))).toBe("failed");
 
 			// why: a refusal nobody can read is the silent success this guards
 			// against, so the reason is on the row that asked.
@@ -154,11 +140,11 @@ it.live("a request that races a child starting refuses and names itself", () =>
 	}),
 );
 
-// why: the hour measures quiet, not the last time the quiet was mentioned.
+// why: the threshold measures quiet, not the last time quiet was mentioned.
 // Some Agents stand down again every time they are hailed and find nothing to
-// do, and if each declaration started the hour over, the one Session that says
+// do, and if each declaration started the wait over, the one Session that says
 // it most often would be the one never reclaimed.
-it.live("standing down again does not push the hour out", () =>
+it.live("standing down again does not push the idle wait out", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
 		const scripted = yield* makeScriptedBackend;
@@ -171,18 +157,16 @@ it.live("standing down again does not push the hour out", () =>
 
 			yield* laterBy(50 * 60_000, callTool(live, "stand_down", undefined));
 
-			yield* passedAt(IDLE_SIESTA_AFTER_MILLIS + 5 * 60_000);
+			yield* passedAt(DEFAULT_IDLE_SIESTA_AFTER_MILLIS + 5 * 60_000);
 			const demanded = yield* siestaIntents;
 			expect(demanded).toHaveLength(1);
-			expect(yield* untilTerminal(kernel.changes(demanded[0]?.id ?? ""))).toBe(
-				"succeeded",
-			);
+			expect(yield* untilTerminal(kernel.changes(demanded[0]?.id ?? ""))).toBe("succeeded");
 			expect(yield* live.closed).toBe(true);
 		}).pipe(Effect.provide(sightLayer(temporary, scripted)));
 	}),
 );
 
-// why: the hour is not licence to sever a tree. The clock asks for the same
+// why: the threshold is not licence to sever a tree. The clock asks for the same
 // rest the admiral does and waits behind the same rule, so a root left idle
 // overnight with a child still running is passed over until the child ends.
 it.live("the clock waits for the tree before it reclaims", () =>
@@ -197,18 +181,16 @@ it.live("the clock waits for the tree before it reclaims", () =>
 			yield* callTool(live, "stand_down", undefined);
 			yield* restingAt(false);
 
-			yield* passedAt(IDLE_SIESTA_AFTER_MILLIS + 60_000);
+			yield* passedAt(DEFAULT_IDLE_SIESTA_AFTER_MILLIS + 60_000);
 			expect(yield* siestaIntents).toEqual([]);
 			expect(yield* live.closed).toBe(false);
 
 			yield* finishes(live);
 			yield* restingAt(true);
-			yield* passedAt(IDLE_SIESTA_AFTER_MILLIS + 60_000);
+			yield* passedAt(DEFAULT_IDLE_SIESTA_AFTER_MILLIS + 60_000);
 			const demanded = yield* siestaIntents;
 			expect(demanded).toHaveLength(1);
-			expect(yield* untilTerminal(kernel.changes(demanded[0]?.id ?? ""))).toBe(
-				"succeeded",
-			);
+			expect(yield* untilTerminal(kernel.changes(demanded[0]?.id ?? ""))).toBe("succeeded");
 			expect(yield* live.closed).toBe(true);
 		}).pipe(Effect.provide(sightLayer(temporary, scripted)));
 	}),

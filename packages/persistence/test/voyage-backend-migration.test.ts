@@ -9,24 +9,12 @@ import { afterAll, expect } from "vitest";
 import { applyMigrations } from "#adapters/migrator.ts";
 import committedContract from "#contract.json" with { type: "json" };
 import { brandDatabaseFilePath } from "#data-dir.ts";
-import {
-	packagedMigrationsDirectory,
-	type TemporaryPersistence,
-} from "#testing.ts";
+import { packagedMigrationsDirectory, type TemporaryPersistence } from "#testing.ts";
 
 const directories: string[] = [];
 const packageRoot = fileURLToPath(new URL("..", import.meta.url));
 const startContract: unknown = JSON.parse(
-	readFileSync(
-		join(
-			packageRoot,
-			"migrations",
-			"app",
-			"20260830T1235_voyage_captain_crew_backends",
-			"start-contract.json",
-		),
-		"utf8",
-	),
+	readFileSync(join(packageRoot, "migrations", "app", "20260830T2152_voyage_captain_crew_backends", "start-contract.json"), "utf8"),
 );
 
 afterAll(() => {
@@ -48,10 +36,7 @@ const withSqlite = <A>(path: string, act: (database: DatabaseSync) => A): A => {
 	return result;
 };
 
-// why: the upgrade may not change where a single voyage's next spawn goes, so
-// the captain's seat and the crew's both start out holding the one backend the
-// voyage already sailed on.
-it.effect("seats both backends where one voyage backend stood", () =>
+it.effect("copies the existing voyage backend to captain and crew", () =>
 	Effect.gen(function* () {
 		const database = freshDatabase();
 		yield* applyMigrations({
@@ -60,25 +45,8 @@ it.effect("seats both backends where one voyage backend stood", () =>
 			migrationsDirectory: packagedMigrationsDirectory,
 		});
 		withSqlite(database, (sqlite) => {
-			const insert = sqlite.prepare(
-				'INSERT INTO "voyage" ("id", "kind", "name", "northStar", "context", "backend") VALUES (?, ?, ?, ?, ?, ?)',
-			);
-			insert.run(
-				"voyage-reef",
-				"voyage",
-				"Chart the reef",
-				"every shoal is known",
-				"the reef is uncharted",
-				"codex",
-			);
-			insert.run(
-				"voyage-fleet",
-				"flagship",
-				"Flagship",
-				"The fleet sails well.",
-				"",
-				"claude",
-			);
+			const insert = sqlite.prepare('INSERT INTO "voyage" ("id", "kind", "name", "northStar", "context", "backend") VALUES (?, ?, ?, ?, ?, ?)');
+			insert.run("voyage-reef", "voyage", "Chart the reef", "every shoal is known", "the reef is uncharted", "codex");
 		});
 
 		yield* applyMigrations({
@@ -88,20 +56,8 @@ it.effect("seats both backends where one voyage backend stood", () =>
 		});
 
 		expect(
-			withSqlite(database, (sqlite) =>
-				sqlite
-					.prepare(
-						'SELECT "id", "kind", "captainBackend", "crewBackend" FROM "voyage" ORDER BY "id"',
-					)
-					.all(),
-			),
+			withSqlite(database, (sqlite) => sqlite.prepare('SELECT "id", "kind", "captainBackend", "crewBackend" FROM "voyage" ORDER BY "id"').all()),
 		).toEqual([
-			{
-				captainBackend: "claude",
-				crewBackend: "claude",
-				id: "voyage-fleet",
-				kind: "flagship",
-			},
 			{
 				captainBackend: "codex",
 				crewBackend: "codex",

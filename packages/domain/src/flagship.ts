@@ -3,9 +3,7 @@ import { Database } from "@antumbra/persistence";
 import { AGENT_BACKEND_TAGS } from "@antumbra/vocabulary/agent-backend";
 import { Data, Effect, Layer, Option } from "effect";
 
-export class FlagshipAlreadyExists extends Data.TaggedError(
-	"FlagshipAlreadyExists",
-)<{
+export class FlagshipAlreadyExists extends Data.TaggedError("FlagshipAlreadyExists")<{
 	readonly voyageId: string;
 }> {
 	override get message(): string {

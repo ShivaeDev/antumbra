@@ -68,9 +68,7 @@ it("reads rows written before attribution existed and rows carrying it", () => {
 		},
 	});
 	const origin = { parentNode: "agent-1", spawnedBy: "toolu_01" };
-	expect(
-		projectHistoricalAgentEvent("tool.started", toolPayload(origin)),
-	).toEqual({
+	expect(projectHistoricalAgentEvent("tool.started", toolPayload(origin))).toEqual({
 		_tag: "Known",
 		event: {
 			input: "{}",
@@ -93,9 +91,7 @@ it("reads the subsession tree back out of the log", () => {
 		subsessionRef: "a2b8c2a1b3d038e69",
 		type: "subsession.opened",
 	} as const;
-	expect(
-		projectHistoricalAgentEvent("subsession.opened", JSON.stringify(opened)),
-	).toEqual({ _tag: "Known", event: opened });
+	expect(projectHistoricalAgentEvent("subsession.opened", JSON.stringify(opened))).toEqual({ _tag: "Known", event: opened });
 	const ended = {
 		durationMs: 6245,
 		outcome: "interrupted",
@@ -104,9 +100,7 @@ it("reads the subsession tree back out of the log", () => {
 		tokens: 17080,
 		type: "subsession.ended",
 	} as const;
-	expect(
-		projectHistoricalAgentEvent("subsession.ended", JSON.stringify(ended)),
-	).toEqual({ _tag: "Known", event: ended });
+	expect(projectHistoricalAgentEvent("subsession.ended", JSON.stringify(ended))).toEqual({ _tag: "Known", event: ended });
 });
 
 // why: a provider that names neither a subagent type, a description, nor a
@@ -119,9 +113,7 @@ it("reads an opening that names nothing but the node and its spawner", () => {
 		subsessionRef: "a2b8c2a1b3d038e69",
 		type: "subsession.opened",
 	} as const;
-	expect(
-		projectHistoricalAgentEvent("subsession.opened", JSON.stringify(opened)),
-	).toEqual({ _tag: "Known", event: opened });
+	expect(projectHistoricalAgentEvent("subsession.opened", JSON.stringify(opened))).toEqual({ _tag: "Known", event: opened });
 });
 
 it("reads a gap in observation back as the gap it was", () => {
@@ -131,9 +123,7 @@ it("reads a gap in observation back as the gap it was", () => {
 		raw,
 		type: "subsession.gap",
 	} as const;
-	expect(
-		projectHistoricalAgentEvent("subsession.gap", JSON.stringify(gap)),
-	).toEqual({ _tag: "Known", event: gap });
+	expect(projectHistoricalAgentEvent("subsession.gap", JSON.stringify(gap))).toEqual({ _tag: "Known", event: gap });
 });
 
 // why: an end naming an outcome this vocabulary never had is exactly the case

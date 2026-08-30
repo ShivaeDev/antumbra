@@ -4,11 +4,7 @@ import type { PieceVerdict } from "@antumbra/vocabulary/verdict";
 import { Effect, Option } from "effect";
 import { verifyPieceExists } from "#rows.ts";
 
-const recoverVerdictCreate = (
-	pieceId: string,
-	verdict: PieceVerdict,
-	failure: PrismaError,
-) =>
+const recoverVerdictCreate = (pieceId: string, verdict: PieceVerdict, failure: PrismaError) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
 		const winner = yield* db.PieceVerdict.where({ pieceId }).first();
@@ -30,9 +26,7 @@ const writeVerdict = (pieceId: string, verdict: PieceVerdict) =>
 		if (Option.isNone(standing)) {
 			return yield* db.PieceVerdict.create({ pieceId, verdict }).pipe(
 				Effect.as(true),
-				Effect.catchTag("PrismaError", (failure) =>
-					recoverVerdictCreate(pieceId, verdict, failure),
-				),
+				Effect.catchTag("PrismaError", (failure) => recoverVerdictCreate(pieceId, verdict, failure)),
 			);
 		}
 		if (standing.value.verdict === verdict) {

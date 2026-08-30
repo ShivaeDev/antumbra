@@ -17,13 +17,8 @@ export interface JournalWrite<E> {
 export class SessionEventJournal extends Context.Service<
 	SessionEventJournal,
 	{
-		readonly record: (
-			sessionId: string,
-			event: AgentEvent,
-		) => Effect.Effect<boolean>;
-		readonly recordTogether: <E>(
-			write: JournalWrite<E>,
-		) => Effect.Effect<boolean>;
+		readonly record: (sessionId: string, event: AgentEvent) => Effect.Effect<boolean>;
+		readonly recordTogether: <E>(write: JournalWrite<E>) => Effect.Effect<boolean>;
 	}
 >()("@antumbra/session-event-journal/SessionEventJournal") {}
 
@@ -53,17 +48,12 @@ export const SessionEventJournalLive = Layer.effect(
 				appendAndAnnounce(write).pipe(
 					Effect.as(true),
 					Effect.catchCause((cause) =>
-						Effect.logError(
-							"event append failed",
-							{ sessionIds: write.appends.map((append) => append.sessionId) },
-							cause,
-						).pipe(Effect.as(false)),
+						Effect.logError("event append failed", { sessionIds: write.appends.map((append) => append.sessionId) }, cause).pipe(Effect.as(false)),
 					),
 				),
 			);
 		return {
-			record: (sessionId, event) =>
-				recordTogether({ appends: [{ event, sessionId }], rows: Effect.void }),
+			record: (sessionId, event) => recordTogether({ appends: [{ event, sessionId }], rows: Effect.void }),
 			recordTogether,
 		};
 	}),

@@ -16,8 +16,38 @@ const agentAround = (session: Record<string, unknown>) => ({
 		},
 	],
 	backends: ["scripted"],
+	capacities: [],
 	diag: { intents: [] },
 	repos: [],
+});
+
+it("publishes backend capacity independently of Session execution", () => {
+	const decoded = Schema.decodeUnknownSync(Fleet)({
+		...agentAround({
+			addressable: [],
+			backend: "scripted",
+			canAttachImages: false,
+			canInterrupt: false,
+			canSend: false,
+			canSleep: false,
+			cwd: "/tmp/reef",
+			diag: { current: true, execution: "idle", intents: [] },
+			id: "session-1",
+			presence: "idle",
+			status: "open",
+		}),
+		capacities: [
+			{
+				backend: "scripted",
+				detail: "Hourly provider limit reached",
+				reason: "rate-limit",
+				resetsAt: 1_788_046_800_000,
+				status: "blocked",
+				utilization: 1,
+			},
+		],
+	});
+	expect(decoded.capacities).toEqual([expect.objectContaining({ backend: "scripted", status: "blocked" })]);
 });
 
 const siesta = {

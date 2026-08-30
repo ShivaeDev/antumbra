@@ -3,11 +3,7 @@ import { expect, it } from "@effect/vitest";
 import { Effect, Option, Stream } from "effect";
 import { AgentDomain } from "#domain.ts";
 import { berthed, reefWithPiece } from "#test/change-fixtures.ts";
-import {
-	CREW,
-	submittedChange,
-	withHost,
-} from "#test/change-submission-fixtures.ts";
+import { CREW, submittedChange, withHost } from "#test/change-submission-fixtures.ts";
 
 it.live("linking another Piece to an active Change wakes Voyage readers", () =>
 	withHost(() =>
@@ -31,11 +27,7 @@ it.live("linking another Piece to an active Change wakes Voyage readers", () =>
 					const subscription = yield* feeds.subscribeVoyageRefresh();
 					const linked = yield* submittedChange(second.id, repo.name);
 					expect(linked.id).toBe(first.id);
-					return yield* Stream.fromSubscription(subscription).pipe(
-						Stream.take(1),
-						Stream.runCollect,
-						Effect.timeoutOption(1000),
-					);
+					return yield* Stream.fromSubscription(subscription).pipe(Stream.take(1), Stream.runCollect, Effect.timeoutOption(1000));
 				}),
 			);
 			expect(Option.isSome(heard)).toBe(true);

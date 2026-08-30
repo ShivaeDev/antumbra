@@ -14,7 +14,5 @@ export const awaitingAscent = Effect.fn("rulings.awaitingAscent")(function* () {
 		.orderBy((ruling) => ruling.createdAt.asc())
 		.all();
 	const asked = yield* Effect.forEach(rows, loadRuling);
-	return asked.filter((ruling) =>
-		Option.exists(ruling.rung, (rung) => rung !== "admiral"),
-	);
+	return asked.filter((ruling) => Option.exists(ruling.rung, (rung) => rung !== "admiral"));
 });

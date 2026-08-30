@@ -1,14 +1,7 @@
-import {
-	ResourceReclaimStateSchema,
-	SessionPresenceSchema,
-} from "@antumbra/vocabulary/agent-runtime";
+import { ResourceReclaimStateSchema, SessionPresenceSchema } from "@antumbra/vocabulary/agent-runtime";
 import { Schema } from "effect";
 import { SessionSituation } from "#session-situations.ts";
-import {
-	AgentDiagnostics,
-	FleetDiagnostics,
-	SessionDiagnostics,
-} from "#sight-diagnostics.ts";
+import { AgentDiagnostics, FleetDiagnostics, SessionDiagnostics } from "#sight-diagnostics.ts";
 
 // why: what the fleet looks like when it is read — one Session, one Agent, the
 // resources under it, and the whole roster. It is its own file because these
@@ -76,12 +69,26 @@ export const RepoSummary = Schema.Struct({
 });
 export type RepoSummary = typeof RepoSummary.Type;
 
+// why: provider capacity is account-level truth, simultaneous with every
+// Session's own presence. Publishing it beside the roster keeps a view from
+// treating rapid Session activity as evidence that a provider can accept work.
+export const BackendCapacitySummary = Schema.Struct({
+	backend: Schema.String,
+	detail: Schema.NullOr(Schema.String),
+	reason: Schema.NullOr(Schema.String),
+	resetsAt: Schema.NullOr(Schema.Number),
+	status: Schema.Literals(["available", "warning", "blocked"]),
+	utilization: Schema.NullOr(Schema.Number),
+});
+export type BackendCapacitySummary = typeof BackendCapacitySummary.Type;
+
 // why: the fleet carries what every spawn is made of — the backends the host
 // registered and the repos every agent is moored to. The renderer offers
 // these, never a list of its own.
 export const Fleet = Schema.Struct({
 	agents: Schema.Array(AgentSummary),
 	backends: Schema.Array(Schema.String),
+	capacities: Schema.Array(BackendCapacitySummary),
 	diag: FleetDiagnostics,
 	repos: Schema.Array(RepoSummary),
 });

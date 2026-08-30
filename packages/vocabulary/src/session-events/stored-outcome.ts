@@ -7,9 +7,7 @@ import { SubsessionOutcome } from "#session-events/subsessions.ts";
 // not stopped has no ending, so null is a value here rather than an absence.
 const StoredSubsessionOutcome = Schema.NullOr(SubsessionOutcome);
 
-export class StoredSubsessionOutcomeInvalid extends Data.TaggedError(
-	"StoredSubsessionOutcomeInvalid",
-)<{
+export class StoredSubsessionOutcomeInvalid extends Data.TaggedError("StoredSubsessionOutcomeInvalid")<{
 	readonly sessionId: string;
 	readonly value: unknown;
 }> {
@@ -21,12 +19,7 @@ export class StoredSubsessionOutcomeInvalid extends Data.TaggedError(
 export const decodeStoredSubsessionOutcome = (
 	sessionId: string,
 	value: unknown,
-): Result.Result<
-	typeof StoredSubsessionOutcome.Type,
-	StoredSubsessionOutcomeInvalid
-> => {
+): Result.Result<typeof StoredSubsessionOutcome.Type, StoredSubsessionOutcomeInvalid> => {
 	const decoded = Schema.decodeUnknownOption(StoredSubsessionOutcome)(value);
-	return Option.isSome(decoded)
-		? Result.succeed(decoded.value)
-		: Result.fail(new StoredSubsessionOutcomeInvalid({ sessionId, value }));
+	return Option.isSome(decoded) ? Result.succeed(decoded.value) : Result.fail(new StoredSubsessionOutcomeInvalid({ sessionId, value }));
 };

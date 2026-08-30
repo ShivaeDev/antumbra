@@ -28,18 +28,9 @@ export const SessionTreePanel = ({
 				{tree === undefined ? "reading" : `${tree.alive} of ${tree.total} open`}
 			</span>
 		</div>
-		{error === undefined ? null : (
-			<p className="px-1.5 pb-1 text-2xs text-destructive">
-				feed lost: {error}
-			</p>
-		)}
+		{error === undefined ? null : <p className="px-1.5 pb-1 text-2xs text-destructive">feed lost: {error}</p>}
 		{tree?.nodes.map((node) => (
-			<SessionTreeRow
-				key={node.id}
-				node={node.depth === 0 ? { ...node, displayName: rootName } : node}
-				onSelect={onSelect}
-				selected={selected}
-			/>
+			<SessionTreeRow key={node.id} node={node.depth === 0 ? { ...node, displayName: rootName } : node} onSelect={onSelect} selected={selected} />
 		))}
 	</section>
 );

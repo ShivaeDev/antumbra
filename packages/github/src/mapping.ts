@@ -1,18 +1,6 @@
-import type {
-	ChangeChecks,
-	ChangeMergeable,
-	ChangeObservation,
-	ChangeReview,
-	ChangeStage,
-} from "@antumbra/plugin-api";
+import type { ChangeChecks, ChangeMergeable, ChangeObservation, ChangeReview, ChangeStage } from "@antumbra/plugin-api";
 import { Effect } from "effect";
-import type {
-	GitHubCheckState,
-	GitHubMergeState,
-	GitHubPullState,
-	GitHubReviewDecision,
-	UnknownGitHubWord,
-} from "#dialect.ts";
+import type { GitHubCheckState, GitHubMergeState, GitHubPullState, GitHubReviewDecision, UnknownGitHubWord } from "#dialect.ts";
 import { GhOutputInvalid } from "#errors.ts";
 import type { ObservedNode } from "#payload.ts";
 
@@ -21,9 +9,7 @@ import type { ObservedNode } from "#payload.ts";
 // being mistaken for one of Antumbra's neutral facts.
 type Known<A> = Exclude<A, UnknownGitHubWord>;
 
-const STAGES: Readonly<
-	Record<Known<GitHubPullState>, Exclude<ChangeStage, "prepared">>
-> = {
+const STAGES: Readonly<Record<Known<GitHubPullState>, Exclude<ChangeStage, "prepared">>> = {
 	CLOSED: "withdrawn",
 	MERGED: "landed",
 	OPEN: "open",
@@ -65,14 +51,9 @@ const epochMillis = (iso: string): number => {
 	return Number.isNaN(parsed) ? 0 : parsed;
 };
 
-const rollupState = (observed: ObservedNode): GitHubCheckState | null =>
-	observed.node.commits.nodes[0]?.commit.statusCheckRollup?.state ?? null;
+const rollupState = (observed: ObservedNode): GitHubCheckState | null => observed.node.commits.nodes[0]?.commit.statusCheckRollup?.state ?? null;
 
-const known = <A extends string>(
-	observed: ObservedNode,
-	field: string,
-	word: A | UnknownGitHubWord,
-) =>
+const known = <A extends string>(observed: ObservedNode, field: string, word: A | UnknownGitHubWord) =>
 	typeof word === "string"
 		? Effect.succeed(word)
 		: Effect.fail(
@@ -87,19 +68,10 @@ export const mapPullRequest = (observed: ObservedNode) =>
 	Effect.gen(function* () {
 		const { node } = observed;
 		const stage = yield* known(observed, "state", node.state);
-		const mergeState =
-			node.mergeStateStatus === null
-				? null
-				: yield* known(observed, "mergeStateStatus", node.mergeStateStatus);
-		const reviewDecision =
-			node.reviewDecision === null
-				? null
-				: yield* known(observed, "reviewDecision", node.reviewDecision);
+		const mergeState = node.mergeStateStatus === null ? null : yield* known(observed, "mergeStateStatus", node.mergeStateStatus);
+		const reviewDecision = node.reviewDecision === null ? null : yield* known(observed, "reviewDecision", node.reviewDecision);
 		const rolledUp = rollupState(observed);
-		const checkState =
-			rolledUp === null
-				? null
-				: yield* known(observed, "statusCheckRollup.state", rolledUp);
+		const checkState = rolledUp === null ? null : yield* known(observed, "statusCheckRollup.state", rolledUp);
 		return {
 			activityAt: epochMillis(node.updatedAt),
 			baseRef: node.baseRefName,

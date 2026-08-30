@@ -11,18 +11,9 @@ import {
 import { type Ruling, Rulings } from "@antumbra/rulings";
 import { Effect, Layer, Option } from "effect";
 import { makeRulingRefreshes } from "#ruling-feed.ts";
-import {
-	proclamationOf,
-	reclassificationOf,
-	verdictOf,
-} from "#ruling-inputs.ts";
+import { proclamationOf, reclassificationOf, verdictOf } from "#ruling-inputs.ts";
 import { rulingSeen, standingRulingSeen } from "#ruling-projection.ts";
-import {
-	proclaimFailure,
-	reclassifyFailure,
-	toRulingFailure,
-	verdictFailure,
-} from "#ruling-refusals.ts";
+import { proclaimFailure, reclassifyFailure, toRulingFailure, verdictFailure } from "#ruling-refusals.ts";
 import { rulingStaleness } from "#ruling-staleness.ts";
 import { supersessionFailure } from "#ruling-supersession.ts";
 import { withdrawalFailure } from "#ruling-withdrawal.ts";
@@ -30,17 +21,13 @@ import { VoyageWorldSource } from "#voyage-world.ts";
 
 // why: the standing set is ruled by construction, so a ruling met there with
 // no answer is the record contradicting itself rather than a view to skip.
-const standingSeen = (
-	ruling: Ruling,
-	stale: boolean,
-): Effect.Effect<StandingRulingsView["rulings"][number], RulingFailure> =>
+const standingSeen = (ruling: Ruling, stale: boolean): Effect.Effect<StandingRulingsView["rulings"][number], RulingFailure> =>
 	Option.match(ruling.answer, {
 		onNone: () =>
 			new RulingFailure({
 				message: `ruling ${ruling.id} stands without an answer`,
 			}),
-		onSome: (answer) =>
-			Effect.succeed(standingRulingSeen(ruling, answer, stale)),
+		onSome: (answer) => Effect.succeed(standingRulingSeen(ruling, answer, stale)),
 	});
 
 export const RulingSourceLive = Layer.effect(RulingSource)(
@@ -63,9 +50,7 @@ export const RulingSourceLive = Layer.effect(RulingSource)(
 			Effect.mapError(toRulingFailure),
 			Effect.flatMap(({ ruled, rows }) => {
 				const stale = rulingStaleness(rows);
-				return Effect.forEach(ruled, (ruling) =>
-					standingSeen(ruling, stale(ruling)),
-				);
+				return Effect.forEach(ruled, (ruling) => standingSeen(ruling, stale(ruling)));
 			}),
 			Effect.map((seen) => ({ rulings: seen })),
 		);
@@ -98,12 +83,7 @@ export const RulingSourceLive = Layer.effect(RulingSource)(
 					Effect.mapError(supersessionFailure),
 				),
 			withdraw: (request: WithdrawRequest) =>
-				rulings
-					.withdraw({ ...request, by: "admiral" })
-					.pipe(
-						Effect.as({ rulingId: request.rulingId }),
-						Effect.mapError(withdrawalFailure),
-					),
+				rulings.withdraw({ ...request, by: "admiral" }).pipe(Effect.as({ rulingId: request.rulingId }), Effect.mapError(withdrawalFailure)),
 		};
 	}),
 );

@@ -21,14 +21,10 @@ const NO_ARGUMENTS: Record<string, unknown> = {
 	type: "object",
 };
 
-const inputSchemaOf = <Fields extends Schema.Struct.Fields>(
-	input: Schema.Struct<Fields>,
-): Record<string, unknown> =>
+const inputSchemaOf = <Fields extends Schema.Struct.Fields>(input: Schema.Struct<Fields>): Record<string, unknown> =>
 	Object.keys(input.fields).length === 0
 		? { ...NO_ARGUMENTS }
-		: JsonSchema.toDocumentDraft07(
-				Schema.toJsonSchemaDocument(input, { additionalProperties: false }),
-			).schema;
+		: JsonSchema.toDocumentDraft07(Schema.toJsonSchemaDocument(input, { additionalProperties: false })).schema;
 
 export const defineTool = <Fields extends Schema.Struct.Fields>(options: {
 	readonly description: string;
@@ -47,9 +43,7 @@ const payloadOf = (args: unknown): unknown => args ?? {};
 
 export const bind = <Fields extends Schema.Struct.Fields>(
 	spec: ToolSpec<Fields>,
-	handle: (
-		input: Schema.Struct<Fields>["Type"],
-	) => Effect.Effect<DirectToolOutcome>,
+	handle: (input: Schema.Struct<Fields>["Type"]) => Effect.Effect<DirectToolOutcome>,
 ): DirectTool => {
 	const decode = Schema.decodeUnknownEffect(spec.input);
 	return {
@@ -59,8 +53,7 @@ export const bind = <Fields extends Schema.Struct.Fields>(
 		call: (args) =>
 			decode(payloadOf(args)).pipe(
 				Effect.matchEffect({
-					onFailure: (error) =>
-						Effect.succeed({ ok: false, text: `${spec.name}: ${error}` }),
+					onFailure: (error) => Effect.succeed({ ok: false, text: `${spec.name}: ${error}` }),
 					onSuccess: handle,
 				}),
 			),

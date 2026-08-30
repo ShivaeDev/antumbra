@@ -1,10 +1,6 @@
 import { Data } from "effect";
 
-export type GhOperation =
-	| "auth-status"
-	| "create-change"
-	| "find-change"
-	| "observe-changes";
+export type GhOperation = "auth-status" | "create-change" | "find-change" | "observe-changes";
 
 interface GhFailureFields {
 	readonly detail: string;
@@ -18,17 +14,13 @@ interface GhFailureFields {
 // came back in time, or GitHub itself fell over mid-request. They are one case
 // to every caller: nothing was learned, nothing is wrong with the question,
 // and asking it again later is the whole remedy.
-export class GhUnavailable extends Data.TaggedError(
-	"GhUnavailable",
-)<GhFailureFields> {
+export class GhUnavailable extends Data.TaggedError("GhUnavailable")<GhFailureFields> {
 	override get message(): string {
 		return `gh could not answer (${this.operation}): ${this.detail}`;
 	}
 }
 
-export class GhAuthRequired extends Data.TaggedError(
-	"GhAuthRequired",
-)<GhFailureFields> {
+export class GhAuthRequired extends Data.TaggedError("GhAuthRequired")<GhFailureFields> {
 	override get message(): string {
 		return `gh is not authenticated (${this.operation}): ${this.detail}`;
 	}
@@ -59,8 +51,4 @@ export class GhOutputInvalid extends Data.TaggedError("GhOutputInvalid")<
 	}
 }
 
-export type GhError =
-	| GhAuthRequired
-	| GhCommandFailed
-	| GhOutputInvalid
-	| GhUnavailable;
+export type GhError = GhAuthRequired | GhCommandFailed | GhOutputInvalid | GhUnavailable;

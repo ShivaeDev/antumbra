@@ -7,7 +7,6 @@ import type {
 	RulingBelowRung,
 	RulingChoiceUnknown,
 	RulingGatePieceMissing,
-	RulingNotAtRung,
 	RulingNotFound,
 	RulingNotRuled,
 	RulingOutsideAuthority,
@@ -18,10 +17,7 @@ import type {
 
 export type RulingReadFailure = PrismaError | StoredRulingValueInvalid;
 
-export type RulingRequestFailure =
-	| RulingGatePieceMissing
-	| RulingReadFailure
-	| RulingSubjectMissing;
+export type RulingRequestFailure = RulingGatePieceMissing | RulingReadFailure | RulingSubjectMissing;
 
 export type RulingVerdictFailure =
 	| RulingAlreadyRuled
@@ -33,12 +29,6 @@ export type RulingVerdictFailure =
 
 export type RulingProclaimFailure = RulingRequestFailure | RulingVerdictFailure;
 
-export type RulingGateFailure =
-	| RulingAlreadyRuled
-	| RulingGatePieceMissing
-	| RulingNotFound
-	| RulingReadFailure;
-
 export type RulingSupersessionFailure =
 	| RulingAlreadySuperseded
 	| RulingAlreadyWithdrawn
@@ -47,23 +37,6 @@ export type RulingSupersessionFailure =
 	| RulingReadFailure
 	| RulingSupersedesItself;
 
-export type RulingWithdrawalFailure =
-	| RulingAlreadySuperseded
-	| RulingAlreadyWithdrawn
-	| RulingNotFound
-	| RulingNotRuled
-	| RulingReadFailure;
+export type RulingWithdrawalFailure = RulingAlreadySuperseded | RulingAlreadyWithdrawn | RulingNotFound | RulingNotRuled | RulingReadFailure;
 
-export type RulingReclassifyFailure =
-	| RulingAlreadyRuled
-	| RulingNotFound
-	| RulingReadFailure
-	| RulingReclassificationEmpty;
-
-export type RulingPassUpFailure =
-	| RulingAlreadyRuled
-	| RulingNotAtRung
-	| RulingNotFound
-	| RulingReadFailure;
-
-export type RulingLookupFailure = RulingNotFound | RulingReadFailure;
+export type RulingReclassifyFailure = RulingAlreadyRuled | RulingNotFound | RulingReadFailure | RulingReclassificationEmpty;

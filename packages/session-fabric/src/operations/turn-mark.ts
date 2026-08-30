@@ -6,6 +6,4 @@ import type { SessionFabricState } from "#session-fabric-state.ts";
 // holding this Session at all, which is a different answer from a count of
 // zero and is never flattened into one.
 export const makeTurnMark = (attachments: SessionFabricState["attachments"]) =>
-	Effect.fn("sessionFabric.turnMark")((sessionId: string) =>
-		attachments.turnMark(sessionId),
-	);
+	Effect.fn("sessionFabric.turnMark")((sessionId: string) => attachments.turnMark(sessionId));

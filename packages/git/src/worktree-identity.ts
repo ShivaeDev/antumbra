@@ -10,16 +10,11 @@ export interface WorktreeIdentity {
 	readonly root: string;
 }
 
-const IdentityLines = Schema.Tuple([
-	Schema.String,
-	Schema.String,
-	Schema.String,
-]);
+const IdentityLines = Schema.Tuple([Schema.String, Schema.String, Schema.String]);
 
 const BranchLines = Schema.Array(Schema.String);
 
-const invalidOutput = (detail: string) =>
-	new GitOutputInvalid({ detail, operation: "inspect-worktree" });
+const invalidOutput = (detail: string) => new GitOutputInvalid({ detail, operation: "inspect-worktree" });
 
 const decodeIdentity = (output: string) =>
 	Schema.decodeUnknownEffect(IdentityLines)(output.trim().split("\n")).pipe(
@@ -31,10 +26,7 @@ const decodeIdentity = (output: string) =>
 		Effect.mapError((cause) => invalidOutput(String(cause))),
 	);
 
-const acceptBranchListing = (
-	branch: string,
-	branches: ReadonlyArray<string>,
-) => {
+const acceptBranchListing = (branch: string, branches: ReadonlyArray<string>) => {
 	if (branches.length === 0) {
 		return Effect.succeed(false);
 	}
@@ -44,47 +36,21 @@ const acceptBranchListing = (
 };
 
 const decodeBranchExists = (branch: string, output: string) =>
-	Schema.decodeUnknownEffect(BranchLines)(
-		output.trim() === "" ? [] : output.trim().split("\n"),
-	).pipe(
+	Schema.decodeUnknownEffect(BranchLines)(output.trim() === "" ? [] : output.trim().split("\n")).pipe(
 		Effect.mapError((cause) => invalidOutput(String(cause))),
 		Effect.flatMap((branches) => acceptBranchListing(branch, branches)),
 	);
 
-export const branchExists = (
-	mirror: string,
-	branch: string,
-): Effect.Effect<boolean, GitError, ChildProcessSpawner.ChildProcessSpawner> =>
+export const branchExists = (mirror: string, branch: string): Effect.Effect<boolean, GitError, ChildProcessSpawner.ChildProcessSpawner> =>
 	runGit({
-		args: [
-			"-C",
-			mirror,
-			"branch",
-			"--list",
-			"--format=%(refname:short)",
-			branch,
-		],
+		args: ["-C", mirror, "branch", "--list", "--format=%(refname:short)", branch],
 		operation: "inspect-branch",
 		timeoutMillis: INSPECT_TIMEOUT_MILLIS,
 	}).pipe(Effect.flatMap((output) => decodeBranchExists(branch, output)));
 
-export const inspectWorktreeIdentity = (
-	path: string,
-): Effect.Effect<
-	WorktreeIdentity,
-	GitError,
-	ChildProcessSpawner.ChildProcessSpawner
-> =>
+export const inspectWorktreeIdentity = (path: string): Effect.Effect<WorktreeIdentity, GitError, ChildProcessSpawner.ChildProcessSpawner> =>
 	runGit({
-		args: [
-			"-C",
-			path,
-			"rev-parse",
-			"--show-toplevel",
-			"--abbrev-ref",
-			"HEAD",
-			"--git-common-dir",
-		],
+		args: ["-C", path, "rev-parse", "--show-toplevel", "--abbrev-ref", "HEAD", "--git-common-dir"],
 		operation: "inspect-worktree",
 		timeoutMillis: INSPECT_TIMEOUT_MILLIS,
 	}).pipe(Effect.flatMap(decodeIdentity));

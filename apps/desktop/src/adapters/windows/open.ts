@@ -4,11 +4,7 @@ import type { WindowPlace } from "@antumbra/contract";
 import { Effect } from "effect";
 import { app, BrowserWindow } from "electron";
 import { selectRendererDocument } from "#adapters/renderer-document.ts";
-import {
-	attachWindow,
-	confineWindow,
-	type WindowOpening,
-} from "#adapters/windows/attach.ts";
+import { attachWindow, confineWindow, type WindowOpening } from "#adapters/windows/attach.ts";
 import { defaultConsole } from "#adapters/windows/layout.ts";
 import type { WindowShell } from "#adapters/windows/registry.ts";
 
@@ -17,9 +13,7 @@ import type { WindowShell } from "#adapters/windows/registry.ts";
 export const rendererDocument = Effect.suspend(() =>
 	selectRendererDocument({
 		arguments: process.argv,
-		bundled: pathToFileURL(
-			join(import.meta.dirname, "renderer", "index.html"),
-		).toString(),
+		bundled: pathToFileURL(join(import.meta.dirname, "renderer", "index.html")).toString(),
 		isPackaged: app.isPackaged,
 	}),
 );
@@ -31,9 +25,7 @@ const windowTitle = (place: WindowPlace): string => {
 	if (place.role === "console") {
 		return "Antumbra";
 	}
-	return place.role === "artifact"
-		? "Artifact"
-		: `Session ${place.sessionId.slice(0, 8)}`;
+	return place.role === "artifact" ? "Artifact" : `Session ${place.sessionId.slice(0, 8)}`;
 };
 
 const construct = (place: WindowPlace): BrowserWindow =>
@@ -54,14 +46,9 @@ export const openWindow = (opening: WindowOpening) =>
 		confineWindow(window);
 		yield* Effect.promise(() => window.loadURL(opening.document));
 		const record = attachWindow(opening, window, crypto.randomUUID());
-		return record === undefined
-			? yield* Effect.die(
-					new Error("window did not load its trusted app document"),
-				)
-			: record;
+		return record === undefined ? yield* Effect.die(new Error("window did not load its trusted app document")) : record;
 	});
 
 // why: the app is one console — a launch, a second launch, and a console that
 // was closed while children stayed open all end at the same single window.
-export const openConsole = (shell: WindowShell) =>
-	Effect.asVoid(openWindow({ ...shell, place: defaultConsole }));
+export const openConsole = (shell: WindowShell) => Effect.asVoid(openWindow({ ...shell, place: defaultConsole }));

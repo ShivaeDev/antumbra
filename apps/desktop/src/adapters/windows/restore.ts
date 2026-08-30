@@ -25,21 +25,11 @@ export const restoreWindows = (shell: WindowShell, store: LayoutStore) =>
 		reopened.set(plan.consoleWindow.id, consoleWindow);
 		for (const child of plan.children) {
 			yield* openWindow({ ...shell, place: child.place }).pipe(
-				Effect.tap((record) =>
-					Effect.sync(() => reopened.set(child.id, record)),
-				),
-				Effect.catchCause((cause) =>
-					Effect.logWarning(
-						"bridge: a remembered window did not reopen",
-						cause,
-					),
-				),
+				Effect.tap((record) => Effect.sync(() => reopened.set(child.id, record))),
+				Effect.catchCause((cause) => Effect.logWarning("bridge: a remembered window did not reopen", cause)),
 			);
 		}
 		// why: the windows are opened in the order they were written down, so
 		// whichever was in front is put back in front once they all exist.
-		yield* raise(
-			(plan.focused === null ? undefined : reopened.get(plan.focused)) ??
-				consoleWindow,
-		);
+		yield* raise((plan.focused === null ? undefined : reopened.get(plan.focused)) ?? consoleWindow);
 	});

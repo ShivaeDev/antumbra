@@ -7,13 +7,7 @@ import { Schema } from "effect";
 // — are what decide whether words are handed over, wake something, or are the
 // only thing that will ever pick the work back up. So they are published rather
 // than left to be guessed from execution state.
-export const SessionPresenceSchema = Schema.Literals([
-	"working",
-	"idle",
-	"asleep",
-	"stranded",
-	"ended",
-]);
+export const SessionPresenceSchema = Schema.Literals(["working", "idle", "asleep", "stranded", "ended"]);
 export type SessionPresence = typeof SessionPresenceSchema.Type;
 
 export const sessionPresence = (input: {

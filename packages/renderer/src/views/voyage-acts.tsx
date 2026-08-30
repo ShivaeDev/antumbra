@@ -1,9 +1,4 @@
-import {
-	AGENT_BACKEND_TAGS,
-	type VoyageBackendRequest,
-	type VoyageCaptainView,
-	type VoyageSummary,
-} from "@antumbra/contract";
+import { AGENT_BACKEND_TAGS, type AgentBackendTag, type VoyageCaptainView, type VoyageSummary } from "@antumbra/contract";
 import { PinIcon } from "lucide-react";
 import { focusVoyage, hailCaptain } from "#adapters/trpc-voyages.ts";
 import { Button } from "#components/ui/button.tsx";
@@ -14,13 +9,7 @@ import { captainCallLabel } from "#voyages/labels.ts";
 // why: focus is a standing mark on a voyage rather than a thing you read, so
 // it is a filled pin you can find at a glance instead of a word that has to be
 // read against its opposite.
-export const FocusToggle = ({
-	onError,
-	voyage,
-}: {
-	readonly onError: (message: string) => void;
-	readonly voyage: VoyageSummary;
-}) => {
+export const FocusToggle = ({ onError, voyage }: { readonly onError: (message: string) => void; readonly voyage: VoyageSummary }) => {
 	const focused = voyage.focusedAt !== null;
 	const label = focused ? "Drop focus" : "Focus this voyage";
 	return (
@@ -34,46 +23,31 @@ export const FocusToggle = ({
 			type="button"
 			variant="ghost"
 		>
-			<PinIcon
-				className={cn(
-					focused ? "fill-current text-foreground" : "text-muted-foreground",
-				)}
-			/>
+			<PinIcon className={cn(focused ? "fill-current text-foreground" : "text-muted-foreground")} />
 		</Button>
 	);
 };
 
-// why: a backend is a standing choice with settled answers, so all of them are
-// on show with the current one pressed — a switch retargets the spawns the
-// voyage has yet to make, never the crew already sailing under it. The captain
-// and the crew are seated by two of these, so each says whose seat it is.
 export const BackendSwitch = ({
-	onError,
-	sailing,
-	seat,
-	seatBackend,
-	voyageId,
+	backend,
+	label,
+	onChange,
 }: {
-	readonly onError: (message: string) => void;
-	readonly sailing: string;
-	readonly seat: string;
-	readonly seatBackend: (
-		request: VoyageBackendRequest,
-		onError: (message: string) => void,
-	) => void;
-	readonly voyageId: string;
+	readonly backend: string;
+	readonly label: string;
+	readonly onChange: (backend: AgentBackendTag) => void;
 }) => (
 	<fieldset className="flex shrink-0 items-center gap-0.5 rounded-md border border-border p-0.5">
-		<legend className="sr-only">{seat}</legend>
-		<span className="px-1 text-2xs text-muted-foreground">{seat}</span>
+		<legend className="sr-only">{label}</legend>
+		<span className="px-1 text-2xs text-muted-foreground">{label}</span>
 		{AGENT_BACKEND_TAGS.map((tag) => (
 			<Button
-				aria-pressed={sailing === tag}
+				aria-pressed={backend === tag}
 				key={tag}
-				onClick={() => seatBackend({ backend: tag, voyageId }, onError)}
+				onClick={() => onChange(tag)}
 				size="sm"
 				type="button"
-				variant={sailing === tag ? "secondary" : "ghost"}
+				variant={backend === tag ? "secondary" : "ghost"}
 			>
 				{tag}
 			</Button>
@@ -92,12 +66,7 @@ export const CaptainCall = ({
 }) => {
 	if (!captainAtWork(captain)) {
 		return (
-			<Button
-				onClick={() => hailCaptain(voyageId, onError)}
-				size="sm"
-				type="button"
-				variant="outline"
-			>
+			<Button onClick={() => hailCaptain(voyageId, onError)} size="sm" type="button" variant="outline">
 				{captainCallLabel(captain)}
 			</Button>
 		);

@@ -10,17 +10,10 @@ const ADMIRAL: RulingRungView = { kind: "admiral" };
 // to, read off its crew row. A rung whose voyage the fleet has lost is shown as
 // the admiral's: the admiral meets every open ruling in the window anyway, and
 // naming a ship that is gone would be worse than naming none.
-const captainRung = (
-	world: VoyageWorld,
-	agentId: string,
-): RulingRungView | undefined => {
-	const voyageId = world.crews.find(
-		(crew) => crew.agentId === agentId,
-	)?.voyageId;
+const captainRung = (world: VoyageWorld, agentId: string): RulingRungView | undefined => {
+	const voyageId = world.crews.find((crew) => crew.agentId === agentId)?.voyageId;
 	const voyage = world.voyages.find((row) => row.id === voyageId);
-	return voyage === undefined
-		? undefined
-		: { kind: "captain", voyageId: voyage.id, voyageName: voyage.name };
+	return voyage === undefined ? undefined : { kind: "captain", voyageId: voyage.id, voyageName: voyage.name };
 };
 
 // why: a rule an authority wrote for itself waits on nobody, and it is met in
@@ -33,8 +26,6 @@ export const rungSeen = (ruling: Ruling, world: VoyageWorld): RulingRungView =>
 				return { kind: rung };
 			}
 			const requester = ruling.requester;
-			return requester.kind === "agent"
-				? (captainRung(world, requester.agentId) ?? ADMIRAL)
-				: ADMIRAL;
+			return requester.kind === "agent" ? (captainRung(world, requester.agentId) ?? ADMIRAL) : ADMIRAL;
 		},
 	});

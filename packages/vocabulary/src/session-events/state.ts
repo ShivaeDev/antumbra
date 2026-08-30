@@ -10,11 +10,7 @@ import { Raw } from "#session-events/raw.ts";
 // `turn/started` and `turn/completed` edges. `awaiting-input` is the one both
 // spell differently: claude's requires_action and codex's active-with-a-flag
 // are the same fact — the turn is alive and stalled on somebody answering.
-export const SessionState = Schema.Literals([
-	"awaiting-input",
-	"idle",
-	"running",
-]);
+export const SessionState = Schema.Literals(["awaiting-input", "idle", "running"]);
 export type SessionState = typeof SessionState.Type;
 
 export const SessionStateEvent = Schema.Struct({

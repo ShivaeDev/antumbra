@@ -22,25 +22,23 @@ export {
 	SessionNotLive,
 } from "@antumbra/session-fabric";
 export {
-	CaptainAlreadyHailed,
-	CaptainSessionUnavailable,
-} from "#captain-errors.ts";
-export {
 	AgentSessionConflict,
 	CurrentSessionInvalid,
-} from "#current-session-errors.ts";
-export {
-	PieceAbandoned,
-	PieceAlreadyCrewed,
-	PieceNotOnVoyage,
-} from "#piece-work-errors.ts";
-export {
 	SessionEnded,
 	SessionIdentityMissing,
 	SessionMessageEmpty,
 	SessionNotFound,
 	SessionStillDelegating,
-} from "#session-errors.ts";
+} from "@antumbra/sessions";
+export {
+	CaptainAlreadyHailed,
+	CaptainSessionUnavailable,
+} from "#captain-errors.ts";
+export {
+	PieceAbandoned,
+	PieceAlreadyCrewed,
+	PieceNotOnVoyage,
+} from "#piece-work-errors.ts";
 
 export class AgentNotFound extends Data.TaggedError("AgentNotFound")<{
 	readonly agentId: string;
@@ -49,9 +47,7 @@ export class AgentNotFound extends Data.TaggedError("AgentNotFound")<{
 // why: a situation names a Change the host is presenting. One that has been
 // forgotten, or that the host never gave a name to, has no threads, no checks
 // and no merge to be blocked, so there is nothing to draft about it.
-export class ChangeNotAddressable extends Data.TaggedError(
-	"ChangeNotAddressable",
-)<{
+export class ChangeNotAddressable extends Data.TaggedError("ChangeNotAddressable")<{
 	readonly changeId: string;
 }> {
 	override get message(): string {
@@ -102,9 +98,7 @@ export class AgentBirthStranded extends Data.TaggedError("AgentBirthStranded")<{
 // database holds that rule as a partial unique index. Reaching the index turns
 // the rule into a constraint violation nobody can read, so the refusal is made
 // here and names the Session already open.
-export class AgentRootAlreadyOpen extends Data.TaggedError(
-	"AgentRootAlreadyOpen",
-)<{
+export class AgentRootAlreadyOpen extends Data.TaggedError("AgentRootAlreadyOpen")<{
 	readonly agentId: string;
 	readonly openSessionId: string;
 	readonly sessionId: string;
@@ -114,9 +108,7 @@ export class AgentRootAlreadyOpen extends Data.TaggedError(
 	}
 }
 
-export class MooragePlanConflict extends Data.TaggedError(
-	"MooragePlanConflict",
-)<{
+export class MooragePlanConflict extends Data.TaggedError("MooragePlanConflict")<{
 	readonly agentId: string;
 	readonly detail: string;
 }> {}

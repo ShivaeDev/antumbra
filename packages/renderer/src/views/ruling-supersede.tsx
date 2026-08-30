@@ -2,12 +2,7 @@ import type { StandingRulingView } from "@antumbra/contract";
 import { useState } from "react";
 import { supersedeRuling } from "#adapters/trpc-rulings.ts";
 import { Button } from "#components/ui/button.tsx";
-import {
-	Select,
-	SelectContent,
-	SelectTrigger,
-	SelectValue,
-} from "#components/ui/select.tsx";
+import { Select, SelectContent, SelectTrigger, SelectValue } from "#components/ui/select.tsx";
 import { SelectItem } from "#components/ui/select-parts.tsx";
 import { Field } from "#views/field.tsx";
 
@@ -56,11 +51,7 @@ export const RulingSupersede = ({
 		<div className="flex min-w-0 items-end gap-2 border-t border-border pt-2">
 			<div className="min-w-0 flex-1">
 				<Field label="Supersede with…">
-					<SuccessorPick
-						onPick={setByRulingId}
-						others={others}
-						ruling={ruling}
-					/>
+					<SuccessorPick onPick={setByRulingId} others={others} ruling={ruling} />
 				</Field>
 			</div>
 			<Button

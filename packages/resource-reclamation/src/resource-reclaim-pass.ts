@@ -1,15 +1,9 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database } from "@antumbra/persistence";
 import type { BerthSite } from "@antumbra/plugin-api";
-import {
-	decodeStoredResourceReclaimState,
-	type ResourceReclaimState,
-} from "@antumbra/vocabulary/agent-runtime";
+import { decodeStoredResourceReclaimState, type ResourceReclaimState } from "@antumbra/vocabulary/agent-runtime";
 import { Clock, Effect } from "effect";
-import {
-	type ClaimedBerth,
-	claimReclaimableBerths,
-} from "#resource-reclaim-claims.ts";
+import { type ClaimedBerth, claimReclaimableBerths } from "#resource-reclaim-claims.ts";
 import { ResourceReclaimRunners } from "#resource-reclaim-runners.ts";
 
 const site = (berth: ClaimedBerth): BerthSite => ({
@@ -34,13 +28,7 @@ const finishReclaim = (berth: ClaimedBerth) =>
 					agentId: berth.agentId,
 				}).all();
 				const states = yield* Effect.forEach(siblings, (sibling) =>
-					Effect.fromResult(
-						decodeStoredResourceReclaimState(
-							"Berth",
-							sibling.id,
-							sibling.reclaimState,
-						),
-					),
+					Effect.fromResult(decodeStoredResourceReclaimState("Berth", sibling.id, sibling.reclaimState)),
 				);
 				if (!states.includes("claimed" satisfies ResourceReclaimState)) {
 					yield* db.Moorage.where({ agentId: berth.agentId }).update({
@@ -71,11 +59,7 @@ const runClaim = (berth: ClaimedBerth, now: number) =>
 			});
 		}
 		yield* runner.reclaim(site(berth)).pipe(
-			Effect.flatMap((verdict) =>
-				verdict._tag === "reclaimed"
-					? finishReclaim(berth)
-					: markDirty(berth, now),
-			),
+			Effect.flatMap((verdict) => (verdict._tag === "reclaimed" ? finishReclaim(berth) : markDirty(berth, now))),
 			Effect.catchCause((cause) =>
 				Effect.logWarning("resource reclaim remains claimed", {
 					berthId: berth.id,

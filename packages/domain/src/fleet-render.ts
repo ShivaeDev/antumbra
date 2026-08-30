@@ -16,8 +16,7 @@ const captainPart = (captain: Option.Option<VoyageCaptain>): string =>
 		onSome: (row) => `captain ${row.agentId} [${row.status}]`,
 	});
 
-const stirredPart = (at: Date | null): string =>
-	at === null ? "never stirred" : `last stirred ${at.toISOString()}`;
+const stirredPart = (at: Date | null): string => (at === null ? "never stirred" : `last stirred ${at.toISOString()}`);
 
 // why: two lines per voyage, in a shape a model can scan and a test can
 // assert: who it is and where it stands on the first, what it steers by on
@@ -35,5 +34,4 @@ const voyageLines = (voyage: VoyageSummary): ReadonlyArray<string> => [
 	`  north star: ${voyage.northStar}`,
 ];
 
-export const renderFleet = (voyages: ReadonlyArray<VoyageSummary>): string =>
-	["# Fleet", "", ...voyages.flatMap(voyageLines)].join("\n");
+export const renderFleet = (voyages: ReadonlyArray<VoyageSummary>): string => ["# Fleet", "", ...voyages.flatMap(voyageLines)].join("\n");

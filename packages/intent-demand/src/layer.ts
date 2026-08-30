@@ -5,12 +5,9 @@ import type { IntentDemandRegistration } from "#registration.ts";
 
 const PATIENCE_MILLIS = 5_000;
 
-const invalid = (detail: string) =>
-	new IntentDemandConfigurationInvalid({ detail });
+const invalid = (detail: string) => new IntentDemandConfigurationInvalid({ detail });
 
-const validate = <R>(
-	registrations: ReadonlyArray<IntentDemandRegistration<R>>,
-) =>
+const validate = <R>(registrations: ReadonlyArray<IntentDemandRegistration<R>>) =>
 	Effect.gen(function* () {
 		if (registrations.length === 0) {
 			return yield* invalid("at least one registration is required");
@@ -21,24 +18,16 @@ const validate = <R>(
 				return yield* invalid("registration tag must not be empty");
 			}
 			if (tags.has(registration.tag)) {
-				return yield* invalid(
-					`registration tag is duplicated: ${registration.tag}`,
-				);
+				return yield* invalid(`registration tag is duplicated: ${registration.tag}`);
 			}
 			tags.add(registration.tag);
 		}
 	});
 
-const updateHealth = (
-	health: Ref.Ref<ReadonlyMap<string, IntentDemandHealth>>,
-	tag: string,
-	value: IntentDemandHealth,
-) => Ref.update(health, (current) => new Map(current).set(tag, value));
+const updateHealth = (health: Ref.Ref<ReadonlyMap<string, IntentDemandHealth>>, tag: string, value: IntentDemandHealth) =>
+	Ref.update(health, (current) => new Map(current).set(tag, value));
 
-const runRegistration = <R>(
-	health: Ref.Ref<ReadonlyMap<string, IntentDemandHealth>>,
-	registration: IntentDemandRegistration<R>,
-) =>
+const runRegistration = <R>(health: Ref.Ref<ReadonlyMap<string, IntentDemandHealth>>, registration: IntentDemandRegistration<R>) =>
 	registration.pass.pipe(
 		Effect.matchEffect({
 			onFailure: (failure) =>
@@ -69,24 +58,16 @@ const runRegistration = <R>(
 		}),
 	);
 
-export const IntentDemandLive = <R>(
-	registrations: ReadonlyArray<IntentDemandRegistration<R>>,
-) =>
+export const IntentDemandLive = <R>(registrations: ReadonlyArray<IntentDemandRegistration<R>>) =>
 	Layer.effect(
 		IntentDemand,
 		Effect.gen(function* () {
 			yield* validate(registrations);
-			const health = yield* Ref.make<ReadonlyMap<string, IntentDemandHealth>>(
-				new Map(),
-			);
+			const health = yield* Ref.make<ReadonlyMap<string, IntentDemandHealth>>(new Map());
 			const gate = yield* Semaphore.make(1);
 			const tick = yield* Queue.sliding<void>(1);
 			const pass = gate.withPermits(1)(
-				Effect.forEach(
-					registrations,
-					(registration) => runRegistration(health, registration),
-					{ concurrency: "unbounded", discard: true },
-				),
+				Effect.forEach(registrations, (registration) => runRegistration(health, registration), { concurrency: "unbounded", discard: true }),
 			);
 			yield* pass;
 			yield* Effect.forkScoped(

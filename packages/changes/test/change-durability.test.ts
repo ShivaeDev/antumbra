@@ -1,9 +1,6 @@
 import { Changes } from "@antumbra/changes";
 import { Database } from "@antumbra/persistence";
-import {
-	allowTestChangeUpdates,
-	rejectTestChangeUpdates,
-} from "@antumbra/persistence/testing";
+import { allowTestChangeUpdates, rejectTestChangeUpdates } from "@antumbra/persistence/testing";
 import { expect, it } from "@effect/vitest";
 import { Effect } from "effect";
 import {
@@ -17,11 +14,7 @@ import {
 	REEF_SOURCE,
 } from "#test/change-harness.ts";
 
-const seed = Effect.all([
-	createRepo("repo-reef", "reef", REEF_SOURCE),
-	createPiece("piece-reef"),
-	createBerth(CREW),
-]);
+const seed = Effect.all([createRepo("repo-reef", "reef", REEF_SOURCE), createPiece("piece-reef"), createBerth(CREW)]);
 
 const opened = Effect.flatMap(Changes, (changes) =>
 	changes.open({
@@ -36,30 +29,25 @@ const opened = Effect.flatMap(Changes, (changes) =>
 	}),
 );
 
-it.live(
-	"retries one prepared Change after its accepted write is rejected",
-	() =>
-		Effect.gen(function* () {
-			const temporary = yield* acquireTemporaryPersistence;
-			const scripted = yield* makeScriptedHost;
-			yield* Effect.gen(function* () {
-				const db = yield* Database;
-				yield* seed;
-				yield* Effect.sync(() => rejectTestChangeUpdates(temporary.database));
-				const failure = yield* Effect.flip(opened);
-				expect(failure._tag).toBe("PrismaError");
-				const [prepared] = yield* db.Change.all();
-				expect(prepared?.stage).toBe("prepared");
-				yield* Effect.sync(() => allowTestChangeUpdates(temporary.database));
-				const row = yield* opened;
-				expect(row.id).toBe(prepared?.id);
-				expect(yield* db.Change.all()).toHaveLength(1);
-				expect(yield* scripted.opened).toHaveLength(1);
-			}).pipe(
-				Effect.provide(changesLayer([scripted.host])),
-				Effect.provide(temporary.layer),
-			);
-		}),
+it.live("retries one prepared Change after its accepted write is rejected", () =>
+	Effect.gen(function* () {
+		const temporary = yield* acquireTemporaryPersistence;
+		const scripted = yield* makeScriptedHost;
+		yield* Effect.gen(function* () {
+			const db = yield* Database;
+			yield* seed;
+			yield* Effect.sync(() => rejectTestChangeUpdates(temporary.database));
+			const failure = yield* Effect.flip(opened);
+			expect(failure._tag).toBe("PrismaError");
+			const [prepared] = yield* db.Change.all();
+			expect(prepared?.stage).toBe("prepared");
+			yield* Effect.sync(() => allowTestChangeUpdates(temporary.database));
+			const row = yield* opened;
+			expect(row.id).toBe(prepared?.id);
+			expect(yield* db.Change.all()).toHaveLength(1);
+			expect(yield* scripted.opened).toHaveLength(1);
+		}).pipe(Effect.provide(changesLayer([scripted.host])), Effect.provide(temporary.layer));
+	}),
 );
 
 it.live("rebuilds prepared truth and keeps its Berth held", () =>

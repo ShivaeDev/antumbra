@@ -1,9 +1,6 @@
 import { DomainFeedsLive } from "@antumbra/domain-feeds";
 import { applyMigrations, Database } from "@antumbra/persistence";
-import {
-	packagedMigrationsDirectory,
-	temporaryPersistence,
-} from "@antumbra/persistence/testing";
+import { packagedMigrationsDirectory, temporaryPersistence } from "@antumbra/persistence/testing";
 import { expect, it } from "@effect/vitest";
 import { Effect, Layer, Option } from "effect";
 import { afterAll } from "vitest";
@@ -32,8 +29,7 @@ const databaseLayer = Database.layer({
 });
 const boardsLayer = DomainFeedsLive.pipe(Layer.provideMerge(databaseLayer));
 
-const rowsWith = (field: string, value: unknown) =>
-	observedRows.filter((row) => row[field] === value);
+const rowsWith = (field: string, value: unknown) => observedRows.filter((row) => row[field] === value);
 
 it.effect("requests only the scalar fields consumed by Board lookups", () =>
 	Effect.gen(function* () {
@@ -49,9 +45,7 @@ it.effect("requests only the scalar fields consumed by Board lookups", () =>
 		});
 
 		observedRows.length = 0;
-		expect(
-			yield* linkedBoardId(BoardScope.Agent({ agentId: "agent-projection" })),
-		).toEqual(Option.some("board-projection"));
+		expect(yield* linkedBoardId(BoardScope.Agent({ agentId: "agent-projection" }))).toEqual(Option.some("board-projection"));
 		const boardIdRows = rowsWith("boardId", "board-projection");
 
 		yield* db.Agent.create({
@@ -94,23 +88,17 @@ it.effect("requests only the scalar fields consumed by Board lookups", () =>
 		yield* db.BoardEntryReceipt.create({ entryId: "receipt-sentinel" });
 
 		observedRows.length = 0;
-		expect(
-			(yield* unreadMail(receiptAgentId)).map((entry) => entry.id),
-		).toEqual([received.id]);
+		expect((yield* unreadMail(receiptAgentId)).map((entry) => entry.id)).toEqual([received.id]);
 		const unreadReceiptRows = rowsWith("entryId", "receipt-sentinel");
 
-		const failure = yield* Effect.flip(
-			markMailRead(receiptAgentId, [received.id, "mail-not-addressed"]),
-		);
+		const failure = yield* Effect.flip(markMailRead(receiptAgentId, [received.id, "mail-not-addressed"]));
 		expect(failure).toEqual(
 			new MailNotAddressed({
 				agentId: receiptAgentId,
 				entryId: "mail-not-addressed",
 			}),
 		);
-		expect(
-			yield* db.BoardEntryReceipt.where({ entryId: received.id }).exists(),
-		).toBe(false);
+		expect(yield* db.BoardEntryReceipt.where({ entryId: received.id }).exists()).toBe(false);
 
 		observedRows.length = 0;
 		yield* markMailRead(receiptAgentId, [received.id]);
@@ -128,9 +116,7 @@ it.effect("requests only the scalar fields consumed by Board lookups", () =>
 			sequenceRows: [{ seq: 1 }],
 			unreadReceiptRows: [{ entryId: "receipt-sentinel" }],
 		});
-		expect(
-			yield* db.BoardEntryReceipt.where({ entryId: received.id }).exists(),
-		).toBe(true);
+		expect(yield* db.BoardEntryReceipt.where({ entryId: received.id }).exists()).toBe(true);
 		expect(yield* unreadMail(receiptAgentId)).toEqual([]);
 	}).pipe(Effect.provide(boardsLayer)),
 );

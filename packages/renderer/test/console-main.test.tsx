@@ -5,9 +5,7 @@ import { expect, it, vi } from "vitest";
 import { ConsoleMain } from "#views/console-main.tsx";
 
 vi.mock("#views/quay.tsx", () => ({
-	QuayPanel: ({ selectedId }: { readonly selectedId: string | undefined }) => (
-		<section>pull request {selectedId}</section>
-	),
+	QuayPanel: ({ selectedId }: { readonly selectedId: string | undefined }) => <section>pull request {selectedId}</section>,
 }));
 
 vi.mock("#views/rulings.tsx", () => ({
@@ -23,8 +21,10 @@ const render = (mode: ConsoleMode): string =>
 			onChange={() => undefined}
 			onError={() => undefined}
 			onSession={() => undefined}
+			onSettings={() => undefined}
 			onVoyage={() => undefined}
 			session={undefined}
+			settings={undefined}
 			voyage={undefined}
 			voyages={[
 				flagshipSummary,

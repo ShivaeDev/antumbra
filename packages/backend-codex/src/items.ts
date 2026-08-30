@@ -1,7 +1,4 @@
-import type {
-	AgentEvent,
-	RawPayload,
-} from "@antumbra/vocabulary/session-events";
+import type { AgentEvent, RawPayload } from "@antumbra/vocabulary/session-events";
 import { Option, Schema } from "effect";
 import { KnownItem } from "#protocol-items.ts";
 import { userMessageEvent } from "#user-message-item.ts";
@@ -38,20 +35,14 @@ const toolInput = (item: KnownItem): string => {
 
 const isTool = (
 	item: KnownItem,
-): item is
-	| Item<"commandExecution">
-	| Item<"dynamicToolCall">
-	| Item<"fileChange">
-	| Item<"mcpToolCall">
-	| Item<"webSearch"> =>
+): item is Item<"commandExecution"> | Item<"dynamicToolCall"> | Item<"fileChange"> | Item<"mcpToolCall"> | Item<"webSearch"> =>
 	item.type === "commandExecution" ||
 	item.type === "dynamicToolCall" ||
 	item.type === "fileChange" ||
 	item.type === "mcpToolCall" ||
 	item.type === "webSearch";
 
-const commandOk = (item: Item<"commandExecution">): boolean =>
-	item.status === "completed" && (item.exitCode ?? 0) === 0;
+const commandOk = (item: Item<"commandExecution">): boolean => item.status === "completed" && (item.exitCode ?? 0) === 0;
 
 // why: the answer we gave is the truth about a tool we served — status alone
 // reads a refused landing as a completed call.
@@ -61,13 +52,7 @@ const dynamicOutcome = (item: Item<"dynamicToolCall">) => ({
 });
 
 const toolOutcome = (
-	item: Item<
-		| "commandExecution"
-		| "dynamicToolCall"
-		| "fileChange"
-		| "mcpToolCall"
-		| "webSearch"
-	>,
+	item: Item<"commandExecution" | "dynamicToolCall" | "fileChange" | "mcpToolCall" | "webSearch">,
 ): { ok: boolean; output: string } => {
 	switch (item.type) {
 		case "commandExecution":
@@ -89,8 +74,7 @@ const toolOutcome = (
 	}
 };
 
-const reasoningText = (item: Item<"reasoning">): string =>
-	[...(item.summary ?? []), ...(item.content ?? [])].join("\n");
+const reasoningText = (item: Item<"reasoning">): string => [...(item.summary ?? []), ...(item.content ?? [])].join("\n");
 
 // why: a started tool item is the only start worth an event — message and
 // reasoning starts carry no text yet, their completion is the whole item.
@@ -106,18 +90,12 @@ const knownStarted = (raw: RawPayload, item: KnownItem): AgentEvent[] => {
 			},
 		];
 	}
-	return item.type === "agentMessage" ||
-		item.type === "reasoning" ||
-		item.type === "userMessage"
-		? []
-		: [{ raw, type: "raw" }];
+	return item.type === "agentMessage" || item.type === "reasoning" || item.type === "userMessage" ? [] : [{ raw, type: "raw" }];
 };
 
 const knownCompleted = (raw: RawPayload, item: KnownItem): AgentEvent[] => {
 	if (isTool(item)) {
-		return [
-			{ ...toolOutcome(item), raw, toolId: item.id, type: "tool.completed" },
-		];
+		return [{ ...toolOutcome(item), raw, toolId: item.id, type: "tool.completed" }];
 	}
 	switch (item.type) {
 		case "agentMessage":

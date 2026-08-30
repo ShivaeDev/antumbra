@@ -1,12 +1,8 @@
 import type { SessionSituation } from "@antumbra/contract";
 import type { StoredAgentSession } from "@antumbra/persistence";
-import {
-	decodeSessionExecutionStatus,
-	decodeStoredAgentSessionStatus,
-	sessionPresence,
-} from "@antumbra/vocabulary/agent-runtime";
+import { sessionAtRest, sessionRetirable } from "@antumbra/sessions";
+import { decodeSessionExecutionStatus, decodeStoredAgentSessionStatus, sessionPresence } from "@antumbra/vocabulary/agent-runtime";
 import { Effect } from "effect";
-import { sessionAtRest, sessionRetirable } from "#session-at-rest.ts";
 import type { IntentAttribution } from "#sight-diagnostics.ts";
 
 // why: what this process is holding and what those holdings are carrying. Both
@@ -30,12 +26,8 @@ export const sessionSummary = (
 	situations: ReadonlyMap<string, ReadonlyArray<SessionSituation>>,
 ) =>
 	Effect.all({
-		executionStatus: Effect.fromResult(
-			decodeSessionExecutionStatus(session.id, session.executionStatus),
-		),
-		status: Effect.fromResult(
-			decodeStoredAgentSessionStatus(session.id, session.status),
-		),
+		executionStatus: Effect.fromResult(decodeSessionExecutionStatus(session.id, session.executionStatus)),
+		status: Effect.fromResult(decodeStoredAgentSessionStatus(session.id, session.status)),
 	}).pipe(
 		Effect.map(({ executionStatus, status }) => {
 			const running = status === "open" && executionStatus === "active";
@@ -48,8 +40,7 @@ export const sessionSummary = (
 				// why: a situation is only addressable if the words can get there,
 				// so it rides the same condition as `canSend` — offering a control
 				// on a Session nothing can reach would be a button that fails.
-				addressable:
-					status === "open" ? (situations.get(session.agentId) ?? []) : [],
+				addressable: status === "open" ? (situations.get(session.agentId) ?? []) : [],
 				agentId: session.agentId,
 				backend: session.backend,
 				canAttachImages: imageInputBackends.has(session.backend),

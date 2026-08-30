@@ -6,11 +6,7 @@ import { AgentDomain } from "#domain.ts";
 import type { SpawnFields } from "#index.ts";
 import { fleetSnapshot } from "#sight-fleet.ts";
 import { domainKernelLayer } from "#test/domain-layers.ts";
-import {
-	acquireTemporaryPersistence,
-	makeScriptedBackend,
-	makeScriptedRunner,
-} from "#test/harness.ts";
+import { acquireTemporaryPersistence, makeScriptedBackend, makeScriptedRunner } from "#test/harness.ts";
 
 const spawnPayload = (suffix: string): SpawnFields => ({
 	agentId: `agent-${suffix}`,
@@ -26,19 +22,13 @@ const submitSpawn = (suffix: string) =>
 		const kernel = yield* Kernel;
 		const domain = yield* AgentDomain;
 		const submission = yield* kernel.submit(domain.spawn, spawnPayload(suffix));
-		return yield* submission.changes.pipe(
-			Stream.takeUntil(isTerminalIntentStatus),
-			Stream.runLast,
-			Effect.map(Option.getOrThrow),
-		);
+		return yield* submission.changes.pipe(Stream.takeUntil(isTerminalIntentStatus), Stream.runLast, Effect.map(Option.getOrThrow));
 	});
 
 // why: two repos registered in the same millisecond tie on createdAt, so the
 // berth order is not the assertion — the set of berths is.
 const bySource = (berths: ReadonlyArray<BerthPlan>) =>
-	berths
-		.map((berth) => ({ ref: berth.ref, source: berth.source }))
-		.sort((left, right) => left.source.localeCompare(right.source));
+	berths.map((berth) => ({ ref: berth.ref, source: berth.source })).sort((left, right) => left.source.localeCompare(right.source));
 
 it.live("a spawn is moored to every registered repo at its default ref", () =>
 	Effect.gen(function* () {
@@ -56,11 +46,7 @@ it.live("a spawn is moored to every registered repo at its default ref", () =>
 				source: "/reefs/two",
 			});
 			expect(yield* submitSpawn("a")).toBe("succeeded");
-		}).pipe(
-			Effect.provide(
-				domainKernelLayer(temporary, scripted.backend, {}, recorder.runner),
-			),
-		);
+		}).pipe(Effect.provide(domainKernelLayer(temporary, scripted.backend, {}, recorder.runner)));
 		const requests = yield* recorder.provisioned;
 		expect(requests).toHaveLength(1);
 		expect(bySource(requests[0]?.berths ?? [])).toEqual([
@@ -110,11 +96,7 @@ it.live("a forgotten repo leaves the next spawn a bare moorage", () =>
 			});
 			yield* domain.repos.forget(repo.id);
 			expect(yield* submitSpawn("b")).toBe("succeeded");
-		}).pipe(
-			Effect.provide(
-				domainKernelLayer(temporary, scripted.backend, {}, recorder.runner),
-			),
-		);
+		}).pipe(Effect.provide(domainKernelLayer(temporary, scripted.backend, {}, recorder.runner)));
 		const requests = yield* recorder.provisioned;
 		expect(requests[0]?.berths).toEqual([]);
 	}),
@@ -130,7 +112,7 @@ it.live("the fleet snapshot carries the registry", () =>
 				defaultRef: "main",
 				source: "/reefs/one.git",
 			});
-			const fleet = yield* fleetSnapshot(["scripted"], new Set(), [], {
+			const fleet = yield* fleetSnapshot(["scripted"], new Set(), [], [], {
 				attached: new Set(),
 				delegating: new Set(),
 			});

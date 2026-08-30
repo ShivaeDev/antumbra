@@ -1,10 +1,5 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
-import {
-	type Ruling,
-	type RulingAnswer,
-	type RulingRequest,
-	Rulings,
-} from "@antumbra/rulings";
+import { type Ruling, type RulingAnswer, type RulingRequest, Rulings } from "@antumbra/rulings";
 import { Effect, Option, PubSub } from "effect";
 import { rulingAnswerMail } from "#ruling-answer-mail.ts";
 import { RulingHolds } from "#ruling-holds.ts";
@@ -14,11 +9,9 @@ export interface RuledRuling {
 	readonly ruling: Ruling;
 }
 
-const ruledOf = (ruling: Ruling): Option.Option<RuledRuling> =>
-	Option.map(ruling.answer, (answer) => ({ answer, ruling }));
+const ruledOf = (ruling: Ruling): Option.Option<RuledRuling> => Option.map(ruling.answer, (answer) => ({ answer, ruling }));
 
-export const heldSaid = ({ answer, ruling }: RuledRuling): string =>
-	`Ruled — your hold is over.\n${rulingAnswerMail(ruling, answer)}`;
+export const heldSaid = ({ answer, ruling }: RuledRuling): string => `Ruled — your hold is over.\n${rulingAnswerMail(ruling, answer)}`;
 
 // why: a blocking asker holds until ruled, and the hold is the one thing a
 // closing session or a restart loses: the ruling stays open on the record and

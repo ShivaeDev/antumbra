@@ -34,16 +34,7 @@ export type ReportMarkdown = typeof ReportMarkdown.Type;
 // domain concluded instead of concluding it again. Abandoned is one of these
 // words rather than a mark on done, because a piece written off and a piece
 // delivered are not the same news however alike they are to sort.
-export const PieceState = Schema.Literals([
-	"abandoned",
-	"active",
-	"blocked",
-	"done",
-	"held",
-	"landing",
-	"parked",
-	"ready",
-]);
+export const PieceState = Schema.Literals(["abandoned", "active", "blocked", "done", "held", "landing", "parked", "ready"]);
 export type PieceState = typeof PieceState.Type;
 
 export const BoardEntryView = Schema.Struct({
@@ -120,8 +111,6 @@ export type VoyageState = typeof VoyageState.Type;
 
 export const VoyageSummary = Schema.Struct({
 	captain: Schema.NullOr(VoyageCaptainView),
-	// why: the captain and the crew sail on backends chosen apart from one
-	// another, so a window reads two standing answers rather than one.
 	captainBackend: Schema.String,
 	counts: PieceCounts,
 	crewBackend: Schema.String,

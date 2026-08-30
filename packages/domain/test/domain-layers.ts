@@ -7,41 +7,38 @@ import type { ResourceReconcileOptions } from "@antumbra/resource-reclamation";
 import { SessionFabricLive } from "@antumbra/session-fabric";
 import { NodeServices } from "@effect/platform-node";
 import { Effect, Layer } from "effect";
+import { BackendCapacityReleaseLive } from "#backend-capacity-release.ts";
 import type { ObserveCadenceOptions } from "#change-cadence.ts";
 import { ChangeWatcherLive } from "#change-watcher.ts";
 import { DispatcherLive, type DispatcherOptions } from "#dispatcher.ts";
 import { AgentDomain, AgentDomainLive } from "#domain.ts";
 import { domainCapabilities } from "#domain-capabilities.ts";
 import { IntentFeedLive } from "#intent-feed.ts";
-import { KernelReachInstaller, KernelReachLive } from "#kernel-reach.ts";
+import { KernelReachInstaller, KernelReachLive, type KernelReachService } from "#kernel-reach.ts";
 import { RulingAscentLive } from "#ruling-ascent.ts";
 import { RulingDeliveryLive } from "#ruling-delivery.ts";
 import { SessionShutdownLive } from "#session-shutdown-live.ts";
 import { SettingsSourceLive } from "#settings.ts";
+import { SightSourceLive } from "#sight.ts";
 import { passiveRunner } from "#test/harness.ts";
 import { fakeKernelReach } from "#test/kernel-reach-fixture.ts";
 
-const artifactsDirectory = (temporary: TemporaryPersistence) =>
-	join(dirname(temporary.database), "artifacts");
+const artifactsDirectory = (temporary: TemporaryPersistence) => join(dirname(temporary.database), "artifacts");
 
-const sessionInputsDirectory = (temporary: TemporaryPersistence) =>
-	join(dirname(temporary.database), "session-inputs");
+const sessionInputsDirectory = (temporary: TemporaryPersistence) => join(dirname(temporary.database), "session-inputs");
 
-const fakeKernelReachLive = Layer.effectDiscard(
-	Effect.gen(function* () {
-		const installer = yield* KernelReachInstaller;
-		yield* installer.install(fakeKernelReach);
-	}),
-);
+const kernelReachLive = (reach: KernelReachService) =>
+	Layer.effectDiscard(
+		Effect.gen(function* () {
+			const installer = yield* KernelReachInstaller;
+			yield* installer.install(reach);
+		}),
+	);
 
-export const domainCapabilityLayer = (temporary: TemporaryPersistence) =>
-	fakeKernelReachLive.pipe(
+export const domainCapabilityLayer = (temporary: TemporaryPersistence, reach: KernelReachService = fakeKernelReach) =>
+	kernelReachLive(reach).pipe(
 		Layer.provideMerge(
-			domainCapabilities(
-				new Map(),
-				new Map([[passiveRunner.tag, passiveRunner]]),
-				artifactsDirectory(temporary),
-			).pipe(
+			domainCapabilities(new Map(), new Map([[passiveRunner.tag, passiveRunner]]), artifactsDirectory(temporary)).pipe(
 				Layer.provide(SessionFabricLive),
 				Layer.provide(NodeServices.layer),
 			),
@@ -104,12 +101,9 @@ export const dispatchingLayer = (
 	options: Omit<KernelOptions, "kinds" | "gauges"> = {},
 	runner: Runner = passiveRunner,
 	changeHosts: ReadonlyMap<string, ChangeHost> = new Map(),
-) =>
-	DispatcherLive(dispatcher).pipe(
-		Layer.provideMerge(
-			domainKernelLayer(temporary, backend, options, runner, changeHosts),
-		),
-	);
+) => DispatcherLive(dispatcher).pipe(Layer.provideMerge(domainKernelLayer(temporary, backend, options, runner, changeHosts)));
+
+export const sightSourceTestLayer = SightSourceLive.pipe(Layer.provideMerge(BackendCapacityReleaseLive));
 
 // why: the watcher stands beside the dispatcher exactly as it does in the app,
 // so a test of "the host said it landed" runs the same path a real merge does
@@ -121,9 +115,4 @@ export const watchingLayer = (
 	changeHosts: ReadonlyMap<string, ChangeHost>,
 	dispatcher: Partial<DispatcherOptions> = { maxAlive: 4, patienceMillis: 50 },
 	runner: Runner = passiveRunner,
-) =>
-	ChangeWatcherLive(cadence).pipe(
-		Layer.provideMerge(
-			dispatchingLayer(temporary, backend, dispatcher, {}, runner, changeHosts),
-		),
-	);
+) => ChangeWatcherLive(cadence).pipe(Layer.provideMerge(dispatchingLayer(temporary, backend, dispatcher, {}, runner, changeHosts)));

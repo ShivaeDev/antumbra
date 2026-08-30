@@ -4,13 +4,7 @@ import { Database } from "@antumbra/persistence";
 export { acquireTemporaryPersistence } from "@antumbra/persistence/testing";
 
 import { PiecesLive } from "@antumbra/pieces";
-import type {
-	ChangeHost,
-	ChangeObservation,
-	ChangeRef,
-	OpenChangeRequest,
-	Runner,
-} from "@antumbra/plugin-api";
+import type { ChangeHost, ChangeObservation, ChangeRef, OpenChangeRequest, Runner } from "@antumbra/plugin-api";
 import { Effect, Layer, Ref } from "effect";
 import { ChangesLive } from "#index.ts";
 
@@ -35,24 +29,14 @@ export const passiveRunner: Runner = {
 	tag: "local",
 };
 
-export const changesLayer = (
-	hosts: ReadonlyArray<ChangeHost>,
-	runner: Runner = passiveRunner,
-) =>
-	ChangesLive(
-		new Map(hosts.map((host) => [host.tag, host] as const)),
-		new Map([[runner.tag, runner]]),
-	).pipe(Layer.provideMerge(PiecesLive), Layer.provideMerge(DomainFeedsLive));
-
-export const createRepo = (
-	id: string,
-	name: string,
-	source: string,
-	defaultRef = "main",
-) =>
-	Effect.flatMap(Database, (db) =>
-		db.Repo.create({ defaultRef, id, name, source }),
+export const changesLayer = (hosts: ReadonlyArray<ChangeHost>, runner: Runner = passiveRunner) =>
+	ChangesLive(new Map(hosts.map((host) => [host.tag, host] as const)), new Map([[runner.tag, runner]])).pipe(
+		Layer.provideMerge(PiecesLive),
+		Layer.provideMerge(DomainFeedsLive),
 	);
+
+export const createRepo = (id: string, name: string, source: string, defaultRef = "main") =>
+	Effect.flatMap(Database, (db) => db.Repo.create({ defaultRef, id, name, source }));
 
 export const createPiece = (id: string) =>
 	Effect.flatMap(Database, (db) =>
@@ -67,11 +51,7 @@ export const createPiece = (id: string) =>
 		}),
 	);
 
-export const createBerth = (
-	agentId: string,
-	source = REEF_SOURCE,
-	branch = `work/${agentId}/berth-0`,
-) =>
+export const createBerth = (agentId: string, source = REEF_SOURCE, branch = `work/${agentId}/berth-0`) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
 		yield* db.Agent.create({
@@ -102,11 +82,7 @@ interface ObservationFields {
 	readonly title: string;
 }
 
-export const observation = (
-	externalId: string,
-	fields: ObservationFields,
-	patch: Partial<ChangeObservation> = {},
-): ChangeObservation => ({
+export const observation = (externalId: string, fields: ObservationFields, patch: Partial<ChangeObservation> = {}): ChangeObservation => ({
 	activityAt: 1_780_000_000_000,
 	baseRef: fields.baseRef,
 	checks: "pending",
@@ -129,11 +105,7 @@ export interface ScriptedHost {
 	readonly attempted: Effect.Effect<ReadonlyArray<OpenChangeRequest>>;
 	readonly host: ChangeHost;
 	readonly opened: Effect.Effect<ReadonlyArray<OpenChangeRequest>>;
-	readonly transition: (
-		repoId: string,
-		externalId: string,
-		patch: Partial<ChangeObservation>,
-	) => Effect.Effect<void>;
+	readonly transition: (repoId: string, externalId: string, patch: Partial<ChangeObservation>) => Effect.Effect<void>;
 }
 
 const keyOf = (repoId: string, externalId: string) => `${repoId}:${externalId}`;
@@ -161,20 +133,15 @@ const adoptObservation = (
 export const makeScriptedHost = Effect.gen(function* () {
 	const attempted = yield* Ref.make<ReadonlyArray<OpenChangeRequest>>([]);
 	const count = yield* Ref.make(0);
-	const known = yield* Ref.make<ReadonlyMap<string, ChangeObservation>>(
-		new Map(),
-	);
+	const known = yield* Ref.make<ReadonlyMap<string, ChangeObservation>>(new Map());
 	const opened = yield* Ref.make<ReadonlyArray<OpenChangeRequest>>([]);
 	const submissions = yield* Ref.make<ReadonlyMap<string, string>>(new Map());
 	const remember = (seen: ChangeObservation) =>
-		Ref.update(known, (all) =>
-			new Map(all).set(keyOf(seen.repoId, seen.externalId), seen),
-		).pipe(Effect.as(seen));
+		Ref.update(known, (all) => new Map(all).set(keyOf(seen.repoId, seen.externalId), seen)).pipe(Effect.as(seen));
 	const host: ChangeHost = {
 		adopt: (url, repo) => adoptObservation(known, remember, url, repo),
 		capability: Effect.succeed({ available: true, detail: "scripted" }),
-		observe: (_refs: ReadonlyArray<ChangeRef>) =>
-			Ref.get(known).pipe(Effect.map((all) => [...all.values()])),
+		observe: (_refs: ReadonlyArray<ChangeRef>) => Ref.get(known).pipe(Effect.map((all) => [...all.values()])),
 		open: (request) =>
 			Effect.gen(function* () {
 				yield* Ref.update(attempted, (all) => [...all, request]);
@@ -198,9 +165,7 @@ export const makeScriptedHost = Effect.gen(function* () {
 						{ headSha: request.headSha, isDraft: request.draft },
 					),
 				);
-				yield* Ref.update(submissions, (all) =>
-					new Map(all).set(submission, keyOf(seen.repoId, seen.externalId)),
-				);
+				yield* Ref.update(submissions, (all) => new Map(all).set(submission, keyOf(seen.repoId, seen.externalId)));
 				return seen;
 			}),
 		supports: () => true,

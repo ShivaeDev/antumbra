@@ -1,8 +1,6 @@
 import { Option, Schema } from "effect";
 
-const decodeInput = Schema.decodeUnknownOption(
-	Schema.fromJsonString(Schema.Record(Schema.String, Schema.Unknown)),
-);
+const decodeInput = Schema.decodeUnknownOption(Schema.fromJsonString(Schema.Record(Schema.String, Schema.Unknown)));
 
 export interface ToolField {
 	readonly name: string;
@@ -12,8 +10,7 @@ export interface ToolField {
 // why: JSON is written for a machine — read as it arrives, a command spells
 // its newlines \n and doubles every quote in it. A string field is handed back
 // as the text it was before it was encoded; anything else keeps its shape.
-const asText = (value: unknown): string =>
-	typeof value === "string" ? value : JSON.stringify(value, undefined, 2);
+const asText = (value: unknown): string => (typeof value === "string" ? value : JSON.stringify(value, undefined, 2));
 
 const fromRecord = (input: Record<string, unknown>): ReadonlyArray<ToolField> =>
 	Object.entries(input).map(([name, value]) => ({

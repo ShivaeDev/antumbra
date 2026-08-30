@@ -49,8 +49,16 @@ export const fleet: Fleet = {
 		},
 	],
 	backends: ["claude"],
-	diag: { intents: [] },
-	repos: [
-		{ defaultRef: "main", id: "repo-1", name: "shoals", source: "/tmp/shoals" },
+	capacities: [
+		{
+			backend: "claude",
+			detail: null,
+			reason: null,
+			resetsAt: null,
+			status: "available",
+			utilization: null,
+		},
 	],
+	diag: { intents: [] },
+	repos: [{ defaultRef: "main", id: "repo-1", name: "shoals", source: "/tmp/shoals" }],
 };

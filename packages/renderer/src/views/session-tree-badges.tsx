@@ -22,14 +22,8 @@ const OUTCOMES: Record<Outcome, Variant> = {
 	unknown: "outline",
 };
 
-export const OutcomeBadge = ({
-	outcome,
-}: {
-	readonly outcome: SessionTreeNode["outcome"];
-}) =>
-	outcome === null ? null : (
-		<Badge variant={OUTCOMES[outcome]}>{outcomeWords[outcome]}</Badge>
-	);
+export const OutcomeBadge = ({ outcome }: { readonly outcome: SessionTreeNode["outcome"] }) =>
+	outcome === null ? null : <Badge variant={OUTCOMES[outcome]}>{outcomeWords[outcome]}</Badge>;
 
 // why: completeness is a statement about the record, not about the work, so it
 // is worn quietly. Only "incomplete" is tinted — it is the one state that says
@@ -49,21 +43,12 @@ const COMPLETENESS_WORDS: Record<Completeness, string> = {
 	unaudited: "Never checked",
 };
 
-export const CompletenessBadge = ({
-	completeness,
-}: {
-	readonly completeness: Completeness;
-}) => (
-	<Badge variant={COMPLETENESS[completeness]}>
-		{COMPLETENESS_WORDS[completeness]}
-	</Badge>
+export const CompletenessBadge = ({ completeness }: { readonly completeness: Completeness }) => (
+	<Badge variant={COMPLETENESS[completeness]}>{COMPLETENESS_WORDS[completeness]}</Badge>
 );
 
 // why: only an open node wears this chip. A closed one already says how it
 // ended beside it, and a second chip repeating that spends the reader's
 // attention on nothing.
-export const StatusBadge = ({
-	status,
-}: {
-	readonly status: SessionTreeNode["status"];
-}) => (status === "open" ? <Badge variant="outline">Still open</Badge> : null);
+export const StatusBadge = ({ status }: { readonly status: SessionTreeNode["status"] }) =>
+	status === "open" ? <Badge variant="outline">Still open</Badge> : null;

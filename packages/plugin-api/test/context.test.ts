@@ -44,9 +44,7 @@ it.effect("rejects a second backend with the same tag", () =>
 	Effect.gen(function* () {
 		const host = yield* emptyHost;
 		yield* host.context.registerAgentBackend(fakeBackend("claude"));
-		const outcome = yield* host.context
-			.registerAgentBackend(fakeBackend("claude"))
-			.pipe(Effect.flip);
+		const outcome = yield* host.context.registerAgentBackend(fakeBackend("claude")).pipe(Effect.flip);
 		expect(outcome._tag).toBe("DuplicateBackendTag");
 	}),
 );
@@ -64,9 +62,7 @@ it.effect("rejects a second change host with the same tag", () =>
 	Effect.gen(function* () {
 		const host = yield* emptyHost;
 		yield* host.context.registerChangeHost(fakeChangeHost("github"));
-		const outcome = yield* host.context
-			.registerChangeHost(fakeChangeHost("github"))
-			.pipe(Effect.flip);
+		const outcome = yield* host.context.registerChangeHost(fakeChangeHost("github")).pipe(Effect.flip);
 		expect(outcome._tag).toBe("DuplicateChangeHostTag");
 	}),
 );

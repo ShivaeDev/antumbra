@@ -23,12 +23,9 @@ interface PreparedMigrationTarget extends MigrationTarget {
 	readonly contract: unknown;
 }
 
-const migrationFailure = (cause: unknown) =>
-	new MigrationFailure({ detail: String(cause) });
+const migrationFailure = (cause: unknown) => new MigrationFailure({ detail: String(cause) });
 
-export const applyPreparedMigrations = (
-	target: PreparedMigrationTarget,
-): Effect.Effect<MigrationReport, MigrationFailure> =>
+export const applyPreparedMigrations = (target: PreparedMigrationTarget): Effect.Effect<MigrationReport, MigrationFailure> =>
 	Effect.tryPromise({
 		catch: migrationFailure,
 		try: async () => {
@@ -53,17 +50,13 @@ export const applyPreparedMigrations = (
 		},
 	});
 
-export const applyMigrations = (
-	target: MigrationTarget,
-): Effect.Effect<MigrationReport, MigrationFailure> => {
+export const applyMigrations = (target: MigrationTarget): Effect.Effect<MigrationReport, MigrationFailure> => {
 	const contract = target.contract ?? contractJson;
 	return Effect.try({
 		catch: migrationFailure,
 		try: () =>
 			prepareArtifactCustodyMigration({
-				...(target.artifactsRoot === undefined
-					? {}
-					: { artifactsRoot: target.artifactsRoot }),
+				...(target.artifactsRoot === undefined ? {} : { artifactsRoot: target.artifactsRoot }),
 				database: target.database,
 			}),
 	}).pipe(

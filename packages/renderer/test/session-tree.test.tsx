@@ -11,13 +11,7 @@ import { SessionTreePanel } from "#views/session-tree.tsx";
 import { TranscriptRow } from "#views/transcript-row.tsx";
 
 const panel = (selected: string, onSelect: (id: string) => void) => (
-	<SessionTreePanel
-		error={undefined}
-		onSelect={onSelect}
-		rootName="navigator"
-		selected={selected}
-		tree={sessionTree}
-	/>
+	<SessionTreePanel error={undefined} onSelect={onSelect} rootName="navigator" selected={selected} tree={sessionTree} />
 );
 
 const mount = (): { container: HTMLElement; root: Root } => {
@@ -88,15 +82,7 @@ it("says how a node ended, and that an unfinished one has not", () => {
 // because renaming it would then change what a reader is told.
 it("never shows a reader the word the record stored", () => {
 	const markup = renderToStaticMarkup(panel("session-1", () => undefined));
-	const stored = [
-		"complete",
-		"completed",
-		"incomplete",
-		"open",
-		"recording",
-		"unaudited",
-		"unknown",
-	];
+	const stored = ["complete", "completed", "incomplete", "open", "recording", "unaudited", "unknown"];
 	for (const word of stored) {
 		expect(markup).not.toContain(`>${word}<`);
 	}
@@ -126,9 +112,7 @@ const delegation: TranscriptDelegation = {
 };
 
 it("a delegation mark says what was handed off and how it ended", () => {
-	const markup = renderToStaticMarkup(
-		<TranscriptRow item={delegation} onOpenNode={() => undefined} />,
-	);
+	const markup = renderToStaticMarkup(<TranscriptRow item={delegation} onOpenNode={() => undefined} />);
 	expect(markup).toContain("subsession");
 	expect(markup).toContain("Map the quay grouping");
 	expect(markup).toContain("Finished");
@@ -139,10 +123,7 @@ it.effect("a delegation mark leads to the node holding the work", () =>
 	Effect.gen(function* () {
 		const opened: string[] = [];
 		const { container, root } = mount();
-		yield* render(
-			root,
-			<TranscriptRow item={delegation} onOpenNode={(id) => opened.push(id)} />,
-		);
+		yield* render(root, <TranscriptRow item={delegation} onOpenNode={(id) => opened.push(id)} />);
 		yield* clickAt(container, 0);
 		expect(opened).toEqual(["session-1-node-1"]);
 		yield* drop(root);
@@ -152,12 +133,7 @@ it.effect("a delegation mark leads to the node holding the work", () =>
 // why: a marker the tree cannot place is still a fact about the transcript, so
 // it is drawn and simply leads nowhere rather than being dropped or faked.
 it("a mark with no node behind it is drawn without a link", () => {
-	const markup = renderToStaticMarkup(
-		<TranscriptRow
-			item={{ ...delegation, nodeId: undefined }}
-			onOpenNode={() => undefined}
-		/>,
-	);
+	const markup = renderToStaticMarkup(<TranscriptRow item={{ ...delegation, nodeId: undefined }} onOpenNode={() => undefined} />);
 	expect(markup).toContain("Map the quay grouping");
 	expect(markup).not.toContain("<button");
 });

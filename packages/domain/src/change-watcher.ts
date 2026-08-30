@@ -1,11 +1,7 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Cause, Clock, Effect, Layer, Queue, Ref } from "effect";
 import { AgentDomain } from "#agent-domain-service.ts";
-import {
-	nextObserveDelayMillis,
-	type ObserveCadenceOptions,
-	retryObserveDelayMillis,
-} from "#change-cadence.ts";
+import { nextObserveDelayMillis, type ObserveCadenceOptions, retryObserveDelayMillis } from "#change-cadence.ts";
 import type { ChangeProcedures } from "#change-procedures.ts";
 import { runRefreshes } from "#feed-refreshes.ts";
 
@@ -20,11 +16,7 @@ const DEFAULTS: ObserveCadenceOptions = {
 // after it repeat a sentence nobody needs twice, and a host out for an hour
 // would otherwise fill the log with it. Interruption is not failure at all —
 // it is this loop being told the app is closing.
-const announceFailure = (
-	hostTag: string,
-	cause: Cause.Cause<unknown>,
-	run: number,
-): Effect.Effect<void> =>
+const announceFailure = (hostTag: string, cause: Cause.Cause<unknown>, run: number): Effect.Effect<void> =>
 	run > 1 || Cause.hasInterruptsOnly(cause)
 		? Effect.logDebug("a change watch pass failed again", { hostTag, run })
 		: Effect.logWarning("a change watch pass failed", { hostTag }, cause);
@@ -33,12 +25,7 @@ const announceFailure = (
 // A pass that fails leaves every row exactly as it was — an unobserved change
 // is an unchanged change — and the run of failures behind it, rather than the
 // fleet it could not read, says how long to wait before asking again.
-const passAndWait = (
-	changes: ChangeProcedures,
-	hostTag: string,
-	options: ObserveCadenceOptions,
-	failures: Ref.Ref<number>,
-): Effect.Effect<number> =>
+const passAndWait = (changes: ChangeProcedures, hostTag: string, options: ObserveCadenceOptions, failures: Ref.Ref<number>): Effect.Effect<number> =>
 	Effect.gen(function* () {
 		yield* changes.refresh(hostTag);
 		const watchable = yield* changes.watchableChanges(hostTag);
@@ -54,30 +41,18 @@ const passAndWait = (
 		),
 	);
 
-const watchOneHost = (
-	changes: ChangeProcedures,
-	hostTag: string,
-	options: ObserveCadenceOptions,
-	tick: Queue.Queue<void>,
-): Effect.Effect<never> =>
+const watchOneHost = (changes: ChangeProcedures, hostTag: string, options: ObserveCadenceOptions, tick: Queue.Queue<void>): Effect.Effect<never> =>
 	Effect.gen(function* () {
 		const failures = yield* Ref.make(0);
 		// why: every wait is bounded by a cadence, so a ring is a latency hint and
 		// never a liveness dependency — a lost one self-heals within one period.
 		while (true) {
-			const delayMillis = yield* passAndWait(
-				changes,
-				hostTag,
-				options,
-				failures,
-			);
+			const delayMillis = yield* passAndWait(changes, hostTag, options, failures);
 			yield* Effect.timeoutOption(Queue.take(tick), delayMillis);
 		}
 	});
 
-export const ChangeWatcherLive = (
-	overrides: Partial<ObserveCadenceOptions> = {},
-) =>
+export const ChangeWatcherLive = (overrides: Partial<ObserveCadenceOptions> = {}) =>
 	Layer.effectDiscard(
 		Effect.gen(function* () {
 			const options = { ...DEFAULTS, ...overrides };
@@ -93,12 +68,8 @@ export const ChangeWatcherLive = (
 			yield* Effect.forEach(domain.changes.hostTags, (hostTag) =>
 				Effect.gen(function* () {
 					const tick = yield* Queue.sliding<void>(1);
-					yield* Effect.forkScoped(
-						runRefreshes(feeds.subscribeChangeRefresh(), tick),
-					);
-					yield* Effect.forkScoped(
-						watchOneHost(domain.changes, hostTag, options, tick),
-					);
+					yield* Effect.forkScoped(runRefreshes(feeds.subscribeChangeRefresh(), tick));
+					yield* Effect.forkScoped(watchOneHost(domain.changes, hostTag, options, tick));
 				}),
 			);
 		}),

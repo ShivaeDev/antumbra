@@ -1,8 +1,4 @@
-import type {
-	VoyageCaptainView,
-	VoyageSummary,
-	VoyageView,
-} from "@antumbra/contract";
+import type { VoyageCaptainView, VoyageSummary, VoyageView } from "@antumbra/contract";
 import { expect, it } from "@effect/vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import { VoyageHeader } from "#views/voyage-header.tsx";
@@ -37,19 +33,9 @@ const stoodDown: VoyageCaptainView = {
 };
 
 const renderPanel = (captain: VoyageCaptainView | null) =>
-	renderToStaticMarkup(
-		<VoyagesPanel
-			onError={() => undefined}
-			onSelect={() => undefined}
-			selected={undefined}
-			voyages={[summary(captain)]}
-		/>,
-	);
+	renderToStaticMarkup(<VoyagesPanel onError={() => undefined} onSelect={() => undefined} selected={undefined} voyages={[summary(captain)]} />);
 
-const renderHeader = (captain: VoyageCaptainView | null) =>
-	renderToStaticMarkup(
-		<VoyageHeader onError={() => undefined} voyage={view(captain)} />,
-	);
+const renderHeader = (captain: VoyageCaptainView | null) => renderToStaticMarkup(<VoyageHeader onError={() => undefined} voyage={view(captain)} />);
 
 it("a captain at work is the address, so nothing offers to call another", () => {
 	const working = { ...stoodDown, atWork: true };

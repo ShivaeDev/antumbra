@@ -1,43 +1,22 @@
-import {
-	type IntentStatus,
-	type IntentSubmission,
-	isTerminalIntentStatus,
-} from "@antumbra/kernel";
+import { type IntentStatus, type IntentSubmission, isTerminalIntentStatus } from "@antumbra/kernel";
 import { Effect, Option, Queue, Stream } from "effect";
 import { charterFor } from "#crew-charter.ts";
 import { accountOfIntent } from "#dispatch-failure-account.ts";
 import type { ReadyPiece } from "#dispatch-policy.ts";
-import {
-	type DispatchState,
-	holdInFlight,
-	recordFailure,
-	recordSuccess,
-	releaseInFlight,
-} from "#dispatch-state.ts";
+import { type DispatchState, holdInFlight, recordFailure, recordSuccess, releaseInFlight } from "#dispatch-state.ts";
 import type { SpawnRefused } from "#kernel-reach.ts";
 import type { SpawnFields } from "#spawn-fields.ts";
 
 export interface DispatchPort {
 	readonly patienceMillis: number;
 	readonly state: DispatchState;
-	readonly resume: (
-		sessionId: string,
-	) => Effect.Effect<IntentSubmission, SpawnRefused, never>;
-	readonly submit: (
-		payload: SpawnFields,
-	) => Effect.Effect<IntentSubmission, SpawnRefused, never>;
+	readonly resume: (sessionId: string) => Effect.Effect<IntentSubmission, SpawnRefused, never>;
+	readonly submit: (payload: SpawnFields) => Effect.Effect<IntentSubmission, SpawnRefused, never>;
 }
 
-export type DispatchTarget =
-	| { readonly _tag: "resume"; readonly sessionId: string }
-	| { readonly _tag: "spawn" };
+export type DispatchTarget = { readonly _tag: "resume"; readonly sessionId: string } | { readonly _tag: "spawn" };
 
-const settle = (
-	port: DispatchPort,
-	pieceId: string,
-	intentId: string,
-	status: Option.Option<IntentStatus>,
-) =>
+const settle = (port: DispatchPort, pieceId: string, intentId: string, status: Option.Option<IntentStatus>) =>
 	Effect.gen(function* () {
 		yield* releaseInFlight(port.state, pieceId);
 		if (!Option.isSome(status) || status.value !== "failed") {
@@ -58,11 +37,7 @@ const settle = (
 // why: the watcher is the whole of the in-flight bookkeeping. A submitted
 // spawn holds its piece until the intent reaches a terminal status, so a
 // piece waiting behind a closed gate is never dispatched a second time.
-const watchDispatch = (
-	port: DispatchPort,
-	pieceId: string,
-	submission: IntentSubmission,
-) =>
+const watchDispatch = (port: DispatchPort, pieceId: string, submission: IntentSubmission) =>
 	submission.changes.pipe(
 		Stream.takeUntil(isTerminalIntentStatus),
 		Stream.runLast,
@@ -76,11 +51,7 @@ const watchDispatch = (
 		Effect.andThen(Queue.offer(port.state.tick, undefined)),
 	);
 
-export const dispatchPiece = (
-	port: DispatchPort,
-	candidate: ReadyPiece,
-	target: DispatchTarget,
-) =>
+export const dispatchPiece = (port: DispatchPort, candidate: ReadyPiece, target: DispatchTarget) =>
 	Effect.gen(function* () {
 		const pieceId = candidate.piece.id;
 		if (target._tag === "resume") {
@@ -99,8 +70,6 @@ export const dispatchPiece = (
 			backend: candidate.voyage.crewBackend,
 			charter: yield* charterFor(candidate.piece, candidate.voyage, agentId),
 			pieceId,
-			// why: the sole runner in v1 — the field becomes a choice when a
-			// second runner exists to choose between.
 			runner: "local",
 			role: candidate.piece.role,
 			sessionId: crypto.randomUUID(),

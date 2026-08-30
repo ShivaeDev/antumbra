@@ -94,8 +94,7 @@ const onAlpha = (rows: ReadonlyArray<ChangeRow>): VoyageWorld =>
 		})),
 	});
 
-const groupOf = (over: Partial<ChangeRow>): QuayGroup =>
-	quayGroup(changeView("shoals", change("one", over)));
+const groupOf = (over: Partial<ChangeRow>): QuayGroup => quayGroup(changeView("shoals", change("one", over)));
 
 it("a change ready to merge lies alongside", () => {
 	expect(groupOf({})).toBe("alongside");
@@ -132,9 +131,7 @@ it("no checks at all is not the same as checks still running", () => {
 
 it("a landed change leaves the quay; a withdrawn one stays until answered", () => {
 	const stages: ReadonlyArray<ChangeStage> = ["landed", "withdrawn"];
-	const [landed, withdrawn] = stages.map((stage) =>
-		quayRows(onAlpha([change("one", { stage })])),
-	);
+	const [landed, withdrawn] = stages.map((stage) => quayRows(onAlpha([change("one", { stage })])));
 	expect(landed).toEqual([]);
 	expect(withdrawn?.map((row) => row.group)).toEqual(["needsAttention"]);
 });
@@ -143,17 +140,13 @@ it("a landed change leaves the quay; a withdrawn one stays until answered", () =
 // quietly disappeared behind a replacement while it still counted as pending,
 // leaving nothing to look at and nothing to press.
 it("a withdrawn change stays in sight while a replacement is under way", () => {
-	const rows = quayRows(
-		onAlpha([change("one", { stage: "withdrawn" }), change("two")]),
-	);
+	const rows = quayRows(onAlpha([change("one", { stage: "withdrawn" }), change("two")]));
 	expect(rows.map((row) => row.change.id).sort()).toEqual(["one", "two"]);
 });
 
 it("a dismissed change leaves the quay and its needs-attention group", () => {
 	const withdrawn = onAlpha([change("one", { stage: "withdrawn" })]);
-	expect(
-		quayRows({ ...withdrawn, dismissedChangeIds: new Set(["one"]) }),
-	).toEqual([]);
+	expect(quayRows({ ...withdrawn, dismissedChangeIds: new Set(["one"]) })).toEqual([]);
 });
 
 it("a row carries its pull request detail and where the change is owed", () => {
@@ -189,6 +182,7 @@ it("a row carries the opener's canonical stored session association", () => {
 		sessions: [
 			{
 				agentId: "agent-one",
+				backend: "scripted",
 				createdAt: MOMENT,
 				executionStatus: "idle",
 				id: "session-one",
@@ -222,7 +216,5 @@ it("the newest news is read first", () => {
 });
 
 it("every piece of every voyage may be adopted onto", () => {
-	expect(quayPieces(world({}))).toEqual([
-		{ id: "alpha", title: "alpha", voyageName: "Chart the reef" },
-	]);
+	expect(quayPieces(world({}))).toEqual([{ id: "alpha", title: "alpha", voyageName: "Chart the reef" }]);
 });

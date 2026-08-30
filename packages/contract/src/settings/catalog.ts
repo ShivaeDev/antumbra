@@ -1,11 +1,7 @@
 import { Schema } from "effect";
 import { count, flag, type SettingDeclaration } from "#settings/declaration.ts";
 
-export const SETTING_KEYS = [
-	"maxParallelSessions",
-	"retireRestMinutes",
-	"retireSweep",
-] as const;
+export const SETTING_KEYS = ["foldToolCalls", "maxParallelSessions", "idleSiestaMinutes", "retireRestMinutes", "retireSweep"] as const;
 
 export const SettingKey = Schema.Literals(SETTING_KEYS);
 export type SettingKey = typeof SettingKey.Type;
@@ -15,6 +11,11 @@ export type SettingKey = typeof SettingKey.Type;
 // can read it, store it or draw it — which is what stops the next feature from
 // growing a flag of its own beside this list.
 export const SETTINGS = {
+	foldToolCalls: flag({
+		description: "Fold a run of tool calls between messages into one line that says how many were made.",
+		fallback: false,
+		title: "Fold runs of tool calls",
+	}),
 	maxParallelSessions: count({
 		description: "How many agent sessions may run at once.",
 		fallback: 4,
@@ -22,9 +23,15 @@ export const SETTINGS = {
 		most: 64,
 		title: "Maximum parallel sessions",
 	}),
+	idleSiestaMinutes: count({
+		description: "Shorter waits free capacity sooner; longer waits are more likely to keep conversation context cached.",
+		fallback: 60,
+		least: 1,
+		most: 1440,
+		title: "Idle before siesta, in minutes",
+	}),
 	retireRestMinutes: count({
-		description:
-			"How long an agent must have rested before the sweep may retire it.",
+		description: "How long an agent must have rested before the sweep may retire it.",
 		fallback: 15,
 		least: 1,
 		most: 1440,

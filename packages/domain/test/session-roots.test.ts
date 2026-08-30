@@ -2,30 +2,15 @@ import { SightSource } from "@antumbra/contract";
 import { Database, type NewAgentSession } from "@antumbra/persistence";
 import type { TemporaryPersistence } from "@antumbra/persistence/testing";
 import { SessionFabricLive } from "@antumbra/session-fabric";
+import { makeCurrentSessionResumable, makeRefuseSubsessionAttach, SubsessionAttachRefused } from "@antumbra/sessions";
 import { expect, it } from "@effect/vitest";
 import { Effect, Layer, Result } from "effect";
-import { makeCurrentSessionResumable } from "#current-session-resumable.ts";
-import {
-	makeRefuseSubsessionAttach,
-	SubsessionAttachRefused,
-} from "#session-attach-roots.ts";
-import { SightSourceLive } from "#sight.ts";
-import { domainKernelLayer } from "#test/domain-layers.ts";
-import {
-	acquireTemporaryPersistence,
-	makeScriptedBackend,
-	type ScriptedBackend,
-} from "#test/harness.ts";
-import { eventually } from "#test/session-recovery-fixture.ts";
+import { domainKernelLayer, sightSourceTestLayer } from "#test/domain-layers.ts";
+import { acquireTemporaryPersistence, makeScriptedBackend, type ScriptedBackend } from "#test/harness.ts";
+import { eventually } from "#test/voyage-fixtures.ts";
 
-const sightLayer = (
-	temporary: TemporaryPersistence,
-	scripted: ScriptedBackend,
-) =>
-	SightSourceLive.pipe(
-		Layer.provideMerge(domainKernelLayer(temporary, scripted.backend)),
-		Layer.provideMerge(SessionFabricLive),
-	);
+const sightLayer = (temporary: TemporaryPersistence, scripted: ScriptedBackend) =>
+	sightSourceTestLayer.pipe(Layer.provideMerge(domainKernelLayer(temporary, scripted.backend)), Layer.provideMerge(SessionFabricLive));
 
 const spawnRequest = {
 	backend: "scripted",
@@ -36,12 +21,7 @@ const spawnRequest = {
 // why: the creator of subsession rows arrives with acquisition. Until then a
 // test writes the row the way the tree will, so the readers can be held to the
 // discipline before anything downstream depends on it.
-const openSubsession = (
-	id: string,
-	agentId: string,
-	parentSessionId: string,
-	rootSessionId: string,
-) =>
+const openSubsession = (id: string, agentId: string, parentSessionId: string, rootSessionId: string) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
 		yield* db.AgentSession.create({
@@ -72,24 +52,13 @@ it.live("the fleet lists root Sessions and never a subsession", () =>
 			yield* eventually(
 				Effect.gen(function* () {
 					const fleet = yield* sight.fleet;
-					expect(
-						fleet.agents
-							.flatMap((agent) => agent.sessions)
-							.map((row) => row.id),
-					).toEqual([receipt.sessionId]);
+					expect(fleet.agents.flatMap((agent) => agent.sessions).map((row) => row.id)).toEqual([receipt.sessionId]);
 				}),
 			);
 
-			yield* openSubsession(
-				"session-child",
-				receipt.agentId,
-				receipt.sessionId,
-				receipt.sessionId,
-			);
+			yield* openSubsession("session-child", receipt.agentId, receipt.sessionId, receipt.sessionId);
 			const fleet = yield* sight.fleet;
-			expect(
-				fleet.agents.flatMap((agent) => agent.sessions).map((row) => row.id),
-			).toEqual([receipt.sessionId]);
+			expect(fleet.agents.flatMap((agent) => agent.sessions).map((row) => row.id)).toEqual([receipt.sessionId]);
 		}).pipe(Effect.provide(sightLayer(temporary, scripted)));
 	}),
 );
@@ -107,17 +76,10 @@ it.live("a subsession is never a resume target", () =>
 					expect(fleet.agents).not.toEqual([]);
 				}),
 			);
-			yield* openSubsession(
-				"session-child",
-				receipt.agentId,
-				receipt.sessionId,
-				receipt.sessionId,
-			);
+			yield* openSubsession("session-child", receipt.agentId, receipt.sessionId, receipt.sessionId);
 
 			const resumable = yield* makeCurrentSessionResumable;
-			expect(
-				Result.isSuccess((yield* resumable(receipt.sessionId)).session),
-			).toBe(true);
+			expect(Result.isSuccess((yield* resumable(receipt.sessionId)).session)).toBe(true);
 			const child = (yield* resumable("session-child")).session;
 			expect(Result.isFailure(child)).toBe(true);
 			if (Result.isFailure(child)) {
@@ -144,12 +106,7 @@ it.live("the attachment seam refuses a subsession id outright", () =>
 					expect(fleet.agents).not.toEqual([]);
 				}),
 			);
-			yield* openSubsession(
-				"session-child",
-				receipt.agentId,
-				receipt.sessionId,
-				receipt.sessionId,
-			);
+			yield* openSubsession("session-child", receipt.agentId, receipt.sessionId, receipt.sessionId);
 
 			const refuseSubsession = yield* makeRefuseSubsessionAttach;
 			yield* refuseSubsession(receipt.sessionId);

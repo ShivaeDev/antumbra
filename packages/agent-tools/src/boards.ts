@@ -3,8 +3,7 @@ import { Schema } from "effect";
 import { defineTool } from "#define.ts";
 
 const Scope = Schema.Literals(["piece", "self", "voyage"]).annotate({
-	description:
-		"Whose board: `piece` is the piece you are working, `voyage` is the voyage it belongs to, `self` is your own.",
+	description: "Whose board: `piece` is the piece you are working, `voyage` is the voyage it belongs to, `self` is your own.",
 });
 
 export const writeBoardSpec = defineTool({
@@ -15,8 +14,7 @@ export const writeBoardSpec = defineTool({
 			description: "The entry, written for whoever reads this board next.",
 		}),
 		register: BoardRegisterSchema.annotate({
-			description:
-				"`smooth` for distilled learnings that stay true, `rough` for high-volume scratch.",
+			description: "`smooth` for distilled learnings that stay true, `rough` for high-volume scratch.",
 		}),
 		scope: Scope,
 	}),

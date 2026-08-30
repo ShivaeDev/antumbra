@@ -11,16 +11,6 @@ export const makeRulingRefreshes = Effect.gen(function* () {
 		const writes = yield* feeds.subscribeRulingRefresh();
 		return Stream.fromSubscription(writes);
 	});
-	return <A>(
-		read: Effect.Effect<A, RulingFailure>,
-	): Stream.Stream<A, RulingFailure> =>
-		Stream.unwrap(
-			ticks.pipe(
-				Effect.map((notices) =>
-					Stream.fromEffect(read).pipe(
-						Stream.concat(notices.pipe(Stream.mapEffect(() => read))),
-					),
-				),
-			),
-		);
+	return <A>(read: Effect.Effect<A, RulingFailure>): Stream.Stream<A, RulingFailure> =>
+		Stream.unwrap(ticks.pipe(Effect.map((notices) => Stream.fromEffect(read).pipe(Stream.concat(notices.pipe(Stream.mapEffect(() => read)))))));
 });

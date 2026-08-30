@@ -1,11 +1,5 @@
 import { Boards } from "@antumbra/boards";
-import {
-	type AdoptChangeRequest,
-	ArtifactMarkdownFailure,
-	type ReportMarkdown,
-	SightFailure,
-	VoyageSource,
-} from "@antumbra/contract";
+import { type AdoptChangeRequest, ArtifactMarkdownFailure, type ReportMarkdown, SightFailure, VoyageSource } from "@antumbra/contract";
 import type { ReportReading } from "@antumbra/reports";
 import { Context, Effect, Layer, Option } from "effect";
 import { AgentDomain } from "#agent-domain-service.ts";
@@ -20,11 +14,9 @@ import { changeSeen } from "#voyage-projection.ts";
 import { makeVoyageReads } from "#voyage-reads.ts";
 import { VoyageWorldSource } from "#voyage-world.ts";
 
-const artifactMarkdownFailure = (cause: unknown) =>
-	new ArtifactMarkdownFailure({ message: failureMessage(cause) });
+const artifactMarkdownFailure = (cause: unknown) => new ArtifactMarkdownFailure({ message: failureMessage(cause) });
 
-const noSuchReport = (reportId: string) =>
-	new SightFailure({ message: `no such report: ${reportId}` });
+const noSuchReport = (reportId: string) => new SightFailure({ message: `no such report: ${reportId}` });
 
 const reportMarkdown = (reading: ReportReading): ReportMarkdown => ({
 	authorAgentId: reading.authorAgentId,
@@ -40,10 +32,7 @@ export const VoyageSourceLive = Layer.effect(VoyageSource)(
 		const domain = yield* AgentDomain;
 		const voyages = yield* VoyageProcedureService;
 		const world = yield* VoyageWorldSource;
-		const context = Context.make(Boards, boards).pipe(
-			Context.add(VoyageProcedureService, voyages),
-			Context.add(VoyageWorldSource, world),
-		);
+		const context = Context.make(Boards, boards).pipe(Context.add(VoyageProcedureService, voyages), Context.add(VoyageWorldSource, world));
 		// why: what this process is holding is asked of the domain rather than of
 		// the rows, for the same reason the fleet asks — a row still saying active
 		// has outlived the process that made it true, and a crew is only quiet if
@@ -61,10 +50,7 @@ export const VoyageSourceLive = Layer.effect(VoyageSource)(
 		}).pipe(Effect.mapError(toFailure));
 		return {
 			...acts,
-			artifactMarkdown: (artifactId: string) =>
-				voyages
-					.artifactMarkdown(artifactId)
-					.pipe(Effect.mapError(artifactMarkdownFailure)),
+			artifactMarkdown: (artifactId: string) => voyages.artifactMarkdown(artifactId).pipe(Effect.mapError(artifactMarkdownFailure)),
 			// why: a change made by hand was opened by nobody this system spawned,
 			// so it is adopted with no agent behind it — the act of the person at
 			// the window, recorded as such rather than credited to the crew.
@@ -76,8 +62,7 @@ export const VoyageSourceLive = Layer.effect(VoyageSource)(
 			// why: the admiral's own verdict on a change nobody will finish, so it
 			// is recorded as the act of the person at the window — no agent asked
 			// for it and none is credited with it.
-			dismissChange: (changeId: string) =>
-				changes.dismiss(changeId).pipe(Effect.mapError(toFailure)),
+			dismissChange: (changeId: string) => changes.dismiss(changeId).pipe(Effect.mapError(toFailure)),
 			quay,
 			quayFeed: refreshes(quay),
 			refreshChanges: changes.requestRefresh,

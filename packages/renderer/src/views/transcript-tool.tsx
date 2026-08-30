@@ -11,9 +11,7 @@ const state = (item: ToolItem): React.ReactNode => {
 	if (item.ok === false) {
 		return <Badge variant="destructive">failed</Badge>;
 	}
-	return item.result === undefined ? (
-		<span className="shrink-0 text-2xs text-muted-foreground">running</span>
-	) : null;
+	return item.result === undefined ? <span className="shrink-0 text-2xs text-muted-foreground">running</span> : null;
 };
 
 // why: an opened call is read to see what was actually run, so each argument
@@ -38,9 +36,7 @@ export const TranscriptTool = ({ item }: { readonly item: ToolItem }) => (
 		body={
 			<>
 				<Input item={item} />
-				{item.result === undefined ? null : (
-					<Payload label="Result" text={item.result} />
-				)}
+				{item.result === undefined ? null : <Payload label="Result" text={item.result} />}
 			</>
 		}
 		name={<span className="shrink-0 font-medium">{item.name}</span>}

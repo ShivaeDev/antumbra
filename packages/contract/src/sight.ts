@@ -1,12 +1,7 @@
 import { HistoricalAgentEvent } from "@antumbra/vocabulary/session-events";
 import { Context, Data, type Effect, Schema, type Stream } from "effect";
 import type { Fleet, RepoSummary } from "#fleet.ts";
-import type {
-	SessionImage,
-	SessionImageRequest,
-	SessionInputReceipt,
-	SessionInputRequest,
-} from "#session-inputs.ts";
+import type { SessionImage, SessionImageRequest, SessionInputReceipt, SessionInputRequest } from "#session-inputs.ts";
 import { ChangeSituation } from "#session-situations.ts";
 import type { SessionTree } from "#session-tree.ts";
 
@@ -58,57 +53,38 @@ export class SightSource extends Context.Service<
 		readonly fleet: Effect.Effect<Fleet, SightFailure>;
 		readonly fleetFeed: Stream.Stream<Fleet, SightFailure>;
 		readonly forgetRepo: (repoId: string) => Effect.Effect<void, SightFailure>;
-		readonly interrupt: (
-			sessionId: string,
-		) => Effect.Effect<void, SightFailure>;
-		readonly registerRepo: (
-			registration: RepoRegistration,
-		) => Effect.Effect<RepoSummary, SightFailure>;
+		readonly interrupt: (sessionId: string) => Effect.Effect<void, SightFailure>;
+		readonly registerRepo: (registration: RepoRegistration) => Effect.Effect<RepoSummary, SightFailure>;
+		// why: provider holds never clear themselves on a guessed clock. The
+		// admiral deliberately retries the backend, which lets every parked act
+		// for it continue and lets a repeated rejection put it straight back.
+		readonly retryBackend: (backend: string) => Effect.Effect<void, SightFailure>;
 		readonly retire: (agentId: string) => Effect.Effect<void, SightFailure>;
 		// why: releasing the hands that finished a piece is one act, not one per
 		// agent — the piece is what the admiral is looking at, and which agents
 		// answer for it is the claim's business rather than the window's.
 		readonly retireCrew: (pieceId: string) => Effect.Effect<void, SightFailure>;
-		readonly send: (
-			sessionId: string,
-			text: string,
-		) => Effect.Effect<void, SightFailure>;
-		readonly sendInput: (
-			request: SessionInputRequest,
-		) => Effect.Effect<SessionInputReceipt, SightFailure>;
-		readonly sessionImage: (
-			request: SessionImageRequest,
-		) => Effect.Effect<SessionImage, SightFailure>;
-		readonly sessionEventFeed: (
-			query: EventQuery,
-		) => Stream.Stream<SessionEvent, SightFailure>;
-		readonly sessionEvents: (
-			query: EventQuery,
-		) => Effect.Effect<ReadonlyArray<SessionEvent>, SightFailure>;
+		readonly send: (sessionId: string, text: string) => Effect.Effect<void, SightFailure>;
+		readonly sendInput: (request: SessionInputRequest) => Effect.Effect<SessionInputReceipt, SightFailure>;
+		readonly sessionImage: (request: SessionImageRequest) => Effect.Effect<SessionImage, SightFailure>;
+		readonly sessionEventFeed: (query: EventQuery) => Stream.Stream<SessionEvent, SightFailure>;
+		readonly sessionEvents: (query: EventQuery) => Effect.Effect<ReadonlyArray<SessionEvent>, SightFailure>;
 		// why: a tree is addressed by its root, because the root is the only part
 		// of a Session anything outside it may resume or send to. Reading is
 		// narrower than that: a node id addresses that node's own event feed, so
 		// a reader can open the branch the words were actually said in.
-		readonly sessionTree: (
-			rootSessionId: string,
-		) => Effect.Effect<SessionTree, SightFailure>;
-		readonly sessionTreeFeed: (
-			rootSessionId: string,
-		) => Stream.Stream<SessionTree, SightFailure>;
+		readonly sessionTree: (rootSessionId: string) => Effect.Effect<SessionTree, SightFailure>;
+		readonly sessionTreeFeed: (rootSessionId: string) => Stream.Stream<SessionTree, SightFailure>;
 		// why: the words the situation would put in front of the admiral, read on
 		// demand rather than carried on every fleet snapshot — prose belongs to
 		// the one control that is about to show it, not to every row that has a
 		// Change. Drafting says nothing to anybody: the send is a separate act,
 		// and what it carries is whatever the admiral left in the box.
-		readonly situationDraft: (
-			draft: SituationDraft,
-		) => Effect.Effect<string, SightFailure>;
+		readonly situationDraft: (draft: SituationDraft) => Effect.Effect<string, SightFailure>;
 		// why: the admiral asking for the same rest the clock would have given an
 		// hour later. It goes through the one act that already knows how to give
 		// it, so there is one way a Session is put to rest and one way it wakes.
 		readonly sleep: (sessionId: string) => Effect.Effect<void, SightFailure>;
-		readonly spawn: (
-			request: SpawnRequest,
-		) => Effect.Effect<SpawnReceipt, SightFailure>;
+		readonly spawn: (request: SpawnRequest) => Effect.Effect<SpawnReceipt, SightFailure>;
 	}
 >()("@antumbra/contract/SightSource") {}

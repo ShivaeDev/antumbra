@@ -4,10 +4,7 @@ export class MermaidRenderError extends Data.TaggedError("MermaidRenderError")<{
 	readonly message: string;
 }> {}
 
-export const renderMermaid = (
-	id: string,
-	source: string,
-): Effect.Effect<string, MermaidRenderError> =>
+export const renderMermaid = (id: string, source: string): Effect.Effect<string, MermaidRenderError> =>
 	Effect.tryPromise({
 		catch: (cause) => new MermaidRenderError({ message: String(cause) }),
 		try: () =>

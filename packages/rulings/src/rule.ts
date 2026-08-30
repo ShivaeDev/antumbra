@@ -3,12 +3,7 @@ import { Database } from "@antumbra/persistence";
 import { Clock, Effect, Option } from "effect";
 import type { RulingVerdict } from "#acts.ts";
 import { answersAt, reachesRung } from "#authority.ts";
-import {
-	RulingAlreadyRuled,
-	RulingBelowRung,
-	RulingChoiceUnknown,
-	RulingOutsideAuthority,
-} from "#errors.ts";
+import { RulingAlreadyRuled, RulingBelowRung, RulingChoiceUnknown, RulingOutsideAuthority } from "#errors.ts";
 import type { Ruling } from "#model.ts";
 import { loadRuling, requireRuling } from "#read.ts";
 
@@ -23,9 +18,7 @@ const offeredChoice = (input: RulingVerdict) =>
 			id: choiceId,
 			rulingId: input.rulingId,
 		}).exists();
-		return offered
-			? choiceId
-			: yield* new RulingChoiceUnknown({ choiceId, rulingId: input.rulingId });
+		return offered ? choiceId : yield* new RulingChoiceUnknown({ choiceId, rulingId: input.rulingId });
 	});
 
 // why: the two refusals answer different questions. The rung says whose turn

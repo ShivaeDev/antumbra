@@ -16,17 +16,11 @@ interface GitFailureFields {
 	readonly operation: GitOperation;
 }
 
-export class GitAuthRequired extends Data.TaggedError(
-	"GitAuthRequired",
-)<GitFailureFields> {}
+export class GitAuthRequired extends Data.TaggedError("GitAuthRequired")<GitFailureFields> {}
 
-export class GitCommandFailed extends Data.TaggedError("GitCommandFailed")<
-	GitFailureFields & { readonly exitCode: number }
-> {}
+export class GitCommandFailed extends Data.TaggedError("GitCommandFailed")<GitFailureFields & { readonly exitCode: number }> {}
 
-export class GitOutputInvalid extends Data.TaggedError(
-	"GitOutputInvalid",
-)<GitFailureFields> {}
+export class GitOutputInvalid extends Data.TaggedError("GitOutputInvalid")<GitFailureFields> {}
 
 // why: refused before git is spawned, so it is not a failed command — the
 // branch a caller asked for was never one this system is allowed to move.
@@ -40,17 +34,8 @@ export class GitPushRefused extends Data.TaggedError("GitPushRefused")<{
 	}
 }
 
-export class GitTimedOut extends Data.TaggedError("GitTimedOut")<
-	GitFailureFields & { readonly timeoutMillis: number }
-> {}
+export class GitTimedOut extends Data.TaggedError("GitTimedOut")<GitFailureFields & { readonly timeoutMillis: number }> {}
 
-export class GitUnavailable extends Data.TaggedError(
-	"GitUnavailable",
-)<GitFailureFields> {}
+export class GitUnavailable extends Data.TaggedError("GitUnavailable")<GitFailureFields> {}
 
-export type GitError =
-	| GitAuthRequired
-	| GitCommandFailed
-	| GitOutputInvalid
-	| GitTimedOut
-	| GitUnavailable;
+export type GitError = GitAuthRequired | GitCommandFailed | GitOutputInvalid | GitTimedOut | GitUnavailable;

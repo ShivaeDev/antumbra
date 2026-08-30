@@ -1,17 +1,9 @@
 import { describe, expect, it } from "@effect/vitest";
 import { Effect } from "effect";
 import { ownerBoot } from "#adapters/boot.ts";
-import {
-	claimDesktopOwnership,
-	runnerRootsInDataDirectory,
-} from "#adapters/shell.ts";
+import { claimDesktopOwnership, runnerRootsInDataDirectory } from "#adapters/shell.ts";
 import { makeWindowRegistry } from "#adapters/windows/registry.ts";
-import {
-	consolePlace,
-	handleFor,
-	ownWindow,
-	transcriptPlace,
-} from "#test/windows.ts";
+import { consolePlace, handleFor, ownWindow, transcriptPlace } from "#test/windows.ts";
 
 it("gives every agent a moorage beside the mirrors it is cut from", () => {
 	expect(runnerRootsInDataDirectory("/data")).toEqual({
@@ -21,36 +13,34 @@ it("gives every agent a moorage beside the mirrors it is cut from", () => {
 });
 
 describe("desktop process ownership", () => {
-	it.effect(
-		"acquires ownership before runtime startup and skips startup when held",
-		() =>
-			Effect.gen(function* () {
-				const held: Array<string> = [];
-				yield* ownerBoot(
-					Effect.sync(() => {
-						held.push("ownership");
-						return false;
-					}),
-					() => {
-						held.push("factory");
-						return Effect.sync(() => held.push("runtime"));
-					},
-				);
-				expect(held).toEqual(["ownership"]);
+	it.effect("acquires ownership before runtime startup and skips startup when held", () =>
+		Effect.gen(function* () {
+			const held: Array<string> = [];
+			yield* ownerBoot(
+				Effect.sync(() => {
+					held.push("ownership");
+					return false;
+				}),
+				() => {
+					held.push("factory");
+					return Effect.sync(() => held.push("runtime"));
+				},
+			);
+			expect(held).toEqual(["ownership"]);
 
-				const owned: Array<string> = [];
-				yield* ownerBoot(
-					Effect.sync(() => {
-						owned.push("ownership");
-						return true;
-					}),
-					() => {
-						owned.push("factory");
-						return Effect.sync(() => owned.push("runtime"));
-					},
-				);
-				expect(owned).toEqual(["ownership", "factory", "runtime"]);
-			}),
+			const owned: Array<string> = [];
+			yield* ownerBoot(
+				Effect.sync(() => {
+					owned.push("ownership");
+					return true;
+				}),
+				() => {
+					owned.push("factory");
+					return Effect.sync(() => owned.push("runtime"));
+				},
+			);
+			expect(owned).toEqual(["ownership", "factory", "runtime"]);
+		}),
 	);
 
 	// why: the console is the app. A detached window opened earlier must never
@@ -59,18 +49,8 @@ describe("desktop process ownership", () => {
 		Effect.gen(function* () {
 			const calls: Array<string> = [];
 			const registry = makeWindowRegistry();
-			ownWindow(
-				registry,
-				"child",
-				transcriptPlace("session-1"),
-				handleFor(calls, "child"),
-			);
-			ownWindow(
-				registry,
-				"console",
-				consolePlace,
-				handleFor(calls, "console", true),
-			);
+			ownWindow(registry, "child", transcriptPlace("session-1"), handleFor(calls, "child"));
+			ownWindow(registry, "console", consolePlace, handleFor(calls, "console", true));
 			let secondInstance: (() => void) | undefined;
 			const claimed = yield* claimDesktopOwnership(
 				{
@@ -87,11 +67,7 @@ describe("desktop process ownership", () => {
 			expect(secondInstance).toBeDefined();
 			secondInstance?.();
 			yield* Effect.yieldNow;
-			expect(calls).toEqual([
-				"restore console",
-				"show console",
-				"focus console",
-			]);
+			expect(calls).toEqual(["restore console", "show console", "focus console"]);
 		}),
 	);
 
@@ -116,22 +92,20 @@ describe("desktop process ownership", () => {
 		}),
 	);
 
-	it.effect(
-		"quits a second process after Electron hands its launch to the owner",
-		() =>
-			Effect.gen(function* () {
-				const calls: Array<string> = [];
-				const claimed = yield* claimDesktopOwnership(
-					{
-						onSecondInstance: () => calls.push("listener"),
-						quit: () => calls.push("quit"),
-						requestSingleInstanceLock: () => false,
-					},
-					makeWindowRegistry(),
-					Effect.void,
-				);
-				expect(claimed).toBe(false);
-				expect(calls).toEqual(["quit"]);
-			}),
+	it.effect("quits a second process after Electron hands its launch to the owner", () =>
+		Effect.gen(function* () {
+			const calls: Array<string> = [];
+			const claimed = yield* claimDesktopOwnership(
+				{
+					onSecondInstance: () => calls.push("listener"),
+					quit: () => calls.push("quit"),
+					requestSingleInstanceLock: () => false,
+				},
+				makeWindowRegistry(),
+				Effect.void,
+			);
+			expect(claimed).toBe(false);
+			expect(calls).toEqual(["quit"]);
+		}),
 	);
 });

@@ -15,15 +15,9 @@ const closed: DirectToolOutcome = {
 // the scope ends the call instead of leaving work running for a session that
 // is already gone. A call arriving after the scope closed is refused the same
 // way, because the fiber it would need is interrupted the moment it starts.
-export const callWhileOpen = (
-	scope: Scope.Scope,
-	tool: DirectTool,
-	args: unknown,
-): Effect.Effect<DirectToolOutcome> =>
+export const callWhileOpen = (scope: Scope.Scope, tool: DirectTool, args: unknown): Effect.Effect<DirectToolOutcome> =>
 	tool.call(args).pipe(
 		Effect.forkIn(scope),
 		Effect.flatMap(Fiber.await),
-		Effect.flatMap((exit) =>
-			Exit.hasInterrupts(exit) ? Effect.succeed(closed) : exit,
-		),
+		Effect.flatMap((exit) => (Exit.hasInterrupts(exit) ? Effect.succeed(closed) : exit)),
 	);

@@ -1,20 +1,13 @@
 import type { Effect } from "effect";
 
-export type AnyMethod = (
-	...arguments_: ReadonlyArray<never>
-) => Effect.Effect<unknown, unknown, unknown>;
+export type AnyMethod = (...arguments_: ReadonlyArray<never>) => Effect.Effect<unknown, unknown, unknown>;
 
 export interface GenericMethodDescriptor<Method extends AnyMethod> {
 	readonly _tag: "GenericMethod";
 	readonly method: Method;
 }
 
-type Same<Left, Right> =
-	(<Value>() => Value extends Left ? 1 : 2) extends <
-		Value,
-	>() => Value extends Right ? 1 : 2
-		? true
-		: false;
+type Same<Left, Right> = (<Value>() => Value extends Left ? 1 : 2) extends <Value>() => Value extends Right ? 1 : 2 ? true : false;
 
 export type HasDistinctCallSignatures<Method> = Method extends {
 	(...arguments_: infer FirstArguments): infer FirstResult;
@@ -32,13 +25,9 @@ interface GenericOrStructurallyOverloadedMethodsAreUnsupported {
 }
 
 type MarkedMethod<Method extends AnyMethod> =
-	HasDistinctCallSignatures<Method> extends true
-		? GenericOrStructurallyOverloadedMethodsAreUnsupported
-		: GenericMethodDescriptor<Method>;
+	HasDistinctCallSignatures<Method> extends true ? GenericOrStructurallyOverloadedMethodsAreUnsupported : GenericMethodDescriptor<Method>;
 
-export function genericMethod<Method extends AnyMethod>(
-	method: Method,
-): MarkedMethod<Method>;
+export function genericMethod<Method extends AnyMethod>(method: Method): MarkedMethod<Method>;
 export function genericMethod(method: AnyMethod): unknown {
 	return { _tag: "GenericMethod", method };
 }

@@ -13,12 +13,6 @@ export const makeIsSpawnCancelling = Effect.gen(function* () {
 						onSome: (intent) => intent.status === "cancelling",
 					}),
 				),
-				Effect.catchCause((cause) =>
-					Effect.logWarning(
-						"spawn cancellation state could not be read",
-						{ intentId },
-						cause,
-					).pipe(Effect.as(false)),
-				),
+				Effect.catchCause((cause) => Effect.logWarning("spawn cancellation state could not be read", { intentId }, cause).pipe(Effect.as(false))),
 			);
 });

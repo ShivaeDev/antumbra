@@ -4,11 +4,7 @@ import type { StoredAgentSession } from "@antumbra/persistence";
 import type { EdgeRow, PieceRow, PieceVerdict } from "@antumbra/pieces";
 import type { ReportRow } from "@antumbra/reports";
 import type { RulingGate } from "@antumbra/rulings";
-import type {
-	AgentSessionStatus,
-	AgentStatus,
-	SessionExecutionStatus,
-} from "@antumbra/vocabulary/agent-runtime";
+import type { AgentSessionStatus, AgentStatus, SessionExecutionStatus } from "@antumbra/vocabulary/agent-runtime";
 import type { VoyageKind } from "@antumbra/vocabulary/voyage";
 
 export type { EdgeRow, PieceRow } from "@antumbra/pieces";
@@ -16,9 +12,6 @@ export type { EdgeRow, PieceRow } from "@antumbra/pieces";
 export type AwaitingRuling = Pick<RulingGate, "question" | "rulingId">;
 
 export interface VoyageRow {
-	// why: the captain and the crew are seated on backends chosen apart from
-	// one another, and both are always set — a voyage never falls back to some
-	// third answer about where its next spawn goes.
 	readonly captainBackend: string;
 	readonly context: string;
 	readonly crewBackend: string;
@@ -53,10 +46,7 @@ export interface CrewRow {
 // why: the structural half is the stored row, so a column change reaches this
 // reader as a compile error; the statuses stay decoded words, because a
 // projection never passes a raw string on as durable vocabulary.
-export type AgentSessionRow = Pick<
-	StoredAgentSession,
-	"agentId" | "createdAt" | "id"
-> & {
+export type AgentSessionRow = Pick<StoredAgentSession, "agentId" | "backend" | "createdAt" | "id"> & {
 	readonly executionStatus: SessionExecutionStatus;
 	readonly status: AgentSessionStatus;
 };

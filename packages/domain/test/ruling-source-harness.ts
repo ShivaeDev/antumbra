@@ -1,9 +1,5 @@
 import { ChangesLive } from "@antumbra/changes";
-import type {
-	OpenRulingsView,
-	RulingFailure,
-	StandingRulingsView,
-} from "@antumbra/contract";
+import type { OpenRulingsView, RulingFailure, StandingRulingsView } from "@antumbra/contract";
 import { DomainFeedsLive } from "@antumbra/domain-feeds";
 import { Database } from "@antumbra/persistence";
 import { PiecesLive } from "@antumbra/pieces";
@@ -58,10 +54,7 @@ export const seedFleet = Effect.gen(function* () {
 });
 
 export const asked = {
-	choices: [
-		{ detail: "the sounding is fresher", label: "trust the soundings" },
-		{ label: "trust the chart" },
-	],
+	choices: [{ detail: "the sounding is fresher", label: "trust the soundings" }, { label: "trust the chart" }],
 	context: "the chart and the soundings disagree over the eastern shoal",
 	gates: [],
 	question: "which reading do we plot against?",
@@ -77,10 +70,7 @@ export const asked = {
 
 // why: the watcher must hold the feed's opening snapshot before the act under
 // test lands, or an emission it never reacted to would pass for one.
-export const watchUntil = <A>(
-	feed: Stream.Stream<A, RulingFailure>,
-	matches: (view: A) => boolean,
-) =>
+export const watchUntil = <A>(feed: Stream.Stream<A, RulingFailure>, matches: (view: A) => boolean) =>
 	Effect.gen(function* () {
 		const opened = yield* Deferred.make<void>();
 		const watcher = yield* feed.pipe(
@@ -96,7 +86,5 @@ export const watchUntil = <A>(
 
 export const anyOpen = (view: OpenRulingsView) => view.rulings.length > 0;
 export const noneOpen = (view: OpenRulingsView) => view.rulings.length === 0;
-export const oneStanding = (view: StandingRulingsView) =>
-	view.rulings.length === 1;
-export const anyGated = (view: OpenRulingsView) =>
-	view.rulings.some((ruling) => ruling.gatedPieces.length > 0);
+export const oneStanding = (view: StandingRulingsView) => view.rulings.length === 1;
+export const anyGated = (view: OpenRulingsView) => view.rulings.some((ruling) => ruling.gatedPieces.length > 0);

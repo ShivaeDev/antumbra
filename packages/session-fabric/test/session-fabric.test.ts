@@ -3,13 +3,7 @@ import { expect, it } from "@effect/vitest";
 import { Deferred, Effect, Fiber, Ref, Stream } from "effect";
 import { SessionAttachmentFailure } from "#errors.ts";
 import { SessionFabric } from "#fabric.ts";
-import {
-	idleHandle,
-	options,
-	refusingSink,
-	scriptedBackend,
-	sink,
-} from "#test/fabric-fixtures.ts";
+import { idleHandle, options, refusingSink, scriptedBackend, sink } from "#test/fabric-fixtures.ts";
 
 it.live("concurrent starts attach one backend handle per session", () =>
 	Effect.scoped(
@@ -27,29 +21,11 @@ it.live("concurrent starts attach one backend handle per session", () =>
 			);
 			const fabric = yield* SessionFabric;
 			const first = yield* fabric
-				.withStartAdmission((permit) =>
-					fabric.start(
-						permit,
-						"agent-fabric",
-						backend,
-						options,
-						sink,
-						() => Effect.void,
-					),
-				)
+				.withStartAdmission((permit) => fabric.start(permit, "agent-fabric", backend, options, sink, () => Effect.void))
 				.pipe(Effect.forkChild);
 			yield* Deferred.await(firstEntered);
 			const second = yield* fabric
-				.withStartAdmission((permit) =>
-					fabric.start(
-						permit,
-						"agent-fabric",
-						backend,
-						options,
-						sink,
-						() => Effect.void,
-					),
-				)
+				.withStartAdmission((permit) => fabric.start(permit, "agent-fabric", backend, options, sink, () => Effect.void))
 				.pipe(Effect.forkChild);
 			// why: reaching either suspension point proves both starts overlapped.
 			yield* Effect.yieldNow;
@@ -77,28 +53,12 @@ it.live("one Agent cannot attach two different Sessions", () =>
 			);
 			const fabric = yield* SessionFabric;
 			const first = yield* fabric
-				.withStartAdmission((permit) =>
-					fabric.start(
-						permit,
-						"agent-fabric",
-						backend,
-						options,
-						sink,
-						() => Effect.void,
-					),
-				)
+				.withStartAdmission((permit) => fabric.start(permit, "agent-fabric", backend, options, sink, () => Effect.void))
 				.pipe(Effect.forkChild);
 			yield* Deferred.await(entered);
 			const second = yield* fabric
 				.withStartAdmission((permit) =>
-					fabric.start(
-						permit,
-						"agent-fabric",
-						backend,
-						{ ...options, sessionId: "session-other" },
-						sink,
-						() => Effect.void,
-					),
+					fabric.start(permit, "agent-fabric", backend, { ...options, sessionId: "session-other" }, sink, () => Effect.void),
 				)
 				.pipe(Effect.forkChild);
 			yield* Effect.yieldNow;
@@ -111,37 +71,26 @@ it.live("one Agent cannot attach two different Sessions", () =>
 	).pipe(Effect.provide(SessionFabric.layer, { local: true })),
 );
 
-it.live(
-	"native identity is not confirmed when its event was not persisted",
-	() =>
-		Effect.scoped(
-			Effect.gen(function* () {
-				const handle: SessionHandle = {
-					...idleHandle,
-					events: Stream.make({
-						nativeRef: "native-fabric",
-						raw: { kind: "session/opened", payload: "{}", source: "scripted" },
-						type: "session.opened",
-					}),
-				};
-				const backend: AgentBackend = scriptedBackend(() =>
-					Effect.succeed(handle),
-				);
-				const fabric = yield* SessionFabric;
-				const failure = yield* Effect.flip(
-					fabric.withStartAdmission((permit) =>
-						fabric.start(
-							permit,
-							"agent-fabric",
-							backend,
-							options,
-							refusingSink,
-							(attachment) => attachment.openedNativeRef.pipe(Effect.asVoid),
-						),
-					),
-				);
-				expect(failure).toBeInstanceOf(SessionAttachmentFailure);
-				expect(failure.detail).toContain("durably record native identity");
-			}),
-		).pipe(Effect.provide(SessionFabric.layer, { local: true })),
+it.live("native identity is not confirmed when its event was not persisted", () =>
+	Effect.scoped(
+		Effect.gen(function* () {
+			const handle: SessionHandle = {
+				...idleHandle,
+				events: Stream.make({
+					nativeRef: "native-fabric",
+					raw: { kind: "session/opened", payload: "{}", source: "scripted" },
+					type: "session.opened",
+				}),
+			};
+			const backend: AgentBackend = scriptedBackend(() => Effect.succeed(handle));
+			const fabric = yield* SessionFabric;
+			const failure = yield* Effect.flip(
+				fabric.withStartAdmission((permit) =>
+					fabric.start(permit, "agent-fabric", backend, options, refusingSink, (attachment) => attachment.openedNativeRef.pipe(Effect.asVoid)),
+				),
+			);
+			expect(failure).toBeInstanceOf(SessionAttachmentFailure);
+			expect(failure.detail).toContain("durably record native identity");
+		}),
+	).pipe(Effect.provide(SessionFabric.layer, { local: true })),
 );

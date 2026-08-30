@@ -6,35 +6,89 @@ on:
   pull_request:
   merge_group:
 
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: true
+
 jobs:
-  validate:
+  lint:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 24
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
+      - uses: ./.github/actions/setup
       - run: pnpm lint
+
+  typecheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
       - run: pnpm typecheck
       - run: pnpm typecheck:root
       - run: pnpm typecheck:compat
-      - run: pnpm test
+
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
+    name: test (${{ matrix.shard }}/4)
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
+      - run: pnpm exec vitest run --config script/vitest.workspace.ts --shard=${{ matrix.shard }}/4
+
+  isolated:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
+      - run: pnpm test:desktop
+      - run: pnpm test:runner-local
+
+  guards:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
       - run: pnpm test:guards
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
       - run: pnpm build
+
+  # Required-check name stays `validate` so branch protection does not change.
+  validate:
+    if: always()
+    needs:
+      - lint
+      - typecheck
+      - test
+      - isolated
+      - guards
+      - build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require every needed job to succeed
+        run: |
+          test "${{ needs.lint.result }}" = success
+          test "${{ needs.typecheck.result }}" = success
+          test "${{ needs.test.result }}" = success
+          test "${{ needs.isolated.result }}" = success
+          test "${{ needs.guards.result }}" = success
+          test "${{ needs.build.result }}" = success
 
   package:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 24
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
+      - uses: ./.github/actions/setup
       - run: pnpm --filter @antumbra/desktop package
       - uses: actions/upload-artifact@v4
         with:

@@ -37,10 +37,7 @@ const PULL_FIELDS = [
 	"commits(last: 1) { nodes { commit { statusCheckRollup { state } } } }",
 ].join(" ");
 
-export const chunked = <A>(
-	items: ReadonlyArray<A>,
-	size: number,
-): ReadonlyArray<ReadonlyArray<A>> => {
+export const chunked = <A>(items: ReadonlyArray<A>, size: number): ReadonlyArray<ReadonlyArray<A>> => {
 	const chunks: Array<ReadonlyArray<A>> = [];
 	for (let start = 0; start < items.length; start += size) {
 		chunks.push(items.slice(start, start + size));
@@ -50,9 +47,7 @@ export const chunked = <A>(
 
 const repoKey = (ref: PullRequestRef): string => `${ref.owner}/${ref.name}`;
 
-const groupedByRepo = (
-	refs: ReadonlyArray<LocatedPullRequestRef>,
-): ReadonlyArray<ReadonlyArray<LocatedPullRequestRef>> => {
+const groupedByRepo = (refs: ReadonlyArray<LocatedPullRequestRef>): ReadonlyArray<ReadonlyArray<LocatedPullRequestRef>> => {
 	const groups = new Map<string, Array<LocatedPullRequestRef>>();
 	for (const ref of refs) {
 		const key = repoKey(ref);
@@ -69,11 +64,7 @@ const groupedByRepo = (
 // why: every pull request in the batch gets an alias unique across the whole
 // document. The plan preserves that alias-to-repository mapping, so partial
 // answers never have to be correlated by position.
-const repositoryBlock = (
-	group: ReadonlyArray<LocatedPullRequestRef>,
-	alias: string,
-	numbered: (ref: LocatedPullRequestRef) => string,
-): string => {
+const repositoryBlock = (group: ReadonlyArray<LocatedPullRequestRef>, alias: string, numbered: (ref: LocatedPullRequestRef) => string): string => {
 	const first = group[0];
 	if (first === undefined) {
 		return "";
@@ -82,9 +73,7 @@ const repositoryBlock = (
 	return `${alias}: repository(owner: "${first.owner}", name: "${first.name}") { ${selections} }`;
 };
 
-export const buildObservePlan = (
-	refs: ReadonlyArray<LocatedPullRequestRef>,
-): ObservePlan => {
+export const buildObservePlan = (refs: ReadonlyArray<LocatedPullRequestRef>): ObservePlan => {
 	let index = 0;
 	const selections: ObserveSelection[] = [];
 	const blocks = groupedByRepo(refs).map((group, position) => {
@@ -101,6 +90,4 @@ export const buildObservePlan = (
 	return { query: `query { ${blocks.join(" ")} }`, selections };
 };
 
-export const buildObserveQuery = (
-	refs: ReadonlyArray<LocatedPullRequestRef>,
-): string => buildObservePlan(refs).query;
+export const buildObserveQuery = (refs: ReadonlyArray<LocatedPullRequestRef>): string => buildObservePlan(refs).query;

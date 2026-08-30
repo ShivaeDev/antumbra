@@ -1,10 +1,7 @@
 import { DatabaseSync } from "node:sqlite";
 import type { DatabaseFilePath } from "#data-dir.ts";
 
-const withDatabase = (
-	databasePath: DatabaseFilePath,
-	statement: string,
-): void => {
+const withDatabase = (databasePath: DatabaseFilePath, statement: string): void => {
 	const database = new DatabaseSync(databasePath);
 	try {
 		database.exec(statement);
@@ -25,22 +22,11 @@ const refuseInsert = (trigger: string, table: string, when: string): string => `
 	END
 `;
 
-export const rejectTestSessionOpenedWrites = (
-	databasePath: DatabaseFilePath,
-) => {
-	withDatabase(
-		databasePath,
-		refuseInsert(
-			"reject_session_opened",
-			"sessionEvent",
-			"NEW.\"kind\" = 'session.opened'",
-		),
-	);
+export const rejectTestSessionOpenedWrites = (databasePath: DatabaseFilePath) => {
+	withDatabase(databasePath, refuseInsert("reject_session_opened", "sessionEvent", "NEW.\"kind\" = 'session.opened'"));
 };
 
-export const allowTestSessionOpenedWrites = (
-	databasePath: DatabaseFilePath,
-) => {
+export const allowTestSessionOpenedWrites = (databasePath: DatabaseFilePath) => {
 	withDatabase(databasePath, "DROP TRIGGER reject_session_opened");
 };
 
@@ -48,17 +34,8 @@ export const allowTestSessionOpenedWrites = (
 // root's down with it. Messages are what a delegated agent produces and what
 // the root of a delegating turn does not, so refusing them refuses one node's
 // words and leaves every other append standing.
-export const rejectTestSessionMessageWrites = (
-	databasePath: DatabaseFilePath,
-) => {
-	withDatabase(
-		databasePath,
-		refuseInsert(
-			"reject_session_message",
-			"sessionEvent",
-			"NEW.\"kind\" = 'message'",
-		),
-	);
+export const rejectTestSessionMessageWrites = (databasePath: DatabaseFilePath) => {
+	withDatabase(databasePath, refuseInsert("reject_session_message", "sessionEvent", "NEW.\"kind\" = 'message'"));
 };
 
 export const rejectTestChangeUpdates = (databasePath: DatabaseFilePath) => {

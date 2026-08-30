@@ -14,10 +14,7 @@ type AdmissionDecision =
 			readonly signal: Deferred.Deferred<void>;
 	  };
 
-const admitStart = (
-	current: AdmissionState,
-	nextIdle: Deferred.Deferred<void>,
-): readonly [AdmissionDecision, AdmissionState] => {
+const admitStart = (current: AdmissionState, nextIdle: Deferred.Deferred<void>): readonly [AdmissionDecision, AdmissionState] => {
 	if (!current.accepting) {
 		return [{ _tag: "waiting", signal: current.reopened }, current];
 	}
@@ -45,27 +42,20 @@ export const makeSessionStartAdmission = Effect.gen(function* () {
 	const gate = yield* Semaphore.make(1);
 	const acquire = Effect.gen(function* () {
 		const nextIdle = yield* Deferred.make<void>();
-		return yield* gate.withPermit(
-			Ref.modify(state, (current) => admitStart(current, nextIdle)),
-		);
+		return yield* gate.withPermit(Ref.modify(state, (current) => admitStart(current, nextIdle)));
 	});
 	const release = Effect.gen(function* () {
 		const signal = yield* gate.withPermit(
 			Ref.modify(state, (current) => {
 				const active = current.active - 1;
-				return [
-					active === 0 ? current.idle : undefined,
-					{ ...current, active },
-				];
+				return [active === 0 ? current.idle : undefined, { ...current, active }];
 			}),
 		);
 		if (signal !== undefined) {
 			yield* Deferred.succeed(signal, undefined);
 		}
 	});
-	const run = <A, E, R>(
-		effect: Effect.Effect<A, E, R>,
-	): Effect.Effect<A, E, R> =>
+	const run = <A, E, R>(effect: Effect.Effect<A, E, R>): Effect.Effect<A, E, R> =>
 		Effect.uninterruptibleMask((restore) =>
 			Effect.gen(function* () {
 				const decision = yield* acquire;
@@ -80,23 +70,14 @@ export const makeSessionStartAdmission = Effect.gen(function* () {
 		Effect.gen(function* () {
 			const nextReopened = yield* Deferred.make<void>();
 			const settled = yield* gate.withPermit(
-				Ref.modify(state, (current) => [
-					current.idle,
-					current.accepting
-						? { ...current, accepting: false, reopened: nextReopened }
-						: current,
-				]),
+				Ref.modify(state, (current) => [current.idle, current.accepting ? { ...current, accepting: false, reopened: nextReopened } : current]),
 			);
 			yield* restore(Deferred.await(settled));
 		}),
 	);
 	const reopen = Effect.gen(function* () {
 		const signal = yield* gate.withPermit(
-			Ref.modify(state, (current) =>
-				current.accepting
-					? [undefined, current]
-					: [current.reopened, { ...current, accepting: true }],
-			),
+			Ref.modify(state, (current) => (current.accepting ? [undefined, current] : [current.reopened, { ...current, accepting: true }])),
 		);
 		if (signal !== undefined) {
 			yield* Deferred.succeed(signal, undefined);

@@ -1,7 +1,4 @@
-import {
-	CAPTAIN_STANDING_ORDER,
-	type CaptainCharter,
-} from "#charter-captain.ts";
+import { CAPTAIN_STANDING_ORDER, type CaptainCharter } from "#charter-captain.ts";
 import { type AgentPrompt, agentPrompt } from "#mint.ts";
 import { logSection, proseOf, section } from "#prose.ts";
 
@@ -18,9 +15,11 @@ const STATION = [
 // purpose, and it widens on asks that could not be carried out rather than on
 // anticipation. Each is an ordinary act the admiral could perform directly.
 const FLEET_ORDER = [
-	"- `read_fleet` shows every voyage in the fleet: its id, kind, backend, state, piece counts, who its captain is, and when it last stirred. It is where the id `charter_piece_on_voyage` takes comes from — `read_voyage` shows only this ship.",
-	"- `open_voyage` opens a voyage for an ask that needs one: a name, the north star it steers by, and what surrounds it. It charters no work and spawns nobody.",
-	"- `charter_piece_on_voyage` charters a piece on a voyage you name. What it waits on and when it is released into the pool belong to that voyage's captain, not to you.",
+	"- `read_fleet` shows every voyage in the fleet: its id, kind, backend, state, piece counts, who its captain is, and when it last stirred. It is where the id `charter_piece_on_voyage`, `hail_captain` and `read_voyage` take comes from.",
+	"- `read_voyage` reads this ship when you name no voyage, and any voyage in the fleet when you name one: its pieces and their state, who is at work, and what has landed there under the id each report and artifact is known by. You are the only captain that may name another ship.",
+	"- `open_voyage` opens a voyage for an ask that needs one: a name, the north star it steers by, and what surrounds it. It charters no work and wakes nobody — the voyage has no captain until you hail one.",
+	"- `charter_piece_on_voyage` charters a piece on a voyage you name. It is a write to that voyage's record and nothing else: nobody is woken, and the piece sits held until that voyage's captain launches it. What it waits on and when it is released into the pool belong to that captain, not to you.",
+	"- `hail_captain` wakes the captain of a voyage you name, or brings it one if it has none. Chartering is silent on purpose, so hailing is the separate, deliberate act that lets a captain know: charter what the voyage is to do, then hail. A captain already at work is reached rather than doubled; one still being born refuses the hail.",
 	"- `proclaim_ruling` settles a question for the whole fleet: it stands the moment you proclaim it and binds every voyage until the admiral supersedes it. Proclaim what applies fleet-wide; anything narrower belongs to the voyage it is about, and anything only the admiral may settle goes to the admiral.",
 	"- The questions the captains cannot settle climb to you, and `rule_on` settles them at any radius — you are the fleet's own authority, so a question about one ship is not too narrow for you once it reaches you. What only the admiral may settle you send on with `pass_up` and what you know.",
 	"- This voyage is the fleet's own: its north star is the fleet sailing well, and its board is the fleet board. Everything you do lands here, so what was done in the admiral's name reads as one story — and you decide which of it the other voyages need to hear.",
@@ -35,9 +34,6 @@ export const flagshipCharter = (input: CaptainCharter): AgentPrompt =>
 			logSection("Fleet log", input.voyageLog),
 			section("Pieces", input.pieceLines.join("\n")),
 			logSection("Standing rulings", input.rulings),
-			section(
-				"Standing orders",
-				[CAPTAIN_STANDING_ORDER, FLEET_ORDER].join("\n"),
-			),
+			section("Standing orders", [CAPTAIN_STANDING_ORDER, FLEET_ORDER].join("\n")),
 		]),
 	);

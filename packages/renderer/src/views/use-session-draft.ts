@@ -47,16 +47,11 @@ export const useSessionDraft = ({
 	) => {
 		setSending(false);
 		clear(sent);
-		draftImages.announce(
-			receipt.status === "accepted"
-				? "Message sent"
-				: "Message queued while the session wakes",
-		);
+		draftImages.announce(receipt.status === "accepted" ? "Message sent" : "Message queued while the session wakes");
 	};
 	const send = () => {
 		const sent = words.capture();
-		if (sending || (draftImages.images.length === 0 && sent.text.trim() === ""))
-			return;
+		if (sending || (draftImages.images.length === 0 && sent.text.trim() === "")) return;
 		const id = inputId ?? SessionInputId.make(crypto.randomUUID());
 		setInputId(id);
 		setIssue(undefined);
@@ -66,12 +61,7 @@ export const useSessionDraft = ({
 			id,
 			draftImages.images,
 			sent.text,
-			(request) =>
-				sendSessionInput(
-					request,
-					(receipt) => accepted(receipt, sent),
-					refused,
-				),
+			(request) => sendSessionInput(request, (receipt) => accepted(receipt, sent), refused),
 			(message) => {
 				refused(message);
 			},

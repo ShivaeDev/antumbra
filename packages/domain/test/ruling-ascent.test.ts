@@ -6,12 +6,7 @@ import { expect, it } from "@effect/vitest";
 import { type Context, Effect } from "effect";
 import { AgentDomain } from "#domain.ts";
 import { domainKernelLayer } from "#test/domain-layers.ts";
-import {
-	acquireTemporaryPersistence,
-	makeScriptedBackend,
-	type ScriptedBackend,
-	sessionFor,
-} from "#test/harness.ts";
+import { acquireTemporaryPersistence, makeScriptedBackend, type ScriptedBackend, sessionFor } from "#test/harness.ts";
 import { eventually, openReefVoyage } from "#test/voyage-fixtures.ts";
 
 const ASKER = "agent-asker";
@@ -73,12 +68,7 @@ const crewReef = Effect.gen(function* () {
 	return voyage.id;
 });
 
-const ask = (
-	question: string,
-	rung: Rung,
-	radius: "fleet" | "voyage" = "voyage",
-	agentId: string = ASKER,
-) =>
+const ask = (question: string, rung: Rung, radius: "fleet" | "voyage" = "voyage", agentId: string = ASKER) =>
 	Effect.gen(function* () {
 		const rulings = yield* Rulings;
 		const requested = yield* rulings.request({
@@ -110,9 +100,7 @@ const carried = (agentId: string, count: number) =>
 		}),
 	);
 
-const withFleet = <A, E>(
-	body: (fleet: Fleet) => Effect.Effect<A, E, FleetNeeds>,
-) =>
+const withFleet = <A, E>(body: (fleet: Fleet) => Effect.Effect<A, E, FleetNeeds>) =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
 		const scripted = yield* makeScriptedBackend;
@@ -130,10 +118,7 @@ const withFleet = <A, E>(
 it.live("a crew member's question reaches its own captain as one mail", () =>
 	withFleet((fleet) =>
 		Effect.gen(function* () {
-			const rulingId = yield* ask(
-				"may a voyage dredge what it has not surveyed?",
-				"captain",
-			);
+			const rulingId = yield* ask("may a voyage dredge what it has not surveyed?", "captain");
 
 			const entries = yield* carried(fleet.reefCaptain, 1);
 			expect(entries[0]).toMatchObject({
@@ -160,12 +145,7 @@ it.live("a crew member's question reaches its own captain as one mail", () =>
 it.live("a captain's own question reaches the flagship", () =>
 	withFleet((fleet) =>
 		Effect.gen(function* () {
-			const rulingId = yield* ask(
-				"may we dredge?",
-				"flagship",
-				"fleet",
-				fleet.reefCaptain,
-			);
+			const rulingId = yield* ask("may we dredge?", "flagship", "fleet", fleet.reefCaptain);
 
 			const entries = yield* carried(fleet.flagshipCaptain, 1);
 			expect(entries[0]?.sourceRef).toBe(`ruling-ascent:${rulingId}`);
@@ -210,28 +190,23 @@ it.live("a question the admiral holds is carried to nobody", () =>
 	),
 );
 
-it.live(
-	"a later pass carries the next question and repeats no earlier one",
-	() =>
-		withFleet((fleet) =>
-			Effect.gen(function* () {
-				const feeds = yield* DomainFeeds;
-				const first = yield* ask("may we dredge?", "captain");
-				yield* carried(fleet.reefCaptain, 1);
+it.live("a later pass carries the next question and repeats no earlier one", () =>
+	withFleet((fleet) =>
+		Effect.gen(function* () {
+			const feeds = yield* DomainFeeds;
+			const first = yield* ask("may we dredge?", "captain");
+			yield* carried(fleet.reefCaptain, 1);
 
-				// why: a bare ring makes the observer walk the record again with
-				// nothing new in it, so the second question proves the pass ran and the
-				// single entry per ruling proves the first was not carried twice.
-				yield* feeds.publishRulingRefresh();
-				const second = yield* ask("and who signs the survey?", "captain");
+			// why: a bare ring makes the observer walk the record again with
+			// nothing new in it, so the second question proves the pass ran and the
+			// single entry per ruling proves the first was not carried twice.
+			yield* feeds.publishRulingRefresh();
+			const second = yield* ask("and who signs the survey?", "captain");
 
-				const entries = yield* carried(fleet.reefCaptain, 2);
-				expect(entries.map((entry) => entry.sourceRef)).toEqual([
-					`ruling-ascent:${first}`,
-					`ruling-ascent:${second}`,
-				]);
-			}),
-		),
+			const entries = yield* carried(fleet.reefCaptain, 2);
+			expect(entries.map((entry) => entry.sourceRef)).toEqual([`ruling-ascent:${first}`, `ruling-ascent:${second}`]);
+		}),
+	),
 );
 
 // why: nothing rings the ruling feed between the question and the hail, so the
@@ -259,12 +234,7 @@ it.live("a question asked before its rung is held climbs on the hail", () =>
 it.live("a captain's question is never carried back to itself", () =>
 	withFleet((fleet) =>
 		Effect.gen(function* () {
-			yield* ask(
-				"what does the reef need next?",
-				"captain",
-				"voyage",
-				fleet.reefCaptain,
-			);
+			yield* ask("what does the reef need next?", "captain", "voyage", fleet.reefCaptain);
 			const asked = yield* ask("which reading do we trust?", "captain");
 
 			const entries = yield* carried(fleet.reefCaptain, 1);

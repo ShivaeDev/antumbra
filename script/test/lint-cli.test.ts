@@ -13,8 +13,7 @@ const trees = decodeLintTrees(rawTrees);
 
 afterEach(removeSeededTrees);
 
-const runLint = (root: string) =>
-	spawnSync("node", [entry, root], { encoding: "utf8" });
+const runLint = (root: string) => spawnSync("node", [entry, root], { encoding: "utf8" });
 
 describe("lint entry point", () => {
 	it("exits 0 and reports what it walked on a clean tree", () => {
@@ -26,12 +25,7 @@ describe("lint entry point", () => {
 	it("merges every lint into one report and exits 1", () => {
 		const result = runLint(seedLintTree(trees.dirty));
 		expect(result.status).toBe(1);
-		for (const rule of [
-			"structure/no-barrel",
-			"pragmas/unregistered",
-			"manifests/catalog-only",
-			"contracts/declaration-resolves",
-		]) {
+		for (const rule of ["structure/no-barrel", "pragmas/unregistered", "manifests/catalog-only", "contracts/declaration-resolves"]) {
 			expect(result.stderr).toContain(rule);
 		}
 		expect(result.stderr).toContain("violation(s).");

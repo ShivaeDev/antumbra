@@ -1,20 +1,17 @@
-import type { BackendFailure } from "@antumbra/plugin-api";
+import type { BackendCapacityController, BackendFailure } from "@antumbra/plugin-api";
 import { Deferred, Effect, PubSub, Queue, type Scope } from "effect";
 import type { LineProcess } from "#adapters/process.ts";
-import {
-	connectRpc,
-	type RpcConnection,
-	type RpcNotification,
-	type RpcServerRequest,
-} from "#adapters/rpc.ts";
+import { connectRpc, type RpcConnection, type RpcNotification, type RpcServerRequest } from "#adapters/rpc.ts";
 import { codexFailure } from "#failure.ts";
 import { handshake } from "#handshake.ts";
+import { rawOf } from "#mapping.ts";
 import { type Request, requestOn } from "#requests.ts";
 import { answerServerRequest } from "#server-answers.ts";
 import { openThreadClaims, type ThreadClaims } from "#thread-claims.ts";
 import { makeToolRegistry, type ToolRegistry } from "#tool-registry.ts";
 
 interface CodexServerOptions {
+	readonly observeCapacity?: BackendCapacityController["observe"];
 	readonly spawn: () => LineProcess;
 }
 
@@ -36,8 +33,12 @@ const wire = (
 	rpc: RpcConnection,
 	notifications: PubSub.PubSub<RpcNotification>,
 	serverRequests: Queue.Queue<RpcServerRequest>,
+	observeCapacity: BackendCapacityController["observe"] | undefined,
 ): void => {
 	rpc.onNotification((notification) => {
+		// why: provider capacity belongs to the shared backend, so it must see the
+		// notification before per-thread ownership can discard an unscoped frame.
+		observeCapacity?.(rawOf(notification.method, notification.params));
 		PubSub.publishUnsafe(notifications, notification);
 	});
 	// why: a server request is also published as a notification, so the
@@ -45,6 +46,7 @@ const wire = (
 	// serverRequest/resolved, how it went) — the answer itself is decided in
 	// approvals.ts.
 	rpc.onServerRequest((request) => {
+		observeCapacity?.(rawOf(request.method, request.params));
 		PubSub.publishUnsafe(notifications, {
 			method: request.method,
 			params: request.params,
@@ -57,21 +59,18 @@ const wire = (
 // session — the topology codex itself documents and its own clients use. It
 // lives as long as the scope that made it; a dead child ends every
 // session's stream through `exited`.
-export const makeCodexServer = (
-	options: CodexServerOptions,
-): Effect.Effect<CodexServer, BackendFailure, Scope.Scope> =>
+export const makeCodexServer = (options: CodexServerOptions): Effect.Effect<CodexServer, BackendFailure, Scope.Scope> =>
 	Effect.gen(function* () {
 		const notifications = yield* PubSub.unbounded<RpcNotification>();
 		const serverRequests = yield* Queue.unbounded<RpcServerRequest>();
 		const stderr = yield* Queue.unbounded<string>();
 		const tools = yield* makeToolRegistry;
 		const threads = openThreadClaims();
-		const child = yield* Effect.acquireRelease(
-			Effect.try({ catch: codexFailure, try: options.spawn }),
-			(process) => Effect.sync(() => process.kill()),
+		const child = yield* Effect.acquireRelease(Effect.try({ catch: codexFailure, try: options.spawn }), (process) =>
+			Effect.sync(() => process.kill()),
 		);
 		const rpc = connectRpc(child);
-		wire(rpc, notifications, serverRequests);
+		wire(rpc, notifications, serverRequests, options.observeCapacity);
 		// why: the child says why it is unhappy on stderr and nowhere else — a
 		// malformed reply of ours leaves its only trace there.
 		child.onStderr((text) => {
@@ -79,9 +78,7 @@ export const makeCodexServer = (
 		});
 		yield* Effect.forkScoped(
 			Queue.take(stderr).pipe(
-				Effect.flatMap((text) =>
-					Effect.logWarning("codex app-server", { stderr: text }),
-				),
+				Effect.flatMap((text) => Effect.logWarning("codex app-server", { stderr: text })),
 				Effect.forever,
 			),
 		);
@@ -96,9 +93,7 @@ export const makeCodexServer = (
 		// them coming back in the order they were asked.
 		yield* Effect.forkScoped(
 			Queue.take(serverRequests).pipe(
-				Effect.flatMap((request) =>
-					Effect.forkScoped(answerServerRequest(rpc, tools, request)),
-				),
+				Effect.flatMap((request) => Effect.forkScoped(answerServerRequest(rpc, tools, request))),
 				Effect.forever,
 				Effect.ignore,
 			),

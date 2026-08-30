@@ -1,10 +1,7 @@
 import { DatabaseSync } from "node:sqlite";
 import type { DatabaseFilePath } from "#data-dir.ts";
 
-export const rejectTestOutcomeLinks = (
-	databasePath: DatabaseFilePath,
-	outcome: "artifact" | "report",
-) => {
+export const rejectTestOutcomeLinks = (databasePath: DatabaseFilePath, outcome: "artifact" | "report") => {
 	const targets = {
 		artifact: {
 			message: "reject artifact provenance",

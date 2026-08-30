@@ -157,8 +157,6 @@ it.effectDB("withdraws a ruling once and only once", function* () {
 			_tag: "RulingAlreadyWithdrawn",
 			rulingId: ruling.id,
 		});
-		expect(
-			Option.getOrThrow((yield* rulings.get(ruling.id)).withdrawal).note,
-		).toBe("the shoal was dredged away");
+		expect(Option.getOrThrow((yield* rulings.get(ruling.id)).withdrawal).note).toBe("the shoal was dredged away");
 	}).pipe(Effect.provide(layer));
 });

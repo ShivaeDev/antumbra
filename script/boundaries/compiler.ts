@@ -1,20 +1,13 @@
 import { describeException, sanctionedOf } from "#boundaries/exceptions.ts";
 import { compileSelector, escapeExpression } from "#boundaries/expressions.ts";
-import type {
-	BoundaryFixture,
-	BoundaryPolicyInventory,
-	BoundaryRule,
-	CompiledBoundaryRule,
-} from "#boundaries/model.ts";
+import type { BoundaryFixture, BoundaryPolicyInventory, BoundaryRule, CompiledBoundaryRule } from "#boundaries/model.ts";
 import { validatePolicyInventory } from "#boundaries/policy-inventory.ts";
 import { validatePolicy } from "#boundaries/validation.ts";
 
 const compileRule = (rule: BoundaryRule): CompiledBoundaryRule => ({
 	comment: `${rule.rationale}${sanctionedOf(rule).map(describeException).join("")}`,
 	from: {
-		path: compileSelector(
-			rule.kind === "negative-fence" ? rule.from : rule.consumers,
-		),
+		path: compileSelector(rule.kind === "negative-fence" ? rule.from : rule.consumers),
 	},
 	name: rule.name,
 	severity: "error",
@@ -22,16 +15,11 @@ const compileRule = (rule: BoundaryRule): CompiledBoundaryRule => ({
 		path:
 			rule.kind === "negative-fence"
 				? compileSelector(rule.to)
-				: `^packages/vocabulary/src/(?!${rule.allowedSubjects
-						.map((subject) => `${escapeExpression(subject)}(?:\\.ts|/)`)
-						.join("|")})`,
+				: `^packages/vocabulary/src/(?!${rule.allowedSubjects.map((subject) => `${escapeExpression(subject)}(?:\\.ts|/)`).join("|")})`,
 	},
 });
 
-export const compileBoundaryPolicy = (
-	policy: readonly BoundaryRule[],
-	inventory: BoundaryPolicyInventory,
-) => {
+export const compileBoundaryPolicy = (policy: readonly BoundaryRule[], inventory: BoundaryPolicyInventory) => {
 	validatePolicyInventory(policy, inventory);
 	const forbidden = policy.map(compileRule);
 	validatePolicy(policy, forbidden);

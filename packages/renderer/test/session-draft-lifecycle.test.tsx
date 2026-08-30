@@ -42,14 +42,12 @@ const fleet = (sessionId: string): Fleet => ({
 		},
 	],
 	backends: ["scripted"],
+	capacities: [],
 	diag: { intents: [] },
 	repos: [],
 });
 
-const nativeValue = Object.getOwnPropertyDescriptor(
-	HTMLTextAreaElement.prototype,
-	"value",
-)?.set;
+const nativeValue = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, "value")?.set;
 
 const step = (change: () => void) =>
 	Effect.promise(() =>
@@ -63,15 +61,7 @@ const mounted = (sessionId: string) =>
 	Effect.gen(function* () {
 		const container = document.createElement("div");
 		const root = createRoot(container);
-		yield* step(() =>
-			root.render(
-				<SessionMessage
-					fleet={fleet(sessionId)}
-					onError={() => undefined}
-					sessionId={sessionId}
-				/>,
-			),
-		);
+		yield* step(() => root.render(<SessionMessage fleet={fleet(sessionId)} onError={() => undefined} sessionId={sessionId} />));
 		return { container, root };
 	});
 
@@ -107,80 +97,59 @@ it.effect("keeps navigation between session drafts isolated", () =>
 		yield* step(() => second.root.unmount());
 
 		const returned = yield* mounted("session-one");
-		expect(returned.container.querySelector("textarea")?.value).toBe(
-			"one course",
-		);
+		expect(returned.container.querySelector("textarea")?.value).toBe("one course");
 		yield* step(() => returned.root.unmount());
 	}),
 );
 
-it.effect(
-	"failure preserves a draft and success clears only that session",
-	() =>
-		Effect.gen(function* () {
-			let done: (receipt: { status: "accepted" }) => void = () => undefined;
-			let fail: (message: string) => void = () => undefined;
-			sendSessionInput.mockImplementation(
-				(
-					_request: unknown,
-					onDone: (receipt: { status: "accepted" }) => void,
-					onError: (message: string) => void,
-				) => {
-					done = onDone;
-					fail = onError;
-				},
-			);
-			const first = yield* mounted("session-one");
-			yield* step(() => rewrite(first.container, "hold session one"));
-			yield* step(() => send(first.container));
-			yield* step(() => fail("delivery refused"));
-			expect(first.container.querySelector("textarea")?.value).toBe(
-				"hold session one",
-			);
-			yield* step(() => first.root.unmount());
+it.effect("failure preserves a draft and success clears only that session", () =>
+	Effect.gen(function* () {
+		let done: (receipt: { status: "accepted" }) => void = () => undefined;
+		let fail: (message: string) => void = () => undefined;
+		sendSessionInput.mockImplementation(
+			(_request: unknown, onDone: (receipt: { status: "accepted" }) => void, onError: (message: string) => void) => {
+				done = onDone;
+				fail = onError;
+			},
+		);
+		const first = yield* mounted("session-one");
+		yield* step(() => rewrite(first.container, "hold session one"));
+		yield* step(() => send(first.container));
+		yield* step(() => fail("delivery refused"));
+		expect(first.container.querySelector("textarea")?.value).toBe("hold session one");
+		yield* step(() => first.root.unmount());
 
-			const second = yield* mounted("session-two");
-			yield* step(() => rewrite(second.container, "hold session two"));
-			yield* step(() => second.root.unmount());
+		const second = yield* mounted("session-two");
+		yield* step(() => rewrite(second.container, "hold session two"));
+		yield* step(() => second.root.unmount());
 
-			const retry = yield* mounted("session-one");
-			yield* step(() => send(retry.container));
-			yield* step(() => done({ status: "accepted" }));
-			expect(retry.container.querySelector("textarea")?.value).toBe("");
-			yield* step(() => retry.root.unmount());
-			const untouched = yield* mounted("session-two");
-			expect(untouched.container.querySelector("textarea")?.value).toBe(
-				"hold session two",
-			);
-			yield* step(() => untouched.root.unmount());
-		}),
+		const retry = yield* mounted("session-one");
+		yield* step(() => send(retry.container));
+		yield* step(() => done({ status: "accepted" }));
+		expect(retry.container.querySelector("textarea")?.value).toBe("");
+		yield* step(() => retry.root.unmount());
+		const untouched = yield* mounted("session-two");
+		expect(untouched.container.querySelector("textarea")?.value).toBe("hold session two");
+		yield* step(() => untouched.root.unmount());
+	}),
 );
 
 it.effect("a successful send does not erase words typed while it settles", () =>
 	Effect.gen(function* () {
 		let done: (receipt: { status: "accepted" }) => void = () => undefined;
-		sendSessionInput.mockImplementation(
-			(
-				_request: unknown,
-				onDone: (receipt: { status: "accepted" }) => void,
-			) => {
-				done = onDone;
-			},
-		);
+		sendSessionInput.mockImplementation((_request: unknown, onDone: (receipt: { status: "accepted" }) => void) => {
+			done = onDone;
+		});
 		const composer = yield* mounted("session-race");
 		yield* step(() => rewrite(composer.container, "sent words"));
 		yield* step(() => send(composer.container));
 		yield* step(() => rewrite(composer.container, "next words"));
 		yield* step(() => done({ status: "accepted" }));
-		expect(composer.container.querySelector("textarea")?.value).toBe(
-			"next words",
-		);
+		expect(composer.container.querySelector("textarea")?.value).toBe("next words");
 		yield* step(() => composer.root.unmount());
 
 		const returned = yield* mounted("session-race");
-		expect(returned.container.querySelector("textarea")?.value).toBe(
-			"next words",
-		);
+		expect(returned.container.querySelector("textarea")?.value).toBe("next words");
 		yield* step(() => returned.root.unmount());
 	}),
 );
@@ -188,23 +157,16 @@ it.effect("a successful send does not erase words typed while it settles", () =>
 it.effect("a send success clears a composer remounted while it settled", () =>
 	Effect.gen(function* () {
 		let done: (receipt: { status: "accepted" }) => void = () => undefined;
-		sendSessionInput.mockImplementation(
-			(
-				_request: unknown,
-				onDone: (receipt: { status: "accepted" }) => void,
-			) => {
-				done = onDone;
-			},
-		);
+		sendSessionInput.mockImplementation((_request: unknown, onDone: (receipt: { status: "accepted" }) => void) => {
+			done = onDone;
+		});
 		const first = yield* mounted("session-remounted-send");
 		yield* step(() => rewrite(first.container, "words in passage"));
 		yield* step(() => send(first.container));
 		yield* step(() => first.root.unmount());
 
 		const returned = yield* mounted("session-remounted-send");
-		expect(returned.container.querySelector("textarea")?.value).toBe(
-			"words in passage",
-		);
+		expect(returned.container.querySelector("textarea")?.value).toBe("words in passage");
 		yield* step(() => done({ status: "accepted" }));
 		expect(returned.container.querySelector("textarea")?.value).toBe("");
 		yield* step(() => returned.root.unmount());

@@ -9,10 +9,7 @@ interface ReclaimPlan {
 	readonly event: "abandon" | "requeue";
 }
 
-const reclaimPlan = (
-	kind: AnyIntentKind | undefined,
-	tag: string,
-): ReclaimPlan => {
+const reclaimPlan = (kind: AnyIntentKind | undefined, tag: string): ReclaimPlan => {
 	if (kind === undefined) {
 		return {
 			detail: `no registered intent kind for tag "${tag}"`,
@@ -38,9 +35,7 @@ const settleStrandedRunning = Effect.gen(function* () {
 const settleStrandedCancelling = Effect.gen(function* () {
 	const db = yield* Database;
 	const stranded = yield* db.Intent.where({ status: "cancelling" }).all();
-	return yield* Effect.forEach(stranded, (row) =>
-		transitionRow(row.id, "interrupt"),
-	);
+	return yield* Effect.forEach(stranded, (row) => transitionRow(row.id, "interrupt"));
 });
 
 // why: reclaim runs before the scheduler exists. Each row settles through its

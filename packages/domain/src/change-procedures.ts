@@ -1,7 +1,4 @@
-import type {
-	ChangeIdentityCollision,
-	ChangeObservationConflict,
-} from "@antumbra/changes";
+import type { ChangeIdentityCollision, ChangeObservationConflict } from "@antumbra/changes";
 import {
 	type AdoptChangeFailure,
 	type AdoptChangeInput,
@@ -18,19 +15,12 @@ import {
 } from "@antumbra/changes";
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import type { PrismaError } from "@antumbra/persistence";
-import type {
-	ChangeHost,
-	ChangeHostError,
-	ChangeObservation,
-} from "@antumbra/plugin-api";
+import type { ChangeHost, ChangeHostError, ChangeObservation } from "@antumbra/plugin-api";
 import type { StoredResourceReclaimStateInvalid } from "@antumbra/vocabulary/agent-runtime";
 import { Context, Effect, Layer } from "effect";
 import type { ResourceReclaimClaimed } from "#errors.ts";
 import { type QuayReading, quayReading } from "#quay-view.ts";
-import {
-	type VoyageWorldReadFailure,
-	VoyageWorldSource,
-} from "#voyage-world.ts";
+import { type VoyageWorldReadFailure, VoyageWorldSource } from "#voyage-world.ts";
 
 // why: what a host can do right now, said in the host's own words — the window
 // shows it, and a tool that cannot act says the same sentence back to the
@@ -42,16 +32,12 @@ export interface ChangeHostCapabilityView {
 }
 
 export interface ChangeProcedures {
-	readonly adopt: (
-		input: AdoptChangeInput,
-	) => Effect.Effect<ChangeRow, AdoptChangeFailure>;
+	readonly adopt: (input: AdoptChangeInput) => Effect.Effect<ChangeRow, AdoptChangeFailure>;
 	readonly capabilities: Effect.Effect<ReadonlyArray<ChangeHostCapabilityView>>;
 	// why: the verb a change closed without merging never had. It settles what
 	// the change is owed and takes it off the quay without pretending it landed
 	// and without forgetting that it existed.
-	readonly dismiss: (
-		changeId: string,
-	) => Effect.Effect<void, ChangeNotFound | ChangeStillAlive | PrismaError>;
+	readonly dismiss: (changeId: string) => Effect.Effect<void, ChangeNotFound | ChangeStillAlive | PrismaError>;
 	readonly hostTags: ReadonlyArray<string>;
 	// why: the seam a host that pushes reaches, beside the one a host that is
 	// polled reaches — both hand the domain the same neutral observations.
@@ -67,20 +53,11 @@ export interface ChangeProcedures {
 		| StoredChangeInvalid
 		| StoredResourceReclaimStateInvalid
 	>;
-	readonly open: (
-		input: OpenChangeInput,
-	) => Effect.Effect<ChangeRow, OpenChangeFailure>;
-	readonly submit: (
-		input: SubmitChangeInput,
-	) => Effect.Effect<ChangeRow, SubmitChangeFailure>;
+	readonly open: (input: OpenChangeInput) => Effect.Effect<ChangeRow, OpenChangeFailure>;
+	readonly submit: (input: SubmitChangeInput) => Effect.Effect<ChangeRow, SubmitChangeFailure>;
 	// why: what can still change at a host — open changes can settle. The set
 	// also decides the next pass cadence.
-	readonly watchableChanges: (
-		hostTag: string,
-	) => Effect.Effect<
-		ReadonlyArray<ChangeRow>,
-		PrismaError | StoredChangeInvalid
-	>;
+	readonly watchableChanges: (hostTag: string) => Effect.Effect<ReadonlyArray<ChangeRow>, PrismaError | StoredChangeInvalid>;
 	// why: every change still owed, read across the whole fleet and grouped by
 	// where it lies, beside the pieces one made by hand can be adopted onto.
 	readonly quay: Effect.Effect<QuayReading, VoyageWorldReadFailure>;
@@ -103,10 +80,7 @@ export interface ChangeProcedures {
 	readonly requestRefresh: Effect.Effect<void>;
 }
 
-export class ChangeProcedureService extends Context.Service<
-	ChangeProcedureService,
-	ChangeProcedures
->()("@antumbra/domain/ChangeProcedures") {}
+export class ChangeProcedureService extends Context.Service<ChangeProcedureService, ChangeProcedures>()("@antumbra/domain/ChangeProcedures") {}
 
 export const ChangeProceduresLive = (hosts: ReadonlyMap<string, ChangeHost>) =>
 	Layer.effect(ChangeProcedureService)(

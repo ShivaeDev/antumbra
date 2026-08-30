@@ -1,25 +1,11 @@
 import { Database } from "@antumbra/persistence";
 import { expect, it } from "@effect/vitest";
-import {
-	Cause,
-	Data,
-	Deferred,
-	Effect,
-	Fiber,
-	Option,
-	Ref,
-	Schema,
-	Stream,
-} from "effect";
+import { Cause, Data, Deferred, Effect, Fiber, Option, Ref, Schema, Stream } from "effect";
 import type { IntentStatus } from "#fsm.ts";
 import { maxConcurrency } from "#gate.ts";
 import { defineIntent } from "#intent.ts";
 import { Kernel } from "#kernel.ts";
-import {
-	acquireTemporaryPersistence,
-	kernelLayer,
-	statusesUntilTerminal,
-} from "#test/harness.ts";
+import { acquireTemporaryPersistence, kernelLayer, statusesUntilTerminal } from "#test/harness.ts";
 import { IntentExecution } from "#workflow.ts";
 
 const EMPTY = Schema.Struct({});
@@ -67,18 +53,12 @@ it.live("a waiting intent frees capacity and retries under the same id", () =>
 			const kernel = yield* Kernel;
 			const first = yield* kernel.submit(waiting, {});
 			expect(yield* untilWaiting(first.changes)).toBe("waiting");
-			const row = Option.getOrThrow(
-				yield* db.Intent.where({ id: first.id }).first(),
-			);
+			const row = Option.getOrThrow(yield* db.Intent.where({ id: first.id }).first());
 			expect(row.detail).toContain("credentials are locked");
 			const second = yield* kernel.submit(quick, {});
-			expect((yield* statusesUntilTerminal(second.changes)).at(-1)).toBe(
-				"succeeded",
-			);
+			expect((yield* statusesUntilTerminal(second.changes)).at(-1)).toBe("succeeded");
 			yield* kernel.retry(first.id);
-			expect(
-				(yield* statusesUntilTerminal(kernel.changes(first.id))).at(-1),
-			).toBe("succeeded");
+			expect((yield* statusesUntilTerminal(kernel.changes(first.id))).at(-1)).toBe("succeeded");
 			expect(yield* Ref.get(attempts)).toBe(2);
 		}).pipe(
 			Effect.provide(
@@ -118,9 +98,7 @@ it.live("waiting survives restart until explicit retry", () =>
 			expect(row.status).toBe("waiting");
 			expect(yield* Ref.get(attempts)).toBe(1);
 			yield* kernel.retry(id);
-			expect((yield* statusesUntilTerminal(kernel.changes(id))).at(-1)).toBe(
-				"succeeded",
-			);
+			expect((yield* statusesUntilTerminal(kernel.changes(id))).at(-1)).toBe("succeeded");
 			expect(yield* Ref.get(attempts)).toBe(2);
 		}).pipe(Effect.provide(kernelLayer(temporary, { kinds: [resumedKind] })));
 	}),
@@ -132,11 +110,7 @@ it.live("cancels a waiting intent without admitting it again", () =>
 		const attempts = yield* Ref.make(0);
 		const kind = defineIntent({
 			execute: () =>
-				IntentExecution.use((execution) =>
-					Ref.update(attempts, (count) => count + 1).pipe(
-						Effect.andThen(execution.wait("wait for credentials")),
-					),
-				),
+				IntentExecution.use((execution) => Ref.update(attempts, (count) => count + 1).pipe(Effect.andThen(execution.wait("wait for credentials")))),
 			payload: EMPTY,
 			tag: "test/cancel-waiting",
 		});
@@ -145,9 +119,7 @@ it.live("cancels a waiting intent without admitting it again", () =>
 			const submission = yield* kernel.submit(kind, {});
 			expect(yield* untilWaiting(submission.changes)).toBe("waiting");
 			yield* kernel.cancel(submission.id);
-			expect(
-				(yield* statusesUntilTerminal(kernel.changes(submission.id))).at(-1),
-			).toBe("cancelled");
+			expect((yield* statusesUntilTerminal(kernel.changes(submission.id))).at(-1)).toBe("cancelled");
 			expect(yield* Ref.get(attempts)).toBe(1);
 		}).pipe(Effect.provide(kernelLayer(temporary, { kinds: [kind] })));
 	}),
@@ -172,9 +144,7 @@ it.live("cancellation wins when an interrupt finalizer also waits", () =>
 		yield* Effect.gen(function* () {
 			const kernel = yield* Kernel;
 			const submission = yield* kernel.submit(kind, {});
-			const observed = yield* Effect.forkChild(
-				statusesUntilTerminal(submission.changes),
-			);
+			const observed = yield* Effect.forkChild(statusesUntilTerminal(submission.changes));
 			yield* Deferred.await(started);
 			yield* kernel.cancel(submission.id);
 			const statuses = yield* Fiber.join(observed);
@@ -190,20 +160,10 @@ class SecondFailure extends Data.TaggedError("SecondFailure")<{
 
 const waitWith = (extra: Cause.Cause<unknown>) =>
 	IntentExecution.use((execution) =>
-		execution
-			.wait("credentials are locked")
-			.pipe(
-				Effect.catchCause((cause) =>
-					Effect.failCause(Cause.combine(cause, extra)),
-				),
-			),
+		execution.wait("credentials are locked").pipe(Effect.catchCause((cause) => Effect.failCause(Cause.combine(cause, extra)))),
 	);
 
-const expectMixedWaitToFail = (
-	tag: string,
-	extra: Cause.Cause<unknown>,
-	evidence: string,
-) =>
+const expectMixedWaitToFail = (tag: string, extra: Cause.Cause<unknown>, evidence: string) =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
 		const kind = defineIntent({
@@ -216,25 +176,15 @@ const expectMixedWaitToFail = (
 			const kernel = yield* Kernel;
 			const submission = yield* kernel.submit(kind, {});
 			expect(yield* untilWaitOrFailure(submission.changes)).toBe("failed");
-			const row = Option.getOrThrow(
-				yield* db.Intent.where({ id: submission.id }).first(),
-			);
+			const row = Option.getOrThrow(yield* db.Intent.where({ id: submission.id }).first());
 			expect(row.detail).toContain(evidence);
 		}).pipe(Effect.provide(kernelLayer(temporary, { kinds: [kind] })));
 	});
 
 it.live("does not hide a defect mixed with a wait signal", () =>
-	expectMixedWaitToFail(
-		"test/wait-defect",
-		Cause.die("cleanup defect"),
-		"cleanup defect",
-	),
+	expectMixedWaitToFail("test/wait-defect", Cause.die("cleanup defect"), "cleanup defect"),
 );
 
 it.live("does not hide another failure mixed with a wait signal", () =>
-	expectMixedWaitToFail(
-		"test/wait-failure",
-		Cause.fail(new SecondFailure({ detail: "cleanup failed" })),
-		"SecondFailure",
-	),
+	expectMixedWaitToFail("test/wait-failure", Cause.fail(new SecondFailure({ detail: "cleanup failed" })), "SecondFailure"),
 );

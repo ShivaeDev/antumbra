@@ -11,7 +11,7 @@
 		"#*": "./src/*"
 	},
 	"scripts": {
-		"test": "vitest run --passWithNoTests",
+		"test": "vitest run",
 		"typecheck": "tsc --noEmit",
 		"typecheck:compat": "tsc6 --noEmit"
 	},
@@ -32,7 +32,6 @@
 		"@effect/atom-react": "catalog:",
 		"@fontsource-variable/inter": "catalog:",
 		"@radix-ui/react-dialog": "catalog:",
-		"@radix-ui/react-scroll-area": "catalog:",
 		"@radix-ui/react-select": "catalog:",
 		"@radix-ui/react-separator": "catalog:",
 		"@radix-ui/react-slot": "catalog:",
@@ -48,7 +47,6 @@
 		"react-dom": "catalog:",
 		"react-markdown": "catalog:",
 		"remark-gfm": "catalog:",
-		"scheduler": "catalog:",
 		"tailwind-merge": "catalog:",
 		"tailwindcss": "catalog:"
 	}

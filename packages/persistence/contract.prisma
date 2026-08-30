@@ -6,6 +6,17 @@ model AppMeta {
   updatedAt DateTime @default(now())
 }
 
+model BackendCapacity {
+  backend     String   @id
+  status      String
+  reason      String?
+  detail      String?
+  observedAt  DateTime
+  resetsAt    DateTime?
+  utilization Float?
+  updatedAt   DateTime @default(now())
+}
+
 model Intent {
   id        String   @id
   tag       String

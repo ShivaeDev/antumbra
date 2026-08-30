@@ -9,7 +9,5 @@ export const runRefreshes = (
 ): Effect.Effect<void, never, Scope.Scope> =>
 	Effect.gen(function* () {
 		const subscription = yield* subscribe;
-		yield* Stream.fromSubscription(subscription).pipe(
-			Stream.runForEach(() => Queue.offer(tick, undefined)),
-		);
+		yield* Stream.fromSubscription(subscription).pipe(Stream.runForEach(() => Queue.offer(tick, undefined)));
 	});

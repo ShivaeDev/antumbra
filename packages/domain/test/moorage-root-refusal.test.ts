@@ -65,9 +65,7 @@ it.live("a second open root is refused by name, not by the index", () =>
 				expect(refusal.sessionId).toBe("session-second");
 				expect(refusal.message).toContain("session-first");
 			}
-			expect((yield* db.AgentSession.all()).map((row) => row.id)).toEqual([
-				"session-first",
-			]);
+			expect((yield* db.AgentSession.all()).map((row) => row.id)).toEqual(["session-first"]);
 		}).pipe(Effect.provide(Layer.merge(temporary.layer, DomainFeedsLive)));
 	}),
 );

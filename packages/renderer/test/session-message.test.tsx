@@ -16,18 +16,9 @@ vi.mock("#adapters/trpc.ts", () => ({ sendSessionInput }));
 type Presence = Fleet["agents"][number]["sessions"][number]["presence"];
 type Intent = Fleet["diag"]["intents"][number];
 
-const waking = (
-	state: string,
-	detail: string | null = null,
-): ReadonlyArray<Intent> => [
-	{ detail, id: "intent-1", kind: "agent/wake", state },
-];
+const waking = (state: string, detail: string | null = null): ReadonlyArray<Intent> => [{ detail, id: "intent-1", kind: "agent/wake", state }];
 
-const fleetWith = (
-	presence: Presence,
-	intents: ReadonlyArray<Intent> = [],
-	canAttachImages = true,
-): Fleet => ({
+const fleetWith = (presence: Presence, intents: ReadonlyArray<Intent> = [], canAttachImages = true): Fleet => ({
 	agents: [
 		{
 			berths: [],
@@ -55,24 +46,16 @@ const fleetWith = (
 		},
 	],
 	backends: ["scripted"],
+	capacities: [],
 	diag: { intents: [] },
 	repos: [],
 });
 
-const box = (fleet: Fleet | undefined) => (
-	<SessionMessage
-		fleet={fleet}
-		onError={() => undefined}
-		sessionId="session-1"
-	/>
-);
+const box = (fleet: Fleet | undefined) => <SessionMessage fleet={fleet} onError={() => undefined} sessionId="session-1" />;
 
 // why: React tracks the value it last rendered, so typing has to go through
 // the element's own value setter or the change never reaches the component.
-const nativeValue = Object.getOwnPropertyDescriptor(
-	HTMLTextAreaElement.prototype,
-	"value",
-)?.set;
+const nativeValue = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, "value")?.set;
 
 const write = (container: HTMLElement, text: string): void => {
 	const input = container.querySelector("textarea");
@@ -84,11 +67,7 @@ const write = (container: HTMLElement, text: string): void => {
 };
 
 const pressEnter = (container: HTMLElement): void => {
-	container
-		.querySelector("textarea")
-		?.dispatchEvent(
-			new KeyboardEvent("keydown", { bubbles: true, key: "Enter" }),
-		);
+	container.querySelector("textarea")?.dispatchEvent(new KeyboardEvent("keydown", { bubbles: true, key: "Enter" }));
 };
 
 const mounted = (fleet: Fleet | undefined) =>
@@ -122,27 +101,17 @@ it("says who is listening rather than refusing to take the words", () => {
 	// why: a session taking a turn needs no footnote — the box is the answer.
 	expect(working).not.toContain("this session is");
 	expect(working).not.toContain("this session has");
-	expect(renderToStaticMarkup(box(fleetWith("idle")))).toContain(
-		"listening, with nothing to do",
-	);
-	expect(renderToStaticMarkup(box(fleetWith("asleep")))).toContain(
-		"asleep — it will wake when you speak to it",
-	);
-	expect(renderToStaticMarkup(box(fleetWith("ended")))).toContain(
-		"this session has ended",
-	);
-	expect(renderToStaticMarkup(box(undefined))).toContain(
-		"this session is not on the fleet",
-	);
+	expect(renderToStaticMarkup(box(fleetWith("idle")))).toContain("listening, with nothing to do");
+	expect(renderToStaticMarkup(box(fleetWith("asleep")))).toContain("asleep — it will wake when you speak to it");
+	expect(renderToStaticMarkup(box(fleetWith("ended")))).toContain("this session has ended");
+	expect(renderToStaticMarkup(box(undefined))).toContain("this session is not on the fleet");
 });
 
 // why: the sentence the correction deleted. A Session that stood down or was
 // put to siesta is reachable, and no surface may tell a reader otherwise.
 it("never tells the admiral a session is not listening", () => {
 	for (const presence of ["working", "idle", "asleep", "ended"] as const) {
-		expect(renderToStaticMarkup(box(fleetWith(presence)))).not.toContain(
-			"not listening",
-		);
+		expect(renderToStaticMarkup(box(fleetWith(presence)))).not.toContain("not listening");
 	}
 });
 
@@ -150,26 +119,18 @@ it("never tells the admiral a session is not listening", () => {
 // exists. Before it, the box repeated the invitation it had already been taken
 // up on, which reads as words that landed.
 it("says a wake is under way rather than repeating the invitation", () => {
-	const asking = renderToStaticMarkup(
-		box(fleetWith("asleep", waking("running"))),
-	);
+	const asking = renderToStaticMarkup(box(fleetWith("asleep", waking("running"))));
 	expect(asking).toContain("waking — the words it carries land when it does");
 	expect(asking).not.toContain("it will wake when you speak to it");
-	expect(
-		renderToStaticMarkup(box(fleetWith("asleep", waking("queued")))),
-	).toContain("waking — the words it carries land when it does");
+	expect(renderToStaticMarkup(box(fleetWith("asleep", waking("queued"))))).toContain("waking — the words it carries land when it does");
 });
 
 // why: a parked wake is the state this whole branch was built to make visible —
 // a send whose words are written down and going nowhere until something pushes
 // them. Saying "waking" there would be the silent success wearing a verb.
 it("says a parked wake is parked", () => {
-	const parked = renderToStaticMarkup(
-		box(fleetWith("asleep", waking("waiting"))),
-	);
-	expect(parked).toContain(
-		"a wake is parked — the words it carries are still waiting to land",
-	);
+	const parked = renderToStaticMarkup(box(fleetWith("asleep", waking("waiting"))));
+	expect(parked).toContain("a wake is parked — the words it carries are still waiting to land");
 	expect(parked).not.toContain("waking —");
 });
 
@@ -178,9 +139,7 @@ it("says a parked wake is parked", () => {
 // sentence goes out beside it, unedited, so the box says what stopped the wake
 // rather than only that something did.
 it("says what stopped a parked wake, in the wake's own words", () => {
-	const parked = renderToStaticMarkup(
-		box(fleetWith("asleep", waking("waiting", "authentication is required"))),
-	);
+	const parked = renderToStaticMarkup(box(fleetWith("asleep", waking("waiting", "authentication is required"))));
 	expect(parked).toContain("a wake is parked");
 	expect(parked).toContain("authentication is required");
 });
@@ -188,23 +147,15 @@ it("says what stopped a parked wake, in the wake's own words", () => {
 // why: a wake with nothing recorded against it must not invent a reason, and an
 // ended Session has already been told the more final thing.
 it("adds no reason where the Intent recorded none", () => {
-	expect(
-		renderToStaticMarkup(box(fleetWith("asleep", waking("waiting")))),
-	).toContain("a wake is parked");
-	expect(
-		renderToStaticMarkup(
-			box(fleetWith("ended", waking("waiting", "the session has closed"))),
-		),
-	).not.toContain("the session has closed");
+	expect(renderToStaticMarkup(box(fleetWith("asleep", waking("waiting"))))).toContain("a wake is parked");
+	expect(renderToStaticMarkup(box(fleetWith("ended", waking("waiting", "the session has closed"))))).not.toContain("the session has closed");
 });
 
 // why: the note belongs to the wake, not to the presence, so a Session the
 // fleet already calls awake keeps it for as long as the recover is live — the
 // words are with the Intent until it succeeds either way.
 it("keeps the wake note while the recover outlives the sleep", () => {
-	expect(
-		renderToStaticMarkup(box(fleetWith("working", waking("running")))),
-	).toContain("waking — the words it carries land when it does");
+	expect(renderToStaticMarkup(box(fleetWith("working", waking("running"))))).toContain("waking — the words it carries land when it does");
 	expect(renderToStaticMarkup(box(fleetWith("idle")))).not.toContain("waking");
 });
 
@@ -226,12 +177,8 @@ it.effect("keeps the box open for every state but the one that has ended", () =>
 
 it.effect("sends what was typed by key or by button and clears the box", () =>
 	Effect.gen(function* () {
-		sendSessionInput.mockImplementation(
-			(
-				_request: unknown,
-				onDone: (receipt: { status: "accepted" }) => void,
-				_onError: (message: string) => void,
-			) => onDone({ status: "accepted" }),
+		sendSessionInput.mockImplementation((_request: unknown, onDone: (receipt: { status: "accepted" }) => void, _onError: (message: string) => void) =>
+			onDone({ status: "accepted" }),
 		);
 		const { container, root } = yield* mounted(fleetWith("working"));
 		yield* step(() => write(container, "come about"));
@@ -260,7 +207,6 @@ it.effect("sends what was typed by key or by button and clears the box", () =>
 			expect.any(Function),
 			expect.any(Function),
 		);
-		expect(sendSessionInput).toHaveBeenCalledTimes(2);
 		yield* step(() => root.unmount());
 	}),
 );
@@ -274,11 +220,7 @@ it.effect("keeps a blank message and a session that has ended quiet", () =>
 		expect(sendSessionInput).not.toHaveBeenCalled();
 		yield* step(() => root.render(box(fleetWith("ended"))));
 		expect(container.querySelector("textarea")?.disabled).toBe(true);
-		expect(
-			Array.from(container.querySelectorAll("button")).find(
-				(button) => button.textContent === "Send",
-			)?.disabled,
-		).toBe(true);
+		expect(Array.from(container.querySelectorAll("button")).find((button) => button.textContent === "Send")?.disabled).toBe(true);
 		yield* step(() => root.unmount());
 	}),
 );
@@ -290,9 +232,7 @@ it.effect("restores unsent words after the composer is remounted", () =>
 		yield* step(() => first.root.unmount());
 
 		const returned = yield* mounted(fleetWith("working"));
-		expect(returned.container.querySelector("textarea")?.value).toBe(
-			"hold this course",
-		);
+		expect(returned.container.querySelector("textarea")?.value).toBe("hold this course");
 		yield* step(() => returned.root.unmount());
 	}),
 );

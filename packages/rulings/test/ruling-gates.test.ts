@@ -20,9 +20,7 @@ it.effectDB("holds the pieces a request names until it is ruled", function* () {
 
 			expect(gated.gatedPieceIds).toEqual([pieceId]);
 			expect(yield* PubSub.take(readiness)).toBeUndefined();
-			expect(yield* rulings.openGates()).toEqual([
-				{ pieceId, question: asked.question, rulingId: requested.id },
-			]);
+			expect(yield* rulings.openGates()).toEqual([{ pieceId, question: asked.question, rulingId: requested.id }]);
 		}),
 	).pipe(Effect.provide(layer));
 });
@@ -81,9 +79,7 @@ it.effectDB("refuses to gate on a ruling that already stands", function* (db) {
 			rulingId: requested.id,
 		});
 
-		const failure = yield* Effect.flip(
-			rulings.gate({ pieceIds: [pieceId], rulingId: requested.id }),
-		);
+		const failure = yield* Effect.flip(rulings.gate({ pieceIds: [pieceId], rulingId: requested.id }));
 
 		expect(failure).toMatchObject({
 			_tag: "RulingAlreadyRuled",
@@ -118,11 +114,10 @@ it.effectDB("refuses to gate on a ruling nothing asked", function* () {
 	yield* Effect.gen(function* () {
 		const rulings = yield* Rulings;
 
-		expect(
-			yield* Effect.flip(
-				rulings.gate({ pieceIds: [], rulingId: "ruling-missing" }),
-			),
-		).toMatchObject({ _tag: "RulingNotFound", rulingId: "ruling-missing" });
+		expect(yield* Effect.flip(rulings.gate({ pieceIds: [], rulingId: "ruling-missing" }))).toMatchObject({
+			_tag: "RulingNotFound",
+			rulingId: "ruling-missing",
+		});
 	}).pipe(Effect.provide(layer));
 });
 
@@ -138,33 +133,26 @@ it.effectDB("lands the gates a request names in the same write", function* () {
 
 			expect(requested.gatedPieceIds).toEqual([pieceId]);
 			expect(yield* PubSub.take(readiness)).toBeUndefined();
-			expect(yield* rulings.openGates()).toEqual([
-				{ pieceId, question: asked.question, rulingId: requested.id },
-			]);
+			expect(yield* rulings.openGates()).toEqual([{ pieceId, question: asked.question, rulingId: requested.id }]);
 		}),
 	).pipe(Effect.provide(layer));
 });
 
-it.effectDB(
-	"refuses a whole request gating what the fleet lost",
-	function* (db) {
-		yield* Effect.gen(function* () {
-			yield* seedFleet;
-			const rulings = yield* Rulings;
+it.effectDB("refuses a whole request gating what the fleet lost", function* (db) {
+	yield* Effect.gen(function* () {
+		yield* seedFleet;
+		const rulings = yield* Rulings;
 
-			const failure = yield* Effect.flip(
-				rulings.request({ ...asked, gates: [pieceId, "piece-adrift"] }),
-			);
+		const failure = yield* Effect.flip(rulings.request({ ...asked, gates: [pieceId, "piece-adrift"] }));
 
-			expect(failure).toMatchObject({
-				_tag: "RulingGatePieceMissing",
-				pieceId: "piece-adrift",
-			});
-			expect(yield* db.Ruling.all()).toEqual([]);
-			expect(yield* db.RulingGate.all()).toEqual([]);
-		}).pipe(Effect.provide(layer));
-	},
-);
+		expect(failure).toMatchObject({
+			_tag: "RulingGatePieceMissing",
+			pieceId: "piece-adrift",
+		});
+		expect(yield* db.Ruling.all()).toEqual([]);
+		expect(yield* db.RulingGate.all()).toEqual([]);
+	}).pipe(Effect.provide(layer));
+});
 
 it.effectDB("tells the voyage of a request only when it holds", function* () {
 	yield* Effect.scoped(

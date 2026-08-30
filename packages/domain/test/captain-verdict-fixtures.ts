@@ -5,13 +5,7 @@ import { expect } from "@effect/vitest";
 import { type Context, Effect, Option } from "effect";
 import { AgentDomain } from "#domain.ts";
 import { domainKernelLayer } from "#test/domain-layers.ts";
-import {
-	acquireTemporaryPersistence,
-	makeScriptedBackend,
-	type ScriptedBackend,
-	type ScriptedSession,
-	sessionFor,
-} from "#test/harness.ts";
+import { acquireTemporaryPersistence, makeScriptedBackend, type ScriptedBackend, type ScriptedSession, sessionFor } from "#test/harness.ts";
 import { eventually, openReefVoyage } from "#test/voyage-fixtures.ts";
 
 export const ASKER = "agent-asker";
@@ -81,9 +75,7 @@ const hailed = (scripted: ScriptedBackend, voyageId: string) =>
 		};
 	});
 
-export const withLadder = <A, E>(
-	body: (ladder: Ladder) => Effect.Effect<A, E, LadderNeeds>,
-) =>
+export const withLadder = <A, E>(body: (ladder: Ladder) => Effect.Effect<A, E, LadderNeeds>) =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
 		const scripted = yield* makeScriptedBackend;
@@ -114,9 +106,7 @@ export const delivered = (rulingId: string) =>
 		Effect.gen(function* () {
 			const boards = yield* Boards;
 			const entries = yield* boards.read(BoardScope.Agent({ agentId: ASKER }));
-			expect(entries.map((entry) => entry.sourceRef)).toContain(
-				`ruling:${rulingId}`,
-			);
+			expect(entries.map((entry) => entry.sourceRef)).toContain(`ruling:${rulingId}`);
 			return entries;
 		}),
 	);

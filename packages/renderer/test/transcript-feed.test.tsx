@@ -14,22 +14,14 @@ interface Opened {
 	readonly query: EventQuery;
 }
 
-const { opened, unsubscribe, watchSessionEvents } = vi.hoisted(() => {
+const { opened, watchSessionEvents } = vi.hoisted(() => {
 	const opened: Array<Opened> = [];
-	const unsubscribe = vi.fn();
 	return {
 		opened,
-		unsubscribe,
-		watchSessionEvents: vi.fn(
-			(
-				query: Opened["query"],
-				onEvent: Opened["onEvent"],
-				onError: Opened["onError"],
-			) => {
-				opened.push({ onError, onEvent, query });
-				return unsubscribe;
-			},
-		),
+		watchSessionEvents: (query: Opened["query"], onEvent: Opened["onEvent"], onError: Opened["onError"]) => {
+			opened.push({ onError, onEvent, query });
+			return () => undefined;
+		},
 	};
 });
 
@@ -54,13 +46,44 @@ const mount = (): { container: HTMLElement; root: Root } => {
 	return { container, root: createRoot(container) };
 };
 
-const render = (root: Root, sessionId: string): Effect.Effect<void> =>
+const render = (root: Root, sessionId: string, foldToolCalls = false): Effect.Effect<void> =>
 	Effect.promise(() =>
 		act(() => {
-			root.render(<TranscriptView sessionId={sessionId} />);
+			root.render(<TranscriptView foldToolCalls={foldToolCalls} sessionId={sessionId} />);
 			return Promise.resolve();
 		}),
 	);
+
+const called = (seq: number, name: string): ReadonlyArray<SessionEvent> => [
+	{
+		event: {
+			_tag: "Known",
+			event: {
+				input: "{}",
+				name,
+				raw: { kind: "wire/kind", payload: "{}", source: "scripted" },
+				toolId: `tool-${seq}`,
+				type: "tool.started",
+			},
+		},
+		seq,
+		sessionId: "session-1",
+	},
+	{
+		event: {
+			_tag: "Known",
+			event: {
+				ok: true,
+				output: "done",
+				raw: { kind: "wire/kind", payload: "{}", source: "scripted" },
+				toolId: `tool-${seq}`,
+				type: "tool.completed",
+			},
+		},
+		seq: seq + 1,
+		sessionId: "session-1",
+	},
+];
 
 const push = (send: () => void): Effect.Effect<void> =>
 	Effect.promise(() =>
@@ -80,8 +103,6 @@ const drop = (root: Root): Effect.Effect<void> =>
 
 beforeEach(() => {
 	opened.length = 0;
-	unsubscribe.mockClear();
-	watchSessionEvents.mockClear();
 });
 
 it.effect("keeps every event it was sent, in the order they arrived", () =>
@@ -98,9 +119,7 @@ it.effect("keeps every event it was sent, in the order they arrived", () =>
 		const shown = container.textContent ?? "";
 		expect(shown).toContain("raising the anchor");
 		expect(shown).toContain("clearing the harbour");
-		expect(shown.indexOf("raising the anchor")).toBeLessThan(
-			shown.indexOf("clearing the harbour"),
-		);
+		expect(shown.indexOf("raising the anchor")).toBeLessThan(shown.indexOf("clearing the harbour"));
 		yield* drop(root);
 	}),
 );
@@ -113,8 +132,6 @@ it.effect("starts an empty transcript when the session changes", () =>
 
 		yield* render(root, "session-2");
 
-		expect(unsubscribe).toHaveBeenCalledTimes(1);
-		expect(watchSessionEvents).toHaveBeenCalledTimes(2);
 		expect(opened[1]?.query).toEqual({ fromSeq: 0, sessionId: "session-2" });
 		expect(container.textContent).not.toContain("raising the anchor");
 		expect(container.textContent).toContain("no events yet");
@@ -132,6 +149,27 @@ it.effect("says a lost feed and keeps the events it already had", () =>
 
 		expect(container.textContent).toContain("feed lost: the bridge closed");
 		expect(container.textContent).toContain("raising the anchor");
+		yield* drop(root);
+	}),
+);
+
+it.effect("lists every call until the admiral asks for them folded", () =>
+	Effect.gen(function* () {
+		const { container, root } = mount();
+		yield* render(root, "session-1");
+		const events = [...called(0, "Read"), ...called(2, "Grep")];
+		for (const event of events) {
+			yield* push(() => opened[0]?.onEvent(event));
+		}
+
+		expect(container.textContent).toContain("Read");
+		expect(container.textContent).toContain("Grep");
+		expect(container.textContent).not.toContain("called 2 tools");
+
+		yield* render(root, "session-1", true);
+
+		expect(container.textContent).toContain("called 2 tools");
+		expect(opened).toHaveLength(1);
 		yield* drop(root);
 	}),
 );

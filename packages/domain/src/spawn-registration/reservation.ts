@@ -41,9 +41,7 @@ export const makeSpawnReservation = Effect.gen(function* () {
 				status: "spawning",
 			}).pipe(
 				Effect.as(true),
-				Effect.catchTag("PrismaError", (failure) =>
-					recoverAgentCreation(payload, failure),
-				),
+				Effect.catchTag("PrismaError", (failure) => recoverAgentCreation(payload, failure)),
 			);
 		});
 });

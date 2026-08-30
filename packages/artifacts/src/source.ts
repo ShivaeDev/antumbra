@@ -1,28 +1,9 @@
 import { Database } from "@antumbra/persistence";
 import { decodeStoredMoorageStatus } from "@antumbra/vocabulary/agent-runtime";
 import { Effect, FileSystem, Option, Path } from "effect";
-import {
-	decodeMarkdown,
-	isRelativeArtifactPath,
-	MAX_ARTIFACT_MARKDOWN_BYTES,
-	readOpened,
-} from "#content.ts";
-import {
-	ArtifactContentInvalid,
-	ArtifactPublicationFailed,
-	ArtifactSourceNotOwned,
-	artifactPublicationFailed,
-} from "#errors.ts";
+import { decodeMarkdown, isRelativeArtifactPath, MAX_ARTIFACT_MARKDOWN_BYTES, readOpened, sameObject } from "#content.ts";
+import { ArtifactContentInvalid, ArtifactPublicationFailed, ArtifactSourceNotOwned, artifactPublicationFailed } from "#errors.ts";
 import type { ArtifactInput } from "#model.ts";
-
-const sameObject = (
-	opened: FileSystem.File.Info,
-	resolved: FileSystem.File.Info,
-): boolean =>
-	opened.dev === resolved.dev &&
-	Option.isSome(opened.ino) &&
-	Option.isSome(resolved.ino) &&
-	opened.ino.value === resolved.ino.value;
 
 const invalidPathReason = (value: string) => {
 	if (value.length === 0) {
@@ -41,56 +22,31 @@ const requireReadyMoorage = (agentId: string, artifactPath: string) =>
 		if (Option.isNone(moorage)) {
 			return yield* new ArtifactSourceNotOwned({ agentId, path: artifactPath });
 		}
-		const status = yield* Effect.fromResult(
-			decodeStoredMoorageStatus(moorage.value.agentId, moorage.value.status),
-		);
+		const status = yield* Effect.fromResult(decodeStoredMoorageStatus(moorage.value.agentId, moorage.value.status));
 		if (status !== "ready") {
 			return yield* new ArtifactSourceNotOwned({ agentId, path: artifactPath });
 		}
 		return moorage.value.root;
 	});
 
-const readFromMoorage = (
-	rootPath: string,
-	agentId: string,
-	input: ArtifactInput,
-) =>
+const readFromMoorage = (rootPath: string, agentId: string, input: ArtifactInput) =>
 	Effect.gen(function* () {
 		const fs = yield* FileSystem.FileSystem;
 		const path = yield* Path.Path;
-		const root = yield* fs
-			.realPath(rootPath)
-			.pipe(Effect.mapError(artifactPublicationFailed("resolve moorage")));
+		const root = yield* fs.realPath(rootPath).pipe(Effect.mapError(artifactPublicationFailed("resolve moorage")));
 		const requested = path.resolve(root, input.path);
-		const file = yield* fs
-			.open(requested, { flag: "r" })
-			.pipe(Effect.mapError(artifactPublicationFailed("open artifact")));
-		const opened = yield* file.stat.pipe(
-			Effect.mapError(artifactPublicationFailed("inspect opened artifact")),
-		);
-		const resolved = yield* fs
-			.realPath(requested)
-			.pipe(Effect.mapError(artifactPublicationFailed("resolve artifact")));
+		const file = yield* fs.open(requested, { flag: "r" }).pipe(Effect.mapError(artifactPublicationFailed("open artifact")));
+		const opened = yield* file.stat.pipe(Effect.mapError(artifactPublicationFailed("inspect opened artifact")));
+		const resolved = yield* fs.realPath(requested).pipe(Effect.mapError(artifactPublicationFailed("resolve artifact")));
 		const inside = path.relative(root, resolved);
-		if (
-			inside === "" ||
-			inside === ".." ||
-			inside.startsWith(`..${path.sep}`) ||
-			path.isAbsolute(inside)
-		) {
+		if (inside === "" || inside === ".." || inside.startsWith(`..${path.sep}`) || path.isAbsolute(inside)) {
 			return yield* new ArtifactSourceNotOwned({
 				agentId,
 				path: input.path,
 			});
 		}
-		const observed = yield* fs
-			.stat(resolved)
-			.pipe(Effect.mapError(artifactPublicationFailed("inspect artifact")));
-		if (
-			opened.type !== "File" ||
-			observed.type !== "File" ||
-			!sameObject(opened, observed)
-		) {
+		const observed = yield* fs.stat(resolved).pipe(Effect.mapError(artifactPublicationFailed("inspect artifact")));
+		if (opened.type !== "File" || observed.type !== "File" || !sameObject(opened, observed)) {
 			return yield* new ArtifactSourceNotOwned({
 				agentId,
 				path: input.path,
@@ -102,17 +58,14 @@ const readFromMoorage = (
 				reason: "too_large",
 			});
 		}
-		const bytes = yield* readOpened(file, opened.size).pipe(
-			Effect.mapError(artifactPublicationFailed("read artifact")),
-		);
+		const bytes = yield* readOpened(file, opened.size).pipe(Effect.mapError(artifactPublicationFailed("read artifact")));
 		if (bytes.length !== Number(opened.size)) {
 			return yield* new ArtifactPublicationFailed({
 				detail: "artifact changed while being read",
 			});
 		}
 		yield* Effect.try({
-			catch: () =>
-				new ArtifactContentInvalid({ path: input.path, reason: "not_utf8" }),
+			catch: () => new ArtifactContentInvalid({ path: input.path, reason: "not_utf8" }),
 			try: () => decodeMarkdown(bytes),
 		});
 		return { basename: path.basename(resolved), bytes };

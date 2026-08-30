@@ -3,22 +3,12 @@ import { Database } from "@antumbra/persistence";
 import type { TemporaryPersistence } from "@antumbra/persistence/testing";
 import type { AgentBackend, Runner, SessionInput } from "@antumbra/plugin-api";
 import { SessionFabricLive } from "@antumbra/session-fabric";
+import { SessionWakePatience } from "@antumbra/sessions";
 import { expect } from "@effect/vitest";
 import { Effect, Layer, Option, Ref } from "effect";
-import { SessionWakePatience } from "#session-wake-patience.ts";
-import { SightSourceLive } from "#sight.ts";
-import { domainKernelLayer } from "#test/domain-layers.ts";
-import {
-	makeScriptedBackend,
-	makeScriptedRunner,
-	type ScriptedBackend,
-} from "#test/harness.ts";
-import {
-	emitOpened,
-	payload,
-	reportsNativeRef,
-	seedResumableAgent,
-} from "#test/session-recovery-fixture.ts";
+import { domainKernelLayer, sightSourceTestLayer } from "#test/domain-layers.ts";
+import { makeScriptedBackend, makeScriptedRunner, type ScriptedBackend } from "#test/harness.ts";
+import { emitOpened, payload, reportsNativeRef, seedResumableAgent } from "#test/session-recovery-fixture.ts";
 
 export const NATIVE = "native-durable";
 
@@ -27,19 +17,11 @@ export const NATIVE = "native-durable";
 // opening frame. Withholding that frame on demand is how a rehearsal reaches
 // the shape production hit: a provider that answered the open and then went
 // quiet about who it was.
-export const confirmsWhen = (
-	backend: AgentBackend,
-	scripted: ScriptedBackend,
-	allowed: Ref.Ref<boolean>,
-): AgentBackend => ({
+export const confirmsWhen = (backend: AgentBackend, scripted: ScriptedBackend, allowed: Ref.Ref<boolean>): AgentBackend => ({
 	...backend,
 	openSession: (options) =>
 		Ref.get(allowed).pipe(
-			Effect.flatMap((isAllowed) =>
-				isAllowed
-					? reportsNativeRef(backend, scripted, NATIVE).openSession(options)
-					: backend.openSession(options),
-			),
+			Effect.flatMap((isAllowed) => (isAllowed ? reportsNativeRef(backend, scripted, NATIVE).openSession(options) : backend.openSession(options))),
 		),
 });
 
@@ -49,52 +31,33 @@ export const confirmsWhen = (
 // not hold that shape at all: it announced itself at open time, so every
 // rehearsal met a provider more forthcoming than the real one, and the order a
 // resume speaks in was never under test.
-export const opensWhenSpokenTo = (
-	backend: AgentBackend,
-	scripted: ScriptedBackend,
-): AgentBackend => ({
+export const opensWhenSpokenTo = (backend: AgentBackend, scripted: ScriptedBackend): AgentBackend => ({
 	...backend,
 	openSession: (options) =>
 		Effect.gen(function* () {
 			const handle = yield* backend.openSession(options);
 			const said = yield* Ref.make(false);
 			const announce = Ref.modify(said, (already) => [already, true]).pipe(
-				Effect.flatMap((already) =>
-					already || Option.isNone(options.resume)
-						? Effect.void
-						: emitOpened(scripted, options.sessionId, NATIVE),
-				),
+				Effect.flatMap((already) => (already || Option.isNone(options.resume) ? Effect.void : emitOpened(scripted, options.sessionId, NATIVE))),
 			);
 			return {
 				...handle,
-				queue: (input: SessionInput) =>
-					handle.queue(input).pipe(Effect.andThen(announce)),
+				queue: (input: SessionInput) => handle.queue(input).pipe(Effect.andThen(announce)),
 			};
 		}),
 });
 
-export const wakeLayer = (
-	temporary: TemporaryPersistence,
-	backend: AgentBackend,
-	runner: Runner,
-	patienceMillis?: number,
-) => {
-	const base = SightSourceLive.pipe(
+export const wakeLayer = (temporary: TemporaryPersistence, backend: AgentBackend, runner: Runner, patienceMillis?: number) => {
+	const base = sightSourceTestLayer.pipe(
 		Layer.provideMerge(SessionFabricLive),
 		Layer.provideMerge(domainKernelLayer(temporary, backend, {}, runner)),
 	);
-	return patienceMillis === undefined
-		? base
-		: base.pipe(
-				Layer.provide(Layer.succeed(SessionWakePatience)(patienceMillis)),
-			);
+	return patienceMillis === undefined ? base : base.pipe(Layer.provide(Layer.succeed(SessionWakePatience)(patienceMillis)));
 };
 
 export const sessionRow = Effect.gen(function* () {
 	const db = yield* Database;
-	return Option.getOrThrow(
-		yield* db.AgentSession.where({ id: payload.sessionId }).first(),
-	);
+	return Option.getOrThrow(yield* db.AgentSession.where({ id: payload.sessionId }).first());
 });
 
 export const wakes = Effect.gen(function* () {
@@ -130,12 +93,7 @@ export const sleepingRoot = (temporary: TemporaryPersistence) =>
 	Effect.gen(function* () {
 		const scripted = yield* makeScriptedBackend;
 		const recorded = yield* makeScriptedRunner;
-		yield* seedResumableAgent(
-			temporary,
-			scripted.backend,
-			recorded.runner,
-			scripted,
-		);
+		yield* seedResumableAgent(temporary, scripted.backend, recorded.runner, scripted);
 		yield* asleep.pipe(Effect.provide(temporary.layer));
 		return { recorded, scripted };
 	});

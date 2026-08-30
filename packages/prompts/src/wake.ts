@@ -6,6 +6,4 @@ import { type AgentPrompt, agentPrompt } from "#mint.ts";
 // is no blank to fill and an input struct would describe a template that has no
 // inputs. What a woken Agent needs is where the truth is and what to do with
 // it; the rest it reads out of its own record.
-export const wakeWords: AgentPrompt = agentPrompt(
-	"Reconcile durable Antumbra truth and continue your assigned work.",
-);
+export const wakeWords: AgentPrompt = agentPrompt("Reconcile durable Antumbra truth and continue your assigned work.");

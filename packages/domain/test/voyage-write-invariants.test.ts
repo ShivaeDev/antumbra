@@ -6,9 +6,7 @@ import { acquireTemporaryPersistence } from "#test/harness.ts";
 import { VoyageProcedureService } from "#voyage-procedures.ts";
 import type { VoyageProcedures } from "#voyages.ts";
 
-const withDomain = <A, E, R>(
-	body: (voyages: VoyageProcedures) => Effect.Effect<A, E, R>,
-) =>
+const withDomain = <A, E, R>(body: (voyages: VoyageProcedures) => Effect.Effect<A, E, R>) =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
 		yield* Effect.gen(function* () {
@@ -25,12 +23,7 @@ const openVoyage = (voyages: VoyageProcedures) =>
 		northStar: "every shoal is known",
 	});
 
-const charter = (
-	voyages: VoyageProcedures,
-	voyageId: string,
-	title: string,
-	dependsOn: ReadonlyArray<string> = [],
-) =>
+const charter = (voyages: VoyageProcedures, voyageId: string, title: string, dependsOn: ReadonlyArray<string> = []) =>
 	voyages.charterPiece({
 		charter: `do ${title}`,
 		dependsOn,
@@ -48,25 +41,14 @@ it.live("concurrent rewires cannot commit a cycle", () =>
 			const beta = yield* charter(voyages, voyage.id, "beta");
 			const start = yield* Deferred.make<void>();
 			const attempt = (pieceId: string, dependencyId: string) =>
-				Effect.result(
-					Deferred.await(start).pipe(
-						Effect.andThen(voyages.rewire(pieceId, [dependencyId])),
-					),
-				).pipe(Effect.forkChild);
-			const fibers = yield* Effect.all([
-				attempt(alpha.id, beta.id),
-				attempt(beta.id, alpha.id),
-			]);
+				Effect.result(Deferred.await(start).pipe(Effect.andThen(voyages.rewire(pieceId, [dependencyId])))).pipe(Effect.forkChild);
+			const fibers = yield* Effect.all([attempt(alpha.id, beta.id), attempt(beta.id, alpha.id)]);
 			yield* Deferred.succeed(start, undefined);
 			const results = yield* Effect.all(fibers.map(Fiber.join));
-			const edges = yield* Database.pipe(
-				Effect.flatMap((db) => db.PieceEdge.all()),
-			);
+			const edges = yield* Database.pipe(Effect.flatMap((db) => db.PieceEdge.all()));
 
 			expect(results.filter(Result.isSuccess)).toHaveLength(1);
-			expect(results.filter(Result.isFailure)).toMatchObject([
-				{ failure: { _tag: "EdgeWouldCycle" } },
-			]);
+			expect(results.filter(Result.isFailure)).toMatchObject([{ failure: { _tag: "EdgeWouldCycle" } }]);
 			expect(edges).toHaveLength(1);
 		}),
 	),
@@ -90,9 +72,7 @@ it.live("a refused charter leaves no partial piece or membership", () =>
 	withDomain((voyages) =>
 		Effect.gen(function* () {
 			const voyage = yield* openVoyage(voyages);
-			const failure = yield* Effect.flip(
-				charter(voyages, voyage.id, "adrift", ["missing"]),
-			);
+			const failure = yield* Effect.flip(charter(voyages, voyage.id, "adrift", ["missing"]));
 			const db = yield* Database;
 
 			expect(failure).toMatchObject({ _tag: "PieceNotFound" });
@@ -113,38 +93,30 @@ it.live("a refused rewire preserves the previous dependencies", () =>
 			const db = yield* Database;
 
 			expect(failure).toMatchObject({ _tag: "PieceNotFound" });
-			expect(
-				yield* db.PieceEdge.where({ toPieceId: beta.id }).all(),
-			).toMatchObject([{ fromPieceId: alpha.id, toPieceId: beta.id }]);
+			expect(yield* db.PieceEdge.where({ toPieceId: beta.id }).all()).toMatchObject([{ fromPieceId: alpha.id, toPieceId: beta.id }]);
 		}),
 	),
 );
 
-it.live("switching a backend of an absent voyage is a tagged refusal", () =>
+it.live("switching either backend of an absent voyage is a tagged refusal", () =>
 	withDomain((voyages) =>
 		Effect.gen(function* () {
-			expect(
-				yield* Effect.flip(voyages.setCaptainBackend("missing", "codex")),
-			).toMatchObject({ _tag: "VoyageNotFound" });
-			expect(
-				yield* Effect.flip(voyages.setCrewBackend("missing", "codex")),
-			).toMatchObject({ _tag: "VoyageNotFound" });
+			expect(yield* Effect.flip(voyages.setCaptainBackend("missing", "codex"))).toMatchObject({ _tag: "VoyageNotFound" });
+			expect(yield* Effect.flip(voyages.setCrewBackend("missing", "codex"))).toMatchObject({ _tag: "VoyageNotFound" });
 		}),
 	),
 );
 
-it.live("each seat is switched without disturbing the other", () =>
+it.live("switches each backend without changing the other", () =>
 	withDomain((voyages) =>
 		Effect.gen(function* () {
-			const db = yield* Database;
 			const voyage = yield* openVoyage(voyages);
 			yield* voyages.setCaptainBackend(voyage.id, "codex");
-
-			const stored = Option.getOrThrow(
-				yield* db.Voyage.where({ id: voyage.id }).first(),
-			);
-			expect(stored.captainBackend).toBe("codex");
-			expect(stored.crewBackend).toBe("scripted");
+			const db = yield* Database;
+			expect(Option.getOrThrow(yield* db.Voyage.where({ id: voyage.id }).first())).toMatchObject({
+				captainBackend: "codex",
+				crewBackend: "scripted",
+			});
 		}),
 	),
 );

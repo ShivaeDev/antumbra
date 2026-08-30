@@ -1,15 +1,6 @@
 import type { SDKMessage } from "@anthropic-ai/claude-agent-sdk";
-import type {
-	AgentEvent,
-	RawPayload,
-} from "@antumbra/vocabulary/session-events";
-import {
-	type Ending,
-	endedEvent,
-	notifiedEnding,
-	reportedEnding,
-	updatedEnding,
-} from "#subsession-endings.ts";
+import type { AgentEvent, RawPayload } from "@antumbra/vocabulary/session-events";
+import { type Ending, endedEvent, notifiedEnding, reportedEnding, updatedEnding } from "#subsession-endings.ts";
 
 const LOCAL_AGENT = "local_agent";
 
@@ -21,18 +12,13 @@ type Opened = Extract<AgentEvent, { type: "subsession.opened" }>;
 // subsessions. task_id is the agent id the subsession's own frames are attributed
 // under, so the node needs no identity of Antumbra's own making. What the frame
 // does not say is left unsaid rather than written as an empty string.
-const openedEvent = (
-	raw: RawPayload,
-	message: TaskStarted,
-): Opened | undefined => {
+const openedEvent = (raw: RawPayload, message: TaskStarted): Opened | undefined => {
 	if (message.task_type !== LOCAL_AGENT || message.tool_use_id === undefined) {
 		return undefined;
 	}
 	return {
 		...(message.prompt === undefined ? {} : { charter: message.prompt }),
-		...(message.subagent_type === undefined
-			? {}
-			: { kind: message.subagent_type }),
+		...(message.subagent_type === undefined ? {} : { kind: message.subagent_type }),
 		...(message.description === "" ? {} : { label: message.description }),
 		raw,
 		spawnedBy: message.tool_use_id,
@@ -42,10 +28,7 @@ const openedEvent = (
 };
 
 export interface Subsessions {
-	readonly events: (
-		raw: RawPayload,
-		message: SDKMessage,
-	) => ReadonlyArray<AgentEvent>;
+	readonly events: (raw: RawPayload, message: SDKMessage) => ReadonlyArray<AgentEvent>;
 	// why: the tool call a node was spawned by is stated once, in the frame that
 	// started it, and is needed again long after that frame is gone — to attribute
 	// something recovered from the node's stored transcript back to the node. What
@@ -62,13 +45,8 @@ export interface Subsessions {
 export const openSubsessions = (): Subsessions => {
 	const open = new Set<string>();
 	const spawners = new Map<string, string>();
-	const close = (
-		raw: RawPayload,
-		ending: Ending | undefined,
-	): ReadonlyArray<AgentEvent> =>
-		ending === undefined || !open.delete(ending.subsessionRef)
-			? []
-			: [endedEvent(raw, ending)];
+	const close = (raw: RawPayload, ending: Ending | undefined): ReadonlyArray<AgentEvent> =>
+		ending === undefined || !open.delete(ending.subsessionRef) ? [] : [endedEvent(raw, ending)];
 	return {
 		events: (raw, message) => {
 			if (message.type !== "system") {
@@ -86,9 +64,7 @@ export const openSubsessions = (): Subsessions => {
 			if (message.subtype === "task_updated") {
 				return close(raw, updatedEnding(message));
 			}
-			return message.subtype === "task_notification"
-				? close(raw, notifiedEnding(message))
-				: [];
+			return message.subtype === "task_notification" ? close(raw, notifiedEnding(message)) : [];
 		},
 		spawnerOf: (subsessionRef) => spawners.get(subsessionRef),
 	};

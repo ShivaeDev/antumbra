@@ -34,10 +34,7 @@ export interface QuayReading {
 // why: a piece may belong to more than one voyage and a change to more than
 // one piece, so a change lies at the quay once per place it was chartered for
 // — the quay names where work is owed, and every owner is told.
-const berthingsOf = (
-	world: VoyageWorld,
-	pieceId: string,
-): ReadonlyArray<QuayBerthing> => {
+const berthingsOf = (world: VoyageWorld, pieceId: string): ReadonlyArray<QuayBerthing> => {
 	const piece = world.pieces.find((row) => row.id === pieceId);
 	if (piece === undefined) {
 		return [];
@@ -45,9 +42,7 @@ const berthingsOf = (
 	return world.memberships
 		.filter((membership) => membership.pieceId === pieceId)
 		.flatMap((membership) => {
-			const voyage = world.voyages.find(
-				(row) => row.id === membership.voyageId,
-			);
+			const voyage = world.voyages.find((row) => row.id === membership.voyageId);
 			return voyage === undefined
 				? []
 				: [
@@ -61,10 +56,7 @@ const berthingsOf = (
 		});
 };
 
-const rowsOfChange = (
-	world: VoyageWorld,
-	change: ChangeRow,
-): ReadonlyArray<QuayRow> => {
+const rowsOfChange = (world: VoyageWorld, change: ChangeRow): ReadonlyArray<QuayRow> => {
 	if (!liesAtQuay(world, change)) {
 		return [];
 	}
@@ -76,11 +68,7 @@ const rowsOfChange = (
 	const originSessionId =
 		change.originSessionId !== null &&
 		change.openedByAgentId !== null &&
-		world.sessions.some(
-			(session) =>
-				session.id === change.originSessionId &&
-				session.agentId === change.openedByAgentId,
-		)
+		world.sessions.some((session) => session.id === change.originSessionId && session.agentId === change.openedByAgentId)
 			? change.originSessionId
 			: null;
 	return world.pieceChanges
@@ -101,13 +89,10 @@ const rowsOfChange = (
 
 // why: newest news first — a change that moved an hour ago is the one someone
 // is waiting on, whichever group it lies in.
-const byActivity = (left: QuayRow, right: QuayRow): number =>
-	right.change.activityAt.getTime() - left.change.activityAt.getTime();
+const byActivity = (left: QuayRow, right: QuayRow): number => right.change.activityAt.getTime() - left.change.activityAt.getTime();
 
 export const quayRows = (world: VoyageWorld): ReadonlyArray<QuayRow> =>
-	world.changes
-		.flatMap((change) => rowsOfChange(world, change))
-		.sort(byActivity);
+	world.changes.flatMap((change) => rowsOfChange(world, change)).sort(byActivity);
 
 // why: a change made by hand is adopted onto a piece that has none yet, so
 // every piece of every voyage is offered rather than the ones already shown.

@@ -1,24 +1,12 @@
 import { SettingsSource } from "@antumbra/contract";
 import { expect, it } from "@effect/vitest";
 import { Effect, Option } from "effect";
+import { TestClock } from "effect/testing";
 import { nextBackoffMillis } from "#dispatch-policy.ts";
 import { AgentDomain } from "#domain.ts";
 import { dispatchingLayer } from "#test/domain-layers.ts";
-import {
-	acquireTemporaryPersistence,
-	makeScriptedBackend,
-} from "#test/harness.ts";
-import {
-	assignedPieces,
-	chain,
-	eventually,
-	land,
-	openReefVoyage,
-	PATIENCE,
-	retireOneAlive,
-	standDownAll,
-	stateOf,
-} from "#test/voyage-fixtures.ts";
+import { acquireTemporaryPersistence, makeScriptedBackend } from "#test/harness.ts";
+import { assignedPieces, chain, eventually, land, openReefVoyage, PATIENCE, retireOneAlive, standDownAll, stateOf } from "#test/voyage-fixtures.ts";
 
 it("nextBackoffMillis doubles from patience and stops at five minutes", () => {
 	expect(nextBackoffMillis(0, 50)).toBe(50);
@@ -58,62 +46,60 @@ it.live("a launched chain sails on its own as outcomes land", () =>
 			yield* standDownAll(scripted);
 			const domain = yield* AgentDomain;
 			const view = Option.getOrThrow(yield* domain.voyages.read(voyage.id));
-			expect(view.pieces.map((piece) => piece.state)).toEqual([
-				"done",
-				"done",
-				"done",
-			]);
+			expect(view.pieces.map((piece) => piece.state)).toEqual(["done", "done", "done"]);
 			expect(view.state).toBe("quiet");
+		}).pipe(Effect.provide(dispatchingLayer(temporary, scripted.backend, PATIENCE)));
+	}),
+);
+
+it.effect("the alive ceiling holds the second dependent until a berth frees", () =>
+	Effect.gen(function* () {
+		const temporary = yield* acquireTemporaryPersistence;
+		const scripted = yield* makeScriptedBackend;
+		yield* Effect.gen(function* () {
+			const { alpha } = yield* chain;
+			yield* TestClock.withLive(
+				eventually(
+					Effect.gen(function* () {
+						expect(yield* assignedPieces).toEqual([alpha.id]);
+					}),
+				),
+			);
+			yield* land(alpha.id, "soundings");
+			yield* TestClock.adjust(300);
+			expect(yield* assignedPieces).toEqual([alpha.id]);
+
+			yield* TestClock.withLive(retireOneAlive(scripted));
+			yield* TestClock.withLive(
+				eventually(
+					Effect.gen(function* () {
+						expect((yield* assignedPieces).length).toBe(2);
+					}),
+				),
+			);
+			yield* TestClock.adjust(300);
+			expect((yield* assignedPieces).length).toBe(2);
+
+			yield* TestClock.withLive(retireOneAlive(scripted));
+			yield* TestClock.withLive(
+				eventually(
+					Effect.gen(function* () {
+						expect((yield* assignedPieces).length).toBe(3);
+					}),
+				),
+			);
 		}).pipe(
-			Effect.provide(dispatchingLayer(temporary, scripted.backend, PATIENCE)),
+			Effect.provide(
+				dispatchingLayer(temporary, scripted.backend, {
+					maxAlive: 1,
+					patienceMillis: 50,
+				}),
+			),
 		);
 	}),
 );
 
-it.live(
-	"the alive ceiling holds the second dependent until a berth frees",
-	() =>
-		Effect.gen(function* () {
-			const temporary = yield* acquireTemporaryPersistence;
-			const scripted = yield* makeScriptedBackend;
-			yield* Effect.gen(function* () {
-				const { alpha } = yield* chain;
-				yield* eventually(
-					Effect.gen(function* () {
-						expect(yield* assignedPieces).toEqual([alpha.id]);
-					}),
-				);
-				yield* land(alpha.id, "soundings");
-				yield* Effect.sleep(300);
-				expect(yield* assignedPieces).toEqual([alpha.id]);
-
-				yield* retireOneAlive(scripted);
-				yield* eventually(
-					Effect.gen(function* () {
-						expect((yield* assignedPieces).length).toBe(2);
-					}),
-				);
-				yield* Effect.sleep(300);
-				expect((yield* assignedPieces).length).toBe(2);
-
-				yield* retireOneAlive(scripted);
-				yield* eventually(
-					Effect.gen(function* () {
-						expect((yield* assignedPieces).length).toBe(3);
-					}),
-				);
-			}).pipe(
-				Effect.provide(
-					dispatchingLayer(temporary, scripted.backend, {
-						maxAlive: 1,
-						patienceMillis: 50,
-					}),
-				),
-			);
-		}),
-);
-
-it.live("applies a saved ceiling to subsequent launches without restart", () =>
+it.effect("applies a saved ceiling to subsequent launches without restart", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
 		const scripted = yield* makeScriptedBackend;
@@ -121,20 +107,25 @@ it.live("applies a saved ceiling to subsequent launches without restart", () =>
 			const settings = yield* SettingsSource;
 			yield* settings.change({ key: "maxParallelSessions", value: 1 });
 			const { alpha } = yield* chain;
-			yield* eventually(
-				Effect.gen(function* () {
-					expect(yield* assignedPieces).toEqual([alpha.id]);
-				}),
+			yield* TestClock.withLive(
+				eventually(
+					Effect.gen(function* () {
+						expect(yield* assignedPieces).toEqual([alpha.id]);
+					}),
+				),
 			);
 			yield* land(alpha.id, "soundings");
-			yield* Effect.sleep(150);
+			yield* TestClock.adjust(150);
 			expect(yield* assignedPieces).toEqual([alpha.id]);
 
 			yield* settings.change({ key: "maxParallelSessions", value: 2 });
-			yield* eventually(
-				Effect.gen(function* () {
-					expect((yield* assignedPieces).length).toBe(2);
-				}),
+			yield* TestClock.adjust(50);
+			yield* TestClock.withLive(
+				eventually(
+					Effect.gen(function* () {
+						expect((yield* assignedPieces).length).toBe(2);
+					}),
+				),
 			);
 		}).pipe(
 			Effect.provide(
@@ -146,7 +137,7 @@ it.live("applies a saved ceiling to subsequent launches without restart", () =>
 	}),
 );
 
-it.live("a parked piece is never dispatched until it is unparked", () =>
+it.effect("a parked piece is never dispatched until it is unparked", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
 		const scripted = yield* makeScriptedBackend;
@@ -163,18 +154,18 @@ it.live("a parked piece is never dispatched until it is unparked", () =>
 			});
 			yield* domain.voyages.park(piece.id);
 			yield* domain.voyages.launch(piece.id);
-			yield* Effect.sleep(300);
+			yield* TestClock.adjust(300);
 			expect(yield* assignedPieces).toEqual([]);
 			expect(yield* stateOf(voyage.id, piece.id)).toBe("parked");
 
 			yield* domain.voyages.unpark(piece.id);
-			yield* eventually(
-				Effect.gen(function* () {
-					expect(yield* assignedPieces).toEqual([piece.id]);
-				}),
+			yield* TestClock.withLive(
+				eventually(
+					Effect.gen(function* () {
+						expect(yield* assignedPieces).toEqual([piece.id]);
+					}),
+				),
 			);
-		}).pipe(
-			Effect.provide(dispatchingLayer(temporary, scripted.backend, PATIENCE)),
-		);
+		}).pipe(Effect.provide(dispatchingLayer(temporary, scripted.backend, PATIENCE)));
 	}),
 );

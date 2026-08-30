@@ -1,9 +1,4 @@
-import type {
-	EventQuery,
-	Fleet,
-	SessionEvent,
-	SessionTree,
-} from "@antumbra/contract";
+import type { EventQuery, Fleet, SessionEvent, SessionTree } from "@antumbra/contract";
 import { client, toError } from "#adapters/bridge.ts";
 
 // why: a subscription is a standing question, and an act is a single one.
@@ -12,10 +7,7 @@ import { client, toError } from "#adapters/bridge.ts";
 
 export type Unsubscribe = () => void;
 
-export const watchFleet = (
-	onFleet: (fleet: Fleet) => void,
-	onError: (message: string) => void,
-): Unsubscribe => {
+export const watchFleet = (onFleet: (fleet: Fleet) => void, onError: (message: string) => void): Unsubscribe => {
 	const subscription = client.fleetFeed.subscribe(undefined, {
 		onData: onFleet,
 		onError: (cause) => onError(toError(cause).message),
@@ -23,11 +15,7 @@ export const watchFleet = (
 	return () => subscription.unsubscribe();
 };
 
-export const watchSessionEvents = (
-	query: EventQuery,
-	onEvent: (event: SessionEvent) => void,
-	onError: (message: string) => void,
-): Unsubscribe => {
+export const watchSessionEvents = (query: EventQuery, onEvent: (event: SessionEvent) => void, onError: (message: string) => void): Unsubscribe => {
 	const subscription = client.sessionEventFeed.subscribe(query, {
 		onData: onEvent,
 		onError: (cause) => onError(toError(cause).message),
@@ -35,11 +23,7 @@ export const watchSessionEvents = (
 	return () => subscription.unsubscribe();
 };
 
-export const watchSessionTree = (
-	rootSessionId: string,
-	onTree: (tree: SessionTree) => void,
-	onError: (message: string) => void,
-): Unsubscribe => {
+export const watchSessionTree = (rootSessionId: string, onTree: (tree: SessionTree) => void, onError: (message: string) => void): Unsubscribe => {
 	const subscription = client.sessionTreeFeed.subscribe(
 		{ rootSessionId },
 		{

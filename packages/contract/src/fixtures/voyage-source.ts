@@ -7,9 +7,6 @@ import { VoyageSource } from "#voyages.ts";
 
 const noSuchVoyage = (voyageId: string) => new SightFailure({ message: `no such voyage: ${voyageId}` });
 
-// why: the fleet's own voyage is on the list the window reads, so it answers
-// when it is opened — a listed voyage that refuses to be read would be a
-// fixture teaching the window a failure the host does not have.
 const views = [reefView, flagshipView];
 
 export const voyageFixture = (feeds: FixtureFeeds) =>

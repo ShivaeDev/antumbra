@@ -1,9 +1,5 @@
 import type { SessionTree } from "#session-tree.ts";
 
-// why: the harness shows the tree with one node of every shape the badge rules
-// have to answer for — a named node that finished, a node named only by the
-// agent path a provider stored, and one nothing ever named. Depth two is here
-// because a node that spawns its own work is the case a flat list would hide.
 export const sessionTree: SessionTree = {
 	alive: 2,
 	nodes: [

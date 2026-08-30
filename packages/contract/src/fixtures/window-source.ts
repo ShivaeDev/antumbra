@@ -10,9 +10,6 @@ export const consoleWindow: WindowPlace = {
 	voyageId: null,
 };
 
-// why: a fixture host has one window and it is the console — the same shape
-// main serves, so a window standing on fixtures resolves its place rather
-// than falling through to the refusal a placeless window shows.
 export const windowFixture = Layer.succeed(WindowSource, {
 	open: (place) => (place.role === "console" ? new WindowRefused({ reason: "console_is_not_a_target" }) : Effect.void),
 	place: Effect.succeed(consoleWindow),

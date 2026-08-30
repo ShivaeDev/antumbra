@@ -11,23 +11,22 @@ import { runGit } from "#git-runtime.ts";
 // the source is asked for a newer one — but only when nothing local can be
 // lost, and never as a condition of provisioning: a stale berth is still a
 // valid berth, and a source that cannot be reached costs one warning.
-export const refreshBerth = (
-	mirror: string,
-	berth: BerthPlan,
-): Effect.Effect<void> =>
-	Effect.gen(function* () {
-		yield* runGit(refreshMirror(mirror));
-		const state = yield* runGit(inspectWorktree(berth.path));
-		if (state._tag !== "clean") {
-			return;
-		}
-		yield* runGit(fastForwardWorktree(berth.path, berth.ref));
-	}).pipe(
-		Effect.catch((failure) =>
-			Effect.logWarning(
-				"a berth could not be brought up to date",
-				{ path: berth.path },
-				failure,
-			),
+export const refreshBerth = Effect.fn("runnerLocal.refreshBerth")(
+	(mirror: string, berth: BerthPlan): Effect.Effect<void> =>
+		Effect.catch(
+			Effect.gen(function* () {
+				yield* runGit(refreshMirror(mirror));
+				const state = yield* runGit(inspectWorktree(berth.path));
+				if (state._tag !== "clean") {
+					return;
+				}
+				yield* runGit(fastForwardWorktree(berth.path, berth.ref));
+			}),
+			(failure) =>
+				Effect.logWarning(
+					"a berth could not be brought up to date",
+					{ path: berth.path },
+					failure,
+				),
 		),
-	);
+);

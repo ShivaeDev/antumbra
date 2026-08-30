@@ -1,6 +1,4 @@
-import { Effect, PubSub, type Scope } from "effect";
+import { Effect, PubSub } from "effect";
 
 export const makeSubscribeVoyageRefresh = (feed: PubSub.PubSub<void>) =>
-	Effect.fn("domainFeeds.subscribeVoyageRefresh")(function* (): Effect.fn.Return<PubSub.Subscription<void>, never, Scope.Scope> {
-		return yield* PubSub.subscribe(feed);
-	});
+	Effect.fn("domainFeeds.subscribeVoyageRefresh")(() => PubSub.subscribe(feed));

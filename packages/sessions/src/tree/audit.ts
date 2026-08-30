@@ -10,15 +10,8 @@ import { makeSessionTreeLedger } from "#tree/ledger.ts";
 // written to has nothing to audit yet, and a legacy row predates the gaps the
 // projection is a function of — auditing it would assert evidence nobody has.
 const auditable = (node: StoredAgentSession): boolean => {
-	const completeness = decodeStoredAgentSessionCompleteness(
-		node.id,
-		node.completeness,
-	);
-	return (
-		node.status === "closed" &&
-		Result.isSuccess(completeness) &&
-		completeness.success !== "unaudited"
-	);
+	const completeness = decodeStoredAgentSessionCompleteness(node.id, node.completeness);
+	return node.status === "closed" && Result.isSuccess(completeness) && completeness.success !== "unaudited";
 };
 
 // why: completeness is a projection of the node's journaled gap ledger, not a
@@ -35,10 +28,7 @@ export const makeSessionTreeAudits = Effect.gen(function* () {
 			if (Option.isNone(gaps)) {
 				return;
 			}
-			yield* ledger.settle(
-				sessionId,
-				gaps.value.length === 0 ? "complete" : "incomplete",
-			);
+			yield* ledger.settle(sessionId, gaps.value.length === 0 ? "complete" : "incomplete");
 		});
 	const journalOn = (sessionId: string, findings: ReadonlyArray<AgentEvent>) =>
 		Effect.forEach(findings, (event) => journal.record(sessionId, event), {
@@ -49,11 +39,7 @@ export const makeSessionTreeAudits = Effect.gen(function* () {
 	// the audit itself discovered counts towards the answer. Both references have
 	// to be known before the provider can be asked anything: without them there
 	// is no node to ask about, and the projection stands on the ledger alone.
-	const findings = (
-		lane: SessionAudit,
-		root: StoredAgentSession,
-		node: StoredAgentSession,
-	) =>
+	const findings = (lane: SessionAudit, root: StoredAgentSession, node: StoredAgentSession) =>
 		root.nativeRef === null || node.nativeRef === null
 			? Effect.succeed<ReadonlyArray<AgentEvent>>([])
 			: lane.node({
@@ -62,11 +48,7 @@ export const makeSessionTreeAudits = Effect.gen(function* () {
 					recorded: ledger.recorded(node.id),
 					rootRef: root.nativeRef,
 				});
-	const audit = (
-		lane: SessionAudit,
-		root: StoredAgentSession,
-		node: StoredAgentSession,
-	) =>
+	const audit = (lane: SessionAudit, root: StoredAgentSession, node: StoredAgentSession) =>
 		Effect.gen(function* () {
 			if (!auditable(node)) {
 				return;

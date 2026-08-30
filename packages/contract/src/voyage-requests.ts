@@ -37,8 +37,7 @@ export const ArtifactSupersessionRequest = Schema.Struct({
 	successorArtifactId: Schema.String,
 	supersededArtifactId: Schema.String,
 });
-export type ArtifactSupersessionRequest =
-	typeof ArtifactSupersessionRequest.Type;
+export type ArtifactSupersessionRequest = typeof ArtifactSupersessionRequest.Type;
 
 // why: a board hangs off exactly one entity, so what it hangs off is a choice
 // between named shapes rather than an id beside a kind that could disagree.

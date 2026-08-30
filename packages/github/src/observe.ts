@@ -1,11 +1,7 @@
 import type { ChangeObservation } from "@antumbra/plugin-api";
 import { Effect } from "effect";
 import { runGh } from "#command.ts";
-import {
-	type GhCommandFailed,
-	type GhError,
-	GhOutputInvalid,
-} from "#errors.ts";
+import { type GhCommandFailed, type GhError, GhOutputInvalid } from "#errors.ts";
 import { mapPullRequest } from "#mapping.ts";
 import { decodeObserveResponse } from "#payload.ts";
 import { buildObservePlan, type LocatedPullRequestRef } from "#query.ts";
@@ -40,22 +36,14 @@ export const observeGroup = (
 				timeoutMillis: OBSERVE_TIMEOUT_MILLIS,
 			}),
 		).pipe(Effect.catchTag("GhCommandFailed", partial));
-		return yield* Effect.forEach(
-			yield* decodeObserveResponse("observe-changes", stdout, plan.selections),
-			mapPullRequest,
-		);
+		return yield* Effect.forEach(yield* decodeObserveResponse("observe-changes", stdout, plan.selections), mapPullRequest);
 	});
 
 // why: opening and adopting both end by reading the change back, so what they
 // return is an observation and not a promise that one exists. A pull request
 // that answers nothing right after it was named is the host disagreeing with
 // itself, which is unavailability rather than a refusal.
-export const observeOne = (
-	executable: string,
-	repo: GitHubRepoName,
-	repoId: string,
-	number: number,
-): Effect.Effect<ChangeObservation, GhError> =>
+export const observeOne = (executable: string, repo: GitHubRepoName, repoId: string, number: number): Effect.Effect<ChangeObservation, GhError> =>
 	observeGroup(executable, [{ ...repo, number, repoId }]).pipe(
 		Effect.flatMap((seen) => {
 			const one = seen[0];

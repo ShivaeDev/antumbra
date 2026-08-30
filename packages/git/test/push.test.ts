@@ -6,13 +6,7 @@ import { NodeServices } from "@effect/platform-node";
 import { describe, expect, it } from "@effect/vitest";
 import { Effect, Layer } from "effect";
 import { ChildProcessSpawner } from "effect/unstable/process";
-import {
-	addWorktree,
-	cloneMirror,
-	inspectWorktree,
-	pushBranch,
-	refreshMirror,
-} from "#index.ts";
+import { addWorktree, cloneMirror, inspectWorktree, pushBranch, refreshMirror } from "#index.ts";
 
 const BRANCH = "work/ab12cd34/slug";
 
@@ -33,8 +27,7 @@ const git = (...args: ReadonlyArray<string>): string =>
 		},
 	});
 
-const sha = (repo: string, ref: string): string =>
-	git("-C", repo, "rev-parse", ref).trim();
+const sha = (repo: string, ref: string): string => git("-C", repo, "rev-parse", ref).trim();
 
 const seedRemote = (root: string): string => {
 	const seed = join(root, "seed");
@@ -57,9 +50,7 @@ const commitInto = (worktree: string, name: string, message: string): void => {
 // provides has no answer at all — reaching it is the failure.
 const forbiddenSpawner = Layer.succeed(
 	ChildProcessSpawner.ChildProcessSpawner,
-	ChildProcessSpawner.make(() =>
-		Effect.die("git was spawned for a bad branch"),
-	),
+	ChildProcessSpawner.make(() => Effect.die("git was spawned for a bad branch")),
 );
 
 describe("pushing a work branch", () => {
@@ -114,9 +105,7 @@ describe("pushing a work branch", () => {
 
 	it.effect("refuses any branch outside work/ without spawning git", () =>
 		Effect.gen(function* () {
-			const refused = yield* Effect.flip(
-				pushBranch("/berth", "main", "deadbeef"),
-			);
+			const refused = yield* Effect.flip(pushBranch("/berth", "main", "deadbeef"));
 			expect(refused._tag).toBe("GitPushRefused");
 			expect(refused.message).toContain("main");
 		}).pipe(Effect.provide(forbiddenSpawner)),

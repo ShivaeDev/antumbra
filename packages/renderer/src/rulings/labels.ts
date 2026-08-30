@@ -53,13 +53,8 @@ export const rulingAuthorityLabel: Readonly<Record<Authority, string>> = {
 
 // why: a captain is one of many, so an answer or a move it made is read as the
 // agent that made it; the flagship and the admiral are each one office.
-export const rulingActorLabel = (
-	by: Authority,
-	agentId: string | null,
-): string =>
-	by === "captain" && agentId !== null
-		? `captain ${agentId}`
-		: rulingAuthorityLabel[by];
+export const rulingActorLabel = (by: Authority, agentId: string | null): string =>
+	by === "captain" && agentId !== null ? `captain ${agentId}` : rulingAuthorityLabel[by];
 
 const RUNG_LABEL: Readonly<Record<"admiral" | "flagship", string>> = {
 	admiral: "waits on you",
@@ -70,16 +65,11 @@ const RUNG_LABEL: Readonly<Record<"admiral" | "flagship", string>> = {
 // so the window says whose turn it is — and names the ship when the turn
 // belongs to a captain, since "the captain" alone names nobody.
 export const rulingRungLabel = (rung: Rung): string =>
-	rung.kind === "captain"
-		? `waits on the captain of ${rung.voyageName}`
-		: RUNG_LABEL[rung.kind];
+	rung.kind === "captain" ? `waits on the captain of ${rung.voyageName}` : RUNG_LABEL[rung.kind];
 
 // why: who asked is read as words: an authority that wrote a rule for itself
 // names itself, and an agent is named by the id the fleet knows it by.
 export const rulingRequesterLabel = (requester: Requester): string =>
-	requester.kind === "authority"
-		? `asked by ${rulingAuthorityLabel[requester.by]}`
-		: requester.agentId;
+	requester.kind === "authority" ? `asked by ${rulingAuthorityLabel[requester.by]}` : requester.agentId;
 
-export const rulingGatedPieceLabel = (piece: GatedPiece): string =>
-	`${piece.title} (${piece.voyageName})`;
+export const rulingGatedPieceLabel = (piece: GatedPiece): string => `${piece.title} (${piece.voyageName})`;

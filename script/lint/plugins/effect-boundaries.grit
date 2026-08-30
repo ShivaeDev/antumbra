@@ -4,15 +4,11 @@ language js(typescript, jsx)
 or {
 	or {
 		JsAwaitExpression() as $match,
-		JsArrowFunctionExpression() as $match where {
-			$match <: r"^async(?:.|\n)*"
-		},
+		JsArrowFunctionExpression() as $match where { $match <: r"^async(?:.|\n)*" },
 		`async function $name($...) { $... }` as $match,
 		`async function ($...) { $... }` as $match,
 		JsFunctionExpression() as $match where { $match <: r"^async(?:.|\n)*" },
-		JsMethodClassMember() as $match where {
-			$match <: r"^(?:public |private |protected |static |override )*async(?:.|\n)*"
-		},
+		JsMethodClassMember() as $match where { $match <: r"^(?:public |private |protected |static |override )*async(?:.|\n)*" },
 		JsMethodObjectMember() as $match where { $match <: r"^async(?:.|\n)*" }
 	} where {
 		register_diagnostic(span=$match, message="async/await is banned outside adapter modules. Model effects with Effect; wrap external SDKs in an adapters/ module.")

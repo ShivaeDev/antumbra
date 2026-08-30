@@ -6,13 +6,11 @@ import { Effect, Option } from "effect";
 // name on their PATH.
 const BUNDLED = "/Applications/ChatGPT.app/Contents/Resources/codex";
 
-export const bundledCodex: Effect.Effect<Option.Option<string>> = Effect.sync(
-	() => {
-		try {
-			accessSync(BUNDLED, constants.X_OK);
-			return Option.some(BUNDLED);
-		} catch {
-			return Option.none();
-		}
-	},
-);
+export const bundledCodex: Effect.Effect<Option.Option<string>> = Effect.sync(() => {
+	try {
+		accessSync(BUNDLED, constants.X_OK);
+		return Option.some(BUNDLED);
+	} catch {
+		return Option.none();
+	}
+});

@@ -17,9 +17,7 @@ export const execStep: Exec = (step) =>
 		};
 		child.stdout.on("data", (chunk: Buffer) => chunks.push(chunk));
 		child.stderr.on("data", (chunk: Buffer) => chunks.push(chunk));
-		child.on("error", (cause) =>
-			finish({ exitCode: 1, output: String(cause) }),
-		);
+		child.on("error", (cause) => finish({ exitCode: 1, output: String(cause) }));
 		child.on("close", (code) =>
 			finish({
 				exitCode: code ?? 1,

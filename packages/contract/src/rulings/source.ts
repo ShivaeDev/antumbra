@@ -30,25 +30,12 @@ export class RulingSource extends Context.Service<
 	{
 		readonly open: Effect.Effect<OpenRulingsView, RulingFailure>;
 		readonly openFeed: Stream.Stream<OpenRulingsView, RulingFailure>;
-		readonly proclaim: (
-			request: ProclaimRequest,
-		) => Effect.Effect<RulingProclaimedReceipt, RulingFailure | RulingRefused>;
-		readonly reclassify: (
-			request: ReclassifyRequest,
-		) => Effect.Effect<
-			RulingReclassifiedReceipt,
-			RulingFailure | RulingRefused
-		>;
-		readonly rule: (
-			request: RuleRequest,
-		) => Effect.Effect<RulingRuledReceipt, RulingFailure | RulingRefused>;
+		readonly proclaim: (request: ProclaimRequest) => Effect.Effect<RulingProclaimedReceipt, RulingFailure | RulingRefused>;
+		readonly reclassify: (request: ReclassifyRequest) => Effect.Effect<RulingReclassifiedReceipt, RulingFailure | RulingRefused>;
+		readonly rule: (request: RuleRequest) => Effect.Effect<RulingRuledReceipt, RulingFailure | RulingRefused>;
 		readonly standing: Effect.Effect<StandingRulingsView, RulingFailure>;
 		readonly standingFeed: Stream.Stream<StandingRulingsView, RulingFailure>;
-		readonly supersede: (
-			request: SupersedeRequest,
-		) => Effect.Effect<RulingSupersededReceipt, RulingFailure | RulingRefused>;
-		readonly withdraw: (
-			request: WithdrawRequest,
-		) => Effect.Effect<RulingWithdrawnReceipt, RulingFailure | RulingRefused>;
+		readonly supersede: (request: SupersedeRequest) => Effect.Effect<RulingSupersededReceipt, RulingFailure | RulingRefused>;
+		readonly withdraw: (request: WithdrawRequest) => Effect.Effect<RulingWithdrawnReceipt, RulingFailure | RulingRefused>;
 	}
 >()("@antumbra/contract/RulingSource") {}

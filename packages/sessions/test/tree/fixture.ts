@@ -14,16 +14,7 @@ import { LiveDelegationsLive } from "#tree/live.ts";
 // with no acquisition in it, which is the truthful shape for a rehearsal whose
 // events never came through one.
 export const treeLayer = (temporary: TemporaryPersistence) =>
-	SessionEventJournalLive.pipe(
-		Layer.provideMerge(
-			Layer.mergeAll(
-				temporary.layer,
-				DomainFeedsLive,
-				LiveDelegationsLive,
-				SessionFabricLive,
-			),
-		),
-	);
+	SessionEventJournalLive.pipe(Layer.provideMerge(Layer.mergeAll(temporary.layer, DomainFeedsLive, LiveDelegationsLive, SessionFabricLive)));
 
 export interface SeededSession {
 	readonly agentId: string;
@@ -35,11 +26,7 @@ export interface SeededSession {
 	readonly status?: string;
 }
 
-export const seedAgent = (
-	id: string,
-	status = "alive",
-	currentSessionId: string | null = null,
-) =>
+export const seedAgent = (id: string, status = "alive", currentSessionId: string | null = null) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
 		yield* db.Agent.create({
@@ -81,8 +68,7 @@ export const pointAgent = (id: string, currentSessionId: string | null) =>
 		yield* db.Agent.where({ id }).update({ currentSessionId });
 	});
 
-export const sessionRow = (id: string) =>
-	Database.use((db) => db.AgentSession.where({ id }).first());
+export const sessionRow = (id: string) => Database.use((db) => db.AgentSession.where({ id }).first());
 
 export const journalOf = (sessionId: string) =>
 	Database.use((db) =>
@@ -104,8 +90,7 @@ export const scriptedLane = (findings: ReadonlyArray<AgentEvent>) =>
 		const reads = yield* Ref.make(0);
 		const audit: SessionAudit = {
 			census: () => Effect.succeed({ events: [], nodes: [] }),
-			node: () =>
-				Ref.update(reads, (count) => count + 1).pipe(Effect.as(findings)),
+			node: () => Ref.update(reads, (count) => count + 1).pipe(Effect.as(findings)),
 		};
 		return { audit, readings: Ref.get(reads) } satisfies ScriptedLane;
 	});

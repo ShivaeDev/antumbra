@@ -19,12 +19,10 @@ const { opened, ruleOn, watchOpenRulings } = vi.hoisted(() => {
 	return {
 		opened: held,
 		ruleOn: vi.fn(),
-		watchOpenRulings: vi.fn(
-			(onRulings: Opened["onRulings"], onError: Opened["onError"]) => {
-				held.push({ onError, onRulings });
-				return vi.fn();
-			},
-		),
+		watchOpenRulings: vi.fn((onRulings: Opened["onRulings"], onError: Opened["onError"]) => {
+			held.push({ onError, onRulings });
+			return vi.fn();
+		}),
 	};
 });
 
@@ -104,36 +102,23 @@ const settle = (change: () => void): Effect.Effect<void> =>
 		}),
 	);
 
-const nativeValue = Object.getOwnPropertyDescriptor(
-	HTMLTextAreaElement.prototype,
-	"value",
-)?.set;
+const nativeValue = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, "value")?.set;
 
 const mount = () => {
 	const container = document.createElement("div");
 	return { container, root: createRoot(container) };
 };
 
-const showing = (
-	mounted: ReturnType<typeof mount>,
-	view: OpenRulingsView = { rulings: [shoal, berths] },
-): Effect.Effect<void> =>
+const showing = (mounted: ReturnType<typeof mount>, view: OpenRulingsView = { rulings: [shoal, berths] }): Effect.Effect<void> =>
 	Effect.gen(function* () {
-		yield* settle(() =>
-			mounted.root.render(<RulingsPanel onError={() => undefined} />),
-		);
+		yield* settle(() => mounted.root.render(<RulingsPanel onError={() => undefined} />));
 		yield* settle(() => opened.at(-1)?.onRulings(view));
 	});
 
 const buttonSaying = (mounted: ReturnType<typeof mount>, words: string) =>
-	[...mounted.container.querySelectorAll("button")].find(
-		(button) => button.textContent?.includes(words) === true,
-	);
+	[...mounted.container.querySelectorAll("button")].find((button) => button.textContent?.includes(words) === true);
 
-const answering = (
-	mounted: ReturnType<typeof mount>,
-	words: string,
-): Effect.Effect<void> =>
+const answering = (mounted: ReturnType<typeof mount>, words: string): Effect.Effect<void> =>
 	settle(() => {
 		const box = mounted.container.querySelector("li textarea");
 		if (box !== null && nativeValue !== undefined) {
@@ -153,18 +138,14 @@ it.effect("shows every open ruling in the order the feed sent them", () =>
 		const mounted = mount();
 		yield* showing(mounted);
 
-		const questions = [...mounted.container.querySelectorAll("li h3")].map(
-			(heading) => heading.textContent,
-		);
+		const questions = [...mounted.container.querySelectorAll("li h3")].map((heading) => heading.textContent);
 		expect(questions).toEqual([shoal.question, berths.question]);
 		expect(mounted.container.textContent).toContain("Holding the asker");
 		expect(mounted.container.textContent).toContain("Binds the fleet");
 		expect(mounted.container.textContent).toContain("agent-surveyor");
 		expect(mounted.container.textContent).toContain("Tag: surveying");
 		expect(mounted.container.textContent).toContain("two metres shallower");
-		expect(mounted.container.textContent).toContain(
-			"Unblocks: the chart (Chart the reef)",
-		);
+		expect(mounted.container.textContent).toContain("Unblocks: the chart (Chart the reef)");
 		yield* settle(() => mounted.root.unmount());
 	}),
 );
@@ -177,13 +158,9 @@ it.effect("says what rung each open ruling is still waiting on", () =>
 		const mounted = mount();
 		yield* showing(mounted);
 
-		expect(mounted.container.textContent).toContain(
-			"waits on the captain of Chart the reef",
-		);
+		expect(mounted.container.textContent).toContain("waits on the captain of Chart the reef");
 		expect(mounted.container.textContent).toContain("waits on the flagship");
-		expect(mounted.container.textContent).toContain(
-			"captain agent-mate set urgency blocking",
-		);
+		expect(mounted.container.textContent).toContain("captain agent-mate set urgency blocking");
 		yield* settle(() => mounted.root.unmount());
 	}),
 );
@@ -208,9 +185,7 @@ it.effect("reads a move that touched no axis as a question passed up", () =>
 			],
 		});
 
-		expect(mounted.container.textContent).toContain(
-			"captain agent-mate passed it up — the other ship charts the same reef",
-		);
+		expect(mounted.container.textContent).toContain("captain agent-mate passed it up — the other ship charts the same reef");
 		yield* settle(() => mounted.root.unmount());
 	}),
 );
@@ -288,9 +263,7 @@ it.effect("says so when nothing is waiting on the admiral", () =>
 		const mounted = mount();
 		yield* showing(mounted, { rulings: [] });
 
-		expect(mounted.container.textContent).toContain(
-			"Nothing is waiting on you",
-		);
+		expect(mounted.container.textContent).toContain("Nothing is waiting on you");
 		yield* settle(() => mounted.root.unmount());
 	}),
 );

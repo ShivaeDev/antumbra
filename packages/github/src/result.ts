@@ -1,11 +1,5 @@
 import { Effect, Schema } from "effect";
-import {
-	GhAuthRequired,
-	GhCommandFailed,
-	type GhOperation,
-	GhOutputInvalid,
-	GhUnavailable,
-} from "#errors.ts";
+import { GhAuthRequired, GhCommandFailed, type GhOperation, GhOutputInvalid, GhUnavailable } from "#errors.ts";
 
 const ProcessResult = Schema.Struct({
 	exitCode: Schema.Natural,
@@ -37,8 +31,7 @@ const authMarkers = [
 ] as const;
 
 const needsAuthentication = (exitCode: number, detail: string): boolean =>
-	exitCode === AUTH_EXIT_CODE ||
-	authMarkers.some((marker) => detail.toLowerCase().includes(marker));
+	exitCode === AUTH_EXIT_CODE || authMarkers.some((marker) => detail.toLowerCase().includes(marker));
 
 // why: a gateway that fell over or a socket that died is not this login being
 // told no. gh ran perfectly and still came back with nothing anybody can act
@@ -58,21 +51,11 @@ const outageMarkers = [
 
 const wentUnreachable = (detail: string): boolean => {
 	const said = detail.toLowerCase();
-	return (
-		SERVER_STATUS.test(said) ||
-		outageMarkers.some((marker) => said.includes(marker))
-	);
+	return SERVER_STATUS.test(said) || outageMarkers.some((marker) => said.includes(marker));
 };
 
-export const decodeProcessOutput = (
-	operation: GhOperation,
-	input: unknown,
-): Effect.Effect<ProcessOutput, GhOutputInvalid> =>
-	Schema.decodeUnknownEffect(ProcessResult)(input).pipe(
-		Effect.mapError(
-			(cause) => new GhOutputInvalid({ detail: String(cause), operation }),
-		),
-	);
+export const decodeProcessOutput = (operation: GhOperation, input: unknown): Effect.Effect<ProcessOutput, GhOutputInvalid> =>
+	Schema.decodeUnknownEffect(ProcessResult)(input).pipe(Effect.mapError((cause) => new GhOutputInvalid({ detail: String(cause), operation })));
 
 export const acceptProcessOutput = (
 	operation: GhOperation,
@@ -81,10 +64,7 @@ export const acceptProcessOutput = (
 	if (output.exitCode === 0) {
 		return Effect.succeed(output.stdout);
 	}
-	const detail =
-		output.stderr.trim() ||
-		output.stdout.trim() ||
-		`gh exited with code ${output.exitCode}`;
+	const detail = output.stderr.trim() || output.stdout.trim() || `gh exited with code ${output.exitCode}`;
 	if (needsAuthentication(output.exitCode, detail)) {
 		return Effect.fail(new GhAuthRequired({ detail, operation }));
 	}

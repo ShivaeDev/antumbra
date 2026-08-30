@@ -1,7 +1,4 @@
-import type {
-	SDKMessage,
-	SDKUserMessage,
-} from "@anthropic-ai/claude-agent-sdk";
+import type { SDKMessage, SDKUserMessage } from "@anthropic-ai/claude-agent-sdk";
 import { describe, expect, it } from "vitest";
 import { openSessionMapping } from "#mapping.ts";
 
@@ -36,14 +33,9 @@ const bashStarted: SDKMessage = {
 	uuid: "8500b49f-3cf4-4f15-9273-644688e1c207",
 };
 
-type PatchStatus = NonNullable<
-	Extract<SDKMessage, { subtype: "task_updated" }>["patch"]["status"]
->;
+type PatchStatus = NonNullable<Extract<SDKMessage, { subtype: "task_updated" }>["patch"]["status"]>;
 
-const updated = (
-	taskId: string,
-	status: PatchStatus = "completed",
-): SDKMessage => ({
+const updated = (taskId: string, status: PatchStatus = "completed"): SDKMessage => ({
 	patch: { end_time: 1787180346207, status },
 	session_id: SESSION,
 	subtype: "task_updated",
@@ -78,9 +70,7 @@ const notified: SDKMessage = {
 
 const toolResult = (parent: string | null): SDKUserMessage => ({
 	message: {
-		content: [
-			{ content: "sounded", tool_use_id: "toolu_09", type: "tool_result" },
-		],
+		content: [{ content: "sounded", tool_use_id: "toolu_09", type: "tool_result" }],
 		role: "user",
 	},
 	parent_tool_use_id: parent,
@@ -114,13 +104,9 @@ const agentReport: SDKUserMessage = {
 describe("claude frames map onto the neutral vocabulary", () => {
 	it("attributes a frame to the tool call that spawned it, or to no one", () => {
 		const mapping = openSessionMapping();
-		expect(mapping.frame(toolResult(null))).toMatchObject([
-			{ ok: true, toolId: "toolu_09", type: "tool.completed" },
-		]);
+		expect(mapping.frame(toolResult(null))).toMatchObject([{ ok: true, toolId: "toolu_09", type: "tool.completed" }]);
 		expect(mapping.frame(toolResult(null))[0]).not.toHaveProperty("origin");
-		expect(mapping.frame(toolResult(AGENT_CALL))).toMatchObject([
-			{ origin: { spawnedBy: AGENT_CALL }, type: "tool.completed" },
-		]);
+		expect(mapping.frame(toolResult(AGENT_CALL))).toMatchObject([{ origin: { spawnedBy: AGENT_CALL }, type: "tool.completed" }]);
 	});
 
 	// why: parent_agent_id rides depth-2 frames on the wire but is absent from the
@@ -138,8 +124,7 @@ describe("claude frames map onto the neutral vocabulary", () => {
 		const mapping = openSessionMapping();
 		expect(mapping.frame(started)).toEqual([
 			{
-				charter:
-					"Read the domain session cluster and report what each file means",
+				charter: "Read the domain session cluster and report what each file means",
 				kind: "Explore",
 				label: "Map session execution cluster",
 				raw: {
@@ -152,9 +137,7 @@ describe("claude frames map onto the neutral vocabulary", () => {
 				type: "subsession.opened",
 			},
 		]);
-		expect(mapping.frame(bashStarted)).toMatchObject([
-			{ raw: { kind: "system/task_started" }, type: "raw" },
-		]);
+		expect(mapping.frame(bashStarted)).toMatchObject([{ raw: { kind: "system/task_started" }, type: "raw" }]);
 	});
 
 	// why: work spawned by a workflow arrives with no description, no subagent
@@ -188,12 +171,8 @@ describe("claude frames map onto the neutral vocabulary", () => {
 	it("keeps a running task open and never reads a patch as an ending", () => {
 		const mapping = openSessionMapping();
 		mapping.frame(started);
-		expect(mapping.frame(updated(SUBSESSION, "running"))).toMatchObject([
-			{ raw: { kind: "system/task_updated" }, type: "raw" },
-		]);
-		expect(mapping.frame(updated(SUBSESSION))).toMatchObject([
-			{ outcome: "completed", type: "subsession.ended" },
-		]);
+		expect(mapping.frame(updated(SUBSESSION, "running"))).toMatchObject([{ raw: { kind: "system/task_updated" }, type: "raw" }]);
+		expect(mapping.frame(updated(SUBSESSION))).toMatchObject([{ outcome: "completed", type: "subsession.ended" }]);
 	});
 
 	// why: a killed task was terminated by force, which this vocabulary calls
@@ -217,15 +196,9 @@ describe("claude frames map onto the neutral vocabulary", () => {
 		const mapping = openSessionMapping();
 		mapping.frame(started);
 		mapping.frame(bashStarted);
-		expect(mapping.frame(updated("b7eseofo8"))).toMatchObject([
-			{ raw: { kind: "system/task_updated" }, type: "raw" },
-		]);
-		expect(mapping.frame(updated(SUBSESSION))).toMatchObject([
-			{ type: "subsession.ended" },
-		]);
-		expect(mapping.frame(notified)).toMatchObject([
-			{ raw: { kind: "system/task_notification" }, type: "raw" },
-		]);
+		expect(mapping.frame(updated("b7eseofo8"))).toMatchObject([{ raw: { kind: "system/task_updated" }, type: "raw" }]);
+		expect(mapping.frame(updated(SUBSESSION))).toMatchObject([{ type: "subsession.ended" }]);
+		expect(mapping.frame(notified)).toMatchObject([{ raw: { kind: "system/task_notification" }, type: "raw" }]);
 	});
 
 	// why: task_updated carries no run totals, so a task whose notification is the

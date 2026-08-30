@@ -21,15 +21,11 @@ const writeWithdrawal = (input: RulingWithdrawInput, at: Date) =>
 // the question stopped mattering rather than getting a different answer. The
 // record is appended to and never edited, so the ruling stays reachable by id
 // with the note that says why it no longer binds anyone.
-export const withdraw = Effect.fn("rulings.withdraw")(function* (
-	input: RulingWithdrawInput,
-) {
+export const withdraw = Effect.fn("rulings.withdraw")(function* (input: RulingWithdrawInput) {
 	const db = yield* Database;
 	const feeds = yield* DomainFeeds;
 	const now = yield* Clock.currentTimeMillis;
-	const withdrawn = yield* db.transaction(
-		writeWithdrawal(input, new Date(now)),
-	);
+	const withdrawn = yield* db.transaction(writeWithdrawal(input, new Date(now)));
 	yield* feeds.publishRulingRefresh();
 	return withdrawn;
 });

@@ -35,9 +35,7 @@ describe("summaryLine", () => {
 	});
 
 	it("leaves a short path whole", () => {
-		expect(summaryLine(JSON.stringify({ path: "src/app.tsx" }))).toBe(
-			"src/app.tsx",
-		);
+		expect(summaryLine(JSON.stringify({ path: "src/app.tsx" }))).toBe("src/app.tsx");
 	});
 
 	it("leaves a URL whole — its host is the part worth reading", () => {
@@ -52,26 +50,16 @@ describe("summaryLine", () => {
 	});
 
 	it("shows the first line and counts the rest", () => {
-		expect(
-			summaryLine(
-				JSON.stringify({ command: "echo one\necho two\necho three" }),
-			),
-		).toBe("echo one +2");
+		expect(summaryLine(JSON.stringify({ command: "echo one\necho two\necho three" }))).toBe("echo one +2");
 	});
 
 	it("reads a bare string input the same way as a record", () => {
 		expect(summaryLine('bash -lc "pnpm ready"')).toBe('bash -lc "pnpm ready"');
-		expect(
-			summaryLine(
-				"/Users/navigator/charts/one.ts\n/Users/navigator/charts/two.ts",
-			),
-		).toBe("…/charts/one.ts +1");
+		expect(summaryLine("/Users/navigator/charts/one.ts\n/Users/navigator/charts/two.ts")).toBe("…/charts/one.ts +1");
 	});
 
 	it("says what it was handed when the input decodes as nothing at all", () => {
-		expect(summaryLine('{"command":"pnpm ready"')).toBe(
-			'{"command":"pnpm ready"',
-		);
+		expect(summaryLine('{"command":"pnpm ready"')).toBe('{"command":"pnpm ready"');
 		expect(summaryLine("")).toBe("");
 	});
 

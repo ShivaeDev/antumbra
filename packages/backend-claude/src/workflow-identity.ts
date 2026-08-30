@@ -13,17 +13,14 @@ export interface WorkflowIdentity {
 	readonly spawnedBy: string | undefined;
 }
 
-const stringAt = (entry: Record<string, unknown>, field: string) =>
-	typeof entry[field] === "string" ? entry[field] : undefined;
+const stringAt = (entry: Record<string, unknown>, field: string) => (typeof entry[field] === "string" ? entry[field] : undefined);
 
 // why: a workflow agent reports state as it works, and only the terminal words
 // end a node. `blocked` is the provider's word for an agent a safety classifier
 // refused to run, which is a failure to do the work rather than a way of
 // finishing it. A word this vocabulary does not own leaves the node open: the
 // record would rather say it stopped seeing than guess at an ending.
-const endingOf = (
-	state: string | undefined,
-): typeof SubsessionOutcome.Type | undefined => {
+const endingOf = (state: string | undefined): typeof SubsessionOutcome.Type | undefined => {
 	if (state === "done") return "completed";
 	return state === "error" || state === "blocked" ? "failed" : undefined;
 };
@@ -38,10 +35,7 @@ const labelOf = (entry: Record<string, unknown>): string | undefined => {
 	return phase === undefined ? label : `${phase}: ${label}`;
 };
 
-const identityOf = (
-	entry: Record<string, unknown>,
-	spawnedBy: string | undefined,
-): WorkflowIdentity => ({
+const identityOf = (entry: Record<string, unknown>, spawnedBy: string | undefined): WorkflowIdentity => ({
 	ended: endingOf(stringAt(entry, "state")),
 	label: labelOf(entry),
 	model: stringAt(entry, "model"),

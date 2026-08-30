@@ -4,24 +4,14 @@ import { inventoryOf, type SeedFile } from "#test/support/inventory.ts";
 
 const source = (content: string, path: string): SeedFile => ({ content, path });
 
-const check = (sources: readonly SeedFile[]) =>
-	serviceParameterViolations(inventoryOf({ sources }));
+const check = (sources: readonly SeedFile[]) => serviceParameterViolations(inventoryOf({ sources }));
 
 describe("Effect service parameter symbol analysis", () => {
 	it("follows generic constraints without confusing same-named symbols", () => {
 		const violations = check([
-			source(
-				"export interface AgentDeps { readonly db: DatabaseService }\n",
-				"packages/domain/src/deps.ts",
-			),
-			source(
-				"interface AgentDeps { readonly label: string }\nconst safe = (deps: AgentDeps) => deps;\n",
-				"packages/other/src/safe.ts",
-			),
-			source(
-				'import type { AgentDeps as Deps } from "./deps.ts";\nconst use = <T extends Deps>(deps: T) => deps;\n',
-				"packages/domain/src/use.ts",
-			),
+			source("export interface AgentDeps { readonly db: DatabaseService }\n", "packages/domain/src/deps.ts"),
+			source("interface AgentDeps { readonly label: string }\nconst safe = (deps: AgentDeps) => deps;\n", "packages/other/src/safe.ts"),
+			source('import type { AgentDeps as Deps } from "./deps.ts";\nconst use = <T extends Deps>(deps: T) => deps;\n', "packages/domain/src/use.ts"),
 		]);
 		expect(violations).toHaveLength(1);
 		expect(violations[0]?.file).toBe("packages/domain/src/use.ts");
@@ -123,14 +113,8 @@ const define = (options: Options) => options;
 
 	it("resolves root package imports through script", () => {
 		const violations = check([
-			source(
-				"export interface Deps { readonly db: DatabaseService }\n",
-				"script/deps.ts",
-			),
-			source(
-				'import type { Deps } from "#deps.ts";\nconst use = (deps: Deps) => deps;\n',
-				"script/use.ts",
-			),
+			source("export interface Deps { readonly db: DatabaseService }\n", "script/deps.ts"),
+			source('import type { Deps } from "#deps.ts";\nconst use = (deps: Deps) => deps;\n', "script/use.ts"),
 		]);
 		expect(violations).toHaveLength(1);
 		expect(violations[0]?.file).toBe("script/use.ts");
@@ -171,26 +155,14 @@ const hidden = (program: Effect<DatabaseService>) => program;
 type AppRuntime = Context.Context<DatabaseService>;
 `;
 		const violations = check([
-			source(
-				`${content}const makeProcedure = (runtime: AppRuntime) => runtime;\n`,
-				"packages/contract/src/router-procedure.ts",
-			),
-			source(
-				`${content}const makeAppRouter = (runtime: AppRuntime) => runtime;\n`,
-				"packages/contract/src/router.ts",
-			),
-			source(
-				`${content}const makeHelper = (runtime: AppRuntime) => runtime;\n`,
-				"packages/contract/src/router-helper.ts",
-			),
+			source(`${content}const makeProcedure = (runtime: AppRuntime) => runtime;\n`, "packages/contract/src/router-procedure.ts"),
+			source(`${content}const makeAppRouter = (runtime: AppRuntime) => runtime;\n`, "packages/contract/src/router.ts"),
+			source(`${content}const makeHelper = (runtime: AppRuntime) => runtime;\n`, "packages/contract/src/router-helper.ts"),
 		]);
 		expect(violations).toHaveLength(1);
 		expect(violations[0]?.message).toContain('"runtime" of "makeHelper"');
 		const nested = check([
-			source(
-				`${content}const makeAppRouter = () => (runtime: AppRuntime) => runtime;\n`,
-				"packages/contract/src/router.ts",
-			),
+			source(`${content}const makeAppRouter = () => (runtime: AppRuntime) => runtime;\n`, "packages/contract/src/router.ts"),
 			source(
 				`${content}declare const consume: (callback: (runtime: AppRuntime) => AppRuntime) => void;\nconst makeProcedure = () => consume((runtime: AppRuntime) => runtime);\n`,
 				"packages/contract/src/router-procedure.ts",

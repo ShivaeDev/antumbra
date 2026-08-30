@@ -20,9 +20,7 @@ it.effect("publishes and remembers classified provider capacity", () =>
 					})
 				: Option.none(),
 		);
-		const observed = yield* Effect.forkChild(
-			Stream.runHead(capacity.source.changes.pipe(Stream.take(1))),
-		);
+		const observed = yield* Effect.forkChild(Stream.runHead(capacity.source.changes.pipe(Stream.take(1))));
 		yield* Effect.yieldNow;
 
 		capacity.observe(raw("other"), 40);
@@ -49,23 +47,17 @@ it.effect("latches a hard block until the source is explicitly cleared", () =>
 					status: "blocked" as const,
 				});
 			}
-			return evidence.kind === "allowed"
-				? Option.some({ status: "available" as const })
-				: Option.none();
+			return evidence.kind === "allowed" ? Option.some({ status: "available" as const }) : Option.none();
 		});
 
 		capacity.observe(raw("limit"), 40);
 		capacity.observe(raw("allowed"), 41);
-		expect(Option.getOrThrow(yield* capacity.source.current).status).toBe(
-			"blocked",
-		);
+		expect(Option.getOrThrow(yield* capacity.source.current).status).toBe("blocked");
 
 		const clearAt = yield* capacity.source.clear;
 		expect(clearAt).toBeGreaterThan(40);
 		expect(yield* capacity.source.current).toEqual(Option.none());
 		capacity.observe(raw("allowed"), 42);
-		expect(Option.getOrThrow(yield* capacity.source.current).status).toBe(
-			"available",
-		);
+		expect(Option.getOrThrow(yield* capacity.source.current).status).toBe("available");
 	}),
 );

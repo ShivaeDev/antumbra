@@ -16,7 +16,6 @@ it("names the radius and the rung a verdict could not reach", () => {
 
 	expect(refused).toMatchObject({
 		_tag: "RulingRefused",
-		reason:
-			"ruling ruling-7 binds at voyage radius, where the flagship does not rule",
+		reason: "ruling ruling-7 binds at voyage radius, where the flagship does not rule",
 	});
 });

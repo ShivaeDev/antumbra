@@ -28,9 +28,7 @@ it.effect("rejects widened Change vocabulary at the public boundary", () =>
 			["stage", "future_stage"],
 		] as const;
 		for (const [field, word] of invalid) {
-			const failure = yield* Effect.flip(
-				Schema.decodeUnknownEffect(ChangeView)({ ...VALID, [field]: word }),
-			);
+			const failure = yield* Effect.flip(Schema.decodeUnknownEffect(ChangeView)({ ...VALID, [field]: word }));
 			expect(String(failure)).toContain(`["${field}"]`);
 		}
 	}),

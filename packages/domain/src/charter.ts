@@ -24,15 +24,11 @@ const namedBerths = (
 ): BerthedCharter["berths"] =>
 	berths.flatMap((berth) => {
 		const repo = repos.find((row) => row.source === berth.source);
-		return repo === undefined
-			? []
-			: [{ branch: berth.branch, folder: `./${berth.slug}`, repo: repo.name }];
+		return repo === undefined ? [] : [{ branch: berth.branch, folder: `./${berth.slug}`, repo: repo.name }];
 	});
 
 const roleFor = (payload: SpawnFields): BerthedCharter["role"] =>
-	isVoyageCaptainIdentity(payload.role, spawnSessionIdentity(payload))
-		? "captain"
-		: "crew";
+	isVoyageCaptainIdentity(payload.role, spawnSessionIdentity(payload)) ? "captain" : "crew";
 
 export const charterDelivery = Effect.gen(function* () {
 	const db = yield* Database;
@@ -45,9 +41,7 @@ export const charterDelivery = Effect.gen(function* () {
 			const berths = yield* db.Berth.where({ agentId })
 				.orderBy((berth) => berth.createdAt.asc())
 				.all();
-			const repos = yield* db.Repo.orderBy((repo) =>
-				repo.createdAt.asc(),
-			).all();
+			const repos = yield* db.Repo.orderBy((repo) => repo.createdAt.asc()).all();
 			return {
 				berths: namedBerths(berths, repos),
 				moorageRoot: moorage.value.root,
@@ -68,8 +62,7 @@ export const charterDelivery = Effect.gen(function* () {
 			const session = yield* db.AgentSession.where({
 				id: payload.sessionId,
 			}).first();
-			const delivered =
-				Option.isSome(session) && session.value.charterDeliveredAt !== null;
+			const delivered = Option.isSome(session) && session.value.charterDeliveredAt !== null;
 			if (delivered) {
 				return;
 			}

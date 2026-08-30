@@ -1,10 +1,4 @@
-import {
-	type AgentBackend,
-	noSessionAudit,
-	type OpenSessionOptions,
-	type SessionHandle,
-	type SessionInput,
-} from "@antumbra/plugin-api";
+import { type AgentBackend, noSessionAudit, type OpenSessionOptions, type SessionHandle, type SessionInput } from "@antumbra/plugin-api";
 import { Effect, Option, Stream } from "effect";
 import type { EventSink } from "#session-attachment.ts";
 
@@ -43,9 +37,7 @@ export const idleHandle: SessionHandle = {
 	steer: () => Effect.void,
 };
 
-export const scriptedBackend = (
-	openSession: AgentBackend["openSession"],
-): AgentBackend => ({
+export const scriptedBackend = (openSession: AgentBackend["openSession"]): AgentBackend => ({
 	audit: noSessionAudit,
 	capabilities: {
 		fork: false,

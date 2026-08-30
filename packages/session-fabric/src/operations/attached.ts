@@ -5,6 +5,4 @@ import type { SessionFabricState } from "#session-fabric-state.ts";
 // rather than the database because whether words can be handed over is a fact
 // about this process, and the row cannot know it.
 export const makeAttached = (attachments: SessionFabricState["attachments"]) =>
-	Effect.fn("sessionFabric.attached")(
-		(): Effect.Effect<ReadonlySet<string>> => attachments.attached,
-	);
+	Effect.fn("sessionFabric.attached")((): Effect.Effect<ReadonlySet<string>> => attachments.attached);

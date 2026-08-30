@@ -1,15 +1,7 @@
 import type { SessionInput } from "@antumbra/plugin-api";
-import type {
-	SessionImageMediaType,
-	SessionInputId,
-} from "@antumbra/vocabulary/session-input";
+import type { SessionImageMediaType, SessionInputId } from "@antumbra/vocabulary/session-input";
 
-export type SessionInputDeliveryStatus =
-	| "accepted"
-	| "ambiguous"
-	| "pending"
-	| "queued_for_wake"
-	| "refused";
+export type SessionInputDeliveryStatus = "accepted" | "ambiguous" | "pending" | "queued_for_wake" | "refused";
 
 export type SessionInputDraftPart =
 	| { readonly text: string; readonly type: "text" }

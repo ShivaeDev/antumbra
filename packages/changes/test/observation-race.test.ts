@@ -1,17 +1,10 @@
 import { applyMigrations, Database } from "@antumbra/persistence";
-import {
-	acquireTemporaryPersistence,
-	packagedMigrationsDirectory,
-} from "@antumbra/persistence/testing";
+import { acquireTemporaryPersistence, packagedMigrationsDirectory } from "@antumbra/persistence/testing";
 import { expect, it } from "@effect/vitest";
 import { Effect, Fiber, Layer, Option } from "effect";
 import { Changes } from "#change-submissions/service.ts";
 import { changeOf } from "#test/change-fixtures.ts";
-import {
-	changesLayer,
-	makeScriptedHost,
-	observation,
-} from "#test/change-harness.ts";
+import { changesLayer, makeScriptedHost, observation } from "#test/change-harness.ts";
 
 const competingObservation = Effect.gen(function* () {
 	const temporary = yield* acquireTemporaryPersistence;
@@ -29,12 +22,7 @@ const competingObservation = Effect.gen(function* () {
 			{
 				name: "hold-first-observation-projection",
 				beforeExecute(plan) {
-					if (
-						blocked ||
-						plan.ast.kind !== "update" ||
-						plan.ast.table.name !== "change" ||
-						!("observedAt" in plan.ast.set)
-					) {
+					if (blocked || plan.ast.kind !== "update" || plan.ast.table.name !== "change" || !("observedAt" in plan.ast.set)) {
 						return;
 					}
 					blocked = true;
@@ -83,20 +71,10 @@ const competingObservation = Effect.gen(function* () {
 			release.resolve();
 			const [winner] = yield* Fiber.join(applying);
 			expect(winner?.stage).toBe("withdrawn");
-			expect(
-				Option.getOrThrow(yield* db.Change.where({ id: initial.id }).first())
-					.stage,
-			).toBe("withdrawn");
+			expect(Option.getOrThrow(yield* db.Change.where({ id: initial.id }).first()).stage).toBe("withdrawn");
 			expect(yield* db.ChangeTransition.all()).toEqual([]);
 		}).pipe(Effect.ensuring(Effect.sync(() => release.resolve())));
-	}).pipe(
-		Effect.provide(
-			changesLayer([scripted.host]).pipe(Layer.provideMerge(databaseLayer)),
-		),
-	);
+	}).pipe(Effect.provide(changesLayer([scripted.host]).pipe(Layer.provideMerge(databaseLayer))));
 });
 
-it.live(
-	"retries an observation from a competing terminal winner",
-	() => competingObservation,
-);
+it.live("retries an observation from a competing terminal winner", () => competingObservation);

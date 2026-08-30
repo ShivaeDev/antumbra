@@ -1,13 +1,7 @@
 import { join } from "node:path";
 import { Data, Effect, FileSystem } from "effect";
 import type { PlatformError } from "effect/PlatformError";
-import {
-	emptyScope,
-	type IgnoreScope,
-	insideKept,
-	verdictFor,
-	withGitignore,
-} from "#lint/adapters/gitignore.ts";
+import { emptyScope, type IgnoreScope, insideKept, verdictFor, withGitignore } from "#lint/adapters/gitignore.ts";
 
 // why: a floor rather than the policy — these stay pruned in a tree that has
 // no .gitignore at all, so the walk never wanders into a dependency tree or
@@ -31,12 +25,7 @@ export class FilesystemFailure extends Data.TaggedError("FilesystemFailure")<{
 // on the reason's cause, so the policy reads that rather than the tag.
 const errnoOf = (error: PlatformError): string => {
 	const cause: unknown = error.reason.cause;
-	return typeof cause === "object" &&
-		cause !== null &&
-		"code" in cause &&
-		typeof cause.code === "string"
-		? cause.code
-		: "";
+	return typeof cause === "object" && cause !== null && "code" in cause && typeof cause.code === "string" ? cause.code : "";
 };
 
 const attempt = <Value>(
@@ -55,26 +44,20 @@ const attempt = <Value>(
 				),
 	);
 
-export const readOptionalText = (
-	path: string,
-): Effect.Effect<string, FilesystemFailure, FileSystem.FileSystem> =>
+export const readOptionalText = (path: string): Effect.Effect<string, FilesystemFailure, FileSystem.FileSystem> =>
 	Effect.gen(function* () {
 		const fs = yield* FileSystem.FileSystem;
 		return yield* attempt(path, fs.readFileString(path), "");
 	});
 
-export const readRequiredText = (
-	path: string,
-): Effect.Effect<string, FilesystemFailure, FileSystem.FileSystem> =>
+export const readRequiredText = (path: string): Effect.Effect<string, FilesystemFailure, FileSystem.FileSystem> =>
 	Effect.gen(function* () {
 		const fs = yield* FileSystem.FileSystem;
 		return yield* Effect.mapError(
 			fs.readFileString(path),
 			(error) =>
 				new FilesystemFailure({
-					message: ABSENT.has(errnoOf(error))
-						? `required input is missing: ${path}`
-						: `cannot read ${path}: ${error.message}`,
+					message: ABSENT.has(errnoOf(error)) ? `required input is missing: ${path}` : `cannot read ${path}: ${error.message}`,
 					path,
 				}),
 		);
@@ -84,22 +67,13 @@ export const ignoreScopeAt = (
 	dir: string,
 	inherited: IgnoreScope = emptyScope,
 ): Effect.Effect<IgnoreScope, FilesystemFailure, FileSystem.FileSystem> =>
-	Effect.map(readOptionalText(join(dir, ".gitignore")), (contents) =>
-		contents === "" ? inherited : withGitignore(inherited, dir, contents),
-	);
+	Effect.map(readOptionalText(join(dir, ".gitignore")), (contents) => (contents === "" ? inherited : withGitignore(inherited, dir, contents)));
 
-export const walk = (
-	dir: string,
-	inherited: IgnoreScope = emptyScope,
-): Effect.Effect<readonly string[], FilesystemFailure, FileSystem.FileSystem> =>
+export const walk = (dir: string, inherited: IgnoreScope = emptyScope): Effect.Effect<readonly string[], FilesystemFailure, FileSystem.FileSystem> =>
 	Effect.gen(function* () {
 		const fs = yield* FileSystem.FileSystem;
 		const scope = yield* ignoreScopeAt(dir, inherited);
-		const entries = yield* attempt<readonly string[]>(
-			dir,
-			fs.readDirectory(dir),
-			[],
-		);
+		const entries = yield* attempt<readonly string[]>(dir, fs.readDirectory(dir), []);
 		const nested = yield* Effect.forEach(
 			entries.filter((entry) => !SKIPPED.has(entry)),
 			(entry) => walkEntry(join(dir, entry), scope),
@@ -108,17 +82,10 @@ export const walk = (
 		return nested.flat();
 	});
 
-const walkEntry = (
-	path: string,
-	scope: IgnoreScope,
-): Effect.Effect<readonly string[], FilesystemFailure, FileSystem.FileSystem> =>
+const walkEntry = (path: string, scope: IgnoreScope): Effect.Effect<readonly string[], FilesystemFailure, FileSystem.FileSystem> =>
 	Effect.gen(function* () {
 		const fs = yield* FileSystem.FileSystem;
-		const info = yield* attempt<FileSystem.File.Info | undefined>(
-			path,
-			fs.stat(path),
-			undefined,
-		);
+		const info = yield* attempt<FileSystem.File.Info | undefined>(path, fs.stat(path), undefined);
 		if (info === undefined) {
 			return [];
 		}
@@ -130,8 +97,5 @@ const walkEntry = (
 		if (!directory) {
 			return [path];
 		}
-		return yield* walk(
-			path,
-			verdict === "kept" ? insideKept(scope, path) : scope,
-		);
+		return yield* walk(path, verdict === "kept" ? insideKept(scope, path) : scope);
 	});

@@ -1,31 +1,17 @@
 import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 import { cn } from "#lib/utils.ts";
 
-export const TooltipProvider = ({
-	delayDuration = 200,
-	...props
-}: React.ComponentProps<typeof TooltipPrimitive.Provider>) => (
-	<TooltipPrimitive.Provider
-		data-slot="tooltip-provider"
-		delayDuration={delayDuration}
-		{...props}
-	/>
+export const TooltipProvider = ({ delayDuration = 200, ...props }: React.ComponentProps<typeof TooltipPrimitive.Provider>) => (
+	<TooltipPrimitive.Provider data-slot="tooltip-provider" delayDuration={delayDuration} {...props} />
 );
 
-export const Tooltip = (
-	props: React.ComponentProps<typeof TooltipPrimitive.Root>,
-) => <TooltipPrimitive.Root data-slot="tooltip" {...props} />;
+export const Tooltip = (props: React.ComponentProps<typeof TooltipPrimitive.Root>) => <TooltipPrimitive.Root data-slot="tooltip" {...props} />;
 
-export const TooltipTrigger = (
-	props: React.ComponentProps<typeof TooltipPrimitive.Trigger>,
-) => <TooltipPrimitive.Trigger data-slot="tooltip-trigger" {...props} />;
+export const TooltipTrigger = (props: React.ComponentProps<typeof TooltipPrimitive.Trigger>) => (
+	<TooltipPrimitive.Trigger data-slot="tooltip-trigger" {...props} />
+);
 
-export const TooltipContent = ({
-	children,
-	className,
-	sideOffset = 6,
-	...props
-}: React.ComponentProps<typeof TooltipPrimitive.Content>) => (
+export const TooltipContent = ({ children, className, sideOffset = 6, ...props }: React.ComponentProps<typeof TooltipPrimitive.Content>) => (
 	<TooltipPrimitive.Portal>
 		<TooltipPrimitive.Content
 			className={cn(

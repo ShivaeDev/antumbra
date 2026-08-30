@@ -35,9 +35,7 @@ it.effectDB("binds by the radius a ruling was reclassified to", function* () {
 			radius: "fleet",
 			rulingId: widened.id,
 		});
-		yield* Effect.forEach([widened, narrow], (ruling) =>
-			rulings.rule({ answer: "never", by: "admiral", rulingId: ruling.id }),
-		);
+		yield* Effect.forEach([widened, narrow], (ruling) => rulings.rule({ answer: "never", by: "admiral", rulingId: ruling.id }));
 
 		const bound = yield* standingRulingsFor(stranger);
 
@@ -58,8 +56,6 @@ it.effectDB("names the admiral as the one who proclaimed a rule", function* () {
 
 		const [standing] = yield* rulings.standing([]);
 
-		expect(standing === undefined ? "" : rulingLine(standing)).toContain(
-			"proclaimed by the admiral",
-		);
+		expect(standing === undefined ? "" : rulingLine(standing)).toContain("proclaimed by the admiral");
 	}).pipe(Effect.provide(layer));
 });

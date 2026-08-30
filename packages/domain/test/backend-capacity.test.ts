@@ -1,17 +1,11 @@
 import { DomainFeedsLive } from "@antumbra/domain-feeds";
 import { Database } from "@antumbra/persistence";
-import {
-	type AgentBackend,
-	makeBackendCapacityController,
-} from "@antumbra/plugin-api";
+import { type AgentBackend, makeBackendCapacityController } from "@antumbra/plugin-api";
 import type { AgentEvent } from "@antumbra/vocabulary/session-events";
 import { expect, it } from "@effect/vitest";
 import { Clock, Effect, Layer, Option } from "effect";
 import { makeBackendCapacities } from "#backend-capacity.ts";
-import {
-	acquireTemporaryPersistence,
-	makeScriptedBackend,
-} from "#test/harness.ts";
+import { acquireTemporaryPersistence, makeScriptedBackend } from "#test/harness.ts";
 
 const quotaRaw = {
 	kind: "quota/rejected",
@@ -105,9 +99,7 @@ it.live("recovers a provider-wide hold from durable session evidence", () =>
 				sessionId: "session-2",
 			});
 
-			const capacities = yield* makeBackendCapacities(
-				new Map([[backend.tag, backend]]),
-			);
+			const capacities = yield* makeBackendCapacities(new Map([[backend.tag, backend]]));
 			expect(yield* capacities.current("scripted")).toMatchObject({
 				observedAt: new Date(42),
 				reason: "usage-limit",
@@ -133,11 +125,7 @@ it.live("recovers a provider-wide hold from durable session evidence", () =>
 			capacity.observe(quotaRaw, 43);
 			yield* capacities.clear("scripted");
 			yield* Effect.yieldNow;
-			expect(
-				Option.getOrThrow(
-					yield* db.BackendCapacity.where({ backend: "scripted" }).first(),
-				).status,
-			).toBe("available");
+			expect(Option.getOrThrow(yield* db.BackendCapacity.where({ backend: "scripted" }).first()).status).toBe("available");
 			const afterClear = (yield* Clock.currentTimeMillis) + 1;
 			yield* db.SessionEvent.create({
 				at: new Date(afterClear),
@@ -146,9 +134,7 @@ it.live("recovers a provider-wide hold from durable session evidence", () =>
 				seq: 1,
 				sessionId: "session-1",
 			});
-			const recoveredAgain = yield* makeBackendCapacities(
-				new Map([[backend.tag, backend]]),
-			);
+			const recoveredAgain = yield* makeBackendCapacities(new Map([[backend.tag, backend]]));
 			expect(yield* recoveredAgain.current("scripted")).toMatchObject({
 				status: "available",
 			});

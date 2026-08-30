@@ -3,32 +3,15 @@ import { expect, it } from "@effect/vitest";
 import { Effect, Option } from "effect";
 import { AgentDomain } from "#domain.ts";
 import { domainKernelLayer } from "#test/domain-layers.ts";
-import {
-	FLAGSHIP_ID,
-	hailedCaptain,
-	openFlagship,
-	toolNames,
-	withFlagshipCaptain,
-} from "#test/flagship-fixtures.ts";
-import {
-	acquireTemporaryPersistence,
-	callTool,
-	makeScriptedBackend,
-} from "#test/harness.ts";
+import { FLAGSHIP_ID, hailedCaptain, openFlagship, toolNames, withFlagshipCaptain } from "#test/flagship-fixtures.ts";
+import { acquireTemporaryPersistence, callTool, makeScriptedBackend } from "#test/harness.ts";
 import { openReefVoyage } from "#test/voyage-fixtures.ts";
 
-const FLEET_TOOLS = [
-	"read_fleet",
-	"open_voyage",
-	"charter_piece_on_voyage",
-	"hail_captain",
-	"proclaim_ruling",
-];
+const FLEET_TOOLS = ["read_fleet", "open_voyage", "charter_piece_on_voyage", "hail_captain", "proclaim_ruling"];
 
 const RULE = {
 	answer: "no voyage dredges a channel it did not survey first",
-	context:
-		"Two voyages dredged channels off each other's soundings and both had to be resurveyed.",
+	context: "Two voyages dredged channels off each other's soundings and both had to be resurveyed.",
 	question: "May a voyage dredge a channel it has not surveyed?",
 	tags: ["dredging"],
 	urgency: "eventual",
@@ -44,13 +27,7 @@ it.live("the flagship's captain holds the fleet acts and a captain's own", () =>
 			const flagship = yield* hailedCaptain(scripted, FLAGSHIP_ID);
 			const captain = yield* hailedCaptain(scripted, reef.id);
 
-			expect(toolNames(flagship)).toEqual(
-				expect.arrayContaining([
-					...FLEET_TOOLS,
-					"charter_piece",
-					"read_voyage",
-				]),
-			);
+			expect(toolNames(flagship)).toEqual(expect.arrayContaining([...FLEET_TOOLS, "charter_piece", "read_voyage"]));
 			for (const name of FLEET_TOOLS) {
 				expect(toolNames(captain)).not.toContain(name);
 			}
@@ -58,9 +35,7 @@ it.live("the flagship's captain holds the fleet acts and a captain's own", () =>
 			// why: the ladder's first rung is a voyage's own captain, so ruling and
 			// passing a question up are a captain's acts; the flagship holds them by
 			// being a captain too rather than by being the fleet's.
-			expect(toolNames(captain)).toEqual(
-				expect.arrayContaining(["rule_on", "pass_up", "reclassify_ruling"]),
-			);
+			expect(toolNames(captain)).toEqual(expect.arrayContaining(["rule_on", "pass_up", "reclassify_ruling"]));
 		}).pipe(Effect.provide(domainKernelLayer(temporary, scripted.backend)));
 	}),
 );
@@ -86,11 +61,7 @@ it.live("the flagship's captain reads every voyage in the fleet", () =>
 				title: "drawing",
 				voyageId: reef.id,
 			});
-			const flagship = Option.getOrThrow(
-				(yield* domain.voyages.read(FLAGSHIP_ID)).pipe(
-					Option.flatMap((view) => view.captain),
-				),
-			);
+			const flagship = Option.getOrThrow((yield* domain.voyages.read(FLAGSHIP_ID)).pipe(Option.flatMap((view) => view.captain)));
 
 			const read = yield* callTool(captain, "read_fleet", {});
 
@@ -135,9 +106,7 @@ it.live("the flagship's captain reads a voyage it names", () =>
 			expect(read.text).toContain(`- ${landed.id} eastern soundings — report`);
 			// why: naming no voyage still reads the ship the captain is on, so the
 			// widened form takes nothing away from the one every captain holds.
-			expect((yield* callTool(captain, "read_voyage", {})).text).toContain(
-				"# Flagship",
-			);
+			expect((yield* callTool(captain, "read_voyage", {})).text).toContain("# Flagship");
 		}),
 	),
 );
@@ -194,9 +163,7 @@ it.live("a voyage asked for without a north star is refused, not opened", () =>
 
 			expect(refusal.ok).toBe(false);
 			expect(refusal.text).toContain("open_voyage");
-			expect(yield* db.Voyage.where({ name: "Name the shoals" }).all()).toEqual(
-				[],
-			);
+			expect(yield* db.Voyage.where({ name: "Name the shoals" }).all()).toEqual([]);
 		}),
 	),
 );
@@ -226,26 +193,24 @@ it.live("the flagship's captain charters a piece on a voyage it names", () =>
 	),
 );
 
-it.live(
-	"a piece chartered onto a voyage the fleet has not got is refused",
-	() =>
-		withFlagshipCaptain((captain) =>
-			Effect.gen(function* () {
-				const db = yield* Database;
+it.live("a piece chartered onto a voyage the fleet has not got is refused", () =>
+	withFlagshipCaptain((captain) =>
+		Effect.gen(function* () {
+			const db = yield* Database;
 
-				const refusal = yield* callTool(captain, "charter_piece_on_voyage", {
-					charter: "sound the eastern shoal",
-					expectation: "the shoal is sounded",
-					role: "hand",
-					title: "eastern",
-					voyageId: "voyage-adrift",
-				});
+			const refusal = yield* callTool(captain, "charter_piece_on_voyage", {
+				charter: "sound the eastern shoal",
+				expectation: "the shoal is sounded",
+				role: "hand",
+				title: "eastern",
+				voyageId: "voyage-adrift",
+			});
 
-				expect(refusal.ok).toBe(false);
-				expect(refusal.text).toContain("charter_piece_on_voyage");
-				expect(yield* db.Piece.all()).toEqual([]);
-			}),
-		),
+			expect(refusal.ok).toBe(false);
+			expect(refusal.text).toContain("charter_piece_on_voyage");
+			expect(yield* db.Piece.all()).toEqual([]);
+		}),
+	),
 );
 
 it.live("a rule the flagship proclaims stands for the fleet at once", () =>
@@ -268,9 +233,7 @@ it.live("a rule the flagship proclaims stands for the fleet at once", () =>
 				ruledBy: "flagship",
 				urgency: "eventual",
 			});
-			expect(
-				(yield* db.RulingSubject.all()).map((row) => [row.kind, row.tag]),
-			).toEqual([["tag", "dredging"]]);
+			expect((yield* db.RulingSubject.all()).map((row) => [row.kind, row.tag])).toEqual([["tag", "dredging"]]);
 			const standing = yield* callTool(captain, "read_rulings", {});
 			expect(standing.text).toContain("proclaimed by the flagship");
 			expect(standing.text).toContain("ruled by the flagship");
@@ -278,21 +241,19 @@ it.live("a rule the flagship proclaims stands for the fleet at once", () =>
 	),
 );
 
-it.live(
-	"a proclamation whose urgency is not a word the fleet knows is refused",
-	() =>
-		withFlagshipCaptain((captain) =>
-			Effect.gen(function* () {
-				const db = yield* Database;
+it.live("a proclamation whose urgency is not a word the fleet knows is refused", () =>
+	withFlagshipCaptain((captain) =>
+		Effect.gen(function* () {
+			const db = yield* Database;
 
-				const refusal = yield* callTool(captain, "proclaim_ruling", {
-					...RULE,
-					urgency: "someday",
-				});
+			const refusal = yield* callTool(captain, "proclaim_ruling", {
+				...RULE,
+				urgency: "someday",
+			});
 
-				expect(refusal.ok).toBe(false);
-				expect(refusal.text).toContain("proclaim_ruling");
-				expect(yield* db.Ruling.all()).toEqual([]);
-			}),
-		),
+			expect(refusal.ok).toBe(false);
+			expect(refusal.text).toContain("proclaim_ruling");
+			expect(yield* db.Ruling.all()).toEqual([]);
+		}),
+	),
 );

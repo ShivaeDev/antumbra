@@ -9,8 +9,7 @@ import type { TranscriptToolRun } from "#transcript/fold.ts";
 import type { TranscriptTool } from "#transcript/model.ts";
 import { TranscriptRow } from "#views/transcript-row.tsx";
 
-const markup = (run: TranscriptToolRun): string =>
-	renderToStaticMarkup(<TranscriptRow item={run} />);
+const markup = (run: TranscriptToolRun): string => renderToStaticMarkup(<TranscriptRow item={run} />);
 
 const mount = (): { container: HTMLElement; root: Root } => {
 	const container = document.createElement("div");
@@ -106,9 +105,7 @@ it.effect("opens a folded run into the calls it holds, unchanged", () =>
 		expect(shown).toContain("now the chart");
 		expect(shown).toContain("charts/eastern-shoal.md");
 		expect(shown).toContain("running");
-		expect(
-			container.querySelector("button")?.getAttribute("aria-expanded"),
-		).toBe("true");
+		expect(container.querySelector("button")?.getAttribute("aria-expanded")).toBe("true");
 		yield* drop(root);
 	}),
 );

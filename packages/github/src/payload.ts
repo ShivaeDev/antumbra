@@ -1,10 +1,5 @@
 import { Effect, Schema } from "effect";
-import {
-	GitHubCheckState,
-	GitHubMergeState,
-	GitHubPullState,
-	GitHubReviewDecision,
-} from "#dialect.ts";
+import { GitHubCheckState, GitHubMergeState, GitHubPullState, GitHubReviewDecision } from "#dialect.ts";
 import { type GhOperation, GhOutputInvalid } from "#errors.ts";
 import type { ObserveSelection } from "#query.ts";
 
@@ -35,10 +30,7 @@ export const PullRequestNode = Schema.Struct({
 export type PullRequestNode = typeof PullRequestNode.Type;
 
 const ObserveEnvelope = Schema.Struct({
-	data: Schema.Record(
-		Schema.String,
-		Schema.NullOr(Schema.Record(Schema.String, Schema.Unknown)),
-	),
+	data: Schema.Record(Schema.String, Schema.NullOr(Schema.Record(Schema.String, Schema.Unknown))),
 });
 
 export interface ObservedNode {
@@ -47,14 +39,9 @@ export interface ObservedNode {
 	readonly repoId: string;
 }
 
-const invalid = (operation: GhOperation) => (cause: unknown) =>
-	new GhOutputInvalid({ detail: String(cause), operation });
+const invalid = (operation: GhOperation) => (cause: unknown) => new GhOutputInvalid({ detail: String(cause), operation });
 
-const decodeNode = (
-	operation: GhOperation,
-	selection: ObserveSelection,
-	raw: unknown,
-): Effect.Effect<ObservedNode, GhOutputInvalid> =>
+const decodeNode = (operation: GhOperation, selection: ObserveSelection, raw: unknown): Effect.Effect<ObservedNode, GhOutputInvalid> =>
 	Schema.decodeUnknownEffect(PullRequestNode)(raw).pipe(
 		Effect.mapError(invalid(operation)),
 		Effect.flatMap((node) =>
@@ -87,14 +74,9 @@ export const decodeObserveResponse = (
 	stdout: string,
 	selections: ReadonlyArray<ObserveSelection>,
 ): Effect.Effect<ReadonlyArray<ObservedNode>, GhOutputInvalid> =>
-	Schema.decodeUnknownEffect(Schema.fromJsonString(ObserveEnvelope))(
-		stdout,
-	).pipe(
+	Schema.decodeUnknownEffect(Schema.fromJsonString(ObserveEnvelope))(stdout).pipe(
 		Effect.mapError(invalid(operation)),
 		Effect.flatMap((envelope) =>
-			Effect.forEach(
-				aliasedNodes(envelope.data, selections),
-				([selection, raw]) => decodeNode(operation, selection, raw),
-			),
+			Effect.forEach(aliasedNodes(envelope.data, selections), ([selection, raw]) => decodeNode(operation, selection, raw)),
 		),
 	);

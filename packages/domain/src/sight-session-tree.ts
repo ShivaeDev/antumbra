@@ -2,47 +2,29 @@ import type { SessionTree, SightFailure } from "@antumbra/contract";
 import { DomainFeeds, type StoredEvent } from "@antumbra/domain-feeds";
 import { Database, type StoredAgentSession } from "@antumbra/persistence";
 import { assembleSessionTree, type SessionTreeRow } from "@antumbra/sessions";
-import {
-	decodeStoredAgentSessionCompleteness,
-	decodeStoredAgentSessionStatus,
-} from "@antumbra/vocabulary/agent-runtime";
+import { decodeStoredAgentSessionCompleteness, decodeStoredAgentSessionStatus } from "@antumbra/vocabulary/agent-runtime";
 import { decodeStoredSubsessionOutcome } from "@antumbra/vocabulary/session-events";
 import { Effect, Stream } from "effect";
 import { toFailure } from "#sight-failure.ts";
 
 export interface SightSessionTree {
-	readonly sessionTree: (
-		rootSessionId: string,
-	) => Effect.Effect<SessionTree, SightFailure>;
-	readonly sessionTreeFeed: (
-		rootSessionId: string,
-	) => Stream.Stream<SessionTree, SightFailure>;
+	readonly sessionTree: (rootSessionId: string) => Effect.Effect<SessionTree, SightFailure>;
+	readonly sessionTreeFeed: (rootSessionId: string) => Stream.Stream<SessionTree, SightFailure>;
 }
 
 // why: these are the only frames that move a row of a tree, and each is
 // written in the same transaction as the row it is about — so a re-read
 // prompted by one of them already sees what it announced. Everything else a
 // Session says leaves the shape of the tree exactly as it was.
-const SHAPING: ReadonlySet<string> = new Set([
-	"session.opened",
-	"subsession.ended",
-	"subsession.gap",
-	"subsession.opened",
-]);
+const SHAPING: ReadonlySet<string> = new Set(["session.opened", "subsession.ended", "subsession.gap", "subsession.opened"]);
 
 const shapesATree = (row: StoredEvent): boolean => SHAPING.has(row.kind);
 
 const readRow = (row: StoredAgentSession) =>
 	Effect.all({
-		completeness: Effect.fromResult(
-			decodeStoredAgentSessionCompleteness(row.id, row.completeness),
-		),
-		outcome: Effect.fromResult(
-			decodeStoredSubsessionOutcome(row.id, row.outcome),
-		),
-		status: Effect.fromResult(
-			decodeStoredAgentSessionStatus(row.id, row.status),
-		),
+		completeness: Effect.fromResult(decodeStoredAgentSessionCompleteness(row.id, row.completeness)),
+		outcome: Effect.fromResult(decodeStoredSubsessionOutcome(row.id, row.outcome)),
+		status: Effect.fromResult(decodeStoredAgentSessionStatus(row.id, row.status)),
 	}).pipe(
 		Effect.map(
 			({ completeness, outcome, status }) =>

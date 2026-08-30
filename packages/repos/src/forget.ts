@@ -9,11 +9,7 @@ const deleteRepoGraph = (id: string) =>
 		yield* Effect.forEach(changes, (change) =>
 			db.ChangeTransition.where({ changeId: change.id })
 				.deleteAll()
-				.pipe(
-					Effect.andThen(
-						db.PieceChange.where({ changeId: change.id }).deleteAll(),
-					),
-				),
+				.pipe(Effect.andThen(db.PieceChange.where({ changeId: change.id }).deleteAll())),
 		);
 		yield* db.Change.where({ repoId: id }).deleteAll();
 		yield* db.Repo.where({ id }).deleteAll();
@@ -27,8 +23,5 @@ export const forgetRepo = (id: string) =>
 		const db = yield* Database;
 		const feeds = yield* DomainFeeds;
 		yield* db.transaction(deleteRepoGraph(id));
-		yield* Effect.all([
-			feeds.publishFleetRefresh(),
-			feeds.publishVoyageRefresh(),
-		]);
+		yield* Effect.all([feeds.publishFleetRefresh(), feeds.publishVoyageRefresh()]);
 	});

@@ -34,16 +34,10 @@ export const Disclosure = ({
 			>
 				<Chevron className="size-3 shrink-0 text-muted-foreground" />
 				{name}
-				<span className="min-w-0 flex-1 truncate text-muted-foreground">
-					{summary}
-				</span>
+				<span className="min-w-0 flex-1 truncate text-muted-foreground">{summary}</span>
 				{trailing}
 			</button>
-			{open ? (
-				<div className="flex flex-col gap-1.5 border-t border-border px-2 py-1.5">
-					{body}
-				</div>
-			) : null}
+			{open ? <div className="flex flex-col gap-1.5 border-t border-border px-2 py-1.5">{body}</div> : null}
 		</div>
 	);
 };

@@ -1,8 +1,7 @@
 import { XIcon } from "lucide-react";
 import { Button } from "#components/ui/button.tsx";
 
-const line =
-	"flex items-start gap-2 rounded-md border border-destructive/40 bg-destructive/10 px-2 py-1 text-xs text-destructive";
+const line = "flex items-start gap-2 rounded-md border border-destructive/40 bg-destructive/10 px-2 py-1 text-xs text-destructive";
 
 // why: a feed failure is terminal for that subscription, so its line has no
 // dismissal — it stands until the window is reloaded. An act that failed is
@@ -21,22 +20,14 @@ export const NoticeBar = ({
 			{notice === undefined ? null : (
 				<div className={line}>
 					<span className="min-w-0 flex-1 wrap-anywhere">{notice}</span>
-					<Button
-						aria-label="Dismiss"
-						className="-my-0.5 size-5 text-destructive"
-						onClick={onDismiss}
-						size="icon"
-						variant="ghost"
-					>
+					<Button aria-label="Dismiss" className="-my-0.5 size-5 text-destructive" onClick={onDismiss} size="icon" variant="ghost">
 						<XIcon />
 					</Button>
 				</div>
 			)}
 			{feedErrors.map((message) => (
 				<div className={line} key={message}>
-					<span className="min-w-0 flex-1 wrap-anywhere">
-						feed lost: {message}
-					</span>
+					<span className="min-w-0 flex-1 wrap-anywhere">feed lost: {message}</span>
 				</div>
 			))}
 		</div>

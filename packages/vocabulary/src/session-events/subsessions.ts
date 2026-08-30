@@ -27,12 +27,7 @@ export const SubsessionOpened = Schema.Struct({
 // why: how a subsession stopped, in words this vocabulary owns. A provider
 // word with no counterpart here reads as unknown rather than being bent into a
 // neighbour; the provider's own word stays legible in raw.
-export const SubsessionOutcome = Schema.Literals([
-	"completed",
-	"failed",
-	"interrupted",
-	"unknown",
-]);
+export const SubsessionOutcome = Schema.Literals(["completed", "failed", "interrupted", "unknown"]);
 
 export const SubsessionEnded = Schema.Struct({
 	durationMs: Schema.optional(Schema.Number),

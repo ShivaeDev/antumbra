@@ -6,8 +6,4 @@
 // they stay runtime imports and travel in the packaged node_modules instead.
 // Anything added here must also be a production dependency of this app, or
 // electron-builder will not pack it.
-export const MAIN_EXTERNALS = [
-	"@anthropic-ai/claude-agent-sdk",
-	"electron",
-	"sharp",
-];
+export const MAIN_EXTERNALS = ["@anthropic-ai/claude-agent-sdk", "electron", "sharp"];

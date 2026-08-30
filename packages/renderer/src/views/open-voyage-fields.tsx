@@ -1,10 +1,5 @@
 import { Input } from "#components/ui/input.tsx";
-import {
-	Select,
-	SelectContent,
-	SelectTrigger,
-	SelectValue,
-} from "#components/ui/select.tsx";
+import { Select, SelectContent, SelectTrigger, SelectValue } from "#components/ui/select.tsx";
 import { SelectItem } from "#components/ui/select-parts.tsx";
 import { Textarea } from "#components/ui/textarea.tsx";
 import { Field, LabelledField } from "#views/field.tsx";
@@ -26,16 +21,10 @@ export const emptyDraft: VoyageDraft = {
 // why: the fleet decides which backends exist, so a draft that names one no
 // longer offered falls back to the first rather than opening a voyage against
 // a backend nothing can run.
-export const chosenBackend = (
-	backends: ReadonlyArray<string>,
-	backend: string,
-): string => (backends.includes(backend) ? backend : (backends[0] ?? ""));
+export const chosenBackend = (backends: ReadonlyArray<string>, backend: string): string =>
+	backends.includes(backend) ? backend : (backends[0] ?? "");
 
-const BackendOptions = ({
-	backends,
-}: {
-	readonly backends: ReadonlyArray<string>;
-}) => (
+const BackendOptions = ({ backends }: { readonly backends: ReadonlyArray<string> }) => (
 	<>
 		{backends.map((tag) => (
 			<SelectItem key={tag} value={tag}>
@@ -55,10 +44,7 @@ const BackendField = ({
 	readonly onChange: (draft: VoyageDraft) => void;
 }) => (
 	<Field label="Backend">
-		<Select
-			onValueChange={(backend) => onChange({ ...draft, backend })}
-			value={chosenBackend(backends, draft.backend)}
-		>
+		<Select onValueChange={(backend) => onChange({ ...draft, backend })} value={chosenBackend(backends, draft.backend)}>
 			<SelectTrigger aria-label="Backend">
 				<SelectValue placeholder="no backend registered" />
 			</SelectTrigger>
@@ -80,36 +66,13 @@ export const VoyageFields = ({
 }) => (
 	<div className="flex min-w-0 flex-col gap-3">
 		<LabelledField label="Name">
-			{(id) => (
-				<Input
-					id={id}
-					onChange={(event) => onChange({ ...draft, name: event.target.value })}
-					value={draft.name}
-				/>
-			)}
+			{(id) => <Input id={id} onChange={(event) => onChange({ ...draft, name: event.target.value })} value={draft.name} />}
 		</LabelledField>
 		<LabelledField label="North star">
-			{(id) => (
-				<Input
-					id={id}
-					onChange={(event) =>
-						onChange({ ...draft, northStar: event.target.value })
-					}
-					value={draft.northStar}
-				/>
-			)}
+			{(id) => <Input id={id} onChange={(event) => onChange({ ...draft, northStar: event.target.value })} value={draft.northStar} />}
 		</LabelledField>
 		<LabelledField label="Context">
-			{(id) => (
-				<Textarea
-					id={id}
-					onChange={(event) =>
-						onChange({ ...draft, context: event.target.value })
-					}
-					rows={3}
-					value={draft.context}
-				/>
-			)}
+			{(id) => <Textarea id={id} onChange={(event) => onChange({ ...draft, context: event.target.value })} rows={3} value={draft.context} />}
 		</LabelledField>
 		<BackendField backends={backends} draft={draft} onChange={onChange} />
 	</div>

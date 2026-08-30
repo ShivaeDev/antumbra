@@ -9,7 +9,6 @@ export const AppInfo = Schema.Struct({
 
 export type AppInfo = typeof AppInfo.Type;
 
-export class AppInfoSource extends Context.Service<
-	AppInfoSource,
-	{ readonly current: Effect.Effect<AppInfo> }
->()("@antumbra/contract/AppInfoSource") {}
+export class AppInfoSource extends Context.Service<AppInfoSource, { readonly current: Effect.Effect<AppInfo> }>()(
+	"@antumbra/contract/AppInfoSource",
+) {}

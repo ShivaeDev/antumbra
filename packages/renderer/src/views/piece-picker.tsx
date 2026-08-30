@@ -8,13 +8,10 @@ interface PickablePiece {
 	readonly label: string;
 }
 
-export const pickable = (
-	pieces: ReadonlyArray<PieceView>,
-): ReadonlyArray<PickablePiece> =>
+export const pickable = (pieces: ReadonlyArray<PieceView>): ReadonlyArray<PickablePiece> =>
 	pieces.map((piece) => ({ id: piece.id, label: piece.title }));
 
-const chosenIds = (select: HTMLSelectElement): ReadonlyArray<string> =>
-	[...select.selectedOptions].map((option) => option.value);
+const chosenIds = (select: HTMLSelectElement): ReadonlyArray<string> => [...select.selectedOptions].map((option) => option.value);
 
 // why: a piece's position is the set of pieces that gate it, so choosing that
 // set is one control — the same one whether a piece is being chartered or
@@ -34,11 +31,7 @@ export const PiecePicker = ({
 }) => {
 	const offered = pieces.filter((piece) => piece.id !== exclude);
 	if (offered.length === 0) {
-		return (
-			<p className="text-2xs text-muted-foreground">
-				Nothing else is chartered to depend on
-			</p>
-		);
+		return <p className="text-2xs text-muted-foreground">Nothing else is chartered to depend on</p>;
 	}
 	return (
 		<select

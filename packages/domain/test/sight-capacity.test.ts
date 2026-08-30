@@ -3,11 +3,7 @@ import { Database } from "@antumbra/persistence";
 import { makeBackendCapacityController } from "@antumbra/plugin-api";
 import { expect, it } from "@effect/vitest";
 import { Clock, Effect, Option } from "effect";
-import {
-	acquireTemporaryPersistence,
-	makeScriptedBackend,
-	rawOf,
-} from "#test/harness.ts";
+import { acquireTemporaryPersistence, makeScriptedBackend, rawOf } from "#test/harness.ts";
 import { eventually, sightLayer, spawnRequest } from "#test/sight-fixture.ts";
 
 it.live("retrying a paused provider resumes every parked birth", () =>
@@ -36,10 +32,7 @@ it.live("retrying a paused provider resumes every parked birth", () =>
 			yield* eventually(
 				Effect.gen(function* () {
 					const births = yield* db.Intent.where({ tag: "agent/spawn" }).all();
-					expect(births.map((birth) => birth.status)).toEqual([
-						"waiting",
-						"waiting",
-					]);
+					expect(births.map((birth) => birth.status)).toEqual(["waiting", "waiting"]);
 				}),
 			);
 			yield* db.Intent.create({
@@ -69,11 +62,7 @@ it.live("retrying a paused provider resumes every parked birth", () =>
 					]);
 				}),
 			);
-			expect(
-				Option.getOrThrow(
-					yield* db.Intent.where({ id: "unrelated-wait" }).first(),
-				).status,
-			).toBe("waiting");
+			expect(Option.getOrThrow(yield* db.Intent.where({ id: "unrelated-wait" }).first()).status).toBe("waiting");
 		}).pipe(Effect.provide(sightLayer(temporary, held)));
 	}),
 );

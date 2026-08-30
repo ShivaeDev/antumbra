@@ -13,9 +13,7 @@ export class RunnerFailure extends Data.TaggedError("RunnerFailure")<{
 	}
 }
 
-export class RunnerProvisionConflict extends Data.TaggedError(
-	"RunnerProvisionConflict",
-)<{
+export class RunnerProvisionConflict extends Data.TaggedError("RunnerProvisionConflict")<{
 	readonly detail: string;
 	readonly tag: string;
 }> {
@@ -37,10 +35,7 @@ export class UnknownRunnerError extends Data.TaggedError("UnknownRunnerError")<{
 	readonly tag: string;
 }> {}
 
-export type RunnerError =
-	| RunnerAuthRequired
-	| RunnerFailure
-	| RunnerProvisionConflict;
+export type RunnerError = RunnerAuthRequired | RunnerFailure | RunnerProvisionConflict;
 
 // why: the slug travels with the request because the registry owns what a
 // repository is called. A runner deriving it again would be a second naming
@@ -86,22 +81,16 @@ export interface ChangePreparationEvidence {
 	readonly worktreePath: string;
 }
 
-export type ReclaimVerdict =
-	| { readonly _tag: "dirty" }
-	| { readonly _tag: "reclaimed" };
+export type ReclaimVerdict = { readonly _tag: "dirty" } | { readonly _tag: "reclaimed" };
 
 export interface Runner {
-	readonly captureChange: (
-		berth: BerthSite,
-	) => Effect.Effect<ChangePreparationEvidence, RunnerError>;
+	readonly captureChange: (berth: BerthSite) => Effect.Effect<ChangePreparationEvidence, RunnerError>;
 	readonly capabilities: RunnerCapabilities;
 	readonly plan: (request: ProvisionRequest) => MooragePlan;
 	readonly provision: (plan: MooragePlan) => Effect.Effect<void, RunnerError>;
 	// why: reclaim refuses dirty berths by design; scrap is a destructive
 	// primitive and automatic recovery must never call it.
-	readonly reclaim: (
-		berth: BerthSite,
-	) => Effect.Effect<ReclaimVerdict, RunnerError>;
+	readonly reclaim: (berth: BerthSite) => Effect.Effect<ReclaimVerdict, RunnerError>;
 	readonly scrap: (berth: BerthSite) => Effect.Effect<void, RunnerError>;
 	readonly tag: string;
 }

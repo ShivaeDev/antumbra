@@ -12,14 +12,8 @@ const directories = (root: string, area: "apps" | "packages") =>
 		.filter((entry) => entry.isDirectory())
 		.map((entry) => entry.name);
 
-export const collectBoundaryPolicyInventory = (
-	root: string,
-): BoundaryPolicyInventory => {
-	const vocabulary = Schema.decodeUnknownSync(VocabularyManifest)(
-		JSON.parse(
-			readFileSync(join(root, "packages/vocabulary/package.json"), "utf8"),
-		),
-	);
+export const collectBoundaryPolicyInventory = (root: string): BoundaryPolicyInventory => {
+	const vocabulary = Schema.decodeUnknownSync(VocabularyManifest)(JSON.parse(readFileSync(join(root, "packages/vocabulary/package.json"), "utf8")));
 	return {
 		applications: directories(root, "apps"),
 		packages: directories(root, "packages"),

@@ -36,12 +36,10 @@ export const voyageRoutes = (procedure: AppProcedure) => ({
 			const voyages = yield* VoyageSource;
 			return yield* surface(voyages.charterPiece(input));
 		}),
-	focusVoyage: procedure
-		.input(Schema.Struct({ focused: Schema.Boolean, voyageId: Schema.String }))
-		.mutation(function* (input) {
-			const voyages = yield* VoyageSource;
-			yield* surface(voyages.setFocus(input.voyageId, input.focused));
-		}),
+	focusVoyage: procedure.input(Schema.Struct({ focused: Schema.Boolean, voyageId: Schema.String })).mutation(function* (input) {
+		const voyages = yield* VoyageSource;
+		yield* surface(voyages.setFocus(input.voyageId, input.focused));
+	}),
 	hailCaptain: procedure
 		.input(VoyageRef)
 		.output(HailReceipt)
@@ -49,12 +47,10 @@ export const voyageRoutes = (procedure: AppProcedure) => ({
 			const voyages = yield* VoyageSource;
 			return yield* surface(voyages.hail(input.voyageId));
 		}),
-	landPieceVerdict: procedure
-		.input(PieceVerdictRequest)
-		.mutation(function* (input) {
-			const voyages = yield* VoyageSource;
-			yield* surface(voyages.landPieceVerdict(input));
-		}),
+	landPieceVerdict: procedure.input(PieceVerdictRequest).mutation(function* (input) {
+		const voyages = yield* VoyageSource;
+		yield* surface(voyages.landPieceVerdict(input));
+	}),
 	launchPiece: procedure.input(PieceRef).mutation(function* (input) {
 		const voyages = yield* VoyageSource;
 		yield* surface(voyages.launch(input.pieceId));
@@ -70,12 +66,10 @@ export const voyageRoutes = (procedure: AppProcedure) => ({
 		const voyages = yield* VoyageSource;
 		yield* surface(voyages.park(input.pieceId));
 	}),
-	removeArtifactSupersession: procedure
-		.input(ArtifactSupersessionRequest)
-		.mutation(function* (input) {
-			const voyages = yield* VoyageSource;
-			yield* surface(voyages.removeArtifactSupersession(input));
-		}),
+	removeArtifactSupersession: procedure.input(ArtifactSupersessionRequest).mutation(function* (input) {
+		const voyages = yield* VoyageSource;
+		yield* surface(voyages.removeArtifactSupersession(input));
+	}),
 	reportMarkdown: procedure
 		.input(ReportRef)
 		.output(ReportMarkdown)
@@ -87,22 +81,18 @@ export const voyageRoutes = (procedure: AppProcedure) => ({
 		const voyages = yield* VoyageSource;
 		yield* surface(voyages.rewire(input));
 	}),
-	setVoyageBackend: procedure
-		.input(VoyageBackendRequest)
-		.mutation(function* (input) {
-			const voyages = yield* VoyageSource;
-			yield* surface(voyages.setBackend(input));
-		}),
+	setVoyageBackend: procedure.input(VoyageBackendRequest).mutation(function* (input) {
+		const voyages = yield* VoyageSource;
+		yield* surface(voyages.setBackend(input));
+	}),
 	unparkPiece: procedure.input(PieceRef).mutation(function* (input) {
 		const voyages = yield* VoyageSource;
 		yield* surface(voyages.unpark(input.pieceId));
 	}),
-	supersedeArtifact: procedure
-		.input(ArtifactSupersessionRequest)
-		.mutation(function* (input) {
-			const voyages = yield* VoyageSource;
-			yield* surface(voyages.supersedeArtifact(input));
-		}),
+	supersedeArtifact: procedure.input(ArtifactSupersessionRequest).mutation(function* (input) {
+		const voyages = yield* VoyageSource;
+		yield* surface(voyages.supersedeArtifact(input));
+	}),
 	voyage: procedure
 		.input(VoyageRef)
 		.output(VoyageView)
@@ -121,12 +111,10 @@ export const voyageRoutes = (procedure: AppProcedure) => ({
 		const voyages = yield* VoyageSource;
 		return yield* surface(voyages.voyages);
 	}),
-	voyagesFeed: procedure
-		.output(Schema.Array(VoyageSummary))
-		.subscription(function* () {
-			const voyages = yield* VoyageSource;
-			return voyages.voyagesFeed;
-		}),
+	voyagesFeed: procedure.output(Schema.Array(VoyageSummary)).subscription(function* () {
+		const voyages = yield* VoyageSource;
+		return voyages.voyagesFeed;
+	}),
 	workPieceNow: procedure
 		.input(PieceRef)
 		.output(CrewReceipt)

@@ -14,34 +14,15 @@ export const findPull = (
 	executable: string,
 	repo: GitHubRepoName,
 	branch: string,
-): Effect.Effect<
-	Option.Option<number>,
-	GhError,
-	ChildProcessSpawner.ChildProcessSpawner
-> =>
+): Effect.Effect<Option.Option<number>, GhError, ChildProcessSpawner.ChildProcessSpawner> =>
 	runGh({
-		args: [
-			"pr",
-			"list",
-			"--repo",
-			`${repo.owner}/${repo.name}`,
-			"--head",
-			branch,
-			"--state",
-			"open",
-			"--limit",
-			"1",
-			"--json",
-			"number",
-		],
+		args: ["pr", "list", "--repo", `${repo.owner}/${repo.name}`, "--head", branch, "--state", "open", "--limit", "1", "--json", "number"],
 		executable,
 		operation: "find-change",
 		timeoutMillis: FIND_TIMEOUT_MILLIS,
 	}).pipe(
 		Effect.flatMap((stdout) =>
-			Schema.decodeUnknownEffect(Schema.fromJsonString(FoundPulls))(
-				stdout,
-			).pipe(
+			Schema.decodeUnknownEffect(Schema.fromJsonString(FoundPulls))(stdout).pipe(
 				Effect.mapError(
 					(cause) =>
 						new GhOutputInvalid({
@@ -51,7 +32,5 @@ export const findPull = (
 				),
 			),
 		),
-		Effect.map((found) =>
-			Option.map(Option.fromUndefinedOr(found[0]), (pull) => pull.number),
-		),
+		Effect.map((found) => Option.map(Option.fromUndefinedOr(found[0]), (pull) => pull.number)),
 	);

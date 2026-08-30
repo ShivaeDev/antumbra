@@ -7,11 +7,7 @@ import { Deferred, Effect, Fiber, Option } from "effect";
 import { AgentDomain } from "#domain.ts";
 import type { SpawnFields } from "#spawn.ts";
 import { domainKernelLayer } from "#test/domain-layers.ts";
-import {
-	acquireTemporaryPersistence,
-	makeScriptedBackend,
-	makeScriptedRunner,
-} from "#test/harness.ts";
+import { acquireTemporaryPersistence, makeScriptedBackend, makeScriptedRunner } from "#test/harness.ts";
 import { untilTerminal } from "#test/session-recovery-fixture.ts";
 import { eventually } from "#test/voyage-fixtures.ts";
 
@@ -24,20 +20,13 @@ const spawn = (suffix: string): SpawnFields => ({
 	sessionId: `shutdown-session-${suffix}`,
 });
 
-const holdRetryStart = (
-	backend: AgentBackend,
-	resumed: Deferred.Deferred<void>,
-	release: Deferred.Deferred<void>,
-): AgentBackend => ({
+const holdRetryStart = (backend: AgentBackend, resumed: Deferred.Deferred<void>, release: Deferred.Deferred<void>): AgentBackend => ({
 	...backend,
 	openSession: (options) => {
 		if (options.sessionId !== "shutdown-session-retry") {
 			return backend.openSession(options);
 		}
-		return Deferred.succeed(resumed, undefined).pipe(
-			Effect.andThen(Deferred.await(release)),
-			Effect.andThen(backend.openSession(options)),
-		);
+		return Deferred.succeed(resumed, undefined).pipe(Effect.andThen(Deferred.await(release)), Effect.andThen(backend.openSession(options)));
 	},
 });
 
@@ -88,78 +77,62 @@ it.live("includes an admitted Session start in the shutdown drain", () =>
 	}),
 );
 
-it.live(
-	"releases a Session start waiting on the closed generation after drain failure",
-	() =>
-		Effect.gen(function* () {
-			const temporary = yield* acquireTemporaryPersistence;
-			const scripted = yield* makeScriptedBackend;
-			const recorded = yield* makeScriptedRunner;
-			const retryResumed = yield* Deferred.make<void>();
-			const releaseRetry = yield* Deferred.make<void>();
-			const backend = holdRetryStart(
-				scripted.backend,
-				retryResumed,
-				releaseRetry,
+it.live("releases a Session start waiting on the closed generation after drain failure", () =>
+	Effect.gen(function* () {
+		const temporary = yield* acquireTemporaryPersistence;
+		const scripted = yield* makeScriptedBackend;
+		const recorded = yield* makeScriptedRunner;
+		const retryResumed = yield* Deferred.make<void>();
+		const releaseRetry = yield* Deferred.make<void>();
+		const backend = holdRetryStart(scripted.backend, retryResumed, releaseRetry);
+		yield* Effect.gen(function* () {
+			const db = yield* Database;
+			const domain = yield* AgentDomain;
+			const kernel = yield* Kernel;
+			const first = yield* kernel.submit(domain.spawn, spawn("first"));
+			expect(yield* untilTerminal(first.changes)).toBe("succeeded");
+			yield* db.AgentSession.where({ id: "shutdown-session-first" }).update({
+				executionStatus: "paused",
+			});
+			yield* domain.closeSessionStarts;
+			const retry = yield* kernel.submit(domain.spawn, spawn("retry"));
+			yield* eventually(
+				Effect.gen(function* () {
+					expect(yield* recorded.provisioned).toHaveLength(2);
+				}),
 			);
-			yield* Effect.gen(function* () {
-				const db = yield* Database;
-				const domain = yield* AgentDomain;
-				const kernel = yield* Kernel;
-				const first = yield* kernel.submit(domain.spawn, spawn("first"));
-				expect(yield* untilTerminal(first.changes)).toBe("succeeded");
-				yield* db.AgentSession.where({ id: "shutdown-session-first" }).update({
-					executionStatus: "paused",
-				});
-				yield* domain.closeSessionStarts;
-				const retry = yield* kernel.submit(domain.spawn, spawn("retry"));
-				yield* eventually(
-					Effect.gen(function* () {
-						expect(yield* recorded.provisioned).toHaveLength(2);
-					}),
-				);
-				yield* Effect.yieldNow;
-				yield* Effect.yieldNow;
-				const waiting = Option.getOrThrow(
-					yield* db.Agent.where({ id: "shutdown-agent-retry" }).first(),
-				);
-				expect(waiting.status).toBe("spawning");
-				expect(
-					yield* db.AgentSession.where({
-						id: "shutdown-session-retry",
-					}).first(),
-				).toEqual(Option.none());
-				expect(yield* scripted.opened).toHaveLength(1);
-				expect(yield* Deferred.isDone(retryResumed)).toBe(false);
+			yield* Effect.yieldNow;
+			yield* Effect.yieldNow;
+			const waiting = Option.getOrThrow(yield* db.Agent.where({ id: "shutdown-agent-retry" }).first());
+			expect(waiting.status).toBe("spawning");
+			expect(
+				yield* db.AgentSession.where({
+					id: "shutdown-session-retry",
+				}).first(),
+			).toEqual(Option.none());
+			expect(yield* scripted.opened).toHaveLength(1);
+			expect(yield* Deferred.isDone(retryResumed)).toBe(false);
 
-				const failure = yield* Effect.flip(drainActiveSessions);
-				expect(failure._tag).toBe("InvalidSessionExecutionStatus");
-				yield* eventually(
-					Effect.gen(function* () {
-						expect(yield* Deferred.isDone(retryResumed)).toBe(true);
-					}),
-				);
-
-				yield* db.AgentSession.where({ id: "shutdown-session-first" }).update({
-					executionStatus: "active",
-				});
-				yield* Deferred.succeed(releaseRetry, undefined);
-				yield* eventually(
-					Effect.gen(function* () {
-						expect(yield* scripted.opened).toHaveLength(2);
-					}),
-				);
-				expect(yield* untilTerminal(retry.changes)).toBe("succeeded");
-				yield* drainActiveSessions;
-				expect(
-					(yield* db.AgentSession.all()).map(
-						(session) => session.executionStatus,
-					),
-				).toEqual(["idle", "idle"]);
-			}).pipe(
-				Effect.provide(
-					domainKernelLayer(temporary, backend, {}, recorded.runner),
-				),
+			const failure = yield* Effect.flip(drainActiveSessions);
+			expect(failure._tag).toBe("InvalidSessionExecutionStatus");
+			yield* eventually(
+				Effect.gen(function* () {
+					expect(yield* Deferred.isDone(retryResumed)).toBe(true);
+				}),
 			);
-		}),
+
+			yield* db.AgentSession.where({ id: "shutdown-session-first" }).update({
+				executionStatus: "active",
+			});
+			yield* Deferred.succeed(releaseRetry, undefined);
+			yield* eventually(
+				Effect.gen(function* () {
+					expect(yield* scripted.opened).toHaveLength(2);
+				}),
+			);
+			expect(yield* untilTerminal(retry.changes)).toBe("succeeded");
+			yield* drainActiveSessions;
+			expect((yield* db.AgentSession.all()).map((session) => session.executionStatus)).toEqual(["idle", "idle"]);
+		}).pipe(Effect.provide(domainKernelLayer(temporary, backend, {}, recorded.runner)));
+	}),
 );

@@ -4,11 +4,7 @@ import { Deferred, Effect, Option, Ref, Schema, Stream } from "effect";
 import { type Gate, gaugeCeiling, maxConcurrency, settle } from "#gate.ts";
 import { defineIntent } from "#intent.ts";
 import { Kernel } from "#kernel.ts";
-import {
-	acquireTemporaryPersistence,
-	kernelLayer,
-	statusesUntilTerminal,
-} from "#test/harness.ts";
+import { acquireTemporaryPersistence, kernelLayer, statusesUntilTerminal } from "#test/harness.ts";
 
 const EMPTY = Schema.Struct({});
 
@@ -18,10 +14,7 @@ it.live("runs a submitted intent through running to succeeded", () =>
 		const started = yield* Deferred.make<void>();
 		const hold = yield* Deferred.make<void>();
 		const kind = defineIntent({
-			execute: () =>
-				Deferred.succeed(started, undefined).pipe(
-					Effect.andThen(Deferred.await(hold)),
-				),
+			execute: () => Deferred.succeed(started, undefined).pipe(Effect.andThen(Deferred.await(hold))),
 			payload: EMPTY,
 			tag: "test/journey",
 		});
@@ -32,9 +25,7 @@ it.live("runs a submitted intent through running to succeeded", () =>
 			const during = yield* Stream.runHead(submission.changes);
 			expect(during).toEqual(Option.some("running"));
 			yield* Deferred.succeed(hold, undefined);
-			const statuses = yield* statusesUntilTerminal(
-				kernel.changes(submission.id),
-			);
+			const statuses = yield* statusesUntilTerminal(kernel.changes(submission.id));
 			expect(statuses.at(-1)).toBe("succeeded");
 		}).pipe(Effect.provide(kernelLayer(temporary, { kinds: [kind] })));
 	}),
@@ -76,11 +67,7 @@ it.live("cancels a queued intent before admission", () =>
 			yield* kernel.cancel(submission.id);
 			const statuses = yield* statusesUntilTerminal(submission.changes);
 			expect(statuses).toEqual(["cancelled"]);
-		}).pipe(
-			Effect.provide(
-				kernelLayer(temporary, { gates: [closed], kinds: [kind] }),
-			),
-		);
+		}).pipe(Effect.provide(kernelLayer(temporary, { gates: [closed], kinds: [kind] })));
 	}),
 );
 
@@ -90,10 +77,7 @@ it.live("interrupts a running intent on cancel", () =>
 		const started = yield* Deferred.make<void>();
 		const never = yield* Deferred.make<void>();
 		const kind = defineIntent({
-			execute: () =>
-				Deferred.succeed(started, undefined).pipe(
-					Effect.andThen(Deferred.await(never)),
-				),
+			execute: () => Deferred.succeed(started, undefined).pipe(Effect.andThen(Deferred.await(never))),
 			payload: EMPTY,
 			tag: "test/interruptible",
 		});
@@ -139,24 +123,15 @@ it.live("admits at most the concurrency limit at once", () =>
 			const first = yield* kernel.submit(kind, { slot: "a" });
 			const second = yield* kernel.submit(kind, { slot: "b" });
 			yield* Effect.race(Deferred.await(starts.a), Deferred.await(starts.b));
-			expect(yield* db.Intent.where({ status: "queued" }).all()).toHaveLength(
-				1,
-			);
+			expect(yield* db.Intent.where({ status: "queued" }).all()).toHaveLength(1);
 			yield* Deferred.succeed(holds.a, undefined);
 			yield* Deferred.succeed(holds.b, undefined);
-			const outcomes = yield* Effect.all([
-				statusesUntilTerminal(kernel.changes(first.id)),
-				statusesUntilTerminal(kernel.changes(second.id)),
-			]);
+			const outcomes = yield* Effect.all([statusesUntilTerminal(kernel.changes(first.id)), statusesUntilTerminal(kernel.changes(second.id))]);
 			for (const statuses of outcomes) {
 				expect(statuses.at(-1)).toBe("succeeded");
 			}
 			expect(yield* Ref.get(peak)).toBe(1);
-		}).pipe(
-			Effect.provide(
-				kernelLayer(temporary, { gates: [maxConcurrency(1)], kinds: [kind] }),
-			),
-		);
+		}).pipe(Effect.provide(kernelLayer(temporary, { gates: [maxConcurrency(1)], kinds: [kind] })));
 	}),
 );
 
@@ -197,11 +172,7 @@ it.live("holds admission until the system settles, then retries itself", () =>
 			const submission = yield* kernel.submit(kind, {});
 			const statuses = yield* statusesUntilTerminal(submission.changes);
 			expect(statuses.at(-1)).toBe("succeeded");
-		}).pipe(
-			Effect.provide(
-				kernelLayer(temporary, { gates: [settle(40)], kinds: [kind] }),
-			),
-		);
+		}).pipe(Effect.provide(kernelLayer(temporary, { gates: [settle(40)], kinds: [kind] })));
 	}),
 );
 

@@ -4,10 +4,7 @@ import { Option } from "effect";
 import { captainOf } from "#voyage-captain.ts";
 import type { AgentSessionRow, VoyageWorld } from "#voyage-rows.ts";
 
-const session = (
-	agentId: string,
-	executionStatus: AgentSessionRow["executionStatus"],
-): AgentSessionRow => ({
+const session = (agentId: string, executionStatus: AgentSessionRow["executionStatus"]): AgentSessionRow => ({
 	agentId,
 	backend: "scripted",
 	createdAt: new Date(1),
@@ -38,22 +35,15 @@ const world = (over: Partial<VoyageWorld>): VoyageWorld => ({
 	...over,
 });
 
-const captained = (
-	agentId: string,
-	status: AgentStatus,
-	sessions: ReadonlyArray<AgentSessionRow> = [],
-): VoyageWorld =>
+const captained = (agentId: string, status: AgentStatus, sessions: ReadonlyArray<AgentSessionRow> = []): VoyageWorld =>
 	world({
 		agentStatus: new Map([[agentId, status]]),
 		crews: [{ agentId, role: "captain", voyageId: "voyage-1" }],
-		currentSessionByAgent: new Map([
-			[agentId, sessions[0]?.id ?? null] as const,
-		]),
+		currentSessionByAgent: new Map([[agentId, sessions[0]?.id ?? null] as const]),
 		sessions,
 	});
 
-const captain = (rows: VoyageWorld) =>
-	Option.getOrThrow(captainOf(rows, "voyage-1"));
+const captain = (rows: VoyageWorld) => Option.getOrThrow(captainOf(rows, "voyage-1"));
 
 it("a captain that stood down is the voyage's address and not at work", () => {
 	const stoodDown = captained("agent-1", "alive", [session("agent-1", "idle")]);
@@ -67,11 +57,7 @@ it("a captain that stood down is the voyage's address and not at work", () => {
 
 it("a captain executing, draining or still being born is at work", () => {
 	for (const executionStatus of ["active", "draining"] as const) {
-		expect(
-			captain(
-				captained("agent-1", "alive", [session("agent-1", executionStatus)]),
-			).atWork,
-		).toBe(true);
+		expect(captain(captained("agent-1", "alive", [session("agent-1", executionStatus)])).atWork).toBe(true);
 	}
 	expect(captain(captained("agent-1", "spawning")).atWork).toBe(true);
 });

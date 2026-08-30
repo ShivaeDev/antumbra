@@ -3,12 +3,7 @@ import { SessionEventJournal } from "@antumbra/session-event-journal";
 import type { EventSink } from "@antumbra/session-fabric";
 import type { AgentEvent } from "@antumbra/vocabulary/session-events";
 import { Clock, Effect, Ref } from "effect";
-import {
-	emptySessionTree,
-	nodeOf,
-	openNodes,
-	withCaller,
-} from "#tree/attribution.ts";
+import { emptySessionTree, nodeOf, openNodes, withCaller } from "#tree/attribution.ts";
 import { streamDetachedGap } from "#tree/gaps.ts";
 import { makeSessionTreeLifecycle } from "#tree/lifecycle.ts";
 import { LiveDelegations } from "#tree/live.ts";
@@ -26,10 +21,7 @@ type RecordEvent = (event: AgentEvent) => Effect.Effect<boolean>;
 // backend's own auditor. Which storage an audit may read is a property of the
 // lane the frames came from, so it travels with the sink rather than being
 // discovered somewhere downstream.
-export type SinkFor = (
-	rootSessionId: string,
-	audit: SessionAudit,
-) => Effect.Effect<EventSink>;
+export type SinkFor = (rootSessionId: string, audit: SessionAudit) => Effect.Effect<EventSink>;
 
 export const makeSessionTreeSinks = Effect.gen(function* () {
 	const journal = yield* SessionEventJournal;
@@ -50,9 +42,7 @@ export const makeSessionTreeSinks = Effect.gen(function* () {
 			// registry starts empty, and the census is then the only account of a
 			// child that is genuinely still going.
 			const censused = (nodeSessionId: string, working: boolean) =>
-				working
-					? live.began(rootSessionId, nodeSessionId)
-					: live.ended(rootSessionId, nodeSessionId);
+				working ? live.began(rootSessionId, nodeSessionId) : live.ended(rootSessionId, nodeSessionId);
 			const sweeps = yield* sweepsFor(audit, rootSessionId, censused);
 			const turns = yield* turnRestFor(rootSessionId);
 			// why: a tool call is remembered against the journal it was written to,
@@ -66,14 +56,9 @@ export const makeSessionTreeSinks = Effect.gen(function* () {
 					// rather than in the root's or nowhere at all.
 					const node = known ?? (yield* nodes.admitNode(event));
 					if (event.type === "tool.started") {
-						yield* Ref.update(
-							tree,
-							withCaller(event.toolId, node?.sessionId ?? rootSessionId),
-						);
+						yield* Ref.update(tree, withCaller(event.toolId, node?.sessionId ?? rootSessionId));
 					}
-					return node === undefined
-						? yield* journal.record(rootSessionId, event)
-						: yield* nodes.recordOn(node, event);
+					return node === undefined ? yield* journal.record(rootSessionId, event) : yield* nodes.recordOn(node, event);
 				});
 			// why: an announcement carried by the stream is a child starting work
 			// now. The same announcement replayed out of a census is the record
@@ -117,8 +102,7 @@ export const makeSessionTreeSinks = Effect.gen(function* () {
 			// census replays what it already did, and an ending replayed there would
 			// rest a Session that has been given new work since.
 			const streamed = recording(true);
-			const record: RecordEvent = (event) =>
-				streamed(event).pipe(Effect.tap(() => turns.observed(event)));
+			const record: RecordEvent = (event) => streamed(event).pipe(Effect.tap(() => turns.observed(event)));
 			// why: silence is not an ending. A node whose stream stopped mid-run
 			// would otherwise stay open with nothing in its journal to say why, so
 			// the loss is written on the node's own key before the pump is gone.
@@ -130,12 +114,10 @@ export const makeSessionTreeSinks = Effect.gen(function* () {
 					return;
 				}
 				const detachedAt = yield* Clock.currentTimeMillis;
-				yield* Effect.forEach(
-					unfinished,
-					(node) =>
-						journal.record(node.sessionId, streamDetachedGap(node, detachedAt)),
-					{ concurrency: 1, discard: true },
-				);
+				yield* Effect.forEach(unfinished, (node) => journal.record(node.sessionId, streamDetachedGap(node, detachedAt)), {
+					concurrency: 1,
+					discard: true,
+				});
 			});
 			return {
 				attached: sweeps.reconnected(recording(false)),

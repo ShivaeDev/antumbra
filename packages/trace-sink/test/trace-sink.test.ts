@@ -1,11 +1,7 @@
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import {
-	DatabaseSync,
-	type SQLInputValue,
-	type SQLOutputValue,
-} from "node:sqlite";
+import { DatabaseSync, type SQLInputValue, type SQLOutputValue } from "node:sqlite";
 import { describe, expect, it } from "@effect/vitest";
 import { Effect } from "effect";
 import { TestClock } from "effect/testing";
@@ -19,11 +15,7 @@ const temporaryDirectory = Effect.acquireRelease(
 	(root) => Effect.sync(() => rmSync(root, { force: true, recursive: true })),
 );
 
-const readRows = (
-	directory: string,
-	sql: string,
-	parameters: readonly SQLInputValue[],
-): readonly Record<string, SQLOutputValue>[] => {
+const readRows = (directory: string, sql: string, parameters: readonly SQLInputValue[]): readonly Record<string, SQLOutputValue>[] => {
 	const database = new DatabaseSync(join(directory, TRACE_DATABASE_FILE));
 	const rows = database.prepare(sql).all(...parameters);
 	database.close();
@@ -34,12 +26,7 @@ const readRows = (
 // flushes what it still holds on the way out. Reading the file before that
 // would be reading a buffer, not a trace.
 const wholeRun = <A, E>(directory: string, program: Effect.Effect<A, E>) =>
-	Effect.scoped(
-		Effect.provide(
-			program,
-			DevTraceLive({ appVersion: "0.0.0-test", dataDirectory: directory }),
-		),
-	);
+	Effect.scoped(Effect.provide(program, DevTraceLive({ appVersion: "0.0.0-test", dataDirectory: directory })));
 
 const attachment = (sessionId: string) =>
 	Effect.succeed(sessionId).pipe(
@@ -63,15 +50,8 @@ describe("dev trace sink", () => {
 			const directory = yield* temporaryDirectory;
 			const answer = yield* wholeRun(directory, attachment("session-a"));
 			expect(answer).toBe("session-a");
-			const rows = readRows(
-				directory,
-				"SELECT name, status, parent_span_id FROM spans WHERE session_id = ? ORDER BY name",
-				["session-a"],
-			);
-			expect(rows.map((row) => row.name)).toEqual([
-				"fabric.confirmIdentity",
-				"fabric.openAttachment",
-			]);
+			const rows = readRows(directory, "SELECT name, status, parent_span_id FROM spans WHERE session_id = ? ORDER BY name", ["session-a"]);
+			expect(rows.map((row) => row.name)).toEqual(["fabric.confirmIdentity", "fabric.openAttachment"]);
 			expect(rows.every((row) => row.status === "success")).toBe(true);
 		}),
 	);
@@ -80,11 +60,7 @@ describe("dev trace sink", () => {
 		Effect.gen(function* () {
 			const directory = yield* temporaryDirectory;
 			yield* wholeRun(directory, attachment("session-b"));
-			const child = readRows(
-				directory,
-				"SELECT session_id, parent_span_id FROM spans WHERE name = ?",
-				["fabric.confirmIdentity"],
-			);
+			const child = readRows(directory, "SELECT session_id, parent_span_id FROM spans WHERE name = ?", ["fabric.confirmIdentity"]);
 			expect(child[0]?.session_id).toBe("session-b");
 			expect(typeof child[0]?.parent_span_id).toBe("string");
 		}),
@@ -95,10 +71,7 @@ describe("dev trace sink", () => {
 			const directory = yield* temporaryDirectory;
 			yield* wholeRun(
 				directory,
-				Effect.logDebug("opening the attachment").pipe(
-					Effect.withSpan("fabric.openAttachment"),
-					Effect.annotateSpans({ sessionId: "session-c" }),
-				),
+				Effect.logDebug("opening the attachment").pipe(Effect.withSpan("fabric.openAttachment"), Effect.annotateSpans({ sessionId: "session-c" })),
 			);
 			const rows = readRows(
 				directory,
@@ -121,18 +94,8 @@ describe("dev trace sink", () => {
 			}
 			const runs = readRows(directory, "SELECT run_id FROM runs", []);
 			expect(runs.length).toBe(5);
-			const sessions = readRows(
-				directory,
-				"SELECT DISTINCT session_id FROM spans ORDER BY session_id",
-				[],
-			);
-			expect(sessions.map((row) => row.session_id)).toEqual([
-				"session-2",
-				"session-3",
-				"session-4",
-				"session-5",
-				"session-6",
-			]);
+			const sessions = readRows(directory, "SELECT DISTINCT session_id FROM spans ORDER BY session_id", []);
+			expect(sessions.map((row) => row.session_id)).toEqual(["session-2", "session-3", "session-4", "session-5", "session-6"]);
 		}),
 	);
 
@@ -140,11 +103,7 @@ describe("dev trace sink", () => {
 		Effect.gen(function* () {
 			const directory = yield* temporaryDirectory;
 			yield* wholeRun(directory, readThroughOrm("session-d"));
-			const rows = readRows(
-				directory,
-				"SELECT name, session_id FROM spans ORDER BY name",
-				[],
-			);
+			const rows = readRows(directory, "SELECT name, session_id FROM spans ORDER BY name", []);
 			expect(rows.map((row) => row.name)).toEqual(["fabric.openAttachment"]);
 			expect(rows[0]?.session_id).toBe("session-d");
 		}),

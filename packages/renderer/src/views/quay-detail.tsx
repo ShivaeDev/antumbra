@@ -13,18 +13,10 @@ import { QuayWork } from "#views/quay-work.tsx";
 import { SectionHeading } from "#views/section.tsx";
 import { whenLabel } from "#voyages/labels.ts";
 
-const OriginSession = ({
-	item,
-	onError,
-}: {
-	readonly item: QuayChange;
-	readonly onError: (message: string) => void;
-}) => {
+const OriginSession = ({ item, onError }: { readonly item: QuayChange; readonly onError: (message: string) => void }) => {
 	const sessionId = item.originSessionId;
 	if (sessionId === null) {
-		return (
-			<span className="text-xs text-muted-foreground">No linked session</span>
-		);
+		return <span className="text-xs text-muted-foreground">No linked session</span>;
 	}
 	return (
 		<Button
@@ -40,13 +32,7 @@ const OriginSession = ({
 	);
 };
 
-const DetailHeader = ({
-	item,
-	onError,
-}: {
-	readonly item: QuayChange;
-	readonly onError: (message: string) => void;
-}) => {
+const DetailHeader = ({ item, onError }: { readonly item: QuayChange; readonly onError: (message: string) => void }) => {
 	const number = changeNumber(item.change);
 	return (
 		<header className="flex flex-wrap items-start gap-3 border-border border-b pb-4">
@@ -55,22 +41,13 @@ const DetailHeader = ({
 					<Badge className="font-mono" variant="outline">
 						{item.change.repoName}
 					</Badge>
-					{number === "" ? null : (
-						<span className="font-mono text-xs text-muted-foreground">
-							{number}
-						</span>
-					)}
+					{number === "" ? null : <span className="font-mono text-xs text-muted-foreground">{number}</span>}
 				</div>
-				<h2 className="text-lg font-medium wrap-anywhere">
-					{item.change.title}
-				</h2>
+				<h2 className="text-lg font-medium wrap-anywhere">{item.change.title}</h2>
 			</div>
 			<QuayDismiss item={item} onError={onError} />
 			{item.change.url === null ? null : (
-				<ExternalLink
-					className={cn(buttonVariants({ variant: "default" }), "no-underline")}
-					url={item.change.url}
-				>
+				<ExternalLink className={cn(buttonVariants({ variant: "default" }), "no-underline")} url={item.change.url}>
 					Open pull request <ExternalLinkIcon aria-hidden="true" />
 				</ExternalLink>
 			)}
@@ -89,12 +66,7 @@ export const QuayDetail = ({
 }) => {
 	return (
 		<div className="flex min-h-full flex-col gap-6 p-4 sm:p-6">
-			<Button
-				className="w-fit md:hidden"
-				onClick={onBack}
-				size="sm"
-				variant="ghost"
-			>
+			<Button className="w-fit md:hidden" onClick={onBack} size="sm" variant="ghost">
 				<ArrowLeft /> Back to pull requests
 			</Button>
 			<DetailHeader item={item} onError={onError} />
@@ -107,11 +79,7 @@ export const QuayDetail = ({
 					<span className="px-2 text-muted-foreground">into</span>
 					<code>{item.baseRef}</code>
 				</p>
-				{item.headSha === null ? null : (
-					<p className="font-mono text-2xs text-muted-foreground">
-						Commit {item.headSha.slice(0, 12)}
-					</p>
-				)}
+				{item.headSha === null ? null : <p className="font-mono text-2xs text-muted-foreground">Commit {item.headSha.slice(0, 12)}</p>}
 			</section>
 			<QuayWork item={item} />
 			<section className="grid gap-3 border-border border-t pt-4 sm:grid-cols-2">

@@ -1,26 +1,14 @@
 import type { BoardEntryRow } from "@antumbra/boards";
-import type {
-	BoardEntryView,
-	ChangeView,
-	PieceCounts,
-	PieceView,
-	VoyageSummary,
-	VoyageView,
-} from "@antumbra/contract";
+import type { BoardEntryView, ChangeView, PieceCounts, PieceView, VoyageSummary, VoyageView } from "@antumbra/contract";
 import { Option } from "effect";
 import type { ChangeView as DerivedChange } from "#change-view.ts";
 import { crewReleasable } from "#crew-rest.ts";
 import type { PieceView as DerivedPiece } from "#piece-view.ts";
-import type {
-	PieceCounts as DerivedCounts,
-	VoyageSummary as DerivedSummary,
-	VoyageView as DerivedVoyage,
-} from "#voyage-view.ts";
+import type { PieceCounts as DerivedCounts, VoyageSummary as DerivedSummary, VoyageView as DerivedVoyage } from "#voyage-view.ts";
 
 // why: stamps are moments the domain holds as dates and the window shows as
 // text; a missing stamp is the absence of the moment, never an empty string.
-const stamp = (at: Date | null): string | null =>
-	at === null ? null : at.toISOString();
+const stamp = (at: Date | null): string | null => (at === null ? null : at.toISOString());
 
 export const changeSeen = (change: DerivedChange): ChangeView => ({
 	activityAt: change.activityAt.toISOString(),
@@ -39,11 +27,7 @@ export const changeSeen = (change: DerivedChange): ChangeView => ({
 	url: change.url,
 });
 
-const pieceSeen = (
-	piece: DerivedPiece,
-	board: ReadonlyArray<BoardEntryRow>,
-	resting: ReadonlyMap<string, ReadonlyArray<string>>,
-): PieceView => ({
+const pieceSeen = (piece: DerivedPiece, board: ReadonlyArray<BoardEntryRow>, resting: ReadonlyMap<string, ReadonlyArray<string>>): PieceView => ({
 	agents: piece.agents.map((agent) => ({
 		agentId: agent.agentId,
 		status: agent.status,
@@ -130,7 +114,5 @@ export const voyageSeen = (
 		role: member.role,
 		status: member.status,
 	})),
-	pieces: view.pieces.map((piece) =>
-		pieceSeen(piece, pieceBoards.get(piece.id) ?? [], resting),
-	),
+	pieces: view.pieces.map((piece) => pieceSeen(piece, pieceBoards.get(piece.id) ?? [], resting)),
 });

@@ -24,16 +24,9 @@ const alive = (spawner: Spawner): boolean => {
 // undecidable and therefore untouched. Backgrounded work outliving a turn and
 // children re-driven across activations are why this is never inferred from
 // silence.
-export const acquisitionGone = (
-	root: StoredAgentSession | undefined,
-	spawner: Spawner | undefined,
-): boolean => {
+export const acquisitionGone = (root: StoredAgentSession | undefined, spawner: Spawner | undefined): boolean => {
 	if (root === undefined || root.status !== "closed") {
 		return false;
 	}
-	return (
-		spawner === undefined ||
-		!alive(spawner) ||
-		spawner.currentSessionId !== root.id
-	);
+	return spawner === undefined || !alive(spawner) || spawner.currentSessionId !== root.id;
 };

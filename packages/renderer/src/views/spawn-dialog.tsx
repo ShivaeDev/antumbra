@@ -2,25 +2,10 @@ import { PlusIcon } from "lucide-react";
 import { useState } from "react";
 import { spawnAgent } from "#adapters/trpc.ts";
 import { Button } from "#components/ui/button.tsx";
-import {
-	Dialog,
-	DialogClose,
-	DialogContent,
-	DialogTrigger,
-} from "#components/ui/dialog.tsx";
-import {
-	DialogDescription,
-	DialogFooter,
-	DialogHeader,
-	DialogTitle,
-} from "#components/ui/dialog-sections.tsx";
+import { Dialog, DialogClose, DialogContent, DialogTrigger } from "#components/ui/dialog.tsx";
+import { DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "#components/ui/dialog-sections.tsx";
 import { Input } from "#components/ui/input.tsx";
-import {
-	Select,
-	SelectContent,
-	SelectTrigger,
-	SelectValue,
-} from "#components/ui/select.tsx";
+import { Select, SelectContent, SelectTrigger, SelectValue } from "#components/ui/select.tsx";
 import { SelectItem } from "#components/ui/select-parts.tsx";
 import { Textarea } from "#components/ui/textarea.tsx";
 import { Field } from "#views/field.tsx";
@@ -50,13 +35,7 @@ const BackendField = ({
 	</Field>
 );
 
-export const SpawnDialog = ({
-	backends,
-	onError,
-}: {
-	readonly backends: ReadonlyArray<string>;
-	readonly onError: (message: string) => void;
-}) => {
+export const SpawnDialog = ({ backends, onError }: { readonly backends: ReadonlyArray<string>; readonly onError: (message: string) => void }) => {
 	const [open, setOpen] = useState(false);
 	const [backend, setBackend] = useState("");
 	const [role, setRole] = useState("");
@@ -85,23 +64,11 @@ export const SpawnDialog = ({
 			<DialogContent>
 				<DialogHeader>
 					<DialogTitle>Spawn an agent</DialogTitle>
-					<DialogDescription>
-						A role to answer for and a charter to work from, on one of the
-						backends this host registered.
-					</DialogDescription>
+					<DialogDescription>A role to answer for and a charter to work from, on one of the backends this host registered.</DialogDescription>
 				</DialogHeader>
-				<BackendField
-					backends={backends}
-					chosen={chosen}
-					onBackend={setBackend}
-				/>
+				<BackendField backends={backends} chosen={chosen} onBackend={setBackend} />
 				<Field label="Role">
-					<Input
-						aria-label="Role"
-						onChange={(event) => setRole(event.target.value)}
-						placeholder="navigator"
-						value={role}
-					/>
+					<Input aria-label="Role" onChange={(event) => setRole(event.target.value)} placeholder="navigator" value={role} />
 				</Field>
 				<Field label="Charter">
 					<Textarea

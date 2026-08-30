@@ -19,11 +19,7 @@ const { opened, watchVoyage } = vi.hoisted(() => {
 	const opened: Array<Opened> = [];
 	return {
 		opened,
-		watchVoyage: (
-			voyageId: string,
-			onVoyage: Opened["onVoyage"],
-			onError: Opened["onError"],
-		) => {
+		watchVoyage: (voyageId: string, onVoyage: Opened["onVoyage"], onError: Opened["onError"]) => {
 			opened.push({ onError, onVoyage, voyageId });
 			return () => undefined;
 		},
@@ -60,9 +56,7 @@ const mount = (): { container: HTMLElement; root: Root } => {
 const render = (root: Root, voyageId: string): Effect.Effect<void> =>
 	Effect.promise(() =>
 		act(() => {
-			root.render(
-				<VoyagePanel onError={() => undefined} voyageId={voyageId} />,
-			);
+			root.render(<VoyagePanel onError={() => undefined} voyageId={voyageId} />);
 			return Promise.resolve();
 		}),
 	);
@@ -98,9 +92,7 @@ it.effect("waits for the feed's first snapshot before drawing anything", () =>
 
 		expect(container.textContent).toContain("Chart the reef");
 		expect(container.textContent).toContain("soundings");
-		expect(container.textContent).not.toContain(
-			"the reef shifts after a storm",
-		);
+		expect(container.textContent).not.toContain("the reef shifts after a storm");
 		expect(container.innerHTML).toContain('title="Show the board"');
 		yield* drop(root);
 	}),

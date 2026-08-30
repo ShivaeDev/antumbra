@@ -4,8 +4,7 @@ import { Button } from "#components/ui/button.tsx";
 import { situationLabel } from "#fleet/situations.ts";
 import { SituationDialog } from "#views/situation-dialog.tsx";
 
-const keyOf = (situation: SessionSituation): string =>
-	`${situation.changeId}:${situation.situation}`;
+const keyOf = (situation: SessionSituation): string => `${situation.changeId}:${situation.situation}`;
 
 // why: one control per situation the domain published, and nothing when it
 // published none — the window offers what the record says is wrong and works
@@ -27,23 +26,12 @@ export const SessionSituations = ({
 	return (
 		<div className="flex min-w-0 flex-wrap items-center gap-2">
 			{situations.map((situation) => (
-				<Button
-					key={keyOf(situation)}
-					onClick={() => setChosen(situation)}
-					size="sm"
-					type="button"
-					variant="outline"
-				>
+				<Button key={keyOf(situation)} onClick={() => setChosen(situation)} size="sm" type="button" variant="outline">
 					{situationLabel[situation.situation]} {situation.reference}
 				</Button>
 			))}
 			{chosen === undefined ? null : (
-				<SituationDialog
-					onClose={() => setChosen(undefined)}
-					onError={onError}
-					sessionId={sessionId}
-					situation={chosen}
-				/>
+				<SituationDialog onClose={() => setChosen(undefined)} onError={onError} sessionId={sessionId} situation={chosen} />
 			)}
 		</div>
 	);

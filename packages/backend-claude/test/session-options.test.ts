@@ -31,10 +31,7 @@ it("a session with tools hands the SDK the server instance itself", () => {
 	expect(options.mcpServers).toEqual({
 		antumbra: { instance: server, name: "antumbra", type: "sdk" },
 	});
-	expect(options.allowedTools).toEqual([
-		"mcp__antumbra__land_report",
-		"mcp__antumbra__stand_down",
-	]);
+	expect(options.allowedTools).toEqual(["mcp__antumbra__land_report", "mcp__antumbra__stand_down"]);
 });
 
 it("resuming names the transcript the provider already has", () => {
@@ -80,11 +77,6 @@ it.effect("a woken session names its transcript and hands over the words", () =>
 // so everything the agent said would be missing from its transcript and nothing
 // in the stream would say so. No session wants less than that.
 it("every session asks for what its delegated agents said", () => {
-	expect(
-		sessionOptions({ ...base, tools: Option.none() }).forwardSubagentText,
-	).toBe(true);
-	expect(
-		sessionOptions({ ...base, resume: "native-1", tools: Option.none() })
-			.forwardSubagentText,
-	).toBe(true);
+	expect(sessionOptions({ ...base, tools: Option.none() }).forwardSubagentText).toBe(true);
+	expect(sessionOptions({ ...base, resume: "native-1", tools: Option.none() }).forwardSubagentText).toBe(true);
 });

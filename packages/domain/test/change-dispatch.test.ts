@@ -5,20 +5,9 @@ import { TestClock } from "effect/testing";
 import { AgentDomain } from "#domain.ts";
 import { REEF_SOURCE } from "#test/change-fixtures.ts";
 import { dispatchingLayer } from "#test/domain-layers.ts";
-import {
-	acquireTemporaryPersistence,
-	changeHostsOf,
-	makeScriptedBackend,
-	makeScriptedRunner,
-} from "#test/harness.ts";
+import { acquireTemporaryPersistence, changeHostsOf, makeScriptedBackend, makeScriptedRunner } from "#test/harness.ts";
 import { makeScriptedHost } from "#test/scripted-host.ts";
-import {
-	assignedPieces,
-	eventually,
-	PATIENCE,
-	retireOneAlive,
-	stateOf,
-} from "#test/voyage-fixtures.ts";
+import { assignedPieces, eventually, PATIENCE, retireOneAlive, stateOf } from "#test/voyage-fixtures.ts";
 
 const gatedChain = Effect.gen(function* () {
 	const domain = yield* AgentDomain;
@@ -103,17 +92,6 @@ it.effect("a landing piece gates its dependents until the change lands", () =>
 					}),
 				),
 			);
-		}).pipe(
-			Effect.provide(
-				dispatchingLayer(
-					temporary,
-					backend.backend,
-					PATIENCE,
-					{},
-					recorder.runner,
-					changeHostsOf(scripted.host),
-				),
-			),
-		);
+		}).pipe(Effect.provide(dispatchingLayer(temporary, backend.backend, PATIENCE, {}, recorder.runner, changeHostsOf(scripted.host))));
 	}),
 );

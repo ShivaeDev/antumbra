@@ -24,8 +24,7 @@ export const landReportSpec = defineTool({
 		"Land a report against your piece: prose for other agents — what you found, what you did, what is left. Call it once when your work is done, or whenever you have a finding worth handing on.",
 	input: Schema.Struct({
 		body: Schema.String.annotate({
-			description:
-				"The report itself, written for the agent who reads it next.",
+			description: "The report itself, written for the agent who reads it next.",
 		}),
 		title: Schema.String.annotate({
 			description: "One line naming what this report says.",
@@ -43,8 +42,7 @@ export const landArtifactSpec = defineTool({
 		}),
 		supersedesArtifactId: Schema.optional(
 			Schema.String.annotate({
-				description:
-					"The known old Artifact this one replaces. Omit when it is not a revision.",
+				description: "The known old Artifact this one replaces. Omit when it is not a revision.",
 			}),
 		),
 		title: Schema.String.annotate({
@@ -69,8 +67,7 @@ export const supersedeArtifactSpec = defineTool({
 });
 
 export const removeArtifactSupersessionSpec = defineTool({
-	description:
-		"Remove one known Artifact supersession relationship when correcting History. Artifact records remain unchanged.",
+	description: "Remove one known Artifact supersession relationship when correcting History. Artifact records remain unchanged.",
 	input: Schema.Struct({
 		successorArtifactId: Schema.String.annotate({
 			description: "The current successor in the relationship.",

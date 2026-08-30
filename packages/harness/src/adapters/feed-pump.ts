@@ -3,19 +3,10 @@ import { getTRPCErrorFromUnknown } from "@trpc/server";
 
 export type Deliver = (message: SubscriptionMessage) => void;
 
-export const isAsyncIterable = (
-	value: unknown,
-): value is AsyncIterable<unknown> =>
-	typeof value === "object" &&
-	value !== null &&
-	Symbol.asyncIterator in value &&
-	typeof value[Symbol.asyncIterator] === "function";
+export const isAsyncIterable = (value: unknown): value is AsyncIterable<unknown> =>
+	typeof value === "object" && value !== null && Symbol.asyncIterator in value && typeof value[Symbol.asyncIterator] === "function";
 
-export const pump = async (
-	iterable: AsyncIterable<unknown>,
-	deliver: Deliver,
-	signal: AbortSignal,
-): Promise<void> => {
+export const pump = async (iterable: AsyncIterable<unknown>, deliver: Deliver, signal: AbortSignal): Promise<void> => {
 	const iterator = iterable[Symbol.asyncIterator]();
 	// why: the feed must stop even if the signal is ignored downstream —
 	// return() settles a pending next() so an abandoned subscription cannot

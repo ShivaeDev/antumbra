@@ -3,22 +3,9 @@ import { PlusIcon } from "lucide-react";
 import { useState } from "react";
 import { charterPiece } from "#adapters/trpc-voyages.ts";
 import { Button } from "#components/ui/button.tsx";
-import {
-	Dialog,
-	DialogContent,
-	DialogTrigger,
-} from "#components/ui/dialog.tsx";
-import {
-	DialogDescription,
-	DialogFooter,
-	DialogHeader,
-	DialogTitle,
-} from "#components/ui/dialog-sections.tsx";
-import {
-	emptyPiece,
-	type PieceDraft,
-	PieceFields,
-} from "#views/piece-fields.tsx";
+import { Dialog, DialogContent, DialogTrigger } from "#components/ui/dialog.tsx";
+import { DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "#components/ui/dialog-sections.tsx";
+import { emptyPiece, type PieceDraft, PieceFields } from "#views/piece-fields.tsx";
 
 // why: chartering is how a voyage grows, but reading its pieces is what the
 // pane is for — so the form is one press away rather than always in the way.
@@ -55,8 +42,7 @@ export const CharterPieceForm = ({
 				<DialogHeader>
 					<DialogTitle>Charter a piece</DialogTitle>
 					<DialogDescription>
-						A piece needs a title, the charter it works to, and the role that
-						carries it. Name what it waits on to place it in the ladder.
+						A piece needs a title, the charter it works to, and the role that carries it. Name what it waits on to place it in the ladder.
 					</DialogDescription>
 				</DialogHeader>
 				<PieceFields draft={draft} onChange={setDraft} pieces={pieces} />

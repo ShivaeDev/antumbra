@@ -1,43 +1,24 @@
 import { describe, expect, it } from "@effect/vitest";
 import { Effect, Stream } from "effect";
-import {
-	berthReclaim,
-	chartAuthority,
-	makeRuntime,
-	openRulings,
-	proclaimedRulingId,
-	soundingReading,
-	standingRulings,
-} from "#fixtures.ts";
+import { berthReclaim, chartAuthority, makeRuntime, openRulings, proclaimedRulingId, soundingReading, standingRulings } from "#fixtures.ts";
 import { makeAppRouter } from "#index.ts";
 
-const callerOf = () =>
-	makeAppRouter(makeRuntime()).createCaller({ windowId: "console" });
+const callerOf = () => makeAppRouter(makeRuntime()).createCaller({ windowId: "console" });
 
 describe("makeAppRouter, on the rulings", () => {
 	it.effect("reads every open ruling with its question and choices", () =>
 		Effect.gen(function* () {
 			const read = yield* Effect.promise(() => callerOf().openRulings());
 			expect(read).toEqual(openRulings);
-			expect(read.rulings[0]?.choices.map((choice) => choice.label)).toEqual([
-				"trust the soundings",
-				"trust the chart",
-			]);
-			expect(read.rulings.map((ruling) => ruling.gatedPieces.length)).toEqual([
-				1, 0,
-			]);
+			expect(read.rulings[0]?.choices.map((choice) => choice.label)).toEqual(["trust the soundings", "trust the chart"]);
+			expect(read.rulings.map((ruling) => ruling.gatedPieces.length)).toEqual([1, 0]);
 		}),
 	);
 
 	it.effect("the open feed carries the set to a watching window", () =>
 		Effect.gen(function* () {
-			const iterable = yield* Effect.promise(() =>
-				callerOf().openRulingsFeed(),
-			);
-			const collected = yield* Stream.fromAsyncIterable(
-				iterable,
-				(cause) => cause,
-			).pipe(Stream.runCollect);
+			const iterable = yield* Effect.promise(() => callerOf().openRulingsFeed());
+			const collected = yield* Stream.fromAsyncIterable(iterable, (cause) => cause).pipe(Stream.runCollect);
 			expect(collected.map((view) => view.rulings.length)).toEqual([2]);
 		}),
 	);
@@ -57,9 +38,7 @@ describe("makeAppRouter, on the rulings", () => {
 
 	it.effect("a ruling nothing asked comes back refused in its own words", () =>
 		Effect.gen(function* () {
-			const outcome = yield* Effect.tryPromise(() =>
-				callerOf().ruleOn({ answer: "yes", rulingId: "ruling-adrift" }),
-			).pipe(Effect.flip);
+			const outcome = yield* Effect.tryPromise(() => callerOf().ruleOn({ answer: "yes", rulingId: "ruling-adrift" })).pipe(Effect.flip);
 			expect(String(outcome.cause)).toContain("no open ruling: ruling-adrift");
 		}),
 	);
@@ -68,22 +47,14 @@ describe("makeAppRouter, on the rulings", () => {
 		Effect.gen(function* () {
 			const read = yield* Effect.promise(() => callerOf().standingRulings());
 			expect(read).toEqual(standingRulings);
-			expect(read.rulings.map((ruling) => ruling.chosen)).toEqual([
-				null,
-				"trust the soundings",
-			]);
+			expect(read.rulings.map((ruling) => ruling.chosen)).toEqual([null, "trust the soundings"]);
 		}),
 	);
 
 	it.effect("the standing feed carries the set to a watching window", () =>
 		Effect.gen(function* () {
-			const iterable = yield* Effect.promise(() =>
-				callerOf().standingRulingsFeed(),
-			);
-			const collected = yield* Stream.fromAsyncIterable(
-				iterable,
-				(cause) => cause,
-			).pipe(Stream.runCollect);
+			const iterable = yield* Effect.promise(() => callerOf().standingRulingsFeed());
+			const collected = yield* Stream.fromAsyncIterable(iterable, (cause) => cause).pipe(Stream.runCollect);
 			expect(collected.map((view) => view.rulings.length)).toEqual([2]);
 		}),
 	);
@@ -103,20 +74,16 @@ describe("makeAppRouter, on the rulings", () => {
 		}),
 	);
 
-	it.effect(
-		"a ruling that does not stand comes back refused in its own words",
-		() =>
-			Effect.gen(function* () {
-				const outcome = yield* Effect.tryPromise(() =>
-					callerOf().supersedeRuling({
-						byRulingId: berthReclaim.id,
-						rulingId: soundingReading.id,
-					}),
-				).pipe(Effect.flip);
-				expect(String(outcome.cause)).toContain(
-					`no standing ruling: ${soundingReading.id}`,
-				);
-			}),
+	it.effect("a ruling that does not stand comes back refused in its own words", () =>
+		Effect.gen(function* () {
+			const outcome = yield* Effect.tryPromise(() =>
+				callerOf().supersedeRuling({
+					byRulingId: berthReclaim.id,
+					rulingId: soundingReading.id,
+				}),
+			).pipe(Effect.flip);
+			expect(String(outcome.cause)).toContain(`no standing ruling: ${soundingReading.id}`);
+		}),
 	);
 
 	it.effect("withdrawing answers with the ruling it retired", () =>
@@ -139,9 +106,7 @@ describe("makeAppRouter, on the rulings", () => {
 					rulingId: soundingReading.id,
 				}),
 			).pipe(Effect.flip);
-			expect(String(outcome.cause)).toContain(
-				`no standing ruling: ${soundingReading.id}`,
-			);
+			expect(String(outcome.cause)).toContain(`no standing ruling: ${soundingReading.id}`);
 		}),
 	);
 
@@ -160,9 +125,7 @@ describe("makeAppRouter, on the rulings", () => {
 
 	it.effect("a reclassification naming no axis comes back refused", () =>
 		Effect.gen(function* () {
-			const outcome = yield* Effect.tryPromise(() =>
-				callerOf().reclassifyRuling({ rulingId: soundingReading.id }),
-			).pipe(Effect.flip);
+			const outcome = yield* Effect.tryPromise(() => callerOf().reclassifyRuling({ rulingId: soundingReading.id })).pipe(Effect.flip);
 			expect(String(outcome.cause)).toContain("names no axis");
 		}),
 	);
@@ -204,9 +167,7 @@ describe("makeAppRouter, on the rulings", () => {
 	// never reaches the record — the boundary refuses it before the source does.
 	it.effect("refuses a verdict with no words beside it", () =>
 		Effect.gen(function* () {
-			const outcome = yield* Effect.tryPromise(() =>
-				callerOf().ruleOn({ answer: "", rulingId: soundingReading.id }),
-			).pipe(Effect.flip);
+			const outcome = yield* Effect.tryPromise(() => callerOf().ruleOn({ answer: "", rulingId: soundingReading.id })).pipe(Effect.flip);
 			expect(String(outcome.cause)).toContain("length of at least 1");
 		}),
 	);

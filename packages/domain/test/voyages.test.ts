@@ -7,10 +7,7 @@ import { Effect, Option } from "effect";
 import { AgentDomain } from "#domain.ts";
 import { wouldCycle } from "#piece-state.ts";
 import { domainKernelLayer } from "#test/domain-layers.ts";
-import {
-	acquireTemporaryPersistence,
-	makeScriptedBackend,
-} from "#test/harness.ts";
+import { acquireTemporaryPersistence, makeScriptedBackend } from "#test/harness.ts";
 import type { VoyageProcedures } from "#voyages.ts";
 
 const openVoyage = (voyages: VoyageProcedures) =>
@@ -21,12 +18,7 @@ const openVoyage = (voyages: VoyageProcedures) =>
 		northStar: "every shoal is known",
 	});
 
-const charter = (
-	voyages: VoyageProcedures,
-	voyageId: string,
-	title: string,
-	dependsOn: ReadonlyArray<string> = [],
-) =>
+const charter = (voyages: VoyageProcedures, voyageId: string, title: string, dependsOn: ReadonlyArray<string> = []) =>
 	voyages.charterPiece({
 		charter: `do ${title}`,
 		dependsOn,
@@ -38,19 +30,11 @@ const charter = (
 
 const stateOf = (voyages: VoyageProcedures, voyageId: string, title: string) =>
 	voyages.read(voyageId).pipe(
-		Effect.map((view) =>
-			Option.getOrThrow(view).pieces.find((piece) => piece.title === title),
-		),
+		Effect.map((view) => Option.getOrThrow(view).pieces.find((piece) => piece.title === title)),
 		Effect.map((piece) => piece?.state),
 	);
 
-const withDomain = <A, E>(
-	body: (
-		voyages: VoyageProcedures,
-		temporary: TemporaryPersistence,
-		db: DatabaseService,
-	) => Effect.Effect<A, E, never>,
-) =>
+const withDomain = <A, E>(body: (voyages: VoyageProcedures, temporary: TemporaryPersistence, db: DatabaseService) => Effect.Effect<A, E, never>) =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
 		const scripted = yield* makeScriptedBackend;
@@ -76,19 +60,12 @@ it.live("a voyage holds the pieces chartered into it, gated by edges", () =>
 		Effect.gen(function* () {
 			const voyage = yield* openVoyage(voyages);
 			const first = yield* charter(voyages, voyage.id, "sound the shallows");
-			const second = yield* charter(voyages, voyage.id, "draw the chart", [
-				first.id,
-			]);
+			const second = yield* charter(voyages, voyage.id, "draw the chart", [first.id]);
 			const view = Option.getOrThrow(yield* voyages.read(voyage.id));
 			expect(view.name).toBe("Chart the reef");
 			expect(view.state).toBe("quiet");
-			expect(view.pieces.map((piece) => piece.title)).toEqual([
-				"sound the shallows",
-				"draw the chart",
-			]);
-			expect(
-				view.pieces.find((piece) => piece.id === second.id)?.dependsOn,
-			).toEqual([first.id]);
+			expect(view.pieces.map((piece) => piece.title)).toEqual(["sound the shallows", "draw the chart"]);
+			expect(view.pieces.find((piece) => piece.id === second.id)?.dependsOn).toEqual([first.id]);
 			expect(view.pieces.map((piece) => piece.state)).toEqual(["held", "held"]);
 		}),
 	),
@@ -98,9 +75,7 @@ it.live("chartering onto a piece that does not exist is refused", () =>
 	withDomain((voyages) =>
 		Effect.gen(function* () {
 			const voyage = yield* openVoyage(voyages);
-			const failure = yield* Effect.flip(
-				charter(voyages, voyage.id, "sail nowhere", ["no-such-piece"]),
-			);
+			const failure = yield* Effect.flip(charter(voyages, voyage.id, "sail nowhere", ["no-such-piece"]));
 			expect(failure._tag).toBe("PieceNotFound");
 		}),
 	),
@@ -121,31 +96,27 @@ it.live("rewiring may never make a piece depend on itself", () =>
 
 			yield* voyages.rewire(gamma.id, [alpha.id]);
 			const view = Option.getOrThrow(yield* voyages.read(voyage.id));
-			expect(
-				view.pieces.find((piece) => piece.id === gamma.id)?.dependsOn,
-			).toEqual([alpha.id]);
+			expect(view.pieces.find((piece) => piece.id === gamma.id)?.dependsOn).toEqual([alpha.id]);
 		}),
 	),
 );
 
-it.live(
-	"launching walks a piece from held to ready, its dependent blocked",
-	() =>
-		withDomain((voyages) =>
-			Effect.gen(function* () {
-				const voyage = yield* openVoyage(voyages);
-				const first = yield* charter(voyages, voyage.id, "sound");
-				const second = yield* charter(voyages, voyage.id, "draw", [first.id]);
+it.live("launching walks a piece from held to ready, its dependent blocked", () =>
+	withDomain((voyages) =>
+		Effect.gen(function* () {
+			const voyage = yield* openVoyage(voyages);
+			const first = yield* charter(voyages, voyage.id, "sound");
+			const second = yield* charter(voyages, voyage.id, "draw", [first.id]);
 
-				yield* voyages.launch(first.id);
-				yield* voyages.launch(second.id);
-				expect(yield* stateOf(voyages, voyage.id, "sound")).toBe("ready");
-				expect(yield* stateOf(voyages, voyage.id, "draw")).toBe("blocked");
+			yield* voyages.launch(first.id);
+			yield* voyages.launch(second.id);
+			expect(yield* stateOf(voyages, voyage.id, "sound")).toBe("ready");
+			expect(yield* stateOf(voyages, voyage.id, "draw")).toBe("blocked");
 
-				yield* voyages.launch(first.id);
-				expect(yield* stateOf(voyages, voyage.id, "sound")).toBe("ready");
-			}),
-		),
+			yield* voyages.launch(first.id);
+			expect(yield* stateOf(voyages, voyage.id, "sound")).toBe("ready");
+		}),
+	),
 );
 
 it.live("a landed report is the only thing that makes a piece done", () =>
@@ -166,9 +137,7 @@ it.live("a landed report is the only thing that makes a piece done", () =>
 			expect(yield* stateOf(voyages, voyage.id, "draw")).toBe("ready");
 
 			const view = Option.getOrThrow(yield* voyages.read(voyage.id));
-			expect(
-				view.pieces.find((piece) => piece.id === first.id)?.reports,
-			).toEqual([
+			expect(view.pieces.find((piece) => piece.id === first.id)?.reports).toEqual([
 				{
 					authorAgentId: null,
 					body: "three fathoms at the eastern spit",

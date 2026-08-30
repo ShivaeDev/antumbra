@@ -1,10 +1,4 @@
-import type {
-	AntumbraBridge,
-	AppRouter,
-	BridgeRequest,
-	BridgeSubscribeRequest,
-	TrpcResponse,
-} from "@antumbra/contract";
+import type { AntumbraBridge, AppRouter, BridgeRequest, BridgeSubscribeRequest, TrpcResponse } from "@antumbra/contract";
 import { callTRPCProcedure, getTRPCErrorFromUnknown } from "@trpc/server";
 import { type Deliver, isAsyncIterable, pump } from "#adapters/feed-pump.ts";
 
@@ -13,10 +7,7 @@ import { type Deliver, isAsyncIterable, pump } from "#adapters/feed-pump.ts";
 // for a window it opened and verified.
 const origin = { windowId: "harness" };
 
-const invoke = async (
-	router: AppRouter,
-	request: BridgeRequest,
-): Promise<TrpcResponse> => {
+const invoke = async (router: AppRouter, request: BridgeRequest): Promise<TrpcResponse> => {
 	try {
 		const data = await callTRPCProcedure({
 			batchIndex: 0,
@@ -34,12 +25,7 @@ const invoke = async (
 	}
 };
 
-const openFeed = async (
-	router: AppRouter,
-	request: BridgeSubscribeRequest,
-	deliver: Deliver,
-	signal: AbortSignal,
-): Promise<void> => {
+const openFeed = async (router: AppRouter, request: BridgeSubscribeRequest, deliver: Deliver, signal: AbortSignal): Promise<void> => {
 	try {
 		const opened = await callTRPCProcedure({
 			batchIndex: 0,

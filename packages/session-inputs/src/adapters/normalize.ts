@@ -18,8 +18,7 @@ interface NormalizedImage {
 	readonly width: number;
 }
 
-const corrupt = (detail: string) =>
-	new SessionInputInvalid({ detail, reason: "corrupt_image" });
+const corrupt = (detail: string) => new SessionInputInvalid({ detail, reason: "corrupt_image" });
 
 const encode = (format: string, pipeline: Sharp): Sharp | undefined => {
 	switch (format) {
@@ -47,9 +46,7 @@ const mediaTypeOf = (format: string): SessionImageMediaType | undefined => {
 	}
 };
 
-export const normalizeImage = (
-	bytes: Uint8Array,
-): Effect.Effect<NormalizedImage, SessionInputInvalid> => {
+export const normalizeImage = (bytes: Uint8Array): Effect.Effect<NormalizedImage, SessionInputInvalid> => {
 	if (bytes.length > MAX_SESSION_IMAGE_SOURCE_BYTES) {
 		return Effect.fail(
 			new SessionInputInvalid({
@@ -59,10 +56,7 @@ export const normalizeImage = (
 		);
 	}
 	return Effect.tryPromise({
-		catch: (cause) =>
-			cause instanceof SessionInputInvalid
-				? cause
-				: corrupt("image could not be decoded"),
+		catch: (cause) => (cause instanceof SessionInputInvalid ? cause : corrupt("image could not be decoded")),
 		try: async () => {
 			const source = sharp(bytes, {
 				failOn: "error",

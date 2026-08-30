@@ -1,22 +1,9 @@
 import type { AgentEvent } from "@antumbra/vocabulary/session-events";
-import {
-	endedDelegation,
-	type NodesByRef,
-	openedDelegation,
-} from "#transcript/delegation.ts";
+import { endedDelegation, type NodesByRef, openedDelegation } from "#transcript/delegation.ts";
 import { gapNotice } from "#transcript/gaps.ts";
-import {
-	backgroundLabel,
-	openedLabel,
-	stateLabel,
-	turnLabel,
-} from "#transcript/labels.ts";
+import { backgroundLabel, openedLabel, stateLabel, turnLabel } from "#transcript/labels.ts";
 import { transcriptMessage } from "#transcript/message.ts";
-import type {
-	TranscriptItem,
-	TranscriptMessage,
-	TranscriptThinking,
-} from "#transcript/model.ts";
+import type { TranscriptItem, TranscriptMessage, TranscriptThinking } from "#transcript/model.ts";
 import type { ToolCalls } from "#transcript/tool-calls.ts";
 import { usageLabel } from "#transcript/usage-label.ts";
 
@@ -29,15 +16,8 @@ export interface Derivation {
 // why: a wordless thinking block is an event, not narration — providers emit
 // them by the hundred. Kept, it renders as a blank block that still spends the
 // transcript's spacing, opening a gap with nothing in it to explain the gap.
-const pushNarration = (
-	state: Derivation,
-	item: TranscriptMessage | TranscriptThinking,
-): void => {
-	if (
-		item.text !== "" ||
-		(item.kind === "message" &&
-			item.parts.some((part) => part.type === "image"))
-	) {
+const pushNarration = (state: Derivation, item: TranscriptMessage | TranscriptThinking): void => {
+	if (item.text !== "" || (item.kind === "message" && item.parts.some((part) => part.type === "image"))) {
 		state.items.push(item);
 	}
 };
@@ -48,11 +28,7 @@ const pushTelemetry = (state: Derivation, label: string, seq: number): void => {
 
 // why: the transcript is a pure derivation of a Known neutral event. Provider
 // RawEvent stays visually raw and every other variant is handled exhaustively.
-export const applyKnownEvent = (
-	state: Derivation,
-	event: AgentEvent,
-	seq: number,
-): void => {
+export const applyKnownEvent = (state: Derivation, event: AgentEvent, seq: number): void => {
 	switch (event.type) {
 		case "message":
 			pushNarration(state, transcriptMessage(event, seq));

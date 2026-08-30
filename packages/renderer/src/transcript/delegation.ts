@@ -1,11 +1,5 @@
-import {
-	type SessionTreeNode,
-	subsessionDisplayName,
-} from "@antumbra/contract";
-import type {
-	SubsessionEnded,
-	SubsessionOpened,
-} from "@antumbra/vocabulary/session-events";
+import { type SessionTreeNode, subsessionDisplayName } from "@antumbra/contract";
+import type { SubsessionEnded, SubsessionOpened } from "@antumbra/vocabulary/session-events";
 import type { TranscriptDelegation } from "#transcript/model.ts";
 
 export type NodesByRef = ReadonlyMap<string, SessionTreeNode>;
@@ -15,11 +9,7 @@ export type NodesByRef = ReadonlyMap<string, SessionTreeNode>;
 // between what a transcript says and which node it points at is that reference
 // and never a position or a guess.
 export const nodesByRef = (nodes: ReadonlyArray<SessionTreeNode>): NodesByRef =>
-	new Map(
-		nodes.flatMap((node) =>
-			node.nativeRef === null ? [] : [[node.nativeRef, node] as const],
-		),
-	);
+	new Map(nodes.flatMap((node) => (node.nativeRef === null ? [] : [[node.nativeRef, node] as const])));
 
 // why: the tree read already applied the display rule to what was stored, so a
 // marker the tree can place wears exactly the name the tree shows. One the
@@ -32,15 +22,9 @@ const nameOf = (
 		readonly kind?: string | undefined;
 		readonly label?: string | undefined;
 	},
-): string =>
-	nodes.get(subsessionRef)?.displayName ??
-	subsessionDisplayName({ kind: said.kind ?? null, label: said.label ?? null });
+): string => nodes.get(subsessionRef)?.displayName ?? subsessionDisplayName({ kind: said.kind ?? null, label: said.label ?? null });
 
-export const openedDelegation = (
-	nodes: NodesByRef,
-	event: typeof SubsessionOpened.Type,
-	seq: number,
-): TranscriptDelegation => ({
+export const openedDelegation = (nodes: NodesByRef, event: typeof SubsessionOpened.Type, seq: number): TranscriptDelegation => ({
 	displayName: nameOf(nodes, event.subsessionRef, event),
 	kind: "delegation",
 	nodeId: nodes.get(event.subsessionRef)?.id,
@@ -49,11 +33,7 @@ export const openedDelegation = (
 	state: "opened",
 });
 
-export const endedDelegation = (
-	nodes: NodesByRef,
-	event: typeof SubsessionEnded.Type,
-	seq: number,
-): TranscriptDelegation => ({
+export const endedDelegation = (nodes: NodesByRef, event: typeof SubsessionEnded.Type, seq: number): TranscriptDelegation => ({
 	displayName: nameOf(nodes, event.subsessionRef, {}),
 	kind: "delegation",
 	nodeId: nodes.get(event.subsessionRef)?.id,

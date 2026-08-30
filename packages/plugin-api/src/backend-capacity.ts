@@ -1,14 +1,5 @@
 import type { RawPayload } from "@antumbra/vocabulary/session-events";
-import {
-	Clock,
-	Effect,
-	MutableRef,
-	Option,
-	PubSub,
-	Schema,
-	type Scope,
-	Stream,
-} from "effect";
+import { Clock, Effect, MutableRef, Option, PubSub, Schema, type Scope, Stream } from "effect";
 
 export const BackendCapacityReason = Schema.Literal("usage-limit");
 export type BackendCapacityReason = typeof BackendCapacityReason.Type;
@@ -30,18 +21,12 @@ const LimitedCapacity = Schema.Struct({
 // why: backend capacity is simultaneously true with Session activity. A live
 // Session can be idle while its provider account is exhausted, so this is a
 // backend-level observation rather than another Session state or lifecycle.
-export const BackendCapacityObservation = Schema.Union([
-	AvailableCapacity,
-	LimitedCapacity,
-]);
+export const BackendCapacityObservation = Schema.Union([AvailableCapacity, LimitedCapacity]);
 export type BackendCapacityObservation = typeof BackendCapacityObservation.Type;
 
-type WithoutEvidence<Reading> = Reading extends BackendCapacityObservation
-	? Omit<Reading, "observedAt">
-	: never;
+type WithoutEvidence<Reading> = Reading extends BackendCapacityObservation ? Omit<Reading, "observedAt"> : never;
 
-export type BackendCapacityClassification =
-	WithoutEvidence<BackendCapacityObservation>;
+export type BackendCapacityClassification = WithoutEvidence<BackendCapacityObservation>;
 
 export interface BackendCapacitySource {
 	// why: a deliberate retry is the only release for a hard provider refusal.
@@ -49,9 +34,7 @@ export interface BackendCapacitySource {
 	// observed, even if a durable subscriber has not handled them yet.
 	readonly clear: Effect.Effect<number>;
 	readonly changes: Stream.Stream<BackendCapacityObservation>;
-	readonly classify: (
-		raw: RawPayload,
-	) => Option.Option<BackendCapacityClassification>;
+	readonly classify: (raw: RawPayload) => Option.Option<BackendCapacityClassification>;
 	readonly current: Effect.Effect<Option.Option<BackendCapacityObservation>>;
 }
 
@@ -71,14 +54,9 @@ export const makeBackendCapacityController = (
 	Effect.gen(function* () {
 		const clock = yield* Clock.Clock;
 		const changes = yield* PubSub.unbounded<BackendCapacityObservation>();
-		const current = MutableRef.make<Option.Option<BackendCapacityObservation>>(
-			Option.none(),
-		);
+		const current = MutableRef.make<Option.Option<BackendCapacityObservation>>(Option.none());
 		let lastObservedAt = 0;
-		const observe = (
-			raw: RawPayload,
-			observedAt = clock.currentTimeMillisUnsafe(),
-		): void => {
+		const observe = (raw: RawPayload, observedAt = clock.currentTimeMillisUnsafe()): void => {
 			const classified = classify(raw);
 			if (Option.isNone(classified)) {
 				return;
@@ -89,11 +67,7 @@ export const makeBackendCapacityController = (
 				observedAt: lastObservedAt,
 			} satisfies BackendCapacityObservation;
 			const prior = MutableRef.get(current);
-			if (
-				Option.isSome(prior) &&
-				prior.value.status === "blocked" &&
-				candidate.status !== "blocked"
-			) {
+			if (Option.isSome(prior) && prior.value.status === "blocked" && candidate.status !== "blocked") {
 				return;
 			}
 			MutableRef.set(current, Option.some(candidate));
@@ -103,10 +77,7 @@ export const makeBackendCapacityController = (
 			observe,
 			source: {
 				clear: Effect.sync(() => {
-					lastObservedAt = Math.max(
-						clock.currentTimeMillisUnsafe(),
-						lastObservedAt + 1,
-					);
+					lastObservedAt = Math.max(clock.currentTimeMillisUnsafe(), lastObservedAt + 1);
 					MutableRef.set(current, Option.none());
 					return lastObservedAt;
 				}),

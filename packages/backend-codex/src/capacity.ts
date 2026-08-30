@@ -12,22 +12,14 @@ const CapacityError = Schema.Struct({
 	willRetry: Schema.Boolean,
 });
 
-const decodeCapacityError = Schema.decodeUnknownOption(
-	Schema.fromJsonString(CapacityError),
-);
+const decodeCapacityError = Schema.decodeUnknownOption(Schema.fromJsonString(CapacityError));
 
-export const classifyCodexCapacity = (
-	raw: RawPayload,
-): Option.Option<BackendCapacityClassification> => {
+export const classifyCodexCapacity = (raw: RawPayload): Option.Option<BackendCapacityClassification> => {
 	if (raw.source !== "codex" || raw.kind !== "error") {
 		return Option.none();
 	}
 	const decoded = decodeCapacityError(raw.payload);
-	if (
-		Option.isNone(decoded) ||
-		decoded.value.willRetry ||
-		decoded.value.error.codexErrorInfo !== "usageLimitExceeded"
-	) {
+	if (Option.isNone(decoded) || decoded.value.willRetry || decoded.value.error.codexErrorInfo !== "usageLimitExceeded") {
 		return Option.none();
 	}
 	// why: a retry Codex owns is not an account hold, and overload remains a

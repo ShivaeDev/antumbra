@@ -3,9 +3,7 @@ import type { makeSessionSend } from "@antumbra/sessions";
 import { expect, it } from "@effect/vitest";
 import type { Effect } from "effect";
 
-type SessionSend = Effect.Success<
-	ReturnType<typeof makeSessionSend>
->["sendPrompt"];
+type SessionSend = Effect.Success<ReturnType<typeof makeSessionSend>>["sendPrompt"];
 type Words = Parameters<SessionSend>[1];
 
 // why: this declaration is the regression proof. The send seam is the last
@@ -20,7 +18,5 @@ const assembledHere: Words = "come about";
 it("the send seam takes catalog words and refuses prose assembled elsewhere", () => {
 	expect(fromCatalog).toBe("come about");
 	expect(assembledHere).toBe("come about");
-	expect(standing).toBe(
-		"Reconcile durable Antumbra truth and continue your assigned work.",
-	);
+	expect(standing).toBe("Reconcile durable Antumbra truth and continue your assigned work.");
 });

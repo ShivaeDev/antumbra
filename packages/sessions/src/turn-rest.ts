@@ -1,11 +1,7 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database } from "@antumbra/persistence";
 import { SessionFabric, type SessionTurnMark } from "@antumbra/session-fabric";
-import {
-	decodeSessionExecutionStatus,
-	decodeStoredAgentSessionStatus,
-	sessionExecutionTransition,
-} from "@antumbra/vocabulary/agent-runtime";
+import { decodeSessionExecutionStatus, decodeStoredAgentSessionStatus, sessionExecutionTransition } from "@antumbra/vocabulary/agent-runtime";
 import type { AgentEvent } from "@antumbra/vocabulary/session-events";
 import { Effect, Option, Ref } from "effect";
 import { makeStrandNotice } from "#strand.ts";
@@ -29,10 +25,7 @@ export const makeSessionTurnRests = Effect.gen(function* () {
 	const fabric = yield* SessionFabric;
 	const feeds = yield* DomainFeeds;
 	const noticeStranded = yield* makeStrandNotice;
-	const announce = Effect.all(
-		[feeds.publishFleetRefresh(), feeds.publishVoyageRefresh()],
-		{ concurrency: 1 },
-	).pipe(Effect.asVoid);
+	const announce = Effect.all([feeds.publishFleetRefresh(), feeds.publishVoyageRefresh()], { concurrency: 1 }).pipe(Effect.asVoid);
 	// why: what the row would become, or nothing when this ending has no row to
 	// move — one already rested, one closed, one that was never there.
 	const nextRest = (sessionId: string) =>
@@ -41,18 +34,12 @@ export const makeSessionTurnRests = Effect.gen(function* () {
 			if (Option.isNone(session)) {
 				return undefined;
 			}
-			const status = yield* Effect.fromResult(
-				decodeStoredAgentSessionStatus(sessionId, session.value.status),
-			);
-			const execution = yield* Effect.fromResult(
-				decodeSessionExecutionStatus(sessionId, session.value.executionStatus),
-			);
+			const status = yield* Effect.fromResult(decodeStoredAgentSessionStatus(sessionId, session.value.status));
+			const execution = yield* Effect.fromResult(decodeSessionExecutionStatus(sessionId, session.value.executionStatus));
 			if (status !== "open" || execution !== "active") {
 				return undefined;
 			}
-			return yield* Effect.fromResult(
-				sessionExecutionTransition(sessionId, execution, "turn-completed"),
-			);
+			return yield* Effect.fromResult(sessionExecutionTransition(sessionId, execution, "turn-completed"));
 		});
 	// why: the fabric's verdict is taken immediately before the guarded row move
 	// and it is what decides. A newer attachment, or words this ending never
@@ -87,8 +74,7 @@ export const makeSessionTurnRests = Effect.gen(function* () {
 			// ending from a dead pump settle a row a newer attachment has since
 			// taken, which is the one thing the reading exists to stop.
 			const witnessed = yield* Ref.make<SessionTurnMark | undefined>(undefined);
-			const remember = (mark: SessionTurnMark | undefined) =>
-				mark === undefined ? Effect.void : Ref.set(witnessed, mark);
+			const remember = (mark: SessionTurnMark | undefined) => (mark === undefined ? Effect.void : Ref.set(witnessed, mark));
 			const turned = Effect.gen(function* () {
 				const seen = yield* Ref.get(witnessed);
 				// why: the ending stands as the last thing seen even when it is
@@ -110,13 +96,7 @@ export const makeSessionTurnRests = Effect.gen(function* () {
 					// why: a lifecycle this Session's words never asked for must not be
 					// what ends its stream, so a failure is reported and the pump goes
 					// on. The next ending settles what this one could not.
-					Effect.catchCause((cause) =>
-						Effect.logError(
-							"turn rest failed",
-							{ sessionId: rootSessionId },
-							cause,
-						),
-					),
+					Effect.catchCause((cause) => Effect.logError("turn rest failed", { sessionId: rootSessionId }, cause)),
 				);
 			};
 			return {

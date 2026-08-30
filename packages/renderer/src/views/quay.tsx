@@ -3,12 +3,7 @@ import { watchQuay } from "#adapters/trpc-quay.ts";
 import { Button } from "#components/ui/button.tsx";
 import { useFeed } from "#hooks/feed.ts";
 import { cn } from "#lib/utils.ts";
-import {
-	filterQuayChanges,
-	type QuayFilters,
-	quayChanges,
-	repositoriesOf,
-} from "#quay/changes.ts";
+import { filterQuayChanges, type QuayFilters, quayChanges, repositoriesOf } from "#quay/changes.ts";
 import { QuayDetail } from "#views/quay-detail.tsx";
 import { QuayHeader } from "#views/quay-header.tsx";
 import { QuayMaster } from "#views/quay-master.tsx";
@@ -21,48 +16,32 @@ const INITIAL_FILTERS = {
 
 type SelectionState = "empty" | "missing" | "none";
 
-const selectionState = (
-	changeCount: number,
-	selectedId: string | undefined,
-): SelectionState => {
+const selectionState = (changeCount: number, selectedId: string | undefined): SelectionState => {
 	if (changeCount === 0) {
 		return "empty";
 	}
 	return selectedId === undefined ? "none" : "missing";
 };
 
-const SELECTION_COPY: Readonly<
-	Record<SelectionState, { readonly detail: string; readonly title: string }>
-> = {
+const SELECTION_COPY: Readonly<Record<SelectionState, { readonly detail: string; readonly title: string }>> = {
 	empty: {
-		detail:
-			"A pull request appears once a piece opens one, or once you adopt one by hand.",
+		detail: "A pull request appears once a piece opens one, or once you adopt one by hand.",
 		title: "Nothing at the quay",
 	},
 	missing: {
-		detail:
-			"It may have landed or been withdrawn since this window last pointed to it.",
+		detail: "It may have landed or been withdrawn since this window last pointed to it.",
 		title: "Pull request no longer at the quay",
 	},
 	none: {
-		detail:
-			"Choose one from the list to inspect its status, linked work and origin.",
+		detail: "Choose one from the list to inspect its status, linked work and origin.",
 		title: "Select a pull request",
 	},
 };
 
-const MissingSelection = ({
-	onBack,
-	state,
-}: {
-	readonly onBack: () => void;
-	readonly state: SelectionState;
-}) => (
+const MissingSelection = ({ onBack, state }: { readonly onBack: () => void; readonly state: SelectionState }) => (
 	<div className="m-auto flex max-w-sm flex-col items-center gap-2 px-6 text-center">
 		<h3 className="text-sm font-medium">{SELECTION_COPY[state].title}</h3>
-		<p className="text-xs text-muted-foreground">
-			{SELECTION_COPY[state].detail}
-		</p>
+		<p className="text-xs text-muted-foreground">{SELECTION_COPY[state].detail}</p>
 		{state === "missing" ? (
 			<Button onClick={onBack} size="sm" variant="outline">
 				Back to pull requests
@@ -85,13 +64,8 @@ export const QuayPanel = ({
 
 	if (quay === undefined) {
 		return (
-			<section
-				aria-live="polite"
-				className="m-auto text-xs text-muted-foreground"
-			>
-				{feedError === undefined
-					? "taking a sight…"
-					: `feed lost: ${feedError}`}
+			<section aria-live="polite" className="m-auto text-xs text-muted-foreground">
+				{feedError === undefined ? "taking a sight…" : `feed lost: ${feedError}`}
 			</section>
 		);
 	}
@@ -104,10 +78,7 @@ export const QuayPanel = ({
 		<section className="flex min-w-0 flex-1 flex-col bg-background font-sans text-foreground">
 			<QuayHeader onError={onError} view={quay} />
 			{feedError === undefined ? null : (
-				<p
-					className="border-destructive/30 border-b bg-destructive/10 px-4 py-1.5 text-xs text-destructive"
-					role="alert"
-				>
+				<p className="border-destructive/30 border-b bg-destructive/10 px-4 py-1.5 text-xs text-destructive" role="alert">
 					feed lost: {feedError}
 				</p>
 			)}
@@ -121,23 +92,11 @@ export const QuayPanel = ({
 					selectedId={selectedId}
 					shown={shown}
 				/>
-				<div
-					className={cn(
-						"min-h-0 min-w-0 flex-1 overflow-y-auto",
-						noSelection ? "hidden md:flex" : "flex",
-					)}
-				>
+				<div className={cn("min-h-0 min-w-0 flex-1 overflow-y-auto", noSelection ? "hidden md:flex" : "flex")}>
 					{selected === undefined ? (
-						<MissingSelection
-							onBack={() => onSelect(undefined)}
-							state={absent}
-						/>
+						<MissingSelection onBack={() => onSelect(undefined)} state={absent} />
 					) : (
-						<QuayDetail
-							item={selected}
-							onBack={() => onSelect(undefined)}
-							onError={onError}
-						/>
+						<QuayDetail item={selected} onBack={() => onSelect(undefined)} onError={onError} />
 					)}
 				</div>
 			</div>

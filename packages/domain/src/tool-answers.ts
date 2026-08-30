@@ -9,10 +9,7 @@ export const refused = (text: string): DirectToolOutcome => ({
 
 // why: agents hailed by hand answer to no piece, so an outcome has nothing to
 // land against — the tool says so rather than inventing one.
-export const onPiece = (
-	identity: SessionIdentity,
-	act: (pieceId: string) => Effect.Effect<DirectToolOutcome>,
-): Effect.Effect<DirectToolOutcome> =>
+export const onPiece = (identity: SessionIdentity, act: (pieceId: string) => Effect.Effect<DirectToolOutcome>): Effect.Effect<DirectToolOutcome> =>
 	Option.match(identity.pieceId, {
 		onNone: () => Effect.succeed(refused("you are not on a piece")),
 		onSome: act,
@@ -53,9 +50,5 @@ export const answered = <A>(
 			onFailure: (error) => Effect.succeed(refused(`${name}: ${error}`)),
 			onSuccess: (value) => Effect.succeed({ ok: true, text: say(value) }),
 		}),
-		Effect.catchCause((cause) =>
-			Effect.logWarning("agent tool died", { name }, cause).pipe(
-				Effect.as(refused(`${name} could not be served`)),
-			),
-		),
+		Effect.catchCause((cause) => Effect.logWarning("agent tool died", { name }, cause).pipe(Effect.as(refused(`${name} could not be served`)))),
 	);

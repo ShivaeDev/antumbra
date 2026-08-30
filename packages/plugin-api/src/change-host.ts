@@ -1,9 +1,4 @@
-import type {
-	ChangeChecks,
-	ChangeMergeable,
-	ChangeReview,
-	ChangeStage,
-} from "@antumbra/vocabulary/change";
+import type { ChangeChecks, ChangeMergeable, ChangeReview, ChangeStage } from "@antumbra/vocabulary/change";
 import { Data, type Effect } from "effect";
 
 export interface ChangeHostRepo {
@@ -65,9 +60,7 @@ export interface ChangeHostCapability {
 	readonly detail: string;
 }
 
-export class ChangeHostUnavailable extends Data.TaggedError(
-	"ChangeHostUnavailable",
-)<{
+export class ChangeHostUnavailable extends Data.TaggedError("ChangeHostUnavailable")<{
 	readonly detail: string;
 	readonly host: string;
 }> {
@@ -88,17 +81,10 @@ export class ChangeHostRefused extends Data.TaggedError("ChangeHostRefused")<{
 export type ChangeHostError = ChangeHostRefused | ChangeHostUnavailable;
 
 export interface ChangeHost {
-	readonly adopt: (
-		url: string,
-		repo: ChangeHostRepo,
-	) => Effect.Effect<ChangeObservation, ChangeHostError>;
+	readonly adopt: (url: string, repo: ChangeHostRepo) => Effect.Effect<ChangeObservation, ChangeHostError>;
 	readonly capability: Effect.Effect<ChangeHostCapability>;
-	readonly observe: (
-		refs: ReadonlyArray<ChangeRef>,
-	) => Effect.Effect<ReadonlyArray<ChangeObservation>, ChangeHostError>;
-	readonly open: (
-		request: OpenChangeRequest,
-	) => Effect.Effect<ChangeObservation, ChangeHostError>;
+	readonly observe: (refs: ReadonlyArray<ChangeRef>) => Effect.Effect<ReadonlyArray<ChangeObservation>, ChangeHostError>;
+	readonly open: (request: OpenChangeRequest) => Effect.Effect<ChangeObservation, ChangeHostError>;
 	readonly supports: (repo: ChangeHostRepo) => boolean;
 	readonly tag: string;
 }

@@ -4,12 +4,7 @@ import type { AgentEvent } from "@antumbra/vocabulary/session-events";
 import { expect, it } from "@effect/vitest";
 import { Effect } from "effect";
 import { sessionAtRest } from "#at-rest.ts";
-import {
-	censusLane,
-	seedAgent,
-	seedSession,
-	treeLayer,
-} from "#test/tree/fixture.ts";
+import { censusLane, seedAgent, seedSession, treeLayer } from "#test/tree/fixture.ts";
 import { LiveDelegations } from "#tree/live.ts";
 import { makeSessionTreeSinks } from "#tree/sink.ts";
 
@@ -69,10 +64,7 @@ const restingRoots = Effect.gen(function* () {
 	return sessionAtRest({ delegating: delegating.has(ROOT), presence: "idle" });
 });
 
-const attachedOver = (
-	found: SessionCensus,
-	stream: ReadonlyArray<AgentEvent>,
-) =>
+const attachedOver = (found: SessionCensus, stream: ReadonlyArray<AgentEvent>) =>
 	Effect.gen(function* () {
 		const sinkFor = yield* makeSessionTreeSinks;
 		const sink = yield* sinkFor(ROOT, censusLane(found));
@@ -90,10 +82,7 @@ it.live("a census that finds a child idle brings its root to rest", () =>
 		yield* Effect.gen(function* () {
 			yield* seedTree;
 
-			const atRest = yield* attachedOver(
-				census([{ nodeRef: CHILD, working: false }]),
-				[announced],
-			);
+			const atRest = yield* attachedOver(census([{ nodeRef: CHILD, working: false }]), [announced]);
 
 			// why: the stream announced this child and codex never says a delegated
 			// thread finished, so nothing would ever end the delegation the opening
@@ -110,10 +99,7 @@ it.live("a census that finds a child working keeps its root from rest", () =>
 		yield* Effect.gen(function* () {
 			yield* seedTree;
 
-			const atRest = yield* attachedOver(
-				census([{ nodeRef: CHILD, working: true }]),
-				[],
-			);
+			const atRest = yield* attachedOver(census([{ nodeRef: CHILD, working: true }]), []);
 
 			// why: a fresh attachment holds no delegations at all, and a restart is
 			// exactly that over a tree whose child may still be running. Rest read

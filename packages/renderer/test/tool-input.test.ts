@@ -12,14 +12,9 @@ describe("toolFields", () => {
 	});
 
 	it("stands every argument under the name the tool gave it", () => {
-		const fields = toolFields(
-			JSON.stringify({ command: "pnpm ready", description: "Run the gates" }),
-		);
+		const fields = toolFields(JSON.stringify({ command: "pnpm ready", description: "Run the gates" }));
 
-		expect(fields.map((field) => field.name)).toEqual([
-			"command",
-			"description",
-		]);
+		expect(fields.map((field) => field.name)).toEqual(["command", "description"]);
 	});
 
 	it("lays out an argument that is not text with its shape kept", () => {

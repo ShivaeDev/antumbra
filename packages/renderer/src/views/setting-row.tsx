@@ -1,8 +1,4 @@
-import {
-	SETTINGS,
-	type SettingKey,
-	type SettingValue,
-} from "@antumbra/contract";
+import { SETTINGS, type SettingKey, type SettingValue } from "@antumbra/contract";
 import { useId } from "react";
 import { CountField, FlagField } from "#views/setting-fields.tsx";
 
@@ -28,12 +24,7 @@ export const SettingRow = ({
 			{declaration.kind === "flag" ? (
 				<FlagField checked={value === true} id={id} onChange={onChange} />
 			) : (
-				<CountField
-					declaration={declaration}
-					id={id}
-					onChange={onChange}
-					value={Number(value)}
-				/>
+				<CountField declaration={declaration} id={id} onChange={onChange} value={Number(value)} />
 			)}
 			<p className="text-2xs text-muted-foreground">
 				{overridden

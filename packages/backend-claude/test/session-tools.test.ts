@@ -13,25 +13,22 @@ interface Wire extends Transport {
 
 // why: the SDK's own in-memory pair hides which side wrote what, and the fact
 // under test is whether the server side writes at all after it closed.
-const openWire: Effect.Effect<Wire> = Effect.map(
-	Queue.unbounded<JSONRPCMessage>(),
-	(sent) => {
-		const wire: Wire = {
-			close: () => {
-				wire.onclose?.();
-				return Promise.resolve();
-			},
-			receive: (message) => wire.onmessage?.(message),
-			send: (message) => {
-				Queue.offerUnsafe(sent, message);
-				return Promise.resolve();
-			},
-			sent,
-			start: () => Promise.resolve(),
-		};
-		return wire;
-	},
-);
+const openWire: Effect.Effect<Wire> = Effect.map(Queue.unbounded<JSONRPCMessage>(), (sent) => {
+	const wire: Wire = {
+		close: () => {
+			wire.onclose?.();
+			return Promise.resolve();
+		},
+		receive: (message) => wire.onmessage?.(message),
+		send: (message) => {
+			Queue.offerUnsafe(sent, message);
+			return Promise.resolve();
+		},
+		sent,
+		start: () => Promise.resolve(),
+	};
+	return wire;
+});
 
 const callTool = (id: number, name: string): JSONRPCMessage => ({
 	id,
@@ -47,10 +44,7 @@ const landReport: DirectTool = {
 	name: "land_report",
 };
 
-const waitForRuling = (
-	started: Deferred.Deferred<void>,
-	interrupted: Deferred.Deferred<void>,
-): DirectTool => ({
+const waitForRuling = (started: Deferred.Deferred<void>, interrupted: Deferred.Deferred<void>): DirectTool => ({
 	call: () =>
 		Deferred.succeed(started, undefined).pipe(
 			Effect.andThen(Effect.never),
@@ -63,9 +57,7 @@ const waitForRuling = (
 
 // why: the SDK settles a handler's promise through a chain of its own; one
 // macrotask is the only boundary past which it can have written nothing more.
-const promiseChainsSettled = Effect.promise(
-	() => new Promise<void>((resolve) => setImmediate(resolve)),
-);
+const promiseChainsSettled = Effect.promise(() => new Promise<void>((resolve) => setImmediate(resolve)));
 
 it.live("a call answers on the session's own scope", () =>
 	Effect.gen(function* () {
@@ -85,31 +77,26 @@ it.live("a call answers on the session's own scope", () =>
 	}),
 );
 
-it.live(
-	"a waiting call ends with its session and never reaches the closed transport",
-	() =>
-		Effect.gen(function* () {
-			const wire = yield* openWire;
-			const started = yield* Deferred.make<void>();
-			const interrupted = yield* Deferred.make<void>();
-			const session = yield* Effect.flatMap(Effect.scope, Scope.fork);
-			const call = yield* sessionToolCall.pipe(Scope.provide(session));
-			const server = makeToolServer(
-				[waitForRuling(started, interrupted)],
-				call,
-			);
-			yield* Effect.promise(() => server.connect(wire));
-			// why: the plugin acquires the SDK session after the calls' scope, so
-			// on release the transport goes first and the calls after it.
-			yield* Scope.addFinalizer(
-				session,
-				Effect.promise(() => wire.close()),
-			);
-			wire.receive(callTool(2, "wait_for_ruling"));
-			yield* Deferred.await(started);
-			yield* Scope.close(session, Exit.void);
-			yield* Deferred.await(interrupted);
-			yield* promiseChainsSettled;
-			expect(yield* Queue.size(wire.sent)).toBe(0);
-		}),
+it.live("a waiting call ends with its session and never reaches the closed transport", () =>
+	Effect.gen(function* () {
+		const wire = yield* openWire;
+		const started = yield* Deferred.make<void>();
+		const interrupted = yield* Deferred.make<void>();
+		const session = yield* Effect.flatMap(Effect.scope, Scope.fork);
+		const call = yield* sessionToolCall.pipe(Scope.provide(session));
+		const server = makeToolServer([waitForRuling(started, interrupted)], call);
+		yield* Effect.promise(() => server.connect(wire));
+		// why: the plugin acquires the SDK session after the calls' scope, so
+		// on release the transport goes first and the calls after it.
+		yield* Scope.addFinalizer(
+			session,
+			Effect.promise(() => wire.close()),
+		);
+		wire.receive(callTool(2, "wait_for_ruling"));
+		yield* Deferred.await(started);
+		yield* Scope.close(session, Exit.void);
+		yield* Deferred.await(interrupted);
+		yield* promiseChainsSettled;
+		expect(yield* Queue.size(wire.sent)).toBe(0);
+	}),
 );

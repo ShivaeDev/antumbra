@@ -11,13 +11,9 @@ import { removeSeededTrees, seedLintTree } from "#test/support/tree.ts";
 
 afterEach(removeSeededTrees);
 
-const pathsOf = (root: string) =>
-	Effect.map(collectInventory(root), (inventory) =>
-		inventory.sources.map((source) => source.path),
-	);
+const pathsOf = (root: string) => Effect.map(collectInventory(root), (inventory) => inventory.sources.map((source) => source.path));
 
-const sourceFiles = (paths: readonly string[]): readonly SeedFile[] =>
-	paths.map((path) => ({ content: "export const value = 1;\n", path }));
+const sourceFiles = (paths: readonly string[]): readonly SeedFile[] => paths.map((path) => ({ content: "export const value = 1;\n", path }));
 const violatingFiles = (paths: readonly string[]): readonly SeedFile[] =>
 	paths.map((path) => ({
 		content: "export const hidden = 1; // unmarked comment\n",
@@ -45,11 +41,7 @@ it.layer(NodeFileSystem.layer)("gitignore-aware walk", (it) => {
 
 	it.effect("reports no violation from a gitignored file", () =>
 		Effect.gen(function* () {
-			const root = seedLintTree(
-				tree.gitignores,
-				violatingFiles(tree.ignoredPaths),
-				kept,
-			);
+			const root = seedLintTree(tree.gitignores, violatingFiles(tree.ignoredPaths), kept);
 			const inventory = yield* collectInventory(root);
 			expect(yield* lint(inventory)).toEqual([]);
 		}),

@@ -1,17 +1,11 @@
 import type { AntumbraBridge, SubscriptionMessage } from "@antumbra/contract";
 import { makeAppRouter } from "@antumbra/contract";
-import {
-	info,
-	makeRuntime,
-	makeScriptedFeeds,
-	staticFeeds,
-} from "@antumbra/contract/fixtures";
+import { info, makeRuntime, makeScriptedFeeds, staticFeeds } from "@antumbra/contract/fixtures";
 import { describe, expect, it } from "@effect/vitest";
 import { Effect } from "effect";
 import { makeBrowserBridge } from "#adapters/router-bridge.ts";
 
-const bridgeOver = (runtime: ReturnType<typeof makeRuntime>): AntumbraBridge =>
-	makeBrowserBridge(makeAppRouter(runtime));
+const bridgeOver = (runtime: ReturnType<typeof makeRuntime>): AntumbraBridge => makeBrowserBridge(makeAppRouter(runtime));
 
 const collectFeed = (bridge: AntumbraBridge, path: string, input?: unknown) =>
 	Effect.callback<ReadonlyArray<SubscriptionMessage>>((resume) => {
@@ -25,19 +19,14 @@ const collectFeed = (bridge: AntumbraBridge, path: string, input?: unknown) =>
 		return Effect.sync(stop);
 	});
 
-const dataOf = (messages: ReadonlyArray<SubscriptionMessage>) =>
-	messages.flatMap((message) =>
-		message.type === "data" ? [message.data] : [],
-	);
+const dataOf = (messages: ReadonlyArray<SubscriptionMessage>) => messages.flatMap((message) => (message.type === "data" ? [message.data] : []));
 
 describe("makeBrowserBridge", () => {
 	it.effect("answers a query with what the fixture sources hold", () =>
 		Effect.gen(function* () {
 			const runtime = makeRuntime(staticFeeds);
 			const bridge = bridgeOver(runtime);
-			const answered = yield* Effect.promise(() =>
-				bridge.trpc({ input: undefined, path: "appInfo", type: "query" }),
-			);
+			const answered = yield* Effect.promise(() => bridge.trpc({ input: undefined, path: "appInfo", type: "query" }));
 			expect(answered).toEqual({ data: info, ok: true });
 			yield* Effect.promise(() => runtime.dispose());
 		}),

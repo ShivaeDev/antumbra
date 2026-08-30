@@ -11,15 +11,13 @@ export const openVoyageSpec = defineTool({
 		"Open a voyage: a ship under sail for an objective, with its own north star, board, and chartered work. Opening it charters no work and wakes nobody — the voyage has no captain until `hail_captain` brings it one. It sails on the fleet's default agent backend, which the admiral switches like any other voyage's.",
 	input: Schema.Struct({
 		context: Schema.String.annotate({
-			description:
-				"What surrounds the work: what is already true, and what the voyage is sailing into.",
+			description: "What surrounds the work: what is already true, and what the voyage is sailing into.",
 		}),
 		name: Schema.String.annotate({
 			description: "One line naming the voyage.",
 		}),
 		northStar: Schema.String.annotate({
-			description:
-				"The fixed star the voyage steers by and never reaches. Not a milestone.",
+			description: "The fixed star the voyage steers by and never reaches. Not a milestone.",
 		}),
 	}),
 	name: "open_voyage",
@@ -30,12 +28,10 @@ export const charterVoyagePieceSpec = defineTool({
 		"Charter a piece on a voyage you name: a bounded unit of work with a stated outcome. It is a write to that voyage's record and nothing else — nobody is woken, and the piece sits held until that voyage's own captain launches it. What it waits on, and when it is released into the pool, belong to that captain; `hail_captain` is how you reach them.",
 	input: Schema.Struct({
 		charter: Schema.String.annotate({
-			description:
-				"What the agent working this piece is to do, written for it to read.",
+			description: "What the agent working this piece is to do, written for it to read.",
 		}),
 		expectation: Schema.String.annotate({
-			description:
-				"The outcome you expect this piece to land. An estimate the voyage's captain may revise, not a contract.",
+			description: "The outcome you expect this piece to land. An estimate the voyage's captain may revise, not a contract.",
 		}),
 		role: Schema.String.annotate({
 			description: "The role the agent working this piece takes on.",
@@ -76,8 +72,7 @@ export const proclaimRulingSpec = defineTool({
 				"The situation behind the rule: why it is being settled now and how the fleet arrived here. It binds widely, so this must be rich — it will be read long after you.",
 		}),
 		question: Schema.String.annotate({
-			description:
-				"The question this rule answers. A broad answer to a narrow question binds narrowly, so say exactly what was asked.",
+			description: "The question this rule answers. A broad answer to a narrow question binds narrowly, so say exactly what was asked.",
 		}),
 		tags: Schema.optional(
 			Schema.Array(Schema.String).annotate({

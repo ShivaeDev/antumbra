@@ -5,18 +5,8 @@ import { expect, it } from "@effect/vitest";
 import { Effect, Ref } from "effect";
 import { AgentDomain } from "#domain.ts";
 import { acquireTemporaryPersistence } from "#test/harness.ts";
-import {
-	eventually,
-	payload,
-	refuseWhile,
-	reportsNativeRef,
-} from "#test/session-recovery-fixture.ts";
-import {
-	NATIVE,
-	onlyWake,
-	sleepingRoot,
-	wakeLayer,
-} from "#test/session-wake-fixture.ts";
+import { eventually, payload, refuseWhile, reportsNativeRef } from "#test/session-recovery-fixture.ts";
+import { NATIVE, onlyWake, sleepingRoot, wakeLayer } from "#test/session-wake-fixture.ts";
 
 const closeRoot = Effect.gen(function* () {
 	const db = yield* Database;
@@ -36,10 +26,7 @@ it.live("a wake for a closed Session settles instead of waiting", () =>
 		const temporary = yield* acquireTemporaryPersistence;
 		const { recorded, scripted } = yield* sleepingRoot(temporary);
 		const denied = yield* Ref.make(true);
-		const refusing = refuseWhile(
-			reportsNativeRef(scripted.backend, scripted, NATIVE),
-			denied,
-		);
+		const refusing = refuseWhile(reportsNativeRef(scripted.backend, scripted, NATIVE), denied);
 
 		yield* Effect.gen(function* () {
 			const sight = yield* SightSource;
@@ -51,9 +38,7 @@ it.live("a wake for a closed Session settles instead of waiting", () =>
 			);
 
 			yield* closeRoot;
-			yield* Effect.flip(
-				sight.send(payload.sessionId, "and mind the shallows"),
-			);
+			yield* Effect.flip(sight.send(payload.sessionId, "and mind the shallows"));
 			const settled = yield* eventually(
 				Effect.gen(function* () {
 					const row = yield* onlyWake;

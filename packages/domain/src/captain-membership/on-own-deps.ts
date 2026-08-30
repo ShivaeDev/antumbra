@@ -12,11 +12,7 @@ const onOwnedDependencies = (
 	act: (voyageId: string) => Effect.Effect<DirectToolOutcome>,
 ) => {
 	const strangers = dependsOn.filter((id) => !members.has(id));
-	return strangers.length === 0
-		? act(voyageId)
-		: Effect.succeed(
-				refused(`these pieces are not on your voyage: ${strangers.join(", ")}`),
-			);
+	return strangers.length === 0 ? act(voyageId) : Effect.succeed(refused(`these pieces are not on your voyage: ${strangers.join(", ")}`));
 };
 
 // why: an edge is the other side of the same hull — the model lets any piece
@@ -26,14 +22,6 @@ export const onOwnDeps = Effect.fn("captainMembership.onOwnDeps")(function* (
 	identity: SessionIdentity,
 	dependsOn: ReadonlyArray<string>,
 	act: (voyageId: string) => Effect.Effect<DirectToolOutcome>,
-): Effect.fn.Return<
-	DirectToolOutcome,
-	never,
-	Context.Service.Identifier<typeof Pieces>
-> {
-	return yield* onVoyage(identity, (voyageId) =>
-		withReadableMembers(voyageId, (members) =>
-			onOwnedDependencies(members, dependsOn, voyageId, act),
-		),
-	);
+): Effect.fn.Return<DirectToolOutcome, never, Context.Service.Identifier<typeof Pieces>> {
+	return yield* onVoyage(identity, (voyageId) => withReadableMembers(voyageId, (members) => onOwnedDependencies(members, dependsOn, voyageId, act)));
 });

@@ -3,13 +3,7 @@ import { expect, it } from "@effect/vitest";
 import { Effect, Option } from "effect";
 import { AgentDomain } from "#domain.ts";
 import { dispatchingLayer, domainKernelLayer } from "#test/domain-layers.ts";
-import {
-	acquireTemporaryPersistence,
-	callTool,
-	makeScriptedBackend,
-	rawOf,
-	sessionFor,
-} from "#test/harness.ts";
+import { acquireTemporaryPersistence, callTool, makeScriptedBackend, rawOf, sessionFor } from "#test/harness.ts";
 import { hail, reportsNativeRef } from "#test/session-recovery-fixture.ts";
 import { eventually, openReefVoyage, PATIENCE } from "#test/voyage-fixtures.ts";
 
@@ -39,9 +33,7 @@ it.live("a Piece role named captain remains crew across Session recovery", () =>
 			const assignment = yield* eventually(firstAssignment);
 			const live = yield* eventually(sessionFor(scripted, assignment.agentId));
 
-			expect(
-				yield* db.VoyageAgent.where({ agentId: assignment.agentId }).all(),
-			).toEqual([
+			expect(yield* db.VoyageAgent.where({ agentId: assignment.agentId }).all()).toEqual([
 				{
 					agentId: assignment.agentId,
 					role: "captain",
@@ -49,12 +41,8 @@ it.live("a Piece role named captain remains crew across Session recovery", () =>
 				},
 			]);
 			expect(live.tools.map((tool) => tool.name)).toContain("land_report");
-			expect(live.tools.map((tool) => tool.name)).not.toContain(
-				"charter_piece",
-			);
-			expect(
-				Option.getOrThrow(yield* domain.voyages.read(voyage.id)).captain,
-			).toEqual(Option.none());
+			expect(live.tools.map((tool) => tool.name)).not.toContain("charter_piece");
+			expect(Option.getOrThrow(yield* domain.voyages.read(voyage.id)).captain).toEqual(Option.none());
 			expect(
 				yield* callTool(live, "land_report", {
 					body: "the reef is sounded",
@@ -76,9 +64,7 @@ it.live("a Piece role named captain remains crew across Session recovery", () =>
 			});
 			yield* eventually(
 				Effect.gen(function* () {
-					const stored = Option.getOrThrow(
-						yield* db.AgentSession.where({ id: session.id }).first(),
-					);
+					const stored = Option.getOrThrow(yield* db.AgentSession.where({ id: session.id }).first());
 					expect(stored.nativeRef).toBe("native-piece-captain-role");
 				}),
 			);
@@ -87,15 +73,9 @@ it.live("a Piece role named captain remains crew across Session recovery", () =>
 				sessionId: session.id,
 				voyageId: voyage.id,
 			};
-		}).pipe(
-			Effect.provide(dispatchingLayer(temporary, scripted.backend, PATIENCE)),
-		);
+		}).pipe(Effect.provide(dispatchingLayer(temporary, scripted.backend, PATIENCE)));
 
-		const resumedBackend = reportsNativeRef(
-			scripted.backend,
-			scripted,
-			"native-piece-captain-role",
-		);
+		const resumedBackend = reportsNativeRef(scripted.backend, scripted, "native-piece-captain-role");
 		yield* Effect.gen(function* () {
 			const domain = yield* AgentDomain;
 			yield* hail(selected.sessionId);
@@ -106,13 +86,8 @@ it.live("a Piece role named captain remains crew across Session recovery", () =>
 			);
 			const resumed = yield* sessionFor(scripted, selected.agentId);
 			expect(resumed.tools.map((tool) => tool.name)).toContain("land_report");
-			expect(resumed.tools.map((tool) => tool.name)).not.toContain(
-				"charter_piece",
-			);
-			expect(
-				Option.getOrThrow(yield* domain.voyages.read(selected.voyageId))
-					.captain,
-			).toEqual(Option.none());
+			expect(resumed.tools.map((tool) => tool.name)).not.toContain("charter_piece");
+			expect(Option.getOrThrow(yield* domain.voyages.read(selected.voyageId)).captain).toEqual(Option.none());
 		}).pipe(Effect.provide(domainKernelLayer(temporary, resumedBackend)));
 	}),
 );

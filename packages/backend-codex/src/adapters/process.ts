@@ -16,9 +16,7 @@ interface SpawnLineProcessOptions {
 
 // why: app-server speaks newline-delimited JSON on stdio; this is the only
 // place a raw child process exists — everything above it sees lines.
-export const spawnLineProcess = (
-	options: SpawnLineProcessOptions,
-): LineProcess => {
+export const spawnLineProcess = (options: SpawnLineProcessOptions): LineProcess => {
 	const child = spawn(options.command, [...options.args], {
 		cwd: options.cwd,
 		stdio: ["pipe", "pipe", "pipe"],

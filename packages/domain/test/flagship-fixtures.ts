@@ -2,13 +2,7 @@ import { Database } from "@antumbra/persistence";
 import { type Context, Effect } from "effect";
 import { AgentDomain } from "#domain.ts";
 import { domainKernelLayer } from "#test/domain-layers.ts";
-import {
-	acquireTemporaryPersistence,
-	makeScriptedBackend,
-	type ScriptedBackend,
-	type ScriptedSession,
-	sessionFor,
-} from "#test/harness.ts";
+import { acquireTemporaryPersistence, makeScriptedBackend, type ScriptedBackend, type ScriptedSession, sessionFor } from "#test/harness.ts";
 import { eventually } from "#test/voyage-fixtures.ts";
 
 export const FLAGSHIP_ID = "voyage-flagship";
@@ -33,20 +27,13 @@ export const hailedCaptain = (scripted: ScriptedBackend, voyageId: string) =>
 		return yield* eventually(sessionFor(scripted, hailed.agentId));
 	});
 
-export const toolNames = (session: ScriptedSession): ReadonlyArray<string> =>
-	session.tools.map((tool) => tool.name);
+export const toolNames = (session: ScriptedSession): ReadonlyArray<string> => session.tools.map((tool) => tool.name);
 
 // why: every fleet-tool rehearsal starts from the same place — a flagship
 // with its captain at the tools — so the harness is one fixture and each test
 // is only the act it rehearses.
 export const withFlagshipCaptain = <A, E>(
-	body: (
-		captain: ScriptedSession,
-	) => Effect.Effect<
-		A,
-		E,
-		AgentDomain | Context.Service.Identifier<typeof Database>
-	>,
+	body: (captain: ScriptedSession) => Effect.Effect<A, E, AgentDomain | Context.Service.Identifier<typeof Database>>,
 ) =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;

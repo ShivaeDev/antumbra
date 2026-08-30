@@ -32,9 +32,7 @@ describe("structure rules", () => {
 	it("flags an index.ts barrel outside the package entry", () => {
 		const violations = structureViolations(
 			inventoryOf({
-				sources: [
-					{ content: "export {};\n", path: "packages/x/src/things/index.ts" },
-				],
+				sources: [{ content: "export {};\n", path: "packages/x/src/things/index.ts" }],
 			}),
 		);
 		expect(violations[0]?.rule).toBe("structure/no-barrel");
@@ -45,9 +43,7 @@ describe("structure rules", () => {
 		expect(
 			structureViolations(
 				inventoryOf({
-					sources: [
-						{ content: "export {};\n", path: "packages/x/src/index.ts" },
-					],
+					sources: [{ content: "export {};\n", path: "packages/x/src/index.ts" }],
 				}),
 			),
 		).toEqual([]);

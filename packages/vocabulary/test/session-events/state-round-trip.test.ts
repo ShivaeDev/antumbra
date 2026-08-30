@@ -12,8 +12,7 @@ const raw = {
 // as JSON, so a shape that does not survive that trip is a shape the record
 // silently downgrades to Unknown. These three are new members of the union, so
 // the trip is asserted rather than assumed.
-const trip = (event: AgentEvent) =>
-	projectHistoricalAgentEvent(event.type, JSON.stringify(event));
+const trip = (event: AgentEvent) => projectHistoricalAgentEvent(event.type, JSON.stringify(event));
 
 it("a session state survives the journal round trip", () => {
 	const event: AgentEvent = {

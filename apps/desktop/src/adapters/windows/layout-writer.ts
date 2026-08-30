@@ -26,9 +26,7 @@ export interface LayoutWriterInput {
 // up, and one fiber performs every write, so two saves can never interleave
 // into a half-written file. The flag, not the queue, decides whether there is
 // anything to write, so a tick left over from a burst costs nothing.
-export const layoutWriter = (
-	input: LayoutWriterInput,
-): Effect.Effect<LayoutWriter> =>
+export const layoutWriter = (input: LayoutWriterInput): Effect.Effect<LayoutWriter> =>
 	Effect.gen(function* () {
 		const tick = yield* Queue.sliding<void>(1);
 		const pending = yield* Ref.make(false);
@@ -42,10 +40,7 @@ export const layoutWriter = (
 			}
 		});
 		return {
-			note: Ref.set(pending, true).pipe(
-				Effect.andThen(Queue.offer(tick, undefined)),
-				Effect.asVoid,
-			),
+			note: Ref.set(pending, true).pipe(Effect.andThen(Queue.offer(tick, undefined)), Effect.asVoid),
 			run,
 		};
 	});

@@ -17,9 +17,7 @@ export interface ArtifactRow {
 	readonly title: string;
 }
 
-export type ArtifactActor =
-	| { readonly _tag: "admiral" }
-	| { readonly _tag: "agent"; readonly agentId: string };
+export type ArtifactActor = { readonly _tag: "admiral" } | { readonly _tag: "agent"; readonly agentId: string };
 
 export interface ArtifactSupersessionInput {
 	readonly actor: ArtifactActor;

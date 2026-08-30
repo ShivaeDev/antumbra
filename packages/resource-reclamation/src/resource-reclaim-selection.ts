@@ -24,27 +24,15 @@ interface ResourceReclaimSelection {
 type ReclaimBerth = ResourceReclaimSnapshot["berths"][number];
 type ReclaimMoorage = ResourceReclaimSnapshot["moorages"][number];
 
-const isFailedSetup = (
-	agentId: string,
-	moorageStatus: string,
-	sessions: ResourceReclaimSnapshot["sessions"],
-): boolean =>
-	moorageStatus === "provisioning" ||
-	sessions
-		.filter((session) => session.agentId === agentId)
-		.every((session) => session.status === "closed");
+const isFailedSetup = (agentId: string, moorageStatus: string, sessions: ResourceReclaimSnapshot["sessions"]): boolean =>
+	moorageStatus === "provisioning" || sessions.filter((session) => session.agentId === agentId).every((session) => session.status === "closed");
 
-const eligibleAgentIds = (
-	state: ResourceReclaimSnapshot,
-	moorageOf: ReadonlyMap<string, ReclaimMoorage>,
-): ReadonlySet<string> =>
+const eligibleAgentIds = (state: ResourceReclaimSnapshot, moorageOf: ReadonlyMap<string, ReclaimMoorage>): ReadonlySet<string> =>
 	new Set(
 		state.agents.flatMap((agent) => {
 			const moorage = moorageOf.get(agent.agentId);
 			return moorage !== undefined &&
-				(agent.status === "retired" ||
-					(agent.status === "dormant" &&
-						isFailedSetup(agent.agentId, moorage.status, state.sessions)))
+				(agent.status === "retired" || (agent.status === "dormant" && isFailedSetup(agent.agentId, moorage.status, state.sessions)))
 				? [agent.agentId]
 				: [];
 		}),
@@ -69,36 +57,20 @@ const isNewClaimCandidate = (
 export const selectResourceReclaimBerths = (
 	state: ResourceReclaimSnapshot,
 	runnerTags: ReadonlySet<string>,
-): Effect.Effect<
-	ReadonlyArray<ResourceReclaimSelection>,
-	ResourceReclaimClaimInvalid
-> => {
-	const moorageOf = new Map(
-		state.moorages.map((moorage) => [moorage.agentId, moorage] as const),
-	);
+): Effect.Effect<ReadonlyArray<ResourceReclaimSelection>, ResourceReclaimClaimInvalid> => {
+	const moorageOf = new Map(state.moorages.map((moorage) => [moorage.agentId, moorage] as const));
 	const eligibleAgents = eligibleAgentIds(state, moorageOf);
 	const invalid = invalidResourceReclaimClaim(state, moorageOf, eligibleAgents);
 	if (invalid !== undefined) {
 		return Effect.fail(invalid);
 	}
-	const heldAgents = new Set(
-		state.berths
-			.filter((berth) => state.held.has(berth.id))
-			.map((berth) => berth.agentId),
-	);
+	const heldAgents = new Set(state.berths.filter((berth) => state.held.has(berth.id)).map((berth) => berth.agentId));
 	return Effect.succeed(
 		state.berths.flatMap<ResourceReclaimSelection>((berth) => {
 			if (berth.reclaimState === "claimed") {
 				return [{ berth, needsClaim: false }];
 			}
-			return isNewClaimCandidate(
-				berth,
-				moorageOf.get(berth.agentId),
-				eligibleAgents,
-				heldAgents,
-				state.held,
-				runnerTags,
-			)
+			return isNewClaimCandidate(berth, moorageOf.get(berth.agentId), eligibleAgents, heldAgents, state.held, runnerTags)
 				? [{ berth, needsClaim: true }]
 				: [];
 		}),

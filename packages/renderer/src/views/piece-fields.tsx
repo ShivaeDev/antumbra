@@ -31,57 +31,19 @@ export const PieceFields = ({
 }) => (
 	<div className="flex min-w-0 flex-col gap-3">
 		<LabelledField label="Title">
-			{(id) => (
-				<Input
-					id={id}
-					onChange={(event) =>
-						onChange({ ...draft, title: event.target.value })
-					}
-					value={draft.title}
-				/>
-			)}
+			{(id) => <Input id={id} onChange={(event) => onChange({ ...draft, title: event.target.value })} value={draft.title} />}
 		</LabelledField>
 		<LabelledField label="Charter">
-			{(id) => (
-				<Textarea
-					id={id}
-					onChange={(event) =>
-						onChange({ ...draft, charter: event.target.value })
-					}
-					rows={3}
-					value={draft.charter}
-				/>
-			)}
+			{(id) => <Textarea id={id} onChange={(event) => onChange({ ...draft, charter: event.target.value })} rows={3} value={draft.charter} />}
 		</LabelledField>
 		<LabelledField label="Expected outcome">
-			{(id) => (
-				<Input
-					id={id}
-					onChange={(event) =>
-						onChange({ ...draft, expectation: event.target.value })
-					}
-					value={draft.expectation}
-				/>
-			)}
+			{(id) => <Input id={id} onChange={(event) => onChange({ ...draft, expectation: event.target.value })} value={draft.expectation} />}
 		</LabelledField>
 		<LabelledField label="Role">
-			{(id) => (
-				<Input
-					id={id}
-					onChange={(event) => onChange({ ...draft, role: event.target.value })}
-					value={draft.role}
-				/>
-			)}
+			{(id) => <Input id={id} onChange={(event) => onChange({ ...draft, role: event.target.value })} value={draft.role} />}
 		</LabelledField>
 		<LabelledField label="Depends on">
-			{(id) => (
-				<PiecePicker
-					chosen={draft.dependsOn}
-					id={id}
-					onChange={(dependsOn) => onChange({ ...draft, dependsOn })}
-					pieces={pickable(pieces)}
-				/>
-			)}
+			{(id) => <PiecePicker chosen={draft.dependsOn} id={id} onChange={(dependsOn) => onChange({ ...draft, dependsOn })} pieces={pickable(pieces)} />}
 		</LabelledField>
 	</div>
 );

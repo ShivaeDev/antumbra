@@ -5,16 +5,9 @@ export const ownerBoot = <A, E, R, E2, R2>(
 	ownership: Effect.Effect<boolean, E, R>,
 	start: () => Effect.Effect<A, E2, R2>,
 ): Effect.Effect<A | undefined, E | E2, R | R2> =>
-	ownership.pipe(
-		Effect.flatMap((owner) =>
-			owner ? Effect.suspend(start) : Effect.succeed(undefined),
-		),
-	);
+	ownership.pipe(Effect.flatMap((owner) => (owner ? Effect.suspend(start) : Effect.succeed(undefined))));
 
-export const runManagedRuntimeStartup = <R, ER, A, E>(
-	runtime: ManagedRuntime.ManagedRuntime<R, ER>,
-	startup: Effect.Effect<A, E, R>,
-): Promise<A> =>
+export const runManagedRuntimeStartup = <R, ER, A, E>(runtime: ManagedRuntime.ManagedRuntime<R, ER>, startup: Effect.Effect<A, E, R>): Promise<A> =>
 	runtime.runPromise(startup).catch(async (cause: unknown) => {
 		try {
 			await runtime.dispose();

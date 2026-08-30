@@ -9,11 +9,7 @@ import {
 } from "@antumbra/agent-tools";
 import { Pieces } from "@antumbra/pieces";
 import type { DirectTool } from "@antumbra/plugin-api";
-import {
-	type Ruling,
-	type RulingProclamation,
-	Rulings,
-} from "@antumbra/rulings";
+import { type Ruling, type RulingProclamation, Rulings } from "@antumbra/rulings";
 import { AGENT_BACKEND_TAGS } from "@antumbra/vocabulary/agent-backend";
 import { Effect, Option } from "effect";
 import { makeCaptainToolCompiler } from "#captain-tools.ts";
@@ -82,13 +78,9 @@ export const makeFleetToolCompiler = Effect.gen(function* () {
 		);
 	const fleetActs = (identity: SessionIdentity): ReadonlyArray<DirectTool> => [
 		bind(readVoyageSpec, (input) =>
-			input.voyageId === undefined
-				? onVoyage(identity, (own) => readsVoyage(identity, own))
-				: readsVoyage(identity, input.voyageId),
+			input.voyageId === undefined ? onVoyage(identity, (own) => readsVoyage(identity, own)) : readsVoyage(identity, input.voyageId),
 		),
-		bind(readFleetSpec, () =>
-			answered(identity, readFleetSpec.name, voyages.list, renderFleet),
-		),
+		bind(readFleetSpec, () => answered(identity, readFleetSpec.name, voyages.list, renderFleet)),
 		bind(openVoyageSpec, (input) =>
 			answered(
 				identity,
@@ -117,23 +109,8 @@ export const makeFleetToolCompiler = Effect.gen(function* () {
 				(piece) => `chartered ${piece.id} on voyage ${input.voyageId}`,
 			),
 		),
-		bind(hailCaptainSpec, (input) =>
-			answered(
-				identity,
-				hailCaptainSpec.name,
-				voyages.hail(input.voyageId),
-				hailed(input.voyageId),
-			),
-		),
-		bind(proclaimRulingSpec, (input) =>
-			answered(
-				identity,
-				proclaimRulingSpec.name,
-				rulings.proclaim(proclamationOf(input)),
-				proclaimed,
-			),
-		),
+		bind(hailCaptainSpec, (input) => answered(identity, hailCaptainSpec.name, voyages.hail(input.voyageId), hailed(input.voyageId))),
+		bind(proclaimRulingSpec, (input) => answered(identity, proclaimRulingSpec.name, rulings.proclaim(proclamationOf(input)), proclaimed)),
 	];
-	return (identity: SessionIdentity): ReadonlyArray<DirectTool> =>
-		widenedBy(compileCaptainTools(identity), fleetActs(identity));
+	return (identity: SessionIdentity): ReadonlyArray<DirectTool> => widenedBy(compileCaptainTools(identity), fleetActs(identity));
 });

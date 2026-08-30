@@ -1,11 +1,4 @@
-import {
-	defineIntent,
-	IntentExecution,
-	type IntentStatus,
-	isTerminalIntentStatus,
-	Kernel,
-	KernelLive,
-} from "@antumbra/kernel";
+import { defineIntent, IntentExecution, type IntentStatus, isTerminalIntentStatus, Kernel, KernelLive } from "@antumbra/kernel";
 import { type WakeFields, WakePayload } from "@antumbra/sessions";
 import { SessionInputId } from "@antumbra/vocabulary/session-input";
 import { expect, it } from "@effect/vitest";
@@ -21,18 +14,12 @@ const untilWaiting = <E, R>(changes: Stream.Stream<IntentStatus, E, R>) =>
 	);
 
 const untilTerminal = <E, R>(changes: Stream.Stream<IntentStatus, E, R>) =>
-	changes.pipe(
-		Stream.takeUntil(isTerminalIntentStatus),
-		Stream.runLast,
-		Effect.map(Option.getOrThrow),
-	);
+	changes.pipe(Stream.takeUntil(isTerminalIntentStatus), Stream.runLast, Effect.map(Option.getOrThrow));
 
 const expectDistinctDemandAdvances = (tag: string, secondPayload: WakeFields) =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
-		const firstInputId = SessionInputId.make(
-			"00000000-0000-4000-8000-000000000044",
-		);
+		const firstInputId = SessionInputId.make("00000000-0000-4000-8000-000000000044");
 		const firstAdvanced = yield* Deferred.make<void>();
 		const firstAttempts = yield* Ref.make(0);
 		const executed = yield* Ref.make<ReadonlyArray<WakeFields>>([]);
@@ -44,14 +31,9 @@ const expectDistinctDemandAdvances = (tag: string, secondPayload: WakeFields) =>
 						yield* Deferred.await(firstAdvanced);
 						return;
 					}
-					const attempt = yield* Ref.updateAndGet(
-						firstAttempts,
-						(count) => count + 1,
-					);
+					const attempt = yield* Ref.updateAndGet(firstAttempts, (count) => count + 1);
 					if (attempt === 1) {
-						return yield* IntentExecution.use((execution) =>
-							execution.wait("session is asleep"),
-						);
+						return yield* IntentExecution.use((execution) => execution.wait("session is asleep"));
 					}
 					yield* Deferred.succeed(firstAdvanced, undefined);
 				}),
@@ -71,73 +53,50 @@ const expectDistinctDemandAdvances = (tag: string, secondPayload: WakeFields) =>
 			const second = yield* rouse(secondPayload);
 			expect(second.id).not.toBe(first.id);
 			expect(second.retried).toBe(false);
-			const [firstStatus, secondStatus] = yield* Effect.all(
-				[
-					untilTerminal(kernel.changes(first.id)),
-					untilTerminal(second.changes),
-				],
-				{ concurrency: "unbounded" },
-			);
+			const [firstStatus, secondStatus] = yield* Effect.all([untilTerminal(kernel.changes(first.id)), untilTerminal(second.changes)], {
+				concurrency: "unbounded",
+			});
 			expect(firstStatus).toBe("succeeded");
 			expect(secondStatus).toBe("succeeded");
 			expect(yield* Ref.get(firstAttempts)).toBe(2);
 			const seen = yield* Ref.get(executed);
 			expect(seen).toHaveLength(3);
-			expect(
-				seen.filter((candidate) => candidate.inputId === firstInputId),
-			).toHaveLength(2);
+			expect(seen.filter((candidate) => candidate.inputId === firstInputId)).toHaveLength(2);
 			expect(seen).toContainEqual(secondPayload);
 			expect(yield* kernel.active(wake)).toEqual([]);
-		}).pipe(
-			Effect.provide(
-				KernelLive({ kinds: [wake] }).pipe(Layer.provideMerge(temporary.layer)),
-			),
-		);
+		}).pipe(Effect.provide(KernelLive({ kinds: [wake] }).pipe(Layer.provideMerge(temporary.layer))));
 	});
 
-it.live(
-	"an input wake replaces a parked bare wake without orphaning its input",
-	() =>
-		Effect.gen(function* () {
-			const temporary = yield* acquireTemporaryPersistence;
-			const wake = defineIntent({
-				execute: () =>
-					IntentExecution.use((execution) =>
-						execution.wait("session is asleep"),
-					),
-				payload: WakePayload,
-				tag: "test/rouse-input-identity",
-			});
-			yield* Effect.gen(function* () {
-				const kernel = yield* Kernel;
-				const parked = yield* kernel.submit(wake, { sessionId: "session-one" });
-				expect(yield* untilWaiting(parked.changes)).toBe("waiting");
+it.live("an input wake replaces a parked bare wake without orphaning its input", () =>
+	Effect.gen(function* () {
+		const temporary = yield* acquireTemporaryPersistence;
+		const wake = defineIntent({
+			execute: () => IntentExecution.use((execution) => execution.wait("session is asleep")),
+			payload: WakePayload,
+			tag: "test/rouse-input-identity",
+		});
+		yield* Effect.gen(function* () {
+			const kernel = yield* Kernel;
+			const parked = yield* kernel.submit(wake, { sessionId: "session-one" });
+			expect(yield* untilWaiting(parked.changes)).toBe("waiting");
 
-				const inputId = SessionInputId.make(
-					"00000000-0000-4000-8000-000000000043",
-				);
-				const rouse = yield* makeRouseSession(wake);
-				const replacement = yield* rouse({ inputId, sessionId: "session-one" });
-				expect(yield* untilWaiting(replacement.changes)).toBe("waiting");
+			const inputId = SessionInputId.make("00000000-0000-4000-8000-000000000043");
+			const rouse = yield* makeRouseSession(wake);
+			const replacement = yield* rouse({ inputId, sessionId: "session-one" });
+			expect(yield* untilWaiting(replacement.changes)).toBe("waiting");
 
-				expect(replacement.id).not.toBe(parked.id);
-				expect(replacement.retried).toBe(false);
-				expect(yield* kernel.active(wake)).toEqual([
-					{
-						detail: expect.stringContaining("session is asleep"),
-						id: replacement.id,
-						payload: { inputId, sessionId: "session-one" },
-						status: "waiting",
-					},
-				]);
-			}).pipe(
-				Effect.provide(
-					KernelLive({ kinds: [wake] }).pipe(
-						Layer.provideMerge(temporary.layer),
-					),
-				),
-			);
-		}),
+			expect(replacement.id).not.toBe(parked.id);
+			expect(replacement.retried).toBe(false);
+			expect(yield* kernel.active(wake)).toEqual([
+				{
+					detail: expect.stringContaining("session is asleep"),
+					id: replacement.id,
+					payload: { inputId, sessionId: "session-one" },
+					status: "waiting",
+				},
+			]);
+		}).pipe(Effect.provide(KernelLive({ kinds: [wake] }).pipe(Layer.provideMerge(temporary.layer))));
+	}),
 );
 
 it.live("a later input advances both distinct input wakes", () =>
@@ -180,20 +139,10 @@ it.live("repeating a parked prompt advances an input that parked again", () =>
 				status: "waiting",
 			},
 		] as const;
-		const progress = (id: string) =>
-			id === inputWakeId ? inputAdvanced : promptAdvanced;
-		const advancePrompt = Deferred.await(inputAdvanced).pipe(
-			Effect.andThen(Deferred.succeed(promptAdvanced, undefined)),
-		);
-		const markAdvanced = (id: string) =>
-			id === inputWakeId
-				? Deferred.succeed(inputAdvanced, undefined)
-				: advancePrompt;
-		const retry = (id: string) =>
-			Ref.update(retried, (ids) => [...ids, id]).pipe(
-				Effect.andThen(markAdvanced(id)),
-				Effect.asVoid,
-			);
+		const progress = (id: string) => (id === inputWakeId ? inputAdvanced : promptAdvanced);
+		const advancePrompt = Deferred.await(inputAdvanced).pipe(Effect.andThen(Deferred.succeed(promptAdvanced, undefined)));
+		const markAdvanced = (id: string) => (id === inputWakeId ? Deferred.succeed(inputAdvanced, undefined) : advancePrompt);
+		const retry = (id: string) => Ref.update(retried, (ids) => [...ids, id]).pipe(Effect.andThen(markAdvanced(id)), Effect.asVoid);
 		const kernel = Kernel.of({
 			active: (kind) =>
 				Effect.forEach(parked, (intent) =>
@@ -208,10 +157,7 @@ it.live("repeating a parked prompt advances an input that parked again", () =>
 					),
 				),
 			cancel: () => Effect.die("unexpected cancel"),
-			changes: (id) =>
-				Stream.fromEffect(Deferred.await(progress(id))).pipe(
-					Stream.map(() => "succeeded" as const),
-				),
+			changes: (id) => Stream.fromEffect(Deferred.await(progress(id))).pipe(Stream.map(() => "succeeded" as const)),
 			retry,
 			retryIfWaiting: () => Effect.die("unexpected conditional retry"),
 			submit: () => Effect.die("unexpected submit"),
@@ -222,21 +168,13 @@ it.live("repeating a parked prompt advances an input that parked again", () =>
 			payload: WakePayload,
 			tag: "test/rouse-input-rewait",
 		});
-		const rouse = yield* makeRouseSession(wake).pipe(
-			Effect.provideService(Kernel, kernel),
-		);
-		const repeated = yield* rouse(promptPayload).pipe(
-			Effect.provideService(Kernel, kernel),
-		);
+		const rouse = yield* makeRouseSession(wake).pipe(Effect.provideService(Kernel, kernel));
+		const repeated = yield* rouse(promptPayload).pipe(Effect.provideService(Kernel, kernel));
 		expect(repeated.id).toBe(promptWakeId);
 		expect(repeated.retried).toBe(true);
-		const [inputStatus, promptStatus] = yield* Effect.all(
-			[
-				untilTerminal(kernel.changes(inputWakeId)),
-				untilTerminal(repeated.changes),
-			],
-			{ concurrency: "unbounded" },
-		);
+		const [inputStatus, promptStatus] = yield* Effect.all([untilTerminal(kernel.changes(inputWakeId)), untilTerminal(repeated.changes)], {
+			concurrency: "unbounded",
+		});
 		expect(inputStatus).toBe("succeeded");
 		expect(promptStatus).toBe("succeeded");
 		expect(yield* Ref.get(retried)).toEqual([inputWakeId, promptWakeId]);

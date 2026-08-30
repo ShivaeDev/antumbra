@@ -1,17 +1,11 @@
 import { Database, type PrismaError } from "@antumbra/persistence";
-import {
-	type PieceVerdict,
-	PieceVerdict as PieceVerdictSchema,
-} from "@antumbra/vocabulary/verdict";
+import { type PieceVerdict, PieceVerdict as PieceVerdictSchema } from "@antumbra/vocabulary/verdict";
 import { type Context, Effect, Schema } from "effect";
 import { StoredPieceVerdictInvalid } from "#errors.ts";
 
 export type { PieceVerdict };
 
-export const pieceVerdictRow = (row: {
-	readonly pieceId: string;
-	readonly verdict: string;
-}) =>
+export const pieceVerdictRow = (row: { readonly pieceId: string; readonly verdict: string }) =>
 	Schema.decodeUnknownEffect(PieceVerdictSchema)(row.verdict).pipe(
 		Effect.mapError(
 			(cause) =>
@@ -32,7 +26,5 @@ export const readPieceVerdicts: Effect.Effect<
 	Context.Service.Identifier<typeof Database>
 > = Effect.gen(function* () {
 	const db = yield* Database;
-	return new Map(
-		yield* Effect.forEach(yield* db.PieceVerdict.all(), pieceVerdictRow),
-	);
+	return new Map(yield* Effect.forEach(yield* db.PieceVerdict.all(), pieceVerdictRow));
 });

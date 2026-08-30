@@ -11,13 +11,9 @@ import type { SessionIdentity } from "#tool-identity.ts";
 // come back as the same refusal.
 const OUT_OF_REACH = "no report with that id is on your voyage";
 
-const byline = (authorAgentId: string | null): string =>
-	authorAgentId === null ? "report" : `report by ${authorAgentId}`;
+const byline = (authorAgentId: string | null): string => (authorAgentId === null ? "report" : `report by ${authorAgentId}`);
 
-const renderReport = (reading: ReportReading): string =>
-	[`# ${reading.title}`, byline(reading.authorAgentId), ``, reading.body].join(
-		"\n",
-	);
+const renderReport = (reading: ReportReading): string => [`# ${reading.title}`, byline(reading.authorAgentId), ``, reading.body].join("\n");
 
 export const makeReportToolCompiler = Effect.gen(function* () {
 	const membership = yield* CaptainMembership;
@@ -27,40 +23,22 @@ export const makeReportToolCompiler = Effect.gen(function* () {
 	// and nothing crosses a hull.
 	const withinReach = (identity: SessionIdentity, reportId: string) => {
 		const reached = (reading: ReportReading) =>
-			membership
-				.reaches(identity, reading.pieceIds)
-				.pipe(
-					Effect.map((yes) => (yes ? Option.some(reading) : Option.none())),
-				);
-		return reports
-			.read(reportId)
-			.pipe(
-				Effect.flatMap(
-					Option.match({ onNone: () => Effect.succeedNone, onSome: reached }),
-				),
-			);
+			membership.reaches(identity, reading.pieceIds).pipe(Effect.map((yes) => (yes ? Option.some(reading) : Option.none())));
+		return reports.read(reportId).pipe(Effect.flatMap(Option.match({ onNone: () => Effect.succeedNone, onSome: reached })));
 	};
-	const serve = (
-		identity: SessionIdentity,
-		reportId: string,
-	): Effect.Effect<DirectToolOutcome> =>
+	const serve = (identity: SessionIdentity, reportId: string): Effect.Effect<DirectToolOutcome> =>
 		called(identity, readReportSpec.name).pipe(
 			Effect.andThen(withinReach(identity, reportId)),
 			Effect.matchCauseEffect({
 				onFailure: (cause) =>
-					Effect.logWarning(
-						"read_report could not read",
-						{ agentId: identity.agentId },
-						cause,
-					).pipe(Effect.as(refused("the report could not be read"))),
+					Effect.logWarning("read_report could not read", { agentId: identity.agentId }, cause).pipe(
+						Effect.as(refused("the report could not be read")),
+					),
 				onSuccess: Option.match({
 					onNone: () => Effect.succeed(refused(OUT_OF_REACH)),
-					onSome: (reading) =>
-						Effect.succeed({ ok: true, text: renderReport(reading) }),
+					onSome: (reading) => Effect.succeed({ ok: true, text: renderReport(reading) }),
 				}),
 			}),
 		);
-	return (identity: SessionIdentity): ReadonlyArray<DirectTool> => [
-		bind(readReportSpec, (input) => serve(identity, input.reportId)),
-	];
+	return (identity: SessionIdentity): ReadonlyArray<DirectTool> => [bind(readReportSpec, (input) => serve(identity, input.reportId))];
 });

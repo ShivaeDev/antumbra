@@ -66,14 +66,9 @@ export const KernelLive = (options: KernelOptions) =>
 				gauges: new Map(Object.entries(options.gauges ?? {})),
 				kinds: new Map(options.kinds.map((kind) => [kind.tag, kind])),
 				lastChangeAt: yield* Ref.make(yield* Clock.currentTimeMillis),
-				// why: ids are an injectable effect so a seeded simulation can own
-				// them; the ambient uuid is the default, not a hard-wired impurity.
 				nextId: options.nextId ?? Effect.sync(() => crypto.randomUUID()),
 				pubsub: yield* PubSub.unbounded<IntentChange>(),
 				running: yield* Ref.make<ReadonlyMap<string, Fiber.Fiber<void, unknown>>>(new Map()),
-				// why: a sliding capacity-1 queue makes tick coalescing structural —
-				// any number of "look again" signals collapse into at most one
-				// pending element, so the drain never runs a redundant pass.
 				tick: yield* Queue.sliding<void>(1),
 			};
 			const context = Context.make(SchedulerState, state).pipe(Context.add(Database, yield* Database));

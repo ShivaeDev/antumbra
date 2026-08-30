@@ -34,9 +34,6 @@ const retryAfter = (blocked: ReadonlyArray<Gate>, snapshot: AdmissionSnapshot): 
 	return waits.length === 0 ? Option.none() : Option.some(Math.max(...waits));
 };
 
-// why: the pull order is the scheduler's one policy seam — oldest-first in
-// SQL today; priority class, focus, and demand land here without touching
-// the loop.
 const pullNext = Effect.gen(function* () {
 	const db = yield* Database;
 	return yield* db.Intent.where({ status: "queued" })

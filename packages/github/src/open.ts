@@ -9,7 +9,6 @@ import { onThisMachine, toPushRefusal } from "#runtime.ts";
 import type { GitHubRepoName } from "#source.ts";
 
 const CREATE_TIMEOUT_MILLIS = 120_000;
-const ALREADY_EXISTS = "already exists";
 
 const slug = (repo: GitHubRepoName): string => `${repo.owner}/${repo.name}`;
 
@@ -32,32 +31,22 @@ const createArgs = (repo: GitHubRepoName, request: OpenChangeRequest): ReadonlyA
 	...(request.draft ? ["--draft"] : []),
 ];
 
-const urlNumber = (stdout: string): Option.Option<number> => {
+const createdNumber = (stdout: string) => {
 	const line =
 		stdout
 			.split("\n")
 			.map((text) => text.trim())
 			.filter((text) => text !== "")
 			.at(-1) ?? "";
-	return Option.map(parsePullUrl(line), (ref) => ref.number);
-};
-
-const alreadyOpen = (failure: GhError): Effect.Effect<Option.Option<number>, GhError> =>
-	failure._tag === "GhCommandFailed" && failure.detail.toLowerCase().includes(ALREADY_EXISTS) ? Effect.succeed(Option.none()) : Effect.fail(failure);
-
-const recoverAlreadyOpen = (executable: string, repo: GitHubRepoName, branch: string) =>
-	findPull(executable, repo, branch).pipe(
-		Effect.flatMap(
-			Option.match({
-				onNone: () =>
-					new GhOutputInvalid({
-						detail: "GitHub reported an existing pull request but branch lookup found none",
-						operation: "find-change",
-					}),
-				onSome: Effect.succeed,
+	return Option.match(parsePullUrl(line), {
+		onNone: () =>
+			new GhOutputInvalid({
+				detail: "gh pr create returned no pull request URL",
+				operation: "create-change",
 			}),
-		),
-	);
+		onSome: (ref) => Effect.succeed(ref.number),
+	});
+};
 
 const createMissingPull = (executable: string, repo: GitHubRepoName, request: OpenChangeRequest) =>
 	runGh({
@@ -66,16 +55,7 @@ const createMissingPull = (executable: string, repo: GitHubRepoName, request: Op
 		executable,
 		operation: "create-change",
 		timeoutMillis: CREATE_TIMEOUT_MILLIS,
-	}).pipe(
-		Effect.map(urlNumber),
-		Effect.catch(alreadyOpen),
-		Effect.flatMap(
-			Option.match({
-				onNone: () => recoverAlreadyOpen(executable, repo, request.berth.branch),
-				onSome: Effect.succeed,
-			}),
-		),
-	);
+	}).pipe(Effect.flatMap(createdNumber));
 
 export const createPull = (executable: string, repo: GitHubRepoName, request: OpenChangeRequest): Effect.Effect<number, GhError> =>
 	onThisMachine(

@@ -87,9 +87,6 @@ describe("opening a change on GitHub", () => {
 		),
 	);
 
-	// why: opening twice must not fail the second time — an agent that retried,
-	// or a berth reopened after a restart, is describing a change that already
-	// exists, and the right answer is that change rather than a refusal.
 	it.live("adopts the pull request a branch already has", () =>
 		withBerth((gh, site) =>
 			Effect.gen(function* () {
@@ -106,39 +103,6 @@ describe("opening a change on GitHub", () => {
 				expect(received).toContain("--state");
 				expect(received).toContain("open");
 				expect(received).not.toContain("create");
-			}),
-		),
-	);
-
-	it.live("recovers a lost response through branch lookup without another create", () =>
-		withBerth((gh, site) =>
-			Effect.gen(function* () {
-				gh.answer("list", { out: "[]\n" });
-				gh.answer("create", { out: CREATED });
-				gh.answer("graphql", { out: "{" });
-				const first = yield* makeGitHubHost({ executable: gh.executable });
-
-				const lost = yield* Effect.flip(first.open(requestFor(site)));
-				expect(lost._tag).toBe("ChangeHostUnavailable");
-				expect(gh.received().filter((argument) => argument === "create")).toHaveLength(1);
-
-				gh.answer("list", { out: "{" });
-				const uncertain = yield* makeGitHubHost({
-					executable: gh.executable,
-				});
-				const refused = yield* Effect.flip(uncertain.open(requestFor(site)));
-				expect(refused._tag).toBe("ChangeHostUnavailable");
-				expect(gh.received().filter((argument) => argument === "create")).toHaveLength(1);
-
-				gh.answer("list", { out: '[{"number":23}]\n' });
-				gh.answer("graphql", { out: RECORDED });
-				const recovered = yield* makeGitHubHost({
-					executable: gh.executable,
-				});
-				const opened = yield* recovered.open(requestFor(site));
-
-				expect(opened.externalId).toBe("23");
-				expect(gh.received().filter((argument) => argument === "create")).toHaveLength(1);
 			}),
 		),
 	);

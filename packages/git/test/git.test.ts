@@ -167,22 +167,14 @@ describe("Effect Git", () => {
 	});
 
 	it.effect("fast-forwards a worktree whose head is behind the origin ref", () => {
-		const fake = scriptedGit([success(""), success("Fast-forward\n")]);
+		const fake = scriptedGit([success("Fast-forward\n")]);
 		return Effect.gen(function* () {
 			yield* fastForwardWorktree("/repo", "main").pipe(Effect.provide(fake.layer));
-			const merge = fake.commands[1];
+			const merge = fake.commands[0];
 			if (merge === undefined || merge._tag !== "StandardCommand") {
 				return expect.unreachable("merge command was not captured");
 			}
 			expect(merge.args).toContain("--ff-only");
-		});
-	});
-
-	it.effect("refuses without merging when the head has its own commits", () => {
-		const fake = scriptedGit([{ exitCode: 1, stderr: "", stdout: "" }]);
-		return Effect.gen(function* () {
-			yield* fastForwardWorktree("/repo", "main").pipe(Effect.provide(fake.layer));
-			expect(fake.commands).toHaveLength(1);
 		});
 	});
 

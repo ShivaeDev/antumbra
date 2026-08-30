@@ -46,8 +46,6 @@ const commitInto = (worktree: string, name: string, message: string): void => {
 	git("-C", worktree, "commit", "-qm", message);
 };
 
-// why: the refusal must land before a process exists, so the spawner this test
-// provides has no answer at all — reaching it is the failure.
 const forbiddenSpawner = Layer.succeed(
 	ChildProcessSpawner.ChildProcessSpawner,
 	ChildProcessSpawner.make(() => Effect.die("git was spawned for a bad branch")),
@@ -70,8 +68,6 @@ describe("pushing a work branch", () => {
 
 			expect(sha(remote, `refs/heads/${BRANCH}`)).toBe(sha(worktree, "HEAD"));
 			expect(sha(remote, "refs/heads/main")).toBe(trunk);
-			// why: the push writes the mirror's remote-tracking ref, so a berth is
-			// clean the moment its work is on the remote — no fetch in between.
 			expect(yield* inspectWorktree(worktree)).toEqual({
 				_tag: "clean",
 				unpushedCommits: 0,

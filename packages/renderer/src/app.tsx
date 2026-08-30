@@ -1,6 +1,11 @@
-import type { ConsoleMode, ConsolePlace } from "@antumbra/contract";
+import type {
+	ConsoleMode,
+	ConsolePlace,
+	SettingsReading,
+} from "@antumbra/contract";
 import { useEffect, useState } from "react";
 import { watchFleet } from "#adapters/trpc.ts";
+import { loadSettings } from "#adapters/trpc-settings.ts";
 import { watchVoyages } from "#adapters/trpc-voyages.ts";
 import { rememberPlace } from "#adapters/trpc-windows.ts";
 import { useFeed } from "#hooks/feed.ts";
@@ -20,9 +25,16 @@ export const ConsoleApp = ({ place }: { readonly place: ConsolePlace }) => {
 	const [session, setSession] = useState(place.sessionId ?? undefined);
 	const [voyage, setVoyage] = useState(place.voyageId ?? undefined);
 	const [notice, setNotice] = useState<string | undefined>(undefined);
+	const [settings, setSettings] = useState<SettingsReading | undefined>(
+		undefined,
+	);
 	const feedErrors = [fleetError, voyagesError].flatMap((error) =>
 		error === undefined ? [] : [error],
 	);
+
+	useEffect(() => {
+		loadSettings(setSettings, setNotice);
+	}, []);
 
 	// why: where the console is pointed is main's to keep, so a reload comes
 	// back to it rather than to whatever a first render would have shown.
@@ -69,8 +81,10 @@ export const ConsoleApp = ({ place }: { readonly place: ConsolePlace }) => {
 					onChange={setChange}
 					onError={setNotice}
 					onSession={setSession}
+					onSettings={setSettings}
 					onVoyage={setVoyage}
 					session={session}
+					settings={settings}
 					voyage={voyage}
 					voyages={voyages ?? []}
 				/>

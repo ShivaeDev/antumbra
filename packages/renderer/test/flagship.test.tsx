@@ -11,7 +11,12 @@ import { ModeNav } from "#views/mode-nav.tsx";
 
 const render = (voyages: ReadonlyArray<VoyageSummary>): string =>
 	renderToStaticMarkup(
-		<FlagshipPanel fleet={fleet} onError={() => undefined} voyages={voyages} />,
+		<FlagshipPanel
+			fleet={fleet}
+			foldToolCalls={false}
+			onError={() => undefined}
+			voyages={voyages}
+		/>,
 	);
 
 const captained: VoyageSummary = {

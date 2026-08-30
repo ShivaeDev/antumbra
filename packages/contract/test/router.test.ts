@@ -31,6 +31,7 @@ describe("makeAppRouter", () => {
 			});
 			const served = yield* Effect.promise(() => caller.settings());
 			expect(served.settings).toEqual({
+				foldToolCalls: SETTINGS.foldToolCalls.fallback,
 				maxParallelSessions: SETTINGS.maxParallelSessions.fallback,
 				retireRestMinutes: SETTINGS.retireRestMinutes.fallback,
 				retireSweep: SETTINGS.retireSweep.fallback,

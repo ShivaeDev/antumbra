@@ -2,6 +2,7 @@ import { Schema } from "effect";
 import { count, flag, type SettingDeclaration } from "#settings/declaration.ts";
 
 export const SETTING_KEYS = [
+	"foldToolCalls",
 	"maxParallelSessions",
 	"retireRestMinutes",
 	"retireSweep",
@@ -15,6 +16,12 @@ export type SettingKey = typeof SettingKey.Type;
 // can read it, store it or draw it — which is what stops the next feature from
 // growing a flag of its own beside this list.
 export const SETTINGS = {
+	foldToolCalls: flag({
+		description:
+			"Fold a run of tool calls between messages into one line that says how many were made.",
+		fallback: false,
+		title: "Fold runs of tool calls",
+	}),
 	maxParallelSessions: count({
 		description: "How many agent sessions may run at once.",
 		fallback: 4,

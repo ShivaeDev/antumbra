@@ -6,6 +6,7 @@ import { SettingValue } from "#settings/declaration.ts";
 // of the struct would be a setting nothing could read over the bridge, and a
 // struct field the catalog does not declare has no default to fall back to.
 const fields: { readonly [K in SettingKey]: (typeof SETTINGS)[K]["value"] } = {
+	foldToolCalls: SETTINGS.foldToolCalls.value,
 	maxParallelSessions: SETTINGS.maxParallelSessions.value,
 	retireRestMinutes: SETTINGS.retireRestMinutes.value,
 	retireSweep: SETTINGS.retireSweep.value,

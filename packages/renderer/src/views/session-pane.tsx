@@ -31,11 +31,13 @@ const nameOf = (tree: SessionTree | undefined, sessionId: string): string =>
 // hugging a rail that is not there.
 export const SessionPane = ({
 	fleet,
+	foldToolCalls,
 	onClose,
 	onError,
 	sessionId,
 }: {
 	readonly fleet: Fleet | undefined;
+	readonly foldToolCalls: boolean;
 	readonly onClose?: (() => void) | undefined;
 	readonly onError: (message: string) => void;
 	readonly sessionId: string;
@@ -86,6 +88,7 @@ export const SessionPane = ({
 				tree={tree}
 			/>
 			<TranscriptView
+				foldToolCalls={foldToolCalls}
 				nodes={tree?.nodes ?? []}
 				onOpenNode={setReading}
 				sessionId={reading}

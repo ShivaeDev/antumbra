@@ -14,8 +14,6 @@ export const cloneMirror = (source: string, destination: string): Effect.Effect<
 export const refreshMirror = Effect.fn("git.refreshMirror")(function* (
 	path: string,
 ): Effect.fn.Return<void, GitError, ChildProcessSpawner.ChildProcessSpawner> {
-	// why: a bare clone lacks branch refs, and repeating the refspec heals a
-	// clone interrupted between creation and its first refresh.
 	yield* runGit({
 		args: ["-C", path, "config", "remote.origin.fetch", "+refs/heads/*:refs/remotes/origin/*"],
 		operation: "refresh-mirror",

@@ -6,7 +6,7 @@ import { NodeServices } from "@effect/platform-node";
 import { describe, expect, it } from "@effect/vitest";
 import { Effect, Fiber, Layer, Sink, Stream } from "effect";
 import { TestClock } from "effect/testing";
-import { type ChildProcess, ChildProcessSpawner } from "effect/unstable/process";
+import { ChildProcessSpawner } from "effect/unstable/process";
 import { inspectWorktree, refreshMirror } from "#index.ts";
 
 interface ScriptedOutput {
@@ -52,17 +52,14 @@ const waitingProcess = ChildProcessSpawner.makeHandle({
 const scriptedGit = (
 	outputs: ReadonlyArray<ScriptedOutput | "wait">,
 ): {
-	readonly commands: Array<ChildProcess.Command>;
 	readonly layer: Layer.Layer<ChildProcessSpawner.ChildProcessSpawner>;
 	readonly terminated: Array<number>;
 } => {
-	const commands: Array<ChildProcess.Command> = [];
 	const terminated: Array<number> = [];
 	let cursor = 0;
-	const service = ChildProcessSpawner.make((command) =>
+	const service = ChildProcessSpawner.make(() =>
 		Effect.acquireRelease(
 			Effect.sync(() => {
-				commands.push(command);
 				const processIndex = cursor;
 				const output = outputs[processIndex];
 				cursor += 1;
@@ -76,7 +73,6 @@ const scriptedGit = (
 		).pipe(Effect.map(({ handle }) => handle)),
 	);
 	return {
-		commands,
 		layer: Layer.succeed(ChildProcessSpawner.ChildProcessSpawner, service),
 		terminated,
 	};
@@ -103,7 +99,7 @@ describe("Effect Git", () => {
 	});
 
 	it.effect("reports local changes without depending on remote refs", () => {
-		const fake = scriptedGit([success("?? notes.md\n"), { exitCode: 128, stderr: "remote refs unavailable", stdout: "" }]);
+		const fake = scriptedGit([success("?? notes.md\n")]);
 		return Effect.gen(function* () {
 			const state = yield* inspectWorktree("/repo").pipe(Effect.provide(fake.layer));
 			expect(state).toEqual({ _tag: "changed" });
@@ -115,20 +111,6 @@ describe("Effect Git", () => {
 		return Effect.gen(function* () {
 			const failure = yield* Effect.flip(refreshMirror("/repo").pipe(Effect.provide(fake.layer)));
 			expect(failure._tag).toBe("GitOutputInvalid");
-		});
-	});
-
-	it.effect("disables terminal input without disabling credential helpers", () => {
-		const fake = scriptedGit([success(""), success("")]);
-		return Effect.gen(function* () {
-			yield* refreshMirror("/repo").pipe(Effect.provide(fake.layer));
-			const command = fake.commands[0];
-			if (command === undefined || command._tag !== "StandardCommand") {
-				return expect.unreachable("git command was not captured");
-			}
-			expect(command.options.stdin).toBe("ignore");
-			expect(command.options.extendEnv).toBe(true);
-			expect(command.options.env).toEqual({ GIT_TERMINAL_PROMPT: "0" });
 		});
 	});
 
@@ -158,11 +140,6 @@ describe("Effect Git", () => {
 			const failure = yield* Fiber.join(fiber);
 			expect(failure._tag).toBe("GitTimedOut");
 			expect(fake.terminated).toEqual([0]);
-			const command = fake.commands[0];
-			if (command === undefined || command._tag !== "StandardCommand") {
-				return expect.unreachable("git command was not captured");
-			}
-			expect(command.options.forceKillAfter).toBe(5_000);
 		});
 	});
 

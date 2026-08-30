@@ -51,11 +51,6 @@ const navigator = (canInterrupt: boolean, execution: string): AgentSummary => ({
 
 const renderFleet = (canInterrupt: boolean, execution: string): string => render(fleetOf([navigator(canInterrupt, execution)]));
 
-// why: the discipline this test has always guarded is that the interrupt
-// affordance follows the published capability and nothing else. It still
-// does — the raw execution word is now visible beside it as a diagnostic
-// chip, and the executing-but-refused case is what proves the affordance
-// never reads that word.
 it("offers interrupt only when the public capability allows it", () => {
 	expect(renderFleet(true, "active")).toContain("Interrupt");
 	expect(renderFleet(false, "idle")).not.toContain("Interrupt");
@@ -116,8 +111,6 @@ it("renders the raw execution and intent words as chips", () => {
 	expect(markup).toContain("current none");
 });
 
-// why: the name the admiral gave an agent is the one thing on the card that
-// must never be abbreviated, and it used to be the first thing to go.
 it("writes an agent's role out in full", () => {
 	expect(renderFleet(true, "active")).toContain("navigator-of-the-northern-approach");
 });
@@ -133,9 +126,6 @@ it("groups the roster by standing, working first", () => {
 	expect(markup).toContain("working");
 });
 
-// why: spawning and mooring are occasional acts. They keep their buttons on
-// the page and their fields behind a dialog, so the roster is what the page
-// shows when nothing has been asked for.
 it("keeps the spawn fields behind their dialog", () => {
 	const markup = renderFleet(false, "idle");
 	expect(markup).toContain("Spawn agent");
@@ -143,9 +133,6 @@ it("keeps the spawn fields behind their dialog", () => {
 	expect(markup).not.toContain("what this agent is for");
 });
 
-// why: retirement follows the published capability, never the stored status
-// word beside it. An Agent mid-turn reads "alive" exactly as a resting one
-// does, and ending it there would stop work nobody asked to stop.
 it("offers retirement only when the public capability allows it", () => {
 	const resting = render(fleetOf([navigator(false, "idle")]));
 	expect(resting).toContain("Retire");
@@ -174,10 +161,6 @@ const listening = (canSleep: boolean): AgentSummary => ({
 	],
 });
 
-// why: rest is offered from the same published capability the act itself
-// re-checks, so a tree with a child still speaking simply has no button —
-// there is nothing the admiral could do about it, and a disabled control
-// would be a question with no answer.
 it("offers rest only when the public capability allows it", () => {
 	expect(render(fleetOf([listening(true)]))).toContain("Sleep");
 	expect(render(fleetOf([listening(false)]))).not.toContain("Sleep");

@@ -19,6 +19,18 @@ import {
 } from "#test/artifact-custody-harness.ts";
 import { packagedMigrationsDirectory } from "#testing.ts";
 
+const requiredFields = [
+	["manifest", "predecessor"],
+	["manifest", "count"],
+	["manifest", "snapshot"],
+	["item", "id"],
+	["item", "legacyUri"],
+	["item", "snapshot"],
+	["item", "byteSize"],
+	["item", "digest"],
+	["item", "basename"],
+] as const;
+
 it.effect(
 	"backfills only verified canonical CAS metadata and removes URI",
 	() =>
@@ -167,20 +179,9 @@ it.effect("stages custody though the chain continues past it", () =>
 	}),
 );
 
-it.effect("requires every staged custody proof field", () =>
-	Effect.gen(function* () {
-		const requiredFields = [
-			["manifest", "predecessor"],
-			["manifest", "count"],
-			["manifest", "snapshot"],
-			["item", "id"],
-			["item", "legacyUri"],
-			["item", "snapshot"],
-			["item", "byteSize"],
-			["item", "digest"],
-			["item", "basename"],
-		] as const;
-		for (const [key, field] of requiredFields) {
+for (const [key, field] of requiredFields) {
+	it.effect(`requires staged custody proof field ${key}.${field}`, () =>
+		Effect.gen(function* () {
 			const target = fixture();
 			yield* migrateToPredecessor(target.database);
 			installLegacyArtifact(target.database, target.artifactsRoot);
@@ -196,6 +197,6 @@ it.effect("requires every staged custody proof field", () =>
 			);
 			expect(artifactHasUri(target.database), `${key}.${field}`).toBe(true);
 			expect(stageCount(target.database), `${key}.${field}`).toBe(2);
-		}
-	}),
-);
+		}),
+	);
+}

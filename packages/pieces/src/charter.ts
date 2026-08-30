@@ -20,19 +20,14 @@ export const charter = Effect.fn("pieces.charter")(function* (
 		role: input.role,
 		title: input.title,
 	};
-	yield* db.transaction(
-		Effect.gen(function* () {
-			yield* Database;
-			yield* verifyVoyageExists(input.voyageId);
-			const edges = yield* plannedEdges(pieceId, input.dependsOn);
-			yield* db.Piece.create(row);
-			yield* db.VoyagePiece.create({
-				pieceId,
-				voyageId: input.voyageId,
-			});
-			yield* writeEdges(pieceId, edges);
-		}),
-	);
+	yield* verifyVoyageExists(input.voyageId);
+	const edges = yield* plannedEdges(pieceId, input.dependsOn);
+	yield* db.Piece.create(row);
+	yield* db.VoyagePiece.create({
+		pieceId,
+		voyageId: input.voyageId,
+	});
+	yield* writeEdges(pieceId, edges);
 	yield* feeds.publishVoyageRefresh();
 	return row;
 });

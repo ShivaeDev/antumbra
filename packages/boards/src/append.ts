@@ -24,36 +24,6 @@ export interface AppendResult {
 	readonly written: boolean;
 }
 
-const recoverAppend = (
-	boardId: string,
-	input: EntryInput,
-	nowMillis: number,
-	attempted: BoardEntryRow,
-	failure: PrismaError,
-): Effect.Effect<
-	AppendResult,
-	BoardSourceConflict | PrismaError | StoredBoardEntryInvalid,
-	Context.Service.Identifier<typeof Database>
-> =>
-	Effect.gen(function* () {
-		const prior = yield* priorEntry(boardId, input);
-		if (Option.isSome(prior)) {
-			return {
-				row: yield* replayedEntry(boardId, input, prior.value),
-				written: false,
-			};
-		}
-		const db = yield* Database;
-		const latest = yield* db.BoardEntry.where({ boardId })
-			.orderBy((entry) => entry.seq.desc())
-			.select("seq")
-			.first();
-		if (nextSequence(latest) > attempted.seq) {
-			return yield* appendEntry(boardId, input, nowMillis);
-		}
-		return yield* failure;
-	});
-
 export function appendEntry(
 	boardId: string,
 	input: EntryInput,
@@ -82,9 +52,6 @@ export function appendEntry(
 		});
 		return yield* db.BoardEntry.create({ ...row, boardId }).pipe(
 			Effect.as({ row, written: true } satisfies AppendResult),
-			Effect.catchTag("PrismaError", (failure) =>
-				recoverAppend(boardId, input, nowMillis, row, failure),
-			),
 		);
 	});
 }

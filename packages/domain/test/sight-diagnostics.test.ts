@@ -5,9 +5,11 @@ import type { TemporaryPersistence } from "@antumbra/persistence/testing";
 import { expect, it } from "@effect/vitest";
 import { Effect, Layer } from "effect";
 import { AgentDomain } from "#domain.ts";
-import { SightSourceLive } from "#sight.ts";
 import { attributeIntents } from "#sight-diagnostics.ts";
-import { domainKernelLayer } from "#test/domain-layers.ts";
+import {
+	domainKernelLayer,
+	sightSourceTestLayer,
+} from "#test/domain-layers.ts";
 import {
 	acquireTemporaryPersistence,
 	makeScriptedBackend,
@@ -32,7 +34,7 @@ const sightLayer = (
 	scripted: ScriptedBackend,
 	hold: Hold,
 ) =>
-	SightSourceLive.pipe(
+	sightSourceTestLayer.pipe(
 		Layer.provideMerge(
 			domainKernelLayer(temporary, scripted.backend, {
 				gates: [holdGate(hold)],

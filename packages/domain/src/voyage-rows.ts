@@ -51,7 +51,7 @@ export interface CrewRow {
 // projection never passes a raw string on as durable vocabulary.
 export type AgentSessionRow = Pick<
 	StoredAgentSession,
-	"agentId" | "createdAt" | "id"
+	"agentId" | "backend" | "createdAt" | "id"
 > & {
 	readonly executionStatus: SessionExecutionStatus;
 	readonly status: AgentSessionStatus;

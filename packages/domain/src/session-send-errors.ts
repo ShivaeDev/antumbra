@@ -7,6 +7,7 @@ import type {
 	StoredAgentSessionStatusInvalid,
 } from "@antumbra/vocabulary/agent-runtime";
 import { Data } from "effect";
+import type { StoredBackendCapacityInvalid } from "#backend-capacity.ts";
 import type { SessionEnded, SessionNotFound } from "#errors.ts";
 import type { RouseRefused } from "#kernel-reach.ts";
 import type { SubsessionAttachRefused } from "#session-attach-roots.ts";
@@ -38,6 +39,7 @@ export type SessionSendRefused =
 	| SessionInputFailure
 	| SessionInputRetryAmbiguous
 	| SessionNotFound
+	| StoredBackendCapacityInvalid
 	| StoredAgentSessionStatusInvalid
 	| SubsessionAttachRefused;
 

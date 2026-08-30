@@ -3,6 +3,7 @@ import { codexPlugin } from "@antumbra/backend-codex";
 import {
 	AgentDomain,
 	AgentDomainLive,
+	BackendCapacityReleaseLive,
 	ChangeWatcherLive,
 	DispatcherLive,
 	FlagshipLive,
@@ -81,9 +82,9 @@ const kernel = Layer.unwrap(
 	}),
 ).pipe(Layer.provideMerge(agents));
 
-// why: the dispatcher and the change watcher stand beside the view source
-// rather than under it — launched pieces are spawned for and open changes are
-// followed whether or not a window is watching.
+// why: the dispatcher, provider-capacity release, and change watcher stand
+// beside the view source rather than under it — their work continues whether
+// or not a window is watching.
 export const applicationLayers = () =>
 	Layer.mergeAll(
 		RulingSourceLive,
@@ -104,6 +105,7 @@ export const applicationLayers = () =>
 		RulingDeliveryLive,
 		SessionShutdownLive,
 	).pipe(
+		Layer.provideMerge(BackendCapacityReleaseLive),
 		Layer.provideMerge(kernel),
 		Layer.provideMerge(SettingsSourceLive),
 		Layer.provideMerge(persistence),

@@ -4,8 +4,13 @@ import { Kernel } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
 import { Clock, Effect, Layer, Option, Queue, Ref } from "effect";
 import { AGENTS_ALIVE_GAUGE, AgentDomain } from "#agent-domain-service.ts";
+import type { BackendCapacities } from "#backend-capacity.ts";
+import {
+	dispatchCandidate,
+	pendingDispatches,
+} from "#dispatch-candidate-selection.ts";
 import { readyPieces } from "#dispatch-policy.ts";
-import { type DispatchPort, dispatchPiece } from "#dispatch-spawn.ts";
+import type { DispatchPort } from "#dispatch-spawn.ts";
 import { dispatchable, makeDispatchState } from "#dispatch-state.ts";
 import { runRefreshes } from "#feed-refreshes.ts";
 import { assignedExecution } from "#voyage-execution-selection.ts";
@@ -22,6 +27,7 @@ const onePass = (
 	port: DispatchPort,
 	maxAlive: number | undefined,
 	aliveAgents: Effect.Effect<number, unknown>,
+	capacities: BackendCapacities,
 ) =>
 	Effect.gen(function* () {
 		const source = yield* VoyageWorldSource;
@@ -31,39 +37,29 @@ const onePass = (
 		const now = yield* Clock.currentTimeMillis;
 		const world = yield* source.read;
 		const allowed = yield* dispatchable(port.state, now);
-		const inFlight = (yield* Ref.get(port.state.inFlight)).size;
-		let budget = effectiveMaxAlive - (yield* aliveAgents) - inFlight;
+		const pending = yield* pendingDispatches;
+		const inFlight = yield* Ref.get(port.state.inFlight);
+		const tracked = new Set(inFlight.values());
+		const recoveredSpawns = [...pending.spawnIntentIds].filter(
+			(intentId) => !tracked.has(intentId),
+		).length;
+		let budget =
+			effectiveMaxAlive -
+			(yield* aliveAgents) -
+			inFlight.size -
+			recoveredSpawns;
 		for (const candidate of readyPieces(world)) {
 			if (!allowed(candidate.piece.id)) {
 				continue;
 			}
-			const assigned = assignedExecution(world, candidate.piece.id);
-			if (assigned._tag === "unavailable") {
-				yield* Effect.logWarning("assigned Agent has no idle current Session", {
-					agentId: assigned.agentId,
-					pieceId: candidate.piece.id,
-				});
-				continue;
-			}
-			if (assigned._tag === "resume") {
-				yield* dispatchPiece(port, candidate, {
-					_tag: "resume",
-					sessionId: assigned.sessionId,
-				}).pipe(
-					Effect.annotateSpans({
-						agentId: assigned.agentId,
-						pieceId: candidate.piece.id,
-						sessionId: assigned.sessionId,
-					}),
-				);
-				continue;
-			}
-			if (budget > 0) {
-				yield* dispatchPiece(port, candidate, { _tag: "spawn" }).pipe(
-					Effect.annotateSpans({ pieceId: candidate.piece.id }),
-				);
-				budget -= 1;
-			}
+			budget = yield* dispatchCandidate(
+				port,
+				candidate,
+				assignedExecution(world, candidate.piece.id),
+				budget,
+				capacities,
+				pending,
+			);
 		}
 	});
 
@@ -81,6 +77,7 @@ const dispatchLoop = (
 	port: DispatchPort,
 	options: DispatcherOptions,
 	aliveAgents: Effect.Effect<number, unknown>,
+	capacities: BackendCapacities,
 ) =>
 	Effect.gen(function* () {
 		// why: every wait is bounded by the patience floor, so a wake signal is a
@@ -91,7 +88,7 @@ const dispatchLoop = (
 				Queue.take(port.state.tick),
 				options.patienceMillis,
 			);
-			yield* guarded(onePass(port, options.maxAlive, aliveAgents));
+			yield* guarded(onePass(port, options.maxAlive, aliveAgents, capacities));
 		}
 	});
 
@@ -115,7 +112,7 @@ export const DispatcherLive = (overrides: Partial<DispatcherOptions> = {}) =>
 				() => Effect.succeed(0),
 			);
 			yield* Effect.forkScoped(
-				dispatchLoop(port, options, aliveAgents).pipe(
+				dispatchLoop(port, options, aliveAgents, domain.backendCapacities).pipe(
 					Effect.provideService(Database, db),
 				),
 			);

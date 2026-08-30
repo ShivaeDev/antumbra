@@ -9,6 +9,7 @@ const session = (
 	executionStatus: AgentSessionRow["executionStatus"],
 ): AgentSessionRow => ({
 	agentId,
+	backend: "scripted",
 	createdAt: new Date(1),
 	executionStatus,
 	id: `session-${agentId}`,

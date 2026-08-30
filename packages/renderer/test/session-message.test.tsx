@@ -55,6 +55,7 @@ const fleetWith = (
 		},
 	],
 	backends: ["scripted"],
+	capacities: [],
 	diag: { intents: [] },
 	repos: [],
 });

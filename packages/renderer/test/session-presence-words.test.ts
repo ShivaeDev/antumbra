@@ -31,6 +31,7 @@ const fleetOf = (presence: SessionSummary["presence"]): Fleet => ({
 		},
 	],
 	backends: ["scripted"],
+	capacities: [],
 	diag: { intents: [] },
 	repos: [],
 });

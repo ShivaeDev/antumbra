@@ -30,6 +30,7 @@ export {
 } from "#channels.ts";
 export {
 	AgentSummary,
+	BackendCapacitySummary,
 	BerthSummary,
 	Fleet,
 	RepoSummary,

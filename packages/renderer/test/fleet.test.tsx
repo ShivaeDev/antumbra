@@ -16,6 +16,7 @@ const render = (fleet: Fleet): string =>
 const fleetOf = (agents: ReadonlyArray<AgentSummary>): Fleet => ({
 	agents,
 	backends: ["scripted"],
+	capacities: [],
 	diag: { intents: [] },
 	repos: [],
 });

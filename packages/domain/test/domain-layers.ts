@@ -7,6 +7,7 @@ import type { ResourceReconcileOptions } from "@antumbra/resource-reclamation";
 import { SessionFabricLive } from "@antumbra/session-fabric";
 import { NodeServices } from "@effect/platform-node";
 import { Effect, Layer } from "effect";
+import { BackendCapacityReleaseLive } from "#backend-capacity-release.ts";
 import type { ObserveCadenceOptions } from "#change-cadence.ts";
 import { ChangeWatcherLive } from "#change-watcher.ts";
 import { DispatcherLive, type DispatcherOptions } from "#dispatcher.ts";
@@ -18,6 +19,7 @@ import { RulingAscentLive } from "#ruling-ascent.ts";
 import { RulingDeliveryLive } from "#ruling-delivery.ts";
 import { SessionShutdownLive } from "#session-shutdown-live.ts";
 import { SettingsSourceLive } from "#settings.ts";
+import { SightSourceLive } from "#sight.ts";
 import { passiveRunner } from "#test/harness.ts";
 import { fakeKernelReach } from "#test/kernel-reach-fixture.ts";
 
@@ -110,6 +112,10 @@ export const dispatchingLayer = (
 			domainKernelLayer(temporary, backend, options, runner, changeHosts),
 		),
 	);
+
+export const sightSourceTestLayer = SightSourceLive.pipe(
+	Layer.provideMerge(BackendCapacityReleaseLive),
+);
 
 // why: the watcher stands beside the dispatcher exactly as it does in the app,
 // so a test of "the host said it landed" runs the same path a real merge does

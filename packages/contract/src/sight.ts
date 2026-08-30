@@ -64,6 +64,12 @@ export class SightSource extends Context.Service<
 		readonly registerRepo: (
 			registration: RepoRegistration,
 		) => Effect.Effect<RepoSummary, SightFailure>;
+		// why: provider holds never clear themselves on a guessed clock. The
+		// admiral deliberately retries the backend, which lets every parked act
+		// for it continue and lets a repeated rejection put it straight back.
+		readonly retryBackend: (
+			backend: string,
+		) => Effect.Effect<void, SightFailure>;
 		readonly retire: (agentId: string) => Effect.Effect<void, SightFailure>;
 		// why: releasing the hands that finished a piece is one act, not one per
 		// agent — the piece is what the admiral is looking at, and which agents

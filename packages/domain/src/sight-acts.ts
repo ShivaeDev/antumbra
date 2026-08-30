@@ -16,6 +16,7 @@ import { admiralWords } from "@antumbra/prompts";
 import { SessionInputs } from "@antumbra/session-inputs";
 import { Effect } from "effect";
 import { AgentDomain } from "#agent-domain-service.ts";
+import { makeRetryBackendCapacity } from "#backend-capacity-retry.ts";
 import { SessionMessageEmpty } from "#errors.ts";
 import { retirePieceCrew } from "#retire-crew.ts";
 import { toFailure } from "#sight-failure.ts";
@@ -27,6 +28,7 @@ export interface SightActs {
 	readonly registerRepo: (
 		registration: RepoRegistration,
 	) => Effect.Effect<RepoSummary, SightFailure>;
+	readonly retryBackend: (backend: string) => Effect.Effect<void, SightFailure>;
 	readonly retire: (agentId: string) => Effect.Effect<void, SightFailure>;
 	readonly retireCrew: (pieceId: string) => Effect.Effect<void, SightFailure>;
 	readonly send: (
@@ -54,6 +56,7 @@ export const makeSightActs = Effect.gen(function* () {
 	const kernel = yield* Kernel;
 	const inputs = yield* SessionInputs;
 	const draft = yield* makeSituationDraft;
+	const retryBackend = yield* makeRetryBackendCapacity;
 
 	return {
 		forgetRepo: (repoId) =>
@@ -62,6 +65,8 @@ export const makeSightActs = Effect.gen(function* () {
 			domain.interruptSession(sessionId).pipe(Effect.mapError(toFailure)),
 		registerRepo: (registration) =>
 			domain.repos.register(registration).pipe(Effect.mapError(toFailure)),
+		retryBackend: (backend) =>
+			retryBackend(backend).pipe(Effect.mapError(toFailure)),
 		retire: (agentId) =>
 			kernel
 				.submit(domain.retire, { agentId })

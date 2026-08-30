@@ -40,6 +40,7 @@ const fleet: Fleet = {
 		},
 	],
 	backends: ["scripted"],
+	capacities: [],
 	diag: { intents: [] },
 	repos: [],
 };

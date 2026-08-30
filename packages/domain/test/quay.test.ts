@@ -188,6 +188,7 @@ it("a row carries the opener's canonical stored session association", () => {
 		sessions: [
 			{
 				agentId: "agent-one",
+				backend: "scripted",
 				createdAt: MOMENT,
 				executionStatus: "idle",
 				id: "session-one",

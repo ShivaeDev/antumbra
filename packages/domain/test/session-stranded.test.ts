@@ -1,11 +1,13 @@
 import { SightSource } from "@antumbra/contract";
 import { Database } from "@antumbra/persistence";
 import { SessionFabric, SessionFabricLive } from "@antumbra/session-fabric";
+import {
+	IDLE_SIESTA_AFTER_MILLIS,
+	makeSessionTurnRests,
+} from "@antumbra/sessions";
 import type { AgentEvent } from "@antumbra/vocabulary/session-events";
 import { expect, it } from "@effect/vitest";
 import { Effect, Layer } from "effect";
-import { IDLE_SIESTA_AFTER_MILLIS } from "#session-idle.ts";
-import { makeSessionTurnRests } from "#session-turn-rest.ts";
 import { SightSourceLive } from "#sight.ts";
 import { domainKernelLayer } from "#test/domain-layers.ts";
 import {

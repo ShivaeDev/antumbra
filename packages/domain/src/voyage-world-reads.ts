@@ -1,4 +1,5 @@
 import { Database, type PrismaError } from "@antumbra/persistence";
+import { rootSessions } from "@antumbra/sessions";
 import {
 	decodeSessionExecutionStatus,
 	decodeStoredAgentSessionStatus,
@@ -10,7 +11,6 @@ import {
 	type StoredVoyageKindInvalid,
 } from "@antumbra/vocabulary/voyage";
 import { type Context, Effect } from "effect";
-import { rootSessions } from "#session-roots.ts";
 import { voyageRow } from "#voyage-row-projection.ts";
 import type { AgentSessionRow, VoyageRow } from "#voyage-rows.ts";
 

@@ -1,9 +1,11 @@
 import type { ChangeRow, PieceChangeRow } from "@antumbra/changes";
 import type { ChangeSituation, SessionSituation } from "@antumbra/contract";
-import type { AssignmentRow } from "#voyage-rows.ts";
 
 export interface ChangeLinks {
-	readonly assignments: ReadonlyArray<AssignmentRow>;
+	readonly assignments: ReadonlyArray<{
+		readonly agentId: string;
+		readonly pieceId: string;
+	}>;
 	readonly changes: ReadonlyArray<ChangeRow>;
 	readonly pieceChanges: ReadonlyArray<PieceChangeRow>;
 }

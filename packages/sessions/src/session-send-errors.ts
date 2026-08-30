@@ -7,9 +7,9 @@ import type {
 	StoredAgentSessionStatusInvalid,
 } from "@antumbra/vocabulary/agent-runtime";
 import { Data } from "effect";
-import type { SessionEnded, SessionNotFound } from "#errors.ts";
-import type { RouseRefused } from "#kernel-reach.ts";
 import type { SubsessionAttachRefused } from "#session-attach-roots.ts";
+import type { SessionEnded, SessionNotFound } from "#session-errors.ts";
+import type { RouseRefused } from "#session-reach.ts";
 
 export class SessionInputBackendTextOnly extends Data.TaggedError(
 	"SessionInputBackendTextOnly",

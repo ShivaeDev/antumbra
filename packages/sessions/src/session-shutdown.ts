@@ -35,7 +35,7 @@ export class SessionShutdown extends Context.Service<
 	{
 		readonly drain: Effect.Effect<void, SessionShutdownFailure>;
 	}
->()("@antumbra/domain/SessionShutdown") {}
+>()("@antumbra/sessions/SessionShutdown") {}
 
 export const drainActiveSessions = SessionShutdown.use(
 	(shutdown) => shutdown.drain,

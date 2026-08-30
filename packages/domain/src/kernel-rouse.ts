@@ -8,8 +8,8 @@ import {
 	type UnregisteredIntentTag,
 } from "@antumbra/kernel";
 import type { PrismaError } from "@antumbra/persistence";
+import type { WakeFields } from "@antumbra/sessions";
 import { Effect, type Stream } from "effect";
-import type { WakeFields } from "#session-wake.ts";
 
 // why: the three ways the kernel can turn a submission away — a payload it
 // cannot decode, a tag no domain registered, or the write that records the

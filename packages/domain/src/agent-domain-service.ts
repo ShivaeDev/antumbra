@@ -6,14 +6,17 @@ import type { BackendFailure } from "@antumbra/plugin-api";
 import type { AgentPrompt } from "@antumbra/prompts";
 import type { RepoRegistry } from "@antumbra/repos";
 import type { SessionInputDraft } from "@antumbra/session-inputs";
+import type {
+	SessionSendReceipt,
+	SessionSendRefused,
+	SiestaFields,
+	WakeFields,
+} from "@antumbra/sessions";
 import type { StoredAgentStatusInvalid } from "@antumbra/vocabulary/agent-runtime";
 import { Context, type Effect } from "effect";
 import type { ChangeProcedures } from "#change-procedures.ts";
 import type { SessionNotLive } from "#errors.ts";
 import type { RetireFields } from "#retire.ts";
-import type { SessionSendReceipt, SessionSendRefused } from "#session-send.ts";
-import type { SiestaFields } from "#session-siesta.ts";
-import type { WakeFields } from "#session-wake.ts";
 import type { SpawnFields } from "#spawn-fields.ts";
 import type { VoyageProcedures } from "#voyages.ts";
 

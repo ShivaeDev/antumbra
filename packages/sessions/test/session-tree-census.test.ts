@@ -1,3 +1,4 @@
+import { acquireTemporaryPersistence } from "@antumbra/persistence/testing";
 import type { SessionCensus } from "@antumbra/plugin-api";
 import type { AgentEvent } from "@antumbra/vocabulary/session-events";
 import { expect, it } from "@effect/vitest";
@@ -5,7 +6,6 @@ import { Effect } from "effect";
 import { sessionAtRest } from "#session-at-rest.ts";
 import { LiveDelegations } from "#session-tree-live.ts";
 import { makeSessionTreeSinks } from "#session-tree-sink.ts";
-import { acquireTemporaryPersistence } from "#test/harness.ts";
 import {
 	censusLane,
 	seedAgent,

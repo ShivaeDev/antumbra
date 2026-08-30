@@ -2,14 +2,16 @@ import { DomainFeeds } from "@antumbra/domain-feeds";
 import { isTerminalIntentStatus, Kernel } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
 import {
+	requireSiestaSucceeded,
+	rootSessions,
+	SessionShutdown,
+} from "@antumbra/sessions";
+import {
 	decodeSessionExecutionStatus,
 	decodeStoredAgentSessionStatus,
 } from "@antumbra/vocabulary/agent-runtime";
 import { Effect, Layer, Stream } from "effect";
 import { AgentDomain } from "#agent-domain-service.ts";
-import { rootSessions } from "#session-roots.ts";
-import { SessionShutdown } from "#session-shutdown.ts";
-import { requireSiestaSucceeded } from "#session-shutdown-verdict.ts";
 
 export const makeSessionShutdownDrain = Effect.gen(function* () {
 	const db = yield* Database;

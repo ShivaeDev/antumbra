@@ -1,14 +1,13 @@
 import { Changes } from "@antumbra/changes";
 import type { AgentSummary, Fleet, RepoSummary } from "@antumbra/contract";
 import { Database } from "@antumbra/persistence";
+import { rootSessions, situationsByAgent } from "@antumbra/sessions";
 import {
 	decodeStoredAgentStatus,
 	decodeStoredBerthStatus,
 	decodeStoredResourceReclaimState,
 } from "@antumbra/vocabulary/agent-runtime";
 import { Effect } from "effect";
-import { rootSessions } from "#session-roots.ts";
-import { situationsByAgent } from "#session-situations.ts";
 import { attributeIntents } from "#sight-diagnostics.ts";
 import { type FleetRuntime, sessionSummary } from "#sight-fleet-sessions.ts";
 import type { PendingIntent } from "#sight-intents.ts";

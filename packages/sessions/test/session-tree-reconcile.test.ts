@@ -1,9 +1,9 @@
+import { acquireTemporaryPersistence } from "@antumbra/persistence/testing";
 import { SessionEventJournal } from "@antumbra/session-event-journal";
 import type { AgentEvent } from "@antumbra/vocabulary/session-events";
 import { expect, it } from "@effect/vitest";
 import { Effect, Option } from "effect";
 import { makeSessionNodeReconciler } from "#session-tree-reconcile.ts";
-import { acquireTemporaryPersistence } from "#test/harness.ts";
 import {
 	journalOf,
 	pointAgent,

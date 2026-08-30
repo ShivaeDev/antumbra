@@ -1,4 +1,5 @@
 import type { StoredAgentSession } from "@antumbra/persistence";
+import { isRootSession } from "@antumbra/sessions";
 import {
 	type AgentSessionStatus,
 	type AgentStatus,
@@ -11,7 +12,6 @@ import {
 	type MoorageStatus,
 } from "@antumbra/vocabulary/agent-runtime";
 import { Effect, Result } from "effect";
-import { isRootSession } from "#session-roots.ts";
 import type { SpawnFields } from "#spawn-fields.ts";
 
 interface StoredAgent {

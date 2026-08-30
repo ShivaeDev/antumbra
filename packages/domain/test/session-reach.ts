@@ -1,6 +1,6 @@
 import { Database } from "@antumbra/persistence";
+import { rootSessionsOf } from "@antumbra/sessions";
 import { Effect, Option, Schedule } from "effect";
-import { rootSessionsOf } from "#session-roots.ts";
 import type { ScriptedBackend, ScriptedSession } from "#test/harness.ts";
 
 // why: how a rehearsal gets hold of a running Agent and makes it do

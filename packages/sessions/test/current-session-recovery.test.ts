@@ -1,10 +1,10 @@
 import { DomainFeedsLive } from "@antumbra/domain-feeds";
 import { Database, type NewAgentSession } from "@antumbra/persistence";
+import { acquireTemporaryPersistence } from "@antumbra/persistence/testing";
 import { SessionFabricLive } from "@antumbra/session-fabric";
 import { expect, it } from "@effect/vitest";
 import { Effect, Layer, Option, Result } from "effect";
 import { makeCurrentSessionRecovery } from "#current-session-recovery.ts";
-import { acquireTemporaryPersistence } from "#test/harness.ts";
 
 const createAgent = (
 	id: string,

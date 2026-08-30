@@ -79,6 +79,20 @@ export const vocabularyCapabilityPolicy = [
 				files.inPackage("session-fabric", "src/session-attachment.ts"),
 			).to(files.inPackage("vocabulary", "src/session-events.ts")),
 		}),
+	vocabularyAccess("sessions-uses-session-vocabulary")
+		.because(
+			"Sessions owns the durable Session tree: node lifecycle, the gap ledger, completeness, boot reconciliation, and the tree read model. It names Agent-runtime, Session-event, and Session-input language, not Board, Change, or Ruling subjects.",
+		)
+		.for(packages.named("sessions"))
+		.allowsOnly("agent-runtime", "session-events", "session-input")
+		.demonstratedBy({
+			illegal: importFrom(
+				files.inPackage("sessions", "src/session-send.ts"),
+			).to(files.inPackage("vocabulary", "src/board.ts")),
+			legal: importFrom(files.inPackage("sessions", "src/session-send.ts")).to(
+				files.inPackage("vocabulary", "src/agent-runtime.ts"),
+			),
+		}),
 	vocabularyAccess("session-inputs-uses-session-input-vocabulary")
 		.because(
 			"Session inputs take custody of what the admiral is about to say and name only the Session-input subject; runtime, Board, Change, and Session-event language belong to the seams that carry the words onward.",

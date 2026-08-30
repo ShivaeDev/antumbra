@@ -11,6 +11,6 @@ export const WAKE_PATIENCE_MILLIS = 60_000;
 // is the shipped policy and nothing has to provide it; a rehearsal overrides it
 // to watch the same unwinding happen in a tenth of a second.
 export const SessionWakePatience = Context.Reference<number>(
-	"@antumbra/domain/SessionWakePatience",
+	"@antumbra/sessions/SessionWakePatience",
 	{ defaultValue: () => WAKE_PATIENCE_MILLIS },
 );

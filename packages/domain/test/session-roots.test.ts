@@ -2,13 +2,13 @@ import { SightSource } from "@antumbra/contract";
 import { Database, type NewAgentSession } from "@antumbra/persistence";
 import type { TemporaryPersistence } from "@antumbra/persistence/testing";
 import { SessionFabricLive } from "@antumbra/session-fabric";
-import { expect, it } from "@effect/vitest";
-import { Effect, Layer, Result } from "effect";
-import { makeCurrentSessionResumable } from "#current-session-resumable.ts";
 import {
+	makeCurrentSessionResumable,
 	makeRefuseSubsessionAttach,
 	SubsessionAttachRefused,
-} from "#session-attach-roots.ts";
+} from "@antumbra/sessions";
+import { expect, it } from "@effect/vitest";
+import { Effect, Layer, Result } from "effect";
 import { SightSourceLive } from "#sight.ts";
 import { domainKernelLayer } from "#test/domain-layers.ts";
 import {

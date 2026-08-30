@@ -134,7 +134,13 @@ export const adapterPolicy = [
 			"The domain speaks to ports, never to the providers behind them. Naming a concrete adapter or a vendor SDK here would weld one provider into the use cases and make the next one a rewrite.",
 		)
 		.forbidsImportsFrom(
-			packages.named("domain", "domain-feeds", "changes", "session-fabric"),
+			packages.named(
+				"domain",
+				"domain-feeds",
+				"changes",
+				"session-fabric",
+				"sessions",
+			),
 		)
 		.to(anyOf(adapters, modules.named("@anthropic-ai/claude-agent-sdk")))
 		.demonstratedBy({

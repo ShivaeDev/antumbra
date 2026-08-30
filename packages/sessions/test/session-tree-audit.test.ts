@@ -1,8 +1,8 @@
+import { acquireTemporaryPersistence } from "@antumbra/persistence/testing";
 import type { AgentEvent } from "@antumbra/vocabulary/session-events";
 import { expect, it } from "@effect/vitest";
 import { Effect, Option } from "effect";
 import { makeSessionTreeAudits } from "#session-tree-audit.ts";
-import { acquireTemporaryPersistence } from "#test/harness.ts";
 import {
 	journalOf,
 	scriptedLane,

@@ -1,10 +1,10 @@
 import { Database } from "@antumbra/persistence";
+import { acquireTemporaryPersistence } from "@antumbra/persistence/testing";
 import { noSessionAudit } from "@antumbra/plugin-api";
 import type { AgentEvent } from "@antumbra/vocabulary/session-events";
 import { expect, it } from "@effect/vitest";
 import { Effect, Option } from "effect";
 import { makeSessionTreeSinks } from "#session-tree-sink.ts";
-import { acquireTemporaryPersistence } from "#test/harness.ts";
 import {
 	journalOf,
 	seedAgent,

@@ -14,12 +14,7 @@ import {
 	withSqlite,
 } from "#test/session-tree-harness.ts";
 
-// why: an Agent holding several open Sessions is legacy history the fleet
-// already heals at boot, so the migration heals it the same way rather than
-// stranding the database on the old schema. These tests carry the newest-wins
-// guarantee that used to be proved against the boot path, which can no longer
-// reach the state through the public surface once the index makes it
-// unrepresentable.
+// Legacy databases may predate the one-open-root index.
 it.effect("closes every open root but the newest when an Agent points nowhere", () =>
 	Effect.gen(function* () {
 		const database = freshDatabase();

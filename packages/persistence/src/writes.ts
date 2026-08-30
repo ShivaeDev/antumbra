@@ -22,12 +22,7 @@ type Mandatory<Model extends Written> = {
 	[Field in keyof FieldsOf<Model>]-?: Suppliable<ColumnOf<Model, Field>> extends true ? never : Field;
 }[keyof FieldsOf<Model>];
 
-// why: the generated create input keeps a second overload for nested writes, in
-// which a foreign-key column may be omitted because the parent write supplies
-// it. A top-level create falls through to that overload, so a NOT NULL column
-// without a default can go missing without a compile error — and did, until a
-// spawn failed at runtime. This shape asks the contract the same question the
-// database asks: a column the database cannot fill on its own is mandatory.
+// Generated nested-write inputs may omit foreign keys, so top-level writes derive mandatory fields from storage columns.
 export type NewRow<Model extends Written> = {
 	[Field in Mandatory<Model>]: FieldsOf<Model>[Field];
 } & {

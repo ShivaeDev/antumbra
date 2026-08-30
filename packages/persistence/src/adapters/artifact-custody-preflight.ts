@@ -62,13 +62,7 @@ const stageVerifiedArtifacts = (database: DatabaseSync, verified: ReadonlyArray<
 	}
 };
 
-// why: what decides whether custody needs staging is where the database
-// stands, never where the chain happens to end. Pinning it to the contract
-// custody itself produces would disable the whole upgrade path the moment a
-// later migration is appended, silently, for exactly the databases that still
-// need it. The chain is linear, so any run that starts at CUSTODY_FROM passes
-// through custody on its way anywhere; the migration's own staging guard still
-// refuses everything this stages but cannot verify.
+// Stage custody from its predecessor contract even when later migrations extend the chain.
 export const prepareArtifactCustodyMigration = (target: { readonly artifactsRoot?: string; readonly database: DatabaseFilePath }): void => {
 	const database = new DatabaseSync(target.database);
 	try {

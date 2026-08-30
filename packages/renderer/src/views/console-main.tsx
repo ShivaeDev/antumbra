@@ -1,4 +1,9 @@
-import type { ConsoleMode, Fleet, VoyageSummary } from "@antumbra/contract";
+import type {
+	ConsoleMode,
+	Fleet,
+	SettingsReading,
+	VoyageSummary,
+} from "@antumbra/contract";
 import { FlagshipPanel } from "#views/flagship.tsx";
 import { FleetSurface } from "#views/fleet-surface.tsx";
 import { QuayPanel } from "#views/quay.tsx";
@@ -14,8 +19,10 @@ interface ConsoleProps {
 	readonly onChange: (changeId: string | undefined) => void;
 	readonly onError: (message: string) => void;
 	readonly onSession: (sessionId: string | undefined) => void;
+	readonly onSettings: (settings: SettingsReading) => void;
 	readonly onVoyage: (voyageId: string) => void;
 	readonly session: string | undefined;
+	readonly settings: SettingsReading | undefined;
 	readonly voyage: string | undefined;
 	readonly voyages: ReadonlyArray<VoyageSummary>;
 }
@@ -26,11 +33,17 @@ interface ConsoleProps {
 const ASIDE =
 	"flex w-80 shrink-0 flex-col gap-5 overflow-x-hidden overflow-y-auto border-r border-border p-3";
 
+// why: the settings are read once by the shell and handed to every surface
+// that draws by them, so a transcript never opens a read of its own and a
+// change made on the Settings page is already in force when the reader
+// returns to the fleet.
 export const ConsoleMain = (props: ConsoleProps) => {
+	const foldToolCalls = props.settings?.settings.foldToolCalls ?? false;
 	if (props.mode === "flagship") {
 		return (
 			<FlagshipPanel
 				fleet={props.fleet}
+				foldToolCalls={foldToolCalls}
 				onError={props.onError}
 				voyages={props.voyages}
 			/>
@@ -40,6 +53,7 @@ export const ConsoleMain = (props: ConsoleProps) => {
 		return (
 			<FleetSurface
 				fleet={props.fleet}
+				foldToolCalls={foldToolCalls}
 				onError={props.onError}
 				onSelect={props.onSession}
 				session={props.session}
@@ -47,7 +61,13 @@ export const ConsoleMain = (props: ConsoleProps) => {
 		);
 	}
 	if (props.mode === "settings") {
-		return <SettingsPanel onError={props.onError} />;
+		return (
+			<SettingsPanel
+				onError={props.onError}
+				onSettings={props.onSettings}
+				settings={props.settings}
+			/>
+		);
 	}
 	if (props.mode === "quay") {
 		return (

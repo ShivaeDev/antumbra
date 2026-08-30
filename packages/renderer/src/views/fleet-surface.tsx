@@ -4,11 +4,13 @@ import { SessionPane } from "#views/session-pane.tsx";
 
 export const FleetSurface = ({
 	fleet,
+	foldToolCalls,
 	onError,
 	onSelect,
 	session,
 }: {
 	readonly fleet: Fleet | undefined;
+	readonly foldToolCalls: boolean;
 	readonly onError: (message: string) => void;
 	readonly onSelect: (sessionId: string | undefined) => void;
 	readonly session: string | undefined;
@@ -23,6 +25,7 @@ export const FleetSurface = ({
 		{session === undefined ? null : (
 			<SessionPane
 				fleet={fleet}
+				foldToolCalls={foldToolCalls}
 				key={session}
 				onClose={() => onSelect(undefined)}
 				onError={onError}

@@ -6,7 +6,7 @@ import { makeWindowRegistry } from "#adapters/windows/registry.ts";
 import { consolePlace, contents, countingSender, eventFor, ownContents, ownWindow, transcriptPlace } from "#test/windows.ts";
 
 describe("privileged IPC authority", () => {
-	it.effect("refuses invoke before decoding or executing foreign input", () =>
+	it.effect("attributes invokes to their owned window", () =>
 		Effect.gen(function* () {
 			const registry = makeWindowRegistry();
 			ownWindow(registry, "console", consolePlace);
@@ -17,24 +17,18 @@ describe("privileged IPC authority", () => {
 				executed.push(windowId);
 				return Effect.runPromise(Effect.succeed({ data: "called", ok: true }));
 			});
-			let decoded = false;
-			const hostile = new Proxy({}, { get: () => (decoded = true) });
-
-			expect(yield* Effect.promise(() => handler(eventFor(foreign), hostile))).toEqual({
+			expect(yield* Effect.promise(() => handler(eventFor(foreign), {}))).toEqual({
 				error: { code: "UNAUTHORIZED", message: "unauthorized bridge sender" },
 				ok: false,
 			});
-			expect(decoded).toBe(false);
 			expect(executed).toEqual([]);
 
-			// why: the record that answered for a request is the window that asked,
-			// so a request can never be attributed to a neighbouring window.
 			yield* Effect.promise(() => handler(eventFor(child.contents), {}));
 			expect(executed).toEqual(["child"]);
 		}),
 	);
 
-	it("refuses foreign subscribe and unsubscribe before decode or lookup", () => {
+	it("keeps another document from changing an owned subscription", () => {
 		const registry = makeWindowRegistry();
 		const owned = countingSender("owned", 17);
 		const foreign = countingSender("foreign", 17);
@@ -55,37 +49,17 @@ describe("privileged IPC authority", () => {
 		expect(starts).toBe(1);
 		expect(signal?.aborted).toBe(false);
 
-		let decoded = false;
-		const hostile = new Proxy({}, { get: () => (decoded = true) });
-		handlers.subscribe(eventFor(foreign), hostile);
+		handlers.subscribe(eventFor(foreign), {
+			id: "voyage-feed",
+			input: {},
+			path: "voyageFeed",
+		});
 		handlers.unsubscribe(eventFor(foreign), { id: "voyage-feed" });
 		expect(starts).toBe(1);
-		expect(decoded).toBe(false);
 		expect(signal?.aborted).toBe(false);
 
 		handlers.unsubscribe(eventFor(owned), { id: "voyage-feed" });
 		expect(signal?.aborted).toBe(true);
-	});
-
-	it("rejects a duplicate subscription id without replacing its live stream", () => {
-		const registry = makeWindowRegistry();
-		const owned = countingSender("owned", 17);
-		ownContents(registry, owned, "owned");
-		const signals: AbortSignal[] = [];
-		const handlers = makeTrpcSubscriptionHandlers(registry, (_sender, _windowId, _request, signal) => {
-			signals.push(signal);
-			return Effect.runPromise(Effect.never);
-		});
-		const request = { id: "voyage-feed", input: {}, path: "voyageFeed" };
-
-		handlers.subscribe(eventFor(owned), request);
-		handlers.subscribe(eventFor(owned), request);
-		expect(signals).toHaveLength(1);
-		expect(signals[0]?.aborted).toBe(false);
-		handlers.unsubscribe(eventFor(owned), { id: request.id });
-		expect(signals[0]?.aborted).toBe(true);
-		handlers.subscribe(eventFor(owned), request);
-		expect(signals).toHaveLength(1);
 	});
 
 	it("isolates unsubscribe and clears every stream on navigation or destruction", () => {

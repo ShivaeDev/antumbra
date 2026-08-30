@@ -170,7 +170,8 @@ model Voyage {
   northStar String
   context   String
   focusedAt DateTime?
-  backend   String
+  captainBackend String
+  crewBackend    String
   createdAt DateTime  @default(now())
   rulingSubjects RulingSubject[]
 }

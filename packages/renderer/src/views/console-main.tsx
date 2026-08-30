@@ -13,9 +13,11 @@ interface ConsoleProps {
 	readonly mode: ConsoleMode;
 	readonly onChange: (changeId: string | undefined) => void;
 	readonly onError: (message: string) => void;
+	readonly onPiece: (voyageId: string, pieceId: string) => void;
 	readonly onSession: (sessionId: string | undefined) => void;
 	readonly onSettings: (settings: SettingsReading) => void;
 	readonly onVoyage: (voyageId: string) => void;
+	readonly piece: string | undefined;
 	readonly session: string | undefined;
 	readonly settings: SettingsReading | undefined;
 	readonly voyage: string | undefined;
@@ -38,7 +40,15 @@ export const ConsoleMain = (props: ConsoleProps) => {
 	}
 	if (props.mode === "fleet") {
 		return (
-			<FleetSurface fleet={props.fleet} foldToolCalls={foldToolCalls} onError={props.onError} onSelect={props.onSession} session={props.session} />
+			<FleetSurface
+				fleet={props.fleet}
+				foldToolCalls={foldToolCalls}
+				onError={props.onError}
+				onPiece={props.onPiece}
+				onSelect={props.onSession}
+				onVoyage={props.onVoyage}
+				session={props.session}
+			/>
 		);
 	}
 	if (props.mode === "settings") {
@@ -68,7 +78,7 @@ export const ConsoleMain = (props: ConsoleProps) => {
 			{props.voyage === undefined ? (
 				<section className="m-auto text-xs text-muted-foreground">select a voyage to see its pieces</section>
 			) : (
-				<VoyagePanel onError={props.onError} voyageId={props.voyage} />
+				<VoyagePanel onError={props.onError} piece={props.piece} voyageId={props.voyage} />
 			)}
 		</div>
 	);

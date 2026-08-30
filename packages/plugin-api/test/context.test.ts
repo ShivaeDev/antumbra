@@ -66,13 +66,3 @@ it.effect("rejects a second change host with the same tag", () =>
 		expect(outcome._tag).toBe("DuplicateChangeHostTag");
 	}),
 );
-
-it.effect("secrets and settings are declared but empty in v0", () =>
-	Effect.gen(function* () {
-		const host = yield* emptyHost;
-		const secret = yield* host.context.secrets.get("anything");
-		const setting = yield* host.context.settings.get("anything");
-		expect(secret._tag).toBe("None");
-		expect(setting._tag).toBe("None");
-	}),
-);

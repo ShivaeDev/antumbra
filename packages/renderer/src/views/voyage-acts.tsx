@@ -1,6 +1,6 @@
-import { AGENT_BACKEND_TAGS, type VoyageCaptainView, type VoyageSummary } from "@antumbra/contract";
+import { AGENT_BACKEND_TAGS, type AgentBackendTag, type VoyageCaptainView, type VoyageSummary } from "@antumbra/contract";
 import { PinIcon } from "lucide-react";
-import { focusVoyage, hailCaptain, setVoyageBackend } from "#adapters/trpc-voyages.ts";
+import { focusVoyage, hailCaptain } from "#adapters/trpc-voyages.ts";
 import { Button } from "#components/ui/button.tsx";
 import { cn } from "#lib/utils.ts";
 import { captainAtWork } from "#voyages/acts.ts";
@@ -28,20 +28,26 @@ export const FocusToggle = ({ onError, voyage }: { readonly onError: (message: s
 	);
 };
 
-// why: the backend is a standing choice with two settled answers, so both are
-// on show with the current one pressed — the switch retargets the spawns the
-// voyage has yet to make, never the crew already sailing under it.
-export const BackendSwitch = ({ onError, voyage }: { readonly onError: (message: string) => void; readonly voyage: VoyageSummary }) => (
+export const BackendSwitch = ({
+	backend,
+	label,
+	onChange,
+}: {
+	readonly backend: string;
+	readonly label: string;
+	readonly onChange: (backend: AgentBackendTag) => void;
+}) => (
 	<fieldset className="flex shrink-0 items-center gap-0.5 rounded-md border border-border p-0.5">
-		<legend className="sr-only">Backend</legend>
+		<legend className="sr-only">{label}</legend>
+		<span className="px-1 text-2xs text-muted-foreground">{label}</span>
 		{AGENT_BACKEND_TAGS.map((tag) => (
 			<Button
-				aria-pressed={voyage.backend === tag}
+				aria-pressed={backend === tag}
 				key={tag}
-				onClick={() => setVoyageBackend({ backend: tag, voyageId: voyage.id }, onError)}
+				onClick={() => onChange(tag)}
 				size="sm"
 				type="button"
-				variant={voyage.backend === tag ? "secondary" : "ghost"}
+				variant={backend === tag ? "secondary" : "ghost"}
 			>
 				{tag}
 			</Button>

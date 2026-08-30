@@ -27,15 +27,19 @@ const share = (event: Usage): ReadonlyArray<string> => {
 // resumed turn. A category the provider did not report is left out entirely —
 // printing it as zero would claim the turn wrote no cache when the truth is
 // that nobody said.
-export const usageLabel = (event: Usage): string =>
-	[
-		"usage",
-		...(event.model === undefined ? [] : [event.model]),
-		`in ${event.inputTokens}`,
-		...(event.cacheReadTokens === undefined ? [] : [`cache read ${event.cacheReadTokens}`]),
-		...(event.cacheWriteTokens === undefined ? [] : [`cache write ${event.cacheWriteTokens}`]),
-		`out ${event.outputTokens}`,
-		...share(event),
-		...(event.costUsd === undefined ? [] : [`turn ${money(event.costUsd)}`]),
-		...(event.cumulativeCostUsd === undefined ? [] : [`total ${money(event.cumulativeCostUsd)}`]),
-	].join(" · ");
+const tokens = (event: Usage): ReadonlyArray<string> => [
+	...(event.model === undefined ? [] : [event.model]),
+	`in ${event.inputTokens}`,
+	...(event.cacheReadTokens === undefined ? [] : [`cache read ${event.cacheReadTokens}`]),
+	...(event.cacheWriteTokens === undefined ? [] : [`cache write ${event.cacheWriteTokens}`]),
+	`out ${event.outputTokens}`,
+];
+
+const costs = (event: Usage): ReadonlyArray<string> => [
+	...(event.costUsd === undefined ? [] : [`turn ${money(event.costUsd)}`]),
+	...(event.cumulativeCostUsd === undefined ? [] : [`total ${money(event.cumulativeCostUsd)}`]),
+];
+
+export const usageFacts = (event: Usage): ReadonlyArray<string> => [...tokens(event), ...costs(event)];
+
+export const usageLabel = (event: Usage): string => ["usage", ...tokens(event), ...share(event), ...costs(event)].join(" · ");

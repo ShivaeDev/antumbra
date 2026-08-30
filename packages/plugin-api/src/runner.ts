@@ -37,9 +37,6 @@ export class UnknownRunnerError extends Data.TaggedError("UnknownRunnerError")<{
 
 export type RunnerError = RunnerAuthRequired | RunnerFailure | RunnerProvisionConflict;
 
-// why: the slug travels with the request because the registry owns what a
-// repository is called. A runner deriving it again would be a second naming
-// authority, free to drift from the folder the agent was told to stand in.
 export interface RepoRequest {
 	readonly ref: string;
 	readonly slug: string;
@@ -59,8 +56,6 @@ export interface BerthPlan {
 	readonly source: string;
 }
 
-// why: the root is the agent's cwd and doubles as its scratchpad — it exists
-// even when no repos were requested.
 export interface MooragePlan {
 	readonly berths: ReadonlyArray<BerthPlan>;
 	readonly root: string;
@@ -88,9 +83,8 @@ export interface Runner {
 	readonly capabilities: RunnerCapabilities;
 	readonly plan: (request: ProvisionRequest) => MooragePlan;
 	readonly provision: (plan: MooragePlan) => Effect.Effect<void, RunnerError>;
-	// why: reclaim refuses dirty berths by design; scrap is a destructive
-	// primitive and automatic recovery must never call it.
 	readonly reclaim: (berth: BerthSite) => Effect.Effect<ReclaimVerdict, RunnerError>;
+	// Automatic recovery must never call this destructive operation.
 	readonly scrap: (berth: BerthSite) => Effect.Effect<void, RunnerError>;
 	readonly tag: string;
 }

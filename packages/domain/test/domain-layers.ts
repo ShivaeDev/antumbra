@@ -15,7 +15,7 @@ import { DispatcherLive, type DispatcherOptions } from "#dispatcher.ts";
 import { AgentDomain, AgentDomainLive } from "#domain.ts";
 import { domainCapabilities } from "#domain-capabilities.ts";
 import { IntentFeedLive } from "#intent-feed.ts";
-import { KernelReachInstaller, KernelReachLive } from "#kernel-reach.ts";
+import { KernelReachInstaller, KernelReachLive, type KernelReachService } from "#kernel-reach.ts";
 import { RulingAscentLive } from "#ruling-ascent.ts";
 import { RulingDeliveryLive } from "#ruling-delivery.ts";
 import { SessionShutdownLive } from "#session-shutdown-live.ts";
@@ -27,15 +27,16 @@ const artifactsDirectory = (temporary: TemporaryPersistence) => join(dirname(tem
 
 const sessionInputsDirectory = (temporary: TemporaryPersistence) => join(dirname(temporary.database), "session-inputs");
 
-const fakeKernelReachLive = Layer.effectDiscard(
-	Effect.gen(function* () {
-		const installer = yield* KernelReachInstaller;
-		yield* installer.install(fakeKernelReach);
-	}),
-);
+const kernelReachLive = (reach: KernelReachService) =>
+	Layer.effectDiscard(
+		Effect.gen(function* () {
+			const installer = yield* KernelReachInstaller;
+			yield* installer.install(reach);
+		}),
+	);
 
-export const domainCapabilityLayer = (temporary: TemporaryPersistence) =>
-	fakeKernelReachLive.pipe(
+export const domainCapabilityLayer = (temporary: TemporaryPersistence, reach: KernelReachService = fakeKernelReach) =>
+	kernelReachLive(reach).pipe(
 		Layer.provideMerge(
 			domainCapabilities(new Map(), new Map([[passiveRunner.tag, passiveRunner]]), artifactsDirectory(temporary)).pipe(
 				Layer.provide(SessionFabricLive),

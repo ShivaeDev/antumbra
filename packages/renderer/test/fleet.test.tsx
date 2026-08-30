@@ -4,7 +4,16 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { FleetPanel } from "#views/fleet.tsx";
 
 const render = (fleet: Fleet): string =>
-	renderToStaticMarkup(<FleetPanel fleet={fleet} onError={() => undefined} onSelect={() => undefined} selected={undefined} />);
+	renderToStaticMarkup(
+		<FleetPanel
+			fleet={fleet}
+			onError={() => undefined}
+			onPiece={() => undefined}
+			onSelect={() => undefined}
+			onVoyage={() => undefined}
+			selected={undefined}
+		/>,
+	);
 
 const fleetOf = (agents: ReadonlyArray<AgentSummary>): Fleet => ({
 	agents,
@@ -37,6 +46,7 @@ const navigator = (canInterrupt: boolean, execution: string): AgentSummary => ({
 		},
 	],
 	status: "alive",
+	work: [],
 });
 
 const renderFleet = (canInterrupt: boolean, execution: string): string => render(fleetOf([navigator(canInterrupt, execution)]));

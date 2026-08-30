@@ -28,6 +28,7 @@ const fleetOf = (presence: SessionSummary["presence"]): Fleet => ({
 			role: "hand",
 			sessions: [session(presence)],
 			status: "alive",
+			work: [],
 		},
 	],
 	backends: ["scripted"],

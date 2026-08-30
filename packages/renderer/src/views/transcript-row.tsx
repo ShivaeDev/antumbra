@@ -25,10 +25,12 @@ const Notice = ({ item }: { readonly item: TranscriptNotice }) => (
 
 export const TranscriptRow = ({
 	item,
+	live = true,
 	onOpenNode,
 	sessionId = "",
 }: {
 	readonly item: FoldedItem;
+	readonly live?: boolean | undefined;
 	readonly onOpenNode?: ((nodeId: string) => void) | undefined;
 	readonly sessionId?: string | undefined;
 }) => {
@@ -49,12 +51,12 @@ export const TranscriptRow = ({
 	if (item.kind === "tool") {
 		return (
 			<TranscriptGutter label={item.servedBy === "antumbra" ? "Antumbra" : "tool"}>
-				<TranscriptTool item={item} />
+				<TranscriptTool item={item} live={live} />
 			</TranscriptGutter>
 		);
 	}
 	if (item.kind === "toolRun") {
-		return <TranscriptToolRunRow run={item} />;
+		return <TranscriptToolRunRow live={live} run={item} />;
 	}
 	if (item.kind === "delegation") {
 		return <TranscriptDelegationMark item={item} onOpenNode={onOpenNode} />;

@@ -43,6 +43,7 @@ const fleetWith = (presence: Presence, intents: ReadonlyArray<Intent> = [], canA
 				},
 			],
 			status: "alive",
+			work: [],
 		},
 	],
 	backends: ["scripted"],

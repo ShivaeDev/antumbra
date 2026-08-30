@@ -37,14 +37,6 @@ export type ArtifactLanding =
 			readonly supersededArtifactId: string;
 	  };
 
-export interface ArtifactPublication {
-	readonly agentId: string;
-	readonly basename: string;
-	readonly byteSize: number;
-	readonly digest: string;
-	readonly moorageRoot: string;
-}
-
 export interface ArtifactMarkdown {
 	readonly artifactId: string;
 	readonly byteSize: number;

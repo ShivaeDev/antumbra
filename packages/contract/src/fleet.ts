@@ -45,6 +45,25 @@ export const BerthSummary = Schema.Struct({
 });
 export type BerthSummary = typeof BerthSummary.Type;
 
+export const PieceWork = Schema.Struct({
+	kind: Schema.Literal("piece"),
+	pieceId: Schema.String,
+	pieceTitle: Schema.String,
+	voyageId: Schema.String,
+	voyageName: Schema.String,
+});
+export type PieceWork = typeof PieceWork.Type;
+
+export const VoyageCommand = Schema.Struct({
+	kind: Schema.Literal("voyage"),
+	voyageId: Schema.String,
+	voyageName: Schema.String,
+});
+export type VoyageCommand = typeof VoyageCommand.Type;
+
+export const AgentWork = Schema.Union([PieceWork, VoyageCommand]);
+export type AgentWork = typeof AgentWork.Type;
+
 export const AgentSummary = Schema.Struct({
 	berths: Schema.Array(BerthSummary),
 	// why: whether this Agent may be ended now. Retirement stops every Session
@@ -58,6 +77,7 @@ export const AgentSummary = Schema.Struct({
 	role: Schema.String,
 	sessions: Schema.Array(SessionSummary),
 	status: Schema.String,
+	work: Schema.Array(AgentWork),
 });
 export type AgentSummary = typeof AgentSummary.Type;
 

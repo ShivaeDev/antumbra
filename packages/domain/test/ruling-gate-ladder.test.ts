@@ -7,8 +7,9 @@ import { piece, stateOf, world } from "#test/piece-ladder-fixtures.ts";
 import type { VoyageRow } from "#voyage-rows.ts";
 
 const reef: VoyageRow = {
-	backend: "scripted",
+	captainBackend: "scripted",
 	context: "the reef is uncharted",
+	crewBackend: "scripted",
 	focusedAt: null,
 	id: "voyage-1",
 	kind: "voyage",

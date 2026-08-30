@@ -27,6 +27,7 @@ const decodeLayout = Schema.decodeUnknownResult(Schema.fromJsonString(WindowLayo
 export const defaultConsole = {
 	changeId: null,
 	mode: "flagship",
+	pieceId: null,
 	role: "console",
 	sessionId: null,
 	voyageId: null,

@@ -17,12 +17,16 @@ const DOT: Readonly<Record<Standing, string>> = {
 export const RosterGroupPanel = ({
 	group,
 	onError,
+	onPiece,
 	onSelect,
+	onVoyage,
 	selected,
 }: {
 	readonly group: RosterGroup;
 	readonly onError: (message: string) => void;
+	readonly onPiece: (voyageId: string, pieceId: string) => void;
 	readonly onSelect: (sessionId: string) => void;
+	readonly onVoyage: (voyageId: string) => void;
 	readonly selected: string | undefined;
 }) => (
 	<section className="flex min-w-0 flex-col gap-2">
@@ -34,7 +38,7 @@ export const RosterGroupPanel = ({
 		</header>
 		<div className="grid min-w-0 grid-cols-[repeat(auto-fill,minmax(19rem,1fr))] gap-2">
 			{group.agents.map((agent) => (
-				<AgentCard agent={agent} key={agent.id} onError={onError} onSelect={onSelect} selected={selected} />
+				<AgentCard agent={agent} key={agent.id} onError={onError} onPiece={onPiece} onSelect={onSelect} onVoyage={onVoyage} selected={selected} />
 			))}
 		</div>
 	</section>

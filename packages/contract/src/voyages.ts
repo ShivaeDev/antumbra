@@ -42,9 +42,8 @@ export class VoyageSource extends Context.Service<
 		readonly refreshChanges: Effect.Effect<void, SightFailure>;
 		readonly reportMarkdown: (reportId: string) => Effect.Effect<ReportMarkdown, SightFailure>;
 		readonly rewire: (request: RewireRequest) => Effect.Effect<void, SightFailure>;
-		// why: a voyage's backend is where its next spawns go — every agent
-		// already sailing keeps the backend it was born on.
-		readonly setBackend: (request: VoyageBackendRequest) => Effect.Effect<void, SightFailure>;
+		readonly setCaptainBackend: (request: VoyageBackendRequest) => Effect.Effect<void, SightFailure>;
+		readonly setCrewBackend: (request: VoyageBackendRequest) => Effect.Effect<void, SightFailure>;
 		readonly setFocus: (voyageId: string, focused: boolean) => Effect.Effect<void, SightFailure>;
 		readonly supersedeArtifact: (request: ArtifactSupersessionRequest) => Effect.Effect<void, SightFailure>;
 		readonly unpark: (pieceId: string) => Effect.Effect<void, SightFailure>;

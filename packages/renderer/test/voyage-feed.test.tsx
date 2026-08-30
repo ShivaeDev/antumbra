@@ -36,7 +36,8 @@ vi.mock("#adapters/trpc-voyages.ts", () => ({
 	readArtifactMarkdown: vi.fn(),
 	readReportMarkdown: vi.fn(),
 	rewirePiece: vi.fn(),
-	setVoyageBackend: vi.fn(),
+	setCaptainBackend: vi.fn(),
+	setCrewBackend: vi.fn(),
 	unparkPiece: vi.fn(),
 	watchVoyage,
 	workPieceNow: vi.fn(),
@@ -56,7 +57,7 @@ const mount = (): { container: HTMLElement; root: Root } => {
 const render = (root: Root, voyageId: string): Effect.Effect<void> =>
 	Effect.promise(() =>
 		act(() => {
-			root.render(<VoyagePanel onError={() => undefined} voyageId={voyageId} />);
+			root.render(<VoyagePanel onError={() => undefined} piece={undefined} voyageId={voyageId} />);
 			return Promise.resolve();
 		}),
 	);

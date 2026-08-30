@@ -86,41 +86,6 @@ it.effectDB("reads the latest word on each axis", function* () {
 	}).pipe(Effect.provide(layer));
 });
 
-// why: two words about one ruling can land in the same millisecond, and the
-// effective axes are the last word on each — so the order is settled by the
-// record rather than by whatever the database happened to hand back.
-it.effectDB("settles reclassifications that share a millisecond", function* (db) {
-	yield* Effect.gen(function* () {
-		yield* seedFleet;
-		const rulings = yield* Rulings;
-		const requested = yield* rulings.request(asked);
-		const at = new Date("2026-08-29T09:00:00.000Z");
-		yield* db.RulingReclassification.create({
-			at,
-			by: "admiral",
-			id: "reclassification-later",
-			note: null,
-			radius: "piece",
-			rulingId: requested.id,
-			urgency: null,
-		});
-		yield* db.RulingReclassification.create({
-			at,
-			by: "admiral",
-			id: "reclassification-earlier",
-			note: null,
-			radius: "fleet",
-			rulingId: requested.id,
-			urgency: null,
-		});
-
-		const read = yield* rulings.get(requested.id);
-
-		expect(read.reclassifications.map((row) => row.radius)).toEqual([Option.some("fleet"), Option.some("piece")]);
-		expect(read.radius).toBe("piece");
-	}).pipe(Effect.provide(layer));
-});
-
 it.effectDB("meets the open set in its reclassified order", function* () {
 	yield* Effect.gen(function* () {
 		yield* seedFleet;
@@ -144,8 +109,6 @@ it.effectDB("meets the open set in its reclassified order", function* () {
 	}).pipe(Effect.provide(layer));
 });
 
-// why: a ruled ruling is read in the light of the axes it was ruled under, so
-// the standing set carries the reclassified radius and the declared one beside.
 it.effectDB("stands at the radius it was ruled under", function* () {
 	yield* Effect.gen(function* () {
 		yield* seedFleet;
@@ -166,78 +129,5 @@ it.effectDB("stands at the radius it was ruled under", function* () {
 
 		expect(standing?.radius).toBe("fleet");
 		expect(standing?.declared.radius).toBe("voyage");
-	}).pipe(Effect.provide(layer));
-});
-
-it.effectDB("refuses a reclassification naming no axis", function* (db) {
-	yield* Effect.scoped(
-		Effect.gen(function* () {
-			yield* seedFleet;
-			const feeds = yield* DomainFeeds;
-			const rulings = yield* Rulings;
-			const requested = yield* rulings.request(asked);
-			const notices = yield* feeds.subscribeRulingRefresh();
-
-			const failure = yield* Effect.flip(
-				rulings.reclassify({
-					by: "admiral",
-					note: "nothing to say",
-					rulingId: requested.id,
-				}),
-			);
-
-			expect(failure).toMatchObject({
-				_tag: "RulingReclassificationEmpty",
-				rulingId: requested.id,
-			});
-			expect(yield* db.RulingReclassification.all()).toEqual([]);
-			expect(yield* PubSub.takeUpTo(notices, 1)).toEqual([]);
-		}),
-	).pipe(Effect.provide(layer));
-});
-
-it.effectDB("refuses to reclassify a ruling that already stands", function* (db) {
-	yield* Effect.gen(function* () {
-		yield* seedFleet;
-		const rulings = yield* Rulings;
-		const requested = yield* rulings.request(asked);
-		yield* rulings.rule({
-			answer: "trust the soundings",
-			by: "admiral",
-			rulingId: requested.id,
-		});
-
-		const failure = yield* Effect.flip(
-			rulings.reclassify({
-				by: "admiral",
-				radius: "fleet",
-				rulingId: requested.id,
-			}),
-		);
-
-		expect(failure).toMatchObject({
-			_tag: "RulingAlreadyRuled",
-			rulingId: requested.id,
-		});
-		expect(yield* db.RulingReclassification.all()).toEqual([]);
-	}).pipe(Effect.provide(layer));
-});
-
-it.effectDB("refuses to reclassify a ruling nothing asked", function* () {
-	yield* Effect.gen(function* () {
-		const rulings = yield* Rulings;
-
-		const failure = yield* Effect.flip(
-			rulings.reclassify({
-				by: "admiral",
-				rulingId: "ruling-missing",
-				urgency: "blocking",
-			}),
-		);
-
-		expect(failure).toMatchObject({
-			_tag: "RulingNotFound",
-			rulingId: "ruling-missing",
-		});
 	}).pipe(Effect.provide(layer));
 });

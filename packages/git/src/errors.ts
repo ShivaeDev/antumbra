@@ -23,9 +23,6 @@ export class GitCommandFailed extends Data.TaggedError("GitCommandFailed")<GitFa
 
 export class GitOutputInvalid extends Data.TaggedError("GitOutputInvalid")<GitFailureFields> {}
 
-// why: refused before git is spawned, so it is not a failed command — the
-// branch a caller asked for was never one this system is allowed to move.
-// The detail reaches a model through a tool answer, so it reads as a sentence.
 export class GitPushRefused extends Data.TaggedError("GitPushRefused")<{
 	readonly branch: string;
 	readonly detail: string;

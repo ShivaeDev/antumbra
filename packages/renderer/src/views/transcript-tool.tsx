@@ -5,11 +5,14 @@ import { toolFields } from "#transcript/tool-input.ts";
 import { Disclosure } from "#views/transcript-disclosure.tsx";
 import { Payload } from "#views/transcript-payload.tsx";
 
-const state = (item: ToolItem): React.ReactNode => {
+const state = (item: ToolItem, live: boolean): React.ReactNode => {
 	if (item.ok === false) {
 		return <Badge variant="destructive">failed</Badge>;
 	}
-	return item.result === undefined ? <span className="shrink-0 text-2xs text-muted-foreground">running</span> : null;
+	if (item.result !== undefined) {
+		return null;
+	}
+	return <span className="shrink-0 text-2xs text-muted-foreground">{live ? "running" : "unfinished"}</span>;
 };
 
 const Input = ({ item }: { readonly item: ToolItem }) => {
@@ -26,20 +29,18 @@ const Input = ({ item }: { readonly item: ToolItem }) => {
 	);
 };
 
-export const TranscriptTool = ({ item }: { readonly item: ToolItem }) => {
-	return (
-		<Disclosure
-			body={
-				<>
-					{item.providerName === undefined ? null : <Payload label="Called as" text={item.providerName} />}
-					<Input item={item} />
-					{item.result === undefined ? null : <Payload label="Result" text={item.result} />}
-				</>
-			}
-			name={<span className="shrink-0 font-medium">{item.name}</span>}
-			subject="this call"
-			summary={summaryLine(item.input)}
-			trailing={state(item)}
-		/>
-	);
-};
+export const TranscriptTool = ({ item, live }: { readonly item: ToolItem; readonly live: boolean }) => (
+	<Disclosure
+		body={
+			<>
+				{item.providerName === undefined ? null : <Payload label="Called as" text={item.providerName} />}
+				<Input item={item} />
+				{item.result === undefined ? null : <Payload label="Result" text={item.result} />}
+			</>
+		}
+		name={<span className="shrink-0 font-medium">{item.name}</span>}
+		subject="this call"
+		summary={summaryLine(item.input)}
+		trailing={state(item, live)}
+	/>
+);

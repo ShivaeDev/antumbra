@@ -27,7 +27,8 @@ const fleet = () =>
 		<VoyagesPanel onError={() => undefined} onSelect={() => undefined} selected={undefined} voyages={[reefSummary, flagshipSummary]} />,
 	);
 
-const pieces = () => renderToStaticMarkup(<PiecesPanel onError={() => undefined} pieces={reefView.pieces} voyageId={reefView.id} />);
+const pieces = () =>
+	renderToStaticMarkup(<PiecesPanel onError={() => undefined} pieces={reefView.pieces} selected={undefined} voyageId={reefView.id} />);
 
 it("a voyage's standing is a bar the eye reads, not a run of arithmetic", () => {
 	const html = list();

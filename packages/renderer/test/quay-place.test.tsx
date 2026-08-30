@@ -58,6 +58,7 @@ vi.mock("#views/console-main.tsx", () => ({
 const place = {
 	changeId: "change-7",
 	mode: "quay",
+	pieceId: null,
 	role: "console",
 	sessionId: null,
 	voyageId: null,

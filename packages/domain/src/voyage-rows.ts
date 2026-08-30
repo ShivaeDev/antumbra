@@ -12,8 +12,9 @@ export type { EdgeRow, PieceRow } from "@antumbra/pieces";
 export type AwaitingRuling = Pick<RulingGate, "question" | "rulingId">;
 
 export interface VoyageRow {
-	readonly backend: string;
+	readonly captainBackend: string;
 	readonly context: string;
+	readonly crewBackend: string;
 	readonly focusedAt: Date | null;
 	readonly id: string;
 	// why: the fleet's own voyage is told apart by this word rather than by its

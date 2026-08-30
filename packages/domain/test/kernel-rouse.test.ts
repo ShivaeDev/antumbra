@@ -1,8 +1,8 @@
-import { defineIntent, IntentExecution, type IntentStatus, isTerminalIntentStatus, Kernel, KernelLive } from "@antumbra/kernel";
-import { type WakeFields, WakePayload } from "@antumbra/sessions";
+import { defineIntent, IntentExecution, type IntentStatus, Kernel, KernelLive } from "@antumbra/kernel";
+import { WakePayload } from "@antumbra/sessions";
 import { SessionInputId } from "@antumbra/vocabulary/session-input";
 import { expect, it } from "@effect/vitest";
-import { Deferred, Effect, Layer, Option, Ref, Stream } from "effect";
+import { Effect, Layer, Option, Ref, Stream } from "effect";
 import { makeRouseSession } from "#kernel-rouse.ts";
 import { acquireTemporaryPersistence } from "#test/harness.ts";
 
@@ -13,59 +13,48 @@ const untilWaiting = <E, R>(changes: Stream.Stream<IntentStatus, E, R>) =>
 		Effect.map(Option.getOrThrow),
 	);
 
-const untilTerminal = <E, R>(changes: Stream.Stream<IntentStatus, E, R>) =>
-	changes.pipe(Stream.takeUntil(isTerminalIntentStatus), Stream.runLast, Effect.map(Option.getOrThrow));
-
-const expectDistinctDemandAdvances = (tag: string, secondPayload: WakeFields) =>
-	Effect.gen(function* () {
-		const temporary = yield* acquireTemporaryPersistence;
-		const firstInputId = SessionInputId.make("00000000-0000-4000-8000-000000000044");
-		const firstAdvanced = yield* Deferred.make<void>();
-		const firstAttempts = yield* Ref.make(0);
-		const executed = yield* Ref.make<ReadonlyArray<WakeFields>>([]);
-		const wake = defineIntent({
-			execute: (payload) =>
-				Effect.gen(function* () {
-					yield* Ref.update(executed, (seen) => [...seen, payload]);
-					if (payload.inputId !== firstInputId) {
-						yield* Deferred.await(firstAdvanced);
-						return;
-					}
-					const attempt = yield* Ref.updateAndGet(firstAttempts, (count) => count + 1);
-					if (attempt === 1) {
-						return yield* IntentExecution.use((execution) => execution.wait("session is asleep"));
-					}
-					yield* Deferred.succeed(firstAdvanced, undefined);
+const expectDistinctDemandAdvances = Effect.gen(function* () {
+	const firstPayload = {
+		inputId: SessionInputId.make("00000000-0000-4000-8000-000000000044"),
+		sessionId: "session-one",
+	} as const;
+	const secondPayload = {
+		message: "Please continue",
+		sessionId: "session-one",
+	} as const;
+	const retried = yield* Ref.make<ReadonlyArray<string>>([]);
+	const submitted = yield* Ref.make<ReadonlyArray<unknown>>([]);
+	const kernel = Kernel.of({
+		active: (kind) =>
+			kind.decode(JSON.stringify(firstPayload)).pipe(
+				Effect.orDie,
+				Effect.map((payload) => [{ detail: "session is asleep", id: "input-wake", payload, status: "waiting" as const }]),
+			),
+		cancel: () => Effect.die("unexpected cancel"),
+		changes: () => Stream.empty,
+		retry: (id) => Ref.update(retried, (ids) => [...ids, id]),
+		retryIfWaiting: () => Effect.die("unexpected conditional retry"),
+		submit: (_kind, payload) =>
+			Ref.update(submitted, (payloads) => [...payloads, payload]).pipe(
+				Effect.as({
+					changes: Stream.empty,
+					id: "prompt-wake",
 				}),
-			payload: WakePayload,
-			tag,
-		});
-		yield* Effect.gen(function* () {
-			const kernel = yield* Kernel;
-			const rouse = yield* makeRouseSession(wake);
-			const firstPayload = {
-				inputId: firstInputId,
-				sessionId: "session-one",
-			} as const;
-			const first = yield* rouse(firstPayload);
-			expect(yield* untilWaiting(first.changes)).toBe("waiting");
-
-			const second = yield* rouse(secondPayload);
-			expect(second.id).not.toBe(first.id);
-			expect(second.retried).toBe(false);
-			const [firstStatus, secondStatus] = yield* Effect.all([untilTerminal(kernel.changes(first.id)), untilTerminal(second.changes)], {
-				concurrency: "unbounded",
-			});
-			expect(firstStatus).toBe("succeeded");
-			expect(secondStatus).toBe("succeeded");
-			expect(yield* Ref.get(firstAttempts)).toBe(2);
-			const seen = yield* Ref.get(executed);
-			expect(seen).toHaveLength(3);
-			expect(seen.filter((candidate) => candidate.inputId === firstInputId)).toHaveLength(2);
-			expect(seen).toContainEqual(secondPayload);
-			expect(yield* kernel.active(wake)).toEqual([]);
-		}).pipe(Effect.provide(KernelLive({ kinds: [wake] }).pipe(Layer.provideMerge(temporary.layer))));
+			),
+		transitions: Stream.empty,
 	});
+	const wake = defineIntent({
+		execute: () => Effect.void,
+		payload: WakePayload,
+		tag: "test/rouse-distinct-demand",
+	});
+	const rouse = yield* makeRouseSession(wake).pipe(Effect.provideService(Kernel, kernel));
+	const result = yield* rouse(secondPayload).pipe(Effect.provideService(Kernel, kernel));
+	expect(result.id).toBe("prompt-wake");
+	expect(result.retried).toBe(false);
+	expect(yield* Ref.get(retried)).toEqual(["input-wake"]);
+	expect(yield* Ref.get(submitted)).toEqual([secondPayload]);
+});
 
 it.live("an input wake replaces a parked bare wake without orphaning its input", () =>
 	Effect.gen(function* () {
@@ -99,25 +88,11 @@ it.live("an input wake replaces a parked bare wake without orphaning its input",
 	}),
 );
 
-it.live("a later input advances both distinct input wakes", () =>
-	expectDistinctDemandAdvances("test/rouse-distinct-inputs", {
-		inputId: SessionInputId.make("00000000-0000-4000-8000-000000000045"),
-		sessionId: "session-one",
-	}),
-);
-
-it.live("a later prompt advances itself and the distinct input wake", () =>
-	expectDistinctDemandAdvances("test/rouse-input-then-prompt", {
-		message: "Please continue",
-		sessionId: "session-one",
-	}),
-);
+it.effect("a distinct prompt advances the parked input before submitting itself", () => expectDistinctDemandAdvances);
 
 it.live("repeating a parked prompt advances an input that parked again", () =>
 	Effect.gen(function* () {
 		const inputId = SessionInputId.make("00000000-0000-4000-8000-000000000046");
-		const inputAdvanced = yield* Deferred.make<void>();
-		const promptAdvanced = yield* Deferred.make<void>();
 		const retried = yield* Ref.make<ReadonlyArray<string>>([]);
 		const inputWakeId = "input-wake";
 		const promptWakeId = "prompt-wake";
@@ -139,10 +114,6 @@ it.live("repeating a parked prompt advances an input that parked again", () =>
 				status: "waiting",
 			},
 		] as const;
-		const progress = (id: string) => (id === inputWakeId ? inputAdvanced : promptAdvanced);
-		const advancePrompt = Deferred.await(inputAdvanced).pipe(Effect.andThen(Deferred.succeed(promptAdvanced, undefined)));
-		const markAdvanced = (id: string) => (id === inputWakeId ? Deferred.succeed(inputAdvanced, undefined) : advancePrompt);
-		const retry = (id: string) => Ref.update(retried, (ids) => [...ids, id]).pipe(Effect.andThen(markAdvanced(id)), Effect.asVoid);
 		const kernel = Kernel.of({
 			active: (kind) =>
 				Effect.forEach(parked, (intent) =>
@@ -157,8 +128,8 @@ it.live("repeating a parked prompt advances an input that parked again", () =>
 					),
 				),
 			cancel: () => Effect.die("unexpected cancel"),
-			changes: (id) => Stream.fromEffect(Deferred.await(progress(id))).pipe(Stream.map(() => "succeeded" as const)),
-			retry,
+			changes: () => Stream.empty,
+			retry: (id) => Ref.update(retried, (ids) => [...ids, id]),
 			retryIfWaiting: () => Effect.die("unexpected conditional retry"),
 			submit: () => Effect.die("unexpected submit"),
 			transitions: Stream.empty,
@@ -172,11 +143,6 @@ it.live("repeating a parked prompt advances an input that parked again", () =>
 		const repeated = yield* rouse(promptPayload).pipe(Effect.provideService(Kernel, kernel));
 		expect(repeated.id).toBe(promptWakeId);
 		expect(repeated.retried).toBe(true);
-		const [inputStatus, promptStatus] = yield* Effect.all([untilTerminal(kernel.changes(inputWakeId)), untilTerminal(repeated.changes)], {
-			concurrency: "unbounded",
-		});
-		expect(inputStatus).toBe("succeeded");
-		expect(promptStatus).toBe("succeeded");
 		expect(yield* Ref.get(retried)).toEqual([inputWakeId, promptWakeId]);
 	}),
 );

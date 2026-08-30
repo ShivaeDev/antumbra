@@ -37,6 +37,15 @@ const surveyor: AgentSummary = {
 		},
 	],
 	status: "alive",
+	work: [
+		{
+			kind: "piece",
+			pieceId: soundings.id,
+			pieceTitle: soundings.title,
+			voyageId: reefSummary.id,
+			voyageName: reefSummary.name,
+		},
+	],
 };
 
 export const crewedFleet = { ...fleet, agents: [...fleet.agents, surveyor] };

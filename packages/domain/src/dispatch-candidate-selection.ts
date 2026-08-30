@@ -57,7 +57,7 @@ export const dispatchCandidate = (
 			pending.sessionIds.add(assigned.sessionId);
 			return budget;
 		}
-		if (budget <= 0 || pending.pieceIds.has(candidate.piece.id) || !(yield* available(capacities, candidate.voyage.backend))) {
+		if (budget <= 0 || pending.pieceIds.has(candidate.piece.id) || !(yield* available(capacities, candidate.voyage.crewBackend))) {
 			return budget;
 		}
 		yield* dispatchPiece(port, candidate, { _tag: "spawn" }).pipe(Effect.annotateSpans({ pieceId: candidate.piece.id }));

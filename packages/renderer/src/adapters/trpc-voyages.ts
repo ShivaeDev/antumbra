@@ -58,7 +58,9 @@ export const openVoyage = (request: OpenVoyageRequest, onDone: (voyage: VoyageSu
 export const focusVoyage = (voyageId: string, focused: boolean, onError: OnError): void =>
 	fired(client.focusVoyage.mutate({ focused, voyageId }), onError);
 
-export const setVoyageBackend = (request: VoyageBackendRequest, onError: OnError): void => fired(client.setVoyageBackend.mutate(request), onError);
+export const setCaptainBackend = (request: VoyageBackendRequest, onError: OnError): void => fired(client.setCaptainBackend.mutate(request), onError);
+
+export const setCrewBackend = (request: VoyageBackendRequest, onError: OnError): void => fired(client.setCrewBackend.mutate(request), onError);
 
 export const hailCaptain = (voyageId: string, onError: OnError): void => fired(client.hailCaptain.mutate({ voyageId }), onError);
 

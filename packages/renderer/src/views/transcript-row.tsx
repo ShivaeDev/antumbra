@@ -2,6 +2,7 @@ import { Separator } from "#components/ui/separator.tsx";
 import type { FoldedItem } from "#transcript/fold.ts";
 import type { TranscriptNotice } from "#transcript/model.ts";
 import { TranscriptDelegationMark } from "#views/transcript-delegation.tsx";
+import { TranscriptGutter } from "#views/transcript-gutter.tsx";
 import {
 	TranscriptMessage,
 	TranscriptThought,
@@ -9,24 +10,6 @@ import {
 import { TranscriptRaw } from "#views/transcript-raw.tsx";
 import { TranscriptTool } from "#views/transcript-tool.tsx";
 import { TranscriptToolRunRow } from "#views/transcript-tool-run.tsx";
-
-// why: every entry is labelled in the same narrow column, so the eye reads
-// down one edge to find who is speaking and the content keeps a single left
-// margin however it is rendered.
-const Gutter = ({
-	children,
-	label,
-}: {
-	readonly children: React.ReactNode;
-	readonly label: string;
-}) => (
-	<div className="grid grid-cols-[3.25rem_minmax(0,1fr)] gap-x-3">
-		<span className="pt-0.5 text-right text-2xs text-muted-foreground">
-			{label}
-		</span>
-		<div className="min-w-0">{children}</div>
-	</div>
-);
 
 // why: telemetry is not something anyone said. It reads as the rule between
 // two stretches of narration rather than as another entry in the column.
@@ -61,48 +44,44 @@ export const TranscriptRow = ({
 }) => {
 	if (item.kind === "message") {
 		return (
-			<Gutter label={item.role}>
+			<TranscriptGutter label={item.role}>
 				<TranscriptMessage item={item} sessionId={sessionId} />
-			</Gutter>
+			</TranscriptGutter>
 		);
 	}
 	if (item.kind === "thinking") {
 		return (
-			<Gutter label="thinking">
+			<TranscriptGutter label="thinking">
 				<TranscriptThought item={item} />
-			</Gutter>
+			</TranscriptGutter>
 		);
 	}
 	if (item.kind === "tool") {
 		return (
-			<Gutter label="tool">
+			<TranscriptGutter label="tool">
 				<TranscriptTool item={item} />
-			</Gutter>
+			</TranscriptGutter>
 		);
 	}
 	if (item.kind === "toolRun") {
-		return (
-			<Gutter label="tools">
-				<TranscriptToolRunRow run={item} />
-			</Gutter>
-		);
+		return <TranscriptToolRunRow run={item} />;
 	}
 	if (item.kind === "delegation") {
 		return <TranscriptDelegationMark item={item} onOpenNode={onOpenNode} />;
 	}
 	if (item.kind === "notice") {
 		return (
-			<Gutter label="gap">
+			<TranscriptGutter label="gap">
 				<Notice item={item} />
-			</Gutter>
+			</TranscriptGutter>
 		);
 	}
 	if (item.kind === "telemetry") {
 		return <Telemetry label={item.label} />;
 	}
 	return (
-		<Gutter label="raw">
+		<TranscriptGutter label="raw">
 			<TranscriptRaw item={item} />
-		</Gutter>
+		</TranscriptGutter>
 	);
 };

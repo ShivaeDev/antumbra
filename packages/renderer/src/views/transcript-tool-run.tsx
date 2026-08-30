@@ -1,7 +1,8 @@
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { useState } from "react";
 import { Badge } from "#components/ui/badge.tsx";
-import type { TranscriptToolRun } from "#transcript/fold.ts";
+import type { ToolRunEntry, TranscriptToolRun } from "#transcript/fold.ts";
+import { TranscriptGutter } from "#views/transcript-gutter.tsx";
 import { TranscriptThought } from "#views/transcript-message.tsx";
 import { TranscriptTool } from "#views/transcript-tool.tsx";
 
@@ -42,6 +43,17 @@ const Tail = ({ run }: { readonly run: TranscriptToolRun }) => {
 	);
 };
 
+const RunEntry = ({ entry }: { readonly entry: ToolRunEntry }) =>
+	entry.kind === "tool" ? (
+		<TranscriptGutter label="tool">
+			<TranscriptTool item={entry} />
+		</TranscriptGutter>
+	) : (
+		<TranscriptGutter label="thinking">
+			<TranscriptThought item={entry} />
+		</TranscriptGutter>
+	);
+
 // why: the run is a count, not evidence, so it is a line rather than a card.
 // Opening it lays the calls out beneath it exactly as they read unfolded,
 // which is what makes folding safe to leave on: nothing is summarised away,
@@ -55,30 +67,26 @@ export const TranscriptToolRunRow = ({
 	const Chevron = open ? ChevronDown : ChevronRight;
 	return (
 		<div className="flex min-w-0 flex-col gap-2">
-			<button
-				aria-expanded={open}
-				className="flex w-full min-w-0 items-center gap-1.5 rounded-md px-2 py-1 text-left text-xs outline-none transition-colors hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring/40"
-				onClick={() => setOpen(!open)}
-				title={open ? "Hide these calls" : "Show these calls"}
-				type="button"
-			>
-				<Chevron className="size-3 shrink-0 text-muted-foreground" />
-				<span className="shrink-0 font-medium">
-					called {tools(run).length} tools
-				</span>
-				<span className="min-w-0 flex-1 truncate text-muted-foreground">
-					{names(run)}
-				</span>
-				<Tail run={run} />
-			</button>
+			<TranscriptGutter label="tools">
+				<button
+					aria-expanded={open}
+					className="flex w-full min-w-0 items-center gap-1.5 rounded-md px-2 py-1 text-left text-xs outline-none transition-colors hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring/40"
+					onClick={() => setOpen(!open)}
+					title={open ? "Hide these calls" : "Show these calls"}
+					type="button"
+				>
+					<Chevron className="size-3 shrink-0 text-muted-foreground" />
+					<span className="shrink-0 font-medium">
+						called {tools(run).length} tools
+					</span>
+					<span className="min-w-0 flex-1 truncate text-muted-foreground">
+						{names(run)}
+					</span>
+					<Tail run={run} />
+				</button>
+			</TranscriptGutter>
 			{open
-				? run.entries.map((entry) =>
-						entry.kind === "tool" ? (
-							<TranscriptTool item={entry} key={entry.seq} />
-						) : (
-							<TranscriptThought item={entry} key={entry.seq} />
-						),
-					)
+				? run.entries.map((entry) => <RunEntry entry={entry} key={entry.seq} />)
 				: null}
 		</div>
 	);

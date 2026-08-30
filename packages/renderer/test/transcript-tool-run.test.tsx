@@ -102,6 +102,10 @@ it.effect("opens a folded run into the calls it holds, unchanged", () =>
 		yield* open(container);
 
 		const shown = container.textContent ?? "";
+		const labels = Array.from(
+			container.querySelectorAll(".grid > span:first-child"),
+		).map((label) => label.textContent);
+		expect(labels).toEqual(["tools", "tool", "thinking", "tool", "tool"]);
 		expect(shown).toContain("Run the gates");
 		expect(shown).toContain("now the chart");
 		expect(shown).toContain("charts/eastern-shoal.md");

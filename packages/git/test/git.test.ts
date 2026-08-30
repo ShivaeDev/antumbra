@@ -7,7 +7,7 @@ import { describe, expect, it } from "@effect/vitest";
 import { Effect, Fiber, Layer, Sink, Stream } from "effect";
 import { TestClock } from "effect/testing";
 import { type ChildProcess, ChildProcessSpawner } from "effect/unstable/process";
-import { fastForwardWorktree, inspectWorktree, refreshMirror } from "#index.ts";
+import { inspectWorktree, refreshMirror } from "#index.ts";
 
 interface ScriptedOutput {
 	readonly exitCode: number;
@@ -163,18 +163,6 @@ describe("Effect Git", () => {
 				return expect.unreachable("git command was not captured");
 			}
 			expect(command.options.forceKillAfter).toBe(5_000);
-		});
-	});
-
-	it.effect("fast-forwards a worktree whose head is behind the origin ref", () => {
-		const fake = scriptedGit([success("Fast-forward\n")]);
-		return Effect.gen(function* () {
-			yield* fastForwardWorktree("/repo", "main").pipe(Effect.provide(fake.layer));
-			const merge = fake.commands[0];
-			if (merge === undefined || merge._tag !== "StandardCommand") {
-				return expect.unreachable("merge command was not captured");
-			}
-			expect(merge.args).toContain("--ff-only");
 		});
 	});
 

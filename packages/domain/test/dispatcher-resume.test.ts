@@ -160,7 +160,7 @@ it.live("assigned work wakes the same idle Agent where it stands, before spawn",
 		}).pipe(
 			Effect.provide(
 				dispatchingLayer(temporary, backend, {
-					maxAlive: 1,
+					maxRunning: 1,
 					patienceMillis: 50,
 				}),
 			),

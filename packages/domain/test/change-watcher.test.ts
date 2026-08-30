@@ -45,7 +45,7 @@ const watched = <A, E, R>(cadence: ObserveCadenceOptions, body: (scripted: Scrip
 		const host = yield* makeScriptedHost();
 		yield* body(host, backend).pipe(
 			Effect.provide(
-				watchingLayer(temporary, backend.backend, cadence, changeHostsOf(host.host), { maxAlive: 4, patienceMillis: 50 }, recorder.runner),
+				watchingLayer(temporary, backend.backend, cadence, changeHostsOf(host.host), { maxRunning: 4, patienceMillis: 50 }, recorder.runner),
 			),
 		);
 	});

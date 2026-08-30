@@ -1,5 +1,6 @@
 import { Schema } from "effect";
 import { Origin } from "#session-events/origin.ts";
+import { RateLimitEvent } from "#session-events/rate-limit.ts";
 import { Raw, RawEvent } from "#session-events/raw.ts";
 import { SessionBackgroundEvent, SessionStateEvent } from "#session-events/state.ts";
 import { SubsessionEnded, SubsessionGap, SubsessionOpened } from "#session-events/subsessions.ts";
@@ -36,7 +37,9 @@ export const ToolStarted = Schema.Struct({
 	input: Schema.String,
 	name: Schema.String,
 	origin: Schema.optional(Origin),
+	providerName: Schema.optional(Schema.String),
 	raw: Raw,
+	servedBy: Schema.optional(Schema.Literal("antumbra")),
 	toolId: Schema.String,
 	type: Schema.Literal("tool.started"),
 });
@@ -67,6 +70,7 @@ export const AgentEvent = Schema.Union([
 	ToolStarted,
 	ToolCompleted,
 	UsageEvent,
+	RateLimitEvent,
 	TurnCompleted,
 	SessionStateEvent,
 	SessionBackgroundEvent,

@@ -67,7 +67,8 @@ describe("claude capacity evidence", () => {
 					payload: raw.payload,
 					source: "claude",
 				},
-				type: "raw",
+				status: "rejected",
+				type: "rate.limit",
 			},
 		]);
 	});

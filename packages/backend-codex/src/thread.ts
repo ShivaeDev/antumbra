@@ -2,10 +2,12 @@ import type { BackendFailure, OpenSessionOptions, SessionHandle } from "@antumbr
 import type { AgentEvent } from "@antumbra/vocabulary/session-events";
 import { Effect, Option, PubSub, Schema, type Scope, Stream } from "effect";
 import type { RpcNotification } from "#adapters/rpc.ts";
+import { toAgentEvents } from "#mapping.ts";
 import { ThreadScoped } from "#protocol.ts";
+import { RATE_LIMITS_METHOD } from "#rate-limits.ts";
 import type { CodexServer } from "#server.ts";
 import { openThread, threadIdOf, threadOpened } from "#thread-open.ts";
-import { openThreadTree } from "#thread-tree.ts";
+import { openThreadTree, type ThreadTree } from "#thread-tree.ts";
 import { makeTurnDriver } from "#turns.ts";
 
 const decodeScoped = Schema.decodeUnknownOption(ThreadScoped);
@@ -19,6 +21,9 @@ const forThread =
 			onNone: () => false,
 			onSome: (scoped) => scoped.threadId === threadId,
 		});
+
+const sessionEvents = (tree: ThreadTree, notification: RpcNotification): ReadonlyArray<AgentEvent> =>
+	notification.method === RATE_LIMITS_METHOD ? toAgentEvents(notification) : tree.events(notification);
 
 // why: both subscriptions are taken before the thread exists, so nothing
 // the server says about it can slip past; the tree then selects this session's
@@ -37,7 +42,9 @@ export const openThreadSession = (server: CodexServer, options: OpenSessionOptio
 		const driver = yield* makeTurnDriver(server, threadId);
 		yield* Effect.forkScoped(Stream.fromSubscription(forDriver).pipe(Stream.filter(forThread(threadId)), Stream.runForEach(driver.track)));
 		const events: Stream.Stream<AgentEvent> = Stream.make(threadOpened(method, response, threadId)).pipe(
-			Stream.concat(Stream.fromSubscription(forEvents).pipe(Stream.flatMap((notification) => Stream.fromIterable(tree.events(notification))))),
+			Stream.concat(
+				Stream.fromSubscription(forEvents).pipe(Stream.flatMap((notification) => Stream.fromIterable(sessionEvents(tree, notification)))),
+			),
 			Stream.interruptWhen(server.exited),
 		);
 		return {

@@ -7,13 +7,13 @@ type Item<T extends KnownItem["type"]> = Extract<KnownItem, { type: T }>;
 
 const decodeItem = Schema.decodeUnknownOption(KnownItem);
 
-const toolName = (item: KnownItem): string => {
+type Started = Extract<AgentEvent, { type: "tool.started" }>;
+
+const toolIdentity = (item: KnownItem): Pick<Started, "name" | "providerName" | "servedBy"> => {
 	if (item.type === "mcpToolCall") {
-		return `${item.server}/${item.tool}`;
+		return { name: `${item.server}: ${item.tool}`, providerName: `${item.server}/${item.tool}` };
 	}
-	// why: a tool we served is named as the agent called it, with no provider
-	// prefix — the transcript should read the same on either backend.
-	return item.type === "dynamicToolCall" ? item.tool : item.type;
+	return item.type === "dynamicToolCall" ? { name: item.tool, servedBy: "antumbra" } : { name: item.type };
 };
 
 const toolInput = (item: KnownItem): string => {
@@ -83,7 +83,7 @@ const knownStarted = (raw: RawPayload, item: KnownItem): AgentEvent[] => {
 		return [
 			{
 				input: toolInput(item),
-				name: toolName(item),
+				...toolIdentity(item),
 				raw,
 				toolId: item.id,
 				type: "tool.started",

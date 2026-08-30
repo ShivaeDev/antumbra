@@ -88,6 +88,28 @@ it.live("only this thread's notifications become events; items map", () =>
 	}),
 );
 
+it.live("account rate limits reach the session without a thread id", () =>
+	Effect.gen(function* () {
+		const { events, fake } = yield* openFake();
+		yield* Queue.take(events);
+		fake.notify("account/rateLimits/updated", {
+			rateLimits: {
+				primary: {
+					resetsAt: 1787180346,
+					usedPercent: 42,
+					windowDurationMins: 300,
+				},
+			},
+		});
+		expect(yield* Queue.take(events)).toMatchObject({
+			raw: { kind: "account/rateLimits/updated", source: "codex" },
+			status: "unknown",
+			type: "rate.limit",
+			windows: [{ durationMinutes: 300, usedPercent: 42 }],
+		});
+	}),
+);
+
 it.live("queue settles only when its text reaches a provider turn", () =>
 	Effect.gen(function* () {
 		const { fake, handle } = yield* openFake();

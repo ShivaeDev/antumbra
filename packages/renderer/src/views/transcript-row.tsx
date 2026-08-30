@@ -48,7 +48,7 @@ export const TranscriptRow = ({
 	}
 	if (item.kind === "tool") {
 		return (
-			<TranscriptGutter label="tool">
+			<TranscriptGutter label={item.servedBy === "antumbra" ? "Antumbra" : "tool"}>
 				<TranscriptTool item={item} />
 			</TranscriptGutter>
 		);

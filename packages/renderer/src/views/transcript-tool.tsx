@@ -31,17 +31,20 @@ const Input = ({ item }: { readonly item: ToolItem }) => {
 	);
 };
 
-export const TranscriptTool = ({ item }: { readonly item: ToolItem }) => (
-	<Disclosure
-		body={
-			<>
-				<Input item={item} />
-				{item.result === undefined ? null : <Payload label="Result" text={item.result} />}
-			</>
-		}
-		name={<span className="shrink-0 font-medium">{item.name}</span>}
-		subject="this call"
-		summary={summaryLine(item.input)}
-		trailing={state(item)}
-	/>
-);
+export const TranscriptTool = ({ item }: { readonly item: ToolItem }) => {
+	return (
+		<Disclosure
+			body={
+				<>
+					{item.providerName === undefined ? null : <Payload label="Called as" text={item.providerName} />}
+					<Input item={item} />
+					{item.result === undefined ? null : <Payload label="Result" text={item.result} />}
+				</>
+			}
+			name={<span className="shrink-0 font-medium">{item.name}</span>}
+			subject="this call"
+			summary={summaryLine(item.input)}
+			trailing={state(item)}
+		/>
+	);
+};

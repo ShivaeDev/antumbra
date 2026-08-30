@@ -1,4 +1,5 @@
 import type { AgentEvent, Origin, RawPayload } from "@antumbra/vocabulary/session-events";
+import { toolIdentity } from "#tool-names.ts";
 
 export const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === "object" && value !== null;
 
@@ -49,7 +50,7 @@ export const blockEvent = (
 		return {
 			...from,
 			input: JSON.stringify(block.input),
-			name: block.name,
+			...toolIdentity(block.name),
 			raw,
 			toolId: block.id,
 			type: "tool.started",

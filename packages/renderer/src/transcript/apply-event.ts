@@ -1,9 +1,10 @@
 import type { AgentEvent } from "@antumbra/vocabulary/session-events";
 import { endedDelegation, type NodesByRef, openedDelegation } from "#transcript/delegation.ts";
 import { gapNotice } from "#transcript/gaps.ts";
-import { backgroundLabel, openedLabel, stateLabel, turnLabel } from "#transcript/labels.ts";
+import { backgroundLabel, openedLabel, rawLabel, stateLabel, turnLabel } from "#transcript/labels.ts";
 import { transcriptMessage } from "#transcript/message.ts";
 import type { TranscriptItem, TranscriptMessage, TranscriptThinking } from "#transcript/model.ts";
+import { rateLimitLabel } from "#transcript/rate-limit-label.ts";
 import type { ToolCalls } from "#transcript/tool-calls.ts";
 import { usageLabel } from "#transcript/usage-label.ts";
 
@@ -46,8 +47,10 @@ export const applyKnownEvent = (state: Derivation, event: AgentEvent, seq: numbe
 				kind: "tool",
 				name: event.name,
 				ok: undefined,
+				...(event.providerName === undefined ? {} : { providerName: event.providerName }),
 				result: undefined,
 				seq,
+				...(event.servedBy === undefined ? {} : { servedBy: event.servedBy }),
 			});
 			return;
 		case "tool.completed":
@@ -58,6 +61,9 @@ export const applyKnownEvent = (state: Derivation, event: AgentEvent, seq: numbe
 			return;
 		case "turn.completed":
 			pushTelemetry(state, turnLabel(event), seq);
+			return;
+		case "rate.limit":
+			pushTelemetry(state, rateLimitLabel(event), seq);
 			return;
 		case "session.opened":
 			pushTelemetry(state, openedLabel(event), seq);
@@ -80,7 +86,7 @@ export const applyKnownEvent = (state: Derivation, event: AgentEvent, seq: numbe
 		case "raw":
 			state.items.push({
 				kind: "raw",
-				label: `${event.raw.source} ${event.raw.kind}`,
+				label: rawLabel(event.raw),
 				payload: event.raw.payload,
 				seq,
 			});

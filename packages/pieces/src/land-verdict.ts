@@ -46,11 +46,13 @@ const writeVerdict = (pieceId: string, verdict: PieceVerdict) =>
 // column saying the piece is done — the tally counts it and the ladder still
 // decides what the piece reads as. A piece holds one verdict at a time, so a
 // corrected word replaces the standing one rather than stacking beside it.
-export const landVerdict = (pieceId: string, verdict: PieceVerdict) =>
-	Effect.gen(function* () {
-		const feeds = yield* DomainFeeds;
-		const changed = yield* writeVerdict(pieceId, verdict);
-		if (changed) {
-			yield* feeds.publishVoyageRefresh();
-		}
-	});
+export const landVerdict = Effect.fn("pieces.landVerdict")(function* (
+	pieceId: string,
+	verdict: PieceVerdict,
+) {
+	const feeds = yield* DomainFeeds;
+	const changed = yield* writeVerdict(pieceId, verdict);
+	if (changed) {
+		yield* feeds.publishVoyageRefresh();
+	}
+});

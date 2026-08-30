@@ -43,8 +43,11 @@ const boardFor = (scope: BoardScope) =>
 // why: the SQLite driver opens every transaction deferred, so a bare write
 // committing between another transaction's read and its write fails that
 // transaction with a snapshot conflict; transactional writers are serialised.
-export const ensureBoard = (scope: BoardScope) =>
-	Database.use((db) => db.transaction(boardFor(scope)));
+export const ensureBoard = Effect.fn("boards.ensureBoard")(function* (
+	scope: BoardScope,
+) {
+	return yield* Database.use((db) => db.transaction(boardFor(scope)));
+});
 
 const appendTo = (scope: BoardScope, input: EntryInput, nowMillis: number) =>
 	Effect.gen(function* () {
@@ -52,19 +55,21 @@ const appendTo = (scope: BoardScope, input: EntryInput, nowMillis: number) =>
 		return yield* appendEntry(boardId, input, nowMillis);
 	});
 
-export const writeEntry = (scope: BoardScope, input: EntryInput) =>
-	Effect.gen(function* () {
-		const db = yield* Database;
-		const feeds = yield* DomainFeeds;
-		const now = yield* Clock.currentTimeMillis;
-		const result = yield* db.transaction(appendTo(scope, input, now));
-		const publishesVoyage = BoardScope.$match(scope, {
-			Agent: () => false,
-			Piece: () => true,
-			Voyage: () => true,
-		});
-		if (result.written && publishesVoyage) {
-			yield* feeds.publishVoyageRefresh();
-		}
-		return result.row;
+export const writeEntry = Effect.fn("boards.writeEntry")(function* (
+	scope: BoardScope,
+	input: EntryInput,
+) {
+	const db = yield* Database;
+	const feeds = yield* DomainFeeds;
+	const now = yield* Clock.currentTimeMillis;
+	const result = yield* db.transaction(appendTo(scope, input, now));
+	const publishesVoyage = BoardScope.$match(scope, {
+		Agent: () => false,
+		Piece: () => true,
+		Voyage: () => true,
 	});
+	if (result.written && publishesVoyage) {
+		yield* feeds.publishVoyageRefresh();
+	}
+	return result.row;
+});

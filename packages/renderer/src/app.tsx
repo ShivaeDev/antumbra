@@ -8,6 +8,7 @@ import { discardMissingSessionDrafts } from "#session-drafts/store.ts";
 import { ConsoleMain } from "#views/console-main.tsx";
 import { NavRail } from "#views/nav-rail.tsx";
 import { NoticeBar } from "#views/notice-bar.tsx";
+import { ProviderCapacities } from "#views/provider-capacities.tsx";
 
 export const ConsoleApp = ({ place }: { readonly place: ConsolePlace }) => {
 	const { error: fleetError, value: fleet } = useFeed("fleet", watchFleet);
@@ -62,6 +63,12 @@ export const ConsoleApp = ({ place }: { readonly place: ConsolePlace }) => {
 					notice={notice}
 					onDismiss={() => setNotice(undefined)}
 				/>
+				{fleet === undefined ? null : (
+					<ProviderCapacities
+						capacities={fleet.capacities}
+						onError={setNotice}
+					/>
+				)}
 				<ConsoleMain
 					change={change}
 					fleet={fleet}

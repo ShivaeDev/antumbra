@@ -64,6 +64,10 @@ export class Kernel extends Context.Service<
 			IntentNotFound | InvalidTransition | PrismaError,
 			never
 		>;
+		readonly retryIfWaiting: (
+			id: string,
+			expectedDetail: string,
+		) => Effect.Effect<boolean, PrismaError, never>;
 		readonly submit: <Payload>(
 			kind: IntentKind<Payload>,
 			payload: NoInfer<Payload>,

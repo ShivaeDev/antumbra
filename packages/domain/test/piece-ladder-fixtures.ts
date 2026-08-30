@@ -96,6 +96,7 @@ export const session = (
 	execution: SessionExecutionStatus,
 ): AgentSessionRow => ({
 	agentId: "agent-1",
+	backend: "scripted",
 	createdAt: RELEASED,
 	executionStatus: execution,
 	id: "session-1",

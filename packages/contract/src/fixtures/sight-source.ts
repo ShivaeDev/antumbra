@@ -19,6 +19,7 @@ export const sightFixture = (feeds: FixtureFeeds) =>
 				name: "shallows",
 				source: registration.source,
 			}),
+		retryBackend: () => Effect.void,
 		retire: () => Effect.void,
 		retireCrew: () => Effect.void,
 		send: (sessionId, text) =>

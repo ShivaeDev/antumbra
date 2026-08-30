@@ -9,8 +9,10 @@ import {
 	makeRefuseSubsessionAttach,
 	SubsessionAttachRefused,
 } from "#session-attach-roots.ts";
-import { SightSourceLive } from "#sight.ts";
-import { domainKernelLayer } from "#test/domain-layers.ts";
+import {
+	domainKernelLayer,
+	sightSourceTestLayer,
+} from "#test/domain-layers.ts";
 import {
 	acquireTemporaryPersistence,
 	makeScriptedBackend,
@@ -22,7 +24,7 @@ const sightLayer = (
 	temporary: TemporaryPersistence,
 	scripted: ScriptedBackend,
 ) =>
-	SightSourceLive.pipe(
+	sightSourceTestLayer.pipe(
 		Layer.provideMerge(domainKernelLayer(temporary, scripted.backend)),
 		Layer.provideMerge(SessionFabricLive),
 	);

@@ -33,6 +33,7 @@ export const SightSourceLive = Layer.effect(SightSource)(
 				Effect.flatMap(
 					Effect.all({
 						attached: domain.sessionsAttached,
+						capacities: domain.backendCapacities.snapshot,
 						delegating: domain.sessionsDelegating,
 					}),
 					(runtime) =>
@@ -40,6 +41,7 @@ export const SightSourceLive = Layer.effect(SightSource)(
 							domain.backends,
 							domain.imageInputBackends,
 							intents,
+							runtime.capacities,
 							runtime,
 						),
 				),

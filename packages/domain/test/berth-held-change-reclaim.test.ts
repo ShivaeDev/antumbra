@@ -1,7 +1,7 @@
 import { Database } from "@antumbra/persistence";
 import type { Runner } from "@antumbra/plugin-api";
 import { expect, it } from "@effect/vitest";
-import { Clock, Effect, Ref, Schedule } from "effect";
+import { Clock, Effect, Ref } from "effect";
 import { TestClock } from "effect/testing";
 import { AgentDomain } from "#domain.ts";
 import { changeOf, REEF_SOURCE } from "#test/change-fixtures.ts";
@@ -12,6 +12,7 @@ import {
 	makeScriptedBackend,
 	makeScriptedRunner,
 } from "#test/harness.ts";
+import { eventually } from "#test/voyage-fixtures.ts";
 
 const EIGHT_DAYS_MILLIS = 8 * 24 * 60 * 60 * 1000;
 const SHOAL_SOURCE = "/somewhere/shoal";
@@ -26,12 +27,6 @@ const LANDED_REPLACEMENT = changeOf({
 	repoId: "repo-reef",
 	stage: "landed",
 });
-
-const eventually = <A, E, R>(check: Effect.Effect<A, E, R>) =>
-	check.pipe(
-		Effect.catchDefect((defect) => Effect.fail(defect)),
-		Effect.retry(Schedule.spaced(10).pipe(Schedule.upTo({ duration: 2000 }))),
-	);
 
 const countingRunner = (
 	base: Runner,

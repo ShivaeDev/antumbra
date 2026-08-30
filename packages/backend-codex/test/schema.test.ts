@@ -186,6 +186,24 @@ describe("the codex protocol slice agrees with the pinned schema bundle", () => 
 		}
 	});
 
+	// why: provider exhaustion is a semantic decision over the pinned error
+	// notification, not a message-string heuristic. If any of these fields or
+	// the terminal literal moves, the capacity classifier must be reconciled.
+	it("a terminal usage-limit error carries the fields capacity admission reads", () => {
+		const notification = bundle.definitions.ErrorNotification;
+		expect(notification?.required).toEqual(
+			expect.arrayContaining(["error", "threadId", "turnId", "willRetry"]),
+		);
+		expect(notification?.properties).toHaveProperty("willRetry");
+		expect(bundle.definitions.TurnError?.properties).toHaveProperty(
+			"codexErrorInfo",
+		);
+		expect(JSON.stringify(bundle.definitions.CodexErrorInfo)).toContain(
+			"usageLimitExceeded",
+		);
+		expect(methodsOf(serverNotifications)).toContain("error");
+	});
+
 	it("every notification method we consume or mute is one the server sends", () => {
 		const methods = methodsOf(serverNotifications);
 		for (const method of [

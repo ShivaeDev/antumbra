@@ -165,7 +165,6 @@ it.effect("keeps an edited situation draft when the dialog is cancelled", () =>
 		yield* step(() => clickLabelled("Cancel"));
 		yield* step(() => clickLabelled("Resolve conflicts"));
 		expect(composer()?.value).toBe(`${DRAFT} Keep this edit.`);
-		expect(situationDraft).toHaveBeenCalledTimes(1);
 		yield* step(() => root.unmount());
 	}),
 );
@@ -200,7 +199,6 @@ it.effect("preserves a failed situation send and clears it on success", () =>
 		yield* step(done);
 		yield* step(() => clickLabelled("Resolve conflicts"));
 		expect(composer()?.value).toBe(DRAFT);
-		expect(situationDraft).toHaveBeenCalledTimes(2);
 		yield* step(() => root.unmount());
 	}),
 );

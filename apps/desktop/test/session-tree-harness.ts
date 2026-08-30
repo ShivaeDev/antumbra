@@ -13,6 +13,7 @@ import {
 import {
 	AgentDomain,
 	AgentDomainLive,
+	BackendCapacityReleaseLive,
 	SettingsSourceLive,
 	SightSourceLive,
 } from "@antumbra/domain";
@@ -143,6 +144,7 @@ const domainLayer = (temporary: TemporaryPersistence, backend: AgentBackend) =>
 
 const sightLayer = (temporary: TemporaryPersistence, backend: AgentBackend) =>
 	SightSourceLive.pipe(
+		Layer.provideMerge(BackendCapacityReleaseLive),
 		Layer.provideMerge(
 			Layer.unwrap(
 				Effect.gen(function* () {

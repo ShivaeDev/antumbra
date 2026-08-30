@@ -64,6 +64,16 @@ export const retirePieceCrew = (
 		.catch((cause: unknown) => onError(toError(cause).message));
 };
 
+export const retryBackend = (
+	backend: string,
+	onError: (message: string) => void,
+): void => {
+	client.retryBackend
+		.mutate({ backend })
+		.then(() => undefined)
+		.catch((cause: unknown) => onError(toError(cause).message));
+};
+
 export const situationDraft = (
 	draft: SituationDraft,
 	onDraft: (text: string) => void,

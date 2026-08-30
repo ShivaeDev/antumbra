@@ -1,13 +1,16 @@
-import type {
-	AgentBackend,
-	AntumbraPlugin,
-	BackendFailure,
-	PluginContext,
+import {
+	type AgentBackend,
+	type AntumbraPlugin,
+	type BackendCapacitySource,
+	type BackendFailure,
+	makeBackendCapacityController,
+	type PluginContext,
 } from "@antumbra/plugin-api";
 import { Effect, Option, RcRef } from "effect";
 import { bundledCodex } from "#adapters/chatgpt-bundle.ts";
 import { type LineProcess, spawnLineProcess } from "#adapters/process.ts";
 import { codexAudit } from "#adapters/thread-audit.ts";
+import { classifyCodexCapacity } from "#capacity.ts";
 import { type CodexServer, makeCodexServer } from "#server.ts";
 import { openThreadSession } from "#thread.ts";
 
@@ -27,8 +30,10 @@ const spawnAppServer = (command: string, cwd: string) => (): LineProcess =>
 export const codexBackend = (
 	server: RcRef.RcRef<CodexServer, BackendFailure>,
 	spawn: () => LineProcess,
+	capacity: BackendCapacitySource,
 ): AgentBackend => ({
 	audit: codexAudit(server, spawn),
+	capacity,
 	capabilities: {
 		fork: true,
 		imageInput: true,
@@ -55,8 +60,15 @@ const codexCommand = (context: PluginContext) =>
 // closes; the plugin scope bounds it either way.
 const registerCodex = (context: PluginContext, spawn: () => LineProcess) =>
 	Effect.gen(function* () {
-		const server = yield* RcRef.make({ acquire: makeCodexServer({ spawn }) });
-		yield* context.registerAgentBackend(codexBackend(server, spawn));
+		const capacity = yield* makeBackendCapacityController(
+			classifyCodexCapacity,
+		);
+		const server = yield* RcRef.make({
+			acquire: makeCodexServer({ observeCapacity: capacity.observe, spawn }),
+		});
+		yield* context.registerAgentBackend(
+			codexBackend(server, spawn, capacity.source),
+		);
 	});
 
 export const codexPlugin = (options: CodexPluginOptions): AntumbraPlugin => ({

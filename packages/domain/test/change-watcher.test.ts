@@ -200,7 +200,7 @@ describe("watching open changes", () => {
 
 				// why: the loop is still alive — a host that starts answering again
 				// is heard without anything being restarted.
-				yield* hearsTheLanding(scripted, repo.id, BRISK.coldMillis);
+				yield* hearsTheLanding(scripted, repo.id, 1_000);
 			}),
 		),
 	);

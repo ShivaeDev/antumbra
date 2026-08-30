@@ -12,6 +12,9 @@ import { TranscriptView } from "#views/transcript.tsx";
 const roleOf = (fleet: Fleet | undefined, sessionId: string): string =>
 	fleet?.agents.find((agent) => agent.sessions.some((session) => session.id === sessionId))?.role ?? "unknown agent";
 
+const presenceOf = (fleet: Fleet | undefined, sessionId: string) =>
+	fleet?.agents.flatMap((agent) => agent.sessions).find((session) => session.id === sessionId)?.presence;
+
 const nameOf = (tree: SessionTree | undefined, sessionId: string): string => tree?.nodes.find((node) => node.id === sessionId)?.displayName ?? "";
 
 // why: the transcript opens beside the roster rather than in place of it, so
@@ -59,7 +62,13 @@ export const SessionPane = ({
 				)}
 			</header>
 			<SessionTreePanel error={treeError} onSelect={setReading} rootName={roleOf(fleet, sessionId)} selected={reading} tree={tree} />
-			<TranscriptView foldToolCalls={foldToolCalls} nodes={tree?.nodes ?? []} onOpenNode={setReading} sessionId={reading} />
+			<TranscriptView
+				foldToolCalls={foldToolCalls}
+				nodes={tree?.nodes ?? []}
+				onOpenNode={setReading}
+				presence={presenceOf(fleet, sessionId)}
+				sessionId={reading}
+			/>
 			<SessionMessage fleet={fleet} onError={onError} sessionId={sessionId} />
 		</section>
 	);

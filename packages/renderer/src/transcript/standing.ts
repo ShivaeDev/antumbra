@@ -1,37 +1,55 @@
-import type { SessionEvent } from "@antumbra/contract";
+import type { SessionEvent, SessionTreeNode } from "@antumbra/contract";
 import type { AgentEvent, BackgroundTask, SessionState, UsageEvent } from "@antumbra/vocabulary/session-events";
+
+export interface OpenTool {
+	readonly name: string;
+}
 
 export interface SessionStanding {
 	readonly background: ReadonlyArray<BackgroundTask>;
+	readonly open: ReadonlyArray<OpenTool>;
 	readonly state: SessionState | undefined;
 	readonly usage: typeof UsageEvent.Type | undefined;
 }
 
-const EMPTY: SessionStanding = {
-	background: [],
-	state: undefined,
-	usage: undefined,
+interface Folding {
+	background: ReadonlyArray<BackgroundTask>;
+	readonly open: Map<string, OpenTool>;
+	state: SessionState | undefined;
+	usage: typeof UsageEvent.Type | undefined;
+}
+
+const belongsToNode = (event: AgentEvent, delegate: boolean): boolean => delegate || !("origin" in event) || event.origin === undefined;
+
+const step = (fold: Folding, event: AgentEvent): void => {
+	switch (event.type) {
+		case "session.state":
+			fold.state = event.state;
+			return;
+		case "session.background":
+			fold.background = event.tasks;
+			return;
+		case "usage":
+			fold.usage = event;
+			return;
+		case "tool.started":
+			fold.open.set(event.toolId, { name: event.name });
+			return;
+		case "tool.completed":
+			fold.open.delete(event.toolId);
+			return;
+		default:
+			return;
+	}
 };
 
-// why: only the session's own frames say what the session is doing. An event
-// carrying attribution came from a subsession, and letting a delegate's turn
-// ending set the root's state would show a session resting while it waits.
-const stepped = (standing: SessionStanding, event: AgentEvent): SessionStanding => {
-	if ("origin" in event && event.origin !== undefined) {
-		return standing;
+export const sessionStanding = (events: ReadonlyArray<SessionEvent>, node?: SessionTreeNode | undefined): SessionStanding => {
+	const delegate = node !== undefined && node.depth > 0;
+	const fold: Folding = { background: [], open: new Map(), state: undefined, usage: undefined };
+	for (const row of events) {
+		if (row.event._tag === "Known" && belongsToNode(row.event.event, delegate)) {
+			step(fold, row.event.event);
+		}
 	}
-	if (event.type === "session.state") {
-		return { ...standing, state: event.state };
-	}
-	if (event.type === "session.background") {
-		return { ...standing, background: event.tasks };
-	}
-	return event.type === "usage" ? { ...standing, usage: event } : standing;
+	return { background: fold.background, open: [...fold.open.values()], state: fold.state, usage: fold.usage };
 };
-
-// why: the journal is the whole of the answer, so the standing is folded from
-// it rather than tracked in the window. A reader who reopens a session, or
-// opens it in a second window, sees the same state and the same background set
-// the record already holds — nothing here depends on having watched it happen.
-export const sessionStanding = (events: ReadonlyArray<SessionEvent>): SessionStanding =>
-	events.reduce((standing, row) => (row.event._tag === "Known" ? stepped(standing, row.event.event) : standing), EMPTY);

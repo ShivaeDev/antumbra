@@ -17,13 +17,11 @@ export interface RpcServerRequest {
 }
 
 export const RPC_TIMEOUT_CODE = -1;
-export const RPC_OVERLOADED_CODE = -32001;
 export const RPC_EXITED_CODE = -32000;
 
 const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === "object" && value !== null;
 
-export const isRpcError = (value: unknown): value is RpcError =>
-	isRecord(value) && typeof value.code === "number" && typeof value.message === "string";
+const isRpcError = (value: unknown): value is RpcError => isRecord(value) && typeof value.code === "number" && typeof value.message === "string";
 
 export const isRpcId = (value: unknown): value is RpcId => typeof value === "number" || typeof value === "string";
 

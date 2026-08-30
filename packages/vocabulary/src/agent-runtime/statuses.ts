@@ -1,8 +1,5 @@
 import { Schema } from "effect";
 
-// why: domain recovery and artifact ownership read these same durable runtime
-// words. This package is a leaf so neither capability can widen the vocabulary
-// or make the other import its implementation.
 export const AgentStatusSchema = Schema.Literals(["spawning", "alive", "dormant", "retired"]);
 export type AgentStatus = typeof AgentStatusSchema.Type;
 

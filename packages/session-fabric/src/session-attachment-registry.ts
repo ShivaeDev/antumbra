@@ -69,9 +69,6 @@ export const makeSessionAttachmentRegistry = Effect.gen(function* () {
 			const entry = (yield* entries.snapshot).get(sessionId);
 			return entry === undefined ? yield* new SessionNotLive({ sessionId }) : entry.attachment.handle;
 		});
-	// why: words arriving are the end of having nothing to do, and clearing the
-	// mark before the handle is read is what stops a reclaim that had already
-	// chosen this Session from taking the attachment out from under them.
 	const rousingHandle = (sessionId: string) => entries.rouse(sessionId).pipe(Effect.andThen(liveHandle(sessionId)));
 	return {
 		attach,

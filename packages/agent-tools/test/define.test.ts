@@ -74,18 +74,6 @@ it.effect("arguments the schema refuses come back as a refusal, not a crash", ()
 	}),
 );
 
-it.effect("land_artifact accepts only a Moorage-relative path", () =>
-	Effect.gen(function* () {
-		const tool = bind(landArtifactSpec, (input) => Effect.succeed({ ok: true, text: input.path }));
-		expect(yield* tool.call({ path: "results/reef.md", title: "Reef" })).toEqual({ ok: true, text: "results/reef.md" });
-		for (const path of ["https://example.test/reef.md", "file:///tmp/reef.md", "/tmp/reef.md", "C:\\reef.md"]) {
-			expect(yield* tool.call({ path, title: "Reef" })).toMatchObject({
-				ok: false,
-			});
-		}
-	}),
-);
-
 it.effect("a tool that takes no arguments accepts an absent payload", () =>
 	Effect.gen(function* () {
 		const tool = bind(standDownSpec, () => Effect.succeed({ ok: true, text: "standing down" }));

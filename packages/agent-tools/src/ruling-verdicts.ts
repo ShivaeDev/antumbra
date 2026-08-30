@@ -6,9 +6,6 @@ const RulingId = Schema.String.annotate({
 	description: "The id of the ruling you are acting on, as your mail names it.",
 });
 
-// why: a request reaches the rung it waits on as mail, so the verdict needs a
-// verb of its own — the answer is given here, on the record, rather than
-// written back as words on a board.
 export const ruleOnSpec = defineTool({
 	description:
 		"Rule on a ruling that has climbed to you: settle a question an agent asked. Your answer stands from the moment you give it and is read long after the work that asked for it, so answer the question that was actually asked and say how far the answer reaches. Rule only what is yours: a question whose answer would bind more widely than you may bind, or that you cannot settle, goes up with `pass_up` and whatever context you can add.",
@@ -26,8 +23,6 @@ export const ruleOnSpec = defineTool({
 	name: "rule_on",
 });
 
-// why: passing a question up is how a rung adds what it knows before somebody
-// else answers, so the note is the whole act and is never optional.
 export const passUpSpec = defineTool({
 	description:
 		"Pass a ruling that waits on you up to the authority above you: your captain's questions go to the flagship, the flagship's go to the admiral. Use it when the answer is not yours to give — because it would bind more widely than you may bind, or because you do not have what it takes to settle it. What you write is appended to the record beside the asker's own words, so the question arrives above you richer than it reached you.",
@@ -41,9 +36,6 @@ export const passUpSpec = defineTool({
 	name: "pass_up",
 });
 
-// why: the axes decide who answers and whether anyone waits, so a rung that
-// sees the ask differently from the asker moves them by appending beside the
-// declaration rather than by arguing about it in prose.
 export const reclassifyRulingSpec = defineTool({
 	description:
 		"Move a ruling's radius, its urgency, or both. The asker declared how widely the answer would apply and how badly it was needed; you see the fleet it lands in. Your word is appended beside the asker's and never over it, and the radius you set decides who may answer from here on.",

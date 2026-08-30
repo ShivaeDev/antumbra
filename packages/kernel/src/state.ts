@@ -3,9 +3,6 @@ import type { Gate } from "#gate.ts";
 import type { AnyIntentKind } from "#intent.ts";
 import type { IntentChange } from "#kernel.ts";
 
-// why: the scheduler's runtime state is one package-private service, provided
-// only inside KernelLive and never exported from the package entry — the
-// registry, gates, pubsub, and fiber bookkeeping stay invisible to consumers.
 export class SchedulerState extends Context.Service<
 	SchedulerState,
 	{

@@ -9,8 +9,6 @@ export class InvalidAgentTransition extends Data.TaggedError("InvalidAgentTransi
 	readonly from: AgentStatus;
 }> {}
 
-// why: dormant has no way back in v0: revival is deliberately absent, so the
-// table makes resurrection unrepresentable instead of discouraged.
 const TABLE: Record<AgentStatus, Partial<Record<AgentStatusEvent, AgentStatus>>> = {
 	alive: { reclaim: "dormant", retire: "retired" },
 	dormant: { retire: "retired" },

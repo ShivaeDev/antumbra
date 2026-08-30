@@ -1,10 +1,6 @@
 import { known, raw, storedEvents } from "#fixtures/transcript.ts";
 import type { SessionEvent } from "#sight.ts";
 
-// why: the beat a resume is read by. The turn that follows it reads almost its
-// whole context out of the cache — 1.4k fresh input against 96k cache reads —
-// which is the one thing a reader wants to see when a long session picks back
-// up, and it is only visible because the categories are kept apart.
 export const wokenEvents: ReadonlyArray<SessionEvent> = [
 	known(13, {
 		raw: raw("system/session_state_changed", '{"state":"running"}'),
@@ -63,8 +59,6 @@ export const restingEvent: SessionEvent = known(19, {
 	type: "session.state",
 });
 
-// why: one ordered journal, so the query that rehydrates a session and the feed
-// that follows it are reading the same record rather than two halves of one.
 export const sessionJournal: ReadonlyArray<SessionEvent> = [
 	...storedEvents,
 	...wokenEvents,

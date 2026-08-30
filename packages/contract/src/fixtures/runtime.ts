@@ -9,9 +9,6 @@ import { windowFixture } from "#fixtures/window-source.ts";
 import { SETTINGS } from "#settings/catalog.ts";
 import { type SettingsReading, SettingsSource } from "#settings/readings.ts";
 
-// why: a window with no host behind it is a window nobody has overridden
-// anything in, so the fixture takes its values from the catalog itself and a
-// default changed there needs no second edit here.
 const reading: SettingsReading = {
 	overridden: [],
 	settings: {

@@ -6,7 +6,7 @@ import { refreshBerth } from "#berth-refresh.ts";
 import { captureChange } from "#change-evidence.ts";
 import { ensureMirror } from "#mirrors.ts";
 import { mirrorName, workBranch } from "#naming.ts";
-import { createWorktree, isClean, reclaimMissingWorktree, remountWorktree, removeWorktree, scrapWorktree, verifyWorktree } from "#worktrees.ts";
+import { createWorktree, isClean, reclaimMissingWorktree, remountWorktree, removeWorktree, verifyWorktree } from "#worktrees.ts";
 
 export interface LocalRunnerRoots {
 	readonly moorageRoot: string;
@@ -74,7 +74,7 @@ export const makeLocalRunner = (roots: LocalRunnerRoots): Runner => ({
 			yield* removeWorktree(mirror, site);
 			return { _tag: "reclaimed" as const };
 		}),
-	scrap: (site) => scrapWorktree(join(roots.reposRoot, mirrorName(site.slug, site.source)), site),
+	scrap: (site) => removeWorktree(join(roots.reposRoot, mirrorName(site.slug, site.source)), site),
 	tag: "local",
 });
 

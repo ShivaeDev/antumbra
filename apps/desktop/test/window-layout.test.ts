@@ -5,6 +5,7 @@ import { artifactPlace, transcriptPlace } from "#test/windows.ts";
 const voyaging = {
 	changeId: "change-7",
 	mode: "voyages",
+	pieceId: "piece-7",
 	role: "console",
 	sessionId: null,
 	voyageId: "voyage-7",
@@ -32,6 +33,14 @@ describe("window layout", () => {
 		expect(plan.consoleWindow.place).toEqual(defaultConsole);
 		expect(plan.children).toEqual([]);
 		expect(plan.focused).toBeNull();
+	});
+
+	it("keeps a version 2 console that predates piece focus", () => {
+		const layout = readLayout(
+			'{"version":2,"focused":null,"windows":[{"id":"console","place":{"changeId":null,"mode":"voyages","role":"console","sessionId":null,"voyageId":"voyage-7"}}]}',
+		);
+
+		expect(restorePlan(layout).consoleWindow.place).toMatchObject({ mode: "voyages", voyageId: "voyage-7" });
 	});
 
 	// why: the app is one console. A file naming several is a file to read one
@@ -100,6 +109,7 @@ describe("window layout", () => {
 		expect(restorePlan(undefined).consoleWindow.place).toEqual({
 			changeId: null,
 			mode: "flagship",
+			pieceId: null,
 			role: "console",
 			sessionId: null,
 			voyageId: null,

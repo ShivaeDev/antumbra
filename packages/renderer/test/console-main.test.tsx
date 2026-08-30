@@ -20,9 +20,11 @@ const render = (mode: ConsoleMode): string =>
 			mode={mode}
 			onChange={() => undefined}
 			onError={() => undefined}
+			onPiece={() => undefined}
 			onSession={() => undefined}
 			onSettings={() => undefined}
 			onVoyage={() => undefined}
+			piece={undefined}
 			session={undefined}
 			settings={undefined}
 			voyage={undefined}

@@ -39,6 +39,7 @@ const fleet = (sessionId: string): Fleet => ({
 				},
 			],
 			status: "alive",
+			work: [],
 		},
 	],
 	backends: ["scripted"],

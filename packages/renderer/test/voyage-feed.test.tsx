@@ -56,7 +56,7 @@ const mount = (): { container: HTMLElement; root: Root } => {
 const render = (root: Root, voyageId: string): Effect.Effect<void> =>
 	Effect.promise(() =>
 		act(() => {
-			root.render(<VoyagePanel onError={() => undefined} voyageId={voyageId} />);
+			root.render(<VoyagePanel onError={() => undefined} piece={undefined} voyageId={voyageId} />);
 			return Promise.resolve();
 		}),
 	);

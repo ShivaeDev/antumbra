@@ -74,6 +74,7 @@ export const eventFor = <Sender extends DocumentContents>(sender: Sender, sender
 export const consolePlace = {
 	changeId: null,
 	mode: "flagship",
+	pieceId: null,
 	role: "console",
 	sessionId: null,
 	voyageId: null,

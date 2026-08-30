@@ -41,8 +41,6 @@ it.effectDB("the fleet is born sailing under a flagship", function* (db) {
 	expect(flagships[0]?.crewBackend).toBe("claude");
 });
 
-// why: boot runs on every start, so the second one must meet the flagship the
-// first wrote rather than opening the fleet a second one.
 it.effectDB("a later boot leaves the standing flagship alone", function* (db) {
 	yield* boot;
 	const first = yield* db.Voyage.where({ kind: "flagship" }).all();
@@ -82,8 +80,6 @@ it.effectDB("a voyage carries its kind out of the record", function* (db) {
 	expect(kinds.get("Chart the reef")).toBe("voyage");
 });
 
-// why: the window is told which voyage speaks for the fleet, so the kind has
-// to survive the derivation rather than stopping at the row.
 it.effectDB("the flagship reaches a window as what it is", function* () {
 	yield* boot;
 

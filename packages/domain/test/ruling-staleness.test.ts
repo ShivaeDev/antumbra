@@ -24,8 +24,7 @@ const ruling = (subjects: ReadonlyArray<RulingSubject>): Ruling => ({
 	withdrawal: Option.none(),
 });
 
-const staleIn = (built: VoyageWorld, subjects: ReadonlyArray<RulingSubject>) =>
-	rulingStaleness(built)(ruling(subjects));
+const staleIn = (built: VoyageWorld, subjects: ReadonlyArray<RulingSubject>) => rulingStaleness(built)(ruling(subjects));
 
 const reef = {
 	memberships: [

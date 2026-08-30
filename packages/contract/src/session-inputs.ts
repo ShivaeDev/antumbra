@@ -1,8 +1,4 @@
-import {
-	SessionImageMediaType,
-	SessionInputId,
-	SessionInputPosition,
-} from "@antumbra/vocabulary/session-input";
+import { SessionImageMediaType, SessionInputId, SessionInputPosition } from "@antumbra/vocabulary/session-input";
 import { Schema } from "effect";
 
 // why: what the admiral hands a Session crosses the boundary as bytes with a

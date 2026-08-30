@@ -19,8 +19,7 @@ export const SettingsPanel = ({
 			<header>
 				<h2 className="text-lg font-medium">Settings</h2>
 				<p className="mt-1 text-xs text-muted-foreground">
-					Changes take effect on the next pass of the work they govern. Running
-					sessions are not interrupted.
+					Changes take effect on the next pass of the work they govern. Running sessions are not interrupted.
 				</p>
 			</header>
 			{settings === undefined ? (
@@ -29,9 +28,7 @@ export const SettingsPanel = ({
 				SETTING_KEYS.map((key) => (
 					<SettingRow
 						key={key}
-						onChange={(value) =>
-							changeSetting({ key, value }, onSettings, onError)
-						}
+						onChange={(value) => changeSetting({ key, value }, onSettings, onError)}
 						overridden={settings.overridden.includes(key)}
 						settingKey={key}
 						value={settings.settings[key]}

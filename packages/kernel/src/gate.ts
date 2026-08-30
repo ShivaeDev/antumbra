@@ -24,8 +24,7 @@ export const maxConcurrency = (limit: number): Gate => ({
 export const settle = (quietMillis: number): Gate => ({
 	admits: (snapshot) => snapshot.millisSinceLastChange >= quietMillis,
 	id: `settle(${quietMillis})`,
-	retryAfterMillis: (snapshot) =>
-		Math.max(1, quietMillis - snapshot.millisSinceLastChange),
+	retryAfterMillis: (snapshot) => Math.max(1, quietMillis - snapshot.millisSinceLastChange),
 });
 
 export const gaugeCeiling = (reading: string, limit: number): Gate => ({

@@ -13,22 +13,14 @@ type Asked = (typeof ruleOnSpec)["input"]["Type"];
 
 // why: a pick is named by the label the asker wrote, because the choice ids
 // belong to the record and never reach the mail the captain read.
-const verdictOf = (
-	ruling: Ruling,
-	by: RulingAuthority,
-	identity: SessionIdentity,
-	asked: Asked,
-): RulingVerdict => {
+const verdictOf = (ruling: Ruling, by: RulingAuthority, identity: SessionIdentity, asked: Asked): RulingVerdict => {
 	const given = {
 		answer: asked.answer,
 		by,
 		byAgentId: identity.agentId,
 		rulingId: ruling.id,
 	};
-	const picked =
-		asked.choice === undefined
-			? Option.none<string>()
-			: pickOf(ruling, asked.choice);
+	const picked = asked.choice === undefined ? Option.none<string>() : pickOf(ruling, asked.choice);
 	return Option.match(picked, {
 		onNone: (): RulingVerdict => given,
 		onSome: (choiceId): RulingVerdict => ({ ...given, choiceId }),
@@ -52,25 +44,10 @@ export const makeCaptainVerdictToolCompiler = Effect.gen(function* () {
 			const refusal = verdictRefusal(ruling, by, asked);
 			return Option.isSome(refusal)
 				? refused(refusal.value)
-				: yield* answered(
-						identity,
-						ruleOnSpec.name,
-						rulings.rule(verdictOf(ruling, by, identity, asked)),
-						ruled,
-					);
+				: yield* answered(identity, ruleOnSpec.name, rulings.rule(verdictOf(ruling, by, identity, asked)), ruled);
 		}).pipe(
-			Effect.catchTag("RulingNotFound", () =>
-				Effect.succeed(
-					refused(
-						`there is no ruling ${asked.rulingId} — name it as your mail does`,
-					),
-				),
-			),
-			Effect.catch((cause) =>
-				Effect.succeed(refused(`${ruleOnSpec.name}: ${cause}`)),
-			),
+			Effect.catchTag("RulingNotFound", () => Effect.succeed(refused(`there is no ruling ${asked.rulingId} — name it as your mail does`))),
+			Effect.catch((cause) => Effect.succeed(refused(`${ruleOnSpec.name}: ${cause}`))),
 		);
-	return (identity: SessionIdentity): ReadonlyArray<DirectTool> => [
-		bind(ruleOnSpec, (asked) => settle(identity, asked)),
-	];
+	return (identity: SessionIdentity): ReadonlyArray<DirectTool> => [bind(ruleOnSpec, (asked) => settle(identity, asked))];
 });

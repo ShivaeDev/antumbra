@@ -1,9 +1,4 @@
-import {
-	RulingAuthoritySchema,
-	RulingRadiusSchema,
-	RulingSubjectKindSchema,
-	RulingUrgencySchema,
-} from "@antumbra/vocabulary/ruling";
+import { RulingAuthoritySchema, RulingRadiusSchema, RulingSubjectKindSchema, RulingUrgencySchema } from "@antumbra/vocabulary/ruling";
 import { Schema } from "effect";
 
 // why: a choice is offered, never imposed — the window shows what the asker

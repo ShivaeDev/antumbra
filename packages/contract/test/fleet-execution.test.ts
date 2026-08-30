@@ -47,9 +47,7 @@ it("publishes backend capacity independently of Session execution", () => {
 			},
 		],
 	});
-	expect(decoded.capacities).toEqual([
-		expect.objectContaining({ backend: "scripted", status: "blocked" }),
-	]);
+	expect(decoded.capacities).toEqual([expect.objectContaining({ backend: "scripted", status: "blocked" })]);
 });
 
 const siesta = {

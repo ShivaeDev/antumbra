@@ -1,15 +1,5 @@
-import {
-	berthNaming,
-	berthReclaim,
-	chartAuthority,
-	soundingReading,
-} from "#fixtures/ruling.ts";
-import type {
-	OpenRulingsView,
-	RulingView,
-	StandingRulingsView,
-	StandingRulingView,
-} from "#rulings/views.ts";
+import { berthNaming, berthReclaim, chartAuthority, soundingReading } from "#fixtures/ruling.ts";
+import type { OpenRulingsView, RulingView, StandingRulingsView, StandingRulingView } from "#rulings/views.ts";
 
 // why: a request that holds its asker lands ahead of what was already open,
 // so the set the admiral meets is reordered rather than appended to. It has
@@ -17,8 +7,7 @@ import type {
 // waits on the admiral with a rung's note beside the asker's own words.
 const courseCall: RulingView = {
 	choices: [{ detail: null, id: "choice-3", label: "hold the course" }],
-	context:
-		"The flagship and the surveyor disagree on which repository the chart lives in.",
+	context: "The flagship and the surveyor disagree on which repository the chart lives in.",
 	declared: { radius: "fleet", urgency: "blocking" },
 	gatedPieces: [],
 	id: "ruling-3",

@@ -2,10 +2,7 @@ import type { AgentSummary, SessionSummary } from "@antumbra/contract";
 import { expect, it } from "@effect/vitest";
 import { rosterGroups, standingOf } from "#fleet/roster.ts";
 
-const session = (
-	id: string,
-	presence: SessionSummary["presence"],
-): SessionSummary => ({
+const session = (id: string, presence: SessionSummary["presence"]): SessionSummary => ({
 	addressable: [],
 	backend: "scripted",
 	canAttachImages: false,
@@ -19,11 +16,7 @@ const session = (
 	status: presence === "ended" ? "closed" : "open",
 });
 
-const agent = (
-	id: string,
-	status: string,
-	sessions: ReadonlyArray<SessionSummary>,
-): AgentSummary => ({
+const agent = (id: string, status: string, sessions: ReadonlyArray<SessionSummary>): AgentSummary => ({
 	berths: [],
 	canRetire: status === "alive",
 	charter: "chart the reef",
@@ -56,29 +49,11 @@ it("reads an agent's standing from what the fleet publishes", () => {
 // why: an agent stands at the liveliest of its sessions, because that is the
 // one a reader looking for it would find it in.
 it("stands an agent at its liveliest session", () => {
-	expect(
-		standingOf(
-			agent("mixed", "alive", [session("s6", "asleep"), session("s7", "idle")]),
-		),
-	).toBe("listening");
-	expect(
-		standingOf(
-			agent("busy", "alive", [
-				session("s8", "asleep"),
-				session("s9", "working"),
-			]),
-		),
-	).toBe("working");
+	expect(standingOf(agent("mixed", "alive", [session("s6", "asleep"), session("s7", "idle")]))).toBe("listening");
+	expect(standingOf(agent("busy", "alive", [session("s8", "asleep"), session("s9", "working")]))).toBe("working");
 	// why: stranded outranks the quiet standings, because it is the one nothing
 	// but the admiral will change.
-	expect(
-		standingOf(
-			agent("lost", "alive", [
-				session("s11", "idle"),
-				session("s12", "stranded"),
-			]),
-		),
-	).toBe("stranded");
+	expect(standingOf(agent("lost", "alive", [session("s11", "idle"), session("s12", "stranded")]))).toBe("stranded");
 });
 
 // why: an agent the admiral has finished with keeps no claim on attention,
@@ -88,28 +63,12 @@ it("counts a retired agent as retired however its sessions read", () => {
 });
 
 it("puts the agents taking a turn first and the retired ones last", () => {
-	const groups = rosterGroups([
-		retired,
-		quiet,
-		asleep,
-		listening,
-		stranded,
-		working,
-	]);
-	expect(groups.map((group) => group.standing)).toEqual([
-		"working",
-		"stranded",
-		"listening",
-		"asleep",
-		"quiet",
-		"retired",
-	]);
+	const groups = rosterGroups([retired, quiet, asleep, listening, stranded, working]);
+	expect(groups.map((group) => group.standing)).toEqual(["working", "stranded", "listening", "asleep", "quiet", "retired"]);
 	expect(groups[0]?.agents).toEqual([working]);
 });
 
 it("leaves out a standing no agent holds", () => {
-	expect(rosterGroups([working]).map((group) => group.standing)).toEqual([
-		"working",
-	]);
+	expect(rosterGroups([working]).map((group) => group.standing)).toEqual(["working"]);
 	expect(rosterGroups([])).toEqual([]);
 });

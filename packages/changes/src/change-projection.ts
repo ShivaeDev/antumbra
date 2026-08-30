@@ -1,14 +1,9 @@
 import type { ChangeObservation } from "@antumbra/plugin-api";
 import type { ChangeRow } from "#change-rows.ts";
 
-export const rawText = (payload: unknown): string | null =>
-	JSON.stringify(payload) ?? null;
+export const rawText = (payload: unknown): string | null => JSON.stringify(payload) ?? null;
 
-export const projectedChange = (
-	row: ChangeRow,
-	observation: ChangeObservation,
-	now: number,
-): ChangeRow => ({
+export const projectedChange = (row: ChangeRow, observation: ChangeObservation, now: number): ChangeRow => ({
 	...row,
 	activityAt: new Date(observation.activityAt),
 	baseRef: observation.baseRef,
@@ -17,8 +12,7 @@ export const projectedChange = (
 	externalId: observation.externalId,
 	headRef: observation.headRef,
 	headSha: observation.headSha,
-	landedAt:
-		observation.stage === "landed" ? (row.landedAt ?? new Date(now)) : null,
+	landedAt: observation.stage === "landed" ? (row.landedAt ?? new Date(now)) : null,
 	mergeable: observation.mergeable,
 	observedAt: new Date(now),
 	raw: rawText(observation.raw),
@@ -27,16 +21,10 @@ export const projectedChange = (
 	submissionKey: observation.stage === "open" ? row.submissionKey : null,
 	title: observation.title,
 	url: observation.url,
-	withdrawnAt:
-		observation.stage === "withdrawn"
-			? (row.withdrawnAt ?? new Date(now))
-			: null,
+	withdrawnAt: observation.stage === "withdrawn" ? (row.withdrawnAt ?? new Date(now)) : null,
 });
 
-export const sameProjectedFacts = (
-	before: ChangeRow,
-	after: ChangeRow,
-): boolean =>
+export const sameProjectedFacts = (before: ChangeRow, after: ChangeRow): boolean =>
 	// why: `observedAt` records our receipt, not a provider fact.
 	[
 		before.activityAt.getTime() === after.activityAt.getTime(),

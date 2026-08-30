@@ -5,17 +5,12 @@ import { claudeRaw } from "#raw-payload.ts";
 
 const WORKFLOW_TOOL = "Workflow";
 
-const idAt = (block: Record<string, unknown>, field: string) =>
-	typeof block[field] === "string" ? block[field] : undefined;
+const idAt = (block: Record<string, unknown>, field: string) => (typeof block[field] === "string" ? block[field] : undefined);
 
-const isWorkflowCall = (block: Record<string, unknown>) =>
-	block.type === "tool_use" && block.name === WORKFLOW_TOOL;
+const isWorkflowCall = (block: Record<string, unknown>) => block.type === "tool_use" && block.name === WORKFLOW_TOOL;
 
 export interface WorkflowResults {
-	readonly recovered: (
-		entries: ReadonlyArray<SessionStoreEntry>,
-		origin: Origin | undefined,
-	) => ReadonlyArray<AgentEvent>;
+	readonly recovered: (entries: ReadonlyArray<SessionStoreEntry>, origin: Origin | undefined) => ReadonlyArray<AgentEvent>;
 }
 
 // why: what a workflow finally returned is written to the transcript of the
@@ -26,11 +21,7 @@ export interface WorkflowResults {
 export const openWorkflowResults = (): WorkflowResults => {
 	const calls = new Set<string>();
 	const reported = new Set<string>();
-	const resultEvent = (
-		entry: SessionStoreEntry,
-		block: Record<string, unknown>,
-		origin: Origin | undefined,
-	): ReadonlyArray<AgentEvent> => {
+	const resultEvent = (entry: SessionStoreEntry, block: Record<string, unknown>, origin: Origin | undefined): ReadonlyArray<AgentEvent> => {
 		const call = idAt(block, "tool_use_id");
 		if (call === undefined || !calls.has(call) || reported.has(call)) {
 			return [];
@@ -40,22 +31,16 @@ export const openWorkflowResults = (): WorkflowResults => {
 		const event = blockEvent(raw, "user", block, origin);
 		return event === undefined ? [] : [event];
 	};
-	const blockEvents = (
-		entry: SessionStoreEntry,
-		origin: Origin | undefined,
-	): ReadonlyArray<AgentEvent> =>
+	const blockEvents = (entry: SessionStoreEntry, origin: Origin | undefined): ReadonlyArray<AgentEvent> =>
 		contentBlocks(entry).flatMap((block) => {
 			const call = idAt(block, "id");
 			if (isWorkflowCall(block) && call !== undefined) {
 				calls.add(call);
 				return [];
 			}
-			return block.type === "tool_result"
-				? resultEvent(entry, block, origin)
-				: [];
+			return block.type === "tool_result" ? resultEvent(entry, block, origin) : [];
 		});
 	return {
-		recovered: (entries, origin) =>
-			entries.flatMap((entry) => blockEvents(entry, origin)),
+		recovered: (entries, origin) => entries.flatMap((entry) => blockEvents(entry, origin)),
 	};
 };

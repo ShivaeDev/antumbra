@@ -1,21 +1,11 @@
-import type {
-	BoundaryPolicyInventory,
-	BoundaryRule,
-	ImportSource,
-} from "#boundaries/model.ts";
+import type { BoundaryPolicyInventory, BoundaryRule, ImportSource } from "#boundaries/model.ts";
 import { failPolicy } from "#boundaries/validation.ts";
 
-const validateNamed = (
-	kind: "application" | "package",
-	names: readonly string[],
-	inventory: BoundaryPolicyInventory,
-	location: string,
-) => {
+const validateNamed = (kind: "application" | "package", names: readonly string[], inventory: BoundaryPolicyInventory, location: string) => {
 	if (names.length === 0) {
 		failPolicy(`Boundary ${location} names no ${kind} units`);
 	}
-	const known =
-		kind === "application" ? inventory.applications : inventory.packages;
+	const known = kind === "application" ? inventory.applications : inventory.packages;
 	for (const name of names) {
 		if (!known.includes(name)) {
 			failPolicy(`Boundary ${location} names unknown ${kind} ${name}`);
@@ -23,18 +13,9 @@ const validateNamed = (
 	}
 };
 
-const validateFamily = (
-	family: string,
-	inventory: BoundaryPolicyInventory,
-	location: string,
-) => {
-	if (
-		family.trim().length === 0 ||
-		!inventory.packages.some((name) => name.startsWith(`${family}-`))
-	) {
-		failPolicy(
-			`Boundary ${location} family ${family || "<empty>"} matches no packages`,
-		);
+const validateFamily = (family: string, inventory: BoundaryPolicyInventory, location: string) => {
+	if (family.trim().length === 0 || !inventory.packages.some((name) => name.startsWith(`${family}-`))) {
+		failPolicy(`Boundary ${location} family ${family || "<empty>"} matches no packages`);
 	}
 };
 
@@ -45,22 +26,13 @@ const validateWorkspaceExcept = (
 ) => {
 	validateNamed("package", selector.excludedPackages, inventory, location);
 	for (const exception of selector.sanctioned) {
-		if (
-			exception.package.trim().length > 0 &&
-			!inventory.packages.includes(exception.package)
-		) {
-			failPolicy(
-				`Boundary ${location} names unknown package ${exception.package}`,
-			);
+		if (exception.package.trim().length > 0 && !inventory.packages.includes(exception.package)) {
+			failPolicy(`Boundary ${location} names unknown package ${exception.package}`);
 		}
 	}
 };
 
-const validateSelector = (
-	selector: ImportSource,
-	inventory: BoundaryPolicyInventory,
-	location: string,
-): void => {
+const validateSelector = (selector: ImportSource, inventory: BoundaryPolicyInventory, location: string): void => {
 	switch (selector.kind) {
 		case "all-applications":
 			if (inventory.applications.length === 0) {
@@ -99,10 +71,7 @@ const validateSelector = (
 	}
 };
 
-export const validatePolicyInventory = (
-	policy: readonly BoundaryRule[],
-	inventory: BoundaryPolicyInventory,
-) => {
+export const validatePolicyInventory = (policy: readonly BoundaryRule[], inventory: BoundaryPolicyInventory) => {
 	for (const rule of policy) {
 		if (rule.kind === "negative-fence") {
 			validateSelector(rule.from, inventory, `${rule.name}.from`);
@@ -115,9 +84,7 @@ export const validatePolicyInventory = (
 		}
 		for (const subject of rule.allowedSubjects) {
 			if (!inventory.vocabularySubjects.includes(subject)) {
-				failPolicy(
-					`Boundary ${rule.name} names unknown vocabulary subject ${subject}`,
-				);
+				failPolicy(`Boundary ${rule.name} names unknown vocabulary subject ${subject}`);
 			}
 		}
 	}

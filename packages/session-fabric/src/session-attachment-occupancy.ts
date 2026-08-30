@@ -12,9 +12,7 @@ export const occupancyRefusal = (
 	agentId: string,
 	sessionId: string,
 ): SessionAttachmentFailure | undefined => {
-	const occupied = [...current.values()].find(
-		(entry) => entry.agentId === agentId,
-	);
+	const occupied = [...current.values()].find((entry) => entry.agentId === agentId);
 	if (occupied !== undefined && current.get(sessionId) !== occupied) {
 		return new SessionAttachmentFailure({
 			detail: `Agent ${agentId} already has a different attached Session`,

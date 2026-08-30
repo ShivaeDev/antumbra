@@ -12,10 +12,7 @@ export const wokenEvents: ReadonlyArray<SessionEvent> = [
 		type: "session.state",
 	}),
 	known(14, {
-		raw: raw(
-			"system/background_tasks_changed",
-			'{"tasks":[{"task_id":"bg-1"}]}',
-		),
+		raw: raw("system/background_tasks_changed", '{"tasks":[{"task_id":"bg-1"}]}'),
 		tasks: [
 			{
 				description: "pnpm ready",

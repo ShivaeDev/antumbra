@@ -1,9 +1,4 @@
-import type {
-	OpenRulingsView,
-	RulingView,
-	StandingRulingsView,
-	StandingRulingView,
-} from "#rulings/views.ts";
+import type { OpenRulingsView, RulingView, StandingRulingsView, StandingRulingView } from "#rulings/views.ts";
 
 export const soundingReading: RulingView = {
 	choices: [
@@ -14,8 +9,7 @@ export const soundingReading: RulingView = {
 		},
 		{ detail: null, id: "choice-2", label: "trust the chart" },
 	],
-	context:
-		"The eastern shoal sounds two metres shallower than the chart says, and the next piece plots a course over it.",
+	context: "The eastern shoal sounds two metres shallower than the chart says, and the next piece plots a course over it.",
 	declared: { radius: "voyage", urgency: "pressing" },
 	gatedPieces: [
 		{
@@ -53,8 +47,7 @@ export const soundingReading: RulingView = {
 
 export const berthNaming: RulingView = {
 	choices: [],
-	context:
-		"Two repositories name their default branch differently and the berths inherit the disagreement.",
+	context: "Two repositories name their default branch differently and the berths inherit the disagreement.",
 	declared: { radius: "fleet", urgency: "eventual" },
 	gatedPieces: [],
 	id: "ruling-2",

@@ -9,11 +9,7 @@ import {
 	readOpened,
 	sameObject,
 } from "#content.ts";
-import {
-	ArtifactNotFound,
-	StoredArtifactContentInvalid,
-	type StoredArtifactContentInvalidReason,
-} from "#errors.ts";
+import { ArtifactNotFound, StoredArtifactContentInvalid, type StoredArtifactContentInvalidReason } from "#errors.ts";
 import type { ArtifactMarkdown } from "#model.ts";
 
 interface StoredArtifactIdentity {
@@ -22,10 +18,7 @@ interface StoredArtifactIdentity {
 	readonly digest: string;
 }
 
-const invalid = (
-	artifactId: string,
-	reason: StoredArtifactContentInvalidReason,
-) => new StoredArtifactContentInvalid({ artifactId, reason });
+const invalid = (artifactId: string, reason: StoredArtifactContentInvalidReason) => new StoredArtifactContentInvalid({ artifactId, reason });
 
 const validateIdentity = (artifactId: string, row: StoredArtifactIdentity) =>
 	Effect.gen(function* () {
@@ -43,44 +36,24 @@ const validateIdentity = (artifactId: string, row: StoredArtifactIdentity) =>
 		}
 	});
 
-const openStoredArtifact = (
-	root: string,
-	artifactId: string,
-	row: StoredArtifactIdentity,
-) =>
+const openStoredArtifact = (root: string, artifactId: string, row: StoredArtifactIdentity) =>
 	Effect.gen(function* () {
 		const fs = yield* FileSystem.FileSystem;
 		const path = yield* Path.Path;
-		const canonicalRoot = yield* fs
-			.realPath(root)
-			.pipe(Effect.mapError(() => invalid(artifactId, "path")));
+		const canonicalRoot = yield* fs.realPath(root).pipe(Effect.mapError(() => invalid(artifactId, "path")));
 		const expected = path.join(canonicalRoot, row.digest, row.basename);
-		const exists = yield* fs
-			.exists(expected)
-			.pipe(Effect.mapError(() => invalid(artifactId, "path")));
+		const exists = yield* fs.exists(expected).pipe(Effect.mapError(() => invalid(artifactId, "path")));
 		if (!exists) {
 			return yield* invalid(artifactId, "missing");
 		}
-		const file = yield* fs
-			.open(expected, { flag: "r" })
-			.pipe(Effect.mapError(() => invalid(artifactId, "path")));
-		const opened = yield* file.stat.pipe(
-			Effect.mapError(() => invalid(artifactId, "path")),
-		);
-		const resolved = yield* fs
-			.realPath(expected)
-			.pipe(Effect.mapError(() => invalid(artifactId, "path")));
-		const observed = yield* fs
-			.stat(resolved)
-			.pipe(Effect.mapError(() => invalid(artifactId, "path")));
+		const file = yield* fs.open(expected, { flag: "r" }).pipe(Effect.mapError(() => invalid(artifactId, "path")));
+		const opened = yield* file.stat.pipe(Effect.mapError(() => invalid(artifactId, "path")));
+		const resolved = yield* fs.realPath(expected).pipe(Effect.mapError(() => invalid(artifactId, "path")));
+		const observed = yield* fs.stat(resolved).pipe(Effect.mapError(() => invalid(artifactId, "path")));
 		if (resolved !== expected) {
 			return yield* invalid(artifactId, "path");
 		}
-		if (
-			opened.type !== "File" ||
-			observed.type !== "File" ||
-			!sameObject(opened, observed)
-		) {
+		if (opened.type !== "File" || observed.type !== "File" || !sameObject(opened, observed)) {
 			return yield* invalid(artifactId, "not_file");
 		}
 		if (opened.size !== BigInt(row.byteSize)) {
@@ -89,21 +62,13 @@ const openStoredArtifact = (
 		return { file, size: opened.size };
 	});
 
-const readAndVerify = (
-	artifactId: string,
-	row: StoredArtifactIdentity,
-	opened: Effect.Success<ReturnType<typeof openStoredArtifact>>,
-) =>
+const readAndVerify = (artifactId: string, row: StoredArtifactIdentity, opened: Effect.Success<ReturnType<typeof openStoredArtifact>>) =>
 	Effect.gen(function* () {
-		const bytes = yield* readOpened(opened.file, opened.size).pipe(
-			Effect.mapError(() => invalid(artifactId, "path")),
-		);
+		const bytes = yield* readOpened(opened.file, opened.size).pipe(Effect.mapError(() => invalid(artifactId, "path")));
 		if (bytes.length !== row.byteSize) {
 			return yield* invalid(artifactId, "size");
 		}
-		const observedDigest = yield* digestBytes(bytes).pipe(
-			Effect.mapError(() => invalid(artifactId, "digest")),
-		);
+		const observedDigest = yield* digestBytes(bytes).pipe(Effect.mapError(() => invalid(artifactId, "digest")));
 		if (observedDigest !== row.digest) {
 			return yield* invalid(artifactId, "digest");
 		}

@@ -1,7 +1,4 @@
-import {
-	AgentSessionCompletenessSchema,
-	AgentSessionStatusSchema,
-} from "@antumbra/vocabulary/agent-runtime";
+import { AgentSessionCompletenessSchema, AgentSessionStatusSchema } from "@antumbra/vocabulary/agent-runtime";
 import { SubsessionOutcome } from "@antumbra/vocabulary/session-events";
 import { Schema } from "effect";
 
@@ -28,10 +25,7 @@ const pathLeaf = (kind: string): string | undefined => {
 // why: computed at read from what was stored when the node opened, never
 // written back — a name the record was never given is not a fact about the
 // node, and persisting one would make the display rule unfalsifiable later.
-export const subsessionDisplayName = (stored: {
-	readonly kind: string | null;
-	readonly label: string | null;
-}): string => {
+export const subsessionDisplayName = (stored: { readonly kind: string | null; readonly label: string | null }): string => {
 	if (stored.label !== null && stored.label !== "") {
 		return stored.label;
 	}

@@ -3,18 +3,8 @@ import { expect, it } from "@effect/vitest";
 import { Effect, Option } from "effect";
 import { AgentDomain } from "#domain.ts";
 import { domainKernelLayer } from "#test/domain-layers.ts";
-import {
-	acquireTemporaryPersistence,
-	makeScriptedBackend,
-} from "#test/harness.ts";
-import {
-	aliveAgent,
-	chain,
-	eventually,
-	land,
-	openReefVoyage,
-	stateOf,
-} from "#test/voyage-fixtures.ts";
+import { acquireTemporaryPersistence, makeScriptedBackend } from "#test/harness.ts";
+import { aliveAgent, chain, eventually, land, openReefVoyage, stateOf } from "#test/voyage-fixtures.ts";
 
 const soleReefPiece = Effect.gen(function* () {
 	const domain = yield* AgentDomain;
@@ -43,9 +33,7 @@ it.live("a delivered verdict is an outcome and the ladder reads done", () =>
 
 			yield* domain.voyages.landPieceVerdict(piece.id, "delivered");
 
-			expect(yield* db.PieceVerdict.all()).toMatchObject([
-				{ pieceId: piece.id, verdict: "delivered" },
-			]);
+			expect(yield* db.PieceVerdict.all()).toMatchObject([{ pieceId: piece.id, verdict: "delivered" }]);
 			expect(yield* stateOf(voyage.id, piece.id)).toBe("done");
 		}).pipe(Effect.provide(domainKernelLayer(temporary, scripted.backend)));
 	}),
@@ -86,11 +74,7 @@ it.live("a corrected verdict replaces the one standing, never joins it", () =>
 
 			expect(yield* db.PieceVerdict.all()).toHaveLength(1);
 			expect(yield* stateOf(voyage.id, piece.id)).toBe("done");
-			expect(
-				yield* Effect.flip(
-					domain.voyages.landPieceVerdict("no-such-piece", "delivered"),
-				),
-			).toMatchObject({ _tag: "PieceNotFound" });
+			expect(yield* Effect.flip(domain.voyages.landPieceVerdict("no-such-piece", "delivered"))).toMatchObject({ _tag: "PieceNotFound" });
 		}).pipe(Effect.provide(domainKernelLayer(temporary, scripted.backend)));
 	}),
 );
@@ -129,17 +113,13 @@ it.live("a piece the ladder has finished with can still be asked to run", () =>
 			const crewed = yield* domain.voyages.workNow(piece.id);
 
 			yield* eventually(aliveAgent(crewed.agentId));
-			expect(yield* db.PieceAgent.all()).toMatchObject([
-				{ agentId: crewed.agentId, pieceId: piece.id },
-			]);
+			expect(yield* db.PieceAgent.all()).toMatchObject([{ agentId: crewed.agentId, pieceId: piece.id }]);
 			// why: a piece is shipped when all of its work is done, and a hand on
 			// it is work that is not. So the redo is visible the moment the crew
 			// takes it — the piece leaves done and reads active, which is also why
 			// asking twice is refused.
 			expect(yield* stateOf(voyage.id, piece.id)).toBe("active");
-			expect(
-				yield* Effect.flip(domain.voyages.workNow(piece.id)),
-			).toMatchObject({ _tag: "PieceAlreadyCrewed" });
+			expect(yield* Effect.flip(domain.voyages.workNow(piece.id))).toMatchObject({ _tag: "PieceAlreadyCrewed" });
 		}).pipe(Effect.provide(domainKernelLayer(temporary, scripted.backend)));
 	}),
 );
@@ -153,12 +133,8 @@ it.live("an abandoned piece refuses crew until its verdict changes", () =>
 			const { piece } = yield* soleReefPiece;
 			yield* domain.voyages.landPieceVerdict(piece.id, "abandoned");
 
-			expect(
-				yield* Effect.flip(domain.voyages.workNow(piece.id)),
-			).toMatchObject({ _tag: "PieceAbandoned" });
-			expect(
-				yield* Effect.flip(domain.voyages.workNow("no-such-piece")),
-			).toMatchObject({ _tag: "PieceNotFound" });
+			expect(yield* Effect.flip(domain.voyages.workNow(piece.id))).toMatchObject({ _tag: "PieceAbandoned" });
+			expect(yield* Effect.flip(domain.voyages.workNow("no-such-piece"))).toMatchObject({ _tag: "PieceNotFound" });
 		}).pipe(Effect.provide(domainKernelLayer(temporary, scripted.backend)));
 	}),
 );

@@ -26,10 +26,7 @@ export type {
 // the words as the thing to say on arrival, so waking and speaking stay one
 // act with no separate control for the admiral to find. Only a Session that has
 // ended refuses, because there is nothing left to wake.
-export const makeSessionSend = (
-	imageInputBackends: ReadonlySet<string>,
-	capacities: SessionCapacities,
-) =>
+export const makeSessionSend = (imageInputBackends: ReadonlySet<string>, capacities: SessionCapacities) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
 		const fabric = yield* SessionFabric;
@@ -46,12 +43,7 @@ export const makeSessionSend = (
 		// reads its own — rather than from whatever fiber happens to run the watch.
 		const patience = yield* SessionWakePatience;
 		const watch = (sessionId: string, wake: SessionRouse) =>
-			Effect.forkIn(
-				watchWake(sessionId, wake, patience).pipe(
-					Effect.provideService(Database, db),
-				),
-				scope,
-			);
+			Effect.forkIn(watchWake(sessionId, wake, patience).pipe(Effect.provideService(Database, db)), scope);
 		const rousePrompt = (sessionId: string, prompt: AgentPrompt) =>
 			reach.rouseSession({ message: prompt, sessionId }).pipe(
 				Effect.tap((wake) => watch(sessionId, wake)),
@@ -69,9 +61,7 @@ export const makeSessionSend = (
 					return yield* new SessionNotFound({ sessionId });
 				}
 				yield* refuseSubsession(sessionId);
-				const status = yield* Effect.fromResult(
-					decodeStoredAgentSessionStatus(sessionId, session.value.status),
-				);
+				const status = yield* Effect.fromResult(decodeStoredAgentSessionStatus(sessionId, session.value.status));
 				if (status !== "open") {
 					// why: refusing here is also the moment the system learns this
 					// Session is over, and any wake still parked for it is carrying
@@ -94,23 +84,12 @@ export const makeSessionSend = (
 				// why: the attachment can go between being seen and being spoken to —
 				// a reclaim settling in the same breath — and the words follow it into
 				// the resume rather than being reported as a refusal.
-				yield* fabric
-					.send(sessionId, promptInput(prompt))
-					.pipe(
-						Effect.catchTag("SessionNotLive", () =>
-							rousePrompt(sessionId, prompt),
-						),
-					);
+				yield* fabric.send(sessionId, promptInput(prompt)).pipe(Effect.catchTag("SessionNotLive", () => rousePrompt(sessionId, prompt)));
 				// why: the wake is written after the words are taken, never before — a
 				// row claiming a Session is executing when the handover failed is
 				// durable truth nobody can see is false.
 				yield* recovery.awaken(sessionId);
 			});
-		const sendInput = yield* makeSendInput(
-			imageInputBackends,
-			open,
-			rouseInput,
-			capacities,
-		);
+		const sendInput = yield* makeSendInput(imageInputBackends, open, rouseInput, capacities);
 		return { sendInput, sendPrompt };
 	});

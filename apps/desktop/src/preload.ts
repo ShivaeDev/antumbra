@@ -16,13 +16,9 @@ contextBridge.exposeInMainWorld("antumbra", {
 	openExternal: (url: string) => {
 		ipcRenderer.send(OPEN_EXTERNAL_CHANNEL, url);
 	},
-	subscribe: (
-		request: BridgeSubscribeRequest,
-		onMessage: (message: SubscriptionMessage) => void,
-	) => {
+	subscribe: (request: BridgeSubscribeRequest, onMessage: (message: SubscriptionMessage) => void) => {
 		const channel = subscriptionChannel(request.id);
-		const listener = (_event: unknown, message: SubscriptionMessage) =>
-			onMessage(message);
+		const listener = (_event: unknown, message: SubscriptionMessage) => onMessage(message);
 		ipcRenderer.on(channel, listener);
 		ipcRenderer.send(TRPC_SUBSCRIBE_CHANNEL, request);
 		return () => {
@@ -32,6 +28,5 @@ contextBridge.exposeInMainWorld("antumbra", {
 	},
 	// why: ipcRenderer.invoke is Promise<any>, so the annotation is what stops
 	// electron's untyped reply at the boundary the renderer trusts.
-	trpc: (request: BridgeRequest): Promise<TrpcResponse> =>
-		ipcRenderer.invoke(TRPC_CHANNEL, request),
+	trpc: (request: BridgeRequest): Promise<TrpcResponse> => ipcRenderer.invoke(TRPC_CHANNEL, request),
 } satisfies AntumbraBridge);

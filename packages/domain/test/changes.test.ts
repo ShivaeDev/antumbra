@@ -4,19 +4,9 @@ import { expect, it } from "@effect/vitest";
 import { Effect, Option, Stream } from "effect";
 import { AgentDomain } from "#domain.ts";
 import { berthed, reefWithPiece } from "#test/change-fixtures.ts";
-import {
-	CREW,
-	HEAD,
-	openedChange,
-	withHost,
-} from "#test/change-submission-fixtures.ts";
+import { CREW, HEAD, openedChange, withHost } from "#test/change-submission-fixtures.ts";
 import { domainKernelLayer } from "#test/domain-layers.ts";
-import {
-	acquireTemporaryPersistence,
-	changeHostsOf,
-	makeScriptedBackend,
-	passiveRunner,
-} from "#test/harness.ts";
+import { acquireTemporaryPersistence, changeHostsOf, makeScriptedBackend, passiveRunner } from "#test/harness.ts";
 import { claimsNothingHost, scriptedObservation } from "#test/scripted-host.ts";
 import { stateOf } from "#test/voyage-fixtures.ts";
 
@@ -36,63 +26,57 @@ it.live("a change opened by crew is written with the link to its piece", () =>
 			expect(row.baseRef).toBe("main");
 			expect(row.raw).toBe('{"number":"1","source":"scripted"}');
 
-			expect(yield* db.PieceChange.all()).toEqual([
-				{ changeId: row.id, pieceId: piece.id, purpose: "produces" },
-			]);
+			expect(yield* db.PieceChange.all()).toEqual([{ changeId: row.id, pieceId: piece.id, purpose: "produces" }]);
 			expect((yield* scripted.drive.opened).length).toBe(1);
 			expect(yield* stateOf(voyage.id, piece.id)).toBe("landing");
 		}),
 	),
 );
 
-it.live(
-	"a change the record cannot place is refused before any host runs",
-	() =>
-		withHost((scripted) =>
-			Effect.gen(function* () {
-				const db = yield* Database;
-				const domain = yield* AgentDomain;
-				const { piece, repo } = yield* reefWithPiece;
+it.live("a change the record cannot place is refused before any host runs", () =>
+	withHost((scripted) =>
+		Effect.gen(function* () {
+			const db = yield* Database;
+			const domain = yield* AgentDomain;
+			const { piece, repo } = yield* reefWithPiece;
 
-				const noPiece = yield* Effect.flip(
-					openedChange("no-such-piece", repo.name),
-				);
-				expect(noPiece).toMatchObject({
-					_tag: "PieceNotFound",
+			const noPiece = yield* Effect.flip(openedChange("no-such-piece", repo.name));
+			expect(noPiece).toMatchObject({
+				_tag: "PieceNotFound",
+				pieceId: "no-such-piece",
+			});
+			const noPieceAdoption = yield* Effect.flip(
+				domain.changes.adopt({
+					agentId: CREW,
 					pieceId: "no-such-piece",
-				});
-				const noPieceAdoption = yield* Effect.flip(
-					domain.changes.adopt({
-						agentId: CREW,
-						pieceId: "no-such-piece",
-						repoName: repo.name,
-						url: "https://scripted.test/changes/77",
-					}),
-				);
-				expect(noPieceAdoption).toMatchObject({
-					_tag: "PieceNotFound",
-					pieceId: "no-such-piece",
-				});
+					repoName: repo.name,
+					url: "https://scripted.test/changes/77",
+				}),
+			);
+			expect(noPieceAdoption).toMatchObject({
+				_tag: "PieceNotFound",
+				pieceId: "no-such-piece",
+			});
 
-				const noRepo = yield* Effect.flip(openedChange(piece.id, "shoals"));
-				expect(noRepo._tag).toBe("RepoNotFound");
-				expect(noRepo.message).toContain("shoals");
+			const noRepo = yield* Effect.flip(openedChange(piece.id, "shoals"));
+			expect(noRepo._tag).toBe("RepoNotFound");
+			expect(noRepo.message).toContain("shoals");
 
-				yield* db.Agent.create({
-					charter: "chart the reef",
-					id: CREW,
-					role: "crew",
-					status: "alive",
-				});
-				const noBerth = yield* Effect.flip(openedChange(piece.id, repo.name));
-				expect(noBerth._tag).toBe("BerthNotFound");
-				expect(noBerth.message).toContain("reef");
+			yield* db.Agent.create({
+				charter: "chart the reef",
+				id: CREW,
+				role: "crew",
+				status: "alive",
+			});
+			const noBerth = yield* Effect.flip(openedChange(piece.id, repo.name));
+			expect(noBerth._tag).toBe("BerthNotFound");
+			expect(noBerth.message).toContain("reef");
 
-				expect(yield* scripted.drive.adopted).toEqual([]);
-				expect(yield* scripted.drive.opened).toEqual([]);
-				expect(yield* db.Change.all()).toEqual([]);
-			}),
-		),
+			expect(yield* scripted.drive.adopted).toEqual([]);
+			expect(yield* scripted.drive.opened).toEqual([]);
+			expect(yield* db.Change.all()).toEqual([]);
+		}),
+	),
 );
 
 it.live("a repo no host claims is named in the refusal", () =>
@@ -105,62 +89,50 @@ it.live("a repo no host claims is named in the refusal", () =>
 			const refused = yield* Effect.flip(openedChange(piece.id, repo.name));
 			expect(refused._tag).toBe("NoChangeHost");
 			expect(refused.message).toBe("no change host claims reef");
-		}).pipe(
-			Effect.provide(
-				domainKernelLayer(
-					temporary,
-					backend.backend,
-					{},
-					passiveRunner,
-					changeHostsOf(claimsNothingHost("indifferent")),
-				),
-			),
-		);
+		}).pipe(Effect.provide(domainKernelLayer(temporary, backend.backend, {}, passiveRunner, changeHostsOf(claimsNothingHost("indifferent")))));
 	}),
 );
 
-it.live(
-	"adopting the same change twice is one row and one link per piece",
-	() =>
-		withHost(() =>
-			Effect.gen(function* () {
-				const db = yield* Database;
-				const domain = yield* AgentDomain;
-				const { piece, repo, voyage } = yield* reefWithPiece;
-				yield* db.Agent.create({
-					charter: "chart the reef",
-					id: CREW,
-					role: "crew",
-					status: "alive",
+it.live("adopting the same change twice is one row and one link per piece", () =>
+	withHost(() =>
+		Effect.gen(function* () {
+			const db = yield* Database;
+			const domain = yield* AgentDomain;
+			const { piece, repo, voyage } = yield* reefWithPiece;
+			yield* db.Agent.create({
+				charter: "chart the reef",
+				id: CREW,
+				role: "crew",
+				status: "alive",
+			});
+			const second = yield* domain.voyages.charterPiece({
+				charter: "draw the chart",
+				dependsOn: [],
+				expectation: "the chart is landed",
+				role: "cartographer",
+				title: "bravo",
+				voyageId: voyage.id,
+			});
+			const url = "https://scripted.test/changes/77";
+			const adopt = (pieceId: string) =>
+				domain.changes.adopt({
+					agentId: CREW,
+					pieceId,
+					repoName: repo.name,
+					url,
 				});
-				const second = yield* domain.voyages.charterPiece({
-					charter: "draw the chart",
-					dependsOn: [],
-					expectation: "the chart is landed",
-					role: "cartographer",
-					title: "bravo",
-					voyageId: voyage.id,
-				});
-				const url = "https://scripted.test/changes/77";
-				const adopt = (pieceId: string) =>
-					domain.changes.adopt({
-						agentId: CREW,
-						pieceId,
-						repoName: repo.name,
-						url,
-					});
 
-				const first = yield* adopt(piece.id);
-				expect(yield* adopt(piece.id)).toEqual(first);
-				const shared = yield* adopt(second.id);
-				expect(shared.id).toBe(first.id);
+			const first = yield* adopt(piece.id);
+			expect(yield* adopt(piece.id)).toEqual(first);
+			const shared = yield* adopt(second.id);
+			expect(shared.id).toBe(first.id);
 
-				expect((yield* db.Change.all()).length).toBe(1);
-				expect((yield* db.PieceChange.all()).length).toBe(2);
-				expect(first.externalId).toBe("77");
-				expect(first.body).toBe("");
-			}),
-		),
+			expect((yield* db.Change.all()).length).toBe(1);
+			expect((yield* db.PieceChange.all()).length).toBe(2);
+			expect(first.externalId).toBe("77");
+			expect(first.body).toBe("");
+		}),
+	),
 );
 
 it.live("a landed change flips its piece done and wakes the voyage feed", () =>
@@ -193,11 +165,7 @@ it.live("a landed change flips its piece done and wakes the voyage feed", () =>
 				Effect.gen(function* () {
 					const subscription = yield* feeds.subscribeVoyageRefresh();
 					yield* domain.changes.refresh("scripted");
-					return yield* Stream.fromSubscription(subscription).pipe(
-						Stream.take(1),
-						Stream.runCollect,
-						Effect.timeoutOption(1000),
-					);
+					return yield* Stream.fromSubscription(subscription).pipe(Stream.take(1), Stream.runCollect, Effect.timeoutOption(1000));
 				}),
 			);
 			expect(Option.isSome(heard)).toBe(true);

@@ -1,9 +1,4 @@
-import {
-	type Gate,
-	type IntentStatus,
-	isTerminalIntentStatus,
-	Kernel,
-} from "@antumbra/kernel";
+import { type Gate, type IntentStatus, isTerminalIntentStatus, Kernel } from "@antumbra/kernel";
 import { Database, type NewAgentSession } from "@antumbra/persistence";
 import type { AgentBackend, MooragePlan } from "@antumbra/plugin-api";
 import { expect, it } from "@effect/vitest";
@@ -11,11 +6,7 @@ import { Effect, Option, Ref, Stream } from "effect";
 import { AgentDomain } from "#domain.ts";
 import type { SpawnFields } from "#index.ts";
 import { domainKernelLayer } from "#test/domain-layers.ts";
-import {
-	acquireTemporaryPersistence,
-	makeScriptedBackend,
-	makeScriptedRunner,
-} from "#test/harness.ts";
+import { acquireTemporaryPersistence, makeScriptedBackend, makeScriptedRunner } from "#test/harness.ts";
 import { hail, reportsNativeRef } from "#test/session-recovery-fixture.ts";
 import { eventually } from "#test/voyage-fixtures.ts";
 
@@ -32,11 +23,7 @@ const payload: SpawnFields = {
 };
 
 const untilTerminal = <E, R>(changes: Stream.Stream<IntentStatus, E, R>) =>
-	changes.pipe(
-		Stream.takeUntil(isTerminalIntentStatus),
-		Stream.runLast,
-		Effect.map(Option.getOrThrow),
-	);
+	changes.pipe(Stream.takeUntil(isTerminalIntentStatus), Stream.runLast, Effect.map(Option.getOrThrow));
 
 const seedActivatedBoundary = (intentId: string, plan: MooragePlan) =>
 	Effect.gen(function* () {
@@ -120,143 +107,90 @@ const birthRows = Effect.gen(function* () {
 	};
 });
 
-const countOpens = (
-	backend: AgentBackend,
-	opens: Ref.Ref<number>,
-): AgentBackend => ({
+const countOpens = (backend: AgentBackend, opens: Ref.Ref<number>): AgentBackend => ({
 	...backend,
-	openSession: (options) =>
-		Ref.update(opens, (count) => count + 1).pipe(
-			Effect.andThen(backend.openSession(options)),
-		),
+	openSession: (options) => Ref.update(opens, (count) => count + 1).pipe(Effect.andThen(backend.openSession(options))),
 });
 
-it.live(
-	"boot completes an activated birth while resuming its durable Session",
-	() =>
-		Effect.gen(function* () {
-			const temporary = yield* acquireTemporaryPersistence;
-			const scripted = yield* makeScriptedBackend;
-			const recorded = yield* makeScriptedRunner;
-			const opens = yield* Ref.make(0);
-			const backend = countOpens(
-				reportsNativeRef(scripted.backend, scripted, "native-existing"),
-				opens,
-			);
-			const plan = recorded.runner.plan({
-				agentId: payload.agentId,
-				repos: [
-					{ ref: "main", slug: "activated", source: "/somewhere/activated" },
-				],
+it.live("boot completes an activated birth while resuming its durable Session", () =>
+	Effect.gen(function* () {
+		const temporary = yield* acquireTemporaryPersistence;
+		const scripted = yield* makeScriptedBackend;
+		const recorded = yield* makeScriptedRunner;
+		const opens = yield* Ref.make(0);
+		const backend = countOpens(reportsNativeRef(scripted.backend, scripted, "native-existing"), opens);
+		const plan = recorded.runner.plan({
+			agentId: payload.agentId,
+			repos: [{ ref: "main", slug: "activated", source: "/somewhere/activated" }],
+		});
+		const seeded = yield* Effect.gen(function* () {
+			const kernel = yield* Kernel;
+			const domain = yield* AgentDomain;
+			yield* domain.repos.register({
+				defaultRef: "main",
+				source: "/somewhere/activated",
 			});
-			const seeded = yield* Effect.gen(function* () {
-				const kernel = yield* Kernel;
-				const domain = yield* AgentDomain;
-				yield* domain.repos.register({
-					defaultRef: "main",
-					source: "/somewhere/activated",
-				});
-				const submission = yield* kernel.submit(domain.spawn, payload);
-				yield* seedActivatedBoundary(submission.id, plan);
-				return { before: yield* birthRows, intentId: submission.id };
-			}).pipe(
-				Effect.provide(
-					domainKernelLayer(
-						temporary,
-						backend,
-						{ gates: [CLOSED] },
-						recorded.runner,
-					),
-				),
+			const submission = yield* kernel.submit(domain.spawn, payload);
+			yield* seedActivatedBoundary(submission.id, plan);
+			return { before: yield* birthRows, intentId: submission.id };
+		}).pipe(Effect.provide(domainKernelLayer(temporary, backend, { gates: [CLOSED] }, recorded.runner)));
+		yield* Effect.gen(function* () {
+			const kernel = yield* Kernel;
+			expect(yield* untilTerminal(kernel.changes(seeded.intentId))).toBe("succeeded");
+			const after = yield* birthRows;
+			expect({ ...after, transcript: seeded.before.transcript }).toEqual(seeded.before);
+			expect(yield* Ref.get(opens)).toBe(0);
+			yield* hail(payload.sessionId);
+			yield* eventually(
+				Effect.gen(function* () {
+					expect({
+						opened: yield* Ref.get(opens),
+						provisioned: yield* recorded.provisioned,
+					}).toEqual({ opened: 1, provisioned: [] });
+					const resumed = yield* scripted.session(payload.sessionId);
+					expect(resumed).toBeDefined();
+					expect(resumed === undefined ? [] : yield* resumed.sent).toEqual(["Reconcile durable Antumbra truth and continue your assigned work."]);
+					const settled = yield* birthRows;
+					expect(settled.transcript.map((event) => event.seq)).toEqual([0, 1]);
+				}),
 			);
-			yield* Effect.gen(function* () {
-				const kernel = yield* Kernel;
-				expect(yield* untilTerminal(kernel.changes(seeded.intentId))).toBe(
-					"succeeded",
-				);
-				const after = yield* birthRows;
-				expect({ ...after, transcript: seeded.before.transcript }).toEqual(
-					seeded.before,
-				);
-				expect(yield* Ref.get(opens)).toBe(0);
-				yield* hail(payload.sessionId);
-				yield* eventually(
-					Effect.gen(function* () {
-						expect({
-							opened: yield* Ref.get(opens),
-							provisioned: yield* recorded.provisioned,
-						}).toEqual({ opened: 1, provisioned: [] });
-						const resumed = yield* scripted.session(payload.sessionId);
-						expect(resumed).toBeDefined();
-						expect(resumed === undefined ? [] : yield* resumed.sent).toEqual([
-							"Reconcile durable Antumbra truth and continue your assigned work.",
-						]);
-						const settled = yield* birthRows;
-						expect(settled.transcript.map((event) => event.seq)).toEqual([
-							0, 1,
-						]);
-					}),
-				);
-			}).pipe(
-				Effect.provide(
-					domainKernelLayer(temporary, backend, {}, recorded.runner),
-				),
-			);
-		}),
+		}).pipe(Effect.provide(domainKernelLayer(temporary, backend, {}, recorded.runner)));
+	}),
 );
 
-it.live(
-	"spawn replay never treats an unknown Agent status as a new birth",
-	() =>
-		Effect.gen(function* () {
-			const temporary = yield* acquireTemporaryPersistence;
-			const scripted = yield* makeScriptedBackend;
-			const recorded = yield* makeScriptedRunner;
-			const plan = recorded.runner.plan({
-				agentId: payload.agentId,
-				repos: [
-					{ ref: "main", slug: "activated", source: "/somewhere/activated" },
-				],
+it.live("spawn replay never treats an unknown Agent status as a new birth", () =>
+	Effect.gen(function* () {
+		const temporary = yield* acquireTemporaryPersistence;
+		const scripted = yield* makeScriptedBackend;
+		const recorded = yield* makeScriptedRunner;
+		const plan = recorded.runner.plan({
+			agentId: payload.agentId,
+			repos: [{ ref: "main", slug: "activated", source: "/somewhere/activated" }],
+		});
+		const intentId = yield* Effect.gen(function* () {
+			const db = yield* Database;
+			const kernel = yield* Kernel;
+			const domain = yield* AgentDomain;
+			yield* domain.repos.register({
+				defaultRef: "main",
+				source: "/somewhere/activated",
 			});
-			const intentId = yield* Effect.gen(function* () {
-				const db = yield* Database;
-				const kernel = yield* Kernel;
-				const domain = yield* AgentDomain;
-				yield* domain.repos.register({
-					defaultRef: "main",
-					source: "/somewhere/activated",
-				});
-				const submission = yield* kernel.submit(domain.spawn, payload);
-				yield* seedActivatedBoundary(submission.id, plan);
-				yield* db.Agent.where({ id: payload.agentId }).update({
-					status: "future-agent",
-				});
-				return submission.id;
-			}).pipe(
-				Effect.provide(
-					domainKernelLayer(
-						temporary,
-						scripted.backend,
-						{ gates: [CLOSED] },
-						recorded.runner,
-					),
-				),
-			);
+			const submission = yield* kernel.submit(domain.spawn, payload);
+			yield* seedActivatedBoundary(submission.id, plan);
+			yield* db.Agent.where({ id: payload.agentId }).update({
+				status: "future-agent",
+			});
+			return submission.id;
+		}).pipe(Effect.provide(domainKernelLayer(temporary, scripted.backend, { gates: [CLOSED] }, recorded.runner)));
 
-			yield* Effect.gen(function* () {
-				const db = yield* Database;
-				const kernel = yield* Kernel;
-				expect(yield* untilTerminal(kernel.changes(intentId))).toBe("failed");
-				const agent = Option.getOrThrow(
-					yield* db.Agent.where({ id: payload.agentId }).first(),
-				);
-				expect(agent.status).toBe("future-agent");
-				expect(yield* recorded.provisioned).toEqual([]);
-				expect(yield* scripted.opened).toEqual([]);
-			}).pipe(
-				Effect.provide(
-					domainKernelLayer(temporary, scripted.backend, {}, recorded.runner),
-				),
-			);
-		}),
+		yield* Effect.gen(function* () {
+			const db = yield* Database;
+			const kernel = yield* Kernel;
+			expect(yield* untilTerminal(kernel.changes(intentId))).toBe("failed");
+			const agent = Option.getOrThrow(yield* db.Agent.where({ id: payload.agentId }).first());
+			expect(agent.status).toBe("future-agent");
+			expect(yield* recorded.provisioned).toEqual([]);
+			expect(yield* scripted.opened).toEqual([]);
+		}).pipe(Effect.provide(domainKernelLayer(temporary, scripted.backend, {}, recorded.runner)));
+	}),
 );

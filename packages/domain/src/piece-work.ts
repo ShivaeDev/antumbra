@@ -1,24 +1,13 @@
-import type {
-	BoardOwnerNotFound,
-	StoredBoardEntryInvalid,
-	StoredBoardOwnerKindInvalid,
-} from "@antumbra/boards";
+import type { BoardOwnerNotFound, StoredBoardEntryInvalid, StoredBoardOwnerKindInvalid } from "@antumbra/boards";
 import type { RulingReadFailure } from "@antumbra/rulings";
 import { Effect } from "effect";
 import { charterFor } from "#crew-charter.ts";
 import { PieceNotFound } from "#errors.ts";
 import { KernelReach, type SpawnRefused } from "#kernel-reach.ts";
 import { pieceStates, workingAssignees } from "#piece-state.ts";
-import {
-	PieceAbandoned,
-	PieceAlreadyCrewed,
-	PieceNotOnVoyage,
-} from "#piece-work-errors.ts";
+import { PieceAbandoned, PieceAlreadyCrewed, PieceNotOnVoyage } from "#piece-work-errors.ts";
 import type { VoyageRow, VoyageWorld } from "#voyage-rows.ts";
-import {
-	type VoyageWorldReadFailure,
-	VoyageWorldSource,
-} from "#voyage-world.ts";
+import { type VoyageWorldReadFailure, VoyageWorldSource } from "#voyage-world.ts";
 
 export interface CrewedPiece {
 	readonly agentId: string;
@@ -37,14 +26,9 @@ export type WorkRefused =
 	| StoredBoardOwnerKindInvalid
 	| VoyageWorldReadFailure;
 
-const voyageOf = (
-	world: VoyageWorld,
-	pieceId: string,
-): VoyageRow | undefined => {
+const voyageOf = (world: VoyageWorld, pieceId: string): VoyageRow | undefined => {
 	const membership = world.memberships.find((row) => row.pieceId === pieceId);
-	return membership === undefined
-		? undefined
-		: world.voyages.find((row) => row.id === membership.voyageId);
+	return membership === undefined ? undefined : world.voyages.find((row) => row.id === membership.voyageId);
 };
 
 // why: the dispatcher pulls only what the ladder calls ready, which is right —

@@ -5,10 +5,7 @@ import type { LineProcess } from "#adapters/process.ts";
 // cover writes that one answer and nothing else. `None` falls through, so the
 // rest of the client keeps being exercised against the same fake every other
 // test uses rather than a second one written beside it.
-export type FakeAnswer = (
-	method: string,
-	params: unknown,
-) => Option.Option<unknown>;
+export type FakeAnswer = (method: string, params: unknown) => Option.Option<unknown>;
 
 export interface FakeRequest {
 	readonly id: number;
@@ -30,17 +27,12 @@ export interface FakeAppServer {
 	readonly serverRequest: (id: number, method: string, params: unknown) => void;
 }
 
-const isRecord = (value: unknown): value is Record<string, unknown> =>
-	typeof value === "object" && value !== null;
+const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === "object" && value !== null;
 
 // why: an in-memory app-server that answers the handful of requests the
 // backend makes, so the whole client — rpc, server, thread, turn driver —
 // is exercised without the codex binary. Turn ids count up per thread.
-const answer = (
-	method: string,
-	params: unknown,
-	nextTurn: () => number,
-): unknown => {
+const answer = (method: string, params: unknown, nextTurn: () => number): unknown => {
 	switch (method) {
 		case "initialize":
 			return { userAgent: "fake/0.148.0-alpha.9 (test)" };
@@ -48,10 +40,7 @@ const answer = (
 		case "thread/resume":
 			return {
 				thread: {
-					id:
-						isRecord(params) && typeof params.threadId === "string"
-							? params.threadId
-							: "thread-1",
+					id: isRecord(params) && typeof params.threadId === "string" ? params.threadId : "thread-1",
 				},
 			};
 		case "turn/start":
@@ -65,9 +54,7 @@ const answer = (
 	}
 };
 
-export const makeFakeAppServer = (
-	scripted: FakeAnswer = () => Option.none(),
-): FakeAppServer => {
+export const makeFakeAppServer = (scripted: FakeAnswer = () => Option.none()): FakeAppServer => {
 	let lineListener: ((line: string) => void) | null = null;
 	let exitListener: ((code: number | null) => void) | null = null;
 	let turnCounter = 0;
@@ -77,10 +64,7 @@ export const makeFakeAppServer = (
 	};
 	const requests: FakeRequest[] = [];
 	const responses: FakeResponse[] = [];
-	const responseWaiters = new Map<
-		number | string,
-		Array<(result: unknown) => void>
-	>();
+	const responseWaiters = new Map<number | string, Array<(result: unknown) => void>>();
 	const responseById = (id: number | string) =>
 		Effect.promise(() => {
 			const response = responses.find((candidate) => candidate.id === id);
@@ -93,8 +77,7 @@ export const makeFakeAppServer = (
 				responseWaiters.set(id, waiting);
 			});
 		});
-	const send = (message: Record<string, unknown>) =>
-		lineListener?.(JSON.stringify({ jsonrpc: "2.0", ...message }));
+	const send = (message: Record<string, unknown>) => lineListener?.(JSON.stringify({ jsonrpc: "2.0", ...message }));
 	const receive = (line: string): void => {
 		const message: unknown = JSON.parse(line);
 		if (!isRecord(message)) {
@@ -118,9 +101,7 @@ export const makeFakeAppServer = (
 		queueMicrotask(() => {
 			send({
 				id,
-				result: Option.getOrElse(scripted(method, params), () =>
-					answer(method, params, nextTurn),
-				),
+				result: Option.getOrElse(scripted(method, params), () => answer(method, params, nextTurn)),
 			});
 		});
 	};

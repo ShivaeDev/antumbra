@@ -1,29 +1,12 @@
-import type {
-	ProclaimRequest,
-	ReclassifyRequest,
-	RuleRequest,
-} from "@antumbra/contract";
-import type {
-	RulingChoiceInput,
-	RulingProclamation,
-	RulingReclassifyInput,
-	RulingSubject,
-	RulingVerdict,
-} from "@antumbra/rulings";
+import type { ProclaimRequest, ReclassifyRequest, RuleRequest } from "@antumbra/contract";
+import type { RulingChoiceInput, RulingProclamation, RulingReclassifyInput, RulingSubject, RulingVerdict } from "@antumbra/rulings";
 
 // why: an absent detail is left off rather than carried as an empty one, so a
 // choice written from the wire is the shape a choice written in code is.
-export const choiceOf = (choice: {
-	readonly detail?: string | undefined;
-	readonly label: string;
-}): RulingChoiceInput =>
-	choice.detail === undefined
-		? { label: choice.label }
-		: { detail: choice.detail, label: choice.label };
+export const choiceOf = (choice: { readonly detail?: string | undefined; readonly label: string }): RulingChoiceInput =>
+	choice.detail === undefined ? { label: choice.label } : { detail: choice.detail, label: choice.label };
 
-export const tagSubjects = (
-	tags: ReadonlyArray<string> | undefined,
-): ReadonlyArray<RulingSubject> =>
+export const tagSubjects = (tags: ReadonlyArray<string> | undefined): ReadonlyArray<RulingSubject> =>
 	(tags ?? []).map((tag) => ({ kind: "tag", tag }));
 
 // why: the window is the admiral's hand, so what it sends is ruled by the
@@ -46,9 +29,7 @@ export const verdictOf = (request: RuleRequest): RulingVerdict =>
 // why: the admiral proclaiming from the window is the asker as well as the
 // authority, and it stands on no piece or voyage while it writes a rule — so
 // free tags are the whole of the scope a proclamation may name.
-export const proclamationOf = (
-	request: ProclaimRequest,
-): RulingProclamation => ({
+export const proclamationOf = (request: ProclaimRequest): RulingProclamation => ({
 	answer: request.answer,
 	by: "admiral",
 	choices: (request.choices ?? []).map(choiceOf),
@@ -57,14 +38,10 @@ export const proclamationOf = (
 	radius: request.radius,
 	subjects: tagSubjects(request.tags),
 	urgency: request.urgency,
-	...(request.chosenChoice === undefined
-		? {}
-		: { chosenChoice: request.chosenChoice }),
+	...(request.chosenChoice === undefined ? {} : { chosenChoice: request.chosenChoice }),
 });
 
-export const reclassificationOf = (
-	request: ReclassifyRequest,
-): RulingReclassifyInput => ({
+export const reclassificationOf = (request: ReclassifyRequest): RulingReclassifyInput => ({
 	by: "admiral",
 	rulingId: request.rulingId,
 	...(request.note === undefined ? {} : { note: request.note }),

@@ -1,8 +1,6 @@
 import { Data } from "effect";
 
-export class ResourceOwnerUnavailable extends Data.TaggedError(
-	"ResourceOwnerUnavailable",
-)<{
+export class ResourceOwnerUnavailable extends Data.TaggedError("ResourceOwnerUnavailable")<{
 	readonly agentId: string;
 	readonly status: "dormant" | "missing" | "retired";
 }> {
@@ -11,9 +9,7 @@ export class ResourceOwnerUnavailable extends Data.TaggedError(
 	}
 }
 
-export class ResourceReclaimClaimed extends Data.TaggedError(
-	"ResourceReclaimClaimed",
-)<{
+export class ResourceReclaimClaimed extends Data.TaggedError("ResourceReclaimClaimed")<{
 	readonly agentId: string;
 	readonly resourceId: string;
 }> {
@@ -22,9 +18,7 @@ export class ResourceReclaimClaimed extends Data.TaggedError(
 	}
 }
 
-export class ResourceReclaimClaimInvalid extends Data.TaggedError(
-	"ResourceReclaimClaimInvalid",
-)<{
+export class ResourceReclaimClaimInvalid extends Data.TaggedError("ResourceReclaimClaimInvalid")<{
 	readonly agentId: string;
 	readonly detail: string;
 }> {

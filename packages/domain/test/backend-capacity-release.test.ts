@@ -1,27 +1,12 @@
 import { IntentExecution, Kernel, KernelLive } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
 import type { TemporaryPersistence } from "@antumbra/persistence/testing";
-import {
-	type AgentBackend,
-	type BackendCapacitySource,
-	makeBackendCapacityController,
-} from "@antumbra/plugin-api";
+import { type AgentBackend, type BackendCapacitySource, makeBackendCapacityController } from "@antumbra/plugin-api";
 import { expect, it } from "@effect/vitest";
-import {
-	Clock,
-	Deferred,
-	Effect,
-	Layer,
-	ManagedRuntime,
-	Option,
-	Ref,
-} from "effect";
+import { Clock, Deferred, Effect, Layer, ManagedRuntime, Option, Ref } from "effect";
 import { AgentDomain } from "#agent-domain-service.ts";
 import { capacityHoldDetail } from "#backend-capacity-hold.ts";
-import {
-	BackendCapacityReleaseLive,
-	BackendCapacityReleases,
-} from "#backend-capacity-release.ts";
+import { BackendCapacityReleaseLive, BackendCapacityReleases } from "#backend-capacity-release.ts";
 import {
 	makeCapacities,
 	SCRIPTED,
@@ -34,11 +19,7 @@ import {
 	withReleaseDomain,
 	withReleases,
 } from "#test/backend-capacity-release-harness.ts";
-import {
-	acquireTemporaryPersistence,
-	makeScriptedBackend,
-	rawOf,
-} from "#test/harness.ts";
+import { acquireTemporaryPersistence, makeScriptedBackend, rawOf } from "#test/harness.ts";
 
 type AgentDomainService = Parameters<typeof AgentDomain.of>[0];
 type Attempts = Ref.Ref<Map<string, number>>;
@@ -61,11 +42,7 @@ const recordAttempt = (attempts: Attempts, name: string) =>
 		return [count, next] as const;
 	});
 
-const parkFirstAttempt = (
-	attempts: Attempts,
-	template: AgentDomainService,
-	name: string,
-) =>
+const parkFirstAttempt = (attempts: Attempts, template: AgentDomainService, name: string) =>
 	Effect.gen(function* () {
 		const attempt = yield* recordAttempt(attempts, name);
 		if (attempt !== 1) {
@@ -79,10 +56,7 @@ const parkFirstAttempt = (
 		yield* execution.wait(capacityHoldDetail(SCRIPTED, reading.detail));
 	});
 
-const restartDomain = (
-	template: AgentDomainService,
-	attempts: Attempts,
-): AgentDomainService => {
+const restartDomain = (template: AgentDomainService, attempts: Attempts): AgentDomainService => {
 	const execute = (name: string) => parkFirstAttempt(attempts, template, name);
 	const spawn = spawnKind((payload) => execute(payload.agentId));
 	const wake = wakeKind((payload) => execute(payload.sessionId));
@@ -94,32 +68,19 @@ const restartDomain = (
 	});
 };
 
-const domainKernelLayer = (
-	temporary: TemporaryPersistence,
-	backendTemplate: AgentBackend,
-	capacity: BackendCapacitySource,
-	attempts: Attempts,
-) => {
+const domainKernelLayer = (temporary: TemporaryPersistence, backendTemplate: AgentBackend, capacity: BackendCapacitySource, attempts: Attempts) => {
 	const backend = { ...backendTemplate, capacity };
-	const domain = Layer.effect(AgentDomain)(
-		Effect.map(AgentDomain, (template) => restartDomain(template, attempts)),
-	).pipe(Layer.provide(templateDomainLayer(temporary, backend)));
-	return Layer.unwrap(
-		Effect.map(AgentDomain, (current) => KernelLive({ kinds: current.kinds })),
-	).pipe(Layer.provideMerge(domain), Layer.provideMerge(temporary.layer));
+	const domain = Layer.effect(AgentDomain)(Effect.map(AgentDomain, (template) => restartDomain(template, attempts))).pipe(
+		Layer.provide(templateDomainLayer(temporary, backend)),
+	);
+	return Layer.unwrap(Effect.map(AgentDomain, (current) => KernelLive({ kinds: current.kinds }))).pipe(
+		Layer.provideMerge(domain),
+		Layer.provideMerge(temporary.layer),
+	);
 };
 
-const releaseRuntimeLayer = (
-	temporary: TemporaryPersistence,
-	backend: AgentBackend,
-	capacity: BackendCapacitySource,
-	attempts: Attempts,
-) =>
-	BackendCapacityReleaseLive.pipe(
-		Layer.provideMerge(
-			domainKernelLayer(temporary, backend, capacity, attempts),
-		),
-	);
+const releaseRuntimeLayer = (temporary: TemporaryPersistence, backend: AgentBackend, capacity: BackendCapacitySource, attempts: Attempts) =>
+	BackendCapacityReleaseLive.pipe(Layer.provideMerge(domainKernelLayer(temporary, backend, capacity, attempts)));
 
 const parkWorkAndDurablyClear = Effect.gen(function* () {
 	const db = yield* Database;
@@ -127,28 +88,15 @@ const parkWorkAndDurablyClear = Effect.gen(function* () {
 	const kernel = yield* Kernel;
 	const birth = yield* kernel.submit(domain.spawn, spawnPayload("birth"));
 	const resume = yield* kernel.submit(domain.wake, wakePayload("wake"));
-	yield* Effect.all(
-		[
-			waitForChange(kernel, birth.id, "waiting"),
-			waitForChange(kernel, resume.id, "waiting"),
-		],
-		{ concurrency: "unbounded" },
-	);
+	yield* Effect.all([waitForChange(kernel, birth.id, "waiting"), waitForChange(kernel, resume.id, "waiting")], { concurrency: "unbounded" });
 	// why: this is the crash seam under test — available is durable,
 	// but no release reconciler exists in this runtime to consume it.
 	yield* domain.backendCapacities.clear(SCRIPTED);
-	expect(
-		Option.getOrThrow(
-			yield* db.BackendCapacity.where({ backend: SCRIPTED }).first(),
-		),
-	).toMatchObject({ status: "available" });
+	expect(Option.getOrThrow(yield* db.BackendCapacity.where({ backend: SCRIPTED }).first())).toMatchObject({ status: "available" });
 	return [birth.id, resume.id] as const;
 });
 
-const verifyRestartedRelease = (
-	ids: ReadonlyArray<string>,
-	attempts: Attempts,
-) =>
+const verifyRestartedRelease = (ids: ReadonlyArray<string>, attempts: Attempts) =>
 	Effect.gen(function* () {
 		const domain = yield* AgentDomain;
 		const kernel = yield* Kernel;
@@ -165,62 +113,31 @@ const verifyRestartedRelease = (
 const runCrashRuntime = (layer: ReturnType<typeof domainKernelLayer>) =>
 	Effect.acquireUseRelease(
 		Effect.sync(() => ManagedRuntime.make(layer)),
-		(runtime) =>
-			Effect.promise(() => runtime.runPromise(parkWorkAndDurablyClear)),
+		(runtime) => Effect.promise(() => runtime.runPromise(parkWorkAndDurablyClear)),
 		(runtime) => Effect.promise(() => runtime.dispose()),
 	);
 
-const runRecoveryRuntime = (
-	layer: ReturnType<typeof releaseRuntimeLayer>,
-	ids: ReadonlyArray<string>,
-	attempts: Attempts,
-) =>
+const runRecoveryRuntime = (layer: ReturnType<typeof releaseRuntimeLayer>, ids: ReadonlyArray<string>, attempts: Attempts) =>
 	Effect.acquireUseRelease(
 		Effect.sync(() => ManagedRuntime.make(layer)),
-		(runtime) =>
-			Effect.promise(() =>
-				runtime.runPromise(verifyRestartedRelease(ids, attempts)),
-			),
+		(runtime) => Effect.promise(() => runtime.runPromise(verifyRestartedRelease(ids, attempts))),
 		(runtime) => Effect.promise(() => runtime.dispose()),
 	);
 
-it.live(
-	"repairs both parked births and wakes on boot after a durable clear",
-	() =>
-		Effect.gen(function* () {
-			const temporary = yield* acquireTemporaryPersistence;
-			const scripted = yield* makeScriptedBackend;
-			const controller = yield* controllerEffect;
-			controller.observe(
-				rawOf("quota/rejected"),
-				yield* Clock.currentTimeMillis,
-			);
-			const attempts = yield* Ref.make(new Map<string, number>());
-			const ids = yield* runCrashRuntime(
-				domainKernelLayer(
-					temporary,
-					scripted.backend,
-					controller.source,
-					attempts,
-				),
-			);
-			expect(Option.isNone(yield* controller.source.current)).toBe(true);
+it.live("repairs both parked births and wakes on boot after a durable clear", () =>
+	Effect.gen(function* () {
+		const temporary = yield* acquireTemporaryPersistence;
+		const scripted = yield* makeScriptedBackend;
+		const controller = yield* controllerEffect;
+		controller.observe(rawOf("quota/rejected"), yield* Clock.currentTimeMillis);
+		const attempts = yield* Ref.make(new Map<string, number>());
+		const ids = yield* runCrashRuntime(domainKernelLayer(temporary, scripted.backend, controller.source, attempts));
+		expect(Option.isNone(yield* controller.source.current)).toBe(true);
 
-			const restartedController = yield* controllerEffect;
-			expect(Option.isNone(yield* restartedController.source.current)).toBe(
-				true,
-			);
-			yield* runRecoveryRuntime(
-				releaseRuntimeLayer(
-					temporary,
-					scripted.backend,
-					restartedController.source,
-					attempts,
-				),
-				ids,
-				attempts,
-			);
-		}),
+		const restartedController = yield* controllerEffect;
+		expect(Option.isNone(yield* restartedController.source.current)).toBe(true);
+		yield* runRecoveryRuntime(releaseRuntimeLayer(temporary, scripted.backend, restartedController.source, attempts), ids, attempts);
+	}),
 );
 
 it.live("releases work that reaches waiting after the clear", () =>
@@ -248,18 +165,13 @@ it.live("releases work that reaches waiting after the clear", () =>
 			Effect.gen(function* () {
 				const kernel = yield* Kernel;
 				const releases = yield* BackendCapacityReleases;
-				const submission = yield* kernel.submit(
-					spawn,
-					spawnPayload("late-birth"),
-				);
+				const submission = yield* kernel.submit(spawn, spawnPayload("late-birth"));
 				yield* Deferred.await(running);
 				yield* releases.release(SCRIPTED);
 				yield* Deferred.succeed(park, undefined);
 				yield* waitForChange(kernel, submission.id, "succeeded");
 				expect(yield* Ref.get(attempts)).toBe(2);
-			}).pipe(
-				Effect.provide(withReleases(temporary.layer, domain, spawn, wake)),
-			),
+			}).pipe(Effect.provide(withReleases(temporary.layer, domain, spawn, wake))),
 		);
 	}),
 );

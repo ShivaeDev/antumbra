@@ -10,36 +10,15 @@ import { Effect } from "effect";
 import { HeldResourceRead } from "#held-resource-read.ts";
 
 const decodeAgent = (row: { readonly id: string; readonly status: string }) =>
-	Effect.fromResult(decodeStoredAgentStatus(row.id, row.status)).pipe(
-		Effect.map((status) => ({ agentId: row.id, status })),
-	);
+	Effect.fromResult(decodeStoredAgentStatus(row.id, row.status)).pipe(Effect.map((status) => ({ agentId: row.id, status })));
 
-const decodeSession = (row: {
-	readonly agentId: string;
-	readonly id: string;
-	readonly status: string;
-}) =>
-	Effect.fromResult(decodeStoredAgentSessionStatus(row.id, row.status)).pipe(
-		Effect.map((status) => ({ agentId: row.agentId, status })),
-	);
+const decodeSession = (row: { readonly agentId: string; readonly id: string; readonly status: string }) =>
+	Effect.fromResult(decodeStoredAgentSessionStatus(row.id, row.status)).pipe(Effect.map((status) => ({ agentId: row.agentId, status })));
 
-const decodeMoorage = (row: {
-	readonly agentId: string;
-	readonly reclaimState: string | null;
-	readonly runner: string;
-	readonly status: string;
-}) =>
+const decodeMoorage = (row: { readonly agentId: string; readonly reclaimState: string | null; readonly runner: string; readonly status: string }) =>
 	Effect.all({
-		reclaimState: Effect.fromResult(
-			decodeStoredResourceReclaimState(
-				"Moorage",
-				row.agentId,
-				row.reclaimState,
-			),
-		),
-		status: Effect.fromResult(
-			decodeStoredMoorageStatus(row.agentId, row.status),
-		),
+		reclaimState: Effect.fromResult(decodeStoredResourceReclaimState("Moorage", row.agentId, row.reclaimState)),
+		status: Effect.fromResult(decodeStoredMoorageStatus(row.agentId, row.status)),
 	}).pipe(Effect.map((decoded) => ({ ...row, ...decoded })));
 
 const decodeBerth = (row: {
@@ -55,9 +34,7 @@ const decodeBerth = (row: {
 	readonly strandedAt: Date | null;
 }) =>
 	Effect.all({
-		reclaimState: Effect.fromResult(
-			decodeStoredResourceReclaimState("Berth", row.id, row.reclaimState),
-		),
+		reclaimState: Effect.fromResult(decodeStoredResourceReclaimState("Berth", row.id, row.reclaimState)),
 		status: Effect.fromResult(decodeStoredBerthStatus(row.id, row.status)),
 	}).pipe(Effect.map((decoded) => ({ ...row, ...decoded })));
 
@@ -93,9 +70,7 @@ export const readResourceReclaimState = Effect.gen(function* () {
 		decodeSession,
 	);
 	const moorages = yield* Effect.forEach(
-		rows.flatMap(({ moorage }) =>
-			moorage._tag === "Some" ? [moorage.value] : [],
-		),
+		rows.flatMap(({ moorage }) => (moorage._tag === "Some" ? [moorage.value] : [])),
 		decodeMoorage,
 	);
 	const berths = yield* Effect.forEach(
@@ -111,6 +86,4 @@ export const readResourceReclaimState = Effect.gen(function* () {
 	};
 });
 
-export type ResourceReclaimSnapshot = Effect.Success<
-	typeof readResourceReclaimState
->;
+export type ResourceReclaimSnapshot = Effect.Success<typeof readResourceReclaimState>;

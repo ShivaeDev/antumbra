@@ -16,9 +16,7 @@ export const eventually = <A, E, R>(check: Effect.Effect<A, E, R>) =>
 export const aliveAgent = (agentId: string) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
-		const agent = Option.getOrThrow(
-			yield* db.Agent.where({ id: agentId }).first(),
-		);
+		const agent = Option.getOrThrow(yield* db.Agent.where({ id: agentId }).first());
 		expect(agent.status).toBe("alive");
 		return agent;
 	});
@@ -124,12 +122,7 @@ export const standDownAll = (scripted: ScriptedBackend) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
 		const alive = yield* db.Agent.where({ status: "alive" }).all();
-		yield* Effect.forEach(alive, (agent) =>
-			Effect.retry(
-				standDown(scripted, agent.id),
-				Schedule.spaced(10).pipe(Schedule.upTo({ duration: 500 })),
-			),
-		);
+		yield* Effect.forEach(alive, (agent) => Effect.retry(standDown(scripted, agent.id), Schedule.spaced(10).pipe(Schedule.upTo({ duration: 500 }))));
 	});
 
 // why: the farewell comes first, because that is the only order the app has.
@@ -143,13 +136,7 @@ export const retireOneAlive = (scripted: ScriptedBackend) =>
 		const domain = yield* AgentDomain;
 		const alive = yield* db.Agent.where({ status: "alive" }).all();
 		const agentId = alive[0]?.id ?? "";
-		yield* Effect.retry(
-			standDown(scripted, agentId),
-			Schedule.spaced(10).pipe(Schedule.upTo({ duration: 2000 })),
-		);
+		yield* Effect.retry(standDown(scripted, agentId), Schedule.spaced(10).pipe(Schedule.upTo({ duration: 2000 })));
 		const submission = yield* kernel.submit(domain.retire, { agentId });
-		return yield* submission.changes.pipe(
-			Stream.takeUntil(isTerminalIntentStatus),
-			Stream.runLast,
-		);
+		return yield* submission.changes.pipe(Stream.takeUntil(isTerminalIntentStatus), Stream.runLast);
 	});

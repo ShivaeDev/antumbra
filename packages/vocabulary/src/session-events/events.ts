@@ -1,15 +1,8 @@
 import { Schema } from "effect";
 import { Origin } from "#session-events/origin.ts";
 import { Raw, RawEvent } from "#session-events/raw.ts";
-import {
-	SessionBackgroundEvent,
-	SessionStateEvent,
-} from "#session-events/state.ts";
-import {
-	SubsessionEnded,
-	SubsessionGap,
-	SubsessionOpened,
-} from "#session-events/subsessions.ts";
+import { SessionBackgroundEvent, SessionStateEvent } from "#session-events/state.ts";
+import { SubsessionEnded, SubsessionGap, SubsessionOpened } from "#session-events/subsessions.ts";
 import { UsageEvent } from "#session-events/usage.ts";
 import { SessionInputId, SessionMessagePart } from "#session-input.ts";
 
@@ -57,11 +50,7 @@ export const ToolCompleted = Schema.Struct({
 	type: Schema.Literal("tool.completed"),
 });
 
-export const TurnStatus = Schema.Literals([
-	"completed",
-	"failed",
-	"interrupted",
-]);
+export const TurnStatus = Schema.Literals(["completed", "failed", "interrupted"]);
 
 export const TurnCompleted = Schema.Struct({
 	durationMs: Schema.optional(Schema.Number),

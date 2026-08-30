@@ -4,11 +4,7 @@ import { expect, it } from "@effect/vitest";
 import { Effect, Option } from "effect";
 import { AgentDomain } from "#domain.ts";
 import { domainKernelLayer } from "#test/domain-layers.ts";
-import {
-	acquireTemporaryPersistence,
-	makeScriptedBackend,
-	standDown,
-} from "#test/harness.ts";
+import { acquireTemporaryPersistence, makeScriptedBackend, standDown } from "#test/harness.ts";
 import { born, chartered, handFor } from "#test/retire-crew-fixture.ts";
 import { untilTerminal } from "#test/session-recovery-fixture.ts";
 
@@ -135,30 +131,24 @@ it.live("retiring an agent whose tree is stranded is not refused", () =>
 	}),
 );
 
-it.live(
-	"a retried retirement closes Sessions left behind the terminal row",
-	() =>
-		Effect.gen(function* () {
-			const temporary = yield* acquireTemporaryPersistence;
-			const scripted = yield* makeScriptedBackend;
-			const agentId = "agent-retired-prefix";
-			const sessionId = "session-retired-prefix";
-			yield* Effect.gen(function* () {
-				const db = yield* Database;
-				yield* seedRetirementRows({
-					agentId,
-					agentStatus: "retired",
-					currentSessionId: null,
-					executionStatus: "idle",
-					sessionId,
-				});
+it.live("a retried retirement closes Sessions left behind the terminal row", () =>
+	Effect.gen(function* () {
+		const temporary = yield* acquireTemporaryPersistence;
+		const scripted = yield* makeScriptedBackend;
+		const agentId = "agent-retired-prefix";
+		const sessionId = "session-retired-prefix";
+		yield* Effect.gen(function* () {
+			const db = yield* Database;
+			yield* seedRetirementRows({
+				agentId,
+				agentStatus: "retired",
+				currentSessionId: null,
+				executionStatus: "idle",
+				sessionId,
+			});
 
-				expect((yield* retiring(agentId)).status).toBe("succeeded");
-				expect(
-					Option.getOrThrow(
-						yield* db.AgentSession.where({ id: sessionId }).first(),
-					).status,
-				).toBe("closed");
-			}).pipe(Effect.provide(domainKernelLayer(temporary, scripted.backend)));
-		}),
+			expect((yield* retiring(agentId)).status).toBe("succeeded");
+			expect(Option.getOrThrow(yield* db.AgentSession.where({ id: sessionId }).first()).status).toBe("closed");
+		}).pipe(Effect.provide(domainKernelLayer(temporary, scripted.backend)));
+	}),
 );

@@ -46,11 +46,7 @@ const turnEnd: SDKMessage = {
 	uuid: "c5d3b1e9-7f40-4b62-9c3a-8e6d7f504b31",
 };
 
-const script: ReadonlyArray<SDKMessage> = [
-	ended("before"),
-	turnEnd,
-	ended("after"),
-];
+const script: ReadonlyArray<SDKMessage> = [ended("before"), turnEnd, ended("after")];
 
 // why: result is a turn boundary, not a session boundary. Backgrounded work is
 // the production default and reports itself after the turn that started it has

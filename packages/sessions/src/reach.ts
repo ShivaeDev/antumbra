@@ -1,21 +1,11 @@
-import type {
-	IntentNotFound,
-	IntentStatus,
-	PayloadInvalid,
-	StoredIntentInvalid,
-	UnregisteredIntentTag,
-} from "@antumbra/kernel";
+import type { IntentNotFound, IntentStatus, PayloadInvalid, StoredIntentInvalid, UnregisteredIntentTag } from "@antumbra/kernel";
 import type { PrismaError } from "@antumbra/persistence";
 import { Context, type Effect, type Stream } from "effect";
 import type { WakeFields } from "#wake/input.ts";
 
 // why: rousing reads the durable Intent rows before it decides, so a row it
 // cannot read is a refusal of its own — one that submitting alone never had.
-export type RouseRefused =
-	| PayloadInvalid
-	| PrismaError
-	| StoredIntentInvalid
-	| UnregisteredIntentTag;
+export type RouseRefused = PayloadInvalid | PrismaError | StoredIntentInvalid | UnregisteredIntentTag;
 
 // why: the wake is handed back rather than fired and forgotten, because a
 // caller that does not watch it is exactly how a parked wake became invisible.
@@ -33,9 +23,7 @@ export interface SessionRouse {
 export class SessionReach extends Context.Service<
 	SessionReach,
 	{
-		readonly rouseSession: (
-			payload: WakeFields,
-		) => Effect.Effect<SessionRouse, RouseRefused>;
+		readonly rouseSession: (payload: WakeFields) => Effect.Effect<SessionRouse, RouseRefused>;
 		readonly settleWakes: (sessionId: string) => Effect.Effect<void>;
 	}
 >()("@antumbra/sessions/SessionReach") {}

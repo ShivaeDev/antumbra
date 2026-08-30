@@ -12,22 +12,14 @@ import { answered } from "#tool-answers.ts";
 import type { SessionIdentity } from "#tool-identity.ts";
 import { VoyageWorldSource } from "#voyage-world.ts";
 
-const holds = (ruling: Ruling): string =>
-	ruling.gatedPieceIds.length === 0
-		? ""
-		: `; holds ${ruling.gatedPieceIds.length} piece(s)`;
+const holds = (ruling: Ruling): string => (ruling.gatedPieceIds.length === 0 ? "" : `; holds ${ruling.gatedPieceIds.length} piece(s)`);
 
 const said = (ruling: Ruling): string =>
 	`ruling ${ruling.id} requested — ${ruling.radius} radius, ${ruling.urgency}${holds(ruling)}. The answer reaches you as mail; nothing here waits for it.`;
 
 type Ask = (typeof requestRulingSpec)["input"]["Type"];
 
-const requestOf = (
-	identity: SessionIdentity,
-	input: Ask,
-	gates: ReadonlyArray<string>,
-	rung: RulingAuthority,
-): RulingRequest => ({
+const requestOf = (identity: SessionIdentity, input: Ask, gates: ReadonlyArray<string>, rung: RulingAuthority): RulingRequest => ({
 	choices: (input.choices ?? []).map(choiceOf),
 	context: input.context,
 	gates,
@@ -55,31 +47,12 @@ export const makeRulingToolCompiler = Effect.gen(function* () {
 			Effect.map((rows) => rungAsked(rows, identity)),
 			Effect.orElseSucceed((): RulingAuthority => "admiral"),
 		);
-	const requestFrom = (
-		identity: SessionIdentity,
-		input: Ask,
-		gates: ReadonlyArray<string>,
-	): Effect.Effect<DirectToolOutcome> =>
+	const requestFrom = (identity: SessionIdentity, input: Ask, gates: ReadonlyArray<string>): Effect.Effect<DirectToolOutcome> =>
 		Effect.gen(function* () {
-			const request = requestOf(
-				identity,
-				input,
-				gates,
-				yield* rungFor(identity),
-			);
+			const request = requestOf(identity, input, gates, yield* rungFor(identity));
 			return request.urgency === "blocking"
-				? yield* answered(
-						identity,
-						requestRulingSpec.name,
-						hold(request),
-						heldSaid,
-					)
-				: yield* answered(
-						identity,
-						requestRulingSpec.name,
-						rulings.request(request),
-						said,
-					);
+				? yield* answered(identity, requestRulingSpec.name, hold(request), heldSaid)
+				: yield* answered(identity, requestRulingSpec.name, rulings.request(request), said);
 		});
 	// why: a hold reaches only the asker's own voyage — crew and captain alike
 	// may hold sibling pieces, and an agent on no voyage holds nothing. The
@@ -90,9 +63,7 @@ export const makeRulingToolCompiler = Effect.gen(function* () {
 			const gates = input.gates ?? [];
 			return gates.length === 0
 				? requestFrom(identity, input, gates)
-				: membership.onOwnDeps(identity, gates, () =>
-						requestFrom(identity, input, gates),
-					);
+				: membership.onOwnDeps(identity, gates, () => requestFrom(identity, input, gates));
 		}),
 	];
 });

@@ -1,13 +1,5 @@
-import type {
-	AgentBackend,
-	DirectTool,
-	MooragePlan,
-} from "@antumbra/plugin-api";
-import {
-	type EventSink,
-	type SessionAttachment,
-	SessionFabric,
-} from "@antumbra/session-fabric";
+import type { AgentBackend, DirectTool, MooragePlan } from "@antumbra/plugin-api";
+import { type EventSink, type SessionAttachment, SessionFabric } from "@antumbra/session-fabric";
 import { type Cause, Effect, Option } from "effect";
 import { makeMarkMoorageReady } from "#moorage-ready.ts";
 import { makeEnsureSessionRow } from "#moorage-session.ts";
@@ -23,12 +15,8 @@ export const makeSpawnSessionStart = Effect.gen(function* () {
 		plan: MooragePlan,
 		tools: ReadonlyArray<DirectTool>,
 		sink: Effect.Effect<EventSink, ESink, RSink>,
-		admit: (
-			attachment: SessionAttachment,
-		) => Effect.Effect<void, EAdmit, RAdmit>,
-		onFailure: (
-			cause: Cause.Cause<unknown>,
-		) => Effect.Effect<void, never, RFailure>,
+		admit: (attachment: SessionAttachment) => Effect.Effect<void, EAdmit, RAdmit>,
+		onFailure: (cause: Cause.Cause<unknown>) => Effect.Effect<void, never, RFailure>,
 	) =>
 		fabric
 			.withStartAdmission((permit) =>

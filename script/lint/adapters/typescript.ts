@@ -34,8 +34,7 @@ const OPTIONS: ts.CompilerOptions = {
 
 const commentRanges = (source: ts.SourceFile): readonly ts.CommentRange[] => {
 	const ranges = new Map<string, ts.CommentRange>();
-	const jsxTextSpans: Array<{ readonly end: number; readonly pos: number }> =
-		[];
+	const jsxTextSpans: Array<{ readonly end: number; readonly pos: number }> = [];
 	const add = (found: readonly ts.CommentRange[] | undefined) => {
 		for (const range of found ?? []) {
 			ranges.set(`${range.pos}:${range.end}`, range);
@@ -53,27 +52,13 @@ const commentRanges = (source: ts.SourceFile): readonly ts.CommentRange[] => {
 	};
 	visit(source);
 	return [...ranges.values()]
-		.filter(
-			(range) =>
-				!jsxTextSpans.some(
-					(span) => range.pos >= span.pos && range.pos < span.end,
-				),
-		)
+		.filter((range) => !jsxTextSpans.some((span) => range.pos >= span.pos && range.pos < span.end))
 		.sort((left, right) => left.pos - right.pos);
 };
 
-export const sourceComments = (
-	path: string,
-	content: string,
-): readonly SourceComment[] => {
+export const sourceComments = (path: string, content: string): readonly SourceComment[] => {
 	const kind = path.endsWith(".tsx") ? ts.ScriptKind.TSX : ts.ScriptKind.TS;
-	const source = ts.createSourceFile(
-		path,
-		content,
-		ts.ScriptTarget.Latest,
-		true,
-		kind,
-	);
+	const source = ts.createSourceFile(path, content, ts.ScriptTarget.Latest, true, kind);
 	return commentRanges(source).map((range) => {
 		const start = source.getLineAndCharacterOfPosition(range.pos);
 		const end = source.getLineAndCharacterOfPosition(range.end - 1);
@@ -82,20 +67,15 @@ export const sourceComments = (
 			content: content.slice(range.pos, range.end),
 			endLine: end.line + 1,
 			fullLine: content.slice(lineStart, range.pos).trim() === "",
-			kind:
-				range.kind === ts.SyntaxKind.SingleLineCommentTrivia ? "line" : "block",
+			kind: range.kind === ts.SyntaxKind.SingleLineCommentTrivia ? "line" : "block",
 			line: start.line + 1,
 		};
 	});
 };
 
-export const checkVirtualSources = (
-	sources: readonly VirtualSource[],
-): Effect.Effect<readonly TypeDiagnostic[]> =>
+export const checkVirtualSources = (sources: readonly VirtualSource[]): Effect.Effect<readonly TypeDiagnostic[]> =>
 	Effect.sync(() => {
-		const contents = new Map(
-			sources.map((source) => [source.path, source.content]),
-		);
+		const contents = new Map(sources.map((source) => [source.path, source.content]));
 		const host = ts.createCompilerHost(OPTIONS, true);
 		const readFile = host.readFile.bind(host);
 		const fileExists = host.fileExists.bind(host);
@@ -104,17 +84,10 @@ export const checkVirtualSources = (
 		const program = ts.createProgram([...contents.keys()], OPTIONS, host);
 		return ts
 			.getPreEmitDiagnostics(program)
-			.filter(
-				(diagnostic) =>
-					diagnostic.file === undefined ||
-					contents.has(diagnostic.file.fileName),
-			)
+			.filter((diagnostic) => diagnostic.file === undefined || contents.has(diagnostic.file.fileName))
 			.map((diagnostic) => ({
 				code: diagnostic.code,
-				message: ts.flattenDiagnosticMessageText(
-					diagnostic.messageText,
-					"\n    ",
-				),
+				message: ts.flattenDiagnosticMessageText(diagnostic.messageText, "\n    "),
 				path: diagnostic.file?.fileName,
 			}));
 	});

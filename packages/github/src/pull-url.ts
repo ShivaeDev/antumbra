@@ -5,8 +5,7 @@ export interface PullRequestRef extends GitHubRepoName {
 	readonly number: number;
 }
 
-const PULL_URL =
-	/^https?:\/\/github\.com\/([A-Za-z0-9._-]+)\/([A-Za-z0-9._-]+)\/pull\/(\d+)(?:[/?#].*)?$/;
+const PULL_URL = /^https?:\/\/github\.com\/([A-Za-z0-9._-]+)\/([A-Za-z0-9._-]+)\/pull\/(\d+)(?:[/?#].*)?$/;
 
 // why: adopting is done by pasting a link, and a link carries everything the
 // host needs — which repo and which number. Anything else is not a pull
@@ -16,9 +15,5 @@ export const parsePullUrl = (url: string): Option.Option<PullRequestRef> => {
 	const owner = matched?.[1];
 	const name = matched?.[2];
 	const number = Number(matched?.[3]);
-	return owner === undefined ||
-		name === undefined ||
-		!Number.isSafeInteger(number)
-		? Option.none()
-		: Option.some({ name, number, owner });
+	return owner === undefined || name === undefined || !Number.isSafeInteger(number) ? Option.none() : Option.some({ name, number, owner });
 };

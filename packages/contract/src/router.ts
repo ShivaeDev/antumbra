@@ -5,11 +5,7 @@ import { rulingRoutes } from "#router-rulings.ts";
 import { sightRoutes } from "#router-sight.ts";
 import { voyageRoutes } from "#router-voyages.ts";
 import { windowRoutes } from "#router-windows.ts";
-import {
-	SettingChange,
-	SettingsReading,
-	SettingsSource,
-} from "#settings/readings.ts";
+import { SettingChange, SettingsReading, SettingsSource } from "#settings/readings.ts";
 
 export const makeAppRouter = (runtime: AppRuntime) => {
 	const procedure = makeProcedure(runtime);

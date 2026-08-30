@@ -2,12 +2,7 @@ import { Database } from "@antumbra/persistence";
 import { Effect } from "effect";
 import type { RegisteredRepo } from "#model.ts";
 
-const summarize = (row: {
-	readonly defaultRef: string;
-	readonly id: string;
-	readonly name: string;
-	readonly source: string;
-}): RegisteredRepo => ({
+const summarize = (row: { readonly defaultRef: string; readonly id: string; readonly name: string; readonly source: string }): RegisteredRepo => ({
 	defaultRef: row.defaultRef,
 	id: row.id,
 	name: row.name,

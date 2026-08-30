@@ -7,11 +7,7 @@ import { AgentDomain } from "#domain.ts";
 import type { SpawnFields } from "#index.ts";
 import { REEF_SOURCE } from "#test/change-fixtures.ts";
 import { domainKernelLayer } from "#test/domain-layers.ts";
-import {
-	acquireTemporaryPersistence,
-	makeScriptedBackend,
-	makeScriptedRunner,
-} from "#test/harness.ts";
+import { acquireTemporaryPersistence, makeScriptedBackend, makeScriptedRunner } from "#test/harness.ts";
 
 const EIGHT_DAYS_MILLIS = 8 * 24 * 60 * 60 * 1000;
 
@@ -32,18 +28,12 @@ const submitSpawn = Effect.gen(function* () {
 		source: REEF_SOURCE,
 	});
 	const submission = yield* kernel.submit(domain.spawn, sweepPayload);
-	return yield* submission.changes.pipe(
-		Stream.takeUntil(isTerminalIntentStatus),
-		Stream.runLast,
-		Effect.map(Option.getOrThrow),
-	);
+	return yield* submission.changes.pipe(Stream.takeUntil(isTerminalIntentStatus), Stream.runLast, Effect.map(Option.getOrThrow));
 });
 
 const berthRow = Effect.gen(function* () {
 	const db = yield* Database;
-	return Option.getOrThrow(
-		yield* db.Berth.where({ id: "agent-sweep:berth-0" }).first(),
-	);
+	return Option.getOrThrow(yield* db.Berth.where({ id: "agent-sweep:berth-0" }).first());
 });
 
 const detachSweepAgent = Effect.gen(function* () {
@@ -81,11 +71,7 @@ it.live("an old dirty berth stays stranded without destructive cleanup", () =>
 		const recorder = yield* makeScriptedRunner;
 		const scraps = yield* Ref.make(0);
 
-		const outcome = yield* submitSpawn.pipe(
-			Effect.provide(
-				domainKernelLayer(temporary, scripted.backend, {}, recorder.runner),
-			),
-		);
+		const outcome = yield* submitSpawn.pipe(Effect.provide(domainKernelLayer(temporary, scripted.backend, {}, recorder.runner)));
 		expect(outcome).toBe("succeeded");
 		const ready = yield* berthRow.pipe(Effect.provide(temporary.layer));
 		expect(ready.status).toBe("ready");
@@ -93,15 +79,7 @@ it.live("an old dirty berth stays stranded without destructive cleanup", () =>
 
 		// why: the explicitly detached Agent makes this berth reclaimable; an
 		// alive Agent would instead resume and keep its ready resources.
-		yield* Effect.provide(
-			Effect.void,
-			domainKernelLayer(
-				temporary,
-				scripted.backend,
-				{},
-				dirtyRunner(recorder.runner),
-			),
-		);
+		yield* Effect.provide(Effect.void, domainKernelLayer(temporary, scripted.backend, {}, dirtyRunner(recorder.runner)));
 		const stranded = yield* berthRow.pipe(Effect.provide(temporary.layer));
 		expect(stranded.status).toBe("stranded");
 		expect(stranded.strandedAt).not.toBeNull();
@@ -115,15 +93,7 @@ it.live("an old dirty berth stays stranded without destructive cleanup", () =>
 			});
 		}).pipe(Effect.provide(temporary.layer));
 
-		yield* Effect.provide(
-			Effect.void,
-			domainKernelLayer(
-				temporary,
-				scripted.backend,
-				{},
-				scrapCounting(dirtyRunner(recorder.runner), scraps),
-			),
-		);
+		yield* Effect.provide(Effect.void, domainKernelLayer(temporary, scripted.backend, {}, scrapCounting(dirtyRunner(recorder.runner), scraps)));
 		const preserved = yield* berthRow.pipe(Effect.provide(temporary.layer));
 		expect(preserved.status).toBe("stranded");
 		expect(preserved.strandedAt?.getTime()).toBe(oldStrandedAt.getTime());

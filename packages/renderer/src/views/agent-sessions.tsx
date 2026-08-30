@@ -15,13 +15,7 @@ export const AgentSessions = ({
 	sessions.length === 0 ? null : (
 		<div className="flex min-w-0 flex-col gap-0.5">
 			{sessions.map((session) => (
-				<SessionRow
-					key={session.id}
-					onError={onError}
-					onSelect={onSelect}
-					selected={selected}
-					session={session}
-				/>
+				<SessionRow key={session.id} onError={onError} onSelect={onSelect} selected={selected} session={session} />
 			))}
 		</div>
 	);

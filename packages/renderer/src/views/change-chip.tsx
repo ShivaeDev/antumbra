@@ -5,18 +5,13 @@ import { changeMarks, changeName } from "#voyages/change-marks.ts";
 
 // why: a landed change is history rather than news, so it recedes beside the
 // ones still owed something.
-const toneOf = (change: ChangeView): string =>
-	change.stage === "landed" ? "text-muted-foreground" : "text-link";
+const toneOf = (change: ChangeView): string => (change.stage === "landed" ? "text-muted-foreground" : "text-link");
 
 // why: the change opens where the repo lives — the merge is done there, and a
 // window that embedded the host would be pretending otherwise.
 export const ChangeLink = ({ change }: { readonly change: ChangeView }) => {
 	if (change.url === null) {
-		return (
-			<span className="text-xs text-muted-foreground">
-				{changeName(change)}
-			</span>
-		);
+		return <span className="text-xs text-muted-foreground">{changeName(change)}</span>;
 	}
 	return (
 		<ExternalLink className={cn("text-xs", toneOf(change))} url={change.url}>

@@ -31,8 +31,7 @@ export const emptySessionTree: SessionTree = {
 	spawned: new Map(),
 };
 
-export const originOf = (event: AgentEvent): Origin | undefined =>
-	"origin" in event ? event.origin : undefined;
+export const originOf = (event: AgentEvent): Origin | undefined => ("origin" in event ? event.origin : undefined);
 
 // why: a frame names the tool call that spawned the node that produced it, and
 // that node's opening named the same call — so the join is the tool id. A frame
@@ -40,17 +39,12 @@ export const originOf = (event: AgentEvent): Origin | undefined =>
 // never to nothing. When the frame names the node itself the join is that
 // reference instead: siblings of one fanned-out call share a tool id and would
 // otherwise all read as the last of them to open.
-export const nodeOf = (
-	tree: SessionTree,
-	event: AgentEvent,
-): TreeNode | undefined => {
+export const nodeOf = (tree: SessionTree, event: AgentEvent): TreeNode | undefined => {
 	const origin = originOf(event);
 	if (origin === undefined) {
 		return undefined;
 	}
-	return origin.node === undefined
-		? tree.spawned.get(origin.spawnedBy)
-		: tree.nodes.get(origin.node);
+	return origin.node === undefined ? tree.spawned.get(origin.spawnedBy) : tree.nodes.get(origin.node);
 };
 
 // why: the spawner is whoever made the tool call, which at depth two is the
@@ -66,12 +60,7 @@ export const spawnerOf = (
 		readonly spawnedBy: string;
 	},
 	root: string,
-): string =>
-	tree.callers.get(spawn.spawnedBy) ??
-	(spawn.parentRef === undefined
-		? undefined
-		: tree.nodes.get(spawn.parentRef)?.sessionId) ??
-	root;
+): string => tree.callers.get(spawn.spawnedBy) ?? (spawn.parentRef === undefined ? undefined : tree.nodes.get(spawn.parentRef)?.sessionId) ?? root;
 
 export const withCaller =
 	(toolId: string, sessionId: string) =>

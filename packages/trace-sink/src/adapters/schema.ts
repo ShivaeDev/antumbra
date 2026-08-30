@@ -44,8 +44,7 @@ export const TRACE_SCHEMA = [
 	"CREATE INDEX IF NOT EXISTS logs_span ON logs (run_id, span_id, at_millis)",
 ] as const;
 
-export const INSERT_RUN =
-	"INSERT OR REPLACE INTO runs (run_id, started_at_millis, app_version) VALUES (?, ?, ?)";
+export const INSERT_RUN = "INSERT OR REPLACE INTO runs (run_id, started_at_millis, app_version) VALUES (?, ?, ?)";
 
 export const INSERT_SPAN = `INSERT OR REPLACE INTO spans (
 	run_id, trace_id, span_id, parent_span_id, name,

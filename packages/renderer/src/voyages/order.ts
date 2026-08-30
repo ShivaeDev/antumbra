@@ -1,9 +1,4 @@
-import type {
-	BoardEntryView,
-	PieceState,
-	PieceView,
-	VoyageSummary,
-} from "@antumbra/contract";
+import type { BoardEntryView, PieceState, PieceView, VoyageSummary } from "@antumbra/contract";
 
 // why: the ladder reads top-down as attention deserved — what is moving, what
 // could move next, what is stuck, what is only waiting on something to land,
@@ -21,9 +16,7 @@ const RUNG: Readonly<Record<PieceState, number>> = {
 	ready: 1,
 };
 
-export const byLadder = (
-	pieces: ReadonlyArray<PieceView>,
-): ReadonlyArray<PieceView> =>
+export const byLadder = (pieces: ReadonlyArray<PieceView>): ReadonlyArray<PieceView> =>
 	[...pieces].sort((left, right) => {
 		const rung = RUNG[left.state] - RUNG[right.state];
 		return rung === 0 ? left.title.localeCompare(right.title) : rung;
@@ -32,9 +25,7 @@ export const byLadder = (
 // why: the smooth log is what the voyage wants its readers told, so it leads;
 // the rough log follows as the scratch it is. Each register keeps the order it
 // was written in.
-export const bySalience = (
-	entries: ReadonlyArray<BoardEntryView>,
-): ReadonlyArray<BoardEntryView> => [
+export const bySalience = (entries: ReadonlyArray<BoardEntryView>): ReadonlyArray<BoardEntryView> => [
 	...entries.filter((entry) => entry.register === "smooth"),
 	...entries.filter((entry) => entry.register !== "smooth"),
 ];
@@ -42,9 +33,7 @@ export const bySalience = (
 // why: the fleet's own voyage leads, because it is where fleet-wide rulings
 // and findings land and the admiral should never have to hunt for it. Every
 // other voyage keeps the order it was opened in.
-export const byFlagship = (
-	voyages: ReadonlyArray<VoyageSummary>,
-): ReadonlyArray<VoyageSummary> => [
+export const byFlagship = (voyages: ReadonlyArray<VoyageSummary>): ReadonlyArray<VoyageSummary> => [
 	...voyages.filter((voyage) => voyage.kind === "flagship"),
 	...voyages.filter((voyage) => voyage.kind !== "flagship"),
 ];

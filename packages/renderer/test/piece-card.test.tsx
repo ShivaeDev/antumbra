@@ -55,9 +55,7 @@ const chart: PieceView = {
 
 const pieces = [soundings, chart];
 
-const card = (piece: PieceView): React.ReactElement => (
-	<PieceCard onError={() => undefined} piece={piece} pieces={pieces} />
-);
+const card = (piece: PieceView): React.ReactElement => <PieceCard onError={() => undefined} piece={piece} pieces={pieces} />;
 
 const mount = (): { container: HTMLElement; root: Root } => {
 	const container = document.createElement("div");
@@ -117,9 +115,7 @@ it("holds the charter, the ladder and the acts until the card is opened", () => 
 
 it("keeps a charter inside the card however long its words run", () => {
 	const path = "/Users/navigator/charts/packages/renderer/src/views/piece.tsx";
-	const shown = renderToStaticMarkup(
-		card({ ...soundings, charter: `- ${path}\n- ${path}` }),
-	);
+	const shown = renderToStaticMarkup(card({ ...soundings, charter: `- ${path}\n- ${path}` }));
 
 	expect(shown).toContain(`${path} ${path}`);
 	expect(shown).toContain("truncate");
@@ -138,9 +134,7 @@ it.effect("reads the charter as the document it is once opened", () =>
 		expect(shown).toContain("<strong>every</strong>");
 		expect(shown).toContain("<code>three fathoms</code>");
 		expect(container.textContent).toContain("Depends on: the chart");
-		expect(container.textContent).toContain(
-			"Awaiting ruling ruling-1: which reef?",
-		);
+		expect(container.textContent).toContain("Awaiting ruling ruling-1: which reef?");
 		expect(container.textContent).toContain("Launch");
 		expect(container.textContent).toContain("Board");
 		expect(container.innerHTML).not.toContain("<h2>Log entry</h2>");
@@ -148,30 +142,26 @@ it.effect("reads the charter as the document it is once opened", () =>
 	}),
 );
 
-it.effect(
-	"exposes the piece log through the same collapsed Markdown control",
-	() =>
-		Effect.gen(function* () {
-			const { container, root } = mount();
-			yield* render(root, soundings);
-			yield* open(container);
+it.effect("exposes the piece log through the same collapsed Markdown control", () =>
+	Effect.gen(function* () {
+		const { container, root } = mount();
+		yield* render(root, soundings);
+		yield* open(container);
 
-			const board = container.querySelector<HTMLButtonElement>(
-				'button[title="Show the board"]',
-			);
-			expect(board).not.toBeNull();
-			yield* Effect.promise(() =>
-				act(() => {
-					board?.click();
-					return Promise.resolve();
-				}),
-			);
+		const board = container.querySelector<HTMLButtonElement>('button[title="Show the board"]');
+		expect(board).not.toBeNull();
+		yield* Effect.promise(() =>
+			act(() => {
+				board?.click();
+				return Promise.resolve();
+			}),
+		);
 
-			expect(container.innerHTML).toContain("<h2>Log entry</h2>");
-			expect(container.innerHTML).toContain("<strong>two</strong>");
-			expect(container.textContent).toContain("Write to the board");
-			yield* drop(root);
-		}),
+		expect(container.innerHTML).toContain("<h2>Log entry</h2>");
+		expect(container.innerHTML).toContain("<strong>two</strong>");
+		expect(container.textContent).toContain("Write to the board");
+		yield* drop(root);
+	}),
 );
 
 it.effect("closes again on the reader's word", () =>

@@ -15,12 +15,7 @@ const ThreadRef = Schema.Struct({ id: Schema.String });
 
 export const ThreadResponse = Schema.Struct({ thread: ThreadRef });
 
-export const TurnStatus = Schema.Literals([
-	"completed",
-	"interrupted",
-	"failed",
-	"inProgress",
-]);
+export const TurnStatus = Schema.Literals(["completed", "interrupted", "failed", "inProgress"]);
 
 export const TurnError = Schema.Struct({ message: Schema.String });
 

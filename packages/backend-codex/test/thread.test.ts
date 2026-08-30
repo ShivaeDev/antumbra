@@ -1,16 +1,7 @@
 import type { SessionHandle } from "@antumbra/plugin-api";
 import type { AgentEvent } from "@antumbra/vocabulary/session-events";
 import { expect, it } from "@effect/vitest";
-import {
-	Deferred,
-	Effect,
-	Exit,
-	Fiber,
-	Option,
-	Queue,
-	Scope,
-	Stream,
-} from "effect";
+import { Deferred, Effect, Exit, Fiber, Option, Queue, Scope, Stream } from "effect";
 import { makeCodexServer } from "#server.ts";
 import { type FakeAppServer, makeFakeAppServer } from "#test/fake.ts";
 import { textInput } from "#test/input.ts";
@@ -145,10 +136,7 @@ it.live("queued words are said once, where codex reports taking them", () =>
 			turnId: "turn-1",
 		});
 		turnCompleted(fake, "turn-1");
-		expect([
-			yield* Queue.take(events),
-			yield* Queue.take(events),
-		]).toMatchObject([
+		expect([yield* Queue.take(events), yield* Queue.take(events)]).toMatchObject([
 			{ role: "user", text: "sound the reef", type: "message" },
 			{ type: "turn.completed" },
 		]);
@@ -238,40 +226,30 @@ it.live("a residual approval is declined and lands in the log as raw", () =>
 	}),
 );
 
-it.live(
-	"turn.completed carries the codex status; the child dying ends the stream",
-	() =>
-		Effect.gen(function* () {
-			const fake = makeFakeAppServer();
-			const server = yield* makeCodexServer({ spawn: () => fake.process });
-			const handle: SessionHandle = yield* openThreadSession(server, {
-				cwd: "/moorage",
-				resume: Option.none(),
-				sessionId: "session-1",
-				tools: [],
-			});
-			const turnRecorded = yield* Deferred.make<void>();
-			const collector = yield* handle.events.pipe(
-				Stream.tap((event) =>
-					event.type === "turn.completed"
-						? Deferred.succeed(turnRecorded, undefined)
-						: Effect.void,
-				),
-				Stream.runCollect,
-				Effect.forkScoped,
-			);
-			turnCompleted(fake, "turn-1", "interrupted");
-			yield* Deferred.await(turnRecorded);
-			fake.exit();
-			const events = yield* Fiber.join(collector);
-			expect(events.map((event) => event.type)).toEqual([
-				"session.opened",
-				"turn.completed",
-				"session.state",
-			]);
-			expect(events[1]).toMatchObject({
-				durationMs: 12,
-				status: "interrupted",
-			});
-		}),
+it.live("turn.completed carries the codex status; the child dying ends the stream", () =>
+	Effect.gen(function* () {
+		const fake = makeFakeAppServer();
+		const server = yield* makeCodexServer({ spawn: () => fake.process });
+		const handle: SessionHandle = yield* openThreadSession(server, {
+			cwd: "/moorage",
+			resume: Option.none(),
+			sessionId: "session-1",
+			tools: [],
+		});
+		const turnRecorded = yield* Deferred.make<void>();
+		const collector = yield* handle.events.pipe(
+			Stream.tap((event) => (event.type === "turn.completed" ? Deferred.succeed(turnRecorded, undefined) : Effect.void)),
+			Stream.runCollect,
+			Effect.forkScoped,
+		);
+		turnCompleted(fake, "turn-1", "interrupted");
+		yield* Deferred.await(turnRecorded);
+		fake.exit();
+		const events = yield* Fiber.join(collector);
+		expect(events.map((event) => event.type)).toEqual(["session.opened", "turn.completed", "session.state"]);
+		expect(events[1]).toMatchObject({
+			durationMs: 12,
+			status: "interrupted",
+		});
+	}),
 );

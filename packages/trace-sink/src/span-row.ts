@@ -1,9 +1,5 @@
 import { Cause, type Exit, Option, type Tracer } from "effect";
-import {
-	type Identifiers,
-	identifiersOf,
-	serializeAttributes,
-} from "#attributes.ts";
+import { type Identifiers, identifiersOf, serializeAttributes } from "#attributes.ts";
 
 const NANOS_PER_MILLI = 1_000_000n;
 

@@ -18,21 +18,10 @@ export const pushBranch = (
 	path: string,
 	branch: string,
 	preparedHeadSha: string,
-): Effect.Effect<
-	void,
-	GitError | GitPushRefused,
-	ChildProcessSpawner.ChildProcessSpawner
-> =>
+): Effect.Effect<void, GitError | GitPushRefused, ChildProcessSpawner.ChildProcessSpawner> =>
 	branch.startsWith(WORK_PREFIX)
 		? runGit({
-				args: [
-					"-C",
-					path,
-					"push",
-					"--force-with-lease",
-					"origin",
-					`${preparedHeadSha}:refs/heads/${branch}`,
-				],
+				args: ["-C", path, "push", "--force-with-lease", "origin", `${preparedHeadSha}:refs/heads/${branch}`],
 				operation: "push-branch",
 				timeoutMillis: REMOTE_TIMEOUT_MILLIS,
 			}).pipe(Effect.asVoid)

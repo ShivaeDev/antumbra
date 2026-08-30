@@ -9,26 +9,21 @@ import { ExternalLink } from "#views/external-link.tsx";
 const MermaidDiagram = ({ source }: { readonly source: string }) => {
 	const id = `outcome-${useId().replaceAll(":", "")}`;
 	const [rendered, setRendered] = useState<
-		| { readonly _tag: "failed"; readonly message: string }
-		| { readonly _tag: "ready"; readonly svg: string }
-		| { readonly _tag: "rendering" }
+		{ readonly _tag: "failed"; readonly message: string } | { readonly _tag: "ready"; readonly svg: string } | { readonly _tag: "rendering" }
 	>({ _tag: "rendering" });
 
 	useEffect(() => {
 		setRendered({ _tag: "rendering" });
 		return Effect.runCallback(renderMermaid(id, source), {
 			onExit: Exit.match({
-				onFailure: (cause) =>
-					setRendered({ _tag: "failed", message: Cause.pretty(cause) }),
+				onFailure: (cause) => setRendered({ _tag: "failed", message: Cause.pretty(cause) }),
 				onSuccess: (svg) => setRendered({ _tag: "ready", svg }),
 			}),
 		});
 	}, [id, source]);
 
 	if (rendered._tag === "rendering") {
-		return (
-			<span className="text-xs text-muted-foreground">rendering diagram…</span>
-		);
+		return <span className="text-xs text-muted-foreground">rendering diagram…</span>;
 	}
 	if (rendered._tag === "failed") {
 		return <span className="text-xs text-destructive">{rendered.message}</span>;
@@ -47,22 +42,11 @@ const MermaidDiagram = ({ source }: { readonly source: string }) => {
 // why: everything an agent writes as Markdown — a Report, an Artifact, a line
 // of narration in a transcript — goes through this one component, so there is
 // exactly one place where agent text becomes markup and one security posture.
-export const MarkdownView = ({
-	className,
-	markdown,
-}: {
-	readonly className?: string;
-	readonly markdown: string;
-}) => (
+export const MarkdownView = ({ className, markdown }: { readonly className?: string; readonly markdown: string }) => (
 	<div className={cn("markdown min-w-0 wrap-anywhere", className)}>
 		<Markdown
 			components={{
-				a: ({ children, href }) =>
-					href === undefined || href === "" ? (
-						<span>{children}</span>
-					) : (
-						<ExternalLink url={href}>{children}</ExternalLink>
-					),
+				a: ({ children, href }) => (href === undefined || href === "" ? <span>{children}</span> : <ExternalLink url={href}>{children}</ExternalLink>),
 				// why: react-markdown hands every component the syntax node it came
 				// from. It is not an attribute, and passing it on writes
 				// node="[object Object]" into the markup.

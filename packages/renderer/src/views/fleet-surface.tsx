@@ -16,12 +16,7 @@ export const FleetSurface = ({
 	readonly session: string | undefined;
 }) => (
 	<div className="flex min-h-0 min-w-0 flex-1">
-		<FleetPanel
-			fleet={fleet}
-			onError={onError}
-			onSelect={onSelect}
-			selected={session}
-		/>
+		<FleetPanel fleet={fleet} onError={onError} onSelect={onSelect} selected={session} />
 		{session === undefined ? null : (
 			<SessionPane
 				fleet={fleet}

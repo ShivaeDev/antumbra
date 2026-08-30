@@ -46,9 +46,7 @@ export class SettingRefused extends Data.TaggedError("SettingRefused")<{
 export class SettingsSource extends Context.Service<
 	SettingsSource,
 	{
-		readonly change: (
-			change: SettingChange,
-		) => Effect.Effect<SettingsReading, unknown>;
+		readonly change: (change: SettingChange) => Effect.Effect<SettingsReading, unknown>;
 		readonly current: Effect.Effect<SettingsReading, unknown>;
 	}
 >()("@antumbra/contract/SettingsSource") {}

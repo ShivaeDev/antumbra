@@ -4,10 +4,7 @@ import { expect, it } from "@effect/vitest";
 import { Effect, Option } from "effect";
 import { AgentDomain } from "#domain.ts";
 import { domainKernelLayer } from "#test/domain-layers.ts";
-import {
-	acquireTemporaryPersistence,
-	makeScriptedBackend,
-} from "#test/harness.ts";
+import { acquireTemporaryPersistence, makeScriptedBackend } from "#test/harness.ts";
 import { untilTerminal } from "#test/session-recovery-fixture.ts";
 
 const payload = {
@@ -36,12 +33,8 @@ it.live("retire never overwrites an unknown stored Session status", () =>
 				agentId: payload.agentId,
 			});
 			expect(yield* untilTerminal(retirement.changes)).toBe("failed");
-			const agent = Option.getOrThrow(
-				yield* db.Agent.where({ id: payload.agentId }).first(),
-			);
-			const session = Option.getOrThrow(
-				yield* db.AgentSession.where({ id: payload.sessionId }).first(),
-			);
+			const agent = Option.getOrThrow(yield* db.Agent.where({ id: payload.agentId }).first());
+			const session = Option.getOrThrow(yield* db.AgentSession.where({ id: payload.sessionId }).first());
 			expect(agent.status).toBe("alive");
 			expect(session.status).toBe("future-session");
 		}).pipe(Effect.provide(domainKernelLayer(temporary, scripted.backend)));

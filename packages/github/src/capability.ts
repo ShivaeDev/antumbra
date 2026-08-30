@@ -35,21 +35,14 @@ const loginLine = (stdout: string): string => {
 // from the tool itself.
 const missingBinary = (failure: GhError): boolean => {
 	const detail = failure.detail.toLowerCase();
-	return (
-		failure._tag === "GhUnavailable" &&
-		(detail.includes("notfound") ||
-			detail.includes("not found") ||
-			detail.includes("enoent"))
-	);
+	return failure._tag === "GhUnavailable" && (detail.includes("notfound") || detail.includes("not found") || detail.includes("enoent"));
 };
 
 // why: the tool's own words are handed on verbatim — gh already tells a reader
 // how to fix a missing login, and paraphrasing it would only make the remedy
 // less accurate than the version the machine actually has installed.
 const refusal = (failure: GhError): ChangeHostCapability =>
-	missingBinary(failure)
-		? { available: false, detail: "gh CLI not found" }
-		: { available: false, detail: failure.detail };
+	missingBinary(failure) ? { available: false, detail: "gh CLI not found" } : { available: false, detail: failure.detail };
 
 const probe = (executable: string): Effect.Effect<ChangeHostCapability> =>
 	onThisMachine(
@@ -69,9 +62,7 @@ const probe = (executable: string): Effect.Effect<ChangeHostCapability> =>
 		Effect.catch((failure) => Effect.succeed(refusal(failure))),
 	);
 
-export const makeCachedCapability = (
-	executable: string,
-): Effect.Effect<CachedCapability> =>
+export const makeCachedCapability = (executable: string): Effect.Effect<CachedCapability> =>
 	Effect.gen(function* () {
 		const cache = yield* Ref.make(Option.none<Held>());
 		const read = Effect.gen(function* () {

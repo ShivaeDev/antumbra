@@ -4,10 +4,7 @@ import { Deferred, Effect } from "effect";
 import { SessionAttachmentFailure } from "#errors.ts";
 
 export const makeOpeningConfirmation = Effect.gen(function* () {
-	const opened = yield* Deferred.make<
-		string,
-		BackendFailure | SessionAttachmentFailure
-	>();
+	const opened = yield* Deferred.make<string, BackendFailure | SessionAttachmentFailure>();
 	const observe = (event: AgentEvent, persisted: boolean) =>
 		Effect.gen(function* () {
 			if (event.type !== "session.opened") {

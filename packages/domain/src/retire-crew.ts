@@ -13,17 +13,10 @@ import type { RetireFields } from "#retire.ts";
 // why: the claims are what is retired, one Intent each. A captain holds no
 // claim on a piece, so it is never among them — the immunity is the shape of
 // the table rather than a name this code has to know.
-export const retirePieceCrew = (
-	retire: IntentKind<RetireFields>,
-	pieceId: string,
-) =>
+export const retirePieceCrew = (retire: IntentKind<RetireFields>, pieceId: string) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
 		const kernel = yield* Kernel;
 		const claims = yield* db.PieceAgent.where({ pieceId }).all();
-		yield* Effect.forEach(
-			claims,
-			(claim) => kernel.submit(retire, { agentId: claim.agentId }),
-			{ concurrency: 1, discard: true },
-		);
+		yield* Effect.forEach(claims, (claim) => kernel.submit(retire, { agentId: claim.agentId }), { concurrency: 1, discard: true });
 	});

@@ -1,17 +1,11 @@
 import { Effect, Layer, Stream } from "effect";
 import type { FixtureFeeds } from "#fixtures/feeds.ts";
 import { flagshipSummary, flagshipView } from "#fixtures/flagship.ts";
-import {
-	quayView,
-	reefSummary,
-	reefView,
-	shoalWarning,
-} from "#fixtures/voyage.ts";
+import { quayView, reefSummary, reefView, shoalWarning } from "#fixtures/voyage.ts";
 import { SightFailure } from "#sight.ts";
 import { VoyageSource } from "#voyages.ts";
 
-const noSuchVoyage = (voyageId: string) =>
-	new SightFailure({ message: `no such voyage: ${voyageId}` });
+const noSuchVoyage = (voyageId: string) => new SightFailure({ message: `no such voyage: ${voyageId}` });
 
 // why: the fleet's own voyage is on the list the window reads, so it answers
 // when it is opened — a listed voyage that refuses to be read would be a
@@ -21,9 +15,7 @@ const views = [reefView, flagshipView];
 export const voyageFixture = (feeds: FixtureFeeds) =>
 	Layer.succeed(VoyageSource, {
 		adoptChange: (request) =>
-			request.url === ""
-				? new SightFailure({ message: "github refused: no such change" })
-				: Effect.succeed({ ...shoalWarning, url: request.url }),
+			request.url === "" ? new SightFailure({ message: "github refused: no such change" }) : Effect.succeed({ ...shoalWarning, url: request.url }),
 		artifactMarkdown: (artifactId) =>
 			Effect.succeed({
 				artifactId,
@@ -32,8 +24,7 @@ export const voyageFixture = (feeds: FixtureFeeds) =>
 				markdown: "# The chart\n",
 				title: "The chart",
 			}),
-		charterPiece: (request) =>
-			Effect.succeed({ pieceId: `piece-for-${request.title}` }),
+		charterPiece: (request) => Effect.succeed({ pieceId: `piece-for-${request.title}` }),
 		dismissChange: () => Effect.void,
 		hail: () => Effect.succeed({ agentId: "agent-hailed" }),
 		landPieceVerdict: () => Effect.void,
@@ -48,8 +39,7 @@ export const voyageFixture = (feeds: FixtureFeeds) =>
 			reportId === "report-soundings"
 				? Effect.succeed({
 						authorAgentId: "agent-sounder",
-						markdown:
-							"# Soundings\n\nThe eastern shoal is steeper than charted.",
+						markdown: "# Soundings\n\nThe eastern shoal is steeper than charted.",
 						reportId,
 						title: "Soundings",
 					})
@@ -68,9 +58,7 @@ export const voyageFixture = (feeds: FixtureFeeds) =>
 				return feeds.voyage;
 			}
 			const view = views.find((held) => held.id === voyageId);
-			return view === undefined
-				? Stream.fail(noSuchVoyage(voyageId))
-				: Stream.make(view);
+			return view === undefined ? Stream.fail(noSuchVoyage(voyageId)) : Stream.make(view);
 		},
 		voyages: Effect.succeed([flagshipSummary, reefSummary]),
 		voyagesFeed: feeds.voyages,

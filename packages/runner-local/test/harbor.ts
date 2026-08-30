@@ -2,11 +2,7 @@ import { execFileSync } from "node:child_process";
 import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import type {
-	ProvisionRequest,
-	RepoRequest,
-	Runner,
-} from "@antumbra/plugin-api";
+import type { ProvisionRequest, RepoRequest, Runner } from "@antumbra/plugin-api";
 import { Effect } from "effect";
 import { makeLocalRunner } from "#local.ts";
 
@@ -20,8 +16,7 @@ export const berthing = (source: string, slug = "source"): RepoRequest => ({
 	source,
 });
 
-export const git = (args: ReadonlyArray<string>): Effect.Effect<string> =>
-	Effect.sync(() => execFileSync("git", args, { encoding: "utf8" }));
+export const git = (args: ReadonlyArray<string>): Effect.Effect<string> => Effect.sync(() => execFileSync("git", args, { encoding: "utf8" }));
 
 export const provision = (runner: Runner, request: ProvisionRequest) => {
 	const plan = runner.plan(request);

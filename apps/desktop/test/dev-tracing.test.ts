@@ -9,9 +9,7 @@ const TRACE_DATABASE = "traces.db";
 
 const composed = (isPackaged: boolean) => {
 	const dataDirectory = mkdtempSync(join(tmpdir(), "antumbra-desktop-trace-"));
-	const traced = Effect.succeed("worked").pipe(
-		Effect.withSpan("desktop.startOwner"),
-	);
+	const traced = Effect.succeed("worked").pipe(Effect.withSpan("desktop.startOwner"));
 	const answer = Effect.runSync(
 		Effect.scoped(
 			Effect.provide(

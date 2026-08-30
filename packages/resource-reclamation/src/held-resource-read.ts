@@ -7,11 +7,7 @@ export interface HeldResource {
 }
 
 export interface HeldResourceRead<E> {
-	readonly held: (
-		resources: ReadonlyArray<HeldResource>,
-	) => Effect.Effect<ReadonlyMap<string, string>, E, never>;
+	readonly held: (resources: ReadonlyArray<HeldResource>) => Effect.Effect<ReadonlyMap<string, string>, E, never>;
 }
 
-export const HeldResourceRead = Context.Service<HeldResourceRead<unknown>>(
-	"@antumbra/resource-reclamation/HeldResourceRead",
-);
+export const HeldResourceRead = Context.Service<HeldResourceRead<unknown>>("@antumbra/resource-reclamation/HeldResourceRead");

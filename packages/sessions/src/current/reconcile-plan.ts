@@ -8,16 +8,8 @@ import type {
 import { Result } from "effect";
 import { type AgentReconcilePlan, planAgent } from "#current/agent-plan.ts";
 import type { CurrentSessionInvalid } from "#current/errors.ts";
-import {
-	decodeAgents,
-	decodeSessions,
-	type StoredAgent,
-	type StoredSession,
-} from "#current/reconcile-rows.ts";
-import {
-	planSettlements,
-	type SessionExecutionSettlement,
-} from "#current/settle-plan.ts";
+import { decodeAgents, decodeSessions, type StoredAgent, type StoredSession } from "#current/reconcile-rows.ts";
+import { planSettlements, type SessionExecutionSettlement } from "#current/settle-plan.ts";
 
 export interface CurrentSessionReconcilePlan extends AgentReconcilePlan {
 	readonly executionsToSettle: ReadonlyArray<SessionExecutionSettlement>;
@@ -44,8 +36,7 @@ export const planCurrentSessionReconciliation = (
 	if (Result.isFailure(decodedSessions)) {
 		return Result.fail(decodedSessions.failure);
 	}
-	const agentsToReclaim: Array<AgentReconcilePlan["agentsToReclaim"][number]> =
-		[];
+	const agentsToReclaim: Array<AgentReconcilePlan["agentsToReclaim"][number]> = [];
 	const pointers: Array<AgentReconcilePlan["pointers"][number]> = [];
 	const sessionsToClose: Array<string> = [];
 	for (const agent of decodedAgents.success) {
@@ -63,18 +54,9 @@ export const planCurrentSessionReconciliation = (
 	}
 	const agentIds = new Set(decodedAgents.success.map((agent) => agent.id));
 	sessionsToClose.push(
-		...decodedSessions.success
-			.filter(
-				(session) =>
-					session.status === "open" && !agentIds.has(session.agentId),
-			)
-			.map((session) => session.id),
+		...decodedSessions.success.filter((session) => session.status === "open" && !agentIds.has(session.agentId)).map((session) => session.id),
 	);
-	const settled = planSettlements(
-		decodedSessions.success,
-		new Set(sessionsToClose),
-		attached,
-	);
+	const settled = planSettlements(decodedSessions.success, new Set(sessionsToClose), attached);
 	if (Result.isFailure(settled)) {
 		return Result.fail(settled.failure);
 	}

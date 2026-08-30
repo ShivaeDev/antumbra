@@ -10,15 +10,13 @@ export interface DomainFeedState {
 	readonly voyages: PubSub.PubSub<void>;
 }
 
-export const initializeDomainFeeds = Effect.fn("domainFeeds.initialize")(
-	function* (): Effect.fn.Return<DomainFeedState> {
-		return {
-			changeRefresh: yield* PubSub.unbounded<void>(),
-			events: yield* PubSub.unbounded<StoredEvent>(),
-			fleet: yield* PubSub.unbounded<void>(),
-			resourceReclaim: yield* PubSub.unbounded<void>(),
-			rulings: yield* PubSub.unbounded<void>(),
-			voyages: yield* PubSub.unbounded<void>(),
-		};
-	},
-)();
+export const initializeDomainFeeds = Effect.fn("domainFeeds.initialize")(function* (): Effect.fn.Return<DomainFeedState> {
+	return {
+		changeRefresh: yield* PubSub.unbounded<void>(),
+		events: yield* PubSub.unbounded<StoredEvent>(),
+		fleet: yield* PubSub.unbounded<void>(),
+		resourceReclaim: yield* PubSub.unbounded<void>(),
+		rulings: yield* PubSub.unbounded<void>(),
+		voyages: yield* PubSub.unbounded<void>(),
+	};
+})();

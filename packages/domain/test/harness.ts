@@ -43,8 +43,7 @@ export const makeScriptedRunner = Effect.gen(function* () {
 			}),
 		capabilities: { liveTerminal: false },
 		plan,
-		provision: (provisionPlan) =>
-			Ref.update(plans, (all) => [...all, provisionPlan]),
+		provision: (provisionPlan) => Ref.update(plans, (all) => [...all, provisionPlan]),
 		reclaim: () => Effect.succeed({ _tag: "reclaimed" as const }),
 		scrap: () => Effect.void,
 		tag: "local",
@@ -73,9 +72,7 @@ export const rawOf = (kind: string): AgentEvent["raw"] => ({
 export interface ScriptedBackend {
 	readonly backend: AgentBackend;
 	readonly opened: Effect.Effect<ReadonlyArray<OpenSessionOptions>>;
-	readonly session: (
-		sessionId: string,
-	) => Effect.Effect<ScriptedSession | undefined>;
+	readonly session: (sessionId: string) => Effect.Effect<ScriptedSession | undefined>;
 }
 
 const inputText = (input: SessionInput): string =>
@@ -84,19 +81,11 @@ const inputText = (input: SessionInput): string =>
 		.map((part) => part.text)
 		.join("\n");
 
-const recordInput = (
-	received: Ref.Ref<ReadonlyArray<SessionInput>>,
-	texts: Ref.Ref<ReadonlyArray<string>>,
-	input: SessionInput,
-) =>
-	Ref.update(received, (all) => [...all, input]).pipe(
-		Effect.andThen(Ref.update(texts, (all) => [...all, inputText(input)])),
-	);
+const recordInput = (received: Ref.Ref<ReadonlyArray<SessionInput>>, texts: Ref.Ref<ReadonlyArray<string>>, input: SessionInput) =>
+	Ref.update(received, (all) => [...all, input]).pipe(Effect.andThen(Ref.update(texts, (all) => [...all, inputText(input)])));
 
 export const makeScriptedBackend = Effect.gen(function* () {
-	const sessions = yield* Ref.make<ReadonlyMap<string, ScriptedSession>>(
-		new Map(),
-	);
+	const sessions = yield* Ref.make<ReadonlyMap<string, ScriptedSession>>(new Map());
 	const opened = yield* Ref.make<ReadonlyArray<OpenSessionOptions>>([]);
 	const backend: AgentBackend = {
 		audit: noSessionAudit,
@@ -125,9 +114,7 @@ export const makeScriptedBackend = Effect.gen(function* () {
 					steered: Ref.get(steered),
 					tools: options.tools,
 				};
-				yield* Ref.update(sessions, (map) =>
-					new Map(map).set(options.sessionId, scripted),
-				);
+				yield* Ref.update(sessions, (map) => new Map(map).set(options.sessionId, scripted));
 				const handle: SessionHandle = {
 					events: Stream.fromQueue(events),
 					interrupt: Ref.set(interrupted, true),
@@ -142,8 +129,7 @@ export const makeScriptedBackend = Effect.gen(function* () {
 	return {
 		backend,
 		opened: Ref.get(opened),
-		session: (sessionId) =>
-			Ref.get(sessions).pipe(Effect.map((map) => map.get(sessionId))),
+		session: (sessionId) => Ref.get(sessions).pipe(Effect.map((map) => map.get(sessionId))),
 	} satisfies ScriptedBackend;
 });
 
@@ -169,7 +155,5 @@ export const passiveRunner: Runner = {
 	tag: "local",
 };
 
-export const changeHostsOf = (
-	...hosts: ReadonlyArray<ChangeHost>
-): ReadonlyMap<string, ChangeHost> =>
+export const changeHostsOf = (...hosts: ReadonlyArray<ChangeHost>): ReadonlyMap<string, ChangeHost> =>
 	new Map(hosts.map((host) => [host.tag, host] as const));

@@ -26,8 +26,7 @@ const spawned = (id: string, status: unknown = { type: "idle" }) => ({
 	status,
 });
 
-const isRecord = (value: unknown): value is Record<string, unknown> =>
-	typeof value === "object" && value !== null;
+const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === "object" && value !== null;
 
 // why: two pages with a thread on both of them, which is what a listing sorted
 // by time does when a thread is written while the sweep is walking it. The
@@ -48,13 +47,7 @@ const sweep = (scripted: FakeAnswer) =>
 	Effect.gen(function* () {
 		const fake = makeFakeAppServer(scripted);
 		const swept = yield* Effect.exit(
-			Effect.scoped(
-				openAuditConnection(() => fake.process).pipe(
-					Effect.flatMap((connection) =>
-						sweepSpawnedDescendants(connection.request, ROOT),
-					),
-				),
-			),
+			Effect.scoped(openAuditConnection(() => fake.process).pipe(Effect.flatMap((connection) => sweepSpawnedDescendants(connection.request, ROOT)))),
 		);
 		return { fake, swept };
 	});
@@ -68,11 +61,7 @@ it.live("the sweep follows codex's cursor to the end of the listing", () =>
 		// delegated threads than it had, which is the failure this whole census
 		// exists to catch — so the cursor is followed until codex says there is no
 		// next one, and a thread named on two pages is still one thread.
-		expect(found.map((child) => child.threadId)).toEqual([
-			FIRST,
-			SECOND,
-			THIRD,
-		]);
+		expect(found.map((child) => child.threadId)).toEqual([FIRST, SECOND, THIRD]);
 		expect(found[0]).toMatchObject({
 			agentNickname: undefined,
 			agentPath: ".codex/agents/scribe.md",
@@ -83,11 +72,7 @@ it.live("the sweep follows codex's cursor to the end of the listing", () =>
 		// why: the audit's connection reads and does nothing else. It never starts a
 		// thread and never resumes one — the never-attach rule holds here by
 		// construction, because a connection that only ever lists cannot break it.
-		expect(fake.requests.map((request) => request.method)).toEqual([
-			"initialize",
-			"thread/list",
-			"thread/list",
-		]);
+		expect(fake.requests.map((request) => request.method)).toEqual(["initialize", "thread/list", "thread/list"]);
 		const asked = fake.requests[1]?.params;
 		expect(isRecord(asked) ? asked.ancestorThreadId : undefined).toBe(ROOT);
 	}),
@@ -102,9 +87,7 @@ it.live("the ancestor filter is asked for at initialize, or not at all", () =>
 		// why: app-server gates the ancestor filter behind its experimental surface
 		// and refuses the parameter outright without it, so the capability is the
 		// census's licence to read at all.
-		expect(isRecord(capabilities) ? capabilities.experimentalApi : false).toBe(
-			true,
-		);
+		expect(isRecord(capabilities) ? capabilities.experimentalApi : false).toBe(true);
 	}),
 );
 
@@ -144,11 +127,7 @@ it.live("only an active thread reads as a child that is working", () =>
 
 it.live("a listing it cannot read is a refusal, never a short answer", () =>
 	Effect.gen(function* () {
-		const { swept } = yield* sweep((method) =>
-			method === "thread/list"
-				? Option.some({ data: "everything" })
-				: Option.none(),
-		);
+		const { swept } = yield* sweep((method) => (method === "thread/list" ? Option.some({ data: "everything" }) : Option.none()));
 
 		// why: an answer this backend cannot read is the pin having moved under the
 		// slice. Returning the rows it did understand would call a session complete

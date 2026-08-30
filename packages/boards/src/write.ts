@@ -5,11 +5,7 @@ import { appendEntry } from "#append.ts";
 import { BoardScope, type EntryInput } from "#model.ts";
 import { linkBoard, linkedBoardId, requireBoardOwner } from "#owner.ts";
 
-const recoverBoardLink = (
-	scope: BoardScope,
-	boardId: string,
-	failure: PrismaError,
-) =>
+const recoverBoardLink = (scope: BoardScope, boardId: string, failure: PrismaError) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
 		const linked = yield* linkedBoardId(scope);
@@ -34,17 +30,14 @@ const boardFor = (scope: BoardScope) =>
 		yield* db.Board.create({ id: boardId });
 		return yield* linkBoard(scope, boardId).pipe(
 			Effect.as(boardId),
-			Effect.catchTag("PrismaError", (failure) =>
-				recoverBoardLink(scope, boardId, failure),
-			),
+			Effect.catchTag("PrismaError", (failure) => recoverBoardLink(scope, boardId, failure)),
 		);
 	});
 
 // why: the SQLite driver opens every transaction deferred, so a bare write
 // committing between another transaction's read and its write fails that
 // transaction with a snapshot conflict; transactional writers are serialised.
-export const ensureBoard = (scope: BoardScope) =>
-	Database.use((db) => db.transaction(boardFor(scope)));
+export const ensureBoard = (scope: BoardScope) => Database.use((db) => db.transaction(boardFor(scope)));
 
 const appendTo = (scope: BoardScope, input: EntryInput, nowMillis: number) =>
 	Effect.gen(function* () {

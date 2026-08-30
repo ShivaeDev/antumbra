@@ -1,15 +1,8 @@
-import {
-	Database,
-	type NewAgentSession,
-	type StoredAgentSession,
-} from "@antumbra/persistence";
+import { Database, type NewAgentSession, type StoredAgentSession } from "@antumbra/persistence";
 import type { AgentEvent } from "@antumbra/vocabulary/session-events";
 import { Effect, Option } from "effect";
 
-type SubsessionOutcome = Extract<
-	AgentEvent,
-	{ type: "subsession.ended" }
->["outcome"];
+type SubsessionOutcome = Extract<AgentEvent, { type: "subsession.ended" }>["outcome"];
 
 export interface NodeOpening {
 	readonly kind: string | null;
@@ -51,9 +44,7 @@ export const makeSessionTreeRows = Effect.gen(function* () {
 	// whole is a question about its gaps, and the audit that answers it reads
 	// them after the close rather than guessing at the moment of it.
 	const closeNode = (sessionId: string, outcome: SubsessionOutcome) =>
-		db.AgentSession.where({ id: sessionId })
-			.update({ outcome, status: "closed" })
-			.pipe(Effect.asVoid);
+		db.AgentSession.where({ id: sessionId }).update({ outcome, status: "closed" }).pipe(Effect.asVoid);
 	// why: the announcement is the first thing to say where a node belongs and
 	// what it is, so it moves the row under the spawner that made the call. The
 	// display fields only fill holes: a value already written is what the record
@@ -70,12 +61,8 @@ export const makeSessionTreeRows = Effect.gen(function* () {
 				label: row.value.label,
 				parentSessionId: row.value.parentSessionId,
 			}).update({
-				...(row.value.kind === null && adoption.kind !== undefined
-					? { kind: adoption.kind }
-					: {}),
-				...(row.value.label === null && adoption.label !== undefined
-					? { label: adoption.label }
-					: {}),
+				...(row.value.kind === null && adoption.kind !== undefined ? { kind: adoption.kind } : {}),
+				...(row.value.label === null && adoption.label !== undefined ? { label: adoption.label } : {}),
 				parentSessionId: adoption.parentSessionId,
 			});
 		}).pipe(Effect.asVoid);
@@ -94,13 +81,7 @@ export const makeSessionTreeRows = Effect.gen(function* () {
 			});
 		}).pipe(
 			Effect.asVoid,
-			Effect.catchCause((cause) =>
-				Effect.logError(
-					"a subsession label could not be filled in",
-					{ sessionId },
-					cause,
-				),
-			),
+			Effect.catchCause((cause) => Effect.logError("a subsession label could not be filled in", { sessionId }, cause)),
 		);
 	// why: written outside the journal's transaction on purpose — the fact being
 	// recorded is that the journal's own write failed, so it cannot travel on it.
@@ -111,13 +92,7 @@ export const makeSessionTreeRows = Effect.gen(function* () {
 			})
 			.pipe(
 				Effect.asVoid,
-				Effect.catchCause((cause) =>
-					Effect.logError(
-						"session completeness could not be marked incomplete",
-						{ sessionId },
-						cause,
-					),
-				),
+				Effect.catchCause((cause) => Effect.logError("session completeness could not be marked incomplete", { sessionId }, cause)),
 			);
 	// why: a node inherits from a row that must already exist — the spawn wrote
 	// it before the stream was attached. A read that cannot answer is refusal,
@@ -127,11 +102,9 @@ export const makeSessionTreeRows = Effect.gen(function* () {
 			.first()
 			.pipe(
 				Effect.catchCause((cause) =>
-					Effect.logError(
-						"the root Session of a subsession could not be read",
-						{ sessionId },
-						cause,
-					).pipe(Effect.as(Option.none<StoredAgentSession>())),
+					Effect.logError("the root Session of a subsession could not be read", { sessionId }, cause).pipe(
+						Effect.as(Option.none<StoredAgentSession>()),
+					),
 				),
 			);
 	return { adoptNode, closeNode, markIncomplete, nameNode, openNode, rootRow };

@@ -47,12 +47,8 @@ export interface SessionCensus {
 // fail: a provider that cannot be asked is itself a fact about the record, and
 // the lane says so in a gap rather than by failing the audit.
 export interface SessionAudit {
-	readonly census: (
-		request: SessionCensusRequest,
-	) => Effect.Effect<SessionCensus>;
-	readonly node: (
-		request: NodeAuditRequest,
-	) => Effect.Effect<ReadonlyArray<AgentEvent>>;
+	readonly census: (request: SessionCensusRequest) => Effect.Effect<SessionCensus>;
+	readonly node: (request: NodeAuditRequest) => Effect.Effect<ReadonlyArray<AgentEvent>>;
 }
 
 // why: a backend with no second surface to read — a scripted one, or a

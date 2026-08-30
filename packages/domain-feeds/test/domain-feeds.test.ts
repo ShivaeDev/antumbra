@@ -1,8 +1,4 @@
-import {
-	DomainFeeds,
-	DomainFeedsLive,
-	type StoredEvent,
-} from "@antumbra/domain-feeds";
+import { DomainFeeds, DomainFeedsLive, type StoredEvent } from "@antumbra/domain-feeds";
 import { describe, expect, it } from "@effect/vitest";
 import { Effect, PubSub } from "effect";
 

@@ -1,11 +1,5 @@
 import { expect, it } from "@effect/vitest";
-import {
-	piece,
-	RELEASED,
-	session,
-	withChanges,
-	world,
-} from "#test/piece-ladder-fixtures.ts";
+import { piece, RELEASED, session, withChanges, world } from "#test/piece-ladder-fixtures.ts";
 import { lastStirredAt } from "#voyage-activity.ts";
 
 const LATER = new Date("2026-08-16T09:00:00.000Z");

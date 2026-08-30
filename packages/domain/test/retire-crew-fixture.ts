@@ -32,11 +32,7 @@ export const chartered = Effect.gen(function* () {
 	return { pieceId: piece.id, voyageId: voyage.id };
 });
 
-export const handFor = (
-	agentId: string,
-	pieceId: string,
-	voyageId: string,
-): SpawnFields => ({
+export const handFor = (agentId: string, pieceId: string, voyageId: string): SpawnFields => ({
 	agentId,
 	backend: "scripted",
 	charter: "sound the northern shoals",
@@ -67,19 +63,14 @@ export const landed = (pieceId: string) =>
 
 const retirePass = Effect.gen(function* () {
 	const domain = yield* AgentDomain;
-	const demand = domain.intentDemands.find(
-		(registration) => registration.tag === "agent/retire",
-	);
-	return demand === undefined
-		? yield* Effect.die("no retire demand is registered")
-		: demand.pass;
+	const demand = domain.intentDemands.find((registration) => registration.tag === "agent/retire");
+	return demand === undefined ? yield* Effect.die("no retire demand is registered") : demand.pass;
 });
 
 // why: the pass the app runs on its own timer, run by hand and against a clock
 // further on — which is the same fact as the rest having gone by, for
 // everything that reads the time rather than sleeping on it.
-export const sweptAt = (millis: number) =>
-	Effect.flatMap(retirePass, (pass) => laterBy(millis, pass));
+export const sweptAt = (millis: number) => Effect.flatMap(retirePass, (pass) => laterBy(millis, pass));
 
 // why: the same pass with the clock left where it is — the next one the app
 // would have run anyway. What it proves is that nothing had to be waited out.

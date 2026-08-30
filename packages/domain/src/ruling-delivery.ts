@@ -6,8 +6,7 @@ import { Effect, Layer, Option, Stream } from "effect";
 import { rulingAnswerMail } from "#ruling-answer-mail.ts";
 import { RulingHolds } from "#ruling-holds.ts";
 
-const guarded = <A, R>(act: Effect.Effect<A, unknown, R>, said: string) =>
-	act.pipe(Effect.catchCause((cause) => Effect.logError(said, cause)));
+const guarded = <A, R>(act: Effect.Effect<A, unknown, R>, said: string) => act.pipe(Effect.catchCause((cause) => Effect.logError(said, cause)));
 
 // why: the mailbox deduplicates by source reference, so the send is safe to
 // repeat and the mark may lag it. The send and the mark are one transaction:
@@ -23,9 +22,7 @@ const mailAndMark = (ruling: Ruling, answer: RulingAnswer, toAgentId: string) =>
 		const boards = yield* Boards;
 		const holds = yield* RulingHolds;
 		const rulings = yield* Rulings;
-		const row = yield* db.Ruling.where({ id: ruling.id })
-			.select("deliveredAt")
-			.first();
+		const row = yield* db.Ruling.where({ id: ruling.id }).select("deliveredAt").first();
 		if (Option.isNone(row) || row.value.deliveredAt !== null) {
 			return;
 		}
@@ -58,12 +55,7 @@ const deliverOne = (ruling: Ruling) =>
 const onePass = Effect.gen(function* () {
 	const rulings = yield* Rulings;
 	const awaiting = yield* rulings.awaitingDelivery();
-	yield* Effect.forEach(
-		awaiting,
-		(ruling) =>
-			guarded(deliverOne(ruling), "a ruling answer could not be delivered"),
-		{ discard: true },
-	);
+	yield* Effect.forEach(awaiting, (ruling) => guarded(deliverOne(ruling), "a ruling answer could not be delivered"), { discard: true });
 });
 
 // why: who rules is not who delivers. The answer owes the asker one mail, and
@@ -77,12 +69,6 @@ export const RulingDeliveryLive = Layer.effectDiscard(
 		// waiting for one that never comes.
 		const notices = yield* feeds.subscribeRulingRefresh();
 		const pass = guarded(onePass, "the ruling delivery pass failed");
-		yield* Effect.forkScoped(
-			pass.pipe(
-				Effect.andThen(
-					Stream.fromSubscription(notices).pipe(Stream.runForEach(() => pass)),
-				),
-			),
-		);
+		yield* Effect.forkScoped(pass.pipe(Effect.andThen(Stream.fromSubscription(notices).pipe(Stream.runForEach(() => pass)))));
 	}),
 );

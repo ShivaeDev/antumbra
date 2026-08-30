@@ -48,12 +48,10 @@ export const rulingRoutes = (procedure: AppProcedure) => ({
 		const rulings = yield* RulingSource;
 		return yield* surface(rulings.standing);
 	}),
-	standingRulingsFeed: procedure
-		.output(StandingRulingsView)
-		.subscription(function* () {
-			const rulings = yield* RulingSource;
-			return rulings.standingFeed;
-		}),
+	standingRulingsFeed: procedure.output(StandingRulingsView).subscription(function* () {
+		const rulings = yield* RulingSource;
+		return rulings.standingFeed;
+	}),
 	supersedeRuling: procedure
 		.input(SupersedeRequest)
 		.output(RulingSupersededReceipt)

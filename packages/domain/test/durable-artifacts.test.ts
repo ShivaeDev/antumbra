@@ -6,13 +6,7 @@ import type { Runner } from "@antumbra/plugin-api";
 import { expect, it } from "@effect/vitest";
 import { Effect, Option } from "effect";
 import { dispatchingLayer } from "#test/domain-layers.ts";
-import {
-	acquireTemporaryPersistence,
-	callTool,
-	makeScriptedBackend,
-	sessionFor,
-	standDown,
-} from "#test/harness.ts";
+import { acquireTemporaryPersistence, callTool, makeScriptedBackend, sessionFor, standDown } from "#test/harness.ts";
 import { chain, eventually, PATIENCE, stateOf } from "#test/voyage-fixtures.ts";
 
 const acquireMoorage = Effect.acquireRelease(
@@ -45,14 +39,8 @@ it.live("a landed local artifact survives removal of its moorage", () =>
 		yield* Effect.gen(function* () {
 			const db = yield* Database;
 			const { alpha, voyage } = yield* chain;
-			const assignment = yield* eventually(
-				db.PieceAgent.where({ pieceId: alpha.id })
-					.first()
-					.pipe(Effect.filterOrFail(Option.isSome)),
-			);
-			const session = yield* eventually(
-				sessionFor(scripted, assignment.value.agentId),
-			);
+			const assignment = yield* eventually(db.PieceAgent.where({ pieceId: alpha.id }).first().pipe(Effect.filterOrFail(Option.isSome)));
+			const session = yield* eventually(sessionFor(scripted, assignment.value.agentId));
 			const source = join(root, "reef.md");
 			writeFileSync(source, "# Reef\n");
 
@@ -73,12 +61,7 @@ it.live("a landed local artifact survives removal of its moorage", () =>
 			expect(yield* stateOf(voyage.id, alpha.id)).toBe("done");
 
 			const artifact = (yield* db.Artifact.all())[0];
-			const published = join(
-				dirname(temporary.database),
-				"artifacts",
-				artifact?.digest ?? "",
-				artifact?.basename ?? "",
-			);
+			const published = join(dirname(temporary.database), "artifacts", artifact?.digest ?? "", artifact?.basename ?? "");
 			expect(relative(root, published).startsWith("..")).toBe(true);
 
 			rmSync(root, { force: true, recursive: true });
@@ -86,16 +69,6 @@ it.live("a landed local artifact survives removal of its moorage", () =>
 			expect(existsSync(published)).toBe(true);
 			expect((yield* db.Artifact.all())[0]?.id).toBe(artifact?.id);
 			expect(yield* stateOf(voyage.id, alpha.id)).toBe("done");
-		}).pipe(
-			Effect.provide(
-				dispatchingLayer(
-					temporary,
-					scripted.backend,
-					PATIENCE,
-					{},
-					runnerAt(root),
-				),
-			),
-		);
+		}).pipe(Effect.provide(dispatchingLayer(temporary, scripted.backend, PATIENCE, {}, runnerAt(root))));
 	}),
 );

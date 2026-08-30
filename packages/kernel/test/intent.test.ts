@@ -8,8 +8,7 @@ it.effect("round-trips a payload through the JSON column", () =>
 	Effect.gen(function* () {
 		const seen = yield* Ref.make<ReadonlyArray<string>>([]);
 		const kind = defineIntent({
-			execute: (payload) =>
-				Ref.update(seen, (names) => [...names, payload.name]),
+			execute: (payload) => Ref.update(seen, (names) => [...names, payload.name]),
 			payload: GreetPayload,
 			tag: "test/greet",
 		});
@@ -39,7 +38,5 @@ it("defaults reclaim to requeue and honors an explicit abandon", () => {
 		tag: "test/policy",
 	};
 	expect(defineIntent(options).reclaim).toBe("requeue");
-	expect(defineIntent({ ...options, reclaim: "abandon" }).reclaim).toBe(
-		"abandon",
-	);
+	expect(defineIntent({ ...options, reclaim: "abandon" }).reclaim).toBe("abandon");
 });

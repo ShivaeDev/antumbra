@@ -7,16 +7,12 @@ export const replayedEntry = (
 	boardId: string,
 	input: EntryInput,
 	row: unknown,
-): Effect.Effect<
-	BoardEntryRow,
-	BoardSourceConflict | StoredBoardEntryInvalid
-> =>
+): Effect.Effect<BoardEntryRow, BoardSourceConflict | StoredBoardEntryInvalid> =>
 	Effect.gen(function* () {
 		const existing = yield* entryRow(row);
 		const expected = storedEntryVariant(input);
 		const matches =
-			existing.authorAgentId ===
-				Option.getOrElse(input.authorAgentId, () => null) &&
+			existing.authorAgentId === Option.getOrElse(input.authorAgentId, () => null) &&
 			existing.body === input.body &&
 			existing.kind === expected.kind &&
 			existing.precedence === expected.precedence &&

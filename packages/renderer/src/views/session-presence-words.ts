@@ -23,8 +23,7 @@ export const presenceNote: Record<SessionPresence, string> = {
 	asleep: "asleep — it will wake when you speak to it",
 	ended: "this session has ended",
 	idle: "listening, with nothing to do",
-	stranded:
-		"stranded — its process is gone and its work was never finished; speak to it to take it back up",
+	stranded: "stranded — its process is gone and its work was never finished; speak to it to take it back up",
 	working: "working",
 };
 
@@ -42,5 +41,4 @@ export const wakeNote: Record<"parked" | "underway", string> = {
 // what stopped it, and that sentence was reaching the database and stopping
 // there. It goes out unedited, because a paraphrase of a durable reason is one
 // more projection for a reader to distrust.
-export const wakeReason = (detail: string | null): string | undefined =>
-	detail === null || detail.trim() === "" ? undefined : detail;
+export const wakeReason = (detail: string | null): string | undefined => (detail === null || detail.trim() === "" ? undefined : detail);

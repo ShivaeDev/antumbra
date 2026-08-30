@@ -1,10 +1,5 @@
 import { Effect, Schema } from "effect";
-import {
-	GitAuthRequired,
-	GitCommandFailed,
-	type GitOperation,
-	GitOutputInvalid,
-} from "#errors.ts";
+import { GitAuthRequired, GitCommandFailed, type GitOperation, GitOutputInvalid } from "#errors.ts";
 
 const ProcessResult = Schema.Struct({
 	exitCode: Schema.Natural,
@@ -34,16 +29,10 @@ const needsAuthentication = (detail: string): boolean => {
 	if (authMarkers.some((marker) => normalized.includes(marker))) {
 		return true;
 	}
-	return (
-		normalized.includes("credential") &&
-		(normalized.includes("expired") || normalized.includes("locked"))
-	);
+	return normalized.includes("credential") && (normalized.includes("expired") || normalized.includes("locked"));
 };
 
-export const decodeProcessOutput = (
-	operation: GitOperation,
-	input: unknown,
-): Effect.Effect<ProcessOutput, GitOutputInvalid> =>
+export const decodeProcessOutput = (operation: GitOperation, input: unknown): Effect.Effect<ProcessOutput, GitOutputInvalid> =>
 	Schema.decodeUnknownEffect(ProcessResult)(input).pipe(
 		Effect.mapError(
 			(cause) =>
@@ -54,17 +43,11 @@ export const decodeProcessOutput = (
 		),
 	);
 
-export const acceptProcessOutput = (
-	operation: GitOperation,
-	output: ProcessOutput,
-): Effect.Effect<string, GitAuthRequired | GitCommandFailed> => {
+export const acceptProcessOutput = (operation: GitOperation, output: ProcessOutput): Effect.Effect<string, GitAuthRequired | GitCommandFailed> => {
 	if (output.exitCode === 0) {
 		return Effect.succeed(output.stdout);
 	}
-	const detail =
-		output.stderr.trim() ||
-		output.stdout.trim() ||
-		`git exited with code ${output.exitCode}`;
+	const detail = output.stderr.trim() || output.stdout.trim() || `git exited with code ${output.exitCode}`;
 	if (needsAuthentication(detail)) {
 		return Effect.fail(new GitAuthRequired({ detail, operation }));
 	}

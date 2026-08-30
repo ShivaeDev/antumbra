@@ -1,7 +1,4 @@
-import {
-	rulingRadiusRank,
-	rulingUrgencyRank,
-} from "@antumbra/vocabulary/ruling";
+import { rulingRadiusRank, rulingUrgencyRank } from "@antumbra/vocabulary/ruling";
 import type { Ruling } from "#model.ts";
 
 // why: the open set is met in the order it should be answered — what holds an

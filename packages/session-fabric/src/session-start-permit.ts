@@ -1,6 +1,4 @@
-const SessionStartPermitTypeId = Symbol(
-	"@antumbra/session-fabric/SessionStartPermit",
-);
+const SessionStartPermitTypeId = Symbol("@antumbra/session-fabric/SessionStartPermit");
 
 export interface SessionStartPermit {
 	readonly [SessionStartPermitTypeId]: true;

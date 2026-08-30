@@ -5,24 +5,9 @@ import { SessionFabric } from "@antumbra/session-fabric";
 import { expect, it } from "@effect/vitest";
 import { Effect, Fiber, Option, Ref, Stream } from "effect";
 import { AgentDomain } from "#domain.ts";
-import {
-	acquireTemporaryPersistence,
-	makeScriptedBackend,
-	makeScriptedRunner,
-} from "#test/harness.ts";
-import {
-	eventually,
-	payload,
-	reportsNativeRef,
-} from "#test/session-recovery-fixture.ts";
-import {
-	confirmsWhen,
-	NATIVE,
-	onlyWake,
-	sessionRow,
-	sleepingRoot,
-	wakeLayer,
-} from "#test/session-wake-fixture.ts";
+import { acquireTemporaryPersistence, makeScriptedBackend, makeScriptedRunner } from "#test/harness.ts";
+import { eventually, payload, reportsNativeRef } from "#test/session-recovery-fixture.ts";
+import { confirmsWhen, NATIVE, onlyWake, sessionRow, sleepingRoot, wakeLayer } from "#test/session-wake-fixture.ts";
 
 // why: a drain the previous process never finished leaves a row saying the
 // Session is mid-siesta with nothing draining it, and every later wake reads
@@ -51,9 +36,7 @@ it.live("boot settles a drain whose process is gone, and a send wakes it", () =>
 				}),
 			);
 			const resumed = yield* scripted.session(payload.sessionId);
-			expect(resumed === undefined ? [] : yield* resumed.sent).toEqual([
-				"carry on",
-			]);
+			expect(resumed === undefined ? [] : yield* resumed.sent).toEqual(["carry on"]);
 		}).pipe(Effect.provide(wakeLayer(temporary, backend, recorded.runner)));
 	}),
 );
@@ -64,45 +47,41 @@ it.live("boot settles a drain whose process is gone, and a send wakes it", () =>
 // into a reason a second send can push, and the registry lets go on the way
 // out. The second send repeats the words on purpose: the same words are the
 // same demand, which is the case where a send pushes the row that is there.
-it.live(
-	"a resume that never confirms its opening stops holding the Session",
-	() =>
-		Effect.gen(function* () {
-			const temporary = yield* acquireTemporaryPersistence;
-			const { recorded, scripted } = yield* sleepingRoot(temporary);
-			const allowed = yield* Ref.make(false);
-			const backend = confirmsWhen(scripted.backend, scripted, allowed);
+it.live("a resume that never confirms its opening stops holding the Session", () =>
+	Effect.gen(function* () {
+		const temporary = yield* acquireTemporaryPersistence;
+		const { recorded, scripted } = yield* sleepingRoot(temporary);
+		const allowed = yield* Ref.make(false);
+		const backend = confirmsWhen(scripted.backend, scripted, allowed);
 
-			yield* Effect.gen(function* () {
-				const fabric = yield* SessionFabric;
-				const sight = yield* SightSource;
-				yield* sight.send(payload.sessionId, "are you there");
-				const parked = yield* eventually(
-					Effect.gen(function* () {
-						const row = yield* onlyWake;
-						expect(row.status).toBe("waiting");
-						return row;
-					}),
-				);
-				expect(parked.detail).toContain("did not reach a live attachment");
-				expect(yield* fabric.holds(payload.sessionId)).toBe(false);
-				expect((yield* sessionRow).executionStatus).toBe("idle");
-
-				yield* Ref.set(allowed, true);
-				yield* sight.send(payload.sessionId, "are you there");
-				yield* eventually(
-					Effect.gen(function* () {
-						const row = yield* onlyWake;
-						expect(row.id).toBe(parked.id);
-						expect(row.status).toBe("succeeded");
-						expect((yield* sessionRow).executionStatus).toBe("active");
-					}),
-				);
-				expect(yield* fabric.holds(payload.sessionId)).toBe(true);
-			}).pipe(
-				Effect.provide(wakeLayer(temporary, backend, recorded.runner, 250)),
+		yield* Effect.gen(function* () {
+			const fabric = yield* SessionFabric;
+			const sight = yield* SightSource;
+			yield* sight.send(payload.sessionId, "are you there");
+			const parked = yield* eventually(
+				Effect.gen(function* () {
+					const row = yield* onlyWake;
+					expect(row.status).toBe("waiting");
+					return row;
+				}),
 			);
-		}),
+			expect(parked.detail).toContain("did not reach a live attachment");
+			expect(yield* fabric.holds(payload.sessionId)).toBe(false);
+			expect((yield* sessionRow).executionStatus).toBe("idle");
+
+			yield* Ref.set(allowed, true);
+			yield* sight.send(payload.sessionId, "are you there");
+			yield* eventually(
+				Effect.gen(function* () {
+					const row = yield* onlyWake;
+					expect(row.id).toBe(parked.id);
+					expect(row.status).toBe("succeeded");
+					expect((yield* sessionRow).executionStatus).toBe("active");
+				}),
+			);
+			expect(yield* fabric.holds(payload.sessionId)).toBe(true);
+		}).pipe(Effect.provide(wakeLayer(temporary, backend, recorded.runner, 250)));
+	}),
 );
 
 // why: agent/wake is requeued by reclaim, so an Intent the old process left
@@ -137,18 +116,8 @@ it.live("a wake requeued after a restart says its words once", () =>
 				}),
 			);
 			const resumed = yield* scripted.session(payload.sessionId);
-			expect(resumed === undefined ? [] : yield* resumed.sent).toEqual([
-				"come about",
-			]);
-		}).pipe(
-			Effect.provide(
-				wakeLayer(
-					temporary,
-					reportsNativeRef(scripted.backend, scripted, NATIVE),
-					recorded.runner,
-				),
-			),
-		);
+			expect(resumed === undefined ? [] : yield* resumed.sent).toEqual(["come about"]);
+		}).pipe(Effect.provide(wakeLayer(temporary, reportsNativeRef(scripted.backend, scripted, NATIVE), recorded.runner)));
 	}),
 );
 
@@ -174,8 +143,7 @@ it.live("an Intent moving is enough to ring the fleet feed", () =>
 					Stream.runCollect,
 					Effect.timeoutOrElse({
 						duration: 5000,
-						orElse: () =>
-							Effect.die("the fleet feed did not ring for an Intent"),
+						orElse: () => Effect.die("the fleet feed did not ring for an Intent"),
 					}),
 				),
 			);
@@ -184,19 +152,13 @@ it.live("an Intent moving is enough to ring the fleet feed", () =>
 			});
 			const row = yield* eventually(
 				Effect.gen(function* () {
-					const found = Option.getOrThrow(
-						yield* Database.use((db) =>
-							db.Intent.where({ id: ghost.id }).first(),
-						),
-					);
+					const found = Option.getOrThrow(yield* Database.use((db) => db.Intent.where({ id: ghost.id }).first()));
 					expect(found.status).toBe("failed");
 					return found;
 				}),
 			);
 			expect(row.detail).toContain("no root Session session-ghost");
 			expect(yield* Fiber.join(rings)).toHaveLength(2);
-		}).pipe(
-			Effect.provide(wakeLayer(temporary, scripted.backend, recorded.runner)),
-		);
+		}).pipe(Effect.provide(wakeLayer(temporary, scripted.backend, recorded.runner)));
 	}),
 );

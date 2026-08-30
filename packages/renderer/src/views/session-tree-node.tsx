@@ -1,10 +1,6 @@
 import type { SessionTreeNode } from "@antumbra/contract";
 import { cn } from "#lib/utils.ts";
-import {
-	CompletenessBadge,
-	OutcomeBadge,
-	StatusBadge,
-} from "#views/session-tree-badges.tsx";
+import { CompletenessBadge, OutcomeBadge, StatusBadge } from "#views/session-tree-badges.tsx";
 
 // why: indentation is drawn from the depth the walk found, and it stops after
 // four steps. A tree deep enough to run out of steps has already told the
@@ -12,8 +8,7 @@ import {
 // than the nesting is worth.
 const INDENTS = ["pl-1.5", "pl-4", "pl-6", "pl-8", "pl-10"] as const;
 
-const indentOf = (depth: number): string =>
-	INDENTS[Math.min(depth, INDENTS.length - 1)] ?? INDENTS[0];
+const indentOf = (depth: number): string => INDENTS[Math.min(depth, INDENTS.length - 1)] ?? INDENTS[0];
 
 export const SessionTreeRow = ({
 	node,

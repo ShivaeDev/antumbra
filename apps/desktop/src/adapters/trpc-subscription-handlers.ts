@@ -1,16 +1,7 @@
-import {
-	SubscribeRequest,
-	type SubscriptionMessage,
-	subscriptionChannel,
-	UnsubscribeRequest,
-} from "@antumbra/contract";
+import { SubscribeRequest, type SubscriptionMessage, subscriptionChannel, UnsubscribeRequest } from "@antumbra/contract";
 import { getTRPCErrorFromUnknown } from "@trpc/server";
 import { Result, Schema } from "effect";
-import type {
-	DocumentContents,
-	DocumentIpcEvent,
-	WindowRegistry,
-} from "#adapters/windows/registry.ts";
+import type { DocumentContents, DocumentIpcEvent, WindowRegistry } from "#adapters/windows/registry.ts";
 
 const decodeSubscribe = Schema.decodeUnknownResult(SubscribeRequest);
 const decodeUnsubscribe = Schema.decodeUnknownResult(UnsubscribeRequest);
@@ -26,17 +17,9 @@ interface SubscriptionEvent extends DocumentIpcEvent {
 	readonly sender: SubscriptionSender;
 }
 
-type StartSubscription = (
-	sender: SubscriptionSender,
-	windowId: string,
-	request: typeof SubscribeRequest.Type,
-	signal: AbortSignal,
-) => Promise<void>;
+type StartSubscription = (sender: SubscriptionSender, windowId: string, request: typeof SubscribeRequest.Type, signal: AbortSignal) => Promise<void>;
 
-export const makeTrpcSubscriptionHandlers = (
-	registry: WindowRegistry,
-	start: StartSubscription,
-) => {
+export const makeTrpcSubscriptionHandlers = (registry: WindowRegistry, start: StartSubscription) => {
 	const bySender = new Map<number, Map<string, AbortController>>();
 
 	const dropSender = (senderId: number) => {

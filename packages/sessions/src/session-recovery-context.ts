@@ -2,7 +2,17 @@ import { Database } from "@antumbra/persistence";
 import { Effect, Option, Result } from "effect";
 import { recoveryHeld } from "#session-recovery-error.ts";
 import { makeSessionRecoveryState } from "#session-recovery-state.ts";
-import type { SessionIdentity } from "#tool-identity.ts";
+
+// why: who is calling is decided when the tools are built, at spawn, so a
+// handler never has to trust anything the model says about itself. The same
+// shape lives on the domain's tool identity; recovery carries it so a resumed
+// Session gets the same bound caller the original spawn did.
+export interface SessionIdentity {
+	readonly agentId: string;
+	readonly pieceId: Option.Option<string>;
+	readonly sessionId: string;
+	readonly voyageId: Option.Option<string>;
+}
 
 export interface SessionRecoveryContext {
 	readonly backend: string;

@@ -13,7 +13,7 @@ import { makeReleased } from "#live-delegations/released.ts";
 // what fills it in again from the provider's own word about which children are
 // running — the one account of them that outlives a stream.
 export const LiveDelegations = defineService({
-	id: "@antumbra/domain/LiveDelegations",
+	id: "@antumbra/sessions/LiveDelegations",
 	initialize: initializeLiveDelegations,
 	methods: (open) => ({
 		began: makeBegan(open),

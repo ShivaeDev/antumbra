@@ -1,9 +1,9 @@
 import { SightSource } from "@antumbra/contract";
 import { Kernel } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
+import { IDLE_SIESTA_AFTER_MILLIS } from "@antumbra/sessions";
 import { expect, it } from "@effect/vitest";
 import { Effect } from "effect";
-import { IDLE_SIESTA_AFTER_MILLIS } from "#session-idle.ts";
 import {
 	acquireTemporaryPersistence,
 	callTool,

@@ -5,6 +5,7 @@ import type {
 	AgentBackend,
 	BackendCapacityObservation,
 } from "@antumbra/plugin-api";
+import { waitFor } from "@antumbra/sessions";
 import { Clock, Effect, Option, Stream } from "effect";
 import { capacityHoldDetail } from "#backend-capacity-hold.ts";
 import {
@@ -14,7 +15,6 @@ import {
 } from "#backend-capacity-model.ts";
 import { recoverBackendCapacities } from "#backend-capacity-recovery.ts";
 import { makeBackendCapacityStore } from "#backend-capacity-store.ts";
-import { waitFor } from "#session-unresumable.ts";
 
 export type {
 	BackendCapacityReading,

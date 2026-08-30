@@ -7,8 +7,8 @@ import {
 } from "@antumbra/session-inputs";
 import type { SessionInputId } from "@antumbra/vocabulary/session-input";
 import { Effect } from "effect";
-import type { BackendCapacities } from "#backend-capacity.ts";
 import { makeCurrentSessionRecovery } from "#current-session-recovery.ts";
+import type { SessionCapacities } from "#session-capacity.ts";
 import { admiralInput } from "#session-input.ts";
 import { makeSessionInputAdmission } from "#session-input-admission.ts";
 import type {
@@ -35,7 +35,7 @@ export const makeSendInput = (
 		sessionId: string,
 		inputId: SessionInputId,
 	) => Effect.Effect<void, SessionSendRefused>,
-	capacities: BackendCapacities,
+	capacities: SessionCapacities,
 ) =>
 	Effect.gen(function* () {
 		const admission = yield* makeSessionInputAdmission(imageInputBackends);

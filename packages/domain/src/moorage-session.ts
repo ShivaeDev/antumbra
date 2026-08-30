@@ -6,6 +6,7 @@ import {
 } from "@antumbra/persistence";
 import type { MooragePlan } from "@antumbra/plugin-api";
 import { ensureAgentCanOwnLocalWork } from "@antumbra/resource-reclamation";
+import { openSessions, rootSessionsOf } from "@antumbra/sessions";
 import { decodeStoredAgentSessionStatus } from "@antumbra/vocabulary/agent-runtime";
 import { Effect, Option } from "effect";
 import {
@@ -13,7 +14,6 @@ import {
 	AgentRootAlreadyOpen,
 	AgentSessionConflict,
 } from "#errors.ts";
-import { openSessions, rootSessionsOf } from "#session-roots.ts";
 import type { SpawnFields } from "#spawn-fields.ts";
 
 export const makeEnsureSessionRow = Effect.gen(function* () {

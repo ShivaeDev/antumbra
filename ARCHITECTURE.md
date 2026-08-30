@@ -66,7 +66,8 @@ obligation remains detached until needed. See
 | `packages/artifacts`      | Durable artifact publication and landing                        |
 | `packages/reports`        | Durable report landing                                           |
 | `packages/session-fabric` | Live Session attachment, start admission, and stop lifecycle    |
-| `packages/domain`         | Application-facing use cases and capability Layer composition; also owns the Session tree — node lifecycle and adoption, the gap ledger, the completeness audit, boot reconciliation of nodes nothing is listening to, and the tree read model the window subscribes to |
+| `packages/sessions`       | Durable Session tree: node lifecycle and adoption, the gap ledger, the completeness audit, boot reconciliation of nodes nothing is listening to, and the tree read model the window subscribes to |
+| `packages/domain`         | Application-facing use cases and capability Layer composition |
 | `packages/git`            | Semantic Git operations over Effect's child-process port        |
 | `packages/github`         | GitHub change-host adapter: pull requests through `gh`           |
 | `packages/backend-claude` | The Claude agent backend: one adapter for one provider          |
@@ -139,6 +140,11 @@ Everything it holds is process memory that may disappear at exit — handles,
 fibers, semaphores — rebuilt empty at boot, so the capability persists nothing
 and reaches no further than the driven ports. Domain composes it and supplies
 the durable event sink.
+
+`sessions` owns the durable Session tree: node lifecycle and adoption, the gap
+ledger, the completeness audit, boot reconciliation of nodes nothing is
+listening to, and the tree read model the window subscribes to. Domain composes
+it inside the application facade.
 
 `session-inputs` owns human message ingestion before transport. Source images
 are bounded, decoded, normalized, and installed in app-owned content-addressed

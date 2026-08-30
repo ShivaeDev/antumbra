@@ -8,7 +8,7 @@ import {
 	sessionExecutionTransition,
 } from "@antumbra/vocabulary/agent-runtime";
 import { Effect, Option, Schema } from "effect";
-import { SessionStillDelegating } from "#errors.ts";
+import { SessionStillDelegating } from "#session-errors.ts";
 import { LiveDelegations } from "#session-tree-live.ts";
 
 const SiestaPayload = Schema.Struct({ sessionId: Schema.String });

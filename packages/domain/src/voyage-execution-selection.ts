@@ -1,4 +1,4 @@
-import { newestSession } from "#current-session-order.ts";
+import { newestSession } from "@antumbra/sessions";
 import type { AgentSessionRow, VoyageWorld } from "#voyage-rows.ts";
 
 const compareIds = (left: string, right: string) => {

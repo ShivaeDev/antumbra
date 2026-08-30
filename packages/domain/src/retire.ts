@@ -3,6 +3,7 @@ import { defineIntent, IntentExecution } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
 import { ResourceReconciler } from "@antumbra/resource-reclamation";
 import { SessionFabric } from "@antumbra/session-fabric";
+import { rootSessionsOf, sessionRetirable } from "@antumbra/sessions";
 import {
 	type AgentStatus,
 	agentTransition,
@@ -13,8 +14,6 @@ import {
 } from "@antumbra/vocabulary/agent-runtime";
 import { Effect, Option, Schema } from "effect";
 import { AgentNotFound, AgentStillWorking } from "#errors.ts";
-import { sessionRetirable } from "#session-at-rest.ts";
-import { rootSessionsOf } from "#session-roots.ts";
 
 const RetirePayload = Schema.Struct({ agentId: Schema.String });
 export type RetireFields = typeof RetirePayload.Type;

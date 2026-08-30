@@ -6,11 +6,11 @@ import {
 	Kernel,
 	KernelLive,
 } from "@antumbra/kernel";
+import { type WakeFields, WakePayload } from "@antumbra/sessions";
 import { SessionInputId } from "@antumbra/vocabulary/session-input";
 import { expect, it } from "@effect/vitest";
 import { Deferred, Effect, Layer, Option, Ref, Stream } from "effect";
 import { makeRouseSession } from "#kernel-rouse.ts";
-import { type WakeFields, WakePayload } from "#session-wake-input.ts";
 import { acquireTemporaryPersistence } from "#test/harness.ts";
 
 const untilWaiting = <E, R>(changes: Stream.Stream<IntentStatus, E, R>) =>

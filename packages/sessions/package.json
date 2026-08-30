@@ -1,5 +1,5 @@
 {
-	"name": "@antumbra/domain",
+	"name": "@antumbra/sessions",
 	"version": "0.0.0",
 	"private": true,
 	"type": "module",
@@ -16,35 +16,24 @@
 		"typecheck:compat": "tsc6 --noEmit"
 	},
 	"devDependencies": {
-		"@effect/platform-node": "catalog:",
 		"@effect/vitest": "catalog:",
 		"@types/node": "catalog:",
 		"@typescript/native": "catalog:",
-		"effect": "catalog:",
 		"typescript": "catalog:",
 		"vitest": "catalog:"
 	},
 	"dependencies": {
-		"@antumbra/agent-tools": "workspace:*",
-		"@antumbra/artifacts": "workspace:*",
-		"@antumbra/boards": "workspace:*",
 		"@antumbra/changes": "workspace:*",
 		"@antumbra/contract": "workspace:*",
 		"@antumbra/domain-feeds": "workspace:*",
 		"@antumbra/intent-demand": "workspace:*",
 		"@antumbra/kernel": "workspace:*",
 		"@antumbra/persistence": "workspace:*",
-		"@antumbra/pieces": "workspace:*",
 		"@antumbra/plugin-api": "workspace:*",
 		"@antumbra/prompts": "workspace:*",
-		"@antumbra/reports": "workspace:*",
-		"@antumbra/repos": "workspace:*",
-		"@antumbra/rulings": "workspace:*",
-		"@antumbra/resource-reclamation": "workspace:*",
 		"@antumbra/session-event-journal": "workspace:*",
 		"@antumbra/session-fabric": "workspace:*",
 		"@antumbra/session-inputs": "workspace:*",
-		"@antumbra/sessions": "workspace:*",
 		"@antumbra/service-definition": "workspace:*",
 		"@antumbra/vocabulary": "workspace:*",
 		"effect": "catalog:"

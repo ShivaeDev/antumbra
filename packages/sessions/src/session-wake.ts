@@ -4,8 +4,8 @@ import { wakeWords } from "@antumbra/prompts";
 import { SessionFabric } from "@antumbra/session-fabric";
 import { SessionInputs } from "@antumbra/session-inputs";
 import { Effect, Result } from "effect";
-import type { BackendCapacities } from "#backend-capacity.ts";
 import { makeCurrentSessionRecovery } from "#current-session-recovery.ts";
+import type { SessionCapacities } from "#session-capacity.ts";
 import { promptInput } from "#session-input.ts";
 import { makeSessionRecoveryContext } from "#session-recovery-context.ts";
 import {
@@ -42,7 +42,7 @@ const waitForHeldRecovery = (failure: SessionRecoveryHeld) =>
 // the standing instruction instead.
 export type { WakeFields } from "#session-wake-input.ts";
 
-export const makeWakeKind = (capacities: BackendCapacities) =>
+export const makeWakeKind = (capacities: SessionCapacities) =>
 	Effect.gen(function* () {
 		const load = yield* makeSessionRecoveryContext;
 		const fabric = yield* SessionFabric;

@@ -4,12 +4,12 @@ import { SessionFabric } from "@antumbra/session-fabric";
 import { decodeStoredAgentSessionStatus } from "@antumbra/vocabulary/agent-runtime";
 import type { SessionInputId } from "@antumbra/vocabulary/session-input";
 import { Effect, Option } from "effect";
-import type { BackendCapacities } from "#backend-capacity.ts";
 import { makeCurrentSessionRecovery } from "#current-session-recovery.ts";
-import { SessionEnded, SessionNotFound } from "#errors.ts";
-import { KernelReach, type SessionRouse } from "#kernel-reach.ts";
 import { makeRefuseSubsessionAttach } from "#session-attach-roots.ts";
+import type { SessionCapacities } from "#session-capacity.ts";
+import { SessionEnded, SessionNotFound } from "#session-errors.ts";
 import { promptInput } from "#session-input.ts";
+import { SessionReach, type SessionRouse } from "#session-reach.ts";
 import { makeSendInput } from "#session-send-input.ts";
 import { SessionWakePatience } from "#session-wake-patience.ts";
 import { watchWake } from "#session-wake-watch.ts";
@@ -28,12 +28,12 @@ export type {
 // ended refuses, because there is nothing left to wake.
 export const makeSessionSend = (
 	imageInputBackends: ReadonlySet<string>,
-	capacities: BackendCapacities,
+	capacities: SessionCapacities,
 ) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
 		const fabric = yield* SessionFabric;
-		const reach = yield* KernelReach;
+		const reach = yield* SessionReach;
 		const recovery = yield* makeCurrentSessionRecovery;
 		const refuseSubsession = yield* makeRefuseSubsessionAttach;
 		// why: the watch outlives the send that started it — the mutation returns as

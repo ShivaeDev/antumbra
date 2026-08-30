@@ -22,4 +22,4 @@ export class SessionRecoveryRuntime extends Context.Service<
 			BackendFailure | PrismaError | SessionRecoveryHeld
 		>;
 	}
->()("@antumbra/domain/SessionRecoveryRuntime") {}
+>()("@antumbra/sessions/SessionRecoveryRuntime") {}

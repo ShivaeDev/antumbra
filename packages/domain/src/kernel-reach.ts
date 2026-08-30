@@ -1,4 +1,9 @@
 import { Kernel } from "@antumbra/kernel";
+import {
+	makeSettleWakes,
+	SessionReach,
+	type WakeFields,
+} from "@antumbra/sessions";
 import { Context, Deferred, Effect, Layer } from "effect";
 import { AgentDomain } from "#agent-domain-service.ts";
 import {
@@ -7,8 +12,6 @@ import {
 	type SessionRouse,
 	type SpawnRefused,
 } from "#kernel-rouse.ts";
-import type { WakeFields } from "#session-wake.ts";
-import { makeSettleWakes } from "#session-wake-settle.ts";
 import type { SpawnFields } from "#spawn-fields.ts";
 
 export type { RouseRefused, SessionRouse, SpawnRefused };
@@ -51,7 +54,7 @@ export const KernelReachDeferredLive = Layer.unwrap(
 		const withReach = <A, E>(
 			use: (reach: KernelReachService) => Effect.Effect<A, E>,
 		) => Deferred.await(deferred).pipe(Effect.flatMap(use));
-		return Layer.merge(
+		return Layer.mergeAll(
 			Layer.succeed(KernelReach)({
 				queueSiesta: (sessionId) =>
 					withReach((reach) => reach.queueSiesta(sessionId)),
@@ -63,6 +66,12 @@ export const KernelReachDeferredLive = Layer.unwrap(
 					withReach((reach) => reach.submitSpawn(payload)),
 				submitWake: (payload) =>
 					withReach((reach) => reach.submitWake(payload)),
+			}),
+			Layer.succeed(SessionReach)({
+				rouseSession: (payload) =>
+					withReach((reach) => reach.rouseSession(payload)),
+				settleWakes: (sessionId) =>
+					withReach((reach) => reach.settleWakes(sessionId)),
 			}),
 			Layer.succeed(KernelReachInstaller)({
 				install: (reach) =>

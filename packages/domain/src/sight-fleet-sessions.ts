@@ -1,12 +1,12 @@
 import type { SessionSituation } from "@antumbra/contract";
 import type { StoredAgentSession } from "@antumbra/persistence";
+import { sessionAtRest, sessionRetirable } from "@antumbra/sessions";
 import {
 	decodeSessionExecutionStatus,
 	decodeStoredAgentSessionStatus,
 	sessionPresence,
 } from "@antumbra/vocabulary/agent-runtime";
 import { Effect } from "effect";
-import { sessionAtRest, sessionRetirable } from "#session-at-rest.ts";
 import type { IntentAttribution } from "#sight-diagnostics.ts";
 
 // why: what this process is holding and what those holdings are carrying. Both

@@ -1,8 +1,8 @@
 import { Database } from "@antumbra/persistence";
 import type { SessionHandle } from "@antumbra/plugin-api";
 import { type BerthedCharter, berthedCharter } from "@antumbra/prompts";
+import { promptInput } from "@antumbra/sessions";
 import { Clock, Effect, Option } from "effect";
-import { promptInput } from "#session-input.ts";
 import type { SpawnFields } from "#spawn-fields.ts";
 import { spawnSessionIdentity } from "#spawn-identity.ts";
 import { isVoyageCaptainIdentity } from "#voyage-captain.ts";

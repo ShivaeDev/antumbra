@@ -426,6 +426,9 @@ importers:
       '@antumbra/persistence':
         specifier: workspace:*
         version: link:../persistence
+      '@antumbra/service-definition':
+        specifier: workspace:*
+        version: link:../service-definition
       '@antumbra/vocabulary':
         specifier: workspace:*
         version: link:../vocabulary
@@ -842,6 +845,9 @@ importers:
       '@antumbra/persistence':
         specifier: workspace:*
         version: link:../persistence
+      '@antumbra/service-definition':
+        specifier: workspace:*
+        version: link:../service-definition
       '@antumbra/vocabulary':
         specifier: workspace:*
         version: link:../vocabulary

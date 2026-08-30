@@ -75,7 +75,5 @@ export const markMailRead = Effect.fn("boards.markMailRead")(function* (
 	agentId: string,
 	entryIds: ReadonlyArray<string>,
 ) {
-	return yield* Database.use((db) =>
-		db.transaction(receiptsFor(agentId, entryIds)),
-	).pipe(Effect.asVoid);
+	return yield* receiptsFor(agentId, entryIds).pipe(Effect.asVoid);
 });

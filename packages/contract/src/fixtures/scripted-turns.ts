@@ -3,10 +3,6 @@ import { chart, quayView, reefSummary, reefView, soundings } from "#fixtures/voy
 import type { AgentSummary } from "#fleet.ts";
 import type { VoyageSummary } from "#voyage-views.ts";
 
-// why: each of these is one turn of the script — the same reef a beat later,
-// written out in full rather than as a patch, so what a view is meant to show
-// after an update can be read without replaying how it got there.
-
 const surveyor: AgentSummary = {
 	berths: [
 		{

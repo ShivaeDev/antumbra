@@ -29,9 +29,6 @@ import type { VoyageSummary } from "#voyage-views.ts";
 
 const WATCHABLE_BEAT = "1500 millis";
 
-// why: a browser harness only proves a projection is live if the view changes
-// after it first paints, so every scripted feed opens on the snapshot the
-// static fixtures carry and then reworks it on a beat slow enough to watch.
 const paced =
 	(beat: Duration.Input) =>
 	<A>(opening: Stream.Stream<A>, ...rest: readonly A[]): Stream.Stream<A> =>
@@ -40,10 +37,6 @@ const paced =
 export const makeScriptedFeeds = (beat: Duration.Input): FixtureFeeds => {
 	const step = paced(beat);
 	return {
-		// why: the second half of this script is a resume — the session wakes,
-		// picks up a background task, answers out of an almost entirely cached
-		// context and settles again. It is the beat the usage split exists for,
-		// so the harness shows it rather than only the first cold turn.
 		events: step(Stream.fromArray(storedEvents), ...wokenEvents, laterEvent, ...cachedTurnEvents, closingEvent, restingEvent),
 		fleet: step(Stream.make(fleet), crewedFleet, mooredFleet),
 		quay: step(Stream.make(quayView), checkingQuay, landedQuay),

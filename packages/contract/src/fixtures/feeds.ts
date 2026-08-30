@@ -10,9 +10,6 @@ import type { OpenRulingsView, StandingRulingsView } from "#rulings/views.ts";
 import type { SessionEvent } from "#sight.ts";
 import type { VoyageSummary, VoyageView } from "#voyage-views.ts";
 
-// why: every live projection the window watches is one field here, so a
-// fixture set can be swapped for a scripted one without a second stub layer
-// drifting away from the first.
 export interface FixtureFeeds {
 	readonly events: Stream.Stream<SessionEvent>;
 	readonly fleet: Stream.Stream<Fleet>;

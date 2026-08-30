@@ -1,10 +1,6 @@
 import { berthNaming, berthReclaim, chartAuthority, soundingReading } from "#fixtures/ruling.ts";
 import type { OpenRulingsView, RulingView, StandingRulingsView, StandingRulingView } from "#rulings/views.ts";
 
-// why: a request that holds its asker lands ahead of what was already open,
-// so the set the admiral meets is reordered rather than appended to. It has
-// climbed the whole ladder: the flagship passed it up with what it knew, so it
-// waits on the admiral with a rung's note beside the asker's own words.
 const courseCall: RulingView = {
 	choices: [{ detail: null, id: "choice-3", label: "hold the course" }],
 	context: "The flagship and the surveyor disagree on which repository the chart lives in.",
@@ -36,8 +32,6 @@ export const ruledRulings: OpenRulingsView = {
 	rulings: [courseCall, berthNaming],
 };
 
-// why: the ruling the open script loses is the one the standing script gains,
-// and a beat later it takes over the older ruling on the same shoal.
 const soundingsRuled: StandingRulingView = {
 	answer: "plot against the soundings until the shoal is resurveyed",
 	chosen: "trust the soundings",
@@ -52,8 +46,6 @@ const soundingsRuled: StandingRulingView = {
 	urgency: soundingReading.urgency,
 };
 
-// why: a proclamation is asked and answered in one act, so it never passes
-// through the open set — it appears among what stands the moment it lands.
 const dredgingProclaimed: StandingRulingView = {
 	answer: "no voyage dredges a channel it did not survey first",
 	chosen: null,
@@ -80,9 +72,6 @@ export const proclaimedStanding: StandingRulingsView = {
 	rulings: [dredgingProclaimed, soundingsRuled, berthReclaim],
 };
 
-// why: the reef the soundings ruling was written for finishes, so the ruling
-// reads stale without leaving the standing set — it binds every agent it named
-// until the admiral withdraws it.
 const soundingsStale: StandingRulingView = { ...soundingsRuled, stale: true };
 
 export const staleStanding: StandingRulingsView = {

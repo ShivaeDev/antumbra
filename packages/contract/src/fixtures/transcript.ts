@@ -1,10 +1,6 @@
 import type { AgentEvent } from "@antumbra/vocabulary/session-events";
 import type { SessionEvent } from "#sight.ts";
 
-// why: the harness is the only place the transcript is seen with real shapes
-// in it, so the scripted session carries one of every kind the view draws —
-// both sides speaking, a thought, a call that worked, a call that failed, a
-// provider payload and the telemetry between turns.
 export const raw = (kind: string, payload: string) => ({
 	kind,
 	payload,
@@ -88,8 +84,6 @@ export const storedEvents: ReadonlyArray<SessionEvent> = [
 		raw: raw("stream/heartbeat", '{"kind":"heartbeat","seq":8}'),
 		type: "raw",
 	}),
-	// why: a log outlives the words it was written with, so one row is left in
-	// the envelope the domain uses for an event it can no longer name.
 	{
 		event: {
 			_tag: "Unknown",

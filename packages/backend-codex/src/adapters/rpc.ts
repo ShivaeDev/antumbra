@@ -11,13 +11,7 @@ import {
 	type RpcServerRequest,
 } from "#adapters/rpc-messages.ts";
 
-export {
-	isRpcError,
-	RPC_OVERLOADED_CODE,
-	type RpcError,
-	type RpcNotification,
-	type RpcServerRequest,
-} from "#adapters/rpc-messages.ts";
+export type { RpcError, RpcNotification, RpcServerRequest } from "#adapters/rpc-messages.ts";
 
 export interface RpcConnection {
 	readonly notify: (method: string, params: unknown) => void;

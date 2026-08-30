@@ -189,7 +189,7 @@ it.effect("lists every call until the admiral asks for them folded", () =>
 		yield* render(root, "session-1", true);
 
 		expect(container.textContent).toContain("called 2 tools");
-		expect(watchSessionEvents).toHaveBeenCalledTimes(1);
+		expect(opened).toHaveLength(1);
 		yield* drop(root);
 	}),
 );

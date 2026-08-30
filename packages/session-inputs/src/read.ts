@@ -23,7 +23,7 @@ const imagePart = (root: string, inputId: string, position: number, id: string) 
 		if (Option.isNone(mediaType)) {
 			return yield* invalid(inputId, `part ${position} has unknown media type`);
 		}
-		yield* readImage(root, attachment.digest, mediaType.value, attachment.byteSize);
+		yield* readImage(root, attachment.digest, mediaType.value);
 		return {
 			attachmentId: attachment.id,
 			mediaType: mediaType.value,

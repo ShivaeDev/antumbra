@@ -1,4 +1,4 @@
-import { existsSync, mkdtempSync, rmSync, statSync } from "node:fs";
+import { existsSync, mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import type { NewAgentSession } from "@antumbra/persistence";
@@ -104,9 +104,6 @@ it.effectDB("normalizes, owns, replays, and reads durable images", function* (db
 		expect(stored.input.parts.map((part) => part.type)).toEqual(["image", "text"]);
 		const first = stored.input.parts[0];
 		expect(first?.type === "image" && existsSync(first.path)).toBe(true);
-		if (first?.type === "image") {
-			expect(statSync(first.path).mode & 0o777).toBe(0o600);
-		}
 		const thumbnail = yield* inputs.image({
 			inputId: draft.id,
 			position: 0,

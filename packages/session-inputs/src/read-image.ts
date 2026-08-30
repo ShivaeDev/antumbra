@@ -49,7 +49,7 @@ export const readStoredImage = (
 		if (Option.isNone(mediaType)) {
 			return yield* invalid(request.inputId, "image attachment media type is invalid");
 		}
-		const bytes = yield* readImage(root, attachment.value.digest, mediaType.value, attachment.value.byteSize);
+		const bytes = yield* readImage(root, attachment.value.digest, mediaType.value);
 		return {
 			bytes: yield* transcriptThumbnail(bytes),
 			mediaType: "image/webp",

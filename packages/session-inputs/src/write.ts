@@ -69,11 +69,10 @@ export const storePreparedInput = (
 	Context.Service.Identifier<typeof Database>
 > =>
 	Effect.gen(function* () {
-		const db = yield* Database;
 		for (const part of prepared.parts) {
 			if (part.type === "image") {
 				yield* publishImage(root, part.image.digest, part.image.mediaType, part.image.bytes);
 			}
 		}
-		return yield* db.transaction(writeInput(prepared));
+		return yield* writeInput(prepared);
 	});

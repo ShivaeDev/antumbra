@@ -1,8 +1,9 @@
-import type { SessionEvent, SessionTreeNode } from "@antumbra/contract";
+import type { SessionEvent, SessionSummary, SessionTreeNode } from "@antumbra/contract";
 import { ArrowDown } from "lucide-react";
 import { watchSessionEvents } from "#adapters/trpc.ts";
 import { Button } from "#components/ui/button.tsx";
 import { useFeedLog } from "#hooks/feed.ts";
+import { sessionActivity } from "#transcript/activity.ts";
 import { deriveTranscript } from "#transcript/derive.ts";
 import { foldToolRuns } from "#transcript/fold.ts";
 import { sessionStanding } from "#transcript/standing.ts";
@@ -14,11 +15,13 @@ export const TranscriptView = ({
 	foldToolCalls,
 	nodes = [],
 	onOpenNode,
+	presence,
 	sessionId,
 }: {
 	readonly foldToolCalls: boolean;
 	readonly nodes?: ReadonlyArray<SessionTreeNode> | undefined;
 	readonly onOpenNode?: ((nodeId: string) => void) | undefined;
+	readonly presence?: SessionSummary["presence"] | undefined;
 	readonly sessionId: string;
 }) => {
 	const { error: feedError, value: events } = useFeedLog<SessionEvent>(sessionId, (onEvent, onError) =>
@@ -26,7 +29,9 @@ export const TranscriptView = ({
 	);
 	const derived = deriveTranscript(events, nodes);
 	const items = foldToolCalls ? foldToolRuns(derived) : derived;
-	const standing = sessionStanding(events);
+	const node = nodes.find((candidate) => candidate.id === sessionId);
+	const standing = sessionStanding(events, node);
+	const activity = sessionActivity(standing, node, presence);
 	const { atTail, onScroll, pane, toTail } = useTail(events.length);
 
 	return (
@@ -38,7 +43,9 @@ export const TranscriptView = ({
 				{items.length === 0 ? (
 					<p className="text-xs text-muted-foreground">no events yet — what this session says and does appears here as it works</p>
 				) : (
-					items.map((item, index) => <TranscriptRow item={item} key={`${item.seq}-${index}`} onOpenNode={onOpenNode} sessionId={sessionId} />)
+					items.map((item, index) => (
+						<TranscriptRow item={item} key={`${item.seq}-${index}`} live={activity.live} onOpenNode={onOpenNode} sessionId={sessionId} />
+					))
 				)}
 			</div>
 			{atTail ? null : (
@@ -47,7 +54,7 @@ export const TranscriptView = ({
 					Jump to latest
 				</Button>
 			)}
-			<SessionStandingBar standing={standing} />
+			<SessionStandingBar activity={activity} node={node} standing={standing} />
 		</section>
 	);
 };

@@ -4,9 +4,6 @@ export interface AttachmentOccupant {
 	readonly agentId: string;
 }
 
-// why: an Agent holds at most one attached Session and a Session answers only
-// to the Agent that opened it. Both refusals are read off the current map
-// before anything is opened, so a refused attach starts no process.
 export const occupancyRefusal = (
 	current: ReadonlyMap<string, AttachmentOccupant>,
 	agentId: string,

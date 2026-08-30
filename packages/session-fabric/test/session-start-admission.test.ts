@@ -8,19 +8,11 @@ it.live("reopen releases a start already waiting on its closed generation", () =
 	Effect.scoped(
 		Effect.gen(function* () {
 			const fabric = yield* SessionFabric;
-			const attempted = yield* Deferred.make<void>();
 			const admitted = yield* Deferred.make<void>();
 			yield* fabric.closeStarts();
-			const waiting = yield* Deferred.succeed(attempted, undefined).pipe(
-				Effect.andThen(fabric.withStartAdmission(() => Deferred.succeed(admitted, undefined))),
-				Effect.forkChild,
-			);
-			yield* Deferred.await(attempted);
-			// why: after the synchronized attempt, the closed admission Deferred is
-			// the child fiber's only possible suspension point.
-			yield* Effect.yieldNow;
-			yield* Effect.yieldNow;
-			expect(waiting.pollUnsafe()).toBeUndefined();
+			const waiting = yield* fabric
+				.withStartAdmission(() => Deferred.succeed(admitted, undefined))
+				.pipe(Effect.forkChild({ startImmediately: true }));
 			expect(yield* Deferred.isDone(admitted)).toBe(false);
 
 			yield* fabric.reopenStarts();

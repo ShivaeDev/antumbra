@@ -26,10 +26,7 @@ it.live("concurrent starts attach one backend handle per session", () =>
 			yield* Deferred.await(firstEntered);
 			const second = yield* fabric
 				.withStartAdmission((permit) => fabric.start(permit, "agent-fabric", backend, options, sink, () => Effect.void))
-				.pipe(Effect.forkChild);
-			// why: reaching either suspension point proves both starts overlapped.
-			yield* Effect.yieldNow;
-			yield* Effect.yieldNow;
+				.pipe(Effect.forkChild({ startImmediately: true }));
 			yield* Deferred.succeed(release, undefined);
 			yield* Fiber.join(first);
 			yield* Fiber.join(second);
@@ -60,8 +57,7 @@ it.live("one Agent cannot attach two different Sessions", () =>
 				.withStartAdmission((permit) =>
 					fabric.start(permit, "agent-fabric", backend, { ...options, sessionId: "session-other" }, sink, () => Effect.void),
 				)
-				.pipe(Effect.forkChild);
-			yield* Effect.yieldNow;
+				.pipe(Effect.forkChild({ startImmediately: true }));
 			yield* Deferred.succeed(release, undefined);
 			yield* Fiber.join(first);
 			const failure = yield* Effect.flip(Fiber.join(second));

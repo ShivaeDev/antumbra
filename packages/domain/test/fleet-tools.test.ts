@@ -106,6 +106,55 @@ it.live("the flagship's captain reads every voyage in the fleet", () =>
 	),
 );
 
+it.live("the flagship's captain reads a voyage it names", () =>
+	withFlagshipCaptain((captain) =>
+		Effect.gen(function* () {
+			const domain = yield* AgentDomain;
+			const reef = yield* openReefVoyage;
+			const sounding = yield* domain.voyages.charterPiece({
+				charter: "sound the eastern shoal",
+				dependsOn: [],
+				expectation: "the shoal is sounded",
+				role: "hand",
+				title: "sounding",
+				voyageId: reef.id,
+			});
+			const landed = yield* domain.voyages.landReport({
+				body: "the eastern shoal is three fathoms",
+				pieceId: sounding.id,
+				title: "eastern soundings",
+			});
+
+			const read = yield* callTool(captain, "read_voyage", {
+				voyageId: reef.id,
+			});
+
+			expect(read.ok).toBe(true);
+			expect(read.text).toContain("# Chart the reef [quiet]");
+			expect(read.text).toContain(`- ${sounding.id} sounding [done]`);
+			expect(read.text).toContain(`- ${landed.id} eastern soundings — report`);
+			// why: naming no voyage still reads the ship the captain is on, so the
+			// widened form takes nothing away from the one every captain holds.
+			expect((yield* callTool(captain, "read_voyage", {})).text).toContain(
+				"# Flagship",
+			);
+		}),
+	),
+);
+
+it.live("a voyage the fleet has not got is refused, not read", () =>
+	withFlagshipCaptain((captain) =>
+		Effect.gen(function* () {
+			const refusal = yield* callTool(captain, "read_voyage", {
+				voyageId: "voyage-adrift",
+			});
+
+			expect(refusal.ok).toBe(false);
+			expect(refusal.text).toContain("read_voyage");
+		}),
+	),
+);
+
 it.live("the flagship's captain opens a voyage on the fleet's default", () =>
 	withFlagshipCaptain((captain) =>
 		Effect.gen(function* () {

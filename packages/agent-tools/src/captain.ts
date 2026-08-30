@@ -62,7 +62,14 @@ export const rewirePieceSpec = defineTool({
 
 export const readVoyageSpec = defineTool({
 	description:
-		"Read your voyage: its pieces and their state, who is at work, and what has landed. Call it whenever you need to know where the voyage stands.",
-	input: Schema.Struct({}),
+		"Read a voyage: its pieces and their state, who is at work, and what has landed. Call it whenever you need to know where the voyage stands. It reads the ship you are on unless you name another, which only the flagship's captain may do.",
+	input: Schema.Struct({
+		voyageId: Schema.optional(
+			Schema.String.annotate({
+				description:
+					"The id of another voyage to read, as `read_fleet` shows it. Leave it out for the ship you are on.",
+			}),
+		),
+	}),
 	name: "read_voyage",
 });

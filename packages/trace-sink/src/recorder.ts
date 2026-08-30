@@ -23,8 +23,7 @@ interface RecorderState {
 // reader came for by three orders of magnitude and is what turns this file into
 // hundreds of megabytes of index. What a query cost is the database's story and
 // is asked of the database; the trace is here to say what the workspace did.
-const recordable = (span: Tracer.Span): boolean =>
-	span.sampled && !span.name.startsWith(ORM_SPAN_PREFIX);
+const recordable = (span: Tracer.Span): boolean => span.sampled && !span.name.startsWith(ORM_SPAN_PREFIX);
 
 const rowsOf = (span: Tracer.Span): readonly SpanRow[] => {
 	const row = spanRowOf(span);
@@ -50,25 +49,17 @@ export const makeRecorder = (database: TraceDatabase): Recorder => {
 		if (pendingSpans.length === 0 && pendingLogs.length === 0) {
 			return Effect.void;
 		}
-		return Effect.try(() =>
-			database.write(pendingSpans.flatMap(rowsOf), pendingLogs),
-		).pipe(
-			Effect.catchCause((cause) =>
-				Effect.sync(() => standDown(Cause.pretty(cause))),
-			),
+		return Effect.try(() => database.write(pendingSpans.flatMap(rowsOf), pendingLogs)).pipe(
+			Effect.catchCause((cause) => Effect.sync(() => standDown(Cause.pretty(cause)))),
 		);
 	});
 	const announce = Effect.suspend(() => {
 		const warning = state.warning;
 		state.warning = undefined;
-		return warning === undefined
-			? Effect.void
-			: Effect.logWarning(`${DISABLED}: ${warning}`);
+		return warning === undefined ? Effect.void : Effect.logWarning(`${DISABLED}: ${warning}`);
 	});
 	return {
-		flush: Effect.suspend(() =>
-			state.degraded ? announce : write.pipe(Effect.andThen(announce)),
-		),
+		flush: Effect.suspend(() => (state.degraded ? announce : write.pipe(Effect.andThen(announce)))),
 		recordLog: (row) => {
 			if (!state.degraded && !logs.push(row)) {
 				standDown("the log buffer overflowed");

@@ -5,11 +5,7 @@ import { Schema } from "effect";
 // truth: the record already holds whether a Change conflicts, whether its
 // checks are red and whether a reviewer asked for changes, and this names the
 // three of those a Session can be sent at.
-export const ChangeSituation = Schema.Literals([
-	"merge_conflicts",
-	"checks_failed",
-	"unresolved_reviews",
-]);
+export const ChangeSituation = Schema.Literals(["merge_conflicts", "checks_failed", "unresolved_reviews"]);
 export type ChangeSituation = typeof ChangeSituation.Type;
 
 // why: one addressable situation on one Change, published rather than derived

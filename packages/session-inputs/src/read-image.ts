@@ -3,17 +3,12 @@ import { SessionImageMediaType } from "@antumbra/vocabulary/session-input";
 import { type Context, Effect, Option, Schema } from "effect";
 import { readImage } from "#adapters/custody.ts";
 import { transcriptThumbnail } from "#adapters/thumbnail.ts";
-import {
-	type SessionInputCustodyFailed,
-	SessionInputNotFound,
-	StoredSessionInputInvalid,
-} from "#errors.ts";
+import { type SessionInputCustodyFailed, SessionInputNotFound, StoredSessionInputInvalid } from "#errors.ts";
 import type { SessionInputImage } from "#model.ts";
 import { requireInput } from "#stored.ts";
 
 const decodeMediaType = Schema.decodeUnknownOption(SessionImageMediaType);
-const invalid = (inputId: string, detail: string) =>
-	new StoredSessionInputInvalid({ detail, inputId });
+const invalid = (inputId: string, detail: string) => new StoredSessionInputInvalid({ detail, inputId });
 
 export const readStoredImage = (
 	root: string,
@@ -24,10 +19,7 @@ export const readStoredImage = (
 	},
 ): Effect.Effect<
 	SessionInputImage,
-	| PrismaError
-	| SessionInputCustodyFailed
-	| SessionInputNotFound
-	| StoredSessionInputInvalid,
+	PrismaError | SessionInputCustodyFailed | SessionInputNotFound | StoredSessionInputInvalid,
 	Context.Service.Identifier<typeof Database>
 > =>
 	Effect.gen(function* () {
@@ -45,10 +37,7 @@ export const readStoredImage = (
 		}
 		const { attachmentId, displayName } = part.value;
 		if (attachmentId === null || displayName === null) {
-			return yield* invalid(
-				request.inputId,
-				"image part has no attachment metadata",
-			);
+			return yield* invalid(request.inputId, "image part has no attachment metadata");
 		}
 		const attachment = yield* db.SessionAttachment.where({
 			id: attachmentId,
@@ -58,17 +47,9 @@ export const readStoredImage = (
 		}
 		const mediaType = decodeMediaType(attachment.value.mediaType);
 		if (Option.isNone(mediaType)) {
-			return yield* invalid(
-				request.inputId,
-				"image attachment media type is invalid",
-			);
+			return yield* invalid(request.inputId, "image attachment media type is invalid");
 		}
-		const bytes = yield* readImage(
-			root,
-			attachment.value.digest,
-			mediaType.value,
-			attachment.value.byteSize,
-		);
+		const bytes = yield* readImage(root, attachment.value.digest, mediaType.value, attachment.value.byteSize);
 		return {
 			bytes: yield* transcriptThumbnail(bytes),
 			mediaType: "image/webp",

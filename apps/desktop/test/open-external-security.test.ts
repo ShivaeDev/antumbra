@@ -1,8 +1,5 @@
 import { describe, expect, it } from "@effect/vitest";
-import {
-	browsableUrl,
-	makeOpenExternalHandler,
-} from "#adapters/open-external.ts";
+import { browsableUrl, makeOpenExternalHandler } from "#adapters/open-external.ts";
 import { makeWindowRegistry } from "#adapters/windows/registry.ts";
 import { consolePlace, contents, eventFor, ownWindow } from "#test/windows.ts";
 
@@ -11,9 +8,7 @@ const PULL = "https://github.com/example/antumbra/pull/42";
 describe("external link policy", () => {
 	it("hands the browser only web addresses it can parse", () => {
 		expect(browsableUrl(PULL)).toBe(PULL);
-		expect(browsableUrl("http://localhost:4173/board")).toBe(
-			"http://localhost:4173/board",
-		);
+		expect(browsableUrl("http://localhost:4173/board")).toBe("http://localhost:4173/board");
 
 		for (const refused of [
 			"file:///Users/admiral/.ssh/id_ed25519",

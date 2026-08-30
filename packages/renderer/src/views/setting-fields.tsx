@@ -14,15 +14,7 @@ export const FlagField = ({
 	readonly checked: boolean;
 	readonly id: string;
 	readonly onChange: (value: boolean) => void;
-}) => (
-	<input
-		checked={checked}
-		className="size-4 accent-primary"
-		id={id}
-		onChange={(event) => onChange(event.target.checked)}
-		type="checkbox"
-	/>
-);
+}) => <input checked={checked} className="size-4 accent-primary" id={id} onChange={(event) => onChange(event.target.checked)} type="checkbox" />;
 
 // why: a number is typed a digit at a time, and every intermediate keystroke
 // is a value the declaration would refuse. The field holds the draft and only
@@ -40,10 +32,7 @@ export const CountField = ({
 }) => {
 	const [draft, setDraft] = useState(String(value));
 	const parsed = Number(draft);
-	const offered =
-		Number.isInteger(parsed) &&
-		parsed >= declaration.least &&
-		parsed <= declaration.most;
+	const offered = Number.isInteger(parsed) && parsed >= declaration.least && parsed <= declaration.most;
 	return (
 		<div className="flex items-center gap-2">
 			<Input
@@ -56,10 +45,7 @@ export const CountField = ({
 				type="number"
 				value={draft}
 			/>
-			<Button
-				disabled={!offered || parsed === value}
-				onClick={() => onChange(parsed)}
-			>
+			<Button disabled={!offered || parsed === value} onClick={() => onChange(parsed)}>
 				Save
 			</Button>
 		</div>

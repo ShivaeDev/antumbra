@@ -11,18 +11,14 @@ export const publishArtifact = (root: string, input: ArtifactInput) =>
 		const path = yield* Path.Path;
 		const owned = yield* readOwnedArtifact(input);
 		const bytes = owned.bytes;
-		const digest = yield* digestBytes(bytes).pipe(
-			Effect.mapError(artifactPublicationFailed("hash artifact")),
-		);
+		const digest = yield* digestBytes(bytes).pipe(Effect.mapError(artifactPublicationFailed("hash artifact")));
 		const directory = path.join(root, digest);
 		const destination = path.join(directory, owned.basename);
 		yield* ensureDurableDirectory(root).pipe(
 			Effect.andThen(ensureDurableDirectory(directory)),
 			Effect.mapError(artifactPublicationFailed("prepare artifact directory")),
 		);
-		yield* installPublished(destination, bytes, digest).pipe(
-			Effect.mapError(artifactPublicationFailed("publish artifact")),
-		);
+		yield* installPublished(destination, bytes, digest).pipe(Effect.mapError(artifactPublicationFailed("publish artifact")));
 		return {
 			agentId: owned.agentId,
 			basename: owned.basename,

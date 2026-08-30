@@ -1,5 +1,5 @@
 import { Pieces } from "@antumbra/pieces";
-import { Effect, Option } from "effect";
+import { type Context, Effect, Option } from "effect";
 import type { SessionIdentity } from "#tool-identity.ts";
 
 // why: reach is asked as a plain question when the caller phrases its own
@@ -8,7 +8,7 @@ import type { SessionIdentity } from "#tool-identity.ts";
 export const reaches = Effect.fn("captainMembership.reaches")(function* (
 	identity: SessionIdentity,
 	pieceIds: ReadonlyArray<string>,
-): Effect.fn.Return<boolean, never, Pieces> {
+): Effect.fn.Return<boolean, never, Context.Service.Identifier<typeof Pieces>> {
 	return yield* Option.match(identity.voyageId, {
 		onNone: () => Effect.succeed(false),
 		onSome: (voyageId) =>

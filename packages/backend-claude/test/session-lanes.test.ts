@@ -1,8 +1,4 @@
-import type {
-	SDKMessage,
-	SessionKey,
-	SessionStoreEntry,
-} from "@anthropic-ai/claude-agent-sdk";
+import type { SDKMessage, SessionKey, SessionStoreEntry } from "@anthropic-ai/claude-agent-sdk";
 import { expect, it } from "@effect/vitest";
 import { openSessionLanes } from "#session-lanes.ts";
 
@@ -16,10 +12,7 @@ const key = (subpath?: string): SessionKey => ({
 	...(subpath === undefined ? {} : { subpath }),
 });
 
-const line = (
-	type: string,
-	content: ReadonlyArray<Record<string, unknown>>,
-): SessionStoreEntry => ({
+const line = (type: string, content: ReadonlyArray<Record<string, unknown>>): SessionStoreEntry => ({
 	message: { content, role: type },
 	timestamp: "2026-08-20T09:14:03.117Z",
 	type,
@@ -41,9 +34,7 @@ const progress = (state: string, label: string): ProgressFrame => ({
 	type: "system",
 	usage: { duration_ms: 1, tool_uses: 1, total_tokens: 1 },
 	uuid: "1a2b3c4d-5e6f-4a7b-8c9d-0e1f2a3b4c50",
-	workflow_progress: [
-		{ agentId: AGENT, label, model: "opus", state, type: "workflow_agent" },
-	],
+	workflow_progress: [{ agentId: AGENT, label, model: "opus", state, type: "workflow_agent" }],
 });
 
 const agentKey = key(`subagents/workflows/wfr_7f3a2b1c/agent-${AGENT}`);
@@ -59,24 +50,14 @@ it("a transcript the stream already carried is read only for what it drops", () 
 	});
 	expect(spoken).toEqual([]);
 	lanes.mirror({
-		entries: [
-			line("assistant", [
-				{ id: CALL, input: {}, name: "Workflow", type: "tool_use" },
-			]),
-		],
+		entries: [line("assistant", [{ id: CALL, input: {}, name: "Workflow", type: "tool_use" }])],
 		key: key(),
 	});
 	const answered = lanes.mirror({
-		entries: [
-			line("user", [
-				{ content: "audited", tool_use_id: CALL, type: "tool_result" },
-			]),
-		],
+		entries: [line("user", [{ content: "audited", tool_use_id: CALL, type: "tool_result" }])],
 		key: key(),
 	});
-	expect(answered).toMatchObject([
-		{ ok: true, output: "audited", toolId: CALL, type: "tool.completed" },
-	]);
+	expect(answered).toMatchObject([{ ok: true, output: "audited", toolId: CALL, type: "tool.completed" }]);
 });
 
 // why: a name that arrives after the agent has already spoken fills the hole
@@ -103,9 +84,7 @@ it("an agent that spoke before it was named is named afterwards", () => {
 		{ label: "read the ledger", subsessionRef: AGENT },
 		{ text: "read", type: "message" },
 	]);
-	expect(lanes.frame(progress("done", "read the ledger"))).toMatchObject([
-		{ outcome: "completed", subsessionRef: AGENT, type: "subsession.ended" },
-	]);
+	expect(lanes.frame(progress("done", "read the ledger"))).toMatchObject([{ outcome: "completed", subsessionRef: AGENT, type: "subsession.ended" }]);
 });
 
 // why: a repair source that cannot be reached found no missing node — it was
@@ -113,12 +92,7 @@ it("an agent that spoke before it was named is named afterwards", () => {
 // written as unknown and the detail carries what actually happened.
 it("a census that could not be taken is written down as such", () => {
 	const lanes = openSessionLanes();
-	expect(lanes.adopted({ agents: [], failure: "socket closed" })).toMatchObject(
-		[{ gapKind: "unknown", type: "subsession.gap" }],
-	);
+	expect(lanes.adopted({ agents: [], failure: "socket closed" })).toMatchObject([{ gapKind: "unknown", type: "subsession.gap" }]);
 	const [gap] = lanes.adopted({ agents: [], failure: "socket closed" });
-	expect(gap).toHaveProperty(
-		"detail",
-		expect.stringContaining("could not be checked"),
-	);
+	expect(gap).toHaveProperty("detail", expect.stringContaining("could not be checked"));
 });

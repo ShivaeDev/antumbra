@@ -23,6 +23,7 @@ export {
 export { bind } from "#define.ts";
 export {
 	charterVoyagePieceSpec,
+	hailCaptainSpec,
 	openVoyageSpec,
 	proclaimRulingSpec,
 	readFleetSpec,

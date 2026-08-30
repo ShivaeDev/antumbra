@@ -2,11 +2,11 @@ import { SettingsSource } from "@antumbra/contract";
 import { defineIntentDemand } from "@antumbra/intent-demand";
 import type { IntentKind } from "@antumbra/kernel";
 import { SessionFabric } from "@antumbra/session-fabric";
+import { LiveDelegations } from "@antumbra/sessions";
 import { Clock, Effect } from "effect";
 import { claimedCrew, restingCrew, retirableCrew } from "#crew-rest.ts";
 import { type PieceState, pieceStates } from "#piece-state.ts";
 import type { RetireFields } from "#retire.ts";
-import { LiveDelegations } from "#session-tree-live.ts";
 import { VoyageWorldSource } from "#voyage-world.ts";
 
 const MILLIS_PER_MINUTE = 60_000;
@@ -44,10 +44,7 @@ const sweptCrew = Effect.gen(function* () {
 	const restedLongEnough = (sessionIds: ReadonlyArray<string>) =>
 		sessionIds.every((sessionId) => {
 			const since = idleSince.get(sessionId);
-			return (
-				since !== undefined &&
-				now - since >= chosen.retireRestMinutes * MILLIS_PER_MINUTE
-			);
+			return since !== undefined && now - since >= chosen.retireRestMinutes * MILLIS_PER_MINUTE;
 		});
 	// why: selection is by the piece's own state, never by the tally underneath
 	// it. Both verdicts count as landed outcomes, so a written-off piece answers
@@ -55,10 +52,7 @@ const sweptCrew = Effect.gen(function* () {
 	// place the two are told apart. Reading the state is what keeps this sweep
 	// and the button from ever disagreeing about which pieces qualify.
 	const states = pieceStates(world);
-	const crewOf = (wanted: PieceState) =>
-		[...states].flatMap(([pieceId, state]) =>
-			state === wanted ? claimedCrew(world, pieceId) : [],
-		);
+	const crewOf = (wanted: PieceState) => [...states].flatMap(([pieceId, state]) => (state === wanted ? claimedCrew(world, pieceId) : []));
 	// why: work that landed is finished, but its crew is still saying so — the
 	// farewell trails the last outcome — so the wait is what keeps the sweep
 	// from beheading a crew mid-sentence.
@@ -71,15 +65,11 @@ const sweptCrew = Effect.gen(function* () {
 	// closed carries none — nothing in it says whether the work wants another
 	// attempt or an ending — so such a piece waits out the threshold like any
 	// other. Only a crew mid-word is left, and only until it stops.
-	const writtenOff = crewOf("abandoned").filter((agentId) =>
-		retirable.has(agentId),
-	);
+	const writtenOff = crewOf("abandoned").filter((agentId) => retirable.has(agentId));
 	// why: one Agent may hold claims on two settled pieces, and the demand it
 	// stands for is the same demand twice — a set is what keeps a single pass
 	// from asking to retire it once per claim.
-	return [...new Set([...landed, ...writtenOff])].map(
-		(agentId) => ({ agentId }) satisfies RetireFields,
-	);
+	return [...new Set([...landed, ...writtenOff])].map((agentId) => ({ agentId }) satisfies RetireFields);
 });
 
 export const compileRetireSweepDemands = (retire: IntentKind<RetireFields>) =>

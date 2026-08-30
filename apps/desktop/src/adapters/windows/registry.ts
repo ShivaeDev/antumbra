@@ -75,13 +75,10 @@ export const makeWindowRegistry = (): WindowRegistry => {
 	};
 	return {
 		all: records,
-		children: () =>
-			records().filter((record) => record.place.role !== "console"),
-		consoleWindow: () =>
-			records().find((record) => record.place.role === "console"),
+		children: () => records().filter((record) => record.place.role !== "console"),
+		consoleWindow: () => records().find((record) => record.place.role === "console"),
 		focused: () => inFront,
-		holding: (place) =>
-			records().find((record) => sameSubject(record.place, place)),
+		holding: (place) => records().find((record) => sameSubject(record.place, place)),
 		// why: which window was in front is part of where the app was left, so a
 		// restart puts the same one there rather than whichever opened last.
 		noteFocus: (id) => {
@@ -97,10 +94,7 @@ export const makeWindowRegistry = (): WindowRegistry => {
 		// a second place the work is driven from, so ownership refuses it here
 		// rather than trusting every caller to have asked first.
 		own: (record) => {
-			const taken =
-				owned.has(record.contents) ||
-				(record.place.role === "console" &&
-					records().some((held) => held.place.role === "console"));
+			const taken = owned.has(record.contents) || (record.place.role === "console" && records().some((held) => held.place.role === "console"));
 			if (taken) {
 				return false;
 			}
@@ -110,18 +104,10 @@ export const makeWindowRegistry = (): WindowRegistry => {
 		},
 		owner: (event) => {
 			const record = owned.get(event.sender);
-			if (
-				record === undefined ||
-				event.sender.isDestroyed() ||
-				event.senderFrame === null ||
-				event.senderFrame !== event.sender.mainFrame
-			) {
+			if (record === undefined || event.sender.isDestroyed() || event.senderFrame === null || event.senderFrame !== event.sender.mainFrame) {
 				return undefined;
 			}
-			return event.sender.getURL() === record.document &&
-				event.senderFrame.url === record.document
-				? record
-				: undefined;
+			return event.sender.getURL() === record.document && event.senderFrame.url === record.document ? record : undefined;
 		},
 		release: (contents) => {
 			if (inFront === owned.get(contents)?.id) {

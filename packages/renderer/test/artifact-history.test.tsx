@@ -22,8 +22,7 @@ const { readArtifactMarkdown, readReportMarkdown } = vi.hoisted(() => ({
 			}) => void,
 			_onError: (message: string) => void,
 		) => {
-			const title =
-				artifactId === "artifact-old" ? "Old chart" : "Current chart";
+			const title = artifactId === "artifact-old" ? "Old chart" : "Current chart";
 			return onDone({
 				artifactId,
 				byteSize: 42,
@@ -87,9 +86,7 @@ const piece: PieceView = {
 };
 
 it("keeps superseded Artifacts behind an explicit History disclosure", () => {
-	const html = renderToStaticMarkup(
-		<PieceOutcomes onError={() => undefined} piece={piece} />,
-	);
+	const html = renderToStaticMarkup(<PieceOutcomes onError={() => undefined} piece={piece} />);
 
 	expect(html).toContain("Current chart");
 	expect(html).toContain("History");
@@ -108,9 +105,7 @@ it.effect("reads and renders current and historical Artifacts on click", () =>
 				return Promise.resolve();
 			}),
 		);
-		const current = [...container.querySelectorAll("button")].find((button) =>
-			button.textContent?.includes("Current chart"),
-		);
+		const current = [...container.querySelectorAll("button")].find((button) => button.textContent?.includes("Current chart"));
 		expect(current).toBeDefined();
 
 		yield* Effect.promise(() =>
@@ -120,31 +115,19 @@ it.effect("reads and renders current and historical Artifacts on click", () =>
 			}),
 		);
 
-		expect(readArtifactMarkdown).toHaveBeenCalledWith(
-			"artifact-current",
-			expect.any(Function),
-			expect.any(Function),
-		);
+		expect(readArtifactMarkdown).toHaveBeenCalledWith("artifact-current", expect.any(Function), expect.any(Function));
 		expect(container.querySelector("h1")?.textContent).toBe("Current chart");
-		expect(container.querySelector("[data-mermaid]")?.innerHTML).toContain(
-			'aria-label="chart"',
-		);
+		expect(container.querySelector("[data-mermaid]")?.innerHTML).toContain('aria-label="chart"');
 
 		container.querySelector("details")?.setAttribute("open", "");
-		const historical = [...container.querySelectorAll("button")].find(
-			(button) => button.textContent?.includes("Old chart"),
-		);
+		const historical = [...container.querySelectorAll("button")].find((button) => button.textContent?.includes("Old chart"));
 		yield* Effect.promise(() =>
 			act(() => {
 				historical?.click();
 				return Promise.resolve();
 			}),
 		);
-		expect(readArtifactMarkdown).toHaveBeenLastCalledWith(
-			"artifact-old",
-			expect.any(Function),
-			expect.any(Function),
-		);
+		expect(readArtifactMarkdown).toHaveBeenLastCalledWith("artifact-old", expect.any(Function), expect.any(Function));
 		expect(container.querySelector("h1")?.textContent).toBe("Old chart");
 		yield* Effect.promise(() =>
 			act(() => {
@@ -168,9 +151,7 @@ it.effect("opens the Artifact on show in a window of its own", () =>
 			}),
 		);
 		container.querySelector("details")?.setAttribute("open", "");
-		const historical = [...container.querySelectorAll("button")].find(
-			(button) => button.textContent?.includes("Old chart"),
-		);
+		const historical = [...container.querySelectorAll("button")].find((button) => button.textContent?.includes("Old chart"));
 		yield* Effect.promise(() =>
 			act(() => {
 				historical?.click();
@@ -178,9 +159,7 @@ it.effect("opens the Artifact on show in a window of its own", () =>
 			}),
 		);
 
-		const detach = container.querySelector<HTMLButtonElement>(
-			'button[aria-label="Open in a window"]',
-		);
+		const detach = container.querySelector<HTMLButtonElement>('button[aria-label="Open in a window"]');
 		expect(detach).not.toBeNull();
 		yield* Effect.promise(() =>
 			act(() => {
@@ -189,10 +168,7 @@ it.effect("opens the Artifact on show in a window of its own", () =>
 			}),
 		);
 
-		expect(openWindow).toHaveBeenCalledWith(
-			{ artifactId: "artifact-old", role: "artifact" },
-			expect.any(Function),
-		);
+		expect(openWindow).toHaveBeenCalledWith({ artifactId: "artifact-old", role: "artifact" }, expect.any(Function));
 		yield* Effect.promise(() =>
 			act(() => {
 				root.unmount();
@@ -204,9 +180,7 @@ it.effect("opens the Artifact on show in a window of its own", () =>
 
 it.effect("shows an Artifact read failure in its detail", () =>
 	Effect.gen(function* () {
-		readArtifactMarkdown.mockImplementationOnce(
-			(_artifactId, _onDone, onError) => onError("stored Artifact is missing"),
-		);
+		readArtifactMarkdown.mockImplementationOnce((_artifactId, _onDone, onError) => onError("stored Artifact is missing"));
 		const container = document.createElement("div");
 		const root = createRoot(container);
 		yield* Effect.promise(() =>
@@ -215,9 +189,7 @@ it.effect("shows an Artifact read failure in its detail", () =>
 				return Promise.resolve();
 			}),
 		);
-		const current = [...container.querySelectorAll("button")].find((button) =>
-			button.textContent?.includes("Current chart"),
-		);
+		const current = [...container.querySelectorAll("button")].find((button) => button.textContent?.includes("Current chart"));
 		yield* Effect.promise(() =>
 			act(() => {
 				current?.click();

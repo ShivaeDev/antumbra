@@ -1,12 +1,6 @@
 import type { PieceView } from "@antumbra/contract";
 import { useState } from "react";
-import {
-	launchPiece,
-	parkPiece,
-	rewirePiece,
-	unparkPiece,
-	workPieceNow,
-} from "#adapters/trpc-voyages.ts";
+import { launchPiece, parkPiece, rewirePiece, unparkPiece, workPieceNow } from "#adapters/trpc-voyages.ts";
 import { Button } from "#components/ui/button.tsx";
 import { PiecePicker, pickable } from "#views/piece-picker.tsx";
 import { actsFor, type PieceAct } from "#voyages/acts.ts";
@@ -63,21 +57,9 @@ export const PieceActs = ({
 			</div>
 			{rewiring ? (
 				<div className="flex min-w-0 flex-col gap-2 rounded-md border border-border bg-muted p-2">
-					<span className="text-2xs font-medium text-muted-foreground">
-						Depends on
-					</span>
-					<PiecePicker
-						chosen={dependsOn}
-						exclude={piece.id}
-						onChange={setDependsOn}
-						pieces={pickable(pieces)}
-					/>
-					<Button
-						className="self-start"
-						onClick={rewire}
-						size="sm"
-						type="button"
-					>
+					<span className="text-2xs font-medium text-muted-foreground">Depends on</span>
+					<PiecePicker chosen={dependsOn} exclude={piece.id} onChange={setDependsOn} pieces={pickable(pieces)} />
+					<Button className="self-start" onClick={rewire} size="sm" type="button">
 						Save position
 					</Button>
 				</div>

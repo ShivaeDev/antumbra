@@ -4,17 +4,9 @@ import type { ChangeHostRepo } from "@antumbra/plugin-api";
 import { describe, expect, it } from "@effect/vitest";
 import { Effect } from "effect";
 import { makeGitHubHost } from "#host.ts";
-import {
-	AUTHENTICATED,
-	type ScriptedAnswer,
-	type ScriptedGh,
-	scriptedGh,
-} from "#test/scripted-gh.ts";
+import { AUTHENTICATED, type ScriptedAnswer, type ScriptedGh, scriptedGh } from "#test/scripted-gh.ts";
 
-const RECORDED = readFileSync(
-	fileURLToPath(new URL("./fixtures/observe-response.json", import.meta.url)),
-	"utf8",
-);
+const RECORDED = readFileSync(fileURLToPath(new URL("./fixtures/observe-response.json", import.meta.url)), "utf8");
 
 const REPO: ChangeHostRepo = {
 	defaultRef: "main",
@@ -34,12 +26,9 @@ const BAD_GATEWAY: ScriptedAnswer = {
 	out: "<html><head><title>502 Bad Gateway</title></head></html>\n",
 };
 
-const withGh = <A, E, R>(
-	body: (gh: ScriptedGh) => Effect.Effect<A, E, R>,
-): Effect.Effect<A, E, R> => Effect.scoped(Effect.flatMap(scriptedGh, body));
+const withGh = <A, E, R>(body: (gh: ScriptedGh) => Effect.Effect<A, E, R>): Effect.Effect<A, E, R> => Effect.scoped(Effect.flatMap(scriptedGh, body));
 
-const hostOf = (gh: ScriptedGh) =>
-	makeGitHubHost({ executable: gh.executable });
+const hostOf = (gh: ScriptedGh) => makeGitHubHost({ executable: gh.executable });
 
 describe("a GitHub that falters mid-watch", () => {
 	it.live("says it could not be reached rather than that all is calm", () =>

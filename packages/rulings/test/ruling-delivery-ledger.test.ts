@@ -41,12 +41,8 @@ it.effectDB("stops owing an answer once it is marked", function* (db) {
 
 		yield* rulings.markDelivered(first);
 
-		expect(
-			(yield* rulings.awaitingDelivery()).map((ruling) => ruling.id),
-		).toEqual([second]);
-		const row = Option.getOrThrow(
-			yield* db.Ruling.where({ id: first }).first(),
-		);
+		expect((yield* rulings.awaitingDelivery()).map((ruling) => ruling.id)).toEqual([second]);
+		const row = Option.getOrThrow(yield* db.Ruling.where({ id: first }).first());
 		expect(row.deliveredAt).toBeInstanceOf(Date);
 	}).pipe(Effect.provide(layer));
 });
@@ -55,8 +51,6 @@ it.effectDB("refuses to mark a ruling nothing asked", function* () {
 	yield* Effect.gen(function* () {
 		const rulings = yield* Rulings;
 
-		expect(
-			yield* Effect.flip(rulings.markDelivered("ruling-missing")),
-		).toMatchObject({ _tag: "RulingNotFound", rulingId: "ruling-missing" });
+		expect(yield* Effect.flip(rulings.markDelivered("ruling-missing"))).toMatchObject({ _tag: "RulingNotFound", rulingId: "ruling-missing" });
 	}).pipe(Effect.provide(layer));
 });

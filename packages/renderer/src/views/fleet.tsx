@@ -1,5 +1,4 @@
 import type { Fleet } from "@antumbra/contract";
-import type { Navigate } from "#console/navigation.ts";
 import { rosterGroups } from "#fleet/roster.ts";
 import { FleetDiagChips } from "#views/diagnostics.tsx";
 import { FleetToolbar } from "#views/fleet-toolbar.tsx";
@@ -8,27 +7,23 @@ import { RosterGroupPanel } from "#views/roster-group.tsx";
 const Roster = ({
 	fleet,
 	onError,
-	onNavigate,
+	onPiece,
 	onSelect,
+	onVoyage,
 	selected,
 }: {
 	readonly fleet: Fleet | undefined;
 	readonly onError: (message: string) => void;
-	readonly onNavigate: Navigate;
+	readonly onPiece: (voyageId: string, pieceId: string) => void;
 	readonly onSelect: (sessionId: string) => void;
+	readonly onVoyage: (voyageId: string) => void;
 	readonly selected: string | undefined;
 }) => {
 	if (fleet === undefined) {
-		return (
-			<span className="text-xs text-muted-foreground">taking a sight…</span>
-		);
+		return <span className="text-xs text-muted-foreground">taking a sight…</span>;
 	}
 	if (fleet.agents.length === 0) {
-		return (
-			<span className="text-xs text-muted-foreground">
-				No agents yet — spawn one to put it here
-			</span>
-		);
+		return <span className="text-xs text-muted-foreground">No agents yet — spawn one to put it here</span>;
 	}
 	return (
 		<>
@@ -37,8 +32,9 @@ const Roster = ({
 					group={group}
 					key={group.standing}
 					onError={onError}
-					onNavigate={onNavigate}
+					onPiece={onPiece}
 					onSelect={onSelect}
+					onVoyage={onVoyage}
 					selected={selected}
 				/>
 			))}
@@ -49,25 +45,21 @@ const Roster = ({
 export const FleetPanel = ({
 	fleet,
 	onError,
-	onNavigate,
+	onPiece,
 	onSelect,
+	onVoyage,
 	selected,
 }: {
 	readonly fleet: Fleet | undefined;
 	readonly onError: (message: string) => void;
-	readonly onNavigate: Navigate;
+	readonly onPiece: (voyageId: string, pieceId: string) => void;
 	readonly onSelect: (sessionId: string) => void;
+	readonly onVoyage: (voyageId: string) => void;
 	readonly selected: string | undefined;
 }) => (
 	<section className="flex min-h-0 min-w-0 flex-1 flex-col gap-4 overflow-y-auto p-4">
 		<FleetToolbar fleet={fleet} onError={onError} />
 		{fleet === undefined ? null : <FleetDiagChips diag={fleet.diag} />}
-		<Roster
-			fleet={fleet}
-			onError={onError}
-			onNavigate={onNavigate}
-			onSelect={onSelect}
-			selected={selected}
-		/>
+		<Roster fleet={fleet} onError={onError} onPiece={onPiece} onSelect={onSelect} onVoyage={onVoyage} selected={selected} />
 	</section>
 );

@@ -16,7 +16,7 @@
 		"dev": "node script/dev.ts",
 		"build": "node script/build.ts",
 		"package": "node script/build.ts && electron-builder --mac --publish never",
-		"test": "vitest run --passWithNoTests",
+		"test": "vitest run",
 		"typecheck": "tsc --noEmit",
 		"typecheck:compat": "tsc6 --noEmit"
 	},
@@ -35,7 +35,6 @@
 		"@antumbra/trace-sink": "workspace:*",
 		"@effect/platform-node": "catalog:",
 		"@effect/vitest": "catalog:",
-		"@shivaedev/effect-trpc": "catalog:",
 		"@tailwindcss/vite": "catalog:",
 		"@trpc/server": "catalog:",
 		"@types/node": "catalog:",

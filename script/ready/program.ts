@@ -1,11 +1,7 @@
 import { Clock, Effect } from "effect";
 import type { Exec, Report, Step } from "#ready/model.ts";
 
-const runStep = (
-	step: Step,
-	exec: Exec,
-	report: Report,
-): Effect.Effect<boolean> =>
+const runStep = (step: Step, exec: Exec, report: Report): Effect.Effect<boolean> =>
 	Effect.gen(function* () {
 		const started = yield* Clock.currentTimeMillis;
 		const result = yield* exec(step);
@@ -18,11 +14,7 @@ const runStep = (
 		return false;
 	});
 
-export const runReady = (
-	all: readonly Step[],
-	exec: Exec,
-	report: Report,
-): Effect.Effect<boolean> =>
+export const runReady = (all: readonly Step[], exec: Exec, report: Report): Effect.Effect<boolean> =>
 	Effect.gen(function* () {
 		let passed = 0;
 		for (const step of all) {

@@ -3,9 +3,7 @@ import { Database } from "@antumbra/persistence";
 import type { AgentEvent } from "@antumbra/vocabulary/session-events";
 import { Data, Effect, Option } from "effect";
 
-class SessionIdentityMissing extends Data.TaggedError(
-	"SessionIdentityMissing",
-)<{
+class SessionIdentityMissing extends Data.TaggedError("SessionIdentityMissing")<{
 	readonly sessionId: string;
 }> {}
 
@@ -66,6 +64,5 @@ export const makeJournalAppends = Effect.gen(function* () {
 	// why: appends run one after another inside the caller's transaction because
 	// two of them can name the same Session, and a sequence read concurrently
 	// with its own insert would hand out the same number twice.
-	return (appends: ReadonlyArray<JournalAppend>) =>
-		Effect.forEach(appends, appendOne, { concurrency: 1 });
+	return (appends: ReadonlyArray<JournalAppend>) => Effect.forEach(appends, appendOne, { concurrency: 1 });
 });

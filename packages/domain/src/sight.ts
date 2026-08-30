@@ -33,15 +33,10 @@ export const SightSourceLive = Layer.effect(SightSource)(
 				Effect.flatMap(
 					Effect.all({
 						attached: domain.sessionsAttached,
+						capacities: domain.backendCapacities.snapshot,
 						delegating: domain.sessionsDelegating,
 					}),
-					(runtime) =>
-						fleetSnapshot(
-							domain.backends,
-							domain.imageInputBackends,
-							intents,
-							runtime,
-						),
+					(runtime) => fleetSnapshot(domain.backends, domain.imageInputBackends, intents, runtime.capacities, runtime),
 				),
 			),
 			Effect.provideService(Changes, changes),
@@ -52,9 +47,7 @@ export const SightSourceLive = Layer.effect(SightSource)(
 		const fleetFeed = Stream.unwrap(
 			Effect.gen(function* () {
 				const subscription = yield* feeds.subscribeFleetRefresh();
-				const refresh = Stream.fromSubscription(subscription).pipe(
-					Stream.mapEffect(() => fleet),
-				);
+				const refresh = Stream.fromSubscription(subscription).pipe(Stream.mapEffect(() => fleet));
 				return Stream.fromEffect(fleet).pipe(Stream.concat(refresh));
 			}),
 		);

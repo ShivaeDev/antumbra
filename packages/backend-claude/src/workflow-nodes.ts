@@ -1,10 +1,7 @@
 import type { AgentEvent, Origin } from "@antumbra/vocabulary/session-events";
 import { type WorkflowAgentRef, workflowRunRef } from "#mirror-keys.ts";
 import { claudeRaw } from "#raw-payload.ts";
-import type {
-	WorkflowIdentities,
-	WorkflowIdentity,
-} from "#workflow-identity.ts";
+import type { WorkflowIdentities, WorkflowIdentity } from "#workflow-identity.ts";
 
 const KIND = "workflow_agent";
 
@@ -20,11 +17,7 @@ export interface WorkflowNodes {
 	readonly settled: () => ReadonlyArray<AgentEvent>;
 }
 
-const openedEvent = (
-	ref: WorkflowAgentRef,
-	identity: WorkflowIdentity | undefined,
-	spawnedBy: string,
-): AgentEvent => ({
+const openedEvent = (ref: WorkflowAgentRef, identity: WorkflowIdentity | undefined, spawnedBy: string): AgentEvent => ({
 	kind: KIND,
 	...(identity?.label === undefined ? {} : { label: identity.label }),
 	raw: claudeRaw("workflow/agent", { ...ref, ...identity }),
@@ -38,12 +31,9 @@ const openedEvent = (
 // the moment its first words arrive rather than held until the run names it:
 // holding would risk losing the words, and a name that arrives late fills a
 // hole the opening left rather than replacing anything.
-export const openWorkflowNodes = (
-	identities: WorkflowIdentities,
-): WorkflowNodes => {
+export const openWorkflowNodes = (identities: WorkflowIdentities): WorkflowNodes => {
 	const nodes = new Map<string, NodeState>();
-	const spawnerOf = (ref: WorkflowAgentRef): string =>
-		identities.of(ref.agentId)?.spawnedBy ?? workflowRunRef(ref.runId);
+	const spawnerOf = (ref: WorkflowAgentRef): string => identities.of(ref.agentId)?.spawnedBy ?? workflowRunRef(ref.runId);
 	const opened = (ref: WorkflowAgentRef): ReadonlyArray<AgentEvent> => {
 		const identity = identities.of(ref.agentId);
 		const state = nodes.get(ref.agentId);

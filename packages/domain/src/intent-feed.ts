@@ -13,10 +13,6 @@ export const IntentFeedLive = Layer.effectDiscard(
 	Effect.gen(function* () {
 		const feeds = yield* DomainFeeds;
 		const kernel = yield* Kernel;
-		yield* Effect.forkScoped(
-			kernel.transitions.pipe(
-				Stream.runForEach(() => feeds.publishFleetRefresh()),
-			),
-		);
+		yield* Effect.forkScoped(kernel.transitions.pipe(Stream.runForEach(() => feeds.publishFleetRefresh())));
 	}),
 );

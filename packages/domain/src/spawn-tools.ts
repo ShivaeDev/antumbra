@@ -6,10 +6,7 @@ import { makeFleetToolCompiler } from "#fleet-tools.ts";
 import type { SpawnFields } from "#spawn-fields.ts";
 import { spawnSessionIdentity } from "#spawn-identity.ts";
 import type { SessionIdentity } from "#tool-identity.ts";
-import {
-	isFlagshipCaptainIdentity,
-	isVoyageCaptainIdentity,
-} from "#voyage-captain.ts";
+import { isFlagshipCaptainIdentity, isVoyageCaptainIdentity } from "#voyage-captain.ts";
 import { VoyageWorldSource } from "#voyage-world.ts";
 
 // why: the session's tools are bound to this agent, this session, and what it
@@ -25,25 +22,17 @@ export const makeAgentToolCompiler = Effect.gen(function* () {
 	const compileCrewTools = yield* makeCrewToolCompiler;
 	const compileFleetTools = yield* makeFleetToolCompiler;
 	const world = yield* VoyageWorldSource;
-	return (
-		role: string,
-		identity: SessionIdentity,
-	): Effect.Effect<ReadonlyArray<DirectTool>> =>
+	return (role: string, identity: SessionIdentity): Effect.Effect<ReadonlyArray<DirectTool>> =>
 		isVoyageCaptainIdentity(role, identity)
 			? world.read.pipe(
 					Effect.map((read) => isFlagshipCaptainIdentity(read, role, identity)),
 					Effect.orElseSucceed(() => false),
-					Effect.map((flagship) =>
-						flagship
-							? compileFleetTools(identity)
-							: compileCaptainTools(identity),
-					),
+					Effect.map((flagship) => (flagship ? compileFleetTools(identity) : compileCaptainTools(identity))),
 				)
 			: Effect.succeed(compileCrewTools(identity));
 });
 
 export const makeSpawnTools = Effect.map(
 	makeAgentToolCompiler,
-	(compile) => (payload: SpawnFields) =>
-		compile(payload.role, spawnSessionIdentity(payload)),
+	(compile) => (payload: SpawnFields) => compile(payload.role, spawnSessionIdentity(payload)),
 );

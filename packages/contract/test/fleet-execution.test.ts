@@ -2,8 +2,7 @@ import { expect, it } from "@effect/vitest";
 import { Schema } from "effect";
 import { fleet } from "#fixtures/fleet.ts";
 import { crewedFleet } from "#fixtures/scripted-turns.ts";
-import { shoalWarning } from "#fixtures/voyage.ts";
-import { type AgentWork, Fleet } from "#fleet.ts";
+import { Fleet } from "#fleet.ts";
 
 const agentAround = (session: Record<string, unknown>) => ({
 	agents: [
@@ -20,8 +19,38 @@ const agentAround = (session: Record<string, unknown>) => ({
 		},
 	],
 	backends: ["scripted"],
+	capacities: [],
 	diag: { intents: [] },
 	repos: [],
+});
+
+it("publishes backend capacity independently of Session execution", () => {
+	const decoded = Schema.decodeUnknownSync(Fleet)({
+		...agentAround({
+			addressable: [],
+			backend: "scripted",
+			canAttachImages: false,
+			canInterrupt: false,
+			canSend: false,
+			canSleep: false,
+			cwd: "/tmp/reef",
+			diag: { current: true, execution: "idle", intents: [] },
+			id: "session-1",
+			presence: "idle",
+			status: "open",
+		}),
+		capacities: [
+			{
+				backend: "scripted",
+				detail: "Hourly provider limit reached",
+				reason: "rate-limit",
+				resetsAt: 1_788_046_800_000,
+				status: "blocked",
+				utilization: 1,
+			},
+		],
+	});
+	expect(decoded.capacities).toEqual([expect.objectContaining({ backend: "scripted", status: "blocked" })]);
 });
 
 const siesta = {
@@ -82,14 +111,10 @@ it("refuses a Session that publishes no diagnostics at all", () => {
 	expect(decoded._tag).toBe("None");
 });
 
-// why: what an agent is doing crosses the bridge as the piece and the voyage a
-// card links to, with the change it produced standing where the quay would
-// put it — decoded as such, so a card never rebuilds the reading from ids.
-it("carries an agent's work and where its change stands", () => {
+it("carries an agent's piece and voyage", () => {
 	const decoded = Schema.decodeUnknownSync(Fleet)(crewedFleet);
 	expect(decoded.agents[1]?.work).toEqual([
 		{
-			changes: [{ change: shoalWarning, standing: "alongside" }],
 			kind: "piece",
 			pieceId: "piece-1",
 			pieceTitle: "soundings",
@@ -101,28 +126,5 @@ it("carries an agent's work and where its change stands", () => {
 
 it("names a captain by the voyage it commands", () => {
 	const decoded = Schema.decodeUnknownSync(Fleet)(fleet);
-	expect(decoded.agents[0]?.work).toEqual([
-		{ kind: "voyage", voyageId: "voyage-1", voyageName: "Chart the reef" },
-	]);
-});
-
-// why: the helper hands back a shape the contract must refuse, so it is typed
-// as the untrusted value it is rather than as work.
-const misstanding = (work: AgentWork): Record<string, unknown> =>
-	work.kind === "piece"
-		? {
-				...work,
-				changes: work.changes.map((held) => ({ ...held, standing: "merged" })),
-			}
-		: work;
-
-it("refuses a standing the quay has no word for", () => {
-	const decoded = Schema.decodeUnknownOption(Fleet)({
-		...crewedFleet,
-		agents: crewedFleet.agents.map((agent) => ({
-			...agent,
-			work: agent.work.map(misstanding),
-		})),
-	});
-	expect(decoded._tag).toBe("None");
+	expect(decoded.agents[0]?.work).toEqual([{ kind: "voyage", voyageId: "voyage-1", voyageName: "Chart the reef" }]);
 });

@@ -22,11 +22,7 @@ export class IntentExecution extends Context.Service<
 	IntentExecution,
 	{
 		readonly intentId: string;
-		readonly step: <R>(
-			name: string,
-			execute: Effect.Effect<void, unknown, R>,
-			options?: IntentStepOptions,
-		) => Effect.Effect<void, unknown, R>;
+		readonly step: <R>(name: string, execute: Effect.Effect<void, unknown, R>, options?: IntentStepOptions) => Effect.Effect<void, unknown, R>;
 		readonly wait: (detail: string) => Effect.Effect<never, unknown>;
 	}
 >()("@antumbra/kernel/IntentExecution") {}
@@ -46,10 +42,7 @@ const makeExecution = (tag: string, intentId: string) =>
 					interruptRetryPolicy: Schedule.recurs(0),
 					name: `${tag}/${name}`,
 				});
-				const attempt =
-					options === undefined
-						? activity
-						: Activity.retry(activity, { times: options.additionalAttempts });
+				const attempt = options === undefined ? activity : Activity.retry(activity, { times: options.additionalAttempts });
 				return attempt.pipe(
 					Effect.provideService(WorkflowEngine.WorkflowEngine, engine),
 					Effect.provideService(WorkflowEngine.WorkflowInstance, instance),
@@ -63,12 +56,7 @@ const makeExecution = (tag: string, intentId: string) =>
 		});
 	});
 
-export const makeIntentWorkflow = (
-	tag: string,
-	execute: (
-		payloadJson: string,
-	) => Effect.Effect<void, unknown, IntentExecution>,
-) => {
+export const makeIntentWorkflow = (tag: string, execute: (payloadJson: string) => Effect.Effect<void, unknown, IntentExecution>) => {
 	const workflow = Workflow.make(`antumbra/intent/${tag}`, {
 		error: Schema.Unknown,
 		idempotencyKey: (payload) => payload.intentId,
@@ -77,9 +65,7 @@ export const makeIntentWorkflow = (
 	const register = Effect.flatMap(WorkflowEngine.WorkflowEngine, (engine) =>
 		engine.register(workflow, (payload) =>
 			Effect.flatMap(makeExecution(tag, payload.intentId), (execution) =>
-				execute(payload.payloadJson).pipe(
-					Effect.provideService(IntentExecution, execution),
-				),
+				execute(payload.payloadJson).pipe(Effect.provideService(IntentExecution, execution)),
 			),
 		),
 	);
@@ -90,13 +76,7 @@ export const makeIntentWorkflow = (
 			const executionId = yield* workflow.executionId(payload);
 			// why: intent activities install no workflow compensations, and the RC's
 			// cooperative interrupt does not stop an activity already in flight.
-			return yield* workflow
-				.execute(payload)
-				.pipe(
-					Effect.onInterrupt(() =>
-						engine.interruptUnsafe(workflow, executionId),
-					),
-				);
+			return yield* workflow.execute(payload).pipe(Effect.onInterrupt(() => engine.interruptUnsafe(workflow, executionId)));
 		});
 	const run = (intentId: string, payloadJson: string) =>
 		register.pipe(

@@ -82,34 +82,21 @@ const mount = () => {
 
 type Mounted = ReturnType<typeof mount>;
 
-const showing = (
-	mounted: Mounted,
-	view: OpenRulingsView = { rulings: [moved, unmoved] },
-): Effect.Effect<void> =>
+const showing = (mounted: Mounted, view: OpenRulingsView = { rulings: [moved, unmoved] }): Effect.Effect<void> =>
 	Effect.gen(function* () {
-		yield* settle(() =>
-			mounted.root.render(<RulingsPanel onError={() => undefined} />),
-		);
+		yield* settle(() => mounted.root.render(<RulingsPanel onError={() => undefined} />));
 		yield* settle(() => opened.at(-1)?.(view));
 	});
 
 const buttonSaying = (mounted: Mounted, words: string) =>
-	[...mounted.container.querySelectorAll("button")].find(
-		(button) => button.textContent?.includes(words) === true,
-	);
+	[...mounted.container.querySelectorAll("button")].find((button) => button.textContent?.includes(words) === true);
 
 // why: the card's own controls are the ones under test, so the lookup stays
 // inside a ruling and never reaches the panel's proclamation form.
-const choosing = (
-	mounted: Mounted,
-	label: string,
-	word: string,
-): Effect.Effect<void> =>
+const choosing = (mounted: Mounted, label: string, word: string): Effect.Effect<void> =>
 	settle(() => {
 		const box = [...mounted.container.querySelectorAll("select")].find(
-			(select) =>
-				mounted.container.querySelector(`li label[for="${select.id}"]`)
-					?.textContent === label,
+			(select) => mounted.container.querySelector(`li label[for="${select.id}"]`)?.textContent === label,
 		);
 		if (box !== undefined) {
 			box.value = word;
@@ -133,9 +120,7 @@ it.effect("shows the declared axis only where it was moved", () =>
 		expect(first?.textContent).toContain("Holding the asker");
 		expect(first?.textContent).toContain("declared pressing");
 		expect(first?.textContent).not.toContain("declared voyage");
-		expect(first?.textContent).toContain(
-			"the admiral set urgency blocking — nothing plots until this lands",
-		);
+		expect(first?.textContent).toContain("the admiral set urgency blocking — nothing plots until this lands");
 		expect(second?.textContent).not.toContain("declared");
 		yield* settle(() => mounted.root.unmount());
 	}),
@@ -151,10 +136,7 @@ it.effect("reclassifies with only the axis that moved", () =>
 		yield* choosing(mounted, "Radius", "fleet");
 		yield* settle(() => buttonSaying(mounted, "Reclassify")?.click());
 
-		expect(reclassifyRuling).toHaveBeenCalledWith(
-			{ radius: "fleet", rulingId: "ruling-1" },
-			expect.any(Function),
-		);
+		expect(reclassifyRuling).toHaveBeenCalledWith({ radius: "fleet", rulingId: "ruling-1" }, expect.any(Function));
 		yield* settle(() => mounted.root.unmount());
 	}),
 );

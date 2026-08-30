@@ -1,11 +1,6 @@
 import type { AgentEvent } from "@antumbra/vocabulary/session-events";
-import {
-	Data,
-	type Effect,
-	type Option,
-	type Scope,
-	type Stream,
-} from "effect";
+import { Data, type Effect, type Option, type Scope, type Stream } from "effect";
+import type { BackendCapacitySource } from "#backend-capacity.ts";
 import type { SessionAudit } from "#session-audit.ts";
 import type { DirectTool } from "#tools.ts";
 
@@ -24,10 +19,7 @@ export interface SessionInputTextPart {
 
 export interface SessionInput {
 	readonly id?: string | undefined;
-	readonly parts: readonly [
-		SessionInputImagePart | SessionInputTextPart,
-		...(SessionInputImagePart | SessionInputTextPart)[],
-	];
+	readonly parts: readonly [SessionInputImagePart | SessionInputTextPart, ...(SessionInputImagePart | SessionInputTextPart)[]];
 }
 
 // why: shaped from the widest backend protocol surveyed and narrowed per
@@ -86,9 +78,11 @@ export interface AgentBackend {
 	// handle because the questions are about stored work, and the record asks
 	// them again long after the turn that produced it.
 	readonly audit: SessionAudit;
+	// why: provider/account capacity changes independently of every Session.
+	// Optional keeps older external plugins source-compatible; a missing source
+	// makes no availability claim and therefore cannot place a hold.
+	readonly capacity?: BackendCapacitySource;
 	readonly capabilities: BackendCapabilities;
-	readonly openSession: (
-		options: OpenSessionOptions,
-	) => Effect.Effect<SessionHandle, BackendFailure, Scope.Scope>;
+	readonly openSession: (options: OpenSessionOptions) => Effect.Effect<SessionHandle, BackendFailure, Scope.Scope>;
 	readonly tag: string;
 }

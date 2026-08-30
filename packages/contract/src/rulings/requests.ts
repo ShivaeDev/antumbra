@@ -1,7 +1,4 @@
-import {
-	RulingRadiusSchema,
-	RulingUrgencySchema,
-} from "@antumbra/vocabulary/ruling";
+import { RulingRadiusSchema, RulingUrgencySchema } from "@antumbra/vocabulary/ruling";
 import { Schema } from "effect";
 
 // why: free text always stands beside a pick and never behind it. A choice is

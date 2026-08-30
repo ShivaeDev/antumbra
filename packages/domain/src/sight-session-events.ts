@@ -1,8 +1,4 @@
-import type {
-	EventQuery,
-	SessionEvent,
-	SightFailure,
-} from "@antumbra/contract";
+import type { EventQuery, SessionEvent, SightFailure } from "@antumbra/contract";
 import { DomainFeeds, type StoredEvent } from "@antumbra/domain-feeds";
 import { Database } from "@antumbra/persistence";
 import { projectHistoricalAgentEvent } from "@antumbra/vocabulary/session-events";
@@ -10,17 +6,11 @@ import { Effect, Stream } from "effect";
 import { toFailure } from "#sight-failure.ts";
 
 export interface SightSessionEvents {
-	readonly sessionEventFeed: (
-		query: EventQuery,
-	) => Stream.Stream<SessionEvent, SightFailure>;
-	readonly sessionEvents: (
-		query: EventQuery,
-	) => Effect.Effect<ReadonlyArray<SessionEvent>, SightFailure>;
+	readonly sessionEventFeed: (query: EventQuery) => Stream.Stream<SessionEvent, SightFailure>;
+	readonly sessionEvents: (query: EventQuery) => Effect.Effect<ReadonlyArray<SessionEvent>, SightFailure>;
 }
 
-const pastRehydrated =
-	(query: EventQuery, lastSeq: number) => (event: StoredEvent) =>
-		event.sessionId === query.sessionId && event.seq > lastSeq;
+const pastRehydrated = (query: EventQuery, lastSeq: number) => (event: StoredEvent) => event.sessionId === query.sessionId && event.seq > lastSeq;
 
 const projectSessionEvent = (row: StoredEvent): SessionEvent => ({
 	event: projectHistoricalAgentEvent(row.kind, row.payload),
@@ -37,11 +27,7 @@ export const makeSightSessionEvents = Effect.gen(function* () {
 			.orderBy((event) => event.seq.asc())
 			.all()
 			.pipe(
-				Effect.map((rows) =>
-					rows
-						.filter((event) => event.seq >= query.fromSeq)
-						.map(projectSessionEvent),
-				),
+				Effect.map((rows) => rows.filter((event) => event.seq >= query.fromSeq).map(projectSessionEvent)),
 				Effect.mapError(toFailure),
 			);
 
@@ -55,10 +41,7 @@ export const makeSightSessionEvents = Effect.gen(function* () {
 					const subscription = yield* feeds.subscribeSessionEvents();
 					const rehydrated = yield* sessionEvents(query);
 					const lastSeq = rehydrated.at(-1)?.seq ?? query.fromSeq - 1;
-					const live = Stream.fromSubscription(subscription).pipe(
-						Stream.filter(pastRehydrated(query, lastSeq)),
-						Stream.map(projectSessionEvent),
-					);
+					const live = Stream.fromSubscription(subscription).pipe(Stream.filter(pastRehydrated(query, lastSeq)), Stream.map(projectSessionEvent));
 					return Stream.fromArray(rehydrated).pipe(Stream.concat(live));
 				}),
 			),

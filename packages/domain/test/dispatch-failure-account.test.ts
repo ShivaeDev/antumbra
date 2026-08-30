@@ -19,11 +19,7 @@ it("carries a recorded reason word for word, beside its tag and status", () => {
 });
 
 it("says so plainly when the Intent recorded no reason at all", () => {
-	expect(
-		dispatchFailureAccount(
-			Option.some({ detail: null, status: "failed", tag: "agent/spawn" }),
-		),
-	).toEqual({
+	expect(dispatchFailureAccount(Option.some({ detail: null, status: "failed", tag: "agent/spawn" }))).toEqual({
 		detail: "the Intent recorded no reason",
 		status: "failed",
 		tag: "agent/spawn",

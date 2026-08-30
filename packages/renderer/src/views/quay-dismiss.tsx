@@ -7,13 +7,7 @@ import type { QuayChange } from "#quay/changes.ts";
 // stands where the pull request link stands, because on a dead change that is
 // the act left to take — and a dead change with no verb beside it is exactly
 // the dead end this button exists to end.
-export const QuayDismiss = ({
-	item,
-	onError,
-}: {
-	readonly item: QuayChange;
-	readonly onError: (message: string) => void;
-}) => {
+export const QuayDismiss = ({ item, onError }: { readonly item: QuayChange; readonly onError: (message: string) => void }) => {
 	if (item.change.stage !== "withdrawn") {
 		return null;
 	}

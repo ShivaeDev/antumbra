@@ -11,9 +11,7 @@ const writeDelivered = (rulingId: string, at: Date) =>
 
 // why: the mark is a write like any other, so it takes its turn behind the
 // verdicts and requests landing beside it instead of racing them.
-export const markDelivered = Effect.fn("rulings.markDelivered")(function* (
-	rulingId: string,
-) {
+export const markDelivered = Effect.fn("rulings.markDelivered")(function* (rulingId: string) {
 	const db = yield* Database;
 	const now = yield* Clock.currentTimeMillis;
 	yield* db.transaction(writeDelivered(rulingId, new Date(now)));

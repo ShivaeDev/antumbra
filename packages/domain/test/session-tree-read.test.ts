@@ -3,22 +3,12 @@ import { Database, type NewAgentSession } from "@antumbra/persistence";
 import type { TemporaryPersistence } from "@antumbra/persistence/testing";
 import { expect, it } from "@effect/vitest";
 import { Effect, Layer, Option, Stream } from "effect";
-import { SightSourceLive } from "#sight.ts";
-import { domainKernelLayer } from "#test/domain-layers.ts";
-import {
-	acquireTemporaryPersistence,
-	makeScriptedBackend,
-	type ScriptedBackend,
-} from "#test/harness.ts";
+import { domainKernelLayer, sightSourceTestLayer } from "#test/domain-layers.ts";
+import { acquireTemporaryPersistence, makeScriptedBackend, type ScriptedBackend } from "#test/harness.ts";
 import { eventually } from "#test/session-recovery-fixture.ts";
 
-const sightLayer = (
-	temporary: TemporaryPersistence,
-	scripted: ScriptedBackend,
-) =>
-	SightSourceLive.pipe(
-		Layer.provideMerge(domainKernelLayer(temporary, scripted.backend)),
-	);
+const sightLayer = (temporary: TemporaryPersistence, scripted: ScriptedBackend) =>
+	sightSourceTestLayer.pipe(Layer.provideMerge(domainKernelLayer(temporary, scripted.backend)));
 
 const spawnRequest = {
 	backend: "scripted",
@@ -37,12 +27,7 @@ interface NodeFields {
 // why: this reads a tree the way any reader will — through the port, off the
 // rows — so the fixture writes rows the way the tree writes them rather than
 // driving a provider stream that another suite already rehearses.
-const openNode = (
-	id: string,
-	agentId: string,
-	parent: { readonly parentSessionId: string; readonly rootSessionId: string },
-	fields: NodeFields,
-) =>
+const openNode = (id: string, agentId: string, parent: { readonly parentSessionId: string; readonly rootSessionId: string }, fields: NodeFields) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
 		yield* db.AgentSession.create({
@@ -103,12 +88,7 @@ it.live("reads a Session's whole tree, its depths and both its counts", () =>
 		yield* Effect.gen(function* () {
 			const sight = yield* SightSource;
 			const receipt = yield* spawned;
-			yield* openNode(
-				"session-child",
-				receipt.agentId,
-				rooted(receipt.sessionId),
-				surveyor,
-			);
+			yield* openNode("session-child", receipt.agentId, rooted(receipt.sessionId), surveyor);
 			yield* openNode(
 				"session-grandchild",
 				receipt.agentId,
@@ -125,10 +105,7 @@ it.live("reads a Session's whole tree, its depths and both its counts", () =>
 				["session-child", 1],
 				["session-grandchild", 2],
 			]);
-			expect(tree.nodes.slice(1).map((node) => node.displayName)).toEqual([
-				"reef-surveyor",
-				"Map the quay grouping",
-			]);
+			expect(tree.nodes.slice(1).map((node) => node.displayName)).toEqual(["reef-surveyor", "Map the quay grouping"]);
 			expect(tree.nodes[2]).toMatchObject({
 				completeness: "complete",
 				nativeRef: "native-session-grandchild",
@@ -151,16 +128,9 @@ it.live("the tree feed opens with the picture the read would have given", () =>
 		yield* Effect.gen(function* () {
 			const sight = yield* SightSource;
 			const receipt = yield* spawned;
-			yield* openNode(
-				"session-child",
-				receipt.agentId,
-				rooted(receipt.sessionId),
-				surveyor,
-			);
+			yield* openNode("session-child", receipt.agentId, rooted(receipt.sessionId), surveyor);
 
-			const opened = yield* Stream.runHead(
-				sight.sessionTreeFeed(receipt.sessionId),
-			);
+			const opened = yield* Stream.runHead(sight.sessionTreeFeed(receipt.sessionId));
 			const read = yield* sight.sessionTree(receipt.sessionId);
 			expect(Option.getOrUndefined(opened)).toEqual(read);
 		}).pipe(Effect.provide(sightLayer(temporary, scripted)));

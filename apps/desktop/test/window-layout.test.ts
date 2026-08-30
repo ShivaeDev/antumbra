@@ -1,11 +1,5 @@
 import { describe, expect, it } from "@effect/vitest";
-import {
-	defaultConsole,
-	layoutOf,
-	readLayout,
-	restorePlan,
-	writeLayout,
-} from "#adapters/windows/layout.ts";
+import { defaultConsole, layoutOf, readLayout, restorePlan, writeLayout } from "#adapters/windows/layout.ts";
 import { artifactPlace, transcriptPlace } from "#test/windows.ts";
 
 const voyaging = {
@@ -26,9 +20,7 @@ describe("window layout", () => {
 			"",
 			"not json at all",
 			"[]",
-			'{"version":4,"focused":null,"windows":[]}',
-			'{"version":2,"focused":null,"windows":[]}',
-			'{"version":2,"focused":null,"windows":[{"id":"console","place":{"changeId":null,"mode":"voyages","role":"console","sessionId":null,"voyageId":"voyage-7"}}]}',
+			'{"version":3,"focused":null,"windows":[]}',
 			'{"version":1,"focused":null,"windows":[]}',
 			'{"version":1,"focused":null}',
 			'{"version":1,"focused":null,"windows":[{"id":"a","place":{"role":"wat"}}]}',
@@ -41,6 +33,14 @@ describe("window layout", () => {
 		expect(plan.consoleWindow.place).toEqual(defaultConsole);
 		expect(plan.children).toEqual([]);
 		expect(plan.focused).toBeNull();
+	});
+
+	it("keeps a version 2 console that predates piece focus", () => {
+		const layout = readLayout(
+			'{"version":2,"focused":null,"windows":[{"id":"console","place":{"changeId":null,"mode":"voyages","role":"console","sessionId":null,"voyageId":"voyage-7"}}]}',
+		);
+
+		expect(restorePlan(layout).consoleWindow.place).toMatchObject({ mode: "voyages", voyageId: "voyage-7" });
 	});
 
 	// why: the app is one console. A file naming several is a file to read one
@@ -98,10 +98,7 @@ describe("window layout", () => {
 		);
 
 		const plan = restorePlan(readLayout(writeLayout(layout)));
-		expect(plan.children.map((child) => child.id)).toEqual([
-			"artifact",
-			"session",
-		]);
+		expect(plan.children.map((child) => child.id)).toEqual(["artifact", "session"]);
 		expect(plan.children[0]?.place).toEqual(artifactPlace("subject-1"));
 	});
 
@@ -122,12 +119,8 @@ describe("window layout", () => {
 	// why: a restart is meant to land where the work was left, so the mode and
 	// the selection survive the round trip through the file, not just the role.
 	it("carries a console's mode and selection through the file", () => {
-		const written = writeLayout(
-			layoutOf([{ id: "console", place: voyaging }], "console"),
-		);
+		const written = writeLayout(layoutOf([{ id: "console", place: voyaging }], "console"));
 
-		expect(restorePlan(readLayout(written)).consoleWindow.place).toEqual(
-			voyaging,
-		);
+		expect(restorePlan(readLayout(written)).consoleWindow.place).toEqual(voyaging);
 	});
 });

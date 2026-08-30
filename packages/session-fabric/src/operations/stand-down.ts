@@ -5,6 +5,4 @@ import type { SessionFabricState } from "#session-fabric-state.ts";
 // its acquisition; only the mark changes, and repeating the declaration while
 // already quiet keeps the moment where it was.
 export const makeStandDown = (attachments: SessionFabricState["attachments"]) =>
-	Effect.fn("sessionFabric.standDown")((sessionId: string) =>
-		attachments.standDown(sessionId),
-	);
+	Effect.fn("sessionFabric.standDown")((sessionId: string) => attachments.standDown(sessionId));

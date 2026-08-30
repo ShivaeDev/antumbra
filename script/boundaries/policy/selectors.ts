@@ -13,6 +13,7 @@ export const capabilities = packages.named(
 	"session-event-journal",
 	"session-fabric",
 	"session-inputs",
+	"sessions",
 );
 
 export const domainAndCapabilities = packages.named(
@@ -30,12 +31,10 @@ export const domainAndCapabilities = packages.named(
 	"session-event-journal",
 	"session-fabric",
 	"session-inputs",
+	"sessions",
 );
 
-export const domainAndCapabilitiesExceptIntentDemand = anyOf(
-	packages.named("domain"),
-	capabilities,
-);
+export const domainAndCapabilitiesExceptIntentDemand = anyOf(packages.named("domain"), capabilities);
 
 export const agentBackends = packages.inFamily("backend");
 export const runners = packages.inFamily("runner");

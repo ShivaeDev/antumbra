@@ -28,11 +28,7 @@ const landVerdict = (changeId: string) =>
 			Effect.catchTag("PrismaError", (failure) =>
 				db.ChangeVerdict.where({ changeId })
 					.exists()
-					.pipe(
-						Effect.flatMap((exists) =>
-							exists ? Effect.succeed(false) : Effect.fail(failure),
-						),
-					),
+					.pipe(Effect.flatMap((exists) => (exists ? Effect.succeed(false) : Effect.fail(failure)))),
 			),
 		);
 	});

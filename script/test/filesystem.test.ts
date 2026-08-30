@@ -1,10 +1,4 @@
-import {
-	chmodSync,
-	mkdirSync,
-	mkdtempSync,
-	rmSync,
-	writeFileSync,
-} from "node:fs";
+import { chmodSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import process from "node:process";
@@ -28,12 +22,8 @@ afterEach(() => {
 	}
 });
 
-const failureText = <Value, Error, Requirements>(
-	effect: Effect.Effect<Value, Error, Requirements>,
-): Effect.Effect<string, never, Requirements> =>
-	Effect.map(Effect.exit(effect), (exit) =>
-		Exit.isFailure(exit) ? Cause.pretty(exit.cause) : "(it succeeded)",
-	);
+const failureText = <Value, Error, Requirements>(effect: Effect.Effect<Value, Error, Requirements>): Effect.Effect<string, never, Requirements> =>
+	Effect.map(Effect.exit(effect), (exit) => (Exit.isFailure(exit) ? Cause.pretty(exit.cause) : "(it succeeded)"));
 
 const asRoot = process.getuid?.() === 0;
 
@@ -43,10 +33,7 @@ it.layer(NodeFileSystem.layer)("filesystem adapter", (it) => {
 			const root = makeRoot();
 			mkdirSync(join(root, "src", "node_modules"), { recursive: true });
 			writeFileSync(join(root, "src", "mod.ts"), "export const k = 1;\n");
-			writeFileSync(
-				join(root, "src", "node_modules", "v.ts"),
-				"export const v = 1;\n",
-			);
+			writeFileSync(join(root, "src", "node_modules", "v.ts"), "export const v = 1;\n");
 			expect(yield* walk(root)).toEqual([join(root, "src", "mod.ts")]);
 		}),
 	);
@@ -78,26 +65,22 @@ it.layer(NodeFileSystem.layer)("filesystem adapter", (it) => {
 		Effect.gen(function* () {
 			const root = makeRoot();
 			mkdirSync(join(root, "package.json"));
-			const text = yield* failureText(
-				readRequiredText(join(root, "package.json")),
-			);
+			const text = yield* failureText(readRequiredText(join(root, "package.json")));
 			expect(text).toContain("FilesystemFailure");
 			expect(text).toContain(join(root, "package.json"));
 		}),
 	);
 
-	it.effect.skipIf(asRoot)(
-		"fails loudly when a directory cannot be listed",
-		() =>
-			Effect.gen(function* () {
-				const root = makeRoot();
-				const blocked = join(root, "packages");
-				mkdirSync(blocked);
-				chmodSync(blocked, 0o000);
-				const text = yield* failureText(walk(blocked));
-				chmodSync(blocked, 0o755);
-				expect(text).toContain("FilesystemFailure");
-				expect(text).toContain(blocked);
-			}),
+	it.effect.skipIf(asRoot)("fails loudly when a directory cannot be listed", () =>
+		Effect.gen(function* () {
+			const root = makeRoot();
+			const blocked = join(root, "packages");
+			mkdirSync(blocked);
+			chmodSync(blocked, 0o000);
+			const text = yield* failureText(walk(blocked));
+			chmodSync(blocked, 0o755);
+			expect(text).toContain("FilesystemFailure");
+			expect(text).toContain(blocked);
+		}),
 	);
 });

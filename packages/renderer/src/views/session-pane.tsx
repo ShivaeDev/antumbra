@@ -10,12 +10,9 @@ import { SessionTreePanel } from "#views/session-tree.tsx";
 import { TranscriptView } from "#views/transcript.tsx";
 
 const roleOf = (fleet: Fleet | undefined, sessionId: string): string =>
-	fleet?.agents.find((agent) =>
-		agent.sessions.some((session) => session.id === sessionId),
-	)?.role ?? "unknown agent";
+	fleet?.agents.find((agent) => agent.sessions.some((session) => session.id === sessionId))?.role ?? "unknown agent";
 
-const nameOf = (tree: SessionTree | undefined, sessionId: string): string =>
-	tree?.nodes.find((node) => node.id === sessionId)?.displayName ?? "";
+const nameOf = (tree: SessionTree | undefined, sessionId: string): string => tree?.nodes.find((node) => node.id === sessionId)?.displayName ?? "";
 
 // why: the transcript opens beside the roster rather than in place of it, so
 // reading one agent never costs the reader sight of the rest of the fleet.
@@ -31,65 +28,38 @@ const nameOf = (tree: SessionTree | undefined, sessionId: string): string =>
 // hugging a rail that is not there.
 export const SessionPane = ({
 	fleet,
+	foldToolCalls,
 	onClose,
 	onError,
 	sessionId,
 }: {
 	readonly fleet: Fleet | undefined;
+	readonly foldToolCalls: boolean;
 	readonly onClose?: (() => void) | undefined;
 	readonly onError: (message: string) => void;
 	readonly sessionId: string;
 }) => {
 	const [reading, setReading] = useState(sessionId);
-	const { error: treeError, value: tree } = useFeed<SessionTree>(
-		sessionId,
-		(onTree, onFeedError) => watchSessionTree(sessionId, onTree, onFeedError),
+	const { error: treeError, value: tree } = useFeed<SessionTree>(sessionId, (onTree, onFeedError) =>
+		watchSessionTree(sessionId, onTree, onFeedError),
 	);
 
 	return (
 		<section
-			className={cn(
-				"flex min-h-0 flex-col",
-				onClose === undefined
-					? "min-w-0 flex-1"
-					: "w-[38rem] max-w-[55%] shrink-0 border-l border-border",
-			)}
+			className={cn("flex min-h-0 flex-col", onClose === undefined ? "min-w-0 flex-1" : "w-[38rem] max-w-[55%] shrink-0 border-l border-border")}
 		>
 			<header className="flex min-w-0 items-center gap-2 border-b border-border px-4 py-2">
-				<span className="min-w-0 truncate text-xs font-medium">
-					{roleOf(fleet, sessionId)}
-				</span>
-				{reading === sessionId ? null : (
-					<span className="min-w-0 truncate text-xs text-muted-foreground">
-						{nameOf(tree, reading)}
-					</span>
-				)}
-				<span className="min-w-0 flex-1 truncate font-mono text-2xs text-muted-foreground">
-					{reading}
-				</span>
+				<span className="min-w-0 truncate text-xs font-medium">{roleOf(fleet, sessionId)}</span>
+				{reading === sessionId ? null : <span className="min-w-0 truncate text-xs text-muted-foreground">{nameOf(tree, reading)}</span>}
+				<span className="min-w-0 flex-1 truncate font-mono text-2xs text-muted-foreground">{reading}</span>
 				{onClose === undefined ? null : (
-					<Button
-						aria-label="Close transcript"
-						onClick={onClose}
-						size="icon"
-						variant="ghost"
-					>
+					<Button aria-label="Close transcript" onClick={onClose} size="icon" variant="ghost">
 						<XIcon />
 					</Button>
 				)}
 			</header>
-			<SessionTreePanel
-				error={treeError}
-				onSelect={setReading}
-				rootName={roleOf(fleet, sessionId)}
-				selected={reading}
-				tree={tree}
-			/>
-			<TranscriptView
-				nodes={tree?.nodes ?? []}
-				onOpenNode={setReading}
-				sessionId={reading}
-			/>
+			<SessionTreePanel error={treeError} onSelect={setReading} rootName={roleOf(fleet, sessionId)} selected={reading} tree={tree} />
+			<TranscriptView foldToolCalls={foldToolCalls} nodes={tree?.nodes ?? []} onOpenNode={setReading} sessionId={reading} />
 			<SessionMessage fleet={fleet} onError={onError} sessionId={sessionId} />
 		</section>
 	);

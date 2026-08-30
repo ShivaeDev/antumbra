@@ -56,18 +56,14 @@ const piece: PieceView = {
 	id: "piece-soundings",
 	launchedAt: null,
 	parkedAt: null,
-	reports: [
-		{ authorAgentId: "agent-sounder", id: "report-1", title: "Soundings" },
-	],
+	reports: [{ authorAgentId: "agent-sounder", id: "report-1", title: "Soundings" }],
 	role: "hand",
 	state: "done",
 	title: "Soundings",
 };
 
 it("shows a landed report as an openable chip and nothing else", () => {
-	const html = renderToStaticMarkup(
-		<PieceOutcomes onError={() => undefined} piece={piece} />,
-	);
+	const html = renderToStaticMarkup(<PieceOutcomes onError={() => undefined} piece={piece} />);
 
 	expect(html).toContain("Soundings");
 	expect(html).toContain("<button");
@@ -86,9 +82,7 @@ it.effect("reads and renders a report body on click", () =>
 				return Promise.resolve();
 			}),
 		);
-		const chip = [...container.querySelectorAll("button")].find((button) =>
-			button.textContent?.includes("Soundings"),
-		);
+		const chip = [...container.querySelectorAll("button")].find((button) => button.textContent?.includes("Soundings"));
 		expect(chip).toBeDefined();
 
 		yield* Effect.promise(() =>
@@ -98,15 +92,9 @@ it.effect("reads and renders a report body on click", () =>
 			}),
 		);
 
-		expect(readReportMarkdown).toHaveBeenCalledWith(
-			"report-1",
-			expect.any(Function),
-			expect.any(Function),
-		);
+		expect(readReportMarkdown).toHaveBeenCalledWith("report-1", expect.any(Function), expect.any(Function));
 		expect(container.querySelector("h1")?.textContent).toBe("Soundings");
-		expect(container.textContent).toContain(
-			"The eastern shoal is steeper than charted.",
-		);
+		expect(container.textContent).toContain("The eastern shoal is steeper than charted.");
 		expect(container.textContent).toContain("report by agent-sounder");
 		yield* Effect.promise(() =>
 			act(() => {
@@ -119,9 +107,7 @@ it.effect("reads and renders a report body on click", () =>
 
 it.effect("shows a report read failure in its detail", () =>
 	Effect.gen(function* () {
-		readReportMarkdown.mockImplementationOnce((_reportId, _onDone, onError) =>
-			onError("no such report: report-1"),
-		);
+		readReportMarkdown.mockImplementationOnce((_reportId, _onDone, onError) => onError("no such report: report-1"));
 		const container = document.createElement("div");
 		const root = createRoot(container);
 		yield* Effect.promise(() =>
@@ -130,9 +116,7 @@ it.effect("shows a report read failure in its detail", () =>
 				return Promise.resolve();
 			}),
 		);
-		const chip = [...container.querySelectorAll("button")].find((button) =>
-			button.textContent?.includes("Soundings"),
-		);
+		const chip = [...container.querySelectorAll("button")].find((button) => button.textContent?.includes("Soundings"));
 		yield* Effect.promise(() =>
 			act(() => {
 				chip?.click();

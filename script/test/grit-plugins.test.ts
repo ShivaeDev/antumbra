@@ -4,18 +4,10 @@ import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, describe, expect, it } from "vitest";
-import rawAmbientCases from "#test/fixtures/ambient-runtime-cases.json" with {
-	type: "json",
-};
-import rawEffectCases from "#test/fixtures/effect-boundaries-cases.json" with {
-	type: "json",
-};
-import rawImportCases from "#test/fixtures/imports-cases.json" with {
-	type: "json",
-};
-import rawAssertionCases from "#test/fixtures/type-assertions-cases.json" with {
-	type: "json",
-};
+import rawAmbientCases from "#test/fixtures/ambient-runtime-cases.json" with { type: "json" };
+import rawEffectCases from "#test/fixtures/effect-boundaries-cases.json" with { type: "json" };
+import rawImportCases from "#test/fixtures/imports-cases.json" with { type: "json" };
+import rawAssertionCases from "#test/fixtures/type-assertions-cases.json" with { type: "json" };
 import { decodeGritCases } from "#test/support/fixture-schemas.ts";
 
 const root = dirname(dirname(dirname(fileURLToPath(import.meta.url))));

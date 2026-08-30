@@ -1,10 +1,4 @@
-import {
-	bind,
-	launchPieceSpec,
-	parkPieceSpec,
-	rewirePieceSpec,
-	unparkPieceSpec,
-} from "@antumbra/agent-tools";
+import { bind, launchPieceSpec, parkPieceSpec, rewirePieceSpec, unparkPieceSpec } from "@antumbra/agent-tools";
 import { Pieces } from "@antumbra/pieces";
 import type { DirectTool } from "@antumbra/plugin-api";
 import { Effect } from "effect";
@@ -20,43 +14,21 @@ export const makePieceVerbToolCompiler = Effect.gen(function* () {
 	return (identity: SessionIdentity): ReadonlyArray<DirectTool> => [
 		bind(launchPieceSpec, (input) =>
 			membership.onOwnPiece(identity, input.pieceId, (pieceId) =>
-				answered(
-					identity,
-					launchPieceSpec.name,
-					pieces.launch(pieceId),
-					() => "launched into the pool",
-				),
+				answered(identity, launchPieceSpec.name, pieces.launch(pieceId), () => "launched into the pool"),
 			),
 		),
 		bind(parkPieceSpec, (input) =>
-			membership.onOwnPiece(identity, input.pieceId, (pieceId) =>
-				answered(
-					identity,
-					parkPieceSpec.name,
-					pieces.park(pieceId, true),
-					() => "parked",
-				),
-			),
+			membership.onOwnPiece(identity, input.pieceId, (pieceId) => answered(identity, parkPieceSpec.name, pieces.park(pieceId, true), () => "parked")),
 		),
 		bind(unparkPieceSpec, (input) =>
 			membership.onOwnPiece(identity, input.pieceId, (pieceId) =>
-				answered(
-					identity,
-					unparkPieceSpec.name,
-					pieces.park(pieceId, false),
-					() => "unparked",
-				),
+				answered(identity, unparkPieceSpec.name, pieces.park(pieceId, false), () => "unparked"),
 			),
 		),
 		bind(rewirePieceSpec, (input) =>
 			membership.onOwnPiece(identity, input.pieceId, (pieceId) =>
 				membership.onOwnDeps(identity, input.dependsOn, () =>
-					answered(
-						identity,
-						rewirePieceSpec.name,
-						pieces.setDependencies(pieceId, input.dependsOn),
-						() => "rewired",
-					),
+					answered(identity, rewirePieceSpec.name, pieces.setDependencies(pieceId, input.dependsOn), () => "rewired"),
 				),
 			),
 		),

@@ -13,9 +13,7 @@ import { whenLabel } from "#voyages/labels.ts";
 const HostLine = ({ host }: { readonly host: HostCapabilityView }) => (
 	<div className="flex min-w-0 items-center gap-1.5">
 		<Badge variant={host.available ? "outline" : "warning"}>{host.tag}</Badge>
-		<span className="min-w-0 truncate text-2xs text-muted-foreground">
-			{host.detail}
-		</span>
+		<span className="min-w-0 truncate text-2xs text-muted-foreground">{host.detail}</span>
 	</div>
 );
 
@@ -23,25 +21,13 @@ const HeaderTitle = ({ sighted }: { readonly sighted: string | undefined }) => (
 	<div>
 		<div className="flex items-baseline gap-2">
 			<h2 className="text-base">The quay</h2>
-			{sighted === undefined ? null : (
-				<span className="text-2xs text-muted-foreground">
-					sighted {whenLabel(sighted)}
-				</span>
-			)}
+			{sighted === undefined ? null : <span className="text-2xs text-muted-foreground">sighted {whenLabel(sighted)}</span>}
 		</div>
-		<p className="text-2xs text-muted-foreground">
-			Pull requests waiting on review, checks or merge.
-		</p>
+		<p className="text-2xs text-muted-foreground">Pull requests waiting on review, checks or merge.</p>
 	</div>
 );
 
-export const QuayHeader = ({
-	onError,
-	view,
-}: {
-	readonly onError: (message: string) => void;
-	readonly view: QuayView;
-}) => {
+export const QuayHeader = ({ onError, view }: { readonly onError: (message: string) => void; readonly view: QuayView }) => {
 	const asking = useCall<void>();
 	const sighted = lastSight(view);
 	// why: the button rings the watcher; what a pass costs stays the cadence's
@@ -55,20 +41,13 @@ export const QuayHeader = ({
 				<HeaderTitle sighted={sighted} />
 				<div className="ml-auto flex items-center gap-1.5">
 					<AdoptChangeDialog pieces={view.pieces} />
-					<Button
-						disabled={asking.state._tag === "pending"}
-						onClick={ring}
-						size="sm"
-						variant="outline"
-					>
+					<Button disabled={asking.state._tag === "pending"} onClick={ring} size="sm" variant="outline">
 						{asking.state._tag === "pending" ? "Asking…" : "Refresh"}
 					</Button>
 				</div>
 			</div>
 			{view.hosts.length === 0 ? (
-				<span className="text-2xs text-muted-foreground">
-					No change host is registered
-				</span>
+				<span className="text-2xs text-muted-foreground">No change host is registered</span>
 			) : (
 				<div className="flex flex-wrap items-center gap-x-4 gap-y-1">
 					{view.hosts.map((host) => (

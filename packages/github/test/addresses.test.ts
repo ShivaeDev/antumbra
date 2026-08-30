@@ -36,36 +36,18 @@ describe("which repos this host claims", () => {
 	});
 
 	it("compares owner and name without minding case", () => {
-		expect(
-			sameRepo(
-				{ name: "Antumbra", owner: "ShivaeDev" },
-				{ name: "antumbra", owner: "shivaedev" },
-			),
-		).toBe(true);
-		expect(
-			sameRepo(
-				{ name: "antumbra", owner: "ShivaeDev" },
-				{ name: "antumbra", owner: "someone-else" },
-			),
-		).toBe(false);
+		expect(sameRepo({ name: "Antumbra", owner: "ShivaeDev" }, { name: "antumbra", owner: "shivaedev" })).toBe(true);
+		expect(sameRepo({ name: "antumbra", owner: "ShivaeDev" }, { name: "antumbra", owner: "someone-else" })).toBe(false);
 	});
 });
 
 describe("which addresses a change can be adopted by", () => {
 	it("reads owner, name and number off a pull request url", () => {
-		expect(
-			parsePullUrl("https://github.com/ShivaeDev/antumbra/pull/23"),
-		).toEqual(
+		expect(parsePullUrl("https://github.com/ShivaeDev/antumbra/pull/23")).toEqual(Option.some({ name: "antumbra", number: 23, owner: "ShivaeDev" }));
+		expect(parsePullUrl("https://github.com/ShivaeDev/antumbra/pull/23/files")).toEqual(
 			Option.some({ name: "antumbra", number: 23, owner: "ShivaeDev" }),
 		);
-		expect(
-			parsePullUrl("https://github.com/ShivaeDev/antumbra/pull/23/files"),
-		).toEqual(
-			Option.some({ name: "antumbra", number: 23, owner: "ShivaeDev" }),
-		);
-		expect(
-			parsePullUrl("https://github.com/ShivaeDev/antumbra/pull/23?w=1"),
-		).toEqual(
+		expect(parsePullUrl("https://github.com/ShivaeDev/antumbra/pull/23?w=1")).toEqual(
 			Option.some({ name: "antumbra", number: 23, owner: "ShivaeDev" }),
 		);
 	});

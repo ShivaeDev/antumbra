@@ -23,9 +23,7 @@ const failureOf = (artifacts: ReadonlyArray<ReturnType<typeof artifact>>) =>
 
 it.effect("refuses a stored lineage whose successor is missing", () =>
 	Effect.gen(function* () {
-		const failure = yield* failureOf([
-			artifact("artifact-old", "artifact-missing"),
-		]);
+		const failure = yield* failureOf([artifact("artifact-old", "artifact-missing")]);
 
 		expect(failure).toMatchObject({
 			_tag: "StoredArtifactLineageInvalid",
@@ -34,19 +32,17 @@ it.effect("refuses a stored lineage whose successor is missing", () =>
 	}),
 );
 
-it.effect(
-	"refuses stored convergence despite the normal unique constraint",
-	() =>
-		Effect.gen(function* () {
-			const failure = yield* failureOf([
-				artifact("artifact-one", "artifact-new"),
-				artifact("artifact-two", "artifact-new"),
-				artifact("artifact-new", null),
-			]);
+it.effect("refuses stored convergence despite the normal unique constraint", () =>
+	Effect.gen(function* () {
+		const failure = yield* failureOf([
+			artifact("artifact-one", "artifact-new"),
+			artifact("artifact-two", "artifact-new"),
+			artifact("artifact-new", null),
+		]);
 
-			expect(failure).toMatchObject({
-				_tag: "StoredArtifactLineageInvalid",
-				reason: "branch",
-			});
-		}),
+		expect(failure).toMatchObject({
+			_tag: "StoredArtifactLineageInvalid",
+			reason: "branch",
+		});
+	}),
 );

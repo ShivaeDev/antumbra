@@ -7,16 +7,10 @@ import { Effect } from "effect";
 import { afterAll, expect } from "vitest";
 import { applyMigrations } from "#adapters/migrator.ts";
 import { brandDatabaseFilePath } from "#data-dir.ts";
-import fixtureContract from "#test/fixtures/contract.json" with {
-	type: "json",
-};
-import stepOneContract from "#test/fixtures/migrations/app/20260812T0956_init/end-contract.json" with {
-	type: "json",
-};
+import fixtureContract from "#test/fixtures/contract.json" with { type: "json" };
+import stepOneContract from "#test/fixtures/migrations/app/20260812T0956_init/end-contract.json" with { type: "json" };
 
-const migrationsDirectory = fileURLToPath(
-	new URL("./fixtures/migrations", import.meta.url),
-);
+const migrationsDirectory = fileURLToPath(new URL("./fixtures/migrations", import.meta.url));
 
 const directories: string[] = [];
 
@@ -40,10 +34,7 @@ it.effect("applies the full chain to a fresh database", () =>
 			database,
 			migrationsDirectory,
 		});
-		expect(report.applied).toEqual([
-			"20260812T0956_init",
-			"20260812T0956_add_weight",
-		]);
+		expect(report.applied).toEqual(["20260812T0956_init", "20260812T0956_add_weight"]);
 	}),
 );
 
@@ -83,20 +74,16 @@ it.effect("does nothing once the database is up to date", () =>
 	}),
 );
 
-it.effect(
-	"fails as a typed error when the chain cannot reach the contract",
-	() =>
-		Effect.gen(function* () {
-			const database = freshDatabase();
-			const failure = yield* Effect.flip(
-				applyMigrations({
-					contract: fixtureContract,
-					database,
-					migrationsDirectory: fileURLToPath(
-						new URL("./fixtures", import.meta.url),
-					),
-				}),
-			);
-			expect(failure._tag).toBe("MigrationFailure");
-		}),
+it.effect("fails as a typed error when the chain cannot reach the contract", () =>
+	Effect.gen(function* () {
+		const database = freshDatabase();
+		const failure = yield* Effect.flip(
+			applyMigrations({
+				contract: fixtureContract,
+				database,
+				migrationsDirectory: fileURLToPath(new URL("./fixtures", import.meta.url)),
+			}),
+		);
+		expect(failure._tag).toBe("MigrationFailure");
+	}),
 );

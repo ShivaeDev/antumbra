@@ -2,23 +2,9 @@ import { PlusIcon } from "lucide-react";
 import { useState } from "react";
 import { openVoyage } from "#adapters/trpc-voyages.ts";
 import { Button } from "#components/ui/button.tsx";
-import {
-	Dialog,
-	DialogContent,
-	DialogTrigger,
-} from "#components/ui/dialog.tsx";
-import {
-	DialogDescription,
-	DialogFooter,
-	DialogHeader,
-	DialogTitle,
-} from "#components/ui/dialog-sections.tsx";
-import {
-	chosenBackend,
-	emptyDraft,
-	type VoyageDraft,
-	VoyageFields,
-} from "#views/open-voyage-fields.tsx";
+import { Dialog, DialogContent, DialogTrigger } from "#components/ui/dialog.tsx";
+import { DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "#components/ui/dialog-sections.tsx";
+import { chosenBackend, emptyDraft, type VoyageDraft, VoyageFields } from "#views/open-voyage-fields.tsx";
 
 // why: opening a voyage is a rare act beside reading the ones already open, so
 // it asks for the sidebar only while it is being used.
@@ -56,10 +42,7 @@ export const OpenVoyageForm = ({
 			<DialogContent>
 				<DialogHeader>
 					<DialogTitle>Open a voyage</DialogTitle>
-					<DialogDescription>
-						A voyage needs a name and the north star it steers by. Everything
-						else is chartered later.
-					</DialogDescription>
+					<DialogDescription>A voyage needs a name and the north star it steers by. Everything else is chartered later.</DialogDescription>
 				</DialogHeader>
 				<VoyageFields backends={backends} draft={draft} onChange={setDraft} />
 				<DialogFooter>

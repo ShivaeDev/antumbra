@@ -7,26 +7,12 @@ import type { ActiveIntent } from "#kernel.ts";
 import { SchedulerState } from "#state.ts";
 
 const decodeStatus = (id: string, status: string) =>
-	Schema.decodeUnknownEffect(IntentStatusSchema)(status).pipe(
-		Effect.mapError(
-			(cause) => new StoredIntentInvalid({ detail: String(cause), id }),
-		),
-	);
+	Schema.decodeUnknownEffect(IntentStatusSchema)(status).pipe(Effect.mapError((cause) => new StoredIntentInvalid({ detail: String(cause), id })));
 
 const isActive = Schema.is(ActiveIntentStatusSchema);
 
-const decodePayload = <Payload>(
-	id: string,
-	kind: IntentKind<Payload>,
-	payloadJson: string,
-) =>
-	kind
-		.decode(payloadJson)
-		.pipe(
-			Effect.mapError(
-				(cause) => new StoredIntentInvalid({ detail: cause.detail, id }),
-			),
-		);
+const decodePayload = <Payload>(id: string, kind: IntentKind<Payload>, payloadJson: string) =>
+	kind.decode(payloadJson).pipe(Effect.mapError((cause) => new StoredIntentInvalid({ detail: cause.detail, id })));
 
 export const activeIntents = <Payload>(kind: IntentKind<Payload>) =>
 	Effect.gen(function* () {

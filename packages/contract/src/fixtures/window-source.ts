@@ -14,10 +14,7 @@ export const consoleWindow: WindowPlace = {
 // main serves, so a window standing on fixtures resolves its place rather
 // than falling through to the refusal a placeless window shows.
 export const windowFixture = Layer.succeed(WindowSource, {
-	open: (place) =>
-		place.role === "console"
-			? new WindowRefused({ reason: "console_is_not_a_target" })
-			: Effect.void,
+	open: (place) => (place.role === "console" ? new WindowRefused({ reason: "console_is_not_a_target" }) : Effect.void),
 	place: Effect.succeed(consoleWindow),
 	remember: () => Effect.void,
 });

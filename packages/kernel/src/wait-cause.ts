@@ -6,9 +6,7 @@ interface IntentWaitCause {
 	readonly interrupted: boolean;
 }
 
-export const intentWaitCause = (
-	cause: Cause.Cause<unknown>,
-): Option.Option<IntentWaitCause> => {
+export const intentWaitCause = (cause: Cause.Cause<unknown>): Option.Option<IntentWaitCause> => {
 	let detail: string | undefined;
 	let interrupted = false;
 	for (const reason of cause.reasons) {
@@ -16,16 +14,10 @@ export const intentWaitCause = (
 			interrupted = true;
 			continue;
 		}
-		if (
-			!Cause.isFailReason(reason) ||
-			!isIntentWaitSignal(reason.error) ||
-			detail !== undefined
-		) {
+		if (!Cause.isFailReason(reason) || !isIntentWaitSignal(reason.error) || detail !== undefined) {
 			return Option.none();
 		}
 		detail = reason.error.detail;
 	}
-	return detail === undefined
-		? Option.none()
-		: Option.some({ detail, interrupted });
+	return detail === undefined ? Option.none() : Option.some({ detail, interrupted });
 };

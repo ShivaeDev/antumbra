@@ -14,12 +14,9 @@ export interface LogRow {
 const text = (value: unknown): string =>
 	typeof value === "string"
 		? value
-		: (JSON.stringify(value, (_key, nested: unknown) =>
-				typeof nested === "bigint" ? nested.toString() : nested,
-			) ?? String(value));
+		: (JSON.stringify(value, (_key, nested: unknown) => (typeof nested === "bigint" ? nested.toString() : nested)) ?? String(value));
 
-const messageOf = (message: unknown): string =>
-	Array.isArray(message) ? message.map(text).join(" ") : text(message);
+const messageOf = (message: unknown): string => (Array.isArray(message) ? message.map(text).join(" ") : text(message));
 
 // why: a log entry that carries a failure is only half a record without it, and
 // the console logger is not the one being read after the fact.

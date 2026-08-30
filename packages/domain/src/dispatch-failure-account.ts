@@ -38,7 +38,5 @@ export const dispatchFailureAccount = (
 export const accountOfIntent = (intentId: string) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
-		return dispatchFailureAccount(
-			yield* db.Intent.where({ id: intentId }).first(),
-		);
+		return dispatchFailureAccount(yield* db.Intent.where({ id: intentId }).first());
 	});

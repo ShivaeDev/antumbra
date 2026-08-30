@@ -1,12 +1,7 @@
 import { DomainFeedsLive } from "@antumbra/domain-feeds";
 import { persistenceIt } from "@antumbra/persistence/testing";
 import { PiecesLive } from "@antumbra/pieces";
-import type {
-	ChangeHost,
-	ChangeObservation,
-	OpenChangeRequest,
-	Runner,
-} from "@antumbra/plugin-api";
+import type { ChangeHost, ChangeObservation, OpenChangeRequest, Runner } from "@antumbra/plugin-api";
 import { expect } from "@effect/vitest";
 import { Effect, Layer, Ref } from "effect";
 import { Changes, ChangesLive } from "#index.ts";
@@ -65,10 +60,7 @@ const makeHost = Effect.gen(function* () {
 			),
 		capability: Effect.succeed({ available: true, detail: "scripted" }),
 		observe: () => Effect.succeed([]),
-		open: (request) =>
-			Ref.update(openings, (all) => [...all, request]).pipe(
-				Effect.as(observation(request)),
-			),
+		open: (request) => Ref.update(openings, (all) => [...all, request]).pipe(Effect.as(observation(request))),
 		supports: () => true,
 		tag: "scripted",
 	};
@@ -76,95 +68,87 @@ const makeHost = Effect.gen(function* () {
 });
 
 const layer = (host: ChangeHost) =>
-	ChangesLive(
-		new Map([[host.tag, host]]),
-		new Map([[runner.tag, runner]]),
-	).pipe(Layer.provideMerge(PiecesLive), Layer.provideMerge(DomainFeedsLive));
+	ChangesLive(new Map([[host.tag, host]]), new Map([[runner.tag, runner]])).pipe(Layer.provideMerge(PiecesLive), Layer.provideMerge(DomainFeedsLive));
 
-it.effectDB(
-	"owns preparation and host reconciliation as one aggregate",
-	function* (db) {
-		const scripted = yield* makeHost;
-		yield* Effect.gen(function* () {
-			const changes = yield* Changes;
-			yield* Effect.all([
-				db.Agent.create({
-					charter: "chart the reef",
-					id: "crew",
-					role: "crew",
-					status: "alive",
-				}),
-				db.Piece.create({
-					charter: "sound the reef",
-					expectation: "the change lands",
-					id: "piece-reef",
-					launchedAt: new Date(1_780_000_000_000),
-					parkedAt: null,
-					role: "crew",
-					title: "Reef",
-				}),
-				db.Repo.create({
-					defaultRef: "main",
-					id: "repo-reef",
-					name: "reef",
-					source: "/somewhere/reef",
-				}),
-				db.Berth.create({
-					agentId: "crew",
-					branch: "work/crew/reef",
-					id: "berth-reef",
-					path: "/tmp/moorage/crew/reef",
-					reclaimState: null,
-					ref: "main",
-					runner: "local",
-					slug: "reef",
-					source: "/somewhere/reef",
-					status: "ready",
-					strandedAt: null,
-				}),
-			]);
-
-			const prepared = yield* changes.submit({
+it.effectDB("owns preparation and host reconciliation as one aggregate", function* (db) {
+	const scripted = yield* makeHost;
+	yield* Effect.gen(function* () {
+		const changes = yield* Changes;
+		yield* Effect.all([
+			db.Agent.create({
+				charter: "chart the reef",
+				id: "crew",
+				role: "crew",
+				status: "alive",
+			}),
+			db.Piece.create({
+				charter: "sound the reef",
+				expectation: "the change lands",
+				id: "piece-reef",
+				launchedAt: new Date(1_780_000_000_000),
+				parkedAt: null,
+				role: "crew",
+				title: "Reef",
+			}),
+			db.Repo.create({
+				defaultRef: "main",
+				id: "repo-reef",
+				name: "reef",
+				source: "/somewhere/reef",
+			}),
+			db.Berth.create({
 				agentId: "crew",
-				pieceId: "piece-reef",
-				repoName: "reef",
-				sessionId: "session-crew",
-			});
-			expect(prepared.stage).toBe("prepared");
-			expect(
-				yield* db.PieceChange.where({ changeId: prepared.id }).all(),
-			).toEqual([
-				{ changeId: prepared.id, pieceId: "piece-reef", purpose: "produces" },
-			]);
+				branch: "work/crew/reef",
+				id: "berth-reef",
+				path: "/tmp/moorage/crew/reef",
+				reclaimState: null,
+				ref: "main",
+				runner: "local",
+				slug: "reef",
+				source: "/somewhere/reef",
+				status: "ready",
+				strandedAt: null,
+			}),
+		]);
 
-			const opened = yield* changes.open({
-				agentId: "crew",
-				base: null,
-				body: "Map the reef",
-				draft: false,
-				pieceId: "piece-reef",
-				repoName: "reef",
-				sessionId: "session-crew",
-				title: "Chart the reef",
-			});
-			expect(opened).toMatchObject({
-				externalId: "41",
-				id: prepared.id,
-				stage: "open",
-				url: "https://scripted.test/changes/41",
-			});
-			expect(yield* scripted.openings).toHaveLength(1);
-			expect(yield* changes.snapshot).toEqual({
-				changes: [opened],
-				dismissedChangeIds: new Set(),
-				pieceChanges: [
-					{
-						changeId: opened.id,
-						pieceId: "piece-reef",
-						purpose: "produces",
-					},
-				],
-			});
-		}).pipe(Effect.provide(layer(scripted.host)));
-	},
-);
+		const prepared = yield* changes.submit({
+			agentId: "crew",
+			pieceId: "piece-reef",
+			repoName: "reef",
+			sessionId: "session-crew",
+		});
+		expect(prepared.stage).toBe("prepared");
+		expect(yield* db.PieceChange.where({ changeId: prepared.id }).all()).toEqual([
+			{ changeId: prepared.id, pieceId: "piece-reef", purpose: "produces" },
+		]);
+
+		const opened = yield* changes.open({
+			agentId: "crew",
+			base: null,
+			body: "Map the reef",
+			draft: false,
+			pieceId: "piece-reef",
+			repoName: "reef",
+			sessionId: "session-crew",
+			title: "Chart the reef",
+		});
+		expect(opened).toMatchObject({
+			externalId: "41",
+			id: prepared.id,
+			stage: "open",
+			url: "https://scripted.test/changes/41",
+		});
+		expect(yield* scripted.openings).toHaveLength(1);
+		expect(yield* changes.snapshot).toEqual({
+			changes: [opened],
+			dismissedChangeIds: new Set(),
+			pieceChanges: [
+				{
+					changeId: opened.id,
+					pieceId: "piece-reef",
+					purpose: "produces",
+				},
+			],
+		});
+	}).pipe(Effect.provide(layer(scripted.host)));
+});

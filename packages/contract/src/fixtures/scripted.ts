@@ -23,13 +23,7 @@ import {
 	workingSummary,
 } from "#fixtures/scripted-turns.ts";
 import { storedEvents } from "#fixtures/transcript.ts";
-import {
-	cachedTurnEvents,
-	closingEvent,
-	laterEvent,
-	restingEvent,
-	wokenEvents,
-} from "#fixtures/transcript-resume.ts";
+import { cachedTurnEvents, closingEvent, laterEvent, restingEvent, wokenEvents } from "#fixtures/transcript-resume.ts";
 import { quayView, reefSummary, reefView } from "#fixtures/voyage.ts";
 import type { VoyageSummary } from "#voyage-views.ts";
 
@@ -41,14 +35,7 @@ const WATCHABLE_BEAT = "1500 millis";
 const paced =
 	(beat: Duration.Input) =>
 	<A>(opening: Stream.Stream<A>, ...rest: readonly A[]): Stream.Stream<A> =>
-		rest.reduce<Stream.Stream<A>>(
-			(stream, value) =>
-				Stream.concat(
-					stream,
-					Stream.fromEffect(Effect.as(Effect.sleep(beat), value)),
-				),
-			opening,
-		);
+		rest.reduce<Stream.Stream<A>>((stream, value) => Stream.concat(stream, Stream.fromEffect(Effect.as(Effect.sleep(beat), value))), opening);
 
 export const makeScriptedFeeds = (beat: Duration.Input): FixtureFeeds => {
 	const step = paced(beat);
@@ -57,25 +44,11 @@ export const makeScriptedFeeds = (beat: Duration.Input): FixtureFeeds => {
 		// picks up a background task, answers out of an almost entirely cached
 		// context and settles again. It is the beat the usage split exists for,
 		// so the harness shows it rather than only the first cold turn.
-		events: step(
-			Stream.fromArray(storedEvents),
-			...wokenEvents,
-			laterEvent,
-			...cachedTurnEvents,
-			closingEvent,
-			restingEvent,
-		),
+		events: step(Stream.fromArray(storedEvents), ...wokenEvents, laterEvent, ...cachedTurnEvents, closingEvent, restingEvent),
 		fleet: step(Stream.make(fleet), crewedFleet, mooredFleet),
 		quay: step(Stream.make(quayView), checkingQuay, landedQuay),
 		rulings: step(Stream.make(openRulings), urgentRulings, ruledRulings),
-		standing: step(
-			Stream.make(standingRulings),
-			grownStanding,
-			supersededStanding,
-			proclaimedStanding,
-			staleStanding,
-			withdrawnStanding,
-		),
+		standing: step(Stream.make(standingRulings), grownStanding, supersededStanding, proclaimedStanding, staleStanding, withdrawnStanding),
 		voyage: step(Stream.make(reefView), answeredReef, workingReef),
 		voyages: step<ReadonlyArray<VoyageSummary>>(
 			Stream.make([flagshipSummary, reefSummary]),

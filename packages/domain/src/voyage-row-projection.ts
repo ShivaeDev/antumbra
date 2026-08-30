@@ -5,10 +5,7 @@ import type { PieceRow, RepoRow, VoyageRow } from "#voyage-rows.ts";
 
 // why: entity rows reach a reader whole, and the stored shape carries fields
 // the views have no use for. Each projection declares exactly what survives.
-export const voyageRow = (
-	row: Omit<VoyageRow, "kind">,
-	kind: VoyageKind,
-): VoyageRow => ({
+export const voyageRow = (row: Omit<VoyageRow, "kind">, kind: VoyageKind): VoyageRow => ({
 	backend: row.backend,
 	context: row.context,
 	focusedAt: row.focusedAt,
@@ -51,6 +48,4 @@ export const artifactRow = (row: ArtifactRow): ArtifactRow => ({
 	title: row.title,
 });
 
-export const byId = <A extends { readonly id: string }>(
-	rows: ReadonlyArray<A>,
-): ReadonlyMap<string, A> => new Map(rows.map((row) => [row.id, row]));
+export const byId = <A extends { readonly id: string }>(rows: ReadonlyArray<A>): ReadonlyMap<string, A> => new Map(rows.map((row) => [row.id, row]));

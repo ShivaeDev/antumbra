@@ -65,9 +65,7 @@ describe("codex notifications map onto the neutral vocabulary", () => {
 			summary: ["**Weighing**", "then"],
 			type: "reasoning",
 		};
-		expect(toAgentEvents(item("item/completed", spoken))).toMatchObject([
-			{ text: "**Weighing**\nthen", type: "thinking" },
-		]);
+		expect(toAgentEvents(item("item/completed", spoken))).toMatchObject([{ text: "**Weighing**\nthen", type: "thinking" }]);
 	});
 
 	it("commandExecution starts as a tool and completes with exit status", () => {
@@ -99,13 +97,9 @@ describe("codex notifications map onto the neutral vocabulary", () => {
 			exitCode: 0,
 			status: "completed",
 		};
-		expect(toAgentEvents(item("item/completed", done))).toMatchObject([
-			{ ok: true, output: "hi\n", toolId: "call_1", type: "tool.completed" },
-		]);
+		expect(toAgentEvents(item("item/completed", done))).toMatchObject([{ ok: true, output: "hi\n", toolId: "call_1", type: "tool.completed" }]);
 		const declined = { ...running, status: "declined" };
-		expect(toAgentEvents(item("item/completed", declined))).toMatchObject([
-			{ ok: false, output: "", type: "tool.completed" },
-		]);
+		expect(toAgentEvents(item("item/completed", declined))).toMatchObject([{ ok: false, output: "", type: "tool.completed" }]);
 	});
 
 	it("fileChange and mcpToolCall are tools too", () => {
@@ -115,12 +109,8 @@ describe("codex notifications map onto the neutral vocabulary", () => {
 			status: "completed",
 			type: "fileChange",
 		};
-		expect(toAgentEvents(item("item/started", patch))).toMatchObject([
-			{ input: "out.txt", name: "fileChange", type: "tool.started" },
-		]);
-		expect(toAgentEvents(item("item/completed", patch))).toMatchObject([
-			{ ok: true, output: "+hello", type: "tool.completed" },
-		]);
+		expect(toAgentEvents(item("item/started", patch))).toMatchObject([{ input: "out.txt", name: "fileChange", type: "tool.started" }]);
+		expect(toAgentEvents(item("item/completed", patch))).toMatchObject([{ ok: true, output: "+hello", type: "tool.completed" }]);
 		const mcp = {
 			arguments: { q: 1 },
 			error: { message: "boom" },
@@ -130,12 +120,8 @@ describe("codex notifications map onto the neutral vocabulary", () => {
 			tool: "search",
 			type: "mcpToolCall",
 		};
-		expect(toAgentEvents(item("item/started", mcp))).toMatchObject([
-			{ input: '{"q":1}', name: "srv/search", type: "tool.started" },
-		]);
-		expect(toAgentEvents(item("item/completed", mcp))).toMatchObject([
-			{ ok: false, output: '{"message":"boom"}', type: "tool.completed" },
-		]);
+		expect(toAgentEvents(item("item/started", mcp))).toMatchObject([{ input: '{"q":1}', name: "srv/search", type: "tool.started" }]);
+		expect(toAgentEvents(item("item/completed", mcp))).toMatchObject([{ ok: false, output: '{"message":"boom"}', type: "tool.completed" }]);
 	});
 
 	it("a tool we served reads as a tool, named as the agent called it", () => {
@@ -164,22 +150,14 @@ describe("codex notifications map onto the neutral vocabulary", () => {
 			status: "completed",
 			success: true,
 		};
-		expect(toAgentEvents(item("item/completed", landed))).toMatchObject([
-			{ ok: true, output: "report landed", type: "tool.completed" },
-		]);
+		expect(toAgentEvents(item("item/completed", landed))).toMatchObject([{ ok: true, output: "report landed", type: "tool.completed" }]);
 		const refused = { ...landed, success: false };
-		expect(toAgentEvents(item("item/completed", refused))).toMatchObject([
-			{ ok: false, type: "tool.completed" },
-		]);
+		expect(toAgentEvents(item("item/completed", refused))).toMatchObject([{ ok: false, type: "tool.completed" }]);
 	});
 
 	it("an item kind outside the model is kept raw, never dropped", () => {
-		const events = toAgentEvents(
-			item("item/completed", { id: "s", type: "sleep", durationMs: 3 }),
-		);
-		expect(events).toMatchObject([
-			{ raw: { kind: "item/completed" }, type: "raw" },
-		]);
+		const events = toAgentEvents(item("item/completed", { id: "s", type: "sleep", durationMs: 3 }));
+		expect(events).toMatchObject([{ raw: { kind: "item/completed" }, type: "raw" }]);
 	});
 
 	it("turn/completed carries status and duration; interrupted is a status", () => {
@@ -242,9 +220,7 @@ describe("codex notifications map onto the neutral vocabulary", () => {
 				turnId: TURN,
 			},
 		});
-		expect(events).toMatchObject([
-			{ inputTokens: 17062, outputTokens: 18, type: "usage" },
-		]);
+		expect(events).toMatchObject([{ inputTokens: 17062, outputTokens: 18, type: "usage" }]);
 	});
 
 	it("everything else is raw under its method name", () => {
@@ -252,8 +228,6 @@ describe("codex notifications map onto the neutral vocabulary", () => {
 			method: "thread/name/updated",
 			params: { name: "sound the eastern shoal", threadId: THREAD },
 		});
-		expect(events).toMatchObject([
-			{ raw: { kind: "thread/name/updated" }, type: "raw" },
-		]);
+		expect(events).toMatchObject([{ raw: { kind: "thread/name/updated" }, type: "raw" }]);
 	});
 });

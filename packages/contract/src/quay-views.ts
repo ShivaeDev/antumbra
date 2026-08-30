@@ -4,12 +4,7 @@ import { ChangeView } from "#change-views.ts";
 // why: the quay reads by where a change lies rather than by which host holds
 // it — ready to merge, still running, wanting a hand, or not offered yet. The
 // merge itself is done where the repo lives, so no group is a button.
-export const QuayGroup = Schema.Literals([
-	"alongside",
-	"checksRunning",
-	"needsAttention",
-	"draft",
-]);
+export const QuayGroup = Schema.Literals(["alongside", "checksRunning", "needsAttention", "draft"]);
 export type QuayGroup = typeof QuayGroup.Type;
 
 // why: description and branch facts belong only to the Quay's selected detail;

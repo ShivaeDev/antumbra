@@ -23,11 +23,7 @@ const uuidOf = (payload: string): ReadonlyArray<string> =>
 // no name of its own here — nothing was truncated, no stream detached, the
 // frame simply never arrived. It takes the escape hatch with a detail saying
 // plainly what was missed, and never a neighbour's word.
-const missedLines = (
-	nodeRef: string,
-	missing: ReadonlyArray<string>,
-	stored: number,
-): AgentEvent => ({
+const missedLines = (nodeRef: string, missing: ReadonlyArray<string>, stored: number): AgentEvent => ({
 	detail: `${missing.length} of ${stored} transcript lines the provider stored for this node never reached the record`,
 	gapKind: "unknown",
 	raw: claudeRaw("subagent/unrecorded-lines", { agentId: nodeRef, missing }),
@@ -40,12 +36,8 @@ export const transcriptFindings = (
 	recorded: ReadonlyArray<string>,
 ): ReadonlyArray<AgentEvent> => {
 	const delivered = new Set(recorded.flatMap(uuidOf));
-	const missing = stored
-		.map((message) => message.uuid)
-		.filter((uuid) => !delivered.has(uuid));
-	return missing.length === 0
-		? []
-		: [missedLines(nodeRef, missing, stored.length)];
+	const missing = stored.map((message) => message.uuid).filter((uuid) => !delivered.has(uuid));
+	return missing.length === 0 ? [] : [missedLines(nodeRef, missing, stored.length)];
 };
 
 // why: an agent standing in the provider's own subagents directory that the
@@ -60,9 +52,7 @@ const censusMissing = (agent: AdoptedAgent, origin: Origin): AgentEvent => ({
 	type: "subsession.gap",
 });
 
-export const censusFindings = (
-	found: ReadonlyArray<AdoptedAgent>,
-): ReadonlyArray<AgentEvent> =>
+export const censusFindings = (found: ReadonlyArray<AdoptedAgent>): ReadonlyArray<AgentEvent> =>
 	found.flatMap((agent) => admissionEvents(agent, censusMissing));
 
 // why: a census that could not be taken leaves the record unable to say whether

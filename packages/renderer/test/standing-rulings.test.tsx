@@ -1,11 +1,7 @@
 // why: @vitest-environment happy-dom drives the standing list and the pick of
 // a superseding ruling through the same DOM boundaries a keyboard uses.
 
-import type {
-	OpenRulingsView,
-	StandingRulingsView,
-	StandingRulingView,
-} from "@antumbra/contract";
+import type { OpenRulingsView, StandingRulingsView, StandingRulingView } from "@antumbra/contract";
 import { expect, it } from "@effect/vitest";
 import { Effect } from "effect";
 import { act } from "react";
@@ -13,17 +9,16 @@ import { createRoot } from "react-dom/client";
 import { beforeEach, vi } from "vitest";
 import { RulingsPanel } from "#views/rulings.tsx";
 
-const { openFeeds, standingFeeds, supersedeRuling, withdrawRuling } =
-	vi.hoisted(() => {
-		const open: Array<(view: OpenRulingsView) => void> = [];
-		const standing: Array<(view: StandingRulingsView) => void> = [];
-		return {
-			openFeeds: open,
-			standingFeeds: standing,
-			supersedeRuling: vi.fn(),
-			withdrawRuling: vi.fn(),
-		};
-	});
+const { openFeeds, standingFeeds, supersedeRuling, withdrawRuling } = vi.hoisted(() => {
+	const open: Array<(view: OpenRulingsView) => void> = [];
+	const standing: Array<(view: StandingRulingsView) => void> = [];
+	return {
+		openFeeds: open,
+		standingFeeds: standing,
+		supersedeRuling: vi.fn(),
+		withdrawRuling: vi.fn(),
+	};
+});
 
 vi.mock("#adapters/trpc-rulings.ts", () => ({
 	proclaimRuling: vi.fn(),
@@ -82,61 +77,36 @@ const mount = () => {
 	return { container, root: createRoot(container) };
 };
 
-const showing = (
-	mounted: ReturnType<typeof mount>,
-	standing: ReadonlyArray<StandingRulingView>,
-): Effect.Effect<void> =>
+const showing = (mounted: ReturnType<typeof mount>, standing: ReadonlyArray<StandingRulingView>): Effect.Effect<void> =>
 	Effect.gen(function* () {
-		yield* settle(() =>
-			mounted.root.render(<RulingsPanel onError={() => undefined} />),
-		);
+		yield* settle(() => mounted.root.render(<RulingsPanel onError={() => undefined} />));
 		yield* settle(() => openFeeds.at(-1)?.({ rulings: [] }));
 		yield* settle(() => standingFeeds.at(-1)?.({ rulings: standing }));
 	});
 
 const buttonSaying = (mounted: ReturnType<typeof mount>, words: string) =>
-	[...mounted.container.querySelectorAll("button")].find(
-		(button) => button.textContent?.includes(words) === true,
-	);
+	[...mounted.container.querySelectorAll("button")].find((button) => button.textContent?.includes(words) === true);
 
 const keyed = (target: Element | null | undefined, key: string) => {
 	target?.dispatchEvent(new KeyboardEvent("keydown", { bubbles: true, key }));
 };
 
-const picking = (
-	mounted: ReturnType<typeof mount>,
-	words: string,
-): Effect.Effect<void> =>
+const picking = (mounted: ReturnType<typeof mount>, words: string): Effect.Effect<void> =>
 	Effect.gen(function* () {
-		yield* settle(() =>
-			keyed(mounted.container.querySelector('[role="combobox"]'), "ArrowDown"),
-		);
+		yield* settle(() => keyed(mounted.container.querySelector('[role="combobox"]'), "ArrowDown"));
 		yield* settle(() =>
 			keyed(
-				[...document.querySelectorAll('[role="option"]')].find(
-					(option) => option.textContent?.includes(words) === true,
-				),
+				[...document.querySelectorAll('[role="option"]')].find((option) => option.textContent?.includes(words) === true),
 				"Enter",
 			),
 		);
 	});
 
-const writing = (
-	mounted: ReturnType<typeof mount>,
-	label: string,
-	words: string,
-): Effect.Effect<void> =>
+const writing = (mounted: ReturnType<typeof mount>, label: string, words: string): Effect.Effect<void> =>
 	settle(() => {
-		const tag = [...mounted.container.querySelectorAll("label")].find(
-			(each) => each.textContent === label,
-		);
-		const box = mounted.container.querySelector<HTMLInputElement>(
-			`[id="${tag?.htmlFor}"]`,
-		);
-		const set = Object.getOwnPropertyDescriptor(
-			HTMLInputElement.prototype,
-			"value",
-		)?.set;
+		const tag = [...mounted.container.querySelectorAll("label")].find((each) => each.textContent === label);
+		const box = mounted.container.querySelector<HTMLInputElement>(`[id="${tag?.htmlFor}"]`);
+		const set = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")?.set;
 		if (box !== null && set !== undefined) {
 			set.call(box, words);
 			box.dispatchEvent(new Event("input", { bubbles: true }));
@@ -144,9 +114,7 @@ const writing = (
 	});
 
 const questionsIn = (list: Element | undefined): ReadonlyArray<string | null> =>
-	[...(list?.querySelectorAll("li h3") ?? [])].map(
-		(heading) => heading.textContent,
-	);
+	[...(list?.querySelectorAll("li h3") ?? [])].map((heading) => heading.textContent);
 
 beforeEach(() => {
 	openFeeds.length = 0;
@@ -160,18 +128,12 @@ it.effect("lists what stands newest first with who ruled and what", () =>
 		const mounted = mount();
 		yield* showing(mounted, [berthReclaim, chartAuthority]);
 
-		const questions = [...mounted.container.querySelectorAll("li h3")].map(
-			(heading) => heading.textContent,
-		);
+		const questions = [...mounted.container.querySelectorAll("li h3")].map((heading) => heading.textContent);
 		expect(questions).toEqual([berthReclaim.question, chartAuthority.question]);
 		expect(mounted.container.textContent).toContain(berthReclaim.answer);
 		expect(mounted.container.textContent).toContain("ruled by the admiral");
-		expect(mounted.container.textContent).toContain(
-			"ruled by captain agent-mate",
-		);
-		expect(mounted.container.textContent).toContain(
-			"chose: trust the soundings",
-		);
+		expect(mounted.container.textContent).toContain("ruled by captain agent-mate");
+		expect(mounted.container.textContent).toContain("chose: trust the soundings");
 		expect(mounted.container.textContent).toContain("Voyage: voyage-1");
 		yield* settle(() => mounted.root.unmount());
 	}),
@@ -185,10 +147,7 @@ it.effect("supersedes a ruling with the later one picked for it", () =>
 		yield* picking(mounted, chartAuthority.question);
 		yield* settle(() => buttonSaying(mounted, "Supersede")?.click());
 
-		expect(supersedeRuling).toHaveBeenCalledWith(
-			{ byRulingId: chartAuthority.id, rulingId: berthReclaim.id },
-			expect.any(Function),
-		);
+		expect(supersedeRuling).toHaveBeenCalledWith({ byRulingId: chartAuthority.id, rulingId: berthReclaim.id }, expect.any(Function));
 		yield* settle(() => mounted.root.unmount());
 	}),
 );
@@ -236,10 +195,7 @@ it.effect("withdraws a standing ruling with the words that retire it", () =>
 		yield* writing(mounted, "Withdraw because…", "berths are gone entirely");
 		yield* settle(() => buttonSaying(mounted, "Withdraw")?.click());
 
-		expect(withdrawRuling).toHaveBeenCalledWith(
-			{ note: "berths are gone entirely", rulingId: berthReclaim.id },
-			expect.any(Function),
-		);
+		expect(withdrawRuling).toHaveBeenCalledWith({ note: "berths are gone entirely", rulingId: berthReclaim.id }, expect.any(Function));
 		yield* settle(() => mounted.root.unmount());
 	}),
 );
@@ -266,9 +222,7 @@ it.effect("gathers what has gone stale under its own heading", () =>
 		const lists = [...mounted.container.querySelectorAll("ul")];
 		expect(questionsIn(lists[0])).toEqual([berthReclaim.question]);
 		expect(questionsIn(lists[1])).toEqual([chartAuthority.question]);
-		expect(mounted.container.textContent).toContain(
-			"They bind until you withdraw them",
-		);
+		expect(mounted.container.textContent).toContain("They bind until you withdraw them");
 		yield* settle(() => mounted.root.unmount());
 	}),
 );

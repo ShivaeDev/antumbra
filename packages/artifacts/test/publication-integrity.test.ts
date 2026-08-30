@@ -1,34 +1,14 @@
 import { createHash } from "node:crypto";
-import {
-	lstatSync,
-	mkdirSync,
-	mkdtempSync,
-	readFileSync,
-	rmSync,
-	symlinkSync,
-	writeFileSync,
-} from "node:fs";
+import { lstatSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { basename, join } from "node:path";
 import { Artifacts, ArtifactsLive } from "@antumbra/artifacts";
 import { DomainFeedsLive } from "@antumbra/domain-feeds";
 import type { DatabaseService } from "@antumbra/persistence";
 import { persistenceIt } from "@antumbra/persistence/testing";
-import {
-	NodeCrypto,
-	NodeFileSystem,
-	NodePath,
-	NodeServices,
-} from "@effect/platform-node";
+import { NodeCrypto, NodeFileSystem, NodePath, NodeServices } from "@effect/platform-node";
 import { expect } from "@effect/vitest";
-import {
-	type Crypto,
-	Effect,
-	FileSystem,
-	Layer,
-	type Path,
-	PlatformError,
-} from "effect";
+import { type Crypto, Effect, FileSystem, Layer, type Path, PlatformError } from "effect";
 
 const it = persistenceIt();
 
@@ -81,10 +61,7 @@ const input = {
 	title: "reef chart",
 };
 
-const wrappedFile = (
-	file: FileSystem.File,
-	sync: Effect.Effect<void, PlatformError.PlatformError>,
-): FileSystem.File => ({
+const wrappedFile = (file: FileSystem.File, sync: Effect.Effect<void, PlatformError.PlatformError>): FileSystem.File => ({
 	[FileSystem.FileTypeId]: FileSystem.FileTypeId,
 	read: (buffer) => file.read(buffer),
 	readAlloc: (size) => file.readAlloc(size),
@@ -96,23 +73,15 @@ const wrappedFile = (
 	writeAll: (buffer) => file.writeAll(buffer),
 });
 
-const platformWith = (
-	make: (fs: FileSystem.FileSystem) => FileSystem.FileSystem,
-): Layer.Layer<FileSystem.FileSystem | Path.Path | Crypto.Crypto> => {
-	const fileSystem = Layer.effect(FileSystem.FileSystem)(
-		FileSystem.FileSystem.use((fs) => Effect.succeed(make(fs))),
-	).pipe(Layer.provide(NodeFileSystem.layer));
+const platformWith = (make: (fs: FileSystem.FileSystem) => FileSystem.FileSystem): Layer.Layer<FileSystem.FileSystem | Path.Path | Crypto.Crypto> => {
+	const fileSystem = Layer.effect(FileSystem.FileSystem)(FileSystem.FileSystem.use((fs) => Effect.succeed(make(fs)))).pipe(
+		Layer.provide(NodeFileSystem.layer),
+	);
 	return Layer.mergeAll(NodeCrypto.layer, NodePath.layer, fileSystem);
 };
 
-const artifactLayer = (
-	published: string,
-	platform: Layer.Layer<FileSystem.FileSystem | Path.Path | Crypto.Crypto>,
-) =>
-	ArtifactsLive(published).pipe(
-		Layer.provideMerge(DomainFeedsLive),
-		Layer.provide(platform),
-	);
+const artifactLayer = (published: string, platform: Layer.Layer<FileSystem.FileSystem | Path.Path | Crypto.Crypto>) =>
+	ArtifactsLive(published).pipe(Layer.provideMerge(DomainFeedsLive), Layer.provide(platform));
 
 const syncEvidenceFile = (
 	file: FileSystem.File,
@@ -122,44 +91,22 @@ const syncEvidenceFile = (
 	syncFailure: PlatformError.PlatformError,
 ): FileSystem.File => {
 	if (basename(path).startsWith(".publish-")) {
-		const sync = Effect.sync(() => events.push("file-sync")).pipe(
-			Effect.andThen(file.sync),
-		);
+		const sync = Effect.sync(() => events.push("file-sync")).pipe(Effect.andThen(file.sync));
 		return wrappedFile(file, sync);
 	}
-	if (
-		path !== fixture.published &&
-		path.startsWith(fixture.published) &&
-		lstatSync(path).isDirectory()
-	) {
-		const sync = Effect.sync(() => events.push("directory-sync")).pipe(
-			Effect.andThen(Effect.fail(syncFailure)),
-		);
+	if (path !== fixture.published && path.startsWith(fixture.published) && lstatSync(path).isDirectory()) {
+		const sync = Effect.sync(() => events.push("directory-sync")).pipe(Effect.andThen(Effect.fail(syncFailure)));
 		return wrappedFile(file, sync);
 	}
 	return file;
 };
 
-const durabilityPlatform = (
-	fixture: Fixture,
-	events: string[],
-	syncFailure: PlatformError.PlatformError,
-) =>
+const durabilityPlatform = (fixture: Fixture, events: string[], syncFailure: PlatformError.PlatformError) =>
 	platformWith((fs) =>
 		FileSystem.FileSystem.of({
 			...fs,
-			open: (path, options) =>
-				fs
-					.open(path, options)
-					.pipe(
-						Effect.map((file) =>
-							syncEvidenceFile(file, path, fixture, events, syncFailure),
-						),
-					),
-			rename: (from, to) =>
-				Effect.sync(() => events.push("rename")).pipe(
-					Effect.andThen(fs.rename(from, to)),
-				),
+			open: (path, options) => fs.open(path, options).pipe(Effect.map((file) => syncEvidenceFile(file, path, fixture, events, syncFailure))),
+			rename: (from, to) => Effect.sync(() => events.push("rename")).pipe(Effect.andThen(fs.rename(from, to))),
 		}),
 	);
 
@@ -188,61 +135,46 @@ const replacementPlatform = (outside: string, state: ReplacementState) =>
 		}),
 	);
 
-it.effectDB(
-	"refuses completion until file and directory sync finish",
-	function* (db) {
-		const fixture = makeFixture();
-		writeFileSync(fixture.source, "inside");
-		const events: string[] = [];
-		const syncFailure = PlatformError.systemError({
-			_tag: "Unknown",
-			description: "coordinated directory sync failure",
-			method: "sync",
-			module: "FileSystem",
-		});
-		const platform = durabilityPlatform(fixture, events, syncFailure);
-		yield* seed(db, fixture.moorage);
-		const failure = yield* Effect.gen(function* () {
-			const artifacts = yield* Artifacts;
-			return yield* Effect.flip(artifacts.land(input));
-		}).pipe(Effect.provide(artifactLayer(fixture.published, platform)));
+it.effectDB("refuses completion until file and directory sync finish", function* (db) {
+	const fixture = makeFixture();
+	writeFileSync(fixture.source, "inside");
+	const events: string[] = [];
+	const syncFailure = PlatformError.systemError({
+		_tag: "Unknown",
+		description: "coordinated directory sync failure",
+		method: "sync",
+		module: "FileSystem",
+	});
+	const platform = durabilityPlatform(fixture, events, syncFailure);
+	yield* seed(db, fixture.moorage);
+	const failure = yield* Effect.gen(function* () {
+		const artifacts = yield* Artifacts;
+		return yield* Effect.flip(artifacts.land(input));
+	}).pipe(Effect.provide(artifactLayer(fixture.published, platform)));
 
-		expect(failure._tag).toBe("ArtifactPublicationFailed");
-		expect(events).toEqual(["file-sync", "rename", "directory-sync"]);
-		expect(yield* db.Artifact.all()).toEqual([]);
-		rmSync(fixture.root, { force: true, recursive: true });
-	},
-);
+	expect(failure._tag).toBe("ArtifactPublicationFailed");
+	expect(events).toEqual(["file-sync", "rename", "directory-sync"]);
+	expect(yield* db.Artifact.all()).toEqual([]);
+	rmSync(fixture.root, { force: true, recursive: true });
+});
 
-it.effectDB(
-	"reads the same owned object when its path is replaced",
-	function* (db) {
-		const fixture = makeFixture();
-		const outside = join(fixture.root, "outside.md");
-		writeFileSync(fixture.source, "inside");
-		writeFileSync(outside, "outside");
-		const state = { replaced: false };
-		const platform = replacementPlatform(outside, state);
-		yield* seed(db, fixture.moorage);
-		const artifact = yield* Effect.gen(function* () {
-			const artifacts = yield* Artifacts;
-			return yield* artifacts.land(input);
-		}).pipe(Effect.provide(artifactLayer(fixture.published, platform)));
+it.effectDB("reads the same owned object when its path is replaced", function* (db) {
+	const fixture = makeFixture();
+	const outside = join(fixture.root, "outside.md");
+	writeFileSync(fixture.source, "inside");
+	writeFileSync(outside, "outside");
+	const state = { replaced: false };
+	const platform = replacementPlatform(outside, state);
+	yield* seed(db, fixture.moorage);
+	const artifact = yield* Effect.gen(function* () {
+		const artifacts = yield* Artifacts;
+		return yield* artifacts.land(input);
+	}).pipe(Effect.provide(artifactLayer(fixture.published, platform)));
 
-		expect(state.replaced).toBe(true);
-		expect(
-			readFileSync(
-				join(
-					fixture.published,
-					artifact.artifact.digest,
-					artifact.artifact.basename,
-				),
-				"utf8",
-			),
-		).toBe("inside");
-		rmSync(fixture.root, { force: true, recursive: true });
-	},
-);
+	expect(state.replaced).toBe(true);
+	expect(readFileSync(join(fixture.published, artifact.artifact.digest, artifact.artifact.basename), "utf8")).toBe("inside");
+	rmSync(fixture.root, { force: true, recursive: true });
+});
 
 it.effectDB("refuses a substituted existing CAS destination", function* (db) {
 	const fixture = makeFixture();

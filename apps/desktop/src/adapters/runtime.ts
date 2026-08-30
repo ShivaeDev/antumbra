@@ -3,6 +3,7 @@ import { codexPlugin } from "@antumbra/backend-codex";
 import {
 	AgentDomain,
 	AgentDomainLive,
+	BackendCapacityReleaseLive,
 	ChangeWatcherLive,
 	DispatcherLive,
 	FlagshipLive,
@@ -19,10 +20,7 @@ import {
 import { githubPlugin } from "@antumbra/github";
 import { IntentDemandLive } from "@antumbra/intent-demand";
 import { KernelLive } from "@antumbra/kernel";
-import {
-	databaseFileInDataDirectory,
-	PersistenceLive,
-} from "@antumbra/persistence";
+import { databaseFileInDataDirectory, PersistenceLive } from "@antumbra/persistence";
 import { makePluginHost } from "@antumbra/plugin-api";
 import { localRunnerPlugin } from "@antumbra/runner-local";
 import { NodeServices } from "@effect/platform-node";
@@ -49,15 +47,11 @@ const persistence = Layer.unwrap(
 const agents = Layer.unwrap(
 	Effect.gen(function* () {
 		const host = yield* makePluginHost({ findExecutable: findOnLoginPath });
-		const runnerPlugin = localRunnerPlugin(
-			runnerRootsInDataDirectory(configureDataDirectory()),
-		);
+		const runnerPlugin = localRunnerPlugin(runnerRootsInDataDirectory(configureDataDirectory()));
 		yield* Effect.orDie(claudePlugin().activate(host.context));
 		// why: the codex child runs from the data directory; threads get their
 		// own cwd per session.
-		yield* Effect.orDie(
-			codexPlugin({ cwd: configureDataDirectory() }).activate(host.context),
-		);
+		yield* Effect.orDie(codexPlugin({ cwd: configureDataDirectory() }).activate(host.context));
 		yield* Effect.orDie(runnerPlugin.activate(host.context));
 		// why: registered unconditionally, unlike the agent CLIs — a change host
 		// that cannot reach gh still claims its repos and says why through its
@@ -81,9 +75,9 @@ const kernel = Layer.unwrap(
 	}),
 ).pipe(Layer.provideMerge(agents));
 
-// why: the dispatcher and the change watcher stand beside the view source
-// rather than under it — launched pieces are spawned for and open changes are
-// followed whether or not a window is watching.
+// why: the dispatcher, provider-capacity release, and change watcher stand
+// beside the view source rather than under it — their work continues whether
+// or not a window is watching.
 export const applicationLayers = () =>
 	Layer.mergeAll(
 		RulingSourceLive,
@@ -104,6 +98,7 @@ export const applicationLayers = () =>
 		RulingDeliveryLive,
 		SessionShutdownLive,
 	).pipe(
+		Layer.provideMerge(BackendCapacityReleaseLive),
 		Layer.provideMerge(kernel),
 		Layer.provideMerge(SettingsSourceLive),
 		Layer.provideMerge(persistence),

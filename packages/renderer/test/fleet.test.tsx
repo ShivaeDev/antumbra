@@ -8,8 +8,9 @@ const render = (fleet: Fleet): string =>
 		<FleetPanel
 			fleet={fleet}
 			onError={() => undefined}
-			onNavigate={() => undefined}
+			onPiece={() => undefined}
 			onSelect={() => undefined}
+			onVoyage={() => undefined}
 			selected={undefined}
 		/>,
 	);
@@ -17,6 +18,7 @@ const render = (fleet: Fleet): string =>
 const fleetOf = (agents: ReadonlyArray<AgentSummary>): Fleet => ({
 	agents,
 	backends: ["scripted"],
+	capacities: [],
 	diag: { intents: [] },
 	repos: [],
 });
@@ -47,8 +49,7 @@ const navigator = (canInterrupt: boolean, execution: string): AgentSummary => ({
 	work: [],
 });
 
-const renderFleet = (canInterrupt: boolean, execution: string): string =>
-	render(fleetOf([navigator(canInterrupt, execution)]));
+const renderFleet = (canInterrupt: boolean, execution: string): string => render(fleetOf([navigator(canInterrupt, execution)]));
 
 // why: the discipline this test has always guarded is that the interrupt
 // affordance follows the published capability and nothing else. It still
@@ -118,9 +119,7 @@ it("renders the raw execution and intent words as chips", () => {
 // why: the name the admiral gave an agent is the one thing on the card that
 // must never be abbreviated, and it used to be the first thing to go.
 it("writes an agent's role out in full", () => {
-	expect(renderFleet(true, "active")).toContain(
-		"navigator-of-the-northern-approach",
-	);
+	expect(renderFleet(true, "active")).toContain("navigator-of-the-northern-approach");
 });
 
 it("groups the roster by standing, working first", () => {
@@ -152,11 +151,7 @@ it("offers retirement only when the public capability allows it", () => {
 	expect(resting).toContain("Retire");
 	const working = render(fleetOf([navigator(true, "active")]));
 	expect(working).not.toContain("Retire");
-	const gone = render(
-		fleetOf([
-			{ ...navigator(false, "idle"), canRetire: false, status: "retired" },
-		]),
-	);
+	const gone = render(fleetOf([{ ...navigator(false, "idle"), canRetire: false, status: "retired" }]));
 	expect(gone).not.toContain("Retire");
 });
 

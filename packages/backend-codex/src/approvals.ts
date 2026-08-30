@@ -9,9 +9,7 @@ const DECLINED = "declined by antumbra: no approval consumer is wired yet";
 // rather than silently accepted. Declining completes the item as declined;
 // the turn goes on. A method we serve no answer for is `None`, which the
 // caller turns into an honest refusal.
-export const residualApproval = (
-	request: RpcServerRequest,
-): Option.Option<unknown> => {
+export const residualApproval = (request: RpcServerRequest): Option.Option<unknown> => {
 	switch (request.method) {
 		case "item/commandExecution/requestApproval":
 		case "item/fileChange/requestApproval":

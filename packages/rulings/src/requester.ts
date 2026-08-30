@@ -1,7 +1,4 @@
-import {
-	decodeStoredRulingAuthority,
-	StoredRulingValueInvalid,
-} from "@antumbra/vocabulary/ruling";
+import { decodeStoredRulingAuthority, StoredRulingValueInvalid } from "@antumbra/vocabulary/ruling";
 import { Effect } from "effect";
 import type { RulingRequester } from "#model.ts";
 import type { StoredRuling } from "#stored-rows.ts";
@@ -32,9 +29,7 @@ export const storedRequester = (row: StoredRuling) =>
 			return yield* invalid;
 		}
 		return {
-			by: yield* Effect.fromResult(
-				decodeStoredRulingAuthority(row.id, row.requesterAuthority),
-			),
+			by: yield* Effect.fromResult(decodeStoredRulingAuthority(row.id, row.requesterAuthority)),
 			kind: "authority",
 		} as const;
 	});

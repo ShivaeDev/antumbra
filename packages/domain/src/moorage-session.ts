@@ -1,19 +1,11 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
-import {
-	Database,
-	type NewAgentSession,
-	type PrismaError,
-} from "@antumbra/persistence";
+import { Database, type NewAgentSession, type PrismaError } from "@antumbra/persistence";
 import type { MooragePlan } from "@antumbra/plugin-api";
 import { ensureAgentCanOwnLocalWork } from "@antumbra/resource-reclamation";
+import { openSessions, rootSessionsOf } from "@antumbra/sessions";
 import { decodeStoredAgentSessionStatus } from "@antumbra/vocabulary/agent-runtime";
 import { Effect, Option } from "effect";
-import {
-	AgentNotFound,
-	AgentRootAlreadyOpen,
-	AgentSessionConflict,
-} from "#errors.ts";
-import { openSessions, rootSessionsOf } from "#session-roots.ts";
+import { AgentNotFound, AgentRootAlreadyOpen, AgentSessionConflict } from "#errors.ts";
 import type { SpawnFields } from "#spawn-fields.ts";
 
 export const makeEnsureSessionRow = Effect.gen(function* () {
@@ -28,10 +20,7 @@ export const makeEnsureSessionRow = Effect.gen(function* () {
 	// why: a replayed birth finds the row its earlier attempt wrote. It is this
 	// spawn's own only if the Agent owns it and it is still open; anything else
 	// under the same id belongs to a Session this spawn may not adopt.
-	const alreadyOpened = (
-		payload: SpawnFields,
-		currentSessionId: string | null,
-	) =>
+	const alreadyOpened = (payload: SpawnFields, currentSessionId: string | null) =>
 		Effect.gen(function* () {
 			const session = yield* db.AgentSession.where({
 				id: payload.sessionId,
@@ -39,12 +28,8 @@ export const makeEnsureSessionRow = Effect.gen(function* () {
 			if (Option.isNone(session)) {
 				return false;
 			}
-			const status = yield* Effect.fromResult(
-				decodeStoredAgentSessionStatus(session.value.id, session.value.status),
-			);
-			return session.value.agentId === payload.agentId && status === "open"
-				? true
-				: yield* conflict(payload, currentSessionId);
+			const status = yield* Effect.fromResult(decodeStoredAgentSessionStatus(session.value.id, session.value.status));
+			return session.value.agentId === payload.agentId && status === "open" ? true : yield* conflict(payload, currentSessionId);
 		});
 	// why: one open root per Agent is a rule the database also holds, as a
 	// partial unique index. Left to the index it arrives as a constraint
@@ -65,11 +50,7 @@ export const makeEnsureSessionRow = Effect.gen(function* () {
 				});
 			}
 		});
-	const recoverSessionCreate = (
-		payload: SpawnFields,
-		currentSessionId: string | null,
-		failure: PrismaError,
-	) =>
+	const recoverSessionCreate = (payload: SpawnFields, currentSessionId: string | null, failure: PrismaError) =>
 		Effect.gen(function* () {
 			if (yield* alreadyOpened(payload, currentSessionId)) {
 				return false;
@@ -110,9 +91,7 @@ export const makeEnsureSessionRow = Effect.gen(function* () {
 				status: "open",
 			} satisfies NewAgentSession).pipe(
 				Effect.as(true),
-				Effect.catchTag("PrismaError", (failure) =>
-					recoverSessionCreate(payload, currentSessionId, failure),
-				),
+				Effect.catchTag("PrismaError", (failure) => recoverSessionCreate(payload, currentSessionId, failure)),
 			);
 		});
 	return (payload: SpawnFields, plan: MooragePlan) =>

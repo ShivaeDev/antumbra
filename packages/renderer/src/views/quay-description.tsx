@@ -6,9 +6,7 @@ export const QuayDescription = ({ item }: { readonly item: QuayChange }) => (
 	<section className="flex flex-col gap-2">
 		<SectionHeading title="Description" />
 		{item.body.trim() === "" ? (
-			<p className="text-xs text-muted-foreground">
-				No description was provided.
-			</p>
+			<p className="text-xs text-muted-foreground">No description was provided.</p>
 		) : (
 			<MarkdownView className="text-xs" markdown={item.body} />
 		)}

@@ -12,14 +12,8 @@ interface SessionLifecycle {
 }
 
 export interface SessionLifecycles {
-	readonly admit: <E, R>(
-		sessionId: string,
-		admission: Effect.Effect<void, E, R>,
-	) => Effect.Effect<void, SessionAttachmentFailure | E, R>;
-	readonly stop: <A, E, R>(
-		sessionId: string,
-		teardown: Effect.Effect<A, E, R>,
-	) => Effect.Effect<A, E, R>;
+	readonly admit: <E, R>(sessionId: string, admission: Effect.Effect<void, E, R>) => Effect.Effect<void, SessionAttachmentFailure | E, R>;
+	readonly stop: <A, E, R>(sessionId: string, teardown: Effect.Effect<A, E, R>) => Effect.Effect<A, E, R>;
 }
 
 const stopped = (signal: Deferred.Deferred<void>) =>
@@ -34,9 +28,7 @@ const stopped = (signal: Deferred.Deferred<void>) =>
 	);
 
 export const makeSessionLifecycles = Effect.gen(function* () {
-	const lifecycles = yield* Ref.make<ReadonlyMap<string, SessionLifecycle>>(
-		new Map(),
-	);
+	const lifecycles = yield* Ref.make<ReadonlyMap<string, SessionLifecycle>>(new Map());
 	const lifecycleFor = (sessionId: string) =>
 		Effect.gen(function* () {
 			const candidate: SessionLifecycle = {
@@ -48,9 +40,7 @@ export const makeSessionLifecycles = Effect.gen(function* () {
 			};
 			return yield* Ref.modify(lifecycles, (current) => {
 				const existing = current.get(sessionId);
-				return existing === undefined
-					? [candidate, new Map(current).set(sessionId, candidate)]
-					: [existing, current];
+				return existing === undefined ? [candidate, new Map(current).set(sessionId, candidate)] : [existing, current];
 			});
 		});
 	const admit: SessionLifecycles["admit"] = (sessionId, admission) =>
@@ -69,19 +59,14 @@ export const makeSessionLifecycles = Effect.gen(function* () {
 			return yield* Effect.acquireUseRelease(
 				Effect.gen(function* () {
 					const replacement = yield* Deferred.make<void>();
-					const signal = yield* Ref.modify(lifecycle.stopState, (state) => [
-						state.signal,
-						{ pending: state.pending + 1, signal: state.signal },
-					]);
+					const signal = yield* Ref.modify(lifecycle.stopState, (state) => [state.signal, { pending: state.pending + 1, signal: state.signal }]);
 					yield* Deferred.succeed(signal, undefined);
 					return replacement;
 				}),
 				() => lifecycle.gate.withPermits(1)(teardown),
 				(replacement) =>
 					Ref.update(lifecycle.stopState, (state) =>
-						state.pending === 1
-							? { pending: 0, signal: replacement }
-							: { pending: state.pending - 1, signal: state.signal },
+						state.pending === 1 ? { pending: 0, signal: replacement } : { pending: state.pending - 1, signal: state.signal },
 					),
 			);
 		});

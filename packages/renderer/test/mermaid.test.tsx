@@ -14,20 +14,12 @@ it.effect("shows Mermaid failures without leaving a global error diagram", () =>
 		const root = createRoot(container);
 		yield* Effect.promise(() =>
 			act(() => {
-				root.render(
-					<OutcomeMarkdownView
-						markdown={"```mermaid\nthis is not a diagram\n```"}
-					/>,
-				);
+				root.render(<OutcomeMarkdownView markdown={"```mermaid\nthis is not a diagram\n```"} />);
 				return Promise.resolve();
 			}),
 		);
 
-		yield* Effect.promise(() =>
-			vi.waitFor(() =>
-				expect(container.textContent).toContain("MermaidRenderError"),
-			),
-		);
+		yield* Effect.promise(() => vi.waitFor(() => expect(container.textContent).toContain("MermaidRenderError")));
 		expect(document.body.querySelector('[id^="doutcome-"]')).toBeNull();
 		yield* Effect.promise(() =>
 			act(() => {

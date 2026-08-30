@@ -6,9 +6,7 @@ import { failureMessage } from "#sight-failure.ts";
 // the window does not — the ruling was never asked, was never ruled, or has
 // already left the standing set — so each comes back as the sentence that says
 // which rather than as this process failing.
-export const withdrawalFailure = (
-	cause: RulingWithdrawalFailure,
-): RulingFailure | RulingRefused => {
+export const withdrawalFailure = (cause: RulingWithdrawalFailure): RulingFailure | RulingRefused => {
 	switch (cause._tag) {
 		case "RulingAlreadySuperseded":
 			return new RulingRefused({

@@ -3,10 +3,7 @@ import { expect, it } from "@effect/vitest";
 import { Effect } from "effect";
 import { AGENTS_ALIVE_GAUGE, AgentDomain } from "#domain.ts";
 import { domainKernelLayer } from "#test/domain-layers.ts";
-import {
-	acquireTemporaryPersistence,
-	makeScriptedBackend,
-} from "#test/harness.ts";
+import { acquireTemporaryPersistence, makeScriptedBackend } from "#test/harness.ts";
 
 it.live("the alive gauge rejects unknown durable Agent truth", () =>
 	Effect.gen(function* () {

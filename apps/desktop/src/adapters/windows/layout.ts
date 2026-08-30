@@ -14,14 +14,12 @@ export type RememberedWindow = typeof RememberedWindow.Type;
 // guesses about what its fields once meant.
 export const WindowLayout = Schema.Struct({
 	focused: Schema.NullOr(Schema.String),
-	version: Schema.Literal(3),
+	version: Schema.Literal(2),
 	windows: Schema.Array(RememberedWindow),
 });
 export type WindowLayout = typeof WindowLayout.Type;
 
-const decodeLayout = Schema.decodeUnknownResult(
-	Schema.fromJsonString(WindowLayout),
-);
+const decodeLayout = Schema.decodeUnknownResult(Schema.fromJsonString(WindowLayout));
 
 // why: the console opens on the flagship because the fleet's highest-level
 // agent is somewhere to talk, not somewhere to navigate to — a first run lands
@@ -35,10 +33,7 @@ export const defaultConsole = {
 	voyageId: null,
 } as const satisfies ConsolePlace;
 
-export const layoutOf = (
-	windows: ReadonlyArray<RememberedWindow>,
-	focused: string | null,
-): WindowLayout => ({ focused, version: 3, windows });
+export const layoutOf = (windows: ReadonlyArray<RememberedWindow>, focused: string | null): WindowLayout => ({ focused, version: 2, windows });
 
 // why: window layout is glass, not truth. A file that cannot be read is a
 // layout we do not have, which is a state the app already knows how to be in —
@@ -51,8 +46,7 @@ export const readLayout = (raw: string): WindowLayout | undefined => {
 
 // why: reading is where trust matters, so the schema guards that side. What is
 // written is a value this process just built and already holds to the type.
-export const writeLayout = (layout: WindowLayout): string =>
-	JSON.stringify(layout, null, 2);
+export const writeLayout = (layout: WindowLayout): string => JSON.stringify(layout, null, 2);
 
 export interface RestorePlan {
 	readonly children: ReadonlyArray<RememberedWindow>;
@@ -63,9 +57,7 @@ export interface RestorePlan {
 // why: a file naming the same subject twice is that window written down twice,
 // not two windows to open — the same rule the registry refuses a second window
 // by, asked of a file instead of a caller.
-const firstPerSubject = (
-	windows: ReadonlyArray<RememberedWindow>,
-): ReadonlyArray<RememberedWindow> => {
+const firstPerSubject = (windows: ReadonlyArray<RememberedWindow>): ReadonlyArray<RememberedWindow> => {
 	const seen = new Set<string>();
 	return windows.filter((window) => {
 		const key = subjectOf(window.place);
@@ -84,9 +76,7 @@ export const restorePlan = (layout: WindowLayout | undefined): RestorePlan => {
 	const windows = layout?.windows ?? [];
 	const remembered = windows.find((window) => window.place.role === "console");
 	return {
-		children: firstPerSubject(
-			windows.filter((window) => window.place.role !== "console"),
-		),
+		children: firstPerSubject(windows.filter((window) => window.place.role !== "console")),
 		consoleWindow: remembered ?? { id: "console", place: defaultConsole },
 		focused: layout?.focused ?? null,
 	};

@@ -29,14 +29,9 @@ const OPTIONS: ts.CompilerOptions = {
 
 const normalized = (path: string): string => resolve(path);
 
-const kindOf = (path: string): ts.ScriptKind =>
-	path.endsWith(".tsx") ? ts.ScriptKind.TSX : ts.ScriptKind.TS;
+const kindOf = (path: string): ts.ScriptKind => (path.endsWith(".tsx") ? ts.ScriptKind.TSX : ts.ScriptKind.TS);
 
-const hashBase = (
-	specifier: string,
-	containing: string,
-	root: string,
-): string | undefined => {
+const hashBase = (specifier: string, containing: string, root: string): string | undefined => {
 	if (!specifier.startsWith("#")) return undefined;
 	const packageParts = relative(root, containing).split("/");
 	if (packageParts[0] === "script") {
@@ -60,47 +55,28 @@ const workspaceBase = (specifier: string, root: string): string | undefined => {
 	return subpath.length === 0 ? join(base, "index") : base;
 };
 
-const candidatesFor = (
-	specifier: string,
-	containing: string,
-	root: string,
-): readonly string[] => {
+const candidatesFor = (specifier: string, containing: string, root: string): readonly string[] => {
 	const base = specifier.startsWith(".")
 		? resolve(dirname(containing), specifier)
 		: (hashBase(specifier, containing, root) ?? workspaceBase(specifier, root));
 	if (base === undefined) return [];
-	return /\.tsx?$/.test(base)
-		? [base]
-		: [`${base}.ts`, `${base}.tsx`, join(base, "index.ts")];
+	return /\.tsx?$/.test(base) ? [base] : [`${base}.ts`, `${base}.tsx`, join(base, "index.ts")];
 };
 
-export const serviceParameterProgram = (
-	files: readonly SourceFile[],
-	root: string,
-): ServiceParameterProgram => {
+export const serviceParameterProgram = (files: readonly SourceFile[], root: string): ServiceParameterProgram => {
 	const contents = new Map(
-		files
-			.filter((file) => !isDeclaration(file.path))
-			.map((file) => [
-				normalized(resolve(root, file.path)),
-				file.lines.join("\n"),
-			]),
+		files.filter((file) => !isDeclaration(file.path)).map((file) => [normalized(resolve(root, file.path)), file.lines.join("\n")]),
 	);
 	const host = ts.createCompilerHost(OPTIONS, true);
 	const readFile = host.readFile.bind(host);
 	const fileExists = host.fileExists.bind(host);
 	const getSourceFile = host.getSourceFile.bind(host);
 	host.readFile = (path) => contents.get(normalized(path)) ?? readFile(path);
-	host.fileExists = (path) =>
-		contents.has(normalized(path)) || fileExists(path);
+	host.fileExists = (path) => contents.has(normalized(path)) || fileExists(path);
 	host.resolveModuleNames = (names, containing) =>
 		names.map((name) => {
-			const path = candidatesFor(name, containing, root).find((candidate) =>
-				contents.has(normalized(candidate)),
-			);
-			return path === undefined
-				? undefined
-				: { extension: ts.Extension.Ts, resolvedFileName: path };
+			const path = candidatesFor(name, containing, root).find((candidate) => contents.has(normalized(candidate)));
+			return path === undefined ? undefined : { extension: ts.Extension.Ts, resolvedFileName: path };
 		});
 	host.getSourceFile = (path, languageVersion, onError, fresh) => {
 		const content = contents.get(normalized(path));

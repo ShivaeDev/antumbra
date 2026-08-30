@@ -9,14 +9,10 @@ const packageDirectory = fileURLToPath(new URL("..", import.meta.url));
 const workspaceDirectory = fileURLToPath(new URL("../../..", import.meta.url));
 
 const compile = (compiler: "tsc" | "tsc6", arguments_: ReadonlyArray<string>) =>
-	spawnSync(
-		join(workspaceDirectory, "node_modules", ".bin", compiler),
-		arguments_,
-		{
-			cwd: packageDirectory,
-			encoding: "utf8",
-		},
-	);
+	spawnSync(join(workspaceDirectory, "node_modules", ".bin", compiler), arguments_, {
+		cwd: packageDirectory,
+		encoding: "utf8",
+	});
 
 const invalidArguments = (fixture: string) => [
 	"--ignoreConfig",
@@ -39,32 +35,16 @@ describe("service definition compiler fixtures", () => {
 		it(`${compiler} emits only the initialized public service surface`, () => {
 			const output = mkdtempSync(join(tmpdir(), `antumbra-${compiler}-`));
 			try {
-				const result = compile(compiler, [
-					"-p",
-					"test/fixtures/tsconfig.json",
-					"--outDir",
-					output,
-				]);
+				const result = compile(compiler, ["-p", "test/fixtures/tsconfig.json", "--outDir", output]);
 				expect(result.stderr || result.stdout).toBe("");
 				expect(result.status).toBe(0);
-				const declaration = readFileSync(
-					join(output, "test/fixtures/valid.d.ts"),
-					"utf8",
-				);
+				const declaration = readFileSync(join(output, "test/fixtures/valid.d.ts"), "utf8");
 				expect(declaration).toContain("...arguments_: number[]");
-				expect(declaration).toContain(
-					"Effect.Effect<number, MethodFailure, never>",
-				);
+				expect(declaration).toContain("Effect.Effect<number, MethodFailure, never>");
 				expect(declaration).toContain("Scope.Scope");
-				expect(declaration).toContain(
-					'Layer<"fixture/Ordinary", InitializationFailure, Declared | Residual>',
-				);
-				expect(declaration).toContain(
-					"preserve: <Success, Failure, Requirements>",
-				);
-				expect(declaration).toContain(
-					"readonly value: Success;\n    }, Failure | GenericFailure, Requirements>",
-				);
+				expect(declaration).toContain('Layer<"fixture/Ordinary", InitializationFailure, Declared | Residual>');
+				expect(declaration).toContain("preserve: <Success, Failure, Requirements>");
+				expect(declaration).toContain("readonly value: Success;\n    }, Failure | GenericFailure, Requirements>");
 				expect(declaration).toContain('Layer<"fixture/Generic", never, never>');
 				expect(declaration).not.toContain("PrivateState");
 				expect(declaration).not.toContain("initialize");
@@ -75,29 +55,22 @@ describe("service definition compiler fixtures", () => {
 		});
 
 		const invalidFixtures = {
-			"caller-requirement":
-				"missing the following properties from type 'Scope'",
+			"caller-requirement": "missing the following properties from type 'Scope'",
 			fake: "second",
 			generic: "GenericOrStructurallyOverloadedMethodsAreUnsupported",
-			"generic-declared-requirement":
-				"GenericMethodWithDeclaredRequirementsIsUnsupported",
-			"generic-marker-overloaded":
-				"GenericOrStructurallyOverloadedMethodsAreUnsupported",
+			"generic-declared-requirement": "GenericMethodWithDeclaredRequirementsIsUnsupported",
+			"generic-marker-overloaded": "GenericOrStructurallyOverloadedMethodsAreUnsupported",
 			"initializer-requirement": "InitializerHasUndeclaredServiceRequirements",
 			"method-requirement": "MethodHasUndeclaredServiceRequirements",
 			"method-value": "not assignable",
 			overloaded: "GenericOrStructurallyOverloadedMethodsAreUnsupported",
-			"overloaded-broad":
-				"GenericOrStructurallyOverloadedMethodsAreUnsupported",
+			"overloaded-broad": "GenericOrStructurallyOverloadedMethodsAreUnsupported",
 			"private-state": "Property 'secret' does not exist",
-			"requirement-free-ordinary-requirement":
-				"MethodHasUndeclaredServiceRequirements",
+			"requirement-free-ordinary-requirement": "MethodHasUndeclaredServiceRequirements",
 			"scope-requirement": "ScopeCannotBeDeclaredAsAServiceRequirement",
 		} as const;
 
-		for (const [fixture, expectedDiagnostic] of Object.entries(
-			invalidFixtures,
-		)) {
+		for (const [fixture, expectedDiagnostic] of Object.entries(invalidFixtures)) {
 			it(`${compiler} rejects ${fixture}`, () => {
 				const result = compile(compiler, invalidArguments(fixture));
 				const diagnostics = result.stderr || result.stdout;

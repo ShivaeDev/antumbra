@@ -6,39 +6,29 @@ import { IntentExecution } from "#workflow.ts";
 
 const EMPTY = Schema.Struct({});
 
-class RetryCounter extends Context.Service<
-	RetryCounter,
-	{ readonly next: Effect.Effect<number> }
->()("test/RetryCounter") {}
+class RetryCounter extends Context.Service<RetryCounter, { readonly next: Effect.Effect<number> }>()("test/RetryCounter") {}
 
-const failFirstAttempt = (attempt: number) =>
-	attempt === 1 ? Effect.fail("transient") : Effect.void;
+const failFirstAttempt = (attempt: number) => (attempt === 1 ? Effect.fail("transient") : Effect.void);
 
-it.effect(
-	"retries a typed failure while preserving step service requirements",
-	() =>
-		Effect.gen(function* () {
-			const attempts = yield* Ref.make(0);
-			const counter = RetryCounter.of({
-				next: Ref.updateAndGet(attempts, (count) => count + 1),
-			});
-			const retryable = RetryCounter.use((service) =>
-				Effect.flatMap(service.next, failFirstAttempt),
-			);
-			const retryStep = IntentExecution.use((execution) =>
-				execution
-					.step("retryable-step", retryable, { additionalAttempts: 1 })
-					.pipe(Effect.provideService(RetryCounter, counter)),
-			);
-			const kind = defineIntent({
-				execute: () => retryStep,
-				payload: EMPTY,
-				tag: "test/activity-replay",
-			});
-			const payload = yield* kind.encode({});
-			yield* kind.run("intent-replay", payload);
-			expect(yield* Ref.get(attempts)).toBe(2);
-		}),
+it.effect("retries a typed failure while preserving step service requirements", () =>
+	Effect.gen(function* () {
+		const attempts = yield* Ref.make(0);
+		const counter = RetryCounter.of({
+			next: Ref.updateAndGet(attempts, (count) => count + 1),
+		});
+		const retryable = RetryCounter.use((service) => Effect.flatMap(service.next, failFirstAttempt));
+		const retryStep = IntentExecution.use((execution) =>
+			execution.step("retryable-step", retryable, { additionalAttempts: 1 }).pipe(Effect.provideService(RetryCounter, counter)),
+		);
+		const kind = defineIntent({
+			execute: () => retryStep,
+			payload: EMPTY,
+			tag: "test/activity-replay",
+		});
+		const payload = yield* kind.encode({});
+		yield* kind.run("intent-replay", payload);
+		expect(yield* Ref.get(attempts)).toBe(2);
+	}),
 );
 
 it.effect("runs the same intent id in separate admission scopes", () =>
@@ -76,13 +66,8 @@ it.effect("replays a stored activity result for the same execution", () =>
 		});
 		yield* Effect.gen(function* () {
 			const engine = yield* WorkflowEngine.WorkflowEngine;
-			const instance = WorkflowEngine.WorkflowInstance.initial(
-				workflow,
-				"execution-replay",
-			);
-			const execute = engine
-				.activityExecute(activity, 1)
-				.pipe(Effect.provideService(WorkflowEngine.WorkflowInstance, instance));
+			const instance = WorkflowEngine.WorkflowInstance.initial(workflow, "execution-replay");
+			const execute = engine.activityExecute(activity, 1).pipe(Effect.provideService(WorkflowEngine.WorkflowInstance, instance));
 			expect((yield* execute)._tag).toBe("Complete");
 			expect((yield* execute)._tag).toBe("Complete");
 		}).pipe(Effect.provide(WorkflowEngine.layerMemory));

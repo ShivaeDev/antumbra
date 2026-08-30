@@ -21,9 +21,7 @@ const change = (over: Partial<ChangeView> = {}): ChangeView => ({
 	...over,
 });
 
-const quay = (
-	rows: ReadonlyArray<{ group: QuayGroup; observedAt?: string }>,
-): QuayView => ({
+const quay = (rows: ReadonlyArray<{ group: QuayGroup; observedAt?: string }>): QuayView => ({
 	hosts: [],
 	pieces: [],
 	rows: rows.map((row, index) => ({
@@ -44,31 +42,20 @@ const quay = (
 	})),
 });
 
-const labels = (view: ChangeView): ReadonlyArray<string> =>
-	changeMarks(view).map((mark) => mark.label);
+const labels = (view: ChangeView): ReadonlyArray<string> => changeMarks(view).map((mark) => mark.label);
 
-const keys = (view: ChangeView): ReadonlyArray<string> =>
-	changeMarks(view).map((mark) => mark.key);
+const keys = (view: ChangeView): ReadonlyArray<string> => changeMarks(view).map((mark) => mark.key);
 
-const tones = (view: ChangeView): ReadonlyArray<string> =>
-	changeMarks(view).map((mark) => mark.tone);
+const tones = (view: ChangeView): ReadonlyArray<string> => changeMarks(view).map((mark) => mark.tone);
 
 describe("a change's marks", () => {
 	it("puts checks, review and the merge in the same three places", () => {
 		expect(keys(change())).toEqual(["checks", "review", "merge"]);
-		expect(keys(change({ checks: "none", review: "none" }))).toEqual([
-			"checks",
-			"review",
-			"merge",
-		]);
+		expect(keys(change({ checks: "none", review: "none" }))).toEqual(["checks", "review", "merge"]);
 	});
 
 	it("says where each step stands rather than punctuating a line", () => {
-		expect(labels(change())).toEqual([
-			"checks passed",
-			"approved",
-			"merges cleanly",
-		]);
+		expect(labels(change())).toEqual(["checks passed", "approved", "merges cleanly"]);
 		expect(
 			labels(
 				change({
@@ -82,16 +69,8 @@ describe("a change's marks", () => {
 
 	it("colours a step by what it asks of a reader", () => {
 		expect(tones(change())).toEqual(["success", "success", "success"]);
-		expect(tones(change({ checks: "pending", review: "pending" }))).toEqual([
-			"warning",
-			"info",
-			"success",
-		]);
-		expect(tones(change({ checks: "none", mergeable: "unknown" }))).toEqual([
-			"muted",
-			"success",
-			"muted",
-		]);
+		expect(tones(change({ checks: "pending", review: "pending" }))).toEqual(["warning", "info", "success"]);
+		expect(tones(change({ checks: "none", mergeable: "unknown" }))).toEqual(["muted", "success", "muted"]);
 	});
 
 	it("a merged change says only that, and recedes", () => {

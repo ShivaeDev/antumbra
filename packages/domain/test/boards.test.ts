@@ -5,19 +5,14 @@ import { expect, it } from "@effect/vitest";
 import { Effect, Option } from "effect";
 import { AgentDomain } from "#domain.ts";
 import { domainKernelLayer } from "#test/domain-layers.ts";
-import {
-	acquireTemporaryPersistence,
-	makeScriptedBackend,
-} from "#test/harness.ts";
+import { acquireTemporaryPersistence, makeScriptedBackend } from "#test/harness.ts";
 import { openReefVoyage } from "#test/voyage-fixtures.ts";
 
 const withDomain = <A, E, R>(body: Effect.Effect<A, E, R>) =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
 		const scripted = yield* makeScriptedBackend;
-		yield* body.pipe(
-			Effect.provide(domainKernelLayer(temporary, scripted.backend)),
-		);
+		yield* body.pipe(Effect.provide(domainKernelLayer(temporary, scripted.backend)));
 	});
 
 const hand = (agentId: string) =>
@@ -104,13 +99,9 @@ it.live("every durable entity carries its own board", () =>
 				BoardScope.Piece({ pieceId: piece.id }),
 				yield* hand("agent-1"),
 			];
-			yield* Effect.forEach(scopes, (scope) =>
-				domain.boards.write(scope, noted(`written to ${scope._tag}`)),
-			);
+			yield* Effect.forEach(scopes, (scope) => domain.boards.write(scope, noted(`written to ${scope._tag}`)));
 			for (const scope of scopes) {
-				expect(yield* domain.boards.read(scope)).toMatchObject([
-					{ body: `written to ${scope._tag}` },
-				]);
+				expect(yield* domain.boards.read(scope)).toMatchObject([{ body: `written to ${scope._tag}` }]);
 			}
 		}),
 	),
@@ -136,9 +127,7 @@ it.live("an entity nobody has written to reads as an empty board", () =>
 		Effect.gen(function* () {
 			const domain = yield* AgentDomain;
 			const voyage = yield* openReefVoyage;
-			expect(
-				yield* domain.boards.read(BoardScope.Voyage({ voyageId: voyage.id })),
-			).toEqual([]);
+			expect(yield* domain.boards.read(BoardScope.Voyage({ voyageId: voyage.id }))).toEqual([]);
 		}),
 	),
 );
@@ -149,11 +138,7 @@ it.live("two hands writing at once still find one board", () =>
 			const db = yield* Database;
 			const domain = yield* AgentDomain;
 			const scope = yield* hand("agent-1");
-			yield* Effect.forEach(
-				["port watch", "starboard watch"],
-				(body) => domain.boards.write(scope, noted(body)),
-				{ concurrency: "unbounded" },
-			);
+			yield* Effect.forEach(["port watch", "starboard watch"], (body) => domain.boards.write(scope, noted(body)), { concurrency: "unbounded" });
 			expect((yield* db.Board.all()).length).toBe(1);
 			expect((yield* db.BoardOwner.all()).length).toBe(1);
 		}),
@@ -167,15 +152,9 @@ it.live("interleaved appends take distinct places in the log", () =>
 			const voyage = yield* openReefVoyage;
 			const scope = BoardScope.Voyage({ voyageId: voyage.id });
 			const bodies = ["one", "two", "three", "four", "five", "six"];
-			yield* Effect.forEach(
-				bodies,
-				(body, index) =>
-					domain.boards.write(
-						scope,
-						roughNote(body, index % 2 === 0 ? "port" : "starboard"),
-					),
-				{ concurrency: "unbounded" },
-			);
+			yield* Effect.forEach(bodies, (body, index) => domain.boards.write(scope, roughNote(body, index % 2 === 0 ? "port" : "starboard")), {
+				concurrency: "unbounded",
+			});
 			const entries = yield* domain.boards.read(scope);
 			expect(entries.map((entry) => entry.seq)).toEqual([1, 2, 3, 4, 5, 6]);
 		}),
@@ -202,9 +181,7 @@ it.live("the log reads in its own order, not the clock's", () =>
 					seq,
 				}),
 			);
-			expect((yield* domain.boards.read(scope)).map((row) => row.body)).toEqual(
-				["entry 1", "entry 2"],
-			);
+			expect((yield* domain.boards.read(scope)).map((row) => row.body)).toEqual(["entry 1", "entry 2"]);
 		}),
 	),
 );
@@ -214,12 +191,7 @@ it.live("a board is never minted for an entity that is not there", () =>
 		Effect.gen(function* () {
 			const db = yield* Database;
 			const domain = yield* AgentDomain;
-			const refused = yield* Effect.flip(
-				domain.boards.write(
-					BoardScope.Agent({ agentId: "nobody" }),
-					noted("hello?"),
-				),
-			);
+			const refused = yield* Effect.flip(domain.boards.write(BoardScope.Agent({ agentId: "nobody" }), noted("hello?")));
 			expect(refused._tag).toBe("BoardOwnerNotFound");
 			expect(yield* db.Board.all()).toEqual([]);
 			expect(yield* db.BoardOwner.all()).toEqual([]);
@@ -234,9 +206,7 @@ it.live("one board cannot be linked to owners of two different kinds", () =>
 			const domain = yield* AgentDomain;
 			const voyage = yield* openReefVoyage;
 			const agent = yield* hand("agent-1");
-			const boardId = yield* domain.boards.ensure(
-				BoardScope.Voyage({ voyageId: voyage.id }),
-			);
+			const boardId = yield* domain.boards.ensure(BoardScope.Voyage({ voyageId: voyage.id }));
 			const collision = yield* Effect.exit(
 				db.BoardOwner.create({
 					boardId,
@@ -245,40 +215,32 @@ it.live("one board cannot be linked to owners of two different kinds", () =>
 				}),
 			);
 			expect(collision._tag).toBe("Failure");
-			expect(yield* db.BoardOwner.all()).toMatchObject([
-				{ boardId, ownerId: voyage.id, ownerKind: "voyage" },
-			]);
+			expect(yield* db.BoardOwner.all()).toMatchObject([{ boardId, ownerId: voyage.id, ownerKind: "voyage" }]);
 		}),
 	),
 );
 
-it.live(
-	"a surviving link refuses reads and writes after its owner is deleted",
-	() =>
-		Effect.gen(function* () {
-			const temporary = yield* acquireTemporaryPersistence;
-			const scripted = yield* makeScriptedBackend;
-			yield* Effect.gen(function* () {
-				const db = yield* Database;
-				const domain = yield* AgentDomain;
-				const scope = yield* hand("agent-1");
-				const boardId = yield* domain.boards.ensure(scope);
-				yield* domain.boards.write(scope, noted("retained history"));
-				yield* Effect.sync(() =>
-					deleteTestAgent(temporary.database, scope.agentId),
-				);
-				const read = yield* Effect.flip(domain.boards.read(scope));
-				const write = yield* Effect.flip(
-					domain.boards.write(scope, noted("orphaned mail")),
-				);
-				expect(read._tag).toBe("BoardOwnerNotFound");
-				expect(write._tag).toBe("BoardOwnerNotFound");
-				expect(
-					(yield* db.BoardEntry.where({ boardId }).all()).map((entry) => ({
-						body: entry.body,
-						seq: entry.seq,
-					})),
-				).toEqual([{ body: "retained history", seq: 1 }]);
-			}).pipe(Effect.provide(domainKernelLayer(temporary, scripted.backend)));
-		}),
+it.live("a surviving link refuses reads and writes after its owner is deleted", () =>
+	Effect.gen(function* () {
+		const temporary = yield* acquireTemporaryPersistence;
+		const scripted = yield* makeScriptedBackend;
+		yield* Effect.gen(function* () {
+			const db = yield* Database;
+			const domain = yield* AgentDomain;
+			const scope = yield* hand("agent-1");
+			const boardId = yield* domain.boards.ensure(scope);
+			yield* domain.boards.write(scope, noted("retained history"));
+			yield* Effect.sync(() => deleteTestAgent(temporary.database, scope.agentId));
+			const read = yield* Effect.flip(domain.boards.read(scope));
+			const write = yield* Effect.flip(domain.boards.write(scope, noted("orphaned mail")));
+			expect(read._tag).toBe("BoardOwnerNotFound");
+			expect(write._tag).toBe("BoardOwnerNotFound");
+			expect(
+				(yield* db.BoardEntry.where({ boardId }).all()).map((entry) => ({
+					body: entry.body,
+					seq: entry.seq,
+				})),
+			).toEqual([{ body: "retained history", seq: 1 }]);
+		}).pipe(Effect.provide(domainKernelLayer(temporary, scripted.backend)));
+	}),
 );

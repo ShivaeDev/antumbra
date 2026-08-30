@@ -1,8 +1,4 @@
-import type {
-	AgentEvent,
-	RawPayload,
-	SessionState,
-} from "@antumbra/vocabulary/session-events";
+import type { AgentEvent, RawPayload, SessionState } from "@antumbra/vocabulary/session-events";
 import { Option, Schema } from "effect";
 import { ThreadStatusNotification } from "#protocol.ts";
 
@@ -26,16 +22,11 @@ const stateOf = (status: Status): SessionState | undefined => {
 	return status.activeFlags.length === 0 ? "running" : "awaiting-input";
 };
 
-export const threadStateEvents = (
-	raw: RawPayload,
-	params: unknown,
-): AgentEvent[] =>
+export const threadStateEvents = (raw: RawPayload, params: unknown): AgentEvent[] =>
 	Option.match(decodeStatus(params), {
 		onNone: () => [{ raw, type: "raw" }],
 		onSome: ({ status }) => {
 			const state = stateOf(status);
-			return state === undefined
-				? [{ raw, type: "raw" }]
-				: [{ raw, state, type: "session.state" }];
+			return state === undefined ? [{ raw, type: "raw" }] : [{ raw, state, type: "session.state" }];
 		},
 	});

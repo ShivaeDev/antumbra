@@ -8,12 +8,7 @@ import { UserMessageItem } from "#protocol-user-item.ts";
 
 const item = { id: Schema.String };
 
-export const ExecutionStatus = Schema.Literals([
-	"inProgress",
-	"completed",
-	"failed",
-	"declined",
-]);
+export const ExecutionStatus = Schema.Literals(["inProgress", "completed", "failed", "declined"]);
 
 const AgentMessageItem = Schema.Struct({
 	...item,
@@ -40,9 +35,7 @@ const CommandExecutionItem = Schema.Struct({
 
 const FileChangeItem = Schema.Struct({
 	...item,
-	changes: Schema.Array(
-		Schema.Struct({ diff: Schema.String, path: Schema.String }),
-	),
+	changes: Schema.Array(Schema.Struct({ diff: Schema.String, path: Schema.String })),
 	status: ExecutionStatus,
 	type: Schema.Literal("fileChange"),
 });
@@ -103,13 +96,7 @@ const CollabAgentToolCallItem = Schema.Struct({
 	receiverThreadIds: Schema.Array(Schema.String),
 	senderThreadId: Schema.String,
 	status: Schema.Literals(["inProgress", "completed", "failed"]),
-	tool: Schema.Literals([
-		"spawnAgent",
-		"sendInput",
-		"resumeAgent",
-		"wait",
-		"closeAgent",
-	]),
+	tool: Schema.Literals(["spawnAgent", "sendInput", "resumeAgent", "wait", "closeAgent"]),
 	type: Schema.Literal("collabAgentToolCall"),
 });
 

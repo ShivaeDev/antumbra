@@ -9,22 +9,12 @@ import { afterAll, expect } from "vitest";
 import { applyMigrations } from "#adapters/migrator.ts";
 import committedContract from "#contract.json" with { type: "json" };
 import { brandDatabaseFilePath } from "#data-dir.ts";
-import {
-	packagedMigrationsDirectory,
-	type TemporaryPersistence,
-} from "#testing.ts";
+import { packagedMigrationsDirectory, type TemporaryPersistence } from "#testing.ts";
 
 const directories: string[] = [];
 const packageRoot = fileURLToPath(new URL("..", import.meta.url));
-const migration = join(
-	packageRoot,
-	"migrations",
-	"app",
-	"20260817T2058_current_session_ownership",
-);
-const startContract: unknown = JSON.parse(
-	readFileSync(join(migration, "start-contract.json"), "utf8"),
-);
+const migration = join(packageRoot, "migrations", "app", "20260817T2058_current_session_ownership");
+const startContract: unknown = JSON.parse(readFileSync(join(migration, "start-contract.json"), "utf8"));
 
 afterAll(() => {
 	for (const directory of directories.splice(0)) {
@@ -45,43 +35,16 @@ const withSqlite = <A>(path: string, act: (database: DatabaseSync) => A): A => {
 	return result;
 };
 
-const seedAgent = (
-	database: DatabaseSync,
-	id: string,
-	status: "alive" | "dormant" | "retired",
-) =>
-	database
-		.prepare(
-			'INSERT INTO "agent" ("id", "role", "charter", "status") VALUES (?, ?, ?, ?)',
-		)
-		.run(id, "hand", `charter ${id}`, status);
+const seedAgent = (database: DatabaseSync, id: string, status: "alive" | "dormant" | "retired") =>
+	database.prepare('INSERT INTO "agent" ("id", "role", "charter", "status") VALUES (?, ?, ?, ?)').run(id, "hand", `charter ${id}`, status);
 
-const seedSession = (
-	database: DatabaseSync,
-	agentId: string,
-	id: string,
-	status: "closed" | "open",
-	createdAt: string,
-) => {
+const seedSession = (database: DatabaseSync, agentId: string, id: string, status: "closed" | "open", createdAt: string) => {
 	database
 		.prepare(
 			'INSERT INTO "agentSession" ("id", "agentId", "backend", "cwd", "nativeRef", "status", "executionStatus", "createdAt") VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
 		)
-		.run(
-			id,
-			agentId,
-			"scripted",
-			`/tmp/${agentId}`,
-			`native-${id}`,
-			status,
-			"idle",
-			createdAt,
-		);
-	database
-		.prepare(
-			'INSERT INTO "sessionEvent" ("sessionId", "seq", "kind", "payload") VALUES (?, ?, ?, ?)',
-		)
-		.run(id, 0, "raw", `event-${id}`);
+		.run(id, agentId, "scripted", `/tmp/${agentId}`, `native-${id}`, status, "idle", createdAt);
+	database.prepare('INSERT INTO "sessionEvent" ("sessionId", "seq", "kind", "payload") VALUES (?, ?, ?, ?)').run(id, 0, "raw", `event-${id}`);
 };
 
 it.effect("repairs one current Session without deleting Session history", () =>
@@ -97,48 +60,12 @@ it.effect("repairs one current Session without deleting Session history", () =>
 			seedAgent(sqlite, "agent-empty", "alive");
 			seedAgent(sqlite, "agent-dormant", "dormant");
 			seedAgent(sqlite, "agent-retired", "retired");
-			seedSession(
-				sqlite,
-				"agent-alive",
-				"session-older",
-				"open",
-				"2026-08-17 09:00:00",
-			);
-			seedSession(
-				sqlite,
-				"agent-alive",
-				"session-a",
-				"open",
-				"2026-08-17 10:00:00",
-			);
-			seedSession(
-				sqlite,
-				"agent-alive",
-				"session-b",
-				"open",
-				"2026-08-17 10:00:00",
-			);
-			seedSession(
-				sqlite,
-				"agent-alive",
-				"session-closed",
-				"closed",
-				"2026-08-17 11:00:00",
-			);
-			seedSession(
-				sqlite,
-				"agent-dormant",
-				"session-dormant",
-				"open",
-				"2026-08-17 10:00:00",
-			);
-			seedSession(
-				sqlite,
-				"agent-retired",
-				"session-retired",
-				"open",
-				"2026-08-17 10:00:00",
-			);
+			seedSession(sqlite, "agent-alive", "session-older", "open", "2026-08-17 09:00:00");
+			seedSession(sqlite, "agent-alive", "session-a", "open", "2026-08-17 10:00:00");
+			seedSession(sqlite, "agent-alive", "session-b", "open", "2026-08-17 10:00:00");
+			seedSession(sqlite, "agent-alive", "session-closed", "closed", "2026-08-17 11:00:00");
+			seedSession(sqlite, "agent-dormant", "session-dormant", "open", "2026-08-17 10:00:00");
+			seedSession(sqlite, "agent-retired", "session-retired", "open", "2026-08-17 10:00:00");
 		});
 
 		yield* applyMigrations({
@@ -147,19 +74,9 @@ it.effect("repairs one current Session without deleting Session history", () =>
 			migrationsDirectory: packagedMigrationsDirectory,
 		});
 		const migrated = withSqlite(database, (sqlite) => ({
-			agents: sqlite
-				.prepare('SELECT "id", "currentSessionId" FROM "agent" ORDER BY "id"')
-				.all(),
-			events: sqlite
-				.prepare(
-					'SELECT "sessionId", "payload" FROM "sessionEvent" ORDER BY "sessionId"',
-				)
-				.all(),
-			sessions: sqlite
-				.prepare(
-					'SELECT "id", "nativeRef", "status" FROM "agentSession" ORDER BY "id"',
-				)
-				.all(),
+			agents: sqlite.prepare('SELECT "id", "currentSessionId" FROM "agent" ORDER BY "id"').all(),
+			events: sqlite.prepare('SELECT "sessionId", "payload" FROM "sessionEvent" ORDER BY "sessionId"').all(),
+			sessions: sqlite.prepare('SELECT "id", "nativeRef", "status" FROM "agentSession" ORDER BY "id"').all(),
 		}));
 		expect(migrated.agents).toEqual([
 			{ currentSessionId: "session-b", id: "agent-alive" },
@@ -212,9 +129,7 @@ it.effect("fails closed on unknown Agent lifecycle truth", () =>
 		});
 		withSqlite(database, (sqlite) => {
 			sqlite
-				.prepare(
-					'INSERT INTO "agent" ("id", "role", "charter", "status") VALUES (?, ?, ?, ?)',
-				)
+				.prepare('INSERT INTO "agent" ("id", "role", "charter", "status") VALUES (?, ?, ?, ?)')
 				.run("agent-unknown", "hand", "unknown truth", "future-agent");
 		});
 		const migrated = yield* Effect.exit(
@@ -239,17 +154,8 @@ it.effect("fails closed on unknown Session lifecycle truth", () =>
 		withSqlite(database, (sqlite) => {
 			seedAgent(sqlite, "agent-unknown-session", "alive");
 			sqlite
-				.prepare(
-					'INSERT INTO "agentSession" ("id", "agentId", "backend", "cwd", "status", "executionStatus") VALUES (?, ?, ?, ?, ?, ?)',
-				)
-				.run(
-					"session-unknown",
-					"agent-unknown-session",
-					"scripted",
-					"/tmp/unknown",
-					"future-session",
-					"idle",
-				);
+				.prepare('INSERT INTO "agentSession" ("id", "agentId", "backend", "cwd", "status", "executionStatus") VALUES (?, ?, ?, ?, ?, ?)')
+				.run("session-unknown", "agent-unknown-session", "scripted", "/tmp/unknown", "future-session", "idle");
 		});
 		const migrated = yield* Effect.exit(
 			applyMigrations({

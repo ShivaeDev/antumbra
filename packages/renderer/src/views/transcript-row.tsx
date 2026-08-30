@@ -1,27 +1,18 @@
 import { Separator } from "#components/ui/separator.tsx";
-import type { TranscriptItem, TranscriptNotice } from "#transcript/model.ts";
+import type { FoldedItem } from "#transcript/fold.ts";
+import type { TranscriptNotice } from "#transcript/model.ts";
 import { TranscriptDelegationMark } from "#views/transcript-delegation.tsx";
-import {
-	TranscriptMessage,
-	TranscriptThought,
-} from "#views/transcript-message.tsx";
+import { TranscriptMessage, TranscriptThought } from "#views/transcript-message.tsx";
 import { TranscriptRaw } from "#views/transcript-raw.tsx";
 import { TranscriptTool } from "#views/transcript-tool.tsx";
+import { TranscriptToolRunRow } from "#views/transcript-tool-run.tsx";
 
 // why: every entry is labelled in the same narrow column, so the eye reads
 // down one edge to find who is speaking and the content keeps a single left
 // margin however it is rendered.
-const Gutter = ({
-	children,
-	label,
-}: {
-	readonly children: React.ReactNode;
-	readonly label: string;
-}) => (
+const Gutter = ({ children, label }: { readonly children: React.ReactNode; readonly label: string }) => (
 	<div className="grid grid-cols-[3.25rem_minmax(0,1fr)] gap-x-3">
-		<span className="pt-0.5 text-right text-2xs text-muted-foreground">
-			{label}
-		</span>
+		<span className="pt-0.5 text-right text-2xs text-muted-foreground">{label}</span>
 		<div className="min-w-0">{children}</div>
 	</div>
 );
@@ -42,9 +33,7 @@ const Telemetry = ({ label }: { readonly label: string }) => (
 const Notice = ({ item }: { readonly item: TranscriptNotice }) => (
 	<div className="min-w-0 text-2xs text-muted-foreground">
 		<p>{item.title}</p>
-		{item.detail === undefined ? null : (
-			<p className="text-muted-foreground/80">{item.detail}</p>
-		)}
+		{item.detail === undefined ? null : <p className="text-muted-foreground/80">{item.detail}</p>}
 	</div>
 );
 
@@ -53,7 +42,7 @@ export const TranscriptRow = ({
 	onOpenNode,
 	sessionId = "",
 }: {
-	readonly item: TranscriptItem;
+	readonly item: FoldedItem;
 	readonly onOpenNode?: ((nodeId: string) => void) | undefined;
 	readonly sessionId?: string | undefined;
 }) => {
@@ -75,6 +64,13 @@ export const TranscriptRow = ({
 		return (
 			<Gutter label="tool">
 				<TranscriptTool item={item} />
+			</Gutter>
+		);
+	}
+	if (item.kind === "toolRun") {
+		return (
+			<Gutter label="tools">
+				<TranscriptToolRunRow run={item} />
 			</Gutter>
 		);
 	}

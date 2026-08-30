@@ -15,9 +15,7 @@ import type { VoyageReads } from "#voyage-reads.ts";
 
 const boardScope = Match.type<BoardWriteRequest["scope"]>().pipe(
 	Match.when({ kind: "piece" }, ({ pieceId }) => BoardScope.Piece({ pieceId })),
-	Match.when({ kind: "voyage" }, ({ voyageId }) =>
-		BoardScope.Voyage({ voyageId }),
-	),
+	Match.when({ kind: "voyage" }, ({ voyageId }) => BoardScope.Voyage({ voyageId })),
 	Match.exhaustive,
 );
 
@@ -42,39 +40,21 @@ export const makeVoyageActs = (reads: VoyageReads) =>
 			// why: the verdict is landed, never asserted — what the piece then
 			// reads as is still the ladder's answer, so this act hands back
 			// nothing for a window to mistake for one.
-			landPieceVerdict: (request: PieceVerdictRequest) =>
-				voyages
-					.landPieceVerdict(request.pieceId, request.verdict)
-					.pipe(Effect.mapError(toFailure)),
-			launch: (pieceId: string) =>
-				voyages.launch(pieceId).pipe(Effect.mapError(toFailure)),
+			landPieceVerdict: (request: PieceVerdictRequest) => voyages.landPieceVerdict(request.pieceId, request.verdict).pipe(Effect.mapError(toFailure)),
+			launch: (pieceId: string) => voyages.launch(pieceId).pipe(Effect.mapError(toFailure)),
 			open: (request: OpenVoyageRequest) =>
 				voyages.open(request).pipe(
 					Effect.mapError(toFailure),
 					Effect.flatMap((row) => reads.summaryOf(row.id)),
 				),
-			park: (pieceId: string) =>
-				voyages.park(pieceId).pipe(Effect.mapError(toFailure)),
+			park: (pieceId: string) => voyages.park(pieceId).pipe(Effect.mapError(toFailure)),
 			removeArtifactSupersession: (request: ArtifactSupersessionRequest) =>
-				voyages
-					.removeArtifactSupersession(request)
-					.pipe(Effect.mapError(toFailure)),
-			rewire: (request: RewireRequest) =>
-				voyages
-					.rewire(request.pieceId, request.dependsOn)
-					.pipe(Effect.mapError(toFailure)),
-			setBackend: (request: VoyageBackendRequest) =>
-				voyages
-					.setBackend(request.voyageId, request.backend)
-					.pipe(Effect.mapError(toFailure)),
-			setFocus: (voyageId: string, focused: boolean) =>
-				voyages.setFocus(voyageId, focused).pipe(Effect.mapError(toFailure)),
-			supersedeArtifact: (request: ArtifactSupersessionRequest) =>
-				voyages
-					.supersedeArtifact(request)
-					.pipe(Effect.asVoid, Effect.mapError(toFailure)),
-			unpark: (pieceId: string) =>
-				voyages.unpark(pieceId).pipe(Effect.mapError(toFailure)),
+				voyages.removeArtifactSupersession(request).pipe(Effect.mapError(toFailure)),
+			rewire: (request: RewireRequest) => voyages.rewire(request.pieceId, request.dependsOn).pipe(Effect.mapError(toFailure)),
+			setBackend: (request: VoyageBackendRequest) => voyages.setBackend(request.voyageId, request.backend).pipe(Effect.mapError(toFailure)),
+			setFocus: (voyageId: string, focused: boolean) => voyages.setFocus(voyageId, focused).pipe(Effect.mapError(toFailure)),
+			supersedeArtifact: (request: ArtifactSupersessionRequest) => voyages.supersedeArtifact(request).pipe(Effect.asVoid, Effect.mapError(toFailure)),
+			unpark: (pieceId: string) => voyages.unpark(pieceId).pipe(Effect.mapError(toFailure)),
 			workPieceNow: (pieceId: string) =>
 				voyages.workNow(pieceId).pipe(
 					Effect.map((crewed) => ({ agentId: crewed.agentId })),

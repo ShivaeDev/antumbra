@@ -11,7 +11,7 @@
 		"#*": "./src/*"
 	},
 	"scripts": {
-		"test": "vitest run --passWithNoTests",
+		"test": "vitest run",
 		"typecheck": "tsc --noEmit",
 		"typecheck:compat": "tsc6 --noEmit"
 	},
@@ -26,6 +26,7 @@
 		"@antumbra/domain-feeds": "workspace:*",
 		"@antumbra/persistence": "workspace:*",
 		"@antumbra/pieces": "workspace:*",
+		"@antumbra/service-definition": "workspace:*",
 		"effect": "catalog:"
 	}
 }

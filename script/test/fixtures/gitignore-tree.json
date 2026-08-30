@@ -7,16 +7,6 @@
 		},
 		{ "content": "!build/\n", "path": "packages/z/.gitignore" }
 	],
-	"ignoredPaths": [
-		"packages/x/.worktree/scratch.ts",
-		"packages/y/generated/drop.ts",
-		"packages/z/build/a.scratch.ts",
-		"packages/w/build/drop.ts"
-	],
-	"keptPaths": [
-		"packages/x/src/mod.ts",
-		"packages/y/generated/keep.ts",
-		"packages/z/build/keep.ts",
-		"packages/z/build/sub/deep.ts"
-	]
+	"ignoredPaths": ["packages/x/.worktree/scratch.ts", "packages/y/generated/drop.ts", "packages/z/build/a.scratch.ts", "packages/w/build/drop.ts"],
+	"keptPaths": ["packages/x/src/mod.ts", "packages/y/generated/keep.ts", "packages/z/build/keep.ts", "packages/z/build/sub/deep.ts"]
 }

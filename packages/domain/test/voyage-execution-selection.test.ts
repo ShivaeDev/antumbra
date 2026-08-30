@@ -1,9 +1,6 @@
 import { expect, it } from "@effect/vitest";
 import { atWork } from "#agent-at-work.ts";
-import {
-	assignedExecution,
-	executionSessionOfAgent,
-} from "#voyage-execution-selection.ts";
+import { assignedExecution, executionSessionOfAgent } from "#voyage-execution-selection.ts";
 import type { AgentSessionRow, VoyageWorld } from "#voyage-rows.ts";
 
 const session = (
@@ -13,6 +10,7 @@ const session = (
 	createdAt = new Date(1),
 ): AgentSessionRow => ({
 	agentId,
+	backend: "scripted",
 	createdAt,
 	executionStatus,
 	id,
@@ -55,14 +53,12 @@ it("chooses the lexical alive assignee independent of row order", () => {
 			["agent-z", "session-z"],
 			["agent-a", "session-a"],
 		]),
-		sessions: [
-			session("agent-z", "session-z"),
-			session("agent-a", "session-a"),
-		],
+		sessions: [session("agent-z", "session-z"), session("agent-a", "session-a")],
 	});
 	expect(assignedExecution(view, "piece-one")).toEqual({
 		_tag: "resume",
 		agentId: "agent-a",
+		backend: "scripted",
 		sessionId: "session-a",
 	});
 });
@@ -81,10 +77,7 @@ it("holds on the lexical Agent instead of trying another or spawning", () => {
 			["agent-a", "session-a"],
 			["agent-b", "session-b"],
 		]),
-		sessions: [
-			session("agent-a", "session-a", "active"),
-			session("agent-b", "session-b"),
-		],
+		sessions: [session("agent-a", "session-a", "active"), session("agent-b", "session-b")],
 	});
 	expect(assignedExecution(view, "piece-one")).toEqual({
 		_tag: "unavailable",
@@ -93,10 +86,7 @@ it("holds on the lexical Agent instead of trying another or spawning", () => {
 });
 
 it("uses explicit current truth and otherwise newest open history", () => {
-	const sessions = [
-		session("agent-a", "session-a"),
-		session("agent-a", "session-b"),
-	];
+	const sessions = [session("agent-a", "session-a"), session("agent-a", "session-b")];
 	expect(
 		executionSessionOfAgent(
 			world({

@@ -39,9 +39,7 @@ it("an empty log is left out of a charter rather than titled", () => {
 		pieceLog: ["the last hand reached the reef edge"],
 		voyageLog: ["the eastern approach is safe", "the swell backs west"],
 	});
-	expect(written).toContain(
-		"# Voyage log\nthe eastern approach is safe\n\nthe swell backs west",
-	);
+	expect(written).toContain("# Voyage log\nthe eastern approach is safe\n\nthe swell backs west");
 	expect(written).toContain("# Piece log\nthe last hand reached the reef edge");
 });
 
@@ -49,10 +47,7 @@ it("a captain charter lists the pieces and the captain standing order", () => {
 	const text = captainCharter({
 		context: "the reef is uncharted",
 		northStar: "every shoal is known",
-		pieceLines: [
-			"- piece-1 alpha [done] landed: soundings",
-			"- piece-2 bravo [ready] depends on piece-1",
-		],
+		pieceLines: ["- piece-1 alpha [done] landed: soundings", "- piece-2 bravo [ready] depends on piece-1"],
 		rulings: [],
 		voyageLog: ["the eastern approach is safe"],
 	});
@@ -74,6 +69,7 @@ it("a flagship charter names the fleet acts beside a captain's own", () => {
 	});
 	expect(text).toContain("`read_fleet`");
 	expect(text).toContain("`charter_piece_on_voyage`");
+	expect(text).toContain("`hail_captain`");
 	expect(text).toContain("`charter_piece`");
 	expect(
 		captainCharter({

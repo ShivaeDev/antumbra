@@ -1,12 +1,8 @@
-import type {
-	ChangeHostRepo,
-	ChangePreparationEvidence,
-} from "@antumbra/plugin-api";
+import type { ChangeHostRepo, ChangePreparationEvidence } from "@antumbra/plugin-api";
 import type { ChangeRow } from "#change-rows.ts";
 import type { Proposal, SubmitChangeInput } from "#change-submissions/model.ts";
 
-export const submissionKey = (agentId: string, repoId: string): string =>
-	JSON.stringify([agentId, repoId]);
+export const submissionKey = (agentId: string, repoId: string): string => JSON.stringify([agentId, repoId]);
 
 export const preparedChange = (
 	input: SubmitChangeInput,

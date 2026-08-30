@@ -2,11 +2,12 @@ import { defineIntent, IntentExecution } from "@antumbra/kernel";
 import type { AgentBackend, MooragePlan, Runner } from "@antumbra/plugin-api";
 import { UnknownRunnerError } from "@antumbra/plugin-api";
 import type { SessionAttachment } from "@antumbra/session-fabric";
+import type { SinkFor } from "@antumbra/sessions";
 import { Effect } from "effect";
+import type { BackendCapacities } from "#backend-capacity.ts";
 import { charterDelivery } from "#charter.ts";
 import { UnknownBackendTag } from "#errors.ts";
 import { makePrepareMoorage } from "#moorage-plan.ts";
-import type { SinkFor } from "#session-tree-sink.ts";
 import { makeIsActivatedBirth } from "#spawn-activated.ts";
 import { type SpawnFields, SpawnPayload } from "#spawn-fields.ts";
 import { spawnRegistration } from "#spawn-registration/service.ts";
@@ -20,6 +21,7 @@ export type { SpawnFields } from "#spawn-fields.ts";
 
 interface SpawnRuntime {
 	readonly backends: ReadonlyMap<string, AgentBackend>;
+	readonly capacities: BackendCapacities;
 	readonly runners: ReadonlyMap<string, Runner>;
 	readonly sinkFor: SinkFor;
 }
@@ -34,28 +36,19 @@ export const spawnKind = (runtime: SpawnRuntime) =>
 		const startSession = yield* makeSpawnSessionStart;
 		const teardown = yield* makeSpawnTeardown;
 		const toolsFor = yield* makeSpawnTools;
-		const admitSpawnSession = (
-			payload: SpawnFields,
-			attachment: SessionAttachment,
-		) =>
+		const admitSpawnSession = (payload: SpawnFields, attachment: SessionAttachment) =>
 			Effect.gen(function* () {
 				yield* delivery.deliverOnce(payload, attachment.handle);
 				yield* resolution.activate(payload);
 			});
-		const reconcileMoorage = (
-			payload: SpawnFields,
-			runner: Runner,
-			plan: MooragePlan,
-		) =>
+		const reconcileMoorage = (payload: SpawnFields, runner: Runner, plan: MooragePlan) =>
 			Effect.gen(function* () {
 				const execution = yield* IntentExecution;
 				const reconcile = runner.provision(plan).pipe(
 					Effect.catchTags({
 						RunnerAuthRequired: (failure) => execution.wait(failure.message),
-						RunnerFailure: (failure) =>
-							teardown.failAfterSettlement(payload, failure),
-						RunnerProvisionConflict: (failure) =>
-							execution.wait(failure.message),
+						RunnerFailure: (failure) => teardown.failAfterSettlement(payload, failure),
+						RunnerProvisionConflict: (failure) => execution.wait(failure.message),
 					}),
 				);
 				yield* execution.step("provision-moorage", reconcile);
@@ -69,17 +62,14 @@ export const spawnKind = (runtime: SpawnRuntime) =>
 				if (backend === undefined) {
 					return yield* new UnknownBackendTag({ tag: payload.backend });
 				}
+				yield* runtime.capacities.admit(payload.backend);
 				const runner = runtime.runners.get(payload.runner);
 				if (runner === undefined) {
 					return yield* new UnknownRunnerError({ tag: payload.runner });
 				}
 				yield* registration.ensure(payload);
-				const plan = yield* prepareMoorage(payload, runner).pipe(
-					Effect.onError(teardown.settleUnlessTeardown(payload)),
-				);
-				yield* reconcileMoorage(payload, runner, plan).pipe(
-					Effect.onInterrupt(() => teardown.settleCancellation(payload)),
-				);
+				const plan = yield* prepareMoorage(payload, runner).pipe(Effect.onError(teardown.settleUnlessTeardown(payload)));
+				yield* reconcileMoorage(payload, runner, plan).pipe(Effect.onInterrupt(() => teardown.settleCancellation(payload)));
 				yield* startSession(
 					payload,
 					backend,

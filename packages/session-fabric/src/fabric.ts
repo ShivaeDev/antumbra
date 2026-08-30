@@ -32,9 +32,7 @@ export const SessionFabric = defineService({
 		stopIdle: makeStopIdle(state.attachments, state.lifecycles),
 		turnEnded: makeTurnEnded(state.attachments),
 		turnMark: makeTurnMark(state.attachments),
-		withStartAdmission: genericMethod(
-			makeWithStartAdmission(state.startAdmission),
-		),
+		withStartAdmission: genericMethod(makeWithStartAdmission(state.startAdmission)),
 	}),
 	requires: [],
 });

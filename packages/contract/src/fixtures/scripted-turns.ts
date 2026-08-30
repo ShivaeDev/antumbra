@@ -1,12 +1,5 @@
 import { fleet } from "#fixtures/fleet.ts";
-import {
-	chart,
-	quayView,
-	reefSummary,
-	reefView,
-	shoalWarning,
-	soundings,
-} from "#fixtures/voyage.ts";
+import { chart, quayView, reefSummary, reefView, soundings } from "#fixtures/voyage.ts";
 import type { AgentSummary } from "#fleet.ts";
 import type { VoyageSummary } from "#voyage-views.ts";
 
@@ -44,11 +37,8 @@ const surveyor: AgentSummary = {
 		},
 	],
 	status: "alive",
-	// why: the hand the soundings piece names, carrying the change that piece
-	// produced and standing where the quay fixture lists it.
 	work: [
 		{
-			changes: [{ change: shoalWarning, standing: "alongside" }],
 			kind: "piece",
 			pieceId: soundings.id,
 			pieceTitle: soundings.title,

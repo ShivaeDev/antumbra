@@ -1,8 +1,4 @@
-import type {
-	SDKMessage,
-	SessionKey,
-	SessionStoreEntry,
-} from "@anthropic-ai/claude-agent-sdk";
+import type { SDKMessage, SessionKey, SessionStoreEntry } from "@anthropic-ai/claude-agent-sdk";
 import type { AgentEvent, Origin } from "@antumbra/vocabulary/session-events";
 import { openSessionMapping } from "#mapping.ts";
 import { subagentRef, workflowAgentRef } from "#mirror-keys.ts";
@@ -33,8 +29,7 @@ export interface SessionLanes {
 	readonly recorded: (agentId: string) => boolean;
 }
 
-const isProgress = (message: SDKMessage) =>
-	message.type === "system" && message.subtype === "task_progress";
+const isProgress = (message: SDKMessage) => message.type === "system" && message.subtype === "task_progress";
 
 // why: this provider says what a Session did on three lanes. The stream
 // carries the session's own turns and the agents it delegates through a tool
@@ -54,9 +49,7 @@ export const openSessionLanes = (): SessionLanes => {
 	const invokerOrigin = (key: SessionKey): Origin | undefined => {
 		const node = subagentRef(key);
 		const spawnedBy = node === undefined ? undefined : mapping.spawnerOf(node);
-		return node === undefined || spawnedBy === undefined
-			? undefined
-			: { node, spawnedBy };
+		return node === undefined || spawnedBy === undefined ? undefined : { node, spawnedBy };
 	};
 	const mirror = ({ entries, key }: MirrorWrite): ReadonlyArray<AgentEvent> => {
 		const ref = workflowAgentRef(key);
@@ -64,16 +57,10 @@ export const openSessionLanes = (): SessionLanes => {
 			return results.recovered(entries, invokerOrigin(key));
 		}
 		const origin = nodes.originOf(ref);
-		return [
-			...nodes.opened(ref),
-			...entries.flatMap((entry) => transcriptEvents(entry, origin)),
-		];
+		return [...nodes.opened(ref), ...entries.flatMap((entry) => transcriptEvents(entry, origin))];
 	};
 	return {
-		adopted: (repair) => [
-			...repair.agents.flatMap(adoptedEvents),
-			...(repair.failure === undefined ? [] : [censusGap(repair.failure)]),
-		],
+		adopted: (repair) => [...repair.agents.flatMap(adoptedEvents), ...(repair.failure === undefined ? [] : [censusGap(repair.failure)])],
 		frame: (message) => {
 			if (!isProgress(message)) {
 				return mapping.frame(message);
@@ -82,21 +69,15 @@ export const openSessionLanes = (): SessionLanes => {
 			return nodes.settled();
 		},
 		mirror,
-		recorded: (agentId) =>
-			nodes.known(agentId) || mapping.spawnerOf(agentId) !== undefined,
+		recorded: (agentId) => nodes.known(agentId) || mapping.spawnerOf(agentId) !== undefined,
 	};
 };
 
 // why: one dispatch for every lane, so the live adapter and a scripted
 // rehearsal put the provider's words through the same reading of them.
-export const laneEvents = (
-	lanes: SessionLanes,
-	delivery: Delivery,
-): ReadonlyArray<AgentEvent> => {
+export const laneEvents = (lanes: SessionLanes, delivery: Delivery): ReadonlyArray<AgentEvent> => {
 	if (delivery.kind === "frame") {
 		return lanes.frame(delivery.message);
 	}
-	return delivery.kind === "mirror"
-		? lanes.mirror(delivery.write)
-		: lanes.adopted(delivery.repair);
+	return delivery.kind === "mirror" ? lanes.mirror(delivery.write) : lanes.adopted(delivery.repair);
 };

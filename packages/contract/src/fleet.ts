@@ -1,16 +1,7 @@
-import {
-	ResourceReclaimStateSchema,
-	SessionPresenceSchema,
-} from "@antumbra/vocabulary/agent-runtime";
+import { ResourceReclaimStateSchema, SessionPresenceSchema } from "@antumbra/vocabulary/agent-runtime";
 import { Schema } from "effect";
-import { ChangeView } from "#change-views.ts";
-import { QuayGroup } from "#quay-views.ts";
 import { SessionSituation } from "#session-situations.ts";
-import {
-	AgentDiagnostics,
-	FleetDiagnostics,
-	SessionDiagnostics,
-} from "#sight-diagnostics.ts";
+import { AgentDiagnostics, FleetDiagnostics, SessionDiagnostics } from "#sight-diagnostics.ts";
 
 // why: what the fleet looks like when it is read — one Session, one Agent, the
 // resources under it, and the whole roster. It is its own file because these
@@ -54,29 +45,7 @@ export const BerthSummary = Schema.Struct({
 });
 export type BerthSummary = typeof BerthSummary.Type;
 
-// why: where a change a piece produced stands, in the words the quay sorts by
-// — and landed beside them, because the quay stops listing a change the moment
-// it merges while a card still wants to say that it did. The reading is the
-// domain's own ladder, published so a card never ranks checks and reviews a
-// second time from the neutral fields beside it.
-export const WorkChangeStanding = Schema.Union([
-	QuayGroup,
-	Schema.Literal("landed"),
-]);
-export type WorkChangeStanding = typeof WorkChangeStanding.Type;
-
-export const WorkChange = Schema.Struct({
-	change: ChangeView,
-	standing: WorkChangeStanding,
-});
-export type WorkChange = typeof WorkChange.Type;
-
-// why: what an Agent is doing is a Piece it is assigned to, named with the
-// voyage that chartered it, or the voyage it commands — a captain answers to
-// a voyage directly and has no piece of its own to be named by. The two are
-// one union so a card reads work off one field whichever kind it is.
 export const PieceWork = Schema.Struct({
-	changes: Schema.Array(WorkChange),
 	kind: Schema.Literal("piece"),
 	pieceId: Schema.String,
 	pieceTitle: Schema.String,
@@ -120,12 +89,26 @@ export const RepoSummary = Schema.Struct({
 });
 export type RepoSummary = typeof RepoSummary.Type;
 
+// why: provider capacity is account-level truth, simultaneous with every
+// Session's own presence. Publishing it beside the roster keeps a view from
+// treating rapid Session activity as evidence that a provider can accept work.
+export const BackendCapacitySummary = Schema.Struct({
+	backend: Schema.String,
+	detail: Schema.NullOr(Schema.String),
+	reason: Schema.NullOr(Schema.String),
+	resetsAt: Schema.NullOr(Schema.Number),
+	status: Schema.Literals(["available", "warning", "blocked"]),
+	utilization: Schema.NullOr(Schema.Number),
+});
+export type BackendCapacitySummary = typeof BackendCapacitySummary.Type;
+
 // why: the fleet carries what every spawn is made of — the backends the host
 // registered and the repos every agent is moored to. The renderer offers
 // these, never a list of its own.
 export const Fleet = Schema.Struct({
 	agents: Schema.Array(AgentSummary),
 	backends: Schema.Array(Schema.String),
+	capacities: Schema.Array(BackendCapacitySummary),
 	diag: FleetDiagnostics,
 	repos: Schema.Array(RepoSummary),
 });

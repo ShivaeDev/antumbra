@@ -15,29 +15,15 @@ const cleanDocuments = (): readonly TextFile[] => [
 		"GLOSSARY.md",
 		"# Glossary\n\n## Work and planning\n\nOwner: [Work and planning](docs/design/work-and-planning.md)\n\n- [**Voyage**](docs/design/work-and-planning.md#voyages) — a ship under sail for an objective.\n",
 	),
-	document(
-		"docs/design/README.md",
-		"# Design guides\n\n- [Work and planning](work-and-planning.md)\n",
-	),
-	document(
-		"docs/design/work-and-planning.md",
-		"# Work and planning\n\n## Voyages\n",
-	),
+	document("docs/design/README.md", "# Design guides\n\n- [Work and planning](work-and-planning.md)\n"),
+	document("docs/design/work-and-planning.md", "# Work and planning\n\n## Voyages\n"),
 ];
 
 const hasRule = (documents: readonly TextFile[], rule: string): boolean =>
-	documentationViolations(documents).some(
-		(violation) => violation.rule === rule,
-	);
+	documentationViolations(documents).some((violation) => violation.rule === rule);
 
-const replaceDocument = (
-	documents: readonly TextFile[],
-	path: string,
-	rewrite: (raw: string) => string,
-): readonly TextFile[] =>
-	documents.map((entry) =>
-		entry.path === path ? document(path, rewrite(entry.raw)) : entry,
-	);
+const replaceDocument = (documents: readonly TextFile[], path: string, rewrite: (raw: string) => string): readonly TextFile[] =>
+	documents.map((entry) => (entry.path === path ? document(path, rewrite(entry.raw)) : entry));
 
 describe("documentation rules", () => {
 	it("accepts a linked and singly owned documentation set", () => {
@@ -45,13 +31,7 @@ describe("documentation rules", () => {
 	});
 
 	it("flags broken relative links and missing anchors", () => {
-		const documents = [
-			...cleanDocuments(),
-			document(
-				"docs/design/broken.md",
-				"[Missing](absent.md)\n[Anchor](work-and-planning.md#absent)\n",
-			),
-		];
+		const documents = [...cleanDocuments(), document("docs/design/broken.md", "[Missing](absent.md)\n[Anchor](work-and-planning.md#absent)\n")];
 		expect(hasRule(documents, "docs/relative-link")).toBe(true);
 		expect(hasRule(documents, "docs/anchor")).toBe(true);
 	});
@@ -60,8 +40,7 @@ describe("documentation rules", () => {
 		const documents = replaceDocument(
 			cleanDocuments(),
 			"DESIGN.md",
-			(raw) =>
-				`${raw}\n\`[Inline](missing.md)\`\n\n\`\`\`md\n[Fenced](absent.md#gone)\n\`\`\`\n`,
+			(raw) => `${raw}\n\`[Inline](missing.md)\`\n\n\`\`\`md\n[Fenced](absent.md#gone)\n\`\`\`\n`,
 		);
 		expect(documentationViolations(documents)).toEqual([]);
 	});
@@ -76,36 +55,25 @@ describe("documentation rules", () => {
 		documents = replaceDocument(
 			documents,
 			"docs/design/README.md",
-			() =>
-				"# Design guides\n\n- [Work and planning][work]\n\n[work]: work-and-planning.md\n",
+			() => "# Design guides\n\n- [Work and planning][work]\n\n[work]: work-and-planning.md\n",
 		);
 		expect(documentationViolations(documents)).toEqual([]);
 	});
 
 	it("validates the destinations of reference-style links", () => {
-		const documents = replaceDocument(
-			cleanDocuments(),
-			"README.md",
-			() => "# Antumbra\n\n[Design][design]\n\n[design]: absent.md\n",
-		);
+		const documents = replaceDocument(cleanDocuments(), "README.md", () => "# Antumbra\n\n[Design][design]\n\n[design]: absent.md\n");
 		expect(hasRule(documents, "docs/relative-link")).toBe(true);
 	});
 
 	it("flags pages unreachable from the public README", () => {
-		const documents = [
-			...cleanDocuments(),
-			document("docs/design/hidden.md", "# Hidden\n"),
-		];
+		const documents = [...cleanDocuments(), document("docs/design/hidden.md", "# Hidden\n")];
 		expect(hasRule(documents, "docs/reachability")).toBe(true);
 	});
 
 	it("requires the design index to list every topic exactly once", () => {
 		const documents = cleanDocuments().map((entry) =>
 			entry.path === "docs/design/README.md"
-				? document(
-						entry.path,
-						"# Design guides\n\n- [Work](work-and-planning.md)\n- [Again](work-and-planning.md)\n",
-					)
+				? document(entry.path, "# Design guides\n\n- [Work](work-and-planning.md)\n- [Again](work-and-planning.md)\n")
 				: entry,
 		);
 		expect(hasRule(documents, "docs/design-index")).toBe(true);
@@ -114,10 +82,7 @@ describe("documentation rules", () => {
 	it("normalizes glossary terms before checking uniqueness", () => {
 		const documents = cleanDocuments().map((entry) =>
 			entry.path === "GLOSSARY.md"
-				? document(
-						entry.path,
-						`${entry.raw}- [**voyage!**](docs/design/work-and-planning.md#voyages) — duplicate spelling.\n`,
-					)
+				? document(entry.path, `${entry.raw}- [**voyage!**](docs/design/work-and-planning.md#voyages) — duplicate spelling.\n`)
 				: entry,
 		);
 		expect(hasRule(documents, "docs/glossary-term")).toBe(true);
@@ -159,18 +124,13 @@ describe("documentation rules", () => {
 	});
 
 	it("requires an owner even when a glossary group has no valid rows", () => {
-		const documents = replaceDocument(cleanDocuments(), "GLOSSARY.md", (raw) =>
-			raw.replace(/^Owner: .*\n\n/m, ""),
-		);
+		const documents = replaceDocument(cleanDocuments(), "GLOSSARY.md", (raw) => raw.replace(/^Owner: .*\n\n/m, ""));
 		expect(hasRule(documents, "docs/glossary-owner")).toBe(true);
 	});
 
 	it("rejects a term routed to a different topic than its owner", () => {
 		const documents = replaceDocument(cleanDocuments(), "GLOSSARY.md", (raw) =>
-			raw.replace(
-				"docs/design/work-and-planning.md#voyages) — a ship",
-				"docs/design/README.md#design-guides) — a ship",
-			),
+			raw.replace("docs/design/work-and-planning.md#voyages) — a ship", "docs/design/README.md#design-guides) — a ship"),
 		);
 		expect(hasRule(documents, "docs/glossary-owner")).toBe(true);
 	});

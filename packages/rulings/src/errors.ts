@@ -1,7 +1,4 @@
-import type {
-	RulingAuthority,
-	RulingRadius,
-} from "@antumbra/vocabulary/ruling";
+import type { RulingAuthority, RulingRadius } from "@antumbra/vocabulary/ruling";
 import { Data } from "effect";
 import type { RulingSubject } from "#model.ts";
 
@@ -15,9 +12,7 @@ export class RulingAlreadyRuled extends Data.TaggedError("RulingAlreadyRuled")<{
 
 // why: a gate hangs a piece on an answer, so naming a piece the fleet does not
 // have refuses the gate rather than storing a hold nothing can ever release.
-export class RulingGatePieceMissing extends Data.TaggedError(
-	"RulingGatePieceMissing",
-)<{
+export class RulingGatePieceMissing extends Data.TaggedError("RulingGatePieceMissing")<{
 	readonly pieceId: string;
 }> {}
 
@@ -27,17 +22,13 @@ export class RulingNotRuled extends Data.TaggedError("RulingNotRuled")<{
 	readonly rulingId: string;
 }> {}
 
-export class RulingSupersedesItself extends Data.TaggedError(
-	"RulingSupersedesItself",
-)<{
+export class RulingSupersedesItself extends Data.TaggedError("RulingSupersedesItself")<{
 	readonly rulingId: string;
 }> {}
 
 // why: supersession appends once with provenance; a second one would rewrite
 // which ruling took the old one's place, and standing rulings are never edited.
-export class RulingAlreadySuperseded extends Data.TaggedError(
-	"RulingAlreadySuperseded",
-)<{
+export class RulingAlreadySuperseded extends Data.TaggedError("RulingAlreadySuperseded")<{
 	readonly byRulingId: string;
 	readonly rulingId: string;
 }> {}
@@ -45,15 +36,11 @@ export class RulingAlreadySuperseded extends Data.TaggedError(
 // why: a withdrawn ruling has already left the standing set with the words
 // that retired it; withdrawing or superseding it again would rewrite why it
 // stopped applying, and a standing ruling is never edited.
-export class RulingAlreadyWithdrawn extends Data.TaggedError(
-	"RulingAlreadyWithdrawn",
-)<{
+export class RulingAlreadyWithdrawn extends Data.TaggedError("RulingAlreadyWithdrawn")<{
 	readonly rulingId: string;
 }> {}
 
-export class RulingChoiceUnknown extends Data.TaggedError(
-	"RulingChoiceUnknown",
-)<{
+export class RulingChoiceUnknown extends Data.TaggedError("RulingChoiceUnknown")<{
 	readonly choiceId: string;
 	readonly rulingId: string;
 }> {}
@@ -62,9 +49,7 @@ export class RulingChoiceUnknown extends Data.TaggedError(
 // apply, so a verdict from a rung that does not reach the ruling's radius is
 // refused rather than stored — the record is what later readers trust to say
 // the answer was given by someone entitled to give it.
-export class RulingOutsideAuthority extends Data.TaggedError(
-	"RulingOutsideAuthority",
-)<{
+export class RulingOutsideAuthority extends Data.TaggedError("RulingOutsideAuthority")<{
 	readonly by: RulingAuthority;
 	readonly radius: RulingRadius;
 	readonly rulingId: string;
@@ -76,24 +61,19 @@ export class RulingOutsideAuthority extends Data.TaggedError(
 
 // why: scope is never left as prose, so a subject naming something the fleet
 // does not have refuses the whole request rather than storing a dangling word.
-export class RulingSubjectMissing extends Data.TaggedError(
-	"RulingSubjectMissing",
-)<{
+export class RulingSubjectMissing extends Data.TaggedError("RulingSubjectMissing")<{
 	readonly subject: RulingSubject;
 }> {
 	override get message(): string {
 		const subject = this.subject;
-		const named =
-			subject.kind === "tag" ? subject.tag : `${subject.kind} ${subject.id}`;
+		const named = subject.kind === "tag" ? subject.tag : `${subject.kind} ${subject.id}`;
 		return `the fleet has no ${named}`;
 	}
 }
 
 // why: a reclassification that names no axis would append a row saying
 // nothing, so it is refused before anything is written.
-export class RulingReclassificationEmpty extends Data.TaggedError(
-	"RulingReclassificationEmpty",
-)<{
+export class RulingReclassificationEmpty extends Data.TaggedError("RulingReclassificationEmpty")<{
 	readonly rulingId: string;
 }> {}
 
@@ -106,9 +86,7 @@ export class RulingBelowRung extends Data.TaggedError("RulingBelowRung")<{
 	readonly rung: RulingAuthority | null;
 }> {
 	override get message(): string {
-		return this.rung === null
-			? `ruling ${this.rulingId} waits on nobody`
-			: `ruling ${this.rulingId} waits on the ${this.rung}, above the ${this.by}`;
+		return this.rung === null ? `ruling ${this.rulingId} waits on nobody` : `ruling ${this.rulingId} waits on the ${this.rung}, above the ${this.by}`;
 	}
 }
 

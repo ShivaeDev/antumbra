@@ -1,28 +1,13 @@
 import { Database } from "@antumbra/persistence";
 import { expect, it } from "@effect/vitest";
 import { Effect, Option } from "effect";
+import { TestClock } from "effect/testing";
 import { AgentDomain } from "#domain.ts";
 import { dispatchingLayer } from "#test/domain-layers.ts";
-import {
-	acquireTemporaryPersistence,
-	callTool,
-	makeScriptedBackend,
-	type ScriptedBackend,
-	type ScriptedSession,
-	sessionFor,
-} from "#test/harness.ts";
-import {
-	assignedPieces,
-	eventually,
-	openReefVoyage,
-	PATIENCE,
-} from "#test/voyage-fixtures.ts";
+import { acquireTemporaryPersistence, callTool, makeScriptedBackend, type ScriptedBackend, type ScriptedSession, sessionFor } from "#test/harness.ts";
+import { assignedPieces, eventually, openReefVoyage, PATIENCE } from "#test/voyage-fixtures.ts";
 
-const chartered = (
-	captain: ScriptedSession,
-	title: string,
-	dependsOn: ReadonlyArray<string>,
-) =>
+const chartered = (captain: ScriptedSession, title: string, dependsOn: ReadonlyArray<string>) =>
 	Effect.gen(function* () {
 		const outcome = yield* callTool(captain, "charter_piece", {
 			charter: `do ${title}`,
@@ -47,9 +32,7 @@ const crewOn = (scripted: ScriptedBackend, pieceId: string) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
 		const row = (yield* db.PieceAgent.where({ pieceId }).all())[0];
-		return row === undefined
-			? yield* Effect.fail("no crew yet")
-			: yield* sessionFor(scripted, row.agentId);
+		return row === undefined ? yield* Effect.fail("no crew yet") : yield* sessionFor(scripted, row.agentId);
 	});
 
 const landsAndStandsDown = (crew: ScriptedSession, title: string) =>
@@ -78,7 +61,7 @@ const voyageStateIs = (voyageId: string, state: string) =>
 // is hailed a captain, the captain charters and launches, the dispatcher
 // spawns what the edges allow, crew land and stand down, and the voyage falls
 // quiet on its own.
-it.live("a hailed captain charters a chain that sails itself", () =>
+it.effect("a hailed captain charters a chain that sails itself", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
 		const scripted = yield* makeScriptedBackend;
@@ -86,7 +69,7 @@ it.live("a hailed captain charters a chain that sails itself", () =>
 			const domain = yield* AgentDomain;
 			const voyage = yield* openReefVoyage;
 			const hailed = yield* domain.voyages.hail(voyage.id);
-			const captain = yield* eventually(sessionFor(scripted, hailed.agentId));
+			const captain = yield* TestClock.withLive(eventually(sessionFor(scripted, hailed.agentId)));
 
 			const alpha = yield* chartered(captain, "alpha", []);
 			const bravo = yield* chartered(captain, "bravo", [alpha]);
@@ -95,41 +78,32 @@ it.live("a hailed captain charters a chain that sails itself", () =>
 			yield* launched(captain, bravo);
 			yield* launched(captain, charlie);
 
-			yield* eventually(
-				Effect.gen(function* () {
-					expect(yield* assignedPieces).toEqual([alpha]);
-				}),
+			yield* TestClock.withLive(
+				eventually(
+					Effect.gen(function* () {
+						expect(yield* assignedPieces).toEqual([alpha]);
+					}),
+				),
 			);
-			yield* Effect.sleep(200);
+			yield* TestClock.adjust(200);
 			expect(yield* assignedPieces).toEqual([alpha]);
 
-			yield* landsAndStandsDown(
-				yield* eventually(crewOn(scripted, alpha)),
-				"soundings",
-			);
+			yield* landsAndStandsDown(yield* TestClock.withLive(eventually(crewOn(scripted, alpha))), "soundings");
 
-			yield* eventually(
-				Effect.gen(function* () {
-					expect((yield* assignedPieces).length).toBe(3);
-				}),
+			yield* TestClock.withLive(
+				eventually(
+					Effect.gen(function* () {
+						expect((yield* assignedPieces).length).toBe(3);
+					}),
+				),
 			);
-			yield* landsAndStandsDown(
-				yield* eventually(crewOn(scripted, bravo)),
-				"eastern chart",
-			);
-			yield* landsAndStandsDown(
-				yield* eventually(crewOn(scripted, charlie)),
-				"western chart",
-			);
+			yield* landsAndStandsDown(yield* TestClock.withLive(eventually(crewOn(scripted, bravo))), "eastern chart");
+			yield* landsAndStandsDown(yield* TestClock.withLive(eventually(crewOn(scripted, charlie))), "western chart");
 
 			const read = yield* callTool(captain, "read_voyage", {});
 			expect(read.text).toContain(`- ${alpha} alpha [done]`);
-			expect(read.text).toContain(
-				`- ${bravo} bravo [done] depends on ${alpha}`,
-			);
-			expect(read.text).toContain(
-				`- ${charlie} charlie [done] depends on ${alpha}`,
-			);
+			expect(read.text).toContain(`- ${bravo} bravo [done] depends on ${alpha}`);
+			expect(read.text).toContain(`- ${charlie} charlie [done] depends on ${alpha}`);
 			expect(read.text).toContain("soundings — report by");
 			expect(read.text).toContain("eastern chart — report by");
 			expect(read.text).toContain("western chart — report by");
@@ -140,18 +114,14 @@ it.live("a hailed captain charters a chain that sails itself", () =>
 				ok: true,
 				text: "standing by",
 			});
-			yield* eventually(
-				Effect.gen(function* () {
-					const view = yield* voyageStateIs(voyage.id, "quiet");
-					expect(view.pieces.map((piece) => piece.state)).toEqual([
-						"done",
-						"done",
-						"done",
-					]);
-				}),
+			yield* TestClock.withLive(
+				eventually(
+					Effect.gen(function* () {
+						const view = yield* voyageStateIs(voyage.id, "quiet");
+						expect(view.pieces.map((piece) => piece.state)).toEqual(["done", "done", "done"]);
+					}),
+				),
 			);
-		}).pipe(
-			Effect.provide(dispatchingLayer(temporary, scripted.backend, PATIENCE)),
-		);
+		}).pipe(Effect.provide(dispatchingLayer(temporary, scripted.backend, PATIENCE)));
 	}),
 );

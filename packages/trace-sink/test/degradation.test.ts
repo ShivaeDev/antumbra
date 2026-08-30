@@ -22,8 +22,7 @@ const capturing = () => {
 				entries.push(String(options.message));
 			}),
 		]),
-		standDowns: () =>
-			entries.filter((entry) => entry.includes("dev trace sink disabled")),
+		standDowns: () => entries.filter((entry) => entry.includes("dev trace sink disabled")),
 	};
 };
 

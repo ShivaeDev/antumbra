@@ -32,6 +32,7 @@ const fleetOf = (presence: SessionSummary["presence"]): Fleet => ({
 		},
 	],
 	backends: ["scripted"],
+	capacities: [],
 	diag: { intents: [] },
 	repos: [],
 });
@@ -55,7 +56,5 @@ it("offers the send box on a stranded session and says why it is quiet", () => {
 });
 
 it("says nothing under the box while a session is working", () => {
-	expect(sessionMessageState(fleetOf("working"), "session-1").standing).toBe(
-		undefined,
-	);
+	expect(sessionMessageState(fleetOf("working"), "session-1").standing).toBe(undefined);
 });

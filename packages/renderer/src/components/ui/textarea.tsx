@@ -1,9 +1,6 @@
 import { cn } from "#lib/utils.ts";
 
-export const Textarea = ({
-	className,
-	...props
-}: React.ComponentProps<"textarea">) => (
+export const Textarea = ({ className, ...props }: React.ComponentProps<"textarea">) => (
 	<textarea
 		className={cn(
 			"w-full min-w-0 resize-y rounded-md border border-border bg-input px-2 py-1.5 text-xs text-foreground outline-none transition-colors",

@@ -6,6 +6,4 @@ export interface Violation {
 }
 
 export const byLocation = (left: Violation, right: Violation): number =>
-	left.file.localeCompare(right.file) ||
-	(left.line ?? 0) - (right.line ?? 0) ||
-	left.rule.localeCompare(right.rule);
+	left.file.localeCompare(right.file) || (left.line ?? 0) - (right.line ?? 0) || left.rule.localeCompare(right.rule);

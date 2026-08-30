@@ -1,9 +1,6 @@
 import { DomainFeedsLive } from "@antumbra/domain-feeds";
 import { Database, type PrismaError } from "@antumbra/persistence";
-import {
-	acquireTemporaryPersistence,
-	type TemporaryPersistence,
-} from "@antumbra/persistence/testing";
+import { acquireTemporaryPersistence, type TemporaryPersistence } from "@antumbra/persistence/testing";
 import type { Runner } from "@antumbra/plugin-api";
 import { expect, it } from "@effect/vitest";
 import { Effect, Layer, Option, Ref } from "effect";
@@ -35,25 +32,13 @@ const TRANSACTION_RESOURCE = {
 	source: "/repo/transaction",
 };
 
-const heldBySource = (
-	resources: ReadonlyArray<HeldResource>,
-	sources: ReadonlySet<string>,
-) =>
-	new Map(
-		resources.flatMap((resource) =>
-			sources.has(resource.source) ? [[resource.id, "held"] as const] : [],
-		),
-	);
+const heldBySource = (resources: ReadonlyArray<HeldResource>, sources: ReadonlySet<string>) =>
+	new Map(resources.flatMap((resource) => (sources.has(resource.source) ? [[resource.id, "held"] as const] : [])));
 
 const repoHeldResourceRead = Effect.gen(function* () {
 	const db = yield* Database;
 	return {
-		held: (resources) =>
-			db.Repo.all().pipe(
-				Effect.map((repos) =>
-					heldBySource(resources, new Set(repos.map((repo) => repo.source))),
-				),
-			),
+		held: (resources) => db.Repo.all().pipe(Effect.map((repos) => heldBySource(resources, new Set(repos.map((repo) => repo.source))))),
 	} satisfies HeldResourceRead<PrismaError>;
 });
 
@@ -78,32 +63,25 @@ it.live("reads held evidence through the caller transaction executor", () =>
 	}),
 );
 
-it.live(
-	"exposes mortal degradation and recovery without failing the layer",
-	() =>
-		Effect.gen(function* () {
-			const temporary = yield* acquireTemporaryPersistence;
-			const fail = yield* Ref.make(true);
-			const failure = new ResourceReclaimClaimInvalid({
-				agentId: "agent-health",
-				detail: "uncertain held truth",
-			});
-			const read = Effect.succeed({
-				held: () =>
-					Ref.get(fail).pipe(
-						Effect.flatMap((shouldFail) =>
-							shouldFail ? Effect.fail(failure) : Effect.succeed(new Map()),
-						),
-					),
-			} satisfies HeldResourceRead<ResourceReclaimClaimInvalid>);
-			yield* Effect.gen(function* () {
-				const reconciler = yield* ResourceReconciler;
-				expect(yield* reconciler.health).toMatchObject({ state: "degraded" });
-				yield* Ref.set(fail, false);
-				yield* reconciler.reconcile;
-				expect(yield* reconciler.health).toMatchObject({ state: "healthy" });
-			}).pipe(Effect.provide(layer(temporary, read)));
-		}),
+it.live("exposes mortal degradation and recovery without failing the layer", () =>
+	Effect.gen(function* () {
+		const temporary = yield* acquireTemporaryPersistence;
+		const fail = yield* Ref.make(true);
+		const failure = new ResourceReclaimClaimInvalid({
+			agentId: "agent-health",
+			detail: "uncertain held truth",
+		});
+		const read = Effect.succeed({
+			held: () => Ref.get(fail).pipe(Effect.flatMap((shouldFail) => (shouldFail ? Effect.fail(failure) : Effect.succeed(new Map())))),
+		} satisfies HeldResourceRead<ResourceReclaimClaimInvalid>);
+		yield* Effect.gen(function* () {
+			const reconciler = yield* ResourceReconciler;
+			expect(yield* reconciler.health).toMatchObject({ state: "degraded" });
+			yield* Ref.set(fail, false);
+			yield* reconciler.reconcile;
+			expect(yield* reconciler.health).toMatchObject({ state: "healthy" });
+		}).pipe(Effect.provide(layer(temporary, read)));
+	}),
 );
 
 it.live("fails closed when an active Agent owns durable reclaim claims", () =>
@@ -144,10 +122,7 @@ it.live("fails closed when an active Agent owns durable reclaim claims", () =>
 			capabilities: { liveTerminal: false },
 			plan: () => ({ berths: [], root: "/tmp/moorage" }),
 			provision: () => Effect.die("unexpected provision"),
-			reclaim: () =>
-				Ref.update(calls, (count) => count + 1).pipe(
-					Effect.as({ _tag: "reclaimed" as const }),
-				),
+			reclaim: () => Ref.update(calls, (count) => count + 1).pipe(Effect.as({ _tag: "reclaimed" as const })),
 			scrap: () => Effect.die("unexpected scrap"),
 			tag: "local",
 		};
@@ -161,9 +136,7 @@ it.live("fails closed when an active Agent owns durable reclaim claims", () =>
 			if (health.state === "degraded") {
 				expect(health.failure).toContain("not reclaimable");
 			}
-		}).pipe(
-			Effect.provide(layer(temporary, read, new Map([[runner.tag, runner]]))),
-		);
+		}).pipe(Effect.provide(layer(temporary, read, new Map([[runner.tag, runner]]))));
 		expect(yield* Ref.get(calls)).toBe(0);
 		yield* Effect.gen(function* () {
 			const db = yield* Database;

@@ -1,25 +1,27 @@
 import {
 	bind,
 	charterVoyagePieceSpec,
+	hailCaptainSpec,
 	openVoyageSpec,
 	proclaimRulingSpec,
 	readFleetSpec,
+	readVoyageSpec,
 } from "@antumbra/agent-tools";
 import { Pieces } from "@antumbra/pieces";
 import type { DirectTool } from "@antumbra/plugin-api";
-import {
-	type Ruling,
-	type RulingProclamation,
-	Rulings,
-} from "@antumbra/rulings";
+import { type Ruling, type RulingProclamation, Rulings } from "@antumbra/rulings";
 import { AGENT_BACKEND_TAGS } from "@antumbra/vocabulary/agent-backend";
-import { Effect } from "effect";
+import { Effect, Option } from "effect";
 import { makeCaptainToolCompiler } from "#captain-tools.ts";
+import { VoyageNotFound } from "#errors.ts";
 import { renderFleet } from "#fleet-render.ts";
+import { widenedBy } from "#fleet-widening.ts";
+import type { HailedCaptain } from "#hail.ts";
 import { tagSubjects } from "#ruling-inputs.ts";
-import { answered } from "#tool-answers.ts";
+import { answered, onVoyage } from "#tool-answers.ts";
 import type { SessionIdentity } from "#tool-identity.ts";
 import { VoyageProcedureService } from "#voyage-procedures.ts";
+import { renderVoyage } from "#voyage-render.ts";
 
 // why: an opened voyage points at the first backend this app ships, the way a
 // window draft that names none falls back to the first one offered. The
@@ -44,6 +46,9 @@ const proclamationOf = (input: Proclaimed): RulingProclamation => ({
 	urgency: input.urgency,
 });
 
+const hailed = (voyageId: string) => (captain: HailedCaptain) =>
+	`hailed captain ${captain.agentId} of voyage ${voyageId} — intent ${captain.intentId}`;
+
 const proclaimed = (ruling: Ruling): string =>
 	`ruling ${ruling.id} proclaimed by the flagship — it binds the whole fleet until the admiral supersedes it`;
 
@@ -57,11 +62,25 @@ export const makeFleetToolCompiler = Effect.gen(function* () {
 	const pieces = yield* Pieces;
 	const rulings = yield* Rulings;
 	const voyages = yield* VoyageProcedureService;
-	return (identity: SessionIdentity): ReadonlyArray<DirectTool> => [
-		...compileCaptainTools(identity),
-		bind(readFleetSpec, () =>
-			answered(identity, readFleetSpec.name, voyages.list, renderFleet),
+	const readsVoyage = (identity: SessionIdentity, voyageId: string) =>
+		answered(
+			identity,
+			readVoyageSpec.name,
+			voyages.read(voyageId).pipe(
+				Effect.flatMap((view) =>
+					Option.match(view, {
+						onNone: () => new VoyageNotFound({ voyageId }),
+						onSome: (found) => Effect.succeed(found),
+					}),
+				),
+			),
+			renderVoyage,
+		);
+	const fleetActs = (identity: SessionIdentity): ReadonlyArray<DirectTool> => [
+		bind(readVoyageSpec, (input) =>
+			input.voyageId === undefined ? onVoyage(identity, (own) => readsVoyage(identity, own)) : readsVoyage(identity, input.voyageId),
 		),
+		bind(readFleetSpec, () => answered(identity, readFleetSpec.name, voyages.list, renderFleet)),
 		bind(openVoyageSpec, (input) =>
 			answered(
 				identity,
@@ -90,13 +109,8 @@ export const makeFleetToolCompiler = Effect.gen(function* () {
 				(piece) => `chartered ${piece.id} on voyage ${input.voyageId}`,
 			),
 		),
-		bind(proclaimRulingSpec, (input) =>
-			answered(
-				identity,
-				proclaimRulingSpec.name,
-				rulings.proclaim(proclamationOf(input)),
-				proclaimed,
-			),
-		),
+		bind(hailCaptainSpec, (input) => answered(identity, hailCaptainSpec.name, voyages.hail(input.voyageId), hailed(input.voyageId))),
+		bind(proclaimRulingSpec, (input) => answered(identity, proclaimRulingSpec.name, rulings.proclaim(proclamationOf(input)), proclaimed)),
 	];
+	return (identity: SessionIdentity): ReadonlyArray<DirectTool> => widenedBy(compileCaptainTools(identity), fleetActs(identity));
 });

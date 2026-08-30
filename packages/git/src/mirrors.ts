@@ -4,10 +4,7 @@ import { runGit } from "#command.ts";
 import type { GitError } from "#errors.ts";
 import { INSPECT_TIMEOUT_MILLIS, REMOTE_TIMEOUT_MILLIS } from "#timeouts.ts";
 
-export const cloneMirror = (
-	source: string,
-	destination: string,
-): Effect.Effect<void, GitError, ChildProcessSpawner.ChildProcessSpawner> =>
+export const cloneMirror = (source: string, destination: string): Effect.Effect<void, GitError, ChildProcessSpawner.ChildProcessSpawner> =>
 	runGit({
 		args: ["clone", "--bare", source, destination],
 		operation: "clone-mirror",
@@ -20,13 +17,7 @@ export const refreshMirror = Effect.fn("git.refreshMirror")(function* (
 	// why: a bare clone lacks branch refs, and repeating the refspec heals a
 	// clone interrupted between creation and its first refresh.
 	yield* runGit({
-		args: [
-			"-C",
-			path,
-			"config",
-			"remote.origin.fetch",
-			"+refs/heads/*:refs/remotes/origin/*",
-		],
+		args: ["-C", path, "config", "remote.origin.fetch", "+refs/heads/*:refs/remotes/origin/*"],
 		operation: "refresh-mirror",
 		timeoutMillis: INSPECT_TIMEOUT_MILLIS,
 	});

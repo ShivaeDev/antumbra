@@ -7,14 +7,8 @@ const MAX_BACKOFF_MILLIS = 5 * 60 * 1000;
 // tick, and the ceiling keeps a permanently broken piece from disappearing
 // for hours. Doubling from the patience floor is the whole policy — one pure
 // function, so the numbers can be argued about without touching the loop.
-export const nextBackoffMillis = (
-	consecutiveFailures: number,
-	patienceMillis: number,
-): number =>
-	Math.min(
-		MAX_BACKOFF_MILLIS,
-		patienceMillis * 2 ** Math.max(0, consecutiveFailures),
-	);
+export const nextBackoffMillis = (consecutiveFailures: number, patienceMillis: number): number =>
+	Math.min(MAX_BACKOFF_MILLIS, patienceMillis * 2 ** Math.max(0, consecutiveFailures));
 
 export interface ReadyPiece {
 	readonly piece: PieceRow;
@@ -22,18 +16,12 @@ export interface ReadyPiece {
 }
 
 const launchOrder = (left: ReadyPiece, right: ReadyPiece): number => {
-	const focus =
-		Number(right.voyage.focusedAt !== null) -
-		Number(left.voyage.focusedAt !== null);
+	const focus = Number(right.voyage.focusedAt !== null) - Number(left.voyage.focusedAt !== null);
 	if (focus !== 0) {
 		return focus;
 	}
-	const launched =
-		(left.piece.launchedAt?.getTime() ?? 0) -
-		(right.piece.launchedAt?.getTime() ?? 0);
-	return launched === 0
-		? left.piece.id.localeCompare(right.piece.id)
-		: launched;
+	const launched = (left.piece.launchedAt?.getTime() ?? 0) - (right.piece.launchedAt?.getTime() ?? 0);
+	return launched === 0 ? left.piece.id.localeCompare(right.piece.id) : launched;
 };
 
 // why: pools pull, so the dispatcher never asks a piece to wait its turn in a

@@ -13,11 +13,7 @@ const TURN = "019ff334-ed58-7ff3-8dfb-1ceb96c93ccd";
 
 const tree = () => openThreadTree(ROOT, openThreadClaims());
 
-const item = (
-	method: string,
-	threadId: string,
-	payload: Record<string, unknown>,
-) => ({ method, params: { item: payload, threadId, turnId: TURN } });
+const item = (method: string, threadId: string, payload: Record<string, unknown>) => ({ method, params: { item: payload, threadId, turnId: TURN } });
 
 const said = (threadId: string, text: string) =>
 	item("item/completed", threadId, {
@@ -43,12 +39,7 @@ const reviewerThread = (id: string) => ({
 	},
 });
 
-const activity = (
-	threadId: string,
-	agentThreadId: string,
-	kind: string,
-	id = "sub_1",
-) =>
+const activity = (threadId: string, agentThreadId: string, kind: string, id = "sub_1") =>
 	item("item/started", threadId, {
 		agentPath: ".codex/agents/auditor.md",
 		agentThreadId,
@@ -57,12 +48,7 @@ const activity = (
 		type: "subAgentActivity",
 	});
 
-const collabCall = (
-	method: string,
-	threadId: string,
-	receiver: string,
-	id = "collab_1",
-) =>
+const collabCall = (method: string, threadId: string, receiver: string, id = "collab_1") =>
 	item(method, threadId, {
 		agentsStates: {},
 		id,
@@ -197,9 +183,7 @@ describe("the tree reads what codex says about its own agents", () => {
 	it("codex's word for a forced ending folds onto ours", () => {
 		const reading = tree();
 		reading.events(activity(ROOT, CHILD, "started"));
-		const [ended] = reading.events(
-			activity(ROOT, CHILD, "interrupted", "sub_2"),
-		);
+		const [ended] = reading.events(activity(ROOT, CHILD, "interrupted", "sub_2"));
 		expect(ended).toMatchObject({
 			outcome: "interrupted",
 			subsessionRef: CHILD,
@@ -219,8 +203,6 @@ describe("the tree reads what codex says about its own agents", () => {
 			subsessionRef: CHILD,
 			type: "subsession.ended",
 		});
-		expect(ended?.type === "subsession.ended" && ended.raw.kind).toBe(
-			"thread/closed",
-		);
+		expect(ended?.type === "subsession.ended" && ended.raw.kind).toBe("thread/closed");
 	});
 });

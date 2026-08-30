@@ -10,23 +10,12 @@ import type {
 	VoyageSummary,
 	VoyageView,
 } from "@antumbra/contract";
-import { client, toError } from "#adapters/bridge.ts";
+import { client, fired, toError } from "#adapters/bridge.ts";
 import type { Unsubscribe } from "#adapters/trpc.ts";
 
 type OnError = (message: string) => void;
 
-const fired = (acted: Promise<unknown>, onError: OnError): void => {
-	acted
-		.then(() => undefined)
-		.catch((cause: unknown) => {
-			onError(toError(cause).message);
-		});
-};
-
-export const watchVoyages = (
-	onVoyages: (voyages: ReadonlyArray<VoyageSummary>) => void,
-	onError: OnError,
-): Unsubscribe => {
+export const watchVoyages = (onVoyages: (voyages: ReadonlyArray<VoyageSummary>) => void, onError: OnError): Unsubscribe => {
 	const subscription = client.voyagesFeed.subscribe(undefined, {
 		onData: onVoyages,
 		onError: (cause) => onError(toError(cause).message),
@@ -34,11 +23,7 @@ export const watchVoyages = (
 	return () => subscription.unsubscribe();
 };
 
-export const watchVoyage = (
-	voyageId: string,
-	onVoyage: (voyage: VoyageView) => void,
-	onError: OnError,
-): Unsubscribe => {
+export const watchVoyage = (voyageId: string, onVoyage: (voyage: VoyageView) => void, onError: OnError): Unsubscribe => {
 	const subscription = client.voyageFeed.subscribe(
 		{ voyageId },
 		{
@@ -49,91 +34,56 @@ export const watchVoyage = (
 	return () => subscription.unsubscribe();
 };
 
-export const readArtifactMarkdown = (
-	artifactId: string,
-	onDone: (artifact: ArtifactMarkdown) => void,
-	onError: OnError,
-): void => {
+export const readArtifactMarkdown = (artifactId: string, onDone: (artifact: ArtifactMarkdown) => void, onError: OnError): void => {
 	client.artifactMarkdown
 		.query({ artifactId })
 		.then(onDone)
 		.catch((cause: unknown) => onError(toError(cause).message));
 };
 
-export const readReportMarkdown = (
-	reportId: string,
-	onDone: (report: ReportMarkdown) => void,
-	onError: OnError,
-): void => {
+export const readReportMarkdown = (reportId: string, onDone: (report: ReportMarkdown) => void, onError: OnError): void => {
 	client.reportMarkdown
 		.query({ reportId })
 		.then(onDone)
 		.catch((cause: unknown) => onError(toError(cause).message));
 };
 
-export const openVoyage = (
-	request: OpenVoyageRequest,
-	onDone: (voyage: VoyageSummary) => void,
-	onError: OnError,
-): void => {
+export const openVoyage = (request: OpenVoyageRequest, onDone: (voyage: VoyageSummary) => void, onError: OnError): void => {
 	client.openVoyage
 		.mutate(request)
 		.then(onDone)
 		.catch((cause: unknown) => onError(toError(cause).message));
 };
 
-export const focusVoyage = (
-	voyageId: string,
-	focused: boolean,
-	onError: OnError,
-): void => fired(client.focusVoyage.mutate({ focused, voyageId }), onError);
+export const focusVoyage = (voyageId: string, focused: boolean, onError: OnError): void =>
+	fired(client.focusVoyage.mutate({ focused, voyageId }), onError);
 
-export const setVoyageBackend = (
-	request: VoyageBackendRequest,
-	onError: OnError,
-): void => fired(client.setVoyageBackend.mutate(request), onError);
+export const setVoyageBackend = (request: VoyageBackendRequest, onError: OnError): void => fired(client.setVoyageBackend.mutate(request), onError);
 
-export const hailCaptain = (voyageId: string, onError: OnError): void =>
-	fired(client.hailCaptain.mutate({ voyageId }), onError);
+export const hailCaptain = (voyageId: string, onError: OnError): void => fired(client.hailCaptain.mutate({ voyageId }), onError);
 
-export const charterPiece = (
-	request: CharterPieceRequest,
-	onDone: () => void,
-	onError: OnError,
-): void => {
+export const charterPiece = (request: CharterPieceRequest, onDone: () => void, onError: OnError): void => {
 	client.charterPiece
 		.mutate(request)
 		.then(onDone)
 		.catch((cause: unknown) => onError(toError(cause).message));
 };
 
-export const launchPiece = (pieceId: string, onError: OnError): void =>
-	fired(client.launchPiece.mutate({ pieceId }), onError);
+export const launchPiece = (pieceId: string, onError: OnError): void => fired(client.launchPiece.mutate({ pieceId }), onError);
 
-export const parkPiece = (pieceId: string, onError: OnError): void =>
-	fired(client.parkPiece.mutate({ pieceId }), onError);
+export const parkPiece = (pieceId: string, onError: OnError): void => fired(client.parkPiece.mutate({ pieceId }), onError);
 
-export const unparkPiece = (pieceId: string, onError: OnError): void =>
-	fired(client.unparkPiece.mutate({ pieceId }), onError);
+export const unparkPiece = (pieceId: string, onError: OnError): void => fired(client.unparkPiece.mutate({ pieceId }), onError);
 
-export const rewirePiece = (request: RewireRequest, onError: OnError): void =>
-	fired(client.rewirePiece.mutate(request), onError);
+export const rewirePiece = (request: RewireRequest, onError: OnError): void => fired(client.rewirePiece.mutate(request), onError);
 
 // why: crew asked for by name rather than waited for — the receipt names the
 // agent born for it, and the feed shows the piece turn active on its own.
-export const workPieceNow = (pieceId: string, onError: OnError): void =>
-	fired(client.workPieceNow.mutate({ pieceId }), onError);
+export const workPieceNow = (pieceId: string, onError: OnError): void => fired(client.workPieceNow.mutate({ pieceId }), onError);
 
-export const landPieceVerdict = (
-	request: PieceVerdictRequest,
-	onError: OnError,
-): void => fired(client.landPieceVerdict.mutate(request), onError);
+export const landPieceVerdict = (request: PieceVerdictRequest, onError: OnError): void => fired(client.landPieceVerdict.mutate(request), onError);
 
-export const writeBoard = (
-	request: BoardWriteRequest,
-	onDone: () => void,
-	onError: OnError,
-): void => {
+export const writeBoard = (request: BoardWriteRequest, onDone: () => void, onError: OnError): void => {
 	client.writeBoard
 		.mutate(request)
 		.then(onDone)

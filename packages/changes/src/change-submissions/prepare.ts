@@ -3,23 +3,13 @@ import { Database } from "@antumbra/persistence";
 import { Pieces } from "@antumbra/pieces";
 import type { ChangeHostRepo } from "@antumbra/plugin-api";
 import { UnknownRunnerError } from "@antumbra/plugin-api";
-import {
-	ensureAgentCanOwnLocalWork,
-	ensureBerthResourcesUnclaimed,
-} from "@antumbra/resource-reclamation";
+import { ensureAgentCanOwnLocalWork, ensureBerthResourcesUnclaimed } from "@antumbra/resource-reclamation";
 import { Clock, Effect, Option, Result } from "effect";
 import { activeChange, linkProduces } from "#change-submissions/links.ts";
 import type { Proposal, SubmitChangeInput } from "#change-submissions/model.ts";
-import {
-	preparedChange,
-	submissionKey,
-} from "#change-submissions/prepared-row.ts";
+import { preparedChange, submissionKey } from "#change-submissions/prepared-row.ts";
 import { RunnerRegistry } from "#change-submissions/registries.ts";
-import {
-	berthFor,
-	claimingHost,
-	repoNamed,
-} from "#change-submissions/repository.ts";
+import { berthFor, claimingHost, repoNamed } from "#change-submissions/repository.ts";
 
 interface PreparedSubmission {
 	readonly hostTag: string;
@@ -67,14 +57,7 @@ export const prepareChange = (input: SubmitChangeInput, proposal?: Proposal) =>
 			return yield* new UnknownRunnerError({ tag: berth.runner });
 		}
 		const evidence = yield* runner.captureChange(berth);
-		const candidate = preparedChange(
-			input,
-			repo,
-			host.tag,
-			evidence,
-			yield* Clock.currentTimeMillis,
-			proposal,
-		);
+		const candidate = preparedChange(input, repo, host.tag, evidence, yield* Clock.currentTimeMillis, proposal);
 		const stored = yield* Effect.gen(function* () {
 			yield* ensureAgentCanOwnLocalWork(input.agentId);
 			yield* ensureBerthResourcesUnclaimed(berth.id);

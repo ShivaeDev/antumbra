@@ -31,14 +31,13 @@ export {
 export {
 	AgentSummary,
 	AgentWork,
+	BackendCapacitySummary,
 	BerthSummary,
 	Fleet,
 	PieceWork,
 	RepoSummary,
 	SessionSummary,
 	VoyageCommand,
-	WorkChange,
-	WorkChangeStanding,
 } from "#fleet.ts";
 export {
 	SubscribeRequest,

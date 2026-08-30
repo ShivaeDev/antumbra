@@ -1,87 +1,27 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
-import { Database, type PrismaError } from "@antumbra/persistence";
-import type { StoredBoardOwnerKindInvalid } from "@antumbra/vocabulary/board";
-import { Context, Effect, Layer } from "effect";
-import type {
-	BoardOwnerNotFound,
-	BoardSourceConflict,
-	MailNotAddressed,
-	StoredBoardEntryInvalid,
-} from "#errors.ts";
+import { Database } from "@antumbra/persistence";
+import { defineService } from "@antumbra/service-definition";
+import { type Context, Effect } from "effect";
 import { mail, markMailRead, unreadMail } from "#mailbox.ts";
-import type {
-	BoardEntryRow,
-	BoardScope,
-	EntryInput,
-	MailInput,
-} from "#model.ts";
 import { readBoard } from "#read.ts";
 import { ensureBoard, writeEntry } from "#write.ts";
 
-export type BoardWriteFailure =
-	| BoardOwnerNotFound
-	| BoardSourceConflict
-	| PrismaError
-	| StoredBoardEntryInvalid
-	| StoredBoardOwnerKindInvalid;
+const requirements = [Database, DomainFeeds] as const;
 
-export type BoardReadFailure =
-	| BoardOwnerNotFound
-	| PrismaError
-	| StoredBoardEntryInvalid
-	| StoredBoardOwnerKindInvalid;
-
-export type MarkReadFailure = BoardReadFailure | MailNotAddressed;
-
-export class Boards extends Context.Service<
-	Boards,
-	{
-		readonly ensure: (
-			scope: BoardScope,
-		) => Effect.Effect<
-			string,
-			BoardOwnerNotFound | PrismaError | StoredBoardOwnerKindInvalid
-		>;
-		readonly mail: (
-			input: MailInput,
-		) => Effect.Effect<BoardEntryRow, BoardWriteFailure>;
-		readonly markRead: (
-			agentId: string,
-			entryIds: ReadonlyArray<string>,
-		) => Effect.Effect<void, MarkReadFailure>;
-		readonly read: (
-			scope: BoardScope,
-		) => Effect.Effect<ReadonlyArray<BoardEntryRow>, BoardReadFailure>;
-		readonly unread: (
-			agentId: string,
-		) => Effect.Effect<ReadonlyArray<BoardEntryRow>, BoardReadFailure>;
-		readonly write: (
-			scope: BoardScope,
-			input: EntryInput,
-		) => Effect.Effect<BoardEntryRow, BoardWriteFailure>;
-	}
->()("@antumbra/boards/Boards") {}
+export const Boards = defineService({
+	id: "@antumbra/boards/Boards",
+	initialize: Effect.void,
+	methods: () => ({
+		ensure: ensureBoard,
+		mail,
+		markRead: markMailRead,
+		read: readBoard,
+		unread: unreadMail,
+		write: writeEntry,
+	}),
+	requires: requirements,
+});
 
 export type BoardsService = Context.Service.Shape<typeof Boards>;
 
-export const BoardsLive = Layer.effect(Boards)(
-	Effect.gen(function* () {
-		const db = yield* Database;
-		const feeds = yield* DomainFeeds;
-		const context = Context.make(Database, db).pipe(
-			Context.add(DomainFeeds, feeds),
-		);
-		return {
-			ensure: (scope) => Effect.provide(ensureBoard(scope), context),
-			mail: (input) => Effect.provide(mail(input), context),
-			markRead: (agentId, entryIds) =>
-				Effect.provide(markMailRead(agentId, entryIds), context).pipe(
-					Effect.asVoid,
-				),
-			read: (scope) => Effect.provide(readBoard(scope), context),
-			unread: (agentId) => Effect.provide(unreadMail(agentId), context),
-			write: (scope, input) =>
-				Effect.provide(writeEntry(scope, input), context),
-		};
-	}),
-);
+export const BoardsLive = Boards.layer;

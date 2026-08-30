@@ -3,8 +3,7 @@ import { Effect, Stream } from "effect";
 import { makeRuntime, quayView } from "#fixtures.ts";
 import { makeAppRouter } from "#index.ts";
 
-const callerOf = () =>
-	makeAppRouter(makeRuntime()).createCaller({ windowId: "console" });
+const callerOf = () => makeAppRouter(makeRuntime()).createCaller({ windowId: "console" });
 
 describe("makeAppRouter, on the quay", () => {
 	it.effect("reads every open change with the hosts' capability", () =>
@@ -17,10 +16,7 @@ describe("makeAppRouter, on the quay", () => {
 	it.effect("the quay feed carries the view to a watching window", () =>
 		Effect.gen(function* () {
 			const iterable = yield* Effect.promise(() => callerOf().quayFeed());
-			const collected = yield* Stream.fromAsyncIterable(
-				iterable,
-				(cause) => cause,
-			).pipe(Stream.runCollect);
+			const collected = yield* Stream.fromAsyncIterable(iterable, (cause) => cause).pipe(Stream.runCollect);
 			expect(collected.map((view) => view.rows.length)).toEqual([1]);
 		}),
 	);

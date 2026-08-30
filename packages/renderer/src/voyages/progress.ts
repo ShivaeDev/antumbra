@@ -31,8 +31,7 @@ export const slicesOf = (counts: PieceCounts): ReadonlyArray<ProgressSlice> => {
 	})).filter((slice) => slice.count > 0);
 };
 
-export const landedLabel = (counts: PieceCounts): string =>
-	`${counts.done} of ${counts.pieces} landed`;
+export const landedLabel = (counts: PieceCounts): string => `${counts.done} of ${counts.pieces} landed`;
 
 // why: the bar carries no text, so the shape it draws is spelled out once for
 // a reader who is listening to the page rather than looking at it.

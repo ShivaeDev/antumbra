@@ -1,17 +1,11 @@
-import {
-	query,
-	type SDKMessage,
-	type SDKUserMessage,
-} from "@anthropic-ai/claude-agent-sdk";
-import type { BackendFailure, DirectTool } from "@antumbra/plugin-api";
+import { query, type SDKMessage, type SDKUserMessage } from "@anthropic-ai/claude-agent-sdk";
+import type { BackendCapacityController, BackendFailure, DirectTool } from "@antumbra/plugin-api";
 import { type Effect, Option } from "effect";
 import { InputQueue } from "#adapters/input-queue.ts";
-import {
-	openSessionDeliveries,
-	type RawEventListener,
-} from "#adapters/session-delivery.ts";
+import { openSessionDeliveries, type RawEventListener } from "#adapters/session-delivery.ts";
 import { mirroringSessionStore } from "#adapters/session-store.ts";
 import { makeToolServer, type ToolCall } from "#adapters/tool-server.ts";
+import { rawOf } from "#raw-payload.ts";
 import { sessionOptions, type ToolAccess } from "#session-options.ts";
 
 interface RawSessionOptions {
@@ -23,6 +17,7 @@ interface RawSessionOptions {
 	// why: the Claude Code the host installed, never a bundled copy — the
 	// desktop shell finds it, the backend never guesses a path.
 	readonly executable: string;
+	readonly observeCapacity: BackendCapacityController["observe"];
 	readonly resume: string | undefined;
 	readonly tools: ReadonlyArray<DirectTool>;
 }
@@ -39,9 +34,11 @@ export const consumeSdkMessages = async (
 	live: AsyncIterable<SDKMessage>,
 	input: InputQueue,
 	deliver: (message: SDKMessage) => void,
+	observeCapacity?: BackendCapacityController["observe"],
 ): Promise<void> => {
 	try {
 		for await (const message of live) {
+			observeCapacity?.(rawOf(message));
 			deliver(message);
 		}
 	} catch {
@@ -52,10 +49,7 @@ export const consumeSdkMessages = async (
 	}
 };
 
-const userMessage = (
-	text: string,
-	priority?: SDKUserMessage["priority"],
-): SDKUserMessage => ({
+const userMessage = (text: string, priority?: SDKUserMessage["priority"]): SDKUserMessage => ({
 	message: { content: text, role: "user" },
 	parent_tool_use_id: null,
 	...(priority === undefined ? {} : { priority }),
@@ -83,14 +77,12 @@ export const openRawSession = (options: RawSessionOptions): RawSession => {
 			cwd: options.cwd,
 			executable: options.executable,
 			resume: options.resume,
-			store: mirroringSessionStore((write) =>
-				deliveries.deliver({ kind: "mirror", write }),
-			),
+			store: mirroringSessionStore((write) => deliveries.deliver({ kind: "mirror", write })),
 			tools: toolAccess(options),
 		}),
 		prompt: input.stream(),
 	});
-	void consumeSdkMessages(live, input, deliveries.frame)
+	void consumeSdkMessages(live, input, deliveries.frame, options.observeCapacity)
 		.then(() => deliveries.repair(options.cwd))
 		.finally(deliveries.finish);
 

@@ -6,7 +6,9 @@ import { SettingValue } from "#settings/declaration.ts";
 // of the struct would be a setting nothing could read over the bridge, and a
 // struct field the catalog does not declare has no default to fall back to.
 const fields: { readonly [K in SettingKey]: (typeof SETTINGS)[K]["value"] } = {
+	foldToolCalls: SETTINGS.foldToolCalls.value,
 	maxParallelSessions: SETTINGS.maxParallelSessions.value,
+	idleSiestaMinutes: SETTINGS.idleSiestaMinutes.value,
 	retireRestMinutes: SETTINGS.retireRestMinutes.value,
 	retireSweep: SETTINGS.retireSweep.value,
 };
@@ -44,9 +46,7 @@ export class SettingRefused extends Data.TaggedError("SettingRefused")<{
 export class SettingsSource extends Context.Service<
 	SettingsSource,
 	{
-		readonly change: (
-			change: SettingChange,
-		) => Effect.Effect<SettingsReading, unknown>;
+		readonly change: (change: SettingChange) => Effect.Effect<SettingsReading, unknown>;
 		readonly current: Effect.Effect<SettingsReading, unknown>;
 	}
 >()("@antumbra/contract/SettingsSource") {}

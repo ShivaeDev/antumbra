@@ -1,59 +1,20 @@
 import { SightSource } from "@antumbra/contract";
 import { DomainFeeds, type StoredEvent } from "@antumbra/domain-feeds";
 import { Database } from "@antumbra/persistence";
-import type { TemporaryPersistence } from "@antumbra/persistence/testing";
-import type { AgentEvent } from "@antumbra/vocabulary/session-events";
 import { expect, it } from "@effect/vitest";
-import { Effect, Fiber, Layer, Schedule, Stream } from "effect";
-import { SightSourceLive } from "#sight.ts";
-import { domainKernelLayer } from "#test/domain-layers.ts";
+import { Effect, Fiber, Stream } from "effect";
 import {
 	acquireTemporaryPersistence,
 	makeScriptedBackend,
-	rawOf,
-	type ScriptedBackend,
 	standDown,
 } from "#test/harness.ts";
-
-const eventually = <A, E, R>(check: Effect.Effect<A, E, R>) =>
-	check.pipe(
-		Effect.catchDefect((defect) => Effect.fail(defect)),
-		Effect.retry(Schedule.spaced(10).pipe(Schedule.upTo({ duration: 2000 }))),
-	);
-
-const sightLayer = (
-	temporary: TemporaryPersistence,
-	scripted: ScriptedBackend,
-) =>
-	SightSourceLive.pipe(
-		Layer.provideMerge(domainKernelLayer(temporary, scripted.backend)),
-	);
-
-const spawnRequest = {
-	backend: "scripted",
-	charter: "chart the reef",
-	role: "navigator",
-};
-
-const note = (n: number): AgentEvent => ({
-	raw: rawOf("assistant"),
-	role: "agent",
-	text: `note ${n}`,
-	type: "message",
-});
-
-const liveSession = (scripted: ScriptedBackend, sessionId: string) =>
-	eventually(
-		scripted
-			.session(sessionId)
-			.pipe(
-				Effect.flatMap((live) =>
-					live === undefined
-						? Effect.fail("not live yet")
-						: Effect.succeed(live),
-				),
-			),
-	);
+import {
+	eventually,
+	liveSession,
+	note,
+	sightLayer,
+	spawnRequest,
+} from "#test/sight-fixture.ts";
 
 it.live("spawn surfaces on the fleet feed once the agent lives", () =>
 	Effect.gen(function* () {

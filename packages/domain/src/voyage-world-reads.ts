@@ -36,6 +36,7 @@ export const readRootSessions: Effect.Effect<
 			}).pipe(
 				Effect.map(({ executionStatus, status }) => ({
 					agentId: session.agentId,
+					backend: session.backend,
 					createdAt: session.createdAt,
 					executionStatus,
 					id: session.id,

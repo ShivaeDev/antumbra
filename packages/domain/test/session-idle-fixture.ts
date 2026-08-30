@@ -5,8 +5,10 @@ import { expect } from "@effect/vitest";
 import { Clock, Effect, Layer, Option } from "effect";
 import { AgentDomain } from "#domain.ts";
 import type { SpawnFields } from "#index.ts";
-import { SightSourceLive } from "#sight.ts";
-import { domainKernelLayer } from "#test/domain-layers.ts";
+import {
+	domainKernelLayer,
+	sightSourceTestLayer,
+} from "#test/domain-layers.ts";
 import { rawOf, type ScriptedBackend, sessionFor } from "#test/harness.ts";
 import { aheadBy } from "#test/session-clock.ts";
 import {
@@ -35,7 +37,7 @@ export const sightLayer = (
 	temporary: Parameters<typeof domainKernelLayer>[0],
 	scripted: ScriptedBackend,
 ) =>
-	SightSourceLive.pipe(
+	sightSourceTestLayer.pipe(
 		Layer.provideMerge(
 			domainKernelLayer(
 				temporary,

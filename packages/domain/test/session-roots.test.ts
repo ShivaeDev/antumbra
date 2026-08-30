@@ -9,20 +9,22 @@ import {
 } from "@antumbra/sessions";
 import { expect, it } from "@effect/vitest";
 import { Effect, Layer, Result } from "effect";
-import { SightSourceLive } from "#sight.ts";
-import { domainKernelLayer } from "#test/domain-layers.ts";
+import {
+	domainKernelLayer,
+	sightSourceTestLayer,
+} from "#test/domain-layers.ts";
 import {
 	acquireTemporaryPersistence,
 	makeScriptedBackend,
 	type ScriptedBackend,
 } from "#test/harness.ts";
-import { eventually } from "#test/session-recovery-fixture.ts";
+import { eventually } from "#test/voyage-fixtures.ts";
 
 const sightLayer = (
 	temporary: TemporaryPersistence,
 	scripted: ScriptedBackend,
 ) =>
-	SightSourceLive.pipe(
+	sightSourceTestLayer.pipe(
 		Layer.provideMerge(domainKernelLayer(temporary, scripted.backend)),
 		Layer.provideMerge(SessionFabricLive),
 	);

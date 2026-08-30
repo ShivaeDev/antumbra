@@ -46,6 +46,12 @@ export const sightRoutes = (procedure: AppProcedure) => ({
 			const sight = yield* SightSource;
 			return yield* surface(sight.registerRepo(input));
 		}),
+	retryBackend: procedure
+		.input(Schema.Struct({ backend: Schema.String }))
+		.mutation(function* (input) {
+			const sight = yield* SightSource;
+			yield* surface(sight.retryBackend(input.backend));
+		}),
 	retireAgent: procedure
 		.input(Schema.Struct({ agentId: Schema.String }))
 		.mutation(function* (input) {

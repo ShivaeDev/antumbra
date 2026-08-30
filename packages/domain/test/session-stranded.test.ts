@@ -8,8 +8,10 @@ import {
 import type { AgentEvent } from "@antumbra/vocabulary/session-events";
 import { expect, it } from "@effect/vitest";
 import { Effect, Layer } from "effect";
-import { SightSourceLive } from "#sight.ts";
-import { domainKernelLayer } from "#test/domain-layers.ts";
+import {
+	domainKernelLayer,
+	sightSourceTestLayer,
+} from "#test/domain-layers.ts";
 import {
 	acquireTemporaryPersistence,
 	makeScriptedBackend,
@@ -24,10 +26,8 @@ import {
 	sessionRow,
 	spawned,
 } from "#test/session-idle-fixture.ts";
-import {
-	eventually,
-	reportsNativeRef,
-} from "#test/session-recovery-fixture.ts";
+import { reportsNativeRef } from "#test/session-recovery-fixture.ts";
+import { eventually } from "#test/voyage-fixtures.ts";
 
 const spoke: AgentEvent = {
 	raw: rawOf("agent/message"),
@@ -50,7 +50,7 @@ const strandLayer = (
 	temporary: Parameters<typeof domainKernelLayer>[0],
 	scripted: ScriptedBackend,
 ) =>
-	SightSourceLive.pipe(
+	sightSourceTestLayer.pipe(
 		Layer.provideMerge(SessionFabricLive),
 		Layer.provideMerge(
 			domainKernelLayer(

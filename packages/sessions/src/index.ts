@@ -57,6 +57,8 @@ export {
 	type SessionTreeRow,
 } from "#session-tree-view.ts";
 export { makeSessionTurnRests } from "#session-turn-rest.ts";
+export { waitFor } from "#session-unresumable.ts";
 export { makeWakeKind, type WakeFields } from "#session-wake.ts";
+export { WakePayload } from "#session-wake-input.ts";
 export { SessionWakePatience } from "#session-wake-patience.ts";
 export { makeSettleWakes } from "#session-wake-settle.ts";

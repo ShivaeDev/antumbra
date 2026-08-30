@@ -10,7 +10,7 @@ import {
 	type Runner,
 } from "@antumbra/plugin-api";
 import { expect, it } from "@effect/vitest";
-import { Deferred, Effect, Option, Schedule, Stream } from "effect";
+import { Deferred, Effect, Option, Stream } from "effect";
 import { AGENTS_ALIVE_GAUGE, AgentDomain } from "#domain.ts";
 import type { RetireFields, SpawnFields } from "#index.ts";
 import { domainKernelLayer } from "#test/domain-layers.ts";
@@ -21,18 +21,13 @@ import {
 	rawOf,
 	standDown,
 } from "#test/harness.ts";
+import { eventually } from "#test/voyage-fixtures.ts";
 
 const untilTerminal = <E, R>(changes: Stream.Stream<IntentStatus, E, R>) =>
 	changes.pipe(
 		Stream.takeUntil(isTerminalIntentStatus),
 		Stream.runLast,
 		Effect.map(Option.getOrThrow),
-	);
-
-const eventually = <A, E, R>(check: Effect.Effect<A, E, R>) =>
-	check.pipe(
-		Effect.catchDefect((defect) => Effect.fail(defect)),
-		Effect.retry(Schedule.spaced(10).pipe(Schedule.upTo({ duration: 2000 }))),
 	);
 
 const submitSpawn = (payload: SpawnFields) =>

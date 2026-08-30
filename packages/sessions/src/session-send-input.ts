@@ -8,6 +8,7 @@ import {
 import type { SessionInputId } from "@antumbra/vocabulary/session-input";
 import { Effect } from "effect";
 import { makeCurrentSessionRecovery } from "#current-session-recovery.ts";
+import type { SessionCapacities } from "#session-capacity.ts";
 import { admiralInput } from "#session-input.ts";
 import { makeSessionInputAdmission } from "#session-input-admission.ts";
 import type {
@@ -34,6 +35,7 @@ export const makeSendInput = (
 		sessionId: string,
 		inputId: SessionInputId,
 	) => Effect.Effect<void, SessionSendRefused>,
+	capacities: SessionCapacities,
 ) =>
 	Effect.gen(function* () {
 		const admission = yield* makeSessionInputAdmission(imageInputBackends);
@@ -68,6 +70,27 @@ export const makeSendInput = (
 				Effect.andThen(inputs.mark(inputId, "queued_for_wake")),
 				Effect.as<SessionSendReceipt>("queued_for_wake"),
 			);
+		const handoff = (
+			session: OpenSession,
+			sessionId: string,
+			inputId: SessionInputId,
+			input: SessionInput,
+		) =>
+			Effect.gen(function* () {
+				const capacity = yield* capacities.current(session.backend);
+				if (
+					capacity.status === "blocked" ||
+					!(yield* fabric.holds(sessionId))
+				) {
+					return yield* queued(sessionId, inputId);
+				}
+				// why: the attachment can go between being seen and being spoken to —
+				// a reclaim settling in the same breath — and the words follow it into
+				// the resume rather than being reported as a refusal.
+				return yield* accepted(sessionId, inputId, input).pipe(
+					Effect.catchTag("SessionNotLive", () => queued(sessionId, inputId)),
+				);
+			});
 		// why: taking custody is what costs disk and what outlives the request, so
 		// the backend is asked whether it can receive these parts at all before a
 		// single byte is normalized or installed. A text-only provider refuses with
@@ -89,14 +112,6 @@ export const makeSendInput = (
 				}
 				const input = admiralInput(stored.input);
 				yield* admission.admit(session.backend, inputId, input);
-				if (!(yield* fabric.holds(sessionId))) {
-					return yield* queued(sessionId, inputId);
-				}
-				// why: the attachment can go between being seen and being spoken to —
-				// a reclaim settling in the same breath — and the words follow it into
-				// the resume rather than being reported as a refusal.
-				return yield* accepted(sessionId, inputId, input).pipe(
-					Effect.catchTag("SessionNotLive", () => queued(sessionId, inputId)),
-				);
+				return yield* handoff(session, sessionId, inputId, input);
 			});
 	});

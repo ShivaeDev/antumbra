@@ -6,8 +6,10 @@ import { SessionFabricLive } from "@antumbra/session-fabric";
 import { SessionWakePatience } from "@antumbra/sessions";
 import { expect } from "@effect/vitest";
 import { Effect, Layer, Option, Ref } from "effect";
-import { SightSourceLive } from "#sight.ts";
-import { domainKernelLayer } from "#test/domain-layers.ts";
+import {
+	domainKernelLayer,
+	sightSourceTestLayer,
+} from "#test/domain-layers.ts";
 import {
 	makeScriptedBackend,
 	makeScriptedRunner,
@@ -79,7 +81,7 @@ export const wakeLayer = (
 	runner: Runner,
 	patienceMillis?: number,
 ) => {
-	const base = SightSourceLive.pipe(
+	const base = sightSourceTestLayer.pipe(
 		Layer.provideMerge(SessionFabricLive),
 		Layer.provideMerge(domainKernelLayer(temporary, backend, {}, runner)),
 	);

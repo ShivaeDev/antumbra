@@ -8,6 +8,7 @@ import {
 	decodeStoredResourceReclaimState,
 } from "@antumbra/vocabulary/agent-runtime";
 import { Effect } from "effect";
+import type { BackendCapacityReading } from "#backend-capacity.ts";
 import { attributeIntents } from "#sight-diagnostics.ts";
 import { type FleetRuntime, sessionSummary } from "#sight-fleet-sessions.ts";
 import type { PendingIntent } from "#sight-intents.ts";
@@ -16,6 +17,7 @@ export const fleetSnapshot = (
 	backends: ReadonlyArray<string>,
 	imageInputBackends: ReadonlySet<string>,
 	intents: ReadonlyArray<PendingIntent>,
+	capacities: ReadonlyArray<BackendCapacityReading>,
 	runtime: FleetRuntime,
 ) =>
 	Effect.gen(function* () {
@@ -130,6 +132,14 @@ export const fleetSnapshot = (
 		return {
 			agents: summaries,
 			backends,
+			capacities: capacities.map((capacity) => ({
+				backend: capacity.backend,
+				detail: capacity.detail,
+				reason: capacity.reason,
+				resetsAt: capacity.resetsAt?.getTime() ?? null,
+				status: capacity.status,
+				utilization: capacity.utilization,
+			})),
 			diag: { intents: attribution.loose },
 			repos,
 		} satisfies Fleet;

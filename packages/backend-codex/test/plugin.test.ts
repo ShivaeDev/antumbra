@@ -22,7 +22,13 @@ it.effect("the codex plugin registers its backend for the CLI it finds", () =>
 				codexPlugin({ cwd: "/tmp/antumbra" }).activate(host.context),
 			);
 			const backends = yield* host.backends;
-			expect(backends.get("codex")?.capabilities.imageInput).toBe(true);
+			const backend = backends.get("codex");
+			expect(backend?.capabilities.imageInput).toBe(true);
+			const capacity = backend?.capacity;
+			expect(capacity).toBeDefined();
+			if (capacity !== undefined) {
+				expect(yield* capacity.current).toEqual(Option.none());
+			}
 		}),
 	),
 );

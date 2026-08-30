@@ -30,6 +30,7 @@ export {
 	agentTransition,
 	InvalidAgentTransition,
 } from "@antumbra/vocabulary/agent-runtime";
+export { BackendCapacityReleaseLive } from "#backend-capacity-release.ts";
 export {
 	nextObserveDelayMillis,
 	type ObserveCadenceOptions,

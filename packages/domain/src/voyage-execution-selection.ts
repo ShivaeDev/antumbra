@@ -26,6 +26,7 @@ export const executionSessionOfAgent = (
 
 export interface AssignedExecutionSession {
 	readonly agentId: string;
+	readonly backend: string;
 	readonly sessionId: string;
 }
 
@@ -52,6 +53,11 @@ export const assignedExecution = (
 	}
 	const session = executionSessionOfAgent(world, agentId);
 	return session?.executionStatus === "idle"
-		? { _tag: "resume", agentId, sessionId: session.id }
+		? {
+				_tag: "resume",
+				agentId,
+				backend: session.backend,
+				sessionId: session.id,
+			}
 		: { _tag: "unavailable", agentId };
 };

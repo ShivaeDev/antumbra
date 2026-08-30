@@ -4,7 +4,7 @@ import { Database } from "@antumbra/persistence";
 import type { TemporaryPersistence } from "@antumbra/persistence/testing";
 import type { AgentEvent } from "@antumbra/vocabulary/session-events";
 import { expect, it } from "@effect/vitest";
-import { Effect, Fiber, Layer, Schedule, Stream } from "effect";
+import { Effect, Fiber, Layer, Stream } from "effect";
 import { SightSourceLive } from "#sight.ts";
 import { domainKernelLayer } from "#test/domain-layers.ts";
 import {
@@ -14,12 +14,7 @@ import {
 	type ScriptedBackend,
 	standDown,
 } from "#test/harness.ts";
-
-const eventually = <A, E, R>(check: Effect.Effect<A, E, R>) =>
-	check.pipe(
-		Effect.catchDefect((defect) => Effect.fail(defect)),
-		Effect.retry(Schedule.spaced(10).pipe(Schedule.upTo({ duration: 2000 }))),
-	);
+import { eventually } from "#test/voyage-fixtures.ts";
 
 const sightLayer = (
 	temporary: TemporaryPersistence,

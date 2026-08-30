@@ -7,7 +7,7 @@ import {
 import { Database, type NewAgentSession } from "@antumbra/persistence";
 import type { AgentBackend, MooragePlan } from "@antumbra/plugin-api";
 import { expect, it } from "@effect/vitest";
-import { Effect, Option, Ref, Schedule, Stream } from "effect";
+import { Effect, Option, Ref, Stream } from "effect";
 import { AgentDomain } from "#domain.ts";
 import type { SpawnFields } from "#index.ts";
 import { domainKernelLayer } from "#test/domain-layers.ts";
@@ -17,6 +17,7 @@ import {
 	makeScriptedRunner,
 } from "#test/harness.ts";
 import { hail, reportsNativeRef } from "#test/session-recovery-fixture.ts";
+import { eventually } from "#test/voyage-fixtures.ts";
 
 const CLOSED: Gate = { admits: () => false, id: "test/closed" };
 const payload: SpawnFields = {
@@ -35,12 +36,6 @@ const untilTerminal = <E, R>(changes: Stream.Stream<IntentStatus, E, R>) =>
 		Stream.takeUntil(isTerminalIntentStatus),
 		Stream.runLast,
 		Effect.map(Option.getOrThrow),
-	);
-
-const eventually = <A, E, R>(check: Effect.Effect<A, E, R>) =>
-	check.pipe(
-		Effect.catchDefect((defect) => Effect.fail(defect)),
-		Effect.retry(Schedule.spaced(10).pipe(Schedule.upTo({ duration: 2000 }))),
 	);
 
 const seedActivatedBoundary = (intentId: string, plan: MooragePlan) =>

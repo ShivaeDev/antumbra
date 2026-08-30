@@ -36,9 +36,6 @@ export interface TemporaryPersistence {
 	readonly remove: () => void;
 }
 
-// why: the harness mints its own throwaway directory and accepts no path
-// input, so a test cannot be pointed at a live instance's data directory —
-// isolation is structural, not a convention.
 export const temporaryPersistence = (): TemporaryPersistence => {
 	const directory = mkdtempSync(join(tmpdir(), "antumbra-persistence-"));
 	const database = brandDatabaseFilePath(join(directory, "antumbra.db"));

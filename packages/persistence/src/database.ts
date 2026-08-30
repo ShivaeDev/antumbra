@@ -5,6 +5,4 @@ import contractJson from "#contract.json" with { type: "json" };
 
 export const Database = makeSqliteDatabase<Contract>()("@antumbra/persistence/Database", { contractJson });
 
-// why: effect-prisma is fenced inside this package (depcruise), so consumers
-// name the database service through this alias.
 export type DatabaseService = DatabaseServiceOf<typeof Database>;

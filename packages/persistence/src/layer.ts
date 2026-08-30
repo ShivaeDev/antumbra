@@ -9,8 +9,6 @@ export interface PersistenceOptions {
 	readonly migrationsDirectory: string;
 }
 
-// why: migrations must complete before the client connects and applies
-// connect-time pragmas, so the database layer is unwrapped from the
-// migration effect instead of being merged beside it.
+// Migrations must finish before the client applies connect-time pragmas.
 export const PersistenceLive = (options: PersistenceOptions) =>
 	Layer.unwrap(Effect.map(applyMigrations(options), () => Database.layer({ path: options.database })));

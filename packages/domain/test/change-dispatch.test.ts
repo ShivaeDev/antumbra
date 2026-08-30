@@ -1,6 +1,7 @@
 import { Database } from "@antumbra/persistence";
 import { expect, it } from "@effect/vitest";
 import { Effect } from "effect";
+import { TestClock } from "effect/testing";
 import { AgentDomain } from "#domain.ts";
 import { REEF_SOURCE } from "#test/change-fixtures.ts";
 import { dispatchingLayer } from "#test/domain-layers.ts";
@@ -58,7 +59,7 @@ const crewOf = (pieceId: string) =>
 // but whose change is still open holds its dependents back with nobody at
 // work, and the moment the host says it landed the chain sails on with no
 // further act from anyone.
-it.live("a landing piece gates its dependents until the change lands", () =>
+it.effect("a landing piece gates its dependents until the change lands", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
 		const backend = yield* makeScriptedBackend;
@@ -67,7 +68,7 @@ it.live("a landing piece gates its dependents until the change lands", () =>
 		yield* Effect.gen(function* () {
 			const domain = yield* AgentDomain;
 			const { alpha, bravo, repo, voyage } = yield* gatedChain;
-			const crew = yield* eventually(crewOf(alpha.id));
+			const crew = yield* TestClock.withLive(eventually(crewOf(alpha.id)));
 
 			yield* domain.changes.open({
 				agentId: crew,
@@ -79,24 +80,28 @@ it.live("a landing piece gates its dependents until the change lands", () =>
 				sessionId: "session-crew",
 				title: "chart the eastern spit",
 			});
-			yield* retireOneAlive(backend);
+			yield* TestClock.withLive(retireOneAlive(backend));
 
-			yield* eventually(
-				Effect.gen(function* () {
-					expect(yield* stateOf(voyage.id, alpha.id)).toBe("landing");
-				}),
+			yield* TestClock.withLive(
+				eventually(
+					Effect.gen(function* () {
+						expect(yield* stateOf(voyage.id, alpha.id)).toBe("landing");
+					}),
+				),
 			);
 			expect(yield* stateOf(voyage.id, bravo.id)).toBe("blocked");
-			yield* Effect.sleep(400);
+			yield* TestClock.adjust(400);
 			expect(yield* assignedPieces).toEqual([alpha.id]);
 
 			yield* scripted.drive.transition(repo.id, "1", { stage: "landed" });
 			yield* domain.changes.refresh("scripted");
-			yield* eventually(
-				Effect.gen(function* () {
-					expect(yield* stateOf(voyage.id, alpha.id)).toBe("done");
-					expect((yield* assignedPieces).length).toBe(2);
-				}),
+			yield* TestClock.withLive(
+				eventually(
+					Effect.gen(function* () {
+						expect(yield* stateOf(voyage.id, alpha.id)).toBe("done");
+						expect((yield* assignedPieces).length).toBe(2);
+					}),
+				),
 			);
 		}).pipe(
 			Effect.provide(

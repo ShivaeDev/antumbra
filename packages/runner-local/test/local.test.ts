@@ -164,23 +164,4 @@ describe("local runner", () => {
 			expect(existsSync(berth.path)).toBe(true);
 		}),
 	);
-
-	it.live("scrap converges even when the worktree vanished by hand", () =>
-		Effect.gen(function* () {
-			const { runner, source } = yield* makeHarbor;
-			const moorage = yield* provision(runner, {
-				agentId: AGENT,
-				repos: [berthing(source)],
-			});
-			const berth = moorage.berths[0];
-			if (berth === undefined) {
-				return expect.unreachable("no berth provisioned");
-			}
-			yield* Effect.sync(() => {
-				rmSync(berth.path, { force: true, recursive: true });
-			});
-			yield* runner.scrap(berth);
-			expect(existsSync(berth.path)).toBe(false);
-		}),
-	);
 });

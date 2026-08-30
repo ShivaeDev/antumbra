@@ -6,7 +6,17 @@ import { nextBackoffMillis } from "#dispatch-policy.ts";
 import { AgentDomain } from "#domain.ts";
 import { dispatchingLayer } from "#test/domain-layers.ts";
 import { acquireTemporaryPersistence, makeScriptedBackend } from "#test/harness.ts";
-import { assignedPieces, chain, eventually, land, openReefVoyage, PATIENCE, retireOneAlive, standDownAll, stateOf } from "#test/voyage-fixtures.ts";
+import {
+	assignedPieces,
+	chain,
+	eventually,
+	land,
+	openReefVoyage,
+	PATIENCE,
+	standDownAll,
+	standDownOneAlive,
+	stateOf,
+} from "#test/voyage-fixtures.ts";
 
 it("nextBackoffMillis doubles from patience and stops at five minutes", () => {
 	expect(nextBackoffMillis(0, 50)).toBe(50);
@@ -52,7 +62,7 @@ it.live("a launched chain sails on its own as outcomes land", () =>
 	}),
 );
 
-it.effect("the alive ceiling holds the second dependent until a berth frees", () =>
+it.effect("an idle agent does not hold a dispatch berth", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
 		const scripted = yield* makeScriptedBackend;
@@ -69,7 +79,7 @@ it.effect("the alive ceiling holds the second dependent until a berth frees", ()
 			yield* TestClock.adjust(300);
 			expect(yield* assignedPieces).toEqual([alpha.id]);
 
-			yield* TestClock.withLive(retireOneAlive(scripted));
+			yield* TestClock.withLive(standDownOneAlive(scripted));
 			yield* TestClock.withLive(
 				eventually(
 					Effect.gen(function* () {
@@ -77,21 +87,10 @@ it.effect("the alive ceiling holds the second dependent until a berth frees", ()
 					}),
 				),
 			);
-			yield* TestClock.adjust(300);
-			expect((yield* assignedPieces).length).toBe(2);
-
-			yield* TestClock.withLive(retireOneAlive(scripted));
-			yield* TestClock.withLive(
-				eventually(
-					Effect.gen(function* () {
-						expect((yield* assignedPieces).length).toBe(3);
-					}),
-				),
-			);
 		}).pipe(
 			Effect.provide(
 				dispatchingLayer(temporary, scripted.backend, {
-					maxAlive: 1,
+					maxRunning: 1,
 					patienceMillis: 50,
 				}),
 			),

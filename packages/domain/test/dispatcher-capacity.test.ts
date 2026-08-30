@@ -200,7 +200,7 @@ it.live("a provider hold stops automatic wakes until the admiral retries it", ()
 		}).pipe(
 			Effect.provide(
 				dispatchingLayer(temporary, backend, {
-					maxAlive: 1,
+					maxRunning: 1,
 					patienceMillis: 60_000,
 				}),
 			),

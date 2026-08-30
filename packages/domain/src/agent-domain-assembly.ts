@@ -17,8 +17,6 @@ import {
 	SessionRecoveryRuntime,
 } from "@antumbra/sessions";
 import { Effect } from "effect";
-import { AGENTS_ALIVE_GAUGE } from "#agent-domain-service.ts";
-import { makeAliveAgentCount } from "#agents-alive.ts";
 import { makeBackendCapacities } from "#backend-capacity.ts";
 import { ChangeProcedureService } from "#change-procedures.ts";
 import { imageInputBackendsOf } from "#image-input-backends.ts";
@@ -61,7 +59,6 @@ export const makeAgentDomain = (backends: ReadonlyMap<string, AgentBackend>, run
 			toolsFor,
 		});
 		const wake = yield* makeWakeKind(backendCapacities).pipe(Effect.provideService(SessionRecoveryRuntime, recoveryRuntime));
-		const aliveAgents = yield* makeAliveAgentCount;
 		const siesta = yield* makeSiestaKind;
 		// why: the clock's two errands are separate sources on one loop — one
 		// asks whether a process is being held for nothing, the other whether an
@@ -78,7 +75,6 @@ export const makeAgentDomain = (backends: ReadonlyMap<string, AgentBackend>, run
 			boards,
 			changes,
 			closeSessionStarts: fabric.closeStarts(),
-			gauges: { [AGENTS_ALIVE_GAUGE]: aliveAgents },
 			interruptSession: fabric.interrupt,
 			imageInputBackends,
 			intentDemands,

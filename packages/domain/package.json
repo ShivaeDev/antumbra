@@ -45,6 +45,7 @@
 		"@antumbra/session-fabric": "workspace:*",
 		"@antumbra/session-inputs": "workspace:*",
 		"@antumbra/sessions": "workspace:*",
+		"@antumbra/settings": "workspace:*",
 		"@antumbra/service-definition": "workspace:*",
 		"@antumbra/vocabulary": "workspace:*",
 		"effect": "catalog:"

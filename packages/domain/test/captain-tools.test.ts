@@ -137,7 +137,7 @@ it.live("rewiring onto another voyage's piece is refused, not written", () =>
 	),
 );
 
-it.live("a captain cons one ship and cannot reach across a hull", () =>
+it.live("a captain may read another voyage without conning it", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
 		const scripted = yield* makeScriptedBackend;
@@ -153,13 +153,10 @@ it.live("a captain cons one ship and cannot reach across a hull", () =>
 				}),
 			).toEqual({ ok: false, text: "that piece is not on your voyage" });
 			expect(
-				yield* callTool(captain, "read_voyage", {
+				(yield* callTool(captain, "read_voyage", {
 					voyageId: elsewhere.voyageId,
-				}),
-			).toEqual({
-				ok: false,
-				text: "only the flagship's captain reads a voyage it is not on",
-			});
+				})).text,
+			).toContain("# Name the shoals");
 			expect((yield* callTool(captain, "read_voyage", { voyageId: reef.id })).text).toContain("# Chart the reef");
 			expect(yield* callTool(captain, "read_board", { scope: "piece" })).toEqual({ ok: false, text: "you have no piece board" });
 

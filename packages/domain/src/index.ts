@@ -49,7 +49,6 @@ export {
 } from "#dispatch-policy.ts";
 export { DispatcherLive, type DispatcherOptions } from "#dispatcher.ts";
 export {
-	AGENTS_ALIVE_GAUGE,
 	AgentDomain,
 	AgentDomainLive,
 } from "#domain.ts";

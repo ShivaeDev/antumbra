@@ -10,7 +10,7 @@ import type { WindowShell } from "#adapters/windows/registry.ts";
 
 // why: one document string serves every window; which window is which lives in
 // the registry, never in the address a window is asked to prove.
-export const rendererDocument = Effect.suspend(() =>
+export const rendererDocument = Effect.sync(() =>
 	selectRendererDocument({
 		arguments: process.argv,
 		bundled: pathToFileURL(join(import.meta.dirname, "renderer", "index.html")).toString(),

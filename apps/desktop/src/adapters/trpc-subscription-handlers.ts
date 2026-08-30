@@ -35,24 +35,14 @@ export const makeTrpcSubscriptionHandlers = (registry: WindowRegistry, start: St
 	const track = (sender: SubscriptionSender, id: string) => {
 		const senderId = sender.id;
 		let live = bySender.get(senderId);
-		if (live?.has(id) === true) {
-			return undefined;
-		}
 		const controller = new AbortController();
 		if (live === undefined) {
 			live = new Map();
 			bySender.set(senderId, live);
-			// why: the pair below is attached for as long as the sender lives, so
-			// the entry recording it has to live that long too — dropping the entry
-			// when the last subscription ends would attach a fresh pair on the next
-			// subscribe and pile them up on one webContents, which reaches Node's
-			// listener warning after a handful of view changes or reloads.
 			sender.once("destroyed", () => {
 				dropSender(senderId);
 				bySender.delete(senderId);
 			});
-			// why: a reload resets the renderer context — its listeners are gone,
-			// so every subscription of the old page must die with it.
 			sender.on("did-start-navigation", () => dropSender(senderId));
 		}
 		live.set(id, controller);
@@ -70,9 +60,6 @@ export const makeTrpcSubscriptionHandlers = (registry: WindowRegistry, start: St
 		}
 		const request = decoded.success;
 		const controller = track(event.sender, request.id);
-		if (controller === undefined) {
-			return;
-		}
 		void start(event.sender, record.id, request, controller.signal)
 			.catch((cause: unknown) => {
 				if (!event.sender.isDestroyed()) {

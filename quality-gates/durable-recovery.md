@@ -21,9 +21,9 @@ durable truth. The governing concepts are in
    desired Piece has no dispatch Intent; waiting is only for an active attempt
    needing immediate external intervention. Reconciliation cancels a queued
    attempt that becomes blocked and submits a new one when demand is eligible.
-5. Name success at the promised durable boundary. Durable domain transitions
-   and the evidence they depend on are written atomically before success is
-   reported. A transport send is never receipt or read evidence.
+5. Name success at the promised durable boundary. Write the required durable
+   transition and its evidence before reporting success. A transport send is
+   never receipt or read evidence.
 6. Absence is not a terminal event. An empty registry, closed process, dead
    watcher, or lost subscription never proves completion, closure, retirement,
    orphaning, or release. Provable death is the one carve-out, and it is a

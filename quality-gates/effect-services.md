@@ -29,9 +29,9 @@ service-parameter lint rule.
    export in its own focused file. Referencing those exports beside
    `Effect.void`, requirements, and the derived Layer keeps the definition a
    readable inventory instead of a second implementation home.
-3. A domain capability owns the whole business act: validation, transaction,
-   durable writes, and notifications after commit. Its caller names the act and
-   supplies only domain input.
+3. A domain capability owns the whole business act: validation, durable writes
+   in their required order, and notifications after the writes succeed. Its
+   caller names the act and supplies only domain input.
 4. Keep services small and composable. Give a capability its own package when
    that creates a real, named responsibility and a one-way dependency edge;
    do not create packages that exist only to hold an interface.

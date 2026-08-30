@@ -4,6 +4,9 @@ Run `pnpm ready` for fast local mechanical checks. Hosted CI owns the complete
 package, desktop, runner, and guard test suites. During review, apply only the
 routes touched by the change:
 
+- Every code or test change first applies the binding simplicity gate:
+  [`simplicity.md`](simplicity.md)
+
 - Types, schemas, errors, or boundary decoding:
   [`strict-typing.md`](strict-typing.md)
 - File splits, extractions, density, or responsibility:

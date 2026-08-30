@@ -21,6 +21,7 @@ export {
 	drainActiveSessions,
 	type SessionTreeRow,
 } from "@antumbra/sessions";
+export { SettingsSourceLive } from "@antumbra/settings";
 export {
 	AGENT_STATUS_EVENTS,
 	AGENT_STATUSES,
@@ -83,7 +84,6 @@ export { RulingAscentLive } from "#ruling-ascent.ts";
 export { RulingDeliveryLive } from "#ruling-delivery.ts";
 export { RulingSourceLive } from "#ruling-source.ts";
 export { SessionShutdownLive } from "#session-shutdown-live.ts";
-export { SettingsSourceLive } from "#settings.ts";
 export { SightSourceLive } from "#sight.ts";
 export type { SpawnFields } from "#spawn.ts";
 export type { VoyageRow, VoyageWorld } from "#voyage-rows.ts";

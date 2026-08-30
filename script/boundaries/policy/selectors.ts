@@ -14,6 +14,7 @@ export const capabilities = packages.named(
 	"session-fabric",
 	"session-inputs",
 	"sessions",
+	"settings",
 );
 
 export const domainAndCapabilities = packages.named(
@@ -32,6 +33,7 @@ export const domainAndCapabilities = packages.named(
 	"session-fabric",
 	"session-inputs",
 	"sessions",
+	"settings",
 );
 
 export const domainAndCapabilitiesExceptIntentDemand = anyOf(packages.named("domain"), capabilities);

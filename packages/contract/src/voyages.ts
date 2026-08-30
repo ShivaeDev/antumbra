@@ -68,9 +68,14 @@ export class VoyageSource extends Context.Service<
 		readonly rewire: (
 			request: RewireRequest,
 		) => Effect.Effect<void, SightFailure>;
-		// why: a voyage's backend is where its next spawns go — every agent
-		// already sailing keeps the backend it was born on.
-		readonly setBackend: (
+		// why: a voyage's backends are where its next spawns go — every agent
+		// already sailing keeps the backend it was born on. The captain's seat
+		// and the crew's are switched apart, because conning a voyage and
+		// working its pieces are different enough to want different harnesses.
+		readonly setCaptainBackend: (
+			request: VoyageBackendRequest,
+		) => Effect.Effect<void, SightFailure>;
+		readonly setCrewBackend: (
 			request: VoyageBackendRequest,
 		) => Effect.Effect<void, SightFailure>;
 		readonly setFocus: (

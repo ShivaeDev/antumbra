@@ -63,9 +63,13 @@ export const makeVoyageActs = (reads: VoyageReads) =>
 				voyages
 					.rewire(request.pieceId, request.dependsOn)
 					.pipe(Effect.mapError(toFailure)),
-			setBackend: (request: VoyageBackendRequest) =>
+			setCaptainBackend: (request: VoyageBackendRequest) =>
 				voyages
-					.setBackend(request.voyageId, request.backend)
+					.setCaptainBackend(request.voyageId, request.backend)
+					.pipe(Effect.mapError(toFailure)),
+			setCrewBackend: (request: VoyageBackendRequest) =>
+				voyages
+					.setCrewBackend(request.voyageId, request.backend)
 					.pipe(Effect.mapError(toFailure)),
 			setFocus: (voyageId: string, focused: boolean) =>
 				voyages.setFocus(voyageId, focused).pipe(Effect.mapError(toFailure)),

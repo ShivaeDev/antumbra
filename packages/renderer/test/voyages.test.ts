@@ -197,9 +197,10 @@ describe("whenLabel", () => {
 
 describe("byFlagship", () => {
 	const voyage = (id: string, kind: VoyageSummary["kind"]): VoyageSummary => ({
-		backend: "scripted",
 		captain: null,
+		captainBackend: "scripted",
 		counts: { active: 0, done: 0, pieces: 0, ready: 0 },
+		crewBackend: "scripted",
 		focusedAt: null,
 		id,
 		kind,

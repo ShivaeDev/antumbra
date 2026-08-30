@@ -77,7 +77,7 @@ export const workPieceNow = (pieceId: string) =>
 		const agentId = crypto.randomUUID();
 		const intentId = yield* reach.submitSpawn({
 			agentId,
-			backend: voyage.backend,
+			backend: voyage.crewBackend,
 			charter: yield* charterFor(piece, voyage, agentId),
 			pieceId,
 			role: piece.role,

@@ -55,7 +55,8 @@ export const voyageFixture = (feeds: FixtureFeeds) =>
 					})
 				: new SightFailure({ message: `no such report: ${reportId}` }),
 		rewire: () => Effect.void,
-		setBackend: () => Effect.void,
+		setCaptainBackend: () => Effect.void,
+		setCrewBackend: () => Effect.void,
 		setFocus: () => Effect.void,
 		supersedeArtifact: () => Effect.void,
 		unpark: () => Effect.void,

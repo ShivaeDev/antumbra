@@ -34,8 +34,9 @@ const openVoyage = (input: OpenVoyageInput) =>
 		const db = yield* Database;
 		const now = yield* Clock.currentTimeMillis;
 		const row: VoyageRow = {
-			backend: input.backend,
+			captainBackend: input.backend,
 			context: input.context,
+			crewBackend: input.backend,
 			focusedAt: input.focused === true ? new Date(now) : null,
 			id: crypto.randomUUID(),
 			kind: "voyage",
@@ -47,15 +48,20 @@ const openVoyage = (input: OpenVoyageInput) =>
 		return row;
 	});
 
-// why: the spawn paths read this column at the moment they spawn, so a switch
-// retargets what the voyage does next and never what is already running — an
-// agent's backend is written onto its own session row at its birth.
-const setBackend = (voyageId: string, backend: AgentBackendTag) =>
+// why: the spawn paths read these columns at the moment they spawn, so a
+// switch retargets what the voyage does next and never what is already
+// running — an agent's backend is written onto its own session row at its
+// birth. The seat is the column itself, so neither act can name the other's.
+const seatBackend = (
+	seat: "captainBackend" | "crewBackend",
+	voyageId: string,
+	backend: AgentBackendTag,
+) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
 		yield* Effect.gen(function* () {
 			yield* requireVoyage(voyageId);
-			yield* db.Voyage.where({ id: voyageId }).update({ backend });
+			yield* db.Voyage.where({ id: voyageId }).update({ [seat]: backend });
 		});
 		yield* announce;
 	});
@@ -116,8 +122,13 @@ export const VoyageProceduresLive = Layer.effect(VoyageProcedureService)(
 			// capability names the exact act. Literal set-dependency semantics land
 			// separately.
 			rewire: pieces.setDependencies,
-			setBackend: (voyageId, backend) =>
-				Effect.provide(setBackend(voyageId, backend), context),
+			setCaptainBackend: (voyageId, backend) =>
+				Effect.provide(
+					seatBackend("captainBackend", voyageId, backend),
+					context,
+				),
+			setCrewBackend: (voyageId, backend) =>
+				Effect.provide(seatBackend("crewBackend", voyageId, backend), context),
 			setFocus: (voyageId, focused) =>
 				Effect.provide(setFocus(voyageId, focused), context),
 			supersedeArtifact: (input) =>

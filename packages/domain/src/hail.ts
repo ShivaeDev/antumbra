@@ -98,7 +98,7 @@ export const hailCaptain = (voyageId: string) =>
 		// hand back the intent it just asked for.
 		const intentId = yield* reach.submitSpawn({
 			agentId,
-			backend: voyage.backend,
+			backend: voyage.captainBackend,
 			charter: charterForKind(voyage.kind, {
 				context: voyage.context,
 				northStar: voyage.northStar,

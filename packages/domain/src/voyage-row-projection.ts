@@ -9,8 +9,9 @@ export const voyageRow = (
 	row: Omit<VoyageRow, "kind">,
 	kind: VoyageKind,
 ): VoyageRow => ({
-	backend: row.backend,
+	captainBackend: row.captainBackend,
 	context: row.context,
+	crewBackend: row.crewBackend,
 	focusedAt: row.focusedAt,
 	id: row.id,
 	kind,

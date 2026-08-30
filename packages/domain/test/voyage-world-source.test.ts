@@ -56,8 +56,9 @@ it.effectDB(
 	"owns the aggregate read and preserves voyage birth order",
 	function* (db) {
 		yield* db.Voyage.create({
-			backend: "scripted",
+			captainBackend: "scripted",
 			context: "charted second",
+			crewBackend: "scripted",
 			createdAt: new Date("2026-08-17T02:00:00.000Z"),
 			focusedAt: null,
 			id: "newer-voyage",
@@ -65,8 +66,9 @@ it.effectDB(
 			northStar: "second",
 		});
 		yield* db.Voyage.create({
-			backend: "scripted",
+			captainBackend: "scripted",
 			context: "charted first",
+			crewBackend: "scripted",
 			createdAt: new Date("2026-08-17T01:00:00.000Z"),
 			focusedAt: null,
 			id: "older-voyage",

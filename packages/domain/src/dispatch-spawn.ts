@@ -96,7 +96,7 @@ export const dispatchPiece = (
 		const agentId = crypto.randomUUID();
 		const submission = yield* port.submit({
 			agentId,
-			backend: candidate.voyage.backend,
+			backend: candidate.voyage.crewBackend,
 			charter: yield* charterFor(candidate.piece, candidate.voyage, agentId),
 			pieceId,
 			// why: the sole runner in v1 — the field becomes a choice when a

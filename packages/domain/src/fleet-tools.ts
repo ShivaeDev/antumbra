@@ -21,10 +21,10 @@ import { answered } from "#tool-answers.ts";
 import type { SessionIdentity } from "#tool-identity.ts";
 import { VoyageProcedureService } from "#voyage-procedures.ts";
 
-// why: an opened voyage points at the first backend this app ships, the way a
-// window draft that names none falls back to the first one offered. The
-// admiral switches it afterwards like any other voyage's, so the tool asks a
-// model for nothing it would only be guessing at.
+// why: an opened voyage seats both its captain and its crew on the first
+// backend this app ships, the way a window draft that names none falls back to
+// the first one offered. The admiral splits them afterwards like any other
+// voyage's, so the tool asks a model for nothing it would only be guessing at.
 const [FIRST_BACKEND] = AGENT_BACKEND_TAGS;
 
 type Proclaimed = (typeof proclaimRulingSpec)["input"]["Type"];

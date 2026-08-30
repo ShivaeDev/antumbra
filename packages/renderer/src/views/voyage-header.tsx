@@ -1,4 +1,5 @@
 import type { VoyageView } from "@antumbra/contract";
+import { setCaptainBackend, setCrewBackend } from "#adapters/trpc-voyages.ts";
 import { Badge } from "#components/ui/badge.tsx";
 import {
 	BackendSwitch,
@@ -22,7 +23,20 @@ export const VoyageHeader = ({
 			<Badge variant={voyageTone[voyage.state]}>
 				{voyageStateLabel[voyage.state]}
 			</Badge>
-			<BackendSwitch onError={onError} voyage={voyage} />
+			<BackendSwitch
+				onError={onError}
+				sailing={voyage.captainBackend}
+				seat="Captain"
+				seatBackend={setCaptainBackend}
+				voyageId={voyage.id}
+			/>
+			<BackendSwitch
+				onError={onError}
+				sailing={voyage.crewBackend}
+				seat="Crew"
+				seatBackend={setCrewBackend}
+				voyageId={voyage.id}
+			/>
 			<CaptainCall
 				captain={voyage.captain}
 				onError={onError}

@@ -16,8 +16,12 @@ export type { EdgeRow, PieceRow } from "@antumbra/pieces";
 export type AwaitingRuling = Pick<RulingGate, "question" | "rulingId">;
 
 export interface VoyageRow {
-	readonly backend: string;
+	// why: the captain and the crew are seated on backends chosen apart from
+	// one another, and both are always set — a voyage never falls back to some
+	// third answer about where its next spawn goes.
+	readonly captainBackend: string;
 	readonly context: string;
+	readonly crewBackend: string;
 	readonly focusedAt: Date | null;
 	readonly id: string;
 	// why: the fleet's own voyage is told apart by this word rather than by its

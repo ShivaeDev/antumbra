@@ -87,11 +87,17 @@ export const voyageRoutes = (procedure: AppProcedure) => ({
 		const voyages = yield* VoyageSource;
 		yield* surface(voyages.rewire(input));
 	}),
-	setVoyageBackend: procedure
+	setCaptainBackend: procedure
 		.input(VoyageBackendRequest)
 		.mutation(function* (input) {
 			const voyages = yield* VoyageSource;
-			yield* surface(voyages.setBackend(input));
+			yield* surface(voyages.setCaptainBackend(input));
+		}),
+	setCrewBackend: procedure
+		.input(VoyageBackendRequest)
+		.mutation(function* (input) {
+			const voyages = yield* VoyageSource;
+			yield* surface(voyages.setCrewBackend(input));
 		}),
 	unparkPiece: procedure.input(PieceRef).mutation(function* (input) {
 		const voyages = yield* VoyageSource;

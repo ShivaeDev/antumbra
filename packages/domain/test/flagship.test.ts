@@ -41,7 +41,8 @@ it.effectDB("the fleet is born sailing under a flagship", function* (db) {
 	expect(flagships.length).toBe(1);
 	expect(flagships[0]?.name).toBe("Flagship");
 	expect(flagships[0]?.northStar).toBe("The fleet sails well.");
-	expect(flagships[0]?.backend).toBe("claude");
+	expect(flagships[0]?.captainBackend).toBe("claude");
+	expect(flagships[0]?.crewBackend).toBe("claude");
 });
 
 // why: boot runs on every start, so the second one must meet the flagship the
@@ -69,8 +70,9 @@ it.effectDB("boot writes the row and spawns no captain", function* (db) {
 it.effectDB("a voyage carries its kind out of the record", function* (db) {
 	yield* boot;
 	yield* db.Voyage.create({
-		backend: "scripted",
+		captainBackend: "scripted",
 		context: "the reef is uncharted",
+		crewBackend: "scripted",
 		focusedAt: null,
 		id: "voyage-reef",
 		kind: "voyage",
@@ -97,8 +99,9 @@ it.effectDB("the flagship reaches a window as what it is", function* () {
 
 it.effectDB("a stored kind nothing knows is refused", function* (db) {
 	yield* db.Voyage.create({
-		backend: "scripted",
+		captainBackend: "scripted",
 		context: "written by a later release",
+		crewBackend: "scripted",
 		focusedAt: null,
 		id: "voyage-tender",
 		kind: "tender",

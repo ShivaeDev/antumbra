@@ -34,8 +34,9 @@ const RULE = {
 const openFlagship = Effect.gen(function* () {
 	const db = yield* Database;
 	yield* db.Voyage.create({
-		backend: "scripted",
+		captainBackend: "scripted",
 		context: "Fleet-level rulings and findings belong here.",
+		crewBackend: "scripted",
 		focusedAt: null,
 		id: FLAGSHIP_ID,
 		kind: "flagship",
@@ -124,6 +125,7 @@ it.live("the flagship's captain reads every voyage in the fleet", () =>
 				title: "drawing",
 				voyageId: reef.id,
 			});
+			yield* domain.voyages.setCrewBackend(reef.id, "codex");
 			const flagship = Option.getOrThrow(
 				(yield* domain.voyages.read(FLAGSHIP_ID)).pipe(
 					Option.flatMap((view) => view.captain),
@@ -135,10 +137,10 @@ it.live("the flagship's captain reads every voyage in the fleet", () =>
 			expect(read.ok).toBe(true);
 			expect(read.text).toContain(`- ${FLAGSHIP_ID} Flagship [`);
 			expect(read.text).toContain(
-				`flagship · scripted · 0 pieces (0 unlaunched, 0 parked, 0 landed) · captain ${flagship.agentId} [alive] · last stirred 20`,
+				`flagship · captain on scripted · crew on scripted · 0 pieces (0 unlaunched, 0 parked, 0 landed) · captain ${flagship.agentId} [alive] · last stirred 20`,
 			);
 			expect(read.text).toContain(
-				`- ${reef.id} Chart the reef [quiet] · voyage · scripted · 2 pieces (2 unlaunched, 0 parked, 0 landed) · captain none · never stirred\n  north star: every shoal is known`,
+				`- ${reef.id} Chart the reef [quiet] · voyage · captain on scripted · crew on codex · 2 pieces (2 unlaunched, 0 parked, 0 landed) · captain none · never stirred\n  north star: every shoal is known`,
 			);
 		}),
 	),
@@ -163,7 +165,8 @@ it.live("the flagship's captain opens a voyage on the fleet's default", () =>
 				text: `opened voyage ${opened?.id}`,
 			});
 			expect(opened).toMatchObject({
-				backend: "claude",
+				captainBackend: "claude",
+				crewBackend: "claude",
 				kind: "voyage",
 				northStar: "every shoal has a name",
 			});

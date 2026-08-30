@@ -34,8 +34,9 @@ const writeFlagship = Effect.gen(function* () {
 		return yield* new FlagshipAlreadyExists({ voyageId: standing.value.id });
 	}
 	yield* db.Voyage.create({
-		backend: FIRST_BACKEND,
+		captainBackend: FIRST_BACKEND,
 		context: FLAGSHIP.context,
+		crewBackend: FIRST_BACKEND,
 		focusedAt: null,
 		id: crypto.randomUUID(),
 		kind: "flagship",

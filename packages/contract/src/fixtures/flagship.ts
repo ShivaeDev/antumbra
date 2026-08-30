@@ -4,9 +4,10 @@ import type { VoyageSummary, VoyageView } from "#voyage-views.ts";
 // sails the way a first run does — the fleet's own voyage is on the list with
 // no captain aboard until one is hailed.
 export const flagshipSummary: VoyageSummary = {
-	backend: "claude",
 	captain: null,
+	captainBackend: "claude",
 	counts: { active: 0, done: 0, pieces: 0, ready: 0 },
+	crewBackend: "claude",
 	focusedAt: null,
 	id: "voyage-flagship",
 	kind: "flagship",

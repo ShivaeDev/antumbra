@@ -25,6 +25,9 @@ import type { VoyageSummary, VoyageView } from "#voyage-view.ts";
 import type { VoyageWorldReadFailure } from "#voyage-world.ts";
 
 export interface OpenVoyageInput {
+	// why: a voyage opens with its captain and its crew on the same backend and
+	// is split afterwards — asking twice at the moment of opening would be
+	// asking about a crew nobody has chartered work for yet.
 	readonly backend: string;
 	readonly context: string;
 	readonly focused?: boolean;
@@ -78,7 +81,11 @@ export interface VoyageProcedures {
 		pieceId: string,
 		dependsOn: ReadonlyArray<string>,
 	) => Effect.Effect<void, EdgeWouldCycle | PieceNotFound | PrismaError>;
-	readonly setBackend: (
+	readonly setCaptainBackend: (
+		voyageId: string,
+		backend: AgentBackendTag,
+	) => Effect.Effect<void, PrismaError | VoyageNotFound>;
+	readonly setCrewBackend: (
 		voyageId: string,
 		backend: AgentBackendTag,
 	) => Effect.Effect<void, PrismaError | VoyageNotFound>;

@@ -8,9 +8,6 @@ export interface Feed<A> {
 	readonly value: A;
 }
 
-// why: the key is the subscription's whole lifetime. While it holds still the
-// subscription holds still; when it changes the accumulated value is thrown
-// away, because it described what the old key named.
 const useFold = <A, M>(key: string, subscribe: Subscribe<M>, seed: () => A, fold: (current: A, message: M) => A): Feed<A> => {
 	const latest = useRef(subscribe);
 	latest.current = subscribe;
@@ -38,9 +35,6 @@ const nothingYet = (): undefined => undefined;
 
 const replace = <A>(_current: A | undefined, message: A): A => message;
 
-// why: a feed opens with the whole current snapshot and re-emits the whole
-// snapshot on every change, so keeping the previous one would draw a picture
-// nobody sent.
 export const useFeed = <A>(key: string, subscribe: Subscribe<A>): Feed<A | undefined> =>
 	useFold<A | undefined, A>(key, subscribe, nothingYet, replace);
 

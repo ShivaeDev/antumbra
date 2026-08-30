@@ -13,7 +13,7 @@ it.effect("shows the captain and crew backend choices independently", () =>
 		const root = createRoot(container);
 		yield* Effect.promise(() =>
 			act(() => {
-				root.render(<VoyageHeader onError={() => undefined} voyage={{ ...reefView, captainBackend: "claude", crewBackend: "codex" }} />);
+				root.render(<VoyageHeader onError={() => undefined} voyage={{ ...reefView, captainBackend: "claude", crewBackend: "opencode" }} />);
 				return Promise.resolve();
 			}),
 		);
@@ -25,7 +25,7 @@ it.effect("shows the captain and crew backend choices independently", () =>
 			})),
 		).toEqual([
 			{ backend: "claude", label: "Captain" },
-			{ backend: "codex", label: "Crew" },
+			{ backend: "opencode", label: "Crew" },
 		]);
 	}),
 );

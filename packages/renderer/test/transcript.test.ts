@@ -118,8 +118,10 @@ describe("deriveTranscript", () => {
 			kind: "tool",
 			name: "ls",
 			ok: false,
+			providerName: undefined,
 			result: "no such dir",
 			seq: 0,
+			servedBy: undefined,
 		});
 	});
 
@@ -232,7 +234,7 @@ describe("deriveTranscript", () => {
 		});
 	});
 
-	it("raw events show the provider's kind; undecodable rows render raw too — never dropped, never fatal", () => {
+	it("raw events say the provider's kind in words; undecodable rows render raw too — never dropped, never fatal", () => {
 		const items = deriveTranscript([
 			row(0, {
 				raw: {
@@ -264,7 +266,7 @@ describe("deriveTranscript", () => {
 		expect(items).toEqual([
 			{
 				kind: "raw",
-				label: "codex thread/status/changed",
+				label: "codex: thread status changed",
 				payload: '{"anything":true}',
 				seq: 0,
 			},

@@ -15,9 +15,6 @@ const state = (item: ToolItem, live: boolean): React.ReactNode => {
 	return <span className="shrink-0 text-2xs text-muted-foreground">{live ? "running" : "unfinished"}</span>;
 };
 
-// why: an opened call is read to see what was actually run, so each argument
-// stands under the name the tool gave it and a command reads as the command
-// that was written rather than as the JSON line it travelled in.
 const Input = ({ item }: { readonly item: ToolItem }) => {
 	const fields = toolFields(item.input);
 	if (fields.length === 0) {
@@ -36,6 +33,7 @@ export const TranscriptTool = ({ item, live }: { readonly item: ToolItem; readon
 	<Disclosure
 		body={
 			<>
+				{item.providerName === undefined ? null : <Payload label="Called as" text={item.providerName} />}
 				<Input item={item} />
 				{item.result === undefined ? null : <Payload label="Result" text={item.result} />}
 			</>

@@ -1,5 +1,6 @@
 import { claudePlugin } from "@antumbra/backend-claude";
 import { codexPlugin } from "@antumbra/backend-codex";
+import { opencodePlugin } from "@antumbra/backend-opencode";
 import {
 	AgentDomain,
 	AgentDomainLive,
@@ -49,14 +50,9 @@ const agents = Layer.unwrap(
 		const host = yield* makePluginHost({ findExecutable: findOnLoginPath });
 		const runnerPlugin = localRunnerPlugin(runnerRootsInDataDirectory(configureDataDirectory()));
 		yield* Effect.orDie(claudePlugin().activate(host.context));
-		// why: the codex child runs from the data directory; threads get their
-		// own cwd per session.
 		yield* Effect.orDie(codexPlugin({ cwd: configureDataDirectory() }).activate(host.context));
+		yield* Effect.orDie(opencodePlugin({ cwd: configureDataDirectory() }).activate(host.context));
 		yield* Effect.orDie(runnerPlugin.activate(host.context));
-		// why: registered unconditionally, unlike the agent CLIs — a change host
-		// that cannot reach gh still claims its repos and says why through its
-		// capability, where a missing backend would leave a voyage unable to run
-		// at all. A login gained later is picked up without a restart.
 		yield* Effect.orDie(githubPlugin().activate(host.context));
 		return AgentDomainLive(
 			yield* host.backends,
@@ -75,9 +71,6 @@ const kernel = Layer.unwrap(
 	}),
 ).pipe(Layer.provideMerge(agents));
 
-// why: the dispatcher, provider-capacity release, and change watcher stand
-// beside the view source rather than under it — their work continues whether
-// or not a window is watching.
 export const applicationLayers = () =>
 	Layer.mergeAll(
 		RulingSourceLive,

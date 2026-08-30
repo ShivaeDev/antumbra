@@ -47,80 +47,73 @@ const berthAt = (fields: { readonly branch: string; readonly id: string; readonl
 const moored = (strandedAt: Date) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
-		yield* db.transaction(
-			Effect.gen(function* () {
-				yield* Database;
-				yield* Effect.all([
-					db.Agent.create({
-						charter: "release settled resources",
-						id: "agent-keeper",
-						role: "keeper",
-						status: "retired",
-					}),
-					db.Moorage.create({
-						agentId: "agent-keeper",
-						reclaimState: null,
-						root: "/tmp/moorage/agent-keeper",
-						runner: "local",
-						status: "ready",
-					}),
-					db.Repo.create({
-						defaultRef: "main",
-						id: "repo-reef",
-						name: "reef",
-						source: REEF_SOURCE,
-					}),
-					db.Repo.create({
-						defaultRef: "main",
-						id: "repo-shoal",
-						name: "shoal",
-						source: SHOAL_SOURCE,
-					}),
-					db.Change.create(
-						changeOf({
-							headRef: HELD_BRANCH,
-							id: "change-open",
-							repoId: "repo-reef",
-							stage: "open",
-						}),
-					),
-					db.PieceChange.create({
-						changeId: "change-open",
-						pieceId: "piece-open",
-					}),
-					db.Berth.create(
-						berthAt({
-							branch: HELD_BRANCH,
-							id: HELD,
-							source: REEF_SOURCE,
-							strandedAt,
-						}),
-					),
-					db.Berth.create(
-						berthAt({
-							branch: HELD_BRANCH,
-							id: AT_WORK,
-							source: REEF_SOURCE,
-							strandedAt: null,
-						}),
-					),
-					db.Berth.create(
-						berthAt({
-							branch: "work/keeper/berth-1",
-							id: SIBLING,
-							source: REEF_SOURCE,
-							strandedAt,
-						}),
-					),
-					db.Berth.create(
-						berthAt({
-							branch: HELD_BRANCH,
-							id: ELSEWHERE,
-							source: SHOAL_SOURCE,
-							strandedAt,
-						}),
-					),
-				]);
+		yield* db.Agent.create({
+			charter: "release settled resources",
+			id: "agent-keeper",
+			role: "keeper",
+			status: "retired",
+		});
+		yield* db.Moorage.create({
+			agentId: "agent-keeper",
+			reclaimState: null,
+			root: "/tmp/moorage/agent-keeper",
+			runner: "local",
+			status: "ready",
+		});
+		yield* db.Repo.create({
+			defaultRef: "main",
+			id: "repo-reef",
+			name: "reef",
+			source: REEF_SOURCE,
+		});
+		yield* db.Repo.create({
+			defaultRef: "main",
+			id: "repo-shoal",
+			name: "shoal",
+			source: SHOAL_SOURCE,
+		});
+		yield* db.Change.create(
+			changeOf({
+				headRef: HELD_BRANCH,
+				id: "change-open",
+				repoId: "repo-reef",
+				stage: "open",
+			}),
+		);
+		yield* db.PieceChange.create({
+			changeId: "change-open",
+			pieceId: "piece-open",
+		});
+		yield* db.Berth.create(
+			berthAt({
+				branch: HELD_BRANCH,
+				id: HELD,
+				source: REEF_SOURCE,
+				strandedAt,
+			}),
+		);
+		yield* db.Berth.create(
+			berthAt({
+				branch: HELD_BRANCH,
+				id: AT_WORK,
+				source: REEF_SOURCE,
+				strandedAt: null,
+			}),
+		);
+		yield* db.Berth.create(
+			berthAt({
+				branch: "work/keeper/berth-1",
+				id: SIBLING,
+				source: REEF_SOURCE,
+				strandedAt,
+			}),
+		);
+		yield* db.Berth.create(
+			berthAt({
+				branch: HELD_BRANCH,
+				id: ELSEWHERE,
+				source: SHOAL_SOURCE,
+				strandedAt,
 			}),
 		);
 	});
@@ -128,20 +121,9 @@ const moored = (strandedAt: Date) =>
 const replaceWithdrawnChange = (now: number) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
-		yield* db.transaction(
-			Effect.gen(function* () {
-				yield* Database;
-				yield* db.Change.where({ id: "change-open" }).update({
-					stage: "withdrawn",
-					withdrawnAt: new Date(now),
-				});
-				yield* db.Change.create(LANDED_REPLACEMENT);
-				yield* db.PieceChange.create({
-					changeId: "change-landed-replacement",
-					pieceId: "piece-open",
-				});
-			}),
-		);
+		yield* db.Change.where({ id: "change-open" }).update({ stage: "withdrawn", withdrawnAt: new Date(now) });
+		yield* db.Change.create(LANDED_REPLACEMENT);
+		yield* db.PieceChange.create({ changeId: "change-landed-replacement", pieceId: "piece-open" });
 	});
 
 const berthStatuses = Effect.gen(function* () {

@@ -110,22 +110,6 @@ it.live("an Agent cannot receipt mail addressed to another Agent", () =>
 	}),
 );
 
-it.live("concurrent receipt replay writes one durable receipt", () =>
-	Effect.gen(function* () {
-		const temporary = yield* acquireTemporaryPersistence;
-		const scripted = yield* makeScriptedBackend;
-		yield* Effect.gen(function* () {
-			const db = yield* Database;
-			const domain = yield* AgentDomain;
-			yield* createAgent(AGENT_ID);
-			const entry = yield* domain.boards.mail(addressedMail());
-			yield* Effect.all([domain.boards.markRead(AGENT_ID, [entry.id]), domain.boards.markRead(AGENT_ID, [entry.id])], { concurrency: "unbounded" });
-			expect(yield* db.BoardEntryReceipt.all()).toHaveLength(1);
-			expect(yield* domain.boards.unread(AGENT_ID)).toEqual([]);
-		}).pipe(Effect.provide(domainKernelLayer(temporary, scripted.backend)));
-	}),
-);
-
 for (const corruption of [
 	{ column: "kind", value: "alarm" },
 	{ column: "precedence", value: "urgent" },

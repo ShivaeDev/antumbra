@@ -65,7 +65,7 @@ it.effectDB("answers voyage membership without exposing rows", function* (db) {
 	}).pipe(Effect.provide(layer));
 });
 
-it.effectDB("owns piece transactions and publishes only committed changes", function* (db) {
+it.effectDB("publishes after successful piece changes", function* (db) {
 	yield* Effect.scoped(
 		Effect.gen(function* () {
 			const feeds = yield* DomainFeeds;

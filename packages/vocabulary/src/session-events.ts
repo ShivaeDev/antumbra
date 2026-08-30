@@ -9,6 +9,10 @@ export {
 	projectHistoricalAgentEvent,
 } from "#session-events/historical.ts";
 export { Origin } from "#session-events/origin.ts";
+export {
+	RateLimitEvent,
+	RateLimitWindow,
+} from "#session-events/rate-limit.ts";
 export { RawEvent, type RawPayload } from "#session-events/raw.ts";
 export {
 	type BackgroundTask,

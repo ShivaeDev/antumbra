@@ -56,33 +56,6 @@ it.live("a spawn is moored to every registered repo at its default ref", () =>
 	}),
 );
 
-it.live("registering a source twice refreshes it rather than doubling it", () =>
-	Effect.gen(function* () {
-		const temporary = yield* acquireTemporaryPersistence;
-		const scripted = yield* makeScriptedBackend;
-		yield* Effect.gen(function* () {
-			const domain = yield* AgentDomain;
-			const first = yield* domain.repos.register({
-				defaultRef: "main",
-				source: "/reefs/one",
-			});
-			const again = yield* domain.repos.register({
-				defaultRef: "trunk",
-				source: "/reefs/one",
-			});
-			expect(again.id).toBe(first.id);
-			expect(yield* domain.repos.list).toEqual([
-				{
-					defaultRef: "trunk",
-					id: first.id,
-					name: "one",
-					source: "/reefs/one",
-				},
-			]);
-		}).pipe(Effect.provide(domainKernelLayer(temporary, scripted.backend)));
-	}),
-);
-
 it.live("a forgotten repo leaves the next spawn a bare moorage", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;

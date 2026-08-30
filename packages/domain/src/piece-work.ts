@@ -1,4 +1,4 @@
-import type { BoardOwnerNotFound, StoredBoardEntryInvalid, StoredBoardOwnerKindInvalid } from "@antumbra/boards";
+import type { BoardOwnerNotFound, StoredBoardEntryInvalid } from "@antumbra/boards";
 import type { RulingReadFailure } from "@antumbra/rulings";
 import { Effect } from "effect";
 import { charterFor } from "#crew-charter.ts";
@@ -23,7 +23,6 @@ export type WorkRefused =
 	| RulingReadFailure
 	| SpawnRefused
 	| StoredBoardEntryInvalid
-	| StoredBoardOwnerKindInvalid
 	| VoyageWorldReadFailure;
 
 const voyageOf = (world: VoyageWorld, pieceId: string): VoyageRow | undefined => {

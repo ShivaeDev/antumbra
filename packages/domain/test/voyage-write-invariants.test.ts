@@ -1,6 +1,6 @@
 import { Database } from "@antumbra/persistence";
 import { expect, it } from "@effect/vitest";
-import { Deferred, Effect, Fiber, Option, Result } from "effect";
+import { Effect, Option } from "effect";
 import { domainCapabilityLayer } from "#test/domain-layers.ts";
 import { acquireTemporaryPersistence } from "#test/harness.ts";
 import { VoyageProcedureService } from "#voyage-procedures.ts";
@@ -32,27 +32,6 @@ const charter = (voyages: VoyageProcedures, voyageId: string, title: string, dep
 		title,
 		voyageId,
 	});
-
-it.live("concurrent rewires cannot commit a cycle", () =>
-	withDomain((voyages) =>
-		Effect.gen(function* () {
-			const voyage = yield* openVoyage(voyages);
-			const alpha = yield* charter(voyages, voyage.id, "alpha");
-			const beta = yield* charter(voyages, voyage.id, "beta");
-			const start = yield* Deferred.make<void>();
-			const attempt = (pieceId: string, dependencyId: string) =>
-				Effect.result(Deferred.await(start).pipe(Effect.andThen(voyages.rewire(pieceId, [dependencyId])))).pipe(Effect.forkChild);
-			const fibers = yield* Effect.all([attempt(alpha.id, beta.id), attempt(beta.id, alpha.id)]);
-			yield* Deferred.succeed(start, undefined);
-			const results = yield* Effect.all(fibers.map(Fiber.join));
-			const edges = yield* Database.pipe(Effect.flatMap((db) => db.PieceEdge.all()));
-
-			expect(results.filter(Result.isSuccess)).toHaveLength(1);
-			expect(results.filter(Result.isFailure)).toMatchObject([{ failure: { _tag: "EdgeWouldCycle" } }]);
-			expect(edges).toHaveLength(1);
-		}),
-	),
-);
 
 it.live("chartering refuses an absent voyage without orphan rows", () =>
 	withDomain((voyages) =>

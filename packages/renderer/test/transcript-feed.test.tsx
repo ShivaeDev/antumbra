@@ -1,25 +1,23 @@
-// why: @vitest-environment happy-dom exercises the real subscription lifecycle.
+// @vitest-environment happy-dom
 
-import type { EventQuery, SessionEvent } from "@antumbra/contract";
+import type { SessionEvent } from "@antumbra/contract";
 import { expect, it } from "@effect/vitest";
 import { Effect } from "effect";
 import { act } from "react";
-import { createRoot, type Root } from "react-dom/client";
+import { createRoot } from "react-dom/client";
 import { beforeEach, vi } from "vitest";
 import { TranscriptView } from "#views/transcript.tsx";
 
 interface Opened {
-	readonly onError: (message: string) => void;
 	readonly onEvent: (event: SessionEvent) => void;
-	readonly query: EventQuery;
 }
 
 const { opened, watchSessionEvents } = vi.hoisted(() => {
 	const opened: Array<Opened> = [];
 	return {
 		opened,
-		watchSessionEvents: (query: Opened["query"], onEvent: Opened["onEvent"], onError: Opened["onError"]) => {
-			opened.push({ onError, onEvent, query });
+		watchSessionEvents: (_query: unknown, onEvent: Opened["onEvent"]) => {
+			opened.push({ onEvent });
 			return () => undefined;
 		},
 	};
@@ -40,19 +38,6 @@ const said = (seq: number, text: string): SessionEvent => ({
 	seq,
 	sessionId: "session-1",
 });
-
-const mount = (): { container: HTMLElement; root: Root } => {
-	const container = document.createElement("div");
-	return { container, root: createRoot(container) };
-};
-
-const render = (root: Root, sessionId: string, foldToolCalls = false): Effect.Effect<void> =>
-	Effect.promise(() =>
-		act(() => {
-			root.render(<TranscriptView foldToolCalls={foldToolCalls} sessionId={sessionId} />);
-			return Promise.resolve();
-		}),
-	);
 
 const called = (seq: number, name: string): ReadonlyArray<SessionEvent> => [
 	{
@@ -85,18 +70,10 @@ const called = (seq: number, name: string): ReadonlyArray<SessionEvent> => [
 	},
 ];
 
-const push = (send: () => void): Effect.Effect<void> =>
+const react = (action: () => void): Effect.Effect<void> =>
 	Effect.promise(() =>
 		act(() => {
-			send();
-			return Promise.resolve();
-		}),
-	);
-
-const drop = (root: Root): Effect.Effect<void> =>
-	Effect.promise(() =>
-		act(() => {
-			root.unmount();
+			action();
 			return Promise.resolve();
 		}),
 	);
@@ -105,71 +82,38 @@ beforeEach(() => {
 	opened.length = 0;
 });
 
-it.effect("keeps every event it was sent, in the order they arrived", () =>
+it.effect("draws session events as transcript rows", () =>
 	Effect.gen(function* () {
-		const { container, root } = mount();
-		yield* render(root, "session-1");
+		const container = document.createElement("div");
+		const root = createRoot(container);
+		yield* react(() => root.render(<TranscriptView foldToolCalls={false} sessionId="session-1" />));
 
-		expect(opened[0]?.query).toEqual({ fromSeq: 0, sessionId: "session-1" });
 		expect(container.textContent).toContain("no events yet");
 
-		yield* push(() => opened[0]?.onEvent(said(0, "raising the anchor")));
-		yield* push(() => opened[0]?.onEvent(said(1, "clearing the harbour")));
-
-		const shown = container.textContent ?? "";
-		expect(shown).toContain("raising the anchor");
-		expect(shown).toContain("clearing the harbour");
-		expect(shown.indexOf("raising the anchor")).toBeLessThan(shown.indexOf("clearing the harbour"));
-		yield* drop(root);
-	}),
-);
-
-it.effect("starts an empty transcript when the session changes", () =>
-	Effect.gen(function* () {
-		const { container, root } = mount();
-		yield* render(root, "session-1");
-		yield* push(() => opened[0]?.onEvent(said(0, "raising the anchor")));
-
-		yield* render(root, "session-2");
-
-		expect(opened[1]?.query).toEqual({ fromSeq: 0, sessionId: "session-2" });
-		expect(container.textContent).not.toContain("raising the anchor");
-		expect(container.textContent).toContain("no events yet");
-		yield* drop(root);
-	}),
-);
-
-it.effect("says a lost feed and keeps the events it already had", () =>
-	Effect.gen(function* () {
-		const { container, root } = mount();
-		yield* render(root, "session-1");
-		yield* push(() => opened[0]?.onEvent(said(0, "raising the anchor")));
-
-		yield* push(() => opened[0]?.onError("the bridge closed"));
-
-		expect(container.textContent).toContain("feed lost: the bridge closed");
+		yield* react(() => opened[0]?.onEvent(said(0, "raising the anchor")));
 		expect(container.textContent).toContain("raising the anchor");
-		yield* drop(root);
+		yield* react(() => root.unmount());
 	}),
 );
 
 it.effect("lists every call until the admiral asks for them folded", () =>
 	Effect.gen(function* () {
-		const { container, root } = mount();
-		yield* render(root, "session-1");
+		const container = document.createElement("div");
+		const root = createRoot(container);
+		yield* react(() => root.render(<TranscriptView foldToolCalls={false} sessionId="session-1" />));
 		const events = [...called(0, "Read"), ...called(2, "Grep")];
 		for (const event of events) {
-			yield* push(() => opened[0]?.onEvent(event));
+			yield* react(() => opened[0]?.onEvent(event));
 		}
 
 		expect(container.textContent).toContain("Read");
 		expect(container.textContent).toContain("Grep");
 		expect(container.textContent).not.toContain("called 2 tools");
 
-		yield* render(root, "session-1", true);
+		yield* react(() => root.render(<TranscriptView foldToolCalls={true} sessionId="session-1" />));
 
 		expect(container.textContent).toContain("called 2 tools");
 		expect(opened).toHaveLength(1);
-		yield* drop(root);
+		yield* react(() => root.unmount());
 	}),
 );

@@ -23,6 +23,7 @@
 	"devDependencies": {
 		"@antumbra/backend-claude": "workspace:*",
 		"@antumbra/backend-codex": "workspace:*",
+		"@antumbra/backend-opencode": "workspace:*",
 		"@antumbra/contract": "workspace:*",
 		"@antumbra/domain": "workspace:*",
 		"@antumbra/github": "workspace:*",

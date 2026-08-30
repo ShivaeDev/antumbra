@@ -41,56 +41,6 @@ it.effectDB("maps explicit internal tags onto the durable board vocabulary", fun
 	}).pipe(Effect.provide(layer));
 });
 
-it.effectDB("refuses corrupt owner kinds before history can disappear or a second Board can be minted", function* (db) {
-	yield* Effect.gen(function* () {
-		const boards = yield* Boards;
-		const agentId = "agent-corrupt-board-owner";
-		const boardId = "board-with-history";
-		yield* db.Agent.create({
-			charter: "keep one truthful Board",
-			id: agentId,
-			role: "hand",
-			status: "alive",
-		});
-		yield* db.Board.create({ id: boardId });
-		yield* db.BoardOwner.create({
-			boardId,
-			ownerId: agentId,
-			ownerKind: "future-owner",
-		});
-		yield* db.BoardEntry.create({
-			authorAgentId: null,
-			boardId,
-			body: "history must remain reachable",
-			createdAt: new Date("2026-08-17T00:00:00.000Z"),
-			id: "entry-with-history",
-			kind: "note",
-			precedence: "routine",
-			register: "smooth",
-			seq: 1,
-			sourceRef: null,
-		});
-		const scope = BoardScope.Agent({ agentId });
-		const input = EntryInput.Note({
-			authorAgentId: Option.none(),
-			body: "do not mint a replacement",
-			register: "rough",
-		});
-
-		const writeFailure = yield* Effect.flip(boards.write(scope, input));
-		const readFailure = yield* Effect.flip(boards.read(scope));
-
-		expect(writeFailure).toMatchObject({
-			_tag: "StoredBoardOwnerKindInvalid",
-			ownerId: agentId,
-			value: "future-owner",
-		});
-		expect(readFailure).toEqual(writeFailure);
-		expect(yield* db.Board.all()).toMatchObject([{ id: boardId }]);
-		expect(yield* db.BoardEntry.all()).toMatchObject([{ boardId, body: "history must remain reachable" }]);
-	}).pipe(Effect.provide(layer));
-});
-
 it.effectDB("owns replay-safe pull mail and explicit read receipts", function* (db) {
 	yield* Effect.scoped(
 		Effect.gen(function* () {

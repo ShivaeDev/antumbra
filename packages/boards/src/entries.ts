@@ -3,8 +3,6 @@ import { Effect, Option, Schema } from "effect";
 import { StoredBoardEntryInvalid } from "#errors.ts";
 import { type AppendFields, type BoardEntryRow, type BoardEntryVariant, EntryInput } from "#model.ts";
 
-// why: this is the disk boundary. Unknown entry vocabulary is corruption, not
-// a quiet note or routine precedence, so decoding fails before projection.
 const StoredFields = {
 	authorAgentId: Schema.NullOr(Schema.String),
 	body: Schema.String,

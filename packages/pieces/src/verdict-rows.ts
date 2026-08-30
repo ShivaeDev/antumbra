@@ -17,9 +17,6 @@ export const pieceVerdictRow = (row: { readonly pieceId: string; readonly verdic
 		Effect.map((verdict) => [row.pieceId, verdict] as const),
 	);
 
-// why: a piece carries at most one verdict, so the reading is a map from the
-// piece to the word rather than a history — the admiral's latest word about a
-// piece is the only one anything derives from.
 export const readPieceVerdicts: Effect.Effect<
 	ReadonlyMap<string, PieceVerdict>,
 	PrismaError | StoredPieceVerdictInvalid,

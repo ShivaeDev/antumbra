@@ -2,10 +2,6 @@ import { RulingUrgencySchema } from "@antumbra/vocabulary/ruling";
 import { Schema } from "effect";
 import { defineTool } from "#define.ts";
 
-// why: the fleet-level acts, and only what the guide names: opening work,
-// chartering it on a voyage that is not the caller's, hailing that voyage's
-// captain, and settling a question for the whole fleet. Nothing here is a
-// verb the admiral could not perform.
 export const openVoyageSpec = defineTool({
 	description:
 		"Open a voyage: a ship under sail for an objective, with its own north star, board, and chartered work. Opening it charters no work and wakes nobody — the voyage has no captain until `hail_captain` brings it one. It sails on the fleet's default agent backend, which the admiral switches like any other voyage's.",
@@ -46,9 +42,6 @@ export const charterVoyagePieceSpec = defineTool({
 	name: "charter_piece_on_voyage",
 });
 
-// why: chartering is a silent write by the admiral's own choice, so waking
-// the captain who will read it is a separate, deliberate act — the same hail
-// the admiral's Hail button sends, bound to the flagship and to nobody else.
 export const hailCaptainSpec = defineTool({
 	description:
 		"Hail a voyage's captain: wake the captain it has, or bring it one if it has none, so the voyage is under way. It is the only way you reach another voyage's captain — chartering on a voyage wakes nobody. A hail of a captain already at work reaches that captain and never a second one; a hail while one is still being born is refused, as is a hail of a voyage the fleet has not got. It answers with the captain's agent id and the id of the wake or spawn it asked for.",
@@ -88,9 +81,6 @@ export const proclaimRulingSpec = defineTool({
 	name: "proclaim_ruling",
 });
 
-// why: the one reading the fleet acts stand on. A piece is chartered onto a
-// voyage by id, and nothing else the flagship holds says which ids exist —
-// `read_voyage` shows the ship it is on and no other.
 export const readFleetSpec = defineTool({
 	description:
 		"Read the fleet: every voyage under sail, with its id, kind, backend, state, piece counts, captain, and when it last stirred. Call it to learn which voyages exist — the id `charter_piece_on_voyage` and `hail_captain` take is the one shown here.",

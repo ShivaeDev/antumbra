@@ -3,7 +3,7 @@ import { Database } from "@antumbra/persistence";
 import { type AgentBackend, BackendFailure, type Runner } from "@antumbra/plugin-api";
 import { expect, it } from "@effect/vitest";
 import { Deferred, Effect, Option, Stream } from "effect";
-import { AGENTS_ALIVE_GAUGE, AgentDomain } from "#domain.ts";
+import { AgentDomain } from "#domain.ts";
 import type { RetireFields, SpawnFields } from "#index.ts";
 import { domainKernelLayer } from "#test/domain-layers.ts";
 import { acquireTemporaryPersistence, makeScriptedBackend, makeScriptedRunner, rawOf, standDown } from "#test/harness.ts";
@@ -208,23 +208,6 @@ it.live("retire closes the session, the rows, and is idempotent", () =>
 			expect(live !== undefined && (yield* live.closed)).toBe(true);
 			const again = yield* submitRetire({ agentId: "agent-c" });
 			expect(again).toBe("succeeded");
-		}).pipe(Effect.provide(domainKernelLayer(temporary, scripted.backend)));
-	}),
-);
-
-it.live("the alive-agents gauge tracks births and deaths", () =>
-	Effect.gen(function* () {
-		const temporary = yield* acquireTemporaryPersistence;
-		const scripted = yield* makeScriptedBackend;
-		yield* Effect.gen(function* () {
-			const domain = yield* AgentDomain;
-			const gauge = domain.gauges[AGENTS_ALIVE_GAUGE] ?? Effect.succeed(-1);
-			expect(yield* gauge).toBe(0);
-			yield* submitSpawn(spawnPayload("e"));
-			expect(yield* gauge).toBe(1);
-			yield* standDown(scripted, "agent-e");
-			yield* submitRetire({ agentId: "agent-e" });
-			expect(yield* gauge).toBe(0);
 		}).pipe(Effect.provide(domainKernelLayer(temporary, scripted.backend)));
 	}),
 );

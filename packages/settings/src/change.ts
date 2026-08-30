@@ -1,12 +1,8 @@
 import { SETTINGS, type SettingChange, type SettingKey, SettingRefused, type SettingValue } from "@antumbra/contract";
 import { Database } from "@antumbra/persistence";
 import { Clock, Effect, Option } from "effect";
-import { readSettings } from "#settings-reading.ts";
+import { readSettings } from "#reading.ts";
 
-// why: a row means the admiral chose something other than what the catalog
-// says. Writing the declared value back removes the row instead of restating
-// it, so an installation that never chose otherwise follows the catalog when a
-// later release picks a better default.
 const store = (key: SettingKey, value: SettingValue, now: number) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
@@ -15,21 +11,13 @@ const store = (key: SettingKey, value: SettingValue, now: number) =>
 			return;
 		}
 		const encoded = JSON.stringify(value);
-		const exists = yield* db.Setting.where({ key }).exists();
-		if (exists) {
-			yield* db.Setting.where({ key }).update({
-				updatedAt: new Date(now),
-				value: encoded,
-			});
-			return;
+		const updated = yield* db.Setting.where({ key }).update({
+			updatedAt: new Date(now),
+			value: encoded,
+		});
+		if (updated === null) {
+			yield* db.Setting.create({ key, value: encoded });
 		}
-		yield* db.Setting.create({ key, value: encoded }).pipe(
-			Effect.catchTag("PrismaError", (failure) =>
-				db.Setting.where({ key })
-					.update({ updatedAt: new Date(now), value: encoded })
-					.pipe(Effect.flatMap((updated) => (updated === null ? Effect.fail(failure) : Effect.void))),
-			),
-		);
 	});
 
 const accept = (change: SettingChange) => {

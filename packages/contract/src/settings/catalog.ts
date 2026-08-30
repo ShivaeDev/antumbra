@@ -17,11 +17,11 @@ export const SETTINGS = {
 		title: "Fold runs of tool calls",
 	}),
 	maxParallelSessions: count({
-		description: "How many agent sessions may run at once.",
+		description: "How many agents may be running at once.",
 		fallback: 4,
 		least: 1,
 		most: 64,
-		title: "Maximum parallel sessions",
+		title: "Maximum running agents",
 	}),
 	idleSiestaMinutes: count({
 		description: "Shorter waits free capacity sooner; longer waits are more likely to keep conversation context cached.",

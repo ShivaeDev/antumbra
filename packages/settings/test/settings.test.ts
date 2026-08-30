@@ -1,8 +1,8 @@
 import { SETTINGS, SettingsSource } from "@antumbra/contract";
 import { persistenceIt, temporaryPersistence } from "@antumbra/persistence/testing";
+import { SettingsSourceLive } from "@antumbra/settings";
 import { expect, it } from "@effect/vitest";
 import { Effect, Layer } from "effect";
-import { SettingsSourceLive } from "#settings.ts";
 
 const persistence = persistenceIt();
 

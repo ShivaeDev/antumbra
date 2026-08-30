@@ -5,6 +5,7 @@ import type { TemporaryPersistence } from "@antumbra/persistence/testing";
 import type { AgentBackend, ChangeHost, Runner } from "@antumbra/plugin-api";
 import type { ResourceReconcileOptions } from "@antumbra/resource-reclamation";
 import { SessionFabricLive } from "@antumbra/session-fabric";
+import { SettingsSourceLive } from "@antumbra/settings";
 import { NodeServices } from "@effect/platform-node";
 import { Effect, Layer } from "effect";
 import { BackendCapacityReleaseLive } from "#backend-capacity-release.ts";
@@ -18,7 +19,6 @@ import { KernelReachInstaller, KernelReachLive, type KernelReachService } from "
 import { RulingAscentLive } from "#ruling-ascent.ts";
 import { RulingDeliveryLive } from "#ruling-delivery.ts";
 import { SessionShutdownLive } from "#session-shutdown-live.ts";
-import { SettingsSourceLive } from "#settings.ts";
 import { SightSourceLive } from "#sight.ts";
 import { passiveRunner } from "#test/harness.ts";
 import { fakeKernelReach } from "#test/kernel-reach-fixture.ts";
@@ -49,7 +49,7 @@ export const domainCapabilityLayer = (temporary: TemporaryPersistence, reach: Ke
 export const domainKernelLayer = (
 	temporary: TemporaryPersistence,
 	backend: AgentBackend,
-	options: Omit<KernelOptions, "kinds" | "gauges"> = {},
+	options: Omit<KernelOptions, "kinds"> = {},
 	runner: Runner = passiveRunner,
 	changeHosts: ReadonlyMap<string, ChangeHost> = new Map(),
 	reclaim: Partial<ResourceReconcileOptions> = {},
@@ -98,7 +98,7 @@ export const dispatchingLayer = (
 	temporary: TemporaryPersistence,
 	backend: AgentBackend,
 	dispatcher: Partial<DispatcherOptions>,
-	options: Omit<KernelOptions, "kinds" | "gauges"> = {},
+	options: Omit<KernelOptions, "kinds"> = {},
 	runner: Runner = passiveRunner,
 	changeHosts: ReadonlyMap<string, ChangeHost> = new Map(),
 ) => DispatcherLive(dispatcher).pipe(Layer.provideMerge(domainKernelLayer(temporary, backend, options, runner, changeHosts)));
@@ -113,6 +113,9 @@ export const watchingLayer = (
 	backend: AgentBackend,
 	cadence: Partial<ObserveCadenceOptions>,
 	changeHosts: ReadonlyMap<string, ChangeHost>,
-	dispatcher: Partial<DispatcherOptions> = { maxAlive: 4, patienceMillis: 50 },
+	dispatcher: Partial<DispatcherOptions> = {
+		maxRunning: 4,
+		patienceMillis: 50,
+	},
 	runner: Runner = passiveRunner,
 ) => ChangeWatcherLive(cadence).pipe(Layer.provideMerge(dispatchingLayer(temporary, backend, dispatcher, {}, runner, changeHosts)));

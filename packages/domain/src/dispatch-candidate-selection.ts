@@ -9,7 +9,6 @@ import type { AssignedExecution } from "#voyage-execution-selection.ts";
 export interface PendingDispatches {
 	readonly pieceIds: Set<string>;
 	readonly sessionIds: Set<string>;
-	readonly spawnIntentIds: ReadonlySet<string>;
 }
 
 export const pendingDispatches = Effect.gen(function* () {
@@ -19,7 +18,6 @@ export const pendingDispatches = Effect.gen(function* () {
 	return {
 		pieceIds: new Set(spawns.flatMap((intent) => (intent.payload.pieceId === undefined ? [] : [intent.payload.pieceId]))),
 		sessionIds: new Set(wakes.map((intent) => intent.payload.sessionId)),
-		spawnIntentIds: new Set(spawns.map((intent) => intent.id)),
 	} satisfies PendingDispatches;
 });
 

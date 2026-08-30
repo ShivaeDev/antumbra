@@ -42,6 +42,7 @@ const fleet = (sessionId: string): Fleet => ({
 		},
 	],
 	backends: ["scripted"],
+	capacities: [],
 	diag: { intents: [] },
 	repos: [],
 });

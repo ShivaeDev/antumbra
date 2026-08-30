@@ -40,6 +40,7 @@ const agent = (
 const fleetOf = (agents: ReadonlyArray<AgentSummary>): Fleet => ({
 	agents,
 	backends: ["claude"],
+	capacities: [],
 	diag: { intents: [] },
 	repos: [],
 });

@@ -13,6 +13,7 @@ const session = (
 	createdAt = new Date(1),
 ): AgentSessionRow => ({
 	agentId,
+	backend: "scripted",
 	createdAt,
 	executionStatus,
 	id,
@@ -63,6 +64,7 @@ it("chooses the lexical alive assignee independent of row order", () => {
 	expect(assignedExecution(view, "piece-one")).toEqual({
 		_tag: "resume",
 		agentId: "agent-a",
+		backend: "scripted",
 		sessionId: "session-a",
 	});
 });

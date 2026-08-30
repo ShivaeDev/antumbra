@@ -8,6 +8,7 @@ import type { RepoRegistry } from "@antumbra/repos";
 import type { SessionInputDraft } from "@antumbra/session-inputs";
 import type { StoredAgentStatusInvalid } from "@antumbra/vocabulary/agent-runtime";
 import { Context, type Effect } from "effect";
+import type { BackendCapacities } from "#backend-capacity.ts";
 import type { ChangeProcedures } from "#change-procedures.ts";
 import type { SessionNotLive } from "#errors.ts";
 import type { RetireFields } from "#retire.ts";
@@ -25,6 +26,7 @@ export const AGENTS_ALIVE_GAUGE = "agents.alive";
 export class AgentDomain extends Context.Service<
 	AgentDomain,
 	{
+		readonly backendCapacities: BackendCapacities;
 		readonly backends: ReadonlyArray<string>;
 		readonly boards: BoardsService;
 		readonly changes: ChangeProcedures;

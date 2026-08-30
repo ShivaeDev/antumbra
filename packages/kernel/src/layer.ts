@@ -18,6 +18,7 @@ import type { AnyIntentKind, IntentKind } from "#intent.ts";
 import { changesFor } from "#intent-changes.ts";
 import { type IntentChange, type IntentSubmission, Kernel } from "#kernel.ts";
 import { reclaim } from "#reclaim.ts";
+import { retryIntentIfWaiting } from "#retry-if-waiting.ts";
 import { SchedulerState } from "#state.ts";
 import { announce, transitionRow } from "#transitions.ts";
 
@@ -107,6 +108,10 @@ export const KernelLive = (options: KernelOptions) =>
 				cancel: (id) => cancelIntent(id).pipe(Effect.provideContext(context)),
 				changes,
 				retry: (id) => retryIntent(id).pipe(Effect.provideContext(context)),
+				retryIfWaiting: (id, expectedDetail) =>
+					retryIntentIfWaiting(id, expectedDetail).pipe(
+						Effect.provideContext(context),
+					),
 				submit: <Payload>(kind: IntentKind<Payload>, payload: Payload) =>
 					submitIntent(kind, payload, changes).pipe(
 						Effect.provideContext(context),

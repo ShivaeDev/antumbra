@@ -1,4 +1,7 @@
-import type { BackendFailure } from "@antumbra/plugin-api";
+import type {
+	BackendCapacityController,
+	BackendFailure,
+} from "@antumbra/plugin-api";
 import { Deferred, Effect, PubSub, Queue, type Scope } from "effect";
 import type { LineProcess } from "#adapters/process.ts";
 import {
@@ -9,12 +12,14 @@ import {
 } from "#adapters/rpc.ts";
 import { codexFailure } from "#failure.ts";
 import { handshake } from "#handshake.ts";
+import { rawOf } from "#mapping.ts";
 import { type Request, requestOn } from "#requests.ts";
 import { answerServerRequest } from "#server-answers.ts";
 import { openThreadClaims, type ThreadClaims } from "#thread-claims.ts";
 import { makeToolRegistry, type ToolRegistry } from "#tool-registry.ts";
 
 interface CodexServerOptions {
+	readonly observeCapacity?: BackendCapacityController["observe"];
 	readonly spawn: () => LineProcess;
 }
 
@@ -36,8 +41,12 @@ const wire = (
 	rpc: RpcConnection,
 	notifications: PubSub.PubSub<RpcNotification>,
 	serverRequests: Queue.Queue<RpcServerRequest>,
+	observeCapacity: BackendCapacityController["observe"] | undefined,
 ): void => {
 	rpc.onNotification((notification) => {
+		// why: provider capacity belongs to the shared backend, so it must see the
+		// notification before per-thread ownership can discard an unscoped frame.
+		observeCapacity?.(rawOf(notification.method, notification.params));
 		PubSub.publishUnsafe(notifications, notification);
 	});
 	// why: a server request is also published as a notification, so the
@@ -45,6 +54,7 @@ const wire = (
 	// serverRequest/resolved, how it went) — the answer itself is decided in
 	// approvals.ts.
 	rpc.onServerRequest((request) => {
+		observeCapacity?.(rawOf(request.method, request.params));
 		PubSub.publishUnsafe(notifications, {
 			method: request.method,
 			params: request.params,
@@ -71,7 +81,7 @@ export const makeCodexServer = (
 			(process) => Effect.sync(() => process.kill()),
 		);
 		const rpc = connectRpc(child);
-		wire(rpc, notifications, serverRequests);
+		wire(rpc, notifications, serverRequests, options.observeCapacity);
 		// why: the child says why it is unhappy on stderr and nowhere else — a
 		// malformed reply of ours leaves its only trace there.
 		child.onStderr((text) => {

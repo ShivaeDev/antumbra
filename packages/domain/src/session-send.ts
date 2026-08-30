@@ -4,6 +4,7 @@ import { SessionFabric } from "@antumbra/session-fabric";
 import { decodeStoredAgentSessionStatus } from "@antumbra/vocabulary/agent-runtime";
 import type { SessionInputId } from "@antumbra/vocabulary/session-input";
 import { Effect, Option } from "effect";
+import type { BackendCapacities } from "#backend-capacity.ts";
 import { makeCurrentSessionRecovery } from "#current-session-recovery.ts";
 import { SessionEnded, SessionNotFound } from "#errors.ts";
 import { KernelReach, type SessionRouse } from "#kernel-reach.ts";
@@ -25,7 +26,10 @@ export type {
 // the words as the thing to say on arrival, so waking and speaking stay one
 // act with no separate control for the admiral to find. Only a Session that has
 // ended refuses, because there is nothing left to wake.
-export const makeSessionSend = (imageInputBackends: ReadonlySet<string>) =>
+export const makeSessionSend = (
+	imageInputBackends: ReadonlySet<string>,
+	capacities: BackendCapacities,
+) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
 		const fabric = yield* SessionFabric;
@@ -80,7 +84,10 @@ export const makeSessionSend = (imageInputBackends: ReadonlySet<string>) =>
 			});
 		const sendPrompt = (sessionId: string, prompt: AgentPrompt) =>
 			Effect.gen(function* () {
-				yield* open(sessionId);
+				const session = yield* open(sessionId);
+				if ((yield* capacities.current(session.backend)).status === "blocked") {
+					return yield* rousePrompt(sessionId, prompt);
+				}
 				if (!(yield* fabric.holds(sessionId))) {
 					return yield* rousePrompt(sessionId, prompt);
 				}
@@ -103,6 +110,7 @@ export const makeSessionSend = (imageInputBackends: ReadonlySet<string>) =>
 			imageInputBackends,
 			open,
 			rouseInput,
+			capacities,
 		);
 		return { sendInput, sendPrompt };
 	});

@@ -14,6 +14,14 @@ export {
 	type SessionInputTextPart,
 } from "#backend.ts";
 export {
+	type BackendCapacityClassification,
+	type BackendCapacityController,
+	BackendCapacityObservation,
+	type BackendCapacityReason,
+	type BackendCapacitySource,
+	makeBackendCapacityController,
+} from "#backend-capacity.ts";
+export {
 	type ChangeHost,
 	type ChangeHostBerth,
 	type ChangeHostCapability,

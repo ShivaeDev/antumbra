@@ -45,7 +45,7 @@ const pieceOnAnotherVoyage = Effect.gen(function* () {
 		name: "Name the shoals",
 		northStar: "every shoal has a name",
 	});
-	return yield* domain.voyages.charterPiece({
+	const piece = yield* domain.voyages.charterPiece({
 		charter: "name the northern shoal",
 		dependsOn: [],
 		expectation: "the shoal is named",
@@ -53,6 +53,7 @@ const pieceOnAnotherVoyage = Effect.gen(function* () {
 		title: "northern",
 		voyageId: shoals.id,
 	});
+	return { piece, voyageId: shoals.id };
 });
 
 const withCaptain = <A, E>(
@@ -122,14 +123,14 @@ it.live("chartering onto another voyage's piece is refused, not written", () =>
 			const elsewhere = yield* pieceOnAnotherVoyage;
 			const refusal = yield* callTool(captain, "charter_piece", {
 				charter: "do bravo",
-				dependsOn: [elsewhere.id],
+				dependsOn: [elsewhere.piece.id],
 				expectation: "bravo is landed",
 				role: "hand",
 				title: "bravo",
 			});
 			expect(refusal).toEqual({
 				ok: false,
-				text: `these pieces are not on your voyage: ${elsewhere.id}`,
+				text: `these pieces are not on your voyage: ${elsewhere.piece.id}`,
 			});
 			expect((yield* callTool(captain, "read_voyage", {})).text).toContain(
 				"## Pieces\n- none",
@@ -145,15 +146,15 @@ it.live("rewiring onto another voyage's piece is refused, not written", () =>
 			const elsewhere = yield* pieceOnAnotherVoyage;
 			expect(
 				yield* callTool(captain, "rewire_piece", {
-					dependsOn: [elsewhere.id],
+					dependsOn: [elsewhere.piece.id],
 					pieceId: alpha,
 				}),
 			).toEqual({
 				ok: false,
-				text: `these pieces are not on your voyage: ${elsewhere.id}`,
+				text: `these pieces are not on your voyage: ${elsewhere.piece.id}`,
 			});
 			expect((yield* callTool(captain, "read_voyage", {})).text).not.toContain(
-				elsewhere.id,
+				elsewhere.piece.id,
 			);
 		}),
 	),
@@ -170,8 +171,21 @@ it.live("a captain cons one ship and cannot reach across a hull", () =>
 			const captain = yield* hailedCaptain(scripted, reef.id);
 
 			expect(
-				yield* callTool(captain, "launch_piece", { pieceId: elsewhere.id }),
+				yield* callTool(captain, "launch_piece", {
+					pieceId: elsewhere.piece.id,
+				}),
 			).toEqual({ ok: false, text: "that piece is not on your voyage" });
+			expect(
+				yield* callTool(captain, "read_voyage", {
+					voyageId: elsewhere.voyageId,
+				}),
+			).toEqual({
+				ok: false,
+				text: "only the flagship's captain reads a voyage it is not on",
+			});
+			expect(
+				(yield* callTool(captain, "read_voyage", { voyageId: reef.id })).text,
+			).toContain("# Chart the reef");
 			expect(
 				yield* callTool(captain, "read_board", { scope: "piece" }),
 			).toEqual({ ok: false, text: "you have no piece board" });

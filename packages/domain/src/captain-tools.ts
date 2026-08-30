@@ -12,7 +12,7 @@ import { makeReportToolCompiler } from "#report-tools.ts";
 import { makeRulingReadingToolCompiler } from "#ruling-reading-tools.ts";
 import { makeRulingToolCompiler } from "#ruling-tools.ts";
 import { StandDown } from "#stand-down.ts";
-import { answered, onVoyage } from "#tool-answers.ts";
+import { answered, onVoyage, refused } from "#tool-answers.ts";
 import type { SessionIdentity } from "#tool-identity.ts";
 import { readVoyageView } from "#voyage-read.ts";
 import { renderVoyage } from "#voyage-render.ts";
@@ -27,6 +27,11 @@ const voyageOrGone = (voyageId: string) =>
 			}),
 		),
 	);
+
+// why: naming another ship is the flagship's widened form of this tool, and a
+// captain that never held it hears so rather than being handed its own voyage
+// under the id it asked for.
+const ACROSS_A_HULL = "only the flagship's captain reads a voyage it is not on";
 
 // why: the captain's set is its authority — it charters and positions work,
 // reads where the voyage stands, and settles what its crew brings up, but it
@@ -44,6 +49,15 @@ export const makeCaptainToolCompiler = Effect.gen(function* () {
 	const compileRulingMoveTools = yield* makeCaptainRulingMoveToolCompiler;
 	const standDown = yield* StandDown;
 	const world = yield* VoyageWorldSource;
+	const readsVoyage = (identity: SessionIdentity, voyageId: string) =>
+		answered(
+			identity,
+			readVoyageSpec.name,
+			voyageOrGone(voyageId).pipe(
+				Effect.provideService(VoyageWorldSource, world),
+			),
+			renderVoyage,
+		);
 	return (identity: SessionIdentity): ReadonlyArray<DirectTool> => [
 		bind(charterPieceSpec, (input) =>
 			membership.onOwnDeps(identity, input.dependsOn, (voyageId) =>
@@ -63,16 +77,11 @@ export const makeCaptainToolCompiler = Effect.gen(function* () {
 			),
 		),
 		...pieceVerbTools(identity),
-		bind(readVoyageSpec, () =>
+		bind(readVoyageSpec, (input) =>
 			onVoyage(identity, (voyageId) =>
-				answered(
-					identity,
-					readVoyageSpec.name,
-					voyageOrGone(voyageId).pipe(
-						Effect.provideService(VoyageWorldSource, world),
-					),
-					renderVoyage,
-				),
+				input.voyageId === undefined || input.voyageId === voyageId
+					? readsVoyage(identity, voyageId)
+					: Effect.succeed(refused(ACROSS_A_HULL)),
 			),
 		),
 		...compileReportTools(identity),

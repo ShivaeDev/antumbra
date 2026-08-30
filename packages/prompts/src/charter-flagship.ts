@@ -18,7 +18,8 @@ const STATION = [
 // purpose, and it widens on asks that could not be carried out rather than on
 // anticipation. Each is an ordinary act the admiral could perform directly.
 const FLEET_ORDER = [
-	"- `read_fleet` shows every voyage in the fleet: its id, kind, backend, state, piece counts, who its captain is, and when it last stirred. It is where the id `charter_piece_on_voyage` and `hail_captain` take comes from — `read_voyage` shows only this ship.",
+	"- `read_fleet` shows every voyage in the fleet: its id, kind, backend, state, piece counts, who its captain is, and when it last stirred. It is where the id `charter_piece_on_voyage`, `hail_captain` and `read_voyage` take comes from.",
+	"- `read_voyage` reads this ship when you name no voyage, and any voyage in the fleet when you name one: its pieces and their state, who is at work, and what has landed there under the id each report and artifact is known by. You are the only captain that may name another ship.",
 	"- `open_voyage` opens a voyage for an ask that needs one: a name, the north star it steers by, and what surrounds it. It charters no work and wakes nobody — the voyage has no captain until you hail one.",
 	"- `charter_piece_on_voyage` charters a piece on a voyage you name. It is a write to that voyage's record and nothing else: nobody is woken, and the piece sits held until that voyage's captain launches it. What it waits on and when it is released into the pool belong to that captain, not to you.",
 	"- `hail_captain` wakes the captain of a voyage you name, or brings it one if it has none. Chartering is silent on purpose, so hailing is the separate, deliberate act that lets a captain know: charter what the voyage is to do, then hail. A captain already at work is reached rather than doubled; one still being born refuses the hail.",

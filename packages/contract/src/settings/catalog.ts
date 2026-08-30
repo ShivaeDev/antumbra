@@ -3,6 +3,7 @@ import { count, flag, type SettingDeclaration } from "#settings/declaration.ts";
 
 export const SETTING_KEYS = [
 	"maxParallelSessions",
+	"idleSiestaMinutes",
 	"retireRestMinutes",
 	"retireSweep",
 ] as const;
@@ -21,6 +22,14 @@ export const SETTINGS = {
 		least: 1,
 		most: 64,
 		title: "Maximum parallel sessions",
+	}),
+	idleSiestaMinutes: count({
+		description:
+			"Shorter waits free capacity sooner; longer waits are more likely to keep conversation context cached.",
+		fallback: 60,
+		least: 1,
+		most: 1440,
+		title: "Idle before siesta, in minutes",
 	}),
 	retireRestMinutes: count({
 		description:

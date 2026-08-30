@@ -1,4 +1,4 @@
-import { SightSource } from "@antumbra/contract";
+import { SETTINGS, SightSource } from "@antumbra/contract";
 import { Kernel } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
 import { expect } from "@effect/vitest";
@@ -25,6 +25,9 @@ export const HAND: SpawnFields = {
 	runner: "local",
 	sessionId: "session-idle",
 };
+
+export const DEFAULT_IDLE_SIESTA_AFTER_MILLIS =
+	SETTINGS.idleSiestaMinutes.fallback * 60_000;
 
 export const sessionRow = Effect.gen(function* () {
 	const db = yield* Database;

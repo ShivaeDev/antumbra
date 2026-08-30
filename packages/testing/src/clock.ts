@@ -1,4 +1,4 @@
-import { Duration, Effect, Schedule } from "effect";
+import { type Duration, Effect, Schedule } from "effect";
 import { TestClock } from "effect/testing";
 
 export type ClockMode = "live" | "test";

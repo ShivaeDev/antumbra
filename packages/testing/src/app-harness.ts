@@ -12,13 +12,10 @@ import {
 import { dispatchingLayer } from "#domain-layers.ts";
 import type { Around } from "#effect-it.ts";
 import {
-	type ScriptedBackend,
 	makeScriptedBackend,
+	type ScriptedBackend,
 } from "#scripted-backend.ts";
-import {
-	type ScriptedRunner,
-	makeScriptedRunner,
-} from "#scripted-runner.ts";
+import { makeScriptedRunner, type ScriptedRunner } from "#scripted-runner.ts";
 
 const DISPATCHER = { maxAlive: 4, patienceMillis: 50 } as const;
 

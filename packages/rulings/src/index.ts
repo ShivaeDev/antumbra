@@ -25,8 +25,6 @@ export {
 	RulingSupersedesItself,
 } from "#errors.ts";
 export type {
-	RulingGateFailure,
-	RulingPassUpFailure,
 	RulingProclaimFailure,
 	RulingReadFailure,
 	RulingReclassifyFailure,

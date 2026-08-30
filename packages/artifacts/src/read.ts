@@ -7,6 +7,7 @@ import {
 	isSafeArtifactBasename,
 	MAX_ARTIFACT_MARKDOWN_BYTES,
 	readOpened,
+	sameObject,
 } from "#content.ts";
 import {
 	ArtifactNotFound,
@@ -25,15 +26,6 @@ const invalid = (
 	artifactId: string,
 	reason: StoredArtifactContentInvalidReason,
 ) => new StoredArtifactContentInvalid({ artifactId, reason });
-
-const sameObject = (
-	opened: FileSystem.File.Info,
-	resolved: FileSystem.File.Info,
-): boolean =>
-	opened.dev === resolved.dev &&
-	Option.isSome(opened.ino) &&
-	Option.isSome(resolved.ino) &&
-	opened.ino.value === resolved.ino.value;
 
 const validateIdentity = (artifactId: string, row: StoredArtifactIdentity) =>
 	Effect.gen(function* () {

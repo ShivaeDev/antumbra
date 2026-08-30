@@ -10,10 +10,6 @@ export const Select = (
 	props: React.ComponentProps<typeof SelectPrimitive.Root>,
 ) => <SelectPrimitive.Root data-slot="select" {...props} />;
 
-export const SelectGroup = (
-	props: React.ComponentProps<typeof SelectPrimitive.Group>,
-) => <SelectPrimitive.Group data-slot="select-group" {...props} />;
-
 export const SelectValue = (
 	props: React.ComponentProps<typeof SelectPrimitive.Value>,
 ) => <SelectPrimitive.Value data-slot="select-value" {...props} />;

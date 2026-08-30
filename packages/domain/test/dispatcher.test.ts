@@ -140,6 +140,7 @@ it.effect("applies a saved ceiling to subsequent launches without restart", () =
 			expect(yield* assignedPieces).toEqual([alpha.id]);
 
 			yield* settings.change({ key: "maxParallelSessions", value: 2 });
+			yield* TestClock.adjust(50);
 			yield* TestClock.withLive(
 				eventually(
 					Effect.gen(function* () {

@@ -111,7 +111,15 @@ describe("watching open changes", () => {
 				const domain = yield* AgentDomain;
 				const { piece, repo } = yield* reefWithPiece;
 				yield* berthed(CREW);
+				const beforeOpen = yield* passes(scripted);
 				yield* openedChange(piece.id, repo.name);
+				yield* TestClock.withLive(
+					eventually(
+						Effect.gen(function* () {
+							expect(yield* passes(scripted)).toBeGreaterThan(beforeOpen);
+						}),
+					),
+				);
 				const quiet = yield* settled(scripted);
 
 				yield* domain.changes.requestRefresh;
@@ -140,6 +148,7 @@ describe("watching open changes", () => {
 				expect(yield* passes(scripted)).toBeGreaterThan(early);
 
 				yield* scripted.drive.transition(repo.id, "1", { stage: "landed" });
+				yield* TestClock.adjust(BRISK.warmMillis);
 				// why: the piece is launched, so the pool may have put a hand on it
 				// before the change row existed — whether it did is a race this test
 				// has no stake in. A piece reads shipped only once its crew is
@@ -180,6 +189,7 @@ describe("watching open changes", () => {
 				// is heard without anything being restarted.
 				yield* scripted.drive.refuse(null);
 				yield* scripted.drive.transition(repo.id, "1", { stage: "landed" });
+				yield* TestClock.adjust(BRISK.coldMillis);
 				yield* TestClock.withLive(
 					eventually(
 						Effect.gen(function* () {
@@ -212,6 +222,7 @@ describe("watching open changes", () => {
 
 				yield* scripted.drive.refuse(null);
 				yield* scripted.drive.transition(repo.id, "1", { stage: "landed" });
+				yield* TestClock.adjust(FALTERING.coldMillis);
 				yield* TestClock.withLive(
 					eventually(
 						Effect.gen(function* () {

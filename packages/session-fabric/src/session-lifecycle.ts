@@ -54,8 +54,6 @@ export const makeSessionLifecycles = Effect.gen(function* () {
 	const stop: SessionLifecycles["stop"] = (sessionId, teardown) =>
 		Effect.gen(function* () {
 			const lifecycle = yield* lifecycleFor(sessionId);
-			// why: the signal precedes the permit wait, so attachment admission
-			// cannot outrun durable retirement and install work afterward.
 			return yield* Effect.acquireUseRelease(
 				Effect.gen(function* () {
 					const replacement = yield* Deferred.make<void>();

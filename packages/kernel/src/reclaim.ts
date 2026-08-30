@@ -38,9 +38,6 @@ const settleStrandedCancelling = Effect.gen(function* () {
 	return yield* Effect.forEach(stranded, (row) => transitionRow(row.id, "interrupt"));
 });
 
-// why: reclaim runs before the scheduler exists. Each row settles through its
-// own guarded transition, and admission starts only after the whole resumable
-// pass succeeds.
 export const reclaim = Effect.gen(function* () {
 	const settled = yield* Effect.gen(function* () {
 		const running = yield* settleStrandedRunning;

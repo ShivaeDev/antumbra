@@ -21,9 +21,6 @@ export interface IntentChange {
 	readonly status: IntentStatus;
 }
 
-// why: this service is the only way work starts. Submitters get an id and a
-// status stream and nothing else — admission state (gates, running counts)
-// never crosses this surface, which is the P6 acceptance line.
 export class Kernel extends Context.Service<
 	Kernel,
 	{
@@ -38,13 +35,6 @@ export class Kernel extends Context.Service<
 			kind: IntentKind<Payload>,
 			payload: NoInfer<Payload>,
 		) => Effect.Effect<IntentSubmission, PayloadInvalid | UnregisteredIntentTag | PrismaError, never>;
-		// why: `changes` answers about one Intent to whoever asked for it, and a
-		// reader watching the whole board has no id to ask about. The scheduler
-		// already fans every move out to observe it; this is that same fan-out
-		// with no filter, so a surface showing pending demand can refresh on the
-		// move rather than on whatever unrelated write happens next. It says what
-		// moved and where to, never why it was admitted — admission state still
-		// does not cross this surface.
 		readonly transitions: Stream.Stream<IntentChange>;
 	}
 >()("@antumbra/kernel/Kernel") {}

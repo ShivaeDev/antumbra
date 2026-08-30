@@ -6,9 +6,6 @@ const EMPTY = Schema.Struct({});
 
 type NativeSpanOptions = ConstructorParameters<typeof Tracer.NativeSpan>[0];
 
-// why: a span reaches the trace sink when it ends, and the sink builds its row
-// from the name and attributes it finds there. Collecting ended spans is the
-// same view of a run that the trace file would hold.
 class CollectedSpan extends Tracer.NativeSpan {
 	readonly #record: (span: Tracer.Span) => void;
 
@@ -39,8 +36,6 @@ const collecting = (): Collector => {
 	};
 };
 
-// why: the ids a birth puts on its scope are annotated from inside the running
-// intent, which is where the spawn seam sets them.
 const provision = Effect.void.pipe(
 	Effect.withSpan("moorage.provision"),
 	Effect.annotateSpans({
@@ -55,8 +50,6 @@ const kind = defineIntent({
 	tag: "test/traced",
 });
 
-// why: the caller opens a span of its own so the rooting is observable — an
-// intent admitted while something else was being traced still traces alone.
 const runTracedIntent = (collector: Collector) =>
 	Effect.gen(function* () {
 		const payload = yield* kind.encode({});

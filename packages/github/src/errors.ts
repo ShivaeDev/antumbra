@@ -7,13 +7,6 @@ interface GhFailureFields {
 	readonly operation: GhOperation;
 }
 
-// why: every one of these details is read by a model through a tool answer, so
-// each error says what happened in a sentence a reader can act on rather than
-// leaving the caller to assemble one.
-// why: three ways to end up holding no answer — gh is not installed, it never
-// came back in time, or GitHub itself fell over mid-request. They are one case
-// to every caller: nothing was learned, nothing is wrong with the question,
-// and asking it again later is the whole remedy.
 export class GhUnavailable extends Data.TaggedError("GhUnavailable")<GhFailureFields> {
 	override get message(): string {
 		return `gh could not answer (${this.operation}): ${this.detail}`;
@@ -26,10 +19,7 @@ export class GhAuthRequired extends Data.TaggedError("GhAuthRequired")<GhFailure
 	}
 }
 
-// why: the stdout of a failed call is kept because GitHub's GraphQL endpoint
-// answers partially — a batch where one pull request is gone exits nonzero and
-// still returns every other node. Discarding it here would throw away the
-// answer to the question that was asked.
+// Failed GraphQL calls can still carry a partial response on stdout.
 export class GhCommandFailed extends Data.TaggedError("GhCommandFailed")<
 	GhFailureFields & {
 		readonly exitCode: number;

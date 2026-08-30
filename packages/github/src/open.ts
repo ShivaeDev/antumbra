@@ -12,9 +12,7 @@ const CREATE_TIMEOUT_MILLIS = 120_000;
 
 const slug = (repo: GitHubRepoName): string => `${repo.owner}/${repo.name}`;
 
-// why: title and body travel as ordinary arguments because gh is spawned
-// directly, with no shell between us and it — a multi-line body needs no
-// quoting and no temp file dropped into the agent's berth.
+// gh is spawned without a shell, so title and body are ordinary arguments.
 const createArgs = (repo: GitHubRepoName, request: OpenChangeRequest): ReadonlyArray<string> => [
 	"pr",
 	"create",

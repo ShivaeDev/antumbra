@@ -6,10 +6,7 @@ import { onThisMachine } from "#runtime.ts";
 
 const AUTH_TIMEOUT_MILLIS = 15_000;
 
-// why: a watcher asks whether it may talk to GitHub on every pass, and the
-// answer changes about as often as a login does. One minute keeps a busy loop
-// from spawning gh continuously without hiding a fresh `gh auth login` for
-// longer than someone would wait before wondering why.
+// A watcher reads this every pass; cache the process-backed probe briefly.
 const CACHE_MILLIS = 60_000;
 
 export interface CachedCapability {
@@ -30,17 +27,11 @@ const loginLine = (stdout: string): string => {
 	return line === undefined || line === "" ? "authenticated" : line;
 };
 
-// why: "we could not start gh" is the one unavailability worth naming in our
-// own words, because gh is not there to phrase it — every other detail comes
-// from the tool itself.
 const missingBinary = (failure: GhError): boolean => {
 	const detail = failure.detail.toLowerCase();
 	return failure._tag === "GhUnavailable" && (detail.includes("notfound") || detail.includes("not found") || detail.includes("enoent"));
 };
 
-// why: the tool's own words are handed on verbatim — gh already tells a reader
-// how to fix a missing login, and paraphrasing it would only make the remedy
-// less accurate than the version the machine actually has installed.
 const refusal = (failure: GhError): ChangeHostCapability =>
 	missingBinary(failure) ? { available: false, detail: "gh CLI not found" } : { available: false, detail: failure.detail };
 

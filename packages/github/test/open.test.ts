@@ -50,8 +50,6 @@ describe("opening a change on GitHub", () => {
 				expect(received).toContain("main");
 				expect(received).toContain("--repo");
 				expect(received).toContain("ShivaeDev/antumbra");
-				// why: a multi-line body travels as one argument, unquoted and
-				// unescaped, because no shell stands between this and gh.
 				expect(received).toContain("sounded three fathoms\n\nthe eastern spit is charted\n");
 				expect(received).not.toContain("--draft");
 				expect(opened.externalId).toBe("23");

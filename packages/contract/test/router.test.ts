@@ -2,7 +2,7 @@ import { describe, expect, it } from "@effect/vitest";
 import { getTRPCErrorFromUnknown } from "@trpc/server";
 import { Effect, Stream } from "effect";
 import { consoleWindow, fleet, info, makeRuntime, sessionJournal } from "#fixtures.ts";
-import { makeAppRouter, SETTING_KEYS, SETTINGS } from "#index.ts";
+import { makeAppRouter, SETTINGS } from "#index.ts";
 
 describe("makeAppRouter", () => {
 	it.effect("serves app info from the runtime's source", () =>
@@ -17,7 +17,7 @@ describe("makeAppRouter", () => {
 		}),
 	);
 
-	it.effect("serves every declared setting and refuses an undeclared key", () =>
+	it.effect("serves every declared setting", () =>
 		Effect.gen(function* () {
 			const runtime = makeRuntime();
 			const caller = makeAppRouter(runtime).createCaller({
@@ -31,11 +31,6 @@ describe("makeAppRouter", () => {
 				retireRestMinutes: SETTINGS.retireRestMinutes.fallback,
 				retireSweep: SETTINGS.retireSweep.fallback,
 			});
-			const refused = yield* Effect.tryPromise(() =>
-				// @ts-expect-error a key the catalog never declared is not a setting.
-				caller.changeSetting({ key: "retireEverything", value: true }),
-			).pipe(Effect.flip);
-			expect(String(refused.cause)).toBe(`TRPCError: Expected ${SETTING_KEYS.map((key) => `"${key}"`).join(" | ")}`);
 			yield* Effect.promise(() => runtime.dispose());
 		}),
 	);

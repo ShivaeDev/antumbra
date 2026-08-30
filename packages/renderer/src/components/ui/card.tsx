@@ -25,17 +25,6 @@ export const CardHeader = ({
 	/>
 );
 
-export const CardTitle = ({
-	className,
-	...props
-}: React.ComponentProps<"div">) => (
-	<div
-		className={cn("truncate text-xs font-medium", className)}
-		data-slot="card-title"
-		{...props}
-	/>
-);
-
 export const CardDescription = ({
 	className,
 	...props
@@ -68,17 +57,6 @@ export const CardContent = ({
 	<div
 		className={cn("min-w-0 wrap-anywhere", className)}
 		data-slot="card-content"
-		{...props}
-	/>
-);
-
-export const CardFooter = ({
-	className,
-	...props
-}: React.ComponentProps<"div">) => (
-	<div
-		className={cn("flex items-center gap-1.5", className)}
-		data-slot="card-footer"
 		{...props}
 	/>
 );

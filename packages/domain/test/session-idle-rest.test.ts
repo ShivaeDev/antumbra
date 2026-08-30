@@ -1,7 +1,6 @@
-import { SightSource } from "@antumbra/contract";
+import { SettingsSource, SightSource } from "@antumbra/contract";
 import { Kernel } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
-import { IDLE_SIESTA_AFTER_MILLIS } from "@antumbra/sessions";
 import { expect, it } from "@effect/vitest";
 import { Effect } from "effect";
 import {
@@ -64,27 +63,29 @@ it.live(
 // why: the clock puts a Session to siesta, never the Agent. The row is already
 // idle and stays idle — reclaiming the process changes who is listening, not
 // what the record says — so the Session remains open and resumable throughout.
-it.live("an idle session crosses into siesta at the threshold", () =>
+it.live("the configured idle threshold controls when siesta begins", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
 		const scripted = yield* makeScriptedBackend;
 		yield* Effect.gen(function* () {
 			const db = yield* Database;
 			const kernel = yield* Kernel;
+			const settings = yield* SettingsSource;
+			yield* settings.change({ key: "idleSiestaMinutes", value: 5 });
 			yield* spawned;
 			const live = yield* openedNatively(scripted);
 			yield* callTool(live, "stand_down", undefined);
 			expect((yield* sessionRow).executionStatus).toBe("idle");
 
-			// why: a minute short of the threshold the pass runs in full and still
-			// finds nothing to reclaim — the hour is a floor, not a hint.
-			yield* passedAt(IDLE_SIESTA_AFTER_MILLIS - 60_000);
+			// why: a minute short of the chosen threshold the pass runs in full and
+			// still finds nothing to reclaim — the setting is a floor, not a hint.
+			yield* passedAt(4 * 60_000);
 			expect(yield* db.Intent.where({ tag: "session/siesta" }).all()).toEqual(
 				[],
 			);
 			expect(yield* live.closed).toBe(false);
 
-			yield* passedAt(IDLE_SIESTA_AFTER_MILLIS + 60_000);
+			yield* passedAt(6 * 60_000);
 			const demanded = yield* db.Intent.where({ tag: "session/siesta" }).all();
 			expect(demanded).toHaveLength(1);
 			// why: the Agent asked for none of this. The demand names the Session

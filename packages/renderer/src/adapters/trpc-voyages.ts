@@ -10,18 +10,10 @@ import type {
 	VoyageSummary,
 	VoyageView,
 } from "@antumbra/contract";
-import { client, toError } from "#adapters/bridge.ts";
+import { client, fired, toError } from "#adapters/bridge.ts";
 import type { Unsubscribe } from "#adapters/trpc.ts";
 
 type OnError = (message: string) => void;
-
-const fired = (acted: Promise<unknown>, onError: OnError): void => {
-	acted
-		.then(() => undefined)
-		.catch((cause: unknown) => {
-			onError(toError(cause).message);
-		});
-};
 
 export const watchVoyages = (
 	onVoyages: (voyages: ReadonlyArray<VoyageSummary>) => void,

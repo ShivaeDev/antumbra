@@ -16,6 +16,7 @@ persistence.effectDB(
 			const reading = yield* (yield* SettingsSource).current;
 			expect(reading.settings).toEqual({
 				maxParallelSessions: SETTINGS.maxParallelSessions.fallback,
+				idleSiestaMinutes: 60,
 				retireRestMinutes: SETTINGS.retireRestMinutes.fallback,
 				retireSweep: SETTINGS.retireSweep.fallback,
 			});

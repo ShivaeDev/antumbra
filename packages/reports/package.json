@@ -26,6 +26,7 @@
 		"@antumbra/domain-feeds": "workspace:*",
 		"@antumbra/persistence": "workspace:*",
 		"@antumbra/pieces": "workspace:*",
+		"@antumbra/service-definition": "workspace:*",
 		"effect": "catalog:"
 	}
 }

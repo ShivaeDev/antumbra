@@ -16,6 +16,17 @@ declare global {
 export const toError = (cause: unknown): Error =>
 	cause instanceof Error ? cause : new Error(String(cause));
 
+export const fired = (
+	acted: Promise<unknown>,
+	onError: (message: string) => void,
+): void => {
+	acted
+		.then(() => undefined)
+		.catch((cause: unknown) => {
+			onError(toError(cause).message);
+		});
+};
+
 export const openExternal = (url: string): void => {
 	window.antumbra.openExternal(url);
 };

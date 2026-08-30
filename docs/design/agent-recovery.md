@@ -49,7 +49,7 @@ the Agent or cause the same resources to be provisioned again.
 
 ## Demand outlives dispatch
 
-A Piece's human posture is long-lived demand. `start_piece` changes that
+A Piece's human posture is long-lived demand. `launch_piece` changes that
 posture to desired; reconciliation owns queueing, starting, and resuming. A
 desired Piece whose dependencies are unfinished remains desired and blocked
 with no dispatch Intent. If a queued Piece becomes blocked or is parked before

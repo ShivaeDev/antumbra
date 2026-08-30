@@ -35,20 +35,22 @@ it("draws a declared flag as a checkbox and names the catalog's own value", () =
 	expect(html).toContain("own value. Expects true or false.");
 });
 
-it("draws a declared count as a bounded number field", () => {
+it("draws the idle siesta wait as a bounded number field", () => {
 	const html = renderToStaticMarkup(
 		<SettingRow
 			onChange={() => undefined}
 			overridden={true}
-			settingKey="retireRestMinutes"
-			value={45}
+			settingKey="idleSiestaMinutes"
+			value={90}
 		/>,
 	);
+	expect(html).toContain(SETTINGS.idleSiestaMinutes.title);
+	expect(html).toContain(SETTINGS.idleSiestaMinutes.description);
 	expect(html).toContain('type="number"');
-	expect(html).toContain(`min="${SETTINGS.retireRestMinutes.least}"`);
-	expect(html).toContain(`max="${SETTINGS.retireRestMinutes.most}"`);
-	expect(html).toContain('value="45"');
-	expect(html).toContain("own value is 15.");
+	expect(html).toContain(`min="${SETTINGS.idleSiestaMinutes.least}"`);
+	expect(html).toContain(`max="${SETTINGS.idleSiestaMinutes.most}"`);
+	expect(html).toContain('value="90"');
+	expect(html).toContain("own value is 60.");
 	expect(html).toContain("Set by you.");
 });
 

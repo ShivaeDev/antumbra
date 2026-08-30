@@ -19,8 +19,7 @@ const closedFailure = () =>
 export class InputQueue {
 	private readonly buffer: QueuedInput[] = [];
 	private readonly handOff: (message: SDKUserMessage) => void;
-	private pending: ((result: IteratorResult<SDKUserMessage>) => void) | null =
-		null;
+	private pending: ((result: IteratorResult<SDKUserMessage>) => void) | null = null;
 	private done = false;
 
 	// why: the pull is also the only honest place in the transcript for what a

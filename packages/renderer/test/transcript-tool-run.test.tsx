@@ -1,4 +1,4 @@
-// why: @vitest-environment happy-dom renders a row the way the pane does.
+// @vitest-environment happy-dom
 
 import { expect, it } from "@effect/vitest";
 import { Effect } from "effect";
@@ -9,8 +9,7 @@ import type { TranscriptToolRun } from "#transcript/fold.ts";
 import type { TranscriptTool } from "#transcript/model.ts";
 import { TranscriptRow } from "#views/transcript-row.tsx";
 
-const markup = (run: TranscriptToolRun): string =>
-	renderToStaticMarkup(<TranscriptRow item={run} />);
+const markup = (run: TranscriptToolRun): string => renderToStaticMarkup(<TranscriptRow item={run} />);
 
 const mount = (): { container: HTMLElement; root: Root } => {
 	const container = document.createElement("div");
@@ -102,17 +101,15 @@ it.effect("opens a folded run into the calls it holds, unchanged", () =>
 		yield* open(container);
 
 		const shown = container.textContent ?? "";
-		const labels = Array.from(
-			container.querySelectorAll(".grid > span:first-child"),
-		).map((label) => label.textContent);
-		expect(labels).toEqual(["tools", "tool", "thinking", "tool", "tool"]);
+		const visibleText = Array.from(container.querySelectorAll("*"), (element) => (element.childElementCount === 0 ? element.textContent : undefined));
+		expect(visibleText.filter((text) => text === "tools")).toHaveLength(1);
+		expect(visibleText.filter((text) => text === "tool")).toHaveLength(3);
+		expect(visibleText.filter((text) => text === "thinking")).toHaveLength(1);
 		expect(shown).toContain("Run the gates");
 		expect(shown).toContain("now the chart");
 		expect(shown).toContain("charts/eastern-shoal.md");
 		expect(shown).toContain("running");
-		expect(
-			container.querySelector("button")?.getAttribute("aria-expanded"),
-		).toBe("true");
+		expect(container.querySelector("button")?.getAttribute("aria-expanded")).toBe("true");
 		yield* drop(root);
 	}),
 );

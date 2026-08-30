@@ -1,25 +1,11 @@
 import { join } from "node:path";
-import type {
-	AntumbraPlugin,
-	BerthPlan,
-	MooragePlan,
-	ProvisionRequest,
-	Runner,
-} from "@antumbra/plugin-api";
+import type { AntumbraPlugin, BerthPlan, MooragePlan, ProvisionRequest, Runner } from "@antumbra/plugin-api";
 import { Effect } from "effect";
 import { ensureDirectory, pathExists } from "#adapters/fs.ts";
 import { captureChange } from "#change-evidence.ts";
 import { ensureMirror } from "#mirrors.ts";
 import { mirrorName, workBranch } from "#naming.ts";
-import {
-	createWorktree,
-	isClean,
-	reclaimMissingWorktree,
-	remountWorktree,
-	removeWorktree,
-	scrapWorktree,
-	verifyWorktree,
-} from "#worktrees.ts";
+import { createWorktree, isClean, reclaimMissingWorktree, remountWorktree, removeWorktree, scrapWorktree, verifyWorktree } from "#worktrees.ts";
 
 export interface LocalRunnerRoots {
 	readonly moorageRoot: string;
@@ -29,10 +15,7 @@ export interface LocalRunnerRoots {
 // why: the runner never invents a repository's name. It lays out the folder
 // the request already spells, so the berth an agent stands in and the name a
 // change tool answers to cannot drift apart.
-const planBerths = (
-	root: string,
-	request: ProvisionRequest,
-): ReadonlyArray<BerthPlan> =>
+const planBerths = (root: string, request: ProvisionRequest): ReadonlyArray<BerthPlan> =>
 	request.repos.map((repo) => ({
 		branch: workBranch(request.agentId, repo.slug),
 		path: join(root, repo.slug),
@@ -41,10 +24,7 @@ const planBerths = (
 		source: repo.source,
 	}));
 
-const planMoorage = (
-	roots: LocalRunnerRoots,
-	request: ProvisionRequest,
-): MooragePlan => {
+const planMoorage = (roots: LocalRunnerRoots, request: ProvisionRequest): MooragePlan => {
 	const root = join(roots.moorageRoot, request.agentId);
 	return { berths: planBerths(root, request), root };
 };
@@ -54,18 +34,12 @@ const provisionInto = (roots: LocalRunnerRoots, plan: MooragePlan) =>
 		plan.berths,
 		(berth) =>
 			Effect.gen(function* () {
-				const mirror = join(
-					roots.reposRoot,
-					mirrorName(berth.slug, berth.source),
-				);
+				const mirror = join(roots.reposRoot, mirrorName(berth.slug, berth.source));
 				if (yield* pathExists(berth.path)) {
 					yield* verifyWorktree(mirror, berth);
 					return;
 				}
-				if (
-					(yield* pathExists(mirror)) &&
-					(yield* remountWorktree(mirror, berth))
-				) {
+				if ((yield* pathExists(mirror)) && (yield* remountWorktree(mirror, berth))) {
 					return;
 				}
 				// why: source access is the fallback only after durable mirror state
@@ -101,11 +75,7 @@ export const makeLocalRunner = (roots: LocalRunnerRoots): Runner => ({
 			yield* removeWorktree(mirror, site);
 			return { _tag: "reclaimed" as const };
 		}),
-	scrap: (site) =>
-		scrapWorktree(
-			join(roots.reposRoot, mirrorName(site.slug, site.source)),
-			site,
-		),
+	scrap: (site) => scrapWorktree(join(roots.reposRoot, mirrorName(site.slug, site.source)), site),
 	tag: "local",
 });
 

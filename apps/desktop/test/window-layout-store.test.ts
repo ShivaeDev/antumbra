@@ -5,37 +5,21 @@ import { NodeServices } from "@effect/platform-node";
 import { describe, expect, it } from "@effect/vitest";
 import { Effect, Fiber, FileSystem } from "effect";
 import { TestClock } from "effect/testing";
-import {
-	defaultConsole,
-	layoutOf,
-	restorePlan,
-	type WindowLayout,
-} from "#adapters/windows/layout.ts";
-import {
-	fileLayoutStore,
-	type LayoutStore,
-} from "#adapters/windows/layout-store.ts";
+import { defaultConsole, layoutOf, restorePlan, type WindowLayout } from "#adapters/windows/layout.ts";
+import { fileLayoutStore, type LayoutStore } from "#adapters/windows/layout-store.ts";
 import { layoutWriter } from "#adapters/windows/layout-writer.ts";
 import { makeWindowRegistry } from "#adapters/windows/registry.ts";
 import { consolePlace, ownWindow, transcriptPlace } from "#test/windows.ts";
 
 // why: a test must never be able to reach the layout of a real installation,
 // so the store only ever sees a directory this test made and removes.
-const inTemporaryDirectory = <A, E>(
-	use: (root: string) => Effect.Effect<A, E, FileSystem.FileSystem>,
-): Effect.Effect<A, E> =>
+const inTemporaryDirectory = <A, E>(use: (root: string) => Effect.Effect<A, E, FileSystem.FileSystem>): Effect.Effect<A, E> =>
 	Effect.suspend(() => {
 		const root = mkdtempSync(join(tmpdir(), "antumbra-windows-"));
-		return use(root).pipe(
-			Effect.provide(NodeServices.layer),
-			Effect.ensuring(
-				Effect.sync(() => rmSync(root, { force: true, recursive: true })),
-			),
-		);
+		return use(root).pipe(Effect.provide(NodeServices.layer), Effect.ensuring(Effect.sync(() => rmSync(root, { force: true, recursive: true }))));
 	});
 
-const storeIn = (path: string) =>
-	Effect.map(FileSystem.FileSystem, (fs) => fileLayoutStore(fs, path));
+const storeIn = (path: string) => Effect.map(FileSystem.FileSystem, (fs) => fileLayoutStore(fs, path));
 
 const recording = (saved: Array<WindowLayout>): LayoutStore => ({
 	load: Effect.succeed(undefined),
@@ -78,17 +62,15 @@ describe("window layout store", () => {
 
 	// why: losing where the windows were must cost nothing else — not the boot
 	// that read it, and not the change that asked for it to be saved.
-	it.effect(
-		"fails neither boot nor mutation when the file cannot be written",
-		() =>
-			inTemporaryDirectory((root) =>
-				Effect.gen(function* () {
-					const store = yield* storeIn(root);
+	it.effect("fails neither boot nor mutation when the file cannot be written", () =>
+		inTemporaryDirectory((root) =>
+			Effect.gen(function* () {
+				const store = yield* storeIn(root);
 
-					expect(yield* store.save(layoutOf([], null))).toBeUndefined();
-					expect(yield* store.load).toBeUndefined();
-				}),
-			),
+				expect(yield* store.save(layoutOf([], null))).toBeUndefined();
+				expect(yield* store.load).toBeUndefined();
+			}),
+		),
 	);
 });
 
@@ -121,9 +103,7 @@ describe("window layout writer", () => {
 			yield* Effect.yieldNow;
 
 			expect(saved).toHaveLength(1);
-			expect(saved[0]?.windows).toEqual([
-				{ id: "console", place: consolePlace },
-			]);
+			expect(saved[0]?.windows).toEqual([{ id: "console", place: consolePlace }]);
 
 			// why: the burst leaves a tick behind it. The flag, not the queue,
 			// says whether anything changed, so that tick writes nothing.

@@ -10,8 +10,7 @@ export const sightFixture = (feeds: FixtureFeeds) =>
 		fleet: Effect.succeed(fleet),
 		fleetFeed: feeds.fleet,
 		forgetRepo: () => Effect.void,
-		interrupt: (sessionId) =>
-			new SightFailure({ message: `session not live: ${sessionId}` }),
+		interrupt: (sessionId) => new SightFailure({ message: `session not live: ${sessionId}` }),
 		registerRepo: (registration) =>
 			Effect.succeed({
 				defaultRef: registration.defaultRef,
@@ -28,24 +27,17 @@ export const sightFixture = (feeds: FixtureFeeds) =>
 						message: `a message with no words cannot reach session ${sessionId}`,
 					})
 				: Effect.void,
-		sendInput: (request) =>
-			Effect.succeed({ id: request.id, status: "accepted" as const }),
+		sendInput: (request) => Effect.succeed({ id: request.id, status: "accepted" as const }),
 		sessionImage: () =>
 			Effect.succeed({
 				bytes: new Uint8Array(),
 				mediaType: "image/png" as const,
 				name: "fixture.png",
 			}),
-		sessionEventFeed: (query) =>
-			Stream.filter(feeds.events, (event) => event.seq >= query.fromSeq),
-		sessionEvents: (query) =>
-			Effect.succeed(
-				sessionJournal.filter((event) => event.seq >= query.fromSeq),
-			),
-		sessionTree: (rootSessionId) =>
-			Effect.succeed({ ...sessionTree, rootSessionId }),
-		sessionTreeFeed: (rootSessionId) =>
-			Stream.make({ ...sessionTree, rootSessionId }),
+		sessionEventFeed: (query) => Stream.filter(feeds.events, (event) => event.seq >= query.fromSeq),
+		sessionEvents: (query) => Effect.succeed(sessionJournal.filter((event) => event.seq >= query.fromSeq)),
+		sessionTree: (rootSessionId) => Effect.succeed({ ...sessionTree, rootSessionId }),
+		sessionTreeFeed: (rootSessionId) => Stream.make({ ...sessionTree, rootSessionId }),
 		situationDraft: (draft) =>
 			Effect.succeed(
 				`Change #42 in shoals has merge conflicts: work/agent-1/reef no longer merges cleanly into main. Resolve them on ${draft.changeId} and say what you resolved.`,

@@ -37,14 +37,8 @@ interface CruiseBoundaryOptions {
 	readonly sourceRoots: readonly string[];
 }
 
-export const cruiseBoundaries = async ({
-	analysisRoot,
-	repositoryRoot,
-	sourceRoots,
-}: CruiseBoundaryOptions) => {
-	const compilerRoot = realpathSync(
-		join(repositoryRoot, "node_modules/typescript"),
-	);
+export const cruiseBoundaries = async ({ analysisRoot, repositoryRoot, sourceRoots }: CruiseBoundaryOptions) => {
+	const compilerRoot = realpathSync(join(repositoryRoot, "node_modules/typescript"));
 	registerHooks({
 		resolve(specifier, context, nextResolve) {
 			if (specifier === "typescript") {
@@ -66,16 +60,12 @@ export const cruiseBoundaries = async ({
 		import("dependency-cruiser"),
 		import("dependency-cruiser/config-utl/extract-depcruise-options"),
 	]);
-	const options = await extractOptions(
-		join(repositoryRoot, ".dependency-cruiser.mjs"),
-	);
+	const options = await extractOptions(join(repositoryRoot, ".dependency-cruiser.mjs"));
 	options.outputType = "json";
 	options.baseDir = analysisRoot;
 	const cruiseResult = await cruise([...sourceRoots], options);
 	const report = Schema.decodeUnknownSync(CruiseReport)(
-		typeof cruiseResult.output === "string"
-			? JSON.parse(cruiseResult.output)
-			: cruiseResult.output,
+		typeof cruiseResult.output === "string" ? JSON.parse(cruiseResult.output) : cruiseResult.output,
 	);
 	return {
 		dependencyEvidence: report.modules.flatMap(({ dependencies, source }) =>

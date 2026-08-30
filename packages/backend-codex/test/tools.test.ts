@@ -8,10 +8,7 @@ import { openThreadSession } from "#thread.ts";
 const THREAD = "thread-1";
 
 const landReport = (calls: Ref.Ref<ReadonlyArray<unknown>>): DirectTool => ({
-	call: (args) =>
-		Ref.update(calls, (all) => [...all, args]).pipe(
-			Effect.as({ ok: true, text: "report landed" }),
-		),
+	call: (args) => Ref.update(calls, (all) => [...all, args]).pipe(Effect.as({ ok: true, text: "report landed" })),
 	description: "Land a report against your piece.",
 	inputSchema: {
 		additionalProperties: false,
@@ -22,10 +19,7 @@ const landReport = (calls: Ref.Ref<ReadonlyArray<unknown>>): DirectTool => ({
 	name: "land_report",
 });
 
-const waitForRuling = (
-	started: Deferred.Deferred<void>,
-	interrupted: Deferred.Deferred<void>,
-): DirectTool => ({
+const waitForRuling = (started: Deferred.Deferred<void>, interrupted: Deferred.Deferred<void>): DirectTool => ({
 	call: () =>
 		Deferred.succeed(started, undefined).pipe(
 			Effect.andThen(Effect.never),
@@ -99,20 +93,18 @@ it.live("a tool call runs the tool and answers with its outcome", () =>
 	}),
 );
 
-it.live(
-	"a tool we never served answers as failed, not as an unknown method",
-	() =>
-		Effect.gen(function* () {
-			const { fake } = yield* openWithTools();
-			fake.serverRequest(8, "item/tool/call", {
-				arguments: {},
-				callId: "call-2",
-				threadId: THREAD,
-				tool: "launch_the_boats",
-				turnId: "turn-1",
-			});
-			expect(yield* fake.responseById(8)).toMatchObject({ success: false });
-		}),
+it.live("a tool we never served answers as failed, not as an unknown method", () =>
+	Effect.gen(function* () {
+		const { fake } = yield* openWithTools();
+		fake.serverRequest(8, "item/tool/call", {
+			arguments: {},
+			callId: "call-2",
+			threadId: THREAD,
+			tool: "launch_the_boats",
+			turnId: "turn-1",
+		});
+		expect(yield* fake.responseById(8)).toMatchObject({ success: false });
+	}),
 );
 
 it.live("the clock the server reads is ours, in whole seconds", () =>
@@ -160,11 +152,7 @@ const openBesideWaiter = Effect.gen(function* () {
 		sessionId: "session-2",
 		tools: [landReport(calls)],
 	});
-	fake.serverRequest(
-		11,
-		"item/tool/call",
-		toolCall(11, THREAD, "wait_for_ruling"),
-	);
+	fake.serverRequest(11, "item/tool/call", toolCall(11, THREAD, "wait_for_ruling"));
 	yield* Deferred.await(started);
 	return { fake, interrupted, waiter };
 });
@@ -172,11 +160,7 @@ const openBesideWaiter = Effect.gen(function* () {
 it.live("a call waiting on one thread holds up no other thread's call", () =>
 	Effect.gen(function* () {
 		const { fake } = yield* openBesideWaiter;
-		fake.serverRequest(
-			12,
-			"item/tool/call",
-			toolCall(12, "thread-2", "land_report"),
-		);
+		fake.serverRequest(12, "item/tool/call", toolCall(12, "thread-2", "land_report"));
 		expect(yield* fake.responseById(12)).toMatchObject({ success: true });
 	}),
 );

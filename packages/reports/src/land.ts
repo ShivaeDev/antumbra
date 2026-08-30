@@ -22,8 +22,7 @@ export const landReport = Effect.fn("reports.landReport")(function* (
 ): Effect.fn.Return<
 	ReportRow,
 	PieceNotFound | PrismaError,
-	| Context.Service.Identifier<typeof Database>
-	| Context.Service.Identifier<typeof DomainFeeds>
+	Context.Service.Identifier<typeof Database> | Context.Service.Identifier<typeof DomainFeeds>
 > {
 	const feeds = yield* DomainFeeds;
 	const row: ReportRow = {

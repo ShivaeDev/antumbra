@@ -4,11 +4,7 @@ import react from "@vitejs/plugin-react";
 import { Effect } from "effect";
 import { createServer } from "vite";
 
-export const startHarnessServer = (
-	root: string,
-	workspaceRoot: string,
-	port: number,
-) =>
+export const startHarnessServer = (root: string, workspaceRoot: string, port: number) =>
 	Effect.promise(() =>
 		createServer({
 			configFile: false,
@@ -19,12 +15,7 @@ export const startHarnessServer = (
 			// contract to carry a second way of holding a request.
 			resolve: {
 				alias: {
-					"node:async_hooks": join(
-						root,
-						"src",
-						"adapters",
-						"async-local-storage.ts",
-					),
+					"node:async_hooks": join(root, "src", "adapters", "async-local-storage.ts"),
 				},
 			},
 			root,

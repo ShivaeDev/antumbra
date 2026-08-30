@@ -1,12 +1,4 @@
-import {
-	chmod,
-	lstat,
-	mkdir,
-	open,
-	readFile,
-	rename,
-	unlink,
-} from "node:fs/promises";
+import { chmod, lstat, mkdir, open, readFile, rename, unlink } from "node:fs/promises";
 import { join } from "node:path";
 import type { SessionImageMediaType } from "@antumbra/vocabulary/session-input";
 import { Effect } from "effect";
@@ -24,11 +16,8 @@ const extensionOf = (mediaType: SessionImageMediaType): string => {
 	}
 };
 
-export const imagePath = (
-	root: string,
-	digest: string,
-	mediaType: SessionImageMediaType,
-): string => join(root, digest, `image.${extensionOf(mediaType)}`);
+export const imagePath = (root: string, digest: string, mediaType: SessionImageMediaType): string =>
+	join(root, digest, `image.${extensionOf(mediaType)}`);
 
 const custodyFailure = (_cause: unknown) =>
 	new SessionInputCustodyFailed({
@@ -86,15 +75,11 @@ export const readImage = (
 			const path = imagePath(root, digest, mediaType);
 			const stat = await lstat(path);
 			if (!stat.isFile() || stat.isSymbolicLink()) {
-				return Promise.reject(
-					new Error("stored image is not a regular owned file"),
-				);
+				return Promise.reject(new Error("stored image is not a regular owned file"));
 			}
 			const bytes = new Uint8Array(await readFile(path));
 			if (bytes.length !== byteSize || digestBytes(bytes) !== digest) {
-				return Promise.reject(
-					new Error("stored image no longer matches its custody record"),
-				);
+				return Promise.reject(new Error("stored image no longer matches its custody record"));
 			}
 			return bytes;
 		},

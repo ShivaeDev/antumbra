@@ -1,8 +1,4 @@
-import {
-	type AgentStatus,
-	agentTransition,
-	type InvalidAgentTransition,
-} from "@antumbra/vocabulary/agent-runtime";
+import { type AgentStatus, agentTransition, type InvalidAgentTransition } from "@antumbra/vocabulary/agent-runtime";
 import { Result } from "effect";
 import { CurrentSessionInvalid } from "#current/errors.ts";
 import { newestSession } from "#current/order.ts";
@@ -36,18 +32,12 @@ export const planAgent = (
 	agent: DecodedAgent,
 	owned: ReadonlyArray<DecodedSession>,
 	allSessions: ReadonlyArray<DecodedSession>,
-): Result.Result<
-	AgentReconcilePlan,
-	CurrentSessionInvalid | InvalidAgentTransition
-> => {
+): Result.Result<AgentReconcilePlan, CurrentSessionInvalid | InvalidAgentTransition> => {
 	const open = owned.filter((session) => session.status === "open");
 	if (agent.status === "dormant" || agent.status === "retired") {
 		return Result.succeed({
 			agentsToReclaim: [],
-			pointers:
-				agent.currentSessionId === null
-					? []
-					: [pointerChange(agent.id, agent.currentSessionId, null)],
+			pointers: agent.currentSessionId === null ? [] : [pointerChange(agent.id, agent.currentSessionId, null)],
 			sessionsToClose: open.map((session) => session.id),
 		});
 	}
@@ -74,9 +64,7 @@ export const planAgent = (
 				});
 	}
 	const current = owned.find((session) => session.id === currentId);
-	const reservedBirth =
-		agent.status === "spawning" &&
-		!allSessions.some((session) => session.id === currentId);
+	const reservedBirth = agent.status === "spawning" && !allSessions.some((session) => session.id === currentId);
 	if (!reservedBirth && current?.status !== "open") {
 		return Result.fail(
 			new CurrentSessionInvalid({
@@ -87,12 +75,7 @@ export const planAgent = (
 	}
 	return Result.succeed({
 		agentsToReclaim: [],
-		pointers:
-			agent.currentSessionId === null
-				? [pointerChange(agent.id, null, currentId)]
-				: [],
-		sessionsToClose: open
-			.filter((session) => session.id !== currentId)
-			.map((session) => session.id),
+		pointers: agent.currentSessionId === null ? [pointerChange(agent.id, null, currentId)] : [],
+		sessionsToClose: open.filter((session) => session.id !== currentId).map((session) => session.id),
 	});
 };

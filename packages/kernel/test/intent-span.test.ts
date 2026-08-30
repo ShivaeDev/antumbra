@@ -34,9 +34,7 @@ const collecting = (): Collector => {
 		ended.push(span);
 	};
 	return {
-		layer: Layer.succeed(Tracer.Tracer)(
-			Tracer.make({ span: (options) => new CollectedSpan(options, record) }),
-		),
+		layer: Layer.succeed(Tracer.Tracer)(Tracer.make({ span: (options) => new CollectedSpan(options, record) })),
 		named: (name) => ended.filter((span) => span.name === name),
 	};
 };
@@ -70,9 +68,7 @@ it.effect("opens one span named for the kind on every intent run", () =>
 		const collector = collecting();
 		yield* runTracedIntent(collector);
 		const opened = collector.named("intent test/traced");
-		expect(opened.map((span) => span.attributes.get("intentId"))).toEqual([
-			"intent-traced",
-		]);
+		expect(opened.map((span) => span.attributes.get("intentId"))).toEqual(["intent-traced"]);
 	}),
 );
 
@@ -82,9 +78,7 @@ it.effect("gives the intent a trace of its own rather than the caller's", () =>
 		yield* runTracedIntent(collector);
 		const opened = collector.named("intent test/traced");
 		expect(opened.map((span) => Option.isNone(span.parent))).toEqual([true]);
-		expect(opened.map((span) => span.traceId)).not.toEqual(
-			collector.named("caller").map((span) => span.traceId),
-		);
+		expect(opened.map((span) => span.traceId)).not.toEqual(collector.named("caller").map((span) => span.traceId));
 	}),
 );
 
@@ -93,12 +87,8 @@ it.effect("carries the intent id down to every span the run opens", () =>
 		const collector = collecting();
 		yield* runTracedIntent(collector);
 		const beneath = collector.named("moorage.provision");
-		expect(beneath.map((span) => span.attributes.get("intentId"))).toEqual([
-			"intent-traced",
-		]);
-		expect(beneath.map((span) => span.traceId)).toEqual(
-			collector.named("intent test/traced").map((span) => span.traceId),
-		);
+		expect(beneath.map((span) => span.attributes.get("intentId"))).toEqual(["intent-traced"]);
+		expect(beneath.map((span) => span.traceId)).toEqual(collector.named("intent test/traced").map((span) => span.traceId));
 	}),
 );
 

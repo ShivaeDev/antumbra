@@ -15,12 +15,7 @@ export const StandingRulingList = ({
 }) => (
 	<ul className="flex min-w-0 flex-col gap-2 px-4 pb-4">
 		{listed.map((ruling) => (
-			<StandingRulingCard
-				key={ruling.id}
-				onError={onError}
-				others={standing.filter((other) => other.id !== ruling.id)}
-				ruling={ruling}
-			/>
+			<StandingRulingCard key={ruling.id} onError={onError} others={standing.filter((other) => other.id !== ruling.id)} ruling={ruling} />
 		))}
 	</ul>
 );

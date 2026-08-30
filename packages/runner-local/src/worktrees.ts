@@ -9,21 +9,12 @@ import {
 	pruneWorktrees,
 	removeWorktree as removeGitWorktree,
 } from "@antumbra/git";
-import {
-	type BerthPlan,
-	type BerthSite,
-	type ReclaimVerdict,
-	type RunnerError,
-	RunnerProvisionConflict,
-} from "@antumbra/plugin-api";
+import { type BerthPlan, type BerthSite, type ReclaimVerdict, type RunnerError, RunnerProvisionConflict } from "@antumbra/plugin-api";
 import { Effect } from "effect";
 import { canonicalPath } from "#adapters/fs.ts";
 import { runGit } from "#git-runtime.ts";
 
-export const verifyWorktree = (
-	mirror: string,
-	berth: BerthPlan,
-): Effect.Effect<void, RunnerError> =>
+export const verifyWorktree = (mirror: string, berth: BerthPlan): Effect.Effect<void, RunnerError> =>
 	Effect.gen(function* () {
 		const identity = yield* runGit(inspectWorktreeIdentity(berth.path)).pipe(
 			Effect.catchTag("RunnerFailure", (failure) =>
@@ -48,11 +39,7 @@ export const verifyWorktree = (
 				),
 			),
 		);
-		if (
-			identity.branch !== berth.branch ||
-			actualRoot !== plannedRoot ||
-			actualMirror !== plannedMirror
-		) {
+		if (identity.branch !== berth.branch || actualRoot !== plannedRoot || actualMirror !== plannedMirror) {
 			return yield* new RunnerProvisionConflict({
 				detail: `${berth.path} is ${identity.branch} from ${actualMirror}, expected ${berth.branch} from ${plannedMirror}`,
 				tag: "local",
@@ -60,10 +47,7 @@ export const verifyWorktree = (
 		}
 	});
 
-export const remountWorktree = (
-	mirror: string,
-	berth: BerthPlan,
-): Effect.Effect<boolean, RunnerError> =>
+export const remountWorktree = (mirror: string, berth: BerthPlan): Effect.Effect<boolean, RunnerError> =>
 	Effect.gen(function* () {
 		if (!(yield* runGit(branchExists(mirror, berth.branch)))) {
 			return false;
@@ -76,13 +60,8 @@ export const remountWorktree = (
 		return true;
 	});
 
-export const createWorktree = (
-	mirror: string,
-	berth: BerthPlan,
-): Effect.Effect<void, RunnerError> =>
-	runGit(addGitWorktree(mirror, berth.path, berth.branch, berth.ref)).pipe(
-		Effect.andThen(verifyWorktree(mirror, berth)),
-	);
+export const createWorktree = (mirror: string, berth: BerthPlan): Effect.Effect<void, RunnerError> =>
+	runGit(addGitWorktree(mirror, berth.path, berth.branch, berth.ref)).pipe(Effect.andThen(verifyWorktree(mirror, berth)));
 
 // why: staleness errs toward keeping — remote refs are read as-is, so a
 // commit pushed but not yet fetched still counts as unpushed and the berth
@@ -95,10 +74,7 @@ export const isClean = (path: string): Effect.Effect<boolean, RunnerError> =>
 
 // why: a prior reclaim may remove the worktree before branch deletion fails;
 // the surviving branch is then the only remaining unique-work evidence.
-export const reclaimMissingWorktree = (
-	mirror: string,
-	site: BerthSite,
-): Effect.Effect<ReclaimVerdict, RunnerError> =>
+export const reclaimMissingWorktree = (mirror: string, site: BerthSite): Effect.Effect<ReclaimVerdict, RunnerError> =>
 	Effect.gen(function* () {
 		if (!(yield* runGit(branchExists(mirror, site.branch)))) {
 			yield* runGit(pruneWorktrees(mirror));
@@ -112,10 +88,7 @@ export const reclaimMissingWorktree = (
 		return { _tag: "reclaimed" as const };
 	});
 
-export const removeWorktree = (
-	mirror: string,
-	site: BerthSite,
-): Effect.Effect<void, RunnerError> =>
+export const removeWorktree = (mirror: string, site: BerthSite): Effect.Effect<void, RunnerError> =>
 	Effect.gen(function* () {
 		yield* runGit(removeGitWorktree(mirror, site.path));
 		yield* runGit(deleteBranch(mirror, site.branch));
@@ -123,13 +96,8 @@ export const removeWorktree = (
 
 // why: expiry must converge even when a berth was half-deleted by hand —
 // scrap prunes vanished paths and tolerates an already-gone branch.
-export const scrapWorktree = (
-	mirror: string,
-	site: BerthSite,
-): Effect.Effect<void, RunnerError> =>
+export const scrapWorktree = (mirror: string, site: BerthSite): Effect.Effect<void, RunnerError> =>
 	Effect.gen(function* () {
-		yield* runGit(removeGitWorktree(mirror, site.path)).pipe(
-			Effect.catchCause(() => runGit(pruneWorktrees(mirror))),
-		);
+		yield* runGit(removeGitWorktree(mirror, site.path)).pipe(Effect.catchCause(() => runGit(pruneWorktrees(mirror))));
 		yield* runGit(deleteBranch(mirror, site.branch)).pipe(Effect.ignore);
 	});

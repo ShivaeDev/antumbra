@@ -6,15 +6,8 @@ import { expect, it } from "@effect/vitest";
 import { Effect, Layer } from "effect";
 import { AgentDomain } from "#domain.ts";
 import { attributeIntents } from "#sight-diagnostics.ts";
-import {
-	domainKernelLayer,
-	sightSourceTestLayer,
-} from "#test/domain-layers.ts";
-import {
-	acquireTemporaryPersistence,
-	makeScriptedBackend,
-	type ScriptedBackend,
-} from "#test/harness.ts";
+import { domainKernelLayer, sightSourceTestLayer } from "#test/domain-layers.ts";
+import { acquireTemporaryPersistence, makeScriptedBackend, type ScriptedBackend } from "#test/harness.ts";
 import { eventually } from "#test/session-recovery-fixture.ts";
 
 interface Hold {
@@ -29,11 +22,7 @@ const holdGate = (hold: Hold): Gate => ({
 	id: "test-hold",
 });
 
-const sightLayer = (
-	temporary: TemporaryPersistence,
-	scripted: ScriptedBackend,
-	hold: Hold,
-) =>
+const sightLayer = (temporary: TemporaryPersistence, scripted: ScriptedBackend, hold: Hold) =>
 	sightSourceTestLayer.pipe(
 		Layer.provideMerge(
 			domainKernelLayer(temporary, scripted.backend, {
@@ -48,9 +37,8 @@ const spawnRequest = {
 	role: "navigator",
 };
 
-const words = (
-	intents: ReadonlyArray<{ readonly kind: string; readonly state: string }>,
-) => intents.map((intent) => `${intent.kind} ${intent.state}`);
+const words = (intents: ReadonlyArray<{ readonly kind: string; readonly state: string }>) =>
+	intents.map((intent) => `${intent.kind} ${intent.state}`);
 
 it.live("a spawn held before admission stands on the fleet itself", () =>
 	Effect.gen(function* () {
@@ -80,9 +68,7 @@ it.live("a draining session shows its execution word beside its intent", () =>
 			yield* eventually(
 				Effect.gen(function* () {
 					const fleet = yield* sight.fleet;
-					const opened = fleet.agents
-						.flatMap((agent) => agent.sessions)
-						.find((session) => session.id === receipt.sessionId);
+					const opened = fleet.agents.flatMap((agent) => agent.sessions).find((session) => session.id === receipt.sessionId);
 					expect(opened?.diag.execution).toBe("active");
 					expect(opened?.diag.current).toBe(true);
 				}),
@@ -94,18 +80,14 @@ it.live("a draining session shows its execution word beside its intent", () =>
 			yield* kernel.submit(domain.siesta, { sessionId: receipt.sessionId });
 			const fleet = yield* sight.fleet;
 			const agent = fleet.agents.find((row) => row.id === receipt.agentId);
-			const session = agent?.sessions.find(
-				(row) => row.id === receipt.sessionId,
-			);
+			const session = agent?.sessions.find((row) => row.id === receipt.sessionId);
 			expect(session?.diag.execution).toBe("draining");
 			// why: draining is on its way to rest, not out of reach. The words
 			// wake it once the drain has settled, so the fleet keeps saying the
 			// admiral may speak to it.
 			expect(session?.canSend).toBe(true);
 			expect(session?.canInterrupt).toBe(false);
-			expect(words(session?.diag.intents ?? [])).toContain(
-				"session/siesta queued",
-			);
+			expect(words(session?.diag.intents ?? [])).toContain("session/siesta queued");
 			expect(agent?.diag.currentSessionId).toBe(receipt.sessionId);
 			expect(fleet.diag.intents).toEqual([]);
 		}).pipe(Effect.provide(sightLayer(temporary, scripted, hold)));
@@ -153,10 +135,6 @@ it("attributes a pending intent to the most specific row that exists", () => {
 			state: "running",
 		},
 	]);
-	expect(attribution.agents.get("agent-1")).toEqual([
-		{ detail: null, id: "intent-2", kind: "agent/retire", state: "queued" },
-	]);
-	expect(attribution.loose).toEqual([
-		{ detail: null, id: "intent-3", kind: "agent/spawn", state: "queued" },
-	]);
+	expect(attribution.agents.get("agent-1")).toEqual([{ detail: null, id: "intent-2", kind: "agent/retire", state: "queued" }]);
+	expect(attribution.loose).toEqual([{ detail: null, id: "intent-3", kind: "agent/spawn", state: "queued" }]);
 });

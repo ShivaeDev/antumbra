@@ -7,23 +7,13 @@ import type { SpawnFields } from "#spawn-fields.ts";
 export const makeSpawnAssignments = Effect.gen(function* () {
 	const db = yield* Database;
 	const feeds = yield* DomainFeeds;
-	const recoverPieceAssignment = (
-		agentId: string,
-		pieceId: string,
-		failure: PrismaError,
-	) =>
+	const recoverPieceAssignment = (agentId: string, pieceId: string, failure: PrismaError) =>
 		db.PieceAgent.where({ agentId, pieceId })
 			.exists()
-			.pipe(
-				Effect.flatMap((exists) =>
-					exists ? Effect.succeed(false) : Effect.fail(failure),
-				),
-			);
+			.pipe(Effect.flatMap((exists) => (exists ? Effect.succeed(false) : Effect.fail(failure))));
 	const storePieceAssignment = (payload: SpawnFields, pieceId: string) =>
 		Effect.gen(function* () {
-			yield* ensureAgentCanOwnLocalWork(payload.agentId).pipe(
-				Effect.provideService(Database, db),
-			);
+			yield* ensureAgentCanOwnLocalWork(payload.agentId).pipe(Effect.provideService(Database, db));
 			const existing = yield* db.PieceAgent.where({
 				agentId: payload.agentId,
 				pieceId,
@@ -36,9 +26,7 @@ export const makeSpawnAssignments = Effect.gen(function* () {
 				pieceId,
 			}).pipe(
 				Effect.as(true),
-				Effect.catchTag("PrismaError", (failure) =>
-					recoverPieceAssignment(payload.agentId, pieceId, failure),
-				),
+				Effect.catchTag("PrismaError", (failure) => recoverPieceAssignment(payload.agentId, pieceId, failure)),
 			);
 		});
 	const assignToPiece = (payload: SpawnFields) => {
@@ -46,29 +34,17 @@ export const makeSpawnAssignments = Effect.gen(function* () {
 		return pieceId === undefined
 			? Effect.void
 			: storePieceAssignment(payload, pieceId).pipe(
-					Effect.tap((created) =>
-						created ? feeds.publishVoyageRefresh() : Effect.void,
-					),
+					Effect.tap((created) => (created ? feeds.publishVoyageRefresh() : Effect.void)),
 					Effect.asVoid,
 				);
 	};
-	const recoverVoyageAssignment = (
-		agentId: string,
-		voyageId: string,
-		failure: PrismaError,
-	) =>
+	const recoverVoyageAssignment = (agentId: string, voyageId: string, failure: PrismaError) =>
 		db.VoyageAgent.where({ agentId, voyageId })
 			.exists()
-			.pipe(
-				Effect.flatMap((exists) =>
-					exists ? Effect.succeed(false) : Effect.fail(failure),
-				),
-			);
+			.pipe(Effect.flatMap((exists) => (exists ? Effect.succeed(false) : Effect.fail(failure))));
 	const storeVoyageAssignment = (payload: SpawnFields, voyageId: string) =>
 		Effect.gen(function* () {
-			yield* ensureAgentCanOwnLocalWork(payload.agentId).pipe(
-				Effect.provideService(Database, db),
-			);
+			yield* ensureAgentCanOwnLocalWork(payload.agentId).pipe(Effect.provideService(Database, db));
 			const existing = yield* db.VoyageAgent.where({
 				agentId: payload.agentId,
 				voyageId,
@@ -82,9 +58,7 @@ export const makeSpawnAssignments = Effect.gen(function* () {
 				voyageId,
 			}).pipe(
 				Effect.as(true),
-				Effect.catchTag("PrismaError", (failure) =>
-					recoverVoyageAssignment(payload.agentId, voyageId, failure),
-				),
+				Effect.catchTag("PrismaError", (failure) => recoverVoyageAssignment(payload.agentId, voyageId, failure)),
 			);
 		});
 	const assignToVoyage = (payload: SpawnFields) => {
@@ -92,9 +66,7 @@ export const makeSpawnAssignments = Effect.gen(function* () {
 		return voyageId === undefined
 			? Effect.void
 			: storeVoyageAssignment(payload, voyageId).pipe(
-					Effect.tap((created) =>
-						created ? feeds.publishVoyageRefresh() : Effect.void,
-					),
+					Effect.tap((created) => (created ? feeds.publishVoyageRefresh() : Effect.void)),
 					Effect.asVoid,
 				);
 	};

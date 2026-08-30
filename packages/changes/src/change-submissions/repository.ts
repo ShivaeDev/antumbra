@@ -6,17 +6,11 @@ import type { RepoBerth } from "#change-submissions/model.ts";
 import { ChangeHostRegistry } from "#change-submissions/registries.ts";
 import { BerthNotFound, NoChangeHost, RepoNotFound } from "#errors.ts";
 
-export const claimingHost = (
-	repo: ChangeHostRepo,
-): Effect.Effect<ChangeHost, NoChangeHost, ChangeHostRegistry> =>
+export const claimingHost = (repo: ChangeHostRepo): Effect.Effect<ChangeHost, NoChangeHost, ChangeHostRegistry> =>
 	Effect.gen(function* () {
 		const hosts = yield* ChangeHostRegistry;
-		const host = [...hosts.values()].find((candidate) =>
-			candidate.supports(repo),
-		);
-		return host === undefined
-			? yield* new NoChangeHost({ repoName: repo.name })
-			: host;
+		const host = [...hosts.values()].find((candidate) => candidate.supports(repo));
+		return host === undefined ? yield* new NoChangeHost({ repoName: repo.name }) : host;
 	});
 
 export const repoNamed = (repoName: string) =>

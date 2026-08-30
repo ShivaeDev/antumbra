@@ -19,10 +19,7 @@ export interface StoredAgent {
 
 // why: the reconciler reads roots only, and the fields it reads are the stored
 // ones — deriving the shape keeps a column change a compile error here.
-export type StoredSession = Pick<
-	StoredAgentSession,
-	"agentId" | "createdAt" | "executionStatus" | "id" | "status"
->;
+export type StoredSession = Pick<StoredAgentSession, "agentId" | "createdAt" | "executionStatus" | "id" | "status">;
 
 export interface DecodedAgent extends StoredAgent {
 	readonly status: AgentStatus;
@@ -50,20 +47,14 @@ export const decodeAgents = (stored: ReadonlyArray<StoredAgent>) => {
 
 export const decodeSessions = (
 	stored: ReadonlyArray<StoredSession>,
-): Result.Result<
-	ReadonlyArray<DecodedSession>,
-	InvalidSessionExecutionStatus | StoredAgentSessionStatusInvalid
-> => {
+): Result.Result<ReadonlyArray<DecodedSession>, InvalidSessionExecutionStatus | StoredAgentSessionStatusInvalid> => {
 	const decoded: Array<DecodedSession> = [];
 	for (const session of stored) {
 		const status = decodeStoredAgentSessionStatus(session.id, session.status);
 		if (Result.isFailure(status)) {
 			return Result.fail(status.failure);
 		}
-		const executionStatus = decodeSessionExecutionStatus(
-			session.id,
-			session.executionStatus,
-		);
+		const executionStatus = decodeSessionExecutionStatus(session.id, session.executionStatus);
 		if (Result.isFailure(executionStatus)) {
 			return Result.fail(executionStatus.failure);
 		}

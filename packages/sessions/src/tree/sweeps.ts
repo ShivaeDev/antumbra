@@ -27,10 +27,7 @@ export const makeSessionTreeSweeps = Effect.gen(function* () {
 			const unsaid = (found: ReadonlyArray<AgentEvent>) =>
 				Ref.modify(said, (before) => {
 					const fresh = found.filter((event) => !before.has(event.raw.payload));
-					return [
-						fresh,
-						new Set([...before, ...fresh.map((event) => event.raw.payload)]),
-					] as const;
+					return [fresh, new Set([...before, ...fresh.map((event) => event.raw.payload)])] as const;
 				});
 			// why: a census admits nodes through the same path a frame takes, and
 			// admitting one closes it — which would ask for a census again. The
@@ -48,23 +45,11 @@ export const makeSessionTreeSweeps = Effect.gen(function* () {
 			// census just admitted has one now that it did not have when the reading
 			// began — and that child is the whole reason a census is taken.
 			const settled = (root: StoredAgentSession, found: SessionCensus) =>
-				found.nodes.length === 0
-					? Effect.void
-					: Effect.flatMap(ledger.nodeRows(root.id), (rows) =>
-							settleCensusedWork(rows, found.nodes, censused),
-						);
-			const take = (
-				root: StoredAgentSession,
-				rootRef: string,
-				record: RecordEvent,
-			) =>
+				found.nodes.length === 0 ? Effect.void : Effect.flatMap(ledger.nodeRows(root.id), (rows) => settleCensusedWork(rows, found.nodes, censused));
+			const take = (root: StoredAgentSession, rootRef: string, record: RecordEvent) =>
 				Effect.gen(function* () {
 					const known = yield* ledger.nodeRows(root.id);
-					const admitted = new Set(
-						known.flatMap((row) =>
-							row.nativeRef === null ? [] : [row.nativeRef],
-						),
-					);
+					const admitted = new Set(known.flatMap((row) => (row.nativeRef === null ? [] : [row.nativeRef])));
 					const found = yield* lane.census({
 						admitted: (nodeRef) => admitted.has(nodeRef),
 						cwd: root.cwd,
@@ -77,9 +62,7 @@ export const makeSessionTreeSweeps = Effect.gen(function* () {
 					yield* settled(root, found);
 				});
 			const census = (root: StoredAgentSession, record: RecordEvent) =>
-				root.nativeRef === null
-					? Effect.void
-					: once(take(root, root.nativeRef, record));
+				root.nativeRef === null ? Effect.void : once(take(root, root.nativeRef, record));
 			const root = () => rows.rootRow(rootSessionId);
 			const closed = (sessionId: string, record: RecordEvent) =>
 				Effect.gen(function* () {
@@ -105,15 +88,8 @@ export const makeSessionTreeSweeps = Effect.gen(function* () {
 					}
 					yield* census(found.value, record);
 					const nodes = yield* ledger.nodeRows(found.value.id);
-					const stale = nodes.filter(
-						(node) =>
-							node.status === "closed" && node.completeness === "recording",
-					);
-					yield* Effect.forEach(
-						stale,
-						(node) => audits.audit(lane, found.value, node),
-						{ concurrency: 1, discard: true },
-					);
+					const stale = nodes.filter((node) => node.status === "closed" && node.completeness === "recording");
+					yield* Effect.forEach(stale, (node) => audits.audit(lane, found.value, node), { concurrency: 1, discard: true });
 				});
 			return { closed, reconnected };
 		});

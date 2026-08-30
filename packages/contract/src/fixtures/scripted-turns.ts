@@ -1,11 +1,5 @@
 import { fleet } from "#fixtures/fleet.ts";
-import {
-	chart,
-	quayView,
-	reefSummary,
-	reefView,
-	soundings,
-} from "#fixtures/voyage.ts";
+import { chart, quayView, reefSummary, reefView, soundings } from "#fixtures/voyage.ts";
 import type { AgentSummary } from "#fleet.ts";
 import type { VoyageSummary } from "#voyage-views.ts";
 

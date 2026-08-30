@@ -33,14 +33,9 @@ export const domainCapabilities = (
 		SessionEventJournalLive,
 		KernelReachDeferredLive,
 	).pipe(Layer.provideMerge(DomainFeedsLive));
-	const changes = ChangesLive(changeHosts, runners).pipe(
-		Layer.provideMerge(foundations),
-	);
+	const changes = ChangesLive(changeHosts, runners).pipe(Layer.provideMerge(foundations));
 	const world = VoyageWorldSourceLive.pipe(Layer.provideMerge(changes));
-	return Layer.mergeAll(
-		CaptainMembershipLive,
-		ChangeProceduresLive(changeHosts),
-		StandDownLive,
-		VoyageProceduresLive,
-	).pipe(Layer.provideMerge(world));
+	return Layer.mergeAll(CaptainMembershipLive, ChangeProceduresLive(changeHosts), StandDownLive, VoyageProceduresLive).pipe(
+		Layer.provideMerge(world),
+	);
 };

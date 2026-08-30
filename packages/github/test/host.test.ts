@@ -4,22 +4,11 @@ import type { ChangeHostRepo } from "@antumbra/plugin-api";
 import { describe, expect, it } from "@effect/vitest";
 import { Effect } from "effect";
 import { makeGitHubHost } from "#host.ts";
-import {
-	AUTHENTICATED,
-	LOGGED_OUT,
-	type ScriptedGh,
-	scriptedGh,
-} from "#test/scripted-gh.ts";
+import { AUTHENTICATED, LOGGED_OUT, type ScriptedGh, scriptedGh } from "#test/scripted-gh.ts";
 
-const RECORDED = readFileSync(
-	fileURLToPath(new URL("./fixtures/observe-response.json", import.meta.url)),
-	"utf8",
-);
+const RECORDED = readFileSync(fileURLToPath(new URL("./fixtures/observe-response.json", import.meta.url)), "utf8");
 
-const FUTURE_STATE = RECORDED.replace(
-	'"state": "MERGED"',
-	'"state": "SOMETHING_NEW"',
-);
+const FUTURE_STATE = RECORDED.replace('"state": "MERGED"', '"state": "SOMETHING_NEW"');
 
 const REPO: ChangeHostRepo = {
 	defaultRef: "main",
@@ -54,12 +43,9 @@ const PARTIAL_CROSS_REPO = JSON.stringify({
 	errors: [{ message: "pull request 9999 was not found" }],
 });
 
-const withGh = <A, E, R>(
-	body: (gh: ScriptedGh) => Effect.Effect<A, E, R>,
-): Effect.Effect<A, E, R> => Effect.scoped(Effect.flatMap(scriptedGh, body));
+const withGh = <A, E, R>(body: (gh: ScriptedGh) => Effect.Effect<A, E, R>): Effect.Effect<A, E, R> => Effect.scoped(Effect.flatMap(scriptedGh, body));
 
-const hostOf = (gh: ScriptedGh) =>
-	makeGitHubHost({ executable: gh.executable });
+const hostOf = (gh: ScriptedGh) => makeGitHubHost({ executable: gh.executable });
 
 describe("what the GitHub host can do right now", () => {
 	it.live("reports the login it inherits from gh", () =>
@@ -107,9 +93,7 @@ describe("what the GitHub host can do right now", () => {
 				const host = yield* hostOf(gh);
 				expect(host.tag).toBe("github");
 				expect(host.supports(REPO)).toBe(true);
-				expect(host.supports({ ...REPO, source: "/somewhere/reef" })).toBe(
-					false,
-				);
+				expect(host.supports({ ...REPO, source: "/somewhere/reef" })).toBe(false);
 			}),
 		),
 	);
@@ -168,12 +152,7 @@ describe("observing changes through gh", () => {
 					{ externalId: "77", repo: { ...REPO, source: "/somewhere/reef" } },
 				]);
 
-				expect(seen.map((one) => one.externalId)).toEqual([
-					"23",
-					"24",
-					"27",
-					"32",
-				]);
+				expect(seen.map((one) => one.externalId)).toEqual(["23", "24", "27", "32"]);
 				const asked = gh.received().find((arg) => arg.startsWith("query="));
 				expect(asked).toContain("pullRequest(number: 23)");
 				expect(asked).toContain("pullRequest(number: 9999)");
@@ -183,17 +162,15 @@ describe("observing changes through gh", () => {
 		),
 	);
 
-	it.live(
-		"leaves a batch unobserved when GitHub adds an unsupported word",
-		() =>
-			withGh((gh) =>
-				Effect.gen(function* () {
-					gh.answer("graphql", { out: FUTURE_STATE });
-					const host = yield* hostOf(gh);
-					const seen = yield* host.observe([{ externalId: "23", repo: REPO }]);
-					expect(seen).toEqual([]);
-				}),
-			),
+	it.live("leaves a batch unobserved when GitHub adds an unsupported word", () =>
+		withGh((gh) =>
+			Effect.gen(function* () {
+				gh.answer("graphql", { out: FUTURE_STATE });
+				const host = yield* hostOf(gh);
+				const seen = yield* host.observe([{ externalId: "23", repo: REPO }]);
+				expect(seen).toEqual([]);
+			}),
+		),
 	);
 
 	it.live("fails the whole pass when the login stopped working", () =>
@@ -204,9 +181,7 @@ describe("observing changes through gh", () => {
 				const host = yield* hostOf(gh);
 				expect((yield* host.capability).available).toBe(true);
 
-				const failure = yield* Effect.flip(
-					host.observe([{ externalId: "23", repo: REPO }]),
-				);
+				const failure = yield* Effect.flip(host.observe([{ externalId: "23", repo: REPO }]));
 				expect(failure._tag).toBe("ChangeHostUnavailable");
 				expect(failure.message).toContain("gh auth login");
 
@@ -225,9 +200,7 @@ describe("adopting a change by its address", () => {
 		withGh((gh) =>
 			Effect.gen(function* () {
 				const host = yield* hostOf(gh);
-				const failure = yield* Effect.flip(
-					host.adopt("https://github.com/someone/elsewhere/pull/5", REPO),
-				);
+				const failure = yield* Effect.flip(host.adopt("https://github.com/someone/elsewhere/pull/5", REPO));
 				expect(failure._tag).toBe("ChangeHostRefused");
 				expect(failure.message).toContain("someone/elsewhere");
 				expect(gh.received()).toEqual([]);
@@ -240,31 +213,22 @@ describe("adopting a change by its address", () => {
 			Effect.gen(function* () {
 				gh.answer("graphql", { out: RECORDED });
 				const host = yield* hostOf(gh);
-				const adopted = yield* host.adopt(
-					"https://github.com/ShivaeDev/antumbra/pull/23",
-					REPO,
-				);
+				const adopted = yield* host.adopt("https://github.com/ShivaeDev/antumbra/pull/23", REPO);
 				expect(adopted.externalId).toBe("23");
 				expect(adopted.stage).toBe("landed");
 			}),
 		),
 	);
 
-	it.live(
-		"surfaces the exact unsupported word when one pull is read directly",
-		() =>
-			withGh((gh) =>
-				Effect.gen(function* () {
-					gh.answer("graphql", { out: FUTURE_STATE });
-					const host = yield* hostOf(gh);
-					const failure = yield* Effect.flip(
-						host.adopt("https://github.com/ShivaeDev/antumbra/pull/23", REPO),
-					);
-					expect(failure._tag).toBe("ChangeHostUnavailable");
-					expect(failure.message).toContain(
-						'state answered unsupported word "SOMETHING_NEW"',
-					);
-				}),
-			),
+	it.live("surfaces the exact unsupported word when one pull is read directly", () =>
+		withGh((gh) =>
+			Effect.gen(function* () {
+				gh.answer("graphql", { out: FUTURE_STATE });
+				const host = yield* hostOf(gh);
+				const failure = yield* Effect.flip(host.adopt("https://github.com/ShivaeDev/antumbra/pull/23", REPO));
+				expect(failure._tag).toBe("ChangeHostUnavailable");
+				expect(failure.message).toContain('state answered unsupported word "SOMETHING_NEW"');
+			}),
+		),
 	);
 });

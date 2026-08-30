@@ -29,8 +29,7 @@ const CREW_ORDER =
 const CAPTAIN_ORDER =
 	"- The repos your crew is berthed in are the ones under Berths, spelled there as the registry knows them; a piece charter naming one spells it the same way.";
 
-const berthLine = (berth: typeof Berth.Type): string =>
-	`${berth.repo} — ${berth.folder} — branch ${berth.branch}`;
+const berthLine = (berth: typeof Berth.Type): string => `${berth.repo} — ${berth.folder} — branch ${berth.branch}`;
 
 // why: an absolute path on every line read as folders scattered elsewhere.
 // The moorage is stated once as the place the agent already stands, and each
@@ -50,9 +49,5 @@ export const berthedCharter = (input: BerthedCharter): AgentPrompt =>
 	agentPrompt(
 		input.berths.length === 0
 			? input.charter
-			: proseOf([
-					[input.charter],
-					[input.role === "captain" ? CAPTAIN_ORDER : CREW_ORDER, ""],
-					section("Berths", berthsBody(input)),
-				]),
+			: proseOf([[input.charter], [input.role === "captain" ? CAPTAIN_ORDER : CREW_ORDER, ""], section("Berths", berthsBody(input))]),
 	);

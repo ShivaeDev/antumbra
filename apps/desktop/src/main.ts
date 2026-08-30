@@ -4,11 +4,7 @@ import { ensureInstallMarker } from "@antumbra/persistence";
 import { NodeServices } from "@effect/platform-node";
 import { Effect, FileSystem, Layer, ManagedRuntime } from "effect";
 import { AppInfoSourceLive } from "#adapters/app-info.ts";
-import {
-	ownerBoot,
-	runBoot,
-	runManagedRuntimeStartup,
-} from "#adapters/boot.ts";
+import { ownerBoot, runBoot, runManagedRuntimeStartup } from "#adapters/boot.ts";
 import { drainManagedRuntime } from "#adapters/graceful-shutdown.ts";
 import { registerOpenExternal } from "#adapters/open-external.ts";
 import { applicationLayers } from "#adapters/runtime.ts";
@@ -26,16 +22,10 @@ import { devTracing } from "#adapters/tracing.ts";
 import { fleetTray } from "#adapters/tray.ts";
 import { registerTrpcBridge } from "#adapters/trpc-bridge.ts";
 import { registerTrpcSubscriptions } from "#adapters/trpc-subscriptions.ts";
-import {
-	fileLayoutStore,
-	type LayoutStore,
-} from "#adapters/windows/layout-store.ts";
+import { fileLayoutStore, type LayoutStore } from "#adapters/windows/layout-store.ts";
 import { layoutWriter } from "#adapters/windows/layout-writer.ts";
 import { openConsole, rendererDocument } from "#adapters/windows/open.ts";
-import {
-	makeWindowRegistry,
-	type WindowShell,
-} from "#adapters/windows/registry.ts";
+import { makeWindowRegistry, type WindowShell } from "#adapters/windows/registry.ts";
 import { restoreWindows } from "#adapters/windows/restore.ts";
 import { WindowSourceLive } from "#adapters/windows/source.ts";
 
@@ -43,13 +33,10 @@ import { WindowSourceLive } from "#adapters/windows/source.ts";
 // saves they cause are collapsed rather than written one for one.
 const LAYOUT_PATIENCE_MILLIS = 400;
 
-const reveal = (shell: WindowShell) =>
-	focusOrOpenConsole(shell.registry, openConsole(shell));
+const reveal = (shell: WindowShell) => focusOrOpenConsole(shell.registry, openConsole(shell));
 
 const layoutStore = Effect.provide(
-	Effect.map(FileSystem.FileSystem, (fs) =>
-		fileLayoutStore(fs, windowLayoutInDataDirectory(configureDataDirectory())),
-	),
+	Effect.map(FileSystem.FileSystem, (fs) => fileLayoutStore(fs, windowLayoutInDataDirectory(configureDataDirectory()))),
 	NodeServices.layer,
 );
 
@@ -57,14 +44,7 @@ const startOwner = (shell: WindowShell, store: LayoutStore) => {
 	// why: a migration or connect failure leaves no meaningful app to run, so
 	// the persistence layer dies instead of threading an error type every
 	// consumer would have to carry.
-	const runtime = ManagedRuntime.make(
-		Layer.mergeAll(
-			AppInfoSourceLive,
-			WindowSourceLive(shell),
-			devTracing(),
-			Layer.orDie(applicationLayers()),
-		),
-	);
+	const runtime = ManagedRuntime.make(Layer.mergeAll(AppInfoSourceLive, WindowSourceLive(shell), devTracing(), Layer.orDie(applicationLayers())));
 	const router = makeAppRouter(runtime);
 	const main = Effect.gen(function* () {
 		yield* drainBeforeQuit(drainManagedRuntime(runtime, drainActiveSessions));
@@ -102,11 +82,7 @@ const boot = Effect.gen(function* () {
 	const document = yield* Effect.orDie(rendererDocument);
 	const shell = { document, registry: makeWindowRegistry() };
 	const store = yield* layoutStore;
-	const ownership = claimDesktopOwnership(
-		desktopApplication,
-		shell.registry,
-		openConsole(shell),
-	);
+	const ownership = claimDesktopOwnership(desktopApplication, shell.registry, openConsole(shell));
 	return yield* ownerBoot(ownership, () => startOwner(shell, store));
 });
 

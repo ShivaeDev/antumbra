@@ -7,8 +7,7 @@ import { rungHolder } from "#ruling-ascent-rung.ts";
 import { voyageWorldTicks } from "#voyage-feed.ts";
 import { VoyageWorldSource } from "#voyage-world.ts";
 
-const guarded = <A, R>(act: Effect.Effect<A, unknown, R>, said: string) =>
-	act.pipe(Effect.catchCause((cause) => Effect.logError(said, cause)));
+const guarded = <A, R>(act: Effect.Effect<A, unknown, R>, said: string) => act.pipe(Effect.catchCause((cause) => Effect.logError(said, cause)));
 
 // why: the mailbox deduplicates by source reference, so the send is safe to
 // repeat every pass and needs no mark of its own. Dedup is per mailbox, which
@@ -46,11 +45,7 @@ const onePass = Effect.gen(function* () {
 		(ruling) =>
 			Option.match(rungHolder(world, ruling), {
 				onNone: () => Effect.void,
-				onSome: (toAgentId) =>
-					guarded(
-						ascendOne(ruling, toAgentId),
-						"a ruling could not be carried to the rung it waits on",
-					),
+				onSome: (toAgentId) => guarded(ascendOne(ruling, toAgentId), "a ruling could not be carried to the rung it waits on"),
 			}),
 		{ discard: true },
 	);
@@ -73,14 +68,6 @@ export const RulingAscentLive = Layer.effectDiscard(
 		// nobody on it climbs on the hail instead of on the next ruling.
 		const world = yield* voyageWorldTicks(feeds);
 		const pass = guarded(onePass, "the ruling ascent pass failed");
-		yield* Effect.forkScoped(
-			pass.pipe(
-				Effect.andThen(
-					Stream.merge(Stream.fromSubscription(notices), world).pipe(
-						Stream.runForEach(() => pass),
-					),
-				),
-			),
-		);
+		yield* Effect.forkScoped(pass.pipe(Effect.andThen(Stream.merge(Stream.fromSubscription(notices), world).pipe(Stream.runForEach(() => pass)))));
 	}),
 );

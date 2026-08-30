@@ -1,20 +1,9 @@
-import type {
-	IntentNotFound,
-	IntentStatus,
-	PayloadInvalid,
-	StoredIntentInvalid,
-	UnregisteredIntentTag,
-} from "@antumbra/kernel";
+import type { IntentNotFound, IntentStatus, PayloadInvalid, StoredIntentInvalid, UnregisteredIntentTag } from "@antumbra/kernel";
 import type { PrismaError } from "@antumbra/persistence";
-import type {
-	InvalidSessionExecutionStatus,
-	StoredAgentSessionStatusInvalid,
-} from "@antumbra/vocabulary/agent-runtime";
+import type { InvalidSessionExecutionStatus, StoredAgentSessionStatusInvalid } from "@antumbra/vocabulary/agent-runtime";
 import { Context, Data, type Effect } from "effect";
 
-export class SessionShutdownIncomplete extends Data.TaggedError(
-	"SessionShutdownIncomplete",
-)<{
+export class SessionShutdownIncomplete extends Data.TaggedError("SessionShutdownIncomplete")<{
 	readonly intentId: string;
 	readonly sessionId: string;
 	readonly status: IntentStatus | "missing";
@@ -37,6 +26,4 @@ export class SessionShutdown extends Context.Service<
 	}
 >()("@antumbra/sessions/SessionShutdown") {}
 
-export const drainActiveSessions = SessionShutdown.use(
-	(shutdown) => shutdown.drain,
-);
+export const drainActiveSessions = SessionShutdown.use((shutdown) => shutdown.drain);

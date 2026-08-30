@@ -1,18 +1,10 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database } from "@antumbra/persistence";
 import { SessionFabric } from "@antumbra/session-fabric";
-import {
-	type AgentStatus,
-	agentTransition,
-	decodeStoredAgentStatus,
-} from "@antumbra/vocabulary/agent-runtime";
+import { type AgentStatus, agentTransition, decodeStoredAgentStatus } from "@antumbra/vocabulary/agent-runtime";
 import { Effect, Option } from "effect";
 import { AgentNotSpawnable } from "#errors.ts";
-import {
-	activationFor,
-	ensureSessionStatus,
-	settlementFor,
-} from "#spawn-current-session.ts";
+import { activationFor, ensureSessionStatus, settlementFor } from "#spawn-current-session.ts";
 import type { SpawnFields } from "#spawn-fields.ts";
 
 export const spawnResolution = Effect.gen(function* () {
@@ -81,9 +73,7 @@ export const spawnResolution = Effect.gen(function* () {
 				return false;
 			}
 			const settlement = yield* settlementFor(agent.value, payload);
-			const status = yield* Effect.fromResult(
-				decodeStoredAgentStatus(agent.value.id, agent.value.status),
-			);
+			const status = yield* Effect.fromResult(decodeStoredAgentStatus(agent.value.id, agent.value.status));
 			if (settlement === "settled" && status !== "dormant") {
 				return false;
 			}
@@ -94,9 +84,7 @@ export const spawnResolution = Effect.gen(function* () {
 				yield* ensureSessionStatus(session.value.id, session.value.status);
 			}
 			if (settlement === "reclaim") {
-				const next = yield* Effect.fromResult(
-					agentTransition("spawning", "reclaim"),
-				);
+				const next = yield* Effect.fromResult(agentTransition("spawning", "reclaim"));
 				yield* settleAgent(payload, next);
 			}
 			yield* closeFailedSession(payload);

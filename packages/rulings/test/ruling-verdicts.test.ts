@@ -2,13 +2,7 @@ import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Rulings } from "@antumbra/rulings";
 import { expect } from "@effect/vitest";
 import { Effect, Option, PubSub } from "effect";
-import {
-	asked,
-	it,
-	layer,
-	requesterId,
-	seedFleet,
-} from "#test/rulings-harness.ts";
+import { asked, it, layer, requesterId, seedFleet } from "#test/rulings-harness.ts";
 
 const offered = {
 	...asked,
@@ -187,36 +181,29 @@ it.effectDB("refuses an authority below the rung it waits on", function* () {
 
 // why: captains are many, so an answer from one is only trustworthy if the
 // record says which one gave it; the admiral rules from the window as nobody.
-it.effectDB(
-	"names the agent that ruled, and nobody for the admiral",
-	function* () {
-		yield* Effect.gen(function* () {
-			yield* seedFleet;
-			const rulings = yield* Rulings;
-			const byCaptain = yield* rulings.request(asked);
-			const fromWindow = yield* rulings.request(asked);
+it.effectDB("names the agent that ruled, and nobody for the admiral", function* () {
+	yield* Effect.gen(function* () {
+		yield* seedFleet;
+		const rulings = yield* Rulings;
+		const byCaptain = yield* rulings.request(asked);
+		const fromWindow = yield* rulings.request(asked);
 
-			const ruled = yield* rulings.rule({
-				answer: "trust the soundings",
-				by: "captain",
-				byAgentId: requesterId,
-				rulingId: byCaptain.id,
-			});
-			const decreed = yield* rulings.rule({
-				answer: "trust the chart",
-				by: "admiral",
-				rulingId: fromWindow.id,
-			});
+		const ruled = yield* rulings.rule({
+			answer: "trust the soundings",
+			by: "captain",
+			byAgentId: requesterId,
+			rulingId: byCaptain.id,
+		});
+		const decreed = yield* rulings.rule({
+			answer: "trust the chart",
+			by: "admiral",
+			rulingId: fromWindow.id,
+		});
 
-			expect(Option.getOrThrow(ruled.answer).byAgentId).toEqual(
-				Option.some(requesterId),
-			);
-			expect(Option.getOrThrow(decreed.answer).byAgentId).toEqual(
-				Option.none(),
-			);
-		}).pipe(Effect.provide(layer));
-	},
-);
+		expect(Option.getOrThrow(ruled.answer).byAgentId).toEqual(Option.some(requesterId));
+		expect(Option.getOrThrow(decreed.answer).byAgentId).toEqual(Option.none());
+	}).pipe(Effect.provide(layer));
+});
 
 it.effectDB("lets the flagship answer what binds the fleet", function* () {
 	yield* Effect.gen(function* () {

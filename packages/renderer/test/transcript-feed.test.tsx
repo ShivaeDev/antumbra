@@ -18,11 +18,7 @@ const { opened, watchSessionEvents } = vi.hoisted(() => {
 	const opened: Array<Opened> = [];
 	return {
 		opened,
-		watchSessionEvents: (
-			query: Opened["query"],
-			onEvent: Opened["onEvent"],
-			onError: Opened["onError"],
-		) => {
+		watchSessionEvents: (query: Opened["query"], onEvent: Opened["onEvent"], onError: Opened["onError"]) => {
 			opened.push({ onError, onEvent, query });
 			return () => undefined;
 		},
@@ -50,16 +46,10 @@ const mount = (): { container: HTMLElement; root: Root } => {
 	return { container, root: createRoot(container) };
 };
 
-const render = (
-	root: Root,
-	sessionId: string,
-	foldToolCalls = false,
-): Effect.Effect<void> =>
+const render = (root: Root, sessionId: string, foldToolCalls = false): Effect.Effect<void> =>
 	Effect.promise(() =>
 		act(() => {
-			root.render(
-				<TranscriptView foldToolCalls={foldToolCalls} sessionId={sessionId} />,
-			);
+			root.render(<TranscriptView foldToolCalls={foldToolCalls} sessionId={sessionId} />);
 			return Promise.resolve();
 		}),
 	);
@@ -129,9 +119,7 @@ it.effect("keeps every event it was sent, in the order they arrived", () =>
 		const shown = container.textContent ?? "";
 		expect(shown).toContain("raising the anchor");
 		expect(shown).toContain("clearing the harbour");
-		expect(shown.indexOf("raising the anchor")).toBeLessThan(
-			shown.indexOf("clearing the harbour"),
-		);
+		expect(shown.indexOf("raising the anchor")).toBeLessThan(shown.indexOf("clearing the harbour"));
 		yield* drop(root);
 	}),
 );

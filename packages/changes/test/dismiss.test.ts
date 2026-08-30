@@ -13,11 +13,7 @@ import {
 	REEF_SOURCE,
 } from "#test/change-harness.ts";
 
-const seed = Effect.all([
-	createRepo("repo-reef", "reef", REEF_SOURCE),
-	createPiece("piece-reef"),
-	createBerth(CREW),
-]);
+const seed = Effect.all([createRepo("repo-reef", "reef", REEF_SOURCE), createPiece("piece-reef"), createBerth(CREW)]);
 
 const opened = Effect.flatMap(Changes, (changes) =>
 	changes.open({
@@ -57,10 +53,7 @@ it.live("a change that died at its host is dismissed once and stays so", () =>
 			expect(yield* changes.snapshot).toMatchObject({
 				dismissedChangeIds: new Set([row.id]),
 			});
-		}).pipe(
-			Effect.provide(changesLayer([scripted.host])),
-			Effect.provide(temporary.layer),
-		);
+		}).pipe(Effect.provide(changesLayer([scripted.host])), Effect.provide(temporary.layer));
 	}),
 );
 
@@ -78,10 +71,7 @@ it.live("a change still alive at its host has nothing to dismiss", () =>
 
 			expect(refused._tag).toBe("ChangeStillAlive");
 			expect(yield* db.ChangeVerdict.all()).toEqual([]);
-		}).pipe(
-			Effect.provide(changesLayer([scripted.host])),
-			Effect.provide(temporary.layer),
-		);
+		}).pipe(Effect.provide(changesLayer([scripted.host])), Effect.provide(temporary.layer));
 	}),
 );
 
@@ -96,9 +86,6 @@ it.live("a change nobody has heard of is refused by name", () =>
 			const refused = yield* Effect.flip(changes.dismiss("no-such-change"));
 
 			expect(refused._tag).toBe("ChangeNotFound");
-		}).pipe(
-			Effect.provide(changesLayer([scripted.host])),
-			Effect.provide(temporary.layer),
-		);
+		}).pipe(Effect.provide(changesLayer([scripted.host])), Effect.provide(temporary.layer));
 	}),
 );

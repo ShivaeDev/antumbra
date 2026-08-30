@@ -1,26 +1,13 @@
-import {
-	RequestOrigin,
-	type WindowPlace,
-	WindowRefused,
-	WindowSource,
-} from "@antumbra/contract";
+import { RequestOrigin, type WindowPlace, WindowRefused, WindowSource } from "@antumbra/contract";
 import { Effect, Layer } from "effect";
 import { openWindow } from "#adapters/windows/open.ts";
-import type {
-	OwnedWindow,
-	WindowRegistry,
-	WindowShell,
-} from "#adapters/windows/registry.ts";
+import type { OwnedWindow, WindowRegistry, WindowShell } from "#adapters/windows/registry.ts";
 
-const caller = (
-	registry: WindowRegistry,
-): Effect.Effect<OwnedWindow, WindowRefused, RequestOrigin> =>
+const caller = (registry: WindowRegistry): Effect.Effect<OwnedWindow, WindowRefused, RequestOrigin> =>
 	Effect.gen(function* () {
 		const origin = yield* RequestOrigin;
 		const record = registry.windowOf(origin.windowId);
-		return record === undefined
-			? yield* new WindowRefused({ reason: "unknown_window" })
-			: record;
+		return record === undefined ? yield* new WindowRefused({ reason: "unknown_window" }) : record;
 	});
 
 // why: only the console opens windows, and never another console. A child that

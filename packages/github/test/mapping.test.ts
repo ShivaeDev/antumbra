@@ -4,20 +4,13 @@ import { describe, expect, it } from "@effect/vitest";
 import { Effect } from "effect";
 import type { UnknownGitHubWord } from "#dialect.ts";
 import { mapPullRequest } from "#mapping.ts";
-import {
-	decodeObserveResponse,
-	type ObservedNode,
-	type PullRequestNode,
-} from "#payload.ts";
+import { decodeObserveResponse, type ObservedNode, type PullRequestNode } from "#payload.ts";
 import { buildObservePlan } from "#query.ts";
 
 // why: recorded from the real endpoint (ShivaeDev/antumbra, pull requests 23,
 // 24, 27, 32 and a number nobody can resolve) so the translation is checked
 // against GitHub's own words rather than against words we invented for it.
-const RECORDED = readFileSync(
-	fileURLToPath(new URL("./fixtures/observe-response.json", import.meta.url)),
-	"utf8",
-);
+const RECORDED = readFileSync(fileURLToPath(new URL("./fixtures/observe-response.json", import.meta.url)), "utf8");
 
 const PLAN = buildObservePlan(
 	[23, 24, 27, 32, 9999].map((number) => ({
@@ -28,19 +21,14 @@ const PLAN = buildObservePlan(
 	})),
 );
 
-const observed = Effect.runSync(
-	decodeObserveResponse("observe-changes", RECORDED, PLAN.selections),
-);
+const observed = Effect.runSync(decodeObserveResponse("observe-changes", RECORDED, PLAN.selections));
 
 const withNode = (fields: Partial<PullRequestNode>): ObservedNode => {
 	const base = observed[0];
-	return base === undefined
-		? expect.unreachable("the fixture is empty")
-		: { node: { ...base.node, ...fields }, raw: base.raw, repoId: base.repoId };
+	return base === undefined ? expect.unreachable("the fixture is empty") : { node: { ...base.node, ...fields }, raw: base.raw, repoId: base.repoId };
 };
 
-const mapped = (fields: Partial<PullRequestNode>) =>
-	Effect.runSync(mapPullRequest(withNode(fields)));
+const mapped = (fields: Partial<PullRequestNode>) => Effect.runSync(mapPullRequest(withNode(fields)));
 
 describe("reading GitHub's answer as the neutral vocabulary", () => {
 	it("drops the alias for a pull request nobody can see", () => {
@@ -68,8 +56,7 @@ describe("reading GitHub's answer as the neutral vocabulary", () => {
 			repoId: "repo-antumbra",
 			review: "none",
 			stage: "landed",
-			title:
-				"Voyages hold pieces gated by edges; launched pieces are dispatched to crew",
+			title: "Voyages hold pieces gated by edges; launched pieces are dispatched to crew",
 			url: "https://github.com/ShivaeDev/antumbra/pull/23",
 		});
 	});
@@ -121,8 +108,7 @@ describe("reading GitHub's answer as the neutral vocabulary", () => {
 			{
 				field: "statusCheckRollup.state",
 				from: '"state": "SUCCESS"',
-				read: (node: PullRequestNode): DialectWord =>
-					node.commits.nodes[0]?.commit.statusCheckRollup?.state ?? null,
+				read: (node: PullRequestNode): DialectWord => node.commits.nodes[0]?.commit.statusCheckRollup?.state ?? null,
 				to: '"state": "FUTURE_CHECK"',
 				word: "FUTURE_CHECK",
 			},
@@ -137,11 +123,7 @@ describe("reading GitHub's answer as the neutral vocabulary", () => {
 			for (const futureWord of futureWords) {
 				const future = RECORDED.replace(futureWord.from, futureWord.to);
 				expect(future).not.toBe(RECORDED);
-				const [unsupported] = yield* decodeObserveResponse(
-					"observe-changes",
-					future,
-					PLAN.selections,
-				);
+				const [unsupported] = yield* decodeObserveResponse("observe-changes", future, PLAN.selections);
 				if (unsupported === undefined) {
 					return expect.unreachable("the fixture lost its first node");
 				}
@@ -154,9 +136,7 @@ describe("reading GitHub's answer as the neutral vocabulary", () => {
 					_tag: "GhOutputInvalid",
 					raw: unsupported.raw,
 				});
-				expect(failure.detail).toContain(
-					`${futureWord.field} answered unsupported word ${JSON.stringify(futureWord.word)}`,
-				);
+				expect(failure.detail).toContain(`${futureWord.field} answered unsupported word ${JSON.stringify(futureWord.word)}`);
 			}
 		});
 	});

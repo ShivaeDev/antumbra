@@ -1,8 +1,4 @@
-import type {
-	ConsoleMode,
-	ConsolePlace,
-	SettingsReading,
-} from "@antumbra/contract";
+import type { ConsoleMode, ConsolePlace, SettingsReading } from "@antumbra/contract";
 import { useEffect, useState } from "react";
 import { watchFleet } from "#adapters/trpc.ts";
 import { loadSettings } from "#adapters/trpc-settings.ts";
@@ -17,21 +13,14 @@ import { ProviderCapacities } from "#views/provider-capacities.tsx";
 
 export const ConsoleApp = ({ place }: { readonly place: ConsolePlace }) => {
 	const { error: fleetError, value: fleet } = useFeed("fleet", watchFleet);
-	const { error: voyagesError, value: voyages } = useFeed(
-		"voyages",
-		watchVoyages,
-	);
+	const { error: voyagesError, value: voyages } = useFeed("voyages", watchVoyages);
 	const [mode, setMode] = useState<ConsoleMode>(place.mode);
 	const [change, setChange] = useState(place.changeId ?? undefined);
 	const [session, setSession] = useState(place.sessionId ?? undefined);
 	const [voyage, setVoyage] = useState(place.voyageId ?? undefined);
 	const [notice, setNotice] = useState<string | undefined>(undefined);
-	const [settings, setSettings] = useState<SettingsReading | undefined>(
-		undefined,
-	);
-	const feedErrors = [fleetError, voyagesError].flatMap((error) =>
-		error === undefined ? [] : [error],
-	);
+	const [settings, setSettings] = useState<SettingsReading | undefined>(undefined);
+	const feedErrors = [fleetError, voyagesError].flatMap((error) => (error === undefined ? [] : [error]));
 
 	useEffect(() => {
 		loadSettings(setSettings, setNotice);
@@ -59,28 +48,15 @@ export const ConsoleApp = ({ place }: { readonly place: ConsolePlace }) => {
 		if (fleet === undefined) {
 			return;
 		}
-		discardMissingSessionDrafts(
-			new Set(
-				fleet.agents.flatMap((agent) => agent.sessions.map((held) => held.id)),
-			),
-		);
+		discardMissingSessionDrafts(new Set(fleet.agents.flatMap((agent) => agent.sessions.map((held) => held.id))));
 	}, [fleet]);
 
 	return (
 		<div className="flex h-screen min-w-0 bg-background text-foreground">
 			<NavRail mode={mode} onMode={setMode} />
 			<main className="flex min-h-0 min-w-0 flex-1 flex-col">
-				<NoticeBar
-					feedErrors={feedErrors}
-					notice={notice}
-					onDismiss={() => setNotice(undefined)}
-				/>
-				{fleet === undefined ? null : (
-					<ProviderCapacities
-						capacities={fleet.capacities}
-						onError={setNotice}
-					/>
-				)}
+				<NoticeBar feedErrors={feedErrors} notice={notice} onDismiss={() => setNotice(undefined)} />
+				{fleet === undefined ? null : <ProviderCapacities capacities={fleet.capacities} onError={setNotice} />}
 				<ConsoleMain
 					change={change}
 					fleet={fleet}

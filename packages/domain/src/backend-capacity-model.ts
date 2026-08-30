@@ -12,9 +12,7 @@ export interface BackendCapacityReading {
 	readonly utilization: number | null;
 }
 
-export class StoredBackendCapacityInvalid extends Data.TaggedError(
-	"StoredBackendCapacityInvalid",
-)<{
+export class StoredBackendCapacityInvalid extends Data.TaggedError("StoredBackendCapacityInvalid")<{
 	readonly backend: string;
 	readonly status: string;
 }> {
@@ -23,13 +21,9 @@ export class StoredBackendCapacityInvalid extends Data.TaggedError(
 	}
 }
 
-const isCapacityStatus = Schema.is(
-	Schema.Literals(["available", "blocked", "warning"]),
-);
+const isCapacityStatus = Schema.is(Schema.Literals(["available", "blocked", "warning"]));
 
-export const defaultCapacityReading = (
-	backend: string,
-): BackendCapacityReading => ({
+export const defaultCapacityReading = (backend: string): BackendCapacityReading => ({
 	backend,
 	detail: null,
 	observedAt: null,
@@ -59,7 +53,5 @@ export const storedCapacityReading = (row: {
 				status,
 				utilization: row.utilization,
 			})
-		: Effect.fail(
-				new StoredBackendCapacityInvalid({ backend: row.backend, status }),
-			);
+		: Effect.fail(new StoredBackendCapacityInvalid({ backend: row.backend, status }));
 };

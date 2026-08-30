@@ -9,13 +9,7 @@ import { Effect } from "effect";
 export const makeAliveAgentCount = Effect.gen(function* () {
 	const db = yield* Database;
 	return db.Agent.all().pipe(
-		Effect.flatMap((agents) =>
-			Effect.forEach(agents, (agent) =>
-				Effect.fromResult(decodeStoredAgentStatus(agent.id, agent.status)),
-			),
-		),
-		Effect.map(
-			(statuses) => statuses.filter((status) => status === "alive").length,
-		),
+		Effect.flatMap((agents) => Effect.forEach(agents, (agent) => Effect.fromResult(decodeStoredAgentStatus(agent.id, agent.status)))),
+		Effect.map((statuses) => statuses.filter((status) => status === "alive").length),
 	);
 });

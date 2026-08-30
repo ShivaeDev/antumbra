@@ -3,20 +3,9 @@ import { SightSource } from "@antumbra/contract";
 import { Database } from "@antumbra/persistence";
 import { expect, it } from "@effect/vitest";
 import { Effect } from "effect";
-import {
-	type ScriptedSweep,
-	SWEEP_REFUSED,
-} from "#test/session-tree-audits.ts";
-import {
-	BRANCH_THREAD,
-	codexRehearsal,
-	ROOT_THREAD,
-} from "#test/session-tree-codex-frames.ts";
-import {
-	acquireTemporaryPersistence,
-	codexRehearsalLayer,
-	eventually,
-} from "#test/session-tree-harness.ts";
+import { type ScriptedSweep, SWEEP_REFUSED } from "#test/session-tree-audits.ts";
+import { BRANCH_THREAD, codexRehearsal, ROOT_THREAD } from "#test/session-tree-codex-frames.ts";
+import { acquireTemporaryPersistence, codexRehearsalLayer, eventually } from "#test/session-tree-harness.ts";
 
 const MISSED_THREAD = "019ff400-5555-7373-a31e-e8a0db309025";
 
@@ -60,30 +49,16 @@ const journal = (sessionId: string) =>
 			.all();
 	});
 
-const rowsOf = (rootSessionId: string) =>
-	Database.use((db) => db.AgentSession.where({ rootSessionId }).all());
+const rowsOf = (rootSessionId: string) => Database.use((db) => db.AgentSession.where({ rootSessionId }).all());
 
-const rehearsal = <A, E, R>(
-	sweep: ScriptedSweep,
-	use: Effect.Effect<A, E, R>,
-) =>
+const rehearsal = <A, E, R>(sweep: ScriptedSweep, use: Effect.Effect<A, E, R>) =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
-		yield* use.pipe(
-			Effect.provide(
-				codexRehearsalLayer(temporary, ROOT_THREAD, codexRehearsal, sweep),
-			),
-		);
+		yield* use.pipe(Effect.provide(codexRehearsalLayer(temporary, ROOT_THREAD, codexRehearsal, sweep)));
 	});
 
 const gapsOn = (sessionId: string) =>
-	journal(sessionId).pipe(
-		Effect.map((rows) =>
-			rows
-				.filter((row) => row.kind === "subsession.gap")
-				.map((row) => row.payload),
-		),
-	);
+	journal(sessionId).pipe(Effect.map((rows) => rows.filter((row) => row.kind === "subsession.gap").map((row) => row.payload)));
 
 it.live("a thread the sweep proves and the record missed is admitted", () =>
 	rehearsal(
@@ -123,9 +98,7 @@ it.live("a thread the sweep proves and the record missed is admitted", () =>
 			// why: a census is taken at every close and reads the same source each
 			// time. One life, one reading, one fact — the same finding is never
 			// written down twice.
-			expect(
-				gaps.filter((said) => said.includes("census-missing")),
-			).toHaveLength(1);
+			expect(gaps.filter((said) => said.includes("census-missing"))).toHaveLength(1);
 		}),
 	),
 );

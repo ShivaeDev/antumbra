@@ -2,14 +2,7 @@ import { acquireTemporaryPersistence } from "@antumbra/persistence/testing";
 import type { AgentEvent } from "@antumbra/vocabulary/session-events";
 import { expect, it } from "@effect/vitest";
 import { Effect, Option } from "effect";
-import {
-	journalOf,
-	scriptedLane,
-	seedAgent,
-	seedSession,
-	sessionRow,
-	treeLayer,
-} from "#test/tree/fixture.ts";
+import { journalOf, scriptedLane, seedAgent, seedSession, sessionRow, treeLayer } from "#test/tree/fixture.ts";
 import { makeSessionTreeAudits } from "#tree/audit.ts";
 
 const AGENT = "agent-audited";
@@ -52,8 +45,7 @@ const rows = Effect.gen(function* () {
 	return { node, root };
 });
 
-const completenessOf = (id: string) =>
-	sessionRow(id).pipe(Effect.map((row) => Option.getOrThrow(row).completeness));
+const completenessOf = (id: string) => sessionRow(id).pipe(Effect.map((row) => Option.getOrThrow(row).completeness));
 
 it.live("a node whose ledger holds nothing reads complete", () =>
 	Effect.gen(function* () {

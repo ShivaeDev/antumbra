@@ -24,10 +24,7 @@ const refuseTakenSlug = (source: string) =>
 		}
 	});
 
-const recoverRepoCreate = (
-	registration: RepoRegistration,
-	failure: PrismaError,
-) =>
+const recoverRepoCreate = (registration: RepoRegistration, failure: PrismaError) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
 		const bySource = db.Repo.where({ source: registration.source });
@@ -63,9 +60,7 @@ export const registerRepo = (registration: RepoRegistration) =>
 		};
 		const stored = yield* db.Repo.create(row).pipe(
 			Effect.as(row),
-			Effect.catchTag("PrismaError", (failure) =>
-				recoverRepoCreate(registration, failure),
-			),
+			Effect.catchTag("PrismaError", (failure) => recoverRepoCreate(registration, failure)),
 		);
 		yield* feeds.publishFleetRefresh();
 		return summarizeRepo(stored);

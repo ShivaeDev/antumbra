@@ -1,8 +1,4 @@
-import {
-	type InvalidSessionExecutionTransition,
-	type SessionExecutionStatus,
-	sessionExecutionTransition,
-} from "@antumbra/vocabulary/agent-runtime";
+import { type InvalidSessionExecutionTransition, type SessionExecutionStatus, sessionExecutionTransition } from "@antumbra/vocabulary/agent-runtime";
 import { Result } from "effect";
 import type { DecodedSession } from "#current/reconcile-rows.ts";
 
@@ -24,25 +20,13 @@ export const planSettlements = (
 	sessions: ReadonlyArray<DecodedSession>,
 	closing: ReadonlySet<string>,
 	attached: ReadonlySet<string>,
-): Result.Result<
-	ReadonlyArray<SessionExecutionSettlement>,
-	InvalidSessionExecutionTransition
-> => {
+): Result.Result<ReadonlyArray<SessionExecutionSettlement>, InvalidSessionExecutionTransition> => {
 	const settled: Array<SessionExecutionSettlement> = [];
 	for (const session of sessions) {
-		if (
-			session.status !== "open" ||
-			session.executionStatus !== "draining" ||
-			closing.has(session.id) ||
-			attached.has(session.id)
-		) {
+		if (session.status !== "open" || session.executionStatus !== "draining" || closing.has(session.id) || attached.has(session.id)) {
 			continue;
 		}
-		const next = sessionExecutionTransition(
-			session.id,
-			session.executionStatus,
-			"settle",
-		);
+		const next = sessionExecutionTransition(session.id, session.executionStatus, "settle");
 		if (Result.isFailure(next)) {
 			return Result.fail(next.failure);
 		}

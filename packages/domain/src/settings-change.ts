@@ -1,10 +1,4 @@
-import {
-	SETTINGS,
-	type SettingChange,
-	type SettingKey,
-	SettingRefused,
-	type SettingValue,
-} from "@antumbra/contract";
+import { SETTINGS, type SettingChange, type SettingKey, SettingRefused, type SettingValue } from "@antumbra/contract";
 import { Database } from "@antumbra/persistence";
 import { Clock, Effect, Option } from "effect";
 import { readSettings } from "#settings-reading.ts";
@@ -33,11 +27,7 @@ const store = (key: SettingKey, value: SettingValue, now: number) =>
 			Effect.catchTag("PrismaError", (failure) =>
 				db.Setting.where({ key })
 					.update({ updatedAt: new Date(now), value: encoded })
-					.pipe(
-						Effect.flatMap((updated) =>
-							updated === null ? Effect.fail(failure) : Effect.void,
-						),
-					),
+					.pipe(Effect.flatMap((updated) => (updated === null ? Effect.fail(failure) : Effect.void))),
 			),
 		);
 	});
@@ -45,10 +35,7 @@ const store = (key: SettingKey, value: SettingValue, now: number) =>
 const accept = (change: SettingChange) => {
 	const declaration = SETTINGS[change.key];
 	return Option.match(declaration.decode(change.value), {
-		onNone: () =>
-			Effect.fail(
-				new SettingRefused({ expects: declaration.expects, key: change.key }),
-			),
+		onNone: () => Effect.fail(new SettingRefused({ expects: declaration.expects, key: change.key })),
 		onSome: (value: SettingValue) => Effect.succeed(value),
 	});
 };

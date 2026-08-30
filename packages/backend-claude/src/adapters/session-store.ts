@@ -12,9 +12,7 @@ import type { MirrorWrite } from "#session-lanes.ts";
 // from its own local copy exactly as it does with no store at all. Claiming to
 // hold one and returning an empty answer would resume the session into silence.
 // listSubkeys and listSessions are absent for the same reason.
-export const mirroringSessionStore = (
-	mirror: (write: MirrorWrite) => void,
-): SessionStore => ({
+export const mirroringSessionStore = (mirror: (write: MirrorWrite) => void): SessionStore => ({
 	append: async (key, entries) => {
 		mirror({ entries, key });
 	},

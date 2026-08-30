@@ -1,7 +1,4 @@
-import {
-	RulingRadiusSchema,
-	RulingUrgencySchema,
-} from "@antumbra/vocabulary/ruling";
+import { RulingRadiusSchema, RulingUrgencySchema } from "@antumbra/vocabulary/ruling";
 import { Schema } from "effect";
 import { defineTool } from "#define.ts";
 
@@ -47,8 +44,7 @@ export const requestRulingSpec = defineTool({
 			}),
 		),
 		question: Schema.String.annotate({
-			description:
-				"The question itself, in whatever shape fits: yes or no, choose one, rank, or free prose.",
+			description: "The question itself, in whatever shape fits: yes or no, choose one, rank, or free prose.",
 		}),
 		radius: Radius,
 		tags: Schema.optional(

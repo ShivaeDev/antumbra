@@ -7,24 +7,12 @@ import { Button } from "#components/ui/button.tsx";
 // own judgment, published as one capability, so the control is withheld rather
 // than shown disabled: a crew still speaking is not something the admiral
 // could do anything about from here.
-export const PieceRetire = ({
-	onError,
-	piece,
-}: {
-	readonly onError: (message: string) => void;
-	readonly piece: PieceView;
-}) => {
+export const PieceRetire = ({ onError, piece }: { readonly onError: (message: string) => void; readonly piece: PieceView }) => {
 	if (!piece.canRetireCrew) {
 		return null;
 	}
 	return (
-		<Button
-			className="self-start"
-			onClick={() => retirePieceCrew(piece.id, onError)}
-			size="sm"
-			type="button"
-			variant="outline"
-		>
+		<Button className="self-start" onClick={() => retirePieceCrew(piece.id, onError)} size="sm" type="button" variant="outline">
 			Retire crew
 		</Button>
 	);

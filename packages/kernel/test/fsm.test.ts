@@ -1,18 +1,8 @@
 import { Result } from "effect";
 import { describe, expect, it } from "vitest";
-import {
-	INTENT_EVENTS,
-	INTENT_STATUSES,
-	type IntentEvent,
-	type IntentStatus,
-	isTerminalIntentStatus,
-	transition,
-} from "#fsm.ts";
+import { INTENT_EVENTS, INTENT_STATUSES, type IntentEvent, type IntentStatus, isTerminalIntentStatus, transition } from "#fsm.ts";
 
-const LEGAL: Record<
-	IntentStatus,
-	Partial<Record<IntentEvent, IntentStatus>>
-> = {
+const LEGAL: Record<IntentStatus, Partial<Record<IntentEvent, IntentStatus>>> = {
 	cancelled: {},
 	cancelling: {
 		fail: "failed",
@@ -62,9 +52,7 @@ describe("intent FSM", () => {
 
 	it("classifies exactly the absorbing statuses as terminal", () => {
 		for (const status of INTENT_STATUSES) {
-			const isAbsorbing = INTENT_EVENTS.every((event) =>
-				Result.isFailure(transition(status, event)),
-			);
+			const isAbsorbing = INTENT_EVENTS.every((event) => Result.isFailure(transition(status, event)));
 			expect(isTerminalIntentStatus(status)).toBe(isAbsorbing);
 		}
 	});

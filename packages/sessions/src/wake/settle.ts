@@ -25,22 +25,10 @@ export const makeSettleWakes = (wake: IntentKind<WakeFields>) =>
 		return (sessionId: string): Effect.Effect<void> =>
 			Effect.gen(function* () {
 				const active = yield* kernel.active(wake);
-				const parked = active.filter(
-					(intent) =>
-						intent.payload.sessionId === sessionId &&
-						intent.status === "waiting",
-				);
+				const parked = active.filter((intent) => intent.payload.sessionId === sessionId && intent.status === "waiting");
 				yield* Effect.forEach(parked, (intent) => push(intent.id), {
 					concurrency: 1,
 					discard: true,
 				});
-			}).pipe(
-				Effect.catchCause((cause) =>
-					Effect.logWarning(
-						"a parked wake could not be settled",
-						{ sessionId },
-						cause,
-					),
-				),
-			);
+			}).pipe(Effect.catchCause((cause) => Effect.logWarning("a parked wake could not be settled", { sessionId }, cause)));
 	});

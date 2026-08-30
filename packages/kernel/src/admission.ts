@@ -26,15 +26,8 @@ const takeSnapshot = Effect.gen(function* () {
 	} satisfies AdmissionSnapshot;
 });
 
-const retryAfter = (
-	blocked: ReadonlyArray<Gate>,
-	snapshot: AdmissionSnapshot,
-): Option.Option<number> => {
-	const waits = blocked.flatMap((gate) =>
-		gate.retryAfterMillis === undefined
-			? []
-			: [gate.retryAfterMillis(snapshot)],
-	);
+const retryAfter = (blocked: ReadonlyArray<Gate>, snapshot: AdmissionSnapshot): Option.Option<number> => {
+	const waits = blocked.flatMap((gate) => (gate.retryAfterMillis === undefined ? [] : [gate.retryAfterMillis(snapshot)]));
 	// why: every blocked gate must reopen before anything is admitted, so the
 	// earliest useful retry is the longest wait; gates without a schedule
 	// reopen on status changes, which tick the loop on their own.
@@ -88,11 +81,7 @@ const drain = Effect.repeat(admitOne, {
 // keep accepting intents and silently stop admitting them. Log the cause and
 // wait for the next tick.
 const guardedDrain = drain.pipe(
-	Effect.catchCause((cause) =>
-		Effect.logError("scheduler drain failed", cause).pipe(
-			Effect.as({ _tag: "empty" } satisfies AdmitOutcome),
-		),
-	),
+	Effect.catchCause((cause) => Effect.logError("scheduler drain failed", cause).pipe(Effect.as({ _tag: "empty" } satisfies AdmitOutcome))),
 );
 
 const patienceMillis = 5000;

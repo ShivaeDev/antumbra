@@ -33,19 +33,15 @@ const PAGES = 200;
 
 const decodeListing = Schema.decodeUnknownOption(ThreadListResponse);
 
-const named = (value: string | null | undefined): string | undefined =>
-	value === null ? undefined : value;
+const named = (value: string | null | undefined): string | undefined => (value === null ? undefined : value);
 
 // why: only `active` is work. `idle` is a child between turns, `notLoaded` is
 // one the server has not even brought into memory, and `systemError` is one
 // that is not speaking on any stream — none of the three can still be producing
 // frames, so none of them is a reason to hold a session away from rest.
-const isWorking = (status: typeof ThreadStatus.Type): boolean =>
-	status.type === "active";
+const isWorking = (status: typeof ThreadStatus.Type): boolean => status.type === "active";
 
-const childrenOf = (
-	listed: typeof ThreadListResponse.Type,
-): ReadonlyArray<SpawnedChild> =>
+const childrenOf = (listed: typeof ThreadListResponse.Type): ReadonlyArray<SpawnedChild> =>
 	listed.data.map((thread) => {
 		const spawn = thread.source.subAgent.thread_spawn;
 		return {
@@ -58,10 +54,7 @@ const childrenOf = (
 		};
 	});
 
-const listed = (
-	found: ReadonlyMap<string, SpawnedChild>,
-	children: ReadonlyArray<SpawnedChild>,
-): ReadonlyMap<string, SpawnedChild> => {
+const listed = (found: ReadonlyMap<string, SpawnedChild>, children: ReadonlyArray<SpawnedChild>): ReadonlyMap<string, SpawnedChild> => {
 	const next = new Map(found);
 	for (const child of children) {
 		next.set(child.threadId, child);
@@ -82,14 +75,10 @@ interface SweepPage {
 // so a thread id is the key rather than the order it arrived in. A cursor that
 // repeats itself is a server that has stopped advancing, and following it again
 // would spin forever on the same page.
-const sweepPage = (
-	page: SweepPage,
-): Effect.Effect<CensusSweep, BackendFailure> =>
+const sweepPage = (page: SweepPage): Effect.Effect<CensusSweep, BackendFailure> =>
 	Effect.gen(function* () {
 		if (page.pagesLeft === 0) {
-			return yield* Effect.fail(
-				codexFailure("its listing of this session's threads never ended"),
-			);
+			return yield* Effect.fail(codexFailure("its listing of this session's threads never ended"));
 		}
 		const response = yield* page.request("thread/list", {
 			ancestorThreadId: page.rootThreadId,
@@ -98,9 +87,7 @@ const sweepPage = (
 		});
 		const decoded = decodeListing(response);
 		if (Option.isNone(decoded)) {
-			return yield* Effect.fail(
-				codexFailure("it answered in a shape this backend cannot read"),
-			);
+			return yield* Effect.fail(codexFailure("it answered in a shape this backend cannot read"));
 		}
 		const found = listed(page.found, childrenOf(decoded.value));
 		const cursor = named(decoded.value.nextCursor);
@@ -120,10 +107,7 @@ const sweepPage = (
 // one reading that has been shown to be complete. It is a read and stays one:
 // nothing here goes near thread/start or thread/resume, because a delegated
 // thread is recorded by listening and never by taking it over.
-export const sweepSpawnedDescendants = (
-	request: Request,
-	rootThreadId: string,
-): Effect.Effect<CensusSweep, BackendFailure> =>
+export const sweepSpawnedDescendants = (request: Request, rootThreadId: string): Effect.Effect<CensusSweep, BackendFailure> =>
 	sweepPage({
 		cursor: undefined,
 		found: new Map(),

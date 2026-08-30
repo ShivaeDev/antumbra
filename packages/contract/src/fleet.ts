@@ -1,14 +1,7 @@
-import {
-	ResourceReclaimStateSchema,
-	SessionPresenceSchema,
-} from "@antumbra/vocabulary/agent-runtime";
+import { ResourceReclaimStateSchema, SessionPresenceSchema } from "@antumbra/vocabulary/agent-runtime";
 import { Schema } from "effect";
 import { SessionSituation } from "#session-situations.ts";
-import {
-	AgentDiagnostics,
-	FleetDiagnostics,
-	SessionDiagnostics,
-} from "#sight-diagnostics.ts";
+import { AgentDiagnostics, FleetDiagnostics, SessionDiagnostics } from "#sight-diagnostics.ts";
 
 // why: what the fleet looks like when it is read — one Session, one Agent, the
 // resources under it, and the whole roster. It is its own file because these

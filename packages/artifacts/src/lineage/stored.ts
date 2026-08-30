@@ -1,8 +1,5 @@
 import { Effect } from "effect";
-import {
-	StoredArtifactLineageInvalid,
-	type StoredArtifactLineageInvalidReason,
-} from "#errors.ts";
+import { StoredArtifactLineageInvalid, type StoredArtifactLineageInvalidReason } from "#errors.ts";
 import type { ArtifactRow } from "#model.ts";
 
 interface StoredArtifactLineage {
@@ -10,11 +7,8 @@ interface StoredArtifactLineage {
 	readonly pieceIds: ReadonlySet<string>;
 }
 
-const invalid = (
-	reason: StoredArtifactLineageInvalidReason,
-	artifactIds: ReadonlyArray<string>,
-	pieceIds: ReadonlyArray<string> = [],
-) => new StoredArtifactLineageInvalid({ artifactIds, pieceIds, reason });
+const invalid = (reason: StoredArtifactLineageInvalidReason, artifactIds: ReadonlyArray<string>, pieceIds: ReadonlyArray<string> = []) =>
+	new StoredArtifactLineageInvalid({ artifactIds, pieceIds, reason });
 
 const validateProvenance = (input: StoredArtifactLineage) =>
 	Effect.gen(function* () {
@@ -39,11 +33,7 @@ const validateTopology = (input: StoredArtifactLineage) =>
 				return yield* invalid("endpoint", [artifact.id, successorId]);
 			}
 			if (artifact.pieceId !== successor.pieceId) {
-				return yield* invalid(
-					"cross_piece",
-					[artifact.id, successor.id],
-					[artifact.pieceId, successor.pieceId],
-				);
+				return yield* invalid("cross_piece", [artifact.id, successor.id], [artifact.pieceId, successor.pieceId]);
 			}
 			if (predecessorByArtifact.has(successor.id)) {
 				return yield* invalid("branch", [artifact.id, successor.id]);

@@ -16,27 +16,15 @@ const Roster = ({
 	readonly selected: string | undefined;
 }) => {
 	if (fleet === undefined) {
-		return (
-			<span className="text-xs text-muted-foreground">taking a sight…</span>
-		);
+		return <span className="text-xs text-muted-foreground">taking a sight…</span>;
 	}
 	if (fleet.agents.length === 0) {
-		return (
-			<span className="text-xs text-muted-foreground">
-				No agents yet — spawn one to put it here
-			</span>
-		);
+		return <span className="text-xs text-muted-foreground">No agents yet — spawn one to put it here</span>;
 	}
 	return (
 		<>
 			{rosterGroups(fleet.agents).map((group) => (
-				<RosterGroupPanel
-					group={group}
-					key={group.standing}
-					onError={onError}
-					onSelect={onSelect}
-					selected={selected}
-				/>
+				<RosterGroupPanel group={group} key={group.standing} onError={onError} onSelect={onSelect} selected={selected} />
 			))}
 		</>
 	);
@@ -56,11 +44,6 @@ export const FleetPanel = ({
 	<section className="flex min-h-0 min-w-0 flex-1 flex-col gap-4 overflow-y-auto p-4">
 		<FleetToolbar fleet={fleet} onError={onError} />
 		{fleet === undefined ? null : <FleetDiagChips diag={fleet.diag} />}
-		<Roster
-			fleet={fleet}
-			onError={onError}
-			onSelect={onSelect}
-			selected={selected}
-		/>
+		<Roster fleet={fleet} onError={onError} onSelect={onSelect} selected={selected} />
 	</section>
 );

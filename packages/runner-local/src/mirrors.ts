@@ -6,10 +6,7 @@ import { pathExists } from "#adapters/fs.ts";
 import { runGit } from "#git-runtime.ts";
 import { mirrorName } from "#naming.ts";
 
-export const ensureMirror = (
-	reposRoot: string,
-	berth: BerthPlan,
-): Effect.Effect<string, RunnerError> =>
+export const ensureMirror = (reposRoot: string, berth: BerthPlan): Effect.Effect<string, RunnerError> =>
 	Effect.gen(function* () {
 		const mirror = join(reposRoot, mirrorName(berth.slug, berth.source));
 		const exists = yield* pathExists(mirror);

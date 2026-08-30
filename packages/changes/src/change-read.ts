@@ -1,9 +1,4 @@
-import {
-	ChangeChecks,
-	ChangeMergeable,
-	ChangeReview,
-	ChangeStage,
-} from "@antumbra/vocabulary/change";
+import { ChangeChecks, ChangeMergeable, ChangeReview, ChangeStage } from "@antumbra/vocabulary/change";
 import { Effect, Schema } from "effect";
 import type { ChangeRow } from "#change-rows.ts";
 import { StoredChangeInvalid } from "#errors.ts";
@@ -18,10 +13,7 @@ const StoredChangeVocabulary = Schema.Struct({
 	stage: ChangeStage,
 });
 
-type StoredChange = Omit<
-	ChangeRow,
-	"checks" | "mergeable" | "review" | "stage"
-> & {
+type StoredChange = Omit<ChangeRow, "checks" | "mergeable" | "review" | "stage"> & {
 	readonly checks: string;
 	readonly mergeable: string;
 	readonly review: string;

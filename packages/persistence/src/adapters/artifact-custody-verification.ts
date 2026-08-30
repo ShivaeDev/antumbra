@@ -1,17 +1,6 @@
 import { createHash } from "node:crypto";
-import {
-	closeSync,
-	constants,
-	fstatSync,
-	openSync,
-	readSync,
-	realpathSync,
-	statSync,
-} from "node:fs";
-import {
-	type LegacyArtifact,
-	resolveLegacyArtifactIdentity,
-} from "#adapters/artifact-custody-identity.ts";
+import { closeSync, constants, fstatSync, openSync, readSync, realpathSync, statSync } from "node:fs";
+import { type LegacyArtifact, resolveLegacyArtifactIdentity } from "#adapters/artifact-custody-identity.ts";
 
 const MAX_BYTES = 1_048_576;
 
@@ -21,8 +10,7 @@ export interface VerifiedArtifact extends LegacyArtifact {
 	readonly digest: string;
 }
 
-export const hashArtifactCustody = (bytes: Uint8Array | string): string =>
-	createHash("sha256").update(bytes).digest("hex");
+export const hashArtifactCustody = (bytes: Uint8Array | string): string => createHash("sha256").update(bytes).digest("hex");
 
 const readBounded = (descriptor: number, size: number): Uint8Array => {
 	const bytes = new Uint8Array(size);
@@ -40,11 +28,7 @@ const readBounded = (descriptor: number, size: number): Uint8Array => {
 	return bytes;
 };
 
-const verifyOpenedLegacy = (
-	descriptor: number,
-	expected: string,
-	digest: string,
-) => {
+const verifyOpenedLegacy = (descriptor: number, expected: string, digest: string) => {
 	const opened = fstatSync(descriptor);
 	if (!opened.isFile()) {
 		throw new Error("CAS object is not a regular file");
@@ -54,21 +38,12 @@ const verifyOpenedLegacy = (
 	}
 	const resolved = realpathSync(expected);
 	const observed = statSync(resolved);
-	if (
-		resolved !== expected ||
-		!observed.isFile() ||
-		opened.dev !== observed.dev ||
-		opened.ino !== observed.ino
-	) {
+	if (resolved !== expected || !observed.isFile() || opened.dev !== observed.dev || opened.ino !== observed.ino) {
 		throw new Error("CAS path was substituted");
 	}
 	const bytes = readBounded(descriptor, opened.size);
 	const final = fstatSync(descriptor);
-	if (
-		final.size !== opened.size ||
-		final.dev !== opened.dev ||
-		final.ino !== opened.ino
-	) {
+	if (final.size !== opened.size || final.dev !== opened.dev || final.ino !== opened.ino) {
 		throw new Error("CAS object changed while being verified");
 	}
 	try {
@@ -82,14 +57,8 @@ const verifyOpenedLegacy = (
 	return bytes.length;
 };
 
-export const verifyLegacyArtifact = (
-	artifact: LegacyArtifact,
-	canonicalRoot: string,
-): VerifiedArtifact => {
-	const { digest, expected, storedBasename } = resolveLegacyArtifactIdentity(
-		artifact,
-		canonicalRoot,
-	);
+export const verifyLegacyArtifact = (artifact: LegacyArtifact, canonicalRoot: string): VerifiedArtifact => {
+	const { digest, expected, storedBasename } = resolveLegacyArtifactIdentity(artifact, canonicalRoot);
 	let descriptor: number;
 	try {
 		descriptor = openSync(expected, constants.O_RDONLY | constants.O_NOFOLLOW);

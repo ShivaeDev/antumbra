@@ -1,8 +1,5 @@
 import { IntentExecution } from "@antumbra/kernel";
-import {
-	type AgentStatus,
-	agentTransition,
-} from "@antumbra/vocabulary/agent-runtime";
+import { type AgentStatus, agentTransition } from "@antumbra/vocabulary/agent-runtime";
 import { Data, Effect, Result } from "effect";
 
 // why: "there is nothing here to resume" is six separate truths, and a resume
@@ -30,14 +27,10 @@ export type UnresumableVerdict = "refuse" | "wait";
 // spawning does — so the verdict is read from the table instead of restated
 // here as a list that could drift from it. A drain settles and a pointer moves;
 // a Session or an Agent that is not on the fleet is not coming back.
-export const unresumableVerdict = (
-	reason: SessionUnresumable,
-): UnresumableVerdict => {
+export const unresumableVerdict = (reason: SessionUnresumable): UnresumableVerdict => {
 	switch (reason._tag) {
 		case "agent-not-alive":
-			return Result.isSuccess(agentTransition(reason.status, "activate"))
-				? "wait"
-				: "refuse";
+			return Result.isSuccess(agentTransition(reason.status, "activate")) ? "wait" : "refuse";
 		case "draining":
 			return "wait";
 		case "no-agent":
@@ -55,10 +48,7 @@ export const unresumableVerdict = (
 	}
 };
 
-export const unresumableDetail = (
-	sessionId: string,
-	reason: SessionUnresumable,
-): string => {
+export const unresumableDetail = (sessionId: string, reason: SessionUnresumable): string => {
 	switch (reason._tag) {
 		case "agent-not-alive":
 			return `Agent ${reason.agentId} is ${reason.status}, and only an alive Agent answers through ${sessionId}`;
@@ -80,9 +70,7 @@ export const unresumableDetail = (
 // why: the refusals are the reasons no amount of waiting reaches, and a refusal
 // that reached the row as a bare stack trace would say less than the silence it
 // replaced. The sentence is the message, so the durable detail reads as one.
-export class SessionUnresumableRefused extends Data.TaggedError(
-	"SessionUnresumableRefused",
-)<{
+export class SessionUnresumableRefused extends Data.TaggedError("SessionUnresumableRefused")<{
 	readonly detail: string;
 	readonly reason: SessionUnresumable["_tag"];
 	readonly sessionId: string;
@@ -92,8 +80,7 @@ export class SessionUnresumableRefused extends Data.TaggedError(
 	}
 }
 
-export const waitFor = (detail: string) =>
-	IntentExecution.use((execution) => execution.wait(detail));
+export const waitFor = (detail: string) => IntentExecution.use((execution) => execution.wait(detail));
 
 // why: nothing to resume is never nothing to say. The reason decides between
 // parking the Intent where a later act can pick it up and refusing it

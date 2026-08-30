@@ -10,9 +10,7 @@ export type SessionInputInvalidReason =
 	| "too_many_images"
 	| "unsupported_media";
 
-export class SessionInputInvalid extends Data.TaggedError(
-	"SessionInputInvalid",
-)<{
+export class SessionInputInvalid extends Data.TaggedError("SessionInputInvalid")<{
 	readonly detail: string;
 	readonly reason: SessionInputInvalidReason;
 }> {
@@ -21,9 +19,7 @@ export class SessionInputInvalid extends Data.TaggedError(
 	}
 }
 
-export class SessionInputConflict extends Data.TaggedError(
-	"SessionInputConflict",
-)<{
+export class SessionInputConflict extends Data.TaggedError("SessionInputConflict")<{
 	readonly inputId: string;
 }> {
 	override get message(): string {
@@ -31,9 +27,7 @@ export class SessionInputConflict extends Data.TaggedError(
 	}
 }
 
-export class SessionInputNotFound extends Data.TaggedError(
-	"SessionInputNotFound",
-)<{
+export class SessionInputNotFound extends Data.TaggedError("SessionInputNotFound")<{
 	readonly inputId: string;
 }> {
 	override get message(): string {
@@ -41,9 +35,7 @@ export class SessionInputNotFound extends Data.TaggedError(
 	}
 }
 
-export class SessionInputCustodyFailed extends Data.TaggedError(
-	"SessionInputCustodyFailed",
-)<{
+export class SessionInputCustodyFailed extends Data.TaggedError("SessionInputCustodyFailed")<{
 	readonly detail: string;
 }> {
 	override get message(): string {
@@ -51,9 +43,7 @@ export class SessionInputCustodyFailed extends Data.TaggedError(
 	}
 }
 
-export class StoredSessionInputInvalid extends Data.TaggedError(
-	"StoredSessionInputInvalid",
-)<{
+export class StoredSessionInputInvalid extends Data.TaggedError("StoredSessionInputInvalid")<{
 	readonly detail: string;
 	readonly inputId: string;
 }> {

@@ -3,10 +3,7 @@ import { expect, it } from "@effect/vitest";
 import { Effect, Option } from "effect";
 import { AgentDomain } from "#domain.ts";
 import { domainKernelLayer } from "#test/domain-layers.ts";
-import {
-	acquireTemporaryPersistence,
-	makeScriptedBackend,
-} from "#test/harness.ts";
+import { acquireTemporaryPersistence, makeScriptedBackend } from "#test/harness.ts";
 import { openReefVoyage, stateOf } from "#test/voyage-fixtures.ts";
 
 const STRANDED = "agent-stranded";
@@ -42,11 +39,7 @@ it.live("a boot frees a Piece its Agent can no longer work", () =>
 						id: STRANDED,
 						role: "hand",
 						status: "alive",
-					}).pipe(
-						Effect.andThen(
-							db.PieceAgent.create({ agentId: STRANDED, pieceId: piece.id }),
-						),
-					),
+					}).pipe(Effect.andThen(db.PieceAgent.create({ agentId: STRANDED, pieceId: piece.id }))),
 				),
 			);
 			expect(yield* stateOf(voyage.id, piece.id)).toBe("active");
@@ -55,9 +48,7 @@ it.live("a boot frees a Piece its Agent can no longer work", () =>
 
 		yield* Effect.gen(function* () {
 			const db = yield* Database;
-			const agent = Option.getOrThrow(
-				yield* db.Agent.where({ id: STRANDED }).first(),
-			);
+			const agent = Option.getOrThrow(yield* db.Agent.where({ id: STRANDED }).first());
 			expect(agent.status).toBe("dormant");
 			expect(agent.currentSessionId).toBe(null);
 			expect(yield* stateOf(held.voyageId, held.pieceId)).toBe("ready");

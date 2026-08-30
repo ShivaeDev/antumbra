@@ -19,27 +19,16 @@ interface Held {
 	readonly stirrings: number;
 }
 
-export const turnMarkOf = (
-	entry: Held | undefined,
-): SessionTurnMark | undefined =>
-	entry === undefined
-		? undefined
-		: { acquisition: entry.acquisition, stirrings: entry.stirrings };
+export const turnMarkOf = (entry: Held | undefined): SessionTurnMark | undefined =>
+	entry === undefined ? undefined : { acquisition: entry.acquisition, stirrings: entry.stirrings };
 
 // why: an ending is refused only when something has taken the Session since the
 // pump last looked — words that began another turn, or another attachment
 // altogether. An ending the pump took no reading for cannot have been overtaken
 // by anything, because it is the first thing this acquisition said.
-export const turnEndingOf = (
-	entry: Held | undefined,
-	mark: SessionTurnMark | undefined,
-): SessionTurnEnding => {
+export const turnEndingOf = (entry: Held | undefined, mark: SessionTurnMark | undefined): SessionTurnEnding => {
 	if (entry === undefined) {
 		return "stranded";
 	}
-	return mark !== undefined &&
-		(entry.acquisition !== mark.acquisition ||
-			entry.stirrings !== mark.stirrings)
-		? "overtaken"
-		: "rested";
+	return mark !== undefined && (entry.acquisition !== mark.acquisition || entry.stirrings !== mark.stirrings) ? "overtaken" : "rested";
 };

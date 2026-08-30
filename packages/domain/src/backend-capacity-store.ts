@@ -1,37 +1,15 @@
 import { Database, type PrismaError } from "@antumbra/persistence";
 import type { BackendCapacityObservation } from "@antumbra/plugin-api";
 import { Clock, Effect, Option, Semaphore } from "effect";
-import {
-	type BackendCapacityReading,
-	type StoredBackendCapacityInvalid,
-	storedCapacityReading,
-} from "#backend-capacity-model.ts";
-import {
-	availableCapacityValues,
-	capacityObservationValues,
-	ignoreCapacityObservation,
-} from "#backend-capacity-write.ts";
+import { type BackendCapacityReading, type StoredBackendCapacityInvalid, storedCapacityReading } from "#backend-capacity-model.ts";
+import { availableCapacityValues, capacityObservationValues, ignoreCapacityObservation } from "#backend-capacity-write.ts";
 
 export interface BackendCapacityStore {
-	readonly clear: (
-		backend: string,
-		observedAt: number,
-	) => Effect.Effect<void, PrismaError>;
-	readonly observe: (
-		backend: string,
-		observation: BackendCapacityObservation,
-	) => Effect.Effect<void, PrismaError>;
-	readonly read: (
-		backend: string,
-	) => Effect.Effect<
-		Option.Option<BackendCapacityReading>,
-		PrismaError | StoredBackendCapacityInvalid
-	>;
+	readonly clear: (backend: string, observedAt: number) => Effect.Effect<void, PrismaError>;
+	readonly observe: (backend: string, observation: BackendCapacityObservation) => Effect.Effect<void, PrismaError>;
+	readonly read: (backend: string) => Effect.Effect<Option.Option<BackendCapacityReading>, PrismaError | StoredBackendCapacityInvalid>;
 	readonly storedBackends: Effect.Effect<ReadonlySet<string>, PrismaError>;
-	readonly seedHistory: (
-		backend: string,
-		observation: Option.Option<BackendCapacityObservation>,
-	) => Effect.Effect<void, PrismaError>;
+	readonly seedHistory: (backend: string, observation: Option.Option<BackendCapacityObservation>) => Effect.Effect<void, PrismaError>;
 }
 
 export const makeBackendCapacityStore = Effect.gen(function* () {
@@ -44,10 +22,7 @@ export const makeBackendCapacityStore = Effect.gen(function* () {
 				if (ignoreCapacityObservation(current, observation)) {
 					return;
 				}
-				const values = capacityObservationValues(
-					observation,
-					new Date(yield* Clock.currentTimeMillis),
-				);
+				const values = capacityObservationValues(observation, new Date(yield* Clock.currentTimeMillis));
 				if (Option.isNone(current)) {
 					yield* db.BackendCapacity.create({ backend, ...values });
 					return;
@@ -73,15 +48,10 @@ export const makeBackendCapacityStore = Effect.gen(function* () {
 				if (existing.value.observedAt.getTime() > observedAt) {
 					return;
 				}
-				yield* db.BackendCapacity.where({ backend }).update(
-					availableCapacityValues(at, at),
-				);
+				yield* db.BackendCapacity.where({ backend }).update(availableCapacityValues(at, at));
 			}),
 		);
-	const seedHistory = (
-		backend: string,
-		observation: Option.Option<BackendCapacityObservation>,
-	) =>
+	const seedHistory = (backend: string, observation: Option.Option<BackendCapacityObservation>) =>
 		writes.withPermit(
 			Effect.gen(function* () {
 				const existing = yield* db.BackendCapacity.where({ backend }).first();
@@ -103,14 +73,9 @@ export const makeBackendCapacityStore = Effect.gen(function* () {
 		observe,
 		read: (backend: string) =>
 			Effect.flatMap(db.BackendCapacity.where({ backend }).first(), (row) =>
-				Option.isSome(row)
-					? Effect.map(storedCapacityReading(row.value), Option.some)
-					: Effect.succeed(Option.none()),
+				Option.isSome(row) ? Effect.map(storedCapacityReading(row.value), Option.some) : Effect.succeed(Option.none()),
 			),
-		storedBackends: Effect.map(
-			db.BackendCapacity.all(),
-			(rows) => new Set(rows.map((row) => row.backend)),
-		),
+		storedBackends: Effect.map(db.BackendCapacity.all(), (rows) => new Set(rows.map((row) => row.backend))),
 		seedHistory,
 	} satisfies BackendCapacityStore;
 });

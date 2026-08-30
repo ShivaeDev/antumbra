@@ -31,21 +31,15 @@ const SchemaFile = Schema.Struct({
 	oneOf: Schema.optional(Schema.Array(Variant)),
 });
 export type SchemaFile = typeof SchemaFile.Type;
-const decodeSchemaFile = Schema.decodeUnknownSync(
-	Schema.fromJsonString(SchemaFile),
-);
+const decodeSchemaFile = Schema.decodeUnknownSync(Schema.fromJsonString(SchemaFile));
 const ResponseFile = Schema.Struct({
 	required: Schema.Array(Schema.String),
 });
-const decodeResponseFile = Schema.decodeUnknownSync(
-	Schema.fromJsonString(ResponseFile),
-);
-const read = (name: string): string =>
-	readFileSync(new URL(`../src/schema/${name}`, import.meta.url), "utf8");
+const decodeResponseFile = Schema.decodeUnknownSync(Schema.fromJsonString(ResponseFile));
+const read = (name: string): string => readFileSync(new URL(`../src/schema/${name}`, import.meta.url), "utf8");
 
 const load = (name: string): SchemaFile => decodeSchemaFile(read(name));
-const loadResponse = (name: string): typeof ResponseFile.Type =>
-	decodeResponseFile(read(name));
+const loadResponse = (name: string): typeof ResponseFile.Type => decodeResponseFile(read(name));
 
 export const bundle = load("codex_app_server_protocol.v2.schemas.json");
 export const serverRequests = load("ServerRequest.json");
@@ -65,9 +59,7 @@ export const enumOf = (name: string): ReadonlyArray<string> => {
 	return values ?? [];
 };
 
-export const literalsOf = (schema: {
-	readonly ast: unknown;
-}): ReadonlyArray<string> =>
+export const literalsOf = (schema: { readonly ast: unknown }): ReadonlyArray<string> =>
 	JSON.stringify(schema.ast)
 		.match(/"literal":"([^"]+)"/g)
 		?.map((hit) => hit.slice('"literal":"'.length, -1)) ?? [];

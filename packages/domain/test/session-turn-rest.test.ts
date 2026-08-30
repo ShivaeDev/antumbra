@@ -3,13 +3,7 @@ import { Kernel } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
 import { expect, it } from "@effect/vitest";
 import { Effect } from "effect";
-import {
-	acquireTemporaryPersistence,
-	callTool,
-	makeScriptedBackend,
-	rawOf,
-	type ScriptedSession,
-} from "#test/harness.ts";
+import { acquireTemporaryPersistence, callTool, makeScriptedBackend, rawOf, type ScriptedSession } from "#test/harness.ts";
 import {
 	DEFAULT_IDLE_SIESTA_AFTER_MILLIS,
 	HAND,
@@ -224,9 +218,7 @@ it.live("the tree still holds back rest after the root's turn ends", () =>
 			yield* passedAt(DEFAULT_IDLE_SIESTA_AFTER_MILLIS + 60_000);
 			const demanded = yield* siestaIntents;
 			expect(demanded).toHaveLength(1);
-			expect(yield* untilTerminal(kernel.changes(demanded[0]?.id ?? ""))).toBe(
-				"succeeded",
-			);
+			expect(yield* untilTerminal(kernel.changes(demanded[0]?.id ?? ""))).toBe("succeeded");
 			expect(yield* live.closed).toBe(true);
 		}).pipe(Effect.provide(sightLayer(temporary, scripted)));
 	}),

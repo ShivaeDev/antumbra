@@ -3,16 +3,11 @@ import type { FoldedItem } from "#transcript/fold.ts";
 import type { TranscriptNotice } from "#transcript/model.ts";
 import { TranscriptDelegationMark } from "#views/transcript-delegation.tsx";
 import { TranscriptGutter } from "#views/transcript-gutter.tsx";
-import {
-	TranscriptMessage,
-	TranscriptThought,
-} from "#views/transcript-message.tsx";
+import { TranscriptMessage, TranscriptThought } from "#views/transcript-message.tsx";
 import { TranscriptRaw } from "#views/transcript-raw.tsx";
 import { TranscriptTool } from "#views/transcript-tool.tsx";
 import { TranscriptToolRunRow } from "#views/transcript-tool-run.tsx";
 
-// why: telemetry is not something anyone said. It reads as the rule between
-// two stretches of narration rather than as another entry in the column.
 const Telemetry = ({ label }: { readonly label: string }) => (
 	<div className="flex items-center gap-2 py-1">
 		<Separator className="flex-1" />
@@ -21,15 +16,10 @@ const Telemetry = ({ label }: { readonly label: string }) => (
 	</div>
 );
 
-// why: a gap says what this record did not see. It is set in the same muted
-// register as the rest of the margin, because nothing here broke and colouring
-// it would send the reader hunting for a fault.
 const Notice = ({ item }: { readonly item: TranscriptNotice }) => (
 	<div className="min-w-0 text-2xs text-muted-foreground">
 		<p>{item.title}</p>
-		{item.detail === undefined ? null : (
-			<p className="text-muted-foreground/80">{item.detail}</p>
-		)}
+		{item.detail === undefined ? null : <p className="text-muted-foreground/80">{item.detail}</p>}
 	</div>
 );
 

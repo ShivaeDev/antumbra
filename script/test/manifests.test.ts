@@ -25,9 +25,7 @@ describe("manifest rules", () => {
 	});
 
 	it("flags a ranged catalog entry", () => {
-		const violations = manifestViolations(
-			inventoryOf({ workspaceCatalog: "catalog:\n  effect: ^4.0.0\n" }),
-		);
+		const violations = manifestViolations(inventoryOf({ workspaceCatalog: "catalog:\n  effect: ^4.0.0\n" }));
 		expect(violations[0]?.rule).toBe("manifests/exact-catalog-version");
 		expect(violations[0]?.message).toContain("not an exact version");
 	});
@@ -46,8 +44,7 @@ describe("manifest rules", () => {
 			manifestViolations(
 				inventoryOf({
 					manifests: cleanManifests,
-					workspaceCatalog:
-						'catalog:\n  "@biomejs/biome": 2.5.1\n  effect: 4.0.0-beta.102\n  typescript: npm:@typescript/typescript6@6.0.2\n',
+					workspaceCatalog: 'catalog:\n  "@biomejs/biome": 2.5.1\n  effect: 4.0.0-beta.102\n  typescript: npm:@typescript/typescript6@6.0.2\n',
 				}),
 			),
 		).toEqual([]);
@@ -57,17 +54,14 @@ describe("manifest rules", () => {
 		expect(
 			manifestViolations(
 				inventoryOf({
-					workspaceCatalog:
-						"catalog:\n  effect: 4.0.0\noverrides:\n  semver: ^7\n",
+					workspaceCatalog: "catalog:\n  effect: 4.0.0\noverrides:\n  semver: ^7\n",
 				}),
 			),
 		).toEqual([]);
 	});
 
 	it("flags a manifest that is not readable JSON", () => {
-		const violations = manifestViolations(
-			inventoryOf({ manifests: [{ path: "package.json", raw: "{oops" }] }),
-		);
+		const violations = manifestViolations(inventoryOf({ manifests: [{ path: "package.json", raw: "{oops" }] }));
 		expect(violations[0]?.rule).toBe("manifests/unreadable");
 	});
 

@@ -4,9 +4,7 @@ import { SessionInputCustodyFailed } from "#errors.ts";
 
 const EDGE = 1024;
 
-export const transcriptThumbnail = (
-	bytes: Uint8Array,
-): Effect.Effect<Uint8Array, SessionInputCustodyFailed> =>
+export const transcriptThumbnail = (bytes: Uint8Array): Effect.Effect<Uint8Array, SessionInputCustodyFailed> =>
 	Effect.tryPromise({
 		catch: (_cause) =>
 			new SessionInputCustodyFailed({

@@ -5,23 +5,10 @@ import type { VoyageWorld } from "#voyage-rows.ts";
 
 export type VoyageState = "quiet" | "underWay";
 
-export const piecesOfVoyage = (
-	world: VoyageWorld,
-	voyageId: string,
-): ReadonlyArray<string> =>
-	world.memberships
-		.filter((membership) => membership.voyageId === voyageId)
-		.map((membership) => membership.pieceId);
+export const piecesOfVoyage = (world: VoyageWorld, voyageId: string): ReadonlyArray<string> =>
+	world.memberships.filter((membership) => membership.voyageId === voyageId).map((membership) => membership.pieceId);
 
-export const voyageState = (
-	world: VoyageWorld,
-	states: ReadonlyMap<string, PieceState>,
-	voyageId: string,
-): VoyageState => {
-	const working = piecesOfVoyage(world, voyageId).some(
-		(pieceId) => states.get(pieceId) === "active",
-	);
-	return working || Option.isSome(captainAtWork(world, voyageId))
-		? "underWay"
-		: "quiet";
+export const voyageState = (world: VoyageWorld, states: ReadonlyMap<string, PieceState>, voyageId: string): VoyageState => {
+	const working = piecesOfVoyage(world, voyageId).some((pieceId) => states.get(pieceId) === "active");
+	return working || Option.isSome(captainAtWork(world, voyageId)) ? "underWay" : "quiet";
 };

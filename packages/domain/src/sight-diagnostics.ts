@@ -7,11 +7,7 @@ export interface IntentAttribution {
 	readonly sessions: ReadonlyMap<string, ReadonlyArray<IntentDiagnostic>>;
 }
 
-const append = (
-	into: Map<string, ReadonlyArray<IntentDiagnostic>>,
-	key: string,
-	mark: IntentDiagnostic,
-): void => {
+const append = (into: Map<string, ReadonlyArray<IntentDiagnostic>>, key: string, mark: IntentDiagnostic): void => {
 	into.set(key, [...(into.get(key) ?? []), mark]);
 };
 

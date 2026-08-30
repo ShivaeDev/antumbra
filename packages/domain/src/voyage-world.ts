@@ -1,18 +1,7 @@
-import {
-	type StoredArtifactLineageInvalid,
-	validateStoredArtifactLineage,
-} from "@antumbra/artifacts";
-import {
-	Changes,
-	type StoredChangeInvalid,
-	type StoredChangeVerdictInvalid,
-	type StoredPieceChangeInvalid,
-} from "@antumbra/changes";
+import { type StoredArtifactLineageInvalid, validateStoredArtifactLineage } from "@antumbra/artifacts";
+import { Changes, type StoredChangeInvalid, type StoredChangeVerdictInvalid, type StoredPieceChangeInvalid } from "@antumbra/changes";
 import { Database, type PrismaError } from "@antumbra/persistence";
-import {
-	readPieceVerdicts,
-	type StoredPieceVerdictInvalid,
-} from "@antumbra/pieces";
+import { readPieceVerdicts, type StoredPieceVerdictInvalid } from "@antumbra/pieces";
 import { Rulings } from "@antumbra/rulings";
 import {
 	decodeStoredAgentStatus,
@@ -22,13 +11,7 @@ import {
 } from "@antumbra/vocabulary/agent-runtime";
 import type { StoredVoyageKindInvalid } from "@antumbra/vocabulary/voyage";
 import { Context, Effect, Layer } from "effect";
-import {
-	artifactRow,
-	byId,
-	pieceRow,
-	repoRow,
-	reportRow,
-} from "#voyage-row-projection.ts";
+import { artifactRow, byId, pieceRow, repoRow, reportRow } from "#voyage-row-projection.ts";
 import type { VoyageWorld } from "#voyage-rows.ts";
 import { readRootSessions, readVoyages } from "#voyage-world-reads.ts";
 
@@ -54,38 +37,27 @@ export class VoyageWorldSource extends Context.Service<
 const voyageWorld: Effect.Effect<
 	VoyageWorld,
 	VoyageWorldReadFailure,
-	| Changes
-	| Context.Service.Identifier<typeof Database>
-	| Context.Service.Identifier<typeof Rulings>
+	Changes | Context.Service.Identifier<typeof Database> | Context.Service.Identifier<typeof Rulings>
 > = Effect.gen(function* () {
 	const changeSnapshot = yield* Changes;
 	const db = yield* Database;
 	const rulings = yield* Rulings;
 	// why: read in the order they were born, so the map that carries them
 	// keeps that order and the most recent of any set is its last entry.
-	const agents = yield* db.Agent.orderBy((agent) =>
-		agent.createdAt.asc(),
-	).all();
+	const agents = yield* db.Agent.orderBy((agent) => agent.createdAt.asc()).all();
 	const agentStatuses = yield* Effect.forEach(agents, (agent) =>
-		Effect.fromResult(decodeStoredAgentStatus(agent.id, agent.status)).pipe(
-			Effect.map((status) => [agent.id, status] as const),
-		),
+		Effect.fromResult(decodeStoredAgentStatus(agent.id, agent.status)).pipe(Effect.map((status) => [agent.id, status] as const)),
 	);
-	const { changes, dismissedChangeIds, pieceChanges } =
-		yield* changeSnapshot.snapshot;
+	const { changes, dismissedChangeIds, pieceChanges } = yield* changeSnapshot.snapshot;
 	const artifacts = (yield* db.Artifact.all()).map(artifactRow);
-	const pieces = (yield* db.Piece.orderBy((piece) =>
-		piece.createdAt.asc(),
-	).all()).map(pieceRow);
+	const pieces = (yield* db.Piece.orderBy((piece) => piece.createdAt.asc()).all()).map(pieceRow);
 	yield* validateStoredArtifactLineage({
 		artifacts,
 		pieceIds: new Set(pieces.map((piece) => piece.id)),
 	});
 	return {
 		agentStatus: new Map(agentStatuses),
-		currentSessionByAgent: new Map(
-			agents.map((agent) => [agent.id, agent.currentSessionId] as const),
-		),
+		currentSessionByAgent: new Map(agents.map((agent) => [agent.id, agent.currentSessionId] as const)),
 		artifacts: byId(artifacts),
 		assignments: yield* db.PieceAgent.all(),
 		changes,

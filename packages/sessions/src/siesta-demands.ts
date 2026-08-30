@@ -38,18 +38,9 @@ const siestaDemands = Effect.gen(function* () {
 	const attached = yield* fabric.attached();
 	// why: the clock is read once per pass, so every Session in it is judged
 	// against the same moment.
-	const overdue = idleSessionsPastThreshold(
-		yield* fabric.idleSince(),
-		yield* Clock.currentTimeMillis,
-		chosen.idleSiestaMinutes * MILLIS_PER_MINUTE,
-	);
+	const overdue = idleSessionsPastThreshold(yield* fabric.idleSince(), yield* Clock.currentTimeMillis, chosen.idleSiestaMinutes * MILLIS_PER_MINUTE);
 	const agents = yield* db.Agent.all();
-	const agentStatuses = new Map(
-		agents.map(
-			(agent) =>
-				[agent.id, decodeStoredAgentStatus(agent.id, agent.status)] as const,
-		),
-	);
+	const agentStatuses = new Map(agents.map((agent) => [agent.id, decodeStoredAgentStatus(agent.id, agent.status)] as const));
 	const sessions = yield* db.AgentSession.where(rootSessions).all();
 	const siesta: Array<SiestaFields> = [];
 	for (const session of sessions) {
@@ -58,22 +49,13 @@ const siestaDemands = Effect.gen(function* () {
 		// why: a row the vocabulary cannot read is left alone rather than acted
 		// on. The projection that publishes it refuses out loud already, and a
 		// sweep is the wrong place to learn what a word means.
-		if (
-			Result.isFailure(status) ||
-			(agentStatus !== undefined && Result.isFailure(agentStatus))
-		) {
+		if (Result.isFailure(status) || (agentStatus !== undefined && Result.isFailure(agentStatus))) {
 			continue;
 		}
-		if (
-			agentStatus === undefined ||
-			agentStatus.success !== "alive" ||
-			status.success !== "open"
-		) {
+		if (agentStatus === undefined || agentStatus.success !== "alive" || status.success !== "open") {
 			continue;
 		}
-		const executionStatus = yield* Effect.fromResult(
-			decodeSessionExecutionStatus(session.id, session.executionStatus),
-		);
+		const executionStatus = yield* Effect.fromResult(decodeSessionExecutionStatus(session.id, session.executionStatus));
 		// why: an idle Session held past the threshold is put to siesta by the
 		// system on this pass — the same reconciliation that finishes an
 		// interrupted drain, because both are the same question asked of the
@@ -91,10 +73,7 @@ const siestaDemands = Effect.gen(function* () {
 				open: true,
 			}),
 		});
-		if (
-			executionStatus === "draining" ||
-			(overdue.has(session.id) && restful)
-		) {
+		if (executionStatus === "draining" || (overdue.has(session.id) && restful)) {
 			siesta.push({ sessionId: session.id });
 		}
 	}

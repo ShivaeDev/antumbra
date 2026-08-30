@@ -25,15 +25,9 @@ export interface SessionRecoveryContext {
 export const makeSessionRecoveryContext = Effect.gen(function* () {
 	const db = yield* Database;
 	const state = yield* makeSessionRecoveryState;
-	const oneAssignment = (
-		kind: "Piece" | "Voyage",
-		sessionId: string,
-		ids: ReadonlyArray<string>,
-	) => {
+	const oneAssignment = (kind: "Piece" | "Voyage", sessionId: string, ids: ReadonlyArray<string>) => {
 		if (ids.length > 1) {
-			return Effect.fail(
-				recoveryHeld(`${sessionId} has ambiguous current ${kind} authority`),
-			);
+			return Effect.fail(recoveryHeld(`${sessionId} has ambiguous current ${kind} authority`));
 		}
 		return Effect.succeed(Option.fromUndefinedOr(ids[0]));
 	};
@@ -67,9 +61,7 @@ export const makeSessionRecoveryContext = Effect.gen(function* () {
 			}
 			yield* state.ensureResources(row.agentId, row.cwd, sessionId);
 			if (row.nativeRef === null) {
-				return yield* recoveryHeld(
-					`${sessionId} has no provider-native reference`,
-				);
+				return yield* recoveryHeld(`${sessionId} has no provider-native reference`);
 			}
 			const authority = yield* authorityFor(row.agentId, sessionId);
 			return Result.succeed<SessionRecoveryContext>({

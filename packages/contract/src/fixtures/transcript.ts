@@ -59,8 +59,7 @@ export const storedEvents: ReadonlyArray<SessionEvent> = [
 	}),
 	known(4, {
 		ok: true,
-		output:
-			"packages/renderer/src/quay/groups.ts:14\npackages/renderer/src/quay/groups.ts:31\n2 files matched",
+		output: "packages/renderer/src/quay/groups.ts:14\npackages/renderer/src/quay/groups.ts:31\n2 files matched",
 		raw: raw("tool_result", '{"toolId":"tool-1"}'),
 		toolId: "tool-1",
 		type: "tool.completed",

@@ -42,9 +42,7 @@ const writePassUp = (input: RulingPassUpInput, at: Date) =>
 // it knows beside the asker's declaration, so the question climbs richer than
 // it arrived and the record says who sent it on. Only the rung the question is
 // owed to may move it: one that already climbed past is no longer its to send.
-export const passUp = Effect.fn("rulings.passUp")(function* (
-	input: RulingPassUpInput,
-) {
+export const passUp = Effect.fn("rulings.passUp")(function* (input: RulingPassUpInput) {
 	const db = yield* Database;
 	const feeds = yield* DomainFeeds;
 	const now = yield* Clock.currentTimeMillis;

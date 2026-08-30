@@ -19,8 +19,10 @@ export interface TranscriptTool {
 	readonly kind: "tool";
 	readonly name: string;
 	readonly ok: boolean | undefined;
+	readonly providerName?: string;
 	readonly result: string | undefined;
 	readonly seq: number;
+	readonly servedBy?: "antumbra";
 }
 interface TranscriptTelemetry {
 	readonly kind: "telemetry";

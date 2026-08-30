@@ -120,7 +120,9 @@ describe("codex notifications map onto the neutral vocabulary", () => {
 			tool: "search",
 			type: "mcpToolCall",
 		};
-		expect(toAgentEvents(item("item/started", mcp))).toMatchObject([{ input: '{"q":1}', name: "srv/search", type: "tool.started" }]);
+		expect(toAgentEvents(item("item/started", mcp))).toMatchObject([
+			{ input: '{"q":1}', name: "srv: search", providerName: "srv/search", type: "tool.started" },
+		]);
 		expect(toAgentEvents(item("item/completed", mcp))).toMatchObject([{ ok: false, output: '{"message":"boom"}', type: "tool.completed" }]);
 	});
 
@@ -140,6 +142,7 @@ describe("codex notifications map onto the neutral vocabulary", () => {
 			{
 				input: '{"body":"ok","title":"spike"}',
 				name: "land_report",
+				servedBy: "antumbra",
 				toolId: "exec-6f4d21ae",
 				type: "tool.started",
 			},

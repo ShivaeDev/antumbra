@@ -25,29 +25,16 @@ import { makeSituationDraft } from "#situation-draft.ts";
 export interface SightActs {
 	readonly forgetRepo: (repoId: string) => Effect.Effect<void, SightFailure>;
 	readonly interrupt: (sessionId: string) => Effect.Effect<void, SightFailure>;
-	readonly registerRepo: (
-		registration: RepoRegistration,
-	) => Effect.Effect<RepoSummary, SightFailure>;
+	readonly registerRepo: (registration: RepoRegistration) => Effect.Effect<RepoSummary, SightFailure>;
 	readonly retryBackend: (backend: string) => Effect.Effect<void, SightFailure>;
 	readonly retire: (agentId: string) => Effect.Effect<void, SightFailure>;
 	readonly retireCrew: (pieceId: string) => Effect.Effect<void, SightFailure>;
-	readonly send: (
-		sessionId: string,
-		text: string,
-	) => Effect.Effect<void, SightFailure>;
-	readonly sendInput: (
-		request: SessionInputRequest,
-	) => Effect.Effect<SessionInputReceipt, SightFailure>;
-	readonly sessionImage: (
-		request: SessionImageRequest,
-	) => Effect.Effect<SessionImage, SightFailure>;
-	readonly situationDraft: (
-		draft: SituationDraft,
-	) => Effect.Effect<string, SightFailure>;
+	readonly send: (sessionId: string, text: string) => Effect.Effect<void, SightFailure>;
+	readonly sendInput: (request: SessionInputRequest) => Effect.Effect<SessionInputReceipt, SightFailure>;
+	readonly sessionImage: (request: SessionImageRequest) => Effect.Effect<SessionImage, SightFailure>;
+	readonly situationDraft: (draft: SituationDraft) => Effect.Effect<string, SightFailure>;
 	readonly sleep: (sessionId: string) => Effect.Effect<void, SightFailure>;
-	readonly spawn: (
-		request: SpawnRequest,
-	) => Effect.Effect<SpawnReceipt, SightFailure>;
+	readonly spawn: (request: SpawnRequest) => Effect.Effect<SpawnReceipt, SightFailure>;
 }
 
 export const makeSightActs = Effect.gen(function* () {
@@ -59,18 +46,11 @@ export const makeSightActs = Effect.gen(function* () {
 	const retryBackend = yield* makeRetryBackendCapacity;
 
 	return {
-		forgetRepo: (repoId) =>
-			domain.repos.forget(repoId).pipe(Effect.mapError(toFailure)),
-		interrupt: (sessionId) =>
-			domain.interruptSession(sessionId).pipe(Effect.mapError(toFailure)),
-		registerRepo: (registration) =>
-			domain.repos.register(registration).pipe(Effect.mapError(toFailure)),
-		retryBackend: (backend) =>
-			retryBackend(backend).pipe(Effect.mapError(toFailure)),
-		retire: (agentId) =>
-			kernel
-				.submit(domain.retire, { agentId })
-				.pipe(Effect.asVoid, Effect.mapError(toFailure)),
+		forgetRepo: (repoId) => domain.repos.forget(repoId).pipe(Effect.mapError(toFailure)),
+		interrupt: (sessionId) => domain.interruptSession(sessionId).pipe(Effect.mapError(toFailure)),
+		registerRepo: (registration) => domain.repos.register(registration).pipe(Effect.mapError(toFailure)),
+		retryBackend: (backend) => retryBackend(backend).pipe(Effect.mapError(toFailure)),
+		retire: (agentId) => kernel.submit(domain.retire, { agentId }).pipe(Effect.asVoid, Effect.mapError(toFailure)),
 		retireCrew: (pieceId) =>
 			retirePieceCrew(domain.retire, pieceId).pipe(
 				Effect.provideService(Database, db),
@@ -98,19 +78,14 @@ export const makeSightActs = Effect.gen(function* () {
 				Effect.map((status) => ({ id: request.id, status })),
 				Effect.mapError(toFailure),
 			),
-		sessionImage: (request) =>
-			inputs.image(request).pipe(Effect.mapError(toFailure)),
-		situationDraft: (request) =>
-			draft(request).pipe(Effect.mapError(toFailure)),
+		sessionImage: (request) => inputs.image(request).pipe(Effect.mapError(toFailure)),
+		situationDraft: (request) => draft(request).pipe(Effect.mapError(toFailure)),
 		// why: the admiral's request and the clock's own are the same act, so both
 		// submit the same Intent and meet the same guard inside it. Nothing is
 		// checked here: a capability read from the last snapshot is a statement
 		// about a moment that has already passed, and the Intent is where the
 		// question gets asked of the present.
-		sleep: (sessionId) =>
-			kernel
-				.submit(domain.siesta, { sessionId })
-				.pipe(Effect.asVoid, Effect.mapError(toFailure)),
+		sleep: (sessionId) => kernel.submit(domain.siesta, { sessionId }).pipe(Effect.asVoid, Effect.mapError(toFailure)),
 		spawn: (request) =>
 			Effect.gen(function* () {
 				const agentId = crypto.randomUUID();

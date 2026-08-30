@@ -9,15 +9,10 @@ const WAITING: Readonly<Record<Ruling["urgency"], string>> = {
 	pressing: "the asker works on; what the ruling gates waits",
 };
 
-const choiceLine = (choice: RulingChoice): string =>
-	choice.detail === null
-		? `- ${choice.label}`
-		: `- ${choice.label} — ${choice.detail}`;
+const choiceLine = (choice: RulingChoice): string => (choice.detail === null ? `- ${choice.label}` : `- ${choice.label} — ${choice.detail}`);
 
 const offered = (ruling: Ruling): ReadonlyArray<string> =>
-	ruling.choices.length === 0
-		? []
-		: ["Choices offered:", ...ruling.choices.map(choiceLine)];
+	ruling.choices.length === 0 ? [] : ["Choices offered:", ...ruling.choices.map(choiceLine)];
 
 // why: a request climbs as mail, so the mail has to carry the whole ruling —
 // the question, the context that gives an answer its meaning, and what the

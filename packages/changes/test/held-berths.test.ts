@@ -18,12 +18,9 @@ const berth = (id: string, branch: string, repo: RepoSource): BerthBranch => ({
 
 const REEF_BERTH = berth("keeper:reef", BRANCH, REEF);
 
-const onReef = (stage: ChangeStage) =>
-	changeOf({ headRef: BRANCH, id: "change-1", repoId: REEF.id, stage });
+const onReef = (stage: ChangeStage) => changeOf({ headRef: BRANCH, id: "change-1", repoId: REEF.id, stage });
 
-const linked = [
-	{ changeId: "change-1", pieceId: "piece-1", purpose: "produces" as const },
-];
+const linked = [{ changeId: "change-1", pieceId: "piece-1", purpose: "produces" as const }];
 
 const holding = (
 	berths: ReadonlyArray<BerthBranch>,
@@ -34,20 +31,14 @@ const holding = (
 ) => heldBerths({ berths, changes, dismissedChangeIds, pieceChanges, repos });
 
 it("a berth whose branch backs a pending change is held by that change", () => {
-	expect(holding([REEF_BERTH], [onReef("open")], REGISTRY, linked)).toEqual(
-		new Map([["keeper:reef", "change-1"]]),
-	);
+	expect(holding([REEF_BERTH], [onReef("open")], REGISTRY, linked)).toEqual(new Map([["keeper:reef", "change-1"]]));
 });
 
 // why: which changes still want an answer is the outcome model's word, so a
 // stage this rule has never heard of holds the berth rather than freeing it.
 it("a prepared change holds the berth and a landed one lets it go", () => {
-	expect(
-		holding([REEF_BERTH], [onReef("prepared")], REGISTRY, linked).size,
-	).toBe(1);
-	expect(holding([REEF_BERTH], [onReef("landed")], REGISTRY, linked).size).toBe(
-		0,
-	);
+	expect(holding([REEF_BERTH], [onReef("prepared")], REGISTRY, linked).size).toBe(1);
+	expect(holding([REEF_BERTH], [onReef("landed")], REGISTRY, linked).size).toBe(0);
 });
 
 // why: the live-fleet failure this rule was narrowed for — a change closed
@@ -55,9 +46,7 @@ it("a prepared change holds the berth and a landed one lets it go", () => {
 // written in against reclamation forever, because nothing would ever replace
 // it and the old rule waited for exactly that.
 it("a withdrawn change with nothing replacing it releases the berth", () => {
-	expect(
-		holding([REEF_BERTH], [onReef("withdrawn")], REGISTRY, linked).size,
-	).toBe(0);
+	expect(holding([REEF_BERTH], [onReef("withdrawn")], REGISTRY, linked).size).toBe(0);
 });
 
 it("a withdrawn change holds only while a replacement is being prepared", () => {
@@ -69,26 +58,9 @@ it("a withdrawn change holds only while a replacement is being prepared", () => 
 			repoId: REEF.id,
 			stage,
 		});
-	const alsoLinked = [
-		...linked,
-		{ changeId: "change-2", pieceId: "piece-1", purpose: "produces" as const },
-	];
-	expect(
-		holding(
-			[REEF_BERTH],
-			[withdrawn, replacement("prepared")],
-			REGISTRY,
-			alsoLinked,
-		).size,
-	).toBe(1);
-	expect(
-		holding(
-			[REEF_BERTH],
-			[withdrawn, replacement("landed")],
-			REGISTRY,
-			alsoLinked,
-		).size,
-	).toBe(0);
+	const alsoLinked = [...linked, { changeId: "change-2", pieceId: "piece-1", purpose: "produces" as const }];
+	expect(holding([REEF_BERTH], [withdrawn, replacement("prepared")], REGISTRY, alsoLinked).size).toBe(1);
+	expect(holding([REEF_BERTH], [withdrawn, replacement("landed")], REGISTRY, alsoLinked).size).toBe(0);
 });
 
 it("a dismissed change releases the berth even mid-replacement", () => {
@@ -99,22 +71,9 @@ it("a dismissed change releases the berth even mid-replacement", () => {
 		repoId: REEF.id,
 		stage: "open",
 	});
-	const alsoLinked = [
-		...linked,
-		{ changeId: "change-2", pieceId: "piece-1", purpose: "produces" as const },
-	];
-	expect(
-		holding([REEF_BERTH], [withdrawn, replacement], REGISTRY, alsoLinked).size,
-	).toBe(1);
-	expect(
-		holding(
-			[REEF_BERTH],
-			[withdrawn, replacement],
-			REGISTRY,
-			alsoLinked,
-			new Set(["change-1"]),
-		).size,
-	).toBe(0);
+	const alsoLinked = [...linked, { changeId: "change-2", pieceId: "piece-1", purpose: "produces" as const }];
+	expect(holding([REEF_BERTH], [withdrawn, replacement], REGISTRY, alsoLinked).size).toBe(1);
+	expect(holding([REEF_BERTH], [withdrawn, replacement], REGISTRY, alsoLinked, new Set(["change-1"])).size).toBe(0);
 });
 
 it("a berth on another branch of the same repo is not held", () => {

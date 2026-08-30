@@ -1,63 +1,63 @@
-export {
-	AgentSessionConflict,
-	CurrentSessionInvalid,
-} from "#current-session-errors.ts";
-export { newestSession } from "#current-session-order.ts";
-export { makeCurrentSessionReconciler } from "#current-session-reconcile.ts";
-export { planCurrentSessionReconciliation } from "#current-session-reconcile-plan.ts";
-export { makeCurrentSessionRecovery } from "#current-session-recovery.ts";
-export { makeCurrentSessionResumable } from "#current-session-resumable.ts";
-export { sessionAtRest, sessionRetirable } from "#session-at-rest.ts";
+export { sessionAtRest, sessionRetirable } from "#at-rest.ts";
 export {
 	makeRefuseSubsessionAttach,
 	SubsessionAttachRefused,
-} from "#session-attach-roots.ts";
+} from "#attach-roots.ts";
+export {
+	AgentSessionConflict,
+	CurrentSessionInvalid,
+} from "#current/errors.ts";
+export { newestSession } from "#current/order.ts";
+export { makeCurrentSessionReconciler } from "#current/reconcile.ts";
+export { planCurrentSessionReconciliation } from "#current/reconcile-plan.ts";
+export { makeCurrentSessionRecovery } from "#current/recovery.ts";
+export { makeCurrentSessionResumable } from "#current/resumable.ts";
 export {
 	SessionEnded,
 	SessionIdentityMissing,
 	SessionMessageEmpty,
 	SessionNotFound,
 	SessionStillDelegating,
-} from "#session-errors.ts";
-export { promptInput } from "#session-input.ts";
+} from "#errors.ts";
+export { promptInput } from "#input.ts";
 export {
 	type RouseRefused,
 	SessionReach,
 	type SessionRouse,
-} from "#session-reach.ts";
+} from "#reach.ts";
 export type {
 	SessionIdentity,
 	SessionRecoveryContext,
-} from "#session-recovery-context.ts";
-export { SessionRecoveryRuntime } from "#session-recovery-runtime.ts";
-export { makeSessionRecoveryRuntime } from "#session-resume.ts";
+} from "#recovery/context.ts";
+export { SessionRecoveryRuntime } from "#recovery/runtime.ts";
+export { makeSessionRecoveryRuntime } from "#resume.ts";
 export {
 	isRootSession,
 	nodeSessionsOnly,
 	openSessions,
 	rootSessions,
 	rootSessionsOf,
-} from "#session-roots.ts";
+} from "#roots.ts";
 export {
 	makeSessionSend,
 	type SessionSendReceipt,
 	type SessionSendRefused,
-} from "#session-send.ts";
-export { drainActiveSessions, SessionShutdown } from "#session-shutdown.ts";
-export { requireSiestaSucceeded } from "#session-shutdown-verdict.ts";
-export { makeSiestaKind, type SiestaFields } from "#session-siesta.ts";
-export { compileSessionSiestaDemands } from "#session-siesta-demands.ts";
-export { type ChangeLinks, situationsByAgent } from "#session-situations.ts";
-export { LiveDelegations, LiveDelegationsLive } from "#session-tree-live.ts";
-export { makeSessionNodeReconciler } from "#session-tree-reconcile.ts";
-export { makeSessionTreeSinks, type SinkFor } from "#session-tree-sink.ts";
+} from "#send/send.ts";
+export { drainActiveSessions, SessionShutdown } from "#shutdown.ts";
+export { requireSiestaSucceeded } from "#shutdown-verdict.ts";
+export { makeSiestaKind, type SiestaFields } from "#siesta.ts";
+export { compileSessionSiestaDemands } from "#siesta-demands.ts";
+export { type ChangeLinks, situationsByAgent } from "#situations.ts";
+export { LiveDelegations, LiveDelegationsLive } from "#tree/live.ts";
+export { makeSessionNodeReconciler } from "#tree/reconcile.ts";
+export { makeSessionTreeSinks, type SinkFor } from "#tree/sink.ts";
 export {
 	assembleSessionTree,
 	type SessionTreeRow,
-} from "#session-tree-view.ts";
-export { makeSessionTurnRests } from "#session-turn-rest.ts";
-export { waitFor } from "#session-unresumable.ts";
-export { makeWakeKind, type WakeFields } from "#session-wake.ts";
-export { WakePayload } from "#session-wake-input.ts";
-export { SessionWakePatience } from "#session-wake-patience.ts";
-export { makeSettleWakes } from "#session-wake-settle.ts";
+} from "#tree/view.ts";
+export { makeSessionTurnRests } from "#turn-rest.ts";
+export { waitFor } from "#unresumable.ts";
+export { WakePayload } from "#wake/input.ts";
+export { SessionWakePatience } from "#wake/patience.ts";
+export { makeSettleWakes } from "#wake/settle.ts";
+export { makeWakeKind, type WakeFields } from "#wake/wake.ts";

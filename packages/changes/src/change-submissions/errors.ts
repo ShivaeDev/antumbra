@@ -1,8 +1,6 @@
 import { Data } from "effect";
 
-export class ChangeIdentityCollision extends Data.TaggedError(
-	"ChangeIdentityCollision",
-)<{
+export class ChangeIdentityCollision extends Data.TaggedError("ChangeIdentityCollision")<{
 	readonly externalChangeId: string;
 	readonly externalId: string;
 	readonly host: string;
@@ -13,9 +11,7 @@ export class ChangeIdentityCollision extends Data.TaggedError(
 	}
 }
 
-export class ChangeObservationConflict extends Data.TaggedError(
-	"ChangeObservationConflict",
-)<{
+export class ChangeObservationConflict extends Data.TaggedError("ChangeObservationConflict")<{
 	readonly changeId: string;
 	readonly externalId: string;
 	readonly host: string;
@@ -25,9 +21,7 @@ export class ChangeObservationConflict extends Data.TaggedError(
 	}
 }
 
-export class PreparedChangeInvalid extends Data.TaggedError(
-	"PreparedChangeInvalid",
-)<{
+export class PreparedChangeInvalid extends Data.TaggedError("PreparedChangeInvalid")<{
 	readonly changeId: string;
 	readonly detail: string;
 }> {

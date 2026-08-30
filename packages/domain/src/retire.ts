@@ -26,11 +26,7 @@ export const makeRetireKind = Effect.gen(function* () {
 	// why: retirement settles the Agent's whole Session subtree, subsessions
 	// included — a closed root over a still-open child would claim the record
 	// finished while part of it is unaccounted for.
-	const closeAgent = (
-		agentId: string,
-		current: AgentStatus,
-		next: AgentStatus,
-	) =>
+	const closeAgent = (agentId: string, current: AgentStatus, next: AgentStatus) =>
 		db.Agent.where({ id: agentId, status: current }).update({
 			currentSessionId: null,
 			status: next,
@@ -43,14 +39,8 @@ export const makeRetireKind = Effect.gen(function* () {
 	// root's provider conversation, so it has no attachment of its own to stop.
 	const stopSessions = (agentId: string) =>
 		Effect.gen(function* () {
-			const sessions = yield* db.AgentSession.where(
-				rootSessionsOf(agentId),
-			).all();
-			yield* Effect.forEach(sessions, (session) =>
-				Effect.fromResult(
-					decodeStoredAgentSessionStatus(session.id, session.status),
-				),
-			);
+			const sessions = yield* db.AgentSession.where(rootSessionsOf(agentId)).all();
+			yield* Effect.forEach(sessions, (session) => Effect.fromResult(decodeStoredAgentSessionStatus(session.id, session.status)));
 			yield* Effect.forEach(sessions, (session) => fabric.stop(session.id));
 		});
 	// why: whoever submitted this read a capability off a snapshot, and a turn
@@ -62,16 +52,10 @@ export const makeRetireKind = Effect.gen(function* () {
 	const refuseWorking = (agentId: string) =>
 		Effect.gen(function* () {
 			const attached = yield* fabric.attached();
-			const sessions = yield* db.AgentSession.where(
-				rootSessionsOf(agentId),
-			).all();
+			const sessions = yield* db.AgentSession.where(rootSessionsOf(agentId)).all();
 			for (const session of sessions) {
-				const status = yield* Effect.fromResult(
-					decodeStoredAgentSessionStatus(session.id, session.status),
-				);
-				const executionStatus = yield* Effect.fromResult(
-					decodeSessionExecutionStatus(session.id, session.executionStatus),
-				);
+				const status = yield* Effect.fromResult(decodeStoredAgentSessionStatus(session.id, session.status));
+				const executionStatus = yield* Effect.fromResult(decodeSessionExecutionStatus(session.id, session.executionStatus));
 				const presence = sessionPresence({
 					attached: attached.has(session.id),
 					executionStatus,
@@ -91,20 +75,12 @@ export const makeRetireKind = Effect.gen(function* () {
 			if (Option.isNone(agent)) {
 				return yield* new AgentNotFound({ agentId });
 			}
-			const status = yield* Effect.fromResult(
-				decodeStoredAgentStatus(agent.value.id, agent.value.status),
-			);
+			const status = yield* Effect.fromResult(decodeStoredAgentStatus(agent.value.id, agent.value.status));
 			const execution = yield* IntentExecution;
 			if (status !== "retired") {
 				yield* refuseWorking(agentId);
-				const next = yield* Effect.fromResult(
-					agentTransition(status, "retire"),
-				);
-				yield* execution.step(
-					"close-records",
-					closeAgent(agentId, status, next),
-					{ additionalAttempts: 1 },
-				);
+				const next = yield* Effect.fromResult(agentTransition(status, "retire"));
+				yield* execution.step("close-records", closeAgent(agentId, status, next), { additionalAttempts: 1 });
 			}
 			yield* execution.step("stop-sessions", stopSessions(agentId));
 			yield* execution.step("close-sessions", closeSessions(agentId), {
@@ -113,8 +89,7 @@ export const makeRetireKind = Effect.gen(function* () {
 			yield* execution.step("publish-fleet", feeds.publishFleetRefresh());
 		});
 	return defineIntent({
-		execute: (payload) =>
-			retireAgent(payload.agentId).pipe(Effect.tap(() => resources.request)),
+		execute: (payload) => retireAgent(payload.agentId).pipe(Effect.tap(() => resources.request)),
 		payload: RetirePayload,
 		reclaim: "requeue",
 		tag: "agent/retire",

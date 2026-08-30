@@ -5,9 +5,7 @@ import { plannedEdges, writeEdges } from "#edges.ts";
 import type { CharterInput, PieceRow } from "#model.ts";
 import { verifyVoyageExists } from "#rows.ts";
 
-export const charter = Effect.fn("pieces.charter")(function* (
-	input: CharterInput,
-) {
+export const charter = Effect.fn("pieces.charter")(function* (input: CharterInput) {
 	const db = yield* Database;
 	const feeds = yield* DomainFeeds;
 	const pieceId = crypto.randomUUID();

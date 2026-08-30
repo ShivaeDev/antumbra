@@ -1,13 +1,6 @@
 import type { Effect, Scope } from "effect";
-import type {
-	AnyMethod,
-	GenericMethodDescriptor,
-	HasDistinctCallSignatures,
-} from "#generic-method.ts";
-import type {
-	RequirementRecord,
-	RequirementsOf,
-} from "#service-requirements.ts";
+import type { AnyMethod, GenericMethodDescriptor, HasDistinctCallSignatures } from "#generic-method.ts";
+import type { RequirementRecord, RequirementsOf } from "#service-requirements.ts";
 
 export type MethodEntry = AnyMethod | GenericMethodDescriptor<AnyMethod>;
 
@@ -25,9 +18,7 @@ interface GenericMethodWithDeclaredRequirementsIsUnsupported {
 	readonly _serviceDefinitionError: "generic methods cannot subtract declared service requirements";
 }
 
-type MethodRequirements<Method> = Method extends (
-	...arguments_: ReadonlyArray<never>
-) => Effect.Effect<unknown, unknown, infer Requirements>
+type MethodRequirements<Method> = Method extends (...arguments_: ReadonlyArray<never>) => Effect.Effect<unknown, unknown, infer Requirements>
 	? Requirements
 	: never;
 
@@ -40,10 +31,7 @@ interface ServiceMembersMustBeMethods {
 }
 
 type OrdinaryMethodProof<Method, Requirements extends RequirementRecord> = [
-	Exclude<
-		MethodRequirements<Method>,
-		RequirementsOf<Requirements> | Scope.Scope
-	>,
+	Exclude<MethodRequirements<Method>, RequirementsOf<Requirements> | Scope.Scope>,
 ] extends [never]
 	? Method
 	: MethodHasUndeclaredServiceRequirements;
@@ -63,12 +51,6 @@ type SupportedMethod<Method, Requirements extends RequirementRecord> =
 					: GenericOrStructurallyOverloadedMethodsAreUnsupported
 			: ServiceMembersMustBeMethods;
 
-export type MethodProof<
-	Methods extends MethodInventory,
-	Requirements extends RequirementRecord,
-> = {
-	readonly [Name in keyof Methods]: SupportedMethod<
-		Methods[Name],
-		Requirements
-	>;
+export type MethodProof<Methods extends MethodInventory, Requirements extends RequirementRecord> = {
+	readonly [Name in keyof Methods]: SupportedMethod<Methods[Name], Requirements>;
 };

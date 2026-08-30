@@ -1,13 +1,7 @@
 import type { AgentSummary, Fleet, SessionSummary } from "@antumbra/contract";
 import { expect, it } from "@effect/vitest";
 import { Deferred, Effect, Fiber, Layer, ManagedRuntime, Stream } from "effect";
-import {
-	runFleetTray,
-	type TrayHandle,
-	trayTitle,
-	trayTooltip,
-	workingAgentCount,
-} from "#adapters/tray.ts";
+import { runFleetTray, type TrayHandle, trayTitle, trayTooltip, workingAgentCount } from "#adapters/tray.ts";
 
 const session = (id: string, canInterrupt: boolean): SessionSummary => ({
 	addressable: [],
@@ -23,10 +17,7 @@ const session = (id: string, canInterrupt: boolean): SessionSummary => ({
 	status: canInterrupt ? "open" : "closed",
 });
 
-const agent = (
-	id: string,
-	sessions: ReadonlyArray<SessionSummary>,
-): AgentSummary => ({
+const agent = (id: string, sessions: ReadonlyArray<SessionSummary>): AgentSummary => ({
 	berths: [],
 	canRetire: false,
 	charter: "charter",
@@ -92,9 +83,7 @@ it("counts an agent as working when any of its sessions can be interrupted", () 
 });
 
 it("counts agents rather than the sessions they are taking turns in", () => {
-	const fleet = fleetOf([
-		agent("busy", [session("first", true), session("second", true)]),
-	]);
+	const fleet = fleetOf([agent("busy", [session("first", true), session("second", true)])]);
 
 	expect(workingAgentCount(fleet)).toBe(1);
 });
@@ -113,18 +102,12 @@ it("names the empty state and the count in the tooltip", () => {
 it.effect("publishes the working count of every snapshot the feed emits", () =>
 	Effect.gen(function* () {
 		const tray = recordedTray();
-		const feed = Stream.fromArray([
-			fleetOf([agent("one", [session("turning", true)])]),
-			fleetOf([agent("one", [session("turning", false)])]),
-		]);
+		const feed = Stream.fromArray([fleetOf([agent("one", [session("turning", true)])]), fleetOf([agent("one", [session("turning", false)])])]);
 
 		yield* runFleetTray({ create: () => tray.handle }, feed, Effect.void);
 
 		expect(tray.titles()).toEqual(["1", ""]);
-		expect(tray.tooltips()).toEqual([
-			"Antumbra — 1 agent working",
-			"Antumbra — no agent is working",
-		]);
+		expect(tray.tooltips()).toEqual(["Antumbra — 1 agent working", "Antumbra — no agent is working"]);
 		expect(tray.destroys()).toBe(1);
 	}),
 );
@@ -133,17 +116,9 @@ it.effect("opens the window when the tray icon is clicked", () =>
 	Effect.gen(function* () {
 		const activated = yield* Deferred.make<void>();
 		const tray = recordedTray();
-		const feed = Stream.fromArray([fleetOf([])]).pipe(
-			Stream.concat(Stream.never),
-		);
+		const feed = Stream.fromArray([fleetOf([])]).pipe(Stream.concat(Stream.never));
 
-		const fiber = yield* Effect.forkChild(
-			runFleetTray(
-				{ create: () => tray.handle },
-				feed,
-				Deferred.succeed(activated, undefined),
-			),
-		);
+		const fiber = yield* Effect.forkChild(runFleetTray({ create: () => tray.handle }, feed, Deferred.succeed(activated, undefined)));
 		yield* Effect.yieldNow;
 		tray.click();
 
@@ -162,9 +137,7 @@ it.effect("destroys the tray when the runtime that forked it is disposed", () =>
 			Effect.runSync(Deferred.succeed(destroyed, undefined));
 		});
 		const runtime = ManagedRuntime.make(Layer.empty);
-		runtime.runFork(
-			runFleetTray({ create: () => tray.handle }, Stream.never, Effect.void),
-		);
+		runtime.runFork(runFleetTray({ create: () => tray.handle }, Stream.never, Effect.void));
 		yield* Effect.yieldNow;
 
 		yield* Effect.promise(() => runtime.dispose());

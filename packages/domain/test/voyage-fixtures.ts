@@ -5,7 +5,7 @@ import { Effect, Option, Schedule, Stream } from "effect";
 import { AgentDomain } from "#domain.ts";
 import { type ScriptedBackend, standDown } from "#test/harness.ts";
 
-export const PATIENCE = { maxAlive: 4, patienceMillis: 50 };
+export const PATIENCE = { maxRunning: 4, patienceMillis: 50 };
 
 export const eventually = <A, E, R>(check: Effect.Effect<A, E, R>) =>
 	check.pipe(
@@ -16,9 +16,7 @@ export const eventually = <A, E, R>(check: Effect.Effect<A, E, R>) =>
 export const aliveAgent = (agentId: string) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
-		const agent = Option.getOrThrow(
-			yield* db.Agent.where({ id: agentId }).first(),
-		);
+		const agent = Option.getOrThrow(yield* db.Agent.where({ id: agentId }).first());
 		expect(agent.status).toBe("alive");
 		return agent;
 	});
@@ -114,42 +112,27 @@ export const assignedPieces = Effect.gen(function* () {
 	return (yield* db.PieceAgent.all()).map((row) => row.pieceId);
 });
 
-// why: a piece is shipped only when all of its work is done, and a crew's own
-// farewell trails the outcome it landed — so a rehearsal that wants the
-// finished reading asks every hand to stand down first, the way the app waits
-// for one. The short retry is for the crew whose session the spawn has not
-// written yet, which is the same race reaching any fresh agent has; it is kept
-// brief so a caller can put this inside a loop of its own.
 export const standDownAll = (scripted: ScriptedBackend) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
 		const alive = yield* db.Agent.where({ status: "alive" }).all();
-		yield* Effect.forEach(alive, (agent) =>
-			Effect.retry(
-				standDown(scripted, agent.id),
-				Schedule.spaced(10).pipe(Schedule.upTo({ duration: 500 })),
-			),
-		);
+		yield* Effect.forEach(alive, (agent) => Effect.retry(standDown(scripted, agent.id), Schedule.spaced(10).pipe(Schedule.upTo({ duration: 500 }))));
 	});
 
-// why: the farewell comes first, because that is the only order the app has.
-// Retirement is offered on a crew that has said it has nothing left to do and
-// refused on one mid-turn, so a rehearsal that retired straight out of a turn
-// would be rehearsing an act nothing can ask for.
-export const retireOneAlive = (scripted: ScriptedBackend) =>
+export const standDownOneAlive = (scripted: ScriptedBackend) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
-		const kernel = yield* Kernel;
-		const domain = yield* AgentDomain;
 		const alive = yield* db.Agent.where({ status: "alive" }).all();
 		const agentId = alive[0]?.id ?? "";
-		yield* Effect.retry(
-			standDown(scripted, agentId),
-			Schedule.spaced(10).pipe(Schedule.upTo({ duration: 2000 })),
-		);
+		yield* standDown(scripted, agentId);
+		return agentId;
+	});
+
+export const retireOneAlive = (scripted: ScriptedBackend) =>
+	Effect.gen(function* () {
+		const kernel = yield* Kernel;
+		const domain = yield* AgentDomain;
+		const agentId = yield* standDownOneAlive(scripted);
 		const submission = yield* kernel.submit(domain.retire, { agentId });
-		return yield* submission.changes.pipe(
-			Stream.takeUntil(isTerminalIntentStatus),
-			Stream.runLast,
-		);
+		return yield* submission.changes.pipe(Stream.takeUntil(isTerminalIntentStatus), Stream.runLast);
 	});

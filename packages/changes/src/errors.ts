@@ -1,14 +1,10 @@
 import { Data } from "effect";
 
-export class UnknownChangeHostTag extends Data.TaggedError(
-	"UnknownChangeHostTag",
-)<{
+export class UnknownChangeHostTag extends Data.TaggedError("UnknownChangeHostTag")<{
 	readonly tag: string;
 }> {}
 
-export class StoredChangeInvalid extends Data.TaggedError(
-	"StoredChangeInvalid",
-)<{
+export class StoredChangeInvalid extends Data.TaggedError("StoredChangeInvalid")<{
 	readonly changeId: string;
 	readonly detail: string;
 }> {
@@ -17,9 +13,7 @@ export class StoredChangeInvalid extends Data.TaggedError(
 	}
 }
 
-export class StoredPieceChangeInvalid extends Data.TaggedError(
-	"StoredPieceChangeInvalid",
-)<{
+export class StoredPieceChangeInvalid extends Data.TaggedError("StoredPieceChangeInvalid")<{
 	readonly changeId: string;
 	readonly detail: string;
 	readonly pieceId: string;
@@ -29,9 +23,7 @@ export class StoredPieceChangeInvalid extends Data.TaggedError(
 	}
 }
 
-export class StoredChangeVerdictInvalid extends Data.TaggedError(
-	"StoredChangeVerdictInvalid",
-)<{
+export class StoredChangeVerdictInvalid extends Data.TaggedError("StoredChangeVerdictInvalid")<{
 	readonly changeId: string;
 	readonly detail: string;
 }> {

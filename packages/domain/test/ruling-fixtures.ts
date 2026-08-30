@@ -1,9 +1,5 @@
 import { Database } from "@antumbra/persistence";
-import {
-	type RulingRequest,
-	type RulingSubject,
-	Rulings,
-} from "@antumbra/rulings";
+import { type RulingRequest, type RulingSubject, Rulings } from "@antumbra/rulings";
 import { Effect } from "effect";
 
 // why: a ruling is requested by an agent the record knows, so a rehearsal
@@ -21,10 +17,7 @@ export const seedAsker = Effect.gen(function* () {
 	});
 });
 
-const ask = (
-	question: string,
-	scope: Pick<RulingRequest, "radius" | "subjects">,
-) =>
+const ask = (question: string, scope: Pick<RulingRequest, "radius" | "subjects">) =>
 	Effect.gen(function* () {
 		const rulings = yield* Rulings;
 		return yield* rulings.request({
@@ -39,11 +32,7 @@ const ask = (
 		});
 	});
 
-export const ruled = (
-	question: string,
-	answer: string,
-	scope: Pick<RulingRequest, "radius" | "subjects">,
-) =>
+export const ruled = (question: string, answer: string, scope: Pick<RulingRequest, "radius" | "subjects">) =>
 	Effect.gen(function* () {
 		const rulings = yield* Rulings;
 		const asked = yield* ask(question, scope);
@@ -52,11 +41,7 @@ export const ruled = (
 
 // why: an authority that wants a standing rule asks and answers a ruling of
 // its own, so a rehearsal writes one the same way the window does.
-export const proclaimed = (
-	question: string,
-	answer: string,
-	scope: Pick<RulingRequest, "radius" | "subjects">,
-) =>
+export const proclaimed = (question: string, answer: string, scope: Pick<RulingRequest, "radius" | "subjects">) =>
 	Effect.gen(function* () {
 		const rulings = yield* Rulings;
 		return yield* rulings.proclaim({
@@ -72,10 +57,6 @@ export const proclaimed = (
 
 export const unruled = ask;
 
-export const onPiece = (pieceId: string): ReadonlyArray<RulingSubject> => [
-	{ id: pieceId, kind: "piece" },
-];
+export const onPiece = (pieceId: string): ReadonlyArray<RulingSubject> => [{ id: pieceId, kind: "piece" }];
 
-export const onVoyage = (voyageId: string): ReadonlyArray<RulingSubject> => [
-	{ id: voyageId, kind: "voyage" },
-];
+export const onVoyage = (voyageId: string): ReadonlyArray<RulingSubject> => [{ id: voyageId, kind: "voyage" }];

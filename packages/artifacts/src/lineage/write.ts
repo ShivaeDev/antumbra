@@ -1,22 +1,11 @@
 import { Database, type PrismaError } from "@antumbra/persistence";
 import { Effect, Option } from "effect";
-import {
-	ArtifactLineageConflict,
-	ArtifactSupersessionNotFound,
-} from "#errors.ts";
+import { ArtifactLineageConflict, ArtifactSupersessionNotFound } from "#errors.ts";
 import { readValidStoredArtifactLineage } from "#lineage/piece-lineage.ts";
-import {
-	cycleWouldForm,
-	requireArtifact,
-	requireAuthority,
-	requireSharedPiece,
-} from "#lineage/validation.ts";
+import { cycleWouldForm, requireArtifact, requireAuthority, requireSharedPiece } from "#lineage/validation.ts";
 import type { ArtifactSupersessionInput } from "#model.ts";
 
-const recoverSupersessionWrite = (
-	input: ArtifactSupersessionInput,
-	failure: PrismaError,
-) =>
+const recoverSupersessionWrite = (input: ArtifactSupersessionInput, failure: PrismaError) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
 		const claimed = yield* db.Artifact.where({
@@ -39,9 +28,7 @@ export const writeSupersession = (input: ArtifactSupersessionInput) =>
 		const successor = yield* requireArtifact(input.successorArtifactId);
 		yield* requireAuthority(input.actor, superseded, successor);
 		yield* requireSharedPiece(superseded, successor);
-		const { artifacts } = yield* readValidStoredArtifactLineage(
-			superseded.pieceId,
-		);
+		const { artifacts } = yield* readValidStoredArtifactLineage(superseded.pieceId);
 		if (superseded.supersededByArtifactId === successor.id) {
 			return;
 		}
@@ -62,13 +49,7 @@ export const writeSupersession = (input: ArtifactSupersessionInput) =>
 				supersededArtifactId: superseded.id,
 			});
 		}
-		if (
-			cycleWouldForm(
-				artifacts,
-				input.supersededArtifactId,
-				input.successorArtifactId,
-			)
-		) {
+		if (cycleWouldForm(artifacts, input.supersededArtifactId, input.successorArtifactId)) {
 			return yield* new ArtifactLineageConflict({
 				conflict: "cycle",
 				successorArtifactId: successor.id,
@@ -80,11 +61,7 @@ export const writeSupersession = (input: ArtifactSupersessionInput) =>
 			supersededByArtifactId: null,
 		})
 			.update({ supersededByArtifactId: successor.id })
-			.pipe(
-				Effect.catchTag("PrismaError", (failure) =>
-					recoverSupersessionWrite(input, failure),
-				),
-			);
+			.pipe(Effect.catchTag("PrismaError", (failure) => recoverSupersessionWrite(input, failure)));
 		if (updated === null) {
 			const current = yield* requireArtifact(input.supersededArtifactId);
 			if (current.supersededByArtifactId !== input.successorArtifactId) {

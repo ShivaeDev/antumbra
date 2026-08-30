@@ -1,32 +1,15 @@
-import {
-	type SightFailure,
-	VoyageSource,
-	type VoyageView,
-} from "@antumbra/contract";
+import { type SightFailure, VoyageSource, type VoyageView } from "@antumbra/contract";
 import { Database } from "@antumbra/persistence";
 import type { TemporaryPersistence } from "@antumbra/persistence/testing";
 import { expect, it } from "@effect/vitest";
 import { Deferred, Effect, Fiber, Layer, Stream } from "effect";
 import { domainKernelLayer } from "#test/domain-layers.ts";
-import {
-	acquireTemporaryPersistence,
-	makeScriptedBackend,
-	type ScriptedBackend,
-} from "#test/harness.ts";
-import {
-	eventually,
-	retireOneAlive,
-	sessionIdOf,
-} from "#test/voyage-fixtures.ts";
+import { acquireTemporaryPersistence, makeScriptedBackend, type ScriptedBackend } from "#test/harness.ts";
+import { eventually, retireOneAlive, sessionIdOf } from "#test/voyage-fixtures.ts";
 import { VoyageSourceLive } from "#voyage-source.ts";
 
-const voyageLayer = (
-	temporary: TemporaryPersistence,
-	scripted: ScriptedBackend,
-) =>
-	VoyageSourceLive.pipe(
-		Layer.provideMerge(domainKernelLayer(temporary, scripted.backend)),
-	);
+const voyageLayer = (temporary: TemporaryPersistence, scripted: ScriptedBackend) =>
+	VoyageSourceLive.pipe(Layer.provideMerge(domainKernelLayer(temporary, scripted.backend)));
 
 const reef = {
 	backend: "scripted",
@@ -44,17 +27,13 @@ const soundings = (voyageId: string) => ({
 	voyageId,
 });
 
-const anyReady = (view: VoyageView) =>
-	view.pieces.some((piece) => piece.state === "ready");
+const anyReady = (view: VoyageView) => view.pieces.some((piece) => piece.state === "ready");
 
 const captainRetired = (view: VoyageView) => view.captain?.status === "retired";
 
 // why: the watcher must have taken the feed's opening snapshot before the act
 // under test lands, or an emission it never reacted to would pass for one.
-const watchUntil = (
-	feed: Stream.Stream<VoyageView, SightFailure>,
-	matches: (view: VoyageView) => boolean,
-) =>
+const watchUntil = (feed: Stream.Stream<VoyageView, SightFailure>, matches: (view: VoyageView) => boolean) =>
 	Effect.gen(function* () {
 		const opened = yield* Deferred.make<void>();
 		const watcher = yield* feed.pipe(
@@ -80,9 +59,7 @@ it.live("the list and the read carry the state the domain derived", () =>
 			const piece = yield* source.charterPiece(soundings(opened.id));
 			yield* source.launch(piece.pieceId);
 			const listed = yield* source.voyages;
-			expect(listed.map((row) => row.counts)).toEqual([
-				{ active: 0, done: 0, pieces: 1, ready: 1 },
-			]);
+			expect(listed.map((row) => row.counts)).toEqual([{ active: 0, done: 0, pieces: 1, ready: 1 }]);
 			const view = yield* source.voyage(opened.id);
 			expect(view.context).toBe(reef.context);
 			expect(view.pieces.map((row) => row.state)).toEqual(["ready"]);
@@ -159,9 +136,7 @@ it.live("a hail puts a captain and a crew row on what the window reads", () =>
 						sessionId: yield* sessionIdOf(hailed.agentId),
 						status: "alive",
 					});
-					expect(view.crew).toEqual([
-						{ agentId: hailed.agentId, role: "captain", status: "alive" },
-					]);
+					expect(view.crew).toEqual([{ agentId: hailed.agentId, role: "captain", status: "alive" }]);
 					expect(view.state).toBe("underWay");
 				}),
 			);
@@ -226,10 +201,7 @@ it.live("the feed follows an agent's status with no voyage row touched", () =>
 					expect(view.captain?.status).toBe("alive");
 				}),
 			);
-			const watcher = yield* watchUntil(
-				source.voyageFeed(opened.id),
-				captainRetired,
-			);
+			const watcher = yield* watchUntil(source.voyageFeed(opened.id), captainRetired);
 			yield* retireOneAlive(scripted);
 			const seen = yield* Fiber.join(watcher);
 			expect(seen[0]?.captain?.agentId).toBe(hailed.agentId);

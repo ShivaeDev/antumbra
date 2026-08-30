@@ -13,13 +13,12 @@ const entriesOn = (boardId: string) =>
 		return yield* Effect.forEach(rows, entryRow);
 	});
 
-export const readBoard = Effect.fn("boards.readBoard")(function* (
-	scope: BoardScope,
-) {
-	yield* requireBoardOwner(scope);
-	const linked = yield* linkedBoardId(scope);
-	return yield* Option.match(linked, {
-		onNone: () => Effect.succeed<ReadonlyArray<BoardEntryRow>>([]),
-		onSome: entriesOn,
+export const readBoard = (scope: BoardScope) =>
+	Effect.gen(function* () {
+		yield* requireBoardOwner(scope);
+		const linked = yield* linkedBoardId(scope);
+		return yield* Option.match(linked, {
+			onNone: () => Effect.succeed<ReadonlyArray<BoardEntryRow>>([]),
+			onSome: entriesOn,
+		});
 	});
-});

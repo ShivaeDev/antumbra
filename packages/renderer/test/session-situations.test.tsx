@@ -32,11 +32,7 @@ const reviews: SessionSituation = {
 };
 
 const controls = (situations: ReadonlyArray<SessionSituation>) => (
-	<SessionSituations
-		onError={() => undefined}
-		sessionId="session-1"
-		situations={situations}
-	/>
+	<SessionSituations onError={() => undefined} sessionId="session-1" situations={situations} />
 );
 
 const mounted = (situations: ReadonlyArray<SessionSituation>) =>
@@ -62,21 +58,15 @@ const step = (change: () => void) =>
 	);
 
 const clickLabelled = (label: string): void => {
-	const button = [...document.querySelectorAll("button")].find((candidate) =>
-		(candidate.textContent ?? "").includes(label),
-	);
+	const button = [...document.querySelectorAll("button")].find((candidate) => (candidate.textContent ?? "").includes(label));
 	button?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
 };
 
-const composer = (): HTMLTextAreaElement | null =>
-	document.querySelector("textarea");
+const composer = (): HTMLTextAreaElement | null => document.querySelector("textarea");
 
 // why: React tracks the value it last rendered, so an edit has to go through
 // the element's own value setter or the change never reaches the component.
-const nativeValue = Object.getOwnPropertyDescriptor(
-	HTMLTextAreaElement.prototype,
-	"value",
-)?.set;
+const nativeValue = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, "value")?.set;
 
 const rewrite = (text: string): void => {
 	const area = composer();
@@ -109,18 +99,12 @@ it.effect("draws the words from the catalog and sends nothing on its own", () =>
 	Effect.gen(function* () {
 		sendToSession.mockClear();
 		situationDraft.mockClear();
-		situationDraft.mockImplementation(
-			(_draft: unknown, onDraft: (text: string) => void) => {
-				onDraft(DRAFT);
-			},
-		);
+		situationDraft.mockImplementation((_draft: unknown, onDraft: (text: string) => void) => {
+			onDraft(DRAFT);
+		});
 		const { root } = yield* mounted([conflicts]);
 		yield* step(() => clickLabelled("Resolve conflicts"));
-		expect(situationDraft).toHaveBeenCalledWith(
-			{ changeId: "change-1", situation: "merge_conflicts" },
-			expect.any(Function),
-			expect.any(Function),
-		);
+		expect(situationDraft).toHaveBeenCalledWith({ changeId: "change-1", situation: "merge_conflicts" }, expect.any(Function), expect.any(Function));
 		expect(composer()?.value).toBe(DRAFT);
 		expect(sendToSession).not.toHaveBeenCalled();
 		yield* step(() => root.unmount());
@@ -133,32 +117,23 @@ it.effect("draws the words from the catalog and sends nothing on its own", () =>
 it.effect("sends the edited words verbatim through the ordinary send", () =>
 	Effect.gen(function* () {
 		sendToSession.mockClear();
-		situationDraft.mockImplementation(
-			(_draft: unknown, onDraft: (text: string) => void) => {
-				onDraft(DRAFT);
-			},
-		);
+		situationDraft.mockImplementation((_draft: unknown, onDraft: (text: string) => void) => {
+			onDraft(DRAFT);
+		});
 		const { root } = yield* mounted([conflicts]);
 		yield* step(() => clickLabelled("Resolve conflicts"));
 		yield* step(() => rewrite(`${DRAFT} Take the eastern approach.`));
 		yield* step(() => clickLabelled("Send"));
-		expect(sendToSession).toHaveBeenCalledWith(
-			"session-1",
-			`${DRAFT} Take the eastern approach.`,
-			expect.any(Function),
-			expect.any(Function),
-		);
+		expect(sendToSession).toHaveBeenCalledWith("session-1", `${DRAFT} Take the eastern approach.`, expect.any(Function), expect.any(Function));
 		yield* step(() => root.unmount());
 	}),
 );
 
 it.effect("keeps an edited situation draft when the dialog is cancelled", () =>
 	Effect.gen(function* () {
-		situationDraft.mockImplementation(
-			(_draft: unknown, onDraft: (text: string) => void) => {
-				onDraft(DRAFT);
-			},
-		);
+		situationDraft.mockImplementation((_draft: unknown, onDraft: (text: string) => void) => {
+			onDraft(DRAFT);
+		});
 		const { root } = yield* mounted([conflicts]);
 		yield* step(() => clickLabelled("Resolve conflicts"));
 		yield* step(() => rewrite(`${DRAFT} Keep this edit.`));
@@ -173,22 +148,13 @@ it.effect("preserves a failed situation send and clears it on success", () =>
 	Effect.gen(function* () {
 		let done: () => void = () => undefined;
 		let fail: (message: string) => void = () => undefined;
-		situationDraft.mockImplementation(
-			(_draft: unknown, onDraft: (text: string) => void) => {
-				onDraft(DRAFT);
-			},
-		);
-		sendToSession.mockImplementation(
-			(
-				_sessionId: string,
-				_text: string,
-				onDone: () => void,
-				onError: (message: string) => void,
-			) => {
-				done = onDone;
-				fail = onError;
-			},
-		);
+		situationDraft.mockImplementation((_draft: unknown, onDraft: (text: string) => void) => {
+			onDraft(DRAFT);
+		});
+		sendToSession.mockImplementation((_sessionId: string, _text: string, onDone: () => void, onError: (message: string) => void) => {
+			done = onDone;
+			fail = onError;
+		});
 		const { root } = yield* mounted([conflicts]);
 		yield* step(() => clickLabelled("Resolve conflicts"));
 		yield* step(() => rewrite(`${DRAFT} Keep this until sent.`));

@@ -4,5 +4,4 @@ import type { FieldOutputTypes } from "#contract.d.ts";
 // re-declared shape drifts silently when a column is renamed or its nullability
 // changes; a shape derived from the contract turns the same change into a
 // compile error at every reader that cares.
-export type StoredAgentSession =
-	FieldOutputTypes["__unbound__"]["AgentSession"];
+export type StoredAgentSession = FieldOutputTypes["__unbound__"]["AgentSession"];

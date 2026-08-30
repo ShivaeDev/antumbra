@@ -1,27 +1,9 @@
 import { dirname, join } from "node:path";
-import {
-	type Delivery,
-	laneEvents,
-	openSessionLanes,
-} from "@antumbra/backend-claude";
-import {
-	openThreadClaims,
-	openThreadTree,
-	type RpcNotification,
-	threadOpened,
-} from "@antumbra/backend-codex";
-import {
-	AgentDomain,
-	AgentDomainLive,
-	BackendCapacityReleaseLive,
-	SettingsSourceLive,
-	SightSourceLive,
-} from "@antumbra/domain";
+import { type Delivery, laneEvents, openSessionLanes } from "@antumbra/backend-claude";
+import { openThreadClaims, openThreadTree, type RpcNotification, threadOpened } from "@antumbra/backend-codex";
+import { AgentDomain, AgentDomainLive, BackendCapacityReleaseLive, SettingsSourceLive, SightSourceLive } from "@antumbra/domain";
 import { KernelLive } from "@antumbra/kernel";
-import {
-	acquireTemporaryPersistence,
-	type TemporaryPersistence,
-} from "@antumbra/persistence/testing";
+import { acquireTemporaryPersistence, type TemporaryPersistence } from "@antumbra/persistence/testing";
 import type { AgentBackend, Runner, SessionHandle } from "@antumbra/plugin-api";
 import { NodeServices } from "@effect/platform-node";
 import { Effect, Layer, Option, Schedule, Stream } from "effect";
@@ -46,10 +28,7 @@ export const eventually = <A, E, R>(check: Effect.Effect<A, E, R>) =>
 // app registers, minus the process. What the domain receives is exactly what a
 // live session would produce on either lane, so the record this builds is the
 // record it builds in production, at zero model tokens.
-const scriptedClaude = (
-	script: ReadonlyArray<Delivery>,
-	stored: StoredTranscripts,
-): AgentBackend => ({
+const scriptedClaude = (script: ReadonlyArray<Delivery>, stored: StoredTranscripts): AgentBackend => ({
 	audit: scriptedClaudeAudit(stored),
 	capabilities: {
 		fork: false,
@@ -60,9 +39,7 @@ const scriptedClaude = (
 	openSession: () =>
 		Effect.sync(() => {
 			const lanes = openSessionLanes();
-			const events = script.flatMap((delivery) => [
-				...laneEvents(lanes, delivery),
-			]);
+			const events = script.flatMap((delivery) => [...laneEvents(lanes, delivery)]);
 			return {
 				events: Stream.fromArray(events),
 				interrupt: Effect.void,
@@ -78,11 +55,7 @@ const scriptedClaude = (
 // app-server sends for a session and for every thread it delegated to, minus
 // the process. The un-filtering, the attribution and the admissions are the
 // live ones, so the record this builds is the record it builds in production.
-const scriptedCodex = (
-	rootThread: string,
-	script: ReadonlyArray<RpcNotification>,
-	sweep: ScriptedSweep,
-): AgentBackend => ({
+const scriptedCodex = (rootThread: string, script: ReadonlyArray<RpcNotification>, sweep: ScriptedSweep): AgentBackend => ({
 	audit: scriptedCodexAudit(sweep),
 	capabilities: {
 		fork: true,
@@ -94,11 +67,7 @@ const scriptedCodex = (
 		Effect.sync(() => {
 			const tree = openThreadTree(rootThread, openThreadClaims());
 			const events = [
-				threadOpened(
-					"thread/start",
-					{ thread: { id: rootThread } },
-					rootThread,
-				),
+				threadOpened("thread/start", { thread: { id: rootThread } }, rootThread),
 				...script.flatMap((notification) => tree.events(notification)),
 			];
 			return {
@@ -136,11 +105,7 @@ const domainLayer = (temporary: TemporaryPersistence, backend: AgentBackend) =>
 		new Map(),
 		join(dirname(temporary.database), "artifacts"),
 		join(dirname(temporary.database), "session-inputs"),
-	).pipe(
-		Layer.provide(NodeServices.layer),
-		Layer.provideMerge(SettingsSourceLive),
-		Layer.provideMerge(temporary.layer),
-	);
+	).pipe(Layer.provide(NodeServices.layer), Layer.provideMerge(SettingsSourceLive), Layer.provideMerge(temporary.layer));
 
 const sightLayer = (temporary: TemporaryPersistence, backend: AgentBackend) =>
 	SightSourceLive.pipe(
@@ -156,11 +121,8 @@ const sightLayer = (temporary: TemporaryPersistence, backend: AgentBackend) =>
 		Layer.provideMerge(domainLayer(temporary, backend)),
 	);
 
-export const rehearsalLayer = (
-	temporary: TemporaryPersistence,
-	script: ReadonlyArray<Delivery>,
-	stored: StoredTranscripts = storedNothing,
-) => sightLayer(temporary, scriptedClaude(script, stored));
+export const rehearsalLayer = (temporary: TemporaryPersistence, script: ReadonlyArray<Delivery>, stored: StoredTranscripts = storedNothing) =>
+	sightLayer(temporary, scriptedClaude(script, stored));
 
 export const codexRehearsalLayer = (
 	temporary: TemporaryPersistence,

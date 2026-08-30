@@ -39,26 +39,14 @@ export const PieceCard = ({
 				<Chevron className="mt-0.5 size-3 shrink-0 text-muted-foreground" />
 				<span className="flex min-w-0 flex-1 flex-col gap-0.5">
 					<span className="flex min-w-0 items-baseline gap-1.5">
-						<span className="min-w-0 truncate text-xs font-medium">
-							{piece.title}
-						</span>
-						<span className="shrink-0 text-2xs text-muted-foreground">
-							{piece.role}
-						</span>
+						<span className="min-w-0 truncate text-xs font-medium">{piece.title}</span>
+						<span className="shrink-0 text-2xs text-muted-foreground">{piece.role}</span>
 					</span>
-					{preview === "" ? null : (
-						<span className="min-w-0 truncate text-2xs text-muted-foreground">
-							{preview}
-						</span>
-					)}
+					{preview === "" ? null : <span className="min-w-0 truncate text-2xs text-muted-foreground">{preview}</span>}
 				</span>
-				<Badge variant={pieceTone[piece.state]}>
-					{pieceStateLabel[piece.state]}
-				</Badge>
+				<Badge variant={pieceTone[piece.state]}>{pieceStateLabel[piece.state]}</Badge>
 			</button>
-			{open ? (
-				<PieceDetail onError={onError} piece={piece} pieces={pieces} />
-			) : null}
+			{open ? <PieceDetail onError={onError} piece={piece} pieces={pieces} /> : null}
 		</Card>
 	);
 };

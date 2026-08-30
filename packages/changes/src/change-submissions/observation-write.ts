@@ -38,12 +38,7 @@ const updateProjection = (current: ChangeRow, next: ChangeRow) =>
 		});
 	});
 
-export const commitObservationProjection = (
-	current: ChangeRow,
-	next: ChangeRow,
-	transition: ReturnType<typeof stageTransition>,
-	append: boolean,
-) =>
+export const commitObservationProjection = (current: ChangeRow, next: ChangeRow, transition: ReturnType<typeof stageTransition>, append: boolean) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
 		const updated = yield* updateProjection(current, next);

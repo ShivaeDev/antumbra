@@ -1,8 +1,4 @@
-import {
-	type IntentStatus,
-	isTerminalIntentStatus,
-	Kernel,
-} from "@antumbra/kernel";
+import { type IntentStatus, isTerminalIntentStatus, Kernel } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
 import type { Runner } from "@antumbra/plugin-api";
 import { expect, it } from "@effect/vitest";
@@ -10,11 +6,7 @@ import { Deferred, Effect, Option, Ref, Stream } from "effect";
 import { AgentDomain } from "#domain.ts";
 import type { SpawnFields } from "#index.ts";
 import { domainKernelLayer } from "#test/domain-layers.ts";
-import {
-	acquireTemporaryPersistence,
-	makeScriptedBackend,
-	makeScriptedRunner,
-} from "#test/harness.ts";
+import { acquireTemporaryPersistence, makeScriptedBackend, makeScriptedRunner } from "#test/harness.ts";
 
 const payload: SpawnFields = {
 	agentId: "agent-one-current-session",
@@ -26,11 +18,7 @@ const payload: SpawnFields = {
 };
 
 const untilTerminal = <E, R>(changes: Stream.Stream<IntentStatus, E, R>) =>
-	changes.pipe(
-		Stream.takeUntil(isTerminalIntentStatus),
-		Stream.runLast,
-		Effect.map(Option.getOrThrow),
-	);
+	changes.pipe(Stream.takeUntil(isTerminalIntentStatus), Stream.runLast, Effect.map(Option.getOrThrow));
 
 const blockFirstProvision = (
 	runner: Runner,
@@ -43,10 +31,7 @@ const blockFirstProvision = (
 		Ref.getAndSet(first, false).pipe(
 			Effect.flatMap((isFirst) =>
 				isFirst
-					? Deferred.succeed(provisioning, undefined).pipe(
-							Effect.andThen(Deferred.await(release)),
-							Effect.andThen(runner.provision(plan)),
-						)
+					? Deferred.succeed(provisioning, undefined).pipe(Effect.andThen(Deferred.await(release)), Effect.andThen(runner.provision(plan)))
 					: runner.provision(plan),
 			),
 		),
@@ -60,12 +45,7 @@ it.live("a concurrent birth cannot give one Agent two Sessions", () =>
 		const provisioning = yield* Deferred.make<void>();
 		const release = yield* Deferred.make<void>();
 		const first = yield* Ref.make(true);
-		const runner = blockFirstProvision(
-			recorded.runner,
-			provisioning,
-			release,
-			first,
-		);
+		const runner = blockFirstProvision(recorded.runner, provisioning, release, first);
 		yield* Effect.gen(function* () {
 			const db = yield* Database;
 			const kernel = yield* Kernel;
@@ -81,15 +61,7 @@ it.live("a concurrent birth cannot give one Agent two Sessions", () =>
 			expect(yield* untilTerminal(firstBirth.changes)).toBe("succeeded");
 			const sessions = yield* db.AgentSession.all();
 			expect(sessions.map((session) => session.id)).toEqual(["session-first"]);
-			expect(
-				Option.getOrThrow(
-					yield* db.Agent.where({ id: payload.agentId }).first(),
-				).currentSessionId,
-			).toBe("session-first");
-		}).pipe(
-			Effect.provide(
-				domainKernelLayer(temporary, scripted.backend, {}, runner),
-			),
-		);
+			expect(Option.getOrThrow(yield* db.Agent.where({ id: payload.agentId }).first()).currentSessionId).toBe("session-first");
+		}).pipe(Effect.provide(domainKernelLayer(temporary, scripted.backend, {}, runner)));
 	}),
 );

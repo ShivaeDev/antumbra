@@ -19,16 +19,11 @@ const boardFor = (scope: BoardScope) =>
 		return boardId;
 	});
 
-export const ensureBoard = Effect.fn("boards.ensureBoard")(function* (
-	scope: BoardScope,
-) {
+export const ensureBoard = Effect.fn("boards.ensureBoard")(function* (scope: BoardScope) {
 	return yield* boardFor(scope);
 });
 
-export const writeEntry = Effect.fn("boards.writeEntry")(function* (
-	scope: BoardScope,
-	input: EntryInput,
-) {
+export const writeEntry = Effect.fn("boards.writeEntry")(function* (scope: BoardScope, input: EntryInput) {
 	const feeds = yield* DomainFeeds;
 	const now = yield* Clock.currentTimeMillis;
 	const boardId = yield* boardFor(scope);

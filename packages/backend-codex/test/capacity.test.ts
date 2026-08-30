@@ -1,7 +1,4 @@
-import {
-	type BackendCapacityController,
-	makeBackendCapacityController,
-} from "@antumbra/plugin-api";
+import { type BackendCapacityController, makeBackendCapacityController } from "@antumbra/plugin-api";
 import { it } from "@effect/vitest";
 import { Effect, Option, PubSub } from "effect";
 import { describe, expect } from "vitest";
@@ -28,11 +25,7 @@ describe("codex capacity evidence", () => {
 	it("blocks usage-limit exhaustion without consuming the raw session event", () => {
 		const exhausted = notification("usageLimitExceeded", false);
 
-		expect(
-			Option.getOrThrow(
-				classifyCodexCapacity(rawOf(exhausted.method, exhausted.params)),
-			),
-		).toEqual({
+		expect(Option.getOrThrow(classifyCodexCapacity(rawOf(exhausted.method, exhausted.params)))).toEqual({
 			detail: "You've hit your usage limit",
 			reason: "usage-limit",
 			status: "blocked",
@@ -46,65 +39,50 @@ describe("codex capacity evidence", () => {
 	});
 
 	it("does not classify retrying usage errors or server overload as exhaustion", () => {
-		for (const error of [
-			notification("usageLimitExceeded", true),
-			notification("serverOverloaded", false),
-		]) {
-			expect(
-				Option.isNone(classifyCodexCapacity(rawOf(error.method, error.params))),
-			).toBe(true);
+		for (const error of [notification("usageLimitExceeded", true), notification("serverOverloaded", false)]) {
+			expect(Option.isNone(classifyCodexCapacity(rawOf(error.method, error.params)))).toBe(true);
 		}
 	});
 
-	it.effect(
-		"feeds every app-server notification to capacity exactly once",
-		() =>
-			Effect.scoped(
-				Effect.gen(function* () {
-					const controller = yield* makeBackendCapacityController(
-						classifyCodexCapacity,
-					);
-					let observations = 0;
-					const counting: BackendCapacityController = {
-						observe: (raw, observedAt) => {
-							observations += 1;
-							return controller.observe(raw, observedAt);
-						},
-						source: controller.source,
-					};
-					const fake = makeFakeAppServer();
-					const server = yield* makeCodexServer({
-						observeCapacity: counting.observe,
-						spawn: () => fake.process,
-					});
-					const received = yield* PubSub.subscribe(server.notifications);
+	it.effect("feeds every app-server notification to capacity exactly once", () =>
+		Effect.scoped(
+			Effect.gen(function* () {
+				const controller = yield* makeBackendCapacityController(classifyCodexCapacity);
+				let observations = 0;
+				const counting: BackendCapacityController = {
+					observe: (raw, observedAt) => {
+						observations += 1;
+						return controller.observe(raw, observedAt);
+					},
+					source: controller.source,
+				};
+				const fake = makeFakeAppServer();
+				const server = yield* makeCodexServer({
+					observeCapacity: counting.observe,
+					spawn: () => fake.process,
+				});
+				const received = yield* PubSub.subscribe(server.notifications);
 
-					const exhausted = notification("usageLimitExceeded", false);
-					fake.notify(exhausted.method, exhausted.params);
-					const published = yield* PubSub.take(received);
-					expect(observations).toBe(1);
-					expect(published).toEqual(exhausted);
-					expect(toAgentEvents(published)[0]?.raw).toEqual(
-						rawOf(exhausted.method, exhausted.params),
-					);
-					expect(
-						Option.getOrThrow(yield* controller.source.current),
-					).toMatchObject({
-						observedAt: expect.any(Number),
-						reason: "usage-limit",
-						status: "blocked",
-					});
+				const exhausted = notification("usageLimitExceeded", false);
+				fake.notify(exhausted.method, exhausted.params);
+				const published = yield* PubSub.take(received);
+				expect(observations).toBe(1);
+				expect(published).toEqual(exhausted);
+				expect(toAgentEvents(published)[0]?.raw).toEqual(rawOf(exhausted.method, exhausted.params));
+				expect(Option.getOrThrow(yield* controller.source.current)).toMatchObject({
+					observedAt: expect.any(Number),
+					reason: "usage-limit",
+					status: "blocked",
+				});
 
-					const overloaded = notification("serverOverloaded", false);
-					fake.notify(overloaded.method, overloaded.params);
-					expect(observations).toBe(2);
-					expect(
-						Option.getOrThrow(yield* controller.source.current),
-					).toMatchObject({
-						reason: "usage-limit",
-						status: "blocked",
-					});
-				}),
-			),
+				const overloaded = notification("serverOverloaded", false);
+				fake.notify(overloaded.method, overloaded.params);
+				expect(observations).toBe(2);
+				expect(Option.getOrThrow(yield* controller.source.current)).toMatchObject({
+					reason: "usage-limit",
+					status: "blocked",
+				});
+			}),
+		),
 	);
 });

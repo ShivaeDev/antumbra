@@ -11,12 +11,10 @@ export interface SessionFabricState {
 
 // why: live handles only, never persisted — rebuilt empty at boot. Registry
 // teardown is the single close path, so app shutdown cannot strand a provider.
-export const initializeSessionFabric = Effect.fn("sessionFabric.initialize")(
-	function* (): Effect.fn.Return<SessionFabricState, never, Scope.Scope> {
-		return {
-			attachments: yield* makeSessionAttachmentRegistry,
-			lifecycles: yield* makeSessionLifecycles,
-			startAdmission: yield* makeSessionStartAdmission,
-		};
-	},
-)();
+export const initializeSessionFabric = Effect.fn("sessionFabric.initialize")(function* (): Effect.fn.Return<SessionFabricState, never, Scope.Scope> {
+	return {
+		attachments: yield* makeSessionAttachmentRegistry,
+		lifecycles: yield* makeSessionLifecycles,
+		startAdmission: yield* makeSessionStartAdmission,
+	};
+})();

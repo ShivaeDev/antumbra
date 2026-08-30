@@ -3,14 +3,7 @@ import { expect, it } from "@effect/vitest";
 import { Effect } from "effect";
 import { AgentDomain } from "#domain.ts";
 import { domainKernelLayer } from "#test/domain-layers.ts";
-import {
-	acquireTemporaryPersistence,
-	callTool,
-	makeScriptedBackend,
-	type ScriptedBackend,
-	type ScriptedSession,
-	sessionFor,
-} from "#test/harness.ts";
+import { acquireTemporaryPersistence, callTool, makeScriptedBackend, type ScriptedBackend, type ScriptedSession, sessionFor } from "#test/harness.ts";
 import { eventually, openReefVoyage } from "#test/voyage-fixtures.ts";
 
 const hailedCaptain = (scripted: ScriptedBackend, voyageId: string) =>
@@ -20,11 +13,7 @@ const hailedCaptain = (scripted: ScriptedBackend, voyageId: string) =>
 		return yield* eventually(sessionFor(scripted, hailed.agentId));
 	});
 
-const chartered = (
-	captain: ScriptedSession,
-	title: string,
-	dependsOn: ReadonlyArray<string>,
-) =>
+const chartered = (captain: ScriptedSession, title: string, dependsOn: ReadonlyArray<string>) =>
 	Effect.gen(function* () {
 		const outcome = yield* callTool(captain, "charter_piece", {
 			charter: `do ${title}`,
@@ -45,7 +34,7 @@ const pieceOnAnotherVoyage = Effect.gen(function* () {
 		name: "Name the shoals",
 		northStar: "every shoal has a name",
 	});
-	return yield* domain.voyages.charterPiece({
+	const piece = yield* domain.voyages.charterPiece({
 		charter: "name the northern shoal",
 		dependsOn: [],
 		expectation: "the shoal is named",
@@ -53,11 +42,10 @@ const pieceOnAnotherVoyage = Effect.gen(function* () {
 		title: "northern",
 		voyageId: shoals.id,
 	});
+	return { piece, voyageId: shoals.id };
 });
 
-const withCaptain = <A, E>(
-	body: (captain: ScriptedSession) => Effect.Effect<A, E, AgentDomain>,
-) =>
+const withCaptain = <A, E>(body: (captain: ScriptedSession) => Effect.Effect<A, E, AgentDomain>) =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
 		const scripted = yield* makeScriptedBackend;
@@ -72,18 +60,12 @@ it.live("a captain charters a piece and positions it in the pool", () =>
 	withCaptain((captain) =>
 		Effect.gen(function* () {
 			const alpha = yield* chartered(captain, "alpha", []);
-			expect(
-				yield* callTool(captain, "launch_piece", { pieceId: alpha }),
-			).toEqual({ ok: true, text: "launched into the pool" });
-			expect(
-				yield* callTool(captain, "park_piece", { pieceId: alpha }),
-			).toEqual({
+			expect(yield* callTool(captain, "launch_piece", { pieceId: alpha })).toEqual({ ok: true, text: "launched into the pool" });
+			expect(yield* callTool(captain, "park_piece", { pieceId: alpha })).toEqual({
 				ok: true,
 				text: "parked",
 			});
-			expect(
-				yield* callTool(captain, "unpark_piece", { pieceId: alpha }),
-			).toEqual({ ok: true, text: "unparked" });
+			expect(yield* callTool(captain, "unpark_piece", { pieceId: alpha })).toEqual({ ok: true, text: "unparked" });
 
 			const bravo = yield* chartered(captain, "bravo", [alpha]);
 			expect(
@@ -122,18 +104,16 @@ it.live("chartering onto another voyage's piece is refused, not written", () =>
 			const elsewhere = yield* pieceOnAnotherVoyage;
 			const refusal = yield* callTool(captain, "charter_piece", {
 				charter: "do bravo",
-				dependsOn: [elsewhere.id],
+				dependsOn: [elsewhere.piece.id],
 				expectation: "bravo is landed",
 				role: "hand",
 				title: "bravo",
 			});
 			expect(refusal).toEqual({
 				ok: false,
-				text: `these pieces are not on your voyage: ${elsewhere.id}`,
+				text: `these pieces are not on your voyage: ${elsewhere.piece.id}`,
 			});
-			expect((yield* callTool(captain, "read_voyage", {})).text).toContain(
-				"## Pieces\n- none",
-			);
+			expect((yield* callTool(captain, "read_voyage", {})).text).toContain("## Pieces\n- none");
 		}),
 	),
 );
@@ -145,21 +125,19 @@ it.live("rewiring onto another voyage's piece is refused, not written", () =>
 			const elsewhere = yield* pieceOnAnotherVoyage;
 			expect(
 				yield* callTool(captain, "rewire_piece", {
-					dependsOn: [elsewhere.id],
+					dependsOn: [elsewhere.piece.id],
 					pieceId: alpha,
 				}),
 			).toEqual({
 				ok: false,
-				text: `these pieces are not on your voyage: ${elsewhere.id}`,
+				text: `these pieces are not on your voyage: ${elsewhere.piece.id}`,
 			});
-			expect((yield* callTool(captain, "read_voyage", {})).text).not.toContain(
-				elsewhere.id,
-			);
+			expect((yield* callTool(captain, "read_voyage", {})).text).not.toContain(elsewhere.piece.id);
 		}),
 	),
 );
 
-it.live("a captain cons one ship and cannot reach across a hull", () =>
+it.live("a captain may read another voyage without conning it", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
 		const scripted = yield* makeScriptedBackend;
@@ -170,11 +148,17 @@ it.live("a captain cons one ship and cannot reach across a hull", () =>
 			const captain = yield* hailedCaptain(scripted, reef.id);
 
 			expect(
-				yield* callTool(captain, "launch_piece", { pieceId: elsewhere.id }),
+				yield* callTool(captain, "launch_piece", {
+					pieceId: elsewhere.piece.id,
+				}),
 			).toEqual({ ok: false, text: "that piece is not on your voyage" });
 			expect(
-				yield* callTool(captain, "read_board", { scope: "piece" }),
-			).toEqual({ ok: false, text: "you have no piece board" });
+				(yield* callTool(captain, "read_voyage", {
+					voyageId: elsewhere.voyageId,
+				})).text,
+			).toContain("# Name the shoals");
+			expect((yield* callTool(captain, "read_voyage", { voyageId: reef.id })).text).toContain("# Chart the reef");
+			expect(yield* callTool(captain, "read_board", { scope: "piece" })).toEqual({ ok: false, text: "you have no piece board" });
 
 			expect(
 				yield* callTool(captain, "write_board", {
@@ -183,9 +167,9 @@ it.live("a captain cons one ship and cannot reach across a hull", () =>
 					scope: "voyage",
 				}),
 			).toEqual({ ok: true, text: "written to the voyage board" });
-			expect(
-				yield* domain.boards.read(BoardScope.Voyage({ voyageId: reef.id })),
-			).toMatchObject([{ body: "hand the next captain the eastern approach" }]);
+			expect(yield* domain.boards.read(BoardScope.Voyage({ voyageId: reef.id }))).toMatchObject([
+				{ body: "hand the next captain the eastern approach" },
+			]);
 		}).pipe(Effect.provide(domainKernelLayer(temporary, scripted.backend)));
 	}),
 );

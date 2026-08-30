@@ -1,8 +1,5 @@
 import { Database, type PrismaError } from "@antumbra/persistence";
-import {
-	type ChangeVerdict,
-	ChangeVerdict as ChangeVerdictSchema,
-} from "@antumbra/vocabulary/verdict";
+import { type ChangeVerdict, ChangeVerdict as ChangeVerdictSchema } from "@antumbra/vocabulary/verdict";
 import { type Context, Effect, Schema } from "effect";
 import { StoredChangeVerdictInvalid } from "#errors.ts";
 
@@ -11,10 +8,7 @@ export interface ChangeVerdictRow {
 	readonly verdict: ChangeVerdict;
 }
 
-export const changeVerdictRow = (row: {
-	readonly changeId: string;
-	readonly verdict: string;
-}) =>
+export const changeVerdictRow = (row: { readonly changeId: string; readonly verdict: string }) =>
 	Schema.decodeUnknownEffect(ChangeVerdictSchema)(row.verdict).pipe(
 		Effect.mapError(
 			(cause) =>
@@ -23,9 +17,7 @@ export const changeVerdictRow = (row: {
 					detail: `${String(cause)}; stored verdict ${JSON.stringify(row.verdict)}`,
 				}),
 		),
-		Effect.map(
-			(verdict): ChangeVerdictRow => ({ changeId: row.changeId, verdict }),
-		),
+		Effect.map((verdict): ChangeVerdictRow => ({ changeId: row.changeId, verdict })),
 	);
 
 // why: every reader of a dismissal asks the same question — is this change
@@ -37,13 +29,6 @@ export const readDismissedChangeIds: Effect.Effect<
 	Context.Service.Identifier<typeof Database>
 > = Effect.gen(function* () {
 	const db = yield* Database;
-	const rows = yield* Effect.forEach(
-		yield* db.ChangeVerdict.all(),
-		changeVerdictRow,
-	);
-	return new Set(
-		rows
-			.filter((row) => row.verdict === "dismissed")
-			.map((row) => row.changeId),
-	);
+	const rows = yield* Effect.forEach(yield* db.ChangeVerdict.all(), changeVerdictRow);
+	return new Set(rows.filter((row) => row.verdict === "dismissed").map((row) => row.changeId));
 });

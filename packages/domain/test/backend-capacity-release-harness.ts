@@ -1,14 +1,9 @@
 import { dirname, join } from "node:path";
-import {
-	defineIntent,
-	type IntentExecution,
-	type IntentKind,
-	type Kernel,
-	KernelLive,
-} from "@antumbra/kernel";
+import { defineIntent, type IntentExecution, type IntentKind, type Kernel, KernelLive } from "@antumbra/kernel";
 import type { TemporaryPersistence } from "@antumbra/persistence/testing";
 import type { AgentBackend } from "@antumbra/plugin-api";
 import { type WakeFields, WakePayload } from "@antumbra/sessions";
+import { SettingsSourceLive } from "@antumbra/settings";
 import { NodeServices } from "@effect/platform-node";
 import { Effect, Layer, Ref, Stream } from "effect";
 import { AgentDomain } from "#agent-domain-service.ts";
@@ -16,7 +11,6 @@ import type { BackendCapacities } from "#backend-capacity.ts";
 import type { BackendCapacityReading } from "#backend-capacity-model.ts";
 import { BackendCapacityReleaseLive } from "#backend-capacity-release.ts";
 import { AgentDomainLive } from "#domain.ts";
-import { SettingsSourceLive } from "#settings.ts";
 import { type SpawnFields, SpawnPayload } from "#spawn-fields.ts";
 import { makeScriptedBackend, passiveRunner } from "#test/harness.ts";
 
@@ -60,17 +54,11 @@ export const makeCapacities = Effect.gen(function* () {
 type AgentDomainService = Parameters<typeof AgentDomain.of>[0];
 export type KernelService = Parameters<typeof Kernel.of>[0];
 
-export const spawnKind = (
-	execute: (
-		payload: SpawnFields,
-	) => Effect.Effect<void, unknown, IntentExecution>,
-) => defineIntent({ execute, payload: SpawnPayload, tag: "agent/spawn" });
+export const spawnKind = (execute: (payload: SpawnFields) => Effect.Effect<void, unknown, IntentExecution>) =>
+	defineIntent({ execute, payload: SpawnPayload, tag: "agent/spawn" });
 
-export const wakeKind = (
-	execute: (
-		payload: WakeFields,
-	) => Effect.Effect<void, unknown, IntentExecution>,
-) => defineIntent({ execute, payload: WakePayload, tag: "agent/wake" });
+export const wakeKind = (execute: (payload: WakeFields) => Effect.Effect<void, unknown, IntentExecution>) =>
+	defineIntent({ execute, payload: WakePayload, tag: "agent/wake" });
 
 export const spawnPayload = (name: string): SpawnFields => ({
 	agentId: name,
@@ -83,11 +71,7 @@ export const spawnPayload = (name: string): SpawnFields => ({
 
 export const wakePayload = (name: string): WakeFields => ({ sessionId: name });
 
-const makeReleaseDomain = (
-	capacities: BackendCapacities,
-	spawn: IntentKind<SpawnFields>,
-	wake: IntentKind<WakeFields>,
-) =>
+const makeReleaseDomain = (capacities: BackendCapacities, spawn: IntentKind<SpawnFields>, wake: IntentKind<WakeFields>) =>
 	Effect.map(AgentDomain, (template) =>
 		AgentDomain.of({
 			...template,
@@ -99,21 +83,14 @@ const makeReleaseDomain = (
 		}),
 	);
 
-export const templateDomainLayer = (
-	temporary: TemporaryPersistence,
-	backend: AgentBackend,
-) =>
+export const templateDomainLayer = (temporary: TemporaryPersistence, backend: AgentBackend) =>
 	AgentDomainLive(
 		new Map([[backend.tag, backend]]),
 		new Map([[passiveRunner.tag, passiveRunner]]),
 		new Map(),
 		join(dirname(temporary.database), "artifacts"),
 		join(dirname(temporary.database), "session-inputs"),
-	).pipe(
-		Layer.provide(NodeServices.layer),
-		Layer.provideMerge(SettingsSourceLive),
-		Layer.provideMerge(temporary.layer),
-	);
+	).pipe(Layer.provide(NodeServices.layer), Layer.provideMerge(SettingsSourceLive), Layer.provideMerge(temporary.layer));
 
 export const withReleaseDomain = (
 	temporary: TemporaryPersistence,
@@ -135,27 +112,16 @@ export const dependencies = (
 	domain: AgentDomainService,
 	spawn: IntentKind<SpawnFields>,
 	wake: IntentKind<WakeFields>,
-) =>
-	Layer.mergeAll(
-		KernelLive({ kinds: [spawn, wake] }).pipe(Layer.provideMerge(database)),
-		Layer.succeed(AgentDomain, domain),
-	);
+) => Layer.mergeAll(KernelLive({ kinds: [spawn, wake] }).pipe(Layer.provideMerge(database)), Layer.succeed(AgentDomain, domain));
 
 export const withReleases = (
 	database: TemporaryPersistence["layer"],
 	domain: AgentDomainService,
 	spawn: IntentKind<SpawnFields>,
 	wake: IntentKind<WakeFields>,
-) =>
-	BackendCapacityReleaseLive.pipe(
-		Layer.provideMerge(dependencies(database, domain, spawn, wake)),
-	);
+) => BackendCapacityReleaseLive.pipe(Layer.provideMerge(dependencies(database, domain, spawn, wake)));
 
-export const waitForChange = (
-	kernel: KernelService,
-	id: string,
-	expected: string,
-) =>
+export const waitForChange = (kernel: KernelService, id: string, expected: string) =>
 	kernel.changes(id).pipe(
 		Stream.filter((status) => status === expected),
 		Stream.take(1),

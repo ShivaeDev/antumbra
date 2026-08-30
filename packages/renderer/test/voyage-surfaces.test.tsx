@@ -7,24 +7,11 @@ import { VoyagesPanel } from "#views/voyages.tsx";
 import { VoyagesAside } from "#views/voyages-aside.tsx";
 
 const list = () =>
-	renderToStaticMarkup(
-		<VoyagesPanel
-			onError={() => undefined}
-			onSelect={() => undefined}
-			selected={undefined}
-			voyages={[reefSummary]}
-		/>,
-	);
+	renderToStaticMarkup(<VoyagesPanel onError={() => undefined} onSelect={() => undefined} selected={undefined} voyages={[reefSummary]} />);
 
 const aside = () =>
 	renderToStaticMarkup(
-		<VoyagesAside
-			backends={["claude"]}
-			onError={() => undefined}
-			onSelect={() => undefined}
-			selected={undefined}
-			voyages={[reefSummary]}
-		/>,
+		<VoyagesAside backends={["claude"]} onError={() => undefined} onSelect={() => undefined} selected={undefined} voyages={[reefSummary]} />,
 	);
 
 const flagshipSummary: VoyageSummary = {
@@ -37,22 +24,10 @@ const flagshipSummary: VoyageSummary = {
 
 const fleet = () =>
 	renderToStaticMarkup(
-		<VoyagesPanel
-			onError={() => undefined}
-			onSelect={() => undefined}
-			selected={undefined}
-			voyages={[reefSummary, flagshipSummary]}
-		/>,
+		<VoyagesPanel onError={() => undefined} onSelect={() => undefined} selected={undefined} voyages={[reefSummary, flagshipSummary]} />,
 	);
 
-const pieces = () =>
-	renderToStaticMarkup(
-		<PiecesPanel
-			onError={() => undefined}
-			pieces={reefView.pieces}
-			voyageId={reefView.id}
-		/>,
-	);
+const pieces = () => renderToStaticMarkup(<PiecesPanel onError={() => undefined} pieces={reefView.pieces} voyageId={reefView.id} />);
 
 it("a voyage's standing is a bar the eye reads, not a run of arithmetic", () => {
 	const html = list();

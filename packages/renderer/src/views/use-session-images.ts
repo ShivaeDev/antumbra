@@ -1,10 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import {
-	type DraftImage,
-	filesFromClipboard,
-	imageFileIssue,
-	makeDraftImage,
-} from "#views/session-draft.ts";
+import { type DraftImage, filesFromClipboard, imageFileIssue, makeDraftImage } from "#views/session-draft.ts";
 
 export const useSessionImages = ({
 	canAttach,
@@ -44,11 +39,7 @@ export const useSessionImages = ({
 		}
 		const acceptedWords = `${accepted.length} image${accepted.length === 1 ? "" : "s"} attached`;
 		const rejectedWords = `${issues.length} rejected`;
-		setAnnouncement(
-			issues.length === 0
-				? acceptedWords
-				: `${acceptedWords}, ${rejectedWords}`,
-		);
+		setAnnouncement(issues.length === 0 ? acceptedWords : `${acceptedWords}, ${rejectedWords}`);
 		onIssue(issues.length === 0 ? undefined : issues.join("; "));
 	};
 	const remove = (index: number) => {
@@ -67,15 +58,12 @@ export const useSessionImages = ({
 		next.splice(to, 0, moved);
 		onChange();
 		setImages(next);
-		setAnnouncement(
-			`${moved.file.name || "image"} moved to position ${to + 1}`,
-		);
+		setAnnouncement(`${moved.file.name || "image"} moved to position ${to + 1}`);
 	};
 	const paste = (event: React.ClipboardEvent<HTMLTextAreaElement>) => {
 		const files = filesFromClipboard(event.clipboardData.items);
 		if (files.length === 0) return;
-		if (!event.clipboardData.types.includes("text/plain"))
-			event.preventDefault();
+		if (!event.clipboardData.types.includes("text/plain")) event.preventDefault();
 		addFiles(files);
 	};
 	const drop = (event: React.DragEvent<HTMLTextAreaElement>) => {

@@ -17,22 +17,15 @@ const invalidRegistry = (): readonly Violation[] => [
 	{
 		file: REGISTRY_FILE,
 		line: undefined,
-		message:
-			"must be a JSON array of entries with string file, pragma, and reason fields.",
+		message: "must be a JSON array of entries with string file, pragma, and reason fields.",
 		rule: "pragmas/registry-invalid",
 	},
 ];
 
-const fileViolations = (
-	file: SourceFile,
-	registry: readonly RegistryEntry[],
-): readonly Violation[] =>
+const fileViolations = (file: SourceFile, registry: readonly RegistryEntry[]): readonly Violation[] =>
 	file.comments.flatMap((comment) => {
 		const detected = comment.content.includes(PRAGMA);
-		const registered = registry.some(
-			(entry) =>
-				entry.file === file.path && comment.content.includes(entry.pragma),
-		);
+		const registered = registry.some((entry) => entry.file === file.path && comment.content.includes(entry.pragma));
 		return !detected || registered
 			? []
 			: [
@@ -45,15 +38,9 @@ const fileViolations = (
 				];
 	});
 
-export const pragmaViolations = (
-	inventory: Inventory,
-): readonly Violation[] => {
+export const pragmaViolations = (inventory: Inventory): readonly Violation[] => {
 	const registry = decodeRegistry(inventory.pragmaRegistry, {
 		onExcessProperty: "error",
 	});
-	return Result.isFailure(registry)
-		? invalidRegistry()
-		: inventory.sources.flatMap((file) =>
-				fileViolations(file, registry.success),
-			);
+	return Result.isFailure(registry) ? invalidRegistry() : inventory.sources.flatMap((file) => fileViolations(file, registry.success));
 };

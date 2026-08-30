@@ -1,11 +1,6 @@
 import { Effect, Stream } from "effect";
 import { ChildProcess, ChildProcessSpawner } from "effect/unstable/process";
-import {
-	type GitError,
-	type GitOperation,
-	GitTimedOut,
-	GitUnavailable,
-} from "#errors.ts";
+import { type GitError, type GitOperation, GitTimedOut, GitUnavailable } from "#errors.ts";
 import { acceptProcessOutput, decodeProcessOutput } from "#result.ts";
 
 interface GitCommand {
@@ -46,14 +41,9 @@ const collectRaw = (command: GitCommand) =>
 		),
 	);
 
-const collect = (command: GitCommand) =>
-	collectRaw(command).pipe(
-		Effect.flatMap((output) => decodeProcessOutput(command.operation, output)),
-	);
+const collect = (command: GitCommand) => collectRaw(command).pipe(Effect.flatMap((output) => decodeProcessOutput(command.operation, output)));
 
-export const runGit = (
-	command: GitCommand,
-): Effect.Effect<string, GitError, ChildProcessSpawner.ChildProcessSpawner> =>
+export const runGit = (command: GitCommand): Effect.Effect<string, GitError, ChildProcessSpawner.ChildProcessSpawner> =>
 	collect(command).pipe(
 		Effect.timeoutOrElse({
 			duration: command.timeoutMillis,

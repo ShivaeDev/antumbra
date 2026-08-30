@@ -1,19 +1,8 @@
-import {
-	type BoardOwnerNotFound,
-	BoardScope,
-	Boards,
-	type StoredBoardEntryInvalid,
-	type StoredBoardOwnerKindInvalid,
-	smoothBodies,
-} from "@antumbra/boards";
+import { type BoardOwnerNotFound, BoardScope, Boards, type StoredBoardEntryInvalid, smoothBodies } from "@antumbra/boards";
 import type { RulingReadFailure } from "@antumbra/rulings";
 import { Effect, Option } from "effect";
 import { charterForKind } from "#charter-flagship.ts";
-import {
-	CaptainAlreadyHailed,
-	CaptainSessionUnavailable,
-	VoyageNotFound,
-} from "#errors.ts";
+import { CaptainAlreadyHailed, CaptainSessionUnavailable, VoyageNotFound } from "#errors.ts";
 import type { SpawnRefused } from "#kernel-reach.ts";
 import { KernelReach } from "#kernel-reach.ts";
 import { pieceLineWithOutcomes } from "#piece-line.ts";
@@ -21,10 +10,7 @@ import { rulingLine, standingRulingsFor } from "#standing-rulings.ts";
 import { CAPTAIN_ROLE, captainAtWork, captainOf } from "#voyage-captain.ts";
 import { executionSessionOfAgent } from "#voyage-execution-selection.ts";
 import { voyageView } from "#voyage-view.ts";
-import {
-	type VoyageWorldReadFailure,
-	VoyageWorldSource,
-} from "#voyage-world.ts";
+import { type VoyageWorldReadFailure, VoyageWorldSource } from "#voyage-world.ts";
 
 export interface HailedCaptain {
 	readonly agentId: string;
@@ -41,7 +27,6 @@ export type HailRefused =
 	| RulingReadFailure
 	| SpawnRefused
 	| StoredBoardEntryInvalid
-	| StoredBoardOwnerKindInvalid
 	| VoyageNotFound
 	| VoyageWorldReadFailure;
 
@@ -84,9 +69,7 @@ export const hailCaptain = (voyageId: string) =>
 				voyageId,
 			});
 		}
-		const voyageSmoothLog = yield* boards
-			.read(BoardScope.Voyage({ voyageId }))
-			.pipe(Effect.map(smoothBodies));
+		const voyageSmoothLog = yield* boards.read(BoardScope.Voyage({ voyageId })).pipe(Effect.map(smoothBodies));
 		const agentId = crypto.randomUUID();
 		const bindingRulings = yield* standingRulingsFor({
 			agentId,

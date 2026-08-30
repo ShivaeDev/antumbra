@@ -6,8 +6,7 @@ const PieceId = Schema.String.annotate({
 });
 
 const DependsOn = Schema.Array(Schema.String).annotate({
-	description:
-		"The ids of the pieces this one waits on. Empty means it waits on nothing.",
+	description: "The ids of the pieces this one waits on. Empty means it waits on nothing.",
 });
 
 export const charterPieceSpec = defineTool({
@@ -15,13 +14,11 @@ export const charterPieceSpec = defineTool({
 		"Charter a piece of the voyage: a bounded unit of work with a stated outcome. Chartering does not start it — call `launch_piece` when you want it released into the pool.",
 	input: Schema.Struct({
 		charter: Schema.String.annotate({
-			description:
-				"What the agent working this piece is to do, written for it to read.",
+			description: "What the agent working this piece is to do, written for it to read.",
 		}),
 		dependsOn: DependsOn,
 		expectation: Schema.String.annotate({
-			description:
-				"The outcome you expect this piece to land. An estimate you may revise, not a contract.",
+			description: "The outcome you expect this piece to land. An estimate you may revise, not a contract.",
 		}),
 		role: Schema.String.annotate({
 			description: "The role the agent working this piece takes on.",
@@ -41,8 +38,7 @@ export const launchPieceSpec = defineTool({
 });
 
 export const parkPieceSpec = defineTool({
-	description:
-		"Pull a piece back out of the pool: it stays chartered and stops being dispatched until you unpark it.",
+	description: "Pull a piece back out of the pool: it stays chartered and stops being dispatched until you unpark it.",
 	input: Schema.Struct({ pieceId: PieceId }),
 	name: "park_piece",
 });
@@ -54,15 +50,20 @@ export const unparkPieceSpec = defineTool({
 });
 
 export const rewirePieceSpec = defineTool({
-	description:
-		"Change what a piece waits on. The new set replaces the old one whole; a dependency that would close a loop is refused.",
+	description: "Change what a piece waits on. The new set replaces the old one whole; a dependency that would close a loop is refused.",
 	input: Schema.Struct({ dependsOn: DependsOn, pieceId: PieceId }),
 	name: "rewire_piece",
 });
 
 export const readVoyageSpec = defineTool({
 	description:
-		"Read your voyage: its pieces and their state, who is at work, and what has landed. Call it whenever you need to know where the voyage stands.",
-	input: Schema.Struct({}),
+		"Read a voyage: its pieces and their state, who is at work, and what has landed. Call it whenever you need to know where the voyage stands. It reads the ship you are on unless you name another.",
+	input: Schema.Struct({
+		voyageId: Schema.optional(
+			Schema.String.annotate({
+				description: "The id of another voyage to read, as `read_fleet` shows it. Leave it out for the ship you are on.",
+			}),
+		),
+	}),
 	name: "read_voyage",
 });

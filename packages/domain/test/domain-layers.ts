@@ -5,6 +5,7 @@ import type { TemporaryPersistence } from "@antumbra/persistence/testing";
 import type { AgentBackend, ChangeHost, Runner } from "@antumbra/plugin-api";
 import type { ResourceReconcileOptions } from "@antumbra/resource-reclamation";
 import { SessionFabricLive } from "@antumbra/session-fabric";
+import { SettingsSourceLive } from "@antumbra/settings";
 import { NodeServices } from "@effect/platform-node";
 import { Effect, Layer } from "effect";
 import { BackendCapacityReleaseLive } from "#backend-capacity-release.ts";
@@ -18,16 +19,13 @@ import { KernelReachInstaller, KernelReachLive } from "#kernel-reach.ts";
 import { RulingAscentLive } from "#ruling-ascent.ts";
 import { RulingDeliveryLive } from "#ruling-delivery.ts";
 import { SessionShutdownLive } from "#session-shutdown-live.ts";
-import { SettingsSourceLive } from "#settings.ts";
 import { SightSourceLive } from "#sight.ts";
 import { passiveRunner } from "#test/harness.ts";
 import { fakeKernelReach } from "#test/kernel-reach-fixture.ts";
 
-const artifactsDirectory = (temporary: TemporaryPersistence) =>
-	join(dirname(temporary.database), "artifacts");
+const artifactsDirectory = (temporary: TemporaryPersistence) => join(dirname(temporary.database), "artifacts");
 
-const sessionInputsDirectory = (temporary: TemporaryPersistence) =>
-	join(dirname(temporary.database), "session-inputs");
+const sessionInputsDirectory = (temporary: TemporaryPersistence) => join(dirname(temporary.database), "session-inputs");
 
 const fakeKernelReachLive = Layer.effectDiscard(
 	Effect.gen(function* () {
@@ -39,11 +37,7 @@ const fakeKernelReachLive = Layer.effectDiscard(
 export const domainCapabilityLayer = (temporary: TemporaryPersistence) =>
 	fakeKernelReachLive.pipe(
 		Layer.provideMerge(
-			domainCapabilities(
-				new Map(),
-				new Map([[passiveRunner.tag, passiveRunner]]),
-				artifactsDirectory(temporary),
-			).pipe(
+			domainCapabilities(new Map(), new Map([[passiveRunner.tag, passiveRunner]]), artifactsDirectory(temporary)).pipe(
 				Layer.provide(SessionFabricLive),
 				Layer.provide(NodeServices.layer),
 			),
@@ -54,7 +48,7 @@ export const domainCapabilityLayer = (temporary: TemporaryPersistence) =>
 export const domainKernelLayer = (
 	temporary: TemporaryPersistence,
 	backend: AgentBackend,
-	options: Omit<KernelOptions, "kinds" | "gauges"> = {},
+	options: Omit<KernelOptions, "kinds"> = {},
 	runner: Runner = passiveRunner,
 	changeHosts: ReadonlyMap<string, ChangeHost> = new Map(),
 	reclaim: Partial<ResourceReconcileOptions> = {},
@@ -103,19 +97,12 @@ export const dispatchingLayer = (
 	temporary: TemporaryPersistence,
 	backend: AgentBackend,
 	dispatcher: Partial<DispatcherOptions>,
-	options: Omit<KernelOptions, "kinds" | "gauges"> = {},
+	options: Omit<KernelOptions, "kinds"> = {},
 	runner: Runner = passiveRunner,
 	changeHosts: ReadonlyMap<string, ChangeHost> = new Map(),
-) =>
-	DispatcherLive(dispatcher).pipe(
-		Layer.provideMerge(
-			domainKernelLayer(temporary, backend, options, runner, changeHosts),
-		),
-	);
+) => DispatcherLive(dispatcher).pipe(Layer.provideMerge(domainKernelLayer(temporary, backend, options, runner, changeHosts)));
 
-export const sightSourceTestLayer = SightSourceLive.pipe(
-	Layer.provideMerge(BackendCapacityReleaseLive),
-);
+export const sightSourceTestLayer = SightSourceLive.pipe(Layer.provideMerge(BackendCapacityReleaseLive));
 
 // why: the watcher stands beside the dispatcher exactly as it does in the app,
 // so a test of "the host said it landed" runs the same path a real merge does
@@ -125,11 +112,9 @@ export const watchingLayer = (
 	backend: AgentBackend,
 	cadence: Partial<ObserveCadenceOptions>,
 	changeHosts: ReadonlyMap<string, ChangeHost>,
-	dispatcher: Partial<DispatcherOptions> = { maxAlive: 4, patienceMillis: 50 },
+	dispatcher: Partial<DispatcherOptions> = {
+		maxRunning: 4,
+		patienceMillis: 50,
+	},
 	runner: Runner = passiveRunner,
-) =>
-	ChangeWatcherLive(cadence).pipe(
-		Layer.provideMerge(
-			dispatchingLayer(temporary, backend, dispatcher, {}, runner, changeHosts),
-		),
-	);
+) => ChangeWatcherLive(cadence).pipe(Layer.provideMerge(dispatchingLayer(temporary, backend, dispatcher, {}, runner, changeHosts)));

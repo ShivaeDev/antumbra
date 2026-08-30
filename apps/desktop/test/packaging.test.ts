@@ -20,9 +20,7 @@ const Prebuilt = Schema.Struct({
 });
 
 const packedManifest: unknown = JSON.parse(read("package.json"));
-const packed = Object.keys(
-	Schema.decodeUnknownSync(Packed)(packedManifest).dependencies,
-);
+const packed = Object.keys(Schema.decodeUnknownSync(Packed)(packedManifest).dependencies);
 
 const builderConfig = read("electron-builder.yml");
 // why: the why-comments in that file name the shapes they exist to rule out,
@@ -87,15 +85,9 @@ it("asks for no architecture the installed prebuilds cannot fill", () => {
 // platform name written down here and left to rot.
 it("installs a prebuild beside sharp for the host it packs for", () => {
 	const sharpRoot = realpathSync(join(desktopRoot, "node_modules", "sharp"));
-	const declared: unknown = JSON.parse(
-		readFileSync(join(sharpRoot, "package.json"), "utf8"),
-	);
-	const prebuilds = Object.keys(
-		Schema.decodeUnknownSync(Prebuilt)(declared).optionalDependencies,
-	).filter((name) => PREBUILD.test(name));
-	const beside = readdirSync(join(dirname(sharpRoot), "@img")).map(
-		(name) => `@img/${name}`,
-	);
+	const declared: unknown = JSON.parse(readFileSync(join(sharpRoot, "package.json"), "utf8"));
+	const prebuilds = Object.keys(Schema.decodeUnknownSync(Prebuilt)(declared).optionalDependencies).filter((name) => PREBUILD.test(name));
+	const beside = readdirSync(join(dirname(sharpRoot), "@img")).map((name) => `@img/${name}`);
 	expect(prebuilds.length).toBeGreaterThan(0);
 	expect(prebuilds.filter((name) => beside.includes(name))).not.toHaveLength(0);
 });

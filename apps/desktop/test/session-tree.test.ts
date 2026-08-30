@@ -3,18 +3,8 @@ import { Database } from "@antumbra/persistence";
 import { rejectTestSessionMessageWrites } from "@antumbra/persistence/testing";
 import { expect, it } from "@effect/vitest";
 import { Effect } from "effect";
-import {
-	AGENT_CALL,
-	NATIVE_ROOT,
-	NESTED_SUBSESSION,
-	SUBSESSION,
-	streamRehearsal,
-} from "#test/session-tree-frames.ts";
-import {
-	acquireTemporaryPersistence,
-	eventually,
-	rehearsalLayer,
-} from "#test/session-tree-harness.ts";
+import { AGENT_CALL, NATIVE_ROOT, NESTED_SUBSESSION, SUBSESSION, streamRehearsal } from "#test/session-tree-frames.ts";
+import { acquireTemporaryPersistence, eventually, rehearsalLayer } from "#test/session-tree-harness.ts";
 
 const spawnRequest = {
 	backend: "claude",
@@ -30,8 +20,7 @@ const journal = (sessionId: string) =>
 			.all();
 	});
 
-const kindsOf = (sessionId: string) =>
-	journal(sessionId).pipe(Effect.map((rows) => rows.map((row) => row.kind)));
+const kindsOf = (sessionId: string) => journal(sessionId).pipe(Effect.map((rows) => rows.map((row) => row.kind)));
 
 const treeOf = (rootSessionId: string) =>
 	Effect.gen(function* () {
@@ -120,17 +109,8 @@ it.live("each node's journal holds what that node did, and only that", () =>
 				"subsession.ended",
 				"raw",
 			]);
-			expect(yield* kindsOf(node.id)).toEqual([
-				"session.opened",
-				"message",
-				"tool.started",
-				"subsession.opened",
-				"message",
-			]);
-			expect(yield* kindsOf(nested.id)).toEqual([
-				"session.opened",
-				"subsession.gap",
-			]);
+			expect(yield* kindsOf(node.id)).toEqual(["session.opened", "message", "tool.started", "subsession.opened", "message"]);
+			expect(yield* kindsOf(nested.id)).toEqual(["session.opened", "subsession.gap"]);
 		}).pipe(Effect.provide(rehearsalLayer(temporary, streamRehearsal)));
 	}),
 );
@@ -178,9 +158,7 @@ it.live("a node whose journal refused an append is marked incomplete", () =>
 		const temporary = yield* acquireTemporaryPersistence;
 		yield* Effect.gen(function* () {
 			const sight = yield* SightSource;
-			yield* Effect.sync(() =>
-				rejectTestSessionMessageWrites(temporary.database),
-			);
+			yield* Effect.sync(() => rejectTestSessionMessageWrites(temporary.database));
 			const receipt = yield* sight.spawn(spawnRequest);
 			const node = yield* eventually(
 				Effect.gen(function* () {
@@ -198,12 +176,8 @@ it.live("a node whose journal refused an append is marked incomplete", () =>
 			// follows leaves it standing — auditing the gaps is a later reading.
 			expect(node.completeness).toBe("incomplete");
 			expect(node.outcome).toBe("completed");
-			const gaps = (yield* journal(node.id)).filter(
-				(row) => row.kind === "subsession.gap",
-			);
-			expect(gaps.map((row) => row.payload).join("")).toContain(
-				"append-failed",
-			);
+			const gaps = (yield* journal(node.id)).filter((row) => row.kind === "subsession.gap");
+			expect(gaps.map((row) => row.payload).join("")).toContain("append-failed");
 			// why: the opening is a fact about the spawner's turn, so a node that
 			// lost its own words is still known to have existed.
 			expect(yield* kindsOf(receipt.sessionId)).toContain("subsession.opened");
@@ -230,9 +204,7 @@ it.live("a node's opening never stands in for the root's own identity", () =>
 			// and the confirmation the attachment waits on never sees it.
 			expect(root?.nativeRef).toBe(NATIVE_ROOT);
 			expect(tree.node?.nativeRef).toBe(SUBSESSION);
-			const opening = (yield* journal(receipt.sessionId)).find(
-				(row) => row.kind === "subsession.opened",
-			);
+			const opening = (yield* journal(receipt.sessionId)).find((row) => row.kind === "subsession.opened");
 			expect(opening?.payload).toContain(AGENT_CALL);
 		}).pipe(Effect.provide(rehearsalLayer(temporary, streamRehearsal)));
 	}),

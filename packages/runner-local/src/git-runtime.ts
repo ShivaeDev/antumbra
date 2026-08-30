@@ -1,9 +1,5 @@
 import type { GitError } from "@antumbra/git";
-import {
-	RunnerAuthRequired,
-	type RunnerError,
-	RunnerFailure,
-} from "@antumbra/plugin-api";
+import { RunnerAuthRequired, type RunnerError, RunnerFailure } from "@antumbra/plugin-api";
 import { NodeServices } from "@effect/platform-node";
 import { Effect } from "effect";
 import type { ChildProcessSpawner } from "effect/unstable/process";
@@ -21,10 +17,5 @@ export const toRunnerError = (failure: GitError): RunnerError => {
 	});
 };
 
-export const runGit = <A>(
-	program: Effect.Effect<A, GitError, ChildProcessSpawner.ChildProcessSpawner>,
-): Effect.Effect<A, RunnerError> =>
-	program.pipe(
-		Effect.mapError(toRunnerError),
-		Effect.provide(NodeServices.layer),
-	);
+export const runGit = <A>(program: Effect.Effect<A, GitError, ChildProcessSpawner.ChildProcessSpawner>): Effect.Effect<A, RunnerError> =>
+	program.pipe(Effect.mapError(toRunnerError), Effect.provide(NodeServices.layer));

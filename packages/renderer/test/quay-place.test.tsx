@@ -48,13 +48,7 @@ vi.mock("#session-drafts/store.ts", () => ({
 vi.mock("#views/nav-rail.tsx", () => ({ NavRail: () => null }));
 vi.mock("#views/notice-bar.tsx", () => ({ NoticeBar: () => null }));
 vi.mock("#views/console-main.tsx", () => ({
-	ConsoleMain: ({
-		change,
-		onChange,
-	}: {
-		readonly change: string | undefined;
-		readonly onChange: (changeId: string | undefined) => void;
-	}) => (
+	ConsoleMain: ({ change, onChange }: { readonly change: string | undefined; readonly onChange: (changeId: string | undefined) => void }) => (
 		<button onClick={() => onChange("change-8")} type="button">
 			{change}
 		</button>
@@ -85,10 +79,7 @@ it.effect("restores and remembers the selected pull request", () =>
 
 		expect(container.textContent).toContain("change-7");
 		yield* settle(() => container.querySelector("button")?.click());
-		expect(rememberPlace).toHaveBeenLastCalledWith(
-			{ ...place, changeId: "change-8" },
-			expect.any(Function),
-		);
+		expect(rememberPlace).toHaveBeenLastCalledWith({ ...place, changeId: "change-8" }, expect.any(Function));
 		yield* settle(() => root.unmount());
 	}),
 );

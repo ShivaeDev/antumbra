@@ -18,9 +18,7 @@ export const changesFor = (id: string) =>
 			if (Option.isNone(row)) {
 				return yield* new IntentNotFound({ id });
 			}
-			const current = yield* Effect.orDie(
-				Schema.decodeUnknownEffect(IntentStatusSchema)(row.value.status),
-			);
+			const current = yield* Effect.orDie(Schema.decodeUnknownEffect(IntentStatusSchema)(row.value.status));
 			const live = Stream.fromSubscription(subscription).pipe(
 				Stream.filter((change) => change.id === id),
 				Stream.map((change) => change.status),

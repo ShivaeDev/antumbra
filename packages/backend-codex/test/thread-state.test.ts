@@ -35,40 +35,26 @@ const tokens = (last: Record<string, number>) => ({
 
 describe("what codex says a thread is doing is kept", () => {
 	it("an active thread is running until a flag says it is waiting", () => {
-		expect(
-			toAgentEvents(status({ activeFlags: [], type: "active" })),
-		).toMatchObject([{ state: "running", type: "session.state" }]);
-		expect(
-			toAgentEvents(
-				status({ activeFlags: ["waitingOnApproval"], type: "active" }),
-			),
-		).toMatchObject([{ state: "awaiting-input", type: "session.state" }]);
-		expect(
-			toAgentEvents(
-				status({ activeFlags: ["waitingOnUserInput"], type: "active" }),
-			),
-		).toMatchObject([{ state: "awaiting-input", type: "session.state" }]);
-		expect(toAgentEvents(status({ type: "idle" }))).toMatchObject([
-			{ state: "idle", type: "session.state" },
+		expect(toAgentEvents(status({ activeFlags: [], type: "active" }))).toMatchObject([{ state: "running", type: "session.state" }]);
+		expect(toAgentEvents(status({ activeFlags: ["waitingOnApproval"], type: "active" }))).toMatchObject([
+			{ state: "awaiting-input", type: "session.state" },
 		]);
+		expect(toAgentEvents(status({ activeFlags: ["waitingOnUserInput"], type: "active" }))).toMatchObject([
+			{ state: "awaiting-input", type: "session.state" },
+		]);
+		expect(toAgentEvents(status({ type: "idle" }))).toMatchObject([{ state: "idle", type: "session.state" }]);
 	});
 
 	// why: a thread with no process and a thread that broke are not states this
 	// vocabulary has, and calling either idle would say the session is quietly
 	// listening when it is not. They stay evidence instead.
 	it("leaves notLoaded and systemError raw rather than calling them idle", () => {
-		expect(toAgentEvents(status({ type: "notLoaded" }))).toMatchObject([
-			{ raw: { kind: "thread/status/changed" }, type: "raw" },
-		]);
-		expect(toAgentEvents(status({ type: "systemError" }))).toMatchObject([
-			{ type: "raw" },
-		]);
+		expect(toAgentEvents(status({ type: "notLoaded" }))).toMatchObject([{ raw: { kind: "thread/status/changed" }, type: "raw" }]);
+		expect(toAgentEvents(status({ type: "systemError" }))).toMatchObject([{ type: "raw" }]);
 	});
 
 	it("the turn edges are the session going busy and going quiet", () => {
-		expect(toAgentEvents(turn("turn/started", "inProgress"))).toMatchObject([
-			{ state: "running", type: "session.state" },
-		]);
+		expect(toAgentEvents(turn("turn/started", "inProgress"))).toMatchObject([{ state: "running", type: "session.state" }]);
 		expect(toAgentEvents(turn("turn/completed", "completed"))).toMatchObject([
 			{ durationMs: 12300, status: "completed", type: "turn.completed" },
 			{ state: "idle", type: "session.state" },

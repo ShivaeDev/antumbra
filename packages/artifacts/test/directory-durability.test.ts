@@ -1,10 +1,4 @@
-import {
-	existsSync,
-	mkdirSync,
-	mkdtempSync,
-	rmSync,
-	writeFileSync,
-} from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { Artifacts, ArtifactsLive } from "@antumbra/artifacts";
@@ -13,14 +7,7 @@ import type { DatabaseService } from "@antumbra/persistence";
 import { persistenceIt } from "@antumbra/persistence/testing";
 import { NodeCrypto, NodeFileSystem, NodePath } from "@effect/platform-node";
 import { expect } from "@effect/vitest";
-import {
-	type Crypto,
-	Effect,
-	FileSystem,
-	Layer,
-	type Path,
-	PlatformError,
-} from "effect";
+import { type Crypto, Effect, FileSystem, Layer, type Path, PlatformError } from "effect";
 
 const it = persistenceIt();
 
@@ -72,10 +59,7 @@ const seed = (db: DatabaseService, fixture: Fixture, suffix: string) =>
 		return { agentId, pieceId };
 	});
 
-const wrappedFile = (
-	file: FileSystem.File,
-	sync: Effect.Effect<void, PlatformError.PlatformError>,
-): FileSystem.File => ({
+const wrappedFile = (file: FileSystem.File, sync: Effect.Effect<void, PlatformError.PlatformError>): FileSystem.File => ({
 	[FileSystem.FileTypeId]: FileSystem.FileTypeId,
 	read: (buffer) => file.read(buffer),
 	readAlloc: (size) => file.readAlloc(size),
@@ -103,49 +87,24 @@ const failFirstSync = (file: FileSystem.File, state: FailureState) => {
 		method: "sync",
 		module: "FileSystem",
 	});
-	return wrappedFile(
-		file,
-		observed.pipe(
-			Effect.andThen(Effect.sync(() => (state.failed = true))),
-			Effect.andThen(Effect.fail(failure)),
-		),
-	);
+	return wrappedFile(file, observed.pipe(Effect.andThen(Effect.sync(() => (state.failed = true))), Effect.andThen(Effect.fail(failure))));
 };
 
-const fileSystemWithFailure = (
-	fs: FileSystem.FileSystem,
-	target: string,
-	state: FailureState,
-): FileSystem.FileSystem =>
+const fileSystemWithFailure = (fs: FileSystem.FileSystem, target: string, state: FailureState): FileSystem.FileSystem =>
 	FileSystem.FileSystem.of({
 		...fs,
-		open: (path, options) =>
-			fs
-				.open(path, options)
-				.pipe(
-					Effect.map((file) =>
-						path === target ? failFirstSync(file, state) : file,
-					),
-				),
+		open: (path, options) => fs.open(path, options).pipe(Effect.map((file) => (path === target ? failFirstSync(file, state) : file))),
 	});
 
 const failurePlatform = (target: string, state: FailureState) => {
 	const fileSystem = Layer.effect(FileSystem.FileSystem)(
-		FileSystem.FileSystem.use((fs) =>
-			Effect.succeed(fileSystemWithFailure(fs, target, state)),
-		),
+		FileSystem.FileSystem.use((fs) => Effect.succeed(fileSystemWithFailure(fs, target, state))),
 	).pipe(Layer.provide(NodeFileSystem.layer));
 	return Layer.mergeAll(NodeCrypto.layer, NodePath.layer, fileSystem);
 };
 
-const artifactLayer = (
-	published: string,
-	platform: Layer.Layer<FileSystem.FileSystem | Path.Path | Crypto.Crypto>,
-) =>
-	ArtifactsLive(published).pipe(
-		Layer.provideMerge(DomainFeedsLive),
-		Layer.provide(platform),
-	);
+const artifactLayer = (published: string, platform: Layer.Layer<FileSystem.FileSystem | Path.Path | Crypto.Crypto>) =>
+	ArtifactsLive(published).pipe(Layer.provideMerge(DomainFeedsLive), Layer.provide(platform));
 
 const cases = [
 	{
@@ -158,50 +117,36 @@ const cases = [
 	},
 ] as const;
 
-it.effectDB(
-	"lands only after new directory entries are durably linked",
-	function* (db) {
-		for (const boundary of cases) {
-			const fixture = makeFixture();
-			expect(existsSync(fixture.published)).toBe(false);
-			writeFileSync(fixture.source, "inside");
-			const identity = yield* seed(db, fixture, boundary.name);
-			const state: FailureState = { events: [], failed: false };
-			const layer = artifactLayer(
-				fixture.published,
-				failurePlatform(boundary.target(fixture), state),
-			);
-			const input = {
-				authorAgentId: identity.agentId,
-				pieceId: identity.pieceId,
-				title: "reef chart",
-				path: "reef.md",
-			};
-			const artifactsBefore = (yield* db.Artifact.all()).length;
-			const failure = yield* Effect.gen(function* () {
-				const artifacts = yield* Artifacts;
-				return yield* Effect.flip(artifacts.land(input));
-			}).pipe(Effect.provide(layer));
+it.effectDB("lands only after new directory entries are durably linked", function* (db) {
+	for (const boundary of cases) {
+		const fixture = makeFixture();
+		expect(existsSync(fixture.published)).toBe(false);
+		writeFileSync(fixture.source, "inside");
+		const identity = yield* seed(db, fixture, boundary.name);
+		const state: FailureState = { events: [], failed: false };
+		const layer = artifactLayer(fixture.published, failurePlatform(boundary.target(fixture), state));
+		const input = {
+			authorAgentId: identity.agentId,
+			pieceId: identity.pieceId,
+			title: "reef chart",
+			path: "reef.md",
+		};
+		const artifactsBefore = (yield* db.Artifact.all()).length;
+		const failure = yield* Effect.gen(function* () {
+			const artifacts = yield* Artifacts;
+			return yield* Effect.flip(artifacts.land(input));
+		}).pipe(Effect.provide(layer));
 
-			expect(failure._tag).toBe("ArtifactPublicationFailed");
-			expect(state.events).toEqual(["sync"]);
-			expect(yield* db.Artifact.all()).toHaveLength(artifactsBefore);
+		expect(failure._tag).toBe("ArtifactPublicationFailed");
+		expect(state.events).toEqual(["sync"]);
+		expect(yield* db.Artifact.all()).toHaveLength(artifactsBefore);
 
-			const artifact = yield* Effect.gen(function* () {
-				const artifacts = yield* Artifacts;
-				return yield* artifacts.land(input);
-			}).pipe(Effect.provide(layer));
-			expect(
-				existsSync(
-					join(
-						fixture.published,
-						artifact.artifact.digest,
-						artifact.artifact.basename,
-					),
-				),
-			).toBe(true);
-			expect(yield* db.Artifact.all()).toHaveLength(artifactsBefore + 1);
-			rmSync(fixture.root, { force: true, recursive: true });
-		}
-	},
-);
+		const artifact = yield* Effect.gen(function* () {
+			const artifacts = yield* Artifacts;
+			return yield* artifacts.land(input);
+		}).pipe(Effect.provide(layer));
+		expect(existsSync(join(fixture.published, artifact.artifact.digest, artifact.artifact.basename))).toBe(true);
+		expect(yield* db.Artifact.all()).toHaveLength(artifactsBefore + 1);
+		rmSync(fixture.root, { force: true, recursive: true });
+	}
+});

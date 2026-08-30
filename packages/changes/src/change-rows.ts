@@ -1,13 +1,5 @@
-import type {
-	ChangeChecks,
-	ChangeMergeable,
-	ChangeReview,
-	ChangeStage,
-} from "@antumbra/vocabulary/change";
-import {
-	type PieceChangePurpose,
-	PieceChangePurpose as PieceChangePurposeSchema,
-} from "@antumbra/vocabulary/change";
+import type { ChangeChecks, ChangeMergeable, ChangeReview, ChangeStage } from "@antumbra/vocabulary/change";
+import { type PieceChangePurpose, PieceChangePurpose as PieceChangePurposeSchema } from "@antumbra/vocabulary/change";
 import { Effect, Schema } from "effect";
 import { StoredPieceChangeInvalid } from "#errors.ts";
 
@@ -53,11 +45,7 @@ export interface PieceChangeRow {
 	readonly purpose: PieceChangePurpose;
 }
 
-export const pieceChangeRow = (row: {
-	readonly changeId: string;
-	readonly pieceId: string;
-	readonly purpose: string;
-}) =>
+export const pieceChangeRow = (row: { readonly changeId: string; readonly pieceId: string; readonly purpose: string }) =>
 	Schema.decodeUnknownEffect(PieceChangePurposeSchema)(row.purpose).pipe(
 		Effect.mapError(
 			(cause) =>

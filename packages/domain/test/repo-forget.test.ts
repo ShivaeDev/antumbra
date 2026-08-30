@@ -4,10 +4,7 @@ import { Effect } from "effect";
 import { AgentDomain } from "#domain.ts";
 import { changeOf } from "#test/change-fixtures.ts";
 import { domainKernelLayer } from "#test/domain-layers.ts";
-import {
-	acquireTemporaryPersistence,
-	makeScriptedBackend,
-} from "#test/harness.ts";
+import { acquireTemporaryPersistence, makeScriptedBackend } from "#test/harness.ts";
 
 const REEF = "/somewhere/reef";
 const SHOAL = "/somewhere/shoal";
@@ -76,15 +73,9 @@ it.live("forgetting a repo removes its entire change graph atomically", () =>
 			yield* domain.repos.forget(reef.id);
 
 			expect((yield* db.Repo.all()).map((row) => row.id)).toEqual([shoal.id]);
-			expect((yield* db.Change.all()).map((row) => row.id)).toEqual([
-				shoalChange.id,
-			]);
-			expect((yield* db.PieceChange.all()).map((row) => row.changeId)).toEqual([
-				shoalChange.id,
-			]);
-			expect(
-				(yield* db.ChangeTransition.all()).map((row) => row.changeId),
-			).toEqual([shoalChange.id]);
+			expect((yield* db.Change.all()).map((row) => row.id)).toEqual([shoalChange.id]);
+			expect((yield* db.PieceChange.all()).map((row) => row.changeId)).toEqual([shoalChange.id]);
+			expect((yield* db.ChangeTransition.all()).map((row) => row.changeId)).toEqual([shoalChange.id]);
 		}).pipe(Effect.provide(domainKernelLayer(temporary, backend.backend)));
 	}),
 );

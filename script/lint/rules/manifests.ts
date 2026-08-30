@@ -3,17 +3,11 @@ import { jsonDecoder } from "#lint/adapters/json.ts";
 import type { Inventory, TextFile } from "#lint/inventory.ts";
 import type { Violation } from "#lint/violation.ts";
 
-const EXACT_VERSION =
-	/^(npm:.+@)?\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?(\+[0-9A-Za-z.-]+)?$/;
+const EXACT_VERSION = /^(npm:.+@)?\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?(\+[0-9A-Za-z.-]+)?$/;
 const CATALOG_HEADING = /^catalogs?:/;
 const TOP_LEVEL_KEY = /^\S/;
 const CATALOG_ENTRY = /^\s+"?([^":]+)"?:\s*(\S.*)$/;
-const DEPENDENCY_KEYS = [
-	"dependencies",
-	"devDependencies",
-	"optionalDependencies",
-	"peerDependencies",
-] as const;
+const DEPENDENCY_KEYS = ["dependencies", "devDependencies", "optionalDependencies", "peerDependencies"] as const;
 const DependencyMap = Schema.Record(Schema.String, Schema.Unknown);
 const decodeManifest = jsonDecoder(
 	Schema.Struct({
@@ -61,18 +55,10 @@ const catalogViolation = (line: string): readonly Violation[] => {
 	];
 };
 
-const catalogViolations = (catalog: string): readonly Violation[] =>
-	catalogLines(catalog).flatMap(catalogViolation);
+const catalogViolations = (catalog: string): readonly Violation[] => catalogLines(catalog).flatMap(catalogViolation);
 
-const dependencyViolation = (
-	manifest: TextFile,
-	key: string,
-	name: string,
-	spec: unknown,
-): readonly Violation[] => {
-	const throughCatalog =
-		typeof spec === "string" &&
-		(spec.startsWith("catalog:") || spec.startsWith("workspace:"));
+const dependencyViolation = (manifest: TextFile, key: string, name: string, spec: unknown): readonly Violation[] => {
+	const throughCatalog = typeof spec === "string" && (spec.startsWith("catalog:") || spec.startsWith("workspace:"));
 	if (throughCatalog) {
 		return [];
 	}
@@ -86,17 +72,11 @@ const dependencyViolation = (
 	];
 };
 
-const dependencyViolations = (
-	manifest: TextFile,
-	key: string,
-	deps: Readonly<Record<string, unknown>> | undefined,
-): readonly Violation[] => {
+const dependencyViolations = (manifest: TextFile, key: string, deps: Readonly<Record<string, unknown>> | undefined): readonly Violation[] => {
 	if (deps === undefined) {
 		return [];
 	}
-	return Object.entries(deps).flatMap(([name, spec]) =>
-		dependencyViolation(manifest, key, name, spec),
-	);
+	return Object.entries(deps).flatMap(([name, spec]) => dependencyViolation(manifest, key, name, spec));
 };
 
 const oneManifestViolations = (manifest: TextFile): readonly Violation[] => {
@@ -111,14 +91,10 @@ const oneManifestViolations = (manifest: TextFile): readonly Violation[] => {
 			},
 		];
 	}
-	return DEPENDENCY_KEYS.flatMap((key) =>
-		dependencyViolations(manifest, key, decoded.success[key]),
-	);
+	return DEPENDENCY_KEYS.flatMap((key) => dependencyViolations(manifest, key, decoded.success[key]));
 };
 
-export const manifestViolations = (
-	inventory: Inventory,
-): readonly Violation[] => [
+export const manifestViolations = (inventory: Inventory): readonly Violation[] => [
 	...catalogViolations(inventory.workspaceCatalog),
 	...inventory.manifests.flatMap(oneManifestViolations),
 ];

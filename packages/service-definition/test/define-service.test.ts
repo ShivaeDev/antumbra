@@ -1,30 +1,13 @@
-import {
-	defineService,
-	type ServiceRequirements,
-} from "@antumbra/service-definition";
+import { defineService, type ServiceRequirements } from "@antumbra/service-definition";
 import { describe, expect, it } from "@effect/vitest";
-import {
-	Context,
-	Data,
-	Deferred,
-	Effect,
-	Fiber,
-	Layer,
-	PubSub,
-	Ref,
-	type Scope,
-} from "effect";
+import { Context, Data, Deferred, Effect, Fiber, Layer, PubSub, Ref, type Scope } from "effect";
 
 class InitializationFailed extends Data.TaggedError("InitializationFailed")<{
 	readonly detail: string;
 }> {}
 
 const noRequirements = [] as const;
-type NoRequirements<
-	Success,
-	Failure = never,
-	CallerRequirements extends Scope.Scope = never,
-> = ServiceRequirements<
+type NoRequirements<Success, Failure = never, CallerRequirements extends Scope.Scope = never> = ServiceRequirements<
 	typeof noRequirements,
 	Success,
 	Failure,
@@ -33,35 +16,23 @@ type NoRequirements<
 
 const declaredRequirementProof = () =>
 	Effect.gen(function* () {
-		class Declared extends Context.Service<
-			Declared,
-			{ readonly identity: object }
-		>()("test/Declared") {}
+		class Declared extends Context.Service<Declared, { readonly identity: object }>()("test/Declared") {}
 		const requirements = [Declared] as const;
-		type Requirements<Success> = ServiceRequirements<
-			typeof requirements,
-			Success
-		>;
+		type Requirements<Success> = ServiceRequirements<typeof requirements, Success>;
 		const RequiredService = defineService({
 			id: "test/RequiredService",
-			initialize: Effect.fn("requiredService.initialize")(
-				function* (): Requirements<{ readonly identity: object }> {
-					return { identity: (yield* Declared).identity };
-				},
-			)(),
+			initialize: Effect.fn("requiredService.initialize")(function* (): Requirements<{ readonly identity: object }> {
+				return { identity: (yield* Declared).identity };
+			})(),
 			methods: (state) => ({
-				sameIdentity: Effect.fn("requiredService.sameIdentity")(
-					function* (): Requirements<boolean> {
-						return (yield* Declared).identity === state.identity;
-					},
-				),
+				sameIdentity: Effect.fn("requiredService.sameIdentity")(function* (): Requirements<boolean> {
+					return (yield* Declared).identity === state.identity;
+				}),
 			}),
 			requires: requirements,
 		});
 		const identity = {};
-		const layer = RequiredService.layer.pipe(
-			Layer.provide(Layer.succeed(Declared)({ identity })),
-		);
+		const layer = RequiredService.layer.pipe(Layer.provide(Layer.succeed(Declared)({ identity })));
 
 		expect(
 			yield* RequiredService.pipe(
@@ -76,28 +47,18 @@ const processLifetimeProof = () =>
 		const initializations = yield* Ref.make(0);
 		const finalizations = yield* Ref.make(0);
 		const factoryCalls = { value: 0 };
-		const initialize = Effect.fn("testService.initialize")(
-			function* (): NoRequirements<
-				{ readonly identity: object },
-				never,
-				Scope.Scope
-			> {
-				yield* Ref.update(initializations, (count) => count + 1);
-				yield* Effect.addFinalizer(() =>
-					Ref.update(finalizations, (count) => count + 1),
-				);
-				return { identity: {} };
-			},
-		)();
+		const initialize = Effect.fn("testService.initialize")(function* (): NoRequirements<{ readonly identity: object }, never, Scope.Scope> {
+			yield* Ref.update(initializations, (count) => count + 1);
+			yield* Effect.addFinalizer(() => Ref.update(finalizations, (count) => count + 1));
+			return { identity: {} };
+		})();
 		const TestService = defineService({
 			id: "test/OneLifetime",
 			initialize,
 			methods: (state) => {
 				factoryCalls.value += 1;
 				return {
-					identity: Effect.fn("testService.identity")(() =>
-						Effect.succeed(state.identity),
-					),
+					identity: Effect.fn("testService.identity")(() => Effect.succeed(state.identity)),
 				};
 			},
 			requires: noRequirements,
@@ -115,39 +76,27 @@ const processLifetimeProof = () =>
 	});
 
 describe("defineService", () => {
-	it.effect(
-		"provides the one declared requirement to initialization and methods",
-		declaredRequirementProof,
-	);
+	it.effect("provides the one declared requirement to initialization and methods", declaredRequirementProof);
 
-	it.effect(
-		"initializes private state and constructs methods once per layer",
-		processLifetimeProof,
-	);
+	it.effect("initializes private state and constructs methods once per layer", processLifetimeProof);
 
 	it.effect("does not construct methods when initialization fails", () =>
 		Effect.gen(function* () {
 			const factoryCalls = { value: 0 };
-			const initialize: NoRequirements<never, InitializationFailed> =
-				Effect.fail(new InitializationFailed({ detail: "refused" }));
+			const initialize: NoRequirements<never, InitializationFailed> = Effect.fail(new InitializationFailed({ detail: "refused" }));
 			const FailedService = defineService({
 				id: "test/FailedInitialization",
 				initialize,
 				methods: (_state) => {
 					factoryCalls.value += 1;
 					return {
-						value: Effect.fn("failedService.value")(() =>
-							Effect.succeed("unreachable"),
-						),
+						value: Effect.fn("failedService.value")(() => Effect.succeed("unreachable")),
 					};
 				},
 				requires: noRequirements,
 			});
 
-			const failure = yield* FailedService.pipe(
-				Effect.provide(FailedService.layer, { local: true }),
-				Effect.flip,
-			);
+			const failure = yield* FailedService.pipe(Effect.provide(FailedService.layer, { local: true }), Effect.flip);
 			expect(failure.detail).toBe("refused");
 			expect(factoryCalls.value).toBe(0);
 		}),
@@ -184,15 +133,11 @@ describe("defineService", () => {
 			const ScopedIdentity = defineService({
 				id: "test/ScopedIdentity",
 				initialize: Effect.acquireRelease(
-					Ref.update(initializations, (count) => count + 1).pipe(
-						Effect.andThen(Effect.sync(() => ({ identity: {} }))),
-					),
+					Ref.update(initializations, (count) => count + 1).pipe(Effect.andThen(Effect.sync(() => ({ identity: {} })))),
 					() => Ref.update(finalizations, (count) => count + 1),
 				),
 				methods: (state) => ({
-					identity: Effect.fn("scopedIdentity.identity")(() =>
-						Effect.succeed(state.identity),
-					),
+					identity: Effect.fn("scopedIdentity.identity")(() => Effect.succeed(state.identity)),
 				}),
 				requires: noRequirements,
 			});
@@ -220,9 +165,7 @@ describe("defineService", () => {
 					return { durable, feed };
 				}),
 				methods: (state) => ({
-					commit: Effect.fn("observation.commit")(function* (
-						value: number,
-					): NoRequirements<void> {
+					commit: Effect.fn("observation.commit")(function* (value: number): NoRequirements<void> {
 						yield* Ref.set(state.durable, value);
 						yield* PubSub.publish(state.feed, value);
 					}),
@@ -254,9 +197,7 @@ describe("defineService", () => {
 					const service = yield* ObservationService;
 					const subscribed = yield* Deferred.make<void>();
 					const proceed = yield* Deferred.make<void>();
-					const observer = yield* Effect.forkChild(
-						service.observe(subscribed, proceed),
-					);
+					const observer = yield* Effect.forkChild(service.observe(subscribed, proceed));
 					yield* Deferred.await(subscribed);
 					yield* service.commit(1);
 					yield* Deferred.succeed(proceed, undefined);

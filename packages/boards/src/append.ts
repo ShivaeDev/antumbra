@@ -28,11 +28,7 @@ export function appendEntry(
 	boardId: string,
 	input: EntryInput,
 	nowMillis: number,
-): Effect.Effect<
-	AppendResult,
-	BoardSourceConflict | PrismaError | StoredBoardEntryInvalid,
-	Context.Service.Identifier<typeof Database>
-> {
+): Effect.Effect<AppendResult, BoardSourceConflict | PrismaError | StoredBoardEntryInvalid, Context.Service.Identifier<typeof Database>> {
 	return Effect.gen(function* () {
 		const db = yield* Database;
 		const prior = yield* priorEntry(boardId, input);
@@ -50,8 +46,6 @@ export function appendEntry(
 			nowMillis,
 			seq: nextSequence(last),
 		});
-		return yield* db.BoardEntry.create({ ...row, boardId }).pipe(
-			Effect.as({ row, written: true } satisfies AppendResult),
-		);
+		return yield* db.BoardEntry.create({ ...row, boardId }).pipe(Effect.as({ row, written: true } satisfies AppendResult));
 	});
 }

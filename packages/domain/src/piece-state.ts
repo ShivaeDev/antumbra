@@ -5,25 +5,11 @@ import type { AwaitingRuling, VoyageWorld } from "#voyage-rows.ts";
 
 export { wouldCycle } from "@antumbra/pieces";
 
-export const PIECE_STATES = [
-	"abandoned",
-	"active",
-	"blocked",
-	"done",
-	"held",
-	"landing",
-	"parked",
-	"ready",
-] as const;
+export const PIECE_STATES = ["abandoned", "active", "blocked", "done", "held", "landing", "parked", "ready"] as const;
 export type PieceState = (typeof PIECE_STATES)[number];
 
-export const dependenciesOf = (
-	edges: ReadonlyArray<EdgeRow>,
-	pieceId: string,
-): ReadonlyArray<string> =>
-	edges
-		.filter((edge) => edge.toPieceId === pieceId)
-		.map((edge) => edge.fromPieceId);
+export const dependenciesOf = (edges: ReadonlyArray<EdgeRow>, pieceId: string): ReadonlyArray<string> =>
+	edges.filter((edge) => edge.toPieceId === pieceId).map((edge) => edge.fromPieceId);
 
 // why: done is at least one outcome landed and none still pending — an
 // outcome that takes its time to land keeps the piece short of done however
@@ -41,11 +27,7 @@ export const donePieces = (world: VoyageWorld): ReadonlySet<string> =>
 	);
 
 export const landingPieces = (world: VoyageWorld): ReadonlySet<string> =>
-	new Set(
-		world.pieces
-			.filter((piece) => pieceOutcomeTally(world, piece.id).pending >= 1)
-			.map((piece) => piece.id),
-	);
+	new Set(world.pieces.filter((piece) => pieceOutcomeTally(world, piece.id).pending >= 1).map((piece) => piece.id));
 
 // why: abandoned is a meaning, not a decoration on done — a piece nobody will
 // finish is not a piece that landed, and reading one as the other is how a
@@ -55,27 +37,15 @@ export const landingPieces = (world: VoyageWorld): ReadonlySet<string> =>
 // without asking what the crew is doing, because writing a piece off is the
 // decision to stop rather than a report of having stopped.
 export const abandonedPieces = (world: VoyageWorld): ReadonlySet<string> =>
-	new Set(
-		world.pieces
-			.filter((piece) => world.pieceVerdicts.get(piece.id) === "abandoned")
-			.map((piece) => piece.id),
-	);
+	new Set(world.pieces.filter((piece) => world.pieceVerdicts.get(piece.id) === "abandoned").map((piece) => piece.id));
 
 // why: a ruling is a node in the piece graph — an open one holds every piece
 // it gates the way an unlanded dependency does, and readiness comes back the
 // moment it is ruled without anyone editing an edge.
-export const awaitingRulingsOf = (
-	world: VoyageWorld,
-	pieceId: string,
-): ReadonlyArray<AwaitingRuling> =>
-	world.rulingGates
-		.filter((gate) => gate.pieceId === pieceId)
-		.map((gate) => ({ question: gate.question, rulingId: gate.rulingId }));
+export const awaitingRulingsOf = (world: VoyageWorld, pieceId: string): ReadonlyArray<AwaitingRuling> =>
+	world.rulingGates.filter((gate) => gate.pieceId === pieceId).map((gate) => ({ question: gate.question, rulingId: gate.rulingId }));
 
-export const workingAssignees = (
-	world: VoyageWorld,
-	pieceId: string,
-): ReadonlyArray<string> =>
+export const workingAssignees = (world: VoyageWorld, pieceId: string): ReadonlyArray<string> =>
 	world.assignments
 		.filter((assignment) => assignment.pieceId === pieceId)
 		.filter((assignment) => atWork(world, assignment.agentId))
@@ -87,11 +57,7 @@ interface Settled {
 	readonly landing: ReadonlySet<string>;
 }
 
-const stateOf = (
-	world: VoyageWorld,
-	settled: Settled,
-	piece: PieceRow,
-): PieceState => {
+const stateOf = (world: VoyageWorld, settled: Settled, piece: PieceRow): PieceState => {
 	if (settled.abandoned.has(piece.id)) {
 		return "abandoned";
 	}
@@ -110,10 +76,7 @@ const stateOf = (
 	if (awaitingRulingsOf(world, piece.id).length > 0) {
 		return "blocked";
 	}
-	const blocked = dependenciesOf(world.edges, piece.id).some(
-		(dependency) =>
-			!settled.done.has(dependency) && !settled.abandoned.has(dependency),
-	);
+	const blocked = dependenciesOf(world.edges, piece.id).some((dependency) => !settled.done.has(dependency) && !settled.abandoned.has(dependency));
 	if (blocked) {
 		return "blocked";
 	}
@@ -132,15 +95,11 @@ const stateOf = (
 // is a decision to stop rather than a report of having stopped. A pending
 // outcome holds a piece out of the pool without a crew: nobody is working it,
 // and nothing will be spawned for it until what it is waiting on lands.
-export const pieceStates = (
-	world: VoyageWorld,
-): ReadonlyMap<string, PieceState> => {
+export const pieceStates = (world: VoyageWorld): ReadonlyMap<string, PieceState> => {
 	const settled: Settled = {
 		abandoned: abandonedPieces(world),
 		done: donePieces(world),
 		landing: landingPieces(world),
 	};
-	return new Map(
-		world.pieces.map((piece) => [piece.id, stateOf(world, settled, piece)]),
-	);
+	return new Map(world.pieces.map((piece) => [piece.id, stateOf(world, settled, piece)]));
 };

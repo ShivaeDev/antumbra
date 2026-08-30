@@ -18,9 +18,7 @@ export class VoyageNotFound extends Data.TaggedError("VoyageNotFound")<{
 	}
 }
 
-export class StoredPieceVerdictInvalid extends Data.TaggedError(
-	"StoredPieceVerdictInvalid",
-)<{
+export class StoredPieceVerdictInvalid extends Data.TaggedError("StoredPieceVerdictInvalid")<{
 	readonly detail: string;
 	readonly pieceId: string;
 }> {

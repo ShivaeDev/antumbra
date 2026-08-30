@@ -9,19 +9,13 @@ import { TranscriptWindow } from "#views/transcript-window.tsx";
 const placeAtom = Atom.make(loadWindowPlace);
 
 const Notice = ({ words }: { readonly words: string }) => (
-	<main className="flex h-screen items-center justify-center bg-background text-xs text-muted-foreground">
-		{words}
-	</main>
+	<main className="flex h-screen items-center justify-center bg-background text-xs text-muted-foreground">{words}</main>
 );
 
 // why: a window main cannot place is not a console. Falling back to the main
 // view would hand a window powers over work it was never opened for, so it
 // says what happened and shows nothing.
-export const PlacedSurface = ({
-	place,
-}: {
-	readonly place: WindowPlace | undefined;
-}) => {
+export const PlacedSurface = ({ place }: { readonly place: WindowPlace | undefined }) => {
 	if (place === undefined) {
 		return <Notice words="this window has no place" />;
 	}

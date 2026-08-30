@@ -7,29 +7,11 @@ import { writeEntry } from "#write.ts";
 
 const mailbox = (agentId: string): BoardScope => BoardScope.Agent({ agentId });
 
-const readIds = (receipts: ReadonlyArray<{ readonly entryId: string }>) =>
-	new Set(receipts.map((receipt) => receipt.entryId));
+const readIds = (receipts: ReadonlyArray<{ readonly entryId: string }>) => new Set(receipts.map((receipt) => receipt.entryId));
 
-const mailEntries = (agentId: string) =>
-	readBoard(mailbox(agentId)).pipe(
-		Effect.map((entries) => entries.filter((entry) => entry.kind === "mail")),
-	);
+const mailEntries = (agentId: string) => readBoard(mailbox(agentId)).pipe(Effect.map((entries) => entries.filter((entry) => entry.kind === "mail")));
 
-const storeReceipt = (entryId: string) =>
-	Database.use((db) =>
-		db.BoardEntryReceipt.create({ entryId }).pipe(
-			Effect.asVoid,
-			Effect.catchTag("PrismaError", (failure) =>
-				db.BoardEntryReceipt.where({ entryId })
-					.exists()
-					.pipe(
-						Effect.flatMap((exists) =>
-							exists ? Effect.void : Effect.fail(failure),
-						),
-					),
-			),
-		),
-	);
+const storeReceipt = (entryId: string) => Database.use((db) => db.BoardEntryReceipt.create({ entryId }).pipe(Effect.asVoid));
 
 export const mail = Effect.fn("boards.mail")(function* (input: MailInput) {
 	return yield* writeEntry(
@@ -44,9 +26,7 @@ export const mail = Effect.fn("boards.mail")(function* (input: MailInput) {
 	);
 });
 
-export const unreadMail = Effect.fn("boards.unreadMail")(function* (
-	agentId: string,
-) {
+export const unreadMail = Effect.fn("boards.unreadMail")(function* (agentId: string) {
 	const db = yield* Database;
 	const entries = yield* mailEntries(agentId);
 	const read = readIds(yield* db.BoardEntryReceipt.select("entryId"));
@@ -71,9 +51,6 @@ const receiptsFor = (agentId: string, entryIds: ReadonlyArray<string>) =>
 		);
 	});
 
-export const markMailRead = Effect.fn("boards.markMailRead")(function* (
-	agentId: string,
-	entryIds: ReadonlyArray<string>,
-) {
+export const markMailRead = Effect.fn("boards.markMailRead")(function* (agentId: string, entryIds: ReadonlyArray<string>) {
 	return yield* receiptsFor(agentId, entryIds).pipe(Effect.asVoid);
 });

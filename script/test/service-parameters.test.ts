@@ -9,16 +9,9 @@ interface Entry {
 	readonly type: string;
 }
 
-const source = (
-	content: string,
-	path = "packages/domain/src/example.ts",
-): SeedFile => ({ content, path });
+const source = (content: string, path = "packages/domain/src/example.ts"): SeedFile => ({ content, path });
 
-const check = (
-	sources: readonly SeedFile[],
-	baseline: readonly Entry[] = [],
-	allowance: readonly Entry[] = baseline,
-) =>
+const check = (sources: readonly SeedFile[], baseline: readonly Entry[] = [], allowance: readonly Entry[] = baseline) =>
 	serviceParameterViolations(
 		inventoryOf({
 			serviceParameterAllowance: JSON.stringify(allowance),
@@ -27,12 +20,12 @@ const check = (
 		}),
 	);
 
-const entry = (
-	callable: string,
-	parameter: string,
-	type: string,
-	file = "packages/domain/src/example.ts",
-): Entry => ({ callable, file, parameter, type });
+const entry = (callable: string, parameter: string, type: string, file = "packages/domain/src/example.ts"): Entry => ({
+	callable,
+	file,
+	parameter,
+	type,
+});
 
 describe("Effect service parameter debt ratchet", () => {
 	it("detects direct services, contexts, and transitively tainted bundles", () => {
@@ -55,10 +48,7 @@ const nested = (deps: NestedDeps) => deps;
 
 	it("follows imported aliases of a tainted bundle", () => {
 		const violations = check([
-			source(
-				"export interface AgentDeps { readonly db: DatabaseService }\n",
-				"packages/domain/src/deps.ts",
-			),
+			source("export interface AgentDeps { readonly db: DatabaseService }\n", "packages/domain/src/deps.ts"),
 			source(`
 import type { AgentDeps as Deps } from "./deps.ts";
 const use = (deps: Deps) => deps;
@@ -157,28 +147,15 @@ const build = Effect.gen(function* () {
   return (db: DatabaseService) => db;
 });
 `);
-		expect(check([file], [entry("build", "db", "DatabaseService")])).toEqual(
-			[],
-		);
+		expect(check([file], [entry("build", "db", "DatabaseService")])).toEqual([]);
 	});
 
 	it("does not let one package's entry admit the same debt in another", () => {
-		const debt = entry(
-			"use",
-			"db",
-			"DatabaseService",
-			"packages/domain/src/old-use.ts",
-		);
+		const debt = entry("use", "db", "DatabaseService", "packages/domain/src/old-use.ts");
 		const violations = check(
 			[
-				source(
-					"const use = (db: DatabaseService) => db;\n",
-					"packages/domain/src/old-use.ts",
-				),
-				source(
-					"const use = (db: DatabaseService) => db;\n",
-					"packages/new/src/use.ts",
-				),
+				source("const use = (db: DatabaseService) => db;\n", "packages/domain/src/old-use.ts"),
+				source("const use = (db: DatabaseService) => db;\n", "packages/new/src/use.ts"),
 			],
 			[debt],
 		);
@@ -188,27 +165,16 @@ const build = Effect.gen(function* () {
 
 	it("rejects baseline allowance for a new package", () => {
 		const violations = check(
-			[
-				source(
-					"const use = (db: DatabaseService) => db;\n",
-					"packages/new/src/use.ts",
-				),
-			],
+			[source("const use = (db: DatabaseService) => db;\n", "packages/new/src/use.ts")],
 			[entry("use", "db", "DatabaseService", "packages/new/src/use.ts")],
 		);
 		expect(violations[0]?.rule).toBe("effect/service-parameter-baseline");
-		expect(violations[0]?.message).toContain(
-			"New packages have zero allowance",
-		);
+		expect(violations[0]?.message).toContain("New packages have zero allowance");
 	});
 
 	it("rejects a newly baselined entry inside the legacy domain root", () => {
 		const debt = entry("use", "db", "DatabaseService");
-		const violations = check(
-			[source("const use = (db: DatabaseService) => db;\n")],
-			[debt],
-			[],
-		);
+		const violations = check([source("const use = (db: DatabaseService) => db;\n")], [debt], []);
 		expect(violations[0]?.rule).toBe("effect/service-parameter-baseline");
 		expect(violations[0]?.message).toContain("frozen legacy allowance");
 	});
@@ -221,10 +187,7 @@ const build = Effect.gen(function* () {
 			source(content, "apps/desktop/src/main.ts"),
 			source(content, "apps/desktop/src/main-helper.ts"),
 		]);
-		expect(violations.map((violation) => violation.file)).toEqual([
-			"packages/x/src/adapters/use.ts",
-			"apps/desktop/src/main-helper.ts",
-		]);
+		expect(violations.map((violation) => violation.file)).toEqual(["packages/x/src/adapters/use.ts", "apps/desktop/src/main-helper.ts"]);
 	});
 
 	it("ignores parameter declarations without runtime implementations", () => {

@@ -18,11 +18,7 @@ export const makeSpawnTeardown = Effect.gen(function* () {
 		resolution.settleFailure(payload).pipe(
 			Effect.tap(() => resources.request),
 			Effect.catchCause((cause) =>
-				Effect.logError(
-					"spawn failure settlement failed",
-					{ agentId: payload.agentId, sessionId: payload.sessionId },
-					cause,
-				),
+				Effect.logError("spawn failure settlement failed", { agentId: payload.agentId, sessionId: payload.sessionId }, cause),
 			),
 		);
 	const settleCancellation = (payload: SpawnFields) =>
@@ -32,17 +28,15 @@ export const makeSpawnTeardown = Effect.gen(function* () {
 				yield* settleAfterFailure(payload);
 			}
 		});
-	const settleUnlessTeardown =
-		(payload: SpawnFields) => (cause: Cause.Cause<unknown>) =>
-			Effect.gen(function* () {
-				if (!Cause.hasInterruptsOnly(cause)) {
-					yield* settleAfterFailure(payload);
-					return;
-				}
-				yield* settleCancellation(payload);
-			});
-	const failAfterSettlement = <E>(payload: SpawnFields, error: E) =>
-		settleAfterFailure(payload).pipe(Effect.andThen(Effect.fail(error)));
+	const settleUnlessTeardown = (payload: SpawnFields) => (cause: Cause.Cause<unknown>) =>
+		Effect.gen(function* () {
+			if (!Cause.hasInterruptsOnly(cause)) {
+				yield* settleAfterFailure(payload);
+				return;
+			}
+			yield* settleCancellation(payload);
+		});
+	const failAfterSettlement = <E>(payload: SpawnFields, error: E) => settleAfterFailure(payload).pipe(Effect.andThen(Effect.fail(error)));
 	return {
 		failAfterSettlement,
 		settleCancellation,

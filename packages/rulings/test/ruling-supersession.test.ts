@@ -38,20 +38,14 @@ it.effectDB("drops a superseded ruling from the standing set", function* () {
 			});
 
 			expect(yield* PubSub.take(notices)).toBeUndefined();
-			expect((yield* rulings.standing([])).map((ruling) => ruling.id)).toEqual([
-				newer.id,
-			]);
+			expect((yield* rulings.standing([])).map((ruling) => ruling.id)).toEqual([newer.id]);
 			const provenance = Option.getOrThrow(superseded.supersession);
 			expect(provenance.by).toBe("admiral");
 			expect(provenance.byRulingId).toBe(newer.id);
 			expect(provenance.at).toBeInstanceOf(Date);
 			expect(yield* rulings.get(older.id)).toEqual(superseded);
-			expect(Option.getOrThrow(superseded.answer).text).toBe(
-				"trust the soundings",
-			);
-			expect(Option.isNone((yield* rulings.get(newer.id)).supersession)).toBe(
-				true,
-			);
+			expect(Option.getOrThrow(superseded.answer).text).toBe("trust the soundings");
+			expect(Option.isNone((yield* rulings.get(newer.id)).supersession)).toBe(true);
 		}),
 	).pipe(Effect.provide(layer));
 });
@@ -76,42 +70,37 @@ it.effectDB("refuses to supersede a ruling with itself", function* () {
 	}).pipe(Effect.provide(layer));
 });
 
-it.effectDB(
-	"refuses a ruling that has not been ruled on either side",
-	function* () {
-		yield* Effect.gen(function* () {
-			const { newer, older, rulings } = yield* standingPair;
-			const open = yield* rulings.request(asked);
+it.effectDB("refuses a ruling that has not been ruled on either side", function* () {
+	yield* Effect.gen(function* () {
+		const { newer, older, rulings } = yield* standingPair;
+		const open = yield* rulings.request(asked);
 
-			const unruledTarget = yield* Effect.flip(
-				rulings.supersede({
-					by: "admiral",
-					byRulingId: newer.id,
-					rulingId: open.id,
-				}),
-			);
-			const unruledSuccessor = yield* Effect.flip(
-				rulings.supersede({
-					by: "admiral",
-					byRulingId: open.id,
-					rulingId: older.id,
-				}),
-			);
+		const unruledTarget = yield* Effect.flip(
+			rulings.supersede({
+				by: "admiral",
+				byRulingId: newer.id,
+				rulingId: open.id,
+			}),
+		);
+		const unruledSuccessor = yield* Effect.flip(
+			rulings.supersede({
+				by: "admiral",
+				byRulingId: open.id,
+				rulingId: older.id,
+			}),
+		);
 
-			expect(unruledTarget).toMatchObject({
-				_tag: "RulingNotRuled",
-				rulingId: open.id,
-			});
-			expect(unruledSuccessor).toMatchObject({
-				_tag: "RulingNotRuled",
-				rulingId: open.id,
-			});
-			expect(Option.isNone((yield* rulings.get(older.id)).supersession)).toBe(
-				true,
-			);
-		}).pipe(Effect.provide(layer));
-	},
-);
+		expect(unruledTarget).toMatchObject({
+			_tag: "RulingNotRuled",
+			rulingId: open.id,
+		});
+		expect(unruledSuccessor).toMatchObject({
+			_tag: "RulingNotRuled",
+			rulingId: open.id,
+		});
+		expect(Option.isNone((yield* rulings.get(older.id)).supersession)).toBe(true);
+	}).pipe(Effect.provide(layer));
+});
 
 it.effectDB("supersedes a ruling once and only once", function* () {
 	yield* Effect.gen(function* () {
@@ -141,9 +130,7 @@ it.effectDB("supersedes a ruling once and only once", function* () {
 			byRulingId: newer.id,
 			rulingId: older.id,
 		});
-		expect(
-			Option.getOrThrow((yield* rulings.get(older.id)).supersession).byRulingId,
-		).toBe(newer.id);
+		expect(Option.getOrThrow((yield* rulings.get(older.id)).supersession).byRulingId).toBe(newer.id);
 	}).pipe(Effect.provide(layer));
 });
 
@@ -177,10 +164,7 @@ it.effectDB("refuses a successor that is itself superseded", function* () {
 			byRulingId: newer.id,
 			rulingId: older.id,
 		});
-		expect((yield* rulings.standing([])).map((ruling) => ruling.id)).toEqual([
-			third.id,
-			newer.id,
-		]);
+		expect((yield* rulings.standing([])).map((ruling) => ruling.id)).toEqual([third.id, newer.id]);
 	}).pipe(Effect.provide(layer));
 });
 

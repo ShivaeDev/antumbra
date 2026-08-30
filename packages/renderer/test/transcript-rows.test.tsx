@@ -8,8 +8,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import type { TranscriptItem } from "#transcript/model.ts";
 import { TranscriptRow } from "#views/transcript-row.tsx";
 
-const markup = (item: TranscriptItem): string =>
-	renderToStaticMarkup(<TranscriptRow item={item} />);
+const markup = (item: TranscriptItem): string => renderToStaticMarkup(<TranscriptRow item={item} />);
 
 const mount = (): { container: HTMLElement; root: Root } => {
 	const container = document.createElement("div");
@@ -131,9 +130,7 @@ it("keeps a wide code block inside the message that carries it", () => {
 });
 
 it("gives thinking and telemetry their own weight rather than a message's", () => {
-	expect(
-		markup({ kind: "thinking", seq: 2, text: "weighing options" }),
-	).toContain("text-muted-foreground");
+	expect(markup({ kind: "thinking", seq: 2, text: "weighing options" })).toContain("text-muted-foreground");
 	const divider = markup({
 		kind: "telemetry",
 		label: "turn completed · 2.3s",
@@ -152,12 +149,8 @@ it("states a call in one line and holds its input back until asked", () => {
 });
 
 it("marks a call that failed and stays quiet about one that did not", () => {
-	expect(markup({ ...call, ok: false, result: "no such dir" })).toContain(
-		"failed",
-	);
-	expect(markup({ ...call, ok: true, result: "9 steps passed" })).not.toContain(
-		"failed",
-	);
+	expect(markup({ ...call, ok: false, result: "no such dir" })).toContain("failed");
+	expect(markup({ ...call, ok: true, result: "9 steps passed" })).not.toContain("failed");
 });
 
 it("summarises a raw payload and keeps every byte of it one click away", () => {
@@ -177,9 +170,7 @@ it.effect("opens a call on the reader's word, input and result together", () =>
 		const shown = container.textContent ?? "";
 		expect(shown).toContain("pnpm ready");
 		expect(shown).toContain("9 steps passed");
-		expect(
-			container.querySelector("button")?.getAttribute("aria-expanded"),
-		).toBe("true");
+		expect(container.querySelector("button")?.getAttribute("aria-expanded")).toBe("true");
 		yield* drop(root);
 	}),
 );

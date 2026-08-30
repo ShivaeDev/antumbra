@@ -14,6 +14,7 @@ export const capabilities = packages.named(
 	"session-fabric",
 	"session-inputs",
 	"sessions",
+	"settings",
 );
 
 export const domainAndCapabilities = packages.named(
@@ -32,12 +33,10 @@ export const domainAndCapabilities = packages.named(
 	"session-fabric",
 	"session-inputs",
 	"sessions",
+	"settings",
 );
 
-export const domainAndCapabilitiesExceptIntentDemand = anyOf(
-	packages.named("domain"),
-	capabilities,
-);
+export const domainAndCapabilitiesExceptIntentDemand = anyOf(packages.named("domain"), capabilities);
 
 export const agentBackends = packages.inFamily("backend");
 export const runners = packages.inFamily("runner");

@@ -1,10 +1,4 @@
-import {
-	chmodSync,
-	mkdirSync,
-	mkdtempSync,
-	symlinkSync,
-	writeFileSync,
-} from "node:fs";
+import { chmodSync, mkdirSync, mkdtempSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { expect, it } from "@effect/vitest";
@@ -28,17 +22,10 @@ symlinkSync(launcher, linked);
 // why: the probe runs the user's shell as an interactive login shell; this
 // stand-in answers with a PATH the test owns and runs the probe command as any
 // shell would.
-const shell = script(
-	join(root, "fake-login-shell"),
-	`#!/bin/sh\nPATH="${bin}"\nexport PATH\nexec /bin/sh -c "$2"\n`,
-);
+const shell = script(join(root, "fake-login-shell"), `#!/bin/sh\nPATH="${bin}"\nexport PATH\nexec /bin/sh -c "$2"\n`);
 
 const onFakeLoginShell = <A>(effect: Effect.Effect<A>) =>
-	Effect.provideService(
-		effect,
-		ConfigProvider.ConfigProvider,
-		ConfigProvider.fromEnvRecord({ SHELL: shell }),
-	);
+	Effect.provideService(effect, ConfigProvider.ConfigProvider, ConfigProvider.fromEnvRecord({ SHELL: shell }));
 
 it.effect("hands back the symlink the login PATH holds, not its target", () =>
 	Effect.gen(function* () {

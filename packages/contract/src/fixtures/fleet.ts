@@ -60,7 +60,5 @@ export const fleet: Fleet = {
 		},
 	],
 	diag: { intents: [] },
-	repos: [
-		{ defaultRef: "main", id: "repo-1", name: "shoals", source: "/tmp/shoals" },
-	],
+	repos: [{ defaultRef: "main", id: "repo-1", name: "shoals", source: "/tmp/shoals" }],
 };

@@ -4,15 +4,9 @@ import { GitAuthRequired } from "@antumbra/git";
 import { describe, expect, it } from "@effect/vitest";
 import { Effect } from "effect";
 import { toRunnerError } from "#git-runtime.ts";
-import { AGENT, berthing, git, makeHarbor, provision } from "#test/harbor.ts";
+import { AGENT, berthing, commonDirectory, git, makeHarbor, provision } from "#test/harbor.ts";
 
-const commonDirectory = (path: string) =>
-	git(["-C", path, "rev-parse", "--git-common-dir"]).pipe(
-		Effect.map((output) => output.trim()),
-	);
-
-const branchListing = (mirror: string, branch: string) =>
-	git(["-C", mirror, "branch", "--list", branch]);
+const branchListing = (mirror: string, branch: string) => git(["-C", mirror, "branch", "--list", branch]);
 
 describe("local runner", () => {
 	it("preserves retryable authentication failures at the runner port", () => {
@@ -69,41 +63,30 @@ describe("local runner", () => {
 		}),
 	);
 
-	it.live(
-		"finishes reclaim when branch cleanup fails after removing the worktree",
-		() =>
-			Effect.gen(function* () {
-				const { runner, source } = yield* makeHarbor;
-				const moorage = yield* provision(runner, {
-					agentId: AGENT,
-					repos: [berthing(source)],
-				});
-				const berth = moorage.berths[0];
-				if (berth === undefined) {
-					return expect.unreachable("no berth provisioned");
-				}
-				const mirror = yield* commonDirectory(berth.path);
-				const branchLock = join(
-					mirror,
-					"refs",
-					"heads",
-					`${berth.branch}.lock`,
-				);
-				yield* Effect.sync(() => writeFileSync(branchLock, "locked\n"));
-				const failure = yield* Effect.flip(runner.reclaim(berth)).pipe(
-					Effect.ensuring(
-						Effect.sync(() => rmSync(branchLock, { force: true })),
-					),
-				);
-				expect(failure.detail).toContain("delete-branch");
-				expect(existsSync(berth.path)).toBe(false);
-				const residue = yield* branchListing(mirror, berth.branch);
-				expect(residue).toContain(berth.branch);
-				const verdict = yield* runner.reclaim(berth);
-				expect(verdict._tag).toBe("reclaimed");
-				const branches = yield* branchListing(mirror, berth.branch);
-				expect(branches).toBe("");
-			}),
+	it.live("finishes reclaim when branch cleanup fails after removing the worktree", () =>
+		Effect.gen(function* () {
+			const { runner, source } = yield* makeHarbor;
+			const moorage = yield* provision(runner, {
+				agentId: AGENT,
+				repos: [berthing(source)],
+			});
+			const berth = moorage.berths[0];
+			if (berth === undefined) {
+				return expect.unreachable("no berth provisioned");
+			}
+			const mirror = yield* commonDirectory(berth.path);
+			const branchLock = join(mirror, "refs", "heads", `${berth.branch}.lock`);
+			yield* Effect.sync(() => writeFileSync(branchLock, "locked\n"));
+			const failure = yield* Effect.flip(runner.reclaim(berth)).pipe(Effect.ensuring(Effect.sync(() => rmSync(branchLock, { force: true }))));
+			expect(failure.detail).toContain("delete-branch");
+			expect(existsSync(berth.path)).toBe(false);
+			const residue = yield* branchListing(mirror, berth.branch);
+			expect(residue).toContain(berth.branch);
+			const verdict = yield* runner.reclaim(berth);
+			expect(verdict._tag).toBe("reclaimed");
+			const branches = yield* branchListing(mirror, berth.branch);
+			expect(branches).toBe("");
+		}),
 	);
 
 	it.live("preserves an unpushed branch when its worktree has vanished", () =>

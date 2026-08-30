@@ -1,12 +1,5 @@
 import { createHash } from "node:crypto";
-import {
-	mkdirSync,
-	mkdtempSync,
-	readFileSync,
-	realpathSync,
-	rmSync,
-	writeFileSync,
-} from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { DatabaseSync } from "node:sqlite";
@@ -17,15 +10,7 @@ import { brandDatabaseFilePath } from "#data-dir.ts";
 import { packagedMigrationsDirectory } from "#testing.ts";
 
 export const predecessor: unknown = JSON.parse(
-	readFileSync(
-		fileURLToPath(
-			new URL(
-				"../migrations/app/20260818T1538_artifact_custody/start-contract.json",
-				import.meta.url,
-			),
-		),
-		"utf8",
-	),
+	readFileSync(fileURLToPath(new URL("../migrations/app/20260818T1538_artifact_custody/start-contract.json", import.meta.url)), "utf8"),
 );
 
 const directories: string[] = [];
@@ -81,9 +66,7 @@ export const installLegacyArtifact = (
 			)
 			.run();
 		database
-			.prepare(
-				`INSERT INTO "artifact" ("id", "pieceId", "title", "uri") VALUES (?, 'piece-reef', ?, ?)`,
-			)
+			.prepare(`INSERT INTO "artifact" ("id", "pieceId", "title", "uri") VALUES (?, 'piece-reef', ?, ?)`)
 			.run(id, id, options.uri ?? pathToFileURL(destination).toString());
 	} finally {
 		database.close();
@@ -105,30 +88,17 @@ export const stageCount = (databasePath: CustodyFixture["database"]) => {
 	}
 };
 
-export const removeStagedProof = (
-	databasePath: CustodyFixture["database"],
-	key: "item" | "manifest",
-	field: string,
-) => {
+export const removeStagedProof = (databasePath: CustodyFixture["database"], key: "item" | "manifest", field: string) => {
 	const database = new DatabaseSync(databasePath);
 	try {
-		const selector =
-			key === "manifest"
-				? `"key" = 'migration:artifact-custody:manifest'`
-				: `"key" LIKE 'migration:artifact-custody:item:%'`;
-		database
-			.prepare(
-				`UPDATE "appMeta" SET "value" = json_remove("value", ?) WHERE ${selector}`,
-			)
-			.run(`$.${field}`);
+		const selector = key === "manifest" ? `"key" = 'migration:artifact-custody:manifest'` : `"key" LIKE 'migration:artifact-custody:item:%'`;
+		database.prepare(`UPDATE "appMeta" SET "value" = json_remove("value", ?) WHERE ${selector}`).run(`$.${field}`);
 	} finally {
 		database.close();
 	}
 };
 
-export const artifactHasUri = (
-	databasePath: CustodyFixture["database"],
-): boolean => {
+export const artifactHasUri = (databasePath: CustodyFixture["database"]): boolean => {
 	const database = new DatabaseSync(databasePath);
 	try {
 		return database

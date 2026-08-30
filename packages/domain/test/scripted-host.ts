@@ -1,10 +1,4 @@
-import type {
-	ChangeHost,
-	ChangeHostRepo,
-	ChangeObservation,
-	ChangeRef,
-	OpenChangeRequest,
-} from "@antumbra/plugin-api";
+import type { ChangeHost, ChangeHostRepo, ChangeObservation, ChangeRef, OpenChangeRequest } from "@antumbra/plugin-api";
 import { ChangeHostRefused, ChangeHostUnavailable } from "@antumbra/plugin-api";
 import { Effect, Ref } from "effect";
 
@@ -17,11 +11,7 @@ export interface ScriptedHostDrive {
 	// why: a host that stops answering is the case a watcher must survive, so
 	// the scripted one can be told to refuse and told to stop refusing.
 	readonly refuse: (detail: string | null) => Effect.Effect<void>;
-	readonly transition: (
-		repoId: string,
-		externalId: string,
-		patch: Partial<ChangeObservation>,
-	) => Effect.Effect<void>;
+	readonly transition: (repoId: string, externalId: string, patch: Partial<ChangeObservation>) => Effect.Effect<void>;
 }
 
 export interface ScriptedHost {
@@ -48,11 +38,7 @@ interface ObservationFields {
 	readonly title: string;
 }
 
-export const scriptedObservation = (
-	tag: string,
-	externalId: string,
-	fields: ObservationFields,
-): ChangeObservation => ({
+export const scriptedObservation = (tag: string, externalId: string, fields: ObservationFields): ChangeObservation => ({
 	activityAt: 1_780_000_000_000,
 	baseRef: fields.baseRef,
 	checks: "pending",
@@ -71,11 +57,7 @@ export const scriptedObservation = (
 
 // why: a url is all a host is given to adopt by, so the scripted one reads its
 // own id off the end of it — the same trick a real host plays with a number.
-const adoptedObservation = (
-	tag: string,
-	url: string,
-	repo: ChangeHostRepo,
-): ChangeObservation => {
+const adoptedObservation = (tag: string, url: string, repo: ChangeHostRepo): ChangeObservation => {
 	const externalId = url.split("/").at(-1) ?? "";
 	return scriptedObservation(tag, externalId, {
 		baseRef: repo.defaultRef,
@@ -85,11 +67,9 @@ const adoptedObservation = (
 	});
 };
 
-const observationKey = (repoId: string, externalId: string): string =>
-	`${repoId}:${externalId}`;
+const observationKey = (repoId: string, externalId: string): string => `${repoId}:${externalId}`;
 
-const submissionKey = (tag: string, request: OpenChangeRequest): string =>
-	`${tag}:${request.repo.id}:${request.submissionId}`;
+const submissionKey = (tag: string, request: OpenChangeRequest): string => `${tag}:${request.repo.id}:${request.submissionId}`;
 
 const observeHostTruth = (
 	truth: ScriptedHostTruth,
@@ -101,9 +81,7 @@ const observeHostTruth = (
 	Ref.update(refs, (all) => [...all, ...asked]).pipe(
 		Effect.andThen(Ref.get(refusal)),
 		Effect.flatMap((detail) =>
-			detail === null
-				? Ref.get(truth.known).pipe(Effect.map((map) => [...map.values()]))
-				: new ChangeHostUnavailable({ detail, host: tag }),
+			detail === null ? Ref.get(truth.known).pipe(Effect.map((map) => [...map.values()])) : new ChangeHostUnavailable({ detail, host: tag }),
 		),
 	);
 
@@ -115,9 +93,7 @@ const openSubmittedTruth = (
 	attempts: Ref.Ref<ReadonlyArray<OpenChangeRequest>>,
 	openings: Ref.Ref<ReadonlyArray<OpenChangeRequest>>,
 	tag: string,
-	remember: (
-		observation: ChangeObservation,
-	) => Effect.Effect<ChangeObservation>,
+	remember: (observation: ChangeObservation) => Effect.Effect<ChangeObservation>,
 	request: OpenChangeRequest,
 ) =>
 	Effect.gen(function* () {
@@ -146,19 +122,11 @@ const openSubmittedTruth = (
 			headSha: request.headSha,
 			isDraft: request.draft,
 		});
-		yield* Ref.update(truth.submissions, (map) =>
-			new Map(map).set(
-				key,
-				observationKey(observation.repoId, observation.externalId),
-			),
-		);
+		yield* Ref.update(truth.submissions, (map) => new Map(map).set(key, observationKey(observation.repoId, observation.externalId)));
 		return observation;
 	});
 
-const transitioned = (
-	seen: ChangeObservation,
-	patch: Partial<ChangeObservation>,
-): ChangeObservation => ({
+const transitioned = (seen: ChangeObservation, patch: Partial<ChangeObservation>): ChangeObservation => ({
 	...seen,
 	activityAt: seen.activityAt + 1,
 	...patch,
@@ -169,14 +137,13 @@ const transitioned = (
 // exercised without a network or a model. `observe` volunteers everything it
 // knows rather than only what was asked, because that is the case the domain
 // must survive: what it has no row for is ignored, never adopted by drift.
-export const makeScriptedHostTruth: Effect.Effect<ScriptedHostTruth> =
-	Effect.gen(function* () {
-		return {
-			count: yield* Ref.make(0),
-			known: yield* Ref.make<ReadonlyMap<string, ChangeObservation>>(new Map()),
-			submissions: yield* Ref.make<ReadonlyMap<string, string>>(new Map()),
-		};
-	});
+export const makeScriptedHostTruth: Effect.Effect<ScriptedHostTruth> = Effect.gen(function* () {
+	return {
+		count: yield* Ref.make(0),
+		known: yield* Ref.make<ReadonlyMap<string, ChangeObservation>>(new Map()),
+		submissions: yield* Ref.make<ReadonlyMap<string, string>>(new Map()),
+	};
+});
 
 export const makeScriptedHost = (options: ScriptedHostOptions = {}) =>
 	Effect.gen(function* () {
@@ -189,26 +156,20 @@ export const makeScriptedHost = (options: ScriptedHostOptions = {}) =>
 		const refs = yield* Ref.make<ReadonlyArray<ChangeRef>>([]);
 		const refusal = yield* Ref.make<string | null>(null);
 		const remember = (observation: ChangeObservation) =>
-			Ref.update(truth.known, (map) =>
-				new Map(map).set(
-					observationKey(observation.repoId, observation.externalId),
-					observation,
-				),
-			).pipe(Effect.as(observation));
+			Ref.update(truth.known, (map) => new Map(map).set(observationKey(observation.repoId, observation.externalId), observation)).pipe(
+				Effect.as(observation),
+			);
 		const host: ChangeHost = {
 			adopt: (url, repo) =>
 				Effect.gen(function* () {
 					yield* Ref.update(adoptions, (all) => [...all, url]);
 					const fresh = adoptedObservation(tag, url, repo);
-					const seen = (yield* Ref.get(truth.known)).get(
-						observationKey(repo.id, fresh.externalId),
-					);
+					const seen = (yield* Ref.get(truth.known)).get(observationKey(repo.id, fresh.externalId));
 					return seen ?? (yield* remember(fresh));
 				}),
 			capability: Effect.succeed({ available: true, detail: "scripted" }),
 			observe: (asked) => observeHostTruth(truth, refusal, refs, tag, asked),
-			open: (request) =>
-				openSubmittedTruth(truth, attempts, openings, tag, remember, request),
+			open: (request) => openSubmittedTruth(truth, attempts, openings, tag, remember, request),
 			supports,
 			tag,
 		};
@@ -224,9 +185,7 @@ export const makeScriptedHost = (options: ScriptedHostOptions = {}) =>
 					Ref.update(truth.known, (map) => {
 						const key = observationKey(repoId, externalId);
 						const seen = map.get(key);
-						return seen === undefined
-							? map
-							: new Map(map).set(key, transitioned(seen, patch));
+						return seen === undefined ? map : new Map(map).set(key, transitioned(seen, patch));
 					}),
 			},
 			host,

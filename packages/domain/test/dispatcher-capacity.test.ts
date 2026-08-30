@@ -8,31 +8,12 @@ import { BackendCapacityReleaseLive } from "#backend-capacity-release.ts";
 import { makeRetryBackendCapacity } from "#backend-capacity-retry.ts";
 import { DispatcherLive } from "#dispatcher.ts";
 import { dispatchingLayer, domainKernelLayer } from "#test/domain-layers.ts";
-import {
-	acquireTemporaryPersistence,
-	callTool,
-	makeScriptedBackend,
-	rawOf,
-	sessionFor,
-} from "#test/harness.ts";
-import {
-	reportsNativeRef,
-	WAKE_INSTRUCTION,
-} from "#test/session-recovery-fixture.ts";
-import {
-	assignedPieces,
-	chain,
-	eventually,
-	PATIENCE,
-} from "#test/voyage-fixtures.ts";
+import { acquireTemporaryPersistence, callTool, makeScriptedBackend, rawOf, sessionFor } from "#test/harness.ts";
+import { reportsNativeRef, WAKE_INSTRUCTION } from "#test/session-recovery-fixture.ts";
+import { assignedPieces, chain, eventually, PATIENCE } from "#test/voyage-fixtures.ts";
 
 const pieceIdOf = (payload: unknown): string | undefined =>
-	typeof payload === "object" &&
-	payload !== null &&
-	"pieceId" in payload &&
-	typeof payload.pieceId === "string"
-		? payload.pieceId
-		: undefined;
+	typeof payload === "object" && payload !== null && "pieceId" in payload && typeof payload.pieceId === "string" ? payload.pieceId : undefined;
 
 type KernelService = Parameters<typeof Kernel.of>[0];
 
@@ -58,9 +39,7 @@ const pauseNextSpawnSubmission = (
 const expectNativeSession = (agentId: string) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
-		expect(
-			(yield* db.AgentSession.where({ agentId }).all())[0]?.nativeRef,
-		).toBe("native-held");
+		expect((yield* db.AgentSession.where({ agentId }).all())[0]?.nativeRef).toBe("native-held");
 	});
 
 const expectScriptedProviderBlocked = Effect.gen(function* () {
@@ -122,9 +101,7 @@ it.live("a retried birth recovered after restart is not dispatched twice", () =>
 					expect(births.map((birth) => birth.status)).toEqual(["waiting"]);
 				}),
 			);
-			const birth = Option.getOrThrow(
-				yield* db.Intent.where({ tag: "agent/spawn" }).first(),
-			);
+			const birth = Option.getOrThrow(yield* db.Intent.where({ tag: "agent/spawn" }).first());
 			return { intentId: birth.id, probeId: probe.id };
 		}).pipe(Effect.provide(dispatchingLayer(temporary, backend, PATIENCE)));
 
@@ -134,15 +111,8 @@ it.live("a retried birth recovered after restart is not dispatched twice", () =>
 			Effect.gen(function* () {
 				const domain = yield* AgentDomain;
 				const kernel = yield* Kernel;
-				const observedKernel = pauseNextSpawnSubmission(
-					kernel,
-					domain.spawn.tag,
-					submitted,
-					releaseSubmit,
-				);
-				return DispatcherLive(PATIENCE).pipe(
-					Layer.provide(Layer.succeed(Kernel, observedKernel)),
-				);
+				const observedKernel = pauseNextSpawnSubmission(kernel, domain.spawn.tag, submitted, releaseSubmit);
+				return DispatcherLive(PATIENCE).pipe(Layer.provide(Layer.succeed(Kernel, observedKernel)));
 			}),
 		).pipe(
 			Layer.provideMerge(
@@ -163,94 +133,77 @@ it.live("a retried birth recovered after restart is not dispatched twice", () =>
 				status: "queued",
 			});
 			yield* Deferred.succeed(releaseSubmit, undefined);
-		}).pipe(
-			Effect.provide(
-				BackendCapacityReleaseLive.pipe(Layer.provideMerge(observedDispatcher)),
-			),
-		);
+		}).pipe(Effect.provide(BackendCapacityReleaseLive.pipe(Layer.provideMerge(observedDispatcher))));
 	}),
 );
 
-it.live(
-	"a provider hold stops automatic wakes until the admiral retries it",
-	() =>
-		Effect.gen(function* () {
-			const temporary = yield* acquireTemporaryPersistence;
-			const scripted = yield* makeScriptedBackend;
-			const capacity = yield* makeBackendCapacityController((raw) =>
-				raw.kind === "quota/rejected"
-					? Option.some({
-							detail: "scripted quota exhausted",
-							reason: "usage-limit" as const,
-							status: "blocked" as const,
-						})
-					: Option.none(),
-			);
-			const blockedReads = yield* Queue.unbounded<void>();
-			const capacitySource = {
-				...capacity.source,
-				current: capacity.source.current.pipe(
-					Effect.tap((observation) =>
-						Option.isSome(observation) && observation.value.status === "blocked"
-							? Queue.offer(blockedReads, undefined)
-							: Effect.void,
-					),
+it.live("a provider hold stops automatic wakes until the admiral retries it", () =>
+	Effect.gen(function* () {
+		const temporary = yield* acquireTemporaryPersistence;
+		const scripted = yield* makeScriptedBackend;
+		const capacity = yield* makeBackendCapacityController((raw) =>
+			raw.kind === "quota/rejected"
+				? Option.some({
+						detail: "scripted quota exhausted",
+						reason: "usage-limit" as const,
+						status: "blocked" as const,
+					})
+				: Option.none(),
+		);
+		const blockedReads = yield* Queue.unbounded<void>();
+		const capacitySource = {
+			...capacity.source,
+			current: capacity.source.current.pipe(
+				Effect.tap((observation) =>
+					Option.isSome(observation) && observation.value.status === "blocked" ? Queue.offer(blockedReads, undefined) : Effect.void,
 				),
-			};
-			const backend = reportsNativeRef(
-				{ ...scripted.backend, capacity: capacitySource },
-				scripted,
-				"native-held",
+			),
+		};
+		const backend = reportsNativeRef({ ...scripted.backend, capacity: capacitySource }, scripted, "native-held");
+		yield* Effect.gen(function* () {
+			const db = yield* Database;
+			const domain = yield* AgentDomain;
+			const { alpha } = yield* chain;
+			yield* eventually(
+				Effect.gen(function* () {
+					expect(yield* assignedPieces).toEqual([alpha.id]);
+				}),
 			);
-			yield* Effect.gen(function* () {
-				const db = yield* Database;
-				const domain = yield* AgentDomain;
-				const { alpha } = yield* chain;
-				yield* eventually(
-					Effect.gen(function* () {
-						expect(yield* assignedPieces).toEqual([alpha.id]);
-					}),
-				);
-				const assignment = (yield* db.PieceAgent.where({
-					pieceId: alpha.id,
-				}).all())[0];
-				if (assignment === undefined) {
-					return yield* Effect.die("the dispatched Piece has no Agent");
-				}
-				const live = yield* sessionFor(scripted, assignment.agentId);
-				yield* live.emit({
-					nativeRef: "native-held",
-					raw: rawOf("session/opened"),
-					type: "session.opened",
-				});
-				yield* eventually(expectNativeSession(assignment.agentId));
+			const assignment = (yield* db.PieceAgent.where({
+				pieceId: alpha.id,
+			}).all())[0];
+			if (assignment === undefined) {
+				return yield* Effect.die("the dispatched Piece has no Agent");
+			}
+			const live = yield* sessionFor(scripted, assignment.agentId);
+			yield* live.emit({
+				nativeRef: "native-held",
+				raw: rawOf("session/opened"),
+				type: "session.opened",
+			});
+			yield* eventually(expectNativeSession(assignment.agentId));
 
-				capacity.observe(
-					rawOf("quota/rejected"),
-					yield* Clock.currentTimeMillis,
-				);
-				yield* eventually(expectScriptedProviderBlocked);
-				yield* callTool(live, "stand_down", undefined);
-				yield* Queue.take(blockedReads);
-				expect(yield* live.sent).not.toContain(WAKE_INSTRUCTION);
+			capacity.observe(rawOf("quota/rejected"), yield* Clock.currentTimeMillis);
+			yield* eventually(expectScriptedProviderBlocked);
+			yield* callTool(live, "stand_down", undefined);
+			yield* Queue.take(blockedReads);
+			expect(yield* live.sent).not.toContain(WAKE_INSTRUCTION);
 
-				yield* domain.backendCapacities.clear("scripted");
-				yield* domain.backendCapacities.announce;
-				yield* eventually(
-					Effect.gen(function* () {
-						expect(yield* live.sent).toContain(WAKE_INSTRUCTION);
-					}),
-				);
-				expect(
-					(yield* live.sent).filter((text) => text === WAKE_INSTRUCTION),
-				).toHaveLength(1);
-			}).pipe(
-				Effect.provide(
-					dispatchingLayer(temporary, backend, {
-						maxAlive: 1,
-						patienceMillis: 60_000,
-					}),
-				),
+			yield* domain.backendCapacities.clear("scripted");
+			yield* domain.backendCapacities.announce;
+			yield* eventually(
+				Effect.gen(function* () {
+					expect(yield* live.sent).toContain(WAKE_INSTRUCTION);
+				}),
 			);
-		}),
+			expect((yield* live.sent).filter((text) => text === WAKE_INSTRUCTION)).toHaveLength(1);
+		}).pipe(
+			Effect.provide(
+				dispatchingLayer(temporary, backend, {
+					maxRunning: 1,
+					patienceMillis: 60_000,
+				}),
+			),
+		);
+	}),
 );

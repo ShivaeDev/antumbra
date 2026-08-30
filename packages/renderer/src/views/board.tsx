@@ -15,32 +15,13 @@ import { bySalience } from "#voyages/order.ts";
 const EntryRow = ({ entry }: { readonly entry: BoardEntryView }) => {
 	const smooth = entry.register === "smooth";
 	return (
-		<li
-			className={cn(
-				"flex min-w-0 flex-col gap-1 rounded-md border px-2.5 py-2",
-				smooth ? "border-border bg-card" : "border-transparent",
-			)}
-		>
+		<li className={cn("flex min-w-0 flex-col gap-1 rounded-md border px-2.5 py-2", smooth ? "border-border bg-card" : "border-transparent")}>
 			<div className="flex min-w-0 items-center gap-2 text-2xs text-muted-foreground">
-				<Badge variant={smooth ? "info" : "outline"}>
-					{boardRegisterLabel[entry.register]}
-				</Badge>
-				<span
-					className={cn(
-						"min-w-0 truncate",
-						entry.authorAgentId === null ? null : "font-mono",
-					)}
-				>
-					{authorLabel(entry.authorAgentId)}
-				</span>
-				<span className="ml-auto shrink-0 tabular-nums">
-					{whenLabel(entry.createdAt)}
-				</span>
+				<Badge variant={smooth ? "info" : "outline"}>{boardRegisterLabel[entry.register]}</Badge>
+				<span className={cn("min-w-0 truncate", entry.authorAgentId === null ? null : "font-mono")}>{authorLabel(entry.authorAgentId)}</span>
+				<span className="ml-auto shrink-0 tabular-nums">{whenLabel(entry.createdAt)}</span>
 			</div>
-			<MarkdownView
-				className={smooth ? "text-xs" : "text-2xs text-muted-foreground"}
-				markdown={entry.body}
-			/>
+			<MarkdownView className={smooth ? "text-xs" : "text-2xs text-muted-foreground"} markdown={entry.body} />
 		</li>
 	);
 };
@@ -67,15 +48,9 @@ export const BoardPanel = ({
 			>
 				<Chevron className="size-3 shrink-0 text-muted-foreground" />
 				<span className="min-w-0 truncate text-xs font-medium">Board</span>
-				<span className="text-2xs text-muted-foreground tabular-nums">
-					{entries.length}
-				</span>
+				<span className="text-2xs text-muted-foreground tabular-nums">{entries.length}</span>
 			</button>
-			{open && entries.length === 0 ? (
-				<p className="text-2xs text-muted-foreground">
-					Nothing written yet — the crew and you both write here
-				</p>
-			) : null}
+			{open && entries.length === 0 ? <p className="text-2xs text-muted-foreground">Nothing written yet — the crew and you both write here</p> : null}
 			{open && entries.length > 0 ? (
 				<ul className="flex min-w-0 flex-col gap-1">
 					{bySalience(entries).map((entry) => (

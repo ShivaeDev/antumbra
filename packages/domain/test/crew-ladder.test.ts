@@ -1,14 +1,6 @@
 import { expect, it } from "@effect/vitest";
 import { pieceOutcomeTally } from "#outcome-status.ts";
-import {
-	change,
-	crewing,
-	finished,
-	piece,
-	stateOf,
-	withChanges,
-	world,
-} from "#test/piece-ladder-fixtures.ts";
+import { change, crewing, finished, piece, stateOf, withChanges, world } from "#test/piece-ladder-fixtures.ts";
 
 it("a piece someone is working reads active whatever it is waiting on", () => {
 	const worked = withChanges(["open"], {
@@ -71,9 +63,7 @@ it("a piece worked again still releases what depended on it", () => {
 		...crewing("bravo", "active"),
 		changes: [change("change-0", "landed")],
 		edges: [{ fromPieceId: "bravo", toPieceId: "alpha" }],
-		pieceChanges: [
-			{ changeId: "change-0", pieceId: "bravo", purpose: "produces" },
-		],
+		pieceChanges: [{ changeId: "change-0", pieceId: "bravo", purpose: "produces" }],
 		pieces: [piece("alpha"), piece("bravo")],
 	});
 	expect(stateOf(built, "bravo")).toBe("active");

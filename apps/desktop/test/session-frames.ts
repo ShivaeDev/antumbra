@@ -27,11 +27,7 @@ export const usage: Extract<SDKMessage, { type: "result" }>["usage"] = {
 // why: one skeleton for every assistant frame, because the acquisition path
 // reads the content blocks and the attribution and nothing else. The fields
 // around them are the provider's, carried verbatim so raw stays wire truth.
-export const assistant = (
-	content: Content,
-	parent: string | null,
-	uuid: Uuid,
-): SDKMessage => ({
+export const assistant = (content: Content, parent: string | null, uuid: Uuid): SDKMessage => ({
 	message: {
 		container: null,
 		content,
@@ -58,11 +54,7 @@ export const text = (body: string): ContentBlock => ({
 	type: "text",
 });
 
-export const toolUse = (
-	id: string,
-	name: string,
-	input: Record<string, unknown>,
-): ContentBlock => ({ id, input, name, type: "tool_use" });
+export const toolUse = (id: string, name: string, input: Record<string, unknown>): ContentBlock => ({ id, input, name, type: "tool_use" });
 
 export const initFrame: SDKMessage = {
 	apiKeySource: "user",

@@ -117,6 +117,9 @@ catalogs:
     mermaid:
       specifier: 11.3.0
       version: 11.3.0
+    prettier:
+      specifier: 3.9.6
+      version: 3.9.6
     react:
       specifier: 19.2.8
       version: 19.2.8
@@ -187,6 +190,9 @@ importers:
       ignore:
         specifier: 'catalog:'
         version: 7.0.6
+      prettier:
+        specifier: 'catalog:'
+        version: 3.9.6
       typescript:
         specifier: 'catalog:'
         version: '@typescript/typescript6@6.0.2'
@@ -579,6 +585,9 @@ importers:
       '@antumbra/sessions':
         specifier: workspace:*
         version: link:../sessions
+      '@antumbra/settings':
+        specifier: workspace:*
+        version: link:../settings
       '@antumbra/vocabulary':
         specifier: workspace:*
         version: link:../vocabulary
@@ -1323,6 +1332,34 @@ importers:
       '@antumbra/vocabulary':
         specifier: workspace:*
         version: link:../vocabulary
+      effect:
+        specifier: 'catalog:'
+        version: 4.0.0-rc.108
+    devDependencies:
+      '@effect/vitest':
+        specifier: 'catalog:'
+        version: 4.0.0-rc.108(effect@4.0.0-rc.108)(vitest@4.1.9(@types/node@24.10.1)(happy-dom@20.11.2)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0)))
+      '@types/node':
+        specifier: 'catalog:'
+        version: 24.10.1
+      '@typescript/native':
+        specifier: 'catalog:'
+        version: typescript@7.0.2
+      typescript:
+        specifier: 'catalog:'
+        version: '@typescript/typescript6@6.0.2'
+      vitest:
+        specifier: 'catalog:'
+        version: 4.1.9(@types/node@24.10.1)(happy-dom@20.11.2)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0))
+
+  packages/settings:
+    dependencies:
+      '@antumbra/contract':
+        specifier: workspace:*
+        version: link:../contract
+      '@antumbra/persistence':
+        specifier: workspace:*
+        version: link:../persistence
       effect:
         specifier: 'catalog:'
         version: 4.0.0-rc.108

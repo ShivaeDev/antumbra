@@ -1,8 +1,5 @@
 import { Database } from "@antumbra/persistence";
-import {
-	decodeStoredRulingRadius,
-	decodeStoredRulingUrgency,
-} from "@antumbra/vocabulary/ruling";
+import { decodeStoredRulingRadius, decodeStoredRulingUrgency } from "@antumbra/vocabulary/ruling";
 import { Effect, Option } from "effect";
 import { effectiveAxes } from "#axes.ts";
 import { RulingNotFound } from "#errors.ts";
@@ -32,9 +29,7 @@ const choicesOf = (rulingId: string) =>
 const gatedPieceIdsOf = (rulingId: string) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
-		const rows = yield* db.RulingGate.where({ rulingId })
-			.select("pieceId")
-			.all();
+		const rows = yield* db.RulingGate.where({ rulingId }).select("pieceId").all();
 		return rows.map((row) => row.pieceId);
 	});
 
@@ -47,20 +42,14 @@ const reclassificationsOf = (rulingId: string) =>
 		const rows = yield* db.RulingReclassification.where({ rulingId })
 			.orderBy([(row) => row.at.asc(), (row) => row.id.asc()])
 			.all();
-		return yield* Effect.forEach(rows, (row) =>
-			storedReclassification(rulingId, row),
-		);
+		return yield* Effect.forEach(rows, (row) => storedReclassification(rulingId, row));
 	});
 
 const declaredOf = (row: StoredRuling) =>
 	Effect.gen(function* () {
 		return {
-			radius: yield* Effect.fromResult(
-				decodeStoredRulingRadius(row.id, row.radius),
-			),
-			urgency: yield* Effect.fromResult(
-				decodeStoredRulingUrgency(row.id, row.urgency),
-			),
+			radius: yield* Effect.fromResult(decodeStoredRulingRadius(row.id, row.radius)),
+			urgency: yield* Effect.fromResult(decodeStoredRulingUrgency(row.id, row.urgency)),
 		} satisfies RulingAxes;
 	});
 
@@ -98,7 +87,5 @@ export const requireRuling = (rulingId: string) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
 		const found = yield* db.Ruling.where({ id: rulingId }).first();
-		return Option.isNone(found)
-			? yield* new RulingNotFound({ rulingId })
-			: found.value;
+		return Option.isNone(found) ? yield* new RulingNotFound({ rulingId }) : found.value;
 	});

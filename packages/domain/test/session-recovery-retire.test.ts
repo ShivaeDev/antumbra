@@ -5,11 +5,7 @@ import { expect, it } from "@effect/vitest";
 import { Deferred, Effect, Option } from "effect";
 import { AgentDomain } from "#domain.ts";
 import { domainKernelLayer } from "#test/domain-layers.ts";
-import {
-	acquireTemporaryPersistence,
-	makeScriptedBackend,
-	makeScriptedRunner,
-} from "#test/harness.ts";
+import { acquireTemporaryPersistence, makeScriptedBackend, makeScriptedRunner } from "#test/harness.ts";
 import {
 	eventually,
 	hail,
@@ -26,27 +22,15 @@ it.live("retirement cancels a wake attachment blocked while opening", () =>
 		const temporary = yield* acquireTemporaryPersistence;
 		const scripted = yield* makeScriptedBackend;
 		const recorded = yield* makeScriptedRunner;
-		yield* seedResumableAgent(
-			temporary,
-			scripted.backend,
-			recorded.runner,
-			scripted,
-		);
+		yield* seedResumableAgent(temporary, scripted.backend, recorded.runner, scripted);
 		const opening = yield* Deferred.make<void>();
 		const release = yield* Deferred.make<void>();
-		const resumed = reportsNativeRef(
-			scripted.backend,
-			scripted,
-			"native-durable",
-		);
+		const resumed = reportsNativeRef(scripted.backend, scripted, "native-durable");
 		const blocked: AgentBackend = {
 			...resumed,
 			openSession: (options) =>
 				Option.isSome(options.resume)
-					? Deferred.succeed(opening, undefined).pipe(
-							Effect.andThen(Deferred.await(release)),
-							Effect.andThen(resumed.openSession(options)),
-						)
+					? Deferred.succeed(opening, undefined).pipe(Effect.andThen(Deferred.await(release)), Effect.andThen(resumed.openSession(options)))
 					: resumed.openSession(options),
 		};
 
@@ -65,12 +49,8 @@ it.live("retirement cancels a wake attachment blocked while opening", () =>
 				Effect.gen(function* () {
 					const held = yield* waitingWake;
 					expect(held.detail).toContain("stopped while attaching");
-					const agent = Option.getOrThrow(
-						yield* db.Agent.where({ id: payload.agentId }).first(),
-					);
-					const session = Option.getOrThrow(
-						yield* db.AgentSession.where({ id: payload.sessionId }).first(),
-					);
+					const agent = Option.getOrThrow(yield* db.Agent.where({ id: payload.agentId }).first());
+					const session = Option.getOrThrow(yield* db.AgentSession.where({ id: payload.sessionId }).first());
 					expect(agent).toMatchObject({
 						currentSessionId: null,
 						status: "retired",
@@ -79,16 +59,10 @@ it.live("retirement cancels a wake attachment blocked while opening", () =>
 					expect(yield* scripted.opened).toHaveLength(1);
 					const original = yield* scripted.session(payload.sessionId);
 					expect(original).toBeDefined();
-					expect(
-						original === undefined ? [] : yield* original.sent,
-					).not.toContain(WAKE_INSTRUCTION);
+					expect(original === undefined ? [] : yield* original.sent).not.toContain(WAKE_INSTRUCTION);
 					expect(original !== undefined && (yield* original.closed)).toBe(true);
 				}),
 			);
-		}).pipe(
-			Effect.provide(
-				domainKernelLayer(temporary, blocked, {}, recorded.runner),
-			),
-		);
+		}).pipe(Effect.provide(domainKernelLayer(temporary, blocked, {}, recorded.runner)));
 	}),
 );

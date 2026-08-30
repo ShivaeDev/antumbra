@@ -1,8 +1,6 @@
 import type { BoardOwnerKind } from "@antumbra/vocabulary/board";
 import { Data } from "effect";
 
-// why: a board hangs off one entity, so a missing owner is a mistake to
-// answer rather than a board to mint — an orphan board cannot be shown.
 export class BoardOwnerNotFound extends Data.TaggedError("BoardOwnerNotFound")<{
 	readonly ownerId: string;
 	readonly ownerKind: BoardOwnerKind;
@@ -12,9 +10,7 @@ export class BoardOwnerNotFound extends Data.TaggedError("BoardOwnerNotFound")<{
 	}
 }
 
-export class BoardSourceConflict extends Data.TaggedError(
-	"BoardSourceConflict",
-)<{
+export class BoardSourceConflict extends Data.TaggedError("BoardSourceConflict")<{
 	readonly boardId: string;
 	readonly sourceRef: string;
 }> {
@@ -32,9 +28,7 @@ export class MailNotAddressed extends Data.TaggedError("MailNotAddressed")<{
 	}
 }
 
-export class StoredBoardEntryInvalid extends Data.TaggedError(
-	"StoredBoardEntryInvalid",
-)<{
+export class StoredBoardEntryInvalid extends Data.TaggedError("StoredBoardEntryInvalid")<{
 	readonly detail: string;
 	readonly entryId: string;
 }> {}

@@ -24,11 +24,7 @@ const directoryExists = (target: string) =>
 	);
 
 const createDirectoryEntry = (target: string) =>
-	FileSystem.FileSystem.use((fs) =>
-		fs
-			.makeDirectory(target)
-			.pipe(Effect.catchIf(hasReason("AlreadyExists"), () => Effect.void)),
-	);
+	FileSystem.FileSystem.use((fs) => fs.makeDirectory(target).pipe(Effect.catchIf(hasReason("AlreadyExists"), () => Effect.void)));
 
 export const syncOpened = (target: string) =>
 	Effect.scoped(
@@ -41,11 +37,7 @@ export const syncOpened = (target: string) =>
 
 export const ensureDurableDirectory = (
 	target: string,
-): Effect.Effect<
-	void,
-	ArtifactPublicationFailed | PlatformError.PlatformError,
-	FileSystem.FileSystem | Path.Path
-> =>
+): Effect.Effect<void, ArtifactPublicationFailed | PlatformError.PlatformError, FileSystem.FileSystem | Path.Path> =>
 	Effect.gen(function* () {
 		const path = yield* Path.Path;
 		const parent = path.dirname(target);

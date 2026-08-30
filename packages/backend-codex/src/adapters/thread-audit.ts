@@ -1,8 +1,4 @@
-import type {
-	BackendFailure,
-	SessionAudit,
-	SessionCensus,
-} from "@antumbra/plugin-api";
+import type { BackendFailure, SessionAudit, SessionCensus } from "@antumbra/plugin-api";
 import { Effect, RcRef } from "effect";
 import { openAuditConnection } from "#adapters/audit-connection.ts";
 import type { LineProcess } from "#adapters/process.ts";
@@ -16,11 +12,7 @@ import { type CensusSweep, sweepSpawnedDescendants } from "#thread-sweep.ts";
 // Admission is the narrower question the census answers afterwards, and the
 // claim is made on the live connection because that is where the sessions that
 // could otherwise take the thread are running.
-const claimAll = (
-	server: RcRef.RcRef<CodexServer, BackendFailure>,
-	rootRef: string,
-	sweep: CensusSweep,
-) =>
+const claimAll = (server: RcRef.RcRef<CodexServer, BackendFailure>, rootRef: string, sweep: CensusSweep) =>
 	Effect.scoped(
 		RcRef.get(server).pipe(
 			Effect.flatMap((live) =>
@@ -43,13 +35,7 @@ const claimAll = (
 // closed with it. Its scope is the audit, so a child cannot outlive the reading
 // it was spawned for however the reading ends.
 const sweepOn = (spawn: () => LineProcess, rootRef: string) =>
-	Effect.scoped(
-		openAuditConnection(spawn).pipe(
-			Effect.flatMap((connection) =>
-				sweepSpawnedDescendants(connection.request, rootRef),
-			),
-		),
-	);
+	Effect.scoped(openAuditConnection(spawn).pipe(Effect.flatMap((connection) => sweepSpawnedDescendants(connection.request, rootRef))));
 
 // why: the sweep spawns a process of its own and waits on it. The reconnect
 // census runs inside the attachment a resume is opening, so one that never
@@ -77,16 +63,11 @@ const census = (
 			orElse: () =>
 				Effect.logWarning("codex did not answer a census in time", {
 					rootRef,
-				}).pipe(
-					Effect.as(censusUnreadable(rootRef, "codex did not answer in time")),
-				),
+				}).pipe(Effect.as(censusUnreadable(rootRef, "codex did not answer in time"))),
 		}),
 	);
 
-export const codexAudit = (
-	server: RcRef.RcRef<CodexServer, BackendFailure>,
-	spawn: () => LineProcess,
-): SessionAudit => ({
+export const codexAudit = (server: RcRef.RcRef<CodexServer, BackendFailure>, spawn: () => LineProcess): SessionAudit => ({
 	census: (request) => census(server, spawn, request.rootRef, request.admitted),
 	// why: codex keeps no second account of one thread's own lines that this
 	// lane may read passively — the thread's stream was the account, and asking

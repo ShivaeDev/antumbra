@@ -1,15 +1,8 @@
 import type { SDKMessage } from "@anthropic-ai/claude-agent-sdk";
-import type {
-	AgentEvent,
-	RawPayload,
-	SessionState,
-} from "@antumbra/vocabulary/session-events";
+import type { AgentEvent, RawPayload, SessionState } from "@antumbra/vocabulary/session-events";
 
 type StateMessage = Extract<SDKMessage, { subtype: "session_state_changed" }>;
-type TasksMessage = Extract<
-	SDKMessage,
-	{ subtype: "background_tasks_changed" }
->;
+type TasksMessage = Extract<SDKMessage, { subtype: "background_tasks_changed" }>;
 
 // why: the SDK's three words for what a session is doing, mapped onto the
 // neutral three. `requires_action` is a turn that is alive and stalled on
@@ -32,10 +25,7 @@ const stateEvent = (raw: RawPayload, message: StateMessage): AgentEvent => ({
 // empty `tasks` is the provider stating that nothing is running in the
 // background, which is worth recording — the SDK sends nothing at startup, so
 // silence and emptiness are different facts.
-const backgroundEvent = (
-	raw: RawPayload,
-	message: TasksMessage,
-): AgentEvent => ({
+const backgroundEvent = (raw: RawPayload, message: TasksMessage): AgentEvent => ({
 	raw,
 	tasks: message.tasks.map((task) => ({
 		description: task.description,
@@ -58,10 +48,7 @@ type SystemMessage = Extract<SDKMessage, { type: "system" }>;
 // why: undefined means this lane has nothing to say about the frame, which is
 // not the same as the empty array — the task subtypes are read further down as
 // subsession lifecycle and must fall through rather than be swallowed here.
-export const systemEvents = (
-	raw: RawPayload,
-	message: SystemMessage,
-): ReadonlyArray<AgentEvent> | undefined => {
+export const systemEvents = (raw: RawPayload, message: SystemMessage): ReadonlyArray<AgentEvent> | undefined => {
 	switch (message.subtype) {
 		case "init":
 			return [{ nativeRef: message.session_id, raw, type: "session.opened" }];

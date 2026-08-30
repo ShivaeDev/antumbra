@@ -23,11 +23,7 @@ export interface RpcConnection {
 	readonly notify: (method: string, params: unknown) => void;
 	readonly onNotification: (listener: (n: RpcNotification) => void) => void;
 	readonly onServerRequest: (listener: (r: RpcServerRequest) => void) => void;
-	readonly request: (
-		method: string,
-		params: unknown,
-		timeoutMs: number,
-	) => Promise<unknown>;
+	readonly request: (method: string, params: unknown, timeoutMs: number) => Promise<unknown>;
 	readonly respond: (id: RpcId, result: unknown) => void;
 	readonly respondError: (id: RpcId, error: RpcError) => void;
 }
@@ -49,8 +45,7 @@ export const connectRpc = (process: LineProcess): RpcConnection => {
 		process.write(JSON.stringify({ jsonrpc: "2.0", ...message }));
 	};
 	const settle = (message: Record<string, unknown>): void => {
-		const waiting =
-			typeof message.id === "number" ? pending.get(message.id) : undefined;
+		const waiting = typeof message.id === "number" ? pending.get(message.id) : undefined;
 		if (waiting === undefined || typeof message.id !== "number") {
 			return;
 		}
@@ -87,11 +82,7 @@ export const connectRpc = (process: LineProcess): RpcConnection => {
 			waiting.reject({ code: RPC_EXITED_CODE, message: "app-server exited" });
 		}
 	});
-	const request = (
-		method: string,
-		params: unknown,
-		timeoutMs: number,
-	): Promise<unknown> => {
+	const request = (method: string, params: unknown, timeoutMs: number): Promise<unknown> => {
 		const id = nextId;
 		nextId += 1;
 		return new Promise<unknown>((resolve, reject) => {

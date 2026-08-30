@@ -11,13 +11,8 @@ const isolatedPackageNames = new Set(["runner-local"]);
 
 // why: a root vitest.config.ts would be picked up by package-level
 // `vitest run` via directory walk and execute every project.
-export const workspacePackageNames: readonly string[] = readdirSync(
-	join(repoRoot, "packages"),
-	{ withFileTypes: true },
-)
-	.filter(
-		(entry) => entry.isDirectory() && !isolatedPackageNames.has(entry.name),
-	)
+export const workspacePackageNames: readonly string[] = readdirSync(join(repoRoot, "packages"), { withFileTypes: true })
+	.filter((entry) => entry.isDirectory() && !isolatedPackageNames.has(entry.name))
 	.map((entry) => entry.name)
 	.toSorted();
 

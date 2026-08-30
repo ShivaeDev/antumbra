@@ -15,9 +15,7 @@ const TestScripts = Schema.Struct({
 	"test:packages": Schema.String,
 });
 
-const decodeRootManifest = Schema.decodeUnknownSync(
-	Schema.fromJsonString(RootManifest),
-);
+const decodeRootManifest = Schema.decodeUnknownSync(Schema.fromJsonString(RootManifest));
 
 const packageDirectories = (): readonly string[] =>
 	readdirSync(join(repoRoot, "packages"), { withFileTypes: true })
@@ -27,22 +25,15 @@ const packageDirectories = (): readonly string[] =>
 
 describe("CI test shards", () => {
 	it("shards package suites and keeps Electron and git-worktree suites separate", () => {
-		const manifest = decodeRootManifest(
-			readFileSync(join(repoRoot, "package.json"), "utf8"),
-		);
+		const manifest = decodeRootManifest(readFileSync(join(repoRoot, "package.json"), "utf8"));
 		const scripts = Schema.decodeUnknownSync(TestScripts)({
 			"test:desktop": manifest.scripts["test:desktop"],
 			"test:packages": manifest.scripts["test:packages"],
 		});
-		const workflow = readFileSync(
-			join(repoRoot, ".github/workflows/ci.yml"),
-			"utf8",
-		);
+		const workflow = readFileSync(join(repoRoot, ".github/workflows/ci.yml"), "utf8");
 		expect(scripts["test:packages"]).toContain("script/vitest.workspace.ts");
 		expect(scripts["test:desktop"]).toContain("@antumbra/desktop");
-		expect(workspacePackageNames).toEqual(
-			packageDirectories().filter((name) => name !== "runner-local"),
-		);
+		expect(workspacePackageNames).toEqual(packageDirectories().filter((name) => name !== "runner-local"));
 		expect(workspacePackageNames).toContain("renderer");
 		expect(workspacePackageNames).not.toContain("desktop");
 		expect(workspacePackageNames).not.toContain("runner-local");

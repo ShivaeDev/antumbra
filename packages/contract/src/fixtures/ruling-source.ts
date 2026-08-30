@@ -11,14 +11,10 @@ const standing = new Set(standingRulings.rulings.map((ruling) => ruling.id));
 export const proclaimedRulingId = "ruling-proclaimed";
 
 const onOpen = (rulingId: string) =>
-	known.has(rulingId)
-		? Effect.succeed({ rulingId })
-		: new RulingRefused({ reason: `no open ruling: ${rulingId}` });
+	known.has(rulingId) ? Effect.succeed({ rulingId }) : new RulingRefused({ reason: `no open ruling: ${rulingId}` });
 
 const onStanding = (rulingId: string) =>
-	standing.has(rulingId)
-		? Effect.succeed({ rulingId })
-		: new RulingRefused({ reason: `no standing ruling: ${rulingId}` });
+	standing.has(rulingId) ? Effect.succeed({ rulingId }) : new RulingRefused({ reason: `no standing ruling: ${rulingId}` });
 
 // why: the fixture refuses exactly what the record refuses — a ruling nobody
 // asked, a proclamation with no words to stand on, a reclassification naming no

@@ -59,72 +59,61 @@ it.effectDB("answers voyage membership without exposing rows", function* (db) {
 			voyageId: voyage.id,
 		});
 
-		expect(yield* pieces.membersOfVoyage(voyage.id)).toEqual(
-			new Set([member.id]),
-		);
+		expect(yield* pieces.membersOfVoyage(voyage.id)).toEqual(new Set([member.id]));
 		expect(yield* pieces.membersOfVoyage("missing-voyage")).toEqual(new Set());
 	}).pipe(Effect.provide(layer));
 });
 
-it.effectDB(
-	"owns piece transactions and publishes only committed changes",
-	function* (db) {
-		yield* Effect.scoped(
-			Effect.gen(function* () {
-				const feeds = yield* DomainFeeds;
-				const pieces = yield* Pieces;
-				const notices = yield* feeds.subscribeVoyageRefresh();
-				yield* db.Voyage.create(voyage);
+it.effectDB("publishes after successful piece changes", function* (db) {
+	yield* Effect.scoped(
+		Effect.gen(function* () {
+			const feeds = yield* DomainFeeds;
+			const pieces = yield* Pieces;
+			const notices = yield* feeds.subscribeVoyageRefresh();
+			yield* db.Voyage.create(voyage);
 
-				const piece = yield* pieces.charter({
-					charter: "sound the shallows",
+			const piece = yield* pieces.charter({
+				charter: "sound the shallows",
+				dependsOn: [],
+				expectation: "the soundings are landed",
+				role: "hand",
+				title: "Sound",
+				voyageId: voyage.id,
+			});
+			expect(yield* PubSub.take(notices)).toBeUndefined();
+
+			yield* pieces.launch(piece.id);
+			expect(yield* PubSub.take(notices)).toBeUndefined();
+			yield* pieces.launch(piece.id);
+			expect(yield* PubSub.takeUpTo(notices, 1)).toEqual([]);
+			expect(Option.getOrThrow(yield* db.Piece.where({ id: piece.id }).first()).launchedAt).toBeInstanceOf(Date);
+		}),
+	).pipe(Effect.provide(layer));
+});
+
+it.effectDB("refuses an invalid charter without rows or a notification", function* (db) {
+	yield* Effect.scoped(
+		Effect.gen(function* () {
+			const feeds = yield* DomainFeeds;
+			const pieces = yield* Pieces;
+			const notices = yield* feeds.subscribeVoyageRefresh();
+			const failure = yield* Effect.flip(
+				pieces.charter({
+					charter: "sail nowhere",
 					dependsOn: [],
-					expectation: "the soundings are landed",
+					expectation: "nothing",
 					role: "hand",
-					title: "Sound",
-					voyageId: voyage.id,
-				});
-				expect(yield* PubSub.take(notices)).toBeUndefined();
-
-				yield* pieces.launch(piece.id);
-				expect(yield* PubSub.take(notices)).toBeUndefined();
-				yield* pieces.launch(piece.id);
-				expect(yield* PubSub.takeUpTo(notices, 1)).toEqual([]);
-				expect(
-					Option.getOrThrow(yield* db.Piece.where({ id: piece.id }).first())
-						.launchedAt,
-				).toBeInstanceOf(Date);
-			}),
-		).pipe(Effect.provide(layer));
-	},
-);
-
-it.effectDB(
-	"refuses an invalid charter without rows or a notification",
-	function* (db) {
-		yield* Effect.scoped(
-			Effect.gen(function* () {
-				const feeds = yield* DomainFeeds;
-				const pieces = yield* Pieces;
-				const notices = yield* feeds.subscribeVoyageRefresh();
-				const failure = yield* Effect.flip(
-					pieces.charter({
-						charter: "sail nowhere",
-						dependsOn: [],
-						expectation: "nothing",
-						role: "hand",
-						title: "Adrift",
-						voyageId: "missing",
-					}),
-				);
-
-				expect(failure).toMatchObject({
-					_tag: "VoyageNotFound",
+					title: "Adrift",
 					voyageId: "missing",
-				});
-				expect(yield* db.Piece.all()).toEqual([]);
-				expect(yield* PubSub.takeUpTo(notices, 1)).toEqual([]);
-			}),
-		).pipe(Effect.provide(layer));
-	},
-);
+				}),
+			);
+
+			expect(failure).toMatchObject({
+				_tag: "VoyageNotFound",
+				voyageId: "missing",
+			});
+			expect(yield* db.Piece.all()).toEqual([]);
+			expect(yield* PubSub.takeUpTo(notices, 1)).toEqual([]);
+		}),
+	).pipe(Effect.provide(layer));
+});

@@ -120,42 +120,44 @@ it.effect(
 		}),
 );
 
-it.effect("applies a saved ceiling to subsequent launches without restart", () =>
-	Effect.gen(function* () {
-		const temporary = yield* acquireTemporaryPersistence;
-		const scripted = yield* makeScriptedBackend;
-		yield* Effect.gen(function* () {
-			const settings = yield* SettingsSource;
-			yield* settings.change({ key: "maxParallelSessions", value: 1 });
-			const { alpha } = yield* chain;
-			yield* TestClock.withLive(
-				eventually(
-					Effect.gen(function* () {
-						expect(yield* assignedPieces).toEqual([alpha.id]);
-					}),
-				),
-			);
-			yield* land(alpha.id, "soundings");
-			yield* TestClock.adjust(150);
-			expect(yield* assignedPieces).toEqual([alpha.id]);
+it.effect(
+	"applies a saved ceiling to subsequent launches without restart",
+	() =>
+		Effect.gen(function* () {
+			const temporary = yield* acquireTemporaryPersistence;
+			const scripted = yield* makeScriptedBackend;
+			yield* Effect.gen(function* () {
+				const settings = yield* SettingsSource;
+				yield* settings.change({ key: "maxParallelSessions", value: 1 });
+				const { alpha } = yield* chain;
+				yield* TestClock.withLive(
+					eventually(
+						Effect.gen(function* () {
+							expect(yield* assignedPieces).toEqual([alpha.id]);
+						}),
+					),
+				);
+				yield* land(alpha.id, "soundings");
+				yield* TestClock.adjust(150);
+				expect(yield* assignedPieces).toEqual([alpha.id]);
 
-			yield* settings.change({ key: "maxParallelSessions", value: 2 });
-			yield* TestClock.adjust(50);
-			yield* TestClock.withLive(
-				eventually(
-					Effect.gen(function* () {
-						expect((yield* assignedPieces).length).toBe(2);
+				yield* settings.change({ key: "maxParallelSessions", value: 2 });
+				yield* TestClock.adjust(50);
+				yield* TestClock.withLive(
+					eventually(
+						Effect.gen(function* () {
+							expect((yield* assignedPieces).length).toBe(2);
+						}),
+					),
+				);
+			}).pipe(
+				Effect.provide(
+					dispatchingLayer(temporary, scripted.backend, {
+						patienceMillis: 50,
 					}),
 				),
 			);
-		}).pipe(
-			Effect.provide(
-				dispatchingLayer(temporary, scripted.backend, {
-					patienceMillis: 50,
-				}),
-			),
-		);
-	}),
+		}),
 );
 
 it.effect("a parked piece is never dispatched until it is unparked", () =>

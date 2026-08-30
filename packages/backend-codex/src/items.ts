@@ -44,8 +44,6 @@ const isTool = (
 
 const commandOk = (item: Item<"commandExecution">): boolean => item.status === "completed" && (item.exitCode ?? 0) === 0;
 
-// why: the answer we gave is the truth about a tool we served — status alone
-// reads a refused landing as a completed call.
 const dynamicOutcome = (item: Item<"dynamicToolCall">) => ({
 	ok: item.success ?? item.status === "completed",
 	output: (item.contentItems ?? []).map((part) => part.text ?? "").join("\n"),
@@ -76,8 +74,6 @@ const toolOutcome = (
 
 const reasoningText = (item: Item<"reasoning">): string => [...(item.summary ?? []), ...(item.content ?? [])].join("\n");
 
-// why: a started tool item is the only start worth an event — message and
-// reasoning starts carry no text yet, their completion is the whole item.
 const knownStarted = (raw: RawPayload, item: KnownItem): AgentEvent[] => {
 	if (isTool(item)) {
 		return [

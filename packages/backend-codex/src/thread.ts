@@ -12,8 +12,6 @@ import { makeTurnDriver } from "#turns.ts";
 
 const decodeScoped = Schema.decodeUnknownOption(ThreadScoped);
 
-// why: the driver speaks for this session's own thread and no other — a turn
-// belonging to a node is the node's business, and this session may only read it.
 const forThread =
 	(threadId: string) =>
 	(notification: RpcNotification): boolean =>
@@ -25,11 +23,6 @@ const forThread =
 const sessionEvents = (tree: ThreadTree, notification: RpcNotification): ReadonlyArray<AgentEvent> =>
 	notification.method === RATE_LIMITS_METHOD ? toAgentEvents(notification) : tree.events(notification);
 
-// why: both subscriptions are taken before the thread exists, so nothing
-// the server says about it can slip past; the tree then selects this session's
-// slice of the shared stream — its own thread and the descendants it admitted.
-// Item and turn events are one projection, the turn driver another — the log
-// never depends on the driver having consumed anything.
 export const openThreadSession = (server: CodexServer, options: OpenSessionOptions): Effect.Effect<SessionHandle, BackendFailure, Scope.Scope> =>
 	Effect.gen(function* () {
 		const forEvents = yield* PubSub.subscribe(server.notifications);

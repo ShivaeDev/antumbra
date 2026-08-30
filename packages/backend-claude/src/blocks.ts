@@ -3,9 +3,6 @@ import { toolIdentity } from "#tool-names.ts";
 
 export const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === "object" && value !== null;
 
-// why: a frame the provider forwarded and a line it stored differ in their
-// envelopes and agree on their content, so the blocks are read structurally and
-// both lanes get the same reading of what was said.
 export const contentBlocks = (message: object): ReadonlyArray<Record<string, unknown>> => {
 	if (!("message" in message) || !isRecord(message.message)) {
 		return [];
@@ -30,9 +27,6 @@ export const textOf = (content: unknown): string => {
 	return JSON.stringify(content);
 };
 
-// why: one SDK message can carry several content blocks — each becomes its
-// own neutral event, all sharing the same raw payload and the same origin,
-// because a frame is produced by exactly one node of the session's tree.
 export const blockEvent = (
 	raw: RawPayload,
 	role: "agent" | "user",

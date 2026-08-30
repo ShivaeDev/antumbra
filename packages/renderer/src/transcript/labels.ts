@@ -25,9 +25,6 @@ const taskWords = (task: (typeof SessionBackgroundEvent.Type)["tasks"][number]):
 	return short === "" ? task.kind : `${task.kind} ${short}`;
 };
 
-// why: an empty set is the provider saying the last background task finished,
-// which is worth a line of its own — a reader who saw two start needs to see
-// them go, and a silent row would read as the record having stopped watching.
 export const backgroundLabel = (event: typeof SessionBackgroundEvent.Type): string =>
 	event.tasks.length === 0 ? "background · nothing running" : `background · ${event.tasks.length} · ${event.tasks.map(taskWords).join(", ")}`;
 

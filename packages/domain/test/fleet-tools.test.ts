@@ -65,10 +65,10 @@ it.live("the flagship's captain reads every voyage in the fleet", () =>
 			expect(read.ok).toBe(true);
 			expect(read.text).toContain(`- ${FLAGSHIP_ID} Flagship [`);
 			expect(read.text).toContain(
-				`flagship · scripted · 0 pieces (0 unlaunched, 0 parked, 0 landed) · captain ${flagship.agentId} [alive] · last stirred 20`,
+				`flagship · captain on scripted · crew on scripted · 0 pieces (0 unlaunched, 0 parked, 0 landed) · captain ${flagship.agentId} [alive] · last stirred 20`,
 			);
 			expect(read.text).toContain(
-				`- ${reef.id} Chart the reef [quiet] · voyage · scripted · 2 pieces (2 unlaunched, 0 parked, 0 landed) · captain none · never stirred\n  north star: every shoal is known`,
+				`- ${reef.id} Chart the reef [quiet] · voyage · captain on scripted · crew on scripted · 2 pieces (2 unlaunched, 0 parked, 0 landed) · captain none · never stirred\n  north star: every shoal is known`,
 			);
 		}),
 	),
@@ -138,7 +138,8 @@ it.live("the flagship's captain opens a voyage on the fleet's default", () =>
 				text: `opened voyage ${opened?.id}`,
 			});
 			expect(opened).toMatchObject({
-				backend: "claude",
+				captainBackend: "claude",
+				crewBackend: "claude",
 				kind: "voyage",
 				northStar: "every shoal has a name",
 			});

@@ -7,12 +7,16 @@ import { RosterGroupPanel } from "#views/roster-group.tsx";
 const Roster = ({
 	fleet,
 	onError,
+	onPiece,
 	onSelect,
+	onVoyage,
 	selected,
 }: {
 	readonly fleet: Fleet | undefined;
 	readonly onError: (message: string) => void;
+	readonly onPiece: (voyageId: string, pieceId: string) => void;
 	readonly onSelect: (sessionId: string) => void;
+	readonly onVoyage: (voyageId: string) => void;
 	readonly selected: string | undefined;
 }) => {
 	if (fleet === undefined) {
@@ -24,7 +28,15 @@ const Roster = ({
 	return (
 		<>
 			{rosterGroups(fleet.agents).map((group) => (
-				<RosterGroupPanel group={group} key={group.standing} onError={onError} onSelect={onSelect} selected={selected} />
+				<RosterGroupPanel
+					group={group}
+					key={group.standing}
+					onError={onError}
+					onPiece={onPiece}
+					onSelect={onSelect}
+					onVoyage={onVoyage}
+					selected={selected}
+				/>
 			))}
 		</>
 	);
@@ -33,17 +45,21 @@ const Roster = ({
 export const FleetPanel = ({
 	fleet,
 	onError,
+	onPiece,
 	onSelect,
+	onVoyage,
 	selected,
 }: {
 	readonly fleet: Fleet | undefined;
 	readonly onError: (message: string) => void;
+	readonly onPiece: (voyageId: string, pieceId: string) => void;
 	readonly onSelect: (sessionId: string) => void;
+	readonly onVoyage: (voyageId: string) => void;
 	readonly selected: string | undefined;
 }) => (
 	<section className="flex min-h-0 min-w-0 flex-1 flex-col gap-4 overflow-y-auto p-4">
 		<FleetToolbar fleet={fleet} onError={onError} />
 		{fleet === undefined ? null : <FleetDiagChips diag={fleet.diag} />}
-		<Roster fleet={fleet} onError={onError} onSelect={onSelect} selected={selected} />
+		<Roster fleet={fleet} onError={onError} onPiece={onPiece} onSelect={onSelect} onVoyage={onVoyage} selected={selected} />
 	</section>
 );

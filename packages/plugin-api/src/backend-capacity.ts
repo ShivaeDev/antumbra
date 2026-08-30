@@ -18,9 +18,6 @@ const LimitedCapacity = Schema.Struct({
 	utilization: Schema.optional(Schema.Number),
 });
 
-// why: backend capacity is simultaneously true with Session activity. A live
-// Session can be idle while its provider account is exhausted, so this is a
-// backend-level observation rather than another Session state or lifecycle.
 export const BackendCapacityObservation = Schema.Union([AvailableCapacity, LimitedCapacity]);
 export type BackendCapacityObservation = typeof BackendCapacityObservation.Type;
 
@@ -29,9 +26,6 @@ type WithoutEvidence<Reading> = Reading extends BackendCapacityObservation ? Omi
 export type BackendCapacityClassification = WithoutEvidence<BackendCapacityObservation>;
 
 export interface BackendCapacitySource {
-	// why: a deliberate retry is the only release for a hard provider refusal.
-	// Its timestamp orders the clear after frames the provider callback already
-	// observed, even if a durable subscriber has not handled them yet.
 	readonly clear: Effect.Effect<number>;
 	readonly changes: Stream.Stream<BackendCapacityObservation>;
 	readonly classify: (raw: RawPayload) => Option.Option<BackendCapacityClassification>;
@@ -43,11 +37,7 @@ export interface BackendCapacityController {
 	readonly source: BackendCapacitySource;
 }
 
-// why: native callbacks are synchronous. The current reading therefore lives
-// in a synchronous ref and publication uses the PubSub's synchronous offer;
-// consumers still read and subscribe through Effect values owned by the
-// plugin scope. A late consumer can recover the latest reading from `current`
-// even though the change ring deliberately carries no history.
+// Provider callbacks invoke observation synchronously, so it cannot require an Effect runtime.
 export const makeBackendCapacityController = (
 	classify: BackendCapacitySource["classify"],
 ): Effect.Effect<BackendCapacityController, never, Scope.Scope> =>

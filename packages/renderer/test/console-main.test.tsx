@@ -20,18 +20,21 @@ const render = (mode: ConsoleMode): string =>
 			mode={mode}
 			onChange={() => undefined}
 			onError={() => undefined}
+			onPiece={() => undefined}
 			onSession={() => undefined}
 			onSettings={() => undefined}
 			onVoyage={() => undefined}
+			piece={undefined}
 			session={undefined}
 			settings={undefined}
 			voyage={undefined}
 			voyages={[
 				flagshipSummary,
 				{
-					backend: "codex",
 					captain: null,
+					captainBackend: "codex",
 					counts: { active: 0, done: 0, pieces: 0, ready: 0 },
+					crewBackend: "codex",
 					focusedAt: null,
 					id: "voyage-1",
 					kind: "voyage",

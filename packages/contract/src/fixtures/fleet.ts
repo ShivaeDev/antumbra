@@ -46,6 +46,7 @@ export const fleet: Fleet = {
 				},
 			],
 			status: "alive",
+			work: [{ kind: "voyage", voyageId: "voyage-1", voyageName: "Chart the reef" }],
 		},
 	],
 	backends: ["claude"],

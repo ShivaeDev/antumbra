@@ -30,9 +30,6 @@ export type HailRefused =
 	| VoyageNotFound
 	| VoyageWorldReadFailure;
 
-// why: hailing materializes the role for the voyage as it stands right now —
-// north star, board and pieces are read at the moment of the hail, because a
-// captain's session is mortal and the voyage is not.
 export const hailCaptain = (voyageId: string) =>
 	Effect.gen(function* () {
 		const boards = yield* Boards;
@@ -76,12 +73,9 @@ export const hailCaptain = (voyageId: string) =>
 			pieceId: Option.none(),
 			voyageId: Option.some(voyageId),
 		});
-		// why: the hail is answered from the window or the router, never from
-		// inside a session, so it may wait for the kernel to be reachable and
-		// hand back the intent it just asked for.
 		const intentId = yield* reach.submitSpawn({
 			agentId,
-			backend: voyage.backend,
+			backend: voyage.captainBackend,
 			charter: charterForKind(voyage.kind, {
 				context: voyage.context,
 				northStar: voyage.northStar,
@@ -90,8 +84,6 @@ export const hailCaptain = (voyageId: string) =>
 				voyageLog: voyageSmoothLog,
 			}),
 			role: CAPTAIN_ROLE,
-			// why: the sole runner in v1 — the field becomes a choice when a
-			// second runner exists to choose between.
 			runner: "local",
 			sessionId: crypto.randomUUID(),
 			voyageId,

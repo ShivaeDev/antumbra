@@ -5,9 +5,10 @@ import { VoyageHeader } from "#views/voyage-header.tsx";
 import { VoyagesPanel } from "#views/voyages.tsx";
 
 const summary = (captain: VoyageCaptainView | null): VoyageSummary => ({
-	backend: "scripted",
 	captain,
+	captainBackend: "scripted",
 	counts: { active: 0, done: 0, pieces: 0, ready: 0 },
+	crewBackend: "scripted",
 	focusedAt: null,
 	id: "voyage-1",
 	kind: "voyage",

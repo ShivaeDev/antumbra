@@ -1,5 +1,7 @@
 import { expect, it } from "@effect/vitest";
 import { Schema } from "effect";
+import { fleet } from "#fixtures/fleet.ts";
+import { crewedFleet } from "#fixtures/scripted-turns.ts";
 import { Fleet } from "#fleet.ts";
 
 const agentAround = (session: Record<string, unknown>) => ({
@@ -13,6 +15,7 @@ const agentAround = (session: Record<string, unknown>) => ({
 			role: "navigator",
 			sessions: [session],
 			status: "alive",
+			work: [],
 		},
 	],
 	backends: ["scripted"],
@@ -106,4 +109,22 @@ it("refuses a Session that publishes no diagnostics at all", () => {
 		}),
 	);
 	expect(decoded._tag).toBe("None");
+});
+
+it("carries an agent's piece and voyage", () => {
+	const decoded = Schema.decodeUnknownSync(Fleet)(crewedFleet);
+	expect(decoded.agents[1]?.work).toEqual([
+		{
+			kind: "piece",
+			pieceId: "piece-1",
+			pieceTitle: "soundings",
+			voyageId: "voyage-1",
+			voyageName: "Chart the reef",
+		},
+	]);
+});
+
+it("names a captain by the voyage it commands", () => {
+	const decoded = Schema.decodeUnknownSync(Fleet)(fleet);
+	expect(decoded.agents[0]?.work).toEqual([{ kind: "voyage", voyageId: "voyage-1", voyageName: "Chart the reef" }]);
 });

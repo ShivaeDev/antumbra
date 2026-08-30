@@ -25,6 +25,7 @@ const agent = (id: string, status: string, sessions: ReadonlyArray<SessionSummar
 	role: `role-${id}`,
 	sessions,
 	status,
+	work: [],
 });
 
 const working = agent("working", "alive", [session("s1", "working")]);

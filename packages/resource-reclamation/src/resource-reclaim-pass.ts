@@ -16,27 +16,14 @@ const site = (berth: ClaimedBerth): BerthSite => ({
 const finishReclaim = (berth: ClaimedBerth) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
-		yield* db.transaction(
-			Effect.gen(function* () {
-				yield* Database;
-				yield* db.Berth.where({ id: berth.id }).update({
-					reclaimState: null,
-					status: "reclaimed",
-					strandedAt: null,
-				});
-				const siblings = yield* db.Berth.where({
-					agentId: berth.agentId,
-				}).all();
-				const states = yield* Effect.forEach(siblings, (sibling) =>
-					Effect.fromResult(decodeStoredResourceReclaimState("Berth", sibling.id, sibling.reclaimState)),
-				);
-				if (!states.includes("claimed" satisfies ResourceReclaimState)) {
-					yield* db.Moorage.where({ agentId: berth.agentId }).update({
-						reclaimState: null,
-					});
-				}
-			}),
+		yield* db.Berth.where({ id: berth.id }).update({ reclaimState: null, status: "reclaimed", strandedAt: null });
+		const siblings = yield* db.Berth.where({ agentId: berth.agentId }).all();
+		const states = yield* Effect.forEach(siblings, (sibling) =>
+			Effect.fromResult(decodeStoredResourceReclaimState("Berth", sibling.id, sibling.reclaimState)),
 		);
+		if (!states.includes("claimed" satisfies ResourceReclaimState)) {
+			yield* db.Moorage.where({ agentId: berth.agentId }).update({ reclaimState: null });
+		}
 	});
 
 const markDirty = (berth: ClaimedBerth, now: number) =>

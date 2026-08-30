@@ -110,9 +110,10 @@ export const VoyageState = Schema.Literals(["quiet", "underWay"]);
 export type VoyageState = typeof VoyageState.Type;
 
 export const VoyageSummary = Schema.Struct({
-	backend: Schema.String,
 	captain: Schema.NullOr(VoyageCaptainView),
+	captainBackend: Schema.String,
 	counts: PieceCounts,
+	crewBackend: Schema.String,
 	focusedAt: Schema.NullOr(Schema.String),
 	id: Schema.String,
 	// why: which voyage speaks for the fleet is durable truth the window is

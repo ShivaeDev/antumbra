@@ -2,7 +2,7 @@ import { Effect, Path } from "effect";
 import { digestBytes } from "#content.ts";
 import { artifactPublicationFailed } from "#errors.ts";
 import { ensureDurableDirectory } from "#filesystem-durability.ts";
-import type { ArtifactInput, ArtifactPublication } from "#model.ts";
+import type { ArtifactInput } from "#model.ts";
 import { installPublished } from "#published-file.ts";
 import { readOwnedArtifact } from "#source.ts";
 
@@ -20,10 +20,8 @@ export const publishArtifact = (root: string, input: ArtifactInput) =>
 		);
 		yield* installPublished(destination, bytes, digest).pipe(Effect.mapError(artifactPublicationFailed("publish artifact")));
 		return {
-			agentId: owned.agentId,
 			basename: owned.basename,
 			byteSize: bytes.length,
 			digest,
-			moorageRoot: owned.moorageRoot,
-		} satisfies ArtifactPublication;
+		};
 	});

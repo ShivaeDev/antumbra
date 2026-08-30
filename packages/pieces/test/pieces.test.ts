@@ -8,8 +8,9 @@ const it = persistenceIt();
 const layer = PiecesLive.pipe(Layer.provideMerge(DomainFeedsLive));
 
 const voyage = {
-	backend: "scripted",
+	captainBackend: "scripted",
 	context: "the reef is uncharted",
+	crewBackend: "scripted",
 	focusedAt: null,
 	id: "voyage-1",
 	name: "Chart the reef",

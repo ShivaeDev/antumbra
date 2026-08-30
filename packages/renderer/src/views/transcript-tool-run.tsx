@@ -16,30 +16,33 @@ const names = (run: TranscriptToolRun): string => {
 	return Array.from(counts, ([name, count]) => (count === 1 ? name : `${name} ×${count}`)).join(", ");
 };
 
-const Tail = ({ run }: { readonly run: TranscriptToolRun }) => {
+const Tail = ({ live, run }: { readonly live: boolean; readonly run: TranscriptToolRun }) => {
 	const called = tools(run);
 	const running = called.filter((tool) => tool.result === undefined).length;
 	const failed = called.filter((tool) => tool.ok === false).length;
 	return (
 		<>
-			{running === 0 ? null : <span className="shrink-0 text-2xs text-muted-foreground">{running} still running</span>}
+			{running === 0 ? null : (
+				<span className="shrink-0 text-2xs text-muted-foreground">
+					{running} {live ? "still running" : "unfinished"}
+				</span>
+			)}
 			{failed === 0 ? null : <Badge variant="destructive">{failed} failed</Badge>}
 		</>
 	);
 };
 
-const RunEntry = ({ entry }: { readonly entry: ToolRunEntry }) =>
+const RunEntry = ({ entry, live }: { readonly entry: ToolRunEntry; readonly live: boolean }) =>
 	entry.kind === "tool" ? (
 		<TranscriptGutter label="tool">
-			<TranscriptTool item={entry} />
+			<TranscriptTool item={entry} live={live} />
 		</TranscriptGutter>
 	) : (
 		<TranscriptGutter label="thinking">
 			<TranscriptThought item={entry} />
 		</TranscriptGutter>
 	);
-
-export const TranscriptToolRunRow = ({ run }: { readonly run: TranscriptToolRun }) => {
+export const TranscriptToolRunRow = ({ live, run }: { readonly live: boolean; readonly run: TranscriptToolRun }) => {
 	const [open, setOpen] = useState(false);
 	const Chevron = open ? ChevronDown : ChevronRight;
 	return (
@@ -55,10 +58,10 @@ export const TranscriptToolRunRow = ({ run }: { readonly run: TranscriptToolRun 
 					<Chevron className="size-3 shrink-0 text-muted-foreground" />
 					<span className="shrink-0 font-medium">called {tools(run).length} tools</span>
 					<span className="min-w-0 flex-1 truncate text-muted-foreground">{names(run)}</span>
-					<Tail run={run} />
+					<Tail live={live} run={run} />
 				</button>
 			</TranscriptGutter>
-			{open ? run.entries.map((entry) => <RunEntry entry={entry} key={entry.seq} />) : null}
+			{open ? run.entries.map((entry) => <RunEntry entry={entry} key={entry.seq} live={live} />) : null}
 		</div>
 	);
 };

@@ -71,8 +71,9 @@ const world = (over: Partial<VoyageWorld>): VoyageWorld => ({
 	sessions: [],
 	voyages: [
 		{
-			backend: "scripted",
+			captainBackend: "scripted",
 			context: "the reef is uncharted",
+			crewBackend: "scripted",
 			focusedAt: null,
 			id: "voyage-1",
 			kind: "voyage",

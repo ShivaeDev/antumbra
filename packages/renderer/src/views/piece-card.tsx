@@ -1,6 +1,6 @@
 import type { PieceView } from "@antumbra/contract";
 import { ChevronDown, ChevronRight } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Badge } from "#components/ui/badge.tsx";
 import { Card } from "#components/ui/card.tsx";
 import { cn } from "#lib/utils.ts";
@@ -16,12 +16,22 @@ export const PieceCard = ({
 	onError,
 	piece,
 	pieces,
+	selected = false,
 }: {
 	readonly onError: (message: string) => void;
 	readonly piece: PieceView;
 	readonly pieces: ReadonlyArray<PieceView>;
+	readonly selected?: boolean;
 }) => {
-	const [open, setOpen] = useState(false);
+	const [open, setOpen] = useState(selected);
+	const header = useRef<HTMLButtonElement>(null);
+	useEffect(() => {
+		if (!selected) {
+			return;
+		}
+		setOpen(true);
+		header.current?.scrollIntoView({ block: "nearest" });
+	}, [selected]);
 	const Chevron = open ? ChevronDown : ChevronRight;
 	const preview = plainLine(piece.charter);
 	return (
@@ -33,6 +43,7 @@ export const PieceCard = ({
 					open && "rounded-b-none",
 				)}
 				onClick={() => setOpen(!open)}
+				ref={header}
 				title={open ? "Hide this piece" : "Show this piece"}
 				type="button"
 			>

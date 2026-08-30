@@ -7,13 +7,9 @@ const field = (hash: ReturnType<typeof createHash>, value: string): void => {
 	hash.update(bytes);
 };
 
-export const digestBytes = (bytes: Uint8Array): string =>
-	createHash("sha256").update(bytes).digest("hex");
+export const digestBytes = (bytes: Uint8Array): string => createHash("sha256").update(bytes).digest("hex");
 
-export const digestRequest = (
-	sessionId: string,
-	parts: ReadonlyArray<SessionInputDraftPart>,
-): string => {
+export const digestRequest = (sessionId: string, parts: ReadonlyArray<SessionInputDraftPart>): string => {
 	const hash = createHash("sha256");
 	field(hash, sessionId);
 	for (const part of parts) {

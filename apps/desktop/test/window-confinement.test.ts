@@ -1,32 +1,16 @@
 import { describe, expect, it } from "@effect/vitest";
 import { closeChildren } from "#adapters/windows/attach.ts";
-import {
-	confineNavigation,
-	type NavigationPolicyHost,
-	revokeOnDocumentMutation,
-} from "#adapters/windows/confinement.ts";
-import {
-	attachWindowLifecycle,
-	holdAuthority,
-} from "#adapters/windows/lifecycle.ts";
+import { confineNavigation, type NavigationPolicyHost, revokeOnDocumentMutation } from "#adapters/windows/confinement.ts";
+import { attachWindowLifecycle, holdAuthority } from "#adapters/windows/lifecycle.ts";
 import { makeWindowRegistry } from "#adapters/windows/registry.ts";
-import {
-	consolePlace,
-	handleFor,
-	ownWindow,
-	transcriptPlace,
-} from "#test/windows.ts";
+import { consolePlace, handleFor, ownWindow, transcriptPlace } from "#test/windows.ts";
 
 describe("window confinement", () => {
 	it("denies navigation, redirects, frame navigation, and new windows", () => {
-		const listeners = new Map<
-			string,
-			(event: { preventDefault(): void }) => void
-		>();
+		const listeners = new Map<string, (event: { preventDefault(): void }) => void>();
 		let openWindow: (() => { readonly action: "deny" }) | undefined;
 		const host: NavigationPolicyHost = {
-			onFrameNavigation: (listener) =>
-				listeners.set("will-frame-navigate", listener),
+			onFrameNavigation: (listener) => listeners.set("will-frame-navigate", listener),
 			onNavigation: (listener) => listeners.set("will-navigate", listener),
 			onRedirect: (listener) => listeners.set("will-redirect", listener),
 			setWindowOpenHandler: (handler) => {
@@ -35,11 +19,7 @@ describe("window confinement", () => {
 		};
 		confineNavigation(host);
 
-		for (const name of [
-			"will-navigate",
-			"will-frame-navigate",
-			"will-redirect",
-		]) {
+		for (const name of ["will-navigate", "will-frame-navigate", "will-redirect"]) {
 			let denied = false;
 			listeners.get(name)?.({ preventDefault: () => (denied = true) });
 			expect(denied, name).toBe(true);
@@ -116,18 +96,8 @@ describe("window confinement", () => {
 		const registry = makeWindowRegistry();
 		const calls: Array<string> = [];
 		ownWindow(registry, "console", consolePlace);
-		ownWindow(
-			registry,
-			"child",
-			transcriptPlace("session-1"),
-			handleFor(calls, "child"),
-		);
-		ownWindow(
-			registry,
-			"other",
-			transcriptPlace("session-2"),
-			handleFor(calls, "other"),
-		);
+		ownWindow(registry, "child", transcriptPlace("session-1"), handleFor(calls, "child"));
+		ownWindow(registry, "other", transcriptPlace("session-2"), handleFor(calls, "other"));
 
 		closeChildren(registry, transcriptPlace("session-1"));
 		expect(calls).toEqual([]);

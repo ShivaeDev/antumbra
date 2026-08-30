@@ -45,10 +45,7 @@ export type FixtureEndpoint =
 			readonly path: string;
 	  };
 
-export type WorkspaceFixtureEndpoint = Extract<
-	FixtureEndpoint,
-	{ readonly kind: "workspace-file" }
->;
+export type WorkspaceFixtureEndpoint = Extract<FixtureEndpoint, { readonly kind: "workspace-file" }>;
 
 export interface FixtureEdge {
 	readonly from: WorkspaceFixtureEndpoint;

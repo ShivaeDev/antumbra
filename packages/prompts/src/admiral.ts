@@ -11,5 +11,4 @@ export type AdmiralWords = typeof AdmiralWords.Type;
 // passes through unchanged. It is a named template rather than a seam that
 // quietly accepts a bare string, so the exception is one entry in the catalog
 // instead of a hole in it.
-export const admiralWords = (input: AdmiralWords): AgentPrompt =>
-	agentPrompt(input.words);
+export const admiralWords = (input: AdmiralWords): AgentPrompt => agentPrompt(input.words);

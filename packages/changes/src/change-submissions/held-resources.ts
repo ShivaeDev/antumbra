@@ -25,26 +25,17 @@ const heldResource = (resource: HeldResource) =>
 				.all()
 				.pipe(Effect.flatMap((rows) => Effect.forEach(rows, pieceChangeRow))),
 		);
-		const pieceIds = new Set(
-			matchingLinks.flat().map(({ pieceId }) => pieceId),
-		);
+		const pieceIds = new Set(matchingLinks.flat().map(({ pieceId }) => pieceId));
 		const pieceLinks = yield* Effect.forEach(pieceIds, (pieceId) =>
 			db.PieceChange.where({ pieceId })
 				.all()
 				.pipe(Effect.flatMap((rows) => Effect.forEach(rows, pieceChangeRow))),
 		);
 		const links = pieceLinks.flat();
-		const changeIds = new Set([
-			...matchingChanges.map(({ id }) => id),
-			...links.map(({ changeId }) => changeId),
-		]);
-		const related = yield* Effect.forEach(changeIds, (id) =>
-			db.Change.where({ id }).first(),
-		);
+		const changeIds = new Set([...matchingChanges.map(({ id }) => id), ...links.map(({ changeId }) => changeId)]);
+		const related = yield* Effect.forEach(changeIds, (id) => db.Change.where({ id }).first());
 		const changes = yield* Effect.forEach(
-			related.flatMap((change) =>
-				Option.isSome(change) ? [change.value] : [],
-			),
+			related.flatMap((change) => (Option.isSome(change) ? [change.value] : [])),
 			changeRow,
 		);
 		return heldBerths({
@@ -57,6 +48,4 @@ const heldResource = (resource: HeldResource) =>
 	});
 
 export const readHeldResources = (resources: ReadonlyArray<HeldResource>) =>
-	Effect.forEach(resources, heldResource).pipe(
-		Effect.map((held) => new Map(held.flatMap((entries) => [...entries]))),
-	);
+	Effect.forEach(resources, heldResource).pipe(Effect.map((held) => new Map(held.flatMap((entries) => [...entries]))));

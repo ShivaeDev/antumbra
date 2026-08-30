@@ -7,11 +7,6 @@ import { withNode } from "#live-delegations/with-node.ts";
 // carrying its frames, or the provider's own word that a turn is under way in
 // it, says that much.
 export const makeBegan = (open: LiveDelegationState) =>
-	Effect.fn("liveDelegations.began")(function* (
-		rootSessionId: string,
-		nodeSessionId: string,
-	): Effect.fn.Return<void> {
-		yield* Ref.update(open, (current) =>
-			withNode(current, rootSessionId, nodeSessionId),
-		);
+	Effect.fn("liveDelegations.began")(function* (rootSessionId: string, nodeSessionId: string): Effect.fn.Return<void> {
+		yield* Ref.update(open, (current) => withNode(current, rootSessionId, nodeSessionId));
 	});

@@ -2,14 +2,7 @@ import { Rulings } from "@antumbra/rulings";
 import { expect } from "@effect/vitest";
 import { Effect } from "effect";
 import { TestClock } from "effect/testing";
-import {
-	asked,
-	it,
-	layer,
-	pieceId,
-	seedFleet,
-	voyageId,
-} from "#test/rulings-harness.ts";
+import { asked, it, layer, pieceId, seedFleet, voyageId } from "#test/rulings-harness.ts";
 
 it.effectDB("meets open rulings by urgency, then by radius", function* () {
 	yield* Effect.gen(function* () {
@@ -36,12 +29,7 @@ it.effectDB("meets open rulings by urgency, then by radius", function* () {
 			urgency: "blocking",
 		});
 
-		expect((yield* rulings.open()).map((ruling) => ruling.id)).toEqual([
-			held.id,
-			narrow.id,
-			middle.id,
-			later.id,
-		]);
+		expect((yield* rulings.open()).map((ruling) => ruling.id)).toEqual([held.id, narrow.id, middle.id, later.id]);
 	}).pipe(Effect.provide(layer));
 });
 
@@ -58,9 +46,7 @@ it.effectDB("leaves a ruled ruling out of the open set", function* () {
 			rulingId: answered.id,
 		});
 
-		expect((yield* rulings.open()).map((ruling) => ruling.id)).toEqual([
-			waiting.id,
-		]);
+		expect((yield* rulings.open()).map((ruling) => ruling.id)).toEqual([waiting.id]);
 	}).pipe(Effect.provide(layer));
 });
 
@@ -84,10 +70,7 @@ it.effectDB("reads standing rulings newest first", function* () {
 			rulingId: second.id,
 		});
 
-		expect((yield* rulings.standing([])).map((ruling) => ruling.id)).toEqual([
-			second.id,
-			first.id,
-		]);
+		expect((yield* rulings.standing([])).map((ruling) => ruling.id)).toEqual([second.id, first.id]);
 	}).pipe(Effect.provide(layer));
 });
 
@@ -111,21 +94,9 @@ it.effectDB("matches references exactly and tags by name", function* () {
 			}),
 		);
 
-		expect(
-			(yield* rulings.standing([{ id: voyageId, kind: "voyage" }])).map(
-				(ruling) => ruling.id,
-			),
-		).toEqual([onVoyage.id]);
-		expect(
-			(yield* rulings.standing([{ kind: "tag", tag: "surveying" }])).map(
-				(ruling) => ruling.id,
-			),
-		).toEqual([onTag.id]);
-		expect(yield* rulings.standing([{ id: pieceId, kind: "voyage" }])).toEqual(
-			[],
-		);
-		expect(
-			yield* rulings.standing([{ kind: "tag", tag: "provisioning" }]),
-		).toEqual([]);
+		expect((yield* rulings.standing([{ id: voyageId, kind: "voyage" }])).map((ruling) => ruling.id)).toEqual([onVoyage.id]);
+		expect((yield* rulings.standing([{ kind: "tag", tag: "surveying" }])).map((ruling) => ruling.id)).toEqual([onTag.id]);
+		expect(yield* rulings.standing([{ id: pieceId, kind: "voyage" }])).toEqual([]);
+		expect(yield* rulings.standing([{ kind: "tag", tag: "provisioning" }])).toEqual([]);
 	}).pipe(Effect.provide(layer));
 });

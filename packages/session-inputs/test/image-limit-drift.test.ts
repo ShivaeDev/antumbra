@@ -9,10 +9,7 @@ import { expect, it } from "@effect/vitest";
 // process enforces and once as the number the database refuses past. Two
 // statements of one rule drift silently unless something reads both, so this
 // reads both.
-const guardsRoot = join(
-	dirname(fileURLToPath(import.meta.url)),
-	"../../persistence/migrations/app",
-);
+const guardsRoot = join(dirname(fileURLToPath(import.meta.url)), "../../persistence/migrations/app");
 
 const IMAGE_CEILING = /'image'\)\s*<\s*(\d+)/g;
 
@@ -24,9 +21,7 @@ const guardSources = () =>
 		.map((path) => readFileSync(path, "utf8"));
 
 it("the durable image ceiling is the one the vocabulary declares", () => {
-	const ceilings = guardSources().flatMap((source) =>
-		[...source.matchAll(IMAGE_CEILING)].map(([, limit]) => Number(limit)),
-	);
+	const ceilings = guardSources().flatMap((source) => [...source.matchAll(IMAGE_CEILING)].map(([, limit]) => Number(limit)));
 	expect(ceilings).not.toHaveLength(0);
 	for (const ceiling of ceilings) {
 		expect(ceiling).toBe(MAX_SESSION_IMAGES);

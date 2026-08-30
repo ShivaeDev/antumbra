@@ -5,9 +5,7 @@ import { Data } from "effect";
 // it was acted on, because a refusal nobody can read is indistinguishable
 // from the act quietly not happening.
 
-export class SessionMessageEmpty extends Data.TaggedError(
-	"SessionMessageEmpty",
-)<{
+export class SessionMessageEmpty extends Data.TaggedError("SessionMessageEmpty")<{
 	readonly sessionId: string;
 }> {
 	override get message(): string {
@@ -15,9 +13,7 @@ export class SessionMessageEmpty extends Data.TaggedError(
 	}
 }
 
-export class SessionIdentityMissing extends Data.TaggedError(
-	"SessionIdentityMissing",
-)<{
+export class SessionIdentityMissing extends Data.TaggedError("SessionIdentityMissing")<{
 	readonly sessionId: string;
 }> {}
 
@@ -34,9 +30,7 @@ export class SessionNotFound extends Data.TaggedError("SessionNotFound")<{
 // away mid-sentence. The refusal is named rather than silent because whoever
 // asked was reading a moment that had already passed, and a Session that
 // quietly stayed awake would look exactly like one that had been put to rest.
-export class SessionStillDelegating extends Data.TaggedError(
-	"SessionStillDelegating",
-)<{
+export class SessionStillDelegating extends Data.TaggedError("SessionStillDelegating")<{
 	readonly sessionId: string;
 }> {
 	override get message(): string {

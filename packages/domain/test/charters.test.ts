@@ -4,12 +4,7 @@ import { expect, it } from "@effect/vitest";
 import { Effect, Option } from "effect";
 import { AgentDomain } from "#domain.ts";
 import { dispatchingLayer } from "#test/domain-layers.ts";
-import {
-	acquireTemporaryPersistence,
-	makeScriptedBackend,
-	type ScriptedBackend,
-	sessionFor,
-} from "#test/harness.ts";
+import { acquireTemporaryPersistence, makeScriptedBackend, type ScriptedBackend, sessionFor } from "#test/harness.ts";
 import { onPiece, ruled, seedAsker, unruled } from "#test/ruling-fixtures.ts";
 import { eventually, openReefVoyage, PATIENCE } from "#test/voyage-fixtures.ts";
 
@@ -43,10 +38,7 @@ it.live("a dispatched crew is told the smooth log, never the rough one", () =>
 				voyageId: reef.id,
 			});
 			const wrote = (body: string, register: "rough" | "smooth") =>
-				domain.boards.write(
-					BoardScope.Voyage({ voyageId: reef.id }),
-					EntryInput.Note({ authorAgentId: Option.none(), body, register }),
-				);
+				domain.boards.write(BoardScope.Voyage({ voyageId: reef.id }), EntryInput.Note({ authorAgentId: Option.none(), body, register }));
 			yield* wrote("the eastern approach is safe", "smooth");
 			yield* wrote("the swell is running", "rough");
 			yield* domain.boards.write(
@@ -64,9 +56,7 @@ it.live("a dispatched crew is told the smooth log, never the rough one", () =>
 			expect(charter).toContain("the eastern approach is safe");
 			expect(charter).toContain("the last hand reached the reef edge");
 			expect(charter).not.toContain("the swell is running");
-		}).pipe(
-			Effect.provide(dispatchingLayer(temporary, scripted.backend, PATIENCE)),
-		);
+		}).pipe(Effect.provide(dispatchingLayer(temporary, scripted.backend, PATIENCE)));
 	}),
 );
 
@@ -111,18 +101,12 @@ it.live("a dispatched crew is told the standing rulings that bind it", () =>
 			yield* domain.voyages.launch(alpha.id);
 
 			const agentId = yield* eventually(crewOf(alpha.id));
-			const charterText = yield* eventually(
-				charterDelivered(scripted, agentId),
-			);
+			const charterText = yield* eventually(charterDelivered(scripted, agentId));
 			expect(charterText).toContain("# Standing rulings");
-			expect(charterText).toContain(
-				"which reading do we trust? — trust the soundings",
-			);
+			expect(charterText).toContain("which reading do we trust? — trust the soundings");
 			expect(charterText).toContain("may alpha dredge the reef? — no");
 			expect(charterText).not.toContain("anchor overnight");
 			expect(charterText).not.toContain("may bravo dredge");
-		}).pipe(
-			Effect.provide(dispatchingLayer(temporary, scripted.backend, PATIENCE)),
-		);
+		}).pipe(Effect.provide(dispatchingLayer(temporary, scripted.backend, PATIENCE)));
 	}),
 );

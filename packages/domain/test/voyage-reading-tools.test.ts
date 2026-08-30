@@ -6,10 +6,7 @@ import { acquireTemporaryPersistence } from "#test/harness.ts";
 import { VoyageProcedureService } from "#voyage-procedures.ts";
 import { makeVoyageReadingToolCompiler } from "#voyage-reading-tools.ts";
 
-const readVoyage = (tools: ReadonlyArray<DirectTool>) =>
-	Option.getOrThrow(
-		Option.fromUndefinedOr(tools.find((tool) => tool.name === "read_voyage")),
-	);
+const readVoyage = (tools: ReadonlyArray<DirectTool>) => Option.getOrThrow(Option.fromUndefinedOr(tools.find((tool) => tool.name === "read_voyage")));
 
 it.live("an agent reads a voyage it names", () =>
 	Effect.gen(function* () {

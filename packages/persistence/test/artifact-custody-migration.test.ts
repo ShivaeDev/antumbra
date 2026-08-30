@@ -4,10 +4,7 @@ import { DatabaseSync } from "node:sqlite";
 import { expect, it } from "@effect/vitest";
 import { Effect } from "effect";
 import { prepareArtifactCustodyMigration } from "#adapters/artifact-custody-preflight.ts";
-import {
-	applyMigrations,
-	applyPreparedMigrations,
-} from "#adapters/migrator.ts";
+import { applyMigrations, applyPreparedMigrations } from "#adapters/migrator.ts";
 import contract from "#contract.json" with { type: "json" };
 import {
 	artifactHasUri,
@@ -31,37 +28,26 @@ const requiredFields = [
 	["item", "basename"],
 ] as const;
 
-it.effect(
-	"backfills only verified canonical CAS metadata and removes URI",
-	() =>
-		Effect.gen(function* () {
-			const target = fixture();
-			yield* migrateToPredecessor(target.database);
-			const artifact = installLegacyArtifact(
-				target.database,
-				target.artifactsRoot,
-			);
+it.effect("backfills only verified canonical CAS metadata and removes URI", () =>
+	Effect.gen(function* () {
+		const target = fixture();
+		yield* migrateToPredecessor(target.database);
+		const artifact = installLegacyArtifact(target.database, target.artifactsRoot);
 
-			yield* applyMigrations({
-				...target,
-				migrationsDirectory: packagedMigrationsDirectory,
-			});
+		yield* applyMigrations({
+			...target,
+			migrationsDirectory: packagedMigrationsDirectory,
+		});
 
-			const database = new DatabaseSync(target.database);
-			try {
-				expect(
-					database.prepare(`SELECT * FROM "artifact"`).get(),
-				).toMatchObject(artifact);
-				expect(
-					database.prepare(`PRAGMA table_info('artifact')`).all(),
-				).not.toEqual(
-					expect.arrayContaining([expect.objectContaining({ name: "uri" })]),
-				);
-				expect(stageCount(target.database)).toBe(0);
-			} finally {
-				database.close();
-			}
-		}),
+		const database = new DatabaseSync(target.database);
+		try {
+			expect(database.prepare(`SELECT * FROM "artifact"`).get()).toMatchObject(artifact);
+			expect(database.prepare(`PRAGMA table_info('artifact')`).all()).not.toEqual(expect.arrayContaining([expect.objectContaining({ name: "uri" })]));
+			expect(stageCount(target.database)).toBe(0);
+		} finally {
+			database.close();
+		}
+	}),
 );
 
 it.effect("refuses external legacy custody with ids and zero mutation", () =>
@@ -85,9 +71,7 @@ it.effect("refuses external legacy custody with ids and zero mutation", () =>
 
 		const database = new DatabaseSync(target.database);
 		try {
-			expect(database.prepare(`PRAGMA table_info('artifact')`).all()).toEqual(
-				expect.arrayContaining([expect.objectContaining({ name: "uri" })]),
-			);
+			expect(database.prepare(`PRAGMA table_info('artifact')`).all()).toEqual(expect.arrayContaining([expect.objectContaining({ name: "uri" })]));
 		} finally {
 			database.close();
 		}
@@ -149,17 +133,10 @@ it.effect("ordinary migration rejects stale or incomplete staging", () =>
 // degrade into a copy of the happy path the day custody became the tail again.
 it.effect("stages custody though the chain continues past it", () =>
 	Effect.gen(function* () {
-		expect(
-			readdirSync(join(packagedMigrationsDirectory, "app")).filter(
-				(name) => name > "20260818T1538_artifact_custody",
-			),
-		).not.toHaveLength(0);
+		expect(readdirSync(join(packagedMigrationsDirectory, "app")).filter((name) => name > "20260818T1538_artifact_custody")).not.toHaveLength(0);
 		const target = fixture();
 		yield* migrateToPredecessor(target.database);
-		const artifact = installLegacyArtifact(
-			target.database,
-			target.artifactsRoot,
-		);
+		const artifact = installLegacyArtifact(target.database, target.artifactsRoot);
 
 		yield* applyMigrations({
 			...target,
@@ -168,9 +145,7 @@ it.effect("stages custody though the chain continues past it", () =>
 
 		const database = new DatabaseSync(target.database);
 		try {
-			expect(database.prepare(`SELECT * FROM "artifact"`).get()).toMatchObject(
-				artifact,
-			);
+			expect(database.prepare(`SELECT * FROM "artifact"`).get()).toMatchObject(artifact);
 		} finally {
 			database.close();
 		}

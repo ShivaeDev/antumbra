@@ -54,19 +54,12 @@ export const quayChanges = (view: QuayView): ReadonlyArray<QuayChange> => {
 	const changes = new Map<string, QuayChange>();
 	for (const row of view.rows) {
 		const current = changes.get(row.change.id);
-		changes.set(
-			row.change.id,
-			current === undefined
-				? changeFrom(row)
-				: { ...current, berthings: [...current.berthings, row] },
-		);
+		changes.set(row.change.id, current === undefined ? changeFrom(row) : { ...current, berthings: [...current.berthings, row] });
 	}
 	return [...changes.values()];
 };
 
-export const repositoriesOf = (
-	changes: ReadonlyArray<QuayChange>,
-): ReadonlyArray<QuayRepository> => {
+export const repositoriesOf = (changes: ReadonlyArray<QuayChange>): ReadonlyArray<QuayRepository> => {
 	const repositories = new Map<string, QuayRepository>();
 	for (const item of changes) {
 		repositories.set(item.change.repoId, {
@@ -74,9 +67,7 @@ export const repositoriesOf = (
 			name: item.change.repoName,
 		});
 	}
-	return [...repositories.values()].sort((left, right) =>
-		left.name.localeCompare(right.name),
-	);
+	return [...repositories.values()].sort((left, right) => left.name.localeCompare(right.name));
 };
 
 const searchableText = (item: QuayChange): string =>
@@ -90,15 +81,11 @@ const searchableText = (item: QuayChange): string =>
 		.join(" ")
 		.toLocaleLowerCase();
 
-export const filterQuayChanges = (
-	changes: ReadonlyArray<QuayChange>,
-	filters: QuayFilters,
-): ReadonlyArray<QuayChange> => {
+export const filterQuayChanges = (changes: ReadonlyArray<QuayChange>, filters: QuayFilters): ReadonlyArray<QuayChange> => {
 	const query = filters.query.trim().toLocaleLowerCase();
 	return changes.filter(
 		(item) =>
-			(filters.repositoryId === null ||
-				item.change.repoId === filters.repositoryId) &&
+			(filters.repositoryId === null || item.change.repoId === filters.repositoryId) &&
 			(filters.status === "all" || item.group === filters.status) &&
 			(query === "" || searchableText(item).includes(query)),
 	);

@@ -1,18 +1,8 @@
 import type { QuayGroup, QuayRow, QuayView } from "@antumbra/contract";
 import { describe, expect, it } from "vitest";
-import {
-	filterQuayChanges,
-	quayChanges,
-	repositoriesOf,
-} from "#quay/changes.ts";
+import { filterQuayChanges, quayChanges, repositoriesOf } from "#quay/changes.ts";
 
-const row = (
-	id: string,
-	group: QuayGroup,
-	repoId: string,
-	repoName: string,
-	over: Partial<QuayRow> = {},
-): QuayRow => ({
+const row = (id: string, group: QuayGroup, repoId: string, repoName: string, over: Partial<QuayRow> = {}): QuayRow => ({
 	baseRef: "main",
 	body: "Why this pull request matters.",
 	change: {
@@ -62,13 +52,8 @@ describe("the quay's pull request list", () => {
 	it("lists each pull request once while retaining every berth", () => {
 		const changes = quayChanges(view);
 
-		expect(changes.map((change) => change.change.id)).toEqual([
-			"change-1",
-			"change-2",
-		]);
-		expect(
-			changes[0]?.berthings.map((berthing) => berthing.pieceTitle),
-		).toEqual(["Soundings", "Chart"]);
+		expect(changes.map((change) => change.change.id)).toEqual(["change-1", "change-2"]);
+		expect(changes[0]?.berthings.map((berthing) => berthing.pieceTitle)).toEqual(["Soundings", "Chart"]);
 	});
 
 	it("derives truthful repository choices from the pull requests", () => {

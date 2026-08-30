@@ -2,15 +2,7 @@ import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Rulings } from "@antumbra/rulings";
 import { expect } from "@effect/vitest";
 import { Effect, Option, PubSub } from "effect";
-import {
-	asked,
-	it,
-	layer,
-	pieceId,
-	repoId,
-	seedFleet,
-	voyageId,
-} from "#test/rulings-harness.ts";
+import { asked, it, layer, pieceId, repoId, seedFleet, voyageId } from "#test/rulings-harness.ts";
 
 it.effectDB("stores the choices a request offers in order", function* (db) {
 	yield* Effect.gen(function* () {
@@ -19,19 +11,10 @@ it.effectDB("stores the choices a request offers in order", function* (db) {
 
 		const ruling = yield* rulings.request({
 			...asked,
-			choices: [
-				{ detail: "the soundings are fresher", label: "trust the soundings" },
-				{ label: "trust the chart" },
-			],
+			choices: [{ detail: "the soundings are fresher", label: "trust the soundings" }, { label: "trust the chart" }],
 		});
 
-		expect(
-			ruling.choices.map((choice) => [
-				choice.position,
-				choice.label,
-				choice.detail,
-			]),
-		).toEqual([
+		expect(ruling.choices.map((choice) => [choice.position, choice.label, choice.detail])).toEqual([
 			[0, "trust the soundings", "the soundings are fresher"],
 			[1, "trust the chart", null],
 		]);
@@ -55,9 +38,7 @@ it.effectDB("stores the rung the asker's request waits on", function* () {
 
 		expect(fromCrew.rung).toEqual(Option.some("captain"));
 		expect(fromCaptain.rung).toEqual(Option.some("flagship"));
-		expect((yield* rulings.get(fromCrew.id)).rung).toEqual(
-			Option.some("captain"),
-		);
+		expect((yield* rulings.get(fromCrew.id)).rung).toEqual(Option.some("captain"));
 	}).pipe(Effect.provide(layer));
 });
 

@@ -1,12 +1,6 @@
 import type { AgentSummary, SessionSummary } from "@antumbra/contract";
 
-export type Standing =
-	| "asleep"
-	| "listening"
-	| "quiet"
-	| "retired"
-	| "stranded"
-	| "working";
+export type Standing = "asleep" | "listening" | "quiet" | "retired" | "stranded" | "working";
 
 // why: the fleet publishes each Session's presence, so the roster no longer
 // has to treat every quiet agent alike — one listening with nothing to do, one
@@ -25,13 +19,10 @@ const activityOf = (sessions: ReadonlyArray<SessionSummary>): Standing => {
 	if (sessions.some((session) => session.presence === "idle")) {
 		return "listening";
 	}
-	return sessions.some((session) => session.presence === "asleep")
-		? "asleep"
-		: "quiet";
+	return sessions.some((session) => session.presence === "asleep") ? "asleep" : "quiet";
 };
 
-export const standingOf = (agent: AgentSummary): Standing =>
-	agent.status === "alive" ? activityOf(agent.sessions) : "retired";
+export const standingOf = (agent: AgentSummary): Standing => (agent.status === "alive" ? activityOf(agent.sessions) : "retired");
 
 export const STANDING_LABEL: Readonly<Record<Standing, string>> = {
 	asleep: "asleep",
@@ -47,23 +38,14 @@ export const STANDING_LABEL: Readonly<Record<Standing, string>> = {
 // finishing and is waiting on a hail, then the ones who would answer at once,
 // then the ones who have to be woken, and the ones the admiral has finished
 // with come last.
-const ORDER: ReadonlyArray<Standing> = [
-	"working",
-	"stranded",
-	"listening",
-	"asleep",
-	"quiet",
-	"retired",
-];
+const ORDER: ReadonlyArray<Standing> = ["working", "stranded", "listening", "asleep", "quiet", "retired"];
 
 export interface RosterGroup {
 	readonly agents: ReadonlyArray<AgentSummary>;
 	readonly standing: Standing;
 }
 
-export const rosterGroups = (
-	agents: ReadonlyArray<AgentSummary>,
-): ReadonlyArray<RosterGroup> =>
+export const rosterGroups = (agents: ReadonlyArray<AgentSummary>): ReadonlyArray<RosterGroup> =>
 	ORDER.map((standing) => ({
 		agents: agents.filter((agent) => standingOf(agent) === standing),
 		standing,

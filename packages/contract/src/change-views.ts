@@ -1,9 +1,4 @@
-import {
-	ChangeChecks,
-	ChangeMergeable,
-	ChangeReview,
-	ChangeStage,
-} from "@antumbra/vocabulary/change";
+import { ChangeChecks, ChangeMergeable, ChangeReview, ChangeStage } from "@antumbra/vocabulary/change";
 import { Schema } from "effect";
 
 // why: a change lives on a host that speaks its own dialect, and the window is

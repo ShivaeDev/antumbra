@@ -74,13 +74,7 @@ const mount = (): { container: HTMLElement; root: Root } => {
 const render = (root: Root): Effect.Effect<void> =>
 	Effect.promise(() =>
 		act(() => {
-			root.render(
-				<QuayPanel
-					onError={() => undefined}
-					onSelect={() => undefined}
-					selectedId={undefined}
-				/>,
-			);
+			root.render(<QuayPanel onError={() => undefined} onSelect={() => undefined} selectedId={undefined} />);
 			return Promise.resolve();
 		}),
 	);

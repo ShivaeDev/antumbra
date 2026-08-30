@@ -1,8 +1,5 @@
 import type { WindowPlace } from "@antumbra/contract";
-import type {
-	OwnedWindow,
-	WindowRegistry,
-} from "#adapters/windows/registry.ts";
+import type { OwnedWindow, WindowRegistry } from "#adapters/windows/registry.ts";
 
 export interface WindowLifecycleHost {
 	readonly onClosed: (listener: () => void) => void;
@@ -27,10 +24,7 @@ export interface HeldAuthority {
 // reload reuses the same WebContents — so neither ending reaches the window.
 // Where the window was is read while the record is still held, because the
 // registry no longer knows once it is gone.
-export const holdAuthority = (
-	registry: WindowRegistry,
-	record: OwnedWindow,
-): HeldAuthority => {
+export const holdAuthority = (registry: WindowRegistry, record: OwnedWindow): HeldAuthority => {
 	let place = record.place;
 	return {
 		place: () => place,
@@ -46,10 +40,7 @@ export const holdAuthority = (
 // and a crashed renderer keeps its WebContents while losing its page — the
 // page that comes back from a reload is a new principal and has to prove the
 // trusted document again before it is owned.
-export const attachWindowLifecycle = (
-	host: WindowLifecycleHost,
-	watch: WindowLifecycleWatch,
-): void => {
+export const attachWindowLifecycle = (host: WindowLifecycleHost, watch: WindowLifecycleWatch): void => {
 	host.onClosed(() => {
 		watch.release();
 		watch.onClosed();

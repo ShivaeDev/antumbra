@@ -16,13 +16,6 @@ export type StoredBackendCapacityInvalid = {
 };
 
 export interface SessionCapacities {
-	readonly admit: (
-		backend: string,
-	) => Effect.Effect<void, unknown, IntentExecution>;
-	readonly current: (
-		backend: string,
-	) => Effect.Effect<
-		SessionCapacityReading,
-		PrismaError | StoredBackendCapacityInvalid
-	>;
+	readonly admit: (backend: string) => Effect.Effect<void, unknown, IntentExecution>;
+	readonly current: (backend: string) => Effect.Effect<SessionCapacityReading, PrismaError | StoredBackendCapacityInvalid>;
 }

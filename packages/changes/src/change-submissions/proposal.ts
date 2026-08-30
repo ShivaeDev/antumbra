@@ -6,9 +6,7 @@ import type { ChangeRow } from "#change-rows.ts";
 import { PreparedChangeInvalid } from "#change-submissions/errors.ts";
 import type { Proposal } from "#change-submissions/model.ts";
 
-const transientConnection = (failure: PrismaError): boolean =>
-	failure.reason._tag === "PrismaConnectionFailure" &&
-	failure.reason.transient === true;
+const transientConnection = (failure: PrismaError): boolean => failure.reason._tag === "PrismaConnectionFailure" && failure.reason.transient === true;
 
 const requireStoredChange = (id: string) =>
 	Effect.gen(function* () {
@@ -24,10 +22,7 @@ const requireStoredChange = (id: string) =>
 		});
 	});
 
-const ensureOwnerAvailable = (row: ChangeRow) =>
-	row.openedByAgentId === null
-		? Effect.void
-		: ensureAgentCanOwnLocalWork(row.openedByAgentId);
+const ensureOwnerAvailable = (row: ChangeRow) => (row.openedByAgentId === null ? Effect.void : ensureAgentCanOwnLocalWork(row.openedByAgentId));
 
 const storeFrozenProposal = (current: ChangeRow, frozen: ChangeRow) =>
 	Effect.gen(function* () {
@@ -45,22 +40,13 @@ const storeFrozenProposal = (current: ChangeRow, frozen: ChangeRow) =>
 				title: frozen.title,
 			})
 			.pipe(
-				Effect.catchTag("PrismaError", (failure) =>
-					transientConnection(failure)
-						? Effect.yieldNow.pipe(Effect.as(null))
-						: Effect.fail(failure),
-				),
+				Effect.catchTag("PrismaError", (failure) => (transientConnection(failure) ? Effect.yieldNow.pipe(Effect.as(null)) : Effect.fail(failure))),
 			);
 	});
 
-const canRetryFreeze = (row: ChangeRow): boolean =>
-	row.stage === "prepared" && row.proposalFrozenAt === null;
+const canRetryFreeze = (row: ChangeRow): boolean => row.stage === "prepared" && row.proposalFrozenAt === null;
 
-export const freezeProposal = (
-	changeId: string,
-	defaultRef: string,
-	proposal: Proposal,
-) =>
+export const freezeProposal = (changeId: string, defaultRef: string, proposal: Proposal) =>
 	Effect.gen(function* () {
 		const now = yield* Clock.currentTimeMillis;
 		while (true) {

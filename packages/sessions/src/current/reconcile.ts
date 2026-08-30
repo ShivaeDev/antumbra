@@ -18,20 +18,13 @@ export const makeCurrentSessionReconciler = Effect.gen(function* () {
 			yield* fabric.attached(),
 		);
 		if (Result.isFailure(planned)) {
-			return planned.failure._tag === "CurrentSessionInvalid"
-				? yield* planned.failure
-				: false;
+			return planned.failure._tag === "CurrentSessionInvalid" ? yield* planned.failure : false;
 		}
 		return (yield* applyRepair(null, planned.success)).changed;
 	});
 	return reconcile.pipe(
 		Effect.tap((changed) =>
-			changed
-				? Effect.all(
-						[feeds.publishFleetRefresh(), feeds.publishVoyageRefresh()],
-						{ concurrency: 1 },
-					).pipe(Effect.asVoid)
-				: Effect.void,
+			changed ? Effect.all([feeds.publishFleetRefresh(), feeds.publishVoyageRefresh()], { concurrency: 1 }).pipe(Effect.asVoid) : Effect.void,
 		),
 		Effect.asVoid,
 	);

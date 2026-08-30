@@ -1,10 +1,7 @@
 import { DomainFeeds, DomainFeedsLive } from "@antumbra/domain-feeds";
 import { Database, type NewAgentSession } from "@antumbra/persistence";
 import { acquireTemporaryPersistence } from "@antumbra/persistence/testing";
-import {
-	SessionEventJournal,
-	SessionEventJournalLive,
-} from "@antumbra/session-event-journal";
+import { SessionEventJournal, SessionEventJournalLive } from "@antumbra/session-event-journal";
 import type { AgentEvent } from "@antumbra/vocabulary/session-events";
 import { expect, it } from "@effect/vitest";
 import { Effect, Layer, Option, PubSub } from "effect";
@@ -22,9 +19,7 @@ const MISSING_SESSION_EVENT: AgentEvent = {
 	type: "message",
 };
 
-const journalLayer = SessionEventJournalLive.pipe(
-	Layer.provideMerge(DomainFeedsLive),
-);
+const journalLayer = SessionEventJournalLive.pipe(Layer.provideMerge(DomainFeedsLive));
 
 it.live("records unique contiguous per-Session event sequences", () =>
 	Effect.scoped(
@@ -86,13 +81,8 @@ it.live("records unique contiguous per-Session event sequences", () =>
 					.orderBy((event) => event.seq.asc())
 					.all();
 				expect(events.map((event) => event.seq)).toEqual([0, 1, 2]);
-				expect(events.slice(1).map((event) => event.kind)).toEqual([
-					"message",
-					"message",
-				]);
-			}).pipe(
-				Effect.provide(journalLayer.pipe(Layer.provideMerge(temporary.layer))),
-			);
+				expect(events.slice(1).map((event) => event.kind)).toEqual(["message", "message"]);
+			}).pipe(Effect.provide(journalLayer.pipe(Layer.provideMerge(temporary.layer))));
 		}),
 	),
 );
@@ -111,12 +101,8 @@ it.live("does not acknowledge an opening event without a durable Session", () =>
 						type: "session.opened",
 					}),
 				).toBe(false);
-				expect(
-					yield* db.SessionEvent.where({ sessionId: "session-missing" }).all(),
-				).toEqual([]);
-			}).pipe(
-				Effect.provide(journalLayer.pipe(Layer.provideMerge(temporary.layer))),
-			);
+				expect(yield* db.SessionEvent.where({ sessionId: "session-missing" }).all()).toEqual([]);
+			}).pipe(Effect.provide(journalLayer.pipe(Layer.provideMerge(temporary.layer))));
 		}),
 	),
 );
@@ -142,12 +128,8 @@ it.live("rolls caller rows back when their journal append is refused", () =>
 				});
 
 				expect(recorded).toBe(false);
-				expect(
-					yield* db.AppMeta.where({ key: "journal-rollback-probe" }).exists(),
-				).toBe(false);
-			}).pipe(
-				Effect.provide(journalLayer.pipe(Layer.provideMerge(temporary.layer))),
-			);
+				expect(yield* db.AppMeta.where({ key: "journal-rollback-probe" }).exists()).toBe(false);
+			}).pipe(Effect.provide(journalLayer.pipe(Layer.provideMerge(temporary.layer))));
 		}),
 	),
 );
@@ -198,9 +180,7 @@ it.live("records native identity before publishing the opening event", () =>
 					seq: 0,
 					sessionId: "session-opening",
 				});
-			}).pipe(
-				Effect.provide(journalLayer.pipe(Layer.provideMerge(temporary.layer))),
-			);
+			}).pipe(Effect.provide(journalLayer.pipe(Layer.provideMerge(temporary.layer))));
 		}),
 	),
 );

@@ -54,18 +54,12 @@ const step = (change: () => void): Effect.Effect<void> =>
 		}),
 	);
 
-const render = (root: Root): Effect.Effect<void> =>
-	step(() => root.render(<Probe />));
+const render = (root: Root): Effect.Effect<void> => step(() => root.render(<Probe />));
 
 const press = (container: HTMLElement, label: string): Effect.Effect<void> =>
-	step(() =>
-		[...container.querySelectorAll("button")]
-			.find((button) => button.textContent === label)
-			?.click(),
-	);
+	step(() => [...container.querySelectorAll("button")].find((button) => button.textContent === label)?.click());
 
-const state = (container: HTMLElement): string =>
-	container.querySelector("#state")?.textContent ?? "";
+const state = (container: HTMLElement): string => container.querySelector("#state")?.textContent ?? "";
 
 beforeEach(() => {
 	waiting.length = 0;

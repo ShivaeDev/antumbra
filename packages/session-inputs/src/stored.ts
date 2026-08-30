@@ -1,16 +1,9 @@
 import { Database } from "@antumbra/persistence";
 import { Effect, Option, Result } from "effect";
-import {
-	SessionInputConflict,
-	SessionInputNotFound,
-	StoredSessionInputInvalid,
-} from "#errors.ts";
+import { SessionInputConflict, SessionInputNotFound, StoredSessionInputInvalid } from "#errors.ts";
 import type { SessionInputDeliveryStatus } from "#model.ts";
 
-export const deliveryStatus = (
-	inputId: string,
-	value: string,
-): Result.Result<SessionInputDeliveryStatus, StoredSessionInputInvalid> => {
+export const deliveryStatus = (inputId: string, value: string): Result.Result<SessionInputDeliveryStatus, StoredSessionInputInvalid> => {
 	switch (value) {
 		case "accepted":
 		case "ambiguous":
@@ -39,11 +32,5 @@ export const requireInput = (inputId: string) =>
 		),
 	);
 
-export const requireSameRequest = (
-	inputId: string,
-	requestDigest: string,
-	storedDigest: string,
-) =>
-	requestDigest === storedDigest
-		? Effect.void
-		: Effect.fail(new SessionInputConflict({ inputId }));
+export const requireSameRequest = (inputId: string, requestDigest: string, storedDigest: string) =>
+	requestDigest === storedDigest ? Effect.void : Effect.fail(new SessionInputConflict({ inputId }));

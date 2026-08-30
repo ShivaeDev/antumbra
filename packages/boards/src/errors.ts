@@ -12,9 +12,7 @@ export class BoardOwnerNotFound extends Data.TaggedError("BoardOwnerNotFound")<{
 	}
 }
 
-export class BoardSourceConflict extends Data.TaggedError(
-	"BoardSourceConflict",
-)<{
+export class BoardSourceConflict extends Data.TaggedError("BoardSourceConflict")<{
 	readonly boardId: string;
 	readonly sourceRef: string;
 }> {
@@ -32,9 +30,7 @@ export class MailNotAddressed extends Data.TaggedError("MailNotAddressed")<{
 	}
 }
 
-export class StoredBoardEntryInvalid extends Data.TaggedError(
-	"StoredBoardEntryInvalid",
-)<{
+export class StoredBoardEntryInvalid extends Data.TaggedError("StoredBoardEntryInvalid")<{
 	readonly detail: string;
 	readonly entryId: string;
 }> {}

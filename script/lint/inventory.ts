@@ -1,15 +1,7 @@
 import { join, relative } from "node:path";
 import { Effect, type FileSystem } from "effect";
-import {
-	type FilesystemFailure,
-	ignoreScopeAt,
-	readRequiredText,
-	walk,
-} from "#lint/adapters/fs.ts";
-import {
-	type SourceComment,
-	sourceComments,
-} from "#lint/adapters/typescript.ts";
+import { type FilesystemFailure, ignoreScopeAt, readRequiredText, walk } from "#lint/adapters/fs.ts";
+import { type SourceComment, sourceComments } from "#lint/adapters/typescript.ts";
 
 export interface SourceFile {
 	readonly comments: readonly SourceComment[];
@@ -34,12 +26,7 @@ export interface Inventory {
 }
 
 const WALKED_ZONES = ["apps", "packages", "script"];
-const DOCUMENT_ROOTS = [
-	"README.md",
-	"DESIGN.md",
-	"ARCHITECTURE.md",
-	"GLOSSARY.md",
-];
+const DOCUMENT_ROOTS = ["README.md", "DESIGN.md", "ARCHITECTURE.md", "GLOSSARY.md"];
 const DOCUMENT_ZONES = ["docs", "quality-gates"];
 const SOURCE_PATH = /\.tsx?$/;
 const WORKSPACE_MANIFEST = /^(apps|packages)\/[^/]+\/package\.json$/;
@@ -51,18 +38,14 @@ export const isDeclaration = (path: string): boolean => path.endsWith(".d.ts");
 
 const posix = (path: string): string => path.replaceAll("\\", "/");
 
-export const collectInventory = (
-	root: string,
-): Effect.Effect<Inventory, FilesystemFailure, FileSystem.FileSystem> =>
+export const collectInventory = (root: string): Effect.Effect<Inventory, FilesystemFailure, FileSystem.FileSystem> =>
 	Effect.gen(function* () {
 		const ignores = yield* ignoreScopeAt(root);
 		const zones = yield* Effect.all(
 			WALKED_ZONES.map((zone) => walk(join(root, zone), ignores)),
 			{ concurrency: INVENTORY_CONCURRENCY },
 		);
-		const entries = zones
-			.flat()
-			.map((absolute) => ({ absolute, path: posix(relative(root, absolute)) }));
+		const entries = zones.flat().map((absolute) => ({ absolute, path: posix(relative(root, absolute)) }));
 		const sources = yield* Effect.all(
 			entries
 				.filter((entry) => SOURCE_PATH.test(entry.path))
@@ -76,14 +59,12 @@ export const collectInventory = (
 			{ concurrency: INVENTORY_CONCURRENCY },
 		);
 		const manifests = yield* Effect.all(
-			[
-				{ absolute: join(root, "package.json"), path: "package.json" },
-				...entries.filter((entry) => WORKSPACE_MANIFEST.test(entry.path)),
-			].map((entry) =>
-				Effect.map(readRequiredText(entry.absolute), (raw) => ({
-					path: entry.path,
-					raw,
-				})),
+			[{ absolute: join(root, "package.json"), path: "package.json" }, ...entries.filter((entry) => WORKSPACE_MANIFEST.test(entry.path))].map(
+				(entry) =>
+					Effect.map(readRequiredText(entry.absolute), (raw) => ({
+						path: entry.path,
+						raw,
+					})),
 			),
 			{ concurrency: INVENTORY_CONCURRENCY },
 		);
@@ -110,18 +91,10 @@ export const collectInventory = (
 			),
 			{ concurrency: INVENTORY_CONCURRENCY },
 		);
-		const workspaceCatalog = yield* readRequiredText(
-			join(root, "pnpm-workspace.yaml"),
-		);
-		const pragmaRegistry = yield* readRequiredText(
-			join(root, "script", "pragma-registry.json"),
-		);
-		const serviceParameterBaseline = yield* readRequiredText(
-			join(root, "script", "lint", "service-parameter-baseline.json"),
-		);
-		const serviceParameterAllowance = yield* readRequiredText(
-			join(root, "script", "lint", "service-parameter-allowance.json"),
-		);
+		const workspaceCatalog = yield* readRequiredText(join(root, "pnpm-workspace.yaml"));
+		const pragmaRegistry = yield* readRequiredText(join(root, "script", "pragma-registry.json"));
+		const serviceParameterBaseline = yield* readRequiredText(join(root, "script", "lint", "service-parameter-baseline.json"));
+		const serviceParameterAllowance = yield* readRequiredText(join(root, "script", "lint", "service-parameter-allowance.json"));
 		return {
 			documents,
 			manifests,

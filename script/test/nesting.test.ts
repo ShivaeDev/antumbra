@@ -15,8 +15,7 @@ describe("nesting rule", () => {
 			{
 				file: path,
 				line: 2,
-				message:
-					"Indentation is 8+ tabs deep. Extract a named function or component.",
+				message: "Indentation is 8+ tabs deep. Extract a named function or component.",
 				rule: "nesting/max-depth",
 			},
 		]);

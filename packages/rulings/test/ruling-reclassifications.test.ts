@@ -3,13 +3,7 @@ import { Rulings } from "@antumbra/rulings";
 import { expect } from "@effect/vitest";
 import { Effect, Option, PubSub } from "effect";
 import { TestClock } from "effect/testing";
-import {
-	asked,
-	it,
-	layer,
-	requesterId,
-	seedFleet,
-} from "#test/rulings-harness.ts";
+import { asked, it, layer, requesterId, seedFleet } from "#test/rulings-harness.ts";
 
 it.effectDB("appends each word beside the asker's declaration", function* () {
 	yield* Effect.scoped(
@@ -95,43 +89,37 @@ it.effectDB("reads the latest word on each axis", function* () {
 // why: two words about one ruling can land in the same millisecond, and the
 // effective axes are the last word on each — so the order is settled by the
 // record rather than by whatever the database happened to hand back.
-it.effectDB(
-	"settles reclassifications that share a millisecond",
-	function* (db) {
-		yield* Effect.gen(function* () {
-			yield* seedFleet;
-			const rulings = yield* Rulings;
-			const requested = yield* rulings.request(asked);
-			const at = new Date("2026-08-29T09:00:00.000Z");
-			yield* db.RulingReclassification.create({
-				at,
-				by: "admiral",
-				id: "reclassification-later",
-				note: null,
-				radius: "piece",
-				rulingId: requested.id,
-				urgency: null,
-			});
-			yield* db.RulingReclassification.create({
-				at,
-				by: "admiral",
-				id: "reclassification-earlier",
-				note: null,
-				radius: "fleet",
-				rulingId: requested.id,
-				urgency: null,
-			});
+it.effectDB("settles reclassifications that share a millisecond", function* (db) {
+	yield* Effect.gen(function* () {
+		yield* seedFleet;
+		const rulings = yield* Rulings;
+		const requested = yield* rulings.request(asked);
+		const at = new Date("2026-08-29T09:00:00.000Z");
+		yield* db.RulingReclassification.create({
+			at,
+			by: "admiral",
+			id: "reclassification-later",
+			note: null,
+			radius: "piece",
+			rulingId: requested.id,
+			urgency: null,
+		});
+		yield* db.RulingReclassification.create({
+			at,
+			by: "admiral",
+			id: "reclassification-earlier",
+			note: null,
+			radius: "fleet",
+			rulingId: requested.id,
+			urgency: null,
+		});
 
-			const read = yield* rulings.get(requested.id);
+		const read = yield* rulings.get(requested.id);
 
-			expect(read.reclassifications.map((row) => row.radius)).toEqual([
-				Option.some("fleet"),
-				Option.some("piece"),
-			]);
-			expect(read.radius).toBe("piece");
-		}).pipe(Effect.provide(layer));
-	},
-);
+		expect(read.reclassifications.map((row) => row.radius)).toEqual([Option.some("fleet"), Option.some("piece")]);
+		expect(read.radius).toBe("piece");
+	}).pipe(Effect.provide(layer));
+});
 
 it.effectDB("meets the open set in its reclassified order", function* () {
 	yield* Effect.gen(function* () {
@@ -139,10 +127,7 @@ it.effectDB("meets the open set in its reclassified order", function* () {
 		const rulings = yield* Rulings;
 		const someday = yield* rulings.request({ ...asked, urgency: "eventual" });
 		const held = yield* rulings.request({ ...asked, urgency: "blocking" });
-		expect((yield* rulings.open()).map((ruling) => ruling.id)).toEqual([
-			held.id,
-			someday.id,
-		]);
+		expect((yield* rulings.open()).map((ruling) => ruling.id)).toEqual([held.id, someday.id]);
 
 		yield* rulings.reclassify({
 			by: "admiral",
@@ -155,10 +140,7 @@ it.effectDB("meets the open set in its reclassified order", function* () {
 			urgency: "eventual",
 		});
 
-		expect((yield* rulings.open()).map((ruling) => ruling.id)).toEqual([
-			someday.id,
-			held.id,
-		]);
+		expect((yield* rulings.open()).map((ruling) => ruling.id)).toEqual([someday.id, held.id]);
 	}).pipe(Effect.provide(layer));
 });
 
@@ -214,35 +196,32 @@ it.effectDB("refuses a reclassification naming no axis", function* (db) {
 	).pipe(Effect.provide(layer));
 });
 
-it.effectDB(
-	"refuses to reclassify a ruling that already stands",
-	function* (db) {
-		yield* Effect.gen(function* () {
-			yield* seedFleet;
-			const rulings = yield* Rulings;
-			const requested = yield* rulings.request(asked);
-			yield* rulings.rule({
-				answer: "trust the soundings",
+it.effectDB("refuses to reclassify a ruling that already stands", function* (db) {
+	yield* Effect.gen(function* () {
+		yield* seedFleet;
+		const rulings = yield* Rulings;
+		const requested = yield* rulings.request(asked);
+		yield* rulings.rule({
+			answer: "trust the soundings",
+			by: "admiral",
+			rulingId: requested.id,
+		});
+
+		const failure = yield* Effect.flip(
+			rulings.reclassify({
 				by: "admiral",
+				radius: "fleet",
 				rulingId: requested.id,
-			});
+			}),
+		);
 
-			const failure = yield* Effect.flip(
-				rulings.reclassify({
-					by: "admiral",
-					radius: "fleet",
-					rulingId: requested.id,
-				}),
-			);
-
-			expect(failure).toMatchObject({
-				_tag: "RulingAlreadyRuled",
-				rulingId: requested.id,
-			});
-			expect(yield* db.RulingReclassification.all()).toEqual([]);
-		}).pipe(Effect.provide(layer));
-	},
-);
+		expect(failure).toMatchObject({
+			_tag: "RulingAlreadyRuled",
+			rulingId: requested.id,
+		});
+		expect(yield* db.RulingReclassification.all()).toEqual([]);
+	}).pipe(Effect.provide(layer));
+});
 
 it.effectDB("refuses to reclassify a ruling nothing asked", function* () {
 	yield* Effect.gen(function* () {

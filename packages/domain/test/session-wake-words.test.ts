@@ -2,20 +2,8 @@ import { SightSource } from "@antumbra/contract";
 import { expect, it } from "@effect/vitest";
 import { Effect, Ref } from "effect";
 import { acquireTemporaryPersistence } from "#test/harness.ts";
-import {
-	eventually,
-	payload,
-	refuseWhile,
-	reportsNativeRef,
-} from "#test/session-recovery-fixture.ts";
-import {
-	NATIVE,
-	onlyWake,
-	sessionRow,
-	sleepingRoot,
-	wakeLayer,
-	wakes,
-} from "#test/session-wake-fixture.ts";
+import { eventually, payload, refuseWhile, reportsNativeRef } from "#test/session-recovery-fixture.ts";
+import { NATIVE, onlyWake, sessionRow, sleepingRoot, wakeLayer, wakes } from "#test/session-wake-fixture.ts";
 
 // why: the live report this pins. Four sends went out over two days, each one
 // met a wake parked from the first, and each pushed that row — so the Session
@@ -27,10 +15,7 @@ it.live("a later send delivers its own words, not the parked ones", () =>
 		const temporary = yield* acquireTemporaryPersistence;
 		const { recorded, scripted } = yield* sleepingRoot(temporary);
 		const denied = yield* Ref.make(true);
-		const refusing = refuseWhile(
-			reportsNativeRef(scripted.backend, scripted, NATIVE),
-			denied,
-		);
+		const refusing = refuseWhile(reportsNativeRef(scripted.backend, scripted, NATIVE), denied);
 
 		yield* Effect.gen(function* () {
 			const sight = yield* SightSource;
@@ -48,23 +33,16 @@ it.live("a later send delivers its own words, not the parked ones", () =>
 			const rows = yield* eventually(
 				Effect.gen(function* () {
 					const all = yield* wakes;
-					expect(all.map((row) => row.status).sort()).toEqual([
-						"cancelled",
-						"succeeded",
-					]);
+					expect(all.map((row) => row.status).sort()).toEqual(["cancelled", "succeeded"]);
 					return all;
 				}),
 			);
 			// why: the demand that carried the stale words is cancelled rather than
 			// left parked, because a wake still waiting can still fire them.
-			expect(rows.find((row) => row.id === parked.id)?.status).toBe(
-				"cancelled",
-			);
+			expect(rows.find((row) => row.id === parked.id)?.status).toBe("cancelled");
 			expect((yield* sessionRow).executionStatus).toBe("active");
 			const resumed = yield* scripted.session(payload.sessionId);
-			expect(resumed === undefined ? [] : yield* resumed.sent).toEqual([
-				"and mind the shallows",
-			]);
+			expect(resumed === undefined ? [] : yield* resumed.sent).toEqual(["and mind the shallows"]);
 		}).pipe(Effect.provide(wakeLayer(temporary, refusing, recorded.runner)));
 	}),
 );
@@ -77,10 +55,7 @@ it.live("a send repeating itself pushes the wake that is already there", () =>
 		const temporary = yield* acquireTemporaryPersistence;
 		const { recorded, scripted } = yield* sleepingRoot(temporary);
 		const denied = yield* Ref.make(true);
-		const refusing = refuseWhile(
-			reportsNativeRef(scripted.backend, scripted, NATIVE),
-			denied,
-		);
+		const refusing = refuseWhile(reportsNativeRef(scripted.backend, scripted, NATIVE), denied);
 
 		yield* Effect.gen(function* () {
 			const sight = yield* SightSource;
@@ -104,9 +79,7 @@ it.live("a send repeating itself pushes the wake that is already there", () =>
 			);
 			expect(settled.id).toBe(parked.id);
 			const resumed = yield* scripted.session(payload.sessionId);
-			expect(resumed === undefined ? [] : yield* resumed.sent).toEqual([
-				"steer for the reef",
-			]);
+			expect(resumed === undefined ? [] : yield* resumed.sent).toEqual(["steer for the reef"]);
 		}).pipe(Effect.provide(wakeLayer(temporary, refusing, recorded.runner)));
 	}),
 );

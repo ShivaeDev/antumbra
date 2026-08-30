@@ -7,9 +7,7 @@ import type { SessionIdentity } from "#tool-identity.ts";
 // truth the session was opened with, so a ruling can never be filed against a
 // piece or voyage the agent is not on, and the agent itself is always a
 // subject: what binds it is readable from its own record afterwards.
-const identitySubjects = (
-	identity: SessionIdentity,
-): ReadonlyArray<RulingSubject> => [
+const identitySubjects = (identity: SessionIdentity): ReadonlyArray<RulingSubject> => [
 	...Option.match(identity.pieceId, {
 		onNone: (): ReadonlyArray<RulingSubject> => [],
 		onSome: (id): ReadonlyArray<RulingSubject> => [{ id, kind: "piece" }],
@@ -21,10 +19,7 @@ const identitySubjects = (
 	{ id: identity.agentId, kind: "agent" },
 ];
 
-export const subjectsOf = (
-	identity: SessionIdentity,
-	tags: ReadonlyArray<string> | undefined,
-): ReadonlyArray<RulingSubject> => [
+export const subjectsOf = (identity: SessionIdentity, tags: ReadonlyArray<string> | undefined): ReadonlyArray<RulingSubject> => [
 	...identitySubjects(identity),
 	...tagSubjects(tags),
 ];

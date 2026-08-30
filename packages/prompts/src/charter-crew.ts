@@ -9,16 +9,11 @@ export const CrewCharter = Schema.Struct({
 	pieceCharter: Schema.String,
 	pieceLog: Schema.Array(Schema.String),
 	pieceTitle: Schema.String,
-	// why: a standing ruling is rendered by the reader that owns the record, so
-	// the catalog takes finished lines exactly as it takes piece lines.
 	rulings: Schema.Array(Schema.String),
 	voyageLog: Schema.Array(Schema.String),
 });
 export type CrewCharter = typeof CrewCharter.Type;
 
-// why: the standing order names its tools, because a crew member that has to
-// infer how to act reports into the void. Chartering is absent from the set
-// and absent from the order: workers report, captains charter.
 const STANDING_ORDER = [
 	"- Land what you produce against your piece: `land_report` for prose another agent will read, `land_artifact` for something a person should look at. A piece is done when its outcomes land; nothing else marks it.",
 	"- Code changes are opened with `open_change` against the repo you were berthed in, or adopted with `adopt_change` if you opened one by hand. Opening is not landing: your piece completes when the change lands.",
@@ -29,10 +24,6 @@ const STANDING_ORDER = [
 	"- You charter nothing. If the voyage needs more pieces, say so in your report.",
 ].join("\n");
 
-// why: the charter is the only thing crew is told at birth, and it is read by
-// a model, not parsed — so it stays plain prose in a fixed order: where the
-// voyage is going, what surrounds it, the piece this agent answers to, what
-// earlier hands left behind, what already binds it, and how to act.
 export const crewCharter = (input: CrewCharter): AgentPrompt =>
 	agentPrompt(
 		proseOf([

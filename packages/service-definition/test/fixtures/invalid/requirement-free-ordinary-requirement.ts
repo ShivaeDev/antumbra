@@ -3,9 +3,7 @@ import { Context, Effect } from "effect";
 
 class Secret extends Context.Service<Secret, object>()("invalid/Secret") {}
 
-const preserve = Effect.fn("invalidRequirementFree.preserve")(
-	<Value>(value: Value) => Effect.succeed(value),
-);
+const preserve = Effect.fn("invalidRequirementFree.preserve")(<Value>(value: Value) => Effect.succeed(value));
 
 defineService({
 	id: "invalid/RequirementFreeOrdinaryRequirement",

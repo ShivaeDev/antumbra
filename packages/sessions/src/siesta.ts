@@ -2,11 +2,7 @@ import { DomainFeeds } from "@antumbra/domain-feeds";
 import { defineIntent, IntentExecution } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
 import { SessionFabric } from "@antumbra/session-fabric";
-import {
-	decodeSessionExecutionStatus,
-	decodeStoredAgentSessionStatus,
-	sessionExecutionTransition,
-} from "@antumbra/vocabulary/agent-runtime";
+import { decodeSessionExecutionStatus, decodeStoredAgentSessionStatus, sessionExecutionTransition } from "@antumbra/vocabulary/agent-runtime";
 import { Effect, Option, Schema } from "effect";
 import { SessionStillDelegating } from "#errors.ts";
 import { LiveDelegations } from "#tree/live.ts";
@@ -19,10 +15,7 @@ export const makeSiestaKind = Effect.gen(function* () {
 	const feeds = yield* DomainFeeds;
 	const fabric = yield* SessionFabric;
 	const live = yield* LiveDelegations;
-	const announce = Effect.all(
-		[feeds.publishFleetRefresh(), feeds.publishVoyageRefresh()],
-		{ concurrency: 1 },
-	).pipe(Effect.asVoid);
+	const announce = Effect.all([feeds.publishFleetRefresh(), feeds.publishVoyageRefresh()], { concurrency: 1 }).pipe(Effect.asVoid);
 	// why: a Session shutdown drained has work to finish before the process may
 	// go, so the row says draining until the attachment is actually gone and
 	// only then settles.
@@ -30,9 +23,7 @@ export const makeSiestaKind = Effect.gen(function* () {
 		Effect.gen(function* () {
 			const execution = yield* IntentExecution;
 			yield* execution.step("detach-session", fabric.stop(sessionId));
-			const next = yield* Effect.fromResult(
-				sessionExecutionTransition(sessionId, from, "settle"),
-			);
+			const next = yield* Effect.fromResult(sessionExecutionTransition(sessionId, from, "settle"));
 			yield* execution.step(
 				"settle-idle",
 				db.AgentSession.where({
@@ -64,9 +55,7 @@ export const makeSiestaKind = Effect.gen(function* () {
 			const execution = yield* IntentExecution;
 			yield* execution.step(
 				"detach-session",
-				Effect.flatMap(fabric.stopIdle(sessionId), (detached) =>
-					detached ? announce : Effect.void,
-				),
+				Effect.flatMap(fabric.stopIdle(sessionId), (detached) => (detached ? announce : Effect.void)),
 			);
 		});
 	const settleSiesta = (sessionId: string) =>
@@ -75,15 +64,11 @@ export const makeSiestaKind = Effect.gen(function* () {
 			if (Option.isNone(session)) {
 				return;
 			}
-			const status = yield* Effect.fromResult(
-				decodeStoredAgentSessionStatus(session.value.id, session.value.status),
-			);
+			const status = yield* Effect.fromResult(decodeStoredAgentSessionStatus(session.value.id, session.value.status));
 			if (status !== "open") {
 				return;
 			}
-			const executionStatus = yield* Effect.fromResult(
-				decodeSessionExecutionStatus(sessionId, session.value.executionStatus),
-			);
+			const executionStatus = yield* Effect.fromResult(decodeSessionExecutionStatus(sessionId, session.value.executionStatus));
 			if (executionStatus === "draining") {
 				return yield* settleDraining(sessionId, executionStatus);
 			}

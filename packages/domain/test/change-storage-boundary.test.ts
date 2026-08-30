@@ -4,10 +4,7 @@ import { Effect } from "effect";
 import { AgentDomain } from "#domain.ts";
 import { changeOf } from "#test/change-fixtures.ts";
 import { domainKernelLayer } from "#test/domain-layers.ts";
-import {
-	acquireTemporaryPersistence,
-	makeScriptedBackend,
-} from "#test/harness.ts";
+import { acquireTemporaryPersistence, makeScriptedBackend } from "#test/harness.ts";
 
 const SOURCE = "/somewhere/change-storage-boundary";
 
@@ -15,9 +12,7 @@ const withDomain = <A, E, R>(program: Effect.Effect<A, E, R>) =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
 		const scripted = yield* makeScriptedBackend;
-		return yield* program.pipe(
-			Effect.provide(domainKernelLayer(temporary, scripted.backend)),
-		);
+		return yield* program.pipe(Effect.provide(domainKernelLayer(temporary, scripted.backend)));
 	});
 
 const registeredRepo = Effect.gen(function* () {
@@ -167,53 +162,49 @@ it.live("a direct PieceChange read fails typed on invalid purpose", () =>
 	),
 );
 
-it.live(
-	"boot recovery leaves a berth unchanged behind invalid Change truth",
-	() =>
-		withDomain(
-			Effect.gen(function* () {
-				const db = yield* Database;
-				const domain = yield* AgentDomain;
-				const repo = yield* registeredRepo;
-				yield* storeUnsafeChangeBerth(repo.id);
+it.live("boot recovery leaves a berth unchanged behind invalid Change truth", () =>
+	withDomain(
+		Effect.gen(function* () {
+			const db = yield* Database;
+			const domain = yield* AgentDomain;
+			const repo = yield* registeredRepo;
+			yield* storeUnsafeChangeBerth(repo.id);
 
-				yield* domain.retryResourceReclaim;
-				const [berth] = yield* db.Berth.where({ id: "berth-unsafe" }).all();
-				expect(berth?.status).toBe("ready");
-				expect(berth?.strandedAt).toBeNull();
-			}),
-		),
+			yield* domain.retryResourceReclaim;
+			const [berth] = yield* db.Berth.where({ id: "berth-unsafe" }).all();
+			expect(berth?.status).toBe("ready");
+			expect(berth?.strandedAt).toBeNull();
+		}),
+	),
 );
 
-it.live(
-	"boot recovery holds a berth behind invalid PieceChange truth before reclaim",
-	() =>
-		withDomain(
-			Effect.gen(function* () {
-				const db = yield* Database;
-				const domain = yield* AgentDomain;
-				const repo = yield* registeredRepo;
-				const voyage = yield* domain.voyages.open({
-					backend: "scripted",
-					context: "the reef is uncharted",
-					name: "Chart the reef",
-					northStar: "every shoal is known",
-				});
-				const piece = yield* domain.voyages.charterPiece({
-					charter: "sound the shallows",
-					dependsOn: [],
-					expectation: "soundings are landed",
-					role: "hand",
-					title: "soundings",
-					voyageId: voyage.id,
-				});
-				yield* storeUnsafePieceChangeBerth(repo.id, piece.id);
-				yield* domain.retryResourceReclaim;
-				const [berth] = yield* db.Berth.where({
-					id: "berth-unsafe-piece-change",
-				}).all();
-				expect(berth?.status).toBe("ready");
-				expect(berth?.strandedAt).toBeNull();
-			}),
-		),
+it.live("boot recovery holds a berth behind invalid PieceChange truth before reclaim", () =>
+	withDomain(
+		Effect.gen(function* () {
+			const db = yield* Database;
+			const domain = yield* AgentDomain;
+			const repo = yield* registeredRepo;
+			const voyage = yield* domain.voyages.open({
+				backend: "scripted",
+				context: "the reef is uncharted",
+				name: "Chart the reef",
+				northStar: "every shoal is known",
+			});
+			const piece = yield* domain.voyages.charterPiece({
+				charter: "sound the shallows",
+				dependsOn: [],
+				expectation: "soundings are landed",
+				role: "hand",
+				title: "soundings",
+				voyageId: voyage.id,
+			});
+			yield* storeUnsafePieceChangeBerth(repo.id, piece.id);
+			yield* domain.retryResourceReclaim;
+			const [berth] = yield* db.Berth.where({
+				id: "berth-unsafe-piece-change",
+			}).all();
+			expect(berth?.status).toBe("ready");
+			expect(berth?.strandedAt).toBeNull();
+		}),
+	),
 );

@@ -1,13 +1,7 @@
 import { SessionEventJournal } from "@antumbra/session-event-journal";
 import type { AgentEvent, Origin } from "@antumbra/vocabulary/session-events";
 import { Clock, Effect, Option, Ref } from "effect";
-import {
-	type SessionTree,
-	spawnerOf,
-	type TreeNode,
-	withAdopted,
-	withNode,
-} from "#tree/attribution.ts";
+import { type SessionTree, spawnerOf, type TreeNode, withAdopted, withNode } from "#tree/attribution.ts";
 import { adoptedLateGap, observed } from "#tree/gaps.ts";
 import { makeSessionTreeReopen } from "#tree/reopen.ts";
 import { makeSessionTreeRows } from "#tree/rows.ts";
@@ -45,11 +39,7 @@ export const makeSessionTreeAdoption = Effect.gen(function* () {
 					announced: false,
 					openedAt: yield* Clock.currentTimeMillis,
 					sessionId: crypto.randomUUID(),
-					spawnerSessionId: spawnerOf(
-						yield* Ref.get(tree),
-						{ parentRef: origin.parentNode, spawnedBy: origin.spawnedBy },
-						rootSessionId,
-					),
+					spawnerSessionId: spawnerOf(yield* Ref.get(tree), { parentRef: origin.parentNode, spawnedBy: origin.spawnedBy }, rootSessionId),
 					subsessionRef,
 				};
 				// why: the row and the opening are one fact — the event's foreign key
@@ -95,11 +85,7 @@ export const makeSessionTreeAdoption = Effect.gen(function* () {
 		const adopt = (node: TreeNode, opened: SubsessionOpened) =>
 			Effect.gen(function* () {
 				const announcedAt = yield* Clock.currentTimeMillis;
-				const spawnerSessionId = spawnerOf(
-					yield* Ref.get(tree),
-					opened,
-					rootSessionId,
-				);
+				const spawnerSessionId = spawnerOf(yield* Ref.get(tree), opened, rootSessionId);
 				const recorded = yield* journal.recordTogether({
 					appends: [
 						{ event: opened, sessionId: spawnerSessionId },
@@ -115,10 +101,7 @@ export const makeSessionTreeAdoption = Effect.gen(function* () {
 					}),
 				});
 				if (recorded) {
-					yield* Ref.update(
-						tree,
-						withAdopted(node, opened.spawnedBy, spawnerSessionId),
-					);
+					yield* Ref.update(tree, withAdopted(node, opened.spawnedBy, spawnerSessionId));
 				}
 				return recorded;
 			});

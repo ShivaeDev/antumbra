@@ -1,8 +1,4 @@
-import type {
-	AgentBackend,
-	OpenSessionOptions,
-	SessionHandle,
-} from "@antumbra/plugin-api";
+import type { AgentBackend, OpenSessionOptions, SessionHandle } from "@antumbra/plugin-api";
 import { BackendFailure } from "@antumbra/plugin-api";
 import type { AgentEvent } from "@antumbra/vocabulary/session-events";
 import { Effect, Exit, Scope, Stream } from "effect";
@@ -25,32 +21,21 @@ export interface EventSink {
 
 export interface SessionAttachment {
 	readonly handle: SessionHandle;
-	readonly openedNativeRef: Effect.Effect<
-		string,
-		BackendFailure | SessionAttachmentFailure
-	>;
+	readonly openedNativeRef: Effect.Effect<string, BackendFailure | SessionAttachmentFailure>;
 }
 
 export interface LiveSessionAttachment extends SessionAttachment {
 	readonly scope: Scope.Closeable;
 }
 
-export const closeSessionAttachment = (
-	attachment: LiveSessionAttachment,
-	exit: Exit.Exit<unknown, unknown> = Exit.void,
-) => Scope.close(attachment.scope, exit);
+export const closeSessionAttachment = (attachment: LiveSessionAttachment, exit: Exit.Exit<unknown, unknown> = Exit.void) =>
+	Scope.close(attachment.scope, exit);
 
-export const openSessionAttachment = (
-	backend: AgentBackend,
-	options: OpenSessionOptions,
-	sink: EventSink,
-) =>
+export const openSessionAttachment = (backend: AgentBackend, options: OpenSessionOptions, sink: EventSink) =>
 	Effect.gen(function* () {
 		const scope = yield* Scope.make();
 		return yield* Effect.gen(function* () {
-			const handle = yield* backend
-				.openSession(options)
-				.pipe(Scope.provide(scope));
+			const handle = yield* backend.openSession(options).pipe(Scope.provide(scope));
 			const opened = yield* makeOpeningConfirmation;
 			yield* sink.attached;
 			// why: the confirmation watches the pump, and the pump carries only what
@@ -79,13 +64,7 @@ export const openSessionAttachment = (
 				Effect.tapError(opened.fail),
 				Effect.ensuring(opened.fail(endedBeforeOpening)),
 				Effect.ensuring(sink.detached),
-				Effect.catchCause((cause) =>
-					Effect.logError(
-						"event pump failed",
-						{ sessionId: options.sessionId },
-						cause,
-					),
-				),
+				Effect.catchCause((cause) => Effect.logError("event pump failed", { sessionId: options.sessionId }, cause)),
 				Effect.forkIn(scope),
 			);
 			return {
@@ -93,9 +72,5 @@ export const openSessionAttachment = (
 				openedNativeRef: opened.await,
 				scope,
 			} satisfies LiveSessionAttachment;
-		}).pipe(
-			Effect.onExit((exit) =>
-				Exit.isFailure(exit) ? Scope.close(scope, exit) : Effect.void,
-			),
-		);
+		}).pipe(Effect.onExit((exit) => (Exit.isFailure(exit) ? Scope.close(scope, exit) : Effect.void)));
 	});

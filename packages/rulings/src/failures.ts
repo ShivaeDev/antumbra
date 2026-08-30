@@ -17,10 +17,7 @@ import type {
 
 export type RulingReadFailure = PrismaError | StoredRulingValueInvalid;
 
-export type RulingRequestFailure =
-	| RulingGatePieceMissing
-	| RulingReadFailure
-	| RulingSubjectMissing;
+export type RulingRequestFailure = RulingGatePieceMissing | RulingReadFailure | RulingSubjectMissing;
 
 export type RulingVerdictFailure =
 	| RulingAlreadyRuled
@@ -40,15 +37,6 @@ export type RulingSupersessionFailure =
 	| RulingReadFailure
 	| RulingSupersedesItself;
 
-export type RulingWithdrawalFailure =
-	| RulingAlreadySuperseded
-	| RulingAlreadyWithdrawn
-	| RulingNotFound
-	| RulingNotRuled
-	| RulingReadFailure;
+export type RulingWithdrawalFailure = RulingAlreadySuperseded | RulingAlreadyWithdrawn | RulingNotFound | RulingNotRuled | RulingReadFailure;
 
-export type RulingReclassifyFailure =
-	| RulingAlreadyRuled
-	| RulingNotFound
-	| RulingReadFailure
-	| RulingReclassificationEmpty;
+export type RulingReclassifyFailure = RulingAlreadyRuled | RulingNotFound | RulingReadFailure | RulingReclassificationEmpty;

@@ -13,17 +13,12 @@ export const LEAF_AGENT = ".codex/agents/scribe.md";
 export const SPAWN_CALL = "collab_2";
 const TURN = "019ff334-ed58-7ff3-8dfb-1ceb96c93ccd";
 
-const item = (
-	method: string,
-	threadId: string,
-	payload: Record<string, unknown>,
-): RpcNotification => ({
+const item = (method: string, threadId: string, payload: Record<string, unknown>): RpcNotification => ({
 	method,
 	params: { completedAtMs: 1, item: payload, threadId, turnId: TURN },
 });
 
-const said = (threadId: string, id: string, text: string): RpcNotification =>
-	item("item/completed", threadId, { id, text, type: "agentMessage" });
+const said = (threadId: string, id: string, text: string): RpcNotification => item("item/completed", threadId, { id, text, type: "agentMessage" });
 
 // why: the thread codex opens for a delegated agent, sourced from the spawn
 // that made it. A reviewer thread carries a source with no parent in it at all,
@@ -53,13 +48,7 @@ const reviewerThread = (id: string): RpcNotification => ({
 	},
 });
 
-const announces = (
-	threadId: string,
-	agentThreadId: string,
-	agentPath: string,
-	id: string,
-	kind = "started",
-): RpcNotification =>
+const announces = (threadId: string, agentThreadId: string, agentPath: string, id: string, kind = "started"): RpcNotification =>
 	item("item/started", threadId, {
 		agentPath,
 		agentThreadId,

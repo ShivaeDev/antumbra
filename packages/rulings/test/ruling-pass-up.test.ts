@@ -2,13 +2,7 @@ import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Rulings } from "@antumbra/rulings";
 import { expect } from "@effect/vitest";
 import { Effect, Option, PubSub } from "effect";
-import {
-	asked,
-	it,
-	layer,
-	requesterId,
-	seedFleet,
-} from "#test/rulings-harness.ts";
+import { asked, it, layer, requesterId, seedFleet } from "#test/rulings-harness.ts";
 
 it.effectDB("moves the rung one step and says who moved it", function* () {
 	yield* Effect.scoped(
@@ -33,9 +27,7 @@ it.effectDB("moves the rung one step and says who moved it", function* () {
 					at: expect.any(Date),
 					by: "captain",
 					byAgentId: Option.some(requesterId),
-					note: Option.some(
-						"both repositories chart this shoal; the fleet must pick one",
-					),
+					note: Option.some("both repositories chart this shoal; the fleet must pick one"),
 					radius: Option.none(),
 					urgency: Option.none(),
 				},
@@ -106,9 +98,7 @@ it.effectDB("refuses a rung the question does not wait on", function* (db) {
 			rung: "captain",
 		});
 		expect(yield* db.RulingReclassification.all()).toEqual([]);
-		expect((yield* rulings.get(requested.id)).rung).toEqual(
-			Option.some("captain"),
-		);
+		expect((yield* rulings.get(requested.id)).rung).toEqual(Option.some("captain"));
 	}).pipe(Effect.provide(layer));
 });
 

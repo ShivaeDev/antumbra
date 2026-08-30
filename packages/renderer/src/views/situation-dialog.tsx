@@ -3,12 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { sendToSession, situationDraft } from "#adapters/trpc.ts";
 import { Button } from "#components/ui/button.tsx";
 import { Dialog, DialogClose, DialogContent } from "#components/ui/dialog.tsx";
-import {
-	DialogDescription,
-	DialogFooter,
-	DialogHeader,
-	DialogTitle,
-} from "#components/ui/dialog-sections.tsx";
+import { DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "#components/ui/dialog-sections.tsx";
 import { Textarea } from "#components/ui/textarea.tsx";
 import { situationLabel } from "#fleet/situations.ts";
 import { useSessionDraft } from "#hooks/session-draft.ts";
@@ -28,10 +23,7 @@ export const SituationDialog = ({
 	readonly sessionId: string;
 	readonly situation: SessionSituation;
 }) => {
-	const draft = useSessionDraft(
-		sessionId,
-		`situation:${situation.changeId}:${situation.situation}`,
-	);
+	const draft = useSessionDraft(sessionId, `situation:${situation.changeId}:${situation.situation}`);
 	const initialText = useRef(draft.text).current;
 	const [drafting, setDrafting] = useState(initialText === "");
 	const [sending, setSending] = useState(false);
@@ -54,13 +46,7 @@ export const SituationDialog = ({
 		return () => {
 			open = false;
 		};
-	}, [
-		draft.setText,
-		initialText,
-		onError,
-		situation.changeId,
-		situation.situation,
-	]);
+	}, [draft.setText, initialText, onError, situation.changeId, situation.situation]);
 
 	const send = () => {
 		if (sending || draft.text.trim() === "") {
@@ -94,10 +80,7 @@ export const SituationDialog = ({
 			<DialogContent>
 				<DialogHeader>
 					<DialogTitle>{situationLabel[situation.situation]}</DialogTitle>
-					<DialogDescription>
-						Change {situation.reference}. Read it, change anything you want said
-						differently, then send.
-					</DialogDescription>
+					<DialogDescription>Change {situation.reference}. Read it, change anything you want said differently, then send.</DialogDescription>
 				</DialogHeader>
 				<Textarea
 					aria-label="Words to send"

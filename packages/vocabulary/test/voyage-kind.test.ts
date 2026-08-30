@@ -1,18 +1,11 @@
-import {
-	decodeStoredVoyageKind,
-	VOYAGE_KINDS,
-} from "@antumbra/vocabulary/voyage";
+import { decodeStoredVoyageKind, VOYAGE_KINDS } from "@antumbra/vocabulary/voyage";
 import { expect, it } from "@effect/vitest";
 import { Result } from "effect";
 
 it("decodes every kind a voyage may be stored as", () => {
 	expect([...VOYAGE_KINDS]).toEqual(["voyage", "flagship"]);
-	expect(decodeStoredVoyageKind("voyage-1", "voyage")).toEqual(
-		Result.succeed("voyage"),
-	);
-	expect(decodeStoredVoyageKind("voyage-1", "flagship")).toEqual(
-		Result.succeed("flagship"),
-	);
+	expect(decodeStoredVoyageKind("voyage-1", "voyage")).toEqual(Result.succeed("voyage"));
+	expect(decodeStoredVoyageKind("voyage-1", "flagship")).toEqual(Result.succeed("flagship"));
 });
 
 it("retains the voyage and the unknown stored word in the refusal", () => {

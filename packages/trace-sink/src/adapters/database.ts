@@ -1,11 +1,5 @@
 import { DatabaseSync, type SQLInputValue } from "node:sqlite";
-import {
-	INSERT_LOG,
-	INSERT_RUN,
-	INSERT_SPAN,
-	PRUNE,
-	TRACE_SCHEMA,
-} from "#adapters/schema.ts";
+import { INSERT_LOG, INSERT_RUN, INSERT_SPAN, PRUNE, TRACE_SCHEMA } from "#adapters/schema.ts";
 import type { LogRow } from "#log-row.ts";
 import type { SpanRow } from "#span-row.ts";
 
@@ -24,11 +18,7 @@ export interface TraceDatabase {
 // why: WAL keeps the writer from blocking whoever is reading the trace while the
 // app runs, and NORMAL means a flush does not wait on a disk sync. Losing the
 // last few spans to a hard crash is the right trade for a dev-only record.
-const PRAGMAS = [
-	"PRAGMA journal_mode = WAL",
-	"PRAGMA synchronous = NORMAL",
-	"PRAGMA busy_timeout = 2000",
-] as const;
+const PRAGMAS = ["PRAGMA journal_mode = WAL", "PRAGMA synchronous = NORMAL", "PRAGMA busy_timeout = 2000"] as const;
 
 const spanValues = (runId: string, span: SpanRow): readonly SQLInputValue[] => [
 	runId,
@@ -67,9 +57,7 @@ const openFile = (run: TraceRun): DatabaseSync => {
 	for (const statement of TRACE_SCHEMA) {
 		database.exec(statement);
 	}
-	database
-		.prepare(INSERT_RUN)
-		.run(run.runId, run.startedAtMillis, run.appVersion);
+	database.prepare(INSERT_RUN).run(run.runId, run.startedAtMillis, run.appVersion);
 	for (const statement of PRUNE) {
 		database.exec(statement);
 	}

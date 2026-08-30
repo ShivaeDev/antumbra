@@ -1,10 +1,7 @@
 import type { ChangeRow } from "@antumbra/changes";
 import { describe, expect, it } from "@effect/vitest";
 import type { ObserveCadenceOptions } from "#change-cadence.ts";
-import {
-	nextObserveDelayMillis,
-	retryObserveDelayMillis,
-} from "#change-cadence.ts";
+import { nextObserveDelayMillis, retryObserveDelayMillis } from "#change-cadence.ts";
 
 const row = (fields: Partial<ChangeRow>): ChangeRow => ({
 	activityAt: new Date(0),
@@ -47,8 +44,7 @@ const CADENCE: ObserveCadenceOptions = {
 };
 
 describe("how soon the next pass is worth making", () => {
-	const at = (open: ReadonlyArray<ChangeRow>) =>
-		nextObserveDelayMillis(open, 10_000, CADENCE);
+	const at = (open: ReadonlyArray<ChangeRow>) => nextObserveDelayMillis(open, 10_000, CADENCE);
 
 	it("is hot while checks are still running", () => {
 		expect(at([row({ checks: "pending" })])).toBe(30);
@@ -78,15 +74,12 @@ describe("how soon the next pass is worth making", () => {
 	// why: one hot change is enough — a fleet is only as patient as the change
 	// with the most to say, or a busy pull request would wait behind a draft.
 	it("takes the shortest delay any open change asks for", () => {
-		expect(
-			at([row({ draftAt: new Date(0) }), row({ checks: "pending" })]),
-		).toBe(30);
+		expect(at([row({ draftAt: new Date(0) }), row({ checks: "pending" })])).toBe(30);
 	});
 });
 
 describe("how long a host that could not answer is left alone", () => {
-	const after = (failures: number) =>
-		retryObserveDelayMillis(failures, CADENCE);
+	const after = (failures: number) => retryObserveDelayMillis(failures, CADENCE);
 
 	it("waits the warm cadence after one lost answer", () => {
 		expect(after(1)).toBe(180);

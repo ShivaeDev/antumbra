@@ -27,19 +27,9 @@ const thought = (seq: number, text: string): TranscriptItem => ({
 });
 
 it("folds a run of settled calls between messages into one item", () => {
-	const items = [
-		said(0, "looking"),
-		tool(1, "Read", "a"),
-		tool(2, "Grep", "b"),
-		tool(3, "Read", "c"),
-		said(4, "found it"),
-	];
+	const items = [said(0, "looking"), tool(1, "Read", "a"), tool(2, "Grep", "b"), tool(3, "Read", "c"), said(4, "found it")];
 	const folded = foldToolRuns(items);
-	expect(folded).toEqual([
-		items[0],
-		{ entries: [items[1], items[2], items[3]], kind: "toolRun", seq: 1 },
-		items[4],
-	]);
+	expect(folded).toEqual([items[0], { entries: [items[1], items[2], items[3]], kind: "toolRun", seq: 1 }, items[4]]);
 });
 
 it("leaves a single call where it stands", () => {
@@ -57,35 +47,20 @@ it("folds thinking between calls and leaves thinking around them out", () => {
 		said(5, "done"),
 	];
 	const folded = foldToolRuns(items);
-	expect(folded).toEqual([
-		items[0],
-		{ entries: [items[1], items[2], items[3]], kind: "toolRun", seq: 1 },
-		items[4],
-		items[5],
-	]);
+	expect(folded).toEqual([items[0], { entries: [items[1], items[2], items[3]], kind: "toolRun", seq: 1 }, items[4], items[5]]);
 });
 
 it("keeps the call still out on its own line and folds what settled", () => {
 	const items = [tool(0, "Read", "a"), tool(1, "Bash", "b"), tool(2, "Edit")];
-	expect(foldToolRuns(items)).toEqual([
-		{ entries: [items[0], items[1]], kind: "toolRun", seq: 0 },
-		items[2],
-	]);
+	expect(foldToolRuns(items)).toEqual([{ entries: [items[0], items[1]], kind: "toolRun", seq: 0 }, items[2]]);
 });
 
 it("folds an unsettled call that a later one has already overtaken", () => {
 	const items = [tool(0, "Bash"), tool(1, "Read", "b"), said(2, "meanwhile")];
-	expect(foldToolRuns(items)).toEqual([
-		{ entries: [items[0], items[1]], kind: "toolRun", seq: 0 },
-		items[2],
-	]);
+	expect(foldToolRuns(items)).toEqual([{ entries: [items[0], items[1]], kind: "toolRun", seq: 0 }, items[2]]);
 });
 
 it("breaks a run at anything that is not a call or a thought", () => {
-	const items = [
-		tool(0, "Read", "a"),
-		{ kind: "telemetry", label: "usage", seq: 1 } as const,
-		tool(2, "Read", "b"),
-	];
+	const items = [tool(0, "Read", "a"), { kind: "telemetry", label: "usage", seq: 1 } as const, tool(2, "Read", "b")];
 	expect(foldToolRuns(items)).toEqual(items);
 });

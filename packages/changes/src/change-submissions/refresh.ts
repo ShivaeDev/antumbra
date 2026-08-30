@@ -10,10 +10,7 @@ import { UnknownChangeHostTag } from "#errors.ts";
 export const watchableChanges = (hostTag: string) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
-		return (yield* Effect.forEach(
-			yield* db.Change.where({ host: hostTag }).all(),
-			changeRow,
-		)).filter((row) => row.stage === "open");
+		return (yield* Effect.forEach(yield* db.Change.where({ host: hostTag }).all(), changeRow)).filter((row) => row.stage === "open");
 	});
 
 const changeRef = (
@@ -53,11 +50,7 @@ export const refreshSubmittedChanges = (hostTag: string) =>
 			return yield* new UnknownChangeHostTag({ tag: hostTag });
 		}
 		const changes = yield* watchableChanges(hostTag);
-		const repos = new Map(
-			(yield* db.Repo.all()).map((repo) => [repo.id, repo] as const),
-		);
+		const repos = new Map((yield* db.Repo.all()).map((repo) => [repo.id, repo] as const));
 		const refs = changes.flatMap((row) => changeRef(row, repos));
-		return refs.length === 0
-			? []
-			: yield* applyObservations(hostTag, yield* host.observe(refs));
+		return refs.length === 0 ? [] : yield* applyObservations(hostTag, yield* host.observe(refs));
 	});

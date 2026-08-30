@@ -1,10 +1,6 @@
 import type { SessionInput } from "@antumbra/plugin-api";
 import { SessionFabric } from "@antumbra/session-fabric";
-import {
-	type SessionInputDraft,
-	SessionInputNotFound,
-	SessionInputs,
-} from "@antumbra/session-inputs";
+import { type SessionInputDraft, SessionInputNotFound, SessionInputs } from "@antumbra/session-inputs";
 import type { SessionInputId } from "@antumbra/vocabulary/session-input";
 import { Effect } from "effect";
 import type { SessionCapacities } from "#capacity.ts";
@@ -28,10 +24,7 @@ interface OpenSession {
 export const makeSendInput = (
 	imageInputBackends: ReadonlySet<string>,
 	open: (sessionId: string) => Effect.Effect<OpenSession, SessionSendRefused>,
-	rouse: (
-		sessionId: string,
-		inputId: SessionInputId,
-	) => Effect.Effect<void, SessionSendRefused>,
+	rouse: (sessionId: string, inputId: SessionInputId) => Effect.Effect<void, SessionSendRefused>,
 	capacities: SessionCapacities,
 ) =>
 	Effect.gen(function* () {
@@ -39,11 +32,7 @@ export const makeSendInput = (
 		const fabric = yield* SessionFabric;
 		const inputs = yield* SessionInputs;
 		const recovery = yield* makeCurrentSessionRecovery;
-		const accepted = (
-			sessionId: string,
-			inputId: SessionInputId,
-			input: SessionInput,
-		) => {
+		const accepted = (sessionId: string, inputId: SessionInputId, input: SessionInput) => {
 			// why: the wake is written after the words are taken, never before — a row
 			// claiming a Session is executing when the handover failed is durable truth
 			// nobody can see is false.
@@ -57,36 +46,21 @@ export const makeSendInput = (
 			);
 			return fabric.send(sessionId, input).pipe(
 				Effect.andThen(afterHandoff),
-				Effect.tapErrorTag("BackendFailure", () =>
-					inputs.mark(inputId, "ambiguous"),
-				),
+				Effect.tapErrorTag("BackendFailure", () => inputs.mark(inputId, "ambiguous")),
 			);
 		};
 		const queued = (sessionId: string, inputId: SessionInputId) =>
-			rouse(sessionId, inputId).pipe(
-				Effect.andThen(inputs.mark(inputId, "queued_for_wake")),
-				Effect.as<SessionSendReceipt>("queued_for_wake"),
-			);
-		const handoff = (
-			session: OpenSession,
-			sessionId: string,
-			inputId: SessionInputId,
-			input: SessionInput,
-		) =>
+			rouse(sessionId, inputId).pipe(Effect.andThen(inputs.mark(inputId, "queued_for_wake")), Effect.as<SessionSendReceipt>("queued_for_wake"));
+		const handoff = (session: OpenSession, sessionId: string, inputId: SessionInputId, input: SessionInput) =>
 			Effect.gen(function* () {
 				const capacity = yield* capacities.current(session.backend);
-				if (
-					capacity.status === "blocked" ||
-					!(yield* fabric.holds(sessionId))
-				) {
+				if (capacity.status === "blocked" || !(yield* fabric.holds(sessionId))) {
 					return yield* queued(sessionId, inputId);
 				}
 				// why: the attachment can go between being seen and being spoken to —
 				// a reclaim settling in the same breath — and the words follow it into
 				// the resume rather than being reported as a refusal.
-				return yield* accepted(sessionId, inputId, input).pipe(
-					Effect.catchTag("SessionNotLive", () => queued(sessionId, inputId)),
-				);
+				return yield* accepted(sessionId, inputId, input).pipe(Effect.catchTag("SessionNotLive", () => queued(sessionId, inputId)));
 			});
 		// why: taking custody is what costs disk and what outlives the request, so
 		// the backend is asked whether it can receive these parts at all before a

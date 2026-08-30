@@ -1,22 +1,14 @@
 import { Database } from "@antumbra/persistence";
 import { SessionFabric } from "@antumbra/session-fabric";
-import {
-	decodeSessionExecutionStatus,
-	decodeStoredAgentSessionStatus,
-	decodeStoredAgentStatus,
-} from "@antumbra/vocabulary/agent-runtime";
+import { decodeSessionExecutionStatus, decodeStoredAgentSessionStatus, decodeStoredAgentStatus } from "@antumbra/vocabulary/agent-runtime";
 import { Effect, Option, Result } from "effect";
-import {
-	type CurrentSessionReconcilePlan,
-	planCurrentSessionReconciliation,
-} from "#current/reconcile-plan.ts";
+import { type CurrentSessionReconcilePlan, planCurrentSessionReconciliation } from "#current/reconcile-plan.ts";
 import { makeCurrentSessionRepair } from "#current/repair.ts";
 import { recoveryHeld } from "#recovery/error.ts";
 import { rootSessions, rootSessionsOf } from "#roots.ts";
 import type { SessionUnresumable } from "#unresumable.ts";
 
-const heldInvalid = (failure: { readonly message: string }) =>
-	recoveryHeld(failure.message);
+const heldInvalid = (failure: { readonly message: string }) => recoveryHeld(failure.message);
 
 export const makeCurrentSessionResumable = Effect.gen(function* () {
 	const db = yield* Database;
@@ -35,9 +27,7 @@ export const makeCurrentSessionResumable = Effect.gen(function* () {
 			// downstream, which read it as "not current" and told the wake to wait
 			// for a pointer that can never come back to it. A row that exists and is
 			// over is a different truth from there being no row at all.
-			const status = yield* Effect.fromResult(
-				decodeStoredAgentSessionStatus(sessionId, stored.value.status),
-			).pipe(Effect.mapError(heldInvalid));
+			const status = yield* Effect.fromResult(decodeStoredAgentSessionStatus(sessionId, stored.value.status)).pipe(Effect.mapError(heldInvalid));
 			if (status !== "open") {
 				return Result.fail<SessionUnresumable>({ _tag: "session-closed" });
 			}
@@ -47,38 +37,19 @@ export const makeCurrentSessionResumable = Effect.gen(function* () {
 				? Result.fail<SessionUnresumable>({ _tag: "no-agent", agentId })
 				: Result.succeed({ agent: agent.value, session: stored.value });
 		});
-	type LoadedRows =
-		Effect.Success<ReturnType<typeof loadRows>> extends Result.Result<
-			infer Rows,
-			SessionUnresumable
-		>
-			? Rows
-			: never;
+	type LoadedRows = Effect.Success<ReturnType<typeof loadRows>> extends Result.Result<infer Rows, SessionUnresumable> ? Rows : never;
 	// why: a Session settling into siesta is finishing its execution rather than
 	// holding one open, so it is the one open Session a resume may not take —
 	// unless the plan just settled it, in which case the drain belonged to a
 	// process that is gone and the row read a moment ago is already stale.
-	const resumableExecution = (
-		session: LoadedRows["session"],
-		plan: CurrentSessionReconcilePlan,
-		changed: boolean,
-	) =>
+	const resumableExecution = (session: LoadedRows["session"], plan: CurrentSessionReconcilePlan, changed: boolean) =>
 		Effect.gen(function* () {
-			const settled = plan.executionsToSettle.find(
-				(candidate) => candidate.sessionId === session.id,
-			);
+			const settled = plan.executionsToSettle.find((candidate) => candidate.sessionId === session.id);
 			const execution =
-				settled === undefined
-					? yield* Effect.fromResult(
-							decodeSessionExecutionStatus(session.id, session.executionStatus),
-						)
-					: settled.executionStatus;
+				settled === undefined ? yield* Effect.fromResult(decodeSessionExecutionStatus(session.id, session.executionStatus)) : settled.executionStatus;
 			return {
 				changed,
-				session:
-					execution === "draining"
-						? Result.fail<SessionUnresumable>({ _tag: "draining" })
-						: Result.succeed(session),
+				session: execution === "draining" ? Result.fail<SessionUnresumable>({ _tag: "draining" }) : Result.succeed(session),
 			};
 		});
 	return (sessionId: string) =>
@@ -88,9 +59,7 @@ export const makeCurrentSessionResumable = Effect.gen(function* () {
 				return { changed: false, session: Result.fail(loaded.failure) };
 			}
 			const { agent, session } = loaded.success;
-			const status = yield* Effect.fromResult(
-				decodeStoredAgentStatus(agent.id, agent.status),
-			).pipe(Effect.mapError(heldInvalid));
+			const status = yield* Effect.fromResult(decodeStoredAgentStatus(agent.id, agent.status)).pipe(Effect.mapError(heldInvalid));
 			if (status !== "alive") {
 				return {
 					changed: false,
@@ -109,10 +78,7 @@ export const makeCurrentSessionResumable = Effect.gen(function* () {
 			if (Result.isFailure(planned)) {
 				return yield* heldInvalid(planned.failure);
 			}
-			const repaired = yield* applyRepair(
-				agent.currentSessionId,
-				planned.success,
-			);
+			const repaired = yield* applyRepair(agent.currentSessionId, planned.success);
 			return repaired.currentSessionId === sessionId
 				? yield* resumableExecution(session, planned.success, repaired.changed)
 				: {

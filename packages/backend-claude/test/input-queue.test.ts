@@ -1,7 +1,4 @@
-import type {
-	SDKMessage,
-	SDKUserMessage,
-} from "@anthropic-ai/claude-agent-sdk";
+import type { SDKMessage, SDKUserMessage } from "@anthropic-ai/claude-agent-sdk";
 import { expect, it } from "@effect/vitest";
 import { Effect, Exit, Fiber } from "effect";
 import { InputQueue } from "#adapters/input-queue.ts";
@@ -16,9 +13,7 @@ const message = (text: string): SDKUserMessage => ({
 
 const toolResult: SDKUserMessage = {
 	message: {
-		content: [
-			{ content: "sounded", tool_use_id: "tool-1", type: "tool_result" },
-		],
+		content: [{ content: "sounded", tool_use_id: "tool-1", type: "tool_result" }],
 		role: "user",
 	},
 	parent_tool_use_id: null,
@@ -29,9 +24,7 @@ it.effect("a send settles only when the SDK iterator accepts its message", () =>
 	Effect.gen(function* () {
 		const handed: SDKUserMessage[] = [];
 		const input = new InputQueue((taken) => handed.push(taken));
-		const receipt = yield* Effect.forkChild(
-			input.push(message("sound the reef")),
-		);
+		const receipt = yield* Effect.forkChild(input.push(message("sound the reef")));
 		yield* Effect.yieldNow;
 		expect(receipt.pollUnsafe()).toBeUndefined();
 		expect(handed).toEqual([]);
@@ -53,9 +46,7 @@ it.effect("words land behind the step they were handed over during", () =>
 			delivered.push(taken);
 		};
 		const input = new InputQueue(deliver);
-		const receipt = yield* Effect.forkChild(
-			input.push(message("steer for the reef")),
-		);
+		const receipt = yield* Effect.forkChild(input.push(message("steer for the reef")));
 		yield* Effect.yieldNow;
 		// why: the provider is mid-step when the words arrive, and the step's own
 		// events keep flowing — a transcript that placed the words first would
@@ -79,9 +70,7 @@ it.effect("closing fails a buffered send the SDK never accepted", () =>
 	Effect.gen(function* () {
 		const handed: SDKUserMessage[] = [];
 		const input = new InputQueue((taken) => handed.push(taken));
-		const receipt = yield* Effect.forkChild(
-			input.push(message("held in memory")),
-		);
+		const receipt = yield* Effect.forkChild(input.push(message("held in memory")));
 		yield* Effect.yieldNow;
 		yield* Effect.sync(() => input.close());
 		expect(Exit.isFailure(yield* Effect.exit(Fiber.join(receipt)))).toBe(true);
@@ -94,9 +83,7 @@ it.effect("provider termination fails a buffered send", () =>
 	Effect.gen(function* () {
 		const handed: SDKUserMessage[] = [];
 		const input = new InputQueue((taken) => handed.push(taken));
-		const receipt = yield* Effect.forkChild(
-			input.push(message("held when provider died")),
-		);
+		const receipt = yield* Effect.forkChild(input.push(message("held when provider died")));
 		yield* Effect.yieldNow;
 		const ended: AsyncIterable<SDKMessage> = {
 			[Symbol.asyncIterator]: () => ({

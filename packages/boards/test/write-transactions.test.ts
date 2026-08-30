@@ -13,10 +13,7 @@ afterAll(temporary.remove);
 
 // why: the database Layer is used bare, without the harness's test
 // transaction, so every db.transaction here opens a real one.
-const layer = BoardsLive.pipe(
-	Layer.provideMerge(DomainFeedsLive),
-	Layer.provideMerge(temporary.layer),
-);
+const layer = BoardsLive.pipe(Layer.provideMerge(DomainFeedsLive), Layer.provideMerge(temporary.layer));
 
 const createAgent = (agentId: string) =>
 	Effect.gen(function* () {
@@ -56,9 +53,7 @@ it.effect("mail written inside a caller's transaction joins it", () =>
 		expect(seenInside).toBe(true);
 		const boardId = yield* linkedBoardId(BoardScope.Agent({ agentId }));
 		expect(Option.isSome(boardId)).toBe(true);
-		expect(yield* db.BoardEntry.all()).toMatchObject([
-			{ kind: "mail", sourceRef: "ruling:nested-1" },
-		]);
+		expect(yield* db.BoardEntry.all()).toMatchObject([{ kind: "mail", sourceRef: "ruling:nested-1" }]);
 	}).pipe(Effect.provide(layer)),
 );
 
@@ -70,13 +65,9 @@ it.effect("concurrent mail to one board lands every distinct source", () =>
 		yield* createAgent(agentId);
 		const boardsBefore = (yield* db.Board.all()).length;
 
-		const landed = yield* Effect.all(
-			[
-				boards.mail(mailFor(agentId, "ruling:concurrent-1")),
-				boards.mail(mailFor(agentId, "ruling:concurrent-2")),
-			],
-			{ concurrency: "unbounded" },
-		);
+		const landed = yield* Effect.all([boards.mail(mailFor(agentId, "ruling:concurrent-1")), boards.mail(mailFor(agentId, "ruling:concurrent-2"))], {
+			concurrency: "unbounded",
+		});
 
 		const boardId = yield* linkedBoardId(BoardScope.Agent({ agentId }));
 		const rows = yield* db.BoardEntry.where({
@@ -84,10 +75,7 @@ it.effect("concurrent mail to one board lands every distinct source", () =>
 		})
 			.orderBy((entry) => entry.seq.asc())
 			.all();
-		expect(landed.map((entry) => entry.sourceRef).sort()).toEqual([
-			"ruling:concurrent-1",
-			"ruling:concurrent-2",
-		]);
+		expect(landed.map((entry) => entry.sourceRef).sort()).toEqual(["ruling:concurrent-1", "ruling:concurrent-2"]);
 		expect(rows.map((row) => row.seq)).toEqual([1, 2]);
 		expect(yield* db.Board.all()).toHaveLength(boardsBefore + 1);
 	}).pipe(Effect.provide(layer)),

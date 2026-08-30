@@ -19,8 +19,7 @@ export interface Repair {
 
 export const admissionOrigin = (agent: AdoptedAgent): Origin => ({
 	node: agent.agentId,
-	spawnedBy:
-		agent.messages[0]?.parent_tool_use_id ?? agentFileRef(agent.agentId),
+	spawnedBy: agent.messages[0]?.parent_tool_use_id ?? agentFileRef(agent.agentId),
 });
 
 // why: a node adopted from a stored transcript existed before the record knew
@@ -63,10 +62,7 @@ export const censusGap = (failure: string): AgentEvent => ({
 // unsaid: a stored transcript names the agent and its words, never what the run
 // asked it to be. The loss that explains the admission is the caller's to name —
 // a mirror that dropped it and a census that found it are different findings.
-export const admissionEvents = (
-	agent: AdoptedAgent,
-	loss: (agent: AdoptedAgent, origin: Origin) => AgentEvent,
-): ReadonlyArray<AgentEvent> => {
+export const admissionEvents = (agent: AdoptedAgent, loss: (agent: AdoptedAgent, origin: Origin) => AgentEvent): ReadonlyArray<AgentEvent> => {
 	if (agent.messages.length === 0) {
 		return [];
 	}
@@ -84,5 +80,4 @@ export const admissionEvents = (
 	];
 };
 
-export const adoptedEvents = (agent: AdoptedAgent): ReadonlyArray<AgentEvent> =>
-	admissionEvents(agent, adoptedGap);
+export const adoptedEvents = (agent: AdoptedAgent): ReadonlyArray<AgentEvent> => admissionEvents(agent, adoptedGap);

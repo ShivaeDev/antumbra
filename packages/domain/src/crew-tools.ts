@@ -1,15 +1,5 @@
-import {
-	bind,
-	landArtifactSpec,
-	landReportSpec,
-	removeArtifactSupersessionSpec,
-	supersedeArtifactSpec,
-} from "@antumbra/agent-tools";
-import {
-	type ArtifactInput,
-	type ArtifactLanding,
-	Artifacts,
-} from "@antumbra/artifacts";
+import { bind, landArtifactSpec, landReportSpec, removeArtifactSupersessionSpec, supersedeArtifactSpec } from "@antumbra/agent-tools";
+import { type ArtifactInput, type ArtifactLanding, Artifacts } from "@antumbra/artifacts";
 import type { DirectTool } from "@antumbra/plugin-api";
 import { Reports } from "@antumbra/reports";
 import { Effect } from "effect";
@@ -27,9 +17,7 @@ const artifactLandingAnswer = (landing: ArtifactLanding): string => {
 	if (landing._tag === "superseded") {
 		return `artifact landed and superseded ${landing.supersededArtifactId}`;
 	}
-	const current = landing.otherCurrentArtifacts
-		.map((artifact) => `${artifact.id} (${artifact.title})`)
-		.join(", ");
+	const current = landing.otherCurrentArtifacts.map((artifact) => `${artifact.id} (${artifact.title})`).join(", ");
 	return `artifact landed; other current artifacts: ${current === "" ? "none" : current}; call supersede if this is a new version`;
 };
 
@@ -48,15 +36,9 @@ const artifactInput = (
 		pieceId,
 		title: input.title,
 	};
-	return input.supersedesArtifactId === undefined
-		? base
-		: { ...base, supersedesArtifactId: input.supersedesArtifactId };
+	return input.supersedesArtifactId === undefined ? base : { ...base, supersedesArtifactId: input.supersedesArtifactId };
 };
 
-// why: the set is the whole of what a worker may do to the record — land
-// outcomes, propose changes, write boards, end its session. Nothing here
-// charters work, and that is the anti-proposer rule: it is enforced by the
-// set, not by asking.
 export const makeCrewToolCompiler = Effect.gen(function* () {
 	const artifacts = yield* Artifacts;
 	const compileBoardTools = yield* makeBoardToolCompiler;
@@ -87,12 +69,7 @@ export const makeCrewToolCompiler = Effect.gen(function* () {
 			...compileReportTools(identity),
 			bind(landArtifactSpec, (input) =>
 				onPiece(identity, (pieceId) =>
-					answered(
-						identity,
-						landArtifactSpec.name,
-						artifacts.land(artifactInput(identity, pieceId, input)),
-						artifactLandingAnswer,
-					),
+					answered(identity, landArtifactSpec.name, artifacts.land(artifactInput(identity, pieceId, input)), artifactLandingAnswer),
 				),
 			),
 			bind(supersedeArtifactSpec, (input) =>

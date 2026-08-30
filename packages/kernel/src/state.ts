@@ -1,11 +1,4 @@
-import {
-	Context,
-	type Effect,
-	type Fiber,
-	type PubSub,
-	type Queue,
-	type Ref,
-} from "effect";
+import { Context, type Effect, type Fiber, type PubSub, type Queue, type Ref } from "effect";
 import type { Gate } from "#gate.ts";
 import type { AnyIntentKind } from "#intent.ts";
 import type { IntentChange } from "#kernel.ts";

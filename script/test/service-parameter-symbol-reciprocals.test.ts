@@ -4,8 +4,7 @@ import { inventoryOf, type SeedFile } from "#test/support/inventory.ts";
 
 const source = (content: string, path: string): SeedFile => ({ content, path });
 
-const check = (sources: readonly SeedFile[]) =>
-	serviceParameterViolations(inventoryOf({ sources }));
+const check = (sources: readonly SeedFile[]) => serviceParameterViolations(inventoryOf({ sources }));
 
 describe("Effect service parameter reciprocal symbol cases", () => {
 	it("follows imported internal aliases of Effect service factories", () => {

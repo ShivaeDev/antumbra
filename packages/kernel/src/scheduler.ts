@@ -3,10 +3,7 @@ import { SchedulerState } from "#state.ts";
 import { applyTransition } from "#transitions.ts";
 import { intentWaitCause } from "#wait-cause.ts";
 
-const settleInterrupt = (id: string) =>
-	applyTransition(id, "interrupt").pipe(
-		Effect.catchTag("InvalidTransition", () => Effect.void),
-	);
+const settleInterrupt = (id: string) => applyTransition(id, "interrupt").pipe(Effect.catchTag("InvalidTransition", () => Effect.void));
 
 const settleExit = (id: string, exit: Exit.Exit<void, unknown>) =>
 	Effect.gen(function* () {
@@ -47,26 +44,16 @@ const settleExit = (id: string, exit: Exit.Exit<void, unknown>) =>
 		// why: settling must never take anything else down, but a swallowed
 		// write failure strands the row as "running" with no fiber until boot
 		// reclaim — the cause is logged before being discarded.
-		Effect.catchCause((cause) =>
-			Effect.logError("intent settle failed", { id }, cause),
-		),
+		Effect.catchCause((cause) => Effect.logError("intent settle failed", { id }, cause)),
 	);
 
-export const startIntent = (row: {
-	readonly id: string;
-	readonly payload: string;
-	readonly tag: string;
-}) =>
+export const startIntent = (row: { readonly id: string; readonly payload: string; readonly tag: string }) =>
 	Effect.gen(function* () {
 		const state = yield* SchedulerState;
 		const kind = state.kinds.get(row.tag);
 		if (kind === undefined) {
 			yield* Effect.logWarning("no registered intent kind", { tag: row.tag });
-			yield* applyTransition(
-				row.id,
-				"fail",
-				`no registered intent kind for tag "${row.tag}"`,
-			);
+			yield* applyTransition(row.id, "fail", `no registered intent kind for tag "${row.tag}"`);
 			return;
 		}
 		const registered = yield* Deferred.make<void>();

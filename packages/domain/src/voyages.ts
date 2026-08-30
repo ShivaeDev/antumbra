@@ -10,11 +10,7 @@ import { Clock, Context, Effect, Layer } from "effect";
 import { hailCaptain } from "#hail.ts";
 import { KernelReach } from "#kernel-reach.ts";
 import { workPieceNow } from "#piece-work.ts";
-import {
-	type OpenVoyageInput,
-	VoyageProcedureService,
-	type VoyageProcedures,
-} from "#voyage-procedures.ts";
+import { type OpenVoyageInput, VoyageProcedureService, type VoyageProcedures } from "#voyage-procedures.ts";
 import { readVoyageView } from "#voyage-read.ts";
 import { requireVoyage } from "#voyage-record.ts";
 import type { VoyageRow } from "#voyage-rows.ts";
@@ -23,9 +19,7 @@ import { VoyageWorldSource } from "#voyage-world.ts";
 
 export type { OpenVoyageInput, VoyageProcedures } from "#voyage-procedures.ts";
 
-const announce = DomainFeeds.pipe(
-	Effect.flatMap((feeds) => feeds.publishVoyageRefresh()),
-);
+const announce = DomainFeeds.pipe(Effect.flatMap((feeds) => feeds.publishVoyageRefresh()));
 
 // why: the flagship is not something anyone opens — the fleet is born with
 // exactly one, so this act writes an ordinary voyage and nothing else.
@@ -102,26 +96,19 @@ export const VoyageProceduresLive = Layer.effect(VoyageProcedureService)(
 			landPieceVerdict: pieces.landVerdict,
 			landReport: reports.land,
 			readReport: reports.read,
-			removeArtifactSupersession: (input) =>
-				artifacts.removeSupersession({ actor: { _tag: "admiral" }, ...input }),
+			removeArtifactSupersession: (input) => artifacts.removeSupersession({ actor: { _tag: "admiral" }, ...input }),
 			launch: pieces.launch,
 			list: world.read.pipe(Effect.map(voyageSummaries)),
 			open: (input) => Effect.provide(openVoyage(input), context),
 			park: (pieceId) => pieces.park(pieceId, true),
-			read: (voyageId) =>
-				readVoyageView(voyageId).pipe(
-					Effect.provideService(VoyageWorldSource, world),
-				),
+			read: (voyageId) => readVoyageView(voyageId).pipe(Effect.provideService(VoyageWorldSource, world)),
 			// why: the public vocabulary keeps its established verb while the
 			// capability names the exact act. Literal set-dependency semantics land
 			// separately.
 			rewire: pieces.setDependencies,
-			setBackend: (voyageId, backend) =>
-				Effect.provide(setBackend(voyageId, backend), context),
-			setFocus: (voyageId, focused) =>
-				Effect.provide(setFocus(voyageId, focused), context),
-			supersedeArtifact: (input) =>
-				artifacts.supersede({ actor: { _tag: "admiral" }, ...input }),
+			setBackend: (voyageId, backend) => Effect.provide(setBackend(voyageId, backend), context),
+			setFocus: (voyageId, focused) => Effect.provide(setFocus(voyageId, focused), context),
+			supersedeArtifact: (input) => artifacts.supersede({ actor: { _tag: "admiral" }, ...input }),
 			unpark: (pieceId) => pieces.park(pieceId, false),
 			workNow: (pieceId) => Effect.provide(workPieceNow(pieceId), context),
 		} satisfies VoyageProcedures);

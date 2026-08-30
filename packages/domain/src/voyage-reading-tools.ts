@@ -27,9 +27,7 @@ export const makeVoyageReadingToolCompiler = Effect.gen(function* () {
 		);
 	return (identity: SessionIdentity): ReadonlyArray<DirectTool> => [
 		bind(readVoyageSpec, (input) =>
-			input.voyageId === undefined
-				? onVoyage(identity, (voyageId) => read(identity, voyageId))
-				: read(identity, input.voyageId),
+			input.voyageId === undefined ? onVoyage(identity, (voyageId) => read(identity, voyageId)) : read(identity, input.voyageId),
 		),
 	];
 });

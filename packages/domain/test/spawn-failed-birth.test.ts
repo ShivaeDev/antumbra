@@ -1,8 +1,4 @@
-import {
-	type IntentStatus,
-	isTerminalIntentStatus,
-	Kernel,
-} from "@antumbra/kernel";
+import { type IntentStatus, isTerminalIntentStatus, Kernel } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
 import { type AgentBackend, BackendFailure } from "@antumbra/plugin-api";
 import { SessionFabricLive } from "@antumbra/session-fabric";
@@ -12,25 +8,13 @@ import { AgentDomain } from "#domain.ts";
 import type { SpawnFields } from "#index.ts";
 import { spawnResolution } from "#spawn-resolution.ts";
 import { domainKernelLayer } from "#test/domain-layers.ts";
-import {
-	acquireTemporaryPersistence,
-	makeScriptedBackend,
-	makeScriptedRunner,
-} from "#test/harness.ts";
+import { acquireTemporaryPersistence, makeScriptedBackend, makeScriptedRunner } from "#test/harness.ts";
 import { openReefVoyage, stateOf } from "#test/voyage-fixtures.ts";
 
 const untilTerminal = <E, R>(changes: Stream.Stream<IntentStatus, E, R>) =>
-	changes.pipe(
-		Stream.takeUntil(isTerminalIntentStatus),
-		Stream.runLast,
-		Effect.map(Option.getOrThrow),
-	);
+	changes.pipe(Stream.takeUntil(isTerminalIntentStatus), Stream.runLast, Effect.map(Option.getOrThrow));
 
-const birth = (
-	suffix: string,
-	pieceId: string,
-	voyageId: string,
-): SpawnFields => ({
+const birth = (suffix: string, pieceId: string, voyageId: string): SpawnFields => ({
 	agentId: `agent-${suffix}`,
 	backend: "scripted",
 	charter: "sound the shallows",
@@ -66,10 +50,7 @@ it.live("births that fail leave no claim standing on their Piece", () =>
 		const recorded = yield* makeScriptedRunner;
 		const denying: AgentBackend = {
 			...scripted.backend,
-			openSession: () =>
-				Effect.fail(
-					new BackendFailure({ detail: "open denied", tag: "scripted" }),
-				),
+			openSession: () => Effect.fail(new BackendFailure({ detail: "open denied", tag: "scripted" })),
 		};
 		yield* Effect.gen(function* () {
 			const db = yield* Database;
@@ -95,11 +76,7 @@ it.live("births that fail leave no claim standing on their Piece", () =>
 					const payload = birth(suffix, piece.id, voyage.id);
 					const submission = yield* kernel.submit(domain.spawn, payload);
 					expect(yield* untilTerminal(submission.changes)).toBe("failed");
-					expect(
-						Option.getOrThrow(
-							yield* db.Agent.where({ id: `agent-${suffix}` }).first(),
-						).status,
-					).toBe("dormant");
+					expect(Option.getOrThrow(yield* db.Agent.where({ id: `agent-${suffix}` }).first()).status).toBe("dormant");
 					const intent = yield* db.Intent.where({ id: submission.id }).first();
 					expect(Option.getOrThrow(intent).detail).toContain("open denied");
 				});
@@ -107,27 +84,13 @@ it.live("births that fail leave no claim standing on their Piece", () =>
 			yield* failBirth("stillborn-two");
 			const replay = birth("stillborn-one", piece.id, voyage.id);
 			yield* restoreFailedBirthPrefix(replay);
-			const resolution = yield* spawnResolution.pipe(
-				Effect.provide(SessionFabricLive),
-			);
+			const resolution = yield* spawnResolution.pipe(Effect.provide(SessionFabricLive));
 			yield* resolution.settleFailure(replay);
-			expect(
-				yield* db.PieceAgent.where({ agentId: replay.agentId }).all(),
-			).toEqual([]);
-			expect(
-				Option.getOrThrow(
-					yield* db.AgentSession.where({ id: replay.sessionId }).first(),
-				).status,
-			).toBe("closed");
+			expect(yield* db.PieceAgent.where({ agentId: replay.agentId }).all()).toEqual([]);
+			expect(Option.getOrThrow(yield* db.AgentSession.where({ id: replay.sessionId }).first()).status).toBe("closed");
 
-			expect(yield* db.PieceAgent.where({ pieceId: piece.id }).all()).toEqual(
-				[],
-			);
+			expect(yield* db.PieceAgent.where({ pieceId: piece.id }).all()).toEqual([]);
 			expect(yield* stateOf(voyage.id, piece.id)).toBe("ready");
-		}).pipe(
-			Effect.provide(
-				domainKernelLayer(temporary, denying, {}, recorded.runner),
-			),
-		);
+		}).pipe(Effect.provide(domainKernelLayer(temporary, denying, {}, recorded.runner)));
 	}),
 );

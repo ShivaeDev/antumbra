@@ -35,9 +35,7 @@ export const selectDataDirectory = (input: DataDirectoryInput): string => {
 	return input.devOverride;
 };
 
-const devUserDataOverride = Config.string(DEV_USER_DATA_VARIABLE).pipe(
-	Config.withDefault(""),
-);
+const devUserDataOverride = Config.string(DEV_USER_DATA_VARIABLE).pipe(Config.withDefault(""));
 
 export const configureDataDirectory = (): string => {
 	const directory = selectDataDirectory({
@@ -58,9 +56,7 @@ export {
 } from "#adapters/data-paths.ts";
 
 export const persistenceMigrationsDirectory = (): string =>
-	app.isPackaged
-		? join(process.resourcesPath, "persistence", "migrations")
-		: join(import.meta.dirname, "persistence", "migrations");
+	app.isPackaged ? join(process.resourcesPath, "persistence", "migrations") : join(import.meta.dirname, "persistence", "migrations");
 
 export const quitWhenAllWindowsClosed = Effect.sync(() => {
 	app.on("window-all-closed", () => {
@@ -92,10 +88,7 @@ interface DesktopApplication {
 // why: a launch handed to the owner and a click on the menu bar are the same
 // request — the app the admiral already has, which is the console. Never
 // whichever detached window sorts first, and never a second console.
-export const focusOrOpenConsole = (
-	registry: ConsoleWindows,
-	openConsole: Effect.Effect<void>,
-) =>
+export const focusOrOpenConsole = (registry: ConsoleWindows, openConsole: Effect.Effect<void>) =>
 	Effect.gen(function* () {
 		const window = registry.consoleWindow()?.handle;
 		if (window === undefined) {
@@ -109,11 +102,7 @@ export const focusOrOpenConsole = (
 		window.focus();
 	});
 
-export const claimDesktopOwnership = (
-	application: DesktopApplication,
-	registry: ConsoleWindows,
-	openConsole: Effect.Effect<void>,
-) =>
+export const claimDesktopOwnership = (application: DesktopApplication, registry: ConsoleWindows, openConsole: Effect.Effect<void>) =>
 	Effect.sync(() => {
 		if (!application.requestSingleInstanceLock()) {
 			application.quit();
@@ -121,9 +110,7 @@ export const claimDesktopOwnership = (
 		}
 		application.onSecondInstance(() => {
 			focusOrOpenConsole(registry, openConsole).pipe(
-				Effect.catchCause((cause) =>
-					Effect.logError("second launch handoff failed", cause),
-				),
+				Effect.catchCause((cause) => Effect.logError("second launch handoff failed", cause)),
 				Effect.runFork,
 			);
 		});

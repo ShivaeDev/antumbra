@@ -10,10 +10,8 @@ import type { SessionPresence } from "@antumbra/vocabulary/agent-runtime";
 // stays open until something ends it, and a provider that never says a child
 // finished leaves one open for the life of the record; reading rows here would
 // mean a Session that once delegated could never rest again.
-export const sessionAtRest = (input: {
-	readonly delegating: boolean;
-	readonly presence: SessionPresence;
-}): boolean => input.presence === "idle" && !input.delegating;
+export const sessionAtRest = (input: { readonly delegating: boolean; readonly presence: SessionPresence }): boolean =>
+	input.presence === "idle" && !input.delegating;
 
 // why: retirement is the deliberate end of an identity and the only thing that
 // closes a subtree the record has stopped hearing from, so it answers to a
@@ -21,5 +19,4 @@ export const sessionAtRest = (input: {
 // make a stuck tree the one state with no way out — but ending an Agent
 // mid-turn is still severing work it is doing, so it stays hidden while the
 // Session is working and is offered in every other presence.
-export const sessionRetirable = (presence: SessionPresence): boolean =>
-	presence !== "working";
+export const sessionRetirable = (presence: SessionPresence): boolean => presence !== "working";

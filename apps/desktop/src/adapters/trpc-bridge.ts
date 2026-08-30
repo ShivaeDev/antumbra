@@ -1,24 +1,12 @@
-import {
-	type AppRouter,
-	TRPC_CHANNEL,
-	TrpcRequest,
-	type TrpcResponse,
-} from "@antumbra/contract";
+import { type AppRouter, TRPC_CHANNEL, TrpcRequest, type TrpcResponse } from "@antumbra/contract";
 import { callTRPCProcedure, getTRPCErrorFromUnknown } from "@trpc/server";
 import { Result, Schema } from "effect";
 import { ipcMain } from "electron";
-import type {
-	DocumentIpcEvent,
-	WindowRegistry,
-} from "#adapters/windows/registry.ts";
+import type { DocumentIpcEvent, WindowRegistry } from "#adapters/windows/registry.ts";
 
 const decodeRequest = Schema.decodeUnknownResult(TrpcRequest);
 
-const respond = async (
-	router: AppRouter,
-	windowId: string,
-	raw: unknown,
-): Promise<TrpcResponse> => {
+const respond = async (router: AppRouter, windowId: string, raw: unknown): Promise<TrpcResponse> => {
 	const decoded = decodeRequest(raw);
 	if (Result.isFailure(decoded)) {
 		return {
@@ -61,12 +49,7 @@ export const makeTrpcBridgeHandler =
 		return execute(record.id, raw);
 	};
 
-export const registerTrpcBridge = (
-	router: AppRouter,
-	registry: WindowRegistry,
-): void => {
-	const handler = makeTrpcBridgeHandler(registry, (windowId, raw) =>
-		respond(router, windowId, raw),
-	);
+export const registerTrpcBridge = (router: AppRouter, registry: WindowRegistry): void => {
+	const handler = makeTrpcBridgeHandler(registry, (windowId, raw) => respond(router, windowId, raw));
 	ipcMain.handle(TRPC_CHANNEL, handler);
 };

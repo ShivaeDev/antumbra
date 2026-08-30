@@ -1,10 +1,6 @@
 import { Database } from "@antumbra/persistence";
 import { Effect, Option } from "effect";
-import {
-	storedAgentMatches,
-	storedBerthsMatch,
-	storedResourcesMatch,
-} from "#spawn-activated-match.ts";
+import { storedAgentMatches, storedBerthsMatch, storedResourcesMatch } from "#spawn-activated-match.ts";
 import type { SpawnFields } from "#spawn-fields.ts";
 
 export const makeIsActivatedBirth = Effect.gen(function* () {
@@ -57,21 +53,11 @@ export const makeIsActivatedBirth = Effect.gen(function* () {
 			voyageId: payload.voyageId,
 		})
 			.first()
-			.pipe(
-				Effect.map((voyage) =>
-					Option.isSome(voyage) ? voyage.value.role === payload.role : false,
-				),
-			);
+			.pipe(Effect.map((voyage) => (Option.isSome(voyage) ? voyage.value.role === payload.role : false)));
 	};
 	return (payload: SpawnFields) =>
 		Effect.all(
-			[
-				agentMatches(payload),
-				resourcesMatch(payload),
-				berthsMatch(payload),
-				pieceAssignmentMatches(payload),
-				voyageAssignmentMatches(payload),
-			],
+			[agentMatches(payload), resourcesMatch(payload), berthsMatch(payload), pieceAssignmentMatches(payload), voyageAssignmentMatches(payload)],
 			{ concurrency: 1 },
 		).pipe(Effect.map((matches) => matches.every(Boolean)));
 });

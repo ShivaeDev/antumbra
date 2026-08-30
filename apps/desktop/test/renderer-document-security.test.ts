@@ -44,10 +44,7 @@ it.effect("allows only the exact dev launcher document", () =>
 		}
 
 		const duplicate = yield* selectRendererDocument({
-			arguments: [
-				"--renderer-url=http://localhost:5183",
-				"--renderer-url=http://localhost:5183",
-			],
+			arguments: ["--renderer-url=http://localhost:5183", "--renderer-url=http://localhost:5183"],
 			bundled,
 			isPackaged: false,
 		}).pipe(Effect.flip);

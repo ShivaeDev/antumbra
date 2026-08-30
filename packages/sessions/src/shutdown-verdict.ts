@@ -6,11 +6,7 @@ import { SessionShutdownIncomplete } from "#shutdown.ts";
 // that failed, was cancelled, or vanished from the table each leave a Session
 // that was told to finish and did not, so the quit says so rather than closing
 // over the difference.
-export const requireSiestaSucceeded = (
-	intentId: string,
-	sessionId: string,
-	status: Option.Option<IntentStatus>,
-) =>
+export const requireSiestaSucceeded = (intentId: string, sessionId: string, status: Option.Option<IntentStatus>) =>
 	Option.match(status, {
 		onNone: () =>
 			Effect.fail(

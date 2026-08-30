@@ -1,17 +1,8 @@
-import type {
-	AgentBackend,
-	BackendFailure,
-	OpenSessionOptions,
-	SessionInput,
-} from "@antumbra/plugin-api";
+import type { AgentBackend, BackendFailure, OpenSessionOptions, SessionInput } from "@antumbra/plugin-api";
 import { Clock, Effect, Exit, Ref, Semaphore } from "effect";
 import type { SessionAttachmentFailure } from "#errors.ts";
 import { SessionNotLive } from "#errors.ts";
-import {
-	type EventSink,
-	openSessionAttachment,
-	type SessionAttachment,
-} from "#session-attachment.ts";
+import { type EventSink, openSessionAttachment, type SessionAttachment } from "#session-attachment.ts";
 import { makeSessionAttachmentEntries } from "#session-attachment-entries.ts";
 import { occupancyRefusal } from "#session-attachment-occupancy.ts";
 import type { SessionTurnEnding, SessionTurnMark } from "#session-turn.ts";
@@ -27,53 +18,29 @@ export interface SessionAttachmentRegistry {
 	readonly attached: Effect.Effect<ReadonlySet<string>>;
 	readonly holds: (sessionId: string) => Effect.Effect<boolean>;
 	readonly idleSince: Effect.Effect<ReadonlyMap<string, number>>;
-	readonly interrupt: (
-		sessionId: string,
-	) => Effect.Effect<void, BackendFailure | SessionNotLive>;
-	readonly send: (
-		sessionId: string,
-		input: SessionInput,
-	) => Effect.Effect<void, BackendFailure | SessionNotLive>;
+	readonly interrupt: (sessionId: string) => Effect.Effect<void, BackendFailure | SessionNotLive>;
+	readonly send: (sessionId: string, input: SessionInput) => Effect.Effect<void, BackendFailure | SessionNotLive>;
 	readonly standDown: (sessionId: string) => Effect.Effect<void>;
 	readonly stop: (sessionId: string) => Effect.Effect<void>;
 	readonly stopIdle: (sessionId: string) => Effect.Effect<boolean>;
-	readonly turnEnded: (
-		sessionId: string,
-		mark: SessionTurnMark | undefined,
-	) => Effect.Effect<SessionTurnEnding>;
-	readonly turnMark: (
-		sessionId: string,
-	) => Effect.Effect<SessionTurnMark | undefined>;
+	readonly turnEnded: (sessionId: string, mark: SessionTurnMark | undefined) => Effect.Effect<SessionTurnEnding>;
+	readonly turnMark: (sessionId: string) => Effect.Effect<SessionTurnMark | undefined>;
 }
 
 export const makeSessionAttachmentRegistry = Effect.gen(function* () {
 	const entries = yield* makeSessionAttachmentEntries;
-	const agentGates = yield* Ref.make<ReadonlyMap<string, Semaphore.Semaphore>>(
-		new Map(),
-	);
+	const agentGates = yield* Ref.make<ReadonlyMap<string, Semaphore.Semaphore>>(new Map());
 	const gateFor = (agentId: string) =>
 		Effect.gen(function* () {
 			const candidate = yield* Semaphore.make(1);
 			return yield* Ref.modify(agentGates, (current) => {
 				const existing = current.get(agentId);
-				return existing === undefined
-					? [candidate, new Map(current).set(agentId, candidate)]
-					: [existing, current];
+				return existing === undefined ? [candidate, new Map(current).set(agentId, candidate)] : [existing, current];
 			});
 		});
-	const remove = (sessionId: string) =>
-		entries.take(sessionId, () => true).pipe(Effect.asVoid);
-	const removeOwned = (agentId: string, sessionId: string) =>
-		entries
-			.take(sessionId, (entry) => entry.agentId === agentId)
-			.pipe(Effect.asVoid);
-	const attach: SessionAttachmentRegistry["attach"] = (
-		agentId,
-		backend,
-		options,
-		sink,
-		admit,
-	) =>
+	const remove = (sessionId: string) => entries.take(sessionId, () => true).pipe(Effect.asVoid);
+	const removeOwned = (agentId: string, sessionId: string) => entries.take(sessionId, (entry) => entry.agentId === agentId).pipe(Effect.asVoid);
+	const attach: SessionAttachmentRegistry["attach"] = (agentId, backend, options, sink, admit) =>
 		Effect.gen(function* () {
 			const gate = yield* gateFor(agentId);
 			yield* gate.withPermits(1)(
@@ -94,50 +61,33 @@ export const makeSessionAttachmentRegistry = Effect.gen(function* () {
 						});
 					}
 					yield* admit(attachment);
-				}).pipe(
-					Effect.onExit((exit) =>
-						Exit.isFailure(exit)
-							? removeOwned(agentId, options.sessionId)
-							: Effect.void,
-					),
-				),
+				}).pipe(Effect.onExit((exit) => (Exit.isFailure(exit) ? removeOwned(agentId, options.sessionId) : Effect.void))),
 			);
 		});
 	const liveHandle = (sessionId: string) =>
 		Effect.gen(function* () {
 			const entry = (yield* entries.snapshot).get(sessionId);
-			return entry === undefined
-				? yield* new SessionNotLive({ sessionId })
-				: entry.attachment.handle;
+			return entry === undefined ? yield* new SessionNotLive({ sessionId }) : entry.attachment.handle;
 		});
 	// why: words arriving are the end of having nothing to do, and clearing the
 	// mark before the handle is read is what stops a reclaim that had already
 	// chosen this Session from taking the attachment out from under them.
-	const rousingHandle = (sessionId: string) =>
-		entries.rouse(sessionId).pipe(Effect.andThen(liveHandle(sessionId)));
+	const rousingHandle = (sessionId: string) => entries.rouse(sessionId).pipe(Effect.andThen(liveHandle(sessionId)));
 	return {
 		attach,
 		attached: entries.attached,
 		holds: entries.holds,
 		idleSince: entries.idleSince,
-		interrupt: (sessionId) =>
-			liveHandle(sessionId).pipe(Effect.flatMap((handle) => handle.interrupt)),
+		interrupt: (sessionId) => liveHandle(sessionId).pipe(Effect.flatMap((handle) => handle.interrupt)),
 		send: (sessionId, input) =>
 			rousingHandle(sessionId).pipe(
 				Effect.flatMap((handle) => handle.queue(input)),
 				Effect.annotateSpans({ sessionId }),
 			),
-		standDown: (sessionId) =>
-			Effect.flatMap(Clock.currentTimeMillis, (now) =>
-				entries.rest(sessionId, now),
-			),
+		standDown: (sessionId) => Effect.flatMap(Clock.currentTimeMillis, (now) => entries.rest(sessionId, now)),
 		stop: remove,
-		stopIdle: (sessionId) =>
-			entries.take(sessionId, (entry) => entry.idleSince !== undefined),
-		turnEnded: (sessionId, mark) =>
-			Effect.flatMap(Clock.currentTimeMillis, (now) =>
-				entries.endTurn(sessionId, now, mark),
-			),
+		stopIdle: (sessionId) => entries.take(sessionId, (entry) => entry.idleSince !== undefined),
+		turnEnded: (sessionId, mark) => Effect.flatMap(Clock.currentTimeMillis, (now) => entries.endTurn(sessionId, now, mark)),
 		turnMark: entries.turnMark,
 	} satisfies SessionAttachmentRegistry;
 });

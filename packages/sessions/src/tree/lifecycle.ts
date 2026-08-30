@@ -2,14 +2,7 @@ import { SessionEventJournal } from "@antumbra/session-event-journal";
 import type { AgentEvent } from "@antumbra/vocabulary/session-events";
 import { Clock, Effect, Option, Ref } from "effect";
 import { makeSessionTreeAdoption } from "#tree/adoption.ts";
-import {
-	originOf,
-	type SessionTree,
-	spawnerOf,
-	type TreeNode,
-	withClosed,
-	withNode,
-} from "#tree/attribution.ts";
+import { originOf, type SessionTree, spawnerOf, type TreeNode, withClosed, withNode } from "#tree/attribution.ts";
 import { makeSessionTreeJournaling } from "#tree/journaling.ts";
 import { makeSessionTreeRows } from "#tree/rows.ts";
 
@@ -40,9 +33,7 @@ export const makeSessionTreeLifecycle = Effect.gen(function* () {
 		// one node rather than a second one. Nothing is journaled twice; only a
 		// name the row is still missing is taken from it.
 		const nameNode = (node: TreeNode, opened: SubsessionOpened) =>
-			opened.label === undefined
-				? Effect.succeed(true)
-				: rows.nameNode(node.sessionId, opened.label).pipe(Effect.as(true));
+			opened.label === undefined ? Effect.succeed(true) : rows.nameNode(node.sessionId, opened.label).pipe(Effect.as(true));
 		// why: a node this tree admitted for itself is being announced for the
 		// first time, which says both where it belongs and what it is — the two
 		// facts the admission had to do without.
@@ -60,11 +51,7 @@ export const makeSessionTreeLifecycle = Effect.gen(function* () {
 				if (Option.isNone(root)) {
 					return false;
 				}
-				const spawnerSessionId = spawnerOf(
-					yield* Ref.get(tree),
-					opened,
-					rootSessionId,
-				);
+				const spawnerSessionId = spawnerOf(yield* Ref.get(tree), opened, rootSessionId);
 				const node: TreeNode = {
 					announced: true,
 					openedAt: yield* Clock.currentTimeMillis,
@@ -98,14 +85,8 @@ export const makeSessionTreeLifecycle = Effect.gen(function* () {
 				if (known !== undefined) {
 					return yield* announce(known, opened);
 				}
-				const durable = yield* adopting.reopen(
-					opened.subsessionRef,
-					opened.spawnedBy,
-					opened,
-				);
-				return durable === undefined
-					? yield* mint(opened)
-					: yield* announce(durable, opened);
+				const durable = yield* adopting.reopen(opened.subsessionRef, opened.spawnedBy, opened);
+				return durable === undefined ? yield* mint(opened) : yield* announce(durable, opened);
 			});
 		const closeNode = (ended: SubsessionEnded) =>
 			Effect.gen(function* () {
@@ -128,9 +109,7 @@ export const makeSessionTreeLifecycle = Effect.gen(function* () {
 		// misfiled. A frame that names no node at all is the root's own.
 		const admitNode = (event: AgentEvent) => {
 			const origin = originOf(event);
-			return origin === undefined || origin.node === undefined
-				? Effect.succeed(undefined)
-				: adopting.admit(origin, event);
+			return origin === undefined || origin.node === undefined ? Effect.succeed(undefined) : adopting.admit(origin, event);
 		};
 		return { admitNode, closeNode, openNode, recordOn: journaling.recordOn };
 	};

@@ -1,9 +1,5 @@
 import { pushBranch } from "@antumbra/git";
-import type {
-	ChangeHostBerth,
-	ChangeHostError,
-	OpenChangeRequest,
-} from "@antumbra/plugin-api";
+import type { ChangeHostBerth, ChangeHostError, OpenChangeRequest } from "@antumbra/plugin-api";
 import { Effect, Option } from "effect";
 import { runGh } from "#command.ts";
 import { type GhError, GhOutputInvalid } from "#errors.ts";
@@ -20,10 +16,7 @@ const slug = (repo: GitHubRepoName): string => `${repo.owner}/${repo.name}`;
 // why: title and body travel as ordinary arguments because gh is spawned
 // directly, with no shell between us and it — a multi-line body needs no
 // quoting and no temp file dropped into the agent's berth.
-const createArgs = (
-	repo: GitHubRepoName,
-	request: OpenChangeRequest,
-): ReadonlyArray<string> => [
+const createArgs = (repo: GitHubRepoName, request: OpenChangeRequest): ReadonlyArray<string> => [
 	"pr",
 	"create",
 	"--repo",
@@ -49,26 +42,16 @@ const urlNumber = (stdout: string): Option.Option<number> => {
 	return Option.map(parsePullUrl(line), (ref) => ref.number);
 };
 
-const alreadyOpen = (
-	failure: GhError,
-): Effect.Effect<Option.Option<number>, GhError> =>
-	failure._tag === "GhCommandFailed" &&
-	failure.detail.toLowerCase().includes(ALREADY_EXISTS)
-		? Effect.succeed(Option.none())
-		: Effect.fail(failure);
+const alreadyOpen = (failure: GhError): Effect.Effect<Option.Option<number>, GhError> =>
+	failure._tag === "GhCommandFailed" && failure.detail.toLowerCase().includes(ALREADY_EXISTS) ? Effect.succeed(Option.none()) : Effect.fail(failure);
 
-const recoverAlreadyOpen = (
-	executable: string,
-	repo: GitHubRepoName,
-	branch: string,
-) =>
+const recoverAlreadyOpen = (executable: string, repo: GitHubRepoName, branch: string) =>
 	findPull(executable, repo, branch).pipe(
 		Effect.flatMap(
 			Option.match({
 				onNone: () =>
 					new GhOutputInvalid({
-						detail:
-							"GitHub reported an existing pull request but branch lookup found none",
+						detail: "GitHub reported an existing pull request but branch lookup found none",
 						operation: "find-change",
 					}),
 				onSome: Effect.succeed,
@@ -76,11 +59,7 @@ const recoverAlreadyOpen = (
 		),
 	);
 
-const createMissingPull = (
-	executable: string,
-	repo: GitHubRepoName,
-	request: OpenChangeRequest,
-) =>
+const createMissingPull = (executable: string, repo: GitHubRepoName, request: OpenChangeRequest) =>
 	runGh({
 		args: createArgs(repo, request),
 		cwd: request.berth.path,
@@ -92,18 +71,13 @@ const createMissingPull = (
 		Effect.catch(alreadyOpen),
 		Effect.flatMap(
 			Option.match({
-				onNone: () =>
-					recoverAlreadyOpen(executable, repo, request.berth.branch),
+				onNone: () => recoverAlreadyOpen(executable, repo, request.berth.branch),
 				onSome: Effect.succeed,
 			}),
 		),
 	);
 
-export const createPull = (
-	executable: string,
-	repo: GitHubRepoName,
-	request: OpenChangeRequest,
-): Effect.Effect<number, GhError> =>
+export const createPull = (executable: string, repo: GitHubRepoName, request: OpenChangeRequest): Effect.Effect<number, GhError> =>
 	onThisMachine(
 		findPull(executable, repo, request.berth.branch).pipe(
 			Effect.flatMap(
@@ -115,10 +89,5 @@ export const createPull = (
 		),
 	);
 
-export const pushWorkBranch = (
-	berth: ChangeHostBerth,
-	preparedHeadSha: string,
-): Effect.Effect<void, ChangeHostError> =>
-	onThisMachine(pushBranch(berth.path, berth.branch, preparedHeadSha)).pipe(
-		Effect.mapError(toPushRefusal),
-	);
+export const pushWorkBranch = (berth: ChangeHostBerth, preparedHeadSha: string): Effect.Effect<void, ChangeHostError> =>
+	onThisMachine(pushBranch(berth.path, berth.branch, preparedHeadSha)).pipe(Effect.mapError(toPushRefusal));

@@ -1,34 +1,16 @@
-import {
-	type IntentStatus,
-	isTerminalIntentStatus,
-	Kernel,
-} from "@antumbra/kernel";
+import { type IntentStatus, isTerminalIntentStatus, Kernel } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
-import {
-	type AgentBackend,
-	BackendFailure,
-	type Runner,
-} from "@antumbra/plugin-api";
+import { type AgentBackend, BackendFailure, type Runner } from "@antumbra/plugin-api";
 import { expect, it } from "@effect/vitest";
 import { Deferred, Effect, Option, Stream } from "effect";
 import { AGENTS_ALIVE_GAUGE, AgentDomain } from "#domain.ts";
 import type { RetireFields, SpawnFields } from "#index.ts";
 import { domainKernelLayer } from "#test/domain-layers.ts";
-import {
-	acquireTemporaryPersistence,
-	makeScriptedBackend,
-	makeScriptedRunner,
-	rawOf,
-	standDown,
-} from "#test/harness.ts";
+import { acquireTemporaryPersistence, makeScriptedBackend, makeScriptedRunner, rawOf, standDown } from "#test/harness.ts";
 import { eventually } from "#test/voyage-fixtures.ts";
 
 const untilTerminal = <E, R>(changes: Stream.Stream<IntentStatus, E, R>) =>
-	changes.pipe(
-		Stream.takeUntil(isTerminalIntentStatus),
-		Stream.runLast,
-		Effect.map(Option.getOrThrow),
-	);
+	changes.pipe(Stream.takeUntil(isTerminalIntentStatus), Stream.runLast, Effect.map(Option.getOrThrow));
 
 const submitSpawn = (payload: SpawnFields) =>
 	Effect.gen(function* () {
@@ -92,16 +74,11 @@ it.live("spawn brings an agent alive, chartered, with events flowing", () =>
 					const events = yield* db.SessionEvent.where({
 						sessionId: "session-a",
 					}).all();
-					expect(events.map((event) => event.kind)).toEqual([
-						"session.opened",
-						"message",
-					]);
+					expect(events.map((event) => event.kind)).toEqual(["session.opened", "message"]);
 					const session = yield* db.AgentSession.where({
 						id: "session-a",
 					}).first();
-					expect(Option.getOrThrow(session).nativeRef).toBe(
-						"provider-thread-1",
-					);
+					expect(Option.getOrThrow(session).nativeRef).toBe("provider-thread-1");
 					expect(Option.getOrThrow(session).backend).toBe("scripted");
 				}),
 			);
@@ -119,10 +96,7 @@ it.live("spawn stays spawning until its moorage and session exist", () =>
 		const runner: Runner = {
 			...recorded.runner,
 			provision: (plan) =>
-				Deferred.succeed(provisioning, undefined).pipe(
-					Effect.andThen(Deferred.await(release)),
-					Effect.andThen(recorded.runner.provision(plan)),
-				),
+				Deferred.succeed(provisioning, undefined).pipe(Effect.andThen(Deferred.await(release)), Effect.andThen(recorded.runner.provision(plan))),
 		};
 		yield* Effect.gen(function* () {
 			const db = yield* Database;
@@ -132,10 +106,7 @@ it.live("spawn stays spawning until its moorage and session exist", () =>
 				defaultRef: "main",
 				source: "/somewhere/phase",
 			});
-			const submission = yield* kernel.submit(
-				domain.spawn,
-				spawnPayload("phase"),
-			);
+			const submission = yield* kernel.submit(domain.spawn, spawnPayload("phase"));
 			yield* Deferred.await(provisioning);
 			const pending = yield* db.Agent.where({ id: "agent-phase" }).first();
 			expect(Option.getOrThrow(pending)).toMatchObject({
@@ -152,28 +123,14 @@ it.live("spawn stays spawning until its moorage and session exist", () =>
 			const plannedBerths = yield* db.Berth.where({
 				agentId: "agent-phase",
 			}).all();
-			expect(plannedBerths).toMatchObject([
-				{ ref: "main", source: "/somewhere/phase", status: "provisioning" },
-			]);
-			expect(
-				Option.isNone(
-					yield* db.AgentSession.where({ id: "session-phase" }).first(),
-				),
-			).toBe(true);
+			expect(plannedBerths).toMatchObject([{ ref: "main", source: "/somewhere/phase", status: "provisioning" }]);
+			expect(Option.isNone(yield* db.AgentSession.where({ id: "session-phase" }).first())).toBe(true);
 			yield* Deferred.succeed(release, undefined);
 			expect(yield* untilTerminal(submission.changes)).toBe("succeeded");
 			const alive = yield* db.Agent.where({ id: "agent-phase" }).first();
 			expect(Option.getOrThrow(alive).status).toBe("alive");
-			expect(
-				Option.getOrThrow(
-					yield* db.Moorage.where({ agentId: "agent-phase" }).first(),
-				).status,
-			).toBe("ready");
-		}).pipe(
-			Effect.provide(
-				domainKernelLayer(temporary, scripted.backend, {}, runner),
-			),
-		);
+			expect(Option.getOrThrow(yield* db.Moorage.where({ agentId: "agent-phase" }).first()).status).toBe("ready");
+		}).pipe(Effect.provide(domainKernelLayer(temporary, scripted.backend, {}, runner)));
 	}),
 );
 
@@ -184,10 +141,7 @@ it.live("a failed spawn becomes dormant without hiding its failure", () =>
 		const recorded = yield* makeScriptedRunner;
 		const backend: AgentBackend = {
 			...scripted.backend,
-			openSession: () =>
-				Effect.fail(
-					new BackendFailure({ detail: "open denied", tag: "scripted" }),
-				),
+			openSession: () => Effect.fail(new BackendFailure({ detail: "open denied", tag: "scripted" })),
 		};
 		yield* Effect.gen(function* () {
 			const db = yield* Database;
@@ -197,10 +151,7 @@ it.live("a failed spawn becomes dormant without hiding its failure", () =>
 				defaultRef: "main",
 				source: "/somewhere/repo",
 			});
-			const submission = yield* kernel.submit(
-				domain.spawn,
-				spawnPayload("failed"),
-			);
+			const submission = yield* kernel.submit(domain.spawn, spawnPayload("failed"));
 			expect(yield* untilTerminal(submission.changes)).toBe("failed");
 			const agent = yield* db.Agent.where({ id: "agent-failed" }).first();
 			expect(Option.getOrThrow(agent)).toMatchObject({
@@ -215,11 +166,7 @@ it.live("a failed spawn becomes dormant without hiding its failure", () =>
 			expect(berths.map((berth) => berth.status)).toEqual(["ready"]);
 			const intent = yield* db.Intent.where({ id: submission.id }).first();
 			expect(Option.getOrThrow(intent).detail).toContain("open denied");
-		}).pipe(
-			Effect.provide(
-				domainKernelLayer(temporary, backend, {}, recorded.runner),
-			),
-		);
+		}).pipe(Effect.provide(domainKernelLayer(temporary, backend, {}, recorded.runner)));
 	}),
 );
 

@@ -1,10 +1,6 @@
 import { ChangeHeldResourceReadLive } from "@antumbra/changes";
 import type { AgentBackend, ChangeHost, Runner } from "@antumbra/plugin-api";
-import {
-	ResourceReclaimRunnersLive,
-	type ResourceReconcileOptions,
-	ResourceReconcilerLive,
-} from "@antumbra/resource-reclamation";
+import { ResourceReclaimRunnersLive, type ResourceReconcileOptions, ResourceReconcilerLive } from "@antumbra/resource-reclamation";
 import { SessionFabricLive } from "@antumbra/session-fabric";
 import { SessionInputsLive } from "@antumbra/session-inputs";
 import { LiveDelegationsLive } from "@antumbra/sessions";
@@ -25,21 +21,14 @@ export const AgentDomainLive = (
 	sessionInputsDirectory: string,
 	reclaimOptions: Partial<ResourceReconcileOptions> = {},
 ) => {
-	const capabilities = domainCapabilities(
-		changeHosts,
-		runners,
-		artifactsDirectory,
-	);
+	const capabilities = domainCapabilities(changeHosts, runners, artifactsDirectory);
 	return Layer.effect(AgentDomain)(makeAgentDomain(backends, runners)).pipe(
 		// why: one registry for the whole domain, not one per sink — the readers
 		// that ask which trees are delegating are nowhere near the streams that
 		// answer, so the Layer is what makes it the same set on both sides.
 		Layer.provide(LiveDelegationsLive),
 		Layer.provide(
-			ResourceReconcilerLive(reclaimOptions).pipe(
-				Layer.provide(ChangeHeldResourceReadLive),
-				Layer.provide(ResourceReclaimRunnersLive(runners)),
-			),
+			ResourceReconcilerLive(reclaimOptions).pipe(Layer.provide(ChangeHeldResourceReadLive), Layer.provide(ResourceReclaimRunnersLive(runners))),
 		),
 		Layer.provideMerge(capabilities),
 		// why: the fabric stands under the capabilities as well as over them —

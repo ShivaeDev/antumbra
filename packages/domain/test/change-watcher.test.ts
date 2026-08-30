@@ -16,21 +16,11 @@ import {
 	sessionFor,
 } from "#test/harness.ts";
 import { makeScriptedHost, type ScriptedHost } from "#test/scripted-host.ts";
-import {
-	assignedPieces,
-	eventually,
-	openReefVoyage,
-	standDownAll,
-	stateOf,
-} from "#test/voyage-fixtures.ts";
+import { assignedPieces, eventually, openReefVoyage, standDownAll, stateOf } from "#test/voyage-fixtures.ts";
 
 const CREW = "agent-crew";
 
-const cadence = (
-	hotMillis: number,
-	warmMillis: number,
-	coldMillis: number,
-): ObserveCadenceOptions => ({
+const cadence = (hotMillis: number, warmMillis: number, coldMillis: number): ObserveCadenceOptions => ({
 	coldMillis,
 	hotMillis,
 	hotWindowMillis: 0,
@@ -47,13 +37,7 @@ const BRISK = cadence(50, 50, 60_000);
 // warm one rather than a quarter of an hour.
 const FALTERING = cadence(20, 20, 80);
 
-const watched = <A, E, R>(
-	cadence: ObserveCadenceOptions,
-	body: (
-		scripted: ScriptedHost,
-		backend: ScriptedBackend,
-	) => Effect.Effect<A, E, R>,
-) =>
+const watched = <A, E, R>(cadence: ObserveCadenceOptions, body: (scripted: ScriptedHost, backend: ScriptedBackend) => Effect.Effect<A, E, R>) =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
 		const backend = yield* makeScriptedBackend;
@@ -61,14 +45,7 @@ const watched = <A, E, R>(
 		const host = yield* makeScriptedHost();
 		yield* body(host, backend).pipe(
 			Effect.provide(
-				watchingLayer(
-					temporary,
-					backend.backend,
-					cadence,
-					changeHostsOf(host.host),
-					{ maxAlive: 4, patienceMillis: 50 },
-					recorder.runner,
-				),
+				watchingLayer(temporary, backend.backend, cadence, changeHostsOf(host.host), { maxAlive: 4, patienceMillis: 50 }, recorder.runner),
 			),
 		);
 	});
@@ -88,8 +65,7 @@ const openedChange = (pieceId: string, repoName: string) =>
 		});
 	});
 
-const passes = (scripted: ScriptedHost) =>
-	Effect.map(scripted.drive.asked, (asked) => asked.length);
+const passes = (scripted: ScriptedHost) => Effect.map(scripted.drive.asked, (asked) => asked.length);
 
 const settled = (scripted: ScriptedHost) =>
 	Effect.gen(function* () {
@@ -108,11 +84,7 @@ const askedMoreThan = (scripted: ScriptedHost, count: number) =>
 		),
 	);
 
-const hearsTheLanding = (
-	scripted: ScriptedHost,
-	repoId: string,
-	delayMillis: number,
-) =>
+const hearsTheLanding = (scripted: ScriptedHost, repoId: string, delayMillis: number) =>
 	Effect.gen(function* () {
 		const domain = yield* AgentDomain;
 		yield* scripted.drive.refuse(null);
@@ -121,9 +93,7 @@ const hearsTheLanding = (
 		yield* TestClock.withLive(
 			eventually(
 				Effect.gen(function* () {
-					expect(
-						(yield* domain.changes.watchableChanges("scripted")).length,
-					).toBe(0);
+					expect((yield* domain.changes.watchableChanges("scripted")).length).toBe(0);
 				}),
 			),
 		);
@@ -231,9 +201,7 @@ const crewOn = (backend: ScriptedBackend, pieceId: string) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
 		const row = (yield* db.PieceAgent.where({ pieceId }).all())[0];
-		return row === undefined
-			? yield* Effect.fail("no crew yet")
-			: yield* sessionFor(backend, row.agentId);
+		return row === undefined ? yield* Effect.fail("no crew yet") : yield* sessionFor(backend, row.agentId);
 	});
 
 // why: the whole page with nobody driving it — a crew opens a change through

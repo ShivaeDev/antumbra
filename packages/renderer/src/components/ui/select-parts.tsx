@@ -2,14 +2,9 @@ import * as SelectPrimitive from "@radix-ui/react-select";
 import { CheckIcon, ChevronDownIcon, ChevronUpIcon } from "lucide-react";
 import { cn } from "#lib/utils.ts";
 
-const scrollButton =
-	"flex cursor-default items-center justify-center py-0.5 text-muted-foreground [&_svg]:size-3.5";
+const scrollButton = "flex cursor-default items-center justify-center py-0.5 text-muted-foreground [&_svg]:size-3.5";
 
-export const SelectItem = ({
-	children,
-	className,
-	...props
-}: React.ComponentProps<typeof SelectPrimitive.Item>) => (
+export const SelectItem = ({ children, className, ...props }: React.ComponentProps<typeof SelectPrimitive.Item>) => (
 	<SelectPrimitive.Item
 		className={cn(
 			"relative flex w-full cursor-default select-none items-center gap-1.5 rounded-sm py-1 pr-7 pl-2 text-xs outline-none",
@@ -29,28 +24,14 @@ export const SelectItem = ({
 	</SelectPrimitive.Item>
 );
 
-export const SelectScrollUpButton = ({
-	className,
-	...props
-}: React.ComponentProps<typeof SelectPrimitive.ScrollUpButton>) => (
-	<SelectPrimitive.ScrollUpButton
-		className={cn(scrollButton, className)}
-		data-slot="select-scroll-up-button"
-		{...props}
-	>
+export const SelectScrollUpButton = ({ className, ...props }: React.ComponentProps<typeof SelectPrimitive.ScrollUpButton>) => (
+	<SelectPrimitive.ScrollUpButton className={cn(scrollButton, className)} data-slot="select-scroll-up-button" {...props}>
 		<ChevronUpIcon />
 	</SelectPrimitive.ScrollUpButton>
 );
 
-export const SelectScrollDownButton = ({
-	className,
-	...props
-}: React.ComponentProps<typeof SelectPrimitive.ScrollDownButton>) => (
-	<SelectPrimitive.ScrollDownButton
-		className={cn(scrollButton, className)}
-		data-slot="select-scroll-down-button"
-		{...props}
-	>
+export const SelectScrollDownButton = ({ className, ...props }: React.ComponentProps<typeof SelectPrimitive.ScrollDownButton>) => (
+	<SelectPrimitive.ScrollDownButton className={cn(scrollButton, className)} data-slot="select-scroll-down-button" {...props}>
 		<ChevronDownIcon />
 	</SelectPrimitive.ScrollDownButton>
 );

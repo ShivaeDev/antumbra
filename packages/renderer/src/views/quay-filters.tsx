@@ -19,16 +19,11 @@ export const QuayFilterControls = ({
 	<div className="flex flex-col gap-2 border-border border-b p-3">
 		<label className="relative block" htmlFor="quay-search">
 			<span className="sr-only">Search pull requests</span>
-			<Search
-				aria-hidden="true"
-				className="absolute top-1/2 left-2 size-3.5 -translate-y-1/2 text-muted-foreground"
-			/>
+			<Search aria-hidden="true" className="absolute top-1/2 left-2 size-3.5 -translate-y-1/2 text-muted-foreground" />
 			<Input
 				className="pl-7"
 				id="quay-search"
-				onChange={(event) =>
-					onFilters({ ...filters, query: event.target.value })
-				}
+				onChange={(event) => onFilters({ ...filters, query: event.target.value })}
 				placeholder="Search title, number or work…"
 				type="search"
 				value={filters.query}
@@ -60,8 +55,7 @@ export const QuayFilterControls = ({
 				<select
 					className={SELECT}
 					onChange={(event) => {
-						const repositoryId =
-							event.target.value === "all" ? null : event.target.value;
+						const repositoryId = event.target.value === "all" ? null : event.target.value;
 						onFilters({ ...filters, repositoryId });
 					}}
 					value={filters.repositoryId ?? "all"}

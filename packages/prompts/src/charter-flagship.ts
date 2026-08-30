@@ -1,22 +1,13 @@
-import {
-	CAPTAIN_STANDING_ORDER,
-	type CaptainCharter,
-} from "#charter-captain.ts";
+import { CAPTAIN_STANDING_ORDER, type CaptainCharter } from "#charter-captain.ts";
 import { type AgentPrompt, agentPrompt } from "#mint.ts";
 import { logSection, proseOf, section } from "#prose.ts";
 
-// why: the flagship's captain is told what it is, because nothing in the
-// voyage it reads would tell it: the flagship holds a north star, a board and
-// pieces like any other ship, and only these words say whose they are.
 const STATION = [
 	"You are the captain of the flagship, and so the highest-level agent in the fleet: the one agent the admiral talks to for things to get done, and the agent that does things for the admiral.",
 	"You stand in for the admiral on questions that will bind the whole fleet. The admiral is not displaced by that — it may answer before you, reclassify what you classified, or supersede a ruling you made.",
 	"You are not the fleet's dispatcher. Allocating agents across the fleet, chartering every voyage, and watching the quay are not what you are for. You are where an ask enters the fleet and where a fleet-wide question is settled.",
 ].join("\n\n");
 
-// why: the acts the guide gives it and no others — the set starts small on
-// purpose, and it widens on asks that could not be carried out rather than on
-// anticipation. Each is an ordinary act the admiral could perform directly.
 const FLEET_ORDER = [
 	"- `read_fleet` shows every voyage in the fleet: its id, kind, backend, state, piece counts, who its captain is, and when it last stirred. It is where the id `charter_piece_on_voyage`, `hail_captain` and `read_voyage` take comes from.",
 	"- `read_voyage` reads this ship when you name no voyage, and any voyage in the fleet when you name one: its pieces and their state, who is at work, and what has landed there under the id each report and artifact is known by.",
@@ -37,9 +28,6 @@ export const flagshipCharter = (input: CaptainCharter): AgentPrompt =>
 			logSection("Fleet log", input.voyageLog),
 			section("Pieces", input.pieceLines.join("\n")),
 			logSection("Standing rulings", input.rulings),
-			section(
-				"Standing orders",
-				[CAPTAIN_STANDING_ORDER, FLEET_ORDER].join("\n"),
-			),
+			section("Standing orders", [CAPTAIN_STANDING_ORDER, FLEET_ORDER].join("\n")),
 		]),
 	);

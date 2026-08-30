@@ -4,14 +4,8 @@ import { Database } from "@antumbra/persistence";
 import { Rulings } from "@antumbra/rulings";
 import { expect, it } from "@effect/vitest";
 import { Effect, Option } from "effect";
-import {
-	domainCapabilityLayer,
-	domainKernelLayer,
-} from "#test/domain-layers.ts";
-import {
-	acquireTemporaryPersistence,
-	makeScriptedBackend,
-} from "#test/harness.ts";
+import { domainCapabilityLayer, domainKernelLayer } from "#test/domain-layers.ts";
+import { acquireTemporaryPersistence, makeScriptedBackend } from "#test/harness.ts";
 import { eventually } from "#test/voyage-fixtures.ts";
 
 const ASKER = "agent-asker";
@@ -71,10 +65,7 @@ it.live("an answer reaches its asker as one priority mail", () =>
 		yield* Effect.gen(function* () {
 			const db = yield* Database;
 			yield* seedAsker;
-			const rulingId = yield* askedAndRuled(
-				"which reading do we trust?",
-				"the chart is older than the reef; resurvey it",
-			);
+			const rulingId = yield* askedAndRuled("which reading do we trust?", "the chart is older than the reef; resurvey it");
 
 			const entries = yield* deliveredMail(1);
 
@@ -89,48 +80,36 @@ it.live("an answer reaches its asker as one priority mail", () =>
 					"You asked: which reading do we trust?",
 					"Answer: the chart is older than the reef; resurvey it",
 					"Chosen: resurvey",
-					`Ruled by the admiral at ${Option.getOrThrow(
-						(yield* (yield* Rulings).get(rulingId)).answer,
-					).at.toISOString()}.`,
+					`Ruled by the admiral at ${Option.getOrThrow((yield* (yield* Rulings).get(rulingId)).answer).at.toISOString()}.`,
 					`Ruling ${rulingId}.`,
 				].join("\n"),
 			);
-			const row = Option.getOrThrow(
-				yield* db.Ruling.where({ id: rulingId }).first(),
-			);
+			const row = Option.getOrThrow(yield* db.Ruling.where({ id: rulingId }).first());
 			expect(row.deliveredAt).toBeInstanceOf(Date);
 		}).pipe(Effect.provide(domainKernelLayer(temporary, scripted.backend)));
 	}),
 );
 
-it.live(
-	"a later pass delivers the next answer and repeats no earlier one",
-	() =>
-		Effect.gen(function* () {
-			const temporary = yield* acquireTemporaryPersistence;
-			const scripted = yield* makeScriptedBackend;
-			yield* Effect.gen(function* () {
-				const feeds = yield* DomainFeeds;
-				yield* seedAsker;
-				const first = yield* askedAndRuled("which reading?", "resurvey it");
-				yield* deliveredMail(1);
+it.live("a later pass delivers the next answer and repeats no earlier one", () =>
+	Effect.gen(function* () {
+		const temporary = yield* acquireTemporaryPersistence;
+		const scripted = yield* makeScriptedBackend;
+		yield* Effect.gen(function* () {
+			const feeds = yield* DomainFeeds;
+			yield* seedAsker;
+			const first = yield* askedAndRuled("which reading?", "resurvey it");
+			yield* deliveredMail(1);
 
-				// why: a bare ring makes the observer walk the record again with
-				// nothing new in it, so the second answer proves the pass ran and the
-				// single entry per ruling proves the first was not sent twice.
-				yield* feeds.publishRulingRefresh();
-				const second = yield* askedAndRuled(
-					"and the northern shoal?",
-					"sound it",
-				);
+			// why: a bare ring makes the observer walk the record again with
+			// nothing new in it, so the second answer proves the pass ran and the
+			// single entry per ruling proves the first was not sent twice.
+			yield* feeds.publishRulingRefresh();
+			const second = yield* askedAndRuled("and the northern shoal?", "sound it");
 
-				const entries = yield* deliveredMail(2);
-				expect(entries.map((entry) => entry.sourceRef)).toEqual([
-					`ruling:${first}`,
-					`ruling:${second}`,
-				]);
-			}).pipe(Effect.provide(domainKernelLayer(temporary, scripted.backend)));
-		}),
+			const entries = yield* deliveredMail(2);
+			expect(entries.map((entry) => entry.sourceRef)).toEqual([`ruling:${first}`, `ruling:${second}`]);
+		}).pipe(Effect.provide(domainKernelLayer(temporary, scripted.backend)));
+	}),
 );
 
 it.live("an answer ruled while nothing observed is delivered on start", () =>

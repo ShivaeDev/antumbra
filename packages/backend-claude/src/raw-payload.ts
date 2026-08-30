@@ -14,9 +14,6 @@ export const claudeRaw = (kind: string, payload: unknown): RawPayload => ({
 });
 
 export const rawOf = (message: SDKMessage): RawPayload => {
-	const subtype =
-		"subtype" in message && typeof message.subtype === "string"
-			? `/${message.subtype}`
-			: "";
+	const subtype = "subtype" in message && typeof message.subtype === "string" ? `/${message.subtype}` : "";
 	return claudeRaw(`${message.type}${subtype}`, message);
 };

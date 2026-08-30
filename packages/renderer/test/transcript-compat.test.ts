@@ -15,7 +15,5 @@ it("renders a mismatched historical envelope from its exact stored evidence", ()
 		seq: 9,
 		sessionId: "session-1",
 	};
-	expect(deriveTranscript([row])).toEqual([
-		{ kind: "raw", label: "thinking", payload, seq: 9 },
-	]);
+	expect(deriveTranscript([row])).toEqual([{ kind: "raw", label: "thinking", payload, seq: 9 }]);
 });

@@ -2,11 +2,7 @@ import { Changes } from "@antumbra/changes";
 import type { AgentSummary, Fleet, RepoSummary } from "@antumbra/contract";
 import { Database } from "@antumbra/persistence";
 import { rootSessions, situationsByAgent } from "@antumbra/sessions";
-import {
-	decodeStoredAgentStatus,
-	decodeStoredBerthStatus,
-	decodeStoredResourceReclaimState,
-} from "@antumbra/vocabulary/agent-runtime";
+import { decodeStoredAgentStatus, decodeStoredBerthStatus, decodeStoredResourceReclaimState } from "@antumbra/vocabulary/agent-runtime";
 import { Effect } from "effect";
 import type { BackendCapacityReading } from "#backend-capacity.ts";
 import { attributeIntents } from "#sight-diagnostics.ts";
@@ -23,25 +19,15 @@ export const fleetSnapshot = (
 	Effect.gen(function* () {
 		const db = yield* Database;
 		const changes = yield* Changes;
-		const storedAgents = yield* db.Agent.orderBy((agent) =>
-			agent.createdAt.asc(),
-		).all();
+		const storedAgents = yield* db.Agent.orderBy((agent) => agent.createdAt.asc()).all();
 		const agents = yield* Effect.forEach(storedAgents, (agent) =>
-			Effect.fromResult(decodeStoredAgentStatus(agent.id, agent.status)).pipe(
-				Effect.map((status) => ({ ...agent, status })),
-			),
+			Effect.fromResult(decodeStoredAgentStatus(agent.id, agent.status)).pipe(Effect.map((status) => ({ ...agent, status }))),
 		);
 		const sessions = yield* db.AgentSession.where(rootSessions)
 			.orderBy((session) => session.createdAt.asc())
 			.all();
-		const pointers = new Map(
-			agents.map((agent) => [agent.id, agent.currentSessionId]),
-		);
-		const attribution = attributeIntents(
-			intents,
-			new Set(agents.map((agent) => agent.id)),
-			new Set(sessions.map((session) => session.id)),
-		);
+		const pointers = new Map(agents.map((agent) => [agent.id, agent.currentSessionId]));
+		const attribution = attributeIntents(intents, new Set(agents.map((agent) => agent.id)), new Set(sessions.map((session) => session.id)));
 		// why: the Changes an Agent is answering for are read in the same pass as
 		// its Sessions, through the capability that owns them rather than off the
 		// rows — a situation offered from a Change this snapshot never decoded
@@ -52,35 +38,16 @@ export const fleetSnapshot = (
 			agents.map((agent) => agent.id),
 		);
 		const sessionSummaries = yield* Effect.forEach(sessions, (session) =>
-			sessionSummary(
-				session,
-				imageInputBackends,
-				runtime,
-				attribution,
-				pointers,
-				situations,
-			),
+			sessionSummary(session, imageInputBackends, runtime, attribution, pointers, situations),
 		);
-		const storedBerths = yield* db.Berth.orderBy((berth) =>
-			berth.createdAt.asc(),
-		).all();
+		const storedBerths = yield* db.Berth.orderBy((berth) => berth.createdAt.asc()).all();
 		const berths = yield* Effect.forEach(storedBerths, (berth) =>
 			Effect.all({
-				reclaimState: Effect.fromResult(
-					decodeStoredResourceReclaimState(
-						"Berth",
-						berth.id,
-						berth.reclaimState,
-					),
-				),
-				status: Effect.fromResult(
-					decodeStoredBerthStatus(berth.id, berth.status),
-				),
+				reclaimState: Effect.fromResult(decodeStoredResourceReclaimState("Berth", berth.id, berth.reclaimState)),
+				status: Effect.fromResult(decodeStoredBerthStatus(berth.id, berth.status)),
 			}).pipe(Effect.map((decoded) => ({ ...berth, ...decoded }))),
 		);
-		const repos: ReadonlyArray<RepoSummary> = (yield* db.Repo.orderBy((repo) =>
-			repo.createdAt.asc(),
-		).all()).map((repo) => ({
+		const repos: ReadonlyArray<RepoSummary> = (yield* db.Repo.orderBy((repo) => repo.createdAt.asc()).all()).map((repo) => ({
 			defaultRef: repo.defaultRef,
 			id: repo.id,
 			name: repo.name,
@@ -100,11 +67,7 @@ export const fleetSnapshot = (
 			// weaker rule than rest: retirement is what closes a subtree the record
 			// has stopped hearing from, and a tree nothing can settle would
 			// otherwise have no way out at all.
-			canRetire:
-				agent.status === "alive" &&
-				sessionSummaries
-					.filter((session) => session.agentId === agent.id)
-					.every((session) => session.retirable),
+			canRetire: agent.status === "alive" && sessionSummaries.filter((session) => session.agentId === agent.id).every((session) => session.retirable),
 			charter: agent.charter,
 			diag: {
 				currentSessionId: agent.currentSessionId,

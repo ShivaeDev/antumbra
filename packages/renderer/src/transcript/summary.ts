@@ -1,13 +1,10 @@
 import { Option, Schema } from "effect";
 
-const decodeInput = Schema.decodeUnknownOption(
-	Schema.fromJsonString(Schema.Record(Schema.String, Schema.Unknown)),
-);
+const decodeInput = Schema.decodeUnknownOption(Schema.fromJsonString(Schema.Record(Schema.String, Schema.Unknown)));
 
 const CLIP = 90;
 
-const clip = (text: string): string =>
-	text.length > CLIP ? `${text.slice(0, CLIP - 1)}…` : text;
+const clip = (text: string): string => (text.length > CLIP ? `${text.slice(0, CLIP - 1)}…` : text);
 
 // why: the transcript is never told where the agent's berth sits on disk, so a
 // path is shortened to the tail that still tells two same-named files apart.
@@ -19,8 +16,7 @@ const shortPath = (path: string): string => {
 
 // why: a URL is not a path — its host is the part worth reading, so only bare
 // filesystem-looking tokens get their leading directories dropped.
-const looksLikePath = (text: string): boolean =>
-	text.includes("/") && !text.includes("://") && !/\s/.test(text);
+const looksLikePath = (text: string): boolean => text.includes("/") && !text.includes("://") && !/\s/.test(text);
 
 const oneLine = (text: string): string => {
 	const lines = text
@@ -39,31 +35,17 @@ const scalar = (value: unknown): string | undefined => {
 	if (typeof value === "string") {
 		return value === "" ? undefined : value;
 	}
-	return typeof value === "number" || typeof value === "boolean"
-		? String(value)
-		: undefined;
+	return typeof value === "number" || typeof value === "boolean" ? String(value) : undefined;
 };
 
 // why: what a call is *about* is carried by one argument — the tool's own word
 // for itself first, the thing it acts on second, anything scalar as a last
 // resort. Order is the whole heuristic; there is no per-tool table to drift.
-const TEXT_KEYS = [
-	"description",
-	"pattern",
-	"query",
-	"url",
-	"command",
-	"prompt",
-	"title",
-	"name",
-];
+const TEXT_KEYS = ["description", "pattern", "query", "url", "command", "prompt", "title", "name"];
 
 const PATH_KEYS = ["file_path", "notebook_path", "filePath", "path"];
 
-const pick = (
-	input: Record<string, unknown>,
-	keys: ReadonlyArray<string>,
-): string | undefined => {
+const pick = (input: Record<string, unknown>, keys: ReadonlyArray<string>): string | undefined => {
 	for (const key of keys) {
 		const value = scalar(input[key]);
 		if (value !== undefined) {

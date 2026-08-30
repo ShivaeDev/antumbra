@@ -13,18 +13,14 @@ const writeGates = (input: RulingGateInput) =>
 			return yield* new RulingAlreadyRuled({ rulingId: input.rulingId });
 		}
 		yield* Effect.forEach(input.pieceIds, requirePiece);
-		yield* Effect.forEach(input.pieceIds, (pieceId) =>
-			appendGate(input.rulingId, pieceId),
-		);
+		yield* Effect.forEach(input.pieceIds, (pieceId) => appendGate(input.rulingId, pieceId));
 		return yield* loadRuling(row);
 	});
 
 // why: a ruled ruling gates nothing, so naming one refuses the whole write
 // rather than hanging a piece on an answer the fleet already has; a piece the
 // fleet lost refuses it before any row lands.
-export const gate = Effect.fn("rulings.gate")(function* (
-	input: RulingGateInput,
-) {
+export const gate = Effect.fn("rulings.gate")(function* (input: RulingGateInput) {
 	const db = yield* Database;
 	const feeds = yield* DomainFeeds;
 	const gated = yield* db.transaction(writeGates(input));

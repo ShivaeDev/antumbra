@@ -6,8 +6,7 @@ import { textInput } from "#test/input.ts";
 import type { TurnRequests } from "#turn-requests.ts";
 import { idle, SESSION_CLOSED, type TurnState } from "#turn-state.ts";
 
-const unused = (): Effect.Effect<never, BackendFailure> =>
-	Effect.die("unexpected request");
+const unused = (): Effect.Effect<never, BackendFailure> => Effect.die("unexpected request");
 
 it.effect("close fails a send whose turn/start has not been accepted", () =>
 	Effect.gen(function* () {
@@ -17,16 +16,10 @@ it.effect("close fails a send whose turn/start has not been accepted", () =>
 		const started = yield* Deferred.make<void>();
 		const requests: TurnRequests = {
 			interrupt: unused,
-			start: () =>
-				Deferred.succeed(started, undefined).pipe(Effect.andThen(Effect.never)),
+			start: () => Deferred.succeed(started, undefined).pipe(Effect.andThen(Effect.never)),
 			steer: unused,
 		};
-		const queued = makeQueuedTurns(
-			state,
-			gate.withPermit,
-			requests,
-			Deferred.await(closure),
-		);
+		const queued = makeQueuedTurns(state, gate.withPermit, requests, Deferred.await(closure));
 		const delivery = yield* Effect.forkChild(queued.queue(textInput("held")));
 		yield* Deferred.await(started);
 		yield* Deferred.fail(closure, SESSION_CLOSED);

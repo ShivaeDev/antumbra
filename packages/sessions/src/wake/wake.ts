@@ -12,24 +12,14 @@ import { recoveryHeld, type SessionRecoveryHeld } from "#recovery/error.ts";
 import { SessionRecoveryRuntime } from "#recovery/runtime.ts";
 import { unresumable, waitFor } from "#unresumable.ts";
 import { accountedWake } from "#wake/account.ts";
-import {
-	type CarriedInput,
-	makeLoadCarriedInput,
-	type WakeFields,
-	WakePayload,
-} from "#wake/input.ts";
+import { type CarriedInput, makeLoadCarriedInput, type WakeFields, WakePayload } from "#wake/input.ts";
 import { SessionWakePatience } from "#wake/patience.ts";
 
-const attachmentTimedOut = (sessionId: string, patience: number) =>
-	recoveryHeld(
-		`${sessionId} did not reach a live attachment within ${patience}ms`,
-	);
+const attachmentTimedOut = (sessionId: string, patience: number) => recoveryHeld(`${sessionId} did not reach a live attachment within ${patience}ms`);
 
 const waitForBackend = (failure: BackendFailure) => waitFor(failure.message);
-const waitForLostAttachment = () =>
-	waitFor("the attachment went before the words");
-const waitForHeldRecovery = (failure: SessionRecoveryHeld) =>
-	waitFor(failure.detail);
+const waitForLostAttachment = () => waitFor("the attachment went before the words");
+const waitForHeldRecovery = (failure: SessionRecoveryHeld) => waitFor(failure.detail);
 
 // why: the only act that puts a Session back on a provider, and nothing asks
 // for it unasked — a hail, a send, or a Piece already assigned to this Session
@@ -58,9 +48,7 @@ export const makeWakeKind = (capacities: SessionCapacities) =>
 		const delivered = (sessionId: string, carriedInput: CarriedInput) =>
 			Effect.gen(function* () {
 				const idle = yield* fabric.idleSince();
-				const input =
-					carriedInput.input ??
-					(idle.has(sessionId) ? promptInput(wakeWords) : undefined);
+				const input = carriedInput.input ?? (idle.has(sessionId) ? promptInput(wakeWords) : undefined);
 				if (input === undefined) {
 					return;
 				}
@@ -78,11 +66,7 @@ export const makeWakeKind = (capacities: SessionCapacities) =>
 					if (Result.isFailure(context)) {
 						return yield* unresumable(sessionId, context.failure);
 					}
-					yield* runtime.resume(
-						permit,
-						context.success,
-						carriedInput.input ?? promptInput(wakeWords),
-					);
+					yield* runtime.resume(permit, context.success, carriedInput.input ?? promptInput(wakeWords));
 					if (carriedInput.inputId !== undefined) {
 						yield* inputs.mark(carriedInput.inputId, "accepted");
 					}

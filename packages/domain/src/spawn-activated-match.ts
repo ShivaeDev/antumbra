@@ -37,34 +37,14 @@ interface StoredMoorage {
 
 type StoredSession = Pick<
 	StoredAgentSession,
-	| "agentId"
-	| "backend"
-	| "charterDeliveredAt"
-	| "cwd"
-	| "executionStatus"
-	| "id"
-	| "nativeRef"
-	| "parentSessionId"
-	| "status"
+	"agentId" | "backend" | "charterDeliveredAt" | "cwd" | "executionStatus" | "id" | "nativeRef" | "parentSessionId" | "status"
 >;
 
-const agentMatches = (
-	row: StoredAgent & { readonly status: AgentStatus },
-	payload: SpawnFields,
-) =>
-	row.status === "alive" &&
-	row.charter === payload.charter &&
-	row.currentSessionId === payload.sessionId &&
-	row.role === payload.role;
+const agentMatches = (row: StoredAgent & { readonly status: AgentStatus }, payload: SpawnFields) =>
+	row.status === "alive" && row.charter === payload.charter && row.currentSessionId === payload.sessionId && row.role === payload.role;
 
-const sessionMatches = (
-	row: StoredSession & { readonly status: AgentSessionStatus },
-	payload: SpawnFields,
-) => {
-	const executionStatus = decodeSessionExecutionStatus(
-		payload.sessionId,
-		row.executionStatus,
-	);
+const sessionMatches = (row: StoredSession & { readonly status: AgentSessionStatus }, payload: SpawnFields) => {
+	const executionStatus = decodeSessionExecutionStatus(payload.sessionId, row.executionStatus);
 	// why: a spawn births a root. A subsession carries the same Agent and
 	// backend, so without this it could answer for the spawn that made its
 	// parent and let activation adopt a nested conversation as the Agent's own.
@@ -80,55 +60,28 @@ const sessionMatches = (
 	);
 };
 
-const moorageMatches = (
-	row: StoredMoorage & { readonly status: MoorageStatus },
-	session: StoredSession,
-	payload: SpawnFields,
-) =>
-	row.runner === payload.runner &&
-	row.status === "ready" &&
-	row.root === session.cwd;
+const moorageMatches = (row: StoredMoorage & { readonly status: MoorageStatus }, session: StoredSession, payload: SpawnFields) =>
+	row.runner === payload.runner && row.status === "ready" && row.root === session.cwd;
 
-const berthMatches = (
-	row: StoredBerth & { readonly status: BerthStatus },
-	payload: SpawnFields,
-) => row.runner === payload.runner && row.status === "ready";
+const berthMatches = (row: StoredBerth & { readonly status: BerthStatus }, payload: SpawnFields) =>
+	row.runner === payload.runner && row.status === "ready";
 
 export const storedAgentMatches = (row: StoredAgent, payload: SpawnFields) =>
-	Effect.fromResult(decodeStoredAgentStatus(row.id, row.status)).pipe(
-		Effect.map((status) => agentMatches({ ...row, status }, payload)),
-	);
+	Effect.fromResult(decodeStoredAgentStatus(row.id, row.status)).pipe(Effect.map((status) => agentMatches({ ...row, status }, payload)));
 
-export const storedResourcesMatch = (
-	session: StoredSession,
-	moorage: StoredMoorage,
-	payload: SpawnFields,
-) =>
+export const storedResourcesMatch = (session: StoredSession, moorage: StoredMoorage, payload: SpawnFields) =>
 	Effect.all({
-		moorage: Effect.fromResult(
-			decodeStoredMoorageStatus(moorage.agentId, moorage.status),
-		),
-		session: Effect.fromResult(
-			decodeStoredAgentSessionStatus(session.id, session.status),
-		),
+		moorage: Effect.fromResult(decodeStoredMoorageStatus(moorage.agentId, moorage.status)),
+		session: Effect.fromResult(decodeStoredAgentSessionStatus(session.id, session.status)),
 	}).pipe(
 		Effect.map(
 			(statuses) =>
 				sessionMatches({ ...session, status: statuses.session }, payload) &&
-				moorageMatches(
-					{ ...moorage, status: statuses.moorage },
-					session,
-					payload,
-				),
+				moorageMatches({ ...moorage, status: statuses.moorage }, session, payload),
 		),
 	);
 
-export const storedBerthsMatch = (
-	berths: ReadonlyArray<StoredBerth>,
-	payload: SpawnFields,
-) =>
+export const storedBerthsMatch = (berths: ReadonlyArray<StoredBerth>, payload: SpawnFields) =>
 	Effect.forEach(berths, (berth) =>
-		Effect.fromResult(decodeStoredBerthStatus(berth.id, berth.status)).pipe(
-			Effect.map((status) => berthMatches({ ...berth, status }, payload)),
-		),
+		Effect.fromResult(decodeStoredBerthStatus(berth.id, berth.status)).pipe(Effect.map((status) => berthMatches({ ...berth, status }, payload))),
 	).pipe(Effect.map((matches) => matches.every(Boolean)));

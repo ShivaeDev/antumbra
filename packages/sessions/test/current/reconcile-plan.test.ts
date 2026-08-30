@@ -2,34 +2,23 @@ import { expect, it } from "@effect/vitest";
 import { Result } from "effect";
 import { planCurrentSessionReconciliation } from "#current/reconcile-plan.ts";
 
-const agent = (
-	id: string,
-	status: string,
-	currentSessionId: string | null,
-) => ({ currentSessionId, id, status });
+const agent = (id: string, status: string, currentSessionId: string | null) => ({ currentSessionId, id, status });
 
-const session = (
-	id: string,
-	agentId: string,
-	status: string,
-	executionStatus = "idle",
-	createdAt = new Date(1),
-) => ({ agentId, createdAt, executionStatus, id, status });
+const session = (id: string, agentId: string, status: string, executionStatus = "idle", createdAt = new Date(1)) => ({
+	agentId,
+	createdAt,
+	executionStatus,
+	id,
+	status,
+});
 
 const nothingAttached: ReadonlySet<string> = new Set();
 
 it("accepts only a missing Session as a spawning reservation", () => {
-	const reserved = planCurrentSessionReconciliation(
-		[agent("agent-a", "spawning", "session-reserved")],
-		[],
-		nothingAttached,
-	);
+	const reserved = planCurrentSessionReconciliation([agent("agent-a", "spawning", "session-reserved")], [], nothingAttached);
 	expect(Result.isSuccess(reserved)).toBe(true);
 	const stolen = planCurrentSessionReconciliation(
-		[
-			agent("agent-a", "spawning", "session-b"),
-			agent("agent-b", "alive", "session-b"),
-		],
+		[agent("agent-a", "spawning", "session-b"), agent("agent-b", "alive", "session-b")],
 		[session("session-b", "agent-b", "open")],
 		nothingAttached,
 	);
@@ -54,10 +43,7 @@ it("rejects an alive pointer to closed history", () => {
 it("clears inactive pointers and closes inactive and orphan Sessions", () => {
 	const planned = planCurrentSessionReconciliation(
 		[agent("agent-dormant", "dormant", "session-dormant")],
-		[
-			session("session-dormant", "agent-dormant", "open"),
-			session("session-orphan", "agent-missing", "open"),
-		],
+		[session("session-dormant", "agent-dormant", "open"), session("session-orphan", "agent-missing", "open")],
 		nothingAttached,
 	);
 	expect(planned).toEqual(
@@ -78,10 +64,7 @@ it("clears inactive pointers and closes inactive and orphan Sessions", () => {
 
 it("reclaims an Agent holding neither a pointer nor an open Session", () => {
 	const planned = planCurrentSessionReconciliation(
-		[
-			agent("agent-alive", "alive", null),
-			agent("agent-spawning", "spawning", null),
-		],
+		[agent("agent-alive", "alive", null), agent("agent-spawning", "spawning", null)],
 		[session("session-spent", "agent-alive", "closed")],
 		nothingAttached,
 	);
@@ -141,9 +124,7 @@ it("settles a draining Session that nothing is attached to", () => {
 	expect(planned).toEqual(
 		Result.succeed({
 			agentsToReclaim: [],
-			executionsToSettle: [
-				{ executionStatus: "idle", sessionId: "session-drained" },
-			],
+			executionsToSettle: [{ executionStatus: "idle", sessionId: "session-drained" }],
 			pointers: [],
 			sessionsToClose: [],
 		}),

@@ -1,12 +1,6 @@
 import type { PieceCounts } from "@antumbra/contract";
 import { cn } from "#lib/utils.ts";
-import {
-	landedLabel,
-	type ProgressBand,
-	type ProgressSlice,
-	progressLabel,
-	slicesOf,
-} from "#voyages/progress.ts";
+import { landedLabel, type ProgressBand, type ProgressSlice, progressLabel, slicesOf } from "#voyages/progress.ts";
 
 // why: the bar and its legend take their fills from one table, so a dot in the
 // legend is the same colour as the run of bar it explains.
@@ -31,35 +25,17 @@ const LegendEntry = ({ slice }: { readonly slice: ProgressSlice }) => (
 	</span>
 );
 
-export const VoyageProgress = ({
-	counts,
-	withLegend = false,
-}: {
-	readonly counts: PieceCounts;
-	readonly withLegend?: boolean;
-}) => {
+export const VoyageProgress = ({ counts, withLegend = false }: { readonly counts: PieceCounts; readonly withLegend?: boolean }) => {
 	const slices = slicesOf(counts);
 	if (counts.pieces === 0) {
-		return (
-			<p className="text-2xs text-muted-foreground">Nothing chartered yet</p>
-		);
+		return <p className="text-2xs text-muted-foreground">Nothing chartered yet</p>;
 	}
-	const legend = withLegend
-		? slices.filter((slice) => slice.band !== "landed")
-		: [];
+	const legend = withLegend ? slices.filter((slice) => slice.band !== "landed") : [];
 	return (
 		<div className="flex min-w-0 flex-col gap-1.5">
-			<div
-				aria-label={progressLabel(counts)}
-				className="flex h-1 w-full gap-px overflow-hidden rounded-full bg-muted"
-				role="img"
-			>
+			<div aria-label={progressLabel(counts)} className="flex h-1 w-full gap-px overflow-hidden rounded-full bg-muted" role="img">
 				{slices.map((slice) => (
-					<span
-						className={cn("h-full", FILL[slice.band])}
-						key={slice.band}
-						style={{ width: `${slice.share * 100}%` }}
-					/>
+					<span className={cn("h-full", FILL[slice.band])} key={slice.band} style={{ width: `${slice.share * 100}%` }} />
 				))}
 			</div>
 			<div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-0.5 text-2xs text-muted-foreground">

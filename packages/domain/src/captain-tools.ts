@@ -15,10 +15,6 @@ import { answered } from "#tool-answers.ts";
 import type { SessionIdentity } from "#tool-identity.ts";
 import { makeVoyageReadingToolCompiler } from "#voyage-reading-tools.ts";
 
-// why: the captain's set is its authority — it charters and positions work,
-// reads where the voyage stands, and settles what its crew brings up, but it
-// lands no outcomes: workers report, captains charter, and the rule is the set
-// rather than a request to behave.
 export const makeCaptainToolCompiler = Effect.gen(function* () {
 	const membership = yield* CaptainMembership;
 	const pieces = yield* Pieces;

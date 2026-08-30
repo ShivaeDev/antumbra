@@ -5,22 +5,14 @@ or {
 	or {
 		`Date.now()` as $match,
 		`new Date()` as $match
-	} where {
-		register_diagnostic(span=$match, message="Ambient time is banned. Read time through Effect's Clock service.")
-	},
-	`Math.random()` as $match where {
-		register_diagnostic(span=$match, message="Ambient randomness is banned. Use Effect's Random service.")
-	},
+	} where { register_diagnostic(span=$match, message="Ambient time is banned. Read time through Effect's Clock service.") },
+	`Math.random()` as $match where { register_diagnostic(span=$match, message="Ambient randomness is banned. Use Effect's Random service.") },
 	or {
 		`console.$method($...)` as $match,
 		`console[$method]($...)` as $match
-	} where {
-		register_diagnostic(span=$match, message="console.* is banned. Log through Effect's logger.")
-	},
+	} where { register_diagnostic(span=$match, message="console.* is banned. Log through Effect's logger.") },
 	or {
 		JsStaticMemberExpression() as $match where { $match <: `process.env` },
 		JsComputedMemberExpression() as $match where { $match <: `process["env"]` }
-	} where {
-		register_diagnostic(span=$match, message="process.env is banned. Read configuration through Effect's Config service.")
-	}
+	} where { register_diagnostic(span=$match, message="process.env is banned. Read configuration through Effect's Config service.") }
 }

@@ -9,15 +9,13 @@ const requiredLintInputs: readonly SeedFile[] = [
 	{ content: "{}\n", path: "package.json" },
 	{ content: "catalog:\n", path: "pnpm-workspace.yaml" },
 	{
-		content:
-			"# Antumbra\n\n[Design](DESIGN.md)\n[Architecture](ARCHITECTURE.md)\n[Glossary](GLOSSARY.md)\n[Guides](docs/design/README.md)\n",
+		content: "# Antumbra\n\n[Design](DESIGN.md)\n[Architecture](ARCHITECTURE.md)\n[Glossary](GLOSSARY.md)\n[Guides](docs/design/README.md)\n",
 		path: "README.md",
 	},
 	{ content: "# Design axioms\n", path: "DESIGN.md" },
 	{ content: "# Architecture\n", path: "ARCHITECTURE.md" },
 	{
-		content:
-			"# Glossary\n\n## Work\n\nOwner: [Work](docs/design/work.md)\n\n- [**Voyage**](docs/design/work.md#voyage) — work under sail.\n",
+		content: "# Glossary\n\n## Work\n\nOwner: [Work](docs/design/work.md)\n\n- [**Voyage**](docs/design/work.md#voyage) — work under sail.\n",
 		path: "GLOSSARY.md",
 	},
 	{
@@ -36,9 +34,7 @@ const requiredLintInputs: readonly SeedFile[] = [
 	},
 ];
 
-export const seedTree = (
-	...groups: ReadonlyArray<readonly SeedFile[]>
-): string => {
+export const seedTree = (...groups: ReadonlyArray<readonly SeedFile[]>): string => {
 	const root = mkdtempSync(join(tmpdir(), "antumbra-lint-"));
 	seeded.push(root);
 	for (const file of groups.flat()) {
@@ -49,9 +45,7 @@ export const seedTree = (
 	return root;
 };
 
-export const seedLintTree = (
-	...groups: ReadonlyArray<readonly SeedFile[]>
-): string => seedTree(requiredLintInputs, ...groups);
+export const seedLintTree = (...groups: ReadonlyArray<readonly SeedFile[]>): string => seedTree(requiredLintInputs, ...groups);
 
 export const removeSeededTrees = (): void => {
 	for (const root of seeded.splice(0)) {

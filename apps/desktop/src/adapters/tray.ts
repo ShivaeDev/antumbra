@@ -22,19 +22,14 @@ export interface TrayHost {
 // roster already reads an interruptible session as one taking a turn. The menu
 // bar mirrors that reading instead of inventing a second definition of work.
 export const workingAgentCount = (fleet: Fleet): number =>
-	fleet.agents.filter((agent) =>
-		agent.sessions.some((session) => session.canInterrupt),
-	).length;
+	fleet.agents.filter((agent) => agent.sessions.some((session) => session.canInterrupt)).length;
 
 // why: a quiet menu bar shows the icon alone — a standing "0" spends scarce
 // width to say nothing, and the tooltip still names the empty state aloud.
-export const trayTitle = (count: number): string =>
-	count === 0 ? "" : String(count);
+export const trayTitle = (count: number): string => (count === 0 ? "" : String(count));
 
 export const trayTooltip = (count: number): string =>
-	count === 0
-		? "Antumbra — no agent is working"
-		: `Antumbra — ${count} ${count === 1 ? "agent" : "agents"} working`;
+	count === 0 ? "Antumbra — no agent is working" : `Antumbra — ${count} ${count === 1 ? "agent" : "agents"} working`;
 
 const showCount = (tray: TrayHandle, fleet: Fleet) =>
 	Effect.sync(() => {
@@ -43,11 +38,7 @@ const showCount = (tray: TrayHandle, fleet: Fleet) =>
 		tray.setToolTip(trayTooltip(count));
 	});
 
-export const runFleetTray = <E>(
-	host: TrayHost,
-	feed: Stream.Stream<Fleet, E>,
-	activate: Effect.Effect<void, unknown>,
-) =>
+export const runFleetTray = <E>(host: TrayHost, feed: Stream.Stream<Fleet, E>, activate: Effect.Effect<void, unknown>) =>
 	Effect.gen(function* () {
 		const tray = yield* Effect.acquireRelease(
 			Effect.sync(() => host.create()),
@@ -56,9 +47,7 @@ export const runFleetTray = <E>(
 		yield* Effect.sync(() =>
 			tray.onClick(() => {
 				activate.pipe(
-					Effect.catchCause((cause) =>
-						Effect.logError("tray activation failed", cause),
-					),
+					Effect.catchCause((cause) => Effect.logError("tray activation failed", cause)),
 					Effect.runFork,
 				);
 			}),
@@ -80,9 +69,7 @@ const ringBitmap = (size: number): Buffer => {
 		for (let x = 0; x < size; x += 1) {
 			const distance = Math.hypot(x - centre, y - centre);
 			const coverage = Math.min(outer - distance, distance - inner) + 0.5;
-			pixels[(y * size + x) * 4 + 3] = Math.round(
-				Math.min(Math.max(coverage, 0), 1) * 255,
-			);
+			pixels[(y * size + x) * 4 + 3] = Math.round(Math.min(Math.max(coverage, 0), 1) * 255);
 		}
 	}
 	return pixels;

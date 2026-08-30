@@ -1,17 +1,10 @@
 import type { SDKMessage } from "@anthropic-ai/claude-agent-sdk";
-import type {
-	AgentEvent,
-	RawPayload,
-	SubsessionOutcome,
-} from "@antumbra/vocabulary/session-events";
+import type { AgentEvent, RawPayload, SubsessionOutcome } from "@antumbra/vocabulary/session-events";
 import { isRecord, textOf } from "#blocks.ts";
 
 type SystemMessage = Extract<SDKMessage, { type: "system" }>;
 type TaskUpdated = Extract<SystemMessage, { subtype: "task_updated" }>;
-type TaskNotification = Extract<
-	SystemMessage,
-	{ subtype: "task_notification" }
->;
+type TaskNotification = Extract<SystemMessage, { subtype: "task_notification" }>;
 
 export interface Ending {
 	readonly durationMs: number | undefined;
@@ -79,14 +72,10 @@ export const reportedEnding = (message: SDKMessage): Ending | undefined => {
 		return undefined;
 	}
 	return {
-		durationMs:
-			typeof output.totalDurationMs === "number"
-				? output.totalDurationMs
-				: undefined,
+		durationMs: typeof output.totalDurationMs === "number" ? output.totalDurationMs : undefined,
 		outcome: "completed",
 		subsessionRef: output.agentId,
 		summary: Array.isArray(output.content) ? textOf(output.content) : undefined,
-		tokens:
-			typeof output.totalTokens === "number" ? output.totalTokens : undefined,
+		tokens: typeof output.totalTokens === "number" ? output.totalTokens : undefined,
 	};
 };

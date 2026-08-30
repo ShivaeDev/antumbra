@@ -20,22 +20,15 @@ const BaselineEntry = Schema.Struct({
 type BaselineEntry = typeof BaselineEntry.Type;
 const decodeRegistry = jsonDecoder(Schema.Array(BaselineEntry));
 
-const keyOf = (entry: BaselineEntry): string =>
-	JSON.stringify([entry.file, entry.callable, entry.parameter, entry.type]);
+const keyOf = (entry: BaselineEntry): string => JSON.stringify([entry.file, entry.callable, entry.parameter, entry.type]);
 
-const occurrences = (
-	entries: readonly BaselineEntry[],
-): Map<string, number> => {
+const occurrences = (entries: readonly BaselineEntry[]): Map<string, number> => {
 	const found = new Map<string, number>();
-	for (const entry of entries)
-		found.set(keyOf(entry), (found.get(keyOf(entry)) ?? 0) + 1);
+	for (const entry of entries) found.set(keyOf(entry), (found.get(keyOf(entry)) ?? 0) + 1);
 	return found;
 };
 
-const invalidRegistry = (
-	file: string,
-	message: string,
-): readonly Violation[] => [
+const invalidRegistry = (file: string, message: string): readonly Violation[] => [
 	{
 		file,
 		line: undefined,
@@ -46,8 +39,7 @@ const invalidRegistry = (
 
 const parseRegistry = (raw: string, file: string): ParsedBaseline => {
 	const parsed = decodeRegistry(raw, { onExcessProperty: "error" });
-	return Result.isSuccess(parsed) &&
-		parsed.success.every((entry) => entry.file.startsWith(LEGACY_ROOT))
+	return Result.isSuccess(parsed) && parsed.success.every((entry) => entry.file.startsWith(LEGACY_ROOT))
 		? { entries: parsed.success, valid: true }
 		: {
 				valid: false,
@@ -58,20 +50,12 @@ const parseRegistry = (raw: string, file: string): ParsedBaseline => {
 			};
 };
 
-export const serviceParameterViolations = (
-	inventory: Inventory,
-): readonly Violation[] => {
+export const serviceParameterViolations = (inventory: Inventory): readonly Violation[] => {
 	const allowanceFile = "script/lint/service-parameter-allowance.json";
 	const baselineFile = "script/lint/service-parameter-baseline.json";
-	const allowance = parseRegistry(
-		inventory.serviceParameterAllowance,
-		allowanceFile,
-	);
+	const allowance = parseRegistry(inventory.serviceParameterAllowance, allowanceFile);
 	if (!allowance.valid) return allowance.violations;
-	const parsed = parseRegistry(
-		inventory.serviceParameterBaseline,
-		baselineFile,
-	);
+	const parsed = parseRegistry(inventory.serviceParameterBaseline, baselineFile);
 	if (!parsed.valid) return parsed.violations;
 	const baseline = parsed.entries;
 	const original = occurrences(allowance.entries);

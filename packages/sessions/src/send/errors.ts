@@ -12,17 +12,13 @@ import type { StoredBackendCapacityInvalid } from "#capacity.ts";
 import type { SessionEnded, SessionNotFound } from "#errors.ts";
 import type { RouseRefused } from "#reach.ts";
 
-export class SessionInputBackendTextOnly extends Data.TaggedError(
-	"SessionInputBackendTextOnly",
-)<{ readonly backend: string }> {
+export class SessionInputBackendTextOnly extends Data.TaggedError("SessionInputBackendTextOnly")<{ readonly backend: string }> {
 	override get message(): string {
 		return `backend_text_only: ${this.backend} has no proven image-input capability`;
 	}
 }
 
-export class SessionInputRetryAmbiguous extends Data.TaggedError(
-	"SessionInputRetryAmbiguous",
-)<{ readonly inputId: string }> {
+export class SessionInputRetryAmbiguous extends Data.TaggedError("SessionInputRetryAmbiguous")<{ readonly inputId: string }> {
 	override get message(): string {
 		return `ambiguous: input ${this.inputId} may already have reached the provider; check the transcript before retrying`;
 	}

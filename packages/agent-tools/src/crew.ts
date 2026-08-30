@@ -1,24 +1,6 @@
 import { Schema } from "effect";
 import { defineTool } from "#define.ts";
 
-const MoorageRelativeMarkdownPath = Schema.String.pipe(
-	Schema.check(
-		Schema.makeFilter(
-			(value: string) =>
-				(value.length > 0 &&
-					!value.startsWith("/") &&
-					!value.startsWith("\\") &&
-					!/^[A-Za-z]:[\\/]/.test(value) &&
-					!/^[A-Za-z][A-Za-z0-9+.-]*:/.test(value)) ||
-				"expected a relative path inside the current Moorage",
-		),
-	),
-);
-
-// why: descriptions are written for the model that reads them — imperative,
-// and saying when to call, because a tool the agent cannot place is a tool it
-// never reaches for.
-
 export const landReportSpec = defineTool({
 	description:
 		"Land a report against your piece: prose for other agents — what you found, what you did, what is left. Call it once when your work is done, or whenever you have a finding worth handing on.",
@@ -37,7 +19,7 @@ export const landArtifactSpec = defineTool({
 	description:
 		"Land a Markdown artifact against your piece: a file in your moorage copied into immutable durable storage. Call it for every result a person should see.",
 	input: Schema.Struct({
-		path: MoorageRelativeMarkdownPath.annotate({
+		path: Schema.String.annotate({
 			description: "A relative path to a UTF-8 Markdown file in your moorage.",
 		}),
 		supersedesArtifactId: Schema.optional(

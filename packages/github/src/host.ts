@@ -23,9 +23,6 @@ const namedRepo = (repo: ChangeHostRepo): Effect.Effect<GitHubRepoName, ChangeHo
 		onSome: Effect.succeed,
 	});
 
-// why: a link to somebody else's repository is refused rather than followed —
-// adopting it would attach a piece of this voyage to a change no one here can
-// see land.
 const matchingPull = (named: GitHubRepoName, url: string): Effect.Effect<PullRequestRef, ChangeHostError> =>
 	Option.match(parsePullUrl(url), {
 		onNone: () => refused(`${url} is not a GitHub pull request address`),
@@ -33,9 +30,7 @@ const matchingPull = (named: GitHubRepoName, url: string): Effect.Effect<PullReq
 			sameRepo(named, pull) ? Effect.succeed(pull) : refused(`${url} belongs to ${pull.owner}/${pull.name}, not ${named.owner}/${named.name}`),
 	});
 
-// why: a login that stopped working invalidates the cached answer on the spot,
-// so the next tool call reports the truth instead of repeating a minute-old
-// yes that the failure just disproved.
+// A rejected login invalidates the cached capability immediately.
 const throughGh =
 	(cached: CachedCapability) =>
 	<A>(program: Effect.Effect<A, GhError>): Effect.Effect<A, ChangeHostError> =>

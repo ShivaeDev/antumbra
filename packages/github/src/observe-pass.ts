@@ -5,9 +5,6 @@ import { observeGroup } from "#observe.ts";
 import { chunked, type LocatedPullRequestRef, OBSERVE_CHUNK_SIZE } from "#query.ts";
 import { parseGitHubSource } from "#source.ts";
 
-// why: only what this host can address is asked about — a change on another
-// forge, or one whose external id is not a pull request number, belongs to
-// someone else and is left untouched rather than guessed at.
 export const pullRefsOf = (refs: ReadonlyArray<ChangeRef>): ReadonlyArray<LocatedPullRequestRef> =>
 	refs.flatMap((ref) => {
 		const repo = parseGitHubSource(ref.repo.source);
@@ -29,10 +26,7 @@ interface GroupAnswer {
 	readonly unheard: GhError | null;
 }
 
-// why: a chunk that fails leaves its rows unobserved, and the domain reads an
-// unobserved row as untouched — the rest of the fleet still gets its answer.
-// A login that does not work is different: nothing in this pass can succeed,
-// so it fails the whole call rather than reporting silence as calm.
+// Authentication invalidates the pass; other failures leave one batch unobserved.
 const observedOrSkipped = (executable: string, group: ReadonlyArray<LocatedPullRequestRef>): Effect.Effect<GroupAnswer, GhError> =>
 	observeGroup(executable, group).pipe(
 		Effect.map((seen): GroupAnswer => ({ seen, unheard: null })),
@@ -42,18 +36,9 @@ const observedOrSkipped = (executable: string, group: ReadonlyArray<LocatedPullR
 		),
 	);
 
-// why: an answer we could not read is a batch lost for as long as the payload
-// keeps that shape; a host we could not reach is a pass that learned nothing
-// and will learn something again the moment it comes back. Only the second is
-// worth telling the watcher about, because only the second is worth waiting
-// out — and only when nothing else answered either.
 const outOfReach = (answers: ReadonlyArray<GroupAnswer>, unheard: ReadonlyArray<GhError>): GhError | undefined =>
 	unheard.length === answers.length ? unheard.find((failure) => failure._tag === "GhUnavailable") : undefined;
 
-// why: silence is reported as silence rather than as calm — a watcher told
-// the fleet has no news keeps asking at the pace of a fleet that has some.
-// What was heard is still handed on, and what was not is one line at debug,
-// because an outage repeats that line on every pass for as long as it lasts.
 const gathered = (answers: ReadonlyArray<GroupAnswer>): Effect.Effect<ReadonlyArray<ChangeObservation>, GhError> => {
 	const unheard = answers.flatMap((answer) => (answer.unheard === null ? [] : [answer.unheard]));
 	const silence = outOfReach(answers, unheard);

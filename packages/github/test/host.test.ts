@@ -57,8 +57,6 @@ describe("what the GitHub host can do right now", () => {
 					available: true,
 					detail: "Logged in to github.com account skipper (keyring)",
 				});
-				// why: a watcher asks on every pass; the second answer must not cost
-				// a second process.
 				yield* host.capability;
 				expect(gh.received().filter((arg) => arg === "status")).toHaveLength(1);
 			}),
@@ -156,7 +154,6 @@ describe("observing changes through gh", () => {
 				const asked = gh.received().find((arg) => arg.startsWith("query="));
 				expect(asked).toContain("pullRequest(number: 23)");
 				expect(asked).toContain("pullRequest(number: 9999)");
-				// why: the ref on a repo this host does not claim never reaches gh.
 				expect(asked).not.toContain("somewhere/reef");
 			}),
 		),
@@ -185,9 +182,6 @@ describe("observing changes through gh", () => {
 				expect(failure._tag).toBe("ChangeHostUnavailable");
 				expect(failure.message).toContain("gh auth login");
 
-				// why: the yes cached a moment ago is thrown away by the failure that
-				// disproved it, so the next tool call asks again and reports the
-				// truth instead of repeating it for another minute.
 				gh.answer("auth", LOGGED_OUT);
 				expect((yield* host.capability).available).toBe(false);
 			}),

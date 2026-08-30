@@ -10,11 +10,7 @@ import type { GitHubRepoName } from "#source.ts";
 
 const OBSERVE_TIMEOUT_MILLIS = 60_000;
 
-// why: GitHub answers a batch partially — one pull request this login cannot
-// see makes gh exit nonzero while every other node is still in the payload.
-// The answer is kept; whether it was an answer at all is the decoder's verdict
-// rather than the log's, because a failing endpoint puts a page of prose on
-// the same stream and a warning per pass would say nothing new for an hour.
+// GitHub can return a partial GraphQL response with a failing exit code.
 const partial = (failure: GhCommandFailed): Effect.Effect<string, GhError> =>
 	failure.stdout.trim() === ""
 		? Effect.fail(failure)
@@ -39,10 +35,6 @@ export const observeGroup = (
 		return yield* Effect.forEach(yield* decodeObserveResponse("observe-changes", stdout, plan.selections), mapPullRequest);
 	});
 
-// why: opening and adopting both end by reading the change back, so what they
-// return is an observation and not a promise that one exists. A pull request
-// that answers nothing right after it was named is the host disagreeing with
-// itself, which is unavailability rather than a refusal.
 export const observeOne = (executable: string, repo: GitHubRepoName, repoId: string, number: number): Effect.Effect<ChangeObservation, GhError> =>
 	observeGroup(executable, [{ ...repo, number, repoId }]).pipe(
 		Effect.flatMap((seen) => {

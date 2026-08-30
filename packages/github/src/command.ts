@@ -6,9 +6,6 @@ import { acceptProcessOutput, decodeProcessOutput } from "#result.ts";
 interface GhCommand {
 	readonly args: ReadonlyArray<string>;
 	readonly cwd?: string | undefined;
-	// why: the binary is named by the caller rather than found here, so a test
-	// can point the whole package at a scripted gh without an ambient variable
-	// deciding which one runs.
 	readonly executable: string;
 	readonly operation: GhOperation;
 	readonly timeoutMillis: number;
@@ -21,9 +18,7 @@ const collectRaw = (command: GhCommand) =>
 			const process = yield* spawner.spawn(
 				ChildProcess.make(command.executable, command.args, {
 					cwd: command.cwd,
-					// why: gh must never be able to wait on a human. Prompts are off
-					// and stdin is closed, so a missing login fails fast and loudly
-					// instead of hanging a watcher pass forever.
+					// gh must never wait for interactive input.
 					env: {
 						GH_NO_UPDATE_NOTIFIER: "1",
 						GH_PROMPT_DISABLED: "1",

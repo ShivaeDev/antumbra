@@ -31,13 +31,6 @@ const voyageOf = (world: VoyageWorld, pieceId: string): VoyageRow | undefined =>
 	return membership === undefined ? undefined : world.voyages.find((row) => row.id === membership.voyageId);
 };
 
-// why: the dispatcher pulls only what the ladder calls ready, which is right —
-// it is a pool, and a pool that reached past its own rule would spawn against
-// blocked and finished work forever. Asking for a piece by name is the admiral
-// stepping over that rule once, deliberately, for one piece: it is how a piece
-// whose report landed but whose code died with a closed change is run again,
-// and how anything the ladder is holding back gets a hand anyway. Nothing here
-// widens the pool; the ladder is untouched and this is a separate act.
 export const workPieceNow = (pieceId: string) =>
 	Effect.gen(function* () {
 		const reach = yield* KernelReach;
@@ -61,12 +54,10 @@ export const workPieceNow = (pieceId: string) =>
 		const agentId = crypto.randomUUID();
 		const intentId = yield* reach.submitSpawn({
 			agentId,
-			backend: voyage.backend,
+			backend: voyage.crewBackend,
 			charter: yield* charterFor(piece, voyage, agentId),
 			pieceId,
 			role: piece.role,
-			// why: the sole runner in v1 — the field becomes a choice when a
-			// second runner exists to choose between.
 			runner: "local",
 			sessionId: crypto.randomUUID(),
 			voyageId: voyage.id,

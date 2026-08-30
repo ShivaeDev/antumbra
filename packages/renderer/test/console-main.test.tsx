@@ -31,9 +31,10 @@ const render = (mode: ConsoleMode): string =>
 			voyages={[
 				flagshipSummary,
 				{
-					backend: "codex",
 					captain: null,
+					captainBackend: "codex",
 					counts: { active: 0, done: 0, pieces: 0, ready: 0 },
+					crewBackend: "codex",
 					focusedAt: null,
 					id: "voyage-1",
 					kind: "voyage",

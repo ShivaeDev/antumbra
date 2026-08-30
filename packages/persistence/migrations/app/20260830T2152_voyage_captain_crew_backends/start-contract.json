@@ -3509,7 +3509,7 @@
           },
           "Voyage": {
             "fields": {
-              "captainBackend": {
+              "backend": {
                 "nullable": false,
                 "type": {
                   "codecId": "sqlite/text@1",
@@ -3527,13 +3527,6 @@
                 "nullable": false,
                 "type": {
                   "codecId": "sqlite/datetime@1",
-                  "kind": "scalar"
-                }
-              },
-              "crewBackend": {
-                "nullable": false,
-                "type": {
-                  "codecId": "sqlite/text@1",
                   "kind": "scalar"
                 }
               },
@@ -3592,17 +3585,14 @@
             },
             "storage": {
               "fields": {
-                "captainBackend": {
-                  "column": "captainBackend"
+                "backend": {
+                  "column": "backend"
                 },
                 "context": {
                   "column": "context"
                 },
                 "createdAt": {
                   "column": "createdAt"
-                },
-                "crewBackend": {
-                  "column": "crewBackend"
                 },
                 "focusedAt": {
                   "column": "focusedAt"
@@ -6079,7 +6069,7 @@
             },
             "voyage": {
               "columns": {
-                "captainBackend": {
+                "backend": {
                   "codecId": "sqlite/text@1",
                   "nativeType": "text",
                   "nullable": false
@@ -6095,11 +6085,6 @@
                     "expression": "now()",
                     "kind": "function"
                   },
-                  "nativeType": "text",
-                  "nullable": false
-                },
-                "crewBackend": {
-                  "codecId": "sqlite/text@1",
                   "nativeType": "text",
                   "nullable": false
                 },
@@ -6219,7 +6204,7 @@
         "id": "__unbound__"
       }
     },
-    "storageHash": "sha256:b39bd2f5dba5aa1699755a4a8ea4c3a9c079042454911c18090109c8c0faae4c"
+    "storageHash": "sha256:ba5a86a37b0fe0e0fdeb227c54d851e69bec287992221494b42524a64420c8fb"
   },
   "capabilities": {
     "sql": {

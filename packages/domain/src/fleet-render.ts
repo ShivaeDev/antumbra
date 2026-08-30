@@ -25,7 +25,8 @@ const voyageLines = (voyage: VoyageSummary): ReadonlyArray<string> => [
 	[
 		`- ${voyage.id} ${voyage.name} [${voyage.state}]`,
 		voyage.kind,
-		voyage.backend,
+		`captain on ${voyage.captainBackend}`,
+		`crew on ${voyage.crewBackend}`,
 		countsPart(voyage.counts),
 		captainPart(voyage.captain),
 		stirredPart(voyage.lastStirredAt),

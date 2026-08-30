@@ -1,44 +1,44 @@
-import { Database } from "@antumbra/persistence";
 import { expect, it } from "@effect/vitest";
-import { Effect, Option } from "effect";
-import { AgentDomain } from "#domain.ts";
-import { domainKernelLayer } from "#test/domain-layers.ts";
-import { acquireTemporaryPersistence, makeScriptedBackend } from "#test/harness.ts";
-import { aliveAgent, eventually } from "#test/voyage-fixtures.ts";
-import type { VoyageProcedures } from "#voyages.ts";
+import { Effect, Ref } from "effect";
+import type { SpawnFields } from "#spawn-fields.ts";
+import { domainCapabilityLayer } from "#test/domain-layers.ts";
+import { acquireTemporaryPersistence } from "#test/harness.ts";
+import { fakeKernelReach } from "#test/kernel-reach-fixture.ts";
+import { VoyageProcedureService } from "#voyage-procedures.ts";
 
-// why: the refusals a backend switch owes are proved with no kernel next door,
-// in voyage-write-invariants. This one claim needs a crew already sailing, and
-// only a live scheduler can put one there — so it stands apart rather than
-// dragging every graph-write invariant back under the kernel.
-const withCrewedDomain = <A, E, R>(body: (voyages: VoyageProcedures) => Effect.Effect<A, E, R>) =>
+it.live("uses each voyage backend for future captain and crew spawns", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
-		const scripted = yield* makeScriptedBackend;
+		const submissions = yield* Ref.make<ReadonlyArray<SpawnFields>>([]);
+		const reach = {
+			...fakeKernelReach,
+			submitSpawn: (payload: SpawnFields) => Ref.update(submissions, (current) => [...current, payload]).pipe(Effect.as("spawn-intent")),
+		};
 		yield* Effect.gen(function* () {
-			const domain = yield* AgentDomain;
-			yield* body(domain.voyages);
-		}).pipe(Effect.provide(domainKernelLayer(temporary, scripted.backend)));
-	});
-
-it.live("a switched backend retargets the voyage and no session already open", () =>
-	withCrewedDomain((voyages) =>
-		Effect.gen(function* () {
-			const db = yield* Database;
+			const voyages = yield* VoyageProcedureService;
 			const voyage = yield* voyages.open({
 				backend: "scripted",
 				context: "the reef is uncharted",
 				name: "Chart the reef",
 				northStar: "every shoal is known",
 			});
-			const hailed = yield* voyages.hail(voyage.id);
-			yield* eventually(aliveAgent(hailed.agentId));
 
-			yield* voyages.setBackend(voyage.id, "codex");
+			yield* voyages.hail(voyage.id);
+			yield* voyages.setCaptainBackend(voyage.id, "codex");
+			yield* voyages.hail(voyage.id);
 
-			const stored = yield* db.Voyage.where({ id: voyage.id }).first();
-			expect(Option.getOrThrow(stored).backend).toBe("codex");
-			expect((yield* db.AgentSession.all()).map((session) => session.backend)).toEqual(["scripted"]);
-		}),
-	),
+			const piece = yield* voyages.charterPiece({
+				charter: "sound the eastern shoal",
+				dependsOn: [],
+				expectation: "the soundings are landed",
+				role: "hand",
+				title: "Sound",
+				voyageId: voyage.id,
+			});
+			yield* voyages.setCrewBackend(voyage.id, "codex");
+			yield* voyages.workNow(piece.id);
+
+			expect((yield* Ref.get(submissions)).map(({ backend }) => backend)).toEqual(["scripted", "codex", "codex"]);
+		}).pipe(Effect.provide(domainCapabilityLayer(temporary, reach)));
+	}),
 );

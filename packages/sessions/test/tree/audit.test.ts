@@ -58,9 +58,6 @@ it.live("a node whose ledger holds nothing reads complete", () =>
 
 			yield* audits.audit(lane.audit, tree.root, tree.node);
 
-			// why: complete is not a judgement made at the close — it is what an
-			// empty gap ledger projects to once the provider has been asked and
-			// found nothing more to say.
 			expect(yield* completenessOf(NODE)).toBe("complete");
 			expect(yield* lane.readings).toBe(1);
 		}).pipe(Effect.provide(treeLayer(temporary)));
@@ -79,11 +76,6 @@ it.live("the same ledger read twice reaches the same verdict", () =>
 			yield* audits.audit(lane.audit, first.root, first.node);
 			expect(yield* completenessOf(NODE)).toBe("incomplete");
 
-			// why: the projection is a function of the gap ledger and nothing else,
-			// so running it again on a row it already settled is allowed and lands
-			// where it landed before. That is what makes a later repair possible: a
-			// ledger whose gaps are resolved re-audits the node forward, and nothing
-			// here has to remember what an earlier reading concluded.
 			const second = yield* rows;
 			expect(second.node.completeness).toBe("incomplete");
 			yield* audits.audit(lane.audit, second.root, second.node);
@@ -105,9 +97,6 @@ it.live("a row from before the record kept gaps is never audited", () =>
 
 			yield* audits.audit(lane.audit, tree.root, tree.node);
 
-			// why: a legacy row predates the gaps the projection reads, so an empty
-			// ledger says nothing about it. Auditing it would assert evidence nobody
-			// has — the provider is not even asked.
 			expect(yield* completenessOf(NODE)).toBe("unaudited");
 			expect(yield* lane.readings).toBe(0);
 			expect(yield* journalOf(NODE)).toHaveLength(0);

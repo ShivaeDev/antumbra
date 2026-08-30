@@ -7,11 +7,11 @@ import {
 } from "@antumbra/resource-reclamation";
 import { SessionFabricLive } from "@antumbra/session-fabric";
 import { SessionInputsLive } from "@antumbra/session-inputs";
+import { LiveDelegationsLive } from "@antumbra/sessions";
 import { Layer } from "effect";
 import { makeAgentDomain } from "#agent-domain-assembly.ts";
 import { AgentDomain } from "#agent-domain-service.ts";
 import { domainCapabilities } from "#domain-capabilities.ts";
-import { LiveDelegationsLive } from "#session-tree-live.ts";
 
 export { AGENTS_ALIVE_GAUGE, AgentDomain } from "#agent-domain-service.ts";
 

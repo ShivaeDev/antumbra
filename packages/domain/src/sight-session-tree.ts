@@ -1,16 +1,13 @@
 import type { SessionTree, SightFailure } from "@antumbra/contract";
 import { DomainFeeds, type StoredEvent } from "@antumbra/domain-feeds";
 import { Database, type StoredAgentSession } from "@antumbra/persistence";
+import { assembleSessionTree, type SessionTreeRow } from "@antumbra/sessions";
 import {
 	decodeStoredAgentSessionCompleteness,
 	decodeStoredAgentSessionStatus,
 } from "@antumbra/vocabulary/agent-runtime";
 import { decodeStoredSubsessionOutcome } from "@antumbra/vocabulary/session-events";
 import { Effect, Stream } from "effect";
-import {
-	assembleSessionTree,
-	type SessionTreeRow,
-} from "#session-tree-view.ts";
 import { toFailure } from "#sight-failure.ts";
 
 export interface SightSessionTree {

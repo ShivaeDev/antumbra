@@ -7,10 +7,12 @@ import { CaptainCall } from "#views/voyage-acts.tsx";
 // a dashboard about it, and adds no rail for the admiral to read first.
 export const FlagshipPanel = ({
 	fleet,
+	foldToolCalls,
 	onError,
 	voyages,
 }: {
 	readonly fleet: Fleet | undefined;
+	readonly foldToolCalls: boolean;
 	readonly onError: (message: string) => void;
 	readonly voyages: ReadonlyArray<VoyageSummary>;
 }) => {
@@ -40,6 +42,7 @@ export const FlagshipPanel = ({
 	return (
 		<SessionPane
 			fleet={fleet}
+			foldToolCalls={foldToolCalls}
 			key={sessionId}
 			onError={onError}
 			sessionId={sessionId}

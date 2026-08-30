@@ -4,16 +4,19 @@ import { watchSessionEvents } from "#adapters/trpc.ts";
 import { Button } from "#components/ui/button.tsx";
 import { useFeedLog } from "#hooks/feed.ts";
 import { deriveTranscript } from "#transcript/derive.ts";
+import { foldToolRuns } from "#transcript/fold.ts";
 import { sessionStanding } from "#transcript/standing.ts";
 import { SessionStandingBar } from "#views/session-standing.tsx";
 import { TranscriptRow } from "#views/transcript-row.tsx";
 import { useTail } from "#views/transcript-tail.ts";
 
 export const TranscriptView = ({
+	foldToolCalls,
 	nodes = [],
 	onOpenNode,
 	sessionId,
 }: {
+	readonly foldToolCalls: boolean;
 	readonly nodes?: ReadonlyArray<SessionTreeNode> | undefined;
 	readonly onOpenNode?: ((nodeId: string) => void) | undefined;
 	readonly sessionId: string;
@@ -23,7 +26,8 @@ export const TranscriptView = ({
 		(onEvent, onError) =>
 			watchSessionEvents({ fromSeq: 0, sessionId }, onEvent, onError),
 	);
-	const items = deriveTranscript(events, nodes);
+	const derived = deriveTranscript(events, nodes);
+	const items = foldToolCalls ? foldToolRuns(derived) : derived;
 	const standing = sessionStanding(events);
 	const { atTail, onScroll, pane, toTail } = useTail(events.length);
 

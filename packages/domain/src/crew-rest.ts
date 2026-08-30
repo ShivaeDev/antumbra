@@ -1,6 +1,6 @@
+import { sessionAtRest, sessionRetirable } from "@antumbra/sessions";
 import { sessionPresence } from "@antumbra/vocabulary/agent-runtime";
 import type { PieceView } from "#piece-view.ts";
-import { sessionAtRest, sessionRetirable } from "#session-at-rest.ts";
 import type { AgentSessionRow, VoyageWorld } from "#voyage-rows.ts";
 
 // why: what this process is holding and what those holdings are carrying. The

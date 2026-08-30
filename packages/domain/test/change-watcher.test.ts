@@ -1,6 +1,7 @@
 import { Database } from "@antumbra/persistence";
 import { describe, expect, it } from "@effect/vitest";
 import { Effect } from "effect";
+import { TestClock } from "effect/testing";
 import type { ObserveCadenceOptions } from "#change-cadence.ts";
 import { AgentDomain } from "#domain.ts";
 import { berthed, REEF_SOURCE, reefWithPiece } from "#test/change-fixtures.ts";
@@ -25,31 +26,26 @@ import {
 
 const CREW = "agent-crew";
 
+const cadence = (
+	hotMillis: number,
+	warmMillis: number,
+	coldMillis: number,
+): ObserveCadenceOptions => ({
+	coldMillis,
+	hotMillis,
+	hotWindowMillis: 0,
+	warmMillis,
+});
+
 // why: the cadences under test are scaled down, never mocked — the loop these
 // tests exercise is the one the app runs, only impatient enough to watch.
-const SLOW: ObserveCadenceOptions = {
-	coldMillis: 60_000,
-	hotMillis: 60_000,
-	hotWindowMillis: 0,
-	warmMillis: 60_000,
-};
-
-const BRISK: ObserveCadenceOptions = {
-	coldMillis: 60_000,
-	hotMillis: 50,
-	hotWindowMillis: 0,
-	warmMillis: 50,
-};
+const SLOW = cadence(60_000, 60_000, 60_000);
+const BRISK = cadence(50, 50, 60_000);
 
 // why: the backoff ceiling is the cold cadence, so proving a run of failures
 // reaches it needs a cold cadence a test can sit out — four steps above the
 // warm one rather than a quarter of an hour.
-const FALTERING: ObserveCadenceOptions = {
-	coldMillis: 80,
-	hotMillis: 20,
-	hotWindowMillis: 0,
-	warmMillis: 20,
-};
+const FALTERING = cadence(20, 20, 80);
 
 const watched = <A, E, R>(
 	cadence: ObserveCadenceOptions,
@@ -98,33 +94,61 @@ const passes = (scripted: ScriptedHost) =>
 const settled = (scripted: ScriptedHost) =>
 	Effect.gen(function* () {
 		const before = yield* passes(scripted);
-		yield* Effect.sleep(200);
+		yield* TestClock.adjust(200);
 		const after = yield* passes(scripted);
 		return before === after ? after : yield* Effect.fail("still observing");
 	});
 
+const askedMoreThan = (scripted: ScriptedHost, count: number) =>
+	TestClock.withLive(
+		eventually(
+			Effect.gen(function* () {
+				expect(yield* passes(scripted)).toBeGreaterThan(count);
+			}),
+		),
+	);
+
+const hearsTheLanding = (
+	scripted: ScriptedHost,
+	repoId: string,
+	delayMillis: number,
+) =>
+	Effect.gen(function* () {
+		const domain = yield* AgentDomain;
+		yield* scripted.drive.refuse(null);
+		yield* scripted.drive.transition(repoId, "1", { stage: "landed" });
+		yield* TestClock.adjust(delayMillis);
+		yield* TestClock.withLive(
+			eventually(
+				Effect.gen(function* () {
+					expect(
+						(yield* domain.changes.watchableChanges("scripted")).length,
+					).toBe(0);
+				}),
+			),
+		);
+	});
+
 describe("watching open changes", () => {
-	it.live("asks again promptly when somebody rings", () =>
+	it.effect("asks again promptly when somebody rings", () =>
 		watched(SLOW, (scripted) =>
 			Effect.gen(function* () {
 				const domain = yield* AgentDomain;
 				const { piece, repo } = yield* reefWithPiece;
 				yield* berthed(CREW);
+				const beforeOpen = yield* passes(scripted);
 				yield* openedChange(piece.id, repo.name);
-				const quiet = yield* eventually(settled(scripted));
+				yield* askedMoreThan(scripted, beforeOpen);
+				const quiet = yield* settled(scripted);
 
 				yield* domain.changes.requestRefresh;
 
-				yield* eventually(
-					Effect.gen(function* () {
-						expect(yield* passes(scripted)).toBeGreaterThan(quiet);
-					}),
-				);
+				yield* askedMoreThan(scripted, quiet);
 			}),
 		),
 	);
 
-	it.live("keeps asking while a change is open and stops when it lands", () =>
+	it.effect("keeps asking while a change is open and stops when it lands", () =>
 		watched(BRISK, (scripted, backend) =>
 			Effect.gen(function* () {
 				const { piece, repo, voyage } = yield* reefWithPiece;
@@ -133,29 +157,32 @@ describe("watching open changes", () => {
 				yield* scripted.drive.transition(repo.id, "1", { checks: "green" });
 
 				const early = yield* passes(scripted);
-				yield* Effect.sleep(300);
+				yield* TestClock.adjust(300);
 				expect(yield* passes(scripted)).toBeGreaterThan(early);
 
 				yield* scripted.drive.transition(repo.id, "1", { stage: "landed" });
+				yield* TestClock.adjust(BRISK.warmMillis);
 				// why: the piece is launched, so the pool may have put a hand on it
 				// before the change row existed — whether it did is a race this test
 				// has no stake in. A piece reads shipped only once its crew is
 				// finished, so any hand is asked to stand down before the reading is
 				// taken, and the loop settles the same way whether or not one came.
-				yield* eventually(
-					Effect.gen(function* () {
-						yield* Effect.ignore(standDownAll(backend));
-						expect(yield* stateOf(voyage.id, piece.id)).toBe("done");
-					}),
+				yield* TestClock.withLive(
+					eventually(
+						Effect.gen(function* () {
+							yield* Effect.ignore(standDownAll(backend));
+							expect(yield* stateOf(voyage.id, piece.id)).toBe("done");
+						}),
+					),
 				);
 				// why: nothing is open, so the loop drops to the cold cadence and
 				// stops spending calls on a fleet that has nothing to say.
-				yield* eventually(settled(scripted));
+				yield* settled(scripted);
 			}),
 		),
 	);
 
-	it.live("leaves rows untouched when a host will not answer", () =>
+	it.effect("leaves rows untouched when a host will not answer", () =>
 		watched(BRISK, (scripted) =>
 			Effect.gen(function* () {
 				const domain = yield* AgentDomain;
@@ -165,7 +192,7 @@ describe("watching open changes", () => {
 				yield* scripted.drive.refuse("the harbour master is asleep");
 
 				const before = yield* passes(scripted);
-				yield* Effect.sleep(300);
+				yield* TestClock.adjust(300);
 				expect(yield* passes(scripted)).toBeGreaterThan(before);
 				const watchable = yield* domain.changes.watchableChanges("scripted");
 				expect(watchable[0]?.observedAt).toEqual(row.observedAt);
@@ -173,45 +200,28 @@ describe("watching open changes", () => {
 
 				// why: the loop is still alive — a host that starts answering again
 				// is heard without anything being restarted.
-				yield* scripted.drive.refuse(null);
-				yield* scripted.drive.transition(repo.id, "1", { stage: "landed" });
-				yield* eventually(
-					Effect.gen(function* () {
-						expect(
-							(yield* domain.changes.watchableChanges("scripted")).length,
-						).toBe(0);
-					}),
-				);
+				yield* hearsTheLanding(scripted, repo.id, 1_000);
 			}),
 		),
 	);
 
-	it.live("asks less often the longer a host goes on failing", () =>
+	it.effect("asks less often the longer a host goes on failing", () =>
 		watched(FALTERING, (scripted) =>
 			Effect.gen(function* () {
-				const domain = yield* AgentDomain;
 				const { piece, repo } = yield* reefWithPiece;
 				yield* berthed(CREW);
 				yield* openedChange(piece.id, repo.name);
 				yield* scripted.drive.refuse("the harbour master is asleep");
 
 				const before = yield* passes(scripted);
-				yield* Effect.sleep(500);
+				yield* TestClock.adjust(500);
 				// why: at the cadence this fleet asks for, half a second of silence
 				// would cost twenty-five passes. Backing off spends what 20, 40, 80
 				// and the ceiling allow, and an outage costs the same shape of the
 				// morning rather than one call every warm period of it.
 				expect((yield* passes(scripted)) - before).toBeLessThan(12);
 
-				yield* scripted.drive.refuse(null);
-				yield* scripted.drive.transition(repo.id, "1", { stage: "landed" });
-				yield* eventually(
-					Effect.gen(function* () {
-						expect(
-							(yield* domain.changes.watchableChanges("scripted")).length,
-						).toBe(0);
-					}),
-				);
+				yield* hearsTheLanding(scripted, repo.id, FALTERING.coldMillis);
 			}),
 		),
 	);

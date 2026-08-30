@@ -29,28 +29,6 @@ export const SelectItem = ({
 	</SelectPrimitive.Item>
 );
 
-export const SelectLabel = ({
-	className,
-	...props
-}: React.ComponentProps<typeof SelectPrimitive.Label>) => (
-	<SelectPrimitive.Label
-		className={cn("px-2 py-1 text-2xs text-muted-foreground", className)}
-		data-slot="select-label"
-		{...props}
-	/>
-);
-
-export const SelectSeparator = ({
-	className,
-	...props
-}: React.ComponentProps<typeof SelectPrimitive.Separator>) => (
-	<SelectPrimitive.Separator
-		className={cn("-mx-1 my-1 h-px bg-border", className)}
-		data-slot="select-separator"
-		{...props}
-	/>
-);
-
 export const SelectScrollUpButton = ({
 	className,
 	...props

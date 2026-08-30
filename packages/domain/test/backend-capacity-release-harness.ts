@@ -8,6 +8,7 @@ import {
 } from "@antumbra/kernel";
 import type { TemporaryPersistence } from "@antumbra/persistence/testing";
 import type { AgentBackend } from "@antumbra/plugin-api";
+import { type WakeFields, WakePayload } from "@antumbra/sessions";
 import { NodeServices } from "@effect/platform-node";
 import { Effect, Layer, Ref, Stream } from "effect";
 import { AgentDomain } from "#agent-domain-service.ts";
@@ -15,8 +16,6 @@ import type { BackendCapacities } from "#backend-capacity.ts";
 import type { BackendCapacityReading } from "#backend-capacity-model.ts";
 import { BackendCapacityReleaseLive } from "#backend-capacity-release.ts";
 import { AgentDomainLive } from "#domain.ts";
-import type { WakeFields } from "#session-wake-input.ts";
-import { WakePayload } from "#session-wake-input.ts";
 import { SettingsSourceLive } from "#settings.ts";
 import { type SpawnFields, SpawnPayload } from "#spawn-fields.ts";
 import { makeScriptedBackend, passiveRunner } from "#test/harness.ts";

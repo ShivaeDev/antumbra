@@ -36,7 +36,7 @@ it.live("a send to an asleep root resumes it and delivers the words", () =>
 			yield* spawned;
 			const first = yield* openedNatively(scripted);
 			yield* callTool(first, "stand_down", undefined);
-			// why: the siesta is asked for directly, standing in for the hour the
+			// why: the siesta is asked for directly, standing in for the threshold the
 			// clock would otherwise have to pass — the threshold itself is proved
 			// on its own beside this, and this rehearsal is about waking.
 			const siesta = yield* kernel.submit(domain.siesta, {

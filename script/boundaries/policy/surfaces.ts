@@ -86,7 +86,7 @@ export const surfacePolicy = [
 			illegal: importFrom(files.inPackage("prompts", "src/situations.ts")).to(
 				files.inPackage("changes", "src/change-read.ts"),
 			),
-			legal: importFrom(files.inPackage("domain", "src/session-send.ts")).to(
+			legal: importFrom(files.inPackage("sessions", "src/session-send.ts")).to(
 				files.inPackage("prompts", "src/index.ts"),
 			),
 		}),

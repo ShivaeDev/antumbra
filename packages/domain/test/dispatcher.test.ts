@@ -1,6 +1,7 @@
 import { SettingsSource } from "@antumbra/contract";
 import { expect, it } from "@effect/vitest";
 import { Effect, Option } from "effect";
+import { TestClock } from "effect/testing";
 import { nextBackoffMillis } from "#dispatch-policy.ts";
 import { AgentDomain } from "#domain.ts";
 import { dispatchingLayer } from "#test/domain-layers.ts";
@@ -70,7 +71,7 @@ it.live("a launched chain sails on its own as outcomes land", () =>
 	}),
 );
 
-it.live(
+it.effect(
 	"the alive ceiling holds the second dependent until a berth frees",
 	() =>
 		Effect.gen(function* () {
@@ -78,29 +79,35 @@ it.live(
 			const scripted = yield* makeScriptedBackend;
 			yield* Effect.gen(function* () {
 				const { alpha } = yield* chain;
-				yield* eventually(
-					Effect.gen(function* () {
-						expect(yield* assignedPieces).toEqual([alpha.id]);
-					}),
+				yield* TestClock.withLive(
+					eventually(
+						Effect.gen(function* () {
+							expect(yield* assignedPieces).toEqual([alpha.id]);
+						}),
+					),
 				);
 				yield* land(alpha.id, "soundings");
-				yield* Effect.sleep(300);
+				yield* TestClock.adjust(300);
 				expect(yield* assignedPieces).toEqual([alpha.id]);
 
-				yield* retireOneAlive(scripted);
-				yield* eventually(
-					Effect.gen(function* () {
-						expect((yield* assignedPieces).length).toBe(2);
-					}),
+				yield* TestClock.withLive(retireOneAlive(scripted));
+				yield* TestClock.withLive(
+					eventually(
+						Effect.gen(function* () {
+							expect((yield* assignedPieces).length).toBe(2);
+						}),
+					),
 				);
-				yield* Effect.sleep(300);
+				yield* TestClock.adjust(300);
 				expect((yield* assignedPieces).length).toBe(2);
 
-				yield* retireOneAlive(scripted);
-				yield* eventually(
-					Effect.gen(function* () {
-						expect((yield* assignedPieces).length).toBe(3);
-					}),
+				yield* TestClock.withLive(retireOneAlive(scripted));
+				yield* TestClock.withLive(
+					eventually(
+						Effect.gen(function* () {
+							expect((yield* assignedPieces).length).toBe(3);
+						}),
+					),
 				);
 			}).pipe(
 				Effect.provide(
@@ -113,40 +120,47 @@ it.live(
 		}),
 );
 
-it.live("applies a saved ceiling to subsequent launches without restart", () =>
-	Effect.gen(function* () {
-		const temporary = yield* acquireTemporaryPersistence;
-		const scripted = yield* makeScriptedBackend;
-		yield* Effect.gen(function* () {
-			const settings = yield* SettingsSource;
-			yield* settings.change({ key: "maxParallelSessions", value: 1 });
-			const { alpha } = yield* chain;
-			yield* eventually(
-				Effect.gen(function* () {
-					expect(yield* assignedPieces).toEqual([alpha.id]);
-				}),
-			);
-			yield* land(alpha.id, "soundings");
-			yield* Effect.sleep(150);
-			expect(yield* assignedPieces).toEqual([alpha.id]);
+it.effect(
+	"applies a saved ceiling to subsequent launches without restart",
+	() =>
+		Effect.gen(function* () {
+			const temporary = yield* acquireTemporaryPersistence;
+			const scripted = yield* makeScriptedBackend;
+			yield* Effect.gen(function* () {
+				const settings = yield* SettingsSource;
+				yield* settings.change({ key: "maxParallelSessions", value: 1 });
+				const { alpha } = yield* chain;
+				yield* TestClock.withLive(
+					eventually(
+						Effect.gen(function* () {
+							expect(yield* assignedPieces).toEqual([alpha.id]);
+						}),
+					),
+				);
+				yield* land(alpha.id, "soundings");
+				yield* TestClock.adjust(150);
+				expect(yield* assignedPieces).toEqual([alpha.id]);
 
-			yield* settings.change({ key: "maxParallelSessions", value: 2 });
-			yield* eventually(
-				Effect.gen(function* () {
-					expect((yield* assignedPieces).length).toBe(2);
-				}),
+				yield* settings.change({ key: "maxParallelSessions", value: 2 });
+				yield* TestClock.adjust(50);
+				yield* TestClock.withLive(
+					eventually(
+						Effect.gen(function* () {
+							expect((yield* assignedPieces).length).toBe(2);
+						}),
+					),
+				);
+			}).pipe(
+				Effect.provide(
+					dispatchingLayer(temporary, scripted.backend, {
+						patienceMillis: 50,
+					}),
+				),
 			);
-		}).pipe(
-			Effect.provide(
-				dispatchingLayer(temporary, scripted.backend, {
-					patienceMillis: 50,
-				}),
-			),
-		);
-	}),
+		}),
 );
 
-it.live("a parked piece is never dispatched until it is unparked", () =>
+it.effect("a parked piece is never dispatched until it is unparked", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
 		const scripted = yield* makeScriptedBackend;
@@ -163,15 +177,17 @@ it.live("a parked piece is never dispatched until it is unparked", () =>
 			});
 			yield* domain.voyages.park(piece.id);
 			yield* domain.voyages.launch(piece.id);
-			yield* Effect.sleep(300);
+			yield* TestClock.adjust(300);
 			expect(yield* assignedPieces).toEqual([]);
 			expect(yield* stateOf(voyage.id, piece.id)).toBe("parked");
 
 			yield* domain.voyages.unpark(piece.id);
-			yield* eventually(
-				Effect.gen(function* () {
-					expect(yield* assignedPieces).toEqual([piece.id]);
-				}),
+			yield* TestClock.withLive(
+				eventually(
+					Effect.gen(function* () {
+						expect(yield* assignedPieces).toEqual([piece.id]);
+					}),
+				),
 			);
 		}).pipe(
 			Effect.provide(dispatchingLayer(temporary, scripted.backend, PATIENCE)),

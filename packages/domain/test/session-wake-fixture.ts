@@ -3,9 +3,9 @@ import { Database } from "@antumbra/persistence";
 import type { TemporaryPersistence } from "@antumbra/persistence/testing";
 import type { AgentBackend, Runner, SessionInput } from "@antumbra/plugin-api";
 import { SessionFabricLive } from "@antumbra/session-fabric";
+import { SessionWakePatience } from "@antumbra/sessions";
 import { expect } from "@effect/vitest";
 import { Effect, Layer, Option, Ref } from "effect";
-import { SessionWakePatience } from "#session-wake-patience.ts";
 import {
 	domainKernelLayer,
 	sightSourceTestLayer,

@@ -1,7 +1,7 @@
 import { admiralWords, wakeWords } from "@antumbra/prompts";
+import type { makeSessionSend } from "@antumbra/sessions";
 import { expect, it } from "@effect/vitest";
 import type { Effect } from "effect";
-import type { makeSessionSend } from "#session-send.ts";
 
 type SessionSend = Effect.Success<
 	ReturnType<typeof makeSessionSend>

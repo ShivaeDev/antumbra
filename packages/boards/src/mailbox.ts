@@ -72,4 +72,7 @@ const receiptsFor = (agentId: string, entryIds: ReadonlyArray<string>) =>
 export const markMailRead = (
 	agentId: string,
 	entryIds: ReadonlyArray<string>,
-) => Database.use((db) => db.transaction(receiptsFor(agentId, entryIds)));
+) =>
+	Database.use((db) => db.transaction(receiptsFor(agentId, entryIds))).pipe(
+		Effect.asVoid,
+	);

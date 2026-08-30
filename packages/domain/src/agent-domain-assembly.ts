@@ -3,25 +3,27 @@ import type { AgentBackend, Runner } from "@antumbra/plugin-api";
 import { Repos } from "@antumbra/repos";
 import { ResourceReconciler } from "@antumbra/resource-reclamation";
 import { SessionFabric } from "@antumbra/session-fabric";
+import {
+	compileSessionSiestaDemands,
+	LiveDelegations,
+	makeCurrentSessionReconciler,
+	makeSessionNodeReconciler,
+	makeSessionRecoveryRuntime,
+	makeSessionSend,
+	makeSessionTreeSinks,
+	makeSiestaKind,
+	makeWakeKind,
+	type SessionRecoveryContext,
+	SessionRecoveryRuntime,
+} from "@antumbra/sessions";
 import { Effect } from "effect";
 import { AGENTS_ALIVE_GAUGE } from "#agent-domain-service.ts";
 import { makeAliveAgentCount } from "#agents-alive.ts";
 import { makeBackendCapacities } from "#backend-capacity.ts";
 import { ChangeProcedureService } from "#change-procedures.ts";
-import { makeCurrentSessionReconciler } from "#current-session-reconcile.ts";
 import { imageInputBackendsOf } from "#image-input-backends.ts";
 import { makeRetireKind } from "#retire.ts";
 import { compileRetireSweepDemands } from "#retire-sweep-demands.ts";
-import type { SessionRecoveryContext } from "#session-recovery-context.ts";
-import { SessionRecoveryRuntime } from "#session-recovery-runtime.ts";
-import { makeSessionRecoveryRuntime } from "#session-resume.ts";
-import { makeSessionSend } from "#session-send.ts";
-import { makeSiestaKind } from "#session-siesta.ts";
-import { compileSessionSiestaDemands } from "#session-siesta-demands.ts";
-import { LiveDelegations } from "#session-tree-live.ts";
-import { makeSessionNodeReconciler } from "#session-tree-reconcile.ts";
-import { makeSessionTreeSinks } from "#session-tree-sink.ts";
-import { makeWakeKind } from "#session-wake.ts";
 import { spawnKind } from "#spawn.ts";
 import { makeAgentToolCompiler } from "#spawn-tools.ts";
 import { VoyageProcedureService } from "#voyage-procedures.ts";

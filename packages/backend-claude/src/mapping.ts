@@ -5,19 +5,11 @@ import type {
 	RawPayload,
 } from "@antumbra/vocabulary/session-events";
 import { blockEvent, contentBlocks } from "#blocks.ts";
-import { claudeRaw } from "#raw-payload.ts";
+import { rawOf } from "#raw-payload.ts";
 import { systemEvents } from "#session-state.ts";
 import { spilledPreview } from "#spills.ts";
 import { openSubsessions } from "#subsessions.ts";
 import { openTurnUsage } from "#turn-usage.ts";
-
-const rawOf = (message: SDKMessage): RawPayload => {
-	const subtype =
-		"subtype" in message && typeof message.subtype === "string"
-			? `/${message.subtype}`
-			: "";
-	return claudeRaw(`${message.type}${subtype}`, message);
-};
 
 type ResultMessage = Extract<SDKMessage, { type: "result" }>;
 

@@ -2,6 +2,7 @@ import { Database } from "@antumbra/persistence";
 import { Rulings } from "@antumbra/rulings";
 import { expect, it } from "@effect/vitest";
 import { Effect } from "effect";
+import { TestClock } from "effect/testing";
 import { AgentDomain } from "#domain.ts";
 import { dispatchingLayer } from "#test/domain-layers.ts";
 import {
@@ -40,7 +41,7 @@ const requestedRuling = Effect.gen(function* () {
 	});
 });
 
-it.live("a gated piece is not dispatched until its ruling lands", () =>
+it.effect("a gated piece is not dispatched until its ruling lands", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
 		const scripted = yield* makeScriptedBackend;
@@ -59,7 +60,7 @@ it.live("a gated piece is not dispatched until its ruling lands", () =>
 			const ruling = yield* requestedRuling;
 			yield* rulings.gate({ pieceIds: [piece.id], rulingId: ruling.id });
 			yield* domain.voyages.launch(piece.id);
-			yield* Effect.sleep(300);
+			yield* TestClock.adjust(300);
 			expect(yield* assignedPieces).toEqual([]);
 			expect(yield* stateOf(voyage.id, piece.id)).toBe("blocked");
 
@@ -68,10 +69,12 @@ it.live("a gated piece is not dispatched until its ruling lands", () =>
 				by: "admiral",
 				rulingId: ruling.id,
 			});
-			yield* eventually(
-				Effect.gen(function* () {
-					expect(yield* assignedPieces).toEqual([piece.id]);
-				}),
+			yield* TestClock.withLive(
+				eventually(
+					Effect.gen(function* () {
+						expect(yield* assignedPieces).toEqual([piece.id]);
+					}),
+				),
 			);
 		}).pipe(
 			Effect.provide(dispatchingLayer(temporary, scripted.backend, PATIENCE)),

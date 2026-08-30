@@ -1,11 +1,10 @@
 import { SightSource } from "@antumbra/contract";
 import { Database } from "@antumbra/persistence";
 import { SessionFabric, SessionFabricLive } from "@antumbra/session-fabric";
+import { makeSessionTurnRests } from "@antumbra/sessions";
 import type { AgentEvent } from "@antumbra/vocabulary/session-events";
 import { expect, it } from "@effect/vitest";
 import { Effect, Layer } from "effect";
-import { IDLE_SIESTA_AFTER_MILLIS } from "#session-idle.ts";
-import { makeSessionTurnRests } from "#session-turn-rest.ts";
 import {
 	domainKernelLayer,
 	sightSourceTestLayer,
@@ -17,6 +16,7 @@ import {
 	type ScriptedBackend,
 } from "#test/harness.ts";
 import {
+	DEFAULT_IDLE_SIESTA_AFTER_MILLIS,
 	HAND,
 	openedNatively,
 	passedAt,
@@ -24,10 +24,8 @@ import {
 	sessionRow,
 	spawned,
 } from "#test/session-idle-fixture.ts";
-import {
-	eventually,
-	reportsNativeRef,
-} from "#test/session-recovery-fixture.ts";
+import { reportsNativeRef } from "#test/session-recovery-fixture.ts";
+import { eventually } from "#test/voyage-fixtures.ts";
 
 const spoke: AgentEvent = {
 	raw: rawOf("agent/message"),
@@ -89,7 +87,7 @@ it.live(
 				expect(lost.canSend).toBe(true);
 				expect((yield* sessionRow).executionStatus).toBe("active");
 
-				yield* passedAt(IDLE_SIESTA_AFTER_MILLIS + 60_000);
+				yield* passedAt(DEFAULT_IDLE_SIESTA_AFTER_MILLIS + 60_000);
 				expect(yield* wakes).toEqual([]);
 				expect((yield* sessionRow).executionStatus).toBe("active");
 				expect((yield* presenceOf).presence).toBe("stranded");

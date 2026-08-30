@@ -1,5 +1,6 @@
 import { Separator } from "#components/ui/separator.tsx";
-import type { TranscriptItem, TranscriptNotice } from "#transcript/model.ts";
+import type { FoldedItem } from "#transcript/fold.ts";
+import type { TranscriptNotice } from "#transcript/model.ts";
 import { TranscriptDelegationMark } from "#views/transcript-delegation.tsx";
 import {
 	TranscriptMessage,
@@ -7,6 +8,7 @@ import {
 } from "#views/transcript-message.tsx";
 import { TranscriptRaw } from "#views/transcript-raw.tsx";
 import { TranscriptTool } from "#views/transcript-tool.tsx";
+import { TranscriptToolRunRow } from "#views/transcript-tool-run.tsx";
 
 // why: every entry is labelled in the same narrow column, so the eye reads
 // down one edge to find who is speaking and the content keeps a single left
@@ -53,7 +55,7 @@ export const TranscriptRow = ({
 	onOpenNode,
 	sessionId = "",
 }: {
-	readonly item: TranscriptItem;
+	readonly item: FoldedItem;
 	readonly onOpenNode?: ((nodeId: string) => void) | undefined;
 	readonly sessionId?: string | undefined;
 }) => {
@@ -75,6 +77,13 @@ export const TranscriptRow = ({
 		return (
 			<Gutter label="tool">
 				<TranscriptTool item={item} />
+			</Gutter>
+		);
+	}
+	if (item.kind === "toolRun") {
+		return (
+			<Gutter label="tools">
+				<TranscriptToolRunRow run={item} />
 			</Gutter>
 		);
 	}

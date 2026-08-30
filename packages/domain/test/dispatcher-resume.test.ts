@@ -3,6 +3,7 @@ import { Database } from "@antumbra/persistence";
 import type { Runner } from "@antumbra/plugin-api";
 import { expect, it } from "@effect/vitest";
 import { Deferred, Effect, Option } from "effect";
+import { TestClock } from "effect/testing";
 import { dispatchingLayer } from "#test/domain-layers.ts";
 import {
 	acquireTemporaryPersistence,
@@ -24,14 +25,14 @@ import {
 	stateOf,
 } from "#test/voyage-fixtures.ts";
 
-it.live("a spawn held at admission is never submitted twice", () =>
+it.effect("a spawn held at admission is never submitted twice", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
 		const scripted = yield* makeScriptedBackend;
 		yield* Effect.gen(function* () {
 			const db = yield* Database;
 			yield* chain;
-			yield* Effect.sleep(400);
+			yield* TestClock.adjust(400);
 			const spawns = yield* db.Intent.where({ tag: "agent/spawn" }).all();
 			expect(spawns).toHaveLength(1);
 			expect(spawns[0]?.status).toBe("queued");
@@ -48,7 +49,7 @@ it.live("a spawn held at admission is never submitted twice", () =>
 // why: the window between the agent row and its session is where a second
 // dispatch would slip in, so the piece must read active from the first row
 // written, not from the moment the session opens.
-it.live("a piece stays active while its agent is still spawning", () =>
+it.effect("a piece stays active while its agent is still spawning", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
 		const scripted = yield* makeScriptedBackend;
@@ -73,17 +74,19 @@ it.live("a piece stays active while its agent is still spawning", () =>
 			expect(yield* assignedPieces).toEqual([alpha.id]);
 			expect(yield* stateOf(voyage.id, alpha.id)).toBe("active");
 
-			yield* Effect.sleep(200);
+			yield* TestClock.adjust(200);
 			expect(yield* assignedPieces).toEqual([alpha.id]);
 
 			yield* Deferred.succeed(release, undefined);
-			yield* eventually(
-				Effect.gen(function* () {
-					expect(yield* stateOf(voyage.id, alpha.id)).toBe("active");
-					expect(yield* db.Agent.where({ status: "alive" }).all()).toHaveLength(
-						1,
-					);
-				}),
+			yield* TestClock.withLive(
+				eventually(
+					Effect.gen(function* () {
+						expect(yield* stateOf(voyage.id, alpha.id)).toBe("active");
+						expect(
+							yield* db.Agent.where({ status: "alive" }).all(),
+						).toHaveLength(1);
+					}),
+				),
 			);
 		}).pipe(
 			Effect.provide(

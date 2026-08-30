@@ -15,7 +15,9 @@ persistence.effectDB(
 		yield* Effect.gen(function* () {
 			const reading = yield* (yield* SettingsSource).current;
 			expect(reading.settings).toEqual({
+				foldToolCalls: SETTINGS.foldToolCalls.fallback,
 				maxParallelSessions: SETTINGS.maxParallelSessions.fallback,
+				idleSiestaMinutes: 60,
 				retireRestMinutes: SETTINGS.retireRestMinutes.fallback,
 				retireSweep: SETTINGS.retireSweep.fallback,
 			});

@@ -2,6 +2,7 @@ import { Database } from "@antumbra/persistence";
 import type { Runner } from "@antumbra/plugin-api";
 import { expect, it } from "@effect/vitest";
 import { Clock, Effect, Ref } from "effect";
+import { TestClock } from "effect/testing";
 import { AgentDomain } from "#domain.ts";
 import { changeOf, REEF_SOURCE } from "#test/change-fixtures.ts";
 import { observed } from "#test/change-transition-fixtures.ts";
@@ -173,7 +174,7 @@ const expectReclaimed = (released: ReadonlyMap<string, string>) =>
 		expect(released.get(ELSEWHERE)).toBe("reclaimed");
 	});
 
-it.live(
+it.effect(
 	"a landed change observation wakes reclaim without waiting for cadence",
 	() =>
 		Effect.gen(function* () {
@@ -212,12 +213,14 @@ it.live(
 				);
 				const [landed] = yield* domain.changes.observed("scripted", [landing]);
 				expect(landed?.stage).toBe("landed");
-				yield* eventually(berthStatuses.pipe(Effect.tap(expectReclaimed)));
+				yield* TestClock.withLive(
+					eventually(berthStatuses.pipe(Effect.tap(expectReclaimed))),
+				);
 				expect(yield* Ref.get(reclaims)).toBe(4);
 				expect(yield* Ref.get(scraps)).toBe(0);
 
 				yield* domain.changes.observed("scripted", [landing]);
-				yield* Effect.sleep(25);
+				yield* TestClock.adjust(25);
 				expect(yield* Ref.get(reclaims)).toBe(4);
 				expect(yield* Ref.get(scraps)).toBe(0);
 			}).pipe(

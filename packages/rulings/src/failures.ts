@@ -7,7 +7,6 @@ import type {
 	RulingBelowRung,
 	RulingChoiceUnknown,
 	RulingGatePieceMissing,
-	RulingNotAtRung,
 	RulingNotFound,
 	RulingNotRuled,
 	RulingOutsideAuthority,
@@ -33,12 +32,6 @@ export type RulingVerdictFailure =
 
 export type RulingProclaimFailure = RulingRequestFailure | RulingVerdictFailure;
 
-export type RulingGateFailure =
-	| RulingAlreadyRuled
-	| RulingGatePieceMissing
-	| RulingNotFound
-	| RulingReadFailure;
-
 export type RulingSupersessionFailure =
 	| RulingAlreadySuperseded
 	| RulingAlreadyWithdrawn
@@ -59,11 +52,3 @@ export type RulingReclassifyFailure =
 	| RulingNotFound
 	| RulingReadFailure
 	| RulingReclassificationEmpty;
-
-export type RulingPassUpFailure =
-	| RulingAlreadyRuled
-	| RulingNotAtRung
-	| RulingNotFound
-	| RulingReadFailure;
-
-export type RulingLookupFailure = RulingNotFound | RulingReadFailure;

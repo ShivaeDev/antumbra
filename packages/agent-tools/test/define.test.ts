@@ -97,7 +97,8 @@ it("every spec emits a closed object schema", () => {
 			]),
 		},
 	});
-	expect(readVoyageSpec.inputSchema).toEqual(standDownSpec.inputSchema);
+	expect(readVoyageSpec.inputSchema).not.toHaveProperty("required");
+	expect(readVoyageSpec.inputSchema.properties).toHaveProperty("voyageId");
 	expect(standDownSpec.inputSchema).toEqual({
 		additionalProperties: false,
 		properties: {},

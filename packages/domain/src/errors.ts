@@ -22,25 +22,23 @@ export {
 	SessionNotLive,
 } from "@antumbra/session-fabric";
 export {
-	CaptainAlreadyHailed,
-	CaptainSessionUnavailable,
-} from "#captain-errors.ts";
-export {
 	AgentSessionConflict,
 	CurrentSessionInvalid,
-} from "#current-session-errors.ts";
-export {
-	PieceAbandoned,
-	PieceAlreadyCrewed,
-	PieceNotOnVoyage,
-} from "#piece-work-errors.ts";
-export {
 	SessionEnded,
 	SessionIdentityMissing,
 	SessionMessageEmpty,
 	SessionNotFound,
 	SessionStillDelegating,
-} from "#session-errors.ts";
+} from "@antumbra/sessions";
+export {
+	CaptainAlreadyHailed,
+	CaptainSessionUnavailable,
+} from "#captain-errors.ts";
+export {
+	PieceAbandoned,
+	PieceAlreadyCrewed,
+	PieceNotOnVoyage,
+} from "#piece-work-errors.ts";
 
 export class AgentNotFound extends Data.TaggedError("AgentNotFound")<{
 	readonly agentId: string;

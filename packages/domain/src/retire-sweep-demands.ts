@@ -2,11 +2,11 @@ import { SettingsSource } from "@antumbra/contract";
 import { defineIntentDemand } from "@antumbra/intent-demand";
 import type { IntentKind } from "@antumbra/kernel";
 import { SessionFabric } from "@antumbra/session-fabric";
+import { LiveDelegations } from "@antumbra/sessions";
 import { Clock, Effect } from "effect";
 import { claimedCrew, restingCrew, retirableCrew } from "#crew-rest.ts";
 import { type PieceState, pieceStates } from "#piece-state.ts";
 import type { RetireFields } from "#retire.ts";
-import { LiveDelegations } from "#session-tree-live.ts";
 import { VoyageWorldSource } from "#voyage-world.ts";
 
 const MILLIS_PER_MINUTE = 60_000;

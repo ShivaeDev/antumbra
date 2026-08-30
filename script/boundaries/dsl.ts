@@ -73,6 +73,13 @@ export const workspaceExcept = (...excludedPackages: readonly string[]) => ({
 		workspaceSource(excludedPackages, exceptions),
 });
 
+export const workspaceSourcesExcept = (
+	...excludedPackages: readonly string[]
+): ImportSource => ({
+	excludedPackages,
+	kind: "workspace-sources-except",
+});
+
 const workspaceFile = (
 	root: WorkspaceRoot,
 	name: string,

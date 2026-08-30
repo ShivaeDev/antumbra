@@ -37,5 +37,9 @@ export const compileSelector = (
 			]
 				.map((name) => `${escapeExpression(name)}(?:/|$)`)
 				.join("|")})|^apps/`;
+		case "workspace-sources-except":
+			return `^packages/(?!${selector.excludedPackages
+				.map((name) => `${escapeExpression(name)}(?:/|$)`)
+				.join("|")})[^/]+/src/|^apps/[^/]+/src/`;
 	}
 };

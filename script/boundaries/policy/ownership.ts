@@ -8,6 +8,7 @@ import {
 	packages,
 	sanctioned,
 	workspaceExcept,
+	workspaceSourcesExcept,
 } from "#boundaries/dsl.ts";
 import type { BoundaryRule } from "#boundaries/model.ts";
 
@@ -65,5 +66,19 @@ export const ownershipPolicy = [
 			legal: importFrom(files.inPackage("domain", "src/domain.ts")).to(
 				files.inPackage("plugin-api", "src/backend.ts"),
 			),
+		}),
+	fence("runtime-never-imports-testing")
+		.because(
+			"The testing package is the test composition root. Production source never reaches it; the desktop remains the production composition root.",
+		)
+		.forbidsImportsFrom(workspaceSourcesExcept("testing"))
+		.to(packages.named("testing"))
+		.demonstratedBy({
+			illegal: importFrom(files.inPackage("domain", "src/domain.ts")).to(
+				files.inPackage("testing", "src/index.ts"),
+			),
+			legal: importFrom(
+				files.inPackage("domain", "test/dispatcher.test.ts"),
+			).to(files.inPackage("testing", "src/index.ts")),
 		}),
 ] as const satisfies readonly BoundaryRule[];

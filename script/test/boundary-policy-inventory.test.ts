@@ -4,7 +4,7 @@ import {
 	boundaryPolicyInventory,
 	compiledBoundaryPolicy,
 } from "#boundaries/config.ts";
-import { anyOf, packages } from "#boundaries/dsl.ts";
+import { anyOf, packages, workspaceSourcesExcept } from "#boundaries/dsl.ts";
 import type { BoundaryRule, ImportSource } from "#boundaries/model.ts";
 import { boundaryPolicy } from "#boundaries/policy.ts";
 import { failPolicy } from "#boundaries/validation.ts";
@@ -51,6 +51,12 @@ describe("boundary policy inventory", () => {
 				boundaryPolicyInventory,
 			),
 		).toThrow("family not-a-family matches no packages");
+		expect(() =>
+			compileBoundaryPolicy(
+				[withConsumers(workspaceSourcesExcept("not-a-package"))],
+				boundaryPolicyInventory,
+			),
+		).toThrow("names unknown package not-a-package");
 	});
 
 	it("rejects unknown vocabulary subjects", () => {

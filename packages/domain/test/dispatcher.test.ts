@@ -1,4 +1,5 @@
 import { SettingsSource } from "@antumbra/contract";
+import { it as itApp } from "@antumbra/testing";
 import { expect, it } from "@effect/vitest";
 import { Effect, Option } from "effect";
 import { TestClock } from "effect/testing";
@@ -160,37 +161,29 @@ it.effect(
 		}),
 );
 
-it.effect("a parked piece is never dispatched until it is unparked", () =>
-	Effect.gen(function* () {
-		const temporary = yield* acquireTemporaryPersistence;
-		const scripted = yield* makeScriptedBackend;
-		yield* Effect.gen(function* () {
-			const domain = yield* AgentDomain;
-			const voyage = yield* openReefVoyage;
-			const piece = yield* domain.voyages.charterPiece({
-				charter: "sound the shallows",
-				dependsOn: [],
-				expectation: "soundings are landed",
-				role: "hand",
-				title: "alpha",
-				voyageId: voyage.id,
-			});
-			yield* domain.voyages.park(piece.id);
-			yield* domain.voyages.launch(piece.id);
-			yield* TestClock.adjust(300);
-			expect(yield* assignedPieces).toEqual([]);
-			expect(yield* stateOf(voyage.id, piece.id)).toBe("parked");
-
-			yield* domain.voyages.unpark(piece.id);
-			yield* TestClock.withLive(
-				eventually(
-					Effect.gen(function* () {
-						expect(yield* assignedPieces).toEqual([piece.id]);
-					}),
-				),
+itApp.effectApp(
+	"a parked piece is never dispatched until it is unparked",
+	function* ({ domain, clock, eventually, db }) {
+		const voyage = yield* openReefVoyage;
+		const piece = yield* domain.voyages.charterPiece({
+			charter: "sound the shallows",
+			dependsOn: [],
+			expectation: "soundings are landed",
+			role: "hand",
+			title: "alpha",
+			voyageId: voyage.id,
+		});
+		yield* domain.voyages.park(piece.id);
+		yield* domain.voyages.launch(piece.id);
+		const assigned = () =>
+			db.PieceAgent.all().pipe(
+				Effect.map((rows) => rows.map((row) => row.pieceId)),
 			);
-		}).pipe(
-			Effect.provide(dispatchingLayer(temporary, scripted.backend, PATIENCE)),
-		);
-	}),
+		yield* clock.adjust(300);
+		expect(yield* assigned()).toEqual([]);
+		expect(yield* stateOf(voyage.id, piece.id)).toBe("parked");
+
+		yield* domain.voyages.unpark(piece.id);
+		expect(yield* eventually(assigned)).toEqual([piece.id]);
+	},
 );

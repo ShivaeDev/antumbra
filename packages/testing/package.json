@@ -1,10 +1,11 @@
 {
-	"name": "@antumbra/rulings",
+	"name": "@antumbra/testing",
 	"version": "0.0.0",
 	"private": true,
 	"type": "module",
 	"exports": {
-		".": "./src/index.ts"
+		".": "./src/index.ts",
+		"./rulings": "./src/rulings.ts"
 	},
 	"imports": {
 		"#test/*": "./test/*",
@@ -16,18 +17,22 @@
 		"typecheck:compat": "tsc6 --noEmit"
 	},
 	"devDependencies": {
-		"@antumbra/testing": "workspace:*",
-		"@effect/vitest": "catalog:",
 		"@types/node": "catalog:",
 		"@typescript/native": "catalog:",
 		"typescript": "catalog:",
 		"vitest": "catalog:"
 	},
 	"dependencies": {
+		"@antumbra/domain": "workspace:*",
 		"@antumbra/domain-feeds": "workspace:*",
+		"@antumbra/intent-demand": "workspace:*",
+		"@antumbra/kernel": "workspace:*",
 		"@antumbra/persistence": "workspace:*",
-		"@antumbra/service-definition": "workspace:*",
+		"@antumbra/plugin-api": "workspace:*",
+		"@antumbra/rulings": "workspace:*",
 		"@antumbra/vocabulary": "workspace:*",
+		"@effect/platform-node": "catalog:",
+		"@effect/vitest": "catalog:",
 		"effect": "catalog:"
 	}
 }

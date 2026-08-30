@@ -90,6 +90,9 @@ const validateSelector = (
 		case "workspace-except":
 			validateWorkspaceExcept(selector, inventory, location);
 			return;
+		case "workspace-sources-except":
+			validateNamed("package", selector.excludedPackages, inventory, location);
+			return;
 		case "external-module":
 		case "external-namespace":
 			if (selector.name.trim().length === 0) {

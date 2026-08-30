@@ -33,7 +33,15 @@ export interface WorkspaceExcept {
 	readonly sanctioned: readonly SanctionedException[];
 }
 
-export type ImportSource = ImportTarget | WorkspaceExcept;
+export interface WorkspaceSourcesExcept {
+	readonly excludedPackages: readonly string[];
+	readonly kind: "workspace-sources-except";
+}
+
+export type ImportSource =
+	| ImportTarget
+	| WorkspaceExcept
+	| WorkspaceSourcesExcept;
 
 export type FixtureEndpoint =
 	| {

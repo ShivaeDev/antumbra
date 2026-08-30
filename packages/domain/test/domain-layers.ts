@@ -1,33 +1,24 @@
 import { dirname, join } from "node:path";
-import { IntentDemandLive } from "@antumbra/intent-demand";
-import { KernelLive, type KernelOptions } from "@antumbra/kernel";
 import type { TemporaryPersistence } from "@antumbra/persistence/testing";
-import type { AgentBackend, ChangeHost, Runner } from "@antumbra/plugin-api";
-import type { ResourceReconcileOptions } from "@antumbra/resource-reclamation";
 import { SessionFabricLive } from "@antumbra/session-fabric";
+import {
+	dispatchingLayer,
+	domainKernelLayer,
+	passiveRunner,
+	watchingLayer,
+} from "@antumbra/testing";
 import { NodeServices } from "@effect/platform-node";
 import { Effect, Layer } from "effect";
 import { BackendCapacityReleaseLive } from "#backend-capacity-release.ts";
-import type { ObserveCadenceOptions } from "#change-cadence.ts";
-import { ChangeWatcherLive } from "#change-watcher.ts";
-import { DispatcherLive, type DispatcherOptions } from "#dispatcher.ts";
-import { AgentDomain, AgentDomainLive } from "#domain.ts";
 import { domainCapabilities } from "#domain-capabilities.ts";
-import { IntentFeedLive } from "#intent-feed.ts";
-import { KernelReachInstaller, KernelReachLive } from "#kernel-reach.ts";
-import { RulingAscentLive } from "#ruling-ascent.ts";
-import { RulingDeliveryLive } from "#ruling-delivery.ts";
-import { SessionShutdownLive } from "#session-shutdown-live.ts";
-import { SettingsSourceLive } from "#settings.ts";
+import { KernelReachInstaller } from "#kernel-reach.ts";
 import { SightSourceLive } from "#sight.ts";
-import { passiveRunner } from "#test/harness.ts";
 import { fakeKernelReach } from "#test/kernel-reach-fixture.ts";
+
+export { dispatchingLayer, domainKernelLayer, watchingLayer };
 
 const artifactsDirectory = (temporary: TemporaryPersistence) =>
 	join(dirname(temporary.database), "artifacts");
-
-const sessionInputsDirectory = (temporary: TemporaryPersistence) =>
-	join(dirname(temporary.database), "session-inputs");
 
 const fakeKernelReachLive = Layer.effectDiscard(
 	Effect.gen(function* () {
@@ -51,85 +42,6 @@ export const domainCapabilityLayer = (temporary: TemporaryPersistence) =>
 		Layer.provideMerge(temporary.layer),
 	);
 
-export const domainKernelLayer = (
-	temporary: TemporaryPersistence,
-	backend: AgentBackend,
-	options: Omit<KernelOptions, "kinds" | "gauges"> = {},
-	runner: Runner = passiveRunner,
-	changeHosts: ReadonlyMap<string, ChangeHost> = new Map(),
-	reclaim: Partial<ResourceReconcileOptions> = {},
-) =>
-	Layer.mergeAll(
-		IntentFeedLive,
-		KernelReachLive,
-		Layer.unwrap(
-			Effect.gen(function* () {
-				const domain = yield* AgentDomain;
-				return IntentDemandLive(domain.intentDemands);
-			}),
-		),
-		RulingAscentLive,
-		RulingDeliveryLive,
-		SessionShutdownLive,
-	).pipe(
-		Layer.provideMerge(
-			Layer.unwrap(
-				Effect.gen(function* () {
-					const domain = yield* AgentDomain;
-					return KernelLive({
-						...options,
-						kinds: domain.kinds,
-					});
-				}),
-			),
-		),
-		Layer.provideMerge(
-			AgentDomainLive(
-				new Map([[backend.tag, backend]]),
-				new Map([[runner.tag, runner]]),
-				changeHosts,
-				artifactsDirectory(temporary),
-				sessionInputsDirectory(temporary),
-				reclaim,
-			).pipe(Layer.provide(NodeServices.layer)),
-		),
-		// why: the domain's own clock-driven passes read the catalog, so the
-		// settings stand under it here exactly as they do in the app.
-		Layer.provideMerge(SettingsSourceLive),
-		Layer.provideMerge(temporary.layer),
-	);
-
-export const dispatchingLayer = (
-	temporary: TemporaryPersistence,
-	backend: AgentBackend,
-	dispatcher: Partial<DispatcherOptions>,
-	options: Omit<KernelOptions, "kinds" | "gauges"> = {},
-	runner: Runner = passiveRunner,
-	changeHosts: ReadonlyMap<string, ChangeHost> = new Map(),
-) =>
-	DispatcherLive(dispatcher).pipe(
-		Layer.provideMerge(
-			domainKernelLayer(temporary, backend, options, runner, changeHosts),
-		),
-	);
-
 export const sightSourceTestLayer = SightSourceLive.pipe(
 	Layer.provideMerge(BackendCapacityReleaseLive),
 );
-
-// why: the watcher stands beside the dispatcher exactly as it does in the app,
-// so a test of "the host said it landed" runs the same path a real merge does
-// — nothing in these tests ever calls a refresh by hand.
-export const watchingLayer = (
-	temporary: TemporaryPersistence,
-	backend: AgentBackend,
-	cadence: Partial<ObserveCadenceOptions>,
-	changeHosts: ReadonlyMap<string, ChangeHost>,
-	dispatcher: Partial<DispatcherOptions> = { maxAlive: 4, patienceMillis: 50 },
-	runner: Runner = passiveRunner,
-) =>
-	ChangeWatcherLive(cadence).pipe(
-		Layer.provideMerge(
-			dispatchingLayer(temporary, backend, dispatcher, {}, runner, changeHosts),
-		),
-	);

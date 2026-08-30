@@ -77,6 +77,7 @@ obligation remains detached until needed. See
 | `packages/trace-sink`     | Dev-only sink: finished spans and log entries into their own trace file |
 | `packages/renderer`       | The web UI                                                      |
 | `packages/harness`        | Browser dev harness: the renderer over the contract's fixtures, without the shell |
+| `packages/testing`        | Test composition root: Effect testers, scripted ports, and the dispatching kernel Layer |
 
 ## Layers
 
@@ -88,12 +89,14 @@ leaf, but never on a capability, port, adapter, domain, or app layer.
 Capability packages own business acts beneath the application-facing `domain`
 facade, while adapters implement ports without importing the domain.
 
-`apps/desktop` is the only composition root where adapters and use cases meet.
-Effect environments state runtime dependencies, capability services own their
-transactions and post-commit signals, and Layers select implementations and
-lifetimes. Foreign callbacks cross adapter boundaries only after their Effect
-requirements are closed. `packages/git` remains process infrastructure beneath
-`runner-local`.
+`apps/desktop` is the production composition root where adapters and use cases
+meet. `packages/testing` is the test composition root: it builds that same
+domain Layer over scripted ports and a throwaway database. Production source
+never imports it. Effect environments state runtime dependencies, capability
+services own their transactions and post-commit signals, and Layers select
+implementations and lifetimes. Foreign callbacks cross adapter boundaries only
+after their Effect requirements are closed. `packages/git` remains process
+infrastructure beneath `runner-local`.
 
 `service-definition` is the Effect-only construction leaf for process-lifetime
 services. One definition initializes private state and constructs the public

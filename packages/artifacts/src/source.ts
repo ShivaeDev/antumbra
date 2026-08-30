@@ -90,10 +90,8 @@ export const readOwnedArtifact = (input: ArtifactInput) =>
 			const moorageRoot = yield* requireReadyMoorage(agentId, input.path);
 			const source = yield* readFromMoorage(moorageRoot, agentId, input);
 			return {
-				agentId,
 				basename: source.basename,
 				bytes: source.bytes,
-				moorageRoot,
 			};
 		}),
 	);

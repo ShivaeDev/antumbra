@@ -40,7 +40,7 @@ export const makeTurnDriver = (requests: TurnRequests): Effect.Effect<TurnDriver
 			}
 			return sendNow(next.text).pipe(
 				Effect.matchEffect({
-					onFailure: (failure) => refuse(next, failure),
+					onFailure: (failure) => Ref.update(state, sent).pipe(Effect.andThen(refuse(next, failure))),
 					onSuccess: () => Ref.update(state, sent).pipe(Effect.andThen(Deferred.succeed(next.accepted, undefined))),
 				}),
 				Effect.asVoid,

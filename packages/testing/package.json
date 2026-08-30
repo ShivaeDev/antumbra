@@ -1,0 +1,31 @@
+{
+	"name": "@antumbra/testing",
+	"version": "0.0.0",
+	"private": true,
+	"type": "module",
+	"exports": {
+		".": "./src/index.ts"
+	},
+	"imports": {
+		"#*": "./src/*"
+	},
+	"scripts": {
+		"test": "vitest run",
+		"typecheck": "tsc --noEmit",
+		"typecheck:compat": "tsc6 --noEmit"
+	},
+	"devDependencies": {
+		"@types/node": "catalog:",
+		"@typescript/native": "catalog:",
+		"typescript": "catalog:",
+		"vitest": "catalog:"
+	},
+	"dependencies": {
+		"@antumbra/boards": "workspace:*",
+		"@antumbra/domain-feeds": "workspace:*",
+		"@antumbra/persistence": "workspace:*",
+		"@antumbra/repos": "workspace:*",
+		"@effect/vitest": "catalog:",
+		"effect": "catalog:"
+	}
+}

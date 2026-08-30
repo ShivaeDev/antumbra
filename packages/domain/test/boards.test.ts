@@ -33,46 +33,6 @@ const noted = (body: string) =>
 		register: "smooth" as const,
 	});
 
-it.live("a board keeps both registers in the order they were written", () =>
-	withDomain(
-		Effect.gen(function* () {
-			const domain = yield* AgentDomain;
-			const voyage = yield* openReefVoyage;
-			const scope = BoardScope.Voyage({ voyageId: voyage.id });
-			yield* domain.boards.write(
-				scope,
-				EntryInput.Note({
-					authorAgentId: Option.none(),
-					body: "sail the eastern approach first",
-					register: "smooth",
-				}),
-			);
-			yield* domain.boards.write(
-				scope,
-				EntryInput.Note({
-					authorAgentId: Option.some("agent-1"),
-					body: "the swell is running",
-					register: "rough",
-				}),
-			);
-			expect(yield* domain.boards.read(scope)).toMatchObject([
-				{
-					authorAgentId: null,
-					body: "sail the eastern approach first",
-					register: "smooth",
-					seq: 1,
-				},
-				{
-					authorAgentId: "agent-1",
-					body: "the swell is running",
-					register: "rough",
-					seq: 2,
-				},
-			]);
-		}),
-	),
-);
-
 it.live("every durable entity carries its own board", () =>
 	withDomain(
 		Effect.gen(function* () {

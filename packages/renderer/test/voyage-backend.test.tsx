@@ -38,10 +38,12 @@ it.effect(
 			expect(yield* rendered("claude")).toEqual([
 				{ pressed: "true", tag: "claude" },
 				{ pressed: "false", tag: "codex" },
+				{ pressed: "false", tag: "opencode" },
 			]);
-			expect(yield* rendered("codex")).toEqual([
+			expect(yield* rendered("opencode")).toEqual([
 				{ pressed: "false", tag: "claude" },
-				{ pressed: "true", tag: "codex" },
+				{ pressed: "false", tag: "codex" },
+				{ pressed: "true", tag: "opencode" },
 			]);
 		}),
 );

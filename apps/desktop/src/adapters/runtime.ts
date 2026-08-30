@@ -1,5 +1,6 @@
 import { claudePlugin } from "@antumbra/backend-claude";
 import { codexPlugin } from "@antumbra/backend-codex";
+import { opencodePlugin } from "@antumbra/backend-opencode";
 import {
 	AgentDomain,
 	AgentDomainLive,
@@ -58,6 +59,11 @@ const agents = Layer.unwrap(
 		// own cwd per session.
 		yield* Effect.orDie(
 			codexPlugin({ cwd: configureDataDirectory() }).activate(host.context),
+		);
+		// why: the opencode server child runs from the data directory; each
+		// session names its own moorage on every call it makes.
+		yield* Effect.orDie(
+			opencodePlugin({ cwd: configureDataDirectory() }).activate(host.context),
 		);
 		yield* Effect.orDie(runnerPlugin.activate(host.context));
 		// why: registered unconditionally, unlike the agent CLIs — a change host

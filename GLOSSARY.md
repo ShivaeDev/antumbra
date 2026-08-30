@@ -1,9 +1,7 @@
 # Glossary
 
-Antumbra uses a small product vocabulary so a chart, a conversation, and the
-app can mean the same thing. This is an index, not an encyclopedia: each term
-links to the one design guide that explains its relationships and behavior.
-Code and schemas remain the authority for exact fields and states.
+Antumbra uses a small product vocabulary so a chart, a conversation, and the app can mean the same thing. This is an index, not an encyclopedia: each
+term links to the one design guide that explains its relationships and behavior. Code and schemas remain the authority for exact fields and states.
 
 ## Work and planning
 
@@ -15,11 +13,14 @@ Owner: [Work and planning](docs/design/work-and-planning.md)
 - [**Polaris**](docs/design/work-and-planning.md#voyages-and-their-course) — the fixed north star a Voyage moves toward but never reaches.
 - [**Voyage**](docs/design/work-and-planning.md#voyages-and-their-course) — a ship under sail for an objective, with its charted work and memory.
 - [**Ephemeris**](docs/design/work-and-planning.md#ephemerides-and-the-cone-of-uncertainty) — a revisable forecast of the course, not a promise.
-- [**Cone of uncertainty**](docs/design/work-and-planning.md#ephemerides-and-the-cone-of-uncertainty) — the horizon inside which waypoints can be chosen honestly.
+- [**Cone of uncertainty**](docs/design/work-and-planning.md#ephemerides-and-the-cone-of-uncertainty) — the horizon inside which waypoints can be
+  chosen honestly.
 - [**Leg**](docs/design/work-and-planning.md#legs) — one SIGHT, PLOT, SAIL, DRIFT planning loop.
 - [**Piece**](docs/design/work-and-planning.md#pieces) — a bounded place for durable work and its outcomes.
-- [**Occultation**](docs/design/work-and-planning.md#occultations-and-dependency-blockage) — a high-level obstacle in the plan, distinct from a Piece being dependency-blocked.
-- [**Posture**](docs/design/work-and-planning.md#posture-readiness-and-progress) — the admiral's standing direction toward a governed subject, never execution status.
+- [**Occultation**](docs/design/work-and-planning.md#occultations-and-dependency-blockage) — a high-level obstacle in the plan, distinct from a Piece
+  being dependency-blocked.
+- [**Posture**](docs/design/work-and-planning.md#posture-readiness-and-progress) — the admiral's standing direction toward a governed subject, never
+  execution status.
 
 ## Attention and memory
 
@@ -37,7 +38,8 @@ Owner: [Attention and memory](docs/design/attention-and-memory.md)
 
 Owner: [Rulings](docs/design/rulings.md)
 
-- [**Ruling**](docs/design/rulings.md#the-ruling-record) — one typed record binding the context, the question, and the answer an authority gives; an agent requests it, a captain or the admiral rules on it.
+- [**Ruling**](docs/design/rulings.md#the-ruling-record) — one typed record binding the context, the question, and the answer an authority gives; an
+  agent requests it, a captain or the admiral rules on it.
 
 ## The flagship
 
@@ -61,22 +63,37 @@ Owner: [Changes and delivery](docs/design/changes-and-delivery.md)
 
 Owner: [Agent identity, resources, and recovery](docs/design/agent-recovery.md)
 
-- [**Agent**](docs/design/agent-recovery.md#three-truths-three-lifecycles) — a durable identity and responsibility, not a process or provider conversation.
-- [**Session**](docs/design/agent-recovery.md#three-truths-three-lifecycles) — one provider execution owned by an Agent; the root session is the one the Agent runs directly, and subsessions nest beneath it.
-- [**Subsession**](docs/design/agent-recovery.md#activity-observation-and-delivery) — a nested provider conversation a session spawns through a tool call; part of the session's own record, forming a tree, and never an Agent.
-- [**Origin**](docs/design/agent-recovery.md#activity-observation-and-delivery) — the stamp saying which node of a session's tree produced an event; absent on the root's own turns.
-- [**Gap**](docs/design/agent-recovery.md#activity-observation-and-delivery) — a place the record admits it stopped seeing; the kinds are a closed set, and a loss with no kind of its own is unknown.
-- [**Completeness**](docs/design/agent-recovery.md#activity-observation-and-delivery) — what a session's record says about itself: recording while it is still being written, complete when its gap ledger is empty, incomplete when it is not, and unaudited for rows that closed before gaps were tracked.
-- [**Session outcome**](docs/design/agent-recovery.md#activity-observation-and-delivery) — how a delegated conversation stopped, in the four words Antumbra owns: completed, failed, interrupted, or unknown.
-- [**Audit**](docs/design/agent-recovery.md#activity-observation-and-delivery) — asking a backend what it still holds about work its stream has stopped carrying; it reads and never attaches.
-- [**Census**](docs/design/agent-recovery.md#activity-observation-and-delivery) — the audit that asks which subsessions a root spawned, so work the stream never carried is still counted.
+- [**Agent**](docs/design/agent-recovery.md#three-truths-three-lifecycles) — a durable identity and responsibility, not a process or provider
+  conversation.
+- [**Session**](docs/design/agent-recovery.md#three-truths-three-lifecycles) — one provider execution owned by an Agent; the root session is the one
+  the Agent runs directly, and subsessions nest beneath it.
+- [**Subsession**](docs/design/agent-recovery.md#activity-observation-and-delivery) — a nested provider conversation a session spawns through a tool
+  call; part of the session's own record, forming a tree, and never an Agent.
+- [**Origin**](docs/design/agent-recovery.md#activity-observation-and-delivery) — the stamp saying which node of a session's tree produced an event;
+  absent on the root's own turns.
+- [**Gap**](docs/design/agent-recovery.md#activity-observation-and-delivery) — a place the record admits it stopped seeing; the kinds are a closed
+  set, and a loss with no kind of its own is unknown.
+- [**Completeness**](docs/design/agent-recovery.md#activity-observation-and-delivery) — what a session's record says about itself: recording while it
+  is still being written, complete when its gap ledger is empty, incomplete when it is not, and unaudited for rows that closed before gaps were
+  tracked.
+- [**Session outcome**](docs/design/agent-recovery.md#activity-observation-and-delivery) — how a delegated conversation stopped, in the four words
+  Antumbra owns: completed, failed, interrupted, or unknown.
+- [**Audit**](docs/design/agent-recovery.md#activity-observation-and-delivery) — asking a backend what it still holds about work its stream has
+  stopped carrying; it reads and never attaches.
+- [**Census**](docs/design/agent-recovery.md#activity-observation-and-delivery) — the audit that asks which subsessions a root spawned, so work the
+  stream never carried is still counted.
 - [**Hail**](docs/design/agent-recovery.md#hailing-an-agent) — address an Agent by resuming it or establishing its execution context.
 - [**Moorage**](docs/design/agent-recovery.md#provisioning-and-resource-topology) — an Agent's current replaceable resource home.
 - [**Berth**](docs/design/agent-recovery.md#provisioning-and-resource-topology) — one repository worktree inside a Moorage.
-- [**Stand down**](docs/design/agent-recovery.md#rest-and-reaping) — an Agent's own declaration that it has nothing left to do; it stays attached and reachable.
+- [**Stand down**](docs/design/agent-recovery.md#rest-and-reaping) — an Agent's own declaration that it has nothing left to do; it stays attached and
+  reachable.
 - [**Idle**](docs/design/agent-recovery.md#rest-and-reaping) — a Session that has stood down and is listening with nothing to do.
-- [**Siesta**](docs/design/agent-recovery.md#rest-and-reaping) — the reversible rest an idle Session is put into by the clock or by the admiral; its process is reclaimed and speaking to it wakes it.
-- [**Stranded**](docs/design/agent-recovery.md#rest-and-reaping) — a Session whose process is gone with its work unfinished; nothing resumes it, and a hail or a send is what takes it back up.
-- [**Wake**](docs/design/agent-recovery.md#resume-before-replace) — the one act that puts a Session back on a provider; only a hail, a send, or a Piece already assigned to that Session asks for one.
+- [**Siesta**](docs/design/agent-recovery.md#rest-and-reaping) — the reversible rest an idle Session is put into by the clock or by the admiral; its
+  process is reclaimed and speaking to it wakes it.
+- [**Stranded**](docs/design/agent-recovery.md#rest-and-reaping) — a Session whose process is gone with its work unfinished; nothing resumes it, and a
+  hail or a send is what takes it back up.
+- [**Wake**](docs/design/agent-recovery.md#resume-before-replace) — the one act that puts a Session back on a provider; only a hail, a send, or a
+  Piece already assigned to that Session asks for one.
 - [**Retirement**](docs/design/agent-recovery.md#reclamation-boundary) — the explicit irreversible end of an Agent identity.
-- [**Reconciliation**](docs/design/agent-recovery.md#durable-truth-and-disposable-execution) — repeatably compare durable truth with reality until they converge.
+- [**Reconciliation**](docs/design/agent-recovery.md#durable-truth-and-disposable-execution) — repeatably compare durable truth with reality until
+  they converge.

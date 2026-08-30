@@ -117,6 +117,9 @@ catalogs:
     mermaid:
       specifier: 11.3.0
       version: 11.3.0
+    prettier:
+      specifier: 3.9.6
+      version: 3.9.6
     react:
       specifier: 19.2.8
       version: 19.2.8
@@ -187,6 +190,9 @@ importers:
       ignore:
         specifier: 'catalog:'
         version: 7.0.6
+      prettier:
+        specifier: 'catalog:'
+        version: 3.9.6
       typescript:
         specifier: 'catalog:'
         version: '@typescript/typescript6@6.0.2'

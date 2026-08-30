@@ -3,15 +3,7 @@ import { expect, it } from "@effect/vitest";
 import { Option } from "effect";
 import { openSessionProjection } from "#projection.ts";
 import { frameFor } from "#session-frames.ts";
-import {
-	frame,
-	part,
-	SESSION,
-	spoke,
-	stepFinish,
-	textPart,
-	toolPart,
-} from "#test/frames.ts";
+import { frame, part, SESSION, spoke, stepFinish, textPart, toolPart } from "#test/frames.ts";
 
 const project = (frames: ReadonlyArray<unknown>): AgentEvent[] => {
 	const projection = openSessionProjection();
@@ -24,11 +16,7 @@ const project = (frames: ReadonlyArray<unknown>): AgentEvent[] => {
 };
 
 it("reports an agent's streamed text once, when the part ends", () => {
-	const events = project([
-		spoke("msg_a", "assistant"),
-		part(textPart("msg_a", "par", false)),
-		part(textPart("msg_a", "partial answer", true)),
-	]);
+	const events = project([spoke("msg_a", "assistant"), part(textPart("msg_a", "par", false)), part(textPart("msg_a", "partial answer", true))]);
 	expect(events).toEqual([
 		{
 			raw: expect.anything(),
@@ -40,10 +28,7 @@ it("reports an agent's streamed text once, when the part ends", () => {
 });
 
 it("reports a user's text as soon as it appears, since it never streams", () => {
-	const events = project([
-		spoke("msg_u", "user"),
-		part(textPart("msg_u", "do the thing", false)),
-	]);
+	const events = project([spoke("msg_u", "user"), part(textPart("msg_u", "do the thing", false))]);
 	expect(events).toEqual([
 		{
 			raw: expect.anything(),
@@ -113,16 +98,11 @@ it("keeps a part whose message was never announced as raw evidence", () => {
 	expect(events).toEqual([{ raw: expect.anything(), type: "raw" }]);
 });
 
-// why: the server sends kinds its own OpenAPI document does not list —
-// `server.heartbeat` rides every stream — so an unmodelled frame has to stay
-// evidence rather than take the session's log down.
 it("keeps an undocumented frame kind as raw evidence", () => {
 	const events = project([frame("server.heartbeat", { sessionID: SESSION })]);
 	expect(events).toEqual([{ raw: expect.anything(), type: "raw" }]);
 });
 
 it("files nothing for a frame that names another session", () => {
-	expect(project([frame("session.idle", { sessionID: "ses_other" })])).toEqual(
-		[],
-	);
+	expect(project([frame("session.idle", { sessionID: "ses_other" })])).toEqual([]);
 });

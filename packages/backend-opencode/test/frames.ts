@@ -1,38 +1,23 @@
-// why: the shapes below are transcribed from a real opencode server's
-// `/global/event` stream rather than from its documentation — the stream
-// carries kinds the document does not list, and a part is re-sent whole on
-// every change, which is the behaviour these builders exist to reproduce.
 export const SESSION = "ses_fake0000000000000000000";
 
 export const frame = (type: string, properties: unknown) => ({
 	payload: { properties, type },
 });
 
-export const sessionFrame = (type: string, properties: object) =>
-	frame(type, { sessionID: SESSION, ...properties });
+export const sessionFrame = (type: string, properties: object) => frame(type, { sessionID: SESSION, ...properties });
 
-export const status = (type: "busy" | "idle" | "retry") =>
-	sessionFrame("session.status", { status: { type } });
+export const status = (type: "busy" | "idle" | "retry") => sessionFrame("session.status", { status: { type } });
 
 export const idled = () => sessionFrame("session.idle", {});
 
-export const aborted = () =>
-	sessionFrame("session.error", { error: { name: "MessageAbortedError" } });
+export const aborted = () => sessionFrame("session.error", { error: { name: "MessageAbortedError" } });
 
-export const spoke = (
-	id: string,
-	role: "assistant" | "user",
-	model?: { modelID: string; providerID: string },
-) => sessionFrame("message.updated", { info: { id, role, ...model } });
+export const spoke = (id: string, role: "assistant" | "user", model?: { modelID: string; providerID: string }) =>
+	sessionFrame("message.updated", { info: { id, role, ...model } });
 
-export const part = (value: object) =>
-	sessionFrame("message.part.updated", { part: value });
+export const part = (value: object) => sessionFrame("message.part.updated", { part: value });
 
-export const textPart = (
-	messageID: string,
-	text: string,
-	ended: boolean,
-): object => ({
+export const textPart = (messageID: string, text: string, ended: boolean): object => ({
 	id: `prt_${messageID}_text`,
 	messageID,
 	text,

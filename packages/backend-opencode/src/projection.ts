@@ -5,9 +5,6 @@ import { partEvents } from "#parts.ts";
 import type { SessionFrame } from "#session-frames.ts";
 import { openTurnBoundary } from "#turn-boundary.ts";
 
-// why: opencode re-sends a part whole on every change, so the same words
-// arrive many times over. The projection reports each thing once and holds
-// what it has already said for as long as the session is attached.
 const openFirstReport = (): ((key: string) => boolean) => {
 	const reported = new Set<string>();
 	return (key) => {
@@ -31,15 +28,10 @@ export const openSessionProjection = (): SessionProjection => {
 		const raw = rawOf(type, properties);
 		switch (type) {
 			case "message.updated":
-				// why: a message announces who is speaking; what was said arrives as
-				// its parts, so the announcement is remembered rather than journaled.
 				authors.record(properties);
 				return [];
 			case "message.part.updated":
 				return partEvents(raw, properties, authors, firstReport);
-			// why: a delta is one token of a part the record will receive whole when
-			// it settles. Journaling both would write every message twice, once a
-			// syllable at a time.
 			case "message.part.delta":
 				return [];
 			case "session.error":

@@ -1,8 +1,4 @@
-import type {
-	AgentEvent,
-	RawPayload,
-	SessionState,
-} from "@antumbra/vocabulary/session-events";
+import type { AgentEvent, RawPayload, SessionState } from "@antumbra/vocabulary/session-events";
 import { Option, Schema } from "effect";
 import { rawEvent } from "#mapping.ts";
 import { SessionErrorProperties, SessionStatusProperties } from "#protocol.ts";
@@ -10,10 +6,6 @@ import { SessionErrorProperties, SessionStatusProperties } from "#protocol.ts";
 const decodeStatus = Schema.decodeUnknownOption(SessionStatusProperties);
 const decodeError = Schema.decodeUnknownOption(SessionErrorProperties);
 
-// why: opencode's `retry` is the provider being tried again after a failure,
-// which is work under way rather than a session waiting on anybody. It has no
-// stalled state at all: an approval it cannot get an answer to keeps the
-// session busy, so `awaiting-input` is never claimed here.
 const stateOf = (type: string): SessionState | undefined => {
 	if (type === "idle") {
 		return "idle";
@@ -23,11 +15,6 @@ const stateOf = (type: string): SessionState | undefined => {
 
 const ABORTED = "MessageAbortedError";
 
-// why: opencode announces a session going idle twice when a turn was aborted —
-// once for the abort and once for the message that carried it — and its errors
-// are reported against the session rather than the turn they ended. The edge
-// therefore has to be derived: a turn is over on the first idle after work
-// started, and the error seen while it ran is what decides how it ended.
 export interface TurnBoundary {
 	readonly errored: (raw: RawPayload, properties: unknown) => AgentEvent[];
 	readonly idled: (raw: RawPayload) => AgentEvent[];
@@ -41,8 +28,7 @@ export const openTurnBoundary = (): TurnBoundary => {
 		errored: (raw, properties) => {
 			outcome = Option.match(decodeError(properties), {
 				onNone: () => "failed" as const,
-				onSome: ({ error }) =>
-					error?.name === ABORTED ? "interrupted" : "failed",
+				onSome: ({ error }) => (error?.name === ABORTED ? "interrupted" : "failed"),
 			});
 			return rawEvent(raw);
 		},

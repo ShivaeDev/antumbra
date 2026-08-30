@@ -15,35 +15,19 @@ const project = (frames: ReadonlyArray<unknown>): AgentEvent[] => {
 	);
 };
 
-const turns = (events: ReadonlyArray<AgentEvent>) =>
-	events.flatMap((event) =>
-		event.type === "turn.completed" ? [event.status] : [],
-	);
+const turns = (events: ReadonlyArray<AgentEvent>) => events.flatMap((event) => (event.type === "turn.completed" ? [event.status] : []));
 
 it("reads opencode's own words for what a session is doing", () => {
-	const states = project([
-		status("busy"),
-		status("retry"),
-		status("idle"),
-	]).flatMap((event) => (event.type === "session.state" ? [event.state] : []));
+	const states = project([status("busy"), status("retry"), status("idle")]).flatMap((event) => (event.type === "session.state" ? [event.state] : []));
 	expect(states).toEqual(["running", "running", "idle"]);
 });
 
 it("ends the turn once, on the first idle after work started", () => {
-	expect(
-		turns(project([status("busy"), status("idle"), idled(), idled()])),
-	).toEqual(["completed"]);
+	expect(turns(project([status("busy"), status("idle"), idled(), idled()]))).toEqual(["completed"]);
 });
 
-// why: an aborted turn is announced idle twice — once for the abort and once
-// for the message that carried it — so an edge taken from the frame rather
-// than from the transition would close the same turn twice over.
 it("ends an aborted turn once, as interrupted", () => {
-	expect(
-		turns(
-			project([status("busy"), aborted(), status("idle"), idled(), idled()]),
-		),
-	).toEqual(["interrupted"]);
+	expect(turns(project([status("busy"), aborted(), status("idle"), idled(), idled()]))).toEqual(["interrupted"]);
 });
 
 it("ends a broken turn as failed", () => {
@@ -59,9 +43,5 @@ it("says nothing about a turn that never started", () => {
 });
 
 it("ends each turn of a session that works twice", () => {
-	expect(
-		turns(
-			project([status("busy"), idled(), status("busy"), aborted(), idled()]),
-		),
-	).toEqual(["completed", "interrupted"]);
+	expect(turns(project([status("busy"), idled(), status("busy"), aborted(), idled()]))).toEqual(["completed", "interrupted"]);
 });

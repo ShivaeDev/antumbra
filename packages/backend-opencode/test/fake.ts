@@ -1,8 +1,5 @@
 import { Effect } from "effect";
-import type {
-	OpencodeConnection,
-	OpencodeRequest,
-} from "#adapters/connection.ts";
+import type { OpencodeConnection, OpencodeRequest } from "#adapters/connection.ts";
 import { SESSION } from "#test/frames.ts";
 
 export interface FakeCall {
@@ -14,16 +11,11 @@ export interface FakeCall {
 export interface FakeOpencode {
 	readonly calls: FakeCall[];
 	readonly connect: () => Promise<OpencodeConnection>;
-	// why: a test waits on the call it is about, not on a clock — the fake
-	// answers the moment the backend reaches the route the test named.
 	readonly called: (path: string) => Effect.Effect<FakeCall>;
 	readonly emit: (frame: unknown) => void;
 	readonly exit: () => void;
 }
 
-// why: an in-memory opencode server answering the handful of routes this
-// backend calls, so the whole client — session opening, the turn driver, the
-// event projection — is exercised without the opencode binary or a socket.
 const answer = (path: string): unknown => {
 	if (path === "/session") {
 		return { directory: "/moorage", id: SESSION };

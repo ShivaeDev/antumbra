@@ -8,9 +8,7 @@ import { part, SESSION, spoke, status, textPart } from "#test/frames.ts";
 
 const PROMPT = `/session/${SESSION}/prompt_async`;
 
-const options = (
-	resume: Option.Option<string> = Option.none(),
-): OpenSessionOptions => ({
+const options = (resume: Option.Option<string> = Option.none()): OpenSessionOptions => ({
 	cwd: "/moorage",
 	resume,
 	sessionId: "antumbra-session",
@@ -23,12 +21,7 @@ const words = (text: string) => ({
 
 const opened = (fake: FakeOpencode, resume?: string) =>
 	makeOpencodeServer(fake.connect).pipe(
-		Effect.flatMap((server) =>
-			openOpencodeSession(
-				server,
-				options(resume === undefined ? Option.none() : Option.some(resume)),
-			),
-		),
+		Effect.flatMap((server) => openOpencodeSession(server, options(resume === undefined ? Option.none() : Option.some(resume)))),
 	);
 
 it.effect("opens a session and reports the id opencode minted for it", () =>
@@ -43,17 +36,12 @@ it.effect("opens a session and reports the id opencode minted for it", () =>
 	),
 );
 
-// why: opencode keeps the whole conversation, so resuming reads the session
-// rather than making one. Reading it is also how the backend learns the server
-// has forgotten it, instead of opening a session that swallows every prompt.
 it.effect("resumes by reading the session rather than creating another", () =>
 	Effect.scoped(
 		Effect.gen(function* () {
 			const fake = makeFakeOpencode();
 			const handle = yield* opened(fake, SESSION);
-			expect(fake.calls.map((call) => call.path)).toEqual([
-				`/session/${SESSION}`,
-			]);
+			expect(fake.calls.map((call) => call.path)).toEqual([`/session/${SESSION}`]);
 			expect(yield* handle.nativeRef).toEqual(Option.some(SESSION));
 		}),
 	),
@@ -74,24 +62,15 @@ it.effect("streams what the session said onto the neutral log", () =>
 			fake.emit(spoke("msg_a", "assistant"));
 			fake.emit(part(textPart("msg_a", "all done", true)));
 			const message = yield* Fiber.join(listening);
-			expect(
-				Option.map(message, (event) =>
-					event.type === "message" ? event.text : "",
-				),
-			).toEqual(Option.some("all done"));
+			expect(Option.map(message, (event) => (event.type === "message" ? event.text : ""))).toEqual(Option.some("all done"));
 		}),
 	),
 );
 
 const spoken = (fake: FakeOpencode) =>
-	fake.calls.flatMap((call) =>
-		call.path === PROMPT && typeof call.body === "object" && call.body !== null
-			? [JSON.stringify(call.body)]
-			: [],
-	);
+	fake.calls.flatMap((call) => (call.path === PROMPT && typeof call.body === "object" && call.body !== null ? [JSON.stringify(call.body)] : []));
 
-const said = (text: string) =>
-	JSON.stringify({ parts: [{ text, type: "text" }] });
+const said = (text: string) => JSON.stringify({ parts: [{ text, type: "text" }] });
 
 it.effect("sends a prompt straight away when the session is not working", () =>
 	Effect.scoped(
@@ -130,15 +109,13 @@ const SCREENSHOT = {
 	],
 } as const;
 
-it.effect(
-	"refuses an image, which this backend has never proved it can send",
-	() =>
-		Effect.scoped(
-			Effect.gen(function* () {
-				const fake = makeFakeOpencode();
-				const handle = yield* opened(fake);
-				const outcome = yield* Effect.exit(handle.queue(SCREENSHOT));
-				expect(outcome._tag).toBe("Failure");
-			}),
-		),
+it.effect("refuses an image, which this backend has never proved it can send", () =>
+	Effect.scoped(
+		Effect.gen(function* () {
+			const fake = makeFakeOpencode();
+			const handle = yield* opened(fake);
+			const outcome = yield* Effect.exit(handle.queue(SCREENSHOT));
+			expect(outcome._tag).toBe("Failure");
+		}),
+	),
 );

@@ -1,7 +1,4 @@
-import type {
-	AgentEvent,
-	RawPayload,
-} from "@antumbra/vocabulary/session-events";
+import type { AgentEvent, RawPayload } from "@antumbra/vocabulary/session-events";
 
 export const rawOf = (kind: string, payload: unknown): RawPayload => ({
 	kind,
@@ -9,6 +6,4 @@ export const rawOf = (kind: string, payload: unknown): RawPayload => ({
 	source: "opencode",
 });
 
-export const rawEvent = (raw: RawPayload): AgentEvent[] => [
-	{ raw, type: "raw" },
-];
+export const rawEvent = (raw: RawPayload): AgentEvent[] => [{ raw, type: "raw" }];

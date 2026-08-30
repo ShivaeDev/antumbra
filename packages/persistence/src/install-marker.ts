@@ -9,20 +9,5 @@ export const ensureInstallMarker = Effect.gen(function* () {
 		return existing.value.value;
 	}
 	const value = crypto.randomUUID();
-	return yield* meta.create({ key: "install_id", value }).pipe(
-		Effect.as(value),
-		Effect.catchTag("PrismaError", (failure) =>
-			meta
-				.where({ key: "install_id" })
-				.first()
-				.pipe(
-					Effect.flatMap(
-						Option.match({
-							onNone: () => Effect.fail(failure),
-							onSome: (row) => Effect.succeed(row.value),
-						}),
-					),
-				),
-		),
-	);
+	return yield* meta.create({ key: "install_id", value }).pipe(Effect.as(value));
 });

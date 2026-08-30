@@ -1,15 +1,6 @@
-import type {
-	SDKMessage,
-	SessionMessage,
-	SessionStoreEntry,
-} from "@anthropic-ai/claude-agent-sdk";
+import type { SDKMessage, SessionMessage, SessionStoreEntry } from "@anthropic-ai/claude-agent-sdk";
 import type { Delivery } from "@antumbra/backend-claude";
-import {
-	assistant,
-	initFrame,
-	NATIVE_ROOT,
-	toolUse,
-} from "#test/session-frames.ts";
+import { assistant, initFrame, NATIVE_ROOT, toolUse } from "#test/session-frames.ts";
 
 export const WORKFLOW_CALL = "toolu_01WkF9pQ3rTvXn7mLbYcZd2E";
 export const RUN_ID = "wfr_7f3a2b1c";
@@ -26,10 +17,7 @@ const workflowCall = toolUse(WORKFLOW_CALL, "Workflow", {
 
 const frame = (message: SDKMessage): Delivery => ({ kind: "frame", message });
 
-const mirror = (
-	subpath: string | undefined,
-	entries: ReadonlyArray<SessionStoreEntry>,
-): Delivery => ({
+const mirror = (subpath: string | undefined, entries: ReadonlyArray<SessionStoreEntry>): Delivery => ({
 	kind: "mirror",
 	write: {
 		entries,
@@ -41,16 +29,11 @@ const mirror = (
 	},
 });
 
-const agentSubpath = (agentId: string) =>
-	`subagents/workflows/${RUN_ID}/agent-${agentId}`;
+const agentSubpath = (agentId: string) => `subagents/workflows/${RUN_ID}/agent-${agentId}`;
 
 // why: a stored transcript line, not a forwarded frame — the envelope the
 // provider writes to disk, which is what the mirror hands an adapter.
-const line = (
-	type: string,
-	uuid: string,
-	message: Record<string, unknown>,
-): SessionStoreEntry => ({
+const line = (type: string, uuid: string, message: Record<string, unknown>): SessionStoreEntry => ({
 	message,
 	parentUuid: null,
 	sessionId: NATIVE_ROOT,
@@ -103,10 +86,7 @@ const progress = (one: string, two: string): ProgressFrame => ({
 	type: "system",
 	usage: { duration_ms: 12_004, tool_uses: 18, total_tokens: 9_624 },
 	uuid: `1a2b3c4d-5e6f-4a7b-8c9d-0e1f2a3b4c${one === "start" ? "50" : "51"}`,
-	workflow_progress: [
-		agentEntry(AGENT_ONE, "read the ledger", one),
-		agentEntry(AGENT_TWO, "chart the drifts", two),
-	],
+	workflow_progress: [agentEntry(AGENT_ONE, "read the ledger", one), agentEntry(AGENT_TWO, "chart the drifts", two)],
 });
 
 const workflowStarted: SDKMessage = {
@@ -156,18 +136,12 @@ const adopted = (uuid: string, body: string): SessionMessage => ({
 // provider falls silent — the case the record would otherwise lose entirely.
 export const workflowRehearsal: ReadonlyArray<Delivery> = [
 	frame(initFrame),
-	frame(
-		assistant([workflowCall], null, "5e6f7a8b-9c0d-4e1f-8a2b-4c5d6e7f8091"),
-	),
+	frame(assistant([workflowCall], null, "5e6f7a8b-9c0d-4e1f-8a2b-4c5d6e7f8091")),
 	frame(workflowStarted),
 	mirror(undefined, [calling]),
 	frame(progress("start", "start")),
-	mirror(agentSubpath(AGENT_ONE), [
-		said("6f7a8b9c-0d1e-4f2a-9b3c-5d6e7f809102", "the ledger reads clean"),
-	]),
-	mirror(agentSubpath(AGENT_TWO), [
-		said("7a8b9c0d-1e2f-4a3b-8c4d-6e7f80910213", "two entries drifted"),
-	]),
+	mirror(agentSubpath(AGENT_ONE), [said("6f7a8b9c-0d1e-4f2a-9b3c-5d6e7f809102", "the ledger reads clean")]),
+	mirror(agentSubpath(AGENT_TWO), [said("7a8b9c0d-1e2f-4a3b-8c4d-6e7f80910213", "two entries drifted")]),
 	frame(progress("done", "done")),
 	mirror(undefined, [returned]),
 	{
@@ -178,10 +152,7 @@ export const workflowRehearsal: ReadonlyArray<Delivery> = [
 					agentId: AGENT_LATE,
 					messages: [
 						adopted("8b9c0d1e-2f3a-4b4c-9d5e-7f8091021324", "checking twice"),
-						adopted(
-							"9c0d1e2f-3a4b-4c5d-8e6f-8091021324a5",
-							"the second is real",
-						),
+						adopted("9c0d1e2f-3a4b-4c5d-8e6f-8091021324a5", "the second is real"),
 					],
 				},
 			],

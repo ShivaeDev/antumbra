@@ -46,15 +46,11 @@ const delegated: ReadonlyArray<SessionEvent> = [
 	}),
 ];
 
-const message = (seq: number, role: "agent" | "user", text: string) =>
-	row(seq, { raw, role, text, type: "message" });
+const message = (seq: number, role: "agent" | "user", text: string) => row(seq, { raw, role, text, type: "message" });
 
 describe("deriveTranscript", () => {
 	it("turns message events into role-labelled messages", () => {
-		const items = deriveTranscript([
-			message(0, "agent", "hello, admiral"),
-			message(1, "user", "hello back"),
-		]);
+		const items = deriveTranscript([message(0, "agent", "hello, admiral"), message(1, "user", "hello back")]);
 		expect(items).toEqual([
 			{
 				inputId: undefined,
@@ -76,12 +72,8 @@ describe("deriveTranscript", () => {
 	});
 
 	it("thinking renders as its own quiet item", () => {
-		const items = deriveTranscript([
-			row(0, { raw, text: "weighing options", type: "thinking" }),
-		]);
-		expect(items).toEqual([
-			{ kind: "thinking", seq: 0, text: "weighing options" },
-		]);
+		const items = deriveTranscript([row(0, { raw, text: "weighing options", type: "thinking" })]);
+		expect(items).toEqual([{ kind: "thinking", seq: 0, text: "weighing options" }]);
 	});
 
 	it("drops narration with no words in it and trims what is left", () => {
@@ -155,13 +147,7 @@ describe("deriveTranscript", () => {
 			}),
 			message(4, "agent", "more after the divider"),
 		]);
-		expect(items.map((item) => item.kind)).toEqual([
-			"telemetry",
-			"message",
-			"telemetry",
-			"telemetry",
-			"message",
-		]);
+		expect(items.map((item) => item.kind)).toEqual(["telemetry", "message", "telemetry", "telemetry", "message"]);
 		expect(items[0]).toMatchObject({
 			label: "session opened · codex thread-9",
 		});

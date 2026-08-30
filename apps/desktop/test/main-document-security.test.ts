@@ -3,15 +3,7 @@ import { Effect } from "effect";
 import { makeTrpcBridgeHandler } from "#adapters/trpc-bridge.ts";
 import { makeTrpcSubscriptionHandlers } from "#adapters/trpc-subscription-handlers.ts";
 import { makeWindowRegistry } from "#adapters/windows/registry.ts";
-import {
-	consolePlace,
-	contents,
-	countingSender,
-	eventFor,
-	ownContents,
-	ownWindow,
-	transcriptPlace,
-} from "#test/windows.ts";
+import { consolePlace, contents, countingSender, eventFor, ownContents, ownWindow, transcriptPlace } from "#test/windows.ts";
 
 describe("privileged IPC authority", () => {
 	it.effect("refuses invoke before decoding or executing foreign input", () =>
@@ -28,9 +20,7 @@ describe("privileged IPC authority", () => {
 			let decoded = false;
 			const hostile = new Proxy({}, { get: () => (decoded = true) });
 
-			expect(
-				yield* Effect.promise(() => handler(eventFor(foreign), hostile)),
-			).toEqual({
+			expect(yield* Effect.promise(() => handler(eventFor(foreign), hostile))).toEqual({
 				error: { code: "UNAUTHORIZED", message: "unauthorized bridge sender" },
 				ok: false,
 			});
@@ -51,14 +41,11 @@ describe("privileged IPC authority", () => {
 		ownContents(registry, owned, "owned");
 		let signal: AbortSignal | undefined;
 		let starts = 0;
-		const handlers = makeTrpcSubscriptionHandlers(
-			registry,
-			(_sender, _windowId, _request, current) => {
-				starts += 1;
-				signal = current;
-				return Effect.runPromise(Effect.never);
-			},
-		);
+		const handlers = makeTrpcSubscriptionHandlers(registry, (_sender, _windowId, _request, current) => {
+			starts += 1;
+			signal = current;
+			return Effect.runPromise(Effect.never);
+		});
 
 		handlers.subscribe(eventFor(owned), {
 			id: "voyage-feed",
@@ -85,13 +72,10 @@ describe("privileged IPC authority", () => {
 		const owned = countingSender("owned", 17);
 		ownContents(registry, owned, "owned");
 		const signals: AbortSignal[] = [];
-		const handlers = makeTrpcSubscriptionHandlers(
-			registry,
-			(_sender, _windowId, _request, signal) => {
-				signals.push(signal);
-				return Effect.runPromise(Effect.never);
-			},
-		);
+		const handlers = makeTrpcSubscriptionHandlers(registry, (_sender, _windowId, _request, signal) => {
+			signals.push(signal);
+			return Effect.runPromise(Effect.never);
+		});
 		const request = { id: "voyage-feed", input: {}, path: "voyageFeed" };
 
 		handlers.subscribe(eventFor(owned), request);
@@ -109,13 +93,10 @@ describe("privileged IPC authority", () => {
 		const navigated = countingSender("navigated", 21);
 		ownContents(registry, navigated, "navigated");
 		const navigationSignals = new Map<string, AbortSignal>();
-		const navigationHandlers = makeTrpcSubscriptionHandlers(
-			registry,
-			(_sender, _windowId, request, signal) => {
-				navigationSignals.set(request.id, signal);
-				return Effect.runPromise(Effect.never);
-			},
-		);
+		const navigationHandlers = makeTrpcSubscriptionHandlers(registry, (_sender, _windowId, request, signal) => {
+			navigationSignals.set(request.id, signal);
+			return Effect.runPromise(Effect.never);
+		});
 		navigationHandlers.subscribe(eventFor(navigated), {
 			id: "alpha",
 			input: {},
@@ -135,13 +116,10 @@ describe("privileged IPC authority", () => {
 		const destroyed = countingSender("destroyed", 22);
 		ownContents(registry, destroyed, "destroyed");
 		let destructionSignal: AbortSignal | undefined;
-		const destructionHandlers = makeTrpcSubscriptionHandlers(
-			registry,
-			(_sender, _windowId, _request, signal) => {
-				destructionSignal = signal;
-				return Effect.runPromise(Effect.never);
-			},
-		);
+		const destructionHandlers = makeTrpcSubscriptionHandlers(registry, (_sender, _windowId, _request, signal) => {
+			destructionSignal = signal;
+			return Effect.runPromise(Effect.never);
+		});
 		destructionHandlers.subscribe(eventFor(destroyed), {
 			id: "fleet",
 			input: {},

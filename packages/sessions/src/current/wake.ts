@@ -1,8 +1,5 @@
 import { Database } from "@antumbra/persistence";
-import {
-	decodeSessionExecutionStatus,
-	sessionExecutionTransition,
-} from "@antumbra/vocabulary/agent-runtime";
+import { decodeSessionExecutionStatus, sessionExecutionTransition } from "@antumbra/vocabulary/agent-runtime";
 import { Effect, Option } from "effect";
 
 // why: the row saying a Session has a live execution is written once the
@@ -17,15 +14,11 @@ export const makeCurrentSessionWake = Effect.gen(function* () {
 			if (Option.isNone(stored)) {
 				return false;
 			}
-			const execution = yield* Effect.fromResult(
-				decodeSessionExecutionStatus(sessionId, stored.value.executionStatus),
-			);
+			const execution = yield* Effect.fromResult(decodeSessionExecutionStatus(sessionId, stored.value.executionStatus));
 			if (execution !== "idle") {
 				return false;
 			}
-			const active = yield* Effect.fromResult(
-				sessionExecutionTransition(sessionId, execution, "wake"),
-			);
+			const active = yield* Effect.fromResult(sessionExecutionTransition(sessionId, execution, "wake"));
 			yield* db.AgentSession.where({
 				executionStatus: "idle",
 				id: sessionId,

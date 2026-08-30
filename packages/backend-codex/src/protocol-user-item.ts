@@ -18,11 +18,7 @@ const LocalImageContentPart = Schema.Struct({
 	type: Schema.Literal("localImage"),
 });
 
-const UserContentPart = Schema.Union([
-	TextContentPart,
-	ImageContentPart,
-	LocalImageContentPart,
-]);
+const UserContentPart = Schema.Union([TextContentPart, ImageContentPart, LocalImageContentPart]);
 
 export const UserMessageItem = Schema.Struct({
 	id: Schema.String,

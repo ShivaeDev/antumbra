@@ -23,11 +23,9 @@ import { SightSourceLive } from "#sight.ts";
 import { passiveRunner } from "#test/harness.ts";
 import { fakeKernelReach } from "#test/kernel-reach-fixture.ts";
 
-const artifactsDirectory = (temporary: TemporaryPersistence) =>
-	join(dirname(temporary.database), "artifacts");
+const artifactsDirectory = (temporary: TemporaryPersistence) => join(dirname(temporary.database), "artifacts");
 
-const sessionInputsDirectory = (temporary: TemporaryPersistence) =>
-	join(dirname(temporary.database), "session-inputs");
+const sessionInputsDirectory = (temporary: TemporaryPersistence) => join(dirname(temporary.database), "session-inputs");
 
 const fakeKernelReachLive = Layer.effectDiscard(
 	Effect.gen(function* () {
@@ -39,11 +37,7 @@ const fakeKernelReachLive = Layer.effectDiscard(
 export const domainCapabilityLayer = (temporary: TemporaryPersistence) =>
 	fakeKernelReachLive.pipe(
 		Layer.provideMerge(
-			domainCapabilities(
-				new Map(),
-				new Map([[passiveRunner.tag, passiveRunner]]),
-				artifactsDirectory(temporary),
-			).pipe(
+			domainCapabilities(new Map(), new Map([[passiveRunner.tag, passiveRunner]]), artifactsDirectory(temporary)).pipe(
 				Layer.provide(SessionFabricLive),
 				Layer.provide(NodeServices.layer),
 			),
@@ -106,16 +100,9 @@ export const dispatchingLayer = (
 	options: Omit<KernelOptions, "kinds" | "gauges"> = {},
 	runner: Runner = passiveRunner,
 	changeHosts: ReadonlyMap<string, ChangeHost> = new Map(),
-) =>
-	DispatcherLive(dispatcher).pipe(
-		Layer.provideMerge(
-			domainKernelLayer(temporary, backend, options, runner, changeHosts),
-		),
-	);
+) => DispatcherLive(dispatcher).pipe(Layer.provideMerge(domainKernelLayer(temporary, backend, options, runner, changeHosts)));
 
-export const sightSourceTestLayer = SightSourceLive.pipe(
-	Layer.provideMerge(BackendCapacityReleaseLive),
-);
+export const sightSourceTestLayer = SightSourceLive.pipe(Layer.provideMerge(BackendCapacityReleaseLive));
 
 // why: the watcher stands beside the dispatcher exactly as it does in the app,
 // so a test of "the host said it landed" runs the same path a real merge does
@@ -127,9 +114,4 @@ export const watchingLayer = (
 	changeHosts: ReadonlyMap<string, ChangeHost>,
 	dispatcher: Partial<DispatcherOptions> = { maxAlive: 4, patienceMillis: 50 },
 	runner: Runner = passiveRunner,
-) =>
-	ChangeWatcherLive(cadence).pipe(
-		Layer.provideMerge(
-			dispatchingLayer(temporary, backend, dispatcher, {}, runner, changeHosts),
-		),
-	);
+) => ChangeWatcherLive(cadence).pipe(Layer.provideMerge(dispatchingLayer(temporary, backend, dispatcher, {}, runner, changeHosts)));

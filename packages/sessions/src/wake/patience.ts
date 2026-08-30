@@ -10,7 +10,4 @@ export const WAKE_PATIENCE_MILLIS = 60_000;
 // one that is never rehearsed is a claim rather than a guarantee. The default
 // is the shipped policy and nothing has to provide it; a rehearsal overrides it
 // to watch the same unwinding happen in a tenth of a second.
-export const SessionWakePatience = Context.Reference<number>(
-	"@antumbra/sessions/SessionWakePatience",
-	{ defaultValue: () => WAKE_PATIENCE_MILLIS },
-);
+export const SessionWakePatience = Context.Reference<number>("@antumbra/sessions/SessionWakePatience", { defaultValue: () => WAKE_PATIENCE_MILLIS });

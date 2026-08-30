@@ -6,10 +6,7 @@ import { expect, it } from "@effect/vitest";
 import { Effect, Exit, Fiber, Option } from "effect";
 import { makeRulingToolCompiler } from "#ruling-tools.ts";
 import { domainKernelLayer } from "#test/domain-layers.ts";
-import {
-	acquireTemporaryPersistence,
-	makeScriptedBackend,
-} from "#test/harness.ts";
+import { acquireTemporaryPersistence, makeScriptedBackend } from "#test/harness.ts";
 import { ASKER, seedAsker } from "#test/ruling-fixtures.ts";
 import { eventually } from "#test/voyage-fixtures.ts";
 
@@ -21,11 +18,7 @@ const ASK = {
 };
 
 const rulingTool = (tools: ReadonlyArray<DirectTool>): DirectTool =>
-	Option.getOrThrow(
-		Option.fromUndefinedOr(
-			tools.find((tool) => tool.name === "request_ruling"),
-		),
-	);
+	Option.getOrThrow(Option.fromUndefinedOr(tools.find((tool) => tool.name === "request_ruling")));
 
 const ask = (urgency: "blocking" | "pressing") =>
 	Effect.gen(function* () {
@@ -113,9 +106,7 @@ it.live("an interrupted hold leaves the ruling open for mail to answer", () =>
 			yield* Fiber.interrupt(held);
 
 			expect(Exit.hasInterrupts(yield* Fiber.await(held))).toBe(true);
-			const open = Option.getOrThrow(
-				yield* db.Ruling.where({ id: row.id }).first(),
-			);
+			const open = Option.getOrThrow(yield* db.Ruling.where({ id: row.id }).first());
 			expect(open).toMatchObject({ answer: null, ruledAt: null });
 			expect(yield* mailbox).toEqual([]);
 
@@ -129,9 +120,7 @@ it.live("an interrupted hold leaves the ruling open for mail to answer", () =>
 				}),
 			);
 			expect(entries[0]?.sourceRef).toBe(`ruling:${row.id}`);
-			const delivered = Option.getOrThrow(
-				yield* db.Ruling.where({ id: row.id }).first(),
-			);
+			const delivered = Option.getOrThrow(yield* db.Ruling.where({ id: row.id }).first());
 			expect(delivered.deliveredAt).toBeInstanceOf(Date);
 		}).pipe(Effect.provide(domainKernelLayer(temporary, scripted.backend)));
 	}),
@@ -150,9 +139,7 @@ it.live("a live hold owns the answer and no mail repeats it", () =>
 			yield* ruleOn(blocking.id);
 			const outcome = yield* Fiber.join(held);
 			expect(outcome.text).toContain("your hold is over");
-			const answered = Option.getOrThrow(
-				yield* db.Ruling.where({ id: blocking.id }).first(),
-			);
+			const answered = Option.getOrThrow(yield* db.Ruling.where({ id: blocking.id }).first());
 			expect(answered.deliveredAt).toBeInstanceOf(Date);
 
 			// why: a ruling nobody held is the barrier — its mail can only arrive

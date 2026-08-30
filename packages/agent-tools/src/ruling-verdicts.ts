@@ -1,7 +1,4 @@
-import {
-	RulingRadiusSchema,
-	RulingUrgencySchema,
-} from "@antumbra/vocabulary/ruling";
+import { RulingRadiusSchema, RulingUrgencySchema } from "@antumbra/vocabulary/ruling";
 import { Schema } from "effect";
 import { defineTool } from "#define.ts";
 
@@ -17,13 +14,11 @@ export const ruleOnSpec = defineTool({
 		"Rule on a ruling that has climbed to you: settle a question an agent asked. Your answer stands from the moment you give it and is read long after the work that asked for it, so answer the question that was actually asked and say how far the answer reaches. Rule only what is yours: a question whose answer would bind more widely than you may bind, or that you cannot settle, goes up with `pass_up` and whatever context you can add.",
 	input: Schema.Struct({
 		answer: Schema.String.annotate({
-			description:
-				"The decision itself, in the words the asker and every later reader will read.",
+			description: "The decision itself, in the words the asker and every later reader will read.",
 		}),
 		choice: Schema.optional(
 			Schema.String.annotate({
-				description:
-					"The label of one of the choices the asker offered, when your answer is one of them. Your own words stand beside it either way.",
+				description: "The label of one of the choices the asker offered, when your answer is one of them. Your own words stand beside it either way.",
 			}),
 		),
 		rulingId: RulingId,

@@ -8,9 +8,7 @@ export type BoardRegister = typeof BoardRegisterSchema.Type;
 const BoardOwnerKindSchema = Schema.Literals(["agent", "piece", "voyage"]);
 export type BoardOwnerKind = typeof BoardOwnerKindSchema.Type;
 
-export class StoredBoardOwnerKindInvalid extends Data.TaggedError(
-	"StoredBoardOwnerKindInvalid",
-)<{
+export class StoredBoardOwnerKindInvalid extends Data.TaggedError("StoredBoardOwnerKindInvalid")<{
 	readonly ownerId: string;
 	readonly value: unknown;
 }> {
@@ -19,12 +17,7 @@ export class StoredBoardOwnerKindInvalid extends Data.TaggedError(
 	}
 }
 
-export const decodeStoredBoardOwnerKind = (
-	ownerId: string,
-	value: unknown,
-): Result.Result<BoardOwnerKind, StoredBoardOwnerKindInvalid> => {
+export const decodeStoredBoardOwnerKind = (ownerId: string, value: unknown): Result.Result<BoardOwnerKind, StoredBoardOwnerKindInvalid> => {
 	const decoded = Schema.decodeUnknownOption(BoardOwnerKindSchema)(value);
-	return Option.isSome(decoded)
-		? Result.succeed(decoded.value)
-		: Result.fail(new StoredBoardOwnerKindInvalid({ ownerId, value }));
+	return Option.isSome(decoded) ? Result.succeed(decoded.value) : Result.fail(new StoredBoardOwnerKindInvalid({ ownerId, value }));
 };

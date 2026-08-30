@@ -42,7 +42,5 @@ it.effectDB("decodes stored datetimes as UTC dates", function* (db) {
 });
 
 it.effectDB("rolls the previous test's writes back", function* (db) {
-	expect(yield* db.AppMeta.where({ key: "datetime-probe" }).exists()).toBe(
-		false,
-	);
+	expect(yield* db.AppMeta.where({ key: "datetime-probe" }).exists()).toBe(false);
 });

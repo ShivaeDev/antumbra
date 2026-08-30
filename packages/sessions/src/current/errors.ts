@@ -1,8 +1,6 @@
 import { Data } from "effect";
 
-export class AgentSessionConflict extends Data.TaggedError(
-	"AgentSessionConflict",
-)<{
+export class AgentSessionConflict extends Data.TaggedError("AgentSessionConflict")<{
 	readonly agentId: string;
 	readonly currentSessionId: string | null;
 	readonly sessionId: string;
@@ -14,9 +12,7 @@ export class AgentSessionConflict extends Data.TaggedError(
 	}
 }
 
-export class CurrentSessionInvalid extends Data.TaggedError(
-	"CurrentSessionInvalid",
-)<{
+export class CurrentSessionInvalid extends Data.TaggedError("CurrentSessionInvalid")<{
 	readonly agentId: string;
 	readonly detail: string;
 }> {

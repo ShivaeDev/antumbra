@@ -1,15 +1,7 @@
-import {
-	type IntentStatus,
-	isTerminalIntentStatus,
-	Kernel,
-} from "@antumbra/kernel";
+import { type IntentStatus, isTerminalIntentStatus, Kernel } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
 import type { TemporaryPersistence } from "@antumbra/persistence/testing";
-import {
-	type AgentBackend,
-	BackendFailure,
-	type Runner,
-} from "@antumbra/plugin-api";
+import { type AgentBackend, BackendFailure, type Runner } from "@antumbra/plugin-api";
 import { expect } from "@effect/vitest";
 import { Effect, Option, Ref, Schedule, Stream } from "effect";
 import { AgentDomain } from "#domain.ts";
@@ -17,8 +9,7 @@ import type { SpawnFields } from "#index.ts";
 import { domainKernelLayer } from "#test/domain-layers.ts";
 import { rawOf, type ScriptedBackend } from "#test/harness.ts";
 
-export const WAKE_INSTRUCTION =
-	"Reconcile durable Antumbra truth and continue your assigned work.";
+export const WAKE_INSTRUCTION = "Reconcile durable Antumbra truth and continue your assigned work.";
 export const payload: SpawnFields = {
 	agentId: "agent-resume",
 	backend: "scripted",
@@ -29,14 +20,8 @@ export const payload: SpawnFields = {
 	sessionId: "session-resume",
 };
 
-export const untilTerminal = <E, R>(
-	changes: Stream.Stream<IntentStatus, E, R>,
-) =>
-	changes.pipe(
-		Stream.takeUntil(isTerminalIntentStatus),
-		Stream.runLast,
-		Effect.map(Option.getOrThrow),
-	);
+export const untilTerminal = <E, R>(changes: Stream.Stream<IntentStatus, E, R>) =>
+	changes.pipe(Stream.takeUntil(isTerminalIntentStatus), Stream.runLast, Effect.map(Option.getOrThrow));
 
 export const eventually = <A, E, R>(check: Effect.Effect<A, E, R>) =>
 	check.pipe(
@@ -44,10 +29,7 @@ export const eventually = <A, E, R>(check: Effect.Effect<A, E, R>) =>
 		Effect.retry(Schedule.spaced(10).pipe(Schedule.upTo({ duration: 2000 }))),
 	);
 
-export const refuseWhile = (
-	backend: AgentBackend,
-	denied: Ref.Ref<boolean>,
-): AgentBackend => ({
+export const refuseWhile = (backend: AgentBackend, denied: Ref.Ref<boolean>): AgentBackend => ({
 	...backend,
 	openSession: (options) =>
 		Ref.get(denied).pipe(
@@ -65,29 +47,15 @@ export const refuseWhile = (
 		),
 });
 
-export const reportsNativeRef = (
-	backend: AgentBackend,
-	scripted: ScriptedBackend,
-	nativeRef: string,
-): AgentBackend => ({
+export const reportsNativeRef = (backend: AgentBackend, scripted: ScriptedBackend, nativeRef: string): AgentBackend => ({
 	...backend,
 	openSession: (options) =>
 		backend
 			.openSession(options)
-			.pipe(
-				Effect.tap(() =>
-					Option.isSome(options.resume)
-						? emitOpened(scripted, options.sessionId, nativeRef)
-						: Effect.void,
-				),
-			),
+			.pipe(Effect.tap(() => (Option.isSome(options.resume) ? emitOpened(scripted, options.sessionId, nativeRef) : Effect.void))),
 });
 
-export const emitOpened = (
-	scripted: ScriptedBackend,
-	sessionId: string,
-	nativeRef: string,
-) =>
+export const emitOpened = (scripted: ScriptedBackend, sessionId: string, nativeRef: string) =>
 	Effect.gen(function* () {
 		const session = yield* scripted.session(sessionId);
 		if (session === undefined) {
@@ -111,12 +79,7 @@ export const durableRows = Effect.gen(function* () {
 	};
 });
 
-export const seedResumableAgent = (
-	temporary: TemporaryPersistence,
-	backend: AgentBackend,
-	runner: Runner,
-	session: ScriptedBackend,
-) =>
+export const seedResumableAgent = (temporary: TemporaryPersistence, backend: AgentBackend, runner: Runner, session: ScriptedBackend) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
 		const kernel = yield* Kernel;
@@ -160,11 +123,7 @@ export const seedResumableAgent = (
 					.orderBy((event) => event.seq.asc())
 					.all();
 				expect(events.map((event) => event.seq)).toEqual([0, 1]);
-				expect(
-					Option.getOrThrow(
-						yield* db.AgentSession.where({ id: payload.sessionId }).first(),
-					).nativeRef,
-				).toBe("native-durable");
+				expect(Option.getOrThrow(yield* db.AgentSession.where({ id: payload.sessionId }).first()).nativeRef).toBe("native-durable");
 			}),
 		);
 		return yield* durableRows;

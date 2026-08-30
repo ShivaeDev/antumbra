@@ -37,11 +37,7 @@ export type SettingDeclaration = SettingCount | SettingFlag;
 // together and never passed in, so a declaration cannot promise a boolean and
 // then ask for a number field. Declaring a setting is choosing one of these
 // two constructors, which is the whole vocabulary of what a setting may be.
-export const flag = (entry: {
-	readonly description: string;
-	readonly fallback: boolean;
-	readonly title: string;
-}): SettingFlag => ({
+export const flag = (entry: { readonly description: string; readonly fallback: boolean; readonly title: string }): SettingFlag => ({
 	...entry,
 	decode: Schema.decodeUnknownOption(Schema.Boolean),
 	expects: "true or false",
@@ -56,11 +52,7 @@ export const count = (entry: {
 	readonly most: number;
 	readonly title: string;
 }): SettingCount => {
-	const value = Schema.Number.check(
-		Schema.isInt(),
-		Schema.isGreaterThanOrEqualTo(entry.least),
-		Schema.isLessThanOrEqualTo(entry.most),
-	);
+	const value = Schema.Number.check(Schema.isInt(), Schema.isGreaterThanOrEqualTo(entry.least), Schema.isLessThanOrEqualTo(entry.most));
 	return {
 		...entry,
 		decode: Schema.decodeUnknownOption(value),

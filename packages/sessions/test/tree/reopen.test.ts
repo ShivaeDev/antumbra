@@ -4,13 +4,7 @@ import { noSessionAudit } from "@antumbra/plugin-api";
 import type { AgentEvent } from "@antumbra/vocabulary/session-events";
 import { expect, it } from "@effect/vitest";
 import { Effect, Option } from "effect";
-import {
-	journalOf,
-	seedAgent,
-	seedSession,
-	sessionRow,
-	treeLayer,
-} from "#test/tree/fixture.ts";
+import { journalOf, seedAgent, seedSession, sessionRow, treeLayer } from "#test/tree/fixture.ts";
 import { makeSessionTreeSinks } from "#tree/sink.ts";
 
 const AGENT = "agent-redriven";
@@ -60,9 +54,7 @@ const seedTree = seedAgent(AGENT).pipe(
 	),
 );
 
-const nodeRows = Database.use((db) =>
-	db.AgentSession.where({ rootSessionId: ROOT }).all(),
-);
+const nodeRows = Database.use((db) => db.AgentSession.where({ rootSessionId: ROOT }).all());
 
 const reopened = (event: AgentEvent) =>
 	Effect.gen(function* () {
@@ -110,10 +102,7 @@ it.live("a re-driven child that speaks first reopens its row too", () =>
 			expect(node.completeness).toBe("recording");
 			expect(yield* nodeRows).toHaveLength(2);
 			const said = yield* journalOf(NODE);
-			expect(said.map((row) => row.kind)).toEqual([
-				"session.opened",
-				"message",
-			]);
+			expect(said.map((row) => row.kind)).toEqual(["session.opened", "message"]);
 			expect(said[1]?.payload).toContain("still counting");
 		}).pipe(Effect.provide(treeLayer(temporary)));
 	}),

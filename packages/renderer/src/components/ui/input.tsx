@@ -2,11 +2,7 @@ import { cn } from "#lib/utils.ts";
 
 // why: a field sizes itself from its longest option or its default columns, so
 // without a floor of its own it decides how wide the pane holding it must be.
-export const Input = ({
-	className,
-	type,
-	...props
-}: React.ComponentProps<"input">) => (
+export const Input = ({ className, type, ...props }: React.ComponentProps<"input">) => (
 	<input
 		className={cn(
 			"h-7 w-full min-w-0 rounded-md border border-border bg-input px-2 text-xs text-foreground outline-none transition-colors",

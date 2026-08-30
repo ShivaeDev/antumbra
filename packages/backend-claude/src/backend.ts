@@ -14,20 +14,13 @@ import { claudeAudit } from "#adapters/subagent-audit.ts";
 import type { ToolCall } from "#adapters/tool-server.ts";
 import { laneEvents, openSessionLanes } from "#session-lanes.ts";
 
-const failure = (detail: unknown) =>
-	new BackendFailure({ detail: String(detail), tag: "claude" });
+const failure = (detail: unknown) => new BackendFailure({ detail: String(detail), tag: "claude" });
 
-const textOnly = (
-	input: SessionInput,
-): Effect.Effect<string, BackendFailure> => {
-	const texts = input.parts.flatMap((part) =>
-		part.type === "text" ? [part.text] : [],
-	);
+const textOnly = (input: SessionInput): Effect.Effect<string, BackendFailure> => {
+	const texts = input.parts.flatMap((part) => (part.type === "text" ? [part.text] : []));
 	return texts.length === input.parts.length
 		? Effect.succeed(texts.join("\n"))
-		: Effect.fail(
-				failure("image input is not enabled for this installed Claude backend"),
-			);
+		: Effect.fail(failure("image input is not enabled for this installed Claude backend"));
 };
 
 const rawEvents = (raw: RawSession): Stream.Stream<AgentEvent> =>
@@ -46,17 +39,8 @@ const rawEvents = (raw: RawSession): Stream.Stream<AgentEvent> =>
 		}),
 	);
 
-const eventStream = (
-	raw: RawSession,
-	nativeRef: Ref.Ref<Option.Option<string>>,
-): Stream.Stream<AgentEvent> =>
-	rawEvents(raw).pipe(
-		Stream.tap((event) =>
-			event.type === "session.opened"
-				? Ref.set(nativeRef, Option.some(event.nativeRef))
-				: Effect.void,
-		),
-	);
+const eventStream = (raw: RawSession, nativeRef: Ref.Ref<Option.Option<string>>): Stream.Stream<AgentEvent> =>
+	rawEvents(raw).pipe(Stream.tap((event) => (event.type === "session.opened" ? Ref.set(nativeRef, Option.some(event.nativeRef)) : Effect.void)));
 
 const makeHandle = (raw: RawSession) =>
 	Effect.map(
@@ -79,12 +63,7 @@ export interface ClaudeBackendOptions {
 
 // why: opening is scoped, so an abandoned handle can never leave the SDK
 // subprocess running.
-const rawSession = (
-	options: ClaudeBackendOptions,
-	session: OpenSessionOptions,
-	call: ToolCall,
-	capacity: BackendCapacityController,
-) =>
+const rawSession = (options: ClaudeBackendOptions, session: OpenSessionOptions, call: ToolCall, capacity: BackendCapacityController) =>
 	Effect.acquireRelease(
 		Effect.try({
 			catch: failure,
@@ -101,10 +80,7 @@ const rawSession = (
 		(raw) => Effect.sync(() => raw.close()),
 	);
 
-export const claudeBackend = (
-	options: ClaudeBackendOptions,
-	capacity: BackendCapacityController,
-): AgentBackend => ({
+export const claudeBackend = (options: ClaudeBackendOptions, capacity: BackendCapacityController): AgentBackend => ({
 	audit: claudeAudit,
 	capacity: capacity.source,
 	capabilities: {

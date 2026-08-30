@@ -8,12 +8,7 @@ import { currentArtifactsForPiece } from "#lineage/current.ts";
 import { validateCurrentStoredArtifactLineage } from "#lineage/piece-lineage.ts";
 import { commitArtifactLineage } from "#lineage/transaction.ts";
 import { validateLandingSupersession } from "#lineage/validation.ts";
-import type {
-	ArtifactInput,
-	ArtifactLanding,
-	ArtifactPublication,
-	ArtifactRow,
-} from "#model.ts";
+import type { ArtifactInput, ArtifactLanding, ArtifactPublication, ArtifactRow } from "#model.ts";
 import { publishArtifact } from "#publication.ts";
 
 const requireCurrentMoorage = (publication: ArtifactPublication) =>
@@ -28,9 +23,7 @@ const requireCurrentMoorage = (publication: ArtifactPublication) =>
 				path: publication.basename,
 			});
 		}
-		const status = yield* Effect.fromResult(
-			decodeStoredMoorageStatus(row.value.agentId, row.value.status),
-		);
+		const status = yield* Effect.fromResult(decodeStoredMoorageStatus(row.value.agentId, row.value.status));
 		if (status !== "ready" || row.value.root !== publication.moorageRoot) {
 			return yield* new ArtifactSourceNotOwned({
 				agentId: publication.agentId,
@@ -39,22 +32,14 @@ const requireCurrentMoorage = (publication: ArtifactPublication) =>
 		}
 	});
 
-const writeArtifact = (
-	row: ArtifactRow,
-	input: ArtifactInput,
-	publication: ArtifactPublication,
-) =>
+const writeArtifact = (row: ArtifactRow, input: ArtifactInput, publication: ArtifactPublication) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
 		yield* validateCurrentStoredArtifactLineage(input.pieceId);
 		yield* verifyPieceExists(input.pieceId);
 		yield* requireCurrentMoorage(publication);
 		if (input.supersedesArtifactId !== undefined) {
-			yield* validateLandingSupersession(
-				input.supersedesArtifactId,
-				row.id,
-				input.pieceId,
-			);
+			yield* validateLandingSupersession(input.supersedesArtifactId, row.id, input.pieceId);
 		}
 		yield* db.Artifact.create({
 			...row,
@@ -73,9 +58,7 @@ const writeArtifact = (
 		return {
 			_tag: "landed",
 			artifact: row,
-			otherCurrentArtifacts: current.filter(
-				(artifact) => artifact.id !== row.id,
-			),
+			otherCurrentArtifacts: current.filter((artifact) => artifact.id !== row.id),
 		} satisfies ArtifactLanding;
 	});
 
@@ -83,17 +66,11 @@ export const landArtifact = (root: string, input: ArtifactInput) =>
 	Effect.gen(function* () {
 		const crypto = yield* Crypto.Crypto;
 		const feeds = yield* DomainFeeds;
-		const id = yield* crypto.randomUUIDv4.pipe(
-			Effect.mapError(artifactPublicationFailed("identify artifact")),
-		);
+		const id = yield* crypto.randomUUIDv4.pipe(Effect.mapError(artifactPublicationFailed("identify artifact")));
 		yield* verifyPieceExists(input.pieceId);
 		yield* validateCurrentStoredArtifactLineage(input.pieceId);
 		if (input.supersedesArtifactId !== undefined) {
-			yield* validateLandingSupersession(
-				input.supersedesArtifactId,
-				id,
-				input.pieceId,
-			);
+			yield* validateLandingSupersession(input.supersedesArtifactId, id, input.pieceId);
 		}
 		const publication = yield* publishArtifact(root, input);
 		const row: ArtifactRow = {
@@ -107,9 +84,7 @@ export const landArtifact = (root: string, input: ArtifactInput) =>
 			title: input.title,
 		};
 		const write = writeArtifact(row, input, publication);
-		const landing = yield* input.supersedesArtifactId === undefined
-			? write
-			: commitArtifactLineage(write);
+		const landing = yield* input.supersedesArtifactId === undefined ? write : commitArtifactLineage(write);
 		yield* feeds.publishVoyageRefresh();
 		return landing;
 	});

@@ -1,8 +1,5 @@
 import { Database } from "@antumbra/persistence";
-import type {
-	AgentBackend,
-	BackendCapacityObservation,
-} from "@antumbra/plugin-api";
+import type { AgentBackend, BackendCapacityObservation } from "@antumbra/plugin-api";
 import { projectHistoricalAgentEvent } from "@antumbra/vocabulary/session-events";
 import { Effect, Option } from "effect";
 import { ignoreCapacityObservation } from "#backend-capacity-write.ts";
@@ -55,38 +52,22 @@ const observationFor = (
 // own durable row. Once a backend has a row, replaying its journal after an
 // admiral clear would turn old evidence into a new rejection. Folding first
 // preserves the hard-block latch while writing only the final reading.
-export const recoverBackendCapacities = (
-	backends: ReadonlyMap<string, AgentBackend>,
-	storedBackends: ReadonlySet<string>,
-) =>
+export const recoverBackendCapacities = (backends: ReadonlyMap<string, AgentBackend>, storedBackends: ReadonlySet<string>) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
-		const pending = [...backends].filter(
-			([backend, registered]) =>
-				registered.capacity !== undefined && !storedBackends.has(backend),
-		);
+		const pending = [...backends].filter(([backend, registered]) => registered.capacity !== undefined && !storedBackends.has(backend));
 		if (pending.length === 0) {
 			return [];
 		}
 		const sessions = yield* db.AgentSession.all();
-		const backendBySession = new Map(
-			sessions.map((session) => [session.id, session.backend] as const),
-		);
+		const backendBySession = new Map(sessions.map((session) => [session.id, session.backend] as const));
 		const events = (yield* db.SessionEvent.all()).toSorted(
-			(left, right) =>
-				left.at.getTime() - right.at.getTime() ||
-				left.sessionId.localeCompare(right.sessionId) ||
-				left.seq - right.seq,
+			(left, right) => left.at.getTime() - right.at.getTime() || left.sessionId.localeCompare(right.sessionId) || left.seq - right.seq,
 		);
 		return pending.map(
 			([backend, registered]): HistoricalBackendCapacity => ({
 				backend,
-				observation: observationFor(
-					backend,
-					registered,
-					backendBySession,
-					events,
-				),
+				observation: observationFor(backend, registered, backendBySession, events),
 			}),
 		);
 	});

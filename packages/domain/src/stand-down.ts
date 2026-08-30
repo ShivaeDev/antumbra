@@ -3,11 +3,7 @@ import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database } from "@antumbra/persistence";
 import type { DirectTool } from "@antumbra/plugin-api";
 import { SessionFabric } from "@antumbra/session-fabric";
-import {
-	decodeSessionExecutionStatus,
-	decodeStoredAgentSessionStatus,
-	sessionExecutionTransition,
-} from "@antumbra/vocabulary/agent-runtime";
+import { decodeSessionExecutionStatus, decodeStoredAgentSessionStatus, sessionExecutionTransition } from "@antumbra/vocabulary/agent-runtime";
 import { Context, Effect, Layer, Option } from "effect";
 import { SessionIdentityMissing } from "#errors.ts";
 import { answered } from "#tool-answers.ts";
@@ -26,28 +22,15 @@ const standDown = (identity: SessionIdentity) =>
 				sessionId: identity.sessionId,
 			});
 		}
-		const status = yield* Effect.fromResult(
-			decodeStoredAgentSessionStatus(session.value.id, session.value.status),
-		);
+		const status = yield* Effect.fromResult(decodeStoredAgentSessionStatus(session.value.id, session.value.status));
 		if (status !== "open") {
 			return yield* new SessionIdentityMissing({
 				sessionId: identity.sessionId,
 			});
 		}
-		const executionStatus = yield* Effect.fromResult(
-			decodeSessionExecutionStatus(
-				identity.sessionId,
-				session.value.executionStatus,
-			),
-		);
+		const executionStatus = yield* Effect.fromResult(decodeSessionExecutionStatus(identity.sessionId, session.value.executionStatus));
 		if (executionStatus === "active") {
-			const next = yield* Effect.fromResult(
-				sessionExecutionTransition(
-					identity.sessionId,
-					executionStatus,
-					"stand-down",
-				),
-			);
+			const next = yield* Effect.fromResult(sessionExecutionTransition(identity.sessionId, executionStatus, "stand-down"));
 			const updated = yield* db.AgentSession.where({
 				executionStatus: session.value.executionStatus,
 				id: identity.sessionId,
@@ -78,20 +61,10 @@ export const StandDownLive = Layer.effect(StandDown)(
 		const db = yield* Database;
 		const fabric = yield* SessionFabric;
 		const feeds = yield* DomainFeeds;
-		const context = Context.make(Database, db).pipe(
-			Context.add(DomainFeeds, feeds),
-			Context.add(SessionFabric, fabric),
-		);
+		const context = Context.make(Database, db).pipe(Context.add(DomainFeeds, feeds), Context.add(SessionFabric, fabric));
 		return StandDown.of({
 			tool: (identity) =>
-				bind(standDownSpec, () =>
-					answered(
-						identity,
-						standDownSpec.name,
-						Effect.provide(standDown(identity), context),
-						() => "standing by",
-					),
-				),
+				bind(standDownSpec, () => answered(identity, standDownSpec.name, Effect.provide(standDown(identity), context), () => "standing by")),
 		});
 	}),
 );

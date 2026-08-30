@@ -36,19 +36,11 @@ export const changeMarks = (change: ChangeView): string => {
 	if (change.stage === "landed") {
 		return "✓ merged";
 	}
-	return [
-		STAGE_LABELS[change.stage],
-		CHECK_MARKS[change.checks],
-		REVIEW_MARKS[change.review],
-		MERGEABLE_MARKS[change.mergeable],
-	]
+	return [STAGE_LABELS[change.stage], CHECK_MARKS[change.checks], REVIEW_MARKS[change.review], MERGEABLE_MARKS[change.mergeable]]
 		.filter((glyph) => glyph !== "")
 		.join(" · ");
 };
 
 // why: a change that never reached a host has no number to show, so it is
 // named by its title alone rather than by a number nobody can look up.
-export const changeName = (change: ChangeView): string =>
-	change.externalId === null
-		? change.title
-		: `#${change.externalId} ${change.title}`;
+export const changeName = (change: ChangeView): string => (change.externalId === null ? change.title : `#${change.externalId} ${change.title}`);

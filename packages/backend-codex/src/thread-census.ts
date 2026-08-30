@@ -11,10 +11,7 @@ const SWEEP = "thread/list";
 // Nothing is guessed in either direction: nothing is admitted, no thread is
 // called present or absent on the strength of an answer that never came, and
 // the listing is empty because an unread sweep names nobody as working or done.
-export const censusUnreadable = (
-	rootThreadId: string,
-	failure: string,
-): SessionCensus => ({
+export const censusUnreadable = (rootThreadId: string, failure: string): SessionCensus => ({
 	events: [
 		{
 			detail: `codex could not be asked which threads this session delegated to, so its census could not be checked: ${failure}`,
@@ -39,8 +36,7 @@ const opening = (child: SpawnedChild): AgentEvent => ({
 	type: "subsession.opened",
 });
 
-const cast = (child: SpawnedChild): string =>
-	child.agentRole === undefined ? "" : ` as ${child.agentRole}`;
+const cast = (child: SpawnedChild): string => (child.agentRole === undefined ? "" : ` as ${child.agentRole}`);
 
 // why: the canary. A thread codex names as this session's delegated work that
 // the live path never admitted is what a lane quietly dropping delegated frames
@@ -64,13 +60,8 @@ const missed = (child: SpawnedChild): AgentEvent => ({
 // admission is news and is announced once; whether a child is working is true
 // again at every reading, and is most worth having about the children the
 // record has known all along.
-export const censusOf = (
-	admitted: (threadId: string) => boolean,
-	sweep: CensusSweep,
-): SessionCensus => ({
-	events: sweep
-		.filter((child) => !admitted(child.threadId))
-		.flatMap((child) => [opening(child), missed(child)]),
+export const censusOf = (admitted: (threadId: string) => boolean, sweep: CensusSweep): SessionCensus => ({
+	events: sweep.filter((child) => !admitted(child.threadId)).flatMap((child) => [opening(child), missed(child)]),
 	nodes: sweep.map((child) => ({
 		nodeRef: child.threadId,
 		working: child.working,

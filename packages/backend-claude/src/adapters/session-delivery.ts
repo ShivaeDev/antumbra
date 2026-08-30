@@ -21,9 +21,7 @@ export interface SessionDeliveries {
 }
 
 const nativeRefOf = (message: SDKMessage): string | undefined =>
-	message.type === "system" && message.subtype === "init"
-		? message.session_id
-		: undefined;
+	message.type === "system" && message.subtype === "init" ? message.session_id : undefined;
 
 // why: deliveries reach consumers by push, never by awaiting the SDK iterator —
 // a consumer waiting on the SDK's own promise cannot be shut down while the

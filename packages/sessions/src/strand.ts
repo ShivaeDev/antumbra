@@ -1,8 +1,5 @@
 import { Database } from "@antumbra/persistence";
-import {
-	decodeSessionExecutionStatus,
-	decodeStoredAgentSessionStatus,
-} from "@antumbra/vocabulary/agent-runtime";
+import { decodeSessionExecutionStatus, decodeStoredAgentSessionStatus } from "@antumbra/vocabulary/agent-runtime";
 import { Effect, Option } from "effect";
 
 // why: a stream that ends while the row still says active leaves a Session
@@ -18,12 +15,8 @@ export const makeStrandNotice = Effect.gen(function* () {
 			if (Option.isNone(session)) {
 				return;
 			}
-			const status = yield* Effect.fromResult(
-				decodeStoredAgentSessionStatus(sessionId, session.value.status),
-			);
-			const execution = yield* Effect.fromResult(
-				decodeSessionExecutionStatus(sessionId, session.value.executionStatus),
-			);
+			const status = yield* Effect.fromResult(decodeStoredAgentSessionStatus(sessionId, session.value.status));
+			const execution = yield* Effect.fromResult(decodeSessionExecutionStatus(sessionId, session.value.executionStatus));
 			if (status !== "open" || execution !== "active") {
 				return;
 			}
@@ -32,9 +25,5 @@ export const makeStrandNotice = Effect.gen(function* () {
 			});
 		});
 	return (sessionId: string): Effect.Effect<void> =>
-		notice(sessionId).pipe(
-			Effect.catchCause((cause) =>
-				Effect.logError("a stranding could not be read", { sessionId }, cause),
-			),
-		);
+		notice(sessionId).pipe(Effect.catchCause((cause) => Effect.logError("a stranding could not be read", { sessionId }, cause)));
 });

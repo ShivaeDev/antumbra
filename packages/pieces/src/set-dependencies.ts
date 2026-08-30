@@ -4,10 +4,7 @@ import { Effect } from "effect";
 import { plannedEdges, writeEdges } from "#edges.ts";
 import { verifyPieceExists } from "#rows.ts";
 
-export const setDependencies = (
-	pieceId: string,
-	dependsOn: ReadonlyArray<string>,
-) =>
+export const setDependencies = (pieceId: string, dependsOn: ReadonlyArray<string>) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
 		const feeds = yield* DomainFeeds;

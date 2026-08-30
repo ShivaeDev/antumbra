@@ -13,8 +13,4 @@ export interface PersistenceOptions {
 // connect-time pragmas, so the database layer is unwrapped from the
 // migration effect instead of being merged beside it.
 export const PersistenceLive = (options: PersistenceOptions) =>
-	Layer.unwrap(
-		Effect.map(applyMigrations(options), () =>
-			Database.layer({ path: options.database }),
-		),
-	);
+	Layer.unwrap(Effect.map(applyMigrations(options), () => Database.layer({ path: options.database })));

@@ -2,10 +2,7 @@ import { DomainFeeds } from "@antumbra/domain-feeds";
 import { ChangeHostUnavailable } from "@antumbra/plugin-api";
 import { Effect } from "effect";
 import type { ChangeRow } from "#change-rows.ts";
-import {
-	ChangeObservationConflict,
-	PreparedChangeInvalid,
-} from "#change-submissions/errors.ts";
+import { ChangeObservationConflict, PreparedChangeInvalid } from "#change-submissions/errors.ts";
 import type { OpenChangeInput } from "#change-submissions/model.ts";
 import { applyObservations } from "#change-submissions/observations.ts";
 import { prepareChange } from "#change-submissions/prepare.ts";
@@ -13,14 +10,8 @@ import { freezeProposal } from "#change-submissions/proposal.ts";
 import { ChangeHostRegistry } from "#change-submissions/registries.ts";
 import { UnknownChangeHostTag } from "#errors.ts";
 
-const retainsClaimOrSettles = (
-	row: ChangeRow,
-	submissionKey: string,
-): boolean =>
-	row.stage === "open"
-		? row.submissionKey === submissionKey
-		: (row.stage === "landed" || row.stage === "withdrawn") &&
-			row.submissionKey === null;
+const retainsClaimOrSettles = (row: ChangeRow, submissionKey: string): boolean =>
+	row.stage === "open" ? row.submissionKey === submissionKey : (row.stage === "landed" || row.stage === "withdrawn") && row.submissionKey === null;
 
 export const openSubmittedChange = (input: OpenChangeInput) =>
 	Effect.gen(function* () {
@@ -30,11 +21,7 @@ export const openSubmittedChange = (input: OpenChangeInput) =>
 		if (prepared.row.externalId !== null) {
 			return prepared.row;
 		}
-		const snapshot = yield* freezeProposal(
-			prepared.row.id,
-			prepared.repo.defaultRef,
-			input,
-		);
+		const snapshot = yield* freezeProposal(prepared.row.id, prepared.repo.defaultRef, input);
 		if (snapshot.stage !== "prepared" || snapshot.externalId !== null) {
 			return snapshot;
 		}
@@ -53,16 +40,10 @@ export const openSubmittedChange = (input: OpenChangeInput) =>
 		const headSha = snapshot.preparedHeadSha;
 		const path = snapshot.worktreePath;
 		const submissionKey = snapshot.submissionKey;
-		if (
-			branch === null ||
-			headSha === null ||
-			path === null ||
-			submissionKey === null
-		) {
+		if (branch === null || headSha === null || path === null || submissionKey === null) {
 			return yield* new PreparedChangeInvalid({
 				changeId: snapshot.id,
-				detail:
-					"local branch, head, worktree, or submission claim evidence is missing",
+				detail: "local branch, head, worktree, or submission claim evidence is missing",
 			});
 		}
 		const observation = yield* host.open({
@@ -82,11 +63,7 @@ export const openSubmittedChange = (input: OpenChangeInput) =>
 			submissionKey,
 		});
 		const row = attached[0];
-		if (
-			row === undefined ||
-			row.id !== snapshot.id ||
-			!retainsClaimOrSettles(row, submissionKey)
-		) {
+		if (row === undefined || row.id !== snapshot.id || !retainsClaimOrSettles(row, submissionKey)) {
 			return yield* new ChangeObservationConflict({
 				changeId: snapshot.id,
 				externalId: observation.externalId,

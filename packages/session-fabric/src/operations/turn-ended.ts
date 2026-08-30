@@ -7,7 +7,4 @@ import type { SessionTurnMark } from "#session-turn.ts";
 // reading was taken, one nothing is holding any more, or the one the ending
 // belongs to.
 export const makeTurnEnded = (attachments: SessionFabricState["attachments"]) =>
-	Effect.fn("sessionFabric.turnEnded")(
-		(sessionId: string, mark: SessionTurnMark | undefined) =>
-			attachments.turnEnded(sessionId, mark),
-	);
+	Effect.fn("sessionFabric.turnEnded")((sessionId: string, mark: SessionTurnMark | undefined) => attachments.turnEnded(sessionId, mark));

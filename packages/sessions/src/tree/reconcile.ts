@@ -11,10 +11,7 @@ import { makeSessionTreeRows } from "#tree/rows.ts";
 // why: the outcome is unknown and nothing else. Absence is not completion: a
 // node the record stopped hearing from may have finished, failed or been
 // killed, and the one thing this can say honestly is that it never found out.
-const reconciledEnding = (
-	subsessionRef: string,
-	sessionId: string,
-): AgentEvent => ({
+const reconciledEnding = (subsessionRef: string, sessionId: string): AgentEvent => ({
 	outcome: "unknown",
 	raw: observed("session/reconciled", { sessionId, subsessionRef }),
 	subsessionRef,
@@ -41,16 +38,11 @@ export const makeSessionNodeReconciler = Effect.gen(function* () {
 	const ledger = yield* makeSessionTreeLedger;
 	const rows = yield* makeSessionTreeRows;
 	const spawners = db.Agent.all().pipe(
-		Effect.map((all) =>
-			Option.some<ReadonlyMap<string, Spawner>>(
-				new Map(all.map((agent) => [agent.id, agent])),
-			),
-		),
+		Effect.map((all) => Option.some<ReadonlyMap<string, Spawner>>(new Map(all.map((agent) => [agent.id, agent])))),
 		Effect.catchCause((cause) =>
-			Effect.logError(
-				"the Agents owning open subsessions could not be read at startup",
-				cause,
-			).pipe(Effect.as(Option.none<ReadonlyMap<string, Spawner>>())),
+			Effect.logError("the Agents owning open subsessions could not be read at startup", cause).pipe(
+				Effect.as(Option.none<ReadonlyMap<string, Spawner>>()),
+			),
 		),
 	);
 	// why: the row closes and the two facts that explain it are journaled in one
@@ -64,14 +56,9 @@ export const makeSessionNodeReconciler = Effect.gen(function* () {
 			if (Option.isNone(gaps) || spawnerSessionId === null) {
 				return;
 			}
-			const gap = gaps.value.includes("stream-detached")
-				? endingUnreportedGap(node.id)
-				: processGoneGap(node.id);
+			const gap = gaps.value.includes("stream-detached") ? endingUnreportedGap(node.id) : processGoneGap(node.id);
 			yield* journal.recordTogether({
-				appends: [
-					...endings(node, spawnerSessionId),
-					{ event: gap, sessionId: node.id },
-				],
+				appends: [...endings(node, spawnerSessionId), { event: gap, sessionId: node.id }],
 				rows: rows.closeNode(node.id, "unknown"),
 			});
 			yield* audits.project(node.id);
@@ -79,19 +66,10 @@ export const makeSessionNodeReconciler = Effect.gen(function* () {
 	// why: whether a node's acquisition can ever come back is a question about its
 	// root and the Agent that holds it, so both are read before anything closes,
 	// and an undecidable answer leaves the node exactly as it stands.
-	const settle = (
-		node: StoredAgentSession,
-		owners: ReadonlyMap<string, Spawner>,
-	) =>
+	const settle = (node: StoredAgentSession, owners: ReadonlyMap<string, Spawner>) =>
 		rows
 			.rootRow(node.rootSessionId)
-			.pipe(
-				Effect.flatMap((root) =>
-					acquisitionGone(Option.getOrUndefined(root), owners.get(node.agentId))
-						? close(node)
-						: Effect.void,
-				),
-			);
+			.pipe(Effect.flatMap((root) => (acquisitionGone(Option.getOrUndefined(root), owners.get(node.agentId)) ? close(node) : Effect.void)));
 	return Effect.gen(function* () {
 		const nodes = yield* ledger.openNodes;
 		if (nodes.length === 0) {

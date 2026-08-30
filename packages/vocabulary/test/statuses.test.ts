@@ -8,18 +8,10 @@ import { expect, it } from "@effect/vitest";
 import { Result } from "effect";
 
 it("decodes every known runtime status through its owning vocabulary", () => {
-	expect(decodeStoredAgentStatus("agent-1", "retired")).toEqual(
-		Result.succeed("retired"),
-	);
-	expect(decodeStoredAgentSessionStatus("session-1", "closed")).toEqual(
-		Result.succeed("closed"),
-	);
-	expect(decodeStoredMoorageStatus("agent-1", "provisioning")).toEqual(
-		Result.succeed("provisioning"),
-	);
-	expect(decodeStoredBerthStatus("berth-1", "reclaimed")).toEqual(
-		Result.succeed("reclaimed"),
-	);
+	expect(decodeStoredAgentStatus("agent-1", "retired")).toEqual(Result.succeed("retired"));
+	expect(decodeStoredAgentSessionStatus("session-1", "closed")).toEqual(Result.succeed("closed"));
+	expect(decodeStoredMoorageStatus("agent-1", "provisioning")).toEqual(Result.succeed("provisioning"));
+	expect(decodeStoredBerthStatus("berth-1", "reclaimed")).toEqual(Result.succeed("reclaimed"));
 });
 
 it("retains the exact subject and unknown stored word in typed failures", () => {
@@ -30,9 +22,7 @@ it("retains the exact subject and unknown stored word in typed failures", () => 
 			value: "future-agent",
 		},
 	});
-	expect(
-		decodeStoredAgentSessionStatus("session-1", "future-session"),
-	).toMatchObject({
+	expect(decodeStoredAgentSessionStatus("session-1", "future-session")).toMatchObject({
 		failure: {
 			_tag: "StoredAgentSessionStatusInvalid",
 			sessionId: "session-1",

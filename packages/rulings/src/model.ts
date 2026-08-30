@@ -1,9 +1,4 @@
-import type {
-	RulingAuthority,
-	RulingRadius,
-	RulingSubjectKind,
-	RulingUrgency,
-} from "@antumbra/vocabulary/ruling";
+import type { RulingAuthority, RulingRadius, RulingSubjectKind, RulingUrgency } from "@antumbra/vocabulary/ruling";
 import type { Option } from "effect";
 import type { RulingSupersession, RulingWithdrawal } from "#retirement.ts";
 
@@ -17,16 +12,12 @@ export type RulingReferenceKind = Exclude<RulingSubjectKind, "tag">;
 // why: scope is typed as subject plus radius, so a subject is either a row the
 // fleet already knows or a bare word for a concept that has none. The same
 // shape names a subject when a ruling is written and when precedent is read.
-export type RulingSubject =
-	| { readonly id: string; readonly kind: RulingReferenceKind }
-	| { readonly kind: "tag"; readonly tag: string };
+export type RulingSubject = { readonly id: string; readonly kind: RulingReferenceKind } | { readonly kind: "tag"; readonly tag: string };
 
 // why: a ruling is requested by an agent or by an authority proclaiming a rule
 // of its own — never both and never neither, so one value says which rather
 // than two columns every reader has to reconcile.
-export type RulingRequester =
-	| { readonly agentId: string; readonly kind: "agent" }
-	| { readonly by: RulingAuthority; readonly kind: "authority" };
+export type RulingRequester = { readonly agentId: string; readonly kind: "agent" } | { readonly by: RulingAuthority; readonly kind: "authority" };
 
 // why: a piece held by a ruling names the question that holds it, so the
 // gate carries the question and no reader has to look the ruling up.

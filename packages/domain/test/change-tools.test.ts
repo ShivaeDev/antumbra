@@ -15,27 +15,16 @@ import {
 	sessionFor,
 } from "#test/harness.ts";
 import { makeScriptedHost } from "#test/scripted-host.ts";
-import {
-	assignedPieces,
-	eventually,
-	PATIENCE,
-	stateOf,
-} from "#test/voyage-fixtures.ts";
+import { assignedPieces, eventually, PATIENCE, stateOf } from "#test/voyage-fixtures.ts";
 
 const crewOn = (scripted: ScriptedBackend, pieceId: string) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
 		const row = (yield* db.PieceAgent.where({ pieceId }).all())[0];
-		return row === undefined
-			? yield* Effect.fail("no crew yet")
-			: yield* sessionFor(scripted, row.agentId);
+		return row === undefined ? yield* Effect.fail("no crew yet") : yield* sessionFor(scripted, row.agentId);
 	});
 
-const chartered = (
-	captain: ScriptedSession,
-	title: string,
-	dependsOn: ReadonlyArray<string>,
-) =>
+const chartered = (captain: ScriptedSession, title: string, dependsOn: ReadonlyArray<string>) =>
 	Effect.gen(function* () {
 		const outcome = yield* callTool(captain, "charter_piece", {
 			charter: `do ${title}`,
@@ -46,9 +35,7 @@ const chartered = (
 		});
 		expect(outcome.ok).toBe(true);
 		const pieceId = outcome.text.replace("chartered ", "");
-		expect(yield* callTool(captain, "launch_piece", { pieceId })).toMatchObject(
-			{ ok: true },
-		);
+		expect(yield* callTool(captain, "launch_piece", { pieceId })).toMatchObject({ ok: true });
 		return pieceId;
 	});
 
@@ -112,18 +99,7 @@ it.live("crew open a change through the tool and hear where it lives", () =>
 				ok: false,
 				text: "open_change: NoChangeHost: no change host claims shoals",
 			});
-		}).pipe(
-			Effect.provide(
-				dispatchingLayer(
-					temporary,
-					backend.backend,
-					PATIENCE,
-					{},
-					recorder.runner,
-					changeHostsOf(scripted.host),
-				),
-			),
-		);
+		}).pipe(Effect.provide(dispatchingLayer(temporary, backend.backend, PATIENCE, {}, recorder.runner, changeHostsOf(scripted.host))));
 	}),
 );
 
@@ -136,14 +112,7 @@ it.live("a chain gated on a change sails across a boot", () =>
 		const backend = yield* makeScriptedBackend;
 		const recorder = yield* makeScriptedRunner;
 		const scripted = yield* makeScriptedHost();
-		const sailing = dispatchingLayer(
-			temporary,
-			backend.backend,
-			PATIENCE,
-			{},
-			recorder.runner,
-			changeHostsOf(scripted.host),
-		);
+		const sailing = dispatchingLayer(temporary, backend.backend, PATIENCE, {}, recorder.runner, changeHostsOf(scripted.host));
 
 		const chain = yield* Effect.gen(function* () {
 			const domain = yield* AgentDomain;

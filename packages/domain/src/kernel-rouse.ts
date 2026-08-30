@@ -44,10 +44,7 @@ export const makeRouseSession = (wake: IntentKind<WakeFields>) =>
 			id,
 			retried,
 		});
-		const submitted = (payload: WakeFields) =>
-			kernel
-				.submit(wake, payload)
-				.pipe(Effect.map((submission) => watched(submission.id, false)));
+		const submitted = (payload: WakeFields) => kernel.submit(wake, payload).pipe(Effect.map((submission) => watched(submission.id, false)));
 		// why: a retry re-runs the row exactly as it was written, and the kernel
 		// offers no way to rewrite a payload — so a demand that differs from the
 		// parked wake needs a row of its own, or its input is discarded in favour
@@ -62,9 +59,7 @@ export const makeRouseSession = (wake: IntentKind<WakeFields>) =>
 				Effect.andThen(submitted(payload)),
 			);
 		const sameDemand = (left: WakeFields, right: WakeFields) =>
-			left.inputId === right.inputId &&
-			left.message === right.message &&
-			left.sessionId === right.sessionId;
+			left.inputId === right.inputId && left.message === right.message && left.sessionId === right.sessionId;
 		// why: a parked wake that moved on between the read and the push is a wake
 		// nobody has to push — but it may also have moved to a terminal status, and
 		// the admiral is still owed one. Submitting is the answer to both, because
@@ -97,34 +92,21 @@ export const makeRouseSession = (wake: IntentKind<WakeFields>) =>
 			exceptId?: string,
 		) =>
 			Effect.forEach(
-				parked.filter(
-					(intent) =>
-						intent.id !== exceptId && intent.payload.inputId !== undefined,
-				),
+				parked.filter((intent) => intent.id !== exceptId && intent.payload.inputId !== undefined),
 				(intent) => advance(intent.id),
 				{ concurrency: 1, discard: true },
 			);
 		return (payload: WakeFields): Effect.Effect<SessionRouse, RouseRefused> =>
 			Effect.gen(function* () {
 				const active = yield* kernel.active(wake);
-				const parked = active.filter(
-					(intent) =>
-						intent.payload.sessionId === payload.sessionId &&
-						intent.status === "waiting",
-				);
-				const same = parked.find((intent) =>
-					sameDemand(intent.payload, payload),
-				);
+				const parked = active.filter((intent) => intent.payload.sessionId === payload.sessionId && intent.status === "waiting");
+				const same = parked.find((intent) => sameDemand(intent.payload, payload));
 				if (same !== undefined) {
 					yield* advanceInputs(parked, same.id);
 					return yield* pushed(same.id, payload);
 				}
 				yield* advanceInputs(parked);
-				const replaceable = parked.find(
-					(intent) => intent.payload.inputId === undefined,
-				);
-				return yield* replaceable === undefined
-					? submitted(payload)
-					: replaced(replaceable.id, payload);
+				const replaceable = parked.find((intent) => intent.payload.inputId === undefined);
+				return yield* replaceable === undefined ? submitted(payload) : replaced(replaceable.id, payload);
 			});
 	});

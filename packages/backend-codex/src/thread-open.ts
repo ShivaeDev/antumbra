@@ -1,8 +1,4 @@
-import type {
-	BackendFailure,
-	DirectTool,
-	OpenSessionOptions,
-} from "@antumbra/plugin-api";
+import type { BackendFailure, DirectTool, OpenSessionOptions } from "@antumbra/plugin-api";
 import type { AgentEvent } from "@antumbra/vocabulary/session-events";
 import { Effect, Option, Schema } from "effect";
 import { codexFailure } from "#failure.ts";
@@ -40,22 +36,12 @@ const decodeThread = Schema.decodeUnknownOption(ThreadResponse);
 // over. The refusal is here, at the seam where a thread id becomes a live
 // attachment, so a caller holding a child's reference cannot reach the wire
 // with it however it came by the id.
-const attachable = (
-	server: CodexServer,
-	threadId: string,
-): Effect.Effect<string, BackendFailure> =>
+const attachable = (server: CodexServer, threadId: string): Effect.Effect<string, BackendFailure> =>
 	server.threads.isNode(threadId)
-		? Effect.fail(
-				codexFailure(
-					`thread ${threadId} is a subsession of a running session; subsessions are read from the stream, never attached`,
-				),
-			)
+		? Effect.fail(codexFailure(`thread ${threadId} is a subsession of a running session; subsessions are read from the stream, never attached`))
 		: Effect.succeed(threadId);
 
-export const openThread = (
-	server: CodexServer,
-	options: OpenSessionOptions,
-): Effect.Effect<readonly [string, unknown], BackendFailure> =>
+export const openThread = (server: CodexServer, options: OpenSessionOptions): Effect.Effect<readonly [string, unknown], BackendFailure> =>
 	Option.match(options.resume, {
 		onNone: () =>
 			server
@@ -81,20 +67,13 @@ export const openThread = (
 			),
 	});
 
-export const threadIdOf = (
-	method: string,
-	response: unknown,
-): Effect.Effect<string, BackendFailure> =>
+export const threadIdOf = (method: string, response: unknown): Effect.Effect<string, BackendFailure> =>
 	Option.match(decodeThread(response), {
 		onNone: () => Effect.fail(codexFailure(`${method} returned no thread`)),
 		onSome: ({ thread }) => Effect.succeed(thread.id),
 	});
 
-export const threadOpened = (
-	method: string,
-	response: unknown,
-	threadId: string,
-): AgentEvent => ({
+export const threadOpened = (method: string, response: unknown, threadId: string): AgentEvent => ({
 	nativeRef: threadId,
 	raw: rawOf(method, response),
 	type: "session.opened",

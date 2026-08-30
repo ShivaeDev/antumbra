@@ -1,7 +1,4 @@
-import {
-	defineService,
-	type ServiceRequirements,
-} from "@antumbra/service-definition";
+import { defineService, type ServiceRequirements } from "@antumbra/service-definition";
 import { Effect, Scope } from "effect";
 
 const requirements = [Scope.Scope] as const;

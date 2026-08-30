@@ -1,15 +1,7 @@
-import type {
-	BoundaryRule,
-	CompiledBoundaryRule,
-	SanctionedException,
-} from "#boundaries/model.ts";
+import type { BoundaryRule, CompiledBoundaryRule, SanctionedException } from "#boundaries/model.ts";
 
-export const sanctionedOf = (
-	rule: BoundaryRule,
-): readonly SanctionedException[] =>
-	rule.kind === "negative-fence" && rule.from.kind === "workspace-except"
-		? rule.from.sanctioned
-		: [];
+export const sanctionedOf = (rule: BoundaryRule): readonly SanctionedException[] =>
+	rule.kind === "negative-fence" && rule.from.kind === "workspace-except" ? rule.from.sanctioned : [];
 
 // why: an exception that is not written down beside the rule it bends is
 // indistinguishable from the rule having been quietly widened. The ruling and
@@ -27,11 +19,7 @@ export const exceptionFailure = (
 	compiled: CompiledBoundaryRule | undefined,
 	exception: SanctionedException,
 ): string | undefined => {
-	if (
-		exception.package.trim().length === 0 ||
-		exception.ruling.trim().length === 0 ||
-		exception.rationale.trim().length === 0
-	) {
+	if (exception.package.trim().length === 0 || exception.ruling.trim().length === 0 || exception.rationale.trim().length === 0) {
 		return `Sanctioned exception in ${rule.name} needs a package, a ruling, and a rationale`;
 	}
 	const consumer = `packages/${exception.package}/src/index.ts`;

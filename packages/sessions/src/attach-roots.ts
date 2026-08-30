@@ -2,9 +2,7 @@ import { Database, type StoredAgentSession } from "@antumbra/persistence";
 import { type Cause, Data, Effect, Option } from "effect";
 import { isRootSession } from "#roots.ts";
 
-export class SubsessionAttachRefused extends Data.TaggedError(
-	"SubsessionAttachRefused",
-)<{
+export class SubsessionAttachRefused extends Data.TaggedError("SubsessionAttachRefused")<{
 	readonly detail: string;
 	readonly sessionId: string;
 }> {
@@ -13,32 +11,19 @@ export class SubsessionAttachRefused extends Data.TaggedError(
 	}
 }
 
-const refusal = (sessionId: string, detail: string) =>
-	new SubsessionAttachRefused({ detail, sessionId });
+const refusal = (sessionId: string, detail: string) => new SubsessionAttachRefused({ detail, sessionId });
 
 // why: a row that cannot be read cannot say it is a root, and attaching on the
 // assumption that it is would be the guess this seam exists to refuse.
 const unreadable = (sessionId: string, cause: Cause.Cause<unknown>) =>
-	Effect.logError(
-		"a Session could not be read to confirm it is a root",
-		{ sessionId },
-		cause,
-	).pipe(
-		Effect.andThen(
-			refusal(sessionId, "could not be read to confirm it is a root Session"),
-		),
+	Effect.logError("a Session could not be read to confirm it is a root", { sessionId }, cause).pipe(
+		Effect.andThen(refusal(sessionId, "could not be read to confirm it is a root Session")),
 	);
 
-const rootedOrRefused = (
-	sessionId: string,
-	row: Option.Option<StoredAgentSession>,
-) =>
+const rootedOrRefused = (sessionId: string, row: Option.Option<StoredAgentSession>) =>
 	Option.isNone(row) || isRootSession(row.value)
 		? Effect.void
-		: refusal(
-				sessionId,
-				`is a subsession of ${row.value.parentSessionId}, read from its root's stream and never attached`,
-			);
+		: refusal(sessionId, `is a subsession of ${row.value.parentSessionId}, read from its root's stream and never attached`);
 
 // why: only a root may be attached to a provider. A subsession is part of its
 // root's record — its conversation is one the root is still holding, and on at

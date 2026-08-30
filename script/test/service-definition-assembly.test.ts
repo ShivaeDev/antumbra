@@ -2,13 +2,8 @@ import { describe, expect, it } from "vitest";
 import { serviceDefinitionAssemblyViolations } from "#lint/rules/service-definition-assembly.ts";
 import { inventoryOf } from "#test/support/inventory.ts";
 
-const violationsIn = (
-	content: string,
-	path = "packages/example/src/service.ts",
-) =>
-	serviceDefinitionAssemblyViolations(
-		inventoryOf({ sources: [{ content, path }] }),
-	);
+const violationsIn = (content: string, path = "packages/example/src/service.ts") =>
+	serviceDefinitionAssemblyViolations(inventoryOf({ sources: [{ content, path }] }));
 
 describe("service definition assembly rule", () => {
 	it("allows a definition assembled from focused operation exports", () => {
@@ -50,14 +45,8 @@ export const Example = defineService({
 	requires: [],
 });
 `);
-		expect(violations.map(({ line }) => line)).toEqual(
-			expect.arrayContaining([7, 9]),
-		);
-		expect(
-			violations.every(
-				({ rule }) => rule === "effect/service-definition-assembly",
-			),
-		).toBe(true);
+		expect(violations.map(({ line }) => line)).toEqual(expect.arrayContaining([7, 9]));
+		expect(violations.every(({ rule }) => rule === "effect/service-definition-assembly")).toBe(true);
 	});
 
 	it("rejects non-generator inline bodies and Effect constructors", () => {
@@ -72,9 +61,7 @@ export const Example = defineService({
 	requires: [],
 });
 `);
-		expect(violations.map(({ line }) => line)).toEqual(
-			expect.arrayContaining([7, 8]),
-		);
+		expect(violations.map(({ line }) => line)).toEqual(expect.arrayContaining([7, 8]));
 	});
 
 	it("rejects a function expression in place of the canonical methods arrow", () => {
@@ -112,9 +99,7 @@ export const Example = define({
 	requires: [],
 });
 `);
-		expect(violations.map(({ line }) => line)).toEqual(
-			expect.arrayContaining([2, 5]),
-		);
+		expect(violations.map(({ line }) => line)).toEqual(expect.arrayContaining([2, 5]));
 	});
 
 	it("supports renamed imports and rejects namespace imports", () => {
@@ -205,8 +190,6 @@ const operation = Effect.gen(function* () { return 1; });
 defineService({ operation });
 `;
 		expect(violationsIn(content)).toEqual([]);
-		expect(
-			violationsIn(content, "packages/example/test/service.test.ts"),
-		).toEqual([]);
+		expect(violationsIn(content, "packages/example/test/service.test.ts")).toEqual([]);
 	});
 });

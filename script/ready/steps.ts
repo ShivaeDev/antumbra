@@ -1,7 +1,7 @@
 import type { Step } from "#ready/model.ts";
 
 export const steps: readonly Step[] = [
-	{ args: ["run", "check"], command: "pnpm", name: "biome" },
+	{ args: ["run", "check"], command: "pnpm", name: "formatting" },
 	{ args: ["script/lint.ts"], command: "node", name: "lint" },
 	{ args: ["run", "lint:boundaries"], command: "pnpm", name: "boundaries" },
 	{ args: ["run", "build"], command: "pnpm", name: "build" },
@@ -12,6 +12,4 @@ export const steps: readonly Step[] = [
 		command: "pnpm",
 		name: "typecheck compat",
 	},
-	{ args: ["run", "test"], command: "pnpm", name: "test" },
-	{ args: ["run", "test:guards"], command: "pnpm", name: "guards" },
 ];

@@ -5,9 +5,7 @@ import { expect, it, vi } from "vitest";
 import { ConsoleMain } from "#views/console-main.tsx";
 
 vi.mock("#views/quay.tsx", () => ({
-	QuayPanel: ({ selectedId }: { readonly selectedId: string | undefined }) => (
-		<section>pull request {selectedId}</section>
-	),
+	QuayPanel: ({ selectedId }: { readonly selectedId: string | undefined }) => <section>pull request {selectedId}</section>,
 }));
 
 vi.mock("#views/rulings.tsx", () => ({

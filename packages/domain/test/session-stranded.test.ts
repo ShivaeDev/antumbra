@@ -5,25 +5,9 @@ import { makeSessionTurnRests } from "@antumbra/sessions";
 import type { AgentEvent } from "@antumbra/vocabulary/session-events";
 import { expect, it } from "@effect/vitest";
 import { Effect, Layer } from "effect";
-import {
-	domainKernelLayer,
-	sightSourceTestLayer,
-} from "#test/domain-layers.ts";
-import {
-	acquireTemporaryPersistence,
-	makeScriptedBackend,
-	rawOf,
-	type ScriptedBackend,
-} from "#test/harness.ts";
-import {
-	DEFAULT_IDLE_SIESTA_AFTER_MILLIS,
-	HAND,
-	openedNatively,
-	passedAt,
-	presenceOf,
-	sessionRow,
-	spawned,
-} from "#test/session-idle-fixture.ts";
+import { domainKernelLayer, sightSourceTestLayer } from "#test/domain-layers.ts";
+import { acquireTemporaryPersistence, makeScriptedBackend, rawOf, type ScriptedBackend } from "#test/harness.ts";
+import { DEFAULT_IDLE_SIESTA_AFTER_MILLIS, HAND, openedNatively, passedAt, presenceOf, sessionRow, spawned } from "#test/session-idle-fixture.ts";
 import { reportsNativeRef } from "#test/session-recovery-fixture.ts";
 import { eventually } from "#test/voyage-fixtures.ts";
 
@@ -44,18 +28,10 @@ const completed: AgentEvent = {
 // why: the fabric has to be reachable from the rehearsal, because taking the
 // attachment away is how a process dying is staged — the domain's own layer
 // keeps it to itself.
-const strandLayer = (
-	temporary: Parameters<typeof domainKernelLayer>[0],
-	scripted: ScriptedBackend,
-) =>
+const strandLayer = (temporary: Parameters<typeof domainKernelLayer>[0], scripted: ScriptedBackend) =>
 	sightSourceTestLayer.pipe(
 		Layer.provideMerge(SessionFabricLive),
-		Layer.provideMerge(
-			domainKernelLayer(
-				temporary,
-				reportsNativeRef(scripted.backend, scripted, "native-idle"),
-			),
-		),
+		Layer.provideMerge(domainKernelLayer(temporary, reportsNativeRef(scripted.backend, scripted, "native-idle"))),
 	);
 
 const wakes = Effect.gen(function* () {
@@ -67,32 +43,30 @@ const wakes = Effect.gen(function* () {
 // mid-turn is shown as stranded and left there — the clock's pass comes round
 // and asks for nothing, because a resume nobody asked for is exactly what was
 // costing money and telling the record a story it could not check.
-it.live(
-	"a session whose process went mid-turn strands and stays stranded",
-	() =>
-		Effect.gen(function* () {
-			const temporary = yield* acquireTemporaryPersistence;
-			const scripted = yield* makeScriptedBackend;
-			yield* Effect.gen(function* () {
-				const fabric = yield* SessionFabric;
-				yield* spawned;
-				yield* openedNatively(scripted);
-				expect((yield* presenceOf).presence).toBe("working");
+it.live("a session whose process went mid-turn strands and stays stranded", () =>
+	Effect.gen(function* () {
+		const temporary = yield* acquireTemporaryPersistence;
+		const scripted = yield* makeScriptedBackend;
+		yield* Effect.gen(function* () {
+			const fabric = yield* SessionFabric;
+			yield* spawned;
+			yield* openedNatively(scripted);
+			expect((yield* presenceOf).presence).toBe("working");
 
-				yield* fabric.stop(HAND.sessionId);
-				const lost = yield* presenceOf;
-				expect(lost.presence).toBe("stranded");
-				// why: stranded is a report, never a refusal — speaking to it is the
-				// one way it comes back.
-				expect(lost.canSend).toBe(true);
-				expect((yield* sessionRow).executionStatus).toBe("active");
+			yield* fabric.stop(HAND.sessionId);
+			const lost = yield* presenceOf;
+			expect(lost.presence).toBe("stranded");
+			// why: stranded is a report, never a refusal — speaking to it is the
+			// one way it comes back.
+			expect(lost.canSend).toBe(true);
+			expect((yield* sessionRow).executionStatus).toBe("active");
 
-				yield* passedAt(DEFAULT_IDLE_SIESTA_AFTER_MILLIS + 60_000);
-				expect(yield* wakes).toEqual([]);
-				expect((yield* sessionRow).executionStatus).toBe("active");
-				expect((yield* presenceOf).presence).toBe("stranded");
-			}).pipe(Effect.provide(strandLayer(temporary, scripted)));
-		}),
+			yield* passedAt(DEFAULT_IDLE_SIESTA_AFTER_MILLIS + 60_000);
+			expect(yield* wakes).toEqual([]);
+			expect((yield* sessionRow).executionStatus).toBe("active");
+			expect((yield* presenceOf).presence).toBe("stranded");
+		}).pipe(Effect.provide(strandLayer(temporary, scripted)));
+	}),
 );
 
 // why: the settle used to read a missing attachment as a mismatch, because an

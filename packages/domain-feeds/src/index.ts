@@ -28,9 +28,7 @@ export const DomainFeeds = defineService({
 		publishVoyageRefresh: makePublishVoyageRefresh(feeds.voyages),
 		subscribeChangeRefresh: makeSubscribeChangeRefresh(feeds.changeRefresh),
 		subscribeFleetRefresh: makeSubscribeFleetRefresh(feeds.fleet),
-		subscribeResourceReclaim: makeSubscribeResourceReclaim(
-			feeds.resourceReclaim,
-		),
+		subscribeResourceReclaim: makeSubscribeResourceReclaim(feeds.resourceReclaim),
 		subscribeRulingRefresh: makeSubscribeRulingRefresh(feeds.rulings),
 		subscribeSessionEvents: makeSubscribeSessionEvents(feeds.events),
 		subscribeVoyageRefresh: makeSubscribeVoyageRefresh(feeds.voyages),

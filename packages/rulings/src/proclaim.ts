@@ -1,11 +1,7 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database } from "@antumbra/persistence";
 import { Clock, Effect } from "effect";
-import type {
-	RulingProclamation,
-	RulingRequest,
-	RulingVerdict,
-} from "#acts.ts";
+import type { RulingProclamation, RulingRequest, RulingVerdict } from "#acts.ts";
 import type { Ruling } from "#model.ts";
 import { requested, writeRequest } from "#request.ts";
 import { writeVerdict } from "#rule.ts";
@@ -32,8 +28,7 @@ const verdictOf = (asked: Ruling, input: RulingProclamation): RulingVerdict => {
 		: {
 				answer: input.answer,
 				by: input.by,
-				choiceId:
-					asked.choices.find((choice) => choice.label === chosen)?.id ?? chosen,
+				choiceId: asked.choices.find((choice) => choice.label === chosen)?.id ?? chosen,
 				rulingId: asked.id,
 			};
 };
@@ -49,15 +44,11 @@ const writeProclamation = (input: RulingProclamation, at: Date) =>
 // single write, so it stands the moment it is proclaimed and nobody ever meets
 // the question open. The request and the verdict keep their own refusals, and
 // a proclamation gates no piece, so no readiness moves with it.
-export const proclaim = Effect.fn("rulings.proclaim")(function* (
-	input: RulingProclamation,
-) {
+export const proclaim = Effect.fn("rulings.proclaim")(function* (input: RulingProclamation) {
 	const db = yield* Database;
 	const feeds = yield* DomainFeeds;
 	const now = yield* Clock.currentTimeMillis;
-	const proclaimed = yield* db.transaction(
-		writeProclamation(input, new Date(now)),
-	);
+	const proclaimed = yield* db.transaction(writeProclamation(input, new Date(now)));
 	yield* feeds.publishRulingRefresh();
 	return proclaimed;
 });

@@ -3,9 +3,7 @@ import { createRequire } from "node:module";
 import { join } from "node:path";
 import { Data, Effect } from "effect";
 
-export class ElectronResolveError extends Data.TaggedError(
-	"ElectronResolveError",
-)<{ readonly message: string }> {}
+export class ElectronResolveError extends Data.TaggedError("ElectronResolveError")<{ readonly message: string }> {}
 
 const electronBinary = (): Effect.Effect<string, ElectronResolveError> => {
 	const resolved: unknown = createRequire(import.meta.url)("electron");
@@ -20,13 +18,7 @@ const electronBinary = (): Effect.Effect<string, ElectronResolveError> => {
 
 export const spawnElectron = (root: string, rendererUrl: string) =>
 	Effect.flatMap(electronBinary(), (binary) =>
-		Effect.sync(() =>
-			spawn(
-				binary,
-				[join(root, "out", "main.js"), `--renderer-url=${rendererUrl}`],
-				{ stdio: "inherit" },
-			),
-		),
+		Effect.sync(() => spawn(binary, [join(root, "out", "main.js"), `--renderer-url=${rendererUrl}`], { stdio: "inherit" })),
 	);
 
 export const waitForExit = (child: ChildProcess) =>

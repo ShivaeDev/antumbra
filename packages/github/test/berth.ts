@@ -43,13 +43,7 @@ const cut = (root: string): Berthed => {
 	git("-C", seed, "commit", "-qm", "init");
 	git("clone", "-q", "--bare", seed, remote);
 	git("clone", "-q", "--bare", remote, mirror);
-	git(
-		"-C",
-		mirror,
-		"config",
-		"remote.origin.fetch",
-		"+refs/heads/*:refs/remotes/origin/*",
-	);
+	git("-C", mirror, "config", "remote.origin.fetch", "+refs/heads/*:refs/remotes/origin/*");
 	git("-C", mirror, "fetch", "-q", "origin");
 	git("-C", mirror, "worktree", "add", "-b", BRANCH, path, "origin/main");
 	writeFileSync(join(path, "notes.md"), "sounded three fathoms\n");
@@ -75,13 +69,11 @@ export const advanceBerth = (path: string): void => {
 	git("-C", path, "commit", "-qm", "chart later work");
 };
 
-export const refSha = (repo: string, ref: string): string =>
-	git("-C", repo, "rev-parse", ref).trim();
+export const refSha = (repo: string, ref: string): string => git("-C", repo, "rev-parse", ref).trim();
 
 export const berthed = Effect.acquireRelease(
 	Effect.sync(() => cut(mkdtempSync(join(tmpdir(), "antumbra-berth-")))),
-	(site) =>
-		Effect.sync(() => rmSync(site.root, { force: true, recursive: true })),
+	(site) => Effect.sync(() => rmSync(site.root, { force: true, recursive: true })),
 );
 
 export const remoteBranches = (remote: string): ReadonlyArray<string> =>

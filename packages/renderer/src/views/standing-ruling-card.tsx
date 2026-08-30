@@ -1,16 +1,11 @@
 import type { RulingSubjectView, StandingRulingView } from "@antumbra/contract";
 import { Badge } from "#components/ui/badge.tsx";
-import {
-	rulingActorLabel,
-	rulingRadiusLabel,
-	rulingSubjectLabel,
-} from "#rulings/labels.ts";
+import { rulingActorLabel, rulingRadiusLabel, rulingSubjectLabel } from "#rulings/labels.ts";
 import { RulingSupersede } from "#views/ruling-supersede.tsx";
 import { RulingWithdraw } from "#views/ruling-withdraw.tsx";
 import { whenLabel } from "#voyages/labels.ts";
 
-const subjectKey = (subject: RulingSubjectView): string =>
-	`${subject.kind}:${subject.label}`;
+const subjectKey = (subject: RulingSubjectView): string => `${subject.kind}:${subject.label}`;
 
 // why: a standing ruling is met as its answer read in the light of its
 // question; urgency was the asker's need and says nothing once it is ruled.
@@ -32,17 +27,12 @@ export const StandingRulingCard = ({
 				</Badge>
 			))}
 			<span className="ml-auto shrink-0 text-2xs text-muted-foreground tabular-nums">
-				ruled by {rulingActorLabel(ruling.ruledBy, ruling.ruledByAgentId)}{" "}
-				{whenLabel(ruling.ruledAt)}
+				ruled by {rulingActorLabel(ruling.ruledBy, ruling.ruledByAgentId)} {whenLabel(ruling.ruledAt)}
 			</span>
 		</div>
 		<h3 className="min-w-0 text-sm font-medium">{ruling.question}</h3>
 		<p className="min-w-0 text-xs">{ruling.answer}</p>
-		{ruling.chosen === null ? null : (
-			<p className="min-w-0 text-2xs text-muted-foreground">
-				chose: {ruling.chosen}
-			</p>
-		)}
+		{ruling.chosen === null ? null : <p className="min-w-0 text-2xs text-muted-foreground">chose: {ruling.chosen}</p>}
 		<RulingSupersede onError={onError} others={others} ruling={ruling} />
 		<RulingWithdraw onError={onError} ruling={ruling} />
 	</li>

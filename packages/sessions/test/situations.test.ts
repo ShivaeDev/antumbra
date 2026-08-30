@@ -35,21 +35,16 @@ const change = (overrides: Partial<ChangeRow>): ChangeRow => ({
 	...overrides,
 });
 
-const links = (
-	row: ChangeRow,
-	overrides?: Partial<ChangeLinks>,
-): ChangeLinks => ({
+const links = (row: ChangeRow, overrides?: Partial<ChangeLinks>): ChangeLinks => ({
 	assignments: [{ agentId: "agent-1", pieceId: "piece-1" }],
 	changes: [row],
 	pieceChanges: [{ changeId: row.id, pieceId: "piece-1", purpose: "produces" }],
 	...overrides,
 });
 
-const situationsOf = (row: ChangeRow, overrides?: Partial<ChangeLinks>) =>
-	situationsByAgent(links(row, overrides), ["agent-1"]).get("agent-1") ?? [];
+const situationsOf = (row: ChangeRow, overrides?: Partial<ChangeLinks>) => situationsByAgent(links(row, overrides), ["agent-1"]).get("agent-1") ?? [];
 
-const kinds = (row: ChangeRow, overrides?: Partial<ChangeLinks>) =>
-	situationsOf(row, overrides).map((entry) => entry.situation);
+const kinds = (row: ChangeRow, overrides?: Partial<ChangeLinks>) => situationsOf(row, overrides).map((entry) => entry.situation);
 
 it("a change the record says is well is addressable for nothing", () => {
 	expect(situationsOf(change({}))).toEqual([]);
@@ -58,9 +53,7 @@ it("a change the record says is well is addressable for nothing", () => {
 it("each situation appears only when its own fact is on the record", () => {
 	expect(kinds(change({ mergeable: "conflict" }))).toEqual(["merge_conflicts"]);
 	expect(kinds(change({ checks: "red" }))).toEqual(["checks_failed"]);
-	expect(kinds(change({ review: "changes_requested" }))).toEqual([
-		"unresolved_reviews",
-	]);
+	expect(kinds(change({ review: "changes_requested" }))).toEqual(["unresolved_reviews"]);
 });
 
 it("a change in trouble three ways offers all three, each naming it", () => {
@@ -69,11 +62,7 @@ it("a change in trouble three ways offers all three, each naming it", () => {
 		mergeable: "conflict",
 		review: "changes_requested",
 	});
-	expect(kinds(troubled)).toEqual([
-		"merge_conflicts",
-		"checks_failed",
-		"unresolved_reviews",
-	]);
+	expect(kinds(troubled)).toEqual(["merge_conflicts", "checks_failed", "unresolved_reviews"]);
 	for (const entry of situationsOf(troubled)) {
 		expect(entry.changeId).toBe("change-1");
 		expect(entry.reference).toBe("#42");
@@ -81,12 +70,8 @@ it("a change in trouble three ways offers all three, each naming it", () => {
 });
 
 it("a change the host is not presenting is addressable for nothing", () => {
-	expect(
-		situationsOf(change({ mergeable: "conflict", stage: "landed" })),
-	).toEqual([]);
-	expect(
-		situationsOf(change({ externalId: null, mergeable: "conflict" })),
-	).toEqual([]);
+	expect(situationsOf(change({ mergeable: "conflict", stage: "landed" }))).toEqual([]);
+	expect(situationsOf(change({ externalId: null, mergeable: "conflict" }))).toEqual([]);
 });
 
 // why: the agent that produced a change is the hand that fixes it. One that
@@ -95,17 +80,11 @@ it("only the piece that produces a change carries its situations", () => {
 	const conflicted = change({ mergeable: "conflict" });
 	expect(
 		situationsOf(conflicted, {
-			pieceChanges: [
-				{ changeId: "change-1", pieceId: "piece-1", purpose: "reviews" },
-			],
+			pieceChanges: [{ changeId: "change-1", pieceId: "piece-1", purpose: "reviews" }],
 		}),
 	).toEqual([]);
 });
 
 it("an agent assigned to nothing carries no situations", () => {
-	expect(
-		situationsByAgent(links(change({ mergeable: "conflict" })), [
-			"agent-2",
-		]).get("agent-2"),
-	).toEqual([]);
+	expect(situationsByAgent(links(change({ mergeable: "conflict" })), ["agent-2"]).get("agent-2")).toEqual([]);
 });

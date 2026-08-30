@@ -7,9 +7,7 @@ const seconds = (millis: number): string => `${(millis / 1000).toFixed(1)}s`;
 export const consoleReport: Report = {
 	failed: (step, result) =>
 		Effect.sync(() => {
-			process.stderr.write(
-				`✗ ${step.name} — exit ${result.exitCode}\n\n${result.output}\n`,
-			);
+			process.stderr.write(`✗ ${step.name} — exit ${result.exitCode}\n\n${result.output}\n`);
 			process.exitCode = 1;
 		}),
 	passed: (step, millis) =>
@@ -18,10 +16,6 @@ export const consoleReport: Report = {
 		}),
 	summary: (passed, total) =>
 		Effect.sync(() => {
-			process.stdout.write(
-				passed === total
-					? `ready: all ${total} steps passed\n`
-					: `ready: failed after ${passed}/${total} steps\n`,
-			);
+			process.stdout.write(passed === total ? `ready: all ${total} steps passed\n` : `ready: failed after ${passed}/${total} steps\n`);
 		}),
 };

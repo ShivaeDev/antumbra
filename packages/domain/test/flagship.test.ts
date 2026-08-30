@@ -14,11 +14,7 @@ const it = persistenceIt();
 
 const WorldLive = VoyageWorldSourceLive.pipe(
 	Layer.provideMerge(
-		ChangesLive(new Map(), new Map()).pipe(
-			Layer.provideMerge(PiecesLive),
-			Layer.provideMerge(RulingsLive),
-			Layer.provideMerge(DomainFeedsLive),
-		),
+		ChangesLive(new Map(), new Map()).pipe(Layer.provideMerge(PiecesLive), Layer.provideMerge(RulingsLive), Layer.provideMerge(DomainFeedsLive)),
 	),
 );
 
@@ -79,9 +75,7 @@ it.effectDB("a voyage carries its kind out of the record", function* (db) {
 	});
 
 	const world = yield* readWorld;
-	const kinds = new Map(
-		world.voyages.map((voyage) => [voyage.name, voyage.kind] as const),
-	);
+	const kinds = new Map(world.voyages.map((voyage) => [voyage.name, voyage.kind] as const));
 	expect(kinds.get("Flagship")).toBe("flagship");
 	expect(kinds.get("Chart the reef")).toBe("voyage");
 });

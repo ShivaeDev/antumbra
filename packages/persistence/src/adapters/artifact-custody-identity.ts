@@ -15,12 +15,7 @@ interface LegacyArtifactIdentity {
 const isDigest = (value: string): boolean => /^[0-9a-f]{64}$/.test(value);
 
 const isSafeBasename = (value: string): boolean =>
-	value.length > 0 &&
-	value !== "." &&
-	value !== ".." &&
-	!value.includes("/") &&
-	!value.includes("\\") &&
-	!value.includes("\0");
+	value.length > 0 && value !== "." && value !== ".." && !value.includes("/") && !value.includes("\\") && !value.includes("\0");
 
 const parseLocalFileUrl = (uri: string): string => {
 	let url: URL;
@@ -29,14 +24,7 @@ const parseLocalFileUrl = (uri: string): string => {
 	} catch {
 		throw new Error("not a canonical local file URL");
 	}
-	if (
-		url.protocol !== "file:" ||
-		url.username !== "" ||
-		url.password !== "" ||
-		url.host !== "" ||
-		url.search !== "" ||
-		url.hash !== ""
-	) {
+	if (url.protocol !== "file:" || url.username !== "" || url.password !== "" || url.host !== "" || url.search !== "" || url.hash !== "") {
 		throw new Error("external or noncanonical URL");
 	}
 	try {
@@ -46,19 +34,11 @@ const parseLocalFileUrl = (uri: string): string => {
 	}
 };
 
-export const resolveLegacyArtifactIdentity = (
-	artifact: LegacyArtifact,
-	canonicalRoot: string,
-): LegacyArtifactIdentity => {
+export const resolveLegacyArtifactIdentity = (artifact: LegacyArtifact, canonicalRoot: string): LegacyArtifactIdentity => {
 	const filePath = parseLocalFileUrl(artifact.uri);
 	const inside = relative(canonicalRoot, filePath);
 	const segments = inside.split(sep);
-	if (
-		inside === "" ||
-		inside === ".." ||
-		inside.startsWith(`..${sep}`) ||
-		segments.length !== 2
-	) {
+	if (inside === "" || inside === ".." || inside.startsWith(`..${sep}`) || segments.length !== 2) {
 		throw new Error("path is outside the canonical CAS layout");
 	}
 	const [digest, storedBasename] = segments;

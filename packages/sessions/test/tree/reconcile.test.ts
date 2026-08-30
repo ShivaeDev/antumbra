@@ -3,14 +3,7 @@ import { SessionEventJournal } from "@antumbra/session-event-journal";
 import type { AgentEvent } from "@antumbra/vocabulary/session-events";
 import { expect, it } from "@effect/vitest";
 import { Effect, Option } from "effect";
-import {
-	journalOf,
-	pointAgent,
-	seedAgent,
-	seedSession,
-	sessionRow,
-	treeLayer,
-} from "#test/tree/fixture.ts";
+import { journalOf, pointAgent, seedAgent, seedSession, sessionRow, treeLayer } from "#test/tree/fixture.ts";
 import { makeSessionNodeReconciler } from "#tree/reconcile.ts";
 
 const AGENT = "agent-reconciled";
@@ -51,10 +44,7 @@ const seedTree = (rootStatus: string, agentStatus = "alive") =>
 
 const nodeRow = sessionRow(NODE).pipe(Effect.map(Option.getOrThrow));
 
-const payloadsOn = (sessionId: string) =>
-	journalOf(sessionId).pipe(
-		Effect.map((rows) => rows.map((row) => `${row.kind} ${row.payload}`)),
-	);
+const payloadsOn = (sessionId: string) => journalOf(sessionId).pipe(Effect.map((rows) => rows.map((row) => `${row.kind} ${row.payload}`)));
 
 it.live("a node whose acquisition can never come back is closed", () =>
 	Effect.gen(function* () {

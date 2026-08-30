@@ -24,9 +24,7 @@ describe("contract drift", () => {
 			["contract", "emit", "--no-interactive", "--output-path", output],
 			{ cwd: packageRoot, encoding: "utf8" },
 		);
-		const emitted: unknown = JSON.parse(
-			readFileSync(join(output, "contract.json"), "utf8"),
-		);
+		const emitted: unknown = JSON.parse(readFileSync(join(output, "contract.json"), "utf8"));
 		rmSync(output, { force: true, recursive: true });
 
 		expect(result.status).toBe(0);
@@ -39,16 +37,7 @@ describe("contract drift", () => {
 		const migrationRoot = join(packageRoot, "migrations", "app");
 		const chain = readdirSync(migrationRoot)
 			.sort()
-			.map((directory) =>
-				decodeMigration(
-					JSON.parse(
-						readFileSync(
-							join(migrationRoot, directory, "migration.json"),
-							"utf8",
-						),
-					),
-				),
-			);
+			.map((directory) => decodeMigration(JSON.parse(readFileSync(join(migrationRoot, directory, "migration.json"), "utf8"))));
 
 		expect(chain[0]?.from).toBeNull();
 		for (const [index, migration] of chain.entries()) {

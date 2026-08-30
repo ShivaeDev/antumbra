@@ -4,23 +4,9 @@ import { expect, it } from "@effect/vitest";
 import { Effect, Option } from "effect";
 import { AgentDomain } from "#domain.ts";
 import { makeRulingToolCompiler } from "#ruling-tools.ts";
-import {
-	dispatchingLayer,
-	domainCapabilityLayer,
-} from "#test/domain-layers.ts";
-import {
-	acquireTemporaryPersistence,
-	callTool,
-	makeScriptedBackend,
-	type ScriptedBackend,
-	sessionFor,
-} from "#test/harness.ts";
-import {
-	chain,
-	eventually,
-	openReefVoyage,
-	PATIENCE,
-} from "#test/voyage-fixtures.ts";
+import { dispatchingLayer, domainCapabilityLayer } from "#test/domain-layers.ts";
+import { acquireTemporaryPersistence, callTool, makeScriptedBackend, type ScriptedBackend, sessionFor } from "#test/harness.ts";
+import { chain, eventually, openReefVoyage, PATIENCE } from "#test/voyage-fixtures.ts";
 
 const ASK = {
 	choices: [{ detail: "the soundings are fresher", label: "resurvey" }],
@@ -44,11 +30,7 @@ const crewOn = (scripted: ScriptedBackend, pieceId: string) =>
 	});
 
 const rulingTool = (tools: ReadonlyArray<DirectTool>): DirectTool =>
-	Option.getOrThrow(
-		Option.fromUndefinedOr(
-			tools.find((tool) => tool.name === "request_ruling"),
-		),
-	);
+	Option.getOrThrow(Option.fromUndefinedOr(tools.find((tool) => tool.name === "request_ruling")));
 
 it.live("crew and captains both reach the ruling tool", () =>
 	Effect.gen(function* () {
@@ -61,15 +43,9 @@ it.live("crew and captains both reach the ruling tool", () =>
 			const hailed = yield* domain.voyages.hail(voyage.id);
 			const captain = yield* eventually(sessionFor(scripted, hailed.agentId));
 
-			expect(crew.live.tools.map((tool) => tool.name)).toContain(
-				"request_ruling",
-			);
-			expect(captain.tools.map((tool) => tool.name)).toContain(
-				"request_ruling",
-			);
-		}).pipe(
-			Effect.provide(dispatchingLayer(temporary, scripted.backend, PATIENCE)),
-		);
+			expect(crew.live.tools.map((tool) => tool.name)).toContain("request_ruling");
+			expect(captain.tools.map((tool) => tool.name)).toContain("request_ruling");
+		}).pipe(Effect.provide(dispatchingLayer(temporary, scripted.backend, PATIENCE)));
 	}),
 );
 
@@ -96,58 +72,47 @@ it.live("a request carries who asked and where the asker stood", () =>
 				ok: true,
 				text: `ruling ${stored?.id} requested — voyage radius, pressing. The answer reaches you as mail; nothing here waits for it.`,
 			});
-			expect(
-				(yield* db.RulingSubject.all()).map((row) => [
-					row.kind,
-					row.agentId ?? row.pieceId ?? row.voyageId ?? row.tag,
-				]),
-			).toEqual([
+			expect((yield* db.RulingSubject.all()).map((row) => [row.kind, row.agentId ?? row.pieceId ?? row.voyageId ?? row.tag])).toEqual([
 				["piece", alpha.id],
 				["voyage", voyage.id],
 				["agent", crew.agentId],
 				["tag", "surveying"],
 				["tag", "charts"],
 			]);
-			expect((yield* db.RulingChoice.all()).map((row) => row.label)).toEqual([
-				"resurvey",
-			]);
-		}).pipe(
-			Effect.provide(dispatchingLayer(temporary, scripted.backend, PATIENCE)),
-		);
+			expect((yield* db.RulingChoice.all()).map((row) => row.label)).toEqual(["resurvey"]);
+		}).pipe(Effect.provide(dispatchingLayer(temporary, scripted.backend, PATIENCE)));
 	}),
 );
 
-it.live(
-	"a ruling asked from a piece the fleet lost is refused, not stored",
-	() =>
-		Effect.gen(function* () {
-			const temporary = yield* acquireTemporaryPersistence;
-			yield* Effect.gen(function* () {
-				const db = yield* Database;
-				yield* db.Agent.create({
-					charter: "sound the shallows",
-					id: "agent-adrift",
-					role: "hand",
-					status: "alive",
-				});
-				const compile = yield* makeRulingToolCompiler;
-				const tools = compile({
-					agentId: "agent-adrift",
-					pieceId: Option.some("piece-adrift"),
-					sessionId: "session-adrift",
-					voyageId: Option.none(),
-				});
+it.live("a ruling asked from a piece the fleet lost is refused, not stored", () =>
+	Effect.gen(function* () {
+		const temporary = yield* acquireTemporaryPersistence;
+		yield* Effect.gen(function* () {
+			const db = yield* Database;
+			yield* db.Agent.create({
+				charter: "sound the shallows",
+				id: "agent-adrift",
+				role: "hand",
+				status: "alive",
+			});
+			const compile = yield* makeRulingToolCompiler;
+			const tools = compile({
+				agentId: "agent-adrift",
+				pieceId: Option.some("piece-adrift"),
+				sessionId: "session-adrift",
+				voyageId: Option.none(),
+			});
 
-				const outcome = yield* rulingTool(tools).call(ASK);
+			const outcome = yield* rulingTool(tools).call(ASK);
 
-				expect(outcome).toEqual({
-					ok: false,
-					text: "request_ruling: RulingSubjectMissing: the fleet has no piece piece-adrift",
-				});
-				expect(yield* db.Ruling.all()).toEqual([]);
-				expect(yield* db.RulingSubject.all()).toEqual([]);
-			}).pipe(Effect.provide(domainCapabilityLayer(temporary)));
-		}),
+			expect(outcome).toEqual({
+				ok: false,
+				text: "request_ruling: RulingSubjectMissing: the fleet has no piece piece-adrift",
+			});
+			expect(yield* db.Ruling.all()).toEqual([]);
+			expect(yield* db.RulingSubject.all()).toEqual([]);
+		}).pipe(Effect.provide(domainCapabilityLayer(temporary)));
+	}),
 );
 
 const gatedPieceIds = Effect.gen(function* () {
@@ -182,9 +147,7 @@ it.live("a captain holds pieces of its own voyage until it is ruled", () =>
 				text: `ruling ${stored?.id} requested — voyage radius, pressing; holds 2 piece(s). The answer reaches you as mail; nothing here waits for it.`,
 			});
 			expect(yield* gatedPieceIds).toEqual([bravo.id, charlie.id]);
-		}).pipe(
-			Effect.provide(dispatchingLayer(temporary, scripted.backend, PATIENCE)),
-		);
+		}).pipe(Effect.provide(dispatchingLayer(temporary, scripted.backend, PATIENCE)));
 	}),
 );
 
@@ -218,9 +181,7 @@ it.live("a hold naming another voyage's piece is refused, not stored", () =>
 			});
 			expect(yield* db.Ruling.all()).toEqual([]);
 			expect(yield* db.RulingGate.all()).toEqual([]);
-		}).pipe(
-			Effect.provide(dispatchingLayer(temporary, scripted.backend, PATIENCE)),
-		);
+		}).pipe(Effect.provide(dispatchingLayer(temporary, scripted.backend, PATIENCE)));
 	}),
 );
 
@@ -242,8 +203,6 @@ it.live("crew on a piece may hold a sibling piece of its voyage", () =>
 				text: expect.stringContaining("pressing; holds 1 piece(s)."),
 			});
 			expect(yield* gatedPieceIds).toEqual([bravo.id]);
-		}).pipe(
-			Effect.provide(dispatchingLayer(temporary, scripted.backend, PATIENCE)),
-		);
+		}).pipe(Effect.provide(dispatchingLayer(temporary, scripted.backend, PATIENCE)));
 	}),
 );

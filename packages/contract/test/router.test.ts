@@ -1,13 +1,7 @@
 import { describe, expect, it } from "@effect/vitest";
 import { getTRPCErrorFromUnknown } from "@trpc/server";
 import { Effect, Stream } from "effect";
-import {
-	consoleWindow,
-	fleet,
-	info,
-	makeRuntime,
-	sessionJournal,
-} from "#fixtures.ts";
+import { consoleWindow, fleet, info, makeRuntime, sessionJournal } from "#fixtures.ts";
 import { makeAppRouter, SETTING_KEYS, SETTINGS } from "#index.ts";
 
 describe("makeAppRouter", () => {
@@ -41,9 +35,7 @@ describe("makeAppRouter", () => {
 				// @ts-expect-error a key the catalog never declared is not a setting.
 				caller.changeSetting({ key: "retireEverything", value: true }),
 			).pipe(Effect.flip);
-			expect(String(refused.cause)).toBe(
-				`TRPCError: Expected ${SETTING_KEYS.map((key) => `"${key}"`).join(" | ")}`,
-			);
+			expect(String(refused.cause)).toBe(`TRPCError: Expected ${SETTING_KEYS.map((key) => `"${key}"`).join(" | ")}`);
 			yield* Effect.promise(() => runtime.dispose());
 		}),
 	);
@@ -56,12 +48,8 @@ describe("makeAppRouter", () => {
 			});
 			const served = yield* Effect.promise(() => caller.fleet());
 			expect(served).toEqual(fleet);
-			const events = yield* Effect.promise(() =>
-				caller.sessionEvents({ fromSeq: 1, sessionId: "session-1" }),
-			);
-			expect(events.map((event) => event.seq)).toEqual(
-				sessionJournal.slice(1).map((event) => event.seq),
-			);
+			const events = yield* Effect.promise(() => caller.sessionEvents({ fromSeq: 1, sessionId: "session-1" }));
+			expect(events.map((event) => event.seq)).toEqual(sessionJournal.slice(1).map((event) => event.seq));
 			expect(events.map((event) => event.event._tag)).toContain("Unknown");
 			yield* Effect.promise(() => runtime.dispose());
 		}),
@@ -73,19 +61,10 @@ describe("makeAppRouter", () => {
 			const caller = makeAppRouter(runtime).createCaller({
 				windowId: "console",
 			});
-			const iterable = yield* Effect.promise(() =>
-				caller.sessionEventFeed({ fromSeq: 0, sessionId: "session-1" }),
-			);
-			const collected = yield* Stream.fromAsyncIterable(
-				iterable,
-				(cause) => cause,
-			).pipe(Stream.runCollect);
-			expect(collected.map((event) => event.seq)).toEqual(
-				sessionJournal.map((event) => event.seq),
-			);
-			expect(collected.map((event) => event.event)).toEqual(
-				sessionJournal.map((event) => event.event),
-			);
+			const iterable = yield* Effect.promise(() => caller.sessionEventFeed({ fromSeq: 0, sessionId: "session-1" }));
+			const collected = yield* Stream.fromAsyncIterable(iterable, (cause) => cause).pipe(Stream.runCollect);
+			expect(collected.map((event) => event.seq)).toEqual(sessionJournal.map((event) => event.seq));
+			expect(collected.map((event) => event.event)).toEqual(sessionJournal.map((event) => event.event));
 			yield* Effect.promise(() => runtime.dispose());
 		}),
 	);
@@ -96,9 +75,7 @@ describe("makeAppRouter", () => {
 			const caller = makeAppRouter(runtime).createCaller({
 				windowId: "console",
 			});
-			const outcome = yield* Effect.tryPromise(() =>
-				caller.interruptSession({ sessionId: "ghost" }),
-			).pipe(Effect.flip);
+			const outcome = yield* Effect.tryPromise(() => caller.interruptSession({ sessionId: "ghost" })).pipe(Effect.flip);
 			expect(String(outcome.cause)).toContain("session not live: ghost");
 			yield* Effect.promise(() => runtime.dispose());
 		}),
@@ -110,12 +87,8 @@ describe("makeAppRouter", () => {
 			const caller = makeAppRouter(runtime).createCaller({
 				windowId: "console",
 			});
-			yield* Effect.promise(() =>
-				caller.sendToSession({ sessionId: "session-1", text: "come about" }),
-			);
-			const refused = yield* Effect.tryPromise(() =>
-				caller.sendToSession({ sessionId: "session-1", text: "" }),
-			).pipe(Effect.flip);
+			yield* Effect.promise(() => caller.sendToSession({ sessionId: "session-1", text: "come about" }));
+			const refused = yield* Effect.tryPromise(() => caller.sendToSession({ sessionId: "session-1", text: "" })).pipe(Effect.flip);
 			expect(String(refused.cause)).toContain("a message with no words");
 			yield* Effect.promise(() => runtime.dispose());
 		}),
@@ -182,9 +155,7 @@ describe("makeAppRouter", () => {
 			const caller = makeAppRouter(runtime).createCaller({
 				windowId: "console",
 			});
-			const registered = yield* Effect.promise(() =>
-				caller.registerRepo({ defaultRef: "trunk", source: "/tmp/shallows" }),
-			);
+			const registered = yield* Effect.promise(() => caller.registerRepo({ defaultRef: "trunk", source: "/tmp/shallows" }));
 			expect(registered).toEqual({
 				defaultRef: "trunk",
 				id: "repo-new",
@@ -197,24 +168,18 @@ describe("makeAppRouter", () => {
 
 	// why: a window refused its request is refused, not broken — the renderer
 	// has to be able to tell a forbidden ask from a source that fell over.
-	it.effect(
-		"serves a window its place and surfaces refusals as forbidden",
-		() =>
-			Effect.gen(function* () {
-				const runtime = makeRuntime();
-				const caller = makeAppRouter(runtime).createCaller({
-					windowId: "console",
-				});
-				expect(yield* Effect.promise(() => caller.windowPlace())).toEqual(
-					consoleWindow,
-				);
-				const refused = yield* Effect.tryPromise(() =>
-					caller.openWindow(consoleWindow),
-				).pipe(Effect.flip);
-				const failure = getTRPCErrorFromUnknown(refused.cause);
-				expect(failure.code).toBe("FORBIDDEN");
-				expect(failure.message).toBe("console_is_not_a_target");
-				yield* Effect.promise(() => runtime.dispose());
-			}),
+	it.effect("serves a window its place and surfaces refusals as forbidden", () =>
+		Effect.gen(function* () {
+			const runtime = makeRuntime();
+			const caller = makeAppRouter(runtime).createCaller({
+				windowId: "console",
+			});
+			expect(yield* Effect.promise(() => caller.windowPlace())).toEqual(consoleWindow);
+			const refused = yield* Effect.tryPromise(() => caller.openWindow(consoleWindow)).pipe(Effect.flip);
+			const failure = getTRPCErrorFromUnknown(refused.cause);
+			expect(failure.code).toBe("FORBIDDEN");
+			expect(failure.message).toBe("console_is_not_a_target");
+			yield* Effect.promise(() => runtime.dispose());
+		}),
 	);
 });

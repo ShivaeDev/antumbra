@@ -27,10 +27,7 @@ const cached: AgentEvent = {
 	type: "usage",
 };
 
-const markup = (events: ReadonlyArray<SessionEvent>): string =>
-	renderToStaticMarkup(
-		<SessionStandingBar standing={sessionStanding(events)} />,
-	);
+const markup = (events: ReadonlyArray<SessionEvent>): string => renderToStaticMarkup(<SessionStandingBar standing={sessionStanding(events)} />);
 
 describe("a session's standing is folded out of its own journal", () => {
 	it("keeps the last state and the whole last background set", () => {
@@ -44,9 +41,7 @@ describe("a session's standing is folded out of its own journal", () => {
 			row(2, { raw, state: "awaiting-input", type: "session.state" }),
 		]);
 		expect(standing.state).toBe("awaiting-input");
-		expect(standing.background).toEqual([
-			{ description: "pnpm ready", id: "bg-1", kind: "shell" },
-		]);
+		expect(standing.background).toEqual([{ description: "pnpm ready", id: "bg-1", kind: "shell" }]);
 	});
 
 	// why: a background set is replaced, never merged — the provider sends the
@@ -79,10 +74,7 @@ describe("a session's standing is folded out of its own journal", () => {
 	});
 
 	it("shows the cache share, the turn's cost and the running total", () => {
-		const rendered = markup([
-			row(0, { raw, state: "running", type: "session.state" }),
-			row(1, cached),
-		]);
+		const rendered = markup([row(0, { raw, state: "running", type: "session.state" }), row(1, cached)]);
 		expect(rendered).toContain("running");
 		expect(rendered).toContain("99% cache");
 		expect(rendered).toContain("cache read 96240");
@@ -125,20 +117,14 @@ describe("a session's standing is folded out of its own journal", () => {
 			row(2, { raw, tasks: [], type: "session.background" }),
 			row(3, cached),
 		]);
-		expect(items.map((item) => item.kind)).toEqual([
-			"telemetry",
-			"telemetry",
-			"telemetry",
-			"telemetry",
-		]);
+		expect(items.map((item) => item.kind)).toEqual(["telemetry", "telemetry", "telemetry", "telemetry"]);
 		expect(items[0]).toMatchObject({ label: "state · awaiting input" });
 		expect(items[1]).toMatchObject({
 			label: "background · 1 · shell pnpm ready",
 		});
 		expect(items[2]).toMatchObject({ label: "background · nothing running" });
 		expect(items[3]).toMatchObject({
-			label:
-				"usage · in 1410 · cache read 96240 · cache write 0 · out 210 · 99% cache · turn $0.0188 · total $0.0600",
+			label: "usage · in 1410 · cache read 96240 · cache write 0 · out 210 · 99% cache · turn $0.0188 · total $0.0600",
 		});
 	});
 });

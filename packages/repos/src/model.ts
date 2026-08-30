@@ -17,7 +17,5 @@ export interface RepoRegistration {
 export interface RepoRegistry {
 	readonly forget: (id: string) => Effect.Effect<void, PrismaError>;
 	readonly list: Effect.Effect<ReadonlyArray<RegisteredRepo>, PrismaError>;
-	readonly register: (
-		registration: RepoRegistration,
-	) => Effect.Effect<RegisteredRepo, PrismaError | RepoSlugTaken>;
+	readonly register: (registration: RepoRegistration) => Effect.Effect<RegisteredRepo, PrismaError | RepoSlugTaken>;
 }

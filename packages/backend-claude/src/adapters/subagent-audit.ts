@@ -1,25 +1,11 @@
-import {
-	getSubagentMessages,
-	listSubagents,
-} from "@anthropic-ai/claude-agent-sdk";
-import type {
-	NodeAuditRequest,
-	SessionAudit,
-	SessionCensusRequest,
-} from "@antumbra/plugin-api";
+import { getSubagentMessages, listSubagents } from "@anthropic-ai/claude-agent-sdk";
+import type { NodeAuditRequest, SessionAudit, SessionCensusRequest } from "@antumbra/plugin-api";
 import type { AgentEvent } from "@antumbra/vocabulary/session-events";
 import { Effect } from "effect";
-import {
-	censusFindings,
-	censusUnreadable,
-	transcriptFindings,
-} from "#subsession-audit.ts";
+import { censusFindings, censusUnreadable, transcriptFindings } from "#subsession-audit.ts";
 import type { AdoptedAgent } from "#workflow-adoption.ts";
 
-const readAgent = async (
-	request: SessionCensusRequest,
-	agentId: string,
-): Promise<AdoptedAgent> => ({
+const readAgent = async (request: SessionCensusRequest, agentId: string): Promise<AdoptedAgent> => ({
 	agentId,
 	messages: await getSubagentMessages(request.rootRef, agentId, {
 		dir: request.cwd,
@@ -28,17 +14,13 @@ const readAgent = async (
 
 // why: the census reads only agents the record never admitted — the rest are
 // already in the log, and reading them back would write every word twice.
-const takeCensus = async (
-	request: SessionCensusRequest,
-): Promise<ReadonlyArray<AgentEvent>> => {
+const takeCensus = async (request: SessionCensusRequest): Promise<ReadonlyArray<AgentEvent>> => {
 	try {
 		const directory = await listSubagents(request.rootRef, {
 			dir: request.cwd,
 		});
 		const missed = directory.filter((agentId) => !request.admitted(agentId));
-		return censusFindings(
-			await Promise.all(missed.map((agentId) => readAgent(request, agentId))),
-		);
+		return censusFindings(await Promise.all(missed.map((agentId) => readAgent(request, agentId))));
 	} catch (error) {
 		return [censusUnreadable(String(error))];
 	}
@@ -48,10 +30,7 @@ const takeCensus = async (
 // that rather than a loss — there is simply nothing to compare the journal
 // against. Only lines the provider did store and the record never received are
 // a finding.
-const auditNode = async (
-	request: NodeAuditRequest,
-	recorded: ReadonlyArray<string>,
-): Promise<ReadonlyArray<AgentEvent>> => {
+const auditNode = async (request: NodeAuditRequest, recorded: ReadonlyArray<string>): Promise<ReadonlyArray<AgentEvent>> => {
 	try {
 		const stored = await getSubagentMessages(request.rootRef, request.nodeRef, {
 			dir: request.cwd,
@@ -71,10 +50,7 @@ const auditNode = async (
 // than to an empty reading, which would say the provider kept nothing.
 const AUDIT_PATIENCE_MILLIS = 20_000;
 
-const inTime = (
-	read: Effect.Effect<ReadonlyArray<AgentEvent>>,
-	said: string,
-): Effect.Effect<ReadonlyArray<AgentEvent>> =>
+const inTime = (read: Effect.Effect<ReadonlyArray<AgentEvent>>, said: string): Effect.Effect<ReadonlyArray<AgentEvent>> =>
 	read.pipe(
 		Effect.timeoutOrElse({
 			duration: AUDIT_PATIENCE_MILLIS,

@@ -50,14 +50,7 @@ export const makeCaptainToolCompiler = Effect.gen(function* () {
 	const standDown = yield* StandDown;
 	const world = yield* VoyageWorldSource;
 	const readsVoyage = (identity: SessionIdentity, voyageId: string) =>
-		answered(
-			identity,
-			readVoyageSpec.name,
-			voyageOrGone(voyageId).pipe(
-				Effect.provideService(VoyageWorldSource, world),
-			),
-			renderVoyage,
-		);
+		answered(identity, readVoyageSpec.name, voyageOrGone(voyageId).pipe(Effect.provideService(VoyageWorldSource, world)), renderVoyage);
 	return (identity: SessionIdentity): ReadonlyArray<DirectTool> => [
 		bind(charterPieceSpec, (input) =>
 			membership.onOwnDeps(identity, input.dependsOn, (voyageId) =>
@@ -79,9 +72,7 @@ export const makeCaptainToolCompiler = Effect.gen(function* () {
 		...pieceVerbTools(identity),
 		bind(readVoyageSpec, (input) =>
 			onVoyage(identity, (voyageId) =>
-				input.voyageId === undefined || input.voyageId === voyageId
-					? readsVoyage(identity, voyageId)
-					: Effect.succeed(refused(ACROSS_A_HULL)),
+				input.voyageId === undefined || input.voyageId === voyageId ? readsVoyage(identity, voyageId) : Effect.succeed(refused(ACROSS_A_HULL)),
 			),
 		),
 		...compileReportTools(identity),

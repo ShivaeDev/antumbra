@@ -23,12 +23,8 @@ describe("comment rules", () => {
 	for (const seeded of cases.flagged) {
 		it(`flags ${seeded.name}`, () => {
 			const path = seeded.path ?? defaultPath;
-			const violations = commentViolations(
-				inventoryOf({ sources: [{ content: seeded.content, path }] }),
-			);
-			const hit = violations.find(
-				(violation) => violation.rule === `comments/${seeded.rule}`,
-			);
+			const violations = commentViolations(inventoryOf({ sources: [{ content: seeded.content, path }] }));
+			const hit = violations.find((violation) => violation.rule === `comments/${seeded.rule}`);
 			expect(hit?.file).toBe(path);
 			expect(hit?.line).toBe(seeded.line);
 		});

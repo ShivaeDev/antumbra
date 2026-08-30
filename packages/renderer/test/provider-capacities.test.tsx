@@ -33,9 +33,7 @@ const warning: BackendCapacitySummary = {
 };
 
 const render = (capacities: ReadonlyArray<BackendCapacitySummary>): string =>
-	renderToStaticMarkup(
-		<ProviderCapacities capacities={capacities} onError={() => undefined} />,
-	);
+	renderToStaticMarkup(<ProviderCapacities capacities={capacities} onError={() => undefined} />);
 
 it("shows a provider warning without offering a retry", () => {
 	const markup = render([warning]);
@@ -60,9 +58,7 @@ it.effect("retries the backend named by the blocked reading", () =>
 		const root = createRoot(container);
 		yield* Effect.promise(() =>
 			act(() => {
-				root.render(
-					<ProviderCapacities capacities={[blocked]} onError={onError} />,
-				);
+				root.render(<ProviderCapacities capacities={[blocked]} onError={onError} />);
 				return Promise.resolve();
 			}),
 		);

@@ -4,12 +4,7 @@ import type { ChangeObservation } from "@antumbra/plugin-api";
 import { Effect, Option } from "effect";
 import { scriptedObservation } from "#test/scripted-host.ts";
 
-export const observed = (
-	row: ChangeRow,
-	repoId: string,
-	activityOffset: number,
-	patch: Partial<ChangeObservation>,
-): ChangeObservation => ({
+export const observed = (row: ChangeRow, repoId: string, activityOffset: number, patch: Partial<ChangeObservation>): ChangeObservation => ({
 	...scriptedObservation("scripted", row.externalId ?? "", {
 		baseRef: row.baseRef,
 		headRef: row.headRef,

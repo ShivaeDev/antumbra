@@ -13,9 +13,7 @@ it("shows a refusal, never the console, when a window has no place", () => {
 });
 
 it("renders a placed window's own subject", () => {
-	const markup = renderToStaticMarkup(
-		<PlacedSurface place={{ role: "transcript", sessionId: "session-1" }} />,
-	);
+	const markup = renderToStaticMarkup(<PlacedSurface place={{ role: "transcript", sessionId: "session-1" }} />);
 	expect(markup).toContain("no events yet");
 	expect(markup).not.toContain("Antumbra");
 });
@@ -23,9 +21,7 @@ it("renders a placed window's own subject", () => {
 // why: an artifact window and a transcript window are both children, so the
 // surface must tell them apart by role rather than by "not the console".
 it("routes an artifact window to its artifact, never a transcript", () => {
-	const markup = renderToStaticMarkup(
-		<PlacedSurface place={{ artifactId: "artifact-1", role: "artifact" }} />,
-	);
+	const markup = renderToStaticMarkup(<PlacedSurface place={{ artifactId: "artifact-1", role: "artifact" }} />);
 	expect(markup).toContain("reading Artifact");
 	expect(markup).not.toContain("no events yet");
 	expect(markup).not.toContain("Antumbra");
@@ -37,12 +33,8 @@ it("routes an artifact window to its artifact, never a transcript", () => {
 it("paints every window from the app's ground, never its own colour", () => {
 	const shells = [
 		renderToStaticMarkup(<PlacedSurface place={undefined} />),
-		renderToStaticMarkup(
-			<PlacedSurface place={{ role: "transcript", sessionId: "session-1" }} />,
-		),
-		renderToStaticMarkup(
-			<PlacedSurface place={{ artifactId: "artifact-1", role: "artifact" }} />,
-		),
+		renderToStaticMarkup(<PlacedSurface place={{ role: "transcript", sessionId: "session-1" }} />),
+		renderToStaticMarkup(<PlacedSurface place={{ artifactId: "artifact-1", role: "artifact" }} />),
 	];
 
 	for (const markup of shells) {

@@ -4,11 +4,7 @@ import { expect, it } from "@effect/vitest";
 import { Effect, Option, Ref } from "effect";
 import { AgentDomain } from "#domain.ts";
 import { domainKernelLayer } from "#test/domain-layers.ts";
-import {
-	acquireTemporaryPersistence,
-	makeScriptedBackend,
-	passiveRunner,
-} from "#test/harness.ts";
+import { acquireTemporaryPersistence, makeScriptedBackend, passiveRunner } from "#test/harness.ts";
 
 interface ResourceSeed {
 	readonly agentId: string;
@@ -78,61 +74,40 @@ const storedResource = (agentId: string) =>
 		};
 	});
 
-it.live(
-	"a second persistence and Effect lifetime resumes the exact durable claim",
-	() =>
-		Effect.gen(function* () {
-			const temporary = yield* acquireTemporaryPersistence;
-			const backend = yield* makeScriptedBackend;
-			const seen = yield* Ref.make<ReadonlyArray<string>>([]);
-			yield* seedResource({
-				agentId: "agent-restart-claim",
-				agentStatus: "retired",
-				moorageStatus: "ready",
-			}).pipe(Effect.provide(temporary.layer));
-			const transientFailure = new RunnerFailure({
-				detail: "temporary git failure",
-				tag: "local",
-			});
-			const failing: Runner = {
-				...passiveRunner,
-				reclaim: (site) =>
-					Ref.update(seen, (all) => [...all, site.path]).pipe(
-						Effect.andThen(transientFailure),
-					),
-			};
-			yield* Effect.provide(
-				Effect.void,
-				domainKernelLayer(temporary, backend.backend, {}, failing),
-			);
-			const claimed = yield* storedResource("agent-restart-claim").pipe(
-				Effect.provide(temporary.layer),
-			);
-			expect(claimed.berth.reclaimState).toBe("claimed");
-			expect(claimed.moorage.reclaimState).toBe("claimed");
+it.live("a second persistence and Effect lifetime resumes the exact durable claim", () =>
+	Effect.gen(function* () {
+		const temporary = yield* acquireTemporaryPersistence;
+		const backend = yield* makeScriptedBackend;
+		const seen = yield* Ref.make<ReadonlyArray<string>>([]);
+		yield* seedResource({
+			agentId: "agent-restart-claim",
+			agentStatus: "retired",
+			moorageStatus: "ready",
+		}).pipe(Effect.provide(temporary.layer));
+		const transientFailure = new RunnerFailure({
+			detail: "temporary git failure",
+			tag: "local",
+		});
+		const failing: Runner = {
+			...passiveRunner,
+			reclaim: (site) => Ref.update(seen, (all) => [...all, site.path]).pipe(Effect.andThen(transientFailure)),
+		};
+		yield* Effect.provide(Effect.void, domainKernelLayer(temporary, backend.backend, {}, failing));
+		const claimed = yield* storedResource("agent-restart-claim").pipe(Effect.provide(temporary.layer));
+		expect(claimed.berth.reclaimState).toBe("claimed");
+		expect(claimed.moorage.reclaimState).toBe("claimed");
 
-			const recovered: Runner = {
-				...passiveRunner,
-				reclaim: (site) =>
-					Ref.update(seen, (all) => [...all, site.path]).pipe(
-						Effect.as({ _tag: "reclaimed" as const }),
-					),
-			};
-			yield* Effect.provide(
-				Effect.void,
-				domainKernelLayer(temporary, backend.backend, {}, recovered),
-			);
-			const settled = yield* storedResource("agent-restart-claim").pipe(
-				Effect.provide(temporary.layer),
-			);
-			expect(settled.berth.status).toBe("reclaimed");
-			expect(settled.berth.reclaimState).toBeNull();
-			expect(settled.moorage.reclaimState).toBeNull();
-			expect(yield* Ref.get(seen)).toEqual([
-				"/tmp/moorage/agent-restart-claim/berth-0",
-				"/tmp/moorage/agent-restart-claim/berth-0",
-			]);
-		}),
+		const recovered: Runner = {
+			...passiveRunner,
+			reclaim: (site) => Ref.update(seen, (all) => [...all, site.path]).pipe(Effect.as({ _tag: "reclaimed" as const })),
+		};
+		yield* Effect.provide(Effect.void, domainKernelLayer(temporary, backend.backend, {}, recovered));
+		const settled = yield* storedResource("agent-restart-claim").pipe(Effect.provide(temporary.layer));
+		expect(settled.berth.status).toBe("reclaimed");
+		expect(settled.berth.reclaimState).toBeNull();
+		expect(settled.moorage.reclaimState).toBeNull();
+		expect(yield* Ref.get(seen)).toEqual(["/tmp/moorage/agent-restart-claim/berth-0", "/tmp/moorage/agent-restart-claim/berth-0"]);
+	}),
 );
 
 it.live("automatic selection is only retired Agents and failed setup", () =>
@@ -142,10 +117,7 @@ it.live("automatic selection is only retired Agents and failed setup", () =>
 		const reclaimed = yield* Ref.make<ReadonlyArray<string>>([]);
 		const runner: Runner = {
 			...passiveRunner,
-			reclaim: (site) =>
-				Ref.update(reclaimed, (all) => [...all, site.path]).pipe(
-					Effect.as({ _tag: "reclaimed" as const }),
-				),
+			reclaim: (site) => Ref.update(reclaimed, (all) => [...all, site.path]).pipe(Effect.as({ _tag: "reclaimed" as const })),
 		};
 		yield* Effect.gen(function* () {
 			const domain = yield* AgentDomain;
@@ -172,16 +144,9 @@ it.live("automatic selection is only retired Agents and failed setup", () =>
 				sessionStatus: "open",
 			});
 			yield* domain.retryResourceReclaim;
-		}).pipe(
-			Effect.provide(domainKernelLayer(temporary, backend.backend, {}, runner)),
-		);
-		expect(yield* Ref.get(reclaimed)).toEqual([
-			"/tmp/moorage/agent-retired/berth-0",
-			"/tmp/moorage/agent-failed-setup/berth-0",
-		]);
-		const siesta = yield* storedResource("agent-siesta").pipe(
-			Effect.provide(temporary.layer),
-		);
+		}).pipe(Effect.provide(domainKernelLayer(temporary, backend.backend, {}, runner)));
+		expect(yield* Ref.get(reclaimed)).toEqual(["/tmp/moorage/agent-retired/berth-0", "/tmp/moorage/agent-failed-setup/berth-0"]);
+		const siesta = yield* storedResource("agent-siesta").pipe(Effect.provide(temporary.layer));
 		expect(siesta.berth.status).toBe("ready");
 		expect(siesta.berth.reclaimState).toBeNull();
 	}),
@@ -205,19 +170,11 @@ it.live("an unknown durable claim word holds every external effect", () =>
 		}).pipe(Effect.provide(temporary.layer));
 		const runner: Runner = {
 			...passiveRunner,
-			reclaim: () =>
-				Ref.update(calls, (count) => count + 1).pipe(
-					Effect.as({ _tag: "reclaimed" as const }),
-				),
+			reclaim: () => Ref.update(calls, (count) => count + 1).pipe(Effect.as({ _tag: "reclaimed" as const })),
 		};
-		yield* Effect.provide(
-			Effect.void,
-			domainKernelLayer(temporary, backend.backend, {}, runner),
-		);
+		yield* Effect.provide(Effect.void, domainKernelLayer(temporary, backend.backend, {}, runner));
 		expect(yield* Ref.get(calls)).toBe(0);
-		const stored = yield* storedResource("agent-unknown-claim").pipe(
-			Effect.provide(temporary.layer),
-		);
+		const stored = yield* storedResource("agent-unknown-claim").pipe(Effect.provide(temporary.layer));
 		expect(stored.berth.reclaimState).toBe("future-claim");
 	}),
 );

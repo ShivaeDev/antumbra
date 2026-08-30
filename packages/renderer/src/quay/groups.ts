@@ -3,12 +3,7 @@ import type { QuayGroup, QuayView } from "@antumbra/contract";
 // why: read top-down as attention deserved — what could be merged this minute,
 // what wants a hand, what is still running, and last what has not been offered
 // for merging yet.
-export const QUAY_GROUPS: ReadonlyArray<QuayGroup> = [
-	"alongside",
-	"needsAttention",
-	"checksRunning",
-	"draft",
-];
+export const QUAY_GROUPS: ReadonlyArray<QuayGroup> = ["alongside", "needsAttention", "checksRunning", "draft"];
 
 export const groupTitle: Readonly<Record<QuayGroup, string>> = {
 	alongside: "Alongside",

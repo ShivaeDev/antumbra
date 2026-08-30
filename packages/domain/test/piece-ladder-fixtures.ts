@@ -75,10 +75,7 @@ export const world = (over: Partial<VoyageWorld>): VoyageWorld => ({
 	...over,
 });
 
-export const withChanges = (
-	stages: ReadonlyArray<ChangeStage>,
-	over: Partial<VoyageWorld> = {},
-): VoyageWorld =>
+export const withChanges = (stages: ReadonlyArray<ChangeStage>, over: Partial<VoyageWorld> = {}): VoyageWorld =>
 	world({
 		changes: stages.map((stage, index) => change(`change-${index}`, stage)),
 		pieceChanges: stages.map((_, index) => ({
@@ -89,12 +86,9 @@ export const withChanges = (
 		...over,
 	});
 
-export const stateOf = (built: VoyageWorld, pieceId = "alpha") =>
-	pieceStates(built).get(pieceId);
+export const stateOf = (built: VoyageWorld, pieceId = "alpha") => pieceStates(built).get(pieceId);
 
-export const session = (
-	execution: SessionExecutionStatus,
-): AgentSessionRow => ({
+export const session = (execution: SessionExecutionStatus): AgentSessionRow => ({
 	agentId: "agent-1",
 	backend: "scripted",
 	createdAt: RELEASED,
@@ -106,10 +100,7 @@ export const session = (
 // why: a crew is a claim plus a session that is not idle, which is the whole of
 // what the ladder asks about — the claim says whose piece it is and the session
 // says whether that hand is still on it.
-export const crewing = (
-	pieceId: string,
-	executionStatus: SessionExecutionStatus,
-): Partial<VoyageWorld> => ({
+export const crewing = (pieceId: string, executionStatus: SessionExecutionStatus): Partial<VoyageWorld> => ({
 	agentStatus: new Map([["agent-1", "alive"]]),
 	assignments: [{ agentId: "agent-1", pieceId }],
 	currentSessionByAgent: new Map([["agent-1", "session-1"]]),

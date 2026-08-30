@@ -20,18 +20,11 @@ export const makeSessionTreeJournaling = Effect.gen(function* () {
 				sessionId: node.sessionId,
 			});
 			yield* rows.markIncomplete(node.sessionId);
-			yield* journal.record(
-				node.sessionId,
-				appendFailedGap(node.sessionId, lost),
-			);
+			yield* journal.record(node.sessionId, appendFailedGap(node.sessionId, lost));
 		});
 	const settle = (node: TreeNode, lost: AgentEvent, recorded: boolean) =>
-		recorded
-			? Effect.succeed(true)
-			: appendFailed(node, lost).pipe(Effect.as(false));
+		recorded ? Effect.succeed(true) : appendFailed(node, lost).pipe(Effect.as(false));
 	const recordOn = (node: TreeNode, event: AgentEvent) =>
-		journal
-			.record(node.sessionId, event)
-			.pipe(Effect.flatMap((recorded) => settle(node, event, recorded)));
+		journal.record(node.sessionId, event).pipe(Effect.flatMap((recorded) => settle(node, event, recorded)));
 	return { recordOn, settle };
 });

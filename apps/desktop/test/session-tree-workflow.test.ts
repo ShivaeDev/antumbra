@@ -2,19 +2,8 @@ import { SightSource } from "@antumbra/contract";
 import { Database } from "@antumbra/persistence";
 import { expect, it } from "@effect/vitest";
 import { Effect } from "effect";
-import {
-	acquireTemporaryPersistence,
-	eventually,
-	rehearsalLayer,
-} from "#test/session-tree-harness.ts";
-import {
-	AGENT_LATE,
-	AGENT_ONE,
-	AGENT_TWO,
-	WORKFLOW_CALL,
-	WORKFLOW_RESULT,
-	workflowRehearsal,
-} from "#test/session-tree-workflow-frames.ts";
+import { acquireTemporaryPersistence, eventually, rehearsalLayer } from "#test/session-tree-harness.ts";
+import { AGENT_LATE, AGENT_ONE, AGENT_TWO, WORKFLOW_CALL, WORKFLOW_RESULT, workflowRehearsal } from "#test/session-tree-workflow-frames.ts";
 
 const spawnRequest = {
 	backend: "claude",
@@ -30,15 +19,13 @@ const journal = (sessionId: string) =>
 			.all();
 	});
 
-const kindsOf = (sessionId: string) =>
-	journal(sessionId).pipe(Effect.map((rows) => rows.map((row) => row.kind)));
+const kindsOf = (sessionId: string) => journal(sessionId).pipe(Effect.map((rows) => rows.map((row) => row.kind)));
 
 const runOf = (rootSessionId: string) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
 		const rows = yield* db.AgentSession.where({ rootSessionId }).all();
-		const at = (nativeRef: string) =>
-			rows.find((row) => row.nativeRef === nativeRef);
+		const at = (nativeRef: string) => rows.find((row) => row.nativeRef === nativeRef);
 		return {
 			late: at(AGENT_LATE),
 			one: at(AGENT_ONE),
@@ -108,12 +95,8 @@ it.live("each workflow agent's words are journaled under its own id", () =>
 			// why: siblings of one fanned-out tool call would all read as the last
 			// of them to open if attribution joined on the call, so each journal is
 			// checked for its own agent's words and not its neighbour's.
-			expect((yield* journal(one.id)).at(-1)?.payload).toContain(
-				"the ledger reads clean",
-			);
-			expect((yield* journal(two.id)).at(-1)?.payload).toContain(
-				"two entries drifted",
-			);
+			expect((yield* journal(one.id)).at(-1)?.payload).toContain("the ledger reads clean");
+			expect((yield* journal(two.id)).at(-1)?.payload).toContain("two entries drifted");
 			// why: opening and ending a node are facts about the turn that spawned
 			// it, so they sit in the caller's journal beside the call that did it.
 			expect(yield* kindsOf(receipt.sessionId)).toEqual([
@@ -142,16 +125,12 @@ it.live("what the workflow returned is recovered from the stored copy", () =>
 
 			// why: the result of a workflow reaches no lane the stream carries, so
 			// the caller's journal would end with a call nothing ever answered.
-			const answered = (yield* journal(receipt.sessionId)).find(
-				(row) => row.kind === "tool.completed",
-			);
+			const answered = (yield* journal(receipt.sessionId)).find((row) => row.kind === "tool.completed");
 			expect(answered?.payload).toContain(WORKFLOW_CALL);
 			expect(answered?.payload).toContain(WORKFLOW_RESULT);
 			// why: progress frames are telemetry. The identity in them names the
 			// nodes and the rest is dropped, so the counters never reach the log.
-			const kept = (yield* journal(receipt.sessionId))
-				.map((row) => row.payload)
-				.join("");
+			const kept = (yield* journal(receipt.sessionId)).map((row) => row.payload).join("");
 			expect(kept).not.toContain("task_progress");
 			expect(kept).not.toContain("promptPreview");
 		}).pipe(Effect.provide(rehearsalLayer(temporary, workflowRehearsal)));
@@ -184,17 +163,10 @@ it.live("an agent the mirror missed is adopted, and says it was", () =>
 				parentSessionId: receipt.sessionId,
 				status: "closed",
 			});
-			expect(yield* kindsOf(late.id)).toEqual([
-				"session.opened",
-				"subsession.gap",
-				"message",
-				"message",
-			]);
+			expect(yield* kindsOf(late.id)).toEqual(["session.opened", "subsession.gap", "message", "message"]);
 			// why: its words already existed when its row was written, and a reader
 			// who could not tell would date the work to the moment of the repair.
-			const gap = (yield* journal(late.id)).find(
-				(row) => row.kind === "subsession.gap",
-			);
+			const gap = (yield* journal(late.id)).find((row) => row.kind === "subsession.gap");
 			expect(gap?.payload).toContain("adopted-late");
 		}).pipe(Effect.provide(rehearsalLayer(temporary, workflowRehearsal)));
 	}),

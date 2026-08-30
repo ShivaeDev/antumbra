@@ -4,12 +4,7 @@
 import { expect, it } from "@effect/vitest";
 import { beforeEach } from "vitest";
 import { draftStorageKey } from "#session-drafts/storage.ts";
-import {
-	discardMissingSessionDrafts,
-	readSessionDraft,
-	type SessionDraftRef,
-	writeSessionDraft,
-} from "#session-drafts/store.ts";
+import { discardMissingSessionDrafts, readSessionDraft, type SessionDraftRef, writeSessionDraft } from "#session-drafts/store.ts";
 
 const message = (sessionId: string): SessionDraftRef => ({
 	sessionId,
@@ -45,9 +40,7 @@ beforeEach(() => {
 it("persists non-empty drafts locally and removes empty ones", () => {
 	const draft = message("session-reload");
 	writeSessionDraft(draft, "survives a renderer reload");
-	expect(window.localStorage.getItem(draftStorageKey(draft))).toBe(
-		"survives a renderer reload",
-	);
+	expect(window.localStorage.getItem(draftStorageKey(draft))).toBe("survives a renderer reload");
 	expect(readSessionDraft(draft)).toBe("survives a renderer reload");
 
 	writeSessionDraft(draft, "");

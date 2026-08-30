@@ -14,24 +14,11 @@ export const SessionAttachments = ({
 	readonly onRemove: (index: number) => void;
 }) =>
 	images.length === 0 ? null : (
-		<fieldset
-			aria-label="Attached images"
-			className="m-0 flex min-w-0 gap-2 overflow-x-auto border-0 p-0 py-1"
-		>
+		<fieldset aria-label="Attached images" className="m-0 flex min-w-0 gap-2 overflow-x-auto border-0 p-0 py-1">
 			{images.map((image, index) => (
-				<figure
-					className="w-24 shrink-0 rounded-md border border-border bg-secondary p-1"
-					key={image.id}
-				>
-					<img
-						alt={`Attachment ${index + 1}: ${image.file.name || "pasted file"}`}
-						className="h-16 w-full rounded-sm object-cover"
-						src={image.url}
-					/>
-					<figcaption
-						className="truncate pt-1 text-2xs"
-						title={image.file.name}
-					>
+				<figure className="w-24 shrink-0 rounded-md border border-border bg-secondary p-1" key={image.id}>
+					<img alt={`Attachment ${index + 1}: ${image.file.name || "pasted file"}`} className="h-16 w-full rounded-sm object-cover" src={image.url} />
+					<figcaption className="truncate pt-1 text-2xs" title={image.file.name}>
 						{image.file.name || "pasted image"}
 					</figcaption>
 					<div className="flex justify-end gap-0.5 pt-0.5">

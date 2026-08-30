@@ -1,10 +1,5 @@
 import { defineIntentDemand } from "@antumbra/intent-demand";
-import {
-	defineIntent,
-	IntentExecution,
-	Kernel,
-	KernelLive,
-} from "@antumbra/kernel";
+import { defineIntent, IntentExecution, Kernel, KernelLive } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
 import { expect, it } from "@effect/vitest";
 import { Effect, Layer, Schema } from "effect";
@@ -34,16 +29,8 @@ it.live("suppresses an active identity and submits only missing demand", () =>
 			yield* kernel.submit(registered, { slot: "active" });
 			yield* demand.pass;
 			const rows = yield* db.Intent.where({ tag: registered.tag }).all();
-			expect(
-				yield* Effect.forEach(rows, (row) => registered.decode(row.payload)),
-			).toEqual([{ slot: "active" }, { slot: "missing" }]);
-		}).pipe(
-			Effect.provide(
-				KernelLive({ kinds: [registered] }).pipe(
-					Layer.provideMerge(temporary.layer),
-				),
-			),
-		);
+			expect(yield* Effect.forEach(rows, (row) => registered.decode(row.payload))).toEqual([{ slot: "active" }, { slot: "missing" }]);
+		}).pipe(Effect.provide(KernelLive({ kinds: [registered] }).pipe(Layer.provideMerge(temporary.layer))));
 	}),
 );
 
@@ -68,13 +55,7 @@ it.live("permits a successor after the prior intent is terminal", () =>
 			yield* demand.pass;
 			const rows = yield* db.Intent.where({ tag: registered.tag }).all();
 			expect(rows).toHaveLength(2);
-		}).pipe(
-			Effect.provide(
-				KernelLive({ kinds: [registered] }).pipe(
-					Layer.provideMerge(temporary.layer),
-				),
-			),
-		);
+		}).pipe(Effect.provide(KernelLive({ kinds: [registered] }).pipe(Layer.provideMerge(temporary.layer))));
 	}),
 );
 
@@ -90,17 +71,9 @@ it.live("refuses duplicate demand identities before submission", () =>
 		yield* Effect.gen(function* () {
 			const db = yield* Database;
 			const failed = yield* Effect.flip(demand.pass);
-			expect(failed.detail).toBe(
-				"eligible demand identity is duplicated: same",
-			);
+			expect(failed.detail).toBe("eligible demand identity is duplicated: same");
 			expect(yield* db.Intent.all()).toEqual([]);
-		}).pipe(
-			Effect.provide(
-				KernelLive({ kinds: [registered] }).pipe(
-					Layer.provideMerge(temporary.layer),
-				),
-			),
-		);
+		}).pipe(Effect.provide(KernelLive({ kinds: [registered] }).pipe(Layer.provideMerge(temporary.layer))));
 	}),
 );
 
@@ -119,12 +92,6 @@ it.live("fails closed for a same-tag non-identical Intent kind", () =>
 			const failed = yield* Effect.flip(demand.pass);
 			expect(failed.detail).toContain("UnregisteredIntentTag");
 			expect(yield* db.Intent.all()).toEqual([]);
-		}).pipe(
-			Effect.provide(
-				KernelLive({ kinds: [registered] }).pipe(
-					Layer.provideMerge(temporary.layer),
-				),
-			),
-		);
+		}).pipe(Effect.provide(KernelLive({ kinds: [registered] }).pipe(Layer.provideMerge(temporary.layer))));
 	}),
 );

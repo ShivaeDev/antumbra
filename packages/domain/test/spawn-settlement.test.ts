@@ -20,39 +20,27 @@ const stored = (status: string, currentSessionId: string | null) => ({
 
 it.effect("reclaims the birth whose Session the Agent still holds", () =>
 	Effect.gen(function* () {
-		expect(
-			yield* settlementFor(stored("spawning", "session-birth"), payload),
-		).toBe("reclaim");
+		expect(yield* settlementFor(stored("spawning", "session-birth"), payload)).toBe("reclaim");
 	}),
 );
 
 it.effect("leaves an Agent someone else already settled alone", () =>
 	Effect.gen(function* () {
-		expect(yield* settlementFor(stored("dormant", null), payload)).toBe(
-			"settled",
-		);
-		expect(
-			yield* settlementFor(stored("alive", "session-birth"), payload),
-		).toBe("settled");
+		expect(yield* settlementFor(stored("dormant", null), payload)).toBe("settled");
+		expect(yield* settlementFor(stored("alive", "session-birth"), payload)).toBe("settled");
 	}),
 );
 
-it.effect(
-	"names an Agent left spawning that this settlement cannot reach",
-	() =>
-		Effect.gen(function* () {
-			const refusal = yield* Effect.flip(
-				settlementFor(stored("spawning", "session-elsewhere"), payload),
-			);
-			expect(refusal._tag).toBe("AgentBirthStranded");
-			if (refusal._tag === "AgentBirthStranded") {
-				expect(refusal.agentId).toBe("agent-birth");
-				expect(refusal.sessionId).toBe("session-birth");
-				expect(refusal.message).toContain("session-elsewhere");
-			}
-			const pointerless = yield* Effect.flip(
-				settlementFor(stored("spawning", null), payload),
-			);
-			expect(pointerless._tag).toBe("AgentBirthStranded");
-		}),
+it.effect("names an Agent left spawning that this settlement cannot reach", () =>
+	Effect.gen(function* () {
+		const refusal = yield* Effect.flip(settlementFor(stored("spawning", "session-elsewhere"), payload));
+		expect(refusal._tag).toBe("AgentBirthStranded");
+		if (refusal._tag === "AgentBirthStranded") {
+			expect(refusal.agentId).toBe("agent-birth");
+			expect(refusal.sessionId).toBe("session-birth");
+			expect(refusal.message).toContain("session-elsewhere");
+		}
+		const pointerless = yield* Effect.flip(settlementFor(stored("spawning", null), payload));
+		expect(pointerless._tag).toBe("AgentBirthStranded");
+	}),
 );

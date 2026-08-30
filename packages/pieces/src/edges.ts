@@ -6,16 +6,11 @@ import type { EdgeRow } from "#model.ts";
 
 // why: validation walks the graph the transaction is about to commit, so
 // concurrent rewires serialize and a cycle is refused as one whole write.
-export const plannedEdges = (
-	pieceId: string,
-	dependsOn: ReadonlyArray<string>,
-) =>
+export const plannedEdges = (pieceId: string, dependsOn: ReadonlyArray<string>) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
 		const known = new Set((yield* db.Piece.all()).map((piece) => piece.id));
-		let edges = (yield* db.PieceEdge.all()).filter(
-			(edge) => edge.toPieceId !== pieceId,
-		);
+		let edges = (yield* db.PieceEdge.all()).filter((edge) => edge.toPieceId !== pieceId);
 		const planned: EdgeRow[] = [];
 		for (const dependency of dependsOn) {
 			if (!known.has(dependency)) {

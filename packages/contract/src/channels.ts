@@ -37,8 +37,7 @@ export const TRPC_FAILURE_CODES = [
 ] as const;
 export type TrpcFailureCode = (typeof TRPC_FAILURE_CODES)[number];
 
-export const subscriptionChannel = (id: string) =>
-	`antumbra:trpc:subscription:${id}`;
+export const subscriptionChannel = (id: string) => `antumbra:trpc:subscription:${id}`;
 
 export interface BridgeRequest {
 	readonly input: unknown;
@@ -74,9 +73,6 @@ export type SubscriptionMessage =
 
 export interface AntumbraBridge {
 	readonly openExternal: (url: string) => void;
-	readonly subscribe: (
-		request: BridgeSubscribeRequest,
-		onMessage: (message: SubscriptionMessage) => void,
-	) => () => void;
+	readonly subscribe: (request: BridgeSubscribeRequest, onMessage: (message: SubscriptionMessage) => void) => () => void;
 	readonly trpc: (request: BridgeRequest) => Promise<TrpcResponse>;
 }

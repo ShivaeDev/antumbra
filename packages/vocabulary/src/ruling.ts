@@ -6,35 +6,19 @@ import { Data, Option, Result, Schema } from "effect";
 export const RulingRadiusSchema = Schema.Literals(["piece", "voyage", "fleet"]);
 export type RulingRadius = typeof RulingRadiusSchema.Type;
 
-export const RulingUrgencySchema = Schema.Literals([
-	"blocking",
-	"pressing",
-	"eventual",
-]);
+export const RulingUrgencySchema = Schema.Literals(["blocking", "pressing", "eventual"]);
 export type RulingUrgency = typeof RulingUrgencySchema.Type;
 
-export const RulingSubjectKindSchema = Schema.Literals([
-	"repo",
-	"voyage",
-	"piece",
-	"agent",
-	"tag",
-]);
+export const RulingSubjectKindSchema = Schema.Literals(["repo", "voyage", "piece", "agent", "tag"]);
 export type RulingSubjectKind = typeof RulingSubjectKindSchema.Type;
 
 // why: the whole ladder a request climbs, from the voyage it was asked on to
 // the hand that may overrule anything: a stored word names which rung answered,
 // reclassified, or is still owed the question.
-export const RulingAuthoritySchema = Schema.Literals([
-	"admiral",
-	"flagship",
-	"captain",
-]);
+export const RulingAuthoritySchema = Schema.Literals(["admiral", "flagship", "captain"]);
 export type RulingAuthority = typeof RulingAuthoritySchema.Type;
 
-export class StoredRulingValueInvalid extends Data.TaggedError(
-	"StoredRulingValueInvalid",
-)<{
+export class StoredRulingValueInvalid extends Data.TaggedError("StoredRulingValueInvalid")<{
 	readonly field: string;
 	readonly rulingId: string;
 	readonly value: unknown;
@@ -46,35 +30,18 @@ export class StoredRulingValueInvalid extends Data.TaggedError(
 
 const storedValue =
 	<Value>(decode: (value: unknown) => Option.Option<Value>, field: string) =>
-	(
-		rulingId: string,
-		value: unknown,
-	): Result.Result<Value, StoredRulingValueInvalid> => {
+	(rulingId: string, value: unknown): Result.Result<Value, StoredRulingValueInvalid> => {
 		const decoded = decode(value);
-		return Option.isSome(decoded)
-			? Result.succeed(decoded.value)
-			: Result.fail(new StoredRulingValueInvalid({ field, rulingId, value }));
+		return Option.isSome(decoded) ? Result.succeed(decoded.value) : Result.fail(new StoredRulingValueInvalid({ field, rulingId, value }));
 	};
 
-export const decodeStoredRulingRadius = storedValue(
-	Schema.decodeUnknownOption(RulingRadiusSchema),
-	"radius",
-);
+export const decodeStoredRulingRadius = storedValue(Schema.decodeUnknownOption(RulingRadiusSchema), "radius");
 
-export const decodeStoredRulingUrgency = storedValue(
-	Schema.decodeUnknownOption(RulingUrgencySchema),
-	"urgency",
-);
+export const decodeStoredRulingUrgency = storedValue(Schema.decodeUnknownOption(RulingUrgencySchema), "urgency");
 
-export const decodeStoredRulingSubjectKind = storedValue(
-	Schema.decodeUnknownOption(RulingSubjectKindSchema),
-	"subject kind",
-);
+export const decodeStoredRulingSubjectKind = storedValue(Schema.decodeUnknownOption(RulingSubjectKindSchema), "subject kind");
 
-export const decodeStoredRulingAuthority = storedValue(
-	Schema.decodeUnknownOption(RulingAuthoritySchema),
-	"authority",
-);
+export const decodeStoredRulingAuthority = storedValue(Schema.decodeUnknownOption(RulingAuthoritySchema), "authority");
 
 // why: the open set is read in the order an authority should meet it — what
 // holds an asker first, and within that what binds most widely once answered.
@@ -90,8 +57,6 @@ const RADIUS_RANK: Readonly<Record<RulingRadius, number>> = {
 	voyage: 1,
 };
 
-export const rulingUrgencyRank = (urgency: RulingUrgency): number =>
-	URGENCY_RANK[urgency];
+export const rulingUrgencyRank = (urgency: RulingUrgency): number => URGENCY_RANK[urgency];
 
-export const rulingRadiusRank = (radius: RulingRadius): number =>
-	RADIUS_RANK[radius];
+export const rulingRadiusRank = (radius: RulingRadius): number => RADIUS_RANK[radius];

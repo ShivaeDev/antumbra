@@ -5,10 +5,7 @@ import { Deferred, Effect, Fiber, Layer, Option, Ref, Stream } from "effect";
 import { AgentDomain } from "#agent-domain-service.ts";
 import { capacityHoldDetail } from "#backend-capacity-hold.ts";
 import type { BackendCapacityReading } from "#backend-capacity-model.ts";
-import {
-	BackendCapacityReleaseLive,
-	BackendCapacityReleases,
-} from "#backend-capacity-release.ts";
+import { BackendCapacityReleaseLive, BackendCapacityReleases } from "#backend-capacity-release.ts";
 import {
 	dependencies,
 	type KernelService,
@@ -30,10 +27,7 @@ const makeStaleDetailRace = Effect.gen(function* () {
 	const kernel = yield* Kernel;
 	const db = yield* Database;
 	const attempted = yield* Ref.make<ReadonlyArray<string>>([]);
-	const retryIfWaiting: KernelService["retryIfWaiting"] = (
-		id,
-		expectedDetail,
-	) =>
+	const retryIfWaiting: KernelService["retryIfWaiting"] = (id, expectedDetail) =>
 		Ref.update(attempted, (details) => [...details, expectedDetail]).pipe(
 			Effect.andThen(
 				db.Intent.where({ id }).update({
@@ -55,38 +49,19 @@ const assertStaleDetailSafety = (spawn: SpawnKind) =>
 		const domain = yield* AgentDomain;
 		const held = yield* kernel.submit(spawn, spawnPayload("held"));
 		const unrelated = yield* kernel.submit(spawn, spawnPayload("unrelated"));
-		yield* Effect.all(
-			[
-				waitForChange(kernel, held.id, "waiting"),
-				waitForChange(kernel, unrelated.id, "waiting"),
-			],
-			{ concurrency: "unbounded" },
-		);
+		yield* Effect.all([waitForChange(kernel, held.id, "waiting"), waitForChange(kernel, unrelated.id, "waiting")], { concurrency: "unbounded" });
 		yield* domain.backendCapacities.clear(SCRIPTED);
 		const race = yield* makeStaleDetailRace;
 		yield* Layer.build(
-			BackendCapacityReleaseLive.pipe(
-				Layer.provideMerge(
-					Layer.mergeAll(
-						Layer.succeed(Kernel, race.kernel),
-						Layer.succeed(AgentDomain, domain),
-					),
-				),
-			),
+			BackendCapacityReleaseLive.pipe(Layer.provideMerge(Layer.mergeAll(Layer.succeed(Kernel, race.kernel), Layer.succeed(AgentDomain, domain)))),
 		);
 
-		expect(yield* Ref.get(race.attempted)).toEqual([
-			capacityHoldDetail(SCRIPTED, "scripted quota exhausted"),
-		]);
-		expect(
-			Option.getOrThrow(yield* db.Intent.where({ id: held.id }).first()),
-		).toMatchObject({
+		expect(yield* Ref.get(race.attempted)).toEqual([capacityHoldDetail(SCRIPTED, "scripted quota exhausted")]);
+		expect(Option.getOrThrow(yield* db.Intent.where({ id: held.id }).first())).toMatchObject({
 			detail: "provider credentials changed",
 			status: "waiting",
 		});
-		expect(
-			Option.getOrThrow(yield* db.Intent.where({ id: unrelated.id }).first()),
-		).toMatchObject({
+		expect(Option.getOrThrow(yield* db.Intent.where({ id: unrelated.id }).first())).toMatchObject({
 			detail: "runner authentication required",
 			status: "waiting",
 		});
@@ -97,30 +72,17 @@ const staleDetailSafety = Effect.gen(function* () {
 	const { capacities } = yield* makeCapacities;
 	const spawn = spawnKind(({ agentId }) =>
 		IntentExecution.use((execution) =>
-			execution.wait(
-				agentId === "unrelated"
-					? "runner authentication required"
-					: capacityHoldDetail(SCRIPTED, "scripted quota exhausted"),
-			),
+			execution.wait(agentId === "unrelated" ? "runner authentication required" : capacityHoldDetail(SCRIPTED, "scripted quota exhausted")),
 		),
 	);
 	const wake = wakeKind(() => Effect.void);
 	yield* withReleaseDomain(temporary, capacities, spawn, wake, (domain) =>
-		assertStaleDetailSafety(spawn).pipe(
-			Effect.scoped,
-			Effect.provide(dependencies(temporary.layer, domain, spawn, wake)),
-		),
+		assertStaleDetailSafety(spawn).pipe(Effect.scoped, Effect.provide(dependencies(temporary.layer, domain, spawn, wake))),
 	);
 });
 
-const isBlockedFreshRejection = (
-	attempts: number,
-	readings: ReadonlyArray<BackendCapacityReading>,
-) =>
-	attempts === 2 &&
-	readings.some(
-		(reading) => reading.backend === SCRIPTED && reading.status === "blocked",
-	);
+const isBlockedFreshRejection = (attempts: number, readings: ReadonlyArray<BackendCapacityReading>) =>
+	attempts === 2 && readings.some((reading) => reading.backend === SCRIPTED && reading.status === "blocked");
 
 const markReconciledFreshRejection = (
 	attempts: Ref.Ref<number>,
@@ -133,10 +95,7 @@ const markReconciledFreshRejection = (
 		}
 	});
 
-const makeFreshRejectingSpawn = (
-	attempts: Ref.Ref<number>,
-	state: CapacityFixture["state"],
-) =>
+const makeFreshRejectingSpawn = (attempts: Ref.Ref<number>, state: CapacityFixture["state"]) =>
 	spawnKind(() =>
 		Effect.gen(function* () {
 			const attempt = yield* Ref.updateAndGet(attempts, (count) => count + 1);
@@ -152,17 +111,9 @@ const makeFreshRejectingSpawn = (
 		}),
 	);
 
-const waitForTwoWaitingTransitions = (
-	kernel: KernelService,
-	id: string,
-	listening: Deferred.Deferred<void>,
-) =>
+const waitForTwoWaitingTransitions = (kernel: KernelService, id: string, listening: Deferred.Deferred<void>) =>
 	kernel.changes(id).pipe(
-		Stream.tap((status) =>
-			status === "waiting"
-				? Deferred.succeed(listening, undefined)
-				: Effect.void,
-		),
+		Stream.tap((status) => (status === "waiting" ? Deferred.succeed(listening, undefined) : Effect.void)),
 		Stream.filter((status) => status === "waiting"),
 		Stream.take(2),
 		Stream.runDrain,
@@ -180,16 +131,12 @@ const assertFreshRejectionParks = (
 		const releases = yield* BackendCapacityReleases;
 		const submission = yield* kernel.submit(spawn, spawnPayload("fresh-block"));
 		yield* waitForChange(kernel, submission.id, "waiting");
-		const freshWaiting = yield* Effect.forkChild(
-			waitForTwoWaitingTransitions(kernel, submission.id, listening),
-		);
+		const freshWaiting = yield* Effect.forkChild(waitForTwoWaitingTransitions(kernel, submission.id, listening));
 		yield* Deferred.await(listening);
 		yield* releases.release(SCRIPTED);
 		yield* Fiber.join(freshWaiting);
 		yield* Deferred.await(reconciled);
-		const parked = Option.getOrThrow(
-			yield* db.Intent.where({ id: submission.id }).first(),
-		);
+		const parked = Option.getOrThrow(yield* db.Intent.where({ id: submission.id }).first());
 		expect(parked).toMatchObject({
 			detail: capacityHoldDetail(SCRIPTED, "scripted quota still exhausted"),
 			status: "waiting",
@@ -205,27 +152,15 @@ const freshRejectionSafety = Effect.gen(function* () {
 	const { capacities: baseCapacities, state } = yield* makeCapacities;
 	const capacities = {
 		...baseCapacities,
-		snapshot: baseCapacities.snapshot.pipe(
-			Effect.tap((readings) =>
-				markReconciledFreshRejection(attempts, reconciled, readings),
-			),
-		),
+		snapshot: baseCapacities.snapshot.pipe(Effect.tap((readings) => markReconciledFreshRejection(attempts, reconciled, readings))),
 	};
 	const spawn = makeFreshRejectingSpawn(attempts, state);
 	const wake = wakeKind(() => Effect.void);
 	yield* withReleaseDomain(temporary, capacities, spawn, wake, (domain) =>
-		assertFreshRejectionParks(spawn, attempts, reconciled, listening).pipe(
-			Effect.provide(withReleases(temporary.layer, domain, spawn, wake)),
-		),
+		assertFreshRejectionParks(spawn, attempts, reconciled, listening).pipe(Effect.provide(withReleases(temporary.layer, domain, spawn, wake))),
 	);
 });
 
-it.live(
-	"does not retry an unrelated wait or a hold whose detail went stale",
-	() => staleDetailSafety,
-);
+it.live("does not retry an unrelated wait or a hold whose detail went stale", () => staleDetailSafety);
 
-it.live(
-	"a fresh rejection parks without a retry loop",
-	() => freshRejectionSafety,
-);
+it.live("a fresh rejection parks without a retry loop", () => freshRejectionSafety);

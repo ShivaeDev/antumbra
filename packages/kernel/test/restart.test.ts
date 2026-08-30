@@ -4,11 +4,7 @@ import { expect, it } from "@effect/vitest";
 import { Deferred, Effect, Option, Ref, Schema } from "effect";
 import { defineIntent, type ReclaimPolicy } from "#intent.ts";
 import { Kernel } from "#kernel.ts";
-import {
-	acquireTemporaryPersistence,
-	kernelLayer,
-	statusesUntilTerminal,
-} from "#test/harness.ts";
+import { acquireTemporaryPersistence, kernelLayer, statusesUntilTerminal } from "#test/harness.ts";
 import { IntentExecution } from "#workflow.ts";
 
 const EMPTY = Schema.Struct({});
@@ -38,10 +34,7 @@ const strandRunningIntent = (temporary: TemporaryPersistence, tag: string) =>
 		const started = yield* Deferred.make<void>();
 		const never = yield* Deferred.make<void>();
 		const kind = defineIntent({
-			execute: () =>
-				Deferred.succeed(started, undefined).pipe(
-					Effect.andThen(Deferred.await(never)),
-				),
+			execute: () => Deferred.succeed(started, undefined).pipe(Effect.andThen(Deferred.await(never))),
 			payload: EMPTY,
 			tag,
 		});
@@ -53,12 +46,7 @@ const strandRunningIntent = (temporary: TemporaryPersistence, tag: string) =>
 		}).pipe(Effect.provide(kernelLayer(temporary, { kinds: [kind] })));
 	});
 
-const rowAfterBoot = (
-	temporary: TemporaryPersistence,
-	id: string,
-	tag: string,
-	reclaim: ReclaimPolicy,
-) =>
+const rowAfterBoot = (temporary: TemporaryPersistence, id: string, tag: string, reclaim: ReclaimPolicy) =>
 	Effect.gen(function* () {
 		const finisher = defineIntent({
 			execute: () => Effect.void,
@@ -109,16 +97,12 @@ it.live("restart reruns activities and reconciles completed durable work", () =>
 			const entered = yield* Ref.make(0);
 			const started = yield* Deferred.make<void>();
 			const hold = yield* Deferred.make<void>();
-			const establish = Ref.update(entered, (count) => count + 1).pipe(
-				Effect.andThen(ensureMarker(db)),
-			);
+			const establish = Ref.update(entered, (count) => count + 1).pipe(Effect.andThen(ensureMarker(db)));
 			const kind = defineIntent({
 				execute: () =>
 					Effect.gen(function* () {
 						const execution = yield* IntentExecution;
-						yield* execution
-							.step("establish-marker", establish)
-							.pipe(Effect.andThen(Deferred.succeed(started, undefined)));
+						yield* execution.step("establish-marker", establish).pipe(Effect.andThen(Deferred.succeed(started, undefined)));
 						yield* execution.step("finish", Deferred.await(hold));
 					}),
 				payload: EMPTY,
@@ -144,9 +128,7 @@ it.live("restart reruns activities and reconciles completed durable work", () =>
 			}).pipe(Effect.provide(kernelLayer(temporary, { kinds: [kind] })));
 			expect(statuses.at(-1)).toBe("succeeded");
 			expect(yield* Ref.get(entered)).toBe(2);
-			expect(
-				yield* db.Agent.where({ id: "restart-marker" }).all(),
-			).toHaveLength(1);
+			expect(yield* db.Agent.where({ id: "restart-marker" }).all()).toHaveLength(1);
 		}).pipe(Effect.provide(temporary.layer));
 	}),
 );
@@ -157,9 +139,7 @@ it.live("abandons a stranded intent whose kind opted out of requeue", () =>
 		const id = yield* strandRunningIntent(temporary, "test/abandoned");
 		const row = yield* rowAfterBoot(temporary, id, "test/abandoned", "abandon");
 		expect(Option.isSome(row) ? row.value.status : null).toBe("failed");
-		expect(Option.isSome(row) ? row.value.detail : null).toContain(
-			"abandoned by reclaim",
-		);
+		expect(Option.isSome(row) ? row.value.detail : null).toContain("abandoned by reclaim");
 	}),
 );
 
@@ -172,8 +152,6 @@ it.live("abandons a stranded intent whose tag is no longer registered", () =>
 			return yield* db.Intent.where({ id }).first();
 		}).pipe(Effect.provide(kernelLayer(temporary, { kinds: [] })));
 		expect(Option.isSome(row) ? row.value.status : null).toBe("failed");
-		expect(Option.isSome(row) ? row.value.detail : null).toContain(
-			"no registered intent kind",
-		);
+		expect(Option.isSome(row) ? row.value.detail : null).toContain("no registered intent kind");
 	}),
 );

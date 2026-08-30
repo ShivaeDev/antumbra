@@ -6,11 +6,7 @@ import { expect, it } from "@effect/vitest";
 import { Effect, Layer, Option, Result } from "effect";
 import { makeCurrentSessionRecovery } from "#current/recovery.ts";
 
-const createAgent = (
-	id: string,
-	currentSessionId: string | null,
-	status = "alive",
-) =>
+const createAgent = (id: string, currentSessionId: string | null, status = "alive") =>
 	Database.use((db) =>
 		db.Agent.create({
 			charter: `charter ${id}`,
@@ -46,39 +42,17 @@ const createSession = (agentId: string, id: string) =>
 it.live("adopts and wakes the one Session an Agent holds", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
-		const layer = Layer.mergeAll(
-			temporary.layer,
-			DomainFeedsLive,
-			SessionFabricLive,
-		);
+		const layer = Layer.mergeAll(temporary.layer, DomainFeedsLive, SessionFabricLive);
 		yield* Effect.gen(function* () {
 			const db = yield* Database;
 			const current = yield* makeCurrentSessionRecovery;
-			yield* db.transaction(
-				createAgent("agent-holding", null).pipe(
-					Effect.andThen(createSession("agent-holding", "session-held")),
-				),
-			);
+			yield* db.transaction(createAgent("agent-holding", null).pipe(Effect.andThen(createSession("agent-holding", "session-held"))));
 
-			expect(Result.isSuccess(yield* current.resumable("session-held"))).toBe(
-				true,
-			);
-			expect(
-				Option.getOrThrow(
-					yield* db.Agent.where({ id: "agent-holding" }).first(),
-				).currentSessionId,
-			).toBe("session-held");
-			expect(
-				Option.getOrThrow(
-					yield* db.AgentSession.where({ id: "session-held" }).first(),
-				).executionStatus,
-			).toBe("idle");
+			expect(Result.isSuccess(yield* current.resumable("session-held"))).toBe(true);
+			expect(Option.getOrThrow(yield* db.Agent.where({ id: "agent-holding" }).first()).currentSessionId).toBe("session-held");
+			expect(Option.getOrThrow(yield* db.AgentSession.where({ id: "session-held" }).first()).executionStatus).toBe("idle");
 			yield* current.awaken("session-held");
-			expect(
-				Option.getOrThrow(
-					yield* db.AgentSession.where({ id: "session-held" }).first(),
-				).executionStatus,
-			).toBe("active");
+			expect(Option.getOrThrow(yield* db.AgentSession.where({ id: "session-held" }).first()).executionStatus).toBe("active");
 		}).pipe(Effect.provide(layer));
 	}),
 );
@@ -86,19 +60,11 @@ it.live("adopts and wakes the one Session an Agent holds", () =>
 it.live("dormant Agents never regain an execution", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
-		const layer = Layer.mergeAll(
-			temporary.layer,
-			DomainFeedsLive,
-			SessionFabricLive,
-		);
+		const layer = Layer.mergeAll(temporary.layer, DomainFeedsLive, SessionFabricLive);
 		yield* Effect.gen(function* () {
 			const db = yield* Database;
 			const current = yield* makeCurrentSessionRecovery;
-			yield* db.transaction(
-				createAgent("agent-dormant", null, "dormant").pipe(
-					Effect.andThen(createSession("agent-dormant", "session-dormant")),
-				),
-			);
+			yield* db.transaction(createAgent("agent-dormant", null, "dormant").pipe(Effect.andThen(createSession("agent-dormant", "session-dormant"))));
 			const refused = yield* current.resumable("session-dormant");
 			expect(Result.isFailure(refused)).toBe(true);
 			if (Result.isFailure(refused)) {

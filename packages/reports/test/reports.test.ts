@@ -1,10 +1,6 @@
 import { DomainFeeds, DomainFeedsLive } from "@antumbra/domain-feeds";
 import { Database } from "@antumbra/persistence";
-import {
-	persistenceIt,
-	rejectTestOutcomeLinks,
-	temporaryPersistence,
-} from "@antumbra/persistence/testing";
+import { persistenceIt, rejectTestOutcomeLinks, temporaryPersistence } from "@antumbra/persistence/testing";
 import { Reports, ReportsLive } from "@antumbra/reports";
 import { expect } from "@effect/vitest";
 import { Effect, Layer, PubSub } from "effect";
@@ -25,37 +21,32 @@ const piece = {
 	title: "Soundings",
 };
 
-it.effectDB(
-	"lands a report and its piece link before publishing",
-	function* (db) {
-		yield* Effect.scoped(
-			Effect.gen(function* () {
-				const feeds = yield* DomainFeeds;
-				const reports = yield* Reports;
-				const notices = yield* feeds.subscribeVoyageRefresh();
-				yield* db.Piece.create(piece);
+it.effectDB("lands a report and its piece link before publishing", function* (db) {
+	yield* Effect.scoped(
+		Effect.gen(function* () {
+			const feeds = yield* DomainFeeds;
+			const reports = yield* Reports;
+			const notices = yield* feeds.subscribeVoyageRefresh();
+			yield* db.Piece.create(piece);
 
-				const report = yield* reports.land({
-					authorAgentId: "agent-surveyor",
-					body: "depths measured",
-					pieceId: piece.id,
-					title: "reef soundings",
-				});
+			const report = yield* reports.land({
+				authorAgentId: "agent-surveyor",
+				body: "depths measured",
+				pieceId: piece.id,
+				title: "reef soundings",
+			});
 
-				expect(report).toMatchObject({
-					authorAgentId: "agent-surveyor",
-					body: "depths measured",
-					title: "reef soundings",
-				});
-				expect(yield* db.Report.all()).toMatchObject([report]);
-				expect(yield* db.PieceReport.all()).toEqual([
-					{ pieceId: piece.id, reportId: report.id },
-				]);
-				expect(yield* PubSub.take(notices)).toBeUndefined();
-			}),
-		).pipe(Effect.provide(layer));
-	},
-);
+			expect(report).toMatchObject({
+				authorAgentId: "agent-surveyor",
+				body: "depths measured",
+				title: "reef soundings",
+			});
+			expect(yield* db.Report.all()).toMatchObject([report]);
+			expect(yield* db.PieceReport.all()).toEqual([{ pieceId: piece.id, reportId: report.id }]);
+			expect(yield* PubSub.take(notices)).toBeUndefined();
+		}),
+	).pipe(Effect.provide(layer));
+});
 
 it.effectDB("refuses an orphan report without publishing", function* (db) {
 	yield* Effect.scoped(
@@ -90,9 +81,7 @@ it.effect("rolls back a Report whose Piece link is rejected", () =>
 			const reports = yield* Reports;
 			const notices = yield* feeds.subscribeVoyageRefresh();
 			yield* db.Piece.create(piece);
-			yield* Effect.sync(() =>
-				rejectTestOutcomeLinks(rejectedLinkPersistence.database, "report"),
-			);
+			yield* Effect.sync(() => rejectTestOutcomeLinks(rejectedLinkPersistence.database, "report"));
 
 			const failure = yield* Effect.flip(
 				reports.land({
@@ -107,9 +96,5 @@ it.effect("rolls back a Report whose Piece link is rejected", () =>
 			expect(yield* db.PieceReport.all()).toEqual([]);
 			expect(yield* PubSub.takeUpTo(notices, 1)).toEqual([]);
 		}),
-	).pipe(
-		Effect.provide(
-			layer.pipe(Layer.provideMerge(rejectedLinkPersistence.layer)),
-		),
-	),
+	).pipe(Effect.provide(layer.pipe(Layer.provideMerge(rejectedLinkPersistence.layer)))),
 );

@@ -2,12 +2,7 @@ import type { PieceCounts } from "@antumbra/contract";
 import { describe, expect, it } from "vitest";
 import { landedLabel, progressLabel, slicesOf } from "#voyages/progress.ts";
 
-const counts = (
-	pieces: number,
-	done: number,
-	active: number,
-	ready: number,
-): PieceCounts => ({ active, done, pieces, ready });
+const counts = (pieces: number, done: number, active: number, ready: number): PieceCounts => ({ active, done, pieces, ready });
 
 describe("slicesOf", () => {
 	it("turns the counts into shares of one bar, landed first", () => {
@@ -19,9 +14,7 @@ describe("slicesOf", () => {
 	});
 
 	it("leaves out a band with nothing in it rather than drawing a zero", () => {
-		expect(slicesOf(counts(2, 0, 2, 0)).map((slice) => slice.band)).toEqual([
-			"active",
-		]);
+		expect(slicesOf(counts(2, 0, 2, 0)).map((slice) => slice.band)).toEqual(["active"]);
 	});
 
 	it("leaves the rest of the bar unfilled when work is neither of the three", () => {
@@ -43,9 +36,7 @@ describe("landedLabel", () => {
 
 describe("progressLabel", () => {
 	it("spells the bar out for a reader who cannot see it", () => {
-		expect(progressLabel(counts(8, 4, 2, 2))).toBe(
-			"4 of 8 landed, 2 active, 2 ready",
-		);
+		expect(progressLabel(counts(8, 4, 2, 2))).toBe("4 of 8 landed, 2 active, 2 ready");
 	});
 
 	it("says only what there is, so no band is announced as none", () => {

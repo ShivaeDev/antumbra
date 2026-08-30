@@ -1,41 +1,24 @@
-import {
-	files,
-	importFrom,
-	packages,
-	vocabularyAccess,
-} from "#boundaries/dsl.ts";
+import { files, importFrom, packages, vocabularyAccess } from "#boundaries/dsl.ts";
 import type { BoundaryRule } from "#boundaries/model.ts";
 
 // why: a capability owns one durable subject, and the words it may name are
 // the words that subject is written in — never another capability's.
 export const vocabularyCapabilityPolicy = [
 	vocabularyAccess("artifacts-uses-agent-runtime-vocabulary")
-		.because(
-			"Artifacts decode Moorage ownership and do not own Board, Change, or Session-event language.",
-		)
+		.because("Artifacts decode Moorage ownership and do not own Board, Change, or Session-event language.")
 		.for(packages.named("artifacts"))
 		.allowsOnly("agent-runtime")
 		.demonstratedBy({
-			illegal: importFrom(files.inPackage("artifacts", "src/artifact.ts")).to(
-				files.inPackage("vocabulary", "src/board.ts"),
-			),
-			legal: importFrom(files.inPackage("artifacts", "src/artifact.ts")).to(
-				files.inPackage("vocabulary", "src/agent-runtime.ts"),
-			),
+			illegal: importFrom(files.inPackage("artifacts", "src/artifact.ts")).to(files.inPackage("vocabulary", "src/board.ts")),
+			legal: importFrom(files.inPackage("artifacts", "src/artifact.ts")).to(files.inPackage("vocabulary", "src/agent-runtime.ts")),
 		}),
 	vocabularyAccess("boards-uses-board-vocabulary")
-		.because(
-			"Boards owns Board storage invariants and names only the Board subject from the shared vocabulary leaf.",
-		)
+		.because("Boards owns Board storage invariants and names only the Board subject from the shared vocabulary leaf.")
 		.for(packages.named("boards"))
 		.allowsOnly("board")
 		.demonstratedBy({
-			illegal: importFrom(files.inPackage("boards", "src/board.ts")).to(
-				files.inPackage("vocabulary", "src/change.ts"),
-			),
-			legal: importFrom(files.inPackage("boards", "src/board.ts")).to(
-				files.inPackage("vocabulary", "src/board.ts"),
-			),
+			illegal: importFrom(files.inPackage("boards", "src/board.ts")).to(files.inPackage("vocabulary", "src/change.ts")),
+			legal: importFrom(files.inPackage("boards", "src/board.ts")).to(files.inPackage("vocabulary", "src/board.ts")),
 		}),
 	vocabularyAccess("rulings-uses-ruling-vocabulary")
 		.because(
@@ -44,40 +27,24 @@ export const vocabularyCapabilityPolicy = [
 		.for(packages.named("rulings"))
 		.allowsOnly("ruling")
 		.demonstratedBy({
-			illegal: importFrom(files.inPackage("rulings", "src/rulings.ts")).to(
-				files.inPackage("vocabulary", "src/board.ts"),
-			),
-			legal: importFrom(files.inPackage("rulings", "src/rulings.ts")).to(
-				files.inPackage("vocabulary", "src/ruling.ts"),
-			),
+			illegal: importFrom(files.inPackage("rulings", "src/rulings.ts")).to(files.inPackage("vocabulary", "src/board.ts")),
+			legal: importFrom(files.inPackage("rulings", "src/rulings.ts")).to(files.inPackage("vocabulary", "src/ruling.ts")),
 		}),
 	vocabularyAccess("session-event-journal-uses-session-event-vocabulary")
-		.because(
-			"The Session event journal persists neutral Session events and does not consume unrelated vocabulary subjects.",
-		)
+		.because("The Session event journal persists neutral Session events and does not consume unrelated vocabulary subjects.")
 		.for(packages.named("session-event-journal"))
 		.allowsOnly("session-events")
 		.demonstratedBy({
-			illegal: importFrom(
-				files.inPackage("session-event-journal", "src/journal.ts"),
-			).to(files.inPackage("vocabulary", "src/agent-runtime.ts")),
-			legal: importFrom(
-				files.inPackage("session-event-journal", "src/journal.ts"),
-			).to(files.inPackage("vocabulary", "src/session-events.ts")),
+			illegal: importFrom(files.inPackage("session-event-journal", "src/journal.ts")).to(files.inPackage("vocabulary", "src/agent-runtime.ts")),
+			legal: importFrom(files.inPackage("session-event-journal", "src/journal.ts")).to(files.inPackage("vocabulary", "src/session-events.ts")),
 		}),
 	vocabularyAccess("session-fabric-uses-session-event-vocabulary")
-		.because(
-			"The Session fabric pumps neutral Session events out of a live attachment and names no durable Agent, Board, or Change language.",
-		)
+		.because("The Session fabric pumps neutral Session events out of a live attachment and names no durable Agent, Board, or Change language.")
 		.for(packages.named("session-fabric"))
 		.allowsOnly("session-events")
 		.demonstratedBy({
-			illegal: importFrom(
-				files.inPackage("session-fabric", "src/session-attachment.ts"),
-			).to(files.inPackage("vocabulary", "src/change.ts")),
-			legal: importFrom(
-				files.inPackage("session-fabric", "src/session-attachment.ts"),
-			).to(files.inPackage("vocabulary", "src/session-events.ts")),
+			illegal: importFrom(files.inPackage("session-fabric", "src/session-attachment.ts")).to(files.inPackage("vocabulary", "src/change.ts")),
+			legal: importFrom(files.inPackage("session-fabric", "src/session-attachment.ts")).to(files.inPackage("vocabulary", "src/session-events.ts")),
 		}),
 	vocabularyAccess("sessions-uses-session-vocabulary")
 		.because(
@@ -86,12 +53,8 @@ export const vocabularyCapabilityPolicy = [
 		.for(packages.named("sessions"))
 		.allowsOnly("agent-runtime", "session-events", "session-input")
 		.demonstratedBy({
-			illegal: importFrom(
-				files.inPackage("sessions", "src/session-send.ts"),
-			).to(files.inPackage("vocabulary", "src/board.ts")),
-			legal: importFrom(files.inPackage("sessions", "src/session-send.ts")).to(
-				files.inPackage("vocabulary", "src/agent-runtime.ts"),
-			),
+			illegal: importFrom(files.inPackage("sessions", "src/session-send.ts")).to(files.inPackage("vocabulary", "src/board.ts")),
+			legal: importFrom(files.inPackage("sessions", "src/session-send.ts")).to(files.inPackage("vocabulary", "src/agent-runtime.ts")),
 		}),
 	vocabularyAccess("session-inputs-uses-session-input-vocabulary")
 		.because(
@@ -100,11 +63,7 @@ export const vocabularyCapabilityPolicy = [
 		.for(packages.named("session-inputs"))
 		.allowsOnly("session-input")
 		.demonstratedBy({
-			illegal: importFrom(
-				files.inPackage("session-inputs", "src/session-inputs.ts"),
-			).to(files.inPackage("vocabulary", "src/session-events.ts")),
-			legal: importFrom(
-				files.inPackage("session-inputs", "src/session-inputs.ts"),
-			).to(files.inPackage("vocabulary", "src/session-input.ts")),
+			illegal: importFrom(files.inPackage("session-inputs", "src/session-inputs.ts")).to(files.inPackage("vocabulary", "src/session-events.ts")),
+			legal: importFrom(files.inPackage("session-inputs", "src/session-inputs.ts")).to(files.inPackage("vocabulary", "src/session-input.ts")),
 		}),
 ] as const satisfies readonly BoundaryRule[];

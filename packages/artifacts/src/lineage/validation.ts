@@ -1,11 +1,6 @@
 import { Database } from "@antumbra/persistence";
 import { Effect, Option } from "effect";
-import {
-	ArtifactLineageConflict,
-	ArtifactNotFound,
-	ArtifactProvenanceConflict,
-	ArtifactSupersessionUnauthorized,
-} from "#errors.ts";
+import { ArtifactLineageConflict, ArtifactNotFound, ArtifactProvenanceConflict, ArtifactSupersessionUnauthorized } from "#errors.ts";
 import type { ArtifactActor, ArtifactRow } from "#model.ts";
 
 export const requireArtifact = (artifactId: string) =>
@@ -18,16 +13,8 @@ export const requireArtifact = (artifactId: string) =>
 		return stored.value;
 	});
 
-export const requireAuthority = (
-	actor: ArtifactActor,
-	superseded: ArtifactRow,
-	successor: ArtifactRow,
-) => {
-	if (
-		actor._tag === "admiral" ||
-		superseded.authorAgentId === actor.agentId ||
-		successor.authorAgentId === actor.agentId
-	) {
+export const requireAuthority = (actor: ArtifactActor, superseded: ArtifactRow, successor: ArtifactRow) => {
+	if (actor._tag === "admiral" || superseded.authorAgentId === actor.agentId || successor.authorAgentId === actor.agentId) {
 		return Effect.void;
 	}
 	return new ArtifactSupersessionUnauthorized({
@@ -37,10 +24,7 @@ export const requireAuthority = (
 	});
 };
 
-export const requireSharedPiece = (
-	superseded: ArtifactRow,
-	successor: ArtifactRow,
-) =>
+export const requireSharedPiece = (superseded: ArtifactRow, successor: ArtifactRow) =>
 	Effect.gen(function* () {
 		if (superseded.pieceId !== successor.pieceId) {
 			return yield* new ArtifactProvenanceConflict({
@@ -52,17 +36,9 @@ export const requireSharedPiece = (
 		}
 	});
 
-export const cycleWouldForm = (
-	artifacts: ReadonlyArray<ArtifactRow>,
-	supersededArtifactId: string,
-	successorArtifactId: string,
-): boolean => {
+export const cycleWouldForm = (artifacts: ReadonlyArray<ArtifactRow>, supersededArtifactId: string, successorArtifactId: string): boolean => {
 	const successorByArtifact = new Map(
-		artifacts.flatMap((artifact) =>
-			artifact.supersededByArtifactId === null
-				? []
-				: [[artifact.id, artifact.supersededByArtifactId] as const],
-		),
+		artifacts.flatMap((artifact) => (artifact.supersededByArtifactId === null ? [] : [[artifact.id, artifact.supersededByArtifactId] as const])),
 	);
 	let cursor: string | undefined = successorArtifactId;
 	const visited = new Set<string>();
@@ -79,11 +55,7 @@ export const cycleWouldForm = (
 	return false;
 };
 
-export const validateLandingSupersession = (
-	supersededArtifactId: string,
-	successorArtifactId: string,
-	successorPieceId: string,
-) =>
+export const validateLandingSupersession = (supersededArtifactId: string, successorArtifactId: string, successorPieceId: string) =>
 	Effect.gen(function* () {
 		const superseded = yield* requireArtifact(supersededArtifactId);
 		if (superseded.pieceId !== successorPieceId) {

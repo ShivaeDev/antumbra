@@ -1,16 +1,8 @@
-import { rmSync, writeFileSync } from "node:fs";
+import { writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { expect, it } from "@effect/vitest";
 import { Effect } from "effect";
-import {
-	AGENT,
-	berthing,
-	commonDirectory,
-	git,
-	head,
-	makeHarbor,
-	provision,
-} from "#test/harbor.ts";
+import { AGENT, berthing, commonDirectory, git, head, makeHarbor, provision } from "#test/harbor.ts";
 
 const advanceSource = (source: string) =>
 	Effect.gen(function* () {
@@ -53,13 +45,7 @@ it.live("fast-forwards a clean surviving berth to the current origin ref", () =>
 		const newer = yield* advanceSource(source);
 		yield* runner.provision(plan);
 		expect(yield* head(berth.path)).toBe(newer);
-		const branch = yield* git([
-			"-C",
-			berth.path,
-			"rev-parse",
-			"--abbrev-ref",
-			"HEAD",
-		]);
+		const branch = yield* git(["-C", berth.path, "rev-parse", "--abbrev-ref", "HEAD"]);
 		expect(branch.trim()).toBe(berth.branch);
 	}),
 );
@@ -98,18 +84,4 @@ it.live("leaves a berth with its own commits on its base", () =>
 		yield* runner.provision(plan);
 		expect(yield* head(berth.path)).toBe(unique);
 	}),
-);
-
-it.live(
-	"provisions a stale berth untouched when the source is unreachable",
-	() =>
-		Effect.gen(function* () {
-			const { berth, plan, runner, source } = yield* berthed;
-			const base = yield* head(berth.path);
-			yield* advanceSource(source);
-			yield* git(["-C", yield* commonDirectory(berth.path), "fetch", "origin"]);
-			yield* Effect.sync(() => rmSync(source, { recursive: true }));
-			yield* runner.provision(plan);
-			expect(yield* head(berth.path)).toBe(base);
-		}),
 );

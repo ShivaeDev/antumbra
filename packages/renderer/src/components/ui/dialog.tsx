@@ -2,27 +2,19 @@ import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { XIcon } from "lucide-react";
 import { cn } from "#lib/utils.ts";
 
-export const Dialog = (
-	props: React.ComponentProps<typeof DialogPrimitive.Root>,
-) => <DialogPrimitive.Root data-slot="dialog" {...props} />;
+export const Dialog = (props: React.ComponentProps<typeof DialogPrimitive.Root>) => <DialogPrimitive.Root data-slot="dialog" {...props} />;
 
-export const DialogTrigger = (
-	props: React.ComponentProps<typeof DialogPrimitive.Trigger>,
-) => <DialogPrimitive.Trigger data-slot="dialog-trigger" {...props} />;
+export const DialogTrigger = (props: React.ComponentProps<typeof DialogPrimitive.Trigger>) => (
+	<DialogPrimitive.Trigger data-slot="dialog-trigger" {...props} />
+);
 
-export const DialogClose = (
-	props: React.ComponentProps<typeof DialogPrimitive.Close>,
-) => <DialogPrimitive.Close data-slot="dialog-close" {...props} />;
+export const DialogClose = (props: React.ComponentProps<typeof DialogPrimitive.Close>) => (
+	<DialogPrimitive.Close data-slot="dialog-close" {...props} />
+);
 
-export const DialogOverlay = ({
-	className,
-	...props
-}: React.ComponentProps<typeof DialogPrimitive.Overlay>) => (
+export const DialogOverlay = ({ className, ...props }: React.ComponentProps<typeof DialogPrimitive.Overlay>) => (
 	<DialogPrimitive.Overlay
-		className={cn(
-			"fixed inset-0 z-50 bg-background/75 backdrop-blur-[2px]",
-			className,
-		)}
+		className={cn("fixed inset-0 z-50 bg-background/75 backdrop-blur-[2px]", className)}
 		data-slot="dialog-overlay"
 		{...props}
 	/>

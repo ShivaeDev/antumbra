@@ -2,9 +2,7 @@ import { Database } from "@antumbra/persistence";
 import { Effect, Option } from "effect";
 import type { ReportReading } from "#model.ts";
 
-export const readReport = Effect.fn("reports.readReport")(function* (
-	reportId: string,
-) {
+export const readReport = Effect.fn("reports.readReport")(function* (reportId: string) {
 	const db = yield* Database;
 	const stored = yield* db.Report.where({ id: reportId }).first();
 	if (Option.isNone(stored)) {

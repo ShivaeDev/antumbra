@@ -17,9 +17,6 @@ export class SessionRecoveryRuntime extends Context.Service<
 			permit: SessionStartPermit,
 			context: SessionRecoveryContext,
 			instruction: SessionInput,
-		) => Effect.Effect<
-			void,
-			BackendFailure | PrismaError | SessionRecoveryHeld
-		>;
+		) => Effect.Effect<void, BackendFailure | PrismaError | SessionRecoveryHeld>;
 	}
 >()("@antumbra/sessions/SessionRecoveryRuntime") {}

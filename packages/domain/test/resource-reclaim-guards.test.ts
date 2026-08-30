@@ -14,55 +14,39 @@ const untilTerminal = <E, R>(changes: Stream.Stream<IntentStatus, E, R>) =>
 const seedAgentResources = (agentId: string, status: string) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
-		yield* db.transaction(
-			Effect.gen(function* () {
-				yield* Database;
-				yield* Effect.all([
-					db.Agent.create({
-						charter: "claimed resources open no work",
-						id: agentId,
-						role: "keeper",
-						status,
-					}),
-					db.Moorage.create({
-						agentId,
-						reclaimState: null,
-						root: `/tmp/moorage/${agentId}`,
-						runner: "local",
-						status: "ready",
-					}),
-					db.Berth.create({
-						agentId,
-						branch: `work/${agentId}/berth-0`,
-						id: `${agentId}:berth-0`,
-						path: `/tmp/moorage/${agentId}/berth-0`,
-						reclaimState: null,
-						ref: "main",
-						runner: "local",
-						slug: "berth-0",
-						source: REEF_SOURCE,
-						status: "ready",
-						strandedAt: null,
-					}),
-				]);
-			}),
-		);
+		yield* db.Agent.create({
+			charter: "claimed resources open no work",
+			id: agentId,
+			role: "keeper",
+			status,
+		});
+		yield* db.Moorage.create({
+			agentId,
+			reclaimState: null,
+			root: `/tmp/moorage/${agentId}`,
+			runner: "local",
+			status: "ready",
+		});
+		yield* db.Berth.create({
+			agentId,
+			branch: `work/${agentId}/berth-0`,
+			id: `${agentId}:berth-0`,
+			path: `/tmp/moorage/${agentId}/berth-0`,
+			reclaimState: null,
+			ref: "main",
+			runner: "local",
+			slug: "berth-0",
+			source: REEF_SOURCE,
+			status: "ready",
+			strandedAt: null,
+		});
 	});
 
 const claimAgentResources = (agentId: string) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
-		yield* db.transaction(
-			Effect.gen(function* () {
-				yield* Database;
-				yield* db.Moorage.where({ agentId }).update({
-					reclaimState: "claimed",
-				});
-				yield* db.Berth.where({ agentId }).update({
-					reclaimState: "claimed",
-				});
-			}),
-		);
+		yield* db.Moorage.where({ agentId }).update({ reclaimState: "claimed" });
+		yield* db.Berth.where({ agentId }).update({ reclaimState: "claimed" });
 	});
 
 const expectClaimed = <A, E, R>(effect: Effect.Effect<A, E, R>) =>

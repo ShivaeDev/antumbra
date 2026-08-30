@@ -13,39 +13,32 @@ const BERTH_ID = `${AGENT_ID}:berth-0`;
 
 const seedRetiredBerth = Effect.gen(function* () {
 	const db = yield* Database;
-	yield* db.transaction(
-		Effect.gen(function* () {
-			yield* Database;
-			yield* Effect.all([
-				db.Agent.create({
-					charter: "preserve cleanup ownership",
-					id: AGENT_ID,
-					role: "keeper",
-					status: "retired",
-				}),
-				db.Moorage.create({
-					agentId: AGENT_ID,
-					reclaimState: null,
-					root: `/tmp/moorage/${AGENT_ID}`,
-					runner: "local",
-					status: "ready",
-				}),
-				db.Berth.create({
-					agentId: AGENT_ID,
-					branch: `work/${AGENT_ID}/berth-0`,
-					id: BERTH_ID,
-					path: `/tmp/moorage/${AGENT_ID}/berth-0`,
-					reclaimState: null,
-					ref: "main",
-					runner: "local",
-					slug: "berth-0",
-					source: REEF_SOURCE,
-					status: "ready",
-					strandedAt: null,
-				}),
-			]);
-		}),
-	);
+	yield* db.Agent.create({
+		charter: "preserve cleanup ownership",
+		id: AGENT_ID,
+		role: "keeper",
+		status: "retired",
+	});
+	yield* db.Moorage.create({
+		agentId: AGENT_ID,
+		reclaimState: null,
+		root: `/tmp/moorage/${AGENT_ID}`,
+		runner: "local",
+		status: "ready",
+	});
+	yield* db.Berth.create({
+		agentId: AGENT_ID,
+		branch: `work/${AGENT_ID}/berth-0`,
+		id: BERTH_ID,
+		path: `/tmp/moorage/${AGENT_ID}/berth-0`,
+		reclaimState: null,
+		ref: "main",
+		runner: "local",
+		slug: "berth-0",
+		source: REEF_SOURCE,
+		status: "ready",
+		strandedAt: null,
+	});
 });
 
 it.live("a terminal Agent cannot prepare new local work before reclamation claims it", () =>

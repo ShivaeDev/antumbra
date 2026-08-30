@@ -1,5 +1,5 @@
 import { join } from "node:path";
-import { Cause, Clock, Effect, type Scope } from "effect";
+import { Clock, Effect, type Scope } from "effect";
 import { openTraceDatabase } from "#adapters/database.ts";
 import { makeRecorder, type Recorder } from "#recorder.ts";
 
@@ -13,9 +13,6 @@ export interface TraceSinkOptions {
 	readonly flushMillis: number;
 }
 
-// why: a trace database that cannot be opened costs the run one warning and
-// nothing else. Failing the Layer here would let a full disk stop the app from
-// starting, which is the opposite of what a debugging aid is for.
 const openOrWarn = (options: TraceSinkOptions, runId: string, at: number) =>
 	Effect.try(() =>
 		openTraceDatabase({
@@ -24,7 +21,7 @@ const openOrWarn = (options: TraceSinkOptions, runId: string, at: number) =>
 			runId,
 			startedAtMillis: at,
 		}),
-	).pipe(Effect.catchCause((cause) => Effect.logWarning(`${DISABLED}: ${Cause.pretty(cause)}`).pipe(Effect.as(undefined))));
+	).pipe(Effect.catch((error) => Effect.logWarning(`${DISABLED}: ${error}`).pipe(Effect.as(undefined))));
 
 export const makeTraceSink = (options: TraceSinkOptions): Effect.Effect<Recorder, never, Scope.Scope> =>
 	Effect.gen(function* () {

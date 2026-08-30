@@ -3,6 +3,9 @@
 Run `pnpm ready` for mechanical checks. During review, apply only the routes
 touched by the change:
 
+- Every code or test change first applies the binding simplicity gate:
+  [`simplicity.md`](simplicity.md)
+
 - Types, schemas, errors, or boundary decoding:
   [`strict-typing.md`](strict-typing.md)
 - File splits, extractions, density, or responsibility:

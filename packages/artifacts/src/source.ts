@@ -6,6 +6,7 @@ import {
 	isRelativeArtifactPath,
 	MAX_ARTIFACT_MARKDOWN_BYTES,
 	readOpened,
+	sameObject,
 } from "#content.ts";
 import {
 	ArtifactContentInvalid,
@@ -14,15 +15,6 @@ import {
 	artifactPublicationFailed,
 } from "#errors.ts";
 import type { ArtifactInput } from "#model.ts";
-
-const sameObject = (
-	opened: FileSystem.File.Info,
-	resolved: FileSystem.File.Info,
-): boolean =>
-	opened.dev === resolved.dev &&
-	Option.isSome(opened.ino) &&
-	Option.isSome(resolved.ino) &&
-	opened.ino.value === resolved.ino.value;
 
 const invalidPathReason = (value: string) => {
 	if (value.length === 0) {

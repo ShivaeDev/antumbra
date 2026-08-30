@@ -33,6 +33,15 @@ export const isSafeArtifactBasename = (value: string): boolean =>
 export const isArtifactDigest = (value: string): boolean =>
 	/^[0-9a-f]{64}$/.test(value);
 
+export const sameObject = (
+	opened: FileSystem.File.Info,
+	resolved: FileSystem.File.Info,
+): boolean =>
+	opened.dev === resolved.dev &&
+	Option.isSome(opened.ino) &&
+	Option.isSome(resolved.ino) &&
+	opened.ino.value === resolved.ino.value;
+
 export const hex = (bytes: Uint8Array): string =>
 	Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("");
 

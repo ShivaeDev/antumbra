@@ -7,18 +7,10 @@ import type {
 	SupersedeRequest,
 	WithdrawRequest,
 } from "@antumbra/contract";
-import { client, toError } from "#adapters/bridge.ts";
+import { client, fired, toError } from "#adapters/bridge.ts";
 import type { Unsubscribe } from "#adapters/trpc.ts";
 
 type OnError = (message: string) => void;
-
-const fired = (acted: Promise<unknown>, onError: OnError): void => {
-	acted
-		.then(() => undefined)
-		.catch((cause: unknown) => {
-			onError(toError(cause).message);
-		});
-};
 
 // why: the feed opens with every ruling still open and stays current after, so
 // a window that reloads rehydrates from it rather than asking twice.

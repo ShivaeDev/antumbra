@@ -35,7 +35,6 @@
 		"@antumbra/trace-sink": "workspace:*",
 		"@effect/platform-node": "catalog:",
 		"@effect/vitest": "catalog:",
-		"@shivaedev/effect-trpc": "catalog:",
 		"@tailwindcss/vite": "catalog:",
 		"@trpc/server": "catalog:",
 		"@types/node": "catalog:",

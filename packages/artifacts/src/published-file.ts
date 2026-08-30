@@ -1,23 +1,7 @@
-import {
-	Crypto,
-	Effect,
-	FileSystem,
-	Option,
-	Path,
-	type PlatformError,
-} from "effect";
-import { digestBytes, readOpened } from "#content.ts";
+import { Crypto, Effect, FileSystem, Path, type PlatformError } from "effect";
+import { digestBytes, readOpened, sameObject } from "#content.ts";
 import { ArtifactPublicationFailed } from "#errors.ts";
 import { syncOpened } from "#filesystem-durability.ts";
-
-const sameObject = (
-	opened: FileSystem.File.Info,
-	resolved: FileSystem.File.Info,
-): boolean =>
-	opened.dev === resolved.dev &&
-	Option.isSome(opened.ino) &&
-	Option.isSome(resolved.ino) &&
-	opened.ino.value === resolved.ino.value;
 
 const verifyPublished = (
 	destination: string,

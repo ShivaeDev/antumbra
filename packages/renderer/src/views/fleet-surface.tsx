@@ -1,15 +1,18 @@
 import type { Fleet } from "@antumbra/contract";
+import type { Navigate } from "#console/navigation.ts";
 import { FleetPanel } from "#views/fleet.tsx";
 import { SessionPane } from "#views/session-pane.tsx";
 
 export const FleetSurface = ({
 	fleet,
 	onError,
+	onNavigate,
 	onSelect,
 	session,
 }: {
 	readonly fleet: Fleet | undefined;
 	readonly onError: (message: string) => void;
+	readonly onNavigate: Navigate;
 	readonly onSelect: (sessionId: string | undefined) => void;
 	readonly session: string | undefined;
 }) => (
@@ -17,6 +20,7 @@ export const FleetSurface = ({
 		<FleetPanel
 			fleet={fleet}
 			onError={onError}
+			onNavigate={onNavigate}
 			onSelect={onSelect}
 			selected={session}
 		/>

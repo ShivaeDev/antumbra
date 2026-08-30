@@ -1,4 +1,5 @@
 import type { Fleet } from "@antumbra/contract";
+import type { Navigate } from "#console/navigation.ts";
 import { rosterGroups } from "#fleet/roster.ts";
 import { FleetDiagChips } from "#views/diagnostics.tsx";
 import { FleetToolbar } from "#views/fleet-toolbar.tsx";
@@ -7,11 +8,13 @@ import { RosterGroupPanel } from "#views/roster-group.tsx";
 const Roster = ({
 	fleet,
 	onError,
+	onNavigate,
 	onSelect,
 	selected,
 }: {
 	readonly fleet: Fleet | undefined;
 	readonly onError: (message: string) => void;
+	readonly onNavigate: Navigate;
 	readonly onSelect: (sessionId: string) => void;
 	readonly selected: string | undefined;
 }) => {
@@ -34,6 +37,7 @@ const Roster = ({
 					group={group}
 					key={group.standing}
 					onError={onError}
+					onNavigate={onNavigate}
 					onSelect={onSelect}
 					selected={selected}
 				/>
@@ -45,11 +49,13 @@ const Roster = ({
 export const FleetPanel = ({
 	fleet,
 	onError,
+	onNavigate,
 	onSelect,
 	selected,
 }: {
 	readonly fleet: Fleet | undefined;
 	readonly onError: (message: string) => void;
+	readonly onNavigate: Navigate;
 	readonly onSelect: (sessionId: string) => void;
 	readonly selected: string | undefined;
 }) => (
@@ -59,6 +65,7 @@ export const FleetPanel = ({
 		<Roster
 			fleet={fleet}
 			onError={onError}
+			onNavigate={onNavigate}
 			onSelect={onSelect}
 			selected={selected}
 		/>

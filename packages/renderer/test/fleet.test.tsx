@@ -8,6 +8,7 @@ const render = (fleet: Fleet): string =>
 		<FleetPanel
 			fleet={fleet}
 			onError={() => undefined}
+			onNavigate={() => undefined}
 			onSelect={() => undefined}
 			selected={undefined}
 		/>,
@@ -43,6 +44,7 @@ const navigator = (canInterrupt: boolean, execution: string): AgentSummary => ({
 		},
 	],
 	status: "alive",
+	work: [],
 });
 
 const renderFleet = (canInterrupt: boolean, execution: string): string =>

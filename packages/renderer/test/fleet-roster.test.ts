@@ -32,6 +32,7 @@ const agent = (
 	role: `role-${id}`,
 	sessions,
 	status,
+	work: [],
 });
 
 const working = agent("working", "alive", [session("s1", "working")]);

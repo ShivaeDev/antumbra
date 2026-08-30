@@ -4,6 +4,7 @@ import { type WindowPlace, WindowRefused, WindowSource } from "#windows.ts";
 export const consoleWindow: WindowPlace = {
 	changeId: null,
 	mode: "fleet",
+	pieceId: null,
 	role: "console",
 	sessionId: null,
 	voyageId: null,

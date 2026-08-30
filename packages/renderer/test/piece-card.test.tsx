@@ -55,8 +55,13 @@ const chart: PieceView = {
 
 const pieces = [soundings, chart];
 
-const card = (piece: PieceView): React.ReactElement => (
-	<PieceCard onError={() => undefined} piece={piece} pieces={pieces} />
+const card = (piece: PieceView, selected = false): React.ReactElement => (
+	<PieceCard
+		onError={() => undefined}
+		piece={piece}
+		pieces={pieces}
+		selected={selected}
+	/>
 );
 
 const mount = (): { container: HTMLElement; root: Root } => {
@@ -113,6 +118,15 @@ it("holds the charter, the ladder and the acts until the card is opened", () => 
 	expect(shown).not.toContain("Awaiting ruling");
 	expect(shown).not.toContain("Launch");
 	expect(shown).toContain('aria-expanded="false"');
+});
+
+// why: a card another page pointed the console at is the one the reader came
+// for, so it is already open when they arrive.
+it("opens itself when the console was pointed at it", () => {
+	const shown = renderToStaticMarkup(card(soundings, true));
+
+	expect(shown).toContain('aria-expanded="true"');
+	expect(shown).toContain("<h1>Sound the shoals</h1>");
 });
 
 it("keeps a charter inside the card however long its words run", () => {

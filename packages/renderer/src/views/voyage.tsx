@@ -8,9 +8,11 @@ import { VoyageHeader } from "#views/voyage-header.tsx";
 
 export const VoyagePanel = ({
 	onError,
+	piece,
 	voyageId,
 }: {
 	readonly onError: (message: string) => void;
+	readonly piece: string | undefined;
 	readonly voyageId: string;
 }) => {
 	const { error, value: voyage } = useFeed<VoyageView>(
@@ -41,6 +43,7 @@ export const VoyagePanel = ({
 					<PiecesPanel
 						onError={onError}
 						pieces={voyage.pieces}
+						selected={piece}
 						voyageId={voyage.id}
 					/>
 					<div className="flex min-w-0 flex-col gap-6">

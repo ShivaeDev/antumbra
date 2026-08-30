@@ -52,6 +52,7 @@ const fleetWith = (
 				},
 			],
 			status: "alive",
+			work: [],
 		},
 	],
 	backends: ["scripted"],

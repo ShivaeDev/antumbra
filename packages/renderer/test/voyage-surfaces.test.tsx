@@ -50,6 +50,7 @@ const pieces = () =>
 		<PiecesPanel
 			onError={() => undefined}
 			pieces={reefView.pieces}
+			selected={undefined}
 			voyageId={reefView.id}
 		/>,
 	);

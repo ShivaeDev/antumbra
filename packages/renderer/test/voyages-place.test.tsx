@@ -1,5 +1,5 @@
-// why: @vitest-environment happy-dom proves the selected Change crosses the
-// same remembered window-place boundary as voyage and Session selections.
+// why: @vitest-environment happy-dom proves a page sending the reader to a
+// piece changes the mode and the selection as one remembered place.
 
 import type { ConsolePlace } from "@antumbra/contract";
 import { expect, it } from "@effect/vitest";
@@ -8,6 +8,7 @@ import { act } from "react";
 import { createRoot } from "react-dom/client";
 import { vi } from "vitest";
 import { ConsoleApp } from "#app.tsx";
+import type { Navigate } from "#console/navigation.ts";
 
 const { rememberPlace } = vi.hoisted(() => ({ rememberPlace: vi.fn() }));
 
@@ -30,24 +31,35 @@ vi.mock("#views/nav-rail.tsx", () => ({ NavRail: () => null }));
 vi.mock("#views/notice-bar.tsx", () => ({ NoticeBar: () => null }));
 vi.mock("#views/console-main.tsx", () => ({
 	ConsoleMain: ({
-		change,
-		onChange,
+		mode,
+		onNavigate,
+		piece,
 	}: {
-		readonly change: string | undefined;
-		readonly onChange: (changeId: string | undefined) => void;
+		readonly mode: string;
+		readonly onNavigate: Navigate;
+		readonly piece: string | undefined;
 	}) => (
-		<button onClick={() => onChange("change-8")} type="button">
-			{change}
+		<button
+			onClick={() =>
+				onNavigate({
+					mode: "voyages",
+					pieceId: "piece-1",
+					voyageId: "voyage-1",
+				})
+			}
+			type="button"
+		>
+			{mode} {piece}
 		</button>
 	),
 }));
 
 const place = {
-	changeId: "change-7",
-	mode: "quay",
+	changeId: null,
+	mode: "fleet",
 	pieceId: null,
 	role: "console",
-	sessionId: null,
+	sessionId: "session-1",
 	voyageId: null,
 } as const satisfies ConsolePlace;
 
@@ -59,16 +71,17 @@ const settle = (change: () => void): Effect.Effect<void> =>
 		}),
 	);
 
-it.effect("restores and remembers the selected pull request", () =>
+it.effect("moves to the piece in one remembered place", () =>
 	Effect.gen(function* () {
 		const container = document.createElement("div");
 		const root = createRoot(container);
 		yield* settle(() => root.render(<ConsoleApp place={place} />));
 
-		expect(container.textContent).toBe("change-7");
+		expect(rememberPlace).toHaveBeenLastCalledWith(place, expect.any(Function));
 		yield* settle(() => container.querySelector("button")?.click());
+		expect(container.textContent).toBe("voyages piece-1");
 		expect(rememberPlace).toHaveBeenLastCalledWith(
-			{ ...place, changeId: "change-8" },
+			{ ...place, mode: "voyages", pieceId: "piece-1", voyageId: "voyage-1" },
 			expect.any(Function),
 		);
 		yield* settle(() => root.unmount());

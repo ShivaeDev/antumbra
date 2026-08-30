@@ -65,7 +65,11 @@ const render = (root: Root, voyageId: string): Effect.Effect<void> =>
 	Effect.promise(() =>
 		act(() => {
 			root.render(
-				<VoyagePanel onError={() => undefined} voyageId={voyageId} />,
+				<VoyagePanel
+					onError={() => undefined}
+					piece={undefined}
+					voyageId={voyageId}
+				/>,
 			);
 			return Promise.resolve();
 		}),

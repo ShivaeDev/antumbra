@@ -37,5 +37,8 @@ export const quayGroup = (change: ChangeView): QuayGroup => {
 // that is neither is still owed something and hiding it is how a dead end is
 // made: a closed change that quietly disappeared while it still counted was
 // the whole of the trouble. So it waits here, wanting a hand or a verdict.
-export const liesAtQuay = (world: VoyageWorld, change: ChangeRow): boolean =>
+export const liesAtQuay = (
+	world: Pick<VoyageWorld, "dismissedChangeIds">,
+	change: ChangeRow,
+): boolean =>
 	change.stage !== "landed" && !world.dismissedChangeIds.has(change.id);

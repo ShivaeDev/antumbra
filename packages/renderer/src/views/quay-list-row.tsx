@@ -1,19 +1,9 @@
-import type { QuayGroup } from "@antumbra/contract";
 import { Badge } from "#components/ui/badge.tsx";
 import { cn } from "#lib/utils.ts";
 import type { QuayChange } from "#quay/changes.ts";
-import { groupTitle } from "#quay/groups.ts";
+import { groupTitle, groupVariant } from "#quay/groups.ts";
 import { changeNumber } from "#quay/marks.ts";
 import { whenLabel } from "#voyages/labels.ts";
-
-const GROUP_VARIANTS: Readonly<
-	Record<QuayGroup, "destructive" | "outline" | "success" | "warning">
-> = {
-	alongside: "success",
-	checksRunning: "warning",
-	draft: "outline",
-	needsAttention: "destructive",
-};
 
 const WorkLine = ({ item }: { readonly item: QuayChange }) => {
 	if (item.berthings.length > 1) {
@@ -63,7 +53,7 @@ export const QuayListRow = ({
 					<Badge className="max-w-32 truncate font-mono" variant="outline">
 						{item.change.repoName}
 					</Badge>
-					<Badge variant={GROUP_VARIANTS[item.group]}>
+					<Badge variant={groupVariant[item.group]}>
 						{groupTitle[item.group]}
 					</Badge>
 					<span className="ml-auto shrink-0 text-2xs text-muted-foreground">

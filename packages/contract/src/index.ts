@@ -30,10 +30,15 @@ export {
 } from "#channels.ts";
 export {
 	AgentSummary,
+	AgentWork,
 	BerthSummary,
 	Fleet,
+	PieceWork,
 	RepoSummary,
 	SessionSummary,
+	VoyageCommand,
+	WorkChange,
+	WorkChangeStanding,
 } from "#fleet.ts";
 export {
 	SubscribeRequest,

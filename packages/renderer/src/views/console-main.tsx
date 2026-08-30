@@ -1,4 +1,5 @@
 import type { ConsoleMode, Fleet, VoyageSummary } from "@antumbra/contract";
+import type { Navigate } from "#console/navigation.ts";
 import { FlagshipPanel } from "#views/flagship.tsx";
 import { FleetSurface } from "#views/fleet-surface.tsx";
 import { QuayPanel } from "#views/quay.tsx";
@@ -13,8 +14,9 @@ interface ConsoleProps {
 	readonly mode: ConsoleMode;
 	readonly onChange: (changeId: string | undefined) => void;
 	readonly onError: (message: string) => void;
+	readonly onNavigate: Navigate;
 	readonly onSession: (sessionId: string | undefined) => void;
-	readonly onVoyage: (voyageId: string) => void;
+	readonly piece: string | undefined;
 	readonly session: string | undefined;
 	readonly voyage: string | undefined;
 	readonly voyages: ReadonlyArray<VoyageSummary>;
@@ -41,6 +43,7 @@ export const ConsoleMain = (props: ConsoleProps) => {
 			<FleetSurface
 				fleet={props.fleet}
 				onError={props.onError}
+				onNavigate={props.onNavigate}
 				onSelect={props.onSession}
 				session={props.session}
 			/>
@@ -71,7 +74,9 @@ export const ConsoleMain = (props: ConsoleProps) => {
 				<VoyagesAside
 					backends={props.fleet?.backends ?? []}
 					onError={props.onError}
-					onSelect={props.onVoyage}
+					onSelect={(voyageId) =>
+						props.onNavigate({ mode: "voyages", pieceId: null, voyageId })
+					}
 					selected={props.voyage}
 					voyages={props.voyages}
 				/>
@@ -81,7 +86,11 @@ export const ConsoleMain = (props: ConsoleProps) => {
 					select a voyage to see its pieces
 				</section>
 			) : (
-				<VoyagePanel onError={props.onError} voyageId={props.voyage} />
+				<VoyagePanel
+					onError={props.onError}
+					piece={props.piece}
+					voyageId={props.voyage}
+				/>
 			)}
 		</div>
 	);

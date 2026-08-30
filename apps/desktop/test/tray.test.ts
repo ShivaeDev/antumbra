@@ -35,6 +35,7 @@ const agent = (
 	role: "crew",
 	sessions,
 	status: "alive",
+	work: [],
 });
 
 const fleetOf = (agents: ReadonlyArray<AgentSummary>): Fleet => ({

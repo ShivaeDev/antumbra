@@ -7,10 +7,12 @@ import { byLadder } from "#voyages/order.ts";
 export const PiecesPanel = ({
 	onError,
 	pieces,
+	selected,
 	voyageId,
 }: {
 	readonly onError: (message: string) => void;
 	readonly pieces: ReadonlyArray<PieceView>;
+	readonly selected: string | undefined;
 	readonly voyageId: string;
 }) => (
 	<Section>
@@ -33,7 +35,12 @@ export const PiecesPanel = ({
 			<ul className="flex min-w-0 flex-col gap-2">
 				{byLadder(pieces).map((piece) => (
 					<li className="min-w-0" key={piece.id}>
-						<PieceCard onError={onError} piece={piece} pieces={pieces} />
+						<PieceCard
+							onError={onError}
+							piece={piece}
+							pieces={pieces}
+							selected={piece.id === selected}
+						/>
 					</li>
 				))}
 			</ul>

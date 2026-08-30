@@ -17,6 +17,17 @@ export const groupTitle: Readonly<Record<QuayGroup, string>> = {
 	needsAttention: "Needs attention",
 };
 
+// why: a group's tint is decided once, so the rail, the status pane and a
+// fleet card colour the same standing alike and a reader learns it once.
+export const groupVariant: Readonly<
+	Record<QuayGroup, "destructive" | "outline" | "success" | "warning">
+> = {
+	alongside: "success",
+	checksRunning: "warning",
+	draft: "outline",
+	needsAttention: "destructive",
+};
+
 // why: how old the reading is belongs to the page rather than to each card —
 // one pass of the watcher stamps them all, so the newest stamp speaks for the
 // whole quay and says whether asking again would tell you anything.

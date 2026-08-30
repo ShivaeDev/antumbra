@@ -1,4 +1,5 @@
 import { Separator } from "#components/ui/separator.tsx";
+import type { Navigate } from "#console/navigation.ts";
 import {
 	type RosterGroup,
 	STANDING_LABEL,
@@ -21,11 +22,13 @@ const DOT: Readonly<Record<Standing, string>> = {
 export const RosterGroupPanel = ({
 	group,
 	onError,
+	onNavigate,
 	onSelect,
 	selected,
 }: {
 	readonly group: RosterGroup;
 	readonly onError: (message: string) => void;
+	readonly onNavigate: Navigate;
 	readonly onSelect: (sessionId: string) => void;
 	readonly selected: string | undefined;
 }) => (
@@ -48,6 +51,7 @@ export const RosterGroupPanel = ({
 					agent={agent}
 					key={agent.id}
 					onError={onError}
+					onNavigate={onNavigate}
 					onSelect={onSelect}
 					selected={selected}
 				/>

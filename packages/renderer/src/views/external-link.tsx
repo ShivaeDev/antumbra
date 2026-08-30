@@ -7,15 +7,18 @@ import { cn } from "#lib/utils.ts";
 export const ExternalLink = ({
 	children,
 	className,
+	title,
 	url,
 }: {
 	readonly children: ReactNode;
 	readonly className?: string;
+	readonly title?: string;
 	readonly url: string;
 }) => (
 	<a
 		className={cn("text-link underline-offset-4 hover:underline", className)}
 		href={url}
+		title={title}
 		onClick={(event) => {
 			event.preventDefault();
 			openExternal(url);

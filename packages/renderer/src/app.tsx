@@ -1,25 +1,32 @@
-import type { ConsoleMode, ConsolePlace } from "@antumbra/contract";
+import type { ConsolePlace } from "@antumbra/contract";
 import { useEffect, useState } from "react";
 import { watchFleet } from "#adapters/trpc.ts";
 import { watchVoyages } from "#adapters/trpc-voyages.ts";
 import { rememberPlace } from "#adapters/trpc-windows.ts";
+import type { Navigate } from "#console/navigation.ts";
 import { useFeed } from "#hooks/feed.ts";
 import { discardMissingSessionDrafts } from "#session-drafts/store.ts";
 import { ConsoleMain } from "#views/console-main.tsx";
 import { NavRail } from "#views/nav-rail.tsx";
 import { NoticeBar } from "#views/notice-bar.tsx";
 
-export const ConsoleApp = ({ place }: { readonly place: ConsolePlace }) => {
+export const ConsoleApp = ({
+	place: opened,
+}: {
+	readonly place: ConsolePlace;
+}) => {
 	const { error: fleetError, value: fleet } = useFeed("fleet", watchFleet);
 	const { error: voyagesError, value: voyages } = useFeed(
 		"voyages",
 		watchVoyages,
 	);
-	const [mode, setMode] = useState<ConsoleMode>(place.mode);
-	const [change, setChange] = useState(place.changeId ?? undefined);
-	const [session, setSession] = useState(place.sessionId ?? undefined);
-	const [voyage, setVoyage] = useState(place.voyageId ?? undefined);
+	// why: where the console is pointed is one value, so a page that sends the
+	// reader to another page changes the mode and the selection in one step
+	// and main is told about one place rather than two halves of it.
+	const [place, setPlace] = useState<ConsolePlace>(opened);
 	const [notice, setNotice] = useState<string | undefined>(undefined);
+	const navigate: Navigate = (target) =>
+		setPlace((current) => ({ ...current, ...target }));
 	const feedErrors = [fleetError, voyagesError].flatMap((error) =>
 		error === undefined ? [] : [error],
 	);
@@ -27,17 +34,8 @@ export const ConsoleApp = ({ place }: { readonly place: ConsolePlace }) => {
 	// why: where the console is pointed is main's to keep, so a reload comes
 	// back to it rather than to whatever a first render would have shown.
 	useEffect(() => {
-		rememberPlace(
-			{
-				changeId: change ?? null,
-				mode,
-				role: "console",
-				sessionId: session ?? null,
-				voyageId: voyage ?? null,
-			},
-			setNotice,
-		);
-	}, [change, mode, session, voyage]);
+		rememberPlace(place, setNotice);
+	}, [place]);
 
 	// why: Sessions ordinarily remain in the durable fleet after they end. Only
 	// absence from a complete fleet sight means a stored local draft has lost
@@ -55,7 +53,10 @@ export const ConsoleApp = ({ place }: { readonly place: ConsolePlace }) => {
 
 	return (
 		<div className="flex h-screen min-w-0 bg-background text-foreground">
-			<NavRail mode={mode} onMode={setMode} />
+			<NavRail
+				mode={place.mode}
+				onMode={(mode) => setPlace((current) => ({ ...current, mode }))}
+			/>
 			<main className="flex min-h-0 min-w-0 flex-1 flex-col">
 				<NoticeBar
 					feedErrors={feedErrors}
@@ -63,15 +64,23 @@ export const ConsoleApp = ({ place }: { readonly place: ConsolePlace }) => {
 					onDismiss={() => setNotice(undefined)}
 				/>
 				<ConsoleMain
-					change={change}
+					change={place.changeId ?? undefined}
 					fleet={fleet}
-					mode={mode}
-					onChange={setChange}
+					mode={place.mode}
+					onChange={(changeId) =>
+						setPlace((current) => ({ ...current, changeId: changeId ?? null }))
+					}
 					onError={setNotice}
-					onSession={setSession}
-					onVoyage={setVoyage}
-					session={session}
-					voyage={voyage}
+					onNavigate={navigate}
+					onSession={(sessionId) =>
+						setPlace((current) => ({
+							...current,
+							sessionId: sessionId ?? null,
+						}))
+					}
+					piece={place.pieceId ?? undefined}
+					session={place.sessionId ?? undefined}
+					voyage={place.voyageId ?? undefined}
 					voyages={voyages ?? []}
 				/>
 			</main>

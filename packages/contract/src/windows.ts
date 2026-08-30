@@ -20,6 +20,10 @@ export type ConsoleMode = typeof ConsoleMode.Type;
 export const ConsolePlace = Schema.Struct({
 	changeId: Schema.NullOr(Schema.String),
 	mode: ConsoleMode,
+	// why: the piece the voyages page was opened onto, so a reload lands on the
+	// same card another page pointed the console at rather than on the voyage
+	// alone. It means nothing without its voyage and is cleared with it.
+	pieceId: Schema.NullOr(Schema.String),
 	role: Schema.Literal("console"),
 	sessionId: Schema.NullOr(Schema.String),
 	voyageId: Schema.NullOr(Schema.String),

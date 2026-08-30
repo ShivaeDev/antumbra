@@ -46,6 +46,11 @@ export const fleet: Fleet = {
 				},
 			],
 			status: "alive",
+			// why: the reef's captain, the same agent its voyage fixture names —
+			// so the fleet and the voyage tell one story about who commands it.
+			work: [
+				{ kind: "voyage", voyageId: "voyage-1", voyageName: "Chart the reef" },
+			],
 		},
 	],
 	backends: ["claude"],

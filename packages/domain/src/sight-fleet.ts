@@ -1,4 +1,3 @@
-import { Changes } from "@antumbra/changes";
 import type { AgentSummary, Fleet, RepoSummary } from "@antumbra/contract";
 import { Database } from "@antumbra/persistence";
 import {
@@ -7,9 +6,11 @@ import {
 	decodeStoredResourceReclaimState,
 } from "@antumbra/vocabulary/agent-runtime";
 import { Effect } from "effect";
+import { workOf } from "#agent-work.ts";
 import { rootSessions } from "#session-roots.ts";
 import { situationsByAgent } from "#session-situations.ts";
 import { attributeIntents } from "#sight-diagnostics.ts";
+import { fleetLinks } from "#sight-fleet-links.ts";
 import { type FleetRuntime, sessionSummary } from "#sight-fleet-sessions.ts";
 import type { PendingIntent } from "#sight-intents.ts";
 
@@ -21,7 +22,6 @@ export const fleetSnapshot = (
 ) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
-		const changes = yield* Changes;
 		const storedAgents = yield* db.Agent.orderBy((agent) =>
 			agent.createdAt.asc(),
 		).all();
@@ -41,13 +41,17 @@ export const fleetSnapshot = (
 			new Set(agents.map((agent) => agent.id)),
 			new Set(sessions.map((session) => session.id)),
 		);
-		// why: the Changes an Agent is answering for are read in the same pass as
-		// its Sessions, through the capability that owns them rather than off the
-		// rows — a situation offered from a Change this snapshot never decoded
-		// would be an affordance standing on unread truth.
-		const snapshot = yield* changes.snapshot;
+		const repos: ReadonlyArray<RepoSummary> = (yield* db.Repo.orderBy((repo) =>
+			repo.createdAt.asc(),
+		).all()).map((repo) => ({
+			defaultRef: repo.defaultRef,
+			id: repo.id,
+			name: repo.name,
+			source: repo.source,
+		}));
+		const links = yield* fleetLinks(repos);
 		const situations = situationsByAgent(
-			{ ...snapshot, assignments: yield* db.PieceAgent.all() },
+			links,
 			agents.map((agent) => agent.id),
 		);
 		const sessionSummaries = yield* Effect.forEach(sessions, (session) =>
@@ -77,14 +81,6 @@ export const fleetSnapshot = (
 				),
 			}).pipe(Effect.map((decoded) => ({ ...berth, ...decoded }))),
 		);
-		const repos: ReadonlyArray<RepoSummary> = (yield* db.Repo.orderBy((repo) =>
-			repo.createdAt.asc(),
-		).all()).map((repo) => ({
-			defaultRef: repo.defaultRef,
-			id: repo.id,
-			name: repo.name,
-			source: repo.source,
-		}));
 		const summaries: ReadonlyArray<AgentSummary> = agents.map((agent) => ({
 			berths: berths
 				.filter((berth) => berth.agentId === agent.id)
@@ -127,6 +123,7 @@ export const fleetSnapshot = (
 					status: session.status,
 				})),
 			status: agent.status,
+			work: workOf(links, agent.id),
 		}));
 		return {
 			agents: summaries,

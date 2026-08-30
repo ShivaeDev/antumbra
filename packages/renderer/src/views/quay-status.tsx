@@ -1,7 +1,6 @@
-import type { QuayGroup } from "@antumbra/contract";
 import { Badge } from "#components/ui/badge.tsx";
 import type { QuayChange } from "#quay/changes.ts";
-import { groupTitle } from "#quay/groups.ts";
+import { groupTitle, groupVariant } from "#quay/groups.ts";
 import { type ChangeMark, changeMarks } from "#quay/marks.ts";
 
 const MARK_VARIANTS: Readonly<
@@ -17,15 +16,6 @@ const MARK_VARIANTS: Readonly<
 	warning: "warning",
 };
 
-const GROUP_VARIANTS: Readonly<
-	Record<QuayGroup, "destructive" | "outline" | "success" | "warning">
-> = {
-	alongside: "success",
-	checksRunning: "warning",
-	draft: "outline",
-	needsAttention: "destructive",
-};
-
 export const QuayStatus = ({ item }: { readonly item: QuayChange }) => (
 	<section
 		aria-labelledby="quay-status-heading"
@@ -35,9 +25,7 @@ export const QuayStatus = ({ item }: { readonly item: QuayChange }) => (
 			<h3 className="text-xs font-medium" id="quay-status-heading">
 				Status
 			</h3>
-			<Badge variant={GROUP_VARIANTS[item.group]}>
-				{groupTitle[item.group]}
-			</Badge>
+			<Badge variant={groupVariant[item.group]}>{groupTitle[item.group]}</Badge>
 		</div>
 		<div className="grid gap-2 sm:grid-cols-3">
 			{changeMarks(item.change).map((mark) => (

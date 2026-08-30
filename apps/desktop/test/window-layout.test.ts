@@ -11,6 +11,7 @@ import { artifactPlace, transcriptPlace } from "#test/windows.ts";
 const voyaging = {
 	changeId: "change-7",
 	mode: "voyages",
+	pieceId: "piece-7",
 	role: "console",
 	sessionId: null,
 	voyageId: "voyage-7",
@@ -25,7 +26,9 @@ describe("window layout", () => {
 			"",
 			"not json at all",
 			"[]",
-			'{"version":3,"focused":null,"windows":[]}',
+			'{"version":4,"focused":null,"windows":[]}',
+			'{"version":2,"focused":null,"windows":[]}',
+			'{"version":2,"focused":null,"windows":[{"id":"console","place":{"changeId":null,"mode":"voyages","role":"console","sessionId":null,"voyageId":"voyage-7"}}]}',
 			'{"version":1,"focused":null,"windows":[]}',
 			'{"version":1,"focused":null}',
 			'{"version":1,"focused":null,"windows":[{"id":"a","place":{"role":"wat"}}]}',
@@ -109,6 +112,7 @@ describe("window layout", () => {
 		expect(restorePlan(undefined).consoleWindow.place).toEqual({
 			changeId: null,
 			mode: "flagship",
+			pieceId: null,
 			role: "console",
 			sessionId: null,
 			voyageId: null,

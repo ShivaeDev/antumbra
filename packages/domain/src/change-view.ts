@@ -30,8 +30,10 @@ export interface ChangeView {
 // why: a repo forgotten after a change was opened leaves the change standing —
 // it still lives where it lives — so the id stands in for the name rather than
 // the change dropping out of every reading.
-export const repoNameOf = (world: VoyageWorld, repoId: string): string =>
-	world.repos.get(repoId)?.name ?? repoId;
+export const repoNameOf = (
+	world: Pick<VoyageWorld, "repos">,
+	repoId: string,
+): string => world.repos.get(repoId)?.name ?? repoId;
 
 export const changeView = (
 	repoName: string,

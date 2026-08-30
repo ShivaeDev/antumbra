@@ -3,6 +3,8 @@ import {
 	SessionPresenceSchema,
 } from "@antumbra/vocabulary/agent-runtime";
 import { Schema } from "effect";
+import { ChangeView } from "#change-views.ts";
+import { QuayGroup } from "#quay-views.ts";
 import { SessionSituation } from "#session-situations.ts";
 import {
 	AgentDiagnostics,
@@ -52,6 +54,47 @@ export const BerthSummary = Schema.Struct({
 });
 export type BerthSummary = typeof BerthSummary.Type;
 
+// why: where a change a piece produced stands, in the words the quay sorts by
+// — and landed beside them, because the quay stops listing a change the moment
+// it merges while a card still wants to say that it did. The reading is the
+// domain's own ladder, published so a card never ranks checks and reviews a
+// second time from the neutral fields beside it.
+export const WorkChangeStanding = Schema.Union([
+	QuayGroup,
+	Schema.Literal("landed"),
+]);
+export type WorkChangeStanding = typeof WorkChangeStanding.Type;
+
+export const WorkChange = Schema.Struct({
+	change: ChangeView,
+	standing: WorkChangeStanding,
+});
+export type WorkChange = typeof WorkChange.Type;
+
+// why: what an Agent is doing is a Piece it is assigned to, named with the
+// voyage that chartered it, or the voyage it commands — a captain answers to
+// a voyage directly and has no piece of its own to be named by. The two are
+// one union so a card reads work off one field whichever kind it is.
+export const PieceWork = Schema.Struct({
+	changes: Schema.Array(WorkChange),
+	kind: Schema.Literal("piece"),
+	pieceId: Schema.String,
+	pieceTitle: Schema.String,
+	voyageId: Schema.String,
+	voyageName: Schema.String,
+});
+export type PieceWork = typeof PieceWork.Type;
+
+export const VoyageCommand = Schema.Struct({
+	kind: Schema.Literal("voyage"),
+	voyageId: Schema.String,
+	voyageName: Schema.String,
+});
+export type VoyageCommand = typeof VoyageCommand.Type;
+
+export const AgentWork = Schema.Union([PieceWork, VoyageCommand]);
+export type AgentWork = typeof AgentWork.Type;
+
 export const AgentSummary = Schema.Struct({
 	berths: Schema.Array(BerthSummary),
 	// why: whether this Agent may be ended now. Retirement stops every Session
@@ -65,6 +108,7 @@ export const AgentSummary = Schema.Struct({
 	role: Schema.String,
 	sessions: Schema.Array(SessionSummary),
 	status: Schema.String,
+	work: Schema.Array(AgentWork),
 });
 export type AgentSummary = typeof AgentSummary.Type;
 

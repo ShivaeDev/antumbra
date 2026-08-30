@@ -1,7 +1,8 @@
 # Quality gate routing
 
-Run `pnpm ready` for mechanical checks. During review, apply only the routes
-touched by the change:
+Run `pnpm ready` for fast local mechanical checks. Hosted CI owns the complete
+package, desktop, runner, and guard test suites. During review, apply only the
+routes touched by the change:
 
 - Types, schemas, errors, or boundary decoding:
   [`strict-typing.md`](strict-typing.md)

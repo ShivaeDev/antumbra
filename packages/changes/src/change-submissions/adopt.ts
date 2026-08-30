@@ -51,39 +51,30 @@ export const adoptSubmittedChange = (input: AdoptChangeInput) =>
 		}
 		const observation = yield* host.adopt(input.url, repo);
 		const now = yield* Clock.currentTimeMillis;
-		const adopted = yield* db.transaction(
-			Effect.gen(function* () {
-				yield* Database;
-				if (input.agentId !== null) {
-					yield* ensureAgentCanOwnLocalWork(input.agentId);
-				}
-				yield* ensureBranchResourcesUnclaimed(repo.source, observation.headRef);
-				const attachment = yield* adoptionAttachment(input.agentId, repo.id);
-				const reconciled = yield* reconcileObservation(host.tag, observation, now, attachment);
-				const row = Option.match(reconciled, {
-					onNone: () =>
-						proposedChange({
-							body: "",
-							host: host.tag,
-							now,
-							observation,
-							openedByAgentId: input.agentId,
-							originSessionId: null,
-							repoId: repo.id,
-						}),
-					onSome: (result) => result.row,
-				});
-				if (Option.isNone(reconciled)) {
-					yield* db.Change.create(row);
-				}
-				const linked = yield* linkProduces(input.pieceId, row.id);
-				return {
-					changed: linked || Option.isNone(reconciled) || (Option.isSome(reconciled) && reconciled.value.changed),
-					row,
-				};
-			}),
-		);
-		if (adopted.changed) {
+		yield* ensureBranchResourcesUnclaimed(repo.source, observation.headRef);
+		const attachment = yield* adoptionAttachment(input.agentId, repo.id);
+		const reconciled = yield* reconcileObservation(host.tag, observation, now, attachment);
+		const adopted = Option.match(reconciled, {
+			onNone: () =>
+				({
+					changed: true,
+					row: proposedChange({
+						body: "",
+						host: host.tag,
+						now,
+						observation,
+						openedByAgentId: input.agentId,
+						originSessionId: null,
+						repoId: repo.id,
+					}),
+				}) as const,
+			onSome: (result) => result,
+		});
+		if (Option.isNone(reconciled)) {
+			yield* db.Change.create(adopted.row);
+		}
+		const linked = yield* linkProduces(input.pieceId, adopted.row.id);
+		if (linked || adopted.changed) {
 			yield* feeds.publishVoyageRefresh();
 		}
 		yield* feeds.publishChangeRefresh();

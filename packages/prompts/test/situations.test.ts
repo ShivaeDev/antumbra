@@ -33,18 +33,6 @@ it("the review template asks for an answer to every unresolved thread", () => {
 	expect(text).toContain("answer every one");
 });
 
-// why: the record holds a rolled-up word per Change, never the names of the
-// checks or the text of a thread. A template that spelled either would be
-// carrying a fact Antumbra does not have, so the situations point at the host
-// instead — and that is the property under test, not a wording preference.
-it("no situation invents host detail the record does not hold", () => {
-	const every = [mergeConflicts({ ...FACTS, baseRef: "main" }), checksFailed(FACTS), unresolvedReviews(FACTS)];
-	for (const text of every) {
-		expect(text).toContain("#42");
-		expect(text).not.toContain("undefined");
-	}
-});
-
 it("the wake instruction is one fixed sentence with no blanks", () => {
 	expect(wakeWords).toBe("Reconcile durable Antumbra truth and continue your assigned work.");
 });

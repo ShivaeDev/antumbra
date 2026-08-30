@@ -5,18 +5,12 @@ import { logSection, proseOf, section } from "#prose.ts";
 export const CaptainCharter = Schema.Struct({
 	context: Schema.String,
 	northStar: Schema.String,
-	// why: a piece line is the voyage's own state rendered by the reader that
-	// owns it, so the catalog takes the finished lines as a blank rather than
-	// reaching for piece rows it would have to learn to read.
 	pieceLines: Schema.Array(Schema.String),
 	rulings: Schema.Array(Schema.String),
 	voyageLog: Schema.Array(Schema.String),
 });
 export type CaptainCharter = typeof CaptainCharter.Type;
 
-// why: the captain's tools are its authority, so the order names them and
-// says what each one means for the voyage — including that launching is a
-// release into the pool and not a wait.
 export const CAPTAIN_STANDING_ORDER = [
 	"- You charter the work: `charter_piece` states a title, a charter, the outcome you expect, the role that suits it, and the pieces it waits on. Workers report; captains charter.",
 	"- `launch_piece` releases a piece into the pool. It is dispatched when its dependencies are done and there is room in the fleet — you do not wait for it, and a launched chain finishes on its own.",
@@ -28,9 +22,6 @@ export const CAPTAIN_STANDING_ORDER = [
 	"- Call `stand_down` when the voyage is quiet, or when there is nothing for you to do until something lands. You are hailed again when you are wanted.",
 ].join("\n");
 
-// why: a captain is told the same four things every session — where the
-// voyage is going, what its board says, where its pieces stand, and what has
-// already been ruled — because its session is mortal and the voyage is not.
 export const captainCharter = (input: CaptainCharter): AgentPrompt =>
 	agentPrompt(
 		proseOf([

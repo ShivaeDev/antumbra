@@ -23,11 +23,6 @@ export const UnresolvedReviews = Schema.Struct({
 });
 export type UnresolvedReviews = typeof UnresolvedReviews.Type;
 
-// why: the three situation templates name the change, the branch and the
-// problem, then stop. The host holds the detail — which checks failed, what
-// each reviewer wrote — and the agent is berthed in the repo with the tooling
-// to read it, so the words point at the specifics rather than carrying a copy
-// that was already stale when the record last observed it.
 export const mergeConflicts = (input: MergeConflicts): AgentPrompt =>
 	agentPrompt(
 		`Change ${input.reference} in ${input.repo} has merge conflicts: ${input.headRef} no longer merges cleanly into ${input.baseRef}.

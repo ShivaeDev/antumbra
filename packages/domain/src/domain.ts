@@ -9,7 +9,7 @@ import { makeAgentDomain } from "#agent-domain-assembly.ts";
 import { AgentDomain } from "#agent-domain-service.ts";
 import { domainCapabilities } from "#domain-capabilities.ts";
 
-export { AGENTS_ALIVE_GAUGE, AgentDomain } from "#agent-domain-service.ts";
+export { AgentDomain } from "#agent-domain-service.ts";
 
 // why: built before the kernel starts — the first resource pass must resume
 // durable claims before admission can authorize more work through them.

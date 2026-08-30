@@ -1,13 +1,9 @@
 import { SettingsSource } from "@antumbra/contract";
 import { Database } from "@antumbra/persistence";
 import { Context, Effect, Layer } from "effect";
-import { changeSetting } from "#settings-change.ts";
-import { readSettings } from "#settings-reading.ts";
+import { changeSetting } from "#change.ts";
+import { readSettings } from "#reading.ts";
 
-// why: settings are read on every pass of the loops that consult them, so the
-// source reads through to the rows each time rather than holding a copy.
-// There is nothing here to keep in step with a write, and a change is live on
-// the next pass without anyone ringing a bell.
 export const SettingsSourceLive = Layer.effect(SettingsSource)(
 	Effect.gen(function* () {
 		const db = yield* Database;

@@ -1,4 +1,4 @@
-// why: @vitest-environment happy-dom renders a row the way the pane does.
+// @vitest-environment happy-dom
 
 import { expect, it } from "@effect/vitest";
 import { Effect } from "effect";
@@ -101,6 +101,10 @@ it.effect("opens a folded run into the calls it holds, unchanged", () =>
 		yield* open(container);
 
 		const shown = container.textContent ?? "";
+		const visibleText = Array.from(container.querySelectorAll("*"), (element) => (element.childElementCount === 0 ? element.textContent : undefined));
+		expect(visibleText.filter((text) => text === "tools")).toHaveLength(1);
+		expect(visibleText.filter((text) => text === "tool")).toHaveLength(3);
+		expect(visibleText.filter((text) => text === "thinking")).toHaveLength(1);
 		expect(shown).toContain("Run the gates");
 		expect(shown).toContain("now the chart");
 		expect(shown).toContain("charts/eastern-shoal.md");

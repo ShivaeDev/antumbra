@@ -11,6 +11,7 @@ import { makeRulingToolCompiler } from "#ruling-tools.ts";
 import { StandDown } from "#stand-down.ts";
 import { answered, onPiece } from "#tool-answers.ts";
 import type { SessionIdentity } from "#tool-identity.ts";
+import { makeVoyageReadingToolCompiler } from "#voyage-reading-tools.ts";
 
 const artifactLandingAnswer = (landing: ArtifactLanding): string => {
 	if (landing._tag === "superseded") {
@@ -38,10 +39,6 @@ const artifactInput = (
 	return input.supersedesArtifactId === undefined ? base : { ...base, supersedesArtifactId: input.supersedesArtifactId };
 };
 
-// why: the set is the whole of what a worker may do to the record — land
-// outcomes, propose changes, write boards, end its session. Nothing here
-// charters work, and that is the anti-proposer rule: it is enforced by the
-// set, not by asking.
 export const makeCrewToolCompiler = Effect.gen(function* () {
 	const artifacts = yield* Artifacts;
 	const compileBoardTools = yield* makeBoardToolCompiler;
@@ -49,6 +46,7 @@ export const makeCrewToolCompiler = Effect.gen(function* () {
 	const compileReportTools = yield* makeReportToolCompiler;
 	const compileRulingTools = yield* makeRulingToolCompiler;
 	const compileRulingReadingTools = yield* makeRulingReadingToolCompiler;
+	const compileVoyageReadingTools = yield* makeVoyageReadingToolCompiler;
 	const reports = yield* Reports;
 	const standDown = yield* StandDown;
 	function crewTools(identity: SessionIdentity): ReadonlyArray<DirectTool> {
@@ -97,6 +95,7 @@ export const makeCrewToolCompiler = Effect.gen(function* () {
 				),
 			),
 			...compileChangeTools(identity),
+			...compileVoyageReadingTools(identity),
 			...compileBoardTools(identity),
 			...compileRulingTools(identity),
 			standDown.tool(identity),

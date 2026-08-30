@@ -39,7 +39,7 @@ export const adapterPolicy = [
 		.because(
 			"The domain speaks to ports, never to the providers behind them. Naming a concrete adapter or a vendor SDK here would weld one provider into the use cases and make the next one a rewrite.",
 		)
-		.forbidsImportsFrom(packages.named("domain", "domain-feeds", "changes", "session-fabric", "sessions"))
+		.forbidsImportsFrom(packages.named("domain", "domain-feeds", "changes", "session-fabric", "sessions", "settings"))
 		.to(anyOf(adapters, modules.named("@anthropic-ai/claude-agent-sdk")))
 		.demonstratedBy({
 			illegal: importFrom(files.inPackage("domain", "src/domain.ts")).to(files.inPackage("backend-codex", "src/backend.ts")),

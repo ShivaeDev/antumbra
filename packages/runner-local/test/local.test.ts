@@ -4,9 +4,7 @@ import { GitAuthRequired } from "@antumbra/git";
 import { describe, expect, it } from "@effect/vitest";
 import { Effect } from "effect";
 import { toRunnerError } from "#git-runtime.ts";
-import { AGENT, berthing, git, makeHarbor, provision } from "#test/harbor.ts";
-
-const commonDirectory = (path: string) => git(["-C", path, "rev-parse", "--git-common-dir"]).pipe(Effect.map((output) => output.trim()));
+import { AGENT, berthing, commonDirectory, git, makeHarbor, provision } from "#test/harbor.ts";
 
 const branchListing = (mirror: string, branch: string) => git(["-C", mirror, "branch", "--list", branch]);
 

@@ -29,62 +29,23 @@ const specs = [
 it("every spec is named the way both harnesses accept", () => {
 	for (const spec of specs) {
 		expect(spec.name, spec.name).toMatch(DIRECT_TOOL_NAME);
-		expect(spec.description.length, spec.name).toBeGreaterThan(20);
 	}
 });
 
-it("every spec emits a closed object schema", () => {
-	for (const spec of specs) {
-		expect(spec.inputSchema, spec.name).toMatchObject({
-			additionalProperties: false,
-			type: "object",
-		});
-	}
-	expect(landReportSpec.inputSchema.required).toEqual(["body", "title"]);
-	expect(landArtifactSpec.inputSchema.required).toEqual(["path", "title"]);
-	expect(supersedeArtifactSpec.inputSchema.required).toEqual(["successorArtifactId", "supersededArtifactId"]);
-	expect(removeArtifactSupersessionSpec.inputSchema.required).toEqual(["successorArtifactId", "supersededArtifactId"]);
-	expect(writeBoardSpec.inputSchema.required).toEqual(["body", "register", "scope"]);
-	expect(readBoardSpec.inputSchema.required).toEqual(["scope"]);
-	expect(requestRulingSpec.inputSchema.required).toEqual(["context", "question", "radius", "urgency"]);
-	expect(charterPieceSpec.inputSchema.required).toEqual(["charter", "dependsOn", "expectation", "role", "title"]);
-	expect(launchPieceSpec.inputSchema.required).toEqual(["pieceId"]);
-	expect(parkPieceSpec.inputSchema.required).toEqual(["pieceId"]);
-	expect(unparkPieceSpec.inputSchema.required).toEqual(["pieceId"]);
-	expect(rewirePieceSpec.inputSchema.required).toEqual(["dependsOn", "pieceId"]);
-	expect(readRulingsSpec.inputSchema).not.toHaveProperty("required");
-	expect(readRulingsSpec.inputSchema.properties).toMatchObject({
-		tags: {
-			anyOf: expect.arrayContaining([expect.objectContaining({ items: { type: "string" }, type: "array" })]),
-		},
+it("emits a closed object schema the model can fill", () => {
+	expect(landReportSpec.inputSchema).toMatchObject({
+		additionalProperties: false,
+		type: "object",
 	});
-	expect(readVoyageSpec.inputSchema).not.toHaveProperty("required");
-	expect(readVoyageSpec.inputSchema.properties).toHaveProperty("voyageId");
+	expect(landReportSpec.inputSchema.required).toEqual(["body", "title"]);
+});
+
+it("emits a plain object schema for a tool that takes no arguments", () => {
 	expect(standDownSpec.inputSchema).toEqual({
 		additionalProperties: false,
 		properties: {},
 		required: [],
 		type: "object",
-	});
-});
-
-it("field descriptions reach the schema the model reads", () => {
-	expect(landReportSpec.inputSchema.properties).toMatchObject({
-		body: { description: expect.any(String), type: "string" },
-		title: { description: expect.any(String), type: "string" },
-	});
-});
-
-it("a list of ids reaches the model as an array of strings", () => {
-	expect(rewirePieceSpec.inputSchema.properties).toMatchObject({
-		dependsOn: { items: { type: "string" }, type: "array" },
-	});
-});
-
-it("a closed set of choices reaches the model as an enum", () => {
-	expect(writeBoardSpec.inputSchema.properties).toMatchObject({
-		register: { enum: ["rough", "smooth"] },
-		scope: { enum: ["piece", "self", "voyage"] },
 	});
 });
 

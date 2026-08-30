@@ -2,6 +2,7 @@ import { join } from "node:path";
 import type { AntumbraPlugin, BerthPlan, MooragePlan, ProvisionRequest, Runner } from "@antumbra/plugin-api";
 import { Effect } from "effect";
 import { ensureDirectory, pathExists } from "#adapters/fs.ts";
+import { refreshBerth } from "#berth-refresh.ts";
 import { captureChange } from "#change-evidence.ts";
 import { ensureMirror } from "#mirrors.ts";
 import { mirrorName, workBranch } from "#naming.ts";
@@ -37,13 +38,11 @@ const provisionInto = (roots: LocalRunnerRoots, plan: MooragePlan) =>
 				const mirror = join(roots.reposRoot, mirrorName(berth.slug, berth.source));
 				if (yield* pathExists(berth.path)) {
 					yield* verifyWorktree(mirror, berth);
-					return;
+					return yield* refreshBerth(mirror, berth);
 				}
 				if ((yield* pathExists(mirror)) && (yield* remountWorktree(mirror, berth))) {
-					return;
+					return yield* refreshBerth(mirror, berth);
 				}
-				// why: source access is the fallback only after durable mirror state
-				// proves there is no planned branch to recover locally.
 				yield* ensureMirror(roots.reposRoot, berth);
 				yield* createWorktree(mirror, berth);
 			}),

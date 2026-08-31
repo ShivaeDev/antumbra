@@ -1,3 +1,4 @@
+import { SchemaAST } from "effect";
 import { describe, expect, it } from "vitest";
 import { MUTED_NOTIFICATIONS } from "#handshake.ts";
 import { TurnStatus } from "#protocol.ts";
@@ -15,8 +16,6 @@ import {
 	variantTypes,
 } from "#test/schema-bundle.ts";
 
-// why: this test holds every literal, type, and method name the hand-written
-// slice relies on to the pinned bundle.
 describe("the codex protocol slice agrees with the pinned schema bundle", () => {
 	it("turn and execution statuses are the bundle's enums, verbatim", () => {
 		expect([...literalsOf(TurnStatus)].sort()).toEqual([...enumOf("TurnStatus")].sort());
@@ -25,21 +24,17 @@ describe("the codex protocol slice agrees with the pinned schema bundle", () => 
 	});
 
 	it("every modelled item variant is a ThreadItem variant", () => {
-		const modelled = literalsOf(KnownItem).filter((literal) => variantTypes("ThreadItem").includes(literal));
-		expect(new Set(modelled)).toEqual(
-			new Set([
-				"agentMessage",
-				"userMessage",
-				"reasoning",
-				"collabAgentToolCall",
-				"commandExecution",
-				"dynamicToolCall",
-				"fileChange",
-				"mcpToolCall",
-				"subAgentActivity",
-				"webSearch",
-			]),
-		);
+		const types = SchemaAST.isUnion(KnownItem.ast)
+			? KnownItem.ast.types.flatMap((member) => {
+					if (!SchemaAST.isObjects(member)) return [];
+					const discriminant = member.propertySignatures.find((property) => property.name === "type")?.type;
+					return discriminant !== undefined && SchemaAST.isLiteral(discriminant) && typeof discriminant.literal === "string"
+						? [discriminant.literal]
+						: [];
+				})
+			: [];
+		expect(types).toHaveLength(KnownItem.ast.types.length);
+		expect(types.every((type) => variantTypes("ThreadItem").includes(type))).toBe(true);
 	});
 
 	it("the sub-agent words we fold on are the bundle's, verbatim", () => {
@@ -47,13 +42,6 @@ describe("the codex protocol slice agrees with the pinned schema bundle", () => 
 		expect(enumOf("CollabAgentTool")).toEqual(["spawnAgent", "sendInput", "resumeAgent", "wait", "closeAgent"]);
 	});
 
-	// why: a thread the record admits as a node must be one codex sourced from a
-	// spawn. The reviewer, compaction and memory threads are the other members of
-	// this union, and the slice decodes none of them — which is what keeps them
-	// out of the tree by construction rather than by vigilance. The sweep reads
-	// the parent edge and the node's names out of this source itself rather than
-	// from a threadSource classification that is null in practice, so every field
-	// the record turns into a row is held here by name.
 	it("a spawned sub-agent thread is the only source that names a parent", () => {
 		const sources = bundle.definitions.SubAgentSource?.oneOf ?? [];
 		const spawn = sources.find((variant) => variant.title === "ThreadSpawnSubAgentSource");
@@ -65,11 +53,6 @@ describe("the codex protocol slice agrees with the pinned schema bundle", () => 
 		expect(bundle.definitions.Thread?.properties).toHaveProperty("source");
 	});
 
-	// why: the census asks codex for every thread spawned below one ancestor, and
-	// that parameter is the whole of the reading — the kind filter it replaced was
-	// blind to children whose first turn left no preview, and lost rows to its own
-	// pagination besides. A pin that renamed or dropped the ancestor filter would
-	// take the census's only source away, so the pin is held to it by name.
 	it("a census can ask for every thread spawned below one ancestor", () => {
 		const asked = bundle.definitions.ThreadListParams?.properties;
 		expect(asked).toHaveProperty("ancestorThreadId");
@@ -82,20 +65,11 @@ describe("the codex protocol slice agrees with the pinned schema bundle", () => 
 		expect(methods).toContain("thread/list");
 	});
 
-	// why: every row a listing returns carries a status, and it is the only word
-	// the record ever gets about whether a delegated child is still running once
-	// the stream that carried it is gone. A pin that renamed a variant, or made
-	// the field optional, would leave a census unable to tell a working child
-	// from a resting one — so the four words and the requirement are held here.
 	it("every listed thread says whether work is under way in it", () => {
 		expect(bundle.definitions.Thread?.required ?? []).toContain("status");
 		expect(variantTypes("ThreadStatus")).toEqual(["notLoaded", "idle", "systemError", "active"]);
 	});
 
-	// why: the ancestor filter is experimental API, and app-server refuses it
-	// outright unless the connection asked for that surface at initialize. The
-	// capability is the census's licence to read at all, so a pin that renamed it
-	// would silence every census rather than change one answer.
 	it("the experimental surface the census reads is asked for at initialize", () => {
 		const capabilities = bundle.definitions.InitializeCapabilities?.properties;
 		expect(capabilities).toHaveProperty("experimentalApi");
@@ -147,9 +121,6 @@ describe("the codex protocol slice agrees with the pinned schema bundle", () => 
 		}
 	});
 
-	// why: provider exhaustion is a semantic decision over the pinned error
-	// notification, not a message-string heuristic. If any of these fields or
-	// the terminal literal moves, the capacity classifier must be reconciled.
 	it("a terminal usage-limit error carries the fields capacity admission reads", () => {
 		const notification = bundle.definitions.ErrorNotification;
 		expect(notification?.required).toEqual(expect.arrayContaining(["error", "threadId", "turnId", "willRetry"]));

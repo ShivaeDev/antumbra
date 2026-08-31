@@ -1,8 +1,8 @@
 import type { AntumbraBridge, SubscriptionMessage } from "@antumbra/contract";
 import { makeAppRouter } from "@antumbra/contract";
-import { info, makeRuntime, makeScriptedFeeds, staticFeeds } from "@antumbra/contract/fixtures";
+import { fleet, info, makeRuntime, staticFeeds } from "@antumbra/contract/fixtures";
 import { describe, expect, it } from "@effect/vitest";
-import { Effect } from "effect";
+import { Effect, Stream } from "effect";
 import { makeBrowserBridge } from "#adapters/router-bridge.ts";
 
 const bridgeOver = (runtime: ReturnType<typeof makeRuntime>): AntumbraBridge => makeBrowserBridge(makeAppRouter(runtime));
@@ -60,15 +60,14 @@ describe("makeBrowserBridge", () => {
 		}),
 	);
 
-	it.effect("delivers every scripted update before the feed closes", () =>
+	it.effect("delivers every update before the feed closes", () =>
 		Effect.gen(function* () {
-			const runtime = makeRuntime(makeScriptedFeeds("5 millis"));
+			const updates = [fleet, { ...fleet, agents: [] }, fleet];
+			const runtime = makeRuntime({ ...staticFeeds, fleet: Stream.fromIterable(updates) });
 			const bridge = bridgeOver(runtime);
 			const messages = yield* collectFeed(bridge, "fleetFeed");
-			const fleets = dataOf(messages);
-			expect(fleets).toHaveLength(3);
+			expect(dataOf(messages)).toEqual(updates);
 			expect(messages.at(-1)).toEqual({ type: "done" });
-			expect(JSON.stringify(fleets.at(-1))).toContain("agent-2");
 			yield* Effect.promise(() => runtime.dispose());
 		}),
 	);

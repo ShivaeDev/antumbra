@@ -65,24 +65,19 @@ it.live("a direct PieceChange read fails typed on invalid purpose", () =>
 				title: "soundings",
 				voyageId: voyage.id,
 			});
-			yield* db.transaction(
-				Effect.gen(function* () {
-					yield* Database;
-					yield* db.Change.create(
-						changeOf({
-							headRef: "work/agent/reef",
-							id: "change-valid",
-							repoId: repo.id,
-							stage: "open",
-						}),
-					);
-					yield* db.PieceChange.create({
-						changeId: "change-valid",
-						pieceId: piece.id,
-						purpose: "future_purpose",
-					});
+			yield* db.Change.create(
+				changeOf({
+					headRef: "work/agent/reef",
+					id: "change-valid",
+					repoId: repo.id,
+					stage: "open",
 				}),
 			);
+			yield* db.PieceChange.create({
+				changeId: "change-valid",
+				pieceId: piece.id,
+				purpose: "future_purpose",
+			});
 
 			const failure = yield* Effect.flip(domain.voyages.list);
 			expect(failure).toMatchObject({

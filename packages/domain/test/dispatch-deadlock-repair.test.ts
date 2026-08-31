@@ -31,17 +31,13 @@ it.live("a boot frees a Piece its Agent can no longer work", () =>
 				voyageId: voyage.id,
 			});
 			yield* domain.voyages.launch(piece.id);
-			yield* db.transaction(
-				Database.use(() =>
-					db.Agent.create({
-						charter: "sound the shallows",
-						currentSessionId: null,
-						id: STRANDED,
-						role: "hand",
-						status: "alive",
-					}).pipe(Effect.andThen(db.PieceAgent.create({ agentId: STRANDED, pieceId: piece.id }))),
-				),
-			);
+			yield* db.Agent.create({
+				charter: "sound the shallows",
+				currentSessionId: null,
+				id: STRANDED,
+				role: "hand",
+				status: "alive",
+			}).pipe(Effect.andThen(db.PieceAgent.create({ agentId: STRANDED, pieceId: piece.id })));
 			expect(yield* stateOf(voyage.id, piece.id)).toBe("active");
 			return { pieceId: piece.id, voyageId: voyage.id };
 		}).pipe(Effect.provide(domainKernelLayer(temporary, scripted.backend)));

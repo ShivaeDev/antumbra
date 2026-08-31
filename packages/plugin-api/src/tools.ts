@@ -12,5 +12,3 @@ export interface DirectTool {
 	readonly inputSchema: Record<string, unknown>;
 	readonly name: string;
 }
-
-export const DIRECT_TOOL_NAME = /^[a-zA-Z0-9_-]{1,64}$/;

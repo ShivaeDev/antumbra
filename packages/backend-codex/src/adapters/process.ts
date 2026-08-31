@@ -14,8 +14,7 @@ interface SpawnLineProcessOptions {
 	readonly cwd: string;
 }
 
-// why: app-server speaks newline-delimited JSON on stdio; this is the only
-// place a raw child process exists — everything above it sees lines.
+// Codex app-server uses newline-delimited JSON over stdio.
 export const spawnLineProcess = (options: SpawnLineProcessOptions): LineProcess => {
 	const child = spawn(options.command, [...options.args], {
 		cwd: options.cwd,
@@ -43,8 +42,7 @@ export const spawnLineProcess = (options: SpawnLineProcessOptions): LineProcess 
 	child.on("exit", (code) => exitListener?.(code));
 	child.on("error", () => exitListener?.(null));
 	return {
-		// why: app-server exits when its stdio connection closes — ending stdin
-		// is the polite stop; SIGTERM covers a child that does not.
+		// Closing stdin lets app-server exit cleanly; SIGTERM handles a child that remains alive.
 		kill: () => {
 			child.stdin.end();
 			child.kill("SIGTERM");

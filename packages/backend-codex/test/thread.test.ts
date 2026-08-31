@@ -130,8 +130,6 @@ it.live("queue settles only when its text reaches a provider turn", () =>
 	}),
 );
 
-// why: codex reports the words of a turn as an item of its own, at the moment
-// it took them — nothing on this side may add a second telling of one input.
 it.live("queued words are said once, where codex reports taking them", () =>
 	Effect.gen(function* () {
 		const { events, fake, handle } = yield* openFake();

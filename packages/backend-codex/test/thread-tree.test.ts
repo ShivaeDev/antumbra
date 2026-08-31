@@ -2,9 +2,6 @@ import { describe, expect, it } from "vitest";
 import { openThreadClaims } from "#thread-claims.ts";
 import { openThreadTree } from "#thread-tree.ts";
 
-// why: fixtures in the shape app-server broadcasts them — every frame of every
-// thread on one connection, each stamped with the thread that spoke it. The
-// tree is what turns that one stream back into the several conversations it is.
 const ROOT = "019ff334-ec21-7373-a31e-e8a0db309020";
 const CHILD = "019ff400-1111-7373-a31e-e8a0db309021";
 const NIECE = "019ff400-2222-7373-a31e-e8a0db309022";

@@ -19,12 +19,7 @@ const decodeTurnNotification = Schema.decodeUnknownOption(TurnNotification);
 const turnIdIn = (notification: RpcNotification): Option.Option<string> =>
 	Option.map(decodeTurnNotification(notification.params), ({ turn }) => turn.id);
 
-// why: codex has no queue of its own — a turn is started, steered, or
-// interrupted, nothing else. Queue is ours: texts wait in `pending` while a
-// turn is active and become the next turn's inputs when it completes; steer
-// rides `turn/steer` against the active turn id and falls back to a fresh
-// turn when the turn ended under it. One permit serialises all of it so a
-// turn is never started twice.
+// Codex exposes start, steer, and interrupt; queued delivery is local.
 export const makeTurnDriver = (server: CodexServer, threadId: string): Effect.Effect<TurnDriver, never, Scope.Scope> =>
 	Effect.gen(function* () {
 		const state = yield* Ref.make<TurnState>(idle);

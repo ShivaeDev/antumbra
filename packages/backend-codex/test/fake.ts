@@ -1,10 +1,6 @@
 import { Effect, Option } from "effect";
 import type { LineProcess } from "#adapters/process.ts";
 
-// why: a test that needs codex to say something the standing answers do not
-// cover writes that one answer and nothing else. `None` falls through, so the
-// rest of the client keeps being exercised against the same fake every other
-// test uses rather than a second one written beside it.
 export type FakeAnswer = (method: string, params: unknown) => Option.Option<unknown>;
 
 interface FakeRequest {
@@ -39,9 +35,6 @@ interface FakeOptions {
 
 const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === "object" && value !== null;
 
-// why: an in-memory app-server that answers the handful of requests the
-// backend makes, so the whole client — rpc, server, thread, turn driver —
-// is exercised without the codex binary. Turn ids count up per thread.
 const answer = (method: string, params: unknown, nextTurn: () => number): unknown => {
 	switch (method) {
 		case "initialize":

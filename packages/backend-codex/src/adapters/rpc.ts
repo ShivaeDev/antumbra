@@ -27,9 +27,7 @@ interface Pending {
 	readonly resolve: (value: unknown) => void;
 }
 
-// why: server-initiated requests share the numeric id space with our own
-// request ids — a message with both `id` and `method` is theirs, one with `id`
-// alone is a reply to ours. Two maps, one per direction, never one.
+// Codex server requests carry `id` and `method`; replies carry an id without a method.
 export const connectRpc = (process: LineProcess): RpcConnection => {
 	const pending = new Map<number, Pending>();
 	let nextId = 1;

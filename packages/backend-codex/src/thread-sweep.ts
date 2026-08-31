@@ -4,11 +4,6 @@ import { codexFailure } from "#failure.ts";
 import { ThreadListResponse, type ThreadStatus } from "#protocol.ts";
 import type { Request } from "#requests.ts";
 
-// why: one delegated thread as codex names it — the parent it was spawned from,
-// whatever codex called the agent that ran in it, and whether a turn is under
-// way in it right now. The names are optional because codex does not always
-// give them, and an absent one leaves the record silent rather than filled with
-// a guess.
 export interface SpawnedChild {
 	readonly agentNickname: string | undefined;
 	readonly agentPath: string | undefined;
@@ -18,16 +13,9 @@ export interface SpawnedChild {
 	readonly working: boolean;
 }
 
-// why: what a sweep concluded, for the rehearsals and callers that hold one.
-// A sweep either read the whole tree or failed; there is no third answer, which
-// is why a shortened one is never returned.
 export type CensusSweep = ReadonlyArray<SpawnedChild>;
 
-// why: the server caps a page at a hundred whatever we ask for, so a hundred is
-// what is asked for and the cursor is followed to exhaustion. The page ceiling
-// is a stop for a cursor that never ends: a sweep that hits it has not read the
-// whole tree, and says so by failing rather than by returning what it happened
-// to reach.
+// Codex caps thread-list pages at 100 rows.
 const PAGE = 100;
 const PAGES = 200;
 
@@ -35,10 +23,6 @@ const decodeListing = Schema.decodeUnknownOption(ThreadListResponse);
 
 const named = (value: string | null | undefined): string | undefined => (value === null ? undefined : value);
 
-// why: only `active` is work. `idle` is a child between turns, `notLoaded` is
-// one the server has not even brought into memory, and `systemError` is one
-// that is not speaking on any stream — none of the three can still be producing
-// frames, so none of them is a reason to hold a session away from rest.
 const isWorking = (status: typeof ThreadStatus.Type): boolean => status.type === "active";
 
 const childrenOf = (listed: typeof ThreadListResponse.Type): ReadonlyArray<SpawnedChild> =>
@@ -70,11 +54,7 @@ interface SweepPage {
 	readonly rootThreadId: string;
 }
 
-// why: pages overlap. The server sorts by a timestamp and a thread written
-// while the sweep is walking can be handed back twice or shift a page boundary,
-// so a thread id is the key rather than the order it arrived in. A cursor that
-// repeats itself is a server that has stopped advancing, and following it again
-// would spin forever on the same page.
+// Codex thread-list pages can overlap; deduplicate by thread id.
 const sweepPage = (page: SweepPage): Effect.Effect<CensusSweep, BackendFailure> =>
 	Effect.gen(function* () {
 		if (page.pagesLeft === 0) {
@@ -101,12 +81,7 @@ const sweepPage = (page: SweepPage): Effect.Effect<CensusSweep, BackendFailure> 
 				});
 	});
 
-// why: codex's own answer to "which threads did this session ever delegate
-// to". Asked by ancestor it returns the whole spawn tree below the root at any
-// depth, the children whose first turn left no preview included — which is the
-// one reading that has been shown to be complete. It is a read and stays one:
-// nothing here goes near thread/start or thread/resume, because a delegated
-// thread is recorded by listening and never by taking it over.
+// Codex thread/list with ancestorThreadId returns the descendant tree without attaching to it.
 export const sweepSpawnedDescendants = (request: Request, rootThreadId: string): Effect.Effect<CensusSweep, BackendFailure> =>
 	sweepPage({
 		cursor: undefined,

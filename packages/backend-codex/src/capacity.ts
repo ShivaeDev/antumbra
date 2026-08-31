@@ -22,9 +22,7 @@ export const classifyCodexCapacity = (raw: RawPayload): Option.Option<BackendCap
 	if (Option.isNone(decoded) || decoded.value.willRetry || decoded.value.error.codexErrorInfo !== "usageLimitExceeded") {
 		return Option.none();
 	}
-	// why: a retry Codex owns is not an account hold, and overload remains a
-	// transient provider failure. Only terminal usage exhaustion says further
-	// turns cannot make progress without an external capacity change.
+	// Codex reports terminal capacity exhaustion with `usageLimitExceeded` and `willRetry=false`.
 	const blocked = {
 		detail: decoded.value.error.message,
 		reason: "usage-limit" as const,

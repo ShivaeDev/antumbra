@@ -15,10 +15,6 @@ export const subAgentItem = (item: unknown): SubAgentActivity | CollabCall | und
 		onSome: (known) => (known.type === "subAgentActivity" || known.type === "collabAgentToolCall" ? known : undefined),
 	});
 
-// why: the announcement names what the node is — the agent definition codex ran
-// — and where it belongs: the thread that posted it, and the call that spawned
-// it when this thread saw that call. Nothing here is a name for the node; codex
-// gives it none, and inventing one would be the record speaking for it.
 export const announced = (item: SubAgentActivity, threadId: string, spawnedBy: string, raw: RawPayload): AgentEvent => ({
 	kind: item.agentPath,
 	parentRef: threadId,
@@ -28,10 +24,7 @@ export const announced = (item: SubAgentActivity, threadId: string, spawnedBy: s
 	type: "subsession.opened",
 });
 
-// why: `interrupted` is codex's own declared word for a forced ending, so it
-// folds onto the vocabulary's word of the same meaning. A terminal signal codex
-// declares no word for folds to unknown instead, with what it did say kept in
-// raw — a provider's ending is never bent into a neighbouring one.
+// Codex reports forced sub-agent termination as `interrupted`.
 export const interrupted = (item: SubAgentActivity, raw: RawPayload): AgentEvent => ({
 	outcome: "interrupted",
 	raw,

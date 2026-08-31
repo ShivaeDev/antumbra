@@ -15,9 +15,7 @@ export interface ThreadTree {
 	readonly events: (notification: RpcNotification) => ReadonlyArray<AgentEvent>;
 }
 
-// why: app-server broadcasts frames for every thread on one connection, each
-// carrying its thread id. The live tree therefore filters the shared stream;
-// passive census is the separate read-only connection.
+// Codex broadcasts all thread frames on one connection; passive census uses a separate connection.
 export const openThreadTree = (rootThreadId: string, claims: ThreadClaims): ThreadTree => {
 	const spawnCalls = new Map<string, string>();
 	const stated = new Set<string>();

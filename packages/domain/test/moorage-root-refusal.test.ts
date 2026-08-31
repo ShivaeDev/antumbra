@@ -46,9 +46,7 @@ const seed = (db: DatabaseService) =>
 		} satisfies NewAgentSession);
 	});
 
-// why: the durable law is a partial unique index, and an index states itself in
-// driver words nobody keeps. Read first, the same law refuses by name and says
-// which Session already holds the Agent's answer.
+// The partial unique index is the final database guard; this seam returns the domain refusal first.
 it.effectApp("a second open root is refused by name, not by the index", function* ({ db }) {
 	const ensureSessionRow = yield* makeEnsureSessionRow;
 	yield* seed(db);

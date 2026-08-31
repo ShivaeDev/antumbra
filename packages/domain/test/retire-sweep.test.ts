@@ -23,9 +23,7 @@ const finishedPiece = (scripted: ScriptedBackend) =>
 		return pieceId;
 	});
 
-// why: the sweep is what finally reclaims a berth. Every leaked worktree in the
-// fleet belonged to an agent nobody ever retired, and this is the pass that
-// ends that — once the crew has had long enough to say its own goodbye.
+// The sweep was introduced to reclaim worktrees left by Agents that were never retired.
 it.live("the sweep retires a done piece's agent once its rest exceeds the threshold", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
@@ -38,8 +36,6 @@ it.live("the sweep retires a done piece's agent once its rest exceeds the thresh
 
 			const demanded = yield* retireIntents;
 			expect(demanded).toHaveLength(1);
-			// why: the agent asked for none of this — the demand names the one
-			// the clock chose, and the rehearsal follows that intent to its end.
 			expect(demanded[0]?.payload).toContain(HAND);
 			yield* eventually(
 				Effect.gen(function* () {
@@ -51,9 +47,6 @@ it.live("the sweep retires a done piece's agent once its rest exceeds the thresh
 	}),
 );
 
-// why: the threshold exists because a crew's farewell trails the done edge —
-// the board note and the stand down come after the last outcome. Retiring
-// inside it would behead a crew mid-sentence, so the wait is the whole point.
 it.live("a done piece's agent still inside the threshold is left alone", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
@@ -68,8 +61,6 @@ it.live("a done piece's agent still inside the threshold is left alone", () =>
 	}),
 );
 
-// why: rest is not the trigger — landing is. An agent quiet for a day on work
-// that never landed is waiting, and the sweep has nothing to say about it.
 it.live("a piece not yet done is never swept however long its agent rests", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
@@ -86,8 +77,6 @@ it.live("a piece not yet done is never swept however long its agent rests", () =
 	}),
 );
 
-// why: the flag is the admiral's whole answer to the sweep. Turned off, the
-// clock stops asking and retirement is the button's alone.
 it.live("the sweep does nothing when the flag setting is off", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
@@ -104,9 +93,6 @@ it.live("the sweep does nothing when the flag setting is off", () =>
 	}),
 );
 
-// why: the catalog is read through on every pass rather than held, so a
-// threshold moved in the window is in force on the next one — nothing is told,
-// and nothing has to be kept in step.
 it.live("the threshold honors a changed setting on the next pass", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;

@@ -23,9 +23,6 @@ const statusOf = (agentId: string) =>
 		return Option.getOrThrow(agent).status;
 	});
 
-// why: the crew is born before the verdict lands, because an abandoned piece
-// refuses crew — which is also the only order that produces the situation this
-// sweep exists for: hands already at work on something since written off.
 const writtenOffPiece = (scripted: ScriptedBackend, quiet: boolean) =>
 	Effect.gen(function* () {
 		const domain = yield* AgentDomain;
@@ -38,9 +35,6 @@ const writtenOffPiece = (scripted: ScriptedBackend, quiet: boolean) =>
 		return pieceId;
 	});
 
-// why: a change that closed and nothing under way to replace it — the piece
-// has a landed report and no outcome pending, and no verdict was ever spoken
-// over it. This is the shape of "the PR just closed".
 const closedWithoutVerdict = (scripted: ScriptedBackend) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
@@ -62,11 +56,6 @@ const closedWithoutVerdict = (scripted: ScriptedBackend) =>
 		return { pieceId, voyageId };
 	});
 
-// why: the distinction the whole ruling turns on. A closed change says only
-// that this attempt is over — nothing in it says whether the work wants
-// another attempt or an ending, and reading it as an ending would retire a
-// crew the admiral may have meant to let try again. Only a verdict carries
-// that instruction, so a piece without one waits out the hour like any other.
 it.live("a piece whose change merely closed waits out the ordinary rest", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
@@ -74,14 +63,7 @@ it.live("a piece whose change merely closed waits out the ordinary rest", () =>
 		yield* Effect.gen(function* () {
 			const db = yield* Database;
 			const { pieceId, voyageId } = yield* closedWithoutVerdict(scripted);
-			// why: assert the closed change is really on the piece before reading
-			// anything off it — a link that quietly failed would leave a piece done
-			// for the plain reason that nothing was ever proposed on it, and the
-			// rest of this would pass without testing the case at all.
 			expect(yield* db.PieceChange.where({ pieceId }).all()).toHaveLength(1);
-			// why: the piece reads done — a withdrawn change with nothing under way
-			// to replace it leaves no outcome pending — so it is the done rules it
-			// must be held to, not the written-off ones.
 			expect(yield* stateOf(voyageId, pieceId)).toBe("done");
 			expect(yield* db.PieceVerdict.all()).toEqual([]);
 
@@ -95,10 +77,6 @@ it.live("a piece whose change merely closed waits out the ordinary rest", () =>
 	}),
 );
 
-// why: immediate is not the same as rude. A verdict lands while its crew may
-// still be mid-word, and cutting that off would sever work the Agent is doing
-// — so the one thing the sweep still waits for is the turn to end, however
-// long that takes and whatever the threshold says.
 it.live("an abandoned piece's working crew is left alone until it stops", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
@@ -106,8 +84,6 @@ it.live("an abandoned piece's working crew is left alone until it stops", () =>
 		yield* Effect.gen(function* () {
 			yield* writtenOffPiece(scripted, false);
 
-			// why: a day of it changes nothing while the Agent is still working —
-			// this is not the threshold biding its time, it is the turn.
 			yield* sweptAt(24 * 60 * MINUTE_MILLIS);
 
 			expect(yield* retireIntents).toEqual([]);

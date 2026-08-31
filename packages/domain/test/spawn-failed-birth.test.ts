@@ -23,9 +23,7 @@ const birth = (suffix: string, pieceId: string, voyageId: string): SpawnFields =
 	voyageId,
 });
 
-// why: registration stakes the Piece before the birth settles, so two attempts
-// that never drew breath used to leave two dormant Agents standing against one
-// Piece. What a Piece should hold afterwards is nothing at all.
+// Regression: two failed births once left two dormant Agents assigned to one Piece.
 it.live("births that fail leave no claim standing on their Piece", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;

@@ -25,8 +25,6 @@ const submitSpawn = (suffix: string) =>
 		return yield* submission.changes.pipe(Stream.takeUntil(isTerminalIntentStatus), Stream.runLast, Effect.map(Option.getOrThrow));
 	});
 
-// why: two repos registered in the same millisecond tie on createdAt, so the
-// berth order is not the assertion — the set of berths is.
 const bySource = (berths: ReadonlyArray<BerthPlan>) =>
 	berths.map((berth) => ({ ref: berth.ref, source: berth.source })).sort((left, right) => left.source.localeCompare(right.source));
 

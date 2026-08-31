@@ -6,10 +6,6 @@ import type { Effect } from "effect";
 type SessionSend = Effect.Success<ReturnType<typeof makeSessionSend>>["sendPrompt"];
 type Words = Parameters<SessionSend>[1];
 
-// why: this declaration is the regression proof. The send seam is the last
-// place before a provider takes the words, and it accepts only what the
-// catalog minted. If a bare string ever satisfies it again, the pragma below
-// becomes unused and the build fails.
 const fromCatalog: Words = admiralWords({ words: "come about" });
 const standing: Words = wakeWords;
 // @ts-expect-error prose the catalog never wrote is not something an Agent may hear.

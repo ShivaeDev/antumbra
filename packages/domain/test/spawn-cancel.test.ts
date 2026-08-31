@@ -51,10 +51,6 @@ it.live("explicit cancel settles one spawning birth and its incomplete plan", ()
 			expect((yield* db.Berth.where({ agentId: payload.agentId }).all()).map((berth) => berth.status)).toEqual(["provisioning"]);
 			expect((yield* db.Agent.all()).map((row) => row.id)).toEqual([payload.agentId]);
 			expect((yield* db.Intent.all()).map((row) => row.id)).toEqual([submission.id]);
-			// why: the plan survives because a berth half cut is a thing on disk
-			// that reclaim must still come for. The claim on the Piece does not:
-			// it was staked for a birth that never drew breath, and settlement
-			// withdraws it so the Piece is free of Agents that never served.
 			expect(yield* db.PieceAgent.all()).toEqual([]);
 			expect(yield* db.AgentSession.all()).toHaveLength(0);
 		}).pipe(Effect.provide(domainKernelLayer(temporary, scripted.backend, {}, runner)));

@@ -7,7 +7,6 @@ import { expect, it } from "@effect/vitest";
 import { Effect, Layer, Result, Stream } from "effect";
 import { domainKernelLayer, sightSourceTestLayer } from "#test/domain-layers.ts";
 import { acquireTemporaryPersistence, makeScriptedBackend, type ScriptedBackend } from "#test/harness.ts";
-import { eventually } from "#test/voyage-fixtures.ts";
 
 const sightLayer = (temporary: TemporaryPersistence, scripted: ScriptedBackend) =>
 	sightSourceTestLayer.pipe(Layer.provideMerge(domainKernelLayer(temporary, scripted.backend)), Layer.provideMerge(SessionFabricLive));
@@ -49,11 +48,11 @@ it.live("the fleet lists root Sessions and never a subsession", () =>
 		yield* Effect.gen(function* () {
 			const sight = yield* SightSource;
 			const receipt = yield* sight.spawn(spawnRequest);
-			yield* eventually(
-				Effect.gen(function* () {
-					const fleet = yield* sight.fleet;
-					expect(fleet.agents.flatMap((agent) => agent.sessions).map((row) => row.id)).toEqual([receipt.sessionId]);
-				}),
+			yield* sight.fleetFeed.pipe(
+				Stream.filter((fleet) =>
+					fleet.agents.some((agent) => agent.id === receipt.agentId && agent.sessions.some((session) => session.id === receipt.sessionId)),
+				),
+				Stream.runHead,
 			);
 
 			yield* openSubsession("session-child", receipt.agentId, receipt.sessionId, receipt.sessionId);

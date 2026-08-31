@@ -23,7 +23,6 @@ const finishedPiece = (scripted: ScriptedBackend) =>
 		return pieceId;
 	});
 
-// The sweep was introduced to reclaim worktrees left by Agents that were never retired.
 it.live("the sweep retires a done piece's agent once its rest exceeds the threshold", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;

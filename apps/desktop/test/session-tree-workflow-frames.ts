@@ -31,8 +31,6 @@ const mirror = (subpath: string | undefined, entries: ReadonlyArray<SessionStore
 
 const agentSubpath = (agentId: string) => `subagents/workflows/${RUN_ID}/agent-${agentId}`;
 
-// why: a stored transcript line, not a forwarded frame — the envelope the
-// provider writes to disk, which is what the mirror hands an adapter.
 const line = (type: string, uuid: string, message: Record<string, unknown>): SessionStoreEntry => ({
 	message,
 	parentUuid: null,
@@ -66,17 +64,11 @@ const agentEntry = (agentId: string, label: string, state: string) => ({
 	type: "workflow_agent",
 });
 
-// why: the provider sends more on this frame than the SDK declares, and the
-// snapshot it does not declare is the only place a workflow's agents are ever
-// named. The fixture states that plainly rather than pretending the field is
-// part of the published type.
+// The provider adds workflow_progress to this frame beyond the SDK type.
 type ProgressFrame = Extract<SDKMessage, { subtype: "task_progress" }> & {
 	readonly workflow_progress: ReadonlyArray<unknown>;
 };
 
-// why: the provider's own progress frame, undocumented snapshot and all. The
-// counters and previews around the identity are exactly the noise the record
-// drops, and they are scripted here so the drop is what the rehearsal proves.
 const progress = (one: string, two: string): ProgressFrame => ({
 	description: "audit the ledger",
 	session_id: NATIVE_ROOT,
@@ -102,10 +94,6 @@ const workflowStarted: SDKMessage = {
 	workflow_name: "audit",
 };
 
-// why: the call reaches the log twice — as the frame the stream forwarded and
-// as the line the provider stored — because only the stored copy is followed by
-// the result. Reading the same call from both is how the lane knows which
-// stored result is a workflow's and which the stream already carried.
 const calling = line("assistant", "3c4d5e6f-7a8b-4c9d-8e0f-2a3b4c5d6e7f", {
 	content: [workflowCall],
 	role: "assistant",
@@ -131,9 +119,6 @@ const adopted = (uuid: string, body: string): SessionMessage => ({
 	uuid,
 });
 
-// why: a workflow run whose agents say nothing on the stream at all. Two are
-// mirrored live and a third is only ever found by the census that runs when the
-// provider falls silent — the case the record would otherwise lose entirely.
 export const workflowRehearsal: ReadonlyArray<Delivery> = [
 	frame(initFrame),
 	frame(assistant([workflowCall], null, "5e6f7a8b-9c0d-4e1f-8a2b-4c5d6e7f8091")),

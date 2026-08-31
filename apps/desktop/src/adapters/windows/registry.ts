@@ -62,9 +62,6 @@ export const makeWindowRegistry = (): WindowRegistry => {
 	const listeners = new Set<() => void>();
 	const records = (): ReadonlyArray<OwnedWindow> => [...owned.values()];
 	let inFront: string | undefined;
-	// why: the roster is what gets written down, so every change to it is
-	// announced from here — the one place that knows one happened — rather than
-	// from each caller that might have remembered to say so.
 	const changed = (): void => {
 		for (const listener of listeners) {
 			listener();

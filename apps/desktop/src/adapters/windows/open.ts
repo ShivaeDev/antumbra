@@ -16,9 +16,6 @@ export const rendererDocument = Effect.sync(() =>
 	}),
 );
 
-// why: the shell names a window from what it knows before the page has said
-// anything, so it is never briefly untitled. The page refines it afterwards,
-// which is how an artifact window ends up carrying the artifact's own name.
 const windowTitle = (place: WindowPlace): string => {
 	if (place.role === "console") {
 		return "Antumbra";

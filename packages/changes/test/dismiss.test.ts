@@ -1,91 +1,50 @@
 import { Changes } from "@antumbra/changes";
 import { Database } from "@antumbra/persistence";
-import { expect, it } from "@effect/vitest";
+import { it } from "@antumbra/testing";
+import { expect } from "@effect/vitest";
 import { Effect } from "effect";
-import {
-	acquireTemporaryPersistence,
-	CREW,
-	changesLayer,
-	createBerth,
-	createPiece,
-	createRepo,
-	makeScriptedHost,
-	REEF_SOURCE,
-} from "#test/change-harness.ts";
+import { changeOf } from "#test/change-fixtures.ts";
+import { changesLayer } from "#test/change-harness.ts";
 
-const seed = Effect.all([createRepo("repo-reef", "reef", REEF_SOURCE), createPiece("piece-reef"), createBerth(CREW)]);
+it.effectApp("a change that died at its host is dismissed once and stays so", function* ({ db }) {
+	yield* Effect.gen(function* () {
+		const changes = yield* Changes;
+		const row = changeOf({ headRef: "work/dismissed", id: "change-dismissed", repoId: "repo-dismissed", stage: "withdrawn" });
+		yield* db.Change.create(row);
 
-const opened = Effect.flatMap(Changes, (changes) =>
-	changes.open({
-		agentId: CREW,
-		base: "main",
-		body: "soundings",
-		draft: false,
-		pieceId: "piece-reef",
-		repoName: "reef",
-		sessionId: "session-crew",
-		title: "Chart the reef",
-	}),
-);
+		yield* changes.dismiss(row.id);
+		yield* changes.dismiss(row.id);
 
-it.live("a change that died at its host is dismissed once and stays so", () =>
-	Effect.gen(function* () {
-		const temporary = yield* acquireTemporaryPersistence;
-		const scripted = yield* makeScriptedHost;
-		yield* Effect.gen(function* () {
-			const changes = yield* Changes;
-			const db = yield* Database;
-			yield* seed;
-			const row = yield* opened;
-			yield* scripted.transition("repo-reef", "1", { stage: "withdrawn" });
-			yield* changes.refresh("scripted");
+		const verdicts = yield* db.ChangeVerdict.all();
+		expect(verdicts).toHaveLength(1);
+		expect(verdicts[0]?.verdict).toBe("dismissed");
+		const [after] = yield* db.Change.where({ id: row.id }).all();
+		expect(after?.stage).toBe("withdrawn");
+		expect(yield* changes.snapshot).toMatchObject({
+			dismissedChangeIds: new Set([row.id]),
+		});
+	}).pipe(Effect.provide(changesLayer([])), Effect.provideService(Database, db));
+});
 
-			yield* changes.dismiss(row.id);
-			yield* changes.dismiss(row.id);
+it.effectApp("a change still alive at its host has nothing to dismiss", function* ({ db }) {
+	yield* Effect.gen(function* () {
+		const changes = yield* Changes;
+		const row = changeOf({ headRef: "work/alive", id: "change-alive", repoId: "repo-alive", stage: "open" });
+		yield* db.Change.create(row);
 
-			const verdicts = yield* db.ChangeVerdict.all();
-			expect(verdicts).toHaveLength(1);
-			expect(verdicts[0]?.verdict).toBe("dismissed");
-			// why: the verdict settles what the change is owed; it never edits
-			// what happened to it, so the stage still reads as it died.
-			const [after] = yield* db.Change.where({ id: row.id }).all();
-			expect(after?.stage).toBe("withdrawn");
-			expect(yield* changes.snapshot).toMatchObject({
-				dismissedChangeIds: new Set([row.id]),
-			});
-		}).pipe(Effect.provide(changesLayer([scripted.host])), Effect.provide(temporary.layer));
-	}),
-);
+		const refused = yield* Effect.flip(changes.dismiss(row.id));
 
-it.live("a change still alive at its host has nothing to dismiss", () =>
-	Effect.gen(function* () {
-		const temporary = yield* acquireTemporaryPersistence;
-		const scripted = yield* makeScriptedHost;
-		yield* Effect.gen(function* () {
-			const changes = yield* Changes;
-			const db = yield* Database;
-			yield* seed;
-			const row = yield* opened;
+		expect(refused._tag).toBe("ChangeStillAlive");
+		expect(yield* db.ChangeVerdict.where({ changeId: row.id }).all()).toEqual([]);
+	}).pipe(Effect.provide(changesLayer([])), Effect.provideService(Database, db));
+});
 
-			const refused = yield* Effect.flip(changes.dismiss(row.id));
+it.effectApp("a change nobody has heard of is refused by name", function* ({ db }) {
+	yield* Effect.gen(function* () {
+		const changes = yield* Changes;
 
-			expect(refused._tag).toBe("ChangeStillAlive");
-			expect(yield* db.ChangeVerdict.all()).toEqual([]);
-		}).pipe(Effect.provide(changesLayer([scripted.host])), Effect.provide(temporary.layer));
-	}),
-);
+		const refused = yield* Effect.flip(changes.dismiss("no-such-change"));
 
-it.live("a change nobody has heard of is refused by name", () =>
-	Effect.gen(function* () {
-		const temporary = yield* acquireTemporaryPersistence;
-		const scripted = yield* makeScriptedHost;
-		yield* Effect.gen(function* () {
-			const changes = yield* Changes;
-			yield* seed;
-
-			const refused = yield* Effect.flip(changes.dismiss("no-such-change"));
-
-			expect(refused._tag).toBe("ChangeNotFound");
-		}).pipe(Effect.provide(changesLayer([scripted.host])), Effect.provide(temporary.layer));
-	}),
-);
+		expect(refused._tag).toBe("ChangeNotFound");
+	}).pipe(Effect.provide(changesLayer([])), Effect.provideService(Database, db));
+});

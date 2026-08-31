@@ -1,4 +1,5 @@
 import type { PullRequestRef } from "#pull-url.ts";
+import type { GitHubRepoName } from "#source.ts";
 
 export interface LocatedPullRequestRef extends PullRequestRef {
 	readonly repoId: string;
@@ -43,27 +44,22 @@ export const chunked = <A>(items: ReadonlyArray<A>, size: number): ReadonlyArray
 
 const repoKey = (ref: PullRequestRef): string => `${ref.owner}/${ref.name}`;
 
-const groupedByRepo = (refs: ReadonlyArray<LocatedPullRequestRef>): ReadonlyArray<ReadonlyArray<LocatedPullRequestRef>> => {
-	const groups = new Map<string, Array<LocatedPullRequestRef>>();
+interface RepositoryGroup extends GitHubRepoName {
+	readonly refs: Array<LocatedPullRequestRef>;
+}
+
+const groupedByRepo = (refs: ReadonlyArray<LocatedPullRequestRef>): ReadonlyArray<RepositoryGroup> => {
+	const groups = new Map<string, RepositoryGroup>();
 	for (const ref of refs) {
 		const key = repoKey(ref);
 		const group = groups.get(key);
 		if (group === undefined) {
-			groups.set(key, [ref]);
+			groups.set(key, { name: ref.name, owner: ref.owner, refs: [ref] });
 			continue;
 		}
-		group.push(ref);
+		group.refs.push(ref);
 	}
 	return [...groups.values()];
-};
-
-const repositoryBlock = (group: ReadonlyArray<LocatedPullRequestRef>, alias: string, numbered: (ref: LocatedPullRequestRef) => string): string => {
-	const first = group[0];
-	if (first === undefined) {
-		return "";
-	}
-	const selections = group.map(numbered).join(" ");
-	return `${alias}: repository(owner: "${first.owner}", name: "${first.name}") { ${selections} }`;
 };
 
 export const buildObservePlan = (refs: ReadonlyArray<LocatedPullRequestRef>): ObservePlan => {
@@ -71,14 +67,14 @@ export const buildObservePlan = (refs: ReadonlyArray<LocatedPullRequestRef>): Ob
 	const selections: ObserveSelection[] = [];
 	const blocks = groupedByRepo(refs).map((group, position) => {
 		const repoAlias = `r_${position}`;
-		const numbered = (ref: LocatedPullRequestRef): string => {
+		const numbered = group.refs.map((ref) => {
 			const pullAlias = `pr_${index}`;
 			selections.push({ pullAlias, ref, repoAlias });
 			const selection = `${pullAlias}: pullRequest(number: ${ref.number}) { ${PULL_FIELDS} }`;
 			index += 1;
 			return selection;
-		};
-		return repositoryBlock(group, repoAlias, numbered);
+		});
+		return `${repoAlias}: repository(owner: "${group.owner}", name: "${group.name}") { ${numbered.join(" ")} }`;
 	});
 	return { query: `query { ${blocks.join(" ")} }`, selections };
 };

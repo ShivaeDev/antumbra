@@ -12,8 +12,6 @@ export interface WorktreeIdentity {
 
 const IdentityLines = Schema.Tuple([Schema.String, Schema.String, Schema.String]);
 
-const BranchLines = Schema.Array(Schema.String);
-
 const invalidOutput = (detail: string) => new GitOutputInvalid({ detail, operation: "inspect-worktree" });
 
 const decodeIdentity = (output: string) =>
@@ -26,19 +24,10 @@ const decodeIdentity = (output: string) =>
 		Effect.mapError((cause) => invalidOutput(String(cause))),
 	);
 
-const acceptBranchListing = (branch: string, branches: ReadonlyArray<string>) => {
-	if (branches.length === 0) {
-		return Effect.succeed(false);
-	}
-	return branches.length === 1 && branches[0] === branch
-		? Effect.succeed(true)
-		: Effect.fail(invalidOutput(`unexpected branch listing: ${branches}`));
-};
-
 const decodeBranchExists = (branch: string, output: string) =>
-	Schema.decodeUnknownEffect(BranchLines)(output.trim() === "" ? [] : output.trim().split("\n")).pipe(
+	Schema.decodeUnknownEffect(Schema.Literals(["", branch]))(output.trim()).pipe(
 		Effect.mapError((cause) => invalidOutput(String(cause))),
-		Effect.flatMap((branches) => acceptBranchListing(branch, branches)),
+		Effect.map((listed) => listed !== ""),
 	);
 
 export const branchExists = (mirror: string, branch: string): Effect.Effect<boolean, GitError, ChildProcessSpawner.ChildProcessSpawner> =>

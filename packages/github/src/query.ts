@@ -30,8 +30,6 @@ const PULL_FIELDS = [
 	"headRefName",
 	"baseRefName",
 	"updatedAt",
-	"mergedAt",
-	"closedAt",
 	"commits(last: 1) { nodes { commit { statusCheckRollup { state } } } }",
 ].join(" ");
 
@@ -84,5 +82,3 @@ export const buildObservePlan = (refs: ReadonlyArray<LocatedPullRequestRef>): Ob
 	});
 	return { query: `query { ${blocks.join(" ")} }`, selections };
 };
-
-export const buildObserveQuery = (refs: ReadonlyArray<LocatedPullRequestRef>): string => buildObservePlan(refs).query;

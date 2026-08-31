@@ -1,5 +1,5 @@
 import { describe, expect, it } from "@effect/vitest";
-import { buildObserveQuery, chunked, OBSERVE_CHUNK_SIZE } from "#query.ts";
+import { buildObservePlan, chunked, OBSERVE_CHUNK_SIZE } from "#query.ts";
 
 const ref = (owner: string, name: string, number: number) => ({
 	name,
@@ -10,7 +10,7 @@ const ref = (owner: string, name: string, number: number) => ({
 
 describe("asking about many changes at once", () => {
 	it("groups one repository's pull requests into a single selection", () => {
-		const query = buildObserveQuery([ref("ShivaeDev", "antumbra", 23), ref("ShivaeDev", "antumbra", 24)]);
+		const { query } = buildObservePlan([ref("ShivaeDev", "antumbra", 23), ref("ShivaeDev", "antumbra", 24)]);
 		expect(query).toContain('r_0: repository(owner: "ShivaeDev", name: "antumbra")');
 		expect(query).toContain("pr_0: pullRequest(number: 23)");
 		expect(query).toContain("pr_1: pullRequest(number: 24)");
@@ -19,7 +19,7 @@ describe("asking about many changes at once", () => {
 	});
 
 	it("keeps aliases unique when two repositories share a call", () => {
-		const query = buildObserveQuery([ref("ShivaeDev", "antumbra", 7), ref("someone", "elsewhere", 7), ref("ShivaeDev", "antumbra", 8)]);
+		const { query } = buildObservePlan([ref("ShivaeDev", "antumbra", 7), ref("someone", "elsewhere", 7), ref("ShivaeDev", "antumbra", 8)]);
 		expect(query.match(/repository\(/g)).toHaveLength(2);
 		expect(query).toContain("pr_0: pullRequest(number: 7)");
 		expect(query).toContain("pr_1: pullRequest(number: 8)");

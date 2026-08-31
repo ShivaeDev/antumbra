@@ -49,7 +49,7 @@ const audited = (rootSessionId: string, nativeRef: string) =>
 const rehearsal = <A, E, R>(stored: StoredTranscripts, use: Effect.Effect<A, E, R>) =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
-		yield* use.pipe(Effect.provide(rehearsalLayer(temporary, streamRehearsal, stored)));
+		yield* use.pipe(Effect.provide(rehearsalLayer(temporary, streamRehearsal, Effect.void, stored)));
 	});
 
 it.live("a node whose transcript the record holds in full reads complete", () =>

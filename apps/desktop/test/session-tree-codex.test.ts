@@ -1,7 +1,7 @@
 import { SightSource } from "@antumbra/contract";
 import { Database } from "@antumbra/persistence";
 import { expect, it } from "@effect/vitest";
-import { Effect } from "effect";
+import { Deferred, Effect } from "effect";
 import {
 	BRANCH_AGENT,
 	BRANCH_THREAD,
@@ -12,7 +12,7 @@ import {
 	ROOT_THREAD,
 	STRAY_THREAD,
 } from "#test/session-tree-codex-frames.ts";
-import { acquireTemporaryPersistence, codexRehearsalLayer, eventually } from "#test/session-tree-harness.ts";
+import { acquireTemporaryPersistence, codexRehearsalLayer } from "#test/session-tree-harness.ts";
 
 const spawnRequest = {
 	backend: "codex",
@@ -44,27 +44,29 @@ const treeOf = (rootSessionId: string) =>
 	});
 
 const settled = (rootSessionId: string) =>
-	eventually(
-		Effect.gen(function* () {
-			const found = yield* treeOf(rootSessionId);
-			expect(found.rows.length).toBe(4);
-			expect(found.leaf?.status).toBe("closed");
-			expect(found.branch?.status).toBe("closed");
-			return found;
-		}),
-	);
+	Effect.gen(function* () {
+		const found = yield* treeOf(rootSessionId);
+		expect(found.rows.length).toBe(4);
+		expect(found.leaf?.status).toBe("closed");
+		expect(found.branch?.status).toBe("closed");
+		return found;
+	});
 
-const rehearsal = <A, E, R>(use: Effect.Effect<A, E, R>) =>
+const rehearsal = <A, E, R>(use: (drained: Effect.Effect<void>) => Effect.Effect<A, E, R>) =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
-		yield* use.pipe(Effect.provide(codexRehearsalLayer(temporary, ROOT_THREAD, codexRehearsal)));
+		const drained = yield* Deferred.make<void>();
+		yield* use(Deferred.await(drained)).pipe(
+			Effect.provide(codexRehearsalLayer(temporary, ROOT_THREAD, codexRehearsal, Deferred.succeed(drained, undefined))),
+		);
 	});
 
 it.live("a thread heard before it is announced becomes a node all the same", () =>
-	rehearsal(
+	rehearsal((drained) =>
 		Effect.gen(function* () {
 			const sight = yield* SightSource;
 			const receipt = yield* sight.spawn(spawnRequest);
+			yield* drained;
 			const tree = yield* settled(receipt.sessionId);
 
 			// why: the record admitted this thread on its first word and was told
@@ -93,10 +95,11 @@ it.live("a thread heard before it is announced becomes a node all the same", () 
 );
 
 it.live("the announcement moves a node under the Session that spawned it", () =>
-	rehearsal(
+	rehearsal((drained) =>
 		Effect.gen(function* () {
 			const sight = yield* SightSource;
 			const receipt = yield* sight.spawn(spawnRequest);
+			yield* drained;
 			const tree = yield* settled(receipt.sessionId);
 			const branch = tree.branch;
 			const leaf = tree.leaf;
@@ -134,10 +137,11 @@ it.live("the announcement moves a node under the Session that spawned it", () =>
 );
 
 it.live("a guardian judges the work without ever joining the tree", () =>
-	rehearsal(
+	rehearsal((drained) =>
 		Effect.gen(function* () {
 			const sight = yield* SightSource;
 			const receipt = yield* sight.spawn(spawnRequest);
+			yield* drained;
 			const tree = yield* settled(receipt.sessionId);
 			const branch = tree.branch;
 			if (branch === undefined) {
@@ -159,10 +163,11 @@ it.live("a guardian judges the work without ever joining the tree", () =>
 );
 
 it.live("codex's own words for an ending are folded, never invented", () =>
-	rehearsal(
+	rehearsal((drained) =>
 		Effect.gen(function* () {
 			const sight = yield* SightSource;
 			const receipt = yield* sight.spawn(spawnRequest);
+			yield* drained;
 			const tree = yield* settled(receipt.sessionId);
 
 			// why: interrupted is codex's declared word for a forced ending and has

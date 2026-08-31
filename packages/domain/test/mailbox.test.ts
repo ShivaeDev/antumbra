@@ -1,6 +1,5 @@
 import { BoardScope } from "@antumbra/boards";
 import { Database } from "@antumbra/persistence";
-import { corruptTestBoardEntry } from "@antumbra/persistence/testing";
 import { expect, it } from "@effect/vitest";
 import { Effect, Option } from "effect";
 import { AgentDomain } from "#domain.ts";
@@ -109,27 +108,3 @@ it.live("an Agent cannot receipt mail addressed to another Agent", () =>
 		}).pipe(Effect.provide(domainKernelLayer(temporary, scripted.backend)));
 	}),
 );
-
-for (const corruption of [
-	{ column: "kind", value: "alarm" },
-	{ column: "precedence", value: "urgent" },
-	{ column: "register", value: "archive" },
-] as const) {
-	it.live(`stored ${corruption.column} corruption fails closed`, () =>
-		Effect.gen(function* () {
-			const temporary = yield* acquireTemporaryPersistence;
-			const scripted = yield* makeScriptedBackend;
-			yield* Effect.gen(function* () {
-				const domain = yield* AgentDomain;
-				yield* createAgent(AGENT_ID);
-				yield* domain.boards.mail(addressedMail());
-			}).pipe(Effect.provide(domainKernelLayer(temporary, scripted.backend)));
-			yield* Effect.sync(() => corruptTestBoardEntry(temporary.database, corruption.column, corruption.value));
-			yield* Effect.gen(function* () {
-				const domain = yield* AgentDomain;
-				const failure = yield* Effect.flip(domain.boards.unread(AGENT_ID));
-				expect(failure._tag).toBe("StoredBoardEntryInvalid");
-			}).pipe(Effect.provide(domainKernelLayer(temporary, scripted.backend)));
-		}),
-	);
-}

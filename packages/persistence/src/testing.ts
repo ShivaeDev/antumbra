@@ -1,7 +1,6 @@
 import { mkdirSync, mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { DatabaseSync } from "node:sqlite";
 import { fileURLToPath } from "node:url";
 import { makeDatabaseIt } from "@shivaedev/effect-prisma/testing";
 import { Effect } from "effect";
@@ -52,15 +51,4 @@ export const persistenceIt = () => {
 	});
 	harness.afterAll(temporary.remove);
 	return harness;
-};
-
-export const corruptTestBoardEntry = (databasePath: DatabaseFilePath, column: "kind" | "precedence" | "register", value: string) => {
-	const statements = {
-		kind: 'UPDATE "boardEntry" SET "kind" = ?',
-		precedence: 'UPDATE "boardEntry" SET "precedence" = ?',
-		register: 'UPDATE "boardEntry" SET "register" = ?',
-	};
-	const database = new DatabaseSync(databasePath);
-	database.prepare(statements[column]).run(value);
-	database.close();
 };

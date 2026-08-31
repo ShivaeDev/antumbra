@@ -4,8 +4,7 @@ import { type IntentExecution, makeIntentWorkflow } from "#workflow.ts";
 
 export type ReclaimPolicy = "abandon" | "requeue";
 
-// why: payloads round-trip through a JSON column with no ambient context, so a
-// kind's schema must not demand decoding or encoding services.
+// Payloads persist as standalone JSON, so their schemas cannot require services.
 type IntentPayloadSchema = Schema.Top & {
 	readonly DecodingServices: never;
 	readonly EncodingServices: never;
@@ -24,11 +23,6 @@ interface RegisteredIntentKind {
 	readonly tag: string;
 }
 
-// why: the kernel stores payloads as a JSON column and replays them after a
-// restart, so a kind's schema work is fused into two monomorphic closures
-// (encode at submit, decode+execute at admission). That erases the payload
-// type from everything the scheduler touches. The typed kind retains its
-// decoder only for callers that explicitly reconstruct active payloads.
 export interface IntentKind<Payload> extends RegisteredIntentKind {
 	readonly decode: (payloadJson: string) => Effect.Effect<Payload, PayloadInvalid>;
 	readonly encode: (payload: Payload) => Effect.Effect<string, PayloadInvalid>;

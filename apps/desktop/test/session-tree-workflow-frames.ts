@@ -3,7 +3,7 @@ import type { Delivery } from "@antumbra/backend-claude";
 import { assistant, initFrame, NATIVE_ROOT, toolUse } from "#test/session-frames.ts";
 
 export const WORKFLOW_CALL = "toolu_01WkF9pQ3rTvXn7mLbYcZd2E";
-export const RUN_ID = "wfr_7f3a2b1c";
+const RUN_ID = "wfr_7f3a2b1c";
 export const AGENT_ONE = "3f9c1d2e4a5b6c70";
 export const AGENT_TWO = "8d7e6f5a4b3c2d10";
 export const AGENT_LATE = "b1c2d3e4f5a60718";

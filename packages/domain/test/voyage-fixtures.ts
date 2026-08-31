@@ -41,26 +41,6 @@ export const openReefVoyage = Effect.gen(function* () {
 	});
 });
 
-// why: a captain between its spawn and its first turn is at work with no
-// session to resume, and only a seeded row puts a voyage in that state on
-// demand — the kernel would have answered before a rehearsal could look.
-export const seedSpawningCaptain = (voyageId: string) =>
-	Effect.gen(function* () {
-		const db = yield* Database;
-		yield* db.Agent.create({
-			charter: "chart the reef",
-			currentSessionId: null,
-			id: "captain-newborn",
-			role: "captain",
-			status: "spawning",
-		});
-		yield* db.VoyageAgent.create({
-			agentId: "captain-newborn",
-			role: "captain",
-			voyageId,
-		});
-	});
-
 // why: one alpha and two dependents is the smallest graph that shows both
 // gating and fan-out — every dispatcher test builds the same chain so the
 // assertions differ only in the policy under test.

@@ -15,9 +15,6 @@ const windows = Effect.flatMap(WindowSource, (source) => Effect.succeed(source))
 const open = (place: WindowPlace) => Effect.flatMap(windows, (source) => source.open(place));
 
 describe("artifact windows", () => {
-	// why: an artifact and a session can carry the same identifier without
-	// being the same thing, so the subject a window is opened for is the role
-	// and the identifier together, never the identifier alone.
 	it("tells an artifact apart from a session wearing the same id", () => {
 		expect(subjectOf(artifactPlace("x"))).not.toBe(subjectOf(transcriptPlace("x")));
 		expect(subjectOf(artifactPlace("x"))).toBe(subjectOf(artifactPlace("x")));
@@ -39,8 +36,6 @@ describe("artifact windows", () => {
 		}),
 	);
 
-	// why: an artifact window is a child like any other — it is opened from the
-	// console and cannot become a second place the work is driven from.
 	it.effect("lets no artifact window open another", () =>
 		Effect.gen(function* () {
 			const registry = makeWindowRegistry();
@@ -56,8 +51,6 @@ describe("artifact windows", () => {
 		}),
 	);
 
-	// why: a role is minted once, at open. An artifact window that could call
-	// itself a transcript could ask for a window it was never given.
 	it.effect("never lets an artifact window rename its role", () =>
 		Effect.gen(function* () {
 			const registry = makeWindowRegistry();

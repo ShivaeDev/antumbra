@@ -12,7 +12,7 @@ export const DialogClose = (props: React.ComponentProps<typeof DialogPrimitive.C
 	<DialogPrimitive.Close data-slot="dialog-close" {...props} />
 );
 
-export const DialogOverlay = ({ className, ...props }: React.ComponentProps<typeof DialogPrimitive.Overlay>) => (
+const DialogOverlay = ({ className, ...props }: React.ComponentProps<typeof DialogPrimitive.Overlay>) => (
 	<DialogPrimitive.Overlay
 		className={cn("fixed inset-0 z-50 bg-background/75 backdrop-blur-[2px]", className)}
 		data-slot="dialog-overlay"

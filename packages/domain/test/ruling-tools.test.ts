@@ -1,7 +1,8 @@
+import { isTerminalIntentStatus, Kernel } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
 import type { DirectTool } from "@antumbra/plugin-api";
 import { expect, it } from "@effect/vitest";
-import { Effect, Option } from "effect";
+import { Effect, Option, Stream } from "effect";
 import { AgentDomain } from "#domain.ts";
 import { makeRulingToolCompiler } from "#ruling-tools.ts";
 import { dispatchingLayer, domainCapabilityLayer } from "#test/domain-layers.ts";
@@ -106,8 +107,13 @@ const gatedPieceIds = Effect.gen(function* () {
 const captainOf = (scripted: ScriptedBackend, voyageId: string) =>
 	Effect.gen(function* () {
 		const domain = yield* AgentDomain;
+		const kernel = yield* Kernel;
 		const hailed = yield* domain.voyages.hail(voyageId);
-		return yield* eventually(sessionFor(scripted, hailed.agentId));
+		const status = yield* kernel
+			.changes(hailed.intentId)
+			.pipe(Stream.takeUntil(isTerminalIntentStatus), Stream.runLast, Effect.map(Option.getOrThrow));
+		expect(status).toBe("succeeded");
+		return yield* sessionFor(scripted, hailed.agentId);
 	});
 
 it.live("a captain holds pieces of its own voyage until it is ruled", () =>

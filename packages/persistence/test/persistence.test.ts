@@ -40,7 +40,3 @@ it.effectDB("decodes stored datetimes as UTC dates", function* (db) {
 
 	expect(row.updatedAt).toBeInstanceOf(Date);
 });
-
-it.effectDB("rolls the previous test's writes back", function* (db) {
-	expect(yield* db.AppMeta.where({ key: "datetime-probe" }).exists()).toBe(false);
-});

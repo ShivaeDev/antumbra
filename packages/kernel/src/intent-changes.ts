@@ -9,10 +9,7 @@ export const changesFor = (id: string) =>
 		Effect.gen(function* () {
 			const db = yield* Database;
 			const { pubsub } = yield* SchedulerState;
-			// why: subscribing before the row read means a transition in the gap is
-			// never lost — it lands in the subscription and the current status
-			// already reflects it, so the dedup only ever drops repeats. Observers
-			// see the latest state, not a complete journal.
+			// Subscribe before reading so a transition between the two is not lost.
 			const subscription = yield* PubSub.subscribe(pubsub);
 			const row = yield* db.Intent.where({ id }).first();
 			if (Option.isNone(row)) {

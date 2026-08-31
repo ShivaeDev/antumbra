@@ -8,10 +8,7 @@ const settleInterrupt = (id: string) => applyTransition(id, "interrupt").pipe(Ef
 const settleExit = (id: string, exit: Exit.Exit<void, unknown>) =>
 	Effect.gen(function* () {
 		const state = yield* SchedulerState;
-		// why: the fiber leaves the running map before the status write announces
-		// its tick, so the drain woken by this completion sees the freed slot at
-		// once. Handoff latency is all that rides on this order — the drain's
-		// bounded patience covers liveness.
+		// Free the slot before the status transition wakes admission.
 		yield* Ref.update(state.running, (map) => {
 			const next = new Map(map);
 			next.delete(id);
@@ -22,10 +19,7 @@ const settleExit = (id: string, exit: Exit.Exit<void, unknown>) =>
 			return;
 		}
 		if (Cause.hasInterruptsOnly(exit.cause)) {
-			// why: an interrupt either finishes a cancel (row is "cancelling") or is
-			// a shutdown, where "interrupt" is illegal from "running" — the FSM
-			// rejection leaves the row for boot reclaim, making in-process teardown
-			// indistinguishable from a crash on disk.
+			// Shutdown leaves running intents for the same boot reclaim used after a crash.
 			yield* settleInterrupt(id);
 			return;
 		}
@@ -41,9 +35,7 @@ const settleExit = (id: string, exit: Exit.Exit<void, unknown>) =>
 		yield* applyTransition(id, "fail", Cause.pretty(exit.cause));
 	}).pipe(
 		Effect.uninterruptible,
-		// why: settling must never take anything else down, but a swallowed
-		// write failure strands the row as "running" with no fiber until boot
-		// reclaim — the cause is logged before being discarded.
+		// Settling is isolated, but its failure remains visible for boot reclaim.
 		Effect.catchCause((cause) => Effect.logError("intent settle failed", { id }, cause)),
 	);
 

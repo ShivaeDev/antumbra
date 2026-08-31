@@ -21,4 +21,4 @@ export {
 	reefView,
 	soundings,
 } from "#fixtures/voyage.ts";
-export { consoleWindow, windowFixture } from "#fixtures/window-source.ts";
+export { consoleWindow } from "#fixtures/window-source.ts";

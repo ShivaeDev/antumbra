@@ -22,7 +22,7 @@ export interface SessionInput {
 	readonly parts: readonly [SessionInputImagePart | SessionInputTextPart, ...(SessionInputImagePart | SessionInputTextPart)[]];
 }
 
-export interface BackendCapabilities {
+interface BackendCapabilities {
 	readonly imageInput: boolean;
 }
 

@@ -13,8 +13,8 @@ import {
 	reportsNativeRef,
 	seedResumableAgent,
 	untilTerminal,
+	untilWaitingOrTerminal,
 	WAKE_INSTRUCTION,
-	waitingWake,
 } from "#test/session-recovery-fixture.ts";
 
 it.live("a hail after a rebuild resumes the same native session and sequence", () =>
@@ -74,8 +74,10 @@ it.live("provider refusal waits without rewriting durable identity", () =>
 		const refusing = refuseWhile(reportsNativeRef(scripted.backend, scripted, "native-durable"), denied);
 
 		const recoveryId = yield* Effect.gen(function* () {
-			yield* hail(payload.sessionId);
-			const held = yield* eventually(waitingWake);
+			const db = yield* Database;
+			const recovery = yield* hail(payload.sessionId);
+			expect(yield* untilWaitingOrTerminal(recovery.changes)).toBe("waiting");
+			const held = Option.getOrThrow(yield* db.Intent.where({ id: recovery.id }).first());
 			expect(held.detail).toContain("authentication is required");
 			expect(yield* durableRows).toEqual(before);
 			return held.id;
@@ -106,8 +108,9 @@ it.live("a provider fork on resume waits without replacing the durable native id
 
 		yield* Effect.gen(function* () {
 			const db = yield* Database;
-			yield* hail(payload.sessionId);
-			const held = yield* eventually(waitingWake);
+			const recovery = yield* hail(payload.sessionId);
+			expect(yield* untilWaitingOrTerminal(recovery.changes)).toBe("waiting");
+			const held = Option.getOrThrow(yield* db.Intent.where({ id: recovery.id }).first());
 			expect(held.detail).toContain("native-durable");
 			expect(held.detail).toContain("native-other");
 			expect(yield* durableRows).toEqual(before);

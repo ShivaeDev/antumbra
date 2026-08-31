@@ -6,7 +6,7 @@ import { expect, it } from "@effect/vitest";
 import { Effect, Fiber, Option, Ref, Stream } from "effect";
 import { AgentDomain } from "#domain.ts";
 import { acquireTemporaryPersistence, makeScriptedBackend, makeScriptedRunner } from "#test/harness.ts";
-import { eventually, payload, reportsNativeRef } from "#test/session-recovery-fixture.ts";
+import { eventually, payload, reportsNativeRef, untilTerminal } from "#test/session-recovery-fixture.ts";
 import { confirmsWhen, NATIVE, onlyWake, sessionRow, sleepingRoot, wakeLayer } from "#test/session-wake-fixture.ts";
 
 it.live("boot settles a drain whose process is gone, and a send wakes it", () =>
@@ -130,13 +130,8 @@ it.live("an Intent moving is enough to ring the fleet feed", () =>
 			const ghost = yield* kernel.submit(domain.wake, {
 				sessionId: "session-ghost",
 			});
-			const row = yield* eventually(
-				Effect.gen(function* () {
-					const found = Option.getOrThrow(yield* Database.use((db) => db.Intent.where({ id: ghost.id }).first()));
-					expect(found.status).toBe("failed");
-					return found;
-				}),
-			);
+			expect(yield* untilTerminal(ghost.changes)).toBe("failed");
+			const row = Option.getOrThrow(yield* Database.use((db) => db.Intent.where({ id: ghost.id }).first()));
 			expect(row.detail).toContain("no root Session session-ghost");
 			expect(yield* Fiber.join(rings)).toHaveLength(2);
 		}).pipe(Effect.provide(wakeLayer(temporary, scripted.backend, recorded.runner)));

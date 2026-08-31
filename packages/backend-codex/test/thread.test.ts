@@ -9,9 +9,8 @@ import { openThreadSession } from "#thread.ts";
 
 const THREAD = "thread-1";
 
-const openFake = (resume: Option.Option<string> = Option.none()) =>
+const openFake = (resume: Option.Option<string> = Option.none(), fake = makeFakeAppServer()) =>
 	Effect.gen(function* () {
-		const fake = makeFakeAppServer();
 		const server = yield* makeCodexServer({ spawn: () => fake.process });
 		const handle = yield* openThreadSession(server, {
 			cwd: "/moorage",
@@ -112,31 +111,22 @@ it.live("account rate limits reach the session without a thread id", () =>
 
 it.live("queue settles only when its text reaches a provider turn", () =>
 	Effect.gen(function* () {
-		const { fake, handle } = yield* openFake();
-		yield* handle.queue(textInput("first"));
-		expect(methods(fake).at(-1)).toBe("turn/start");
+		const fake = makeFakeAppServer({ hold: "turn/start" });
+		const { handle } = yield* openFake(Option.none(), fake);
+		const first = yield* Effect.forkChild(handle.queue(textInput("first")));
+		const firstRequest = yield* fake.takeHeldRequest;
+		firstRequest.accept();
+		yield* Fiber.join(first);
 		const second = yield* Effect.forkScoped(handle.queue(textInput("second")));
-		yield* Effect.yieldNow;
-		const third = yield* Effect.forkScoped(handle.queue(textInput("third")));
-		yield* Effect.yieldNow;
-		expect(methods(fake).filter((m) => m === "turn/start")).toHaveLength(1);
-		expect(second.pollUnsafe()).toBeUndefined();
-		expect(third.pollUnsafe()).toBeUndefined();
 		turnCompleted(fake, "turn-1");
-		yield* Fiber.join(second);
-		expect(third.pollUnsafe()).toBeUndefined();
-		expect(fake.requests.at(-1)?.params).toEqual({
+		const secondRequest = yield* fake.takeHeldRequest;
+		expect(secondRequest.params).toEqual({
 			clientUserMessageId: "00000000-0000-4000-8000-000000000001",
 			input: [{ text: "second", text_elements: [], type: "text" }],
 			threadId: THREAD,
 		});
-		turnCompleted(fake, "turn-2");
-		yield* Fiber.join(third);
-		expect(fake.requests.at(-1)?.params).toEqual({
-			clientUserMessageId: "00000000-0000-4000-8000-000000000001",
-			input: [{ text: "third", text_elements: [], type: "text" }],
-			threadId: THREAD,
-		});
+		secondRequest.accept();
+		yield* Fiber.join(second);
 	}),
 );
 
@@ -168,36 +158,43 @@ it.live("queued words are said once, where codex reports taking them", () =>
 it.live("closing a session fails text held before provider acceptance", () =>
 	Effect.gen(function* () {
 		const scope = yield* Scope.make();
-		const fake = makeFakeAppServer();
-		const handle = yield* makeCodexServer({ spawn: () => fake.process }).pipe(
-			Effect.flatMap((server) =>
-				openThreadSession(server, {
-					cwd: "/moorage",
-					resume: Option.none(),
-					sessionId: "session-cut",
-					tools: [],
-				}),
-			),
-			Scope.provide(scope),
-		);
-		yield* handle.queue(textInput("first"));
+		const fake = makeFakeAppServer({ hold: "turn/start" });
+		const server = yield* makeCodexServer({ spawn: () => fake.process });
+		const handle = yield* openThreadSession(server, {
+			cwd: "/moorage",
+			resume: Option.none(),
+			sessionId: "session-cut",
+			tools: [],
+		}).pipe(Scope.provide(scope));
+		const first = yield* Effect.forkChild(handle.queue(textInput("first")));
+		(yield* fake.takeHeldRequest).accept();
+		yield* Fiber.join(first);
 		const held = yield* Effect.forkChild(handle.queue(textInput("held")));
-		yield* Effect.yieldNow;
+		turnCompleted(fake, "turn-1");
+		yield* fake.takeHeldRequest;
 		yield* Scope.close(scope, Exit.void);
-		expect(Exit.isFailure(yield* Effect.exit(Fiber.join(held)))).toBe(true);
+		expect(yield* Effect.flip(Fiber.join(held))).toMatchObject({
+			detail: "session closed before delivery reached the provider",
+			tag: "codex",
+		});
 	}),
 );
 
 it.live("provider termination fails text held before acceptance", () =>
 	Effect.gen(function* () {
-		const { fake, handle } = yield* openFake();
-		yield* handle.queue(textInput("first"));
+		const fake = makeFakeAppServer({ hold: "turn/start" });
+		const { handle } = yield* openFake(Option.none(), fake);
+		const first = yield* Effect.forkChild(handle.queue(textInput("first")));
+		(yield* fake.takeHeldRequest).accept();
+		yield* Fiber.join(first);
 		const held = yield* Effect.forkChild(handle.queue(textInput("held")));
-		yield* Effect.yieldNow;
+		turnCompleted(fake, "turn-1");
+		yield* fake.takeHeldRequest;
 		fake.exit();
-		yield* Effect.yieldNow;
-		const result = held.pollUnsafe();
-		expect(result !== undefined && Exit.isFailure(result)).toBe(true);
+		expect(yield* Effect.flip(Fiber.join(held))).toMatchObject({
+			detail: "session closed before delivery reached the provider",
+			tag: "codex",
+		});
 	}),
 );
 

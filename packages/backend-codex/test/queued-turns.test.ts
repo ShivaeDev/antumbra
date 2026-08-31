@@ -1,29 +1,58 @@
-import type { BackendFailure } from "@antumbra/plugin-api";
+import type { BackendFailure, SessionInput } from "@antumbra/plugin-api";
 import { expect, it } from "@effect/vitest";
-import { Deferred, Effect, Exit, Fiber, Ref, Semaphore } from "effect";
+import { Deferred, Effect, Fiber, Queue, Ref, Semaphore } from "effect";
 import { makeQueuedTurns } from "#queued-turns.ts";
 import { textInput } from "#test/input.ts";
 import type { TurnRequests } from "#turn-requests.ts";
-import { idle, SESSION_CLOSED, type TurnState } from "#turn-state.ts";
+import { idle, type TurnState, withoutTurn, withTurn } from "#turn-state.ts";
+
+interface StartRequest {
+	readonly accept: (turnId: string) => Effect.Effect<boolean>;
+	readonly input: SessionInput;
+}
 
 const unused = (): Effect.Effect<never, BackendFailure> => Effect.die("unexpected request");
 
-it.effect("close fails a send whose turn/start has not been accepted", () =>
+it.effect("queued inputs reach provider turns in order", () =>
 	Effect.gen(function* () {
-		const state = yield* Ref.make<TurnState>(idle);
+		const state = yield* Ref.make<TurnState>(withTurn(idle, "turn-1"));
 		const gate = yield* Semaphore.make(1);
-		const closure = yield* Deferred.make<never, BackendFailure>();
-		const started = yield* Deferred.make<void>();
+		const enqueued = yield* Queue.unbounded<void>();
+		const starts = yield* Queue.unbounded<StartRequest>();
 		const requests: TurnRequests = {
 			interrupt: unused,
-			start: () => Deferred.succeed(started, undefined).pipe(Effect.andThen(Effect.never)),
+			start: (input) =>
+				Effect.gen(function* () {
+					const accepted = yield* Deferred.make<string>();
+					yield* Queue.offer(starts, { accept: (turnId) => Deferred.succeed(accepted, turnId), input });
+					return yield* Deferred.await(accepted);
+				}),
 			steer: unused,
 		};
-		const queued = makeQueuedTurns(state, gate.withPermit, requests, Deferred.await(closure));
-		const delivery = yield* Effect.forkChild(queued.queue(textInput("held")));
-		yield* Deferred.await(started);
-		yield* Deferred.fail(closure, SESSION_CLOSED);
-		yield* queued.close;
-		expect(Exit.isFailure(yield* Fiber.await(delivery))).toBe(true);
+		const withPermit: Parameters<typeof makeQueuedTurns>[1] = (effect) =>
+			gate.withPermit(effect).pipe(Effect.tap(() => Queue.offer(enqueued, undefined)));
+		const queued = makeQueuedTurns(state, withPermit, requests, Effect.never);
+		const completeTurn = Ref.update(state, (current) => (current._tag === "open" ? withoutTurn(current) : current)).pipe(
+			Effect.andThen(queued.flush),
+		);
+
+		const second = yield* Effect.forkChild(queued.queue(textInput("second")));
+		yield* Queue.take(enqueued);
+		const third = yield* Effect.forkChild(queued.queue(textInput("third")));
+		yield* Queue.take(enqueued);
+
+		const flushSecond = yield* Effect.forkChild(completeTurn);
+		const secondStart = yield* Queue.take(starts);
+		expect(secondStart.input).toEqual(textInput("second"));
+		yield* secondStart.accept("turn-2");
+		yield* Fiber.join(flushSecond);
+		yield* Fiber.join(second);
+
+		const flushThird = yield* Effect.forkChild(completeTurn);
+		const thirdStart = yield* Queue.take(starts);
+		expect(thirdStart.input).toEqual(textInput("third"));
+		yield* thirdStart.accept("turn-3");
+		yield* Fiber.join(flushThird);
+		yield* Fiber.join(third);
 	}),
 );

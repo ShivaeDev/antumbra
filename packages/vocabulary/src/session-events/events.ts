@@ -13,7 +13,7 @@ export const SessionOpened = Schema.Struct({
 	type: Schema.Literal("session.opened"),
 });
 
-export const MessageEvent = Schema.Struct({
+const MessageEvent = Schema.Struct({
 	inputId: Schema.optional(SessionInputId),
 	origin: Schema.optional(Origin),
 	parts: Schema.optional(Schema.Array(SessionMessagePart)),
@@ -23,14 +23,14 @@ export const MessageEvent = Schema.Struct({
 	type: Schema.Literal("message"),
 });
 
-export const ThinkingEvent = Schema.Struct({
+const ThinkingEvent = Schema.Struct({
 	origin: Schema.optional(Origin),
 	raw: Raw,
 	text: Schema.String,
 	type: Schema.Literal("thinking"),
 });
 
-export const ToolStarted = Schema.Struct({
+const ToolStarted = Schema.Struct({
 	input: Schema.String,
 	name: Schema.String,
 	origin: Schema.optional(Origin),
@@ -41,7 +41,7 @@ export const ToolStarted = Schema.Struct({
 	type: Schema.Literal("tool.started"),
 });
 
-export const ToolCompleted = Schema.Struct({
+const ToolCompleted = Schema.Struct({
 	ok: Schema.Boolean,
 	origin: Schema.optional(Origin),
 	output: Schema.String,

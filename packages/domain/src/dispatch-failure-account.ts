@@ -9,7 +9,7 @@ const GONE = {
 
 const NO_REASON = "the Intent recorded no reason";
 
-export interface DispatchFailureAccount {
+interface DispatchFailureAccount {
 	readonly detail: string;
 	readonly status: string;
 	readonly tag: string;

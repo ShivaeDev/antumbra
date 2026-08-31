@@ -68,7 +68,7 @@ const pieceSeen = (piece: DerivedPiece, board: ReadonlyArray<BoardEntryRow>, res
 	title: piece.title,
 });
 
-export const entrySeen = (entry: BoardEntryRow): BoardEntryView => ({
+const entrySeen = (entry: BoardEntryRow): BoardEntryView => ({
 	authorAgentId: entry.authorAgentId,
 	body: entry.body,
 	createdAt: entry.createdAt.toISOString(),

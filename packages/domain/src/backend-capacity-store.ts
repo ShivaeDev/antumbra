@@ -4,7 +4,7 @@ import { Clock, Effect, Option, Semaphore } from "effect";
 import { type BackendCapacityReading, type StoredBackendCapacityInvalid, storedCapacityReading } from "#backend-capacity-model.ts";
 import { availableCapacityValues, capacityObservationValues, ignoreCapacityObservation } from "#backend-capacity-write.ts";
 
-export interface BackendCapacityStore {
+interface BackendCapacityStore {
 	readonly clear: (backend: string, observedAt: number) => Effect.Effect<void, PrismaError>;
 	readonly observe: (backend: string, observation: BackendCapacityObservation) => Effect.Effect<void, PrismaError>;
 	readonly read: (backend: string) => Effect.Effect<Option.Option<BackendCapacityReading>, PrismaError | StoredBackendCapacityInvalid>;

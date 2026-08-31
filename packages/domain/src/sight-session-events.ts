@@ -5,7 +5,7 @@ import { projectHistoricalAgentEvent } from "@antumbra/vocabulary/session-events
 import { Effect, Stream } from "effect";
 import { toFailure } from "#sight-failure.ts";
 
-export interface SightSessionEvents {
+interface SightSessionEvents {
 	readonly sessionEventFeed: (query: EventQuery) => Stream.Stream<SessionEvent, SightFailure>;
 	readonly sessionEvents: (query: EventQuery) => Effect.Effect<ReadonlyArray<SessionEvent>, SightFailure>;
 }

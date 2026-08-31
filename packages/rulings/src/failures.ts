@@ -17,7 +17,7 @@ import type {
 
 export type RulingReadFailure = PrismaError | StoredRulingValueInvalid;
 
-export type RulingRequestFailure = RulingGatePieceMissing | RulingReadFailure | RulingSubjectMissing;
+type RulingRequestFailure = RulingGatePieceMissing | RulingReadFailure | RulingSubjectMissing;
 
 export type RulingVerdictFailure =
 	| RulingAlreadyRuled

@@ -27,7 +27,7 @@ export interface RepoRow {
 	readonly name: string;
 }
 
-export interface AssignmentRow {
+interface AssignmentRow {
 	readonly agentId: string;
 	readonly pieceId: string;
 }
@@ -48,7 +48,7 @@ export interface MembershipRow {
 	readonly voyageId: string;
 }
 
-export interface ReportLinkRow {
+interface ReportLinkRow {
 	readonly pieceId: string;
 	readonly reportId: string;
 }

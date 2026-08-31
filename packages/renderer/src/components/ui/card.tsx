@@ -16,10 +16,6 @@ export const CardHeader = ({ className, ...props }: React.ComponentProps<"div">)
 	/>
 );
 
-export const CardDescription = ({ className, ...props }: React.ComponentProps<"div">) => (
-	<div className={cn("text-2xs text-muted-foreground", className)} data-slot="card-description" {...props} />
-);
-
 export const CardAction = ({ className, ...props }: React.ComponentProps<"div">) => (
 	<div className={cn("col-start-2 row-span-2 row-start-1 self-start justify-self-end", className)} data-slot="card-action" {...props} />
 );

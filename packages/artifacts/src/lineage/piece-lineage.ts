@@ -16,12 +16,11 @@ const relatedArtifacts = (artifacts: ReadonlyArray<ArtifactRow>) =>
 		return [...successors.filter(Option.isSome).map((stored) => stored.value), ...predecessors.flat()];
 	});
 
-export const readStoredArtifactLineage = (pieceId: string) =>
-	Effect.gen(function* () {
-		const db = yield* Database;
-		const ownArtifacts = yield* db.Artifact.where({ pieceId }).all();
-		const related = yield* relatedArtifacts(ownArtifacts);
-		return {
-			artifacts: [...new Map([...ownArtifacts, ...related].map((artifact) => [artifact.id, artifact])).values()],
-		};
-	});
+export const readStoredArtifactLineage = Effect.fn("artifacts.readStoredArtifactLineage")(function* (pieceId: string) {
+	const db = yield* Database;
+	const ownArtifacts = yield* db.Artifact.where({ pieceId }).all();
+	const related = yield* relatedArtifacts(ownArtifacts);
+	return {
+		artifacts: [...new Map([...ownArtifacts, ...related].map((artifact) => [artifact.id, artifact])).values()],
+	};
+});

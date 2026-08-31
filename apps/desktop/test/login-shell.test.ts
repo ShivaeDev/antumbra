@@ -19,9 +19,6 @@ const launcher = script(join(root, "launcher"), "#!/bin/sh\nexit 0\n");
 const linked = join(bin, "codex");
 symlinkSync(launcher, linked);
 
-// why: the probe runs the user's shell as an interactive login shell; this
-// stand-in answers with a PATH the test owns and runs the probe command as any
-// shell would.
 const shell = script(join(root, "fake-login-shell"), `#!/bin/sh\nPATH="${bin}"\nexport PATH\nexec /bin/sh -c "$2"\n`);
 
 const onFakeLoginShell = <A>(effect: Effect.Effect<A>) =>

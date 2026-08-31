@@ -42,9 +42,6 @@ const nestedStarted: SDKMessage = {
 	uuid: "5f6a7b8c-9d0e-4f1a-8b2c-4d5e6f708192",
 };
 
-// why: a backgrounded spawn keeps talking after the turn that started it ends,
-// so the frames that follow this one are the case the acquisition path exists
-// for: result is a turn boundary, never the end of the session.
 const turnEnded: SDKMessage = {
 	duration_api_ms: 41_204,
 	duration_ms: 42_318,
@@ -86,9 +83,6 @@ const notified: SDKMessage = {
 	uuid: "9d0e1f2a-3b4c-4d5e-8f60-819203142536",
 };
 
-// why: one delegated agent that finishes and one it spawned that never does.
-// The second is how the record is held to saying where it stopped seeing:
-// the stream ends with that node still open and nothing to close it.
 const rehearsalFrames: ReadonlyArray<SDKMessage> = [
 	initFrame,
 	delegating,

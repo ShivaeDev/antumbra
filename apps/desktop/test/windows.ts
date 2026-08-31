@@ -24,9 +24,6 @@ export const contents = (): FakeContents => ({
 	},
 });
 
-// why: the real sender is an EventEmitter that keeps every listener handed to
-// it and warns past ten. A double that holds only the newest one per name can
-// never show a pile-up, which is how listeners accrued here unnoticed.
 export const countingSender = (senderId: number): FakeSender => {
 	const registered = new Map<string, ReadonlyArray<Registration>>();
 	const add = (name: string, listener: () => void, once: boolean) => {

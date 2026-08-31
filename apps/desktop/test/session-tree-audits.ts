@@ -5,11 +5,6 @@ import type { SessionAudit } from "@antumbra/plugin-api";
 import { Effect } from "effect";
 import { NATIVE_ROOT } from "#test/session-frames.ts";
 
-// why: what the provider kept beside the stream, scripted. The readings are the
-// live ones — the uuid diff, the directory census, the sweep of every thread
-// spawned below the root — and only the answer they read is written by hand, so
-// a rehearsal says what an audit concludes without a provider on disk to
-// conclude it from.
 export type StoredTranscripts = ReadonlyMap<string, ReadonlyArray<SessionMessage>>;
 
 export const storedNothing: StoredTranscripts = new Map();
@@ -35,14 +30,8 @@ export const scriptedClaudeAudit = (stored: StoredTranscripts): SessionAudit => 
 	node: (request) => Effect.map(request.recorded, (recorded) => transcriptFindings(request.nodeRef, stored.get(request.nodeRef) ?? [], recorded)),
 });
 
-// why: the sweep answered and named no thread the record has not got — a
-// session whose delegated work the stream carried in full.
 export const sweptClean: CensusSweep = [];
 
-// why: the sweep that could not be taken at all. The live lane keeps that state
-// in the error channel of the request; a rehearsal has no request to fail, so it
-// names the state instead — and names it rather than passing `undefined`, which
-// a default argument would quietly turn back into an answer.
 export const SWEEP_REFUSED = "refused";
 export type ScriptedSweep = CensusSweep | typeof SWEEP_REFUSED;
 

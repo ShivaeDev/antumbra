@@ -24,9 +24,6 @@ export const usage: Extract<SDKMessage, { type: "result" }>["usage"] = {
 	speed: "standard",
 };
 
-// why: one skeleton for every assistant frame, because the acquisition path
-// reads the content blocks and the attribution and nothing else. The fields
-// around them are the provider's, carried verbatim so raw stays wire truth.
 export const assistant = (content: Content, parent: string | null, uuid: Uuid): SDKMessage => ({
 	message: {
 		container: null,

@@ -43,8 +43,6 @@ describe("desktop process ownership", () => {
 		}),
 	);
 
-	// why: the console is the app. A detached window opened earlier must never
-	// stand in for it when a second launch is handed to the owning process.
 	it.effect("routes a second launch to the console in the owning process", () =>
 		Effect.gen(function* () {
 			const calls: Array<string> = [];

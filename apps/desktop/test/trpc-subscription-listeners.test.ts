@@ -19,8 +19,6 @@ describe("trpc subscription listeners", () => {
 				}),
 		);
 
-		// why: past ten listeners on one emitter Node calls it a leak, so the
-		// count has to hold at the baseline well beyond that.
 		for (let round = 0; round < 12; round += 1) {
 			handlers.subscribe(event, request("fleet"));
 			handlers.unsubscribe(event, { id: "fleet" });

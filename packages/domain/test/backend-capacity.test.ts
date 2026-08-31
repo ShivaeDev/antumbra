@@ -1,11 +1,10 @@
-import { DomainFeedsLive } from "@antumbra/domain-feeds";
-import { Database } from "@antumbra/persistence";
 import { type AgentBackend, makeBackendCapacityController } from "@antumbra/plugin-api";
+import { it } from "@antumbra/testing/domain";
 import type { AgentEvent } from "@antumbra/vocabulary/session-events";
-import { expect, it } from "@effect/vitest";
-import { Clock, Effect, Layer, Option } from "effect";
+import { expect } from "@effect/vitest";
+import { Clock, Effect, Option } from "effect";
 import { makeBackendCapacities } from "#backend-capacity.ts";
-import { acquireTemporaryPersistence, makeScriptedBackend } from "#test/harness.ts";
+import { makeScriptedBackend } from "#test/harness.ts";
 
 const quotaRaw = {
 	kind: "quota/rejected",
@@ -15,36 +14,34 @@ const quotaRaw = {
 
 const quotaEvent: AgentEvent = { raw: quotaRaw, type: "raw" };
 
-it.live("recovers a provider-wide hold from durable session evidence", () =>
-	Effect.gen(function* () {
-		const temporary = yield* acquireTemporaryPersistence;
-		const scripted = yield* makeScriptedBackend;
-		const capacity = yield* makeBackendCapacityController((raw) => {
-			switch (raw.kind) {
-				case "quota/allowed":
-					return Option.some({ status: "available" as const });
-				case "quota/warning":
-					return Option.some({
-						detail: "scripted quota nearly exhausted",
-						reason: "usage-limit" as const,
-						status: "warning" as const,
-					});
-				case "quota/rejected":
-					return Option.some({
-						detail: "scripted quota exhausted",
-						reason: "usage-limit" as const,
-						status: "blocked" as const,
-					});
-				default:
-					return Option.none();
-			}
-		});
-		const backend: AgentBackend = {
-			...scripted.backend,
-			capacity: capacity.source,
-		};
-		yield* Effect.gen(function* () {
-			const db = yield* Database;
+it.effectApp("recovers a provider-wide hold from durable session evidence", function* ({ db }) {
+	yield* Effect.scoped(
+		Effect.gen(function* () {
+			const scripted = yield* makeScriptedBackend;
+			const capacity = yield* makeBackendCapacityController((raw) => {
+				switch (raw.kind) {
+					case "quota/allowed":
+						return Option.some({ status: "available" as const });
+					case "quota/warning":
+						return Option.some({
+							detail: "scripted quota nearly exhausted",
+							reason: "usage-limit" as const,
+							status: "warning" as const,
+						});
+					case "quota/rejected":
+						return Option.some({
+							detail: "scripted quota exhausted",
+							reason: "usage-limit" as const,
+							status: "blocked" as const,
+						});
+					default:
+						return Option.none();
+				}
+			});
+			const backend: AgentBackend = {
+				...scripted.backend,
+				capacity: capacity.source,
+			};
 			yield* db.AgentSession.create({
 				agentId: "agent-1",
 				backend: "scripted",
@@ -138,6 +135,6 @@ it.live("recovers a provider-wide hold from durable session evidence", () =>
 			expect(yield* recoveredAgain.current("scripted")).toMatchObject({
 				status: "available",
 			});
-		}).pipe(Effect.provide(Layer.mergeAll(temporary.layer, DomainFeedsLive)));
-	}),
-);
+		}),
+	);
+});

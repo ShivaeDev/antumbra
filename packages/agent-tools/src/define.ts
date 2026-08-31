@@ -1,7 +1,7 @@
 import type { DirectTool, DirectToolOutcome } from "@antumbra/plugin-api";
 import { Effect, JsonSchema, Schema } from "effect";
 
-export interface ToolSpec<Fields extends Schema.Struct.Fields> {
+interface ToolSpec<Fields extends Schema.Struct.Fields> {
 	readonly description: string;
 	readonly input: Schema.Struct<Fields> & { readonly DecodingServices: never };
 	readonly inputSchema: Record<string, unknown>;

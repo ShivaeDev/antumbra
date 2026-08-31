@@ -79,16 +79,6 @@ export class AgentBirthStranded extends Data.TaggedError("AgentBirthStranded")<{
 	}
 }
 
-export class AgentRootAlreadyOpen extends Data.TaggedError("AgentRootAlreadyOpen")<{
-	readonly agentId: string;
-	readonly openSessionId: string;
-	readonly sessionId: string;
-}> {
-	override get message(): string {
-		return `Agent ${this.agentId} already answers through open Session ${this.openSessionId}; ${this.sessionId} cannot open a second`;
-	}
-}
-
 export class MooragePlanConflict extends Data.TaggedError("MooragePlanConflict")<{
 	readonly agentId: string;
 	readonly detail: string;

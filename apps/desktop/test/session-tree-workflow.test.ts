@@ -40,8 +40,11 @@ const settled = (rootSessionId: string) =>
 	Effect.gen(function* () {
 		const found = yield* runOf(rootSessionId);
 		expect(found.rows.length).toBe(4);
+		expect(found.late).toBeDefined();
+		expect(found.one).toBeDefined();
+		expect(found.two).toBeDefined();
 		expect(found.late?.status).toBe("closed");
-		return found;
+		return { ...found, late: found.late!, one: found.one!, two: found.two! };
 	});
 
 it.effectApp("every agent a workflow ran becomes a node of the Session tree", { clock: "live" }, function* ({ drained }) {
@@ -75,10 +78,6 @@ it.effectApp("each workflow agent's words are journaled under its own id", { clo
 	const run = yield* settled(receipt.sessionId);
 	const one = run.one;
 	const two = run.two;
-	if (one === undefined || two === undefined) {
-		return;
-	}
-
 	expect(yield* kindsOf(one.id)).toEqual(["session.opened", "message"]);
 	expect(yield* kindsOf(two.id)).toEqual(["session.opened", "message"]);
 	expect((yield* journal(one.id)).at(-1)?.payload).toContain("the ledger reads clean");
@@ -117,10 +116,6 @@ it.effectApp("an agent the mirror missed is adopted, and says it was", { clock: 
 	yield* drained;
 	const run = yield* settled(receipt.sessionId);
 	const late = run.late;
-	if (late === undefined) {
-		return;
-	}
-
 	expect(late).toMatchObject({
 		completeness: "incomplete",
 		kind: null,

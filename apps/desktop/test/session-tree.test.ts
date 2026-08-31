@@ -41,7 +41,7 @@ const treeOf = (rootSessionId: string) =>
 		const nested = rows.find((row) => row.nativeRef === NESTED_SUBSESSION);
 		expect(node).toBeDefined();
 		expect(nested).toBeDefined();
-		return { nested, node, rows };
+		return { nested: nested!, node: node!, rows };
 	}).pipe(Effect.orDie);
 
 it.effectApp("a delegated agent becomes a node of the Session tree", { clock: "live" }, function* ({ drained }) {
@@ -52,9 +52,6 @@ it.effectApp("a delegated agent becomes a node of the Session tree", { clock: "l
 	expect(tree.rows.length).toBe(3);
 	const node = tree.node;
 	const nested = tree.nested;
-	if (node === undefined || nested === undefined) {
-		return;
-	}
 	expect(node).toMatchObject({
 		agentId: receipt.agentId,
 		completeness: "complete",
@@ -80,9 +77,6 @@ it.effectApp("each node's journal holds what that node did, and only that", { cl
 	const tree = yield* treeOf(receipt.sessionId);
 	const node = tree.node;
 	const nested = tree.nested;
-	if (node === undefined || nested === undefined) {
-		return;
-	}
 	yield* awaitKind(nested.id, "subsession.gap");
 	expect(yield* kindsOf(receipt.sessionId)).toEqual([
 		"session.opened",
@@ -104,9 +98,6 @@ it.effectApp("the record keeps saying what it saw after the turn ended", { clock
 	const tree = yield* treeOf(receipt.sessionId);
 	const node = tree.node;
 	const nested = tree.nested;
-	if (node === undefined || nested === undefined) {
-		return;
-	}
 	yield* awaitKind(nested.id, "subsession.gap");
 	const spoken = (yield* journal(node.id)).at(-1);
 	expect(spoken?.payload).toContain("the cluster maps cleanly");
@@ -127,9 +118,6 @@ effectIt.live("a node whose journal refused an append is marked incomplete", () 
 			const receipt = yield* sight.spawn(spawnRequest).pipe(Effect.orDie);
 			yield* Deferred.await(drained);
 			const node = (yield* treeOf(receipt.sessionId)).node;
-			if (node === undefined) {
-				return;
-			}
 			expect(node.status).toBe("closed");
 			expect(node.completeness).toBe("incomplete");
 			expect(node.outcome).toBe("completed");

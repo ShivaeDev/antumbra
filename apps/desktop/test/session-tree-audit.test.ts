@@ -38,8 +38,9 @@ const audited = (rootSessionId: string, nativeRef: string) =>
 	eventually(
 		Effect.gen(function* () {
 			const row = yield* nodeOf(rootSessionId, nativeRef);
+			expect(row).toBeDefined();
 			expect(row?.completeness).not.toBe("recording");
-			return row;
+			return row!;
 		}),
 	);
 
@@ -56,9 +57,6 @@ it.live("a node whose transcript the record holds in full reads complete", () =>
 			const sight = yield* SightSource;
 			const receipt = yield* sight.spawn(spawnRequest);
 			const node = yield* audited(receipt.sessionId, SUBSESSION);
-			if (node === undefined) {
-				return;
-			}
 
 			expect(node.completeness).toBe("complete");
 			const gaps = (yield* journal(node.id)).filter((row) => row.kind === "subsession.gap");
@@ -76,9 +74,6 @@ it.live("a line the provider stored and the stream never carried is a gap", () =
 			const sight = yield* SightSource;
 			const receipt = yield* sight.spawn(spawnRequest);
 			const node = yield* audited(receipt.sessionId, SUBSESSION);
-			if (node === undefined) {
-				return;
-			}
 
 			expect(node.completeness).toBe("incomplete");
 			expect(node.outcome).toBe("completed");
@@ -103,13 +98,9 @@ it.live("an agent only the census found is admitted, and says so", () =>
 				Effect.gen(function* () {
 					const row = yield* nodeOf(receipt.sessionId, MISSED_AGENT);
 					expect(row?.status).toBe("closed");
-					return row;
+					return row!;
 				}),
 			);
-			if (found === undefined) {
-				return;
-			}
-
 			expect(found).toMatchObject({
 				agentId: receipt.agentId,
 				completeness: "incomplete",

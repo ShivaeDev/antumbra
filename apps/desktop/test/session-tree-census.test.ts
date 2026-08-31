@@ -69,20 +69,21 @@ it.live("a thread the sweep proves and the record missed is admitted", () =>
 			);
 			const found = tree.find((row) => row.nativeRef === MISSED_THREAD);
 			const branch = tree.find((row) => row.nativeRef === BRANCH_THREAD);
-			if (found === undefined || branch === undefined) {
-				return;
-			}
+			expect(found).toBeDefined();
+			expect(branch).toBeDefined();
+			const admitted = found!;
+			const parent = branch!;
 
-			expect(found).toMatchObject({
+			expect(admitted).toMatchObject({
 				agentId: receipt.agentId,
 				completeness: "recording",
 				kind: "agents/purser.md",
 				label: "quiet-tern",
-				parentSessionId: branch.id,
+				parentSessionId: parent.id,
 				rootSessionId: receipt.sessionId,
 				status: "open",
 			});
-			const gaps = yield* gapsOn(found.id);
+			const gaps = yield* gapsOn(admitted.id);
 			expect(gaps.join("")).toContain("the stream never carried it");
 			expect(gaps.filter((said) => said.includes("census-missing"))).toHaveLength(1);
 		}),
@@ -104,10 +105,7 @@ it.live("a thread the record already holds is named and left alone", () =>
 			);
 			const branch = tree.filter((row) => row.nativeRef === BRANCH_THREAD);
 			expect(branch).toHaveLength(1);
-			const held = branch[0];
-			if (held === undefined) {
-				return;
-			}
+			const held = branch[0]!;
 
 			expect((yield* gapsOn(held.id)).join("")).not.toContain("census-missing");
 		}),

@@ -10,7 +10,6 @@ export {
 	type RegisteredRepo,
 	type RepoRegistration,
 	type RepoRegistry,
-	repoName,
 } from "@antumbra/repos";
 export {
 	type ResourceReconcileOptions,

@@ -41,11 +41,7 @@ const standDown = (identity: SessionIdentity) =>
 				yield* feeds.publishVoyageRefresh();
 			}
 		}
-		// why: declaring there is nothing to do is not asking to be put away. The
-		// acquisition stays open and listening so the admiral's next words reach
-		// an Agent that is already there, and the mark is what lets the system
-		// decide later — by the clock, never by the Agent — that the process has
-		// been held for nothing long enough to reclaim.
+		// Standing down marks idleness without detaching; later reclamation is clock-owned.
 		yield* fabric.standDown(identity.sessionId);
 	});
 

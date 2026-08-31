@@ -2,9 +2,6 @@ import type { AntumbraBridge, AppRouter, BridgeRequest, BridgeSubscribeRequest, 
 import { callTRPCProcedure, getTRPCErrorFromUnknown } from "@trpc/server";
 import { type Deliver, isAsyncIterable, pump } from "#adapters/feed-pump.ts";
 
-// why: a browser tab has no main process to own a window, so the origin every
-// procedure reads is one fixed name rather than the id main would have minted
-// for a window it opened and verified.
 const origin = { windowId: "harness" };
 
 const invoke = async (router: AppRouter, request: BridgeRequest): Promise<TrpcResponse> => {

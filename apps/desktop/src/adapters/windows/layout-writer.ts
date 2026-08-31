@@ -20,12 +20,6 @@ export interface LayoutWriterInput {
 	readonly store: LayoutStore;
 }
 
-// why: a console reports where it is on every mode click and every selection,
-// and that is one keystroke of intent rather than one save each. A burst inside
-// the patience window collapses into a single write of the roster as it ends
-// up, and one fiber performs every write, so two saves can never interleave
-// into a half-written file. The flag, not the queue, decides whether there is
-// anything to write, so a tick left over from a burst costs nothing.
 export const layoutWriter = (input: LayoutWriterInput): Effect.Effect<LayoutWriter> =>
 	Effect.gen(function* () {
 		const tick = yield* Queue.sliding<void>(1);

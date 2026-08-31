@@ -1,9 +1,5 @@
 import { type Option, Schema } from "effect";
 
-// why: a setting holds one of a small closed set of values at every crossing —
-// the JSON text in its row, the payload of a change, the field a view draws.
-// Declaring that set once here is what lets a single decode stand at each of
-// those boundaries instead of one per crossing.
 export const SettingValue = Schema.Union([Schema.Boolean, Schema.Number]);
 export type SettingValue = typeof SettingValue.Type;
 
@@ -33,10 +29,6 @@ export interface SettingFlag {
 
 export type SettingDeclaration = SettingCount | SettingFlag;
 
-// why: the kind, the schema and the control a surface draws are minted
-// together and never passed in, so a declaration cannot promise a boolean and
-// then ask for a number field. Declaring a setting is choosing one of these
-// two constructors, which is the whole vocabulary of what a setting may be.
 export const flag = (entry: { readonly description: string; readonly fallback: boolean; readonly title: string }): SettingFlag => ({
 	...entry,
 	decode: Schema.decodeUnknownOption(Schema.Boolean),

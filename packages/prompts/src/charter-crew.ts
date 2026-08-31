@@ -2,7 +2,7 @@ import { Schema } from "effect";
 import { type AgentPrompt, agentPrompt } from "#mint.ts";
 import { logSection, proseOf, section } from "#prose.ts";
 
-export const CrewCharter = Schema.Struct({
+const CrewCharter = Schema.Struct({
 	context: Schema.String,
 	expectation: Schema.String,
 	northStar: Schema.String,

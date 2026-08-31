@@ -1,5 +1,4 @@
 import { defineService } from "@antumbra/service-definition";
-import type { Context } from "effect";
 import { makePublishChangeRefresh } from "#publish-change-refresh.ts";
 import { makePublishFleetRefresh } from "#publish-fleet-refresh.ts";
 import { makePublishResourceReclaim } from "#publish-resource-reclaim.ts";
@@ -33,8 +32,6 @@ export const DomainFeeds = defineService({
 	}),
 	requires: [],
 });
-
-export type DomainFeedsService = Context.Service.Shape<typeof DomainFeeds>;
 
 export const DomainFeedsLive = DomainFeeds.layer;
 

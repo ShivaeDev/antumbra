@@ -9,7 +9,7 @@ export type PieceState = (typeof PIECE_STATES)[number];
 export const dependenciesOf = (edges: ReadonlyArray<EdgeRow>, pieceId: string): ReadonlyArray<string> =>
 	edges.filter((edge) => edge.toPieceId === pieceId).map((edge) => edge.fromPieceId);
 
-export const donePieces = (world: VoyageWorld): ReadonlySet<string> =>
+const donePieces = (world: VoyageWorld): ReadonlySet<string> =>
 	new Set(
 		world.pieces
 			.map((piece) => ({ id: piece.id, ...pieceOutcomeTally(world, piece.id) }))
@@ -17,10 +17,10 @@ export const donePieces = (world: VoyageWorld): ReadonlySet<string> =>
 			.map((tally) => tally.id),
 	);
 
-export const landingPieces = (world: VoyageWorld): ReadonlySet<string> =>
+const landingPieces = (world: VoyageWorld): ReadonlySet<string> =>
 	new Set(world.pieces.filter((piece) => pieceOutcomeTally(world, piece.id).pending >= 1).map((piece) => piece.id));
 
-export const abandonedPieces = (world: VoyageWorld): ReadonlySet<string> =>
+const abandonedPieces = (world: VoyageWorld): ReadonlySet<string> =>
 	new Set(world.pieces.filter((piece) => world.pieceVerdicts.get(piece.id) === "abandoned").map((piece) => piece.id));
 
 export const awaitingRulingsOf = (world: VoyageWorld, pieceId: string): ReadonlyArray<AwaitingRuling> =>

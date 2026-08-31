@@ -14,7 +14,7 @@ export interface DispatchPort {
 	readonly submit: (payload: SpawnFields) => Effect.Effect<IntentSubmission, SpawnRefused, never>;
 }
 
-export type DispatchTarget = { readonly _tag: "resume"; readonly sessionId: string } | { readonly _tag: "spawn" };
+type DispatchTarget = { readonly _tag: "resume"; readonly sessionId: string } | { readonly _tag: "spawn" };
 
 const settle = (port: DispatchPort, pieceId: string, intentId: string, status: Option.Option<IntentStatus>) =>
 	Effect.gen(function* () {

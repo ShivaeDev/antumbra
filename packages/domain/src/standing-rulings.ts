@@ -2,7 +2,7 @@ import { type Ruling, type RulingAnswer, type RulingSubject, Rulings } from "@an
 import { Effect, Option } from "effect";
 import { ruledByWords } from "#ruling-words.ts";
 
-export interface RulingReader {
+interface RulingReader {
 	readonly agentId: string;
 	readonly pieceId: Option.Option<string>;
 	readonly voyageId: Option.Option<string>;

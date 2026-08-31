@@ -7,7 +7,7 @@ import { repoNameOf } from "#change-view.ts";
 import { ChangeNotAddressable } from "#errors.ts";
 import { type VoyageWorldReadFailure, VoyageWorldSource } from "#voyage-world.ts";
 
-export type SituationDraftRefused = ChangeNotAddressable | PrismaError | VoyageWorldReadFailure;
+type SituationDraftRefused = ChangeNotAddressable | PrismaError | VoyageWorldReadFailure;
 
 // Drafts identify the observed change; volatile check and review details stay on the host.
 export const situationWords = (situation: ChangeSituation, change: ChangeRow, repo: string): AgentPrompt => {

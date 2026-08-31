@@ -7,7 +7,7 @@ import { decodeStoredSubsessionOutcome } from "@antumbra/vocabulary/session-even
 import { Effect, Stream } from "effect";
 import { toFailure } from "#sight-failure.ts";
 
-export interface SightSessionTree {
+interface SightSessionTree {
 	readonly sessionTree: (rootSessionId: string) => Effect.Effect<SessionTree, SightFailure>;
 	readonly sessionTreeFeed: (rootSessionId: string) => Stream.Stream<SessionTree, SightFailure>;
 }

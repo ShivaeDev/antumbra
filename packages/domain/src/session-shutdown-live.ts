@@ -6,7 +6,7 @@ import { decodeSessionExecutionStatus, decodeStoredAgentSessionStatus } from "@a
 import { Effect, Layer, Stream } from "effect";
 import { AgentDomain } from "#agent-domain-service.ts";
 
-export const makeSessionShutdownDrain = Effect.gen(function* () {
+const makeSessionShutdownDrain = Effect.gen(function* () {
 	const db = yield* Database;
 	const domain = yield* AgentDomain;
 	const feeds = yield* DomainFeeds;

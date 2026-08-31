@@ -17,7 +17,7 @@ export const executionSessionOfAgent = (world: VoyageWorld, agentId: string): Ag
 	return currentSessionId === undefined ? undefined : open.find((session) => session.id === currentSessionId);
 };
 
-export interface AssignedExecutionSession {
+interface AssignedExecutionSession {
 	readonly agentId: string;
 	readonly backend: string;
 	readonly sessionId: string;

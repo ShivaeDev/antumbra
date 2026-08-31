@@ -6,7 +6,7 @@ import type { ReadyPiece } from "#dispatch-policy.ts";
 import { type DispatchPort, dispatchPiece } from "#dispatch-spawn.ts";
 import type { AssignedExecution } from "#voyage-execution-selection.ts";
 
-export interface PendingDispatches {
+interface PendingDispatches {
 	readonly pieceIds: Set<string>;
 	readonly sessionIds: Set<string>;
 }

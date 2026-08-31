@@ -4,7 +4,7 @@ import { Effect, Option, PubSub } from "effect";
 import { rulingAnswerMail } from "#ruling-answer-mail.ts";
 import { RulingHolds } from "#ruling-holds.ts";
 
-export interface RuledRuling {
+interface RuledRuling {
 	readonly answer: RulingAnswer;
 	readonly ruling: Ruling;
 }

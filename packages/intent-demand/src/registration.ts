@@ -3,7 +3,7 @@ import { Cause, Effect, Option } from "effect";
 import { IntentDemandPassFailed } from "#errors.ts";
 
 type KernelService = typeof Kernel.Service;
-export type IntentDemandRequirements = Kernel | Effect.Services<ReturnType<KernelService["active"] | KernelService["submit"]>>;
+type IntentDemandRequirements = Kernel | Effect.Services<ReturnType<KernelService["active"] | KernelService["submit"]>>;
 
 export interface IntentDemandRegistration<R = IntentDemandRequirements> {
 	readonly pass: Effect.Effect<void, IntentDemandPassFailed, R>;

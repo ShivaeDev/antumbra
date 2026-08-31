@@ -22,7 +22,7 @@ import { retirePieceCrew } from "#retire-crew.ts";
 import { toFailure } from "#sight-failure.ts";
 import { makeSituationDraft } from "#situation-draft.ts";
 
-export interface SightActs {
+interface SightActs {
 	readonly forgetRepo: (repoId: string) => Effect.Effect<void, SightFailure>;
 	readonly interrupt: (sessionId: string) => Effect.Effect<void, SightFailure>;
 	readonly registerRepo: (registration: RepoRegistration) => Effect.Effect<RepoSummary, SightFailure>;

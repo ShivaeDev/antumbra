@@ -3,7 +3,7 @@ import { type ChangeView, changeView, repoNameOf } from "#change-view.ts";
 import { liesAtQuay, type QuayGroup, quayGroup } from "#quay-group.ts";
 import type { VoyageWorld } from "#voyage-rows.ts";
 
-export interface QuayBerthing {
+interface QuayBerthing {
 	readonly pieceId: string;
 	readonly pieceTitle: string;
 	readonly voyageId: string;

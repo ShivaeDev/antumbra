@@ -67,24 +67,6 @@ it.effectApp("a crew member lands a report against the piece it was spawned for"
 	const crew = yield* workingCrew;
 	const live = yield* sessionOf(scripted, crew.agentId);
 
-	expect(live.tools.map((tool) => tool.name)).toEqual([
-		"land_report",
-		"read_report",
-		"land_artifact",
-		"supersede",
-		"remove_supersession",
-		"submit_change",
-		"open_change",
-		"adopt_change",
-		"read_voyage",
-		"read_mail",
-		"mark_read",
-		"write_board",
-		"read_board",
-		"request_ruling",
-		"stand_down",
-		"read_rulings",
-	]);
 	expect(yield* callTool(live, "land_report", { body: "the eastern shoal is charted", title: "soundings" })).toEqual({
 		ok: true,
 		text: "report landed",

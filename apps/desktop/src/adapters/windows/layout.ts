@@ -35,7 +35,7 @@ export const readLayout = (raw: string): WindowLayout | undefined => {
 
 export const writeLayout = (layout: WindowLayout): string => JSON.stringify(layout, null, 2);
 
-export interface RestorePlan {
+interface RestorePlan {
 	readonly children: ReadonlyArray<RememberedWindow>;
 	readonly consoleWindow: RememberedWindow;
 	readonly focused: string | null;

@@ -3,18 +3,18 @@ import { layoutOf, type WindowLayout } from "#adapters/windows/layout.ts";
 import type { LayoutStore } from "#adapters/windows/layout-store.ts";
 import type { WindowRegistry } from "#adapters/windows/registry.ts";
 
-export const layoutSnapshot = (registry: WindowRegistry): WindowLayout =>
+const layoutSnapshot = (registry: WindowRegistry): WindowLayout =>
 	layoutOf(
 		registry.all().map((record) => ({ id: record.id, place: record.place })),
 		registry.focused() ?? null,
 	);
 
-export interface LayoutWriter {
+interface LayoutWriter {
 	readonly note: Effect.Effect<void>;
 	readonly run: Effect.Effect<void>;
 }
 
-export interface LayoutWriterInput {
+interface LayoutWriterInput {
 	readonly patience: number;
 	readonly registry: WindowRegistry;
 	readonly store: LayoutStore;

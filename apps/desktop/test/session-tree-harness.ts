@@ -114,14 +114,6 @@ export const rehearsalLayer = (
 	stored: StoredTranscripts = storedNothing,
 ) => sightLayer(temporary, scriptedClaude(script, stored, drained));
 
-export const codexRehearsalLayer = (
-	temporary: TemporaryPersistence,
-	rootThread: string,
-	script: ReadonlyArray<RpcNotification>,
-	drained: Effect.Effect<unknown> = Effect.void,
-	sweep: ScriptedSweep = sweptClean,
-) => sightLayer(temporary, scriptedCodex(rootThread, script, sweep, drained));
-
 interface SessionTreeHarness {
 	readonly drained: Effect.Effect<void>;
 }

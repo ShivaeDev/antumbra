@@ -8,7 +8,7 @@ import { acquireTemporaryPersistence, type TemporaryPersistence } from "@antumbr
 import type { AgentBackend, Runner, SessionHandle } from "@antumbra/plugin-api";
 import { makeEffectApp } from "@antumbra/testing-runtime";
 import { NodeServices } from "@effect/platform-node";
-import { Deferred, Effect, Layer, Option, Schedule, Stream } from "effect";
+import { Deferred, Effect, Layer, Option, Stream } from "effect";
 import {
 	type ScriptedSweep,
 	type StoredTranscripts,
@@ -19,12 +19,6 @@ import {
 } from "#test/session-tree-audits.ts";
 
 export { acquireTemporaryPersistence };
-
-export const eventually = <A, E, R>(check: Effect.Effect<A, E, R>) =>
-	check.pipe(
-		Effect.catchDefect((defect) => Effect.fail(defect)),
-		Effect.retry(Schedule.spaced(10).pipe(Schedule.upTo({ duration: 2000 }))),
-	);
 
 const scriptedClaude = (script: ReadonlyArray<Delivery>, stored: StoredTranscripts, drained: Effect.Effect<unknown>): AgentBackend => ({
 	audit: scriptedClaudeAudit(stored),
@@ -144,7 +138,8 @@ const makeRehearsalIt = (backend: (drained: Effect.Effect<void>) => AgentBackend
 	),
 });
 
-export const claudeRehearsalIt = (script: ReadonlyArray<Delivery>) => makeRehearsalIt((drained) => scriptedClaude(script, storedNothing, drained));
+export const claudeRehearsalIt = (script: ReadonlyArray<Delivery>, stored: StoredTranscripts = storedNothing) =>
+	makeRehearsalIt((drained) => scriptedClaude(script, stored, drained));
 
-export const codexRehearsalIt = (rootThread: string, script: ReadonlyArray<RpcNotification>) =>
-	makeRehearsalIt((drained) => scriptedCodex(rootThread, script, sweptClean, drained));
+export const codexRehearsalIt = (rootThread: string, script: ReadonlyArray<RpcNotification>, sweep: ScriptedSweep = sweptClean) =>
+	makeRehearsalIt((drained) => scriptedCodex(rootThread, script, sweep, drained));

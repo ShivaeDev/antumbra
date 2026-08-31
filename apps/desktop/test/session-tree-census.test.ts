@@ -1,11 +1,11 @@
 import type { CensusSweep } from "@antumbra/backend-codex";
 import { SightSource } from "@antumbra/contract";
 import { Database } from "@antumbra/persistence";
-import { expect, it } from "@effect/vitest";
+import { expect } from "@effect/vitest";
 import { Effect } from "effect";
-import { type ScriptedSweep, SWEEP_REFUSED } from "#test/session-tree-audits.ts";
+import { SWEEP_REFUSED } from "#test/session-tree-audits.ts";
 import { BRANCH_THREAD, codexRehearsal, ROOT_THREAD } from "#test/session-tree-codex-frames.ts";
-import { acquireTemporaryPersistence, codexRehearsalLayer, eventually } from "#test/session-tree-harness.ts";
+import { codexRehearsalIt } from "#test/session-tree-harness.ts";
 
 const MISSED_THREAD = "019ff400-5555-7373-a31e-e8a0db309025";
 
@@ -45,92 +45,71 @@ const journal = (sessionId: string) =>
 
 const rowsOf = (rootSessionId: string) => Database.use((db) => db.AgentSession.where({ rootSessionId }).all());
 
-const rehearsal = <A, E, R>(sweep: ScriptedSweep, use: Effect.Effect<A, E, R>) =>
-	Effect.gen(function* () {
-		const temporary = yield* acquireTemporaryPersistence;
-		yield* use.pipe(Effect.provide(codexRehearsalLayer(temporary, ROOT_THREAD, codexRehearsal, Effect.void, sweep)));
-	});
-
 const gapsOn = (sessionId: string) =>
 	journal(sessionId).pipe(Effect.map((rows) => rows.filter((row) => row.kind === "subsession.gap").map((row) => row.payload)));
 
-it.live("a thread the sweep proves and the record missed is admitted", () =>
-	rehearsal(
-		oneMissed,
-		Effect.gen(function* () {
-			const sight = yield* SightSource;
-			const receipt = yield* sight.spawn(spawnRequest);
-			const tree = yield* eventually(
-				Effect.gen(function* () {
-					const rows = yield* rowsOf(receipt.sessionId);
-					expect(rows.length).toBe(5);
-					return rows;
-				}),
-			);
-			const found = tree.find((row) => row.nativeRef === MISSED_THREAD);
-			const branch = tree.find((row) => row.nativeRef === BRANCH_THREAD);
-			expect(found).toBeDefined();
-			expect(branch).toBeDefined();
-			const admitted = found!;
-			const parent = branch!;
+codexRehearsalIt(ROOT_THREAD, codexRehearsal, oneMissed).effectApp(
+	"a thread the sweep proves and the record missed is admitted",
+	{ clock: "live" },
+	function* ({ drained }) {
+		const sight = yield* SightSource;
+		const receipt = yield* sight.spawn(spawnRequest).pipe(Effect.orDie);
+		yield* drained;
+		const tree = yield* rowsOf(receipt.sessionId).pipe(Effect.orDie);
+		expect(tree.length).toBe(5);
+		const found = tree.find((row) => row.nativeRef === MISSED_THREAD);
+		const branch = tree.find((row) => row.nativeRef === BRANCH_THREAD);
+		expect(found).toBeDefined();
+		expect(branch).toBeDefined();
+		const admitted = found!;
+		const parent = branch!;
 
-			expect(admitted).toMatchObject({
-				agentId: receipt.agentId,
-				completeness: "recording",
-				kind: "agents/purser.md",
-				label: "quiet-tern",
-				parentSessionId: parent.id,
-				rootSessionId: receipt.sessionId,
-				status: "open",
-			});
-			const gaps = yield* gapsOn(admitted.id);
-			expect(gaps.join("")).toContain("the stream never carried it");
-			expect(gaps.filter((said) => said.includes("census-missing"))).toHaveLength(1);
-		}),
-	),
+		expect(admitted).toMatchObject({
+			agentId: receipt.agentId,
+			completeness: "recording",
+			kind: "agents/purser.md",
+			label: "quiet-tern",
+			parentSessionId: parent.id,
+			rootSessionId: receipt.sessionId,
+			status: "open",
+		});
+		const gaps = yield* gapsOn(admitted.id).pipe(Effect.orDie);
+		expect(gaps.join("")).toContain("the stream never carried it");
+		expect(gaps.filter((said) => said.includes("census-missing"))).toHaveLength(1);
+	},
 );
 
-it.live("a thread the record already holds is named and left alone", () =>
-	rehearsal(
-		[...oneMissed, sweptChild(BRANCH_THREAD, ROOT_THREAD)],
-		Effect.gen(function* () {
-			const sight = yield* SightSource;
-			const receipt = yield* sight.spawn(spawnRequest);
-			const tree = yield* eventually(
-				Effect.gen(function* () {
-					const rows = yield* rowsOf(receipt.sessionId);
-					expect(rows.length).toBe(5);
-					return rows;
-				}),
-			);
-			const branch = tree.filter((row) => row.nativeRef === BRANCH_THREAD);
-			expect(branch).toHaveLength(1);
-			const held = branch[0]!;
+codexRehearsalIt(ROOT_THREAD, codexRehearsal, [...oneMissed, sweptChild(BRANCH_THREAD, ROOT_THREAD)]).effectApp(
+	"a thread the record already holds is named and left alone",
+	{ clock: "live" },
+	function* ({ drained }) {
+		const sight = yield* SightSource;
+		const receipt = yield* sight.spawn(spawnRequest).pipe(Effect.orDie);
+		yield* drained;
+		const tree = yield* rowsOf(receipt.sessionId).pipe(Effect.orDie);
+		expect(tree.length).toBe(5);
+		const branch = tree.filter((row) => row.nativeRef === BRANCH_THREAD);
+		expect(branch).toHaveLength(1);
+		const held = branch[0]!;
 
-			expect((yield* gapsOn(held.id)).join("")).not.toContain("census-missing");
-		}),
-	),
+		expect((yield* gapsOn(held.id).pipe(Effect.orDie)).join("")).not.toContain("census-missing");
+	},
 );
 
-it.live("a sweep that could not be taken admits nothing and says so", () =>
-	rehearsal(
-		SWEEP_REFUSED,
-		Effect.gen(function* () {
-			const sight = yield* SightSource;
-			const receipt = yield* sight.spawn(spawnRequest);
-			const said = yield* eventually(
-				Effect.gen(function* () {
-					const gaps = yield* gapsOn(receipt.sessionId);
-					expect(gaps.join("")).toContain("could not be checked");
-					return gaps.join("");
-				}),
-			);
-			const rows = yield* rowsOf(receipt.sessionId);
+codexRehearsalIt(ROOT_THREAD, codexRehearsal, SWEEP_REFUSED).effectApp(
+	"a sweep that could not be taken admits nothing and says so",
+	{ clock: "live" },
+	function* ({ drained }) {
+		const sight = yield* SightSource;
+		const receipt = yield* sight.spawn(spawnRequest).pipe(Effect.orDie);
+		yield* drained;
+		const said = (yield* gapsOn(receipt.sessionId).pipe(Effect.orDie)).join("");
+		expect(said).toContain("could not be checked");
+		const rows = yield* rowsOf(receipt.sessionId).pipe(Effect.orDie);
 
-			expect(said).toContain("unknown");
-			expect(said).toContain("which threads this session delegated to");
-			expect(rows.some((row) => row.nativeRef === MISSED_THREAD)).toBe(false);
-			expect(rows.length).toBe(4);
-		}),
-	),
+		expect(said).toContain("unknown");
+		expect(said).toContain("which threads this session delegated to");
+		expect(rows.some((row) => row.nativeRef === MISSED_THREAD)).toBe(false);
+		expect(rows.length).toBe(4);
+	},
 );

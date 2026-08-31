@@ -8,7 +8,6 @@ import { brandDatabaseFilePath, type DatabaseFilePath } from "#data-dir.ts";
 import { Database } from "#database.ts";
 import { PersistenceLive } from "#layer.ts";
 
-export { rejectTestOutcomeLinks } from "#testing/outcome-links.ts";
 export {
 	allowTestChangeUpdates,
 	allowTestSessionOpenedWrites,

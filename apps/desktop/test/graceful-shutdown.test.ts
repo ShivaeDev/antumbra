@@ -1,5 +1,5 @@
 import { expect, it } from "@effect/vitest";
-import { Deferred, Effect, Ref } from "effect";
+import { Deferred, Effect, Fiber, Ref } from "effect";
 import { registerGracefulShutdown } from "#adapters/graceful-shutdown.ts";
 
 const record = (calls: Ref.Ref<ReadonlyArray<string>>, call: string) => {
@@ -9,13 +9,17 @@ const record = (calls: Ref.Ref<ReadonlyArray<string>>, call: string) => {
 const runShutdownAttempt = (
 	attempt: number,
 	calls: Ref.Ref<ReadonlyArray<string>>,
+	firstAttemptFiber: Deferred.Deferred<Fiber.Fiber<unknown, unknown>>,
 	firstAttemptStarted: Deferred.Deferred<void>,
 	retryAttemptStarted: Deferred.Deferred<void>,
 	releaseRetry: Deferred.Deferred<void>,
 ) => {
 	const result =
 		attempt === 1
-			? Deferred.succeed(firstAttemptStarted, undefined).pipe(Effect.andThen(Effect.fail("drain failed")))
+			? Effect.withFiber((fiber) => Deferred.succeed(firstAttemptFiber, fiber)).pipe(
+					Effect.andThen(Deferred.succeed(firstAttemptStarted, undefined)),
+					Effect.andThen(Effect.fail("drain failed")),
+				)
 			: Deferred.succeed(retryAttemptStarted, undefined).pipe(
 					Effect.andThen(Deferred.await(releaseRetry)),
 					Effect.andThen(Ref.update(calls, (all) => [...all, "dispose"])),
@@ -78,6 +82,7 @@ it.effect("retries shutdown after failure and permits exactly one exit", () =>
 		let beforeQuit: ((event: { readonly preventDefault: () => void }) => void) | undefined;
 		const calls = yield* Ref.make<ReadonlyArray<string>>([]);
 		const attempts = yield* Ref.make(0);
+		const firstAttemptFiber = yield* Deferred.make<Fiber.Fiber<unknown, unknown>>();
 		const firstAttemptStarted = yield* Deferred.make<void>();
 		const retryAttemptStarted = yield* Deferred.make<void>();
 		const releaseRetry = yield* Deferred.make<void>();
@@ -90,7 +95,7 @@ it.effect("retries shutdown after failure and permits exactly one exit", () =>
 			});
 		};
 		const shutdown = Ref.updateAndGet(attempts, (attempt) => attempt + 1).pipe(
-			Effect.flatMap((attempt) => runShutdownAttempt(attempt, calls, firstAttemptStarted, retryAttemptStarted, releaseRetry)),
+			Effect.flatMap((attempt) => runShutdownAttempt(attempt, calls, firstAttemptFiber, firstAttemptStarted, retryAttemptStarted, releaseRetry)),
 		);
 		yield* registerGracefulShutdown(
 			{
@@ -108,6 +113,8 @@ it.effect("retries shutdown after failure and permits exactly one exit", () =>
 
 		requestQuit();
 		yield* Deferred.await(firstAttemptStarted);
+		const firstAttempt = yield* Deferred.await(firstAttemptFiber);
+		yield* Fiber.await(firstAttempt);
 		const failed = yield* Ref.get(calls);
 		expect(failed.filter((call) => call === "drain")).toHaveLength(1);
 		expect(failed).not.toContain("dispose");

@@ -2,9 +2,6 @@ import type { ChangeRow } from "@antumbra/changes";
 import type { ChangeChecks, ChangeMergeable, ChangeReview, ChangeStage } from "@antumbra/vocabulary/change";
 import type { VoyageWorld } from "#voyage-rows.ts";
 
-// why: what a reader needs to place a change — where it stands, where it
-// lives, and what the host last said about it. The body and the host's raw
-// payload stay in the row; nobody reading a change wants either.
 export interface ChangeView {
 	readonly activityAt: Date;
 	readonly checks: ChangeChecks;
@@ -22,9 +19,6 @@ export interface ChangeView {
 	readonly url: string | null;
 }
 
-// why: a repo forgotten after a change was opened leaves the change standing —
-// it still lives where it lives — so the id stands in for the name rather than
-// the change dropping out of every reading.
 export const repoNameOf = (world: VoyageWorld, repoId: string): string => world.repos.get(repoId)?.name ?? repoId;
 
 export const changeView = (repoName: string, change: ChangeRow): ChangeView => ({

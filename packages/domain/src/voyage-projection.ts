@@ -6,8 +6,6 @@ import { crewReleasable } from "#crew-rest.ts";
 import type { PieceView as DerivedPiece } from "#piece-view.ts";
 import type { PieceCounts as DerivedCounts, VoyageSummary as DerivedSummary, VoyageView as DerivedVoyage } from "#voyage-view.ts";
 
-// why: stamps are moments the domain holds as dates and the window shows as
-// text; a missing stamp is the absence of the moment, never an empty string.
 const stamp = (at: Date | null): string | null => (at === null ? null : at.toISOString());
 
 export const changeSeen = (change: DerivedChange): ChangeView => ({
@@ -78,9 +76,6 @@ export const entrySeen = (entry: BoardEntryRow): BoardEntryView => ({
 	register: entry.register,
 });
 
-// why: a window asks how far a voyage has come, not for a tally per state —
-// so every derived count reaches it as the three that answer that question and
-// the total they were counted from.
 const countsSeen = (counts: DerivedCounts): PieceCounts => ({
 	active: counts.active,
 	done: counts.done,

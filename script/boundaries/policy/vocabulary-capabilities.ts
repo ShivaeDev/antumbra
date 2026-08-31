@@ -1,8 +1,6 @@
 import { files, importFrom, packages, vocabularyAccess } from "#boundaries/dsl.ts";
 import type { BoundaryRule } from "#boundaries/model.ts";
 
-// why: a capability owns one durable subject, and the words it may name are
-// the words that subject is written in — never another capability's.
 export const vocabularyCapabilityPolicy = [
 	vocabularyAccess("artifacts-uses-agent-runtime-vocabulary")
 		.because("Artifacts decode Moorage ownership and do not own Board, Change, or Session-event language.")

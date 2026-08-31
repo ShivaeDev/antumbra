@@ -22,10 +22,7 @@ export const withGitignore = (scope: IgnoreScope, base: string, contents: string
 	matchers: [...scope.matchers, { base, rules: ignore().add(contents) }],
 });
 
-// why: git decides a directory once. Re-including `build/` in a nested file
-// settles it for the whole subtree, so an outer `build/` must stop applying to
-// what is inside while an outer `*.log` keeps applying. Anchoring later
-// questions at the re-included directory is what draws that line.
+// Re-including a directory resets directory rules below that boundary; filename rules still apply.
 export const insideKept = (scope: IgnoreScope, directory: string): IgnoreScope => ({ boundary: directory, matchers: scope.matchers });
 
 const matcherVerdict = (matcher: IgnoreMatcher, boundary: string | undefined, path: string, directory: boolean): Verdict => {
@@ -34,8 +31,7 @@ const matcherVerdict = (matcher: IgnoreMatcher, boundary: string | undefined, pa
 	if (rel === "" || rel.startsWith("..")) {
 		return "unknown";
 	}
-	// why: git tests a directory with a trailing slash, which is what makes a
-	// directory-only pattern such as `build/` match the directory itself.
+	// Git matches directory-only patterns against paths with a trailing slash.
 	const result = matcher.rules.test(directory ? `${rel}/` : rel);
 	if (result.ignored) {
 		return "ignored";
@@ -43,7 +39,6 @@ const matcherVerdict = (matcher: IgnoreMatcher, boundary: string | undefined, pa
 	return result.unignored ? "kept" : "unknown";
 };
 
-// why: the deepest .gitignore with an opinion decides, so a nested file can
-// re-include what a shallower one ignored.
+// The deepest gitignore with an opinion wins.
 export const verdictFor = (scope: IgnoreScope, path: string, directory: boolean): Verdict =>
 	scope.matchers.map((matcher) => matcherVerdict(matcher, scope.boundary, path, directory)).findLast((verdict) => verdict !== "unknown") ?? "unknown";

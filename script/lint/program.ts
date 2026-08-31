@@ -11,9 +11,6 @@ import { serviceParameterViolations } from "#lint/rules/service-parameters.ts";
 import { structureViolations } from "#lint/rules/structure.ts";
 import type { Violation } from "#lint/violation.ts";
 
-// why: the lints share one file inventory and never depend on each other, so
-// they run concurrently and merge into a single report rather than short-
-// circuiting the run at the first failing guard.
 export const lint = (inventory: Inventory): Effect.Effect<readonly Violation[]> =>
 	Effect.map(
 		Effect.all(

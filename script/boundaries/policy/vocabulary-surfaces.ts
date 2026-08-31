@@ -2,8 +2,6 @@ import { files, importFrom, packages, vocabularyAccess } from "#boundaries/dsl.t
 import type { BoundaryRule } from "#boundaries/model.ts";
 import { agentBackends } from "#boundaries/policy/selectors.ts";
 
-// why: a surface translates between the fleet and something outside it, so it
-// names only the subjects that cross that particular boundary.
 export const vocabularySurfacePolicy = [
 	vocabularyAccess("agent-tools-uses-board-and-ruling-vocabulary")
 		.because("Agent tools name Board and Ruling inputs, not unrelated runtime, Change, or Session-event vocabulary.")

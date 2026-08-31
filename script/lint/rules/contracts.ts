@@ -4,11 +4,8 @@ import { checkVirtualSources } from "#lint/adapters/typescript.ts";
 import { basename, type Inventory } from "#lint/inventory.ts";
 import type { Violation } from "#lint/violation.ts";
 
-// why: skipLibCheck silences unresolved imports inside .d.ts files entirely,
-// so a generated contract whose type imports do not resolve degrades every
-// model type to `any` without a single diagnostic. Checking a virtual .ts
-// twin of each contract declaration restores the resolution errors while
-// vendor declarations stay lib-skipped.
+// skipLibCheck suppresses unresolved imports in declaration files.
+// Virtual TypeScript twins restore those diagnostics without checking vendor declarations.
 
 const CONTRACT_BASENAMES = new Set(["contract.d.ts", "end-contract.d.ts", "start-contract.d.ts"]);
 

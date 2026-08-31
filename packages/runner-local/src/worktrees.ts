@@ -52,8 +52,6 @@ export const remountWorktree = (mirror: string, berth: BerthPlan): Effect.Effect
 		if (!(yield* runGit(branchExists(mirror, berth.branch)))) {
 			return false;
 		}
-		// why: a vanished path can remain registered as the branch's worktree;
-		// prune only missing registrations before attaching that same branch.
 		yield* runGit(pruneWorktrees(mirror));
 		yield* runGit(addExistingWorktree(mirror, berth.path, berth.branch));
 		yield* verifyWorktree(mirror, berth);
@@ -63,17 +61,13 @@ export const remountWorktree = (mirror: string, berth: BerthPlan): Effect.Effect
 export const createWorktree = (mirror: string, berth: BerthPlan): Effect.Effect<void, RunnerError> =>
 	runGit(addGitWorktree(mirror, berth.path, berth.branch, berth.ref)).pipe(Effect.andThen(verifyWorktree(mirror, berth)));
 
-// why: staleness errs toward keeping — remote refs are read as-is, so a
-// commit pushed but not yet fetched still counts as unpushed and the berth
-// reads dirty, never the reverse.
+// A stale remote ref can only overcount unpushed commits, so reclaim remains conservative.
 export const isClean = (path: string): Effect.Effect<boolean, RunnerError> =>
 	Effect.gen(function* () {
 		const state = yield* runGit(inspectWorktree(path));
 		return state._tag === "clean" && state.unpushedCommits === 0;
 	});
 
-// why: a prior reclaim may remove the worktree before branch deletion fails;
-// the surviving branch is then the only remaining unique-work evidence.
 export const reclaimMissingWorktree = (mirror: string, site: BerthSite): Effect.Effect<ReclaimVerdict, RunnerError> =>
 	Effect.gen(function* () {
 		if (!(yield* runGit(branchExists(mirror, site.branch)))) {

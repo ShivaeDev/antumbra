@@ -4,7 +4,7 @@ import { Effect, Option } from "effect";
 import { AgentDomain } from "#domain.ts";
 import { withFlagshipCaptain } from "#test/flagship-fixtures.ts";
 import { callTool } from "#test/harness.ts";
-import { aliveAgent, eventually, openReefVoyage } from "#test/voyage-fixtures.ts";
+import { aliveAgent, openReefVoyage, terminalIntent } from "#test/voyage-fixtures.ts";
 
 it.live("the flagship's captain hails a voyage's captain", () =>
 	withFlagshipCaptain((captain) =>
@@ -21,7 +21,8 @@ it.live("the flagship's captain hails a voyage's captain", () =>
 			const [, agentId = "", spawnIntentId = ""] = /^hailed captain (\S+) of voyage (?:\S+) — intent (\S+)$/.exec(first.text) ?? [];
 			expect(first.text).toBe(`hailed captain ${agentId} of voyage ${reef.id} — intent ${spawnIntentId}`);
 			expect(Option.getOrThrow(yield* db.Intent.where({ id: spawnIntentId }).first()).tag).toBe("agent/spawn");
-			yield* eventually(aliveAgent(agentId));
+			expect(yield* terminalIntent(spawnIntentId)).toBe("succeeded");
+			yield* aliveAgent(agentId);
 			const view = Option.getOrThrow(yield* domain.voyages.read(reef.id));
 			expect(Option.getOrThrow(view.captain)).toMatchObject({
 				agentId,

@@ -14,7 +14,7 @@ import {
 	untilTerminal,
 	untilWaitingOrTerminal,
 } from "#test/session-recovery-fixture.ts";
-import { openReefVoyage } from "#test/voyage-fixtures.ts";
+import { openReefVoyage, terminalIntent } from "#test/voyage-fixtures.ts";
 
 const executionStatusOf = (sessionId: string) =>
 	Effect.gen(function* () {
@@ -71,7 +71,8 @@ it.live("a hail of a captain that is answering leaves its work alone", () =>
 			const kernel = yield* Kernel;
 			const voyage = yield* openReefVoyage;
 			const hailed = yield* domain.voyages.hail(voyage.id);
-			const live = yield* eventually(sessionFor(scripted, hailed.agentId));
+			expect(yield* terminalIntent(hailed.intentId)).toBe("succeeded");
+			const live = yield* sessionFor(scripted, hailed.agentId);
 			yield* live.emit({
 				nativeRef: "native-captain",
 				raw: rawOf("session/opened"),

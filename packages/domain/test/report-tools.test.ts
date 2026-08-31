@@ -5,7 +5,7 @@ import { Effect } from "effect";
 import { AgentDomain } from "#domain.ts";
 import { dispatchingLayer, domainKernelLayer } from "#test/domain-layers.ts";
 import { acquireTemporaryPersistence, callTool, makeScriptedBackend, type ScriptedBackend, type ScriptedSession, sessionFor } from "#test/harness.ts";
-import { chain, eventually, openReefVoyage, PATIENCE } from "#test/voyage-fixtures.ts";
+import { chain, eventually, openReefVoyage, PATIENCE, terminalIntent } from "#test/voyage-fixtures.ts";
 
 const OUT_OF_REACH = "no report with that id is on your voyage";
 const BODY = "the eastern shoal is steeper than charted";
@@ -59,7 +59,8 @@ const withCaptain = <A, E>(body: (captain: ScriptedSession, report: ReportRow) =
 			});
 			const report = yield* landedOn(piece.id, "soundings");
 			const hailed = yield* domain.voyages.hail(voyage.id);
-			const captain = yield* eventually(sessionFor(scripted, hailed.agentId));
+			expect(yield* terminalIntent(hailed.intentId)).toBe("succeeded");
+			const captain = yield* sessionFor(scripted, hailed.agentId);
 			yield* body(captain, report);
 		}).pipe(Effect.provide(domainKernelLayer(temporary, scripted.backend)));
 	});

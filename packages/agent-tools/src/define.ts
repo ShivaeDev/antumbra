@@ -37,14 +37,14 @@ export const bind = <Fields extends Schema.Struct.Fields>(
 	handle: (input: Schema.Struct<Fields>["Type"]) => Effect.Effect<DirectToolOutcome>,
 ): DirectTool => {
 	const decode = Schema.decodeUnknownEffect(spec.input);
+	const call = Effect.fn(`agentTools.${spec.name}`)((args: unknown) =>
+		Effect.matchEffect(decode(args ?? {}), {
+			onFailure: (error) => Effect.succeed({ ok: false, text: `${spec.name}: ${error}` }),
+			onSuccess: handle,
+		}),
+	);
 	return {
-		call: (args) =>
-			decode(args ?? {}).pipe(
-				Effect.matchEffect({
-					onFailure: (error) => Effect.succeed({ ok: false, text: `${spec.name}: ${error}` }),
-					onSuccess: handle,
-				}),
-			),
+		call,
 		description: spec.description,
 		inputSchema: spec.inputSchema,
 		name: spec.name,

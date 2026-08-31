@@ -29,67 +29,62 @@ const seedActivatedBoundary = (intentId: string, plan: MooragePlan) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
 		const berth = Option.getOrThrow(Option.fromUndefinedOr(plan.berths[0]));
-		yield* db.transaction(
-			Effect.gen(function* () {
-				yield* Database;
-				yield* db.Agent.create({
-					charter: payload.charter,
-					currentSessionId: payload.sessionId,
-					id: payload.agentId,
-					role: payload.role,
-					status: "alive",
-				});
-				yield* db.PieceAgent.create({
-					agentId: payload.agentId,
-					pieceId: Option.getOrThrow(Option.fromUndefinedOr(payload.pieceId)),
-				});
-				yield* db.VoyageAgent.create({
-					agentId: payload.agentId,
-					role: payload.role,
-					voyageId: Option.getOrThrow(Option.fromUndefinedOr(payload.voyageId)),
-				});
-				yield* db.Moorage.create({
-					agentId: payload.agentId,
-					reclaimState: null,
-					root: plan.root,
-					runner: payload.runner,
-					status: "ready",
-				});
-				yield* db.Berth.create({
-					agentId: payload.agentId,
-					branch: berth.branch,
-					id: `${payload.agentId}:${berth.slug}`,
-					path: berth.path,
-					reclaimState: null,
-					ref: berth.ref,
-					runner: payload.runner,
-					slug: berth.slug,
-					source: berth.source,
-					status: "ready",
-					strandedAt: null,
-				});
-				yield* db.AgentSession.create({
-					agentId: payload.agentId,
-					backend: payload.backend,
-					charterDeliveredAt: new Date(1),
-					cwd: plan.root,
-					id: payload.sessionId,
-					nativeRef: "native-existing",
-					executionStatus: "active",
-					parentSessionId: null,
-					rootSessionId: payload.sessionId,
-					status: "open",
-				} satisfies NewAgentSession);
-				yield* db.SessionEvent.create({
-					at: new Date(2),
-					kind: "message",
-					payload: '{"role":"agent","text":"durable","type":"message"}',
-					seq: 0,
-					sessionId: payload.sessionId,
-				});
-				yield* db.Intent.where({ id: intentId }).update({ status: "running" });
-			}),
-		);
+		yield* db.Agent.create({
+			charter: payload.charter,
+			currentSessionId: payload.sessionId,
+			id: payload.agentId,
+			role: payload.role,
+			status: "alive",
+		});
+		yield* db.PieceAgent.create({
+			agentId: payload.agentId,
+			pieceId: Option.getOrThrow(Option.fromUndefinedOr(payload.pieceId)),
+		});
+		yield* db.VoyageAgent.create({
+			agentId: payload.agentId,
+			role: payload.role,
+			voyageId: Option.getOrThrow(Option.fromUndefinedOr(payload.voyageId)),
+		});
+		yield* db.Moorage.create({
+			agentId: payload.agentId,
+			reclaimState: null,
+			root: plan.root,
+			runner: payload.runner,
+			status: "ready",
+		});
+		yield* db.Berth.create({
+			agentId: payload.agentId,
+			branch: berth.branch,
+			id: `${payload.agentId}:${berth.slug}`,
+			path: berth.path,
+			reclaimState: null,
+			ref: berth.ref,
+			runner: payload.runner,
+			slug: berth.slug,
+			source: berth.source,
+			status: "ready",
+			strandedAt: null,
+		});
+		yield* db.AgentSession.create({
+			agentId: payload.agentId,
+			backend: payload.backend,
+			charterDeliveredAt: new Date(1),
+			cwd: plan.root,
+			id: payload.sessionId,
+			nativeRef: "native-existing",
+			executionStatus: "active",
+			parentSessionId: null,
+			rootSessionId: payload.sessionId,
+			status: "open",
+		} satisfies NewAgentSession);
+		yield* db.SessionEvent.create({
+			at: new Date(2),
+			kind: "message",
+			payload: '{"role":"agent","text":"durable","type":"message"}',
+			seq: 0,
+			sessionId: payload.sessionId,
+		});
+		yield* db.Intent.where({ id: intentId }).update({ status: "running" });
 	});
 
 const birthRows = Effect.gen(function* () {

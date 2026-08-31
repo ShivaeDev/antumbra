@@ -1091,6 +1091,9 @@ importers:
       '@antumbra/persistence':
         specifier: workspace:*
         version: link:../persistence
+      '@antumbra/service-definition':
+        specifier: workspace:*
+        version: link:../service-definition
       effect:
         specifier: 'catalog:'
         version: 4.0.0-rc.108

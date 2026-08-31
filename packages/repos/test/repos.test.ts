@@ -86,8 +86,13 @@ persistence.effectDB("updates repeat registration and publishes registry changes
 			});
 			expect(yield* PubSub.take(notices)).toBeUndefined();
 
-			expect(refreshed.id).toBe(first.id);
-			expect(yield* repos.list).toEqual([
+			expect(refreshed).toEqual({
+				defaultRef: "trunk",
+				id: first.id,
+				name: "one",
+				source: "/reefs/one",
+			});
+			expect(yield* db.Repo.all()).toMatchObject([
 				{
 					defaultRef: "trunk",
 					id: first.id,
@@ -95,7 +100,6 @@ persistence.effectDB("updates repeat registration and publishes registry changes
 					source: "/reefs/one",
 				},
 			]);
-			expect(yield* db.Repo.all()).toHaveLength(1);
 		}),
 	).pipe(Effect.provide(layer));
 });

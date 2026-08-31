@@ -1,8 +1,9 @@
 import { SightSource } from "@antumbra/contract";
+import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Kernel } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
 import { expect, it } from "@effect/vitest";
-import { Effect } from "effect";
+import { Effect, PubSub } from "effect";
 import { acquireTemporaryPersistence, callTool, makeScriptedBackend, rawOf, type ScriptedSession } from "#test/harness.ts";
 import {
 	DEFAULT_IDLE_SIESTA_AFTER_MILLIS,
@@ -171,6 +172,7 @@ it.live("an ending overtaken by new words leaves the session working", () =>
 		const temporary = yield* acquireTemporaryPersistence;
 		const scripted = yield* makeScriptedBackend;
 		yield* Effect.gen(function* () {
+			const feeds = yield* DomainFeeds;
 			const sight = yield* SightSource;
 			yield* spawned;
 			const live = yield* openedNatively(scripted);
@@ -180,12 +182,14 @@ it.live("an ending overtaken by new words leaves the session working", () =>
 			yield* sight.send(HAND.sessionId, "one more thing");
 			expect((yield* sessionRow).executionStatus).toBe("active");
 
+			const events = yield* feeds.subscribeSessionEvents();
 			yield* completes(live);
-			yield* Effect.sleep(100);
+			yield* speaks(live);
+			expect((yield* PubSub.take(events)).kind).toBe("turn.completed");
+			expect((yield* PubSub.take(events)).kind).toBe("message");
 			expect((yield* sessionRow).executionStatus).toBe("active");
 			expect((yield* presenceOf).presence).toBe("working");
 
-			yield* speaks(live);
 			yield* completes(live);
 			yield* settled;
 		}).pipe(Effect.provide(sightLayer(temporary, scripted)));

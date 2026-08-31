@@ -124,9 +124,6 @@ it.effect("opens the window when the tray icon is clicked", () =>
 	}),
 );
 
-// why: the tray is forked onto the desktop's ManagedRuntime, so this is the
-// exact quit path — disposing the runtime must interrupt the feed subscription
-// and release the icon rather than leave either behind.
 it.effect("destroys the tray when the runtime that forked it is disposed", () =>
 	Effect.gen(function* () {
 		const destroyed = yield* Deferred.make<void>();

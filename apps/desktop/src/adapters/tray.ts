@@ -50,9 +50,6 @@ export const runFleetTray = <E>(host: TrayHost, feed: Stream.Stream<Fleet, E>, a
 		yield* Stream.runForEach(feed, (fleet) => showCount(tray, fleet));
 	}).pipe(Effect.scoped);
 
-// why: a menu-bar template image is read for its alpha alone — macOS repaints
-// it for the current appearance — so the ring is drawn here rather than shipped
-// as an opaque asset nobody can review.
 const ringBitmap = (size: number): Buffer => {
 	const pixels = Buffer.alloc(size * size * 4);
 	const centre = (size - 1) / 2;
@@ -88,8 +85,6 @@ const electronTrayHost: TrayHost = {
 	},
 };
 
-// why: only macOS carries a title beside a menu-bar icon, so elsewhere the
-// count would have nowhere to go and no tray is claimed at all.
 export const fleetTray = (activate: Effect.Effect<void, unknown>) =>
 	Effect.gen(function* () {
 		if (process.platform !== "darwin") {

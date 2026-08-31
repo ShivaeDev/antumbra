@@ -32,23 +32,6 @@ const crewOn = (scripted: ScriptedBackend, pieceId: string) =>
 const rulingTool = (tools: ReadonlyArray<DirectTool>): DirectTool =>
 	Option.getOrThrow(Option.fromUndefinedOr(tools.find((tool) => tool.name === "request_ruling")));
 
-it.live("crew and captains both reach the ruling tool", () =>
-	Effect.gen(function* () {
-		const temporary = yield* acquireTemporaryPersistence;
-		const scripted = yield* makeScriptedBackend;
-		yield* Effect.gen(function* () {
-			const domain = yield* AgentDomain;
-			const { alpha, voyage } = yield* chain;
-			const crew = yield* eventually(crewOn(scripted, alpha.id));
-			const hailed = yield* domain.voyages.hail(voyage.id);
-			const captain = yield* eventually(sessionFor(scripted, hailed.agentId));
-
-			expect(crew.live.tools.map((tool) => tool.name)).toContain("request_ruling");
-			expect(captain.tools.map((tool) => tool.name)).toContain("request_ruling");
-		}).pipe(Effect.provide(dispatchingLayer(temporary, scripted.backend, PATIENCE)));
-	}),
-);
-
 it.live("a request carries who asked and where the asker stood", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;

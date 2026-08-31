@@ -59,10 +59,6 @@ const startOwner = (shell: WindowShell, store: LayoutStore) => {
 			shell.registry.onChanged(() => runtime.runFork(writer.note));
 			runtime.runFork(writer.run);
 		});
-		// why: the tray watches the fleet long after startup returns, so it runs
-		// as its own root fiber on the runtime. Every fiber the runtime starts is
-		// registered in the runtime's scope, so disposing it during the quit drain
-		// interrupts the feed subscription and destroys the icon with it.
 		yield* Effect.sync(() => runtime.runFork(fleetTray(focusOrOpenConsole(shell.registry, openConsole(shell)))));
 		yield* Effect.logInfo("bridge: console open");
 	});

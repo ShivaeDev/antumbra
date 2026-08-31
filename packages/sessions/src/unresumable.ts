@@ -2,11 +2,6 @@ import { IntentExecution } from "@antumbra/kernel";
 import { type AgentStatus, agentTransition } from "@antumbra/vocabulary/agent-runtime";
 import { Data, Effect, Result } from "effect";
 
-// why: "there is nothing here to resume" is six separate truths, and a resume
-// that answers all six with the same silence reports work it never did as
-// done. Each is named so the Intent can say which one it met, and so the
-// choice between waiting for it to change and refusing outright is made once,
-// here, rather than at each reader.
 export type SessionUnresumable =
 	| {
 			readonly _tag: "agent-not-alive";
@@ -21,28 +16,15 @@ export type SessionUnresumable =
 
 export type UnresumableVerdict = "refuse" | "wait";
 
-// why: waiting is a promise that the blocker can still clear, so it is only
-// honest where the state has a way out. The Agent lifecycle table already
-// answers that for a status — dormant and retired have no move back to alive,
-// spawning does — so the verdict is read from the table instead of restated
-// here as a list that could drift from it. A drain settles and a pointer moves;
-// a Session or an Agent that is not on the fleet is not coming back.
 export const unresumableVerdict = (reason: SessionUnresumable): UnresumableVerdict => {
 	switch (reason._tag) {
 		case "agent-not-alive":
 			return Result.isSuccess(agentTransition(reason.status, "activate")) ? "wait" : "refuse";
 		case "draining":
-			return "wait";
-		case "no-agent":
-			return "refuse";
-		case "no-root":
-			return "refuse";
 		case "not-current":
 			return "wait";
-		// why: a closed Session is the one refusal that reads like a wait and is
-		// not. Nothing reopens it — the send that would push the wake refuses
-		// first, and boot reclaim only requeues what was running — so a wake
-		// parked against it would hold the admiral's words for ever.
+		case "no-agent":
+		case "no-root":
 		case "session-closed":
 			return "refuse";
 	}
@@ -67,9 +49,6 @@ export const unresumableDetail = (sessionId: string, reason: SessionUnresumable)
 	}
 };
 
-// why: the refusals are the reasons no amount of waiting reaches, and a refusal
-// that reached the row as a bare stack trace would say less than the silence it
-// replaced. The sentence is the message, so the durable detail reads as one.
 export class SessionUnresumableRefused extends Data.TaggedError("SessionUnresumableRefused")<{
 	readonly detail: string;
 	readonly reason: SessionUnresumable["_tag"];
@@ -82,10 +61,6 @@ export class SessionUnresumableRefused extends Data.TaggedError("SessionUnresuma
 
 export const waitFor = (detail: string) => IntentExecution.use((execution) => execution.wait(detail));
 
-// why: nothing to resume is never nothing to say. The reason decides between
-// parking the Intent where a later act can pick it up and refusing it
-// outright, and either way the sentence lands on the row — a wake that
-// succeeded having done nothing is the silence this whole path is for.
 export const unresumable = (sessionId: string, reason: SessionUnresumable) => {
 	const detail = unresumableDetail(sessionId, reason);
 	return unresumableVerdict(reason) === "wait"

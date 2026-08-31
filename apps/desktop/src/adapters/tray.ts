@@ -18,14 +18,9 @@ export interface TrayHost {
 	readonly create: () => TrayHandle;
 }
 
-// why: the fleet publishes capabilities rather than execution state, and the
-// roster already reads an interruptible session as one taking a turn. The menu
-// bar mirrors that reading instead of inventing a second definition of work.
 export const workingAgentCount = (fleet: Fleet): number =>
 	fleet.agents.filter((agent) => agent.sessions.some((session) => session.canInterrupt)).length;
 
-// why: a quiet menu bar shows the icon alone — a standing "0" spends scarce
-// width to say nothing, and the tooltip still names the empty state aloud.
 export const trayTitle = (count: number): string => (count === 0 ? "" : String(count));
 
 export const trayTooltip = (count: number): string =>
@@ -52,8 +47,6 @@ export const runFleetTray = <E>(host: TrayHost, feed: Stream.Stream<Fleet, E>, a
 				);
 			}),
 		);
-		// why: a tray that stopped following the fleet would keep publishing a
-		// count that is no longer true, so a feed that ends takes the icon with it.
 		yield* Stream.runForEach(feed, (fleet) => showCount(tray, fleet));
 	}).pipe(Effect.scoped);
 

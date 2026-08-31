@@ -21,9 +21,6 @@ export const aliveAgent = (agentId: string) =>
 		return agent;
 	});
 
-// why: the Session a spawn wrote for an Agent, read from the row rather than
-// threaded out of the hail — so an assertion about the captain a window reads
-// names the conversation that captain answers on.
 export const sessionIdOf = (agentId: string) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
@@ -41,9 +38,6 @@ export const openReefVoyage = Effect.gen(function* () {
 	});
 });
 
-// why: one alpha and two dependents is the smallest graph that shows both
-// gating and fan-out — every dispatcher test builds the same chain so the
-// assertions differ only in the policy under test.
 export const chain = Effect.gen(function* () {
 	const domain = yield* AgentDomain;
 	const voyage = yield* openReefVoyage;

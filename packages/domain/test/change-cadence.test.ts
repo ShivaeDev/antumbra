@@ -71,8 +71,6 @@ describe("how soon the next pass is worth making", () => {
 		expect(at([row({ checks: "pending", stage: "withdrawn" })])).toBe(900);
 	});
 
-	// why: one hot change is enough — a fleet is only as patient as the change
-	// with the most to say, or a busy pull request would wait behind a draft.
 	it("takes the shortest delay any open change asks for", () => {
 		expect(at([row({ draftAt: new Date(0) }), row({ checks: "pending" })])).toBe(30);
 	});
@@ -90,9 +88,6 @@ describe("how long a host that could not answer is left alone", () => {
 		expect(after(3)).toBe(720);
 	});
 
-	// why: the ceiling is the cold cadence, so a host down all afternoon costs
-	// what a fleet with nothing to say costs — and is still noticed within one
-	// cold period of coming back.
 	it("never waits longer than a fleet with nothing to say", () => {
 		expect(after(4)).toBe(900);
 		expect(after(40)).toBe(900);

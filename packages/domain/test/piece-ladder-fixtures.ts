@@ -4,11 +4,6 @@ import type { SessionExecutionStatus } from "@antumbra/vocabulary/agent-runtime"
 import { pieceStates } from "#piece-state.ts";
 import type { AgentSessionRow, PieceRow, VoyageWorld } from "#voyage-rows.ts";
 
-// why: the ladder is derived from whole tables rather than from a row, so a
-// rehearsal of it builds a world. These are the smallest worlds that still say
-// something true, shared by the rehearsals of what counts as an outcome and by
-// the rehearsals of who is still at work, because both ask the same ladder.
-
 export const RELEASED = new Date("2026-08-15T09:00:00.000Z");
 
 export const piece = (id: string): PieceRow => ({
@@ -97,9 +92,6 @@ export const session = (execution: SessionExecutionStatus): AgentSessionRow => (
 	status: "open",
 });
 
-// why: a crew is a claim plus a session that is not idle, which is the whole of
-// what the ladder asks about — the claim says whose piece it is and the session
-// says whether that hand is still on it.
 export const crewing = (pieceId: string, executionStatus: SessionExecutionStatus): Partial<VoyageWorld> => ({
 	agentStatus: new Map([["agent-1", "alive"]]),
 	assignments: [{ agentId: "agent-1", pieceId }],

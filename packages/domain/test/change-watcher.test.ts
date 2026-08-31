@@ -27,14 +27,9 @@ const cadence = (hotMillis: number, warmMillis: number, coldMillis: number): Obs
 	warmMillis,
 });
 
-// why: the cadences under test are scaled down, never mocked — the loop these
-// tests exercise is the one the app runs, only impatient enough to watch.
 const SLOW = cadence(60_000, 60_000, 60_000);
 const BRISK = cadence(50, 50, 60_000);
 
-// why: the backoff ceiling is the cold cadence, so proving a run of failures
-// reaches it needs a cold cadence a test can sit out — four steps above the
-// warm one rather than a quarter of an hour.
 const FALTERING = cadence(20, 20, 80);
 
 const watched = <A, E, R>(cadence: ObserveCadenceOptions, body: (scripted: ScriptedHost, backend: ScriptedBackend) => Effect.Effect<A, E, R>) =>
@@ -132,11 +127,8 @@ describe("watching open changes", () => {
 
 				yield* scripted.drive.transition(repo.id, "1", { stage: "landed" });
 				yield* TestClock.adjust(BRISK.warmMillis);
-				// why: the piece is launched, so the pool may have put a hand on it
-				// before the change row existed — whether it did is a race this test
-				// has no stake in. A piece reads shipped only once its crew is
-				// finished, so any hand is asked to stand down before the reading is
-				// taken, and the loop settles the same way whether or not one came.
+				// A launched piece may already have a crew member before its change
+				// row exists; settle any such crew before reading its state.
 				yield* TestClock.withLive(
 					eventually(
 						Effect.gen(function* () {
@@ -145,8 +137,6 @@ describe("watching open changes", () => {
 						}),
 					),
 				);
-				// why: nothing is open, so the loop drops to the cold cadence and
-				// stops spending calls on a fleet that has nothing to say.
 				yield* settled(scripted);
 			}),
 		),
@@ -168,8 +158,6 @@ describe("watching open changes", () => {
 				expect(watchable[0]?.observedAt).toEqual(row.observedAt);
 				expect(watchable[0]?.stage).toBe("open");
 
-				// why: the loop is still alive — a host that starts answering again
-				// is heard without anything being restarted.
 				yield* hearsTheLanding(scripted, repo.id, 1_000);
 			}),
 		),
@@ -185,10 +173,6 @@ describe("watching open changes", () => {
 
 				const before = yield* passes(scripted);
 				yield* TestClock.adjust(500);
-				// why: at the cadence this fleet asks for, half a second of silence
-				// would cost twenty-five passes. Backing off spends what 20, 40, 80
-				// and the ceiling allow, and an outage costs the same shape of the
-				// morning rather than one call every warm period of it.
 				expect((yield* passes(scripted)) - before).toBeLessThan(12);
 
 				yield* hearsTheLanding(scripted, repo.id, FALTERING.coldMillis);
@@ -204,10 +188,6 @@ const crewOn = (backend: ScriptedBackend, pieceId: string) =>
 		return row === undefined ? yield* Effect.fail("no crew yet") : yield* sessionFor(backend, row.agentId);
 	});
 
-// why: the whole page with nobody driving it — a crew opens a change through
-// the tool and stands down, the merge happens where Antumbra cannot see it, and
-// the chain still sails because the watcher asked again. Nothing in this test
-// calls a refresh: if the loop is not running, it fails.
 describe("a chain gated on a change", () => {
 	it.live("sails when the watcher sees the merge", () =>
 		watched(BRISK, (scripted, backend) =>

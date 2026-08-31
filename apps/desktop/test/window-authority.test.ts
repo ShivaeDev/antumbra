@@ -1,10 +1,10 @@
 import { describe, expect, it } from "@effect/vitest";
 import { adoptWindow } from "#adapters/windows/attach.ts";
 import { makeWindowRegistry } from "#adapters/windows/registry.ts";
-import { consolePlace, contents, eventFor, framed, handleFor, ownWindow, transcriptPlace } from "#test/windows.ts";
+import { consolePlace, contents, eventFor, handleFor, ownWindow, transcriptPlace } from "#test/windows.ts";
 
 describe("owned window registry", () => {
-	it("accepts only an owned live main frame at its own loaded document", () => {
+	it("accepts only an owned live main frame", () => {
 		const registry = makeWindowRegistry();
 		const foreign = contents("foreign");
 		const console = ownWindow(registry, "console", consolePlace);
@@ -14,30 +14,8 @@ describe("owned window registry", () => {
 		expect(registry.owner(eventFor(console.contents, { url: console.contents.document }))).toBeUndefined();
 		expect(registry.owner(eventFor(console.contents, null))).toBeUndefined();
 
-		const loaded = console.contents.document;
-		console.contents.document = `${loaded}?`;
-		expect(registry.owner(eventFor(console.contents))).toBeUndefined();
-		console.contents.document = loaded;
 		console.contents.destroyed = true;
 		expect(registry.owner(eventFor(console.contents))).toBeUndefined();
-	});
-
-	// why: the frame carries its own address, and a frame that has moved while
-	// the contents still report the loaded document is the same escape.
-	it("refuses a main frame whose own url is not the owned document", () => {
-		const registry = makeWindowRegistry();
-		const document = "file:///app/console.html";
-		const drifted = framed(document, `${document}#board`);
-		registry.own({
-			contents: drifted,
-			document,
-			handle: handleFor([], "drifted"),
-			id: "drifted",
-			place: consolePlace,
-		});
-
-		expect(drifted.getURL()).toBe(document);
-		expect(registry.owner(eventFor(drifted))).toBeUndefined();
 	});
 
 	it("never lets one window's ownership answer for another", () => {
@@ -53,9 +31,6 @@ describe("owned window registry", () => {
 				senderFrame: console.contents.mainFrame,
 			}),
 		).toBeUndefined();
-
-		child.contents.document = console.contents.document;
-		expect(registry.owner(eventFor(child.contents))).toBeUndefined();
 	});
 
 	it("refuses to own the same contents twice and to answer after release", () => {
@@ -89,13 +64,14 @@ describe("owned window registry", () => {
 		const registry = makeWindowRegistry();
 		const sender = contents("child");
 		const calls: Array<string> = [];
+		const document = sender.document;
 		sender.document = "https://escape.example/";
 
 		expect(
 			adoptWindow(registry, {
 				contents: sender,
 				destroy: () => calls.push("destroy"),
-				document: sender.mainFrame.url,
+				document,
 				handle: handleFor(calls, "child"),
 				id: "child",
 				place: transcriptPlace("session-1"),

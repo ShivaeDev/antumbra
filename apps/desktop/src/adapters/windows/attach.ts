@@ -1,7 +1,7 @@
 import type { WindowPlace } from "@antumbra/contract";
 import { Effect } from "effect";
 import type { BrowserWindow } from "electron";
-import { confineNavigation, revokeOnDocumentMutation } from "#adapters/windows/confinement.ts";
+import { confineNavigation } from "#adapters/windows/confinement.ts";
 import { attachWindowLifecycle, holdAuthority } from "#adapters/windows/lifecycle.ts";
 import type { OwnedWindow, WindowCandidate, WindowRegistry, WindowShell } from "#adapters/windows/registry.ts";
 
@@ -74,18 +74,6 @@ const wire = (opening: WindowOpening, window: BrowserWindow, record: OwnedWindow
 		});
 		window.webContents.reload();
 	};
-	revokeOnDocumentMutation(
-		{
-			destroy: () => window.destroy(),
-			onDocumentMutation: (listener) => {
-				window.webContents.on("did-navigate-in-page", listener);
-			},
-		},
-		{
-			release: authority.release,
-			report: () => report("bridge: a window left its trusted document and was closed"),
-		},
-	);
 	attachWindowLifecycle(
 		{
 			onClosed: (listener) => {

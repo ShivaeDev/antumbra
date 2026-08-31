@@ -68,7 +68,9 @@ it.live("a subsession is never a resume target", () =>
 			const receipt = yield* sight.spawn(spawnRequest);
 			yield* sight.fleetFeed.pipe(
 				Stream.filter((fleet) =>
-					fleet.agents.some((agent) => agent.id === receipt.agentId && agent.sessions.some((session) => session.id === receipt.sessionId)),
+					fleet.agents.some(
+						(agent) => agent.id === receipt.agentId && agent.status === "alive" && agent.sessions.some((session) => session.id === receipt.sessionId),
+					),
 				),
 				Stream.runHead,
 			);

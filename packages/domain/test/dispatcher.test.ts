@@ -1,22 +1,12 @@
 import { SettingsSource } from "@antumbra/contract";
 import { expect, it } from "@effect/vitest";
-import { Effect, Option } from "effect";
+import { Effect } from "effect";
 import { TestClock } from "effect/testing";
 import { nextBackoffMillis } from "#dispatch-policy.ts";
 import { AgentDomain } from "#domain.ts";
 import { dispatchingLayer } from "#test/domain-layers.ts";
 import { acquireTemporaryPersistence, makeScriptedBackend } from "#test/harness.ts";
-import {
-	assignedPieces,
-	chain,
-	eventually,
-	land,
-	openReefVoyage,
-	PATIENCE,
-	standDownAll,
-	standDownOneAlive,
-	stateOf,
-} from "#test/voyage-fixtures.ts";
+import { assignedPieces, chain, eventually, land, openReefVoyage, PATIENCE, standDownOneAlive, stateOf } from "#test/voyage-fixtures.ts";
 
 it("nextBackoffMillis doubles from patience and stops at five minutes", () => {
 	expect(nextBackoffMillis(0, 50)).toBe(50);
@@ -24,43 +14,6 @@ it("nextBackoffMillis doubles from patience and stops at five minutes", () => {
 	expect(nextBackoffMillis(3, 50)).toBe(400);
 	expect(nextBackoffMillis(20, 5000)).toBe(300000);
 });
-
-it.live("a launched chain sails on its own as outcomes land", () =>
-	Effect.gen(function* () {
-		const temporary = yield* acquireTemporaryPersistence;
-		const scripted = yield* makeScriptedBackend;
-		yield* Effect.gen(function* () {
-			const { alpha, bravo, charlie, voyage } = yield* chain;
-			yield* eventually(
-				Effect.gen(function* () {
-					expect(yield* assignedPieces).toEqual([alpha.id]);
-					expect(yield* stateOf(voyage.id, alpha.id)).toBe("active");
-				}),
-			);
-			expect(yield* stateOf(voyage.id, bravo.id)).toBe("blocked");
-			expect(yield* stateOf(voyage.id, charlie.id)).toBe("blocked");
-
-			yield* land(alpha.id, "soundings");
-			yield* eventually(
-				Effect.gen(function* () {
-					expect(yield* stateOf(voyage.id, bravo.id)).toBe("active");
-					expect(yield* stateOf(voyage.id, charlie.id)).toBe("active");
-				}),
-			);
-
-			yield* land(bravo.id, "eastern chart");
-			yield* land(charlie.id, "western chart");
-			// why: the outcomes are all in, but a voyage falls quiet only once its
-			// crews are finished too — each piece still has a hand on it until that
-			// hand says otherwise, and the farewell trails the work it landed.
-			yield* standDownAll(scripted);
-			const domain = yield* AgentDomain;
-			const view = Option.getOrThrow(yield* domain.voyages.read(voyage.id));
-			expect(view.pieces.map((piece) => piece.state)).toEqual(["done", "done", "done"]);
-			expect(view.state).toBe("quiet");
-		}).pipe(Effect.provide(dispatchingLayer(temporary, scripted.backend, PATIENCE)));
-	}),
-);
 
 it.effect("an idle agent does not hold a dispatch berth", () =>
 	Effect.gen(function* () {

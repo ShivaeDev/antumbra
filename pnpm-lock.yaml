@@ -242,6 +242,9 @@ importers:
       '@antumbra/runner-local':
         specifier: workspace:*
         version: link:../../packages/runner-local
+      '@antumbra/testing-runtime':
+        specifier: workspace:*
+        version: link:../../packages/testing-runtime
       '@antumbra/trace-sink':
         specifier: workspace:*
         version: link:../../packages/trace-sink

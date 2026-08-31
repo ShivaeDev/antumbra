@@ -33,6 +33,7 @@
 		"@antumbra/plugin-api": "workspace:*",
 		"@antumbra/renderer": "workspace:*",
 		"@antumbra/runner-local": "workspace:*",
+		"@antumbra/testing-runtime": "workspace:*",
 		"@antumbra/trace-sink": "workspace:*",
 		"@effect/platform-node": "catalog:",
 		"@effect/vitest": "catalog:",

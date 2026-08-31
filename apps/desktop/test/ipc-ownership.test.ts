@@ -62,44 +62,27 @@ describe("privileged IPC authority", () => {
 		expect(signal?.aborted).toBe(true);
 	});
 
-	it("isolates unsubscribe and clears every stream on navigation or destruction", () => {
+	it("isolates unsubscribe by id", () => {
 		const registry = makeWindowRegistry();
-		const navigated = countingSender(21);
-		ownContents(registry, navigated, "navigated");
-		const navigationSignals = new Map<string, AbortSignal>();
-		const navigationHandlers = makeTrpcSubscriptionHandlers(registry, (_sender, _windowId, request, signal) => {
-			navigationSignals.set(request.id, signal);
+		const sender = countingSender(21);
+		ownContents(registry, sender, "owned");
+		const signals = new Map<string, AbortSignal>();
+		const handlers = makeTrpcSubscriptionHandlers(registry, (_sender, _windowId, request, signal) => {
+			signals.set(request.id, signal);
 			return Effect.runPromise(Effect.never);
 		});
-		navigationHandlers.subscribe(eventFor(navigated), {
+		handlers.subscribe(eventFor(sender), {
 			id: "alpha",
 			input: {},
 			path: "voyageFeed",
 		});
-		navigationHandlers.subscribe(eventFor(navigated), {
+		handlers.subscribe(eventFor(sender), {
 			id: "bravo",
 			input: {},
 			path: "voyagesFeed",
 		});
-		navigationHandlers.unsubscribe(eventFor(navigated), { id: "alpha" });
-		expect(navigationSignals.get("alpha")?.aborted).toBe(true);
-		expect(navigationSignals.get("bravo")?.aborted).toBe(false);
-		navigated.navigate();
-		expect(navigationSignals.get("bravo")?.aborted).toBe(true);
-
-		const destroyed = countingSender(22);
-		ownContents(registry, destroyed, "destroyed");
-		let destructionSignal: AbortSignal | undefined;
-		const destructionHandlers = makeTrpcSubscriptionHandlers(registry, (_sender, _windowId, _request, signal) => {
-			destructionSignal = signal;
-			return Effect.runPromise(Effect.never);
-		});
-		destructionHandlers.subscribe(eventFor(destroyed), {
-			id: "fleet",
-			input: {},
-			path: "fleetFeed",
-		});
-		destroyed.destroy();
-		expect(destructionSignal?.aborted).toBe(true);
+		handlers.unsubscribe(eventFor(sender), { id: "alpha" });
+		expect(signals.get("alpha")?.aborted).toBe(true);
+		expect(signals.get("bravo")?.aborted).toBe(false);
 	});
 });

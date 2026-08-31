@@ -20,7 +20,7 @@ export type HasDistinctCallSignatures<Method> = Method extends {
 		: true
 	: false;
 
-interface GenericOrStructurallyOverloadedMethodsAreUnsupported {
+export interface GenericOrStructurallyOverloadedMethodsAreUnsupported {
 	readonly _serviceDefinitionError: "generic and structurally overloaded methods are unsupported";
 }
 

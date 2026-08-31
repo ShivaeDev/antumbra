@@ -11,7 +11,6 @@ import {
 } from "@antumbra/vocabulary/agent-runtime";
 import { Clock, Effect, Result } from "effect";
 import { sessionAtRest } from "#at-rest.ts";
-import { idleSessionsPastThreshold } from "#idle.ts";
 import { rootSessions } from "#roots.ts";
 import type { SiestaFields } from "#siesta.ts";
 import { LiveDelegations } from "#tree/live.ts";
@@ -28,7 +27,9 @@ const siestaDemands = Effect.gen(function* () {
 	// A live child keeps its root attached because the tree shares one provider stream.
 	const delegating = yield* live.delegating();
 	const attached = yield* fabric.attached();
-	const overdue = idleSessionsPastThreshold(yield* fabric.idleSince(), yield* Clock.currentTimeMillis, chosen.idleSiestaMinutes * MILLIS_PER_MINUTE);
+	const now = yield* Clock.currentTimeMillis;
+	const threshold = chosen.idleSiestaMinutes * MILLIS_PER_MINUTE;
+	const overdue = new Set([...(yield* fabric.idleSince())].flatMap(([sessionId, since]) => (now - since >= threshold ? [sessionId] : [])));
 	const agents = yield* db.Agent.all();
 	const agentStatuses = new Map(agents.map((agent) => [agent.id, decodeStoredAgentStatus(agent.id, agent.status)] as const));
 	const sessions = yield* db.AgentSession.where(rootSessions).all();

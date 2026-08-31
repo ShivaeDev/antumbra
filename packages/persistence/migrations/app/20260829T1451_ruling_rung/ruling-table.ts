@@ -1,5 +1,3 @@
-// why: the shape the ruling table takes once a verdict names the agent that
-// gave it and every open question names the rung it waits on.
 export const RULING_TABLE = {
   tableName: 'ruling',
   contractTable: {

@@ -1,5 +1,3 @@
-// why: the shape the reclassification table takes once every move a rung
-// makes on a question names the agent that made it.
 export const RECLASSIFICATION_TABLE = {
   tableName: 'rulingReclassification',
   contractTable: {

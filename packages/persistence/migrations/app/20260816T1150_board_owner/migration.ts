@@ -12,9 +12,6 @@ SELECT "boardId", 'piece', "pieceId" FROM "pieceBoard"
 UNION ALL
 SELECT "boardId", 'voyage', "voyageId" FROM "voyageBoard"`;
 
-// why: reinserting only dangling links deliberately hits boardOwner's primary
-// key, so one missing typed owner aborts the migration instead of disappearing
-// when the three legacy link tables are dropped.
 const REJECT_DANGLING_OWNERS = `INSERT INTO "boardOwner" ("boardId", "ownerKind", "ownerId")
 SELECT "boardId", "ownerKind", "ownerId" FROM "boardOwner"
 WHERE ("ownerKind" = 'agent' AND NOT EXISTS (

@@ -5,10 +5,6 @@ import type { Contract as Start } from './start-contract';
 import startContract from './start-contract.json' with { type: 'json' };
 import { Migration, MigrationCLI, dataTransform } from '@prisma-next/sqlite/migration';
 
-// why: SQLite cannot add a NOT NULL column without a default, and the tightened
-// table rejects a null sequence, so the column arrives with a throwaway default,
-// existing rows are ranked per board by (createdAt, id), and the recreate drops
-// the default again — every later append allocates its own place.
 const SEQ_BACKFILL = `UPDATE "boardEntry" SET "seq" = (
   SELECT COUNT(*) FROM "boardEntry" AS "earlier"
   WHERE "earlier"."boardId" = "boardEntry"."boardId"

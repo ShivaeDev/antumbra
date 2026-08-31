@@ -23,7 +23,7 @@ type Mandatory<Model extends Written> = {
 }[keyof FieldsOf<Model>];
 
 // Generated nested-write inputs may omit foreign keys, so top-level writes derive mandatory fields from storage columns.
-export type NewRow<Model extends Written> = {
+type NewRow<Model extends Written> = {
 	[Field in Mandatory<Model>]: FieldsOf<Model>[Field];
 } & {
 	[Field in Exclude<keyof FieldsOf<Model>, Mandatory<Model>>]?: FieldsOf<Model>[Field];

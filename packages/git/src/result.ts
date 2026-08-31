@@ -1,14 +1,9 @@
-import { Effect, Schema } from "effect";
-import { GitAuthRequired, GitCommandFailed, type GitOperation, GitOutputInvalid } from "#errors.ts";
-
-const ProcessResult = Schema.Struct({
-	exitCode: Schema.Natural,
-	stderr: Schema.String,
-	stdout: Schema.String,
-});
+import { Effect } from "effect";
+import type { ChildProcessSpawner } from "effect/unstable/process";
+import { GitAuthRequired, GitCommandFailed, type GitOperation } from "#errors.ts";
 
 interface ProcessOutput {
-	readonly exitCode: number;
+	readonly exitCode: ChildProcessSpawner.ExitCode;
 	readonly stderr: string;
 	readonly stdout: string;
 }
@@ -31,17 +26,6 @@ const needsAuthentication = (detail: string): boolean => {
 	}
 	return normalized.includes("credential") && (normalized.includes("expired") || normalized.includes("locked"));
 };
-
-export const decodeProcessOutput = (operation: GitOperation, input: unknown): Effect.Effect<ProcessOutput, GitOutputInvalid> =>
-	Schema.decodeUnknownEffect(ProcessResult)(input).pipe(
-		Effect.mapError(
-			(cause) =>
-				new GitOutputInvalid({
-					detail: String(cause),
-					operation,
-				}),
-		),
-	);
 
 export const acceptProcessOutput = (operation: GitOperation, output: ProcessOutput): Effect.Effect<string, GitAuthRequired | GitCommandFailed> => {
 	if (output.exitCode === 0) {

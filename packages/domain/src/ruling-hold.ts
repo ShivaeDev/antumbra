@@ -13,15 +13,7 @@ const ruledOf = (ruling: Ruling): Option.Option<RuledRuling> => Option.map(rulin
 
 export const heldSaid = ({ answer, ruling }: RuledRuling): string => `Ruled — your hold is over.\n${rulingAnswerMail(ruling, answer)}`;
 
-// why: a blocking asker holds until ruled, and the hold is the one thing a
-// closing session or a restart loses: the ruling stays open on the record and
-// its answer still reaches the asker as mail, so nothing here is resumed. The
-// subscription is taken before the request is written, so a verdict landing
-// between the write and the first read rings a notice that is still queued;
-// each notice is followed by a read, because the record — never the ring —
-// says whether the answer landed. The hold is registered the moment the id
-// exists and marks the answer delivered before it lets go, so the asker that
-// heard the answer here is not told it again by mail.
+// Holds are process-local; after restart, the durable ruling answer is delivered through mail instead.
 export const makeRulingHold = Effect.gen(function* () {
 	const feeds = yield* DomainFeeds;
 	const holds = yield* RulingHolds;
@@ -38,6 +30,7 @@ export const makeRulingHold = Effect.gen(function* () {
 	return (input: RulingRequest) =>
 		Effect.scoped(
 			Effect.gen(function* () {
+				// Subscribe before writing the request so a verdict cannot land before the hold observes its refresh.
 				const notices = yield* feeds.subscribeRulingRefresh();
 				const requested = yield* rulings.request(input);
 				yield* holds.holding(requested.id);

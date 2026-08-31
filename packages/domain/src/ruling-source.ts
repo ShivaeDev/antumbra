@@ -19,8 +19,6 @@ import { supersessionFailure } from "#ruling-supersession.ts";
 import { withdrawalFailure } from "#ruling-withdrawal.ts";
 import { VoyageWorldSource } from "#voyage-world.ts";
 
-// why: the standing set is ruled by construction, so a ruling met there with
-// no answer is the record contradicting itself rather than a view to skip.
 const standingSeen = (ruling: Ruling, stale: boolean): Effect.Effect<StandingRulingsView["rulings"][number], RulingFailure> =>
 	Option.match(ruling.answer, {
 		onNone: () =>
@@ -41,8 +39,6 @@ export const RulingSourceLive = Layer.effect(RulingSource)(
 			})),
 			Effect.mapError(toRulingFailure),
 		);
-		// why: staleness is a reading of the work a ruling names, so what stands
-		// is projected against the same world the open set is read against.
 		const standing = Effect.all({
 			ruled: rulings.standing([]),
 			rows: world.read,

@@ -17,9 +17,6 @@ export interface HailedCaptain {
 	readonly intentId: string;
 }
 
-// why: a hail reads the whole voyage world, so every way that reading can fail
-// is a way a hail can be refused — named as the one union rather than copied
-// out member by member, which is how this list fell behind the world it reads.
 export type HailRefused =
 	| BoardOwnerNotFound
 	| CaptainAlreadyHailed
@@ -40,10 +37,6 @@ export const hailCaptain = (voyageId: string) =>
 		if (voyage === undefined) {
 			return yield* new VoyageNotFound({ voyageId });
 		}
-		// why: hailing a voyage that already has an alive captain asks for that
-		// captain to be reachable, never for a second one. A wake is idempotent,
-		// so one act serves a captain that stood down, one whose attachment did
-		// not outlive its process, and one that is answering already.
 		const current = captainOf(world, voyageId);
 		if (Option.isSome(current) && current.value.status === "alive") {
 			const session = executionSessionOfAgent(world, current.value.agentId);
@@ -57,8 +50,6 @@ export const hailCaptain = (voyageId: string) =>
 			const intentId = yield* reach.submitWake({ sessionId: session.id });
 			return { agentId: current.value.agentId, intentId };
 		}
-		// why: a captain still being born is at work and has no execution to
-		// resume yet, so answering the hail would give the voyage a second one.
 		const standing = captainAtWork(world, voyageId);
 		if (Option.isSome(standing)) {
 			return yield* new CaptainAlreadyHailed({

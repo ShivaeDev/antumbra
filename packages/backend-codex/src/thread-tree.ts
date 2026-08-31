@@ -15,21 +15,13 @@ export interface ThreadTree {
 	readonly events: (notification: RpcNotification) => ReadonlyArray<AgentEvent>;
 }
 
-// why: codex broadcasts the whole tree down the one connection this session
-// listens on, every frame stamped with the thread that spoke it. Reading a
-// delegated conversation as it happens therefore takes no second connection and
-// no attaching — only the willingness to stop filtering everything but this
-// thread out. The census that follows a silent stream is the one reader that
-// opens a connection of its own, and that one can only read. What may be read
-// here is what this session was shown to own: a thread codex sourced from a
-// spawn of ours, or one an owned thread announced as its own.
+// why: app-server broadcasts frames for every thread on one connection, each
+// carrying its thread id. The live tree therefore filters the shared stream;
+// passive census is the separate read-only connection.
 export const openThreadTree = (rootThreadId: string, claims: ThreadClaims): ThreadTree => {
 	const spawnCalls = new Map<string, string>();
 	const stated = new Set<string>();
 	const owns = (threadId: string): boolean => threadId === rootThreadId || claims.ownerOf(threadId) === rootThreadId;
-	// why: codex says the same thing twice, as an item starts and as it
-	// completes, and a node opens and ends once. The repetition keeps its place
-	// in the log as the provider's own words rather than a second lifecycle.
 	const once = (key: string): boolean => {
 		if (stated.has(key)) {
 			return false;
@@ -77,8 +69,6 @@ export const openThreadTree = (rootThreadId: string, claims: ThreadClaims): Thre
 		const raw = rawOf(notification.method, notification.params);
 		return item.type === "collabAgentToolCall" ? collab(item, raw, notification.method === "item/started") : activity(item, threadId, raw);
 	};
-	// why: a thread codex has closed said no word for how its work ended, and a
-	// node left open forever reads worse than an honest unknown.
 	const closed = (threadId: string, params: unknown): ReadonlyArray<AgentEvent> => {
 		const raw = rawOf("thread/closed", params);
 		return once(`ended/${threadId}`) ? [closedWithoutWord(threadId, raw)] : [{ raw, type: "raw" }];

@@ -9,9 +9,6 @@ export type CollabCall = Item<"collabAgentToolCall">;
 
 const decodeItem = Schema.decodeUnknownOption(KnownItem);
 
-// why: the two items that say anything about a thread's own agents. Everything
-// else on the wire is transcript and is read by the item projection this
-// backend already has.
 export const subAgentItem = (item: unknown): SubAgentActivity | CollabCall | undefined =>
 	Option.match(decodeItem(item), {
 		onNone: () => undefined,
@@ -49,10 +46,6 @@ export const closedWithoutWord = (subsessionRef: string, raw: RawPayload): Agent
 	type: "subsession.ended",
 });
 
-// why: spawning an agent is a tool call the thread made, and reads as one — so
-// the transcript shows the work being handed over, and the call is remembered
-// against the journal it was written to. That memory is what tells a node's own
-// children which Session spawned them.
 export const collabEvents = (item: CollabCall, raw: RawPayload, started: boolean): ReadonlyArray<AgentEvent> =>
 	started
 		? [

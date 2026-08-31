@@ -14,10 +14,8 @@ const read = async (request: RepairRequest, agentId: string): Promise<AdoptedAge
 	}),
 });
 
-// why: the provider's own census of a session's delegated agents, read from
-// where it stores them rather than from the mirror that may have dropped a
-// batch. Only agents this Session never recorded are read back: the rest are
-// already in the log, and re-reading them would write every word twice.
+// why: the provider's own census of a session's delegated agents is read from
+// its stored transcripts because the live mirror may have dropped a batch.
 export const repairSubagents = async (request: RepairRequest): Promise<Repair> => {
 	try {
 		const census = await listSubagents(request.nativeSessionId, {
@@ -29,9 +27,6 @@ export const repairSubagents = async (request: RepairRequest): Promise<Repair> =
 			failure: undefined,
 		};
 	} catch (error) {
-		// why: a repair that cannot run leaves the live record standing, so it is
-		// never fatal — but it is a hole, and the caller writes it down rather
-		// than letting the session end looking complete.
 		return { agents: [], failure: String(error) };
 	}
 };

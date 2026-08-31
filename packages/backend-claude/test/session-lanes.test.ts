@@ -39,9 +39,6 @@ const progress = (state: string, label: string): ProgressFrame => ({
 
 const agentKey = key(`subagents/workflows/wfr_7f3a2b1c/agent-${AGENT}`);
 
-// why: the transcript of an agent the stream already carried is mirrored too,
-// and reading it as if it were new would write every word of that agent's work
-// into the log a second time.
 it("a transcript the stream already carried is read only for what it drops", () => {
 	const lanes = openSessionLanes();
 	const spoken = lanes.mirror({
@@ -60,9 +57,6 @@ it("a transcript the stream already carried is read only for what it drops", () 
 	expect(answered).toMatchObject([{ ok: true, output: "audited", toolId: CALL, type: "tool.completed" }]);
 });
 
-// why: a name that arrives after the agent has already spoken fills the hole
-// the opening left. The node is never announced twice, and the words that
-// arrived first are never held back waiting for it.
 it("an agent that spoke before it was named is named afterwards", () => {
 	const lanes = openSessionLanes();
 	const first = lanes.mirror({
@@ -87,9 +81,6 @@ it("an agent that spoke before it was named is named afterwards", () => {
 	expect(lanes.frame(progress("done", "read the ledger"))).toMatchObject([{ outcome: "completed", subsessionRef: AGENT, type: "subsession.ended" }]);
 });
 
-// why: a repair source that cannot be reached found no missing node — it was
-// never asked. The loss has no name of its own in this vocabulary, so it is
-// written as unknown and the detail carries what actually happened.
 it("a census that could not be taken is written down as such", () => {
 	const lanes = openSessionLanes();
 	expect(lanes.adopted({ agents: [], failure: "socket closed" })).toMatchObject([{ gapKind: "unknown", type: "subsession.gap" }]);

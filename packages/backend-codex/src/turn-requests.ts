@@ -29,10 +29,8 @@ export interface TurnRequests {
 	readonly steer: (turnId: string, input: SessionInput) => Effect.Effect<void, BackendFailure>;
 }
 
-// why: the three turn verbs app-server actually has, one thread's worth.
-// Interrupt is measured to hang while residual work is in flight and to
-// fail once the turn already ended — both mean the turn is not running, so
-// both count as done.
+// A timeout while residual work drains still means the turn is no longer
+// running, so the interrupt is successful.
 export const turnRequests = (server: CodexServer, threadId: string): TurnRequests => ({
 	interrupt: (turnId) =>
 		server.request("turn/interrupt", { threadId, turnId }, INTERRUPT_TIMEOUT_MS).pipe(

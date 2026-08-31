@@ -130,9 +130,6 @@ it.live("a resumed thread can still answer a call", () =>
 	}),
 );
 
-// why: one thread waits on a ruling that never comes while a second thread on
-// the same child is opened beside it; the waiter has a scope of its own so the
-// test can close that one session and leave the child and the other running.
 const openBesideWaiter = Effect.gen(function* () {
 	const started = yield* Deferred.make<void>();
 	const interrupted = yield* Deferred.make<void>();

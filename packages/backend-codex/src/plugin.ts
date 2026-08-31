@@ -18,9 +18,6 @@ export interface CodexPluginOptions {
 	readonly cwd: string;
 }
 
-// why: how a child is started, handed round rather than the path it was
-// resolved from — the live server takes one and so does an audit, which opens a
-// child of its own for the one question it asks.
 const spawnAppServer = (command: string, cwd: string) => (): LineProcess => spawnLineProcess({ args: ["app-server"], command, cwd });
 
 export const codexBackend = (
@@ -43,9 +40,6 @@ export const codexBackend = (
 const codexCommand = (context: PluginContext) =>
 	Effect.flatMap(context.findExecutable("codex"), (found) => (Option.isSome(found) ? Effect.succeed(found) : bundledCodex));
 
-// why: the child is reference-counted, not per session — it starts with the
-// first session, is shared by every one after, and is killed when the last
-// closes; the plugin scope bounds it either way.
 const registerCodex = (context: PluginContext, spawn: () => LineProcess) =>
 	Effect.gen(function* () {
 		const capacity = yield* makeBackendCapacityController(classifyCodexCapacity);

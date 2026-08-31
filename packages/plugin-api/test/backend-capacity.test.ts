@@ -24,7 +24,7 @@ it.effect("publishes and remembers classified provider capacity", () =>
 		expect(yield* capacity.source.current).toEqual(Option.none());
 
 		capacity.observe(raw("limit"), 42);
-		const state = yield* Stream.runHead(capacity.source.states.pipe(Stream.take(1)));
+		const state = yield* Stream.runHead(capacity.source.states);
 		const change = Option.getOrThrow(Option.getOrThrow(state));
 		expect(change).toMatchObject({
 			observedAt: 42,
@@ -55,7 +55,7 @@ it.effect("latches a hard block until the source is explicitly cleared", () =>
 		const clearAt = yield* capacity.source.clear;
 		expect(clearAt).toBeGreaterThan(40);
 		expect(yield* capacity.source.current).toEqual(Option.none());
-		expect(yield* Stream.runHead(capacity.source.states.pipe(Stream.take(1)))).toEqual(Option.some(Option.none()));
+		expect(yield* Stream.runHead(capacity.source.states)).toEqual(Option.some(Option.none()));
 		capacity.observe(raw("allowed"), 42);
 		expect(Option.getOrThrow(yield* capacity.source.current).status).toBe("available");
 	}),

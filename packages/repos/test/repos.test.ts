@@ -1,9 +1,10 @@
 import { DomainFeeds, DomainFeedsLive } from "@antumbra/domain-feeds";
 import { Database } from "@antumbra/persistence";
 import { persistenceIt } from "@antumbra/persistence/testing";
-import { Repos, ReposLive, repoName, repoSlug } from "@antumbra/repos";
+import { Repos, ReposLive, repoSlug } from "@antumbra/repos";
 import { expect, it } from "@effect/vitest";
 import { Effect, Layer, PubSub } from "effect";
+import { repoName } from "#repo-name.ts";
 
 const persistence = persistenceIt();
 const layer = ReposLive.pipe(Layer.provideMerge(DomainFeedsLive));

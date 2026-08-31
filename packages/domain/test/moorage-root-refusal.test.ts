@@ -1,11 +1,11 @@
 import { DomainFeedsLive } from "@antumbra/domain-feeds";
 import { Database, type NewAgentSession } from "@antumbra/persistence";
 import type { MooragePlan } from "@antumbra/plugin-api";
-import { expect, it } from "@effect/vitest";
-import { Effect, Layer } from "effect";
+import { it } from "@antumbra/testing";
+import { expect } from "@effect/vitest";
+import { Effect } from "effect";
 import type { SpawnFields } from "#index.ts";
 import { makeEnsureSessionRow } from "#moorage-session.ts";
-import { acquireTemporaryPersistence } from "#test/harness.ts";
 
 const AGENT = "agent-two-roots";
 
@@ -50,22 +50,16 @@ const seed = Effect.gen(function* () {
 // why: the durable law is a partial unique index, and an index states itself in
 // driver words nobody keeps. Read first, the same law refuses by name and says
 // which Session already holds the Agent's answer.
-it.live("a second open root is refused by name, not by the index", () =>
-	Effect.gen(function* () {
-		const temporary = yield* acquireTemporaryPersistence;
-		yield* Effect.gen(function* () {
-			const db = yield* Database;
-			const ensureSessionRow = yield* makeEnsureSessionRow;
-			yield* seed;
+it.effectApp("a second open root is refused by name, not by the index", function* ({ db }) {
+	const ensureSessionRow = yield* makeEnsureSessionRow.pipe(Effect.provide(DomainFeedsLive));
+	yield* seed;
 
-			const refusal = yield* Effect.flip(ensureSessionRow(payload, plan));
-			expect(refusal._tag).toBe("AgentRootAlreadyOpen");
-			if (refusal._tag === "AgentRootAlreadyOpen") {
-				expect(refusal.openSessionId).toBe("session-first");
-				expect(refusal.sessionId).toBe("session-second");
-				expect(refusal.message).toContain("session-first");
-			}
-			expect((yield* db.AgentSession.all()).map((row) => row.id)).toEqual(["session-first"]);
-		}).pipe(Effect.provide(Layer.merge(temporary.layer, DomainFeedsLive)));
-	}),
-);
+	const refusal = yield* Effect.flip(ensureSessionRow(payload, plan));
+	expect(refusal._tag).toBe("AgentRootAlreadyOpen");
+	if (refusal._tag === "AgentRootAlreadyOpen") {
+		expect(refusal.openSessionId).toBe("session-first");
+		expect(refusal.sessionId).toBe("session-second");
+		expect(refusal.message).toContain("session-first");
+	}
+	expect((yield* db.AgentSession.all()).map((row) => row.id)).toEqual(["session-first"]);
+});

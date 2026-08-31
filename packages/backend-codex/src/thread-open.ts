@@ -6,17 +6,12 @@ import { rawOf } from "#mapping.ts";
 import { ThreadResponse } from "#protocol.ts";
 import type { CodexServer } from "#server.ts";
 
-// why: the ruled v0 policy — writes confined to the moorage by codex's own
-// sandbox, escapes judged by codex's literal auto mode (an LLM reviewer),
-// never `approvalPolicy: never` and never a sandbox bypass.
 const THREAD_POLICY = {
 	approvalsReviewer: "auto_review",
 	sandbox: "workspace-write",
 };
 
-// why: the same name, description, and JSON Schema every backend is handed,
-// in the shape codex takes them. A thread opened with no tools sends no key at
-// all, so a session that acts through nothing looks exactly as it did.
+// Codex omits `dynamicTools` when a thread has no tools.
 const dynamicTools = (tools: ReadonlyArray<DirectTool>) =>
 	tools.length === 0
 		? {}
@@ -31,11 +26,7 @@ const dynamicTools = (tools: ReadonlyArray<DirectTool>) =>
 
 const decodeThread = Schema.decodeUnknownOption(ThreadResponse);
 
-// why: attaching to a thread mutates it — codex clears a sub-agent's goal when
-// a client resumes it — so a node is read by listening and never by taking it
-// over. The refusal is here, at the seam where a thread id becomes a live
-// attachment, so a caller holding a child's reference cannot reach the wire
-// with it however it came by the id.
+// Resuming a Codex sub-agent clears its goal.
 const attachable = (server: CodexServer, threadId: string): Effect.Effect<string, BackendFailure> =>
 	server.threads.isNode(threadId)
 		? Effect.fail(codexFailure(`thread ${threadId} is a subsession of a running session; subsessions are read from the stream, never attached`))
@@ -51,9 +42,7 @@ export const openThread = (server: CodexServer, options: OpenSessionOptions): Ef
 					...THREAD_POLICY,
 				})
 				.pipe(Effect.map((response) => ["thread/start", response] as const)),
-		// why: resume sends no specifications — codex keeps them in the thread's
-		// rollout — but the running process still has to be able to answer a call,
-		// so the tools are registered again either way.
+		// Codex stores resume specifications in the rollout; resumed processes still need live tool registrations.
 		onSome: (threadId) =>
 			attachable(server, threadId).pipe(
 				Effect.flatMap((attached) =>

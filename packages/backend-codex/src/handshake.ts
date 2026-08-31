@@ -4,9 +4,6 @@ import type { Request } from "#requests.ts";
 
 const CLIENT_INFO = { name: "antumbra", title: "Antumbra", version: "0.0.0" };
 
-// why: deltas are muted at the handshake — the log records whole items, as
-// it does for Claude; per-token rows would swamp it for nothing a consumer
-// reads.
 export const MUTED_NOTIFICATIONS = [
 	"item/agentMessage/delta",
 	"item/commandExecution/outputDelta",
@@ -21,10 +18,7 @@ export const MUTED_NOTIFICATIONS = [
 
 const decodeInitialize = Schema.decodeUnknownOption(InitializeResponse);
 
-// why: app-server negotiates no protocol version — the binary is the
-// version. The user agent it reports is checked against the CLI version our
-// hand-written protocol slice was written against; a mismatch is a warning
-// to re-verify the slice, not a refusal.
+// Codex has no protocol negotiation; userAgent is compared with the pinned CLI version.
 const checkVersion = (response: unknown) =>
 	Option.match(decodeInitialize(response), {
 		onNone: () => Effect.logWarning("codex: initialize response unrecognised"),
@@ -39,12 +33,7 @@ const checkVersion = (response: unknown) =>
 		},
 	});
 
-// why: one initialize per connection, then the initialized notification —
-// the only handshake app-server accepts, and nothing else may go first. The
-// experimental capability is on because the tools a session is opened with
-// are gated behind it: thread/start refuses them without it. That surface was
-// surveyed against the stable one at the pinned version and is additive —
-// nothing we already speak changes shape.
+// Codex requires one initialize followed by initialized, with experimentalApi enabled for dynamic tools.
 export const handshake = (request: Request) =>
 	request("initialize", {
 		capabilities: {

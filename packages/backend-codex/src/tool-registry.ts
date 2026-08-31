@@ -39,12 +39,7 @@ const callsEnded = Option.match({
 	onSome: (entry: ThreadTools) => Scope.close(entry.calls, Exit.void),
 });
 
-// why: one app-server child hosts every thread, and a tool call arrives on
-// that one connection naming only its thread — so the tools a session was
-// opened with are held here, keyed by thread, rather than on the session that
-// cannot see the wire. A resumed thread registers again: codex remembers the
-// specifications in its rollout, but the running process must still be able to
-// answer a call.
+// Codex shares one app-server connection across threads; registrations are keyed by thread and repeated on resume.
 export const makeToolRegistry: Effect.Effect<ToolRegistry> = Effect.gen(function* () {
 	const byThread = yield* Ref.make<ByThread>(new Map());
 	return {

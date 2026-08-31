@@ -2,10 +2,6 @@ import { Schema } from "effect";
 import { TurnError } from "#protocol.ts";
 import { UserMessageItem } from "#protocol-user-item.ts";
 
-// why: the thread-item slice of the protocol, split from the envelope schemas
-// so each file stays one readable page. Decoding is lenient: unknown fields
-// drop, unmodelled items fall through as raw.
-
 const item = { id: Schema.String };
 
 export const ExecutionStatus = Schema.Literals(["inProgress", "completed", "failed", "declined"]);
@@ -56,9 +52,7 @@ const ContentPart = Schema.Struct({
 	type: Schema.String,
 });
 
-// why: the call the model makes on a tool we served at thread start. Its id is
-// the call id, and `success` is what we answered with — status alone would
-// read a refused landing as a completed call.
+// Codex reports dynamic-tool outcomes through `success` in addition to status.
 const DynamicToolCallItem = Schema.Struct({
 	...item,
 	arguments: Schema.Unknown,
@@ -75,10 +69,7 @@ const WebSearchItem = Schema.Struct({
 	type: Schema.Literal("webSearch"),
 });
 
-// why: the item a thread posts about an agent of its own — the announcement
-// this backend's tree is built from. The kinds are codex's own closed set, and
-// only `started` names a node: `interacted` says a running one was spoken to,
-// and `interrupted` is the provider's word for a forced ending.
+// Codex reports sub-agent lifecycle as started, interacted, or interrupted.
 const SubAgentActivityItem = Schema.Struct({
 	...item,
 	agentPath: Schema.String,
@@ -87,9 +78,7 @@ const SubAgentActivityItem = Schema.Struct({
 	type: Schema.Literal("subAgentActivity"),
 });
 
-// why: the call that spawns, drives, or closes an agent of this thread's own.
-// It reads as a tool call because that is what it is, and its id is what the
-// announcement that follows names as the call the node was spawned by.
+// Codex reports collaboration operations as dynamic-tool items.
 const CollabAgentToolCallItem = Schema.Struct({
 	...item,
 	prompt: Schema.optional(Schema.NullOr(Schema.String)),
@@ -100,9 +89,6 @@ const CollabAgentToolCallItem = Schema.Struct({
 	type: Schema.Literal("collabAgentToolCall"),
 });
 
-// why: only the modelled variants form the union, so a literal `type`
-// discriminates every member; anything else stays `unknown` and is logged raw
-// rather than decoded into a shape it does not have.
 export const KnownItem = Schema.Union([
 	AgentMessageItem,
 	UserMessageItem,

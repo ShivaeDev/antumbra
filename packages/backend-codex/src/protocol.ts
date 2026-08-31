@@ -1,12 +1,5 @@
 import { Schema } from "effect";
 
-// why: hand-written schemas for the slice of the app-server protocol this
-// backend consumes. The full generated schema bundle for the pinned CLI is
-// vendored beside this file and a test holds every literal here to it —
-// the bundle is the pin, this file is the slice we speak. Decoding is
-// lenient: unknown fields drop, unmodelled items fall through as raw. The
-// thread items are their own page, in `protocol-items.ts`.
-
 export const PINNED_CLI_VERSION = "0.148.0-alpha.9";
 
 export const InitializeResponse = Schema.Struct({ userAgent: Schema.String });
@@ -30,9 +23,6 @@ export const TurnResponse = Schema.Struct({ turn: Turn });
 
 export const TurnSteerResponse = Schema.Struct({ turnId: Schema.String });
 
-// why: the server asks us to run a tool by thread and name; the call id and
-// turn id ride along on the wire as its own bookkeeping, so the slice names
-// only what deciding an answer needs.
 export const DynamicToolCallParams = Schema.Struct({
 	arguments: Schema.Unknown,
 	threadId: Schema.String,
@@ -50,11 +40,7 @@ export const TurnNotification = Schema.Struct({
 	turn: Turn,
 });
 
-// why: codex splits the input three ways and this record keeps all three —
-// cached input is what a resume served out of the cache, cache-write is what it
-// paid to put there. `cacheWriteInputTokens` carries a default on the wire and
-// so may be absent; the other two are always sent. Reasoning tokens are already
-// inside `outputTokens` and are not read again here.
+// Codex may omit cache-write usage; reasoning tokens are included in output usage.
 const TokenBreakdown = Schema.Struct({
 	cachedInputTokens: Schema.Number,
 	cacheWriteInputTokens: Schema.optional(Schema.Number),
@@ -70,15 +56,7 @@ export const TokenUsageNotification = Schema.Struct({
 
 export const ThreadScoped = Schema.Struct({ threadId: Schema.String });
 
-// why: the one notification that says a thread is a member of somebody's tree.
-// Only a thread codex sourced from a spawn is one: a reviewer, a compaction or
-// a memory pass names no parent here and so can never be admitted as a node,
-// which is how the guardians stay out of the record's tree by construction.
-// why: what codex says about the spawn beside the parent it names — the agent
-// definition it ran, the name it gave the agent, the role it was cast in. They
-// are the only names a census has for a node nothing announced, and codex may
-// say none of them, so each is optional and absent means the record stays
-// silent rather than inventing one.
+// Only Codex spawn metadata carries a parent thread id; other names may be absent.
 const SpawnSource = Schema.Struct({
 	subAgent: Schema.Struct({
 		thread_spawn: Schema.Struct({
@@ -94,12 +72,7 @@ export const SpawnedThread = Schema.Struct({
 	thread: Schema.Struct({ id: Schema.String, source: SpawnSource }),
 });
 
-// why: codex's own runtime word for a thread, required on every row it lists.
-// `active` is the one variant that means a turn is under way in it; the flags
-// name what a running turn is waiting on, which does not change that it is
-// running and which nothing here reads — so they are typed as the strings codex
-// sends rather than pinned to a spelling, because a flag added later must not
-// refuse a whole census over a word this slice never consults.
+// Codex reports active, idle, notLoaded, and systemError thread states; activeFlags are extensible.
 export const ThreadStatus = Schema.Union([
 	Schema.Struct({
 		activeFlags: Schema.Array(Schema.String),
@@ -110,13 +83,7 @@ export const ThreadStatus = Schema.Union([
 	Schema.Struct({ type: Schema.Literal("systemError") }),
 ]);
 
-// why: the server's own listing of every thread spawned below one ancestor, at
-// any depth. Every row it returns is a spawn descendant and carries the source
-// that says whose, and the status that says whether it is working right now —
-// so a row this cannot decode is the pin having moved under the slice, and the
-// page is refused whole rather than quietly shortened. A page it did not finish
-// says so in a cursor, which is the difference between a short answer and a
-// whole one.
+// Codex ancestor-filtered listings return spawn metadata, status, and a continuation cursor.
 export const ThreadListResponse = Schema.Struct({
 	data: Schema.Array(
 		Schema.Struct({
@@ -128,10 +95,7 @@ export const ThreadListResponse = Schema.Struct({
 	nextCursor: Schema.optional(Schema.NullOr(Schema.String)),
 });
 
-// why: codex's level signal for one thread, the same fact claude sends as
-// session_state_changed. It is the only place the waiting flags appear, and a
-// waiting flag is the difference between a turn that is thinking and one that
-// is stalled on somebody answering.
+// Codex status notifications carry the waiting flags for active threads.
 export const ThreadStatusNotification = Schema.Struct({
 	status: ThreadStatus,
 	threadId: Schema.String,

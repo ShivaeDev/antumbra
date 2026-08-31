@@ -19,11 +19,7 @@ export const rawOf = (kind: string, payload: unknown): RawPayload => ({
 const turnStatus = (status: typeof TurnNotification.Type.turn.status): "completed" | "failed" | "interrupted" =>
 	status === "inProgress" ? "completed" : status;
 
-// why: the turn edges are codex's own busy bookends, and a turn ending is the
-// session going idle. They stand beside `thread/status/changed` rather than
-// instead of it: the level signal is the only one that carries the waiting
-// flags, and the edges are the only ones tied to a turn id. Both are what
-// codex said, and the last one to arrive is what the session is doing.
+// Codex turn notifications mark turn boundaries; status notifications carry waiting flags.
 const turnStarted = (raw: RawPayload, params: unknown): AgentEvent[] =>
 	Option.isNone(decodeTurn(params)) ? [{ raw, type: "raw" }] : [{ raw, state: "running", type: "session.state" }];
 
@@ -44,10 +40,7 @@ const turnCompleted = (raw: RawPayload, params: unknown): AgentEvent[] =>
 const tokenUsage = (raw: RawPayload, params: unknown): AgentEvent[] =>
 	Option.match(decodeUsage(params), {
 		onNone: () => [{ raw, type: "raw" }],
-		// why: `last` is the increment for one model round trip; summing the
-		// usage events of a session reproduces `total`. codex reports no money
-		// at all, so both cost fields stay absent rather than being guessed from
-		// a price list this record does not hold.
+		// Codex reports per-round usage in `last`; cost fields are not present.
 		onSome: ({ tokenUsage }) => [
 			{
 				cacheReadTokens: tokenUsage.last.cachedInputTokens,
@@ -66,15 +59,8 @@ const itemEvents = (raw: RawPayload, params: unknown, project: typeof itemStarte
 		onSome: ({ item }) => project(raw, item),
 	});
 
-// why: item/completed carries the whole item and is authoritative; the
-// terminal turn payload is not a transcript (interrupted turns replay
-// nothing), so every event is derived from the item stream.
-//
-// why: no background set for codex. Its background terminals are a request the
-// client makes — list, terminate, clean — and the server pushes nothing when
-// one starts or stops. Polling for them would put a made-up refresh rate in
-// the record, so this backend reports no background work rather than a picture
-// that is stale by design.
+// Codex item/completed carries transcript content; turn/completed does not.
+// Codex exposes background terminals through explicit requests, not a push stream.
 export const toAgentEvents = (notification: RpcNotification): AgentEvent[] => {
 	const raw = rawOf(notification.method, notification.params);
 	switch (notification.method) {

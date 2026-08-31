@@ -28,9 +28,6 @@ const spawned = (id: string, status: unknown = { type: "idle" }) => ({
 
 const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === "object" && value !== null;
 
-// why: two pages with a thread on both of them, which is what a listing sorted
-// by time does when a thread is written while the sweep is walking it. The
-// second page is the last, so the cursor it returns is null.
 const paged: FakeAnswer = (method, params) => {
 	if (method !== "thread/list") {
 		return Option.none();
@@ -57,10 +54,6 @@ it.live("the sweep follows codex's cursor to the end of the listing", () =>
 		const { fake, swept } = yield* sweep(paged);
 		const found = swept._tag === "Success" ? swept.value : [];
 
-		// why: a page the sweep stopped at would read as a session with fewer
-		// delegated threads than it had, which is the failure this whole census
-		// exists to catch — so the cursor is followed until codex says there is no
-		// next one, and a thread named on two pages is still one thread.
 		expect(found.map((child) => child.threadId)).toEqual([FIRST, SECOND, THIRD]);
 		expect(found[0]).toMatchObject({
 			agentNickname: undefined,
@@ -69,9 +62,6 @@ it.live("the sweep follows codex's cursor to the end of the listing", () =>
 			parentThreadId: ROOT,
 		});
 
-		// why: the audit's connection reads and does nothing else. It never starts a
-		// thread and never resumes one — the never-attach rule holds here by
-		// construction, because a connection that only ever lists cannot break it.
 		expect(fake.requests.map((request) => request.method)).toEqual(["initialize", "thread/list", "thread/list"]);
 		const asked = fake.requests[1]?.params;
 		expect(isRecord(asked) ? asked.ancestorThreadId : undefined).toBe(ROOT);
@@ -84,16 +74,10 @@ it.live("the ancestor filter is asked for at initialize, or not at all", () =>
 		const hello = fake.requests[0]?.params;
 		const capabilities = isRecord(hello) ? hello.capabilities : undefined;
 
-		// why: app-server gates the ancestor filter behind its experimental surface
-		// and refuses the parameter outright without it, so the capability is the
-		// census's licence to read at all.
 		expect(isRecord(capabilities) ? capabilities.experimentalApi : false).toBe(true);
 	}),
 );
 
-// why: one page, one thread per status codex can report. The sweep is the only
-// place the record ever learns that a child is still running after the stream
-// that carried it is gone, so which words mean "running" is held here by name.
 const statuses: FakeAnswer = (method) =>
 	method === "thread/list"
 		? Option.some({
@@ -112,10 +96,6 @@ it.live("only an active thread reads as a child that is working", () =>
 		const { swept } = yield* sweep(statuses);
 		const found = swept._tag === "Success" ? swept.value : [];
 
-		// why: idle is a child between turns and notLoaded is one the server has
-		// not brought into memory; systemError is one that is not speaking on any
-		// stream either, so none of the three can still be producing frames. Only
-		// active holds a session away from rest — a child merely open never does.
 		expect(found.map((child) => [child.threadId, child.working])).toEqual([
 			[FIRST, true],
 			[SECOND, false],
@@ -129,10 +109,6 @@ it.live("a listing it cannot read is a refusal, never a short answer", () =>
 	Effect.gen(function* () {
 		const { swept } = yield* sweep((method) => (method === "thread/list" ? Option.some({ data: "everything" }) : Option.none()));
 
-		// why: an answer this backend cannot read is the pin having moved under the
-		// slice. Returning the rows it did understand would call a session complete
-		// on a reading that was never taken, so the sweep fails and the census says
-		// plainly that it could not check.
 		expect(swept._tag).toBe("Failure");
 	}),
 );

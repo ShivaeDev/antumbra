@@ -16,9 +16,6 @@ const options = (resume: Option.Option<string>) => ({
 	tools: [],
 });
 
-// why: attaching to a sub-agent's thread mutates it, so the refusal has to be
-// structural — the id never reaches the wire, whatever the caller believed it
-// held.
 it.live("a subsession's thread is refused at the attachment seam", () =>
 	Effect.scoped(
 		Effect.gen(function* () {
@@ -30,8 +27,6 @@ it.live("a subsession's thread is refused at the attachment seam", () =>
 			expect(refused.detail).toContain("subsession");
 			expect(fake.requests.map((request) => request.method)).toEqual(["initialize"]);
 
-			// why: the same seam takes a root without complaint — the refusal is
-			// about what the id is, never about resuming at all.
 			const handle = yield* openThreadSession(server, options(Option.some(ROOT)));
 			expect(yield* handle.nativeRef).toEqual(Option.some(ROOT));
 			expect(fake.requests.map((request) => request.method)).toEqual(["initialize", "thread/resume"]);
@@ -39,10 +34,6 @@ it.live("a subsession's thread is refused at the attachment seam", () =>
 	),
 );
 
-// why: waking a sleeping session is one act, not two — the conversation it
-// already has is re-entered and the words that woke it are said in it. A
-// `thread/start` here would strand the whole prior log, and words that never
-// reach a turn were never said to anyone.
 it.live("a woken thread carries the words that woke it into its first turn", () =>
 	Effect.scoped(
 		Effect.gen(function* () {

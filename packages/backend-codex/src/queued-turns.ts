@@ -21,9 +21,7 @@ const acceptPending = (pending: ReadonlyArray<PendingInput>) => completePending(
 const failPending = (pending: ReadonlyArray<PendingInput>, failure: BackendFailure) =>
 	completePending(pending, (input) => Deferred.fail(input.accepted, failure));
 
-// why: codex has no provider-side queue. Each caller therefore waits on the
-// exact turn/start that carries its text; session teardown fails every receipt
-// that still names only adapter memory.
+// Codex has no provider-side queue; pending inputs wait for the next local turn.
 export const makeQueuedTurns = (
 	state: Ref.Ref<TurnState>,
 	withPermit: <A, E, R>(effect: Effect.Effect<A, E, R>) => Effect.Effect<A, E, R>,

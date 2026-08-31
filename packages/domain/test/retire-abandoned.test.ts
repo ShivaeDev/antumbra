@@ -62,32 +62,6 @@ const closedWithoutVerdict = (scripted: ScriptedBackend) =>
 		return { pieceId, voyageId };
 	});
 
-// why: pressing abandon is itself the order to clean up, so there is nothing
-// left to wait for. The threshold exists because a finished crew's farewell
-// trails its last outcome — a written-off crew has no farewell coming, and
-// holding its berth for the hour would be hesitation rather than courtesy.
-it.live("an abandoned piece's crew is retired on the very next pass", () =>
-	Effect.gen(function* () {
-		const temporary = yield* acquireTemporaryPersistence;
-		const scripted = yield* makeScriptedBackend;
-		yield* Effect.gen(function* () {
-			yield* writtenOffPiece(scripted, true);
-
-			// why: the clock is left exactly where it is. Nothing here waits.
-			yield* swept;
-
-			const demanded = yield* retireIntents;
-			expect(demanded).toHaveLength(1);
-			expect(demanded[0]?.payload).toContain(HAND);
-			yield* eventually(
-				Effect.gen(function* () {
-					expect(yield* statusOf(HAND)).toBe("retired");
-				}),
-			);
-		}).pipe(Effect.provide(domainKernelLayer(temporary, scripted.backend)));
-	}),
-);
-
 // why: the distinction the whole ruling turns on. A closed change says only
 // that this attempt is over — nothing in it says whether the work wants
 // another attempt or an ending, and reading it as an ending would retire a

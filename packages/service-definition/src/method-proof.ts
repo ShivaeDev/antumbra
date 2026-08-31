@@ -1,5 +1,10 @@
 import type { Effect, Scope } from "effect";
-import type { AnyMethod, GenericMethodDescriptor, HasDistinctCallSignatures } from "#generic-method.ts";
+import type {
+	AnyMethod,
+	GenericMethodDescriptor,
+	GenericOrStructurallyOverloadedMethodsAreUnsupported,
+	HasDistinctCallSignatures,
+} from "#generic-method.ts";
 import type { RequirementRecord, RequirementsOf } from "#service-requirements.ts";
 
 export type MethodEntry = AnyMethod | GenericMethodDescriptor<AnyMethod>;
@@ -9,10 +14,6 @@ export type MethodRecord = Readonly<Record<string, AnyMethod>>;
 export type MethodInventory = Readonly<Record<string, unknown>>;
 
 export type RuntimeMethodInventory = Readonly<Record<string, MethodEntry>>;
-
-interface GenericOrStructurallyOverloadedMethodsAreUnsupported {
-	readonly _serviceDefinitionError: "generic and structurally overloaded methods are unsupported";
-}
 
 interface GenericMethodWithDeclaredRequirementsIsUnsupported {
 	readonly _serviceDefinitionError: "generic methods cannot subtract declared service requirements";

@@ -29,10 +29,6 @@ export const fleetSnapshot = (
 			.all();
 		const pointers = new Map(agents.map((agent) => [agent.id, agent.currentSessionId]));
 		const attribution = attributeIntents(intents, new Set(agents.map((agent) => agent.id)), new Set(sessions.map((session) => session.id)));
-		// why: the Changes an Agent is answering for are read in the same pass as
-		// its Sessions, through the capability that owns them rather than off the
-		// rows — a situation offered from a Change this snapshot never decoded
-		// would be an affordance standing on unread truth.
 		const snapshot = yield* changes.snapshot;
 		const assignments = yield* db.PieceAgent.orderBy((assignment) => assignment.assignedAt.asc()).all();
 		const situations = situationsByAgent(
@@ -71,11 +67,7 @@ export const fleetSnapshot = (
 					slug: berth.slug,
 					status: berth.status,
 				})),
-			// why: ending an Agent stops whatever it is doing, so the act is
-			// withheld while any Session of its is mid-turn. It is deliberately a
-			// weaker rule than rest: retirement is what closes a subtree the record
-			// has stopped hearing from, and a tree nothing can settle would
-			// otherwise have no way out at all.
+			// Retirement can close a stranded subtree, so it requires retirable Sessions rather than fully settled ones.
 			canRetire: agent.status === "alive" && sessionSummaries.filter((session) => session.agentId === agent.id).every((session) => session.retirable),
 			charter: agent.charter,
 			diag: {

@@ -32,9 +32,7 @@ export const makeSightSessionEvents = Effect.gen(function* () {
 			);
 
 	return {
-		// why: subscribe before reading the log, then admit only live events past
-		// the last rehydrated seq — a notification can be redundant but an event
-		// can never be missed or doubled.
+		// Subscribe before rehydrating, then discard live events already covered by the durable sequence.
 		sessionEventFeed: (query) =>
 			Stream.unwrap(
 				Effect.gen(function* () {

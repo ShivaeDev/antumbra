@@ -33,9 +33,6 @@ const collect = <Payload extends IntentSubject>(kind: IntentKind<Payload>) =>
 		);
 	});
 
-// why: an Intent is durable demand that no fleet column can show — a wake
-// parked in "waiting" beside a Session the rows still call active is exactly
-// the state that otherwise has to be read out of the database by hand.
 export const pendingIntents = Effect.gen(function* () {
 	const domain = yield* AgentDomain;
 	const groups = yield* Effect.all([collect(domain.spawn), collect(domain.retire), collect(domain.siesta), collect(domain.wake)], { concurrency: 1 });

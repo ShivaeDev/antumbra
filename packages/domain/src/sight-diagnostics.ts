@@ -11,10 +11,7 @@ const append = (into: Map<string, ReadonlyArray<IntentDiagnostic>>, key: string,
 	into.set(key, [...(into.get(key) ?? []), mark]);
 };
 
-// why: an Intent names rows that may not exist yet — a spawn waiting for
-// admission precedes both its Session and its Agent. Attribution walks from
-// the most specific existing subject outwards and keeps whatever is left over
-// on the fleet, so no pending demand is dropped for want of a row.
+// Spawn demand can precede both its Agent and Session rows, so unmatched Intents remain fleet-level.
 export const attributeIntents = (
 	intents: ReadonlyArray<PendingIntent>,
 	agentIds: ReadonlySet<string>,

@@ -22,7 +22,7 @@ export class ArtifactNotFound extends Data.TaggedError("ArtifactNotFound")<{
 	readonly artifactId: string;
 }> {}
 
-export type StoredArtifactContentInvalidReason = "basename" | "digest" | "missing" | "not_file" | "not_utf8" | "path" | "size" | "too_large";
+export type StoredArtifactContentInvalidReason = "digest" | "not_file" | "path" | "size";
 
 export class StoredArtifactContentInvalid extends Data.TaggedError("StoredArtifactContentInvalid")<{
 	readonly artifactId: string;

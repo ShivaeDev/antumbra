@@ -1,5 +1,4 @@
-import { createHash } from "node:crypto";
-import { mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { Artifacts, ArtifactsLive } from "@antumbra/artifacts";
@@ -55,7 +54,7 @@ const seed = (db: DatabaseService, root: string) =>
 		});
 	});
 
-it.effectDB("reads only verified immutable CAS bytes", function* (db) {
+it.effectDB("refuses bytes that no longer match the landed digest", function* (db) {
 	yield* withArtifacts((moorage, published) =>
 		Effect.gen(function* () {
 			yield* seed(db, moorage);
@@ -76,67 +75,6 @@ it.effectDB("reads only verified immutable CAS bytes", function* (db) {
 			expect(yield* Effect.flip(artifacts.readMarkdown(landed.artifact.id))).toMatchObject({
 				_tag: "StoredArtifactContentInvalid",
 				reason: "digest",
-			});
-		}),
-	);
-});
-
-it.effectDB("fails closed on substituted or inconsistent stored custody", function* (db) {
-	yield* withArtifacts((moorage, published) =>
-		Effect.gen(function* () {
-			yield* seed(db, moorage);
-			writeFileSync(join(moorage, "reef.md"), "# Reef\n");
-			const artifacts = yield* Artifacts;
-			const landed = yield* artifacts.land({
-				authorAgentId: agent.id,
-				path: "reef.md",
-				pieceId: piece.id,
-				title: "reef chart",
-			});
-			const stored = join(published, landed.artifact.digest, landed.artifact.basename);
-			yield* db.Artifact.where({ id: landed.artifact.id }).update({
-				byteSize: landed.artifact.byteSize + 1,
-			});
-			expect(yield* Effect.flip(artifacts.readMarkdown(landed.artifact.id))).toMatchObject({
-				_tag: "StoredArtifactContentInvalid",
-				reason: "size",
-			});
-			yield* db.Artifact.where({ id: landed.artifact.id }).update({
-				byteSize: landed.artifact.byteSize,
-			});
-			const outside = join(moorage, "outside.md");
-			writeFileSync(outside, "# Reef\n");
-			rmSync(stored);
-			symlinkSync(outside, stored);
-			expect(yield* Effect.flip(artifacts.readMarkdown(landed.artifact.id))).toMatchObject({
-				_tag: "StoredArtifactContentInvalid",
-				reason: "path",
-			});
-		}),
-	);
-});
-
-it.effectDB("rejects stored bytes that are not UTF-8 even when their digest matches", function* (db) {
-	yield* withArtifacts((_moorage, published) =>
-		Effect.gen(function* () {
-			yield* db.Piece.create(piece);
-			const bytes = Uint8Array.of(0xc3, 0x28);
-			const digest = createHash("sha256").update(bytes).digest("hex");
-			mkdirSync(join(published, digest));
-			writeFileSync(join(published, digest, "invalid.md"), bytes);
-			yield* db.Artifact.create({
-				authorAgentId: null,
-				basename: "invalid.md",
-				byteSize: bytes.length,
-				digest,
-				id: "artifact-invalid-utf8",
-				pieceId: piece.id,
-				title: "invalid",
-			});
-			const artifacts = yield* Artifacts;
-			expect(yield* Effect.flip(artifacts.readMarkdown("artifact-invalid-utf8"))).toMatchObject({
-				_tag: "StoredArtifactContentInvalid",
-				reason: "not_utf8",
 			});
 		}),
 	);

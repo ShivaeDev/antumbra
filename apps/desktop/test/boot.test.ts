@@ -1,5 +1,5 @@
 import { describe, expect, it } from "@effect/vitest";
-import { Effect } from "effect";
+import { Deferred, Effect } from "effect";
 import { ownerBoot } from "#adapters/boot.ts";
 import { claimDesktopOwnership, runnerRootsInDataDirectory } from "#adapters/shell.ts";
 import { makeWindowRegistry } from "#adapters/windows/registry.ts";
@@ -48,9 +48,17 @@ describe("desktop process ownership", () => {
 	it.effect("routes a second launch to the console in the owning process", () =>
 		Effect.gen(function* () {
 			const calls: Array<string> = [];
+			const focused = yield* Deferred.make<void>();
 			const registry = makeWindowRegistry();
 			ownWindow(registry, "child", transcriptPlace("session-1"), handleFor(calls, "child"));
-			ownWindow(registry, "console", consolePlace, handleFor(calls, "console", true));
+			const consoleHandle = handleFor(calls, "console", true);
+			ownWindow(registry, "console", consolePlace, {
+				...consoleHandle,
+				focus: () => {
+					consoleHandle.focus();
+					Effect.runSync(Deferred.succeed(focused, undefined));
+				},
+			});
 			let secondInstance: (() => void) | undefined;
 			const claimed = yield* claimDesktopOwnership(
 				{
@@ -66,7 +74,7 @@ describe("desktop process ownership", () => {
 			expect(claimed).toBe(true);
 			expect(secondInstance).toBeDefined();
 			secondInstance?.();
-			yield* Effect.yieldNow;
+			yield* Deferred.await(focused);
 			expect(calls).toEqual(["restore console", "show console", "focus console"]);
 		}),
 	);
@@ -74,6 +82,7 @@ describe("desktop process ownership", () => {
 	it.effect("opens the console when a second launch finds none open", () =>
 		Effect.gen(function* () {
 			const calls: Array<string> = [];
+			const opened = yield* Deferred.make<void>();
 			let secondInstance: (() => void) | undefined;
 			yield* claimDesktopOwnership(
 				{
@@ -84,10 +93,10 @@ describe("desktop process ownership", () => {
 					requestSingleInstanceLock: () => true,
 				},
 				makeWindowRegistry(),
-				Effect.sync(() => calls.push("open")),
+				Effect.sync(() => calls.push("open")).pipe(Effect.andThen(Deferred.succeed(opened, undefined))),
 			);
 			secondInstance?.();
-			yield* Effect.yieldNow;
+			yield* Deferred.await(opened);
 			expect(calls).toEqual(["open"]);
 		}),
 	);

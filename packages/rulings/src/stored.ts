@@ -11,10 +11,6 @@ import type { StoredRuling, StoredRulingReclassification } from "#stored-rows.ts
 
 export const invalidRulingValue = (field: string, rulingId: string, value: unknown) => new StoredRulingValueInvalid({ field, rulingId, value });
 
-// why: a ruling is unruled or fully ruled; a row holding only part of an answer
-// is corruption rather than a half-answered question the readers must model.
-// The agent beside the rung is optional: the admiral rules from the window and
-// is no agent the fleet has a row for.
 export const storedAnswer = (row: StoredRuling) =>
 	Effect.gen(function* () {
 		const parts = [row.answer, row.ruledAt, row.ruledBy].filter((part) => part !== null);
@@ -33,9 +29,6 @@ export const storedAnswer = (row: StoredRuling) =>
 		});
 	});
 
-// why: an agent's question is always owed to one rung and a rule an authority
-// wrote for itself is owed to nobody, so a row carrying the wrong one of the
-// two is corruption rather than a third kind of question the readers must model.
 export const storedRung = (row: StoredRuling) =>
 	Effect.gen(function* () {
 		const asked = row.requesterAgentId !== null;

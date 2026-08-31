@@ -25,8 +25,6 @@ export const verifySubject = (subject: RulingSubject) =>
 		}
 	});
 
-// why: exactly one column carries a subject, so the same shape both writes a
-// row and matches one: precedent finds references by kind and id, tags by name.
 export const subjectColumns = (subject: RulingSubject) => ({
 	agentId: subject.kind === "agent" ? subject.id : null,
 	kind: subject.kind,

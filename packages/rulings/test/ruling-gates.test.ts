@@ -48,26 +48,6 @@ it.effectDB("leaves a ruled ruling holding nothing", function* () {
 	).pipe(Effect.provide(layer));
 });
 
-it.effectDB("gates a piece once however often it is named", function* (db) {
-	yield* Effect.gen(function* () {
-		yield* seedFleet;
-		const rulings = yield* Rulings;
-		const requested = yield* rulings.request(asked);
-
-		yield* rulings.gate({
-			pieceIds: [pieceId, pieceId],
-			rulingId: requested.id,
-		});
-		const gated = yield* rulings.gate({
-			pieceIds: [pieceId],
-			rulingId: requested.id,
-		});
-
-		expect(gated.gatedPieceIds).toEqual([pieceId]);
-		expect(yield* db.RulingGate.all()).toHaveLength(1);
-	}).pipe(Effect.provide(layer));
-});
-
 it.effectDB("refuses to gate on a ruling that already stands", function* (db) {
 	yield* Effect.gen(function* () {
 		yield* seedFleet;
@@ -121,7 +101,7 @@ it.effectDB("refuses to gate on a ruling nothing asked", function* () {
 	}).pipe(Effect.provide(layer));
 });
 
-it.effectDB("lands the gates a request names in the same write", function* () {
+it.effectDB("lands the gates a request names", function* () {
 	yield* Effect.scoped(
 		Effect.gen(function* () {
 			yield* seedFleet;

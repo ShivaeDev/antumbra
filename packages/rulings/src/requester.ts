@@ -3,15 +3,11 @@ import { Effect } from "effect";
 import type { RulingRequester } from "#model.ts";
 import type { StoredRuling } from "#stored-rows.ts";
 
-// why: exactly one column carries the requester, so the same shape writes the
-// row and reads it back — an agent's key or the authority's own word.
 export const requesterColumns = (requester: RulingRequester) => ({
 	requesterAgentId: requester.kind === "agent" ? requester.agentId : null,
 	requesterAuthority: requester.kind === "authority" ? requester.by : null,
 });
 
-// why: a row naming both an agent and an authority, or neither, is corruption
-// rather than a third kind of asker every reader would have to model.
 export const storedRequester = (row: StoredRuling) =>
 	Effect.gen(function* () {
 		const invalid = new StoredRulingValueInvalid({

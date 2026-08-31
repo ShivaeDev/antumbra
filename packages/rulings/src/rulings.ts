@@ -20,8 +20,6 @@ import { withdraw } from "#withdraw.ts";
 
 const requirements = [Database, DomainFeeds] as const;
 
-// why: a Ruling is its own record beside the Board, so its writes, its answer,
-// and its readings live in one capability that owns their transactions.
 export const Rulings = defineService({
 	id: "@antumbra/rulings/Rulings",
 	initialize: Effect.void,

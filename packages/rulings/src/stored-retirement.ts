@@ -4,8 +4,6 @@ import type { RulingSupersession, RulingWithdrawal } from "#retirement.ts";
 import { invalidRulingValue } from "#stored.ts";
 import type { StoredRuling } from "#stored-rows.ts";
 
-// why: supersession is one appended fact with its provenance; a row naming
-// the ruling that took over without who did it or when is corruption.
 export const storedSupersession = (row: StoredRuling) =>
 	Effect.gen(function* () {
 		const parts = [row.supersededAt, row.supersededBy, row.supersededById];
@@ -22,9 +20,6 @@ export const storedSupersession = (row: StoredRuling) =>
 		});
 	});
 
-// why: a withdrawal names no successor, so its words stand where a supersession
-// puts the ruling that took over; a row holding part of one is corruption for
-// the same reason a half-written supersession is.
 export const storedWithdrawal = (row: StoredRuling) =>
 	Effect.gen(function* () {
 		const parts = [row.withdrawnAt, row.withdrawnBy, row.withdrawnNote];

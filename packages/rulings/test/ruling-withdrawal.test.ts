@@ -40,8 +40,6 @@ it.effectDB("drops a withdrawn ruling from the standing set", function* () {
 	).pipe(Effect.provide(layer));
 });
 
-// why: a withdrawn ruling is history rather than a deletion, so the question,
-// its context and the answer it once gave are all still there to be read.
 it.effectDB("leaves a withdrawn ruling readable by id", function* () {
 	yield* Effect.gen(function* () {
 		const { ruling, rulings } = yield* standingRuling;
@@ -79,8 +77,6 @@ it.effectDB("refuses to withdraw a ruling nothing asked", function* () {
 	}).pipe(Effect.provide(layer));
 });
 
-// why: an open question binds nobody yet, so there is nothing to retire — the
-// way to end it is to answer it.
 it.effectDB("refuses to withdraw a ruling nobody has ruled", function* () {
 	yield* Effect.gen(function* () {
 		const { rulings } = yield* standingRuling;
@@ -134,8 +130,6 @@ it.effectDB("refuses to withdraw a ruling a later one took over", function* () {
 	}).pipe(Effect.provide(layer));
 });
 
-// why: the note says why a rule stopped applying, and a second withdrawal
-// would rewrite it — a retired ruling is appended to once and never edited.
 it.effectDB("withdraws a ruling once and only once", function* () {
 	yield* Effect.gen(function* () {
 		const { ruling, rulings } = yield* standingRuling;

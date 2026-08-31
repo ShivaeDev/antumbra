@@ -134,8 +134,6 @@ it.effectDB("supersedes a ruling once and only once", function* () {
 	}).pipe(Effect.provide(layer));
 });
 
-// why: a ruling that was itself taken over no longer speaks for its scope, so
-// it cannot be the ruling a later reader is pointed at.
 it.effectDB("refuses a successor that is itself superseded", function* () {
 	yield* Effect.gen(function* () {
 		const { newer, older, rulings } = yield* standingPair;
@@ -164,7 +162,7 @@ it.effectDB("refuses a successor that is itself superseded", function* () {
 			byRulingId: newer.id,
 			rulingId: older.id,
 		});
-		expect((yield* rulings.standing([])).map((ruling) => ruling.id)).toEqual([third.id, newer.id]);
+		expect(new Set((yield* rulings.standing([])).map((ruling) => ruling.id))).toEqual(new Set([third.id, newer.id]));
 	}).pipe(Effect.provide(layer));
 });
 

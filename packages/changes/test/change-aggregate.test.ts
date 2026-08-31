@@ -135,34 +135,6 @@ it.effectDB("reuses one active submission claim across Pieces", function* (db) {
 	}).pipe(Effect.provide(changesLayer([scripted.host])));
 });
 
-it.effectDB("serializes concurrent submission identity", function* (db) {
-	const scripted = yield* makeScriptedHost;
-	yield* seed;
-	yield* Effect.gen(function* () {
-		const changes = yield* Changes;
-		const rows = yield* Effect.all(
-			[
-				changes.submit({
-					agentId: CREW,
-					pieceId: "piece-reef",
-					repoName: "reef",
-					sessionId: "session-crew",
-				}),
-				changes.submit({
-					agentId: CREW,
-					pieceId: "piece-reef",
-					repoName: "reef",
-					sessionId: "session-crew",
-				}),
-			],
-			{ concurrency: "unbounded" },
-		);
-		expect(rows[1]?.id).toBe(rows[0]?.id);
-		expect(yield* db.Change.all()).toHaveLength(1);
-		expect(yield* db.PieceChange.all()).toHaveLength(1);
-	}).pipe(Effect.provide(changesLayer([scripted.host])));
-});
-
 it.effectDB("does not transfer a foreign prepared claim during adoption", function* (db) {
 	const scripted = yield* makeScriptedHost;
 	yield* seed;

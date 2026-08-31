@@ -4,7 +4,7 @@ import { Pieces } from "@antumbra/pieces";
 import type { ChangeHostRepo } from "@antumbra/plugin-api";
 import { UnknownRunnerError } from "@antumbra/plugin-api";
 import { ensureAgentCanOwnLocalWork, ensureBerthResourcesUnclaimed } from "@antumbra/resource-reclamation";
-import { Clock, Effect, Option, Result } from "effect";
+import { Clock, Effect, Option } from "effect";
 import { activeChange, linkProduces } from "#change-submissions/links.ts";
 import type { Proposal, SubmitChangeInput } from "#change-submissions/model.ts";
 import { preparedChange, submissionKey } from "#change-submissions/prepared-row.ts";
@@ -61,23 +61,12 @@ export const prepareChange = (input: SubmitChangeInput, proposal?: Proposal) =>
 		const stored = yield* Effect.gen(function* () {
 			yield* ensureAgentCanOwnLocalWork(input.agentId);
 			yield* ensureBerthResourcesUnclaimed(berth.id);
-			const raced = yield* activeChange(key);
-			let row: ReturnType<typeof preparedChange>;
+			const existing = yield* activeChange(key);
+			const row = Option.getOrElse(existing, () => candidate);
 			let created = false;
-			if (Option.isSome(raced)) {
-				row = raced.value;
-			} else {
-				const inserted = yield* Effect.result(db.Change.create(candidate));
-				if (Result.isSuccess(inserted)) {
-					row = candidate;
-					created = true;
-				} else {
-					const winner = yield* activeChange(key);
-					if (Option.isNone(winner)) {
-						return yield* inserted.failure;
-					}
-					row = winner.value;
-				}
+			if (Option.isNone(existing)) {
+				yield* db.Change.create(row);
+				created = true;
 			}
 			const linked = yield* linkProduces(input.pieceId, row.id);
 			return { changed: created || linked, row };

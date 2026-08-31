@@ -21,7 +21,6 @@
 		"@types/react": "catalog:",
 		"@types/react-dom": "catalog:",
 		"@typescript/native": "catalog:",
-		"effect": "catalog:",
 		"happy-dom": "catalog:",
 		"typescript": "catalog:",
 		"vitest": "catalog:"

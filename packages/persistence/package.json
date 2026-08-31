@@ -25,7 +25,6 @@
 		"@prisma-next/cli": "catalog:",
 		"@types/node": "catalog:",
 		"@typescript/native": "catalog:",
-		"effect": "catalog:",
 		"typescript": "catalog:",
 		"vitest": "catalog:"
 	},

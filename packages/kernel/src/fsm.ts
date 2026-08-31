@@ -38,8 +38,6 @@ const TABLE: Record<IntentStatus, Partial<Record<IntentEvent, IntentStatus>>> = 
 	waiting: { cancel: "cancelled", retry: "queued" },
 };
 
-export const INTENT_STATUSES = IntentStatusSchema.literals;
-
 export const ActiveIntentStatusSchema = Schema.Literals(["queued", "running", "waiting", "cancelling"]);
 export type ActiveIntentStatus = typeof ActiveIntentStatusSchema.Type;
 

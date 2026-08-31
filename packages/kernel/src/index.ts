@@ -5,13 +5,10 @@ export {
 	UnregisteredIntentTag,
 } from "#errors.ts";
 export {
-	INTENT_EVENTS,
-	INTENT_STATUSES,
 	type IntentEvent,
 	type IntentStatus,
 	InvalidTransition,
 	isTerminalIntentStatus,
-	type TerminalIntentStatus,
 	transition,
 } from "#fsm.ts";
 export {

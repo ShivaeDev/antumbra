@@ -13,9 +13,6 @@ export interface LocalRunnerRoots {
 	readonly reposRoot: string;
 }
 
-// why: the runner never invents a repository's name. It lays out the folder
-// the request already spells, so the berth an agent stands in and the name a
-// change tool answers to cannot drift apart.
 const planBerths = (root: string, request: ProvisionRequest): ReadonlyArray<BerthPlan> =>
 	request.repos.map((repo) => ({
 		branch: workBranch(request.agentId, repo.slug),

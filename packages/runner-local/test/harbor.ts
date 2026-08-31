@@ -8,8 +8,6 @@ import { makeLocalRunner } from "#local.ts";
 
 export const AGENT = "0123456789abcdef";
 
-// why: the registry decides what a repository is called, so a request spells
-// the slug it wants berthed rather than leaving the runner to guess one.
 export const berthing = (source: string, slug = "source"): RepoRequest => ({
 	ref: "main",
 	slug,

@@ -8,7 +8,7 @@ import type { SightFailure, SightSource } from "#sight.ts";
 import type { ArtifactMarkdownFailure, VoyageSource } from "#voyages.ts";
 import type { WindowRefused, WindowSource } from "#windows.ts";
 
-export interface RequestContext {
+interface RequestContext {
 	readonly windowId: string;
 }
 

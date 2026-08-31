@@ -1,7 +1,7 @@
 import { SessionImageMediaType, SessionInputId, SessionInputPosition } from "@antumbra/vocabulary/session-input";
 import { Schema } from "effect";
 
-export const SessionInputDraftPart = Schema.Union([
+const SessionInputDraftPart = Schema.Union([
 	Schema.Struct({ text: Schema.String, type: Schema.Literal("text") }),
 	Schema.Struct({
 		bytes: Schema.Uint8Array,
@@ -10,7 +10,7 @@ export const SessionInputDraftPart = Schema.Union([
 		type: Schema.Literal("image"),
 	}),
 ]);
-export type SessionInputDraftPart = typeof SessionInputDraftPart.Type;
+type SessionInputDraftPart = typeof SessionInputDraftPart.Type;
 
 export const SessionInputRequest = Schema.Struct({
 	id: SessionInputId,

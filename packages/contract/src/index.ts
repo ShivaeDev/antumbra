@@ -37,7 +37,6 @@ export {
 } from "#fleet.ts";
 export {
 	SubscribeRequest,
-	TrpcFailureCode,
 	TrpcRequest,
 	UnsubscribeRequest,
 } from "#ipc.ts";
@@ -49,12 +48,11 @@ export {
 	QuayView,
 } from "#quay-views.ts";
 export { type AppRouter, makeAppRouter } from "#router.ts";
-export { type RequestContext, RequestOrigin } from "#router-procedure.ts";
+export { RequestOrigin } from "#router-procedure.ts";
 export * from "#rulings/surface.ts";
 export {
 	SessionImage,
 	SessionImageRequest,
-	SessionInputDraftPart,
 	SessionInputReceipt,
 	SessionInputRequest,
 } from "#session-inputs.ts";
@@ -125,10 +123,8 @@ export {
 } from "#voyage-views.ts";
 export { ArtifactMarkdownFailure, VoyageSource } from "#voyages.ts";
 export {
-	ArtifactPlace,
 	ConsoleMode,
 	ConsolePlace,
-	TranscriptPlace,
 	WindowPlace,
 	WindowRefused,
 	WindowSource,

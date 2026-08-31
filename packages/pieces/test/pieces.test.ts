@@ -1,11 +1,8 @@
-import { DomainFeeds, DomainFeedsLive } from "@antumbra/domain-feeds";
-import { persistenceIt } from "@antumbra/persistence/testing";
+import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Pieces, PiecesLive } from "@antumbra/pieces";
+import { it } from "@antumbra/testing-runtime/domain";
 import { expect } from "@effect/vitest";
-import { Effect, Layer, Option, PubSub } from "effect";
-
-const it = persistenceIt();
-const layer = PiecesLive.pipe(Layer.provideMerge(DomainFeedsLive));
+import { Effect, Option, PubSub } from "effect";
 
 const voyage = {
 	captainBackend: "scripted",
@@ -17,7 +14,7 @@ const voyage = {
 	northStar: "every shoal is known",
 };
 
-it.effectDB("verifies existence without exposing a row", function* (db) {
+it.effectApp("verifies existence without exposing a row", function* ({ db }) {
 	yield* Effect.gen(function* () {
 		const pieces = yield* Pieces;
 		const piece = {
@@ -37,10 +34,10 @@ it.effectDB("verifies existence without exposing a row", function* (db) {
 			_tag: "PieceNotFound",
 			pieceId: "missing-piece",
 		});
-	}).pipe(Effect.provide(layer));
+	}).pipe(Effect.provide(PiecesLive));
 });
 
-it.effectDB("answers voyage membership without exposing rows", function* (db) {
+it.effectApp("answers voyage membership without exposing rows", function* ({ db }) {
 	yield* Effect.gen(function* () {
 		const pieces = yield* Pieces;
 		const member = {
@@ -61,16 +58,17 @@ it.effectDB("answers voyage membership without exposing rows", function* (db) {
 
 		expect(yield* pieces.membersOfVoyage(voyage.id)).toEqual(new Set([member.id]));
 		expect(yield* pieces.membersOfVoyage("missing-voyage")).toEqual(new Set());
-	}).pipe(Effect.provide(layer));
+	}).pipe(Effect.provide(PiecesLive));
 });
 
-it.effectDB("publishes after successful piece changes", function* (db) {
+it.effectApp("publishes after successful piece changes", function* ({ db }) {
 	yield* Effect.scoped(
 		Effect.gen(function* () {
 			const feeds = yield* DomainFeeds;
 			const pieces = yield* Pieces;
 			const notices = yield* feeds.subscribeVoyageRefresh();
-			yield* db.Voyage.create(voyage);
+			const refreshVoyage = { ...voyage, id: "voyage-refresh" };
+			yield* db.Voyage.create(refreshVoyage);
 
 			const piece = yield* pieces.charter({
 				charter: "sound the shallows",
@@ -78,7 +76,7 @@ it.effectDB("publishes after successful piece changes", function* (db) {
 				expectation: "the soundings are landed",
 				role: "hand",
 				title: "Sound",
-				voyageId: voyage.id,
+				voyageId: refreshVoyage.id,
 			});
 			expect(yield* PubSub.take(notices)).toBeUndefined();
 
@@ -88,10 +86,10 @@ it.effectDB("publishes after successful piece changes", function* (db) {
 			expect(yield* PubSub.takeUpTo(notices, 1)).toEqual([]);
 			expect(Option.getOrThrow(yield* db.Piece.where({ id: piece.id }).first()).launchedAt).toBeInstanceOf(Date);
 		}),
-	).pipe(Effect.provide(layer));
+	).pipe(Effect.provide(PiecesLive));
 });
 
-it.effectDB("refuses an invalid charter without rows or a notification", function* (db) {
+it.effectApp("refuses an invalid charter without rows or a notification", function* ({ db }) {
 	yield* Effect.scoped(
 		Effect.gen(function* () {
 			const feeds = yield* DomainFeeds;
@@ -112,8 +110,8 @@ it.effectDB("refuses an invalid charter without rows or a notification", functio
 				_tag: "VoyageNotFound",
 				voyageId: "missing",
 			});
-			expect(yield* db.Piece.all()).toEqual([]);
+			expect(yield* db.Piece.where({ title: "Adrift" }).all()).toEqual([]);
 			expect(yield* PubSub.takeUpTo(notices, 1)).toEqual([]);
 		}),
-	).pipe(Effect.provide(layer));
+	).pipe(Effect.provide(PiecesLive));
 });

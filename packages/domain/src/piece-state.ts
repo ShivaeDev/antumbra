@@ -3,8 +3,6 @@ import { atWork } from "#agent-at-work.ts";
 import { pieceOutcomeTally } from "#outcome-status.ts";
 import type { AwaitingRuling, VoyageWorld } from "#voyage-rows.ts";
 
-export { wouldCycle } from "@antumbra/pieces";
-
 export const PIECE_STATES = ["abandoned", "active", "blocked", "done", "held", "landing", "parked", "ready"] as const;
 export type PieceState = (typeof PIECE_STATES)[number];
 

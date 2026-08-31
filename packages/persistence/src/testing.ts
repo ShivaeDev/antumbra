@@ -18,16 +18,6 @@ export {
 	rejectTestSessionOpenedWrites,
 } from "#testing/refusals.ts";
 
-export const corruptTestArtifactPiece = (databasePath: DatabaseFilePath, artifactId: string, pieceId: string) => {
-	const database = new DatabaseSync(databasePath);
-	try {
-		database.exec("PRAGMA foreign_keys = OFF");
-		database.prepare('UPDATE "artifact" SET "pieceId" = ? WHERE "id" = ?').run(pieceId, artifactId);
-	} finally {
-		database.close();
-	}
-};
-
 export const packagedMigrationsDirectory = fileURLToPath(new URL("../migrations", import.meta.url));
 
 export interface TemporaryPersistence {
@@ -62,12 +52,6 @@ export const persistenceIt = () => {
 	});
 	harness.afterAll(temporary.remove);
 	return harness;
-};
-
-export const deleteTestAgent = (databasePath: DatabaseFilePath, agentId: string) => {
-	const database = new DatabaseSync(databasePath);
-	database.prepare("DELETE FROM agent WHERE id = ?").run(agentId);
-	database.close();
 };
 
 export const corruptTestBoardEntry = (databasePath: DatabaseFilePath, column: "kind" | "precedence" | "register", value: string) => {

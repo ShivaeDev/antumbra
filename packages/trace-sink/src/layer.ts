@@ -6,7 +6,7 @@ import { makeRecordingTracer } from "#tracer.ts";
 
 const FLUSH_MILLIS = 1_000;
 
-export interface DevTraceOptions {
+interface DevTraceOptions {
 	readonly appVersion: string;
 	readonly dataDirectory: string;
 }

@@ -3,7 +3,7 @@ import { INSERT_LOG, INSERT_RUN, INSERT_SPAN, PRUNE, TRACE_SCHEMA } from "#adapt
 import type { LogRow } from "#log-row.ts";
 import type { SpanRow } from "#span-row.ts";
 
-export interface TraceRun {
+interface TraceRun {
 	readonly appVersion: string;
 	readonly path: string;
 	readonly runId: string;

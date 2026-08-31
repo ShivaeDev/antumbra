@@ -15,8 +15,6 @@ const text = (value: unknown): string => (typeof value === "string" ? value : (s
 
 const messageOf = (message: unknown): string => (Array.isArray(message) ? message.map(text).join(" ") : text(message));
 
-// why: a log entry that carries a failure is only half a record without it, and
-// the console logger is not the one being read after the fact.
 const withCause = (message: string, cause: Cause.Cause<unknown>): string =>
 	cause.reasons.length === 0 ? message : `${message}\n${Cause.pretty(cause)}`;
 

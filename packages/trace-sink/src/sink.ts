@@ -7,7 +7,7 @@ export const TRACE_DATABASE_FILE = "traces.db";
 
 const DISABLED = "dev trace sink disabled";
 
-export interface TraceSinkOptions {
+interface TraceSinkOptions {
 	readonly appVersion: string;
 	readonly dataDirectory: string;
 	readonly flushMillis: number;

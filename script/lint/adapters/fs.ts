@@ -3,15 +3,8 @@ import { Data, Effect, FileSystem } from "effect";
 import type { PlatformError } from "effect/PlatformError";
 import { emptyScope, type IgnoreScope, insideKept, verdictFor, withGitignore } from "#lint/adapters/gitignore.ts";
 
-// why: a floor rather than the policy — these stay pruned in a tree that has
-// no .gitignore at all, so the walk never wanders into a dependency tree or
-// build output just because nobody wrote the rule down.
 const SKIPPED = new Set([".git", "dist", "node_modules", "out"]);
 
-// why: a path that is simply not there is ordinary — zones are optional and
-// files can vanish mid-walk. Every other failure (a permission wall, an
-// unreadable device) would otherwise silence part of the tree and let the run
-// report a clean pass over files nobody read.
 const ABSENT = new Set(["ENOENT", "ENOTDIR"]);
 
 export class FilesystemFailure extends Data.TaggedError("FilesystemFailure")<{
@@ -19,10 +12,7 @@ export class FilesystemFailure extends Data.TaggedError("FilesystemFailure")<{
 	readonly path: string;
 }> {}
 
-// why: the platform layer normalizes ENOTDIR and EISDIR to one BadResource
-// tag, which would collapse "a path component is a file" (ordinary) into
-// "this file is a directory" (a real fault). The original errno rides along
-// on the reason's cause, so the policy reads that rather than the tag.
+// Effect maps ENOTDIR and EISDIR to BadResource; the original errno remains on the cause.
 const errnoOf = (error: PlatformError): string => {
 	const cause: unknown = error.reason.cause;
 	return typeof cause === "object" && cause !== null && "code" in cause && typeof cause.code === "string" ? cause.code : "";

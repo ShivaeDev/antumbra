@@ -59,8 +59,6 @@ it.layer(NodeFileSystem.layer)("filesystem adapter", (it) => {
 		}),
 	);
 
-	// why: swallowing these would hand the reporter a partial inventory and let
-	// an unreadable tree print a clean pass.
 	it.effect("fails loudly when a file cannot be read", () =>
 		Effect.gen(function* () {
 			const root = makeRoot();

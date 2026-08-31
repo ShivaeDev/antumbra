@@ -17,8 +17,7 @@ const tree = decodeGitignoreTree(rawTree);
 const ignored = sourceFiles(tree.ignoredPaths);
 const kept = sourceFiles(tree.keptPaths);
 
-// why: every expectation here was taken from `git check-ignore` on the same
-// tree, so the walk stays answerable to git rather than to the matcher.
+// Expected paths were captured from git check-ignore against the same fixture.
 it.layer(NodeFileSystem.layer)("gitignore-aware walk", (it) => {
 	it.effect("keeps gitignored files out of the inventory", () =>
 		Effect.gen(function* () {
@@ -43,9 +42,6 @@ it.layer(NodeFileSystem.layer)("gitignore-aware walk", (it) => {
 		}),
 	);
 
-	// why: re-including a directory settles it for the whole subtree, but an
-	// outer pattern that matches a file on its own name keeps applying inside
-	// it. Both halves live in the fixture, so name them here.
 	it.effect("scopes an outer directory rule to the re-included subtree", () =>
 		Effect.gen(function* () {
 			const root = seedLintTree(tree.gitignores, ignored, kept);

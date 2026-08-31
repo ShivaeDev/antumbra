@@ -12,9 +12,3 @@ export const rested = (entry: Entry, since: number): Entry => ({
 	...entry,
 	idleSince: entry.idleSince ?? since,
 });
-
-export const roused = (entry: Entry): Entry => ({
-	...entry,
-	idleSince: undefined,
-	stirrings: entry.stirrings + 1,
-});

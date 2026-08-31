@@ -1,11 +1,7 @@
 import { SessionAttachmentFailure } from "#errors.ts";
 
-export interface AttachmentOccupant {
-	readonly agentId: string;
-}
-
 export const occupancyRefusal = (
-	current: ReadonlyMap<string, AttachmentOccupant>,
+	current: ReadonlyMap<string, { readonly agentId: string }>,
 	agentId: string,
 	sessionId: string,
 ): SessionAttachmentFailure | undefined => {

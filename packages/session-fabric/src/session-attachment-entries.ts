@@ -1,6 +1,6 @@
 import { Effect, Ref } from "effect";
 import { closeSessionAttachment } from "#session-attachment.ts";
-import { type Entry, rested, roused } from "#session-attachment-entry.ts";
+import { type Entry, rested } from "#session-attachment-entry.ts";
 import { type SessionTurnEnding, type SessionTurnMark, turnEndingOf, turnMarkOf } from "#session-turn.ts";
 
 export interface SessionAttachmentEntries {
@@ -68,7 +68,12 @@ export const makeSessionAttachmentEntries = Effect.gen(function* () {
 				(acquisition) => Ref.update(entries, (current) => new Map(current).set(sessionId, { ...entry, acquisition })),
 			),
 		rest: (sessionId, since) => revise(sessionId, (entry) => rested(entry, since)),
-		rouse: (sessionId) => revise(sessionId, roused),
+		rouse: (sessionId) =>
+			revise(sessionId, (entry) => ({
+				...entry,
+				idleSince: undefined,
+				stirrings: entry.stirrings + 1,
+			})),
 		snapshot: Ref.get(entries),
 		take,
 		turnMark: (sessionId) => Effect.map(Ref.get(entries), (current) => turnMarkOf(current.get(sessionId))),

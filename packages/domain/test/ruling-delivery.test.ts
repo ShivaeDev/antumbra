@@ -100,9 +100,6 @@ it.live("a later pass delivers the next answer and repeats no earlier one", () =
 			const first = yield* askedAndRuled("which reading?", "resurvey it");
 			yield* deliveredMail(1);
 
-			// why: a bare ring makes the observer walk the record again with
-			// nothing new in it, so the second answer proves the pass ran and the
-			// single entry per ruling proves the first was not sent twice.
 			yield* feeds.publishRulingRefresh();
 			const second = yield* askedAndRuled("and the northern shoal?", "sound it");
 

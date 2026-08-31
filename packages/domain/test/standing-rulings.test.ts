@@ -16,8 +16,6 @@ const stranger = {
 	voyageId: Option.none<string>(),
 };
 
-// why: what binds an agent is read from the radius a ruling was ruled under,
-// so a request reclassified to the fleet binds a reader it never named.
 it.effectDB("binds by the radius a ruling was reclassified to", function* () {
 	yield* Effect.gen(function* () {
 		yield* seedAsker;
@@ -43,9 +41,6 @@ it.effectDB("binds by the radius a ruling was reclassified to", function* () {
 	}).pipe(Effect.provide(layer));
 });
 
-// why: a rule the admiral wrote for itself reads as proclaimed rather than as
-// an agent's question that happened to be answered, because who asked is part
-// of how far the answer reaches.
 it.effectDB("names the admiral as the one who proclaimed a rule", function* () {
 	yield* Effect.gen(function* () {
 		const rulings = yield* Rulings;

@@ -67,9 +67,6 @@ it.live("a blocking request holds until ruled and returns the answer", () =>
 			const held = yield* Effect.forkChild(ask("blocking"));
 			const row = yield* requested("blocking");
 
-			// why: the pressing call walks the same road — write, ring, answer —
-			// so its return is the moment a blocking call would have returned too,
-			// had it not held.
 			const pressing = yield* ask("pressing");
 			expect(pressing).toMatchObject({ ok: true });
 			expect(pressing.text).toContain("nothing here waits for it");
@@ -142,9 +139,6 @@ it.live("a live hold owns the answer and no mail repeats it", () =>
 			const answered = Option.getOrThrow(yield* db.Ruling.where({ id: blocking.id }).first());
 			expect(answered.deliveredAt).toBeInstanceOf(Date);
 
-			// why: a ruling nobody held is the barrier — its mail can only arrive
-			// from a delivery pass that walked the record after the hold let go, so
-			// one entry addressed to it proves the held answer was never mailed.
 			yield* ask("pressing");
 			const unheld = yield* requested("pressing");
 			yield* ruleOn(unheld.id);

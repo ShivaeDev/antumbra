@@ -44,8 +44,6 @@ export const seedFleet = Effect.gen(function* () {
 		title: "Plot the course",
 	});
 	yield* db.VoyagePiece.create({ pieceId, voyageId });
-	// why: the rung a question waits on is read off the asker's crew row, so a
-	// rehearsal that wants the window's own reading crews the asker first.
 	yield* db.VoyageAgent.create({
 		agentId: requesterId,
 		role: "hand",
@@ -68,8 +66,6 @@ export const asked = {
 	urgency: "blocking",
 } as const;
 
-// why: the watcher must hold the feed's opening snapshot before the act under
-// test lands, or an emission it never reacted to would pass for one.
 export const watchUntil = <A>(feed: Stream.Stream<A, RulingFailure>, matches: (view: A) => boolean) =>
 	Effect.gen(function* () {
 		const opened = yield* Deferred.make<void>();

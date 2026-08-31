@@ -1,10 +1,9 @@
-import { acquireTemporaryPersistence } from "@antumbra/persistence/testing";
 import type { SessionCensus } from "@antumbra/plugin-api";
 import type { AgentEvent } from "@antumbra/vocabulary/session-events";
 import { expect, it } from "@effect/vitest";
 import { Effect } from "effect";
 import { sessionAtRest } from "#at-rest.ts";
-import { censusLane, seedAgent, seedSession, treeLayer } from "#test/tree/fixture.ts";
+import { censusLane, seedAgent, seedSession, treeTest } from "#test/tree/fixture.ts";
 import { LiveDelegations } from "#tree/live.ts";
 import { makeSessionTreeSinks } from "#tree/sink.ts";
 
@@ -77,9 +76,8 @@ const attachedOver = (found: SessionCensus, stream: ReadonlyArray<AgentEvent>) =
 	});
 
 it.live("a census that finds a child idle brings its root to rest", () =>
-	Effect.gen(function* () {
-		const temporary = yield* acquireTemporaryPersistence;
-		yield* Effect.gen(function* () {
+	treeTest(
+		Effect.gen(function* () {
 			yield* seedTree;
 
 			const atRest = yield* attachedOver(census([{ nodeRef: CHILD, working: false }]), [announced]);
@@ -89,14 +87,13 @@ it.live("a census that finds a child idle brings its root to rest", () =>
 			// began — the tree would refuse sleep for the rest of its life. A census
 			// that reads the child idle is the ending the provider does not send.
 			expect(atRest).toBe(true);
-		}).pipe(Effect.provide(treeLayer(temporary)));
-	}),
+		}),
+	),
 );
 
 it.live("a census that finds a child working keeps its root from rest", () =>
-	Effect.gen(function* () {
-		const temporary = yield* acquireTemporaryPersistence;
-		yield* Effect.gen(function* () {
+	treeTest(
+		Effect.gen(function* () {
 			yield* seedTree;
 
 			const atRest = yield* attachedOver(census([{ nodeRef: CHILD, working: true }]), []);
@@ -106,14 +103,13 @@ it.live("a census that finds a child working keeps its root from rest", () =>
 			// off an empty registry would take the stream away mid-turn, so the
 			// census puts back what the restart could not carry across.
 			expect(atRest).toBe(false);
-		}).pipe(Effect.provide(treeLayer(temporary)));
-	}),
+		}),
+	),
 );
 
 it.live("a child the census both admits and finds working holds one too", () =>
-	Effect.gen(function* () {
-		const temporary = yield* acquireTemporaryPersistence;
-		yield* Effect.gen(function* () {
+	treeTest(
+		Effect.gen(function* () {
 			yield* seedRoot;
 
 			const atRest = yield* attachedOver(
@@ -129,14 +125,13 @@ it.live("a child the census both admits and finds working holds one too", () =>
 			// began has to be looked up after its admission is written — otherwise
 			// the one child nothing ever carried is the one rest ignores.
 			expect(atRest).toBe(false);
-		}).pipe(Effect.provide(treeLayer(temporary)));
-	}),
+		}),
+	),
 );
 
 it.live("a census that could not be taken says nothing about rest", () =>
-	Effect.gen(function* () {
-		const temporary = yield* acquireTemporaryPersistence;
-		yield* Effect.gen(function* () {
+	treeTest(
+		Effect.gen(function* () {
 			yield* seedTree;
 
 			const atRest = yield* attachedOver(census([]), [announced]);
@@ -145,6 +140,6 @@ it.live("a census that could not be taken says nothing about rest", () =>
 			// rest. The delegation the stream began stands until something reads the
 			// child and finds it done.
 			expect(atRest).toBe(false);
-		}).pipe(Effect.provide(treeLayer(temporary)));
-	}),
+		}),
+	),
 );

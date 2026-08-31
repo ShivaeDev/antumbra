@@ -7,13 +7,14 @@ import type { SpawnFields } from "#spawn-fields.ts";
 export const makeSpawnAssignments = Effect.gen(function* () {
 	const db = yield* Database;
 	const feeds = yield* DomainFeeds;
+	const ensureUnclaimed = (agentId: string) => ensureAgentCanOwnLocalWork(agentId).pipe(Effect.provideService(Database, db));
 	const recoverPieceAssignment = (agentId: string, pieceId: string, failure: PrismaError) =>
 		db.PieceAgent.where({ agentId, pieceId })
 			.exists()
 			.pipe(Effect.flatMap((exists) => (exists ? Effect.succeed(false) : Effect.fail(failure))));
 	const storePieceAssignment = (payload: SpawnFields, pieceId: string) =>
 		Effect.gen(function* () {
-			yield* ensureAgentCanOwnLocalWork(payload.agentId).pipe(Effect.provideService(Database, db));
+			yield* ensureUnclaimed(payload.agentId);
 			const existing = yield* db.PieceAgent.where({
 				agentId: payload.agentId,
 				pieceId,
@@ -44,7 +45,7 @@ export const makeSpawnAssignments = Effect.gen(function* () {
 			.pipe(Effect.flatMap((exists) => (exists ? Effect.succeed(false) : Effect.fail(failure))));
 	const storeVoyageAssignment = (payload: SpawnFields, voyageId: string) =>
 		Effect.gen(function* () {
-			yield* ensureAgentCanOwnLocalWork(payload.agentId).pipe(Effect.provideService(Database, db));
+			yield* ensureUnclaimed(payload.agentId);
 			const existing = yield* db.VoyageAgent.where({
 				agentId: payload.agentId,
 				voyageId,

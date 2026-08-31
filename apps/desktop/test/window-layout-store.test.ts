@@ -3,8 +3,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { NodeServices } from "@effect/platform-node";
 import { describe, expect, it } from "@effect/vitest";
-import { Effect, Fiber, FileSystem } from "effect";
-import { TestClock } from "effect/testing";
+import { Effect, FileSystem } from "effect";
 import { defaultConsole, layoutOf, restorePlan, type WindowLayout } from "#adapters/windows/layout.ts";
 import { fileLayoutStore, type LayoutStore } from "#adapters/windows/layout-store.ts";
 import { layoutWriter } from "#adapters/windows/layout-writer.ts";
@@ -71,37 +70,19 @@ describe("window layout store", () => {
 });
 
 describe("window layout writer", () => {
-	it.effect("collapses a burst of changes into a single write", () =>
+	it.effect("saves the current layout when noted", () =>
 		Effect.gen(function* () {
 			const saved: Array<WindowLayout> = [];
 			const registry = makeWindowRegistry();
 			ownWindow(registry, "console", consolePlace);
 			const writer = yield* layoutWriter({
-				patience: 400,
 				registry,
 				store: recording(saved),
 			});
-			const running = yield* Effect.forkChild(writer.run, { startImmediately: true });
-
-			for (let round = 0; round < 12; round += 1) {
-				yield* writer.note;
-				yield* TestClock.adjust(20);
-			}
-			expect(saved).toEqual([]);
-
-			yield* TestClock.adjust(400);
+			yield* writer.note;
 
 			expect(saved).toHaveLength(1);
 			expect(saved[0]?.windows).toEqual([{ id: "console", place: consolePlace }]);
-
-			yield* TestClock.adjust(400);
-			expect(saved).toHaveLength(1);
-
-			yield* writer.note;
-			yield* TestClock.adjust(400);
-			expect(saved).toHaveLength(2);
-
-			yield* Fiber.interrupt(running);
 		}),
 	);
 

@@ -14,7 +14,6 @@ import {
 	withSqlite,
 } from "#test/session-tree-harness.ts";
 
-// Legacy databases may predate the one-open-root index.
 it.effect("closes every open root but the newest when an Agent points nowhere", () =>
 	Effect.gen(function* () {
 		const database = freshDatabase();

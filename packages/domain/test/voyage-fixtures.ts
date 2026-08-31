@@ -47,23 +47,18 @@ export const openReefVoyage = Effect.gen(function* () {
 export const seedSpawningCaptain = (voyageId: string) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
-		yield* db.transaction(
-			Effect.gen(function* () {
-				yield* Database;
-				yield* db.Agent.create({
-					charter: "chart the reef",
-					currentSessionId: null,
-					id: "captain-newborn",
-					role: "captain",
-					status: "spawning",
-				});
-				yield* db.VoyageAgent.create({
-					agentId: "captain-newborn",
-					role: "captain",
-					voyageId,
-				});
-			}),
-		);
+		yield* db.Agent.create({
+			charter: "chart the reef",
+			currentSessionId: null,
+			id: "captain-newborn",
+			role: "captain",
+			status: "spawning",
+		});
+		yield* db.VoyageAgent.create({
+			agentId: "captain-newborn",
+			role: "captain",
+			voyageId,
+		});
 	});
 
 // why: one alpha and two dependents is the smallest graph that shows both

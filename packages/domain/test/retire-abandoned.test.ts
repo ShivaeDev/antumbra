@@ -48,22 +48,17 @@ const closedWithoutVerdict = (scripted: ScriptedBackend) =>
 		yield* born(handFor(HAND, pieceId, voyageId));
 		yield* landed(pieceId);
 		yield* standDown(scripted, HAND);
-		yield* db.transaction(
-			Effect.gen(function* () {
-				yield* Database;
-				yield* Effect.all([
-					db.Change.create(
-						changeOf({
-							headRef: `work/${HAND}/berth-0`,
-							id: "change-closed",
-							repoId: "repo-reef",
-							stage: "withdrawn",
-						}),
-					),
-					db.PieceChange.create({ changeId: "change-closed", pieceId }),
-				]);
-			}),
-		);
+		yield* Effect.all([
+			db.Change.create(
+				changeOf({
+					headRef: `work/${HAND}/berth-0`,
+					id: "change-closed",
+					repoId: "repo-reef",
+					stage: "withdrawn",
+				}),
+			),
+			db.PieceChange.create({ changeId: "change-closed", pieceId }),
+		]);
 		return { pieceId, voyageId };
 	});
 

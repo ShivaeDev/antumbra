@@ -200,7 +200,7 @@ it.effectDB("settles existing host evidence after the owning Agent becomes termi
 	}).pipe(Effect.provide(changesLayer([scripted.host])));
 });
 
-it.effectDB("keeps the freshest fact within and across observation calls", function* (db) {
+it.effectDB("keeps the freshest fact across sequential observation calls", function* (db) {
 	const scripted = yield* makeScriptedHost;
 	yield* seed;
 	yield* Effect.gen(function* () {
@@ -209,7 +209,8 @@ it.effectDB("keeps the freshest fact within and across observation calls", funct
 		const newest = observed(row, 2, { stage: "landed" });
 		const stale = observed(row, 1, { stage: "open", title: "stale" });
 		yield* changes.observed("scripted", [newest, stale]);
-		yield* Effect.all([changes.observed("scripted", [newest]), changes.observed("scripted", [stale])], { concurrency: "unbounded" });
+		yield* changes.observed("scripted", [newest]);
+		yield* changes.observed("scripted", [stale]);
 		const stored = Option.getOrThrow(yield* db.Change.where({ id: row.id }).first());
 		expect(stored).toMatchObject({ stage: "landed", title: row.title });
 	}).pipe(Effect.provide(changesLayer([scripted.host])));

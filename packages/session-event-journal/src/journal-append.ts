@@ -1,11 +1,7 @@
 import type { StoredEvent } from "@antumbra/domain-feeds";
 import { Database } from "@antumbra/persistence";
 import type { AgentEvent } from "@antumbra/vocabulary/session-events";
-import { Data, Effect, Option } from "effect";
-
-class SessionIdentityMissing extends Data.TaggedError("SessionIdentityMissing")<{
-	readonly sessionId: string;
-}> {}
+import { Effect, Option } from "effect";
 
 export interface JournalAppend {
 	readonly event: AgentEvent;
@@ -18,19 +14,7 @@ export const makeJournalAppends = Effect.gen(function* () {
 		if (event.type !== "session.opened") {
 			return Effect.void;
 		}
-		return Effect.gen(function* () {
-			const session = yield* db.AgentSession.where({ id: sessionId }).first();
-			if (Option.isNone(session)) {
-				return yield* new SessionIdentityMissing({ sessionId });
-			}
-			const durable = session.value.nativeRef;
-			if (durable === null) {
-				yield* db.AgentSession.where({ id: sessionId }).update({
-					nativeRef: event.nativeRef,
-				});
-				return;
-			}
-		}).pipe(Effect.asVoid);
+		return db.AgentSession.where({ id: sessionId, nativeRef: null }).update({ nativeRef: event.nativeRef }).pipe(Effect.asVoid);
 	};
 	const appendOne = ({ event, sessionId }: JournalAppend) =>
 		Effect.gen(function* () {

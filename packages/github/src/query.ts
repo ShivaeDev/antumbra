@@ -42,8 +42,6 @@ export const chunked = <A>(items: ReadonlyArray<A>, size: number): ReadonlyArray
 	return chunks;
 };
 
-const repoKey = (ref: PullRequestRef): string => `${ref.owner}/${ref.name}`;
-
 interface RepositoryGroup extends GitHubRepoName {
 	readonly refs: Array<LocatedPullRequestRef>;
 }
@@ -51,7 +49,7 @@ interface RepositoryGroup extends GitHubRepoName {
 const groupedByRepo = (refs: ReadonlyArray<LocatedPullRequestRef>): ReadonlyArray<RepositoryGroup> => {
 	const groups = new Map<string, RepositoryGroup>();
 	for (const ref of refs) {
-		const key = repoKey(ref);
+		const key = `${ref.owner}/${ref.name}`;
 		const group = groups.get(key);
 		if (group === undefined) {
 			groups.set(key, { name: ref.name, owner: ref.owner, refs: [ref] });

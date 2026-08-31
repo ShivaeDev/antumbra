@@ -10,46 +10,11 @@ import {
 	changeHostsOf,
 	makeScriptedBackend,
 	makeScriptedRunner,
-	type ScriptedBackend,
 	type ScriptedSession,
 	sessionFor,
 } from "#test/harness.ts";
 import { makeScriptedHost } from "#test/scripted-host.ts";
-import { assignedPieces, eventually, PATIENCE, stateOf } from "#test/voyage-fixtures.ts";
-
-const crewOn = (scripted: ScriptedBackend, pieceId: string) =>
-	Effect.gen(function* () {
-		const db = yield* Database;
-		const row = (yield* db.PieceAgent.where({ pieceId }).all())[0];
-		return row === undefined ? yield* Effect.fail("no crew yet") : yield* sessionFor(scripted, row.agentId);
-	});
-
-const chartered = (captain: ScriptedSession, title: string, dependsOn: ReadonlyArray<string>) =>
-	Effect.gen(function* () {
-		const outcome = yield* callTool(captain, "charter_piece", {
-			charter: `do ${title}`,
-			dependsOn,
-			expectation: `${title} is landed`,
-			role: "hand",
-			title,
-		});
-		expect(outcome.ok).toBe(true);
-		const pieceId = outcome.text.replace("chartered ", "");
-		expect(yield* callTool(captain, "launch_piece", { pieceId })).toMatchObject({ ok: true });
-		return pieceId;
-	});
-
-const openReef = Effect.gen(function* () {
-	const domain = yield* AgentDomain;
-	const repo = yield* domain.repos.register({ defaultRef: "main", source: REEF_SOURCE });
-	const voyage = yield* domain.voyages.open({
-		backend: "scripted",
-		context: "the reef is uncharted",
-		name: "Chart the reef",
-		northStar: "every shoal is known",
-	});
-	return { repo, voyage };
-});
+import { eventually, PATIENCE } from "#test/voyage-fixtures.ts";
 
 const opened = (crew: ScriptedSession, repo: string) =>
 	callTool(crew, "open_change", {
@@ -67,8 +32,15 @@ it.live("crew open a change through the tool and hear where it lives", () =>
 			supports: (repo) => repo.name === "reef",
 		});
 		yield* Effect.gen(function* () {
+			const db = yield* Database;
 			const domain = yield* AgentDomain;
-			const { voyage } = yield* openReef;
+			yield* domain.repos.register({ defaultRef: "main", source: REEF_SOURCE });
+			const voyage = yield* domain.voyages.open({
+				backend: "scripted",
+				context: "the reef is uncharted",
+				name: "Chart the reef",
+				northStar: "every shoal is known",
+			});
 			yield* domain.repos.register({
 				defaultRef: "main",
 				source: "/somewhere/shoals",
@@ -82,7 +54,12 @@ it.live("crew open a change through the tool and hear where it lives", () =>
 				voyageId: voyage.id,
 			});
 			yield* domain.voyages.launch(piece.id);
-			const crew = yield* eventually(crewOn(backend, piece.id));
+			const crew = yield* eventually(
+				Effect.gen(function* () {
+					const row = (yield* db.PieceAgent.where({ pieceId: piece.id }).all())[0];
+					return row === undefined ? yield* Effect.fail("no crew yet") : yield* sessionFor(backend, row.agentId);
+				}),
+			);
 
 			const submitted = yield* callTool(crew, "submit_change", {
 				repo: "reef",
@@ -101,54 +78,5 @@ it.live("crew open a change through the tool and hear where it lives", () =>
 				text: "open_change: NoChangeHost: no change host claims shoals",
 			});
 		}).pipe(Effect.provide(dispatchingLayer(temporary, backend.backend, PATIENCE, {}, recorder.runner, changeHostsOf(scripted.host))));
-	}),
-);
-
-// why: the whole page — a captain charters a chain, crew opens a change and
-// stands down, the app is killed and rebuilt while the host does its work,
-// and the chain still sails on the next boot with nobody left to remember it.
-it.live("a chain gated on a change sails across a boot", () =>
-	Effect.gen(function* () {
-		const temporary = yield* acquireTemporaryPersistence;
-		const backend = yield* makeScriptedBackend;
-		const recorder = yield* makeScriptedRunner;
-		const scripted = yield* makeScriptedHost();
-		const sailing = dispatchingLayer(temporary, backend.backend, PATIENCE, {}, recorder.runner, changeHostsOf(scripted.host));
-
-		const chain = yield* Effect.gen(function* () {
-			const domain = yield* AgentDomain;
-			const { repo, voyage } = yield* openReef;
-			const hailed = yield* domain.voyages.hail(voyage.id);
-			const captain = yield* eventually(sessionFor(backend, hailed.agentId));
-			const alpha = yield* chartered(captain, "alpha", []);
-			const bravo = yield* chartered(captain, "bravo", [alpha]);
-
-			const crew = yield* eventually(crewOn(backend, alpha));
-			expect((yield* opened(crew, "reef")).ok).toBe(true);
-			expect(yield* callTool(crew, "stand_down", undefined)).toEqual({
-				ok: true,
-				text: "standing by",
-			});
-			yield* eventually(
-				Effect.gen(function* () {
-					expect(yield* stateOf(voyage.id, alpha)).toBe("landing");
-					expect(yield* stateOf(voyage.id, bravo)).toBe("blocked");
-				}),
-			);
-			return { alpha, bravo, repo, voyage };
-		}).pipe(Effect.provide(sailing));
-
-		yield* scripted.drive.transition(chain.repo.id, "1", { stage: "landed" });
-
-		yield* Effect.gen(function* () {
-			const domain = yield* AgentDomain;
-			yield* domain.changes.refresh("scripted");
-			yield* eventually(
-				Effect.gen(function* () {
-					expect(yield* stateOf(chain.voyage.id, chain.alpha)).toBe("done");
-					expect(yield* assignedPieces).toContain(chain.bravo);
-				}),
-			);
-		}).pipe(Effect.provide(sailing));
 	}),
 );

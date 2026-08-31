@@ -1,18 +1,18 @@
 import type { WindowPlace } from "@antumbra/contract";
 import type { OwnedWindow, WindowRegistry } from "#adapters/windows/registry.ts";
 
-export interface WindowLifecycleHost {
+interface WindowLifecycleHost {
 	readonly onClosed: (listener: () => void) => void;
 	readonly onRenderProcessGone: (listener: () => void) => void;
 }
 
-export interface WindowLifecycleWatch {
+interface WindowLifecycleWatch {
 	readonly onClosed: () => void;
 	readonly recover: () => void;
 	readonly release: () => void;
 }
 
-export interface HeldAuthority {
+interface HeldAuthority {
 	readonly place: () => WindowPlace;
 	readonly release: () => void;
 }

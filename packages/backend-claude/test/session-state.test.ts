@@ -32,25 +32,25 @@ const tasksFrame = (
 
 type ResultMessage = Extract<SDKMessage, { type: "result" }>;
 
-const usageOf = (input: number, cacheRead: number, cacheWrite: number, output: number): ResultMessage["usage"] => ({
+const usage: ResultMessage["usage"] = {
 	cache_creation: {
 		ephemeral_1h_input_tokens: 0,
-		ephemeral_5m_input_tokens: cacheWrite,
+		ephemeral_5m_input_tokens: 12100,
 	},
-	cache_creation_input_tokens: cacheWrite,
-	cache_read_input_tokens: cacheRead,
+	cache_creation_input_tokens: 12100,
+	cache_read_input_tokens: 4820,
 	fallback_credit: { status: { reason: "not_enabled", type: "not_applied" } },
 	inference_geo: "us",
-	input_tokens: input,
+	input_tokens: 1500,
 	iterations: [],
-	output_tokens: output,
+	output_tokens: 730,
 	output_tokens_details: { thinking_tokens: 0 },
 	server_tool_use: { web_fetch_requests: 0, web_search_requests: 0 },
 	service_tier: "standard",
 	speed: "standard",
-});
+};
 
-const result = (totalCostUsd: number, usage: ResultMessage["usage"], models: ReadonlyArray<string> = ["claude-opus-5"]): SDKMessage => ({
+const result = (totalCostUsd: number, models: ReadonlyArray<string> = ["claude-opus-5"]): SDKMessage => ({
 	duration_api_ms: 9000,
 	duration_ms: 12300,
 	is_error: false,
@@ -124,8 +124,8 @@ describe("the harness's own account of a session is kept", () => {
 
 	it("splits a turn's tokens four ways and names the model that answered", () => {
 		const mapping = openSessionMapping();
-		const [usage] = mapping.frame(result(0.0412, usageOf(1500, 4820, 12100, 730)));
-		expect(usage).toEqual({
+		const [event] = mapping.frame(result(0.0412));
+		expect(event).toEqual({
 			cacheReadTokens: 4820,
 			cacheWriteTokens: 12100,
 			costUsd: 0.0412,
@@ -143,13 +143,9 @@ describe("the harness's own account of a session is kept", () => {
 	// which is exactly what this record used to show on every turn.
 	it("reports the turn's own cost as the step from the running total", () => {
 		const mapping = openSessionMapping();
-		mapping.frame(result(0.0412, usageOf(1500, 4820, 12100, 730)));
-		const [second] = mapping.frame(result(0.06, usageOf(1410, 96240, 0, 210)));
-		expect(second).toMatchObject({
-			cacheReadTokens: 96240,
-			cumulativeCostUsd: 0.06,
-			inputTokens: 1410,
-		});
+		mapping.frame(result(0.0412));
+		const [second] = mapping.frame(result(0.06));
+		expect(second).toMatchObject({ cumulativeCostUsd: 0.06 });
 		expect(second).toHaveProperty("costUsd", expect.closeTo(0.0188, 6));
 	});
 
@@ -158,8 +154,8 @@ describe("the harness's own account of a session is kept", () => {
 	// turn that earned money would be worse than one that spent the lot again.
 	it("reads a total that went backwards as the counter starting over", () => {
 		const mapping = openSessionMapping();
-		mapping.frame(result(0.5, usageOf(1500, 4820, 12100, 730)));
-		const [after] = mapping.frame(result(0.02, usageOf(1410, 96240, 0, 210)));
+		mapping.frame(result(0.5));
+		const [after] = mapping.frame(result(0.02));
 		expect(after).toMatchObject({ costUsd: 0.02, cumulativeCostUsd: 0.02 });
 	});
 
@@ -167,7 +163,7 @@ describe("the harness's own account of a session is kept", () => {
 	// turn several of them answered has no one model to name.
 	it("names no model when more than one answered", () => {
 		const mapping = openSessionMapping();
-		const [usage] = mapping.frame(result(0.01, usageOf(10, 0, 0, 2), ["claude-opus-5", "claude-haiku-5"]));
-		expect(usage).not.toHaveProperty("model");
+		const [event] = mapping.frame(result(0.01, ["claude-opus-5", "claude-haiku-5"]));
+		expect(event).not.toHaveProperty("model");
 	});
 });

@@ -1,5 +1,4 @@
-// why: @vitest-environment happy-dom writes the admiral's own rule through the
-// same DOM boundaries a keyboard uses, so the form is proven where it is used.
+// @vitest-environment happy-dom
 
 import type { OpenRulingsView } from "@antumbra/contract";
 import { expect, it } from "@effect/vitest";
@@ -42,8 +41,6 @@ const mount = () => {
 
 type Mounted = ReturnType<typeof mount>;
 
-// why: the panel opens on an empty set so the only controls on the page are
-// the proclamation's own, and nothing here can be read off a ruling card.
 const showing = (mounted: Mounted, onError: (message: string) => void): Effect.Effect<void> =>
 	Effect.gen(function* () {
 		yield* settle(() => mounted.root.render(<RulingsPanel onError={onError} />));
@@ -117,8 +114,6 @@ it.effect("proclaims the rule the admiral wrote for itself", () =>
 	}),
 );
 
-// why: scope is never left as prose, so a rule naming no concept sends no
-// empty tag rather than one the record would have to store as nothing.
 it.effect("names no tags on a rule that carries none", () =>
 	Effect.gen(function* () {
 		const mounted = mount();
@@ -133,8 +128,6 @@ it.effect("names no tags on a rule that carries none", () =>
 	}),
 );
 
-// why: a rule read long after the work that prompted it binds nothing without
-// its context and its question, so neither may be left out of the window.
 it.effect("never proclaims a rule missing its context or its answer", () =>
 	Effect.gen(function* () {
 		const mounted = mount();

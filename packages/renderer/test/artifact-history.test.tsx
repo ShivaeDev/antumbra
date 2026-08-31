@@ -1,4 +1,4 @@
-// why: @vitest-environment happy-dom exercises the real React click boundary.
+// @vitest-environment happy-dom
 
 import type { PieceView } from "@antumbra/contract";
 import { expect, it } from "@effect/vitest";
@@ -138,8 +138,6 @@ it.effect("reads and renders current and historical Artifacts on click", () =>
 	}),
 );
 
-// why: the control names the Artifact on show, so it can never detach a
-// window onto whichever Artifact happened to be read first.
 it.effect("opens the Artifact on show in a window of its own", () =>
 	Effect.gen(function* () {
 		const container = document.createElement("div");

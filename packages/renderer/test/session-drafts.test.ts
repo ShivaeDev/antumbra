@@ -1,5 +1,4 @@
-// why: @vitest-environment happy-dom supplies the same local storage boundary
-// the desktop renderer uses.
+// @vitest-environment happy-dom
 
 import { expect, it } from "@effect/vitest";
 import { beforeEach } from "vitest";

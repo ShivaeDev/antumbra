@@ -1,4 +1,4 @@
-// why: @vitest-environment happy-dom exposes Mermaid's rendering boundary.
+// @vitest-environment happy-dom
 
 import { expect, it } from "@effect/vitest";
 import { Effect } from "effect";

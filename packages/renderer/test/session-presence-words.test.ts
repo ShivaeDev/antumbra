@@ -37,9 +37,6 @@ const fleetOf = (presence: SessionSummary["presence"]): Fleet => ({
 	repos: [],
 });
 
-// why: the two quiet presences the admiral has to tell apart. One was rested on
-// purpose and has nothing outstanding; the other lost its process mid-turn and
-// the work it was doing is still waiting on somebody to take it back up.
 it("says stranded in its own words, not asleep's", () => {
 	expect(presenceWords.stranded).toBe("stranded");
 	expect(presenceNote.stranded).toContain("its process is gone");
@@ -47,8 +44,6 @@ it("says stranded in its own words, not asleep's", () => {
 	expect(presenceNote.stranded).not.toBe(presenceNote.asleep);
 });
 
-// why: a stranded Session still takes words — speaking to it is the whole way
-// it comes back — so the box says what happened rather than refusing.
 it("offers the send box on a stranded session and says why it is quiet", () => {
 	const state = sessionMessageState(fleetOf("stranded"), "session-1");
 	expect(state.blocked).toBeUndefined();

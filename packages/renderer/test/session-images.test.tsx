@@ -1,5 +1,4 @@
-// why: @vitest-environment happy-dom exercises paste, previews, and retries at
-// the real React boundary.
+// @vitest-environment happy-dom
 
 import type { Fleet } from "@antumbra/contract";
 import { expect, it } from "@effect/vitest";

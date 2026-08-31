@@ -1,5 +1,4 @@
-// why: @vitest-environment happy-dom exercises selection, controls and actions
-// through the same DOM boundaries a keyboard or pointer uses.
+// @vitest-environment happy-dom
 
 import type { QuayGroup, QuayRow, QuayView } from "@antumbra/contract";
 import { expect, it } from "@effect/vitest";
@@ -201,9 +200,6 @@ it.effect("searches and explains a filter with no results", () =>
 	}),
 );
 
-// why: the verb only a person can supply, offered only where no host will ever
-// settle the change for us — a pull request still alive is not the admiral's to
-// dismiss, so the button is absent rather than disabled.
 it.effect("offers the dismissal only on a pull request that died", () =>
 	Effect.gen(function* () {
 		const alive = mount(alongside.change.id);

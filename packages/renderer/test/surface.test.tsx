@@ -3,8 +3,6 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { PlacedSurface } from "#surface.tsx";
 import { SessionRow } from "#views/session-row.tsx";
 
-// why: falling back to the console would hand a window that main could not
-// place the powers of the window the app is driven from.
 it("shows a refusal, never the console, when a window has no place", () => {
 	const markup = renderToStaticMarkup(<PlacedSurface place={undefined} />);
 	expect(markup).toContain("this window has no place");
@@ -18,8 +16,6 @@ it("renders a placed window's own subject", () => {
 	expect(markup).not.toContain("Antumbra");
 });
 
-// why: an artifact window and a transcript window are both children, so the
-// surface must tell them apart by role rather than by "not the console".
 it("routes an artifact window to its artifact, never a transcript", () => {
 	const markup = renderToStaticMarkup(<PlacedSurface place={{ artifactId: "artifact-1", role: "artifact" }} />);
 	expect(markup).toContain("reading Artifact");
@@ -27,9 +23,6 @@ it("routes an artifact window to its artifact, never a transcript", () => {
 	expect(markup).not.toContain("Antumbra");
 });
 
-// why: every window loads the one app document and therefore the one
-// stylesheet, so a shell that paints its own colours is drifting from the
-// console for no reason a reader could see.
 it("paints every window from the app's ground, never its own colour", () => {
 	const shells = [
 		renderToStaticMarkup(<PlacedSurface place={undefined} />),

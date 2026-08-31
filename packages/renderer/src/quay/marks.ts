@@ -8,8 +8,6 @@ export interface ChangeMark {
 	readonly tone: MarkTone;
 }
 
-export const hasLanded = (change: ChangeView): boolean => change.stage === "landed";
-
 const CHECK_MARKS: Readonly<Record<ChangeView["checks"], ChangeMark>> = {
 	green: { key: "checks", label: "checks passed", tone: "success" },
 	none: { key: "checks", label: "no checks", tone: "muted" },

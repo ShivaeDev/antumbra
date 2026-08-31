@@ -1,10 +1,9 @@
 import type { WindowPlace } from "@antumbra/contract";
 import type { SubscriptionSender } from "#adapters/trpc-subscription-handlers.ts";
-import type { DocumentContents, DocumentFrame, OwnedWindow, WindowHandle, WindowRegistry } from "#adapters/windows/registry.ts";
+import type { DocumentContents, OwnedWindow, WindowHandle, WindowRegistry } from "#adapters/windows/registry.ts";
 
 export interface FakeContents extends DocumentContents {
 	destroyed: boolean;
-	document: string;
 }
 
 export interface FakeSender extends SubscriptionSender, FakeContents {
@@ -18,24 +17,17 @@ interface Registration {
 	readonly once: boolean;
 }
 
-export const framed = (document: string, frame: string): FakeContents => ({
+export const contents = (): FakeContents => ({
 	destroyed: false,
-	document,
-	getURL() {
-		return this.document;
-	},
 	isDestroyed() {
 		return this.destroyed;
 	},
-	mainFrame: { url: frame },
 });
-
-export const contents = (id: string): FakeContents => framed(`file:///app/${id}.html`, `file:///app/${id}.html`);
 
 // why: the real sender is an EventEmitter that keeps every listener handed to
 // it and warns past ten. A double that holds only the newest one per name can
 // never show a pile-up, which is how listeners accrued here unnoticed.
-export const countingSender = (documentId: string, senderId: number): FakeSender => {
+export const countingSender = (senderId: number): FakeSender => {
 	const registered = new Map<string, ReadonlyArray<Registration>>();
 	const add = (name: string, listener: () => void, once: boolean) => {
 		registered.set(name, [...(registered.get(name) ?? []), { listener, once }]);
@@ -51,7 +43,7 @@ export const countingSender = (documentId: string, senderId: number): FakeSender
 		}
 	};
 	const sender: FakeSender = {
-		...contents(documentId),
+		...contents(),
 		destroy: () => {
 			sender.destroyed = true;
 			fire("destroyed");
@@ -66,10 +58,7 @@ export const countingSender = (documentId: string, senderId: number): FakeSender
 	return sender;
 };
 
-export const eventFor = <Sender extends DocumentContents>(sender: Sender, senderFrame: DocumentFrame | null = sender.mainFrame) => ({
-	sender,
-	senderFrame,
-});
+export const eventFor = <Sender extends DocumentContents>(sender: Sender) => ({ sender });
 
 export const consolePlace = {
 	changeId: null,
@@ -107,7 +96,6 @@ export const ownContents = <Sender extends FakeContents>(
 ): OwnedWindow & { readonly contents: Sender } => {
 	const record = {
 		contents: sender,
-		document: sender.document,
 		handle,
 		id,
 		place,
@@ -121,4 +109,4 @@ export const ownWindow = (
 	id: string,
 	place: WindowPlace,
 	handle: WindowHandle = handleFor([], id),
-): OwnedWindow & { readonly contents: FakeContents } => ownContents(registry, contents(id), id, place, handle);
+): OwnedWindow & { readonly contents: FakeContents } => ownContents(registry, contents(), id, place, handle);

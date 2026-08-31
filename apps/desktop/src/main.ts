@@ -52,7 +52,7 @@ const startOwner = (shell: WindowShell, store: LayoutStore) => {
 		yield* Effect.sync(() => {
 			registerTrpcBridge(router, shell.registry);
 			registerTrpcSubscriptions(router, shell.registry);
-			registerOpenExternal(shell.registry);
+			registerOpenExternal();
 		});
 		yield* quitWhenAllWindowsClosed;
 		yield* ensureInstallMarker;

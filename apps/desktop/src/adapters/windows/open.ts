@@ -4,7 +4,7 @@ import type { WindowPlace } from "@antumbra/contract";
 import { Effect } from "effect";
 import { app, BrowserWindow } from "electron";
 import { selectRendererDocument } from "#adapters/renderer-document.ts";
-import { attachWindow, confineWindow, type WindowOpening } from "#adapters/windows/attach.ts";
+import { attachWindow, type WindowOpening } from "#adapters/windows/attach.ts";
 import { defaultConsole } from "#adapters/windows/layout.ts";
 import type { WindowShell } from "#adapters/windows/registry.ts";
 
@@ -41,10 +41,9 @@ const construct = (place: WindowPlace): BrowserWindow =>
 export const openWindow = (opening: WindowOpening) =>
 	Effect.gen(function* () {
 		const window = yield* Effect.sync(() => construct(opening.place));
-		confineWindow(window);
 		yield* Effect.promise(() => window.loadURL(opening.document));
 		const record = attachWindow(opening, window, crypto.randomUUID());
-		return record === undefined ? yield* Effect.die(new Error("window did not load its trusted app document")) : record;
+		return record === undefined ? yield* Effect.die(new Error("window could not be owned")) : record;
 	});
 
 // why: the app is one console — a launch, a second launch, and a console that

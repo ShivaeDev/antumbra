@@ -37,9 +37,8 @@ export const holdAuthority = (registry: WindowRegistry, record: OwnedWindow): He
 
 // why: authority is released before anything else runs in both endings. A
 // closed window's record would otherwise outlive the window it stands for,
-// and a crashed renderer keeps its WebContents while losing its page — the
-// page that comes back from a reload is a new principal and has to prove the
-// trusted document again before it is owned.
+// and a crashed renderer should not remain in the roster while Electron
+// reloads it.
 export const attachWindowLifecycle = (host: WindowLifecycleHost, watch: WindowLifecycleWatch): void => {
 	host.onClosed(() => {
 		watch.release();

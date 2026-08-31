@@ -3,7 +3,7 @@ import { describe, expect, it } from "@effect/vitest";
 import { Effect, Layer } from "effect";
 import { makeWindowRegistry } from "#adapters/windows/registry.ts";
 import { WindowSourceLive } from "#adapters/windows/source.ts";
-import { consolePlace, handleFor, ownWindow, transcriptPlace } from "#test/windows.ts";
+import { consolePlace, eventFor, handleFor, ownWindow, transcriptPlace } from "#test/windows.ts";
 
 const asWindow = <A, E>(source: Effect.Effect<A, E, RequestOrigin | WindowSource>, shell: Parameters<typeof WindowSourceLive>[0], windowId: string) =>
 	source.pipe(Effect.provide(Layer.mergeAll(WindowSourceLive(shell), Layer.succeed(RequestOrigin, { windowId }))));
@@ -37,12 +37,7 @@ describe("window source", () => {
 			expect(yield* asWindow(place, shell, "console")).toEqual(consolePlace);
 			expect(yield* asWindow(place, shell, "child")).toEqual(transcriptPlace("session-1"));
 
-			expect(
-				registry.owner({
-					sender: child.contents,
-					senderFrame: child.contents.mainFrame,
-				})?.place,
-			).toEqual(transcriptPlace("session-1"));
+			expect(registry.owner(eventFor(child.contents))?.place).toEqual(transcriptPlace("session-1"));
 		}),
 	);
 

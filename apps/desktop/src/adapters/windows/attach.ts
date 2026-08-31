@@ -1,27 +1,14 @@
 import type { WindowPlace } from "@antumbra/contract";
 import { Effect } from "effect";
 import type { BrowserWindow } from "electron";
-import { confineNavigation } from "#adapters/windows/confinement.ts";
 import { attachWindowLifecycle, holdAuthority } from "#adapters/windows/lifecycle.ts";
-import type { OwnedWindow, WindowCandidate, WindowRegistry, WindowShell } from "#adapters/windows/registry.ts";
+import type { OwnedWindow, WindowRegistry, WindowShell } from "#adapters/windows/registry.ts";
 
 export interface WindowOpening extends WindowShell {
 	readonly place: WindowPlace;
 }
 
 type Adopt = (place: WindowPlace) => OwnedWindow | undefined;
-
-// why: a window that did not land on the trusted document is not merely
-// unowned — it is a live renderer at an address the shell never chose, so it
-// is destroyed rather than left open beside the app.
-export const adoptWindow = (registry: WindowRegistry, candidate: WindowCandidate): OwnedWindow | undefined => {
-	const { destroy, ...record } = candidate;
-	if (record.contents.getURL() !== record.document) {
-		destroy();
-		return undefined;
-	}
-	return registry.own(record) ? record : undefined;
-};
 
 // why: children hang off the console; when it goes they go with it, rather
 // than keeping a windowless app alive around them.
@@ -31,37 +18,21 @@ export const closeChildren = (registry: WindowRegistry, place: WindowPlace): voi
 	}
 };
 
-export const confineWindow = (window: BrowserWindow): void =>
-	confineNavigation({
-		onFrameNavigation: (listener) => {
-			window.webContents.on("will-frame-navigate", listener);
-		},
-		onNavigation: (listener) => {
-			window.webContents.on("will-navigate", listener);
-		},
-		onRedirect: (listener) => {
-			window.webContents.on("will-redirect", listener);
-		},
-		setWindowOpenHandler: (handler) => {
-			window.webContents.setWindowOpenHandler(handler);
-		},
-	});
-
 const report = (message: string): void => {
 	Effect.runFork(Effect.logWarning(message));
 };
 
 const adopter =
 	(opening: WindowOpening, window: BrowserWindow, id: string): Adopt =>
-	(place) =>
-		adoptWindow(opening.registry, {
+	(place) => {
+		const record = {
 			contents: window.webContents,
-			destroy: () => window.destroy(),
-			document: opening.document,
 			handle: window,
 			id,
 			place,
-		});
+		};
+		return opening.registry.own(record) ? record : undefined;
+	};
 
 const wire = (opening: WindowOpening, window: BrowserWindow, record: OwnedWindow, adopt: Adopt): void => {
 	const authority = holdAuthority(opening.registry, record);
@@ -69,7 +40,7 @@ const wire = (opening: WindowOpening, window: BrowserWindow, record: OwnedWindow
 	const recover = () => {
 		window.webContents.once("did-finish-load", () => {
 			if (adopt(authority.place()) === undefined) {
-				report("bridge: a reloaded window did not return to its document");
+				report("bridge: a reloaded window could not reclaim its place");
 			}
 		});
 		window.webContents.reload();

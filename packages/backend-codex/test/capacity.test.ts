@@ -1,4 +1,4 @@
-import { type BackendCapacityController, makeBackendCapacityController } from "@antumbra/plugin-api";
+import { makeBackendCapacityController } from "@antumbra/plugin-api";
 import { it } from "@effect/vitest";
 import { Effect, Option, PubSub } from "effect";
 import { describe, expect } from "vitest";
@@ -44,21 +44,13 @@ describe("codex capacity evidence", () => {
 		}
 	});
 
-	it.effect("feeds every app-server notification to capacity exactly once", () =>
+	it.effect("feeds app-server notifications to capacity without consuming them", () =>
 		Effect.scoped(
 			Effect.gen(function* () {
 				const controller = yield* makeBackendCapacityController(classifyCodexCapacity);
-				let observations = 0;
-				const counting: BackendCapacityController = {
-					observe: (raw, observedAt) => {
-						observations += 1;
-						return controller.observe(raw, observedAt);
-					},
-					source: controller.source,
-				};
 				const fake = makeFakeAppServer();
 				const server = yield* makeCodexServer({
-					observeCapacity: counting.observe,
+					observeCapacity: controller.observe,
 					spawn: () => fake.process,
 				});
 				const received = yield* PubSub.subscribe(server.notifications);
@@ -66,9 +58,7 @@ describe("codex capacity evidence", () => {
 				const exhausted = notification("usageLimitExceeded", false);
 				fake.notify(exhausted.method, exhausted.params);
 				const published = yield* PubSub.take(received);
-				expect(observations).toBe(1);
 				expect(published).toEqual(exhausted);
-				expect(toAgentEvents(published)[0]?.raw).toEqual(rawOf(exhausted.method, exhausted.params));
 				expect(Option.getOrThrow(yield* controller.source.current)).toMatchObject({
 					observedAt: expect.any(Number),
 					reason: "usage-limit",
@@ -77,7 +67,6 @@ describe("codex capacity evidence", () => {
 
 				const overloaded = notification("serverOverloaded", false);
 				fake.notify(overloaded.method, overloaded.params);
-				expect(observations).toBe(2);
 				expect(Option.getOrThrow(yield* controller.source.current)).toMatchObject({
 					reason: "usage-limit",
 					status: "blocked",

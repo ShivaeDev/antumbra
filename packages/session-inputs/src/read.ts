@@ -4,7 +4,7 @@ import { SessionImageMediaType } from "@antumbra/vocabulary/session-input";
 import { type Context, Effect, Option, Schema } from "effect";
 import { imagePath, readImage } from "#adapters/custody.ts";
 import { type SessionInputCustodyFailed, type SessionInputNotFound, StoredSessionInputInvalid } from "#errors.ts";
-import type { SessionInputDeliveryStatus, StoredSessionInput } from "#model.ts";
+import type { StoredSessionInput } from "#model.ts";
 import { deliveryStatus, requireInput } from "#stored.ts";
 
 const decodeMediaType = Schema.decodeUnknownOption(SessionImageMediaType);
@@ -87,5 +87,3 @@ export const readStoredInput = (
 			status: yield* Effect.fromResult(deliveryStatus(inputId, stored.deliveryStatus)),
 		};
 	});
-
-export type { SessionInputDeliveryStatus };

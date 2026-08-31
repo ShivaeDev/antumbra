@@ -1,6 +1,6 @@
 import { Data } from "effect";
 
-export type SessionInputInvalidReason =
+type SessionInputInvalidReason =
 	| "corrupt_image"
 	| "empty_text"
 	| "image_too_large"

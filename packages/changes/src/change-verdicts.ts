@@ -3,7 +3,7 @@ import { type ChangeVerdict, ChangeVerdict as ChangeVerdictSchema } from "@antum
 import { type Context, Effect, Schema } from "effect";
 import { StoredChangeVerdictInvalid } from "#errors.ts";
 
-export interface ChangeVerdictRow {
+interface ChangeVerdictRow {
 	readonly changeId: string;
 	readonly verdict: ChangeVerdict;
 }

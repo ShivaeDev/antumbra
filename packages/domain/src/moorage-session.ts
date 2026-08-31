@@ -1,11 +1,10 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
-import { Database, type NewAgentSession, type PrismaError } from "@antumbra/persistence";
+import { Database, type NewAgentSession } from "@antumbra/persistence";
 import type { MooragePlan } from "@antumbra/plugin-api";
 import { ensureAgentCanOwnLocalWork } from "@antumbra/resource-reclamation";
-import { openSessions, rootSessionsOf } from "@antumbra/sessions";
 import { decodeStoredAgentSessionStatus } from "@antumbra/vocabulary/agent-runtime";
 import { Effect, Option } from "effect";
-import { AgentNotFound, AgentRootAlreadyOpen, AgentSessionConflict } from "#errors.ts";
+import { AgentNotFound, AgentSessionConflict } from "#errors.ts";
 import type { SpawnFields } from "#spawn-fields.ts";
 
 export const makeEnsureSessionRow = Effect.gen(function* () {
@@ -28,29 +27,6 @@ export const makeEnsureSessionRow = Effect.gen(function* () {
 			const status = yield* Effect.fromResult(decodeStoredAgentSessionStatus(session.value.id, session.value.status));
 			return session.value.agentId === payload.agentId && status === "open" ? true : yield* conflict(payload, currentSessionId);
 		});
-	// The partial unique index reports a redacted driver error, so name the open Session before writing.
-	const refuseSecondRoot = (payload: SpawnFields) =>
-		Effect.gen(function* () {
-			const openRoot = yield* db.AgentSession.where({
-				...rootSessionsOf(payload.agentId),
-				...openSessions,
-			}).first();
-			if (Option.isSome(openRoot)) {
-				return yield* new AgentRootAlreadyOpen({
-					agentId: payload.agentId,
-					openSessionId: openRoot.value.id,
-					sessionId: payload.sessionId,
-				});
-			}
-		});
-	const recoverSessionCreate = (payload: SpawnFields, currentSessionId: string | null, failure: PrismaError) =>
-		Effect.gen(function* () {
-			if (yield* alreadyOpened(payload, currentSessionId)) {
-				return false;
-			}
-			yield* refuseSecondRoot(payload);
-			return yield* failure;
-		});
 	const ensureSession = (payload: SpawnFields, plan: MooragePlan) =>
 		Effect.gen(function* () {
 			const agent = yield* db.Agent.where({ id: payload.agentId }).first();
@@ -64,8 +40,7 @@ export const makeEnsureSessionRow = Effect.gen(function* () {
 			if (yield* alreadyOpened(payload, currentSessionId)) {
 				return false;
 			}
-			yield* refuseSecondRoot(payload);
-			return yield* db.AgentSession.create({
+			yield* db.AgentSession.create({
 				agentId: payload.agentId,
 				backend: payload.backend,
 				charterDeliveredAt: null,
@@ -80,10 +55,8 @@ export const makeEnsureSessionRow = Effect.gen(function* () {
 				parentSessionId: null,
 				rootSessionId: payload.sessionId,
 				status: "open",
-			} satisfies NewAgentSession).pipe(
-				Effect.as(true),
-				Effect.catchTag("PrismaError", (failure) => recoverSessionCreate(payload, currentSessionId, failure)),
-			);
+			} satisfies NewAgentSession);
+			return true;
 		});
 	return (payload: SpawnFields, plan: MooragePlan) =>
 		Effect.gen(function* () {

@@ -1,12 +1,6 @@
 import { Data, Option, Result, Schema } from "effect";
 
-// why: the fleet keeps one voyage apart from the rest — the one whose north
-// star is the fleet itself. Which voyage that is has to survive a restart, so
-// it is a stored word rather than a name or a position, and the set is closed
-// because a third kind would be a third answer to "who speaks for the fleet".
-export const VOYAGE_KINDS = ["voyage", "flagship"] as const;
-
-export const VoyageKindSchema = Schema.Literals(VOYAGE_KINDS);
+export const VoyageKindSchema = Schema.Literals(["voyage", "flagship"]);
 export type VoyageKind = typeof VoyageKindSchema.Type;
 
 export class StoredVoyageKindInvalid extends Data.TaggedError("StoredVoyageKindInvalid")<{

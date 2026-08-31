@@ -23,8 +23,6 @@ export {
 } from "@antumbra/sessions";
 export { SettingsSourceLive } from "@antumbra/settings";
 export {
-	AGENT_STATUS_EVENTS,
-	AGENT_STATUSES,
 	type AgentStatus,
 	type AgentStatusEvent,
 	AgentStatusSchema,

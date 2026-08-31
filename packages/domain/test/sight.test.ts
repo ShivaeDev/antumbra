@@ -13,9 +13,6 @@ it.live("spawn surfaces on the fleet feed once the agent lives", () =>
 		yield* Effect.gen(function* () {
 			const sight = yield* SightSource;
 			const receipt = yield* sight.spawn(spawnRequest);
-			// why: the agent surfaces before its moorage is provisioned, so the
-			// feed legitimately shows it session-less first — the test waits for
-			// the snapshot that carries the session.
 			const settled = yield* sight.fleetFeed.pipe(
 				Stream.filter((fleet) => fleet.agents.some((agent) => agent.id === receipt.agentId && agent.status === "alive" && agent.sessions.length > 0)),
 				Stream.take(1),
@@ -95,11 +92,13 @@ it.live("interrupt reaches the live handle; a dead session fails softly", () =>
 		yield* Effect.gen(function* () {
 			const sight = yield* SightSource;
 			const receipt = yield* sight.spawn(spawnRequest);
-			yield* eventually(
-				Effect.gen(function* () {
-					const fleet = yield* sight.fleet;
-					expect(fleet.agents.some((a) => a.id === receipt.agentId)).toBe(true);
-				}),
+			yield* sight.fleetFeed.pipe(
+				Stream.filter((fleet) =>
+					fleet.agents.some(
+						(agent) => agent.id === receipt.agentId && agent.sessions.some((session) => session.id === receipt.sessionId && session.canInterrupt),
+					),
+				),
+				Stream.runHead,
 			);
 			yield* sight.interrupt(receipt.sessionId);
 			const session = yield* scripted.session(receipt.sessionId);

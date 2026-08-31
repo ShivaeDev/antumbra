@@ -1,4 +1,4 @@
-import { SETTINGS, type SettingChange, SettingRefused, type SettingValue } from "@antumbra/contract";
+import { SETTINGS, type SettingChange, SettingRefused } from "@antumbra/contract";
 import { Database } from "@antumbra/persistence";
 import { Clock, Effect, Option } from "effect";
 import { readSettings } from "#reading.ts";
@@ -9,7 +9,7 @@ export const changeSetting = (change: SettingChange) =>
 		const declaration = SETTINGS[change.key];
 		const value = yield* Option.match(declaration.decode(change.value), {
 			onNone: () => Effect.fail(new SettingRefused({ expects: declaration.expects, key: change.key })),
-			onSome: (value: SettingValue) => Effect.succeed(value),
+			onSome: (value) => Effect.succeed(value),
 		});
 		const now = yield* Clock.currentTimeMillis;
 		if (value === declaration.fallback) {

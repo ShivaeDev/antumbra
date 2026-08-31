@@ -29,8 +29,6 @@ import { makeWindowRegistry, type WindowShell } from "#adapters/windows/registry
 import { restoreWindows } from "#adapters/windows/restore.ts";
 import { WindowSourceLive } from "#adapters/windows/source.ts";
 
-const LAYOUT_PATIENCE_MILLIS = 400;
-
 const layoutStore = Effect.provide(
 	Effect.map(FileSystem.FileSystem, (fs) => fileLayoutStore(fs, windowLayoutInDataDirectory(configureDataDirectory()))),
 	NodeServices.layer,
@@ -50,14 +48,12 @@ const startOwner = (shell: WindowShell, store: LayoutStore) => {
 		yield* quitWhenAllWindowsClosed;
 		yield* ensureInstallMarker;
 		const writer = yield* layoutWriter({
-			patience: LAYOUT_PATIENCE_MILLIS,
 			registry: shell.registry,
 			store,
 		});
 		yield* restoreWindows(shell, store);
 		yield* Effect.sync(() => {
 			shell.registry.onChanged(() => runtime.runFork(writer.note));
-			runtime.runFork(writer.run);
 		});
 		yield* Effect.sync(() => runtime.runFork(fleetTray(focusOrOpenConsole(shell.registry, openConsole(shell)))));
 		yield* Effect.logInfo("bridge: console open");

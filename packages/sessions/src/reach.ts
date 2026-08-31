@@ -7,10 +7,6 @@ import type { WakeFields } from "#wake/input.ts";
 // cannot read is a refusal of its own — one that submitting alone never had.
 export type RouseRefused = PayloadInvalid | PrismaError | StoredIntentInvalid | UnregisteredIntentTag;
 
-// why: the wake is handed back rather than fired and forgotten, because a
-// caller that does not watch it is exactly how a parked wake became invisible.
-// `retried` says which act this was: a fresh demand, or a second push at one
-// the record already held.
 export interface SessionRouse {
 	readonly changes: Stream.Stream<IntentStatus, IntentNotFound | PrismaError>;
 	readonly id: string;

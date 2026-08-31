@@ -1,38 +1,19 @@
-import { mkdtempSync, readFileSync, rmSync } from "node:fs";
-import { tmpdir } from "node:os";
+import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { DatabaseSync } from "node:sqlite";
+import type { DatabaseSync } from "node:sqlite";
 import { fileURLToPath } from "node:url";
 import { Effect, Exit } from "effect";
-import { afterAll } from "vitest";
 import { applyMigrations } from "#adapters/migrator.ts";
 import committedContract from "#contract.json" with { type: "json" };
-import { brandDatabaseFilePath } from "#data-dir.ts";
+import { freshMigrationDatabase, withSqlite } from "#test/migration-harness.ts";
 import { packagedMigrationsDirectory, type TemporaryPersistence } from "#testing.ts";
 
-const directories: string[] = [];
 const packageRoot = fileURLToPath(new URL("..", import.meta.url));
 const migration = join(packageRoot, "migrations", "app", "20260820T1601_session_tree");
 const startContract: unknown = JSON.parse(readFileSync(join(migration, "start-contract.json"), "utf8"));
 
-afterAll(() => {
-	for (const directory of directories.splice(0)) {
-		rmSync(directory, { force: true, recursive: true });
-	}
-});
-
-export const freshDatabase = (): TemporaryPersistence["database"] => {
-	const directory = mkdtempSync(join(tmpdir(), "antumbra-session-tree-"));
-	directories.push(directory);
-	return brandDatabaseFilePath(join(directory, "test.db"));
-};
-
-export const withSqlite = <A>(path: string, act: (database: DatabaseSync) => A): A => {
-	const database = new DatabaseSync(path);
-	const result = act(database);
-	database.close();
-	return result;
-};
+export const freshDatabase = freshMigrationDatabase;
+export { withSqlite };
 
 export const migrateToStart = (database: TemporaryPersistence["database"]) =>
 	applyMigrations({

@@ -27,5 +27,5 @@ export class StoredPieceVerdictInvalid extends Data.TaggedError("StoredPieceVerd
 	}
 }
 
-export type EdgeFailure = EdgeWouldCycle | PieceNotFound | PrismaError;
+type EdgeFailure = EdgeWouldCycle | PieceNotFound | PrismaError;
 export type CharterFailure = EdgeFailure | VoyageNotFound;

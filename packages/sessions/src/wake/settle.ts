@@ -2,16 +2,7 @@ import { type IntentKind, Kernel } from "@antumbra/kernel";
 import { Effect } from "effect";
 import type { WakeFields } from "#wake/wake.ts";
 
-// why: a wake parked against a Session that has since closed is a demand no act
-// can ever complete. The send that would push it refuses on the closed Session
-// first, and boot reclaim only requeues what was running — so the row waits for
-// ever with the admiral's words sealed inside it, and the fleet shows a pending
-// demand that is nothing of the kind.
-//
-// why: pushing the row is how it reaches its own verdict rather than being
-// cancelled from outside. A cancel carries no sentence, so the row would settle
-// still wearing whatever reason it parked with; a push makes the wake run,
-// find the closed Session, and refuse with the reason written on it.
+// A parked wake for a closed Session must run to its own refusal so its row records why delivery became impossible.
 export const makeSettleWakes = (wake: IntentKind<WakeFields>) =>
 	Effect.gen(function* () {
 		const kernel = yield* Kernel;

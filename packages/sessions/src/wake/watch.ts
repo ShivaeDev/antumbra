@@ -3,17 +3,10 @@ import { Database } from "@antumbra/persistence";
 import { Effect, Fiber, Option, Stream } from "effect";
 import type { SessionRouse } from "#reach.ts";
 
-// why: a wake that parked is as finished as one that failed, from the send's
-// point of view — nothing is coming without another act — so waiting settles
-// the watch alongside the terminal three.
+// A waiting wake requires another explicit act, so it ends this send-scoped watcher.
 const isWakeSettled = (status: IntentStatus) => status === "waiting" || isTerminalIntentStatus(status);
 
-// why: the stall warning is only news while the wake can still be saved, so the
-// threshold is a fraction of the patience the wake is measured against rather
-// than a constant standing beside it. Set above the patience — as a flat ninety
-// seconds was against a bound of sixty — the wake is dead and settled before
-// the warning is ever due, and the one report that says "nothing at all is
-// happening" could not fire on this path at all.
+// Warn before the wake's own timeout; a fixed longer delay would never fire.
 const stallOf = (patienceMillis: number) => Math.max(1, Math.floor(patienceMillis / 2));
 
 const GONE = {
@@ -43,10 +36,7 @@ const account = (sessionId: string, intentId: string, said: string) =>
 		});
 	});
 
-// why: what the send can say about its own wake that the wake cannot say about
-// itself — that nothing has happened yet. Why it ended is accounted for on the
-// Intent's own path, because a wake requeued by boot reclaim has no send
-// standing over it and would otherwise end in silence.
+// This watcher reports only lack of progress; the Intent path accounts outcomes so boot requeues are covered.
 export const watchWake = (sessionId: string, rouse: SessionRouse, patienceMillis: number) =>
 	Effect.gen(function* () {
 		const stalled = yield* Effect.forkChild(

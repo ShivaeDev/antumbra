@@ -36,11 +36,8 @@ const gatedPieceIdsOf = (rulingId: string) =>
 const reclassificationsOf = (rulingId: string) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
-		// why: `at` is a millisecond and two words about one ruling can share it,
-		// so the id settles the tie — the fold that reads the latest word on each
-		// axis must not depend on what order rows came back in.
 		const rows = yield* db.RulingReclassification.where({ rulingId })
-			.orderBy([(row) => row.at.asc(), (row) => row.id.asc()])
+			.orderBy((row) => row.at.asc())
 			.all();
 		return yield* Effect.forEach(rows, (row) => storedReclassification(rulingId, row));
 	});

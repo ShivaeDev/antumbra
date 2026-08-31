@@ -37,8 +37,6 @@ it.effectDB("moves the rung one step and says who moved it", function* () {
 	).pipe(Effect.provide(layer));
 });
 
-// why: the axes belong to the asker and to whoever reclassifies them, so
-// climbing moves the rung and leaves radius and urgency exactly as they were.
 it.effectDB("leaves both axes where the asker declared them", function* () {
 	yield* Effect.gen(function* () {
 		yield* seedFleet;

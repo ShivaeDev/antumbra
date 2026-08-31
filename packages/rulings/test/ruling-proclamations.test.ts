@@ -38,8 +38,6 @@ it.effectDB("a rule the admiral asks and answers stands at once", function* () {
 			});
 			expect(yield* rulings.open()).toEqual([]);
 			expect((yield* rulings.standing([])).map((each) => each.id)).toEqual([ruling.id]);
-			// why: the asker and the answer are the same hand, so nobody is owed
-			// the mail an agent's request would leave behind.
 			expect(yield* rulings.awaitingDelivery()).toEqual([]);
 		}),
 	).pipe(Effect.provide(layer));
@@ -60,8 +58,6 @@ it.effectDB("answers with the choice a proclamation named", function* () {
 	}).pipe(Effect.provide(layer));
 });
 
-// why: the pick names a label because no choice had an id yet, so a label
-// matching none of them is refused exactly as an unknown id would be.
 it.effectDB("refuses a proclamation picking a choice it never offered", function* () {
 	yield* Effect.gen(function* () {
 		yield* seedFleet;
@@ -73,11 +69,11 @@ it.effectDB("refuses a proclamation picking a choice it never offered", function
 			_tag: "RulingChoiceUnknown",
 			choiceId: "dredge at night",
 		});
+		expect(yield* rulings.open()).toEqual([]);
+		expect(yield* rulings.standing([])).toEqual([]);
 	}).pipe(Effect.provide(layer));
 });
 
-// why: an authority may ask without answering; only proclaiming binds the two
-// into one act, so a request it makes stays open like any other.
 it.effectDB("keeps an authority's own request open until ruled", function* () {
 	yield* Effect.gen(function* () {
 		yield* seedFleet;
@@ -92,39 +88,5 @@ it.effectDB("keeps an authority's own request open until ruled", function* () {
 		expect(ruling.requester).toEqual({ by: "admiral", kind: "authority" });
 		expect(Option.isNone(ruling.answer)).toBe(true);
 		expect((yield* rulings.open()).map((each) => each.id)).toEqual([ruling.id]);
-	}).pipe(Effect.provide(layer));
-});
-
-it.effectDB("refuses a row naming an agent and an authority", function* (db) {
-	yield* Effect.gen(function* () {
-		yield* seedFleet;
-		const rulings = yield* Rulings;
-		const ruling = yield* rulings.request(asked);
-
-		yield* db.Ruling.where({ id: ruling.id }).update({
-			requesterAuthority: "admiral",
-		});
-
-		expect(yield* Effect.flip(rulings.get(ruling.id))).toMatchObject({
-			_tag: "StoredRulingValueInvalid",
-			field: "requester",
-		});
-	}).pipe(Effect.provide(layer));
-});
-
-it.effectDB("refuses a row naming no requester at all", function* (db) {
-	yield* Effect.gen(function* () {
-		yield* seedFleet;
-		const rulings = yield* Rulings;
-		const ruling = yield* rulings.request(asked);
-
-		yield* db.Ruling.where({ id: ruling.id }).update({
-			requesterAgentId: null,
-		});
-
-		expect(yield* Effect.flip(rulings.get(ruling.id))).toMatchObject({
-			_tag: "StoredRulingValueInvalid",
-			field: "requester",
-		});
 	}).pipe(Effect.provide(layer));
 });

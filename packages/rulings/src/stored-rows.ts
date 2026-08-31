@@ -1,5 +1,3 @@
-// why: these are the rows as the database hands them back, before any decoding
-// into the model; a reader that trusts them as the model is reading corruption.
 export interface StoredRuling {
 	readonly answer: string | null;
 	readonly answerChoiceId: string | null;

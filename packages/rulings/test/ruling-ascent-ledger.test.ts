@@ -30,8 +30,6 @@ it.effectDB("owes every open ask to the rung it waits on", function* () {
 	}).pipe(Effect.provide(layer));
 });
 
-// why: a question the admiral holds is owed to no agent — the window is where
-// the admiral meets it, so carrying it anywhere would only bury it.
 it.effectDB("leaves a question waiting on the admiral alone", function* () {
 	yield* Effect.gen(function* () {
 		yield* seedFleet;
@@ -78,8 +76,6 @@ it.effectDB("leaves a proclamation to the authority that wrote it", function* ()
 	}).pipe(Effect.provide(layer));
 });
 
-// why: the rung, not the radius, says who is owed the question — a captain
-// that pushes a narrow question up owes it to the flagship all the same.
 it.effectDB("owes a passed-up question to the rung it reached", function* () {
 	yield* Effect.gen(function* () {
 		yield* seedFleet;

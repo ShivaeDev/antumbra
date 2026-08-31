@@ -52,16 +52,10 @@ export const writeRequest = (row: StoredRuling, input: RulingRequest) =>
 		return yield* loadRuling(row);
 	});
 
-// why: the whole request is one write. A subject or a gate naming nothing
-// refuses it before any row lands, so a ruling never carries a reference the
-// fleet lost and a hold never lands without the ruling that can release it.
-// Readiness changes only when a piece was held, so the voyage hears of it
-// only then.
 export const request = Effect.fn("rulings.request")(function* (input: RulingRequest) {
-	const db = yield* Database;
 	const feeds = yield* DomainFeeds;
 	const now = yield* Clock.currentTimeMillis;
-	const stored = yield* db.transaction(writeRequest(requested(input, now), input));
+	const stored = yield* writeRequest(requested(input, now), input);
 	yield* feeds.publishRulingRefresh();
 	if (stored.gatedPieceIds.length > 0) {
 		yield* feeds.publishVoyageRefresh();

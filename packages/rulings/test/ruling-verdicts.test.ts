@@ -153,8 +153,6 @@ it.effectDB("refuses an authority the radius reaches past", function* () {
 	}).pipe(Effect.provide(layer));
 });
 
-// why: a question that climbed past a captain is no longer that captain's,
-// however narrow it is — the rung refuses before reach is even asked about.
 it.effectDB("refuses an authority below the rung it waits on", function* () {
 	yield* Effect.gen(function* () {
 		yield* seedFleet;
@@ -179,8 +177,6 @@ it.effectDB("refuses an authority below the rung it waits on", function* () {
 	}).pipe(Effect.provide(layer));
 });
 
-// why: captains are many, so an answer from one is only trustworthy if the
-// record says which one gave it; the admiral rules from the window as nobody.
 it.effectDB("names the agent that ruled, and nobody for the admiral", function* () {
 	yield* Effect.gen(function* () {
 		yield* seedFleet;

@@ -8,9 +8,6 @@ type SubjectKind = RulingSubject["kind"];
 
 const named = (subject: RulingSubject): string => (subject.kind === "tag" ? subject.tag : subject.id);
 
-// why: exactly one column carries a subject, so entries of one kind differ only
-// in what that column must hold — the whole kind is asked for in one query
-// rather than one query per entry.
 const kindMatches = (kind: SubjectKind, values: ReadonlyArray<string>) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
@@ -48,14 +45,6 @@ const scoped = (rows: ReadonlyArray<StoredRuling>, filter: ReadonlyArray<RulingS
 		return rows.filter((row) => matched.has(row.id));
 	});
 
-// why: a ruling stands once ruled and until a later one takes over its scope or
-// an authority withdraws it, and precedent is read newest first so the latest
-// word about a scope is the first one an asker meets. Both halves of standing
-// are asked of the record rather than sieved out of every ruling ever ruled; a
-// retired ruling stays reachable by id, it just binds no one. Two rulings can
-// be ruled in the same millisecond, and then the one raised later reads as the
-// later word — an order the record settles rather than one the query plan
-// happens to pick.
 export const standing = Effect.fn("rulings.standing")(function* (filter: ReadonlyArray<RulingSubject>) {
 	const db = yield* Database;
 	const rows = yield* db.Ruling.where({
@@ -63,7 +52,7 @@ export const standing = Effect.fn("rulings.standing")(function* (filter: Readonl
 		withdrawnAt: null,
 	})
 		.where((ruling) => ruling.ruledAt.isNotNull())
-		.orderBy([(ruling) => ruling.ruledAt.desc(), (ruling) => ruling.createdAt.desc()])
+		.orderBy((ruling) => ruling.ruledAt.desc())
 		.all();
 	return yield* Effect.forEach(yield* scoped(rows, filter), loadRuling);
 });

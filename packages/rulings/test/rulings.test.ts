@@ -26,8 +26,6 @@ it.effectDB("stores the choices a request offers in order", function* (db) {
 	}).pipe(Effect.provide(layer));
 });
 
-// why: a question waits on exactly one rung from the moment it is asked, so
-// the ascent never has to guess who is owed it from the radius alone.
 it.effectDB("stores the rung the asker's request waits on", function* () {
 	yield* Effect.gen(function* () {
 		yield* seedFleet;

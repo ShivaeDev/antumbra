@@ -1,7 +1,7 @@
 import { Data, Result } from "effect";
-import { type AgentStatus, AgentStatusSchema } from "#agent-runtime/statuses.ts";
+import type { AgentStatus } from "#agent-runtime/statuses.ts";
 
-export const AGENT_STATUS_EVENTS = ["activate", "reclaim", "retire"] as const;
+const AGENT_STATUS_EVENTS = ["activate", "reclaim", "retire"] as const;
 export type AgentStatusEvent = (typeof AGENT_STATUS_EVENTS)[number];
 
 export class InvalidAgentTransition extends Data.TaggedError("InvalidAgentTransition")<{
@@ -15,8 +15,6 @@ const TABLE: Record<AgentStatus, Partial<Record<AgentStatusEvent, AgentStatus>>>
 	retired: {},
 	spawning: { activate: "alive", reclaim: "dormant", retire: "retired" },
 };
-
-export const AGENT_STATUSES = AgentStatusSchema.literals;
 
 export const agentTransition = (from: AgentStatus, event: AgentStatusEvent): Result.Result<AgentStatus, InvalidAgentTransition> => {
 	const next = TABLE[from][event];

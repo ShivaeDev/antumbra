@@ -1,6 +1,4 @@
 export {
-	AGENT_STATUS_EVENTS,
-	AGENT_STATUSES,
 	type AgentStatusEvent,
 	agentTransition,
 	InvalidAgentTransition,
@@ -9,7 +7,6 @@ export {
 	decodeSessionExecutionStatus,
 	InvalidSessionExecutionStatus,
 	InvalidSessionExecutionTransition,
-	SESSION_EXECUTION_EVENTS,
 	type SessionExecutionEvent,
 	type SessionExecutionStatus,
 	SessionExecutionStatusSchema,

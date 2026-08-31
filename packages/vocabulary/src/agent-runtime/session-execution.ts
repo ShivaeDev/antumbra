@@ -3,7 +3,7 @@ import { Data, Option, Result, Schema } from "effect";
 export const SessionExecutionStatusSchema = Schema.Literals(["active", "draining", "idle"]);
 export type SessionExecutionStatus = typeof SessionExecutionStatusSchema.Type;
 
-export const SESSION_EXECUTION_EVENTS = ["request-siesta", "settle", "stand-down", "turn-completed", "wake"] as const;
+const SESSION_EXECUTION_EVENTS = ["request-siesta", "settle", "stand-down", "turn-completed", "wake"] as const;
 export type SessionExecutionEvent = (typeof SESSION_EXECUTION_EVENTS)[number];
 
 export class InvalidSessionExecutionStatus extends Data.TaggedError("InvalidSessionExecutionStatus")<{

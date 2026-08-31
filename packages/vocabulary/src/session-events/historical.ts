@@ -1,16 +1,14 @@
 import { Option, Schema } from "effect";
 import { AgentEvent } from "#session-events/events.ts";
 
-export const KnownAgentEvent = Schema.TaggedStruct("Known", {
+const KnownAgentEvent = Schema.TaggedStruct("Known", {
 	event: AgentEvent,
 });
-export type KnownAgentEvent = typeof KnownAgentEvent.Type;
 
-export const UnknownAgentEvent = Schema.TaggedStruct("Unknown", {
+const UnknownAgentEvent = Schema.TaggedStruct("Unknown", {
 	kind: Schema.String,
 	payload: Schema.String,
 });
-export type UnknownAgentEvent = typeof UnknownAgentEvent.Type;
 
 export const HistoricalAgentEvent = Schema.Union([KnownAgentEvent, UnknownAgentEvent]);
 export type HistoricalAgentEvent = typeof HistoricalAgentEvent.Type;

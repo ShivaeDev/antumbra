@@ -5,7 +5,7 @@ import { expect, it } from "@effect/vitest";
 import { Effect, Option, Stream } from "effect";
 import { AgentDomain } from "#domain.ts";
 import { makeRulingToolCompiler } from "#ruling-tools.ts";
-import { dispatchingLayer, domainCapabilityLayer } from "#test/domain-layers.ts";
+import { dispatchingLayer, domainCapabilityLayer, domainKernelLayer } from "#test/domain-layers.ts";
 import { acquireTemporaryPersistence, callTool, makeScriptedBackend, type ScriptedBackend, sessionFor } from "#test/harness.ts";
 import { chain, eventually, openReefVoyage, PATIENCE } from "#test/voyage-fixtures.ts";
 
@@ -179,10 +179,28 @@ it.live("crew on a piece may hold a sibling piece of its voyage", () =>
 		const temporary = yield* acquireTemporaryPersistence;
 		const scripted = yield* makeScriptedBackend;
 		yield* Effect.gen(function* () {
-			const { alpha, bravo } = yield* chain;
-			const crew = yield* eventually(crewOn(scripted, alpha.id));
+			const domain = yield* AgentDomain;
+			const kernel = yield* Kernel;
+			const voyage = yield* openReefVoyage;
+			const charter = (title: string) =>
+				domain.voyages.charterPiece({
+					charter: `do ${title}`,
+					dependsOn: [],
+					expectation: `${title} is landed`,
+					role: "hand",
+					title,
+					voyageId: voyage.id,
+				});
+			const alpha = yield* charter("alpha");
+			const bravo = yield* charter("bravo");
+			const crewed = yield* domain.voyages.workNow(alpha.id);
+			const status = yield* kernel
+				.changes(crewed.intentId)
+				.pipe(Stream.takeUntil(isTerminalIntentStatus), Stream.runLast, Effect.map(Option.getOrThrow));
+			expect(status).toBe("succeeded");
+			const crew = yield* sessionFor(scripted, crewed.agentId);
 
-			const outcome = yield* callTool(crew.live, "request_ruling", {
+			const outcome = yield* callTool(crew, "request_ruling", {
 				...ASK,
 				gates: [bravo.id],
 			});
@@ -192,6 +210,6 @@ it.live("crew on a piece may hold a sibling piece of its voyage", () =>
 				text: expect.stringContaining("pressing; holds 1 piece(s)."),
 			});
 			expect(yield* gatedPieceIds).toEqual([bravo.id]);
-		}).pipe(Effect.provide(dispatchingLayer(temporary, scripted.backend, PATIENCE)));
+		}).pipe(Effect.provide(domainKernelLayer(temporary, scripted.backend)));
 	}),
 );

@@ -24,12 +24,6 @@ const sweptChild = (threadId: string, parentThreadId: string) => ({
 	working: false,
 });
 
-// why: the census has one source, and it is the one reading shown to be
-// complete: asked by ancestor, codex names every thread spawned below the root
-// at any depth — the children whose first turn left no preview included. The
-// kind-filtered listing it replaced was blind to exactly those and lost rows to
-// its own pagination besides, so there is no second reading to cross-check
-// against and no disagreement left to arbitrate.
 const oneMissed: CensusSweep = [
 	{
 		agentNickname: "quiet-tern",
@@ -79,11 +73,6 @@ it.live("a thread the sweep proves and the record missed is admitted", () =>
 				return;
 			}
 
-			// why: codex re-drives a delegated thread across activations, so a census
-			// that found one says it existed and never that it stopped. The row is
-			// open and still recording because nothing has heard it end. Where it
-			// hangs and what ran in it are codex's own words from the sweep, not the
-			// record's guess.
 			expect(found).toMatchObject({
 				agentId: receipt.agentId,
 				completeness: "recording",
@@ -95,9 +84,6 @@ it.live("a thread the sweep proves and the record missed is admitted", () =>
 			});
 			const gaps = yield* gapsOn(found.id);
 			expect(gaps.join("")).toContain("the stream never carried it");
-			// why: a census is taken at every close and reads the same source each
-			// time. One life, one reading, one fact — the same finding is never
-			// written down twice.
 			expect(gaps.filter((said) => said.includes("census-missing"))).toHaveLength(1);
 		}),
 	),
@@ -123,10 +109,6 @@ it.live("a thread the record already holds is named and left alone", () =>
 				return;
 			}
 
-			// why: the sweep names every thread below the root, the ones the stream
-			// carried included — so what the record already holds is the larger half
-			// of the answer. Admitting those again would give one thread two rows and
-			// call a node missing that was never missed.
 			expect((yield* gapsOn(held.id)).join("")).not.toContain("census-missing");
 		}),
 	),
@@ -147,10 +129,6 @@ it.live("a sweep that could not be taken admits nothing and says so", () =>
 			);
 			const rows = yield* rowsOf(receipt.sessionId);
 
-			// why: an unanswered question is not an empty answer. Admitting on a
-			// reading that never came, or calling the session whole because nothing
-			// contradicted it, are the same guess in opposite directions — so the
-			// record admits nothing and says plainly that it could not check.
 			expect(said).toContain("unknown");
 			expect(said).toContain("which threads this session delegated to");
 			expect(rows.some((row) => row.nativeRef === MISSED_THREAD)).toBe(false);

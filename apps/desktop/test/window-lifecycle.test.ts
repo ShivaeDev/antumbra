@@ -31,9 +31,6 @@ describe("window lifecycle", () => {
 		expect(calls).toEqual(["release", "recover", "release", "closed"]);
 	});
 
-	// why: where a window moved to lives in the registry only as long as its
-	// record does, so an ending reads it on the way out. Releasing first would
-	// leave both endings acting on the place the window opened at.
 	it("hands authority back and keeps the place the window last reported", () => {
 		const registry = makeWindowRegistry();
 		const record = ownWindow(registry, "child", transcriptPlace("session-1"));

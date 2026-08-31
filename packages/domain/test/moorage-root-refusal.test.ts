@@ -1,6 +1,6 @@
 import type { DatabaseService, NewAgentSession } from "@antumbra/persistence";
 import type { MooragePlan } from "@antumbra/plugin-api";
-import { it } from "@antumbra/testing/domain";
+import { it } from "@antumbra/testing-runtime/domain";
 import { expect } from "@effect/vitest";
 import { Effect } from "effect";
 import type { SpawnFields } from "#index.ts";

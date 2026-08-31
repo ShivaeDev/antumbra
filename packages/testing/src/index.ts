@@ -1,4 +1,79 @@
-import { type AppHarness, runWithApp } from "#app.ts";
-import { makeEffectApp } from "#it.ts";
+import { dirname, join } from "node:path";
+import {
+	AgentDomain,
+	AgentDomainLive,
+	BackendCapacityReleaseLive,
+	ChangeWatcherLive,
+	DispatcherLive,
+	FlagshipLive,
+	IntentFeedLive,
+	KernelReachLive,
+	RulingAscentLive,
+	RulingDeliveryLive,
+	RulingSourceLive,
+	SessionShutdownLive,
+	SettingsSourceLive,
+	SightSourceLive,
+	VoyageSourceLive,
+} from "@antumbra/domain";
+import { IntentDemandLive } from "@antumbra/intent-demand";
+import { type Kernel, KernelLive } from "@antumbra/kernel";
+import { Database, type DatabaseService } from "@antumbra/persistence";
+import type { TemporaryPersistence } from "@antumbra/persistence/testing";
+import { makeEffectApp, makeScriptedBackend, passiveRunner, type ScriptedBackend } from "@antumbra/testing-runtime";
+import { NodeServices } from "@effect/platform-node";
+import { Effect, Layer } from "effect";
 
-export const it = { effectApp: makeEffectApp<AppHarness, never>(runWithApp) };
+interface AppHarness {
+	readonly db: DatabaseService;
+	readonly scripted: ScriptedBackend;
+}
+
+type AppRequirements = AgentDomain | Kernel;
+
+const applicationLayer = (temporary: TemporaryPersistence, scripted: ScriptedBackend) => {
+	const directory = dirname(temporary.database);
+	const agents = AgentDomainLive(
+		new Map([[scripted.backend.tag, scripted.backend]]),
+		new Map([[passiveRunner.tag, passiveRunner]]),
+		new Map(),
+		join(directory, "artifacts"),
+		join(directory, "session-inputs"),
+	).pipe(Layer.provide(NodeServices.layer));
+	const kernel = Layer.unwrap(
+		Effect.gen(function* () {
+			const domain = yield* AgentDomain;
+			return KernelLive({ kinds: domain.kinds });
+		}),
+	).pipe(Layer.provideMerge(agents));
+	return Layer.mergeAll(
+		RulingSourceLive,
+		SightSourceLive,
+		VoyageSourceLive,
+		ChangeWatcherLive(),
+		DispatcherLive(),
+		Layer.unwrap(
+			Effect.gen(function* () {
+				const domain = yield* AgentDomain;
+				return IntentDemandLive(domain.intentDemands);
+			}),
+		),
+		FlagshipLive,
+		IntentFeedLive,
+		KernelReachLive,
+		RulingAscentLive,
+		RulingDeliveryLive,
+		SessionShutdownLive,
+	).pipe(Layer.provideMerge(BackendCapacityReleaseLive), Layer.provideMerge(kernel), Layer.provideMerge(SettingsSourceLive), Layer.orDie);
+};
+
+const makeApp = (temporary: TemporaryPersistence) =>
+	Effect.gen(function* () {
+		const scripted = yield* makeScriptedBackend;
+		const harness = Effect.gen(function* () {
+			return { db: yield* Database, scripted };
+		});
+		return { harness, layer: applicationLayer(temporary, scripted) };
+	});
+
+export const it = { effectApp: makeEffectApp<AppHarness, AppRequirements>(makeApp) };

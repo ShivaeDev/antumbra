@@ -4,7 +4,7 @@ import { Effect } from "effect";
 import { TestClock } from "effect/testing";
 import { asked, it, layer, pieceId, seedFleet, voyageId } from "#test/rulings-harness.ts";
 
-it.effectDB("meets open rulings by urgency, then by radius", function* () {
+it.effectApp("meets open rulings by urgency, then by radius", function* () {
 	yield* Effect.gen(function* () {
 		yield* seedFleet;
 		const rulings = yield* Rulings;
@@ -33,7 +33,7 @@ it.effectDB("meets open rulings by urgency, then by radius", function* () {
 	}).pipe(Effect.provide(layer));
 });
 
-it.effectDB("leaves a ruled ruling out of the open set", function* () {
+it.effectApp("leaves a ruled ruling out of the open set", function* () {
 	yield* Effect.gen(function* () {
 		yield* seedFleet;
 		const rulings = yield* Rulings;
@@ -50,7 +50,7 @@ it.effectDB("leaves a ruled ruling out of the open set", function* () {
 	}).pipe(Effect.provide(layer));
 });
 
-it.effectDB("reads standing rulings newest first", function* () {
+it.effectApp("reads standing rulings newest first", function* () {
 	yield* Effect.gen(function* () {
 		yield* seedFleet;
 		const rulings = yield* Rulings;
@@ -74,7 +74,7 @@ it.effectDB("reads standing rulings newest first", function* () {
 	}).pipe(Effect.provide(layer));
 });
 
-it.effectDB("matches references exactly and tags by name", function* () {
+it.effectApp("matches references exactly and tags by name", function* () {
 	yield* Effect.gen(function* () {
 		yield* seedFleet;
 		const rulings = yield* Rulings;

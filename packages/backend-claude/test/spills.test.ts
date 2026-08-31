@@ -4,9 +4,7 @@ import { openSessionMapping } from "#mapping.ts";
 
 const AGENT_CALL = "toolu_01FXPFYypQqTefL5KPsKV8ww";
 
-// why: a real capture — an oversized command output reaches the stream as a
-// short preview while the provider keeps the full bytes on disk beside the
-// session. The tool result itself says where they went.
+// Trimmed live capture of a tool result whose full output was stored outside the stream.
 const spilled = (parent: string | null): SDKUserMessage => ({
 	message: {
 		content: [

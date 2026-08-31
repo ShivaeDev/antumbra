@@ -11,8 +11,6 @@ import { sessionOptions, type ToolAccess } from "#session-options.ts";
 interface RawSessionOptions {
 	readonly call: ToolCall;
 	readonly cwd: string;
-	// why: the Claude Code the host installed, never a bundled copy — the
-	// desktop shell finds it, the backend never guesses a path.
 	readonly executable: string;
 	readonly observeCapacity: BackendCapacityController["observe"];
 	readonly resume: string | undefined;
@@ -88,8 +86,7 @@ export const openRawSession = (options: RawSessionOptions): RawSession => {
 			await live.interrupt();
 		},
 		queue: (text) => input.push(userMessage(text)),
-		// why: "now" is the SDK's mid-turn injection lane — the steer verb of
-		// ruling-level precedence; queue is the turn-boundary default.
+		// Claude priority `now` injects mid-turn; an unprioritized message waits for the next turn boundary.
 		steer: (text) => input.push(userMessage(text, "now")),
 		subscribe: deliveries.subscribe,
 	};

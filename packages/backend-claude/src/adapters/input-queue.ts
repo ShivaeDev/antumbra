@@ -13,18 +13,13 @@ const closedFailure = () =>
 		tag: "claude",
 	});
 
-// why: the SDK pulls user messages from an async iterable, making next() its
-// acceptance boundary. A sender waits until that pull; close fails buffered
-// senders and is the only graceful end of the otherwise-pending iterator.
+// Claude accepts a user message when `query` pulls it from the prompt iterable.
 export class InputQueue {
 	private readonly buffer: QueuedInput[] = [];
 	private readonly handOff: (message: SDKUserMessage) => void;
 	private pending: ((result: IteratorResult<SDKUserMessage>) => void) | null = null;
 	private done = false;
 
-	// why: the pull is also the only honest place in the transcript for what a
-	// session was told — text still buffered here was never said to anyone, and
-	// text handed over mid-step belongs after the events that preceded it.
 	constructor(handOff: (message: SDKUserMessage) => void) {
 		this.handOff = handOff;
 	}

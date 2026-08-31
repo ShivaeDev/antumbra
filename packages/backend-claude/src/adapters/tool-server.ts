@@ -4,14 +4,10 @@ import { CallToolRequestSchema, ListToolsRequestSchema } from "@modelcontextprot
 
 export const TOOL_SERVER_NAME = "antumbra";
 
-// why: MCP hands the handler a promise boundary, so the session supplies the
-// one way a call may be run — the promise settles when the call's own fiber
-// does, and that fiber belongs to the session rather than to this request.
 export type ToolCall = (tool: DirectTool, args: unknown) => Promise<DirectToolOutcome>;
 
 const listed = (tool: DirectTool) => ({
-	// why: without alwaysLoad the model has to search for a tool before it can
-	// call it — measured against the real harness.
+	// `anthropic/alwaysLoad` exposes the tool without a model-side search step.
 	_meta: { "anthropic/alwaysLoad": true },
 	description: tool.description,
 	inputSchema: { ...tool.inputSchema, type: "object" as const },
@@ -23,9 +19,6 @@ const said = (text: string, ok: boolean) => ({
 	isError: !ok,
 });
 
-// why: the SDK's own tool() helper takes zod schemas, which this workspace does
-// not ship; the low-level handlers take the JSON Schema every tool already
-// carries, so serving tools adds no second schema library.
 export const makeToolServer = (tools: ReadonlyArray<DirectTool>, call: ToolCall): McpServer => {
 	const byName = new Map(tools.map((tool) => [tool.name, tool]));
 	const server = new McpServer({ name: TOOL_SERVER_NAME, version: "0.0.0" });

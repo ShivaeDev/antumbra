@@ -2,9 +2,7 @@ import type { SDKMessage, SDKUserMessage } from "@anthropic-ai/claude-agent-sdk"
 import { describe, expect, it } from "vitest";
 import { openSessionMapping } from "#mapping.ts";
 
-// why: fixtures are real captures from a live session (claude-code 2.1.236),
-// trimmed to the fields that matter — the mapping is pinned to what the binary
-// actually says, not to the schema's idea of it.
+// Fixtures are trimmed live captures from claude-code 2.1.236; nested frames contain `parent_agent_id`, which the pinned SDK type omits.
 const SESSION = "57723c86-0b0c-4db1-9c79-1ae37fc5ef4a";
 const AGENT_CALL = "toolu_01FXPFYypQqTefL5KPsKV8ww";
 const SUBSESSION = "a2b8c2a1b3d038e69";
@@ -110,8 +108,6 @@ describe("claude frames map onto the neutral vocabulary", () => {
 		expect(mapping.frame(toolResult(AGENT_CALL))).toMatchObject([{ origin: { spawnedBy: AGENT_CALL }, type: "tool.completed" }]);
 	});
 
-	// why: parent_agent_id rides depth-2 frames on the wire but is absent from the
-	// pinned SDK message types, so the fixture carries it the way the binary does.
 	it("names the spawning node too when the spawner is itself a subsession", () => {
 		const nested = { ...toolResult(AGENT_CALL), parent_agent_id: SUBSESSION };
 		const [event] = openSessionMapping().frame(nested);
@@ -141,8 +137,6 @@ describe("claude frames map onto the neutral vocabulary", () => {
 		expect(mapping.frame(bashStarted)).toMatchObject([{ raw: { kind: "system/task_started" }, type: "raw" }]);
 	});
 
-	// why: work spawned by a workflow arrives with no description, no subagent
-	// type, and no prompt. The opening still stands; it simply says less.
 	it("says only what the frame said when the provider named nothing", () => {
 		const [event] = openSessionMapping().frame(workflowStarted);
 		expect(event).toEqual({
@@ -176,9 +170,6 @@ describe("claude frames map onto the neutral vocabulary", () => {
 		expect(mapping.frame(updated(SUBSESSION))).toMatchObject([{ outcome: "completed", type: "subsession.ended" }]);
 	});
 
-	// why: a killed task was terminated by force, which this vocabulary calls
-	// interrupted — the same reading it gives a notification's 'stopped'. The
-	// provider's own word stays readable in raw either way.
 	it("reads a task killed by force as an interrupted subsession", () => {
 		const mapping = openSessionMapping();
 		mapping.frame(started);
@@ -202,8 +193,6 @@ describe("claude frames map onto the neutral vocabulary", () => {
 		expect(mapping.frame(notified)).toMatchObject([{ raw: { kind: "system/task_notification" }, type: "raw" }]);
 	});
 
-	// why: task_updated carries no run totals, so a task whose notification is the
-	// first terminal frame is the one place the summary and usage reach the event.
 	it("closes on the notification when no patch preceded it", () => {
 		const mapping = openSessionMapping();
 		mapping.frame(started);

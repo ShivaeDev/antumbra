@@ -17,10 +17,7 @@ interface SessionShape {
 	readonly tools: Option.Option<ToolAccess>;
 }
 
-// why: naming every tool in allowedTools is what makes approval deterministic
-// under the literal auto permission mode — the session never stops to ask
-// about the tools we handed it, and nothing else is widened. strictMcpConfig
-// stays unset on purpose: a session inherits the user's own MCP servers.
+// Under `auto` permission mode, each served MCP tool must be listed to avoid an approval stop.
 const served = (access: ToolAccess) => ({
 	allowedTools: access.names.map((name) => `mcp__${TOOL_SERVER_NAME}__${name}`),
 	mcpServers: {
@@ -32,18 +29,8 @@ const served = (access: ToolAccess) => ({
 	},
 });
 
-// why: the SDK's literal "auto" permission mode — ruled policy, and not
-// interchangeable with bypassPermissions. cwd is resolved because it keys the
-// SDK's transcript space — a non-canonical path silently forks it. No session
-// id is pre-assigned: the SDK mints one and reports it in system/init, the
-// same path codex threads take. forwardSubagentText is unconditional: without
-// it the provider forwards only a subsession's tool traffic, so everything a
-// delegated agent said would be missing from its transcript with nothing in
-// the stream to say so. The SDK never acknowledges the flag, so nothing here
-// waits for confirmation that it took. The transcript mirror is unconditional
-// beside it: the agents a workflow runs are forwarded on no lane at all, and
-// the mirror is the only place they exist. It flushes eagerly because a node
-// that opens a turn after it started working reads as one that started late.
+// Claude keys transcript storage by canonical cwd. Delegated-agent text requires `forwardSubagentText`; workflow-agent records are available only
+// through `sessionStore`.
 export const sessionOptions = (session: SessionShape): Options => ({
 	cwd: resolve(session.cwd),
 	forwardSubagentText: true,

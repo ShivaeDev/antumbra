@@ -17,20 +17,6 @@ const summarizeRepo = (row: {
 	source: row.source,
 });
 
-const refuseTakenSlug = (source: string) =>
-	Effect.gen(function* () {
-		const db = yield* Database;
-		const slug = repoSlug(source);
-		const rows = yield* db.Repo.all();
-		const holder = rows.find((row) => repoSlug(row.source) === slug);
-		if (holder !== undefined) {
-			return yield* new RepoSlugTaken({
-				registeredSource: holder.source,
-				slug,
-				source,
-			});
-		}
-	});
 export const registerRepo = Effect.fn("repos.register")(function* (registration: RepoRegistration) {
 	const db = yield* Database;
 	const feeds = yield* DomainFeeds;
@@ -43,7 +29,15 @@ export const registerRepo = Effect.fn("repos.register")(function* (registration:
 		yield* feeds.publishFleetRefresh();
 		return summarizeRepo({ ...existing.value, ...registration });
 	}
-	yield* refuseTakenSlug(registration.source);
+	const slug = repoSlug(registration.source);
+	const holder = (yield* db.Repo.all()).find((row) => repoSlug(row.source) === slug);
+	if (holder !== undefined) {
+		return yield* new RepoSlugTaken({
+			registeredSource: holder.source,
+			slug,
+			source: registration.source,
+		});
+	}
 	const row = {
 		defaultRef: registration.defaultRef,
 		id: crypto.randomUUID(),

@@ -1,12 +1,14 @@
 import { dirname, join } from "node:path";
 import { type Delivery, laneEvents, openSessionLanes } from "@antumbra/backend-claude";
 import { openThreadClaims, openThreadTree, type RpcNotification, threadOpened } from "@antumbra/backend-codex";
+import type { SightSource } from "@antumbra/contract";
 import { AgentDomain, AgentDomainLive, BackendCapacityReleaseLive, SettingsSourceLive, SightSourceLive } from "@antumbra/domain";
 import { KernelLive } from "@antumbra/kernel";
 import { acquireTemporaryPersistence, type TemporaryPersistence } from "@antumbra/persistence/testing";
 import type { AgentBackend, Runner, SessionHandle } from "@antumbra/plugin-api";
+import { makeEffectApp } from "@antumbra/testing-runtime";
 import { NodeServices } from "@effect/platform-node";
-import { Effect, Layer, Option, Schedule, Stream } from "effect";
+import { Deferred, Effect, Layer, Option, Schedule, Stream } from "effect";
 import {
 	type ScriptedSweep,
 	type StoredTranscripts,
@@ -24,10 +26,6 @@ export const eventually = <A, E, R>(check: Effect.Effect<A, E, R>) =>
 		Effect.retry(Schedule.spaced(10).pipe(Schedule.upTo({ duration: 2000 }))),
 	);
 
-// why: the real claude lanes over a scripted delivery script — the backend the
-// app registers, minus the process. What the domain receives is exactly what a
-// live session would produce on either lane, so the record this builds is the
-// record it builds in production, at zero model tokens.
 const scriptedClaude = (script: ReadonlyArray<Delivery>, stored: StoredTranscripts, drained: Effect.Effect<unknown>): AgentBackend => ({
 	audit: scriptedClaudeAudit(stored),
 	capabilities: {
@@ -48,10 +46,6 @@ const scriptedClaude = (script: ReadonlyArray<Delivery>, stored: StoredTranscrip
 	tag: "claude",
 });
 
-// why: the real codex tree over a scripted broadcast — the notifications the
-// app-server sends for a session and for every thread it delegated to, minus
-// the process. The un-filtering, the attribution and the admissions are the
-// live ones, so the record this builds is the record it builds in production.
 const scriptedCodex = (
 	rootThread: string,
 	script: ReadonlyArray<RpcNotification>,
@@ -133,3 +127,24 @@ export const codexRehearsalLayer = (
 	drained: Effect.Effect<unknown> = Effect.void,
 	sweep: ScriptedSweep = sweptClean,
 ) => sightLayer(temporary, scriptedCodex(rootThread, script, sweep, drained));
+
+interface SessionTreeHarness {
+	readonly drained: Effect.Effect<void>;
+}
+
+const makeRehearsalIt = (backend: (drained: Effect.Effect<void>) => AgentBackend) => ({
+	effectApp: makeEffectApp<SessionTreeHarness, SightSource>((temporary) =>
+		Effect.gen(function* () {
+			const drained = yield* Deferred.make<void>();
+			return {
+				harness: Effect.succeed({ drained: Deferred.await(drained) }),
+				layer: sightLayer(temporary, backend(Deferred.succeed(drained, undefined))).pipe(Layer.orDie),
+			};
+		}),
+	),
+});
+
+export const claudeRehearsalIt = (script: ReadonlyArray<Delivery>) => makeRehearsalIt((drained) => scriptedClaude(script, storedNothing, drained));
+
+export const codexRehearsalIt = (rootThread: string, script: ReadonlyArray<RpcNotification>) =>
+	makeRehearsalIt((drained) => scriptedCodex(rootThread, script, sweptClean, drained));

@@ -38,20 +38,15 @@ const berthRow = Effect.gen(function* () {
 
 const detachSweepAgent = Effect.gen(function* () {
 	const db = yield* Database;
-	yield* db.transaction(
-		Effect.gen(function* () {
-			yield* Database;
-			yield* db.Agent.where({ id: sweepPayload.agentId })
-				.update({ status: "dormant" })
-				.pipe(
-					Effect.andThen(
-						db.AgentSession.where({ id: sweepPayload.sessionId }).update({
-							status: "closed",
-						}),
-					),
-				);
-		}),
-	);
+	yield* db.Agent.where({ id: sweepPayload.agentId })
+		.update({ status: "dormant" })
+		.pipe(
+			Effect.andThen(
+				db.AgentSession.where({ id: sweepPayload.sessionId }).update({
+					status: "closed",
+				}),
+			),
+		);
 });
 
 const dirtyRunner = (base: Runner): Runner => ({

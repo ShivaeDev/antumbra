@@ -56,7 +56,7 @@ it.live("a second open root is refused by name, not by the index", () =>
 		yield* Effect.gen(function* () {
 			const db = yield* Database;
 			const ensureSessionRow = yield* makeEnsureSessionRow;
-			yield* db.transaction(seed);
+			yield* seed;
 
 			const refusal = yield* Effect.flip(ensureSessionRow(payload, plan));
 			expect(refusal._tag).toBe("AgentRootAlreadyOpen");

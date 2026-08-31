@@ -31,31 +31,26 @@ const seedRetirementRows = (input: {
 }) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
-		yield* db.transaction(
-			Effect.gen(function* () {
-				yield* Database;
-				yield* db.Agent.create({
-					charter: "sound the northern shoals",
-					currentSessionId: input.currentSessionId,
-					id: input.agentId,
-					role: "hand",
-					status: input.agentStatus,
-				});
-				yield* db.AgentSession.create({
-					agentId: input.agentId,
-					backend: "scripted",
-					charterDeliveredAt: new Date(1),
-					createdAt: new Date(1),
-					cwd: `/tmp/${input.agentId}`,
-					executionStatus: input.executionStatus,
-					id: input.sessionId,
-					nativeRef: `native-${input.agentId}`,
-					parentSessionId: null,
-					rootSessionId: input.sessionId,
-					status: "open",
-				} satisfies NewAgentSession);
-			}),
-		);
+		yield* db.Agent.create({
+			charter: "sound the northern shoals",
+			currentSessionId: input.currentSessionId,
+			id: input.agentId,
+			role: "hand",
+			status: input.agentStatus,
+		});
+		yield* db.AgentSession.create({
+			agentId: input.agentId,
+			backend: "scripted",
+			charterDeliveredAt: new Date(1),
+			createdAt: new Date(1),
+			cwd: `/tmp/${input.agentId}`,
+			executionStatus: input.executionStatus,
+			id: input.sessionId,
+			nativeRef: `native-${input.agentId}`,
+			parentSessionId: null,
+			rootSessionId: input.sessionId,
+			status: "open",
+		} satisfies NewAgentSession);
 	});
 
 // why: the button and the sweep both read a moment that had already passed, so

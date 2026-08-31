@@ -63,5 +63,3 @@ export const pieceChangeRow = (row: { readonly changeId: string; readonly pieceI
 			}),
 		),
 	);
-
-export type { PieceChangePurpose };

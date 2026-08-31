@@ -19,10 +19,6 @@ export interface NodeAdoption {
 
 export const makeSessionTreeRows = Effect.gen(function* () {
 	const db = yield* Database;
-	// why: a node inherits the Agent, the root and the workspace from the row
-	// that owns the tree rather than from anything the provider said, so a
-	// subsession can never be attributed to another Agent or rooted elsewhere.
-	// Display fields are written once, at open, from what the frame named.
 	const openNode = (root: StoredAgentSession, node: NodeOpening) =>
 		db.AgentSession.create({
 			agentId: root.agentId,
@@ -40,15 +36,8 @@ export const makeSessionTreeRows = Effect.gen(function* () {
 			rootSessionId: root.rootSessionId,
 			status: "open",
 		} satisfies NewAgentSession).pipe(Effect.asVoid);
-	// why: completeness is left where it stands. Whether the node's record is
-	// whole is a question about its gaps, and the audit that answers it reads
-	// them after the close rather than guessing at the moment of it.
 	const closeNode = (sessionId: string, outcome: SubsessionOutcome) =>
 		db.AgentSession.where({ id: sessionId }).update({ outcome, status: "closed" }).pipe(Effect.asVoid);
-	// why: the announcement is the first thing to say where a node belongs and
-	// what it is, so it moves the row under the spawner that made the call. The
-	// display fields only fill holes: a value already written is what the record
-	// said this node was, and adoption is not licence to rename it.
 	const adoptNode = (sessionId: string, adoption: NodeAdoption) =>
 		Effect.gen(function* () {
 			const row = yield* db.AgentSession.where({ id: sessionId }).first();
@@ -66,10 +55,6 @@ export const makeSessionTreeRows = Effect.gen(function* () {
 				parentSessionId: adoption.parentSessionId,
 			});
 		}).pipe(Effect.asVoid);
-	// why: a lane that learns a node's name after its first words have to be
-	// journaled opens the node unnamed rather than holding its transcript. The
-	// name may still arrive, and filling a hole is not renaming: a label already
-	// written is what the record said this node was, and it stands.
 	const nameNode = (sessionId: string, label: string) =>
 		Effect.gen(function* () {
 			const row = yield* db.AgentSession.where({ id: sessionId }).first();
@@ -83,8 +68,6 @@ export const makeSessionTreeRows = Effect.gen(function* () {
 			Effect.asVoid,
 			Effect.catchCause((cause) => Effect.logError("a subsession label could not be filled in", { sessionId }, cause)),
 		);
-	// why: written outside the journal's transaction on purpose — the fact being
-	// recorded is that the journal's own write failed, so it cannot travel on it.
 	const markIncomplete = (sessionId: string) =>
 		db.AgentSession.where({ id: sessionId })
 			.update({
@@ -94,9 +77,7 @@ export const makeSessionTreeRows = Effect.gen(function* () {
 				Effect.asVoid,
 				Effect.catchCause((cause) => Effect.logError("session completeness could not be marked incomplete", { sessionId }, cause)),
 			);
-	// why: a node inherits from a row that must already exist — the spawn wrote
-	// it before the stream was attached. A read that cannot answer is refusal,
-	// not absence: nothing is minted, so no node is rooted on a guess.
+	// A failed root read must not permit node creation.
 	const rootRow = (sessionId: string) =>
 		db.AgentSession.where({ id: sessionId })
 			.first()

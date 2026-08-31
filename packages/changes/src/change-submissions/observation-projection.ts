@@ -5,7 +5,11 @@ import { projectedChange, sameProjectedFacts, stageTransition } from "#change-pr
 import type { ChangeRow } from "#change-rows.ts";
 import { matchObservation, type ObservationAttachment } from "#change-submissions/observation-match.ts";
 import { matchesClaim, observationConflict, selectMatchedRow } from "#change-submissions/observation-selection.ts";
-import { commitObservationProjection, type ReconciledObservation } from "#change-submissions/observation-write.ts";
+
+interface ReconciledObservation {
+	readonly changed: boolean;
+	readonly row: ChangeRow;
+}
 
 const isStale = (row: ChangeRow, observation: ChangeObservation): boolean =>
 	row.stage !== "prepared" && observation.activityAt < row.activityAt.getTime();
@@ -17,6 +21,30 @@ const isEqualTimeReplay = (row: ChangeRow, next: ChangeRow, append: boolean): bo
 	next.activityAt.getTime() === row.activityAt.getTime() && (sameProjectedFacts(row, next) || (next.stage !== row.stage && !append));
 
 const isTerminal = (row: ChangeRow): boolean => row.stage === "landed" || row.stage === "withdrawn";
+
+const updateProjection = (row: ChangeRow) =>
+	Effect.gen(function* () {
+		const db = yield* Database;
+		yield* db.Change.where({ id: row.id }).update({
+			activityAt: row.activityAt,
+			baseRef: row.baseRef,
+			checks: row.checks,
+			draftAt: row.draftAt,
+			externalId: row.externalId,
+			headRef: row.headRef,
+			headSha: row.headSha,
+			landedAt: row.landedAt,
+			mergeable: row.mergeable,
+			observedAt: row.observedAt,
+			raw: row.raw,
+			review: row.review,
+			stage: row.stage,
+			submissionKey: row.submissionKey,
+			title: row.title,
+			url: row.url,
+			withdrawnAt: row.withdrawnAt,
+		});
+	});
 
 const updateMatchedRow = (row: ChangeRow, attachment: ObservationAttachment, hostTag: string, observation: ChangeObservation, now: number) =>
 	Effect.gen(function* () {
@@ -46,7 +74,11 @@ const updateMatchedRow = (row: ChangeRow, attachment: ObservationAttachment, hos
 		if (isEqualTimeReplay(row, next, append)) {
 			return { changed: false, row } satisfies ReconciledObservation;
 		}
-		return yield* commitObservationProjection(row, next, transition, append);
+		yield* updateProjection(next);
+		if (append) {
+			yield* db.ChangeTransition.create(transition);
+		}
+		return { changed: true, row: next } satisfies ReconciledObservation;
 	});
 
 export const reconcileObservation = (hostTag: string, observation: ChangeObservation, now: number, attachment: ObservationAttachment) =>

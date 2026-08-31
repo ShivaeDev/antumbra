@@ -2,8 +2,6 @@ import { Database } from "@antumbra/persistence";
 import { type RulingRequest, type RulingSubject, Rulings } from "@antumbra/rulings";
 import { Effect } from "effect";
 
-// why: a ruling is requested by an agent the record knows, so a rehearsal
-// seeds one asker that takes no slot in the fleet before it asks anything.
 export const ASKER = "agent-asker";
 
 export const seedAsker = Effect.gen(function* () {
@@ -39,8 +37,6 @@ export const ruled = (question: string, answer: string, scope: Pick<RulingReques
 		return yield* rulings.rule({ answer, by: "admiral", rulingId: asked.id });
 	});
 
-// why: an authority that wants a standing rule asks and answers a ruling of
-// its own, so a rehearsal writes one the same way the window does.
 export const proclaimed = (question: string, answer: string, scope: Pick<RulingRequest, "radius" | "subjects">) =>
 	Effect.gen(function* () {
 		const rulings = yield* Rulings;

@@ -66,8 +66,6 @@ it.effectDB("refuses a withdrawal the record refuses, in its words", function* (
 	}).pipe(Effect.provide(layer));
 });
 
-// why: a withdrawn ruling has left the standing set, so nothing may be pointed
-// at it as the rule that took another one's place either.
 it.effectDB("refuses to supersede with a withdrawn ruling", function* () {
 	yield* Effect.gen(function* () {
 		yield* seedFleet;

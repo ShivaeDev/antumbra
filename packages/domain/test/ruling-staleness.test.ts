@@ -40,8 +40,6 @@ it("reads a ruling on a landed piece as stale", () => {
 	expect(staleIn(built, [{ id: "alpha", kind: "piece" }])).toBe(true);
 });
 
-// why: writing a piece off is a decision to stop, so the ruling written for it
-// has nothing left to bind either — abandoned concludes as surely as done.
 it("reads a ruling on an abandoned piece as stale", () => {
 	const built = world({ pieceVerdicts: new Map([["alpha", "abandoned"]]) });
 
@@ -54,8 +52,6 @@ it("reads a ruling on a piece still being worked as fresh", () => {
 	expect(staleIn(built, [{ id: "alpha", kind: "piece" }])).toBe(false);
 });
 
-// why: staleness is every named subject, not any of them — one live piece is
-// enough for the answer to still be needed somewhere.
 it("keeps a ruling fresh while one of its pieces is unfinished", () => {
 	const built = world({
 		pieceReports: [{ pieceId: "alpha", reportId: "r" }],
@@ -91,8 +87,6 @@ it("reads a ruling on a voyage still under way as fresh", () => {
 	expect(staleIn(built, [{ id: "voyage-1", kind: "voyage" }])).toBe(false);
 });
 
-// why: a voyage nobody has chartered work for has not finished; it has not
-// started, and a rule written for it is waiting rather than outlived.
 it("reads a ruling on a voyage with no pieces as fresh", () => {
 	const built = world({ memberships: [], pieces: [] });
 
@@ -106,8 +100,6 @@ it("never reads a ruling scoped only by tags as stale", () => {
 	expect(staleIn(built, [])).toBe(false);
 });
 
-// why: a repository outlives any amount of work, so it neither ages a ruling
-// nor keeps one alive — the pieces beside it decide.
 it("ignores subjects that never conclude", () => {
 	const built = world({ pieceVerdicts: new Map([["alpha", "abandoned"]]) });
 

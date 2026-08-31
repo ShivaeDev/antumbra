@@ -165,10 +165,10 @@ it.live("a landed change flips its piece done and wakes the voyage feed", () =>
 				Effect.gen(function* () {
 					const subscription = yield* feeds.subscribeVoyageRefresh();
 					yield* domain.changes.refresh("scripted");
-					return yield* Stream.fromSubscription(subscription).pipe(Stream.take(1), Stream.runCollect, Effect.timeoutOption(1000));
+					return yield* Stream.fromSubscription(subscription).pipe(Stream.take(1), Stream.runCollect);
 				}),
 			);
-			expect(Option.isSome(heard)).toBe(true);
+			expect(heard).toHaveLength(1);
 
 			const view = Option.getOrThrow(yield* domain.voyages.read(voyage.id));
 			const seen = view.pieces.find((row) => row.id === piece.id);

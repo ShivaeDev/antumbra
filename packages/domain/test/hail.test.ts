@@ -5,7 +5,7 @@ import { Effect, Option } from "effect";
 import { AgentDomain } from "#domain.ts";
 import { domainKernelLayer } from "#test/domain-layers.ts";
 import { acquireTemporaryPersistence, makeScriptedBackend, sessionFor } from "#test/harness.ts";
-import { aliveAgent, eventually, openReefVoyage, retireOneAlive, sessionIdOf } from "#test/voyage-fixtures.ts";
+import { aliveAgent, openReefVoyage, retireOneAlive, sessionIdOf, terminalIntent } from "#test/voyage-fixtures.ts";
 
 const CAPTAIN_TOOLS = [
 	"charter_piece",
@@ -45,7 +45,8 @@ it.live("hailing a voyage brings it a captain and puts it under way", () =>
 			);
 
 			const hailed = yield* domain.voyages.hail(voyage.id);
-			const captain = yield* eventually(aliveAgent(hailed.agentId));
+			expect(yield* terminalIntent(hailed.intentId)).toBe("succeeded");
+			const captain = yield* aliveAgent(hailed.agentId);
 			expect(captain.role).toBe("captain");
 			expect(yield* db.VoyageAgent.all()).toMatchObject([{ agentId: hailed.agentId, role: "captain", voyageId: voyage.id }]);
 
@@ -74,7 +75,8 @@ it.live("a second hail reaches the captain the voyage already has", () =>
 			const domain = yield* AgentDomain;
 			const voyage = yield* openReefVoyage;
 			const hailed = yield* domain.voyages.hail(voyage.id);
-			yield* eventually(aliveAgent(hailed.agentId));
+			expect(yield* terminalIntent(hailed.intentId)).toBe("succeeded");
+			yield* aliveAgent(hailed.agentId);
 
 			const again = yield* domain.voyages.hail(voyage.id);
 			expect(again.agentId).toBe(hailed.agentId);
@@ -95,19 +97,16 @@ it.live("a retired captain is history, and the voyage may be hailed again", () =
 			const domain = yield* AgentDomain;
 			const voyage = yield* openReefVoyage;
 			const first = yield* domain.voyages.hail(voyage.id);
-			yield* eventually(aliveAgent(first.agentId));
+			expect(yield* terminalIntent(first.intentId)).toBe("succeeded");
+			yield* aliveAgent(first.agentId);
 
 			yield* retireOneAlive(scripted);
-			yield* eventually(
-				Effect.gen(function* () {
-					const view = Option.getOrThrow(yield* domain.voyages.read(voyage.id));
-					expect(view.state).toBe("quiet");
-				}),
-			);
+			expect(Option.getOrThrow(yield* domain.voyages.read(voyage.id)).state).toBe("quiet");
 
 			const second = yield* domain.voyages.hail(voyage.id);
 			expect(second.agentId).not.toBe(first.agentId);
-			yield* eventually(aliveAgent(second.agentId));
+			expect(yield* terminalIntent(second.intentId)).toBe("succeeded");
+			yield* aliveAgent(second.agentId);
 
 			expect((yield* db.VoyageAgent.all()).length).toBe(2);
 			const view = Option.getOrThrow(yield* domain.voyages.read(voyage.id));

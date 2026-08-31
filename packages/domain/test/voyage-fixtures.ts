@@ -13,6 +13,12 @@ export const eventually = <A, E, R>(check: Effect.Effect<A, E, R>) =>
 		Effect.retry(Schedule.spaced(10).pipe(Schedule.upTo({ duration: 3000 }))),
 	);
 
+export const terminalIntent = (intentId: string) =>
+	Effect.gen(function* () {
+		const kernel = yield* Kernel;
+		return yield* kernel.changes(intentId).pipe(Stream.takeUntil(isTerminalIntentStatus), Stream.runLast, Effect.map(Option.getOrThrow));
+	});
+
 export const aliveAgent = (agentId: string) =>
 	Effect.gen(function* () {
 		const db = yield* Database;

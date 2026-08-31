@@ -17,7 +17,7 @@ const piece = {
 	title: "Soundings",
 };
 
-it.effectDB("lands a report and its piece link before publishing", function* (db) {
+it.effectDB("lands a report with its piece link and publishes a voyage refresh", function* (db) {
 	yield* Effect.scoped(
 		Effect.gen(function* () {
 			const feeds = yield* DomainFeeds;

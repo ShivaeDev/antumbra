@@ -10,8 +10,6 @@ describe("makeAppRouter, on the rulings", () => {
 		Effect.gen(function* () {
 			const read = yield* Effect.promise(() => callerOf().openRulings());
 			expect(read).toEqual(openRulings);
-			expect(read.rulings[0]?.choices.map((choice) => choice.label)).toEqual(["trust the soundings", "trust the chart"]);
-			expect(read.rulings.map((ruling) => ruling.gatedPieces.length)).toEqual([1, 0]);
 		}),
 	);
 
@@ -47,7 +45,6 @@ describe("makeAppRouter, on the rulings", () => {
 		Effect.gen(function* () {
 			const read = yield* Effect.promise(() => callerOf().standingRulings());
 			expect(read).toEqual(standingRulings);
-			expect(read.rulings.map((ruling) => ruling.chosen)).toEqual([null, "trust the soundings"]);
 		}),
 	);
 
@@ -130,8 +127,6 @@ describe("makeAppRouter, on the rulings", () => {
 		}),
 	);
 
-	// why: an authority that wants a standing rule asks and answers one ruling,
-	// so the whole record travels in a single call and one ruling comes back.
 	it.effect("proclaiming answers with the ruling it made stand", () =>
 		Effect.gen(function* () {
 			const proclaimed = yield* Effect.promise(() =>
@@ -163,8 +158,6 @@ describe("makeAppRouter, on the rulings", () => {
 		}),
 	);
 
-	// why: the words are what a later reader is left with, so an empty answer
-	// never reaches the record — the boundary refuses it before the source does.
 	it.effect("refuses a verdict with no words beside it", () =>
 		Effect.gen(function* () {
 			const outcome = yield* Effect.tryPromise(() => callerOf().ruleOn({ answer: "", rulingId: soundingReading.id })).pipe(Effect.flip);

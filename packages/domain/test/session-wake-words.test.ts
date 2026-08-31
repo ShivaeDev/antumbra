@@ -33,8 +33,6 @@ it.live("a later send delivers its own words, not the parked ones", () =>
 					return all;
 				}),
 			);
-			// why: the demand that carried the stale words is cancelled rather than
-			// left parked, because a wake still waiting can still fire them.
 			expect(rows.find((row) => row.id === parked.id)?.status).toBe("cancelled");
 			expect((yield* sessionRow).executionStatus).toBe("active");
 			const resumed = yield* scripted.session(payload.sessionId);

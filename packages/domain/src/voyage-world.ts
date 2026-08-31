@@ -40,8 +40,6 @@ const voyageWorld: Effect.Effect<
 	const changeSnapshot = yield* Changes;
 	const db = yield* Database;
 	const rulings = yield* Rulings;
-	// why: read in the order they were born, so the map that carries them
-	// keeps that order and the most recent of any set is its last entry.
 	const agents = yield* db.Agent.orderBy((agent) => agent.createdAt.asc()).all();
 	const agentStatuses = yield* Effect.forEach(agents, (agent) =>
 		Effect.fromResult(decodeStoredAgentStatus(agent.id, agent.status)).pipe(Effect.map((status) => [agent.id, status] as const)),

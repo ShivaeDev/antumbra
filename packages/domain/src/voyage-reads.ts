@@ -20,9 +20,6 @@ const listed = (all: ReadonlyArray<VoyageSummary>, voyageId: string) => {
 	return opened === undefined ? absent(voyageId) : Effect.succeed(opened);
 };
 
-// why: the runtime reading is taken beside the same world snapshot the view is
-// derived from, so a piece's crew is judged quiet against the moment its rows
-// were read rather than against a moment either side of it.
 export const makeVoyageReads = (runtime: Effect.Effect<CrewRuntime>) =>
 	Effect.gen(function* () {
 		const boards = yield* Boards;
@@ -55,9 +52,6 @@ export const makeVoyageReads = (runtime: Effect.Effect<CrewRuntime>) =>
 			Effect.mapError(toFailure),
 		);
 		return {
-			// why: a voyage the window just opened is read back rather than assembled
-			// from the row that opened it — state, counts and captain are all derived,
-			// and a window must never be handed a second opinion on them.
 			summaryOf: (voyageId) => voyages.pipe(Effect.flatMap((all) => listed(all, voyageId))),
 			voyage: readVoyage,
 			voyages,

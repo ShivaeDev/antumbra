@@ -19,9 +19,6 @@ const boardScope = Match.type<BoardWriteRequest["scope"]>().pipe(
 	Match.exhaustive,
 );
 
-// why: the window commands the same verbs a captain has — they edit links and
-// stamps, and every one of them refuses the same way, so what a window learns
-// from a refusal never depends on which verb it reached for.
 export const makeVoyageActs = (reads: VoyageReads) =>
 	Effect.gen(function* () {
 		const boards = yield* Boards;
@@ -37,9 +34,6 @@ export const makeVoyageActs = (reads: VoyageReads) =>
 					Effect.map((captain) => ({ agentId: captain.agentId })),
 					Effect.mapError(toFailure),
 				),
-			// why: the verdict is landed, never asserted — what the piece then
-			// reads as is still the ladder's answer, so this act hands back
-			// nothing for a window to mistake for one.
 			landPieceVerdict: (request: PieceVerdictRequest) => voyages.landPieceVerdict(request.pieceId, request.verdict).pipe(Effect.mapError(toFailure)),
 			launch: (pieceId: string) => voyages.launch(pieceId).pipe(Effect.mapError(toFailure)),
 			open: (request: OpenVoyageRequest) =>
@@ -62,8 +56,6 @@ export const makeVoyageActs = (reads: VoyageReads) =>
 					Effect.map((crewed) => ({ agentId: crewed.agentId })),
 					Effect.mapError(toFailure),
 				),
-			// why: an entry the window writes carries no author agent — a board
-			// records which of the crew wrote it, and you are not of the crew.
 			writeBoard: (request: BoardWriteRequest) =>
 				boards
 					.write(

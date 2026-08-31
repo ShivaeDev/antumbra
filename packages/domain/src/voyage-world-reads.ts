@@ -11,9 +11,6 @@ import { type Context, Effect } from "effect";
 import { voyageRow } from "#voyage-row-projection.ts";
 import type { AgentSessionRow, VoyageRow } from "#voyage-rows.ts";
 
-// why: a session's two statuses and a voyage's kind are durable vocabulary
-// rather than the strings their columns hold, so the aggregate refuses a row
-// it cannot read instead of carrying an unknown word into a derivation.
 export const readRootSessions: Effect.Effect<
 	ReadonlyArray<AgentSessionRow>,
 	InvalidSessionExecutionStatus | PrismaError | StoredAgentSessionStatusInvalid,

@@ -1,23 +1,13 @@
 import { BoardScope, EntryInput } from "@antumbra/boards";
 import { it } from "@antumbra/testing";
 import { expect } from "@effect/vitest";
-import { Clock, Effect, Fiber, Option } from "effect";
+import { Clock, Option } from "effect";
 import { TestClock } from "effect/testing";
 
 it.effectApp("uses TestClock unless live time is requested", function* () {
-	let finished = false;
-	const sleeper = yield* Effect.sleep(100).pipe(
-		Effect.andThen(
-			Effect.sync(() => {
-				finished = true;
-			}),
-		),
-		Effect.forkChild,
-	);
-	expect(finished).toBe(false);
+	const before = yield* Clock.currentTimeMillis;
 	yield* TestClock.adjust(100);
-	yield* Fiber.join(sleeper);
-	expect(finished).toBe(true);
+	expect(yield* Clock.currentTimeMillis).toBe(before + 100);
 });
 
 it.effectApp("uses the system clock when requested", { clock: "live" }, function* () {

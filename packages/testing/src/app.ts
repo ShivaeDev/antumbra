@@ -17,5 +17,5 @@ export const runWithApp = <A, E>(body: (harness: AppHarness) => Effect.fn.Return
 		const boards = yield* Boards;
 		const db = yield* Database;
 		const repos = yield* Repos;
-		return yield* Effect.gen(() => body({ boards, db, repos }));
+		return yield* body({ boards, db, repos });
 	}).pipe(Effect.provide(appLayer));

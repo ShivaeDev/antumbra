@@ -111,10 +111,7 @@ it("leaves an Agent that still holds an open Session alone", () => {
 	);
 });
 
-// why: a drain is finished by the process that started it, so a draining row
-// with nothing attached names a process that is gone — the state a quit or a
-// kill mid-drain leaves behind, and the one that makes a Session unresumable
-// forever because a resume may not take a Session on its way out.
+// Only the process that began a drain can finish it, so a detached draining row is stale after process exit.
 it("settles a draining Session that nothing is attached to", () => {
 	const planned = planCurrentSessionReconciliation(
 		[agent("agent-alive", "alive", "session-drained")],
@@ -147,9 +144,6 @@ it("leaves a Session draining inside a live attachment alone", () => {
 	);
 });
 
-// why: a Session being closed in the same pass has ended, and settling the
-// execution of something that is no longer open would be a second, quieter
-// claim about it.
 it("does not settle a draining Session it is closing", () => {
 	const planned = planCurrentSessionReconciliation(
 		[agent("agent-dormant", "dormant", "session-drained")],

@@ -10,11 +10,6 @@ const agentsOf = (world: VoyageWorld, voyageId: string, pieceIds: ReadonlySet<st
 
 const present = (moments: ReadonlyArray<Date | null>): ReadonlyArray<Date> => moments.flatMap((moment) => (moment === null ? [] : [moment]));
 
-// why: nothing stamps a voyage when something happens on it, so when it last
-// stirred is read off the rows that carry a moment — a captain or hand born
-// for it, a piece released or pulled back, a change its host last touched. A
-// report or artifact lands inside a session born before it, so the moments
-// the world does not carry fall within the ones it does.
 export const lastStirredAt = (world: VoyageWorld, voyageId: string): Date | null => {
 	const pieceIds = new Set(piecesOfVoyage(world, voyageId));
 	const agentIds = agentsOf(world, voyageId, pieceIds);

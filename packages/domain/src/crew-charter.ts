@@ -4,11 +4,6 @@ import { Effect, Option } from "effect";
 import { rulingLine, standingRulingsFor } from "#standing-rulings.ts";
 import type { PieceRow, VoyageRow } from "#voyage-rows.ts";
 
-// why: the boards and the standing rulings are read at the moment crew is
-// asked for rather than inside the pure composer — what a piece is told at
-// birth is a fact about when it was dispatched. The dispatcher's own pass and
-// an admiral asking for a piece by name compose the same charter, so crew is
-// told the same thing either way.
 export const charterFor = (piece: PieceRow, voyage: VoyageRow, agentId: string) =>
 	Effect.gen(function* () {
 		const boards = yield* Boards;

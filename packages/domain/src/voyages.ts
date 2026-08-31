@@ -56,9 +56,6 @@ const setCrewBackend = (voyageId: string, backend: AgentBackendTag) =>
 		yield* announce;
 	});
 
-// why: focus is a stamped moment rather than a flag so the dispatcher can
-// order by it later without a second column, and so un-focusing leaves no
-// trace to mistake for history.
 const setFocus = (voyageId: string, focused: boolean) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
@@ -104,9 +101,6 @@ export const VoyageProceduresLive = Layer.effect(VoyageProcedureService)(
 			open: (input) => Effect.provide(openVoyage(input), context),
 			park: (pieceId) => pieces.park(pieceId, true),
 			read: (voyageId) => readVoyageView(voyageId).pipe(Effect.provideService(VoyageWorldSource, world)),
-			// why: the public vocabulary keeps its established verb while the
-			// capability names the exact act. Literal set-dependency semantics land
-			// separately.
 			rewire: pieces.setDependencies,
 			setCaptainBackend: (voyageId, backend) => Effect.provide(setCaptainBackend(voyageId, backend), context),
 			setCrewBackend: (voyageId, backend) => Effect.provide(setCrewBackend(voyageId, backend), context),

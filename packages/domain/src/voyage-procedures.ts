@@ -39,9 +39,6 @@ export interface VoyageProcedures {
 	readonly setFocus: (voyageId: string, focused: boolean) => Effect.Effect<void, PrismaError | VoyageNotFound>;
 	readonly supersedeArtifact: (input: Omit<ArtifactSupersessionInput, "actor">) => Effect.Effect<void, ArtifactFailure>;
 	readonly unpark: (pieceId: string) => Effect.Effect<void, PieceNotFound | PrismaError>;
-	// why: the admiral reaching past the ready ladder for one named piece —
-	// the same shape as the hail, and the only way to run a piece the ladder
-	// has already finished with.
 	readonly workNow: (pieceId: string) => Effect.Effect<CrewedPiece, WorkRefused>;
 }
 

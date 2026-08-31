@@ -17,16 +17,11 @@ export interface VoyageRow {
 	readonly crewBackend: string;
 	readonly focusedAt: Date | null;
 	readonly id: string;
-	// why: the fleet's own voyage is told apart by this word rather than by its
-	// name or its place in the list, so every reader that joins on a voyage
-	// learns which one speaks for the fleet from the row itself.
 	readonly kind: VoyageKind;
 	readonly name: string;
 	readonly northStar: string;
 }
 
-// why: a reader of a change wants the repo it lives in by name; the rest of
-// the registration is the registry's business, not a view's.
 export interface RepoRow {
 	readonly id: string;
 	readonly name: string;
@@ -43,9 +38,6 @@ export interface CrewRow {
 	readonly voyageId: string;
 }
 
-// why: the structural half is the stored row, so a column change reaches this
-// reader as a compile error; the statuses stay decoded words, because a
-// projection never passes a raw string on as durable vocabulary.
 export type AgentSessionRow = Pick<StoredAgentSession, "agentId" | "backend" | "createdAt" | "id"> & {
 	readonly executionStatus: SessionExecutionStatus;
 	readonly status: AgentSessionStatus;
@@ -61,9 +53,6 @@ export interface ReportLinkRow {
 	readonly reportId: string;
 }
 
-// why: the derivation reads whole tables and joins in memory. A voyage's
-// state is a function of every row that touches it — a per-voyage query would
-// fan out into a read per piece, and these tables stay small by construction.
 export interface VoyageWorld {
 	readonly agentStatus: ReadonlyMap<string, AgentStatus>;
 	readonly currentSessionByAgent: ReadonlyMap<string, string | null>;
@@ -71,9 +60,6 @@ export interface VoyageWorld {
 	readonly assignments: ReadonlyArray<AssignmentRow>;
 	readonly changes: ReadonlyArray<ChangeRow>;
 	readonly crews: ReadonlyArray<CrewRow>;
-	// why: the two verdicts the admiral can land. Both are stored facts the
-	// derivations read like any other row — a dismissal settles what a dead
-	// change is owed, a piece verdict is an outcome that counts among the landed.
 	readonly dismissedChangeIds: ReadonlySet<string>;
 	readonly edges: ReadonlyArray<EdgeRow>;
 	readonly memberships: ReadonlyArray<MembershipRow>;
@@ -83,8 +69,6 @@ export interface VoyageWorld {
 	readonly pieces: ReadonlyArray<PieceRow>;
 	readonly reports: ReadonlyMap<string, ReportRow>;
 	readonly repos: ReadonlyMap<string, RepoRow>;
-	// why: only the gates whose ruling is still open — a gate an answer released
-	// is history, and readiness reads holds rather than history.
 	readonly rulingGates: ReadonlyArray<RulingGate>;
 	readonly sessions: ReadonlyArray<AgentSessionRow>;
 	readonly voyages: ReadonlyArray<VoyageRow>;

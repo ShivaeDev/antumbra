@@ -33,10 +33,6 @@ export const VoyageSourceLive = Layer.effect(VoyageSource)(
 		const voyages = yield* VoyageProcedureService;
 		const world = yield* VoyageWorldSource;
 		const context = Context.make(Boards, boards).pipe(Context.add(VoyageProcedureService, voyages), Context.add(VoyageWorldSource, world));
-		// why: what this process is holding is asked of the domain rather than of
-		// the rows, for the same reason the fleet asks — a row still saying active
-		// has outlived the process that made it true, and a crew is only quiet if
-		// the thing that would be speaking for it is quiet.
 		const runtime = Effect.all({
 			attached: domain.sessionsAttached,
 			delegating: domain.sessionsDelegating,
@@ -51,17 +47,11 @@ export const VoyageSourceLive = Layer.effect(VoyageSource)(
 		return {
 			...acts,
 			artifactMarkdown: (artifactId: string) => voyages.artifactMarkdown(artifactId).pipe(Effect.mapError(artifactMarkdownFailure)),
-			// why: a change made by hand was opened by nobody this system spawned,
-			// so it is adopted with no agent behind it — the act of the person at
-			// the window, recorded as such rather than credited to the crew.
 			adoptChange: (request: AdoptChangeRequest) =>
 				changes.adopt({ agentId: null, ...request }).pipe(
 					Effect.map((row) => changeSeen(changeView(request.repoName, row))),
 					Effect.mapError(toFailure),
 				),
-			// why: the admiral's own verdict on a change nobody will finish, so it
-			// is recorded as the act of the person at the window — no agent asked
-			// for it and none is credited with it.
 			dismissChange: (changeId: string) => changes.dismiss(changeId).pipe(Effect.mapError(toFailure)),
 			quay,
 			quayFeed: refreshes(quay),

@@ -236,9 +236,6 @@ importers:
       '@antumbra/plugin-api':
         specifier: workspace:*
         version: link:../../packages/plugin-api
-      '@antumbra/renderer':
-        specifier: workspace:*
-        version: link:../../packages/renderer
       '@antumbra/runner-local':
         specifier: workspace:*
         version: link:../../packages/runner-local

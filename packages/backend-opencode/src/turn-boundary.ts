@@ -15,7 +15,7 @@ const stateOf = (type: string): SessionState | undefined => {
 
 const ABORTED = "MessageAbortedError";
 
-export interface TurnBoundary {
+interface TurnBoundary {
 	readonly errored: (raw: RawPayload, properties: unknown) => AgentEvent[];
 	readonly idled: (raw: RawPayload) => AgentEvent[];
 	readonly status: (raw: RawPayload, properties: unknown) => AgentEvent[];

@@ -4,7 +4,7 @@ import { runGit } from "#command.ts";
 import { type GitError, GitOutputInvalid } from "#errors.ts";
 import { INSPECT_TIMEOUT_MILLIS, MUTATE_TIMEOUT_MILLIS } from "#timeouts.ts";
 
-export type WorktreeState = { readonly _tag: "changed" } | { readonly _tag: "clean"; readonly unpushedCommits: number };
+type WorktreeState = { readonly _tag: "changed" } | { readonly _tag: "clean"; readonly unpushedCommits: number };
 
 const CommitCount = Schema.FiniteFromString.check(Schema.isInt(), Schema.isGreaterThanOrEqualTo(0));
 

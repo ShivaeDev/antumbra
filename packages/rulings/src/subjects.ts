@@ -25,7 +25,7 @@ export const verifySubject = (subject: RulingSubject) =>
 		}
 	});
 
-export const subjectColumns = (subject: RulingSubject) => ({
+const subjectColumns = (subject: RulingSubject) => ({
 	agentId: subject.kind === "agent" ? subject.id : null,
 	kind: subject.kind,
 	pieceId: subject.kind === "piece" ? subject.id : null,

@@ -47,7 +47,7 @@ export interface BridgeSubscribeRequest {
 	readonly path: string;
 }
 
-export interface TrpcFailure {
+interface TrpcFailure {
 	readonly error: {
 		readonly code: TrpcFailureCode;
 		readonly message: string;
@@ -55,7 +55,7 @@ export interface TrpcFailure {
 	readonly ok: false;
 }
 
-export interface TrpcSuccess {
+interface TrpcSuccess {
 	readonly data: unknown;
 	readonly ok: true;
 }

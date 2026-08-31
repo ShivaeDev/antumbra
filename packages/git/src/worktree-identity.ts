@@ -4,7 +4,7 @@ import { runGit } from "#command.ts";
 import { type GitError, GitOutputInvalid } from "#errors.ts";
 import { INSPECT_TIMEOUT_MILLIS } from "#timeouts.ts";
 
-export interface WorktreeIdentity {
+interface WorktreeIdentity {
 	readonly branch: string;
 	readonly commonDirectory: string;
 	readonly root: string;

@@ -25,14 +25,7 @@ export const SubsessionEnded = Schema.Struct({
 	type: Schema.Literal("subsession.ended"),
 });
 
-export const SubsessionGapKind = Schema.Literals([
-	"adopted-late",
-	"stream-detached",
-	"append-failed",
-	"spilled-preview",
-	"census-missing",
-	"unknown",
-]);
+const SubsessionGapKind = Schema.Literals(["adopted-late", "stream-detached", "append-failed", "spilled-preview", "census-missing", "unknown"]);
 
 export const SubsessionGap = Schema.Struct({
 	detail: Schema.optional(Schema.String),

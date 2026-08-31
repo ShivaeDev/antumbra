@@ -1,4 +1,4 @@
-export const dataFrames = (chunk: string): unknown[] =>
+const dataFrames = (chunk: string): unknown[] =>
 	chunk
 		.split("\n")
 		.flatMap((line) => (line.startsWith("data:") ? [line.slice(5)] : []))
@@ -7,7 +7,7 @@ export const dataFrames = (chunk: string): unknown[] =>
 			return frame;
 		});
 
-export interface SseBuffer {
+interface SseBuffer {
 	readonly take: (chunk: string) => unknown[];
 }
 

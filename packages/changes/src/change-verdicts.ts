@@ -8,7 +8,7 @@ interface ChangeVerdictRow {
 	readonly verdict: ChangeVerdict;
 }
 
-export const changeVerdictRow = (row: { readonly changeId: string; readonly verdict: string }) =>
+const changeVerdictRow = (row: { readonly changeId: string; readonly verdict: string }) =>
 	Schema.decodeUnknownEffect(ChangeVerdictSchema)(row.verdict).pipe(
 		Effect.mapError(
 			(cause) =>

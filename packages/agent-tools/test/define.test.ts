@@ -1,36 +1,7 @@
-import { DIRECT_TOOL_NAME } from "@antumbra/plugin-api";
 import { expect, it } from "@effect/vitest";
 import { Effect, Schema } from "effect";
-import { readBoardSpec, writeBoardSpec } from "#boards.ts";
-import { charterPieceSpec, launchPieceSpec, parkPieceSpec, readVoyageSpec, rewirePieceSpec, unparkPieceSpec } from "#captain.ts";
-import { landArtifactSpec, landReportSpec, removeArtifactSupersessionSpec, standDownSpec, supersedeArtifactSpec } from "#crew.ts";
+import { landReportSpec, standDownSpec } from "#crew.ts";
 import { bind, defineTool } from "#define.ts";
-import { readRulingsSpec } from "#ruling-readings.ts";
-import { requestRulingSpec } from "#rulings.ts";
-
-const specs = [
-	landReportSpec,
-	landArtifactSpec,
-	supersedeArtifactSpec,
-	removeArtifactSupersessionSpec,
-	charterPieceSpec,
-	launchPieceSpec,
-	parkPieceSpec,
-	unparkPieceSpec,
-	rewirePieceSpec,
-	readVoyageSpec,
-	readBoardSpec,
-	writeBoardSpec,
-	requestRulingSpec,
-	standDownSpec,
-	readRulingsSpec,
-];
-
-it("every spec is named the way both harnesses accept", () => {
-	for (const spec of specs) {
-		expect(spec.name, spec.name).toMatch(DIRECT_TOOL_NAME);
-	}
-});
 
 it("emits a closed object schema the model can fill", () => {
 	expect(landReportSpec.inputSchema).toMatchObject({

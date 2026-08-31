@@ -62,7 +62,6 @@ export {
 } from "#session-audit.ts";
 export { callWhileOpen } from "#tool-call.ts";
 export {
-	DIRECT_TOOL_NAME,
 	type DirectTool,
 	type DirectToolOutcome,
 } from "#tools.ts";

@@ -2,13 +2,13 @@ import { type IntentStatus, isTerminalIntentStatus, Kernel } from "@antumbra/ker
 import { Database } from "@antumbra/persistence";
 import { type AgentBackend, BackendFailure, type Runner } from "@antumbra/plugin-api";
 import { expect, it } from "@effect/vitest";
-import { Deferred, Effect, Option, Stream } from "effect";
+import { Deferred, Effect, Fiber, Option, Stream } from "effect";
 import { AgentDomain } from "#domain.ts";
 import type { SpawnFields } from "#index.ts";
 import type { RetireFields } from "#retire.ts";
+import { makeSightSessionEvents } from "#sight-session-events.ts";
 import { domainKernelLayer } from "#test/domain-layers.ts";
 import { acquireTemporaryPersistence, makeScriptedBackend, makeScriptedRunner, rawOf, standDown } from "#test/harness.ts";
-import { eventually } from "#test/voyage-fixtures.ts";
 
 const untilTerminal = <E, R>(changes: Stream.Stream<IntentStatus, E, R>) =>
 	changes.pipe(Stream.takeUntil(isTerminalIntentStatus), Stream.runLast, Effect.map(Option.getOrThrow));
@@ -44,6 +44,7 @@ it.live("spawn brings an agent alive, chartered, with events flowing", () =>
 		const scripted = yield* makeScriptedBackend;
 		yield* Effect.gen(function* () {
 			const db = yield* Database;
+			const sight = yield* makeSightSessionEvents;
 			const outcome = yield* submitSpawn(spawnPayload("a"));
 			expect(outcome).toBe("succeeded");
 			const agent = yield* db.Agent.where({ id: "agent-a" }).first();
@@ -53,12 +54,11 @@ it.live("spawn brings an agent alive, chartered, with events flowing", () =>
 			});
 			const session = yield* db.AgentSession.where({ id: "session-a" }).first();
 			expect(Option.getOrThrow(session).charterDeliveredAt).not.toBeNull();
-			const live = yield* scripted.session("session-a");
-			expect(live).toBeDefined();
-			if (live === undefined) {
-				return;
-			}
+			const live = Option.getOrThrow(Option.fromUndefinedOr(yield* scripted.session("session-a")));
 			expect(yield* live.sent).toEqual(["charter for a"]);
+			const collector = yield* sight
+				.sessionEventFeed({ fromSeq: 0, sessionId: "session-a" })
+				.pipe(Stream.take(2), Stream.runCollect, Effect.forkChild);
 			yield* live.emit({
 				nativeRef: "provider-thread-1",
 				raw: rawOf("system/init"),
@@ -70,19 +70,14 @@ it.live("spawn brings an agent alive, chartered, with events flowing", () =>
 				text: "hi",
 				type: "message",
 			});
-			yield* eventually(
-				Effect.gen(function* () {
-					const events = yield* db.SessionEvent.where({
-						sessionId: "session-a",
-					}).all();
-					expect(events.map((event) => event.kind)).toEqual(["session.opened", "message"]);
-					const session = yield* db.AgentSession.where({
-						id: "session-a",
-					}).first();
-					expect(Option.getOrThrow(session).nativeRef).toBe("provider-thread-1");
-					expect(Option.getOrThrow(session).backend).toBe("scripted");
-				}),
-			);
+			const events = yield* Fiber.join(collector);
+			expect(events.map((event) => event.event)).toMatchObject([
+				{ _tag: "Known", event: { type: "session.opened" } },
+				{ _tag: "Known", event: { type: "message" } },
+			]);
+			const persisted = Option.getOrThrow(yield* db.AgentSession.where({ id: "session-a" }).first());
+			expect(persisted.nativeRef).toBe("provider-thread-1");
+			expect(persisted.backend).toBe("scripted");
 		}).pipe(Effect.provide(domainKernelLayer(temporary, scripted.backend)));
 	}),
 );

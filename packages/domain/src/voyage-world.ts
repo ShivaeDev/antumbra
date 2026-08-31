@@ -1,4 +1,3 @@
-import { type StoredArtifactLineageInvalid, validateStoredArtifactLineage } from "@antumbra/artifacts";
 import { Changes, type StoredChangeInvalid, type StoredChangeVerdictInvalid, type StoredPieceChangeInvalid } from "@antumbra/changes";
 import { Database, type PrismaError } from "@antumbra/persistence";
 import { readPieceVerdicts, type StoredPieceVerdictInvalid } from "@antumbra/pieces";
@@ -18,7 +17,6 @@ import { readRootSessions, readVoyages } from "#voyage-world-reads.ts";
 export type VoyageWorldReadFailure =
 	| InvalidSessionExecutionStatus
 	| PrismaError
-	| StoredArtifactLineageInvalid
 	| StoredAgentSessionStatusInvalid
 	| StoredAgentStatusInvalid
 	| StoredChangeInvalid
@@ -51,10 +49,6 @@ const voyageWorld: Effect.Effect<
 	const { changes, dismissedChangeIds, pieceChanges } = yield* changeSnapshot.snapshot;
 	const artifacts = (yield* db.Artifact.all()).map(artifactRow);
 	const pieces = (yield* db.Piece.orderBy((piece) => piece.createdAt.asc()).all()).map(pieceRow);
-	yield* validateStoredArtifactLineage({
-		artifacts,
-		pieceIds: new Set(pieces.map((piece) => piece.id)),
-	});
 	return {
 		agentStatus: new Map(agentStatuses),
 		currentSessionByAgent: new Map(agents.map((agent) => [agent.id, agent.currentSessionId] as const)),

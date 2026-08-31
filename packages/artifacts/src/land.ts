@@ -4,7 +4,6 @@ import { verifyPieceExists } from "@antumbra/pieces";
 import { Crypto, Effect } from "effect";
 import { artifactPublicationFailed } from "#errors.ts";
 import { currentArtifactsForPiece } from "#lineage/current.ts";
-import { validateCurrentStoredArtifactLineage } from "#lineage/piece-lineage.ts";
 import { validateLandingSupersession } from "#lineage/validation.ts";
 import type { ArtifactInput, ArtifactLanding, ArtifactRow } from "#model.ts";
 import { publishArtifact } from "#publication.ts";
@@ -37,7 +36,6 @@ export const landArtifact = (root: string, input: ArtifactInput) =>
 		const feeds = yield* DomainFeeds;
 		const id = yield* crypto.randomUUIDv4.pipe(Effect.mapError(artifactPublicationFailed("identify artifact")));
 		yield* verifyPieceExists(input.pieceId);
-		yield* validateCurrentStoredArtifactLineage(input.pieceId);
 		if (input.supersedesArtifactId !== undefined) {
 			yield* validateLandingSupersession(input.supersedesArtifactId, id, input.pieceId);
 		}

@@ -103,8 +103,6 @@ export const dispatchingLayer = (
 
 export const sightSourceTestLayer = SightSourceLive.pipe(Layer.provideMerge(BackendCapacityReleaseLive));
 
-// The watcher runs beside the dispatcher, so landing is observed without a
-// hand refresh.
 export const watchingLayer = (
 	temporary: TemporaryPersistence,
 	backend: AgentBackend,

@@ -158,7 +158,6 @@ describe("watching open changes", () => {
 				expect(watchable[0]?.observedAt).toEqual(row.observedAt);
 				expect(watchable[0]?.stage).toBe("open");
 
-				// Recovery is observed by the running loop; no restart is involved.
 				yield* hearsTheLanding(scripted, repo.id, 1_000);
 			}),
 		),
@@ -189,8 +188,6 @@ const crewOn = (backend: ScriptedBackend, pieceId: string) =>
 		return row === undefined ? yield* Effect.fail("no crew yet") : yield* sessionFor(backend, row.agentId);
 	});
 
-// The merge occurs outside Antumbra; the running watcher must observe it without
-// a hand refresh.
 describe("a chain gated on a change", () => {
 	it.live("sails when the watcher sees the merge", () =>
 		watched(BRISK, (scripted, backend) =>

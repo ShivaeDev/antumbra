@@ -53,7 +53,6 @@ export const scriptedObservation = (tag: string, externalId: string, fields: Obs
 	url: `https://${tag}.test/changes/${externalId}`,
 });
 
-// The scripted provider derives the external id from the adopted URL.
 const adoptedObservation = (tag: string, url: string, repo: ChangeHostRepo): ChangeObservation => {
 	const externalId = url.split("/").at(-1) ?? "";
 	return scriptedObservation(tag, externalId, {

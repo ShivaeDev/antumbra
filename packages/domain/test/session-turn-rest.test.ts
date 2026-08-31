@@ -19,9 +19,6 @@ import { eventually, untilTerminal } from "#test/session-recovery-fixture.ts";
 
 const CHILD = "native-child";
 
-// why: the shape every provider uses to say the turn it was running is over.
-// None of them require the Agent to have said anything about it, and one of
-// them gives its Agents no way to say anything at all.
 const completes = (live: ScriptedSession) =>
 	live.emit({
 		durationMs: 1200,
@@ -82,10 +79,6 @@ const journalKinds = Effect.gen(function* () {
 	return events.map((event) => event.kind);
 });
 
-// why: the whole correction. An Agent that ends its turn without declaring
-// anything has still stopped, and a record that waits for a declaration leaves
-// it working forever — presence says so and rest never comes. The ending is the
-// fact, and nothing is asked of the Agent to make it one.
 it.live("a completed turn settles the session that was working", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
@@ -99,8 +92,6 @@ it.live("a completed turn settles the session that was working", () =>
 			yield* completes(live);
 			yield* settled;
 
-			// why: settling says what the Session is doing, never who is still
-			// listening — the acquisition stays exactly where it was.
 			expect(yield* live.closed).toBe(false);
 			const idle = yield* presenceOf;
 			expect(idle.presence).toBe("idle");
@@ -110,10 +101,6 @@ it.live("a completed turn settles the session that was working", () =>
 	}),
 );
 
-// why: stopping and declaring stay two acts. The log holds the ending the
-// provider sent and nothing more — no declaration is minted from it — and an
-// Agent that does declare afterwards is answered as it always was, on a row its
-// own ending has already settled.
 it.live("a turn ending is never written down as a declaration", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
@@ -135,10 +122,6 @@ it.live("a turn ending is never written down as a declaration", () =>
 	}),
 );
 
-// why: words are the end of having nothing to do, whichever act began the
-// quiet. The mark a turn ending left is cleared by them exactly as a
-// declaration's would be, so the threshold never reaches a Session that has
-// been given something to do.
 it.live("words after a completed turn put the session back to work", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
@@ -162,11 +145,6 @@ it.live("words after a completed turn put the session back to work", () =>
 	}),
 );
 
-// why: an ending can arrive after the words that began the next turn — the
-// provider was finishing the last one while the admiral was speaking. Settling
-// on it would put a Session that is working back to rest, so an ending words
-// have overtaken is discarded. Only that one: the turn now under way ends the
-// way any other does.
 it.live("an ending overtaken by new words leaves the session working", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
@@ -196,10 +174,6 @@ it.live("an ending overtaken by new words leaves the session working", () =>
 	}),
 );
 
-// why: the tree rides the root's one acquisition, so a root whose own turn is
-// over is still not at rest while a child it delegated to is speaking. The
-// ending settles the execution column and says nothing about the tree, and the
-// clock waits behind the same rule it always did.
 it.live("the tree still holds back rest after the root's turn ends", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;

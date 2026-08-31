@@ -5,10 +5,6 @@ import { acquireTemporaryPersistence } from "#test/harness.ts";
 import { eventually, payload, refuseWhile, reportsNativeRef } from "#test/session-recovery-fixture.ts";
 import { NATIVE, onlyWake, sessionRow, sleepingRoot, wakeChips, wakeLayer } from "#test/session-wake-fixture.ts";
 
-// why: the live report the whole branch answers — the admiral sent to an asleep
-// root, the mutation succeeded, and nothing observable happened. The wake that
-// could not be taken now says why on its own row and shows up beside the
-// Session it was for.
 it.live("a wake that cannot be taken parks with its reason on the fleet", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
@@ -27,10 +23,6 @@ it.live("a wake that cannot be taken parks with its reason on the fleet", () =>
 				}),
 			);
 			expect(parked.detail).toContain("authentication is required");
-			// why: the reason travels with the chip rather than staying on the row.
-			// A state with no reason beside it is the generic parked note the
-			// admiral could already see, and it sent them to the database to find
-			// out what had actually stopped the wake.
 			expect(wakeChips(yield* sight.fleet)).toEqual([
 				{
 					detail: parked.detail,

@@ -5,13 +5,6 @@ import { acquireTemporaryPersistence } from "#test/harness.ts";
 import { eventually, payload } from "#test/session-recovery-fixture.ts";
 import { opensWhenSpokenTo, sleepingRoot, wakeLayer } from "#test/session-wake-fixture.ts";
 
-// why: the deadlock this whole path was rebuilt for. A resume used to wait for
-// the provider's opening frame before it said anything, and a provider whose
-// model reads a stream of input has nothing to open about until it is spoken
-// to — so both sides waited, the wake died on its patience, and the admiral's
-// words went nowhere against a process that was alive the whole time. Speaking
-// first is what breaks it; a double that can withhold its opening is what makes
-// the break provable rather than asserted.
 it.live("a resume speaks first to a provider that opens on being spoken to", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;

@@ -12,11 +12,6 @@ import { emitOpened, payload, reportsNativeRef, seedResumableAgent } from "#test
 
 export const NATIVE = "native-durable";
 
-// why: the reconnect census is the one thing a resume does that a scripted
-// backend cannot stand in for, and it only ever announces itself through the
-// opening frame. Withholding that frame on demand is how a rehearsal reaches
-// the shape production hit: a provider that answered the open and then went
-// quiet about who it was.
 export const confirmsWhen = (backend: AgentBackend, scripted: ScriptedBackend, allowed: Ref.Ref<boolean>): AgentBackend => ({
 	...backend,
 	openSession: (options) =>
@@ -25,12 +20,6 @@ export const confirmsWhen = (backend: AgentBackend, scripted: ScriptedBackend, a
 		),
 });
 
-// why: a provider that runs its model on a stream of input has nothing to open
-// about until the stream carries something — it answers the open, then says who
-// it resumed as only once the first message arrives. The scripted double could
-// not hold that shape at all: it announced itself at open time, so every
-// rehearsal met a provider more forthcoming than the real one, and the order a
-// resume speaks in was never under test.
 export const opensWhenSpokenTo = (backend: AgentBackend, scripted: ScriptedBackend): AgentBackend => ({
 	...backend,
 	openSession: (options) =>
@@ -78,10 +67,6 @@ export const wakeChips = (fleet: Fleet) =>
 		.flatMap((session) => session.diag.intents)
 		.filter((intent) => intent.kind === "agent/wake");
 
-// why: a root the rows still call active is stranded, which is a different
-// state from one that went to sleep while the application watched. Putting the
-// row to idle first is how the rehearsal gets the second: an asleep root
-// nothing is already reaching for.
 export const asleep = Effect.gen(function* () {
 	const db = yield* Database;
 	yield* db.AgentSession.where({ id: payload.sessionId }).update({

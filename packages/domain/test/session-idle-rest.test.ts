@@ -7,10 +7,6 @@ import { acquireTemporaryPersistence, callTool, makeScriptedBackend } from "#tes
 import { HAND, openedNatively, passedAt, presenceOf, sessionRow, sightLayer, spawned } from "#test/session-idle-fixture.ts";
 import { eventually, untilTerminal } from "#test/session-recovery-fixture.ts";
 
-// why: the whole point of the correction. Saying "nothing to do" used to be the
-// same act as being put away, so an Agent that had finished was an Agent that
-// could not be spoken to. It stays where it was, and the next words find it
-// there — no resume, no second provider session opened.
 it.live("standing down keeps the acquisition, and the next words need no resume", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
@@ -37,8 +33,6 @@ it.live("standing down keeps the acquisition, and the next words need no resume"
 
 			yield* sight.send(HAND.sessionId, "one more thing");
 			expect(yield* live.sent).toEqual([HAND.charter, "one more thing"]);
-			// why: one provider session for the whole exchange is the evidence
-			// that nothing was torn down and rebuilt behind the words.
 			expect(yield* scripted.opened).toHaveLength(1);
 			expect((yield* sessionRow).executionStatus).toBe("active");
 			expect((yield* presenceOf).presence).toBe("working");
@@ -46,9 +40,6 @@ it.live("standing down keeps the acquisition, and the next words need no resume"
 	}),
 );
 
-// why: the clock puts a Session to siesta, never the Agent. The row is already
-// idle and stays idle — reclaiming the process changes who is listening, not
-// what the record says — so the Session remains open and resumable throughout.
 it.live("the configured idle threshold controls when siesta begins", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
@@ -63,8 +54,6 @@ it.live("the configured idle threshold controls when siesta begins", () =>
 			yield* callTool(live, "stand_down", undefined);
 			expect((yield* sessionRow).executionStatus).toBe("idle");
 
-			// why: a minute short of the chosen threshold the pass runs in full and
-			// still finds nothing to reclaim — the setting is a floor, not a hint.
 			yield* passedAt(4 * 60_000);
 			expect(yield* db.Intent.where({ tag: "session/siesta" }).all()).toEqual([]);
 			expect(yield* live.closed).toBe(false);
@@ -72,14 +61,10 @@ it.live("the configured idle threshold controls when siesta begins", () =>
 			yield* passedAt(6 * 60_000);
 			const demanded = yield* db.Intent.where({ tag: "session/siesta" }).all();
 			expect(demanded).toHaveLength(1);
-			// why: the Agent asked for none of this. The demand names the Session
-			// the clock chose, and the rehearsal follows that one intent to rest.
 			expect(demanded[0]?.payload).toContain(HAND.sessionId);
 			expect(yield* untilTerminal(kernel.changes(demanded[0]?.id ?? ""))).toBe("succeeded");
 
 			expect(yield* live.closed).toBe(true);
-			// why: the process is gone and the record is untouched — the Session is
-			// still open, still idle, and still names the conversation to resume.
 			const row = yield* sessionRow;
 			expect(row.status).toBe("open");
 			expect(row.executionStatus).toBe("idle");

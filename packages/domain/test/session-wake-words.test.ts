@@ -5,11 +5,7 @@ import { acquireTemporaryPersistence } from "#test/harness.ts";
 import { eventually, payload, refuseWhile, reportsNativeRef } from "#test/session-recovery-fixture.ts";
 import { NATIVE, onlyWake, sessionRow, sleepingRoot, wakeLayer, wakes } from "#test/session-wake-fixture.ts";
 
-// why: the live report this pins. Four sends went out over two days, each one
-// met a wake parked from the first, and each pushed that row — so the Session
-// heard a two-day-old sentence four times and never heard a word the admiral
-// had actually just typed. A retry re-runs the payload as written, so newer
-// words can only travel on a row of their own.
+// A live regression repeated a two-day-old parked payload instead of newer input.
 it.live("a later send delivers its own words, not the parked ones", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;

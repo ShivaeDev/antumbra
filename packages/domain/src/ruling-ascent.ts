@@ -4,7 +4,6 @@ import { type Ruling, Rulings } from "@antumbra/rulings";
 import { Effect, Layer, Option, Stream } from "effect";
 import { rulingAscentMail } from "#ruling-ascent-mail.ts";
 import { rungHolder } from "#ruling-ascent-rung.ts";
-import { voyageWorldTicks } from "#voyage-feed.ts";
 import { VoyageWorldSource } from "#voyage-world.ts";
 
 const guarded = <A, R>(act: Effect.Effect<A, unknown, R>, said: string) => act.pipe(Effect.catchCause((cause) => Effect.logError(said, cause)));
@@ -50,7 +49,9 @@ export const RulingAscentLive = Layer.effectDiscard(
 		const feeds = yield* DomainFeeds;
 		// Subscribe before the initial pass so a concurrent ruling refresh is not missed.
 		const notices = yield* feeds.subscribeRulingRefresh();
-		const world = yield* voyageWorldTicks(feeds);
+		const voyageWrites = yield* feeds.subscribeVoyageRefresh();
+		const fleetWrites = yield* feeds.subscribeFleetRefresh();
+		const world = Stream.merge(Stream.fromSubscription(voyageWrites), Stream.fromSubscription(fleetWrites));
 		const pass = guarded(onePass, "the ruling ascent pass failed");
 		yield* Effect.forkScoped(pass.pipe(Effect.andThen(Stream.merge(Stream.fromSubscription(notices), world).pipe(Stream.runForEach(() => pass)))));
 	}),

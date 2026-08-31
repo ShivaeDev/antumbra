@@ -17,8 +17,6 @@ export interface StoredAgent {
 	readonly status: unknown;
 }
 
-// why: the reconciler reads roots only, and the fields it reads are the stored
-// ones — deriving the shape keeps a column change a compile error here.
 export type StoredSession = Pick<StoredAgentSession, "agentId" | "createdAt" | "executionStatus" | "id" | "status">;
 
 export interface DecodedAgent extends StoredAgent {
@@ -30,9 +28,6 @@ export interface DecodedSession extends StoredSession {
 	readonly status: AgentSessionStatus;
 }
 
-// why: the plan reasons in vocabulary, never in stored strings, so every row is
-// read as a word before any of it is weighed — and one row nobody can read
-// stops the whole pass rather than being quietly planned around.
 export const decodeAgents = (stored: ReadonlyArray<StoredAgent>) => {
 	const decoded: Array<DecodedAgent> = [];
 	for (const agent of stored) {

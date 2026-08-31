@@ -23,10 +23,6 @@ export const makeCurrentSessionResumable = Effect.gen(function* () {
 			if (Option.isNone(stored)) {
 				return Result.fail<SessionUnresumable>({ _tag: "no-root" });
 			}
-			// why: a closed root is named here rather than left to the pointer check
-			// downstream, which read it as "not current" and told the wake to wait
-			// for a pointer that can never come back to it. A row that exists and is
-			// over is a different truth from there being no row at all.
 			const status = yield* Effect.fromResult(decodeStoredAgentSessionStatus(sessionId, stored.value.status)).pipe(Effect.mapError(heldInvalid));
 			if (status !== "open") {
 				return Result.fail<SessionUnresumable>({ _tag: "session-closed" });
@@ -38,10 +34,6 @@ export const makeCurrentSessionResumable = Effect.gen(function* () {
 				: Result.succeed({ agent: agent.value, session: stored.value });
 		});
 	type LoadedRows = Effect.Success<ReturnType<typeof loadRows>> extends Result.Result<infer Rows, SessionUnresumable> ? Rows : never;
-	// why: a Session settling into siesta is finishing its execution rather than
-	// holding one open, so it is the one open Session a resume may not take —
-	// unless the plan just settled it, in which case the drain belonged to a
-	// process that is gone and the row read a moment ago is already stale.
 	const resumableExecution = (session: LoadedRows["session"], plan: CurrentSessionReconcilePlan, changed: boolean) =>
 		Effect.gen(function* () {
 			const settled = plan.executionsToSettle.find((candidate) => candidate.sessionId === session.id);

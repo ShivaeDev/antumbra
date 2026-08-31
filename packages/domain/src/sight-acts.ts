@@ -57,22 +57,13 @@ export const makeSightActs = Effect.gen(function* () {
 				Effect.provideService(Kernel, kernel),
 				Effect.mapError(toFailure),
 			),
-		// why: the admiral speaks to a Session that is live right now; a Session
-		// with no attachment refuses rather than holding the words for later.
 		send: (sessionId, text) =>
 			Effect.gen(function* () {
 				if (text.trim().length === 0) {
 					return yield* new SessionMessageEmpty({ sessionId });
 				}
-				// why: this is where free-typed words enter the system, so it is
-				// where they enter the catalog — through the one template that
-				// exists to carry them, rather than by a seam relaxing its type.
 				yield* domain.sendToSession(sessionId, admiralWords({ words: text }));
 			}).pipe(Effect.mapError(toFailure)),
-		// why: the whole request goes to the one act that admits it and then takes
-		// custody of it, rather than being ingested here and judged afterwards — a
-		// refusal that has already spent disk is a refusal that left something
-		// behind for nobody to collect.
 		sendInput: (request) =>
 			domain.sendSessionInput(request).pipe(
 				Effect.map((status) => ({ id: request.id, status })),
@@ -80,11 +71,6 @@ export const makeSightActs = Effect.gen(function* () {
 			),
 		sessionImage: (request) => inputs.image(request).pipe(Effect.mapError(toFailure)),
 		situationDraft: (request) => draft(request).pipe(Effect.mapError(toFailure)),
-		// why: the admiral's request and the clock's own are the same act, so both
-		// submit the same Intent and meet the same guard inside it. Nothing is
-		// checked here: a capability read from the last snapshot is a statement
-		// about a moment that has already passed, and the Intent is where the
-		// question gets asked of the present.
 		sleep: (sessionId) => kernel.submit(domain.siesta, { sessionId }).pipe(Effect.asVoid, Effect.mapError(toFailure)),
 		spawn: (request) =>
 			Effect.gen(function* () {
@@ -95,8 +81,6 @@ export const makeSightActs = Effect.gen(function* () {
 					backend: request.backend,
 					charter: request.charter,
 					role: request.role,
-					// why: the sole runner in v1 — the field joins the contract when
-					// a second runner exists to choose between.
 					runner: "local",
 					sessionId,
 				});

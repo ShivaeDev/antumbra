@@ -23,9 +23,6 @@ export const SightSourceLive = Layer.effect(SightSource)(
 		const events = yield* makeSightSessionEvents;
 		const tree = yield* makeSightSessionTree;
 
-		// why: the attachments and what they are carrying are read in the same pass
-		// as the rows, so one snapshot never mixes what the record said a moment
-		// ago with what this process is holding now.
 		const fleet = pendingIntents.pipe(
 			Effect.provideService(AgentDomain, domain),
 			Effect.provideService(Kernel, kernel),

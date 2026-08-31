@@ -12,19 +12,11 @@ const DEFAULTS: ObserveCadenceOptions = {
 	warmMillis: 180_000,
 };
 
-// why: the pass that opens a run of failures is worth a warning; the ones
-// after it repeat a sentence nobody needs twice, and a host out for an hour
-// would otherwise fill the log with it. Interruption is not failure at all —
-// it is this loop being told the app is closing.
 const announceFailure = (hostTag: string, cause: Cause.Cause<unknown>, run: number): Effect.Effect<void> =>
 	run > 1 || Cause.hasInterruptsOnly(cause)
 		? Effect.logDebug("a change watch pass failed again", { hostTag, run })
 		: Effect.logWarning("a change watch pass failed", { hostTag }, cause);
 
-// why: one pass never decides anything about the next except how soon it comes.
-// A pass that fails leaves every row exactly as it was — an unobserved change
-// is an unchanged change — and the run of failures behind it, rather than the
-// fleet it could not read, says how long to wait before asking again.
 const passAndWait = (changes: ChangeProcedures, hostTag: string, options: ObserveCadenceOptions, failures: Ref.Ref<number>): Effect.Effect<number> =>
 	Effect.gen(function* () {
 		yield* changes.refresh(hostTag);
@@ -44,8 +36,7 @@ const passAndWait = (changes: ChangeProcedures, hostTag: string, options: Observ
 const watchOneHost = (changes: ChangeProcedures, hostTag: string, options: ObserveCadenceOptions, tick: Queue.Queue<void>): Effect.Effect<never> =>
 	Effect.gen(function* () {
 		const failures = yield* Ref.make(0);
-		// why: every wait is bounded by a cadence, so a ring is a latency hint and
-		// never a liveness dependency — a lost one self-heals within one period.
+		// Refresh rings are latency hints; every wait remains bounded by the cadence.
 		while (true) {
 			const delayMillis = yield* passAndWait(changes, hostTag, options, failures);
 			yield* Effect.timeoutOption(Queue.take(tick), delayMillis);
@@ -58,13 +49,7 @@ export const ChangeWatcherLive = (overrides: Partial<ObserveCadenceOptions> = {}
 			const options = { ...DEFAULTS, ...overrides };
 			const domain = yield* AgentDomain;
 			const feeds = yield* DomainFeeds;
-			// why: hosts register before the domain layer builds, so the set is
-			// complete here and a plain iteration at layer start is the whole of it.
-			// A host arriving later would need a registry that can be subscribed to,
-			// which nothing in this build produces.
-			//
-			// why: one queue per host rather than one shared — a ring must wake
-			// every host's loop, and a queue hands each value to one taker only.
+			// Hosts are fixed before layer construction, and each needs its own queue because a queue value has one taker.
 			yield* Effect.forEach(domain.changes.hostTags, (hostTag) =>
 				Effect.gen(function* () {
 					const tick = yield* Queue.sliding<void>(1);

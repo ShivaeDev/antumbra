@@ -5,9 +5,6 @@ import { Effect } from "effect";
 import { answered, onPiece } from "#tool-answers.ts";
 import type { SessionIdentity } from "#tool-identity.ts";
 
-// why: the stage is said back rather than assumed — a change that was opened
-// reads open, and one adopted after it already landed says so instead of
-// telling the agent to wait for something that has happened.
 const said = (row: ChangeRow): string => `change ${row.stage}: ${row.url ?? "no url"} (id ${row.id})`;
 
 export const makeChangeToolCompiler = Effect.gen(function* () {

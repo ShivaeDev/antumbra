@@ -22,9 +22,6 @@ import type { ResourceReclaimClaimed } from "#errors.ts";
 import { type QuayReading, quayReading } from "#quay-view.ts";
 import { type VoyageWorldReadFailure, VoyageWorldSource } from "#voyage-world.ts";
 
-// why: what a host can do right now, said in the host's own words — the window
-// shows it, and a tool that cannot act says the same sentence back to the
-// agent, so both read the same answer rather than two paraphrases of it.
 export interface ChangeHostCapabilityView {
 	readonly available: boolean;
 	readonly detail: string;
@@ -34,13 +31,9 @@ export interface ChangeHostCapabilityView {
 export interface ChangeProcedures {
 	readonly adopt: (input: AdoptChangeInput) => Effect.Effect<ChangeRow, AdoptChangeFailure>;
 	readonly capabilities: Effect.Effect<ReadonlyArray<ChangeHostCapabilityView>>;
-	// why: the verb a change closed without merging never had. It settles what
-	// the change is owed and takes it off the quay without pretending it landed
-	// and without forgetting that it existed.
 	readonly dismiss: (changeId: string) => Effect.Effect<void, ChangeNotFound | ChangeStillAlive | PrismaError>;
 	readonly hostTags: ReadonlyArray<string>;
-	// why: the seam a host that pushes reaches, beside the one a host that is
-	// polled reaches — both hand the domain the same neutral observations.
+	// Push and polling adapters report the same neutral observations through this boundary.
 	readonly observed: (
 		hostTag: string,
 		observations: ReadonlyArray<ChangeObservation>,
@@ -55,11 +48,7 @@ export interface ChangeProcedures {
 	>;
 	readonly open: (input: OpenChangeInput) => Effect.Effect<ChangeRow, OpenChangeFailure>;
 	readonly submit: (input: SubmitChangeInput) => Effect.Effect<ChangeRow, SubmitChangeFailure>;
-	// why: what can still change at a host — open changes can settle. The set
-	// also decides the next pass cadence.
 	readonly watchableChanges: (hostTag: string) => Effect.Effect<ReadonlyArray<ChangeRow>, PrismaError | StoredChangeInvalid>;
-	// why: every change still owed, read across the whole fleet and grouped by
-	// where it lies, beside the pieces one made by hand can be adopted onto.
 	readonly quay: Effect.Effect<QuayReading, VoyageWorldReadFailure>;
 	readonly refresh: (
 		hostTag: string,
@@ -74,9 +63,6 @@ export interface ChangeProcedures {
 		| StoredResourceReclaimStateInvalid
 		| UnknownChangeHostTag
 	>;
-	// why: the same ring an opened change gives, offered to whoever else wants
-	// to stop waiting — a window's refresh button, an agent that knows something
-	// happened. It asks; the cadence still decides what a pass costs.
 	readonly requestRefresh: Effect.Effect<void>;
 }
 

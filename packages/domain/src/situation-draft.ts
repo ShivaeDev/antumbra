@@ -9,10 +9,7 @@ import { type VoyageWorldReadFailure, VoyageWorldSource } from "#voyage-world.ts
 
 export type SituationDraftRefused = ChangeNotAddressable | PrismaError | VoyageWorldReadFailure;
 
-// why: the draft names the pull request, the branch it is on and the repo it
-// lives in — the three facts Antumbra observed and holds itself. Which check
-// went red and what a reviewer wrote stay on the host, where they are current
-// and where the Agent that reads this is already berthed to look.
+// Drafts identify the observed change; volatile check and review details stay on the host.
 export const situationWords = (situation: ChangeSituation, change: ChangeRow, repo: string): AgentPrompt => {
 	const facts = {
 		headRef: change.headRef,
@@ -29,9 +26,6 @@ export const situationWords = (situation: ChangeSituation, change: ChangeRow, re
 	}
 };
 
-// why: drafting says nothing to anybody. It reads the Change and returns the
-// words, and the send that may follow is the admiral's separate act on whatever
-// they left in the box.
 export const makeSituationDraft = Effect.gen(function* () {
 	const changes = yield* Changes;
 	const source = yield* VoyageWorldSource;

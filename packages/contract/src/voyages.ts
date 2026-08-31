@@ -37,8 +37,6 @@ export class VoyageSource extends Context.Service<
 		readonly removeArtifactSupersession: (request: ArtifactSupersessionRequest) => Effect.Effect<void, SightFailure>;
 		readonly quay: Effect.Effect<QuayView, SightFailure>;
 		readonly quayFeed: Stream.Stream<QuayView, SightFailure>;
-		// why: the watcher is rung rather than waited on — what the pass costs
-		// stays the cadence's decision, so this asks and never promises news.
 		readonly refreshChanges: Effect.Effect<void, SightFailure>;
 		readonly reportMarkdown: (reportId: string) => Effect.Effect<ReportMarkdown, SightFailure>;
 		readonly rewire: (request: RewireRequest) => Effect.Effect<void, SightFailure>;

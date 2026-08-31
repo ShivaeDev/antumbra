@@ -17,10 +17,6 @@ export class RulingFailure extends Data.TaggedError("RulingFailure")<{
 	readonly message: string;
 }> {}
 
-// why: a verdict, a proclamation or a supersession that does not land is not a
-// broken window — the ruling was answered already, was never asked, names a
-// choice or a subject the fleet never had, or does not stand. The reason is the sentence the admiral is shown
-// rather than a code to branch on.
 export class RulingRefused extends Data.TaggedError("RulingRefused")<{
 	readonly reason: string;
 }> {}

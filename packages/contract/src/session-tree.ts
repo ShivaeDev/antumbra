@@ -2,17 +2,9 @@ import { AgentSessionCompletenessSchema, AgentSessionStatusSchema } from "@antum
 import { SubsessionOutcome } from "@antumbra/vocabulary/session-events";
 import { Schema } from "effect";
 
-// why: what a delegated conversation is called when nothing named it. The
-// words live here rather than in the projection because a view that meets a
-// delegation marker its tree does not hold has to reach the same fallback —
-// two implementations of one rule drift, and the drift shows as one node
-// wearing two names.
 export const UNNAMED_SUBSESSION = "Unnamed subsession";
 
-// why: a provider that names an agent by the file defining it stored a path,
-// not a name. The leaf without its extension is the name that path was already
-// carrying; anything further would be Antumbra naming a node the provider left
-// unnamed.
+// Provider kinds may be file paths; display the final path stem.
 const pathLeaf = (kind: string): string | undefined => {
 	if (!kind.includes("/")) {
 		return undefined;
@@ -22,9 +14,7 @@ const pathLeaf = (kind: string): string | undefined => {
 	return stem === "" ? undefined : stem;
 };
 
-// why: computed at read from what was stored when the node opened, never
-// written back — a name the record was never given is not a fact about the
-// node, and persisting one would make the display rule unfalsifiable later.
+// Display names are derived from stored opening fields and are not persisted.
 export const subsessionDisplayName = (stored: { readonly kind: string | null; readonly label: string | null }): string => {
 	if (stored.label !== null && stored.label !== "") {
 		return stored.label;
@@ -35,21 +25,15 @@ export const subsessionDisplayName = (stored: { readonly kind: string | null; re
 	return pathLeaf(stored.kind) ?? stored.kind;
 };
 
-// why: depth is what the walk found, not what any frame claimed — a provider
-// never says how deep it is, and an event that did say would be describing the
-// tree from inside it.
+// Depth is derived from the opened tree; providers do not supply it.
 export const SessionTreeNode = Schema.Struct({
 	completeness: AgentSessionCompletenessSchema,
 	depth: Schema.Number,
 	displayName: Schema.String,
 	id: Schema.String,
-	// why: the provider's own reference for this conversation, which is what a
-	// delegation marker in a parent's transcript names. It is the join between
-	// what the transcript says and which node it points at.
+	// Provider-owned conversation references join delegation markers to nodes.
 	nativeRef: Schema.NullOr(Schema.String),
-	// why: how the node stopped, in the four words this vocabulary owns — a
-	// provider word with no counterpart was already narrowed to "unknown" before
-	// it was ever stored. Open nodes carry null because they have not stopped.
+	// Unknown provider outcomes are not stored as typed endings; null means no ending.
 	outcome: Schema.NullOr(SubsessionOutcome),
 	status: AgentSessionStatusSchema,
 });

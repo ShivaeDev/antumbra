@@ -10,9 +10,6 @@ it("reads back every ending it owns, and the null of one that has not ended", ()
 	expect(decodeStoredSubsessionOutcome("session-1", null)).toEqual(Result.succeed(null));
 });
 
-// why: the column holds text, so a word from a foreign or later vocabulary can
-// physically be in it. Handing it on as an ending would let a word this record
-// never meant reach a reader as one it did.
 it("retains the subject and the unknown stored word in a typed failure", () => {
 	expect(decodeStoredSubsessionOutcome("session-1", "killed")).toMatchObject({
 		failure: {

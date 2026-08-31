@@ -1,8 +1,5 @@
 import { Schema } from "effect";
 
-// why: hosts, durable rows, contracts, and views all speak these same neutral
-// words. This package is a leaf so none of those layers owns or widens the
-// vocabulary for the others.
 export const ChangeStage = Schema.Literals(["prepared", "open", "landed", "withdrawn"]);
 export type ChangeStage = typeof ChangeStage.Type;
 

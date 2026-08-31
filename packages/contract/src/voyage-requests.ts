@@ -39,8 +39,6 @@ export const ArtifactSupersessionRequest = Schema.Struct({
 });
 export type ArtifactSupersessionRequest = typeof ArtifactSupersessionRequest.Type;
 
-// why: a board hangs off exactly one entity, so what it hangs off is a choice
-// between named shapes rather than an id beside a kind that could disagree.
 export const BoardTarget = Schema.Union([
 	Schema.Struct({ kind: Schema.Literal("piece"), pieceId: Schema.String }),
 	Schema.Struct({ kind: Schema.Literal("voyage"), voyageId: Schema.String }),
@@ -54,8 +52,6 @@ export const BoardWriteRequest = Schema.Struct({
 });
 export type BoardWriteRequest = typeof BoardWriteRequest.Type;
 
-// why: a change opened by hand is linked to its piece by url — the host is
-// asked what it is, so the window sends what a person can read off a page.
 export const AdoptChangeRequest = Schema.Struct({
 	pieceId: Schema.String,
 	repoName: Schema.String,
@@ -63,14 +59,9 @@ export const AdoptChangeRequest = Schema.Struct({
 });
 export type AdoptChangeRequest = typeof AdoptChangeRequest.Type;
 
-// why: a change that died at its host is settled by naming it and nothing
-// else — there is one verdict a dead change can be given.
 export const DismissChangeRequest = Schema.Struct({ changeId: Schema.String });
 export type DismissChangeRequest = typeof DismissChangeRequest.Type;
 
-// why: the verdict travels as the admiral's word about a piece and nothing
-// else — no state, no stamp. What the piece then reads as is derived on the
-// far side, so a window that sent one still learns the answer from the feed.
 export const PieceVerdictRequest = Schema.Struct({
 	pieceId: Schema.String,
 	verdict: PieceVerdict,
@@ -80,8 +71,6 @@ export type PieceVerdictRequest = typeof PieceVerdictRequest.Type;
 export const HailReceipt = Schema.Struct({ agentId: Schema.String });
 export type HailReceipt = typeof HailReceipt.Type;
 
-// why: crew asked for by name answers the same way a hailed captain does —
-// with the agent that was born for it, so the window can follow it.
 export const CrewReceipt = Schema.Struct({ agentId: Schema.String });
 export type CrewReceipt = typeof CrewReceipt.Type;
 

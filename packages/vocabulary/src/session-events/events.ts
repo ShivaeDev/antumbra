@@ -7,9 +7,6 @@ import { SubsessionEnded, SubsessionGap, SubsessionOpened } from "#session-event
 import { UsageEvent } from "#session-events/usage.ts";
 import { SessionInputId, SessionMessagePart } from "#session-input.ts";
 
-// why: the one vocabulary every side speaks — backends map their provider's
-// wire messages onto it, the log stores it, the renderer derives from it. This
-// package is a leaf on purpose: it must be importable by ports and views alike.
 export const SessionOpened = Schema.Struct({
 	nativeRef: Schema.String,
 	raw: Raw,

@@ -161,8 +161,6 @@ describe("makeAppRouter", () => {
 		}),
 	);
 
-	// why: a window refused its request is refused, not broken — the renderer
-	// has to be able to tell a forbidden ask from a source that fell over.
 	it.effect("serves a window its place and surfaces refusals as forbidden", () =>
 		Effect.gen(function* () {
 			const runtime = makeRuntime();

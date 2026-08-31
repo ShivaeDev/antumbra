@@ -1,6 +1,4 @@
-// why: the preload runs sandboxed and must stay dependency-free — this
-// module carries the bridge protocol with no imports at all, so bundling
-// it cannot drag effect or trpc into the sandbox.
+// The preload bridge must remain dependency-free.
 export const TRPC_CHANNEL = "antumbra:trpc";
 export const TRPC_SUBSCRIBE_CHANNEL = "antumbra:trpc:subscribe";
 export const TRPC_UNSUBSCRIBE_CHANNEL = "antumbra:trpc:unsubscribe";
@@ -9,9 +7,7 @@ export const OPEN_EXTERNAL_CHANNEL = "antumbra:open-external";
 export const TRPC_INVOKE_TYPES = ["query", "mutation"] as const;
 export type TrpcInvokeType = (typeof TRPC_INVOKE_TYPES)[number];
 
-// why: preload cannot import tRPC, so this dependency-free protocol pins the
-// complete error vocabulary used by the bundled tRPC version. ipc.ts proves
-// the tuple and tRPC's own type remain reciprocal.
+// These codes mirror tRPC's serialized error vocabulary.
 export const TRPC_FAILURE_CODES = [
 	"PARSE_ERROR",
 	"BAD_REQUEST",

@@ -18,8 +18,7 @@ const pump = async (sender: SubscriptionSender, id: string, iterable: AsyncItera
 		}
 	};
 	const iterator = iterable[Symbol.asyncIterator]();
-	// why: the stream must stop even if the signal is ignored downstream —
-	// return() settles a pending next() so an aborted feed cannot leak.
+	// return() settles a pending next() when the subscription ignores AbortSignal.
 	signal.addEventListener("abort", () => {
 		void iterator.return?.();
 	});

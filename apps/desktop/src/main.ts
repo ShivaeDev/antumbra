@@ -29,8 +29,6 @@ import { makeWindowRegistry, type WindowShell } from "#adapters/windows/registry
 import { restoreWindows } from "#adapters/windows/restore.ts";
 import { WindowSourceLive } from "#adapters/windows/source.ts";
 
-// why: a mode click and a selection are the same gesture repeated, so the
-// saves they cause are collapsed rather than written one for one.
 const LAYOUT_PATIENCE_MILLIS = 400;
 
 const reveal = (shell: WindowShell) => focusOrOpenConsole(shell.registry, openConsole(shell));
@@ -41,9 +39,6 @@ const layoutStore = Effect.provide(
 );
 
 const startOwner = (shell: WindowShell, store: LayoutStore) => {
-	// why: a migration or connect failure leaves no meaningful app to run, so
-	// the persistence layer dies instead of threading an error type every
-	// consumer would have to carry.
 	const runtime = ManagedRuntime.make(Layer.mergeAll(AppInfoSourceLive, WindowSourceLive(shell), devTracing(), Layer.orDie(applicationLayers())));
 	const router = makeAppRouter(runtime);
 	const main = Effect.gen(function* () {
@@ -62,8 +57,6 @@ const startOwner = (shell: WindowShell, store: LayoutStore) => {
 			store,
 		});
 		yield* restoreWindows(shell, store);
-		// why: the roster is armed only once the restore has finished, so the
-		// windows being put back do not write themselves down as they appear.
 		yield* Effect.sync(() => {
 			shell.registry.onChanged(() => runtime.runFork(writer.note));
 			runtime.runFork(writer.run);

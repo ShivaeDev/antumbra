@@ -26,7 +26,5 @@ contextBridge.exposeInMainWorld("antumbra", {
 			ipcRenderer.send(TRPC_UNSUBSCRIBE_CHANNEL, { id: request.id });
 		};
 	},
-	// why: ipcRenderer.invoke is Promise<any>, so the annotation is what stops
-	// electron's untyped reply at the boundary the renderer trusts.
 	trpc: (request: BridgeRequest): Promise<TrpcResponse> => ipcRenderer.invoke(TRPC_CHANNEL, request),
 } satisfies AntumbraBridge);

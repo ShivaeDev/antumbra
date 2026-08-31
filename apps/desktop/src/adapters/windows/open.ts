@@ -43,6 +43,4 @@ export const openWindow = (opening: WindowOpening) =>
 		return record === undefined ? yield* Effect.die(new Error("window could not be owned")) : record;
 	});
 
-// why: the app is one console — a launch, a second launch, and a console that
-// was closed while children stayed open all end at the same single window.
 export const openConsole = (shell: WindowShell) => Effect.asVoid(openWindow({ ...shell, place: defaultConsole }));

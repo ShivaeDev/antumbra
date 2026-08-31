@@ -69,7 +69,7 @@ it.effect("a landing piece gates its dependents until the change lands", () =>
 				sessionId: "session-crew",
 				title: "chart the eastern spit",
 			});
-			yield* TestClock.withLive(retireOneAlive(backend));
+			yield* retireOneAlive(backend);
 
 			yield* TestClock.withLive(
 				eventually(

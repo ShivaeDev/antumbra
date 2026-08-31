@@ -1,7 +1,7 @@
 import { Effect, PubSub } from "effect";
 import type { StoredEvent } from "#stored-event.ts";
 
-export interface DomainFeedState {
+interface DomainFeedState {
 	readonly changeRefresh: PubSub.PubSub<void>;
 	readonly events: PubSub.PubSub<StoredEvent>;
 	readonly fleet: PubSub.PubSub<void>;

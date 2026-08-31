@@ -54,7 +54,7 @@ const rowsOf = (rootSessionId: string) => Database.use((db) => db.AgentSession.w
 const rehearsal = <A, E, R>(sweep: ScriptedSweep, use: Effect.Effect<A, E, R>) =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
-		yield* use.pipe(Effect.provide(codexRehearsalLayer(temporary, ROOT_THREAD, codexRehearsal, sweep)));
+		yield* use.pipe(Effect.provide(codexRehearsalLayer(temporary, ROOT_THREAD, codexRehearsal, Effect.void, sweep)));
 	});
 
 const gapsOn = (sessionId: string) =>

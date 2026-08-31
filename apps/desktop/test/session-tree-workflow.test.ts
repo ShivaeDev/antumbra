@@ -1,8 +1,8 @@
 import { SightSource } from "@antumbra/contract";
 import { Database } from "@antumbra/persistence";
 import { expect, it } from "@effect/vitest";
-import { Effect } from "effect";
-import { acquireTemporaryPersistence, eventually, rehearsalLayer } from "#test/session-tree-harness.ts";
+import { Deferred, Effect } from "effect";
+import { acquireTemporaryPersistence, rehearsalLayer } from "#test/session-tree-harness.ts";
 import { AGENT_LATE, AGENT_ONE, AGENT_TWO, WORKFLOW_CALL, WORKFLOW_RESULT, workflowRehearsal } from "#test/session-tree-workflow-frames.ts";
 
 const spawnRequest = {
@@ -35,21 +35,26 @@ const runOf = (rootSessionId: string) =>
 	});
 
 const settled = (rootSessionId: string) =>
-	eventually(
-		Effect.gen(function* () {
-			const found = yield* runOf(rootSessionId);
-			expect(found.rows.length).toBe(4);
-			expect(found.late?.status).toBe("closed");
-			return found;
-		}),
-	);
+	Effect.gen(function* () {
+		const found = yield* runOf(rootSessionId);
+		expect(found.rows.length).toBe(4);
+		expect(found.late?.status).toBe("closed");
+		return found;
+	});
 
-it.live("every agent a workflow ran becomes a node of the Session tree", () =>
+const rehearsal = <A, E, R>(use: (drained: Effect.Effect<void>) => Effect.Effect<A, E, R>) =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
-		yield* Effect.gen(function* () {
+		const drained = yield* Deferred.make<void>();
+		yield* use(Deferred.await(drained)).pipe(Effect.provide(rehearsalLayer(temporary, workflowRehearsal, Deferred.succeed(drained, undefined))));
+	});
+
+it.live("every agent a workflow ran becomes a node of the Session tree", () =>
+	rehearsal((drained) =>
+		Effect.gen(function* () {
 			const sight = yield* SightSource;
 			const receipt = yield* sight.spawn(spawnRequest);
+			yield* drained;
 			const run = yield* settled(receipt.sessionId);
 
 			// why: the agents say nothing on the stream, so their rows exist only
@@ -73,16 +78,16 @@ it.live("every agent a workflow ran becomes a node of the Session tree", () =>
 				outcome: "completed",
 				parentSessionId: receipt.sessionId,
 			});
-		}).pipe(Effect.provide(rehearsalLayer(temporary, workflowRehearsal)));
-	}),
+		}),
+	),
 );
 
 it.live("each workflow agent's words are journaled under its own id", () =>
-	Effect.gen(function* () {
-		const temporary = yield* acquireTemporaryPersistence;
-		yield* Effect.gen(function* () {
+	rehearsal((drained) =>
+		Effect.gen(function* () {
 			const sight = yield* SightSource;
 			const receipt = yield* sight.spawn(spawnRequest);
+			yield* drained;
 			const run = yield* settled(receipt.sessionId);
 			const one = run.one;
 			const two = run.two;
@@ -111,16 +116,16 @@ it.live("each workflow agent's words are journaled under its own id", () =>
 				"subsession.opened",
 				"subsession.ended",
 			]);
-		}).pipe(Effect.provide(rehearsalLayer(temporary, workflowRehearsal)));
-	}),
+		}),
+	),
 );
 
 it.live("what the workflow returned is recovered from the stored copy", () =>
-	Effect.gen(function* () {
-		const temporary = yield* acquireTemporaryPersistence;
-		yield* Effect.gen(function* () {
+	rehearsal((drained) =>
+		Effect.gen(function* () {
 			const sight = yield* SightSource;
 			const receipt = yield* sight.spawn(spawnRequest);
+			yield* drained;
 			yield* settled(receipt.sessionId);
 
 			// why: the result of a workflow reaches no lane the stream carries, so
@@ -133,16 +138,16 @@ it.live("what the workflow returned is recovered from the stored copy", () =>
 			const kept = (yield* journal(receipt.sessionId)).map((row) => row.payload).join("");
 			expect(kept).not.toContain("task_progress");
 			expect(kept).not.toContain("promptPreview");
-		}).pipe(Effect.provide(rehearsalLayer(temporary, workflowRehearsal)));
-	}),
+		}),
+	),
 );
 
 it.live("an agent the mirror missed is adopted, and says it was", () =>
-	Effect.gen(function* () {
-		const temporary = yield* acquireTemporaryPersistence;
-		yield* Effect.gen(function* () {
+	rehearsal((drained) =>
+		Effect.gen(function* () {
 			const sight = yield* SightSource;
 			const receipt = yield* sight.spawn(spawnRequest);
+			yield* drained;
 			const run = yield* settled(receipt.sessionId);
 			const late = run.late;
 			if (late === undefined) {
@@ -168,6 +173,6 @@ it.live("an agent the mirror missed is adopted, and says it was", () =>
 			// who could not tell would date the work to the moment of the repair.
 			const gap = (yield* journal(late.id)).find((row) => row.kind === "subsession.gap");
 			expect(gap?.payload).toContain("adopted-late");
-		}).pipe(Effect.provide(rehearsalLayer(temporary, workflowRehearsal)));
-	}),
+		}),
+	),
 );

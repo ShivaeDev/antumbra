@@ -28,7 +28,7 @@ export const eventually = <A, E, R>(check: Effect.Effect<A, E, R>) =>
 // app registers, minus the process. What the domain receives is exactly what a
 // live session would produce on either lane, so the record this builds is the
 // record it builds in production, at zero model tokens.
-const scriptedClaude = (script: ReadonlyArray<Delivery>, stored: StoredTranscripts): AgentBackend => ({
+const scriptedClaude = (script: ReadonlyArray<Delivery>, stored: StoredTranscripts, drained: Effect.Effect<unknown>): AgentBackend => ({
 	audit: scriptedClaudeAudit(stored),
 	capabilities: {
 		imageInput: false,
@@ -38,7 +38,7 @@ const scriptedClaude = (script: ReadonlyArray<Delivery>, stored: StoredTranscrip
 			const lanes = openSessionLanes();
 			const events = script.flatMap((delivery) => [...laneEvents(lanes, delivery)]);
 			return {
-				events: Stream.fromArray(events),
+				events: Stream.fromArray(events).pipe(Stream.concat(Stream.fromEffect(drained).pipe(Stream.drain))),
 				interrupt: Effect.void,
 				nativeRef: Effect.succeed(Option.none()),
 				queue: () => Effect.void,
@@ -52,7 +52,12 @@ const scriptedClaude = (script: ReadonlyArray<Delivery>, stored: StoredTranscrip
 // app-server sends for a session and for every thread it delegated to, minus
 // the process. The un-filtering, the attribution and the admissions are the
 // live ones, so the record this builds is the record it builds in production.
-const scriptedCodex = (rootThread: string, script: ReadonlyArray<RpcNotification>, sweep: ScriptedSweep): AgentBackend => ({
+const scriptedCodex = (
+	rootThread: string,
+	script: ReadonlyArray<RpcNotification>,
+	sweep: ScriptedSweep,
+	drained: Effect.Effect<unknown>,
+): AgentBackend => ({
 	audit: scriptedCodexAudit(sweep),
 	capabilities: {
 		imageInput: true,
@@ -65,7 +70,7 @@ const scriptedCodex = (rootThread: string, script: ReadonlyArray<RpcNotification
 				...script.flatMap((notification) => tree.events(notification)),
 			];
 			return {
-				events: Stream.fromArray(events),
+				events: Stream.fromArray(events).pipe(Stream.concat(Stream.fromEffect(drained).pipe(Stream.drain))),
 				interrupt: Effect.void,
 				nativeRef: Effect.succeed(Option.some(rootThread)),
 				queue: () => Effect.void,
@@ -114,12 +119,17 @@ const sightLayer = (temporary: TemporaryPersistence, backend: AgentBackend) =>
 		Layer.provideMerge(domainLayer(temporary, backend)),
 	);
 
-export const rehearsalLayer = (temporary: TemporaryPersistence, script: ReadonlyArray<Delivery>, stored: StoredTranscripts = storedNothing) =>
-	sightLayer(temporary, scriptedClaude(script, stored));
+export const rehearsalLayer = (
+	temporary: TemporaryPersistence,
+	script: ReadonlyArray<Delivery>,
+	drained: Effect.Effect<unknown> = Effect.void,
+	stored: StoredTranscripts = storedNothing,
+) => sightLayer(temporary, scriptedClaude(script, stored, drained));
 
 export const codexRehearsalLayer = (
 	temporary: TemporaryPersistence,
 	rootThread: string,
 	script: ReadonlyArray<RpcNotification>,
+	drained: Effect.Effect<unknown> = Effect.void,
 	sweep: ScriptedSweep = sweptClean,
-) => sightLayer(temporary, scriptedCodex(rootThread, script, sweep));
+) => sightLayer(temporary, scriptedCodex(rootThread, script, sweep, drained));

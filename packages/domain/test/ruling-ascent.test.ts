@@ -1,9 +1,10 @@
 import { BoardScope, Boards } from "@antumbra/boards";
 import { DomainFeeds } from "@antumbra/domain-feeds";
+import { isTerminalIntentStatus, Kernel } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
 import { Rulings } from "@antumbra/rulings";
 import { expect, it } from "@effect/vitest";
-import { type Context, Effect } from "effect";
+import { type Context, Effect, Option, Stream } from "effect";
 import { AgentDomain } from "#domain.ts";
 import { domainKernelLayer } from "#test/domain-layers.ts";
 import { acquireTemporaryPersistence, makeScriptedBackend, type ScriptedBackend, sessionFor } from "#test/harness.ts";
@@ -44,13 +45,16 @@ const openFlagship = Effect.gen(function* () {
 const hailCaptain = (scripted: ScriptedBackend, voyageId: string) =>
 	Effect.gen(function* () {
 		const domain = yield* AgentDomain;
+		const kernel = yield* Kernel;
 		const captain = yield* domain.voyages.hail(voyageId);
-		yield* eventually(sessionFor(scripted, captain.agentId));
+		const status = yield* kernel
+			.changes(captain.intentId)
+			.pipe(Stream.takeUntil(isTerminalIntentStatus), Stream.runLast, Effect.map(Option.getOrThrow));
+		expect(status).toBe("succeeded");
+		yield* sessionFor(scripted, captain.agentId);
 		return captain.agentId;
 	});
 
-// why: the reef voyage is crewed before anything is asked, because the rung a
-// crew member waits on is read off its crew row rather than off the question.
 const crewReef = Effect.gen(function* () {
 	const db = yield* Database;
 	const voyage = yield* openReefVoyage;
@@ -154,9 +158,6 @@ it.live("a captain's own question reaches the flagship", () =>
 	),
 );
 
-// why: the rung is the whole of what the ascent reads, so a question that
-// climbs is owed to its new rung on the very next pass without anything having
-// to remember it was already carried once.
 it.live("a question a captain passes up climbs on the next pass", () =>
 	withFleet((fleet) =>
 		Effect.gen(function* () {
@@ -197,9 +198,6 @@ it.live("a later pass carries the next question and repeats no earlier one", () 
 			const first = yield* ask("may we dredge?", "captain");
 			yield* carried(fleet.reefCaptain, 1);
 
-			// why: a bare ring makes the observer walk the record again with
-			// nothing new in it, so the second question proves the pass ran and the
-			// single entry per ruling proves the first was not carried twice.
 			yield* feeds.publishRulingRefresh();
 			const second = yield* ask("and who signs the survey?", "captain");
 
@@ -209,9 +207,6 @@ it.live("a later pass carries the next question and repeats no earlier one", () 
 	),
 );
 
-// why: nothing rings the ruling feed between the question and the hail, so the
-// mail arriving proves the hail itself woke the ascent — not a later write that
-// happened to walk the record again.
 it.live("a question asked before its rung is held climbs on the hail", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;

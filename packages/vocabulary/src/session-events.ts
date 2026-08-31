@@ -2,7 +2,6 @@ export {
 	AgentEvent,
 	SessionOpened,
 	TurnCompleted,
-	TurnStatus,
 } from "#session-events/events.ts";
 export {
 	HistoricalAgentEvent,

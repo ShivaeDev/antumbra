@@ -50,7 +50,7 @@ export const ToolCompleted = Schema.Struct({
 	type: Schema.Literal("tool.completed"),
 });
 
-export const TurnStatus = Schema.Literals(["completed", "failed", "interrupted"]);
+const TurnStatus = Schema.Literals(["completed", "failed", "interrupted"]);
 
 export const TurnCompleted = Schema.Struct({
 	durationMs: Schema.optional(Schema.Number),

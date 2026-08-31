@@ -4,7 +4,7 @@ import type { TemporaryPersistence } from "@antumbra/persistence/testing";
 import { SessionFabricLive } from "@antumbra/session-fabric";
 import { makeCurrentSessionResumable, makeRefuseSubsessionAttach, SubsessionAttachRefused } from "@antumbra/sessions";
 import { expect, it } from "@effect/vitest";
-import { Effect, Layer, Result } from "effect";
+import { Effect, Layer, Result, Stream } from "effect";
 import { domainKernelLayer, sightSourceTestLayer } from "#test/domain-layers.ts";
 import { acquireTemporaryPersistence, makeScriptedBackend, type ScriptedBackend } from "#test/harness.ts";
 import { eventually } from "#test/voyage-fixtures.ts";
@@ -70,11 +70,11 @@ it.live("a subsession is never a resume target", () =>
 		yield* Effect.gen(function* () {
 			const sight = yield* SightSource;
 			const receipt = yield* sight.spawn(spawnRequest);
-			yield* eventually(
-				Effect.gen(function* () {
-					const fleet = yield* sight.fleet;
-					expect(fleet.agents).not.toEqual([]);
-				}),
+			yield* sight.fleetFeed.pipe(
+				Stream.filter((fleet) =>
+					fleet.agents.some((agent) => agent.id === receipt.agentId && agent.sessions.some((session) => session.id === receipt.sessionId)),
+				),
+				Stream.runHead,
 			);
 			yield* openSubsession("session-child", receipt.agentId, receipt.sessionId, receipt.sessionId);
 
@@ -100,11 +100,11 @@ it.live("the attachment seam refuses a subsession id outright", () =>
 		yield* Effect.gen(function* () {
 			const sight = yield* SightSource;
 			const receipt = yield* sight.spawn(spawnRequest);
-			yield* eventually(
-				Effect.gen(function* () {
-					const fleet = yield* sight.fleet;
-					expect(fleet.agents).not.toEqual([]);
-				}),
+			yield* sight.fleetFeed.pipe(
+				Stream.filter((fleet) =>
+					fleet.agents.some((agent) => agent.id === receipt.agentId && agent.sessions.some((session) => session.id === receipt.sessionId)),
+				),
+				Stream.runHead,
 			);
 			yield* openSubsession("session-child", receipt.agentId, receipt.sessionId, receipt.sessionId);
 

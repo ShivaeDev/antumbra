@@ -6,7 +6,7 @@ import { type Context, Effect, Option } from "effect";
 import { AgentDomain } from "#domain.ts";
 import { domainKernelLayer } from "#test/domain-layers.ts";
 import { acquireTemporaryPersistence, makeScriptedBackend, type ScriptedBackend, type ScriptedSession, sessionFor } from "#test/harness.ts";
-import { eventually, openReefVoyage } from "#test/voyage-fixtures.ts";
+import { eventually, openReefVoyage, terminalIntent } from "#test/voyage-fixtures.ts";
 
 export const ASKER = "agent-asker";
 const FLAGSHIP_ID = "voyage-flagship";
@@ -71,9 +71,10 @@ const hailed = (scripted: ScriptedBackend, voyageId: string) =>
 	Effect.gen(function* () {
 		const domain = yield* AgentDomain;
 		const captain = yield* domain.voyages.hail(voyageId);
+		expect(yield* terminalIntent(captain.intentId)).toBe("succeeded");
 		return {
 			agentId: captain.agentId,
-			session: yield* eventually(sessionFor(scripted, captain.agentId)),
+			session: yield* sessionFor(scripted, captain.agentId),
 		};
 	});
 

@@ -9,7 +9,7 @@ import { AgentDomain } from "#domain.ts";
 import { domainKernelLayer } from "#test/domain-layers.ts";
 import { acquireTemporaryPersistence, makeScriptedBackend, rawOf, sessionFor } from "#test/harness.ts";
 import { reportsNativeRef, untilTerminal } from "#test/session-recovery-fixture.ts";
-import { eventually, openReefVoyage } from "#test/voyage-fixtures.ts";
+import { eventually, openReefVoyage, terminalIntent } from "#test/voyage-fixtures.ts";
 
 const countAttachmentCloses = (backend: AgentBackend, closes: Ref.Ref<number>): AgentBackend => ({
 	...backend,
@@ -76,7 +76,8 @@ it.live("drains once, rebuilds idle truth, and resumes the same native Session",
 			const domain = yield* AgentDomain;
 			const voyage = yield* openReefVoyage;
 			const hailed = yield* domain.voyages.hail(voyage.id);
-			const live = yield* eventually(sessionFor(scripted, hailed.agentId));
+			expect(yield* terminalIntent(hailed.intentId)).toBe("succeeded");
+			const live = yield* sessionFor(scripted, hailed.agentId);
 			yield* domain.boards.write(
 				BoardScope.Agent({ agentId: hailed.agentId }),
 				EntryInput.Note({

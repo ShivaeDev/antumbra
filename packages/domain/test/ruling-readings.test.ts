@@ -6,7 +6,7 @@ import type { SpawnFields } from "#index.ts";
 import { domainKernelLayer } from "#test/domain-layers.ts";
 import { acquireTemporaryPersistence, callTool, makeScriptedBackend, type ScriptedSession, sessionFor } from "#test/harness.ts";
 import { onVoyage, proclaimed, seedAsker, unruled } from "#test/ruling-fixtures.ts";
-import { eventually, openReefVoyage } from "#test/voyage-fixtures.ts";
+import { openReefVoyage, terminalIntent } from "#test/voyage-fixtures.ts";
 
 const HAND: SpawnFields = {
 	agentId: "agent-hand",
@@ -36,7 +36,8 @@ const withCaptain = <A, E, R>(body: (captain: ScriptedSession, voyageId: string)
 			const voyage = yield* openReefVoyage;
 			yield* seedAsker;
 			const hailed = yield* domain.voyages.hail(voyage.id);
-			const captain = yield* eventually(sessionFor(scripted, hailed.agentId));
+			expect(yield* terminalIntent(hailed.intentId)).toBe("succeeded");
+			const captain = yield* sessionFor(scripted, hailed.agentId);
 			yield* body(captain, voyage.id);
 		}).pipe(Effect.provide(domainKernelLayer(temporary, scripted.backend)));
 	});
@@ -107,8 +108,9 @@ it.live("an agent on no piece or voyage is bound by fleet rulings alone", () =>
 				radius: "fleet",
 				subjects: [],
 			});
-			yield* kernel.submit(domain.spawn, HAND);
-			const live = yield* eventually(sessionFor(scripted, HAND.agentId));
+			const spawned = yield* kernel.submit(domain.spawn, HAND);
+			expect(yield* terminalIntent(spawned.id)).toBe("succeeded");
+			const live = yield* sessionFor(scripted, HAND.agentId);
 			const outcome = yield* callTool(live, "read_rulings", undefined);
 			expect(outcome.ok).toBe(true);
 			expect(outcome.text).toContain("may any voyage dredge?");

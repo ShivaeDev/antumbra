@@ -4,7 +4,7 @@ import { Effect, Option } from "effect";
 import { AgentDomain } from "#domain.ts";
 import { domainKernelLayer } from "#test/domain-layers.ts";
 import { acquireTemporaryPersistence, makeScriptedBackend } from "#test/harness.ts";
-import { aliveAgent, chain, eventually, land, openReefVoyage, stateOf } from "#test/voyage-fixtures.ts";
+import { aliveAgent, chain, land, openReefVoyage, stateOf, terminalIntent } from "#test/voyage-fixtures.ts";
 
 const soleReefPiece = Effect.gen(function* () {
 	const domain = yield* AgentDomain;
@@ -106,7 +106,8 @@ it.live("a piece the ladder has finished with can still be asked to run", () =>
 
 			const crewed = yield* domain.voyages.workNow(piece.id);
 
-			yield* eventually(aliveAgent(crewed.agentId));
+			expect(yield* terminalIntent(crewed.intentId)).toBe("succeeded");
+			yield* aliveAgent(crewed.agentId);
 			expect(yield* db.PieceAgent.all()).toMatchObject([{ agentId: crewed.agentId, pieceId: piece.id }]);
 			expect(yield* stateOf(voyage.id, piece.id)).toBe("active");
 			expect(yield* Effect.flip(domain.voyages.workNow(piece.id))).toMatchObject({ _tag: "PieceAlreadyCrewed" });

@@ -9,7 +9,6 @@ export {
 } from "#current/errors.ts";
 export { newestSession } from "#current/order.ts";
 export { makeCurrentSessionReconciler } from "#current/reconcile.ts";
-export { planCurrentSessionReconciliation } from "#current/reconcile-plan.ts";
 export { makeCurrentSessionRecovery } from "#current/recovery.ts";
 export { makeCurrentSessionResumable } from "#current/resumable.ts";
 export {

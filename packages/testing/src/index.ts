@@ -1,3 +1,4 @@
-import { effectApp } from "#it.ts";
+import { type AppHarness, runWithApp } from "#app.ts";
+import { makeEffectApp } from "#it.ts";
 
-export const it = { effectApp };
+export const it = { effectApp: makeEffectApp<AppHarness, never>(runWithApp) };

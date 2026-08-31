@@ -1,7 +1,6 @@
-import { DomainFeedsLive } from "@antumbra/domain-feeds";
-import { Database, type DatabaseService, type NewAgentSession } from "@antumbra/persistence";
+import type { DatabaseService, NewAgentSession } from "@antumbra/persistence";
 import type { MooragePlan } from "@antumbra/plugin-api";
-import { it } from "@antumbra/testing";
+import { it } from "@antumbra/testing/domain";
 import { expect } from "@effect/vitest";
 import { Effect } from "effect";
 import type { SpawnFields } from "#index.ts";
@@ -51,7 +50,7 @@ const seed = (db: DatabaseService) =>
 // driver words nobody keeps. Read first, the same law refuses by name and says
 // which Session already holds the Agent's answer.
 it.effectApp("a second open root is refused by name, not by the index", function* ({ db }) {
-	const ensureSessionRow = yield* makeEnsureSessionRow.pipe(Effect.provide(DomainFeedsLive), Effect.provideService(Database, db));
+	const ensureSessionRow = yield* makeEnsureSessionRow;
 	yield* seed(db);
 
 	const refusal = yield* ensureSessionRow(payload, plan).pipe(

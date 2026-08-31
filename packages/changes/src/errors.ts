@@ -40,10 +40,6 @@ export class ChangeNotFound extends Data.TaggedError("ChangeNotFound")<{
 	}
 }
 
-// why: dismissing is the terminal acknowledgement of a change that died
-// without landing. One still alive at its host has a real answer coming, and
-// settling it here would be a verdict about something nobody has finished
-// saying.
 export class ChangeStillAlive extends Data.TaggedError("ChangeStillAlive")<{
 	readonly changeId: string;
 	readonly stage: string;

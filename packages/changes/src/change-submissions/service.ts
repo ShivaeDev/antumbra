@@ -27,9 +27,6 @@ export class Changes extends Context.Service<
 	Changes,
 	{
 		readonly adopt: (input: AdoptChangeInput) => Effect.Effect<ChangeRow, AdoptChangeFailure>;
-		// why: the admiral's terminal acknowledgement of a change that died at its
-		// host. It settles what the change is still owed without deleting the
-		// record of what happened to it.
 		readonly dismiss: (changeId: string) => Effect.Effect<void, ChangeNotFound | ChangeStillAlive | PrismaError>;
 		readonly heldResources: (
 			resources: ReadonlyArray<HeldResource>,

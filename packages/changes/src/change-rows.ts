@@ -3,10 +3,6 @@ import { type PieceChangePurpose, PieceChangePurpose as PieceChangePurposeSchema
 import { Effect, Schema } from "effect";
 import { StoredPieceChangeInvalid } from "#errors.ts";
 
-// why: the neutral columns are typed with the shared vocabulary, so a host
-// that maps its dialect wrong is a compile error rather than a string nobody
-// notices. `draftAt` is a stamped moment like every other flag in this
-// schema — null is "not a draft", never "unknown".
 export interface ChangeRow {
 	readonly activityAt: Date;
 	readonly baseRef: string;

@@ -20,9 +20,6 @@ export const changeVerdictRow = (row: { readonly changeId: string; readonly verd
 		Effect.map((verdict): ChangeVerdictRow => ({ changeId: row.changeId, verdict })),
 	);
 
-// why: every reader of a dismissal asks the same question — is this change
-// settled — so the set of ids is the whole projection. The word itself matters
-// only where the verdict is written.
 export const readDismissedChangeIds: Effect.Effect<
 	ReadonlySet<string>,
 	PrismaError | StoredChangeVerdictInvalid,

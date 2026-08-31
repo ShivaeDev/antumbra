@@ -33,10 +33,6 @@ const landVerdict = (changeId: string) =>
 		);
 	});
 
-// why: the terminal acknowledgement a dead change never had. It settles what
-// the change is owed without touching the change itself — the row keeps saying
-// what happened to it, and the verdict beside it says the admiral has read it.
-// Dismissing twice is the same fact, so it lands once and rings once.
 export const dismissChange = (changeId: string) =>
 	Effect.gen(function* () {
 		const feeds = yield* DomainFeeds;

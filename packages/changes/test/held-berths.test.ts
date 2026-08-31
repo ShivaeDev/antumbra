@@ -34,17 +34,11 @@ it("a berth whose branch backs a pending change is held by that change", () => {
 	expect(holding([REEF_BERTH], [onReef("open")], REGISTRY, linked)).toEqual(new Map([["keeper:reef", "change-1"]]));
 });
 
-// why: which changes still want an answer is the outcome model's word, so a
-// stage this rule has never heard of holds the berth rather than freeing it.
 it("a prepared change holds the berth and a landed one lets it go", () => {
 	expect(holding([REEF_BERTH], [onReef("prepared")], REGISTRY, linked).size).toBe(1);
 	expect(holding([REEF_BERTH], [onReef("landed")], REGISTRY, linked).size).toBe(0);
 });
 
-// why: the live-fleet failure this rule was narrowed for — a change closed
-// with its branch deleted and its agent retired pinned the worktree it was
-// written in against reclamation forever, because nothing would ever replace
-// it and the old rule waited for exactly that.
 it("a withdrawn change with nothing replacing it releases the berth", () => {
 	expect(holding([REEF_BERTH], [onReef("withdrawn")], REGISTRY, linked).size).toBe(0);
 });
@@ -86,8 +80,6 @@ it("a berth on the same branch name in another repo is not held", () => {
 	expect(holding([elsewhere], [onReef("open")], REGISTRY, linked).size).toBe(0);
 });
 
-// why: forgetting a repo hands its berths back to the ordinary sweep — there is
-// no source left to join a change to, and reclaim still answers to the runner.
 it("a berth cut from a source no longer registered is not held", () => {
 	expect(holding([REEF_BERTH], [onReef("open")], [SHOAL], linked).size).toBe(0);
 });

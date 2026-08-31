@@ -3,9 +3,6 @@ import { Effect, Schema } from "effect";
 import type { ChangeRow } from "#change-rows.ts";
 import { StoredChangeInvalid } from "#errors.ts";
 
-// why: persistence stores these words as text, but their meaning is closed.
-// Decode them together at the read boundary so no consumer can receive a
-// partly valid Change or mistake corruption for a cautious domain fact.
 const StoredChangeVocabulary = Schema.Struct({
 	checks: ChangeChecks,
 	mergeable: ChangeMergeable,

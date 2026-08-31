@@ -1,5 +1,5 @@
 import { Cause, type Logger, type LogLevel, References } from "effect";
-import { serializeRecord } from "#attributes.ts";
+import { serialize, serializeRecord } from "#attributes.ts";
 
 export interface LogRow {
 	readonly annotations: string;
@@ -11,10 +11,7 @@ export interface LogRow {
 	readonly traceId: string | null;
 }
 
-const text = (value: unknown): string =>
-	typeof value === "string"
-		? value
-		: (JSON.stringify(value, (_key, nested: unknown) => (typeof nested === "bigint" ? nested.toString() : nested)) ?? String(value));
+const text = (value: unknown): string => (typeof value === "string" ? value : (serialize(value) ?? String(value)));
 
 const messageOf = (message: unknown): string => (Array.isArray(message) ? message.map(text).join(" ") : text(message));
 

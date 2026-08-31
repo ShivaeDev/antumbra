@@ -19,26 +19,9 @@ export const identifiersOf = (attributes: ReadonlyMap<string, unknown>): Identif
 	sessionId: identifier(attributes, "sessionId"),
 });
 
-// why: a span attribute is whatever the annotating call passed, so the
-// serializer answers for values JSON refuses — bigints and cycles — instead of
-// failing a flush and taking the whole run's tail of spans down with it.
-const replacer = (seen: WeakSet<object>) => {
-	const replace = (_key: string, value: unknown): unknown => {
-		if (typeof value === "bigint") {
-			return value.toString();
-		}
-		if (typeof value !== "object" || value === null) {
-			return value;
-		}
-		if (seen.has(value)) {
-			return "[circular]";
-		}
-		seen.add(value);
-		return value;
-	};
-	return replace;
-};
+export const serialize = (value: unknown): string | undefined =>
+	JSON.stringify(value, (_key, nested: unknown) => (typeof nested === "bigint" ? nested.toString() : nested));
 
-export const serializeRecord = (record: Readonly<Record<string, unknown>>): string => JSON.stringify(record, replacer(new WeakSet()));
+export const serializeRecord = (record: Readonly<Record<string, unknown>>): string => serialize(record) ?? "{}";
 
 export const serializeAttributes = (attributes: ReadonlyMap<string, unknown>): string => serializeRecord(Object.fromEntries(attributes));

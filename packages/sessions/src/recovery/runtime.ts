@@ -8,11 +8,6 @@ import type { SessionRecoveryHeld } from "#recovery/error.ts";
 export class SessionRecoveryRuntime extends Context.Service<
 	SessionRecoveryRuntime,
 	{
-		// why: a resume always arrives carrying the one thing to say first, so
-		// there is no attach that reaches a provider and then wonders what it
-		// was for. Ordinary recovery says reconcile and continue; a resume the
-		// admiral caused says what the admiral said. Either way the words are a
-		// catalog template, which is why this seam cannot be handed a bare string.
 		readonly resume: (
 			permit: SessionStartPermit,
 			context: SessionRecoveryContext,

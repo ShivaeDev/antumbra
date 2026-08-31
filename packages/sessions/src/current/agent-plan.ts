@@ -42,11 +42,8 @@ export const planAgent = (
 		});
 	}
 	const currentId = agent.currentSessionId ?? newestSession(open)?.id ?? null;
-	// why: an alive or spawning Agent with neither a pointer nor an open root
-	// holds work it can never do — atWork fails closed on absent Session truth,
-	// so its Piece stays active and is never offered again. Accepting that state
-	// is how the deadlock survived; boot reclaims the Agent through the status
-	// table instead, and dormant is what hands the Piece back to the pool.
+	// A live regression left a Piece active forever when its alive Agent had no Session.
+	// Reclaiming the Agent returns that Piece to dispatch.
 	if (currentId === null) {
 		const reclaimed = agentTransition(agent.status, "reclaim");
 		return Result.isFailure(reclaimed)

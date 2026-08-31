@@ -14,6 +14,5 @@ const newestFirst = (left: SessionAge, right: SessionAge) => {
 	return left.id < right.id ? 1 : -1;
 };
 
-// why: SQLite's datetime default has whole-second precision, so id is the
-// stable non-product-priority tiebreaker when Sessions are born together.
+// SQLite timestamps have whole-second precision, so ids make ties deterministic.
 export const newestSession = <Session extends SessionAge>(sessions: ReadonlyArray<Session>): Session | undefined => sessions.toSorted(newestFirst)[0];

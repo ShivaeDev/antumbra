@@ -7,9 +7,6 @@ export interface CurrentSessionRepair {
 	readonly currentSessionId: string | null;
 }
 
-// why: resume applies the same repair boot does, from the same plan — an Agent
-// with nothing open is reclaimed here too, and the resume it was asked for then
-// finds no Session to take, which is the truth.
 export const makeCurrentSessionRepair = Effect.gen(function* () {
 	const db = yield* Database;
 	return (currentSessionId: string | null, plan: CurrentSessionReconcilePlan) =>

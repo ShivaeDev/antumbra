@@ -2,20 +2,13 @@ import { type InvalidSessionExecutionTransition, type SessionExecutionStatus, se
 import { Result } from "effect";
 import type { DecodedSession } from "#current/reconcile-rows.ts";
 
-// why: draining says a process is still finishing this Session's execution.
-// Nothing but that process can settle it, so a draining row with no live
-// attachment names a process that is gone — at boot, by definition, and at any
-// other moment because the attachment registry is this process's own truth.
-// Left standing, the row makes the Session unresumable forever.
 export interface SessionExecutionSettlement {
 	readonly executionStatus: SessionExecutionStatus;
 	readonly sessionId: string;
 }
 
-// why: only this process can finish a drain, so its own attachment registry is
-// what separates a Session still going out from one whose drain died with the
-// process that started it. At boot the set is empty, which is exactly the truth
-// a restart leaves behind.
+// Only the process holding an attachment can finish a drain.
+// An unattached drain remains after that process exits and must return to idle.
 export const planSettlements = (
 	sessions: ReadonlyArray<DecodedSession>,
 	closing: ReadonlySet<string>,

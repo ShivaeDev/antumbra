@@ -29,7 +29,6 @@ vi.mock("#adapters/trpc-voyages.ts", () => ({
 	charterPiece: vi.fn(),
 	focusVoyage: vi.fn(),
 	hailCaptain: vi.fn(),
-	landPieceVerdict: vi.fn(),
 	launchPiece: vi.fn(),
 	parkPiece: vi.fn(),
 	readArtifactMarkdown: vi.fn(),

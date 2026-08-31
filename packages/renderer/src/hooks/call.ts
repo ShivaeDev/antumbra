@@ -8,7 +8,7 @@ export type CallState<A> =
 	| { readonly _tag: "idle" }
 	| { readonly _tag: "pending" };
 
-export interface Caller<A> {
+interface Caller<A> {
 	readonly reset: () => void;
 	readonly run: (call: Call<A>) => void;
 	readonly state: CallState<A>;

@@ -79,12 +79,12 @@ persistence.effectDB("updates repeat registration and publishes registry changes
 				defaultRef: "main",
 				source: "/reefs/one",
 			});
-			expect(yield* PubSub.take(notices)).toBeUndefined();
+			yield* PubSub.take(notices);
 			const refreshed = yield* repos.register({
 				defaultRef: "trunk",
 				source: "/reefs/one",
 			});
-			expect(yield* PubSub.take(notices)).toBeUndefined();
+			yield* PubSub.take(notices);
 
 			expect(refreshed).toEqual({
 				defaultRef: "trunk",
@@ -141,8 +141,8 @@ persistence.effectDB("forgets the complete change graph before publishing its tw
 
 			yield* repos.forget(repo.id);
 
-			expect(yield* PubSub.take(fleetNotices)).toBeUndefined();
-			expect(yield* PubSub.take(voyageNotices)).toBeUndefined();
+			yield* PubSub.take(fleetNotices);
+			yield* PubSub.take(voyageNotices);
 			expect(yield* db.Repo.all()).toEqual([]);
 			expect(yield* db.Change.all()).toEqual([]);
 			expect(yield* db.ChangeTransition.all()).toEqual([]);

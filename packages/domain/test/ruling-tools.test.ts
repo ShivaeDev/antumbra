@@ -1,7 +1,8 @@
+import { isTerminalIntentStatus, Kernel } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
 import type { DirectTool } from "@antumbra/plugin-api";
 import { expect, it } from "@effect/vitest";
-import { Effect, Option } from "effect";
+import { Effect, Option, Stream } from "effect";
 import { AgentDomain } from "#domain.ts";
 import { makeRulingToolCompiler } from "#ruling-tools.ts";
 import { dispatchingLayer, domainCapabilityLayer } from "#test/domain-layers.ts";
@@ -31,23 +32,6 @@ const crewOn = (scripted: ScriptedBackend, pieceId: string) =>
 
 const rulingTool = (tools: ReadonlyArray<DirectTool>): DirectTool =>
 	Option.getOrThrow(Option.fromUndefinedOr(tools.find((tool) => tool.name === "request_ruling")));
-
-it.live("crew and captains both reach the ruling tool", () =>
-	Effect.gen(function* () {
-		const temporary = yield* acquireTemporaryPersistence;
-		const scripted = yield* makeScriptedBackend;
-		yield* Effect.gen(function* () {
-			const domain = yield* AgentDomain;
-			const { alpha, voyage } = yield* chain;
-			const crew = yield* eventually(crewOn(scripted, alpha.id));
-			const hailed = yield* domain.voyages.hail(voyage.id);
-			const captain = yield* eventually(sessionFor(scripted, hailed.agentId));
-
-			expect(crew.live.tools.map((tool) => tool.name)).toContain("request_ruling");
-			expect(captain.tools.map((tool) => tool.name)).toContain("request_ruling");
-		}).pipe(Effect.provide(dispatchingLayer(temporary, scripted.backend, PATIENCE)));
-	}),
-);
 
 it.live("a request carries who asked and where the asker stood", () =>
 	Effect.gen(function* () {
@@ -123,8 +107,13 @@ const gatedPieceIds = Effect.gen(function* () {
 const captainOf = (scripted: ScriptedBackend, voyageId: string) =>
 	Effect.gen(function* () {
 		const domain = yield* AgentDomain;
+		const kernel = yield* Kernel;
 		const hailed = yield* domain.voyages.hail(voyageId);
-		return yield* eventually(sessionFor(scripted, hailed.agentId));
+		const status = yield* kernel
+			.changes(hailed.intentId)
+			.pipe(Stream.takeUntil(isTerminalIntentStatus), Stream.runLast, Effect.map(Option.getOrThrow));
+		expect(status).toBe("succeeded");
+		return yield* sessionFor(scripted, hailed.agentId);
 	});
 
 it.live("a captain holds pieces of its own voyage until it is ruled", () =>

@@ -4,15 +4,15 @@ import { prepareArtifactCustodyMigration } from "#adapters/artifact-custody-pref
 import contractJson from "#contract.json" with { type: "json" };
 import type { DatabaseFilePath } from "#data-dir.ts";
 
-export class MigrationFailure extends Data.TaggedError("MigrationFailure")<{
+class MigrationFailure extends Data.TaggedError("MigrationFailure")<{
 	readonly detail: string;
 }> {}
 
-export interface MigrationReport {
+interface MigrationReport {
 	readonly applied: ReadonlyArray<string>;
 }
 
-export interface MigrationTarget {
+interface MigrationTarget {
 	readonly artifactsRoot?: string;
 	readonly contract?: unknown;
 	readonly database: DatabaseFilePath;
@@ -25,7 +25,7 @@ interface PreparedMigrationTarget extends MigrationTarget {
 
 const migrationFailure = (cause: unknown) => new MigrationFailure({ detail: String(cause) });
 
-export const applyPreparedMigrations = (target: PreparedMigrationTarget): Effect.Effect<MigrationReport, MigrationFailure> =>
+const applyPreparedMigrations = (target: PreparedMigrationTarget): Effect.Effect<MigrationReport, MigrationFailure> =>
 	Effect.tryPromise({
 		catch: migrationFailure,
 		try: async () => {

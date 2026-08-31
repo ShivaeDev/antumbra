@@ -1,6 +1,6 @@
 import { Database } from "@antumbra/persistence";
 import { describe, expect, it } from "@effect/vitest";
-import { Effect } from "effect";
+import { Effect, Queue } from "effect";
 import { TestClock } from "effect/testing";
 import type { ObserveCadenceOptions } from "#change-cadence.ts";
 import { AgentDomain } from "#domain.ts";
@@ -32,12 +32,26 @@ const BRISK = cadence(50, 50, 60_000);
 
 const FALTERING = cadence(20, 20, 80);
 
-const watched = <A, E, R>(cadence: ObserveCadenceOptions, body: (scripted: ScriptedHost, backend: ScriptedBackend) => Effect.Effect<A, E, R>) =>
+interface WatchingHost extends ScriptedHost {
+	readonly observations: Queue.Queue<number>;
+}
+
+const watched = <A, E, R>(cadence: ObserveCadenceOptions, body: (scripted: WatchingHost, backend: ScriptedBackend) => Effect.Effect<A, E, R>) =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
 		const backend = yield* makeScriptedBackend;
 		const recorder = yield* makeScriptedRunner;
-		const host = yield* makeScriptedHost();
+		const scripted = yield* makeScriptedHost();
+		const observations = yield* Queue.unbounded<number>();
+		const host: WatchingHost = {
+			...scripted,
+			host: {
+				...scripted.host,
+				observe: (asked) =>
+					scripted.host.observe(asked).pipe(Effect.tap(() => Effect.flatMap(scripted.drive.asked, (all) => Queue.offer(observations, all.length)))),
+			},
+			observations,
+		};
 		yield* body(host, backend).pipe(
 			Effect.provide(
 				watchingLayer(temporary, backend.backend, cadence, changeHostsOf(host.host), { maxRunning: 4, patienceMillis: 50 }, recorder.runner),
@@ -70,14 +84,8 @@ const settled = (scripted: ScriptedHost) =>
 		return before === after ? after : yield* Effect.fail("still observing");
 	});
 
-const askedMoreThan = (scripted: ScriptedHost, count: number) =>
-	TestClock.withLive(
-		eventually(
-			Effect.gen(function* () {
-				expect(yield* passes(scripted)).toBeGreaterThan(count);
-			}),
-		),
-	);
+const askedMoreThan = (scripted: WatchingHost, count: number): Effect.Effect<void> =>
+	Queue.take(scripted.observations).pipe(Effect.flatMap((observed) => (observed > count ? Effect.void : askedMoreThan(scripted, count))));
 
 const hearsTheLanding = (scripted: ScriptedHost, repoId: string, delayMillis: number) =>
 	Effect.gen(function* () {

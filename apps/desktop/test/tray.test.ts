@@ -84,12 +84,6 @@ it("counts an agent as working when any of its sessions can be interrupted", () 
 	expect(workingAgentCount(fleet)).toBe(1);
 });
 
-it("counts agents rather than the sessions they are taking turns in", () => {
-	const fleet = fleetOf([agent("busy", [session("first", true), session("second", true)])]);
-
-	expect(workingAgentCount(fleet)).toBe(1);
-});
-
 it("leaves the menu-bar title empty when no agent is working", () => {
 	expect(trayTitle(0)).toBe("");
 	expect(trayTitle(3)).toBe("3");

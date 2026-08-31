@@ -7,7 +7,6 @@
 		".": "./src/index.ts"
 	},
 	"imports": {
-		"#test/*": "./test/*",
 		"#*": "./src/*"
 	},
 	"scripts": {

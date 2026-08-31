@@ -1,6 +1,3 @@
-// why: the sink owns a file of its own, so it states its whole shape on every
-// open instead of carrying a migration history. A dev trace database that
-// cannot be read is deleted, never repaired.
 export const TRACE_SCHEMA = [
 	`CREATE TABLE IF NOT EXISTS runs (
 		run_id TEXT PRIMARY KEY,
@@ -56,9 +53,7 @@ export const INSERT_LOG = `INSERT INTO logs (
 	run_id, at_millis, level, message, annotations, fiber_id, trace_id, span_id
 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
 
-// why: retention is stated once here as the newest runs to keep; every delete
-// below is the same window read the same way, so a run is never half-pruned.
-export const RETAINED_RUNS = 5;
+const RETAINED_RUNS = 5;
 
 const RETAINED = `SELECT run_id FROM runs ORDER BY started_at_millis DESC, run_id DESC LIMIT ${RETAINED_RUNS}`;
 

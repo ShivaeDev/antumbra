@@ -1,9 +1,6 @@
-// why: the four ids the trace is searched by get their own indexed columns, so
-// "what happened to this Session" is one index seek rather than a JSON scan of
-// every span in the run. Everything else stays in the attributes document.
 const INDEXED_IDENTIFIERS = ["sessionId", "agentId", "intentId", "pieceId"] as const;
 
-export type IndexedIdentifier = (typeof INDEXED_IDENTIFIERS)[number];
+type IndexedIdentifier = (typeof INDEXED_IDENTIFIERS)[number];
 
 export type Identifiers = Readonly<Record<IndexedIdentifier, string | null>>;
 

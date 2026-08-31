@@ -3,7 +3,7 @@ import { type Identifiers, identifiersOf, serializeAttributes } from "#attribute
 
 const NANOS_PER_MILLI = 1_000_000n;
 
-export type SpanStatusName = "failure" | "interrupted" | "success";
+type SpanStatusName = "failure" | "interrupted" | "success";
 
 export interface SpanRow extends Identifiers {
 	readonly attributes: string;
@@ -33,10 +33,6 @@ const outcomeOf = (exit: Exit.Exit<unknown, unknown>): SpanOutcome => {
 	return { error: Cause.pretty(exit.cause), status: "failure" };
 };
 
-// why: wall-clock milliseconds are what a reader filters a run by, and nanosecond
-// durations are what they sort the slow spans by. Keeping the raw nanosecond
-// clock in both columns would push the epoch past the exact-integer range every
-// SQLite reader hands back as a double.
 const millisOf = (nanos: bigint): number => Number(nanos / NANOS_PER_MILLI);
 
 export const spanRowOf = (span: Tracer.Span): SpanRow | undefined => {

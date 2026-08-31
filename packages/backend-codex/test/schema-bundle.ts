@@ -1,11 +1,6 @@
 import { readFileSync } from "node:fs";
 import { Schema } from "effect";
 
-// why: app-server negotiates no protocol version, so the vendored schema files
-// for the pinned CLI are the contract. Loading them is shared so every test
-// that holds the slice to the pin reads the same bundle.
-// Regenerate with `codex app-server generate-json-schema --out <dir>` when the
-// pin moves, and let those tests say what changed.
 const EnumNode = Schema.Struct({
 	enum: Schema.optional(Schema.Array(Schema.String)),
 });

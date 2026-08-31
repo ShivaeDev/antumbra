@@ -28,9 +28,7 @@ const spoke: AgentEvent = {
 	type: "message",
 };
 
-// why: a life that already knew this child — its row closed and an audit had its
-// say — and a restart in which the provider drives it again. The tree in memory
-// starts empty, which is exactly the state that would mint a second row.
+// A restarted tree has no in-memory child identity, but persisted provider references must reopen the existing row.
 const seedTree = seedAgent(AGENT).pipe(
 	Effect.andThen(
 		seedSession({
@@ -69,14 +67,9 @@ it.live("a re-driven child that is announced again reopens its row", () =>
 		Effect.gen(function* () {
 			const node = yield* reopened(announced);
 
-			// why: resume, from any state, means recording again — whatever an
-			// earlier audit concluded is a reading of a life that has resumed.
 			expect(node.status).toBe("open");
 			expect(node.completeness).toBe("recording");
 			expect(yield* nodeRows).toHaveLength(2);
-			// why: the node opens again in the words the record uses for any Session
-			// opening, on its own key, so a reader sees one node resume rather than a
-			// second one appearing beside it.
 			const said = yield* journalOf(NODE);
 			expect(said.map((row) => row.kind)).toEqual(["session.opened"]);
 			expect(said[0]?.payload).toContain("session/reopened");
@@ -89,10 +82,7 @@ it.live("a re-driven child that speaks first reopens its row too", () =>
 		Effect.gen(function* () {
 			const node = yield* reopened(spoke);
 
-			// why: codex re-drives a child by sending its words, not by announcing
-			// it, so the seam that admits an unannounced node has to ask the record
-			// the same question — otherwise one thread's transcript ends up split
-			// across two rows.
+			// Codex may resume a child with a message before another opening announcement.
 			expect(node.status).toBe("open");
 			expect(node.completeness).toBe("recording");
 			expect(yield* nodeRows).toHaveLength(2);

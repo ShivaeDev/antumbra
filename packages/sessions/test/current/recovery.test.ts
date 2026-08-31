@@ -34,11 +34,6 @@ const createSession = (agentId: string, id: string) =>
 		} satisfies NewAgentSession),
 	);
 
-// why: an Agent can no longer hold two open Sessions — the durable law admits
-// one open root apiece — so the newest-wins repair this file used to prove now
-// lives at the migration boundary, against the legacy histories that can still
-// contain that state. What stays reachable through the public surface is the
-// rest of the guarantee: the Session an Agent holds is adopted, resumed, woken.
 it.live("adopts and wakes the one Session an Agent holds", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;

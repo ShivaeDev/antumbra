@@ -74,8 +74,6 @@ it("a change the host is not presenting is addressable for nothing", () => {
 	expect(situationsOf(change({ externalId: null, mergeable: "conflict" }))).toEqual([]);
 });
 
-// why: the agent that produced a change is the hand that fixes it. One that
-// reviews it, or waits on it, would be sent at somebody else's branch.
 it("only the piece that produces a change carries its situations", () => {
 	const conflicted = change({ mergeable: "conflict" });
 	expect(

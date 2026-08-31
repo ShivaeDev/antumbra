@@ -82,10 +82,7 @@ it.live("a census that finds a child idle brings its root to rest", () =>
 
 			const atRest = yield* attachedOver(census([{ nodeRef: CHILD, working: false }]), [announced]);
 
-			// why: the stream announced this child and codex never says a delegated
-			// thread finished, so nothing would ever end the delegation the opening
-			// began — the tree would refuse sleep for the rest of its life. A census
-			// that reads the child idle is the ending the provider does not send.
+			// Codex does not emit delegated-thread completion, so an idle census reading ends the delegation.
 			expect(atRest).toBe(true);
 		}),
 	),
@@ -98,10 +95,7 @@ it.live("a census that finds a child working keeps its root from rest", () =>
 
 			const atRest = yield* attachedOver(census([{ nodeRef: CHILD, working: true }]), []);
 
-			// why: a fresh attachment holds no delegations at all, and a restart is
-			// exactly that over a tree whose child may still be running. Rest read
-			// off an empty registry would take the stream away mid-turn, so the
-			// census puts back what the restart could not carry across.
+			// Restart loses in-memory delegations; a working census reading restores them before rest is evaluated.
 			expect(atRest).toBe(false);
 		}),
 	),
@@ -120,10 +114,7 @@ it.live("a child the census both admits and finds working holds one too", () =>
 				[],
 			);
 
-			// why: a delegation is held by Session id and a census speaks in the
-			// provider's references, so a child that had no row when the reading
-			// began has to be looked up after its admission is written — otherwise
-			// the one child nothing ever carried is the one rest ignores.
+			// Census nodes use provider references; newly admitted children must be resolved to Session ids before delegation state is updated.
 			expect(atRest).toBe(false);
 		}),
 	),
@@ -136,9 +127,6 @@ it.live("a census that could not be taken says nothing about rest", () =>
 
 			const atRest = yield* attachedOver(census([]), [announced]);
 
-			// why: an unreadable census lists nobody, and nobody is not everybody at
-			// rest. The delegation the stream began stands until something reads the
-			// child and finds it done.
 			expect(atRest).toBe(false);
 		}),
 	),

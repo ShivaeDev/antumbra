@@ -53,8 +53,7 @@ it.effect("isolates mortal health and restores it after a later pass", () =>
 				expect(initial.get("test/healthy")?.state).toBe("healthy");
 				expect(yield* Ref.get(healthyPasses)).toBe(1);
 				yield* Ref.set(fails, false);
-				yield* requestPass;
-				yield* Effect.yieldNow;
+				yield* TestClock.adjust(5_000);
 				expect((yield* demandHealth).get("test/mortal")?.state).toBe("healthy");
 			}),
 		);
@@ -74,7 +73,6 @@ it.effect("runs after bounded patience when every wake is lost", () =>
 			Effect.gen(function* () {
 				expect(yield* Ref.get(passes)).toBe(1);
 				yield* TestClock.adjust(5_000);
-				yield* Effect.yieldNow;
 				expect(yield* Ref.get(passes)).toBe(2);
 			}),
 		);

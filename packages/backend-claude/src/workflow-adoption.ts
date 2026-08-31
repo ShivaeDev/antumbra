@@ -9,9 +9,6 @@ export interface AdoptedAgent {
 	readonly messages: ReadonlyArray<SessionMessage>;
 }
 
-// why: a census either answers or it does not, and both are facts about how
-// complete this Session's record is. The failure travels beside the agents so
-// the lane can write it down instead of a caller having to remember to ask.
 export interface Repair {
 	readonly agents: ReadonlyArray<AdoptedAgent>;
 	readonly failure: string | undefined;
@@ -22,10 +19,6 @@ export const admissionOrigin = (agent: AdoptedAgent): Origin => ({
 	spawnedBy: agent.messages[0]?.parent_tool_use_id ?? agentFileRef(agent.agentId),
 });
 
-// why: a node adopted from a stored transcript existed before the record knew
-// it, so its own journal says so before it says anything else. Without that
-// line the transcript would read as work done after the row was written, which
-// is the one thing the timestamps would never support.
 const adoptedGap = (agent: AdoptedAgent, origin: Origin): AgentEvent => ({
 	detail: `this node was read back from its stored transcript after the live record missed it, ${agent.messages.length} messages already written`,
 	gapKind: "adopted-late",
@@ -34,9 +27,6 @@ const adoptedGap = (agent: AdoptedAgent, origin: Origin): AgentEvent => ({
 	type: "subsession.gap",
 });
 
-// why: the repair source is the transcript and nothing else — it says what the
-// agent did and never how the run judged it, so the ending is recorded as
-// unknown rather than inferred from the transcript having stopped.
 const adoptedEnding = (agent: AdoptedAgent): AgentEvent => ({
 	outcome: "unknown",
 	raw: claudeRaw("workflow/adopted-late", { agentId: agent.agentId }),
@@ -44,12 +34,6 @@ const adoptedEnding = (agent: AdoptedAgent): AgentEvent => ({
 	type: "subsession.ended",
 });
 
-// why: a census that could not be taken leaves the record unable to say
-// whether it saw everything, and a session that ends looking complete when it
-// is not is the failure this whole lane exists to prevent. The kind is the
-// escape hatch on purpose: nothing here found a missing node, the question was
-// never put, and a loss with no name of its own is written as unknown with the
-// detail saying plainly what happened rather than borrowed from a neighbour.
 export const censusGap = (failure: string): AgentEvent => ({
 	detail: `subagent backfill source unreachable; this session's workflow census could not be checked: ${failure}`,
 	gapKind: "unknown",
@@ -57,11 +41,6 @@ export const censusGap = (failure: string): AgentEvent => ({
 	type: "subsession.gap",
 });
 
-// why: an agent the live record never held is still part of what this Session
-// did, and its transcript outlives whatever failed to forward it. Kind is left
-// unsaid: a stored transcript names the agent and its words, never what the run
-// asked it to be. The loss that explains the admission is the caller's to name —
-// a mirror that dropped it and a census that found it are different findings.
 export const admissionEvents = (agent: AdoptedAgent, loss: (agent: AdoptedAgent, origin: Origin) => AgentEvent): ReadonlyArray<AgentEvent> => {
 	if (agent.messages.length === 0) {
 		return [];

@@ -9,9 +9,6 @@ import { rawOf } from "#raw-payload.ts";
 import { sessionOptions, type ToolAccess } from "#session-options.ts";
 
 interface RawSessionOptions {
-	// why: a tool call runs as a fiber the session's scope owns, so it can wait
-	// for something outside the session without holding any other call up and
-	// without outliving the session that offered it.
 	readonly call: ToolCall;
 	readonly cwd: string;
 	// why: the Claude Code the host installed, never a bundled copy — the
@@ -42,8 +39,7 @@ export const consumeSdkMessages = async (
 			deliver(message);
 		}
 	} catch {
-		// why: an abrupt subprocess death is not an event — ending the output
-		// stream is; the gap in the log remains the trace.
+		// An abrupt SDK-process failure is represented only by stream completion; the journal keeps no invented provider event.
 	} finally {
 		input.close();
 	}
@@ -56,8 +52,6 @@ const userMessage = (text: string, priority?: SDKUserMessage["priority"]): SDKUs
 	type: "user",
 });
 
-// why: an empty tool set means the session acts through nothing, so no server
-// is built and the SDK is never made to wait on one connecting.
 const toolAccess = (options: RawSessionOptions): Option.Option<ToolAccess> =>
 	options.tools.length === 0
 		? Option.none()
@@ -68,9 +62,6 @@ const toolAccess = (options: RawSessionOptions): Option.Option<ToolAccess> =>
 
 export const openRawSession = (options: RawSessionOptions): RawSession => {
 	const deliveries = openSessionDeliveries();
-	// why: the SDK never says back what it was told, so the message the queue
-	// hands over is delivered as an event itself — one stream, one order, and
-	// the session's own words sit where the provider took them.
 	const input = new InputQueue(deliveries.frame);
 	const live = query({
 		options: sessionOptions({

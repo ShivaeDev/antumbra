@@ -29,10 +29,6 @@ const openedEvent = (raw: RawPayload, message: TaskStarted): Opened | undefined 
 
 export interface Subsessions {
 	readonly events: (raw: RawPayload, message: SDKMessage) => ReadonlyArray<AgentEvent>;
-	// why: the tool call a node was spawned by is stated once, in the frame that
-	// started it, and is needed again long after that frame is gone — to attribute
-	// something recovered from the node's stored transcript back to the node. What
-	// this never forgets is therefore wider than what is still open.
 	readonly spawnerOf: (subsessionRef: string) => string | undefined;
 }
 

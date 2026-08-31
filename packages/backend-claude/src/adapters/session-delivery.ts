@@ -5,9 +5,6 @@ import type { Delivery } from "#session-lanes.ts";
 export interface RawEventListener {
 	readonly deliver: (delivery: Delivery) => void;
 	readonly end: () => void;
-	// why: the census names every delegated agent this session ever had, most of
-	// which the stream already delivered. The consumer holds that record, so it
-	// says what it has and only the rest is read back off disk.
 	readonly recorded: (agentId: string) => boolean;
 }
 
@@ -23,11 +20,8 @@ export interface SessionDeliveries {
 const nativeRefOf = (message: SDKMessage): string | undefined =>
 	message.type === "system" && message.subtype === "init" ? message.session_id : undefined;
 
-// why: deliveries reach consumers by push, never by awaiting the SDK iterator —
-// a consumer waiting on the SDK's own promise cannot be shut down while the
-// model is idle, which deadlocked session teardown. Ending is a signal, and
-// whatever the provider said before anyone subscribed is held until it can be
-// said in order.
+// Push and buffer deliveries instead of awaiting the idle SDK iterator; awaiting
+// it previously deadlocked session teardown.
 export const openSessionDeliveries = (): SessionDeliveries => {
 	const pending: Delivery[] = [];
 	let listener: RawEventListener | null = null;
@@ -41,11 +35,8 @@ export const openSessionDeliveries = (): SessionDeliveries => {
 		}
 		listener.deliver(delivery);
 	};
-	// why: the census runs when the provider has stopped talking of its own
-	// accord, because only then is the stored transcript final and only then can
-	// the consumer say which agents it never heard from. A session torn down by
-	// the host is not that moment: nothing there is finished, and reading disk
-	// while the app exits would hold up a repair it could not trust anyway.
+	// Repair runs only after natural provider silence, when its transcript is
+	// final; `stop` disables it during host teardown.
 	const repair = async (cwd: string): Promise<void> => {
 		if (stopped || listener === null || nativeSessionId === undefined) {
 			return;

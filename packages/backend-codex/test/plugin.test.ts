@@ -4,9 +4,6 @@ import { Effect, Option } from "effect";
 import { vi } from "vitest";
 import { codexPlugin } from "#plugin.ts";
 
-// why: whether a ChatGPT app is installed is a fact about the machine running
-// the test, so the fallback answers none and the login PATH is what each case
-// varies.
 vi.mock("#adapters/chatgpt-bundle.ts", () => ({
 	bundledCodex: Effect.succeed(Option.none()),
 }));

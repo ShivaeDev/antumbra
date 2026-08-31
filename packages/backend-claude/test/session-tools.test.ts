@@ -11,8 +11,6 @@ interface Wire extends Transport {
 	readonly sent: Queue.Queue<JSONRPCMessage>;
 }
 
-// why: the SDK's own in-memory pair hides which side wrote what, and the fact
-// under test is whether the server side writes at all after it closed.
 const openWire: Effect.Effect<Wire> = Effect.map(Queue.unbounded<JSONRPCMessage>(), (sent) => {
 	const wire: Wire = {
 		close: () => {
@@ -55,8 +53,6 @@ const waitForRuling = (started: Deferred.Deferred<void>, interrupted: Deferred.D
 	name: "wait_for_ruling",
 });
 
-// why: the SDK settles a handler's promise through a chain of its own; one
-// macrotask is the only boundary past which it can have written nothing more.
 const promiseChainsSettled = Effect.promise(() => new Promise<void>((resolve) => setImmediate(resolve)));
 
 it.live("a call answers on the session's own scope", () =>
@@ -86,8 +82,6 @@ it.live("a waiting call ends with its session and never reaches the closed trans
 		const call = yield* sessionToolCall.pipe(Scope.provide(session));
 		const server = makeToolServer([waitForRuling(started, interrupted)], call);
 		yield* Effect.promise(() => server.connect(wire));
-		// why: the plugin acquires the SDK session after the calls' scope, so
-		// on release the transport goes first and the calls after it.
 		yield* Scope.addFinalizer(
 			session,
 			Effect.promise(() => wire.close()),

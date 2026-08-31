@@ -61,8 +61,6 @@ export interface ClaudeBackendOptions {
 	readonly executable: string;
 }
 
-// why: opening is scoped, so an abandoned handle can never leave the SDK
-// subprocess running.
 const rawSession = (options: ClaudeBackendOptions, session: OpenSessionOptions, call: ToolCall, capacity: BackendCapacityController) =>
 	Effect.acquireRelease(
 		Effect.try({

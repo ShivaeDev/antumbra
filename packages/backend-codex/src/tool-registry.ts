@@ -7,10 +7,6 @@ export interface ToolRegistry {
 	readonly register: (threadId: string, tools: ReadonlyArray<DirectTool>) => Effect.Effect<void, never, Scope.Scope>;
 }
 
-// why: a thread's calls run under a scope of its own, so forgetting the thread
-// ends them at once rather than leaving them waiting on a conversation that no
-// longer exists. That scope hangs off the session's own, so a session that
-// goes away without forgetting ends them too.
 interface ThreadTools {
 	readonly calls: Scope.Closeable;
 	readonly tools: ReadonlyArray<DirectTool>;

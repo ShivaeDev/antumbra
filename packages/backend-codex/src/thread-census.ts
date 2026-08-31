@@ -5,12 +5,6 @@ import type { CensusSweep, SpawnedChild } from "#thread-sweep.ts";
 
 const SWEEP = "thread/list";
 
-// why: the census has one source, and asking it is the whole of the reading —
-// so a sweep that could not be taken leaves the record unable to say whether it
-// saw everything, which is itself a fact about how complete this session is.
-// Nothing is guessed in either direction: nothing is admitted, no thread is
-// called present or absent on the strength of an answer that never came, and
-// the listing is empty because an unread sweep names nobody as working or done.
 export const censusUnreadable = (rootThreadId: string, failure: string): SessionCensus => ({
 	events: [
 		{
@@ -23,9 +17,6 @@ export const censusUnreadable = (rootThreadId: string, failure: string): Session
 	nodes: [],
 });
 
-// why: codex's own word for where the thread belongs, and its own words for
-// what ran in it. Nothing is invented: a name codex did not give is a key that
-// is not sent, so the row keeps the hole a later announcement can still fill.
 const opening = (child: SpawnedChild): AgentEvent => ({
 	...(child.agentPath === undefined ? {} : { kind: child.agentPath }),
 	...(child.agentNickname === undefined ? {} : { label: child.agentNickname }),
@@ -38,10 +29,6 @@ const opening = (child: SpawnedChild): AgentEvent => ({
 
 const cast = (child: SpawnedChild): string => (child.agentRole === undefined ? "" : ` as ${child.agentRole}`);
 
-// why: the canary. A thread codex names as this session's delegated work that
-// the live path never admitted is what a lane quietly dropping delegated frames
-// looks like from here, and the census is the only place it shows up at all —
-// so the detail says plainly what was missed.
 const missed = (child: SpawnedChild): AgentEvent => ({
 	detail: `codex names this thread a descendant this session spawned${cast(child)}, and the stream never carried it`,
 	gapKind: "census-missing",
@@ -50,16 +37,6 @@ const missed = (child: SpawnedChild): AgentEvent => ({
 	type: "subsession.gap",
 });
 
-// why: a child the sweep proves and the record never admitted is admitted now,
-// on the provider's own word for where it belongs. It is not ended: a codex
-// child is re-driven across activations, and saying it stopped would be a guess
-// this census cannot make — the row's outcome is a separate question from
-// whether anything is running in it.
-//
-// why: the listing covers every child the sweep named, admitted or not. An
-// admission is news and is announced once; whether a child is working is true
-// again at every reading, and is most worth having about the children the
-// record has known all along.
 export const censusOf = (admitted: (threadId: string) => boolean, sweep: CensusSweep): SessionCensus => ({
 	events: sweep.filter((child) => !admitted(child.threadId)).flatMap((child) => [opening(child), missed(child)]),
 	nodes: sweep.map((child) => ({

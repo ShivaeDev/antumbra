@@ -7,11 +7,6 @@ export type ArtifactContentInvalidReason = "absolute_path" | "empty_path" | "not
 export const isRelativeArtifactPath = (value: string): boolean =>
 	value.length > 0 && !value.startsWith("/") && !value.startsWith("\\") && !/^[A-Za-z]:[\\/]/.test(value) && !/^[A-Za-z][A-Za-z0-9+.-]*:/.test(value);
 
-export const isSafeArtifactBasename = (value: string): boolean =>
-	value.length > 0 && value !== "." && value !== ".." && !value.includes("/") && !value.includes("\\") && !value.includes("\0");
-
-export const isArtifactDigest = (value: string): boolean => /^[0-9a-f]{64}$/.test(value);
-
 export const sameObject = (opened: FileSystem.File.Info, resolved: FileSystem.File.Info): boolean =>
 	opened.dev === resolved.dev && Option.isSome(opened.ino) && Option.isSome(resolved.ino) && opened.ino.value === resolved.ino.value;
 

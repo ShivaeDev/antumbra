@@ -92,13 +92,8 @@ export const makePrepareMoorage = Effect.gen(function* () {
 					source: repo.source,
 				})),
 			});
-			yield* db.transaction(
-				Effect.gen(function* () {
-					yield* Database;
-					yield* ensureUnclaimed(payload.agentId);
-					yield* persistPlan(payload, plan);
-				}),
-			);
+			yield* ensureUnclaimed(payload.agentId);
+			yield* persistPlan(payload, plan);
 			yield* feeds.publishFleetRefresh();
 			return plan;
 		});

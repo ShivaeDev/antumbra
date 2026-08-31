@@ -37,8 +37,6 @@ describe("window source", () => {
 			expect(yield* asWindow(place, shell, "console")).toEqual(consolePlace);
 			expect(yield* asWindow(place, shell, "child")).toEqual(transcriptPlace("session-1"));
 
-			// why: a reload keeps the same WebContents at the same document, so the
-			// record still stands and the window comes back to its own subject.
 			expect(
 				registry.owner({
 					sender: child.contents,

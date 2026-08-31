@@ -18,8 +18,6 @@ export const readChangeSnapshot: Effect.Effect<
 	Context.Service.Identifier<typeof Database>
 > = Effect.gen(function* () {
 	const db = yield* Database;
-	// why: Changes own their historical order; consumers receive the decoded
-	// aggregate in that order rather than learning how its rows are stored.
 	const changes = yield* Effect.forEach(yield* db.Change.orderBy((change) => change.createdAt.asc()).all(), changeRow);
 	const pieceChanges = yield* Effect.forEach(yield* db.PieceChange.all(), pieceChangeRow);
 	return {

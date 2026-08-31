@@ -12,10 +12,6 @@ interface ProposedChange {
 	readonly repoId: string;
 }
 
-// why: the host has already answered, so the row is that answer plus what only
-// we know — which repo it belongs to, who asked for it, and the moment we
-// heard. A stage that arrives already settled is stamped on the spot; the host
-// is allowed to be faster than we are.
 export const proposedChange = (fields: ProposedChange): ChangeRow => {
 	const { now, observation } = fields;
 	return {

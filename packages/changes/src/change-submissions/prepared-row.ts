@@ -20,8 +20,6 @@ export const preparedChange = (
 	externalId: null,
 	headRef: evidence.branch,
 	headSha: evidence.headSha,
-	// why: before external identity exists, this names the registered adapter
-	// that claimed the Repo. URL and externalId alone prove host acceptance.
 	host: hostTag,
 	id: crypto.randomUUID(),
 	landedAt: null,

@@ -93,11 +93,3 @@ export const removeWorktree = (mirror: string, site: BerthSite): Effect.Effect<v
 		yield* runGit(removeGitWorktree(mirror, site.path));
 		yield* runGit(deleteBranch(mirror, site.branch));
 	});
-
-// why: expiry must converge even when a berth was half-deleted by hand —
-// scrap prunes vanished paths and tolerates an already-gone branch.
-export const scrapWorktree = (mirror: string, site: BerthSite): Effect.Effect<void, RunnerError> =>
-	Effect.gen(function* () {
-		yield* runGit(removeGitWorktree(mirror, site.path)).pipe(Effect.catchCause(() => runGit(pruneWorktrees(mirror))));
-		yield* runGit(deleteBranch(mirror, site.branch)).pipe(Effect.ignore);
-	});

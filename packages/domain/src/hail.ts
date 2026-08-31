@@ -1,11 +1,4 @@
-import {
-	type BoardOwnerNotFound,
-	BoardScope,
-	Boards,
-	type StoredBoardEntryInvalid,
-	type StoredBoardOwnerKindInvalid,
-	smoothBodies,
-} from "@antumbra/boards";
+import { type BoardOwnerNotFound, BoardScope, Boards, type StoredBoardEntryInvalid, smoothBodies } from "@antumbra/boards";
 import type { RulingReadFailure } from "@antumbra/rulings";
 import { Effect, Option } from "effect";
 import { charterForKind } from "#charter-flagship.ts";
@@ -34,7 +27,6 @@ export type HailRefused =
 	| RulingReadFailure
 	| SpawnRefused
 	| StoredBoardEntryInvalid
-	| StoredBoardOwnerKindInvalid
 	| VoyageNotFound
 	| VoyageWorldReadFailure;
 

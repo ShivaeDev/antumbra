@@ -38,15 +38,10 @@ const writePassUp = (input: RulingPassUpInput, at: Date) =>
 		return yield* loadRuling(yield* requireRuling(input.rulingId));
 	});
 
-// why: a rung that cannot settle a question moves it one step and leaves what
-// it knows beside the asker's declaration, so the question climbs richer than
-// it arrived and the record says who sent it on. Only the rung the question is
-// owed to may move it: one that already climbed past is no longer its to send.
 export const passUp = Effect.fn("rulings.passUp")(function* (input: RulingPassUpInput) {
-	const db = yield* Database;
 	const feeds = yield* DomainFeeds;
 	const now = yield* Clock.currentTimeMillis;
-	const climbed = yield* db.transaction(writePassUp(input, new Date(now)));
+	const climbed = yield* writePassUp(input, new Date(now));
 	yield* feeds.publishRulingRefresh();
 	return climbed;
 });

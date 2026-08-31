@@ -14,8 +14,6 @@ import { makeSubscribeRulingRefresh } from "#subscribe-ruling-refresh.ts";
 import { makeSubscribeSessionEvents } from "#subscribe-session-events.ts";
 import { makeSubscribeVoyageRefresh } from "#subscribe-voyage-refresh.ts";
 
-// why: the log is the single truth. Feeds carry notifications beside writes,
-// so missing one only loses latency: subscribers rehydrate and deduplicate.
 export const DomainFeeds = defineService({
 	id: "@antumbra/domain-feeds/DomainFeeds",
 	initialize: initializeDomainFeeds,

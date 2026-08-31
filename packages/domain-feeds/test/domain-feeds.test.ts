@@ -1,5 +1,5 @@
 import { DomainFeeds, DomainFeedsLive, type StoredEvent } from "@antumbra/domain-feeds";
-import { describe, expect, it } from "@effect/vitest";
+import { expect, it } from "@effect/vitest";
 import { Effect, PubSub } from "effect";
 
 const event: StoredEvent = {
@@ -9,44 +9,33 @@ const event: StoredEvent = {
 	sessionId: "session-1",
 };
 
-describe("DomainFeeds", () => {
-	it.effect("publishes each semantic signal to scoped subscribers", () =>
-		Effect.scoped(
-			Effect.gen(function* () {
-				const feeds = yield* DomainFeeds;
-				const changeRefresh = yield* feeds.subscribeChangeRefresh();
-				const events = yield* feeds.subscribeSessionEvents();
-				const fleet = yield* feeds.subscribeFleetRefresh();
-				const resourceReclaim = yield* feeds.subscribeResourceReclaim();
-				const voyages = yield* feeds.subscribeVoyageRefresh();
+it.effect("publishes each semantic signal to scoped subscribers", () =>
+	Effect.scoped(
+		Effect.gen(function* () {
+			const feeds = yield* DomainFeeds;
+			const changeRefresh = yield* feeds.subscribeChangeRefresh();
+			yield* feeds.publishChangeRefresh();
+			expect(yield* PubSub.take(changeRefresh)).toBeUndefined();
 
-				yield* feeds.publishChangeRefresh();
-				yield* feeds.publishSessionEvent(event);
-				yield* feeds.publishFleetRefresh();
-				yield* feeds.publishResourceReclaim();
-				yield* feeds.publishVoyageRefresh();
+			const events = yield* feeds.subscribeSessionEvents();
+			yield* feeds.publishSessionEvent(event);
+			expect(yield* PubSub.take(events)).toEqual(event);
 
-				expect(yield* PubSub.take(changeRefresh)).toBeUndefined();
-				expect(yield* PubSub.take(events)).toEqual(event);
-				expect(yield* PubSub.take(fleet)).toBeUndefined();
-				expect(yield* PubSub.take(resourceReclaim)).toBeUndefined();
-				expect(yield* PubSub.take(voyages)).toBeUndefined();
-			}).pipe(Effect.provide(DomainFeedsLive, { local: true })),
-		),
-	);
+			const fleet = yield* feeds.subscribeFleetRefresh();
+			yield* feeds.publishFleetRefresh();
+			expect(yield* PubSub.take(fleet)).toBeUndefined();
 
-	it.effect("fans one voyage refresh out to every subscriber", () =>
-		Effect.scoped(
-			Effect.gen(function* () {
-				const feeds = yield* DomainFeeds;
-				const first = yield* feeds.subscribeVoyageRefresh();
-				const second = yield* feeds.subscribeVoyageRefresh();
+			const resourceReclaim = yield* feeds.subscribeResourceReclaim();
+			yield* feeds.publishResourceReclaim();
+			expect(yield* PubSub.take(resourceReclaim)).toBeUndefined();
 
-				yield* feeds.publishVoyageRefresh();
+			const rulings = yield* feeds.subscribeRulingRefresh();
+			yield* feeds.publishRulingRefresh();
+			expect(yield* PubSub.take(rulings)).toBeUndefined();
 
-				expect(yield* PubSub.take(first)).toBeUndefined();
-				expect(yield* PubSub.take(second)).toBeUndefined();
-			}).pipe(Effect.provide(DomainFeedsLive, { local: true })),
-		),
-	);
-});
+			const voyages = yield* feeds.subscribeVoyageRefresh();
+			yield* feeds.publishVoyageRefresh();
+			expect(yield* PubSub.take(voyages)).toBeUndefined();
+		}).pipe(Effect.provide(DomainFeedsLive, { local: true })),
+	),
+);

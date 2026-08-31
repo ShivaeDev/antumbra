@@ -1,4 +1,11 @@
-import type { SessionBackgroundEvent, SessionOpened, SessionState, SessionStateEvent, TurnCompleted } from "@antumbra/vocabulary/session-events";
+import type {
+	RawPayload,
+	SessionBackgroundEvent,
+	SessionOpened,
+	SessionState,
+	SessionStateEvent,
+	TurnCompleted,
+} from "@antumbra/vocabulary/session-events";
 
 const seconds = (ms: number): string => `${(ms / 1000).toFixed(1)}s`;
 
@@ -18,9 +25,6 @@ const taskWords = (task: (typeof SessionBackgroundEvent.Type)["tasks"][number]):
 	return short === "" ? task.kind : `${task.kind} ${short}`;
 };
 
-// why: an empty set is the provider saying the last background task finished,
-// which is worth a line of its own — a reader who saw two start needs to see
-// them go, and a silent row would read as the record having stopped watching.
 export const backgroundLabel = (event: typeof SessionBackgroundEvent.Type): string =>
 	event.tasks.length === 0 ? "background · nothing running" : `background · ${event.tasks.length} · ${event.tasks.map(taskWords).join(", ")}`;
 
@@ -28,3 +32,12 @@ export const turnLabel = (event: typeof TurnCompleted.Type): string =>
 	[`turn ${event.status}`, ...(event.durationMs === undefined ? [] : [seconds(event.durationMs)])].join(" · ");
 
 export const openedLabel = (event: typeof SessionOpened.Type): string => `session opened · ${event.raw.source} ${event.nativeRef}`;
+
+const words = (kind: string): string =>
+	kind
+		.split(/[/_]/)
+		.flatMap((part) => part.split(/(?=[A-Z])/))
+		.join(" ")
+		.toLowerCase();
+
+export const rawLabel = (raw: RawPayload): string => `${raw.source}: ${words(raw.kind)}`;

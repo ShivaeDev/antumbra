@@ -5,7 +5,7 @@ import { AgentDomain } from "#domain.ts";
 import type { SpawnFields } from "#index.ts";
 import { domainKernelLayer } from "#test/domain-layers.ts";
 import { acquireTemporaryPersistence, callTool, makeScriptedBackend, type ScriptedSession, sessionFor } from "#test/harness.ts";
-import { onVoyage, ruled, seedAsker, unruled } from "#test/ruling-fixtures.ts";
+import { onVoyage, proclaimed, seedAsker, unruled } from "#test/ruling-fixtures.ts";
 import { eventually, openReefVoyage } from "#test/voyage-fixtures.ts";
 
 const HAND: SpawnFields = {
@@ -45,12 +45,12 @@ it.live("read_rulings serves in full what binds the reader and nothing else", ()
 	withCaptain((captain, voyageId) =>
 		Effect.gen(function* () {
 			const elsewhere = yield* anotherVoyage;
-			const ours = yield* ruled("which reading do we trust?", "trust the soundings", { radius: "voyage", subjects: onVoyage(voyageId) });
-			yield* ruled("may any voyage dredge?", "never", {
+			const ours = yield* proclaimed("which reading do we trust?", "trust the soundings", { radius: "voyage", subjects: onVoyage(voyageId) });
+			yield* proclaimed("may any voyage dredge?", "never", {
 				radius: "fleet",
 				subjects: [],
 			});
-			yield* ruled("may the shoals be renamed?", "yes", {
+			yield* proclaimed("may the shoals be renamed?", "yes", {
 				radius: "voyage",
 				subjects: onVoyage(elsewhere.id),
 			});
@@ -80,7 +80,7 @@ it.live("read_rulings serves in full what binds the reader and nothing else", ()
 it.live("a tag widens the read to precedent about a concept", () =>
 	withCaptain((captain) =>
 		Effect.gen(function* () {
-			yield* ruled("how deep do we sound?", "to the keel and a fathom", {
+			yield* proclaimed("how deep do we sound?", "to the keel and a fathom", {
 				radius: "voyage",
 				subjects: [{ kind: "tag", tag: "surveying" }],
 			});
@@ -103,7 +103,7 @@ it.live("an agent on no piece or voyage is bound by fleet rulings alone", () =>
 			const kernel = yield* Kernel;
 			const domain = yield* AgentDomain;
 			yield* seedAsker;
-			yield* ruled("may any voyage dredge?", "never", {
+			yield* proclaimed("may any voyage dredge?", "never", {
 				radius: "fleet",
 				subjects: [],
 			});

@@ -1,4 +1,4 @@
-// why: @vitest-environment happy-dom renders a row the way the pane does.
+// @vitest-environment happy-dom
 
 import { expect, it } from "@effect/vitest";
 import { Effect } from "effect";
@@ -64,7 +64,7 @@ const payload = JSON.stringify({ status: "running", thread: "thread-9" });
 
 const noise: TranscriptItem = {
 	kind: "raw",
-	label: "codex thread/status/changed",
+	label: "codex: thread status changed",
 	payload,
 	seq: 4,
 };
@@ -148,6 +148,17 @@ it("states a call in one line and holds its input back until asked", () => {
 	expect(shown).not.toContain("pnpm ready");
 });
 
+it("marks Antumbra tools without replacing their name", () => {
+	const shown = markup({
+		...call,
+		name: "land_report",
+		providerName: "mcp__antumbra__land_report",
+		servedBy: "antumbra",
+	});
+	expect(shown).toContain("Antumbra");
+	expect(shown).toContain("land_report");
+});
+
 it("marks a call that failed and stays quiet about one that did not", () => {
 	expect(markup({ ...call, ok: false, result: "no such dir" })).toContain("failed");
 	expect(markup({ ...call, ok: true, result: "9 steps passed" })).not.toContain("failed");
@@ -155,7 +166,7 @@ it("marks a call that failed and stays quiet about one that did not", () => {
 
 it("summarises a raw payload and keeps every byte of it one click away", () => {
 	const shown = markup(noise);
-	expect(shown).toContain("codex thread/status/changed");
+	expect(shown).toContain("codex: thread status changed");
 	expect(shown).not.toContain("thread-9");
 });
 

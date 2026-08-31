@@ -3,6 +3,7 @@ import { Option, Schema } from "effect";
 import type { RpcNotification } from "#adapters/rpc.ts";
 import { itemCompleted, itemStarted } from "#items.ts";
 import { ItemNotification, TokenUsageNotification, TurnNotification } from "#protocol.ts";
+import { RATE_LIMITS_METHOD, rateLimitEvents } from "#rate-limits.ts";
 import { threadStateEvents } from "#thread-state.ts";
 
 const decodeTurn = Schema.decodeUnknownOption(TurnNotification);
@@ -89,6 +90,8 @@ export const toAgentEvents = (notification: RpcNotification): AgentEvent[] => {
 			return threadStateEvents(raw, notification.params);
 		case "thread/tokenUsage/updated":
 			return tokenUsage(raw, notification.params);
+		case RATE_LIMITS_METHOD:
+			return rateLimitEvents(raw, notification.params);
 		default:
 			return [{ raw, type: "raw" }];
 	}

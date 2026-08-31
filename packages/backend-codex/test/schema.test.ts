@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { MUTED_NOTIFICATIONS } from "#handshake.ts";
 import { TurnStatus } from "#protocol.ts";
 import { ExecutionStatus, KnownItem } from "#protocol-items.ts";
+import { RATE_LIMITS_METHOD } from "#rate-limits.ts";
 import {
 	bundle,
 	currentTimeResponse,
@@ -172,6 +173,7 @@ describe("the codex protocol slice agrees with the pinned schema bundle", () => 
 			"thread/closed",
 			"thread/status/changed",
 			"thread/tokenUsage/updated",
+			RATE_LIMITS_METHOD,
 			...MUTED_NOTIFICATIONS,
 		]) {
 			expect(methods, method).toContain(method);

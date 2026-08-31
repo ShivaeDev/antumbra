@@ -7,13 +7,13 @@ type Item<T extends KnownItem["type"]> = Extract<KnownItem, { type: T }>;
 
 const decodeItem = Schema.decodeUnknownOption(KnownItem);
 
-const toolName = (item: KnownItem): string => {
+type Started = Extract<AgentEvent, { type: "tool.started" }>;
+
+const toolIdentity = (item: KnownItem): Pick<Started, "name" | "providerName" | "servedBy"> => {
 	if (item.type === "mcpToolCall") {
-		return `${item.server}/${item.tool}`;
+		return { name: `${item.server}: ${item.tool}`, providerName: `${item.server}/${item.tool}` };
 	}
-	// why: a tool we served is named as the agent called it, with no provider
-	// prefix — the transcript should read the same on either backend.
-	return item.type === "dynamicToolCall" ? item.tool : item.type;
+	return item.type === "dynamicToolCall" ? { name: item.tool, servedBy: "antumbra" } : { name: item.type };
 };
 
 const toolInput = (item: KnownItem): string => {
@@ -44,8 +44,6 @@ const isTool = (
 
 const commandOk = (item: Item<"commandExecution">): boolean => item.status === "completed" && (item.exitCode ?? 0) === 0;
 
-// why: the answer we gave is the truth about a tool we served — status alone
-// reads a refused landing as a completed call.
 const dynamicOutcome = (item: Item<"dynamicToolCall">) => ({
 	ok: item.success ?? item.status === "completed",
 	output: (item.contentItems ?? []).map((part) => part.text ?? "").join("\n"),
@@ -76,14 +74,12 @@ const toolOutcome = (
 
 const reasoningText = (item: Item<"reasoning">): string => [...(item.summary ?? []), ...(item.content ?? [])].join("\n");
 
-// why: a started tool item is the only start worth an event — message and
-// reasoning starts carry no text yet, their completion is the whole item.
 const knownStarted = (raw: RawPayload, item: KnownItem): AgentEvent[] => {
 	if (isTool(item)) {
 		return [
 			{
 				input: toolInput(item),
-				name: toolName(item),
+				...toolIdentity(item),
 				raw,
 				toolId: item.id,
 				type: "tool.started",

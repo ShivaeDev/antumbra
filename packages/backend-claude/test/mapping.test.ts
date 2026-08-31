@@ -104,8 +104,9 @@ const agentReport: SDKUserMessage = {
 describe("claude frames map onto the neutral vocabulary", () => {
 	it("attributes a frame to the tool call that spawned it, or to no one", () => {
 		const mapping = openSessionMapping();
-		expect(mapping.frame(toolResult(null))).toMatchObject([{ ok: true, toolId: "toolu_09", type: "tool.completed" }]);
-		expect(mapping.frame(toolResult(null))[0]).not.toHaveProperty("origin");
+		const [root] = mapping.frame(toolResult(null));
+		expect(root).toMatchObject({ ok: true, toolId: "toolu_09", type: "tool.completed" });
+		expect(root).not.toHaveProperty("origin");
 		expect(mapping.frame(toolResult(AGENT_CALL))).toMatchObject([{ origin: { spawnedBy: AGENT_CALL }, type: "tool.completed" }]);
 	});
 

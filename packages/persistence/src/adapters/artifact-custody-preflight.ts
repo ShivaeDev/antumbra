@@ -30,35 +30,28 @@ const readLegacyArtifacts = (database: DatabaseSync): LegacyArtifact[] =>
 
 const stageVerifiedArtifacts = (database: DatabaseSync, verified: ReadonlyArray<VerifiedArtifact>): void => {
 	const snapshot = hashArtifactCustody(verified.map((artifact) => `${artifact.id}\0${artifact.uri}`).join("\0"));
-	database.exec("BEGIN IMMEDIATE");
-	try {
-		database.prepare(`DELETE FROM "appMeta" WHERE "key" = ? OR "key" LIKE ?`).run(MANIFEST_KEY, `${ITEM_PREFIX}%`);
-		const insert = database.prepare(`INSERT INTO "appMeta" ("key", "value") VALUES (?, ?)`);
+	database.prepare(`DELETE FROM "appMeta" WHERE "key" = ? OR "key" LIKE ?`).run(MANIFEST_KEY, `${ITEM_PREFIX}%`);
+	const insert = database.prepare(`INSERT INTO "appMeta" ("key", "value") VALUES (?, ?)`);
+	insert.run(
+		MANIFEST_KEY,
+		JSON.stringify({
+			count: verified.length,
+			predecessor: CUSTODY_FROM,
+			snapshot,
+		}),
+	);
+	for (const artifact of verified) {
 		insert.run(
-			MANIFEST_KEY,
+			`${ITEM_PREFIX}${artifact.id}`,
 			JSON.stringify({
-				count: verified.length,
-				predecessor: CUSTODY_FROM,
+				basename: artifact.basename,
+				byteSize: artifact.byteSize,
+				digest: artifact.digest,
+				id: artifact.id,
+				legacyUri: artifact.uri,
 				snapshot,
 			}),
 		);
-		for (const artifact of verified) {
-			insert.run(
-				`${ITEM_PREFIX}${artifact.id}`,
-				JSON.stringify({
-					basename: artifact.basename,
-					byteSize: artifact.byteSize,
-					digest: artifact.digest,
-					id: artifact.id,
-					legacyUri: artifact.uri,
-					snapshot,
-				}),
-			);
-		}
-		database.exec("COMMIT");
-	} catch (cause) {
-		database.exec("ROLLBACK");
-		throw cause;
 	}
 };
 

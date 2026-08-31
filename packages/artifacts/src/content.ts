@@ -7,9 +7,6 @@ export type ArtifactContentInvalidReason = "absolute_path" | "empty_path" | "not
 export const isRelativeArtifactPath = (value: string): boolean =>
 	value.length > 0 && !value.startsWith("/") && !value.startsWith("\\") && !/^[A-Za-z]:[\\/]/.test(value) && !/^[A-Za-z][A-Za-z0-9+.-]*:/.test(value);
 
-export const sameObject = (opened: FileSystem.File.Info, resolved: FileSystem.File.Info): boolean =>
-	opened.dev === resolved.dev && Option.isSome(opened.ino) && Option.isSome(resolved.ino) && opened.ino.value === resolved.ino.value;
-
 export const hex = (bytes: Uint8Array): string => Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("");
 
 export const digestBytes = (bytes: Uint8Array) =>

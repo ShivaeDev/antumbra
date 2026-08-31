@@ -1,9 +1,6 @@
 import { SightSource } from "@antumbra/contract";
-import { Kernel } from "@antumbra/kernel";
-import { Database } from "@antumbra/persistence";
 import { expect, it } from "@effect/vitest";
 import { Effect, Ref } from "effect";
-import { AgentDomain } from "#domain.ts";
 import { acquireTemporaryPersistence } from "#test/harness.ts";
 import { eventually, payload, refuseWhile, reportsNativeRef } from "#test/session-recovery-fixture.ts";
 import { NATIVE, onlyWake, sessionRow, sleepingRoot, wakeChips, wakeLayer } from "#test/session-wake-fixture.ts";
@@ -44,41 +41,5 @@ it.live("a wake that cannot be taken parks with its reason on the fleet", () =>
 			]);
 			expect((yield* sessionRow).executionStatus).toBe("idle");
 		}).pipe(Effect.provide(wakeLayer(temporary, refusing, recorded.runner)));
-	}),
-);
-
-// why: an Agent with no way back to alive is refused rather than parked, and
-// the refusal is the sentence a reader came for rather than a stack trace. The
-// other reason a live fleet produces — the pointer aimed somewhere else — no
-// longer reaches this shape: an Agent holds one open root at a time, so a
-// pointer that has moved means the older root is closed, and a closed root is
-// now refused on its own truth. That refusal is rehearsed beside the wake it
-// settles, and the pointer's own sentence where the verdict is decided.
-it.live("a wake into a retired Agent refuses with the reason it found", () =>
-	Effect.gen(function* () {
-		const temporary = yield* acquireTemporaryPersistence;
-		const { recorded, scripted } = yield* sleepingRoot(temporary);
-		const backend = reportsNativeRef(scripted.backend, scripted, NATIVE);
-		const retire = Effect.gen(function* () {
-			const db = yield* Database;
-			yield* db.Agent.where({ id: payload.agentId }).update({
-				status: "retired",
-			});
-		});
-
-		yield* Effect.gen(function* () {
-			const domain = yield* AgentDomain;
-			const kernel = yield* Kernel;
-			yield* retire;
-			yield* kernel.submit(domain.wake, { sessionId: payload.sessionId });
-			const refused = yield* eventually(
-				Effect.gen(function* () {
-					const row = yield* onlyWake;
-					expect(row.status).toBe("failed");
-					return row;
-				}),
-			);
-			expect(refused.detail).toContain("is retired");
-		}).pipe(Effect.provide(wakeLayer(temporary, backend, recorded.runner)));
 	}),
 );

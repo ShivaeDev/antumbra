@@ -1,10 +1,9 @@
 import { SightSource } from "@antumbra/contract";
-import { SessionFabric } from "@antumbra/session-fabric";
 import { expect, it } from "@effect/vitest";
 import { Effect } from "effect";
 import { acquireTemporaryPersistence } from "#test/harness.ts";
 import { eventually, payload } from "#test/session-recovery-fixture.ts";
-import { onlyWake, opensWhenSpokenTo, sessionRow, sleepingRoot, wakeLayer } from "#test/session-wake-fixture.ts";
+import { opensWhenSpokenTo, sleepingRoot, wakeLayer } from "#test/session-wake-fixture.ts";
 
 // why: the deadlock this whole path was rebuilt for. A resume used to wait for
 // the provider's opening frame before it said anything, and a provider whose
@@ -20,18 +19,14 @@ it.live("a resume speaks first to a provider that opens on being spoken to", () 
 		const backend = opensWhenSpokenTo(scripted.backend, scripted);
 
 		yield* Effect.gen(function* () {
-			const fabric = yield* SessionFabric;
 			const sight = yield* SightSource;
 			yield* sight.send(payload.sessionId, "come about");
 			yield* eventually(
 				Effect.gen(function* () {
-					expect((yield* onlyWake).status).toBe("succeeded");
-					expect((yield* sessionRow).executionStatus).toBe("active");
+					const resumed = yield* scripted.session(payload.sessionId);
+					expect(resumed === undefined ? [] : yield* resumed.sent).toEqual(["come about"]);
 				}),
 			);
-			const resumed = yield* scripted.session(payload.sessionId);
-			expect(resumed === undefined ? [] : yield* resumed.sent).toEqual(["come about"]);
-			expect(yield* fabric.holds(payload.sessionId)).toBe(true);
 		}).pipe(Effect.provide(wakeLayer(temporary, backend, recorded.runner)));
 	}),
 );

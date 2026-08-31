@@ -1,10 +1,9 @@
 import { Database } from "@antumbra/persistence";
-import { acquireTemporaryPersistence } from "@antumbra/persistence/testing";
 import { noSessionAudit } from "@antumbra/plugin-api";
 import type { AgentEvent } from "@antumbra/vocabulary/session-events";
 import { expect, it } from "@effect/vitest";
 import { Effect, Option } from "effect";
-import { journalOf, seedAgent, seedSession, sessionRow, treeLayer } from "#test/tree/fixture.ts";
+import { journalOf, seedAgent, seedSession, sessionRow, treeTest } from "#test/tree/fixture.ts";
 import { makeSessionTreeSinks } from "#tree/sink.ts";
 
 const AGENT = "agent-redriven";
@@ -66,9 +65,8 @@ const reopened = (event: AgentEvent) =>
 	});
 
 it.live("a re-driven child that is announced again reopens its row", () =>
-	Effect.gen(function* () {
-		const temporary = yield* acquireTemporaryPersistence;
-		yield* Effect.gen(function* () {
+	treeTest(
+		Effect.gen(function* () {
 			const node = yield* reopened(announced);
 
 			// why: resume, from any state, means recording again — whatever an
@@ -83,14 +81,13 @@ it.live("a re-driven child that is announced again reopens its row", () =>
 			const said = yield* journalOf(NODE);
 			expect(said.map((row) => row.kind)).toEqual(["session.opened"]);
 			expect(said[0]?.payload).toContain("session/reopened");
-		}).pipe(Effect.provide(treeLayer(temporary)));
-	}),
+		}),
+	),
 );
 
 it.live("a re-driven child that speaks first reopens its row too", () =>
-	Effect.gen(function* () {
-		const temporary = yield* acquireTemporaryPersistence;
-		yield* Effect.gen(function* () {
+	treeTest(
+		Effect.gen(function* () {
 			const node = yield* reopened(spoke);
 
 			// why: codex re-drives a child by sending its words, not by announcing
@@ -104,6 +101,6 @@ it.live("a re-driven child that speaks first reopens its row too", () =>
 			const said = yield* journalOf(NODE);
 			expect(said.map((row) => row.kind)).toEqual(["session.opened", "message"]);
 			expect(said[1]?.payload).toContain("still counting");
-		}).pipe(Effect.provide(treeLayer(temporary)));
-	}),
+		}),
+	),
 );

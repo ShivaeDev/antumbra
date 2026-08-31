@@ -88,6 +88,5 @@ it("installs a prebuild beside sharp for the host it packs for", () => {
 	const declared: unknown = JSON.parse(readFileSync(join(sharpRoot, "package.json"), "utf8"));
 	const prebuilds = Object.keys(Schema.decodeUnknownSync(Prebuilt)(declared).optionalDependencies).filter((name) => PREBUILD.test(name));
 	const beside = readdirSync(join(dirname(sharpRoot), "@img")).map((name) => `@img/${name}`);
-	expect(prebuilds.length).toBeGreaterThan(0);
 	expect(prebuilds.filter((name) => beside.includes(name))).not.toHaveLength(0);
 });

@@ -14,17 +14,17 @@ export const ConsolePlace = Schema.Struct({
 });
 export type ConsolePlace = typeof ConsolePlace.Type;
 
-export const TranscriptPlace = Schema.Struct({
+const TranscriptPlace = Schema.Struct({
 	role: Schema.Literal("transcript"),
 	sessionId: Schema.String,
 });
-export type TranscriptPlace = typeof TranscriptPlace.Type;
+type TranscriptPlace = typeof TranscriptPlace.Type;
 
-export const ArtifactPlace = Schema.Struct({
+const ArtifactPlace = Schema.Struct({
 	artifactId: Schema.String,
 	role: Schema.Literal("artifact"),
 });
-export type ArtifactPlace = typeof ArtifactPlace.Type;
+type ArtifactPlace = typeof ArtifactPlace.Type;
 
 export const WindowPlace = Schema.Union([ConsolePlace, TranscriptPlace, ArtifactPlace]);
 export type WindowPlace = typeof WindowPlace.Type;

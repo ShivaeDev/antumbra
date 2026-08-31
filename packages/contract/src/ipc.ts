@@ -2,10 +2,10 @@ import type { ProcedureType, TRPC_ERROR_CODE_KEY } from "@trpc/server";
 import { Schema } from "effect";
 import { type BridgeRequest, type BridgeSubscribeRequest, TRPC_FAILURE_CODES, TRPC_INVOKE_TYPES } from "#channels.ts";
 
-export const TrpcInvokeType = Schema.Literals(TRPC_INVOKE_TYPES);
-export type TrpcInvokeType = typeof TrpcInvokeType.Type;
-export const TrpcFailureCode = Schema.Literals(TRPC_FAILURE_CODES);
-export type TrpcFailureCode = typeof TrpcFailureCode.Type;
+const TrpcInvokeType = Schema.Literals(TRPC_INVOKE_TYPES);
+type TrpcInvokeType = typeof TrpcInvokeType.Type;
+const TrpcFailureCode = Schema.Literals(TRPC_FAILURE_CODES);
+type TrpcFailureCode = typeof TrpcFailureCode.Type;
 
 export const TrpcRequest = Schema.Struct({
 	input: Schema.Unknown,

@@ -83,7 +83,9 @@ it("an agent that spoke before it was named is named afterwards", () => {
 
 it("a census that could not be taken is written down as such", () => {
 	const lanes = openSessionLanes();
-	expect(lanes.adopted({ agents: [], failure: "socket closed" })).toMatchObject([{ gapKind: "unknown", type: "subsession.gap" }]);
-	const [gap] = lanes.adopted({ agents: [], failure: "socket closed" });
+	const events = lanes.adopted({ agents: [], failure: "socket closed" });
+	expect(events).toHaveLength(1);
+	const [gap] = events;
+	expect(gap).toMatchObject({ gapKind: "unknown", type: "subsession.gap" });
 	expect(gap).toHaveProperty("detail", expect.stringContaining("could not be checked"));
 });

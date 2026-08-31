@@ -87,25 +87,3 @@ export const stageCount = (databasePath: CustodyFixture["database"]) => {
 		database.close();
 	}
 };
-
-export const removeStagedProof = (databasePath: CustodyFixture["database"], key: "item" | "manifest", field: string) => {
-	const database = new DatabaseSync(databasePath);
-	try {
-		const selector = key === "manifest" ? `"key" = 'migration:artifact-custody:manifest'` : `"key" LIKE 'migration:artifact-custody:item:%'`;
-		database.prepare(`UPDATE "appMeta" SET "value" = json_remove("value", ?) WHERE ${selector}`).run(`$.${field}`);
-	} finally {
-		database.close();
-	}
-};
-
-export const artifactHasUri = (databasePath: CustodyFixture["database"]): boolean => {
-	const database = new DatabaseSync(databasePath);
-	try {
-		return database
-			.prepare(`PRAGMA table_info('artifact')`)
-			.all()
-			.some((row) => row.name === "uri");
-	} finally {
-		database.close();
-	}
-};

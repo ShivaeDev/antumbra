@@ -57,7 +57,7 @@ const makeHandle = (raw: RawSession) =>
 		}),
 	);
 
-export interface ClaudeBackendOptions {
+interface ClaudeBackendOptions {
 	readonly executable: string;
 }
 

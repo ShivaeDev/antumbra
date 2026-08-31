@@ -27,7 +27,7 @@ const openedEvent = (raw: RawPayload, message: TaskStarted): Opened | undefined 
 	};
 };
 
-export interface Subsessions {
+interface Subsessions {
 	readonly events: (raw: RawPayload, message: SDKMessage) => ReadonlyArray<AgentEvent>;
 	readonly spawnerOf: (subsessionRef: string) => string | undefined;
 }

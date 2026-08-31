@@ -49,7 +49,7 @@ const contentEvents = (raw: RawPayload, message: ContentMessage, lifecycle: Read
 	return events.length === 0 ? [{ raw, type: "raw" }] : events;
 };
 
-export interface SessionMapping {
+interface SessionMapping {
 	readonly frame: (message: SDKMessage) => ReadonlyArray<AgentEvent>;
 	readonly spawnerOf: (subsessionRef: string) => string | undefined;
 }

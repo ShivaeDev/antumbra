@@ -3,8 +3,6 @@ import { Effect, Option } from "effect";
 import { claudeBackend } from "#backend.ts";
 import { classifyClaudeCapacity } from "#capacity.ts";
 
-export { type ClaudeBackendOptions, claudeBackend } from "#backend.ts";
-
 export const claudePlugin = (): AntumbraPlugin => ({
 	activate: (context) =>
 		Effect.flatMap(

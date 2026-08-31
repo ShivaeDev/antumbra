@@ -3,7 +3,7 @@ import type { AgentEvent, RawPayload } from "@antumbra/vocabulary/session-events
 
 type ResultMessage = Extract<SDKMessage, { type: "result" }>;
 
-export interface TurnUsage {
+interface TurnUsage {
 	readonly usage: (raw: RawPayload, message: ResultMessage) => AgentEvent;
 }
 

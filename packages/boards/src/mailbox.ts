@@ -13,8 +13,8 @@ const mailEntries = (agentId: string) => readBoard(mailbox(agentId)).pipe(Effect
 
 const storeReceipt = (entryId: string) => Database.use((db) => db.BoardEntryReceipt.create({ entryId }).pipe(Effect.asVoid));
 
-export const mail = Effect.fn("boards.mail")(function* (input: MailInput) {
-	return yield* writeEntry(
+export const mail = Effect.fn("boards.mail")((input: MailInput) =>
+	writeEntry(
 		mailbox(input.toAgentId),
 		EntryInput.Mail({
 			authorAgentId: input.authorAgentId,
@@ -23,8 +23,8 @@ export const mail = Effect.fn("boards.mail")(function* (input: MailInput) {
 			register: "smooth",
 			sourceRef: input.sourceRef,
 		}),
-	);
-});
+	),
+);
 
 export const unreadMail = Effect.fn("boards.unreadMail")(function* (agentId: string) {
 	const db = yield* Database;
@@ -51,6 +51,6 @@ const receiptsFor = (agentId: string, entryIds: ReadonlyArray<string>) =>
 		);
 	});
 
-export const markMailRead = Effect.fn("boards.markMailRead")(function* (agentId: string, entryIds: ReadonlyArray<string>) {
-	return yield* receiptsFor(agentId, entryIds).pipe(Effect.asVoid);
-});
+export const markMailRead = Effect.fn("boards.markMailRead")((agentId: string, entryIds: ReadonlyArray<string>) =>
+	receiptsFor(agentId, entryIds).pipe(Effect.asVoid),
+);

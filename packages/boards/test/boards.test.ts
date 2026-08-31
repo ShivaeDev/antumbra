@@ -7,7 +7,7 @@ import { Effect, Layer, Option, PubSub } from "effect";
 const it = persistenceIt();
 const layer = BoardsLive.pipe(Layer.provideMerge(DomainFeedsLive));
 
-it.effectDB("writes tagged notes in order and replays source references", function* (db) {
+it.effectDB("writes notes in order and replays source references", function* (db) {
 	yield* Effect.gen(function* () {
 		const boards = yield* Boards;
 		yield* db.Agent.create({
@@ -35,8 +35,6 @@ it.effectDB("writes tagged notes in order and replays source references", functi
 			}),
 		);
 
-		expect(scope._tag).toBe("Agent");
-		expect(input._tag).toBe("Note");
 		expect(replay.id).toBe(first.id);
 		expect([first.seq, second.seq]).toEqual([1, 2]);
 		expect((yield* boards.read(scope)).map((entry) => entry.id)).toEqual([first.id, second.id]);

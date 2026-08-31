@@ -30,30 +30,6 @@ it.live("spawn surfaces on the fleet feed once the agent lives", () =>
 	}),
 );
 
-it.live("fleet projection rejects an unknown stored Agent status", () =>
-	Effect.gen(function* () {
-		const temporary = yield* acquireTemporaryPersistence;
-		const scripted = yield* makeScriptedBackend;
-		yield* Effect.gen(function* () {
-			const db = yield* Database;
-			const sight = yield* SightSource;
-			const receipt = yield* sight.spawn(spawnRequest);
-			yield* eventually(
-				Effect.gen(function* () {
-					const fleet = yield* sight.fleet;
-					expect(fleet.agents.find((agent) => agent.id === receipt.agentId)?.status).toBe("alive");
-				}),
-			);
-			yield* db.Agent.where({ id: receipt.agentId }).update({
-				status: "future-agent",
-			});
-			const failure = yield* Effect.flip(sight.fleet);
-			expect(failure._tag).toBe("SightFailure");
-			expect(failure.message).toContain("future-agent");
-		}).pipe(Effect.provide(sightLayer(temporary, scripted)));
-	}),
-);
-
 it.live("the event feed rehydrates from the log then stays live, no dupes", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;

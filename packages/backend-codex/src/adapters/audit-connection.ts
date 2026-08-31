@@ -8,7 +8,7 @@ import { type Request, requestOn } from "#requests.ts";
 import { answerServerRequest } from "#server-answers.ts";
 import { makeToolRegistry } from "#tool-registry.ts";
 
-export interface AuditConnection {
+interface AuditConnection {
 	readonly request: Request;
 }
 
@@ -29,11 +29,6 @@ export const openAuditConnection = (spawn: () => LineProcess): Effect.Effect<Aud
 			),
 		);
 		const request = requestOn(rpc);
-		// why: the same initialize the live lane sends, from the same one place
-		// that writes it. The experimental capability the ancestor filter is gated
-		// behind rides on it — asking without it is refused outright — and reusing
-		// the handshake is what keeps the two connections from drifting into two
-		// different clients of one protocol.
 		yield* handshake(request);
 		rpc.notify("initialized", {});
 		return { request } satisfies AuditConnection;

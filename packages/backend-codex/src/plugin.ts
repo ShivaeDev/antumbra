@@ -14,17 +14,13 @@ import { classifyCodexCapacity } from "#capacity.ts";
 import { type CodexServer, makeCodexServer } from "#server.ts";
 import { openThreadSession } from "#thread.ts";
 
-export interface CodexPluginOptions {
+interface CodexPluginOptions {
 	readonly cwd: string;
 }
 
 const spawnAppServer = (command: string, cwd: string) => (): LineProcess => spawnLineProcess({ args: ["app-server"], command, cwd });
 
-export const codexBackend = (
-	server: RcRef.RcRef<CodexServer, BackendFailure>,
-	spawn: () => LineProcess,
-	capacity: BackendCapacitySource,
-): AgentBackend => ({
+const codexBackend = (server: RcRef.RcRef<CodexServer, BackendFailure>, spawn: () => LineProcess, capacity: BackendCapacitySource): AgentBackend => ({
 	audit: codexAudit(server, spawn),
 	capacity,
 	capabilities: {
@@ -34,9 +30,6 @@ export const codexBackend = (
 	tag: "codex",
 });
 
-// why: what the login shell answers with wins — a codex the user installed is
-// the one they expect to drive; the app bundle is the fallback for a machine
-// where only ChatGPT put one there.
 const codexCommand = (context: PluginContext) =>
 	Effect.flatMap(context.findExecutable("codex"), (found) => (Option.isSome(found) ? Effect.succeed(found) : bundledCodex));
 

@@ -19,7 +19,7 @@ interface ClosedTurnState {
 
 export type TurnState = ClosedTurnState | OpenTurnState;
 
-export const closed: ClosedTurnState = { _tag: "closed" };
+const closed: ClosedTurnState = { _tag: "closed" };
 
 export const SESSION_CLOSED = codexFailure("session closed before delivery reached the provider");
 

@@ -4,7 +4,8 @@ import { type AgentBackend, BackendFailure, type Runner } from "@antumbra/plugin
 import { expect, it } from "@effect/vitest";
 import { Deferred, Effect, Option, Stream } from "effect";
 import { AgentDomain } from "#domain.ts";
-import type { RetireFields, SpawnFields } from "#index.ts";
+import type { SpawnFields } from "#index.ts";
+import type { RetireFields } from "#retire.ts";
 import { domainKernelLayer } from "#test/domain-layers.ts";
 import { acquireTemporaryPersistence, makeScriptedBackend, makeScriptedRunner, rawOf, standDown } from "#test/harness.ts";
 import { eventually } from "#test/voyage-fixtures.ts";

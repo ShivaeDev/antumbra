@@ -1,12 +1,7 @@
 import { changeStatus, changesOfPiece, unresolvedChangesOfPiece } from "@antumbra/changes";
 import type { VoyageWorld } from "#voyage-rows.ts";
 
-// why: outcomes differ in how long they take to count. A report or an artifact
-// is landed the instant it is written; a change is proposed and only lands
-// when its host says so. A withdrawn change stays unresolved only while a
-// replacement is under way. An admiral's verdict lands the instant it is
-// spoken, which is the whole of what it does — doneness stays a tally, never a
-// column, and no verdict writes the answer the tally is asked for.
+// Changes land only after host observation; a withdrawn change remains pending only while its replacement is underway.
 export interface OutcomeTally {
 	readonly landed: number;
 	readonly pending: number;

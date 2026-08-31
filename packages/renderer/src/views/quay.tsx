@@ -1,18 +1,11 @@
-import { useState } from "react";
 import { watchQuay } from "#adapters/trpc-quay.ts";
 import { Button } from "#components/ui/button.tsx";
 import { useFeed } from "#hooks/feed.ts";
 import { cn } from "#lib/utils.ts";
-import { filterQuayChanges, type QuayFilters, quayChanges, repositoriesOf } from "#quay/changes.ts";
+import { quayChanges } from "#quay/changes.ts";
 import { QuayDetail } from "#views/quay-detail.tsx";
 import { QuayHeader } from "#views/quay-header.tsx";
 import { QuayMaster } from "#views/quay-master.tsx";
-
-const INITIAL_FILTERS = {
-	query: "",
-	repositoryId: null,
-	status: "all",
-} as const;
 
 type SelectionState = "empty" | "missing" | "none";
 
@@ -60,7 +53,6 @@ export const QuayPanel = ({
 	readonly selectedId: string | undefined;
 }) => {
 	const { error: feedError, value: quay } = useFeed("quay", watchQuay);
-	const [filters, setFilters] = useState<QuayFilters>(INITIAL_FILTERS);
 
 	if (quay === undefined) {
 		return (
@@ -70,7 +62,6 @@ export const QuayPanel = ({
 		);
 	}
 	const changes = quayChanges(quay);
-	const shown = filterQuayChanges(changes, filters);
 	const selected = changes.find((item) => item.change.id === selectedId);
 	const noSelection = selectedId === undefined;
 	const absent = selectionState(changes.length, selectedId);
@@ -83,15 +74,7 @@ export const QuayPanel = ({
 				</p>
 			)}
 			<div className="flex min-h-0 flex-1">
-				<QuayMaster
-					all={changes}
-					filters={filters}
-					onFilters={setFilters}
-					onSelect={onSelect}
-					repositories={repositoriesOf(changes)}
-					selectedId={selectedId}
-					shown={shown}
-				/>
+				<QuayMaster all={changes} onSelect={onSelect} selectedId={selectedId} />
 				<div className={cn("min-h-0 min-w-0 flex-1 overflow-y-auto", noSelection ? "hidden md:flex" : "flex")}>
 					{selected === undefined ? (
 						<MissingSelection onBack={() => onSelect(undefined)} state={absent} />

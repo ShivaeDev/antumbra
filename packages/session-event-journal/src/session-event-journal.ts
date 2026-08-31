@@ -3,7 +3,7 @@ import type { AgentEvent } from "@antumbra/vocabulary/session-events";
 import { Context, Effect, Layer } from "effect";
 import { type JournalAppend, makeJournalAppends } from "#journal-append.ts";
 
-export interface JournalWrite<E> {
+interface JournalWrite<E> {
 	readonly appends: ReadonlyArray<JournalAppend>;
 	readonly rows: Effect.Effect<void, E, never>;
 }
@@ -21,16 +21,14 @@ export const SessionEventJournalLive = Layer.effect(
 	Effect.gen(function* () {
 		const feeds = yield* DomainFeeds;
 		const appendAll = yield* makeJournalAppends;
-		const appendAndAnnounce = <E>(write: JournalWrite<E>) =>
+		const recordTogether = <E>(write: JournalWrite<E>) =>
 			Effect.gen(function* () {
 				yield* write.rows;
 				const stored = yield* appendAll(write.appends);
 				yield* Effect.forEach(stored, (row) => feeds.publishSessionEvent(row), {
 					discard: true,
 				});
-			});
-		const recordTogether = <E>(write: JournalWrite<E>) =>
-			appendAndAnnounce(write).pipe(
+			}).pipe(
 				Effect.as(true),
 				Effect.catchCause((cause) =>
 					Effect.logError("event append failed", { sessionIds: write.appends.map((append) => append.sessionId) }, cause).pipe(Effect.as(false)),

@@ -31,52 +31,51 @@ const adoptionAttachment = (agentId: string | null, repoId: string) =>
 		}) satisfies ObservationAttachment;
 	});
 
-export const adoptSubmittedChange = (input: AdoptChangeInput) =>
-	Effect.gen(function* () {
-		const db = yield* Database;
-		const feeds = yield* DomainFeeds;
-		const pieces = yield* Pieces;
-		yield* pieces.verifyExists(input.pieceId);
-		const repo = yield* repoNamed(input.repoName);
-		if (input.agentId !== null) {
-			yield* ensureAgentCanOwnLocalWork(input.agentId);
-		}
-		const host = yield* claimingHost(repo);
-		const capability = yield* host.capability;
-		if (!capability.available) {
-			return yield* new ChangeHostUnavailable({
-				detail: capability.detail,
-				host: host.tag,
-			});
-		}
-		const observation = yield* host.adopt(input.url, repo);
-		const now = yield* Clock.currentTimeMillis;
-		yield* ensureBranchResourcesUnclaimed(repo.source, observation.headRef);
-		const attachment = yield* adoptionAttachment(input.agentId, repo.id);
-		const reconciled = yield* reconcileObservation(host.tag, observation, now, attachment);
-		const adopted = Option.match(reconciled, {
-			onNone: () =>
-				({
-					changed: true,
-					row: proposedChange({
-						body: "",
-						host: host.tag,
-						now,
-						observation,
-						openedByAgentId: input.agentId,
-						originSessionId: null,
-						repoId: repo.id,
-					}),
-				}) as const,
-			onSome: (result) => result,
+export const adoptSubmittedChange = Effect.fn("changes.adopt")(function* (input: AdoptChangeInput) {
+	const db = yield* Database;
+	const feeds = yield* DomainFeeds;
+	const pieces = yield* Pieces;
+	yield* pieces.verifyExists(input.pieceId);
+	const repo = yield* repoNamed(input.repoName);
+	if (input.agentId !== null) {
+		yield* ensureAgentCanOwnLocalWork(input.agentId);
+	}
+	const host = yield* claimingHost(repo);
+	const capability = yield* host.capability;
+	if (!capability.available) {
+		return yield* new ChangeHostUnavailable({
+			detail: capability.detail,
+			host: host.tag,
 		});
-		if (Option.isNone(reconciled)) {
-			yield* db.Change.create(adopted.row);
-		}
-		const linked = yield* linkProduces(input.pieceId, adopted.row.id);
-		if (linked || adopted.changed) {
-			yield* feeds.publishVoyageRefresh();
-		}
-		yield* feeds.publishChangeRefresh();
-		return adopted.row;
+	}
+	const observation = yield* host.adopt(input.url, repo);
+	const now = yield* Clock.currentTimeMillis;
+	yield* ensureBranchResourcesUnclaimed(repo.source, observation.headRef);
+	const attachment = yield* adoptionAttachment(input.agentId, repo.id);
+	const reconciled = yield* reconcileObservation(host.tag, observation, now, attachment);
+	const adopted = Option.match(reconciled, {
+		onNone: () =>
+			({
+				changed: true,
+				row: proposedChange({
+					body: "",
+					host: host.tag,
+					now,
+					observation,
+					openedByAgentId: input.agentId,
+					originSessionId: null,
+					repoId: repo.id,
+				}),
+			}) as const,
+		onSome: (result) => result,
 	});
+	if (Option.isNone(reconciled)) {
+		yield* db.Change.create(adopted.row);
+	}
+	const linked = yield* linkProduces(input.pieceId, adopted.row.id);
+	if (linked || adopted.changed) {
+		yield* feeds.publishVoyageRefresh();
+	}
+	yield* feeds.publishChangeRefresh();
+	return adopted.row;
+});

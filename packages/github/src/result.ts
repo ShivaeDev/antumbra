@@ -7,7 +7,7 @@ const ProcessResult = Schema.Struct({
 	stdout: Schema.String,
 });
 
-export interface ProcessOutput {
+interface ProcessOutput {
 	readonly exitCode: number;
 	readonly stderr: string;
 	readonly stdout: string;

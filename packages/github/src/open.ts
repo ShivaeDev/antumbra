@@ -10,14 +10,12 @@ import type { GitHubRepoName } from "#source.ts";
 
 const CREATE_TIMEOUT_MILLIS = 120_000;
 
-const slug = (repo: GitHubRepoName): string => `${repo.owner}/${repo.name}`;
-
 // gh is spawned without a shell, so title and body are ordinary arguments.
 const createArgs = (repo: GitHubRepoName, request: OpenChangeRequest): ReadonlyArray<string> => [
 	"pr",
 	"create",
 	"--repo",
-	slug(repo),
+	`${repo.owner}/${repo.name}`,
 	"--head",
 	request.berth.branch,
 	"--base",

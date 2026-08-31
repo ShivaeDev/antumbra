@@ -10,9 +10,6 @@ export type { RouseRefused, SessionRouse, SpawnRefused };
 export interface KernelReachService {
 	readonly queueSiesta: (sessionId: string) => Effect.Effect<void>;
 	readonly rouseSession: (payload: WakeFields) => Effect.Effect<SessionRouse, RouseRefused>;
-	// why: the one act that reaches backwards. A Session found closed leaves
-	// wakes behind that nothing in the system will ever push again, and the seam
-	// that refuses the send is the place that knows it has just found one.
 	readonly settleWakes: (sessionId: string) => Effect.Effect<void>;
 	readonly submitSpawn: (payload: SpawnFields) => Effect.Effect<string, SpawnRefused>;
 	readonly submitWake: (payload: WakeFields) => Effect.Effect<string, SpawnRefused>;
@@ -27,9 +24,7 @@ export class KernelReachInstaller extends Context.Service<
 	}
 >()("@antumbra/domain/KernelReachInstaller") {}
 
-// why: the domain is built before the kernel, but callers must only know the
-// scheduler acts they can request. The Layer owns one late-bound path and the
-// installer completes it once; callers wait instead of observing partial boot.
+// The domain precedes the kernel, so this single late-bound seam waits for installation.
 export const KernelReachDeferredLive = Layer.unwrap(
 	Effect.gen(function* () {
 		const deferred = yield* Deferred.make<KernelReachService>();
@@ -53,11 +48,6 @@ export const KernelReachDeferredLive = Layer.unwrap(
 	}),
 );
 
-// why: the tools a session acts through are built inside the spawn intent,
-// which already runs under the kernel — but the domain that owns them was
-// built before it. This layer closes the circle from above and is the only
-// place the kernel and an agent's own acts meet; it stands beside the
-// dispatcher, which reaches the kernel the same way.
 export const KernelReachLive = Layer.effectDiscard(
 	Effect.gen(function* () {
 		const domain = yield* AgentDomain;
@@ -71,9 +61,6 @@ export const KernelReachLive = Layer.effectDiscard(
 				),
 			rouseSession: yield* makeRouseSession(domain.wake),
 			settleWakes: yield* makeSettleWakes(domain.wake),
-			// why: a hail is answered rather than fired and forgotten — the caller
-			// is a window or a router waiting on the intent it just asked for, so
-			// the submission's id travels back and refusals stay on the channel.
 			submitSpawn: (payload) => kernel.submit(domain.spawn, payload).pipe(Effect.map((submission) => submission.id)),
 			submitWake: (payload) => kernel.submit(domain.wake, payload).pipe(Effect.map((submission) => submission.id)),
 		};

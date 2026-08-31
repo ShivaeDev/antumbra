@@ -50,11 +50,6 @@ export const spawnResolution = Effect.gen(function* () {
 		db.AgentSession.where({ id: payload.sessionId, status: "open" }).update({
 			status: "closed",
 		});
-	// why: the link registration wrote is a claim staked before the birth, not a
-	// record of crew that served. assignedExecution already passes over an
-	// assignment whose Agent is not alive, so withdrawing the claim costs
-	// dispatch nothing and is what stops a Piece collecting one dormant Agent
-	// for every attempt that never drew breath.
 	const releaseClaim = (payload: SpawnFields) => {
 		const pieceId = payload.pieceId;
 		return pieceId === undefined

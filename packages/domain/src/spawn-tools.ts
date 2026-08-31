@@ -9,14 +9,7 @@ import type { SessionIdentity } from "#tool-identity.ts";
 import { isFlagshipCaptainIdentity, isVoyageCaptainIdentity } from "#voyage-captain.ts";
 import { VoyageWorldSource } from "#voyage-world.ts";
 
-// why: the session's tools are bound to this agent, this session, and what it
-// answers to. Capability effects are closed here, before the callbacks cross
-// into the provider SDK.
-//
-// why: which set a captain gets is a question about the voyage it cons rather
-// than about the payload, so the world is read to answer it. A world that
-// cannot be read leaves the captain's set standing: the fleet acts are the
-// addition, and a record nobody can read never grants them.
+// Capability effects close before their callbacks cross into a provider SDK.
 export const makeAgentToolCompiler = Effect.gen(function* () {
 	const compileCaptainTools = yield* makeCaptainToolCompiler;
 	const compileCrewTools = yield* makeCrewToolCompiler;

@@ -40,9 +40,7 @@ export const makeAgentDomain = (backends: ReadonlyMap<string, AgentBackend>, run
 		const reconcileCurrentSessions = yield* makeCurrentSessionReconciler;
 		const reconcileSessionNodes = yield* makeSessionNodeReconciler;
 		yield* reconcileCurrentSessions;
-		// why: nodes are reconciled after the roots that own them, because
-		// whether a node's acquisition can ever come back is a question about
-		// its root — and the roots have just been settled.
+		// Reconcile roots first because node acquisition liveness depends on root settlement.
 		yield* reconcileSessionNodes;
 		const spawn = yield* spawnKind({
 			backends,
@@ -60,12 +58,6 @@ export const makeAgentDomain = (backends: ReadonlyMap<string, AgentBackend>, run
 		});
 		const wake = yield* makeWakeKind(backendCapacities).pipe(Effect.provideService(SessionRecoveryRuntime, recoveryRuntime));
 		const siesta = yield* makeSiestaKind;
-		// why: the clock's two errands are separate sources on one loop — one
-		// asks whether a process is being held for nothing, the other whether an
-		// identity is being held for nothing. They read different truths and are
-		// governed differently, so they are compiled apart and run together.
-		// Neither of them ever puts a Session back on a provider: a Session that
-		// lost its process is reported as stranded and waits to be spoken to.
 		const intentDemands = [...(yield* compileSessionSiestaDemands(siesta)), ...(yield* compileRetireSweepDemands(retire))];
 		const imageInputBackends = imageInputBackendsOf(backends);
 		const sessionSend = yield* makeSessionSend(imageInputBackends, backendCapacities);

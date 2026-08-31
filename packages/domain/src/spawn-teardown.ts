@@ -9,11 +9,7 @@ export const makeSpawnTeardown = Effect.gen(function* () {
 	const isCancelling = yield* makeIsSpawnCancelling;
 	const resolution = yield* spawnResolution;
 	const resources = yield* ResourceReconciler;
-	// why: settlement runs from teardown handlers, whose contract cannot carry
-	// a failure onward, so this is the last reader the refusal will ever have.
-	// It is recorded as an error rather than a warning because what it names
-	// is an Agent left spawning — work nothing will hand back on its own, and
-	// nothing short of the next boot's reconcile will release.
+	// Teardown cannot propagate settlement failure; log the stranded birth for boot reconciliation.
 	const settleAfterFailure = (payload: SpawnFields) =>
 		resolution.settleFailure(payload).pipe(
 			Effect.tap(() => resources.request),

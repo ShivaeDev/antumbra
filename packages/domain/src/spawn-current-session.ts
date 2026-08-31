@@ -37,11 +37,7 @@ export const activationFor = (agent: StoredAgent, payload: SpawnFields) =>
 		return status === "alive" ? null : yield* Effect.fromResult(agentTransition(status, "activate"));
 	});
 
-// why: settling a failed birth is only this attempt's business. An Agent past
-// spawning was settled by someone else and needs nothing; one still spawning
-// against another Session is a birth this attempt cannot reach and nobody else
-// will come for — and a spawning Agent counts as at work for good, so that case
-// is named rather than passed over in silence.
+// A different Session leaves this birth stranded because no other attempt owns its settlement.
 export const settlementFor = (agent: StoredAgent, payload: SpawnFields) =>
 	Effect.gen(function* () {
 		const status = yield* Effect.fromResult(decodeStoredAgentStatus(agent.id, agent.status));

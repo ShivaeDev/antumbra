@@ -1,10 +1,6 @@
 import type { EventQuery, Fleet, SessionEvent, SessionTree } from "@antumbra/contract";
 import { client, toError } from "#adapters/bridge.ts";
 
-// why: a subscription is a standing question, and an act is a single one.
-// They are kept apart because a feed hands back the way to stop listening
-// and an act hands back nothing at all — the two never share a caller.
-
 export type Unsubscribe = () => void;
 
 export const watchFleet = (onFleet: (fleet: Fleet) => void, onError: (message: string) => void): Unsubscribe => {

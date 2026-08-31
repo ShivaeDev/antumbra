@@ -8,13 +8,8 @@ export interface ChangeMark {
 	readonly tone: MarkTone;
 }
 
-// why: a change that merged is history the quay has no claim on, so it is
-// drawn dimmed rather than ranked beside work someone is still waiting for.
 export const hasLanded = (change: ChangeView): boolean => change.stage === "landed";
 
-// why: every state gets a word here, blanks included. A new vocabulary value
-// is a compile error until the quay decides how it reads, rather than a state
-// that silently draws nothing.
 const CHECK_MARKS: Readonly<Record<ChangeView["checks"], ChangeMark>> = {
 	green: { key: "checks", label: "checks passed", tone: "success" },
 	none: { key: "checks", label: "no checks", tone: "muted" },
@@ -39,9 +34,6 @@ const MERGE_MARKS: Readonly<Record<ChangeView["mergeable"], ChangeMark>> = {
 	unknown: { key: "merge", label: "merge untested", tone: "muted" },
 };
 
-// why: a change that never reached a host, or was closed without merging, has
-// nothing to report about checks or reviewers — where it stands is the whole
-// of its state, and the three steps below would be three empty positions.
 const STAGE_ALONE: Readonly<Partial<Record<ChangeView["stage"], ChangeMark>>> = {
 	landed: { key: "stage", label: "merged", tone: "muted" },
 	prepared: { key: "stage", label: "not offered yet", tone: "muted" },
@@ -52,9 +44,6 @@ const STAGE_ALONE: Readonly<Partial<Record<ChangeView["stage"], ChangeMark>>> = 
 	},
 };
 
-// why: the same three steps in the same three places on every card — checks,
-// then review, then the merge itself. A reader learns the positions once and
-// afterwards reads a card by where the colour is rather than by the words.
 export const changeMarks = (change: ChangeView): ReadonlyArray<ChangeMark> => {
 	const alone = STAGE_ALONE[change.stage];
 	if (alone !== undefined) {
@@ -63,6 +52,4 @@ export const changeMarks = (change: ChangeView): ReadonlyArray<ChangeMark> => {
 	return [CHECK_MARKS[change.checks], REVIEW_MARKS[change.review], MERGE_MARKS[change.mergeable]];
 };
 
-// why: a change that never reached a host has no number to look up, so it is
-// named by its title alone.
 export const changeNumber = (change: ChangeView): string => (change.externalId === null ? "" : `#${change.externalId}`);

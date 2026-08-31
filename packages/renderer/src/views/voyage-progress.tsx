@@ -2,8 +2,6 @@ import type { PieceCounts } from "@antumbra/contract";
 import { cn } from "#lib/utils.ts";
 import { landedLabel, type ProgressBand, type ProgressSlice, progressLabel, slicesOf } from "#voyages/progress.ts";
 
-// why: the bar and its legend take their fills from one table, so a dot in the
-// legend is the same colour as the run of bar it explains.
 const FILL: Readonly<Record<ProgressBand, string>> = {
 	active: "bg-success",
 	landed: "bg-muted-foreground",

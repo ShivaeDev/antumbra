@@ -8,10 +8,6 @@ import { Textarea } from "#components/ui/textarea.tsx";
 import { situationLabel } from "#fleet/situations.ts";
 import { useSessionDraft } from "#hooks/session-draft.ts";
 
-// why: the words are drafted for the admiral to read, not sent behind them. The
-// box opens holding what the catalog wrote, every edit is theirs, and the Send
-// beside it is the same act the message box performs — so a situation is a
-// faster way to say something, never a way for something to be said.
 export const SituationDialog = ({
 	onClose,
 	onError,

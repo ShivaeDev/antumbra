@@ -9,9 +9,6 @@ import { PieceDetail } from "#views/piece-detail.tsx";
 import { pieceStateLabel } from "#voyages/labels.ts";
 import { pieceTone } from "#voyages/tone.ts";
 
-// why: a voyage is read as the list of its pieces, so a piece states itself in
-// one line — what it is called, whose work it is, where it stands — and keeps
-// its charter, its outcomes and the acts it offers one click away.
 export const PieceCard = ({
 	onError,
 	piece,

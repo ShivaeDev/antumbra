@@ -6,8 +6,6 @@ import { useCall } from "#hooks/call.ts";
 import { OutcomeChips, OutcomeDetailView } from "#views/outcome-detail.tsx";
 import { detailOf, type OutcomeRef } from "#views/outcome-read.ts";
 
-// why: a report says who wrote it, because it is one agent talking to another
-// and the reader judges it by the hand behind it.
 const named = (report: ReportMarkdown) => ({
 	markdown: report.markdown,
 	title: report.authorAgentId === null ? report.title : `${report.title} — report by ${report.authorAgentId}`,

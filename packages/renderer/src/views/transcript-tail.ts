@@ -9,10 +9,6 @@ interface Tail {
 	readonly toTail: () => void;
 }
 
-// why: an agent writes faster than anyone reads it. The pane follows the tail
-// only while the reader is already there; the moment they scroll back to read
-// something, arriving events stop moving the ground under them and the way
-// back to the live end is offered instead of forced.
 export const useTail = (count: number): Tail => {
 	const pane = useRef<HTMLDivElement>(null);
 	const [atTail, setAtTail] = useState(true);

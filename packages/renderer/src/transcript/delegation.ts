@@ -4,17 +4,9 @@ import type { TranscriptDelegation } from "#transcript/model.ts";
 
 export type NodesByRef = ReadonlyMap<string, SessionTreeNode>;
 
-// why: a marker names the provider's reference for the conversation, and the
-// tree read carries the same reference on the row it minted — so the join
-// between what a transcript says and which node it points at is that reference
-// and never a position or a guess.
 export const nodesByRef = (nodes: ReadonlyArray<SessionTreeNode>): NodesByRef =>
 	new Map(nodes.flatMap((node) => (node.nativeRef === null ? [] : [[node.nativeRef, node] as const])));
 
-// why: the tree read already applied the display rule to what was stored, so a
-// marker the tree can place wears exactly the name the tree shows. One the
-// tree cannot place runs the same rule over what the frame itself said, so the
-// two can never end up calling one node two things.
 const nameOf = (
 	nodes: NodesByRef,
 	subsessionRef: string,

@@ -2,9 +2,6 @@ import type { Fleet, VoyageSummary } from "@antumbra/contract";
 import { SessionPane } from "#views/session-pane.tsx";
 import { CaptainCall } from "#views/voyage-acts.tsx";
 
-// why: the fleet's highest-level agent is somewhere to talk, not somewhere to
-// navigate to — so this opens on the captain's own conversation rather than on
-// a dashboard about it, and adds no rail for the admiral to read first.
 export const FlagshipPanel = ({
 	fleet,
 	foldToolCalls,

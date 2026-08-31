@@ -15,8 +15,6 @@ const Header = ({ open }: { readonly open: OpenRulingsView }) => (
 	</header>
 );
 
-// why: the order is the record's — what holds an asker first, then what binds
-// most widely, then what has waited longest — so the list never sorts again.
 const RulingList = ({ onError, open }: { readonly onError: (message: string) => void; readonly open: OpenRulingsView }) =>
 	open.rulings.length === 0 ? (
 		<p className="m-auto max-w-sm px-6 text-center text-xs text-muted-foreground">

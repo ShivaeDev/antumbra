@@ -7,9 +7,6 @@ import { lastSight } from "#quay/groups.ts";
 import { AdoptChangeDialog } from "#views/adopt-change-dialog.tsx";
 import { whenLabel } from "#voyages/labels.ts";
 
-// why: a host that cannot act says so in its own words — signed in as whom, or
-// what to run — so the reason a change cannot be adopted is read before the
-// attempt rather than after it.
 const HostLine = ({ host }: { readonly host: HostCapabilityView }) => (
 	<div className="flex min-w-0 items-center gap-1.5">
 		<Badge variant={host.available ? "outline" : "warning"}>{host.tag}</Badge>
@@ -30,8 +27,6 @@ const HeaderTitle = ({ sighted }: { readonly sighted: string | undefined }) => (
 export const QuayHeader = ({ onError, view }: { readonly onError: (message: string) => void; readonly view: QuayView }) => {
 	const asking = useCall<void>();
 	const sighted = lastSight(view);
-	// why: the button rings the watcher; what a pass costs stays the cadence's
-	// decision, so it settles as soon as the ring lands, not when news arrives.
 	const ring = () => {
 		asking.run((onDone) => refreshChanges(onDone, onError));
 	};

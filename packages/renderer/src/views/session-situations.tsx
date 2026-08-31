@@ -6,10 +6,6 @@ import { SituationDialog } from "#views/situation-dialog.tsx";
 
 const keyOf = (situation: SessionSituation): string => `${situation.changeId}:${situation.situation}`;
 
-// why: one control per situation the domain published, and nothing when it
-// published none — the window offers what the record says is wrong and works
-// none of it out for itself. The Change's own reference rides the label
-// because an Agent may be at work on more than one.
 export const SessionSituations = ({
 	onError,
 	sessionId,

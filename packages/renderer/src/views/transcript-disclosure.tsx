@@ -2,9 +2,6 @@ import { ChevronDown, ChevronRight } from "lucide-react";
 import { useState } from "react";
 import { cn } from "#lib/utils.ts";
 
-// why: most of a transcript is evidence rather than narration. An entry states
-// itself in one line and keeps the whole of what it carries behind a click, so
-// the reading stays skimmable without anything being dropped.
 export const Disclosure = ({
 	body,
 	name,

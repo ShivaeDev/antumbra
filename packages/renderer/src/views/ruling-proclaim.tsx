@@ -32,9 +32,6 @@ const tagsOf = (written: string): ReadonlyArray<string> =>
 		.map((tag) => tag.trim())
 		.filter((tag) => tag !== "");
 
-// why: a rule the admiral writes for itself carries the same context and
-// question an agent's request would, because the answer is read long after
-// both and binds nothing without them.
 const proclamationOf = (written: Written): ProclaimRequest => {
 	const tags = tagsOf(written.tags);
 	return {
@@ -49,8 +46,6 @@ const proclamationOf = (written: Written): ProclaimRequest => {
 
 const unwritten = (written: Written): boolean => written.answer.trim() === "" || written.context.trim() === "" || written.question.trim() === "";
 
-// why: the admiral's own rule is asked and answered in one act, so the form
-// takes the whole record at once and the ruling stands the moment it lands.
 export const RulingProclaim = ({ onError }: { readonly onError: (message: string) => void }) => {
 	const [written, setWritten] = useState(BLANK);
 	const write = <Key extends keyof Written>(key: Key, value: Written[Key]) => setWritten((current) => ({ ...current, [key]: value }));

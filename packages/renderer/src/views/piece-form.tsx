@@ -7,8 +7,6 @@ import { Dialog, DialogContent, DialogTrigger } from "#components/ui/dialog.tsx"
 import { DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "#components/ui/dialog-sections.tsx";
 import { emptyPiece, type PieceDraft, PieceFields } from "#views/piece-fields.tsx";
 
-// why: chartering is how a voyage grows, but reading its pieces is what the
-// pane is for — so the form is one press away rather than always in the way.
 export const CharterPieceForm = ({
 	onError,
 	pieces,

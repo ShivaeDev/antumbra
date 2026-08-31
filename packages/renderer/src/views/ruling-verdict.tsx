@@ -6,8 +6,6 @@ import { Textarea } from "#components/ui/textarea.tsx";
 import { cn } from "#lib/utils.ts";
 import { LabelledField } from "#views/field.tsx";
 
-// why: a choice is offered, never imposed — picking the same one again lets it
-// go, because an authority may answer past every choice the asker listed.
 const ChoiceOption = ({ choice, chosen, onPick }: { readonly choice: RulingChoiceView; readonly chosen: boolean; readonly onPick: () => void }) => (
 	<button
 		aria-pressed={chosen}
@@ -52,8 +50,6 @@ const verdictOf = (ruling: RulingView, answer: string, chosen: string | undefine
 export const RulingVerdict = ({ onError, ruling }: { readonly onError: (message: string) => void; readonly ruling: RulingView }) => {
 	const [answer, setAnswer] = useState("");
 	const [chosen, setChosen] = useState<string | undefined>(undefined);
-	// why: the words are what a later reader is left with, so a verdict without
-	// them never leaves the window — a pick alone says nothing about its reach.
 	const wordless = answer.trim() === "";
 	return (
 		<div className="flex min-w-0 flex-col gap-2 border-t border-border pt-2">

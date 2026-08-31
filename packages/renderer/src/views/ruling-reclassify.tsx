@@ -7,8 +7,6 @@ import { rulingRadii, rulingUrgencies } from "#rulings/labels.ts";
 import { LabelledField } from "#views/field.tsx";
 import { AxisSelect } from "#views/ruling-axis-select.tsx";
 
-// why: only an axis that moved is sent, so the row records what an authority
-// changed and never repeats what already stood.
 const requestOf = (ruling: RulingView, radius: RulingView["radius"], urgency: RulingView["urgency"], note: string): ReclassifyRequest => ({
 	rulingId: ruling.id,
 	...(note.trim() === "" ? {} : { note: note.trim() }),

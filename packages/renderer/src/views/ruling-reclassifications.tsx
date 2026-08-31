@@ -7,17 +7,11 @@ const axes = (reclassification: RulingReclassificationView): ReadonlyArray<strin
 	...(reclassification.urgency === undefined ? [] : [`urgency ${reclassification.urgency}`]),
 ];
 
-// why: reclassifying refuses to name no axis at all, so a row that moved
-// neither is the other move a rung makes — it passed the question up and left
-// what it knew behind. The list says which happened rather than printing an
-// empty change.
 const moved = (reclassification: RulingReclassificationView): string => {
 	const set = axes(reclassification);
 	return set.length === 0 ? "passed it up" : `set ${set.join(", ")}`;
 };
 
-// why: every reclassification stays readable beside the declaration, so the
-// list says who moved which axis, to what, and the words they left beside it.
 export const RulingReclassifications = ({ reclassifications }: { readonly reclassifications: ReadonlyArray<RulingReclassificationView> }) =>
 	reclassifications.length === 0 ? null : (
 		<ul className="flex min-w-0 flex-col gap-0.5 text-2xs text-muted-foreground">

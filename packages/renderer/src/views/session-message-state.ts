@@ -11,11 +11,6 @@ const refusal = (session: SessionSummary | undefined): string | undefined => {
 	return session.canSend ? undefined : presenceNote[session.presence];
 };
 
-// why: a live wake is the send's own receipt — the mutation returning is
-// only the demand being written down, and the wake it asked for is the part the
-// admiral is waiting on. Reading it off the durable state rather than the send's
-// return keeps the box honest about a wake this window never asked for, and
-// about one still parked from an earlier send.
 const wakeOf = (session: SessionSummary | undefined): IntentDiagnostic | undefined =>
 	session?.diag.intents.find((intent) => intent.kind === WAKE_KIND);
 
@@ -35,9 +30,6 @@ export const sessionMessageState = (fleet: Fleet | undefined, sessionId: string)
 	const standing = blocked ?? waking ?? note(session);
 	return {
 		blocked,
-		// why: the wake's own sentence is what turns "parked" into something the
-		// admiral can act on, and it is only news while the wake is the standing
-		// note — a refusal has already said the more final thing.
 		reason: standing === waking && pending !== undefined ? wakeReason(pending.detail) : undefined,
 		session,
 		standing,

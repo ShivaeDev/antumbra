@@ -9,9 +9,6 @@ import { Section } from "#views/section.tsx";
 import { authorLabel, boardRegisterLabel, whenLabel } from "#voyages/labels.ts";
 import { bySalience } from "#voyages/order.ts";
 
-// why: the smooth log is what the voyage wants its readers told and the rough
-// log is the scratch behind it, so the smooth entries sit on a card and the
-// rough ones recede to bare text rather than competing for the same weight.
 const EntryRow = ({ entry }: { readonly entry: BoardEntryView }) => {
 	const smooth = entry.register === "smooth";
 	return (

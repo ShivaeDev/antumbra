@@ -8,9 +8,6 @@ import { Select, SelectContent, SelectTrigger, SelectValue } from "#components/u
 import { SelectItem } from "#components/ui/select-parts.tsx";
 import { useCall } from "#hooks/call.ts";
 
-// why: a piece chartered by two voyages reaches the quay once per voyage, and
-// the form adopts onto the piece rather than onto the charter — so it is
-// offered once, under the first voyage that named it.
 const offered = (pieces: ReadonlyArray<QuayPiece>): ReadonlyArray<QuayPiece> =>
 	pieces.filter((piece, index) => pieces.findIndex((other) => other.id === piece.id) === index);
 
@@ -21,8 +18,6 @@ const Field = ({ children, label }: { readonly children: ReactNode; readonly lab
 	</div>
 );
 
-// why: the dialog drops its content when it closes, so the choice lives
-// exactly as long as the form does and the control is free to keep it.
 const PieceChoice = ({ choices, onPiece }: { readonly choices: ReadonlyArray<QuayPiece>; readonly onPiece: (pieceId: string) => void }) => (
 	<Select onValueChange={onPiece}>
 		<SelectTrigger aria-label="Piece">
@@ -47,9 +42,6 @@ export const AdoptChangeForm = ({ onAdopted, pieces }: { readonly onAdopted: () 
 	const busy = adopting.state._tag === "pending";
 	const ready = pieceId !== undefined && repoName !== "" && url !== "";
 
-	// why: the failure belongs beside the fields that caused it. The dialog
-	// covers the app's own notice line, so a message sent there would be read
-	// only after the reader gave up and closed this.
 	const adopt = () => {
 		if (pieceId === undefined) {
 			return;

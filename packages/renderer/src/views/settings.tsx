@@ -2,9 +2,6 @@ import { SETTING_KEYS, type SettingsReading } from "@antumbra/contract";
 import { changeSetting } from "#adapters/trpc-settings.ts";
 import { SettingRow } from "#views/setting-row.tsx";
 
-// why: the panel draws the catalog rather than a list of its own. A setting
-// declared there arrives here with its title, its sentence and its control
-// already decided, so nothing in this file is edited to show it.
 export const SettingsPanel = ({
 	onError,
 	onSettings,

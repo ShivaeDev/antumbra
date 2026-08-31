@@ -79,8 +79,6 @@ export const unparkPiece = (pieceId: string, onError: OnError): void => fired(cl
 
 export const rewirePiece = (request: RewireRequest, onError: OnError): void => fired(client.rewirePiece.mutate(request), onError);
 
-// why: crew asked for by name rather than waited for — the receipt names the
-// agent born for it, and the feed shows the piece turn active on its own.
 export const workPieceNow = (pieceId: string, onError: OnError): void => fired(client.workPieceNow.mutate({ pieceId }), onError);
 
 export const landPieceVerdict = (request: PieceVerdictRequest, onError: OnError): void => fired(client.landPieceVerdict.mutate(request), onError);

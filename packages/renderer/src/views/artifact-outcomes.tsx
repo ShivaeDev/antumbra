@@ -13,9 +13,6 @@ const named = (artifact: ArtifactMarkdown) => ({
 	title: artifact.title,
 });
 
-// why: asking twice for the same Artifact brings the window it already has
-// forward rather than minting a second one, so the control keeps being
-// offered while that window is open.
 const OpenInWindow = ({ artifactId, onError }: { readonly artifactId: string; readonly onError: (message: string) => void }) => (
 	<Button
 		aria-label="Open in a window"
@@ -45,9 +42,6 @@ export const ArtifactOutcomes = ({
 		setAsked(artifact);
 		read.run((onDone, failed) => readArtifactMarkdown(artifact.id, onDone, failed));
 	};
-	// why: the pane is titled by the chip that was clicked, but detaching a
-	// window needs the Artifact that chip named, so what was asked for is kept
-	// whole here rather than reduced to the title the shared reader wants.
 	const detail = asked === undefined ? undefined : detailOf(read.state, asked.title, named);
 	const loading = detail?._tag === "loading";
 	if (current.length === 0 && history.length === 0) return null;

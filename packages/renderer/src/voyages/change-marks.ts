@@ -1,8 +1,5 @@
 import type { ChangeView } from "@antumbra/contract";
 
-// why: every neutral word is named here, including intentional blanks. A new
-// vocabulary value is therefore a compile error until the view decides how it
-// reads instead of silently disappearing or printing its wire spelling.
 const STAGE_LABELS: Readonly<Record<ChangeView["stage"], string>> = {
 	landed: "landed",
 	open: "open",
@@ -30,8 +27,6 @@ const MERGEABLE_MARKS: Readonly<Record<ChangeView["mergeable"], string>> = {
 	unknown: "",
 };
 
-// why: a landed change has nothing left to say about checks or reviewers — it
-// merged, and that is the whole of its state.
 export const changeMarks = (change: ChangeView): string => {
 	if (change.stage === "landed") {
 		return "✓ merged";
@@ -41,6 +36,4 @@ export const changeMarks = (change: ChangeView): string => {
 		.join(" · ");
 };
 
-// why: a change that never reached a host has no number to show, so it is
-// named by its title alone rather than by a number nobody can look up.
 export const changeName = (change: ChangeView): string => (change.externalId === null ? change.title : `#${change.externalId} ${change.title}`);

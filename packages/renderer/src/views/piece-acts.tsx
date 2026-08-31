@@ -30,8 +30,6 @@ export const PieceActs = ({
 		if (chosen === "workNow") {
 			return workPieceNow(piece.id, onError);
 		}
-		// why: the picker opens on what the piece depends on right now, not on
-		// what it depended on when the row was first drawn.
 		setDependsOn(piece.dependsOn);
 		return setRewiring(!rewiring);
 	};

@@ -13,7 +13,5 @@ const berthedIn = (world: VoyageWorld, piece: PieceRow): ReadonlyArray<RulingGat
 			voyageName: voyage.name,
 		}));
 
-// why: a gated piece is named once per voyage it was chartered for, so the
-// admiral reads what a ruling releases by the places the work is owed to.
 export const gatedPiecesSeen = (world: VoyageWorld, pieceIds: ReadonlyArray<string>): ReadonlyArray<RulingGatedPieceView> =>
 	world.pieces.filter((piece) => pieceIds.includes(piece.id)).flatMap((piece) => berthedIn(world, piece));

@@ -4,9 +4,6 @@ import { ruledByWords } from "#ruling-words.ts";
 
 const labelOf = (ruling: Ruling, choiceId: string): string => ruling.choices.find((choice) => choice.id === choiceId)?.label ?? choiceId;
 
-// why: an answer read apart from its question loses the scope that bounds it,
-// so the mail carries both — the asker meets the ruling whole, long after the
-// turn that asked for it has ended.
 export const rulingAnswerMail = (ruling: Ruling, answer: RulingAnswer): string =>
 	[
 		`You asked: ${ruling.question}`,

@@ -4,10 +4,6 @@ import { failureMessage } from "#sight-failure.ts";
 
 export const toRulingFailure = (cause: unknown): RulingFailure => new RulingFailure({ message: failureMessage(cause) });
 
-// why: the ways a verdict or a reclassification fails to land are things the
-// record knows and the window does not, so each comes back as the sentence
-// that says which — anything else is this process failing rather than the
-// request being wrong.
 export const verdictFailure = (cause: RulingVerdictFailure): RulingFailure | RulingRefused => {
 	switch (cause._tag) {
 		case "RulingAlreadyRuled":
@@ -20,11 +16,6 @@ export const verdictFailure = (cause: RulingVerdictFailure): RulingFailure | Rul
 			});
 		case "RulingNotFound":
 			return new RulingRefused({ reason: `no open ruling: ${cause.rulingId}` });
-		// why: which rung may answer follows from how widely the answer will
-		// apply, so a verdict from a rung that does not reach the radius is the
-		// record refusing a request rather than this process failing — it comes
-		// back naming the radius and the rung, the way every other refusal names
-		// what was wrong with what was sent.
 		case "RulingOutsideAuthority":
 			return new RulingRefused({
 				reason: `ruling ${cause.rulingId} binds at ${cause.radius} radius, where the ${cause.by} does not rule`,
@@ -34,9 +25,6 @@ export const verdictFailure = (cause: RulingVerdictFailure): RulingFailure | Rul
 	}
 };
 
-// why: a proclamation is a request and a verdict in one act, so it is refused
-// for either's reasons — a subject the fleet has not got, or a pick naming none
-// of the choices the proclamation itself wrote.
 export const proclaimFailure = (cause: RulingProclaimFailure): RulingFailure | RulingRefused => {
 	switch (cause._tag) {
 		case "RulingChoiceUnknown":

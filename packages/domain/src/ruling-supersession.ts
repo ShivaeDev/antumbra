@@ -2,9 +2,6 @@ import { RulingFailure, RulingRefused } from "@antumbra/contract";
 import type { RulingSupersessionFailure } from "@antumbra/rulings";
 import { failureMessage } from "#sight-failure.ts";
 
-// why: every way a supersession fails to land is something the record knows
-// and the window does not, so each comes back as the sentence that says which
-// — anything else is this process failing rather than the request being wrong.
 export const supersessionFailure = (cause: RulingSupersessionFailure): RulingFailure | RulingRefused => {
 	switch (cause._tag) {
 		case "RulingAlreadySuperseded":

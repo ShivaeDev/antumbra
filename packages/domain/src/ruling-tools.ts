@@ -31,17 +31,11 @@ const requestOf = (identity: SessionIdentity, input: Ask, gates: ReadonlyArray<s
 	urgency: input.urgency,
 });
 
-// why: urgency decides whether the asker holds. A blocking call is the answer's
-// own road back and returns only when the ruling lands; every other urgency
-// returns at once and hears the answer as mail.
 export const makeRulingToolCompiler = Effect.gen(function* () {
 	const membership = yield* CaptainMembership;
 	const rulings = yield* Rulings;
 	const hold = yield* makeRulingHold;
 	const world = yield* VoyageWorldSource;
-	// why: the rung a request waits on is the asker's station read off the
-	// record, never something the asker names. A record nobody can read leaves
-	// the question with the admiral, who meets every open ruling in the window.
 	const rungFor = (identity: SessionIdentity) =>
 		world.read.pipe(
 			Effect.map((rows) => rungAsked(rows, identity)),
@@ -54,10 +48,6 @@ export const makeRulingToolCompiler = Effect.gen(function* () {
 				? yield* answered(identity, requestRulingSpec.name, hold(request), heldSaid)
 				: yield* answered(identity, requestRulingSpec.name, rulings.request(request), said);
 		});
-	// why: a hold reaches only the asker's own voyage — crew and captain alike
-	// may hold sibling pieces, and an agent on no voyage holds nothing. The
-	// membership read refuses before the request is written, so a request
-	// naming another ship's work lands no row at all.
 	return (identity: SessionIdentity): ReadonlyArray<DirectTool> => [
 		bind(requestRulingSpec, (input) => {
 			const gates = input.gates ?? [];

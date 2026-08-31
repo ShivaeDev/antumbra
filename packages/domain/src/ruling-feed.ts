@@ -2,9 +2,7 @@ import type { RulingFailure } from "@antumbra/contract";
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Effect, Stream } from "effect";
 
-// why: subscribed before the first read, so a request or a verdict landing
-// between the read and the subscription cannot leave a window holding an open
-// set that has already moved on.
+// Subscribe before the initial read so a concurrent refresh is not missed.
 export const makeRulingRefreshes = Effect.gen(function* () {
 	const feeds = yield* DomainFeeds;
 	const ticks = feeds.subscribeRulingRefresh().pipe(Effect.map(Stream.fromSubscription));

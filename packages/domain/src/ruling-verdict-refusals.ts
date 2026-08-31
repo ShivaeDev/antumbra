@@ -12,20 +12,12 @@ export const pickOf = (ruling: Ruling, label: string): Option.Option<string> =>
 const offeredLabels = (ruling: Ruling): string =>
 	ruling.choices.length === 0 ? "it offered none" : `it offered ${ruling.choices.map((choice) => `"${choice.label}"`).join(", ")}`;
 
-// why: a question that climbed is no longer the rung below's, and a question
-// wider than the rung may bind was never its. The two are different failures
-// and the captain is told which, because one is answered by leaving it alone
-// and the other by passing it up with what it knows.
 const climbedPast = (ruling: Ruling, rung: RulingAuthority): string =>
 	`ruling ${ruling.id} waits on the ${rung} now — it climbed past you, and only the rung it waits on may settle it`;
 
 const tooWide = (ruling: Ruling, by: RulingAuthority): string =>
 	`ruling ${ruling.id} would bind ${bindsWords[ruling.radius]}, wider than the ${by} may bind — pass_up carries it to the rung above with what you know`;
 
-// why: every way a verdict cannot land is read off the ruling before anything
-// is written, so the captain hears a sentence it can act on instead of the
-// record's own refusal read back to it. The record refuses the same things
-// again on the way in; this is the wording, not the rule.
 export const verdictRefusal = (ruling: Ruling, by: RulingAuthority, asked: Asked): Option.Option<string> => {
 	const answer = ruling.answer;
 	if (Option.isSome(answer)) {

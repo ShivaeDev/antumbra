@@ -2,7 +2,7 @@ import { SightSource } from "@antumbra/contract";
 import { Database } from "@antumbra/persistence";
 import { rejectTestSessionMessageWrites } from "@antumbra/persistence/testing";
 import { it as effectIt, expect } from "@effect/vitest";
-import { Deferred, Effect } from "effect";
+import { Deferred, Effect, Stream } from "effect";
 import { AGENT_CALL, NATIVE_ROOT, NESTED_SUBSESSION, SUBSESSION, streamRehearsal } from "#test/session-tree-frames.ts";
 import { acquireTemporaryPersistence, claudeRehearsalIt, rehearsalLayer } from "#test/session-tree-harness.ts";
 
@@ -23,6 +23,15 @@ const journal = (sessionId: string) =>
 	}).pipe(Effect.orDie);
 
 const kindsOf = (sessionId: string) => journal(sessionId).pipe(Effect.map((rows) => rows.map((row) => row.kind)));
+
+const awaitKind = (sessionId: string, kind: string) =>
+	Effect.gen(function* () {
+		const sight = yield* SightSource;
+		yield* sight.sessionEventFeed({ fromSeq: 0, sessionId }).pipe(
+			Stream.filter(({ event }) => event._tag === "Known" && event.event.type === kind),
+			Stream.runHead,
+		);
+	});
 
 const treeOf = (rootSessionId: string) =>
 	Effect.gen(function* () {
@@ -74,6 +83,7 @@ it.effectApp("each node's journal holds what that node did, and only that", { cl
 	if (node === undefined || nested === undefined) {
 		return;
 	}
+	yield* awaitKind(nested.id, "subsession.gap");
 	expect(yield* kindsOf(receipt.sessionId)).toEqual([
 		"session.opened",
 		"tool.started",
@@ -97,6 +107,7 @@ it.effectApp("the record keeps saying what it saw after the turn ended", { clock
 	if (node === undefined || nested === undefined) {
 		return;
 	}
+	yield* awaitKind(nested.id, "subsession.gap");
 	const spoken = (yield* journal(node.id)).at(-1);
 	expect(spoken?.payload).toContain("the cluster maps cleanly");
 	const enrichment = (yield* journal(receipt.sessionId)).at(-1);

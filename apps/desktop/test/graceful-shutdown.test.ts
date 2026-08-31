@@ -1,5 +1,5 @@
 import { expect, it } from "@effect/vitest";
-import { Deferred, Effect, Ref } from "effect";
+import { Deferred, Effect, Fiber, Ref } from "effect";
 import { registerGracefulShutdown } from "#adapters/graceful-shutdown.ts";
 
 const record = (calls: Ref.Ref<ReadonlyArray<string>>, call: string) => {
@@ -9,13 +9,21 @@ const record = (calls: Ref.Ref<ReadonlyArray<string>>, call: string) => {
 const runShutdownAttempt = (
 	attempt: number,
 	calls: Ref.Ref<ReadonlyArray<string>>,
+	firstAttemptFiber: Deferred.Deferred<Fiber.Fiber<unknown, unknown>>,
 	firstAttemptStarted: Deferred.Deferred<void>,
+	retryAttemptStarted: Deferred.Deferred<void>,
 	releaseRetry: Deferred.Deferred<void>,
 ) => {
 	const result =
 		attempt === 1
-			? Deferred.succeed(firstAttemptStarted, undefined).pipe(Effect.andThen(Effect.fail("drain failed")))
-			: Deferred.await(releaseRetry).pipe(Effect.andThen(Ref.update(calls, (all) => [...all, "dispose"])));
+			? Effect.withFiber((fiber) => Deferred.succeed(firstAttemptFiber, fiber)).pipe(
+					Effect.andThen(Deferred.succeed(firstAttemptStarted, undefined)),
+					Effect.andThen(Effect.fail("drain failed")),
+				)
+			: Deferred.succeed(retryAttemptStarted, undefined).pipe(
+					Effect.andThen(Deferred.await(releaseRetry)),
+					Effect.andThen(Ref.update(calls, (all) => [...all, "dispose"])),
+				);
 	return Ref.update(calls, (all) => [...all, "drain"]).pipe(Effect.andThen(result));
 };
 
@@ -23,6 +31,7 @@ it.effect("coalesces quit requests and permits exit only after shutdown", () =>
 	Effect.gen(function* () {
 		let beforeQuit: ((event: { readonly preventDefault: () => void }) => void) | undefined;
 		const calls = yield* Ref.make<ReadonlyArray<string>>([]);
+		const drainStarted = yield* Deferred.make<void>();
 		const release = yield* Deferred.make<void>();
 		const exited = yield* Deferred.make<void>();
 		const finishQuit = () => {
@@ -40,6 +49,7 @@ it.effect("coalesces quit requests and permits exit only after shutdown", () =>
 				quit: finishQuit,
 			},
 			Ref.update(calls, (all) => [...all, "drain"]).pipe(
+				Effect.andThen(Deferred.succeed(drainStarted, undefined)),
 				Effect.andThen(Deferred.await(release)),
 				Effect.andThen(Ref.update(calls, (all) => [...all, "dispose"])),
 			),
@@ -51,7 +61,7 @@ it.effect("coalesces quit requests and permits exit only after shutdown", () =>
 
 		requestQuit();
 		requestQuit();
-		yield* Effect.yieldNow;
+		yield* Deferred.await(drainStarted);
 		const waiting = yield* Ref.get(calls);
 		expect(waiting.filter((call) => call === "prevent")).toHaveLength(2);
 		expect(waiting.filter((call) => call === "drain")).toHaveLength(1);
@@ -72,7 +82,9 @@ it.effect("retries shutdown after failure and permits exactly one exit", () =>
 		let beforeQuit: ((event: { readonly preventDefault: () => void }) => void) | undefined;
 		const calls = yield* Ref.make<ReadonlyArray<string>>([]);
 		const attempts = yield* Ref.make(0);
+		const firstAttemptFiber = yield* Deferred.make<Fiber.Fiber<unknown, unknown>>();
 		const firstAttemptStarted = yield* Deferred.make<void>();
+		const retryAttemptStarted = yield* Deferred.make<void>();
 		const releaseRetry = yield* Deferred.make<void>();
 		const exited = yield* Deferred.make<void>();
 		const finishQuit = () => {
@@ -83,7 +95,7 @@ it.effect("retries shutdown after failure and permits exactly one exit", () =>
 			});
 		};
 		const shutdown = Ref.updateAndGet(attempts, (attempt) => attempt + 1).pipe(
-			Effect.flatMap((attempt) => runShutdownAttempt(attempt, calls, firstAttemptStarted, releaseRetry)),
+			Effect.flatMap((attempt) => runShutdownAttempt(attempt, calls, firstAttemptFiber, firstAttemptStarted, retryAttemptStarted, releaseRetry)),
 		);
 		yield* registerGracefulShutdown(
 			{
@@ -101,7 +113,8 @@ it.effect("retries shutdown after failure and permits exactly one exit", () =>
 
 		requestQuit();
 		yield* Deferred.await(firstAttemptStarted);
-		yield* Effect.yieldNow;
+		const firstAttempt = yield* Deferred.await(firstAttemptFiber);
+		yield* Fiber.await(firstAttempt);
 		const failed = yield* Ref.get(calls);
 		expect(failed.filter((call) => call === "drain")).toHaveLength(1);
 		expect(failed).not.toContain("dispose");
@@ -109,7 +122,7 @@ it.effect("retries shutdown after failure and permits exactly one exit", () =>
 
 		requestQuit();
 		requestQuit();
-		yield* Effect.yieldNow;
+		yield* Deferred.await(retryAttemptStarted);
 		const retrying = yield* Ref.get(calls);
 		expect(retrying.filter((call) => call === "prevent")).toHaveLength(3);
 		expect(retrying.filter((call) => call === "drain")).toHaveLength(2);

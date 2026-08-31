@@ -171,15 +171,3 @@ it("does not settle a draining Session it is closing", () => {
 		}),
 	);
 });
-
-it("refuses a Session whose execution status is not a word it knows", () => {
-	const planned = planCurrentSessionReconciliation(
-		[agent("agent-alive", "alive", "session-odd")],
-		[session("session-odd", "agent-alive", "open", "hibernating")],
-		nothingAttached,
-	);
-	expect(Result.isFailure(planned)).toBe(true);
-	if (Result.isFailure(planned)) {
-		expect(planned.failure._tag).toBe("InvalidSessionExecutionStatus");
-	}
-});

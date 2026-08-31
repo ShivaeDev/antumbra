@@ -19,9 +19,6 @@ const landedLines = (pieces: ReadonlyArray<PieceView>): ReadonlyArray<string> =>
 		...piece.artifacts.map((artifact) => `- ${artifact.title} — artifact${authored(artifact.authorAgentId)}`),
 	]);
 
-// why: a change is read at a glance by where it stands and what the host last
-// said about it — the same fields whatever host it lives on, so a captain
-// never has to learn a second dialect.
 const changeLines = (pieces: ReadonlyArray<PieceView>): ReadonlyArray<string> =>
 	pieces.flatMap((piece) =>
 		piece.changes.map((change) =>
@@ -35,9 +32,6 @@ const captainLine = (captain: Option.Option<VoyageCaptain>): string =>
 		onSome: (row) => `- ${row.agentId} [${row.status}]`,
 	});
 
-// why: what a captain is shown when it asks where its voyage stands — the
-// same facts the views hold, in a shape a model can read and a test can
-// assert whole.
 export const renderVoyage = (view: VoyageView): string =>
 	[
 		`# ${view.name} [${view.state}]`,

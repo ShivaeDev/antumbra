@@ -8,9 +8,7 @@ export const isAsyncIterable = (value: unknown): value is AsyncIterable<unknown>
 
 export const pump = async (iterable: AsyncIterable<unknown>, deliver: Deliver, signal: AbortSignal): Promise<void> => {
 	const iterator = iterable[Symbol.asyncIterator]();
-	// why: the feed must stop even if the signal is ignored downstream —
-	// return() settles a pending next() so an abandoned subscription cannot
-	// keep emitting into a view that is already gone.
+	// return() settles a pending next() when the feed ignores the abort signal.
 	signal.addEventListener("abort", () => {
 		void iterator.return?.();
 	});

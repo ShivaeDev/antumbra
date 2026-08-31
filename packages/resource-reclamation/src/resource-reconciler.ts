@@ -1,6 +1,6 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database } from "@antumbra/persistence";
-import { Clock, Context, Effect, Layer, Queue, Ref, Stream } from "effect";
+import { Context, Effect, Layer, Queue, Stream } from "effect";
 import { HeldResourceRead } from "#held-resource-read.ts";
 import { runResourceReclaimPass } from "#resource-reclaim-pass.ts";
 import { ResourceReclaimRunners } from "#resource-reclaim-runners.ts";
@@ -16,39 +16,14 @@ const DEFAULTS: ResourceReconcileOptions = {
 export class ResourceReconciler extends Context.Service<
 	ResourceReconciler,
 	{
-		readonly health: Effect.Effect<ResourceReclamationHealth>;
 		readonly reconcile: Effect.Effect<void>;
 		readonly request: Effect.Effect<void>;
 	}
 >()("@antumbra/resource-reclamation/ResourceReconciler") {}
 
-export type ResourceReclamationHealth =
-	| { readonly state: "checking" }
-	| { readonly checkedAtMillis: number; readonly state: "healthy" }
-	| {
-			readonly failedAtMillis: number;
-			readonly failure: string;
-			readonly state: "degraded";
-	  };
-
-const markDegraded = (health: Ref.Ref<ResourceReclamationHealth>, cause: unknown) =>
-	Effect.gen(function* () {
-		const failedAtMillis = yield* Clock.currentTimeMillis;
-		const failure = String(cause);
-		yield* Ref.set(health, { failedAtMillis, failure, state: "degraded" });
-		yield* Effect.logWarning("resource reclaim pass held uncertain durable truth", { failure });
-	});
-
-const markHealthy = (health: Ref.Ref<ResourceReclamationHealth>) =>
-	Clock.currentTimeMillis.pipe(Effect.flatMap((checkedAtMillis) => Ref.set(health, { checkedAtMillis, state: "healthy" })));
-
-const guardedPass = (health: Ref.Ref<ResourceReclamationHealth>) =>
-	runResourceReclaimPass.pipe(
-		Effect.matchCauseEffect({
-			onFailure: (cause) => markDegraded(health, cause),
-			onSuccess: () => markHealthy(health),
-		}),
-	);
+const guardedPass = runResourceReclaimPass.pipe(
+	Effect.catchCause((cause) => Effect.logWarning("resource reclaim pass held uncertain durable truth", { failure: String(cause) })),
+);
 
 const cadenceLoop = (reconcile: Effect.Effect<void>, tick: Queue.Queue<void>, cadenceMillis: number): Effect.Effect<never> =>
 	Effect.gen(function* () {
@@ -67,18 +42,14 @@ export const ResourceReconcilerLive = (overrides: Partial<ResourceReconcileOptio
 			const feeds = yield* DomainFeeds;
 			const heldResourceRead = yield* HeldResourceRead;
 			const runners = yield* ResourceReclaimRunners;
-			const health = yield* Ref.make<ResourceReclamationHealth>({
-				state: "checking",
-			});
 			const tick = yield* Queue.sliding<void>(1);
-			const reconcile = guardedPass(health).pipe(
+			const reconcile = guardedPass.pipe(
 				Effect.provideService(Database, db),
 				Effect.provideService(DomainFeeds, feeds),
 				Effect.provideService(HeldResourceRead, heldResourceRead),
 				Effect.provideService(ResourceReclaimRunners, runners),
 			);
 			const service = ResourceReconciler.of({
-				health: Ref.get(health),
 				reconcile,
 				request: Queue.offer(tick, undefined).pipe(Effect.asVoid),
 			});

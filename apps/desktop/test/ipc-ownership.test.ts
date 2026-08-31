@@ -11,7 +11,7 @@ describe("privileged IPC authority", () => {
 			const registry = makeWindowRegistry();
 			ownWindow(registry, "console", consolePlace);
 			const child = ownWindow(registry, "child", transcriptPlace("session-1"));
-			const foreign = contents("foreign");
+			const foreign = contents();
 			const executed: Array<string> = [];
 			const handler = makeTrpcBridgeHandler(registry, (windowId) => {
 				executed.push(windowId);
@@ -30,8 +30,8 @@ describe("privileged IPC authority", () => {
 
 	it("keeps another document from changing an owned subscription", () => {
 		const registry = makeWindowRegistry();
-		const owned = countingSender("owned", 17);
-		const foreign = countingSender("foreign", 17);
+		const owned = countingSender(17);
+		const foreign = countingSender(17);
 		ownContents(registry, owned, "owned");
 		let signal: AbortSignal | undefined;
 		let starts = 0;
@@ -64,7 +64,7 @@ describe("privileged IPC authority", () => {
 
 	it("isolates unsubscribe and clears every stream on navigation or destruction", () => {
 		const registry = makeWindowRegistry();
-		const navigated = countingSender("navigated", 21);
+		const navigated = countingSender(21);
 		ownContents(registry, navigated, "navigated");
 		const navigationSignals = new Map<string, AbortSignal>();
 		const navigationHandlers = makeTrpcSubscriptionHandlers(registry, (_sender, _windowId, request, signal) => {
@@ -87,7 +87,7 @@ describe("privileged IPC authority", () => {
 		navigated.navigate();
 		expect(navigationSignals.get("bravo")?.aborted).toBe(true);
 
-		const destroyed = countingSender("destroyed", 22);
+		const destroyed = countingSender(22);
 		ownContents(registry, destroyed, "destroyed");
 		let destructionSignal: AbortSignal | undefined;
 		const destructionHandlers = makeTrpcSubscriptionHandlers(registry, (_sender, _windowId, _request, signal) => {

@@ -12,7 +12,7 @@ describe("trpc subscription listeners", () => {
 	it.effect("keeps one listener pair per sender across repeated subscribe cycles", () =>
 		Effect.gen(function* () {
 			const registry = makeWindowRegistry();
-			const sender = countingSender("long-lived", 31);
+			const sender = countingSender(31);
 			ownContents(registry, sender, "long-lived");
 			const event = eventFor(sender);
 			const handlers = makeTrpcSubscriptionHandlers(
@@ -38,7 +38,7 @@ describe("trpc subscription listeners", () => {
 
 	it("re-subscribes after a navigation without attaching a second pair", () => {
 		const registry = makeWindowRegistry();
-		const sender = countingSender("reloaded", 32);
+		const sender = countingSender(32);
 		ownContents(registry, sender, "reloaded");
 		const event = eventFor(sender);
 		const signals = new Map<string, AbortSignal>();
@@ -60,7 +60,7 @@ describe("trpc subscription listeners", () => {
 	it.effect("aborts every live subscription when the sender is destroyed", () =>
 		Effect.gen(function* () {
 			const registry = makeWindowRegistry();
-			const sender = countingSender("doomed", 33);
+			const sender = countingSender(33);
 			ownContents(registry, sender, "doomed");
 			const event = eventFor(sender);
 			const signals = new Map<string, AbortSignal>();

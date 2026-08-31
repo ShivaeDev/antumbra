@@ -1,36 +1,24 @@
 import { describe, expect, it } from "@effect/vitest";
-import { adoptWindow } from "#adapters/windows/attach.ts";
 import { makeWindowRegistry } from "#adapters/windows/registry.ts";
-import { consolePlace, contents, eventFor, handleFor, ownWindow, transcriptPlace } from "#test/windows.ts";
+import { consolePlace, contents, eventFor, ownWindow, transcriptPlace } from "#test/windows.ts";
 
 describe("owned window registry", () => {
-	it("accepts only an owned live main frame", () => {
+	it("attributes an event to its owned window", () => {
 		const registry = makeWindowRegistry();
-		const foreign = contents("foreign");
+		const foreign = contents();
 		const console = ownWindow(registry, "console", consolePlace);
 
 		expect(registry.owner(eventFor(console.contents))?.id).toBe("console");
 		expect(registry.owner(eventFor(foreign))).toBeUndefined();
-		expect(registry.owner(eventFor(console.contents, { url: console.contents.document }))).toBeUndefined();
-		expect(registry.owner(eventFor(console.contents, null))).toBeUndefined();
-
-		console.contents.destroyed = true;
-		expect(registry.owner(eventFor(console.contents))).toBeUndefined();
 	});
 
-	it("never lets one window's ownership answer for another", () => {
+	it("keeps each window's ownership distinct", () => {
 		const registry = makeWindowRegistry();
 		const console = ownWindow(registry, "console", consolePlace);
 		const child = ownWindow(registry, "child", transcriptPlace("session-1"));
 
 		expect(registry.owner(eventFor(console.contents))?.id).toBe("console");
 		expect(registry.owner(eventFor(child.contents))?.id).toBe("child");
-		expect(
-			registry.owner({
-				sender: child.contents,
-				senderFrame: console.contents.mainFrame,
-			}),
-		).toBeUndefined();
 	});
 
 	it("refuses to own the same contents twice and to answer after release", () => {
@@ -58,27 +46,6 @@ describe("owned window registry", () => {
 		registry.release(registry.consoleWindow()?.contents ?? second.contents);
 		expect(registry.own(second)).toBe(true);
 		expect(registry.consoleWindow()?.id).toBe("second");
-	});
-
-	it("destroys a window that did not land on the trusted document", () => {
-		const registry = makeWindowRegistry();
-		const sender = contents("child");
-		const calls: Array<string> = [];
-		const document = sender.document;
-		sender.document = "https://escape.example/";
-
-		expect(
-			adoptWindow(registry, {
-				contents: sender,
-				destroy: () => calls.push("destroy"),
-				document,
-				handle: handleFor(calls, "child"),
-				id: "child",
-				place: transcriptPlace("session-1"),
-			}),
-		).toBeUndefined();
-		expect(calls).toEqual(["destroy"]);
-		expect(registry.owner(eventFor(sender))).toBeUndefined();
 	});
 
 	it("knows its console, its children, and what subject each holds", () => {

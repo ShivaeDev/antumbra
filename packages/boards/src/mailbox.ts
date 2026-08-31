@@ -5,17 +5,16 @@ import { BoardScope, EntryInput, type MailInput } from "#model.ts";
 import { readBoard } from "#read.ts";
 import { writeEntry } from "#write.ts";
 
-const mailbox = (agentId: string): BoardScope => BoardScope.Agent({ agentId });
-
 const readIds = (receipts: ReadonlyArray<{ readonly entryId: string }>) => new Set(receipts.map((receipt) => receipt.entryId));
 
-const mailEntries = (agentId: string) => readBoard(mailbox(agentId)).pipe(Effect.map((entries) => entries.filter((entry) => entry.kind === "mail")));
+const mailEntries = (agentId: string) =>
+	readBoard(BoardScope.Agent({ agentId })).pipe(Effect.map((entries) => entries.filter((entry) => entry.kind === "mail")));
 
 const storeReceipt = (entryId: string) => Database.use((db) => db.BoardEntryReceipt.create({ entryId }).pipe(Effect.asVoid));
 
 export const mail = Effect.fn("boards.mail")((input: MailInput) =>
 	writeEntry(
-		mailbox(input.toAgentId),
+		BoardScope.Agent({ agentId: input.toAgentId }),
 		EntryInput.Mail({
 			authorAgentId: input.authorAgentId,
 			body: input.body,

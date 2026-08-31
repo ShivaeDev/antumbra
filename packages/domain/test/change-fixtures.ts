@@ -8,7 +8,7 @@ export const REEF_SOURCE = "/somewhere/reef";
 
 const OBSERVED = new Date("2026-08-15T09:00:00.000Z");
 
-export interface ChangeFields {
+interface ChangeFields {
 	readonly headRef: string;
 	readonly id: string;
 	readonly repoId: string;

@@ -1,6 +1,6 @@
 import type { ChangeRow, PieceChangeRow } from "#change-rows.ts";
 
-export type OutcomeStatus = "landed" | "pending" | "withdrawn";
+type OutcomeStatus = "landed" | "pending" | "withdrawn";
 
 type ChangeStatusWorld = {
 	readonly changes: ReadonlyArray<ChangeRow>;

@@ -21,7 +21,7 @@ const backingChange = (
 	return unresolved.find((change) => change.repoId === repoId && change.headRef === berth.branch);
 };
 
-export interface BerthHolding {
+interface BerthHolding {
 	readonly berths: ReadonlyArray<BerthBranch>;
 	readonly changes: ReadonlyArray<ChangeRow>;
 	readonly dismissedChangeIds: ReadonlySet<string>;

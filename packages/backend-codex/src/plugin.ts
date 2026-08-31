@@ -23,9 +23,6 @@ export interface CodexPluginOptions {
 // child of its own for the one question it asks.
 const spawnAppServer = (command: string, cwd: string) => (): LineProcess => spawnLineProcess({ args: ["app-server"], command, cwd });
 
-// why: multiClient stays false over stdio — the protocol fans out to
-// several clients only behind a websocket listener, which nothing here
-// consumes yet; reporting the protocol's ability would be a lie about ours.
 export const codexBackend = (
 	server: RcRef.RcRef<CodexServer, BackendFailure>,
 	spawn: () => LineProcess,
@@ -34,10 +31,7 @@ export const codexBackend = (
 	audit: codexAudit(server, spawn),
 	capacity,
 	capabilities: {
-		fork: true,
 		imageInput: true,
-		liveInterrupt: true,
-		multiClient: false,
 	},
 	openSession: (options) => RcRef.get(server).pipe(Effect.flatMap((live) => openThreadSession(live, options))),
 	tag: "codex",

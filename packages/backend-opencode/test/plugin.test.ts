@@ -12,10 +12,7 @@ it.effect("registers the backend for the opencode CLI it finds", () =>
 			yield* Effect.orDie(opencodePlugin({ cwd: "/tmp/antumbra" }).activate(host.context));
 			const backend = (yield* host.backends).get("opencode");
 			expect(backend?.capabilities).toEqual({
-				fork: false,
 				imageInput: false,
-				liveInterrupt: true,
-				multiClient: false,
 			});
 			expect(backend?.capacity).toBeUndefined();
 		}),

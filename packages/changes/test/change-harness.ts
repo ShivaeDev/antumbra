@@ -21,7 +21,6 @@ export const passiveRunner: Runner = {
 			workingTreeStatus: "",
 			worktreePath: berth.path,
 		}),
-	capabilities: { liveTerminal: false },
 	plan: (request) => ({ berths: [], root: `/tmp/moorage/${request.agentId}` }),
 	provision: () => Effect.void,
 	reclaim: () => Effect.succeed({ _tag: "reclaimed" }),

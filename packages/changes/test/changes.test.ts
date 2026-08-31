@@ -17,7 +17,6 @@ const runner: Runner = {
 			workingTreeStatus: "",
 			worktreePath: berth.path,
 		}),
-	capabilities: { liveTerminal: false },
 	plan: () => ({ berths: [], root: "/tmp/moorage/crew" }),
 	provision: () => Effect.void,
 	reclaim: () => Effect.succeed({ _tag: "reclaimed" }),

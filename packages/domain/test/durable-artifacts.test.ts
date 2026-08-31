@@ -23,7 +23,6 @@ const runnerAt = (root: string): Runner => ({
 			workingTreeStatus: "",
 			worktreePath: berth.path,
 		}),
-	capabilities: { liveTerminal: false },
 	plan: () => ({ berths: [], root }),
 	provision: () => Effect.void,
 	reclaim: () => Effect.succeed({ _tag: "reclaimed" as const }),

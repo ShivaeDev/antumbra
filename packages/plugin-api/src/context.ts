@@ -1,4 +1,4 @@
-import { Data, Effect, Option, Ref, type Scope } from "effect";
+import { Data, Effect, type Option, Ref, type Scope } from "effect";
 import type { AgentBackend } from "#backend.ts";
 import type { ChangeHost } from "#change-host.ts";
 import type { Runner } from "#runner.ts";
@@ -15,21 +15,11 @@ export class DuplicateChangeHostTag extends Data.TaggedError("DuplicateChangeHos
 	readonly tag: string;
 }> {}
 
-export interface SecretsApi {
-	readonly get: (key: string) => Effect.Effect<Option.Option<string>>;
-}
-
-export interface SettingsApi {
-	readonly get: (key: string) => Effect.Effect<Option.Option<string>>;
-}
-
 export interface PluginContext {
 	readonly findExecutable: (name: string) => Effect.Effect<Option.Option<string>>;
 	readonly registerAgentBackend: (backend: AgentBackend) => Effect.Effect<void, DuplicateBackendTag>;
 	readonly registerChangeHost: (host: ChangeHost) => Effect.Effect<void, DuplicateChangeHostTag>;
 	readonly registerRunner: (runner: Runner) => Effect.Effect<void, DuplicateRunnerTag>;
-	readonly secrets: SecretsApi;
-	readonly settings: SettingsApi;
 }
 
 export interface AntumbraPlugin {
@@ -60,16 +50,11 @@ export const makePluginHost = (host: Pick<PluginContext, "findExecutable">) =>
 		const backendRegistry = yield* Ref.make<ReadonlyMap<string, AgentBackend>>(new Map());
 		const runnerRegistry = yield* Ref.make<ReadonlyMap<string, Runner>>(new Map());
 		const changeHostRegistry = yield* Ref.make<ReadonlyMap<string, ChangeHost>>(new Map());
-		const empty = {
-			get: () => Effect.succeed(Option.none<string>()),
-		};
 		const context: PluginContext = {
 			findExecutable: host.findExecutable,
 			registerAgentBackend: registerInto(backendRegistry, (tag) => new DuplicateBackendTag({ tag })),
 			registerChangeHost: registerInto(changeHostRegistry, (tag) => new DuplicateChangeHostTag({ tag })),
 			registerRunner: registerInto(runnerRegistry, (tag) => new DuplicateRunnerTag({ tag })),
-			secrets: empty,
-			settings: empty,
 		};
 		return {
 			backends: Ref.get(backendRegistry),

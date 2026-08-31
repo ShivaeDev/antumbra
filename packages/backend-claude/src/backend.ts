@@ -84,10 +84,7 @@ export const claudeBackend = (options: ClaudeBackendOptions, capacity: BackendCa
 	audit: claudeAudit,
 	capacity: capacity.source,
 	capabilities: {
-		fork: true,
 		imageInput: false,
-		liveInterrupt: true,
-		multiClient: false,
 	},
 	openSession: (session) =>
 		sessionToolCall.pipe(

@@ -23,10 +23,7 @@ export interface SessionInput {
 }
 
 export interface BackendCapabilities {
-	readonly fork: boolean;
-	readonly imageInput?: boolean;
-	readonly liveInterrupt: boolean;
-	readonly multiClient: boolean;
+	readonly imageInput: boolean;
 }
 
 export class BackendFailure extends Data.TaggedError("BackendFailure")<{

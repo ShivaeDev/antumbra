@@ -31,10 +31,7 @@ export const eventually = <A, E, R>(check: Effect.Effect<A, E, R>) =>
 const scriptedClaude = (script: ReadonlyArray<Delivery>, stored: StoredTranscripts): AgentBackend => ({
 	audit: scriptedClaudeAudit(stored),
 	capabilities: {
-		fork: false,
 		imageInput: false,
-		liveInterrupt: true,
-		multiClient: false,
 	},
 	openSession: () =>
 		Effect.sync(() => {
@@ -58,10 +55,7 @@ const scriptedClaude = (script: ReadonlyArray<Delivery>, stored: StoredTranscrip
 const scriptedCodex = (rootThread: string, script: ReadonlyArray<RpcNotification>, sweep: ScriptedSweep): AgentBackend => ({
 	audit: scriptedCodexAudit(sweep),
 	capabilities: {
-		fork: true,
 		imageInput: true,
-		liveInterrupt: true,
-		multiClient: false,
 	},
 	openSession: () =>
 		Effect.sync(() => {
@@ -82,7 +76,6 @@ const scriptedCodex = (rootThread: string, script: ReadonlyArray<RpcNotification
 });
 
 const runner: Runner = {
-	capabilities: { liveTerminal: false },
 	captureChange: (berth) =>
 		Effect.succeed({
 			branch: berth.branch,

@@ -1,81 +1,70 @@
-import { Database } from "@antumbra/persistence";
-import { expect, it } from "@effect/vitest";
-import { Effect } from "effect";
-import { AgentDomain } from "#domain.ts";
+import { it } from "@antumbra/testing";
+import { expect } from "@effect/vitest";
 import { changeOf } from "#test/change-fixtures.ts";
-import { domainKernelLayer } from "#test/domain-layers.ts";
-import { acquireTemporaryPersistence, makeScriptedBackend } from "#test/harness.ts";
 
-const REEF = "/somewhere/reef";
-const SHOAL = "/somewhere/shoal";
+const REEF = "/testing/repo-forget/reef";
+const SHOAL = "/testing/repo-forget/shoal";
 
-it.live("forgetting a repo removes its entire change graph atomically", () =>
-	Effect.gen(function* () {
-		const temporary = yield* acquireTemporaryPersistence;
-		const backend = yield* makeScriptedBackend;
-		yield* Effect.gen(function* () {
-			const db = yield* Database;
-			const domain = yield* AgentDomain;
-			const reef = yield* domain.repos.register({
-				defaultRef: "main",
-				source: REEF,
-			});
-			const shoal = yield* domain.repos.register({
-				defaultRef: "main",
-				source: SHOAL,
-			});
-			const reefChange = changeOf({
-				headRef: "work/reef",
-				id: "change-reef",
-				repoId: reef.id,
-				stage: "open",
-			});
-			const shoalChange = changeOf({
-				headRef: "work/shoal",
-				id: "change-shoal",
-				repoId: shoal.id,
-				stage: "open",
-			});
-			yield* db.transaction(
-				Effect.gen(function* () {
-					yield* Database;
-					yield* Effect.all([
-						db.Change.create(reefChange),
-						db.Change.create(shoalChange),
-						db.PieceChange.create({
-							changeId: reefChange.id,
-							pieceId: "piece-reef",
-						}),
-						db.PieceChange.create({
-							changeId: shoalChange.id,
-							pieceId: "piece-shoal",
-						}),
-						db.ChangeTransition.create({
-							activityAt: reefChange.activityAt,
-							changeId: reefChange.id,
-							fromStage: "prepared",
-							id: "transition-reef",
-							observedAt: reefChange.observedAt,
-							toStage: "open",
-						}),
-						db.ChangeTransition.create({
-							activityAt: shoalChange.activityAt,
-							changeId: shoalChange.id,
-							fromStage: "prepared",
-							id: "transition-shoal",
-							observedAt: shoalChange.observedAt,
-							toStage: "open",
-						}),
-					]);
-				}),
-			);
+it.effectApp("forgetting one repo removes its change graph and leaves another intact", function* ({ db, repos }) {
+	const reef = yield* repos.register({
+		defaultRef: "main",
+		source: REEF,
+	});
+	const shoal = yield* repos.register({
+		defaultRef: "main",
+		source: SHOAL,
+	});
+	const reefChange = changeOf({
+		headRef: "work/repo-forget-reef",
+		id: "repo-forget-reef-change",
+		repoId: reef.id,
+		stage: "open",
+	});
+	const shoalChange = changeOf({
+		headRef: "work/repo-forget-shoal",
+		id: "repo-forget-shoal-change",
+		repoId: shoal.id,
+		stage: "open",
+	});
+	const reefLink = {
+		changeId: reefChange.id,
+		pieceId: "repo-forget-reef-piece",
+	};
+	const shoalLink = {
+		changeId: shoalChange.id,
+		pieceId: "repo-forget-shoal-piece",
+	};
+	const reefTransition = {
+		activityAt: reefChange.activityAt,
+		changeId: reefChange.id,
+		fromStage: "prepared" as const,
+		id: "repo-forget-reef-transition",
+		observedAt: reefChange.observedAt,
+		toStage: "open" as const,
+	};
+	const shoalTransition = {
+		activityAt: shoalChange.activityAt,
+		changeId: shoalChange.id,
+		fromStage: "prepared" as const,
+		id: "repo-forget-shoal-transition",
+		observedAt: shoalChange.observedAt,
+		toStage: "open" as const,
+	};
+	yield* db.Change.create(reefChange);
+	yield* db.Change.create(shoalChange);
+	yield* db.PieceChange.create(reefLink);
+	yield* db.PieceChange.create(shoalLink);
+	yield* db.ChangeTransition.create(reefTransition);
+	yield* db.ChangeTransition.create(shoalTransition);
 
-			yield* domain.repos.forget(reef.id);
+	yield* repos.forget(reef.id);
 
-			expect((yield* db.Repo.all()).map((row) => row.id)).toEqual([shoal.id]);
-			expect((yield* db.Change.all()).map((row) => row.id)).toEqual([shoalChange.id]);
-			expect((yield* db.PieceChange.all()).map((row) => row.changeId)).toEqual([shoalChange.id]);
-			expect((yield* db.ChangeTransition.all()).map((row) => row.changeId)).toEqual([shoalChange.id]);
-		}).pipe(Effect.provide(domainKernelLayer(temporary, backend.backend)));
-	}),
-);
+	expect(yield* db.Repo.where({ id: reef.id }).exists()).toBe(false);
+	expect(yield* db.Change.where({ id: reefChange.id }).exists()).toBe(false);
+	expect(yield* db.PieceChange.where({ changeId: reefChange.id }).all()).toEqual([]);
+	expect(yield* db.ChangeTransition.where({ changeId: reefChange.id }).all()).toEqual([]);
+	expect(yield* db.Repo.where({ id: shoal.id }).exists()).toBe(true);
+	expect((yield* db.Change.where({ id: shoalChange.id }).all()).map((row) => row.id)).toEqual([shoalChange.id]);
+	expect((yield* db.PieceChange.where({ changeId: shoalChange.id }).all()).map((row) => row.pieceId)).toEqual([shoalLink.pieceId]);
+	expect((yield* db.ChangeTransition.where({ changeId: shoalChange.id }).all()).map((row) => row.id)).toEqual([shoalTransition.id]);
+});

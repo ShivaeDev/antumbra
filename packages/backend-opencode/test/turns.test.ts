@@ -53,22 +53,21 @@ it.effect("sends one queued prompt per turn, in the order they were taken", () =
 	),
 );
 
-it("sends a steered prompt into the turn a queued one is waiting behind", () =>
-	Effect.runPromise(
-		Effect.scoped(
-			Effect.gen(function* () {
-				const provider = recordingProvider();
-				const driver = yield* makeTurnDriver(provider.requests);
-				yield* driver.queue("first");
-				const held = yield* Effect.forkChild(driver.queue("held"), { startImmediately: true });
-				yield* driver.steer("steered");
-				expect(provider.sent).toEqual(["first", "steered"]);
-				yield* driver.track(IDLE);
-				yield* Fiber.join(held);
-				expect(provider.sent).toEqual(["first", "steered", "held"]);
-			}),
-		),
-	));
+it.effect("sends a steered prompt into the turn a queued one is waiting behind", () =>
+	Effect.scoped(
+		Effect.gen(function* () {
+			const provider = recordingProvider();
+			const driver = yield* makeTurnDriver(provider.requests);
+			yield* driver.queue("first");
+			const held = yield* Effect.forkChild(driver.queue("held"), { startImmediately: true });
+			yield* driver.steer("steered");
+			expect(provider.sent).toEqual(["first", "steered"]);
+			yield* driver.track(IDLE);
+			yield* Fiber.join(held);
+			expect(provider.sent).toEqual(["first", "steered", "held"]);
+		}),
+	),
+);
 
 it.effect("fails every prompt still waiting when the session closes", () =>
 	Effect.scoped(

@@ -1,27 +1,27 @@
 import { Schema } from "effect";
 import { type AgentPrompt, agentPrompt } from "#mint.ts";
 
-export const MergeConflicts = Schema.Struct({
+const MergeConflicts = Schema.Struct({
 	baseRef: Schema.String,
 	headRef: Schema.String,
 	reference: Schema.String,
 	repo: Schema.String,
 });
-export type MergeConflicts = typeof MergeConflicts.Type;
+type MergeConflicts = typeof MergeConflicts.Type;
 
-export const ChecksFailed = Schema.Struct({
+const ChecksFailed = Schema.Struct({
 	headRef: Schema.String,
 	reference: Schema.String,
 	repo: Schema.String,
 });
-export type ChecksFailed = typeof ChecksFailed.Type;
+type ChecksFailed = typeof ChecksFailed.Type;
 
-export const UnresolvedReviews = Schema.Struct({
+const UnresolvedReviews = Schema.Struct({
 	headRef: Schema.String,
 	reference: Schema.String,
 	repo: Schema.String,
 });
-export type UnresolvedReviews = typeof UnresolvedReviews.Type;
+type UnresolvedReviews = typeof UnresolvedReviews.Type;
 
 export const mergeConflicts = (input: MergeConflicts): AgentPrompt =>
 	agentPrompt(

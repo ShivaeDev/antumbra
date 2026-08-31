@@ -10,12 +10,6 @@ export interface JournalAppend {
 
 export const makeJournalAppends = Effect.gen(function* () {
 	const db = yield* Database;
-	const recordNativeRef = (sessionId: string, event: AgentEvent) => {
-		if (event.type !== "session.opened") {
-			return Effect.void;
-		}
-		return db.AgentSession.where({ id: sessionId, nativeRef: null }).update({ nativeRef: event.nativeRef }).pipe(Effect.asVoid);
-	};
 	const appendOne = ({ event, sessionId }: JournalAppend) =>
 		Effect.gen(function* () {
 			const latest = yield* db.SessionEvent.where({ sessionId })
@@ -33,7 +27,9 @@ export const makeJournalAppends = Effect.gen(function* () {
 				sessionId,
 			};
 			yield* db.SessionEvent.create(row);
-			yield* recordNativeRef(sessionId, event);
+			if (event.type === "session.opened") {
+				yield* db.AgentSession.where({ id: sessionId, nativeRef: null }).update({ nativeRef: event.nativeRef });
+			}
 			return row;
 		});
 	return (appends: ReadonlyArray<JournalAppend>) => Effect.forEach(appends, appendOne, { concurrency: 1 });

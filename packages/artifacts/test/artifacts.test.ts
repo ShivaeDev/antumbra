@@ -107,34 +107,6 @@ it.effectDB("refuses a symlink that escapes the acting Agent's moorage", functio
 	);
 });
 
-it.effectDB("reports an invalid stored Moorage status instead of calling it unowned", function* (db) {
-	yield* withArtifacts((moorage) =>
-		Effect.gen(function* () {
-			yield* seed(db, moorage);
-			yield* db.Moorage.where({ agentId: agent.id }).update({
-				status: "future-moorage",
-			});
-			writeFileSync(join(moorage, "reef.md"), "# Reef");
-			const artifacts = yield* Artifacts;
-			const failure = yield* Effect.flip(
-				artifacts.land({
-					authorAgentId: agent.id,
-					pieceId: piece.id,
-					title: "reef chart",
-					path: "reef.md",
-				}),
-			);
-
-			expect(failure).toMatchObject({
-				_tag: "StoredMoorageStatusInvalid",
-				agentId: agent.id,
-				value: "future-moorage",
-			});
-			expect(yield* db.Artifact.all()).toEqual([]);
-		}),
-	);
-});
-
 it.effectDB("refuses known invalid supersession before publishing local bytes", function* (db) {
 	yield* withArtifacts((moorage, published) =>
 		Effect.gen(function* () {

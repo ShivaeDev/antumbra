@@ -13,6 +13,10 @@ export interface FakeRequest {
 	readonly params: unknown;
 }
 
+interface HeldRequest extends FakeRequest {
+	readonly accept: () => void;
+}
+
 interface FakeResponse {
 	readonly id: number | string;
 	readonly result: unknown;
@@ -25,6 +29,12 @@ export interface FakeAppServer {
 	readonly requests: FakeRequest[];
 	readonly responseById: (id: number | string) => Effect.Effect<unknown>;
 	readonly serverRequest: (id: number, method: string, params: unknown) => void;
+	readonly takeHeldRequest: Effect.Effect<HeldRequest>;
+}
+
+interface FakeOptions {
+	readonly hold?: string;
+	readonly scripted?: FakeAnswer;
 }
 
 const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === "object" && value !== null;
@@ -54,7 +64,7 @@ const answer = (method: string, params: unknown, nextTurn: () => number): unknow
 	}
 };
 
-export const makeFakeAppServer = (scripted: FakeAnswer = () => Option.none()): FakeAppServer => {
+export const makeFakeAppServer = ({ hold, scripted = () => Option.none() }: FakeOptions = {}): FakeAppServer => {
 	let lineListener: ((line: string) => void) | null = null;
 	let exitListener: ((code: number | null) => void) | null = null;
 	let turnCounter = 0;
@@ -64,7 +74,18 @@ export const makeFakeAppServer = (scripted: FakeAnswer = () => Option.none()): F
 	};
 	const requests: FakeRequest[] = [];
 	const responses: FakeResponse[] = [];
+	const pendingHeldRequests: HeldRequest[] = [];
+	const heldRequestWaiters: Array<(request: HeldRequest) => void> = [];
 	const responseWaiters = new Map<number | string, Array<(result: unknown) => void>>();
+	const takeHeldRequest = Effect.promise(() => {
+		const request = pendingHeldRequests.shift();
+		if (request !== undefined) {
+			return Promise.resolve(request);
+		}
+		return new Promise<HeldRequest>((resolve) => {
+			heldRequestWaiters.push(resolve);
+		});
+	});
 	const responseById = (id: number | string) =>
 		Effect.promise(() => {
 			const response = responses.find((candidate) => candidate.id === id);
@@ -78,6 +99,23 @@ export const makeFakeAppServer = (scripted: FakeAnswer = () => Option.none()): F
 			});
 		});
 	const send = (message: Record<string, unknown>) => lineListener?.(JSON.stringify({ jsonrpc: "2.0", ...message }));
+	const publishHeldRequest = (request: HeldRequest): void => {
+		const resolve = heldRequestWaiters.shift();
+		if (resolve !== undefined) {
+			resolve(request);
+			return;
+		}
+		pendingHeldRequests.push(request);
+	};
+	const receiveRequest = (request: FakeRequest): void => {
+		requests.push(request);
+		const result = Option.getOrElse(scripted(request.method, request.params), () => answer(request.method, request.params, nextTurn));
+		if (request.method === hold) {
+			publishHeldRequest({ ...request, accept: () => send({ id: request.id, result }) });
+			return;
+		}
+		queueMicrotask(() => send({ id: request.id, result }));
+	};
 	const receive = (line: string): void => {
 		const message: unknown = JSON.parse(line);
 		if (!isRecord(message)) {
@@ -97,13 +135,7 @@ export const makeFakeAppServer = (scripted: FakeAnswer = () => Option.none()): F
 		if (typeof id !== "number") {
 			return;
 		}
-		requests.push({ id, method, params });
-		queueMicrotask(() => {
-			send({
-				id,
-				result: Option.getOrElse(scripted(method, params), () => answer(method, params, nextTurn)),
-			});
-		});
+		receiveRequest({ id, method, params });
 	};
 	const process: LineProcess = {
 		kill: () => {
@@ -125,5 +157,6 @@ export const makeFakeAppServer = (scripted: FakeAnswer = () => Option.none()): F
 		requests,
 		responseById,
 		serverRequest: (id, method, params) => send({ id, method, params }),
+		takeHeldRequest,
 	};
 };

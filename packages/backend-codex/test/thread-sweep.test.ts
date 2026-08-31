@@ -45,7 +45,7 @@ const paged: FakeAnswer = (method, params) => {
 
 const sweep = (scripted: FakeAnswer) =>
 	Effect.gen(function* () {
-		const fake = makeFakeAppServer(scripted);
+		const fake = makeFakeAppServer({ scripted });
 		const swept = yield* Effect.exit(
 			Effect.scoped(openAuditConnection(() => fake.process).pipe(Effect.flatMap((connection) => sweepSpawnedDescendants(connection.request, ROOT)))),
 		);

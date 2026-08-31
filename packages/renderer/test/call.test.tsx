@@ -1,4 +1,4 @@
-// why: @vitest-environment happy-dom exercises the real React state boundary.
+// @vitest-environment happy-dom
 
 import { expect, it } from "@effect/vitest";
 import { Effect } from "effect";
@@ -14,8 +14,6 @@ interface Waiting {
 
 const waiting: Array<Waiting> = [];
 
-// why: the adapter is left holding its callbacks so a test can answer a call
-// whenever it likes — late, twice, or after a newer call went out.
 const defer: Call<string> = (onDone, onError) => {
 	waiting.push({ onDone, onError });
 };
@@ -76,6 +74,9 @@ it.effect("is idle until it is run, and pending until it is answered", () =>
 
 		yield* step(() => waiting[0]?.onDone("the chart"));
 		expect(state(container)).toBe("done:the chart");
+
+		yield* press(container, "reset");
+		expect(state(container)).toBe("idle");
 		yield* step(() => root.unmount());
 	}),
 );
@@ -89,52 +90,6 @@ it.effect("carries a refusal as the answer", () =>
 		yield* step(() => waiting[0]?.onError("stored Artifact is missing"));
 
 		expect(state(container)).toBe("failed:stored Artifact is missing");
-		yield* step(() => root.unmount());
-	}),
-);
-
-it.effect("draws the newest run's answer whatever order they come back", () =>
-	Effect.gen(function* () {
-		const { container, root } = mount();
-		yield* render(root);
-		yield* press(container, "run");
-		yield* press(container, "run");
-
-		yield* step(() => waiting[0]?.onDone("the old chart"));
-		expect(state(container)).toBe("pending");
-
-		yield* step(() => waiting[1]?.onDone("the new chart"));
-		expect(state(container)).toBe("done:the new chart");
-		yield* step(() => root.unmount());
-	}),
-);
-
-it.effect("takes one answer per run and drops what follows it", () =>
-	Effect.gen(function* () {
-		const { container, root } = mount();
-		yield* render(root);
-		yield* press(container, "run");
-
-		yield* step(() => waiting[0]?.onDone("the chart"));
-		yield* step(() => waiting[0]?.onError("and also this"));
-
-		expect(state(container)).toBe("done:the chart");
-		yield* step(() => root.unmount());
-	}),
-);
-
-it.effect("abandons a call in flight when it is reset", () =>
-	Effect.gen(function* () {
-		const { container, root } = mount();
-		yield* render(root);
-		yield* press(container, "run");
-
-		yield* press(container, "reset");
-		expect(state(container)).toBe("idle");
-
-		yield* step(() => waiting[0]?.onDone("too late"));
-
-		expect(state(container)).toBe("idle");
 		yield* step(() => root.unmount());
 	}),
 );

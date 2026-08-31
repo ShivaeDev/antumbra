@@ -72,21 +72,23 @@ Semantic ownership is not a ban on querying, calculation, or reshaping:
 
 ## Reference shape
 
-`@antumbra/repos` demonstrates inseparable registry ownership. Registration, listing, forgetting, the complete related deletion transaction, database
-access, and post-commit publication stay behind the small `RepoRegistry` API. Callers receive stable `RegisteredRepo` values rather than tables, query
-callbacks, or exported row interpreters.
+`@antumbra/repos` demonstrates inseparable registry ownership. Registration, forgetting, related deletion sequencing, database access, and publication
+stay behind the small `RepoRegistry` API. Callers receive stable `RegisteredRepo` values from registration rather than tables, query callbacks, or
+exported row interpreters.
 
 ```ts
-// Good: presentation reshapes an answer from the registry owner.
-const repoOptions = Effect.gen(function* () {
+// Good: a caller reshapes the registry owner's stable answer.
+const registerRepoOption = Effect.gen(function* () {
 	const repos = yield* Repos;
-	return (yield* repos.list).map(({ id, name }) => ({ label: name, value: id }));
+	const { id, name } = yield* repos.register(registration);
+	return { label: name, value: id };
 });
 
-// Bad: presentation reads owner rows and rebuilds the registry's answer.
-const repoOptions = Effect.gen(function* () {
+// Bad: a caller writes owner rows and rebuilds the registry's answer.
+const registerRepoOption = Effect.gen(function* () {
 	const db = yield* Database;
-	return (yield* db.Repo.all()).map(summarizeRepo);
+	const row = yield* db.Repo.create(toRepoRow(registration));
+	return { label: row.name, value: row.id };
 });
 ```
 

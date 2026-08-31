@@ -41,13 +41,14 @@ const chartered = (captain: ScriptedSession, title: string, dependsOn: ReadonlyA
 
 const openReef = Effect.gen(function* () {
 	const domain = yield* AgentDomain;
-	yield* domain.repos.register({ defaultRef: "main", source: REEF_SOURCE });
-	return yield* domain.voyages.open({
+	const repo = yield* domain.repos.register({ defaultRef: "main", source: REEF_SOURCE });
+	const voyage = yield* domain.voyages.open({
 		backend: "scripted",
 		context: "the reef is uncharted",
 		name: "Chart the reef",
 		northStar: "every shoal is known",
 	});
+	return { repo, voyage };
 });
 
 const opened = (crew: ScriptedSession, repo: string) =>
@@ -67,7 +68,7 @@ it.live("crew open a change through the tool and hear where it lives", () =>
 		});
 		yield* Effect.gen(function* () {
 			const domain = yield* AgentDomain;
-			const voyage = yield* openReef;
+			const { voyage } = yield* openReef;
 			yield* domain.repos.register({
 				defaultRef: "main",
 				source: "/somewhere/shoals",
@@ -116,11 +117,7 @@ it.live("a chain gated on a change sails across a boot", () =>
 
 		const chain = yield* Effect.gen(function* () {
 			const domain = yield* AgentDomain;
-			const voyage = yield* openReef;
-			const repo = (yield* domain.repos.list)[0];
-			if (repo === undefined) {
-				return yield* Effect.fail("the reef was not registered");
-			}
+			const { repo, voyage } = yield* openReef;
 			const hailed = yield* domain.voyages.hail(voyage.id);
 			const captain = yield* eventually(sessionFor(backend, hailed.agentId));
 			const alpha = yield* chartered(captain, "alpha", []);

@@ -46,13 +46,10 @@ it.effectApp("keeps both Board registers in write order", function* ({ boards, d
 it.effectApp("refreshes a registered source instead of duplicating it", function* ({ repos }) {
 	const first = yield* repos.register({ defaultRef: "main", source: "/testing/reefs/one" });
 	const again = yield* repos.register({ defaultRef: "trunk", source: "/testing/reefs/one" });
-	expect(again.id).toBe(first.id);
-	expect((yield* repos.list).filter((repo) => repo.source === first.source)).toEqual([
-		{
-			defaultRef: "trunk",
-			id: first.id,
-			name: "one",
-			source: "/testing/reefs/one",
-		},
-	]);
+	expect(again).toEqual({
+		defaultRef: "trunk",
+		id: first.id,
+		name: "one",
+		source: "/testing/reefs/one",
+	});
 });

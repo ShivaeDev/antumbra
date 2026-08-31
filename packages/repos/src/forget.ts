@@ -18,10 +18,9 @@ const deleteRepoGraph = (id: string) =>
 		yield* db.Repo.where({ id }).deleteAll();
 	});
 
-export const forgetRepo = (id: string) =>
-	Effect.gen(function* () {
-		const feeds = yield* DomainFeeds;
-		yield* deleteRepoGraph(id);
-		yield* feeds.publishFleetRefresh();
-		yield* feeds.publishVoyageRefresh();
-	});
+export const forgetRepo = Effect.fn("repos.forget")(function* (id: string) {
+	const feeds = yield* DomainFeeds;
+	yield* deleteRepoGraph(id);
+	yield* feeds.publishFleetRefresh();
+	yield* feeds.publishVoyageRefresh();
+});

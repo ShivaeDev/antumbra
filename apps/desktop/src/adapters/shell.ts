@@ -5,7 +5,7 @@ import { app } from "electron";
 import { registerGracefulShutdown } from "#adapters/graceful-shutdown.ts";
 import type { OwnedWindow } from "#adapters/windows/registry.ts";
 
-export const DEV_USER_DATA_VARIABLE = "ANTUMBRA_DEV_USER_DATA";
+const DEV_USER_DATA_VARIABLE = "ANTUMBRA_DEV_USER_DATA";
 
 export const whenReady = Effect.promise(() => app.whenReady());
 

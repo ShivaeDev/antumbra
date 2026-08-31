@@ -30,9 +30,6 @@ export const hailedCaptain = (scripted: ScriptedBackend, voyageId: string) =>
 
 export const toolNames = (session: ScriptedSession): ReadonlyArray<string> => session.tools.map((tool) => tool.name);
 
-// why: every fleet-tool rehearsal starts from the same place — a flagship
-// with its captain at the tools — so the harness is one fixture and each test
-// is only the act it rehearses.
 export const withFlagshipCaptain = <A, E>(
 	body: (captain: ScriptedSession) => Effect.Effect<A, E, AgentDomain | Context.Service.Identifier<typeof Database>>,
 ) =>

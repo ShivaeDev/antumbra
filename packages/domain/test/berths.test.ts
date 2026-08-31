@@ -72,8 +72,6 @@ it.live("an old dirty berth stays stranded without destructive cleanup", () =>
 		expect(ready.status).toBe("ready");
 		yield* detachSweepAgent.pipe(Effect.provide(temporary.layer));
 
-		// why: the explicitly detached Agent makes this berth reclaimable; an
-		// alive Agent would instead resume and keep its ready resources.
 		yield* Effect.provide(Effect.void, domainKernelLayer(temporary, scripted.backend, {}, dirtyRunner(recorder.runner)));
 		const stranded = yield* berthRow.pipe(Effect.provide(temporary.layer));
 		expect(stranded.status).toBe("stranded");

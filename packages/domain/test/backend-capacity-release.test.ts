@@ -89,8 +89,7 @@ const parkWorkAndDurablyClear = Effect.gen(function* () {
 	const birth = yield* kernel.submit(domain.spawn, spawnPayload("birth"));
 	const resume = yield* kernel.submit(domain.wake, wakePayload("wake"));
 	yield* Effect.all([waitForChange(kernel, birth.id, "waiting"), waitForChange(kernel, resume.id, "waiting")], { concurrency: "unbounded" });
-	// why: this is the crash seam under test — available is durable,
-	// but no release reconciler exists in this runtime to consume it.
+	// The first runtime has no release reconciler, so the durable clear remains unconsumed until restart.
 	yield* domain.backendCapacities.clear(SCRIPTED);
 	expect(Option.getOrThrow(yield* db.BackendCapacity.where({ backend: SCRIPTED }).first())).toMatchObject({ status: "available" });
 	return [birth.id, resume.id] as const;

@@ -80,8 +80,7 @@ it.live("authentication wait survives a full rebuild and retries the same birth"
 			return submission.id;
 		}).pipe(Effect.provide(domainKernelLayer(temporary, backend.backend, {}, runner)));
 
-		// why: this is a second persistence, domain, and kernel Layer lifetime;
-		// nothing from the first scheduler or database service survives it.
+		// The second run rebuilds persistence, domain, and Kernel services over the same durable database.
 		yield* Effect.gen(function* () {
 			const db = yield* Database;
 			const kernel = yield* Kernel;

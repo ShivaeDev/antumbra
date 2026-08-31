@@ -25,9 +25,6 @@ const hand: SpawnFields = {
 
 const attributes = Effect.currentSpan.pipe(Effect.map((span) => span.attributes));
 
-// why: the birth opens no span of its own, so the annotation is only worth
-// anything on a span something below it opens — read two levels down, the depth
-// a provisioning step reaches before it reports.
 const beneathBirth = (payload: SpawnFields) =>
 	attributes.pipe(Effect.withSpan("git.refreshMirror"), Effect.withSpan("provision-moorage"), underSpawnedAgent(payload));
 

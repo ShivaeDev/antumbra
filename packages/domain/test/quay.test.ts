@@ -122,8 +122,6 @@ it("anything still running or not yet clean is checks running", () => {
 	expect(groupOf({ mergeable: "unknown" })).toBe("checksRunning");
 });
 
-// why: a host that reports no checks at all has nothing left to run, so a
-// clean change lies alongside rather than waiting for a signal never coming.
 it("no checks at all is not the same as checks still running", () => {
 	const none: ChangeChecks = "none";
 	expect(groupOf({ checks: none })).toBe("alongside");
@@ -136,9 +134,6 @@ it("a landed change leaves the quay; a withdrawn one stays until answered", () =
 	expect(withdrawn?.map((row) => row.group)).toEqual(["needsAttention"]);
 });
 
-// why: the dead end this ruling was written for — a closed change that
-// quietly disappeared behind a replacement while it still counted as pending,
-// leaving nothing to look at and nothing to press.
 it("a withdrawn change stays in sight while a replacement is under way", () => {
 	const rows = quayRows(onAlpha([change("one", { stage: "withdrawn" }), change("two")]));
 	expect(rows.map((row) => row.change.id).sort()).toEqual(["one", "two"]);

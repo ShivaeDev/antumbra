@@ -98,8 +98,6 @@ it.live("an id nobody landed refuses exactly as a stranger's report does", () =>
 	),
 );
 
-// why: reach is the voyage, not the piece — a worker reads what a sibling piece
-// of its own voyage landed, because that hand-off is what reports are for.
 it.live("crew read a sibling piece's report and nothing across a hull", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;

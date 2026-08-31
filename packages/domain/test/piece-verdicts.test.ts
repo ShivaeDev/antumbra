@@ -57,9 +57,6 @@ it.live("an abandoned piece says so rather than passing for landed work", () =>
 	}),
 );
 
-// why: a piece holds one verdict, so a corrected word replaces the standing
-// one — two rows would be two meanings at once, which is the thing the state
-// ladder exists to prevent.
 it.live("a corrected verdict replaces the one standing, never joins it", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
@@ -96,9 +93,6 @@ it.live("abandoning a piece releases what was waiting behind it", () =>
 	}),
 );
 
-// why: the redo lever. A piece whose report landed derives done, and without
-// this act there is no honest way to run it again — the pool will never pick
-// up a piece it considers finished.
 it.live("a piece the ladder has finished with can still be asked to run", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
@@ -114,10 +108,6 @@ it.live("a piece the ladder has finished with can still be asked to run", () =>
 
 			yield* eventually(aliveAgent(crewed.agentId));
 			expect(yield* db.PieceAgent.all()).toMatchObject([{ agentId: crewed.agentId, pieceId: piece.id }]);
-			// why: a piece is shipped when all of its work is done, and a hand on
-			// it is work that is not. So the redo is visible the moment the crew
-			// takes it — the piece leaves done and reads active, which is also why
-			// asking twice is refused.
 			expect(yield* stateOf(voyage.id, piece.id)).toBe("active");
 			expect(yield* Effect.flip(domain.voyages.workNow(piece.id))).toMatchObject({ _tag: "PieceAlreadyCrewed" });
 		}).pipe(Effect.provide(domainKernelLayer(temporary, scripted.backend)));

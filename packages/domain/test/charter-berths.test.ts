@@ -6,9 +6,7 @@ import { dispatchingLayer } from "#test/domain-layers.ts";
 import { acquireTemporaryPersistence, makeScriptedBackend, makeScriptedRunner, type ScriptedBackend, sessionFor } from "#test/harness.ts";
 import { eventually, openReefVoyage, PATIENCE } from "#test/voyage-fixtures.ts";
 
-// why: the catalog's own tests prove the berth order is composed; this one
-// proves the words that reach a dispatched crew are that order verbatim, so
-// the copy here is deliberate and a drift between them is the failure.
+// This deliberately duplicates the prompt catalog so the dispatched charter proves verbatim delivery and catches drift.
 const CREW_BERTH_ORDER =
 	"- Work inside a berth's folder, never in the moorage root itself and never in a mirror, and give `open_change`, `submit_change` and `adopt_change` the repo name exactly as the Berths section spells it — not the folder's name.";
 

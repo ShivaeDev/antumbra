@@ -30,8 +30,7 @@ const anyReady = (view: VoyageView) => view.pieces.some((piece) => piece.state =
 
 const captainRetired = (view: VoyageView) => view.captain?.status === "retired";
 
-// why: the watcher must have taken the feed's opening snapshot before the act
-// under test lands, or an emission it never reacted to would pass for one.
+// Subscribe through the opening snapshot before the tested write so only a reaction to that write can satisfy the watcher.
 const watchUntil = (feed: Stream.Stream<VoyageView, SightFailure>, matches: (view: VoyageView) => boolean) =>
 	Effect.gen(function* () {
 		const opened = yield* Deferred.make<void>();
@@ -159,8 +158,7 @@ it.live("the feed shows the piece as ready once it is launched", () =>
 	}),
 );
 
-// why: retiring writes no voyage row at all — the view moves only because the
-// agent's status did, which is the whole reason the fleet feed is watched too.
+// Retirement changes Agent status without writing Voyage; this proves the Voyage feed also reacts to fleet refreshes.
 it.live("the feed follows an agent's status with no voyage row touched", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;

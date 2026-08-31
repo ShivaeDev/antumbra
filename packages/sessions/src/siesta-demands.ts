@@ -18,26 +18,16 @@ import { LiveDelegations } from "#tree/live.ts";
 
 const MILLIS_PER_MINUTE = 60_000;
 
-// why: the clock asks one thing of the record — is a process being held for
-// nothing — and it asks it of Sessions this process is actually holding. It
-// never asks the opposite question. A Session whose process is gone is
-// stranded, and stranding is reported, not repaired: only a send or a hail
-// takes a Session back up, so nothing here goes looking for one to resume.
+// This demand only reclaims attached idle roots; it never resumes detached or stranded Sessions.
 const siestaDemands = Effect.gen(function* () {
 	const db = yield* Database;
 	const fabric = yield* SessionFabric;
 	const live = yield* LiveDelegations;
 	const settings = yield* SettingsSource;
-	// why: the catalog is read through on every pass, so a changed wait governs
-	// the next judgment without a cached policy or a separate wakeup.
 	const { settings: chosen } = yield* settings.current;
-	// why: the tree's own work counts as the Session's. A root whose child is
-	// still speaking is not at rest however long its own row has said idle,
-	// because reclaiming it takes away the stream that child is speaking on.
+	// A live child keeps its root attached because the tree shares one provider stream.
 	const delegating = yield* live.delegating();
 	const attached = yield* fabric.attached();
-	// why: the clock is read once per pass, so every Session in it is judged
-	// against the same moment.
 	const overdue = idleSessionsPastThreshold(yield* fabric.idleSince(), yield* Clock.currentTimeMillis, chosen.idleSiestaMinutes * MILLIS_PER_MINUTE);
 	const agents = yield* db.Agent.all();
 	const agentStatuses = new Map(agents.map((agent) => [agent.id, decodeStoredAgentStatus(agent.id, agent.status)] as const));
@@ -46,9 +36,6 @@ const siestaDemands = Effect.gen(function* () {
 	for (const session of sessions) {
 		const status = decodeStoredAgentSessionStatus(session.id, session.status);
 		const agentStatus = agentStatuses.get(session.agentId);
-		// why: a row the vocabulary cannot read is left alone rather than acted
-		// on. The projection that publishes it refuses out loud already, and a
-		// sweep is the wrong place to learn what a word means.
 		if (Result.isFailure(status) || (agentStatus !== undefined && Result.isFailure(agentStatus))) {
 			continue;
 		}
@@ -56,15 +43,7 @@ const siestaDemands = Effect.gen(function* () {
 			continue;
 		}
 		const executionStatus = yield* Effect.fromResult(decodeSessionExecutionStatus(session.id, session.executionStatus));
-		// why: an idle Session held past the threshold is put to siesta by the
-		// system on this pass — the same reconciliation that finishes an
-		// interrupted drain, because both are the same question asked of the
-		// record: is a process still being held for nothing.
-		//
-		// why: the threshold is not the whole test. The clock asks for the same
-		// rest the admiral's own request has to satisfy, so a root whose wait has
-		// come for waits while its tree is still speaking. A drain is exempt: it
-		// is shutdown finishing a decision already taken, not rest being chosen.
+		// Draining completes a prior shutdown; ordinary idle siesta requires both the threshold and a settled tree.
 		const restful = sessionAtRest({
 			delegating: delegating.has(session.id),
 			presence: sessionPresence({

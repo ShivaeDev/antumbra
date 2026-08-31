@@ -626,6 +626,9 @@ importers:
         specifier: 'catalog:'
         version: 4.0.0-rc.108
     devDependencies:
+      '@antumbra/testing':
+        specifier: workspace:*
+        version: link:../testing
       '@effect/platform-node':
         specifier: 'catalog:'
         version: 4.0.0-rc.108(effect@4.0.0-rc.108)(ioredis@5.11.1(supports-color@7.2.0))

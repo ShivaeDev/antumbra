@@ -2,11 +2,7 @@ import { Database } from "@antumbra/persistence";
 import { decodeSessionExecutionStatus, decodeStoredAgentSessionStatus } from "@antumbra/vocabulary/agent-runtime";
 import { Effect, Option } from "effect";
 
-// why: a stream that ends while the row still says active leaves a Session
-// stranded — the process doing the work is gone and the work never finished.
-// Nothing goes and fetches it back; only a send or a hail does. So the moment
-// it happened is written down, because the row alone says the state and never
-// says when it began, and "when" is the whole of what a reader asks first.
+// A stream ending while its durable row is active leaves the Session stranded until a send or hail resumes it.
 export const makeStrandNotice = Effect.gen(function* () {
 	const db = yield* Database;
 	const notice = (sessionId: string) =>

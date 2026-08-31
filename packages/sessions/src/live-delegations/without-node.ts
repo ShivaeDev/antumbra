@@ -1,6 +1,3 @@
-// why: a root with nothing left open is dropped rather than kept against an
-// empty set, so the keys are the whole answer and no reader has to ask a
-// second question of the value.
 export const withoutNode = (
 	current: ReadonlyMap<string, ReadonlySet<string>>,
 	rootSessionId: string,

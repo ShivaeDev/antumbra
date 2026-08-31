@@ -3,8 +3,6 @@ import type { PrismaError } from "@antumbra/persistence";
 import { Context, type Effect, type Stream } from "effect";
 import type { WakeFields } from "#wake/input.ts";
 
-// why: rousing reads the durable Intent rows before it decides, so a row it
-// cannot read is a refusal of its own — one that submitting alone never had.
 export type RouseRefused = PayloadInvalid | PrismaError | StoredIntentInvalid | UnregisteredIntentTag;
 
 export interface SessionRouse {
@@ -13,9 +11,6 @@ export interface SessionRouse {
 	readonly retried: boolean;
 }
 
-// why: send and watch need the kernel's wake acts without naming spawn. The
-// facade still owns KernelReach, including submitSpawn; this is the session
-// half of that late-bound path, provided from the same deferred.
 export class SessionReach extends Context.Service<
 	SessionReach,
 	{

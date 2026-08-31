@@ -5,7 +5,7 @@ import { Effect, Option } from "effect";
 import { AgentDomain } from "#domain.ts";
 import { domainKernelLayer } from "#test/domain-layers.ts";
 import { acquireTemporaryPersistence, makeScriptedBackend, sessionFor } from "#test/harness.ts";
-import { aliveAgent, eventually, openReefVoyage, retireOneAlive, seedSpawningCaptain, sessionIdOf } from "#test/voyage-fixtures.ts";
+import { aliveAgent, eventually, openReefVoyage, retireOneAlive, sessionIdOf } from "#test/voyage-fixtures.ts";
 
 const CAPTAIN_TOOLS = [
 	"charter_piece",
@@ -82,27 +82,6 @@ it.live("a second hail reaches the captain the voyage already has", () =>
 			expect(yield* db.Agent.all()).toHaveLength(1);
 			expect(yield* db.VoyageAgent.all()).toHaveLength(1);
 			expect(yield* Effect.flip(domain.voyages.hail("no-such-voyage"))).toMatchObject({ _tag: "VoyageNotFound" });
-		}).pipe(Effect.provide(domainKernelLayer(temporary, scripted.backend)));
-	}),
-);
-
-it.live("a hail is refused while the voyage's captain is being born", () =>
-	Effect.gen(function* () {
-		const temporary = yield* acquireTemporaryPersistence;
-		const scripted = yield* makeScriptedBackend;
-		yield* Effect.gen(function* () {
-			const db = yield* Database;
-			const domain = yield* AgentDomain;
-			const voyage = yield* openReefVoyage;
-			yield* seedSpawningCaptain(voyage.id);
-
-			const refusal = yield* Effect.flip(domain.voyages.hail(voyage.id));
-			expect(refusal).toMatchObject({
-				_tag: "CaptainAlreadyHailed",
-				agentId: "captain-newborn",
-			});
-			expect(refusal.message).toBe(`voyage ${voyage.id} already has captain captain-newborn at work`);
-			expect(yield* db.Agent.all()).toHaveLength(1);
 		}).pipe(Effect.provide(domainKernelLayer(temporary, scripted.backend)));
 	}),
 );

@@ -148,6 +148,7 @@ it.effectDB("refuses known invalid supersession before publishing local bytes", 
 				pieceId: otherPiece.id,
 				title: "foreign chart",
 			});
+			const beforeArtifacts = yield* db.Artifact.all();
 			const beforePublished = readdirSync(published);
 			writeFileSync(join(moorage, "reef.md"), "# Reef");
 			const failure = yield* Effect.flip(
@@ -162,7 +163,7 @@ it.effectDB("refuses known invalid supersession before publishing local bytes", 
 
 			expect(failure._tag).toBe("ArtifactProvenanceConflict");
 			expect(readdirSync(published)).toEqual(beforePublished);
-			expect(yield* db.Artifact.all()).toHaveLength(1);
+			expect(yield* db.Artifact.all()).toEqual(beforeArtifacts);
 		}),
 	);
 });

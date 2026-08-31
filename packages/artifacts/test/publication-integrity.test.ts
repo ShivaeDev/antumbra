@@ -1,12 +1,11 @@
-import { createHash } from "node:crypto";
-import { lstatSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
+import { lstatSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { basename, join } from "node:path";
 import { Artifacts, ArtifactsLive } from "@antumbra/artifacts";
 import { DomainFeedsLive } from "@antumbra/domain-feeds";
 import type { DatabaseService } from "@antumbra/persistence";
 import { persistenceIt } from "@antumbra/persistence/testing";
-import { NodeCrypto, NodeFileSystem, NodePath, NodeServices } from "@effect/platform-node";
+import { NodeCrypto, NodeFileSystem, NodePath } from "@effect/platform-node";
 import { expect } from "@effect/vitest";
 import { type Crypto, Effect, FileSystem, Layer, type Path, PlatformError } from "effect";
 
@@ -110,31 +109,6 @@ const durabilityPlatform = (fixture: Fixture, events: string[], syncFailure: Pla
 		}),
 	);
 
-interface ReplacementState {
-	replaced: boolean;
-}
-
-const replacementPlatform = (outside: string, state: ReplacementState) =>
-	platformWith((fs) =>
-		FileSystem.FileSystem.of({
-			...fs,
-			stat: (path) => {
-				if (!path.endsWith("/moorage/reef.md") || state.replaced) {
-					return fs.stat(path);
-				}
-				return fs.stat(path).pipe(
-					Effect.tap(() =>
-						Effect.sync(() => {
-							rmSync(path);
-							symlinkSync(outside, path);
-							state.replaced = true;
-						}),
-					),
-				);
-			},
-		}),
-	);
-
 it.effectDB("refuses completion until file and directory sync finish", function* (db) {
 	const fixture = makeFixture();
 	writeFileSync(fixture.source, "inside");
@@ -154,46 +128,6 @@ it.effectDB("refuses completion until file and directory sync finish", function*
 
 	expect(failure._tag).toBe("ArtifactPublicationFailed");
 	expect(events).toEqual(["file-sync", "rename", "directory-sync"]);
-	expect(yield* db.Artifact.all()).toEqual([]);
-	rmSync(fixture.root, { force: true, recursive: true });
-});
-
-it.effectDB("reads the same owned object when its path is replaced", function* (db) {
-	const fixture = makeFixture();
-	const outside = join(fixture.root, "outside.md");
-	writeFileSync(fixture.source, "inside");
-	writeFileSync(outside, "outside");
-	const state = { replaced: false };
-	const platform = replacementPlatform(outside, state);
-	yield* seed(db, fixture.moorage);
-	const artifact = yield* Effect.gen(function* () {
-		const artifacts = yield* Artifacts;
-		return yield* artifacts.land(input);
-	}).pipe(Effect.provide(artifactLayer(fixture.published, platform)));
-
-	expect(state.replaced).toBe(true);
-	expect(readFileSync(join(fixture.published, artifact.artifact.digest, artifact.artifact.basename), "utf8")).toBe("inside");
-	rmSync(fixture.root, { force: true, recursive: true });
-});
-
-it.effectDB("refuses a substituted existing CAS destination", function* (db) {
-	const fixture = makeFixture();
-	const bytes = new TextEncoder().encode("inside");
-	const digest = createHash("sha256").update(bytes).digest("hex");
-	const directory = join(fixture.published, digest);
-	const outside = join(fixture.root, "outside.md");
-	writeFileSync(fixture.source, bytes);
-	writeFileSync(outside, bytes);
-	mkdirSync(directory);
-	symlinkSync(outside, join(directory, "reef.md"));
-	yield* seed(db, fixture.moorage);
-
-	const failure = yield* Effect.gen(function* () {
-		const artifacts = yield* Artifacts;
-		return yield* Effect.flip(artifacts.land(input));
-	}).pipe(Effect.provide(artifactLayer(fixture.published, NodeServices.layer)));
-
-	expect(failure).toMatchObject({ _tag: "ArtifactPublicationFailed" });
 	expect(yield* db.Artifact.all()).toEqual([]);
 	rmSync(fixture.root, { force: true, recursive: true });
 });

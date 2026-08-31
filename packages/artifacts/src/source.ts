@@ -1,7 +1,7 @@
 import { Database } from "@antumbra/persistence";
 import { decodeStoredMoorageStatus } from "@antumbra/vocabulary/agent-runtime";
 import { Effect, FileSystem, Option, Path } from "effect";
-import { decodeMarkdown, isRelativeArtifactPath, MAX_ARTIFACT_MARKDOWN_BYTES, readOpened, sameObject } from "#content.ts";
+import { decodeMarkdown, isRelativeArtifactPath, MAX_ARTIFACT_MARKDOWN_BYTES, readOpened } from "#content.ts";
 import { ArtifactContentInvalid, ArtifactPublicationFailed, ArtifactSourceNotOwned, artifactPublicationFailed } from "#errors.ts";
 import type { ArtifactInput } from "#model.ts";
 
@@ -34,10 +34,7 @@ const readFromMoorage = (rootPath: string, agentId: string, input: ArtifactInput
 		const fs = yield* FileSystem.FileSystem;
 		const path = yield* Path.Path;
 		const root = yield* fs.realPath(rootPath).pipe(Effect.mapError(artifactPublicationFailed("resolve moorage")));
-		const requested = path.resolve(root, input.path);
-		const file = yield* fs.open(requested, { flag: "r" }).pipe(Effect.mapError(artifactPublicationFailed("open artifact")));
-		const opened = yield* file.stat.pipe(Effect.mapError(artifactPublicationFailed("inspect opened artifact")));
-		const resolved = yield* fs.realPath(requested).pipe(Effect.mapError(artifactPublicationFailed("resolve artifact")));
+		const resolved = yield* fs.realPath(path.resolve(root, input.path)).pipe(Effect.mapError(artifactPublicationFailed("resolve artifact")));
 		const inside = path.relative(root, resolved);
 		if (inside === "" || inside === ".." || inside.startsWith(`..${path.sep}`) || path.isAbsolute(inside)) {
 			return yield* new ArtifactSourceNotOwned({
@@ -45,8 +42,9 @@ const readFromMoorage = (rootPath: string, agentId: string, input: ArtifactInput
 				path: input.path,
 			});
 		}
-		const observed = yield* fs.stat(resolved).pipe(Effect.mapError(artifactPublicationFailed("inspect artifact")));
-		if (opened.type !== "File" || observed.type !== "File" || !sameObject(opened, observed)) {
+		const file = yield* fs.open(resolved, { flag: "r" }).pipe(Effect.mapError(artifactPublicationFailed("open artifact")));
+		const opened = yield* file.stat.pipe(Effect.mapError(artifactPublicationFailed("inspect opened artifact")));
+		if (opened.type !== "File") {
 			return yield* new ArtifactSourceNotOwned({
 				agentId,
 				path: input.path,

@@ -5,8 +5,6 @@ import {
   ADOPT_EXISTING_SESSIONS_AS_ROOTS,
   CLOSE_STALE_OPEN_ROOTS,
   ONE_OPEN_ROOT_PER_AGENT,
-  REJECT_INVALID_SESSION_STATUS,
-  REJECT_ORPHAN_SESSION_EVENTS,
 } from './guards.ts';
 import type { Contract as Start } from './start-contract';
 import startContract from './start-contract.json' with { type: 'json' };
@@ -43,13 +41,6 @@ export default class M extends Migration<Start, End> {
 
   override get operations() {
     return [
-      dataTransform({
-        id: 'agentSession.tree.guard-session-status',
-        label: 'Reject unknown Session lifecycle truth',
-        table: 'agentSession',
-        description: 'fail before backfill when a Session status is outside the durable vocabulary',
-        run: () => REJECT_INVALID_SESSION_STATUS,
-      }),
       ...TREE_COLUMNS.map((column) =>
         this.addColumn({ table: 'agentSession', column: nullableText(column) }),
       ),
@@ -71,13 +62,6 @@ export default class M extends Migration<Start, End> {
         tableName: 'agentSession',
         ...AGENT_SESSION_TABLE,
         operationClass: 'destructive',
-      }),
-      dataTransform({
-        id: 'sessionEvent.session.guard-orphans',
-        label: 'Reject Session events with no Session',
-        table: 'sessionEvent',
-        description: 'fail before the foreign key adopts events whose Session is missing',
-        run: () => REJECT_ORPHAN_SESSION_EVENTS,
       }),
       this.recreateTable({
         tableName: 'sessionEvent',

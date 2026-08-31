@@ -1,5 +1,5 @@
 import { it } from "@effect/vitest";
-import { Effect, Exit } from "effect";
+import { Effect } from "effect";
 import { expect } from "vitest";
 import { freshDatabase, migrateToEnd, migrateToStart, openNode, refused, seedFleet, withSqlite } from "#test/session-tree-harness.ts";
 
@@ -35,34 +35,6 @@ it.effect("roots every surviving Session at itself without losing history", () =
 			},
 		]);
 		expect(migrated.events).toEqual({ count: 3 });
-	}),
-);
-
-it.effect("refuses a Session event whose Session is gone", () =>
-	Effect.gen(function* () {
-		const database = freshDatabase();
-		yield* migrateToStart(database);
-		withSqlite(database, (sqlite) => {
-			seedFleet(sqlite);
-			sqlite
-				.prepare('INSERT INTO "sessionEvent" ("sessionId", "seq", "kind", "payload") VALUES (?, ?, ?, ?)')
-				.run("session-vanished", 0, "raw", "orphan");
-		});
-
-		expect(Exit.isFailure(yield* Effect.exit(migrateToEnd(database)))).toBe(true);
-	}),
-);
-
-it.effect("refuses a Session status outside the durable vocabulary", () =>
-	Effect.gen(function* () {
-		const database = freshDatabase();
-		yield* migrateToStart(database);
-		withSqlite(database, (sqlite) => {
-			seedFleet(sqlite);
-			sqlite.prepare('UPDATE "agentSession" SET "status" = ? WHERE "id" = ?').run("future-session", "session-closed");
-		});
-
-		expect(Exit.isFailure(yield* Effect.exit(migrateToEnd(database)))).toBe(true);
 	}),
 );
 

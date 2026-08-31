@@ -9,18 +9,12 @@ import { makeSessionTreeRows } from "#tree/rows.ts";
 type SubsessionOpened = Extract<AgentEvent, { type: "subsession.opened" }>;
 type SubsessionEnded = Extract<AgentEvent, { type: "subsession.ended" }>;
 
-// why: a node's own journal opens the way any Session's does, carrying the
-// provider reference the frame named. The existing opening path mirrors that
-// reference onto the row, so nativeRef has one writer for roots and nodes both.
 const nodeOpening = (opened: SubsessionOpened): AgentEvent => ({
 	nativeRef: opened.subsessionRef,
 	raw: opened.raw,
 	type: "session.opened",
 });
 
-// why: what a node's life does to the record. Opening and ending are facts
-// about the turn that spawned it, so they are journaled in the spawner's
-// journal; the node's own journal holds what the node itself did.
 export const makeSessionTreeLifecycle = Effect.gen(function* () {
 	const journal = yield* SessionEventJournal;
 	const rows = yield* makeSessionTreeRows;
@@ -28,15 +22,8 @@ export const makeSessionTreeLifecycle = Effect.gen(function* () {
 	const journaling = yield* makeSessionTreeJournaling;
 	return (rootSessionId: string, tree: Ref.Ref<SessionTree>) => {
 		const adopting = adoption(rootSessionId, tree);
-		// why: a node this tree already holds has already been announced, so a
-		// second opening for the same reference is the provider saying more about
-		// one node rather than a second one. Nothing is journaled twice; only a
-		// name the row is still missing is taken from it.
 		const nameNode = (node: TreeNode, opened: SubsessionOpened) =>
 			opened.label === undefined ? Effect.succeed(true) : rows.nameNode(node.sessionId, opened.label).pipe(Effect.as(true));
-		// why: a node this tree admitted for itself is being announced for the
-		// first time, which says both where it belongs and what it is — the two
-		// facts the admission had to do without.
 		const announce = (known: TreeNode, opened: SubsessionOpened) =>
 			Effect.gen(function* () {
 				if (known.announced) {
@@ -76,9 +63,6 @@ export const makeSessionTreeLifecycle = Effect.gen(function* () {
 				}
 				return recorded;
 			});
-		// why: an announcement naming a reference this root already holds is a node
-		// resuming, not a second node. The row is reopened and what the announcement
-		// adds fills its holes; nothing is minted twice.
 		const openNode = (opened: SubsessionOpened) =>
 			Effect.gen(function* () {
 				const known = (yield* Ref.get(tree)).nodes.get(opened.subsessionRef);
@@ -104,9 +88,6 @@ export const makeSessionTreeLifecycle = Effect.gen(function* () {
 				yield* Ref.update(tree, withClosed(ended.subsessionRef));
 				return true;
 			});
-		// why: a frame stamped with a node this tree has never been told about is
-		// still that node's word, so the node is minted rather than the frame
-		// misfiled. A frame that names no node at all is the root's own.
 		const admitNode = (event: AgentEvent) => {
 			const origin = originOf(event);
 			return origin === undefined || origin.node === undefined ? Effect.succeed(undefined) : adopting.admit(origin, event);

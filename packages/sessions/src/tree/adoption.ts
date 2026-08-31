@@ -8,21 +8,13 @@ import { makeSessionTreeRows } from "#tree/rows.ts";
 
 type SubsessionOpened = Extract<AgentEvent, { type: "subsession.opened" }>;
 
-// why: a node admitted from its own words opens the way any Session does,
-// naming the provider reference the frame was stamped with — the same field
-// the opening path mirrors onto the row, so the node is addressable by the
-// provider's name for it from its first line onward.
 const admittedOpening = (node: string, seen: AgentEvent): AgentEvent => ({
 	nativeRef: node,
 	raw: observed("session/admitted", { node, seen: seen.type }),
 	type: "session.opened",
 });
 
-// why: a provider whose tree broadcasts says what a node did before it says
-// the node exists. Holding those words until an announcement arrives would
-// risk losing them, and writing them to the root would put one Session's work
-// in another's mouth — so the record admits the node on first hearing and
-// waits to be told where it belongs.
+// Provider tree frames can arrive before the node's opening announcement.
 export const makeSessionTreeAdoption = Effect.gen(function* () {
 	const journal = yield* SessionEventJournal;
 	const reopening = yield* makeSessionTreeReopen;
@@ -42,10 +34,6 @@ export const makeSessionTreeAdoption = Effect.gen(function* () {
 					spawnerSessionId: spawnerOf(yield* Ref.get(tree), { parentRef: origin.parentNode, spawnedBy: origin.spawnedBy }, rootSessionId),
 					subsessionRef,
 				};
-				// why: the row and the opening are one fact — the event's foreign key
-				// refuses a Session with no row — and nothing is journaled in the
-				// spawner yet, because which Session spawned this node is exactly what
-				// the record does not know until the announcement lands.
 				const recorded = yield* journal.recordTogether({
 					appends: [
 						{
@@ -66,9 +54,6 @@ export const makeSessionTreeAdoption = Effect.gen(function* () {
 				yield* Ref.update(tree, withNode(node, origin.spawnedBy));
 				return node;
 			});
-		// why: a reference this root already holds is a node resuming rather than a
-		// second node, so the record is asked before anything is minted — a restart
-		// erases the tree in memory, never the tree that was written down.
 		const admit = (origin: Origin, seen: AgentEvent) =>
 			Effect.gen(function* () {
 				const subsessionRef = origin.node;
@@ -78,10 +63,6 @@ export const makeSessionTreeAdoption = Effect.gen(function* () {
 				const durable = yield* reopen(subsessionRef, origin.spawnedBy, seen);
 				return durable ?? (yield* mint(subsessionRef, origin, seen));
 			});
-		// why: the announcement is where the node's opening belongs — in the
-		// journal of the turn that made the call — so it is written there now
-		// rather than on the root the admission had to guess at. The gap on the
-		// node's own key is what keeps the dates honest afterwards.
 		const adopt = (node: TreeNode, opened: SubsessionOpened) =>
 			Effect.gen(function* () {
 				const announcedAt = yield* Clock.currentTimeMillis;

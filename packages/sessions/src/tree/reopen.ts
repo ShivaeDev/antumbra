@@ -7,22 +7,13 @@ import { observed } from "#tree/gaps.ts";
 import { makeSessionTreeJournaling } from "#tree/journaling.ts";
 import { makeSessionTreeLedger } from "#tree/ledger.ts";
 
-// why: the node is opening again, in the words the record uses for any Session
-// opening — the same reference, the same key, a second time. A reader sees the
-// node resume rather than a second node appearing beside it.
 const reopening = (nativeRef: string, seen: AgentEvent): AgentEvent => ({
 	nativeRef,
 	raw: observed("session/reopened", { node: nativeRef, seen: seen.type }),
 	type: "session.opened",
 });
 
-// why: a resumed Session starts with an empty tree while the durable one is
-// already written, and a provider that re-drives its children across
-// activations sends their frames again. Minting on those frames would give one
-// thread two rows and split its transcript in half, so both seams that mint ask
-// the record first: a reference this root already holds is reopened — recording
-// again, whatever an earlier audit concluded — and the tree is hydrated from
-// the row rather than from a memory the restart erased.
+// Providers may redrive existing children after reconnect; durable references prevent duplicate rows.
 export const makeSessionTreeReopen = Effect.gen(function* () {
 	const db = yield* Database;
 	const journal = yield* SessionEventJournal;
@@ -36,9 +27,6 @@ export const makeSessionTreeReopen = Effect.gen(function* () {
 			if (Option.isNone(row)) {
 				return undefined;
 			}
-			// why: everything earlier activations learned about this node is in
-			// the row, so it counts as announced: a later announcement fills the
-			// holes the row still has and never re-dates work already placed.
 			const node: TreeNode = {
 				announced: true,
 				openedAt: yield* Clock.currentTimeMillis,

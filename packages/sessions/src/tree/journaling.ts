@@ -5,14 +5,10 @@ import type { TreeNode } from "#tree/attribution.ts";
 import { appendFailedGap } from "#tree/gaps.ts";
 import { makeSessionTreeRows } from "#tree/rows.ts";
 
-// why: what a node's journal owes the record when a write to it fails. A
-// swallowed append is exactly the silence this record cannot afford — a lost
-// ending would leave a node open forever with nothing saying why.
 export const makeSessionTreeJournaling = Effect.gen(function* () {
 	const journal = yield* SessionEventJournal;
 	const rows = yield* makeSessionTreeRows;
-	// why: the row is marked outside the journal, then the loss is journaled too
-	// when a further append can still land.
+	// Completeness is marked outside the failed journal append before recording the lost event.
 	const appendFailed = (node: TreeNode, lost: AgentEvent) =>
 		Effect.gen(function* () {
 			yield* Effect.logWarning("subsession event append failed", {

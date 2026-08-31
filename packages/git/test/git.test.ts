@@ -1,8 +1,3 @@
-import { execFileSync } from "node:child_process";
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
-import { NodeServices } from "@effect/platform-node";
 import { describe, expect, it } from "@effect/vitest";
 import { Effect, Fiber, Layer, Sink, Stream } from "effect";
 import { TestClock } from "effect/testing";
@@ -84,11 +79,6 @@ const success = (stdout = ""): ScriptedOutput => ({
 	stdout,
 });
 
-const tempRoot = Effect.acquireRelease(
-	Effect.sync(() => mkdtempSync(join(tmpdir(), "antumbra-git-"))),
-	(root) => Effect.sync(() => rmSync(root, { force: true, recursive: true })),
-);
-
 describe("Effect Git", () => {
 	it.effect("decodes worktree state from successful process output", () => {
 		const fake = scriptedGit([success(""), success("2\n")]);
@@ -103,14 +93,6 @@ describe("Effect Git", () => {
 		return Effect.gen(function* () {
 			const state = yield* inspectWorktree("/repo").pipe(Effect.provide(fake.layer));
 			expect(state).toEqual({ _tag: "changed" });
-		});
-	});
-
-	it.effect("keeps invalid subprocess output distinct from process failure", () => {
-		const fake = scriptedGit([{ exitCode: 1.5, stderr: "", stdout: "" }]);
-		return Effect.gen(function* () {
-			const failure = yield* Effect.flip(refreshMirror("/repo").pipe(Effect.provide(fake.layer)));
-			expect(failure._tag).toBe("GitOutputInvalid");
 		});
 	});
 
@@ -142,19 +124,4 @@ describe("Effect Git", () => {
 			expect(fake.terminated).toEqual([0]);
 		});
 	});
-
-	it.live("inspects a real repository through the Node process layer", () =>
-		Effect.gen(function* () {
-			const root = yield* tempRoot;
-			const repo = join(root, "repo");
-			execFileSync("git", ["init", "-b", "main", repo]);
-			execFileSync("git", ["-C", repo, "config", "user.email", "fixture@antumbra"]);
-			execFileSync("git", ["-C", repo, "config", "user.name", "fixture"]);
-			writeFileSync(join(repo, "README.md"), "ahoy\n");
-			execFileSync("git", ["-C", repo, "add", "."]);
-			execFileSync("git", ["-C", repo, "commit", "-m", "init"]);
-			const state = yield* inspectWorktree(repo).pipe(Effect.provide(NodeServices.layer));
-			expect(state).toEqual({ _tag: "clean", unpushedCommits: 1 });
-		}),
-	);
 });

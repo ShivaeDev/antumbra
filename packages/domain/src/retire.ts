@@ -70,12 +70,10 @@ export const makeRetireKind = Effect.gen(function* () {
 			if (status !== "retired") {
 				yield* refuseWorking(agentId);
 				const next = yield* Effect.fromResult(agentTransition(status, "retire"));
-				yield* execution.step("close-records", closeAgent(agentId, status, next), { additionalAttempts: 1 });
+				yield* execution.step("close-records", closeAgent(agentId, status, next));
 			}
 			yield* execution.step("stop-sessions", stopSessions(agentId));
-			yield* execution.step("close-sessions", closeSessions(agentId), {
-				additionalAttempts: 1,
-			});
+			yield* execution.step("close-sessions", closeSessions(agentId));
 			yield* execution.step("publish-fleet", feeds.publishFleetRefresh());
 		});
 	return defineIntent({

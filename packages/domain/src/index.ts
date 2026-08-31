@@ -63,15 +63,7 @@ export {
 export { FlagshipLive } from "#flagship.ts";
 export { IntentFeedLive } from "#intent-feed.ts";
 export { KernelReachLive } from "#kernel-reach.ts";
-export { type OutcomeTally, pieceOutcomeTally } from "#outcome-status.ts";
-export {
-	abandonedPieces,
-	donePieces,
-	landingPieces,
-	PIECE_STATES,
-	type PieceState,
-	pieceStates,
-} from "#piece-state.ts";
+export { PIECE_STATES, type PieceState, pieceStates } from "#piece-state.ts";
 export type { PieceView } from "#piece-view.ts";
 export type { QuayGroup } from "#quay-group.ts";
 export type { QuayPiece, QuayReading, QuayRow } from "#quay-view.ts";

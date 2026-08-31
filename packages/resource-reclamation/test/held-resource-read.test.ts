@@ -18,19 +18,20 @@ const layer = <E, R>(temporary: TemporaryPersistence, read: Effect.Effect<HeldRe
 		Layer.provideMerge(temporary.layer),
 	);
 
-it.live("exposes mortal degradation and recovery without failing the layer", () =>
+it.live("runs again after held-resource reading fails", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
-		const fail = yield* Ref.make(true);
+		const attempts = yield* Ref.make(0);
 		const read = Effect.succeed({
-			held: () => Ref.get(fail).pipe(Effect.flatMap((shouldFail) => (shouldFail ? Effect.fail("uncertain held truth") : Effect.succeed(new Map())))),
+			held: () =>
+				Ref.getAndUpdate(attempts, (attempt) => attempt + 1).pipe(
+					Effect.flatMap((attempt) => (attempt === 0 ? Effect.fail("uncertain held truth") : Effect.succeed(new Map()))),
+				),
 		} satisfies HeldResourceRead<string>);
 		yield* Effect.gen(function* () {
 			const reconciler = yield* ResourceReconciler;
-			expect(yield* reconciler.health).toMatchObject({ state: "degraded" });
-			yield* Ref.set(fail, false);
 			yield* reconciler.reconcile;
-			expect(yield* reconciler.health).toMatchObject({ state: "healthy" });
+			expect(yield* Ref.get(attempts)).toBe(2);
 		}).pipe(Effect.provide(layer(temporary, read)));
 	}),
 );

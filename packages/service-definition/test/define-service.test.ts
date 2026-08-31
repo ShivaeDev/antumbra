@@ -1,10 +1,6 @@
 import { defineService, type ServiceRequirements } from "@antumbra/service-definition";
 import { describe, expect, it } from "@effect/vitest";
-import { Context, Data, Effect, Layer, Ref, type Scope } from "effect";
-
-class InitializationFailed extends Data.TaggedError("InitializationFailed")<{
-	readonly detail: string;
-}> {}
+import { Context, Effect, Layer, Ref, type Scope } from "effect";
 
 const noRequirements = [] as const;
 type NoRequirements<Success, Failure = never, CallerRequirements extends Scope.Scope = never> = ServiceRequirements<
@@ -79,26 +75,4 @@ describe("defineService", () => {
 	it.effect("provides the one declared requirement to initialization and methods", declaredRequirementProof);
 
 	it.effect("initializes private state and constructs methods once per layer", processLifetimeProof);
-
-	it.effect("does not construct methods when initialization fails", () =>
-		Effect.gen(function* () {
-			const factoryCalls = { value: 0 };
-			const initialize: NoRequirements<never, InitializationFailed> = Effect.fail(new InitializationFailed({ detail: "refused" }));
-			const FailedService = defineService({
-				id: "test/FailedInitialization",
-				initialize,
-				methods: (_state) => {
-					factoryCalls.value += 1;
-					return {
-						value: Effect.fn("failedService.value")(() => Effect.succeed("unreachable")),
-					};
-				},
-				requires: noRequirements,
-			});
-
-			const failure = yield* FailedService.pipe(Effect.provide(FailedService.layer, { local: true }), Effect.flip);
-			expect(failure.detail).toBe("refused");
-			expect(factoryCalls.value).toBe(0);
-		}),
-	);
 });

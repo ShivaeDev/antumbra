@@ -17,9 +17,6 @@ const spawnRequest = {
 	role: "navigator",
 };
 
-// why: the creator of subsession rows arrives with acquisition. Until then a
-// test writes the row the way the tree will, so the readers can be held to the
-// discipline before anything downstream depends on it.
 const openSubsession = (id: string, agentId: string, parentSessionId: string, rootSessionId: string) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
@@ -88,10 +85,6 @@ it.live("a subsession is never a resume target", () =>
 	}),
 );
 
-// why: selection keeps a child out of the paths only roots may take; this is
-// the seam underneath it, where an id becomes a live attachment. A caller that
-// came by a child id any other way is refused here, in the type rather than in
-// a comment.
 it.live("the attachment seam refuses a subsession id outright", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;

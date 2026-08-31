@@ -1,6 +1,6 @@
 import { Database } from "@antumbra/persistence";
 import { rootSessionsOf } from "@antumbra/sessions";
-import { Effect, Option, Schedule } from "effect";
+import { Effect, Option } from "effect";
 import type { ScriptedBackend, ScriptedSession } from "#test/harness.ts";
 
 export const sessionFor = (scripted: ScriptedBackend, agentId: string) =>
@@ -25,12 +25,9 @@ export const standDown = (scripted: ScriptedBackend, agentId: string) =>
 		const db = yield* Database;
 		const live = yield* sessionFor(scripted, agentId);
 		const settled = yield* callTool(live, "stand_down", undefined);
-		const roots = db.AgentSession.where(rootSessionsOf(agentId)).all();
-		yield* Effect.retry(
-			Effect.flatMap(roots, (rows) =>
-				rows.every((row) => row.executionStatus === "idle") ? Effect.void : Effect.fail("the session is still working"),
-			),
-			Schedule.spaced(10).pipe(Schedule.upTo({ duration: 2000 })),
-		);
+		const roots = yield* db.AgentSession.where(rootSessionsOf(agentId)).all();
+		if (!roots.every((row) => row.executionStatus === "idle")) {
+			return yield* Effect.fail("the session is still working");
+		}
 		return settled;
 	});

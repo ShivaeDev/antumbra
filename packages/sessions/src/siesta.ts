@@ -29,7 +29,6 @@ export const makeSiestaKind = Effect.gen(function* () {
 					executionStatus: "draining",
 					status: "open",
 				}).update({ executionStatus: next }),
-				{ additionalAttempts: 1 },
 			);
 			yield* execution.step("publish-session-execution", announce);
 		});

@@ -9,7 +9,6 @@ export {
 } from "#current/errors.ts";
 export { newestSession } from "#current/order.ts";
 export { makeCurrentSessionReconciler } from "#current/reconcile.ts";
-export { makeCurrentSessionRecovery } from "#current/recovery.ts";
 export { makeCurrentSessionResumable } from "#current/resumable.ts";
 export {
 	SessionEnded,
@@ -19,10 +18,7 @@ export {
 	SessionStillDelegating,
 } from "#errors.ts";
 export { promptInput } from "#input.ts";
-export {
-	SessionReach,
-	type SessionRouse,
-} from "#reach.ts";
+export { SessionReach } from "#reach.ts";
 export type {
 	SessionIdentity,
 	SessionRecoveryContext,
@@ -45,7 +41,7 @@ export { drainActiveSessions, SessionShutdown } from "#shutdown.ts";
 export { requireSiestaSucceeded } from "#shutdown-verdict.ts";
 export { makeSiestaKind, type SiestaFields } from "#siesta.ts";
 export { compileSessionSiestaDemands } from "#siesta-demands.ts";
-export { type ChangeLinks, situationsByAgent } from "#situations.ts";
+export { situationsByAgent } from "#situations.ts";
 export { LiveDelegations, LiveDelegationsLive } from "#tree/live.ts";
 export { makeSessionNodeReconciler } from "#tree/reconcile.ts";
 export { makeSessionTreeSinks, type SinkFor } from "#tree/sink.ts";

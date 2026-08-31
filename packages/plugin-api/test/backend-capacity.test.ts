@@ -1,6 +1,6 @@
 import type { RawPayload } from "@antumbra/vocabulary/session-events";
 import { expect, it } from "@effect/vitest";
-import { Effect, Fiber, Option, Stream } from "effect";
+import { Effect, Option, Stream } from "effect";
 import { makeBackendCapacityController } from "#backend-capacity.ts";
 
 const raw = (kind: string): RawPayload => ({
@@ -20,20 +20,18 @@ it.effect("publishes and remembers classified provider capacity", () =>
 					})
 				: Option.none(),
 		);
-		const observed = yield* Effect.forkChild(Stream.runHead(capacity.source.changes.pipe(Stream.take(1))));
-		yield* Effect.yieldNow;
-
 		capacity.observe(raw("other"), 40);
 		expect(yield* capacity.source.current).toEqual(Option.none());
 
 		capacity.observe(raw("limit"), 42);
-		const change = yield* Fiber.join(observed);
-		expect(Option.getOrThrow(change)).toMatchObject({
+		const state = yield* Stream.runHead(capacity.source.states.pipe(Stream.take(1)));
+		const change = Option.getOrThrow(Option.getOrThrow(state));
+		expect(change).toMatchObject({
 			observedAt: 42,
 			reason: "usage-limit",
 			status: "blocked",
 		});
-		expect(yield* capacity.source.current).toEqual(change);
+		expect(yield* capacity.source.current).toEqual(Option.some(change));
 	}),
 );
 
@@ -57,6 +55,7 @@ it.effect("latches a hard block until the source is explicitly cleared", () =>
 		const clearAt = yield* capacity.source.clear;
 		expect(clearAt).toBeGreaterThan(40);
 		expect(yield* capacity.source.current).toEqual(Option.none());
+		expect(yield* Stream.runHead(capacity.source.states.pipe(Stream.take(1)))).toEqual(Option.some(Option.none()));
 		capacity.observe(raw("allowed"), 42);
 		expect(Option.getOrThrow(yield* capacity.source.current).status).toBe("available");
 	}),

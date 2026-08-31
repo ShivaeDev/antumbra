@@ -3,7 +3,7 @@ import type { IntentExecution } from "@antumbra/kernel";
 import type { PrismaError } from "@antumbra/persistence";
 import type { AgentBackend, BackendCapacityObservation } from "@antumbra/plugin-api";
 import { waitFor } from "@antumbra/sessions";
-import { Clock, Effect, Option, Stream } from "effect";
+import { Clock, Effect, Option, Sink, Stream } from "effect";
 import { capacityHoldDetail } from "#backend-capacity-hold.ts";
 import { type BackendCapacityReading, defaultCapacityReading, type StoredBackendCapacityInvalid } from "#backend-capacity-model.ts";
 import { recoverBackendCapacities } from "#backend-capacity-recovery.ts";
@@ -43,19 +43,17 @@ export const makeBackendCapacities = (backends: ReadonlyMap<string, AgentBackend
 			if (source === undefined) {
 				continue;
 			}
-			// why: after the fork yields, a frame is either already in `current` or
-			// reaches the live subscriber. A persistence failure is reported without
-			// killing that subscriber; the source still retains the latest reading.
+			const [initial, changes] = yield* Stream.peel(source.states, Sink.head());
+			if (Option.isSome(initial) && Option.isSome(initial.value)) {
+				yield* persist(backend, initial.value.value);
+			}
 			yield* Effect.forkScoped(
-				Stream.runForEach(source.changes, (observation) =>
-					persist(backend, observation).pipe(Effect.catchCause((cause) => reportPersistenceFailure(backend, cause))),
+				Stream.runForEach(changes, (state) =>
+					Option.isSome(state)
+						? persist(backend, state.value).pipe(Effect.catchCause((cause) => reportPersistenceFailure(backend, cause)))
+						: Effect.void,
 				),
 			);
-			yield* Effect.yieldNow;
-			const current = yield* source.current;
-			if (Option.isSome(current)) {
-				yield* persist(backend, current.value);
-			}
 		}
 
 		const current = (backend: string) =>

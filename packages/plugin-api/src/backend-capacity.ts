@@ -27,9 +27,9 @@ export type BackendCapacityClassification = WithoutEvidence<BackendCapacityObser
 
 export interface BackendCapacitySource {
 	readonly clear: Effect.Effect<number>;
-	readonly changes: Stream.Stream<BackendCapacityObservation>;
 	readonly classify: (raw: RawPayload) => Option.Option<BackendCapacityClassification>;
 	readonly current: Effect.Effect<Option.Option<BackendCapacityObservation>>;
+	readonly states: Stream.Stream<Option.Option<BackendCapacityObservation>>;
 }
 
 export interface BackendCapacityController {
@@ -43,8 +43,9 @@ export const makeBackendCapacityController = (
 ): Effect.Effect<BackendCapacityController, never, Scope.Scope> =>
 	Effect.gen(function* () {
 		const clock = yield* Clock.Clock;
-		const changes = yield* PubSub.unbounded<BackendCapacityObservation>();
+		const states = yield* PubSub.unbounded<Option.Option<BackendCapacityObservation>>({ replay: 1 });
 		const current = MutableRef.make<Option.Option<BackendCapacityObservation>>(Option.none());
+		PubSub.publishUnsafe(states, Option.none());
 		let lastObservedAt = 0;
 		const observe = (raw: RawPayload, observedAt = clock.currentTimeMillisUnsafe()): void => {
 			const classified = classify(raw);
@@ -61,7 +62,7 @@ export const makeBackendCapacityController = (
 				return;
 			}
 			MutableRef.set(current, Option.some(candidate));
-			PubSub.publishUnsafe(changes, candidate);
+			PubSub.publishUnsafe(states, Option.some(candidate));
 		};
 		return {
 			observe,
@@ -69,11 +70,12 @@ export const makeBackendCapacityController = (
 				clear: Effect.sync(() => {
 					lastObservedAt = Math.max(clock.currentTimeMillisUnsafe(), lastObservedAt + 1);
 					MutableRef.set(current, Option.none());
+					PubSub.publishUnsafe(states, Option.none());
 					return lastObservedAt;
 				}),
-				changes: Stream.fromPubSub(changes),
 				classify,
 				current: Effect.sync(() => MutableRef.get(current)),
+				states: Stream.fromPubSub(states),
 			},
 		};
 	});

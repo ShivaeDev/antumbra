@@ -1,4 +1,4 @@
-// why: @vitest-environment happy-dom exercises the real React typing boundary.
+// @vitest-environment happy-dom
 
 import type { SessionSituation } from "@antumbra/contract";
 import { expect, it } from "@effect/vitest";
@@ -64,8 +64,7 @@ const clickLabelled = (label: string): void => {
 
 const composer = (): HTMLTextAreaElement | null => document.querySelector("textarea");
 
-// why: React tracks the value it last rendered, so an edit has to go through
-// the element's own value setter or the change never reaches the component.
+// React controlled inputs observe the prototype value setter.
 const nativeValue = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, "value")?.set;
 
 const rewrite = (text: string): void => {
@@ -111,9 +110,6 @@ it.effect("draws the words from the catalog and sends nothing on its own", () =>
 	}),
 );
 
-// why: the whole point of the preview is that what leaves is what the admiral
-// approved. The draft is a starting point, and an edited one must reach the
-// send seam exactly as it was left.
 it.effect("sends the edited words verbatim through the ordinary send", () =>
 	Effect.gen(function* () {
 		sendToSession.mockClear();

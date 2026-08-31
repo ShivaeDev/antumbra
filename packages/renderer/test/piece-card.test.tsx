@@ -1,4 +1,4 @@
-// why: @vitest-environment happy-dom opens a card the way a reader opens it.
+// @vitest-environment happy-dom
 
 import type { PieceView } from "@antumbra/contract";
 import { expect, it } from "@effect/vitest";

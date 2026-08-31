@@ -13,9 +13,6 @@ const row = (seq: number, event: AgentEvent): SessionEvent => ({
 
 const SUBSESSION = "a2b8c2a1b3d038e69";
 
-// why: the tree names the node, so a marker in the parent's transcript wears
-// the tree's name rather than whatever the frame happened to say — the two
-// have to agree about one node, and the tree is the one that read the record.
 const child: SessionTreeNode = {
 	completeness: "complete",
 	depth: 1,

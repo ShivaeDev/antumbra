@@ -1,5 +1,4 @@
-// why: @vitest-environment happy-dom exercises the choice, the words and the
-// verdict through the same DOM boundaries a keyboard or pointer uses.
+// @vitest-environment happy-dom
 
 import type { OpenRulingsView, RulingView } from "@antumbra/contract";
 import { expect, it } from "@effect/vitest";
@@ -150,9 +149,6 @@ it.effect("shows every open ruling in the order the feed sent them", () =>
 	}),
 );
 
-// why: the admiral meets every open ruling in the window, so each one says
-// whose turn it is — what nobody has been asked yet reads differently from
-// what a captain is sitting on.
 it.effect("says what rung each open ruling is still waiting on", () =>
 	Effect.gen(function* () {
 		const mounted = mount();
@@ -221,8 +217,6 @@ it.effect("rules with the choice picked and the words written beside it", () =>
 	}),
 );
 
-// why: whoever answers can always answer past every choice the asker listed,
-// so letting a pick go must leave the words standing on their own.
 it.effect("rules on words alone when no choice is held", () =>
 	Effect.gen(function* () {
 		const mounted = mount();

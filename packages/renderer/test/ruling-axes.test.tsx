@@ -1,5 +1,4 @@
-// why: @vitest-environment happy-dom moves an axis through the same select a
-// pointer or a keyboard would, so what the card sends is what was chosen.
+// @vitest-environment happy-dom
 
 import type { OpenRulingsView, RulingView } from "@antumbra/contract";
 import { expect, it } from "@effect/vitest";
@@ -91,8 +90,6 @@ const showing = (mounted: Mounted, view: OpenRulingsView = { rulings: [moved, un
 const buttonSaying = (mounted: Mounted, words: string) =>
 	[...mounted.container.querySelectorAll("button")].find((button) => button.textContent?.includes(words) === true);
 
-// why: the card's own controls are the ones under test, so the lookup stays
-// inside a ruling and never reaches the panel's proclamation form.
 const choosing = (mounted: Mounted, label: string, word: string): Effect.Effect<void> =>
 	settle(() => {
 		const box = [...mounted.container.querySelectorAll("select")].find(
@@ -109,8 +106,6 @@ beforeEach(() => {
 	reclassifyRuling.mockClear();
 });
 
-// why: the badges say where a ruling stands now, and the asker's own word is
-// shown only where an authority moved it.
 it.effect("shows the declared axis only where it was moved", () =>
 	Effect.gen(function* () {
 		const mounted = mount();

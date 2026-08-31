@@ -35,9 +35,6 @@ const stranded = agent("stranded", "alive", [session("s10", "stranded")]);
 const quiet = agent("quiet", "alive", [session("s4", "ended")]);
 const retired = agent("retired", "retired", [session("s5", "working")]);
 
-// why: listening, asleep and stranded used to read alike, and the differences
-// are the ones the admiral acts on — one answers at once, one has to be woken,
-// and one lost its process with work still unfinished.
 it("reads an agent's standing from what the fleet publishes", () => {
 	expect(standingOf(working)).toBe("working");
 	expect(standingOf(listening)).toBe("listening");
@@ -47,18 +44,12 @@ it("reads an agent's standing from what the fleet publishes", () => {
 	expect(standingOf(agent("none", "alive", []))).toBe("quiet");
 });
 
-// why: an agent stands at the liveliest of its sessions, because that is the
-// one a reader looking for it would find it in.
 it("stands an agent at its liveliest session", () => {
 	expect(standingOf(agent("mixed", "alive", [session("s6", "asleep"), session("s7", "idle")]))).toBe("listening");
 	expect(standingOf(agent("busy", "alive", [session("s8", "asleep"), session("s9", "working")]))).toBe("working");
-	// why: stranded outranks the quiet standings, because it is the one nothing
-	// but the admiral will change.
 	expect(standingOf(agent("lost", "alive", [session("s11", "idle"), session("s12", "stranded")]))).toBe("stranded");
 });
 
-// why: an agent the admiral has finished with keeps no claim on attention,
-// whatever its last session was still able to do.
 it("counts a retired agent as retired however its sessions read", () => {
 	expect(standingOf(retired)).toBe("retired");
 });

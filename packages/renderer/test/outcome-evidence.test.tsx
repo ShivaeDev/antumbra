@@ -1,4 +1,4 @@
-// why: @vitest-environment happy-dom exercises the real React click boundary.
+// @vitest-environment happy-dom
 
 import type { ChangeView } from "@antumbra/contract";
 import { expect, it } from "@effect/vitest";

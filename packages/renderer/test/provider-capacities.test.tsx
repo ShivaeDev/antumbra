@@ -1,5 +1,4 @@
-// why: @vitest-environment happy-dom proves the deliberate retry crosses the
-// real provider-capacity control instead of being only painted as a button.
+// @vitest-environment happy-dom
 
 import type { BackendCapacitySummary } from "@antumbra/contract";
 import { expect, it } from "@effect/vitest";

@@ -1,5 +1,4 @@
-// why: @vitest-environment happy-dom exercises draft lifetime through the real
-// controlled session composer.
+// @vitest-environment happy-dom
 
 import type { Fleet } from "@antumbra/contract";
 import { expect, it } from "@effect/vitest";

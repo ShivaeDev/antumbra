@@ -21,7 +21,6 @@ export {
 } from "#errors.ts";
 export { promptInput } from "#input.ts";
 export {
-	type RouseRefused,
 	SessionReach,
 	type SessionRouse,
 } from "#reach.ts";

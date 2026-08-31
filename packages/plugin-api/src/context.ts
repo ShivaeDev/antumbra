@@ -3,15 +3,15 @@ import type { AgentBackend } from "#backend.ts";
 import type { ChangeHost } from "#change-host.ts";
 import type { Runner } from "#runner.ts";
 
-export class DuplicateBackendTag extends Data.TaggedError("DuplicateBackendTag")<{
+class DuplicateBackendTag extends Data.TaggedError("DuplicateBackendTag")<{
 	readonly tag: string;
 }> {}
 
-export class DuplicateRunnerTag extends Data.TaggedError("DuplicateRunnerTag")<{
+class DuplicateRunnerTag extends Data.TaggedError("DuplicateRunnerTag")<{
 	readonly tag: string;
 }> {}
 
-export class DuplicateChangeHostTag extends Data.TaggedError("DuplicateChangeHostTag")<{
+class DuplicateChangeHostTag extends Data.TaggedError("DuplicateChangeHostTag")<{
 	readonly tag: string;
 }> {}
 
@@ -27,7 +27,7 @@ export interface AntumbraPlugin {
 	readonly name: string;
 }
 
-export interface PluginHost {
+interface PluginHost {
 	readonly backends: Effect.Effect<ReadonlyMap<string, AgentBackend>>;
 	readonly changeHosts: Effect.Effect<ReadonlyMap<string, ChangeHost>>;
 	readonly context: PluginContext;

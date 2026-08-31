@@ -1,9 +1,6 @@
 import type { RawPayload } from "@antumbra/vocabulary/session-events";
 import { Clock, Effect, MutableRef, Option, PubSub, Schema, type Scope, Stream } from "effect";
 
-export const BackendCapacityReason = Schema.Literal("usage-limit");
-export type BackendCapacityReason = typeof BackendCapacityReason.Type;
-
 const AvailableCapacity = Schema.Struct({
 	observedAt: Schema.Number,
 	status: Schema.Literal("available"),
@@ -12,7 +9,7 @@ const AvailableCapacity = Schema.Struct({
 const LimitedCapacity = Schema.Struct({
 	detail: Schema.String,
 	observedAt: Schema.Number,
-	reason: BackendCapacityReason,
+	reason: Schema.Literal("usage-limit"),
 	resetsAt: Schema.optional(Schema.Number),
 	status: Schema.Literals(["blocked", "warning"]),
 	utilization: Schema.optional(Schema.Number),

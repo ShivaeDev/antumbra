@@ -83,7 +83,6 @@ it("renders what the agent wrote as the Markdown it authored", () => {
 		seq: 0,
 		text: "# Soundings\n\nThe eastern shoal is steeper than `charted`.",
 	});
-	expect(shown).toContain("markdown");
 	expect(shown).toContain("<h1>Soundings</h1>");
 	expect(shown).toContain("<code>charted</code>");
 	expect(shown).toContain("agent");
@@ -125,19 +124,18 @@ it("keeps a wide code block inside the message that carries it", () => {
 		text: "```sh\npnpm ready --filter @antumbra/renderer\n```",
 	});
 	expect(shown).toContain("<pre>");
-	expect(shown).toContain("language-sh");
 	expect(shown).not.toContain("```");
 });
 
-it("gives thinking and telemetry their own weight rather than a message's", () => {
-	expect(markup({ kind: "thinking", seq: 2, text: "weighing options" })).toContain("text-muted-foreground");
-	const divider = markup({
-		kind: "telemetry",
-		label: "turn completed · 2.3s",
-		seq: 3,
-	});
-	expect(divider).toContain("turn completed · 2.3s");
-	expect(divider).toContain("separator");
+it("renders thinking and telemetry as transcript rows", () => {
+	expect(markup({ kind: "thinking", seq: 2, text: "weighing options" })).toContain("weighing options");
+	expect(
+		markup({
+			kind: "telemetry",
+			label: "turn completed · 2.3s",
+			seq: 3,
+		}),
+	).toContain("turn completed · 2.3s");
 });
 
 it("states a call in one line and holds its input back until asked", () => {

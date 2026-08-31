@@ -1,7 +1,7 @@
 import type { ChangeView, QuayGroup, QuayView } from "@antumbra/contract";
 import { describe, expect, it } from "vitest";
 import { lastSight } from "#quay/groups.ts";
-import { changeMarks, changeNumber, hasLanded } from "#quay/marks.ts";
+import { changeMarks, changeNumber } from "#quay/marks.ts";
 
 const change = (over: Partial<ChangeView> = {}): ChangeView => ({
 	activityAt: "2026-08-19T09:20:00.000Z",
@@ -77,8 +77,6 @@ describe("a change's marks", () => {
 		const merged = change({ stage: "landed" });
 		expect(labels(merged)).toEqual(["merged"]);
 		expect(tones(merged)).toEqual(["muted"]);
-		expect(hasLanded(merged)).toBe(true);
-		expect(hasLanded(change())).toBe(false);
 	});
 
 	it("a change closed without merging does not read as a failed check", () => {

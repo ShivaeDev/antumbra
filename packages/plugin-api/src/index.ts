@@ -17,7 +17,6 @@ export {
 	type BackendCapacityClassification,
 	type BackendCapacityController,
 	BackendCapacityObservation,
-	type BackendCapacityReason,
 	type BackendCapacitySource,
 	makeBackendCapacityController,
 } from "#backend-capacity.ts";

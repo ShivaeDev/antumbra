@@ -21,9 +21,7 @@ const isExecutable = (file: string): boolean => {
 	}
 };
 
-// why: the path a CLI is found under is the name it answers to — a launcher
-// reached through a symlink dispatches on the name it was invoked as, so the
-// hit is handed back as found and never canonicalized.
+// Basename-sensitive launchers may dispatch differently through symlinks, so preserve the discovered path.
 const firstExecutable = (name: string, searchPath: string): Option.Option<string> =>
 	Option.fromNullishOr(
 		searchPath
@@ -40,10 +38,7 @@ const probe = (shell: string): Promise<string> =>
 		);
 	});
 
-// why: an app launched from Finder inherits launchd's PATH, not the user's —
-// the login shell is where theirs is declared. Interactive login (-ilc)
-// reaches rc files that only load interactively; the fences keep the answer
-// apart from whatever those files print.
+// Finder inherits launchd's PATH; an interactive login shell loads the user's CLI path. Fences isolate it from shell startup output.
 const loginShellPath: Effect.Effect<Option.Option<string>> = Config.string("SHELL").pipe(
 	Config.withDefault("/bin/sh"),
 	Effect.flatMap((shell) => Effect.tryPromise(() => probe(shell))),

@@ -10,10 +10,6 @@ const raise = (record: OwnedWindow): Effect.Effect<void> =>
 		record.handle.focus();
 	});
 
-// why: a restore is a best effort at the shape the app was left in, never a
-// gate on it starting. The console is the app, so a console that will not open
-// is still fatal; a child that will not is worth a line in the log and nothing
-// more, because the work it was watching is not in the window.
 export const restoreWindows = (shell: WindowShell, store: LayoutStore) =>
 	Effect.gen(function* () {
 		const plan = restorePlan(yield* store.load);
@@ -29,7 +25,5 @@ export const restoreWindows = (shell: WindowShell, store: LayoutStore) =>
 				Effect.catchCause((cause) => Effect.logWarning("bridge: a remembered window did not reopen", cause)),
 			);
 		}
-		// why: the windows are opened in the order they were written down, so
-		// whichever was in front is put back in front once they all exist.
 		yield* raise((plan.focused === null ? undefined : reopened.get(plan.focused)) ?? consoleWindow);
 	});

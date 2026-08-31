@@ -15,13 +15,7 @@ interface DataDirectoryInput {
 	readonly isPackaged: boolean;
 }
 
-// why: dev and packaged runs must never share a data directory — a dev
-// session migrating ahead of the installed app would corrupt real state.
-// The override lets several dev instances hold separate state (Electron
-// scopes the single-instance lock per userData path); a packaged build
-// ignores it unconditionally, whatever the environment says. A set but
-// relative value is refused rather than resolved, because a directory that
-// depends on the working directory is the collision this exists to prevent.
+// Electron scopes its single-instance lock by userData path, so development and packaged runs use separate directories.
 export const selectDataDirectory = (input: DataDirectoryInput): string => {
 	if (input.isPackaged) {
 		return join(input.appData, "Antumbra");
@@ -85,9 +79,6 @@ interface DesktopApplication {
 	readonly requestSingleInstanceLock: () => boolean;
 }
 
-// why: a launch handed to the owner and a click on the menu bar are the same
-// request — the app the admiral already has, which is the console. Never
-// whichever detached window sorts first, and never a second console.
 export const focusOrOpenConsole = (registry: ConsoleWindows, openConsole: Effect.Effect<void>) =>
 	Effect.gen(function* () {
 		const window = registry.consoleWindow()?.handle;

@@ -10,8 +10,6 @@ export interface WindowOpening extends WindowShell {
 
 type Adopt = (place: WindowPlace) => OwnedWindow | undefined;
 
-// why: children hang off the console; when it goes they go with it, rather
-// than keeping a windowless app alive around them.
 export const closeChildren = (registry: WindowRegistry, place: WindowPlace): void => {
 	for (const child of place.role === "console" ? registry.children() : []) {
 		child.handle.close();

@@ -9,10 +9,6 @@ interface DevTracingInput {
 	readonly isPackaged: boolean;
 }
 
-// why: tracing is a dev instrument and stays one. A packaged run installs no
-// tracer, adds no second logger, and writes no trace database, so a release
-// carries none of the cost; the decision is taken here, as a value, so it can
-// be read and tested without an Electron application to ask.
 export const selectDevTracing = (input: DevTracingInput): Layer.Layer<never> =>
 	input.isPackaged
 		? Layer.empty

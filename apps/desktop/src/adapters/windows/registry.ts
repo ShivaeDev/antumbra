@@ -60,8 +60,6 @@ export const makeWindowRegistry = (): WindowRegistry => {
 		consoleWindow: () => records().find((record) => record.place.role === "console"),
 		focused: () => inFront,
 		holding: (place) => records().find((record) => sameSubject(record.place, place)),
-		// why: which window was in front is part of where the app was left, so a
-		// restart puts the same one there rather than whichever opened last.
 		noteFocus: (id) => {
 			if (inFront !== id) {
 				inFront = id;
@@ -71,9 +69,6 @@ export const makeWindowRegistry = (): WindowRegistry => {
 		onChanged: (listener) => {
 			listeners.add(listener);
 		},
-		// why: the console is the app. A second one in the same process would be
-		// a second place the work is driven from, so ownership refuses it here
-		// rather than trusting every caller to have asked first.
 		own: (record) => {
 			const taken = owned.has(record.contents) || (record.place.role === "console" && records().some((held) => held.place.role === "console"));
 			if (taken) {

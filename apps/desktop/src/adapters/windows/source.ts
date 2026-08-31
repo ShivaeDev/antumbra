@@ -10,9 +10,6 @@ const caller = (registry: WindowRegistry): Effect.Effect<OwnedWindow, WindowRefu
 		return record === undefined ? yield* new WindowRefused({ reason: "unknown_window" }) : record;
 	});
 
-// why: only the console opens windows, and never another console. A child that
-// could open windows would be a second place the app is driven from, and a
-// second console would be a second app.
 const openFor = (input: WindowShell, place: WindowPlace) =>
 	Effect.gen(function* () {
 		const record = yield* caller(input.registry);
@@ -38,9 +35,6 @@ const openFor = (input: WindowShell, place: WindowPlace) =>
 		});
 	});
 
-// why: a window's role is minted once, at open. A window may report where it
-// has moved within its role — which is how a reload lands where it was — but
-// a page that could rename its own role could ask for another window's view.
 const rememberFor = (input: WindowShell, place: WindowPlace) =>
 	Effect.gen(function* () {
 		const record = yield* caller(input.registry);

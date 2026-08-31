@@ -17,8 +17,6 @@ const landedTitles = (piece: PieceView): ReadonlyArray<string> => [
 	...piece.artifacts.map((artifact) => artifact.title),
 ];
 
-// why: one line per piece, in a shape a model can scan and a test can assert:
-// what it is, where it stands, and what still gates it.
 export const pieceLine = (piece: PieceView): string =>
 	parts([`- ${piece.id}`, piece.title, `[${piece.state}]`, dependsOn(piece), awaitsRuling(piece)]);
 

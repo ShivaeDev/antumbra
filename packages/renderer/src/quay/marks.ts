@@ -1,6 +1,6 @@
 import type { ChangeView } from "@antumbra/contract";
 
-export type MarkTone = "destructive" | "info" | "muted" | "success" | "warning";
+type MarkTone = "destructive" | "info" | "muted" | "success" | "warning";
 
 export interface ChangeMark {
 	readonly key: string;

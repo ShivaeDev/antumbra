@@ -3,7 +3,6 @@ import type {
 	BoardWriteRequest,
 	CharterPieceRequest,
 	OpenVoyageRequest,
-	PieceVerdictRequest,
 	ReportMarkdown,
 	RewireRequest,
 	VoyageBackendRequest,
@@ -80,8 +79,6 @@ export const unparkPiece = (pieceId: string, onError: OnError): void => fired(cl
 export const rewirePiece = (request: RewireRequest, onError: OnError): void => fired(client.rewirePiece.mutate(request), onError);
 
 export const workPieceNow = (pieceId: string, onError: OnError): void => fired(client.workPieceNow.mutate({ pieceId }), onError);
-
-export const landPieceVerdict = (request: PieceVerdictRequest, onError: OnError): void => fired(client.landPieceVerdict.mutate(request), onError);
 
 export const writeBoard = (request: BoardWriteRequest, onDone: () => void, onError: OnError): void => {
 	client.writeBoard

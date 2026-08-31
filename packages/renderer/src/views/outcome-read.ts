@@ -18,7 +18,7 @@ export type OutcomeDetail =
 	  }
 	| { readonly _tag: "loading"; readonly title: string };
 
-export interface NamedMarkdown {
+interface NamedMarkdown {
 	readonly markdown: string;
 	readonly title: string;
 }

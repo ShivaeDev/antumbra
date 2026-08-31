@@ -17,7 +17,6 @@ export type {
 	SubmitChangeInput,
 } from "#change-submissions/model.ts";
 export { Changes } from "#change-submissions/service.ts";
-export type { ChangeVerdictRow } from "#change-verdicts.ts";
 export {
 	BerthNotFound,
 	ChangeNotFound,

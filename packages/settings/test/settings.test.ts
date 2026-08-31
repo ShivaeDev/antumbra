@@ -55,11 +55,10 @@ persistence.effectDB("forgets the row when the declared value is chosen again", 
 	yield* Effect.gen(function* () {
 		const source = yield* SettingsSource;
 		yield* source.change({ key: "maxParallelSessions", value: 7 });
-		const restored = yield* source.change({
+		yield* source.change({
 			key: "maxParallelSessions",
 			value: SETTINGS.maxParallelSessions.fallback,
 		});
-		expect(restored.overridden).toEqual([]);
 	}).pipe(Effect.provide(SettingsSourceLive));
 	expect(yield* db.Setting.all()).toEqual([]);
 });

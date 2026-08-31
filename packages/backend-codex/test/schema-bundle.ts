@@ -30,7 +30,7 @@ const SchemaFile = Schema.Struct({
 	definitions: Schema.Record(Schema.String, Definition),
 	oneOf: Schema.optional(Schema.Array(Variant)),
 });
-export type SchemaFile = typeof SchemaFile.Type;
+type SchemaFile = typeof SchemaFile.Type;
 const decodeSchemaFile = Schema.decodeUnknownSync(Schema.fromJsonString(SchemaFile));
 const ResponseFile = Schema.Struct({
 	required: Schema.Array(Schema.String),

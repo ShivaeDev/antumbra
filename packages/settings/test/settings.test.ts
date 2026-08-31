@@ -10,11 +10,11 @@ persistence.effectDB("answers the catalog for a setting nothing has set", functi
 	yield* Effect.gen(function* () {
 		const reading = yield* (yield* SettingsSource).current;
 		expect(reading.settings).toEqual({
-			foldToolCalls: SETTINGS.foldToolCalls.fallback,
-			maxParallelSessions: SETTINGS.maxParallelSessions.fallback,
+			foldToolCalls: false,
+			maxParallelSessions: 4,
 			idleSiestaMinutes: 60,
-			retireRestMinutes: SETTINGS.retireRestMinutes.fallback,
-			retireSweep: SETTINGS.retireSweep.fallback,
+			retireRestMinutes: 15,
+			retireSweep: true,
 		});
 		expect(reading.overridden).toEqual([]);
 	}).pipe(Effect.provide(SettingsSourceLive));

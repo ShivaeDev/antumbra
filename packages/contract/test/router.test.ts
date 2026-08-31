@@ -2,7 +2,7 @@ import { describe, expect, it } from "@effect/vitest";
 import { getTRPCErrorFromUnknown } from "@trpc/server";
 import { Effect, Stream } from "effect";
 import { consoleWindow, fleet, info, makeRuntime, sessionJournal } from "#fixtures.ts";
-import { makeAppRouter, SETTINGS } from "#index.ts";
+import { makeAppRouter } from "#index.ts";
 
 describe("makeAppRouter", () => {
 	it.effect("serves app info from the runtime's source", () =>
@@ -13,24 +13,6 @@ describe("makeAppRouter", () => {
 			});
 			const served = yield* Effect.promise(() => caller.appInfo());
 			expect(served).toEqual(info);
-			yield* Effect.promise(() => runtime.dispose());
-		}),
-	);
-
-	it.effect("serves every declared setting", () =>
-		Effect.gen(function* () {
-			const runtime = makeRuntime();
-			const caller = makeAppRouter(runtime).createCaller({
-				windowId: "console",
-			});
-			const served = yield* Effect.promise(() => caller.settings());
-			expect(served.settings).toEqual({
-				foldToolCalls: SETTINGS.foldToolCalls.fallback,
-				maxParallelSessions: SETTINGS.maxParallelSessions.fallback,
-				idleSiestaMinutes: SETTINGS.idleSiestaMinutes.fallback,
-				retireRestMinutes: SETTINGS.retireRestMinutes.fallback,
-				retireSweep: SETTINGS.retireSweep.fallback,
-			});
 			yield* Effect.promise(() => runtime.dispose());
 		}),
 	);

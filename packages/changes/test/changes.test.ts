@@ -1,4 +1,3 @@
-import { Database } from "@antumbra/persistence";
 import { PiecesLive } from "@antumbra/pieces";
 import type { ChangeHost, ChangeObservation, OpenChangeRequest, Runner } from "@antumbra/plugin-api";
 import { it } from "@antumbra/testing-runtime/domain";
@@ -146,5 +145,5 @@ it.effectApp("owns preparation and host reconciliation as one aggregate", functi
 				},
 			],
 		});
-	}).pipe(Effect.provide(layer(scripted.host)), Effect.provideService(Database, db));
+	}).pipe(Effect.provide(layer(scripted.host)));
 });

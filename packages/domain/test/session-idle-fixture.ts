@@ -59,17 +59,12 @@ export const presenceOf = Effect.gen(function* () {
 	return Option.getOrThrow(Option.fromUndefinedOr(session));
 });
 
-// why: the demand pass the app runs on its own timer, run by hand instead, so
-// a rehearsal awaits the pass rather than waiting for one to come around.
 const siestaPass = Effect.gen(function* () {
 	const domain = yield* AgentDomain;
 	const demand = domain.intentDemands.find((registration) => registration.tag === "session/siesta");
 	return demand === undefined ? yield* Effect.die("no siesta demand is registered") : demand.pass;
 });
 
-// why: a rehearsal that needs two moments cannot sit through the gap between
-// them, so the act runs against a clock further on — which is the same fact as
-// having waited, for everything that reads the time rather than sleeping on it.
 export const laterBy = <A, E, R>(millis: number, act: Effect.Effect<A, E, R>) =>
 	Effect.flatMap(aheadBy(millis), (clock) => act.pipe(Effect.provideService(Clock.Clock, clock)));
 

@@ -23,10 +23,6 @@ const sessionRow = Effect.gen(function* () {
 	return Option.getOrThrow(yield* db.AgentSession.where({ id: HAND.sessionId }).first());
 });
 
-// why: standing down is a declaration, and the only durable trace of it is the
-// row saying the Session is no longer executing. Nothing else about the Agent
-// moves — identity, Moorage and the provider reference are all exactly as they
-// were, which is what makes the state reversible by a single message.
 it.live("stand down records the declaration and disturbs nothing else", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
@@ -71,7 +67,6 @@ it.live("stand down records the declaration and disturbs nothing else", () =>
 					expect((yield* sessionRow).executionStatus).toBe("idle");
 				}),
 			);
-			// why: nothing to interrupt, and still everything to say to.
 			const stillAttached = yield* domain.sessionsAttached;
 			expect(stillAttached.has(HAND.sessionId)).toBe(true);
 			const summary = (yield* fleetSnapshot(["scripted"], new Set(), [], [], {
@@ -151,8 +146,6 @@ it.live("idle survives restart and addressed mail does not wake it", () =>
 					expect((yield* sessionRow).executionStatus).toBe("idle");
 				}),
 			);
-			// why: mail is a persisted fact, and persisted facts do not wake an
-			// Agent — only the admiral speaking to it does.
 			yield* domain.boards.mail({
 				authorAgentId: Option.none(),
 				body: "wait for explicit selection",

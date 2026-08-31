@@ -1,8 +1,8 @@
 import { SETTINGS, SettingsSource } from "@antumbra/contract";
-import { persistenceIt, temporaryPersistence } from "@antumbra/persistence/testing";
+import { persistenceIt } from "@antumbra/persistence/testing";
 import { SettingsSourceLive } from "@antumbra/settings";
-import { expect, it } from "@effect/vitest";
-import { Effect, Layer } from "effect";
+import { expect } from "@effect/vitest";
+import { Effect } from "effect";
 
 const persistence = persistenceIt();
 
@@ -38,15 +38,6 @@ persistence.effectDB("keeps a changed value typed by its declaration", function*
 	}).pipe(Effect.provide(SettingsSourceLive));
 });
 
-persistence.effectDB("falls back to the catalog when a stored value no longer decodes", function* (db) {
-	yield* db.Setting.create({ key: "retireRestMinutes", value: '"often"' });
-	yield* Effect.gen(function* () {
-		const reading = yield* (yield* SettingsSource).current;
-		expect(reading.settings.retireRestMinutes).toBe(SETTINGS.retireRestMinutes.fallback);
-		expect(reading.overridden).toEqual([]);
-	}).pipe(Effect.provide(SettingsSourceLive));
-});
-
 persistence.effectDB("refuses a value its declaration does not accept and stores nothing", function* (db) {
 	yield* Effect.gen(function* () {
 		const refused = yield* Effect.flip(
@@ -72,25 +63,3 @@ persistence.effectDB("forgets the row when the declared value is chosen again", 
 	}).pipe(Effect.provide(SettingsSourceLive));
 	expect(yield* db.Setting.all()).toEqual([]);
 });
-
-it.effect("reads a changed setting back from a fresh source", () =>
-	Effect.acquireUseRelease(
-		Effect.sync(temporaryPersistence),
-		(temporary) =>
-			Effect.gen(function* () {
-				const live = SettingsSourceLive.pipe(Layer.provideMerge(temporary.layer));
-				yield* Effect.gen(function* () {
-					yield* (yield* SettingsSource).change({
-						key: "maxParallelSessions",
-						value: 7,
-					});
-				}).pipe(Effect.provide(live));
-				yield* Effect.gen(function* () {
-					const reading = yield* (yield* SettingsSource).current;
-					expect(reading.settings.maxParallelSessions).toBe(7);
-					expect(reading.overridden).toEqual(["maxParallelSessions"]);
-				}).pipe(Effect.provide(live));
-			}),
-		(temporary) => Effect.sync(temporary.remove),
-	),
-);

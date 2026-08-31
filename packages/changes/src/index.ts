@@ -1,6 +1,5 @@
 export type {
 	ChangeRow,
-	PieceChangePurpose,
 	PieceChangeRow,
 } from "#change-rows.ts";
 export {

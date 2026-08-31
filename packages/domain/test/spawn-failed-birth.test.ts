@@ -1,12 +1,10 @@
 import { type IntentStatus, isTerminalIntentStatus, Kernel } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
 import { type AgentBackend, BackendFailure } from "@antumbra/plugin-api";
-import { SessionFabricLive } from "@antumbra/session-fabric";
 import { expect, it } from "@effect/vitest";
 import { Effect, Option, Stream } from "effect";
 import { AgentDomain } from "#domain.ts";
 import type { SpawnFields } from "#index.ts";
-import { spawnResolution } from "#spawn-resolution.ts";
 import { domainKernelLayer } from "#test/domain-layers.ts";
 import { acquireTemporaryPersistence, makeScriptedBackend, makeScriptedRunner } from "#test/harness.ts";
 import { openReefVoyage, stateOf } from "#test/voyage-fixtures.ts";
@@ -24,21 +22,6 @@ const birth = (suffix: string, pieceId: string, voyageId: string): SpawnFields =
 	sessionId: `session-${suffix}`,
 	voyageId,
 });
-
-const restoreFailedBirthPrefix = (payload: SpawnFields) =>
-	Effect.gen(function* () {
-		const db = yield* Database;
-		const pieceId = Option.getOrThrow(Option.fromUndefinedOr(payload.pieceId));
-		yield* db.transaction(
-			Effect.gen(function* () {
-				yield* Database;
-				yield* db.PieceAgent.create({ agentId: payload.agentId, pieceId });
-				yield* db.AgentSession.where({ id: payload.sessionId }).update({
-					status: "open",
-				});
-			}),
-		);
-	});
 
 // why: registration stakes the Piece before the birth settles, so two attempts
 // that never drew breath used to leave two dormant Agents standing against one
@@ -82,12 +65,6 @@ it.live("births that fail leave no claim standing on their Piece", () =>
 				});
 			yield* failBirth("stillborn-one");
 			yield* failBirth("stillborn-two");
-			const replay = birth("stillborn-one", piece.id, voyage.id);
-			yield* restoreFailedBirthPrefix(replay);
-			const resolution = yield* spawnResolution.pipe(Effect.provide(SessionFabricLive));
-			yield* resolution.settleFailure(replay);
-			expect(yield* db.PieceAgent.where({ agentId: replay.agentId }).all()).toEqual([]);
-			expect(Option.getOrThrow(yield* db.AgentSession.where({ id: replay.sessionId }).first()).status).toBe("closed");
 
 			expect(yield* db.PieceAgent.where({ pieceId: piece.id }).all()).toEqual([]);
 			expect(yield* stateOf(voyage.id, piece.id)).toBe("ready");

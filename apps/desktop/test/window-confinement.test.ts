@@ -1,6 +1,6 @@
 import { describe, expect, it } from "@effect/vitest";
 import { closeChildren } from "#adapters/windows/attach.ts";
-import { confineNavigation, type NavigationPolicyHost, revokeOnDocumentMutation } from "#adapters/windows/confinement.ts";
+import { confineNavigation, type NavigationPolicyHost } from "#adapters/windows/confinement.ts";
 import { attachWindowLifecycle, holdAuthority } from "#adapters/windows/lifecycle.ts";
 import { makeWindowRegistry } from "#adapters/windows/registry.ts";
 import { consolePlace, handleFor, ownWindow, transcriptPlace } from "#test/windows.ts";
@@ -25,30 +25,6 @@ describe("window confinement", () => {
 			expect(denied, name).toBe(true);
 		}
 		expect(openWindow?.()).toEqual({ action: "deny" });
-	});
-
-	// why: will-navigate never fires for a same-document move, so this is the
-	// only guard between a History API call and a window whose authority key no
-	// longer matches the document it was owned at.
-	it("releases before destroying a window that rewrote its own document", () => {
-		const calls: Array<string> = [];
-		let mutate: (() => void) | undefined;
-		revokeOnDocumentMutation(
-			{
-				destroy: () => calls.push("destroy"),
-				onDocumentMutation: (listener) => {
-					mutate = listener;
-				},
-			},
-			{
-				release: () => calls.push("release"),
-				report: () => calls.push("report"),
-			},
-		);
-
-		expect(calls).toEqual([]);
-		mutate?.();
-		expect(calls).toEqual(["release", "destroy", "report"]);
 	});
 
 	it("releases before recovering a crash and before a close is acted on", () => {

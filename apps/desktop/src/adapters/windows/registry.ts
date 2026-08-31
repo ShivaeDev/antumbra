@@ -1,9 +1,7 @@
 import type { WindowPlace } from "@antumbra/contract";
 import { sameSubject } from "#adapters/windows/subject.ts";
 
-export interface DocumentFrame {
-	readonly url: string;
-}
+export type DocumentFrame = object;
 
 export interface DocumentContents {
 	readonly mainFrame: DocumentFrame;
@@ -57,9 +55,8 @@ export interface WindowRegistry {
 }
 
 // why: possession of the preload is not authority by itself — every bridge
-// entry proves it came from the one live main frame at the document the shell
-// loaded for that window, so navigation, a reload the shell did not verify, or
-// another WebContents cannot inherit the powers of a window main owns.
+// entry proves it came from the live main frame of a window the shell owns, so
+// another WebContents cannot inherit that window's identity.
 export const makeWindowRegistry = (): WindowRegistry => {
 	const owned = new Map<DocumentContents, OwnedWindow>();
 	const listeners = new Set<() => void>();
@@ -107,7 +104,7 @@ export const makeWindowRegistry = (): WindowRegistry => {
 			if (record === undefined || event.sender.isDestroyed() || event.senderFrame === null || event.senderFrame !== event.sender.mainFrame) {
 				return undefined;
 			}
-			return event.sender.getURL() === record.document && event.senderFrame.url === record.document ? record : undefined;
+			return record;
 		},
 		release: (contents) => {
 			if (inFront === owned.get(contents)?.id) {

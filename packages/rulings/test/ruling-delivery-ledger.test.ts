@@ -16,7 +16,7 @@ const ruledIn = (order: string) =>
 		return requested.id;
 	});
 
-it.effectDB("owes delivery on every answer, oldest ruled first", function* () {
+it.effectApp("owes delivery on every answer, oldest ruled first", function* () {
 	yield* Effect.gen(function* () {
 		yield* seedFleet;
 		const rulings = yield* Rulings;
@@ -31,7 +31,7 @@ it.effectDB("owes delivery on every answer, oldest ruled first", function* () {
 	}).pipe(Effect.provide(layer));
 });
 
-it.effectDB("stops owing an answer once it is marked", function* (db) {
+it.effectApp("stops owing an answer once it is marked", function* ({ db }) {
 	yield* Effect.gen(function* () {
 		yield* seedFleet;
 		const rulings = yield* Rulings;
@@ -47,7 +47,7 @@ it.effectDB("stops owing an answer once it is marked", function* (db) {
 	}).pipe(Effect.provide(layer));
 });
 
-it.effectDB("refuses to mark a ruling nothing asked", function* () {
+it.effectApp("refuses to mark a ruling nothing asked", function* () {
 	yield* Effect.gen(function* () {
 		const rulings = yield* Rulings;
 

@@ -10,7 +10,7 @@ const climbing = Effect.gen(function* () {
 	return awaiting.map((ruling) => ruling.id);
 });
 
-it.effectDB("owes every open ask to the rung it waits on", function* () {
+it.effectApp("owes every open ask to the rung it waits on", function* () {
 	yield* Effect.gen(function* () {
 		yield* seedFleet;
 		const rulings = yield* Rulings;
@@ -30,7 +30,7 @@ it.effectDB("owes every open ask to the rung it waits on", function* () {
 	}).pipe(Effect.provide(layer));
 });
 
-it.effectDB("leaves a question waiting on the admiral alone", function* () {
+it.effectApp("leaves a question waiting on the admiral alone", function* () {
 	yield* Effect.gen(function* () {
 		yield* seedFleet;
 		const rulings = yield* Rulings;
@@ -40,7 +40,7 @@ it.effectDB("leaves a question waiting on the admiral alone", function* () {
 	}).pipe(Effect.provide(layer));
 });
 
-it.effectDB("stops owing an ask once it is ruled", function* () {
+it.effectApp("stops owing an ask once it is ruled", function* () {
 	yield* Effect.gen(function* () {
 		yield* seedFleet;
 		const rulings = yield* Rulings;
@@ -56,7 +56,7 @@ it.effectDB("stops owing an ask once it is ruled", function* () {
 	}).pipe(Effect.provide(layer));
 });
 
-it.effectDB("leaves a proclamation to the authority that wrote it", function* () {
+it.effectApp("leaves a proclamation to the authority that wrote it", function* () {
 	yield* Effect.gen(function* () {
 		yield* seedFleet;
 		const rulings = yield* Rulings;
@@ -76,7 +76,7 @@ it.effectDB("leaves a proclamation to the authority that wrote it", function* ()
 	}).pipe(Effect.provide(layer));
 });
 
-it.effectDB("owes a passed-up question to the rung it reached", function* () {
+it.effectApp("owes a passed-up question to the rung it reached", function* () {
 	yield* Effect.gen(function* () {
 		yield* seedFleet;
 		const rulings = yield* Rulings;

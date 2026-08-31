@@ -4,7 +4,7 @@ import { expect } from "@effect/vitest";
 import { Effect, Option, PubSub } from "effect";
 import { asked, it, layer, requesterId, seedFleet } from "#test/rulings-harness.ts";
 
-it.effectDB("moves the rung one step and says who moved it", function* () {
+it.effectApp("moves the rung one step and says who moved it", function* () {
 	yield* Effect.scoped(
 		Effect.gen(function* () {
 			yield* seedFleet;
@@ -37,7 +37,7 @@ it.effectDB("moves the rung one step and says who moved it", function* () {
 	).pipe(Effect.provide(layer));
 });
 
-it.effectDB("leaves both axes where the asker declared them", function* () {
+it.effectApp("leaves both axes where the asker declared them", function* () {
 	yield* Effect.gen(function* () {
 		yield* seedFleet;
 		const rulings = yield* Rulings;
@@ -55,7 +55,7 @@ it.effectDB("leaves both axes where the asker declared them", function* () {
 	}).pipe(Effect.provide(layer));
 });
 
-it.effectDB("climbs from the flagship to the admiral", function* () {
+it.effectApp("climbs from the flagship to the admiral", function* () {
 	yield* Effect.gen(function* () {
 		yield* seedFleet;
 		const rulings = yield* Rulings;
@@ -75,7 +75,7 @@ it.effectDB("climbs from the flagship to the admiral", function* () {
 	}).pipe(Effect.provide(layer));
 });
 
-it.effectDB("refuses a rung the question does not wait on", function* (db) {
+it.effectApp("refuses a rung the question does not wait on", function* ({ db }) {
 	yield* Effect.gen(function* () {
 		yield* seedFleet;
 		const rulings = yield* Rulings;
@@ -100,7 +100,7 @@ it.effectDB("refuses a rung the question does not wait on", function* (db) {
 	}).pipe(Effect.provide(layer));
 });
 
-it.effectDB("refuses to move a ruling that already stands", function* (db) {
+it.effectApp("refuses to move a ruling that already stands", function* ({ db }) {
 	yield* Effect.gen(function* () {
 		yield* seedFleet;
 		const rulings = yield* Rulings;
@@ -127,7 +127,7 @@ it.effectDB("refuses to move a ruling that already stands", function* (db) {
 	}).pipe(Effect.provide(layer));
 });
 
-it.effectDB("refuses to move a ruling nothing asked", function* () {
+it.effectApp("refuses to move a ruling nothing asked", function* () {
 	yield* Effect.gen(function* () {
 		const rulings = yield* Rulings;
 

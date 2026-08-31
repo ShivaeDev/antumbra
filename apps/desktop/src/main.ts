@@ -31,8 +31,6 @@ import { WindowSourceLive } from "#adapters/windows/source.ts";
 
 const LAYOUT_PATIENCE_MILLIS = 400;
 
-const reveal = (shell: WindowShell) => focusOrOpenConsole(shell.registry, openConsole(shell));
-
 const layoutStore = Effect.provide(
 	Effect.map(FileSystem.FileSystem, (fs) => fileLayoutStore(fs, windowLayoutInDataDirectory(configureDataDirectory()))),
 	NodeServices.layer,
@@ -65,7 +63,7 @@ const startOwner = (shell: WindowShell, store: LayoutStore) => {
 		// as its own root fiber on the runtime. Every fiber the runtime starts is
 		// registered in the runtime's scope, so disposing it during the quit drain
 		// interrupts the feed subscription and destroys the icon with it.
-		yield* Effect.sync(() => runtime.runFork(fleetTray(reveal(shell))));
+		yield* Effect.sync(() => runtime.runFork(fleetTray(focusOrOpenConsole(shell.registry, openConsole(shell)))));
 		yield* Effect.logInfo("bridge: console open");
 	});
 	return Effect.promise(() => runManagedRuntimeStartup(runtime, main));

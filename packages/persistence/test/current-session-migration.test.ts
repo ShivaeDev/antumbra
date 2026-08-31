@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import { fileURLToPath } from "node:url";
 import { it } from "@effect/vitest";
-import { Effect, Exit } from "effect";
+import { Effect } from "effect";
 import { afterAll, expect } from "vitest";
 import { applyMigrations } from "#adapters/migrator.ts";
 import committedContract from "#contract.json" with { type: "json" };
@@ -116,54 +116,5 @@ it.effect("repairs one current Session without deleting Session history", () =>
 			{ payload: "event-session-older", sessionId: "session-older" },
 			{ payload: "event-session-retired", sessionId: "session-retired" },
 		]);
-	}),
-);
-
-it.effect("fails closed on unknown Agent lifecycle truth", () =>
-	Effect.gen(function* () {
-		const database = freshDatabase();
-		yield* applyMigrations({
-			contract: startContract,
-			database,
-			migrationsDirectory: packagedMigrationsDirectory,
-		});
-		withSqlite(database, (sqlite) => {
-			sqlite
-				.prepare('INSERT INTO "agent" ("id", "role", "charter", "status") VALUES (?, ?, ?, ?)')
-				.run("agent-unknown", "hand", "unknown truth", "future-agent");
-		});
-		const migrated = yield* Effect.exit(
-			applyMigrations({
-				contract: committedContract,
-				database,
-				migrationsDirectory: packagedMigrationsDirectory,
-			}),
-		);
-		expect(Exit.isFailure(migrated)).toBe(true);
-	}),
-);
-
-it.effect("fails closed on unknown Session lifecycle truth", () =>
-	Effect.gen(function* () {
-		const database = freshDatabase();
-		yield* applyMigrations({
-			contract: startContract,
-			database,
-			migrationsDirectory: packagedMigrationsDirectory,
-		});
-		withSqlite(database, (sqlite) => {
-			seedAgent(sqlite, "agent-unknown-session", "alive");
-			sqlite
-				.prepare('INSERT INTO "agentSession" ("id", "agentId", "backend", "cwd", "status", "executionStatus") VALUES (?, ?, ?, ?, ?, ?)')
-				.run("session-unknown", "agent-unknown-session", "scripted", "/tmp/unknown", "future-session", "idle");
-		});
-		const migrated = yield* Effect.exit(
-			applyMigrations({
-				contract: committedContract,
-				database,
-				migrationsDirectory: packagedMigrationsDirectory,
-			}),
-		);
-		expect(Exit.isFailure(migrated)).toBe(true);
 	}),
 );

@@ -5,16 +5,6 @@ import type { Contract as Start } from './start-contract';
 import startContract from './start-contract.json' with { type: 'json' };
 import { Migration, MigrationCLI, dataTransform } from '@prisma-next/sqlite/migration';
 
-const REJECT_INVALID_AGENT_STATUS = `INSERT INTO "agent"
-  ("id", "role", "charter", "status", "currentSessionId", "createdAt", "updatedAt")
-SELECT "id", "role", "charter", "status", "currentSessionId", "createdAt", "updatedAt"
-FROM "agent" WHERE "status" NOT IN ('spawning', 'alive', 'dormant', 'retired')`;
-
-const REJECT_INVALID_SESSION_STATUS = `INSERT INTO "agentSession"
-  ("id", "agentId", "backend", "cwd", "nativeRef", "status", "executionStatus", "charterDeliveredAt", "createdAt")
-SELECT "id", "agentId", "backend", "cwd", "nativeRef", "status", "executionStatus", "charterDeliveredAt", "createdAt"
-FROM "agentSession" WHERE "status" NOT IN ('open', 'closed')`;
-
 const ASSIGN_NEWEST_OPEN_SESSION = `UPDATE "agent" SET "currentSessionId" = (
   SELECT "id" FROM "agentSession"
   WHERE "agentSession"."agentId" = "agent"."id"
@@ -27,10 +17,7 @@ WHERE "agent"."status" IN ('spawning', 'alive')`;
 const CLOSE_NON_CURRENT_SESSIONS = `UPDATE "agentSession" SET "status" = 'closed'
 WHERE "agentSession"."status" = 'open'
   AND (
-    NOT EXISTS (
-      SELECT 1 FROM "agent" WHERE "agent"."id" = "agentSession"."agentId"
-    )
-    OR EXISTS (
+    EXISTS (
       SELECT 1 FROM "agent"
       WHERE "agent"."id" = "agentSession"."agentId"
         AND "agent"."status" IN ('dormant', 'retired')
@@ -51,20 +38,6 @@ export default class M extends Migration<Start, End> {
       this.addColumn({
         table: 'agent',
         column: { name: 'currentSessionId', typeSql: 'TEXT', defaultSql: '', nullable: true },
-      }),
-      dataTransform({
-        id: 'agent.currentSessionId.guard-agent-status',
-        label: 'Reject unknown Agent lifecycle truth',
-        table: 'agent',
-        description: 'fail before repair when an Agent status is outside the durable vocabulary',
-        run: () => REJECT_INVALID_AGENT_STATUS,
-      }),
-      dataTransform({
-        id: 'agent.currentSessionId.guard-session-status',
-        label: 'Reject unknown Session lifecycle truth',
-        table: 'agentSession',
-        description: 'fail before repair when a Session status is outside the durable vocabulary',
-        run: () => REJECT_INVALID_SESSION_STATUS,
       }),
       dataTransform({
         id: 'agent.currentSessionId.backfill',

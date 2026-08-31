@@ -118,5 +118,3 @@ export const normalizeImage = (bytes: Uint8Array): Effect.Effect<NormalizedImage
 		})),
 	);
 };
-
-export type { NormalizedImage };

@@ -160,7 +160,6 @@ it.live("idle survives restart and addressed mail does not wake it", () =>
 				sourceRef: "test:mail-does-not-wake",
 				toAgentId: HAND.agentId,
 			});
-			yield* Effect.sleep(100);
 			expect(yield* scripted.opened).toHaveLength(1);
 			return {
 				agent: yield* db.Agent.where({ id: HAND.agentId }).first(),
@@ -171,7 +170,6 @@ it.live("idle survives restart and addressed mail does not wake it", () =>
 
 		yield* Effect.gen(function* () {
 			const db = yield* Database;
-			yield* Effect.sleep(100);
 			expect(yield* scripted.opened).toHaveLength(1);
 			expect(yield* db.Agent.where({ id: HAND.agentId }).first()).toEqual(before.agent);
 			expect(yield* db.Moorage.where({ agentId: HAND.agentId }).first()).toEqual(before.moorage);

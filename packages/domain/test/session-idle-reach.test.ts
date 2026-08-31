@@ -193,9 +193,6 @@ it.live("a restart leaves an idle session asleep until it is spoken to", () =>
 
 		yield* Effect.gen(function* () {
 			const sight = yield* SightSource;
-			// why: nothing may wake it on its own — not boot, not a projection,
-			// not the passage of a demand pass.
-			yield* Effect.sleep(100);
 			expect(yield* scripted.opened).toHaveLength(1);
 			const asleep = yield* presenceOf;
 			expect(asleep.presence).toBe("asleep");

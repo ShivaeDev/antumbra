@@ -8,4 +8,4 @@ export {
 export { ensureInstallMarker } from "#install-marker.ts";
 export { PersistenceLive } from "#layer.ts";
 export type { StoredAgentSession } from "#rows.ts";
-export type { NewAgentSession, NewRow } from "#writes.ts";
+export type { NewAgentSession } from "#writes.ts";

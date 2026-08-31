@@ -9,7 +9,7 @@ const CodexWindow = Schema.Struct({
 	windowDurationMins: Schema.optional(Schema.NullOr(Schema.Number)),
 });
 
-export const RateLimitsNotification = Schema.Struct({
+const RateLimitsNotification = Schema.Struct({
 	rateLimits: Schema.Struct({
 		primary: Schema.optional(Schema.NullOr(CodexWindow)),
 		rateLimitReachedType: Schema.optional(Schema.NullOr(Schema.String)),

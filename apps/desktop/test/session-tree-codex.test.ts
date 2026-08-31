@@ -49,9 +49,11 @@ const settled = (rootSessionId: string) =>
 	Effect.gen(function* () {
 		const found = yield* treeOf(rootSessionId);
 		expect(found.rows.length).toBe(4);
+		expect(found.leaf).toBeDefined();
+		expect(found.branch).toBeDefined();
 		expect(found.leaf?.status).toBe("closed");
 		expect(found.branch?.status).toBe("closed");
-		return found;
+		return { ...found, branch: found.branch!, leaf: found.leaf! };
 	});
 
 it.effectApp("a thread heard before it is announced becomes a node all the same", { clock: "live" }, function* ({ drained }) {
@@ -83,10 +85,6 @@ it.effectApp("the announcement moves a node under the Session that spawned it", 
 	const tree = yield* settled(receipt.sessionId);
 	const branch = tree.branch;
 	const leaf = tree.leaf;
-	if (branch === undefined || leaf === undefined) {
-		return;
-	}
-
 	expect(leaf).toMatchObject({
 		kind: LEAF_AGENT,
 		outcome: "interrupted",
@@ -114,10 +112,6 @@ it.effectApp("a guardian judges the work without ever joining the tree", { clock
 	yield* drained;
 	const tree = yield* settled(receipt.sessionId);
 	const branch = tree.branch;
-	if (branch === undefined) {
-		return;
-	}
-
 	expect(tree.rows.some((row) => row.nativeRef === GUARDIAN_THREAD)).toBe(false);
 	const kept = (yield* journal(branch.id)).map((row) => row.payload).join("");
 	expect(kept).not.toContain("this looks destructive");

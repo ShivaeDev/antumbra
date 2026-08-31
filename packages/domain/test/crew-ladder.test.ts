@@ -54,10 +54,6 @@ it("an abandoned piece stays abandoned while its crew is still working", () => {
 	expect(stateOf(finished(writtenOff))).toBe("abandoned");
 });
 
-// why: the crew is asked about to decide what a piece reads as, never what may
-// sail behind it. Work that landed releases what waited on it whether or not
-// the crew that landed it has finished saying so, which is what keeps a chain
-// sailing as outcomes land rather than as crews say their goodbyes.
 it("a piece worked again still releases what depended on it", () => {
 	const built = world({
 		...crewing("bravo", "active"),

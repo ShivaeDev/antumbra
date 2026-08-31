@@ -60,9 +60,6 @@ it.live("a dispatched crew is told the smooth log, never the rough one", () =>
 	}),
 );
 
-// why: what binds a crew is decided by the record, not by the crew — a ruling
-// about its piece or about the whole fleet is in its charter before it asks,
-// and one about another piece or still open is not.
 it.live("a dispatched crew is told the standing rulings that bind it", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;

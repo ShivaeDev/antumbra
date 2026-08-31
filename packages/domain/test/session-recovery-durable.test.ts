@@ -16,12 +16,6 @@ import {
 	waitingWake,
 } from "#test/session-recovery-fixture.ts";
 
-// why: what a resume does when the record itself is the thing that will not
-// answer — a write that fails, or rows that give two answers to one question.
-// The provider is willing in both, so nothing here is about what it said; the
-// discipline is that a resume the record cannot back does not take the Session
-// and leaves the durable truth exactly as it found it.
-
 it.live("a failed durable opening append waits without taking the Session", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
@@ -46,10 +40,6 @@ it.live("a failed durable opening append waits without taking the Session", () =
 			expect(events.map((event) => event.seq)).toEqual([0, 1]);
 			const resumed = yield* scripted.session(payload.sessionId);
 			expect(resumed).toBeDefined();
-			// why: the words reach the provider before the opening is confirmed, so
-			// an attachment that then fails to record its identity has already said
-			// its sentence. What it must not do is keep the Session, and the parked
-			// row with the durable log untouched is that.
 			expect(resumed === undefined ? [] : yield* resumed.sent).toEqual([WAKE_INSTRUCTION]);
 
 			yield* Effect.sync(() => allowTestSessionOpenedWrites(temporary.database));

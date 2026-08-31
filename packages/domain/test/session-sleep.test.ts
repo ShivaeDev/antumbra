@@ -19,9 +19,6 @@ import { eventually, untilTerminal } from "#test/session-recovery-fixture.ts";
 
 const CHILD = "native-child";
 
-// why: the shape a provider uses to say a turn handed work to a delegated
-// conversation. Only the reference and the call that spawned it matter here —
-// the rest of the tree's bookkeeping is rehearsed where the tree is.
 const delegates = (live: ScriptedSession) =>
 	live.emit({
 		raw: rawOf("subsession/opened"),
@@ -52,10 +49,6 @@ const siestaIntents = Effect.gen(function* () {
 	return yield* db.Intent.where({ tag: "session/siesta" }).all();
 });
 
-// why: the whole tree rides the root's one acquisition, so a Session that has
-// said it is finished is not at rest while something it delegated is still
-// speaking. The act is withheld rather than offered and refused, because the
-// admiral could do nothing about a child mid-sentence anyway.
 it.live("rest is withheld while a delegated conversation is still speaking", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
@@ -66,8 +59,6 @@ it.live("rest is withheld while a delegated conversation is still speaking", () 
 			yield* delegates(live);
 			yield* callTool(live, "stand_down", undefined);
 
-			// why: the root's own row says idle and the reader still sees no rest
-			// on offer — which is the whole difference this predicate makes.
 			yield* restingAt(false);
 			expect((yield* sessionRow).executionStatus).toBe("idle");
 
@@ -77,9 +68,6 @@ it.live("rest is withheld while a delegated conversation is still speaking", () 
 	}),
 );
 
-// why: one machinery, two callers. The admiral's request is the clock's own
-// act asked for early, so it leaves exactly the state the threshold would —
-// the process gone, the record untouched and still resumable.
 it.live("the admiral's request rests a session through the clock's own act", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
@@ -108,9 +96,6 @@ it.live("the admiral's request rests a session through the clock's own act", () 
 	}),
 );
 
-// why: the capability was read from a snapshot, so the button can always be a
-// moment behind the tree. The act asks the question again against the present
-// and refuses by name — the Session stays awake and the record says why.
 it.live("a request that races a child starting refuses and names itself", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
@@ -130,8 +115,6 @@ it.live("a request that races a child starting refuses and names itself", () =>
 			expect(asked).toHaveLength(1);
 			expect(yield* untilTerminal(kernel.changes(asked[0]?.id ?? ""))).toBe("failed");
 
-			// why: a refusal nobody can read is the silent success this guards
-			// against, so the reason is on the row that asked.
 			const refused = yield* siestaIntents;
 			expect(refused[0]?.detail).toContain("delegated conversation");
 			expect(yield* live.closed).toBe(false);
@@ -140,10 +123,6 @@ it.live("a request that races a child starting refuses and names itself", () =>
 	}),
 );
 
-// why: the threshold measures quiet, not the last time quiet was mentioned.
-// Some Agents stand down again every time they are hailed and find nothing to
-// do, and if each declaration started the wait over, the one Session that says
-// it most often would be the one never reclaimed.
 it.live("standing down again does not push the idle wait out", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
@@ -166,9 +145,6 @@ it.live("standing down again does not push the idle wait out", () =>
 	}),
 );
 
-// why: the threshold is not licence to sever a tree. The clock asks for the same
-// rest the admiral does and waits behind the same rule, so a root left idle
-// overnight with a child still running is passed over until the child ends.
 it.live("the clock waits for the tree before it reclaims", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;

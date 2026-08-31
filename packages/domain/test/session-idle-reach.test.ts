@@ -9,9 +9,6 @@ import { acquireTemporaryPersistence, callTool, makeScriptedBackend, sessionFor,
 import { HAND, openedNatively, presenceOf, sessionRow, sightLayer, spawned } from "#test/session-idle-fixture.ts";
 import { eventually, untilTerminal } from "#test/session-recovery-fixture.ts";
 
-// why: wake-on-send. An asleep root is resumed through the machinery a hail
-// already uses, and the words the admiral sent are what it is told on arrival —
-// one act, no separate wake control to find.
 it.live("a send to an asleep root resumes it and delivers the words", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
@@ -23,9 +20,6 @@ it.live("a send to an asleep root resumes it and delivers the words", () =>
 			yield* spawned;
 			const first = yield* openedNatively(scripted);
 			yield* callTool(first, "stand_down", undefined);
-			// why: the siesta is asked for directly, standing in for the threshold the
-			// clock would otherwise have to pass — the threshold itself is proved
-			// on its own beside this, and this rehearsal is about waking.
 			const siesta = yield* kernel.submit(domain.siesta, {
 				sessionId: HAND.sessionId,
 			});
@@ -116,8 +110,6 @@ it.live("an asleep root wakes from an input id and receives its durable image", 
 	}),
 );
 
-// why: retirement is the one state that refuses, and it refuses with a typed
-// error rather than by going quiet.
 it.live("a send to a retired agent's session refuses", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
@@ -144,9 +136,6 @@ it.live("a send to a retired agent's session refuses", () =>
 	}),
 );
 
-// why: a Session is addressed by its root. Making send state-aware widened what
-// it will do, never what it will do it to — a child's conversation is one its
-// parent is still holding, and nothing outside may speak into it.
 it.live("a send addressed at a subsession is still refused", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
@@ -176,10 +165,6 @@ it.live("a send addressed at a subsession is still refused", () =>
 	}),
 );
 
-// why: idleness is only ever true of a live process, so a restart necessarily
-// leaves an idle Session asleep. Boot must read that as an ordinary resumable
-// Session — not a failure, and not something to resume unasked — and the send
-// is what brings it back.
 it.live("a restart leaves an idle session asleep until it is spoken to", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;

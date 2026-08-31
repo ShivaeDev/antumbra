@@ -137,10 +137,6 @@ export const waitingWake = Effect.gen(function* () {
 	return Option.getOrThrow(Option.fromUndefinedOr(rows[0]));
 });
 
-// why: nothing puts a Session back on a provider on its own any more, so every
-// rehearsal that used to wait for a sweep to notice now does what the admiral
-// would do — it hails the stranded Session by hand and watches the same
-// machinery run.
 export const hail = (sessionId: string) =>
 	Effect.gen(function* () {
 		const domain = yield* AgentDomain;

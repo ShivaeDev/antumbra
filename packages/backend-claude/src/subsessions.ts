@@ -8,10 +8,6 @@ type SystemMessage = Extract<SDKMessage, { type: "system" }>;
 type TaskStarted = Extract<SystemMessage, { subtype: "task_started" }>;
 type Opened = Extract<AgentEvent, { type: "subsession.opened" }>;
 
-// why: a background shell command is a task too, and only local_agent tasks are
-// subsessions. task_id is the agent id the subsession's own frames are attributed
-// under, so the node needs no identity of Antumbra's own making. What the frame
-// does not say is left unsaid rather than written as an empty string.
 const openedEvent = (raw: RawPayload, message: TaskStarted): Opened | undefined => {
 	if (message.task_type !== LOCAL_AGENT || message.tool_use_id === undefined) {
 		return undefined;
@@ -32,12 +28,7 @@ interface Subsessions {
 	readonly spawnerOf: (subsessionRef: string) => string | undefined;
 }
 
-// why: task_updated and task_notification name a task_id and never a task_type,
-// so a mapping that read each frame alone would end a subsession every time a
-// background shell command finished. Remembering which task ids opened as
-// local_agent is the whole state this needs: the first terminal frame for a
-// remembered id closes the node with whatever that frame knows, and later
-// frames about the same id fall through to raw instead of ending it twice.
+// Task updates and notifications omit `task_type`, so only ids observed opening as `local_agent` can close a subsession.
 export const openSubsessions = (): Subsessions => {
 	const open = new Set<string>();
 	const spawners = new Map<string, string>();

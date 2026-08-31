@@ -19,8 +19,7 @@ const line = (type: string, content: ReadonlyArray<Record<string, unknown>>): Se
 	uuid: "6f7a8b9c-0d1e-4f2a-9b3c-5d6e7f809102",
 });
 
-// why: the snapshot naming a workflow's agents is not part of the published
-// SDK type, and the fixture says so rather than pretending otherwise.
+// `workflow_progress` is present in live frames but absent from the published SDK type.
 type ProgressFrame = Extract<SDKMessage, { subtype: "task_progress" }> & {
 	readonly workflow_progress: ReadonlyArray<unknown>;
 };

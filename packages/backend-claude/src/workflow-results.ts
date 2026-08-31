@@ -13,11 +13,7 @@ interface WorkflowResults {
 	readonly recovered: (entries: ReadonlyArray<SessionStoreEntry>, origin: Origin | undefined) => ReadonlyArray<AgentEvent>;
 }
 
-// why: what a workflow finally returned is written to the transcript of the
-// session that called it and never forwarded on the stream, so the mirror is
-// the only place it can be read back. Nothing else is taken from these
-// transcripts — the stream already carried them, and reading them twice would
-// write every turn into the log a second time.
+// Workflow results appear only in the caller's stored transcript; the live stream omits them.
 export const openWorkflowResults = (): WorkflowResults => {
 	const calls = new Set<string>();
 	const reported = new Set<string>();

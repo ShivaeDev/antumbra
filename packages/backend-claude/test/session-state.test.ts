@@ -2,10 +2,6 @@ import type { SDKMessage } from "@anthropic-ai/claude-agent-sdk";
 import { describe, expect, it } from "vitest";
 import { openSessionMapping } from "#mapping.ts";
 
-// why: fixtures are the SDK's own shapes for the pinned version — the whole
-// point of these frames is that the harness already says what the session is
-// doing, so the fields are written out as it sends them rather than trimmed to
-// the ones the mapping happens to read today.
 const SESSION = "57723c86-0b0c-4db1-9c79-1ae37fc5ef4a";
 
 const stateFrame = (state: "idle" | "requires_action" | "running"): SDKMessage => ({
@@ -138,9 +134,6 @@ describe("the harness's own account of a session is kept", () => {
 		});
 	});
 
-	// why: total_cost_usd is the running total for the whole query, so the second
-	// turn of a session must report its own step and not the session's spend —
-	// which is exactly what this record used to show on every turn.
 	it("reports the turn's own cost as the step from the running total", () => {
 		const mapping = openSessionMapping();
 		mapping.frame(result(0.0412));
@@ -149,9 +142,6 @@ describe("the harness's own account of a session is kept", () => {
 		expect(second).toHaveProperty("costUsd", expect.closeTo(0.0188, 6));
 	});
 
-	// why: the SDK resets the running total when a session is resumed or cleared,
-	// so a total that came back smaller is a reset and the total is the step. A
-	// turn that earned money would be worse than one that spent the lot again.
 	it("reads a total that went backwards as the counter starting over", () => {
 		const mapping = openSessionMapping();
 		mapping.frame(result(0.5));
@@ -159,8 +149,6 @@ describe("the harness's own account of a session is kept", () => {
 		expect(after).toMatchObject({ costUsd: 0.02, cumulativeCostUsd: 0.02 });
 	});
 
-	// why: modelUsage is keyed by every model the query pipeline called, and a
-	// turn several of them answered has no one model to name.
 	it("names no model when more than one answered", () => {
 		const mapping = openSessionMapping();
 		const [event] = mapping.frame(result(0.01, ["claude-opus-5", "claude-haiku-5"]));

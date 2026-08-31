@@ -7,12 +7,7 @@ import { type AdoptedAgent, admissionEvents } from "#workflow-adoption.ts";
 const Stamped = Schema.Struct({ uuid: Schema.String });
 const stampedLine = Schema.decodeUnknownOption(Schema.fromJsonString(Stamped));
 
-// why: the provider stamps every frame it forwards with the uuid it writes into
-// its own transcript, so the two are the same identity read from two places.
-// That is what makes the comparison possible at all — and it is read out of the
-// provider bytes this lane journaled, because only this lane knows what a line
-// of its own transcript is called. Bytes that carry no uuid name no line, and
-// name nothing missing either.
+// Claude reuses each transcript line's UUID on the corresponding forwarded frame.
 const uuidOf = (payload: string): ReadonlyArray<string> =>
 	Option.match(stampedLine(payload), {
 		onNone: () => [],

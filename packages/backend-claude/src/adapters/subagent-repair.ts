@@ -14,8 +14,6 @@ const read = async (request: RepairRequest, agentId: string): Promise<AdoptedAge
 	}),
 });
 
-// why: the provider's own census of a session's delegated agents is read from
-// its stored transcripts because the live mirror may have dropped a batch.
 export const repairSubagents = async (request: RepairRequest): Promise<Repair> => {
 	try {
 		const census = await listSubagents(request.nativeSessionId, {

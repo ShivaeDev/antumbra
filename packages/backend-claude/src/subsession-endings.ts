@@ -26,19 +26,14 @@ export const endedEvent = (raw: RawPayload, ending: Ending): AgentEvent => ({
 
 const LIVE = new Set(["paused", "pending", "running"]);
 
-// why: 'killed' is a word the provider declares for forced termination — the
-// same family as a notification's 'stopped' — so it translates to interrupted.
-// A word the provider never declared is another matter: that is recorded as
-// unknown rather than bent into the nearest one it does own, with the
-// provider's own word left legible in raw.
+// Claude reports forced termination as `killed` in patches and `stopped` in notifications.
 const patchedOutcome = (status: string): typeof SubsessionOutcome.Type => {
 	if (status === "completed") return "completed";
 	if (status === "failed") return "failed";
 	return status === "killed" ? "interrupted" : "unknown";
 };
 
-// why: there is no task_completed message — a task ends by being patched out of
-// its live states, and the patch names nothing else about the run.
+// Claude emits no task-completed frame; the first patch outside the live states is terminal.
 export const updatedEnding = (message: TaskUpdated): Ending | undefined => {
 	const status = message.patch.status;
 	if (status === undefined || LIVE.has(status)) return undefined;
@@ -51,8 +46,6 @@ export const updatedEnding = (message: TaskUpdated): Ending | undefined => {
 	};
 };
 
-// why: a notification's 'stopped' is the provider saying the task was stopped
-// on request, which this vocabulary calls interrupted.
 export const notifiedEnding = (message: TaskNotification): Ending => ({
 	durationMs: message.usage?.duration_ms,
 	outcome: message.status === "stopped" ? "interrupted" : message.status,
@@ -61,8 +54,6 @@ export const notifiedEnding = (message: TaskNotification): Ending => ({
 	tokens: message.usage?.total_tokens,
 });
 
-// why: the Agent tool's own result carries the run totals, and the docs say to
-// render from it rather than parse the tool_result text.
 export const reportedEnding = (message: SDKMessage): Ending | undefined => {
 	if (!("tool_use_result" in message) || !isRecord(message.tool_use_result)) {
 		return undefined;

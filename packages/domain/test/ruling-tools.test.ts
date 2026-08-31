@@ -7,7 +7,7 @@ import { AgentDomain } from "#domain.ts";
 import { makeRulingToolCompiler } from "#ruling-tools.ts";
 import { dispatchingLayer, domainCapabilityLayer, domainKernelLayer } from "#test/domain-layers.ts";
 import { acquireTemporaryPersistence, callTool, makeScriptedBackend, type ScriptedBackend, sessionFor } from "#test/harness.ts";
-import { chain, eventually, openReefVoyage, PATIENCE } from "#test/voyage-fixtures.ts";
+import { chain, openReefVoyage, PATIENCE } from "#test/voyage-fixtures.ts";
 
 const ASK = {
 	choices: [{ detail: "the soundings are fresher", label: "resurvey" }],
@@ -18,18 +18,6 @@ const ASK = {
 	urgency: "pressing",
 };
 
-const crewOn = (scripted: ScriptedBackend, pieceId: string) =>
-	Effect.gen(function* () {
-		const db = yield* Database;
-		const row = (yield* db.PieceAgent.where({ pieceId }).all())[0];
-		return row === undefined
-			? yield* Effect.fail("no crew yet")
-			: {
-					agentId: row.agentId,
-					live: yield* sessionFor(scripted, row.agentId),
-				};
-	});
-
 const rulingTool = (tools: ReadonlyArray<DirectTool>): DirectTool =>
 	Option.getOrThrow(Option.fromUndefinedOr(tools.find((tool) => tool.name === "request_ruling")));
 
@@ -39,17 +27,32 @@ it.live("a request carries who asked and where the asker stood", () =>
 		const scripted = yield* makeScriptedBackend;
 		yield* Effect.gen(function* () {
 			const db = yield* Database;
-			const { alpha, voyage } = yield* chain;
-			const crew = yield* eventually(crewOn(scripted, alpha.id));
+			const domain = yield* AgentDomain;
+			const kernel = yield* Kernel;
+			const voyage = yield* openReefVoyage;
+			const alpha = yield* domain.voyages.charterPiece({
+				charter: "do alpha",
+				dependsOn: [],
+				expectation: "alpha is landed",
+				role: "hand",
+				title: "alpha",
+				voyageId: voyage.id,
+			});
+			const crewed = yield* domain.voyages.workNow(alpha.id);
+			const status = yield* kernel
+				.changes(crewed.intentId)
+				.pipe(Stream.takeUntil(isTerminalIntentStatus), Stream.runLast, Effect.map(Option.getOrThrow));
+			expect(status).toBe("succeeded");
+			const live = yield* sessionFor(scripted, crewed.agentId);
 
-			const outcome = yield* callTool(crew.live, "request_ruling", ASK);
+			const outcome = yield* callTool(live, "request_ruling", ASK);
 
 			const stored = (yield* db.Ruling.all())[0];
 			expect(stored).toMatchObject({
 				context: ASK.context,
 				question: ASK.question,
 				radius: "voyage",
-				requesterAgentId: crew.agentId,
+				requesterAgentId: crewed.agentId,
 				urgency: "pressing",
 			});
 			expect(outcome).toEqual({
@@ -59,12 +62,12 @@ it.live("a request carries who asked and where the asker stood", () =>
 			expect((yield* db.RulingSubject.all()).map((row) => [row.kind, row.agentId ?? row.pieceId ?? row.voyageId ?? row.tag])).toEqual([
 				["piece", alpha.id],
 				["voyage", voyage.id],
-				["agent", crew.agentId],
+				["agent", crewed.agentId],
 				["tag", "surveying"],
 				["tag", "charts"],
 			]);
 			expect((yield* db.RulingChoice.all()).map((row) => row.label)).toEqual(["resurvey"]);
-		}).pipe(Effect.provide(dispatchingLayer(temporary, scripted.backend, PATIENCE)));
+		}).pipe(Effect.provide(domainKernelLayer(temporary, scripted.backend)));
 	}),
 );
 

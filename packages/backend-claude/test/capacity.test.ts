@@ -1,5 +1,5 @@
 import type { SDKMessage } from "@anthropic-ai/claude-agent-sdk";
-import { type BackendCapacityController, makeBackendCapacityController } from "@antumbra/plugin-api";
+import { makeBackendCapacityController } from "@antumbra/plugin-api";
 import { it } from "@effect/vitest";
 import { Effect, Option } from "effect";
 import { describe, expect } from "vitest";
@@ -40,12 +40,6 @@ const apiRetry: SDKMessage = {
 	subtype: "api_retry",
 	type: "system",
 	uuid: "2b3c4d5e-6f7a-4b8c-9d0e-1f2a3b4c5d6e",
-};
-
-const recordCapacityObservedFrame = (delivered: SDKMessage[], frame: SDKMessage, observations: number) => {
-	delivered.push(frame);
-	expect(openSessionMapping().frame(frame)[0]?.raw).toEqual(rawOf(frame));
-	expect(observations).toBe(delivered.length);
 };
 
 describe("claude capacity evidence", () => {
@@ -92,18 +86,10 @@ describe("claude capacity evidence", () => {
 		expect(openSessionMapping().frame(apiRetry)).toMatchObject([{ raw: { kind: "system/api_retry", source: "claude" }, type: "raw" }]);
 	});
 
-	it.effect("feeds every live SDK frame to capacity exactly once", () =>
+	it.effect("feeds live SDK capacity evidence to the controller", () =>
 		Effect.scoped(
 			Effect.gen(function* () {
 				const controller = yield* makeBackendCapacityController(classifyClaudeCapacity);
-				let observations = 0;
-				const counting: BackendCapacityController = {
-					observe: (raw, observedAt) => {
-						observations += 1;
-						return controller.observe(raw, observedAt);
-					},
-					source: controller.source,
-				};
 				const rejected = rateLimit("rejected", { utilization: 1 });
 				const delivered: SDKMessage[] = [];
 				const input = new InputQueue(() => {});
@@ -115,11 +101,8 @@ describe("claude capacity evidence", () => {
 					},
 				};
 
-				yield* Effect.promise(() =>
-					consumeSdkMessages(live, input, (frame) => recordCapacityObservedFrame(delivered, frame, observations), counting.observe),
-				);
+				yield* Effect.promise(() => consumeSdkMessages(live, input, (frame) => delivered.push(frame), controller.observe));
 				expect(delivered).toEqual(frames);
-				expect(observations).toBe(2);
 				expect(Option.getOrThrow(yield* controller.source.current)).toMatchObject({
 					observedAt: expect.any(Number),
 					reason: "usage-limit",

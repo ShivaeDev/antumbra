@@ -150,8 +150,8 @@ it.live("a landed change flips its piece done and wakes the voyage feed", () =>
 				review: "approved",
 				stage: "landed",
 			});
-			// why: a host answers about more than it was asked, and an id nothing
-			// here points at is ignored rather than adopted by drift.
+			// Host observations may include unrelated changes; drift ignores ids
+			// without a known row.
 			yield* scripted.drive.announce(
 				scriptedObservation("scripted", "stranger", {
 					baseRef: "main",
@@ -193,8 +193,6 @@ it.live("a landed change flips its piece done and wakes the voyage feed", () =>
 	),
 );
 
-// why: history is appended, never mutated — a host that reports a settled
-// change open again is describing a world already accounted for.
 it.live("a change that has landed never goes back to open", () =>
 	withHost((scripted) =>
 		Effect.gen(function* () {

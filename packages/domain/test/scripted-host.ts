@@ -8,8 +8,6 @@ interface ScriptedHostDrive {
 	readonly asked: Effect.Effect<ReadonlyArray<ChangeRef>>;
 	readonly attempted: Effect.Effect<ReadonlyArray<OpenChangeRequest>>;
 	readonly opened: Effect.Effect<ReadonlyArray<OpenChangeRequest>>;
-	// why: a host that stops answering is the case a watcher must survive, so
-	// the scripted one can be told to refuse and told to stop refusing.
 	readonly refuse: (detail: string | null) => Effect.Effect<void>;
 	readonly transition: (repoId: string, externalId: string, patch: Partial<ChangeObservation>) => Effect.Effect<void>;
 }
@@ -55,8 +53,7 @@ export const scriptedObservation = (tag: string, externalId: string, fields: Obs
 	url: `https://${tag}.test/changes/${externalId}`,
 });
 
-// why: a url is all a host is given to adopt by, so the scripted one reads its
-// own id off the end of it — the same trick a real host plays with a number.
+// The scripted provider derives the external id from the adopted URL.
 const adoptedObservation = (tag: string, url: string, repo: ChangeHostRepo): ChangeObservation => {
 	const externalId = url.split("/").at(-1) ?? "";
 	return scriptedObservation(tag, externalId, {
@@ -85,9 +82,8 @@ const observeHostTruth = (
 		),
 	);
 
-// why: a submission is the stable host correlation; branch identity is only
-// part of its frozen proposal. Fresh adapter instances therefore return the
-// same provider observation without minting another external change.
+// Submission id is the stable provider correlation; repeated opens return the
+// same observation.
 const openSubmittedTruth = (
 	truth: ScriptedHostTruth,
 	attempts: Ref.Ref<ReadonlyArray<OpenChangeRequest>>,
@@ -132,11 +128,8 @@ const transitioned = (seen: ChangeObservation, patch: Partial<ChangeObservation>
 	...patch,
 });
 
-// why: the host every change test runs against — it mints ids the way a real
-// one does and answers from a map the test drives, so a change's whole life is
-// exercised without a network or a model. `observe` volunteers everything it
-// knows rather than only what was asked, because that is the case the domain
-// must survive: what it has no row for is ignored, never adopted by drift.
+// Observations include every known provider row, including unrelated changes;
+// drift decides what belongs.
 export const makeScriptedHostTruth: Effect.Effect<ScriptedHostTruth> = Effect.gen(function* () {
 	return {
 		count: yield* Ref.make(0),
@@ -192,9 +185,6 @@ export const makeScriptedHost = (options: ScriptedHostOptions = {}) =>
 		} satisfies ScriptedHost;
 	});
 
-// why: a build where a host is registered but claims nothing is the honest
-// shape of "no host for this repo" — the refusal must name the repo rather
-// than pretend a change was opened.
 export const claimsNothingHost = (tag: string): ChangeHost => ({
 	adopt: () => new ChangeHostRefused({ detail: "claims nothing", host: tag }),
 	capability: Effect.succeed({ available: false, detail: "claims nothing" }),

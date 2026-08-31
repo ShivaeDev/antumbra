@@ -14,9 +14,6 @@ interface Hold {
 	open: boolean;
 }
 
-// why: production gates are pure predicates over a snapshot; this double is
-// the test's hand on that predicate, so an Intent can be held in "queued"
-// without waiting on a real capacity condition.
 const holdGate = (hold: Hold): Gate => ({
 	admits: () => hold.open,
 	id: "test-hold",
@@ -82,9 +79,6 @@ it.live("a draining session shows its execution word beside its intent", () =>
 			const agent = fleet.agents.find((row) => row.id === receipt.agentId);
 			const session = agent?.sessions.find((row) => row.id === receipt.sessionId);
 			expect(session?.diag.execution).toBe("draining");
-			// why: draining is on its way to rest, not out of reach. The words
-			// wake it once the drain has settled, so the fleet keeps saying the
-			// admiral may speak to it.
 			expect(session?.canSend).toBe(true);
 			expect(session?.canInterrupt).toBe(false);
 			expect(words(session?.diag.intents ?? [])).toContain("session/siesta queued");
@@ -125,8 +119,6 @@ it("attributes a pending intent to the most specific row that exists", () => {
 		new Set(["agent-1"]),
 		new Set(["session-1"]),
 	);
-	// why: the reason travels with the mark, so attribution carries a sentence
-	// the reader will otherwise have to go to the database for.
 	expect(attribution.sessions.get("session-1")).toEqual([
 		{
 			detail: "waiting on a berth",

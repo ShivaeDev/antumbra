@@ -19,8 +19,6 @@ it("each situation draws its own template, filled from the change record", () =>
 	expect(reviews).toContain("review comments");
 });
 
-// why: the draft has to name the change the admiral is looking at. A number
-// carried over from somewhere else would send an Agent at a stranger's branch.
 it("every draft names the change, its branch and the repo it lives in", () => {
 	const every = [
 		situationWords("merge_conflicts", CHANGE, "Reef-Charts"),

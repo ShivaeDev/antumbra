@@ -88,8 +88,6 @@ export const domainKernelLayer = (
 				reclaim,
 			).pipe(Layer.provide(NodeServices.layer)),
 		),
-		// why: the domain's own clock-driven passes read the catalog, so the
-		// settings stand under it here exactly as they do in the app.
 		Layer.provideMerge(SettingsSourceLive),
 		Layer.provideMerge(temporary.layer),
 	);
@@ -105,9 +103,8 @@ export const dispatchingLayer = (
 
 export const sightSourceTestLayer = SightSourceLive.pipe(Layer.provideMerge(BackendCapacityReleaseLive));
 
-// why: the watcher stands beside the dispatcher exactly as it does in the app,
-// so a test of "the host said it landed" runs the same path a real merge does
-// — nothing in these tests ever calls a refresh by hand.
+// The watcher runs beside the dispatcher, so landing is observed without a
+// hand refresh.
 export const watchingLayer = (
 	temporary: TemporaryPersistence,
 	backend: AgentBackend,

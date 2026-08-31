@@ -1,15 +1,8 @@
-import {
-	decodeSessionExecutionStatus,
-	SessionExecutionStatusSchema,
-	sessionExecutionTransition,
-	sessionPresence,
-} from "@antumbra/vocabulary/agent-runtime";
+import { decodeSessionExecutionStatus, sessionExecutionTransition, sessionPresence } from "@antumbra/vocabulary/agent-runtime";
 import { expect, it } from "@effect/vitest";
-import { Option, Result, Schema } from "effect";
+import { Result } from "effect";
 
 it("keeps Session execution status closed and transitions explicit", () => {
-	const decode = Schema.decodeUnknownOption(SessionExecutionStatusSchema);
-	expect(Option.isNone(decode("paused"))).toBe(true);
 	expect(Result.isFailure(decodeSessionExecutionStatus("session-1", "paused"))).toBe(true);
 	expect(Result.isFailure(sessionExecutionTransition("session-1", "active", "settle"))).toBe(true);
 });

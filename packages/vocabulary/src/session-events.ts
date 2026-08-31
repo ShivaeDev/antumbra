@@ -12,21 +12,17 @@ export {
 	RateLimitEvent,
 	RateLimitWindow,
 } from "#session-events/rate-limit.ts";
-export { RawEvent, type RawPayload } from "#session-events/raw.ts";
+export type { RawPayload } from "#session-events/raw.ts";
 export {
 	type BackgroundTask,
 	SessionBackgroundEvent,
 	SessionState,
 	SessionStateEvent,
 } from "#session-events/state.ts";
-export {
-	decodeStoredSubsessionOutcome,
-	StoredSubsessionOutcomeInvalid,
-} from "#session-events/stored-outcome.ts";
+export { decodeStoredSubsessionOutcome } from "#session-events/stored-outcome.ts";
 export {
 	SubsessionEnded,
 	SubsessionGap,
-	SubsessionGapKind,
 	SubsessionOpened,
 	SubsessionOutcome,
 } from "#session-events/subsessions.ts";

@@ -4,10 +4,9 @@ import type { TemporaryPersistence } from "@antumbra/persistence/testing";
 import { SessionFabricLive } from "@antumbra/session-fabric";
 import { makeCurrentSessionResumable, makeRefuseSubsessionAttach, SubsessionAttachRefused } from "@antumbra/sessions";
 import { expect, it } from "@effect/vitest";
-import { Effect, Layer, Result } from "effect";
+import { Effect, Layer, Result, Stream } from "effect";
 import { domainKernelLayer, sightSourceTestLayer } from "#test/domain-layers.ts";
 import { acquireTemporaryPersistence, makeScriptedBackend, type ScriptedBackend } from "#test/harness.ts";
-import { eventually } from "#test/voyage-fixtures.ts";
 
 const sightLayer = (temporary: TemporaryPersistence, scripted: ScriptedBackend) =>
 	sightSourceTestLayer.pipe(Layer.provideMerge(domainKernelLayer(temporary, scripted.backend)), Layer.provideMerge(SessionFabricLive));
@@ -18,9 +17,6 @@ const spawnRequest = {
 	role: "navigator",
 };
 
-// why: the creator of subsession rows arrives with acquisition. Until then a
-// test writes the row the way the tree will, so the readers can be held to the
-// discipline before anything downstream depends on it.
 const openSubsession = (id: string, agentId: string, parentSessionId: string, rootSessionId: string) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
@@ -49,11 +45,11 @@ it.live("the fleet lists root Sessions and never a subsession", () =>
 		yield* Effect.gen(function* () {
 			const sight = yield* SightSource;
 			const receipt = yield* sight.spawn(spawnRequest);
-			yield* eventually(
-				Effect.gen(function* () {
-					const fleet = yield* sight.fleet;
-					expect(fleet.agents.flatMap((agent) => agent.sessions).map((row) => row.id)).toEqual([receipt.sessionId]);
-				}),
+			yield* sight.fleetFeed.pipe(
+				Stream.filter((fleet) =>
+					fleet.agents.some((agent) => agent.id === receipt.agentId && agent.sessions.some((session) => session.id === receipt.sessionId)),
+				),
+				Stream.runHead,
 			);
 
 			yield* openSubsession("session-child", receipt.agentId, receipt.sessionId, receipt.sessionId);
@@ -70,11 +66,11 @@ it.live("a subsession is never a resume target", () =>
 		yield* Effect.gen(function* () {
 			const sight = yield* SightSource;
 			const receipt = yield* sight.spawn(spawnRequest);
-			yield* eventually(
-				Effect.gen(function* () {
-					const fleet = yield* sight.fleet;
-					expect(fleet.agents).not.toEqual([]);
-				}),
+			yield* sight.fleetFeed.pipe(
+				Stream.filter((fleet) =>
+					fleet.agents.some((agent) => agent.id === receipt.agentId && agent.sessions.some((session) => session.id === receipt.sessionId)),
+				),
+				Stream.runHead,
 			);
 			yield* openSubsession("session-child", receipt.agentId, receipt.sessionId, receipt.sessionId);
 
@@ -89,10 +85,6 @@ it.live("a subsession is never a resume target", () =>
 	}),
 );
 
-// why: selection keeps a child out of the paths only roots may take; this is
-// the seam underneath it, where an id becomes a live attachment. A caller that
-// came by a child id any other way is refused here, in the type rather than in
-// a comment.
 it.live("the attachment seam refuses a subsession id outright", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
@@ -100,11 +92,11 @@ it.live("the attachment seam refuses a subsession id outright", () =>
 		yield* Effect.gen(function* () {
 			const sight = yield* SightSource;
 			const receipt = yield* sight.spawn(spawnRequest);
-			yield* eventually(
-				Effect.gen(function* () {
-					const fleet = yield* sight.fleet;
-					expect(fleet.agents).not.toEqual([]);
-				}),
+			yield* sight.fleetFeed.pipe(
+				Stream.filter((fleet) =>
+					fleet.agents.some((agent) => agent.id === receipt.agentId && agent.sessions.some((session) => session.id === receipt.sessionId)),
+				),
+				Stream.runHead,
 			);
 			yield* openSubsession("session-child", receipt.agentId, receipt.sessionId, receipt.sessionId);
 

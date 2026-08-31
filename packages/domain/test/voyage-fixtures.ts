@@ -111,7 +111,7 @@ export const standDownAll = (scripted: ScriptedBackend) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
 		const alive = yield* db.Agent.where({ status: "alive" }).all();
-		yield* Effect.forEach(alive, (agent) => Effect.retry(standDown(scripted, agent.id), Schedule.spaced(10).pipe(Schedule.upTo({ duration: 500 }))));
+		yield* Effect.forEach(alive, (agent) => standDown(scripted, agent.id));
 	});
 
 export const standDownOneAlive = (scripted: ScriptedBackend) =>

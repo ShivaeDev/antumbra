@@ -33,10 +33,7 @@ const makeBackendCapacityReleases = Effect.gen(function* () {
 	return { reconcile, release };
 });
 
-// why: available is durable permission to release provider-held work. The boot
-// pass repairs a crash after the clear; a waiting transition catches work that
-// read the old block before that clear and parked afterwards. A fresh provider
-// refusal persists blocked before its Intent waits, so this pass leaves it held.
+// Reconcile both after durable clear and after a waiter parks so either ordering releases eligible work.
 export const BackendCapacityReleaseLive = Layer.effect(
 	BackendCapacityReleases,
 	Effect.gen(function* () {

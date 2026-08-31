@@ -15,9 +15,6 @@ const onOwnedDependencies = (
 	return strangers.length === 0 ? act(voyageId) : Effect.succeed(refused(`these pieces are not on your voyage: ${strangers.join(", ")}`));
 };
 
-// why: an edge is the other side of the same hull — the model lets any piece
-// wait on any piece, and this capability keeps a voyage from hanging its work
-// off another ship's.
 export const onOwnDeps = Effect.fn("captainMembership.onOwnDeps")(function* (
 	identity: SessionIdentity,
 	dependsOn: ReadonlyArray<string>,

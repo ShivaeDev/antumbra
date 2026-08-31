@@ -10,9 +10,6 @@ import { piecesOfVoyage, type VoyageState, voyageState } from "#voyage-state.ts"
 export type PieceCounts = Readonly<Record<PieceState, number>>;
 
 export interface VoyageView extends VoyageRow {
-	// why: the accountable address of the voyage, derived rather than stored —
-	// a hail writes a crew row, and who the captain is follows from that row
-	// and the agent's own status.
 	readonly captain: Option.Option<VoyageCaptain>;
 	readonly counts: PieceCounts;
 	readonly crew: ReadonlyArray<VoyageCrewMember>;

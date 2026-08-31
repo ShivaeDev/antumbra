@@ -13,8 +13,6 @@ const authored = (authorAgentId: string | null): string => (authorAgentId === nu
 
 const landedLines = (pieces: ReadonlyArray<PieceView>): ReadonlyArray<string> =>
 	pieces.flatMap((piece) => [
-		// why: a report is readable in full through its id, so the line that
-		// announces one names it — a title alone leaves nothing to call for.
 		...piece.reports.map((report) => `- ${report.id} ${report.title} — report${authored(report.authorAgentId)}`),
 		...piece.artifacts.map((artifact) => `- ${artifact.title} — artifact${authored(artifact.authorAgentId)}`),
 	]);

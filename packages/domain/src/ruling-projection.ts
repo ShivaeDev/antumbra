@@ -5,13 +5,9 @@ import { gatedPiecesSeen } from "#ruling-gated-pieces.ts";
 import { rungSeen } from "#ruling-rung-view.ts";
 import type { VoyageWorld } from "#voyage-rows.ts";
 
-// why: a subject reaches the window as the word that named it — the id of the
-// row it points at, or the tag itself when the concept has no row of its own.
 const subjectSeen = (subject: RulingSubject): RulingSubjectView =>
 	subject.kind === "tag" ? { kind: subject.kind, label: subject.tag } : { kind: subject.kind, label: subject.id };
 
-// why: an axis a reclassification left alone is absent from the view rather
-// than carried as an empty value, so the window reads only what was moved.
 const reclassificationSeen = (reclassification: RulingReclassification): RulingReclassificationView => ({
 	at: reclassification.at.toISOString(),
 	by: reclassification.by,
@@ -50,8 +46,6 @@ export const rulingSeen = (ruling: Ruling, world: VoyageWorld): RulingView => ({
 	urgency: ruling.urgency,
 });
 
-// why: a pick reaches the window as the words the asker offered, because a
-// choice id means nothing once the question it belonged to is read as answered.
 const chosenLabel = (ruling: Ruling, answer: RulingAnswer): string | null =>
 	Option.getOrNull(
 		Option.flatMap(answer.choiceId, (choiceId) =>

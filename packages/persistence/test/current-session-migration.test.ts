@@ -1,39 +1,18 @@
-import { mkdtempSync, readFileSync, rmSync } from "node:fs";
-import { tmpdir } from "node:os";
+import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { DatabaseSync } from "node:sqlite";
+import type { DatabaseSync } from "node:sqlite";
 import { fileURLToPath } from "node:url";
 import { it } from "@effect/vitest";
 import { Effect } from "effect";
-import { afterAll, expect } from "vitest";
+import { expect } from "vitest";
 import { applyMigrations } from "#adapters/migrator.ts";
 import committedContract from "#contract.json" with { type: "json" };
-import { brandDatabaseFilePath } from "#data-dir.ts";
-import { packagedMigrationsDirectory, type TemporaryPersistence } from "#testing.ts";
+import { freshMigrationDatabase as freshDatabase, withSqlite } from "#test/migration-harness.ts";
+import { packagedMigrationsDirectory } from "#testing.ts";
 
-const directories: string[] = [];
 const packageRoot = fileURLToPath(new URL("..", import.meta.url));
 const migration = join(packageRoot, "migrations", "app", "20260817T2058_current_session_ownership");
 const startContract: unknown = JSON.parse(readFileSync(join(migration, "start-contract.json"), "utf8"));
-
-afterAll(() => {
-	for (const directory of directories.splice(0)) {
-		rmSync(directory, { force: true, recursive: true });
-	}
-});
-
-const freshDatabase = (): TemporaryPersistence["database"] => {
-	const directory = mkdtempSync(join(tmpdir(), "antumbra-current-session-"));
-	directories.push(directory);
-	return brandDatabaseFilePath(join(directory, "test.db"));
-};
-
-const withSqlite = <A>(path: string, act: (database: DatabaseSync) => A): A => {
-	const database = new DatabaseSync(path);
-	const result = act(database);
-	database.close();
-	return result;
-};
 
 const seedAgent = (database: DatabaseSync, id: string, status: "alive" | "dormant" | "retired") =>
 	database.prepare('INSERT INTO "agent" ("id", "role", "charter", "status") VALUES (?, ?, ?, ?)').run(id, "hand", `charter ${id}`, status);

@@ -1,30 +1,13 @@
-import { mkdtempSync, rmSync } from "node:fs";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { it } from "@effect/vitest";
 import { Effect } from "effect";
-import { afterAll, expect } from "vitest";
+import { expect } from "vitest";
 import { applyMigrations } from "#adapters/migrator.ts";
-import { brandDatabaseFilePath } from "#data-dir.ts";
 import fixtureContract from "#test/fixtures/contract.json" with { type: "json" };
 import stepOneContract from "#test/fixtures/migrations/app/20260812T0956_init/end-contract.json" with { type: "json" };
+import { freshMigrationDatabase as freshDatabase } from "#test/migration-harness.ts";
 
 const migrationsDirectory = fileURLToPath(new URL("./fixtures/migrations", import.meta.url));
-
-const directories: string[] = [];
-
-afterAll(() => {
-	for (const directory of directories.splice(0)) {
-		rmSync(directory, { force: true, recursive: true });
-	}
-});
-
-const freshDatabase = () => {
-	const directory = mkdtempSync(join(tmpdir(), "antumbra-migrator-"));
-	directories.push(directory);
-	return brandDatabaseFilePath(join(directory, "test.db"));
-};
 
 it.effect("applies the full chain to a fresh database", () =>
 	Effect.gen(function* () {

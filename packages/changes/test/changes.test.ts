@@ -1,12 +1,10 @@
-import { DomainFeedsLive } from "@antumbra/domain-feeds";
-import { persistenceIt } from "@antumbra/persistence/testing";
+import { Database } from "@antumbra/persistence";
 import { PiecesLive } from "@antumbra/pieces";
 import type { ChangeHost, ChangeObservation, OpenChangeRequest, Runner } from "@antumbra/plugin-api";
+import { it } from "@antumbra/testing-runtime/domain";
 import { expect } from "@effect/vitest";
 import { Effect, Layer, Ref } from "effect";
 import { Changes, ChangesLive } from "#index.ts";
-
-const it = persistenceIt();
 
 const runner: Runner = {
 	captureChange: (berth) =>
@@ -66,10 +64,9 @@ const makeHost = Effect.gen(function* () {
 	return { host, openings: Ref.get(openings) };
 });
 
-const layer = (host: ChangeHost) =>
-	ChangesLive(new Map([[host.tag, host]]), new Map([[runner.tag, runner]])).pipe(Layer.provideMerge(PiecesLive), Layer.provideMerge(DomainFeedsLive));
+const layer = (host: ChangeHost) => ChangesLive(new Map([[host.tag, host]]), new Map([[runner.tag, runner]])).pipe(Layer.provide(PiecesLive));
 
-it.effectDB("owns preparation and host reconciliation as one aggregate", function* (db) {
+it.effectApp("owns preparation and host reconciliation as one aggregate", function* ({ db }) {
 	const scripted = yield* makeHost;
 	yield* Effect.gen(function* () {
 		const changes = yield* Changes;
@@ -149,5 +146,5 @@ it.effectDB("owns preparation and host reconciliation as one aggregate", functio
 				},
 			],
 		});
-	}).pipe(Effect.provide(layer(scripted.host)));
+	}).pipe(Effect.provide(layer(scripted.host)), Effect.provideService(Database, db));
 });

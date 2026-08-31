@@ -11,11 +11,7 @@ export class InvalidTransition extends Data.TaggedError("InvalidTransition")<{
 	readonly from: IntentStatus;
 }> {}
 
-// why: the lifecycle is a closed table, not code paths — every legal move is a
-// row here and everything absent is InvalidTransition. "interrupt" is only
-// legal from "cancelling": an interruption observed while "running" means the
-// process is shutting down, which must look exactly like a crash so boot
-// reclaim stays the single recovery path.
+// Interrupt completes cancellation only. Shutdown leaves running intents for boot reclaim.
 const TABLE: Record<IntentStatus, Partial<Record<IntentEvent, IntentStatus>>> = {
 	cancelled: {},
 	cancelling: {

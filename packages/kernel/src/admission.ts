@@ -28,9 +28,7 @@ const takeSnapshot = Effect.gen(function* () {
 
 const retryAfter = (blocked: ReadonlyArray<Gate>, snapshot: AdmissionSnapshot): Option.Option<number> => {
 	const waits = blocked.flatMap((gate) => (gate.retryAfterMillis === undefined ? [] : [gate.retryAfterMillis(snapshot)]));
-	// why: every blocked gate must reopen before anything is admitted, so the
-	// earliest useful retry is the longest wait; gates without a schedule
-	// reopen on status changes, which tick the loop on their own.
+	// Admission can resume only after the slowest scheduled gate reopens.
 	return waits.length === 0 ? Option.none() : Option.some(Math.max(...waits));
 };
 
@@ -74,9 +72,7 @@ const drain = Effect.repeat(admitOne, {
 	while: (outcome) => outcome._tag === "pulled",
 });
 
-// why: a failed drain must never kill the scheduler fiber — the kernel would
-// keep accepting intents and silently stop admitting them. Log the cause and
-// wait for the next tick.
+// A failed drain is logged and retried on the next scheduler tick.
 const guardedDrain = drain.pipe(
 	Effect.catchCause((cause) => Effect.logError("scheduler drain failed", cause).pipe(Effect.as({ _tag: "empty" } satisfies AdmitOutcome))),
 );
@@ -85,9 +81,7 @@ const patienceMillis = 5000;
 
 export const schedulerLoop = Effect.gen(function* () {
 	const state = yield* SchedulerState;
-	// why: every wait is bounded — a gate deadline when one was published, the
-	// patience floor otherwise. Ticks are latency hints, never a liveness
-	// dependency; a lost wakeup self-heals within one patience period.
+	// The deadline makes ticks a latency hint rather than a liveness dependency.
 	const awaitTick = (retry: Option.Option<number>) =>
 		Effect.timeoutOption(
 			Queue.take(state.tick),

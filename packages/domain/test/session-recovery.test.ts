@@ -17,9 +17,6 @@ import {
 	waitingWake,
 } from "#test/session-recovery-fixture.ts";
 
-// why: the rebuild does not go and fetch the Session — nothing does. The
-// admiral hails the stranded root, and what the hail reaches is the same
-// provider conversation and the same durable sequence the old process left.
 it.live("a hail after a rebuild resumes the same native session and sequence", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
@@ -53,11 +50,6 @@ it.live("a hail after a rebuild resumes the same native session and sequence", (
 				text: "continued after restart",
 				type: "message",
 			});
-			// why: the record the rebuild inherits counts from where the last one
-			// stopped rather than starting over, and it is the settled sequence
-			// that says so: two openings and two messages, numbered straight
-			// through. Waiting for a shorter prefix is waiting for a moment
-			// between two writes, which is a race rather than a fact.
 			yield* eventually(
 				Effect.gen(function* () {
 					const events = yield* db.SessionEvent.where({
@@ -123,12 +115,6 @@ it.live("a provider fork on resume waits without replacing the durable native id
 			expect(session.nativeRef).toBe("native-durable");
 			const resumed = yield* scripted.session(payload.sessionId);
 			expect(resumed).toBeDefined();
-			// why: the instruction goes to the provider before it says which
-			// conversation it opened, because a provider that opens on its first
-			// message will not say otherwise. The wrong conversation therefore
-			// hears one sentence, and that is the whole of what it gets: the
-			// identity check still stops the attachment, and nothing durable
-			// moves to it.
 			expect(resumed === undefined ? [] : yield* resumed.sent).toEqual([WAKE_INSTRUCTION]);
 		}).pipe(Effect.provide(domainKernelLayer(temporary, forked, {}, recorded.runner)));
 	}),

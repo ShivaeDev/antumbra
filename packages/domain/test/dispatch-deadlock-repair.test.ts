@@ -8,11 +8,6 @@ import { openReefVoyage, stateOf } from "#test/voyage-fixtures.ts";
 
 const STRANDED = "agent-stranded";
 
-// why: an Agent alive with no current Session and no open root is the state the
-// dispatcher cannot break out of on its own — its Piece reads as active, so the
-// pool never offers the Piece again and no replacement is ever born. The repair
-// belongs to boot, which is why this test crosses one: the rows are written
-// under the first domain, and the second domain's own boot is what frees them.
 it.live("a boot frees a Piece its Agent can no longer work", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;

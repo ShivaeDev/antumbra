@@ -9,10 +9,6 @@ import { acquireTemporaryPersistence, makeScriptedBackend, makeScriptedRunner } 
 import { eventually, payload, reportsNativeRef } from "#test/session-recovery-fixture.ts";
 import { confirmsWhen, NATIVE, onlyWake, sessionRow, sleepingRoot, wakeLayer } from "#test/session-wake-fixture.ts";
 
-// why: a drain the previous process never finished leaves a row saying the
-// Session is mid-siesta with nothing draining it, and every later wake reads
-// that as a reason to wait. Boot settles it, and the proof it settled truthfully
-// is that speaking to the Session then works end to end.
 it.live("boot settles a drain whose process is gone, and a send wakes it", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
@@ -41,12 +37,6 @@ it.live("boot settles a drain whose process is gone, and a send wakes it", () =>
 	}),
 );
 
-// why: a resume that opens and then says nothing about who it is was the
-// production hang — the Intent sat in "running" with no reason and the
-// half-built attachment answered "held" to every later send. The bound turns it
-// into a reason a second send can push, and the registry lets go on the way
-// out. The second send repeats the words on purpose: the same words are the
-// same demand, which is the case where a send pushes the row that is there.
 it.live("a resume that never confirms its opening stops holding the Session", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
@@ -84,9 +74,6 @@ it.live("a resume that never confirms its opening stops holding the Session", ()
 	}),
 );
 
-// why: agent/wake is requeued by reclaim, so an Intent the old process left
-// running comes back carrying words that were never said. It must say them
-// once, to the Session it now reaches, and not leave a second demand behind.
 it.live("a wake requeued after a restart says its words once", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
@@ -121,10 +108,6 @@ it.live("a wake requeued after a restart says its words once", () =>
 	}),
 );
 
-// why: the chips read the Intent table, and nothing wrote to it when a wake
-// moved — so a parked wake appeared only when some unrelated act happened to
-// ring the feed. A refused recover writes no Agent, Session or Piece row, which
-// makes it the cleanest proof that the ring came from the Intent alone.
 it.live("an Intent moving is enough to ring the fleet feed", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
@@ -134,9 +117,6 @@ it.live("an Intent moving is enough to ring the fleet feed", () =>
 			const domain = yield* AgentDomain;
 			const kernel = yield* Kernel;
 			const sight = yield* SightSource;
-			// why: the feed opens with the snapshot as it stands, so a second one
-			// is the only evidence of a ring — and between the two the fleet is
-			// touched by nothing but an Intent that never reaches a row.
 			const rings = yield* Effect.forkChild(
 				sight.fleetFeed.pipe(
 					Stream.take(2),

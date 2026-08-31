@@ -25,8 +25,6 @@ const spawnRequest = {
 const liveSession = (scripted: ScriptedBackend, sessionId: string) =>
 	eventually(scripted.session(sessionId).pipe(Effect.flatMap((live) => (live === undefined ? Effect.fail("not live yet") : Effect.succeed(live)))));
 
-// why: the charter is itself a queued delivery, so a test only knows what the
-// admiral added once the session has been told what it was spawned for.
 const chartered = (session: ScriptedSession) =>
 	eventually(
 		Effect.gen(function* () {
@@ -115,10 +113,6 @@ it.live("a message with no words is refused before any delivery", () =>
 	}),
 );
 
-// why: losing an attachment is not losing reachability — a Session whose
-// process went away is woken by being spoken to. The two refusals left are the
-// ones where there is nothing to wake: an identity that has ended, and an id
-// that never named a Session at all.
 it.live("only an ended session and an unknown id refuse the message", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;

@@ -30,9 +30,6 @@ it.effect("a spawn held at admission is never submitted twice", () =>
 	}),
 );
 
-// why: the window between the agent row and its session is where a second
-// dispatch would slip in, so the piece must read active from the first row
-// written, not from the moment the session opens.
 it.effect("a piece stays active while its agent is still spawning", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
@@ -146,10 +143,6 @@ it.live("assigned work wakes the same idle Agent where it stands, before spawn",
 					expect(yield* initial.sent).toContain(WAKE_INSTRUCTION);
 				}),
 			);
-			// why: the Agent stood down but never left, so the work it was
-			// already holding reaches it where it stands — one provider
-			// session for the whole assignment, and no second conversation
-			// opened over the first.
 			expect(yield* scripted.opened).toHaveLength(1);
 			expect(yield* initial.closed).toBe(false);
 			expect(yield* db.Agent.all()).toHaveLength(1);

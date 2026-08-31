@@ -25,9 +25,6 @@ const completed: AgentEvent = {
 	type: "turn.completed",
 };
 
-// why: the fabric has to be reachable from the rehearsal, because taking the
-// attachment away is how a process dying is staged — the domain's own layer
-// keeps it to itself.
 const strandLayer = (temporary: Parameters<typeof domainKernelLayer>[0], scripted: ScriptedBackend) =>
 	sightSourceTestLayer.pipe(
 		Layer.provideMerge(SessionFabricLive),
@@ -39,10 +36,6 @@ const wakes = Effect.gen(function* () {
 	return yield* db.Intent.where({ tag: "agent/wake" }).all();
 });
 
-// why: the whole ruling in one rehearsal. A Session whose process is taken
-// mid-turn is shown as stranded and left there — the clock's pass comes round
-// and asks for nothing, because a resume nobody asked for is exactly what was
-// costing money and telling the record a story it could not check.
 it.live("a session whose process went mid-turn strands and stays stranded", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
@@ -56,8 +49,6 @@ it.live("a session whose process went mid-turn strands and stays stranded", () =
 			yield* fabric.stop(HAND.sessionId);
 			const lost = yield* presenceOf;
 			expect(lost.presence).toBe("stranded");
-			// why: stranded is a report, never a refusal — speaking to it is the
-			// one way it comes back.
 			expect(lost.canSend).toBe(true);
 			expect((yield* sessionRow).executionStatus).toBe("active");
 
@@ -69,10 +60,6 @@ it.live("a session whose process went mid-turn strands and stays stranded", () =
 	}),
 );
 
-// why: the settle used to read a missing attachment as a mismatch, because an
-// absent entry answered zero to a question about a count. An ending nobody is
-// racing is nobody's to refuse, so it settles the row it belongs to and the
-// record stops claiming a turn that ended.
 it.live("an ending that lands after the attachment went still settles", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
@@ -91,9 +78,6 @@ it.live("an ending that lands after the attachment went still settles", () =>
 	}),
 );
 
-// why: and the guard it replaces still holds. An ending left behind by an
-// attachment that is gone must not settle a row a later attachment has since
-// taken, because that Session is working again on somebody's word.
 it.live("an ending is refused when a newer attachment holds the session", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;

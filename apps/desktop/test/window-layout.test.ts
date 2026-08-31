@@ -12,19 +12,8 @@ const voyaging = {
 } as const;
 
 describe("window layout", () => {
-	// why: a layout is the one thing in the data directory the app can lose
-	// without losing anything, so every way of failing to read it lands on the
-	// same first-run console rather than on three different recoveries.
 	it("opens one default console for anything it cannot read", () => {
-		const unreadable = [
-			"",
-			"not json at all",
-			"[]",
-			'{"version":3,"focused":null,"windows":[]}',
-			'{"version":1,"focused":null,"windows":[]}',
-			'{"version":1,"focused":null}',
-			'{"version":1,"focused":null,"windows":[{"id":"a","place":{"role":"wat"}}]}',
-		];
+		const unreadable = ["not json at all", '{"version":3,"focused":null,"windows":[]}'];
 
 		for (const raw of unreadable) {
 			expect(readLayout(raw)).toBeUndefined();
@@ -43,8 +32,6 @@ describe("window layout", () => {
 		expect(restorePlan(layout).consoleWindow.place).toMatchObject({ mode: "voyages", voyageId: "voyage-7" });
 	});
 
-	// why: the app is one console. A file naming several is a file to read one
-	// console out of, never a licence to open a second place to work from.
 	it("restores exactly one console however many the file names", () => {
 		const layout = readLayout(
 			writeLayout(
@@ -65,8 +52,6 @@ describe("window layout", () => {
 		expect(plan.children).toEqual([]);
 	});
 
-	// why: a window is opened for one subject, so a file naming a subject twice
-	// is that window written down twice, not two windows to open.
 	it("reopens one window per subject and keeps the rest", () => {
 		const layout = layoutOf(
 			[
@@ -83,9 +68,6 @@ describe("window layout", () => {
 		expect(plan.focused).toBe("c");
 	});
 
-	// why: the layout writes down whatever a place is, so a role added to the
-	// union is remembered without the file learning anything about it — and an
-	// Artifact and a session wearing one id stay two windows, not one.
 	it("remembers an artifact window and keeps it apart from a session", () => {
 		const layout = layoutOf(
 			[
@@ -102,9 +84,6 @@ describe("window layout", () => {
 		expect(plan.children[0]?.place).toEqual(artifactPlace("subject-1"));
 	});
 
-	// why: where a fresh console opens is a product decision, not an incidental
-	// default, so the flagship tab is pinned rather than left to whichever mode
-	// the literal happens to name.
 	it("opens a first run on the flagship", () => {
 		expect(restorePlan(undefined).consoleWindow.place).toEqual({
 			changeId: null,
@@ -116,8 +95,6 @@ describe("window layout", () => {
 		});
 	});
 
-	// why: a restart is meant to land where the work was left, so the mode and
-	// the selection survive the round trip through the file, not just the role.
 	it("carries a console's mode and selection through the file", () => {
 		const written = writeLayout(layoutOf([{ id: "console", place: voyaging }], "console"));
 

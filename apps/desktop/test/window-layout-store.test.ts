@@ -11,8 +11,6 @@ import { layoutWriter } from "#adapters/windows/layout-writer.ts";
 import { makeWindowRegistry } from "#adapters/windows/registry.ts";
 import { consolePlace, ownWindow, transcriptPlace } from "#test/windows.ts";
 
-// why: a test must never be able to reach the layout of a real installation,
-// so the store only ever sees a directory this test made and removes.
 const inTemporaryDirectory = <A, E>(use: (root: string) => Effect.Effect<A, E, FileSystem.FileSystem>): Effect.Effect<A, E> =>
 	Effect.suspend(() => {
 		const root = mkdtempSync(join(tmpdir(), "antumbra-windows-"));
@@ -60,8 +58,6 @@ describe("window layout store", () => {
 		),
 	);
 
-	// why: losing where the windows were must cost nothing else — not the boot
-	// that read it, and not the change that asked for it to be saved.
 	it.effect("fails neither boot nor mutation when the file cannot be written", () =>
 		inTemporaryDirectory((root) =>
 			Effect.gen(function* () {
@@ -75,8 +71,6 @@ describe("window layout store", () => {
 });
 
 describe("window layout writer", () => {
-	// why: a console reports where it is on every mode click and every
-	// selection. Those are one gesture, and they cost one write.
 	it.effect("collapses a burst of changes into a single write", () =>
 		Effect.gen(function* () {
 			const saved: Array<WindowLayout> = [];
@@ -87,42 +81,30 @@ describe("window layout writer", () => {
 				registry,
 				store: recording(saved),
 			});
-			const running = yield* Effect.forkChild(writer.run);
+			const running = yield* Effect.forkChild(writer.run, { startImmediately: true });
 
-			// why: the changes are spread across the window rather than offered
-			// all at once, so the patience is what collapses them and not the
-			// single slot they are offered into.
 			for (let round = 0; round < 12; round += 1) {
 				yield* writer.note;
-				yield* Effect.yieldNow;
 				yield* TestClock.adjust(20);
 			}
 			expect(saved).toEqual([]);
 
 			yield* TestClock.adjust(400);
-			yield* Effect.yieldNow;
 
 			expect(saved).toHaveLength(1);
 			expect(saved[0]?.windows).toEqual([{ id: "console", place: consolePlace }]);
 
-			// why: the burst leaves a tick behind it. The flag, not the queue,
-			// says whether anything changed, so that tick writes nothing.
 			yield* TestClock.adjust(400);
-			yield* Effect.yieldNow;
 			expect(saved).toHaveLength(1);
 
 			yield* writer.note;
-			yield* Effect.yieldNow;
 			yield* TestClock.adjust(400);
-			yield* Effect.yieldNow;
 			expect(saved).toHaveLength(2);
 
 			yield* Fiber.interrupt(running);
 		}),
 	);
 
-	// why: the roster is what gets written down, so every change to it is
-	// announced by the registry rather than by the callers that made it.
 	it("announces every change to the roster", () => {
 		const registry = makeWindowRegistry();
 		let changes = 0;

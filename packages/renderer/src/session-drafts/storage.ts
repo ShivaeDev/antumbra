@@ -9,9 +9,6 @@ export interface SessionDraftRef {
 	readonly slot: SessionDraftSlot;
 }
 
-// why: unsent words belong to this renderer installation, not to Antumbra's
-// durable event record. Browser storage survives its navigation and reloads
-// without turning a local draft into server or cross-device truth.
 const safely = <A>(evaluate: () => A, fallback: A): A => Result.getOrElse(Result.try(evaluate), () => fallback);
 
 const browserStorage = (): Storage | undefined => safely(() => window.localStorage, undefined);

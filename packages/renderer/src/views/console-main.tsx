@@ -24,15 +24,8 @@ interface ConsoleProps {
 	readonly voyages: ReadonlyArray<VoyageSummary>;
 }
 
-// why: the aside is a fixed column, not a measuring stick — a long branch or
-// path inside it wraps or clips within its width instead of widening the
-// window or opening a sideways bar across the whole app.
 const ASIDE = "flex w-80 shrink-0 flex-col gap-5 overflow-x-hidden overflow-y-auto border-r border-border p-3";
 
-// why: the settings are read once by the shell and handed to every surface
-// that draws by them, so a transcript never opens a read of its own and a
-// change made on the Settings page is already in force when the reader
-// returns to the fleet.
 export const ConsoleMain = (props: ConsoleProps) => {
 	const foldToolCalls = props.settings?.settings.foldToolCalls ?? false;
 	if (props.mode === "flagship") {
@@ -57,16 +50,12 @@ export const ConsoleMain = (props: ConsoleProps) => {
 	if (props.mode === "quay") {
 		return <QuayPanel onError={props.onError} onSelect={props.onChange} selectedId={props.change} />;
 	}
-	// why: a ruling is answered against its own context and question, not
-	// against a voyage, so the rail of voyages would only be a distraction.
 	if (props.mode === "rulings") {
 		return <RulingsPanel onError={props.onError} />;
 	}
 	return (
 		<div className="flex min-h-0 min-w-0 flex-1">
 			<aside className={ASIDE}>
-				{/* why: the quay is read against the voyages the work is owed to, so
-				the aside keeps listing them rather than emptying itself. */}
 				<VoyagesAside
 					backends={props.fleet?.backends ?? []}
 					onError={props.onError}

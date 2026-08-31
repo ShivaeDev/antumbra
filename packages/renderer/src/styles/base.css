@@ -33,10 +33,6 @@
 		overflow: hidden;
 	}
 
-	/* why: preflight flattens headings to the surrounding weight so that only
-	   utilities style them. Views here set a heading's size inline and lean on
-	   the browser for its weight, so the ladder is restored once, in one place,
-	   where any font-weight utility still overrides it. */
 	h1,
 	h2,
 	h3,

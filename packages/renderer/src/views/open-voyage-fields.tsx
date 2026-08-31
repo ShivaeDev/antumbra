@@ -18,9 +18,6 @@ export const emptyDraft: VoyageDraft = {
 	northStar: "",
 };
 
-// why: the fleet decides which backends exist, so a draft that names one no
-// longer offered falls back to the first rather than opening a voyage against
-// a backend nothing can run.
 export const chosenBackend = (backends: ReadonlyArray<string>, backend: string): string =>
 	backends.includes(backend) ? backend : (backends[0] ?? "");
 

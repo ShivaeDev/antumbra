@@ -25,9 +25,6 @@ const VoyageRow = ({
 		<li className="min-w-0">
 			<Card className={cn("gap-2 transition-colors", current ? "border-border-strong bg-accent" : "hover:border-border-strong")}>
 				<div className="flex min-w-0 items-start gap-1.5">
-					{/* why: a voyage is known by its whole name, so a long one wraps
-					inside the column instead of ending in an ellipsis the reader has
-					to hover to undo. */}
 					<button
 						aria-current={current ? "true" : undefined}
 						className="min-w-0 flex-1 rounded-sm text-left text-xs font-medium wrap-anywhere"

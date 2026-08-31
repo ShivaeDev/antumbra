@@ -8,9 +8,6 @@ class WindowPlaceLoadError extends Data.TaggedError("WindowPlaceLoadError")<{
 
 type OnError = (message: string) => void;
 
-// why: the window asks main where it belongs. Nothing in the page says it —
-// the address every window loads is the same one, and it is what proves the
-// window's authority rather than what describes it.
 export const loadWindowPlace: Effect.Effect<WindowPlace, WindowPlaceLoadError> = Effect.tryPromise({
 	catch: (cause) => new WindowPlaceLoadError({ message: String(cause) }),
 	try: () => client.windowPlace.query(),

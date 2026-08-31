@@ -6,8 +6,6 @@ import { Select, SelectContent, SelectTrigger, SelectValue } from "#components/u
 import { SelectItem } from "#components/ui/select-parts.tsx";
 import { Field } from "#views/field.tsx";
 
-// why: the only thing that can take a standing ruling's place is another
-// standing ruling, so the pick offers exactly those and nothing free-form.
 const SuccessorPick = ({
 	onPick,
 	others,
@@ -31,9 +29,6 @@ const SuccessorPick = ({
 	</Select>
 );
 
-// why: a standing ruling is never edited. The one act on it is naming the
-// later ruling that takes its place, and that act is confirmed apart from the
-// pick so a stray selection supersedes nothing.
 export const RulingSupersede = ({
 	onError,
 	others,

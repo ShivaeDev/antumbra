@@ -4,10 +4,6 @@ type Usage = typeof UsageEvent.Type;
 
 const money = (usd: number): string => `$${usd.toFixed(4)}`;
 
-// why: the share of everything that went in that came back out of the cache.
-// The denominator is all three input kinds, because that is the number a
-// reader is comparing against — 94% cache on a resume says the context was
-// there, and the same turn's fresh-input count alone says nothing.
 export const cacheShare = (event: Usage): number | undefined => {
 	if (event.cacheReadTokens === undefined) {
 		return undefined;
@@ -21,12 +17,6 @@ const share = (event: Usage): ReadonlyArray<string> => {
 	return fraction === undefined ? [] : [`${Math.round(fraction * 100)}% cache`];
 };
 
-// why: every category the providers report, spelled out rather than added up.
-// Fresh input, a cache read and a cache write are billed at three different
-// rates, so a single input number hides the one thing worth knowing about a
-// resumed turn. A category the provider did not report is left out entirely —
-// printing it as zero would claim the turn wrote no cache when the truth is
-// that nobody said.
 const tokens = (event: Usage): ReadonlyArray<string> => [
 	...(event.model === undefined ? [] : [event.model]),
 	`in ${event.inputTokens}`,

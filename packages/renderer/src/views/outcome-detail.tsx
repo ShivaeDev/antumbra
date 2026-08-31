@@ -33,9 +33,6 @@ export const OutcomeChips = ({
 	</div>
 );
 
-// why: an outcome that can be taken somewhere says so beside its own title.
-// The pane holds the slot and never learns what goes in it, so an outcome
-// with nowhere to go simply passes nothing.
 export const OutcomeDetailView = ({
 	action,
 	detail,

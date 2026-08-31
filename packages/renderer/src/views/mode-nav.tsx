@@ -3,16 +3,12 @@ import { Anchor, Flag, Gavel, type LucideIcon, Settings, Ship, Users } from "luc
 import { Button } from "#components/ui/button.tsx";
 import { cn } from "#lib/utils.ts";
 
-// why: which of them the console is pointed at belongs to the window, so the
-// rail offers the modes and main remembers the choice.
 interface ModeEntry {
 	readonly icon: LucideIcon;
 	readonly label: string;
 	readonly mode: ConsoleMode;
 }
 
-// why: the flagship leads because it is where the admiral speaks rather than
-// reads — every other mode is somewhere to navigate to, and this one is not.
 const MODES: ReadonlyArray<ModeEntry> = [
 	{ icon: Flag, label: "Flagship", mode: "flagship" },
 	{ icon: Users, label: "Fleet", mode: "fleet" },

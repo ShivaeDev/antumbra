@@ -17,18 +17,6 @@ const presenceOf = (fleet: Fleet | undefined, sessionId: string) =>
 
 const nameOf = (tree: SessionTree | undefined, sessionId: string): string => tree?.nodes.find((node) => node.id === sessionId)?.displayName ?? "";
 
-// why: the transcript opens beside the roster rather than in place of it, so
-// reading one agent never costs the reader sight of the rest of the fleet.
-//
-// why: the pane is mounted per root Session, so the branch a reader was in is
-// forgotten when they move to another Session — a node id means nothing under
-// a different root. Words are sent to the root and only the root: a subsession
-// is a conversation its parent is holding, and nothing outside may speak into
-// one.
-//
-// why: a pane with nothing to close back to is not beside anything — it is the
-// surface it was given, so it fills that surface and offers no close instead of
-// hugging a rail that is not there.
 export const SessionPane = ({
 	fleet,
 	foldToolCalls,

@@ -3,9 +3,6 @@ import { useState } from "react";
 import { Button } from "#components/ui/button.tsx";
 import { Input } from "#components/ui/input.tsx";
 
-// why: there is no switch primitive in this app and a setting does not earn a
-// new dependency, so the toggle is the browser's own checkbox. It commits on
-// the click, because a boolean has nothing to type and nothing to correct.
 export const FlagField = ({
 	checked,
 	id,
@@ -16,9 +13,6 @@ export const FlagField = ({
 	readonly onChange: (value: boolean) => void;
 }) => <input checked={checked} className="size-4 accent-primary" id={id} onChange={(event) => onChange(event.target.checked)} type="checkbox" />;
 
-// why: a number is typed a digit at a time, and every intermediate keystroke
-// is a value the declaration would refuse. The field holds the draft and only
-// the button offers it, so the refusal a reader sees is one they meant.
 export const CountField = ({
 	declaration,
 	id,

@@ -1,9 +1,6 @@
 import type { StandingRulingsView, StandingRulingView } from "@antumbra/contract";
 import { StandingRulingList } from "#views/standing-ruling-list.tsx";
 
-// why: a stale ruling still binds every agent it names, so it is grouped where
-// the admiral can see it rather than dropped or dimmed — the work it was
-// written for has finished, and only a withdrawal ends it.
 const Stale = ({
 	onError,
 	stale,
@@ -55,8 +52,6 @@ const Standing = ({
 	);
 };
 
-// why: what stands is read newest first, so the latest word about a scope is
-// the first one the admiral meets — the same order an asking agent is given.
 export const StandingRulings = ({
 	error,
 	onError,

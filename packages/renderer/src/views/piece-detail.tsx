@@ -23,9 +23,6 @@ const AtWork = ({ piece }: { readonly piece: PieceView }) => {
 	);
 };
 
-// why: a charter is what a captain wrote for this piece, Markdown and all, so
-// an opened card reads it as the document it is rather than as a paragraph
-// with its marks still showing.
 export const PieceDetail = ({
 	onError,
 	piece,

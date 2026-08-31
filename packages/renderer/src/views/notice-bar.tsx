@@ -3,9 +3,6 @@ import { Button } from "#components/ui/button.tsx";
 
 const line = "flex items-start gap-2 rounded-md border border-destructive/40 bg-destructive/10 px-2 py-1 text-xs text-destructive";
 
-// why: a feed failure is terminal for that subscription, so its line has no
-// dismissal — it stands until the window is reloaded. An act that failed is
-// news the reader has now read, and that line goes away.
 export const NoticeBar = ({
 	feedErrors,
 	notice,

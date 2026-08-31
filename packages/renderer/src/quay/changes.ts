@@ -47,9 +47,6 @@ const changeFrom = (row: QuayRow): QuayChange => ({
 	originSessionId: row.originSessionId,
 });
 
-// why: the domain repeats a Change once per Piece/Voyage berth so every owner
-// is named. The master rail names pull requests, so it folds those rows back
-// to one selection while the detail keeps every place the work is owed.
 export const quayChanges = (view: QuayView): ReadonlyArray<QuayChange> => {
 	const changes = new Map<string, QuayChange>();
 	for (const row of view.rows) {

@@ -6,9 +6,6 @@ import { cn } from "#lib/utils.ts";
 import { captainAtWork } from "#voyages/acts.ts";
 import { captainCallLabel } from "#voyages/labels.ts";
 
-// why: focus is a standing mark on a voyage rather than a thing you read, so
-// it is a filled pin you can find at a glance instead of a word that has to be
-// read against its opposite.
 export const FocusToggle = ({ onError, voyage }: { readonly onError: (message: string) => void; readonly voyage: VoyageSummary }) => {
 	const focused = voyage.focusedAt !== null;
 	const label = focused ? "Drop focus" : "Focus this voyage";

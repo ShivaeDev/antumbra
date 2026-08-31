@@ -1,9 +1,6 @@
 import type { ReactNode } from "react";
 import { cn } from "#lib/utils.ts";
 
-// why: a pane is read by its headings, so every section on the voyage wears
-// the same one — a name, an optional count, and the one act the section
-// offers, over a hairline that does the dividing instead of a gap.
 export const SectionHeading = ({ action, count, title }: { readonly action?: ReactNode; readonly count?: number; readonly title: string }) => (
 	<div className="flex min-w-0 items-center gap-2 border-b border-border pb-1.5">
 		<h2 className="min-w-0 truncate text-xs font-medium">{title}</h2>

@@ -7,8 +7,6 @@ import { whenLabel } from "#voyages/labels.ts";
 
 const subjectKey = (subject: RulingSubjectView): string => `${subject.kind}:${subject.label}`;
 
-// why: a standing ruling is met as its answer read in the light of its
-// question; urgency was the asker's need and says nothing once it is ruled.
 export const StandingRulingCard = ({
 	onError,
 	others,

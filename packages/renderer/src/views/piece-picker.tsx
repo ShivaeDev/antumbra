@@ -1,8 +1,5 @@
 import type { PieceView } from "@antumbra/contract";
 
-// why: what a picker needs of a piece is what to call it — a piece from one
-// voyage is named by its title, one drawn from the whole fleet says which
-// voyage it belongs to, and the control learns neither.
 interface PickablePiece {
 	readonly id: string;
 	readonly label: string;
@@ -13,9 +10,6 @@ export const pickable = (pieces: ReadonlyArray<PieceView>): ReadonlyArray<Pickab
 
 const chosenIds = (select: HTMLSelectElement): ReadonlyArray<string> => [...select.selectedOptions].map((option) => option.value);
 
-// why: a piece's position is the set of pieces that gate it, so choosing that
-// set is one control — the same one whether a piece is being chartered or
-// rewired afterwards.
 export const PiecePicker = ({
 	chosen,
 	exclude,

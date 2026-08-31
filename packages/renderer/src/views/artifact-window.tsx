@@ -4,10 +4,6 @@ import { readArtifactMarkdown } from "#adapters/trpc-voyages.ts";
 import { useCall } from "#hooks/call.ts";
 import { OutcomeMarkdownView } from "#views/outcome-markdown.tsx";
 
-// why: an Artifact is immutable once it has landed, so the window reads it
-// once and then has nothing to watch — no feed to keep open, nothing to
-// refresh, and nothing to send. That is what makes it worth keeping open
-// beside the work instead of inside it.
 export const ArtifactWindow = ({ artifactId }: { readonly artifactId: string }) => {
 	const read = useCall<ArtifactMarkdown>();
 	const state = read.state;
@@ -16,8 +12,6 @@ export const ArtifactWindow = ({ artifactId }: { readonly artifactId: string }) 
 		read.run((onDone, onError) => readArtifactMarkdown(artifactId, onDone, onError));
 	}, [artifactId]);
 
-	// why: the shell titles the window before the page has said anything, so
-	// the Artifact names its own window as soon as it knows its name.
 	useEffect(() => {
 		if (state._tag === "done") {
 			document.title = state.value.title;

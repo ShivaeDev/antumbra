@@ -1,9 +1,6 @@
 import type { AgentSummary } from "@antumbra/contract";
 import { AgentDiagChips, SessionDiagChips } from "#views/diagnostics.tsx";
 
-// why: the raw words stay one click away rather than in the reader's face, so
-// the card leads with what the fleet can do and keeps what it believes for the
-// admiral who goes looking.
 export const DiagnosticsDisclosure = ({ agent }: { readonly agent: AgentSummary }) => (
 	<details className="min-w-0 border-t border-border pt-1.5">
 		<summary className="cursor-pointer text-2xs text-muted-foreground hover:text-foreground">diagnostics</summary>

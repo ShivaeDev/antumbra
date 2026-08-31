@@ -5,9 +5,6 @@ import { Dialog, DialogContent, DialogTrigger } from "#components/ui/dialog.tsx"
 import { DialogDescription, DialogHeader, DialogTitle } from "#components/ui/dialog-sections.tsx";
 import { AdoptChangeForm } from "#views/adopt-change-form.tsx";
 
-// why: adopting is the rare act — most changes reach the quay because a piece
-// opened them. The form is three fields and a picker, and left standing it
-// outweighs the changes it sits under, so it waits behind its own button.
 export const AdoptChangeDialog = ({ pieces }: { readonly pieces: ReadonlyArray<QuayPiece> }) => {
 	const [open, setOpen] = useState(false);
 	return (

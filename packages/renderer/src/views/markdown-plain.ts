@@ -1,6 +1,3 @@
-// why: a preview is one line of a description that was written as Markdown.
-// The marks in it are instructions to a renderer, not words the author chose,
-// so a collapsed card shows the sentence and never the syntax around it.
 const BLOCK_MARKS: ReadonlyArray<readonly [RegExp, string]> = [
 	[/```+[^\n]*/g, " "],
 	[/^[ \t]*(?:[-*_][ \t]*){3,}$/gm, " "],
@@ -9,9 +6,6 @@ const BLOCK_MARKS: ReadonlyArray<readonly [RegExp, string]> = [
 	[/^[ \t]*(?:[-*+]|\d+[.)])[ \t]+/gm, ""],
 ];
 
-// why: only a mark that closes is a mark. A lone asterisk or an underscore
-// inside a name was never emphasis, and dropping it would rewrite the words
-// rather than undress them.
 const SPAN_MARKS: ReadonlyArray<readonly [RegExp, string]> = [
 	[/!\[([^\]]*)\]\([^)]*\)/g, "$1"],
 	[/\[([^\]]*)\]\([^)]*\)/g, "$1"],

@@ -27,8 +27,6 @@ export const ConsoleApp = ({ place }: { readonly place: ConsolePlace }) => {
 		loadSettings(setSettings, setNotice);
 	}, []);
 
-	// why: where the console is pointed is main's to keep, so a reload comes
-	// back to it rather than to whatever a first render would have shown.
 	useEffect(() => {
 		rememberPlace(
 			{
@@ -43,9 +41,6 @@ export const ConsoleApp = ({ place }: { readonly place: ConsolePlace }) => {
 		);
 	}, [change, mode, piece, session, voyage]);
 
-	// why: Sessions ordinarily remain in the durable fleet after they end. Only
-	// absence from a complete fleet sight means a stored local draft has lost
-	// its subject and may be discarded.
 	useEffect(() => {
 		if (fleet === undefined) {
 			return;

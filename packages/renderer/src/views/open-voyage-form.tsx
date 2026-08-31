@@ -6,8 +6,6 @@ import { Dialog, DialogContent, DialogTrigger } from "#components/ui/dialog.tsx"
 import { DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "#components/ui/dialog-sections.tsx";
 import { chosenBackend, emptyDraft, type VoyageDraft, VoyageFields } from "#views/open-voyage-fields.tsx";
 
-// why: opening a voyage is a rare act beside reading the ones already open, so
-// it asks for the sidebar only while it is being used.
 export const OpenVoyageForm = ({
 	backends,
 	onError,

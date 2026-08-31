@@ -1,9 +1,6 @@
 import type { StandingRulingView } from "@antumbra/contract";
 import { StandingRulingCard } from "#views/standing-ruling-card.tsx";
 
-// why: the successors a card may name are every other ruling that stands, not
-// only the ones listed beside it — a stale ruling is replaceable by a fresh one
-// and the grouping is a reading rather than a fence.
 export const StandingRulingList = ({
 	listed,
 	onError,

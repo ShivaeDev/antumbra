@@ -5,8 +5,6 @@ import { Effect } from "effect";
 import { landReport } from "#land.ts";
 import { readReport } from "#read.ts";
 
-const requirements = [Database, DomainFeeds] as const;
-
 export const Reports = defineService({
 	id: "@antumbra/reports/Reports",
 	initialize: Effect.void,
@@ -14,7 +12,7 @@ export const Reports = defineService({
 		land: landReport,
 		read: readReport,
 	}),
-	requires: requirements,
+	requires: [Database, DomainFeeds],
 });
 
 export const ReportsLive = Reports.layer;

@@ -1,19 +1,13 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
-import { Database, type PrismaError } from "@antumbra/persistence";
-import { type PieceNotFound, verifyPieceExists } from "@antumbra/pieces";
-import { type Context, Effect } from "effect";
-import type { ReportInput, ReportRow } from "#model.ts";
+import { Database } from "@antumbra/persistence";
+import { verifyPieceExists } from "@antumbra/pieces";
+import { Effect } from "effect";
+import type { ReportInput } from "#model.ts";
 
-export const landReport = Effect.fn("reports.landReport")(function* (
-	input: ReportInput,
-): Effect.fn.Return<
-	ReportRow,
-	PieceNotFound | PrismaError,
-	Context.Service.Identifier<typeof Database> | Context.Service.Identifier<typeof DomainFeeds>
-> {
+export const landReport = Effect.fn("reports.landReport")(function* (input: ReportInput) {
 	const db = yield* Database;
 	const feeds = yield* DomainFeeds;
-	const row: ReportRow = {
+	const row = {
 		authorAgentId: input.authorAgentId ?? null,
 		body: input.body,
 		id: crypto.randomUUID(),

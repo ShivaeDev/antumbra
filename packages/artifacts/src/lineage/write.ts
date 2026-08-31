@@ -1,7 +1,7 @@
 import { Database } from "@antumbra/persistence";
 import { Effect, Option } from "effect";
 import { ArtifactLineageConflict, ArtifactSupersessionNotFound } from "#errors.ts";
-import { readValidStoredArtifactLineage } from "#lineage/piece-lineage.ts";
+import { readStoredArtifactLineage } from "#lineage/piece-lineage.ts";
 import { cycleWouldForm, requireArtifact, requireAuthority, requireSharedPiece } from "#lineage/validation.ts";
 import type { ArtifactSupersessionInput } from "#model.ts";
 
@@ -12,7 +12,7 @@ export const writeSupersession = (input: ArtifactSupersessionInput) =>
 		const successor = yield* requireArtifact(input.successorArtifactId);
 		yield* requireAuthority(input.actor, superseded, successor);
 		yield* requireSharedPiece(superseded, successor);
-		const { artifacts } = yield* readValidStoredArtifactLineage(superseded.pieceId);
+		const { artifacts } = yield* readStoredArtifactLineage(superseded.pieceId);
 		if (superseded.supersededByArtifactId === successor.id) {
 			return;
 		}
@@ -50,7 +50,6 @@ export const deleteSupersession = (input: ArtifactSupersessionInput) =>
 		const successor = yield* requireArtifact(input.successorArtifactId);
 		yield* requireAuthority(input.actor, superseded, successor);
 		yield* requireSharedPiece(superseded, successor);
-		yield* readValidStoredArtifactLineage(superseded.pieceId);
 		if (superseded.supersededByArtifactId === null) {
 			return;
 		}

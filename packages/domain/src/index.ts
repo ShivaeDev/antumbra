@@ -71,7 +71,6 @@ export {
 	PIECE_STATES,
 	type PieceState,
 	pieceStates,
-	wouldCycle,
 } from "#piece-state.ts";
 export type { PieceView } from "#piece-view.ts";
 export type { QuayGroup } from "#quay-group.ts";

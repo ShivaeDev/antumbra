@@ -45,9 +45,6 @@ const agentMatches = (row: StoredAgent & { readonly status: AgentStatus }, paylo
 
 const sessionMatches = (row: StoredSession & { readonly status: AgentSessionStatus }, payload: SpawnFields) => {
 	const executionStatus = decodeSessionExecutionStatus(payload.sessionId, row.executionStatus);
-	// why: a spawn births a root. A subsession carries the same Agent and
-	// backend, so without this it could answer for the spawn that made its
-	// parent and let activation adopt a nested conversation as the Agent's own.
 	return (
 		isRootSession(row) &&
 		row.agentId === payload.agentId &&

@@ -30,31 +30,12 @@ export class AgentDomain extends Context.Service<
 		readonly retryResourceReclaim: Effect.Effect<void>;
 		readonly reopenSessionStarts: Effect.Effect<void>;
 		readonly retire: IntentKind<RetireFields>;
-		// why: the admiral's own words take the turn-boundary lane — the domain
-		// picks the delivery verb, never the backend. The words themselves come
-		// from the catalog, so this seam names the branded type and prose
-		// assembled anywhere else does not compile.
 		readonly sendToSession: (sessionId: string, text: AgentPrompt) => Effect.Effect<void, SessionSendRefused>;
-		// why: the draft arrives whole because admitting it and taking custody of
-		// it are one act — the backend is asked whether it can receive these parts
-		// before any of them is normalized or written down, which only holds while
-		// one seam owns both halves.
 		readonly sendSessionInput: (draft: SessionInputDraft) => Effect.Effect<SessionSendReceipt, SessionSendRefused>;
-		// why: which root Sessions this process is holding right now. A projection
-		// asks the fabric because the row cannot know it, and the answer is what
-		// separates a Session listening with nothing to do from one whose process
-		// has been reclaimed.
 		readonly sessionsAttached: Effect.Effect<ReadonlySet<string>>;
-		// why: which root Sessions are carrying a delegated conversation on the
-		// stream they hold. Asked of the acquisition for the same reason
-		// attachment is: a node row says what the record still owes an ending,
-		// which is a different question from what is running now.
 		readonly sessionsDelegating: Effect.Effect<ReadonlySet<string>>;
 		readonly siesta: IntentKind<SiestaFields>;
 		readonly spawn: IntentKind<SpawnFields>;
-		// why: the one act that puts a Session back on a provider. Nothing in
-		// Antumbra asks for it on its own — a hail, a send, or a Piece already
-		// assigned to this Session is what submits one.
 		readonly wake: IntentKind<WakeFields>;
 		readonly voyages: VoyageProcedures;
 	}

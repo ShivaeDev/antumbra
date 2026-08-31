@@ -23,9 +23,6 @@ export const makeRetireKind = Effect.gen(function* () {
 	const feeds = yield* DomainFeeds;
 	const fabric = yield* SessionFabric;
 	const resources = yield* ResourceReconciler;
-	// why: retirement settles the Agent's whole Session subtree, subsessions
-	// included — a closed root over a still-open child would claim the record
-	// finished while part of it is unaccounted for.
 	const closeAgent = (agentId: string, current: AgentStatus, next: AgentStatus) =>
 		db.Agent.where({ id: agentId, status: current }).update({
 			currentSessionId: null,
@@ -35,20 +32,13 @@ export const makeRetireKind = Effect.gen(function* () {
 		db.AgentSession.where({ agentId, status: "open" }).update({
 			status: "closed",
 		});
-	// why: only a root is attached to the fabric. A subsession lives inside its
-	// root's provider conversation, so it has no attachment of its own to stop.
 	const stopSessions = (agentId: string) =>
 		Effect.gen(function* () {
 			const sessions = yield* db.AgentSession.where(rootSessionsOf(agentId)).all();
 			yield* Effect.forEach(sessions, (session) => Effect.fromResult(decodeStoredAgentSessionStatus(session.id, session.status)));
 			yield* Effect.forEach(sessions, (session) => fabric.stop(session.id));
 		});
-	// why: whoever submitted this read a capability off a snapshot, and a turn
-	// may have begun since. The question is asked again here, of the present,
-	// and it is the weak rule rather than rest: a tree still carrying a
-	// delegated conversation, or one whose stream is long gone, is exactly what
-	// retirement exists to close. Only an Agent with a turn under way right now
-	// has work that ending it would sever.
+	// Retirement may close a stranded tree; only work currently in flight refuses it.
 	const refuseWorking = (agentId: string) =>
 		Effect.gen(function* () {
 			const attached = yield* fabric.attached();

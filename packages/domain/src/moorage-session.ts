@@ -17,9 +17,6 @@ export const makeEnsureSessionRow = Effect.gen(function* () {
 			currentSessionId,
 			sessionId: payload.sessionId,
 		});
-	// why: a replayed birth finds the row its earlier attempt wrote. It is this
-	// spawn's own only if the Agent owns it and it is still open; anything else
-	// under the same id belongs to a Session this spawn may not adopt.
 	const alreadyOpened = (payload: SpawnFields, currentSessionId: string | null) =>
 		Effect.gen(function* () {
 			const session = yield* db.AgentSession.where({
@@ -31,11 +28,7 @@ export const makeEnsureSessionRow = Effect.gen(function* () {
 			const status = yield* Effect.fromResult(decodeStoredAgentSessionStatus(session.value.id, session.value.status));
 			return session.value.agentId === payload.agentId && status === "open" ? true : yield* conflict(payload, currentSessionId);
 		});
-	// why: one open root per Agent is a rule the database also holds, as a
-	// partial unique index. Left to the index it arrives as a constraint
-	// violation with a redacted driver message behind it, which reaches the
-	// reader as an Intent that failed for no stated reason — so the rule is read
-	// first and refused by name, pointing at the Session already open.
+	// The partial unique index reports a redacted driver error, so name the open Session before writing.
 	const refuseSecondRoot = (payload: SpawnFields) =>
 		Effect.gen(function* () {
 			const openRoot = yield* db.AgentSession.where({
@@ -72,8 +65,6 @@ export const makeEnsureSessionRow = Effect.gen(function* () {
 				return false;
 			}
 			yield* refuseSecondRoot(payload);
-			// why: a spawn opens a root — no parent, and it roots its own tree.
-			// Subsession rows are born by the tree's own creator, never here.
 			return yield* db.AgentSession.create({
 				agentId: payload.agentId,
 				backend: payload.backend,

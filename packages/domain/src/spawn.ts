@@ -84,8 +84,7 @@ export const spawnKind = (runtime: SpawnRuntime) =>
 		return defineIntent({
 			execute: spawnAgent,
 			payload: SpawnPayload,
-			// why: the intent payload and provisioning rows are the restart authority;
-			// a stranded attempt reruns from those durable facts, never a checkpoint.
+			// The payload and provisioning rows are restart authority; spawn has no checkpoints.
 			reclaim: "requeue",
 			tag: "agent/spawn",
 		});

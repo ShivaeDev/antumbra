@@ -2,7 +2,7 @@ import { temporaryPersistence as makeTemporaryPersistence, type TemporaryPersist
 import { it as vitestIt } from "@effect/vitest";
 import { type Context, Effect, Exit, Layer, Scope } from "effect";
 
-export interface AppWorker {
+interface AppWorker {
 	readonly context: Context.Context<Layer.Success<TemporaryPersistence["layer"]>>;
 	readonly temporary: TemporaryPersistence;
 }

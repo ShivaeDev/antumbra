@@ -62,12 +62,6 @@ export const prepareInput = (draft: SessionInputDraft): Effect.Effect<PreparedSe
 			});
 		}
 		const parts = yield* Effect.forEach(draft.parts, preparePart);
-		if (parts.length === 0) {
-			return yield* new SessionInputInvalid({
-				detail: "at least one text or image part is required",
-				reason: "empty_input",
-			});
-		}
 		const imageBytes = parts.reduce((total, part) => total + (part.type === "image" ? part.image.bytes.length : 0), 0);
 		if (imageBytes > MAX_SESSION_INPUT_IMAGE_BYTES) {
 			return yield* new SessionInputInvalid({

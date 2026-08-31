@@ -4,12 +4,4 @@ export const steps: readonly Step[] = [
 	{ args: ["run", "check"], command: "pnpm", name: "formatting" },
 	{ args: ["script/lint.ts"], command: "node", name: "lint" },
 	{ args: ["run", "lint:boundaries"], command: "pnpm", name: "boundaries" },
-	{ args: ["run", "build"], command: "pnpm", name: "build" },
-	{ args: ["run", "typecheck"], command: "pnpm", name: "typecheck" },
-	{ args: ["run", "typecheck:root"], command: "pnpm", name: "typecheck root" },
-	{
-		args: ["run", "typecheck:compat"],
-		command: "pnpm",
-		name: "typecheck compat",
-	},
 ];

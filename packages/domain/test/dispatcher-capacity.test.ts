@@ -1,8 +1,8 @@
-import { Kernel, maxConcurrency } from "@antumbra/kernel";
+import { isTerminalIntentStatus, Kernel, maxConcurrency } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
 import { makeBackendCapacityController } from "@antumbra/plugin-api";
 import { expect, it } from "@effect/vitest";
-import { Clock, Deferred, Effect, Layer, Option, Queue } from "effect";
+import { Clock, Deferred, Effect, Layer, Option, Queue, Stream } from "effect";
 import { AgentDomain } from "#agent-domain-service.ts";
 import { BackendCapacityReleaseLive } from "#backend-capacity-release.ts";
 import { makeRetryBackendCapacity } from "#backend-capacity-retry.ts";
@@ -85,7 +85,7 @@ it.live("a retried birth recovered after restart is not dispatched twice", () =>
 			yield* db.Piece.where({ id: probe.id }).update({
 				launchedAt: new Date(2),
 			});
-			yield* kernel.submit(domain.spawn, {
+			const birth = yield* kernel.submit(domain.spawn, {
 				agentId: "agent-recovered",
 				backend: "scripted",
 				charter: "resume the recovered birth",
@@ -95,13 +95,12 @@ it.live("a retried birth recovered after restart is not dispatched twice", () =>
 				sessionId: "session-recovered",
 				voyageId: voyage.id,
 			});
-			yield* eventually(
-				Effect.gen(function* () {
-					const births = yield* db.Intent.where({ tag: "agent/spawn" }).all();
-					expect(births.map((birth) => birth.status)).toEqual(["waiting"]);
-				}),
+			const status = yield* birth.changes.pipe(
+				Stream.takeUntil((current) => current === "waiting" || isTerminalIntentStatus(current)),
+				Stream.runLast,
+				Effect.map(Option.getOrThrow),
 			);
-			const birth = Option.getOrThrow(yield* db.Intent.where({ tag: "agent/spawn" }).first());
+			expect(status).toBe("waiting");
 			return { intentId: birth.id, probeId: probe.id };
 		}).pipe(Effect.provide(dispatchingLayer(temporary, backend, PATIENCE)));
 

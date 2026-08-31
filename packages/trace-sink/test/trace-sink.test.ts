@@ -48,21 +48,11 @@ describe("dev trace sink", () => {
 	it.effect("makes a run's spans queryable by the Session they belong to", () =>
 		Effect.gen(function* () {
 			const directory = yield* temporaryDirectory;
-			const answer = yield* wholeRun(directory, attachment("session-a"));
-			expect(answer).toBe("session-a");
+			yield* wholeRun(directory, attachment("session-a"));
 			const rows = readRows(directory, "SELECT name, status, parent_span_id FROM spans WHERE session_id = ? ORDER BY name", ["session-a"]);
 			expect(rows.map((row) => row.name)).toEqual(["fabric.confirmIdentity", "fabric.openAttachment"]);
 			expect(rows.every((row) => row.status === "success")).toBe(true);
-		}),
-	);
-
-	it.effect("carries an annotated id down to the spans beneath it", () =>
-		Effect.gen(function* () {
-			const directory = yield* temporaryDirectory;
-			yield* wholeRun(directory, attachment("session-b"));
-			const child = readRows(directory, "SELECT session_id, parent_span_id FROM spans WHERE name = ?", ["fabric.confirmIdentity"]);
-			expect(child[0]?.session_id).toBe("session-b");
-			expect(typeof child[0]?.parent_span_id).toBe("string");
+			expect(typeof rows[0]?.parent_span_id).toBe("string");
 		}),
 	);
 

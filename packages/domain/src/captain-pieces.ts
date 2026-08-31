@@ -6,8 +6,6 @@ import { CaptainMembership } from "#captain-membership.ts";
 import { answered } from "#tool-answers.ts";
 import type { SessionIdentity } from "#tool-identity.ts";
 
-// why: the verbs that edit a piece's position rather than its substance —
-// plans bend, and every one of these is a link edit the record keeps.
 export const makePieceVerbToolCompiler = Effect.gen(function* () {
 	const membership = yield* CaptainMembership;
 	const pieces = yield* Pieces;

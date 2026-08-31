@@ -11,8 +11,6 @@ import type { SessionIdentity } from "#tool-identity.ts";
 
 type Asked = (typeof ruleOnSpec)["input"]["Type"];
 
-// why: a pick is named by the label the asker wrote, because the choice ids
-// belong to the record and never reach the mail the captain read.
 const verdictOf = (ruling: Ruling, by: RulingAuthority, identity: SessionIdentity, asked: Asked): RulingVerdict => {
 	const given = {
 		answer: asked.answer,
@@ -30,10 +28,6 @@ const verdictOf = (ruling: Ruling, by: RulingAuthority, identity: SessionIdentit
 const ruled = (ruling: Ruling): string =>
 	`ruling ${ruling.id} ruled — it binds ${bindsWords[ruling.radius]} until the admiral supersedes it, and the answer reaches the asker as mail`;
 
-// why: the verdict a captain gives on a request that climbed to it. The ruling
-// is read first because the refusals are all facts about the ruling rather than
-// about the words the captain wrote, and reading it is also how a choice named
-// by its label becomes the id the record stores.
 export const makeCaptainVerdictToolCompiler = Effect.gen(function* () {
 	const rulings = yield* Rulings;
 	const speaksAs = yield* makeRulingSpeaker;

@@ -48,10 +48,6 @@ const observationFor = (
 	return observation;
 };
 
-// why: this is a one-time bridge for records written before capacity had its
-// own durable row. Once a backend has a row, replaying its journal after an
-// admiral clear would turn old evidence into a new rejection. Folding first
-// preserves the hard-block latch while writing only the final reading.
 export const recoverBackendCapacities = (backends: ReadonlyMap<string, AgentBackend>, storedBackends: ReadonlySet<string>) =>
 	Effect.gen(function* () {
 		const db = yield* Database;

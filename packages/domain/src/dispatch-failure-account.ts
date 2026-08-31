@@ -1,10 +1,6 @@
 import { Database } from "@antumbra/persistence";
 import { Effect, Option } from "effect";
 
-// why: the warning is the only account a failed dispatch ever gives, so it says
-// what failed and how far it got, and it says something in every case — a row
-// that recorded no reason and a row that is gone are different facts, and
-// neither may reach the reader as an empty container.
 const GONE = {
 	detail: "the Intent row is gone",
 	status: "missing",

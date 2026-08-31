@@ -42,9 +42,7 @@ export const makeBackendCapacityStore = Effect.gen(function* () {
 					});
 					return;
 				}
-				// why: the controller's reception frontier orders a deliberate clear
-				// against provider frames. A rejection received after the click wins;
-				// clearing it would turn Retry into an accidental second override.
+				// A provider observation received after the clear request takes precedence.
 				if (existing.value.observedAt.getTime() > observedAt) {
 					return;
 				}

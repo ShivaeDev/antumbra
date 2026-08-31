@@ -1,10 +1,7 @@
 import { Clock, Effect, Queue, Ref } from "effect";
 import { nextBackoffMillis } from "#dispatch-policy.ts";
 
-// why: nothing here is persisted. After a crash the durable Agent assignment
-// keeps its Piece active while Session recovery resumes it; a failed dormant
-// birth releases the Piece through that status. A durable in-flight table
-// would only duplicate the rows and Intents that already say everything.
+// Dispatch bookkeeping is ephemeral; durable Agent assignments and Intents remain authoritative after restart.
 export interface DispatchState {
 	readonly failures: Ref.Ref<ReadonlyMap<string, number>>;
 	readonly inFlight: Ref.Ref<ReadonlyMap<string, string>>;
@@ -17,8 +14,6 @@ export const makeDispatchState: Effect.Effect<DispatchState> = Effect.gen(functi
 		failures: yield* Ref.make<ReadonlyMap<string, number>>(new Map()),
 		inFlight: yield* Ref.make<ReadonlyMap<string, string>>(new Map()),
 		skipUntil: yield* Ref.make<ReadonlyMap<string, number>>(new Map()),
-		// why: the kernel's trick — a sliding capacity-1 queue collapses any
-		// number of wake signals into at most one pending pass.
 		tick: yield* Queue.sliding<void>(1),
 	};
 });

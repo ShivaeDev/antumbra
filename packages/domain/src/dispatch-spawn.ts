@@ -34,9 +34,6 @@ const settle = (port: DispatchPort, pieceId: string, intentId: string, status: O
 		});
 	});
 
-// why: the watcher is the whole of the in-flight bookkeeping. A submitted
-// spawn holds its piece until the intent reaches a terminal status, so a
-// piece waiting behind a closed gate is never dispatched a second time.
 const watchDispatch = (port: DispatchPort, pieceId: string, submission: IntentSubmission) =>
 	submission.changes.pipe(
 		Stream.takeUntil(isTerminalIntentStatus),

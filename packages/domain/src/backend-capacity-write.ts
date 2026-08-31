@@ -38,9 +38,7 @@ export const ignoreCapacityObservation = (
 	if (comparison > 0 || (comparison === 0 && severity(current.value.status) >= severity(observation.status))) {
 		return true;
 	}
-	// why: a hard rejection is a latch, not another point on a usage graph.
-	// Only the admiral's clear act releases it; later allowed/warning frames
-	// cannot silently restart parked provider work.
+	// Only an admiral clear releases a blocked backend.
 	return current.value.status === "blocked" && observation.status !== "blocked";
 };
 

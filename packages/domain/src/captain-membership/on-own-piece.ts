@@ -5,8 +5,6 @@ import { withReadableMembers } from "#captain-membership/with-readable-members.t
 import { onVoyage, refused } from "#tool-answers.ts";
 import type { SessionIdentity } from "#tool-identity.ts";
 
-// why: a captain cons one ship. A piece id naming another voyage's work is
-// refused rather than acted on, so guessed ids grant no reach.
 export const onOwnPiece = Effect.fn("captainMembership.onOwnPiece")(function* (
 	identity: SessionIdentity,
 	pieceId: string,

@@ -24,15 +24,9 @@ const climbed = (ruling: Ruling): string =>
 const moved = (ruling: Ruling): string =>
 	`ruling ${ruling.id} now reads ${ruling.radius} radius, ${ruling.urgency} — your word is appended beside what the asker declared`;
 
-// why: the two moves a rung makes on a question it will not answer. Both name
-// the agent beside the rung, so a later reader knows which captain sent the
-// question on rather than only that a captain did.
 export const makeCaptainRulingMoveToolCompiler = Effect.gen(function* () {
 	const rulings = yield* Rulings;
 	const speaksAs = yield* makeRulingSpeaker;
-	// why: the admiral never calls these — it holds the top of the ladder and
-	// acts from the window — so the rung a caller speaks for is always one that
-	// has somewhere to climb to.
 	const climbing = (identity: SessionIdentity) =>
 		Effect.map(speaksAs(identity), (by): RulingClimbingAuthority => (by === "flagship" ? "flagship" : "captain"));
 

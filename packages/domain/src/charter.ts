@@ -15,9 +15,6 @@ interface BerthRow {
 
 type Moorage = Pick<BerthedCharter, "berths" | "moorageRoot">;
 
-// why: the berth carries the source it was cut from, and only the registry
-// row turns that into the name a change tool accepts — a berth whose repo was
-// forgotten can no longer be addressed and is left unnamed.
 const namedBerths = (
 	berths: ReadonlyArray<BerthRow>,
 	repos: ReadonlyArray<{ readonly name: string; readonly source: string }>,

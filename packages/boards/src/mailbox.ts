@@ -10,8 +10,6 @@ const readIds = (receipts: ReadonlyArray<{ readonly entryId: string }>) => new S
 const mailEntries = (agentId: string) =>
 	readBoard(BoardScope.Agent({ agentId })).pipe(Effect.map((entries) => entries.filter((entry) => entry.kind === "mail")));
 
-const storeReceipt = (entryId: string) => Database.use((db) => db.BoardEntryReceipt.create({ entryId }).pipe(Effect.asVoid));
-
 export const mail = Effect.fn("boards.mail")((input: MailInput) =>
 	writeEntry(
 		BoardScope.Agent({ agentId: input.toAgentId }),
@@ -32,24 +30,19 @@ export const unreadMail = Effect.fn("boards.unreadMail")(function* (agentId: str
 	return entries.filter((entry) => !read.has(entry.id));
 });
 
-const receiptsFor = (agentId: string, entryIds: ReadonlyArray<string>) =>
-	Effect.gen(function* () {
-		const db = yield* Database;
-		const entries = yield* mailEntries(agentId);
-		const addressed = new Set(entries.map((entry) => entry.id));
-		const requested = new Set(entryIds);
-		const stray = [...requested].find((entryId) => !addressed.has(entryId));
-		if (stray !== undefined) {
-			return yield* new MailNotAddressed({ agentId, entryId: stray });
-		}
-		const read = readIds(yield* db.BoardEntryReceipt.select("entryId"));
-		yield* Effect.forEach(
-			[...requested].filter((entryId) => !read.has(entryId)),
-			storeReceipt,
-			{ discard: true },
-		);
-	});
-
-export const markMailRead = Effect.fn("boards.markMailRead")((agentId: string, entryIds: ReadonlyArray<string>) =>
-	receiptsFor(agentId, entryIds).pipe(Effect.asVoid),
-);
+export const markMailRead = Effect.fn("boards.markMailRead")(function* (agentId: string, entryIds: ReadonlyArray<string>) {
+	const db = yield* Database;
+	const entries = yield* mailEntries(agentId);
+	const addressed = new Set(entries.map((entry) => entry.id));
+	const requested = new Set(entryIds);
+	const stray = [...requested].find((entryId) => !addressed.has(entryId));
+	if (stray !== undefined) {
+		return yield* new MailNotAddressed({ agentId, entryId: stray });
+	}
+	const read = readIds(yield* db.BoardEntryReceipt.select("entryId"));
+	yield* Effect.forEach(
+		[...requested].filter((entryId) => !read.has(entryId)),
+		(entryId) => db.BoardEntryReceipt.create({ entryId }),
+		{ discard: true },
+	);
+});

@@ -1,4 +1,4 @@
-import { it } from "@antumbra/testing";
+import { it } from "@antumbra/testing-runtime/capabilities";
 import { expect } from "@effect/vitest";
 import { changeOf } from "#test/change-fixtures.ts";
 

@@ -1,5 +1,5 @@
 import { type AgentBackend, makeBackendCapacityController } from "@antumbra/plugin-api";
-import { it } from "@antumbra/testing/domain";
+import { it } from "@antumbra/testing-runtime/domain";
 import type { AgentEvent } from "@antumbra/vocabulary/session-events";
 import { expect } from "@effect/vitest";
 import { Clock, Effect, Option } from "effect";

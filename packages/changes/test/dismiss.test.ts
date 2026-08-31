@@ -1,6 +1,6 @@
 import { Changes } from "@antumbra/changes";
 import { Database } from "@antumbra/persistence";
-import { it } from "@antumbra/testing";
+import { it } from "@antumbra/testing-runtime/domain";
 import { expect } from "@effect/vitest";
 import { Effect } from "effect";
 import { changeOf } from "#test/change-fixtures.ts";

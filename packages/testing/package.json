@@ -5,6 +5,7 @@
 	"type": "module",
 	"exports": {
 		".": "./src/index.ts",
+		"./capabilities": "./src/capabilities.ts",
 		"./domain": "./src/domain.ts"
 	},
 	"imports": {
@@ -16,17 +17,20 @@
 		"typecheck:compat": "tsc6 --noEmit"
 	},
 	"devDependencies": {
+		"@antumbra/boards": "workspace:*",
+		"@effect/vitest": "catalog:",
 		"@types/node": "catalog:",
 		"@typescript/native": "catalog:",
 		"typescript": "catalog:",
 		"vitest": "catalog:"
 	},
 	"dependencies": {
-		"@antumbra/boards": "workspace:*",
-		"@antumbra/domain-feeds": "workspace:*",
+		"@antumbra/domain": "workspace:*",
+		"@antumbra/intent-demand": "workspace:*",
+		"@antumbra/kernel": "workspace:*",
 		"@antumbra/persistence": "workspace:*",
-		"@antumbra/repos": "workspace:*",
-		"@effect/vitest": "catalog:",
+		"@antumbra/testing-runtime": "workspace:*",
+		"@effect/platform-node": "catalog:",
 		"effect": "catalog:"
 	}
 }

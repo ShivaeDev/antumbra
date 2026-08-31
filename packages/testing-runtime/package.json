@@ -1,35 +1,33 @@
 {
-	"name": "@antumbra/changes",
+	"name": "@antumbra/testing-runtime",
 	"version": "0.0.0",
 	"private": true,
 	"type": "module",
 	"exports": {
-		".": "./src/index.ts"
+		".": "./src/index.ts",
+		"./capabilities": "./src/capabilities.ts",
+		"./domain": "./src/domain.ts"
 	},
 	"imports": {
-		"#test/*": "./test/*",
 		"#*": "./src/*"
 	},
 	"scripts": {
-		"test": "vitest run",
 		"typecheck": "tsc --noEmit",
 		"typecheck:compat": "tsc6 --noEmit"
 	},
 	"devDependencies": {
-		"@antumbra/testing-runtime": "workspace:*",
-		"@effect/vitest": "catalog:",
 		"@types/node": "catalog:",
 		"@typescript/native": "catalog:",
-		"typescript": "catalog:",
-		"vitest": "catalog:"
+		"typescript": "catalog:"
 	},
 	"dependencies": {
+		"@antumbra/boards": "workspace:*",
 		"@antumbra/domain-feeds": "workspace:*",
 		"@antumbra/persistence": "workspace:*",
-		"@antumbra/pieces": "workspace:*",
 		"@antumbra/plugin-api": "workspace:*",
-		"@antumbra/resource-reclamation": "workspace:*",
+		"@antumbra/repos": "workspace:*",
 		"@antumbra/vocabulary": "workspace:*",
+		"@effect/vitest": "catalog:",
 		"effect": "catalog:"
 	}
 }

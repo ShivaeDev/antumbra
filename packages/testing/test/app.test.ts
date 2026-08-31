@@ -1,20 +1,20 @@
 import { BoardScope, EntryInput } from "@antumbra/boards";
-import { it } from "@antumbra/testing";
+import { it as capabilityIt } from "@antumbra/testing/capabilities";
 import { expect } from "@effect/vitest";
 import { Clock, Option } from "effect";
 import { TestClock } from "effect/testing";
 
-it.effectApp("uses TestClock unless live time is requested", function* () {
+capabilityIt.effectApp("uses TestClock unless live time is requested", function* () {
 	const before = yield* Clock.currentTimeMillis;
 	yield* TestClock.adjust(100);
 	expect(yield* Clock.currentTimeMillis).toBe(before + 100);
 });
 
-it.effectApp("uses the system clock when requested", { clock: "live" }, function* () {
+capabilityIt.effectApp("uses the system clock when requested", { clock: "live" }, function* () {
 	expect(yield* Clock.currentTimeMillis).toBeGreaterThan(1_000_000_000_000);
 });
 
-it.effectApp("keeps both Board registers in write order", function* ({ boards, db }) {
+capabilityIt.effectApp("keeps both Board registers in write order", function* ({ boards, db }) {
 	const voyageId = "testing-board-voyage";
 	yield* db.Voyage.create({
 		captainBackend: "scripted",
@@ -33,7 +33,7 @@ it.effectApp("keeps both Board registers in write order", function* ({ boards, d
 	]);
 });
 
-it.effectApp("refreshes a registered source instead of duplicating it", function* ({ repos }) {
+capabilityIt.effectApp("refreshes a registered source instead of duplicating it", function* ({ repos }) {
 	const first = yield* repos.register({ defaultRef: "main", source: "/testing/reefs/one" });
 	const again = yield* repos.register({ defaultRef: "trunk", source: "/testing/reefs/one" });
 	expect(again).toEqual({

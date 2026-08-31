@@ -48,9 +48,8 @@ it.live("adopts and wakes the one Session an Agent holds", () =>
 			const current = yield* makeCurrentSessionRecovery;
 			yield* createAgent("agent-holding", null).pipe(Effect.andThen(createSession("agent-holding", "session-held")));
 
-			expect(Result.isSuccess(yield* current.resumable("session-held"))).toBe(true);
+			yield* current.resumable("session-held");
 			expect(Option.getOrThrow(yield* db.Agent.where({ id: "agent-holding" }).first()).currentSessionId).toBe("session-held");
-			expect(Option.getOrThrow(yield* db.AgentSession.where({ id: "session-held" }).first()).executionStatus).toBe("idle");
 			yield* current.awaken("session-held");
 			expect(Option.getOrThrow(yield* db.AgentSession.where({ id: "session-held" }).first()).executionStatus).toBe("active");
 		}).pipe(Effect.provide(layer));

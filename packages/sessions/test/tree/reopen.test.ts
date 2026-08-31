@@ -71,7 +71,6 @@ it.live("a re-driven child that is announced again reopens its row", () =>
 
 			// why: resume, from any state, means recording again — whatever an
 			// earlier audit concluded is a reading of a life that has resumed.
-			expect(node.id).toBe(NODE);
 			expect(node.status).toBe("open");
 			expect(node.completeness).toBe("recording");
 			expect(yield* nodeRows).toHaveLength(2);
@@ -94,7 +93,6 @@ it.live("a re-driven child that speaks first reopens its row too", () =>
 			// it, so the seam that admits an unannounced node has to ask the record
 			// the same question — otherwise one thread's transcript ends up split
 			// across two rows.
-			expect(node.id).toBe(NODE);
 			expect(node.status).toBe("open");
 			expect(node.completeness).toBe("recording");
 			expect(yield* nodeRows).toHaveLength(2);

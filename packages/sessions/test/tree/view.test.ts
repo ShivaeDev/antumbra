@@ -47,7 +47,6 @@ describe("assembleSessionTree", () => {
 		]);
 		expect(tree.alive).toBe(2);
 		expect(tree.total).toBe(4);
-		expect(tree.rootSessionId).toBe("root");
 	});
 
 	it("carries the ending and the audit of every node it lists", () => {

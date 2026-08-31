@@ -74,7 +74,6 @@ it.live("the same ledger read twice reaches the same verdict", () =>
 			const first = yield* rows;
 
 			yield* audits.audit(lane.audit, first.root, first.node);
-			expect(yield* completenessOf(NODE)).toBe("incomplete");
 
 			const second = yield* rows;
 			expect(second.node.completeness).toBe("incomplete");

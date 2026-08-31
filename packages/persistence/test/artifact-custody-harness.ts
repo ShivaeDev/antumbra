@@ -9,7 +9,7 @@ import { applyMigrations } from "#adapters/migrator.ts";
 import { brandDatabaseFilePath } from "#data-dir.ts";
 import { packagedMigrationsDirectory } from "#testing.ts";
 
-export const predecessor: unknown = JSON.parse(
+const predecessor: unknown = JSON.parse(
 	readFileSync(fileURLToPath(new URL("../migrations/app/20260818T1538_artifact_custody/start-contract.json", import.meta.url)), "utf8"),
 );
 

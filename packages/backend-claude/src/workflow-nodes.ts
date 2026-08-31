@@ -10,7 +10,7 @@ interface NodeState {
 	settled: boolean;
 }
 
-export interface WorkflowNodes {
+interface WorkflowNodes {
 	readonly known: (agentId: string) => boolean;
 	readonly opened: (ref: WorkflowAgentRef) => ReadonlyArray<AgentEvent>;
 	readonly originOf: (ref: WorkflowAgentRef) => Origin;

@@ -9,7 +9,7 @@ const idAt = (block: Record<string, unknown>, field: string) => (typeof block[fi
 
 const isWorkflowCall = (block: Record<string, unknown>) => block.type === "tool_use" && block.name === WORKFLOW_TOOL;
 
-export interface WorkflowResults {
+interface WorkflowResults {
 	readonly recovered: (entries: ReadonlyArray<SessionStoreEntry>, origin: Origin | undefined) => ReadonlyArray<AgentEvent>;
 }
 

@@ -8,7 +8,7 @@ export interface RawEventListener {
 	readonly recorded: (agentId: string) => boolean;
 }
 
-export interface SessionDeliveries {
+interface SessionDeliveries {
 	readonly deliver: (delivery: Delivery) => void;
 	readonly finish: () => void;
 	readonly frame: (message: SDKMessage) => void;

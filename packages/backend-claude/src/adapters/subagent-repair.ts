@@ -1,7 +1,7 @@
 import { getSubagentMessages, listSubagents } from "@anthropic-ai/claude-agent-sdk";
 import type { AdoptedAgent, Repair } from "#workflow-adoption.ts";
 
-export interface RepairRequest {
+interface RepairRequest {
 	readonly cwd: string;
 	readonly nativeSessionId: string;
 	readonly recorded: (agentId: string) => boolean;

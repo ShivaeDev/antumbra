@@ -14,7 +14,7 @@ export interface Repair {
 	readonly failure: string | undefined;
 }
 
-export const admissionOrigin = (agent: AdoptedAgent): Origin => ({
+const admissionOrigin = (agent: AdoptedAgent): Origin => ({
 	node: agent.agentId,
 	spawnedBy: agent.messages[0]?.parent_tool_use_id ?? agentFileRef(agent.agentId),
 });

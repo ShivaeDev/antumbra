@@ -28,10 +28,6 @@ export interface Berthed {
 	readonly root: string;
 }
 
-// why: the push half of opening a change is real — a temporary bare repo
-// standing in for the remote, a mirror, and a worktree on a work branch — so
-// the test proves the branch reaches the remote rather than proving that a
-// function named push was called.
 const cut = (root: string): Berthed => {
 	const seed = join(root, "seed");
 	const remote = join(root, "remote.git");

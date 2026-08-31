@@ -13,10 +13,7 @@ export interface ProcessOutput {
 	readonly stdout: string;
 }
 
-// why: gh reserves an exit code for an unusable login, and says so in prose on
-// every path that does not use it. Both are read, because a caller that treats
-// "you are logged out" as "the command failed" would tell an agent to retry
-// something no retry can fix.
+// gh reserves this exit code for an unusable login.
 const AUTH_EXIT_CODE = 4;
 
 const authMarkers = [
@@ -33,10 +30,6 @@ const authMarkers = [
 const needsAuthentication = (exitCode: number, detail: string): boolean =>
 	exitCode === AUTH_EXIT_CODE || authMarkers.some((marker) => detail.toLowerCase().includes(marker));
 
-// why: a gateway that fell over or a socket that died is not this login being
-// told no. gh ran perfectly and still came back with nothing anybody can act
-// on, so it is read as an unreachable host — the one failure where asking the
-// same question again in a while is the whole remedy.
 const SERVER_STATUS = /\bhttp 5\d\d\b/;
 
 const outageMarkers = [

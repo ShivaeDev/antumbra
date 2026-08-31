@@ -8,8 +8,6 @@ const FIND_TIMEOUT_MILLIS = 30_000;
 
 const FoundPulls = Schema.Array(Schema.Struct({ number: Schema.Number }));
 
-// why: an unavailable or unreadable lookup is ambiguous after a lost create
-// response. Only GitHub's definite absence permits the caller to create.
 export const findPull = (
 	executable: string,
 	repo: GitHubRepoName,

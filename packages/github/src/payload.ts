@@ -9,9 +9,7 @@ const CommitNode = Schema.Struct({
 	commit: Schema.Struct({ statusCheckRollup: Schema.NullOr(CheckRollup) }),
 });
 
-// why: extra fields are tolerated by construction — GitHub adds to this shape
-// whenever it likes, and a decoder that refused unknown keys would turn every
-// upstream addition into an outage.
+// GitHub may add fields without changing this boundary.
 export const PullRequestNode = Schema.Struct({
 	baseRefName: Schema.String,
 	commits: Schema.Struct({ nodes: Schema.Array(CommitNode) }),
@@ -56,10 +54,7 @@ const decodeNode = (operation: GhOperation, selection: ObserveSelection, raw: un
 		),
 	);
 
-// why: a null alias is a pull request this login cannot see — deleted, or in a
-// repo the token does not reach. It is dropped rather than invented, because
-// the domain treats an unobserved change as untouched and a fabricated one as
-// truth.
+// GitHub returns null for a pull request this login cannot see.
 const aliasedNodes = (
 	data: Readonly<Record<string, Readonly<Record<string, unknown>> | null>>,
 	selections: ReadonlyArray<ObserveSelection>,

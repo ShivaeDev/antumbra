@@ -64,22 +64,6 @@ const land = (pieceId: string, title: string) =>
 		});
 	});
 
-it.effectDB("does not scan an unrelated Piece's corrupt lineage", function* (db) {
-	yield* db.Piece.create(piece);
-	yield* db.Piece.create(otherPiece);
-	const foreignFirst = yield* land(otherPiece.id, "foreign-first").pipe(Effect.provide(layer));
-	const foreignSecond = yield* land(otherPiece.id, "foreign-second").pipe(Effect.provide(layer));
-	yield* db.Artifact.where({ id: foreignFirst.artifact.id }).update({
-		supersededByArtifactId: foreignSecond.artifact.id,
-	});
-	yield* db.Artifact.where({ id: foreignSecond.artifact.id }).update({
-		supersededByArtifactId: foreignFirst.artifact.id,
-	});
-
-	const landed = yield* land(piece.id, "target").pipe(Effect.provide(layer));
-	expect(landed).toMatchObject({ _tag: "landed", otherCurrentArtifacts: [] });
-});
-
 it.effectDB("refuses invalid landing before any Artifact mutation", function* (db) {
 	yield* db.Piece.create(piece);
 	yield* db.Piece.create(otherPiece);

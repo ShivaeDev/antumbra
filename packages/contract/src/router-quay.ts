@@ -12,8 +12,6 @@ export const quayRoutes = (procedure: AppProcedure) => ({
 			const voyages = yield* VoyageSource;
 			return yield* surface(voyages.adoptChange(input));
 		}),
-	// why: the terminal verb for a change that died at its host — the quay is
-	// where it waits, so the quay is where it is answered.
 	dismissChange: procedure.input(DismissChangeRequest).mutation(function* (input) {
 		const voyages = yield* VoyageSource;
 		yield* surface(voyages.dismissChange(input.changeId));

@@ -103,9 +103,6 @@ it("reads the subsession tree back out of the log", () => {
 	expect(projectHistoricalAgentEvent("subsession.ended", JSON.stringify(ended))).toEqual({ _tag: "Known", event: ended });
 });
 
-// why: a provider that names neither a subagent type, a description, nor a
-// recoverable charter still opened a subsession, and the log must be able to
-// say so without inventing the words it was not given.
 it("reads an opening that names nothing but the node and its spawner", () => {
 	const opened = {
 		raw,
@@ -126,9 +123,6 @@ it("reads a gap in observation back as the gap it was", () => {
 	expect(projectHistoricalAgentEvent("subsession.gap", JSON.stringify(gap))).toEqual({ _tag: "Known", event: gap });
 });
 
-// why: an end naming an outcome this vocabulary never had is exactly the case
-// the envelope exists for — the bytes stay whole and readable as evidence
-// instead of the projection failing or guessing a nearer word.
 it("keeps an end whose outcome this vocabulary does not know as raw evidence", () => {
 	const payload = JSON.stringify({
 		outcome: "killed",

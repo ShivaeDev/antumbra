@@ -32,6 +32,4 @@ export {
 	SubsessionOutcome,
 } from "#session-events/subsessions.ts";
 export { UsageEvent } from "#session-events/usage.ts";
-// why: MessageEvent correlation keeps the canonical Session-input brand, but
-// event producers cross only this public subject rather than naming its sibling.
 export { SessionInputId } from "#session-input.ts";

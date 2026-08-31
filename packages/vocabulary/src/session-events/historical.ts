@@ -15,9 +15,7 @@ export type HistoricalAgentEvent = typeof HistoricalAgentEvent.Type;
 
 const decodeStoredPayload = Schema.decodeUnknownOption(Schema.fromJsonString(AgentEvent));
 
-// why: historical rows are evidence even when a newer writer or corruption
-// makes them unknown here. Projection is total, preserves the exact bytes, and
-// names Known only when both halves of the stored envelope agree.
+// Preserve stored payload bytes when the row kind or event schema is unknown.
 export const projectHistoricalAgentEvent = (kind: string, payload: string): HistoricalAgentEvent => {
 	const decoded = decodeStoredPayload(payload);
 	return Option.isSome(decoded) && decoded.value.type === kind

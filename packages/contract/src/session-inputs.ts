@@ -1,10 +1,6 @@
 import { SessionImageMediaType, SessionInputId, SessionInputPosition } from "@antumbra/vocabulary/session-input";
 import { Schema } from "effect";
 
-// why: what the admiral hands a Session crosses the boundary as bytes with a
-// name and nothing decided about it yet, and comes back as a picture the window
-// can show. Those are two different shapes of the same attachment, so they are
-// declared together and away from the surface that merely carries them.
 export const SessionInputDraftPart = Schema.Union([
 	Schema.Struct({ text: Schema.String, type: Schema.Literal("text") }),
 	Schema.Struct({

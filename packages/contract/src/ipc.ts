@@ -31,9 +31,6 @@ export type UnsubscribeRequest = typeof UnsubscribeRequest.Type;
 
 type TrpcInvokeProcedureType = Exclude<ProcedureType, "subscription">;
 
-// why: the schemas decode what the wire carries; these bindings force the
-// decoded shapes to stay assignable to the dependency-free channel types
-// the preload compiles against.
 const _bindRequest = (request: TrpcRequest): BridgeRequest => request;
 const _bindSubscribe = (request: SubscribeRequest): BridgeSubscribeRequest => request;
 const _bindFailureCodeToTrpc = (code: TrpcFailureCode): TRPC_ERROR_CODE_KEY => code;

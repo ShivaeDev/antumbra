@@ -1,8 +1,5 @@
 import { Data, Option, Result, Schema } from "effect";
 
-// why: a ruling is requested by one layer, answered by another, and read long
-// after both. This leaf holds the two declared axes, the subject kinds, and the
-// authorities as one closed set none of those layers may widen alone.
 export const RulingRadiusSchema = Schema.Literals(["piece", "voyage", "fleet"]);
 export type RulingRadius = typeof RulingRadiusSchema.Type;
 
@@ -12,9 +9,6 @@ export type RulingUrgency = typeof RulingUrgencySchema.Type;
 export const RulingSubjectKindSchema = Schema.Literals(["repo", "voyage", "piece", "agent", "tag"]);
 export type RulingSubjectKind = typeof RulingSubjectKindSchema.Type;
 
-// why: the whole ladder a request climbs, from the voyage it was asked on to
-// the hand that may overrule anything: a stored word names which rung answered,
-// reclassified, or is still owed the question.
 export const RulingAuthoritySchema = Schema.Literals(["admiral", "flagship", "captain"]);
 export type RulingAuthority = typeof RulingAuthoritySchema.Type;
 
@@ -43,8 +37,6 @@ export const decodeStoredRulingSubjectKind = storedValue(Schema.decodeUnknownOpt
 
 export const decodeStoredRulingAuthority = storedValue(Schema.decodeUnknownOption(RulingAuthoritySchema), "authority");
 
-// why: the open set is read in the order an authority should meet it — what
-// holds an asker first, and within that what binds most widely once answered.
 const URGENCY_RANK: Readonly<Record<RulingUrgency, number>> = {
 	blocking: 0,
 	eventual: 2,

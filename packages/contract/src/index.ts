@@ -2,10 +2,6 @@ export {
 	AGENT_BACKEND_TAGS,
 	type AgentBackendTag,
 } from "@antumbra/vocabulary/agent-backend";
-// why: the composer and the transcript say the same words about an input that
-// the capability storing it does, and the renderer already reads every other
-// public word through this IDL. The Session-input subject is re-exported here
-// so that stays one door rather than a second one into the vocabulary leaf.
 export {
 	MAX_SESSION_IMAGE_SOURCE_BYTES,
 	MAX_SESSION_IMAGES,

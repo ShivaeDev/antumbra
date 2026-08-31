@@ -6,12 +6,7 @@ export type AgentStatus = typeof AgentStatusSchema.Type;
 export const AgentSessionStatusSchema = Schema.Literals(["open", "closed"]);
 export type AgentSessionStatus = typeof AgentSessionStatusSchema.Type;
 
-// why: a Session node resumes, so its completeness is a state rather than a
-// bit. A node opens — or resumes, from any state — into "recording"; the
-// close-time audit lands "complete" when its gap set is empty and "incomplete"
-// when gaps were journaled; repair may re-audit an incomplete node back to
-// "complete". "unaudited" is legacy backfill only: rows that closed before gap
-// tracking existed, whose completeness was never examined.
+// Retained for rows created before completeness tracking.
 export const AgentSessionCompletenessSchema = Schema.Literals(["recording", "complete", "incomplete", "unaudited"]);
 export type AgentSessionCompleteness = typeof AgentSessionCompletenessSchema.Type;
 

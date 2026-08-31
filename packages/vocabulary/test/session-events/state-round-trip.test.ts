@@ -8,10 +8,6 @@ const raw = {
 	source: "claude",
 };
 
-// why: the journal stores the event type as the row kind and the whole event
-// as JSON, so a shape that does not survive that trip is a shape the record
-// silently downgrades to Unknown. These three are new members of the union, so
-// the trip is asserted rather than assumed.
 const trip = (event: AgentEvent) => projectHistoricalAgentEvent(event.type, JSON.stringify(event));
 
 it("a session state survives the journal round trip", () => {
@@ -55,8 +51,6 @@ it("a usage split survives the trip, and one without cache counts still does", (
 	expect(trip(bare)).toEqual({ _tag: "Known", event: bare });
 });
 
-// why: a state word this vocabulary does not have must not be admitted by the
-// decoder — a row written by a newer writer is Unknown evidence, not a state.
 it("a state word outside the three is not admitted", () => {
 	const payload = JSON.stringify({
 		raw,

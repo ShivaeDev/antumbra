@@ -1,9 +1,5 @@
 import { Data, type Effect } from "effect";
 
-export interface RunnerCapabilities {
-	readonly liveTerminal: boolean;
-}
-
 export class RunnerFailure extends Data.TaggedError("RunnerFailure")<{
 	readonly detail: string;
 	readonly tag: string;
@@ -80,7 +76,6 @@ export type ReclaimVerdict = { readonly _tag: "dirty" } | { readonly _tag: "recl
 
 export interface Runner {
 	readonly captureChange: (berth: BerthSite) => Effect.Effect<ChangePreparationEvidence, RunnerError>;
-	readonly capabilities: RunnerCapabilities;
 	readonly plan: (request: ProvisionRequest) => MooragePlan;
 	readonly provision: (plan: MooragePlan) => Effect.Effect<void, RunnerError>;
 	readonly reclaim: (berth: BerthSite) => Effect.Effect<ReclaimVerdict, RunnerError>;

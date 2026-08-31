@@ -36,10 +36,7 @@ export const idleHandle: SessionHandle = {
 export const scriptedBackend = (openSession: AgentBackend["openSession"]): AgentBackend => ({
 	audit: noSessionAudit,
 	capabilities: {
-		fork: false,
 		imageInput: false,
-		liveInterrupt: true,
-		multiClient: false,
 	},
 	openSession,
 	tag: "scripted",

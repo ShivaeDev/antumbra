@@ -51,7 +51,6 @@ const provisionInto = (roots: LocalRunnerRoots, plan: MooragePlan) =>
 
 export const makeLocalRunner = (roots: LocalRunnerRoots): Runner => ({
 	captureChange,
-	capabilities: { liveTerminal: false },
 	plan: (request) => planMoorage(roots, request),
 	provision: (plan) =>
 		Effect.gen(function* () {

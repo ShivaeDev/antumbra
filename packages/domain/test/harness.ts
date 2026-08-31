@@ -41,7 +41,6 @@ export const makeScriptedRunner = Effect.gen(function* () {
 				workingTreeStatus: "",
 				worktreePath: berth.path,
 			}),
-		capabilities: { liveTerminal: false },
 		plan,
 		provision: (provisionPlan) => Ref.update(plans, (all) => [...all, provisionPlan]),
 		reclaim: () => Effect.succeed({ _tag: "reclaimed" as const }),
@@ -90,10 +89,7 @@ export const makeScriptedBackend = Effect.gen(function* () {
 	const backend: AgentBackend = {
 		audit: noSessionAudit,
 		capabilities: {
-			fork: false,
 			imageInput: true,
-			liveInterrupt: true,
-			multiClient: false,
 		},
 		openSession: (options) =>
 			Effect.gen(function* () {
@@ -144,7 +140,6 @@ export const passiveRunner: Runner = {
 			workingTreeStatus: "",
 			worktreePath: berth.path,
 		}),
-	capabilities: { liveTerminal: false },
 	plan: (request) => ({
 		berths: [],
 		root: `/tmp/moorage/${request.agentId}`,

@@ -13,10 +13,7 @@ it.effect("the claude plugin registers its backend for the CLI it finds", () =>
 			const backends = yield* host.backends;
 			const backend = backends.get("claude");
 			expect(backend?.capabilities).toEqual({
-				fork: true,
 				imageInput: false,
-				liveInterrupt: true,
-				multiClient: false,
 			});
 			const capacity = backend?.capacity;
 			expect(capacity).toBeDefined();

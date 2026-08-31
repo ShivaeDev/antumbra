@@ -8,10 +8,7 @@ import { noSessionAudit } from "#session-audit.ts";
 const fakeBackend = (tag: string): AgentBackend => ({
 	audit: noSessionAudit,
 	capabilities: {
-		fork: false,
 		imageInput: false,
-		liveInterrupt: false,
-		multiClient: false,
 	},
 	openSession: () => Effect.die("unused in this test"),
 	tag,

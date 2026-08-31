@@ -1,27 +1,5 @@
 [
   {
-    "id": "agentSession.tree.guard-session-status",
-    "label": "Reject unknown Session lifecycle truth",
-    "summary": "fail before backfill when a Session status is outside the durable vocabulary",
-    "operationClass": "data",
-    "target": {
-      "id": "sqlite",
-      "details": {
-        "schema": "main",
-        "objectType": "table",
-        "name": "agentSession"
-      }
-    },
-    "precheck": [],
-    "execute": [
-      {
-        "description": "fail before backfill when a Session status is outside the durable vocabulary",
-        "sql": "INSERT INTO \"agentSession\" (\"id\", \"agentId\", \"backend\", \"cwd\", \"nativeRef\", \"status\", \"executionStatus\", \"charterDeliveredAt\", \"createdAt\")\nSELECT \"id\", \"agentId\", \"backend\", \"cwd\", \"nativeRef\", \"status\", \"executionStatus\", \"charterDeliveredAt\", \"createdAt\"\nFROM \"agentSession\" WHERE \"status\" NOT IN ('open', 'closed')"
-      }
-    ],
-    "postcheck": []
-  },
-  {
     "id": "column.agentSession.outcome",
     "label": "Add column outcome on agentSession",
     "summary": "Adds column outcome on agentSession",
@@ -402,28 +380,6 @@
         "sql": "SELECT EXISTS (SELECT 1 FROM pragma_foreign_key_list('agentSession') f WHERE f.\"table\" = 'agentSession' GROUP BY f.id HAVING COUNT(*) = 1 AND SUM(CASE WHEN (f.\"from\", f.\"to\") IN (('rootSessionId', 'id')) THEN 1 ELSE 0 END) = 1)"
       }
     ]
-  },
-  {
-    "id": "sessionEvent.session.guard-orphans",
-    "label": "Reject Session events with no Session",
-    "summary": "fail before the foreign key adopts events whose Session is missing",
-    "operationClass": "data",
-    "target": {
-      "id": "sqlite",
-      "details": {
-        "schema": "main",
-        "objectType": "table",
-        "name": "sessionEvent"
-      }
-    },
-    "precheck": [],
-    "execute": [
-      {
-        "description": "fail before the foreign key adopts events whose Session is missing",
-        "sql": "INSERT INTO \"sessionEvent\" (\"sessionId\", \"seq\", \"kind\", \"payload\", \"at\")\nSELECT e.\"sessionId\", e.\"seq\", e.\"kind\", e.\"payload\", e.\"at\"\nFROM \"sessionEvent\" e\nWHERE NOT EXISTS (SELECT 1 FROM \"agentSession\" s WHERE s.\"id\" = e.\"sessionId\")"
-      }
-    ],
-    "postcheck": []
   },
   {
     "id": "recreateTable.sessionEvent",

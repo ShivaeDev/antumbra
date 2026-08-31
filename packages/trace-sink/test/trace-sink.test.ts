@@ -20,9 +20,6 @@ const readRows = (directory: string, sql: string, parameters: readonly SQLInputV
 	return rows;
 };
 
-// why: closing the composed Layer is what a run ending looks like, and the sink
-// flushes what it still holds on the way out. Reading the file before that
-// would be reading a buffer, not a trace.
 const wholeRun = <A, E>(directory: string, program: Effect.Effect<A, E>) =>
 	Effect.scoped(Effect.provide(program, DevTraceLive({ appVersion: "0.0.0-test", dataDirectory: directory })));
 

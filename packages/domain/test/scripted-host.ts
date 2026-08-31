@@ -2,7 +2,7 @@ import type { ChangeHost, ChangeHostRepo, ChangeObservation, ChangeRef, OpenChan
 import { ChangeHostRefused, ChangeHostUnavailable } from "@antumbra/plugin-api";
 import { Effect, Ref } from "effect";
 
-export interface ScriptedHostDrive {
+interface ScriptedHostDrive {
 	readonly adopted: Effect.Effect<ReadonlyArray<string>>;
 	readonly announce: (observation: ChangeObservation) => Effect.Effect<void>;
 	readonly asked: Effect.Effect<ReadonlyArray<ChangeRef>>;

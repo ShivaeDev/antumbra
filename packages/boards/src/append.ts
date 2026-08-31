@@ -19,7 +19,7 @@ const priorEntry = (boardId: string, input: EntryInput) => {
 	});
 };
 
-export interface AppendResult {
+interface AppendResult {
 	readonly row: BoardEntryRow;
 	readonly written: boolean;
 }

@@ -15,9 +15,7 @@ interface ObservePlan {
 	readonly selections: ReadonlyArray<ObserveSelection>;
 }
 
-// why: one call per fifty changes rather than one per change — a watcher pass
-// over a busy fleet is a handful of requests, and GitHub's node limit for a
-// single document sits far above this.
+// Leave ample room beneath GitHub's GraphQL node limit.
 export const OBSERVE_CHUNK_SIZE = 50;
 
 const PULL_FIELDS = [
@@ -61,9 +59,6 @@ const groupedByRepo = (refs: ReadonlyArray<LocatedPullRequestRef>): ReadonlyArra
 	return [...groups.values()];
 };
 
-// why: every pull request in the batch gets an alias unique across the whole
-// document. The plan preserves that alias-to-repository mapping, so partial
-// answers never have to be correlated by position.
 const repositoryBlock = (group: ReadonlyArray<LocatedPullRequestRef>, alias: string, numbered: (ref: LocatedPullRequestRef) => string): string => {
 	const first = group[0];
 	if (first === undefined) {

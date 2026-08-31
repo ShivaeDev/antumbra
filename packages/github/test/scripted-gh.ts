@@ -3,10 +3,6 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { Effect } from "effect";
 
-// why: the real gh is replaced by a script rather than by a mock spawner,
-// because what these tests check is the command line this package builds —
-// argument order, flags, the query — and a mocked process layer would only
-// assert the shape of our own call site back at us.
 const SCRIPT = `#!/bin/sh
 ROOT=$(dirname "$0")
 for arg in "$@"; do printf '%s\\036' "$arg" >> "$ROOT/calls.log"; done
@@ -51,9 +47,7 @@ const install = (root: string): ScriptedGh => {
 			writeFileSync(join(root, `${call}.code`), String(answer.code ?? 0));
 		},
 		executable,
-		// why: arguments are separated by a record separator rather than a
-		// newline, because one of them is a multi-line pull request body and a
-		// line-based log would report it as several arguments it never was.
+		// Arguments may contain newlines, so the log uses a record separator.
 		received: () =>
 			readFileSync(log, "utf8")
 				.split("\u001e")

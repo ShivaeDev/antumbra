@@ -17,9 +17,6 @@ const REPO: ChangeHostRepo = {
 
 const WATCHED = [{ externalId: "23", repo: REPO }];
 
-// why: what a failing gateway actually puts on the wire — gh exits nonzero,
-// names the status on stderr, and hands back a proxy's error page on the
-// stream a partial GraphQL answer would have arrived on.
 const BAD_GATEWAY: ScriptedAnswer = {
 	code: 1,
 	err: "gh: Something went wrong (HTTP 502)\n",
@@ -61,10 +58,6 @@ describe("a GitHub that falters mid-watch", () => {
 		),
 	);
 
-	// why: a run of gateway failures disproves nothing about the login, so the
-	// answer gh gave a moment ago still stands — a 401 is the failure that
-	// throws it away, and re-probing on every failed pass would spend a process
-	// per pass on a question GitHub is in no state to answer.
 	it.live("keeps the login it cached through a run of failures", () =>
 		withGh((gh) =>
 			Effect.gen(function* () {

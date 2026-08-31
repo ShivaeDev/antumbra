@@ -5,17 +5,11 @@ export interface GitHubRepoName {
 	readonly owner: string;
 }
 
-// why: owner and name are restricted to what GitHub itself allows rather than
-// to "anything without a slash", because both are interpolated into a GraphQL
-// document further down. Narrowing at the parse boundary is what makes that
-// interpolation safe everywhere else.
+// Owner and name are interpolated into the GraphQL document.
 const SEGMENT = "[A-Za-z0-9._-]+";
 
 const GITHUB_SOURCE = new RegExp(`^(?:(?:https?|ssh)://)?(?:[^@/]+@)?github\\.com[/:](${SEGMENT})/(${SEGMENT}?)(?:\\.git)?/?$`);
 
-// why: a repo lives on this host or it does not — a local path, a GitHub
-// Enterprise domain, or another forge reads as none, and the domain then asks
-// the next registered host instead of this one guessing.
 export const parseGitHubSource = (source: string): Option.Option<GitHubRepoName> => {
 	const matched = GITHUB_SOURCE.exec(source.trim());
 	const owner = matched?.[1];

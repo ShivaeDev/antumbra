@@ -18,8 +18,6 @@ describe("asking about many changes at once", () => {
 		expect(query).toContain("statusCheckRollup { state }");
 	});
 
-	// why: aliases are unique across the whole document, not per repository —
-	// two repos in one call must not both answer under pr_0.
 	it("keeps aliases unique when two repositories share a call", () => {
 		const query = buildObserveQuery([ref("ShivaeDev", "antumbra", 7), ref("someone", "elsewhere", 7), ref("ShivaeDev", "antumbra", 8)]);
 		expect(query.match(/repository\(/g)).toHaveLength(2);

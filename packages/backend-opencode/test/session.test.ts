@@ -70,15 +70,13 @@ it.effect("streams what the session said onto the neutral log", () =>
 const spoken = (fake: FakeOpencode) =>
 	fake.calls.flatMap((call) => (call.path === PROMPT && typeof call.body === "object" && call.body !== null ? [JSON.stringify(call.body)] : []));
 
-const said = (text: string) => JSON.stringify({ parts: [{ text, type: "text" }] });
-
 it.effect("sends a prompt straight away when the session is not working", () =>
 	Effect.scoped(
 		Effect.gen(function* () {
 			const fake = makeFakeOpencode();
 			const handle = yield* opened(fake);
 			yield* handle.queue(words("go on then"));
-			expect(spoken(fake)).toEqual([said("go on then")]);
+			expect(spoken(fake)).toEqual([JSON.stringify({ parts: [{ text: "go on then", type: "text" }] })]);
 		}),
 	),
 );

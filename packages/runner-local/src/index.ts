@@ -1,1 +1,1 @@
-export { localRunnerPlugin, makeLocalRunner } from "#local.ts";
+export { localRunnerPlugin } from "#local.ts";

@@ -1,22 +1,18 @@
-import { SETTINGS, type SettingChange, SettingRefused, type SettingValue } from "@antumbra/contract";
+import { SETTINGS, type SettingChange, SettingRefused } from "@antumbra/contract";
 import { Database } from "@antumbra/persistence";
 import { Clock, Effect, Option } from "effect";
 import { readSettings } from "#reading.ts";
 
-const accept = (change: SettingChange) => {
-	const declaration = SETTINGS[change.key];
-	return Option.match(declaration.decode(change.value), {
-		onNone: () => Effect.fail(new SettingRefused({ expects: declaration.expects, key: change.key })),
-		onSome: (value: SettingValue) => Effect.succeed(value),
-	});
-};
-
 export const changeSetting = (change: SettingChange) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
-		const value = yield* accept(change);
+		const declaration = SETTINGS[change.key];
+		const value = yield* Option.match(declaration.decode(change.value), {
+			onNone: () => Effect.fail(new SettingRefused({ expects: declaration.expects, key: change.key })),
+			onSome: (value) => Effect.succeed(value),
+		});
 		const now = yield* Clock.currentTimeMillis;
-		if (value === SETTINGS[change.key].fallback) {
+		if (value === declaration.fallback) {
 			yield* db.Setting.where({ key: change.key }).deleteAll();
 		} else {
 			const encoded = JSON.stringify(value);

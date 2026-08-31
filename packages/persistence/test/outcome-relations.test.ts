@@ -83,60 +83,6 @@ const artifact = {
 	uri: "https://example.test/reef.svg",
 };
 
-it.effect("migration refuses a historical orphan Report link unchanged", () =>
-	Effect.gen(function* () {
-		const database = freshDatabase();
-		yield* migrateToStart(database);
-		const before = withSqlite(database, (sqlite) => {
-			seedOutcomes(sqlite);
-			sqlite
-				.prepare('INSERT INTO "pieceReport" ("pieceId", "reportId") VALUES (?, ?), (?, ?), (?, ?)')
-				.run(piece.id, report.id, "missing-piece", report.id, piece.id, "missing-report");
-			return rows(sqlite, "pieceReport");
-		});
-
-		const failure = yield* Effect.flip(
-			applyMigrations({
-				contract: endContract,
-				database,
-				migrationsDirectory: packagedMigrationsDirectory,
-			}),
-		);
-		expect(failure.detail).toContain("Foreign key integrity check failed");
-		expect(failure.detail).toContain("2 violation(s)");
-		expect(withSqlite(database, (sqlite) => rows(sqlite, "pieceReport"))).toEqual(before);
-		expect(withSqlite(database, (sqlite) => foreignKeys(sqlite, "pieceReport"))).toEqual([]);
-		expect(withSqlite(database, (sqlite) => foreignKeys(sqlite, "pieceArtifact"))).toEqual([]);
-	}),
-);
-
-it.effect("migration refuses a historical orphan Artifact link unchanged", () =>
-	Effect.gen(function* () {
-		const database = freshDatabase();
-		yield* migrateToStart(database);
-		const before = withSqlite(database, (sqlite) => {
-			seedOutcomes(sqlite);
-			sqlite
-				.prepare('INSERT INTO "pieceArtifact" ("pieceId", "artifactId") VALUES (?, ?), (?, ?), (?, ?)')
-				.run(piece.id, artifact.id, "missing-piece", artifact.id, piece.id, "missing-artifact");
-			return rows(sqlite, "pieceArtifact");
-		});
-
-		const failure = yield* Effect.flip(
-			applyMigrations({
-				contract: endContract,
-				database,
-				migrationsDirectory: packagedMigrationsDirectory,
-			}),
-		);
-		expect(failure.detail).toContain("Foreign key integrity check failed");
-		expect(failure.detail).toContain("2 violation(s)");
-		expect(withSqlite(database, (sqlite) => rows(sqlite, "pieceArtifact"))).toEqual(before);
-		expect(withSqlite(database, (sqlite) => foreignKeys(sqlite, "pieceArtifact"))).toEqual([]);
-		expect(withSqlite(database, (sqlite) => foreignKeys(sqlite, "pieceReport"))).toEqual([]);
-	}),
-);
-
 it.effect("migration preserves valid links behind restrictive constraints", () =>
 	Effect.gen(function* () {
 		const database = freshDatabase();

@@ -1,9 +1,8 @@
 import { Database, type PrismaError } from "@antumbra/persistence";
 import { type Context, Effect, Option } from "effect";
 import { publishImage } from "#adapters/custody.ts";
-import type { SessionInputConflict, SessionInputCustodyFailed, StoredSessionInputInvalid } from "#errors.ts";
+import type { SessionInputCustodyFailed } from "#errors.ts";
 import type { PreparedSessionInput, PreparedSessionInputPart, SessionInputReading } from "#model.ts";
-import { deliveryStatus, requireSameRequest } from "#stored.ts";
 
 const attachmentId = (part: PreparedSessionInputPart) =>
 	Effect.gen(function* () {
@@ -32,14 +31,6 @@ const attachmentId = (part: PreparedSessionInputPart) =>
 const writeInput = (prepared: PreparedSessionInput) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
-		const existing = yield* db.SessionInput.where({ id: prepared.id }).first();
-		if (Option.isSome(existing)) {
-			yield* requireSameRequest(prepared.id, prepared.requestDigest, existing.value.requestDigest);
-			return {
-				id: prepared.id,
-				status: yield* Effect.fromResult(deliveryStatus(prepared.id, existing.value.deliveryStatus)),
-			} satisfies SessionInputReading;
-		}
 		const attachments = yield* Effect.forEach(prepared.parts, attachmentId);
 		yield* db.SessionInput.create({
 			deliveryStatus: "pending",
@@ -63,11 +54,7 @@ const writeInput = (prepared: PreparedSessionInput) =>
 export const storePreparedInput = (
 	root: string,
 	prepared: PreparedSessionInput,
-): Effect.Effect<
-	SessionInputReading,
-	PrismaError | SessionInputConflict | SessionInputCustodyFailed | StoredSessionInputInvalid,
-	Context.Service.Identifier<typeof Database>
-> =>
+): Effect.Effect<SessionInputReading, PrismaError | SessionInputCustodyFailed, Context.Service.Identifier<typeof Database>> =>
 	Effect.gen(function* () {
 		for (const part of prepared.parts) {
 			if (part.type === "image") {

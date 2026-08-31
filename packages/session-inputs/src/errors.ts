@@ -2,7 +2,6 @@ import { Data } from "effect";
 
 export type SessionInputInvalidReason =
 	| "corrupt_image"
-	| "empty_input"
 	| "empty_text"
 	| "image_too_large"
 	| "input_too_large"

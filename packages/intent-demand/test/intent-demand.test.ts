@@ -85,11 +85,14 @@ it.effect("coalesces a burst to one pending pass", () =>
 	Effect.gen(function* () {
 		const passes = yield* Ref.make(0);
 		const secondStarted = yield* Deferred.make<void>();
+		const thirdStarted = yield* Deferred.make<void>();
 		const releaseSecond = yield* Deferred.make<void>();
 		const pass = Ref.updateAndGet(passes, (count) => count + 1).pipe(
-			Effect.flatMap((count) =>
-				count === 2 ? Deferred.succeed(secondStarted, undefined).pipe(Effect.andThen(Deferred.await(releaseSecond))) : Effect.void,
-			),
+			Effect.flatMap((count) => {
+				if (count === 2) return Deferred.succeed(secondStarted, undefined).pipe(Effect.andThen(Deferred.await(releaseSecond)));
+				if (count === 3) return Deferred.succeed(thirdStarted, undefined);
+				return Effect.void;
+			}),
 		);
 		yield* runWith(
 			[registration("test/coalesced", pass)],
@@ -99,8 +102,7 @@ it.effect("coalesces a burst to one pending pass", () =>
 				yield* Effect.forEach(Array.from({ length: 20 }), () => requestPass);
 				expect(yield* Ref.get(passes)).toBe(2);
 				yield* Deferred.succeed(releaseSecond, undefined);
-				yield* Effect.yieldNow;
-				yield* Effect.yieldNow;
+				yield* Deferred.await(thirdStarted);
 				expect(yield* Ref.get(passes)).toBe(3);
 			}),
 		);

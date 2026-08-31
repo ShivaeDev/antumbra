@@ -1,5 +1,5 @@
 import { BoardScope, EntryInput } from "@antumbra/boards";
-import { it as capabilityIt } from "@antumbra/testing/capabilities";
+import { it as capabilityIt } from "@antumbra/testing-runtime/capabilities";
 import { expect } from "@effect/vitest";
 import { Clock, Option } from "effect";
 import { TestClock } from "effect/testing";

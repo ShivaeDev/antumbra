@@ -4,9 +4,7 @@
 	"private": true,
 	"type": "module",
 	"exports": {
-		".": "./src/index.ts",
-		"./capabilities": "./src/capabilities.ts",
-		"./domain": "./src/domain.ts"
+		".": "./src/index.ts"
 	},
 	"imports": {
 		"#*": "./src/*"

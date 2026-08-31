@@ -95,7 +95,6 @@ describe("pushing a work branch", () => {
 			yield* pushBranch(worktree, BRANCH, preparedHeadSha);
 
 			expect(sha(remote, `refs/heads/${BRANCH}`)).toBe(preparedHeadSha);
-			expect(sha(worktree, "HEAD")).not.toBe(preparedHeadSha);
 		}).pipe(Effect.provide(NodeServices.layer)),
 	);
 

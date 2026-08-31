@@ -7,13 +7,13 @@ import { domainKernelLayer } from "#test/domain-layers.ts";
 import { acquireTemporaryPersistence, makeScriptedBackend, makeScriptedRunner } from "#test/harness.ts";
 import {
 	durableRows,
-	eventually,
 	hail,
 	payload,
 	reportsNativeRef,
 	seedResumableAgent,
+	untilTerminal,
+	untilWaitingOrTerminal,
 	WAKE_INSTRUCTION,
-	waitingWake,
 } from "#test/session-recovery-fixture.ts";
 
 it.live("a failed durable opening append waits without taking the Session", () =>
@@ -28,8 +28,9 @@ it.live("a failed durable opening append waits without taking the Session", () =
 		yield* Effect.gen(function* () {
 			const db = yield* Database;
 			const kernel = yield* Kernel;
-			yield* hail(payload.sessionId);
-			const held = yield* eventually(waitingWake);
+			const recovery = yield* hail(payload.sessionId);
+			expect(yield* untilWaitingOrTerminal(recovery.changes)).toBe("waiting");
+			const held = Option.getOrThrow(yield* db.Intent.where({ id: recovery.id }).first());
 			expect(held.detail).toContain("durably record native identity");
 			expect(yield* durableRows).toEqual(before);
 			const events = yield* db.SessionEvent.where({
@@ -44,16 +45,11 @@ it.live("a failed durable opening append waits without taking the Session", () =
 
 			yield* Effect.sync(() => allowTestSessionOpenedWrites(temporary.database));
 			yield* kernel.retry(held.id);
-			yield* eventually(
-				Effect.gen(function* () {
-					const retried = yield* db.Intent.where({ id: held.id }).first();
-					expect(Option.getOrThrow(retried).status).toBe("succeeded");
-					expect(yield* scripted.opened).toHaveLength(3);
-					const attached = yield* scripted.session(payload.sessionId);
-					expect(attached).toBeDefined();
-					expect(attached === undefined ? [] : yield* attached.sent).toEqual([WAKE_INSTRUCTION]);
-				}),
-			);
+			expect(yield* untilTerminal(kernel.changes(held.id))).toBe("succeeded");
+			expect(yield* scripted.opened).toHaveLength(3);
+			const attached = yield* scripted.session(payload.sessionId);
+			expect(attached).toBeDefined();
+			expect(attached === undefined ? [] : yield* attached.sent).toEqual([WAKE_INSTRUCTION]);
 			const settledEvents = yield* db.SessionEvent.where({
 				sessionId: payload.sessionId,
 			})
@@ -79,8 +75,10 @@ it.live("ambiguous durable authority waits without choosing an assignment", () =
 			return yield* durableRows;
 		}).pipe(Effect.provide(temporary.layer));
 		yield* Effect.gen(function* () {
-			yield* hail(payload.sessionId);
-			const held = yield* eventually(waitingWake);
+			const db = yield* Database;
+			const recovery = yield* hail(payload.sessionId);
+			expect(yield* untilWaitingOrTerminal(recovery.changes)).toBe("waiting");
+			const held = Option.getOrThrow(yield* db.Intent.where({ id: recovery.id }).first());
 			expect(held.detail).toContain("ambiguous current Piece authority");
 			expect(yield* durableRows).toEqual(before);
 		}).pipe(Effect.provide(domainKernelLayer(temporary, scripted.backend, {}, recorded.runner)));

@@ -23,6 +23,13 @@ export const payload: SpawnFields = {
 export const untilTerminal = <E, R>(changes: Stream.Stream<IntentStatus, E, R>) =>
 	changes.pipe(Stream.takeUntil(isTerminalIntentStatus), Stream.runLast, Effect.map(Option.getOrThrow));
 
+export const untilWaitingOrTerminal = <E, R>(changes: Stream.Stream<IntentStatus, E, R>) =>
+	changes.pipe(
+		Stream.takeUntil((status) => status === "waiting" || isTerminalIntentStatus(status)),
+		Stream.runLast,
+		Effect.map(Option.getOrThrow),
+	);
+
 export const eventually = <A, E, R>(check: Effect.Effect<A, E, R>) =>
 	check.pipe(
 		Effect.catchDefect((defect) => Effect.fail(defect)),
@@ -128,14 +135,6 @@ export const seedResumableAgent = (temporary: TemporaryPersistence, backend: Age
 		);
 		return yield* durableRows;
 	}).pipe(Effect.provide(domainKernelLayer(temporary, backend, {}, runner)));
-
-export const waitingWake = Effect.gen(function* () {
-	const db = yield* Database;
-	const rows = yield* db.Intent.where({ tag: "agent/wake" }).all();
-	expect(rows).toHaveLength(1);
-	expect(rows[0]?.status).toBe("waiting");
-	return Option.getOrThrow(Option.fromUndefinedOr(rows[0]));
-});
 
 export const hail = (sessionId: string) =>
 	Effect.gen(function* () {

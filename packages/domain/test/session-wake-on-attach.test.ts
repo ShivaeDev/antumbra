@@ -12,7 +12,7 @@ import {
 	reportsNativeRef,
 	seedResumableAgent,
 	untilTerminal,
-	waitingWake,
+	untilWaitingOrTerminal,
 } from "#test/session-recovery-fixture.ts";
 import { openReefVoyage } from "#test/voyage-fixtures.ts";
 
@@ -47,7 +47,8 @@ it.live("a Session wakes when its resume attaches, and not before", () =>
 			const submission = yield* kernel.submit(domain.wake, {
 				sessionId: payload.sessionId,
 			});
-			const held = yield* eventually(waitingWake);
+			expect(yield* untilWaitingOrTerminal(submission.changes)).toBe("waiting");
+			const held = Option.getOrThrow(yield* Database.use((db) => db.Intent.where({ id: submission.id }).first()));
 			expect(held.detail).toContain("authentication is required");
 			expect(yield* executionStatusOf(payload.sessionId)).toBe("idle");
 

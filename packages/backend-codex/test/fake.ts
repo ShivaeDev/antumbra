@@ -7,7 +7,7 @@ import type { LineProcess } from "#adapters/process.ts";
 // test uses rather than a second one written beside it.
 export type FakeAnswer = (method: string, params: unknown) => Option.Option<unknown>;
 
-export interface FakeRequest {
+interface FakeRequest {
 	readonly id: number;
 	readonly method: string;
 	readonly params: unknown;

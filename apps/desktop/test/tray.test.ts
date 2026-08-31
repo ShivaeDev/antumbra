@@ -45,7 +45,7 @@ interface RecordedTray {
 	readonly tooltips: () => ReadonlyArray<string>;
 }
 
-const recordedTray = (onDestroy?: () => void): RecordedTray => {
+const recordedTray = (onDestroy?: () => void, onClickRegistered?: () => void): RecordedTray => {
 	const titles: string[] = [];
 	const tooltips: string[] = [];
 	let destroys = 0;
@@ -60,6 +60,7 @@ const recordedTray = (onDestroy?: () => void): RecordedTray => {
 			},
 			onClick: (registered) => {
 				listener = registered;
+				onClickRegistered?.();
 			},
 			setTitle: (title) => {
 				titles.push(title);
@@ -116,11 +117,12 @@ it.effect("publishes the working count of every snapshot the feed emits", () =>
 it.effect("opens the window when the tray icon is clicked", () =>
 	Effect.gen(function* () {
 		const activated = yield* Deferred.make<void>();
-		const tray = recordedTray();
+		const registered = yield* Deferred.make<void>();
+		const tray = recordedTray(undefined, () => Effect.runSync(Deferred.succeed(registered, undefined)));
 		const feed = Stream.fromArray([fleetOf([])]).pipe(Stream.concat(Stream.never));
 
 		const fiber = yield* Effect.forkChild(runFleetTray({ create: () => tray.handle }, feed, Deferred.succeed(activated, undefined)));
-		yield* Effect.yieldNow;
+		yield* Deferred.await(registered);
 		tray.click();
 
 		yield* Deferred.await(activated);
@@ -134,12 +136,16 @@ it.effect("opens the window when the tray icon is clicked", () =>
 it.effect("destroys the tray when the runtime that forked it is disposed", () =>
 	Effect.gen(function* () {
 		const destroyed = yield* Deferred.make<void>();
-		const tray = recordedTray(() => {
-			Effect.runSync(Deferred.succeed(destroyed, undefined));
-		});
+		const registered = yield* Deferred.make<void>();
+		const tray = recordedTray(
+			() => {
+				Effect.runSync(Deferred.succeed(destroyed, undefined));
+			},
+			() => Effect.runSync(Deferred.succeed(registered, undefined)),
+		);
 		const runtime = ManagedRuntime.make(Layer.empty);
 		runtime.runFork(runFleetTray({ create: () => tray.handle }, Stream.never, Effect.void));
-		yield* Effect.yieldNow;
+		yield* Deferred.await(registered);
 
 		yield* Effect.promise(() => runtime.dispose());
 

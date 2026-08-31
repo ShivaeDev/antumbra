@@ -73,7 +73,6 @@ export { SETTING_KEYS, SETTINGS, SettingKey } from "#settings/catalog.ts";
 export {
 	type SettingCount,
 	type SettingDeclaration,
-	type SettingFlag,
 	SettingValue,
 } from "#settings/declaration.ts";
 export {

@@ -1,6 +1,6 @@
 import { DomainFeeds, DomainFeedsLive } from "@antumbra/domain-feeds";
 import { persistenceIt } from "@antumbra/persistence/testing";
-import { Pieces, PiecesLive, verifyPieceExists } from "@antumbra/pieces";
+import { Pieces, PiecesLive } from "@antumbra/pieces";
 import { expect } from "@effect/vitest";
 import { Effect, Layer, Option, PubSub } from "effect";
 
@@ -32,7 +32,6 @@ it.effectDB("verifies existence without exposing a row", function* (db) {
 		yield* db.Piece.create(piece);
 
 		expect(yield* pieces.verifyExists(piece.id)).toBeUndefined();
-		expect(yield* verifyPieceExists(piece.id)).toBeUndefined();
 		const failure = yield* Effect.flip(pieces.verifyExists("missing-piece"));
 		expect(failure).toMatchObject({
 			_tag: "PieceNotFound",

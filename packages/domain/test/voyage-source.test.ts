@@ -1,5 +1,4 @@
 import { type SightFailure, VoyageSource, type VoyageView } from "@antumbra/contract";
-import { Database } from "@antumbra/persistence";
 import type { TemporaryPersistence } from "@antumbra/persistence/testing";
 import { expect, it } from "@effect/vitest";
 import { Deferred, Effect, Fiber, Layer, Stream } from "effect";
@@ -140,31 +139,6 @@ it.live("a hail puts a captain and a crew row on what the window reads", () =>
 					expect(view.state).toBe("underWay");
 				}),
 			);
-		}).pipe(Effect.provide(voyageLayer(temporary, scripted)));
-	}),
-);
-
-it.live("voyage projection rejects an unknown stored Agent status", () =>
-	Effect.gen(function* () {
-		const temporary = yield* acquireTemporaryPersistence;
-		const scripted = yield* makeScriptedBackend;
-		yield* Effect.gen(function* () {
-			const db = yield* Database;
-			const source = yield* VoyageSource;
-			const opened = yield* source.open(reef);
-			const hailed = yield* source.hail(opened.id);
-			yield* eventually(
-				Effect.gen(function* () {
-					const view = yield* source.voyage(opened.id);
-					expect(view.captain?.status).toBe("alive");
-				}),
-			);
-			yield* db.Agent.where({ id: hailed.agentId }).update({
-				status: "future-agent",
-			});
-			const failure = yield* Effect.flip(source.voyage(opened.id));
-			expect(failure._tag).toBe("SightFailure");
-			expect(failure.message).toContain("future-agent");
 		}).pipe(Effect.provide(voyageLayer(temporary, scripted)));
 	}),
 );

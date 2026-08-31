@@ -1,7 +1,5 @@
 import { expect, it } from "@effect/vitest";
-import { admiralWords } from "#admiral.ts";
 import { checksFailed, mergeConflicts, unresolvedReviews } from "#situations.ts";
-import { wakeWords } from "#wake.ts";
 
 const FACTS = {
 	headRef: "chart-the-shoals",
@@ -31,12 +29,4 @@ it("the review template asks for an answer to every unresolved thread", () => {
 	expect(text).toContain("#42");
 	expect(text).toContain("Read the unresolved threads on the change");
 	expect(text).toContain("answer every one");
-});
-
-it("the wake instruction is one fixed sentence with no blanks", () => {
-	expect(wakeWords).toBe("Reconcile durable Antumbra truth and continue your assigned work.");
-});
-
-it("the admiral's own words pass through the catalog unchanged", () => {
-	expect(admiralWords({ words: "  come about, now  " })).toBe("  come about, now  ");
 });

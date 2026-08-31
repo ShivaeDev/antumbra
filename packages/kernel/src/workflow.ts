@@ -34,8 +34,7 @@ const makeExecution = (tag: string, intentId: string) =>
 		return IntentExecution.of({
 			intentId,
 			step: (name, execute, options) => {
-				// why: Effect activities retry interruption by default, but kernel cancel
-				// and layer teardown must stop promptly; typed failure retries are explicit.
+				// Effect activities retry interruption by default; kernel cancellation must not.
 				const activity = Activity.make({
 					error: Schema.Unknown,
 					execute,
@@ -74,8 +73,7 @@ export const makeIntentWorkflow = (tag: string, execute: (payloadJson: string) =
 			const engine = yield* WorkflowEngine.WorkflowEngine;
 			const payload = { intentId, payloadJson };
 			const executionId = yield* workflow.executionId(payload);
-			// why: intent activities install no workflow compensations, and the RC's
-			// cooperative interrupt does not stop an activity already in flight.
+			// WorkflowEngine's cooperative interrupt does not stop an activity already in flight.
 			return yield* workflow.execute(payload).pipe(Effect.onInterrupt(() => engine.interruptUnsafe(workflow, executionId)));
 		});
 	const run = (intentId: string, payloadJson: string) =>
@@ -83,12 +81,7 @@ export const makeIntentWorkflow = (tag: string, execute: (payloadJson: string) =
 			Effect.andThen(executeWorkflow(intentId, payloadJson)),
 			Effect.scoped,
 			Effect.provide(WorkflowEngine.layerMemory, { local: true }),
-			// why: the drain fiber that admits an intent carries no span, so an
-			// intent's work recorded nothing and the id annotated below it had
-			// nothing to attach to. The name is the kind — a bounded set — and the
-			// ids stay annotations, so a trace is read by kind rather than by a
-			// name per intent. It roots on purpose: an intent outlives whatever
-			// asked for it, so its trace is its own and not a caller's.
+			// An Intent outlives its submitter, so its trace is a root named by the bounded kind tag.
 			Effect.withSpan(`intent ${tag}`, { root: true }),
 			Effect.annotateSpans({ intentId }),
 		);

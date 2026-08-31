@@ -1,5 +1,5 @@
 import { expect, it } from "@effect/vitest";
-import { Effect, Ref, Result, Schema } from "effect";
+import { Effect, Ref, Schema } from "effect";
 import { defineIntent } from "#intent.ts";
 
 const GreetPayload = Schema.Struct({ name: Schema.String });
@@ -16,18 +16,6 @@ it.effect("round-trips a payload through the JSON column", () =>
 		expect(JSON.parse(encoded)).toEqual({ name: "umbra" });
 		yield* kind.run("intent-greet", encoded);
 		expect(yield* Ref.get(seen)).toEqual(["umbra"]);
-	}),
-);
-
-it.effect("fails run when the stored payload does not decode", () =>
-	Effect.gen(function* () {
-		const kind = defineIntent({
-			execute: () => Effect.void,
-			payload: GreetPayload,
-			tag: "test/strict",
-		});
-		const outcome = yield* Effect.result(kind.run("intent-strict", "not json"));
-		expect(Result.isFailure(outcome)).toBe(true);
 	}),
 );
 

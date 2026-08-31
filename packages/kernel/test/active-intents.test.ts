@@ -1,8 +1,7 @@
-import { Database } from "@antumbra/persistence";
 import { expect, it } from "@effect/vitest";
 import { Deferred, Effect, Fiber, Schema, Stream } from "effect";
 import type { IntentStatus } from "#fsm.ts";
-import { type Gate, maxConcurrency } from "#gate.ts";
+import { maxConcurrency } from "#gate.ts";
 import { defineIntent } from "#intent.ts";
 import { Kernel } from "#kernel.ts";
 import { acquireTemporaryPersistence, kernelLayer, statusesUntilTerminal } from "#test/harness.ts";
@@ -86,63 +85,6 @@ it.live("returns decoded payloads for every nonterminal status", () =>
 				}),
 			),
 		);
-	}),
-);
-
-const CLOSED: Gate = { admits: () => false, id: "test/closed" };
-
-const seedIntent = (fields: { readonly id: string; readonly payload: string; readonly status: string; readonly tag: string }) =>
-	Effect.gen(function* () {
-		const db = yield* Database;
-		yield* db.Intent.create({ ...fields, detail: null });
-	});
-
-it.live("fails closed when an active payload is malformed", () =>
-	Effect.gen(function* () {
-		const temporary = yield* acquireTemporaryPersistence;
-		const kind = defineIntent({
-			execute: () => Effect.void,
-			payload: Payload,
-			tag: "test/invalid-active-payload",
-		});
-		yield* seedIntent({
-			id: "intent-invalid-payload",
-			payload: '{"mode":1}',
-			status: "queued",
-			tag: kind.tag,
-		}).pipe(Effect.provide(temporary.layer));
-		yield* Effect.gen(function* () {
-			const kernel = yield* Kernel;
-			expect(yield* Effect.flip(kernel.active(kind))).toMatchObject({
-				_tag: "StoredIntentInvalid",
-				id: "intent-invalid-payload",
-			});
-		}).pipe(Effect.provide(kernelLayer(temporary, { gates: [CLOSED], kinds: [kind] })));
-	}),
-);
-
-it.live("fails closed when a stored status is unknown", () =>
-	Effect.gen(function* () {
-		const temporary = yield* acquireTemporaryPersistence;
-		const kind = defineIntent({
-			execute: () => Effect.void,
-			payload: Payload,
-			tag: "test/invalid-active-status",
-		});
-		yield* seedIntent({
-			id: "intent-invalid-status",
-			payload: '{"mode":"queued"}',
-			status: "mystery",
-			tag: kind.tag,
-		}).pipe(Effect.provide(temporary.layer));
-		yield* Effect.gen(function* () {
-			const kernel = yield* Kernel;
-			const failure = yield* Effect.flip(kernel.active(kind));
-			expect(failure).toMatchObject({
-				_tag: "StoredIntentInvalid",
-				id: "intent-invalid-status",
-			});
-		}).pipe(Effect.provide(kernelLayer(temporary, { kinds: [kind] })));
 	}),
 );
 

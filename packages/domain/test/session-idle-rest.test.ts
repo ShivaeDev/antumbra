@@ -5,7 +5,7 @@ import { expect, it } from "@effect/vitest";
 import { Effect } from "effect";
 import { acquireTemporaryPersistence, callTool, makeScriptedBackend } from "#test/harness.ts";
 import { HAND, openedNatively, passedAt, presenceOf, sessionRow, sightLayer, spawned } from "#test/session-idle-fixture.ts";
-import { eventually, untilTerminal } from "#test/session-recovery-fixture.ts";
+import { untilTerminal } from "#test/session-recovery-fixture.ts";
 
 it.live("standing down keeps the acquisition, and the next words need no resume", () =>
 	Effect.gen(function* () {
@@ -20,11 +20,7 @@ it.live("standing down keeps the acquisition, and the next words need no resume"
 				ok: true,
 				text: "standing by",
 			});
-			yield* eventually(
-				Effect.gen(function* () {
-					expect((yield* sessionRow).executionStatus).toBe("idle");
-				}),
-			);
+			expect((yield* sessionRow).executionStatus).toBe("idle");
 			expect(yield* live.closed).toBe(false);
 			const idle = yield* presenceOf;
 			expect(idle.presence).toBe("idle");

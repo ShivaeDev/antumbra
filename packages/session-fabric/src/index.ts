@@ -5,7 +5,4 @@ export {
 } from "#fabric.ts";
 export type { EventSink, SessionAttachment } from "#session-attachment.ts";
 export type { SessionStartPermit } from "#session-start-permit.ts";
-export type {
-	SessionTurnEnding,
-	SessionTurnMark,
-} from "#session-turn.ts";
+export type { SessionTurnMark } from "#session-turn.ts";

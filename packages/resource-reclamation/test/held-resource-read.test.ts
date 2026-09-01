@@ -1,4 +1,3 @@
-import { DomainFeedsLive } from "@antumbra/domain-feeds";
 import { it } from "@antumbra/testing-runtime/domain";
 import { expect } from "@effect/vitest";
 import { Effect, Layer, Ref } from "effect";
@@ -14,7 +13,6 @@ const layer = <E>(read: Effect.Effect<HeldResourceRead<E>>) =>
 	ResourceReconcilerLive({ cadenceMillis: 60_000 }).pipe(
 		Layer.provide(Layer.effect(HeldResourceReadService, read)),
 		Layer.provide(ResourceReclaimRunnersLive(new Map())),
-		Layer.provideMerge(DomainFeedsLive),
 	);
 
 it.effectApp("runs again after held-resource reading fails", function* () {

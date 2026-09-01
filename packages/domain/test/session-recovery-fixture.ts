@@ -3,9 +3,10 @@ import { Database } from "@antumbra/persistence";
 import type { TemporaryPersistence } from "@antumbra/persistence/testing";
 import { type AgentBackend, BackendFailure, type Runner } from "@antumbra/plugin-api";
 import { expect } from "@effect/vitest";
-import { Effect, Option, Ref, Schedule, Stream } from "effect";
+import { Effect, Fiber, Option, Ref, Schedule, Stream } from "effect";
 import { AgentDomain } from "#domain.ts";
 import type { SpawnFields } from "#index.ts";
+import { makeSightSessionEvents } from "#sight-session-events.ts";
 import { domainKernelLayer } from "#test/domain-layers.ts";
 import { rawOf, type ScriptedBackend } from "#test/harness.ts";
 
@@ -111,6 +112,10 @@ export const seedResumableAgent = (temporary: TemporaryPersistence, backend: Age
 		if (live === undefined) {
 			return yield* Effect.die("spawned session was not attached");
 		}
+		const sight = yield* makeSightSessionEvents;
+		const events = yield* sight
+			.sessionEventFeed({ fromSeq: 0, sessionId: payload.sessionId })
+			.pipe(Stream.take(2), Stream.runCollect, Effect.forkChild);
 		yield* live.emit({
 			nativeRef: "native-durable",
 			raw: rawOf("session/opened"),
@@ -122,17 +127,8 @@ export const seedResumableAgent = (temporary: TemporaryPersistence, backend: Age
 			text: "persisted before restart",
 			type: "message",
 		});
-		yield* eventually(
-			Effect.gen(function* () {
-				const events = yield* db.SessionEvent.where({
-					sessionId: payload.sessionId,
-				})
-					.orderBy((event) => event.seq.asc())
-					.all();
-				expect(events.map((event) => event.seq)).toEqual([0, 1]);
-				expect(Option.getOrThrow(yield* db.AgentSession.where({ id: payload.sessionId }).first()).nativeRef).toBe("native-durable");
-			}),
-		);
+		expect((yield* Fiber.join(events)).map((event) => event.seq)).toEqual([0, 1]);
+		expect(Option.getOrThrow(yield* db.AgentSession.where({ id: payload.sessionId }).first()).nativeRef).toBe("native-durable");
 		return yield* durableRows;
 	}).pipe(Effect.provide(domainKernelLayer(temporary, backend, {}, runner)));
 

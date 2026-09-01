@@ -30,8 +30,6 @@ const closeAndHoldSpawn = (scripted: ScriptedBackend, recorded: ScriptedRunner) 
 				expect(yield* recorded.provisioned).toHaveLength(1);
 			}),
 		);
-		yield* Effect.yieldNow;
-		yield* Effect.yieldNow;
 		const agent = Option.getOrThrow(yield* db.Agent.where({ id: WAITING_SPAWN.agentId }).first());
 		expect(agent.status).toBe("spawning");
 		const sessionAbsent = Option.isNone(yield* db.AgentSession.where({ id: WAITING_SPAWN.sessionId }).first());
@@ -69,8 +67,6 @@ const closeAndHoldRecovery = (scripted: ScriptedBackend) =>
 				expect(intent.status).toBe("running");
 			}),
 		);
-		yield* Effect.yieldNow;
-		yield* Effect.yieldNow;
 		const session = Option.getOrThrow(yield* db.AgentSession.where({ id: recoveryPayload.sessionId }).first());
 		expect(session.executionStatus).toBe("idle");
 		expect(yield* scripted.opened).toHaveLength(1);

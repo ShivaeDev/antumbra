@@ -73,8 +73,6 @@ it.live("explicit cancel settles a spawn waiting behind closed admission", () =>
 					expect(yield* recorded.provisioned).toHaveLength(1);
 				}),
 			);
-			yield* Effect.yieldNow;
-			yield* Effect.yieldNow;
 			expect(Option.getOrThrow(yield* db.Agent.where({ id: payload.agentId }).first()).status).toBe("spawning");
 			expect(yield* db.AgentSession.all()).toHaveLength(0);
 			expect(yield* scripted.opened).toHaveLength(0);

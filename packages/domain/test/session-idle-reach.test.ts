@@ -24,11 +24,7 @@ it.live("a send to an asleep root resumes it and delivers the words", () =>
 				sessionId: HAND.sessionId,
 			});
 			expect(yield* untilTerminal(siesta.changes)).toBe("succeeded");
-			yield* eventually(
-				Effect.gen(function* () {
-					expect(yield* first.closed).toBe(true);
-				}),
-			);
+			expect(yield* first.closed).toBe(true);
 			expect((yield* presenceOf).presence).toBe("asleep");
 			expect((yield* presenceOf).canSend).toBe(true);
 
@@ -67,11 +63,7 @@ it.live("an asleep root wakes from an input id and receives its durable image", 
 				sessionId: HAND.sessionId,
 			});
 			expect(yield* untilTerminal(siesta.changes)).toBe("succeeded");
-			yield* eventually(
-				Effect.gen(function* () {
-					expect(yield* first.closed).toBe(true);
-				}),
-			);
+			expect(yield* first.closed).toBe(true);
 			const id = SessionInputId.make("00000000-0000-4000-8000-000000000042");
 			const bytes = new Uint8Array(
 				Buffer.from(

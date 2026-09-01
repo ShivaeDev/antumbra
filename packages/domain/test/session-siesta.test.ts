@@ -62,11 +62,7 @@ it.live("stand down records the declaration and disturbs nothing else", () =>
 				ok: true,
 				text: "standing by",
 			});
-			yield* eventually(
-				Effect.gen(function* () {
-					expect((yield* sessionRow).executionStatus).toBe("idle");
-				}),
-			);
+			expect((yield* sessionRow).executionStatus).toBe("idle");
 			const stillAttached = yield* domain.sessionsAttached;
 			expect(stillAttached.has(HAND.sessionId)).toBe(true);
 			const summary = (yield* fleetSnapshot(["scripted"], new Set(), [], [], {
@@ -141,11 +137,7 @@ it.live("idle survives restart and addressed mail does not wake it", () =>
 				}),
 			);
 			yield* callTool(live, "stand_down", undefined);
-			yield* eventually(
-				Effect.gen(function* () {
-					expect((yield* sessionRow).executionStatus).toBe("idle");
-				}),
-			);
+			expect((yield* sessionRow).executionStatus).toBe("idle");
 			yield* domain.boards.mail({
 				authorAgentId: Option.none(),
 				body: "wait for explicit selection",

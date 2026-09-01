@@ -14,7 +14,7 @@ export type SessionUnresumable =
 	| { readonly _tag: "not-current"; readonly currentSessionId: string | null }
 	| { readonly _tag: "session-closed" };
 
-export type UnresumableVerdict = "refuse" | "wait";
+type UnresumableVerdict = "refuse" | "wait";
 
 export const unresumableVerdict = (reason: SessionUnresumable): UnresumableVerdict => {
 	switch (reason._tag) {

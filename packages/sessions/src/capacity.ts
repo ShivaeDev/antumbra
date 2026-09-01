@@ -2,7 +2,7 @@ import type { IntentExecution } from "@antumbra/kernel";
 import type { PrismaError } from "@antumbra/persistence";
 import type { Effect } from "effect";
 
-export interface SessionCapacityReading {
+interface SessionCapacityReading {
 	readonly status: string;
 }
 

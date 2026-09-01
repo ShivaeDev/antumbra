@@ -2,7 +2,7 @@ import { Database } from "@antumbra/persistence";
 import { Effect } from "effect";
 import type { CurrentSessionReconcilePlan } from "#current/reconcile-plan.ts";
 
-export interface CurrentSessionRepair {
+interface CurrentSessionRepair {
 	readonly changed: boolean;
 	readonly currentSessionId: string | null;
 }

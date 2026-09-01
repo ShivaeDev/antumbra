@@ -10,7 +10,7 @@ type IntentPayloadSchema = Schema.Top & {
 	readonly EncodingServices: never;
 };
 
-export interface IntentKindOptions<PayloadSchema extends IntentPayloadSchema> {
+interface IntentKindOptions<PayloadSchema extends IntentPayloadSchema> {
 	readonly execute: (payload: PayloadSchema["Type"]) => Effect.Effect<void, unknown, IntentExecution>;
 	readonly payload: PayloadSchema;
 	readonly reclaim?: ReclaimPolicy;

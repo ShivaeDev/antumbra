@@ -232,12 +232,8 @@ describe("a chain gated on a change", () => {
 					ok: true,
 					text: "standing by",
 				});
-				yield* eventually(
-					Effect.gen(function* () {
-						expect(yield* stateOf(voyage.id, alpha.id)).toBe("landing");
-						expect(yield* stateOf(voyage.id, bravo.id)).toBe("blocked");
-					}),
-				);
+				expect(yield* stateOf(voyage.id, alpha.id)).toBe("landing");
+				expect(yield* stateOf(voyage.id, bravo.id)).toBe("blocked");
 
 				yield* scripted.drive.transition(repo.id, "1", { stage: "landed" });
 

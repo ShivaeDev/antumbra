@@ -1,6 +1,6 @@
 import type { OpencodeRequest } from "#adapters/connection.ts";
 
-export interface HttpCalls {
+interface HttpCalls {
 	readonly get: (request: OpencodeRequest) => Promise<unknown>;
 	readonly post: (request: OpencodeRequest) => Promise<unknown>;
 }

@@ -4,7 +4,7 @@ import { serveOpencode } from "#adapters/serve.ts";
 import { opencodeBackend } from "#backend.ts";
 import { makeOpencodeServer } from "#server.ts";
 
-export interface OpencodePluginOptions {
+interface OpencodePluginOptions {
 	readonly cwd: string;
 }
 

@@ -7,7 +7,7 @@ export const STRAY_THREAD = "019ff400-4444-7373-a31e-e8a0db309024";
 export const GUARDIAN_THREAD = "019ff400-3333-7373-a31e-e8a0db309023";
 export const BRANCH_AGENT = ".codex/agents/auditor.md";
 export const LEAF_AGENT = ".codex/agents/scribe.md";
-export const SPAWN_CALL = "collab_2";
+const SPAWN_CALL = "collab_2";
 const TURN = "019ff334-ed58-7ff3-8dfb-1ceb96c93ccd";
 
 const item = (method: string, threadId: string, payload: Record<string, unknown>): RpcNotification => ({

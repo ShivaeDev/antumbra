@@ -1,6 +1,6 @@
 import { openSseBuffer } from "#adapters/sse.ts";
 
-export interface EventStreamListeners {
+interface EventStreamListeners {
 	readonly onEnd: () => void;
 	readonly onFrame: (frame: unknown) => void;
 }

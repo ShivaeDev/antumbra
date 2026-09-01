@@ -3,7 +3,7 @@ import { applyMigrations } from "#adapters/migrator.ts";
 import type { DatabaseFilePath } from "#data-dir.ts";
 import { Database } from "#database.ts";
 
-export interface PersistenceOptions {
+interface PersistenceOptions {
 	readonly artifactsRoot: string;
 	readonly database: DatabaseFilePath;
 	readonly migrationsDirectory: string;

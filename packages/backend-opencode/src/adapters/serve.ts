@@ -4,7 +4,7 @@ import { openEventStream } from "#adapters/event-stream.ts";
 import { httpCalls } from "#adapters/http.ts";
 import { listeningUrl } from "#adapters/listening.ts";
 
-export interface ServeOptions {
+interface ServeOptions {
 	readonly command: string;
 	readonly cwd: string;
 }

@@ -2,13 +2,14 @@ import { SETTINGS, SightSource } from "@antumbra/contract";
 import { Kernel } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
 import { expect } from "@effect/vitest";
-import { Clock, Effect, Layer, Option } from "effect";
+import { Clock, Effect, Fiber, Layer, Option, Stream } from "effect";
 import { AgentDomain } from "#domain.ts";
 import type { SpawnFields } from "#index.ts";
+import { makeSightSessionEvents } from "#sight-session-events.ts";
 import { domainKernelLayer, sightSourceTestLayer } from "#test/domain-layers.ts";
 import { rawOf, type ScriptedBackend, sessionFor } from "#test/harness.ts";
 import { aheadBy } from "#test/session-clock.ts";
-import { eventually, reportsNativeRef, untilTerminal } from "#test/session-recovery-fixture.ts";
+import { reportsNativeRef, untilTerminal } from "#test/session-recovery-fixture.ts";
 
 export const HAND: SpawnFields = {
 	agentId: "agent-idle",
@@ -39,16 +40,15 @@ export const spawned = Effect.gen(function* () {
 export const openedNatively = (scripted: ScriptedBackend) =>
 	Effect.gen(function* () {
 		const live = yield* sessionFor(scripted, HAND.agentId);
+		const sight = yield* makeSightSessionEvents;
+		const opened = yield* sight.sessionEventFeed({ fromSeq: 0, sessionId: HAND.sessionId }).pipe(Stream.take(1), Stream.runCollect, Effect.forkChild);
 		yield* live.emit({
 			nativeRef: "native-idle",
 			raw: rawOf("session/opened"),
 			type: "session.opened",
 		});
-		yield* eventually(
-			Effect.gen(function* () {
-				expect((yield* sessionRow).nativeRef).toBe("native-idle");
-			}),
-		);
+		yield* Fiber.join(opened);
+		expect((yield* sessionRow).nativeRef).toBe("native-idle");
 		return live;
 	});
 

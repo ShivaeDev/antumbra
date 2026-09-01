@@ -17,7 +17,7 @@ const layer = <E>(read: Effect.Effect<HeldResourceRead<E>>) =>
 		Layer.provideMerge(DomainFeedsLive),
 	);
 
-it.effectApp("runs again after held-resource reading fails", { clock: "live" }, function* () {
+it.effectApp("runs again after held-resource reading fails", function* () {
 	const attempts = yield* Ref.make(0);
 	const read = Effect.succeed({
 		held: () =>

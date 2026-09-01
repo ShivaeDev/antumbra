@@ -1,5 +1,4 @@
 import { defineIntent, IntentExecution } from "@antumbra/kernel";
-import type { BackendFailure } from "@antumbra/plugin-api";
 import { wakeWords } from "@antumbra/prompts";
 import { SessionFabric } from "@antumbra/session-fabric";
 import { SessionInputs } from "@antumbra/session-inputs";
@@ -8,7 +7,7 @@ import type { SessionCapacities } from "#capacity.ts";
 import { makeCurrentSessionRecovery } from "#current/recovery.ts";
 import { promptInput } from "#input.ts";
 import { makeSessionRecoveryContext } from "#recovery/context.ts";
-import { recoveryHeld, type SessionRecoveryHeld } from "#recovery/error.ts";
+import { recoveryHeld } from "#recovery/error.ts";
 import { SessionRecoveryRuntime } from "#recovery/runtime.ts";
 import { unresumable, waitFor } from "#unresumable.ts";
 import { accountedWake } from "#wake/account.ts";
@@ -16,10 +15,6 @@ import { type CarriedInput, makeLoadCarriedInput, type WakeFields, WakePayload }
 import { SessionWakePatience } from "#wake/patience.ts";
 
 const attachmentTimedOut = (sessionId: string, patience: number) => recoveryHeld(`${sessionId} did not reach a live attachment within ${patience}ms`);
-
-const waitForBackend = (failure: BackendFailure) => waitFor(failure.message);
-const waitForLostAttachment = () => waitFor("the attachment went before the words");
-const waitForHeldRecovery = (failure: SessionRecoveryHeld) => waitFor(failure.detail);
 
 export type { WakeFields } from "#wake/input.ts";
 
@@ -85,9 +80,9 @@ export const makeWakeKind = (capacities: SessionCapacities) =>
 				yield* resumed(fields.sessionId, input);
 			}).pipe(
 				Effect.catchTags({
-					BackendFailure: waitForBackend,
-					SessionNotLive: waitForLostAttachment,
-					SessionRecoveryHeld: waitForHeldRecovery,
+					BackendFailure: (failure: { readonly message: string }) => waitFor(failure.message),
+					SessionNotLive: () => waitFor("the attachment went before the words"),
+					SessionRecoveryHeld: (failure: { readonly detail: string }) => waitFor(failure.detail),
 				}),
 			);
 		return defineIntent({

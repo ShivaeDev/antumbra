@@ -2,9 +2,10 @@ import { BoardScope } from "@antumbra/boards";
 import { Kernel } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
 import { expect, it } from "@effect/vitest";
-import { Effect, Option } from "effect";
+import { Effect, Fiber, Option, Stream } from "effect";
 import { AgentDomain } from "#domain.ts";
 import type { SpawnFields } from "#index.ts";
+import { makeSightSessionEvents } from "#sight-session-events.ts";
 import { dispatchingLayer, domainKernelLayer } from "#test/domain-layers.ts";
 import { acquireTemporaryPersistence, callTool, makeScriptedBackend, rawOf, sessionFor } from "#test/harness.ts";
 import { hail, reportsNativeRef } from "#test/session-recovery-fixture.ts";
@@ -39,6 +40,7 @@ it.live("dispatched crew keeps its selected Voyage authority across rebuild", ()
 		const selected = yield* Effect.gen(function* () {
 			const db = yield* Database;
 			const domain = yield* AgentDomain;
+			const sight = yield* makeSightSessionEvents;
 			const { alpha, voyage } = yield* chain;
 			const decoy = yield* domain.voyages.open({
 				backend: "scripted",
@@ -73,17 +75,15 @@ it.live("dispatched crew keeps its selected Voyage authority across rebuild", ()
 			expect(yield* domain.boards.read(BoardScope.Voyage({ voyageId: voyage.id }))).toMatchObject([{ body: "the swell is running" }]);
 			expect(yield* domain.boards.read(BoardScope.Voyage({ voyageId: decoy.id }))).toEqual([]);
 
+			const opened = yield* sight.sessionEventFeed({ fromSeq: 0, sessionId: session.id }).pipe(Stream.take(1), Stream.runCollect, Effect.forkChild);
 			yield* live.emit({
 				nativeRef: "native-selected-voyage",
 				raw: rawOf("session/opened"),
 				type: "session.opened",
 			});
-			yield* eventually(
-				Effect.gen(function* () {
-					const stored = Option.getOrThrow(yield* db.AgentSession.where({ id: session.id }).first());
-					expect(stored.nativeRef).toBe("native-selected-voyage");
-				}),
-			);
+			yield* Fiber.join(opened);
+			const stored = Option.getOrThrow(yield* db.AgentSession.where({ id: session.id }).first());
+			expect(stored.nativeRef).toBe("native-selected-voyage");
 			return {
 				agentId: assignment.agentId,
 				decoyId: decoy.id,

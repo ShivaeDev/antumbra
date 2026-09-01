@@ -2,11 +2,12 @@ import { isTerminalIntentStatus, Kernel, maxConcurrency } from "@antumbra/kernel
 import { Database } from "@antumbra/persistence";
 import { makeBackendCapacityController } from "@antumbra/plugin-api";
 import { expect, it } from "@effect/vitest";
-import { Clock, Deferred, Effect, Layer, Option, Queue, Stream } from "effect";
+import { Clock, Deferred, Effect, Fiber, Layer, Option, Queue, Stream } from "effect";
 import { AgentDomain } from "#agent-domain-service.ts";
 import { BackendCapacityReleaseLive } from "#backend-capacity-release.ts";
 import { makeRetryBackendCapacity } from "#backend-capacity-retry.ts";
 import { DispatcherLive } from "#dispatcher.ts";
+import { makeSightSessionEvents } from "#sight-session-events.ts";
 import { dispatchingLayer, domainKernelLayer } from "#test/domain-layers.ts";
 import { acquireTemporaryPersistence, callTool, makeScriptedBackend, rawOf, sessionFor } from "#test/harness.ts";
 import { reportsNativeRef, WAKE_INSTRUCTION } from "#test/session-recovery-fixture.ts";
@@ -34,12 +35,6 @@ const pauseNextSpawnSubmission = (
 				Effect.andThen(kernel.submit(kind, payload)),
 			);
 		},
-	});
-
-const expectNativeSession = (agentId: string) =>
-	Effect.gen(function* () {
-		const db = yield* Database;
-		expect((yield* db.AgentSession.where({ agentId }).all())[0]?.nativeRef).toBe("native-held");
 	});
 
 const expectScriptedProviderBlocked = Effect.gen(function* () {
@@ -162,6 +157,7 @@ it.live("a provider hold stops automatic wakes until the admiral retries it", ()
 		yield* Effect.gen(function* () {
 			const db = yield* Database;
 			const domain = yield* AgentDomain;
+			const sight = yield* makeSightSessionEvents;
 			const { alpha } = yield* chain;
 			yield* eventually(
 				Effect.gen(function* () {
@@ -175,12 +171,15 @@ it.live("a provider hold stops automatic wakes until the admiral retries it", ()
 				return yield* Effect.die("the dispatched Piece has no Agent");
 			}
 			const live = yield* sessionFor(scripted, assignment.agentId);
+			const session = Option.getOrThrow(Option.fromUndefinedOr((yield* db.AgentSession.where({ agentId: assignment.agentId }).all())[0]));
+			const opened = yield* sight.sessionEventFeed({ fromSeq: 0, sessionId: session.id }).pipe(Stream.take(1), Stream.runCollect, Effect.forkChild);
 			yield* live.emit({
 				nativeRef: "native-held",
 				raw: rawOf("session/opened"),
 				type: "session.opened",
 			});
-			yield* eventually(expectNativeSession(assignment.agentId));
+			yield* Fiber.join(opened);
+			expect(Option.getOrThrow(yield* db.AgentSession.where({ id: session.id }).first()).nativeRef).toBe("native-held");
 
 			capacity.observe(rawOf("quota/rejected"), yield* Clock.currentTimeMillis);
 			yield* eventually(expectScriptedProviderBlocked);

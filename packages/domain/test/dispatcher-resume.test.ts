@@ -2,8 +2,9 @@ import { maxConcurrency } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
 import type { Runner } from "@antumbra/plugin-api";
 import { expect, it } from "@effect/vitest";
-import { Deferred, Effect, Option } from "effect";
+import { Deferred, Effect, Fiber, Option, Stream } from "effect";
 import { TestClock } from "effect/testing";
+import { makeSightSessionEvents } from "#sight-session-events.ts";
 import { dispatchingLayer } from "#test/domain-layers.ts";
 import { acquireTemporaryPersistence, callTool, makeScriptedBackend, makeScriptedRunner, rawOf, sessionFor } from "#test/harness.ts";
 import { reportsNativeRef, WAKE_INSTRUCTION } from "#test/session-recovery-fixture.ts";
@@ -102,6 +103,7 @@ it.live("assigned work wakes the same idle Agent where it stands, before spawn",
 		const backend = reportsNativeRef(scripted.backend, scripted, "native-assigned");
 		yield* Effect.gen(function* () {
 			const db = yield* Database;
+			const sight = yield* makeSightSessionEvents;
 			const { alpha } = yield* chain;
 			yield* eventually(
 				Effect.gen(function* () {
@@ -116,11 +118,6 @@ it.live("assigned work wakes the same idle Agent where it stands, before spawn",
 				return yield* Effect.die("the dispatched Piece has no Agent");
 			}
 			const initial = yield* sessionFor(scripted, assignment.agentId);
-			yield* initial.emit({
-				nativeRef: "native-assigned",
-				raw: rawOf("session/opened"),
-				type: "session.opened",
-			});
 			const session = (yield* db.AgentSession.where({
 				agentId: assignment.agentId,
 			}).all())[0];
@@ -128,14 +125,15 @@ it.live("assigned work wakes the same idle Agent where it stands, before spawn",
 			if (session === undefined) {
 				return yield* Effect.die("the assigned Agent has no Session");
 			}
-			yield* eventually(
-				Effect.gen(function* () {
-					const stored = yield* db.AgentSession.where({
-						id: session.id,
-					}).first();
-					expect(Option.getOrThrow(stored).nativeRef).toBe("native-assigned");
-				}),
-			);
+			const opened = yield* sight.sessionEventFeed({ fromSeq: 0, sessionId: session.id }).pipe(Stream.take(1), Stream.runCollect, Effect.forkChild);
+			yield* initial.emit({
+				nativeRef: "native-assigned",
+				raw: rawOf("session/opened"),
+				type: "session.opened",
+			});
+			yield* Fiber.join(opened);
+			const stored = yield* db.AgentSession.where({ id: session.id }).first();
+			expect(Option.getOrThrow(stored).nativeRef).toBe("native-assigned");
 
 			yield* callTool(initial, "stand_down", undefined);
 			yield* eventually(

@@ -4,8 +4,9 @@ import { Database } from "@antumbra/persistence";
 import type { AgentBackend } from "@antumbra/plugin-api";
 import { drainActiveSessions } from "@antumbra/sessions";
 import { expect, it } from "@effect/vitest";
-import { Effect, ManagedRuntime, Option, Ref } from "effect";
+import { Effect, Fiber, ManagedRuntime, Option, Ref, Stream } from "effect";
 import { AgentDomain } from "#domain.ts";
+import { makeSightSessionEvents } from "#sight-session-events.ts";
 import { domainKernelLayer } from "#test/domain-layers.ts";
 import { acquireTemporaryPersistence, makeScriptedBackend, rawOf, sessionFor } from "#test/harness.ts";
 import { reportsNativeRef, untilTerminal } from "#test/session-recovery-fixture.ts";
@@ -74,6 +75,7 @@ it.live("drains once, rebuilds idle truth, and resumes the same native Session",
 		const prepareShutdown = Effect.gen(function* () {
 			const db = yield* Database;
 			const domain = yield* AgentDomain;
+			const sight = yield* makeSightSessionEvents;
 			const voyage = yield* openReefVoyage;
 			const hailed = yield* domain.voyages.hail(voyage.id);
 			expect(yield* terminalIntent(hailed.intentId)).toBe("succeeded");
@@ -86,6 +88,8 @@ it.live("drains once, rebuilds idle truth, and resumes the same native Session",
 					register: "smooth",
 				}),
 			);
+			const session = Option.getOrThrow(Option.fromUndefinedOr((yield* db.AgentSession.where({ agentId: hailed.agentId }).all())[0]));
+			const recorded = yield* sight.sessionEventFeed({ fromSeq: 0, sessionId: session.id }).pipe(Stream.take(2), Stream.runCollect, Effect.forkChild);
 			yield* live.emit({
 				nativeRef: "native-shutdown",
 				raw: rawOf("session/opened"),
@@ -97,22 +101,12 @@ it.live("drains once, rebuilds idle truth, and resumes the same native Session",
 				text: "durable before shutdown",
 				type: "message",
 			});
-			const sessionHasDurableEvents = Effect.gen(function* () {
-				const sessions = yield* db.AgentSession.where({
-					agentId: hailed.agentId,
-				}).all();
-				const session = Option.getOrThrow(Option.fromUndefinedOr(sessions[0]));
-				expect(session.nativeRef).toBe("native-shutdown");
-				expect(yield* db.SessionEvent.where({ sessionId: session.id }).all()).toHaveLength(2);
-			});
-			yield* eventually(sessionHasDurableEvents);
-			const session = Option.getOrThrow(
-				Option.fromUndefinedOr(
-					(yield* db.AgentSession.where({
-						agentId: hailed.agentId,
-					}).all())[0],
-				),
-			);
+			expect((yield* Fiber.join(recorded)).map((event) => event.event)).toMatchObject([
+				{ _tag: "Known", event: { type: "session.opened" } },
+				{ _tag: "Known", event: { type: "message" } },
+			]);
+			const persistedSession = Option.getOrThrow(yield* db.AgentSession.where({ id: session.id }).first());
+			expect(persistedSession.nativeRef).toBe("native-shutdown");
 			const durable = {
 				agent: yield* db.Agent.where({ id: hailed.agentId }).first(),
 				boardEntries: yield* db.BoardEntry.all(),
@@ -124,7 +118,7 @@ it.live("drains once, rebuilds idle truth, and resumes the same native Session",
 				moorage: yield* db.Moorage.where({
 					agentId: hailed.agentId,
 				}).first(),
-				session,
+				session: persistedSession,
 			};
 			yield* drainActiveSessions;
 			expect(yield* live.closed).toBe(true);

@@ -1,7 +1,8 @@
 import { Database } from "@antumbra/persistence";
 import { expect, it } from "@effect/vitest";
-import { Effect, Option } from "effect";
+import { Effect, Fiber, Option, Stream } from "effect";
 import { AgentDomain } from "#domain.ts";
+import { makeSightSessionEvents } from "#sight-session-events.ts";
 import { dispatchingLayer, domainKernelLayer } from "#test/domain-layers.ts";
 import { acquireTemporaryPersistence, callTool, makeScriptedBackend, rawOf, sessionFor } from "#test/harness.ts";
 import { hail, reportsNativeRef } from "#test/session-recovery-fixture.ts";
@@ -20,6 +21,7 @@ it.live("a Piece role named captain remains crew across Session recovery", () =>
 		const selected = yield* Effect.gen(function* () {
 			const db = yield* Database;
 			const domain = yield* AgentDomain;
+			const sight = yield* makeSightSessionEvents;
 			const voyage = yield* openReefVoyage;
 			const piece = yield* domain.voyages.charterPiece({
 				charter: "lead the sounding party",
@@ -57,17 +59,15 @@ it.live("a Piece role named captain remains crew across Session recovery", () =>
 					}).all())[0],
 				),
 			);
+			const opened = yield* sight.sessionEventFeed({ fromSeq: 0, sessionId: session.id }).pipe(Stream.take(1), Stream.runCollect, Effect.forkChild);
 			yield* live.emit({
 				nativeRef: "native-piece-captain-role",
 				raw: rawOf("session/opened"),
 				type: "session.opened",
 			});
-			yield* eventually(
-				Effect.gen(function* () {
-					const stored = Option.getOrThrow(yield* db.AgentSession.where({ id: session.id }).first());
-					expect(stored.nativeRef).toBe("native-piece-captain-role");
-				}),
-			);
+			yield* Fiber.join(opened);
+			const stored = Option.getOrThrow(yield* db.AgentSession.where({ id: session.id }).first());
+			expect(stored.nativeRef).toBe("native-piece-captain-role");
 			return {
 				agentId: assignment.agentId,
 				sessionId: session.id,

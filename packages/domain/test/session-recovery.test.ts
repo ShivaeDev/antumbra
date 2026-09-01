@@ -1,7 +1,8 @@
 import { Kernel } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
 import { expect, it } from "@effect/vitest";
-import { Effect, Option, Ref } from "effect";
+import { Effect, Fiber, Option, Ref, Stream } from "effect";
+import { makeSightSessionEvents } from "#sight-session-events.ts";
 import { domainKernelLayer } from "#test/domain-layers.ts";
 import { acquireTemporaryPersistence, makeScriptedBackend, makeScriptedRunner, rawOf } from "#test/harness.ts";
 import {
@@ -27,6 +28,7 @@ it.live("a hail after a rebuild resumes the same native session and sequence", (
 
 		yield* Effect.gen(function* () {
 			const db = yield* Database;
+			const sight = yield* makeSightSessionEvents;
 			yield* hail(payload.sessionId);
 			const resumed = yield* eventually(
 				Effect.gen(function* () {
@@ -44,22 +46,20 @@ it.live("a hail after a rebuild resumes the same native session and sequence", (
 			expect(secondOpen?.tools.map((tool) => tool.name)).toContain("land_report");
 			expect(yield* durableRows).toEqual(before);
 
+			const continued = yield* sight
+				.sessionEventFeed({ fromSeq: 3, sessionId: payload.sessionId })
+				.pipe(Stream.take(1), Stream.runCollect, Effect.forkChild);
 			yield* resumed.emit({
 				raw: rawOf("assistant/resumed"),
 				role: "agent",
 				text: "continued after restart",
 				type: "message",
 			});
-			yield* eventually(
-				Effect.gen(function* () {
-					const events = yield* db.SessionEvent.where({
-						sessionId: payload.sessionId,
-					})
-						.orderBy((event) => event.seq.asc())
-						.all();
-					expect(events.map((event) => event.seq)).toEqual([0, 1, 2, 3]);
-				}),
-			);
+			expect((yield* Fiber.join(continued)).map((event) => event.seq)).toEqual([3]);
+			const events = yield* db.SessionEvent.where({ sessionId: payload.sessionId })
+				.orderBy((event) => event.seq.asc())
+				.all();
+			expect(events.map((event) => event.seq)).toEqual([0, 1, 2, 3]);
 		}).pipe(Effect.provide(domainKernelLayer(temporary, backend, {}, recorded.runner)));
 	}),
 );

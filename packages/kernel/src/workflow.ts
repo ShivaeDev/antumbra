@@ -14,15 +14,11 @@ type IntentWaitSignal = typeof IntentWaitSignal.Type;
 
 export const isIntentWaitSignal = Schema.is(IntentWaitSignal);
 
-interface IntentStepOptions {
-	readonly additionalAttempts: number;
-}
-
 export class IntentExecution extends Context.Service<
 	IntentExecution,
 	{
 		readonly intentId: string;
-		readonly step: <R>(name: string, execute: Effect.Effect<void, unknown, R>, options?: IntentStepOptions) => Effect.Effect<void, unknown, R>;
+		readonly step: <R>(name: string, execute: Effect.Effect<void, unknown, R>) => Effect.Effect<void, unknown, R>;
 		readonly wait: (detail: string) => Effect.Effect<never, unknown>;
 	}
 >()("@antumbra/kernel/IntentExecution") {}
@@ -33,7 +29,7 @@ const makeExecution = (tag: string, intentId: string) =>
 		const instance = yield* WorkflowEngine.WorkflowInstance;
 		return IntentExecution.of({
 			intentId,
-			step: (name, execute, options) => {
+			step: (name, execute) => {
 				// Effect activities retry interruption by default; kernel cancellation must not.
 				const activity = Activity.make({
 					error: Schema.Unknown,
@@ -41,8 +37,7 @@ const makeExecution = (tag: string, intentId: string) =>
 					interruptRetryPolicy: Schedule.recurs(0),
 					name: `${tag}/${name}`,
 				});
-				const attempt = options === undefined ? activity : Activity.retry(activity, { times: options.additionalAttempts });
-				return attempt.pipe(
+				return activity.pipe(
 					Effect.provideService(WorkflowEngine.WorkflowEngine, engine),
 					Effect.provideService(WorkflowEngine.WorkflowInstance, instance),
 				);

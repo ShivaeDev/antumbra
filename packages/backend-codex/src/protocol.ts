@@ -21,8 +21,6 @@ export const Turn = Schema.Struct({
 
 export const TurnResponse = Schema.Struct({ turn: Turn });
 
-export const TurnSteerResponse = Schema.Struct({ turnId: Schema.String });
-
 export const DynamicToolCallParams = Schema.Struct({
 	arguments: Schema.Unknown,
 	threadId: Schema.String,

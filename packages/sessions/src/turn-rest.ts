@@ -7,7 +7,7 @@ import { Effect, Option, Ref } from "effect";
 import { makeStrandNotice } from "#strand.ts";
 import { originOf } from "#tree/attribution.ts";
 
-export interface SessionTurnRest {
+interface SessionTurnRest {
 	readonly observed: (event: AgentEvent) => Effect.Effect<void>;
 	readonly stranded: Effect.Effect<void>;
 }

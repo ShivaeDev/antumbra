@@ -4,14 +4,14 @@ import { Effect, Option } from "effect";
 
 type SubsessionOutcome = Extract<AgentEvent, { type: "subsession.ended" }>["outcome"];
 
-export interface NodeOpening {
+interface NodeOpening {
 	readonly kind: string | null;
 	readonly label: string | null;
 	readonly sessionId: string;
 	readonly spawnerSessionId: string;
 }
 
-export interface NodeAdoption {
+interface NodeAdoption {
 	readonly kind: string | undefined;
 	readonly label: string | undefined;
 	readonly parentSessionId: string;

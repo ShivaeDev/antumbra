@@ -14,7 +14,7 @@ type IntentWaitSignal = typeof IntentWaitSignal.Type;
 
 export const isIntentWaitSignal = Schema.is(IntentWaitSignal);
 
-export interface IntentStepOptions {
+interface IntentStepOptions {
 	readonly additionalAttempts: number;
 }
 

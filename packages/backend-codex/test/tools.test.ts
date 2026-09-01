@@ -1,6 +1,7 @@
 import type { DirectTool } from "@antumbra/plugin-api";
 import { expect, it } from "@effect/vitest";
 import { Deferred, Effect, Exit, Option, Ref, Scope } from "effect";
+import { TestClock } from "effect/testing";
 import { makeCodexServer } from "#server.ts";
 import { makeFakeAppServer } from "#test/fake.ts";
 import { openThreadSession } from "#thread.ts";
@@ -107,12 +108,12 @@ it.live("a tool we never served answers as failed, not as an unknown method", ()
 	}),
 );
 
-it.live("the clock the server reads is ours, in whole seconds", () =>
+it.effect("the clock the server reads is ours, in whole seconds", () =>
 	Effect.gen(function* () {
+		yield* TestClock.setTime(12_345);
 		const { fake } = yield* openWithTools();
 		fake.serverRequest(9, "currentTime/read", { threadId: THREAD });
-		const answer = yield* fake.responseById(9);
-		expect(answer).toMatchObject({ currentTimeAt: expect.any(Number) });
+		expect(yield* fake.responseById(9)).toEqual({ currentTimeAt: 12 });
 	}),
 );
 

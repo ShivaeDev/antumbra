@@ -2,20 +2,12 @@ import { realpathSync } from "node:fs";
 import { DatabaseSync } from "node:sqlite";
 import type { LegacyArtifact } from "#adapters/artifact-custody-identity.ts";
 import { hashArtifactCustody, type VerifiedArtifact, verifyLegacyArtifact } from "#adapters/artifact-custody-verification.ts";
+import { currentStorageHash } from "#adapters/storage-marker.ts";
 import type { DatabaseFilePath } from "#data-dir.ts";
 
 const CUSTODY_FROM = "sha256:7bed1b5421dd224911e12335de498920dc5a617efc49f82a1f0f06cf52446bbe";
 const ITEM_PREFIX = "migration:artifact-custody:item:";
 const MANIFEST_KEY = "migration:artifact-custody:manifest";
-
-const currentStorageHash = (database: DatabaseSync): string | undefined => {
-	const marker = database.prepare(`SELECT 1 AS "found" FROM sqlite_master WHERE type = 'table' AND name = '_prisma_marker'`).get();
-	if (marker === undefined) {
-		return undefined;
-	}
-	const row = database.prepare(`SELECT "core_hash" FROM "_prisma_marker" WHERE "space" = 'app'`).get();
-	return typeof row?.core_hash === "string" ? row.core_hash : undefined;
-};
 
 const readLegacyArtifacts = (database: DatabaseSync): LegacyArtifact[] =>
 	database

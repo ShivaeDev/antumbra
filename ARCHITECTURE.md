@@ -14,7 +14,8 @@ restores that arrangement on the next launch, so losing the file costs the arran
 
 Exactly one Antumbra desktop process owns the application and its selected local data directory at a time. Repeat launches are routed to that owner,
 which opens or focuses windows in its process; windows never create independent orchestration or persistence owners. The shell takes Electron's native
-application lock before configuring data or constructing runtime and persistence Layers.
+application lock before configuring data or constructing runtime and persistence Layers. Before any migration applies to an existing database,
+persistence writes a `VACUUM INTO` copy of it beside the database under `backups/` and keeps the five newest.
 
 Explicitly addressed mail is persisted as an immutable entry on the addressee's Agent Board; its marked-read receipt is separate durable truth, so a
 read never clears it. Raw Change and Review observations remain in their own records. No mailbox feed, settling timer, presentation cap, or

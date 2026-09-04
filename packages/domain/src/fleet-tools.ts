@@ -1,10 +1,10 @@
 import { bind, charterVoyagePieceSpec, hailCaptainSpec, openVoyageSpec, proclaimRulingSpec, readFleetSpec } from "@antumbra/agent-tools";
-import { Pieces } from "@antumbra/pieces";
 import type { DirectTool } from "@antumbra/plugin-api";
 import { type Ruling, type RulingProclamation, Rulings } from "@antumbra/rulings";
 import { AGENT_BACKEND_TAGS } from "@antumbra/vocabulary/agent-backend";
 import { Effect } from "effect";
 import { makeCaptainToolCompiler } from "#captain-tools.ts";
+import { makeEdgeCharter } from "#charter-edge.ts";
 import { renderFleet } from "#fleet-render.ts";
 import type { HailedCaptain } from "#hail.ts";
 import { tagSubjects } from "#ruling-inputs.ts";
@@ -35,7 +35,7 @@ const proclaimed = (ruling: Ruling): string =>
 
 export const makeFleetToolCompiler = Effect.gen(function* () {
 	const compileCaptainTools = yield* makeCaptainToolCompiler;
-	const pieces = yield* Pieces;
+	const charter = yield* makeEdgeCharter;
 	const rulings = yield* Rulings;
 	const voyages = yield* VoyageProcedureService;
 	const fleetActs = (identity: SessionIdentity): ReadonlyArray<DirectTool> => [
@@ -57,7 +57,7 @@ export const makeFleetToolCompiler = Effect.gen(function* () {
 			answered(
 				identity,
 				charterVoyagePieceSpec.name,
-				pieces.charter({
+				charter({
 					charter: input.charter,
 					dependsOn: [],
 					expectation: input.expectation,

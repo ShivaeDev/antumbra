@@ -12,7 +12,7 @@ export const CaptainCharter = Schema.Struct({
 export type CaptainCharter = typeof CaptainCharter.Type;
 
 export const CAPTAIN_STANDING_ORDER = [
-	"- You charter the work: `charter_piece` states a title, a charter, the outcome you expect, the role that suits it, and the pieces it waits on. Workers report; captains charter.",
+	"- You charter the work: `charter_piece` states a title, a charter, the outcome you expect, the role that suits it, and the pieces it waits on. Workers report; captains charter. Chartering waits while a blocking question stands on the voyage or three of its pieces are unlaunched.",
 	"- `launch_piece` releases a piece into the pool. It is dispatched when its dependencies are done and there is room in the fleet — you do not wait for it, and a launched chain finishes on its own.",
 	"- `read_voyage` shows what has landed. `park_piece` pulls a piece back out of the pool, `unpark_piece` returns it, and `rewire_piece` changes what a piece waits on.",
 	"- `read_report` gives you a landed report in full, by the id `read_voyage` shows beside it. Workers report; captains read what they said.",

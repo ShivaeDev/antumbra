@@ -1,5 +1,4 @@
 import { bind, charterPieceSpec } from "@antumbra/agent-tools";
-import { Pieces } from "@antumbra/pieces";
 import type { DirectTool } from "@antumbra/plugin-api";
 import { Effect } from "effect";
 import { makeBoardToolCompiler } from "#board-tools.ts";
@@ -7,6 +6,7 @@ import { CaptainMembership } from "#captain-membership.ts";
 import { makePieceVerbToolCompiler } from "#captain-pieces.ts";
 import { makeCaptainRulingMoveToolCompiler } from "#captain-ruling-moves.ts";
 import { makeCaptainVerdictToolCompiler } from "#captain-verdicts.ts";
+import { makeEdgeCharter } from "#charter-edge.ts";
 import { makeReportToolCompiler } from "#report-tools.ts";
 import { makeRulingReadingToolCompiler } from "#ruling-reading-tools.ts";
 import { makeRulingToolCompiler } from "#ruling-tools.ts";
@@ -17,7 +17,7 @@ import { makeVoyageReadingToolCompiler } from "#voyage-reading-tools.ts";
 
 export const makeCaptainToolCompiler = Effect.gen(function* () {
 	const membership = yield* CaptainMembership;
-	const pieces = yield* Pieces;
+	const charter = yield* makeEdgeCharter;
 	const pieceVerbTools = yield* makePieceVerbToolCompiler;
 	const compileBoardTools = yield* makeBoardToolCompiler;
 	const compileReportTools = yield* makeReportToolCompiler;
@@ -33,7 +33,7 @@ export const makeCaptainToolCompiler = Effect.gen(function* () {
 				answered(
 					identity,
 					charterPieceSpec.name,
-					pieces.charter({
+					charter({
 						charter: input.charter,
 						dependsOn: input.dependsOn,
 						expectation: input.expectation,

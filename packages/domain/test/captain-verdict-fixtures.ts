@@ -15,6 +15,7 @@ export interface Ladder {
 	readonly captain: ScriptedSession;
 	readonly captainAgentId: string;
 	readonly flagship: ScriptedSession;
+	readonly voyageId: string;
 }
 
 type LadderNeeds =
@@ -92,6 +93,7 @@ export const withLadder = <A, E>(body: (ladder: Ladder) => Effect.Effect<A, E, L
 				captain: captain.session,
 				captainAgentId: captain.agentId,
 				flagship: flagship.session,
+				voyageId: voyage.id,
 			});
 		}).pipe(Effect.provide(domainKernelLayer(temporary, scripted.backend)));
 	});

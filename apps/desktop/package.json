@@ -16,6 +16,7 @@
 		"dev": "node script/dev.ts",
 		"build": "node script/build.ts",
 		"package": "node script/build.ts && electron-builder --mac --publish never",
+		"pretest": "install-electron",
 		"test": "vitest run",
 		"typecheck": "tsc --noEmit",
 		"typecheck:compat": "tsc6 --noEmit"

@@ -50,7 +50,8 @@ export const refreshSubmittedChanges = (hostTag: string) =>
 			return yield* new UnknownChangeHostTag({ tag: hostTag });
 		}
 		const changes = yield* watchableChanges(hostTag);
-		const repos = new Map((yield* db.Repo.all()).map((repo) => [repo.id, repo] as const));
+		const repoIds = changes.map((change) => change.repoId);
+		const repos = new Map((yield* db.Repo.where((repo) => repo.id.in(repoIds)).all()).map((repo) => [repo.id, repo] as const));
 		const refs = changes.flatMap((row) => changeRef(row, repos));
 		return refs.length === 0 ? [] : yield* applyObservations(hostTag, yield* host.observe(refs));
 	});

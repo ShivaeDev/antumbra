@@ -82,6 +82,7 @@ it.live("a hail of a captain that is answering leaves its work alone", () =>
 			const again = yield* domain.voyages.hail(voyage.id);
 			expect(yield* untilTerminal(kernel.changes(again.intentId))).toBe("succeeded");
 			expect(yield* live.sent).toEqual(spoken);
+			expect(yield* live.steered).toEqual([]);
 			expect(yield* live.closed).toBe(false);
 			expect(yield* scripted.opened).toHaveLength(1);
 			expect((yield* db.AgentSession.where({ agentId: hailed.agentId }).all()).map((row) => [row.id, row.executionStatus])).toEqual([

@@ -69,6 +69,22 @@ it.effect("sends a steered prompt into the turn a queued one is waiting behind",
 	),
 );
 
+it.effect("steers an idle session by starting its turn, which a queued prompt then waits behind", () =>
+	Effect.scoped(
+		Effect.gen(function* () {
+			const provider = recordingProvider();
+			const driver = yield* makeTurnDriver(provider.requests);
+			yield* driver.steer("steered");
+			expect(provider.sent).toEqual(["steered"]);
+			const held = yield* Effect.forkChild(driver.queue("held"), { startImmediately: true });
+			expect(provider.sent).toEqual(["steered"]);
+			yield* driver.track(IDLE);
+			yield* Fiber.join(held);
+			expect(provider.sent).toEqual(["steered", "held"]);
+		}),
+	),
+);
+
 it.effect("fails every prompt still waiting when the session closes", () =>
 	Effect.scoped(
 		Effect.gen(function* () {

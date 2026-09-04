@@ -8,16 +8,16 @@ import { idleHandle, options, scriptedBackend, sink, textInput } from "#test/fab
 const withFabric = Effect.provide(SessionFabric.layer, { local: true });
 
 const standing = Effect.gen(function* () {
-	const queued = yield* Ref.make<ReadonlyArray<string>>([]);
+	const steered = yield* Ref.make<ReadonlyArray<string>>([]);
 	const backend = scriptedBackend(() =>
 		Effect.succeed({
 			...idleHandle,
-			queue: (input) => Ref.update(queued, (all) => [...all, ...input.parts.flatMap((part) => (part.type === "text" ? [part.text] : []))]),
+			steer: (input) => Ref.update(steered, (all) => [...all, ...input.parts.flatMap((part) => (part.type === "text" ? [part.text] : []))]),
 		}),
 	);
 	const fabric = yield* SessionFabric;
 	yield* fabric.withStartAdmission((permit) => fabric.start(permit, "agent-fabric", backend, options, sink, () => Effect.void));
-	return { fabric, queued };
+	return { fabric, steered };
 });
 
 it.live("standing down keeps the acquisition and remembers when it began", () =>
@@ -45,13 +45,13 @@ it.live("a session that never stood down is not reclaimed as idle", () =>
 it.live("words end the idleness, and a reclaim arriving after them declines", () =>
 	Effect.scoped(
 		Effect.gen(function* () {
-			const { fabric, queued } = yield* standing;
+			const { fabric, steered } = yield* standing;
 			yield* fabric.standDown(options.sessionId);
 			yield* fabric.send(options.sessionId, textInput("one more thing"));
 			expect(yield* fabric.idleSince()).toEqual(new Map());
 			expect(yield* fabric.stopIdle(options.sessionId)).toBe(false);
 			expect(yield* fabric.holds(options.sessionId)).toBe(true);
-			expect(yield* Ref.get(queued)).toEqual(["one more thing"]);
+			expect(yield* Ref.get(steered)).toEqual(["one more thing"]);
 		}),
 	).pipe(withFabric),
 );
@@ -59,14 +59,14 @@ it.live("words end the idleness, and a reclaim arriving after them declines", ()
 it.live("a reclaim takes the attachment of a session still standing down", () =>
 	Effect.scoped(
 		Effect.gen(function* () {
-			const { fabric, queued } = yield* standing;
+			const { fabric, steered } = yield* standing;
 			yield* fabric.standDown(options.sessionId);
 			expect(yield* fabric.stopIdle(options.sessionId)).toBe(true);
 			expect(yield* fabric.holds(options.sessionId)).toBe(false);
 			expect(yield* fabric.attached()).toEqual(new Set());
 			const gone = yield* Effect.flip(fabric.send(options.sessionId, textInput("still aboard?")));
 			expect(gone).toBeInstanceOf(SessionNotLive);
-			expect(yield* Ref.get(queued)).toEqual([]);
+			expect(yield* Ref.get(steered)).toEqual([]);
 		}),
 	).pipe(withFabric),
 );

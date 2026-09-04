@@ -1,9 +1,10 @@
 import { makeAppRouter } from "@antumbra/contract";
-import { drainActiveSessions } from "@antumbra/domain";
+import { drainActiveSessions, honorRestartIntent } from "@antumbra/domain";
 import { ensureInstallMarker } from "@antumbra/persistence";
 import { NodeServices } from "@effect/platform-node";
-import { Effect, FileSystem, Layer, ManagedRuntime } from "effect";
+import { Effect, FileSystem, Layer, ManagedRuntime, Ref } from "effect";
 import { AppInfoSourceLive } from "#adapters/app-info.ts";
+import { AppLifecycleSourceLive } from "#adapters/app-lifecycle.ts";
 import { ownerBoot, runBoot, runManagedRuntimeStartup } from "#adapters/boot.ts";
 import { drainManagedRuntime } from "#adapters/graceful-shutdown.ts";
 import { registerOpenExternal } from "#adapters/open-external.ts";
@@ -34,32 +35,42 @@ const layoutStore = Effect.provide(
 	NodeServices.layer,
 );
 
-const startOwner = (shell: WindowShell, store: LayoutStore) => {
-	const runtime = ManagedRuntime.make(Layer.mergeAll(AppInfoSourceLive, WindowSourceLive(shell), devTracing(), Layer.orDie(applicationLayers())));
-	const router = makeAppRouter(runtime);
-	const main = Effect.gen(function* () {
-		yield* drainBeforeQuit(drainManagedRuntime(runtime, drainActiveSessions));
-		yield* whenReady;
-		yield* Effect.sync(() => {
-			registerTrpcBridge(router, shell.registry);
-			registerTrpcSubscriptions(router, shell.registry);
-			registerOpenExternal();
+const startOwner = (shell: WindowShell, store: LayoutStore) =>
+	Effect.gen(function* () {
+		const restarting = yield* Ref.make(false);
+		const runtime = ManagedRuntime.make(
+			Layer.mergeAll(
+				AppInfoSourceLive,
+				WindowSourceLive(shell),
+				devTracing(),
+				AppLifecycleSourceLive(restarting).pipe(Layer.provideMerge(Layer.orDie(applicationLayers()))),
+			),
+		);
+		const router = makeAppRouter(runtime);
+		const main = Effect.gen(function* () {
+			yield* drainBeforeQuit(drainManagedRuntime(runtime, drainActiveSessions), restarting);
+			yield* whenReady;
+			yield* Effect.sync(() => {
+				registerTrpcBridge(router, shell.registry);
+				registerTrpcSubscriptions(router, shell.registry);
+				registerOpenExternal();
+			});
+			yield* quitWhenAllWindowsClosed;
+			yield* ensureInstallMarker;
+			yield* honorRestartIntent;
+			const writer = yield* layoutWriter({
+				registry: shell.registry,
+				store,
+			});
+			yield* restoreWindows(shell, store);
+			yield* Effect.sync(() => {
+				shell.registry.onChanged(() => runtime.runFork(writer.note));
+			});
+			yield* Effect.sync(() => runtime.runFork(fleetTray(focusOrOpenConsole(shell.registry, openConsole(shell)))));
+			yield* Effect.logInfo("bridge: console open");
 		});
-		yield* quitWhenAllWindowsClosed;
-		yield* ensureInstallMarker;
-		const writer = yield* layoutWriter({
-			registry: shell.registry,
-			store,
-		});
-		yield* restoreWindows(shell, store);
-		yield* Effect.sync(() => {
-			shell.registry.onChanged(() => runtime.runFork(writer.note));
-		});
-		yield* Effect.sync(() => runtime.runFork(fleetTray(focusOrOpenConsole(shell.registry, openConsole(shell)))));
-		yield* Effect.logInfo("bridge: console open");
+		return yield* Effect.promise(() => runManagedRuntimeStartup(runtime, main));
 	});
-	return Effect.promise(() => runManagedRuntimeStartup(runtime, main));
-};
 
 const boot = Effect.gen(function* () {
 	const document = yield* Effect.orDie(rendererDocument);

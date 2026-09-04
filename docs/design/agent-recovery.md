@@ -96,7 +96,8 @@ conversation.
 Nothing resumes a Session on its own. Startup reconciles the durable rows and stops there: every Session comes back detached, and one whose row still
 says it was executing is **stranded** rather than repaired. No timer, sweep, projection, or boot pass ever opens a provider conversation to find out
 how a Session is doing. A wake is submitted by a hail, by a send, or by the dispatcher handing a Session a Piece already assigned to it — three
-explicit acts, each one asked for by somebody.
+explicit acts, each one asked for by somebody. A restart the admiral asks for is such an act as well: it records which roots it is about to stop, and
+the next boot wakes exactly those. Nothing else on boot wakes anything.
 
 Missing observers, an empty in-memory registry, or a dead watcher only remove current knowledge; they never mean an Agent retired, a Session closed, a
 Moorage orphaned, or a claim released.

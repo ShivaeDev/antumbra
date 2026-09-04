@@ -47,12 +47,14 @@ it.effect("coalesces quit requests and permits exit only after shutdown", () =>
 					beforeQuit = listener;
 				},
 				quit: finishQuit,
+				relaunch: () => record(calls, "relaunch"),
 			},
 			Ref.update(calls, (all) => [...all, "drain"]).pipe(
 				Effect.andThen(Deferred.succeed(drainStarted, undefined)),
 				Effect.andThen(Deferred.await(release)),
 				Effect.andThen(Ref.update(calls, (all) => [...all, "dispose"])),
 			),
+			yield* Ref.make(false),
 		);
 		const requestQuit = () =>
 			beforeQuit?.({
@@ -74,6 +76,36 @@ it.effect("coalesces quit requests and permits exit only after shutdown", () =>
 		expect(finished.filter((call) => call === "drain")).toHaveLength(1);
 		expect(finished.slice(-2)).toEqual(["dispose", "quit"]);
 		expect(finished).not.toContain("final-prevent");
+		expect(finished).not.toContain("relaunch");
+	}),
+);
+
+it.effect("relaunches instead of quitting when the shutdown was asked for as a restart", () =>
+	Effect.gen(function* () {
+		let beforeQuit: ((event: { readonly preventDefault: () => void }) => void) | undefined;
+		const calls = yield* Ref.make<ReadonlyArray<string>>([]);
+		const relaunched = yield* Deferred.make<void>();
+		yield* registerGracefulShutdown(
+			{
+				onBeforeQuit: (listener) => {
+					beforeQuit = listener;
+				},
+				quit: () => record(calls, "quit"),
+				relaunch: () => {
+					record(calls, "relaunch");
+					Effect.runSync(Deferred.succeed(relaunched, undefined));
+				},
+			},
+			Ref.update(calls, (all) => [...all, "drain"]),
+			yield* Ref.make(true),
+		);
+
+		beforeQuit?.({
+			preventDefault: () => record(calls, "prevent"),
+		});
+
+		yield* Deferred.await(relaunched);
+		expect(yield* Ref.get(calls)).toEqual(["prevent", "drain", "relaunch"]);
 	}),
 );
 
@@ -103,8 +135,10 @@ it.effect("retries shutdown after failure and permits exactly one exit", () =>
 					beforeQuit = listener;
 				},
 				quit: finishQuit,
+				relaunch: () => record(calls, "relaunch"),
 			},
 			shutdown,
+			yield* Ref.make(false),
 		);
 		const requestQuit = () =>
 			beforeQuit?.({

@@ -9,6 +9,7 @@ export {
 	type SessionMessagePart,
 } from "@antumbra/vocabulary/session-input";
 export { AppInfo, AppInfoSource } from "#app-info.ts";
+export { AppLifecycleSource } from "#app-lifecycle.ts";
 export { ArtifactMarkdown, ArtifactView } from "#artifact-views.ts";
 export { ChangeView } from "#change-views.ts";
 export {

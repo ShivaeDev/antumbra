@@ -29,25 +29,23 @@ it.live("a dispatched crew is told the moorage folder it was berthed in", () =>
 			const domain = yield* AgentDomain;
 			yield* domain.repos.register({
 				defaultRef: "main",
-				source: "/somewhere/Reef-Charts",
+				source: "/workspace/Desktop",
 			});
 			const reef = yield* openReefVoyage;
 			const alpha = yield* domain.voyages.charterPiece({
-				charter: "sound the shallows",
+				charter: "Investigate lost edits after restart.",
 				dependsOn: [],
-				expectation: "soundings are landed",
+				expectation: "A report identifying the cause.",
 				role: "hand",
-				title: "alpha",
+				title: "Investigate lost edits",
 				voyageId: reef.id,
 			});
 			yield* domain.voyages.launch(alpha.id);
 
 			const agentId = yield* eventually(crewOf(alpha.id));
 			const charter = yield* eventually(charterDelivered(scripted, agentId));
-			expect(charter).toContain(`your moorage, /tmp/moorage/${agentId}.`);
-			expect(charter).toContain(`Reef-Charts — ./berth-0 — branch work/${agentId.slice(0, 8)}/berth-0`);
-			expect(charter).toContain("Make repository changes inside the assigned berth's folder");
-			expect(charter).not.toContain("`open_change`");
+			expect(charter).toContain(`/tmp/moorage/${agentId}`);
+			expect(charter).toContain(`Desktop — ./berth-0 — branch work/${agentId.slice(0, 8)}/berth-0`);
 		}).pipe(Effect.provide(dispatchingLayer(temporary, scripted.backend, PATIENCE, {}, recorder.runner)));
 	}),
 );

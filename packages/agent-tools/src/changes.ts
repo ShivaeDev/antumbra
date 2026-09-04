@@ -6,8 +6,7 @@ const Repo = Schema.String.annotate({
 });
 
 export const openChangeSpec = defineTool({
-	description:
-		"Open a change (pull request) for your piece from the branch of your berth in the named repo. Returns the change's id, url and stage. Opening is not landing: your piece completes when the change lands.",
+	description: "Publish your berth's branch as a pull request for this Piece.",
 	input: Schema.Struct({
 		base: Schema.optionalKey(
 			Schema.String.annotate({
@@ -31,15 +30,13 @@ export const openChangeSpec = defineTool({
 });
 
 export const submitChangeSpec = defineTool({
-	description:
-		"Submit the work in your berth as a durable prepared change for your piece. Repeated calls reuse that repo's active change. Returns its id and stage; a host pull request may attach later. Submission is not landing: the change remains pending until host evidence confirms acceptance.",
+	description: "Record the work in your berth as a prepared Change for this Piece.",
 	input: Schema.Struct({ repo: Repo }),
 	name: "submit_change",
 });
 
 export const adoptChangeSpec = defineTool({
-	description:
-		"Adopt a change that already exists: link it to your piece by its url, so the record knows your piece is waiting on it. Call it for a change you opened by hand rather than through `open_change`. Adoption is not landing: host evidence determines when it lands.",
+	description: "Link an existing pull request to this Piece by URL.",
 	input: Schema.Struct({
 		repo: Repo,
 		url: Schema.String.annotate({

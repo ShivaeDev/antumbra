@@ -2,8 +2,7 @@ import { Schema } from "effect";
 import { defineTool } from "#define.ts";
 
 export const landReportSpec = defineTool({
-	description:
-		"Land a report against your piece: prose for other agents — what you found, what you did, what is left. Call it once when your work is done, or whenever you have a finding worth handing on.",
+	description: "Record findings or completed work as a Report for other agents, attached to your Piece.",
 	input: Schema.Struct({
 		body: Schema.String.annotate({
 			description: "The report itself, written for the agent who reads it next.",
@@ -16,8 +15,7 @@ export const landReportSpec = defineTool({
 });
 
 export const landArtifactSpec = defineTool({
-	description:
-		"Land a Markdown artifact against your piece: a file in your moorage copied into immutable durable storage. Call it for every result a person should see.",
+	description: "Land a Markdown result for the admiral by copying it from your moorage into durable storage.",
 	input: Schema.Struct({
 		path: Schema.String.annotate({
 			description: "A relative path to a UTF-8 Markdown file in your moorage.",
@@ -35,8 +33,7 @@ export const landArtifactSpec = defineTool({
 });
 
 export const supersedeArtifactSpec = defineTool({
-	description:
-		"Make one Artifact the successor of an older Artifact from the same piece. Call it only when you know the relationship; Antumbra never infers revisions or duplicates.",
+	description: "Mark an Artifact as the replacement for an older Artifact from the same Piece.",
 	input: Schema.Struct({
 		successorArtifactId: Schema.String.annotate({
 			description: "The Artifact that is now current.",
@@ -49,7 +46,7 @@ export const supersedeArtifactSpec = defineTool({
 });
 
 export const removeArtifactSupersessionSpec = defineTool({
-	description: "Remove one known Artifact supersession relationship when correcting History. Artifact records remain unchanged.",
+	description: "Remove an incorrect Artifact replacement link. Both Artifacts are kept.",
 	input: Schema.Struct({
 		successorArtifactId: Schema.String.annotate({
 			description: "The current successor in the relationship.",
@@ -62,8 +59,7 @@ export const removeArtifactSupersessionSpec = defineTool({
 });
 
 export const standDownSpec = defineTool({
-	description:
-		"Say you have nothing left to do for now: crew once their work and outcomes are landed, captains when the voyage needs no action from them. This marks idleness, not Piece completion or retirement. You stay open and listening; Antumbra may later put you to rest at a safe boundary and wake you with the same identity when addressed.",
+	description: "Mark yourself idle when you have no work to do now. You remain available for messages.",
 	input: Schema.Struct({}),
 	name: "stand_down",
 });

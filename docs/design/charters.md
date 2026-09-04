@@ -2,37 +2,37 @@
 
 [Design guides](README.md) · [Binding axioms](../../DESIGN.md)
 
-A charter supplies the context and conduct an Agent needs for its responsibility. Tool descriptions own what an act does, its inputs, and its durable
-boundary. This division follows DEC-0166, **Standing orders describe conduct, not tools**. The checklist below is for reviewing generated prompts
-against behavior, not for adding every design axiom to a session.
+A charter supplies the context, authority and conduct an Agent needs for its responsibility. Tool descriptions help the Agent choose an act; input
+descriptions explain the data it needs. This division follows DEC-0166, **Standing orders describe conduct, not tools**. The checklist below is for
+reviewing generated prompts against behavior, not for adding every design axiom to a session.
 
 ## Every generated charter
 
 These requirements apply to the flagship captain, a Voyage captain, and each crew member, whatever specialist role its Piece names.
 
-| The Agent needs to know                                                                                                                                    | Why it belongs                                                                                                                                         |
-| ---------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Read the rulings that bind the work with their questions and context before acting or asking again.                                                        | [A Ruling binds question and answer](rulings.md); a summary without the question can misstate what was decided.                                        |
-| If a question is not theirs to settle, explain the situation, question, recommendation, reason, and work that needs the answer; continue unaffected work.  | DEC-0166's conduct requirement and [radius versus urgency](rulings.md); an unexplained ask cannot carry a decision across an attention gap.            |
-| Leave reasoning, unresolved questions and the next useful step for someone who missed the conversation. Write the rough register and omit derivable state. | [Boards preserve coordination](attention-and-memory.md), DEC-0155 **Agents write the rough register**; shared memory needs a clear authoring boundary. |
-| A session can stop at a safe boundary and later resume the same identity and responsibility. Recover current context before continuing.                    | [Recovery resumes before it replaces](agent-recovery.md); idleness and loss of execution do not end responsibility.                                    |
-| The admiral's steering directs work already in hand.                                                                                                       | DEC-0157 **The admiral steers**; an active Agent must incorporate the direction instead of treating it as an unrelated future task.                    |
-| Use supplied repository folders and branches; keep scratch in the Moorage and repository changes in a Berth.                                               | [Repository resources are app-level](agent-recovery.md#provisioning-and-resource-topology); the registry name and folder can differ.                   |
+| The Agent needs to know                                                                                                                                   | Why it belongs                                                                                                                              |
+| --------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| Read the rulings that bind the work with their questions and context before acting or asking again.                                                       | [A Ruling binds question and answer](rulings.md); a summary without the question can misstate what was decided.                             |
+| If a question is not theirs to settle, explain the situation, question, recommendation, reason, and work that needs the answer; continue unaffected work. | DEC-0166's conduct requirement and [radius versus urgency](rulings.md); an unexplained ask cannot carry a decision across an attention gap. |
+| Leave reasoning, unresolved questions and next steps for someone who missed the conversation. Omit derivable state.                                       | [Boards preserve coordination](attention-and-memory.md); the next Agent needs context that the work record cannot supply.                   |
+| The admiral's steering directs work already in hand.                                                                                                      | DEC-0157 **The admiral steers**; an active Agent must incorporate the direction instead of treating it as an unrelated future task.         |
+| Use supplied repository folders and branches; keep scratch in the Moorage and repository changes in a Berth.                                              | [Repository resources are app-level](agent-recovery.md#provisioning-and-resource-topology); the registry name and folder can differ.        |
 
-Tool inventories, parameter instructions and API lifecycle explanations never belong in generated standing orders. They duplicate the records the
-Agent receives and give the same operational meaning two owners. Unactionable restatements of process architecture, admission machinery and storage
-schemas add no decision the Agent can make. These exclusions follow DEC-0166 and the [simplicity gate](../../quality-gates/simplicity.md).
+Tool inventories and parameter instructions never belong in generated standing orders. They duplicate the records the Agent receives and give the same
+operational meaning two owners. Unactionable restatements of process architecture, admission machinery and storage schemas add no decision the Agent
+can make. Role-specific authority belongs in the charter; a tool description should not make every Agent read the policies for every other role. These
+exclusions follow DEC-0166 and the [simplicity gate](../../quality-gates/simplicity.md).
 
 ## Flagship captain
 
-| Moment | Required context or conduct                                                                                                                                 | Trace                                                                                           |
-| ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
-| Open   | The fleet's north star and context, the fleet Board, current Pieces and standing rulings.                                                                   | [The fleet sails on one flagship](flagship.md); its Voyage and Board already own this context.  |
-| Open   | Be the admiral's point of contact across Voyages, keeping the ask and its consequences understandable; other captains remain accountable for their Voyages. | [Flagship responsibility](flagship.md); accountability remains with the captain of each Voyage. |
-| Open   | Apply captain conduct below to the flagship's work, including completion and availability.                                                                  | The flagship is a Voyage with a captain, not a separate dispatcher.                             |
-| Wake   | Re-read relevant fleet context, pending outcomes and rulings before resuming the existing responsibility.                                                   | Recovery preserves identity; old context does not establish today's completion.                 |
-| Steer  | Incorporate the admiral's direction into the current ask and the context other captains need.                                                               | DEC-0157 and the fleet Board's role across attention gaps.                                      |
-| Never  | An obligation to supervise every worker, continuously watch the fleet, or charter every Voyage; inventories of fleet acts.                                  | [Flagship remit](flagship.md), DEC-0166; availability does not require perpetual execution.     |
+| Moment | Required context or conduct                                                                                                                                 | Trace                                                                                                                        |
+| ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| Open   | The fleet's north star and context, the fleet Board, current Pieces and standing rulings.                                                                   | [The fleet sails on one flagship](flagship.md); its Voyage and Board already own this context.                               |
+| Open   | Be the admiral's point of contact across Voyages, keeping the ask and its consequences understandable; other captains remain accountable for their Voyages. | [Flagship responsibility](flagship.md); accountability remains with the captain of each Voyage.                              |
+| Open   | Apply captain work conduct to the flagship. Settle questions at any radius; refer decisions reserved for the admiral to the admiral.                        | [Flagship authority](flagship.md#on-the-ladder) applies across the fleet; ordinary captain radius limits do not apply to it. |
+| Wake   | Re-read relevant fleet context, pending outcomes and rulings before resuming the existing responsibility.                                                   | Recovery preserves identity; old context does not establish today's completion.                                              |
+| Steer  | Incorporate the admiral's direction into the current ask and the context other captains need.                                                               | DEC-0157 and the fleet Board's role across attention gaps.                                                                   |
+| Never  | An obligation to supervise every worker, continuously watch the fleet, or charter every Voyage; inventories of fleet acts.                                  | [Flagship remit](flagship.md), DEC-0166; availability does not require perpetual execution.                                  |
 
 ## Voyage captain
 
@@ -41,6 +41,7 @@ schemas add no decision the Agent can make. These exclusions follow DEC-0166 and
 | Open   | The Voyage's north star, surrounding context, Board, existing Pieces with dependencies and outcomes, and standing rulings.                                     | [Workers report; captains charter](work-and-planning.md); existing work and findings must inform the next charter.                                       |
 | Open   | Charter bounded work with expected outcomes and real dependencies; read findings before deciding what follows. Revise the course when evidence changes it.     | [Polaris is fixed; the course is not](../../DESIGN.md#direction-and-work); the next charter must respond to evidence rather than merely repeat the plan. |
 | Open   | Judge progress by landed and pending outcomes. Work for now is done when no further captain action or decision is needed, including while awaiting an outcome. | [Done is derived](work-and-planning.md); a worker's silence or the captain's idleness is not a Piece outcome.                                            |
+| Open   | Settle Piece and Voyage questions; pass fleet-wide questions to the flagship.                                                                                  | [Ruling authority](rulings.md#the-authority-ladder) identifies which decisions the captain can make.                                                     |
 | Wake   | Recover the current Voyage, findings, pending outcomes, Board and rulings before deciding the next action.                                                     | [Durable truth survives exit](agent-recovery.md); a launched chain is not a promise of completion.                                                       |
 | Steer  | Reassess the work in hand in light of the admiral's direction, preserving the reasoning a successor needs.                                                     | DEC-0157 and [Boards preserve coordination](attention-and-memory.md).                                                                                    |
 | Never  | Crew instructions to land a Piece outcome, a promise that launched work always finishes by itself, or a catalogue of chartering and reading acts.              | Captains need no Piece assignment; launched work can still need their judgment. DEC-0166 keeps tool semantics with the act.                              |
@@ -53,7 +54,7 @@ division of responsibility between crew and captain or the meaning of completion
 | Moment | Required context or conduct                                                                                                                                              | Trace                                                                                                                        |
 | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------- |
 | Open   | The Voyage's north star and context, the assigned Piece's title, charter and expected outcome, both Boards and applicable standing rulings.                              | [Work is chartered, never shopped](work-and-planning.md); the Agent must identify the assigned work and its expected result. |
-| Open   | Report findings, work performed and what remains. Reports serve Agents and Artifacts serve the admiral; propose further work for the captain to charter.                 | [Outcomes are typed and audience-split](changes-and-delivery.md) and **Workers report; captains charter**.                   |
+| Open   | Report findings, work performed and what remains; propose further work for the captain to charter.                                                                       | [Workers report; captains charter](work-and-planning.md) keeps the next work accountable to the captain.                     |
 | Open   | Completion is derived from landed and pending outcomes; an open Change remains pending. Once assigned work and outcomes are landed, await further address or assignment. | [Landing is a durable boundary](changes-and-delivery.md); finishing a reply cannot substitute for landing a Change.          |
 | Wake   | Recover the assigned work, Board notes and rulings, and check outcome state before continuing or claiming completion.                                                    | [Recovery resumes before it replaces](agent-recovery.md); a returning worker retains its responsibility.                     |
 | Steer  | Incorporate the admiral's direction into that work and make remaining questions explicit.                                                                                | DEC-0157 and DEC-0166.                                                                                                       |
@@ -79,10 +80,13 @@ A wake resumes the existing responsibility and directs the Agent to recover curr
 nothing had changed. The admiral's words reach the Agent verbatim, with standing conduct explaining how to incorporate steering into work already in
 hand. This preserves both continuity and the admiral's direction without repeating the whole charter on every message.
 
-Review a charter for context, responsibility, binding decisions, successor conduct, continuity and a truthful stopping point. Review each tool record
-for its operational meaning: Board writing identifies the rough register, Change acts distinguish preparation from landing, stand-down distinguishes
-idleness from completion, and ruling acts state the authority that may exercise them. These meanings belong with the acts because an Agent needs them
-whenever it uses the capability, regardless of how its charter was supplied.
+Give the Agent guidance when it can act on it. A wake asks it to recover current work and decisions; its initial charter need not explain that
+execution may pause. Board writing uses the rough register under DEC-0155; the Agent has no register to choose, so it needs guidance about useful
+notes, not register mechanics.
+
+Review a charter for the role's task, authority, applicable decisions, successor notes and stopping point. Review a tool description for the choice
+the Agent makes when calling it: publish a pull request, record a prepared Change, leave a note, answer a question or mark itself idle. Explain
+pending outcomes where crew judge completion, rather than repeating completion rules in every Change description.
 
 ## Compaction
 

@@ -1,5 +1,3 @@
 import { type AgentPrompt, agentPrompt } from "#mint.ts";
 
-export const wakeWords: AgentPrompt = agentPrompt(
-	"You are being woken as the same Agent. Read the current work, standing rulings and board notes before continuing your assigned responsibility in light of the admiral's latest direction.",
-);
+export const wakeWords: AgentPrompt = agentPrompt("Resume your assigned work. Check current outcomes, rulings and board notes before continuing.");

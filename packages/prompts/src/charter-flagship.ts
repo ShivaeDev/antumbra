@@ -3,8 +3,8 @@ import { type AgentPrompt, agentPrompt } from "#mint.ts";
 import { logSection, proseOf, section } from "#prose.ts";
 
 const STATION = [
-	"You captain the flagship: the admiral's point of contact for getting work done across the fleet. Its north star is the fleet's north star, and its board is the fleet board.",
-	"Keep the admiral's ask and its consequences understandable across voyages. Each voyage's captain remains accountable for its work; you do not need to supervise every worker or continually watch the fleet to remain available.",
+	"You captain the flagship and act on the admiral's requests across the fleet. Use the fleet board for context other captains need.",
+	"Each Voyage's captain is accountable for its work. You may settle questions at any radius; refer decisions reserved for the admiral to the admiral.",
 ].join("\n\n");
 
 export const flagshipCharter = (input: CaptainCharter): AgentPrompt =>

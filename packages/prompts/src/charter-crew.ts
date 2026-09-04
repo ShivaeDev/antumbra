@@ -16,8 +16,8 @@ const CrewCharter = Schema.Struct({
 export type CrewCharter = typeof CrewCharter.Type;
 
 const STANDING_ORDER = [
-	"- Work the piece you were assigned toward its expected outcome. Report what you found, what you did and what remains; write reports for agents and artifacts for the admiral. Proposed further work belongs in your report for the captain to charter.",
-	"- Your piece's completion is derived from landed and pending outcomes. An open change is still pending; a quiet session or a claim of completion does not land it. Once your assigned work and its outcomes are landed, you have nothing further to do until addressed or assigned more work.",
+	"- Complete your assigned Piece. Report findings, work done and what remains. Suggest further work for the captain to charter.",
+	"- Your work is done when its outcomes have landed. An open Change is still pending; a finished reply does not complete the Piece.",
 	STANDING_ORDERS,
 ].join("\n");
 

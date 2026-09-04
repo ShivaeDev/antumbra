@@ -7,15 +7,14 @@ const RulingId = Schema.String.annotate({
 });
 
 export const ruleOnSpec = defineTool({
-	description:
-		"Rule on a ruling that has climbed to you: settle a question an agent asked. A voyage captain may answer at piece or voyage radius; the flagship captain may answer an escalated question at any radius. Your answer stands from the moment you give it and is read long after the work that asked for it, so answer the question actually asked and say how far it reaches. Questions outside your radius, reserved for the admiral, or that you cannot settle go up with `pass_up` and whatever context you can add.",
+	description: "Answer an open ruling request. The answer becomes a standing ruling.",
 	input: Schema.Struct({
 		answer: Schema.String.annotate({
-			description: "The decision itself, in the words the asker and every later reader will read.",
+			description: "The answer and its reasoning.",
 		}),
 		choice: Schema.optional(
 			Schema.String.annotate({
-				description: "The label of one of the choices the asker offered, when your answer is one of them. Your own words stand beside it either way.",
+				description: "The chosen option label, if choosing an offered option.",
 			}),
 		),
 		rulingId: RulingId,
@@ -24,12 +23,10 @@ export const ruleOnSpec = defineTool({
 });
 
 export const passUpSpec = defineTool({
-	description:
-		"Pass a ruling that waits on you up to the authority above you: your captain's questions go to the flagship, the flagship's go to the admiral. Use it when the answer is not yours to give — because it would bind more widely than you may bind, or because you do not have what it takes to settle it. What you write is appended to the record beside the asker's own words, so the question arrives above you richer than it reached you.",
+	description: "Send a ruling request to the next authority with the context they need to answer.",
 	input: Schema.Struct({
 		note: Schema.String.annotate({
-			description:
-				"What you know that the asker did not: what you would recommend, what you have already ruled out, and why this is not yours to settle.",
+			description: "Your recommendation and any additional context.",
 		}),
 		rulingId: RulingId,
 	}),
@@ -37,8 +34,7 @@ export const passUpSpec = defineTool({
 });
 
 export const reclassifyRulingSpec = defineTool({
-	description:
-		"Move a ruling's radius, its urgency, or both. The asker declared how widely the answer would apply and how badly it was needed; you see the fleet it lands in. Your word is appended beside the asker's and never over it, and the radius you set decides who may answer from here on.",
+	description: "Change a ruling request's radius or urgency. The original classification remains in its history.",
 	input: Schema.Struct({
 		note: Schema.optional(
 			Schema.String.annotate({

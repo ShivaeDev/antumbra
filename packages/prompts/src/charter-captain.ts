@@ -26,6 +26,9 @@ export const captainCharter = (input: CaptainCharter): AgentPrompt =>
 			logSection("Voyage log", input.voyageLog),
 			section("Pieces", input.pieceLines.join("\n")),
 			logSection("Standing rulings", input.rulings),
-			section("Standing orders", CAPTAIN_STANDING_ORDER),
+			section(
+				"Standing orders",
+				[CAPTAIN_STANDING_ORDER, "- You may settle Piece and Voyage questions. Pass fleet-wide questions to the flagship."].join("\n"),
+			),
 		]),
 	);

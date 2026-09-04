@@ -15,6 +15,11 @@ type ShutdownPhase = "accepting" | "draining" | "exiting";
 const allowShutdownRetry = (cause: unknown, allow: () => void) =>
 	Effect.logError("graceful shutdown failed", cause).pipe(Effect.andThen(Effect.sync(allow)));
 
+const abandonRequestedRestart = (restarting: Ref.Ref<boolean>, abandonRestart: Effect.Effect<void>) =>
+	Effect.flatMap(Ref.getAndSet(restarting, false), (wasRestart) =>
+		wasRestart ? abandonRestart.pipe(Effect.andThen(Effect.logInfo("restart abandoned; the next boot wakes nothing"))) : Effect.void,
+	);
+
 const permitFinalExit = (application: QuitApplication, restarting: Ref.Ref<boolean>, permit: () => void) =>
 	Effect.map(Ref.get(restarting), (restart) => {
 		permit();
@@ -31,7 +36,12 @@ export const drainManagedRuntime = <R, ER, E>(runtime: ManagedRuntime.ManagedRun
 		try: () => runtime.runPromise(drain).then(() => runtime.dispose()),
 	});
 
-export const registerGracefulShutdown = <E>(application: QuitApplication, shutdown: Effect.Effect<void, E>, restarting: Ref.Ref<boolean>) =>
+export const registerGracefulShutdown = <E>(
+	application: QuitApplication,
+	shutdown: Effect.Effect<void, E>,
+	restarting: Ref.Ref<boolean>,
+	abandonRestart: Effect.Effect<void>,
+) =>
 	Effect.sync(() => {
 		let phase: ShutdownPhase = "accepting";
 		application.onBeforeQuit((event) => {
@@ -48,7 +58,7 @@ export const registerGracefulShutdown = <E>(application: QuitApplication, shutdo
 					onFailure: (cause) =>
 						allowShutdownRetry(cause, () => {
 							phase = "accepting";
-						}).pipe(Effect.andThen(Ref.set(restarting, false))),
+						}).pipe(Effect.andThen(abandonRequestedRestart(restarting, abandonRestart))),
 					onSuccess: () =>
 						permitFinalExit(application, restarting, () => {
 							phase = "exiting";

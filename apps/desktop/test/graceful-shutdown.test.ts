@@ -55,6 +55,7 @@ it.effect("coalesces quit requests and permits exit only after shutdown", () =>
 				Effect.andThen(Ref.update(calls, (all) => [...all, "dispose"])),
 			),
 			yield* Ref.make(false),
+			Effect.void,
 		);
 		const requestQuit = () =>
 			beforeQuit?.({
@@ -98,6 +99,7 @@ it.effect("relaunches instead of quitting when the shutdown was asked for as a r
 			},
 			Ref.update(calls, (all) => [...all, "drain"]),
 			yield* Ref.make(true),
+			Effect.void,
 		);
 
 		beforeQuit?.({
@@ -106,6 +108,46 @@ it.effect("relaunches instead of quitting when the shutdown was asked for as a r
 
 		yield* Deferred.await(relaunched);
 		expect(yield* Ref.get(calls)).toEqual(["prevent", "drain", "relaunch"]);
+	}),
+);
+
+it.effect("abandons a restart whose drain failed, so the retried quit stays a quit", () =>
+	Effect.gen(function* () {
+		let beforeQuit: ((event: { readonly preventDefault: () => void }) => void) | undefined;
+		const calls = yield* Ref.make<ReadonlyArray<string>>([]);
+		const attempts = yield* Ref.make(0);
+		const abandoned = yield* Deferred.make<void>();
+		const quit = yield* Deferred.make<void>();
+		const shutdown = Ref.updateAndGet(attempts, (attempt) => attempt + 1).pipe(
+			Effect.flatMap((attempt) => (attempt === 1 ? Effect.fail("drain failed") : Ref.update(calls, (all) => [...all, "dispose"]))),
+		);
+		yield* registerGracefulShutdown(
+			{
+				onBeforeQuit: (listener) => {
+					beforeQuit = listener;
+				},
+				quit: () => {
+					record(calls, "quit");
+					Effect.runSync(Deferred.succeed(quit, undefined));
+				},
+				relaunch: () => record(calls, "relaunch"),
+			},
+			shutdown,
+			yield* Ref.make(true),
+			Ref.update(calls, (all) => [...all, "abandon"]).pipe(Effect.andThen(Deferred.succeed(abandoned, undefined))),
+		);
+		const requestQuit = () =>
+			beforeQuit?.({
+				preventDefault: () => undefined,
+			});
+
+		requestQuit();
+		yield* Deferred.await(abandoned);
+		expect(yield* Ref.get(calls)).toEqual(["abandon"]);
+
+		requestQuit();
+		yield* Deferred.await(quit);
+		expect(yield* Ref.get(calls)).toEqual(["abandon", "dispose", "quit"]);
 	}),
 );
 
@@ -139,6 +181,7 @@ it.effect("retries shutdown after failure and permits exactly one exit", () =>
 			},
 			shutdown,
 			yield* Ref.make(false),
+			Effect.void,
 		);
 		const requestQuit = () =>
 			beforeQuit?.({

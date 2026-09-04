@@ -4,7 +4,7 @@ import { expect, it } from "@effect/vitest";
 import { Effect, ManagedRuntime, Option, Ref } from "effect";
 import { AgentDomain } from "#domain.ts";
 import { KernelReach, type KernelReachService } from "#kernel-reach.ts";
-import { honorRestartIntent, recordRestartIntent } from "#restart.ts";
+import { abandonRestartIntent, honorRestartIntent, recordRestartIntent } from "#restart.ts";
 import { domainKernelLayer } from "#test/domain-layers.ts";
 import { acquireTemporaryPersistence, makeScriptedBackend } from "#test/harness.ts";
 import { fakeKernelReach } from "#test/kernel-reach-fixture.ts";
@@ -66,6 +66,12 @@ it.live("a restart wakes exactly the roots it stopped, once the intent is forgot
 				{ intentStillRecorded: false, sessionId: "restart-session-two" },
 			]);
 
+			yield* honorRestartIntent.pipe(Effect.provideService(KernelReach, recordingReach));
+			expect(yield* Ref.get(wakes)).toHaveLength(2);
+
+			yield* recordRestartIntent;
+			yield* abandonRestartIntent;
+			expect(yield* db.AppMeta.where(RESTART_RESUME).first()).toEqual(Option.none());
 			yield* honorRestartIntent.pipe(Effect.provideService(KernelReach, recordingReach));
 			expect(yield* Ref.get(wakes)).toHaveLength(2);
 		}).pipe(Effect.provide(domainKernelLayer(temporary, scripted.backend)));

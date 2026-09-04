@@ -1,5 +1,5 @@
 import { makeAppRouter } from "@antumbra/contract";
-import { drainActiveSessions, honorRestartIntent } from "@antumbra/domain";
+import { abandonRestartIntent, drainActiveSessions, honorRestartIntent } from "@antumbra/domain";
 import { ensureInstallMarker } from "@antumbra/persistence";
 import { NodeServices } from "@effect/platform-node";
 import { Effect, FileSystem, Layer, ManagedRuntime, Ref } from "effect";
@@ -48,7 +48,11 @@ const startOwner = (shell: WindowShell, store: LayoutStore) =>
 		);
 		const router = makeAppRouter(runtime);
 		const main = Effect.gen(function* () {
-			yield* drainBeforeQuit(drainManagedRuntime(runtime, drainActiveSessions), restarting);
+			yield* drainBeforeQuit(
+				drainManagedRuntime(runtime, drainActiveSessions),
+				restarting,
+				Effect.promise(() => runtime.runPromise(abandonRestartIntent)),
+			);
 			yield* whenReady;
 			yield* Effect.sync(() => {
 				registerTrpcBridge(router, shell.registry);

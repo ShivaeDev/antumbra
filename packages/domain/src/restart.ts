@@ -18,6 +18,11 @@ export const recordRestartIntent = Effect.gen(function* () {
 	yield* db.AppMeta.create({ ...RESTART_RESUME, value: JSON.stringify(resuming) });
 });
 
+export const abandonRestartIntent = Effect.gen(function* () {
+	const db = yield* Database;
+	yield* db.AppMeta.where(RESTART_RESUME).deleteAll();
+});
+
 export const honorRestartIntent = Effect.gen(function* () {
 	const db = yield* Database;
 	const reach = yield* KernelReach;

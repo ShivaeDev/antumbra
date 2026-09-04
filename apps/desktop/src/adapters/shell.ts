@@ -59,7 +59,7 @@ export const quitWhenAllWindowsClosed = Effect.sync(() => {
 	});
 });
 
-export const drainBeforeQuit = <E>(shutdown: Effect.Effect<void, E>, restarting: Ref.Ref<boolean>) =>
+export const drainBeforeQuit = <E>(shutdown: Effect.Effect<void, E>, restarting: Ref.Ref<boolean>, abandonRestart: Effect.Effect<void>) =>
 	registerGracefulShutdown(
 		{
 			onBeforeQuit: (listener) => {
@@ -77,6 +77,7 @@ export const drainBeforeQuit = <E>(shutdown: Effect.Effect<void, E>, restarting:
 		},
 		shutdown,
 		restarting,
+		abandonRestart,
 	);
 
 interface ConsoleWindows {

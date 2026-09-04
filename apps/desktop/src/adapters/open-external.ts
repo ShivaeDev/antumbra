@@ -2,18 +2,20 @@ import { OPEN_EXTERNAL_CHANNEL } from "@antumbra/contract";
 import { Effect, Result, Schema } from "effect";
 import { ipcMain, shell } from "electron";
 
-const decodeUrl = Schema.decodeUnknownResult(Schema.String);
+const WebLink = Schema.URLFromString.check(Schema.makeFilter((url) => url.protocol === "http:" || url.protocol === "https:"));
+
+const decodeLink = Schema.decodeUnknownResult(WebLink);
 
 type OpenInBrowser = (url: string) => void;
 
 export const makeOpenExternalHandler =
 	(open: OpenInBrowser) =>
 	(_event: unknown, raw: unknown): void => {
-		const decoded = decodeUrl(raw);
+		const decoded = decodeLink(raw);
 		if (Result.isFailure(decoded)) {
 			return;
 		}
-		open(decoded.success);
+		open(decoded.success.href);
 	};
 
 export const registerOpenExternal = (): void => {

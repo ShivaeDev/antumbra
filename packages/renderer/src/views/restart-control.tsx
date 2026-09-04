@@ -20,7 +20,10 @@ export const RestartControl = ({ onError }: { readonly onError: (message: string
 	const [sent, setSent] = useState(false);
 	const send = () => {
 		setSent(true);
-		restartApp(onError);
+		restartApp((message) => {
+			setSent(false);
+			onError(message);
+		});
 	};
 	return (
 		<div className="flex flex-col gap-3 rounded-md border border-border p-4">

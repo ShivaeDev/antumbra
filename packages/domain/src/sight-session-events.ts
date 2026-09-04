@@ -24,10 +24,11 @@ export const makeSightSessionEvents = Effect.gen(function* () {
 
 	const sessionEvents = (query: EventQuery) =>
 		db.SessionEvent.where({ sessionId: query.sessionId })
+			.where((event) => event.seq.gte(query.fromSeq))
 			.orderBy((event) => event.seq.asc())
 			.all()
 			.pipe(
-				Effect.map((rows) => rows.filter((event) => event.seq >= query.fromSeq).map(projectSessionEvent)),
+				Effect.map((rows) => rows.map(projectSessionEvent)),
 				Effect.mapError(toFailure),
 			);
 

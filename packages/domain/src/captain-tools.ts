@@ -3,6 +3,7 @@ import { Pieces } from "@antumbra/pieces";
 import type { DirectTool } from "@antumbra/plugin-api";
 import { Effect } from "effect";
 import { makeBoardToolCompiler } from "#board-tools.ts";
+import { makeApprovalToolCompiler } from "#captain-approval.ts";
 import { CaptainMembership } from "#captain-membership.ts";
 import { makePieceVerbToolCompiler } from "#captain-pieces.ts";
 import { makeCaptainRulingMoveToolCompiler } from "#captain-ruling-moves.ts";
@@ -19,6 +20,7 @@ export const makeCaptainToolCompiler = Effect.gen(function* () {
 	const membership = yield* CaptainMembership;
 	const pieces = yield* Pieces;
 	const pieceVerbTools = yield* makePieceVerbToolCompiler;
+	const compileApprovalTools = yield* makeApprovalToolCompiler;
 	const compileBoardTools = yield* makeBoardToolCompiler;
 	const compileReportTools = yield* makeReportToolCompiler;
 	const compileRulingTools = yield* makeRulingToolCompiler;
@@ -46,6 +48,7 @@ export const makeCaptainToolCompiler = Effect.gen(function* () {
 			),
 		),
 		...pieceVerbTools(identity),
+		...compileApprovalTools(identity),
 		...compileVoyageReadingTools(identity),
 		...compileReportTools(identity),
 		...compileBoardTools(identity),

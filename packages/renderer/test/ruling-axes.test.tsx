@@ -27,11 +27,13 @@ vi.mock("#adapters/trpc-rulings.ts", () => ({
 }));
 
 const moved: RulingView = {
+	approvedPieces: [],
 	choices: [],
 	context: "The eastern shoal sounds two metres shallower than the chart says.",
 	declared: { radius: "voyage", urgency: "pressing" },
 	gatedPieces: [],
 	id: "ruling-1",
+	kind: "ruling",
 	question: "Which reading do we plot against?",
 	radius: "voyage",
 	reclassifications: [
@@ -51,11 +53,13 @@ const moved: RulingView = {
 };
 
 const unmoved: RulingView = {
+	approvedPieces: [],
 	choices: [],
 	context: "Two repositories name their default branch differently.",
 	declared: { radius: "fleet", urgency: "eventual" },
 	gatedPieces: [],
 	id: "ruling-2",
+	kind: "ruling",
 	question: "What do we call the branch a berth is cut from?",
 	radius: "fleet",
 	reclassifications: [],

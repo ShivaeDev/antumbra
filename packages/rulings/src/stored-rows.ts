@@ -5,6 +5,7 @@ export interface StoredRuling {
 	readonly createdAt: Date;
 	readonly deliveredAt: Date | null;
 	readonly id: string;
+	readonly kind: string;
 	readonly question: string;
 	readonly radius: string;
 	readonly requesterAgentId: string | null;

@@ -1,4 +1,4 @@
-import type { RulingAuthority, RulingRadius, RulingSubjectKind, RulingUrgency } from "@antumbra/vocabulary/ruling";
+import type { RulingAuthority, RulingKind, RulingRadius, RulingSubjectKind, RulingUrgency } from "@antumbra/vocabulary/ruling";
 import type { Option } from "effect";
 import type { RulingSupersession, RulingWithdrawal } from "#retirement.ts";
 
@@ -43,14 +43,24 @@ export interface RulingAnswer {
 	readonly text: string;
 }
 
+export interface VoyageApproval {
+	readonly approvalId: string;
+	readonly pieceIds: ReadonlyArray<string>;
+	readonly requestedAt: Date;
+	readonly ruledAt: Date | null;
+	readonly voyageId: string;
+}
+
 export interface Ruling {
 	readonly answer: Option.Option<RulingAnswer>;
+	readonly approvedPieceIds: ReadonlyArray<string>;
 	readonly choices: ReadonlyArray<RulingChoice>;
 	readonly context: string;
 	readonly createdAt: Date;
 	readonly declared: RulingAxes;
 	readonly gatedPieceIds: ReadonlyArray<string>;
 	readonly id: string;
+	readonly kind: RulingKind;
 	readonly question: string;
 	readonly radius: RulingRadius;
 	readonly reclassifications: ReadonlyArray<RulingReclassification>;

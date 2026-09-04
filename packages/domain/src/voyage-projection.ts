@@ -103,6 +103,20 @@ export const voyageSeen = (
 	resting: ReadonlyMap<string, ReadonlyArray<string>>,
 ): VoyageView => ({
 	...summarySeen(view),
+	approval: Option.getOrNull(
+		Option.map(view.approval, (approval) => ({
+			approvalId: approval.approvalId,
+			pieceIds: approval.pieceIds,
+			ruledAt: approval.ruledAt.toISOString(),
+		})),
+	),
+	approvalRequest: Option.getOrNull(
+		Option.map(view.approvalRequest, (request) => ({
+			approvalId: request.approvalId,
+			pieceIds: request.pieceIds,
+			requestedAt: request.requestedAt.toISOString(),
+		})),
+	),
 	board: board.map(entrySeen),
 	context: view.context,
 	crew: view.crew.map((member) => ({

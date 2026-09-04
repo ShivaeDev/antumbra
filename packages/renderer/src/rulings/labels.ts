@@ -59,3 +59,6 @@ export const rulingRequesterLabel = (requester: Requester): string =>
 	requester.kind === "authority" ? `asked by ${rulingAuthorityLabel[requester.by]}` : requester.agentId;
 
 export const rulingGatedPieceLabel = (piece: GatedPiece): string => `${piece.title} (${piece.voyageName})`;
+
+export const rulingPlotLabel = (pieces: RulingView["approvedPieces"]): string =>
+	`Asks approval for: ${pieces.map((piece) => piece.title).join(", ")}`;

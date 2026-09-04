@@ -1,6 +1,7 @@
 import type { OpenRulingsView, RulingView, StandingRulingsView, StandingRulingView } from "#rulings/views.ts";
 
 export const soundingReading: RulingView = {
+	approvedPieces: [],
 	choices: [
 		{
 			detail: "the sounding is a week old and was taken at slack water",
@@ -20,6 +21,7 @@ export const soundingReading: RulingView = {
 		},
 	],
 	id: "ruling-1",
+	kind: "ruling",
 	question: "Which reading do we plot the course against?",
 	radius: "voyage",
 	reclassifications: [
@@ -46,11 +48,13 @@ export const soundingReading: RulingView = {
 };
 
 export const berthNaming: RulingView = {
+	approvedPieces: [],
 	choices: [],
 	context: "Two repositories name their default branch differently and the berths inherit the disagreement.",
 	declared: { radius: "fleet", urgency: "eventual" },
 	gatedPieces: [],
 	id: "ruling-2",
+	kind: "ruling",
 	question: "What do we call the branch a berth is cut from?",
 	radius: "fleet",
 	reclassifications: [],

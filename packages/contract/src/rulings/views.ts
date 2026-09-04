@@ -1,4 +1,10 @@
-import { RulingAuthoritySchema, RulingRadiusSchema, RulingSubjectKindSchema, RulingUrgencySchema } from "@antumbra/vocabulary/ruling";
+import {
+	RulingAuthoritySchema,
+	RulingKindSchema,
+	RulingRadiusSchema,
+	RulingSubjectKindSchema,
+	RulingUrgencySchema,
+} from "@antumbra/vocabulary/ruling";
 import { Schema } from "effect";
 
 export const RulingChoiceView = Schema.Struct({
@@ -46,6 +52,12 @@ export const RulingGatedPieceView = Schema.Struct({
 });
 export type RulingGatedPieceView = typeof RulingGatedPieceView.Type;
 
+export const RulingApprovedPieceView = Schema.Struct({
+	pieceId: Schema.String,
+	title: Schema.String,
+});
+export type RulingApprovedPieceView = typeof RulingApprovedPieceView.Type;
+
 export const AwaitingRulingView = Schema.Struct({
 	question: Schema.String,
 	rulingId: Schema.String,
@@ -63,11 +75,13 @@ export const RulingRungView = Schema.Union([
 export type RulingRungView = typeof RulingRungView.Type;
 
 export const RulingView = Schema.Struct({
+	approvedPieces: Schema.Array(RulingApprovedPieceView),
 	choices: Schema.Array(RulingChoiceView),
 	context: Schema.String,
 	declared: RulingAxesView,
 	gatedPieces: Schema.Array(RulingGatedPieceView),
 	id: Schema.String,
+	kind: RulingKindSchema,
 	question: Schema.String,
 	radius: RulingRadiusSchema,
 	reclassifications: Schema.Array(RulingReclassificationView),

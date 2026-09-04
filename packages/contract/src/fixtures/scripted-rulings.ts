@@ -2,11 +2,13 @@ import { berthNaming, berthReclaim, chartAuthority, soundingReading } from "#fix
 import type { OpenRulingsView, RulingView, StandingRulingsView, StandingRulingView } from "#rulings/views.ts";
 
 const courseCall: RulingView = {
+	approvedPieces: [],
 	choices: [{ detail: null, id: "choice-3", label: "hold the course" }],
 	context: "The flagship and the surveyor disagree on which repository the chart lives in.",
 	declared: { radius: "fleet", urgency: "blocking" },
 	gatedPieces: [],
 	id: "ruling-3",
+	kind: "ruling",
 	question: "Where does the chart belong?",
 	radius: "fleet",
 	reclassifications: [

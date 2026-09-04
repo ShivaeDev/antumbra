@@ -3,7 +3,7 @@ import type { ChangeRow, PieceChangeRow } from "@antumbra/changes";
 import type { StoredAgentSession } from "@antumbra/persistence";
 import type { EdgeRow, PieceRow, PieceVerdict } from "@antumbra/pieces";
 import type { ReportRow } from "@antumbra/reports";
-import type { RulingGate } from "@antumbra/rulings";
+import type { RulingGate, VoyageApproval } from "@antumbra/rulings";
 import type { AgentSessionStatus, AgentStatus, SessionExecutionStatus } from "@antumbra/vocabulary/agent-runtime";
 import type { VoyageKind } from "@antumbra/vocabulary/voyage";
 
@@ -55,6 +55,7 @@ interface ReportLinkRow {
 
 export interface VoyageWorld {
 	readonly agentStatus: ReadonlyMap<string, AgentStatus>;
+	readonly approvals: ReadonlyArray<VoyageApproval>;
 	readonly currentSessionByAgent: ReadonlyMap<string, string | null>;
 	readonly artifacts: ReadonlyMap<string, ArtifactRow>;
 	readonly assignments: ReadonlyArray<AssignmentRow>;

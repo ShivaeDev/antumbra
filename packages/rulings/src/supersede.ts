@@ -1,14 +1,13 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
-import { Database } from "@antumbra/persistence";
 import { Clock, Effect } from "effect";
 import { RulingSupersedesItself } from "#errors.ts";
 import { loadRuling, requireRuling } from "#read.ts";
 import type { RulingSupersedeInput } from "#retirement.ts";
 import { requireStanding } from "#standing-row.ts";
 import type { StoredRuling } from "#stored-rows.ts";
+import { markSuperseded } from "#supersession-row.ts";
 
 export const supersede = Effect.fn("rulings.supersede")(function* (input: RulingSupersedeInput) {
-	const db = yield* Database;
 	const feeds = yield* DomainFeeds;
 	const now = yield* Clock.currentTimeMillis;
 	if (input.rulingId === input.byRulingId) {
@@ -16,11 +15,7 @@ export const supersede = Effect.fn("rulings.supersede")(function* (input: Ruling
 	}
 	const row: StoredRuling = yield* requireStanding(input.rulingId);
 	yield* requireStanding(input.byRulingId);
-	yield* db.Ruling.where({ id: row.id }).update({
-		supersededAt: new Date(now),
-		supersededBy: input.by,
-		supersededById: input.byRulingId,
-	});
+	yield* markSuperseded(row.id, input, new Date(now));
 	const superseded = yield* loadRuling(yield* requireRuling(row.id));
 	yield* feeds.publishRulingRefresh();
 	return superseded;

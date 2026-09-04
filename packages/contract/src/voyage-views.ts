@@ -82,6 +82,20 @@ export const PieceCounts = Schema.Struct({
 });
 export type PieceCounts = typeof PieceCounts.Type;
 
+export const StandingApprovalView = Schema.Struct({
+	approvalId: Schema.String,
+	pieceIds: Schema.Array(Schema.String),
+	ruledAt: Schema.String,
+});
+export type StandingApprovalView = typeof StandingApprovalView.Type;
+
+export const ApprovalRequestView = Schema.Struct({
+	approvalId: Schema.String,
+	pieceIds: Schema.Array(Schema.String),
+	requestedAt: Schema.String,
+});
+export type ApprovalRequestView = typeof ApprovalRequestView.Type;
+
 export const VoyageState = Schema.Literals(["quiet", "underWay"]);
 export type VoyageState = typeof VoyageState.Type;
 
@@ -101,6 +115,8 @@ export type VoyageSummary = typeof VoyageSummary.Type;
 
 export const VoyageView = Schema.Struct({
 	...VoyageSummary.fields,
+	approval: Schema.NullOr(StandingApprovalView),
+	approvalRequest: Schema.NullOr(ApprovalRequestView),
 	board: Schema.Array(BoardEntryView),
 	context: Schema.String,
 	crew: Schema.Array(CrewMemberView),

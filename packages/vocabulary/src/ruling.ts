@@ -12,6 +12,9 @@ export type RulingSubjectKind = typeof RulingSubjectKindSchema.Type;
 export const RulingAuthoritySchema = Schema.Literals(["admiral", "flagship", "captain"]);
 export type RulingAuthority = typeof RulingAuthoritySchema.Type;
 
+export const RulingKindSchema = Schema.Literals(["ruling", "approval", "delegation"]);
+export type RulingKind = typeof RulingKindSchema.Type;
+
 export class StoredRulingValueInvalid extends Data.TaggedError("StoredRulingValueInvalid")<{
 	readonly field: string;
 	readonly rulingId: string;
@@ -36,6 +39,8 @@ export const decodeStoredRulingUrgency = storedValue(Schema.decodeUnknownOption(
 export const decodeStoredRulingSubjectKind = storedValue(Schema.decodeUnknownOption(RulingSubjectKindSchema), "subject kind");
 
 export const decodeStoredRulingAuthority = storedValue(Schema.decodeUnknownOption(RulingAuthoritySchema), "authority");
+
+export const decodeStoredRulingKind = storedValue(Schema.decodeUnknownOption(RulingKindSchema), "kind");
 
 const URGENCY_RANK: Readonly<Record<RulingUrgency, number>> = {
 	blocking: 0,

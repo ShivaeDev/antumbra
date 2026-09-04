@@ -2,6 +2,7 @@ import type { Option } from "effect";
 import { type PieceState, pieceStates } from "#piece-state.ts";
 import { type PieceView, pieceView } from "#piece-view.ts";
 import { lastStirredAt } from "#voyage-activity.ts";
+import { type ApprovalRequest, approvalRequestOf, type StandingApproval, standingApprovalOf } from "#voyage-approval.ts";
 import { captainOf, type VoyageCaptain } from "#voyage-captain.ts";
 import { crewOf, type VoyageCrewMember } from "#voyage-crew.ts";
 import type { PieceRow, VoyageRow, VoyageWorld } from "#voyage-rows.ts";
@@ -10,6 +11,8 @@ import { piecesOfVoyage, type VoyageState, voyageState } from "#voyage-state.ts"
 export type PieceCounts = Readonly<Record<PieceState, number>>;
 
 export interface VoyageView extends VoyageRow {
+	readonly approval: Option.Option<StandingApproval>;
+	readonly approvalRequest: Option.Option<ApprovalRequest>;
 	readonly captain: Option.Option<VoyageCaptain>;
 	readonly counts: PieceCounts;
 	readonly crew: ReadonlyArray<VoyageCrewMember>;
@@ -49,6 +52,8 @@ export const voyageView = (world: VoyageWorld, voyage: VoyageRow): VoyageView =>
 	const pieces = memberPieces(world, voyage.id).map((piece) => pieceView(world, states, piece));
 	return {
 		...voyage,
+		approval: standingApprovalOf(world, voyage.id),
+		approvalRequest: approvalRequestOf(world, voyage.id),
 		captain: captainOf(world, voyage.id),
 		counts: countStates(pieces.map((piece) => piece.state)),
 		crew: crewOf(world, voyage.id),

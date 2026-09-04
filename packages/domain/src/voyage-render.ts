@@ -24,6 +24,16 @@ const changeLines = (pieces: ReadonlyArray<PieceView>): ReadonlyArray<string> =>
 		),
 	);
 
+const approvalLines = (view: VoyageView): ReadonlyArray<string> => [
+	Option.match(view.approval, {
+		onNone: () => "- approved: none yet",
+		onSome: (approval) => `- approved: ${approval.approvalId} at ${approval.ruledAt.toISOString()} — ${approval.pieceIds.join(", ")}`,
+	}),
+	...Option.toArray(view.approvalRequest).map(
+		(request) => `- asked: ${request.approvalId} at ${request.requestedAt.toISOString()} — ${request.pieceIds.join(", ")}`,
+	),
+];
+
 const captainLine = (captain: Option.Option<VoyageCaptain>): string =>
 	Option.match(captain, {
 		onNone: () => "- none",
@@ -45,6 +55,9 @@ export const renderVoyage = (view: VoyageView): string =>
 		``,
 		`## Changes`,
 		listed(changeLines(view.pieces)),
+		``,
+		`## Approval`,
+		approvalLines(view).join("\n"),
 		``,
 		`## Captain`,
 		captainLine(view.captain),

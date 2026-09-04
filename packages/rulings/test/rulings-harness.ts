@@ -8,6 +8,7 @@ export { it };
 export const requesterId = "agent-hand";
 export const voyageId = "voyage-reef";
 export const pieceId = "piece-soundings";
+export const secondPieceId = "piece-channel";
 export const repoId = "repo-charts";
 
 const resetFixture = Effect.gen(function* () {
@@ -17,6 +18,7 @@ const resetFixture = Effect.gen(function* () {
 		yield* db.Ruling.where({ id: ruling.id }).update({ answerChoiceId: null, supersededById: null });
 	}
 	for (const ruling of rulings) {
+		yield* db.RulingApprovedPiece.where({ rulingId: ruling.id }).deleteAll();
 		yield* db.RulingGate.where({ rulingId: ruling.id }).deleteAll();
 		yield* db.RulingSubject.where({ rulingId: ruling.id }).deleteAll();
 		yield* db.RulingReclassification.where({ rulingId: ruling.id }).deleteAll();
@@ -24,6 +26,7 @@ const resetFixture = Effect.gen(function* () {
 		yield* db.Ruling.where({ id: ruling.id }).deleteAll();
 	}
 	yield* db.Piece.where({ id: pieceId }).deleteAll();
+	yield* db.Piece.where({ id: secondPieceId }).deleteAll();
 	yield* db.Voyage.where({ id: voyageId }).deleteAll();
 	yield* db.Repo.where({ id: repoId }).deleteAll();
 	yield* db.Agent.where({ id: requesterId }).deleteAll();
@@ -53,6 +56,13 @@ export const seedFleet = Effect.gen(function* () {
 		id: pieceId,
 		role: "hand",
 		title: "Sound",
+	});
+	yield* db.Piece.create({
+		charter: "mark the channel",
+		expectation: "the channel is buoyed",
+		id: secondPieceId,
+		role: "hand",
+		title: "Buoy",
 	});
 	yield* db.Repo.create({
 		defaultRef: "main",

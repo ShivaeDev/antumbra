@@ -1,4 +1,5 @@
 export type {
+	RulingApprovalRequest,
 	RulingChoiceInput,
 	RulingClimbingAuthority,
 	RulingProclamation,
@@ -6,9 +7,11 @@ export type {
 	RulingRequest,
 	RulingVerdict,
 } from "#acts.ts";
+export { APPROVE, REDIRECT } from "#approval-choices.ts";
 export { answersAt, reachesRung } from "#authority.ts";
-export { RulingOutsideAuthority } from "#errors.ts";
+export { ApprovalAlreadyOpen, ApprovalChoiceRequired, PlotEmpty, PlotUnchanged, RulingOutsideAuthority } from "#errors.ts";
 export type {
+	RulingApprovalRequestFailure,
 	RulingProclaimFailure,
 	RulingReadFailure,
 	RulingReclassifyFailure,
@@ -23,5 +26,6 @@ export type {
 	RulingGate,
 	RulingReclassification,
 	RulingSubject,
+	VoyageApproval,
 } from "#model.ts";
 export { Rulings, RulingsLive } from "#rulings.ts";

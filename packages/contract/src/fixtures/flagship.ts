@@ -15,6 +15,8 @@ export const flagshipSummary: VoyageSummary = {
 
 export const flagshipView: VoyageView = {
 	...flagshipSummary,
+	approval: null,
+	approvalRequest: null,
 	board: [],
 	context: "Fleet-level rulings and findings belong here.",
 	crew: [],

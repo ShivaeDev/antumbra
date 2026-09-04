@@ -24,15 +24,17 @@ const ChoiceOption = ({ choice, chosen, onPick }: { readonly choice: RulingChoic
 const OfferedChoices = ({
 	choices,
 	chosen,
+	legend,
 	onPick,
 }: {
 	readonly choices: ReadonlyArray<RulingChoiceView>;
 	readonly chosen: string | undefined;
+	readonly legend: string;
 	readonly onPick: (choiceId: string | undefined) => void;
 }) =>
 	choices.length === 0 ? null : (
 		<fieldset className="flex min-w-0 flex-col gap-1">
-			<legend className="pb-1 text-2xs text-muted-foreground">Choices offered</legend>
+			<legend className="pb-1 text-2xs text-muted-foreground">{legend}</legend>
 			{choices.map((choice) => (
 				<ChoiceOption
 					choice={choice}
@@ -50,14 +52,15 @@ const verdictOf = (ruling: RulingView, answer: string, chosen: string | undefine
 export const RulingVerdict = ({ onError, ruling }: { readonly onError: (message: string) => void; readonly ruling: RulingView }) => {
 	const [answer, setAnswer] = useState("");
 	const [chosen, setChosen] = useState<string | undefined>(undefined);
-	const wordless = answer.trim() === "";
+	const needsChoice = ruling.kind === "approval";
+	const unanswered = answer.trim() === "" || (needsChoice && chosen === undefined);
 	return (
 		<div className="flex min-w-0 flex-col gap-2 border-t border-border pt-2">
-			<OfferedChoices choices={ruling.choices} chosen={chosen} onPick={setChosen} />
+			<OfferedChoices choices={ruling.choices} chosen={chosen} legend={needsChoice ? "Approve or redirect" : "Choices offered"} onPick={setChosen} />
 			<LabelledField label="Your answer">
 				{(id) => <Textarea id={id} onChange={(event) => setAnswer(event.target.value)} rows={2} value={answer} />}
 			</LabelledField>
-			<Button className="ml-auto" disabled={wordless} onClick={() => ruleOn(verdictOf(ruling, answer, chosen), onError)} size="sm" type="button">
+			<Button className="ml-auto" disabled={unanswered} onClick={() => ruleOn(verdictOf(ruling, answer, chosen), onError)} size="sm" type="button">
 				Rule
 			</Button>
 		</div>

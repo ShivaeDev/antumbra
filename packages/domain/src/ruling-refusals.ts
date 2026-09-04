@@ -6,6 +6,10 @@ export const toRulingFailure = (cause: unknown): RulingFailure => new RulingFail
 
 export const verdictFailure = (cause: RulingVerdictFailure): RulingFailure | RulingRefused => {
 	switch (cause._tag) {
+		case "ApprovalChoiceRequired":
+			return new RulingRefused({
+				reason: `approval ${cause.rulingId} is answered with approve or redirect`,
+			});
 		case "RulingAlreadyRuled":
 			return new RulingRefused({
 				reason: `ruling ${cause.rulingId} was already ruled`,

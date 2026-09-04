@@ -1,5 +1,5 @@
 import { Database } from "@antumbra/persistence";
-import { decodeStoredRulingRadius, decodeStoredRulingUrgency } from "@antumbra/vocabulary/ruling";
+import { decodeStoredRulingKind, decodeStoredRulingRadius, decodeStoredRulingUrgency } from "@antumbra/vocabulary/ruling";
 import { Effect, Option } from "effect";
 import { effectiveAxes } from "#axes.ts";
 import { RulingNotFound } from "#errors.ts";
@@ -24,6 +24,16 @@ const choicesOf = (rulingId: string) =>
 				position: row.position,
 			}),
 		);
+	});
+
+export const approvedPieceIdsOf = (rulingId: string) =>
+	Effect.gen(function* () {
+		const db = yield* Database;
+		const rows = yield* db.RulingApprovedPiece.where({ rulingId })
+			.orderBy((row) => row.pieceId.asc())
+			.select("pieceId")
+			.all();
+		return rows.map((row) => row.pieceId);
 	});
 
 const gatedPieceIdsOf = (rulingId: string) =>
@@ -63,12 +73,14 @@ export const loadRuling = (row: StoredRuling) =>
 		const reclassifications = yield* reclassificationsOf(row.id);
 		return {
 			answer: yield* storedAnswer(row),
+			approvedPieceIds: yield* approvedPieceIdsOf(row.id),
 			choices: yield* choicesOf(row.id),
 			context: row.context,
 			createdAt: row.createdAt,
 			declared,
 			gatedPieceIds: yield* gatedPieceIdsOf(row.id),
 			id: row.id,
+			kind: yield* Effect.fromResult(decodeStoredRulingKind(row.id, row.kind)),
 			question: row.question,
 			reclassifications,
 			requester: yield* storedRequester(row),

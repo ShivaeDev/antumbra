@@ -2,6 +2,7 @@ import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database } from "@antumbra/persistence";
 import { Clock, Effect, Option } from "effect";
 import type { RulingVerdict } from "#acts.ts";
+import { admitsApprovalVerdict, supersedePreviousApproval } from "#approval-verdict.ts";
 import { answersAt, reachesRung } from "#authority.ts";
 import { RulingAlreadyRuled, RulingBelowRung, RulingChoiceUnknown, RulingOutsideAuthority } from "#errors.ts";
 import type { Ruling } from "#model.ts";
@@ -48,6 +49,7 @@ export const writeVerdict = (input: RulingVerdict, at: Date) =>
 			return yield* new RulingAlreadyRuled({ rulingId: input.rulingId });
 		}
 		yield* admits(open, input);
+		yield* admitsApprovalVerdict(open, input);
 		const answerChoiceId = yield* offeredChoice(input);
 		yield* db.Ruling.where({ id: input.rulingId }).update({
 			answer: input.answer,
@@ -63,6 +65,7 @@ export const rule = Effect.fn("rulings.rule")(function* (input: RulingVerdict) {
 	const feeds = yield* DomainFeeds;
 	const now = yield* Clock.currentTimeMillis;
 	const ruled = yield* writeVerdict(input, new Date(now));
+	yield* supersedePreviousApproval(ruled, input.by, new Date(now));
 	yield* feeds.publishRulingRefresh();
 	yield* feeds.publishVoyageRefresh();
 	return ruled;

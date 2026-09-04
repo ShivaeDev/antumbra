@@ -189,6 +189,7 @@ model Piece {
   artifacts   Artifact[]
   rulingSubjects RulingSubject[]
   rulingGates RulingGate[]
+  rulingApprovals RulingApprovedPiece[]
 }
 
 model VoyagePiece {
@@ -367,6 +368,7 @@ model BoardOwner {
 
 model Ruling {
   id                 String    @id
+  kind               String    @default("ruling")
   requesterAgentId   String?
   requesterAuthority String?
   radius             String
@@ -396,6 +398,7 @@ model Ruling {
   subjects           RulingSubject[]
   gates              RulingGate[]
   reclassifications  RulingReclassification[]
+  approvedPieces     RulingApprovedPiece[]
 
   @@index([ruledAt])
   @@index([supersededById])
@@ -439,6 +442,16 @@ model RulingGate {
   piece    Piece  @relation(fields: [pieceId], references: [id], onDelete: Restrict, onUpdate: Restrict)
 
   @@unique([rulingId, pieceId])
+}
+
+model RulingApprovedPiece {
+  rulingId String
+  pieceId  String
+  ruling   Ruling @relation(fields: [rulingId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  piece    Piece  @relation(fields: [pieceId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+
+  @@id([rulingId, pieceId])
+  @@index([pieceId])
 }
 
 model RulingReclassification {

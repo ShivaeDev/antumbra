@@ -7,12 +7,14 @@ import type { VoyageWorld } from "#voyage-rows.ts";
 
 const ruling = (subjects: ReadonlyArray<RulingSubject>): Ruling => ({
 	answer: Option.none(),
+	approvedPieceIds: [],
 	choices: [],
 	context: "the shoal was surveyed once",
 	createdAt: new Date("2026-08-15T09:00:00.000Z"),
 	declared: { radius: "voyage", urgency: "pressing" },
 	gatedPieceIds: [],
 	id: "ruling-1",
+	kind: "ruling",
 	question: "which reading do we plot against?",
 	radius: "voyage",
 	reclassifications: [],

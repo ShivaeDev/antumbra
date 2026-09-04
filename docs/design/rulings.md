@@ -71,6 +71,24 @@ ruling unblocks.
 A Ruling is not an Outcome and is owned by no Piece or Voyage. A Piece may exist only to surface rulings for later Pieces, and a ruling outlives the
 work that asked for it. Rulings link to the Pieces they gate, many to many, independent of what the requesting Piece lands.
 
+## Approval
+
+A plot is approved before its Pieces sail, and again whenever it changes beyond what was approved. The approval is a Ruling of kind `approval` rather
+than a flag: it records the Piece set it approved, so a later plot can be compared against it and the approval can be superseded like any other
+ruling. Every other Ruling is of kind `ruling`; the kind is declared on the record and defaults to it.
+
+A captain **requests approval** for its voyage, and the flagship captain for the flagship's own. The captain supplies the plot — why these Pieces, in
+this shape, now — and nothing else: the Piece set is computed at the moment of asking as every Piece on the voyage neither abandoned nor parked, so
+parking is how a captain shapes what it asks for. The request is a `voyage`-radius, `pressing` ruling naming the voyage and the captain, and it waits
+on the admiral alone; no captain, the flagship included, may rule on it. Its two choices, `approve` and `redirect`, are written by the system. The
+request is refused when the set is empty, when an earlier request on the voyage is still unanswered, and when the set is exactly what already stands
+approved.
+
+The admiral answers with one of the two choices and words beside it. `approve` makes the request the voyage's **standing approval** and supersedes the
+one before it in the same act, so exactly one approved set stands per voyage. `redirect` rules the request without changing the approved set; the
+admiral's words stand as any ruling does, and the captain re-plots and asks again. The voyage view shows the standing approved set and the open
+request, if there is one, to the admiral, the captain and the crew alike.
+
 ## Standing rulings and smoothing
 
 A ruling **stands** once ruled and until it is retired. The standing set of a scope needs smoothing as a Board does: rulings get superseded, stop

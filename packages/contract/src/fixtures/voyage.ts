@@ -87,6 +87,8 @@ export const reefSummary: VoyageSummary = {
 
 export const reefView: VoyageView = {
 	...reefSummary,
+	approval: null,
+	approvalRequest: null,
 	board: [
 		{
 			authorAgentId: null,

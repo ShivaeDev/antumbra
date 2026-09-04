@@ -24,6 +24,7 @@ export const requested = (input: RulingRequest, nowMillis: number): StoredRuling
 	createdAt: new Date(nowMillis),
 	deliveredAt: null,
 	id: crypto.randomUUID(),
+	kind: "ruling",
 	question: input.question,
 	radius: input.radius,
 	...requesterColumns(input.requester),

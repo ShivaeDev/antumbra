@@ -1,6 +1,10 @@
 import type { PrismaError } from "@antumbra/persistence";
 import type { StoredRulingValueInvalid } from "@antumbra/vocabulary/ruling";
 import type {
+	ApprovalAlreadyOpen,
+	ApprovalChoiceRequired,
+	PlotEmpty,
+	PlotUnchanged,
 	RulingAlreadyRuled,
 	RulingAlreadySuperseded,
 	RulingAlreadyWithdrawn,
@@ -19,7 +23,10 @@ export type RulingReadFailure = PrismaError | StoredRulingValueInvalid;
 
 type RulingRequestFailure = RulingGatePieceMissing | RulingReadFailure | RulingSubjectMissing;
 
+export type RulingApprovalRequestFailure = ApprovalAlreadyOpen | PlotEmpty | PlotUnchanged | RulingRequestFailure;
+
 export type RulingVerdictFailure =
+	| ApprovalChoiceRequired
 	| RulingAlreadyRuled
 	| RulingBelowRung
 	| RulingChoiceUnknown

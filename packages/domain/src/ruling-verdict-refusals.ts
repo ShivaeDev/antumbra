@@ -25,6 +25,9 @@ export const verdictRefusal = (ruling: Ruling, by: RulingAuthority, asked: Asked
 			`ruling ${ruling.id} was already ruled by ${ruledByWords(answer.value)} — a ruling that stands is superseded, never answered twice`,
 		);
 	}
+	if (ruling.kind === "approval") {
+		return Option.some(`approval ${ruling.id} waits on the admiral alone — a plot is approved from the window, never by a captain`);
+	}
 	const rung = ruling.rung;
 	if (Option.isSome(rung) && !reachesRung(by, rung.value)) {
 		return Option.some(climbedPast(ruling, rung.value));

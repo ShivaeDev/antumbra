@@ -1,6 +1,7 @@
 import type { RulingReclassificationView, RulingSubjectView, RulingView, StandingRulingView } from "@antumbra/contract";
 import type { Ruling, RulingAnswer, RulingReclassification, RulingSubject } from "@antumbra/rulings";
 import { Option } from "effect";
+import { approvedPiecesSeen } from "#ruling-approved-pieces.ts";
 import { gatedPiecesSeen } from "#ruling-gated-pieces.ts";
 import { rungSeen } from "#ruling-rung-view.ts";
 import type { VoyageWorld } from "#voyage-rows.ts";
@@ -27,6 +28,7 @@ const reclassificationSeen = (reclassification: RulingReclassification): RulingR
 });
 
 export const rulingSeen = (ruling: Ruling, world: VoyageWorld): RulingView => ({
+	approvedPieces: approvedPiecesSeen(world, ruling.approvedPieceIds),
 	choices: ruling.choices.map((choice) => ({
 		detail: choice.detail,
 		id: choice.id,
@@ -36,6 +38,7 @@ export const rulingSeen = (ruling: Ruling, world: VoyageWorld): RulingView => ({
 	declared: ruling.declared,
 	gatedPieces: gatedPiecesSeen(world, ruling.gatedPieceIds),
 	id: ruling.id,
+	kind: ruling.kind,
 	question: ruling.question,
 	radius: ruling.radius,
 	reclassifications: ruling.reclassifications.map(reclassificationSeen),

@@ -18,6 +18,13 @@ export interface RulingRequest {
 	readonly urgency: RulingUrgency;
 }
 
+export interface RulingApprovalRequest {
+	readonly context: string;
+	readonly pieceIds: ReadonlyArray<string>;
+	readonly requesterAgentId: string;
+	readonly voyageId: string;
+}
+
 export interface RulingGateInput {
 	readonly pieceIds: ReadonlyArray<string>;
 	readonly rulingId: string;

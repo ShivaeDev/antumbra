@@ -13,6 +13,7 @@ const CAPTAIN_TOOLS = [
 	"park_piece",
 	"unpark_piece",
 	"rewire_piece",
+	"request_approval",
 	"read_voyage",
 	"read_report",
 	"read_mail",

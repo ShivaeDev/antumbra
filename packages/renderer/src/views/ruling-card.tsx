@@ -1,6 +1,6 @@
 import type { RulingSubjectView, RulingView } from "@antumbra/contract";
 import { Badge } from "#components/ui/badge.tsx";
-import { rulingGatedPieceLabel, rulingRequesterLabel, rulingRungLabel, rulingSubjectLabel } from "#rulings/labels.ts";
+import { rulingGatedPieceLabel, rulingPlotLabel, rulingRequesterLabel, rulingRungLabel, rulingSubjectLabel } from "#rulings/labels.ts";
 import { MarkdownView } from "#views/markdown-view.tsx";
 import { RulingAxes } from "#views/ruling-axes.tsx";
 import { RulingReclassifications } from "#views/ruling-reclassifications.tsx";
@@ -29,6 +29,7 @@ export const RulingCard = ({ onError, ruling }: { readonly onError: (message: st
 			</div>
 		)}
 		<h3 className="min-w-0 text-sm font-medium">{ruling.question}</h3>
+		{ruling.approvedPieces.length === 0 ? null : <p className="min-w-0 text-2xs text-muted-foreground">{rulingPlotLabel(ruling.approvedPieces)}</p>}
 		{ruling.gatedPieces.length === 0 ? null : (
 			<p className="min-w-0 text-2xs text-muted-foreground">Unblocks: {ruling.gatedPieces.map(rulingGatedPieceLabel).join(", ")}</p>
 		)}

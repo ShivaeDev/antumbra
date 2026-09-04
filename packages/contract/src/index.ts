@@ -109,6 +109,7 @@ export {
 	VoyageBackendRequest,
 } from "#voyage-requests.ts";
 export {
+	ApprovalRequestView,
 	BoardEntryView,
 	CrewMemberView,
 	PieceAgentView,
@@ -117,6 +118,7 @@ export {
 	PieceView,
 	ReportMarkdown,
 	ReportView,
+	StandingApprovalView,
 	VoyageCaptainView,
 	VoyageState,
 	VoyageSummary,

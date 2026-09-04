@@ -19,6 +19,7 @@ it.effectDB("the open feed carries a request the moment it lands", function* () 
 		const seen = yield* Fiber.join(watcher);
 		expect(seen[0]?.rulings).toEqual([
 			{
+				approvedPieces: [],
 				choices: [
 					{
 						detail: "the sounding is fresher",
@@ -31,6 +32,7 @@ it.effectDB("the open feed carries a request the moment it lands", function* () 
 				declared: { radius: "voyage", urgency: "blocking" },
 				gatedPieces: [],
 				id: expect.any(String),
+				kind: "ruling",
 				question: asked.question,
 				radius: "voyage",
 				reclassifications: [],

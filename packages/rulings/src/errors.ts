@@ -81,3 +81,37 @@ export class RulingNotAtRung extends Data.TaggedError("RulingNotAtRung")<{
 			: `ruling ${this.rulingId} waits on the ${this.rung}, not on the ${this.by}`;
 	}
 }
+
+export class PlotEmpty extends Data.TaggedError("PlotEmpty")<{
+	readonly voyageId: string;
+}> {
+	override get message(): string {
+		return `voyage ${this.voyageId} has no piece that is neither parked nor abandoned — charter or unpark before you ask`;
+	}
+}
+
+export class ApprovalAlreadyOpen extends Data.TaggedError("ApprovalAlreadyOpen")<{
+	readonly approvalId: string;
+	readonly voyageId: string;
+}> {
+	override get message(): string {
+		return `approval ${this.approvalId} on voyage ${this.voyageId} is still before the admiral`;
+	}
+}
+
+export class PlotUnchanged extends Data.TaggedError("PlotUnchanged")<{
+	readonly approvalId: string;
+	readonly voyageId: string;
+}> {
+	override get message(): string {
+		return `the plot of voyage ${this.voyageId} is the set approval ${this.approvalId} already approved — change it before you ask again`;
+	}
+}
+
+export class ApprovalChoiceRequired extends Data.TaggedError("ApprovalChoiceRequired")<{
+	readonly rulingId: string;
+}> {
+	override get message(): string {
+		return `approval ${this.rulingId} is answered with approve or redirect`;
+	}
+}

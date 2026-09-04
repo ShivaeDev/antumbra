@@ -1,0 +1,166 @@
+[
+  {
+    "id": "table.rulingApprovedPiece",
+    "label": "Create table rulingApprovedPiece",
+    "summary": "Creates table rulingApprovedPiece with required columns",
+    "operationClass": "additive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "table",
+        "name": "rulingApprovedPiece"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"rulingApprovedPiece\" does not exist",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "table",
+          "rulingApprovedPiece"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"rulingApprovedPiece\"",
+        "sql": "CREATE TABLE \"rulingApprovedPiece\" (\n  \"pieceId\" TEXT NOT NULL,\n  \"rulingId\" TEXT NOT NULL,\n  PRIMARY KEY (\"rulingId\", \"pieceId\"),\n  FOREIGN KEY (\"rulingId\") REFERENCES \"ruling\" (\"id\") ON DELETE RESTRICT ON UPDATE RESTRICT,\n  FOREIGN KEY (\"pieceId\") REFERENCES \"piece\" (\"id\") ON DELETE RESTRICT ON UPDATE RESTRICT\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"rulingApprovedPiece\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "table",
+          "rulingApprovedPiece"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.ruling.kind",
+    "label": "Add column kind on ruling",
+    "summary": "Adds column kind on ruling",
+    "operationClass": "additive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "column",
+        "name": "kind",
+        "table": "ruling"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"kind\" is missing",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM pragma_table_info(?) WHERE \"name\" = ?",
+        "params": [
+          "ruling",
+          "kind"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"kind\"",
+        "sql": "ALTER TABLE \"ruling\" ADD COLUMN \"kind\" TEXT DEFAULT 'ruling' NOT NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"kind\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM pragma_table_info(?) WHERE \"name\" = ?",
+        "params": [
+          "ruling",
+          "kind"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.rulingApprovedPiece.rulingApprovedPiece_pieceId_idx",
+    "label": "Create index rulingApprovedPiece_pieceId_idx on rulingApprovedPiece",
+    "summary": "Creates index rulingApprovedPiece_pieceId_idx on rulingApprovedPiece",
+    "operationClass": "additive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "index",
+        "name": "rulingApprovedPiece_pieceId_idx",
+        "table": "rulingApprovedPiece"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"rulingApprovedPiece_pieceId_idx\" is missing",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "index",
+          "rulingApprovedPiece_pieceId_idx"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"rulingApprovedPiece_pieceId_idx\"",
+        "sql": "CREATE INDEX \"rulingApprovedPiece_pieceId_idx\" ON \"rulingApprovedPiece\" (\"pieceId\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"rulingApprovedPiece_pieceId_idx\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "index",
+          "rulingApprovedPiece_pieceId_idx"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.rulingApprovedPiece.rulingApprovedPiece_rulingId_idx",
+    "label": "Create index rulingApprovedPiece_rulingId_idx on rulingApprovedPiece",
+    "summary": "Creates index rulingApprovedPiece_rulingId_idx on rulingApprovedPiece",
+    "operationClass": "additive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "index",
+        "name": "rulingApprovedPiece_rulingId_idx",
+        "table": "rulingApprovedPiece"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"rulingApprovedPiece_rulingId_idx\" is missing",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "index",
+          "rulingApprovedPiece_rulingId_idx"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"rulingApprovedPiece_rulingId_idx\"",
+        "sql": "CREATE INDEX \"rulingApprovedPiece_rulingId_idx\" ON \"rulingApprovedPiece\" (\"rulingId\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"rulingApprovedPiece_rulingId_idx\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "index",
+          "rulingApprovedPiece_rulingId_idx"
+        ]
+      }
+    ]
+  }
+]

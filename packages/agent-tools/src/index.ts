@@ -1,3 +1,4 @@
+export { requestApprovalSpec } from "#approvals.ts";
 export {
 	markReadSpec,
 	readBoardSpec,

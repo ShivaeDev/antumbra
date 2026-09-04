@@ -15,7 +15,7 @@ const onOwnedDependencies = (
 	return strangers.length === 0 ? act(voyageId) : Effect.succeed(refused(`these pieces are not on your voyage: ${strangers.join(", ")}`));
 };
 
-export const onOwnDeps = Effect.fn("captainMembership.onOwnDeps")(function* (
+export const onOwnDeps = Effect.fn("CaptainMembership.onOwnDeps")(function* (
 	identity: SessionIdentity,
 	dependsOn: ReadonlyArray<string>,
 	act: (voyageId: string) => Effect.Effect<DirectToolOutcome>,

@@ -3,7 +3,7 @@ import { Database } from "@antumbra/persistence";
 import { Clock, Effect } from "effect";
 import { verifyPieceExists } from "#rows.ts";
 
-export const park = Effect.fn("pieces.park")(function* (pieceId: string, parked: boolean) {
+export const park = Effect.fn("Pieces.park")(function* (pieceId: string, parked: boolean) {
 	const db = yield* Database;
 	const feeds = yield* DomainFeeds;
 	const now = yield* Clock.currentTimeMillis;

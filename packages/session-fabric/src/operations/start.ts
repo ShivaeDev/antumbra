@@ -6,7 +6,7 @@ import type { SessionFabricState } from "#session-fabric-state.ts";
 import type { SessionStartPermit } from "#session-start-permit.ts";
 
 export const makeStart = (attachments: SessionFabricState["attachments"], lifecycles: SessionFabricState["lifecycles"]) =>
-	Effect.fn("sessionFabric.start")(
+	Effect.fn("SessionFabric.start")(
 		<Failure, Requirements>(
 			_permit: SessionStartPermit,
 			agentId: string,

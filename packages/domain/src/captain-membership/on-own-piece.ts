@@ -5,7 +5,7 @@ import { withReadableMembers } from "#captain-membership/with-readable-members.t
 import { onVoyage, refused } from "#tool-answers.ts";
 import type { SessionIdentity } from "#tool-identity.ts";
 
-export const onOwnPiece = Effect.fn("captainMembership.onOwnPiece")(function* (
+export const onOwnPiece = Effect.fn("CaptainMembership.onOwnPiece")(function* (
 	identity: SessionIdentity,
 	pieceId: string,
 	act: (pieceId: string) => Effect.Effect<DirectToolOutcome>,

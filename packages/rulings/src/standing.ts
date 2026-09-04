@@ -35,7 +35,7 @@ const subjectMatches = (filter: ReadonlyArray<RulingSubject>) =>
 		return new Set(found.flat().map((row) => row.rulingId));
 	});
 
-export const standing = Effect.fn("rulings.standing")(function* (filter: ReadonlyArray<RulingSubject>) {
+export const standing = Effect.fn("Rulings.standing")(function* (filter: ReadonlyArray<RulingSubject>) {
 	const db = yield* Database;
 	const matched = filter.length === 0 ? undefined : yield* subjectMatches(filter);
 	const query = db.Ruling.where({

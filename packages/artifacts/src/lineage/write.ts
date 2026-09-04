@@ -5,7 +5,7 @@ import { readStoredArtifactLineage } from "#lineage/piece-lineage.ts";
 import { cycleWouldForm, requireArtifact, requireAuthority, requireSharedPiece } from "#lineage/validation.ts";
 import type { ArtifactSupersessionInput } from "#model.ts";
 
-export const writeSupersession = Effect.fn("artifacts.writeSupersession")(function* (input: ArtifactSupersessionInput) {
+export const writeSupersession = Effect.fn("Artifacts.supersede")(function* (input: ArtifactSupersessionInput) {
 	const db = yield* Database;
 	const superseded = yield* requireArtifact(input.supersededArtifactId);
 	const successor = yield* requireArtifact(input.successorArtifactId);
@@ -42,7 +42,7 @@ export const writeSupersession = Effect.fn("artifacts.writeSupersession")(functi
 	yield* db.Artifact.where({ id: superseded.id }).update({ supersededByArtifactId: successor.id });
 });
 
-export const deleteSupersession = Effect.fn("artifacts.deleteSupersession")(function* (input: ArtifactSupersessionInput) {
+export const deleteSupersession = Effect.fn("Artifacts.removeSupersession")(function* (input: ArtifactSupersessionInput) {
 	const db = yield* Database;
 	const superseded = yield* requireArtifact(input.supersededArtifactId);
 	const successor = yield* requireArtifact(input.successorArtifactId);

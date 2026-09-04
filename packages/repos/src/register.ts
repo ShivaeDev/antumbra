@@ -17,7 +17,7 @@ const summarizeRepo = (row: {
 	source: row.source,
 });
 
-export const registerRepo = Effect.fn("repos.register")(function* (registration: RepoRegistration) {
+export const registerRepo = Effect.fn("Repos.register")(function* (registration: RepoRegistration) {
 	const db = yield* Database;
 	const feeds = yield* DomainFeeds;
 	const bySource = db.Repo.where({ source: registration.source });

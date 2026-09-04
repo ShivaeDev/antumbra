@@ -57,6 +57,12 @@ const reclaim = Effect.gen(function* () {
 The pure helper may remain private inside Changes. What matters is that the capability owns the persistence representation, query, inference, and
 stable answer as one boundary.
 
+## Repeated reads
+
+Give a common domain read a named method on its owning capability so callers do not repeat the same filtering and inference. When owner queries need
+to compose the same condition with different projections or relations, share the predicate inside that owner. Add methods for existing domain
+questions; do not wrap every database operation in a generic CRUD facade.
+
 ## What remains valid
 
 Semantic ownership is not a ban on querying, calculation, or reshaping:

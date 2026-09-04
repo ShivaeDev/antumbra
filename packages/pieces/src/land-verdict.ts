@@ -19,7 +19,7 @@ const writeVerdict = (pieceId: string, verdict: PieceVerdict) =>
 		return true;
 	});
 
-export const landVerdict = Effect.fn("pieces.landVerdict")(function* (pieceId: string, verdict: PieceVerdict) {
+export const landVerdict = Effect.fn("Pieces.landVerdict")(function* (pieceId: string, verdict: PieceVerdict) {
 	const feeds = yield* DomainFeeds;
 	const changed = yield* writeVerdict(pieceId, verdict);
 	if (changed) {

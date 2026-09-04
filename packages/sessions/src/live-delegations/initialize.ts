@@ -1,5 +1,5 @@
 import { Effect, Ref } from "effect";
 
-export const initializeLiveDelegations = Effect.fn("liveDelegations.initialize")(() =>
+export const initializeLiveDelegations = Effect.fn("LiveDelegations.initialize")(() =>
 	Ref.make<ReadonlyMap<string, ReadonlySet<string>>>(new Map()),
 )();

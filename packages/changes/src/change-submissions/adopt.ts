@@ -31,7 +31,7 @@ const adoptionAttachment = (agentId: string | null, repoId: string) =>
 		}) satisfies ObservationAttachment;
 	});
 
-export const adoptSubmittedChange = Effect.fn("changes.adopt")(function* (input: AdoptChangeInput) {
+export const adoptSubmittedChange = Effect.fn("Changes.adopt")(function* (input: AdoptChangeInput) {
 	const db = yield* Database;
 	const feeds = yield* DomainFeeds;
 	const pieces = yield* Pieces;

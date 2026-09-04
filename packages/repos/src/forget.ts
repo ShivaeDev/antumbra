@@ -2,7 +2,7 @@ import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database } from "@antumbra/persistence";
 import { Effect } from "effect";
 
-export const forgetRepo = Effect.fn("repos.forget")(function* (id: string) {
+export const forgetRepo = Effect.fn("Repos.forget")(function* (id: string) {
 	const db = yield* Database;
 	const feeds = yield* DomainFeeds;
 	const changeIds = (yield* db.Change.where({ repoId: id }).select("id").all()).map((change) => change.id);

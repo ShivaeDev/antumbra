@@ -2,7 +2,7 @@ import { Database } from "@antumbra/persistence";
 import { Effect } from "effect";
 import type { RulingGate } from "#model.ts";
 
-export const openGates = Effect.fn("rulings.openGates")(function* () {
+export const openGates = Effect.fn("Rulings.openGates")(function* () {
 	const db = yield* Database;
 	const unruled = new Map((yield* db.Ruling.where({ ruledAt: null }).select("id", "question").all()).map((row) => [row.id, row.question] as const));
 	const rows = yield* db.RulingGate.all();

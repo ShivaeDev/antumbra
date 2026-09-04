@@ -4,7 +4,7 @@ import { verifyPieceExists } from "@antumbra/pieces";
 import { Effect } from "effect";
 import type { ReportInput } from "#model.ts";
 
-export const landReport = Effect.fn("reports.landReport")(function* (input: ReportInput) {
+export const landReport = Effect.fn("Reports.land")(function* (input: ReportInput) {
 	const db = yield* Database;
 	const feeds = yield* DomainFeeds;
 	const row = {

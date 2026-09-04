@@ -10,7 +10,7 @@ interface DomainFeedState {
 	readonly voyages: PubSub.PubSub<void>;
 }
 
-export const initializeDomainFeeds = Effect.fn("domainFeeds.initialize")(function* (): Effect.fn.Return<DomainFeedState> {
+export const initializeDomainFeeds = Effect.fn("DomainFeeds.initialize")(function* (): Effect.fn.Return<DomainFeedState> {
 	return {
 		changeRefresh: yield* PubSub.unbounded<void>(),
 		events: yield* PubSub.unbounded<StoredEvent>(),

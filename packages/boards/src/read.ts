@@ -12,7 +12,7 @@ const entriesOn = Effect.fnUntraced(function* (boardId: string) {
 	return yield* Effect.forEach(rows, entryRow);
 });
 
-export const readBoard = Effect.fn("boards.readBoard")(function* (scope: BoardScope) {
+export const readBoard = Effect.fn("Boards.read")(function* (scope: BoardScope) {
 	yield* requireBoardOwner(scope);
 	const linked = yield* linkedBoardId(scope);
 	return yield* Option.match(linked, {

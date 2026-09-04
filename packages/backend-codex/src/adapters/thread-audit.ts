@@ -1,32 +1,20 @@
 import type { BackendFailure, SessionAudit, SessionCensus } from "@antumbra/plugin-api";
 import { Effect, RcRef } from "effect";
-import { openAuditConnection } from "#adapters/audit-connection.ts";
-import type { LineProcess } from "#adapters/process.ts";
 import type { CodexServer } from "#server.ts";
 import { censusOf, censusUnreadable } from "#thread-census.ts";
-import { type CensusSweep, sweepSpawnedDescendants } from "#thread-sweep.ts";
+import { sweepSpawnedDescendants } from "#thread-sweep.ts";
 
-const claimAll = (server: RcRef.RcRef<CodexServer, BackendFailure>, rootRef: string, sweep: CensusSweep) =>
+const sweepOn = (server: RcRef.RcRef<CodexServer, BackendFailure>, rootRef: string) =>
 	Effect.scoped(
-		RcRef.get(server).pipe(
-			Effect.flatMap((live) =>
-				Effect.sync(() => {
-					for (const child of sweep) {
-						live.threads.claim(rootRef, child.threadId);
-					}
-				}),
-			),
-		),
-	).pipe(
-		Effect.catch((failure: BackendFailure) =>
-			Effect.logWarning("the threads a census found could not be claimed", {
-				detail: failure.detail,
-			}),
-		),
+		Effect.gen(function* () {
+			const live = yield* RcRef.get(server);
+			const sweep = yield* sweepSpawnedDescendants(live.request, rootRef);
+			for (const child of sweep) {
+				live.threads.claim(rootRef, child.threadId);
+			}
+			return sweep;
+		}),
 	);
-
-const sweepOn = (spawn: () => LineProcess, rootRef: string) =>
-	Effect.scoped(openAuditConnection(spawn).pipe(Effect.flatMap((connection) => sweepSpawnedDescendants(connection.request, rootRef))));
 
 // Reconnect waits on provider-storage reads; bound them so a stalled read cannot
 // hold message delivery indefinitely. A timeout is unreadable, never an empty census.
@@ -34,12 +22,10 @@ const CENSUS_PATIENCE_MILLIS = 20_000;
 
 const census = (
 	server: RcRef.RcRef<CodexServer, BackendFailure>,
-	spawn: () => LineProcess,
 	rootRef: string,
 	admitted: (nodeRef: string) => boolean,
 ): Effect.Effect<SessionCensus> =>
-	sweepOn(spawn, rootRef).pipe(
-		Effect.tap((sweep) => claimAll(server, rootRef, sweep)),
+	sweepOn(server, rootRef).pipe(
 		Effect.map((sweep) => censusOf(admitted, sweep)),
 		Effect.catch((failure: BackendFailure) =>
 			Effect.logWarning("codex could not be asked for a census", {
@@ -55,8 +41,8 @@ const census = (
 		}),
 	);
 
-export const codexAudit = (server: RcRef.RcRef<CodexServer, BackendFailure>, spawn: () => LineProcess): SessionAudit => ({
-	census: (request) => census(server, spawn, request.rootRef, request.admitted),
+export const codexAudit = (server: RcRef.RcRef<CodexServer, BackendFailure>): SessionAudit => ({
+	census: (request) => census(server, request.rootRef, request.admitted),
 	// Codex has no passive second transcript; rereading resumes and mutates the
 	// thread, so node completeness comes from the journal's existing gaps.
 	node: () => Effect.succeed([]),

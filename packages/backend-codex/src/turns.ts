@@ -4,7 +4,7 @@ import type { RpcNotification } from "#adapters/rpc.ts";
 import { TurnNotification } from "#protocol.ts";
 import { makeQueuedTurns } from "#queued-turns.ts";
 import type { CodexServer } from "#server.ts";
-import { notSteerable, turnRequests } from "#turn-requests.ts";
+import { turnRequests } from "#turn-requests.ts";
 import { idle, observeTurn, recordAcceptedTurn, requireOpen, SESSION_CLOSED, type TurnState, withoutTurn } from "#turn-state.ts";
 
 interface TurnDriver {
@@ -37,7 +37,7 @@ export const makeTurnDriver = (server: CodexServer, threadId: string): Effect.Ef
 		const steerActive = (turnId: string, input: SessionInput) =>
 			requests.steer(turnId, input).pipe(
 				Effect.andThen(requireOpen(state)),
-				Effect.catchIf(notSteerable, () => startSteered(input)),
+				Effect.catchTag("TurnNotSteerable", () => startSteered(input)),
 			);
 
 		const steerNow = (current: TurnState, input: SessionInput) =>

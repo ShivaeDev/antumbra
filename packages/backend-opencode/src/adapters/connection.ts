@@ -1,3 +1,8 @@
+export interface OpencodeEventListeners {
+	readonly onFrame: (frame: unknown) => void;
+	readonly onMalformed: (line: string) => void;
+}
+
 export interface OpencodeRequest {
 	readonly body: unknown;
 	readonly path: string;
@@ -7,7 +12,7 @@ export interface OpencodeRequest {
 export interface OpencodeConnection {
 	readonly close: () => void;
 	readonly get: (request: OpencodeRequest) => Promise<unknown>;
-	readonly onEvent: (listener: (frame: unknown) => void) => void;
+	readonly onEvent: (listeners: OpencodeEventListeners) => void;
 	readonly onExit: (listener: () => void) => void;
 	readonly post: (request: OpencodeRequest) => Promise<unknown>;
 }

@@ -1,8 +1,8 @@
+import type { OpencodeEventListeners } from "#adapters/connection.ts";
 import { openSseBuffer } from "#adapters/sse.ts";
 
-interface EventStreamListeners {
+interface EventStreamListeners extends OpencodeEventListeners {
 	readonly onEnd: () => void;
-	readonly onFrame: (frame: unknown) => void;
 }
 
 export const openEventStream = (address: string, listeners: EventStreamListeners): (() => void) => {
@@ -14,7 +14,7 @@ export const openEventStream = (address: string, listeners: EventStreamListeners
 		if (response.body === null) {
 			return;
 		}
-		const buffer = openSseBuffer();
+		const buffer = openSseBuffer(listeners.onMalformed);
 		const decoder = new TextDecoder();
 		for await (const chunk of response.body) {
 			for (const frame of buffer.take(decoder.decode(chunk, { stream: true }))) {

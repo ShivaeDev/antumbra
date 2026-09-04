@@ -20,7 +20,7 @@ const chosen = (key: SettingKey, raw: string | undefined) => {
 	return Option.isSome(stored) ? { key, overridden: true, value: stored.value } : { key, overridden: false, value: declaration.fallback };
 };
 
-export const readSettings = Effect.gen(function* () {
+export const readSettings = Effect.fn("settings.readSettings")(function* () {
 	const db = yield* Database;
 	const rows = yield* db.Setting.all();
 	const stored = new Map(rows.map((row) => [row.key, row.value]));

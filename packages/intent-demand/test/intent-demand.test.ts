@@ -55,6 +55,7 @@ it.effect("isolates mortal health and restores it after a later pass", () =>
 				yield* Ref.set(fails, false);
 				yield* TestClock.adjust(5_000);
 				expect((yield* demandHealth).get("test/mortal")?.state).toBe("healthy");
+				expect(initial.get("test/mortal")?.state).toBe("degraded");
 			}),
 		);
 	}),

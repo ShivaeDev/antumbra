@@ -14,5 +14,5 @@ const assembledHere: Words = "come about";
 it("the send seam takes catalog words and refuses prose assembled elsewhere", () => {
 	expect(fromCatalog).toBe("come about");
 	expect(assembledHere).toBe("come about");
-	expect(standing).toBe("Reconcile durable Antumbra truth and continue your assigned work.");
+	expect(standing).toBe(wakeWords);
 });

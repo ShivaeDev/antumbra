@@ -6,10 +6,6 @@ import { dispatchingLayer } from "#test/domain-layers.ts";
 import { acquireTemporaryPersistence, makeScriptedBackend, makeScriptedRunner, type ScriptedBackend, sessionFor } from "#test/harness.ts";
 import { eventually, openReefVoyage, PATIENCE } from "#test/voyage-fixtures.ts";
 
-// This deliberately duplicates the prompt catalog so the dispatched charter proves verbatim delivery and catches drift.
-const CREW_BERTH_ORDER =
-	"- Work inside a berth's folder, never in the moorage root itself and never in a mirror, and give `open_change`, `submit_change` and `adopt_change` the repo name exactly as the Berths section spells it — not the folder's name.";
-
 const crewOf = (pieceId: string) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
@@ -50,7 +46,8 @@ it.live("a dispatched crew is told the moorage folder it was berthed in", () =>
 			const charter = yield* eventually(charterDelivered(scripted, agentId));
 			expect(charter).toContain(`your moorage, /tmp/moorage/${agentId}.`);
 			expect(charter).toContain(`Reef-Charts — ./berth-0 — branch work/${agentId.slice(0, 8)}/berth-0`);
-			expect(charter).toContain(CREW_BERTH_ORDER);
+			expect(charter).toContain("Make repository changes inside the assigned berth's folder");
+			expect(charter).not.toContain("`open_change`");
 		}).pipe(Effect.provide(dispatchingLayer(temporary, scripted.backend, PATIENCE, {}, recorder.runner)));
 	}),
 );

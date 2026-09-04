@@ -2,7 +2,7 @@ import { Schema } from "effect";
 import { defineTool } from "#define.ts";
 
 const Repo = Schema.String.annotate({
-	description: "The name of the repo you are berthed in, as the registry knows it.",
+	description: "The repo name exactly as the Berths section spells it, not the berth folder's name.",
 });
 
 export const openChangeSpec = defineTool({
@@ -32,14 +32,14 @@ export const openChangeSpec = defineTool({
 
 export const submitChangeSpec = defineTool({
 	description:
-		"Submit the work in your berth as a durable prepared change for your piece. Repeated calls reuse that repo's active change. Returns its id and stage; a host pull request may attach later.",
+		"Submit the work in your berth as a durable prepared change for your piece. Repeated calls reuse that repo's active change. Returns its id and stage; a host pull request may attach later. Submission is not landing: the change remains pending until host evidence confirms acceptance.",
 	input: Schema.Struct({ repo: Repo }),
 	name: "submit_change",
 });
 
 export const adoptChangeSpec = defineTool({
 	description:
-		"Adopt a change that already exists: link it to your piece by its url, so the record knows your piece is waiting on it. Call it for a change you opened by hand rather than through `open_change`.",
+		"Adopt a change that already exists: link it to your piece by its url, so the record knows your piece is waiting on it. Call it for a change you opened by hand rather than through `open_change`. Adoption is not landing: host evidence determines when it lands.",
 	input: Schema.Struct({
 		repo: Repo,
 		url: Schema.String.annotate({

@@ -8,7 +8,7 @@ const RulingId = Schema.String.annotate({
 
 export const ruleOnSpec = defineTool({
 	description:
-		"Rule on a ruling that has climbed to you: settle a question an agent asked. Your answer stands from the moment you give it and is read long after the work that asked for it, so answer the question that was actually asked and say how far the answer reaches. Rule only what is yours: a question whose answer would bind more widely than you may bind, or that you cannot settle, goes up with `pass_up` and whatever context you can add.",
+		"Rule on a ruling that has climbed to you: settle a question an agent asked. A voyage captain may answer at piece or voyage radius; the flagship captain may answer an escalated question at any radius. Your answer stands from the moment you give it and is read long after the work that asked for it, so answer the question actually asked and say how far it reaches. Questions outside your radius, reserved for the admiral, or that you cannot settle go up with `pass_up` and whatever context you can add.",
 	input: Schema.Struct({
 		answer: Schema.String.annotate({
 			description: "The decision itself, in the words the asker and every later reader will read.",

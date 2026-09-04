@@ -37,7 +37,9 @@ it("places each named berth under the crew's moorage and orders", () => {
 	expect(text).toContain("Antumbra — ./antumbra — branch work/a1b2c3d4/antumbra");
 	expect(text).toContain("Reef-Charts — ./reef-charts — branch work/a1b2c3d4/reef-charts");
 	expect(text.split(MOORAGE)).toHaveLength(2);
-	expect(text.indexOf("`open_change`")).toBeLessThan(text.indexOf("# Berths"));
+	expect(text).toContain("Make repository changes inside the assigned berth's folder");
+	expect(text).toContain("Use the supplied branches and worktrees");
+	expect(text).not.toContain("`open_change`");
 });
 
 it("a captain is told the same berths without crew tools it does not hold", () => {

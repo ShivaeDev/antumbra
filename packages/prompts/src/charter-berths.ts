@@ -17,7 +17,7 @@ export const BerthedCharter = Schema.Struct({
 export type BerthedCharter = typeof BerthedCharter.Type;
 
 const CREW_ORDER =
-	"- Work inside a berth's folder, never in the moorage root itself and never in a mirror, and give `open_change`, `submit_change` and `adopt_change` the repo name exactly as the Berths section spells it — not the folder's name.";
+	"- Make repository changes inside the assigned berth's folder. Use the supplied branches and worktrees; Antumbra provisions them. Keep repository changes out of the moorage root and mirrors.";
 
 const CAPTAIN_ORDER =
 	"- The repos your crew is berthed in are the ones under Berths, spelled there as the registry knows them; a piece charter naming one spells it the same way.";

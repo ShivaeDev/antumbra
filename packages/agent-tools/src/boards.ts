@@ -7,7 +7,7 @@ const Scope = Schema.Literals(["piece", "self", "voyage"]).annotate({
 
 export const writeBoardSpec = defineTool({
 	description:
-		"Write an entry on a board, so what you learned outlives your session. Never write what the record already holds — landed outcomes are their own account.",
+		"Write an entry in a board's rough register for your successor, so what you learned outlives your session. Never write what the record already holds — landed outcomes are their own account. The smooth register is reserved for smoothing.",
 	input: Schema.Struct({
 		body: Schema.String.annotate({
 			description: "The entry, written for whoever reads this board next.",

@@ -63,7 +63,7 @@ export const removeArtifactSupersessionSpec = defineTool({
 
 export const standDownSpec = defineTool({
 	description:
-		"Say you have nothing left to do, once your work is done and everything is landed. You stay open and listening: the admiral can still speak to you and you will answer, so call it rather than inventing more work. Antumbra puts you to rest on its own if the quiet lasts, and wakes you when someone speaks.",
+		"Say you have nothing left to do for now: crew once their work and outcomes are landed, captains when the voyage needs no action from them. This marks idleness, not Piece completion or retirement. You stay open and listening; Antumbra may later put you to rest at a safe boundary and wake you with the same identity when addressed.",
 	input: Schema.Struct({}),
 	name: "stand_down",
 });

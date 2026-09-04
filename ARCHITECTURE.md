@@ -13,9 +13,11 @@ selected data directory, never domain truth and never a renderer's to hold: main
 restores that arrangement on the next launch, so losing the file costs the arrangement and nothing else.
 
 Exactly one Antumbra desktop process owns the application and its selected local data directory at a time. Repeat launches are routed to that owner,
-which opens or focuses windows in its process; windows never create independent orchestration or persistence owners. The shell takes Electron's native
-application lock before configuring data or constructing runtime and persistence Layers. Before any migration applies to an existing database,
-persistence writes a `VACUUM INTO` copy of it beside the database under `backups/` and keeps the five newest.
+which opens or focuses windows in its process; windows never create independent orchestration or persistence owners. The shell selects and configures
+the data directory first, then takes Electron's single-instance lock, and only the owner constructs runtime and persistence Layers. That order is
+deliberate: Electron scopes the lock by the `userData` path, so a development run and a packaged run hold separate locks over separate directories
+(`apps/desktop/src/adapters/shell.ts`). Before any migration applies to an existing database, persistence writes a `VACUUM INTO` copy of it beside the
+database under `backups/` and keeps the five newest.
 
 Explicitly addressed mail is persisted as an immutable entry on the addressee's Agent Board; its marked-read receipt is separate durable truth, so a
 read never clears it. Raw Change and Review observations remain in their own records. No mailbox feed, settling timer, presentation cap, or
@@ -62,11 +64,14 @@ back. See [`docs/design/agent-recovery.md`](docs/design/agent-recovery.md).
 | `packages/github`         | GitHub change-host adapter: pull requests through `gh`           |
 | `packages/backend-claude` | The Claude agent backend: one adapter for one provider          |
 | `packages/backend-codex`  | The Codex agent backend: one app-server child, threads on it. Delegated threads are read passively off that one connection, admitted to a root by claim on evidence, and refused an attach at the wire; the census runs on a dedicated short-lived audit connection that can only read |
+| `packages/backend-opencode` | The OpenCode agent backend: one `opencode` server child found on the login PATH, sessions on it; not registered when the executable is absent |
 | `packages/runner-local`   | The local runner: processes and git worktrees on this machine   |
 | `packages/persistence`    | SQLite behind Effect layers; owns all database access           |
 | `packages/trace-sink`     | Dev-only sink: finished spans and log entries into their own trace file |
 | `packages/renderer`       | The web UI                                                      |
 | `packages/harness`        | Browser dev harness: the renderer over the contract's fixtures, without the shell |
+| `packages/testing-runtime` | Test doubles for the driven ports — a scripted backend, scripted and passive runners — and the `effectApp` test runner over temporary persistence |
+| `packages/testing`        | The application test harness: the desktop's whole Layer stack over temporary persistence with the scripted backend and the passive runner |
 
 ## Layers
 

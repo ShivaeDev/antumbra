@@ -100,7 +100,7 @@ The [Agent recovery guide](docs/design/agent-recovery.md) owns resource, Session
 - **A Ruling gates work as its own node.** Pieces may depend on an open ruling as they depend on Pieces; blockage is derived and readiness returns
   when it is ruled. A Ruling is never an Outcome and is owned by no Piece or Voyage.
 - **Standing rulings are smoothed, never edited.** Reclassification, consolidation, and retirement append with provenance, and dedicated agents do
-  that work rather than captains.
+  that work rather than captains. Superseding, withdrawing, and reclassifying exist as acts; the dedicated agents are intended, not yet built.
 - **Anyone may all stop.** Escalation can hold one asker, one Voyage, or the fleet. The system makes the stop loud and reliable; misuse is handled as
   a conversation afterwards. Intended, not yet built.
 - **Coordination uses settled rails.** Board entries hold shared state, ticks request reconciliation, direct messages remain bounded, and typed

@@ -6,8 +6,8 @@ therefore to delete or refuse complexity unless current evidence proves that it 
 This gate binds every coding and review agent. Apply it before the narrower quality gates. A pattern described elsewhere does not justify using it
 when the problem it solves is absent here. When a narrower gate conflicts with this one, this gate controls and the narrower rule must be simplified.
 
-Every code pull request receives an independent simplicity review. That reviewer's sole job is to challenge unnecessary code, imagined failure modes,
-contrived tests, and unjustified restrictions against this gate.
+Simplicity is the first review route every code change gets, and nothing more than that: the reviewer applies this gate before the narrower ones and
+challenges unnecessary code, imagined failure modes, contrived tests, and unjustified restrictions against it. No bot or CI job does this.
 
 ## Start with the real problem
 

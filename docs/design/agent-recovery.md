@@ -117,9 +117,11 @@ files, notes, and predecessor link. It is never an automatic substitute for norm
 
 ## Hailing an Agent
 
-Hailing addresses the durable Agent, not a Session id. Antumbra resumes the Agent's existing internal execution context when one is usable; otherwise
-it establishes the context required to converse without replacing the Agent's identity, responsibility, Board, or assignments. The admiral and other
-Agents therefore think in terms of whom they are addressing while Antumbra manages the execution machinery.
+Hailing addresses a Voyage's captain, not a Session id. When the Voyage has a captain that is alive, the hail submits a wake for that captain's
+current root Session, and the words reach the same Agent. When it has none — never hailed, or its captain reclaimed to dormant — the hail spawns a
+fresh captain over the durable record, chartered with the Voyage's north star, context, Pieces, Board, and the rulings that bind it; a dormant captain
+is not revived. A captain still being born is not hailed twice: the hail is refused by name until it is alive. The admiral and other Agents therefore
+think in terms of whom they are addressing while Antumbra manages the execution machinery.
 
 ## Shutdown and failure
 

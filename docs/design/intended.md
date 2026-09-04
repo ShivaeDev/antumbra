@@ -28,3 +28,6 @@ describes one of these carries a marker pointing here. When one ships, its line 
 - **Message precedence and the `queue` path for mail** — routine, priority, and flash choosing between `steer` and `queue`. Precedence is stored on
   mail and shown; every send steers; `queue` carries only the charter at spawn and the instruction handed to a resumed Session.
   [Guide.](attention-and-memory.md#mail-and-precedence)
+- **Dedicated smoothing agents for standing rulings** — agents that reclassify, consolidate, and retire a scope's standing rulings so a captain's
+  context is not spent on it. Superseding, withdrawing, and reclassifying exist as acts any authority may perform; consolidation and the dedicated
+  pass do not. [Guide.](rulings.md#standing-rulings-and-smoothing)

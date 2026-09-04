@@ -102,8 +102,9 @@ connected, and `packages/renderer/src/hooks/feed.ts` is the only file that chang
 
 ## Atoms stay peripheral
 
-`@effect/atom-react` stays where it is: process-lifetime constants that are read once and never change. `appInfoAtom` is the whole population. Feeds
-and calls use the hooks above.
+`@effect/atom-react` stays where it is: process-lifetime constants that are read once and never change. The population is two: `appInfoAtom` in the
+nav rail, which loads the product version once, and `placeAtom` in `surface.tsx`, which loads the window's place once; both are fixed for the life of
+the window. Feeds and calls use the hooks above.
 
 Three reasons, and they are about lifetime rather than taste. Every feed except app info is either scoped to a component by an identifier or has
 exactly one subscriber in the whole tree, so the sharing an atom buys is sharing nothing needs. Making the keyed feeds atoms means atom families,

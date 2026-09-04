@@ -1,7 +1,7 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database } from "@antumbra/persistence";
 import type { MooragePlan, Runner } from "@antumbra/plugin-api";
-import { repoSlug } from "@antumbra/repos";
+import { Repos, repoSlug } from "@antumbra/repos";
 import { ensureAgentCanOwnLocalWork } from "@antumbra/resource-reclamation";
 import { decodeStoredBerthStatus, decodeStoredMoorageStatus } from "@antumbra/vocabulary/agent-runtime";
 import { Effect, Option } from "effect";
@@ -29,6 +29,7 @@ const planFromRows = (root: string, berths: ReadonlyArray<StoredBerthPlan>): Moo
 
 export const makePrepareMoorage = Effect.gen(function* () {
 	const db = yield* Database;
+	const registry = yield* Repos;
 	const feeds = yield* DomainFeeds;
 	const ensureUnclaimed = (agentId: string) => ensureAgentCanOwnLocalWork(agentId).pipe(Effect.provideService(Database, db));
 	const loadPlan = (payload: SpawnFields) =>
@@ -83,7 +84,7 @@ export const makePrepareMoorage = Effect.gen(function* () {
 			if (Option.isSome(stored)) {
 				return stored.value;
 			}
-			const repos = yield* db.Repo.orderBy((repo) => repo.createdAt.asc()).all();
+			const repos = yield* registry.registered();
 			const plan = runner.plan({
 				agentId: payload.agentId,
 				repos: repos.map((repo) => ({

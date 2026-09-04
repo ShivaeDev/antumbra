@@ -3,6 +3,7 @@ import { SightSource } from "@antumbra/contract";
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Kernel } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
+import { Repos } from "@antumbra/repos";
 import { Effect, Layer, Stream } from "effect";
 import { AgentDomain } from "#agent-domain-service.ts";
 import { makeSightActs } from "#sight-acts.ts";
@@ -15,6 +16,7 @@ import { makeSightSessionTree } from "#sight-session-tree.ts";
 export const SightSourceLive = Layer.effect(SightSource)(
 	Effect.gen(function* () {
 		const changes = yield* Changes;
+		const repos = yield* Repos;
 		const domain = yield* AgentDomain;
 		const feeds = yield* DomainFeeds;
 		const kernel = yield* Kernel;
@@ -37,6 +39,7 @@ export const SightSourceLive = Layer.effect(SightSource)(
 				),
 			),
 			Effect.provideService(Changes, changes),
+			Effect.provideService(Repos, repos),
 			Effect.provideService(Database, db),
 			Effect.mapError(toFailure),
 		);

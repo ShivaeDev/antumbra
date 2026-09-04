@@ -1,7 +1,7 @@
 # Architecture
 
-Antumbra is a macOS desktop app (Electron) for long-horizon work with AI agents. Early development: this document describes the intended shape; the
-code is catching up to it.
+Antumbra is a macOS desktop app (Electron) for long-horizon work with AI agents. Early development: this document describes the shape the code has;
+what is designed and not yet built is listed in [`docs/design/intended.md`](docs/design/intended.md).
 
 ## Process model
 
@@ -21,9 +21,12 @@ Explicitly addressed mail is persisted as an immutable entry on the addressee's 
 read never clears it. Raw Change and Review observations remain in their own records. No mailbox feed, settling timer, presentation cap, or
 observation hook turns those facts into mail or resumes an Agent; v1 attention is pulled only after human selection.
 
-Closing the app stops local execution, not durable work. Graceful shutdown asks attached executive work to reach a safe quiescent boundary; forced
-shutdown never invents completion. On relaunch, durable executive obligations that may remain unfinished resume from persisted truth using the same
-Antumbra and provider-native session identities. Machinery with no outstanding obligation remains detached until needed. See
+Closing the app stops local execution, not durable work. A graceful quit marks every attached root Session that is not idle as draining, stops each
+attachment so its turn is cut, and settles the rows to idle before the process exits; a forced exit never invents completion. Nothing on the next boot
+resumes a Session on its own: startup reconciles the rows and stops. A restart the admiral asks for is the one exception, and it is itself an act:
+before the drain, the shell records the attached roots in an `AppMeta` row; the next boot deletes that row and then submits a wake for exactly those
+roots, so a crash between the two leaves everything asleep, and a drain that fails deletes the row as well. In development the dev loop relaunches
+Electron when it exits with code 75, which is how a requested restart comes back. See
 [`docs/design/agent-recovery.md`](docs/design/agent-recovery.md).
 
 ## Workspace
@@ -45,8 +48,8 @@ Antumbra and provider-native session identities. Machinery with no outstanding o
 | `packages/domain-feeds`   | Shared post-commit domain change notifications                  |
 | `packages/resource-reclamation` | Replaceable-resource claims, guards, Runner cleanup, and recovery |
 | `packages/changes`       | Durable Change identity, submission, host reconciliation, and readiness |
-| `packages/repos`          | Application repository registry and transactional lifecycle     |
-| `packages/pieces`         | Piece acts and their transactional graph invariants             |
+| `packages/repos`          | Application repository registry and its lifecycle               |
+| `packages/pieces`         | Piece acts and their graph invariants                           |
 | `packages/boards`         | Board and mailbox storage invariants                            |
 | `packages/rulings`        | The Ruling record: requests, answers, and the readings of open and standing rulings |
 | `packages/artifacts`      | Durable artifact publication and landing                        |
@@ -73,8 +76,10 @@ root barrel. `contract` is the public IDL layer and may depend on that lower lea
 `domain` facade, while adapters implement ports without importing the domain.
 
 `apps/desktop` is the only composition root where adapters and use cases meet. Effect environments state runtime dependencies, capability services own
-their transactions and post-commit signals, and Layers select implementations and lifetimes. Foreign callbacks cross adapter boundaries only after
-their Effect requirements are closed. `packages/git` remains process infrastructure beneath `runner-local`.
+their durable writes and the post-commit signals that follow them, and Layers select implementations and lifetimes. Writes are single statements in
+their required order: there is no transaction anywhere in the workspace, and one is exceptional — it needs a product ruling for a named, reproduced
+integrity failure, as the [simplicity gate](quality-gates/simplicity.md) says. Foreign callbacks cross adapter boundaries only after their Effect
+requirements are closed. `packages/git` remains process infrastructure beneath `runner-local`.
 
 `service-definition` is the Effect-only construction leaf for process-lifetime services. One definition initializes private state and constructs the
 public method shape once per Layer instance. The Layer supplies only the definition's declared services; method-owned Scope remains visible to
@@ -94,12 +99,12 @@ one.
 
 `intent-demand` is the process-lifetime bridge between capability-owned durable demand and Kernel-owned mortal Intents. Capabilities close typed
 discovery registrations before handing them down; the bridge imports only Kernel and Effect, performs an initial pass before runtime readiness, and
-repeats on wake or bounded patience without owning business truth or durable checkpoints.
+repeats on a tick or after bounded patience without owning business truth or durable checkpoints.
 
-`resource-reclamation` owns the whole lifecycle of replaceable-resource claims: selection, transactional guards and claim creation, Runner cleanup,
-durable settlement, restart recovery, and the mortal reconcile loop. `changes` owns the whole durable Change aggregate and supplies Change-backed
-held-resource evidence through an ambient-transaction read; Domain composes the two capabilities. Resource reclamation never imports Change truth,
-Domain, applications, or providers.
+`resource-reclamation` owns the whole lifecycle of replaceable-resource claims: selection, claim guards and claim creation, Runner cleanup, durable
+settlement, and the mortal reconcile loop. `changes` owns the whole durable Change aggregate and supplies Change-backed held-resource evidence through
+a read the reclaimer is handed; Domain composes the two capabilities. Resource reclamation never imports Change truth, Domain, applications, or
+providers.
 
 `session-fabric` owns live Session attachment: opening a backend session, pumping its events, confirming native identity, and gating starts against
 stops. Everything it holds is process memory that may disappear at exit — handles, fibers, semaphores — rebuilt empty at boot, so the capability
@@ -129,8 +134,12 @@ generated config entry is `.dependency-cruiser.mjs`. The [package-architecture](
 ## The kernel
 
 Work enters the system as an intent: a durable, schema-validated record. Submitting an intent never fails for system-state reasons — it is a write
-that returns an id and an observable status stream. A scheduler decides admission (concurrency, resource pressure, shutdown draining) and is the only
-component that starts work. Intent lifecycles are explicit state machines with transition tables.
+that returns an id and an observable status stream. The scheduler admits queued Intents oldest first, by `createdAt` and then id, and is the only
+component that starts work. It runs on a tick — a nudge from any status change, or a five-second patience timeout — so a lost tick costs latency,
+never liveness. The kernel accepts admission gates as options (a concurrency cap, a settle window, a gauge ceiling); the desktop configures none, and
+the running-agent budget belongs to the dispatcher, which reads it from the `maxParallelSessions` setting. A tick is not a Session wake: a wake is an
+Intent of its own (`agent/wake`) that puts one Session back on its provider, and only a hail, a send, a dispatcher assignment, or a restart the
+admiral asked for submits one. Intent lifecycles are explicit state machines with transition tables.
 
 An Intent is a mortal executable attempt, not durable Piece demand. A desired Piece that is dependency-blocked has no dispatch workflow;
 reconciliation submits a new Intent when it becomes eligible. Waiting is reserved for an admitted attempt that needs immediate external intervention,

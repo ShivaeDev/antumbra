@@ -5,14 +5,15 @@ future design obeys. When a change conflicts with an axiom, the change is wrong 
 
 [`GLOSSARY.md`](GLOSSARY.md) is the short product-language index. The [`docs/design`](docs/design/README.md) guides own relationships, acts,
 rationale, and recovery behavior within each bounded topic. Code, schemas, and tests own exact implemented fields, states, wire names, and current
-behavior.
+behavior. An axiom here is a commitment, not a claim that code exists for it: the concepts designed and not yet built are listed in
+[`docs/design/intended.md`](docs/design/intended.md), one line each, and a to-do there is never deleted for lacking a caller.
 
 ## Direction and work
 
 - **Polaris is fixed; the course is not.** A Voyage moves toward a north star it never reaches. Its ephemeris, waypoints, and charters are revisable
   predictions made inside the cone of uncertainty, not promises.
 - **Edges gate; Legs do not.** Dependency edges carry real ordering at Piece granularity. SIGHT, PLOT, SAIL, and DRIFT are the Voyage's sequential
-  story; work crosses a Leg boundary whenever its edges allow.
+  story; work crosses a Leg boundary whenever its edges allow. Edges exist; Legs are intended, not yet built.
 - **Pieces are places, not processes.** A Piece is durable work with context, links, memory, and zero or more typed Outcomes. Agents act for it
   through mortal Intents; nothing executes inside the Piece.
 - **Work topology permits multiplicity.** Pieces depend on Pieces and link to assigned Agents, execution contexts, and Outcomes without one-to-one
@@ -20,7 +21,8 @@ behavior.
 - **Plans bend by editing typed links.** Promotion, parking, reordering, dependency edits, splitting, and merging change position without migrating
   durable substance.
 - **Posture is durable direction.** It records the admiral's standing stance toward a governed subject so ordinary decisions can be inferred. It is
-  never execution status; readiness, queueing, progress, and blockage are separate derived readings.
+  never execution status; readiness, queueing, progress, and blockage are separate derived readings. A Piece's launch and park are the only stored
+  posture today; the general record is intended, not yet built.
 - **Done is derived, never declared.** Landed and pending Outcomes determine leaf completion; containers derive theirs. Done work stays in history and
   remains available for linked follow-ups.
 - **Workers report; captains charter.** Proposed structure is not an Outcome. Agents return typed results; accountable captains decide the next work.
@@ -44,7 +46,7 @@ The [work and planning guide](docs/design/work-and-planning.md) owns the detaile
   identity. A mortal Intent schedules an operation and never stands in for long-lived Piece demand.
 - **Activity has no turns in the domain.** Agent activity is an event stream, load is a level, and quiescence is a derived gauge no workflow awaits.
   Provider turn events are telemetry, not a completion ontology. Admission governs Agent births, never message delivery. Mail is durable truth;
-  transport into execution is a separate, at-least-once effect.
+  carrying it into execution is a separate effect, and today the Agent pulls its own mailbox through a tool.
 - **Voyages sail by Piece launch, not play.** Launch records durable demand. Reconciliation creates or cancels dispatch attempts as eligibility
   changes; a blocked desired Piece needs no sleeping workflow.
 - **Recovery resumes before it replaces.** A wake restores the same Agent, Antumbra Session, and provider-native conversation. It is asked for — a
@@ -71,8 +73,10 @@ The [Agent recovery guide](docs/design/agent-recovery.md) owns resource, Session
 - **One vocabulary serves many backends.** The domain owns neutral Session events and delivery acts; adapters preserve provider payloads and native
   ids without making them authoritative. A second backend must fit the same model before the interface can claim neutrality.
 - **Every backend has both delivery boundaries and one reading surface.** `steer` enters running work; `queue` waits for the next full provider
-  boundary, and the domain's precedence policy chooses between them, never the adapter. Beside them every backend answers an `audit` — a census of
-  what a root spawned and an audit of one node — which reads stored work, never attaches, and reports what it finds as ordinary Session events.
+  boundary. The caller names the act, never the adapter: every send to a live Session steers, and the charter delivered at spawn and the instruction
+  handed to a resumed Session are queued. No precedence policy chooses between them; one is intended, not yet built. Beside them every backend answers
+  an `audit` — a census of what a root spawned and an audit of one node — which reads stored work, never attaches, and reports what it finds as
+  ordinary Session events.
 - **Unknown evidence stays evidence.** Raw or future event kinds render raw instead of taking the view down. Provider facts remain their own durable
   truth; observing a Change, Review, or message never invents another fact.
 - **Approvals are decisions, not booleans.** When approval behavior ships, it must preserve who decided, what was decided, and the scope of that
@@ -85,7 +89,7 @@ The [Agent recovery guide](docs/design/agent-recovery.md) owns resource, Session
 - **Boards preserve coordination across attention gaps.** Durable entities have one append-only Board with rough and smooth salience registers. Boards
   never duplicate derivable database state and are never resource-reclamation targets.
 - **Smoothing advances a frontier without erasing evidence.** It appends a provenance-bearing summary and conditionally moves the selected frontier;
-  every source remains reachable.
+  every source remains reachable. Intended, not yet built.
 - **Reach and interruption are different.** Ruling requests and mail land durably before policy decides whether, when, and how to interrupt. In v1 the
   admiral chooses what an idle Agent receives; persisted facts do not wake one.
 - **A Ruling is a record, not a Board entry.** One typed record binds the context, the question, and the answer, and the answer is read in the light
@@ -98,9 +102,9 @@ The [Agent recovery guide](docs/design/agent-recovery.md) owns resource, Session
 - **Standing rulings are smoothed, never edited.** Reclassification, consolidation, and retirement append with provenance, and dedicated agents do
   that work rather than captains.
 - **Anyone may all stop.** Escalation can hold one asker, one Voyage, or the fleet. The system makes the stop loud and reliable; misuse is handled as
-  a conversation afterwards.
-- **Coordination uses settled rails.** Board entries hold shared state, declarative wakeups request reconciliation, direct messages remain bounded,
-  and typed Artifact handoffs carry results. Software owns deterministic coordination; Agents supply judgment.
+  a conversation afterwards. Intended, not yet built.
+- **Coordination uses settled rails.** Board entries hold shared state, ticks request reconciliation, direct messages remain bounded, and typed
+  Artifact handoffs carry results. Software owns deterministic coordination; Agents supply judgment.
 
 The [attention and memory guide](docs/design/attention-and-memory.md) owns Boards, smoothing, mail, heave-to, and precedence. The
 [rulings guide](docs/design/rulings.md) owns the Ruling record, its axes and subjects, the authority ladder, gating, smoothing, and reach.
@@ -120,13 +124,13 @@ The [changes and delivery guide](docs/design/changes-and-delivery.md) owns Outco
 
 - **Submission never fails for system-state reasons.** Work is durably held with an observable status until admission permits it; hidden refusal is
   not holding.
-- **Policies are the concept; pools are one application.** Typed conditions and restrictions compose. Freed capacity pulls by policy, priority class,
-  focus, and durable demand. Priority class belongs to the Intent kind and is never stored as mutable work state. Reclaiming resources outranks
-  finishing work, which outranks starting more. Plugins may register further policy families without changing admission's meaning.
-- **All deadlocks are soft.** Capacity retains margin and may overcommit loudly and temporarily to break a proven stall.
-- **Wake is a latency hint, never a liveness dependency.** Startup, relevant events, and bounded patience all trigger idempotent reconciliation. A
-  wait uses a published deadline when one exists and a patience floor otherwise; a lost wake self-heals within that bound. Simulation proves admission
-  latency never exceeds the patience budget.
+- **Admission is a queue, oldest first.** The scheduler admits queued Intents by creation time behind whatever gates the composition root configures,
+  and the desktop configures none; the running-agent budget is one setting the dispatcher reads. Composable policies, priority classes, and
+  "reclaiming outranks finishing outranks starting" are intended, not yet built.
+- **All deadlocks are soft.** Capacity retains margin and may overcommit loudly and temporarily to break a proven stall. Intended, not yet built.
+- **A tick is a latency hint, never a liveness dependency.** Startup, relevant events, and bounded patience all tick the scheduler, the demand pass,
+  and the dispatcher into an idempotent pass. A wait uses a published deadline when one exists and a patience floor otherwise, so a lost tick costs at
+  most that bound. A tick is not a wake: a wake puts one Session back on its provider and is only ever asked for.
 - **Repository resources are app-level and capability-honest.** Every registered repository has one app-managed bare mirror, and each spawn gets one
   Berth for each registration. Runners expose only capabilities they can actually provide; repositories and Pieces never smuggle in resource policy.
 - **Reaping waits for settled execution.** A Session with an in-flight tool, descendant Agent tree, or background obligation is never interrupted for

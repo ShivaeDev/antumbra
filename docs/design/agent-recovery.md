@@ -39,8 +39,8 @@ A Piece's human posture is long-lived demand. `launch_piece` changes that postur
 desired Piece whose dependencies are unfinished remains desired and blocked with no dispatch Intent. If a queued Piece becomes blocked or is parked
 before starting, its short-lived dispatch Intent is cancelled. A new Intent is submitted when the durable demand becomes eligible again.
 
-Intent waiting is narrower: an admitted attempt may wait visibly for immediate external intervention such as authentication, then retry. Waiting is
-not a place to store ordinary Piece prerequisites.
+Intent waiting is narrower: an admitted attempt may wait visibly for immediate external intervention such as authentication, and moves again only when
+somebody retries it. Waiting is not a place to store ordinary Piece prerequisites.
 
 An already assigned Agent and resumable Session are reconciled before another Agent is spawned. Starting becomes in progress when the first assigned
 Agent's Moorage and Session are established and the initial task has been queued to the provider at least once. It does not wait for marked-read
@@ -77,8 +77,10 @@ The transcript accumulates messages, pairs tool lifecycle events, and renders us
 Unknown kinds and provider payloads remain visible as raw evidence instead of taking the projection down. A renderer may invoke only acts already
 owned by the domain, such as spawn, retire, or interrupt. It cannot invent a reply path or another delivery model.
 
-Every backend implements two delivery acts. `steer` enters work already under way; `queue` waits for the provider's next full boundary. Precedence
-policy in the domain chooses the act. A backend cannot silently omit one, choose for the caller, or make its native session identifier authoritative.
+Every backend implements two delivery acts. `steer` enters work already under way; `queue` waits for the provider's next full boundary. The caller
+names the act: every send to a live Session steers, while the charter delivered at spawn and the instruction handed to a resumed Session are queued.
+There is no precedence policy choosing between them; one is intended, not yet built. A backend cannot silently omit one, choose for the caller, or
+make its native session identifier authoritative.
 
 Delivery is not all a backend owes. Every backend also answers an **audit**, which reads and never attaches: a **census** asks what work a root
 spawned that the stream never carried, and a node audit asks what the provider still holds about one node. Both answer in the same neutral events a
@@ -96,15 +98,18 @@ conversation.
 Nothing resumes a Session on its own. Startup reconciles the durable rows and stops there: every Session comes back detached, and one whose row still
 says it was executing is **stranded** rather than repaired. No timer, sweep, projection, or boot pass ever opens a provider conversation to find out
 how a Session is doing. A wake is submitted by a hail, by a send, or by the dispatcher handing a Session a Piece already assigned to it — three
-explicit acts, each one asked for by somebody. A restart the admiral asks for is such an act as well: it records which roots it is about to stop, and
-the next boot wakes exactly those. Nothing else on boot wakes anything.
+explicit acts, each one asked for by somebody. A restart the admiral asks for is such an act as well: before the drain it records the attached roots
+in one `AppMeta` row, the next boot deletes that row and then submits a wake for each of those roots, and a crash between the two leaves everything
+asleep; a drain that fails deletes the row too, so an abandoned restart wakes nothing. One other wake reaches boot: a wake Intent that was still
+running when the process went is requeued by the kernel's reclaim, because it was asked for before the exit. Nothing else on boot wakes anything.
 
 Missing observers, an empty in-memory registry, or a dead watcher only remove current knowledge; they never mean an Agent retired, a Session closed, a
 Moorage orphaned, or a claim released.
 
-Initial and wake instructions use ordinary at-least-once delivery. After a successful native attach, the wake durably queues one instruction. If exit
-or transport failure obscures whether the provider accepted an instruction, a retry may send a duplicate; missing it is worse than repeating an
-idempotent one. A provider send is not durable evidence that an Agent read its mail.
+A wake carries one instruction: the input the send stored, or the generic wake words when it carried none. After a successful native attach the resume
+queues that instruction. A charter is delivered once and stamped on the Session row, so a requeued spawn does not deliver it twice. When a failure
+after handoff hides whether the provider accepted an input, the input is marked ambiguous and waits for the admiral; nothing resends it on its own. A
+provider send is not durable evidence that an Agent read its mail.
 
 If the provider transcript or native session is unavailable, the wake holds visibly and says on its own row why. Nothing pushes it again; the admiral
 does. Starting a linked successor Session is an explicit choice, preserves the same Agent, and carries a crash-recovery charter plus the available
@@ -118,11 +123,14 @@ Agents therefore think in terms of whom they are addressing while Antumbra manag
 
 ## Shutdown and failure
 
-Graceful shutdown asks attached executive work to settle at a safe boundary and only then exits. A forced shutdown merely ends local execution. It
-does not synthesize a mailbox read, Session closure, Agent retirement, or resource reclamation; startup reconciles the surviving durable truth.
+Graceful shutdown closes Session starts, marks every attached root that is not idle as draining, and submits a siesta for each; the siesta stops the
+attachment, which cuts the turn, and settles the row to idle. Only when every siesta has succeeded does the process exit. A drain that fails leaves
+the app running and, if a restart was requested, abandons it. A forced shutdown merely ends local execution. It does not synthesize a mailbox read,
+Session closure, Agent retirement, or resource reclamation; startup reconciles the surviving durable truth.
 
-Authentication requirements, ambiguous provider acceptance, and unsafe resource state are observable holds. Retrying restarts the workflow from
-durable truth. A successful intent means its promised durable boundary was reached, not merely that background work was detached.
+Authentication requirements, exhausted provider capacity, and unsafe resource state park the Intent as waiting, with the reason on its row. It stays
+parked until an explicit retry — the admiral retrying a provider, or another send to the same Session — moves it back to queued, and the attempt then
+begins again from durable truth. A successful intent means its promised durable boundary was reached, not merely that background work was detached.
 
 Agent-directed mail is durable and board-backed. Addressing and marked-read state remain true without a Session attachment, and reading never writes a
 receipt. In v1 the admiral selects attention and the Agent pulls its mailbox; no mail arrival or external fact automatically attaches, resumes, or
@@ -149,7 +157,7 @@ terminal support until Antumbra can actually render and operate a terminal.
 
 A root Session is in one of five states, and only the last of them refuses to be spoken to.
 
-- **Working** — taking a turn. Words queue and arrive at the next provider boundary.
+- **Working** — taking a turn. Words are steered into the running turn.
 - **Idle** — the Agent has said it has nothing left to do. The provider Session stays open and listening and no tokens are spent holding it. Words
   arrive immediately, because there is nothing to wake.
 - **Asleep** — the process attachment was given up on purpose, from a Session that had nothing left to do. The Session row is open and resumable, and

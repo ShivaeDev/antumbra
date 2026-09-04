@@ -21,14 +21,16 @@ contrived tests, and unjustified restrictions against this gate.
 5. Do not deny an agent or component an operation merely because a narrower policy sounds safer. Start permissive. Add a block only for a real product
    rule or an observed failure. Agents may read one another's Voyages unless a current product rule says otherwise.
 
-## The threat model is almost empty
+## The threat model is narrow, not empty
 
-Antumbra is a local, cooperative application whose agents can already exercise broad authority on the machine. Internet-service security posture does
-not apply.
+Antumbra is a local, cooperative application whose agents can already exercise broad authority on the machine. Its agents run shells with the
+admiral's credentials, for hours, unattended, over repositories, pull-request text, and web pages the admiral does not control, so what an agent reads
+is not trusted even though the agent is. Internet-service security posture does not apply, and neither does a hostile-tenant model.
 
 Do not add defenses for hostile agents, untrusted local users, path traversal, local permissions, tenant isolation, adversarial inputs, or similar
-attacks. Do not add permission gates simply to restrict something the application can already do. Security hardening is out of scope unless the
-admiral explicitly establishes a concrete threat model for a named external boundary. Agents do not invent one during implementation or review.
+attacks. Do not add permission gates simply to restrict something the application can already do. The console stays the app: a link opens in the real
+browser, and only `http` and `https` are opened at all — that is the glass axiom, not hardening. Further hardening is out of scope unless the admiral
+explicitly establishes a concrete threat model for a named boundary. Agents do not invent one during implementation or review.
 
 ## Refuse speculative reliability machinery
 

@@ -8,7 +8,10 @@ const compareIds = (left: string, right: string) => {
 	return left < right ? -1 : 1;
 };
 
-export const executionSessionOfAgent = (world: VoyageWorld, agentId: string): AgentSessionRow | undefined => {
+export const executionSessionOfAgent = (
+	world: Pick<VoyageWorld, "currentSessionByAgent" | "sessions">,
+	agentId: string,
+): AgentSessionRow | undefined => {
 	const currentSessionId = world.currentSessionByAgent.get(agentId);
 	const open = world.sessions.filter((session) => session.agentId === agentId && session.status === "open");
 	if (currentSessionId === null) {

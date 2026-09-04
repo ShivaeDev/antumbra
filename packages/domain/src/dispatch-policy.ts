@@ -23,9 +23,10 @@ const launchOrder = (left: ReadyPiece, right: ReadyPiece): number => {
 export const readyPieces = (world: VoyageWorld): ReadonlyArray<ReadyPiece> => {
 	const states = pieceStates(world);
 	const voyages = new Map(world.voyages.map((voyage) => [voyage.id, voyage]));
+	const pieces = new Map(world.pieces.map((piece) => [piece.id, piece]));
 	const ready = world.memberships.flatMap((membership) => {
 		const voyage = voyages.get(membership.voyageId);
-		const piece = world.pieces.find((row) => row.id === membership.pieceId);
+		const piece = pieces.get(membership.pieceId);
 		if (voyage === undefined || piece === undefined) {
 			return [];
 		}

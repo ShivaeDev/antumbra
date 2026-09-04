@@ -1,5 +1,7 @@
 import { type BoardOwnerNotFound, BoardScope, Boards, entryBodies, type StoredBoardEntryInvalid } from "@antumbra/boards";
+import { Database } from "@antumbra/persistence";
 import type { RulingReadFailure } from "@antumbra/rulings";
+import { decodeStoredVoyageKind } from "@antumbra/vocabulary/voyage";
 import { Effect, Option } from "effect";
 import { charterForKind } from "#charter-flagship.ts";
 import { CaptainAlreadyHailed, CaptainSessionUnavailable, VoyageNotFound } from "#errors.ts";
@@ -7,8 +9,9 @@ import type { SpawnRefused } from "#kernel-reach.ts";
 import { KernelReach } from "#kernel-reach.ts";
 import { pieceLineWithOutcomes } from "#piece-line.ts";
 import { rulingLine, standingRulingsFor } from "#standing-rulings.ts";
-import { CAPTAIN_ROLE, captainAtWork, captainOf } from "#voyage-captain.ts";
-import { executionSessionOfAgent } from "#voyage-execution-selection.ts";
+import { CAPTAIN_ROLE } from "#voyage-captain.ts";
+import { readVoyageCaptain } from "#voyage-captain-read.ts";
+import { voyageRow } from "#voyage-row-projection.ts";
 import { voyageView } from "#voyage-view.ts";
 import { type VoyageWorldReadFailure, VoyageWorldSource } from "#voyage-world.ts";
 
@@ -31,32 +34,34 @@ export const hailCaptain = (voyageId: string) =>
 	Effect.gen(function* () {
 		const boards = yield* Boards;
 		const reach = yield* KernelReach;
-		const source = yield* VoyageWorldSource;
-		const world = yield* source.read;
-		const voyage = world.voyages.find((row) => row.id === voyageId);
-		if (voyage === undefined) {
+		const db = yield* Database;
+		const storedVoyage = yield* db.Voyage.where({ id: voyageId }).first();
+		if (Option.isNone(storedVoyage)) {
 			return yield* new VoyageNotFound({ voyageId });
 		}
-		const current = captainOf(world, voyageId);
+		const kind = yield* Effect.fromResult(decodeStoredVoyageKind(voyageId, storedVoyage.value.kind));
+		const voyage = voyageRow(storedVoyage.value, kind);
+		const current = yield* readVoyageCaptain(voyageId);
 		if (Option.isSome(current) && current.value.status === "alive") {
-			const session = executionSessionOfAgent(world, current.value.agentId);
-			if (session === undefined) {
+			const sessionId = current.value.sessionId;
+			if (sessionId === null) {
 				return yield* new CaptainSessionUnavailable({
 					agentId: current.value.agentId,
 					detail: "no open execution to resume",
 					voyageId,
 				});
 			}
-			const intentId = yield* reach.submitWake({ sessionId: session.id });
+			const intentId = yield* reach.submitWake({ sessionId });
 			return { agentId: current.value.agentId, intentId };
 		}
-		const standing = captainAtWork(world, voyageId);
-		if (Option.isSome(standing)) {
+		if (Option.isSome(current) && current.value.atWork) {
 			return yield* new CaptainAlreadyHailed({
-				agentId: standing.value.agentId,
+				agentId: current.value.agentId,
 				voyageId,
 			});
 		}
+		const source = yield* VoyageWorldSource;
+		const world = yield* source.read;
 		const voyageLog = yield* boards.read(BoardScope.Voyage({ voyageId })).pipe(Effect.map(entryBodies));
 		const agentId = crypto.randomUUID();
 		const bindingRulings = yield* standingRulingsFor({

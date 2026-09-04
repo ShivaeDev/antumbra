@@ -24,28 +24,30 @@ export const isFlagshipCaptainIdentity = (world: VoyageWorld, role: string, iden
 		onSome: (voyageId) => world.voyages.some((voyage) => voyage.id === voyageId && voyage.kind === "flagship"),
 	});
 
-const isPieceAssigned = (world: VoyageWorld, agentId: string) => world.assignments.some((assignment) => assignment.agentId === agentId);
+type CaptainWorld = Pick<VoyageWorld, "agentStatus" | "assignments" | "crews" | "currentSessionByAgent" | "sessions">;
 
-const captains = (world: VoyageWorld, voyageId: string): ReadonlyArray<VoyageCrewMember> =>
+const isPieceAssigned = (world: CaptainWorld, agentId: string) => world.assignments.some((assignment) => assignment.agentId === agentId);
+
+const captains = (world: CaptainWorld, voyageId: string): ReadonlyArray<VoyageCrewMember> =>
 	crewOf(world, voyageId).filter((member) => member.role === CAPTAIN_ROLE && !isPieceAssigned(world, member.agentId));
 
-const asCaptain = (world: VoyageWorld, member: VoyageCrewMember): VoyageCaptain => ({
+const asCaptain = (world: CaptainWorld, member: VoyageCrewMember): VoyageCaptain => ({
 	agentId: member.agentId,
 	atWork: atWork(world, member.agentId),
 	sessionId: member.status === "alive" ? (executionSessionOfAgent(world, member.agentId)?.id ?? null) : null,
 	status: member.status,
 });
 
-const hailedLast = (world: VoyageWorld, members: ReadonlyArray<VoyageCrewMember>): VoyageCrewMember | undefined => {
+const hailedLast = (world: CaptainWorld, members: ReadonlyArray<VoyageCrewMember>): VoyageCrewMember | undefined => {
 	const born = [...world.agentStatus.keys()];
 	const at = (member: VoyageCrewMember) => born.indexOf(member.agentId);
 	return [...members].sort((left, right) => at(left) - at(right)).at(-1);
 };
 
-export const captainAtWork = (world: VoyageWorld, voyageId: string): Option.Option<VoyageCaptain> =>
+export const captainAtWork = (world: CaptainWorld, voyageId: string): Option.Option<VoyageCaptain> =>
 	Option.map(Option.fromUndefinedOr(captains(world, voyageId).find((member) => atWork(world, member.agentId))), (member) => asCaptain(world, member));
 
-export const captainOf = (world: VoyageWorld, voyageId: string): Option.Option<VoyageCaptain> => {
+export const captainOf = (world: CaptainWorld, voyageId: string): Option.Option<VoyageCaptain> => {
 	const working = captainAtWork(world, voyageId);
 	if (Option.isSome(working)) {
 		return working;

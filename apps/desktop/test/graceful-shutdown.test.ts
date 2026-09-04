@@ -1,6 +1,6 @@
 import { expect, it } from "@effect/vitest";
 import { Deferred, Effect, Fiber, Ref } from "effect";
-import { registerGracefulShutdown } from "#adapters/graceful-shutdown.ts";
+import { registerGracefulShutdown, requestRestart } from "#adapters/graceful-shutdown.ts";
 
 const record = (calls: Ref.Ref<ReadonlyArray<string>>, call: string) => {
 	Effect.runSync(Ref.update(calls, (all) => [...all, call]));
@@ -214,5 +214,23 @@ it.effect("retries shutdown after failure and permits exactly one exit", () =>
 		expect(finished.filter((call) => call === "quit")).toHaveLength(1);
 		expect(finished.slice(-2)).toEqual(["dispose", "quit"]);
 		expect(finished).not.toContain("final-prevent");
+	}),
+);
+
+it.effect("records the roots once when the restart is requested again during the drain", () =>
+	Effect.gen(function* () {
+		const calls = yield* Ref.make<ReadonlyArray<string>>([]);
+		const restarting = yield* Ref.make(false);
+		const restart = requestRestart(
+			restarting,
+			Ref.update(calls, (all) => [...all, "record"]),
+			() => record(calls, "quit"),
+		);
+
+		yield* restart;
+		yield* restart;
+
+		expect(yield* Ref.get(calls)).toEqual(["record", "quit"]);
+		expect(yield* Ref.get(restarting)).toBe(true);
 	}),
 );

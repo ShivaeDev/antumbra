@@ -19,8 +19,6 @@ export interface Inventory {
 	readonly manifests: readonly TextFile[];
 	readonly pragmaRegistry: string;
 	readonly root: string;
-	readonly serviceParameterAllowance: string;
-	readonly serviceParameterBaseline: string;
 	readonly sources: readonly SourceFile[];
 	readonly workspaceCatalog: string;
 }
@@ -93,15 +91,11 @@ export const collectInventory = (root: string): Effect.Effect<Inventory, Filesys
 		);
 		const workspaceCatalog = yield* readRequiredText(join(root, "pnpm-workspace.yaml"));
 		const pragmaRegistry = yield* readRequiredText(join(root, "script", "pragma-registry.json"));
-		const serviceParameterBaseline = yield* readRequiredText(join(root, "script", "lint", "service-parameter-baseline.json"));
-		const serviceParameterAllowance = yield* readRequiredText(join(root, "script", "lint", "service-parameter-allowance.json"));
 		return {
 			documents,
 			manifests,
 			pragmaRegistry,
 			root,
-			serviceParameterAllowance,
-			serviceParameterBaseline,
 			sources,
 			workspaceCatalog,
 		};

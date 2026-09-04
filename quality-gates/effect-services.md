@@ -24,7 +24,7 @@ the service-parameter lint rule.
 5. Close Effect requirements before a callback crosses into a foreign SDK. The domain compiles a provider callback by yielding its exact capabilities;
    the adapter receives an `R = never` callback and never carries a domain Context.
 6. Adapters may accept constructed foreign values at their boundary, and tests may inject a narrow fake through a Layer. Neither exception permits
-   service plumbing through production business functions. When touched legacy plumbing is removed, its active debt-baseline entry leaves with it.
+   service plumbing through production business functions.
 
 ## Detailed guides
 

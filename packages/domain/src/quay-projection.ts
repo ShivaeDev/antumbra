@@ -4,27 +4,10 @@ import type { QuayReading } from "#quay-view.ts";
 import { changeSeen } from "#voyage-projection.ts";
 
 export const quaySeen = (reading: QuayReading, hosts: ReadonlyArray<ChangeHostCapabilityView>): QuayView => ({
-	hosts: hosts.map((host) => ({
-		available: host.available,
-		detail: host.detail,
-		tag: host.tag,
-	})),
-	pieces: reading.pieces.map((piece) => ({
-		id: piece.id,
-		title: piece.title,
-		voyageName: piece.voyageName,
-	})),
+	hosts,
+	pieces: reading.pieces,
 	rows: reading.rows.map((row) => ({
-		baseRef: row.baseRef,
-		body: row.body,
+		...row,
 		change: changeSeen(row.change),
-		group: row.group,
-		headRef: row.headRef,
-		headSha: row.headSha,
-		originSessionId: row.originSessionId,
-		pieceId: row.pieceId,
-		pieceTitle: row.pieceTitle,
-		voyageId: row.voyageId,
-		voyageName: row.voyageName,
 	})),
 });

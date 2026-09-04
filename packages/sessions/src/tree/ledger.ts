@@ -20,12 +20,10 @@ export const makeSessionTreeLedger = Effect.gen(function* () {
 	const db = yield* Database;
 	const gapKinds = (sessionId: string) =>
 		db.SessionEvent.where({ kind: GAP, sessionId })
-			.select("kind", "payload")
 			.all()
 			.pipe(Effect.map((rows) => rows.flatMap(gapKindOf)));
 	const recorded = (sessionId: string) =>
 		db.SessionEvent.where({ sessionId })
-			.select("kind", "payload")
 			.all()
 			.pipe(Effect.map((rows) => rows.flatMap(rawOf)));
 	const nodeRows = (rootSessionId: string) => db.AgentSession.where({ rootSessionId }).where(nodeSessionsOnly).all();

@@ -22,7 +22,6 @@ export const activeIntents = Effect.fn("Kernel.active")(function* <Payload>(kind
 	const db = yield* Database;
 	const rows = yield* db.Intent.where({ tag: kind.tag })
 		.where((intent) => intent.status.in(ActiveIntentStatusSchema.literals))
-		.select("detail", "id", "payload", "status")
 		.all();
 	const active: Array<ActiveIntent<Payload>> = [];
 	for (const row of rows) {

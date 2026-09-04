@@ -8,29 +8,25 @@ export interface JournalAppend {
 	readonly sessionId: string;
 }
 
-export const makeJournalAppends = Effect.gen(function* () {
+export const appendJournalEvent = Effect.fn("SessionEventJournal.append")(function* ({ event, sessionId }: JournalAppend) {
 	const db = yield* Database;
-	const appendOne = ({ event, sessionId }: JournalAppend) =>
-		Effect.gen(function* () {
-			const latest = yield* db.SessionEvent.where({ sessionId })
-				.orderBy((row) => row.seq.desc())
-				.take(1)
-				.first();
-			const seq = Option.match(latest, {
-				onNone: () => 0,
-				onSome: (row) => row.seq + 1,
-			});
-			const row: StoredEvent = {
-				kind: event.type,
-				payload: JSON.stringify(event),
-				seq,
-				sessionId,
-			};
-			yield* db.SessionEvent.create(row);
-			if (event.type === "session.opened") {
-				yield* db.AgentSession.where({ id: sessionId, nativeRef: null }).update({ nativeRef: event.nativeRef });
-			}
-			return row;
-		});
-	return (appends: ReadonlyArray<JournalAppend>) => Effect.forEach(appends, appendOne, { concurrency: 1 });
+	const latest = yield* db.SessionEvent.where({ sessionId })
+		.orderBy((row) => row.seq.desc())
+		.take(1)
+		.first();
+	const seq = Option.match(latest, {
+		onNone: () => 0,
+		onSome: (row) => row.seq + 1,
+	});
+	const row: StoredEvent = {
+		kind: event.type,
+		payload: JSON.stringify(event),
+		seq,
+		sessionId,
+	};
+	yield* db.SessionEvent.create(row);
+	if (event.type === "session.opened") {
+		yield* db.AgentSession.where({ id: sessionId, nativeRef: null }).update({ nativeRef: event.nativeRef });
+	}
+	return row;
 });

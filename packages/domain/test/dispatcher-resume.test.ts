@@ -138,7 +138,7 @@ it.live("assigned work wakes the same idle Agent where it stands, before spawn",
 			yield* callTool(initial, "stand_down", undefined);
 			yield* eventually(
 				Effect.gen(function* () {
-					expect(yield* initial.sent).toContain(WAKE_INSTRUCTION);
+					expect(yield* initial.steered).toContain(WAKE_INSTRUCTION);
 				}),
 			);
 			expect(yield* scripted.opened).toHaveLength(1);

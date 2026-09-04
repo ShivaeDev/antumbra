@@ -185,16 +185,16 @@ it.live("a provider hold stops automatic wakes until the admiral retries it", ()
 			yield* eventually(expectScriptedProviderBlocked);
 			yield* callTool(live, "stand_down", undefined);
 			yield* Queue.take(blockedReads);
-			expect(yield* live.sent).not.toContain(WAKE_INSTRUCTION);
+			expect(yield* live.steered).not.toContain(WAKE_INSTRUCTION);
 
 			yield* domain.backendCapacities.clear("scripted");
 			yield* domain.backendCapacities.announce;
 			yield* eventually(
 				Effect.gen(function* () {
-					expect(yield* live.sent).toContain(WAKE_INSTRUCTION);
+					expect(yield* live.steered).toContain(WAKE_INSTRUCTION);
 				}),
 			);
-			expect((yield* live.sent).filter((text) => text === WAKE_INSTRUCTION)).toHaveLength(1);
+			expect((yield* live.steered).filter((text) => text === WAKE_INSTRUCTION)).toHaveLength(1);
 		}).pipe(
 			Effect.provide(
 				dispatchingLayer(temporary, backend, {

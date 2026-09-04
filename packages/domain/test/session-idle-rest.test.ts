@@ -28,7 +28,8 @@ it.live("standing down keeps the acquisition, and the next words need no resume"
 			expect(idle.canInterrupt).toBe(false);
 
 			yield* sight.send(HAND.sessionId, "one more thing");
-			expect(yield* live.sent).toEqual([HAND.charter, "one more thing"]);
+			expect(yield* live.sent).toEqual([HAND.charter]);
+			expect(yield* live.steered).toEqual(["one more thing"]);
 			expect(yield* scripted.opened).toHaveLength(1);
 			expect((yield* sessionRow).executionStatus).toBe("active");
 			expect((yield* presenceOf).presence).toBe("working");

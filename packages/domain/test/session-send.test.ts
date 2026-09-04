@@ -36,7 +36,7 @@ const liveSession = (scripted: ScriptedBackend, sessionId: string) =>
 		return Option.getOrThrow(Option.fromUndefinedOr(yield* scripted.session(sessionId)));
 	});
 
-it.live("the admiral's words reach the live session's queue", () =>
+it.live("the admiral's words steer the live session", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
 		const scripted = yield* makeScriptedBackend;
@@ -46,8 +46,8 @@ it.live("the admiral's words reach the live session's queue", () =>
 			const session = yield* liveSession(scripted, receipt.sessionId);
 			expect(yield* session.sent).toEqual([spawnRequest.charter]);
 			yield* sight.send(receipt.sessionId, "steer for the reef");
-			expect(yield* session.sent).toEqual([spawnRequest.charter, "steer for the reef"]);
-			expect(yield* session.steered).toEqual([]);
+			expect(yield* session.sent).toEqual([spawnRequest.charter]);
+			expect(yield* session.steered).toEqual(["steer for the reef"]);
 		}).pipe(Effect.provide(sightLayer(temporary, scripted)));
 	}),
 );

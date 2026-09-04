@@ -78,7 +78,7 @@ export const makeSessionAttachmentRegistry = Effect.gen(function* () {
 		interrupt: (sessionId) => liveHandle(sessionId).pipe(Effect.flatMap((handle) => handle.interrupt)),
 		send: (sessionId, input) =>
 			rousingHandle(sessionId).pipe(
-				Effect.flatMap((handle) => handle.queue(input)),
+				Effect.flatMap((handle) => handle.steer(input)),
 				Effect.annotateSpans({ sessionId }),
 			),
 		standDown: (sessionId) => Effect.flatMap(Clock.currentTimeMillis, (now) => entries.rest(sessionId, now)),

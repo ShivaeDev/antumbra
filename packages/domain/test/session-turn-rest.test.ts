@@ -136,7 +136,8 @@ it.live("words after a completed turn put the session back to work", () =>
 			yield* sight.send(HAND.sessionId, "one more thing");
 			expect((yield* sessionRow).executionStatus).toBe("active");
 			expect((yield* presenceOf).presence).toBe("working");
-			expect(yield* live.sent).toEqual([HAND.charter, "one more thing"]);
+			expect(yield* live.sent).toEqual([HAND.charter]);
+			expect(yield* live.steered).toEqual(["one more thing"]);
 
 			yield* passedAt(DEFAULT_IDLE_SIESTA_AFTER_MILLIS + 60_000);
 			expect(yield* siestaIntents).toEqual([]);

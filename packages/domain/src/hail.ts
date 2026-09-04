@@ -1,4 +1,4 @@
-import { type BoardOwnerNotFound, BoardScope, Boards, type StoredBoardEntryInvalid, smoothBodies } from "@antumbra/boards";
+import { type BoardOwnerNotFound, BoardScope, Boards, entryBodies, type StoredBoardEntryInvalid } from "@antumbra/boards";
 import type { RulingReadFailure } from "@antumbra/rulings";
 import { Effect, Option } from "effect";
 import { charterForKind } from "#charter-flagship.ts";
@@ -57,7 +57,7 @@ export const hailCaptain = (voyageId: string) =>
 				voyageId,
 			});
 		}
-		const voyageSmoothLog = yield* boards.read(BoardScope.Voyage({ voyageId })).pipe(Effect.map(smoothBodies));
+		const voyageLog = yield* boards.read(BoardScope.Voyage({ voyageId })).pipe(Effect.map(entryBodies));
 		const agentId = crypto.randomUUID();
 		const bindingRulings = yield* standingRulingsFor({
 			agentId,
@@ -72,7 +72,7 @@ export const hailCaptain = (voyageId: string) =>
 				northStar: voyage.northStar,
 				pieceLines: voyageView(world, voyage).pieces.map(pieceLineWithOutcomes),
 				rulings: bindingRulings.map(rulingLine),
-				voyageLog: voyageSmoothLog,
+				voyageLog,
 			}),
 			role: CAPTAIN_ROLE,
 			runner: "local",

@@ -186,7 +186,6 @@ it.effectApp("a captain may read another voyage without conning it", { clock: "l
 		expect(
 			yield* callTool(captain, "write_board", {
 				body: "hand the next captain the eastern approach",
-				register: "smooth",
 				scope: "voyage",
 			}),
 		).toEqual({ ok: true, text: "written to the voyage board" });

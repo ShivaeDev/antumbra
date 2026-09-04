@@ -68,7 +68,6 @@ it.live("dispatched crew keeps its selected Voyage authority across rebuild", ()
 			expect(
 				yield* callTool(live, "write_board", {
 					body: "the swell is running",
-					register: "rough",
 					scope: "voyage",
 				}),
 			).toEqual({ ok: true, text: "written to the voyage board" });
@@ -113,7 +112,6 @@ it.live("dispatched crew keeps its selected Voyage authority across rebuild", ()
 			expect(
 				yield* callTool(resumed, "write_board", {
 					body: "the durable authority survived rebuild",
-					register: "smooth",
 					scope: "voyage",
 				}),
 			).toEqual({ ok: true, text: "written to the voyage board" });
@@ -151,7 +149,6 @@ it.live("Piece membership cannot supply missing Session Voyage authority", () =>
 			expect(
 				yield* callTool(live, "write_board", {
 					body: "this must not be guessed from membership",
-					register: "rough",
 					scope: "voyage",
 				}),
 			).toEqual({ ok: false, text: "you have no voyage board" });

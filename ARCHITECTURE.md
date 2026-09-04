@@ -23,11 +23,11 @@ observation hook turns those facts into mail or resumes an Agent; v1 attention i
 
 Closing the app stops local execution, not durable work. A graceful quit marks every attached root Session that is not idle as draining, stops each
 attachment so its turn is cut, and settles the rows to idle before the process exits; a forced exit never invents completion. Nothing on the next boot
-resumes a Session on its own: startup reconciles the rows and stops. A restart the admiral asks for is the one exception, and it is itself an act:
-before the drain, the shell records the attached roots in an `AppMeta` row; the next boot deletes that row and then submits a wake for exactly those
-roots, so a crash between the two leaves everything asleep, and a drain that fails deletes the row as well. In development the dev loop relaunches
-Electron when it exits with code 75, which is how a requested restart comes back. See
-[`docs/design/agent-recovery.md`](docs/design/agent-recovery.md).
+resumes a Session on its own: startup reconciles the rows, requeues a wake Intent that was still running when the process went, and stops. A restart
+the admiral asks for is the one addition, and it is itself an act: before the drain, the shell records the attached roots in an `AppMeta` row; the
+next boot deletes that row and then submits a wake for exactly those roots, so a crash between the two leaves everything asleep, and a drain that
+fails deletes the row as well. In development the dev loop relaunches Electron when it exits with code 75, which is how a requested restart comes
+back. See [`docs/design/agent-recovery.md`](docs/design/agent-recovery.md).
 
 ## Workspace
 

@@ -54,9 +54,7 @@ export const makeSessionNodeReconciler = Effect.gen(function* () {
 		if (nodes.length === 0) {
 			return;
 		}
-		const agents = yield* db.Agent.where((agent) => agent.id.in(nodes.map((node) => node.agentId)))
-			.select("id", "status", "currentSessionId")
-			.all();
+		const agents = yield* db.Agent.where((agent) => agent.id.in(nodes.map((node) => node.agentId))).all();
 		const owners: ReadonlyMap<string, Spawner> = new Map(agents.map((agent) => [agent.id, agent]));
 		yield* Effect.forEach(nodes, (node) => settle(node, owners), {
 			concurrency: 1,

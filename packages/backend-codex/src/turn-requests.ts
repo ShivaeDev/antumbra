@@ -19,12 +19,28 @@ const turnIdOf = (response: unknown) =>
 
 class TurnNotSteerable extends Data.TaggedError("TurnNotSteerable") {}
 
-const noActiveTurn = Schema.String.check(Schema.isPattern(/no active turn/));
-const decodeNoActiveTurn = Schema.decodeUnknownOption(noActiveTurn);
-const decodeNotSteerable = Schema.decodeUnknownOption(Schema.Union([noActiveTurn, Schema.String.check(Schema.isPattern(/expected active turn id/))]));
+const decodeFailureDetail = Schema.decodeUnknownOption(
+	Schema.TemplateLiteralParser([
+		Schema.String,
+		Schema.Literals(["no active turn", "expected active turn id", "timeout waiting"]).transform([
+			"noActiveTurn",
+			"expectedActiveTurnId",
+			"timeoutWhileDraining",
+		]),
+		Schema.String,
+	]),
+);
 
-const nothingToInterrupt = (failure: BackendFailure): boolean =>
-	Option.isSome(decodeNoActiveTurn(failure.detail)) || failure.detail.includes("timeout waiting");
+const turnFailureKind = (failure: BackendFailure) =>
+	Option.match(decodeFailureDetail(failure.detail), {
+		onNone: () => "other" as const,
+		onSome: ([, kind]) => kind,
+	});
+
+const nothingToInterrupt = (failure: BackendFailure): boolean => {
+	const kind = turnFailureKind(failure);
+	return kind === "noActiveTurn" || kind === "timeoutWhileDraining";
+};
 
 export interface TurnRequests {
 	readonly interrupt: (turnId: string) => Effect.Effect<void, BackendFailure>;
@@ -58,6 +74,9 @@ export const turnRequests = (server: CodexServer, threadId: string): TurnRequest
 			})
 			.pipe(
 				Effect.asVoid,
-				Effect.mapError((failure) => (Option.isSome(decodeNotSteerable(failure.detail)) ? new TurnNotSteerable() : failure)),
+				Effect.mapError((failure) => {
+					const kind = turnFailureKind(failure);
+					return kind === "noActiveTurn" || kind === "expectedActiveTurnId" ? new TurnNotSteerable() : failure;
+				}),
 			),
 });

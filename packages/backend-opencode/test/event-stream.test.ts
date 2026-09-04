@@ -18,12 +18,18 @@ it.live("delivers both events when malformed data arrives between stream reads",
 		});
 		vi.stubGlobal("fetch", () => Promise.resolve(new Response(body)));
 		const frames: unknown[] = [];
+		const malformed: string[] = [];
 		yield* Effect.promise(
 			() =>
 				new Promise<void>((resolve) => {
-					openEventStream("http://opencode/global/event", { onEnd: resolve, onFrame: (frame) => frames.push(frame) });
+					openEventStream("http://opencode/global/event", {
+						onEnd: resolve,
+						onFrame: (frame) => frames.push(frame),
+						onMalformed: (line) => malformed.push(line),
+					});
 				}),
 		);
 		expect(frames).toEqual([{ first: 1 }, { second: 2 }]);
+		expect(malformed).toEqual(["data: broken"]);
 	}),
 );

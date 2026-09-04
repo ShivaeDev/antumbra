@@ -1,5 +1,5 @@
 import { Changes } from "@antumbra/changes";
-import type { AgentSummary, Fleet, RepoSummary } from "@antumbra/contract";
+import type { AgentSummary, Fleet } from "@antumbra/contract";
 import { Database } from "@antumbra/persistence";
 import { Repos } from "@antumbra/repos";
 import { rootSessions, situationsByAgent } from "@antumbra/sessions";
@@ -47,12 +47,7 @@ export const fleetSnapshot = (
 				status: Effect.fromResult(decodeStoredBerthStatus(berth.id, berth.status)),
 			}).pipe(Effect.map((decoded) => ({ ...berth, ...decoded }))),
 		);
-		const repos: ReadonlyArray<RepoSummary> = (yield* registry.registered()).map((repo) => ({
-			defaultRef: repo.defaultRef,
-			id: repo.id,
-			name: repo.name,
-			source: repo.source,
-		}));
+		const repos = yield* registry.registered();
 		const work = {
 			assignments,
 			crews: yield* db.VoyageAgent.all(),

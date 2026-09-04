@@ -55,11 +55,11 @@ catalogs:
       specifier: 1.3.3
       version: 1.3.3
     '@shivaedev/effect-prisma':
-      specifier: 0.6.2
-      version: 0.6.2
+      specifier: 0.6.3
+      version: 0.6.3
     '@shivaedev/effect-trpc':
-      specifier: 0.3.2
-      version: 0.3.2
+      specifier: 0.3.4
+      version: 0.3.4
     '@tailwindcss/vite':
       specifier: 4.3.3
       version: 4.3.3
@@ -527,7 +527,7 @@ importers:
         version: link:../vocabulary
       '@shivaedev/effect-trpc':
         specifier: 'catalog:'
-        version: 0.3.2(@effect/vitest@4.0.0-rc.112(effect@4.0.0-rc.112)(vitest@4.1.9(@types/node@24.10.1)(happy-dom@20.11.2)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0))))(@trpc/server@11.18.0(@typescript/typescript6@6.0.2))(effect@4.0.0-rc.112)
+        version: 0.3.4(@effect/vitest@4.0.0-rc.112(effect@4.0.0-rc.112)(vitest@4.1.9(@types/node@24.10.1)(happy-dom@20.11.2)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0))))(@trpc/server@11.18.0(@typescript/typescript6@6.0.2))(effect@4.0.0-rc.112)
       '@trpc/server':
         specifier: 'catalog:'
         version: 11.18.0(@typescript/typescript6@6.0.2)
@@ -847,7 +847,7 @@ importers:
         version: 0.15.0(@typescript/typescript6@6.0.2)(typanion@3.14.0)
       '@shivaedev/effect-prisma':
         specifier: 'catalog:'
-        version: 0.6.2(@effect/vitest@4.0.0-rc.112(effect@4.0.0-rc.112)(vitest@4.1.9(@types/node@24.10.1)(happy-dom@20.11.2)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0))))(@typescript/typescript6@6.0.2)(effect@4.0.0-rc.112)(typanion@3.14.0)
+        version: 0.6.3(@effect/vitest@4.0.0-rc.112(effect@4.0.0-rc.112)(vitest@4.1.9(@types/node@24.10.1)(happy-dom@20.11.2)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0))))(@typescript/typescript6@6.0.2)(effect@4.0.0-rc.112)(typanion@3.14.0)
       effect:
         specifier: 'catalog:'
         version: 4.0.0-rc.112
@@ -2238,7 +2238,6 @@ packages:
   '@prisma-next/adapter-postgres@0.15.0':
     resolution: {integrity: sha512-mg5ueBhQGa3DI6WtmW7SgHXmjxkbFfqtXX4QAKDk70k2fVWu9h5N+HHUPHuVC5uTUVKHH7uu+yL872sWwB8grw==}
     engines: {node: '>=24'}
-    deprecated: The @prisma-next scope is retired. Prisma Next continues as Prisma ORM v8, published as the prisma package from https://github.com/prisma/prisma. To upgrade, run npm install prisma and follow the docs at https://docs.prisma.io/docs/orm.
     peerDependencies:
       typescript: '>=5.9'
     peerDependenciesMeta:
@@ -2319,7 +2318,6 @@ packages:
   '@prisma-next/driver-postgres@0.15.0':
     resolution: {integrity: sha512-Ceb8L609rCkXk97QFsYmVmrifJoYETeU24gWWAdGRXbP2O3MRx1ZFtQGQxs5yfQstzpLu4auMgVQzqYEdEl+KQ==}
     engines: {node: '>=24'}
-    deprecated: The @prisma-next scope is retired. Prisma Next continues as Prisma ORM v8, published as the prisma package from https://github.com/prisma/prisma. To upgrade, run npm install prisma and follow the docs at https://docs.prisma.io/docs/orm.
     peerDependencies:
       typescript: '>=5.9'
     peerDependenciesMeta:
@@ -2419,7 +2417,6 @@ packages:
   '@prisma-next/postgres@0.15.0':
     resolution: {integrity: sha512-07oq8oAw2gG7LYc7Y8vGwjUmNk15Br0mJUh2f66jBN5Ps8u79HAypg+eiYuhpLmCyq/WqiY5Z/weMaDz7N/P8Q==}
     engines: {node: '>=24'}
-    deprecated: The @prisma-next scope is retired. Prisma Next continues as Prisma ORM v8, published as the prisma package from https://github.com/prisma/prisma. To upgrade, run npm install prisma and follow the docs at https://docs.prisma.io/docs/orm.
     peerDependencies:
       typescript: '>=5.9'
     peerDependenciesMeta:
@@ -2519,7 +2516,6 @@ packages:
   '@prisma-next/sql-orm-client@0.15.0':
     resolution: {integrity: sha512-QmZVJjXaEXhgqPpxrltRiZV+hTV3mp1/04Da6aYeT+iylboXkc0WFMNExqEZ7Wwp5N3e+UuG1WMHQ80IdxKuWQ==}
     engines: {node: '>=24'}
-    deprecated: The @prisma-next scope is retired. Prisma Next continues as Prisma ORM v8, published as the prisma package from https://github.com/prisma/prisma. To upgrade, run npm install prisma and follow the docs at https://docs.prisma.io/docs/orm.
     peerDependencies:
       typescript: '>=5.9'
     peerDependenciesMeta:
@@ -2529,7 +2525,6 @@ packages:
   '@prisma-next/sql-relational-core@0.15.0':
     resolution: {integrity: sha512-kxnRfQ5Oz7v0qMlPnyLWjPfSDW7mGzOA3a0W3rQgn76kJauPpRnehES0V5o/k0Wqifdb/DgydCjBlh1qGS1Ybw==}
     engines: {node: '>=24'}
-    deprecated: The @prisma-next scope is retired. Prisma Next continues as Prisma ORM v8, published as the prisma package from https://github.com/prisma/prisma. To upgrade, run npm install prisma and follow the docs at https://docs.prisma.io/docs/orm.
     peerDependencies:
       typescript: '>=5.9'
     peerDependenciesMeta:
@@ -2539,7 +2534,6 @@ packages:
   '@prisma-next/sql-runtime@0.15.0':
     resolution: {integrity: sha512-zcQyL1yp6u4pUHrrQQjrhRl6TkI5YvOO6HcbEfA8spl0zwnkRcSGorraLpY8Zcmhe8b3iOXW5nZRGEteYQYohw==}
     engines: {node: '>=24'}
-    deprecated: The @prisma-next scope is retired. Prisma Next continues as Prisma ORM v8, published as the prisma package from https://github.com/prisma/prisma. To upgrade, run npm install prisma and follow the docs at https://docs.prisma.io/docs/orm.
     peerDependencies:
       typescript: '>=5.9'
     peerDependenciesMeta:
@@ -2569,7 +2563,6 @@ packages:
   '@prisma-next/target-postgres@0.15.0':
     resolution: {integrity: sha512-5TmXqfxle3AAErtTSxJMykJC5tNlLMOltzrwdHC2whHYxkFZX27vNj72e8LAPfWTMGvSLRx6nPwSnswWA1k4dQ==}
     engines: {node: '>=24'}
-    deprecated: The @prisma-next scope is retired. Prisma Next continues as Prisma ORM v8, published as the prisma package from https://github.com/prisma/prisma. To upgrade, run npm install prisma and follow the docs at https://docs.prisma.io/docs/orm.
     peerDependencies:
       typescript: '>=5.9'
     peerDependenciesMeta:
@@ -3107,34 +3100,34 @@ packages:
   '@rolldown/pluginutils@1.0.1':
     resolution: {integrity: sha512-2j9bGt5Jh8hj+vPtgzPtl72j0yRxHAyumoo6TNfAjsLB04UtpSvPbPcDcBMxz7n+9CYB0c1GxQFxYRg2jimqGw==}
 
-  '@shivaedev/effect-prisma@0.6.2':
-    resolution: {integrity: sha512-+Exa4Nwq/aSe8JeYBSXoIX53xuHRPl2bhGzz5RXF0y50wioAumK8jMHPMh5Ln4s1H7Y4EoT/4TSoKBlRxRVt/A==}
+  '@shivaedev/effect-prisma@0.6.3':
+    resolution: {integrity: sha512-CvO8MQ3XXR0YMFm4OPKQsEvYx662IZeV2akkq4Y89qq7CBae8OOia7Ba0nU83vEOV7O/fJ93pWVCZumMqc1uLQ==}
     engines: {node: '>=24'}
     hasBin: true
     peerDependencies:
-      '@effect/vitest': 4.0.0-rc.108
-      effect: 4.0.0-rc.108
+      '@effect/vitest': 4.0.0-rc.112
+      effect: 4.0.0-rc.112
     peerDependenciesMeta:
       '@effect/vitest':
         optional: true
 
-  '@shivaedev/effect-test@0.1.0':
-    resolution: {integrity: sha512-2R7z6muALbI58vgl7DmpcCE0je3AXMGS3ovMfHhHrL0b3th2i5IWJsS7jA4yt34nOGPIwdw0xwrg+RISH5pX9g==}
+  '@shivaedev/effect-test@0.1.1':
+    resolution: {integrity: sha512-uKzbC9aXs4Y2R8nq+AfCrrAf87hgY5L6sJuuESP4GVROhBkrFwooBkPAmhfMdIfHXLaXEU1Xq3kpnIurEOi5IA==}
     engines: {node: '>=24'}
     peerDependencies:
-      '@effect/vitest': 4.0.0-rc.108
-      effect: 4.0.0-rc.108
+      '@effect/vitest': 4.0.0-rc.112
+      effect: 4.0.0-rc.112
     peerDependenciesMeta:
       '@effect/vitest':
         optional: true
 
-  '@shivaedev/effect-trpc@0.3.2':
-    resolution: {integrity: sha512-PORh2/k5hzQmbh/B4By0cMM+MFoT4m+1xzGbU+H0d0THFXmmyqd0YfVbncglOvWBcdS+rvoDC2IHDv7FeOkHmw==}
+  '@shivaedev/effect-trpc@0.3.4':
+    resolution: {integrity: sha512-VNG1sjIm2wb8VsrUQ6+fX0pIQVVb+vY2DH2YdvdSf56LXVfqHdAlA6SQZviAkeWQAq5CO6uadGgWZCWDDU67rA==}
     engines: {node: '>=24'}
     peerDependencies:
-      '@effect/vitest': 4.0.0-rc.108
+      '@effect/vitest': 4.0.0-rc.112
       '@trpc/server': 11.18.0
-      effect: 4.0.0-rc.108
+      effect: 4.0.0-rc.112
     peerDependenciesMeta:
       '@effect/vitest':
         optional: true
@@ -7519,7 +7512,7 @@ snapshots:
 
   '@rolldown/pluginutils@1.0.1': {}
 
-  '@shivaedev/effect-prisma@0.6.2(@effect/vitest@4.0.0-rc.112(effect@4.0.0-rc.112)(vitest@4.1.9(@types/node@24.10.1)(happy-dom@20.11.2)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0))))(@typescript/typescript6@6.0.2)(effect@4.0.0-rc.112)(typanion@3.14.0)':
+  '@shivaedev/effect-prisma@0.6.3(@effect/vitest@4.0.0-rc.112(effect@4.0.0-rc.112)(vitest@4.1.9(@types/node@24.10.1)(happy-dom@20.11.2)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0))))(@typescript/typescript6@6.0.2)(effect@4.0.0-rc.112)(typanion@3.14.0)':
     dependencies:
       '@prisma-next/contract': 0.15.0(@typescript/typescript6@6.0.2)
       '@prisma-next/postgres': 0.15.0(@typescript/typescript6@6.0.2)(typanion@3.14.0)
@@ -7528,7 +7521,7 @@ snapshots:
       '@prisma-next/sql-relational-core': 0.15.0(@typescript/typescript6@6.0.2)
       '@prisma-next/sql-runtime': 0.15.0(@typescript/typescript6@6.0.2)
       '@prisma-next/sqlite': 0.15.0(@typescript/typescript6@6.0.2)(typanion@3.14.0)
-      '@shivaedev/effect-test': 0.1.0(@effect/vitest@4.0.0-rc.112(effect@4.0.0-rc.112)(vitest@4.1.9(@types/node@24.10.1)(happy-dom@20.11.2)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0))))(effect@4.0.0-rc.112)
+      '@shivaedev/effect-test': 0.1.1(@effect/vitest@4.0.0-rc.112(effect@4.0.0-rc.112)(vitest@4.1.9(@types/node@24.10.1)(happy-dom@20.11.2)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0))))(effect@4.0.0-rc.112)
       effect: 4.0.0-rc.112
     optionalDependencies:
       '@effect/vitest': 4.0.0-rc.112(effect@4.0.0-rc.112)(vitest@4.1.9(@types/node@24.10.1)(happy-dom@20.11.2)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0)))
@@ -7538,14 +7531,15 @@ snapshots:
       - typanion
       - typescript
 
-  '@shivaedev/effect-test@0.1.0(@effect/vitest@4.0.0-rc.112(effect@4.0.0-rc.112)(vitest@4.1.9(@types/node@24.10.1)(happy-dom@20.11.2)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0))))(effect@4.0.0-rc.112)':
+  '@shivaedev/effect-test@0.1.1(@effect/vitest@4.0.0-rc.112(effect@4.0.0-rc.112)(vitest@4.1.9(@types/node@24.10.1)(happy-dom@20.11.2)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0))))(effect@4.0.0-rc.112)':
     dependencies:
       effect: 4.0.0-rc.112
     optionalDependencies:
       '@effect/vitest': 4.0.0-rc.112(effect@4.0.0-rc.112)(vitest@4.1.9(@types/node@24.10.1)(happy-dom@20.11.2)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0)))
 
-  '@shivaedev/effect-trpc@0.3.2(@effect/vitest@4.0.0-rc.112(effect@4.0.0-rc.112)(vitest@4.1.9(@types/node@24.10.1)(happy-dom@20.11.2)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0))))(@trpc/server@11.18.0(@typescript/typescript6@6.0.2))(effect@4.0.0-rc.112)':
+  '@shivaedev/effect-trpc@0.3.4(@effect/vitest@4.0.0-rc.112(effect@4.0.0-rc.112)(vitest@4.1.9(@types/node@24.10.1)(happy-dom@20.11.2)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0))))(@trpc/server@11.18.0(@typescript/typescript6@6.0.2))(effect@4.0.0-rc.112)':
     dependencies:
+      '@shivaedev/effect-test': 0.1.1(@effect/vitest@4.0.0-rc.112(effect@4.0.0-rc.112)(vitest@4.1.9(@types/node@24.10.1)(happy-dom@20.11.2)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0))))(effect@4.0.0-rc.112)
       '@trpc/server': 11.18.0(@typescript/typescript6@6.0.2)
       effect: 4.0.0-rc.112
     optionalDependencies:

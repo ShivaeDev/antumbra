@@ -1,0 +1,18 @@
+{
+	"extends": "./tsconfig.base.json",
+	"compilerOptions": {
+		"jsx": "react-jsx",
+		"resolveJsonModule": true
+	},
+	"include": [
+		"script",
+		"apps/*/script",
+		"apps/*/src",
+		"apps/*/test",
+		"packages/*/script",
+		"packages/*/src",
+		"packages/*/test",
+		"packages/persistence/prisma-next.config.ts"
+	],
+	"exclude": ["packages/service-definition/test"]
+}

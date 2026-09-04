@@ -24,6 +24,7 @@
 		"typecheck": "pnpm --recursive --if-present typecheck",
 		"typecheck:compat": "pnpm --recursive --if-present typecheck:compat",
 		"typecheck:root": "tsc --noEmit",
+		"typecheck:workspace": "tsc --noEmit -p tsconfig.workspace.json",
 		"ready": "node script/ready.ts"
 	},
 	"devDependencies": {

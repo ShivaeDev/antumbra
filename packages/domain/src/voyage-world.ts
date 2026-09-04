@@ -1,6 +1,7 @@
 import { Changes, type StoredChangeInvalid, type StoredChangeVerdictInvalid, type StoredPieceChangeInvalid } from "@antumbra/changes";
 import { Database, type PrismaError } from "@antumbra/persistence";
 import { readPieceVerdicts, type StoredPieceVerdictInvalid } from "@antumbra/pieces";
+import { Repos } from "@antumbra/repos";
 import { Rulings } from "@antumbra/rulings";
 import {
 	decodeStoredAgentStatus,
@@ -37,11 +38,12 @@ export class VoyageWorldSource extends Context.Service<
 const voyageWorld: Effect.Effect<
 	VoyageWorld,
 	VoyageWorldReadFailure,
-	Changes | Context.Service.Identifier<typeof Database> | Context.Service.Identifier<typeof Rulings>
+	Changes | Context.Service.Identifier<typeof Database> | Context.Service.Identifier<typeof Repos> | Context.Service.Identifier<typeof Rulings>
 > = Effect.gen(function* () {
 	const changeSnapshot = yield* Changes;
 	const db = yield* Database;
 	const rulings = yield* Rulings;
+	const repos = yield* Repos;
 	const agents = yield* db.Agent.orderBy((agent) => agent.createdAt.asc()).all();
 	const agentStatuses = yield* Effect.forEach(agents, (agent) =>
 		Effect.fromResult(decodeStoredAgentStatus(agent.id, agent.status)).pipe(Effect.map((status) => [agent.id, status] as const)),
@@ -65,7 +67,7 @@ const voyageWorld: Effect.Effect<
 		pieceVerdicts: yield* readPieceVerdicts,
 		pieces,
 		reports: byId(yield* db.Report.all()),
-		repos: byId(yield* db.Repo.all()),
+		repos: byId(yield* repos.registered()),
 		rulingGates: yield* rulings.openGates(),
 		sessions: yield* readRootSessions,
 		voyages: yield* readVoyages,
@@ -77,10 +79,12 @@ export const VoyageWorldSourceLive = Layer.effect(VoyageWorldSource)(
 		const changes = yield* Changes;
 		const db = yield* Database;
 		const rulings = yield* Rulings;
+		const repos = yield* Repos;
 		const read = voyageWorld.pipe(
 			Effect.provideService(Changes, changes),
 			Effect.provideService(Database, db),
 			Effect.provideService(Rulings, rulings),
+			Effect.provideService(Repos, repos),
 		);
 		return { read };
 	}),

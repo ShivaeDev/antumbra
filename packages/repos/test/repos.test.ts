@@ -10,7 +10,7 @@ const persistence = persistenceIt();
 const layer = ReposLive.pipe(Layer.provideMerge(DomainFeedsLive));
 const OBSERVED = new Date("2026-08-17T00:00:00.000Z");
 
-const seedChangeGraph = (repoId: string) =>
+const seedChangeGraph = (repoId: string, changeId: string) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
 		yield* db.Change.create({
@@ -19,11 +19,11 @@ const seedChangeGraph = (repoId: string) =>
 			body: "",
 			checks: "none",
 			draftAt: null,
-			externalId: "1",
+			externalId: changeId,
 			headRef: "work/reef",
 			headSha: null,
 			host: "scripted",
-			id: "change-1",
+			id: changeId,
 			landedAt: null,
 			mergeable: "clean",
 			observedAt: OBSERVED,
@@ -37,7 +37,7 @@ const seedChangeGraph = (repoId: string) =>
 			review: "none",
 			stage: "open",
 			submissionKey: null,
-			title: "change-1",
+			title: changeId,
 			url: null,
 			withdrawnAt: null,
 			workingDiff: null,
@@ -46,14 +46,14 @@ const seedChangeGraph = (repoId: string) =>
 		});
 		yield* db.ChangeTransition.create({
 			activityAt: OBSERVED,
-			changeId: "change-1",
+			changeId,
 			fromStage: "prepared",
-			id: "transition-1",
+			id: `${changeId}-transition`,
 			observedAt: OBSERVED,
 			toStage: "open",
 		});
 		yield* db.PieceChange.create({
-			changeId: "change-1",
+			changeId,
 			pieceId: "piece-1",
 		});
 	});
@@ -138,16 +138,20 @@ persistence.effectDB("forgets the complete change graph before publishing its tw
 				source: "/reefs/one",
 			});
 			yield* PubSub.take(fleetNotices);
-			yield* seedChangeGraph(repo.id);
+			const retained = yield* repos.register({ defaultRef: "main", source: "/repos/retained" });
+			yield* PubSub.take(fleetNotices);
+			yield* seedChangeGraph(repo.id, "removed-one");
+			yield* seedChangeGraph(repo.id, "removed-two");
+			yield* seedChangeGraph(retained.id, "retained");
 
 			yield* repos.forget(repo.id);
 
 			yield* PubSub.take(fleetNotices);
 			yield* PubSub.take(voyageNotices);
-			expect(yield* db.Repo.all()).toEqual([]);
-			expect(yield* db.Change.all()).toEqual([]);
-			expect(yield* db.ChangeTransition.all()).toEqual([]);
-			expect(yield* db.PieceChange.all()).toEqual([]);
+			expect(yield* db.Repo.all()).toMatchObject([retained]);
+			expect(yield* db.Change.select("id").all()).toEqual([{ id: "retained" }]);
+			expect(yield* db.ChangeTransition.select("changeId").all()).toEqual([{ changeId: "retained" }]);
+			expect(yield* db.PieceChange.select("changeId").all()).toEqual([{ changeId: "retained" }]);
 		}),
 	).pipe(Effect.provide(layer));
 });

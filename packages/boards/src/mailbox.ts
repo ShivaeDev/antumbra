@@ -5,7 +5,7 @@ import { BoardScope, EntryInput, type MailInput } from "#model.ts";
 import { readBoard } from "#read.ts";
 import { writeEntry } from "#write.ts";
 
-const readIds = Effect.fnUntraced(function* (entryIds: ReadonlyArray<string>) {
+const alreadyReadEntryIds = Effect.fnUntraced(function* (entryIds: ReadonlyArray<string>) {
 	const db = yield* Database;
 	const receipts = yield* db.BoardEntryReceipt.where((receipt) => receipt.entryId.in(entryIds)).all();
 	return new Set(receipts.map((receipt) => receipt.entryId));
@@ -29,7 +29,7 @@ export const mail = Effect.fn("Boards.mail")((input: MailInput) =>
 
 export const unreadMail = Effect.fn("Boards.unread")(function* (agentId: string) {
 	const entries = yield* mailEntries(agentId);
-	const read = yield* readIds(entries.map((entry) => entry.id));
+	const read = yield* alreadyReadEntryIds(entries.map((entry) => entry.id));
 	return entries.filter((entry) => !read.has(entry.id));
 });
 
@@ -42,7 +42,7 @@ export const markMailRead = Effect.fn("Boards.markRead")(function* (agentId: str
 	if (stray !== undefined) {
 		return yield* new MailNotAddressed({ agentId, entryId: stray });
 	}
-	const read = yield* readIds([...requested]);
+	const read = yield* alreadyReadEntryIds([...requested]);
 	yield* Effect.forEach(
 		[...requested].filter((entryId) => !read.has(entryId)),
 		(entryId) => db.BoardEntryReceipt.create({ entryId }),

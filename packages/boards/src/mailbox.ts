@@ -26,7 +26,7 @@ export const mail = Effect.fn("boards.mail")((input: MailInput) =>
 export const unreadMail = Effect.fn("boards.unreadMail")(function* (agentId: string) {
 	const db = yield* Database;
 	const entries = yield* mailEntries(agentId);
-	const read = readIds(yield* db.BoardEntryReceipt.select("entryId"));
+	const read = readIds(yield* db.BoardEntryReceipt.where((receipt) => receipt.entryId.in(entries.map((entry) => entry.id))).select("entryId"));
 	return entries.filter((entry) => !read.has(entry.id));
 });
 
@@ -39,7 +39,7 @@ export const markMailRead = Effect.fn("boards.markMailRead")(function* (agentId:
 	if (stray !== undefined) {
 		return yield* new MailNotAddressed({ agentId, entryId: stray });
 	}
-	const read = readIds(yield* db.BoardEntryReceipt.select("entryId"));
+	const read = readIds(yield* db.BoardEntryReceipt.where((receipt) => receipt.entryId.in([...requested])).select("entryId"));
 	yield* Effect.forEach(
 		[...requested].filter((entryId) => !read.has(entryId)),
 		(entryId) => db.BoardEntryReceipt.create({ entryId }),

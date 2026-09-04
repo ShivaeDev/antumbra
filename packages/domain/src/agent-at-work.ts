@@ -1,7 +1,7 @@
 import { executionSessionOfAgent } from "#voyage-execution-selection.ts";
 import type { VoyageWorld } from "#voyage-rows.ts";
 
-export const atWork = (world: VoyageWorld, agentId: string): boolean => {
+export const atWork = (world: Pick<VoyageWorld, "agentStatus" | "currentSessionByAgent" | "sessions">, agentId: string): boolean => {
 	const status = world.agentStatus.get(agentId);
 	if (status === "spawning") {
 		return true;

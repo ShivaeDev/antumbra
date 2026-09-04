@@ -7,11 +7,10 @@ import { applyObservations } from "#change-submissions/observations.ts";
 import { ChangeHostRegistry } from "#change-submissions/registries.ts";
 import { UnknownChangeHostTag } from "#errors.ts";
 
-export const watchableChanges = (hostTag: string) =>
-	Effect.gen(function* () {
-		const db = yield* Database;
-		return (yield* Effect.forEach(yield* db.Change.where({ host: hostTag }).all(), changeRow)).filter((row) => row.stage === "open");
-	});
+export const watchableChanges = Effect.fn("Changes.watchable")(function* (hostTag: string) {
+	const db = yield* Database;
+	return yield* Effect.forEach(yield* db.Change.where({ host: hostTag, stage: "open" }).all(), changeRow);
+});
 
 const changeRef = (
 	row: ChangeRow,

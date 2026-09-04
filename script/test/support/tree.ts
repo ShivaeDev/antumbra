@@ -24,14 +24,6 @@ const requiredLintInputs: readonly SeedFile[] = [
 	},
 	{ content: "# Work\n\n## Voyage\n", path: "docs/design/work.md" },
 	{ content: "[]\n", path: "script/pragma-registry.json" },
-	{
-		content: "[]\n",
-		path: "script/lint/service-parameter-allowance.json",
-	},
-	{
-		content: "[]\n",
-		path: "script/lint/service-parameter-baseline.json",
-	},
 ];
 
 export const seedTree = (...groups: ReadonlyArray<readonly SeedFile[]>): string => {

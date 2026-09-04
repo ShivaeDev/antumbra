@@ -49,19 +49,39 @@ it.effect("takes no backup for a fresh or already current database", () =>
 	}),
 );
 
+const olderBackups = [1, 2, 3, 4, 5].map((day) => `antumbra-2026010${day}T000000Z-00000000.db`);
+
+const seedOlderBackups = (database: DatabaseFilePath) => {
+	const directory = backupsDirectory(database);
+	mkdirSync(directory);
+	for (const name of olderBackups) {
+		writeFileSync(join(directory, name), "");
+	}
+	return directory;
+};
+
 it.effect("keeps only the five newest backups", () =>
 	Effect.gen(function* () {
 		const database = freshMigrationDatabase();
-		const directory = backupsDirectory(database);
-		mkdirSync(directory);
-		const older = [1, 2, 3, 4, 5].map((day) => `antumbra-2026010${day}T000000Z-00000000.db`);
-		for (const name of older) {
-			writeFileSync(join(directory, name), "");
-		}
+		seedOlderBackups(database);
 		yield* setClock;
 		yield* migrate(database, stepOneContract);
 		yield* migrate(database, fixtureContract);
 
-		expect(backupsOf(database)).toEqual([...older.slice(1), "antumbra-20260904T101530Z-0770f0a0.db"]);
+		expect(backupsOf(database)).toEqual([...olderBackups.slice(1), "antumbra-20260904T101530Z-0770f0a0.db"]);
+	}),
+);
+
+it.effect("leaves foreign entries in the backups directory alone", () =>
+	Effect.gen(function* () {
+		const database = freshMigrationDatabase();
+		const directory = seedOlderBackups(database);
+		writeFileSync(join(directory, ".DS_Store"), "");
+		mkdirSync(join(directory, "Archive"));
+		yield* setClock;
+		yield* migrate(database, stepOneContract);
+		yield* migrate(database, fixtureContract);
+
+		expect(backupsOf(database)).toEqual([".DS_Store", "Archive", ...olderBackups.slice(1), "antumbra-20260904T101530Z-0770f0a0.db"]);
 	}),
 );

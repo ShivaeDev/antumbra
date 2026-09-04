@@ -1,4 +1,4 @@
-import { mkdirSync, mkdtempSync, rmSync } from "node:fs";
+import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -27,12 +27,9 @@ export interface TemporaryPersistence {
 export const temporaryPersistence = (): TemporaryPersistence => {
 	const directory = mkdtempSync(join(tmpdir(), "antumbra-persistence-"));
 	const database = brandDatabaseFilePath(join(directory, "antumbra.db"));
-	const artifactsRoot = join(directory, "artifacts");
-	mkdirSync(artifactsRoot);
 	return {
 		database,
 		layer: PersistenceLive({
-			artifactsRoot,
 			database,
 			migrationsDirectory: packagedMigrationsDirectory,
 		}),

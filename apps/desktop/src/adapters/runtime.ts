@@ -38,7 +38,6 @@ import {
 const persistence = Layer.unwrap(
 	Effect.sync(() =>
 		PersistenceLive({
-			artifactsRoot: artifactsInDataDirectory(configureDataDirectory()),
 			database: databaseFileInDataDirectory(configureDataDirectory()),
 			migrationsDirectory: persistenceMigrationsDirectory(),
 		}),

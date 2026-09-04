@@ -6,7 +6,8 @@ Tests prove behavior at the narrowest meaningful boundary and fail for meaningfu
 
 1. A bug fix carries a test that failed before the fix. A test written after the fix that has never been red proves nothing.
 2. Test the narrowest boundary that exhibits the behavior; prefer the lowest-cost fixture stack that still proves it. A meaningful regression should
-   fail while a pure refactor passes unchanged.
+   fail while a pure refactor passes unchanged. Do not mirror the implementation or pin prompt and tool-description prose with literal assertions. For
+   generated context, prove which inputs include or omit a section; require exact text only when the text itself is a protocol contract.
 3. Mock only necessary boundaries: expensive, nondeterministic, or unavailable in the test environment.
 4. Never assert mock call counts, wiring, or passthrough props as the only proof — that tests the test, not the behavior.
 5. Test diff size stays proportionate to the behavioral change. A one-line behavior change does not justify fifty lines of new assertions.

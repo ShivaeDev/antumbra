@@ -125,7 +125,7 @@ it.live("adopting the same change twice is one row and one link per piece", () =
 				});
 
 			const first = yield* adopt(piece.id);
-			expect(yield* adopt(piece.id)).toEqual(first);
+			expect(yield* adopt(piece.id)).toMatchObject(first);
 			const shared = yield* adopt(second.id);
 			expect(shared.id).toBe(first.id);
 

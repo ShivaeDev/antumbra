@@ -63,6 +63,18 @@ one-Piece-one-Agent, and one-Piece-one-Change assumptions from becoming product 
 
 Plans bend by editing typed links: promote, park, reorder, add or remove a dependency, split, or merge. Position moves; durable substance does not.
 
+## The frontier and the edge
+
+A Voyage's **frontier** is the set of open questions its agents have asked about it: every ruling request from a crew member or captain that names the
+Voyage and has not yet been ruled. It is a reading over the ruling records rather than a phase the Voyage passes through, and it marks how far the
+course can honestly be plotted: past a question nobody has answered, a plan is a guess.
+
+The **edge** is how far ahead of that frontier a captain may charter, and chartering stops there for two reasons. A `blocking` question on the
+frontier means the Voyage is holding for an answer, and work chartered under it is a guess the answer may undo; chartering resumes once the question
+is ruled or reclassified below blocking. Three unlaunched Pieces on the Voyage mean planning has run ahead of sailing, and a charter is dead reckoning
+that gets less honest the further it reaches; launching, parking, or abandoning one of them reopens the edge. Both refusals say what clears them. The
+admiral charters freely, and a Piece already launched, parked, or abandoned never counts against the edge.
+
 ## Occultations and dependency blockage
 
 _Occultations are intended, not yet built._ Dependency blockage is derived from the Piece graph today; nothing records an occultation; see

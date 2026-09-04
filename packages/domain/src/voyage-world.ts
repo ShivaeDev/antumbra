@@ -8,6 +8,7 @@ import {
 	type StoredAgentSessionStatusInvalid,
 	type StoredAgentStatusInvalid,
 } from "@antumbra/vocabulary/agent-runtime";
+import type { StoredRulingValueInvalid } from "@antumbra/vocabulary/ruling";
 import type { StoredVoyageKindInvalid } from "@antumbra/vocabulary/voyage";
 import { Context, Effect, Layer } from "effect";
 import { artifactRow, byId, pieceRow, repoRow, reportRow } from "#voyage-row-projection.ts";
@@ -23,6 +24,7 @@ export type VoyageWorldReadFailure =
 	| StoredChangeVerdictInvalid
 	| StoredPieceChangeInvalid
 	| StoredPieceVerdictInvalid
+	| StoredRulingValueInvalid
 	| StoredVoyageKindInvalid;
 
 export class VoyageWorldSource extends Context.Service<
@@ -57,6 +59,7 @@ const voyageWorld: Effect.Effect<
 		dismissedChangeIds,
 		edges: yield* db.PieceEdge.all(),
 		memberships: yield* db.VoyagePiece.all(),
+		openRulings: yield* rulings.open(),
 		pieceChanges,
 		pieceReports: yield* db.PieceReport.all(),
 		pieceVerdicts: yield* readPieceVerdicts,

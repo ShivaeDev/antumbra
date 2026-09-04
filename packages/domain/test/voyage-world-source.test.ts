@@ -54,7 +54,7 @@ it.effectDB("owns the aggregate read and preserves voyage birth order", function
 	}).pipe(Effect.provide(WorldLive));
 });
 
-it.effectDB("names the question of each open ruling on its gate", function* (db) {
+it.effectDB("carries each open ruling and names its question on its gate", function* (db) {
 	yield* db.Agent.create({
 		charter: "ask what the chart cannot answer",
 		id: "agent-asker",
@@ -77,9 +77,22 @@ it.effectDB("names the question of each open ruling on its gate", function* (db)
 			urgency: "pressing",
 		});
 		yield* rulings.gate({ pieceIds: ["piece-one"], rulingId: asked.id });
+		const settled = yield* rulings.request({
+			choices: [],
+			context: "two charts of the same reef",
+			gates: [],
+			question: "which chart do we sail by?",
+			radius: "piece",
+			requester: { agentId: "agent-asker", kind: "agent" },
+			rung: "admiral",
+			subjects: [],
+			urgency: "pressing",
+		});
+		yield* rulings.rule({ answer: "the newest", by: "admiral", rulingId: settled.id });
 
 		const source = yield* VoyageWorldSource;
 		const world = yield* source.read;
+		expect(world.openRulings.map((ruling) => ruling.id)).toEqual([asked.id]);
 		expect(world.rulingGates).toEqual([
 			{
 				pieceId: "piece-one",

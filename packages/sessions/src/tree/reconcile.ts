@@ -31,7 +31,6 @@ export const makeSessionNodeReconciler = Effect.gen(function* () {
 	const audits = yield* makeSessionTreeAudits;
 	const ledger = yield* makeSessionTreeLedger;
 	const rows = yield* makeSessionTreeRows;
-	const spawners = db.Agent.all().pipe(Effect.map((all): ReadonlyMap<string, Spawner> => new Map(all.map((agent) => [agent.id, agent]))));
 	const close = (node: StoredAgentSession) =>
 		Effect.gen(function* () {
 			const gaps = yield* ledger.gapKinds(node.id);
@@ -55,7 +54,10 @@ export const makeSessionNodeReconciler = Effect.gen(function* () {
 		if (nodes.length === 0) {
 			return;
 		}
-		const owners = yield* spawners;
+		const agents = yield* db.Agent.where((agent) => agent.id.in(nodes.map((node) => node.agentId)))
+			.select("id", "status", "currentSessionId")
+			.all();
+		const owners: ReadonlyMap<string, Spawner> = new Map(agents.map((agent) => [agent.id, agent]));
 		yield* Effect.forEach(nodes, (node) => settle(node, owners), {
 			concurrency: 1,
 			discard: true,

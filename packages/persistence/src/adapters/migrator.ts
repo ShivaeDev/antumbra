@@ -1,7 +1,7 @@
 import { createSqliteControlClient } from "@prisma-next/sqlite/control";
 import { Clock, Data, Effect, Schema } from "effect";
 import { prepareArtifactCustodyMigration } from "#adapters/artifact-custody-preflight.ts";
-import { backupBeforeMigration } from "#adapters/backup.ts";
+import { writeMigrationBackup } from "#adapters/backup.ts";
 import contractJson from "#contract.json" with { type: "json" };
 import type { DatabaseFilePath } from "#data-dir.ts";
 
@@ -26,18 +26,20 @@ interface PreparedMigrationTarget extends MigrationTarget {
 
 const migrationFailure = (cause: unknown) => new MigrationFailure({ detail: String(cause) });
 
-const storageHashOf = Schema.decodeUnknownSync(Schema.Struct({ storage: Schema.Struct({ storageHash: Schema.String }) }));
+const ContractStorage = Schema.Struct({ storage: Schema.Struct({ storageHash: Schema.String }) });
 
 const backupBeforeMigrating = (target: PreparedMigrationTarget): Effect.Effect<void, MigrationFailure> =>
-	Clock.currentTimeMillis.pipe(
-		Effect.flatMap((now) =>
-			Effect.try({
-				catch: migrationFailure,
-				try: () => backupBeforeMigration(target.database, storageHashOf(target.contract).storage.storageHash, new Date(now)),
-			}),
-		),
-		Effect.flatMap((backup) => (backup === undefined ? Effect.void : Effect.logInfo("database backed up before migration", backup))),
-	);
+	Effect.gen(function* () {
+		const contract = yield* Schema.decodeUnknownEffect(ContractStorage)(target.contract).pipe(Effect.mapError(migrationFailure));
+		const now = yield* Clock.currentTimeMillis;
+		const backup = yield* Effect.try({
+			catch: migrationFailure,
+			try: () => writeMigrationBackup(target.database, contract.storage.storageHash, new Date(now)),
+		});
+		if (backup !== undefined) {
+			yield* Effect.logInfo("database backed up before migration", backup);
+		}
+	});
 
 const applyPreparedMigrations = (target: PreparedMigrationTarget): Effect.Effect<MigrationReport, MigrationFailure> =>
 	Effect.tryPromise({

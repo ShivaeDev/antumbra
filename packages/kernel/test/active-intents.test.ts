@@ -77,6 +77,7 @@ it.live("returns decoded payloads for every nonterminal status", () =>
 			yield* Deferred.succeed(cancelRelease, undefined);
 			yield* Fiber.join(cancelFiber);
 			yield* statusesUntilTerminal(kernel.changes(running.id));
+			expect(yield* kernel.active(kind)).toEqual([]);
 		}).pipe(
 			Effect.provide(
 				kernelLayer(temporary, {

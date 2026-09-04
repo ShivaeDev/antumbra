@@ -17,11 +17,8 @@ export const decodeRootSession = (session: StoredAgentSession) =>
 		status: Effect.fromResult(decodeStoredAgentSessionStatus(session.id, session.status)),
 	}).pipe(
 		Effect.map(({ executionStatus, status }) => ({
-			agentId: session.agentId,
-			backend: session.backend,
-			createdAt: session.createdAt,
+			...session,
 			executionStatus,
-			id: session.id,
 			status,
 		})),
 	);

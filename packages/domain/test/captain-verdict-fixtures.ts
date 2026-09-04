@@ -9,7 +9,7 @@ import { acquireTemporaryPersistence, makeScriptedBackend, type ScriptedBackend,
 import { eventually, openReefVoyage, terminalIntent } from "#test/voyage-fixtures.ts";
 
 export const ASKER = "agent-asker";
-const FLAGSHIP_ID = "voyage-flagship";
+export const FLAGSHIP_ID = "voyage-flagship";
 
 export interface Ladder {
 	readonly captain: ScriptedSession;

@@ -2,7 +2,7 @@ import { type Ruling, Rulings } from "@antumbra/rulings";
 import { expect, it } from "@effect/vitest";
 import { Effect, Option } from "effect";
 import { AgentDomain } from "#domain.ts";
-import { type Ladder, withLadder } from "#test/captain-verdict-fixtures.ts";
+import { FLAGSHIP_ID, type Ladder, withLadder } from "#test/captain-verdict-fixtures.ts";
 import { callTool } from "#test/harness.ts";
 
 const PLOT = { context: "sound the shallows first, then buoy the channel" };
@@ -61,6 +61,22 @@ it.live("a captain puts the plot as it stands before the admiral", () =>
 			const read = yield* callTool(ladder.captain, "read_voyage", {});
 			expect(read.text).toContain(`## Approval\n- approved: none yet\n- asked: ${asked.id} at `);
 			expect(read.text).toContain(`— ${[alpha.id, bravo.id].sort().join(", ")}`);
+		}),
+	),
+);
+
+it.live("the flagship captain puts the flagship's own plot before the admiral", () =>
+	withLadder((ladder) =>
+		Effect.gen(function* () {
+			const alpha = yield* charter(FLAGSHIP_ID, "alpha");
+
+			const outcome = yield* callTool(ladder.flagship, "request_approval", PLOT);
+
+			const asked = yield* openApproval;
+			expect(outcome.ok).toBe(true);
+			expect(asked.approvedPieceIds).toEqual([alpha.id]);
+			expect(asked.subjects).toContainEqual({ id: FLAGSHIP_ID, kind: "voyage" });
+			expect(asked.rung).toEqual(Option.some("admiral"));
 		}),
 	),
 );

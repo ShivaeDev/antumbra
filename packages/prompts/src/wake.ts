@@ -1,3 +1,3 @@
 import { type AgentPrompt, agentPrompt } from "#mint.ts";
 
-export const wakeWords: AgentPrompt = agentPrompt("Reconcile durable Antumbra truth and continue your assigned work.");
+export const wakeWords: AgentPrompt = agentPrompt("Resume your assigned work. Check current outcomes, rulings and board notes before continuing.");

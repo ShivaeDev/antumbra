@@ -2,6 +2,7 @@ import { type IntentStatus, isTerminalIntentStatus, Kernel } from "@antumbra/ker
 import { Database } from "@antumbra/persistence";
 import type { TemporaryPersistence } from "@antumbra/persistence/testing";
 import { type AgentBackend, BackendFailure, type Runner } from "@antumbra/plugin-api";
+import { wakeWords } from "@antumbra/prompts";
 import { expect } from "@effect/vitest";
 import { Effect, Fiber, Option, Ref, Schedule, Stream } from "effect";
 import { AgentDomain } from "#domain.ts";
@@ -10,7 +11,7 @@ import { makeSightSessionEvents } from "#sight-session-events.ts";
 import { domainKernelLayer } from "#test/domain-layers.ts";
 import { rawOf, type ScriptedBackend } from "#test/harness.ts";
 
-export const WAKE_INSTRUCTION = "Reconcile durable Antumbra truth and continue your assigned work.";
+export const WAKE_INSTRUCTION = wakeWords;
 export const payload: SpawnFields = {
 	agentId: "agent-resume",
 	backend: "scripted",

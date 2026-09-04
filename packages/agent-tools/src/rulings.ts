@@ -24,33 +24,29 @@ const Choices = Schema.Array(
 		}),
 	}),
 ).annotate({
-	description:
-		"Options you are offering, from your recommendation alone to a short list. Whoever rules may answer in free words beside any of them, and you never have to offer any.",
+	description: "Suggested answers, if useful.",
 });
 
 export const requestRulingSpec = defineTool({
 	description:
-		"Request a ruling: a decision that is not yours to make, recorded with the context and question that give the answer its meaning. Ask when a choice belongs to the authority above you, not when you can read the answer off the record. The request lands durably. Declared `blocking`, this call does not return until the ruling lands and then returns the answer itself; declared anything else it returns at once and the answer reaches you as mail, so keep working on everything the ruling does not decide and stop only on what it does.",
+		"Ask for a decision you cannot make. A blocking request waits for the answer; other requests return immediately and deliver the answer as mail.",
 	input: Schema.Struct({
 		choices: Schema.optional(Choices),
 		context: Schema.String.annotate({
-			description:
-				"The situation behind the question: why you are asking and how the work arrived here. The wider the radius, the richer this must be, because the answer will be read long after you.",
+			description: "Context needed to answer the question.",
 		}),
 		gates: Schema.optional(
 			Schema.Array(Schema.String).annotate({
-				description:
-					"Ids of Pieces in your voyage that cannot start until this is ruled. The scheduler holds them until the answer lands, and the admiral sees exactly what the ruling unblocks.",
+				description: "Pieces in your Voyage that must wait for this decision.",
 			}),
 		),
 		question: Schema.String.annotate({
-			description: "The question itself, in whatever shape fits: yes or no, choose one, rank, or free prose.",
+			description: "The decision you need.",
 		}),
 		radius: Radius,
 		tags: Schema.optional(
 			Schema.Array(Schema.String).annotate({
-				description:
-					"Free tags naming concepts the fleet has no record for, so later askers find this ruling. Your piece, your voyage, and you are already its subjects.",
+				description: "Additional topics for finding this ruling. Your Agent, Piece and Voyage are included automatically.",
 			}),
 		),
 		urgency: Urgency,

@@ -16,17 +16,15 @@ export const BerthedCharter = Schema.Struct({
 });
 export type BerthedCharter = typeof BerthedCharter.Type;
 
-const CREW_ORDER =
-	"- Work inside a berth's folder, never in the moorage root itself and never in a mirror, and give `open_change`, `submit_change` and `adopt_change` the repo name exactly as the Berths section spells it — not the folder's name.";
+const CREW_ORDER = "- Make repository changes in the supplied Berth folders and branches.";
 
-const CAPTAIN_ORDER =
-	"- The repos your crew is berthed in are the ones under Berths, spelled there as the registry knows them; a piece charter naming one spells it the same way.";
+const CAPTAIN_ORDER = "- Use the repository names below when chartering work.";
 
 const berthLine = (berth: typeof Berth.Type): string => `${berth.repo} — ${berth.folder} — branch ${berth.branch}`;
 
 const berthsBody = (input: BerthedCharter): string =>
 	[
-		`Your working directory is your moorage, ${input.moorageRoot}. Every repository below is a folder directly inside it, and everything else you write — notes, scratch, files you mean to land — belongs in the moorage itself, never above it.`,
+		`Working directory: ${input.moorageRoot}. Keep notes and scratch files here; repository folders are listed below.`,
 		...input.berths.map(berthLine),
 	].join("\n");
 

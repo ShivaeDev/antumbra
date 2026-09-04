@@ -55,9 +55,9 @@ export const recoverBackendCapacities = (backends: ReadonlyMap<string, AgentBack
 		if (pending.length === 0) {
 			return [];
 		}
-		const sessions = yield* db.AgentSession.all();
+		const sessions = yield* db.AgentSession.where((session) => session.backend.in(pending.map(([backend]) => backend))).all();
 		const backendBySession = new Map(sessions.map((session) => [session.id, session.backend] as const));
-		const events = (yield* db.SessionEvent.all()).toSorted(
+		const events = (yield* db.SessionEvent.where((event) => event.sessionId.in(sessions.map((session) => session.id))).all()).toSorted(
 			(left, right) => left.at.getTime() - right.at.getTime() || left.sessionId.localeCompare(right.sessionId) || left.seq - right.seq,
 		);
 		return pending.map(

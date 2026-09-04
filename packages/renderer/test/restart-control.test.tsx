@@ -18,7 +18,7 @@ const step = (run: () => void) =>
 const buttonNamed = (container: HTMLElement, label: string) =>
 	[...container.querySelectorAll("button")].find((button) => button.textContent === label);
 
-it.effect("asks before restarting and sends the restart through the bridge", () =>
+it.effect("asks before restarting and sends the restart through the bridge once", () =>
 	Effect.gen(function* () {
 		const requests: Array<BridgeRequest> = [];
 		const bridge: AntumbraBridge = {
@@ -41,5 +41,11 @@ it.effect("asks before restarting and sends the restart through the bridge", () 
 
 		yield* step(() => buttonNamed(container, "Restart")?.click());
 		expect(requests).toEqual([{ input: undefined, path: "restart", type: "mutation" }]);
+		expect(buttonNamed(container, "Keep running")).toBeUndefined();
+
+		const restarting = buttonNamed(container, "Restarting…");
+		expect(restarting?.disabled).toBe(true);
+		yield* step(() => restarting?.click());
+		expect(requests).toHaveLength(1);
 	}),
 );

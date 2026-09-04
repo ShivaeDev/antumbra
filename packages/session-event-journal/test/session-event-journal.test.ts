@@ -114,3 +114,13 @@ it.effectApp("records native identity before publishing the opening event", func
 		}),
 	);
 });
+
+it.effectApp("does not append events when the accompanying write fails", function* ({ db }) {
+	const journal = yield* SessionEventJournal;
+	const recorded = yield* journal.recordTogether({
+		appends: [{ sessionId: "session-failed-write", event: { raw: rawOf("message"), role: "agent", text: "unsaved", type: "message" } }],
+		rows: Effect.fail(new Error("write failed")),
+	});
+	expect(recorded).toBe(false);
+	expect(yield* db.SessionEvent.where({ sessionId: "session-failed-write" }).all()).toEqual([]);
+});

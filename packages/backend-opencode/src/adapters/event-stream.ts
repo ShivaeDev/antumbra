@@ -1,3 +1,4 @@
+import { Effect } from "effect";
 import { openSseBuffer } from "#adapters/sse.ts";
 
 interface EventStreamListeners {
@@ -17,7 +18,7 @@ export const openEventStream = (address: string, listeners: EventStreamListeners
 		const buffer = openSseBuffer();
 		const decoder = new TextDecoder();
 		for await (const chunk of response.body) {
-			for (const frame of buffer.take(decoder.decode(chunk, { stream: true }))) {
+			for (const frame of await Effect.runPromise(buffer.take(decoder.decode(chunk, { stream: true })))) {
 				listeners.onFrame(frame);
 			}
 		}

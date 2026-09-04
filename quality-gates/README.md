@@ -1,7 +1,8 @@
 # Quality gate routing
 
-Run `pnpm ready` for fast local mechanical checks. Hosted CI owns build, package/root/compatibility typechecks, and the complete package, desktop,
-runner, and guard test suites. During review, apply only the routes touched by the change:
+Run `pnpm ready` for fast local mechanical checks: formatting, lint, boundaries, and one whole-workspace typecheck. Hosted CI owns build, the
+per-package, root, and compatibility typechecks, and the complete package, desktop, runner, and guard test suites. During review, apply only the
+routes touched by the change:
 
 - Every code or test change first applies the binding simplicity gate: [`simplicity.md`](simplicity.md)
 

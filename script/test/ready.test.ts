@@ -2,6 +2,7 @@ import { Effect } from "effect";
 import { describe, expect, it } from "vitest";
 import type { Report, Step, StepResult } from "#ready/model.ts";
 import { runReady } from "#ready/program.ts";
+import { steps } from "#ready/steps.ts";
 
 const stepNamed = (name: string): Step => ({ args: [], command: name, name });
 
@@ -50,5 +51,12 @@ describe("ready runner", () => {
 		expect(ok).toBe(false);
 		expect(executed).toEqual(["one", "two"]);
 		expect(lines).toEqual(["passed one", "failed two exit 2", "summary 1/3"]);
+	});
+});
+
+describe("ready steps", () => {
+	it("typechecks the whole workspace as one program and leaves tests to CI", () => {
+		expect(steps.map((step) => step.name)).toEqual(["formatting", "lint", "boundaries", "typecheck"]);
+		expect(steps.at(-1)).toEqual({ args: ["run", "typecheck:workspace"], command: "pnpm", name: "typecheck" });
 	});
 });

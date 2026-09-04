@@ -11,7 +11,7 @@ import {
 import type { StoredRulingValueInvalid } from "@antumbra/vocabulary/ruling";
 import type { StoredVoyageKindInvalid } from "@antumbra/vocabulary/voyage";
 import { Context, Effect, Layer } from "effect";
-import { artifactRow, byId, pieceRow, repoRow, reportRow } from "#voyage-row-projection.ts";
+import { byId } from "#voyage-row-projection.ts";
 import type { VoyageWorld } from "#voyage-rows.ts";
 import { readRootSessions, readVoyages } from "#voyage-world-reads.ts";
 
@@ -47,8 +47,8 @@ const voyageWorld: Effect.Effect<
 		Effect.fromResult(decodeStoredAgentStatus(agent.id, agent.status)).pipe(Effect.map((status) => [agent.id, status] as const)),
 	);
 	const { changes, dismissedChangeIds, pieceChanges } = yield* changeSnapshot.snapshot;
-	const artifacts = (yield* db.Artifact.all()).map(artifactRow);
-	const pieces = (yield* db.Piece.orderBy((piece) => piece.createdAt.asc()).all()).map(pieceRow);
+	const artifacts = yield* db.Artifact.all();
+	const pieces = yield* db.Piece.orderBy((piece) => piece.createdAt.asc()).all();
 	return {
 		agentStatus: new Map(agentStatuses),
 		currentSessionByAgent: new Map(agents.map((agent) => [agent.id, agent.currentSessionId] as const)),
@@ -64,8 +64,8 @@ const voyageWorld: Effect.Effect<
 		pieceReports: yield* db.PieceReport.all(),
 		pieceVerdicts: yield* readPieceVerdicts,
 		pieces,
-		reports: byId((yield* db.Report.all()).map(reportRow)),
-		repos: byId((yield* db.Repo.all()).map(repoRow)),
+		reports: byId(yield* db.Report.all()),
+		repos: byId(yield* db.Repo.all()),
 		rulingGates: yield* rulings.openGates(),
 		sessions: yield* readRootSessions,
 		voyages: yield* readVoyages,

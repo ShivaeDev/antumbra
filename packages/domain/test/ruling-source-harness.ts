@@ -3,6 +3,7 @@ import type { OpenRulingsView, RulingFailure, StandingRulingsView } from "@antum
 import { DomainFeedsLive } from "@antumbra/domain-feeds";
 import { Database } from "@antumbra/persistence";
 import { PiecesLive } from "@antumbra/pieces";
+import { ReposLive } from "@antumbra/repos";
 import { RulingsLive } from "@antumbra/rulings";
 import { Deferred, Effect, Layer, Stream } from "effect";
 import { RulingSourceLive } from "#ruling-source.ts";
@@ -12,6 +13,7 @@ export const layer = RulingSourceLive.pipe(
 	Layer.provideMerge(VoyageWorldSourceLive),
 	Layer.provideMerge(ChangesLive(new Map(), new Map())),
 	Layer.provideMerge(PiecesLive),
+	Layer.provideMerge(ReposLive),
 	Layer.provideMerge(RulingsLive),
 	Layer.provideMerge(DomainFeedsLive),
 );

@@ -1,4 +1,5 @@
 import { Boards } from "@antumbra/boards";
+import { Changes } from "@antumbra/changes";
 import { type AdoptChangeRequest, ArtifactMarkdownFailure, type ReportMarkdown, SightFailure, VoyageSource } from "@antumbra/contract";
 import type { ReportReading } from "@antumbra/reports";
 import { Context, Effect, Layer, Option } from "effect";
@@ -28,7 +29,8 @@ const reportMarkdown = (reading: ReportReading): ReportMarkdown => ({
 export const VoyageSourceLive = Layer.effect(VoyageSource)(
 	Effect.gen(function* () {
 		const boards = yield* Boards;
-		const changes = yield* ChangeProcedureService;
+		const changes = yield* Changes;
+		const changeProcedures = yield* ChangeProcedureService;
 		const domain = yield* AgentDomain;
 		const voyages = yield* VoyageProcedureService;
 		const world = yield* VoyageWorldSource;
@@ -41,8 +43,8 @@ export const VoyageSourceLive = Layer.effect(VoyageSource)(
 		const acts = yield* Effect.provide(makeVoyageActs(reads), context);
 		const refreshes = yield* makeVoyageRefreshes;
 		const quay = Effect.gen(function* () {
-			const reading = yield* changes.quay;
-			return quaySeen(reading, yield* changes.capabilities);
+			const reading = yield* changeProcedures.quay;
+			return quaySeen(reading, yield* changeProcedures.capabilities);
 		}).pipe(Effect.mapError(toFailure));
 		return {
 			...acts,
@@ -55,7 +57,7 @@ export const VoyageSourceLive = Layer.effect(VoyageSource)(
 			dismissChange: (changeId: string) => changes.dismiss(changeId).pipe(Effect.mapError(toFailure)),
 			quay,
 			quayFeed: refreshes(quay),
-			refreshChanges: changes.requestRefresh,
+			refreshChanges: changeProcedures.requestRefresh,
 			reportMarkdown: (reportId: string) =>
 				voyages.readReport(reportId).pipe(
 					Effect.mapError(toFailure),

@@ -8,22 +8,22 @@ const decodeLink = Schema.decodeUnknownResult(WebLink);
 
 type OpenInBrowser = (url: string) => void;
 
-export const makeOpenExternalHandler =
+export const openWebLink =
 	(open: OpenInBrowser) =>
-	(_event: unknown, raw: unknown): void => {
+	(raw: unknown): void => {
 		const decoded = decodeLink(raw);
-		if (Result.isFailure(decoded)) {
-			return;
+		if (Result.isSuccess(decoded)) {
+			open(decoded.success.href);
 		}
-		open(decoded.success.href);
 	};
 
+export const openInBrowser = openWebLink((url) => {
+	Effect.promise(() => shell.openExternal(url)).pipe(
+		Effect.catchCause((cause) => Effect.logError("bridge: external open failed", cause)),
+		Effect.runFork,
+	);
+});
+
 export const registerOpenExternal = (): void => {
-	const open = (url: string) => {
-		Effect.promise(() => shell.openExternal(url)).pipe(
-			Effect.catchCause((cause) => Effect.logError("bridge: external open failed", cause)),
-			Effect.runFork,
-		);
-	};
-	ipcMain.on(OPEN_EXTERNAL_CHANNEL, makeOpenExternalHandler(open));
+	ipcMain.on(OPEN_EXTERNAL_CHANNEL, (_event, raw: unknown) => openInBrowser(raw));
 };

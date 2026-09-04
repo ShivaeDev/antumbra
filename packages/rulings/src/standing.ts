@@ -2,7 +2,6 @@ import { Database } from "@antumbra/persistence";
 import { Effect } from "effect";
 import type { RulingSubject } from "#model.ts";
 import { loadRuling } from "#read.ts";
-import type { StoredRuling } from "#stored-rows.ts";
 
 type SubjectKind = RulingSubject["kind"];
 
@@ -36,23 +35,15 @@ const subjectMatches = (filter: ReadonlyArray<RulingSubject>) =>
 		return new Set(found.flat().map((row) => row.rulingId));
 	});
 
-const scoped = (rows: ReadonlyArray<StoredRuling>, filter: ReadonlyArray<RulingSubject>) =>
-	Effect.gen(function* () {
-		if (filter.length === 0) {
-			return rows;
-		}
-		const matched = yield* subjectMatches(filter);
-		return rows.filter((row) => matched.has(row.id));
-	});
-
 export const standing = Effect.fn("rulings.standing")(function* (filter: ReadonlyArray<RulingSubject>) {
 	const db = yield* Database;
-	const rows = yield* db.Ruling.where({
+	const matched = filter.length === 0 ? undefined : yield* subjectMatches(filter);
+	const query = db.Ruling.where({
 		supersededById: null,
 		withdrawnAt: null,
 	})
 		.where((ruling) => ruling.ruledAt.isNotNull())
-		.orderBy((ruling) => ruling.ruledAt.desc())
-		.all();
-	return yield* Effect.forEach(yield* scoped(rows, filter), loadRuling);
+		.orderBy((ruling) => ruling.ruledAt.desc());
+	const rows = yield* (matched === undefined ? query : query.where((ruling) => ruling.id.in([...matched]))).all();
+	return yield* Effect.forEach(rows, loadRuling);
 });

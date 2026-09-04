@@ -38,55 +38,31 @@ const childrenOf = (listed: typeof ThreadListResponse.Type): ReadonlyArray<Spawn
 		};
 	});
 
-const listed = (found: ReadonlyMap<string, SpawnedChild>, children: ReadonlyArray<SpawnedChild>): ReadonlyMap<string, SpawnedChild> => {
-	const next = new Map(found);
-	for (const child of children) {
-		next.set(child.threadId, child);
-	}
-	return next;
-};
-
-interface SweepPage {
-	readonly cursor: string | undefined;
-	readonly found: ReadonlyMap<string, SpawnedChild>;
-	readonly pagesLeft: number;
-	readonly request: Request;
-	readonly rootThreadId: string;
-}
-
-// Codex thread-list pages can overlap; deduplicate by thread id.
-const sweepPage = (page: SweepPage): Effect.Effect<CensusSweep, BackendFailure> =>
-	Effect.gen(function* () {
-		if (page.pagesLeft === 0) {
-			return yield* Effect.fail(codexFailure("its listing of this session's threads never ended"));
-		}
-		const response = yield* page.request("thread/list", {
-			ancestorThreadId: page.rootThreadId,
-			...(page.cursor === undefined ? {} : { cursor: page.cursor }),
+// Codex thread/list with ancestorThreadId returns the descendant tree without attaching to it.
+export const sweepSpawnedDescendants = Effect.fn("Codex.sweepSpawnedDescendants")(function* (
+	request: Request,
+	rootThreadId: string,
+): Effect.fn.Return<CensusSweep, BackendFailure> {
+	const found = new Map<string, SpawnedChild>();
+	let cursor: string | undefined;
+	for (let page = 0; page < PAGES; page++) {
+		const response = yield* request("thread/list", {
+			ancestorThreadId: rootThreadId,
+			...(cursor === undefined ? {} : { cursor }),
 			limit: PAGE,
 		});
 		const decoded = decodeListing(response);
 		if (Option.isNone(decoded)) {
 			return yield* Effect.fail(codexFailure("it answered in a shape this backend cannot read"));
 		}
-		const found = listed(page.found, childrenOf(decoded.value));
-		const cursor = named(decoded.value.nextCursor);
-		return cursor === undefined || cursor === page.cursor
-			? [...found.values()]
-			: yield* sweepPage({
-					...page,
-					cursor,
-					found,
-					pagesLeft: page.pagesLeft - 1,
-				});
-	});
-
-// Codex thread/list with ancestorThreadId returns the descendant tree without attaching to it.
-export const sweepSpawnedDescendants = (request: Request, rootThreadId: string): Effect.Effect<CensusSweep, BackendFailure> =>
-	sweepPage({
-		cursor: undefined,
-		found: new Map(),
-		pagesLeft: PAGES,
-		request,
-		rootThreadId,
-	});
+		for (const child of childrenOf(decoded.value)) {
+			found.set(child.threadId, child);
+		}
+		const nextCursor = named(decoded.value.nextCursor);
+		if (nextCursor === undefined || nextCursor === cursor) {
+			return [...found.values()];
+		}
+		cursor = nextCursor;
+	}
+	return yield* Effect.fail(codexFailure("its listing of this session's threads never ended"));
+});

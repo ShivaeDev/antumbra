@@ -5,7 +5,7 @@ import { adapters, domainAndCapabilities, domainAndCapabilitiesExceptIntentDeman
 export const adapterPolicy = [
 	fence("resource-reclamation-imports-no-domain-change-or-provider")
 		.because(
-			"Resource reclamation owns replaceable-resource claims and Runner cleanup through lower ports; Change truth is supplied through an ambient transaction read, while Domain, applications, and concrete providers stay outside the capability.",
+			"Resource reclamation owns replaceable-resource claims and Runner cleanup through lower ports; Change truth reaches it only as a held-resource read it is handed, while Domain, applications, and concrete providers stay outside the capability.",
 		)
 		.forbidsImportsFrom(packages.named("resource-reclamation"))
 		.to(anyOf(applications.all, packages.named("domain", "changes"), adapters))

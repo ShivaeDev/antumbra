@@ -73,6 +73,8 @@ work that asked for it. Rulings link to the Pieces they gate, many to many, inde
 
 ## Standing rulings and smoothing
 
+_The dedicated smoothing agents are intended, not yet built._ Superseding, withdrawing, and reclassifying exist as acts; see [intended](intended.md).
+
 A ruling **stands** once ruled and until it is retired. The standing set of a scope needs smoothing as a Board does: rulings get superseded, stop
 mattering, could be combined into one broader rule, or lose the question that gave them meaning. Smoothing a scope's rulings means reclassifying,
 pushing a ruling upward where it turns out to apply more widely, consolidating, and retiring — always by appending with provenance, with every source

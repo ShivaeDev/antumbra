@@ -29,6 +29,8 @@ the current course is always judged against the one that directs this Voyage.
 
 ## Ephemerides and the cone of uncertainty
 
+_Intended, not yet built._ A Voyage carries a north star and context and nothing else about its course; see [intended](intended.md).
+
 An **ephemeris** is the mutable forecast of how the Voyage may move toward Polaris. Every fresh sighting may revise it. Waypoints are milestones
 selected inside the **cone of uncertainty**: the horizon within which the fleet has enough evidence to choose honestly. Planning beyond the cone turns
 uncertainty into a durable lie.
@@ -37,6 +39,8 @@ Charters are dead reckoning, not contracts. They record the current goal, contex
 allowed to revise them.
 
 ## Legs
+
+_Intended, not yet built._ Nothing records a Leg; the loop is how a captain is asked to think, not a state the app keeps; see [intended](intended.md).
 
 A **Leg** is one planning loop:
 
@@ -61,6 +65,9 @@ Plans bend by editing typed links: promote, park, reorder, add or remove a depen
 
 ## Occultations and dependency blockage
 
+_Occultations are intended, not yet built._ Dependency blockage is derived from the Piece graph today; nothing records an occultation; see
+[intended](intended.md).
+
 An **occultation** is a bird's-eye obstacle that hides part of the planned course and must be navigated around or cleared. The word is intentionally
 different from a Piece being **blocked**, which is a derived local fact: one or more unfinished predecessors currently gate it. Finishing those
 predecessors clears that blockage; an occultation may require a wider change to the ephemeris.
@@ -69,6 +76,9 @@ Real ordering lives in the Piece dependency graph. If B depends on A, A gates B.
 invented order.
 
 ## Posture, readiness, and progress
+
+_The general record is intended, not yet built._ A Piece's `launchedAt` and `parkedAt` are the whole of stored posture today, and no other subject has
+one; see [intended](intended.md).
 
 **Posture** is the admiral's standing direction toward a governed subject. On a Piece it records durable demand or restraint—for example, whether the
 admiral wants the work—so Agents can infer ordinary decisions without asking again. It is not execution status.

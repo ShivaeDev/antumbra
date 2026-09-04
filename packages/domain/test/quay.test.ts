@@ -61,6 +61,7 @@ const world = (over: Partial<VoyageWorld>): VoyageWorld => ({
 	dismissedChangeIds: new Set(),
 	edges: [],
 	memberships: [{ pieceId: "alpha", voyageId: "voyage-1" }],
+	openRulings: [],
 	pieceChanges: [],
 	pieceReports: [],
 	pieceVerdicts: new Map(),

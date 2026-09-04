@@ -36,6 +36,7 @@ const world: VoyageWorld = {
 	dismissedChangeIds: new Set(),
 	edges: [],
 	memberships: [],
+	openRulings: [],
 	pieceChanges: [],
 	pieceReports: [],
 	pieceVerdicts: new Map(),

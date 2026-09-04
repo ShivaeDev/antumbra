@@ -5,15 +5,9 @@ import { Effect } from "effect";
 export const forgetRepo = Effect.fn("repos.forget")(function* (id: string) {
 	const db = yield* Database;
 	const feeds = yield* DomainFeeds;
-	const changes = yield* db.Change.where({ repoId: id }).all();
-	yield* Effect.forEach(
-		changes,
-		(change) =>
-			db.ChangeTransition.where({ changeId: change.id })
-				.deleteAll()
-				.pipe(Effect.andThen(db.PieceChange.where({ changeId: change.id }).deleteAll())),
-		{ discard: true },
-	);
+	const changeIds = (yield* db.Change.where({ repoId: id }).select("id").all()).map((change) => change.id);
+	yield* db.ChangeTransition.where((transition) => transition.changeId.in(changeIds)).deleteAll();
+	yield* db.PieceChange.where((link) => link.changeId.in(changeIds)).deleteAll();
 	yield* db.Change.where({ repoId: id }).deleteAll();
 	yield* db.Repo.where({ id }).deleteAll();
 	yield* feeds.publishFleetRefresh();

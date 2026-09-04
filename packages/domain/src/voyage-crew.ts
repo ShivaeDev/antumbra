@@ -6,7 +6,7 @@ export interface VoyageCrewMember {
 	readonly status: string;
 }
 
-export const crewOf = (world: VoyageWorld, voyageId: string): ReadonlyArray<VoyageCrewMember> =>
+export const crewOf = (world: Pick<VoyageWorld, "crews" | "agentStatus">, voyageId: string): ReadonlyArray<VoyageCrewMember> =>
 	world.crews
 		.filter((crew) => crew.voyageId === voyageId)
 		.map((crew) => ({

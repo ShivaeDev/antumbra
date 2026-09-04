@@ -68,6 +68,8 @@ it.effectDB("owns replay-safe pull mail and explicit read receipts", function* (
 				sourceRef: "selection:attention-1",
 				toAgentId: "agent-mailbox",
 			};
+			expect(yield* boards.unread(input.toAgentId)).toEqual([]);
+			yield* boards.markRead(input.toAgentId, []);
 			const first = yield* boards.mail(input);
 			const replay = yield* boards.mail(input);
 
@@ -76,6 +78,7 @@ it.effectDB("owns replay-safe pull mail and explicit read receipts", function* (
 			expect(yield* PubSub.takeUpTo(notices, 1)).toEqual([]);
 
 			yield* boards.markRead(input.toAgentId, [first.id]);
+			yield* boards.markRead(input.toAgentId, [first.id, first.id]);
 			expect(yield* boards.unread(input.toAgentId)).toEqual([]);
 			expect(yield* db.BoardEntryReceipt.all()).toMatchObject([{ entryId: first.id }]);
 		}),

@@ -80,22 +80,34 @@ it.effectApp("matches references exactly and tags by name", function* () {
 		const rulings = yield* Rulings;
 		const onVoyage = yield* rulings.request({
 			...asked,
-			subjects: [{ id: voyageId, kind: "voyage" }],
+			subjects: [
+				{ id: voyageId, kind: "voyage" },
+				{ kind: "tag", tag: "shared" },
+			],
 		});
 		const onTag = yield* rulings.request({
 			...asked,
 			subjects: [{ kind: "tag", tag: "surveying" }],
 		});
 		yield* Effect.forEach([onVoyage, onTag], (ruling) =>
-			rulings.rule({
-				answer: "trust the soundings",
-				by: "admiral",
-				rulingId: ruling.id,
-			}),
+			rulings
+				.rule({
+					answer: "trust the soundings",
+					by: "admiral",
+					rulingId: ruling.id,
+				})
+				.pipe(Effect.andThen(TestClock.adjust(1_000))),
 		);
 
 		expect((yield* rulings.standing([{ id: voyageId, kind: "voyage" }])).map((ruling) => ruling.id)).toEqual([onVoyage.id]);
 		expect((yield* rulings.standing([{ kind: "tag", tag: "surveying" }])).map((ruling) => ruling.id)).toEqual([onTag.id]);
+		expect(
+			(yield* rulings.standing([
+				{ id: voyageId, kind: "voyage" },
+				{ kind: "tag", tag: "surveying" },
+				{ kind: "tag", tag: "shared" },
+			])).map((ruling) => ruling.id),
+		).toEqual([onTag.id, onVoyage.id]);
 		expect(yield* rulings.standing([{ id: pieceId, kind: "voyage" }])).toEqual([]);
 		expect(yield* rulings.standing([{ kind: "tag", tag: "provisioning" }])).toEqual([]);
 	}).pipe(Effect.provide(layer));

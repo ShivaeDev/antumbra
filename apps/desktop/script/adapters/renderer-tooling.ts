@@ -1,7 +1,7 @@
 import tailwind from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
 import { Effect } from "effect";
-import { createServer, build as viteBuild } from "vite";
+import { createServer, type ViteDevServer, build as viteBuild } from "vite";
 
 export const startRendererServer = (root: string, port: number) =>
 	Effect.promise(() =>
@@ -12,6 +12,8 @@ export const startRendererServer = (root: string, port: number) =>
 			server: { port, strictPort: true },
 		}).then((server) => server.listen()),
 	);
+
+export const stopRendererServer = (server: ViteDevServer) => Effect.promise(() => server.close());
 
 export const buildRenderer = (root: string, outDir: string) =>
 	Effect.promise(() =>

@@ -1,5 +1,6 @@
 import { SETTING_KEYS, type SettingsReading } from "@antumbra/contract";
 import { changeSetting } from "#adapters/trpc-settings.ts";
+import { RestartControl } from "#views/restart-control.tsx";
 import { SettingRow } from "#views/setting-row.tsx";
 
 export const SettingsPanel = ({
@@ -32,6 +33,7 @@ export const SettingsPanel = ({
 					/>
 				))
 			)}
+			<RestartControl onError={onError} />
 		</section>
 	);
 };

@@ -1,6 +1,6 @@
 import type { AppInfo, RepoRegistration, RepoSummary, SituationDraft, SpawnReceipt, SpawnRequest } from "@antumbra/contract";
 import { Data, Effect } from "effect";
-import { client, toError } from "#adapters/bridge.ts";
+import { client, fired, toError } from "#adapters/bridge.ts";
 
 export {
 	interruptSession,
@@ -24,6 +24,8 @@ export const loadAppInfo: Effect.Effect<AppInfo, AppInfoLoadError> = Effect.tryP
 	catch: (cause) => new AppInfoLoadError({ message: String(cause) }),
 	try: () => client.appInfo.query(),
 });
+
+export const restartApp = (onError: (message: string) => void): void => fired(client.restart.mutate(), onError);
 
 export const spawnAgent = (request: SpawnRequest, onDone: (receipt: SpawnReceipt) => void, onError: (message: string) => void): void => {
 	client.spawnAgent

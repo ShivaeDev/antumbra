@@ -6,9 +6,9 @@ import { AgentDomain } from "#domain.ts";
 import { KernelReach, type KernelReachService } from "#kernel-reach.ts";
 import { abandonRestartIntent, honorRestartIntent, recordRestartIntent } from "#restart.ts";
 import { domainKernelLayer } from "#test/domain-layers.ts";
-import { acquireTemporaryPersistence, makeScriptedBackend } from "#test/harness.ts";
+import { acquireTemporaryPersistence, makeScriptedBackend, rawOf, type ScriptedBackend, sessionFor } from "#test/harness.ts";
 import { fakeKernelReach } from "#test/kernel-reach-fixture.ts";
-import { untilTerminal } from "#test/session-recovery-fixture.ts";
+import { eventually, untilTerminal } from "#test/session-recovery-fixture.ts";
 
 const RESTART_RESUME = { key: "restart:resume" };
 
@@ -25,6 +25,18 @@ const spawnHand = (agentId: string, sessionId: string) =>
 			sessionId,
 		});
 		expect(yield* untilTerminal(submission.changes)).toBe("succeeded");
+	});
+
+const restHand = (scripted: ScriptedBackend, agentId: string) =>
+	Effect.gen(function* () {
+		const db = yield* Database;
+		const live = yield* sessionFor(scripted, agentId);
+		yield* live.emit({ durationMs: 1200, raw: rawOf("turn/completed"), status: "completed", type: "turn.completed" });
+		yield* eventually(
+			Effect.gen(function* () {
+				expect((yield* db.AgentSession.where({ agentId }).all())[0]?.executionStatus).toBe("idle");
+			}),
+		);
 	});
 
 interface RecordedWake {
@@ -44,10 +56,12 @@ it.live("a restart wakes exactly the roots it stopped, once the intent is forgot
 			const db = yield* Database;
 			yield* spawnHand("restart-one", "restart-session-one");
 			yield* spawnHand("restart-two", "restart-session-two");
+			yield* spawnHand("restart-idle", "restart-session-idle");
+			yield* restHand(scripted, "restart-idle");
 
 			yield* recordRestartIntent;
 			expect(Option.getOrThrow(yield* db.AppMeta.where(RESTART_RESUME).first()).value).toBe(
-				JSON.stringify(["restart-session-one", "restart-session-two"]),
+				JSON.stringify(["restart-session-one", "restart-session-two", "restart-session-idle"]),
 			);
 
 			const wakes = yield* Ref.make<ReadonlyArray<RecordedWake>>([]);
@@ -64,16 +78,17 @@ it.live("a restart wakes exactly the roots it stopped, once the intent is forgot
 			expect(yield* Ref.get(wakes)).toEqual([
 				{ intentStillRecorded: false, sessionId: "restart-session-one" },
 				{ intentStillRecorded: false, sessionId: "restart-session-two" },
+				{ intentStillRecorded: false, sessionId: "restart-session-idle" },
 			]);
 
 			yield* honorRestartIntent.pipe(Effect.provideService(KernelReach, recordingReach));
-			expect(yield* Ref.get(wakes)).toHaveLength(2);
+			expect(yield* Ref.get(wakes)).toHaveLength(3);
 
 			yield* recordRestartIntent;
 			yield* abandonRestartIntent;
 			expect(yield* db.AppMeta.where(RESTART_RESUME).first()).toEqual(Option.none());
 			yield* honorRestartIntent.pipe(Effect.provideService(KernelReach, recordingReach));
-			expect(yield* Ref.get(wakes)).toHaveLength(2);
+			expect(yield* Ref.get(wakes)).toHaveLength(3);
 		}).pipe(Effect.provide(domainKernelLayer(temporary, scripted.backend)));
 	}),
 );

@@ -32,9 +32,6 @@ export const honorRestartIntent = Effect.gen(function* () {
 	}
 	yield* db.AppMeta.where(RESTART_RESUME).deleteAll();
 	for (const sessionId of yield* decodeSessionIds(intent.value.value)) {
-		const session = yield* db.AgentSession.where({ id: sessionId }).first();
-		if (Option.isSome(session)) {
-			yield* reach.submitWake({ sessionId });
-		}
+		yield* reach.submitWake({ sessionId });
 	}
 });

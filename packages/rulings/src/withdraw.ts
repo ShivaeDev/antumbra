@@ -5,7 +5,7 @@ import { loadRuling, requireRuling } from "#read.ts";
 import type { RulingWithdrawInput } from "#retirement.ts";
 import { requireStanding } from "#standing-row.ts";
 
-export const withdraw = Effect.fn("rulings.withdraw")(function* (input: RulingWithdrawInput) {
+export const withdraw = Effect.fn("Rulings.withdraw")(function* (input: RulingWithdrawInput) {
 	const db = yield* Database;
 	const feeds = yield* DomainFeeds;
 	const now = yield* Clock.currentTimeMillis;

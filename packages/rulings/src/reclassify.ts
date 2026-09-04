@@ -5,7 +5,7 @@ import type { RulingReclassifyInput } from "#acts.ts";
 import { RulingAlreadyRuled, RulingReclassificationEmpty } from "#errors.ts";
 import { loadRuling, requireRuling } from "#read.ts";
 
-export const reclassify = Effect.fn("rulings.reclassify")(function* (input: RulingReclassifyInput) {
+export const reclassify = Effect.fn("Rulings.reclassify")(function* (input: RulingReclassifyInput) {
 	if (input.radius === undefined && input.urgency === undefined) {
 		return yield* new RulingReclassificationEmpty({ rulingId: input.rulingId });
 	}

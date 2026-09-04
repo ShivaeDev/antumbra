@@ -3,7 +3,7 @@ import { Database } from "@antumbra/persistence";
 import { Clock, Effect, Option } from "effect";
 import { readSettings } from "#reading.ts";
 
-export const changeSetting = Effect.fn("settings.changeSetting")(function* (change: SettingChange) {
+export const changeSetting = Effect.fn("SettingsSource.change")(function* (change: SettingChange) {
 	const db = yield* Database;
 	const declaration = SETTINGS[change.key];
 	const value = yield* Option.match(declaration.decode(change.value), {

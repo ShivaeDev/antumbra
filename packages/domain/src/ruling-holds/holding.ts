@@ -8,7 +8,7 @@ const without = (current: ReadonlySet<string>, rulingId: string): ReadonlySet<st
 };
 
 export const makeHolding = (held: RulingHoldState) =>
-	Effect.fn("rulingHolds.holding")(function* (rulingId: string): Effect.fn.Return<void, never, Scope.Scope> {
+	Effect.fn("RulingHolds.holding")(function* (rulingId: string): Effect.fn.Return<void, never, Scope.Scope> {
 		yield* Effect.acquireRelease(
 			Ref.update(held, (current) => new Set(current).add(rulingId)),
 			() => Ref.update(held, (current) => without(current, rulingId)),

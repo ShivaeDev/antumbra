@@ -10,7 +10,7 @@ const readIds = (receipts: ReadonlyArray<{ readonly entryId: string }>) => new S
 const mailEntries = (agentId: string) =>
 	readBoard(BoardScope.Agent({ agentId })).pipe(Effect.map((entries) => entries.filter((entry) => entry.kind === "mail")));
 
-export const mail = Effect.fn("boards.mail")((input: MailInput) =>
+export const mail = Effect.fn("Boards.mail")((input: MailInput) =>
 	writeEntry(
 		BoardScope.Agent({ agentId: input.toAgentId }),
 		EntryInput.Mail({
@@ -23,14 +23,14 @@ export const mail = Effect.fn("boards.mail")((input: MailInput) =>
 	),
 );
 
-export const unreadMail = Effect.fn("boards.unreadMail")(function* (agentId: string) {
+export const unreadMail = Effect.fn("Boards.unread")(function* (agentId: string) {
 	const db = yield* Database;
 	const entries = yield* mailEntries(agentId);
 	const read = readIds(yield* db.BoardEntryReceipt.where((receipt) => receipt.entryId.in(entries.map((entry) => entry.id))).select("entryId"));
 	return entries.filter((entry) => !read.has(entry.id));
 });
 
-export const markMailRead = Effect.fn("boards.markMailRead")(function* (agentId: string, entryIds: ReadonlyArray<string>) {
+export const markMailRead = Effect.fn("Boards.markRead")(function* (agentId: string, entryIds: ReadonlyArray<string>) {
 	const db = yield* Database;
 	const entries = yield* mailEntries(agentId);
 	const addressed = new Set(entries.map((entry) => entry.id));

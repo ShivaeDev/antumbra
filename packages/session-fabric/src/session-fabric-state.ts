@@ -9,7 +9,7 @@ export interface SessionFabricState {
 	readonly startAdmission: Effect.Success<typeof makeSessionStartAdmission>;
 }
 
-export const initializeSessionFabric = Effect.fn("sessionFabric.initialize")(function* (): Effect.fn.Return<SessionFabricState, never, Scope.Scope> {
+export const initializeSessionFabric = Effect.fn("SessionFabric.initialize")(function* (): Effect.fn.Return<SessionFabricState, never, Scope.Scope> {
 	return {
 		attachments: yield* makeSessionAttachmentRegistry,
 		lifecycles: yield* makeSessionLifecycles,

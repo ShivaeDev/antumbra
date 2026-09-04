@@ -1,7 +1,7 @@
 import { Database, type PrismaError } from "@antumbra/persistence";
 import { type Context, Effect } from "effect";
 
-export const memberPieceIds = Effect.fn("pieces.memberPieceIds")(function* (
+export const memberPieceIds = Effect.fn("Pieces.membersOfVoyage")(function* (
 	voyageId: string,
 ): Effect.fn.Return<ReadonlySet<string>, PrismaError, Context.Service.Identifier<typeof Database>> {
 	const db = yield* Database;

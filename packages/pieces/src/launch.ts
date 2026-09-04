@@ -10,7 +10,7 @@ const loadPiece = (pieceId: string) =>
 		return Option.isNone(row) ? yield* new PieceNotFound({ pieceId }) : row.value;
 	});
 
-export const launch = Effect.fn("pieces.launch")(function* (pieceId: string) {
+export const launch = Effect.fn("Pieces.launch")(function* (pieceId: string) {
 	const db = yield* Database;
 	const feeds = yield* DomainFeeds;
 	const piece = yield* loadPiece(pieceId);

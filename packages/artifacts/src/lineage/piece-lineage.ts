@@ -1,7 +1,7 @@
 import { Database } from "@antumbra/persistence";
 import { Effect, Option } from "effect";
 
-export const readStoredArtifactLineage = Effect.fn("artifacts.readStoredArtifactLineage")(function* (pieceId: string) {
+export const readStoredArtifactLineage = Effect.fn("Artifacts.readStoredArtifactLineage")(function* (pieceId: string) {
 	const db = yield* Database;
 	const ownArtifacts = yield* db.Artifact.where({ pieceId }).all();
 	const ownIds = new Set(ownArtifacts.map((artifact) => artifact.id));

@@ -40,7 +40,7 @@ it.live("hailing a voyage brings it a captain and puts it under way", () =>
 				EntryInput.Note({
 					authorAgentId: Option.none(),
 					body: "the eastern approach is safe",
-					register: "smooth",
+					register: "rough",
 				}),
 			);
 

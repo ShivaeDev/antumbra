@@ -31,7 +31,7 @@ export const makeBoardToolCompiler = Effect.gen(function* () {
 						EntryInput.Note({
 							authorAgentId: Option.some(identity.agentId),
 							body: input.body,
-							register: input.register,
+							register: "rough",
 						}),
 					),
 					() => `written to the ${input.scope} board`,

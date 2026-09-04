@@ -1,5 +1,5 @@
 export { Boards, BoardsLive, type BoardsService } from "#boards.ts";
-export { smoothBodies } from "#entries.ts";
+export { entryBodies } from "#entries.ts";
 export {
 	BoardOwnerNotFound,
 	BoardSourceConflict,

@@ -22,7 +22,7 @@ const charterDelivered = (scripted: ScriptedBackend, agentId: string) =>
 		return sent[0] ?? (yield* Effect.fail("no charter yet"));
 	});
 
-it.live("a dispatched crew is told the smooth log, never the rough one", () =>
+it.live("a dispatched crew is told both registers of its boards", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
 		const scripted = yield* makeScriptedBackend;
@@ -55,7 +55,7 @@ it.live("a dispatched crew is told the smooth log, never the rough one", () =>
 			const charter = yield* eventually(charterDelivered(scripted, agentId));
 			expect(charter).toContain("the eastern approach is safe");
 			expect(charter).toContain("the last hand reached the reef edge");
-			expect(charter).not.toContain("the swell is running");
+			expect(charter).toContain("the swell is running");
 		}).pipe(Effect.provide(dispatchingLayer(temporary, scripted.backend, PATIENCE)));
 	}),
 );

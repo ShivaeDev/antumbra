@@ -38,8 +38,7 @@ export const entryRow = (row: unknown) =>
 		),
 	);
 
-export const smoothBodies = (entries: ReadonlyArray<BoardEntryRow>): ReadonlyArray<string> =>
-	entries.filter((entry) => entry.register === "smooth").map((entry) => entry.body);
+export const entryBodies = (entries: ReadonlyArray<BoardEntryRow>): ReadonlyArray<string> => entries.map((entry) => entry.body);
 
 export const nextSequence = (last: Option.Option<{ readonly seq: number }>) =>
 	Option.match(last, {

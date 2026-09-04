@@ -98,16 +98,16 @@ it.effectApp("crew write to the board of their piece and of its voyage", { clock
 	const domain = yield* AgentDomain;
 	const crew = yield* workingCrew;
 	const live = yield* sessionOf(scripted, crew.agentId);
-	expect(yield* callTool(live, "write_board", { body: "the shoal is steeper than charted", register: "smooth", scope: "piece" })).toEqual({
+	expect(yield* callTool(live, "write_board", { body: "the shoal is steeper than charted", scope: "piece" })).toEqual({
 		ok: true,
 		text: "written to the piece board",
 	});
-	expect(yield* callTool(live, "write_board", { body: "the swell is running", register: "rough", scope: "voyage" })).toEqual({
+	expect(yield* callTool(live, "write_board", { body: "the swell is running", scope: "voyage" })).toEqual({
 		ok: true,
 		text: "written to the voyage board",
 	});
 	expect(yield* domain.boards.read(BoardScope.Piece({ pieceId: crew.piece.id }))).toMatchObject([
-		{ authorAgentId: crew.agentId, body: "the shoal is steeper than charted" },
+		{ authorAgentId: crew.agentId, body: "the shoal is steeper than charted", register: "rough" },
 	]);
 	expect(yield* callTool(live, "read_board", { scope: "voyage" })).toEqual({ ok: true, text: "[rough] the swell is running" });
 	expect(yield* domain.boards.read(BoardScope.Voyage({ voyageId: crew.voyage.id }))).toMatchObject([{ body: "the swell is running" }]);
@@ -139,7 +139,7 @@ it.effectApp("a session with no piece has no board but its own", { clock: "live"
 	const hand = yield* spawnByHand;
 	const live = yield* sessionOf(scripted, hand.agentId);
 	expect(yield* callTool(live, "read_board", { scope: "voyage" })).toEqual({ ok: false, text: "you have no voyage board" });
-	expect(yield* callTool(live, "write_board", { body: "sounded nothing yet", register: "rough", scope: "self" })).toEqual({
+	expect(yield* callTool(live, "write_board", { body: "sounded nothing yet", scope: "self" })).toEqual({
 		ok: true,
 		text: "written to the self board",
 	});

@@ -9,7 +9,8 @@ A place to stand for the long view.
 
 ## Status
 
-Early development. Nothing to install or run yet.
+Early development; there are no releases yet. The desktop app runs from source: `pnpm install`, then `pnpm --filter @antumbra/desktop dev`. CI
+packages a macOS build with `pnpm --filter @antumbra/desktop package`.
 
 ## Documentation
 

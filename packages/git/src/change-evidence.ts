@@ -27,7 +27,7 @@ const decodeIdentity = (output: string) =>
 		),
 	);
 
-export const captureWorktreeChange = Effect.fn("git.captureWorktreeChange")(function* (
+export const captureWorktreeChange = Effect.fn("Git.captureWorktreeChange")(function* (
 	path: string,
 ): Effect.fn.Return<WorktreeChangeEvidence, GitError, ChildProcessSpawner.ChildProcessSpawner> {
 	const identity = yield* runGit({

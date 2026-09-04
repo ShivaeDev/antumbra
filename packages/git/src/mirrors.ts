@@ -11,7 +11,7 @@ export const cloneMirror = (source: string, destination: string): Effect.Effect<
 		timeoutMillis: REMOTE_TIMEOUT_MILLIS,
 	}).pipe(Effect.asVoid);
 
-export const refreshMirror = Effect.fn("git.refreshMirror")(function* (
+export const refreshMirror = Effect.fn("Git.refreshMirror")(function* (
 	path: string,
 ): Effect.fn.Return<void, GitError, ChildProcessSpawner.ChildProcessSpawner> {
 	yield* runGit({

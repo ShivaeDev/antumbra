@@ -1,4 +1,4 @@
-import { Database, type PrismaError } from "@antumbra/persistence";
+import { Database, type PrismaError, type StoredAgentSession } from "@antumbra/persistence";
 import { rootSessions } from "@antumbra/sessions";
 import {
 	decodeSessionExecutionStatus,
@@ -11,27 +11,28 @@ import { type Context, Effect } from "effect";
 import { voyageRow } from "#voyage-row-projection.ts";
 import type { AgentSessionRow, VoyageRow } from "#voyage-rows.ts";
 
+export const decodeRootSession = (session: StoredAgentSession) =>
+	Effect.all({
+		executionStatus: Effect.fromResult(decodeSessionExecutionStatus(session.id, session.executionStatus)),
+		status: Effect.fromResult(decodeStoredAgentSessionStatus(session.id, session.status)),
+	}).pipe(
+		Effect.map(({ executionStatus, status }) => ({
+			agentId: session.agentId,
+			backend: session.backend,
+			createdAt: session.createdAt,
+			executionStatus,
+			id: session.id,
+			status,
+		})),
+	);
+
 export const readRootSessions: Effect.Effect<
 	ReadonlyArray<AgentSessionRow>,
 	InvalidSessionExecutionStatus | PrismaError | StoredAgentSessionStatusInvalid,
 	Context.Service.Identifier<typeof Database>
 > = Effect.gen(function* () {
 	const db = yield* Database;
-	return yield* Effect.forEach(yield* db.AgentSession.where(rootSessions).all(), (session) =>
-		Effect.all({
-			executionStatus: Effect.fromResult(decodeSessionExecutionStatus(session.id, session.executionStatus)),
-			status: Effect.fromResult(decodeStoredAgentSessionStatus(session.id, session.status)),
-		}).pipe(
-			Effect.map(({ executionStatus, status }) => ({
-				agentId: session.agentId,
-				backend: session.backend,
-				createdAt: session.createdAt,
-				executionStatus,
-				id: session.id,
-				status,
-			})),
-		),
-	);
+	return yield* Effect.forEach(yield* db.AgentSession.where(rootSessions).all(), decodeRootSession);
 });
 
 export const readVoyages: Effect.Effect<

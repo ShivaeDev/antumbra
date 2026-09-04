@@ -1,6 +1,7 @@
 import { Changes } from "@antumbra/changes";
 import type { AgentSummary, Fleet, RepoSummary } from "@antumbra/contract";
 import { Database } from "@antumbra/persistence";
+import { Repos } from "@antumbra/repos";
 import { rootSessions, situationsByAgent } from "@antumbra/sessions";
 import { decodeStoredAgentStatus, decodeStoredBerthStatus, decodeStoredResourceReclaimState } from "@antumbra/vocabulary/agent-runtime";
 import { Effect } from "effect";
@@ -19,6 +20,7 @@ export const fleetSnapshot = (
 ) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
+		const registry = yield* Repos;
 		const changes = yield* Changes;
 		const storedAgents = yield* db.Agent.orderBy((agent) => agent.createdAt.asc()).all();
 		const agents = yield* Effect.forEach(storedAgents, (agent) =>
@@ -45,7 +47,7 @@ export const fleetSnapshot = (
 				status: Effect.fromResult(decodeStoredBerthStatus(berth.id, berth.status)),
 			}).pipe(Effect.map((decoded) => ({ ...berth, ...decoded }))),
 		);
-		const repos: ReadonlyArray<RepoSummary> = (yield* db.Repo.orderBy((repo) => repo.createdAt.asc()).all()).map((repo) => ({
+		const repos: ReadonlyArray<RepoSummary> = (yield* registry.registered()).map((repo) => ({
 			defaultRef: repo.defaultRef,
 			id: repo.id,
 			name: repo.name,

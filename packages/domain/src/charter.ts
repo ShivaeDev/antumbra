@@ -1,6 +1,7 @@
 import { Database } from "@antumbra/persistence";
 import type { SessionHandle } from "@antumbra/plugin-api";
 import { type BerthedCharter, berthedCharter } from "@antumbra/prompts";
+import { Repos } from "@antumbra/repos";
 import { promptInput } from "@antumbra/sessions";
 import { Clock, Effect, Option } from "effect";
 import type { SpawnFields } from "#spawn-fields.ts";
@@ -29,6 +30,7 @@ const roleFor = (payload: SpawnFields): BerthedCharter["role"] =>
 
 export const charterDelivery = Effect.gen(function* () {
 	const db = yield* Database;
+	const registry = yield* Repos;
 	const moorageOf = (agentId: string) =>
 		Effect.gen(function* () {
 			const moorage = yield* db.Moorage.where({ agentId }).first();
@@ -38,7 +40,7 @@ export const charterDelivery = Effect.gen(function* () {
 			const berths = yield* db.Berth.where({ agentId })
 				.orderBy((berth) => berth.createdAt.asc())
 				.all();
-			const repos = yield* db.Repo.orderBy((repo) => repo.createdAt.asc()).all();
+			const repos = yield* registry.registered();
 			return {
 				berths: namedBerths(berths, repos),
 				moorageRoot: moorage.value.root,

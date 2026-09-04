@@ -1,9 +1,10 @@
 import { mkdirSync } from "node:fs";
 import { isAbsolute, join } from "node:path";
-import { Config, Effect } from "effect";
+import { Config, Effect, type Ref } from "effect";
 import { app } from "electron";
 import { registerGracefulShutdown } from "#adapters/graceful-shutdown.ts";
 import type { OwnedWindow } from "#adapters/windows/registry.ts";
+import { RESTART_EXIT_CODE } from "#restart-exit-code.ts";
 
 const DEV_USER_DATA_VARIABLE = "ANTUMBRA_DEV_USER_DATA";
 
@@ -58,15 +59,25 @@ export const quitWhenAllWindowsClosed = Effect.sync(() => {
 	});
 });
 
-export const drainBeforeQuit = <E>(shutdown: Effect.Effect<void, E>) =>
+export const drainBeforeQuit = <E>(shutdown: Effect.Effect<void, E>, restarting: Ref.Ref<boolean>, abandonRestart: Effect.Effect<void>) =>
 	registerGracefulShutdown(
 		{
 			onBeforeQuit: (listener) => {
 				app.on("before-quit", listener);
 			},
 			quit: () => app.quit(),
+			relaunch: () => {
+				if (app.isPackaged) {
+					app.relaunch();
+					app.quit();
+					return;
+				}
+				app.exit(RESTART_EXIT_CODE);
+			},
 		},
 		shutdown,
+		restarting,
+		abandonRestart,
 	);
 
 interface ConsoleWindows {

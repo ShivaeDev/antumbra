@@ -1,8 +1,8 @@
 import { Buffer } from "node:buffer";
 import process from "node:process";
-import { type Fleet, SightSource } from "@antumbra/contract";
+import { AppLifecycleSource, type Fleet, SightSource } from "@antumbra/contract";
 import { Effect, Stream } from "effect";
-import { nativeImage, Tray } from "electron";
+import { Menu, nativeImage, Tray } from "electron";
 
 const ICON_PIXELS = 32;
 const ICON_SCALE = 2;
@@ -65,7 +65,7 @@ const ringBitmap = (size: number): Buffer => {
 	return pixels;
 };
 
-const electronTrayHost: TrayHost = {
+const electronTrayHost = (restart: () => void): TrayHost => ({
 	create: () => {
 		const icon = nativeImage.createFromBitmap(ringBitmap(ICON_PIXELS), {
 			height: ICON_PIXELS,
@@ -74,6 +74,8 @@ const electronTrayHost: TrayHost = {
 		});
 		icon.setTemplateImage(true);
 		const tray = new Tray(icon);
+		const menu = Menu.buildFromTemplate([{ click: restart, label: "Restart Antumbra" }]);
+		tray.on("right-click", () => tray.popUpContextMenu(menu));
 		return {
 			destroy: () => tray.destroy(),
 			onClick: (listener) => {
@@ -83,7 +85,7 @@ const electronTrayHost: TrayHost = {
 			setToolTip: (tooltip) => tray.setToolTip(tooltip),
 		};
 	},
-};
+});
 
 export const fleetTray = (activate: Effect.Effect<void, unknown>) =>
 	Effect.gen(function* () {
@@ -91,5 +93,12 @@ export const fleetTray = (activate: Effect.Effect<void, unknown>) =>
 			return;
 		}
 		const sight = yield* SightSource;
-		yield* runFleetTray(electronTrayHost, sight.fleetFeed, activate);
+		const lifecycle = yield* AppLifecycleSource;
+		const restart = () => {
+			lifecycle.restart.pipe(
+				Effect.catchCause((cause) => Effect.logError("tray restart failed", cause)),
+				Effect.runFork,
+			);
+		};
+		yield* runFleetTray(electronTrayHost(restart), sight.fleetFeed, activate);
 	});

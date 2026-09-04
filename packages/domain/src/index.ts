@@ -7,6 +7,7 @@ export { AgentDomain, AgentDomainLive } from "#domain.ts";
 export { FlagshipLive } from "#flagship.ts";
 export { IntentFeedLive } from "#intent-feed.ts";
 export { KernelReachLive } from "#kernel-reach.ts";
+export { abandonRestartIntent, honorRestartIntent, recordRestartIntent } from "#restart.ts";
 export { RulingAscentLive } from "#ruling-ascent.ts";
 export { RulingDeliveryLive } from "#ruling-delivery.ts";
 export { RulingSourceLive } from "#ruling-source.ts";

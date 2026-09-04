@@ -1,4 +1,4 @@
-import { Effect, type ManagedRuntime } from "effect";
+import { Effect, type ManagedRuntime, Ref } from "effect";
 
 interface QuitRequest {
 	readonly preventDefault: () => void;
@@ -7,6 +7,7 @@ interface QuitRequest {
 interface QuitApplication {
 	readonly onBeforeQuit: (listener: (event: QuitRequest) => void) => void;
 	readonly quit: () => void;
+	readonly relaunch: () => void;
 }
 
 type ShutdownPhase = "accepting" | "draining" | "exiting";
@@ -14,9 +15,18 @@ type ShutdownPhase = "accepting" | "draining" | "exiting";
 const allowShutdownRetry = (cause: unknown, allow: () => void) =>
 	Effect.logError("graceful shutdown failed", cause).pipe(Effect.andThen(Effect.sync(allow)));
 
-const permitFinalExit = (application: QuitApplication, permit: () => void) =>
-	Effect.sync(() => {
+const abandonRequestedRestart = (restarting: Ref.Ref<boolean>, abandonRestart: Effect.Effect<void>) =>
+	Effect.flatMap(Ref.getAndSet(restarting, false), (wasRestart) =>
+		wasRestart ? abandonRestart.pipe(Effect.andThen(Effect.logInfo("restart abandoned; the next boot wakes nothing"))) : Effect.void,
+	);
+
+const permitFinalExit = (application: QuitApplication, restarting: Ref.Ref<boolean>, permit: () => void) =>
+	Effect.map(Ref.get(restarting), (restart) => {
 		permit();
+		if (restart) {
+			application.relaunch();
+			return;
+		}
 		application.quit();
 	});
 
@@ -26,7 +36,12 @@ export const drainManagedRuntime = <R, ER, E>(runtime: ManagedRuntime.ManagedRun
 		try: () => runtime.runPromise(drain).then(() => runtime.dispose()),
 	});
 
-export const registerGracefulShutdown = <E>(application: QuitApplication, shutdown: Effect.Effect<void, E>) =>
+export const registerGracefulShutdown = <E>(
+	application: QuitApplication,
+	shutdown: Effect.Effect<void, E>,
+	restarting: Ref.Ref<boolean>,
+	abandonRestart: Effect.Effect<void>,
+) =>
 	Effect.sync(() => {
 		let phase: ShutdownPhase = "accepting";
 		application.onBeforeQuit((event) => {
@@ -43,9 +58,9 @@ export const registerGracefulShutdown = <E>(application: QuitApplication, shutdo
 					onFailure: (cause) =>
 						allowShutdownRetry(cause, () => {
 							phase = "accepting";
-						}),
+						}).pipe(Effect.andThen(abandonRequestedRestart(restarting, abandonRestart))),
 					onSuccess: () =>
-						permitFinalExit(application, () => {
+						permitFinalExit(application, restarting, () => {
 							phase = "exiting";
 						}),
 				}),

@@ -1,9 +1,9 @@
+import { Changes } from "@antumbra/changes";
 import { Database } from "@antumbra/persistence";
 import type { Runner } from "@antumbra/plugin-api";
 import { expect, it } from "@effect/vitest";
 import { Clock, Effect, Ref } from "effect";
 import { TestClock } from "effect/testing";
-import { AgentDomain } from "#domain.ts";
 import { changeOf, REEF_SOURCE } from "#test/change-fixtures.ts";
 import { observed } from "#test/change-transition-fixtures.ts";
 import { domainKernelLayer } from "#test/domain-layers.ts";
@@ -152,7 +152,7 @@ it.effect("a landed change observation wakes reclaim without waiting for cadence
 		yield* moored(new Date(now - EIGHT_DAYS_MILLIS)).pipe(Effect.provide(temporary.layer));
 
 		yield* Effect.gen(function* () {
-			const domain = yield* AgentDomain;
+			const changes = yield* Changes;
 			const swept = yield* berthStatuses;
 			expect(swept.get(HELD)).toBe("stranded");
 			expect(swept.get(AT_WORK)).toBe("ready");
@@ -173,13 +173,13 @@ it.effect("a landed change observation wakes reclaim without waiting for cadence
 				1,
 				{ stage: "landed" },
 			);
-			const [landed] = yield* domain.changes.observed("scripted", [landing]);
+			const [landed] = yield* changes.observed("scripted", [landing]);
 			expect(landed?.stage).toBe("landed");
 			yield* TestClock.withLive(eventually(berthStatuses.pipe(Effect.tap(expectReclaimed))));
 			expect(yield* Ref.get(reclaims)).toBe(4);
 			expect(yield* Ref.get(scraps)).toBe(0);
 
-			yield* domain.changes.observed("scripted", [landing]);
+			yield* changes.observed("scripted", [landing]);
 			yield* TestClock.adjust(25);
 			expect(yield* Ref.get(reclaims)).toBe(4);
 			expect(yield* Ref.get(scraps)).toBe(0);

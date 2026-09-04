@@ -1,8 +1,8 @@
+import { Changes } from "@antumbra/changes";
 import { Database } from "@antumbra/persistence";
 import type { Runner } from "@antumbra/plugin-api";
 import { expect, it } from "@effect/vitest";
 import { Effect, Option, Ref, Result } from "effect";
-import { AgentDomain } from "#domain.ts";
 import { REEF_SOURCE, reefWithPiece } from "#test/change-fixtures.ts";
 import { domainKernelLayer } from "#test/domain-layers.ts";
 import { acquireTemporaryPersistence, changeHostsOf, makeScriptedBackend, passiveRunner } from "#test/harness.ts";
@@ -53,11 +53,11 @@ it.live("a terminal Agent cannot prepare new local work before reclamation claim
 		};
 		yield* Effect.gen(function* () {
 			const db = yield* Database;
-			const domain = yield* AgentDomain;
+			const changes = yield* Changes;
 			const { piece, repo } = yield* reefWithPiece;
 			yield* seedRetiredBerth;
 			const prepared = yield* Effect.result(
-				domain.changes.submit({
+				changes.submit({
 					agentId: AGENT_ID,
 					pieceId: piece.id,
 					repoName: repo.name,

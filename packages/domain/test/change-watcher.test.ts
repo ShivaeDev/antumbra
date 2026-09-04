@@ -1,3 +1,4 @@
+import { Changes } from "@antumbra/changes";
 import { Database } from "@antumbra/persistence";
 import { describe, expect, it } from "@effect/vitest";
 import { Effect, Queue } from "effect";
@@ -61,8 +62,8 @@ const watched = <A, E, R>(cadence: ObserveCadenceOptions, body: (scripted: Watch
 
 const openedChange = (pieceId: string, repoName: string) =>
 	Effect.gen(function* () {
-		const domain = yield* AgentDomain;
-		return yield* domain.changes.open({
+		const changes = yield* Changes;
+		return yield* changes.open({
 			agentId: CREW,
 			base: null,
 			body: "sounded three fathoms",
@@ -89,14 +90,14 @@ const askedMoreThan = (scripted: WatchingHost, count: number): Effect.Effect<voi
 
 const hearsTheLanding = (scripted: ScriptedHost, repoId: string, delayMillis: number) =>
 	Effect.gen(function* () {
-		const domain = yield* AgentDomain;
+		const changes = yield* Changes;
 		yield* scripted.drive.refuse(null);
 		yield* scripted.drive.transition(repoId, "1", { stage: "landed" });
 		yield* TestClock.adjust(delayMillis);
 		yield* TestClock.withLive(
 			eventually(
 				Effect.gen(function* () {
-					expect((yield* domain.changes.watchableChanges("scripted")).length).toBe(0);
+					expect((yield* changes.watchable("scripted")).length).toBe(0);
 				}),
 			),
 		);
@@ -153,7 +154,7 @@ describe("watching open changes", () => {
 	it.effect("leaves rows untouched when a host will not answer", () =>
 		watched(BRISK, (scripted) =>
 			Effect.gen(function* () {
-				const domain = yield* AgentDomain;
+				const changes = yield* Changes;
 				const { piece, repo } = yield* reefWithPiece;
 				yield* berthed(CREW);
 				const row = yield* openedChange(piece.id, repo.name);
@@ -162,7 +163,7 @@ describe("watching open changes", () => {
 				const before = yield* passes(scripted);
 				yield* TestClock.adjust(300);
 				expect(yield* passes(scripted)).toBeGreaterThan(before);
-				const watchable = yield* domain.changes.watchableChanges("scripted");
+				const watchable = yield* changes.watchable("scripted");
 				expect(watchable[0]?.observedAt).toEqual(row.observedAt);
 				expect(watchable[0]?.stage).toBe("open");
 

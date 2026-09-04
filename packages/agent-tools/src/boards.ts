@@ -6,8 +6,7 @@ const Scope = Schema.Literals(["piece", "self", "voyage"]).annotate({
 });
 
 export const writeBoardSpec = defineTool({
-	description:
-		"Write an entry on a board, so what you learned outlives your session. Never write what the record already holds — landed outcomes are their own account.",
+	description: "Leave context and reasoning for the next agent. Omit what the work record already captures.",
 	input: Schema.Struct({
 		body: Schema.String.annotate({
 			description: "The entry, written for whoever reads this board next.",
@@ -18,15 +17,13 @@ export const writeBoardSpec = defineTool({
 });
 
 export const readMailSpec = defineTool({
-	description:
-		"Read explicitly addressed unread mail, oldest first. Use it when the admiral selects this mailbox for attention. Reading marks nothing and does not imply the mail was handled.",
+	description: "Read your unread mail, oldest first. Reading does not mark it as read.",
 	input: Schema.Struct({}),
 	name: "read_mail",
 });
 
 export const markReadSpec = defineTool({
-	description:
-		"Mark addressed mail as read after taking in its information. This records only read truth, not completion, and does not wake or resume any Agent.",
+	description: "Mark mail as read after taking in its information.",
 	input: Schema.Struct({
 		entryIds: Schema.Array(Schema.String).annotate({
 			description: "The ids returned by `read_mail` that you have taken in.",
@@ -36,8 +33,7 @@ export const markReadSpec = defineTool({
 });
 
 export const readBoardSpec = defineTool({
-	description:
-		"Read a board, oldest entry first: what earlier sessions left for whoever came next. Call it before you start, so you do not redo what someone already settled.",
+	description: "Read earlier notes on a board before starting or resuming its work.",
 	input: Schema.Struct({ scope: Scope }),
 	name: "read_board",
 });

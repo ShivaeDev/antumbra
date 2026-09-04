@@ -1,6 +1,7 @@
 import { type Gate, type IntentStatus, isTerminalIntentStatus, Kernel } from "@antumbra/kernel";
 import { Database, type NewAgentSession } from "@antumbra/persistence";
 import type { AgentBackend, MooragePlan } from "@antumbra/plugin-api";
+import { wakeWords } from "@antumbra/prompts";
 import { expect, it } from "@effect/vitest";
 import { Effect, Option, Ref, Stream } from "effect";
 import { AgentDomain } from "#domain.ts";
@@ -144,7 +145,7 @@ it.live("boot completes an activated birth while resuming its durable Session", 
 					}).toEqual({ opened: 1, provisioned: [] });
 					const resumed = yield* scripted.session(payload.sessionId);
 					expect(resumed).toBeDefined();
-					expect(resumed === undefined ? [] : yield* resumed.sent).toEqual(["Reconcile durable Antumbra truth and continue your assigned work."]);
+					expect(resumed === undefined ? [] : yield* resumed.sent).toEqual([wakeWords]);
 					const settled = yield* birthRows;
 					expect(settled.transcript.map((event) => event.seq)).toEqual([0, 1]);
 				}),

@@ -8,6 +8,7 @@ implemented fields, states, and wire names.
 - [Attention and memory](attention-and-memory.md) — Boards, mail, interruption, and smoothing.
 - [Rulings](rulings.md) — the Ruling record, radius and urgency, subjects, the authority ladder, gating, standing rulings, and reach.
 - [The flagship](flagship.md) — the one flagship Voyage, its captain, that captain's rung on the ladder, and what it may do for the admiral.
+- [Charters](charters.md) — what each Agent needs at open, wake and steering, the boundary with tool descriptions, and continuity through compaction.
 - [Changes and delivery](changes-and-delivery.md) — Outcomes, durable landing, the Quay, and GitHub's mapping.
 - [Agent identity, resources, and recovery](agent-recovery.md) — durable Agent identity, internal execution, delegation and the Session tree, Moorage,
   restart, siesta, and reclamation.

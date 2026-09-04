@@ -1,6 +1,7 @@
 import { createSqliteControlClient } from "@prisma-next/sqlite/control";
-import { Data, Effect } from "effect";
+import { Clock, Data, Effect, Schema } from "effect";
 import { prepareArtifactCustodyMigration } from "#adapters/artifact-custody-preflight.ts";
+import { backupBeforeMigration } from "#adapters/backup.ts";
 import contractJson from "#contract.json" with { type: "json" };
 import type { DatabaseFilePath } from "#data-dir.ts";
 
@@ -24,6 +25,19 @@ interface PreparedMigrationTarget extends MigrationTarget {
 }
 
 const migrationFailure = (cause: unknown) => new MigrationFailure({ detail: String(cause) });
+
+const storageHashOf = Schema.decodeUnknownSync(Schema.Struct({ storage: Schema.Struct({ storageHash: Schema.String }) }));
+
+const backupBeforeMigrating = (target: PreparedMigrationTarget): Effect.Effect<void, MigrationFailure> =>
+	Clock.currentTimeMillis.pipe(
+		Effect.flatMap((now) =>
+			Effect.try({
+				catch: migrationFailure,
+				try: () => backupBeforeMigration(target.database, storageHashOf(target.contract).storage.storageHash, new Date(now)),
+			}),
+		),
+		Effect.flatMap((backup) => (backup === undefined ? Effect.void : Effect.logInfo("database backed up before migration", backup))),
+	);
 
 const applyPreparedMigrations = (target: PreparedMigrationTarget): Effect.Effect<MigrationReport, MigrationFailure> =>
 	Effect.tryPromise({
@@ -51,7 +65,7 @@ const applyPreparedMigrations = (target: PreparedMigrationTarget): Effect.Effect
 	});
 
 export const applyMigrations = (target: MigrationTarget): Effect.Effect<MigrationReport, MigrationFailure> => {
-	const contract = target.contract ?? contractJson;
+	const prepared: PreparedMigrationTarget = { ...target, contract: target.contract ?? contractJson };
 	return Effect.try({
 		catch: migrationFailure,
 		try: () =>
@@ -59,12 +73,5 @@ export const applyMigrations = (target: MigrationTarget): Effect.Effect<Migratio
 				...(target.artifactsRoot === undefined ? {} : { artifactsRoot: target.artifactsRoot }),
 				database: target.database,
 			}),
-	}).pipe(
-		Effect.andThen(
-			applyPreparedMigrations({
-				...target,
-				contract,
-			}),
-		),
-	);
+	}).pipe(Effect.andThen(backupBeforeMigrating(prepared)), Effect.andThen(applyPreparedMigrations(prepared)));
 };

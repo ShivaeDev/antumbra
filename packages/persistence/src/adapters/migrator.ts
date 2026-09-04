@@ -1,6 +1,5 @@
 import { createSqliteControlClient } from "@prisma-next/sqlite/control";
 import { Clock, Data, Effect, Schema } from "effect";
-import { prepareArtifactCustodyMigration } from "#adapters/artifact-custody-preflight.ts";
 import { backupBeforeMigration } from "#adapters/backup.ts";
 import contractJson from "#contract.json" with { type: "json" };
 import type { DatabaseFilePath } from "#data-dir.ts";
@@ -14,7 +13,6 @@ interface MigrationReport {
 }
 
 interface MigrationTarget {
-	readonly artifactsRoot?: string;
 	readonly contract?: unknown;
 	readonly database: DatabaseFilePath;
 	readonly migrationsDirectory: string;
@@ -66,12 +64,5 @@ const applyPreparedMigrations = (target: PreparedMigrationTarget): Effect.Effect
 
 export const applyMigrations = (target: MigrationTarget): Effect.Effect<MigrationReport, MigrationFailure> => {
 	const prepared: PreparedMigrationTarget = { ...target, contract: target.contract ?? contractJson };
-	return Effect.try({
-		catch: migrationFailure,
-		try: () =>
-			prepareArtifactCustodyMigration({
-				...(target.artifactsRoot === undefined ? {} : { artifactsRoot: target.artifactsRoot }),
-				database: target.database,
-			}),
-	}).pipe(Effect.andThen(backupBeforeMigrating(prepared)), Effect.andThen(applyPreparedMigrations(prepared)));
+	return backupBeforeMigrating(prepared).pipe(Effect.andThen(applyPreparedMigrations(prepared)));
 };

@@ -4,7 +4,6 @@ import type { DatabaseFilePath } from "#data-dir.ts";
 import { Database } from "#database.ts";
 
 interface PersistenceOptions {
-	readonly artifactsRoot: string;
 	readonly database: DatabaseFilePath;
 	readonly migrationsDirectory: string;
 }

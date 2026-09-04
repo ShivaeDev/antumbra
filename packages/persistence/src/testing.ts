@@ -27,12 +27,10 @@ export interface TemporaryPersistence {
 export const temporaryPersistence = (): TemporaryPersistence => {
 	const directory = mkdtempSync(join(tmpdir(), "antumbra-persistence-"));
 	const database = brandDatabaseFilePath(join(directory, "antumbra.db"));
-	const artifactsRoot = join(directory, "artifacts");
-	mkdirSync(artifactsRoot);
+	mkdirSync(join(directory, "artifacts"));
 	return {
 		database,
 		layer: PersistenceLive({
-			artifactsRoot,
 			database,
 			migrationsDirectory: packagedMigrationsDirectory,
 		}),

@@ -20,8 +20,8 @@ interface CodexPluginOptions {
 
 const spawnAppServer = (command: string, cwd: string) => (): LineProcess => spawnLineProcess({ args: ["app-server"], command, cwd });
 
-const codexBackend = (server: RcRef.RcRef<CodexServer, BackendFailure>, spawn: () => LineProcess, capacity: BackendCapacitySource): AgentBackend => ({
-	audit: codexAudit(server, spawn),
+const codexBackend = (server: RcRef.RcRef<CodexServer, BackendFailure>, capacity: BackendCapacitySource): AgentBackend => ({
+	audit: codexAudit(server),
 	capacity,
 	capabilities: {
 		imageInput: true,
@@ -39,7 +39,7 @@ const registerCodex = (context: PluginContext, spawn: () => LineProcess) =>
 		const server = yield* RcRef.make({
 			acquire: makeCodexServer({ observeCapacity: capacity.observe, spawn }),
 		});
-		yield* context.registerAgentBackend(codexBackend(server, spawn, capacity.source));
+		yield* context.registerAgentBackend(codexBackend(server, capacity.source));
 	});
 
 export const codexPlugin = (options: CodexPluginOptions): AntumbraPlugin => ({

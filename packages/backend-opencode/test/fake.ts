@@ -1,4 +1,4 @@
-import type { OpencodeConnection, OpencodeRequest } from "#adapters/connection.ts";
+import type { OpencodeConnection, OpencodeEventListeners, OpencodeRequest } from "#adapters/connection.ts";
 import { SESSION } from "#test/frames.ts";
 
 interface FakeCall {
@@ -11,6 +11,7 @@ export interface FakeOpencode {
 	readonly calls: FakeCall[];
 	readonly connect: () => Promise<OpencodeConnection>;
 	readonly emit: (frame: unknown) => void;
+	readonly malformed: (line: string) => void;
 	readonly exit: () => void;
 }
 
@@ -29,7 +30,7 @@ const answer = (path: string): unknown => {
 
 export const makeFakeOpencode = (): FakeOpencode => {
 	const calls: FakeCall[] = [];
-	let frameListener: ((frame: unknown) => void) | null = null;
+	let listeners: OpencodeEventListeners | undefined;
 	let exitListener: (() => void) | null = null;
 	const record = (request: OpencodeRequest): Promise<unknown> => {
 		const call: FakeCall = { ...request };
@@ -42,15 +43,16 @@ export const makeFakeOpencode = (): FakeOpencode => {
 			Promise.resolve({
 				close: () => exitListener?.(),
 				get: record,
-				onEvent: (listener) => {
-					frameListener = listener;
+				onEvent: (onEvent) => {
+					listeners = onEvent;
 				},
 				onExit: (listener) => {
 					exitListener = listener;
 				},
 				post: record,
 			}),
-		emit: (frame) => frameListener?.(frame),
+		emit: (frame) => listeners?.onFrame(frame),
+		malformed: (line) => listeners?.onMalformed(line),
 		exit: () => exitListener?.(),
 	};
 };

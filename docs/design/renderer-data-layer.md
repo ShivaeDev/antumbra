@@ -4,7 +4,8 @@
 
 The renderer holds no truth of its own. Every value it draws crosses the typed bridge from the main process, and it arrives in one of two shapes: a
 **feed** that pushes the current picture and keeps pushing, or a **call** that answers once. This guide fixes the hooks that carry both shapes so a
-view spends its lines on what it draws rather than on how the value reached it.
+view spends its lines on what it draws rather than on how the value reached it. The one thing the renderer keeps for itself, an unsent draft, is named
+at the end.
 
 ## Two shapes, three hooks
 
@@ -76,10 +77,10 @@ interface Caller<A> {
 }
 ```
 
-`run` moves the state to pending and hands the adapter its two callbacks. A run settles exactly once: the first answer wins, later callbacks from the
-same run are dropped, and answers from a superseded run are dropped too. That is what makes a second click safe — open one artifact, then another, and
-the reader sees the second one whatever order the answers come back in. `reset` returns the caller to idle and abandons whatever is in flight; it is
-how a view closes a detail pane.
+`run` moves the state to pending and hands the adapter its two callbacks; whichever callback fires sets the state, so the last answer to arrive is the
+one shown. There is no run token: a second `run` while the first is in flight shows whichever answer lands last, and `reset` returns the caller to
+idle without stopping an answer already on its way. That is enough for the views that use it today. A view that needs a superseded answer dropped adds
+the token to `packages/renderer/src/hooks/call.ts`, not around it.
 
 A mutation is a call whose answer carries nothing. It reaches `useCall` when the view is ready to own the outcome — a button that disables itself
 while the act is in flight reads `state._tag === "pending"`, and a view that shows its own failure line reads the failed message. A view that instead
@@ -101,8 +102,9 @@ connected, and `packages/renderer/src/hooks/feed.ts` is the only file that chang
 
 ## Atoms stay peripheral
 
-`@effect/atom-react` stays where it is: process-lifetime constants that are read once and never change. `appInfoAtom` is the whole population. Feeds
-and calls use the hooks above.
+`@effect/atom-react` stays where it is: process-lifetime constants that are read once and never change. The population is two: `appInfoAtom` in the
+nav rail, which loads the product version once, and `placeAtom` in `surface.tsx`, which loads the window's place once; both are fixed for the life of
+the window. Feeds and calls use the hooks above.
 
 Three reasons, and they are about lifetime rather than taste. Every feed except app info is either scoped to a component by an identifier or has
 exactly one subscriber in the whole tree, so the sharing an atom buys is sharing nothing needs. Making the keyed feeds atoms means atom families,
@@ -112,6 +114,17 @@ over an unsubscribe function, machinery in service of nothing.
 
 Revisit this when two independently mounted views need the same keyed feed at the same time, or when a feed must outlive the component that opened it.
 Neither is true today, and these hooks are the seam to swap behind when one becomes true.
+
+## Drafts are glass state
+
+The one thing the renderer keeps that a reload does not throw away is an unsent draft. `packages/renderer/src/session-drafts/` stores the message a
+reader is typing to a Session, and the text of an open situation dialog, in `localStorage` under `antumbra:session-draft:v1:<sessionId>/<slot>`;
+`useSessionDraft` reads it through `useSyncExternalStore`, and a send clears it only if the text has not changed since the send captured it. When the
+fleet feed stops listing a Session, its drafts are discarded.
+
+This is glass state, not domain truth: an unsent draft is not a fact about any Agent, main never sees it, and losing it costs the words in the box and
+nothing else. It is the explicit exception to the axiom that the glass remembers nothing. Nothing else in the renderer reaches `localStorage`; a value
+main should remember goes through the bridge.
 
 ## Adopting a view
 

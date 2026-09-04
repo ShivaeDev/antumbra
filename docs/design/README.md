@@ -13,3 +13,5 @@ implemented fields, states, and wire names.
   restart, siesta, and reclamation.
 - [Renderer data layer](renderer-data-layer.md) — how the web UI receives fed snapshots and one-shot answers from the bridge, and how a view adopts
   them.
+- [Intended, not yet built](intended.md) — the designed concepts that have no code yet, one line each, so a to-do is never mistaken for a feature or
+  deleted as speculation.

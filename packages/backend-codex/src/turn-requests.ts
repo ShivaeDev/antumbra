@@ -1,5 +1,5 @@
 import type { BackendFailure, SessionInput } from "@antumbra/plugin-api";
-import { Effect, Option, Schema } from "effect";
+import { Data, Effect, Option, Schema } from "effect";
 import { codexFailure } from "#failure.ts";
 import { TurnResponse } from "#protocol.ts";
 import type { CodexServer } from "#server.ts";
@@ -17,16 +17,35 @@ const turnIdOf = (response: unknown) =>
 		onSome: ({ turn }) => Effect.succeed(turn.id),
 	});
 
-export const notSteerable = (failure: BackendFailure): boolean =>
-	failure.detail.includes("no active turn") || failure.detail.includes("expected active turn id");
+class TurnNotSteerable extends Data.TaggedError("TurnNotSteerable") {}
 
-const nothingToInterrupt = (failure: BackendFailure): boolean =>
-	failure.detail.includes("no active turn") || failure.detail.includes("timeout waiting");
+const decodeFailureDetail = Schema.decodeUnknownOption(
+	Schema.TemplateLiteralParser([
+		Schema.String,
+		Schema.Literals(["no active turn", "expected active turn id", "timeout waiting"]).transform([
+			"noActiveTurn",
+			"expectedActiveTurnId",
+			"timeoutWhileDraining",
+		]),
+		Schema.String,
+	]),
+);
+
+const turnFailureKind = (failure: BackendFailure) =>
+	Option.match(decodeFailureDetail(failure.detail), {
+		onNone: () => "other" as const,
+		onSome: ([, kind]) => kind,
+	});
+
+const nothingToInterrupt = (failure: BackendFailure): boolean => {
+	const kind = turnFailureKind(failure);
+	return kind === "noActiveTurn" || kind === "timeoutWhileDraining";
+};
 
 export interface TurnRequests {
 	readonly interrupt: (turnId: string) => Effect.Effect<void, BackendFailure>;
 	readonly start: (input: SessionInput) => Effect.Effect<string, BackendFailure>;
-	readonly steer: (turnId: string, input: SessionInput) => Effect.Effect<void, BackendFailure>;
+	readonly steer: (turnId: string, input: SessionInput) => Effect.Effect<void, BackendFailure | TurnNotSteerable>;
 }
 
 // A timeout while residual work drains still means the turn is no longer
@@ -53,5 +72,11 @@ export const turnRequests = (server: CodexServer, threadId: string): TurnRequest
 				input: userInput(input),
 				threadId,
 			})
-			.pipe(Effect.asVoid),
+			.pipe(
+				Effect.asVoid,
+				Effect.mapError((failure) => {
+					const kind = turnFailureKind(failure);
+					return kind === "noActiveTurn" || kind === "expectedActiveTurnId" ? new TurnNotSteerable() : failure;
+				}),
+			),
 });

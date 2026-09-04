@@ -23,6 +23,9 @@ are never resource-reclamation targets.
 
 ## Smoothing
 
+_Intended, not yet built._ Today a Board has both registers — agents write the rough one, the admiral may write either — and no pass appends a summary
+or moves a frontier; see [intended](intended.md).
+
 **Smoothing** advances what an ordinary reader sees first without rewriting history. A fresh-context pass appends an immutable summary with exact
 source provenance, then conditionally advances the selected frontier. A concurrent writer makes that frontier update conflict rather than silently
 losing either view.
@@ -32,14 +35,17 @@ how a Board can preserve evidence without making every old detail equally salien
 
 ## Coordination rails
 
-Antumbra coordinates through four settled rails: Board entries for shared state, declarative wakeups that request idempotent reconciliation, bounded
-direct messages for addressed signal, and typed Artifact handoffs for durable results. Deterministic coordination belongs in software; Agents
-contribute the judgment that cannot be reduced to a transition or query.
+Antumbra coordinates through four settled rails: Board entries for shared state, ticks that request an idempotent pass, bounded direct messages for
+addressed signal, and typed Artifact handoffs for durable results. Deterministic coordination belongs in software; Agents contribute the judgment that
+cannot be reduced to a transition or query.
 
-When context should survive a handoff, it belongs on the relevant Board rather than in an informal side conversation. A wakeup never carries the truth
-it announces, and a direct message never replaces durable shared state.
+When context should survive a handoff, it belongs on the relevant Board rather than in an informal side conversation. A tick never carries the truth
+it announces, and a direct message never replaces durable shared state. A tick nudges the scheduler, the demand pass, or the dispatcher; it is not a
+Session wake, which puts one Session back on its provider and is only ever asked for.
 
 ## Attention lanes
+
+_Intended, not yet built._ Only the decision point has a record today, and it is the Ruling; see [intended](intended.md).
 
 Four lanes state why attention is wanted:
 
@@ -59,6 +65,8 @@ from its declared urgency and radius and the admiral's standing posture for that
 
 ## Heave to
 
+_Intended, not yet built;_ see [intended](intended.md).
+
 **Heave to** is focused discussion mode. The Agent settles its in-flight work, the conversation becomes its only traffic, and ordinary mail waits.
 This keeps the Agent's context from moving on while the admiral is discussing the fork. Held mail flows afterwards, coalesced in precedence order.
 
@@ -67,9 +75,10 @@ Heaving to does not erase demand, park a Piece, or retire the Agent. Those are s
 ## Mail and precedence
 
 Mail is an immutable, Board-backed message addressed to an Agent. Its stable record and marked-read receipt are separate durable facts; reading does
-not mean handling. Transport into an execution context is a separate, at-least-once effect, so a duplicate delivery proves neither reading nor
-handling and must remain harmless.
+not mean handling. Carrying mail into an execution context is separate from writing it: today the Agent reads its mailbox through one tool and marks
+entries read through another, and nothing pushes mail into a running Session.
 
-**Precedence** orders delivery: routine waits for a full idle boundary, priority jumps the routine queue at that boundary, and flash alone may steer
-into running work. Routine and priority remain held during heave-to. In v1, the admiral selects what an idle Agent receives: mail arrival and external
-observations never wake, resume, or interrupt an Agent on their own.
+Mail carries a **precedence** — routine, priority, or flash — and today it is stored and shown, not acted on. The ordering it is meant to drive is
+intended, not yet built: routine waits for a full idle boundary, priority jumps the routine queue at that boundary, and flash alone may steer into
+running work, with routine and priority held during heave-to. What steers into running work today is the admiral's own send. In v1, the admiral
+selects what an idle Agent receives: mail arrival and external observations never wake, resume, or interrupt an Agent on their own.

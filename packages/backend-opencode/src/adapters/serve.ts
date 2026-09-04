@@ -21,10 +21,10 @@ const connectionTo = (baseUrl: string, stop: () => void, onExit: (listener: () =
 			stop();
 		},
 		get: calls.get,
-		onEvent: (listener) => {
+		onEvent: (listeners) => {
 			closeStream = openEventStream(`${baseUrl}/global/event`, {
 				onEnd: () => exit(),
-				onFrame: listener,
+				...listeners,
 			});
 		},
 		onExit: (listener) => {

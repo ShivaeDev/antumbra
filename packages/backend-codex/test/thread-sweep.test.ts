@@ -1,6 +1,6 @@
 import { expect, it } from "@effect/vitest";
 import { Effect, Option } from "effect";
-import { openAuditConnection } from "#adapters/audit-connection.ts";
+import { makeCodexServer } from "#server.ts";
 import { type FakeAnswer, makeFakeAppServer } from "#test/fake.ts";
 import { sweepSpawnedDescendants } from "#thread-sweep.ts";
 
@@ -44,7 +44,9 @@ const sweep = (scripted: FakeAnswer) =>
 	Effect.gen(function* () {
 		const fake = makeFakeAppServer({ scripted });
 		const swept = yield* Effect.exit(
-			Effect.scoped(openAuditConnection(() => fake.process).pipe(Effect.flatMap((connection) => sweepSpawnedDescendants(connection.request, ROOT)))),
+			Effect.scoped(
+				makeCodexServer({ spawn: () => fake.process }).pipe(Effect.flatMap((connection) => sweepSpawnedDescendants(connection.request, ROOT))),
+			),
 		);
 		return { fake, swept };
 	});

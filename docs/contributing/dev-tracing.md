@@ -9,8 +9,7 @@ rest, so the file stays small and old runs are gone rather than stale.
 ## What is not recorded
 
 Spans named `prisma.*` are dropped at the sink rather than written. The ORM opens one per query, which outnumbers the spans of a run's actual work by
-three orders of magnitude, and the file it produced was mostly index. Ask the database what a query cost; ask the trace what the workspace did. One
-consequence: a span opened inside `db.transaction` keeps the `parent_span_id` of the transaction span, and that row is not in the file.
+three orders of magnitude, and the file it produced was mostly index. Ask the database what a query cost; ask the trace what the workspace did.
 
 ## What is in a span
 

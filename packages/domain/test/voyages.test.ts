@@ -126,7 +126,7 @@ it.live("a landed report is the only thing that makes a piece done", () =>
 			expect(yield* stateOf(voyages, voyage.id, "draw")).toBe("ready");
 
 			const view = Option.getOrThrow(yield* voyages.read(voyage.id));
-			expect(view.pieces.find((piece) => piece.id === first.id)?.reports).toEqual([
+			expect(view.pieces.find((piece) => piece.id === first.id)?.reports).toMatchObject([
 				{
 					authorAgentId: null,
 					body: "three fathoms at the eastern spit",

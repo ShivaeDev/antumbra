@@ -7,6 +7,7 @@ import endContract from './end-contract.json' with { type: 'json' };
 import { INDEXES, ONE_OPEN_ROOT_PER_AGENT_INDEX } from './indexes.ts';
 import { RULINGS_TABLES } from './rulings-tables.ts';
 import { SHELL_TABLES } from './shell-tables.ts';
+import { SESSION_INPUT_TRIGGERS } from './triggers.ts';
 import { VOYAGES_TABLES } from './voyages-tables.ts';
 import { Migration, MigrationCLI } from '@prisma-next/sqlite/migration';
 
@@ -20,6 +21,7 @@ export default class M extends Migration<never, End> {
       ...TABLES.map((table) => this.createTable(table)),
       ...INDEXES.map((index) => this.createIndex(index)),
       ONE_OPEN_ROOT_PER_AGENT_INDEX,
+      ...SESSION_INPUT_TRIGGERS,
     ];
   }
 }

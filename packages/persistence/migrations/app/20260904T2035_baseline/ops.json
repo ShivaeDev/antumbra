@@ -3236,5 +3236,165 @@
         ]
       }
     ]
+  },
+  {
+    "id": "sessionInput.sessionInput_validate_insert",
+    "label": "Install sessionInput_validate_insert",
+    "summary": "fail closed when sessionInput durable invariants are violated; PSL cannot express a trigger",
+    "operationClass": "additive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "trigger",
+        "name": "sessionInput_validate_insert"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure trigger \"sessionInput_validate_insert\" does not exist",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "trigger",
+          "sessionInput_validate_insert"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "install sessionInput_validate_insert",
+        "sql": "\nCREATE TRIGGER \"sessionInput_validate_insert\"\nBEFORE INSERT ON \"sessionInput\"\nWHEN NEW.\"deliveryStatus\" <> 'pending'\nBEGIN\n  SELECT RAISE(ABORT, 'new session input must be pending');\nEND"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify trigger \"sessionInput_validate_insert\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "trigger",
+          "sessionInput_validate_insert"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "sessionInput.sessionInput_validate_update",
+    "label": "Install sessionInput_validate_update",
+    "summary": "fail closed when sessionInput durable invariants are violated; PSL cannot express a trigger",
+    "operationClass": "additive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "trigger",
+        "name": "sessionInput_validate_update"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure trigger \"sessionInput_validate_update\" does not exist",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "trigger",
+          "sessionInput_validate_update"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "install sessionInput_validate_update",
+        "sql": "\nCREATE TRIGGER \"sessionInput_validate_update\"\nBEFORE UPDATE ON \"sessionInput\"\nWHEN NEW.\"id\" <> OLD.\"id\"\n  OR NEW.\"sessionId\" <> OLD.\"sessionId\"\n  OR NEW.\"requestDigest\" <> OLD.\"requestDigest\"\n  OR NEW.\"deliveryStatus\" NOT IN ('pending', 'accepted', 'ambiguous', 'queued_for_wake', 'refused')\nBEGIN\n  SELECT RAISE(ABORT, 'invalid session input update');\nEND"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify trigger \"sessionInput_validate_update\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "trigger",
+          "sessionInput_validate_update"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "sessionInputPart.sessionInputPart_validate_insert",
+    "label": "Install sessionInputPart_validate_insert",
+    "summary": "fail closed when sessionInputPart durable invariants are violated; PSL cannot express a trigger",
+    "operationClass": "additive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "trigger",
+        "name": "sessionInputPart_validate_insert"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure trigger \"sessionInputPart_validate_insert\" does not exist",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "trigger",
+          "sessionInputPart_validate_insert"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "install sessionInputPart_validate_insert",
+        "sql": "\nCREATE TRIGGER \"sessionInputPart_validate_insert\"\nBEFORE INSERT ON \"sessionInputPart\"\nWHEN NEW.\"position\" < 0\n  OR NEW.\"position\" <> (SELECT COUNT(*) FROM \"sessionInputPart\" WHERE \"inputId\" = NEW.\"inputId\")\n  OR NOT (\n    (NEW.\"kind\" = 'text' AND NEW.\"text\" IS NOT NULL AND length(trim(NEW.\"text\")) > 0\n      AND NEW.\"attachmentId\" IS NULL AND NEW.\"displayName\" IS NULL\n      AND NOT EXISTS (SELECT 1 FROM \"sessionInputPart\" WHERE \"inputId\" = NEW.\"inputId\" AND \"kind\" = 'text'))\n    OR\n    (NEW.\"kind\" = 'image' AND NEW.\"text\" IS NULL AND NEW.\"attachmentId\" IS NOT NULL\n      AND NEW.\"displayName\" IS NOT NULL AND length(trim(NEW.\"displayName\")) > 0\n      AND (SELECT COUNT(*) FROM \"sessionInputPart\" WHERE \"inputId\" = NEW.\"inputId\" AND \"kind\" = 'image') < 4\n      AND NOT EXISTS (SELECT 1 FROM \"sessionInputPart\" WHERE \"inputId\" = NEW.\"inputId\" AND \"kind\" = 'text'))\n  )\nBEGIN\n  SELECT RAISE(ABORT, 'invalid session input part');\nEND"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify trigger \"sessionInputPart_validate_insert\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "trigger",
+          "sessionInputPart_validate_insert"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "sessionInputPart.sessionInputPart_reject_update",
+    "label": "Install sessionInputPart_reject_update",
+    "summary": "fail closed when sessionInputPart durable invariants are violated; PSL cannot express a trigger",
+    "operationClass": "additive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "trigger",
+        "name": "sessionInputPart_reject_update"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure trigger \"sessionInputPart_reject_update\" does not exist",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "trigger",
+          "sessionInputPart_reject_update"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "install sessionInputPart_reject_update",
+        "sql": "\nCREATE TRIGGER \"sessionInputPart_reject_update\"\nBEFORE UPDATE ON \"sessionInputPart\"\nBEGIN\n  SELECT RAISE(ABORT, 'session input parts are immutable');\nEND"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify trigger \"sessionInputPart_reject_update\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "trigger",
+          "sessionInputPart_reject_update"
+        ]
+      }
+    ]
   }
 ]

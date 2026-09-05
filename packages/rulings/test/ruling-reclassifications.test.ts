@@ -1,11 +1,12 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
+import { it } from "@antumbra/persistence/testing";
 import { Rulings } from "@antumbra/rulings";
 import { expect } from "@effect/vitest";
 import { Effect, Option, PubSub } from "effect";
 import { TestClock } from "effect/testing";
-import { asked, it, layer, requesterId, seedFleet } from "#test/rulings-harness.ts";
+import { asked, layer, requesterId, seedFleet } from "#test/rulings-harness.ts";
 
-it.effectApp("appends each word beside the asker's declaration", function* () {
+it.effectDB("appends each word beside the asker's declaration", function* () {
 	yield* Effect.scoped(
 		Effect.gen(function* () {
 			yield* seedFleet;
@@ -58,7 +59,7 @@ it.effectApp("appends each word beside the asker's declaration", function* () {
 	).pipe(Effect.provide(layer));
 });
 
-it.effectApp("reads the latest word on each axis", function* () {
+it.effectDB("reads the latest word on each axis", function* () {
 	yield* Effect.gen(function* () {
 		yield* seedFleet;
 		const rulings = yield* Rulings;
@@ -86,7 +87,7 @@ it.effectApp("reads the latest word on each axis", function* () {
 	}).pipe(Effect.provide(layer));
 });
 
-it.effectApp("meets the open set in its reclassified order", function* () {
+it.effectDB("meets the open set in its reclassified order", function* () {
 	yield* Effect.gen(function* () {
 		yield* seedFleet;
 		const rulings = yield* Rulings;
@@ -109,7 +110,7 @@ it.effectApp("meets the open set in its reclassified order", function* () {
 	}).pipe(Effect.provide(layer));
 });
 
-it.effectApp("stands at the radius it was ruled under", function* () {
+it.effectDB("stands at the radius it was ruled under", function* () {
 	yield* Effect.gen(function* () {
 		yield* seedFleet;
 		const rulings = yield* Rulings;

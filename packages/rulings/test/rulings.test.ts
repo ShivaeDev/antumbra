@@ -1,10 +1,11 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
+import { it } from "@antumbra/persistence/testing";
 import { Rulings } from "@antumbra/rulings";
 import { expect } from "@effect/vitest";
 import { Effect, Option, PubSub } from "effect";
-import { asked, it, layer, pieceId, repoId, seedFleet, voyageId } from "#test/rulings-harness.ts";
+import { asked, layer, pieceId, repoId, seedFleet, voyageId } from "#test/rulings-harness.ts";
 
-it.effectApp("stores the choices a request offers in order", function* ({ db }) {
+it.effectDB("stores the choices a request offers in order", function* (db) {
 	yield* Effect.gen(function* () {
 		yield* seedFleet;
 		const rulings = yield* Rulings;
@@ -26,7 +27,7 @@ it.effectApp("stores the choices a request offers in order", function* ({ db }) 
 	}).pipe(Effect.provide(layer));
 });
 
-it.effectApp("stores the rung the asker's request waits on", function* () {
+it.effectDB("stores the rung the asker's request waits on", function* () {
 	yield* Effect.gen(function* () {
 		yield* seedFleet;
 		const rulings = yield* Rulings;
@@ -40,7 +41,7 @@ it.effectApp("stores the rung the asker's request waits on", function* () {
 	}).pipe(Effect.provide(layer));
 });
 
-it.effectApp("stores every subject a request names", function* ({ db }) {
+it.effectDB("stores every subject a request names", function* (db) {
 	yield* Effect.gen(function* () {
 		yield* seedFleet;
 		const rulings = yield* Rulings;
@@ -68,7 +69,7 @@ it.effectApp("stores every subject a request names", function* ({ db }) {
 	}).pipe(Effect.provide(layer));
 });
 
-it.effectApp("refuses a request naming what the fleet lost", function* ({ db }) {
+it.effectDB("refuses a request naming what the fleet lost", function* (db) {
 	yield* Effect.scoped(
 		Effect.gen(function* () {
 			yield* seedFleet;
@@ -99,7 +100,7 @@ it.effectApp("refuses a request naming what the fleet lost", function* ({ db }) 
 	).pipe(Effect.provide(layer));
 });
 
-it.effectApp("announces a request once it is written", function* () {
+it.effectDB("announces a request once it is written", function* () {
 	yield* Effect.scoped(
 		Effect.gen(function* () {
 			yield* seedFleet;
@@ -114,7 +115,7 @@ it.effectApp("announces a request once it is written", function* () {
 	).pipe(Effect.provide(layer));
 });
 
-it.effectApp("refuses to read a ruling nothing asked", function* () {
+it.effectDB("refuses to read a ruling nothing asked", function* () {
 	yield* Effect.gen(function* () {
 		const rulings = yield* Rulings;
 

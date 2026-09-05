@@ -1,8 +1,9 @@
+import { it } from "@antumbra/persistence/testing";
 import { Rulings } from "@antumbra/rulings";
 import { expect } from "@effect/vitest";
 import { Effect, Option } from "effect";
 import { TestClock } from "effect/testing";
-import { asked, it, layer, seedFleet } from "#test/rulings-harness.ts";
+import { asked, layer, seedFleet } from "#test/rulings-harness.ts";
 
 const climbing = Effect.gen(function* () {
 	const rulings = yield* Rulings;
@@ -10,7 +11,7 @@ const climbing = Effect.gen(function* () {
 	return awaiting.map((ruling) => ruling.id);
 });
 
-it.effectApp("owes every open ask to the rung it waits on", function* () {
+it.effectDB("owes every open ask to the rung it waits on", function* () {
 	yield* Effect.gen(function* () {
 		yield* seedFleet;
 		const rulings = yield* Rulings;
@@ -30,7 +31,7 @@ it.effectApp("owes every open ask to the rung it waits on", function* () {
 	}).pipe(Effect.provide(layer));
 });
 
-it.effectApp("leaves a question waiting on the admiral alone", function* () {
+it.effectDB("leaves a question waiting on the admiral alone", function* () {
 	yield* Effect.gen(function* () {
 		yield* seedFleet;
 		const rulings = yield* Rulings;
@@ -40,7 +41,7 @@ it.effectApp("leaves a question waiting on the admiral alone", function* () {
 	}).pipe(Effect.provide(layer));
 });
 
-it.effectApp("stops owing an ask once it is ruled", function* () {
+it.effectDB("stops owing an ask once it is ruled", function* () {
 	yield* Effect.gen(function* () {
 		yield* seedFleet;
 		const rulings = yield* Rulings;
@@ -56,7 +57,7 @@ it.effectApp("stops owing an ask once it is ruled", function* () {
 	}).pipe(Effect.provide(layer));
 });
 
-it.effectApp("leaves a proclamation to the authority that wrote it", function* () {
+it.effectDB("leaves a proclamation to the authority that wrote it", function* () {
 	yield* Effect.gen(function* () {
 		yield* seedFleet;
 		const rulings = yield* Rulings;
@@ -76,7 +77,7 @@ it.effectApp("leaves a proclamation to the authority that wrote it", function* (
 	}).pipe(Effect.provide(layer));
 });
 
-it.effectApp("owes a passed-up question to the rung it reached", function* () {
+it.effectDB("owes a passed-up question to the rung it reached", function* () {
 	yield* Effect.gen(function* () {
 		yield* seedFleet;
 		const rulings = yield* Rulings;

@@ -1,8 +1,9 @@
+import { it } from "@antumbra/persistence/testing";
 import { Rulings } from "@antumbra/rulings";
 import { expect } from "@effect/vitest";
 import { Effect, Option } from "effect";
 import { TestClock } from "effect/testing";
-import { asked, it, layer, seedFleet } from "#test/rulings-harness.ts";
+import { asked, layer, seedFleet } from "#test/rulings-harness.ts";
 
 const ruledIn = (order: string) =>
 	Effect.gen(function* () {
@@ -16,7 +17,7 @@ const ruledIn = (order: string) =>
 		return requested.id;
 	});
 
-it.effectApp("owes delivery on every answer, oldest ruled first", function* () {
+it.effectDB("owes delivery on every answer, oldest ruled first", function* () {
 	yield* Effect.gen(function* () {
 		yield* seedFleet;
 		const rulings = yield* Rulings;
@@ -31,7 +32,7 @@ it.effectApp("owes delivery on every answer, oldest ruled first", function* () {
 	}).pipe(Effect.provide(layer));
 });
 
-it.effectApp("stops owing an answer once it is marked", function* ({ db }) {
+it.effectDB("stops owing an answer once it is marked", function* (db) {
 	yield* Effect.gen(function* () {
 		yield* seedFleet;
 		const rulings = yield* Rulings;
@@ -47,7 +48,7 @@ it.effectApp("stops owing an answer once it is marked", function* ({ db }) {
 	}).pipe(Effect.provide(layer));
 });
 
-it.effectApp("refuses to mark a ruling nothing asked", function* () {
+it.effectDB("refuses to mark a ruling nothing asked", function* () {
 	yield* Effect.gen(function* () {
 		const rulings = yield* Rulings;
 

@@ -1,15 +1,16 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
+import { it } from "@antumbra/persistence/testing";
 import { Rulings } from "@antumbra/rulings";
 import { expect } from "@effect/vitest";
 import { Effect, Option, PubSub } from "effect";
-import { asked, it, layer, requesterId, seedFleet } from "#test/rulings-harness.ts";
+import { asked, layer, requesterId, seedFleet } from "#test/rulings-harness.ts";
 
 const offered = {
 	...asked,
 	choices: [{ label: "trust the soundings" }, { label: "trust the chart" }],
 } as const;
 
-it.effectApp("records who ruled, when, and in what words", function* () {
+it.effectDB("records who ruled, when, and in what words", function* () {
 	yield* Effect.scoped(
 		Effect.gen(function* () {
 			yield* seedFleet;
@@ -37,7 +38,7 @@ it.effectApp("records who ruled, when, and in what words", function* () {
 	).pipe(Effect.provide(layer));
 });
 
-it.effectApp("keeps free words beside no pick at all", function* () {
+it.effectDB("keeps free words beside no pick at all", function* () {
 	yield* Effect.gen(function* () {
 		yield* seedFleet;
 		const rulings = yield* Rulings;
@@ -56,7 +57,7 @@ it.effectApp("keeps free words beside no pick at all", function* () {
 	}).pipe(Effect.provide(layer));
 });
 
-it.effectApp("refuses to rule a ruling that already stands", function* () {
+it.effectDB("refuses to rule a ruling that already stands", function* () {
 	yield* Effect.gen(function* () {
 		yield* seedFleet;
 		const rulings = yield* Rulings;
@@ -84,7 +85,7 @@ it.effectApp("refuses to rule a ruling that already stands", function* () {
 	}).pipe(Effect.provide(layer));
 });
 
-it.effectApp("refuses a choice offered on another ruling", function* () {
+it.effectDB("refuses a choice offered on another ruling", function* () {
 	yield* Effect.gen(function* () {
 		yield* seedFleet;
 		const rulings = yield* Rulings;
@@ -110,7 +111,7 @@ it.effectApp("refuses a choice offered on another ruling", function* () {
 	}).pipe(Effect.provide(layer));
 });
 
-it.effectApp("refuses to rule a ruling nothing asked", function* () {
+it.effectDB("refuses to rule a ruling nothing asked", function* () {
 	yield* Effect.gen(function* () {
 		const rulings = yield* Rulings;
 
@@ -129,7 +130,7 @@ it.effectApp("refuses to rule a ruling nothing asked", function* () {
 	}).pipe(Effect.provide(layer));
 });
 
-it.effectApp("refuses an authority the radius reaches past", function* () {
+it.effectDB("refuses an authority the radius reaches past", function* () {
 	yield* Effect.gen(function* () {
 		yield* seedFleet;
 		const rulings = yield* Rulings;
@@ -153,7 +154,7 @@ it.effectApp("refuses an authority the radius reaches past", function* () {
 	}).pipe(Effect.provide(layer));
 });
 
-it.effectApp("refuses an authority below the rung it waits on", function* () {
+it.effectDB("refuses an authority below the rung it waits on", function* () {
 	yield* Effect.gen(function* () {
 		yield* seedFleet;
 		const rulings = yield* Rulings;
@@ -177,7 +178,7 @@ it.effectApp("refuses an authority below the rung it waits on", function* () {
 	}).pipe(Effect.provide(layer));
 });
 
-it.effectApp("names the agent that ruled, and nobody for the admiral", function* () {
+it.effectDB("names the agent that ruled, and nobody for the admiral", function* () {
 	yield* Effect.gen(function* () {
 		yield* seedFleet;
 		const rulings = yield* Rulings;
@@ -201,7 +202,7 @@ it.effectApp("names the agent that ruled, and nobody for the admiral", function*
 	}).pipe(Effect.provide(layer));
 });
 
-it.effectApp("lets the flagship answer what binds the fleet", function* () {
+it.effectDB("lets the flagship answer what binds the fleet", function* () {
 	yield* Effect.gen(function* () {
 		yield* seedFleet;
 		const rulings = yield* Rulings;

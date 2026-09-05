@@ -1,8 +1,9 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
+import { it } from "@antumbra/persistence/testing";
 import { Rulings } from "@antumbra/rulings";
 import { expect } from "@effect/vitest";
 import { Effect, Option, PubSub } from "effect";
-import { asked, it, layer, seedFleet } from "#test/rulings-harness.ts";
+import { asked, layer, seedFleet } from "#test/rulings-harness.ts";
 
 const recommended = {
 	...asked,
@@ -10,7 +11,7 @@ const recommended = {
 	recommendation: { choice: "trust the chart", reasoning: "the chart was surveyed at slack water" },
 } as const;
 
-it.effectApp("marks the offered choice the asker would take and keeps its reasoning", function* () {
+it.effectDB("marks the offered choice the asker would take and keeps its reasoning", function* () {
 	yield* Effect.gen(function* () {
 		yield* seedFleet;
 		const rulings = yield* Rulings;
@@ -24,7 +25,7 @@ it.effectApp("marks the offered choice the asker would take and keeps its reason
 	}).pipe(Effect.provide(layer));
 });
 
-it.effectApp("offers the recommended answer as the only choice when the asker offered none", function* () {
+it.effectDB("offers the recommended answer as the only choice when the asker offered none", function* () {
 	yield* Effect.gen(function* () {
 		yield* seedFleet;
 		const rulings = yield* Rulings;
@@ -36,7 +37,7 @@ it.effectApp("offers the recommended answer as the only choice when the asker of
 	}).pipe(Effect.provide(layer));
 });
 
-it.effectApp("refuses a recommendation the asker never offered and stores nothing", function* ({ db }) {
+it.effectDB("refuses a recommendation the asker never offered and stores nothing", function* (db) {
 	yield* Effect.scoped(
 		Effect.gen(function* () {
 			yield* seedFleet;
@@ -60,7 +61,7 @@ it.effectApp("refuses a recommendation the asker never offered and stores nothin
 	).pipe(Effect.provide(layer));
 });
 
-it.effectApp("a request without a recommendation reads as carrying none", function* () {
+it.effectDB("a request without a recommendation reads as carrying none", function* () {
 	yield* Effect.gen(function* () {
 		yield* seedFleet;
 		const rulings = yield* Rulings;

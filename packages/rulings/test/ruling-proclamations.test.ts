@@ -1,8 +1,9 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
+import { it } from "@antumbra/persistence/testing";
 import { Rulings } from "@antumbra/rulings";
 import { expect } from "@effect/vitest";
 import { Effect, Option, PubSub } from "effect";
-import { asked, it, layer, seedFleet } from "#test/rulings-harness.ts";
+import { asked, layer, seedFleet } from "#test/rulings-harness.ts";
 
 const proclaimed = {
 	answer: "survey a channel before dredging it",
@@ -20,7 +21,7 @@ const offered = {
 	choices: [{ label: "survey first" }, { label: "dredge freely" }],
 } as const;
 
-it.effectApp("a rule the admiral asks and answers stands at once", function* () {
+it.effectDB("a rule the admiral asks and answers stands at once", function* () {
 	yield* Effect.scoped(
 		Effect.gen(function* () {
 			yield* seedFleet;
@@ -44,7 +45,7 @@ it.effectApp("a rule the admiral asks and answers stands at once", function* () 
 	).pipe(Effect.provide(layer));
 });
 
-it.effectApp("answers with the choice a proclamation named", function* () {
+it.effectDB("answers with the choice a proclamation named", function* () {
 	yield* Effect.gen(function* () {
 		yield* seedFleet;
 		const rulings = yield* Rulings;
@@ -59,7 +60,7 @@ it.effectApp("answers with the choice a proclamation named", function* () {
 	}).pipe(Effect.provide(layer));
 });
 
-it.effectApp("refuses a proclamation picking a choice it never offered", function* () {
+it.effectDB("refuses a proclamation picking a choice it never offered", function* () {
 	yield* Effect.gen(function* () {
 		yield* seedFleet;
 		const rulings = yield* Rulings;
@@ -75,7 +76,7 @@ it.effectApp("refuses a proclamation picking a choice it never offered", functio
 	}).pipe(Effect.provide(layer));
 });
 
-it.effectApp("keeps an authority's own request open until ruled", function* () {
+it.effectDB("keeps an authority's own request open until ruled", function* () {
 	yield* Effect.gen(function* () {
 		yield* seedFleet;
 		const rulings = yield* Rulings;

@@ -1,9 +1,10 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
+import { it } from "@antumbra/persistence/testing";
 import { Rulings } from "@antumbra/rulings";
 import { expect } from "@effect/vitest";
 import { Effect, Option, PubSub } from "effect";
 import { TestClock } from "effect/testing";
-import { asked, it, layer, seedFleet } from "#test/rulings-harness.ts";
+import { asked, layer, seedFleet } from "#test/rulings-harness.ts";
 
 const standingPair = Effect.gen(function* () {
 	yield* seedFleet;
@@ -24,7 +25,7 @@ const standingPair = Effect.gen(function* () {
 	return { newer, older, rulings };
 });
 
-it.effectApp("drops a superseded ruling from the standing set", function* () {
+it.effectDB("drops a superseded ruling from the standing set", function* () {
 	yield* Effect.scoped(
 		Effect.gen(function* () {
 			const { newer, older, rulings } = yield* standingPair;
@@ -51,7 +52,7 @@ it.effectApp("drops a superseded ruling from the standing set", function* () {
 	).pipe(Effect.provide(layer));
 });
 
-it.effectApp("refuses to supersede a ruling with itself", function* () {
+it.effectDB("refuses to supersede a ruling with itself", function* () {
 	yield* Effect.gen(function* () {
 		const { older, rulings } = yield* standingPair;
 
@@ -71,7 +72,7 @@ it.effectApp("refuses to supersede a ruling with itself", function* () {
 	}).pipe(Effect.provide(layer));
 });
 
-it.effectApp("refuses a ruling that has not been ruled on either side", function* () {
+it.effectDB("refuses a ruling that has not been ruled on either side", function* () {
 	yield* Effect.gen(function* () {
 		const { newer, older, rulings } = yield* standingPair;
 		const open = yield* rulings.request(asked);
@@ -103,7 +104,7 @@ it.effectApp("refuses a ruling that has not been ruled on either side", function
 	}).pipe(Effect.provide(layer));
 });
 
-it.effectApp("supersedes a ruling once and only once", function* () {
+it.effectDB("supersedes a ruling once and only once", function* () {
 	yield* Effect.gen(function* () {
 		const { newer, older, rulings } = yield* standingPair;
 		const third = yield* rulings.request(asked);
@@ -135,7 +136,7 @@ it.effectApp("supersedes a ruling once and only once", function* () {
 	}).pipe(Effect.provide(layer));
 });
 
-it.effectApp("refuses a successor that is itself superseded", function* () {
+it.effectDB("refuses a successor that is itself superseded", function* () {
 	yield* Effect.gen(function* () {
 		const { newer, older, rulings } = yield* standingPair;
 		const third = yield* rulings.request(asked);
@@ -167,7 +168,7 @@ it.effectApp("refuses a successor that is itself superseded", function* () {
 	}).pipe(Effect.provide(layer));
 });
 
-it.effectApp("refuses to supersede a ruling nothing asked", function* () {
+it.effectDB("refuses to supersede a ruling nothing asked", function* () {
 	yield* Effect.gen(function* () {
 		const { newer, rulings } = yield* standingPair;
 

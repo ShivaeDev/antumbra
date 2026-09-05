@@ -1,10 +1,11 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
+import { it } from "@antumbra/persistence/testing";
 import { Rulings } from "@antumbra/rulings";
 import { expect } from "@effect/vitest";
 import { Effect, PubSub } from "effect";
-import { asked, it, layer, pieceId, seedFleet } from "#test/rulings-harness.ts";
+import { asked, layer, pieceId, seedFleet } from "#test/rulings-harness.ts";
 
-it.effectApp("holds the pieces a request names until it is ruled", function* () {
+it.effectDB("holds the pieces a request names until it is ruled", function* () {
 	yield* Effect.scoped(
 		Effect.gen(function* () {
 			yield* seedFleet;
@@ -25,7 +26,7 @@ it.effectApp("holds the pieces a request names until it is ruled", function* () 
 	).pipe(Effect.provide(layer));
 });
 
-it.effectApp("leaves a ruled ruling holding nothing", function* () {
+it.effectDB("leaves a ruled ruling holding nothing", function* () {
 	yield* Effect.scoped(
 		Effect.gen(function* () {
 			yield* seedFleet;
@@ -48,7 +49,7 @@ it.effectApp("leaves a ruled ruling holding nothing", function* () {
 	).pipe(Effect.provide(layer));
 });
 
-it.effectApp("refuses to gate on a ruling that already stands", function* ({ db }) {
+it.effectDB("refuses to gate on a ruling that already stands", function* (db) {
 	yield* Effect.gen(function* () {
 		yield* seedFleet;
 		const rulings = yield* Rulings;
@@ -69,7 +70,7 @@ it.effectApp("refuses to gate on a ruling that already stands", function* ({ db 
 	}).pipe(Effect.provide(layer));
 });
 
-it.effectApp("refuses a gate naming what the fleet lost", function* ({ db }) {
+it.effectDB("refuses a gate naming what the fleet lost", function* (db) {
 	yield* Effect.gen(function* () {
 		yield* seedFleet;
 		const rulings = yield* Rulings;
@@ -90,7 +91,7 @@ it.effectApp("refuses a gate naming what the fleet lost", function* ({ db }) {
 	}).pipe(Effect.provide(layer));
 });
 
-it.effectApp("refuses to gate on a ruling nothing asked", function* () {
+it.effectDB("refuses to gate on a ruling nothing asked", function* () {
 	yield* Effect.gen(function* () {
 		const rulings = yield* Rulings;
 
@@ -101,7 +102,7 @@ it.effectApp("refuses to gate on a ruling nothing asked", function* () {
 	}).pipe(Effect.provide(layer));
 });
 
-it.effectApp("lands the gates a request names", function* () {
+it.effectDB("lands the gates a request names", function* () {
 	yield* Effect.scoped(
 		Effect.gen(function* () {
 			yield* seedFleet;
@@ -118,7 +119,7 @@ it.effectApp("lands the gates a request names", function* () {
 	).pipe(Effect.provide(layer));
 });
 
-it.effectApp("refuses a whole request gating what the fleet lost", function* ({ db }) {
+it.effectDB("refuses a whole request gating what the fleet lost", function* (db) {
 	yield* Effect.gen(function* () {
 		yield* seedFleet;
 		const rulings = yield* Rulings;
@@ -134,7 +135,7 @@ it.effectApp("refuses a whole request gating what the fleet lost", function* ({ 
 	}).pipe(Effect.provide(layer));
 });
 
-it.effectApp("tells the voyage of a request only when it holds", function* () {
+it.effectDB("tells the voyage of a request only when it holds", function* () {
 	yield* Effect.scoped(
 		Effect.gen(function* () {
 			yield* seedFleet;

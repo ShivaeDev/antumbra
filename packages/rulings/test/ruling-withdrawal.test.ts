@@ -1,9 +1,10 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
+import { it } from "@antumbra/persistence/testing";
 import { Rulings } from "@antumbra/rulings";
 import { expect } from "@effect/vitest";
 import { Effect, Option, PubSub } from "effect";
 import { TestClock } from "effect/testing";
-import { asked, it, layer, seedFleet } from "#test/rulings-harness.ts";
+import { asked, layer, seedFleet } from "#test/rulings-harness.ts";
 
 const standingRuling = Effect.gen(function* () {
 	yield* seedFleet;
@@ -17,7 +18,7 @@ const standingRuling = Effect.gen(function* () {
 	return { ruling, rulings };
 });
 
-it.effectApp("drops a withdrawn ruling from the standing set", function* () {
+it.effectDB("drops a withdrawn ruling from the standing set", function* () {
 	yield* Effect.scoped(
 		Effect.gen(function* () {
 			const { ruling, rulings } = yield* standingRuling;
@@ -41,7 +42,7 @@ it.effectApp("drops a withdrawn ruling from the standing set", function* () {
 	).pipe(Effect.provide(layer));
 });
 
-it.effectApp("leaves a withdrawn ruling readable by id", function* () {
+it.effectDB("leaves a withdrawn ruling readable by id", function* () {
 	yield* Effect.gen(function* () {
 		const { ruling, rulings } = yield* standingRuling;
 
@@ -59,7 +60,7 @@ it.effectApp("leaves a withdrawn ruling readable by id", function* () {
 	}).pipe(Effect.provide(layer));
 });
 
-it.effectApp("refuses to withdraw a ruling nothing asked", function* () {
+it.effectDB("refuses to withdraw a ruling nothing asked", function* () {
 	yield* Effect.gen(function* () {
 		const { rulings } = yield* standingRuling;
 
@@ -78,7 +79,7 @@ it.effectApp("refuses to withdraw a ruling nothing asked", function* () {
 	}).pipe(Effect.provide(layer));
 });
 
-it.effectApp("refuses to withdraw a ruling nobody has ruled", function* () {
+it.effectDB("refuses to withdraw a ruling nobody has ruled", function* () {
 	yield* Effect.gen(function* () {
 		const { rulings } = yield* standingRuling;
 		const open = yield* rulings.request(asked);
@@ -99,7 +100,7 @@ it.effectApp("refuses to withdraw a ruling nobody has ruled", function* () {
 	}).pipe(Effect.provide(layer));
 });
 
-it.effectApp("refuses to withdraw a ruling a later one took over", function* () {
+it.effectDB("refuses to withdraw a ruling a later one took over", function* () {
 	yield* Effect.gen(function* () {
 		const { ruling, rulings } = yield* standingRuling;
 		yield* TestClock.adjust(1_000);
@@ -131,7 +132,7 @@ it.effectApp("refuses to withdraw a ruling a later one took over", function* () 
 	}).pipe(Effect.provide(layer));
 });
 
-it.effectApp("withdraws a ruling once and only once", function* () {
+it.effectDB("withdraws a ruling once and only once", function* () {
 	yield* Effect.gen(function* () {
 		const { ruling, rulings } = yield* standingRuling;
 		yield* rulings.withdraw({

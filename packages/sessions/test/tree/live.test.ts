@@ -1,5 +1,6 @@
+import { DomainFeeds, DomainFeedsLive } from "@antumbra/domain-feeds";
 import { describe, expect, it } from "@effect/vitest";
-import { Effect } from "effect";
+import { Effect, Layer, PubSub } from "effect";
 import { LiveDelegations, LiveDelegationsLive } from "#tree/live.ts";
 
 describe("LiveDelegations", () => {
@@ -19,8 +20,11 @@ describe("LiveDelegations", () => {
 			yield* reader.ended("root", "second");
 			expect(yield* writer.delegating()).toEqual(new Set(["other"]));
 
+			const feeds = yield* DomainFeeds;
+			const refreshed = yield* feeds.subscribeFleetRefresh();
 			yield* writer.released("other");
+			yield* PubSub.take(refreshed);
 			expect(yield* reader.delegating()).toEqual(new Set());
-		}).pipe(Effect.provide(LiveDelegationsLive, { local: true })),
+		}).pipe(Effect.provide(LiveDelegationsLive.pipe(Layer.provideMerge(DomainFeedsLive)), { local: true })),
 	);
 });

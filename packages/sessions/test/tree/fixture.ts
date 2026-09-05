@@ -7,7 +7,10 @@ import type { AgentEvent } from "@antumbra/vocabulary/session-events";
 import { Effect, Layer, Ref } from "effect";
 import { LiveDelegationsLive } from "#tree/live.ts";
 
-export const treeLayer = SessionEventJournalLive.pipe(Layer.provideMerge(Layer.mergeAll(DomainFeedsLive, LiveDelegationsLive, SessionFabricLive)));
+export const treeLayer = SessionEventJournalLive.pipe(
+	Layer.provideMerge(Layer.mergeAll(LiveDelegationsLive, SessionFabricLive)),
+	Layer.provideMerge(DomainFeedsLive),
+);
 
 export interface SeededSession {
 	readonly agentId: string;

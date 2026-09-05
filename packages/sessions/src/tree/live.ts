@@ -1,3 +1,4 @@
+import { DomainFeeds } from "@antumbra/domain-feeds";
 import { defineService } from "@antumbra/service-definition";
 import { makeBegan } from "#live-delegations/began.ts";
 import { makeDelegating } from "#live-delegations/delegating.ts";
@@ -15,7 +16,7 @@ export const LiveDelegations = defineService({
 		ended: makeEnded(open),
 		released: makeReleased(open),
 	}),
-	requires: [],
+	requires: [DomainFeeds],
 });
 
 export const LiveDelegationsLive = LiveDelegations.layer;

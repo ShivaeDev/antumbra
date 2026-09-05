@@ -10,7 +10,7 @@ import { makeEdgeCharter } from "#charter-edge.ts";
 import { makeReportToolCompiler } from "#report-tools.ts";
 import { makeRulingReadingToolCompiler } from "#ruling-reading-tools.ts";
 import { makeRulingToolCompiler } from "#ruling-tools.ts";
-import { StandDown } from "#stand-down.ts";
+import { makeStandDownTool } from "#stand-down.ts";
 import { answered } from "#tool-answers.ts";
 import type { SessionIdentity } from "#tool-identity.ts";
 import { makeVoyageReadingToolCompiler } from "#voyage-reading-tools.ts";
@@ -26,7 +26,7 @@ export const makeCaptainToolCompiler = Effect.gen(function* () {
 	const compileVoyageReadingTools = yield* makeVoyageReadingToolCompiler;
 	const compileVerdictTools = yield* makeCaptainVerdictToolCompiler;
 	const compileRulingMoveTools = yield* makeCaptainRulingMoveToolCompiler;
-	const standDown = yield* StandDown;
+	const standDownTool = yield* makeStandDownTool;
 	return (identity: SessionIdentity): ReadonlyArray<DirectTool> => [
 		bind(charterPieceSpec, (input) =>
 			membership.onOwnDeps(identity, input.dependsOn, (voyageId) =>
@@ -52,7 +52,7 @@ export const makeCaptainToolCompiler = Effect.gen(function* () {
 		...compileRulingTools(identity),
 		...compileVerdictTools(identity),
 		...compileRulingMoveTools(identity),
-		standDown.tool(identity),
+		standDownTool(identity),
 		...compileRulingReadingTools(identity),
 	];
 });

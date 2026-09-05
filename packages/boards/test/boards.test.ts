@@ -48,7 +48,7 @@ it.effectDB("writes notes in order and replays source references", function* (db
 	}).pipe(Effect.provide(layer));
 });
 
-it.effectDB("owns replay-safe pull mail and explicit read receipts", function* (db) {
+it.effectDB("owns replay-safe pull mail with separate delivery and read receipts", function* (db) {
 	yield* Effect.scoped(
 		Effect.gen(function* () {
 			const boards = yield* Boards;
@@ -93,6 +93,14 @@ it.effectDB("owns replay-safe pull mail and explicit read receipts", function* (
 			expect((yield* boards.unread(input.toAgentId)).map((row) => row.id)).toEqual([second.id]);
 			expect((yield* boards.unread("other-mailbox")).map((row) => row.id)).toEqual([foreign.id]);
 			expect(yield* db.BoardEntryReceipt.all()).toMatchObject([{ entryId: first.id }]);
+
+			expect((yield* boards.unread(input.toAgentId)).map((row) => row.delivered)).toEqual([false]);
+			const strayDelivery = yield* Effect.result(boards.markDelivered(input.toAgentId, [foreign.id]));
+			expect(Result.isFailure(strayDelivery) && strayDelivery.failure).toMatchObject({ _tag: "MailNotAddressed", entryId: foreign.id });
+			yield* boards.markDelivered(input.toAgentId, [second.id]);
+			yield* boards.markDelivered(input.toAgentId, [second.id, second.id]);
+			expect((yield* boards.unread(input.toAgentId)).map((row) => row.delivered)).toEqual([true]);
+			expect(yield* db.BoardEntryDelivery.all()).toMatchObject([{ entryId: second.id }]);
 		}),
 	).pipe(Effect.provide(layer));
 });

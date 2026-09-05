@@ -77,6 +77,58 @@ it.live("a turn ending with mail already waiting wakes the agent at once", () =>
 	}),
 );
 
+const CARRIED = mailWords({ count: 1, precedence: "priority" });
+
+// The agent is woken, answers, and rests again without ever marking the mail read.
+const wokenOnce = (scripted: ScriptedBackend) =>
+	Effect.gen(function* () {
+		const live = yield* working(scripted);
+		yield* mailed("the eastern approach is closed", "test:first-mail");
+		yield* completesTurn(live);
+		yield* eventually(
+			Effect.gen(function* () {
+				expect(yield* live.steered).toEqual([CARRIED]);
+			}),
+		);
+		yield* live.emit({ raw: rawOf("assistant/message"), role: "agent", text: "read and carrying on", type: "message" });
+		yield* endTurn(scripted, HAND.agentId);
+		return live;
+	});
+
+it.live("mail a wake already carried never wakes the agent again on its own", () =>
+	Effect.gen(function* () {
+		const temporary = yield* acquireTemporaryPersistence;
+		const scripted = yield* makeScriptedBackend;
+		yield* Effect.gen(function* () {
+			const db = yield* Database;
+			const live = yield* wokenOnce(scripted);
+			yield* deliversMail;
+			yield* deliversMail;
+			expect(yield* wakeIntents).toHaveLength(1);
+			expect(yield* live.steered).toEqual([CARRIED]);
+			expect(yield* db.BoardEntryReceipt.all()).toEqual([]);
+		}).pipe(Effect.provide(domainKernelLayer(temporary, reportsNativeRef(scripted.backend, scripted, NATIVE))));
+	}),
+);
+
+it.live("mail that arrives after a wake comes due again", () =>
+	Effect.gen(function* () {
+		const temporary = yield* acquireTemporaryPersistence;
+		const scripted = yield* makeScriptedBackend;
+		yield* Effect.gen(function* () {
+			const live = yield* wokenOnce(scripted);
+			yield* mailed("the northern channel is shoaling", "test:second-mail");
+			yield* deliversMail;
+			expect(yield* wakeIntents).toHaveLength(2);
+			yield* eventually(
+				Effect.gen(function* () {
+					expect(yield* live.steered).toEqual([CARRIED, mailWords({ count: 2, precedence: "priority" })]);
+				}),
+			);
+		}).pipe(Effect.provide(domainKernelLayer(temporary, reportsNativeRef(scripted.backend, scripted, NATIVE))));
+	}),
+);
+
 it.live("mail adds no second wake while one is already pending", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;

@@ -40,6 +40,8 @@ export type BoardEntryVariant =
 
 export type BoardEntryRow = BoardEntryFields & BoardEntryVariant;
 
+export type UnreadMailRow = BoardEntryRow & { readonly delivered: boolean };
+
 interface EntryFields {
 	readonly authorAgentId: Option.Option<string>;
 	readonly body: string;

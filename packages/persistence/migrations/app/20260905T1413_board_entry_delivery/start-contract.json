@@ -36,10 +36,6 @@
       "model": "BoardEntry",
       "namespace": "__unbound__"
     },
-    "boardEntryDelivery": {
-      "model": "BoardEntryDelivery",
-      "namespace": "__unbound__"
-    },
     "boardEntryReceipt": {
       "model": "BoardEntryReceipt",
       "namespace": "__unbound__"
@@ -1130,37 +1126,6 @@
               },
               "namespaceId": "__unbound__",
               "table": "boardEntry"
-            }
-          },
-          "BoardEntryDelivery": {
-            "fields": {
-              "deliveredAt": {
-                "nullable": false,
-                "type": {
-                  "codecId": "sqlite/datetime@1",
-                  "kind": "scalar"
-                }
-              },
-              "entryId": {
-                "nullable": false,
-                "type": {
-                  "codecId": "sqlite/text@1",
-                  "kind": "scalar"
-                }
-              }
-            },
-            "relations": {},
-            "storage": {
-              "fields": {
-                "deliveredAt": {
-                  "column": "deliveredAt"
-                },
-                "entryId": {
-                  "column": "entryId"
-                }
-              },
-              "namespaceId": "__unbound__",
-              "table": "boardEntryDelivery"
             }
           },
           "BoardEntryReceipt": {
@@ -4600,32 +4565,6 @@
                 }
               ]
             },
-            "boardEntryDelivery": {
-              "columns": {
-                "deliveredAt": {
-                  "codecId": "sqlite/datetime@1",
-                  "default": {
-                    "expression": "now()",
-                    "kind": "function"
-                  },
-                  "nativeType": "text",
-                  "nullable": false
-                },
-                "entryId": {
-                  "codecId": "sqlite/text@1",
-                  "nativeType": "text",
-                  "nullable": false
-                }
-              },
-              "foreignKeys": [],
-              "indexes": [],
-              "primaryKey": {
-                "columns": [
-                  "entryId"
-                ]
-              },
-              "uniques": []
-            },
             "boardEntryReceipt": {
               "columns": {
                 "entryId": {
@@ -6610,7 +6549,7 @@
         "id": "__unbound__"
       }
     },
-    "storageHash": "sha256:c00af53d4dcb889060844e9014e5764ead596459e84345ee882b1f82a8ab642c"
+    "storageHash": "sha256:20aa9a5ed5d2a4ba6fa91604a2cbea2f36650ebc73518c2b698db48dc0e10004"
   },
   "capabilities": {
     "sql": {

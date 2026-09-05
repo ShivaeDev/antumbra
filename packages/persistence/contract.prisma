@@ -357,6 +357,11 @@ model BoardEntry {
   @@unique([boardId, sourceRef])
 }
 
+model BoardEntryDelivery {
+  entryId     String   @id
+  deliveredAt DateTime @default(now())
+}
+
 model BoardEntryReceipt {
   entryId String   @id
   readAt  DateTime @default(now())

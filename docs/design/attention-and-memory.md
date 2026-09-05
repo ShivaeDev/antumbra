@@ -81,5 +81,6 @@ read through another, and nothing pushes mail into a running Session.
 The mailbox is the inbox: an Agent at rest is woken by its own unread mail, and an Agent at work is never interrupted by it. Mail carries a
 **precedence** — routine, priority, or flash. Priority wakes a resting Agent at once; routine waits a quiet window the admiral sets, so a trickle of
 ordinary notes does not cost a turn each. One wake carries the whole batch and tells the Agent what waits, because an Agent that must be told an
-answer is coming should be told by the answer itself. Flash steering into running work is intended, not yet built, and so is holding routine and
-priority during heave-to; until then flash wakes like priority. What steers into running work today is the admiral's own send.
+answer is coming should be told by the answer itself. A batch is delivered once and never carried again, so an Agent that reads without marking read
+is not woken over and over; delivered is its own fact and is not read. Flash steering into running work is intended, not yet built, and so is holding
+routine and priority during heave-to; until then flash wakes like priority. What steers into running work today is the admiral's own send.

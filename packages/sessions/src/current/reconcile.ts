@@ -1,31 +1,23 @@
-import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database } from "@antumbra/persistence";
 import { SessionFabric } from "@antumbra/session-fabric";
 import { Effect, Result } from "effect";
+import { announce } from "#current/announce.ts";
 import { planCurrentSessionReconciliation } from "#current/reconcile-plan.ts";
-import { makeCurrentSessionRepair } from "#current/repair.ts";
+import { applyRepair } from "#current/repair.ts";
 import { rootSessions } from "#roots.ts";
 
-export const makeCurrentSessionReconciler = Effect.gen(function* () {
+export const reconcile = Effect.fn("CurrentSessions.reconcile")(function* () {
 	const db = yield* Database;
 	const fabric = yield* SessionFabric;
-	const feeds = yield* DomainFeeds;
-	const applyRepair = yield* makeCurrentSessionRepair;
-	const reconcile = Effect.gen(function* () {
-		const planned = planCurrentSessionReconciliation(
-			yield* db.Agent.all(),
-			yield* db.AgentSession.where(rootSessions).all(),
-			yield* fabric.attached(),
-		);
-		if (Result.isFailure(planned)) {
-			return planned.failure._tag === "CurrentSessionInvalid" ? yield* planned.failure : false;
+	const planned = planCurrentSessionReconciliation(yield* db.Agent.all(), yield* db.AgentSession.where(rootSessions).all(), yield* fabric.attached());
+	if (Result.isFailure(planned)) {
+		if (planned.failure._tag === "CurrentSessionInvalid") {
+			return yield* planned.failure;
 		}
-		return (yield* applyRepair(null, planned.success)).changed;
-	});
-	return reconcile.pipe(
-		Effect.tap((changed) =>
-			changed ? Effect.all([feeds.publishFleetRefresh(), feeds.publishVoyageRefresh()], { concurrency: 1 }).pipe(Effect.asVoid) : Effect.void,
-		),
-		Effect.asVoid,
-	);
+		return;
+	}
+	const repaired = yield* applyRepair(null, planned.success);
+	if (repaired.changed) {
+		yield* announce();
+	}
 });

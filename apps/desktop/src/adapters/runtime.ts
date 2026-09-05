@@ -34,7 +34,7 @@ const application = Layer.unwrap(
 		const skills = skillsDirectory();
 		yield* Effect.orDie(claudePlugin({ skills }).activate(host.context));
 		yield* Effect.orDie(codexPlugin({ cwd: configureDataDirectory(), skills }).activate(host.context));
-		yield* Effect.orDie(opencodePlugin({ cwd: configureDataDirectory() }).activate(host.context));
+		yield* Effect.orDie(opencodePlugin({ cwd: configureDataDirectory(), skills }).activate(host.context));
 		yield* Effect.orDie(runnerPlugin.activate(host.context));
 		yield* Effect.orDie(githubPlugin().activate(host.context));
 		return domainApplicationLayers(

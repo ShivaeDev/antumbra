@@ -426,9 +426,15 @@ importers:
       '@antumbra/plugin-api':
         specifier: workspace:*
         version: link:../plugin-api
+      '@antumbra/skills':
+        specifier: workspace:*
+        version: link:../skills
       '@antumbra/vocabulary':
         specifier: workspace:*
         version: link:../vocabulary
+      '@effect/platform-node':
+        specifier: 'catalog:'
+        version: 4.0.0-rc.112(effect@4.0.0-rc.112)(redis@6.2.1)
       effect:
         specifier: 'catalog:'
         version: 4.0.0-rc.112

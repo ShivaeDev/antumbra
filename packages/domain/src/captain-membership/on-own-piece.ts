@@ -8,9 +8,11 @@ import type { SessionIdentity } from "#tool-identity.ts";
 export const onOwnPiece = Effect.fn("CaptainMembership.onOwnPiece")(function* (
 	identity: SessionIdentity,
 	pieceId: string,
-	act: (pieceId: string) => Effect.Effect<DirectToolOutcome>,
+	act: (pieceId: string, voyageId: string) => Effect.Effect<DirectToolOutcome>,
 ): Effect.fn.Return<DirectToolOutcome, never, Context.Service.Identifier<typeof Pieces>> {
 	return yield* onVoyage(identity, (voyageId) =>
-		withReadableMembers(voyageId, (members) => (members.has(pieceId) ? act(pieceId) : Effect.succeed(refused("that piece is not on your voyage")))),
+		withReadableMembers(voyageId, (members) =>
+			members.has(pieceId) ? act(pieceId, voyageId) : Effect.succeed(refused("that piece is not on your voyage")),
+		),
 	);
 });

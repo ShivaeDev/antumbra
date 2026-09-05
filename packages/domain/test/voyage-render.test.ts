@@ -45,8 +45,9 @@ it("renders dependency, report authorship, and captain status for an agent", () 
 		}),
 		reef,
 	);
-	const rendered = renderVoyage(view);
+	const rendered = renderVoyage(view, { limit: 4, running: 0, unlaunched: 0, waiting: 2 });
 
+	expect(rendered).toContain("this voyage has 0 pieces running and 2 waiting for capacity; the fleet runs at most 4 agents at once");
 	expect(rendered).toContain("- bravo bravo [done] depends on alpha");
 	expect(rendered).toContain("- report-1 eastern chart — report by agent-hand");
 	expect(rendered).toContain("## Captain\n- captain-1 [alive]");

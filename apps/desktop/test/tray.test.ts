@@ -35,6 +35,7 @@ const fleetOf = (agents: ReadonlyArray<AgentSummary>): Fleet => ({
 	capacities: [],
 	diag: { intents: [] },
 	repos: [],
+	roleSettings: [],
 });
 
 interface RecordedTray {

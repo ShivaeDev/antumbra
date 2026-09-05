@@ -1,6 +1,7 @@
 import { VoyageProcedureService } from "@antumbra/domain/voyages/service";
 import { type IntentStatus, isTerminalIntentStatus, Kernel } from "@antumbra/kernel";
 import { Pieces } from "@antumbra/pieces";
+import { RoleSettings } from "@antumbra/settings";
 import { it } from "@antumbra/testing";
 import type { ScriptedBackend } from "@antumbra/testing-runtime";
 import { Voyages } from "@antumbra/voyages";
@@ -21,18 +22,18 @@ const chosenBy = (scripted: ScriptedBackend) =>
 		sessions.map((options) => ({ effort: Option.getOrNull(options.effort), model: Option.getOrNull(options.model) })),
 	);
 
-const openReef = (settings: { readonly crewEffort?: string; readonly crewModel?: string }) =>
+const openReef = (crew: { readonly effort: string | null; readonly model: string | null }) =>
 	Effect.gen(function* () {
 		const voyages = yield* Voyages;
-		return yield* voyages.open({
-			backend: "scripted",
-			captainEffort: "high",
-			captainModel: "opus",
+		const roles = yield* RoleSettings;
+		const voyage = yield* voyages.open({
 			context: "the reef is uncharted",
 			name: "Chart the reef",
 			northStar: "every shoal is known",
-			...settings,
 		});
+		yield* roles.changeForVoyage(voyage.id, "captain", { backend: "scripted", effort: "high", model: "opus" });
+		yield* roles.changeForVoyage(voyage.id, "crew", { backend: "scripted", ...crew });
+		return voyage;
 	}).pipe(Effect.orDie);
 
 const crewSounding = (voyageId: string, title: string) =>
@@ -58,12 +59,12 @@ const hailed = (voyageId: string) =>
 
 const settingsChanged = (voyageId: string, model: string, effort: string) =>
 	Effect.gen(function* () {
-		const voyages = yield* Voyages;
-		yield* voyages.setAgentSettings(voyageId, "crew", { effort, model });
+		const roles = yield* RoleSettings;
+		yield* roles.changeForVoyage(voyageId, "crew", { backend: "scripted", effort, model });
 	}).pipe(Effect.orDie);
 
 it.effectApp("a voyage's model and effort reach the sessions its agents open", { clock: "live" }, function* ({ scripted }) {
-	const voyage = yield* openReef({ crewEffort: "low", crewModel: "haiku" });
+	const voyage = yield* openReef({ effort: "low", model: "haiku" });
 	yield* hailed(voyage.id);
 	yield* crewSounding(voyage.id, "Sound the east");
 
@@ -74,7 +75,7 @@ it.effectApp("a voyage's model and effort reach the sessions its agents open", {
 });
 
 it.effectApp("a later change reaches the next session and leaves an open one as it sailed", { clock: "live" }, function* ({ scripted }) {
-	const voyage = yield* openReef({ crewEffort: "low", crewModel: "haiku" });
+	const voyage = yield* openReef({ effort: "low", model: "haiku" });
 	yield* crewSounding(voyage.id, "Sound the east");
 	yield* settingsChanged(voyage.id, "opus", "high");
 	yield* crewSounding(voyage.id, "Sound the west");

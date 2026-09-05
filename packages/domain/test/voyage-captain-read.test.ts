@@ -6,9 +6,7 @@ import { readCaptains, readVoyageCaptain } from "#voyage-captain-read.ts";
 it.effectDB("reads the standing captain's root Session and excludes Piece workers with the captain role", function* (db) {
 	for (const id of ["voyage", "other-voyage"]) {
 		yield* db.Voyage.create({
-			captainBackend: "scripted",
 			context: "chart the reef",
-			crewBackend: "scripted",
 			id,
 			name: id,
 			northStar: "a sound chart",

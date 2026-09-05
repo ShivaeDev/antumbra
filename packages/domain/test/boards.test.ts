@@ -4,9 +4,7 @@ import { expect } from "@effect/vitest";
 import { Effect, Option } from "effect";
 
 const voyage = (id: string) => ({
-	captainBackend: "scripted",
 	context: "the reef is uncharted",
-	crewBackend: "scripted",
 	id,
 	name: "Chart the reef",
 	northStar: "every shoal is known",

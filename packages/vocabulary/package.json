@@ -5,6 +5,7 @@
 	"type": "module",
 	"exports": {
 		"./agent-backend": "./src/agent-backend.ts",
+		"./agent-role": "./src/agent-role.ts",
 		"./agent-runtime": "./src/agent-runtime.ts",
 		"./board": "./src/board.ts",
 		"./change": "./src/change.ts",

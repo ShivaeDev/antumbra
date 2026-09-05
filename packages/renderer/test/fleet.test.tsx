@@ -21,6 +21,7 @@ const fleetOf = (agents: ReadonlyArray<AgentSummary>): Fleet => ({
 	capacities: [],
 	diag: { intents: [] },
 	repos: [],
+	roleSettings: [],
 });
 
 const navigator = (canInterrupt: boolean, execution: string): AgentSummary => ({

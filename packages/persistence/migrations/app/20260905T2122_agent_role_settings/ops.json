@@ -1,0 +1,333 @@
+[
+  {
+    "id": "table.agentRoleSettings",
+    "label": "Create table agentRoleSettings",
+    "summary": "Creates table agentRoleSettings with required columns",
+    "operationClass": "additive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "table",
+        "name": "agentRoleSettings"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"agentRoleSettings\" does not exist",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "table",
+          "agentRoleSettings"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"agentRoleSettings\"",
+        "sql": "CREATE TABLE \"agentRoleSettings\" (\n  \"backend\" TEXT,\n  \"effort\" TEXT,\n  \"model\" TEXT,\n  \"role\" TEXT NOT NULL,\n  \"scope\" TEXT NOT NULL,\n  \"updatedAt\" TEXT NOT NULL DEFAULT (datetime('now')),\n  PRIMARY KEY (\"scope\", \"role\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"agentRoleSettings\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "table",
+          "agentRoleSettings"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "data.agentRoleSettings.captain",
+    "label": "Carry captain settings onto role rows",
+    "summary": "moves each voyage's captain settings to its own role row, and the flagship's to the fleet flagship role",
+    "operationClass": "data",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "table",
+        "name": "agentRoleSettings"
+      }
+    },
+    "precheck": [],
+    "execute": [
+      {
+        "description": "moves each voyage's captain settings to its own role row, and the flagship's to the fleet flagship role",
+        "sql": "INSERT INTO \"agentRoleSettings\" (\"scope\", \"role\", \"backend\", \"model\", \"effort\")\n             SELECT\n               CASE WHEN \"kind\" = 'flagship' THEN 'fleet' ELSE \"id\" END,\n               CASE WHEN \"kind\" = 'flagship' THEN 'flagship' ELSE 'captain' END,\n               \"captainBackend\",\n               \"captainModel\",\n               \"captainEffort\"\n             FROM \"voyage\""
+      }
+    ],
+    "postcheck": []
+  },
+  {
+    "id": "data.agentRoleSettings.crew",
+    "label": "Carry crew settings onto role rows",
+    "summary": "moves each voyage's crew settings to its own role row",
+    "operationClass": "data",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "table",
+        "name": "agentRoleSettings"
+      }
+    },
+    "precheck": [],
+    "execute": [
+      {
+        "description": "moves each voyage's crew settings to its own role row",
+        "sql": "INSERT INTO \"agentRoleSettings\" (\"scope\", \"role\", \"backend\", \"model\", \"effort\")\n             SELECT \"id\", 'crew', \"crewBackend\", \"crewModel\", \"crewEffort\" FROM \"voyage\""
+      }
+    ],
+    "postcheck": []
+  },
+  {
+    "id": "dropColumn.voyage.captainBackend",
+    "label": "Drop column captainBackend on voyage",
+    "summary": "Drops column captainBackend on voyage which is not in the contract",
+    "operationClass": "destructive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "column",
+        "name": "captainBackend",
+        "table": "voyage"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"captainBackend\" exists on \"voyage\"",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM pragma_table_info(?) WHERE \"name\" = ?",
+        "params": [
+          "voyage",
+          "captainBackend"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "drop column \"captainBackend\" from \"voyage\"",
+        "sql": "ALTER TABLE \"voyage\" DROP COLUMN \"captainBackend\""
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"captainBackend\" is gone from \"voyage\"",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM pragma_table_info(?) WHERE \"name\" = ?",
+        "params": [
+          "voyage",
+          "captainBackend"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "dropColumn.voyage.captainEffort",
+    "label": "Drop column captainEffort on voyage",
+    "summary": "Drops column captainEffort on voyage which is not in the contract",
+    "operationClass": "destructive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "column",
+        "name": "captainEffort",
+        "table": "voyage"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"captainEffort\" exists on \"voyage\"",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM pragma_table_info(?) WHERE \"name\" = ?",
+        "params": [
+          "voyage",
+          "captainEffort"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "drop column \"captainEffort\" from \"voyage\"",
+        "sql": "ALTER TABLE \"voyage\" DROP COLUMN \"captainEffort\""
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"captainEffort\" is gone from \"voyage\"",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM pragma_table_info(?) WHERE \"name\" = ?",
+        "params": [
+          "voyage",
+          "captainEffort"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "dropColumn.voyage.captainModel",
+    "label": "Drop column captainModel on voyage",
+    "summary": "Drops column captainModel on voyage which is not in the contract",
+    "operationClass": "destructive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "column",
+        "name": "captainModel",
+        "table": "voyage"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"captainModel\" exists on \"voyage\"",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM pragma_table_info(?) WHERE \"name\" = ?",
+        "params": [
+          "voyage",
+          "captainModel"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "drop column \"captainModel\" from \"voyage\"",
+        "sql": "ALTER TABLE \"voyage\" DROP COLUMN \"captainModel\""
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"captainModel\" is gone from \"voyage\"",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM pragma_table_info(?) WHERE \"name\" = ?",
+        "params": [
+          "voyage",
+          "captainModel"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "dropColumn.voyage.crewBackend",
+    "label": "Drop column crewBackend on voyage",
+    "summary": "Drops column crewBackend on voyage which is not in the contract",
+    "operationClass": "destructive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "column",
+        "name": "crewBackend",
+        "table": "voyage"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"crewBackend\" exists on \"voyage\"",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM pragma_table_info(?) WHERE \"name\" = ?",
+        "params": [
+          "voyage",
+          "crewBackend"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "drop column \"crewBackend\" from \"voyage\"",
+        "sql": "ALTER TABLE \"voyage\" DROP COLUMN \"crewBackend\""
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"crewBackend\" is gone from \"voyage\"",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM pragma_table_info(?) WHERE \"name\" = ?",
+        "params": [
+          "voyage",
+          "crewBackend"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "dropColumn.voyage.crewEffort",
+    "label": "Drop column crewEffort on voyage",
+    "summary": "Drops column crewEffort on voyage which is not in the contract",
+    "operationClass": "destructive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "column",
+        "name": "crewEffort",
+        "table": "voyage"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"crewEffort\" exists on \"voyage\"",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM pragma_table_info(?) WHERE \"name\" = ?",
+        "params": [
+          "voyage",
+          "crewEffort"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "drop column \"crewEffort\" from \"voyage\"",
+        "sql": "ALTER TABLE \"voyage\" DROP COLUMN \"crewEffort\""
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"crewEffort\" is gone from \"voyage\"",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM pragma_table_info(?) WHERE \"name\" = ?",
+        "params": [
+          "voyage",
+          "crewEffort"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "dropColumn.voyage.crewModel",
+    "label": "Drop column crewModel on voyage",
+    "summary": "Drops column crewModel on voyage which is not in the contract",
+    "operationClass": "destructive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "column",
+        "name": "crewModel",
+        "table": "voyage"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"crewModel\" exists on \"voyage\"",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM pragma_table_info(?) WHERE \"name\" = ?",
+        "params": [
+          "voyage",
+          "crewModel"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "drop column \"crewModel\" from \"voyage\"",
+        "sql": "ALTER TABLE \"voyage\" DROP COLUMN \"crewModel\""
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"crewModel\" is gone from \"voyage\"",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM pragma_table_info(?) WHERE \"name\" = ?",
+        "params": [
+          "voyage",
+          "crewModel"
+        ]
+      }
+    ]
+  }
+]

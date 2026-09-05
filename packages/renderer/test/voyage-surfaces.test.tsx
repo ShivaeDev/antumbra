@@ -11,7 +11,14 @@ const list = () =>
 
 const aside = () =>
 	renderToStaticMarkup(
-		<VoyagesAside backends={["claude"]} onError={() => undefined} onSelect={() => undefined} selected={undefined} voyages={[reefSummary]} />,
+		<VoyagesAside
+			backends={["claude"]}
+			defaults={[]}
+			onError={() => undefined}
+			onSelect={() => undefined}
+			selected={undefined}
+			voyages={[reefSummary]}
+		/>,
 	);
 
 const flagshipSummary: VoyageSummary = {

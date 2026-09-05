@@ -41,6 +41,7 @@ const fleet: Fleet = {
 	capacities: [],
 	diag: { intents: [] },
 	repos: [],
+	roleSettings: [],
 };
 
 const nativeValue = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, "value")?.set;

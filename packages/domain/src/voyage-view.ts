@@ -1,3 +1,4 @@
+import { type AgentSettingsChoice, UNCHOSEN_AGENT_SETTINGS } from "@antumbra/settings";
 import type { Option } from "effect";
 import { type PieceState, pieceStates } from "#piece-state.ts";
 import { type PieceView, pieceViews } from "#piece-view.ts";
@@ -12,7 +13,9 @@ export type PieceCounts = Readonly<Record<PieceState, number>>;
 
 export interface VoyageView extends VoyageRow {
 	readonly captain: Option.Option<VoyageCaptain>;
+	readonly captainSettings: AgentSettingsChoice;
 	readonly counts: PieceCounts;
+	readonly crewSettings: AgentSettingsChoice;
 	readonly crew: ReadonlyArray<VoyageCrewMember>;
 	readonly lastStirredAt: Date | null;
 	readonly pieces: ReadonlyArray<PieceView>;
@@ -21,7 +24,9 @@ export interface VoyageView extends VoyageRow {
 
 export interface VoyageSummary extends VoyageRow {
 	readonly captain: Option.Option<VoyageCaptain>;
+	readonly captainSettings: AgentSettingsChoice;
 	readonly counts: PieceCounts;
+	readonly crewSettings: AgentSettingsChoice;
 	readonly lastStirredAt: Date | null;
 	readonly state: VoyageState;
 }
@@ -61,13 +66,16 @@ export const countsOfVoyage = (
 export const voyageView = (world: VoyageDetailRows, voyage: VoyageRow): VoyageView => {
 	const states = pieceStates(world);
 	const pieces = pieceViews(world, states, memberPieces(world, voyage.id));
+	const settings = world.roleSettings.get(voyage.id);
 	const captain = captainOf(world, voyage.id);
 	const counts = countStates(pieces.map((piece) => piece.state));
 	return {
 		...voyage,
 		captain,
+		captainSettings: settings?.captain ?? UNCHOSEN_AGENT_SETTINGS,
 		counts,
 		crew: crewOf(world, voyage.id),
+		crewSettings: settings?.crew ?? UNCHOSEN_AGENT_SETTINGS,
 		lastStirredAt: lastStirredAt(world, voyage.id),
 		pieces,
 		state: voyageState(counts.active, captain),
@@ -82,10 +90,13 @@ export const voyageSummaries = (world: VoyageSummaryRows): ReadonlyArray<VoyageS
 		const rows = { ...world, memberships: memberships.get(voyage.id) ?? [], crews: crews.get(voyage.id) ?? [] };
 		const captain = captainOf(rows, voyage.id);
 		const counts = countsOfVoyage(rows, states, voyage.id);
+		const settings = world.roleSettings.get(voyage.id);
 		return {
 			...voyage,
 			captain,
+			captainSettings: settings?.captain ?? UNCHOSEN_AGENT_SETTINGS,
 			counts,
+			crewSettings: settings?.crew ?? UNCHOSEN_AGENT_SETTINGS,
 			lastStirredAt: lastStirredAt(rows, voyage.id),
 			state: voyageState(counts.active, captain),
 		};

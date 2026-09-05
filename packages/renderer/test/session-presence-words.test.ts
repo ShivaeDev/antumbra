@@ -35,6 +35,7 @@ const fleetOf = (presence: SessionSummary["presence"]): Fleet => ({
 	capacities: [],
 	diag: { intents: [] },
 	repos: [],
+	roleSettings: [],
 });
 
 it("says stranded in its own words, not asleep's", () => {

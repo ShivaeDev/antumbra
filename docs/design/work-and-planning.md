@@ -12,11 +12,18 @@ an Agent role that is the Voyage's accountable address and charters its work. Ot
 as if crewed and may be hailed; Antumbra can materialize a standing identity where one exists or a fresh context over its durable record without
 keeping permanent crew. Durable responsibility earns a named Agent; interchangeable work may use a roster.
 
-A Voyage also names what its agents sail with. For each role — captain and crew — it holds the backend, the model, and the effort, so the admiral
-chooses who does the work and how hard it thinks rather than accepting whatever a provider defaults to. Model and effort are the backend's own
-identifiers, stored as given: there is no cross-backend name for a model, and inventing one would only lose what the backend meant. A session reads
-the Voyage's settings when it opens, so changing them reaches the next session rather than the one already sailing. Each backend lists the models it
-offers and the efforts each of them takes, and the admiral may still name a model no list shows, because a model exists before any list knows it.
+What an agent sails with belongs to its **role**. A role is a named kind of agent — flagship, captain, crew — and each one carries a backend, a model,
+and an effort, so the admiral chooses who does the work and how hard it thinks rather than accepting whatever a provider defaults to. The fleet holds
+a default for every role, and that is where the choice is usually made once; a Voyage may name its own for captain and crew where it wants something
+other than the fleet's. Nothing has to be named twice, and nothing is named per Voyage that the fleet already settled.
+
+A setting resolves when an agent spawns: the Voyage's own choice for that role, then the fleet's default for it, then, for what nothing named, the
+first backend the fleet knows and that backend's own model and effort. Model and effort are the backend's own identifiers, stored as given: there is
+no cross-backend name for a model, and inventing one would only lose what the backend meant. They therefore travel with the backend they were named
+for: a role that sails on a backend other than the one its fleet default names inherits neither that default's model nor its effort, and falls to the
+backend's own. A session reads what its role resolves to when it opens, so changing a setting reaches the next session rather than the one already
+sailing. Each backend lists the models it offers and the efforts each of them takes, and the admiral may still name a model no list shows, because a
+model exists before any list knows it.
 
 Work is chartered to Agents through explicit assignments. Agents never shop for or select their own work from the pool; reconciliation acts on the
 durable demand and assignments captains and the admiral have established.

@@ -1,5 +1,6 @@
 import { Kernel } from "@antumbra/kernel";
 import { BackendCapacities } from "@antumbra/provider-capacity";
+import { RoleSettings } from "@antumbra/settings";
 import { Effect } from "effect";
 import { AgentDomain } from "#agent-domain-service.ts";
 import type { ReadyPiece } from "#dispatch-policy.ts";
@@ -45,10 +46,7 @@ export const dispatchCandidate = (
 			if (pending.sessionIds.has(assigned.sessionId) || !(yield* available(assigned.backend))) {
 				return budget;
 			}
-			yield* dispatchPiece(port, candidate, {
-				_tag: "resume",
-				sessionId: assigned.sessionId,
-			}).pipe(
+			yield* dispatchPiece(port, candidate, { _tag: "resume", sessionId: assigned.sessionId }).pipe(
 				Effect.annotateSpans({
 					agentId: assigned.agentId,
 					pieceId: candidate.piece.id,
@@ -58,10 +56,14 @@ export const dispatchCandidate = (
 			pending.sessionIds.add(assigned.sessionId);
 			return budget;
 		}
-		if (budget <= 0 || pending.pieceIds.has(candidate.piece.id) || !(yield* available(candidate.voyage.crewBackend))) {
+		if (budget <= 0 || pending.pieceIds.has(candidate.piece.id)) {
 			return budget;
 		}
-		yield* dispatchPiece(port, candidate, { _tag: "spawn" }).pipe(Effect.annotateSpans({ pieceId: candidate.piece.id }));
+		const settings = yield* (yield* RoleSettings).resolve(candidate.voyage.id, "crew");
+		if (!(yield* available(settings.backend))) {
+			return budget;
+		}
+		yield* dispatchPiece(port, candidate, { _tag: "spawn", settings }).pipe(Effect.annotateSpans({ pieceId: candidate.piece.id }));
 		pending.pieceIds.add(candidate.piece.id);
 		return budget - 1;
 	});

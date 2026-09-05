@@ -1,7 +1,7 @@
 import { Database } from "@antumbra/persistence";
 import { Pieces } from "@antumbra/pieces";
+import { RoleSettings } from "@antumbra/settings";
 import { decodeStoredVoyageKind } from "@antumbra/vocabulary/voyage";
-import { agentSettingsOf } from "@antumbra/voyages/agent-settings";
 import { Effect, Option } from "effect";
 import { charterFor } from "#crew-charter.ts";
 import { PieceNotFound } from "#errors.ts";
@@ -40,10 +40,10 @@ export const workPieceNow = Effect.fn("Voyages.workPieceNow")(function* (pieceId
 	}
 	const kind = yield* Effect.fromResult(decodeStoredVoyageKind(voyage.value.id, voyage.value.kind));
 	const agentId = crypto.randomUUID();
+	const settings = yield* (yield* RoleSettings).resolve(voyage.value.id, "crew");
 	const intentId = yield* reach.submitSpawn({
 		agentId,
-		backend: voyage.value.crewBackend,
-		...agentSettingsOf(voyage.value, "crew"),
+		...settings,
 		charter: yield* charterFor(piece, { ...voyage.value, kind }, agentId),
 		pieceId,
 		role: piece.role,

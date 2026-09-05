@@ -1,4 +1,4 @@
-import { AGENT_BACKEND_TAGS, type AgentBackendTag, type VoyageCaptainView, type VoyageSummary } from "@antumbra/contract";
+import type { VoyageCaptainView, VoyageSummary } from "@antumbra/contract";
 import { PinIcon } from "lucide-react";
 import { focusVoyage, hailCaptain } from "#adapters/trpc-voyages.ts";
 import { Button } from "#components/ui/button.tsx";
@@ -24,33 +24,6 @@ export const FocusToggle = ({ onError, voyage }: { readonly onError: (message: s
 		</Button>
 	);
 };
-
-export const BackendSwitch = ({
-	backend,
-	label,
-	onChange,
-}: {
-	readonly backend: string;
-	readonly label: string;
-	readonly onChange: (backend: AgentBackendTag) => void;
-}) => (
-	<fieldset className="flex shrink-0 items-center gap-0.5 rounded-md border border-border p-0.5">
-		<legend className="sr-only">{label}</legend>
-		<span className="px-1 text-2xs text-muted-foreground">{label}</span>
-		{AGENT_BACKEND_TAGS.map((tag) => (
-			<Button
-				aria-pressed={backend === tag}
-				key={tag}
-				onClick={() => onChange(tag)}
-				size="sm"
-				type="button"
-				variant={backend === tag ? "secondary" : "ghost"}
-			>
-				{tag}
-			</Button>
-		))}
-	</fieldset>
-);
 
 export const CaptainCall = ({
 	captain,

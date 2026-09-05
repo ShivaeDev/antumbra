@@ -1,4 +1,4 @@
-import type { VoyageView } from "@antumbra/contract";
+import type { Fleet, VoyageView } from "@antumbra/contract";
 import { watchVoyage } from "#adapters/trpc-voyages.ts";
 import { useFeed } from "#hooks/feed.ts";
 import { BoardPanel } from "#views/board.tsx";
@@ -7,10 +7,12 @@ import { PiecesPanel } from "#views/pieces.tsx";
 import { VoyageHeader } from "#views/voyage-header.tsx";
 
 export const VoyagePanel = ({
+	fleet,
 	onError,
 	piece,
 	voyageId,
 }: {
+	readonly fleet: Fleet | undefined;
 	readonly onError: (message: string) => void;
 	readonly piece: string | undefined;
 	readonly voyageId: string;
@@ -22,7 +24,7 @@ export const VoyagePanel = ({
 	}
 	return (
 		<section className="@container flex min-h-0 min-w-0 flex-1 flex-col font-sans">
-			<VoyageHeader onError={onError} voyage={voyage} />
+			<VoyageHeader fleet={fleet} onError={onError} voyage={voyage} />
 			{error === undefined ? null : (
 				<p className="shrink-0 border-b border-destructive/40 bg-destructive/10 px-5 py-1.5 text-xs text-destructive">feed lost: {error}</p>
 			)}

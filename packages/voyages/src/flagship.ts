@@ -1,7 +1,6 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database } from "@antumbra/persistence";
 import { Effect, Option } from "effect";
-
 import type { OpenVoyageInput } from "#open.ts";
 
 export const ensureFlagship = Effect.fn("Voyages.ensureFlagship")(function* (input: Omit<OpenVoyageInput, "focused">) {
@@ -11,13 +10,7 @@ export const ensureFlagship = Effect.fn("Voyages.ensureFlagship")(function* (inp
 		return;
 	}
 	yield* db.Voyage.create({
-		captainBackend: input.backend,
-		captainEffort: null,
-		captainModel: null,
 		context: input.context,
-		crewBackend: input.backend,
-		crewEffort: null,
-		crewModel: null,
 		focusedAt: null,
 		id: crypto.randomUUID(),
 		kind: "flagship",

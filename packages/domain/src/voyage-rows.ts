@@ -3,6 +3,7 @@ import type { ChangeRow, PieceChangeRow } from "@antumbra/changes";
 import type { StoredAgentSession } from "@antumbra/persistence";
 import type { EdgeRow, PieceRow, PieceVerdict } from "@antumbra/pieces";
 import type { RulingGate } from "@antumbra/rulings";
+import type { VoyageAgentSettings } from "@antumbra/settings";
 import type { AgentSessionStatus, AgentStatus, SessionExecutionStatus } from "@antumbra/vocabulary/agent-runtime";
 import type { VoyageKind } from "@antumbra/vocabulary/voyage";
 
@@ -11,13 +12,7 @@ export type { EdgeRow, PieceRow } from "@antumbra/pieces";
 export type AwaitingRuling = Pick<RulingGate, "question" | "rulingId">;
 
 export interface VoyageRow {
-	readonly captainBackend: string;
-	readonly captainEffort: string | null;
-	readonly captainModel: string | null;
 	readonly context: string;
-	readonly crewBackend: string;
-	readonly crewEffort: string | null;
-	readonly crewModel: string | null;
 	readonly focusedAt: Date | null;
 	readonly id: string;
 	readonly kind: VoyageKind;
@@ -79,6 +74,7 @@ export interface DispatchWorld extends RetirementWorld {
 
 export interface VoyageSummaryRows extends DispatchWorld {
 	readonly crews: ReadonlyArray<CrewRow>;
+	readonly roleSettings: ReadonlyMap<string, VoyageAgentSettings>;
 }
 
 export type AgentExecutionWorld = Pick<RetirementWorld, "agentStatus" | "currentSessionByAgent" | "sessions">;

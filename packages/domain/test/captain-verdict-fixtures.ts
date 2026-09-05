@@ -33,7 +33,6 @@ const seedAsker = (voyageId: string) =>
 const openFlagship = Effect.gen(function* () {
 	const db = yield* Database;
 	const flagship = Option.getOrThrow(yield* db.Voyage.where({ kind: "flagship" }).first());
-	yield* db.Voyage.where({ id: flagship.id }).update({ captainBackend: "scripted" });
 	return flagship.id;
 });
 

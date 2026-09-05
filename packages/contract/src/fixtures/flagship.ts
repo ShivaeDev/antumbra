@@ -2,13 +2,9 @@ import type { VoyageSummary, VoyageView } from "#voyage-views.ts";
 
 export const flagshipSummary: VoyageSummary = {
 	captain: null,
-	captainBackend: "claude",
-	captainEffort: null,
-	captainModel: null,
+	captainSettings: { backend: null, effort: null, model: null },
 	counts: { active: 0, done: 0, pieces: 0, ready: 0 },
-	crewBackend: "claude",
-	crewEffort: null,
-	crewModel: null,
+	crewSettings: { backend: null, effort: null, model: null },
 	focusedAt: null,
 	id: "voyage-flagship",
 	kind: "flagship",

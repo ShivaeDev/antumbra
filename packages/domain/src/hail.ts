@@ -1,8 +1,9 @@
 import { BoardScope, Boards, entryBodies } from "@antumbra/boards";
 import { Database } from "@antumbra/persistence";
+import { RoleSettings } from "@antumbra/settings";
 import { decodeStoredVoyageKind } from "@antumbra/vocabulary/voyage";
-import { agentSettingsOf } from "@antumbra/voyages/agent-settings";
 import { Effect, Option } from "effect";
+import { captainRoleOf } from "#agent-role.ts";
 import { charterForKind } from "#charter-flagship.ts";
 import { CaptainAlreadyHailed, CaptainSessionUnavailable, VoyageNotFound } from "#errors.ts";
 import { KernelReach } from "#kernel-reach/service.ts";
@@ -58,10 +59,10 @@ export const hailCaptain = Effect.fn("Voyages.hail")(function* (voyageId: string
 		pieceId: Option.none(),
 		voyageId: Option.some(voyageId),
 	});
+	const settings = yield* (yield* RoleSettings).resolve(voyageId, captainRoleOf(voyage.kind));
 	const intentId = yield* reach.submitSpawn({
 		agentId,
-		backend: voyage.captainBackend,
-		...agentSettingsOf(voyage, "captain"),
+		...settings,
 		charter: charterForKind(voyage.kind, {
 			context: voyage.context,
 			northStar: voyage.northStar,

@@ -9,8 +9,6 @@ const voyage = (id: string, born: number) => ({
 	name: id,
 	context: id,
 	northStar: id,
-	captainBackend: "scripted",
-	crewBackend: "scripted",
 	createdAt: new Date(born),
 });
 const piece = (id: string) => ({ id, title: id, charter: id, expectation: id, role: "hand", launchedAt: new Date(1) });

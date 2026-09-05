@@ -1,6 +1,7 @@
 import { BoardRegisterSchema } from "@antumbra/vocabulary/board";
 import { VoyageKindSchema } from "@antumbra/vocabulary/voyage";
 import { Schema } from "effect";
+import { AgentSettingsChoice } from "#agent-settings.ts";
 import { ArtifactHistoryView, ArtifactView } from "#artifact-views.ts";
 import { ChangeView } from "#change-views.ts";
 import { AwaitingRulingView } from "#rulings/views.ts";
@@ -87,13 +88,9 @@ export type VoyageState = typeof VoyageState.Type;
 
 export const VoyageSummary = Schema.Struct({
 	captain: Schema.NullOr(VoyageCaptainView),
-	captainBackend: Schema.String,
-	captainEffort: Schema.NullOr(Schema.String),
-	captainModel: Schema.NullOr(Schema.String),
+	captainSettings: AgentSettingsChoice,
 	counts: PieceCounts,
-	crewBackend: Schema.String,
-	crewEffort: Schema.NullOr(Schema.String),
-	crewModel: Schema.NullOr(Schema.String),
+	crewSettings: AgentSettingsChoice,
 	focusedAt: Schema.NullOr(Schema.String),
 	id: Schema.String,
 	kind: VoyageKindSchema,

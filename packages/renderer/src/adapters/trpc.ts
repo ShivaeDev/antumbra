@@ -1,4 +1,4 @@
-import type { AppInfo, ModelChoice, RepoRegistration, SituationDraft, SpawnRequest } from "@antumbra/contract";
+import type { AppInfo, ModelChoice, RepoRegistration, RoleSettings, SituationDraft, SpawnRequest } from "@antumbra/contract";
 import { Data, Effect } from "effect";
 import { client, fired, toError } from "#adapters/bridge.ts";
 import { RendererRequestError } from "#adapters/request-error.ts";
@@ -32,6 +32,13 @@ export const backendModels = (backend: string, onModels: (models: ReadonlyArray<
 		.then(onModels)
 		.catch((cause: unknown) => onError(toError(cause).message));
 };
+
+export const setRoleSettings = Effect.fn("Renderer.setRoleSettings")((settings: RoleSettings) =>
+	Effect.tryPromise({
+		try: () => client.setRoleSettings.mutate(settings),
+		catch: (cause) => new RendererRequestError({ message: toError(cause).message }),
+	}),
+);
 
 export const restartApp = (onError: (message: string) => void): void => fired(client.restart.mutate(), onError);
 

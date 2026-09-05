@@ -5,9 +5,7 @@ import { expect } from "@effect/vitest";
 import { Effect, Option, PubSub } from "effect";
 
 const voyage = {
-	captainBackend: "scripted",
 	context: "the reef is uncharted",
-	crewBackend: "scripted",
 	focusedAt: null,
 	id: "voyage-1",
 	name: "Chart the reef",

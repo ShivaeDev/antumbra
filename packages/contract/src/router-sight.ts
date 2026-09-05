@@ -1,4 +1,5 @@
 import { Schema } from "effect";
+import { RoleSettings } from "#agent-settings.ts";
 import { Fleet, ModelChoice, RepoSummary } from "#fleet.ts";
 import { type AppProcedure, surface } from "#router-procedure.ts";
 import { SessionImage, SessionImageRequest, SessionInputReceipt, SessionInputRequest } from "#session-inputs.ts";
@@ -58,6 +59,9 @@ export const sightRoutes = (procedure: AppProcedure) => ({
 		.mutation(function* (input) {
 			return yield* surface((yield* SightSource).sendInput(input));
 		}),
+	setRoleSettings: procedure.input(RoleSettings).mutation(function* (input) {
+		yield* surface((yield* SightSource).setRoleSettings(input));
+	}),
 	sessionEventFeed: procedure
 		.input(EventQuery)
 		.output(SessionEvent)

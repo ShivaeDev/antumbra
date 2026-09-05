@@ -182,8 +182,6 @@ it.effectDB("an open gate names every berthing of its piece", function* (db) {
 			name: "Other course",
 			context: "other",
 			northStar: "other",
-			captainBackend: "scripted",
-			crewBackend: "scripted",
 		});
 		yield* db.VoyagePiece.create({ pieceId, voyageId: "other" });
 		const rulings = yield* Rulings;

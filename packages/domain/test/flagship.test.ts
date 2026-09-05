@@ -4,6 +4,7 @@ import { it } from "@antumbra/persistence/testing";
 import { PiecesLive } from "@antumbra/pieces";
 import { ReposLive } from "@antumbra/repos";
 import { RulingsLive } from "@antumbra/rulings";
+import { RoleSettings } from "@antumbra/settings";
 import { Voyages } from "@antumbra/voyages";
 import { expect } from "@effect/vitest";
 import { Effect, Layer } from "effect";
@@ -18,6 +19,7 @@ const summaryLayer = VoyageSummaries.layer.pipe(
 			Layer.provideMerge(Voyages.layer),
 			Layer.provideMerge(ReposLive),
 			Layer.provideMerge(RulingsLive),
+			Layer.provideMerge(RoleSettings.layer),
 			Layer.provideMerge(DomainFeedsLive),
 		),
 	),
@@ -42,8 +44,6 @@ it.effectDB("the fleet is born sailing under a flagship", function* (db) {
 	expect(flagships.length).toBe(1);
 	expect(flagships[0]?.name).toBe("Flagship");
 	expect(flagships[0]?.northStar).toBe("The fleet sails well.");
-	expect(flagships[0]?.captainBackend).toBe("claude");
-	expect(flagships[0]?.crewBackend).toBe("claude");
 });
 
 it.effectDB("boot writes the row and spawns no captain", function* (db) {
@@ -57,9 +57,7 @@ it.effectDB("boot writes the row and spawns no captain", function* (db) {
 it.effectDB("a voyage carries its kind out of the record", function* (db) {
 	yield* boot;
 	yield* db.Voyage.create({
-		captainBackend: "scripted",
 		context: "the reef is uncharted",
-		crewBackend: "scripted",
 		focusedAt: null,
 		id: "voyage-reef",
 		kind: "voyage",
@@ -82,9 +80,7 @@ it.effectDB("the flagship reaches a window as what it is", function* () {
 
 it.effectDB("a stored kind nothing knows is refused", function* (db) {
 	yield* db.Voyage.create({
-		captainBackend: "scripted",
 		context: "written by a later release",
-		crewBackend: "scripted",
 		focusedAt: null,
 		id: "voyage-tender",
 		kind: "tender",

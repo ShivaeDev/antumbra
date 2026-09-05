@@ -4,8 +4,9 @@ import { act } from "react";
 import { createRoot } from "react-dom/client";
 import { useAppForm } from "#forms/hook.ts";
 import type { ModelCatalog } from "#hooks/backend-models.ts";
-import { type AgentDraft, emptyDraft, type VoyageDraft, withPresetModel } from "#views/open-voyage-draft.ts";
+import { emptyDraft, type VoyageDraft } from "#views/open-voyage-draft.ts";
 import { VoyageFields } from "#views/open-voyage-fields.tsx";
+import { EMPTY_PLACEHOLDER, type RoleDraft, type RolePlaceholder } from "#views/role-settings.ts";
 
 const claudeModels: ModelCatalog = {
 	choices: [
@@ -17,7 +18,7 @@ const claudeModels: ModelCatalog = {
 
 const codexModels: ModelCatalog = { choices: [{ efforts: ["high"], id: "gpt-5-codex", isDefault: true, name: "GPT-5 Codex" }], failure: null };
 
-const draftOf = (captain: Partial<AgentDraft>, crew: Partial<AgentDraft>): VoyageDraft => ({
+const draftOf = (captain: Partial<RoleDraft>, crew: Partial<RoleDraft>): VoyageDraft => ({
 	...emptyDraft,
 	captain: { ...emptyDraft.captain, ...captain },
 	crew: { ...emptyDraft.crew, ...crew },
@@ -33,27 +34,30 @@ const settle = (change: () => void): Effect.Effect<void> =>
 
 const Fields = ({
 	captainCatalog,
+	captainPlaceholder,
 	crewCatalog,
 	draft,
 }: {
 	readonly captainCatalog: ModelCatalog;
+	readonly captainPlaceholder: RolePlaceholder;
 	readonly crewCatalog: ModelCatalog;
 	readonly draft: VoyageDraft;
 }) => {
 	const form = useAppForm({ defaultValues: draft });
 	return (
 		<VoyageFields
-			form={form}
-			fields={{ captain: "captain", crew: "crew", name: "name", northStar: "northStar", context: "context" }}
 			backends={["claude", "codex"]}
-			captainBackend={draft.captain.backend}
-			crewBackend={draft.crew.backend}
 			captainCatalog={captainCatalog}
+			captainPlaceholder={captainPlaceholder}
 			crewCatalog={crewCatalog}
+			crewPlaceholder={EMPTY_PLACEHOLDER}
+			fields={{ captain: "captain", context: "context", crew: "crew", name: "name", northStar: "northStar" }}
+			form={form}
 		/>
 	);
 };
-const shown = (captainCatalog: ModelCatalog, crewCatalog: ModelCatalog, draft: VoyageDraft) =>
+
+const shown = (captainCatalog: ModelCatalog, crewCatalog: ModelCatalog, draft: VoyageDraft, captainPlaceholder = EMPTY_PLACEHOLDER) =>
 	Effect.gen(function* () {
 		const container = document.createElement("div");
 		document.body.append(container);
@@ -64,7 +68,9 @@ const shown = (captainCatalog: ModelCatalog, crewCatalog: ModelCatalog, draft: V
 				container.remove();
 			}),
 		);
-		yield* settle(() => root.render(<Fields captainCatalog={captainCatalog} crewCatalog={crewCatalog} draft={draft} />));
+		yield* settle(() =>
+			root.render(<Fields captainCatalog={captainCatalog} captainPlaceholder={captainPlaceholder} crewCatalog={crewCatalog} draft={draft} />),
+		);
 		return container;
 	});
 
@@ -85,6 +91,22 @@ it.effect("each role offers the models of its own backend and the efforts of its
 		);
 
 		expect(offered(container)).toEqual([["sonnet", "opus"], ["low", "medium"], ["gpt-5-codex"], ["high"]]);
+	}),
+);
+
+it.effect("a role that names no model is offered the efforts of the model its backend would pick", () =>
+	Effect.gen(function* () {
+		const container = yield* shown(claudeModels, codexModels, emptyDraft);
+
+		expect(offered(container)).toEqual([["sonnet", "opus"], ["low", "medium"], ["gpt-5-codex"], ["high"]]);
+	}),
+);
+
+it.effect("a role offers the efforts of the model the fleet's default names", () =>
+	Effect.gen(function* () {
+		const container = yield* shown(claudeModels, codexModels, emptyDraft, { backend: "claude", effort: "high", model: "opus" });
+
+		expect(offered(container).at(1)).toEqual(["high", "max"]);
 	}),
 );
 
@@ -111,11 +133,6 @@ it.effect("a backend that cannot list its models still leaves that role's fields
 
 		expect(container.textContent).toContain("Captain models could not be listed: claude: no executable found");
 		expect(fieldNamed(container, "Captain model")?.value).toBe("");
-		expect(offered(container)).toEqual([[], [], ["gpt-5-codex"], []]);
+		expect(offered(container)).toEqual([[], [], ["gpt-5-codex"], ["high"]]);
 	}),
 );
-
-it("the model a backend marks as its own default is the one the role starts with", () => {
-	expect(withPresetModel(emptyDraft.captain, "sonnet")).toMatchObject({ model: "sonnet" });
-	expect(withPresetModel({ backend: "claude", effort: "", model: "opus" }, "sonnet")).toMatchObject({ model: "opus" });
-});

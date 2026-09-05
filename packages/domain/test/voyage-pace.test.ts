@@ -9,10 +9,7 @@ import { acquireTemporaryPersistence } from "#test/harness.ts";
 
 const HOME = ["held", "waiting", "parked", "running", "abandoned", "done", "pending"];
 
-const openVoyage = (id: string) =>
-	Effect.flatMap(Database, (db) =>
-		db.Voyage.create({ id, name: id, context: id, northStar: id, captainBackend: "scripted", crewBackend: "scripted" }),
-	);
+const openVoyage = (id: string) => Effect.flatMap(Database, (db) => db.Voyage.create({ id, name: id, context: id, northStar: id }));
 
 const charterOn = (voyageId: string, id: string) =>
 	Effect.flatMap(Database, (db) =>

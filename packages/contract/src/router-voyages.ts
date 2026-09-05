@@ -12,7 +12,6 @@ import {
 	PieceVerdictRequest,
 	RewireRequest,
 	VoyageAgentSettingsRequest,
-	VoyageBackendRequest,
 } from "#voyage-requests.ts";
 import { ReportMarkdown, VoyageSummary, VoyageView } from "#voyage-views.ts";
 import { VoyageSource } from "#voyages.ts";
@@ -85,14 +84,6 @@ export const voyageRoutes = (procedure: AppProcedure) => ({
 	setAgentSettings: procedure.input(VoyageAgentSettingsRequest).mutation(function* (input) {
 		const voyages = yield* VoyageSource;
 		yield* surface(voyages.setAgentSettings(input));
-	}),
-	setCaptainBackend: procedure.input(VoyageBackendRequest).mutation(function* (input) {
-		const voyages = yield* VoyageSource;
-		yield* surface(voyages.setCaptainBackend(input));
-	}),
-	setCrewBackend: procedure.input(VoyageBackendRequest).mutation(function* (input) {
-		const voyages = yield* VoyageSource;
-		yield* surface(voyages.setCrewBackend(input));
 	}),
 	unparkPiece: procedure.input(PieceRef).mutation(function* (input) {
 		const voyages = yield* VoyageSource;

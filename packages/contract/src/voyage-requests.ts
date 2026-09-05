@@ -1,11 +1,10 @@
-import { AgentBackendTagSchema } from "@antumbra/vocabulary/agent-backend";
+import { VoyageAgentRoleSchema } from "@antumbra/vocabulary/agent-role";
 import { BoardRegisterSchema } from "@antumbra/vocabulary/board";
 import { PieceVerdict } from "@antumbra/vocabulary/verdict";
-import { VoyageAgentRoleSchema } from "@antumbra/vocabulary/voyage";
 import { Schema } from "effect";
+import { AgentSettingsChoice } from "#agent-settings.ts";
 
 export const OpenVoyageRequest = Schema.Struct({
-	backend: Schema.String,
 	captainBackend: Schema.optionalKey(Schema.String),
 	captainEffort: Schema.optionalKey(Schema.String),
 	captainModel: Schema.optionalKey(Schema.String),
@@ -19,18 +18,11 @@ export const OpenVoyageRequest = Schema.Struct({
 export type OpenVoyageRequest = typeof OpenVoyageRequest.Type;
 
 export const VoyageAgentSettingsRequest = Schema.Struct({
-	effort: Schema.NullOr(Schema.String),
-	model: Schema.NullOr(Schema.String),
+	...AgentSettingsChoice.fields,
 	role: VoyageAgentRoleSchema,
 	voyageId: Schema.String,
 });
 export type VoyageAgentSettingsRequest = typeof VoyageAgentSettingsRequest.Type;
-
-export const VoyageBackendRequest = Schema.Struct({
-	backend: AgentBackendTagSchema,
-	voyageId: Schema.String,
-});
-export type VoyageBackendRequest = typeof VoyageBackendRequest.Type;
 
 export const CharterPieceRequest = Schema.Struct({
 	charter: Schema.String,

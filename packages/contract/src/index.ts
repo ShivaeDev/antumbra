@@ -1,14 +1,8 @@
 export {
-	AGENT_BACKEND_TAGS,
-	type AgentBackendTag,
-} from "@antumbra/vocabulary/agent-backend";
-export {
-	MAX_SESSION_IMAGE_SOURCE_BYTES,
-	MAX_SESSION_IMAGES,
-	SessionInputId,
-	type SessionMessagePart,
-} from "@antumbra/vocabulary/session-input";
-export type { VoyageAgentRole } from "@antumbra/vocabulary/voyage";
+	AgentSettingsChoice,
+	RoleSettings,
+	UNCHOSEN_AGENT_SETTINGS,
+} from "#agent-settings.ts";
 export { AppInfo, AppInfoSource } from "#app-info.ts";
 export { AppLifecycleSource } from "#app-lifecycle.ts";
 export { ArtifactMarkdown, ArtifactView } from "#artifact-views.ts";
@@ -105,6 +99,7 @@ export {
 	IntentDiagnostic,
 	SessionDiagnostics,
 } from "#sight-diagnostics.ts";
+export * from "#vocabulary.ts";
 export {
 	AdoptChangeRequest,
 	ArtifactSupersessionRequest,
@@ -119,7 +114,6 @@ export {
 	PieceVerdictRequest,
 	RewireRequest,
 	VoyageAgentSettingsRequest,
-	VoyageBackendRequest,
 } from "#voyage-requests.ts";
 export {
 	BoardEntryView,

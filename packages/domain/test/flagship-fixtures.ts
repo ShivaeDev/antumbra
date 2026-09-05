@@ -10,9 +10,7 @@ export const FLAGSHIP_ID = "voyage-flagship";
 export const openFlagship = Effect.gen(function* () {
 	const db = yield* Database;
 	yield* db.Voyage.create({
-		captainBackend: "scripted",
 		context: "Fleet-level rulings and findings belong here.",
-		crewBackend: "scripted",
 		focusedAt: null,
 		id: FLAGSHIP_ID,
 		kind: "flagship",
@@ -35,6 +33,5 @@ export const flagshipCaptain = (scripted: ScriptedBackend) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
 		const flagship = Option.getOrThrow(yield* db.Voyage.where({ kind: "flagship" }).first());
-		yield* db.Voyage.where({ id: flagship.id }).update({ captainBackend: "scripted", crewBackend: "scripted" });
 		return { captain: yield* hailedCaptain(scripted, flagship.id), voyageId: flagship.id };
 	});

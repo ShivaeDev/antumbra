@@ -32,7 +32,6 @@ const workingCrew = Effect.gen(function* () {
 	const voyageRecords = yield* Voyages;
 	const kernel = yield* Kernel;
 	const voyage = yield* voyageRecords.open({
-		backend: "scripted",
 		context: "the reef is uncharted",
 		name: "Chart the reef",
 		northStar: "every shoal is known",

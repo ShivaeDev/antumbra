@@ -1,7 +1,8 @@
 import { Pieces } from "@antumbra/pieces";
-import { Voyages } from "@antumbra/voyages";
+import { RoleSettings } from "@antumbra/settings";
 import { expect, it } from "@effect/vitest";
 import { Effect, Option, Ref } from "effect";
+import { makeOpenVoyage } from "#open-voyage.ts";
 import type { SpawnFields } from "#spawn-fields.ts";
 import { domainCapabilityLayer } from "#test/domain-layers.ts";
 import { acquireTemporaryPersistence } from "#test/harness.ts";
@@ -9,10 +10,11 @@ import { fakeKernelReach } from "#test/kernel-reach-fixture.ts";
 import { VoyageProcedureService } from "#voyages/service.ts";
 
 const opened = {
-	backend: "scripted",
+	captainBackend: "scripted",
 	captainEffort: "high",
 	captainModel: "opus",
 	context: "the reef is uncharted",
+	crewBackend: "scripted",
 	crewEffort: "low",
 	crewModel: "haiku",
 	name: "Chart the reef",
@@ -24,41 +26,34 @@ const recordingReach = (submissions: Ref.Ref<ReadonlyArray<SpawnFields>>) => ({
 	submitSpawn: (payload: SpawnFields) => Ref.update(submissions, (current) => [...current, payload]).pipe(Effect.as("spawn-intent")),
 });
 
-it.live("a voyage opened with a model and an effort per role stores and shows both", () =>
+it.live("a voyage opened with settings per role shows them as its own", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
 		yield* Effect.gen(function* () {
 			const voyages = yield* VoyageProcedureService;
-			const voyageRecords = yield* Voyages;
-			const voyage = yield* voyageRecords.open(opened);
-			expect(voyage).toMatchObject({
-				captainEffort: "high",
-				captainModel: "opus",
-				crewEffort: "low",
-				crewModel: "haiku",
-			});
+			const openVoyage = yield* makeOpenVoyage;
+			const voyage = yield* openVoyage(opened);
 			expect(Option.getOrThrow(yield* voyages.read(voyage.id))).toMatchObject({
-				captainEffort: "high",
-				captainModel: "opus",
-				crewEffort: "low",
-				crewModel: "haiku",
+				captainSettings: { backend: "scripted", effort: "high", model: "opus" },
+				crewSettings: { backend: "scripted", effort: "low", model: "haiku" },
 			});
 		}).pipe(Effect.provide(domainCapabilityLayer(temporary)));
 	}),
 );
 
-it.live("changing a role's settings reaches the sessions spawned after it", () =>
+it.live("each spawn carries the settings its role resolves to when it is spawned", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
 		const submissions = yield* Ref.make<ReadonlyArray<SpawnFields>>([]);
 		yield* Effect.gen(function* () {
 			const pieces = yield* Pieces;
 			const voyages = yield* VoyageProcedureService;
-			const voyageRecords = yield* Voyages;
-			const voyage = yield* voyageRecords.open(opened);
+			const roles = yield* RoleSettings;
+			const openVoyage = yield* makeOpenVoyage;
+			const voyage = yield* openVoyage(opened);
 
 			yield* voyages.hail(voyage.id);
-			yield* voyageRecords.setAgentSettings(voyage.id, "captain", { effort: "max", model: "sonnet" });
+			yield* roles.changeForVoyage(voyage.id, "captain", { backend: "codex", effort: "max", model: "sonnet" });
 			yield* voyages.hail(voyage.id);
 
 			const piece = yield* pieces.charter({
@@ -69,13 +64,14 @@ it.live("changing a role's settings reaches the sessions spawned after it", () =
 				title: "Sound",
 				voyageId: voyage.id,
 			});
-			yield* voyageRecords.setAgentSettings(voyage.id, "crew", { effort: null, model: null });
+			yield* roles.changeDefault("crew", { backend: "codex", effort: "medium", model: "gpt-5" });
+			yield* roles.changeForVoyage(voyage.id, "crew", { backend: null, effort: null, model: null });
 			yield* voyages.workNow(piece.id);
 
-			expect((yield* Ref.get(submissions)).map(({ effort, model }) => ({ effort, model }))).toEqual([
-				{ effort: "high", model: "opus" },
-				{ effort: "max", model: "sonnet" },
-				{},
+			expect((yield* Ref.get(submissions)).map(({ backend, effort, model }) => ({ backend, effort, model }))).toEqual([
+				{ backend: "scripted", effort: "high", model: "opus" },
+				{ backend: "codex", effort: "max", model: "sonnet" },
+				{ backend: "codex", effort: "medium", model: "gpt-5" },
 			]);
 		}).pipe(Effect.provide(domainCapabilityLayer(temporary, recordingReach(submissions))));
 	}),

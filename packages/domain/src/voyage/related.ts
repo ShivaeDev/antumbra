@@ -1,6 +1,7 @@
 import { Database, or } from "@antumbra/persistence";
 import { Rulings } from "@antumbra/rulings";
 import { rootSessions } from "@antumbra/sessions";
+import { RoleSettings } from "@antumbra/settings";
 import { decodeStoredAgentStatus } from "@antumbra/vocabulary/agent-runtime";
 import { Effect } from "effect";
 import { decodeRootSession } from "#execution/decode-session.ts";
@@ -11,6 +12,7 @@ import type { VoyageSummaryRows } from "#voyage-rows.ts";
 export const related = Effect.fnUntraced(function* (voyageIds: ReadonlyArray<string>) {
 	const db = yield* Database;
 	const rulings = yield* Rulings;
+	const roles = yield* RoleSettings;
 	const memberships = yield* db.VoyagePiece.where((membership) => membership.voyageId.in(voyageIds)).all();
 	const memberIds = memberships.map((membership) => membership.pieceId);
 	const edges = yield* db.PieceEdge.where((edge) => edge.toPieceId.in(memberIds)).all();
@@ -40,6 +42,7 @@ export const related = Effect.fnUntraced(function* (voyageIds: ReadonlyArray<str
 		edges,
 		memberships,
 		pieces,
+		roleSettings: yield* roles.forVoyages(voyageIds),
 		rulingGates: yield* rulings.openGatesForPieces(memberIds),
 		sessions: yield* Effect.forEach(sessions, decodeRootSession),
 	} satisfies Omit<VoyageSummaryRows, "voyages">;

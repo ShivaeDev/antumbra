@@ -8,7 +8,8 @@ import type { AgentBackend, ChangeHost, Runner } from "@antumbra/plugin-api";
 import type { ResourceReconcileOptions } from "@antumbra/resource-reclamation";
 import { RulingDelivery } from "@antumbra/rulings/delivery/service";
 import { SessionFabricLive } from "@antumbra/session-fabric";
-import { SettingsSourceLive } from "@antumbra/settings";
+import { RoleSettings, SettingsSourceLive } from "@antumbra/settings";
+import { AGENT_ROLES } from "@antumbra/vocabulary/agent-role";
 import { NodeServices } from "@effect/platform-node";
 import { Effect, Layer } from "effect";
 import { BackendCapacityReleases } from "#backend-capacity-releases/service.ts";
@@ -29,6 +30,11 @@ import { fakeKernelReach } from "#test/kernel-reach-fixture.ts";
 const artifactsDirectory = (temporary: TemporaryPersistence) => join(dirname(temporary.database), "artifacts");
 
 const sessionInputsDirectory = (temporary: TemporaryPersistence) => join(dirname(temporary.database), "session-inputs");
+
+const fleetSailsOn = (backend: string) =>
+	Layer.effectDiscard(
+		Effect.flatMap(RoleSettings, (roles) => Effect.forEach(AGENT_ROLES, (role) => roles.changeDefault(role, { backend, effort: null, model: null }))),
+	);
 
 const kernelReachLive = (reach: KernelReachService) =>
 	Layer.effectDiscard(
@@ -59,6 +65,7 @@ export const domainKernelServices = (
 	reclaim: Partial<ResourceReconcileOptions> = {},
 ) =>
 	Layer.mergeAll(
+		fleetSailsOn(backend.tag),
 		IntentFeedLive,
 		installKernelReach,
 		Layer.unwrap(

@@ -22,6 +22,7 @@ const agentAround = (session: Record<string, unknown>) => ({
 	capacities: [],
 	diag: { intents: [] },
 	repos: [],
+	roleSettings: [],
 });
 
 const idleSession = {

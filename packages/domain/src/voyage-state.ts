@@ -1,11 +1,11 @@
 import { Option } from "effect";
 import type { PieceState } from "#piece-state.ts";
 import { captainAtWork } from "#voyage-captain.ts";
-import type { VoyageSummaryRows, VoyageWorld } from "#voyage-rows.ts";
+import type { VoyageSummaryRows } from "#voyage-rows.ts";
 
 export type VoyageState = "quiet" | "underWay";
 
-export const piecesOfVoyage = (world: Pick<VoyageWorld, "memberships">, voyageId: string): ReadonlyArray<string> =>
+export const piecesOfVoyage = (world: Pick<VoyageSummaryRows, "memberships">, voyageId: string): ReadonlyArray<string> =>
 	world.memberships.filter((membership) => membership.voyageId === voyageId).map((membership) => membership.pieceId);
 
 export const voyageState = (

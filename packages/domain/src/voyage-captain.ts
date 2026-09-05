@@ -3,7 +3,7 @@ import { atWork } from "#agent-at-work.ts";
 import type { SessionIdentity } from "#tool-identity.ts";
 import { crewOf, type VoyageCrewMember } from "#voyage-crew.ts";
 import { executionSessionOfAgent } from "#voyage-execution-selection.ts";
-import type { VoyageWorld } from "#voyage-rows.ts";
+import type { VoyageSummaryRows } from "#voyage-rows.ts";
 
 export const CAPTAIN_ROLE = "captain";
 
@@ -17,7 +17,7 @@ export interface VoyageCaptain {
 export const isVoyageCaptainIdentity = (role: string, identity: SessionIdentity) =>
 	role === CAPTAIN_ROLE && Option.isSome(identity.voyageId) && Option.isNone(identity.pieceId);
 
-type CaptainWorld = Pick<VoyageWorld, "agentStatus" | "assignments" | "crews" | "currentSessionByAgent" | "sessions">;
+type CaptainWorld = Pick<VoyageSummaryRows, "agentStatus" | "assignments" | "crews" | "currentSessionByAgent" | "sessions">;
 
 const isPieceAssigned = (world: CaptainWorld, agentId: string) => world.assignments.some((assignment) => assignment.agentId === agentId);
 

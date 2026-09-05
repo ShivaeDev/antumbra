@@ -1,8 +1,8 @@
 import type { Ruling, RulingSubject } from "@antumbra/rulings";
 import { concludedPieces } from "#piece-state.ts";
-import type { RetirementWorld, VoyageWorld } from "#voyage-rows.ts";
+import type { RetirementWorld, VoyageSummaryRows } from "#voyage-rows.ts";
 
-type StalenessRows = RetirementWorld & Pick<VoyageWorld, "memberships">;
+type StalenessRows = RetirementWorld & Pick<VoyageSummaryRows, "memberships">;
 
 interface ConcludableSubject {
 	readonly id: string;

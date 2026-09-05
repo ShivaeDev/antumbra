@@ -1,4 +1,4 @@
-import type { VoyageWorld } from "#voyage-rows.ts";
+import type { VoyageSummaryRows } from "#voyage-rows.ts";
 
 export interface VoyageCrewMember {
 	readonly agentId: string;
@@ -6,7 +6,7 @@ export interface VoyageCrewMember {
 	readonly status: string;
 }
 
-export const crewOf = (world: Pick<VoyageWorld, "crews" | "agentStatus">, voyageId: string): ReadonlyArray<VoyageCrewMember> =>
+export const crewOf = (world: Pick<VoyageSummaryRows, "crews" | "agentStatus">, voyageId: string): ReadonlyArray<VoyageCrewMember> =>
 	world.crews
 		.filter((crew) => crew.voyageId === voyageId)
 		.map((crew) => ({

@@ -38,7 +38,6 @@ it("renders dependency, report authorship, and captain status for an agent", () 
 					},
 				],
 			]),
-			voyages: [reef],
 		}),
 		reef,
 	);

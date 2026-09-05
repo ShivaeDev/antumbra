@@ -1,7 +1,7 @@
 import { expect, it } from "@effect/vitest";
 import { atWork } from "#agent-at-work.ts";
 import { assignedExecution, executionSessionOfAgent } from "#voyage-execution-selection.ts";
-import type { AgentSessionRow, VoyageWorld } from "#voyage-rows.ts";
+import type { AgentSessionRow, RetirementWorld } from "#voyage-rows.ts";
 
 const session = (
 	agentId: string,
@@ -17,26 +17,18 @@ const session = (
 	status: "open",
 });
 
-const world = (over: Partial<VoyageWorld>): VoyageWorld => ({
+const world = (over: Partial<RetirementWorld>): RetirementWorld => ({
 	agentStatus: new Map(),
 	artifacts: new Map(),
 	assignments: [],
 	changes: [],
-	crews: [],
 	currentSessionByAgent: new Map(),
 	dismissedChangeIds: new Set(),
-	edges: [],
-	memberships: [],
-	openRulings: [],
 	pieceChanges: [],
 	pieceReports: [],
 	pieceVerdicts: new Map(),
-	rulingGates: [],
 	pieces: [],
-	reports: new Map(),
-	repos: new Map(),
 	sessions: [],
-	voyages: [],
 	...over,
 });
 

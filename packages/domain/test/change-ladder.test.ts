@@ -1,6 +1,6 @@
 import { changeStatus } from "@antumbra/changes";
 import { expect, it } from "@effect/vitest";
-import { pieceOutcomeTally } from "#outcome-status.ts";
+import { pieceOutcomeTallies } from "#outcome-status.ts";
 import { change, piece, stateOf, withChanges, world } from "#test/piece-ladder-fixtures.ts";
 
 it("a change counts as landed, pending or withdrawn by its stage", () => {
@@ -29,7 +29,7 @@ it("a report and an artifact land a piece outright", () => {
 		]),
 		pieceReports: [{ pieceId: "alpha", reportId: "report-1" }],
 	});
-	expect(pieceOutcomeTally(built, "alpha")).toEqual({ landed: 2, pending: 0 });
+	expect(pieceOutcomeTallies(built).get("alpha")).toEqual({ landed: 2, pending: 0 });
 	expect(stateOf(built)).toBe("done");
 });
 
@@ -37,7 +37,7 @@ it("a pending change holds a piece short of done, however much else landed", () 
 	const built = withChanges(["open"], {
 		pieceReports: [{ pieceId: "alpha", reportId: "report-1" }],
 	});
-	expect(pieceOutcomeTally(built, "alpha")).toEqual({ landed: 1, pending: 1 });
+	expect(pieceOutcomeTallies(built).get("alpha")).toEqual({ landed: 1, pending: 1 });
 	expect(stateOf(built)).toBe("landing");
 });
 
@@ -49,20 +49,20 @@ it("a change alone is enough to hold a piece landing", () => {
 
 it("a piece is done when every change of it has landed", () => {
 	const built = withChanges(["landed", "landed"]);
-	expect(pieceOutcomeTally(built, "alpha")).toEqual({ landed: 2, pending: 0 });
+	expect(pieceOutcomeTallies(built).get("alpha")).toEqual({ landed: 2, pending: 0 });
 	expect(stateOf(built)).toBe("done");
 });
 
 it("a withdrawn change with nothing replacing it stops counting at all", () => {
 	const built = withChanges(["withdrawn"]);
-	expect(pieceOutcomeTally(built, "alpha")).toEqual({ landed: 0, pending: 0 });
+	expect(pieceOutcomeTallies(built).get("alpha")).toEqual({ landed: 0, pending: 0 });
 	expect(stateOf(built)).toBe("ready");
 });
 
 it("a withdrawn change counts only while a replacement is under way", () => {
-	expect(pieceOutcomeTally(withChanges(["withdrawn", "open"]), "alpha")).toEqual({ landed: 0, pending: 2 });
-	expect(pieceOutcomeTally(withChanges(["withdrawn", "prepared"]), "alpha")).toEqual({ landed: 0, pending: 2 });
-	expect(pieceOutcomeTally(withChanges(["withdrawn", "landed"]), "alpha")).toEqual({ landed: 1, pending: 0 });
+	expect(pieceOutcomeTallies(withChanges(["withdrawn", "open"])).get("alpha")).toEqual({ landed: 0, pending: 2 });
+	expect(pieceOutcomeTallies(withChanges(["withdrawn", "prepared"])).get("alpha")).toEqual({ landed: 0, pending: 2 });
+	expect(pieceOutcomeTallies(withChanges(["withdrawn", "landed"])).get("alpha")).toEqual({ landed: 1, pending: 0 });
 	expect(stateOf(withChanges(["withdrawn", "landed"]))).toBe("done");
 });
 
@@ -70,14 +70,42 @@ it("a dismissed change counts for nothing even while a sibling is open", () => {
 	const built = withChanges(["withdrawn", "open"], {
 		dismissedChangeIds: new Set(["change-0"]),
 	});
-	expect(pieceOutcomeTally(built, "alpha")).toEqual({ landed: 0, pending: 1 });
+	expect(pieceOutcomeTallies(built).get("alpha")).toEqual({ landed: 0, pending: 1 });
+});
+
+it("shared Changes count once per Piece and replacements only hold their own Piece pending", () => {
+	const built = world({
+		pieces: [piece("alpha"), piece("beta"), piece("empty")],
+		changes: [change("withdrawn", "withdrawn"), change("replacement", "open"), change("landed", "landed")],
+		pieceChanges: [
+			{ pieceId: "alpha", changeId: "withdrawn", purpose: "produces" },
+			{ pieceId: "beta", changeId: "withdrawn", purpose: "produces" },
+			{ pieceId: "alpha", changeId: "replacement", purpose: "produces" },
+			{ pieceId: "alpha", changeId: "landed", purpose: "produces" },
+			{ pieceId: "beta", changeId: "landed", purpose: "depends_on" },
+		],
+		pieceReports: [
+			{ pieceId: "alpha", reportId: "first" },
+			{ pieceId: "alpha", reportId: "second" },
+			{ pieceId: "beta", reportId: "first" },
+		],
+	});
+	expect(pieceOutcomeTallies(built)).toEqual(
+		new Map([
+			["alpha", { landed: 3, pending: 2 }],
+			["beta", { landed: 2, pending: 0 }],
+			["empty", { landed: 0, pending: 0 }],
+		]),
+	);
+	expect(stateOf(built, "alpha")).toBe("landing");
+	expect(stateOf(built, "beta")).toBe("done");
 });
 
 it("a withdrawn change alone leaves a reported piece done rather than landing", () => {
 	const reported = withChanges(["withdrawn"], {
 		pieceReports: [{ pieceId: "alpha", reportId: "report-1" }],
 	});
-	expect(pieceOutcomeTally(reported, "alpha")).toEqual({
+	expect(pieceOutcomeTallies(reported).get("alpha")).toEqual({
 		landed: 1,
 		pending: 0,
 	});
@@ -86,7 +114,7 @@ it("a withdrawn change alone leaves a reported piece done rather than landing", 
 
 it("a delivered verdict is a landed outcome and the ladder derives done", () => {
 	const built = world({ pieceVerdicts: new Map([["alpha", "delivered"]]) });
-	expect(pieceOutcomeTally(built, "alpha")).toEqual({ landed: 1, pending: 0 });
+	expect(pieceOutcomeTallies(built).get("alpha")).toEqual({ landed: 1, pending: 0 });
 	expect(stateOf(built)).toBe("done");
 });
 
@@ -99,7 +127,7 @@ it("a delivered verdict does not outrank a change still on its way", () => {
 
 it("an abandoned piece reads abandoned rather than done", () => {
 	const built = world({ pieceVerdicts: new Map([["alpha", "abandoned"]]) });
-	expect(pieceOutcomeTally(built, "alpha")).toEqual({ landed: 1, pending: 0 });
+	expect(pieceOutcomeTallies(built).get("alpha")).toEqual({ landed: 1, pending: 0 });
 	expect(stateOf(built)).toBe("abandoned");
 });
 

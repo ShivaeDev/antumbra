@@ -1,24 +1,30 @@
-import { changeStatus, changesOfPiece, unresolvedChangesOfPiece } from "@antumbra/changes";
+import { changeOutcomeTallies } from "@antumbra/changes";
 import type { RetirementWorld } from "#voyage-rows.ts";
 
-// Changes land only after host observation; a withdrawn change remains pending only while its replacement is underway.
 interface OutcomeTally {
 	readonly landed: number;
 	readonly pending: number;
 }
 
-const countedLinks = (links: ReadonlyArray<{ readonly pieceId: string }>, pieceId: string): number =>
-	links.filter((link) => link.pieceId === pieceId).length;
-
-export const pieceOutcomeTally = (world: RetirementWorld, pieceId: string): OutcomeTally => {
-	const statuses = changesOfPiece(world, pieceId).map(changeStatus);
-	const landedChanges = statuses.filter((status) => status === "landed").length;
-	return {
-		landed:
-			countedLinks(world.pieceReports, pieceId) +
-			[...world.artifacts.values()].filter((artifact) => artifact.pieceId === pieceId).length +
-			landedChanges +
-			Number(world.pieceVerdicts.has(pieceId)),
-		pending: unresolvedChangesOfPiece(world, pieceId).length,
-	};
+export const pieceOutcomeTallies = (world: RetirementWorld): ReadonlyMap<string, OutcomeTally> => {
+	if (world.pieces.length === 0) return new Map();
+	const changes = changeOutcomeTallies(world);
+	const reports = Map.groupBy(world.pieceReports, (link) => link.pieceId);
+	const artifacts = Map.groupBy(world.artifacts.values(), (artifact) => artifact.pieceId);
+	return new Map(
+		world.pieces.map((piece) => {
+			const change = changes.get(piece.id);
+			return [
+				piece.id,
+				{
+					landed:
+						(reports.get(piece.id)?.length ?? 0) +
+						(artifacts.get(piece.id)?.length ?? 0) +
+						(change?.landed ?? 0) +
+						Number(world.pieceVerdicts.has(piece.id)),
+					pending: change?.pending ?? 0,
+				},
+			];
+		}),
+	);
 };

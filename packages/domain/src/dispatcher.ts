@@ -12,7 +12,7 @@ import type { DispatchPort } from "#dispatch-spawn.ts";
 import { dispatchable, makeDispatchState } from "#dispatch-state.ts";
 import { runRefreshes } from "#feed-refreshes.ts";
 import { assignedExecution } from "#voyage-execution-selection.ts";
-import { VoyageWorldSource } from "#voyage-world.ts";
+import { VoyageWorldSource } from "#voyage-world/service.ts";
 
 export interface DispatcherOptions {
 	readonly maxRunning?: number;
@@ -27,7 +27,7 @@ const onePass = (port: DispatchPort, maxRunning: number | undefined) =>
 		const settings = yield* SettingsSource;
 		const effectiveMaxRunning = maxRunning ?? (yield* settings.current).settings.maxParallelSessions;
 		const now = yield* Clock.currentTimeMillis;
-		const world = yield* source.read;
+		const world = yield* source.read();
 		const allowed = yield* dispatchable(port.state, now);
 		const pending = yield* pendingDispatches;
 		let budget = effectiveMaxRunning - agentsAtWork(world) - pending.pieceIds.size;

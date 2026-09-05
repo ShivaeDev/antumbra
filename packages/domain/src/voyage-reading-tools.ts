@@ -6,7 +6,7 @@ import { answered, onVoyage } from "#tool-answers.ts";
 import type { SessionIdentity } from "#tool-identity.ts";
 import { readVoyageView } from "#voyage-read.ts";
 import { renderVoyage } from "#voyage-render.ts";
-import { VoyageWorldSource } from "#voyage-world.ts";
+import { VoyageWorldSource } from "#voyage-world/service.ts";
 
 export const makeVoyageReadingToolCompiler = Effect.gen(function* () {
 	const world = yield* VoyageWorldSource;

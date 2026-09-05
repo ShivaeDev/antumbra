@@ -1,12 +1,13 @@
 import { expect, it } from "@effect/vitest";
-import { wouldCycle } from "#graph.ts";
+import { reachablePieces } from "#graph.ts";
 
-it("wouldCycle refuses a self-loop and a closing edge", () => {
-	expect(wouldCycle([], "a", "a")).toBe(true);
+it("finds the starting piece and its downstream Pieces", () => {
+	expect(reachablePieces([], "a")).toEqual(new Set(["a"]));
 	const chain = [
 		{ fromPieceId: "a", toPieceId: "b" },
 		{ fromPieceId: "b", toPieceId: "c" },
+		{ fromPieceId: "a", toPieceId: "d" },
 	];
-	expect(wouldCycle(chain, "c", "a")).toBe(true);
-	expect(wouldCycle(chain, "a", "c")).toBe(false);
+	expect(reachablePieces(chain, "a")).toEqual(new Set(["a", "b", "c", "d"]));
+	expect(reachablePieces(chain, "b")).toEqual(new Set(["b", "c"]));
 });

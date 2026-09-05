@@ -33,8 +33,6 @@ const served = (access: ToolAccess) => ({
 	},
 });
 
-// An empty `settingSources` is the SDK's isolation mode: no settings files and no CLAUDE.md. An empty `tools` leaves the built-in tools out, and
-// `strictMcpConfig` keeps every MCP server but the one passed here from reaching the session.
 const harness = (session: SessionShape) =>
 	session.constrainedPrompt === undefined
 		? { plugins: [{ path: session.skills, type: "local" as const }] }

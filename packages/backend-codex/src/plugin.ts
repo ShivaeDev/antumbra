@@ -14,8 +14,6 @@ interface CodexPluginOptions {
 
 const APP_SERVER = ["app-server"];
 
-// Codex reads plugins, memories and host skill discovery from process configuration rather than from a thread, so constrained threads need an
-// app-server of their own. It keeps the same CODEX_HOME, so both servers act as the same signed-in user.
 const CONSTRAINED_APP_SERVER = [
 	"app-server",
 	"-c",

@@ -33,8 +33,6 @@ const CONSTRAINED_ENV = {
 	OPENCODE_DISABLE_PROJECT_CONFIG: "1",
 };
 
-// opencode writes its own coding prompt as the first system element unless the chosen agent carries one, so the constrained server declares an agent
-// whose prompt says nothing but that Antumbra's prompt follows.
 const CONSTRAINED_CONFIG = {
 	agent: { [CONSTRAINED_AGENT]: { prompt: "Follow the instructions in the system message." } },
 };

@@ -7,8 +7,6 @@ import { rawOf } from "#mapping.ts";
 import { ThreadResponse } from "#protocol.ts";
 import type { CodexServer } from "#server.ts";
 
-// Codex cannot switch its own shell and file tools off for one thread, so a constrained thread runs in the read-only sandbox and takes Antumbra's
-// prompt as its base instructions.
 const threadPolicy = (options: OpenSessionOptions) => ({
 	approvalsReviewer: "auto_review",
 	...(options.constrainedPrompt === undefined

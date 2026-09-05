@@ -55,11 +55,14 @@ dashboard about it. The fleet's highest-level agent is somewhere to talk, not so
 
 ## What it does
 
-On the admiral's word the flagship captain may open a Voyage, charter a Piece on a named Voyage, and proclaim a fleet ruling as the `flagship`
-authority. It also rules on the requests that climb to it, as that same authority, and passes up what only the admiral may settle. Beside those acts
-it reads the fleet whole — every Voyage, where it stands, and who captains it — because a Voyage it charters onto is one it has to be able to name.
-These are the ordinary domain acts, called by an agent that happens to sit at the top; the flagship gets no private verbs and no act the admiral could
-not perform directly.
+On the admiral's word the flagship captain may register a repository, open a Voyage with the backend, model and effort its captain and its crew are to
+run on, charter a Piece on a named Voyage, and proclaim a fleet ruling as the `flagship` authority. It also rules on the requests that climb to it, as
+that same authority, and passes up what only the admiral may settle. Beside those acts it reads the fleet whole — every Voyage, where it stands and
+who captains it, which repositories are registered, and what each backend can be asked to run — because a Voyage it charters onto is one it has to be
+able to name, and settings it is asked for are ones it has to be able to check. Together those acts let one sentence from the admiral — work this
+repository toward that objective, on these settings, starting now — become a sailing Voyage rather than a form filled in a screen at a time. These are
+the ordinary domain acts, called by an agent that happens to sit at the top; the flagship gets no private verbs and no act the admiral could not
+perform directly.
 
 Everything it does lands on the fleet Board, so what was done in the admiral's name reads as one story rather than as changes discovered later across
 scattered Voyages. Fleet-level rulings and findings belong on that Board, and the flagship captain decides what among them needs broadcasting to the

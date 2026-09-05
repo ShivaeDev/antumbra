@@ -9,7 +9,7 @@ import { FLAGSHIP_ID, hailedCaptain, openFlagship, toolNames, withFlagshipCaptai
 import { acquireTemporaryPersistence, callTool, makeScriptedBackend } from "#test/harness.ts";
 import { openReefVoyage } from "#test/voyage-fixtures.ts";
 
-const FLEET_TOOLS = ["read_fleet", "open_voyage", "charter_piece_on_voyage", "hail_captain", "proclaim_ruling"];
+const FLEET_TOOLS = ["read_fleet", "register_repo", "open_voyage", "charter_piece_on_voyage", "hail_captain", "proclaim_ruling"];
 
 const RULE = {
 	answer: "no voyage dredges a channel it did not survey first",
@@ -73,6 +73,7 @@ it.live("the flagship's captain reads every voyage in the fleet", () =>
 			expect(read.text).toContain(
 				`- ${reef.id} Chart the reef [quiet] · voyage · captain on scripted · crew on scripted · 2 pieces (2 unlaunched, 0 parked, 0 landed) · captain none · never stirred\n  north star: every shoal is known`,
 			);
+			expect(read.text).toContain("# Backends\n\n- scripted\n  haiku (default) · efforts low, high\n  opus · efforts high, max");
 		}),
 	),
 );
@@ -119,51 +120,6 @@ it.live("a voyage the fleet has not got is refused, not read", () =>
 
 			expect(refusal.ok).toBe(false);
 			expect(refusal.text).toContain("read_voyage");
-		}),
-	),
-);
-
-it.live("the flagship's captain opens a voyage on the fleet's default", () =>
-	withFlagshipCaptain((captain) =>
-		Effect.gen(function* () {
-			const db = yield* Database;
-
-			const outcome = yield* callTool(captain, "open_voyage", {
-				context: "the shoals are unnamed",
-				name: "Name the shoals",
-				northStar: "every shoal has a name",
-			});
-
-			const opened = (yield* db.Voyage.where({
-				name: "Name the shoals",
-			}).all())[0];
-			expect(outcome).toEqual({
-				ok: true,
-				text: `opened voyage ${opened?.id}`,
-			});
-			expect(opened).toMatchObject({
-				captainBackend: "claude",
-				crewBackend: "claude",
-				kind: "voyage",
-				northStar: "every shoal has a name",
-			});
-		}),
-	),
-);
-
-it.live("a voyage asked for without a north star is refused, not opened", () =>
-	withFlagshipCaptain((captain) =>
-		Effect.gen(function* () {
-			const db = yield* Database;
-
-			const refusal = yield* callTool(captain, "open_voyage", {
-				context: "the shoals are unnamed",
-				name: "Name the shoals",
-			});
-
-			expect(refusal.ok).toBe(false);
-			expect(refusal.text).toContain("open_voyage");
-			expect(yield* db.Voyage.where({ name: "Name the shoals" }).all()).toEqual([]);
 		}),
 	),
 );

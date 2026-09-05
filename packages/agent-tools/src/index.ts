@@ -27,6 +27,7 @@ export {
 	openVoyageSpec,
 	proclaimRulingSpec,
 	readFleetSpec,
+	registerRepoSpec,
 } from "#fleet.ts";
 export { readReportSpec } from "#reports.ts";
 export { readRulingsSpec } from "#ruling-readings.ts";

@@ -1205,6 +1205,9 @@ importers:
 
   packages/rulings:
     dependencies:
+      '@antumbra/boards':
+        specifier: workspace:*
+        version: link:../boards
       '@antumbra/domain-feeds':
         specifier: workspace:*
         version: link:../domain-feeds
@@ -1424,6 +1427,9 @@ importers:
       '@antumbra/prompts':
         specifier: workspace:*
         version: link:../prompts
+      '@antumbra/provider-capacity':
+        specifier: workspace:*
+        version: link:../provider-capacity
       '@antumbra/service-definition':
         specifier: workspace:*
         version: link:../service-definition

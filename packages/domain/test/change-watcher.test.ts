@@ -1,9 +1,9 @@
 import { Changes } from "@antumbra/changes";
+import type { ObserveCadenceOptions } from "@antumbra/changes/watch/cadence";
 import { Database } from "@antumbra/persistence";
 import { describe, expect, it } from "@effect/vitest";
 import { Effect, Queue } from "effect";
 import { TestClock } from "effect/testing";
-import type { ObserveCadenceOptions } from "#change-cadence.ts";
 import { AgentDomain } from "#domain.ts";
 import { berthed, REEF_SOURCE, reefWithPiece } from "#test/change-fixtures.ts";
 import { watchingLayer } from "#test/domain-layers.ts";

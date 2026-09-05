@@ -1,15 +1,29 @@
-import type { AntumbraPlugin } from "@antumbra/plugin-api";
+import type { AntumbraPlugin, ToolDefinition } from "@antumbra/plugin-api";
 import { skillFolders } from "@antumbra/skills";
 import { NodeServices } from "@effect/platform-node";
 import { Effect, Option, RcRef } from "effect";
 import { serveOpencode } from "#adapters/serve.ts";
+import { serveToolRequests } from "#adapters/tool-endpoint.ts";
+import { answerToolRequest } from "#adapters/tool-server.ts";
 import { opencodeBackend } from "#backend.ts";
 import { makeOpencodeServer } from "#server.ts";
+import { makeToolSessions } from "#tool-sessions.ts";
 
 interface OpencodePluginOptions {
 	readonly cwd: string;
+	readonly plugin: string;
 	readonly skills: string;
+	readonly tools: ReadonlyArray<ToolDefinition>;
 }
+
+// The tool server is listening before opencode starts, because opencode reads its address out of the config it boots with.
+const liveServer = (command: string, options: OpencodePluginOptions) =>
+	Effect.gen(function* () {
+		const sessions = makeToolSessions(options.tools.map((tool) => tool.name));
+		const tools = yield* serveToolRequests(answerToolRequest(options.tools, sessions));
+		const serve = serveOpencode({ command, cwd: options.cwd, plugin: options.plugin, skills: skillFolders(options.skills), tools });
+		return yield* makeOpencodeServer(Effect.provide(serve, NodeServices.layer), sessions);
+	});
 
 export const opencodePlugin = (options: OpencodePluginOptions): AntumbraPlugin => ({
 	activate: (context) =>
@@ -17,12 +31,8 @@ export const opencodePlugin = (options: OpencodePluginOptions): AntumbraPlugin =
 			context.findExecutable("opencode"),
 			Option.match({
 				onNone: () => Effect.logWarning("opencode: no executable found on the login PATH; backend not registered"),
-				onSome: (command) => {
-					const serve = serveOpencode({ command, cwd: options.cwd, skills: skillFolders(options.skills) });
-					return Effect.flatMap(RcRef.make({ acquire: makeOpencodeServer(Effect.provide(serve, NodeServices.layer)) }), (server) =>
-						context.registerAgentBackend(opencodeBackend(server)),
-					);
-				},
+				onSome: (command) =>
+					Effect.flatMap(RcRef.make({ acquire: liveServer(command, options) }), (server) => context.registerAgentBackend(opencodeBackend(server))),
 			}),
 		),
 	name: "opencode",

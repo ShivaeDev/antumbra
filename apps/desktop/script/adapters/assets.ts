@@ -15,6 +15,15 @@ export const copySkillAssets = (desktopRoot: string, workspaceRoot: string) =>
 		}
 	});
 
+export const copyOpencodePluginAssets = (desktopRoot: string, workspaceRoot: string) =>
+	Effect.sync(() => {
+		const source = join(workspaceRoot, "packages", "backend-opencode", "plugin");
+		const target = join(desktopRoot, "out", "opencode");
+		rmSync(target, { force: true, recursive: true });
+		mkdirSync(target, { recursive: true });
+		cpSync(source, target, { filter: (path) => !path.endsWith(".d.ts"), recursive: true });
+	});
+
 // Runtime migration replay consumes the generated JSON artifacts; migration.ts remains authoring-time source.
 export const copyPersistenceAssets = (desktopRoot: string, workspaceRoot: string) =>
 	Effect.sync(() => {

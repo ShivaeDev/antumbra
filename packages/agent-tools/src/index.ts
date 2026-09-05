@@ -1,3 +1,4 @@
+export { allToolSpecs } from "#all-tools.ts";
 export {
 	markReadSpec,
 	readBoardSpec,

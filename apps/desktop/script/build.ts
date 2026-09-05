@@ -1,6 +1,6 @@
 import { dirname, join } from "node:path";
 import { Console, Effect } from "effect";
-import { copyPersistenceAssets, copySkillAssets } from "#script/adapters/assets.ts";
+import { copyOpencodePluginAssets, copyPersistenceAssets, copySkillAssets } from "#script/adapters/assets.ts";
 import { bundleMainAndPreload } from "#script/adapters/bundler.ts";
 import { buildRenderer } from "#script/adapters/renderer-tooling.ts";
 import { runMain } from "#script/adapters/run.ts";
@@ -14,6 +14,7 @@ const program = Effect.gen(function* () {
 	yield* buildRenderer(rendererRoot, join(desktopRoot, "out", "renderer"));
 	yield* copyPersistenceAssets(desktopRoot, workspaceRoot);
 	yield* copySkillAssets(desktopRoot, workspaceRoot);
+	yield* copyOpencodePluginAssets(desktopRoot, workspaceRoot);
 	yield* Console.log("desktop bundles written to apps/desktop/out");
 });
 

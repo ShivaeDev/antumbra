@@ -2,16 +2,19 @@ import type { BackendFailure } from "@antumbra/plugin-api";
 import { Deferred, Effect, PubSub, Queue, type Scope } from "effect";
 import type { OpencodeConnection, OpencodeRequest } from "#adapters/connection.ts";
 import { opencodeFailure } from "#failure.ts";
+import type { ToolSessions } from "#tool-sessions.ts";
 
 export interface OpencodeServer {
 	readonly exited: Effect.Effect<void>;
 	readonly frames: PubSub.PubSub<unknown>;
 	readonly get: (request: OpencodeRequest) => Effect.Effect<unknown, BackendFailure>;
 	readonly post: (request: OpencodeRequest) => Effect.Effect<unknown, BackendFailure>;
+	readonly tools: ToolSessions;
 }
 
 export const makeOpencodeServer = Effect.fn("OpenCode.makeServer")(function* (
 	connect: Effect.Effect<OpencodeConnection, BackendFailure, Scope.Scope>,
+	tools: ToolSessions,
 ): Effect.fn.Return<OpencodeServer, BackendFailure, Scope.Scope> {
 	const frames = yield* PubSub.unbounded<unknown>();
 	const malformed = yield* Queue.unbounded<string>();
@@ -41,5 +44,6 @@ export const makeOpencodeServer = Effect.fn("OpenCode.makeServer")(function* (
 		frames,
 		get: call(connection.get),
 		post: call(connection.post),
+		tools,
 	} satisfies OpencodeServer;
 });

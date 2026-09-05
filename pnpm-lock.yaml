@@ -209,6 +209,9 @@ importers:
         specifier: 'catalog:'
         version: 0.35.3(@types/node@24.10.1)
     devDependencies:
+      '@antumbra/agent-tools':
+        specifier: workspace:*
+        version: link:../../packages/agent-tools
       '@antumbra/backend-claude':
         specifier: workspace:*
         version: link:../../packages/backend-claude
@@ -438,6 +441,9 @@ importers:
       '@effect/platform-node':
         specifier: 'catalog:'
         version: 4.0.0-rc.112(effect@4.0.0-rc.112)(redis@6.2.1)
+      '@modelcontextprotocol/sdk':
+        specifier: 'catalog:'
+        version: 1.30.0(supports-color@7.2.0)(zod@4.4.3)
       effect:
         specifier: 'catalog:'
         version: 4.0.0-rc.112

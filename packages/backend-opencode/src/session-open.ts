@@ -1,6 +1,7 @@
 import type { BackendFailure, OpenSessionOptions } from "@antumbra/plugin-api";
 import type { AgentEvent } from "@antumbra/vocabulary/session-events";
 import { Effect, Option, Schema } from "effect";
+import { wireName } from "#adapters/tool-server.ts";
 import { opencodeFailure } from "#failure.ts";
 import { rawOf } from "#mapping.ts";
 import { SessionResponse } from "#protocol.ts";
@@ -28,10 +29,19 @@ export const promptSettings = (options: OpenSessionOptions): Effect.Effect<Promp
 	});
 };
 
+// Every session reaches the one tool server, so the tools this session was not given are denied to it by name.
+const withoutOtherTools = (server: OpencodeServer, tools: OpenSessionOptions["tools"]) => {
+	const given = new Set(tools.map((tool) => tool.name));
+	return server.tools.names.filter((name) => !given.has(name)).map((name) => ({ action: "deny", pattern: "*", permission: wireName(name) }));
+};
+
 export const openSession = (server: OpencodeServer, options: OpenSessionOptions): Effect.Effect<readonly [string, unknown], BackendFailure> => {
 	const query = { directory: options.cwd };
 	return Option.match(options.resume, {
-		onNone: () => server.post({ body: {}, path: "/session", query }).pipe(Effect.map((response) => ["POST /session", response] as const)),
+		onNone: () =>
+			server
+				.post({ body: { permission: withoutOtherTools(server, options.tools) }, path: "/session", query })
+				.pipe(Effect.map((response) => ["POST /session", response] as const)),
 		onSome: (sessionId) =>
 			server
 				.get({ body: undefined, path: `/session/${sessionId}`, query })

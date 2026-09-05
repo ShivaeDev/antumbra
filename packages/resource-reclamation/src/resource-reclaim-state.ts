@@ -47,34 +47,26 @@ export const readResourceReclaimState = Effect.gen(function* () {
 		db.Moorage.where({ reclaimState: "claimed" }).all(),
 		db.Berth.where({ reclaimState: "claimed" }).all(),
 	]);
-	const agentIds = new Set([
-		...retired.map(({ id }) => id),
-		...dormant.map(({ id }) => id),
-		...claimedMoorages.map(({ agentId }) => agentId),
-		...claimedBerths.map(({ agentId }) => agentId),
-	]);
-	const rows = yield* Effect.forEach(agentIds, (agentId) =>
-		Effect.all({
-			agent: db.Agent.where({ id: agentId }).first(),
-			berths: db.Berth.where({ agentId }).all(),
-			moorage: db.Moorage.where({ agentId }).first(),
-			sessions: db.AgentSession.where({ agentId }).all(),
-		}),
-	);
-	const agents = yield* Effect.forEach(
-		rows.flatMap(({ agent }) => (agent._tag === "Some" ? [agent.value] : [])),
-		decodeAgent,
-	);
-	const sessions = yield* Effect.forEach(
-		rows.flatMap(({ sessions: all }) => all),
-		decodeSession,
-	);
-	const moorages = yield* Effect.forEach(
-		rows.flatMap(({ moorage }) => (moorage._tag === "Some" ? [moorage.value] : [])),
-		decodeMoorage,
-	);
+	const agentIds = [
+		...new Set([
+			...retired.map(({ id }) => id),
+			...dormant.map(({ id }) => id),
+			...claimedMoorages.map(({ agentId }) => agentId),
+			...claimedBerths.map(({ agentId }) => agentId),
+		]),
+	];
+	const rows = yield* Effect.all({
+		agents: db.Agent.where((agent) => agent.id.in(agentIds)).all(),
+		berths: db.Berth.where((berth) => berth.agentId.in(agentIds)).all(),
+		moorages: db.Moorage.where((moorage) => moorage.agentId.in(agentIds)).all(),
+		sessions: db.AgentSession.where((session) => session.agentId.in(agentIds)).all(),
+	});
+	const agents = yield* Effect.forEach(rows.agents, decodeAgent);
+	const sessions = yield* Effect.forEach(rows.sessions, decodeSession);
+	const moorages = yield* Effect.forEach(rows.moorages, decodeMoorage);
+	const berthsByAgent = Map.groupBy(rows.berths, (berth) => berth.agentId);
 	const berths = yield* Effect.forEach(
-		rows.flatMap(({ berths: all }) => all),
+		agentIds.flatMap((agentId) => berthsByAgent.get(agentId) ?? []),
 		decodeBerth,
 	);
 	return {

@@ -3,6 +3,7 @@ import { Database } from "@antumbra/persistence";
 import type { RulingReadFailure } from "@antumbra/rulings";
 import { decodeStoredVoyageKind } from "@antumbra/vocabulary/voyage";
 import { Effect, Option } from "effect";
+import { agentSettingsOf } from "#agent-settings.ts";
 import { charterForKind } from "#charter-flagship.ts";
 import { CaptainAlreadyHailed, CaptainSessionUnavailable, VoyageNotFound } from "#errors.ts";
 import type { SpawnRefused } from "#kernel-reach.ts";
@@ -72,6 +73,7 @@ export const hailCaptain = Effect.fn("Voyages.hail")(function* (voyageId: string
 	const intentId = yield* reach.submitSpawn({
 		agentId,
 		backend: voyage.captainBackend,
+		...agentSettingsOf(voyage, "captain"),
 		charter: charterForKind(voyage.kind, {
 			context: voyage.context,
 			northStar: voyage.northStar,

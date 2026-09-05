@@ -1,5 +1,5 @@
 import { resolve } from "node:path";
-import type { Options, SessionStore } from "@anthropic-ai/claude-agent-sdk";
+import type { EffortLevel, Options, SessionStore } from "@anthropic-ai/claude-agent-sdk";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { Option } from "effect";
 import { TOOL_SERVER_NAME } from "#adapters/tool-server.ts";
@@ -11,7 +11,9 @@ export interface ToolAccess {
 
 interface SessionShape {
 	readonly cwd: string;
+	readonly effort: EffortLevel | undefined;
 	readonly executable: string;
+	readonly model: string | undefined;
 	readonly resume: string | undefined;
 	readonly store: SessionStore;
 	readonly tools: Option.Option<ToolAccess>;
@@ -38,6 +40,8 @@ export const sessionOptions = (session: SessionShape): Options => ({
 	permissionMode: "auto",
 	sessionStore: session.store,
 	sessionStoreFlush: "eager",
+	...(session.effort === undefined ? {} : { effort: session.effort }),
+	...(session.model === undefined ? {} : { model: session.model }),
 	...(session.resume === undefined ? {} : { resume: session.resume }),
 	...Option.match(session.tools, { onNone: () => ({}), onSome: served }),
 });

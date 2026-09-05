@@ -7,6 +7,7 @@ import type {
 	OpenVoyageRequest,
 	PieceVerdictRequest,
 	RewireRequest,
+	VoyageAgentSettingsRequest,
 	VoyageBackendRequest,
 } from "@antumbra/contract";
 import { Pieces } from "@antumbra/pieces";
@@ -49,6 +50,8 @@ export const makeVoyageActs = (reads: VoyageReads) =>
 			removeArtifactSupersession: (request: ArtifactSupersessionRequest) =>
 				artifacts.removeSupersession({ actor: { _tag: "admiral" }, ...request }).pipe(Effect.mapError(toFailure)),
 			rewire: (request: RewireRequest) => pieces.setDependencies(request.pieceId, request.dependsOn).pipe(Effect.mapError(toFailure)),
+			setAgentSettings: (request: VoyageAgentSettingsRequest) =>
+				voyages.setAgentSettings(request.voyageId, request.role, request).pipe(Effect.mapError(toFailure)),
 			setCaptainBackend: (request: VoyageBackendRequest) =>
 				voyages.setCaptainBackend(request.voyageId, request.backend).pipe(Effect.mapError(toFailure)),
 			setCrewBackend: (request: VoyageBackendRequest) => voyages.setCrewBackend(request.voyageId, request.backend).pipe(Effect.mapError(toFailure)),

@@ -10,6 +10,8 @@ const PROMPT = `/session/${SESSION}/prompt_async`;
 
 const options = (resume: Option.Option<string> = Option.none()): OpenSessionOptions => ({
 	cwd: "/moorage",
+	effort: Option.none(),
+	model: Option.none(),
 	resume,
 	sessionId: "antumbra-session",
 	tools: [],

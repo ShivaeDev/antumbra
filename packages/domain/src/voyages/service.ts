@@ -12,6 +12,7 @@ import { readVoyageView } from "#voyage-read.ts";
 import { VoyageWorldSource } from "#voyage-world/service.ts";
 import { list } from "#voyages/list.ts";
 import { openVoyage } from "#voyages/open.ts";
+import { setAgentSettings } from "#voyages/set-agent-settings.ts";
 import { setCaptainBackend } from "#voyages/set-captain-backend.ts";
 import { setCrewBackend } from "#voyages/set-crew-backend.ts";
 import { setFocus } from "#voyages/set-focus.ts";
@@ -25,6 +26,7 @@ export const VoyageProcedureService = defineService({
 		list,
 		open: openVoyage,
 		read: readVoyageView,
+		setAgentSettings,
 		setCaptainBackend,
 		setCrewBackend,
 		setFocus,

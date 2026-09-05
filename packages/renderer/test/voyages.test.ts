@@ -82,8 +82,12 @@ describe("byFlagship", () => {
 	const voyage = (id: string, kind: VoyageSummary["kind"]): VoyageSummary => ({
 		captain: null,
 		captainBackend: "scripted",
+		captainEffort: null,
+		captainModel: null,
 		counts: { active: 0, done: 0, pieces: 0, ready: 0 },
 		crewBackend: "scripted",
+		crewEffort: null,
+		crewModel: null,
 		focusedAt: null,
 		id,
 		kind,

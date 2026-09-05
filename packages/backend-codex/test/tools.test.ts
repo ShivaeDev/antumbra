@@ -46,6 +46,8 @@ const openWithTools = (resume: Option.Option<string> = Option.none()) =>
 		const server = yield* makeCodexServer({ spawn: () => fake.process });
 		yield* openThreadSession(server, {
 			cwd: "/moorage",
+			effort: Option.none(),
+			model: Option.none(),
 			resume,
 			sessionId: "session-1",
 			tools: [landReport(calls)],
@@ -140,12 +142,16 @@ const openBesideWaiter = Effect.gen(function* () {
 	const waiter = yield* Effect.flatMap(Effect.scope, Scope.fork);
 	yield* openThreadSession(server, {
 		cwd: "/moorage",
+		effort: Option.none(),
+		model: Option.none(),
 		resume: Option.none(),
 		sessionId: "session-1",
 		tools: [waitForRuling(started, interrupted)],
 	}).pipe(Scope.provide(waiter));
 	yield* openThreadSession(server, {
 		cwd: "/moorage",
+		effort: Option.none(),
+		model: Option.none(),
 		resume: Option.some("thread-2"),
 		sessionId: "session-2",
 		tools: [landReport(calls)],

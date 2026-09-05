@@ -1,0 +1,166 @@
+[
+  {
+    "id": "column.voyage.captainEffort",
+    "label": "Add column captainEffort on voyage",
+    "summary": "Adds column captainEffort on voyage",
+    "operationClass": "additive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "column",
+        "name": "captainEffort",
+        "table": "voyage"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"captainEffort\" is missing",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM pragma_table_info(?) WHERE \"name\" = ?",
+        "params": [
+          "voyage",
+          "captainEffort"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"captainEffort\"",
+        "sql": "ALTER TABLE \"voyage\" ADD COLUMN \"captainEffort\" TEXT"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"captainEffort\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM pragma_table_info(?) WHERE \"name\" = ?",
+        "params": [
+          "voyage",
+          "captainEffort"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.voyage.captainModel",
+    "label": "Add column captainModel on voyage",
+    "summary": "Adds column captainModel on voyage",
+    "operationClass": "additive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "column",
+        "name": "captainModel",
+        "table": "voyage"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"captainModel\" is missing",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM pragma_table_info(?) WHERE \"name\" = ?",
+        "params": [
+          "voyage",
+          "captainModel"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"captainModel\"",
+        "sql": "ALTER TABLE \"voyage\" ADD COLUMN \"captainModel\" TEXT"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"captainModel\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM pragma_table_info(?) WHERE \"name\" = ?",
+        "params": [
+          "voyage",
+          "captainModel"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.voyage.crewEffort",
+    "label": "Add column crewEffort on voyage",
+    "summary": "Adds column crewEffort on voyage",
+    "operationClass": "additive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "column",
+        "name": "crewEffort",
+        "table": "voyage"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"crewEffort\" is missing",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM pragma_table_info(?) WHERE \"name\" = ?",
+        "params": [
+          "voyage",
+          "crewEffort"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"crewEffort\"",
+        "sql": "ALTER TABLE \"voyage\" ADD COLUMN \"crewEffort\" TEXT"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"crewEffort\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM pragma_table_info(?) WHERE \"name\" = ?",
+        "params": [
+          "voyage",
+          "crewEffort"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.voyage.crewModel",
+    "label": "Add column crewModel on voyage",
+    "summary": "Adds column crewModel on voyage",
+    "operationClass": "additive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "column",
+        "name": "crewModel",
+        "table": "voyage"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"crewModel\" is missing",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM pragma_table_info(?) WHERE \"name\" = ?",
+        "params": [
+          "voyage",
+          "crewModel"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"crewModel\"",
+        "sql": "ALTER TABLE \"voyage\" ADD COLUMN \"crewModel\" TEXT"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"crewModel\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM pragma_table_info(?) WHERE \"name\" = ?",
+        "params": [
+          "voyage",
+          "crewModel"
+        ]
+      }
+    ]
+  }
+]

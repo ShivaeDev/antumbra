@@ -3536,20 +3536,6 @@
                   "kind": "scalar"
                 }
               },
-              "captainEffort": {
-                "nullable": true,
-                "type": {
-                  "codecId": "sqlite/text@1",
-                  "kind": "scalar"
-                }
-              },
-              "captainModel": {
-                "nullable": true,
-                "type": {
-                  "codecId": "sqlite/text@1",
-                  "kind": "scalar"
-                }
-              },
               "context": {
                 "nullable": false,
                 "type": {
@@ -3566,20 +3552,6 @@
               },
               "crewBackend": {
                 "nullable": false,
-                "type": {
-                  "codecId": "sqlite/text@1",
-                  "kind": "scalar"
-                }
-              },
-              "crewEffort": {
-                "nullable": true,
-                "type": {
-                  "codecId": "sqlite/text@1",
-                  "kind": "scalar"
-                }
-              },
-              "crewModel": {
-                "nullable": true,
                 "type": {
                   "codecId": "sqlite/text@1",
                   "kind": "scalar"
@@ -3643,12 +3615,6 @@
                 "captainBackend": {
                   "column": "captainBackend"
                 },
-                "captainEffort": {
-                  "column": "captainEffort"
-                },
-                "captainModel": {
-                  "column": "captainModel"
-                },
                 "context": {
                   "column": "context"
                 },
@@ -3657,12 +3623,6 @@
                 },
                 "crewBackend": {
                   "column": "crewBackend"
-                },
-                "crewEffort": {
-                  "column": "crewEffort"
-                },
-                "crewModel": {
-                  "column": "crewModel"
                 },
                 "focusedAt": {
                   "column": "focusedAt"
@@ -6154,16 +6114,6 @@
                   "nativeType": "text",
                   "nullable": false
                 },
-                "captainEffort": {
-                  "codecId": "sqlite/text@1",
-                  "nativeType": "text",
-                  "nullable": true
-                },
-                "captainModel": {
-                  "codecId": "sqlite/text@1",
-                  "nativeType": "text",
-                  "nullable": true
-                },
                 "context": {
                   "codecId": "sqlite/text@1",
                   "nativeType": "text",
@@ -6182,16 +6132,6 @@
                   "codecId": "sqlite/text@1",
                   "nativeType": "text",
                   "nullable": false
-                },
-                "crewEffort": {
-                  "codecId": "sqlite/text@1",
-                  "nativeType": "text",
-                  "nullable": true
-                },
-                "crewModel": {
-                  "codecId": "sqlite/text@1",
-                  "nativeType": "text",
-                  "nullable": true
                 },
                 "focusedAt": {
                   "codecId": "sqlite/datetime@1",
@@ -6309,7 +6249,7 @@
         "id": "__unbound__"
       }
     },
-    "storageHash": "sha256:fe98037a94a603da6f4bf71155f6313e063510996fa006a63b56f6d59fea3352"
+    "storageHash": "sha256:70ede805e551115c3ac012e70a57e8c52b14ace94d31912b4e9dbfed9c2f1486"
   },
   "capabilities": {
     "sql": {

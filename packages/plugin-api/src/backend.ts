@@ -45,6 +45,8 @@ export interface SessionHandle {
 
 export interface OpenSessionOptions {
 	readonly cwd: string;
+	readonly effort: Option.Option<string>;
+	readonly model: Option.Option<string>;
 	readonly resume: Option.Option<string>;
 	readonly sessionId: string;
 	readonly tools: ReadonlyArray<DirectTool>;

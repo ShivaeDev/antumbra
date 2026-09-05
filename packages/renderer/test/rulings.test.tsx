@@ -65,20 +65,20 @@ const shoal: RulingView = {
 		{
 			at: "2026-08-15T09:50:00.000Z",
 			by: "captain",
-			byAgentId: "agent-mate",
+			byAgent: { id: "agent-mate", role: "captain" },
 			note: "nothing plots until this lands",
 			urgency: "blocking",
 		},
 	],
 	recommendation: { choiceId: "choice-2", reasoning: "the chart was surveyed at slack water" },
 	requestedAt: "2026-08-15T09:40:00.000Z",
-	requester: { agentId: "agent-surveyor", kind: "agent" },
+	requester: { agent: { id: "agent-surveyor", role: "surveyor" }, kind: "agent" },
 	rung: {
 		kind: "captain",
 		voyageId: "voyage-1",
 		voyageName: "Chart the reef",
 	},
-	subjects: [{ kind: "tag", label: "surveying" }],
+	subjects: [{ id: "surveying", kind: "tag", label: "surveying" }],
 	urgency: "blocking",
 	voyage: { id: "voyage-1", name: "Chart the reef" },
 };
@@ -96,7 +96,7 @@ const berths: RulingView = {
 	reclassifications: [],
 	recommendation: null,
 	requestedAt: "2026-08-15T08:10:00.000Z",
-	requester: { agentId: "agent-bosun", kind: "agent" },
+	requester: { agent: { id: "agent-bosun", role: "bosun" }, kind: "agent" },
 	rung: { kind: "flagship" },
 	subjects: [],
 	urgency: "eventual",
@@ -151,7 +151,8 @@ it.effect("shows every open ruling in the order the feed sent them", () =>
 		expect(questions).toEqual([shoal.question, berths.question]);
 		expect(mounted.container.textContent).toContain("Holding the asker");
 		expect(mounted.container.textContent).toContain("Binds the fleet");
-		expect(mounted.container.textContent).toContain("agent-surveyor");
+		expect(mounted.container.textContent).toContain("Asked by the surveyor, Chart the reef");
+		expect(mounted.container.textContent).not.toContain("agent-surveyor");
 		expect(mounted.container.textContent).toContain("Tag: surveying");
 		expect(mounted.container.textContent).toContain("two metres shallower");
 		expect(mounted.container.textContent).toContain("Unblocks: the chart (Chart the reef)");
@@ -179,9 +180,9 @@ it.effect("says what rung each open ruling is still waiting on", () =>
 		const mounted = mount();
 		yield* showing(mounted);
 
-		expect(mounted.container.textContent).toContain("waits on the captain of Chart the reef");
-		expect(mounted.container.textContent).toContain("waits on the flagship");
-		expect(mounted.container.textContent).toContain("captain agent-mate set urgency blocking");
+		expect(mounted.container.textContent).toContain("Waits on the captain of Chart the reef. Binds the voyage.");
+		expect(mounted.container.textContent).toContain("Waits on the flagship. Binds the fleet.");
+		expect(mounted.container.textContent).toContain("the captain set urgency blocking");
 		yield* settle(() => mounted.root.unmount());
 	}),
 );
@@ -197,7 +198,7 @@ it.effect("reads a move that touched no axis as a question passed up", () =>
 						{
 							at: "2026-08-15T09:55:00.000Z",
 							by: "captain",
-							byAgentId: "agent-mate",
+							byAgent: { id: "agent-mate", role: "captain" },
 							note: "the other ship charts the same reef",
 						},
 					],
@@ -206,7 +207,7 @@ it.effect("reads a move that touched no axis as a question passed up", () =>
 			],
 		});
 
-		expect(mounted.container.textContent).toContain("captain agent-mate passed it up — the other ship charts the same reef");
+		expect(mounted.container.textContent).toContain("the captain passed it up — the other ship charts the same reef");
 		yield* settle(() => mounted.root.unmount());
 	}),
 );

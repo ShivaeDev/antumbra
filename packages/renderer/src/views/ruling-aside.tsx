@@ -4,6 +4,8 @@ import { askMoreOnRuling, parkRuling } from "#adapters/trpc-rulings.ts";
 import { Button } from "#components/ui/button.tsx";
 import { Input } from "#components/ui/input.tsx";
 import { LabelledField } from "#views/field.tsx";
+import { type RulingAct, RulingActs } from "#views/ruling-acts.tsx";
+import { RulingReclassify } from "#views/ruling-reclassify.tsx";
 
 const Note = ({
 	act,
@@ -41,11 +43,22 @@ const Note = ({
 	);
 };
 
+const asideActs = (onError: (message: string) => void, ruling: RulingView): ReadonlyArray<RulingAct> => [
+	{
+		act: <Note act={askMoreOnRuling} label="What do you need from them?" onError={onError} rulingId={ruling.id} words="Ask more" />,
+		words: "Ask them for more",
+	},
+	...(ruling.parked === null
+		? [
+				{
+					act: <Note act={parkRuling} label="Why not now?" onError={onError} rulingId={ruling.id} words="Not now" />,
+					words: "Leave it for later",
+				},
+			]
+		: []),
+	{ act: <RulingReclassify onError={onError} ruling={ruling} />, words: "Change radius or urgency" },
+];
+
 export const RulingAside = ({ onError, ruling }: { readonly onError: (message: string) => void; readonly ruling: RulingView }) => (
-	<div className="flex min-w-0 flex-wrap items-end gap-2 border-t border-border pt-2">
-		<Note act={askMoreOnRuling} label="Ask them for more" onError={onError} rulingId={ruling.id} words="Ask more" />
-		{ruling.parked === null ? (
-			<Note act={parkRuling} label="Leave it for later because…" onError={onError} rulingId={ruling.id} words="Not now" />
-		) : null}
-	</div>
+	<RulingActs acts={asideActs(onError, ruling)} />
 );

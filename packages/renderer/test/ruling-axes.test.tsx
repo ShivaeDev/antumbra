@@ -42,14 +42,14 @@ const moved: RulingView = {
 		{
 			at: "2026-08-15T09:50:00.000Z",
 			by: "admiral",
-			byAgentId: null,
+			byAgent: null,
 			note: "nothing plots until this lands",
 			urgency: "blocking",
 		},
 	],
 	recommendation: null,
 	requestedAt: "2026-08-15T09:40:00.000Z",
-	requester: { agentId: "agent-surveyor", kind: "agent" },
+	requester: { agent: { id: "agent-surveyor", role: "surveyor" }, kind: "agent" },
 	rung: { kind: "admiral" },
 	subjects: [],
 	urgency: "blocking",
@@ -69,7 +69,7 @@ const unmoved: RulingView = {
 	reclassifications: [],
 	recommendation: null,
 	requestedAt: "2026-08-15T08:10:00.000Z",
-	requester: { agentId: "agent-bosun", kind: "agent" },
+	requester: { agent: { id: "agent-bosun", role: "bosun" }, kind: "agent" },
 	rung: { kind: "flagship" },
 	subjects: [],
 	urgency: "eventual",
@@ -136,6 +136,7 @@ it.effect("reclassifies with only the axis that moved", () =>
 		const mounted = mount();
 		yield* showing(mounted, { rulings: [moved] });
 
+		yield* settle(() => buttonSaying(mounted, "Change radius or urgency")?.click());
 		yield* settle(() => buttonSaying(mounted, "Reclassify")?.click());
 		expect(reclassifyRuling).not.toHaveBeenCalled();
 		yield* choosing(mounted, "Radius", "fleet");

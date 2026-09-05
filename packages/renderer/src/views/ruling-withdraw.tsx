@@ -9,7 +9,7 @@ export const RulingWithdraw = ({ onError, ruling }: { readonly onError: (message
 	const [note, setNote] = useState("");
 	const wordless = note.trim() === "";
 	return (
-		<div className="flex min-w-0 items-end gap-2 border-t border-border pt-2">
+		<div className="flex min-w-0 items-end gap-2">
 			<div className="min-w-0 flex-1">
 				<LabelledField label="Withdraw because…">
 					{(id) => <Input id={id} onChange={(event) => setNote(event.target.value)} value={note} />}

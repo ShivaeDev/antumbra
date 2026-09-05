@@ -43,7 +43,7 @@ export const RulingSupersede = ({
 		return null;
 	}
 	return (
-		<div className="flex min-w-0 items-end gap-2 border-t border-border pt-2">
+		<div className="flex min-w-0 items-end gap-2">
 			<div className="min-w-0 flex-1">
 				<Field label="Supersede with…">
 					<SuccessorPick onPick={setByRulingId} others={others} ruling={ruling} />

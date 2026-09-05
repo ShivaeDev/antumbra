@@ -38,7 +38,12 @@ export const withdrawRuling = (request: WithdrawRequest, onError: OnError): void
 
 export const reclassifyRuling = (request: ReclassifyRequest, onError: OnError): void => fired(client.reclassifyRuling.mutate(request), onError);
 
-export const proclaimRuling = (request: ProclaimRequest, onError: OnError): void => fired(client.proclaimRuling.mutate(request), onError);
+export const proclaimRuling = (request: ProclaimRequest, onDone: () => void, onError: OnError): void => {
+	client.proclaimRuling
+		.mutate(request)
+		.then(() => onDone())
+		.catch((cause: unknown) => onError(toError(cause).message));
+};
 
 export const askMoreOnRuling = (request: AskMoreRequest, onError: OnError): void => fired(client.askMoreOnRuling.mutate(request), onError);
 

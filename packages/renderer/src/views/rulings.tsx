@@ -23,11 +23,14 @@ const byVoyage = (rulings: ReadonlyArray<RulingView>): ReadonlyArray<VoyageGroup
 	return [...groups.values()];
 };
 
-const Header = ({ open }: { readonly open: OpenRulingsView }) => (
-	<header className="flex flex-col gap-1 border-b border-border px-4 py-3">
+const Header = ({ onError, open }: { readonly onError: (message: string) => void; readonly open: OpenRulingsView }) => (
+	<header className="flex shrink-0 flex-col gap-1 border-b border-border px-4 py-3">
 		<div className="flex items-baseline gap-2">
 			<h2 className="text-base">The rulings</h2>
 			<span className="text-2xs text-muted-foreground tabular-nums">{open.rulings.length}</span>
+			<div className="ml-auto">
+				<RulingProclaim onError={onError} />
+			</div>
 		</div>
 		<p className="text-2xs text-muted-foreground">Open questions from the fleet, voyage by voyage, in the order they should be answered.</p>
 	</header>
@@ -89,15 +92,14 @@ export const RulingsPanel = ({ onError }: { readonly onError: (message: string) 
 		);
 	}
 	return (
-		<section className="flex min-w-0 flex-1 flex-col bg-background font-sans text-foreground">
-			<Header open={open} />
+		<section className="flex min-h-0 min-w-0 flex-1 flex-col bg-background font-sans text-foreground">
+			<Header onError={onError} open={open} />
 			{feedError === undefined ? null : (
 				<p className="border-b border-destructive/30 bg-destructive/10 px-4 py-1.5 text-xs text-destructive" role="alert">
 					feed lost: {feedError}
 				</p>
 			)}
 			<div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto">
-				<RulingProclaim onError={onError} />
 				<OpenRulings onError={onError} open={open} />
 				<StandingRulings error={standing.error} onError={onError} standing={standing.value} />
 			</div>

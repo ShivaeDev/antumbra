@@ -1,5 +1,6 @@
 import { expect, it } from "@effect/vitest";
 import { pieceOutcomeTallies } from "#outcome-status.ts";
+import { concludedPieces, pieceStates } from "#piece-state.ts";
 import { change, crewing, finished, piece, stateOf, withChanges, world } from "#test/piece-ladder-fixtures.ts";
 
 it("a piece someone is working reads active whatever it is waiting on", () => {
@@ -52,6 +53,34 @@ it("an abandoned piece stays abandoned while its crew is still working", () => {
 	});
 	expect(stateOf(writtenOff)).toBe("abandoned");
 	expect(stateOf(finished(writtenOff))).toBe("abandoned");
+});
+
+it("one working Agent activates each assigned Piece while abandoned work remains concluded", () => {
+	const built = world({
+		...crewing("alpha", "active"),
+		pieces: [piece("beta"), piece("alpha"), piece("abandoned")],
+		assignments: [
+			{ pieceId: "alpha", agentId: "agent-1" },
+			{ pieceId: "abandoned", agentId: "agent-1" },
+			{ pieceId: "beta", agentId: "agent-1" },
+		],
+		pieceVerdicts: new Map([
+			["alpha", "delivered"],
+			["beta", "delivered"],
+			["abandoned", "abandoned"],
+		]),
+	});
+	expect([...pieceStates(built)]).toEqual([
+		["beta", "active"],
+		["alpha", "active"],
+		["abandoned", "abandoned"],
+	]);
+	expect([...concludedPieces(built)]).toEqual([["abandoned", "abandoned"]]);
+	expect([...concludedPieces(finished(built))]).toEqual([
+		["beta", "done"],
+		["alpha", "done"],
+		["abandoned", "abandoned"],
+	]);
 });
 
 it("a piece worked again still releases what depended on it", () => {

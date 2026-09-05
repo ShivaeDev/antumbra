@@ -1,4 +1,3 @@
-import type { ChangeRow } from "@antumbra/changes";
 import { type ChangeView, changeView, repoNameOf } from "#change-view.ts";
 import { liesAtQuay, type QuayGroup, quayGroup } from "#quay/group.ts";
 import type { QuayRecords } from "#quay/records.ts";
@@ -31,71 +30,49 @@ export interface QuayReading {
 	readonly rows: ReadonlyArray<QuayRow>;
 }
 
-const berthingsOf = (world: QuayRecords, pieceId: string): ReadonlyArray<QuayBerthing> => {
-	const piece = world.pieces.find((row) => row.id === pieceId);
-	if (piece === undefined) {
-		return [];
-	}
-	return world.memberships
-		.filter((membership) => membership.pieceId === pieceId)
-		.flatMap((membership) => {
-			const voyage = world.voyages.find((row) => row.id === membership.voyageId);
-			return voyage === undefined
-				? []
-				: [
-						{
-							pieceId,
-							pieceTitle: piece.title,
-							voyageId: voyage.id,
-							voyageName: voyage.name,
-						},
-					];
-		});
-};
-
-const rowsOfChange = (world: QuayRecords, change: ChangeRow): ReadonlyArray<QuayRow> => {
-	if (!liesAtQuay(world, change)) {
-		return [];
-	}
-	const view = changeView(repoNameOf(world, change.repoId), change);
-	const group = quayGroup(view);
-	const originSessionId =
-		change.originSessionId !== null &&
-		change.openedByAgentId !== null &&
-		world.sessions.some((session) => session.id === change.originSessionId && session.agentId === change.openedByAgentId)
-			? change.originSessionId
-			: null;
-	return world.pieceChanges
-		.filter((link) => link.changeId === change.id)
-		.flatMap((link) =>
-			berthingsOf(world, link.pieceId).map((berthing) => ({
-				...berthing,
-				baseRef: change.baseRef,
-				body: change.body,
-				change: view,
-				group,
-				headRef: change.headRef,
-				headSha: change.headSha,
-				originSessionId,
-			})),
-		);
-};
-
 const byActivity = (left: QuayRow, right: QuayRow): number => right.change.activityAt.getTime() - left.change.activityAt.getTime();
 
-export const quayRows = (world: QuayRecords): ReadonlyArray<QuayRow> =>
-	world.changes.flatMap((change) => rowsOfChange(world, change)).sort(byActivity);
-
-export const quayPieces = (world: QuayRecords): ReadonlyArray<QuayPiece> =>
-	world.pieces.flatMap((piece) =>
-		berthingsOf(world, piece.id).map((berthing) => ({
-			id: berthing.pieceId,
-			title: berthing.pieceTitle,
-			voyageName: berthing.voyageName,
-		})),
+export const quayReading = (world: QuayRecords): QuayReading => {
+	const voyages = new Map(world.voyages.map((voyage) => [voyage.id, voyage]));
+	const memberships = Map.groupBy(world.memberships, (membership) => membership.pieceId);
+	const links = Map.groupBy(world.pieceChanges, (link) => link.changeId);
+	const sessions = new Map(world.sessions.map((session) => [session.id, session]));
+	const berthings = new Map(
+		world.pieces.map((piece) => [
+			piece.id,
+			(memberships.get(piece.id) ?? []).flatMap((membership): ReadonlyArray<QuayBerthing> => {
+				const voyage = voyages.get(membership.voyageId);
+				return voyage === undefined ? [] : [{ pieceId: piece.id, pieceTitle: piece.title, voyageId: voyage.id, voyageName: voyage.name }];
+			}),
+		]),
 	);
-
-export const quayReading = (world: QuayRecords): QuayReading => ({
-	pieces: quayPieces(world),
-	rows: quayRows(world),
-});
+	const rows = world.changes
+		.flatMap((change): ReadonlyArray<QuayRow> => {
+			if (!liesAtQuay(world, change)) return [];
+			const view = changeView(repoNameOf(world, change.repoId), change);
+			const group = quayGroup(view);
+			const originSessionId =
+				change.originSessionId !== null && change.openedByAgentId !== null && sessions.get(change.originSessionId)?.agentId === change.openedByAgentId
+					? change.originSessionId
+					: null;
+			return (links.get(change.id) ?? []).flatMap((link) =>
+				(berthings.get(link.pieceId) ?? []).map((berthing) => ({
+					...berthing,
+					baseRef: change.baseRef,
+					body: change.body,
+					change: view,
+					group,
+					headRef: change.headRef,
+					headSha: change.headSha,
+					originSessionId,
+				})),
+			);
+		})
+		.sort(byActivity);
+	return {
+		pieces: world.pieces.flatMap((piece) =>
+			(berthings.get(piece.id) ?? []).map((berthing) => ({ id: berthing.pieceId, title: berthing.pieceTitle, voyageName: berthing.voyageName })),
+		),
+		rows,
+	};
+};

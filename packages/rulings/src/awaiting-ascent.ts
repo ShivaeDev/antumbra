@@ -12,6 +12,10 @@ export const awaitingAscent = Effect.fn("Rulings.awaitingAscent")(function* () {
 			db.RulingChoice.orderBy((choice) => choice.position.asc()),
 		)
 		.include(
+			"contexts",
+			db.RulingContext.orderBy((row) => row.at.asc()),
+		)
+		.include(
 			"reclassifications",
 			db.RulingReclassification.orderBy((row) => row.at.asc()),
 		)

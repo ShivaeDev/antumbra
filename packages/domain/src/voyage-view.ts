@@ -1,6 +1,7 @@
 import type { Option } from "effect";
 import { type PieceState, pieceStates } from "#piece-state.ts";
 import { type PieceView, pieceView } from "#piece-view.ts";
+import type { VoyageDetailRows } from "#voyage/detail/rows.ts";
 import { lastStirredAt } from "#voyage-activity.ts";
 import { captainOf, type VoyageCaptain } from "#voyage-captain.ts";
 import { crewOf, type VoyageCrewMember } from "#voyage-crew.ts";
@@ -25,7 +26,7 @@ export interface VoyageSummary extends VoyageRow {
 	readonly state: VoyageState;
 }
 
-const memberPieces = (world: VoyageWorld, voyageId: string): ReadonlyArray<PieceRow> => {
+const memberPieces = (world: VoyageDetailRows, voyageId: string): ReadonlyArray<PieceRow> => {
 	const members = new Set(piecesOfVoyage(world, voyageId));
 	return world.pieces.filter((piece) => members.has(piece.id));
 };
@@ -45,7 +46,7 @@ const countStates = (states: ReadonlyArray<PieceState>): PieceCounts => {
 	return counts;
 };
 
-export const voyageView = (world: VoyageWorld, voyage: VoyageRow): VoyageView => {
+export const voyageView = (world: VoyageDetailRows, voyage: VoyageRow): VoyageView => {
 	const states = pieceStates(world);
 	const pieces = memberPieces(world, voyage.id).map((piece) => pieceView(world, states, piece));
 	return {

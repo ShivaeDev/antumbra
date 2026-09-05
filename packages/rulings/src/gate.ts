@@ -1,16 +1,13 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Effect } from "effect";
 import type { RulingGateInput } from "#acts.ts";
-import { RulingAlreadyRuled } from "#errors.ts";
 import { appendGate, requirePiece } from "#gate-rows.ts";
-import { loadRuling, requireRuling } from "#read.ts";
+import { requireOpen } from "#open-row.ts";
+import { loadRuling } from "#read.ts";
 
 export const gate = Effect.fn("Rulings.gate")(function* (input: RulingGateInput) {
 	const feeds = yield* DomainFeeds;
-	const row = yield* requireRuling(input.rulingId);
-	if (row.ruledAt !== null) {
-		return yield* new RulingAlreadyRuled({ rulingId: input.rulingId });
-	}
+	const row = yield* requireOpen(input.rulingId);
 	yield* Effect.forEach(input.pieceIds, requirePiece);
 	yield* Effect.forEach(input.pieceIds, (pieceId) => appendGate(input.rulingId, pieceId));
 	const gated = yield* loadRuling(row);

@@ -16,6 +16,8 @@ export const requested = (input: RulingRequest, nowMillis: number): StoredRuling
 	createdAt: new Date(nowMillis),
 	deliveredAt: null,
 	id: crypto.randomUUID(),
+	parkedAt: null,
+	parkedNote: null,
 	question: input.question,
 	radius: input.radius,
 	recommendationReasoning: input.recommendation?.reasoning ?? null,

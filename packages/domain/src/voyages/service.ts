@@ -7,13 +7,14 @@ import { type Context, Effect } from "effect";
 import { hailCaptain } from "#hail.ts";
 import { KernelReach } from "#kernel-reach.ts";
 import { workPieceNow } from "#piece-work/work.ts";
+import { VoyageDetails } from "#voyage/detail/service.ts";
 import { readVoyageView } from "#voyage-read.ts";
 import { VoyageWorldSource } from "#voyage-world/service.ts";
 import { list } from "#voyages/list.ts";
 
 export const VoyageProcedureService = defineService({
 	id: "@antumbra/domain/VoyageProcedures",
-	requires: [Boards, Database, KernelReach, Pieces, Rulings, VoyageWorldSource],
+	requires: [Boards, Database, KernelReach, Pieces, Rulings, VoyageDetails, VoyageWorldSource],
 	initialize: Effect.void,
 	methods: () => ({
 		hail: hailCaptain,

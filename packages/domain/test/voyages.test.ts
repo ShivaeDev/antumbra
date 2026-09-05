@@ -53,6 +53,9 @@ it.live("a voyage holds the pieces chartered into it, gated by edges", () =>
 			const voyage = yield* openVoyage;
 			const first = yield* charter(voyage.id, "sound the shallows");
 			const second = yield* charter(voyage.id, "draw the chart", [first.id]);
+			const db = yield* Database;
+			yield* db.Piece.where({ id: first.id }).update({ createdAt: new Date(1) });
+			yield* db.Piece.where({ id: second.id }).update({ createdAt: new Date(2) });
 			const view = Option.getOrThrow(yield* voyages.read(voyage.id));
 			expect(view.name).toBe("Chart the reef");
 			expect(view.state).toBe("quiet");

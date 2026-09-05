@@ -1,11 +1,12 @@
 import type { HoldsView, SettingsReading } from "@antumbra/contract";
 import { holds } from "@antumbra/contract/fixtures";
 import { expect, it } from "@effect/vitest";
-import { Effect } from "effect";
+import { Deferred, Effect } from "effect";
 import { act } from "react";
 import { createRoot } from "react-dom/client";
 import { renderToStaticMarkup } from "react-dom/server";
 import { beforeEach, vi } from "vitest";
+import { RendererRequestError } from "#adapters/request-error.ts";
 import { holdWords, mailWords, waitedWords } from "#views/hold-words.ts";
 import { HoldsPanel } from "#views/holds.tsx";
 import { ModeNav } from "#views/mode-nav.tsx";
@@ -58,9 +59,14 @@ const mount = () => {
 	return { container, root: createRoot(container) };
 };
 
-const showing = (mounted: ReturnType<typeof mount>, settings: SettingsReading): Effect.Effect<void> =>
+const showing = (
+	mounted: ReturnType<typeof mount>,
+	settings: SettingsReading,
+	onSettings: (next: SettingsReading) => void = () => undefined,
+	onError: (message: string) => void = () => undefined,
+): Effect.Effect<void> =>
 	Effect.gen(function* () {
-		yield* settle(() => mounted.root.render(<HoldsPanel onError={() => undefined} onSettings={() => undefined} settings={settings} />));
+		yield* settle(() => mounted.root.render(<HoldsPanel onError={onError} onSettings={onSettings} settings={settings} />));
 		yield* settle(() => opened.at(-1)?.onHolds(holds));
 	});
 
@@ -124,15 +130,40 @@ it.effect(
 	}),
 );
 
-it.effect(
-	"asks for the hold the moment a switch is flipped off",
-	Effect.fnUntraced(function* () {
+it.effect.each(["success", "failure"] as const)("reports switch request $0 without changing saved presentation early", (result) =>
+	Effect.gen(function* () {
+		const pending = yield* Deferred.make<SettingsReading, RendererRequestError>();
+		const started = yield* Deferred.make<void>();
+		changeSetting.mockReturnValueOnce(Deferred.succeed(started, undefined).pipe(Effect.andThen(Deferred.await(pending))));
 		const mounted = mount();
 		yield* Effect.addFinalizer(() => settle(() => mounted.root.unmount()));
-		yield* showing(mounted, reading({}));
+		const readings: Array<SettingsReading> = [];
+		const errors: Array<string> = [];
+		yield* showing(
+			mounted,
+			reading({}),
+			(next) => readings.push(next),
+			(message) => errors.push(message),
+		);
 		yield* settle(() => switchNamed(mounted, "Piece dispatch")?.click());
-
-		expect(changeSetting.mock.calls[0]?.[0]).toEqual({ key: "holdPieceDispatch", value: true });
+		yield* Deferred.await(started);
+		expect(changeSetting.mock.calls.at(-1)?.[0]).toEqual({ key: "holdPieceDispatch", value: true });
+		expect(switchNamed(mounted, "Piece dispatch")?.checked).toBe(true);
+		expect(readings).toEqual([]);
+		const updated = reading({ holdPieceDispatch: true });
+		yield* settle(() => {
+			Effect.runSync(
+				result === "success"
+					? Deferred.succeed(pending, updated)
+					: Deferred.fail(pending, new RendererRequestError({ message: "Settings unavailable" })),
+			);
+		});
+		expect(readings).toEqual(result === "success" ? [updated] : []);
+		expect(errors).toEqual(result === "failure" ? ["Settings unavailable"] : []);
+		if (result === "success") {
+			yield* showing(mounted, updated);
+			expect(switchNamed(mounted, "Piece dispatch")?.checked).toBe(false);
+		}
 	}),
 );
 

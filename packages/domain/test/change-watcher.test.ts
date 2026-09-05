@@ -1,5 +1,6 @@
 import { Changes } from "@antumbra/changes";
 import type { ObserveCadenceOptions } from "@antumbra/changes/watch/cadence";
+import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database } from "@antumbra/persistence";
 import { Pieces } from "@antumbra/pieces";
 import { describe, expect, it } from "@effect/vitest";
@@ -108,7 +109,7 @@ describe("watching open changes", () => {
 	it.effect("asks again promptly when somebody rings", () =>
 		watched(SLOW, (scripted) =>
 			Effect.gen(function* () {
-				const domain = yield* AgentDomain;
+				const feeds = yield* DomainFeeds;
 				const { piece, repo } = yield* reefWithPiece;
 				yield* berthed(CREW);
 				const beforeOpen = yield* passes(scripted);
@@ -116,7 +117,7 @@ describe("watching open changes", () => {
 				yield* askedMoreThan(scripted, beforeOpen);
 				const quiet = yield* settled(scripted);
 
-				yield* domain.changes.requestRefresh;
+				yield* feeds.publishChangeRefresh();
 
 				yield* askedMoreThan(scripted, quiet);
 			}),

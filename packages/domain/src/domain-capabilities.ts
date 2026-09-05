@@ -12,6 +12,7 @@ import { SessionEventJournalLive } from "@antumbra/session-event-journal";
 import { Layer } from "effect";
 import { CaptainMembershipLive } from "#captain-membership.ts";
 import { ChangeProceduresLive } from "#change-procedures.ts";
+import { ExecutionSource } from "#execution/service.ts";
 import { KernelReachDeferredLive } from "#kernel-reach.ts";
 import { StandDownLive } from "#stand-down.ts";
 import { VoyageWorldSource } from "#voyage-world/service.ts";
@@ -33,7 +34,7 @@ export const domainCapabilities = (
 		KernelReachDeferredLive,
 	).pipe(Layer.provideMerge(DomainFeedsLive));
 	const changes = ChangesLive(changeHosts, runners).pipe(Layer.provideMerge(foundations));
-	const world = VoyageWorldSource.layer.pipe(Layer.provideMerge(changes));
+	const world = Layer.mergeAll(VoyageWorldSource.layer, ExecutionSource.layer).pipe(Layer.provideMerge(changes));
 	return Layer.mergeAll(CaptainMembershipLive, ChangeProceduresLive(changeHosts), StandDownLive, VoyageProceduresLive).pipe(
 		Layer.provideMerge(world),
 	);

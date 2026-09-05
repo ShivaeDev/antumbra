@@ -10,9 +10,9 @@ import { dispatchCandidate, pendingDispatches } from "#dispatch-candidate-select
 import { readyPieces } from "#dispatch-policy.ts";
 import type { DispatchPort } from "#dispatch-spawn.ts";
 import { dispatchable, makeDispatchState } from "#dispatch-state.ts";
+import { ExecutionSource } from "#execution/service.ts";
 import { runRefreshes } from "#feed-refreshes.ts";
 import { assignedExecution } from "#voyage-execution-selection.ts";
-import { VoyageWorldSource } from "#voyage-world/service.ts";
 
 export interface DispatcherOptions {
 	readonly maxRunning?: number;
@@ -23,7 +23,7 @@ const DEFAULTS = { patienceMillis: 5000 } as const;
 
 const onePass = (port: DispatchPort, maxRunning: number | undefined) =>
 	Effect.gen(function* () {
-		const source = yield* VoyageWorldSource;
+		const source = yield* ExecutionSource;
 		const settings = yield* SettingsSource;
 		const effectiveMaxRunning = maxRunning ?? (yield* settings.current).settings.maxParallelSessions;
 		const now = yield* Clock.currentTimeMillis;

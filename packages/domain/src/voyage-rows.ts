@@ -53,24 +53,27 @@ interface ReportLinkRow {
 	readonly reportId: string;
 }
 
-export interface VoyageWorld {
+export interface ExecutionWorld {
 	readonly agentStatus: ReadonlyMap<string, AgentStatus>;
 	readonly currentSessionByAgent: ReadonlyMap<string, string | null>;
 	readonly artifacts: ReadonlyMap<string, ArtifactRow>;
 	readonly assignments: ReadonlyArray<AssignmentRow>;
 	readonly changes: ReadonlyArray<ChangeRow>;
-	readonly crews: ReadonlyArray<CrewRow>;
 	readonly dismissedChangeIds: ReadonlySet<string>;
 	readonly edges: ReadonlyArray<EdgeRow>;
 	readonly memberships: ReadonlyArray<MembershipRow>;
-	readonly openRulings: ReadonlyArray<Ruling>;
 	readonly pieceChanges: ReadonlyArray<PieceChangeRow>;
 	readonly pieceReports: ReadonlyArray<ReportLinkRow>;
 	readonly pieceVerdicts: ReadonlyMap<string, PieceVerdict>;
 	readonly pieces: ReadonlyArray<PieceRow>;
-	readonly reports: ReadonlyMap<string, ReportRow>;
-	readonly repos: ReadonlyMap<string, RepoRow>;
 	readonly rulingGates: ReadonlyArray<RulingGate>;
 	readonly sessions: ReadonlyArray<AgentSessionRow>;
 	readonly voyages: ReadonlyArray<VoyageRow>;
+}
+
+export interface VoyageWorld extends ExecutionWorld {
+	readonly crews: ReadonlyArray<CrewRow>;
+	readonly openRulings: ReadonlyArray<Ruling>;
+	readonly reports: ReadonlyMap<string, ReportRow>;
+	readonly repos: ReadonlyMap<string, RepoRow>;
 }

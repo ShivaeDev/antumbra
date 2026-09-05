@@ -5,9 +5,9 @@ import { SessionFabric } from "@antumbra/session-fabric";
 import { LiveDelegations } from "@antumbra/sessions";
 import { Clock, Effect } from "effect";
 import { claimedCrew, restingCrew, retirableCrew } from "#crew-rest.ts";
+import { ExecutionSource } from "#execution/service.ts";
 import { type PieceState, pieceStates } from "#piece-state.ts";
 import type { RetireFields } from "#retire.ts";
-import { VoyageWorldSource } from "#voyage-world/service.ts";
 
 const MILLIS_PER_MINUTE = 60_000;
 
@@ -15,7 +15,7 @@ const sweptCrew = Effect.gen(function* () {
 	const fabric = yield* SessionFabric;
 	const live = yield* LiveDelegations;
 	const settings = yield* SettingsSource;
-	const source = yield* VoyageWorldSource;
+	const source = yield* ExecutionSource;
 	const { settings: chosen } = yield* settings.current;
 	if (!chosen.retireSweep) {
 		return [];
@@ -49,14 +49,14 @@ export const compileRetireSweepDemands = (retire: IntentKind<RetireFields>) =>
 		const fabric = yield* SessionFabric;
 		const live = yield* LiveDelegations;
 		const settings = yield* SettingsSource;
-		const source = yield* VoyageWorldSource;
+		const source = yield* ExecutionSource;
 		return [
 			defineIntentDemand({
 				eligible: sweptCrew.pipe(
 					Effect.provideService(LiveDelegations, live),
 					Effect.provideService(SessionFabric, fabric),
 					Effect.provideService(SettingsSource, settings),
-					Effect.provideService(VoyageWorldSource, source),
+					Effect.provideService(ExecutionSource, source),
 				),
 				identify: ({ agentId }) => agentId,
 				kind: retire,

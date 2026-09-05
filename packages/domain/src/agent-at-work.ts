@@ -1,7 +1,7 @@
 import { executionSessionOfAgent } from "#voyage-execution-selection.ts";
-import type { VoyageWorld } from "#voyage-rows.ts";
+import type { ExecutionWorld } from "#voyage-rows.ts";
 
-export const atWork = (world: Pick<VoyageWorld, "agentStatus" | "currentSessionByAgent" | "sessions">, agentId: string): boolean => {
+export const atWork = (world: Pick<ExecutionWorld, "agentStatus" | "currentSessionByAgent" | "sessions">, agentId: string): boolean => {
 	const status = world.agentStatus.get(agentId);
 	if (status === "spawning") {
 		return true;
@@ -13,4 +13,4 @@ export const atWork = (world: Pick<VoyageWorld, "agentStatus" | "currentSessionB
 	return session === undefined || session.executionStatus !== "idle";
 };
 
-export const agentsAtWork = (world: VoyageWorld): number => [...world.agentStatus.keys()].filter((agentId) => atWork(world, agentId)).length;
+export const agentsAtWork = (world: ExecutionWorld): number => [...world.agentStatus.keys()].filter((agentId) => atWork(world, agentId)).length;

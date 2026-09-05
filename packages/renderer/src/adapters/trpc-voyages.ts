@@ -85,6 +85,8 @@ export const rewirePiece = (request: RewireRequest, onError: OnError): void => f
 
 export const workPieceNow = (pieceId: string, onError: OnError): void => fired(client.workPieceNow.mutate({ pieceId }), onError);
 
+export const smoothBoard = (voyageId: string, onError: OnError): void => fired(client.smoothBoard.mutate({ voyageId }), onError);
+
 export const writeBoard = (request: BoardWriteRequest, onDone: () => void, onError: OnError): void => {
 	client.writeBoard
 		.mutate(request)

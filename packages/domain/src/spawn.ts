@@ -10,7 +10,6 @@ import { AgentBirth } from "#agent-birth/service.ts";
 import { charterDelivery } from "#charter.ts";
 import { UnknownBackendTag } from "#errors.ts";
 import { makePrepareMoorage } from "#moorage-plan.ts";
-import { makeIsActivatedBirth } from "#spawn-activated.ts";
 import { type SpawnFields, SpawnPayload } from "#spawn-fields.ts";
 import { spawnRegistration } from "#spawn-registration/service.ts";
 import { makeSpawnSessionStart } from "#spawn-session-start.ts";
@@ -31,7 +30,6 @@ export const spawnKind = (runtime: SpawnRuntime) =>
 		const capacities = yield* BackendCapacities;
 		const delivery = yield* charterDelivery;
 		const prepareMoorage = yield* makePrepareMoorage;
-		const isActivatedBirth = yield* makeIsActivatedBirth;
 		const registration = yield* spawnRegistration;
 		const birth = yield* AgentBirth;
 		const startSession = yield* makeSpawnSessionStart;
@@ -56,7 +54,7 @@ export const spawnKind = (runtime: SpawnRuntime) =>
 			});
 		const spawnAgent = (payload: SpawnFields) =>
 			Effect.gen(function* () {
-				if (yield* isActivatedBirth(payload)) {
+				if (yield* birth.isActivated(payload)) {
 					return;
 				}
 				const backend = runtime.backends.get(payload.backend);

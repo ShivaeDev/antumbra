@@ -1,11 +1,9 @@
 import { RulingSource } from "@antumbra/contract";
-import { persistenceIt } from "@antumbra/persistence/testing";
+import { it } from "@antumbra/persistence/testing";
 import { Rulings } from "@antumbra/rulings";
 import { expect } from "@effect/vitest";
 import { Effect, Fiber, Option } from "effect";
 import { asked, layer, seedFleet, watchUntil } from "#test/ruling-source-harness.ts";
-
-const it = persistenceIt();
 
 const nothingStanding = (view: { readonly rulings: ReadonlyArray<unknown> }) => view.rulings.length === 0;
 

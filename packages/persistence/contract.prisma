@@ -41,6 +41,7 @@ model Agent {
   rulingVerdicts   Ruling[]       @relation("RulingRuledBy")
   rulingMoves      RulingReclassification[]
   rulingSubjects   RulingSubject[]
+  rulingContexts   RulingContext[]
 
   @@index([status])
 }
@@ -392,6 +393,8 @@ model Ruling {
   withdrawnNote           String?
   deliveredAt             DateTime?
   rung                    String?
+  parkedAt                DateTime?
+  parkedNote              String?
   createdAt               DateTime  @default(now())
   requester               Agent?         @relation("RulingRequester", fields: [requesterAgentId], references: [id], onDelete: Restrict, onUpdate: Restrict)
   ruledByAgent            Agent?         @relation("RulingRuledBy", fields: [ruledByAgentId], references: [id], onDelete: Restrict, onUpdate: Restrict)
@@ -402,6 +405,7 @@ model Ruling {
   subjects                RulingSubject[]
   gates                   RulingGate[]
   reclassifications       RulingReclassification[]
+  contexts                RulingContext[]
 
   @@index([ruledAt])
   @@index([supersededById])
@@ -458,6 +462,18 @@ model RulingReclassification {
   at        DateTime
   ruling    Ruling   @relation(fields: [rulingId], references: [id], onDelete: Restrict, onUpdate: Restrict)
   byAgent   Agent?   @relation(fields: [byAgentId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+
+  @@index([rulingId])
+}
+
+model RulingContext {
+  id            String   @id
+  rulingId      String
+  authorAgentId String?
+  body          String
+  at            DateTime
+  ruling        Ruling   @relation(fields: [rulingId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  author        Agent?   @relation(fields: [authorAgentId], references: [id], onDelete: Restrict, onUpdate: Restrict)
 
   @@index([rulingId])
 }

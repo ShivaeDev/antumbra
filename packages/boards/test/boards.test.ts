@@ -1,10 +1,9 @@
 import { BoardScope, Boards, BoardsLive, EntryInput } from "@antumbra/boards";
 import { DomainFeeds, DomainFeedsLive } from "@antumbra/domain-feeds";
-import { persistenceIt } from "@antumbra/persistence/testing";
+import { it } from "@antumbra/persistence/testing";
 import { expect } from "@effect/vitest";
 import { Effect, Layer, Option, PubSub } from "effect";
 
-const it = persistenceIt();
 const layer = BoardsLive.pipe(Layer.provideMerge(DomainFeedsLive));
 
 it.effectDB("writes notes in order and replays source references", function* (db) {

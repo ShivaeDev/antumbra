@@ -13,6 +13,10 @@ export const awaitingDelivery = Effect.fn("Rulings.awaitingDelivery")(function* 
 			db.RulingChoice.orderBy((choice) => choice.position.asc()),
 		)
 		.include(
+			"contexts",
+			db.RulingContext.orderBy((row) => row.at.asc()),
+		)
+		.include(
 			"reclassifications",
 			db.RulingReclassification.orderBy((row) => row.at.asc()),
 		)

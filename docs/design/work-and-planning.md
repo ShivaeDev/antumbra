@@ -14,8 +14,8 @@ keeping permanent crew. Durable responsibility earns a named Agent; interchangea
 
 A Voyage also names what its agents sail with. For each role — captain and crew — it holds the backend, the model, and the effort, so the admiral
 chooses who does the work and how hard it thinks rather than accepting whatever a provider defaults to. Model and effort are the backend's own
-identifiers, stored as given: there is no cross-backend name for a model, and inventing one would only lose what the backend meant. A session reads the
-Voyage's settings when it opens, so changing them reaches the next session rather than the one already sailing.
+identifiers, stored as given: there is no cross-backend name for a model, and inventing one would only lose what the backend meant. A session reads
+the Voyage's settings when it opens, so changing them reaches the next session rather than the one already sailing.
 
 Work is chartered to Agents through explicit assignments. Agents never shop for or select their own work from the pool; reconciliation acts on the
 durable demand and assignments captains and the admiral have established.

@@ -20,6 +20,8 @@ const { openFeeds, standingFeeds, supersedeRuling, withdrawRuling } = vi.hoisted
 });
 
 vi.mock("#adapters/trpc-rulings.ts", () => ({
+	askMoreOnRuling: vi.fn(),
+	parkRuling: vi.fn(),
 	proclaimRuling: vi.fn(),
 	reclassifyRuling: vi.fn(),
 	ruleOn: vi.fn(),

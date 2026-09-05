@@ -16,6 +16,10 @@ export const binding = Effect.fn("Rulings.binding")(function* (subjects: Readonl
 			db.RulingChoice.orderBy((choice) => choice.position.asc()),
 		)
 		.include(
+			"contexts",
+			db.RulingContext.orderBy((row) => row.at.asc()),
+		)
+		.include(
 			"reclassifications",
 			db.RulingReclassification.orderBy((row) => row.at.asc()),
 		)

@@ -1,11 +1,9 @@
-import { persistenceIt } from "@antumbra/persistence/testing";
+import { it } from "@antumbra/persistence/testing";
 import { ChangeHostUnavailable, type OpenChangeRequest } from "@antumbra/plugin-api";
 import { expect } from "@effect/vitest";
 import { Effect, Option } from "effect";
 import { Changes, type OpenChangeInput } from "#index.ts";
 import { CREW, changesLayer, createBerth, createPiece, createRepo, HEAD, makeScriptedHost, observation, REEF_SOURCE } from "#test/change-harness.ts";
-
-const it = persistenceIt();
 
 const seed = Effect.all([createRepo("repo-reef", "reef", REEF_SOURCE), createPiece("piece-reef"), createBerth(CREW)]);
 

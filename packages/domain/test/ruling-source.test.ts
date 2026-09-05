@@ -1,11 +1,9 @@
 import { RulingSource } from "@antumbra/contract";
-import { persistenceIt } from "@antumbra/persistence/testing";
+import { it } from "@antumbra/persistence/testing";
 import { Rulings } from "@antumbra/rulings";
 import { expect } from "@effect/vitest";
 import { Effect, Fiber, Option } from "effect";
 import { anyGated, anyOpen, asked, layer, noneOpen, pieceId, requesterId, seedFleet, voyageId, watchUntil } from "#test/ruling-source-harness.ts";
-
-const it = persistenceIt();
 
 it.effectDB("the open feed carries a request the moment it lands", function* () {
 	yield* Effect.gen(function* () {
@@ -28,9 +26,11 @@ it.effectDB("the open feed carries a request the moment it lands", function* () 
 					{ detail: null, id: expect.any(String), label: "trust the chart" },
 				],
 				context: asked.context,
+				contexts: [],
 				declared: { radius: "voyage", urgency: "blocking" },
 				gatedPieces: [],
 				id: expect.any(String),
+				parked: null,
 				question: asked.question,
 				radius: "voyage",
 				reclassifications: [],
@@ -171,5 +171,42 @@ it.effectDB("a proclamation stands without ever being open", function* () {
 				urgency: "eventual",
 			},
 		]);
+	}).pipe(Effect.provide(layer));
+});
+
+it.effectDB("an open gate names every berthing of its piece", function* (db) {
+	yield* Effect.gen(function* () {
+		yield* seedFleet;
+		yield* db.Voyage.create({
+			id: "other",
+			name: "Other course",
+			context: "other",
+			northStar: "other",
+			captainBackend: "scripted",
+			crewBackend: "scripted",
+		});
+		yield* db.VoyagePiece.create({ pieceId, voyageId: "other" });
+		const rulings = yield* Rulings;
+		const source = yield* RulingSource;
+		const requested = yield* rulings.request(asked);
+		yield* rulings.gate({ pieceIds: [pieceId], rulingId: requested.id });
+		const open = yield* source.open;
+		expect(open.rulings[0]?.gatedPieces).toEqual(
+			expect.arrayContaining([
+				{ pieceId, title: "Plot the course", voyageId, voyageName: "Chart the reef" },
+				{ pieceId, title: "Plot the course", voyageId: "other", voyageName: "Other course" },
+			]),
+		);
+		expect(open.rulings[0]?.gatedPieces).toHaveLength(2);
+	}).pipe(Effect.provide(layer));
+});
+
+it.effectDB("an admiral-rung ruling names its subject voyage without a gate", function* () {
+	yield* Effect.gen(function* () {
+		yield* seedFleet;
+		const rulings = yield* Rulings;
+		const source = yield* RulingSource;
+		yield* rulings.request({ ...asked, rung: "admiral" });
+		expect((yield* source.open).rulings[0]?.voyage).toEqual({ id: voyageId, name: "Chart the reef" });
 	}).pipe(Effect.provide(layer));
 });

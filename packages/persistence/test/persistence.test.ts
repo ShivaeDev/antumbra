@@ -1,18 +1,9 @@
 import { DatabaseSync } from "node:sqlite";
-import { makeDatabaseIt } from "@shivaedev/effect-prisma/testing";
+import { Effect } from "effect";
 import { expect } from "vitest";
 import { Database } from "#database.ts";
 import { ensureInstallMarker } from "#install-marker.ts";
-import { temporaryPersistence } from "#testing.ts";
-
-const temporary = temporaryPersistence();
-
-const it = makeDatabaseIt({
-	database: Database,
-	layer: temporary.layer,
-});
-
-it.afterAll(temporary.remove);
+import { acquireTemporaryPersistence, it } from "#testing.ts";
 
 const journalMode = (path: string): unknown => {
 	const database = new DatabaseSync(path);
@@ -21,11 +12,16 @@ const journalMode = (path: string): unknown => {
 	return mode;
 };
 
-it.effectDB("applies WAL at layer connect", function* (db) {
-	yield* db.AppMeta.where({ key: "journal-probe" }).exists();
-
-	expect(journalMode(temporary.database)).toBe("wal");
-});
+it.effect("applies WAL at layer connect", () =>
+	Effect.gen(function* () {
+		const temporary = yield* acquireTemporaryPersistence;
+		yield* Effect.gen(function* () {
+			const db = yield* Database;
+			yield* db.AppMeta.where({ key: "journal-probe" }).exists();
+			expect(journalMode(temporary.database)).toBe("wal");
+		}).pipe(Effect.provide(temporary.layer));
+	}),
+);
 
 it.effectDB("stamps one install id and keeps returning it", function* () {
 	const first = yield* ensureInstallMarker;

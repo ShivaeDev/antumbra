@@ -104,6 +104,10 @@
       "model": "RulingChoice",
       "namespace": "__unbound__"
     },
+    "rulingContext": {
+      "model": "RulingContext",
+      "namespace": "__unbound__"
+    },
     "rulingGate": {
       "model": "RulingGate",
       "namespace": "__unbound__"
@@ -206,6 +210,21 @@
               }
             },
             "relations": {
+              "rulingContexts": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "authorAgentId"
+                  ]
+                },
+                "to": {
+                  "model": "RulingContext",
+                  "namespace": "__unbound__"
+                }
+              },
               "rulingMoves": {
                 "cardinality": "1:N",
                 "on": {
@@ -2332,6 +2351,20 @@
                   "kind": "scalar"
                 }
               },
+              "parkedAt": {
+                "nullable": true,
+                "type": {
+                  "codecId": "sqlite/datetime@1",
+                  "kind": "scalar"
+                }
+              },
+              "parkedNote": {
+                "nullable": true,
+                "type": {
+                  "codecId": "sqlite/text@1",
+                  "kind": "scalar"
+                }
+              },
               "question": {
                 "nullable": false,
                 "type": {
@@ -2483,6 +2516,21 @@
                   "namespace": "__unbound__"
                 }
               },
+              "contexts": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "rulingId"
+                  ]
+                },
+                "to": {
+                  "model": "RulingContext",
+                  "namespace": "__unbound__"
+                }
+              },
               "gates": {
                 "cardinality": "1:N",
                 "on": {
@@ -2608,6 +2656,12 @@
                 },
                 "id": {
                   "column": "id"
+                },
+                "parkedAt": {
+                  "column": "parkedAt"
+                },
+                "parkedNote": {
+                  "column": "parkedNote"
                 },
                 "question": {
                   "column": "question"
@@ -2755,6 +2809,98 @@
               },
               "namespaceId": "__unbound__",
               "table": "rulingChoice"
+            }
+          },
+          "RulingContext": {
+            "fields": {
+              "at": {
+                "nullable": false,
+                "type": {
+                  "codecId": "sqlite/datetime@1",
+                  "kind": "scalar"
+                }
+              },
+              "authorAgentId": {
+                "nullable": true,
+                "type": {
+                  "codecId": "sqlite/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "body": {
+                "nullable": false,
+                "type": {
+                  "codecId": "sqlite/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "sqlite/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "rulingId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "sqlite/text@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "author": {
+                "cardinality": "N:1",
+                "on": {
+                  "localFields": [
+                    "authorAgentId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Agent",
+                  "namespace": "__unbound__"
+                }
+              },
+              "ruling": {
+                "cardinality": "N:1",
+                "on": {
+                  "localFields": [
+                    "rulingId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Ruling",
+                  "namespace": "__unbound__"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "at": {
+                  "column": "at"
+                },
+                "authorAgentId": {
+                  "column": "authorAgentId"
+                },
+                "body": {
+                  "column": "body"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "rulingId": {
+                  "column": "rulingId"
+                }
+              },
+              "namespaceId": "__unbound__",
+              "table": "rulingContext"
             }
           },
           "RulingGate": {
@@ -5252,6 +5398,16 @@
                   "nativeType": "text",
                   "nullable": false
                 },
+                "parkedAt": {
+                  "codecId": "sqlite/datetime@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "parkedNote": {
+                  "codecId": "sqlite/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
                 "question": {
                   "codecId": "sqlite/text@1",
                   "nativeType": "text",
@@ -5503,6 +5659,90 @@
                   ]
                 }
               ]
+            },
+            "rulingContext": {
+              "columns": {
+                "at": {
+                  "codecId": "sqlite/datetime@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "authorAgentId": {
+                  "codecId": "sqlite/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "body": {
+                  "codecId": "sqlite/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "id": {
+                  "codecId": "sqlite/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "rulingId": {
+                  "codecId": "sqlite/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [
+                {
+                  "constraint": true,
+                  "index": true,
+                  "onDelete": "restrict",
+                  "onUpdate": "restrict",
+                  "source": {
+                    "columns": [
+                      "rulingId"
+                    ],
+                    "namespaceId": "__unbound__",
+                    "tableName": "rulingContext"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "__unbound__",
+                    "tableName": "ruling"
+                  }
+                },
+                {
+                  "constraint": true,
+                  "index": true,
+                  "onDelete": "restrict",
+                  "onUpdate": "restrict",
+                  "source": {
+                    "columns": [
+                      "authorAgentId"
+                    ],
+                    "namespaceId": "__unbound__",
+                    "tableName": "rulingContext"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "__unbound__",
+                    "tableName": "agent"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "rulingId"
+                  ]
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": []
             },
             "rulingGate": {
               "columns": {
@@ -6309,7 +6549,7 @@
         "id": "__unbound__"
       }
     },
-    "storageHash": "sha256:fe98037a94a603da6f4bf71155f6313e063510996fa006a63b56f6d59fea3352"
+    "storageHash": "sha256:20aa9a5ed5d2a4ba6fa91604a2cbea2f36650ebc73518c2b698db48dc0e10004"
   },
   "capabilities": {
     "sql": {

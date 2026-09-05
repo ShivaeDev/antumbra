@@ -2,57 +2,33 @@ import {
 	type ProclaimRequest,
 	type ReclassifyRequest,
 	type RuleRequest,
-	RulingFailure,
 	RulingSource,
-	type StandingRulingsView,
 	type SupersedeRequest,
 	type WithdrawRequest,
 } from "@antumbra/contract";
-import { type Ruling, Rulings } from "@antumbra/rulings";
-import { Effect, Layer, Option } from "effect";
+import { Rulings } from "@antumbra/rulings";
+import { Effect, Layer } from "effect";
+import { RulingDisplay } from "#ruling-display/service.ts";
 import { makeRulingRefreshes } from "#ruling-feed.ts";
 import { proclamationOf, reclassificationOf, verdictOf } from "#ruling-inputs.ts";
-import { rulingSeen, standingRulingSeen } from "#ruling-projection.ts";
 import { proclaimFailure, reclassifyFailure, toRulingFailure, verdictFailure } from "#ruling-refusals.ts";
-import { rulingStaleness } from "#ruling-staleness.ts";
+import { makeRulingReplies } from "#ruling-replies.ts";
 import { supersessionFailure } from "#ruling-supersession.ts";
 import { withdrawalFailure } from "#ruling-withdrawal.ts";
-import { VoyageWorldSource } from "#voyage-world/service.ts";
-
-const standingSeen = (ruling: Ruling, stale: boolean): Effect.Effect<StandingRulingsView["rulings"][number], RulingFailure> =>
-	Option.match(ruling.answer, {
-		onNone: () =>
-			new RulingFailure({
-				message: `ruling ${ruling.id} stands without an answer`,
-			}),
-		onSome: (answer) => Effect.succeed(standingRulingSeen(ruling, answer, stale)),
-	});
 
 export const RulingSourceLive = Layer.effect(RulingSource)(
 	Effect.gen(function* () {
 		const rulings = yield* Rulings;
-		const world = yield* VoyageWorldSource;
+		const display = yield* RulingDisplay;
 		const refreshes = yield* makeRulingRefreshes;
-		const open = Effect.all({ open: rulings.open(), rows: world.read() }).pipe(
-			Effect.map(({ open, rows }) => ({
-				rulings: open.map((ruling) => rulingSeen(ruling, rows)),
-			})),
-			Effect.mapError(toRulingFailure),
-		);
-		const standing = Effect.all({
-			ruled: rulings.standing([]),
-			rows: world.read(),
-		}).pipe(
-			Effect.mapError(toRulingFailure),
-			Effect.flatMap(({ ruled, rows }) => {
-				const stale = rulingStaleness(rows);
-				return Effect.forEach(ruled, (ruling) => standingSeen(ruling, stale(ruling)));
-			}),
-			Effect.map((seen) => ({ rulings: seen })),
-		);
+		const replies = yield* makeRulingReplies;
+		const open = display.open().pipe(Effect.mapError(toRulingFailure));
+		const standing = display.standing().pipe(Effect.mapError(toRulingFailure));
 		return {
+			askMore: replies.askMore,
 			open,
 			openFeed: refreshes(open),
+			park: replies.park,
 			proclaim: (request: ProclaimRequest) =>
 				rulings.proclaim(proclamationOf(request)).pipe(
 					Effect.map((proclaimed) => ({ rulingId: proclaimed.id })),
@@ -82,4 +58,4 @@ export const RulingSourceLive = Layer.effect(RulingSource)(
 				rulings.withdraw({ ...request, by: "admiral" }).pipe(Effect.as({ rulingId: request.rulingId }), Effect.mapError(withdrawalFailure)),
 		};
 	}),
-);
+).pipe(Layer.provide(RulingDisplay.layer));

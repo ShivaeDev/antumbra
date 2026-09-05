@@ -20,6 +20,7 @@ const resetFixture = Effect.gen(function* () {
 		yield* db.RulingGate.where({ rulingId: ruling.id }).deleteAll();
 		yield* db.RulingSubject.where({ rulingId: ruling.id }).deleteAll();
 		yield* db.RulingReclassification.where({ rulingId: ruling.id }).deleteAll();
+		yield* db.RulingContext.where({ rulingId: ruling.id }).deleteAll();
 		yield* db.RulingChoice.where({ rulingId: ruling.id }).deleteAll();
 		yield* db.Ruling.where({ id: ruling.id }).deleteAll();
 	}

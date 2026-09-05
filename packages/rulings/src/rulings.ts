@@ -2,6 +2,7 @@ import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database } from "@antumbra/persistence";
 import { defineService } from "@antumbra/service-definition";
 import { Effect } from "effect";
+import { addContext } from "#add-context.ts";
 import { awaitingAscent } from "#awaiting-ascent.ts";
 import { awaitingDelivery } from "#awaiting-delivery.ts";
 import { binding } from "#binding.ts";
@@ -11,6 +12,7 @@ import { markDelivered } from "#mark-delivered.ts";
 import { open } from "#open.ts";
 import { openGates } from "#open-gates.ts";
 import { openGatesForPieces } from "#open-gates-for-pieces.ts";
+import { park } from "#park.ts";
 import { passUp } from "#pass-up.ts";
 import { proclaim } from "#proclaim.ts";
 import { reclassify } from "#reclassify.ts";
@@ -26,6 +28,7 @@ export const Rulings = defineService({
 	id: "@antumbra/rulings/Rulings",
 	initialize: Effect.void,
 	methods: () => ({
+		addContext,
 		awaitingAscent,
 		awaitingDelivery,
 		binding,
@@ -35,6 +38,7 @@ export const Rulings = defineService({
 		open,
 		openGates,
 		openGatesForPieces,
+		park,
 		passUp,
 		proclaim,
 		reclassify,

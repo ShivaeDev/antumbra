@@ -15,6 +15,7 @@
 		"./voyage": "./src/voyage.ts"
 	},
 	"imports": {
+		"#test/*": "./test/*",
 		"#*": "./src/*"
 	},
 	"scripts": {

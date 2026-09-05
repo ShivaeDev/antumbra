@@ -68,6 +68,7 @@ back. See [`docs/design/agent-recovery.md`](docs/design/agent-recovery.md).
 | `packages/backend-claude` | The Claude agent backend: one adapter for one provider          |
 | `packages/backend-codex`  | The Codex agent backend: one app-server child, threads on it. Delegated threads are read passively off that one connection, admitted to a root by claim on evidence, and refused an attach at the wire; the census runs on a dedicated short-lived audit connection that can only read |
 | `packages/backend-opencode` | The OpenCode agent backend: one `opencode` server child found on the login PATH, sessions on it; not registered when the executable is absent |
+| `packages/backend-pi`     | The Pi backend: the pi coding agent run in-process through its SDK, given Antumbra's tools and skills |
 | `packages/runner-local`   | The local runner: processes and git worktrees on this machine   |
 | `packages/persistence`    | SQLite behind Effect layers; owns all database access           |
 | `packages/trace-sink`     | Dev-only sink: finished spans and log entries into their own trace file |

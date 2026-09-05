@@ -8,6 +8,7 @@
 		"./stylesheet.css": "./src/styles/theme.css"
 	},
 	"imports": {
+		"#test/*": "./test/*",
 		"#*": "./src/*"
 	},
 	"scripts": {

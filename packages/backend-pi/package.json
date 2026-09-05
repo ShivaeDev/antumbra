@@ -1,5 +1,5 @@
 {
-	"name": "@antumbra/settings",
+	"name": "@antumbra/backend-pi",
 	"version": "0.0.0",
 	"private": true,
 	"type": "module",
@@ -23,8 +23,10 @@
 		"vitest": "catalog:"
 	},
 	"dependencies": {
-		"@antumbra/contract": "workspace:*",
-		"@antumbra/persistence": "workspace:*",
+		"@antumbra/plugin-api": "workspace:*",
+		"@antumbra/skills": "workspace:*",
+		"@antumbra/vocabulary": "workspace:*",
+		"@earendil-works/pi-coding-agent": "catalog:",
 		"effect": "catalog:"
 	}
 }

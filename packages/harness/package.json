@@ -5,6 +5,7 @@
 	"type": "module",
 	"imports": {
 		"#script/*": "./script/*",
+		"#test/*": "./test/*",
 		"#*": "./src/*"
 	},
 	"scripts": {

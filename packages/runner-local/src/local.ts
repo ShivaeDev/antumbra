@@ -1,6 +1,6 @@
 import { join } from "node:path";
 import type { AntumbraPlugin, BerthPlan, BerthSite, MooragePlan, ProvisionRequest, ReclaimVerdict, Runner, RunnerError } from "@antumbra/plugin-api";
-import { Effect } from "effect";
+import { Effect, Semaphore } from "effect";
 import { ensureDirectory, pathExists } from "#adapters/fs.ts";
 import { refreshBerth } from "#berth-refresh.ts";
 import { captureChange } from "#change-evidence.ts";
@@ -43,31 +43,40 @@ const provisionInto = (roots: LocalRunnerRoots, plan: MooragePlan) =>
 		{ concurrency: 1, discard: true },
 	);
 
-export const makeLocalRunner = (roots: LocalRunnerRoots): Runner => ({
-	captureChange,
-	plan: (request) => planMoorage(roots, request),
-	provision: Effect.fn("RunnerLocal.provision")(function* (plan: MooragePlan): Effect.fn.Return<void, RunnerError> {
-		yield* ensureDirectory(plan.root);
-		if (plan.berths.length > 0) {
-			yield* ensureDirectory(roots.reposRoot);
-		}
-		yield* provisionInto(roots, plan);
-	}),
-	reclaim: Effect.fn("RunnerLocal.reclaim")(function* (site: BerthSite): Effect.fn.Return<ReclaimVerdict, RunnerError> {
-		const mirror = join(roots.reposRoot, mirrorName(site.slug, site.source));
-		if (!(yield* pathExists(site.path))) {
-			return yield* reclaimMissingWorktree(mirror, site);
-		}
-		const clean = yield* isClean(site.path);
-		if (!clean) {
-			return { _tag: "dirty" as const };
-		}
-		yield* removeWorktree(mirror, site);
-		return { _tag: "reclaimed" as const };
-	}),
-	scrap: (site) => removeWorktree(join(roots.reposRoot, mirrorName(site.slug, site.source)), site),
-	tag: "local",
-});
+export const makeLocalRunner = (roots: LocalRunnerRoots): Runner => {
+	// Moorages share one mirror per source, and git leaves a concurrent clone or fetch of it half written.
+	const mirrors = Semaphore.makeUnsafe(1);
+	return {
+		captureChange,
+		plan: (request) => planMoorage(roots, request),
+		provision: Effect.fn("RunnerLocal.provision")(
+			(plan: MooragePlan): Effect.Effect<void, RunnerError> =>
+				mirrors.withPermit(
+					Effect.gen(function* () {
+						yield* ensureDirectory(plan.root);
+						if (plan.berths.length > 0) {
+							yield* ensureDirectory(roots.reposRoot);
+						}
+						yield* provisionInto(roots, plan);
+					}),
+				),
+		),
+		reclaim: Effect.fn("RunnerLocal.reclaim")(function* (site: BerthSite): Effect.fn.Return<ReclaimVerdict, RunnerError> {
+			const mirror = join(roots.reposRoot, mirrorName(site.slug, site.source));
+			if (!(yield* pathExists(site.path))) {
+				return yield* reclaimMissingWorktree(mirror, site);
+			}
+			const clean = yield* isClean(site.path);
+			if (!clean) {
+				return { _tag: "dirty" as const };
+			}
+			yield* removeWorktree(mirror, site);
+			return { _tag: "reclaimed" as const };
+		}),
+		scrap: (site) => removeWorktree(join(roots.reposRoot, mirrorName(site.slug, site.source)), site),
+		tag: "local",
+	};
+};
 
 export const localRunnerPlugin = (roots: LocalRunnerRoots): AntumbraPlugin => ({
 	activate: (context) => context.registerRunner(makeLocalRunner(roots)),

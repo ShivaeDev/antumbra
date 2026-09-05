@@ -19,9 +19,11 @@ other than the fleet's. Nothing has to be named twice, and nothing is named per 
 
 A setting resolves when an agent spawns: the Voyage's own choice for that role, then the fleet's default for it, then, for what nothing named, the
 first backend the fleet knows and that backend's own model and effort. Model and effort are the backend's own identifiers, stored as given: there is
-no cross-backend name for a model, and inventing one would only lose what the backend meant. A session reads what its role resolves to when it opens,
-so changing a setting reaches the next session rather than the one already sailing. Each backend lists the models it offers and the efforts each of
-them takes, and the admiral may still name a model no list shows, because a model exists before any list knows it.
+no cross-backend name for a model, and inventing one would only lose what the backend meant. They therefore travel with the backend they were named
+for: a role that sails on a backend other than the one its fleet default names inherits neither that default's model nor its effort, and falls to the
+backend's own. A session reads what its role resolves to when it opens, so changing a setting reaches the next session rather than the one already
+sailing. Each backend lists the models it offers and the efforts each of them takes, and the admiral may still name a model no list shows, because a
+model exists before any list knows it.
 
 Work is chartered to Agents through explicit assignments. Agents never shop for or select their own work from the pool; reconciliation acts on the
 durable demand and assignments captains and the admiral have established.

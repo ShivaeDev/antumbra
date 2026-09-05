@@ -10,7 +10,9 @@ import type {
 	VoyageSummary,
 	VoyageView,
 } from "@antumbra/contract";
+import { Effect } from "effect";
 import { client, fired, toError } from "#adapters/bridge.ts";
+import { RendererRequestError } from "#adapters/request-error.ts";
 import type { Unsubscribe } from "#adapters/trpc.ts";
 
 type OnError = (message: string) => void;
@@ -67,12 +69,12 @@ export const setCrewBackend = (request: VoyageBackendRequest, onError: OnError):
 
 export const hailCaptain = (voyageId: string, onError: OnError): void => fired(client.hailCaptain.mutate({ voyageId }), onError);
 
-export const charterPiece = (request: CharterPieceRequest, onDone: () => void, onError: OnError): void => {
-	client.charterPiece
-		.mutate(request)
-		.then(onDone)
-		.catch((cause: unknown) => onError(toError(cause).message));
-};
+export const charterPiece = Effect.fn("Renderer.charterPiece")((request: CharterPieceRequest) =>
+	Effect.tryPromise({
+		try: () => client.charterPiece.mutate(request),
+		catch: (cause) => new RendererRequestError({ message: toError(cause).message }),
+	}),
+);
 
 export const launchPiece = (pieceId: string, onError: OnError): void => fired(client.launchPiece.mutate({ pieceId }), onError);
 

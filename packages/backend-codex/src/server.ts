@@ -1,5 +1,5 @@
 import type { BackendCapacityController, BackendFailure } from "@antumbra/plugin-api";
-import { Deferred, Effect, type Option, PubSub, Queue, RcRef, type Scope } from "effect";
+import { Deferred, Duration, Effect, type Option, PubSub, Queue, RcRef, type Scope } from "effect";
 import type { LineProcess } from "#adapters/process.ts";
 import { connectRpc, type RpcConnection, type RpcNotification, type RpcServerRequest } from "#adapters/rpc.ts";
 import { tellCliVersionOnce } from "#cli-version.ts";
@@ -92,5 +92,24 @@ export const makeCodexServer = (options: CodexServerOptions): Effect.Effect<Code
 		} satisfies CodexServer;
 	});
 
-export const makeCodexServers = (options: CodexServerOptions): Effect.Effect<RcRef.RcRef<CodexServer, BackendFailure>, never, Scope.Scope> =>
-	Effect.flatMap(tellCliVersionOnce, (tell) => RcRef.make({ acquire: Effect.tap(makeCodexServer(options), (live) => tell(live.version)) }));
+type CodexServers = RcRef.RcRef<CodexServer, BackendFailure>;
+
+const IDLE_APP_SERVER_LIFE = Duration.minutes(5);
+
+const forgetWhenExited = (live: CodexServer, pool: Deferred.Deferred<CodexServers>) =>
+	Effect.forkScoped(Effect.andThen(live.exited, Effect.flatMap(Deferred.await(pool), RcRef.invalidate)));
+
+export const makeCodexServers = (options: CodexServerOptions): Effect.Effect<CodexServers, never, Scope.Scope> =>
+	Effect.gen(function* () {
+		const tell = yield* tellCliVersionOnce;
+		const pool = yield* Deferred.make<CodexServers>();
+		const servers = yield* RcRef.make({
+			acquire: makeCodexServer(options).pipe(
+				Effect.tap((live) => tell(live.version)),
+				Effect.tap((live) => forgetWhenExited(live, pool)),
+			),
+			idleTimeToLive: IDLE_APP_SERVER_LIFE,
+		});
+		yield* Deferred.succeed(pool, servers);
+		return servers;
+	});

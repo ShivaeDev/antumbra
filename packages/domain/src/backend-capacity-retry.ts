@@ -1,6 +1,6 @@
 import { Effect } from "effect";
 import { AgentDomain } from "#agent-domain-service.ts";
-import { BackendCapacityReleases } from "#backend-capacity-release.ts";
+import { BackendCapacityReleases } from "#backend-capacity-releases/service.ts";
 import { UnknownBackendTag } from "#errors.ts";
 
 export const makeRetryBackendCapacity = Effect.gen(function* () {

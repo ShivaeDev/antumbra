@@ -10,4 +10,4 @@ export const RulingDeliveryLive = Layer.effectDiscard(
 		const pass = delivery.deliverPending().pipe(Effect.catchCause((cause) => Effect.logError("the ruling delivery pass failed", cause)));
 		yield* Effect.forkScoped(pass.pipe(Effect.andThen(Stream.fromSubscription(notices).pipe(Stream.runForEach(() => pass)))));
 	}),
-).pipe(Layer.provide(RulingDelivery.layer));
+);

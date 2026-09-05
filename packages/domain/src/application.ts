@@ -1,6 +1,7 @@
 import { ChangeWatcher } from "@antumbra/changes/watch/observer";
 import { intentDemandLayer } from "@antumbra/intent-demand";
 import { KernelLive } from "@antumbra/kernel";
+import { RulingDelivery } from "@antumbra/rulings/delivery/service";
 import { SettingsSourceLive } from "@antumbra/settings";
 import { Effect, Layer } from "effect";
 import { BackendCapacityReleases } from "#backend-capacity-releases/service.ts";
@@ -44,5 +45,10 @@ export const applicationLayers = (...providers: Parameters<typeof AgentDomainLiv
 		RulingAscent,
 		RulingDeliveryLive,
 		SessionShutdown.layer,
-	).pipe(Layer.provideMerge(BackendCapacityReleases.layer), Layer.provideMerge(kernel), Layer.provideMerge(SettingsSourceLive));
+	).pipe(
+		Layer.provideMerge(BackendCapacityReleases.layer),
+		Layer.provideMerge(RulingDelivery.layer),
+		Layer.provideMerge(kernel),
+		Layer.provideMerge(SettingsSourceLive),
+	);
 };

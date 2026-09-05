@@ -1,6 +1,6 @@
-import type { Ruling, RulingChoice } from "@antumbra/rulings";
 import { Option } from "effect";
-import { bindsWords } from "#ruling-words.ts";
+import type { Ruling, RulingChoice } from "#model.ts";
+import { bindsWords } from "#radius/words.ts";
 
 const WAITING: Readonly<Record<Ruling["urgency"], string>> = {
 	blocking: "the asker is held until this is ruled",

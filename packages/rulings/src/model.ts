@@ -35,6 +35,17 @@ export interface RulingChoice {
 	readonly position: number;
 }
 
+export interface RulingContext {
+	readonly at: Date;
+	readonly authorAgentId: Option.Option<string>;
+	readonly body: string;
+}
+
+export interface RulingParking {
+	readonly at: Date;
+	readonly note: string;
+}
+
 export interface RulingAnswer {
 	readonly at: Date;
 	readonly by: RulingAuthority;
@@ -47,10 +58,12 @@ export interface Ruling {
 	readonly answer: Option.Option<RulingAnswer>;
 	readonly choices: ReadonlyArray<RulingChoice>;
 	readonly context: string;
+	readonly contexts: ReadonlyArray<RulingContext>;
 	readonly createdAt: Date;
 	readonly declared: RulingAxes;
 	readonly gatedPieceIds: ReadonlyArray<string>;
 	readonly id: string;
+	readonly parked: Option.Option<RulingParking>;
 	readonly question: string;
 	readonly radius: RulingRadius;
 	readonly reclassifications: ReadonlyArray<RulingReclassification>;

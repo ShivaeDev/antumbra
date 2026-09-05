@@ -5,6 +5,8 @@ export interface StoredRuling {
 	readonly createdAt: Date;
 	readonly deliveredAt: Date | null;
 	readonly id: string;
+	readonly parkedAt: Date | null;
+	readonly parkedNote: string | null;
 	readonly question: string;
 	readonly radius: string;
 	readonly requesterAgentId: string | null;
@@ -38,4 +40,10 @@ export interface StoredRulingSubject {
 	readonly repoId: string | null;
 	readonly tag: string | null;
 	readonly voyageId: string | null;
+}
+
+export interface StoredRulingContext {
+	readonly at: Date;
+	readonly authorAgentId: string | null;
+	readonly body: string;
 }

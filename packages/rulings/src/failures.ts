@@ -1,6 +1,7 @@
 import type { PrismaError } from "@antumbra/persistence";
 import type { StoredRulingValueInvalid } from "@antumbra/vocabulary/ruling";
 import type {
+	RulingAlreadyParked,
 	RulingAlreadyRuled,
 	RulingAlreadySuperseded,
 	RulingAlreadyWithdrawn,
@@ -40,3 +41,7 @@ export type RulingSupersessionFailure =
 export type RulingWithdrawalFailure = RulingAlreadySuperseded | RulingAlreadyWithdrawn | RulingNotFound | RulingNotRuled | RulingReadFailure;
 
 export type RulingReclassifyFailure = RulingAlreadyRuled | RulingNotFound | RulingReadFailure | RulingReclassificationEmpty;
+
+export type RulingContextFailure = RulingAlreadyRuled | RulingNotFound | RulingReadFailure;
+
+export type RulingParkFailure = RulingAlreadyParked | RulingAlreadyRuled | RulingNotFound | RulingReadFailure;

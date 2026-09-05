@@ -6,6 +6,8 @@ import { RulingNotFound } from "#errors.ts";
 import type { Ruling, RulingAxes, RulingChoice } from "#model.ts";
 import { storedRequester } from "#requester.ts";
 import { storedAnswer, storedReclassification, storedRung } from "#stored.ts";
+import { contextsOf } from "#stored-contexts.ts";
+import { storedParking } from "#stored-parking.ts";
 import { storedSupersession, storedWithdrawal } from "#stored-retirement.ts";
 import type { StoredRuling } from "#stored-rows.ts";
 import { storedSubject } from "#stored-subjects.ts";
@@ -65,10 +67,12 @@ export const loadRuling = (row: StoredRuling) =>
 			answer: yield* storedAnswer(row),
 			choices: yield* choicesOf(row.id),
 			context: row.context,
+			contexts: yield* contextsOf(row.id),
 			createdAt: row.createdAt,
 			declared,
 			gatedPieceIds: yield* gatedPieceIdsOf(row.id),
 			id: row.id,
+			parked: yield* storedParking(row),
 			question: row.question,
 			reclassifications,
 			requester: yield* storedRequester(row),

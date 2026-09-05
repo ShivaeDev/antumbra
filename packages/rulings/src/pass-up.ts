@@ -3,7 +3,8 @@ import { Database } from "@antumbra/persistence";
 import { Clock, Effect, Option } from "effect";
 import type { RulingPassUpInput } from "#acts.ts";
 import { rungAbove } from "#authority.ts";
-import { RulingAlreadyRuled, RulingNotAtRung } from "#errors.ts";
+import { RulingNotAtRung } from "#errors.ts";
+import { requireOpen } from "#open-row.ts";
 import { loadRuling, requireRuling } from "#read.ts";
 import { storedRung } from "#stored.ts";
 
@@ -11,10 +12,7 @@ export const passUp = Effect.fn("rulings.passUp")(function* (input: RulingPassUp
 	const db = yield* Database;
 	const feeds = yield* DomainFeeds;
 	const now = yield* Clock.currentTimeMillis;
-	const row = yield* requireRuling(input.rulingId);
-	if (row.ruledAt !== null) {
-		return yield* new RulingAlreadyRuled({ rulingId: input.rulingId });
-	}
+	const row = yield* requireOpen(input.rulingId);
 	const rung = yield* storedRung(row);
 	if (!Option.contains(rung, input.by)) {
 		return yield* new RulingNotAtRung({

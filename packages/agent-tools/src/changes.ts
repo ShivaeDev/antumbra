@@ -15,7 +15,7 @@ export const openChangeSpec = defineTool({
 		),
 		body: Schema.String.annotate({
 			description:
-				"The pull request body, written for a busy maintainer who was not in the session. Four sections in this order. `### Why?` is the product story: the problem that started the work, the goal, and why it matters. `### How?` is the bird's-eye view of the approach for a technical reader: what was built, how the parts fit, and where it sits in the product, at the level that lets them trust the diff before opening it. `### Decisions` only when the work made a major trade-off: one bullet each, with the reason. `### Callouts` only when a spot needs a close look: one bullet each, with what to look for. Give Why and How the length the work needs, in short paragraphs, one idea per sentence, active voice. Use a table when items compare or line up, and a Mermaid diagram when the change is a flow or a set of connected parts. Leave out file lists, test plans, risk speculation, diff narration, and pointers to reports, boards, paths or servers the reader cannot open. This format applies in every repository.",
+				"The pull request body: Why, How, and optionally Decisions and Callouts. Before writing it, use the pr-description skill: it says how to write the title and the body.",
 		}),
 		draft: Schema.optionalKey(
 			Schema.Boolean.annotate({
@@ -24,8 +24,7 @@ export const openChangeSpec = defineTool({
 		),
 		repo: Repo,
 		title: Schema.String.annotate({
-			description:
-				"One line that names the change by its effect on the product or on the people who use it, in the present tense, like a release note. Spend every word on the effect; a type prefix such as fix: and a verb such as improve, update or clean up carry no information.",
+			description: "The pull request title, in the shape the pr-description skill gives.",
 		}),
 	}),
 	name: "open_change",

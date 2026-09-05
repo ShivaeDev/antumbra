@@ -9,7 +9,7 @@ it.effect("the claude plugin registers its backend for the CLI it finds", () =>
 	Effect.scoped(
 		Effect.gen(function* () {
 			const host = yield* hostFinding(Option.some("/opt/homebrew/bin/claude"));
-			yield* Effect.orDie(claudePlugin().activate(host.context));
+			yield* Effect.orDie(claudePlugin({ skills: "/tmp/antumbra/skills" }).activate(host.context));
 			const backends = yield* host.backends;
 			const backend = backends.get("claude");
 			expect(backend?.capabilities).toEqual({
@@ -28,7 +28,7 @@ it.effect("the claude plugin registers nothing when no CLI is found", () =>
 	Effect.scoped(
 		Effect.gen(function* () {
 			const host = yield* hostFinding(Option.none());
-			yield* Effect.orDie(claudePlugin().activate(host.context));
+			yield* Effect.orDie(claudePlugin({ skills: "/tmp/antumbra/skills" }).activate(host.context));
 			const backends = yield* host.backends;
 			expect([...backends.keys()]).toEqual([]);
 		}),

@@ -1,7 +1,7 @@
 import { expect, it } from "@effect/vitest";
 import { Effect, Option } from "effect";
 import { makeCodexServer } from "#server.ts";
-import { type FakeAnswer, makeFakeAppServer } from "#test/fake.ts";
+import { askedFor, type FakeAnswer, makeFakeAppServer } from "#test/fake.ts";
 import { sweepSpawnedDescendants } from "#thread-sweep.ts";
 
 const ROOT = "019ff334-ec21-7373-a31e-e8a0db309020";
@@ -45,7 +45,9 @@ const sweep = (scripted: FakeAnswer) =>
 		const fake = makeFakeAppServer({ scripted });
 		const swept = yield* Effect.exit(
 			Effect.scoped(
-				makeCodexServer({ spawn: () => fake.process }).pipe(Effect.flatMap((connection) => sweepSpawnedDescendants(connection.request, ROOT))),
+				makeCodexServer({ skills: "/antumbra/skills", spawn: () => fake.process }).pipe(
+					Effect.flatMap((connection) => sweepSpawnedDescendants(connection.request, ROOT)),
+				),
 			),
 		);
 		return { fake, swept };
@@ -64,8 +66,8 @@ it.live("the sweep follows codex's cursor to the end of the listing", () =>
 			parentThreadId: ROOT,
 		});
 
-		expect(fake.requests.map((request) => request.method)).toEqual(["initialize", "thread/list", "thread/list"]);
-		const asked = fake.requests[1]?.params;
+		expect(fake.requests.map((request) => request.method)).toEqual(["initialize", "skills/extraRoots/set", "thread/list", "thread/list"]);
+		const asked = askedFor(fake, "thread/list");
 		expect(isRecord(asked) ? asked.ancestorThreadId : undefined).toBe(ROOT);
 	}),
 );

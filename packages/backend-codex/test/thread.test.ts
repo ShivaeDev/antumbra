@@ -3,7 +3,7 @@ import type { AgentEvent } from "@antumbra/vocabulary/session-events";
 import { expect, it } from "@effect/vitest";
 import { Deferred, Effect, Exit, Fiber, Option, Queue, Scope, Stream } from "effect";
 import { makeCodexServer } from "#server.ts";
-import { type FakeAppServer, makeFakeAppServer } from "#test/fake.ts";
+import { askedFor, type FakeAppServer, makeFakeAppServer } from "#test/fake.ts";
 import { textInput } from "#test/input.ts";
 import { openThreadSession } from "#thread.ts";
 
@@ -11,7 +11,7 @@ const THREAD = "thread-1";
 
 const openFake = (resume: Option.Option<string> = Option.none(), fake = makeFakeAppServer()) =>
 	Effect.gen(function* () {
-		const server = yield* makeCodexServer({ spawn: () => fake.process });
+		const server = yield* makeCodexServer({ skills: "/antumbra/skills", spawn: () => fake.process });
 		const handle = yield* openThreadSession(server, {
 			cwd: "/moorage",
 			effort: Option.none(),
@@ -45,8 +45,8 @@ const turnCompleted = (fake: FakeAppServer, id: string, status = "completed") =>
 it.live("the handshake runs, a thread opens, and session.opened names it", () =>
 	Effect.gen(function* () {
 		const { events, fake, handle } = yield* openFake();
-		expect(methods(fake)).toEqual(["initialize", "thread/start"]);
-		expect(fake.requests[1]?.params).toEqual({
+		expect(methods(fake)).toEqual(["initialize", "skills/extraRoots/set", "thread/start"]);
+		expect(askedFor(fake, "thread/start")).toEqual({
 			approvalsReviewer: "auto_review",
 			cwd: "/moorage",
 			sandbox: "workspace-write",
@@ -61,8 +61,8 @@ it.live("the handshake runs, a thread opens, and session.opened names it", () =>
 it.live("resume hands the native ref back as threadId", () =>
 	Effect.gen(function* () {
 		const { fake } = yield* openFake(Option.some("thread-old"));
-		expect(fake.requests[1]?.method).toBe("thread/resume");
-		expect(fake.requests[1]?.params).toMatchObject({ threadId: "thread-old" });
+		expect(methods(fake)).not.toContain("thread/start");
+		expect(askedFor(fake, "thread/resume")).toMatchObject({ threadId: "thread-old" });
 	}),
 );
 
@@ -159,7 +159,7 @@ it.live("closing a session fails text held before provider acceptance", () =>
 	Effect.gen(function* () {
 		const scope = yield* Scope.make();
 		const fake = makeFakeAppServer({ hold: "turn/start" });
-		const server = yield* makeCodexServer({ spawn: () => fake.process });
+		const server = yield* makeCodexServer({ skills: "/antumbra/skills", spawn: () => fake.process });
 		const handle = yield* openThreadSession(server, {
 			cwd: "/moorage",
 			effort: Option.none(),
@@ -250,7 +250,7 @@ it.live("a residual approval is declined and lands in the log as raw", () =>
 it.live("turn.completed carries the codex status; the child dying ends the stream", () =>
 	Effect.gen(function* () {
 		const fake = makeFakeAppServer();
-		const server = yield* makeCodexServer({ spawn: () => fake.process });
+		const server = yield* makeCodexServer({ skills: "/antumbra/skills", spawn: () => fake.process });
 		const handle: SessionHandle = yield* openThreadSession(server, {
 			cwd: "/moorage",
 			effort: Option.none(),

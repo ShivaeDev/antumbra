@@ -9,6 +9,8 @@ interface FakeRequest {
 	readonly params: unknown;
 }
 
+export const askedFor = (fake: FakeAppServer, method: string): unknown => fake.requests.find((request) => request.method === method)?.params;
+
 interface HeldRequest extends FakeRequest {
 	readonly accept: () => void;
 }

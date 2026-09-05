@@ -1,4 +1,5 @@
 import type { AntumbraPlugin } from "@antumbra/plugin-api";
+import { skillFolders } from "@antumbra/skills";
 import { Effect, Option, RcRef } from "effect";
 import { serveOpencode } from "#adapters/serve.ts";
 import { opencodeBackend } from "#backend.ts";
@@ -6,6 +7,7 @@ import { makeOpencodeServer } from "#server.ts";
 
 interface OpencodePluginOptions {
 	readonly cwd: string;
+	readonly skills: string;
 }
 
 export const opencodePlugin = (options: OpencodePluginOptions): AntumbraPlugin => ({
@@ -15,8 +17,9 @@ export const opencodePlugin = (options: OpencodePluginOptions): AntumbraPlugin =
 			Option.match({
 				onNone: () => Effect.logWarning("opencode: no executable found on the login PATH; backend not registered"),
 				onSome: (command) =>
-					Effect.flatMap(RcRef.make({ acquire: makeOpencodeServer(serveOpencode({ command, cwd: options.cwd })) }), (server) =>
-						context.registerAgentBackend(opencodeBackend(server)),
+					Effect.flatMap(
+						RcRef.make({ acquire: makeOpencodeServer(serveOpencode({ command, cwd: options.cwd, skills: skillFolders(options.skills) })) }),
+						(server) => context.registerAgentBackend(opencodeBackend(server)),
 					),
 			}),
 		),

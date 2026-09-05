@@ -3,7 +3,7 @@ import { expect, it } from "@effect/vitest";
 import { Deferred, Effect, Exit, Option, Ref, Scope } from "effect";
 import { TestClock } from "effect/testing";
 import { makeCodexServer } from "#server.ts";
-import { makeFakeAppServer } from "#test/fake.ts";
+import { askedFor, makeFakeAppServer } from "#test/fake.ts";
 import { openThreadSession } from "#thread.ts";
 
 const THREAD = "thread-1";
@@ -43,7 +43,7 @@ const openWithTools = (resume: Option.Option<string> = Option.none()) =>
 	Effect.gen(function* () {
 		const calls = yield* Ref.make<ReadonlyArray<unknown>>([]);
 		const fake = makeFakeAppServer();
-		const server = yield* makeCodexServer({ spawn: () => fake.process });
+		const server = yield* makeCodexServer({ skills: "/antumbra/skills", spawn: () => fake.process });
 		yield* openThreadSession(server, {
 			cwd: "/moorage",
 			effort: Option.none(),
@@ -58,7 +58,7 @@ const openWithTools = (resume: Option.Option<string> = Option.none()) =>
 it.live("a thread starts with the tools its session was opened with", () =>
 	Effect.gen(function* () {
 		const { fake } = yield* openWithTools();
-		expect(fake.requests[1]?.params).toMatchObject({
+		expect(askedFor(fake, "thread/start")).toMatchObject({
 			dynamicTools: [
 				{
 					description: "Land a report against your piece.",
@@ -73,8 +73,8 @@ it.live("a thread starts with the tools its session was opened with", () =>
 it.live("resume sends no specifications; codex kept them in the rollout", () =>
 	Effect.gen(function* () {
 		const { fake } = yield* openWithTools(Option.some(THREAD));
-		expect(fake.requests[1]?.method).toBe("thread/resume");
-		expect(fake.requests[1]?.params).not.toHaveProperty("dynamicTools");
+		expect(fake.requests.map((request) => request.method)).not.toContain("thread/start");
+		expect(askedFor(fake, "thread/resume")).not.toHaveProperty("dynamicTools");
 	}),
 );
 
@@ -138,7 +138,7 @@ const openBesideWaiter = Effect.gen(function* () {
 	const interrupted = yield* Deferred.make<void>();
 	const calls = yield* Ref.make<ReadonlyArray<unknown>>([]);
 	const fake = makeFakeAppServer();
-	const server = yield* makeCodexServer({ spawn: () => fake.process });
+	const server = yield* makeCodexServer({ skills: "/antumbra/skills", spawn: () => fake.process });
 	const waiter = yield* Effect.flatMap(Effect.scope, Scope.fork);
 	yield* openThreadSession(server, {
 		cwd: "/moorage",

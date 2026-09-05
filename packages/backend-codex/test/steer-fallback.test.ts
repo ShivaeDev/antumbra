@@ -10,7 +10,7 @@ import { makeTurnDriver } from "#turns.ts";
 const steeringRejected = (detail: string) =>
 	Effect.gen(function* () {
 		const fake = makeFakeAppServer();
-		const server = yield* makeCodexServer({ spawn: () => fake.process });
+		const server = yield* makeCodexServer({ skills: "/antumbra/skills", spawn: () => fake.process });
 		const driver = yield* makeTurnDriver(
 			{
 				...server,
@@ -44,7 +44,7 @@ it.live("a missing thread remains a delivery failure", () =>
 it.live("interrupt accepts an inactive turn or a timeout while draining", () =>
 	Effect.gen(function* () {
 		const fake = makeFakeAppServer();
-		const server = yield* makeCodexServer({ spawn: () => fake.process });
+		const server = yield* makeCodexServer({ skills: "/antumbra/skills", spawn: () => fake.process });
 		for (const detail of ["no active turn", "timeout waiting for turn/interrupt"]) {
 			const requests = turnRequests({ ...server, request: () => Effect.fail(codexFailure(detail)) }, "thread-1", {});
 			expect(yield* Effect.exit(requests.interrupt("turn-1"))).toMatchObject({ _tag: "Success" });

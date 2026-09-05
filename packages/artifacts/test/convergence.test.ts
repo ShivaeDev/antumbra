@@ -7,7 +7,7 @@ import { Database } from "@antumbra/persistence";
 import { persistenceIt } from "@antumbra/persistence/testing";
 import { NodeServices } from "@effect/platform-node";
 import { expect } from "@effect/vitest";
-import { Effect, Layer } from "effect";
+import { type Context, Effect, Layer } from "effect";
 
 const persistence = persistenceIt();
 
@@ -20,7 +20,7 @@ persistence.afterAll(() => rmSync(root, { force: true, recursive: true }));
 
 const layer = ArtifactsLive(published).pipe(Layer.provideMerge(DomainFeedsLive), Layer.provide(NodeServices.layer));
 
-const land = (artifacts: Artifacts["Service"], title: string) =>
+const land = (artifacts: Context.Service.Shape<typeof Artifacts>, title: string) =>
 	Effect.sync(() => writeFileSync(join(moorage, `${title}.md`), `# ${title}\n`)).pipe(
 		Effect.andThen(
 			artifacts.land({

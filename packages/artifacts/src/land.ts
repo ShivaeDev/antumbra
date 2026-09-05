@@ -7,6 +7,7 @@ import { currentArtifactsForPiece } from "#lineage/current.ts";
 import { validateLandingSupersession } from "#lineage/validation.ts";
 import type { ArtifactInput, ArtifactLanding, ArtifactRow } from "#model.ts";
 import { publishArtifact } from "#publication.ts";
+import { ArtifactStorage } from "#storage.ts";
 
 const writeArtifact = Effect.fnUntraced(function* (row: ArtifactRow, input: ArtifactInput) {
 	const db = yield* Database;
@@ -29,7 +30,8 @@ const writeArtifact = Effect.fnUntraced(function* (row: ArtifactRow, input: Arti
 	} satisfies ArtifactLanding;
 });
 
-export const landArtifact = Effect.fn("Artifacts.land")(function* (root: string, input: ArtifactInput) {
+export const landArtifact = Effect.fn("Artifacts.land")(function* (input: ArtifactInput) {
+	const { root } = yield* ArtifactStorage;
 	const crypto = yield* Crypto.Crypto;
 	const feeds = yield* DomainFeeds;
 	const id = yield* crypto.randomUUIDv4.pipe(Effect.mapError(artifactPublicationFailed("identify artifact")));

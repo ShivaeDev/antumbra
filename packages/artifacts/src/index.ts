@@ -1,5 +1,6 @@
-export { Artifacts, ArtifactsLive } from "#artifacts.ts";
+export { Artifacts } from "#artifacts.ts";
 export type { ArtifactFailure } from "#errors.ts";
+export { ArtifactsLive } from "#live.ts";
 export type {
 	ArtifactInput,
 	ArtifactLanding,

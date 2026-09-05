@@ -14,10 +14,12 @@ const compile = (compiler: "tsc" | "tsc6", arguments_: ReadonlyArray<string>) =>
 		encoding: "utf8",
 	});
 
-const invalidArguments = (fixture: string) => [
+const invalidArguments = (fixtures: ReadonlyArray<string>) => [
 	"--ignoreConfig",
 	"--noEmit",
 	"--noErrorTruncation",
+	"--pretty",
+	"false",
 	"--strict",
 	"--skipLibCheck",
 	"--target",
@@ -27,7 +29,7 @@ const invalidArguments = (fixture: string) => [
 	"--moduleResolution",
 	"Bundler",
 	"--allowImportingTsExtensions",
-	`test/fixtures/invalid/${fixture}.ts`,
+	...fixtures.map((fixture) => `test/fixtures/invalid/${fixture}.ts`),
 ];
 
 describe("service definition compiler fixtures", () => {
@@ -70,14 +72,14 @@ describe("service definition compiler fixtures", () => {
 			"scope-requirement": "ScopeCannotBeDeclaredAsAServiceRequirement",
 		} as const;
 
-		for (const [fixture, expectedDiagnostic] of Object.entries(invalidFixtures)) {
-			it(`${compiler} rejects ${fixture}`, () => {
-				const result = compile(compiler, invalidArguments(fixture));
-				const diagnostics = result.stderr || result.stdout;
-				expect(result.status).not.toBe(0);
-				expect(diagnostics).toContain(`invalid/${fixture}.ts`);
-				expect(diagnostics).toContain(expectedDiagnostic);
-			});
-		}
+		it(`${compiler} rejects each invalid service definition`, () => {
+			const result = compile(compiler, invalidArguments(Object.keys(invalidFixtures)));
+			const diagnostics = (result.stderr || result.stdout).split(/(?=^test\/fixtures\/invalid\/)/m);
+			expect(result.status).not.toBe(0);
+			for (const [fixture, expectedDiagnostic] of Object.entries(invalidFixtures)) {
+				const fixtureDiagnostics = diagnostics.filter((message) => message.startsWith(`test/fixtures/invalid/${fixture}.ts(`)).join("\n");
+				expect(fixtureDiagnostics, fixture).toContain(expectedDiagnostic);
+			}
+		});
 	}
 });

@@ -16,6 +16,7 @@ export interface ScriptedBackend {
 	readonly backend: AgentBackend;
 	readonly opened: Effect.Effect<ReadonlyArray<OpenSessionOptions>>;
 	readonly queued: Effect.Effect<{ readonly sessionId: string; readonly input: SessionInput }>;
+	readonly steered: Effect.Effect<{ readonly sessionId: string; readonly input: SessionInput }>;
 	readonly session: (sessionId: string) => Effect.Effect<ScriptedSession | undefined>;
 }
 
@@ -38,6 +39,7 @@ export const makeScriptedBackend = Effect.gen(function* () {
 	const sessions = yield* Ref.make<ReadonlyMap<string, ScriptedSession>>(new Map());
 	const opened = yield* Ref.make<ReadonlyArray<OpenSessionOptions>>([]);
 	const queued = yield* Queue.unbounded<{ readonly sessionId: string; readonly input: SessionInput }>();
+	const steeredInputs = yield* Queue.unbounded<{ readonly sessionId: string; readonly input: SessionInput }>();
 	const backend: AgentBackend = {
 		audit: noSessionAudit,
 		capabilities: {
@@ -72,7 +74,8 @@ export const makeScriptedBackend = Effect.gen(function* () {
 					interrupt: Ref.set(interrupted, true),
 					nativeRef: Effect.succeed(Option.some(`native-${options.sessionId}`)),
 					queue: (input) => recordInput(received, sent, input).pipe(Effect.andThen(Queue.offer(queued, { sessionId: options.sessionId, input }))),
-					steer: (input) => recordInput(received, steered, input),
+					steer: (input) =>
+						recordInput(received, steered, input).pipe(Effect.andThen(Queue.offer(steeredInputs, { sessionId: options.sessionId, input }))),
 				};
 				return handle;
 			}),
@@ -82,6 +85,7 @@ export const makeScriptedBackend = Effect.gen(function* () {
 		backend,
 		opened: Ref.get(opened),
 		queued: Queue.take(queued),
+		steered: Queue.take(steeredInputs),
 		session: (sessionId) => Ref.get(sessions).pipe(Effect.map((map) => map.get(sessionId))),
 	} satisfies ScriptedBackend;
 });

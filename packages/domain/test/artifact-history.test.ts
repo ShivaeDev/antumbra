@@ -1,5 +1,5 @@
 import { expect, it } from "@effect/vitest";
-import { pieceView } from "#piece-view.ts";
+import { pieceViews } from "#piece-view.ts";
 import type { VoyageDetailRows } from "#voyage/detail/rows.ts";
 import type { PieceRow } from "#voyage-rows.ts";
 
@@ -49,14 +49,14 @@ const world: VoyageDetailRows = {
 };
 
 it("shows only the terminal Artifact as current and keeps its predecessor in History", () => {
-	const view = pieceView(world, new Map([[piece.id, "done"]]), piece);
+	const [view] = pieceViews(world, new Map([[piece.id, "done"]]), [piece]);
 
-	expect(view.artifacts.map((row) => row.id)).toEqual(["artifact-new"]);
-	expect(view.artifactHistory).toMatchObject([
+	expect(view?.artifacts.map((row) => row.id)).toEqual(["artifact-new"]);
+	expect(view?.artifactHistory).toMatchObject([
 		{
 			id: "artifact-old",
 			successorArtifactId: "artifact-new",
 		},
 	]);
-	expect(view.state).toBe("done");
+	expect(view?.state).toBe("done");
 });

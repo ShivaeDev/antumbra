@@ -5,7 +5,7 @@ import { useRequestForm } from "#adapters/form.ts";
 import { setRoleSettings } from "#adapters/trpc.ts";
 import { RequestForm } from "#forms/view.tsx";
 import { useBackendModels } from "#hooks/backend-models.ts";
-import { changedRoles, chosenOf, draftOf, fleetPlaceholder, roleDefault, roleDraftSchema, roleLabel, signatureOf } from "#views/role-settings.ts";
+import { changedRoles, chosenOf, draftOf, fleetPlaceholder, roleDefault, roleDraftSchema, roleLabel } from "#views/role-settings.ts";
 import { RoleFields, RoleGrid } from "#views/role-settings-fields.tsx";
 
 const defaultsSchema = Schema.Struct({ captain: roleDraftSchema, crew: roleDraftSchema, flagship: roleDraftSchema, smoother: roleDraftSchema });
@@ -76,7 +76,7 @@ export const RoleDefaults = ({
 		<section className="flex flex-col gap-3 rounded-md border border-border p-4">
 			<h3 className="text-sm font-medium">Fleet defaults</h3>
 			<p className="text-xs text-muted-foreground">Each role runs on these unless a voyage sets its own; the flagship and smoother are fleet-wide.</p>
-			<DefaultsForm backends={backends} key={signatureOf(AGENT_ROLES, settingsOf)} settingsOf={settingsOf} />
+			<DefaultsForm backends={backends} settingsOf={settingsOf} />
 		</section>
 	);
 };

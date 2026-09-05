@@ -35,7 +35,6 @@ export const VoyagePanel = ({
 					<div className="flex min-w-0 flex-col gap-6">
 						<BoardPanel
 							entries={voyage.board}
-							onError={onError}
 							onSmooth={() => smoothBoard(voyage.id, onError)}
 							scope={{ kind: "voyage", voyageId: voyage.id }}
 							smoothing={voyage.smoothing}

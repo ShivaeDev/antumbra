@@ -1,4 +1,5 @@
 export { ChangeWatcher } from "@antumbra/changes/watch/observer";
+export { SessionRestart } from "@antumbra/sessions/restart/service";
 export { SettingsSourceLive } from "@antumbra/settings";
 export { applicationLayers } from "#application.ts";
 export { BackendCapacityReleases } from "#backend-capacity-releases/service.ts";
@@ -9,7 +10,7 @@ export { FlagshipLive } from "#flagship.ts";
 export { HoldSourceLive } from "#hold-source.ts";
 export { IntentFeedLive } from "#intent-feed.ts";
 export { installKernelReach } from "#kernel-reach/bind.ts";
-export { abandonRestartIntent, honorRestartIntent, recordRestartIntent } from "#restart.ts";
+export { honorRestartIntent } from "#restart.ts";
 export { RulingAscent } from "#ruling-ascent/observer.ts";
 export { RulingDeliveryLive } from "#ruling-delivery.ts";
 export { RulingSourceLive } from "#ruling-source.ts";

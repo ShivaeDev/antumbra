@@ -53,7 +53,6 @@ const fleetWith = (presence: Presence, intents: ReadonlyArray<Intent> = [], canA
 
 const box = (fleet: Fleet | undefined) => <SessionMessage fleet={fleet} onError={() => undefined} sessionId="session-1" />;
 
-// React controlled inputs observe the prototype value setter.
 const nativeValue = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, "value")?.set;
 
 const write = (container: HTMLElement, text: string): void => {
@@ -72,7 +71,14 @@ const pressEnter = (container: HTMLElement): void => {
 const mounted = (fleet: Fleet | undefined) =>
 	Effect.gen(function* () {
 		const container = document.createElement("div");
+		document.body.append(container);
 		const root = createRoot(container);
+		yield* Effect.addFinalizer(() =>
+			step(() => {
+				root.unmount();
+				container.remove();
+			}),
+		);
 		yield* Effect.promise(() =>
 			act(() => {
 				root.render(box(fleet));
@@ -151,9 +157,7 @@ it.effect("keeps the box open for every state but the one that has ended", () =>
 
 it.effect("sends what was typed by key or by button and clears the box", () =>
 	Effect.gen(function* () {
-		sendSessionInput.mockImplementation((_request: unknown, onDone: (receipt: { status: "accepted" }) => void, _onError: (message: string) => void) =>
-			onDone({ status: "accepted" }),
-		);
+		sendSessionInput.mockReturnValue(Effect.succeed({ status: "accepted" }));
 		const { container, root } = yield* mounted(fleetWith("working"));
 		yield* step(() => write(container, "come about"));
 		yield* step(() => pressEnter(container));
@@ -163,8 +167,6 @@ it.effect("sends what was typed by key or by button and clears the box", () =>
 				parts: [{ text: "come about", type: "text" }],
 				sessionId: "session-1",
 			}),
-			expect.any(Function),
-			expect.any(Function),
 		);
 		expect(container.querySelector("textarea")?.value).toBe("");
 		yield* step(() => write(container, "mind the reef"));
@@ -178,8 +180,6 @@ it.effect("sends what was typed by key or by button and clears the box", () =>
 				parts: [{ text: "mind the reef", type: "text" }],
 				sessionId: "session-1",
 			}),
-			expect.any(Function),
-			expect.any(Function),
 		);
 		yield* step(() => root.unmount());
 	}),

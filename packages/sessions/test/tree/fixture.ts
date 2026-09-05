@@ -5,9 +5,14 @@ import { SessionEventJournalLive } from "@antumbra/session-event-journal";
 import { SessionFabricLive } from "@antumbra/session-fabric";
 import type { AgentEvent } from "@antumbra/vocabulary/session-events";
 import { Effect, Layer, Ref } from "effect";
+import { SessionTreeAudits } from "#tree/audit/service.ts";
+import { SessionTreeLedger } from "#tree/ledger/service.ts";
+import { SessionTreeLifecycle } from "#tree/lifecycle/service.ts";
 import { LiveDelegationsLive } from "#tree/live.ts";
+import { SessionTreeRows } from "#tree/rows/service.ts";
 
-export const treeLayer = SessionEventJournalLive.pipe(
+export const treeLayer = Layer.mergeAll(SessionTreeAudits.layer, SessionTreeLifecycle.layer).pipe(
+	Layer.provideMerge(Layer.mergeAll(SessionTreeLedger.layer, SessionTreeRows.layer, SessionEventJournalLive)),
 	Layer.provideMerge(Layer.mergeAll(LiveDelegationsLive, SessionFabricLive)),
 	Layer.provideMerge(DomainFeedsLive),
 );

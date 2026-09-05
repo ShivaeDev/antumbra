@@ -1,9 +1,9 @@
 import { Database } from "@antumbra/persistence";
 import { expect } from "@effect/vitest";
 import { Effect, Option } from "effect";
-import { AgentDomain } from "#domain.ts";
 import { type ScriptedBackend, type ScriptedSession, sessionFor } from "#test/harness.ts";
 import { terminalIntent } from "#test/voyage-fixtures.ts";
+import { VoyageProcedureService } from "#voyages/service.ts";
 
 export const FLAGSHIP_ID = "voyage-flagship";
 
@@ -21,8 +21,8 @@ export const openFlagship = Effect.gen(function* () {
 
 export const hailedCaptain = (scripted: ScriptedBackend, voyageId: string) =>
 	Effect.gen(function* () {
-		const domain = yield* AgentDomain;
-		const hailed = yield* domain.voyages.hail(voyageId);
+		const procedures = yield* VoyageProcedureService;
+		const hailed = yield* procedures.hail(voyageId);
 		expect(yield* terminalIntent(hailed.intentId)).toBe("succeeded");
 		return yield* sessionFor(scripted, hailed.agentId);
 	});

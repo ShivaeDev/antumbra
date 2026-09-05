@@ -1,9 +1,10 @@
 import type { Fleet } from "@antumbra/contract";
 import { expect, it } from "@effect/vitest";
-import { Effect } from "effect";
+import { Deferred, Effect } from "effect";
 import { act } from "react";
 import { createRoot } from "react-dom/client";
 import { beforeEach, vi } from "vitest";
+import { RendererRequestError } from "#adapters/request-error.ts";
 import { discardMissingSessionDrafts } from "#session-drafts/store.ts";
 import { SessionMessage } from "#views/session-message.tsx";
 
@@ -59,7 +60,14 @@ const step = (change: () => void) =>
 const mounted = (sessionId: string) =>
 	Effect.gen(function* () {
 		const container = document.createElement("div");
+		document.body.append(container);
 		const root = createRoot(container);
+		yield* Effect.addFinalizer(() =>
+			step(() => {
+				root.unmount();
+				container.remove();
+			}),
+		);
 		yield* step(() => root.render(<SessionMessage fleet={fleet(sessionId)} onError={() => undefined} sessionId={sessionId} />));
 		return { container, root };
 	});
@@ -103,18 +111,16 @@ it.effect("keeps navigation between session drafts isolated", () =>
 
 it.effect("failure preserves a draft and success clears only that session", () =>
 	Effect.gen(function* () {
-		let done: (receipt: { status: "accepted" }) => void = () => undefined;
-		let fail: (message: string) => void = () => undefined;
-		sendSessionInput.mockImplementation(
-			(_request: unknown, onDone: (receipt: { status: "accepted" }) => void, onError: (message: string) => void) => {
-				done = onDone;
-				fail = onError;
-			},
-		);
+		const failed = yield* Deferred.make<{ readonly status: "accepted" }, RendererRequestError>();
+		const accepted = yield* Deferred.make<{ readonly status: "accepted" }>();
+		sendSessionInput.mockReturnValueOnce(Deferred.await(failed));
+		sendSessionInput.mockReturnValueOnce(Deferred.await(accepted));
 		const first = yield* mounted("session-one");
 		yield* step(() => rewrite(first.container, "hold session one"));
 		yield* step(() => send(first.container));
-		yield* step(() => fail("delivery refused"));
+		yield* step(() => {
+			Effect.runSync(Deferred.fail(failed, new RendererRequestError({ message: "delivery refused" })));
+		});
 		expect(first.container.querySelector("textarea")?.value).toBe("hold session one");
 		yield* step(() => first.root.unmount());
 
@@ -124,7 +130,9 @@ it.effect("failure preserves a draft and success clears only that session", () =
 
 		const retry = yield* mounted("session-one");
 		yield* step(() => send(retry.container));
-		yield* step(() => done({ status: "accepted" }));
+		yield* step(() => {
+			Effect.runSync(Deferred.succeed(accepted, { status: "accepted" as const }));
+		});
 		expect(retry.container.querySelector("textarea")?.value).toBe("");
 		yield* step(() => retry.root.unmount());
 		const untouched = yield* mounted("session-two");
@@ -135,15 +143,17 @@ it.effect("failure preserves a draft and success clears only that session", () =
 
 it.effect("a successful send does not erase words typed while it settles", () =>
 	Effect.gen(function* () {
-		let done: (receipt: { status: "accepted" }) => void = () => undefined;
-		sendSessionInput.mockImplementation((_request: unknown, onDone: (receipt: { status: "accepted" }) => void) => {
-			done = onDone;
-		});
+		const accepted = yield* Deferred.make<{ readonly status: "accepted" }>();
+		const started = yield* Deferred.make<void>();
+		sendSessionInput.mockReturnValue(Deferred.succeed(started, undefined).pipe(Effect.andThen(Deferred.await(accepted))));
 		const composer = yield* mounted("session-race");
 		yield* step(() => rewrite(composer.container, "sent words"));
 		yield* step(() => send(composer.container));
+		yield* Deferred.await(started);
 		yield* step(() => rewrite(composer.container, "next words"));
-		yield* step(() => done({ status: "accepted" }));
+		yield* step(() => {
+			Effect.runSync(Deferred.succeed(accepted, { status: "accepted" as const }));
+		});
 		expect(composer.container.querySelector("textarea")?.value).toBe("next words");
 		yield* step(() => composer.root.unmount());
 
@@ -155,18 +165,20 @@ it.effect("a successful send does not erase words typed while it settles", () =>
 
 it.effect("a send success clears a composer remounted while it settled", () =>
 	Effect.gen(function* () {
-		let done: (receipt: { status: "accepted" }) => void = () => undefined;
-		sendSessionInput.mockImplementation((_request: unknown, onDone: (receipt: { status: "accepted" }) => void) => {
-			done = onDone;
-		});
+		const accepted = yield* Deferred.make<{ readonly status: "accepted" }>();
+		const started = yield* Deferred.make<void>();
+		sendSessionInput.mockReturnValue(Deferred.succeed(started, undefined).pipe(Effect.andThen(Deferred.await(accepted))));
 		const first = yield* mounted("session-remounted-send");
 		yield* step(() => rewrite(first.container, "words in passage"));
 		yield* step(() => send(first.container));
+		yield* Deferred.await(started);
 		yield* step(() => first.root.unmount());
 
 		const returned = yield* mounted("session-remounted-send");
 		expect(returned.container.querySelector("textarea")?.value).toBe("words in passage");
-		yield* step(() => done({ status: "accepted" }));
+		yield* step(() => {
+			Effect.runSync(Deferred.succeed(accepted, { status: "accepted" as const }));
+		});
 		expect(returned.container.querySelector("textarea")?.value).toBe("");
 		yield* step(() => returned.root.unmount());
 	}),

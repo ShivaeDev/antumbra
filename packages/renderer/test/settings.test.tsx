@@ -19,7 +19,7 @@ it("says nothing about a setting until the reading arrives", () => {
 });
 
 it("draws a flag as a checkbox with its value status", () => {
-	const html = renderToStaticMarkup(<SettingRow onChange={() => undefined} overridden={false} settingKey="retireSweep" value={true} />);
+	const html = renderToStaticMarkup(<SettingRow onSettings={() => undefined} overridden={false} settingKey="retireSweep" value={true} />);
 	expect(html).toContain("Retire rested agents");
 	expect(html).toContain("Retire agents that have rested longer than the threshold.");
 	expect(html).toContain('type="checkbox"');
@@ -27,7 +27,7 @@ it("draws a flag as a checkbox with its value status", () => {
 });
 
 it("draws the idle siesta wait as a bounded number field", () => {
-	const html = renderToStaticMarkup(<SettingRow onChange={() => undefined} overridden={true} settingKey="idleSiestaMinutes" value={90} />);
+	const html = renderToStaticMarkup(<SettingRow onSettings={() => undefined} overridden={true} settingKey="idleSiestaMinutes" value={90} />);
 	expect(html).toContain('type="number"');
 	expect(html).toContain('min="1"');
 	expect(html).toContain('max="1440"');
@@ -37,7 +37,7 @@ it("draws the idle siesta wait as a bounded number field", () => {
 });
 
 it("offers no save for a count still showing the value it was given", () => {
-	const html = renderToStaticMarkup(<SettingRow onChange={() => undefined} overridden={false} settingKey="maxParallelSessions" value={4} />);
+	const html = renderToStaticMarkup(<SettingRow onSettings={() => undefined} overridden={false} settingKey="maxParallelSessions" value={4} />);
 	expect(html).toContain("disabled");
 });
 
@@ -45,6 +45,7 @@ it.effect(
 	"keeps a count draft until its persisted value changes",
 	Effect.fnUntraced(function* () {
 		const container = document.createElement("div");
+		document.body.append(container);
 		const root = createRoot(container);
 		const settle = (change: () => void) =>
 			Effect.promise(() =>
@@ -54,8 +55,13 @@ it.effect(
 				}),
 			);
 		const render = (value: number) =>
-			settle(() => root.render(<SettingRow onChange={() => undefined} overridden={true} settingKey="maxParallelSessions" value={value} />));
-		yield* Effect.addFinalizer(() => settle(() => root.unmount()));
+			settle(() => root.render(<SettingRow onSettings={() => undefined} overridden={true} settingKey="maxParallelSessions" value={value} />));
+		yield* Effect.addFinalizer(() =>
+			settle(() => {
+				root.unmount();
+				container.remove();
+			}),
+		);
 		yield* render(4);
 		const input = container.querySelector("input");
 		expect(input?.value).toBe("4");

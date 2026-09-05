@@ -15,15 +15,6 @@ export const changeStatus = (row: ChangeRow): OutcomeStatus => {
 	return row.stage === "withdrawn" ? "withdrawn" : "pending";
 };
 
-export const changesOfPiece = (world: ChangeStatusWorld, pieceId: string): ReadonlyArray<ChangeRow> => {
-	const linked = new Set(world.pieceChanges.filter((link) => link.pieceId === pieceId).map((link) => link.changeId));
-	return world.changes.filter((change) => linked.has(change.id));
-};
-
-export const unresolvedChangesOfPiece = (world: ChangeStatusWorld, pieceId: string): ReadonlyArray<ChangeRow> => {
-	return unresolvedChanges(changesOfPiece(world, pieceId), world.dismissedChangeIds);
-};
-
 const unresolvedChanges = (rows: ReadonlyArray<ChangeRow>, dismissedIds: ReadonlySet<string>): ReadonlyArray<ChangeRow> => {
 	const changes = rows.filter((change) => !dismissedIds.has(change.id));
 	const replacementUnderWay = changes.some((change) => changeStatus(change) === "pending");
@@ -33,24 +24,22 @@ const unresolvedChanges = (rows: ReadonlyArray<ChangeRow>, dismissedIds: Readonl
 	});
 };
 
-const linkedChangesByPiece = (world: ChangeStatusWorld): ReadonlyMap<string, ReadonlyArray<ChangeRow>> => {
-	const changesById = new Map(world.changes.map((change) => [change.id, change]));
-	const linksByPiece = Map.groupBy(world.pieceChanges, (link) => link.pieceId);
-	return new Map(
-		[...linksByPiece].map(([pieceId, links]) => {
-			const changeIds = new Set(links.map((link) => link.changeId));
-			const changes = [...changeIds].flatMap((id) => {
-				const change = changesById.get(id);
-				return change === undefined ? [] : [change];
-			});
-			return [pieceId, changes];
-		}),
-	);
+export const changesByPiece = (world: Pick<ChangeStatusWorld, "changes" | "pieceChanges">): ReadonlyMap<string, ReadonlyArray<ChangeRow>> => {
+	const links = Map.groupBy(world.pieceChanges, (link) => link.changeId);
+	const grouped = new Map<string, Array<ChangeRow>>();
+	for (const change of world.changes) {
+		for (const pieceId of new Set((links.get(change.id) ?? []).map((link) => link.pieceId))) {
+			const rows = grouped.get(pieceId);
+			if (rows === undefined) grouped.set(pieceId, [change]);
+			else rows.push(change);
+		}
+	}
+	return grouped;
 };
 
 export const changeOutcomeTallies = (world: ChangeStatusWorld): ReadonlyMap<string, { readonly landed: number; readonly pending: number }> =>
 	new Map(
-		[...linkedChangesByPiece(world)].map(([pieceId, changes]) => [
+		[...changesByPiece(world)].map(([pieceId, changes]) => [
 			pieceId,
 			{
 				landed: changes.filter((change) => changeStatus(change) === "landed").length,
@@ -60,6 +49,4 @@ export const changeOutcomeTallies = (world: ChangeStatusWorld): ReadonlyMap<stri
 	);
 
 export const unresolvedChangeIds = (world: ChangeStatusWorld): ReadonlySet<string> =>
-	new Set(
-		[...linkedChangesByPiece(world).values()].flatMap((changes) => unresolvedChanges(changes, world.dismissedChangeIds).map((change) => change.id)),
-	);
+	new Set([...changesByPiece(world).values()].flatMap((changes) => unresolvedChanges(changes, world.dismissedChangeIds).map((change) => change.id)));

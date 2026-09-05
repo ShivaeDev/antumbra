@@ -1,7 +1,7 @@
 import { BoardScope, Boards } from "@antumbra/boards";
 import { SightFailure, type VoyageSummary, type VoyageView } from "@antumbra/contract";
 import { Effect, Option } from "effect";
-import { type CrewRuntime, restingCrew } from "#crew-rest.ts";
+import { type CrewRuntime, crewRest } from "#crew-rest.ts";
 import { toFailure } from "#sight-failure.ts";
 import { makeSmoothingState } from "#smoothing/state.ts";
 import { VoyageDetails } from "#voyage/detail/service.ts";
@@ -44,7 +44,7 @@ export const makeVoyageReads = (runtime: Effect.Effect<CrewRuntime>) =>
 			}).pipe(Effect.map((sighting) => voyageSeen(view, { ...sighting, resting })));
 		const readVoyage = Effect.fn("VoyageReads.voyage")(function* (voyageId: string) {
 			const { rows, voyage } = yield* detailOf(voyageId);
-			const resting = restingCrew(rows, yield* runtime);
+			const { resting } = crewRest(rows, yield* runtime);
 			return yield* seenVoyage(voyageId, voyageView(rows, voyage), resting);
 		});
 		const summaryOf = Effect.fn("VoyageReads.summaryOf")(function* (voyageId: string) {

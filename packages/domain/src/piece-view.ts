@@ -1,8 +1,8 @@
 import type { ArtifactRow } from "@antumbra/artifacts";
-import { changesOfPiece } from "@antumbra/changes";
+import { changesByPiece } from "@antumbra/changes";
 import type { ReportRow } from "@antumbra/reports";
 import { type ChangeView, changeView, repoNameOf } from "#change-view.ts";
-import { awaitingRulingsOf, dependenciesOf, type PieceState } from "#piece-state.ts";
+import type { PieceState } from "#piece-state.ts";
 import type { VoyageDetailRows } from "#voyage/detail/rows.ts";
 import type { AwaitingRuling, PieceRow } from "#voyage-rows.ts";
 
@@ -22,41 +22,39 @@ export interface PieceView extends PieceRow {
 	readonly state: PieceState;
 }
 
-const agentsOf = (world: VoyageDetailRows, pieceId: string): ReadonlyArray<PieceAgentView> =>
-	world.assignments
-		.filter((assignment) => assignment.pieceId === pieceId)
-		.map((assignment) => ({
-			agentId: assignment.agentId,
-			status: world.agentStatus.get(assignment.agentId) ?? "unknown",
-		}));
-
-const reportsOf = (world: VoyageDetailRows, pieceId: string): ReadonlyArray<ReportRow> =>
-	world.pieceReports
-		.filter((link) => link.pieceId === pieceId)
-		.flatMap((link) => {
-			const report = world.reports.get(link.reportId);
-			return report === undefined ? [] : [report];
-		});
-
-const artifactsOf = (world: VoyageDetailRows, pieceId: string): ReadonlyArray<ArtifactRow> =>
-	[...world.artifacts.values()].filter((artifact) => artifact.pieceId === pieceId && artifact.supersededByArtifactId === null);
-
-const artifactHistoryOf = (world: VoyageDetailRows, pieceId: string): ReadonlyArray<ArtifactRow & { readonly successorArtifactId: string }> =>
-	[...world.artifacts.values()]
-		.filter((artifact) => artifact.pieceId === pieceId)
-		.flatMap((artifact) => {
-			const successorArtifactId = artifact.supersededByArtifactId;
-			return successorArtifactId === null ? [] : [{ ...artifact, successorArtifactId }];
-		});
-
-export const pieceView = (world: VoyageDetailRows, states: ReadonlyMap<string, PieceState>, piece: PieceRow): PieceView => ({
-	...piece,
-	agents: agentsOf(world, piece.id),
-	artifactHistory: artifactHistoryOf(world, piece.id),
-	artifacts: artifactsOf(world, piece.id),
-	awaitingRulings: awaitingRulingsOf(world, piece.id),
-	changes: changesOfPiece(world, piece.id).map((change) => changeView(repoNameOf(world, change.repoId), change)),
-	dependsOn: dependenciesOf(world.edges, piece.id),
-	reports: reportsOf(world, piece.id),
-	state: states.get(piece.id) ?? "held",
-});
+export const pieceViews = (
+	world: VoyageDetailRows,
+	states: ReadonlyMap<string, PieceState>,
+	pieces: ReadonlyArray<PieceRow>,
+): ReadonlyArray<PieceView> => {
+	if (pieces.length === 0) return [];
+	const assignments = Map.groupBy(world.assignments, (assignment) => assignment.pieceId);
+	const reports = Map.groupBy(world.pieceReports, (link) => link.pieceId);
+	const artifacts = Map.groupBy(world.artifacts.values(), (artifact) => artifact.pieceId);
+	const gates = Map.groupBy(world.rulingGates, (gate) => gate.pieceId);
+	const edges = Map.groupBy(world.edges, (edge) => edge.toPieceId);
+	const changes = changesByPiece(world);
+	return pieces.map((piece) => {
+		const heldArtifacts = artifacts.get(piece.id) ?? [];
+		return {
+			...piece,
+			agents: (assignments.get(piece.id) ?? []).map((assignment) => ({
+				agentId: assignment.agentId,
+				status: world.agentStatus.get(assignment.agentId) ?? "unknown",
+			})),
+			artifactHistory: heldArtifacts.flatMap((artifact) => {
+				const successorArtifactId = artifact.supersededByArtifactId;
+				return successorArtifactId === null ? [] : [{ ...artifact, successorArtifactId }];
+			}),
+			artifacts: heldArtifacts.filter((artifact) => artifact.supersededByArtifactId === null),
+			awaitingRulings: (gates.get(piece.id) ?? []).map((gate) => ({ question: gate.question, rulingId: gate.rulingId })),
+			changes: (changes.get(piece.id) ?? []).map((change) => changeView(repoNameOf(world, change.repoId), change)),
+			dependsOn: (edges.get(piece.id) ?? []).map((edge) => edge.fromPieceId),
+			reports: (reports.get(piece.id) ?? []).flatMap((link) => {
+				const report = world.reports.get(link.reportId);
+				return report === undefined ? [] : [report];
+			}),
+			state: states.get(piece.id) ?? "held",
+		};
+	});
+};

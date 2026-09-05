@@ -31,16 +31,23 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        partition: [heavy, remaining]
+        partition: [heavy, medium, remaining]
     env:
-      COMPAT_PACKAGES: "desktop changes domain pieces renderer reports rulings testing voyages harness"
+      COMPAT_HEAVY: "desktop domain changes pieces reports rulings testing"
+      COMPAT_MEDIUM: "renderer voyages sessions backend-pi harness artifacts boards backend-opencode session-inputs settings provider-capacity kernel"
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup
       - run: |
+          prefix=""
+          case "${{ matrix.partition }}" in
+            heavy) packages="$COMPAT_HEAVY" ;;
+            medium) packages="$COMPAT_MEDIUM" ;;
+            remaining) packages="$COMPAT_HEAVY $COMPAT_MEDIUM"; prefix="!" ;;
+          esac
           filters=()
-          for package in $COMPAT_PACKAGES; do
-            filters+=(--filter "${{ matrix.partition == 'remaining' && '!' || '' }}@antumbra/$package")
+          for package in $packages; do
+            filters+=(--filter "$prefix@antumbra/$package")
           done
           pnpm "${filters[@]}" --recursive --no-sort --if-present typecheck:compat
 

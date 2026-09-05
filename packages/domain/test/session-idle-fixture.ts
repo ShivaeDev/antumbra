@@ -7,7 +7,7 @@ import { AgentDomain } from "#domain.ts";
 import type { SpawnFields } from "#index.ts";
 import { makeSightSessionEvents } from "#sight-session-events.ts";
 import { domainKernelLayer, sightSourceTestLayer } from "#test/domain-layers.ts";
-import { makeScriptedBackend, rawOf, type ScriptedBackend, sessionFor } from "#test/harness.ts";
+import { makeScriptedBackend, rawOf, type ScriptedBackend, type ScriptedSession, sessionFor } from "#test/harness.ts";
 import { aheadBy } from "#test/session-clock.ts";
 import { reportsNativeRef, untilTerminal } from "#test/session-recovery-fixture.ts";
 
@@ -76,3 +76,31 @@ export const laterBy = <A, E, R>(millis: number, act: Effect.Effect<A, E, R>) =>
 	Effect.flatMap(aheadBy(millis), (clock) => act.pipe(Effect.provideService(Clock.Clock, clock)));
 
 export const passedAt = (millis: number) => Effect.flatMap(siestaPass, (pass) => laterBy(millis, pass));
+
+const CHILD = "native-child";
+
+export const delegates = (live: ScriptedSession) =>
+	live.emit({
+		raw: rawOf("subsession/opened"),
+		spawnedBy: "tool-1",
+		subsessionRef: CHILD,
+		type: "subsession.opened",
+	});
+
+export const finishes = (live: ScriptedSession) =>
+	live.emit({
+		outcome: "completed",
+		raw: rawOf("subsession/ended"),
+		subsessionRef: CHILD,
+		type: "subsession.ended",
+	});
+
+export const restingAt = (canSleep: boolean) =>
+	Effect.gen(function* () {
+		const sight = yield* SightSource;
+		yield* sight.fleetFeed.pipe(
+			Stream.map((fleet) => fleet.agents.flatMap((agent) => agent.sessions).find((session) => session.id === HAND.sessionId)),
+			Stream.filter((session) => session?.presence === "idle" && session.canSleep === canSleep),
+			Stream.runHead,
+		);
+	});

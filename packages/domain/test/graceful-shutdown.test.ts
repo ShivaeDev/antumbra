@@ -11,6 +11,7 @@ import { domainKernelLayer } from "#test/domain-layers.ts";
 import { acquireTemporaryPersistence, makeScriptedBackend, rawOf, sessionFor } from "#test/harness.ts";
 import { reportsNativeRef, untilTerminal } from "#test/session-recovery-fixture.ts";
 import { eventually, openReefVoyage, terminalIntent } from "#test/voyage-fixtures.ts";
+import { VoyageProcedureService } from "#voyages/service.ts";
 
 const spawnHeld = (identity: { readonly agentId: string; readonly sessionId: string }) =>
 	Effect.gen(function* () {
@@ -105,11 +106,11 @@ it.live("drains once, rebuilds idle truth, and resumes the same native Session",
 		const firstRuntime = ManagedRuntime.make(domainKernelLayer(temporary, counted));
 		const prepareShutdown = Effect.gen(function* () {
 			const db = yield* Database;
-			const domain = yield* AgentDomain;
+			const procedures = yield* VoyageProcedureService;
 			const boards = yield* Boards;
 			const sight = yield* makeSightSessionEvents;
 			const voyage = yield* openReefVoyage;
-			const hailed = yield* domain.voyages.hail(voyage.id);
+			const hailed = yield* procedures.hail(voyage.id);
 			expect(yield* terminalIntent(hailed.intentId)).toBe("succeeded");
 			const live = yield* sessionFor(scripted, hailed.agentId);
 			yield* boards.write(
@@ -164,7 +165,7 @@ it.live("drains once, rebuilds idle truth, and resumes the same native Session",
 		const secondRuntime = ManagedRuntime.make(domainKernelLayer(temporary, resumedBackend));
 		const verifyResume = Effect.gen(function* () {
 			const db = yield* Database;
-			const domain = yield* AgentDomain;
+			const procedures = yield* VoyageProcedureService;
 			const idle = Option.getOrThrow(
 				yield* db.AgentSession.where({
 					id: before.durable.session.id,
@@ -181,7 +182,7 @@ it.live("drains once, rebuilds idle truth, and resumes the same native Session",
 			expect(yield* db.BoardOwner.all()).toEqual(before.durable.boardOwners);
 			expect(yield* db.SessionEvent.where({ sessionId: idle.id }).all()).toEqual(before.durable.events);
 
-			const hailed = yield* domain.voyages.hail(before.voyageId);
+			const hailed = yield* procedures.hail(before.voyageId);
 			expect(hailed.agentId).toBe(before.agentId);
 			yield* eventually(
 				Effect.gen(function* () {

@@ -2,22 +2,24 @@ import { SightSource } from "@antumbra/contract";
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Kernel } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
-import { expect, it } from "@effect/vitest";
+import { endsTurn, it } from "@antumbra/testing";
+import { expect } from "@effect/vitest";
 import { Effect, PubSub } from "effect";
-import { acquireTemporaryPersistence, makeScriptedBackend, rawOf, type ScriptedSession } from "#test/harness.ts";
+import { rawOf, type ScriptedSession } from "#test/harness.ts";
 import {
 	DEFAULT_IDLE_SIESTA_AFTER_MILLIS,
+	delegates,
+	finishes,
 	HAND,
+	idleBackend,
 	openedNatively,
 	passedAt,
 	presenceOf,
+	restingAt,
 	sessionRow,
-	sightLayer,
 	spawned,
 } from "#test/session-idle-fixture.ts";
-import { eventually, untilTerminal } from "#test/session-recovery-fixture.ts";
-
-const CHILD = "native-child";
+import { untilTerminal } from "#test/session-recovery-fixture.ts";
 
 const completes = (live: ScriptedSession) =>
 	live.emit({
@@ -35,37 +37,6 @@ const speaks = (live: ScriptedSession) =>
 		type: "message",
 	});
 
-const delegates = (live: ScriptedSession) =>
-	live.emit({
-		raw: rawOf("subsession/opened"),
-		spawnedBy: "tool-1",
-		subsessionRef: CHILD,
-		type: "subsession.opened",
-	});
-
-const finishes = (live: ScriptedSession) =>
-	live.emit({
-		outcome: "completed",
-		raw: rawOf("subsession/ended"),
-		subsessionRef: CHILD,
-		type: "subsession.ended",
-	});
-
-const settled = eventually(
-	Effect.gen(function* () {
-		expect((yield* sessionRow).executionStatus).toBe("idle");
-	}),
-);
-
-const restingAt = (canSleep: boolean) =>
-	eventually(
-		Effect.gen(function* () {
-			const summary = yield* presenceOf;
-			expect(summary.presence).toBe("idle");
-			expect(summary.canSleep).toBe(canSleep);
-		}),
-	);
-
 const siestaIntents = Effect.gen(function* () {
 	const db = yield* Database;
 	return yield* db.Intent.where({ tag: "session/siesta" }).all();
@@ -79,119 +50,83 @@ const journalKinds = Effect.gen(function* () {
 	return events.map((event) => event.kind);
 });
 
-it.live("a completed turn settles the session that was working", () =>
-	Effect.gen(function* () {
-		const temporary = yield* acquireTemporaryPersistence;
-		const scripted = yield* makeScriptedBackend;
-		yield* Effect.gen(function* () {
-			yield* spawned;
-			const live = yield* openedNatively(scripted);
-			expect((yield* sessionRow).executionStatus).toBe("active");
-			expect((yield* presenceOf).presence).toBe("working");
+it.effectApp.withProviders("a completed turn settles the session that was working", idleBackend, function* (_, scripted) {
+	yield* spawned;
+	const live = yield* openedNatively(scripted);
+	expect((yield* sessionRow).executionStatus).toBe("active");
+	expect((yield* presenceOf).presence).toBe("working");
 
-			yield* completes(live);
-			yield* settled;
+	yield* endsTurn(scripted, HAND.sessionId);
 
-			expect(yield* live.closed).toBe(false);
-			const idle = yield* presenceOf;
-			expect(idle.presence).toBe("idle");
-			expect(idle.canSend).toBe(true);
-			expect(idle.canInterrupt).toBe(false);
-		}).pipe(Effect.provide(sightLayer(temporary, scripted)));
-	}),
-);
+	expect(yield* live.closed).toBe(false);
+	const idle = yield* presenceOf;
+	expect(idle.presence).toBe("idle");
+	expect(idle.canSend).toBe(true);
+	expect(idle.canInterrupt).toBe(false);
+});
 
-it.live("resting writes nothing to the journal beyond the turn that ended", () =>
-	Effect.gen(function* () {
-		const temporary = yield* acquireTemporaryPersistence;
-		const scripted = yield* makeScriptedBackend;
-		yield* Effect.gen(function* () {
-			yield* spawned;
-			const live = yield* openedNatively(scripted);
-			yield* completes(live);
-			yield* settled;
-			expect(yield* journalKinds).toEqual(["session.opened", "turn.completed"]);
-		}).pipe(Effect.provide(sightLayer(temporary, scripted)));
-	}),
-);
+it.effectApp.withProviders("resting writes nothing to the journal beyond the turn that ended", idleBackend, function* (_, scripted) {
+	yield* spawned;
+	yield* openedNatively(scripted);
+	yield* endsTurn(scripted, HAND.sessionId);
+	expect(yield* journalKinds).toEqual(["session.opened", "turn.completed"]);
+});
 
-it.live("words after a completed turn put the session back to work", () =>
-	Effect.gen(function* () {
-		const temporary = yield* acquireTemporaryPersistence;
-		const scripted = yield* makeScriptedBackend;
-		yield* Effect.gen(function* () {
-			const sight = yield* SightSource;
-			yield* spawned;
-			const live = yield* openedNatively(scripted);
-			yield* completes(live);
-			yield* settled;
+it.effectApp.withProviders("words after a completed turn put the session back to work", idleBackend, function* (_, scripted) {
+	const sight = yield* SightSource;
+	yield* spawned;
+	const live = yield* openedNatively(scripted);
+	yield* endsTurn(scripted, HAND.sessionId);
 
-			yield* sight.send(HAND.sessionId, "one more thing");
-			expect((yield* sessionRow).executionStatus).toBe("active");
-			expect((yield* presenceOf).presence).toBe("working");
-			expect(yield* live.sent).toEqual([HAND.charter]);
-			expect(yield* live.steered).toEqual(["one more thing"]);
+	yield* sight.send(HAND.sessionId, "one more thing");
+	expect((yield* sessionRow).executionStatus).toBe("active");
+	expect((yield* presenceOf).presence).toBe("working");
+	expect(yield* live.sent).toEqual([HAND.charter]);
+	expect(yield* live.steered).toEqual(["one more thing"]);
 
-			yield* passedAt(DEFAULT_IDLE_SIESTA_AFTER_MILLIS + 60_000);
-			expect(yield* siestaIntents).toEqual([]);
-			expect(yield* live.closed).toBe(false);
-		}).pipe(Effect.provide(sightLayer(temporary, scripted)));
-	}),
-);
+	yield* passedAt(DEFAULT_IDLE_SIESTA_AFTER_MILLIS + 60_000);
+	expect(yield* siestaIntents).toEqual([]);
+	expect(yield* live.closed).toBe(false);
+});
 
-it.live("an ending overtaken by new words leaves the session working", () =>
-	Effect.gen(function* () {
-		const temporary = yield* acquireTemporaryPersistence;
-		const scripted = yield* makeScriptedBackend;
-		yield* Effect.gen(function* () {
-			const feeds = yield* DomainFeeds;
-			const sight = yield* SightSource;
-			yield* spawned;
-			const live = yield* openedNatively(scripted);
-			yield* completes(live);
-			yield* settled;
+it.effectApp.withProviders("an ending overtaken by new words leaves the session working", idleBackend, function* (_, scripted) {
+	const feeds = yield* DomainFeeds;
+	const sight = yield* SightSource;
+	yield* spawned;
+	const live = yield* openedNatively(scripted);
+	yield* endsTurn(scripted, HAND.sessionId);
 
-			yield* sight.send(HAND.sessionId, "one more thing");
-			expect((yield* sessionRow).executionStatus).toBe("active");
+	yield* sight.send(HAND.sessionId, "one more thing");
+	expect((yield* sessionRow).executionStatus).toBe("active");
 
-			const events = yield* feeds.subscribeSessionEvents();
-			yield* completes(live);
-			yield* speaks(live);
-			expect((yield* PubSub.take(events)).kind).toBe("turn.completed");
-			expect((yield* PubSub.take(events)).kind).toBe("message");
-			expect((yield* sessionRow).executionStatus).toBe("active");
-			expect((yield* presenceOf).presence).toBe("working");
+	const events = yield* feeds.subscribeSessionEvents();
+	yield* completes(live);
+	yield* speaks(live);
+	expect((yield* PubSub.take(events)).kind).toBe("turn.completed");
+	expect((yield* PubSub.take(events)).kind).toBe("message");
+	expect((yield* sessionRow).executionStatus).toBe("active");
+	expect((yield* presenceOf).presence).toBe("working");
 
-			yield* completes(live);
-			yield* settled;
-		}).pipe(Effect.provide(sightLayer(temporary, scripted)));
-	}),
-);
+	yield* endsTurn(scripted, HAND.sessionId);
+});
 
-it.live("the tree still holds back rest after the root's turn ends", () =>
-	Effect.gen(function* () {
-		const temporary = yield* acquireTemporaryPersistence;
-		const scripted = yield* makeScriptedBackend;
-		yield* Effect.gen(function* () {
-			const kernel = yield* Kernel;
-			yield* spawned;
-			const live = yield* openedNatively(scripted);
-			yield* delegates(live);
-			yield* completes(live);
-			yield* settled;
-			yield* restingAt(false);
+it.effectApp.withProviders("the tree still holds back rest after the root's turn ends", idleBackend, function* (_, scripted) {
+	const kernel = yield* Kernel;
+	yield* spawned;
+	const live = yield* openedNatively(scripted);
+	yield* delegates(live);
+	yield* endsTurn(scripted, HAND.sessionId);
+	yield* restingAt(false);
 
-			yield* passedAt(DEFAULT_IDLE_SIESTA_AFTER_MILLIS + 60_000);
-			expect(yield* siestaIntents).toEqual([]);
-			expect(yield* live.closed).toBe(false);
+	yield* passedAt(DEFAULT_IDLE_SIESTA_AFTER_MILLIS + 60_000);
+	expect(yield* siestaIntents).toEqual([]);
+	expect(yield* live.closed).toBe(false);
 
-			yield* finishes(live);
-			yield* restingAt(true);
-			yield* passedAt(DEFAULT_IDLE_SIESTA_AFTER_MILLIS + 60_000);
-			const demanded = yield* siestaIntents;
-			expect(demanded).toHaveLength(1);
-			expect(yield* untilTerminal(kernel.changes(demanded[0]?.id ?? ""))).toBe("succeeded");
-			expect(yield* live.closed).toBe(true);
-		}).pipe(Effect.provide(sightLayer(temporary, scripted)));
-	}),
-);
+	yield* finishes(live);
+	yield* restingAt(true);
+	yield* passedAt(DEFAULT_IDLE_SIESTA_AFTER_MILLIS + 60_000);
+	const demanded = yield* siestaIntents;
+	expect(demanded).toHaveLength(1);
+	expect(yield* untilTerminal(kernel.changes(demanded[0]?.id ?? ""))).toBe("succeeded");
+	expect(yield* live.closed).toBe(true);
+});

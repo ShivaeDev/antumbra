@@ -1,11 +1,10 @@
 import { SettingsSource } from "@antumbra/contract";
 import { Database } from "@antumbra/persistence";
-import { expect, it } from "@effect/vitest";
+import { it } from "@antumbra/testing";
+import { expect } from "@effect/vitest";
 import { Effect } from "effect";
 import { voyagePace } from "#execution/voyage-pace.ts";
 import { changeOf } from "#test/change-fixtures.ts";
-import { domainCapabilityLayer } from "#test/domain-layers.ts";
-import { acquireTemporaryPersistence } from "#test/harness.ts";
 
 const HOME = ["held", "waiting", "parked", "running", "abandoned", "done", "pending"];
 
@@ -35,20 +34,16 @@ const seedHome = Effect.gen(function* () {
 	yield* db.PieceChange.create({ pieceId: "pending", changeId: "change" });
 });
 
-it.live("counts the voyage's running, waiting and unlaunched pieces beside the fleet's limit", () =>
-	Effect.gen(function* () {
-		const temporary = yield* acquireTemporaryPersistence;
-		yield* Effect.gen(function* () {
-			const db = yield* Database;
-			const settings = yield* SettingsSource;
-			yield* seedHome;
+it.effectApp("counts the voyage's running, waiting and unlaunched pieces beside the fleet's limit", function* () {
+	const settings = yield* SettingsSource;
+	yield* settings.change({ key: "holdPieceDispatch", value: true });
+	const db = yield* Database;
+	yield* seedHome;
 
-			expect(yield* voyagePace("home")).toEqual({ limit: 4, running: 1, unlaunched: 2, waiting: 1 });
+	expect(yield* voyagePace("home")).toEqual({ limit: 4, running: 1, unlaunched: 2, waiting: 1 });
 
-			yield* db.Change.where({ id: "change" }).update({ stage: "landed", landedAt: new Date(2) });
-			yield* settings.change({ key: "maxParallelSessions", value: 2 });
+	yield* db.Change.where({ id: "change" }).update({ stage: "landed", landedAt: new Date(2) });
+	yield* settings.change({ key: "maxParallelSessions", value: 2 });
 
-			expect(yield* voyagePace("home")).toEqual({ limit: 2, running: 1, unlaunched: 1, waiting: 1 });
-		}).pipe(Effect.provide(domainCapabilityLayer(temporary)));
-	}),
-);
+	expect(yield* voyagePace("home")).toEqual({ limit: 2, running: 1, unlaunched: 1, waiting: 1 });
+});

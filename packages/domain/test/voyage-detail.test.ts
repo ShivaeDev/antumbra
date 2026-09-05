@@ -8,6 +8,8 @@ import { RoleSettings } from "@antumbra/settings";
 import { Voyages } from "@antumbra/voyages";
 import { expect } from "@effect/vitest";
 import { Effect, Layer, Option } from "effect";
+import { pieceViews } from "#piece-view.ts";
+import { change, piece as fullPiece, world } from "#test/piece-ladder-fixtures.ts";
 import { VoyageDetails } from "#voyage/detail/service.ts";
 import { voyageView } from "#voyage-view.ts";
 
@@ -31,6 +33,42 @@ const root = (id: string, agentId: string, executionStatus = "idle") => ({
 	rootSessionId: id,
 	cwd: "/tmp",
 	status: "open",
+});
+
+it("Piece details preserve selected Piece order, Change row order and shared report links", () => {
+	const alpha = fullPiece("alpha");
+	const beta = fullPiece("beta");
+	const first = { id: "first", title: "First report", body: "first body", authorAgentId: null };
+	const second = { id: "second", title: "Second report", body: "second body", authorAgentId: null };
+	const rows = world({
+		pieces: [alpha, beta, fullPiece("outside")],
+		changes: [change("second", "open"), change("outside", "open"), change("first", "landed")],
+		pieceChanges: [
+			{ pieceId: "alpha", changeId: "first", purpose: "produces" },
+			{ pieceId: "beta", changeId: "first", purpose: "depends_on" },
+			{ pieceId: "alpha", changeId: "second", purpose: "reviews" },
+			{ pieceId: "outside", changeId: "outside", purpose: "produces" },
+		],
+		reports: new Map([
+			[second.id, second],
+			[first.id, first],
+		]),
+		pieceReports: [
+			{ pieceId: "alpha", reportId: "first" },
+			{ pieceId: "beta", reportId: "first" },
+			{ pieceId: "alpha", reportId: "second" },
+		],
+		assignments: [
+			{ pieceId: "alpha", agentId: "one" },
+			{ pieceId: "beta", agentId: "shared" },
+			{ pieceId: "alpha", agentId: "shared" },
+		],
+	});
+	const views = pieceViews(rows, new Map(), [beta, alpha]);
+	expect(views.map((view) => view.id)).toEqual(["beta", "alpha"]);
+	expect(views.map((view) => view.changes.map((row) => row.id))).toEqual([["first"], ["second", "first"]]);
+	expect(views.map((view) => view.reports)).toEqual([[first], [first, second]]);
+	expect(views.map((view) => view.agents.map((row) => row.agentId))).toEqual([["shared"], ["one", "shared"]]);
 });
 
 it.effectDB("a Voyage shows its members while direct external prerequisites govern readiness", function* (db) {

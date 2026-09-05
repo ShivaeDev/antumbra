@@ -6,13 +6,10 @@ import type { SessionAttachment } from "@antumbra/session-fabric";
 import type { SinkFor } from "@antumbra/sessions";
 import { admitCapacity } from "@antumbra/sessions/admission/admit";
 import { Effect } from "effect";
-import { charterDelivery } from "#charter.ts";
+import { AgentBirth } from "#agent-birth/service.ts";
 import { UnknownBackendTag } from "#errors.ts";
-import { makePrepareMoorage } from "#moorage-plan.ts";
-import { makeIsActivatedBirth } from "#spawn-activated.ts";
 import { type SpawnFields, SpawnPayload } from "#spawn-fields.ts";
 import { spawnRegistration } from "#spawn-registration/service.ts";
-import { spawnResolution } from "#spawn-resolution.ts";
 import { makeSpawnSessionStart } from "#spawn-session-start.ts";
 import { makeSpawnTeardown } from "#spawn-teardown.ts";
 import { makeSpawnTools } from "#spawn-tools.ts";
@@ -29,18 +26,15 @@ interface SpawnRuntime {
 export const spawnKind = (runtime: SpawnRuntime) =>
 	Effect.gen(function* () {
 		const capacities = yield* BackendCapacities;
-		const delivery = yield* charterDelivery;
-		const prepareMoorage = yield* makePrepareMoorage;
-		const isActivatedBirth = yield* makeIsActivatedBirth;
 		const registration = yield* spawnRegistration;
-		const resolution = yield* spawnResolution;
+		const birth = yield* AgentBirth;
 		const startSession = yield* makeSpawnSessionStart;
 		const teardown = yield* makeSpawnTeardown;
 		const toolsFor = yield* makeSpawnTools;
 		const admitSpawnSession = (payload: SpawnFields, attachment: SessionAttachment) =>
 			Effect.gen(function* () {
-				yield* delivery.deliverOnce(payload, attachment.handle);
-				yield* resolution.activate(payload);
+				yield* birth.deliverCharter(payload, attachment.handle);
+				yield* birth.activate(payload);
 			});
 		const reconcileMoorage = (payload: SpawnFields, runner: Runner, plan: MooragePlan) =>
 			Effect.gen(function* () {
@@ -56,7 +50,7 @@ export const spawnKind = (runtime: SpawnRuntime) =>
 			});
 		const spawnAgent = (payload: SpawnFields) =>
 			Effect.gen(function* () {
-				if (yield* isActivatedBirth(payload)) {
+				if (yield* birth.isActivated(payload)) {
 					return;
 				}
 				const backend = runtime.backends.get(payload.backend);
@@ -69,7 +63,7 @@ export const spawnKind = (runtime: SpawnRuntime) =>
 					return yield* new UnknownRunnerError({ tag: payload.runner });
 				}
 				yield* registration.ensure(payload);
-				const plan = yield* prepareMoorage(payload, runner).pipe(Effect.onError(teardown.settleUnlessTeardown(payload)));
+				const plan = yield* birth.prepareMoorage(payload, runner).pipe(Effect.onError(teardown.settleUnlessTeardown(payload)));
 				yield* reconcileMoorage(payload, runner, plan).pipe(Effect.onInterrupt(() => teardown.settleCancellation(payload)));
 				yield* startSession(
 					payload,

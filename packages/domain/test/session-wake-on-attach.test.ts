@@ -8,6 +8,7 @@ import { domainKernelLayer } from "#test/domain-layers.ts";
 import { acquireTemporaryPersistence, makeScriptedBackend, makeScriptedRunner, rawOf, sessionFor } from "#test/harness.ts";
 import { payload, refuseWhile, reportsNativeRef, seedResumableAgent, untilTerminal, untilWaitingOrTerminal } from "#test/session-recovery-fixture.ts";
 import { openReefVoyage, terminalIntent } from "#test/voyage-fixtures.ts";
+import { VoyageProcedureService } from "#voyages/service.ts";
 
 const executionStatusOf = (sessionId: string) =>
 	Effect.gen(function* () {
@@ -60,11 +61,11 @@ it.live("a hail of a captain that is answering leaves its work alone", () =>
 		const backend = reportsNativeRef(scripted.backend, scripted, "native-captain");
 		yield* Effect.gen(function* () {
 			const db = yield* Database;
-			const domain = yield* AgentDomain;
+			const procedures = yield* VoyageProcedureService;
 			const kernel = yield* Kernel;
 			const sight = yield* makeSightSessionEvents;
 			const voyage = yield* openReefVoyage;
-			const hailed = yield* domain.voyages.hail(voyage.id);
+			const hailed = yield* procedures.hail(voyage.id);
 			expect(yield* terminalIntent(hailed.intentId)).toBe("succeeded");
 			const live = yield* sessionFor(scripted, hailed.agentId);
 			const initial = Option.getOrThrow(Option.fromUndefinedOr((yield* db.AgentSession.where({ agentId: hailed.agentId }).all())[0]));
@@ -79,7 +80,7 @@ it.live("a hail of a captain that is answering leaves its work alone", () =>
 			expect(session.nativeRef).toBe("native-captain");
 			const spoken = yield* live.sent;
 
-			const again = yield* domain.voyages.hail(voyage.id);
+			const again = yield* procedures.hail(voyage.id);
 			expect(yield* untilTerminal(kernel.changes(again.intentId))).toBe("succeeded");
 			expect(yield* live.sent).toEqual(spoken);
 			expect(yield* live.steered).toEqual([]);

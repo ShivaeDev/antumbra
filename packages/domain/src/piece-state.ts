@@ -1,24 +1,12 @@
-import type { EdgeRow, PieceRow } from "@antumbra/pieces";
+import type { PieceRow } from "@antumbra/pieces";
 import { atWork } from "#agent-at-work.ts";
 import { pieceOutcomeTallies } from "#outcome-status.ts";
-import type { AwaitingRuling, DispatchWorld, RetirementWorld } from "#voyage-rows.ts";
+import type { DispatchWorld, RetirementWorld } from "#voyage-rows.ts";
 
 type PieceStateRows = Omit<DispatchWorld, "memberships" | "voyages">;
 
 export const PIECE_STATES = ["abandoned", "active", "blocked", "done", "held", "landing", "parked", "ready"] as const;
 export type PieceState = (typeof PIECE_STATES)[number];
-
-export const dependenciesOf = (edges: ReadonlyArray<EdgeRow>, pieceId: string): ReadonlyArray<string> =>
-	edges.filter((edge) => edge.toPieceId === pieceId).map((edge) => edge.fromPieceId);
-
-export const awaitingRulingsOf = (world: Pick<DispatchWorld, "rulingGates">, pieceId: string): ReadonlyArray<AwaitingRuling> =>
-	world.rulingGates.filter((gate) => gate.pieceId === pieceId).map((gate) => ({ question: gate.question, rulingId: gate.rulingId }));
-
-export const workingAssignees = (world: RetirementWorld, pieceId: string): ReadonlyArray<string> =>
-	world.assignments
-		.filter((assignment) => assignment.pieceId === pieceId)
-		.filter((assignment) => atWork(world, assignment.agentId))
-		.map((assignment) => assignment.agentId);
 
 interface Settled {
 	readonly abandoned: ReadonlySet<string>;
@@ -26,18 +14,34 @@ interface Settled {
 	readonly landing: ReadonlySet<string>;
 }
 
-const pieceExecutionState = (world: RetirementWorld, settled: Settled, pieceId: string) => {
+const workingPieces = (world: RetirementWorld, settled: Settled): ReadonlySet<string> => {
+	const working = new Set<string>();
+	const eligible = new Set(world.pieces.filter((piece) => !settled.abandoned.has(piece.id)).map((piece) => piece.id));
+	if (eligible.size === 0) return working;
+	const assignees = Map.groupBy(
+		world.assignments.filter((assignment) => eligible.has(assignment.pieceId)),
+		(assignment) => assignment.agentId,
+	);
+	for (const [agentId, assignments] of assignees) {
+		if (atWork(world, agentId)) {
+			for (const assignment of assignments) working.add(assignment.pieceId);
+		}
+	}
+	return working;
+};
+
+const pieceExecutionState = (settled: Settled, working: ReadonlySet<string>, pieceId: string) => {
 	if (settled.abandoned.has(pieceId)) {
 		return "abandoned";
 	}
-	if (workingAssignees(world, pieceId).length > 0) {
+	if (working.has(pieceId)) {
 		return "active";
 	}
 	return settled.done.has(pieceId) ? "done" : undefined;
 };
 
-const stateOf = (world: PieceStateRows, settled: Settled, piece: PieceRow): PieceState => {
-	const execution = pieceExecutionState(world, settled, piece.id);
+const stateOf = (world: PieceStateRows, settled: Settled, working: ReadonlySet<string>, piece: PieceRow): PieceState => {
+	const execution = pieceExecutionState(settled, working, piece.id);
 	if (execution !== undefined) {
 		return execution;
 	}
@@ -47,10 +51,12 @@ const stateOf = (world: PieceStateRows, settled: Settled, piece: PieceRow): Piec
 	if (piece.launchedAt === null) {
 		return "held";
 	}
-	if (awaitingRulingsOf(world, piece.id).length > 0) {
+	if (world.rulingGates.some((gate) => gate.pieceId === piece.id)) {
 		return "blocked";
 	}
-	const blocked = dependenciesOf(world.edges, piece.id).some((dependency) => !settled.done.has(dependency) && !settled.abandoned.has(dependency));
+	const blocked = world.edges.some(
+		(edge) => edge.toPieceId === piece.id && !settled.done.has(edge.fromPieceId) && !settled.abandoned.has(edge.fromPieceId),
+	);
 	if (blocked) {
 		return "blocked";
 	}
@@ -79,14 +85,16 @@ const settledPieces = (world: RetirementWorld): Settled => {
 
 export const pieceStates = (world: PieceStateRows): ReadonlyMap<string, PieceState> => {
 	const settled = settledPieces(world);
-	return new Map(world.pieces.map((piece) => [piece.id, stateOf(world, settled, piece)]));
+	const working = workingPieces(world, settled);
+	return new Map(world.pieces.map((piece) => [piece.id, stateOf(world, settled, working, piece)]));
 };
 
 export const concludedPieces = (world: RetirementWorld): ReadonlyMap<string, "abandoned" | "done"> => {
 	const settled = settledPieces(world);
+	const working = workingPieces(world, settled);
 	return new Map(
 		world.pieces.flatMap((piece) => {
-			const state = pieceExecutionState(world, settled, piece.id);
+			const state = pieceExecutionState(settled, working, piece.id);
 			return state === "abandoned" || state === "done" ? [[piece.id, state] as const] : [];
 		}),
 	);

@@ -12,7 +12,6 @@ import {
 	roleDefault,
 	roleDraftSchema,
 	roleLabel,
-	signatureOf,
 	voyagePlaceholder,
 	voyageRoleSettings,
 } from "#views/role-settings.ts";
@@ -89,13 +88,5 @@ export const VoyageRoleSettings = ({
 	readonly voyage: VoyageView;
 }) => {
 	const settingsOf = voyageRoleSettings(voyage);
-	return (
-		<SettingsForm
-			backends={backends}
-			defaults={defaults}
-			key={signatureOf(VOYAGE_AGENT_ROLES, settingsOf)}
-			settingsOf={settingsOf}
-			voyageId={voyage.id}
-		/>
-	);
+	return <SettingsForm backends={backends} defaults={defaults} key={voyage.id} settingsOf={settingsOf} voyageId={voyage.id} />;
 };

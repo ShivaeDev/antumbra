@@ -1,5 +1,5 @@
 import { makeAppRouter } from "@antumbra/contract";
-import { abandonRestartIntent, drainActiveSessions, honorRestartIntent } from "@antumbra/domain";
+import { drainActiveSessions, honorRestartIntent, SessionRestart } from "@antumbra/domain";
 import { ensureInstallMarker } from "@antumbra/persistence";
 import { NodeServices } from "@effect/platform-node";
 import { Effect, FileSystem, Layer, ManagedRuntime, Ref } from "effect";
@@ -51,7 +51,7 @@ const startOwner = (shell: WindowShell, store: LayoutStore) =>
 			yield* drainBeforeQuit(
 				drainManagedRuntime(runtime, drainActiveSessions),
 				restarting,
-				Effect.promise(() => runtime.runPromise(abandonRestartIntent)),
+				Effect.promise(() => runtime.runPromise(SessionRestart.use((restart) => restart.abandon()))),
 			);
 			yield* whenReady;
 			yield* Effect.sync(() => {

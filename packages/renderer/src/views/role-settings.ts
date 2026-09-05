@@ -51,9 +51,6 @@ export const changedRoles = <Role extends string>(
 	settingsOf: (role: Role) => AgentSettingsChoice,
 ): ReadonlyArray<Role> => roles.filter((role) => !sameSettings(chosenOf(drafts[role]), settingsOf(role)));
 
-export const signatureOf = <Role extends string>(roles: ReadonlyArray<Role>, settingsOf: (role: Role) => AgentSettingsChoice): string =>
-	roles.map((role) => [role, settingsOf(role).backend, settingsOf(role).model, settingsOf(role).effort].join(":")).join("|");
-
 export const voyageRoleSettings =
 	(voyage: VoyageView) =>
 	(role: VoyageAgentRole): AgentSettingsChoice =>

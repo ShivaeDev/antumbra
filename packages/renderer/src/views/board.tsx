@@ -26,19 +26,18 @@ const EntryRow = ({ entry }: { readonly entry: BoardEntryView }) => {
 
 export const BoardPanel = ({
 	entries,
-	onError,
 	onSmooth,
 	scope,
 	smoothing,
 }: {
 	readonly entries: ReadonlyArray<BoardEntryView>;
-	readonly onError: (message: string) => void;
 	readonly onSmooth?: () => void;
 	readonly scope: BoardTarget;
 	readonly smoothing?: BoardSmoothing;
 }) => {
 	const [open, setOpen] = useState(false);
 	const Chevron = open ? ChevronDown : ChevronRight;
+	const pass = smoothing === undefined || onSmooth === undefined ? null : { onSmooth, smoothing };
 	return (
 		<Section>
 			<div className="flex min-w-0 items-center gap-2 border-b border-border pb-1.5">
@@ -53,9 +52,9 @@ export const BoardPanel = ({
 					<span className="min-w-0 truncate text-xs font-medium">Board</span>
 					<span className="text-2xs text-muted-foreground tabular-nums">{entries.length}</span>
 				</button>
-				{smoothing === undefined || onSmooth === undefined ? null : <SmoothNow onSmooth={onSmooth} smoothing={smoothing} />}
+				{pass === null ? null : <SmoothNow onSmooth={pass.onSmooth} smoothing={pass.smoothing} />}
 			</div>
-			{smoothing === undefined || onSmooth === undefined ? null : <SmoothingLine onSmooth={onSmooth} smoothing={smoothing} />}
+			{pass === null ? null : <SmoothingLine onSmooth={pass.onSmooth} smoothing={pass.smoothing} />}
 			{open && entries.length === 0 ? <p className="text-2xs text-muted-foreground">Nothing written yet — the crew and you both write here</p> : null}
 			{open && entries.length > 0 ? (
 				<ul className="flex min-w-0 flex-col gap-1">
@@ -64,7 +63,7 @@ export const BoardPanel = ({
 					))}
 				</ul>
 			) : null}
-			{open ? <BoardComposer onError={onError} scope={scope} /> : null}
+			{open ? <BoardComposer scope={scope} /> : null}
 		</Section>
 	);
 };

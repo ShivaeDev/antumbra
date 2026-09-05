@@ -1,7 +1,7 @@
 import type { PieceView } from "@antumbra/contract";
 import { Schema } from "effect";
 import { withFieldGroup } from "#forms/hook.ts";
-import { PiecePicker, pickable } from "#views/piece-picker.tsx";
+import { PiecePicker } from "#views/piece-picker.tsx";
 
 export const pieceDraftSchema = Schema.Struct({
 	charter: Schema.NonEmptyString,
@@ -24,13 +24,7 @@ export const PieceFields = withFieldGroup({
 			<form.AppField name="charter">{(field) => <field.TextareaField label="Charter" />}</form.AppField>
 			<form.AppField name="expectation">{(field) => <field.TextField label="Expected outcome" />}</form.AppField>
 			<form.AppField name="role">{(field) => <field.TextField label="Role" />}</form.AppField>
-			<form.AppField name="dependsOn">
-				{(field) => (
-					<field.Field label="Depends on">
-						{(id) => <PiecePicker chosen={field.state.value} id={id} onChange={field.handleChange} pieces={pickable(pieces)} />}
-					</field.Field>
-				)}
-			</form.AppField>
+			<form.AppField name="dependsOn">{() => <PiecePicker pieces={pieces} />}</form.AppField>
 		</>
 	),
 });

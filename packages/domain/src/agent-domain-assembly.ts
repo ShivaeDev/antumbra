@@ -1,9 +1,6 @@
 import type { AgentBackend, Runner } from "@antumbra/plugin-api";
-import { ResourceReconciler } from "@antumbra/resource-reclamation";
-import { SessionFabric } from "@antumbra/session-fabric";
 import {
 	compileSessionSiestaDemands,
-	makeSessionNodeReconciler,
 	makeSessionTreeSinks,
 	makeSiestaKind,
 	makeWakeKind,
@@ -11,6 +8,7 @@ import {
 	sessionRecoveryLayer,
 } from "@antumbra/sessions";
 import { CurrentSessions } from "@antumbra/sessions/current/service";
+import { SessionNodeReconciler } from "@antumbra/sessions/tree/reconcile/service";
 import { Effect } from "effect";
 import { mailDeliveryDemands } from "#mail-delivery/demands.ts";
 import { MailDelivery } from "#mail-delivery/service.ts";
@@ -20,20 +18,16 @@ import { makeSessionAgentSettings } from "#session-agent-settings.ts";
 import { smoothKind } from "#smoothing/kind.ts";
 import { spawnKind } from "#spawn.ts";
 import { makeAgentToolCompiler } from "#spawn-tools.ts";
-import { VoyageProcedureService } from "#voyages/service.ts";
 
 export const makeAgentDomain = (backends: ReadonlyMap<string, AgentBackend>, runners: ReadonlyMap<string, Runner>) =>
 	Effect.gen(function* () {
-		const fabric = yield* SessionFabric;
-		const resourceReconciler = yield* ResourceReconciler;
-		const voyages = yield* VoyageProcedureService;
 		const mail = yield* MailDelivery;
 		const sinkFor = yield* makeSessionTreeSinks(mail.deliver());
 		const currentSessions = yield* CurrentSessions;
-		const reconcileSessionNodes = yield* makeSessionNodeReconciler;
+		const nodes = yield* SessionNodeReconciler;
 		yield* currentSessions.reconcile();
 		// Reconcile roots first because node acquisition liveness depends on root settlement.
-		yield* reconcileSessionNodes;
+		yield* nodes.reconcile();
 		const spawn = yield* spawnKind({
 			backends,
 			runners,
@@ -59,13 +53,10 @@ export const makeAgentDomain = (backends: ReadonlyMap<string, AgentBackend>, run
 		return {
 			intentDemands,
 			kinds: [spawn, retire, siesta, smooth, wake],
-			retryResourceReclaim: resourceReconciler.reconcile(),
 			retire,
-			sessionsAttached: fabric.attached(),
 			siesta,
 			smooth,
 			spawn,
-			voyages,
 			wake,
 		};
 	});

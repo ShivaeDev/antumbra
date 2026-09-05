@@ -4,13 +4,13 @@ import { Database } from "@antumbra/persistence";
 import { Pieces } from "@antumbra/pieces";
 import { expect, it } from "@effect/vitest";
 import { Effect, Option, Stream } from "effect";
-import { AgentDomain } from "#domain.ts";
 import { berthed, reefWithPiece } from "#test/change-fixtures.ts";
 import { CREW, HEAD, openedChange, withHost } from "#test/change-submission-fixtures.ts";
 import { domainKernelLayer } from "#test/domain-layers.ts";
 import { acquireTemporaryPersistence, changeHostsOf, makeScriptedBackend, passiveRunner } from "#test/harness.ts";
 import { claimsNothingHost, scriptedObservation } from "#test/scripted-host.ts";
 import { stateOf } from "#test/voyage-fixtures.ts";
+import { VoyageProcedureService } from "#voyages/service.ts";
 
 it.live("a change opened by crew is written with the link to its piece", () =>
 	withHost((scripted) =>
@@ -141,7 +141,7 @@ it.live("adopting the same change twice is one row and one link per piece", () =
 it.live("a landed change flips its piece done and wakes the voyage feed", () =>
 	withHost((scripted) =>
 		Effect.gen(function* () {
-			const domain = yield* AgentDomain;
+			const procedures = yield* VoyageProcedureService;
 			const changes = yield* Changes;
 			const feeds = yield* DomainFeeds;
 			const { piece, repo, voyage } = yield* reefWithPiece;
@@ -174,7 +174,7 @@ it.live("a landed change flips its piece done and wakes the voyage feed", () =>
 			);
 			expect(heard).toHaveLength(1);
 
-			const view = Option.getOrThrow(yield* domain.voyages.read(voyage.id));
+			const view = Option.getOrThrow(yield* procedures.read(voyage.id));
 			const seen = view.pieces.find((row) => row.id === piece.id);
 			expect(seen?.state).toBe("done");
 			expect(seen?.changes).toHaveLength(1);

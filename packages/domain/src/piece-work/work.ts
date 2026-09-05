@@ -1,8 +1,8 @@
 import { Database } from "@antumbra/persistence";
 import { Pieces } from "@antumbra/pieces";
 import { decodeStoredVoyageKind } from "@antumbra/vocabulary/voyage";
+import { agentSettingsOf } from "@antumbra/voyages/agent-settings";
 import { Effect, Option } from "effect";
-import { agentSettingsOf } from "#agent-settings.ts";
 import { charterFor } from "#crew-charter.ts";
 import { PieceNotFound } from "#errors.ts";
 import { KernelReach } from "#kernel-reach/service.ts";

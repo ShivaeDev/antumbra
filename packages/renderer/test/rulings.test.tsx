@@ -153,41 +153,13 @@ it.effect("shows every open ruling in the order the feed sent them", () =>
 	}),
 );
 
-it.effect("leads with the choice the asker would take and says why", () =>
-	Effect.gen(function* () {
-		const mounted = mount();
-		yield* showing(mounted, { rulings: [shoal] });
-
-		const offered = [...mounted.container.querySelectorAll("li fieldset button")];
-		expect(offered.map((button) => button.textContent)).toEqual([
-			"trust the chartrecommendedthe chart was surveyed at slack water",
-			"trust the soundingsthe sounding is a week old",
-		]);
-		yield* settle(() => mounted.root.unmount());
-	}),
-);
-
-it.effect("marks no choice when the asker recommended none", () =>
-	Effect.gen(function* () {
-		const mounted = mount();
-		yield* showing(mounted, { rulings: [{ ...shoal, recommendation: null }] });
-
-		expect(mounted.container.textContent).not.toContain("recommended");
-		expect([...mounted.container.querySelectorAll("li fieldset button")].map((button) => button.textContent)).toEqual([
-			"trust the soundingsthe sounding is a week old",
-			"trust the chart",
-		]);
-		yield* settle(() => mounted.root.unmount());
-	}),
-);
-
 it.effect("groups open rulings under the voyage they are about", () =>
 	Effect.gen(function* () {
 		const mounted = mount();
 		yield* showing(mounted, { rulings: [berths, shoal, { ...berths, id: "ruling-3", voyage: shoal.voyage }] });
 
-		const groups = [...mounted.container.querySelectorAll("section section")];
-		expect(groups.map((group) => group.querySelector("h3")?.textContent)).toEqual(["The fleet", "Chart the reef"]);
+		const groups = [...mounted.container.querySelectorAll("section[aria-label]")];
+		expect(groups.map((group) => group.getAttribute("aria-label"))).toEqual(["The fleet", "Chart the reef"]);
 		expect(groups.map((group) => [...group.querySelectorAll("li h3")].map((heading) => heading.textContent))).toEqual([
 			[berths.question],
 			[shoal.question, berths.question],

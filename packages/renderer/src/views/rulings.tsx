@@ -11,13 +11,14 @@ interface VoyageGroup {
 	readonly rulings: ReadonlyArray<RulingView>;
 }
 
-const FLEET: VoyageGroup = { key: "", name: "The fleet", rulings: [] };
+const FLEET = { key: "", name: "The fleet" };
 
 const byVoyage = (rulings: ReadonlyArray<RulingView>): ReadonlyArray<VoyageGroup> => {
 	const groups = new Map<string, VoyageGroup>();
 	for (const ruling of rulings) {
-		const group = groups.get(ruling.voyage?.id ?? FLEET.key) ?? (ruling.voyage === null ? FLEET : { key: ruling.voyage.id, name: ruling.voyage.name, rulings: [] });
-		groups.set(group.key, { ...group, rulings: [...group.rulings, ruling] });
+		const named = ruling.voyage === null ? FLEET : { key: ruling.voyage.id, name: ruling.voyage.name };
+		const group = groups.get(named.key) ?? { ...named, rulings: [] };
+		groups.set(named.key, { ...group, rulings: [...group.rulings, ruling] });
 	}
 	return [...groups.values()];
 };
@@ -40,7 +41,7 @@ const RulingList = ({ onError, open }: { readonly onError: (message: string) => 
 	) : (
 		<div className="flex min-w-0 flex-col gap-3 p-4">
 			{byVoyage(open.rulings).map((group) => (
-				<section className="flex min-w-0 flex-col gap-2" key={group.key}>
+				<section aria-label={group.name} className="flex min-w-0 flex-col gap-2" key={group.key}>
 					<h3 className="text-sm">{group.name}</h3>
 					<ul className="flex min-w-0 flex-col gap-2">
 						{group.rulings.map((ruling) => (

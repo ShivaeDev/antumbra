@@ -1,7 +1,12 @@
 import type { RulingGatedPieceView } from "@antumbra/contract";
+import type { StoredVoyage } from "@antumbra/persistence";
 import type { PieceRow, VoyageWorld } from "#voyage-rows.ts";
 
-const berthedIn = (world: VoyageWorld, piece: PieceRow): ReadonlyArray<RulingGatedPieceView> =>
+export type GatedPieceRows = Pick<VoyageWorld, "memberships" | "pieces"> & {
+	readonly voyages: ReadonlyArray<StoredVoyage>;
+};
+
+const berthedIn = (world: GatedPieceRows, piece: PieceRow): ReadonlyArray<RulingGatedPieceView> =>
 	world.memberships
 		.filter((membership) => membership.pieceId === piece.id)
 		.map((membership) => world.voyages.find((row) => row.id === membership.voyageId))
@@ -13,5 +18,5 @@ const berthedIn = (world: VoyageWorld, piece: PieceRow): ReadonlyArray<RulingGat
 			voyageName: voyage.name,
 		}));
 
-export const gatedPiecesSeen = (world: VoyageWorld, pieceIds: ReadonlyArray<string>): ReadonlyArray<RulingGatedPieceView> =>
+export const gatedPiecesSeen = (world: GatedPieceRows, pieceIds: ReadonlyArray<string>): ReadonlyArray<RulingGatedPieceView> =>
 	world.pieces.filter((piece) => pieceIds.includes(piece.id)).flatMap((piece) => berthedIn(world, piece));

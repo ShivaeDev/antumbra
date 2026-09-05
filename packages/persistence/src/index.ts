@@ -7,5 +7,5 @@ export {
 } from "#database.ts";
 export { ensureInstallMarker } from "#install-marker.ts";
 export { PersistenceLive } from "#layer.ts";
-export type { StoredAgentSession } from "#rows.ts";
+export type { StoredAgent, StoredAgentSession, StoredVoyage } from "#rows.ts";
 export type { NewAgentSession } from "#writes.ts";

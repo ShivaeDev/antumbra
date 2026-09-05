@@ -1,5 +1,5 @@
 import { pieceStates } from "#piece-state.ts";
-import type { PieceRow, VoyageRow, VoyageWorld } from "#voyage-rows.ts";
+import type { DispatchWorld, PieceRow, VoyageRow } from "#voyage-rows.ts";
 
 const MAX_BACKOFF_MILLIS = 5 * 60 * 1000;
 
@@ -20,7 +20,7 @@ const launchOrder = (left: ReadyPiece, right: ReadyPiece): number => {
 	return launched === 0 ? left.piece.id.localeCompare(right.piece.id) : launched;
 };
 
-export const readyPieces = (world: VoyageWorld): ReadonlyArray<ReadyPiece> => {
+export const readyPieces = (world: DispatchWorld): ReadonlyArray<ReadyPiece> => {
 	const states = pieceStates(world);
 	const voyages = new Map(world.voyages.map((voyage) => [voyage.id, voyage]));
 	const pieces = new Map(world.pieces.map((piece) => [piece.id, piece]));

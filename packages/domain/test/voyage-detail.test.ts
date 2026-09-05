@@ -51,6 +51,9 @@ it.effectDB("a Voyage shows its members while direct external prerequisites gove
 	expect(view.state).toBe("quiet");
 	expect(new Set(ready.rows.pieces.map((row) => row.id))).toEqual(new Set(["member", "prerequisite"]));
 	expect(Option.isNone(yield* read("missing"))).toBe(true);
+	yield* db.PieceAgent.create({ pieceId: "member", agentId: "reworking" });
+	const active = Option.getOrThrow(yield* read("home"));
+	expect(voyageView(active.rows, active.voyage)).toMatchObject({ counts: { active: 1 }, state: "underWay" });
 });
 
 it.effectDB("a captain assigned to work outside the Voyage is excluded from captain selection", function* (db) {
@@ -70,6 +73,9 @@ it.effectDB("a captain assigned to work outside the Voyage is excluded from capt
 	expect(Option.getOrThrow(view.captain)).toMatchObject({ agentId: "captain", atWork: false });
 	expect(view.crew.map((member) => member.agentId)).toEqual(["captain", "worker"]);
 	expect(view.state).toBe("quiet");
+	yield* db.AgentSession.where({ id: "captain-root" }).update({ executionStatus: "active" });
+	const active = Option.getOrThrow(yield* read("home"));
+	expect(voyageView(active.rows, active.voyage)).toMatchObject({ counts: { active: 0 }, state: "underWay" });
 });
 
 it.effectDB("retired crew root history stirs a Voyage without making it active", function* (db) {

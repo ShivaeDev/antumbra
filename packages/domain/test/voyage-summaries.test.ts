@@ -41,6 +41,12 @@ it.effectApp("fleet counts include shared members and settle their unberthed pre
 	expect(blocked.map((summary) => Object.values(summary.counts).reduce((sum, count) => sum + count, 0))).toEqual([1, 1, 0, 0]);
 	yield* db.PieceVerdict.create({ pieceId: "prerequisite", verdict: "delivered" });
 	expect((yield* read).map((summary) => summary.counts.ready)).toEqual([1, 1, 0, 0]);
+	yield* db.Agent.create({ id: "worker", charter: "work", role: "hand", status: "alive" });
+	yield* db.AgentSession.create({ ...root("worker-root", "worker", 4), executionStatus: "active" });
+	yield* db.PieceAgent.create({ pieceId: "member", agentId: "worker" });
+	const working = yield* read;
+	expect(working.slice(0, 3).map((summary) => summary.counts.active)).toEqual([1, 1, 0]);
+	expect(working.slice(0, 3).map((summary) => summary.state)).toEqual(["underWay", "underWay", "quiet"]);
 });
 
 it.effectApp("parking an unanswered ruling keeps its member blocked until it is ruled", function* ({ db }) {
@@ -90,4 +96,8 @@ it.effectApp("fleet captain selection excludes outside workers while retired roo
 	expect(Option.getOrThrow(Option.getOrThrow(Option.fromUndefinedOr(summaries[0])).captain)).toMatchObject({ agentId: "captain", atWork: false });
 	expect(summaries[0]?.lastStirredAt).toEqual(new Date(30));
 	expect(summaries[0]?.state).toBe("quiet");
+	yield* db.AgentSession.where({ id: "captain-root" }).update({ executionStatus: "active" });
+	const working = (yield* read)[0];
+	expect(working?.counts.active).toBe(0);
+	expect(working?.state).toBe("underWay");
 });

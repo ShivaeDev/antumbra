@@ -1,7 +1,7 @@
 import { Database } from "@antumbra/persistence";
 import { decodeStoredAgentStatus, decodeStoredBerthStatus, decodeStoredMoorageStatus } from "@antumbra/vocabulary/agent-runtime";
 import { Effect, Option, Result } from "effect";
-import { makeCurrentSessionRecovery } from "#current/recovery.ts";
+import { CurrentSessions } from "#current/service.ts";
 import { recoveryHeld } from "#recovery/error.ts";
 import type { SessionUnresumable } from "#unresumable.ts";
 
@@ -9,7 +9,7 @@ const heldInvalid = (failure: { readonly message: string }) => recoveryHeld(fail
 
 export const makeSessionRecoveryState = Effect.gen(function* () {
 	const db = yield* Database;
-	const currentSession = yield* makeCurrentSessionRecovery;
+	const currentSession = yield* CurrentSessions;
 	const aliveAgent = (agentId: string) =>
 		Effect.gen(function* () {
 			const agent = yield* db.Agent.where({ id: agentId }).first();

@@ -10,7 +10,7 @@ import type {
 	WithdrawRequest,
 } from "@antumbra/contract";
 import { Effect } from "effect";
-import { client, fired, toError } from "#adapters/bridge.ts";
+import { client, toError } from "#adapters/bridge.ts";
 import { RendererRequestError } from "#adapters/request-error.ts";
 import type { Unsubscribe } from "#adapters/trpc.ts";
 
@@ -24,7 +24,12 @@ export const watchOpenRulings = (onRulings: (rulings: OpenRulingsView) => void, 
 	return () => subscription.unsubscribe();
 };
 
-export const ruleOn = (request: RuleRequest, onError: OnError): void => fired(client.ruleOn.mutate(request), onError);
+export const ruleOn = Effect.fn("Renderer.ruleOn")((request: RuleRequest) =>
+	Effect.tryPromise({
+		try: () => client.ruleOn.mutate(request),
+		catch: (cause) => new RendererRequestError({ message: toError(cause).message }),
+	}),
+);
 
 export const watchStandingRulings = (onRulings: (rulings: StandingRulingsView) => void, onError: OnError): Unsubscribe => {
 	const subscription = client.standingRulingsFeed.subscribe(undefined, {
@@ -34,7 +39,12 @@ export const watchStandingRulings = (onRulings: (rulings: StandingRulingsView) =
 	return () => subscription.unsubscribe();
 };
 
-export const supersedeRuling = (request: SupersedeRequest, onError: OnError): void => fired(client.supersedeRuling.mutate(request), onError);
+export const supersedeRuling = Effect.fn("Renderer.supersedeRuling")((request: SupersedeRequest) =>
+	Effect.tryPromise({
+		try: () => client.supersedeRuling.mutate(request),
+		catch: (cause) => new RendererRequestError({ message: toError(cause).message }),
+	}),
+);
 
 export const withdrawRuling = Effect.fn("Renderer.withdrawRuling")((request: WithdrawRequest) =>
 	Effect.tryPromise({
@@ -43,14 +53,19 @@ export const withdrawRuling = Effect.fn("Renderer.withdrawRuling")((request: Wit
 	}),
 );
 
-export const reclassifyRuling = (request: ReclassifyRequest, onError: OnError): void => fired(client.reclassifyRuling.mutate(request), onError);
+export const reclassifyRuling = Effect.fn("Renderer.reclassifyRuling")((request: ReclassifyRequest) =>
+	Effect.tryPromise({
+		try: () => client.reclassifyRuling.mutate(request),
+		catch: (cause) => new RendererRequestError({ message: toError(cause).message }),
+	}),
+);
 
-export const proclaimRuling = (request: ProclaimRequest, onDone: () => void, onError: OnError): void => {
-	client.proclaimRuling
-		.mutate(request)
-		.then(() => onDone())
-		.catch((cause: unknown) => onError(toError(cause).message));
-};
+export const proclaimRuling = Effect.fn("Renderer.proclaimRuling")((request: ProclaimRequest) =>
+	Effect.tryPromise({
+		try: () => client.proclaimRuling.mutate(request),
+		catch: (cause) => new RendererRequestError({ message: toError(cause).message }),
+	}),
+);
 
 export const askMoreOnRuling = Effect.fn("Renderer.askMoreOnRuling")((request: AskMoreRequest) =>
 	Effect.tryPromise({

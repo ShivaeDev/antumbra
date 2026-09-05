@@ -2,7 +2,8 @@ import { SightSource } from "@antumbra/contract";
 import { Database, type NewAgentSession } from "@antumbra/persistence";
 import type { TemporaryPersistence } from "@antumbra/persistence/testing";
 import { SessionFabricLive } from "@antumbra/session-fabric";
-import { makeCurrentSessionResumable, makeRefuseSubsessionAttach, SubsessionAttachRefused } from "@antumbra/sessions";
+import { makeRefuseSubsessionAttach, SubsessionAttachRefused } from "@antumbra/sessions";
+import { CurrentSessions } from "@antumbra/sessions/current/service";
 import { expect, it } from "@effect/vitest";
 import { Effect, Layer, Result, Stream } from "effect";
 import { domainKernelLayer, sightSourceTestLayer } from "#test/domain-layers.ts";
@@ -76,9 +77,9 @@ it.live("a subsession is never a resume target", () =>
 			);
 			yield* openSubsession("session-child", receipt.agentId, receipt.sessionId, receipt.sessionId);
 
-			const resumable = yield* makeCurrentSessionResumable;
-			expect(Result.isSuccess((yield* resumable(receipt.sessionId)).session)).toBe(true);
-			const child = (yield* resumable("session-child")).session;
+			const current = yield* CurrentSessions;
+			expect(Result.isSuccess(yield* current.resumable(receipt.sessionId))).toBe(true);
+			const child = yield* current.resumable("session-child");
 			expect(Result.isFailure(child)).toBe(true);
 			if (Result.isFailure(child)) {
 				expect(child.failure._tag).toBe("no-root");

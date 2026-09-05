@@ -1,33 +1,19 @@
-import type { ProclaimRequest, RulingView } from "@antumbra/contract";
+import type { ProclaimRequest } from "@antumbra/contract";
+import { useStore } from "@tanstack/react-form";
+import { Schema } from "effect";
 import { ScrollTextIcon } from "lucide-react";
 import { useState } from "react";
+import { useRequestForm } from "#adapters/form.ts";
 import { proclaimRuling } from "#adapters/trpc-rulings.ts";
 import { Button } from "#components/ui/button.tsx";
 import { Dialog, DialogContent, DialogTrigger } from "#components/ui/dialog.tsx";
 import { DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "#components/ui/dialog-sections.tsx";
-import { Input } from "#components/ui/input.tsx";
-import { Textarea } from "#components/ui/textarea.tsx";
-import { rulingRadii, rulingUrgencies } from "#rulings/labels.ts";
-import { LabelledField } from "#views/field.tsx";
-import { AxisSelect } from "#views/ruling-axis-select.tsx";
+import { RequestForm } from "#forms/view.tsx";
+import { axisSchema, defaultAxes, RulingAxisFields } from "#views/ruling-axis-fields.tsx";
 
-interface Written {
-	readonly answer: string;
-	readonly context: string;
-	readonly question: string;
-	readonly radius: RulingView["radius"];
-	readonly tags: string;
-	readonly urgency: RulingView["urgency"];
-}
-
-const BLANK: Written = {
-	answer: "",
-	context: "",
-	question: "",
-	radius: "fleet",
-	tags: "",
-	urgency: "eventual",
-};
+const requiredText = Schema.String.check(Schema.isPattern(/\S/));
+const draftSchema = Schema.Struct({ ...axisSchema.fields, answer: requiredText, context: requiredText, question: requiredText, tags: Schema.String });
+const blank: typeof draftSchema.Type = { ...defaultAxes, answer: "", context: "", question: "", tags: "" };
 
 const tagsOf = (written: string): ReadonlyArray<string> =>
 	written
@@ -35,7 +21,7 @@ const tagsOf = (written: string): ReadonlyArray<string> =>
 		.map((tag) => tag.trim())
 		.filter((tag) => tag !== "");
 
-const proclamationOf = (written: Written): ProclaimRequest => {
+const proclamationOf = (written: typeof draftSchema.Type): ProclaimRequest => {
 	const tags = tagsOf(written.tags);
 	return {
 		answer: written.answer.trim(),
@@ -47,21 +33,18 @@ const proclamationOf = (written: Written): ProclaimRequest => {
 	};
 };
 
-const unwritten = (written: Written): boolean => written.answer.trim() === "" || written.context.trim() === "" || written.question.trim() === "";
-
-export const RulingProclaim = ({ onError }: { readonly onError: (message: string) => void }) => {
+export const RulingProclaim = () => {
 	const [open, setOpen] = useState(false);
-	const [written, setWritten] = useState(BLANK);
-	const write = <Key extends keyof Written>(key: Key, value: Written[Key]) => setWritten((current) => ({ ...current, [key]: value }));
-	const proclaim = () =>
-		proclaimRuling(
-			proclamationOf(written),
-			() => {
-				setWritten(BLANK);
-				setOpen(false);
-			},
-			onError,
-		);
+	const form = useRequestForm({
+		defaultValues: blank,
+		schema: draftSchema,
+		request: (value) => proclaimRuling(proclamationOf(value)),
+		resetAfterSuccess: () => blank,
+		onSuccess: () => setOpen(false),
+	});
+	const unwritten = useStore(form.store, (state) =>
+		[state.values.question, state.values.context, state.values.answer].some((text) => text.trim() === ""),
+	);
 	return (
 		<Dialog onOpenChange={setOpen} open={open}>
 			<DialogTrigger asChild>
@@ -77,31 +60,20 @@ export const RulingProclaim = ({ onError }: { readonly onError: (message: string
 						A rule of your own stands at once. Write the context a reader will need long after the work that prompted it.
 					</DialogDescription>
 				</DialogHeader>
-				<LabelledField label="Question">
-					{(id) => <Input id={id} onChange={(event) => write("question", event.target.value)} value={written.question} />}
-				</LabelledField>
-				<LabelledField label="Context">
-					{(id) => <Textarea id={id} onChange={(event) => write("context", event.target.value)} rows={3} value={written.context} />}
-				</LabelledField>
-				<LabelledField label="Your answer">
-					{(id) => <Textarea id={id} onChange={(event) => write("answer", event.target.value)} rows={3} value={written.answer} />}
-				</LabelledField>
-				<LabelledField label="Tags">
-					{(id) => <Input id={id} onChange={(event) => write("tags", event.target.value)} value={written.tags} />}
-				</LabelledField>
-				<div className="flex min-w-0 flex-wrap items-end gap-2">
-					<LabelledField label="Radius">
-						{(id) => <AxisSelect id={id} onChange={(word) => write("radius", word)} value={written.radius} words={rulingRadii} />}
-					</LabelledField>
-					<LabelledField label="Urgency">
-						{(id) => <AxisSelect id={id} onChange={(word) => write("urgency", word)} value={written.urgency} words={rulingUrgencies} />}
-					</LabelledField>
-				</div>
-				<DialogFooter>
-					<Button disabled={unwritten(written)} onClick={proclaim} type="button">
-						Proclaim
-					</Button>
-				</DialogFooter>
+				<RequestForm form={form}>
+					<form.AppField name="question">{(field) => <field.TextField label="Question" />}</form.AppField>
+					<form.AppField name="context">{(field) => <field.TextareaField label="Context" />}</form.AppField>
+					<form.AppField name="answer">{(field) => <field.TextareaField label="Your answer" />}</form.AppField>
+					<form.AppField name="tags">{(field) => <field.TextField label="Tags" />}</form.AppField>
+					<div className="flex min-w-0 flex-wrap items-end gap-2">
+						<RulingAxisFields form={form} fields={{ radius: "radius", urgency: "urgency" }} />
+					</div>
+					<DialogFooter>
+						<form.Submit disabled={unwritten} pending="Proclaiming…">
+							Proclaim
+						</form.Submit>
+					</DialogFooter>
+				</RequestForm>
 			</DialogContent>
 		</Dialog>
 	);

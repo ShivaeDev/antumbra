@@ -8,8 +8,6 @@ export {
 	CurrentSessionInvalid,
 } from "#current/errors.ts";
 export { newestSession } from "#current/order.ts";
-export { makeCurrentSessionReconciler } from "#current/reconcile.ts";
-export { makeCurrentSessionResumable } from "#current/resumable.ts";
 export {
 	SessionEnded,
 	SessionIdentityMissing,

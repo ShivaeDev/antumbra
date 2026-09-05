@@ -80,7 +80,7 @@ type Mounted = Effect.Success<ReturnType<typeof mount>>;
 
 const showing = (mounted: Mounted, view: OpenRulingsView): Effect.Effect<void> =>
 	Effect.gen(function* () {
-		yield* settle(() => mounted.root.render(<RulingsPanel onError={() => undefined} />));
+		yield* settle(() => mounted.root.render(<RulingsPanel />));
 		yield* settle(() => opened.at(-1)?.(view));
 	});
 
@@ -201,11 +201,11 @@ it.effect("retains a failed note and clears it only after a successful retry", (
 		yield* showing(mounted, { rulings: [shoal] });
 		yield* opening(mounted, "Ask them for more");
 		yield* writing(mounted, "What do you need from them?", "   ");
-		yield* settle(() => mounted.container.querySelector("form")?.requestSubmit());
+		yield* settle(() => mounted.container.querySelector("input")?.form?.requestSubmit());
 		expect(askMoreOnRuling).not.toHaveBeenCalled();
 		expect(mounted.container.querySelector("input")?.getAttribute("aria-invalid")).toBe("true");
 		yield* writing(mounted, "What do you need from them?", "  which edition?  ");
-		yield* settle(() => mounted.container.querySelector("form")?.requestSubmit());
+		yield* settle(() => mounted.container.querySelector("input")?.form?.requestSubmit());
 		yield* Deferred.await(requested);
 		expect(askMoreOnRuling).toHaveBeenCalledWith({ note: "which edition?", rulingId: "ruling-1" });
 		expect(buttonSaying(mounted, "Asking…")?.disabled).toBe(true);

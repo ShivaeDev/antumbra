@@ -1,5 +1,5 @@
 import { expect, it } from "@effect/vitest";
-import { pieceOutcomeTally } from "#outcome-status.ts";
+import { pieceOutcomeTallies } from "#outcome-status.ts";
 import { change, crewing, finished, piece, stateOf, withChanges, world } from "#test/piece-ladder-fixtures.ts";
 
 it("a piece someone is working reads active whatever it is waiting on", () => {
@@ -21,7 +21,7 @@ it("a piece is shipped only when all of its work is done", () => {
 
 it("a landed piece reads done while no crew is working it", () => {
 	const shipped = withChanges(["landed", "landed"], crewing("alpha", "idle"));
-	expect(pieceOutcomeTally(shipped, "alpha")).toEqual({
+	expect(pieceOutcomeTallies(shipped).get("alpha")).toEqual({
 		landed: 2,
 		pending: 0,
 	});
@@ -30,7 +30,7 @@ it("a landed piece reads done while no crew is working it", () => {
 
 it("work asked for again on a landed piece puts it back in progress", () => {
 	const redone = withChanges(["landed"], crewing("alpha", "active"));
-	expect(pieceOutcomeTally(redone, "alpha")).toEqual({ landed: 1, pending: 0 });
+	expect(pieceOutcomeTallies(redone).get("alpha")).toEqual({ landed: 1, pending: 0 });
 	expect(stateOf(redone)).toBe("active");
 });
 

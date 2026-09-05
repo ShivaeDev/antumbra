@@ -2,7 +2,7 @@ import type { AgentPrompt } from "@antumbra/prompts";
 import { BackendCapacities } from "@antumbra/provider-capacity/service";
 import { SessionFabric } from "@antumbra/session-fabric";
 import { Effect, type Scope } from "effect";
-import { makeCurrentSessionRecovery } from "#current/recovery.ts";
+import { CurrentSessions } from "#current/service.ts";
 import { promptInput } from "#input.ts";
 import { openSession } from "#send/open.ts";
 import { rouseSession } from "#send/rouse.ts";
@@ -21,6 +21,6 @@ export const sendPrompt = (scope: Scope.Scope) =>
 		}
 		// An attachment may detach after `holds`; the same words then follow the wake path.
 		yield* fabric.send(sessionId, promptInput(prompt)).pipe(Effect.catchTag("SessionNotLive", () => rouse));
-		const recovery = yield* makeCurrentSessionRecovery;
+		const recovery = yield* CurrentSessions;
 		yield* recovery.awaken(sessionId);
 	});

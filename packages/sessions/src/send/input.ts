@@ -2,7 +2,7 @@ import { BackendCapacities } from "@antumbra/provider-capacity/service";
 import { SessionFabric } from "@antumbra/session-fabric";
 import { type SessionInputDraft, SessionInputNotFound, SessionInputs } from "@antumbra/session-inputs";
 import { Effect, type Scope } from "effect";
-import { makeCurrentSessionRecovery } from "#current/recovery.ts";
+import { CurrentSessions } from "#current/service.ts";
 import { admiralInput } from "#input.ts";
 import { makeSessionInputAdmission } from "#input-admission.ts";
 import type { SessionSendReceipt } from "#send/errors.ts";
@@ -17,7 +17,7 @@ export const sendInput = (scope: Scope.Scope) =>
 		const fabric = yield* SessionFabric;
 		const capacities = yield* BackendCapacities;
 		const inputs = yield* SessionInputs;
-		const recovery = yield* makeCurrentSessionRecovery;
+		const recovery = yield* CurrentSessions;
 		const sessionId = draft.sessionId;
 		const inputId = draft.id;
 		const session = yield* openSession(sessionId);

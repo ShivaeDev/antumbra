@@ -1,33 +1,31 @@
 import { Database } from "@antumbra/persistence";
-import { expect, it } from "@effect/vitest";
-import { Effect, Option } from "effect";
+import { it } from "@antumbra/testing";
+import { expect } from "@effect/vitest";
+import { Option } from "effect";
 import { AgentDomain } from "#domain.ts";
-import { withFlagshipCaptain } from "#test/flagship-fixtures.ts";
+import { flagshipCaptain } from "#test/flagship-fixtures.ts";
 import { callTool } from "#test/harness.ts";
 import { aliveAgent, openReefVoyage, terminalIntent } from "#test/voyage-fixtures.ts";
 
-it.live("the flagship's captain hails a voyage's captain", () =>
-	withFlagshipCaptain((captain) =>
-		Effect.gen(function* () {
-			const db = yield* Database;
-			const domain = yield* AgentDomain;
-			const reef = yield* openReefVoyage;
+it.effectApp("the flagship's captain hails a voyage's captain", function* ({ scripted }) {
+	const { captain } = yield* flagshipCaptain(scripted);
+	const db = yield* Database;
+	const domain = yield* AgentDomain;
+	const reef = yield* openReefVoyage;
 
-			const first = yield* callTool(captain, "hail_captain", {
-				voyageId: reef.id,
-			});
+	const first = yield* callTool(captain, "hail_captain", {
+		voyageId: reef.id,
+	});
 
-			expect(first.ok).toBe(true);
-			const [, agentId = "", spawnIntentId = ""] = /^hailed captain (\S+) of voyage (?:\S+) — intent (\S+)$/.exec(first.text) ?? [];
-			expect(first.text).toBe(`hailed captain ${agentId} of voyage ${reef.id} — intent ${spawnIntentId}`);
-			expect(Option.getOrThrow(yield* db.Intent.where({ id: spawnIntentId }).first()).tag).toBe("agent/spawn");
-			expect(yield* terminalIntent(spawnIntentId)).toBe("succeeded");
-			yield* aliveAgent(agentId);
-			const view = Option.getOrThrow(yield* domain.voyages.read(reef.id));
-			expect(Option.getOrThrow(view.captain)).toMatchObject({
-				agentId,
-				status: "alive",
-			});
-		}),
-	),
-);
+	expect(first.ok).toBe(true);
+	const [, agentId = "", spawnIntentId = ""] = /^hailed captain (\S+) of voyage (?:\S+) — intent (\S+)$/.exec(first.text) ?? [];
+	expect(first.text).toBe(`hailed captain ${agentId} of voyage ${reef.id} — intent ${spawnIntentId}`);
+	expect(Option.getOrThrow(yield* db.Intent.where({ id: spawnIntentId }).first()).tag).toBe("agent/spawn");
+	expect(yield* terminalIntent(spawnIntentId)).toBe("succeeded");
+	yield* aliveAgent(agentId);
+	const view = Option.getOrThrow(yield* domain.voyages.read(reef.id));
+	expect(Option.getOrThrow(view.captain)).toMatchObject({
+		agentId,
+		status: "alive",
+	});
+});

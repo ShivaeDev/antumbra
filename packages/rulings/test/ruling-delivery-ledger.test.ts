@@ -1,8 +1,10 @@
-import { Rulings } from "@antumbra/rulings";
+import { DomainFeedsLive } from "@antumbra/domain-feeds";
+import { it } from "@antumbra/persistence/testing";
+import { Rulings, RulingsLive } from "@antumbra/rulings";
 import { expect } from "@effect/vitest";
-import { Effect, Option } from "effect";
+import { Effect, Layer, Option } from "effect";
 import { TestClock } from "effect/testing";
-import { asked, it, layer, seedFleet } from "#test/rulings-harness.ts";
+import { asked, seedFleet } from "#test/rulings-harness.ts";
 
 const ruledIn = (order: string) =>
 	Effect.gen(function* () {
@@ -16,7 +18,7 @@ const ruledIn = (order: string) =>
 		return requested.id;
 	});
 
-it.effectApp("owes delivery on every answer, oldest ruled first", function* () {
+it.effectDB("owes delivery on every answer, oldest ruled first", function* () {
 	yield* Effect.gen(function* () {
 		yield* seedFleet;
 		const rulings = yield* Rulings;
@@ -28,10 +30,10 @@ it.effectApp("owes delivery on every answer, oldest ruled first", function* () {
 		const awaiting = yield* rulings.awaitingDelivery();
 
 		expect(awaiting.map((ruling) => ruling.id)).toEqual([first, second]);
-	}).pipe(Effect.provide(layer));
+	}).pipe(Effect.provide(RulingsLive.pipe(Layer.provide(DomainFeedsLive))));
 });
 
-it.effectApp("stops owing an answer once it is marked", function* ({ db }) {
+it.effectDB("stops owing an answer once it is marked", function* (db) {
 	yield* Effect.gen(function* () {
 		yield* seedFleet;
 		const rulings = yield* Rulings;
@@ -44,13 +46,13 @@ it.effectApp("stops owing an answer once it is marked", function* ({ db }) {
 		expect((yield* rulings.awaitingDelivery()).map((ruling) => ruling.id)).toEqual([second]);
 		const row = Option.getOrThrow(yield* db.Ruling.where({ id: first }).first());
 		expect(row.deliveredAt).toBeInstanceOf(Date);
-	}).pipe(Effect.provide(layer));
+	}).pipe(Effect.provide(RulingsLive.pipe(Layer.provide(DomainFeedsLive))));
 });
 
-it.effectApp("refuses to mark a ruling nothing asked", function* () {
+it.effectDB("refuses to mark a ruling nothing asked", function* () {
 	yield* Effect.gen(function* () {
 		const rulings = yield* Rulings;
 
 		expect(yield* Effect.flip(rulings.markDelivered("ruling-missing"))).toMatchObject({ _tag: "RulingNotFound", rulingId: "ruling-missing" });
-	}).pipe(Effect.provide(layer));
+	}).pipe(Effect.provide(RulingsLive.pipe(Layer.provide(DomainFeedsLive))));
 });

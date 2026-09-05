@@ -1,10 +1,10 @@
 import { Rulings } from "@antumbra/rulings";
+import { it } from "@antumbra/testing";
 import { expect } from "@effect/vitest";
 import { Effect, Option } from "effect";
 import { AgentDomain } from "#domain.ts";
 import { ASKER, crewLadder, type Ladder } from "#test/captain-verdict-fixtures.ts";
 import { callTool } from "#test/harness.ts";
-import { it } from "#test/runtime-harness.ts";
 
 const PIECE = {
 	charter: "sound the eastern shoal",

@@ -1,8 +1,9 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Rulings } from "@antumbra/rulings";
+import { it } from "@antumbra/testing";
 import { expect } from "@effect/vitest";
 import { Effect, Option, PubSub } from "effect";
-import { asked, it, layer, seedFleet } from "#test/rulings-harness.ts";
+import { asked, seedFleet } from "#test/rulings-harness.ts";
 
 const recommended = {
 	...asked,
@@ -11,29 +12,25 @@ const recommended = {
 } as const;
 
 it.effectApp("marks the offered choice the asker would take and keeps its reasoning", function* () {
-	yield* Effect.gen(function* () {
-		yield* seedFleet;
-		const rulings = yield* Rulings;
+	yield* seedFleet;
+	const rulings = yield* Rulings;
 
-		const ruling = yield* rulings.request(recommended);
+	const ruling = yield* rulings.request(recommended);
 
-		const chart = ruling.choices.find((choice) => choice.label === "trust the chart");
-		expect(ruling.recommendation).toEqual(Option.some({ choiceId: chart?.id, reasoning: "the chart was surveyed at slack water" }));
-		expect(ruling.choices.map((choice) => choice.label)).toEqual(["trust the soundings", "trust the chart"]);
-		expect(yield* rulings.get(ruling.id)).toEqual(ruling);
-	}).pipe(Effect.provide(layer));
+	const chart = ruling.choices.find((choice) => choice.label === "trust the chart");
+	expect(ruling.recommendation).toEqual(Option.some({ choiceId: chart?.id, reasoning: "the chart was surveyed at slack water" }));
+	expect(ruling.choices.map((choice) => choice.label)).toEqual(["trust the soundings", "trust the chart"]);
+	expect(yield* rulings.get(ruling.id)).toEqual(ruling);
 });
 
 it.effectApp("offers the recommended answer as the only choice when the asker offered none", function* () {
-	yield* Effect.gen(function* () {
-		yield* seedFleet;
-		const rulings = yield* Rulings;
+	yield* seedFleet;
+	const rulings = yield* Rulings;
 
-		const ruling = yield* rulings.request({ ...asked, recommendation: { choice: "resurvey the shoal", reasoning: "both readings are stale" } });
+	const ruling = yield* rulings.request({ ...asked, recommendation: { choice: "resurvey the shoal", reasoning: "both readings are stale" } });
 
-		expect(ruling.choices.map((choice) => [choice.position, choice.label])).toEqual([[0, "resurvey the shoal"]]);
-		expect(ruling.recommendation).toEqual(Option.some({ choiceId: ruling.choices[0]?.id, reasoning: "both readings are stale" }));
-	}).pipe(Effect.provide(layer));
+	expect(ruling.choices.map((choice) => [choice.position, choice.label])).toEqual([[0, "resurvey the shoal"]]);
+	expect(ruling.recommendation).toEqual(Option.some({ choiceId: ruling.choices[0]?.id, reasoning: "both readings are stale" }));
 });
 
 it.effectApp("refuses a recommendation the asker never offered and stores nothing", function* ({ db }) {
@@ -57,16 +54,14 @@ it.effectApp("refuses a recommendation the asker never offered and stores nothin
 			expect(yield* db.RulingChoice.all()).toEqual([]);
 			expect(yield* PubSub.takeUpTo(notices, 1)).toEqual([]);
 		}),
-	).pipe(Effect.provide(layer));
+	);
 });
 
 it.effectApp("a request without a recommendation reads as carrying none", function* () {
-	yield* Effect.gen(function* () {
-		yield* seedFleet;
-		const rulings = yield* Rulings;
+	yield* seedFleet;
+	const rulings = yield* Rulings;
 
-		const ruling = yield* rulings.request(asked);
+	const ruling = yield* rulings.request(asked);
 
-		expect(Option.isNone(ruling.recommendation)).toBe(true);
-	}).pipe(Effect.provide(layer));
+	expect(Option.isNone(ruling.recommendation)).toBe(true);
 });

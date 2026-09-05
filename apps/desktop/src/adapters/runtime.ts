@@ -1,26 +1,8 @@
 import { claudePlugin } from "@antumbra/backend-claude";
 import { codexPlugin } from "@antumbra/backend-codex";
 import { opencodePlugin } from "@antumbra/backend-opencode";
-import {
-	AgentDomain,
-	AgentDomainLive,
-	BackendCapacityReleases,
-	ChangeWatcher,
-	DispatcherLive,
-	FlagshipLive,
-	IntentFeedLive,
-	KernelReachLive,
-	RulingAscent,
-	RulingDeliveryLive,
-	RulingSourceLive,
-	SessionShutdownLive,
-	SettingsSourceLive,
-	SightSourceLive,
-	VoyageSourceLive,
-} from "@antumbra/domain";
+import { applicationLayers as domainApplicationLayers } from "@antumbra/domain";
 import { githubPlugin } from "@antumbra/github";
-import { IntentDemandLive } from "@antumbra/intent-demand";
-import { KernelLive } from "@antumbra/kernel";
 import { databaseFileInDataDirectory, PersistenceLive } from "@antumbra/persistence";
 import { makePluginHost } from "@antumbra/plugin-api";
 import { localRunnerPlugin } from "@antumbra/runner-local";
@@ -44,7 +26,7 @@ const persistence = Layer.unwrap(
 	),
 );
 
-const agents = Layer.unwrap(
+const application = Layer.unwrap(
 	Effect.gen(function* () {
 		const host = yield* makePluginHost({ findExecutable: findOnLoginPath });
 		const runnerPlugin = localRunnerPlugin(runnerRootsInDataDirectory(configureDataDirectory()));
@@ -53,7 +35,7 @@ const agents = Layer.unwrap(
 		yield* Effect.orDie(opencodePlugin({ cwd: configureDataDirectory() }).activate(host.context));
 		yield* Effect.orDie(runnerPlugin.activate(host.context));
 		yield* Effect.orDie(githubPlugin().activate(host.context));
-		return AgentDomainLive(
+		return domainApplicationLayers(
 			yield* host.backends,
 			yield* host.runners,
 			yield* host.changeHosts,
@@ -63,35 +45,4 @@ const agents = Layer.unwrap(
 	}),
 );
 
-const kernel = Layer.unwrap(
-	Effect.gen(function* () {
-		const domain = yield* AgentDomain;
-		return KernelLive({ kinds: domain.kinds });
-	}),
-).pipe(Layer.provideMerge(agents));
-
-export const applicationLayers = () =>
-	Layer.mergeAll(
-		RulingSourceLive,
-		SightSourceLive,
-		VoyageSourceLive,
-		ChangeWatcher(),
-		DispatcherLive(),
-		Layer.unwrap(
-			Effect.gen(function* () {
-				const domain = yield* AgentDomain;
-				return IntentDemandLive(domain.intentDemands);
-			}),
-		),
-		FlagshipLive,
-		IntentFeedLive,
-		KernelReachLive,
-		RulingAscent,
-		RulingDeliveryLive,
-		SessionShutdownLive,
-	).pipe(
-		Layer.provideMerge(BackendCapacityReleases.layer),
-		Layer.provideMerge(kernel),
-		Layer.provideMerge(SettingsSourceLive),
-		Layer.provideMerge(persistence),
-	);
+export const applicationLayers = () => application.pipe(Layer.provideMerge(persistence));

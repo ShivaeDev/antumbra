@@ -8,7 +8,6 @@ import { type ScriptedBackend, type ScriptedSession, sessionFor } from "#test/ha
 import { eventually, openReefVoyage, terminalIntent } from "#test/voyage-fixtures.ts";
 
 export const ASKER = "agent-asker";
-const FLAGSHIP_ID = "voyage-flagship";
 
 export interface Ladder {
 	readonly captain: ScriptedSession;
@@ -33,16 +32,9 @@ const seedAsker = (voyageId: string) =>
 
 const openFlagship = Effect.gen(function* () {
 	const db = yield* Database;
-	yield* db.Voyage.create({
-		captainBackend: "scripted",
-		context: "Fleet-level rulings and findings belong here.",
-		crewBackend: "scripted",
-		focusedAt: null,
-		id: FLAGSHIP_ID,
-		kind: "flagship",
-		name: "Flagship",
-		northStar: "The fleet sails well.",
-	});
+	const flagship = Option.getOrThrow(yield* db.Voyage.where({ kind: "flagship" }).first());
+	yield* db.Voyage.where({ id: flagship.id }).update({ captainBackend: "scripted" });
+	return flagship.id;
 });
 
 export const ask = (radius: "fleet" | "voyage", rung: "captain" | "flagship") =>
@@ -75,9 +67,9 @@ const hailed = (scripted: ScriptedBackend, voyageId: string) =>
 export const crewLadder = Effect.fnUntraced(function* (scripted: ScriptedBackend) {
 	const voyage = yield* openReefVoyage;
 	yield* seedAsker(voyage.id);
-	yield* openFlagship;
+	const flagshipId = yield* openFlagship;
 	const captain = yield* hailed(scripted, voyage.id);
-	const flagship = yield* hailed(scripted, FLAGSHIP_ID);
+	const flagship = yield* hailed(scripted, flagshipId);
 	return {
 		captain: captain.session,
 		captainAgentId: captain.agentId,

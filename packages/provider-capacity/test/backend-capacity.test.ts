@@ -1,6 +1,7 @@
+import { DomainFeedsLive } from "@antumbra/domain-feeds";
+import { it } from "@antumbra/persistence/testing";
 import { type AgentBackend, makeBackendCapacityController } from "@antumbra/plugin-api";
 import { makeScriptedBackend } from "@antumbra/testing-runtime";
-import { it } from "@antumbra/testing-runtime/domain";
 import type { AgentEvent } from "@antumbra/vocabulary/session-events";
 import { expect } from "@effect/vitest";
 import { Clock, Context, Effect, Layer, Option } from "effect";
@@ -14,7 +15,7 @@ const quotaRaw = {
 
 const quotaEvent: AgentEvent = { raw: quotaRaw, type: "raw" };
 
-it.effectApp("recovers a provider-wide hold from durable session evidence", function* ({ db }) {
+it.effectDB("recovers a provider-wide hold from durable session evidence", function* (db) {
 	yield* Effect.scoped(
 		Effect.gen(function* () {
 			const scripted = yield* makeScriptedBackend;
@@ -96,7 +97,10 @@ it.effectApp("recovers a provider-wide hold from durable session evidence", func
 				sessionId: "session-2",
 			});
 
-			const capacities = Context.get(yield* Layer.build(BackendCapacitiesLive(new Map([[backend.tag, backend]]))), BackendCapacities);
+			const capacities = Context.get(
+				yield* Layer.build(BackendCapacitiesLive(new Map([[backend.tag, backend]])).pipe(Layer.provide(DomainFeedsLive))),
+				BackendCapacities,
+			);
 			expect(yield* capacities.current("scripted")).toMatchObject({
 				observedAt: new Date(42),
 				reason: "usage-limit",
@@ -131,7 +135,10 @@ it.effectApp("recovers a provider-wide hold from durable session evidence", func
 				seq: 1,
 				sessionId: "session-1",
 			});
-			const recoveredAgain = Context.get(yield* Layer.build(BackendCapacitiesLive(new Map([[backend.tag, backend]]))), BackendCapacities);
+			const recoveredAgain = Context.get(
+				yield* Layer.build(BackendCapacitiesLive(new Map([[backend.tag, backend]])).pipe(Layer.provide(DomainFeedsLive))),
+				BackendCapacities,
+			);
 			expect(yield* recoveredAgain.current("scripted")).toMatchObject({
 				status: "available",
 			});

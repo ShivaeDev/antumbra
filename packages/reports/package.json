@@ -20,7 +20,8 @@
 		"@types/node": "catalog:",
 		"@typescript/native": "catalog:",
 		"typescript": "catalog:",
-		"vitest": "catalog:"
+		"vitest": "catalog:",
+		"@antumbra/testing": "workspace:*"
 	},
 	"dependencies": {
 		"@antumbra/domain-feeds": "workspace:*",

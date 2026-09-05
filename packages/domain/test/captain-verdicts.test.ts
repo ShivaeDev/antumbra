@@ -1,9 +1,9 @@
 import { Rulings } from "@antumbra/rulings";
+import { it } from "@antumbra/testing";
 import { expect } from "@effect/vitest";
 import { Option } from "effect";
 import { ask, crewLadder, delivered, standing, unruled } from "#test/captain-verdict-fixtures.ts";
 import { callTool } from "#test/harness.ts";
-import { it } from "#test/runtime-harness.ts";
 
 it.effectApp("a captain settles the question its own crew asked", { clock: "live" }, function* ({ scripted }) {
 	const ladder = yield* crewLadder(scripted);

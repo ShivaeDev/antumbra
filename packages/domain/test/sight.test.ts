@@ -1,10 +1,10 @@
 import { SightSource } from "@antumbra/contract";
 import { DomainFeeds, type StoredEvent } from "@antumbra/domain-feeds";
 import { Database } from "@antumbra/persistence";
+import { it } from "@antumbra/testing";
 import { expect } from "@effect/vitest";
 import { Effect, Fiber, Stream } from "effect";
 import { standDown } from "#test/harness.ts";
-import { it } from "#test/runtime-harness.ts";
 import { eventually, liveSession, note, spawnRequest } from "#test/sight-fixture.ts";
 
 it.effectApp("spawn surfaces on the fleet feed once the agent lives", { clock: "live" }, function* () {

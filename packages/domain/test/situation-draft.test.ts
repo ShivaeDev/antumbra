@@ -1,6 +1,11 @@
+import { Database } from "@antumbra/persistence";
 import { expect, it } from "@effect/vitest";
-import { situationWords } from "#situation-draft.ts";
+import { Effect } from "effect";
+import { makeSituationDraft } from "#situation/draft.ts";
+import { situationWords } from "#situation/words.ts";
 import { changeOf } from "#test/change-fixtures.ts";
+import { domainCapabilityLayer } from "#test/domain-layers.ts";
+import { acquireTemporaryPersistence } from "#test/harness.ts";
 
 const CHANGE = changeOf({
 	headRef: "chart-the-shoals",
@@ -31,3 +36,41 @@ it("every draft names the change, its branch and the repo it lives in", () => {
 		expect(words).toContain("Reef-Charts");
 	}
 });
+
+it.live("drafts name the requested change and its registered repo, falling back to the repo id", () =>
+	Effect.gen(function* () {
+		const temporary = yield* acquireTemporaryPersistence;
+		yield* Effect.gen(function* () {
+			const db = yield* Database;
+			yield* db.Repo.create({ id: CHANGE.repoId, name: "Reef-Charts", source: "/reefs/charts", defaultRef: "main" });
+			yield* db.Change.create(CHANGE);
+			yield* db.Change.create(changeOf({ id: "unrelated", repoId: "elsewhere", headRef: "another-branch", stage: "open" }));
+			const draft = yield* makeSituationDraft();
+			const request = { changeId: CHANGE.id, situation: "checks_failed" } as const;
+			const named = yield* draft(request);
+			expect(named).toContain("#42");
+			expect(named).toContain(CHANGE.headRef);
+			expect(named).toContain("Reef-Charts");
+			expect(named).not.toContain("another-branch");
+			yield* db.Repo.where({ id: CHANGE.repoId }).delete();
+			expect(yield* draft(request)).toContain(CHANGE.repoId);
+		}).pipe(Effect.provide(domainCapabilityLayer(temporary)));
+	}),
+);
+
+it.live("missing and unpublished changes cannot be addressed by a situation draft", () =>
+	Effect.gen(function* () {
+		const temporary = yield* acquireTemporaryPersistence;
+		yield* Effect.gen(function* () {
+			const db = yield* Database;
+			yield* db.Change.create({ ...CHANGE, stage: "prepared", externalId: null });
+			const draft = yield* makeSituationDraft();
+			for (const changeId of ["missing", CHANGE.id]) {
+				expect(yield* Effect.flip(draft({ changeId, situation: "merge_conflicts" }))).toMatchObject({
+					_tag: "ChangeNotAddressable",
+					changeId,
+				});
+			}
+		}).pipe(Effect.provide(domainCapabilityLayer(temporary)));
+	}),
+);

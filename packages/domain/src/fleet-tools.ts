@@ -4,7 +4,7 @@ import { type Ruling, type RulingProclamation, Rulings } from "@antumbra/rulings
 import { AGENT_BACKEND_TAGS } from "@antumbra/vocabulary/agent-backend";
 import { Effect } from "effect";
 import { makeCaptainToolCompiler } from "#captain-tools.ts";
-import { makeEdgeCharter } from "#charter-edge.ts";
+import { makeReportingCharter, withNotice } from "#charter-notice.ts";
 import { renderFleet } from "#fleet-render.ts";
 import type { HailedCaptain } from "#hail.ts";
 import { tagSubjects } from "#ruling-inputs.ts";
@@ -35,7 +35,7 @@ const proclaimed = (ruling: Ruling): string =>
 
 export const makeFleetToolCompiler = Effect.gen(function* () {
 	const compileCaptainTools = yield* makeCaptainToolCompiler;
-	const charter = yield* makeEdgeCharter;
+	const charter = yield* makeReportingCharter;
 	const rulings = yield* Rulings;
 	const voyages = yield* VoyageProcedureService;
 	const fleetActs = (identity: SessionIdentity): ReadonlyArray<DirectTool> => [
@@ -65,7 +65,7 @@ export const makeFleetToolCompiler = Effect.gen(function* () {
 					title: input.title,
 					voyageId: input.voyageId,
 				}),
-				(piece) => `chartered ${piece.id} on voyage ${input.voyageId}`,
+				(chartered) => withNotice(chartered, `chartered ${chartered.piece.id} on voyage ${input.voyageId}`),
 			),
 		),
 		bind(hailCaptainSpec, (input) => answered(identity, hailCaptainSpec.name, voyages.hail(input.voyageId), hailed(input.voyageId))),

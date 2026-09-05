@@ -1,7 +1,7 @@
 import type { ChangeRow } from "@antumbra/changes";
 import { type ChangeView, changeView, repoNameOf } from "#change-view.ts";
-import { liesAtQuay, type QuayGroup, quayGroup } from "#quay-group.ts";
-import type { VoyageWorld } from "#voyage-rows.ts";
+import { liesAtQuay, type QuayGroup, quayGroup } from "#quay/group.ts";
+import type { QuayRecords } from "#quay/records.ts";
 
 interface QuayBerthing {
 	readonly pieceId: string;
@@ -31,7 +31,7 @@ export interface QuayReading {
 	readonly rows: ReadonlyArray<QuayRow>;
 }
 
-const berthingsOf = (world: VoyageWorld, pieceId: string): ReadonlyArray<QuayBerthing> => {
+const berthingsOf = (world: QuayRecords, pieceId: string): ReadonlyArray<QuayBerthing> => {
 	const piece = world.pieces.find((row) => row.id === pieceId);
 	if (piece === undefined) {
 		return [];
@@ -53,7 +53,7 @@ const berthingsOf = (world: VoyageWorld, pieceId: string): ReadonlyArray<QuayBer
 		});
 };
 
-const rowsOfChange = (world: VoyageWorld, change: ChangeRow): ReadonlyArray<QuayRow> => {
+const rowsOfChange = (world: QuayRecords, change: ChangeRow): ReadonlyArray<QuayRow> => {
 	if (!liesAtQuay(world, change)) {
 		return [];
 	}
@@ -83,10 +83,10 @@ const rowsOfChange = (world: VoyageWorld, change: ChangeRow): ReadonlyArray<Quay
 
 const byActivity = (left: QuayRow, right: QuayRow): number => right.change.activityAt.getTime() - left.change.activityAt.getTime();
 
-export const quayRows = (world: VoyageWorld): ReadonlyArray<QuayRow> =>
+export const quayRows = (world: QuayRecords): ReadonlyArray<QuayRow> =>
 	world.changes.flatMap((change) => rowsOfChange(world, change)).sort(byActivity);
 
-export const quayPieces = (world: VoyageWorld): ReadonlyArray<QuayPiece> =>
+export const quayPieces = (world: QuayRecords): ReadonlyArray<QuayPiece> =>
 	world.pieces.flatMap((piece) =>
 		berthingsOf(world, piece.id).map((berthing) => ({
 			id: berthing.pieceId,
@@ -95,7 +95,7 @@ export const quayPieces = (world: VoyageWorld): ReadonlyArray<QuayPiece> =>
 		})),
 	);
 
-export const quayReading = (world: VoyageWorld): QuayReading => ({
+export const quayReading = (world: QuayRecords): QuayReading => ({
 	pieces: quayPieces(world),
 	rows: quayRows(world),
 });

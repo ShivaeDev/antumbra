@@ -17,6 +17,7 @@ const asked = (id: string, over: Partial<Pick<Ruling, "requester" | "subjects">>
 	question: `question ${id}`,
 	radius: "voyage",
 	reclassifications: [],
+	recommendation: Option.none(),
 	requester: { agentId: "agent-hand", kind: "agent" },
 	rung: Option.some("captain"),
 	subjects: [{ id: REEF, kind: "voyage" }],

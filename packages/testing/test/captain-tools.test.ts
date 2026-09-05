@@ -1,10 +1,11 @@
-import { BoardScope } from "@antumbra/boards";
+import { BoardScope, Boards } from "@antumbra/boards";
 import { AgentDomain } from "@antumbra/domain";
 import { type IntentStatus, isTerminalIntentStatus, Kernel } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
 import { Pieces } from "@antumbra/pieces";
 import { it } from "@antumbra/testing";
 import type { ScriptedBackend, ScriptedSession } from "@antumbra/testing-runtime";
+import { Voyages } from "@antumbra/voyages";
 import { expect } from "@effect/vitest";
 import { Effect, Option, Stream } from "effect";
 
@@ -33,9 +34,9 @@ const hailedCaptain = (scripted: ScriptedBackend, voyageId: string) =>
 		return yield* sessionOf(scripted, hailed.agentId);
 	});
 
-const openReefVoyage = AgentDomain.pipe(
-	Effect.flatMap((domain) =>
-		domain.voyages.open({
+const openReefVoyage = Voyages.pipe(
+	Effect.flatMap((voyageRecords) =>
+		voyageRecords.open({
 			backend: "scripted",
 			context: "the reef is uncharted",
 			name: "Chart the reef",
@@ -60,8 +61,8 @@ const chartered = (captain: ScriptedSession, title: string, dependsOn: ReadonlyA
 
 const pieceOnAnotherVoyage = Effect.gen(function* () {
 	const pieces = yield* Pieces;
-	const domain = yield* AgentDomain;
-	const shoals = yield* domain.voyages.open({
+	const voyageRecords = yield* Voyages;
+	const shoals = yield* voyageRecords.open({
 		backend: "scripted",
 		context: "the shoals are unnamed",
 		name: "Name the shoals",
@@ -168,7 +169,7 @@ it.effectApp("rewiring onto another voyage's piece is refused, not written", { c
 
 it.effectApp("a captain may read another voyage without conning it", { clock: "live" }, function* ({ scripted }) {
 	yield* Effect.gen(function* () {
-		const domain = yield* AgentDomain;
+		const boards = yield* Boards;
 		const reef = yield* openReefVoyage;
 		const elsewhere = yield* pieceOnAnotherVoyage;
 		const captain = yield* hailedCaptain(scripted, reef.id);
@@ -192,8 +193,6 @@ it.effectApp("a captain may read another voyage without conning it", { clock: "l
 				scope: "voyage",
 			}),
 		).toEqual({ ok: true, text: "written to the voyage board" });
-		expect(yield* domain.boards.read(BoardScope.Voyage({ voyageId: reef.id }))).toMatchObject([
-			{ body: "hand the next captain the eastern approach" },
-		]);
+		expect(yield* boards.read(BoardScope.Voyage({ voyageId: reef.id }))).toMatchObject([{ body: "hand the next captain the eastern approach" }]);
 	});
 });

@@ -1,8 +1,9 @@
 import { dirname, join } from "node:path";
+import type { Boards } from "@antumbra/boards";
 import {
 	AgentDomain,
 	AgentDomainLive,
-	BackendCapacityReleaseLive,
+	BackendCapacityReleases,
 	ChangeWatcher,
 	DispatcherLive,
 	FlagshipLive,
@@ -22,6 +23,7 @@ import { Database, type DatabaseService } from "@antumbra/persistence";
 import type { TemporaryPersistence } from "@antumbra/persistence/testing";
 import type { Pieces } from "@antumbra/pieces";
 import { makeEffectApp, makeScriptedBackend, passiveRunner, type ScriptedBackend } from "@antumbra/testing-runtime";
+import type { Voyages } from "@antumbra/voyages";
 import { NodeServices } from "@effect/platform-node";
 import { type Context, Effect, Layer } from "effect";
 
@@ -30,7 +32,12 @@ interface AppHarness {
 	readonly scripted: ScriptedBackend;
 }
 
-type AppRequirements = AgentDomain | Kernel | Context.Service.Identifier<typeof Pieces>;
+type AppRequirements =
+	| AgentDomain
+	| Kernel
+	| Context.Service.Identifier<typeof Pieces>
+	| Context.Service.Identifier<typeof Voyages>
+	| Context.Service.Identifier<typeof Boards>;
 
 const applicationLayer = (temporary: TemporaryPersistence, scripted: ScriptedBackend) => {
 	const directory = dirname(temporary.database);
@@ -65,7 +72,7 @@ const applicationLayer = (temporary: TemporaryPersistence, scripted: ScriptedBac
 		RulingAscentLive,
 		RulingDeliveryLive,
 		SessionShutdownLive,
-	).pipe(Layer.provideMerge(BackendCapacityReleaseLive), Layer.provideMerge(kernel), Layer.provideMerge(SettingsSourceLive), Layer.orDie);
+	).pipe(Layer.provideMerge(BackendCapacityReleases.layer), Layer.provideMerge(kernel), Layer.provideMerge(SettingsSourceLive), Layer.orDie);
 };
 
 const makeApp = (temporary: TemporaryPersistence) =>

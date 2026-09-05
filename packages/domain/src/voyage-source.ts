@@ -1,11 +1,12 @@
 import { Artifacts } from "@antumbra/artifacts";
 import { Changes } from "@antumbra/changes";
 import { type AdoptChangeRequest, ArtifactMarkdownFailure, type ReportMarkdown, SightFailure, VoyageSource } from "@antumbra/contract";
+import { DomainFeeds } from "@antumbra/domain-feeds";
 import { type ReportReading, Reports } from "@antumbra/reports";
 import { Effect, Layer, Option } from "effect";
 import { AgentDomain } from "#agent-domain-service.ts";
-import { ChangeProcedureService } from "#change-procedures.ts";
 import { changeView } from "#change-view.ts";
+import { Quay } from "#quay/service.ts";
 import { quaySeen } from "#quay-projection.ts";
 import { failureMessage, toFailure } from "#sight-failure.ts";
 import { makeVoyageActs } from "#voyage-acts.ts";
@@ -29,7 +30,8 @@ export const VoyageSourceLive = Layer.effect(VoyageSource)(
 		const artifacts = yield* Artifacts;
 		const reports = yield* Reports;
 		const changes = yield* Changes;
-		const changeProcedures = yield* ChangeProcedureService;
+		const quayReader = yield* Quay;
+		const feeds = yield* DomainFeeds;
 		const domain = yield* AgentDomain;
 		const runtime = Effect.all({
 			attached: domain.sessionsAttached,
@@ -39,8 +41,8 @@ export const VoyageSourceLive = Layer.effect(VoyageSource)(
 		const acts = yield* makeVoyageActs(reads);
 		const refreshes = yield* makeVoyageRefreshes;
 		const quay = Effect.gen(function* () {
-			const reading = yield* changeProcedures.quay;
-			return quaySeen(reading, yield* changeProcedures.capabilities);
+			const reading = yield* quayReader.read();
+			return quaySeen(reading, yield* changes.hostCapabilities());
 		}).pipe(Effect.mapError(toFailure));
 		return {
 			...acts,
@@ -53,7 +55,7 @@ export const VoyageSourceLive = Layer.effect(VoyageSource)(
 			dismissChange: (changeId: string) => changes.dismiss(changeId).pipe(Effect.mapError(toFailure)),
 			quay,
 			quayFeed: refreshes(quay),
-			refreshChanges: changeProcedures.requestRefresh,
+			refreshChanges: feeds.publishChangeRefresh(),
 			reportMarkdown: (reportId: string) =>
 				reports.read(reportId).pipe(
 					Effect.mapError(toFailure),

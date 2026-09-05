@@ -2,10 +2,11 @@ import { isTerminalIntentStatus, Kernel, maxConcurrency } from "@antumbra/kernel
 import { Database } from "@antumbra/persistence";
 import { Pieces } from "@antumbra/pieces";
 import { makeBackendCapacityController } from "@antumbra/plugin-api";
+import { BackendCapacities } from "@antumbra/provider-capacity";
 import { expect, it } from "@effect/vitest";
 import { Clock, Deferred, Effect, Fiber, Layer, Option, Queue, Stream } from "effect";
 import { AgentDomain } from "#agent-domain-service.ts";
-import { BackendCapacityReleaseLive } from "#backend-capacity-release.ts";
+import { BackendCapacityReleases } from "#backend-capacity-releases/service.ts";
 import { makeRetryBackendCapacity } from "#backend-capacity-retry.ts";
 import { DispatcherLive } from "#dispatcher.ts";
 import { makeSightSessionEvents } from "#sight-session-events.ts";
@@ -129,7 +130,7 @@ it.live("a retried birth recovered after restart is not dispatched twice", () =>
 				status: "queued",
 			});
 			yield* Deferred.succeed(releaseSubmit, undefined);
-		}).pipe(Effect.provide(BackendCapacityReleaseLive.pipe(Layer.provideMerge(observedDispatcher))));
+		}).pipe(Effect.provide(BackendCapacityReleases.layer.pipe(Layer.provideMerge(observedDispatcher))));
 	}),
 );
 
@@ -158,7 +159,7 @@ it.live("a provider hold stops automatic wakes until the admiral retries it", ()
 		const backend = reportsNativeRef({ ...scripted.backend, capacity: capacitySource }, scripted, "native-held");
 		yield* Effect.gen(function* () {
 			const db = yield* Database;
-			const domain = yield* AgentDomain;
+			const backendCapacities = yield* BackendCapacities;
 			const sight = yield* makeSightSessionEvents;
 			const { alpha } = yield* chain;
 			yield* eventually(
@@ -189,8 +190,8 @@ it.live("a provider hold stops automatic wakes until the admiral retries it", ()
 			yield* Queue.take(blockedReads);
 			expect(yield* live.steered).not.toContain(WAKE_INSTRUCTION);
 
-			yield* domain.backendCapacities.clear("scripted");
-			yield* domain.backendCapacities.announce();
+			yield* backendCapacities.clear("scripted");
+			yield* backendCapacities.announce();
 			yield* eventually(
 				Effect.gen(function* () {
 					expect(yield* live.steered).toContain(WAKE_INSTRUCTION);

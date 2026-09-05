@@ -51,6 +51,7 @@ back. See [`docs/design/agent-recovery.md`](docs/design/agent-recovery.md).
 | `packages/resource-reclamation` | Replaceable-resource claims, guards, Runner cleanup, and recovery |
 | `packages/changes`       | Durable Change identity, submission, host reconciliation, and readiness |
 | `packages/repos`          | Application repository registry and its lifecycle               |
+| `packages/voyages`        | Durable Voyage creation, direction, and existence |
 | `packages/pieces`         | Piece acts and their graph invariants                           |
 | `packages/boards`         | Board and mailbox storage invariants                            |
 | `packages/rulings`        | The Ruling record: requests, answers, and the readings of open and standing rulings |

@@ -1,0 +1,34 @@
+{
+	"name": "@antumbra/voyages",
+	"version": "0.0.0",
+	"private": true,
+	"type": "module",
+	"exports": {
+		".": "./src/service.ts",
+		"./*": "./src/*.ts"
+	},
+	"imports": {
+		"#test/*": "./test/*",
+		"#*": "./src/*"
+	},
+	"scripts": {
+		"test": "vitest run",
+		"typecheck": "tsc --noEmit",
+		"typecheck:compat": "tsc6 --noEmit"
+	},
+	"devDependencies": {
+		"@antumbra/testing-runtime": "workspace:*",
+		"@effect/vitest": "catalog:",
+		"@types/node": "catalog:",
+		"@typescript/native": "catalog:",
+		"typescript": "catalog:",
+		"vitest": "catalog:"
+	},
+	"dependencies": {
+		"@antumbra/domain-feeds": "workspace:*",
+		"@antumbra/persistence": "workspace:*",
+		"@antumbra/service-definition": "workspace:*",
+		"@antumbra/vocabulary": "workspace:*",
+		"effect": "catalog:"
+	}
+}

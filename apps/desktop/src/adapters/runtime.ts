@@ -4,7 +4,7 @@ import { opencodePlugin } from "@antumbra/backend-opencode";
 import {
 	AgentDomain,
 	AgentDomainLive,
-	BackendCapacityReleaseLive,
+	BackendCapacityReleases,
 	ChangeWatcher,
 	DispatcherLive,
 	FlagshipLive,
@@ -90,7 +90,7 @@ export const applicationLayers = () =>
 		RulingDeliveryLive,
 		SessionShutdownLive,
 	).pipe(
-		Layer.provideMerge(BackendCapacityReleaseLive),
+		Layer.provideMerge(BackendCapacityReleases.layer),
 		Layer.provideMerge(kernel),
 		Layer.provideMerge(SettingsSourceLive),
 		Layer.provideMerge(persistence),

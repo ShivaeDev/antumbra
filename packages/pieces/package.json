@@ -28,6 +28,7 @@
 		"@antumbra/persistence": "workspace:*",
 		"@antumbra/service-definition": "workspace:*",
 		"@antumbra/vocabulary": "workspace:*",
-		"effect": "catalog:"
+		"effect": "catalog:",
+		"@antumbra/voyages": "workspace:*"
 	}
 }

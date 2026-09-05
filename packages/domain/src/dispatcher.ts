@@ -1,8 +1,6 @@
 import { SettingsSource } from "@antumbra/contract";
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Kernel } from "@antumbra/kernel";
-import { Database } from "@antumbra/persistence";
-import { BackendCapacities } from "@antumbra/provider-capacity";
 import { Clock, Effect, Layer, Queue } from "effect";
 import { agentsAtWork } from "#agent-at-work.ts";
 import { AgentDomain } from "#agent-domain-service.ts";
@@ -53,7 +51,6 @@ export const DispatcherLive = (overrides: Partial<DispatcherOptions> = {}) =>
 			const domain = yield* AgentDomain;
 			const feeds = yield* DomainFeeds;
 			const kernel = yield* Kernel;
-			const db = yield* Database;
 			const state = yield* makeDispatchState;
 			const port: DispatchPort = {
 				patienceMillis: options.patienceMillis,
@@ -61,9 +58,7 @@ export const DispatcherLive = (overrides: Partial<DispatcherOptions> = {}) =>
 				resume: (sessionId) => kernel.submit(domain.wake, { sessionId }),
 				submit: (payload) => kernel.submit(domain.spawn, payload),
 			};
-			yield* Effect.forkScoped(
-				dispatchLoop(port, options).pipe(Effect.provideService(Database, db), Effect.provideService(BackendCapacities, domain.backendCapacities)),
-			);
+			yield* Effect.forkScoped(dispatchLoop(port, options));
 			yield* Effect.forkScoped(runRefreshes(feeds.subscribeFleetRefresh(), state.tick));
 			yield* Effect.forkScoped(runRefreshes(feeds.subscribeVoyageRefresh(), state.tick));
 			yield* Queue.offer(state.tick, undefined);

@@ -1,3 +1,4 @@
+import { Boards } from "@antumbra/boards";
 import { Kernel } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
 import { expect, it } from "@effect/vitest";
@@ -122,6 +123,7 @@ it.live("idle survives restart and addressed mail does not wake it", () =>
 		const before = yield* Effect.gen(function* () {
 			const db = yield* Database;
 			const domain = yield* AgentDomain;
+			const boards = yield* Boards;
 			const kernel = yield* Kernel;
 			const submission = yield* kernel.submit(domain.spawn, HAND);
 			expect(yield* untilTerminal(submission.changes)).toBe("succeeded");
@@ -138,7 +140,7 @@ it.live("idle survives restart and addressed mail does not wake it", () =>
 			);
 			yield* callTool(live, "stand_down", undefined);
 			expect((yield* sessionRow).executionStatus).toBe("idle");
-			yield* domain.boards.mail({
+			yield* boards.mail({
 				authorAgentId: Option.none(),
 				body: "wait for explicit selection",
 				precedence: "priority",

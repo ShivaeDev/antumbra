@@ -1,5 +1,6 @@
 import { isTerminalIntentStatus, Kernel } from "@antumbra/kernel";
 import type { BerthPlan } from "@antumbra/plugin-api";
+import { Repos } from "@antumbra/repos";
 import { expect, it } from "@effect/vitest";
 import { Effect, Option, Stream } from "effect";
 import { AgentDomain } from "#domain.ts";
@@ -34,12 +35,12 @@ it.live("a spawn is moored to every registered repo at its default ref", () =>
 		const scripted = yield* makeScriptedBackend;
 		const recorder = yield* makeScriptedRunner;
 		yield* Effect.gen(function* () {
-			const domain = yield* AgentDomain;
-			yield* domain.repos.register({
+			const repos = yield* Repos;
+			yield* repos.register({
 				defaultRef: "main",
 				source: "/reefs/one",
 			});
-			yield* domain.repos.register({
+			yield* repos.register({
 				defaultRef: "trunk",
 				source: "/reefs/two",
 			});
@@ -60,12 +61,12 @@ it.live("a forgotten repo leaves the next spawn a bare moorage", () =>
 		const scripted = yield* makeScriptedBackend;
 		const recorder = yield* makeScriptedRunner;
 		yield* Effect.gen(function* () {
-			const domain = yield* AgentDomain;
-			const repo = yield* domain.repos.register({
+			const repos = yield* Repos;
+			const repo = yield* repos.register({
 				defaultRef: "main",
 				source: "/reefs/one",
 			});
-			yield* domain.repos.forget(repo.id);
+			yield* repos.forget(repo.id);
 			expect(yield* submitSpawn("b")).toBe("succeeded");
 		}).pipe(Effect.provide(domainKernelLayer(temporary, scripted.backend, {}, recorder.runner)));
 		const requests = yield* recorder.provisioned;
@@ -78,8 +79,8 @@ it.live("the fleet snapshot carries the registry", () =>
 		const temporary = yield* acquireTemporaryPersistence;
 		const scripted = yield* makeScriptedBackend;
 		yield* Effect.gen(function* () {
-			const domain = yield* AgentDomain;
-			const repo = yield* domain.repos.register({
+			const repos = yield* Repos;
+			const repo = yield* repos.register({
 				defaultRef: "main",
 				source: "/reefs/one.git",
 			});

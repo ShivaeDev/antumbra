@@ -5,7 +5,7 @@ import { type CrewRuntime, restingCrew } from "#crew-rest.ts";
 import { toFailure } from "#sight-failure.ts";
 import { summarySeen, voyageSeen } from "#voyage-projection.ts";
 import { type VoyageView as DerivedVoyage, voyageSummaries, voyageView } from "#voyage-view.ts";
-import { VoyageWorldSource } from "#voyage-world.ts";
+import { VoyageWorldSource } from "#voyage-world/service.ts";
 
 export interface VoyageReads {
 	readonly summaryOf: (voyageId: string) => Effect.Effect<VoyageSummary, SightFailure>;
@@ -39,7 +39,7 @@ export const makeVoyageReads = (runtime: Effect.Effect<CrewRuntime>) =>
 			}).pipe(Effect.map(({ board, pieceBoards }) => voyageSeen(view, board, pieceBoards, resting)));
 		const readVoyage = (voyageId: string) =>
 			Effect.gen(function* () {
-				const rows = yield* world.read.pipe(Effect.mapError(toFailure));
+				const rows = yield* world.read().pipe(Effect.mapError(toFailure));
 				const voyage = rows.voyages.find((row) => row.id === voyageId);
 				if (voyage === undefined) {
 					return yield* absent(voyageId);
@@ -47,7 +47,7 @@ export const makeVoyageReads = (runtime: Effect.Effect<CrewRuntime>) =>
 				const resting = restingCrew(rows, yield* runtime);
 				return yield* seenVoyage(voyageId, voyageView(rows, voyage), resting);
 			});
-		const voyages = world.read.pipe(
+		const voyages = world.read().pipe(
 			Effect.map((rows) => voyageSummaries(rows).map(summarySeen)),
 			Effect.mapError(toFailure),
 		);

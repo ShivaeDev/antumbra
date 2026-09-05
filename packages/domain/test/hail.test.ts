@@ -7,7 +7,7 @@ import { hailCaptain } from "#hail.ts";
 import { domainKernelLayer } from "#test/domain-layers.ts";
 import { acquireTemporaryPersistence, makeScriptedBackend, sessionFor } from "#test/harness.ts";
 import { aliveAgent, openReefVoyage, retireOneAlive, sessionIdOf, terminalIntent } from "#test/voyage-fixtures.ts";
-import { VoyageWorldSource } from "#voyage-world.ts";
+import { VoyageWorldSource } from "#voyage-world/service.ts";
 
 const CAPTAIN_TOOLS = [
 	"charter_piece",
@@ -81,7 +81,7 @@ it.live("a second hail reaches the captain the voyage already has", () =>
 			yield* aliveAgent(hailed.agentId);
 
 			const again = yield* hailCaptain(voyage.id).pipe(
-				Effect.provideService(VoyageWorldSource, { read: Effect.die("existing captain hail read the full voyage world") }),
+				Effect.provideService(VoyageWorldSource, { read: () => Effect.die("existing captain hail read the full voyage world") }),
 			);
 			expect(again.agentId).toBe(hailed.agentId);
 			expect(Option.getOrThrow(yield* db.Intent.where({ id: again.intentId }).first()).tag).toBe("agent/wake");

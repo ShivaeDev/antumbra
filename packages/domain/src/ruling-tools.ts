@@ -11,7 +11,7 @@ import { rungAsked } from "#ruling-station.ts";
 import { subjectsOf } from "#ruling-subjects.ts";
 import { answered } from "#tool-answers.ts";
 import type { SessionIdentity } from "#tool-identity.ts";
-import { VoyageWorldSource } from "#voyage-world.ts";
+import { VoyageWorldSource } from "#voyage-world/service.ts";
 
 const holds = (ruling: Ruling): string => (ruling.gatedPieceIds.length === 0 ? "" : `; holds ${ruling.gatedPieceIds.length} piece(s)`);
 
@@ -38,7 +38,7 @@ export const makeRulingToolCompiler = Effect.gen(function* () {
 	const hold = yield* RulingHolds;
 	const world = yield* VoyageWorldSource;
 	const rungFor = (identity: SessionIdentity) =>
-		world.read.pipe(
+		world.read().pipe(
 			Effect.map((rows) => rungAsked(rows, identity)),
 			Effect.orElseSucceed((): RulingAuthority => "admiral"),
 		);

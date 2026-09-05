@@ -18,7 +18,6 @@ import {
 	SessionRecoveryRuntime,
 } from "@antumbra/sessions";
 import { Effect } from "effect";
-import { ChangeProcedureService } from "#change-procedures.ts";
 import { imageInputBackendsOf } from "#image-input-backends.ts";
 import { makeRetireKind } from "#retire.ts";
 import { compileRetireSweepDemands } from "#retire-sweep-demands.ts";
@@ -29,7 +28,6 @@ import { VoyageProcedureService } from "#voyages/service.ts";
 export const makeAgentDomain = (backends: ReadonlyMap<string, AgentBackend>, runners: ReadonlyMap<string, Runner>) =>
 	Effect.gen(function* () {
 		const boards = yield* Boards;
-		const changes = yield* ChangeProcedureService;
 		const repos = yield* Repos;
 		const fabric = yield* SessionFabric;
 		const live = yield* LiveDelegations;
@@ -64,7 +62,6 @@ export const makeAgentDomain = (backends: ReadonlyMap<string, AgentBackend>, run
 			backendCapacities,
 			backends: [...backends.keys()],
 			boards,
-			changes,
 			closeSessionStarts: fabric.closeStarts(),
 			interruptSession: fabric.interrupt,
 			imageInputBackends,

@@ -1,9 +1,9 @@
-import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database } from "@antumbra/persistence";
 import { BackendCapacities } from "@antumbra/provider-capacity/service";
 import { defineService } from "@antumbra/service-definition";
 import { SessionFabric } from "@antumbra/session-fabric";
 import { SessionInputs } from "@antumbra/session-inputs";
+import { CurrentSessions } from "#current/service.ts";
 import { SessionReach } from "#reach.ts";
 import { initialize } from "#send/initialize.ts";
 import { sendInput } from "#send/input.ts";
@@ -14,5 +14,5 @@ export const SessionSend = defineService({
 	id: "@antumbra/sessions/SessionSend",
 	initialize: initialize,
 	methods: (scope) => ({ sendInput: sendInput(scope), sendPrompt: sendPrompt(scope) }),
-	requires: [Database, DomainFeeds, BackendCapacities, SessionFabric, SessionInputs, SessionReach, SessionSendOptions],
+	requires: [Database, CurrentSessions, BackendCapacities, SessionFabric, SessionInputs, SessionReach, SessionSendOptions],
 });

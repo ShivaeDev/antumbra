@@ -4,8 +4,8 @@ import { Effect } from "effect";
 import { act } from "react";
 import { createRoot } from "react-dom/client";
 import { renderToStaticMarkup } from "react-dom/server";
-import { SmoothingLine, SmoothNow } from "#views/board-smoothing.tsx";
 import { BoardPanel } from "#views/board.tsx";
+import { SmoothingLine, SmoothNow } from "#views/board-smoothing.tsx";
 
 const header = (smoothing: BoardSmoothing) => renderToStaticMarkup(<SmoothNow onSmooth={() => undefined} smoothing={smoothing} />);
 
@@ -61,9 +61,7 @@ it("stands the failure where the summary would have landed, with the retry besid
 });
 
 it("never offers the pass on a piece board", () => {
-	expect(renderToStaticMarkup(<BoardPanel entries={[]} onError={() => undefined} scope={{ kind: "piece", pieceId: "piece-1" }} />)).not.toContain(
-		"Smooth now",
-	);
+	expect(renderToStaticMarkup(<BoardPanel entries={[]} scope={{ kind: "piece", pieceId: "piece-1" }} />)).not.toContain("Smooth now");
 });
 
 it.effect("asks for a pass from the header and again from the failure", () =>

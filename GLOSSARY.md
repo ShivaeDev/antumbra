@@ -33,8 +33,7 @@ Owner: [Attention and memory](docs/design/attention-and-memory.md)
 - [**Smooth log**](docs/design/attention-and-memory.md#boards-and-registers) — the Board register for distilled successor context.
 - [**Smoothing**](docs/design/attention-and-memory.md#smoothing) — advancing a Board's useful frontier without erasing its sources.
 - [**Summary**](docs/design/attention-and-memory.md#smoothing) — a smooth entry that stands in for the span of rough entries it covers.
-- [**Smoother**](docs/design/attention-and-memory.md#smoothing) — the constrained role that reads a Board's rough entries and writes its
-  summaries.
+- [**Smoother**](docs/design/attention-and-memory.md#smoothing) — the constrained role that reads a Board's rough entries and writes its summaries.
 - [**Attention lanes**](docs/design/attention-and-memory.md#attention-lanes) — escalation, decision point, finding, and grievance.
 - [**Heave to**](docs/design/attention-and-memory.md#heave-to) — discussion mode that keeps the Agent's context from moving on.
 - [**Precedence**](docs/design/attention-and-memory.md#mail-and-precedence) — routine, priority, and flash ordering for Agent mail.

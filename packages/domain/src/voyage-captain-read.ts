@@ -1,13 +1,15 @@
 import { Database } from "@antumbra/persistence";
 import { rootSessions } from "@antumbra/sessions";
 import { decodeStoredAgentStatus } from "@antumbra/vocabulary/agent-runtime";
-import { Effect } from "effect";
+import { Effect, Option } from "effect";
 import { CAPTAIN_ROLE, captainOf } from "#voyage-captain.ts";
 import { decodeRootSession } from "#voyage-world/root-sessions.ts";
 
-export const readVoyageCaptain = Effect.fn("VoyageCaptain.read")(function* (voyageId: string) {
+export const readCaptains = Effect.fn("VoyageCaptain.readCaptains")(function* (voyageIds: ReadonlyArray<string>) {
 	const db = yield* Database;
-	const crews = yield* db.VoyageAgent.where({ role: CAPTAIN_ROLE, voyageId }).all();
+	const crews = yield* db.VoyageAgent.where({ role: CAPTAIN_ROLE })
+		.where((crew) => crew.voyageId.in(voyageIds))
+		.all();
 	const agentIds = crews.map((crew) => crew.agentId);
 	const agents = yield* db.Agent.where((agent) => agent.id.in(agentIds))
 		.orderBy((agent) => agent.createdAt.asc())
@@ -18,14 +20,16 @@ export const readVoyageCaptain = Effect.fn("VoyageCaptain.read")(function* (voya
 	const sessions = yield* db.AgentSession.where(rootSessions)
 		.where((session) => session.agentId.in(agentIds))
 		.all();
-	return captainOf(
-		{
-			agentStatus: new Map(agentStatuses),
-			assignments: yield* db.PieceAgent.where((assignment) => assignment.agentId.in(agentIds)).all(),
-			crews,
-			currentSessionByAgent: new Map(agents.map((agent) => [agent.id, agent.currentSessionId])),
-			sessions: yield* Effect.forEach(sessions, decodeRootSession),
-		},
-		voyageId,
-	);
+	const rows = {
+		agentStatus: new Map(agentStatuses),
+		assignments: yield* db.PieceAgent.where((assignment) => assignment.agentId.in(agentIds)).all(),
+		crews,
+		currentSessionByAgent: new Map(agents.map((agent) => [agent.id, agent.currentSessionId])),
+		sessions: yield* Effect.forEach(sessions, decodeRootSession),
+	};
+	return new Map(voyageIds.map((voyageId) => [voyageId, captainOf(rows, voyageId)] as const));
+});
+
+export const readVoyageCaptain = Effect.fn("VoyageCaptain.read")(function* (voyageId: string) {
+	return (yield* readCaptains([voyageId])).get(voyageId) ?? Option.none();
 });

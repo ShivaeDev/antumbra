@@ -8,7 +8,7 @@ import {
 	FlagshipLive,
 	IntentFeedLive,
 	KernelReachLive,
-	RulingAscentLive,
+	RulingAscent,
 	RulingDeliveryLive,
 	RulingSourceLive,
 	SessionShutdownLive,
@@ -63,7 +63,7 @@ const applicationLayer = (temporary: TemporaryPersistence, scripted: ScriptedBac
 		FlagshipLive,
 		IntentFeedLive,
 		KernelReachLive,
-		RulingAscentLive,
+		RulingAscent,
 		RulingDeliveryLive,
 		SessionShutdownLive,
 	).pipe(Layer.provideMerge(BackendCapacityReleases.layer), Layer.provideMerge(kernel), Layer.provideMerge(SettingsSourceLive), Layer.orDie);

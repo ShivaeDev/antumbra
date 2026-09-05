@@ -16,7 +16,7 @@ import { AgentDomain, AgentDomainLive } from "#domain.ts";
 import { domainCapabilities } from "#domain-capabilities.ts";
 import { IntentFeedLive } from "#intent-feed.ts";
 import { KernelReachInstaller, KernelReachLive, type KernelReachService } from "#kernel-reach.ts";
-import { RulingAscentLive } from "#ruling-ascent.ts";
+import { RulingAscent } from "#ruling-ascent/observer.ts";
 import { RulingDeliveryLive } from "#ruling-delivery.ts";
 import { SessionShutdownLive } from "#session-shutdown-live.ts";
 import { SightSourceLive } from "#sight.ts";
@@ -63,7 +63,7 @@ export const domainKernelLayer = (
 				return IntentDemandLive(domain.intentDemands);
 			}),
 		),
-		RulingAscentLive,
+		RulingAscent,
 		RulingDeliveryLive,
 		SessionShutdownLive,
 	).pipe(

@@ -1,7 +1,7 @@
 import { SettingsSource } from "@antumbra/contract";
 import { defineIntentDemand } from "@antumbra/intent-demand";
 import type { IntentKind } from "@antumbra/kernel";
-import { Database } from "@antumbra/persistence";
+import { Database, or } from "@antumbra/persistence";
 import { SessionFabric } from "@antumbra/session-fabric";
 import { decodeSessionExecutionStatus, decodeStoredAgentStatus, sessionPresence } from "@antumbra/vocabulary/agent-runtime";
 import { Clock, Effect, Result } from "effect";
@@ -25,7 +25,10 @@ const siestaDemands = Effect.gen(function* () {
 	const now = yield* Clock.currentTimeMillis;
 	const threshold = chosen.idleSiestaMinutes * MILLIS_PER_MINUTE;
 	const overdue = new Set([...(yield* fabric.idleSince())].flatMap(([sessionId, since]) => (now - since >= threshold ? [sessionId] : [])));
-	const sessions = yield* db.AgentSession.where(rootSessions).where(openSessions).all();
+	const sessions = yield* db.AgentSession.where(rootSessions)
+		.where(openSessions)
+		.where((session) => or(session.executionStatus.eq("draining"), session.id.in([...overdue])))
+		.all();
 	const agents = yield* db.Agent.where((agent) => agent.id.in(sessions.map((session) => session.agentId))).all();
 	const agentStatuses = new Map(agents.map((agent) => [agent.id, decodeStoredAgentStatus(agent.id, agent.status)] as const));
 	const siesta: Array<SiestaFields> = [];

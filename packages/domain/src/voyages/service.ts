@@ -1,3 +1,4 @@
+import { VoyageSummaries } from "#voyage/summaries/service.ts";
 import { Boards } from "@antumbra/boards";
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database } from "@antumbra/persistence";
@@ -19,7 +20,7 @@ import { setFocus } from "#voyages/set-focus.ts";
 
 export const VoyageProcedureService = defineService({
 	id: "@antumbra/domain/VoyageProcedures",
-	requires: [Boards, Database, DomainFeeds, KernelReach, Pieces, Rulings, VoyageDetails, VoyageWorldSource],
+	requires: [Boards, Database, DomainFeeds, KernelReach, Pieces, Rulings, VoyageDetails, VoyageSummaries, VoyageWorldSource],
 	initialize: Effect.void,
 	methods: () => ({
 		hail: hailCaptain,

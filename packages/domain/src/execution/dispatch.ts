@@ -4,7 +4,7 @@ import { Effect } from "effect";
 import { readAgentExecution } from "#execution/agents.ts";
 import { readOutcomes } from "#execution/outcomes.ts";
 import type { DispatchWorld } from "#voyage-rows.ts";
-import { decodeVoyage } from "#voyage-world/voyages.ts";
+import { decodeVoyage } from "#voyage/decode.ts";
 
 export const dispatch = Effect.fn("ExecutionSource.dispatch")(function* () {
 	const db = yield* Database;

@@ -74,8 +74,11 @@ export interface DispatchWorld extends RetirementWorld {
 	readonly voyages: ReadonlyArray<VoyageRow>;
 }
 
-export interface VoyageWorld extends DispatchWorld {
+export interface VoyageSummaryRows extends DispatchWorld {
 	readonly crews: ReadonlyArray<CrewRow>;
+}
+
+export interface VoyageWorld extends VoyageSummaryRows {
 	readonly openRulings: ReadonlyArray<Ruling>;
 	readonly reports: ReadonlyMap<string, ReportRow>;
 	readonly repos: ReadonlyMap<string, RepoRow>;

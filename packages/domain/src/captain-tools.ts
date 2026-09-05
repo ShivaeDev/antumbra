@@ -17,7 +17,7 @@ import { makeVoyageReadingToolCompiler } from "#voyage-reading-tools.ts";
 
 export const makeCaptainToolCompiler = Effect.gen(function* () {
 	const membership = yield* CaptainMembership;
-	const charter = yield* makeReportingCharter;
+	const charter = yield* makeReportingCharter();
 	const pieceVerbTools = yield* makePieceVerbToolCompiler;
 	const compileBoardTools = yield* makeBoardToolCompiler;
 	const compileReportTools = yield* makeReportToolCompiler;

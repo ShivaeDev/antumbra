@@ -41,7 +41,6 @@ it.live("dispatched crew keeps its selected Voyage authority across rebuild", ()
 		const scripted = yield* makeScriptedBackend;
 		const selected = yield* Effect.gen(function* () {
 			const db = yield* Database;
-			const domain = yield* AgentDomain;
 			const boards = yield* Boards;
 			const voyageRecords = yield* Voyages;
 			const sight = yield* makeSightSessionEvents;
@@ -134,7 +133,6 @@ it.live("Piece membership cannot supply missing Session Voyage authority", () =>
 		const scripted = yield* makeScriptedBackend;
 		yield* Effect.gen(function* () {
 			const pieces = yield* Pieces;
-			const domain = yield* AgentDomain;
 			const boards = yield* Boards;
 			const voyageRecords = yield* Voyages;
 			const voyage = yield* voyageRecords.open({

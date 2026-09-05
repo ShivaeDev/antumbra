@@ -4,7 +4,6 @@ import { Repos } from "@antumbra/repos";
 import { Voyages } from "@antumbra/voyages";
 import { expect, it } from "@effect/vitest";
 import { Effect } from "effect";
-import { AgentDomain } from "#domain.ts";
 import { REEF_SOURCE } from "#test/change-fixtures.ts";
 import { dispatchingLayer } from "#test/domain-layers.ts";
 import {
@@ -37,7 +36,6 @@ it.live("crew open a change through the tool and hear where it lives", () =>
 		yield* Effect.gen(function* () {
 			const pieces = yield* Pieces;
 			const db = yield* Database;
-			const domain = yield* AgentDomain;
 			const repos = yield* Repos;
 			const voyageRecords = yield* Voyages;
 			yield* repos.register({ defaultRef: "main", source: REEF_SOURCE });

@@ -32,7 +32,12 @@ interface AppHarness {
 	readonly scripted: ScriptedBackend;
 }
 
-type AppRequirements = AgentDomain | Kernel | Context.Service.Identifier<typeof Pieces> | Context.Service.Identifier<typeof Voyages> | Context.Service.Identifier<typeof Boards>;
+type AppRequirements =
+	| AgentDomain
+	| Kernel
+	| Context.Service.Identifier<typeof Pieces>
+	| Context.Service.Identifier<typeof Voyages>
+	| Context.Service.Identifier<typeof Boards>;
 
 const applicationLayer = (temporary: TemporaryPersistence, scripted: ScriptedBackend) => {
 	const directory = dirname(temporary.database);

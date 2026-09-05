@@ -1,45 +1,15 @@
-import { DomainFeeds } from "@antumbra/domain-feeds";
 import { isTerminalIntentStatus, Kernel } from "@antumbra/kernel";
-import { Database } from "@antumbra/persistence";
 import { SessionFabric } from "@antumbra/session-fabric";
-import { requireSiestaSucceeded, rootSessions } from "@antumbra/sessions";
-import { decodeSessionExecutionStatus, decodeStoredAgentSessionStatus } from "@antumbra/vocabulary/agent-runtime";
+import { requireSiestaSucceeded } from "@antumbra/sessions";
+import { SessionDrain } from "@antumbra/sessions/drain/service";
 import { Effect, Stream } from "effect";
 import { AgentDomain } from "#agent-domain-service.ts";
 
 export const drainSessions = Effect.fn("SessionShutdown.drain")(function* () {
-	const db = yield* Database;
+	const drain = yield* SessionDrain;
 	const domain = yield* AgentDomain;
 	const fabric = yield* SessionFabric;
-	const feeds = yield* DomainFeeds;
 	const kernel = yield* Kernel;
-	const markActiveSessionsDraining = Effect.fnUntraced(function* () {
-		const attached = yield* fabric.attached();
-		const sessions = yield* db.AgentSession.where(rootSessions)
-			.where((session) => session.id.in([...attached]))
-			.all();
-		const draining: Array<string> = [];
-		for (const session of sessions) {
-			const status = yield* Effect.fromResult(decodeStoredAgentSessionStatus(session.id, session.status));
-			if (status !== "open") {
-				continue;
-			}
-			const executionStatus = yield* Effect.fromResult(decodeSessionExecutionStatus(session.id, session.executionStatus));
-			if (executionStatus === "idle") {
-				continue;
-			}
-			draining.push(session.id);
-			if (executionStatus === "active") {
-				yield* db.AgentSession.where({
-					executionStatus: "active",
-					id: session.id,
-					status: "open",
-				}).update({ executionStatus: "draining" });
-			}
-		}
-		return draining;
-	});
-	const announce = Effect.all([feeds.publishFleetRefresh(), feeds.publishVoyageRefresh()], { concurrency: 1 }).pipe(Effect.asVoid);
 	const waitForSiesta = (sessionId: string, intentId: string) =>
 		kernel.changes(intentId).pipe(
 			Stream.takeUntil(isTerminalIntentStatus),
@@ -48,11 +18,10 @@ export const drainSessions = Effect.fn("SessionShutdown.drain")(function* () {
 		);
 	const drainOpenSessions = Effect.fnUntraced(function* () {
 		while (true) {
-			const sessionIds = yield* markActiveSessionsDraining();
+			const sessionIds = yield* drain.markActive();
 			if (sessionIds.length === 0) {
 				return;
 			}
-			yield* announce;
 			const siestas = yield* kernel.active(domain.siesta);
 			const drainSession = Effect.fnUntraced(function* (sessionId: string) {
 				const current = siestas.filter((intent) => intent.payload.sessionId === sessionId);

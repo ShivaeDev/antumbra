@@ -1,11 +1,9 @@
-import { Schema } from "effect";
 import { type AgentPrompt, agentPrompt } from "#mint.ts";
 
-const MailWaiting = Schema.Struct({
-	count: Schema.Number,
-	precedence: Schema.Literals(["flash", "priority", "routine"]),
-});
-type MailWaiting = typeof MailWaiting.Type;
+interface MailWaiting {
+	readonly count: number;
+	readonly precedence: "flash" | "priority" | "routine";
+}
 
 const waiting = (input: MailWaiting): string =>
 	input.count === 1

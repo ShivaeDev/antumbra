@@ -3,12 +3,12 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import type { NewAgentSession } from "@antumbra/persistence";
 import { persistenceIt } from "@antumbra/persistence/testing";
+import { SessionInputs, SessionInputsLive } from "@antumbra/session-inputs";
 import { MAX_SESSION_IMAGE_SOURCE_BYTES, SessionInputId } from "@antumbra/vocabulary/session-input";
 import { expect, it as plainIt } from "@effect/vitest";
 import { Effect } from "effect";
 import { SessionInputInvalid } from "#errors.ts";
 import { prepareInput } from "#prepare.ts";
-import { SessionInputs, SessionInputsLive } from "#session-inputs.ts";
 
 const it = persistenceIt();
 const custodyRoot = mkdtempSync(join(tmpdir(), "antumbra-session-inputs-"));

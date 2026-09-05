@@ -3,8 +3,8 @@ import type { ChangeObservation } from "@antumbra/plugin-api";
 import { Effect, Option } from "effect";
 import { projectedChange, sameProjectedFacts, stageTransition } from "#change-projection.ts";
 import type { ChangeRow } from "#change-rows.ts";
-import { matchObservation, type ObservationAttachment } from "#change-submissions/observation-match.ts";
-import { matchesClaim, observationConflict, selectMatchedRow } from "#change-submissions/observation-selection.ts";
+import { matchObservation, type ObservationAttachment } from "#submissions/observation-match.ts";
+import { matchesClaim, observationConflict, selectMatchedRow } from "#submissions/observation-selection.ts";
 
 interface ReconciledObservation {
 	readonly changed: boolean;

@@ -3,7 +3,7 @@ import type { ChangeObservation } from "@antumbra/plugin-api";
 import { Effect, Option } from "effect";
 import { changeRow } from "#change-read.ts";
 import type { ChangeRow } from "#change-rows.ts";
-import { submissionKey } from "#change-submissions/prepared-row.ts";
+import { submissionKey } from "#submissions/prepared-row.ts";
 
 export type ObservationAttachment =
 	| {

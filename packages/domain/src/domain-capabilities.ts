@@ -1,6 +1,6 @@
 import { artifactsLayer } from "@antumbra/artifacts";
 import { BoardsLive } from "@antumbra/boards";
-import { ChangesLive } from "@antumbra/changes";
+import { changesLayer } from "@antumbra/changes";
 import { DomainFeedsLive } from "@antumbra/domain-feeds";
 import { PiecesLive } from "@antumbra/pieces";
 import type { ChangeHost, Runner } from "@antumbra/plugin-api";
@@ -35,7 +35,7 @@ export const domainCapabilities = (
 		SessionEventJournalLive,
 		KernelReachDeferredLive,
 	).pipe(Layer.provideMerge(DomainFeedsLive));
-	const changes = ChangesLive(changeHosts, runners).pipe(Layer.provideMerge(foundations));
+	const changes = changesLayer(changeHosts, runners).pipe(Layer.provideMerge(foundations));
 	const world = Layer.mergeAll(VoyageWorldSource.layer, ExecutionSource.layer).pipe(Layer.provideMerge(changes));
 	return Layer.mergeAll(CaptainMembershipLive, ChangeProceduresLive(changeHosts), SessionStandDownLive, VoyageProceduresLive).pipe(
 		Layer.provideMerge(world),

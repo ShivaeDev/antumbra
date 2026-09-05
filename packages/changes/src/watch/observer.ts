@@ -1,6 +1,6 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Cause, Clock, Effect, Layer, Queue, Ref, Stream } from "effect";
-import { Changes } from "#change-submissions/service.ts";
+import { Changes } from "#service.ts";
 import { nextObserveDelayMillis, type ObserveCadenceOptions, retryObserveDelayMillis } from "#watch/cadence.ts";
 
 const DEFAULTS: ObserveCadenceOptions = {

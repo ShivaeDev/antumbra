@@ -1,10 +1,10 @@
 import { Database } from "@antumbra/persistence";
 import { Pieces } from "@antumbra/pieces";
-import { expect, it } from "@effect/vitest";
+import { it } from "@antumbra/testing";
+import { expect } from "@effect/vitest";
 import { Effect, Option } from "effect";
 import { changeOf } from "#test/change-fixtures.ts";
-import { domainKernelLayer } from "#test/domain-layers.ts";
-import { acquireTemporaryPersistence, endTurn, makeScriptedBackend, type ScriptedBackend } from "#test/harness.ts";
+import { endTurn, type ScriptedBackend } from "#test/harness.ts";
 import { born, chartered, handFor, landed, MINUTE_MILLIS, swept, sweptAt } from "#test/retire-crew-fixture.ts";
 import { eventually } from "#test/session-recovery-fixture.ts";
 import { stateOf } from "#test/voyage-fixtures.ts";
@@ -56,48 +56,36 @@ const closedWithoutVerdict = (scripted: ScriptedBackend) =>
 		return { pieceId, voyageId };
 	});
 
-it.live("a piece whose change merely closed waits out the ordinary rest", () =>
-	Effect.gen(function* () {
-		const temporary = yield* acquireTemporaryPersistence;
-		const scripted = yield* makeScriptedBackend;
-		yield* Effect.gen(function* () {
-			const db = yield* Database;
-			const { pieceId, voyageId } = yield* closedWithoutVerdict(scripted);
-			expect(yield* db.PieceChange.where({ pieceId }).all()).toHaveLength(1);
-			expect(yield* stateOf(voyageId, pieceId)).toBe("done");
-			expect(yield* db.PieceVerdict.all()).toEqual([]);
+it.effectApp("a piece whose change merely closed waits out the ordinary rest", { clock: "live" }, function* ({ scripted }) {
+	const db = yield* Database;
+	const { pieceId, voyageId } = yield* closedWithoutVerdict(scripted);
+	expect(yield* db.PieceChange.where({ pieceId }).all()).toHaveLength(1);
+	expect(yield* stateOf(voyageId, pieceId)).toBe("done");
+	expect(yield* db.PieceVerdict.all()).toEqual([]);
 
-			yield* swept;
-			expect(yield* retireIntents).toEqual([]);
-			expect(yield* statusOf(HAND)).toBe("alive");
+	yield* swept;
+	expect(yield* retireIntents).toEqual([]);
+	expect(yield* statusOf(HAND)).toBe("alive");
 
-			yield* sweptAt(16 * MINUTE_MILLIS);
-			expect(yield* retireIntents).toHaveLength(1);
-		}).pipe(Effect.provide(domainKernelLayer(temporary, scripted.backend)));
-	}),
-);
+	yield* sweptAt(16 * MINUTE_MILLIS);
+	expect(yield* retireIntents).toHaveLength(1);
+});
 
-it.live("an abandoned piece's working crew is left alone until it stops", () =>
-	Effect.gen(function* () {
-		const temporary = yield* acquireTemporaryPersistence;
-		const scripted = yield* makeScriptedBackend;
-		yield* Effect.gen(function* () {
-			yield* writtenOffPiece(scripted, false);
+it.effectApp("an abandoned piece's working crew is left alone until it stops", { clock: "live" }, function* ({ scripted }) {
+	yield* writtenOffPiece(scripted, false);
 
-			yield* sweptAt(24 * 60 * MINUTE_MILLIS);
+	yield* sweptAt(24 * 60 * MINUTE_MILLIS);
 
-			expect(yield* retireIntents).toEqual([]);
-			expect(yield* statusOf(HAND)).toBe("alive");
+	expect(yield* retireIntents).toEqual([]);
+	expect(yield* statusOf(HAND)).toBe("alive");
 
-			yield* endTurn(scripted, HAND);
-			yield* swept;
+	yield* endTurn(scripted, HAND);
+	yield* swept;
 
-			expect(yield* retireIntents).toHaveLength(1);
-			yield* eventually(
-				Effect.gen(function* () {
-					expect(yield* statusOf(HAND)).toBe("retired");
-				}),
-			);
-		}).pipe(Effect.provide(domainKernelLayer(temporary, scripted.backend)));
-	}),
-);
+	expect(yield* retireIntents).toHaveLength(1);
+	yield* eventually(
+		Effect.gen(function* () {
+			expect(yield* statusOf(HAND)).toBe("retired");
+		}),
+	);
+});

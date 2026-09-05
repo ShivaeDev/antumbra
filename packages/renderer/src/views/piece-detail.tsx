@@ -43,7 +43,7 @@ export const PieceDetail = ({
 				</p>
 			))}
 			<AtWork piece={piece} />
-			<BoardPanel entries={piece.board} scope={{ kind: "piece", pieceId: piece.id }} />
+			<BoardPanel entries={piece.board} name={piece.title} scope={{ kind: "piece", pieceId: piece.id }} />
 			<PieceOutcomes onError={onError} piece={piece} />
 			<PieceActs onError={onError} piece={piece} pieces={pieces} />
 			<PieceRetire onError={onError} piece={piece} />

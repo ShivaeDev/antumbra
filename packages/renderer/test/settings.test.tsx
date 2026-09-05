@@ -8,7 +8,7 @@ import { SettingRow } from "#views/setting-row.tsx";
 import { SettingsPanel } from "#views/settings.tsx";
 
 it("offers Settings in the established console navigation", () => {
-	const html = renderToStaticMarkup(<ModeNav mode="fleet" onMode={() => undefined} />);
+	const html = renderToStaticMarkup(<ModeNav held={false} mode="fleet" onMode={() => undefined} />);
 	expect(html).toContain("Settings");
 });
 

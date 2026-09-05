@@ -77,7 +77,7 @@ beforeEach(() => {
 });
 
 it("offers Holds in the established console navigation", () => {
-	expect(renderToStaticMarkup(<ModeNav mode="fleet" onMode={() => undefined} />)).toContain("Holds");
+	expect(renderToStaticMarkup(<ModeNav held={false} mode="fleet" onMode={() => undefined} />)).toContain("Holds");
 });
 
 it.effect(

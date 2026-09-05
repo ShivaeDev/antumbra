@@ -84,3 +84,10 @@ ordinary notes does not cost a turn each. One wake carries the whole batch and t
 answer is coming should be told by the answer itself. A batch is delivered once and never carried again, so an Agent that reads without marking read
 is not woken over and over; delivered is its own fact and is not read. Flash steering into running work is intended, not yet built, and so is holding
 routine and priority during heave-to; until then flash wakes like priority. What steers into running work today is the admiral's own send.
+
+## Holds
+
+A **hold** stops Antumbra from sending on its own, so the admiral can stop new work from starting without touching work already under way. Each kind
+of self-started traffic has its own hold — the wake that carries due mail, the dispatch that puts an Agent on a launched Piece — and one master hold
+covers every kind at once; a held queue keeps what is waiting and sends it once the hold comes off. The admiral's own hail and send are never held,
+because a hold quiets the fleet's own traffic rather than cutting the admiral off from the fleet.

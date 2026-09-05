@@ -5,10 +5,12 @@ import { ResourceReclaimRunnersLive, type ResourceReconcileOptions, ResourceReco
 import { SessionFabricLive } from "@antumbra/session-fabric";
 import { sessionInputsLayer } from "@antumbra/session-inputs";
 import { LiveDelegationsLive } from "@antumbra/sessions";
+import { sessionSendLayer } from "@antumbra/sessions/send/layer";
 import { Layer } from "effect";
 import { makeAgentDomain } from "#agent-domain-assembly.ts";
 import { AgentDomain } from "#agent-domain-service.ts";
 import { domainCapabilities } from "#domain-capabilities.ts";
+import { imageInputBackendsOf } from "#image-input-backends.ts";
 
 export { AgentDomain } from "#agent-domain-service.ts";
 
@@ -22,6 +24,7 @@ export const AgentDomainLive = (
 ) => {
 	const capabilities = domainCapabilities(changeHosts, runners, artifactsDirectory);
 	return Layer.effect(AgentDomain)(makeAgentDomain(backends, runners)).pipe(
+		Layer.provideMerge(sessionSendLayer(imageInputBackendsOf(backends))),
 		Layer.provideMerge(LiveDelegationsLive),
 		Layer.provideMerge(BackendCapacitiesLive(backends)),
 		Layer.provide(

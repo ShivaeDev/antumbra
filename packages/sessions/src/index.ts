@@ -32,11 +32,7 @@ export {
 	rootSessions,
 	rootSessionsOf,
 } from "#roots.ts";
-export {
-	makeSessionSend,
-	type SessionSendReceipt,
-	type SessionSendRefused,
-} from "#send/send.ts";
+export type { SessionSendReceipt, SessionSendRefused } from "#send/errors.ts";
 export { requireSiestaSucceeded } from "#shutdown-verdict.ts";
 export { makeSiestaKind, type SiestaFields } from "#siesta.ts";
 export { compileSessionSiestaDemands } from "#siesta-demands.ts";

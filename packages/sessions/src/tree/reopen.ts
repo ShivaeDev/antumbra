@@ -5,7 +5,7 @@ import { Clock, Effect, Option, Ref } from "effect";
 import { type SessionTree, type TreeNode, withNode } from "#tree/attribution.ts";
 import { observed } from "#tree/gaps.ts";
 import { makeSessionTreeJournaling } from "#tree/journaling.ts";
-import { makeSessionTreeLedger } from "#tree/ledger.ts";
+import { SessionTreeLedger } from "#tree/ledger/service.ts";
 
 const reopening = (nativeRef: string, seen: AgentEvent): AgentEvent => ({
 	nativeRef,
@@ -18,7 +18,7 @@ export const makeSessionTreeReopen = Effect.gen(function* () {
 	const db = yield* Database;
 	const journal = yield* SessionEventJournal;
 	const journaling = yield* makeSessionTreeJournaling;
-	const ledger = yield* makeSessionTreeLedger;
+	const ledger = yield* SessionTreeLedger;
 	const reopenRow = (sessionId: string) =>
 		db.AgentSession.where({ id: sessionId }).update({ completeness: "recording", status: "open" }).pipe(Effect.asVoid);
 	return (rootSessionId: string, tree: Ref.Ref<SessionTree>) => (subsessionRef: string, spawnedBy: string, seen: AgentEvent) =>

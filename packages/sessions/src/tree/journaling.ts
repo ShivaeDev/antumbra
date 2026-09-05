@@ -3,11 +3,11 @@ import type { AgentEvent } from "@antumbra/vocabulary/session-events";
 import { Effect } from "effect";
 import type { TreeNode } from "#tree/attribution.ts";
 import { appendFailedGap } from "#tree/gaps.ts";
-import { makeSessionTreeRows } from "#tree/rows.ts";
+import { SessionTreeRows } from "#tree/rows/service.ts";
 
 export const makeSessionTreeJournaling = Effect.gen(function* () {
 	const journal = yield* SessionEventJournal;
-	const rows = yield* makeSessionTreeRows;
+	const rows = yield* SessionTreeRows;
 	// Completeness is marked outside the failed journal append before recording the lost event.
 	const appendFailed = (node: TreeNode, lost: AgentEvent) =>
 		Effect.gen(function* () {

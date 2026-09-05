@@ -2,11 +2,11 @@ import { Database, type StoredAgentSession } from "@antumbra/persistence";
 import { SessionEventJournal } from "@antumbra/session-event-journal";
 import type { AgentEvent } from "@antumbra/vocabulary/session-events";
 import { Effect, Option } from "effect";
-import { makeSessionTreeAudits } from "#tree/audit.ts";
+import { SessionTreeAudits } from "#tree/audit/service.ts";
 import { endingUnreportedGap, observed, processGoneGap } from "#tree/gaps.ts";
-import { makeSessionTreeLedger } from "#tree/ledger.ts";
+import { SessionTreeLedger } from "#tree/ledger/service.ts";
 import { acquisitionGone, type Spawner } from "#tree/liveness.ts";
-import { makeSessionTreeRows } from "#tree/rows.ts";
+import { SessionTreeRows } from "#tree/rows/service.ts";
 
 const reconciledEnding = (subsessionRef: string, sessionId: string): AgentEvent => ({
 	outcome: "unknown",
@@ -28,10 +28,10 @@ const endings = (node: StoredAgentSession, spawnerSessionId: string) =>
 export const reconcile = Effect.fn("SessionNodeReconciler.reconcile")(function* () {
 	const db = yield* Database;
 	const journal = yield* SessionEventJournal;
-	const audits = yield* makeSessionTreeAudits;
-	const ledger = yield* makeSessionTreeLedger;
-	const rows = yield* makeSessionTreeRows;
-	const nodes = yield* ledger.openNodes;
+	const audits = yield* SessionTreeAudits;
+	const ledger = yield* SessionTreeLedger;
+	const rows = yield* SessionTreeRows;
+	const nodes = yield* ledger.openNodes();
 	if (nodes.length === 0) {
 		return;
 	}

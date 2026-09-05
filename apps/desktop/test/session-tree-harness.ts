@@ -93,7 +93,7 @@ const domainLayer = (temporary: TemporaryPersistence, backend: AgentBackend) =>
 		new Map(),
 		join(dirname(temporary.database), "artifacts"),
 		join(dirname(temporary.database), "session-inputs"),
-	).pipe(Layer.provide(NodeServices.layer), Layer.provideMerge(SettingsSourceLive), Layer.provideMerge(temporary.layer));
+	).pipe(Layer.provide(NodeServices.layer), Layer.provideMerge(SettingsSourceLive));
 
 const sightLayer = (temporary: TemporaryPersistence, backend: AgentBackend) =>
 	Layer.mergeAll(SightSourceLive, KernelReachLive).pipe(
@@ -114,7 +114,7 @@ export const rehearsalLayer = (
 	script: ReadonlyArray<Delivery>,
 	drained: Effect.Effect<unknown> = Effect.void,
 	stored: StoredTranscripts = storedNothing,
-) => sightLayer(temporary, scriptedClaude(script, stored, drained));
+) => sightLayer(temporary, scriptedClaude(script, stored, drained)).pipe(Layer.provideMerge(temporary.layer));
 
 interface SessionTreeHarness {
 	readonly drained: Effect.Effect<void>;

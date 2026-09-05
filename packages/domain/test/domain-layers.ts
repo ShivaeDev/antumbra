@@ -1,4 +1,5 @@
 import { dirname, join } from "node:path";
+import type { ObserveCadenceOptions } from "@antumbra/changes/watch/cadence";
 import { IntentDemandLive } from "@antumbra/intent-demand";
 import { KernelLive, type KernelOptions } from "@antumbra/kernel";
 import type { TemporaryPersistence } from "@antumbra/persistence/testing";
@@ -9,7 +10,6 @@ import { SettingsSourceLive } from "@antumbra/settings";
 import { NodeServices } from "@effect/platform-node";
 import { Effect, Layer } from "effect";
 import { BackendCapacityReleaseLive } from "#backend-capacity-release.ts";
-import type { ObserveCadenceOptions } from "#change-cadence.ts";
 import { ChangeWatcherLive } from "#change-watcher.ts";
 import { DispatcherLive, type DispatcherOptions } from "#dispatcher.ts";
 import { AgentDomain, AgentDomainLive } from "#domain.ts";

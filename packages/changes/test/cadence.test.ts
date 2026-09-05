@@ -1,7 +1,7 @@
-import type { ChangeRow } from "@antumbra/changes";
 import { describe, expect, it } from "@effect/vitest";
-import type { ObserveCadenceOptions } from "#change-cadence.ts";
-import { nextObserveDelayMillis, retryObserveDelayMillis } from "#change-cadence.ts";
+import type { ChangeRow } from "#change-rows.ts";
+import type { ObserveCadenceOptions } from "#watch/cadence.ts";
+import { nextObserveDelayMillis, retryObserveDelayMillis } from "#watch/cadence.ts";
 
 const row = (fields: Partial<ChangeRow>): ChangeRow => ({
 	activityAt: new Date(0),

@@ -11,7 +11,7 @@ import { agentsAtWork } from "#agent-at-work.ts";
 import { restingCrew, retirableCrew } from "#crew-rest.ts";
 import { readyPieces } from "#dispatch-policy.ts";
 import { ExecutionSource } from "#execution/service.ts";
-import { pieceOutcomeTally } from "#outcome-status.ts";
+import { pieceOutcomeTallies } from "#outcome-status.ts";
 import { concludedPieces, pieceStates } from "#piece-state.ts";
 import { changeOf } from "#test/change-fixtures.ts";
 import { assignedExecution } from "#voyage-execution-selection.ts";
@@ -104,7 +104,7 @@ it.effectDB("scoped outcome reads retain dismissed and withdrawn links while rep
 	yield* db.ChangeVerdict.create({ changeId: "dismissed", verdict: "dismissed" });
 	const world = yield* dispatch;
 	expect(new Set(world.changes.map((row) => row.id))).toEqual(new Set(["landed", "dismissed", "withdrawn", "replacement"]));
-	expect(pieceOutcomeTally(world, "candidate")).toEqual({ landed: 2, pending: 2 });
+	expect(pieceOutcomeTallies(world).get("candidate")).toEqual({ landed: 2, pending: 2 });
 	expect(pieceStates(world).get("candidate")).toBe("landing");
 	yield* db.Change.where({ id: "replacement" }).update({ stage: "landed", landedAt: new Date(3) });
 	expect(pieceStates(yield* dispatch).get("candidate")).toBe("done");

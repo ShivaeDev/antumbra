@@ -1,4 +1,5 @@
 import { Pieces } from "@antumbra/pieces";
+import { Voyages } from "@antumbra/voyages";
 import { expect, it } from "@effect/vitest";
 import { Effect, Ref } from "effect";
 import type { SpawnFields } from "#spawn-fields.ts";
@@ -18,7 +19,8 @@ it.live("uses each voyage backend for future captain and crew spawns", () =>
 		yield* Effect.gen(function* () {
 			const pieces = yield* Pieces;
 			const voyages = yield* VoyageProcedureService;
-			const voyage = yield* voyages.open({
+			const voyageRecords = yield* Voyages;
+			const voyage = yield* voyageRecords.open({
 				backend: "scripted",
 				context: "the reef is uncharted",
 				name: "Chart the reef",
@@ -26,7 +28,7 @@ it.live("uses each voyage backend for future captain and crew spawns", () =>
 			});
 
 			yield* voyages.hail(voyage.id);
-			yield* voyages.setCaptainBackend(voyage.id, "codex");
+			yield* voyageRecords.setCaptainBackend(voyage.id, "codex");
 			yield* voyages.hail(voyage.id);
 
 			const piece = yield* pieces.charter({
@@ -37,7 +39,7 @@ it.live("uses each voyage backend for future captain and crew spawns", () =>
 				title: "Sound",
 				voyageId: voyage.id,
 			});
-			yield* voyages.setCrewBackend(voyage.id, "codex");
+			yield* voyageRecords.setCrewBackend(voyage.id, "codex");
 			yield* voyages.workNow(piece.id);
 
 			expect((yield* Ref.get(submissions)).map(({ backend }) => backend)).toEqual(["scripted", "codex", "codex"]);

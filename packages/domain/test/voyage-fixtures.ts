@@ -2,6 +2,7 @@ import { isTerminalIntentStatus, Kernel } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
 import { Pieces } from "@antumbra/pieces";
 import { Reports } from "@antumbra/reports";
+import { Voyages } from "@antumbra/voyages";
 import { expect } from "@effect/vitest";
 import { Effect, Option, Schedule, Stream } from "effect";
 import { AgentDomain } from "#domain.ts";
@@ -37,8 +38,8 @@ export const sessionIdOf = (agentId: string) =>
 	});
 
 export const openReefVoyage = Effect.gen(function* () {
-	const domain = yield* AgentDomain;
-	return yield* domain.voyages.open({
+	const voyageRecords = yield* Voyages;
+	return yield* voyageRecords.open({
 		backend: "scripted",
 		context: "the reef is uncharted",
 		name: "Chart the reef",

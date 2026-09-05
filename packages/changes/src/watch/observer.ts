@@ -44,9 +44,11 @@ const watchOneHost = Effect.fn("ChangeWatcher.watchOneHost")(function* (hostTag:
 	}
 });
 
-export const ChangeWatcher = (hostTags: ReadonlyArray<string>, overrides: Partial<ObserveCadenceOptions> = {}) =>
+export const ChangeWatcher = (overrides: Partial<ObserveCadenceOptions> = {}) =>
 	Layer.effectDiscard(
 		Effect.gen(function* () {
+			const changes = yield* Changes;
+			const hostTags = yield* changes.hostTags();
 			const options = { ...DEFAULTS, ...overrides };
 			const feeds = yield* DomainFeeds;
 			// Hosts are fixed before layer construction, and each needs its own queue because a queue value has one taker.

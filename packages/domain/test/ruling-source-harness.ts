@@ -6,12 +6,14 @@ import { Database } from "@antumbra/persistence";
 import { PiecesLive } from "@antumbra/pieces";
 import { RulingsLive } from "@antumbra/rulings";
 import { RulingHoldsLive } from "@antumbra/rulings/holds/service";
+import { Voyages } from "@antumbra/voyages";
 import { Deferred, Effect, Layer, Stream } from "effect";
 import { RulingSourceLive } from "#ruling-source.ts";
 
 export const layer = RulingSourceLive.pipe(
 	Layer.provideMerge(changesLayer(new Map(), new Map())),
 	Layer.provideMerge(PiecesLive),
+	Layer.provideMerge(Voyages.layer),
 	Layer.provideMerge(RulingHoldsLive),
 	Layer.provideMerge(BoardsLive),
 	Layer.provideMerge(RulingsLive),

@@ -1,11 +1,12 @@
 import { Changes } from "@antumbra/changes";
 import type { ObserveCadenceOptions } from "@antumbra/changes/watch/cadence";
+import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database } from "@antumbra/persistence";
 import { Pieces } from "@antumbra/pieces";
+import { Repos } from "@antumbra/repos";
 import { describe, expect, it } from "@effect/vitest";
 import { Effect, Queue } from "effect";
 import { TestClock } from "effect/testing";
-import { AgentDomain } from "#domain.ts";
 import { berthed, REEF_SOURCE, reefWithPiece } from "#test/change-fixtures.ts";
 import { watchingLayer } from "#test/domain-layers.ts";
 import {
@@ -108,7 +109,7 @@ describe("watching open changes", () => {
 	it.effect("asks again promptly when somebody rings", () =>
 		watched(SLOW, (scripted) =>
 			Effect.gen(function* () {
-				const domain = yield* AgentDomain;
+				const feeds = yield* DomainFeeds;
 				const { piece, repo } = yield* reefWithPiece;
 				yield* berthed(CREW);
 				const beforeOpen = yield* passes(scripted);
@@ -116,7 +117,7 @@ describe("watching open changes", () => {
 				yield* askedMoreThan(scripted, beforeOpen);
 				const quiet = yield* settled(scripted);
 
-				yield* domain.changes.requestRefresh;
+				yield* feeds.publishChangeRefresh();
 
 				yield* askedMoreThan(scripted, quiet);
 			}),
@@ -203,8 +204,8 @@ describe("a chain gated on a change", () => {
 		watched(BRISK, (scripted, backend) =>
 			Effect.gen(function* () {
 				const pieces = yield* Pieces;
-				const domain = yield* AgentDomain;
-				const repo = yield* domain.repos.register({
+				const repos = yield* Repos;
+				const repo = yield* repos.register({
 					defaultRef: "main",
 					source: REEF_SOURCE,
 				});

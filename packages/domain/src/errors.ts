@@ -1,3 +1,5 @@
+export { VoyageNotFound } from "@antumbra/voyages/errors";
+
 import { Data } from "effect";
 
 export {
@@ -10,7 +12,6 @@ export {
 	EdgeWouldCycle,
 	PieceNotFound,
 	StoredPieceVerdictInvalid,
-	VoyageNotFound,
 } from "@antumbra/pieces";
 export {
 	ResourceOwnerUnavailable,

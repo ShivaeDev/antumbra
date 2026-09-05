@@ -1,4 +1,4 @@
-import { BoardScope, EntryInput } from "@antumbra/boards";
+import { BoardScope, Boards, EntryInput } from "@antumbra/boards";
 import { Database } from "@antumbra/persistence";
 import { expect, it } from "@effect/vitest";
 import { Effect, Option } from "effect";
@@ -37,8 +37,9 @@ it.live("hailing a voyage brings it a captain and puts it under way", () =>
 		yield* Effect.gen(function* () {
 			const db = yield* Database;
 			const domain = yield* AgentDomain;
+			const boards = yield* Boards;
 			const voyage = yield* openReefVoyage;
-			yield* domain.boards.write(
+			yield* boards.write(
 				BoardScope.Voyage({ voyageId: voyage.id }),
 				EntryInput.Note({
 					authorAgentId: Option.none(),

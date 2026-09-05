@@ -3,6 +3,7 @@ import { type IntentStatus, isTerminalIntentStatus, Kernel } from "@antumbra/ker
 import { Pieces } from "@antumbra/pieces";
 import { it } from "@antumbra/testing";
 import type { ScriptedBackend } from "@antumbra/testing-runtime";
+import { Voyages } from "@antumbra/voyages";
 import { expect } from "@effect/vitest";
 import { Effect, Option, Stream } from "effect";
 
@@ -22,8 +23,8 @@ const chosenBy = (scripted: ScriptedBackend) =>
 
 const openReef = (settings: { readonly crewEffort?: string; readonly crewModel?: string }) =>
 	Effect.gen(function* () {
-		const domain = yield* AgentDomain;
-		return yield* domain.voyages.open({
+		const voyages = yield* Voyages;
+		return yield* voyages.open({
 			backend: "scripted",
 			captainEffort: "high",
 			captainModel: "opus",
@@ -57,8 +58,8 @@ const hailed = (voyageId: string) =>
 
 const settingsChanged = (voyageId: string, model: string, effort: string) =>
 	Effect.gen(function* () {
-		const domain = yield* AgentDomain;
-		yield* domain.voyages.setAgentSettings(voyageId, "crew", { effort, model });
+		const voyages = yield* Voyages;
+		yield* voyages.setAgentSettings(voyageId, "crew", { effort, model });
 	}).pipe(Effect.orDie);
 
 it.effectApp("a voyage's model and effort reach the sessions its agents open", { clock: "live" }, function* ({ scripted }) {

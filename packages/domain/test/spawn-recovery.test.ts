@@ -1,6 +1,7 @@
 import { type IntentStatus, isTerminalIntentStatus, Kernel } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
 import { type MooragePlan, type Runner, RunnerAuthRequired, RunnerProvisionConflict } from "@antumbra/plugin-api";
+import { Repos } from "@antumbra/repos";
 import { expect, it } from "@effect/vitest";
 import { Effect, Option, Ref, Stream } from "effect";
 import { AgentDomain } from "#domain.ts";
@@ -68,7 +69,8 @@ it.live("authentication wait survives a full rebuild and retries the same birth"
 			const db = yield* Database;
 			const kernel = yield* Kernel;
 			const domain = yield* AgentDomain;
-			yield* domain.repos.register({
+			const repos = yield* Repos;
+			yield* repos.register({
 				defaultRef: "main",
 				source: "/somewhere/auth",
 			});
@@ -84,11 +86,11 @@ it.live("authentication wait survives a full rebuild and retries the same birth"
 		yield* Effect.gen(function* () {
 			const db = yield* Database;
 			const kernel = yield* Kernel;
-			const domain = yield* AgentDomain;
+			const repos = yield* Repos;
 			expect(Option.getOrThrow(yield* db.Intent.where({ id: intentId }).first()).status).toBe("waiting");
 			expect(yield* agentStatus(authPayload.agentId)).toBe("spawning");
 			expect(yield* pieceAssignments).toEqual([{ agentId: authPayload.agentId, pieceId: authPayload.pieceId }]);
-			yield* domain.repos.register({
+			yield* repos.register({
 				defaultRef: "main",
 				source: "/somewhere/registered-after-wait",
 			});
@@ -122,7 +124,8 @@ it.live("a provision conflict holds the same plan for explicit retry", () =>
 			const db = yield* Database;
 			const kernel = yield* Kernel;
 			const domain = yield* AgentDomain;
-			yield* domain.repos.register({
+			const repos = yield* Repos;
+			yield* repos.register({
 				defaultRef: "main",
 				source: "/somewhere/conflict",
 			});

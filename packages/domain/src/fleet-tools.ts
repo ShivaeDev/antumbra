@@ -2,6 +2,7 @@ import { bind, charterVoyagePieceSpec, hailCaptainSpec, openVoyageSpec, proclaim
 import type { DirectTool } from "@antumbra/plugin-api";
 import { type Ruling, type RulingProclamation, Rulings } from "@antumbra/rulings";
 import { AGENT_BACKEND_TAGS } from "@antumbra/vocabulary/agent-backend";
+import { Voyages } from "@antumbra/voyages";
 import { Effect } from "effect";
 import { makeCaptainToolCompiler } from "#captain-tools.ts";
 import { makeReportingCharter, withNotice } from "#charter-notice.ts";
@@ -37,9 +38,10 @@ export const makeFleetToolCompiler = Effect.gen(function* () {
 	const compileCaptainTools = yield* makeCaptainToolCompiler;
 	const charter = yield* makeReportingCharter;
 	const rulings = yield* Rulings;
-	const voyages = yield* VoyageProcedureService;
+	const procedures = yield* VoyageProcedureService;
+	const voyages = yield* Voyages;
 	const fleetActs = (identity: SessionIdentity): ReadonlyArray<DirectTool> => [
-		bind(readFleetSpec, () => answered(identity, readFleetSpec.name, voyages.list(), renderFleet)),
+		bind(readFleetSpec, () => answered(identity, readFleetSpec.name, procedures.list(), renderFleet)),
 		bind(openVoyageSpec, (input) =>
 			answered(
 				identity,
@@ -68,7 +70,7 @@ export const makeFleetToolCompiler = Effect.gen(function* () {
 				(chartered) => withNotice(chartered, `chartered ${chartered.piece.id} on voyage ${input.voyageId}`),
 			),
 		),
-		bind(hailCaptainSpec, (input) => answered(identity, hailCaptainSpec.name, voyages.hail(input.voyageId), hailed(input.voyageId))),
+		bind(hailCaptainSpec, (input) => answered(identity, hailCaptainSpec.name, procedures.hail(input.voyageId), hailed(input.voyageId))),
 		bind(proclaimRulingSpec, (input) => answered(identity, proclaimRulingSpec.name, rulings.proclaim(proclamationOf(input)), proclaimed)),
 	];
 	return (identity: SessionIdentity): ReadonlyArray<DirectTool> => [...compileCaptainTools(identity), ...fleetActs(identity)];

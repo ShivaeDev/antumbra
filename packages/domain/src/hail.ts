@@ -1,36 +1,23 @@
-import { type BoardOwnerNotFound, BoardScope, Boards, entryBodies, type StoredBoardEntryInvalid } from "@antumbra/boards";
+import { BoardScope, Boards, entryBodies } from "@antumbra/boards";
 import { Database } from "@antumbra/persistence";
-import type { RulingReadFailure } from "@antumbra/rulings";
 import { decodeStoredVoyageKind } from "@antumbra/vocabulary/voyage";
 import { Effect, Option } from "effect";
 import { agentSettingsOf } from "#agent-settings.ts";
 import { charterForKind } from "#charter-flagship.ts";
 import { CaptainAlreadyHailed, CaptainSessionUnavailable, VoyageNotFound } from "#errors.ts";
-import type { SpawnRefused } from "#kernel-reach.ts";
 import { KernelReach } from "#kernel-reach.ts";
 import { pieceLineWithOutcomes } from "#piece-line.ts";
 import { rulingLine, standingRulingsFor } from "#standing-rulings.ts";
+import { VoyageDetails } from "#voyage/detail/service.ts";
 import { CAPTAIN_ROLE } from "#voyage-captain.ts";
 import { readVoyageCaptain } from "#voyage-captain-read.ts";
 import { voyageRow } from "#voyage-row-projection.ts";
 import { voyageView } from "#voyage-view.ts";
-import type { VoyageWorldReadFailure } from "#voyage-world/read.ts";
-import { VoyageWorldSource } from "#voyage-world/service.ts";
 
 export interface HailedCaptain {
 	readonly agentId: string;
 	readonly intentId: string;
 }
-
-export type HailRefused =
-	| BoardOwnerNotFound
-	| CaptainAlreadyHailed
-	| CaptainSessionUnavailable
-	| RulingReadFailure
-	| SpawnRefused
-	| StoredBoardEntryInvalid
-	| VoyageNotFound
-	| VoyageWorldReadFailure;
 
 export const hailCaptain = Effect.fn("Voyages.hail")(function* (voyageId: string) {
 	const boards = yield* Boards;
@@ -61,8 +48,9 @@ export const hailCaptain = Effect.fn("Voyages.hail")(function* (voyageId: string
 			voyageId,
 		});
 	}
-	const source = yield* VoyageWorldSource;
-	const world = yield* source.read();
+	const details = yield* VoyageDetails;
+	const detail = yield* details.read(voyageId);
+	if (Option.isNone(detail)) return yield* new VoyageNotFound({ voyageId });
 	const voyageLog = yield* boards.read(BoardScope.Voyage({ voyageId })).pipe(Effect.map(entryBodies));
 	const agentId = crypto.randomUUID();
 	const bindingRulings = yield* standingRulingsFor({
@@ -77,7 +65,7 @@ export const hailCaptain = Effect.fn("Voyages.hail")(function* (voyageId: string
 		charter: charterForKind(voyage.kind, {
 			context: voyage.context,
 			northStar: voyage.northStar,
-			pieceLines: voyageView(world, voyage).pieces.map(pieceLineWithOutcomes),
+			pieceLines: voyageView(detail.value.rows, voyage).pieces.map(pieceLineWithOutcomes),
 			rulings: bindingRulings.map(rulingLine),
 			voyageLog,
 		}),

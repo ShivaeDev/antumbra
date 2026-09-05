@@ -5,6 +5,7 @@ import { Database, type DatabaseService } from "@antumbra/persistence";
 import type { TemporaryPersistence } from "@antumbra/persistence/testing";
 import { Pieces } from "@antumbra/pieces";
 import { Reports } from "@antumbra/reports";
+import { Voyages } from "@antumbra/voyages";
 import { expect, it } from "@effect/vitest";
 import { Effect, Option } from "effect";
 import { AgentDomain } from "#domain.ts";
@@ -12,13 +13,10 @@ import { domainKernelLayer } from "#test/domain-layers.ts";
 import { acquireTemporaryPersistence, makeScriptedBackend } from "#test/harness.ts";
 import type { VoyageProcedures } from "#voyages/service.ts";
 
-const openVoyage = (voyages: VoyageProcedures) =>
-	voyages.open({
-		backend: "scripted",
-		context: "the reef is uncharted",
-		name: "Chart the reef",
-		northStar: "every shoal is known",
-	});
+const openVoyage = Effect.gen(function* () {
+	const voyages = yield* Voyages;
+	return yield* voyages.open({ backend: "scripted", context: "the reef is uncharted", name: "Chart the reef", northStar: "every shoal is known" });
+});
 
 const charter = (voyageId: string, title: string, dependsOn: ReadonlyArray<string> = []) =>
 	Effect.flatMap(Pieces, (owner) =>
@@ -52,9 +50,12 @@ const withDomain = <A, E, R>(body: (voyages: VoyageProcedures, temporary: Tempor
 it.live("a voyage holds the pieces chartered into it, gated by edges", () =>
 	withDomain((voyages) =>
 		Effect.gen(function* () {
-			const voyage = yield* openVoyage(voyages);
+			const voyage = yield* openVoyage;
 			const first = yield* charter(voyage.id, "sound the shallows");
 			const second = yield* charter(voyage.id, "draw the chart", [first.id]);
+			const db = yield* Database;
+			yield* db.Piece.where({ id: first.id }).update({ createdAt: new Date(1) });
+			yield* db.Piece.where({ id: second.id }).update({ createdAt: new Date(2) });
 			const view = Option.getOrThrow(yield* voyages.read(voyage.id));
 			expect(view.name).toBe("Chart the reef");
 			expect(view.state).toBe("quiet");
@@ -66,9 +67,9 @@ it.live("a voyage holds the pieces chartered into it, gated by edges", () =>
 );
 
 it.live("chartering onto a piece that does not exist is refused", () =>
-	withDomain((voyages) =>
+	withDomain(() =>
 		Effect.gen(function* () {
-			const voyage = yield* openVoyage(voyages);
+			const voyage = yield* openVoyage;
 			const failure = yield* Effect.flip(charter(voyage.id, "sail nowhere", ["no-such-piece"]));
 			expect(failure._tag).toBe("PieceNotFound");
 		}),
@@ -79,7 +80,7 @@ it.live("rewiring may never make a piece depend on itself", () =>
 	withDomain((voyages) =>
 		Effect.gen(function* () {
 			const pieces = yield* Pieces;
-			const voyage = yield* openVoyage(voyages);
+			const voyage = yield* openVoyage;
 			const alpha = yield* charter(voyage.id, "alpha");
 			const beta = yield* charter(voyage.id, "beta", [alpha.id]);
 			const gamma = yield* charter(voyage.id, "gamma", [beta.id]);
@@ -100,7 +101,7 @@ it.live("launching walks a piece from held to ready, its dependent blocked", () 
 	withDomain((voyages) =>
 		Effect.gen(function* () {
 			const pieces = yield* Pieces;
-			const voyage = yield* openVoyage(voyages);
+			const voyage = yield* openVoyage;
 			const first = yield* charter(voyage.id, "sound");
 			const second = yield* charter(voyage.id, "draw", [first.id]);
 
@@ -120,7 +121,7 @@ it.live("a landed report is the only thing that makes a piece done", () =>
 		Effect.gen(function* () {
 			const pieces = yield* Pieces;
 			const reports = yield* Reports;
-			const voyage = yield* openVoyage(voyages);
+			const voyage = yield* openVoyage;
 			const first = yield* charter(voyage.id, "sound");
 			const second = yield* charter(voyage.id, "draw", [first.id]);
 			yield* pieces.launch(first.id);
@@ -153,7 +154,7 @@ it.live("a landed artifact carries its author and lands the piece", () =>
 			const pieces = yield* Pieces;
 			const artifacts = yield* Artifacts;
 			const reports = yield* Reports;
-			const voyage = yield* openVoyage(voyages);
+			const voyage = yield* openVoyage;
 			const piece = yield* charter(voyage.id, "draw");
 			yield* pieces.launch(piece.id);
 			const moorage = join(dirname(temporary.database), "manual-moorage");
@@ -197,7 +198,7 @@ it.live("parking holds a ready piece back until it is unparked", () =>
 	withDomain((voyages) =>
 		Effect.gen(function* () {
 			const pieces = yield* Pieces;
-			const voyage = yield* openVoyage(voyages);
+			const voyage = yield* openVoyage;
 			const piece = yield* charter(voyage.id, "sound");
 			yield* pieces.launch(piece.id);
 			yield* pieces.park(piece.id, true);
@@ -212,11 +213,12 @@ it.live("the list carries every voyage with its piece counts and focus", () =>
 	withDomain((voyages) =>
 		Effect.gen(function* () {
 			const pieces = yield* Pieces;
-			const voyage = yield* openVoyage(voyages);
+			const voyage = yield* openVoyage;
 			const first = yield* charter(voyage.id, "sound");
 			yield* charter(voyage.id, "draw", [first.id]);
 			yield* pieces.launch(first.id);
-			yield* voyages.setFocus(voyage.id, true);
+			const voyageRecords = yield* Voyages;
+			yield* voyageRecords.setFocus(voyage.id, true);
 
 			const listed = yield* voyages.list();
 			expect(listed).toHaveLength(1);
@@ -233,7 +235,7 @@ it.live("the list carries every voyage with its piece counts and focus", () =>
 				ready: 1,
 			});
 
-			yield* voyages.setFocus(voyage.id, false);
+			yield* voyageRecords.setFocus(voyage.id, false);
 			expect((yield* voyages.list())[0]?.focusedAt).toBeNull();
 			expect(Option.isNone(yield* voyages.read("no-such-voyage"))).toBe(true);
 		}),

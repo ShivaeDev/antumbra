@@ -3,13 +3,15 @@ import { atWork } from "#agent-at-work.ts";
 import { pieceOutcomeTally } from "#outcome-status.ts";
 import type { AwaitingRuling, DispatchWorld, RetirementWorld } from "#voyage-rows.ts";
 
+type PieceStateRows = Omit<DispatchWorld, "memberships" | "voyages">;
+
 export const PIECE_STATES = ["abandoned", "active", "blocked", "done", "held", "landing", "parked", "ready"] as const;
 export type PieceState = (typeof PIECE_STATES)[number];
 
 export const dependenciesOf = (edges: ReadonlyArray<EdgeRow>, pieceId: string): ReadonlyArray<string> =>
 	edges.filter((edge) => edge.toPieceId === pieceId).map((edge) => edge.fromPieceId);
 
-export const awaitingRulingsOf = (world: DispatchWorld, pieceId: string): ReadonlyArray<AwaitingRuling> =>
+export const awaitingRulingsOf = (world: Pick<DispatchWorld, "rulingGates">, pieceId: string): ReadonlyArray<AwaitingRuling> =>
 	world.rulingGates.filter((gate) => gate.pieceId === pieceId).map((gate) => ({ question: gate.question, rulingId: gate.rulingId }));
 
 export const workingAssignees = (world: RetirementWorld, pieceId: string): ReadonlyArray<string> =>
@@ -34,7 +36,7 @@ const pieceExecutionState = (world: RetirementWorld, settled: Settled, pieceId: 
 	return settled.done.has(pieceId) ? "done" : undefined;
 };
 
-const stateOf = (world: DispatchWorld, settled: Settled, piece: PieceRow): PieceState => {
+const stateOf = (world: PieceStateRows, settled: Settled, piece: PieceRow): PieceState => {
 	const execution = pieceExecutionState(world, settled, piece.id);
 	if (execution !== undefined) {
 		return execution;
@@ -76,7 +78,7 @@ const settledPieces = (world: RetirementWorld): Settled => {
 	return settled;
 };
 
-export const pieceStates = (world: DispatchWorld): ReadonlyMap<string, PieceState> => {
+export const pieceStates = (world: PieceStateRows): ReadonlyMap<string, PieceState> => {
 	const settled = settledPieces(world);
 	return new Map(world.pieces.map((piece) => [piece.id, stateOf(world, settled, piece)]));
 };

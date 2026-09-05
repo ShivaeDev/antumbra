@@ -2,6 +2,7 @@ import { type Gate, type IntentStatus, isTerminalIntentStatus, Kernel } from "@a
 import { Database, type NewAgentSession } from "@antumbra/persistence";
 import type { AgentBackend, MooragePlan } from "@antumbra/plugin-api";
 import { wakeWords } from "@antumbra/prompts";
+import { Repos } from "@antumbra/repos";
 import { expect, it } from "@effect/vitest";
 import { Effect, Option, Ref, Stream } from "effect";
 import { AgentDomain } from "#domain.ts";
@@ -122,7 +123,8 @@ it.live("boot completes an activated birth while resuming its durable Session", 
 		const seeded = yield* Effect.gen(function* () {
 			const kernel = yield* Kernel;
 			const domain = yield* AgentDomain;
-			yield* domain.repos.register({
+			const repos = yield* Repos;
+			yield* repos.register({
 				defaultRef: "main",
 				source: "/somewhere/activated",
 			});

@@ -31,7 +31,7 @@ const pointerChange = (
 export const planAgent = (
 	agent: DecodedAgent,
 	owned: ReadonlyArray<DecodedSession>,
-	allSessions: ReadonlyArray<DecodedSession>,
+	sessionIds: ReadonlySet<string>,
 ): Result.Result<AgentReconcilePlan, CurrentSessionInvalid | InvalidAgentTransition> => {
 	const open = owned.filter((session) => session.status === "open");
 	if (agent.status === "dormant" || agent.status === "retired") {
@@ -61,7 +61,7 @@ export const planAgent = (
 				});
 	}
 	const current = owned.find((session) => session.id === currentId);
-	const reservedBirth = agent.status === "spawning" && !allSessions.some((session) => session.id === currentId);
+	const reservedBirth = agent.status === "spawning" && !sessionIds.has(currentId);
 	if (!reservedBirth && current?.status !== "open") {
 		return Result.fail(
 			new CurrentSessionInvalid({

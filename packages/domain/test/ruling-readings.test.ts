@@ -1,4 +1,5 @@
 import { Kernel } from "@antumbra/kernel";
+import { Voyages } from "@antumbra/voyages";
 import { expect, it } from "@effect/vitest";
 import { Effect } from "effect";
 import { AgentDomain } from "#domain.ts";
@@ -18,8 +19,8 @@ const HAND: SpawnFields = {
 };
 
 const anotherVoyage = Effect.gen(function* () {
-	const domain = yield* AgentDomain;
-	return yield* domain.voyages.open({
+	const voyageRecords = yield* Voyages;
+	return yield* voyageRecords.open({
 		backend: "scripted",
 		context: "the shoals are unnamed",
 		name: "Name the shoals",

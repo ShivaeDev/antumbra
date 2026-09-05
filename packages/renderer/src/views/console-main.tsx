@@ -1,4 +1,5 @@
 import type { ConsoleMode, Fleet, SettingsReading, VoyageSummary } from "@antumbra/contract";
+import { CostsPanel } from "#views/costs.tsx";
 import { FlagshipPanel } from "#views/flagship.tsx";
 import { FleetSurface } from "#views/fleet-surface.tsx";
 import { HoldsPanel } from "#views/holds.tsx";
@@ -53,6 +54,9 @@ export const ConsoleMain = (props: ConsoleProps) => {
 	}
 	if (props.mode === "rulings") {
 		return <RulingsPanel onError={props.onError} />;
+	}
+	if (props.mode === "costs") {
+		return <CostsPanel />;
 	}
 	if (props.mode === "holds") {
 		return <HoldsPanel onError={props.onError} onSettings={props.onSettings} settings={props.settings} />;

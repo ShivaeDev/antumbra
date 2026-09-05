@@ -11,7 +11,13 @@ interface Script {
 
 const LISTENING = "opencode server listening on http://127.0.0.1:51491\n";
 
-const OPTIONS = { command: "/opt/homebrew/bin/opencode", cwd: "/moorage", skills: "/antumbra/skills" };
+const OPTIONS = {
+	command: "/opt/homebrew/bin/opencode",
+	cwd: "/moorage",
+	plugin: "/antumbra/opencode/caller-session.js",
+	skills: "/antumbra/skills",
+	tools: "http://127.0.0.1:52001",
+};
 
 const bytes = (text: string) => Stream.fromIterable([new TextEncoder().encode(text)]);
 
@@ -38,7 +44,7 @@ const opencodeThat = (script: Script) => {
 	return { layer: Layer.succeed(ChildProcessSpawner.ChildProcessSpawner, service), spawned };
 };
 
-it.effect("starts the server on a free local port with Antumbra's skills in its config", () =>
+it.effect("starts the server on a free local port, naming Antumbra's skills, tool server and plugin in its config", () =>
 	Effect.gen(function* () {
 		const fake = opencodeThat({ exitCode: Effect.never, stderr: "", stdout: LISTENING });
 		yield* Effect.scoped(Effect.provide(serveOpencode(OPTIONS), fake.layer));
@@ -47,7 +53,13 @@ it.effect("starts the server on a free local port with Antumbra's skills in its 
 				args: ["serve", "--port", "0", "--hostname", "127.0.0.1"],
 				command: "/opt/homebrew/bin/opencode",
 				options: {
-					env: { OPENCODE_CONFIG_CONTENT: '{"skills":{"paths":["/antumbra/skills"]}}' },
+					env: {
+						OPENCODE_CONFIG_CONTENT: JSON.stringify({
+							mcp: { antumbra: { timeout: 300_000, type: "remote", url: "http://127.0.0.1:52001" } },
+							plugin: ["file:///antumbra/opencode/caller-session.js"],
+							skills: { paths: ["/antumbra/skills"] },
+						}),
+					},
 					extendEnv: true,
 				},
 			},

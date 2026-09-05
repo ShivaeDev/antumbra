@@ -1,50 +1,6 @@
-import {
-	type AgentBackend,
-	type MooragePlan,
-	noSessionAudit,
-	type OpenSessionOptions,
-	type ProvisionRequest,
-	type Runner,
-	type SessionHandle,
-	type SessionInput,
-} from "@antumbra/plugin-api";
+import { type AgentBackend, noSessionAudit, type OpenSessionOptions, type SessionHandle, type SessionInput } from "@antumbra/plugin-api";
 import type { AgentEvent } from "@antumbra/vocabulary/session-events";
 import { Effect, Option, Queue, Ref, Stream } from "effect";
-
-export interface ScriptedRunner {
-	readonly provisioned: Effect.Effect<ReadonlyArray<MooragePlan>>;
-	readonly runner: Runner;
-}
-
-export const makeScriptedRunner = Effect.gen(function* () {
-	const plans = yield* Ref.make<ReadonlyArray<MooragePlan>>([]);
-	const plan = (request: ProvisionRequest): MooragePlan => ({
-		berths: request.repos.map((repo, index) => ({
-			branch: `work/${request.agentId.slice(0, 8)}/berth-${index}`,
-			path: `/tmp/moorage/${request.agentId}/berth-${index}`,
-			ref: repo.ref,
-			slug: `berth-${index}`,
-			source: repo.source,
-		})),
-		root: `/tmp/moorage/${request.agentId}`,
-	});
-	const runner: Runner = {
-		captureChange: (berth) =>
-			Effect.succeed({
-				branch: berth.branch,
-				headSha: `sha-${berth.branch}`,
-				workingDiff: "",
-				workingTreeStatus: "",
-				worktreePath: berth.path,
-			}),
-		plan,
-		provision: (provisionPlan) => Ref.update(plans, (all) => [...all, provisionPlan]),
-		reclaim: () => Effect.succeed({ _tag: "reclaimed" as const }),
-		scrap: () => Effect.void,
-		tag: "local",
-	};
-	return { provisioned: Ref.get(plans), runner } satisfies ScriptedRunner;
-});
 
 export interface ScriptedSession {
 	readonly closed: Effect.Effect<boolean>;
@@ -59,6 +15,7 @@ export interface ScriptedSession {
 export interface ScriptedBackend {
 	readonly backend: AgentBackend;
 	readonly opened: Effect.Effect<ReadonlyArray<OpenSessionOptions>>;
+	readonly queued: Effect.Effect<{ readonly sessionId: string; readonly input: SessionInput }>;
 	readonly session: (sessionId: string) => Effect.Effect<ScriptedSession | undefined>;
 }
 
@@ -80,6 +37,7 @@ const recordInput = (received: Ref.Ref<ReadonlyArray<SessionInput>>, texts: Ref.
 export const makeScriptedBackend = Effect.gen(function* () {
 	const sessions = yield* Ref.make<ReadonlyMap<string, ScriptedSession>>(new Map());
 	const opened = yield* Ref.make<ReadonlyArray<OpenSessionOptions>>([]);
+	const queued = yield* Queue.unbounded<{ readonly sessionId: string; readonly input: SessionInput }>();
 	const backend: AgentBackend = {
 		audit: noSessionAudit,
 		capabilities: {
@@ -113,7 +71,7 @@ export const makeScriptedBackend = Effect.gen(function* () {
 					events: Stream.fromQueue(events),
 					interrupt: Ref.set(interrupted, true),
 					nativeRef: Effect.succeed(Option.some(`native-${options.sessionId}`)),
-					queue: (input) => recordInput(received, sent, input),
+					queue: (input) => recordInput(received, sent, input).pipe(Effect.andThen(Queue.offer(queued, { sessionId: options.sessionId, input }))),
 					steer: (input) => recordInput(received, steered, input),
 				};
 				return handle;
@@ -123,25 +81,7 @@ export const makeScriptedBackend = Effect.gen(function* () {
 	return {
 		backend,
 		opened: Ref.get(opened),
+		queued: Queue.take(queued),
 		session: (sessionId) => Ref.get(sessions).pipe(Effect.map((map) => map.get(sessionId))),
 	} satisfies ScriptedBackend;
 });
-
-export const passiveRunner: Runner = {
-	captureChange: (berth) =>
-		Effect.succeed({
-			branch: berth.branch,
-			headSha: `sha-${berth.branch}`,
-			workingDiff: "",
-			workingTreeStatus: "",
-			worktreePath: berth.path,
-		}),
-	plan: (request) => ({
-		berths: [],
-		root: `/tmp/moorage/${request.agentId}`,
-	}),
-	provision: () => Effect.void,
-	reclaim: () => Effect.succeed({ _tag: "reclaimed" as const }),
-	scrap: () => Effect.void,
-	tag: "local",
-};

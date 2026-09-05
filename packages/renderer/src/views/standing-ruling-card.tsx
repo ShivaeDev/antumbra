@@ -14,7 +14,7 @@ const standingActs = (
 	...(others.length === 0
 		? []
 		: [{ act: <RulingSupersede onError={onError} others={others} ruling={ruling} />, words: "Replace with a later ruling" }]),
-	{ act: <RulingWithdraw onError={onError} ruling={ruling} />, words: "Take it out of force" },
+	{ act: <RulingWithdraw ruling={ruling} />, words: "Take it out of force" },
 ];
 
 export const StandingRulingCard = ({

@@ -5,10 +5,13 @@ export interface DirectToolOutcome {
 	readonly text: string;
 }
 
-export interface DirectTool {
-	readonly call: (args: unknown) => Effect.Effect<DirectToolOutcome>;
+export interface ToolDefinition {
 	readonly description: string;
-	// Both provider adapters accept this shared Draft 7 object-schema subset.
+	// Every provider adapter accepts this shared Draft 7 object-schema subset.
 	readonly inputSchema: Record<string, unknown>;
 	readonly name: string;
+}
+
+export interface DirectTool extends ToolDefinition {
+	readonly call: (args: unknown) => Effect.Effect<DirectToolOutcome>;
 }

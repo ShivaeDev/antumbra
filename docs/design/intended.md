@@ -14,8 +14,6 @@ describes one of these carries a marker pointing here. When one ships, its line 
   [Guide.](work-and-planning.md#occultations-and-dependency-blockage)
 - **Posture** — the admiral's standing stance toward a governed subject, inferable by agents without asking again. A Piece's `launchedAt` and
   `parkedAt` are the only stored posture. [Guide.](work-and-planning.md#posture-readiness-and-progress)
-- **Cost tracking and model selection** — accounting for what a Session spends and choosing the model it runs on. Usage events carry per-turn cost and
-  the transcript shows it; nothing sums it, and no setting names a model.
 - **Approvals as decisions** — recording who decided what, at what scope, when a provider asks. Claude runs with permission mode `auto`; the Codex
   adapter declines every approval request and says so, because no consumer is wired.
 - **Smoothing of Boards** — the pass that appends a provenance-bearing summary and advances a frontier. Entries carry a register; agents write the

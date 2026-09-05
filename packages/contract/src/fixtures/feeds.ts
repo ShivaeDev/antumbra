@@ -1,4 +1,6 @@
 import { Stream } from "effect";
+import type { CostsView } from "#costs/views.ts";
+import { costs } from "#fixtures/cost-source.ts";
 import { flagshipSummary } from "#fixtures/flagship.ts";
 import { fleet } from "#fixtures/fleet.ts";
 import { holds } from "#fixtures/hold-source.ts";
@@ -13,6 +15,7 @@ import type { SessionEvent } from "#sight.ts";
 import type { VoyageSummary, VoyageView } from "#voyage-views.ts";
 
 export interface FixtureFeeds {
+	readonly costs: Stream.Stream<CostsView>;
 	readonly events: Stream.Stream<SessionEvent>;
 	readonly fleet: Stream.Stream<Fleet>;
 	readonly holds: Stream.Stream<HoldsView>;
@@ -24,6 +27,7 @@ export interface FixtureFeeds {
 }
 
 export const staticFeeds: FixtureFeeds = {
+	costs: Stream.make(costs),
 	events: Stream.fromArray(sessionJournal),
 	fleet: Stream.make(fleet),
 	holds: Stream.make(holds),

@@ -9,6 +9,9 @@ import { SessionMessage } from "#views/session-message.tsx";
 import { SessionTreePanel } from "#views/session-tree.tsx";
 import { TranscriptView } from "#views/transcript.tsx";
 
+const agentOf = (fleet: Fleet | undefined, sessionId: string): string | undefined =>
+	fleet?.agents.find((agent) => agent.sessions.some((session) => session.id === sessionId))?.id;
+
 const roleOf = (fleet: Fleet | undefined, sessionId: string): string =>
 	fleet?.agents.find((agent) => agent.sessions.some((session) => session.id === sessionId))?.role ?? "unknown agent";
 
@@ -51,6 +54,7 @@ export const SessionPane = ({
 			</header>
 			<SessionTreePanel error={treeError} onSelect={setReading} rootName={roleOf(fleet, sessionId)} selected={reading} tree={tree} />
 			<TranscriptView
+				agentId={agentOf(fleet, sessionId)}
 				foldToolCalls={foldToolCalls}
 				nodes={tree?.nodes ?? []}
 				onOpenNode={setReading}

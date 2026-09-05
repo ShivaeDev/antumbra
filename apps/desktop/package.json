@@ -22,6 +22,7 @@
 		"typecheck:compat": "tsc6 --noEmit"
 	},
 	"devDependencies": {
+		"@antumbra/agent-tools": "workspace:*",
 		"@antumbra/backend-claude": "workspace:*",
 		"@antumbra/backend-codex": "workspace:*",
 		"@antumbra/backend-opencode": "workspace:*",

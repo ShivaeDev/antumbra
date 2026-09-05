@@ -55,6 +55,9 @@ export const persistenceMigrationsDirectory = (): string =>
 
 export const skillsDirectory = (): string => (app.isPackaged ? join(process.resourcesPath, "skills") : join(import.meta.dirname, "skills"));
 
+export const opencodePluginFile = (): string =>
+	app.isPackaged ? join(process.resourcesPath, "opencode", "caller-session.js") : join(import.meta.dirname, "opencode", "caller-session.js");
+
 export const quitWhenAllWindowsClosed = Effect.sync(() => {
 	app.on("window-all-closed", () => {
 		app.quit();

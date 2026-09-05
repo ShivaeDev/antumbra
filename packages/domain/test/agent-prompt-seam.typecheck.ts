@@ -1,9 +1,8 @@
 import { admiralWords, wakeWords } from "@antumbra/prompts";
-import type { makeSessionSend } from "@antumbra/sessions";
+import type { SessionSend } from "@antumbra/sessions/send/service";
 import type { Effect } from "effect";
 
-type SessionSend = Effect.Success<ReturnType<typeof makeSessionSend>>["sendPrompt"];
-type Words = Parameters<SessionSend>[1];
+type Words = Parameters<Effect.Success<typeof SessionSend>["sendPrompt"]>[1];
 
 const acceptsPrompt = (_prompt: Words): void => {};
 

@@ -65,4 +65,5 @@ export { callWhileOpen } from "#tool-call.ts";
 export type {
 	DirectTool,
 	DirectToolOutcome,
+	ToolDefinition,
 } from "#tools.ts";

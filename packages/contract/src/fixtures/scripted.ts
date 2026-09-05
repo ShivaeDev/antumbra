@@ -1,4 +1,5 @@
 import { type Duration, Effect, Stream } from "effect";
+import { costs } from "#fixtures/cost-source.ts";
 import type { FixtureFeeds } from "#fixtures/feeds.ts";
 import { flagshipSummary } from "#fixtures/flagship.ts";
 import { fleet } from "#fixtures/fleet.ts";
@@ -38,6 +39,7 @@ const paced =
 export const makeScriptedFeeds = (beat: Duration.Input): FixtureFeeds => {
 	const step = paced(beat);
 	return {
+		costs: Stream.make(costs),
 		events: step(Stream.fromArray(storedEvents), ...wokenEvents, laterEvent, ...cachedTurnEvents, closingEvent, restingEvent),
 		fleet: step(Stream.make(fleet), crewedFleet, mooredFleet),
 		holds: Stream.make(holds),

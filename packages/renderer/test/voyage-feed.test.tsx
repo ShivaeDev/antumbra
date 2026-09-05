@@ -23,6 +23,8 @@ const { opened, watchVoyage } = vi.hoisted(() => {
 	};
 });
 
+vi.mock("#adapters/trpc-costs.ts", () => ({ watchCosts: vi.fn(() => vi.fn()) }));
+
 vi.mock("#adapters/trpc-voyages.ts", () => ({
 	charterPiece: vi.fn(),
 	focusVoyage: vi.fn(),

@@ -1,12 +1,12 @@
+import type { StoredVoyage } from "@antumbra/persistence";
 import type { VoyageAgentRole } from "@antumbra/vocabulary/voyage";
-import type { VoyageRow } from "#voyage-rows.ts";
 
 export interface AgentSettings {
 	readonly effort?: string;
 	readonly model?: string;
 }
 
-type SettingsRow = Pick<VoyageRow, "captainEffort" | "captainModel" | "crewEffort" | "crewModel">;
+type SettingsRow = Pick<StoredVoyage, "captainEffort" | "captainModel" | "crewEffort" | "crewModel">;
 
 const chosen = (model: string | null, effort: string | null): AgentSettings => ({
 	...(effort === null ? {} : { effort }),

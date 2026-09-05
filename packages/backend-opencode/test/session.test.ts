@@ -5,6 +5,7 @@ import { makeOpencodeServer } from "#server.ts";
 import { openOpencodeSession } from "#session.ts";
 import { type FakeOpencode, makeFakeOpencode } from "#test/fake.ts";
 import { part, SESSION, spoke, status, textPart } from "#test/frames.ts";
+import { makeToolSessions } from "#tool-sessions.ts";
 
 const PROMPT = `/session/${SESSION}/prompt_async`;
 
@@ -23,7 +24,7 @@ const words = (text: string) => ({
 });
 
 const opened = (fake: FakeOpencode, chosen: Partial<OpenSessionOptions> = {}) =>
-	makeOpencodeServer(fake.connect).pipe(Effect.flatMap((server) => openOpencodeSession(server, options(chosen))));
+	makeOpencodeServer(fake.connect, makeToolSessions([])).pipe(Effect.flatMap((server) => openOpencodeSession(server, options(chosen))));
 
 it.effect("opens a session and reports the id opencode minted for it", () =>
 	Effect.scoped(

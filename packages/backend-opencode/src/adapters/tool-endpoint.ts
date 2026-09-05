@@ -3,9 +3,8 @@ import type { BackendFailure } from "@antumbra/plugin-api";
 import { NodeHttpServer } from "@effect/platform-node";
 import { Effect, type Scope } from "effect";
 import { HttpServer, HttpServerRequest, HttpServerResponse } from "effect/unstable/http";
+import { LOOPBACK } from "#adapters/loopback.ts";
 import { opencodeFailure } from "#failure.ts";
-
-const LOOPBACK = "127.0.0.1";
 
 const onlyPosted = HttpServerResponse.empty({ headers: { allow: "POST" }, status: 405 });
 

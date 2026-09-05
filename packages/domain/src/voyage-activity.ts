@@ -2,7 +2,12 @@ import { changesOfPiece } from "@antumbra/changes";
 import type { VoyageSummaryRows } from "#voyage-rows.ts";
 import { piecesOfVoyage } from "#voyage-state.ts";
 
-const agentsOf = (world: Omit<VoyageSummaryRows, "voyages">, voyageId: string, pieceIds: ReadonlySet<string>): ReadonlySet<string> =>
+type ActivityRows = Pick<
+	VoyageSummaryRows,
+	"memberships" | "crews" | "assignments" | "pieces" | "sessions" | "changes" | "pieceChanges" | "dismissedChangeIds"
+>;
+
+const agentsOf = (world: ActivityRows, voyageId: string, pieceIds: ReadonlySet<string>): ReadonlySet<string> =>
 	new Set([
 		...world.crews.filter((crew) => crew.voyageId === voyageId).map((crew) => crew.agentId),
 		...world.assignments.filter((assignment) => pieceIds.has(assignment.pieceId)).map((assignment) => assignment.agentId),
@@ -10,7 +15,7 @@ const agentsOf = (world: Omit<VoyageSummaryRows, "voyages">, voyageId: string, p
 
 const present = (moments: ReadonlyArray<Date | null>): ReadonlyArray<Date> => moments.flatMap((moment) => (moment === null ? [] : [moment]));
 
-export const lastStirredAt = (world: Omit<VoyageSummaryRows, "voyages">, voyageId: string): Date | null => {
+export const lastStirredAt = (world: ActivityRows, voyageId: string): Date | null => {
 	const pieceIds = new Set(piecesOfVoyage(world, voyageId));
 	const agentIds = agentsOf(world, voyageId, pieceIds);
 	const pieces = world.pieces.filter((piece) => pieceIds.has(piece.id));

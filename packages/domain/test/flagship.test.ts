@@ -8,11 +8,10 @@ import { Voyages } from "@antumbra/voyages";
 import { expect } from "@effect/vitest";
 import { Effect, Layer } from "effect";
 import { FlagshipLive } from "#flagship.ts";
+import { VoyageSummaries } from "#voyage/summaries/service.ts";
 import { summarySeen } from "#voyage-projection.ts";
-import { voyageSummaries } from "#voyage-view.ts";
-import { VoyageWorldSource } from "#voyage-world/service.ts";
 
-const WorldLive = VoyageWorldSource.layer.pipe(
+const summaryLayer = VoyageSummaries.layer.pipe(
 	Layer.provideMerge(
 		changesLayer(new Map(), new Map()).pipe(
 			Layer.provideMerge(PiecesLive),
@@ -26,15 +25,15 @@ const WorldLive = VoyageWorldSource.layer.pipe(
 
 const boot = Effect.void.pipe(Effect.provide(FlagshipLive), Effect.provide(Voyages.layer), Effect.provide(DomainFeedsLive));
 
-const readWorld = Effect.gen(function* () {
-	const source = yield* VoyageWorldSource;
+const readSummaries = Effect.gen(function* () {
+	const source = yield* VoyageSummaries;
 	return yield* source.read();
-}).pipe(Effect.provide(WorldLive));
+}).pipe(Effect.provide(summaryLayer));
 
-const readWorldFailure = Effect.gen(function* () {
-	const source = yield* VoyageWorldSource;
+const readSummaryFailure = Effect.gen(function* () {
+	const source = yield* VoyageSummaries;
 	return yield* Effect.flip(source.read());
-}).pipe(Effect.provide(WorldLive));
+}).pipe(Effect.provide(summaryLayer));
 
 it.effectDB("the fleet is born sailing under a flagship", function* (db) {
 	yield* boot;
@@ -68,8 +67,8 @@ it.effectDB("a voyage carries its kind out of the record", function* (db) {
 		northStar: "every shoal is known",
 	});
 
-	const world = yield* readWorld;
-	const kinds = new Map(world.voyages.map((voyage) => [voyage.name, voyage.kind] as const));
+	const summaries = yield* readSummaries;
+	const kinds = new Map(summaries.map((voyage) => [voyage.name, voyage.kind] as const));
 	expect(kinds.get("Flagship")).toBe("flagship");
 	expect(kinds.get("Chart the reef")).toBe("voyage");
 });
@@ -77,7 +76,7 @@ it.effectDB("a voyage carries its kind out of the record", function* (db) {
 it.effectDB("the flagship reaches a window as what it is", function* () {
 	yield* boot;
 
-	const summaries = voyageSummaries(yield* readWorld).map(summarySeen);
+	const summaries = (yield* readSummaries).map(summarySeen);
 	expect(summaries.map((summary) => summary.kind)).toEqual(["flagship"]);
 });
 
@@ -93,7 +92,7 @@ it.effectDB("a stored kind nothing knows is refused", function* (db) {
 		northStar: "the fleet is supplied",
 	});
 
-	expect(yield* readWorldFailure).toMatchObject({
+	expect(yield* readSummaryFailure).toMatchObject({
 		_tag: "StoredVoyageKindInvalid",
 		value: "tender",
 		voyageId: "voyage-tender",

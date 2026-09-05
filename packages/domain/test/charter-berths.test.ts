@@ -1,8 +1,8 @@
 import { Database } from "@antumbra/persistence";
 import { Pieces } from "@antumbra/pieces";
+import { Repos } from "@antumbra/repos";
 import { expect, it } from "@effect/vitest";
 import { Effect } from "effect";
-import { AgentDomain } from "#domain.ts";
 import { dispatchingLayer } from "#test/domain-layers.ts";
 import { acquireTemporaryPersistence, makeScriptedBackend, makeScriptedRunner, type ScriptedBackend, sessionFor } from "#test/harness.ts";
 import { eventually, openReefVoyage, PATIENCE } from "#test/voyage-fixtures.ts";
@@ -28,8 +28,8 @@ it.live("a dispatched crew is told the moorage folder it was berthed in", () =>
 		const recorder = yield* makeScriptedRunner;
 		yield* Effect.gen(function* () {
 			const pieces = yield* Pieces;
-			const domain = yield* AgentDomain;
-			yield* domain.repos.register({
+			const repos = yield* Repos;
+			yield* repos.register({
 				defaultRef: "main",
 				source: "/workspace/Desktop",
 			});

@@ -1,13 +1,12 @@
-import { DomainFeeds, DomainFeedsLive } from "@antumbra/domain-feeds";
-import { it } from "@antumbra/persistence/testing";
+import { DomainFeeds } from "@antumbra/domain-feeds";
+import { it } from "@antumbra/testing-runtime/domain";
 import { Voyages } from "@antumbra/voyages";
 import { expect } from "@effect/vitest";
-import { Effect, Layer, Option, PubSub } from "effect";
+import { Effect, Option, PubSub } from "effect";
 
-const layer = Voyages.layer.pipe(Layer.provideMerge(DomainFeedsLive));
 const reef = { backend: "scripted", context: "the reef is uncharted", name: "Chart the reef", northStar: "every shoal is known" };
 
-it.effectDB("opens a voyage with durable direction and publishes its changes", function* (db) {
+it.effectApp("opens a voyage with durable direction and publishes its changes", function* ({ db }) {
 	yield* Effect.gen(function* () {
 		const voyages = yield* Voyages;
 		const feeds = yield* DomainFeeds;
@@ -23,10 +22,10 @@ it.effectDB("opens a voyage with durable direction and publishes its changes", f
 		yield* voyages.setFocus(voyage.id, false);
 		expect(Option.getOrThrow(yield* db.Voyage.where({ id: voyage.id }).first()).focusedAt).toBeNull();
 		expect(yield* PubSub.take(notices)).toBeUndefined();
-	}).pipe(Effect.provide(layer), Effect.scoped);
+	}).pipe(Effect.provide(Voyages.layer), Effect.scoped);
 });
 
-it.effectDB("switches each backend without changing the other", function* (db) {
+it.effectApp("switches each backend without changing the other", function* ({ db }) {
 	yield* Effect.gen(function* () {
 		const voyages = yield* Voyages;
 		const voyage = yield* voyages.open(reef);
@@ -34,19 +33,19 @@ it.effectDB("switches each backend without changing the other", function* (db) {
 		expect(Option.getOrThrow(yield* db.Voyage.where({ id: voyage.id }).first())).toMatchObject({ captainBackend: "codex", crewBackend: "scripted" });
 		yield* voyages.setCrewBackend(voyage.id, "claude");
 		expect(Option.getOrThrow(yield* db.Voyage.where({ id: voyage.id }).first())).toMatchObject({ captainBackend: "codex", crewBackend: "claude" });
-	}).pipe(Effect.provide(layer));
+	}).pipe(Effect.provide(Voyages.layer));
 });
 
-it.effectDB("refuses direction changes to an absent voyage", function* () {
+it.effectApp("refuses direction changes to an absent voyage", function* () {
 	yield* Effect.gen(function* () {
 		const voyages = yield* Voyages;
 		expect(yield* Effect.flip(voyages.setCaptainBackend("missing", "codex"))).toMatchObject({ _tag: "VoyageNotFound" });
 		expect(yield* Effect.flip(voyages.setCrewBackend("missing", "codex"))).toMatchObject({ _tag: "VoyageNotFound" });
 		expect(yield* Effect.flip(voyages.setFocus("missing", true))).toMatchObject({ _tag: "VoyageNotFound" });
-	}).pipe(Effect.provide(layer));
+	}).pipe(Effect.provide(Voyages.layer));
 });
 
-it.effectDB("later boot leaves the standing flagship alone", function* (db) {
+it.effectApp("later boot leaves the standing flagship alone", function* ({ db }) {
 	yield* Effect.gen(function* () {
 		const voyages = yield* Voyages;
 		yield* voyages.ensureFlagship(reef);
@@ -57,5 +56,5 @@ it.effectDB("later boot leaves the standing flagship alone", function* (db) {
 		const standing = yield* db.Voyage.where({ kind: "flagship" }).all();
 		expect(standing).toHaveLength(1);
 		expect(standing[0]).toMatchObject({ id: first.id, captainBackend: "codex" });
-	}).pipe(Effect.provide(layer));
+	}).pipe(Effect.provide(Voyages.layer));
 });

@@ -3,6 +3,7 @@ import { Database } from "@antumbra/persistence";
 import type { TemporaryPersistence } from "@antumbra/persistence/testing";
 import { type AgentBackend, BackendFailure, type Runner } from "@antumbra/plugin-api";
 import { wakeWords } from "@antumbra/prompts";
+import { Repos } from "@antumbra/repos";
 import { expect } from "@effect/vitest";
 import { Effect, Fiber, Option, Ref, Schedule, Stream } from "effect";
 import { AgentDomain } from "#domain.ts";
@@ -93,6 +94,7 @@ export const seedResumableAgent = (temporary: TemporaryPersistence, backend: Age
 		const db = yield* Database;
 		const kernel = yield* Kernel;
 		const domain = yield* AgentDomain;
+		const repos = yield* Repos;
 		yield* db.Piece.create({
 			charter: "keep going",
 			expectation: "durable progress",
@@ -102,7 +104,7 @@ export const seedResumableAgent = (temporary: TemporaryPersistence, backend: Age
 			role: payload.role,
 			title: "resume a session",
 		});
-		yield* domain.repos.register({
+		yield* repos.register({
 			defaultRef: "main",
 			source: "/somewhere/session-resume",
 		});

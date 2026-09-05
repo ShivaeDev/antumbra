@@ -2,6 +2,7 @@ import { type IntentStatus, isTerminalIntentStatus, Kernel } from "@antumbra/ker
 import { Database } from "@antumbra/persistence";
 import { Pieces } from "@antumbra/pieces";
 import { type AgentBackend, BackendFailure } from "@antumbra/plugin-api";
+import { Repos } from "@antumbra/repos";
 import { expect, it } from "@effect/vitest";
 import { Effect, Option, Stream } from "effect";
 import { AgentDomain } from "#domain.ts";
@@ -39,7 +40,8 @@ it.live("births that fail leave no claim standing on their Piece", () =>
 			const db = yield* Database;
 			const kernel = yield* Kernel;
 			const domain = yield* AgentDomain;
-			yield* domain.repos.register({
+			const repos = yield* Repos;
+			yield* repos.register({
 				defaultRef: "main",
 				source: "/somewhere/repo",
 			});

@@ -1,4 +1,4 @@
-import { BoardScope } from "@antumbra/boards";
+import { BoardScope, Boards } from "@antumbra/boards";
 import { AgentDomain, type SpawnFields } from "@antumbra/domain";
 import { type IntentStatus, isTerminalIntentStatus, Kernel } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
@@ -101,7 +101,7 @@ it.effectApp("a session with no piece has nothing to land against", { clock: "li
 });
 
 it.effectApp("crew write to the board of their piece and of its voyage", { clock: "live" }, function* ({ scripted }) {
-	const domain = yield* AgentDomain;
+	const boards = yield* Boards;
 	const crew = yield* workingCrew;
 	const live = yield* sessionOf(scripted, crew.agentId);
 	expect(yield* callTool(live, "write_board", { body: "the shoal is steeper than charted", scope: "piece" })).toEqual({
@@ -112,18 +112,18 @@ it.effectApp("crew write to the board of their piece and of its voyage", { clock
 		ok: true,
 		text: "written to the voyage board",
 	});
-	expect(yield* domain.boards.read(BoardScope.Piece({ pieceId: crew.piece.id }))).toMatchObject([
+	expect(yield* boards.read(BoardScope.Piece({ pieceId: crew.piece.id }))).toMatchObject([
 		{ authorAgentId: crew.agentId, body: "the shoal is steeper than charted", register: "rough" },
 	]);
 	expect(yield* callTool(live, "read_board", { scope: "voyage" })).toEqual({ ok: true, text: "[rough] the swell is running" });
-	expect(yield* domain.boards.read(BoardScope.Voyage({ voyageId: crew.voyage.id }))).toMatchObject([{ body: "the swell is running" }]);
+	expect(yield* boards.read(BoardScope.Voyage({ voyageId: crew.voyage.id }))).toMatchObject([{ body: "the swell is running" }]);
 });
 
 it.effectApp("mail tools read without marking and receipt only when asked", { clock: "live" }, function* ({ scripted }) {
-	const domain = yield* AgentDomain;
+	const boards = yield* Boards;
 	const crew = yield* workingCrew;
 	const live = yield* sessionOf(scripted, crew.agentId);
-	const entry = yield* domain.boards
+	const entry = yield* boards
 		.mail({
 			authorAgentId: Option.none(),
 			body: "the admiral selected this mail",

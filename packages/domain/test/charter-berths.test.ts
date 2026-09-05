@@ -1,53 +1,35 @@
-import { Database } from "@antumbra/persistence";
 import { Pieces } from "@antumbra/pieces";
 import { Repos } from "@antumbra/repos";
-import { expect, it } from "@effect/vitest";
+import { it } from "@antumbra/testing";
+import { expect } from "@effect/vitest";
 import { Effect } from "effect";
-import { dispatchingLayer } from "#test/domain-layers.ts";
-import { acquireTemporaryPersistence, makeScriptedBackend, makeScriptedRunner, type ScriptedBackend, sessionFor } from "#test/harness.ts";
-import { eventually, openReefVoyage, PATIENCE } from "#test/voyage-fixtures.ts";
+import { deliveredCharter } from "#test/charter-fixture.ts";
+import { makeScriptedRunner } from "#test/harness.ts";
+import { openReefVoyage } from "#test/voyage-fixtures.ts";
 
-const crewOf = (pieceId: string) =>
-	Effect.gen(function* () {
-		const db = yield* Database;
-		const row = (yield* db.PieceAgent.where({ pieceId }).all())[0];
-		return row === undefined ? yield* Effect.fail("no crew yet") : row.agentId;
-	});
+it.effectApp.withProviders(
+	"a dispatched crew is told the moorage folder it was berthed in",
+	makeScriptedRunner.pipe(Effect.map(({ runner }) => ({ providers: { runners: new Map([[runner.tag, runner]]) }, state: undefined }))),
+	function* ({ scripted }) {
+		const pieces = yield* Pieces;
+		const repos = yield* Repos;
+		yield* repos.register({
+			defaultRef: "main",
+			source: "/workspace/Desktop",
+		});
+		const reef = yield* openReefVoyage;
+		const alpha = yield* pieces.charter({
+			charter: "Investigate lost edits after restart.",
+			dependsOn: [],
+			expectation: "A report identifying the cause.",
+			role: "hand",
+			title: "Investigate lost edits",
+			voyageId: reef.id,
+		});
+		yield* pieces.launch(alpha.id);
 
-const charterDelivered = (scripted: ScriptedBackend, agentId: string) =>
-	Effect.gen(function* () {
-		const live = yield* sessionFor(scripted, agentId);
-		const sent = yield* live.sent;
-		return sent[0] ?? (yield* Effect.fail("no charter yet"));
-	});
-
-it.live("a dispatched crew is told the moorage folder it was berthed in", () =>
-	Effect.gen(function* () {
-		const temporary = yield* acquireTemporaryPersistence;
-		const scripted = yield* makeScriptedBackend;
-		const recorder = yield* makeScriptedRunner;
-		yield* Effect.gen(function* () {
-			const pieces = yield* Pieces;
-			const repos = yield* Repos;
-			yield* repos.register({
-				defaultRef: "main",
-				source: "/workspace/Desktop",
-			});
-			const reef = yield* openReefVoyage;
-			const alpha = yield* pieces.charter({
-				charter: "Investigate lost edits after restart.",
-				dependsOn: [],
-				expectation: "A report identifying the cause.",
-				role: "hand",
-				title: "Investigate lost edits",
-				voyageId: reef.id,
-			});
-			yield* pieces.launch(alpha.id);
-
-			const agentId = yield* eventually(crewOf(alpha.id));
-			const charter = yield* eventually(charterDelivered(scripted, agentId));
-			expect(charter).toContain(`/tmp/moorage/${agentId}`);
-			expect(charter).toContain(`Desktop — ./berth-0 — branch work/${agentId.slice(0, 8)}/berth-0`);
-		}).pipe(Effect.provide(dispatchingLayer(temporary, scripted.backend, PATIENCE, {}, recorder.runner)));
-	}),
+		const { agentId, text: charter } = yield* deliveredCharter(scripted, alpha.id);
+		expect(charter).toContain(`/tmp/moorage/${agentId}`);
+		expect(charter).toContain(`Desktop — ./berth-0 — branch work/${agentId.slice(0, 8)}/berth-0`);
+	},
 );

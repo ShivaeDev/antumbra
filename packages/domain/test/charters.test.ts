@@ -1,28 +1,13 @@
 import { BoardScope, Boards, EntryInput } from "@antumbra/boards";
-import { Database } from "@antumbra/persistence";
 import { Pieces } from "@antumbra/pieces";
 import { it } from "@antumbra/testing";
 import { expect } from "@effect/vitest";
-import { Effect, Option } from "effect";
-import { type ScriptedBackend, sessionFor } from "#test/harness.ts";
+import { Option } from "effect";
+import { deliveredCharter } from "#test/charter-fixture.ts";
 import { onPiece, ruled, seedAsker, unruled } from "#test/ruling-fixtures.ts";
-import { eventually, openReefVoyage } from "#test/voyage-fixtures.ts";
+import { openReefVoyage } from "#test/voyage-fixtures.ts";
 
-const crewOf = (pieceId: string) =>
-	Effect.gen(function* () {
-		const db = yield* Database;
-		const row = (yield* db.PieceAgent.where({ pieceId }).all())[0];
-		return row === undefined ? yield* Effect.fail("no crew yet") : row.agentId;
-	});
-
-const charterDelivered = (scripted: ScriptedBackend, agentId: string) =>
-	Effect.gen(function* () {
-		const live = yield* sessionFor(scripted, agentId);
-		const sent = yield* live.sent;
-		return sent[0] ?? (yield* Effect.fail("no charter yet"));
-	});
-
-it.effectApp("a dispatched crew is told both registers of its boards", { clock: "live" }, function* ({ scripted }) {
+it.effectApp("a dispatched crew is told both registers of its boards", function* ({ scripted }) {
 	const pieces = yield* Pieces;
 	const boards = yield* Boards;
 	const reef = yield* openReefVoyage;
@@ -48,14 +33,13 @@ it.effectApp("a dispatched crew is told both registers of its boards", { clock: 
 	);
 	yield* pieces.launch(alpha.id);
 
-	const agentId = yield* eventually(crewOf(alpha.id));
-	const charter = yield* eventually(charterDelivered(scripted, agentId));
+	const { text: charter } = yield* deliveredCharter(scripted, alpha.id);
 	expect(charter).toContain("the eastern approach is safe");
 	expect(charter).toContain("the last hand reached the reef edge");
 	expect(charter).toContain("the swell is running");
 });
 
-it.effectApp("a dispatched crew is told the standing rulings that bind it", { clock: "live" }, function* ({ scripted }) {
+it.effectApp("a dispatched crew is told the standing rulings that bind it", function* ({ scripted }) {
 	const pieces = yield* Pieces;
 	const reef = yield* openReefVoyage;
 	const charter = (title: string) =>
@@ -88,8 +72,7 @@ it.effectApp("a dispatched crew is told the standing rulings that bind it", { cl
 	});
 	yield* pieces.launch(alpha.id);
 
-	const agentId = yield* eventually(crewOf(alpha.id));
-	const charterText = yield* eventually(charterDelivered(scripted, agentId));
+	const { text: charterText } = yield* deliveredCharter(scripted, alpha.id);
 	expect(charterText).toContain("# Standing rulings");
 	expect(charterText).toContain("which reading do we trust? — trust the soundings");
 	expect(charterText).toContain("may alpha dredge the reef? — no");

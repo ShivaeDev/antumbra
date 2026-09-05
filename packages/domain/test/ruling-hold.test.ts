@@ -2,12 +2,11 @@ import { BoardScope, Boards } from "@antumbra/boards";
 import { Database } from "@antumbra/persistence";
 import type { DirectTool } from "@antumbra/plugin-api";
 import { Rulings } from "@antumbra/rulings";
-import { expect, it } from "@effect/vitest";
+import { expect } from "@effect/vitest";
 import { Effect, Exit, Fiber, Option } from "effect";
 import { makeRulingToolCompiler } from "#ruling-tools.ts";
-import { domainKernelLayer } from "#test/domain-layers.ts";
-import { acquireTemporaryPersistence, makeScriptedBackend } from "#test/harness.ts";
 import { ASKER, seedAsker } from "#test/ruling-fixtures.ts";
+import { it } from "#test/runtime-harness.ts";
 import { eventually } from "#test/voyage-fixtures.ts";
 
 const ASK = {
@@ -59,99 +58,81 @@ const mailbox = Effect.gen(function* () {
 	return yield* boards.read(BoardScope.Agent({ agentId: ASKER }));
 });
 
-it.live("a blocking request holds until ruled and returns the answer", () =>
-	Effect.gen(function* () {
-		const temporary = yield* acquireTemporaryPersistence;
-		const scripted = yield* makeScriptedBackend;
-		yield* Effect.gen(function* () {
-			yield* seedAsker;
-			const held = yield* Effect.forkChild(ask("blocking"));
-			const row = yield* requested("blocking");
+it.effectApp("a blocking request holds until ruled and returns the answer", { clock: "live" }, function* () {
+	yield* seedAsker;
+	const held = yield* Effect.forkChild(ask("blocking"));
+	const row = yield* requested("blocking");
 
-			const pressing = yield* ask("pressing");
-			expect(pressing).toMatchObject({ ok: true });
-			expect(pressing.text).toContain("nothing here waits for it");
-			expect(held.pollUnsafe()).toBeUndefined();
+	const pressing = yield* ask("pressing");
+	expect(pressing).toMatchObject({ ok: true });
+	expect(pressing.text).toContain("nothing here waits for it");
+	expect(held.pollUnsafe()).toBeUndefined();
 
-			const ruled = yield* ruleOn(row.id);
-			const outcome = yield* Fiber.join(held);
+	const ruled = yield* ruleOn(row.id);
+	const outcome = yield* Fiber.join(held);
 
-			expect(outcome).toEqual({
-				ok: true,
-				text: [
-					"Ruled — your hold is over.",
-					"You asked: which reading do we trust?",
-					"Answer: the chart is older than the reef; resurvey it",
-					"Chosen: resurvey",
-					`Ruled by the admiral at ${Option.getOrThrow(ruled.answer).at.toISOString()}.`,
-					`Ruling ${row.id}.`,
-				].join("\n"),
-			});
-		}).pipe(Effect.provide(domainKernelLayer(temporary, scripted.backend)));
-	}),
-);
+	expect(outcome).toEqual({
+		ok: true,
+		text: [
+			"Ruled — your hold is over.",
+			"You asked: which reading do we trust?",
+			"Answer: the chart is older than the reef; resurvey it",
+			"Chosen: resurvey",
+			`Ruled by the admiral at ${Option.getOrThrow(ruled.answer).at.toISOString()}.`,
+			`Ruling ${row.id}.`,
+		].join("\n"),
+	});
+});
 
-it.live("an interrupted hold leaves the ruling open for mail to answer", () =>
-	Effect.gen(function* () {
-		const temporary = yield* acquireTemporaryPersistence;
-		const scripted = yield* makeScriptedBackend;
-		yield* Effect.gen(function* () {
-			const db = yield* Database;
-			yield* seedAsker;
-			const held = yield* Effect.forkChild(ask("blocking"));
-			const row = yield* requested("blocking");
+it.effectApp("an interrupted hold leaves the ruling open for mail to answer", { clock: "live" }, function* () {
+	const db = yield* Database;
+	yield* seedAsker;
+	const held = yield* Effect.forkChild(ask("blocking"));
+	const row = yield* requested("blocking");
 
-			yield* Fiber.interrupt(held);
+	yield* Fiber.interrupt(held);
 
-			expect(Exit.hasInterrupts(yield* Fiber.await(held))).toBe(true);
-			const open = Option.getOrThrow(yield* db.Ruling.where({ id: row.id }).first());
-			expect(open).toMatchObject({ answer: null, ruledAt: null });
-			expect(yield* mailbox).toEqual([]);
+	expect(Exit.hasInterrupts(yield* Fiber.await(held))).toBe(true);
+	const open = Option.getOrThrow(yield* db.Ruling.where({ id: row.id }).first());
+	expect(open).toMatchObject({ answer: null, ruledAt: null });
+	expect(yield* mailbox).toEqual([]);
 
-			yield* ruleOn(row.id);
+	yield* ruleOn(row.id);
 
-			const entries = yield* eventually(
-				Effect.gen(function* () {
-					const read = yield* mailbox;
-					expect(read).toHaveLength(1);
-					return read;
-				}),
-			);
-			expect(entries[0]?.sourceRef).toBe(`ruling:${row.id}`);
-			const delivered = Option.getOrThrow(yield* db.Ruling.where({ id: row.id }).first());
-			expect(delivered.deliveredAt).toBeInstanceOf(Date);
-		}).pipe(Effect.provide(domainKernelLayer(temporary, scripted.backend)));
-	}),
-);
+	const entries = yield* eventually(
+		Effect.gen(function* () {
+			const read = yield* mailbox;
+			expect(read).toHaveLength(1);
+			return read;
+		}),
+	);
+	expect(entries[0]?.sourceRef).toBe(`ruling:${row.id}`);
+	const delivered = Option.getOrThrow(yield* db.Ruling.where({ id: row.id }).first());
+	expect(delivered.deliveredAt).toBeInstanceOf(Date);
+});
 
-it.live("a live hold owns the answer and no mail repeats it", () =>
-	Effect.gen(function* () {
-		const temporary = yield* acquireTemporaryPersistence;
-		const scripted = yield* makeScriptedBackend;
-		yield* Effect.gen(function* () {
-			const db = yield* Database;
-			yield* seedAsker;
-			const held = yield* Effect.forkChild(ask("blocking"));
-			const blocking = yield* requested("blocking");
+it.effectApp("a live hold owns the answer and no mail repeats it", { clock: "live" }, function* () {
+	const db = yield* Database;
+	yield* seedAsker;
+	const held = yield* Effect.forkChild(ask("blocking"));
+	const blocking = yield* requested("blocking");
 
-			yield* ruleOn(blocking.id);
-			const outcome = yield* Fiber.join(held);
-			expect(outcome.text).toContain("your hold is over");
-			const answered = Option.getOrThrow(yield* db.Ruling.where({ id: blocking.id }).first());
-			expect(answered.deliveredAt).toBeInstanceOf(Date);
+	yield* ruleOn(blocking.id);
+	const outcome = yield* Fiber.join(held);
+	expect(outcome.text).toContain("your hold is over");
+	const answered = Option.getOrThrow(yield* db.Ruling.where({ id: blocking.id }).first());
+	expect(answered.deliveredAt).toBeInstanceOf(Date);
 
-			yield* ask("pressing");
-			const unheld = yield* requested("pressing");
-			yield* ruleOn(unheld.id);
+	yield* ask("pressing");
+	const unheld = yield* requested("pressing");
+	yield* ruleOn(unheld.id);
 
-			const entries = yield* eventually(
-				Effect.gen(function* () {
-					const read = yield* mailbox;
-					expect(read).toHaveLength(1);
-					return read;
-				}),
-			);
-			expect(entries[0]?.sourceRef).toBe(`ruling:${unheld.id}`);
-		}).pipe(Effect.provide(domainKernelLayer(temporary, scripted.backend)));
-	}),
-);
+	const entries = yield* eventually(
+		Effect.gen(function* () {
+			const read = yield* mailbox;
+			expect(read).toHaveLength(1);
+			return read;
+		}),
+	);
+	expect(entries[0]?.sourceRef).toBe(`ruling:${unheld.id}`);
+});

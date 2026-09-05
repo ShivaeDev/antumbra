@@ -16,6 +16,8 @@ export const refusingSink: EventSink = {
 
 export const options: OpenSessionOptions = {
 	cwd: "/tmp/session-fabric",
+	effort: Option.none(),
+	model: Option.none(),
 	resume: Option.some("native-fabric"),
 	sessionId: "session-fabric",
 	tools: [],
@@ -38,6 +40,7 @@ export const scriptedBackend = (openSession: AgentBackend["openSession"]): Agent
 	capabilities: {
 		imageInput: false,
 	},
+	listModels: Effect.succeed([]),
 	openSession,
 	tag: "scripted",
 });

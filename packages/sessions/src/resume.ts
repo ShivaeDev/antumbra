@@ -1,4 +1,5 @@
-import type { AgentBackend, DirectTool, SessionInput } from "@antumbra/plugin-api";
+import type { PrismaError } from "@antumbra/persistence";
+import type { AgentBackend, DirectTool, OpenSessionOptions, SessionInput } from "@antumbra/plugin-api";
 import { type SessionAttachment, SessionFabric } from "@antumbra/session-fabric";
 import { Effect, Option } from "effect";
 import { makeRefuseSubsessionAttach } from "#attach-roots.ts";
@@ -9,6 +10,7 @@ import type { SinkFor } from "#tree/sink.ts";
 
 interface SessionResumeDeps {
 	readonly backends: ReadonlyMap<string, AgentBackend>;
+	readonly settingsFor: (context: SessionRecoveryContext) => Effect.Effect<Pick<OpenSessionOptions, "effort" | "model">, PrismaError>;
 	readonly sinkFor: SinkFor;
 	readonly toolsFor: (context: SessionRecoveryContext) => Effect.Effect<ReadonlyArray<DirectTool>>;
 }
@@ -42,12 +44,14 @@ export const makeSessionRecoveryRuntime = (deps: SessionResumeDeps) =>
 				return Effect.gen(function* () {
 					yield* refuseSubsession(context.identity.sessionId);
 					const sink = yield* deps.sinkFor(context.identity.sessionId, backend.audit);
+					const settings = yield* deps.settingsFor(context);
 					yield* fabric.start(
 						permit,
 						context.identity.agentId,
 						backend,
 						{
 							cwd: context.cwd,
+							...settings,
 							resume: Option.some(context.nativeRef),
 							sessionId: context.identity.sessionId,
 							tools: yield* deps.toolsFor(context),

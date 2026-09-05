@@ -8,7 +8,7 @@ export { FlagshipLive } from "#flagship.ts";
 export { IntentFeedLive } from "#intent-feed.ts";
 export { KernelReachLive } from "#kernel-reach.ts";
 export { abandonRestartIntent, honorRestartIntent, recordRestartIntent } from "#restart.ts";
-export { RulingAscentLive } from "#ruling-ascent.ts";
+export { RulingAscent } from "#ruling-ascent/observer.ts";
 export { RulingDeliveryLive } from "#ruling-delivery.ts";
 export { RulingSourceLive } from "#ruling-source.ts";
 export { SessionShutdownLive } from "#session-shutdown-live.ts";

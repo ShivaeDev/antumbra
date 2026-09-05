@@ -12,6 +12,8 @@ it.live("an ordered local image reaches codex and its echo keeps the input id", 
 		const server = yield* makeCodexServer({ spawn: () => fake.process });
 		const handle = yield* openThreadSession(server, {
 			cwd: "/moorage",
+			effort: Option.none(),
+			model: Option.none(),
 			resume: Option.none(),
 			sessionId: "session-1",
 			tools: [],

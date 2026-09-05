@@ -85,6 +85,10 @@ export const makeScriptedBackend = Effect.gen(function* () {
 		capabilities: {
 			imageInput: true,
 		},
+		listModels: Effect.succeed([
+			{ efforts: ["low", "high"], id: "haiku", isDefault: true, name: "Haiku" },
+			{ efforts: ["high", "max"], id: "opus", isDefault: false, name: "Opus" },
+		]),
 		openSession: (options) =>
 			Effect.gen(function* () {
 				yield* Ref.update(opened, (all) => [...all, options]);

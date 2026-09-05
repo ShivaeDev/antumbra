@@ -30,6 +30,8 @@ export const makeSpawnSessionStart = Effect.gen(function* () {
 						backend,
 						{
 							cwd: plan.root,
+							effort: Option.fromUndefinedOr(payload.effort),
+							model: Option.fromUndefinedOr(payload.model),
 							resume: Option.none(),
 							sessionId: payload.sessionId,
 							tools,

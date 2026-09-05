@@ -14,6 +14,7 @@ import type {
 	OpenVoyageRequest,
 	PieceVerdictRequest,
 	RewireRequest,
+	VoyageAgentSettingsRequest,
 	VoyageBackendRequest,
 } from "#voyage-requests.ts";
 import type { ReportMarkdown, VoyageSummary, VoyageView } from "#voyage-views.ts";
@@ -40,6 +41,7 @@ export class VoyageSource extends Context.Service<
 		readonly refreshChanges: Effect.Effect<void, SightFailure>;
 		readonly reportMarkdown: (reportId: string) => Effect.Effect<ReportMarkdown, SightFailure>;
 		readonly rewire: (request: RewireRequest) => Effect.Effect<void, SightFailure>;
+		readonly setAgentSettings: (request: VoyageAgentSettingsRequest) => Effect.Effect<void, SightFailure>;
 		readonly setCaptainBackend: (request: VoyageBackendRequest) => Effect.Effect<void, SightFailure>;
 		readonly setCrewBackend: (request: VoyageBackendRequest) => Effect.Effect<void, SightFailure>;
 		readonly setFocus: (voyageId: string, focused: boolean) => Effect.Effect<void, SightFailure>;

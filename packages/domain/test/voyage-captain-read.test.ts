@@ -1,7 +1,7 @@
 import { it } from "@antumbra/persistence/testing";
 import { expect } from "@effect/vitest";
 import { Option } from "effect";
-import { readVoyageCaptain } from "#voyage-captain-read.ts";
+import { readCaptains, readVoyageCaptain } from "#voyage-captain-read.ts";
 
 it.effectDB("reads the standing captain's root Session and excludes Piece workers with the captain role", function* (db) {
 	for (const id of ["voyage", "other-voyage"]) {
@@ -44,4 +44,9 @@ it.effectDB("reads the standing captain's root Session and excludes Piece worker
 		status: "alive",
 	});
 	expect(yield* readVoyageCaptain("empty-voyage")).toEqual(Option.none());
+
+	const captains = yield* readCaptains(["voyage", "other-voyage", "empty-voyage"]);
+	expect(Option.getOrThrow(captains.get("voyage") ?? Option.none()).agentId).toBe("standing");
+	expect(Option.getOrThrow(captains.get("other-voyage") ?? Option.none()).agentId).toBe("elsewhere");
+	expect(captains.get("empty-voyage")).toEqual(Option.none());
 });

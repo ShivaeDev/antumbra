@@ -12,6 +12,8 @@ import { openRawSession, type RawSession } from "#adapters/session.ts";
 import { sessionToolCall } from "#adapters/session-tools.ts";
 import { claudeAudit } from "#adapters/subagent-audit.ts";
 import type { ToolCall } from "#adapters/tool-server.ts";
+import { effortLevel } from "#effort.ts";
+import { listClaudeModels } from "#models.ts";
 import { laneEvents, openSessionLanes } from "#session-lanes.ts";
 
 const failure = (detail: unknown) => new BackendFailure({ detail: String(detail), tag: "claude" });
@@ -63,18 +65,22 @@ interface ClaudeBackendOptions {
 
 const rawSession = (options: ClaudeBackendOptions, session: OpenSessionOptions, call: ToolCall, capacity: BackendCapacityController) =>
 	Effect.acquireRelease(
-		Effect.try({
-			catch: failure,
-			try: () =>
-				openRawSession({
-					call,
-					cwd: session.cwd,
-					executable: options.executable,
-					observeCapacity: capacity.observe,
-					resume: Option.getOrUndefined(session.resume),
-					tools: session.tools,
-				}),
-		}),
+		Effect.flatMap(effortLevel(session.effort), (effort) =>
+			Effect.try({
+				catch: failure,
+				try: () =>
+					openRawSession({
+						call,
+						cwd: session.cwd,
+						effort,
+						executable: options.executable,
+						model: Option.getOrUndefined(session.model),
+						observeCapacity: capacity.observe,
+						resume: Option.getOrUndefined(session.resume),
+						tools: session.tools,
+					}),
+			}),
+		),
 		(raw) => Effect.sync(() => raw.close()),
 	);
 
@@ -84,6 +90,7 @@ export const claudeBackend = (options: ClaudeBackendOptions, capacity: BackendCa
 	capabilities: {
 		imageInput: false,
 	},
+	listModels: listClaudeModels(options.executable),
 	openSession: (session) =>
 		sessionToolCall.pipe(
 			Effect.flatMap((call) => rawSession(options, session, call, capacity)),

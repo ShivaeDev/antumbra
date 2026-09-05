@@ -11,6 +11,8 @@ const CHILD = "thread-child";
 
 const options = (resume: Option.Option<string>) => ({
 	cwd: "/moorage",
+	effort: Option.none(),
+	model: Option.none(),
 	resume,
 	sessionId: "session-1",
 	tools: [],

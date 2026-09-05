@@ -86,3 +86,26 @@ it("only the piece that produces a change carries its situations", () => {
 it("an agent assigned to nothing carries no situations", () => {
 	expect(situationsByAgent(links(change({ mergeable: "conflict" })), ["agent-2"]).get("agent-2")).toEqual([]);
 });
+
+it("preserves assignment order and repeated Changes across an agent's Pieces", () => {
+	const first = change({ id: "first", mergeable: "conflict" });
+	const second = change({ id: "second", checks: "red" });
+	const situations = situationsByAgent(
+		{
+			assignments: [
+				{ agentId: "agent-1", pieceId: "piece-2" },
+				{ agentId: "agent-2", pieceId: "piece-1" },
+				{ agentId: "agent-1", pieceId: "piece-1" },
+			],
+			changes: [first, second],
+			pieceChanges: [
+				{ pieceId: "piece-1", changeId: "first", purpose: "produces" },
+				{ pieceId: "piece-2", changeId: "second", purpose: "produces" },
+				{ pieceId: "piece-2", changeId: "first", purpose: "produces" },
+			],
+		},
+		["agent-1", "agent-2"],
+	);
+	expect(situations.get("agent-1")?.map((situation) => situation.changeId)).toEqual(["second", "first", "first"]);
+	expect(situations.get("agent-2")?.map((situation) => situation.changeId)).toEqual(["first"]);
+});

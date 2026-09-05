@@ -1,12 +1,14 @@
 import { Effect, Layer, Stream } from "effect";
 import type { FixtureFeeds } from "#fixtures/feeds.ts";
-import { fleet } from "#fixtures/fleet.ts";
+import { backendModels, fleet } from "#fixtures/fleet.ts";
 import { sessionTree } from "#fixtures/session-tree.ts";
 import { sessionJournal } from "#fixtures/transcript-resume.ts";
 import { SightFailure, SightSource } from "#sight.ts";
 
 export const sightFixture = (feeds: FixtureFeeds) =>
 	Layer.succeed(SightSource, {
+		backendModels: (backend) =>
+			backend === "claude" ? Effect.succeed(backendModels) : new SightFailure({ message: `backend ${backend} does not list its models` }),
 		fleet: Effect.succeed(fleet),
 		fleetFeed: feeds.fleet,
 		forgetRepo: () => Effect.void,

@@ -6,23 +6,15 @@ import { RulingSupersede } from "#views/ruling-supersede.tsx";
 import { RulingWithdraw } from "#views/ruling-withdraw.tsx";
 import { whenLabel } from "#voyages/labels.ts";
 
-const standingActs = (
-	onError: (message: string) => void,
-	others: ReadonlyArray<StandingRulingView>,
-	ruling: StandingRulingView,
-): ReadonlyArray<RulingAct> => [
-	...(others.length === 0
-		? []
-		: [{ act: <RulingSupersede onError={onError} others={others} ruling={ruling} />, words: "Replace with a later ruling" }]),
+const standingActs = (others: ReadonlyArray<StandingRulingView>, ruling: StandingRulingView): ReadonlyArray<RulingAct> => [
+	...(others.length === 0 ? [] : [{ act: <RulingSupersede others={others} ruling={ruling} />, words: "Replace with a later ruling" }]),
 	{ act: <RulingWithdraw ruling={ruling} />, words: "Take it out of force" },
 ];
 
 export const StandingRulingCard = ({
-	onError,
 	others,
 	ruling,
 }: {
-	readonly onError: (message: string) => void;
 	readonly others: ReadonlyArray<StandingRulingView>;
 	readonly ruling: StandingRulingView;
 }) => (
@@ -41,6 +33,6 @@ export const StandingRulingCard = ({
 			</span>
 		</div>
 		{ruling.chosen === null ? null : <p className="min-w-0 text-2xs text-muted-foreground">chose: {ruling.chosen}</p>}
-		<RulingActs acts={standingActs(onError, others, ruling)} />
+		<RulingActs acts={standingActs(others, ruling)} />
 	</li>
 );

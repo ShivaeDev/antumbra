@@ -82,16 +82,25 @@ const settle = (change: () => void): Effect.Effect<void> =>
 		}),
 	);
 
-const mount = () => {
-	const container = document.createElement("div");
-	return { container, root: createRoot(container) };
-};
+const mount = () =>
+	Effect.gen(function* () {
+		const container = document.createElement("div");
+		document.body.append(container);
+		const root = createRoot(container);
+		yield* Effect.addFinalizer(() =>
+			settle(() => {
+				root.unmount();
+				container.remove();
+			}),
+		);
+		return { container, root };
+	});
 
-type Mounted = ReturnType<typeof mount>;
+type Mounted = Effect.Success<ReturnType<typeof mount>>;
 
 const showing = (mounted: Mounted, view: OpenRulingsView = { rulings: [moved, unmoved] }): Effect.Effect<void> =>
 	Effect.gen(function* () {
-		yield* settle(() => mounted.root.render(<RulingsPanel onError={() => undefined} />));
+		yield* settle(() => mounted.root.render(<RulingsPanel />));
 		yield* settle(() => opened.at(-1)?.(view));
 	});
 
@@ -111,12 +120,13 @@ const choosing = (mounted: Mounted, label: string, word: string): Effect.Effect<
 
 beforeEach(() => {
 	opened.length = 0;
-	reclassifyRuling.mockClear();
+	reclassifyRuling.mockReset();
+	reclassifyRuling.mockReturnValue(Effect.void);
 });
 
 it.effect("shows the declared axis only where it was moved", () =>
 	Effect.gen(function* () {
-		const mounted = mount();
+		const mounted = yield* mount();
 		yield* showing(mounted);
 
 		const [first, second] = [...mounted.container.querySelectorAll("li")];
@@ -125,22 +135,21 @@ it.effect("shows the declared axis only where it was moved", () =>
 		expect(first?.textContent).not.toContain("declared voyage");
 		expect(first?.textContent).toContain("the admiral set urgency blocking — nothing plots until this lands");
 		expect(second?.textContent).not.toContain("declared");
-		yield* settle(() => mounted.root.unmount());
 	}),
 );
 
-it.effect("reclassifies with only the axis that moved", () =>
+it.effect.each([
+	{ axis: "Radius", word: "fleet", request: { radius: "fleet", rulingId: "ruling-1" } },
+	{ axis: "Urgency", word: "eventual", request: { urgency: "eventual", rulingId: "ruling-1" } },
+])("reclassifies with only $axis after rejecting unchanged axes", ({ axis, word, request }) =>
 	Effect.gen(function* () {
-		const mounted = mount();
+		const mounted = yield* mount();
 		yield* showing(mounted, { rulings: [moved] });
-
 		yield* settle(() => buttonSaying(mounted, "Change radius or urgency")?.click());
-		yield* settle(() => buttonSaying(mounted, "Reclassify")?.click());
+		yield* settle(() => mounted.container.querySelector("select")?.form?.requestSubmit());
 		expect(reclassifyRuling).not.toHaveBeenCalled();
-		yield* choosing(mounted, "Radius", "fleet");
+		yield* choosing(mounted, axis, word);
 		yield* settle(() => buttonSaying(mounted, "Reclassify")?.click());
-
-		expect(reclassifyRuling).toHaveBeenCalledWith({ radius: "fleet", rulingId: "ruling-1" }, expect.any(Function));
-		yield* settle(() => mounted.root.unmount());
+		expect(reclassifyRuling).toHaveBeenCalledWith(request);
 	}),
 );

@@ -1,6 +1,6 @@
 import type { OpenRulingsView, RulingView } from "@antumbra/contract";
 import { expect, it } from "@effect/vitest";
-import { Effect } from "effect";
+import { Deferred, Effect } from "effect";
 import { act } from "react";
 import { createRoot } from "react-dom/client";
 import { beforeEach, vi } from "vitest";
@@ -111,21 +111,30 @@ const settle = (change: () => void): Effect.Effect<void> =>
 
 const nativeValue = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, "value")?.set;
 
-const mount = () => {
-	const container = document.createElement("div");
-	return { container, root: createRoot(container) };
-};
-
-const showing = (mounted: ReturnType<typeof mount>, view: OpenRulingsView = { rulings: [shoal, berths] }): Effect.Effect<void> =>
+const mount = () =>
 	Effect.gen(function* () {
-		yield* settle(() => mounted.root.render(<RulingsPanel onError={() => undefined} />));
+		const container = document.createElement("div");
+		document.body.append(container);
+		const root = createRoot(container);
+		yield* Effect.addFinalizer(() =>
+			settle(() => {
+				root.unmount();
+				container.remove();
+			}),
+		);
+		return { container, root };
+	});
+
+const showing = (mounted: Effect.Success<ReturnType<typeof mount>>, view: OpenRulingsView = { rulings: [shoal, berths] }): Effect.Effect<void> =>
+	Effect.gen(function* () {
+		yield* settle(() => mounted.root.render(<RulingsPanel />));
 		yield* settle(() => opened.at(-1)?.onRulings(view));
 	});
 
-const buttonSaying = (mounted: ReturnType<typeof mount>, words: string) =>
+const buttonSaying = (mounted: Effect.Success<ReturnType<typeof mount>>, words: string) =>
 	[...mounted.container.querySelectorAll("button")].find((button) => button.textContent?.includes(words) === true);
 
-const answering = (mounted: ReturnType<typeof mount>, words: string): Effect.Effect<void> =>
+const answering = (mounted: Effect.Success<ReturnType<typeof mount>>, words: string): Effect.Effect<void> =>
 	settle(() => {
 		const box = mounted.container.querySelector("li textarea");
 		if (box !== null && nativeValue !== undefined) {
@@ -136,13 +145,14 @@ const answering = (mounted: ReturnType<typeof mount>, words: string): Effect.Eff
 
 beforeEach(() => {
 	opened.length = 0;
-	ruleOn.mockClear();
+	ruleOn.mockReset();
+	ruleOn.mockReturnValue(Effect.void);
 	watchOpenRulings.mockClear();
 });
 
 it.effect("shows every open ruling in the order the feed sent them", () =>
 	Effect.gen(function* () {
-		const mounted = mount();
+		const mounted = yield* mount();
 		yield* showing(mounted);
 
 		const questions = [...mounted.container.querySelectorAll("li h3")].map((heading) => heading.textContent);
@@ -154,13 +164,12 @@ it.effect("shows every open ruling in the order the feed sent them", () =>
 		expect(mounted.container.textContent).toContain("Tag: surveying");
 		expect(mounted.container.textContent).toContain("two metres shallower");
 		expect(mounted.container.textContent).toContain("Unblocks: the chart (Chart the reef)");
-		yield* settle(() => mounted.root.unmount());
 	}),
 );
 
 it.effect("groups open rulings under the voyage they are about", () =>
 	Effect.gen(function* () {
-		const mounted = mount();
+		const mounted = yield* mount();
 		yield* showing(mounted, { rulings: [berths, shoal, { ...berths, id: "ruling-3", voyage: shoal.voyage }] });
 
 		const groups = [...mounted.container.querySelectorAll("section[aria-label]")];
@@ -169,25 +178,23 @@ it.effect("groups open rulings under the voyage they are about", () =>
 			[berths.question],
 			[shoal.question, berths.question],
 		]);
-		yield* settle(() => mounted.root.unmount());
 	}),
 );
 
 it.effect("says what rung each open ruling is still waiting on", () =>
 	Effect.gen(function* () {
-		const mounted = mount();
+		const mounted = yield* mount();
 		yield* showing(mounted);
 
 		expect(mounted.container.textContent).toContain("Waits on the captain of Chart the reef. Binds the voyage.");
 		expect(mounted.container.textContent).toContain("Waits on the flagship. Binds the fleet.");
 		expect(mounted.container.textContent).toContain("the captain set urgency blocking");
-		yield* settle(() => mounted.root.unmount());
 	}),
 );
 
 it.effect("reads a move that touched no axis as a question passed up", () =>
 	Effect.gen(function* () {
-		const mounted = mount();
+		const mounted = yield* mount();
 		yield* showing(mounted, {
 			rulings: [
 				{
@@ -206,44 +213,51 @@ it.effect("reads a move that touched no axis as a question passed up", () =>
 		});
 
 		expect(mounted.container.textContent).toContain("the captain passed it up — the other ship charts the same reef");
-		yield* settle(() => mounted.root.unmount());
 	}),
 );
 
 it.effect("says nothing about unblocking on a ruling that gates nothing", () =>
 	Effect.gen(function* () {
-		const mounted = mount();
+		const mounted = yield* mount();
 		yield* showing(mounted, { rulings: [berths] });
 
 		expect(mounted.container.textContent).not.toContain("Unblocks");
-		yield* settle(() => mounted.root.unmount());
 	}),
 );
 
-it.effect("rules with the choice picked and the words written beside it", () =>
+it.effect("holds the picked choice and answer while the verdict submits", () =>
 	Effect.gen(function* () {
-		const mounted = mount();
+		const requested = yield* Deferred.make<void>();
+		const release = yield* Deferred.make<void>();
+		ruleOn.mockReturnValueOnce(Deferred.succeed(requested, undefined).pipe(Effect.andThen(Deferred.await(release))));
+		const mounted = yield* mount();
 		yield* showing(mounted, { rulings: [shoal] });
 
 		yield* settle(() => buttonSaying(mounted, "trust the soundings")?.click());
 		yield* answering(mounted, "plot against the soundings for now");
 		yield* settle(() => buttonSaying(mounted, "Rule")?.click());
 
-		expect(ruleOn).toHaveBeenCalledWith(
-			{
-				answer: "plot against the soundings for now",
-				choiceId: "choice-1",
-				rulingId: "ruling-1",
-			},
-			expect.any(Function),
-		);
-		yield* settle(() => mounted.root.unmount());
+		expect(ruleOn).toHaveBeenCalledWith({
+			answer: "plot against the soundings for now",
+			choiceId: "choice-1",
+			rulingId: "ruling-1",
+		});
+		yield* Deferred.await(requested);
+		expect(mounted.container.querySelector("textarea")?.closest("fieldset")?.disabled).toBe(true);
+		expect(buttonSaying(mounted, "Ruling…")?.disabled).toBe(true);
+		const choice = buttonSaying(mounted, "trust the soundings");
+		expect(choice?.closest("form")?.querySelector("fieldset")?.disabled).toBe(true);
+		yield* settle(() => {
+			Effect.runSync(Deferred.succeed(release, undefined));
+		});
+		expect(choice?.getAttribute("aria-pressed")).toBe("true");
+		expect(mounted.container.querySelector("textarea")?.value).toBe("plot against the soundings for now");
 	}),
 );
 
 it.effect("rules on words alone when no choice is held", () =>
 	Effect.gen(function* () {
-		const mounted = mount();
+		const mounted = yield* mount();
 		yield* showing(mounted, { rulings: [shoal] });
 
 		yield* settle(() => buttonSaying(mounted, "trust the chart")?.click());
@@ -251,20 +265,16 @@ it.effect("rules on words alone when no choice is held", () =>
 		yield* answering(mounted, "resurvey the shoal before plotting anything");
 		yield* settle(() => buttonSaying(mounted, "Rule")?.click());
 
-		expect(ruleOn).toHaveBeenCalledWith(
-			{
-				answer: "resurvey the shoal before plotting anything",
-				rulingId: "ruling-1",
-			},
-			expect.any(Function),
-		);
-		yield* settle(() => mounted.root.unmount());
+		expect(ruleOn).toHaveBeenCalledWith({
+			answer: "resurvey the shoal before plotting anything",
+			rulingId: "ruling-1",
+		});
 	}),
 );
 
 it.effect("never sends a verdict with no words beside it", () =>
 	Effect.gen(function* () {
-		const mounted = mount();
+		const mounted = yield* mount();
 		yield* showing(mounted, { rulings: [shoal] });
 
 		yield* settle(() => buttonSaying(mounted, "trust the soundings")?.click());
@@ -272,16 +282,14 @@ it.effect("never sends a verdict with no words beside it", () =>
 		yield* settle(() => buttonSaying(mounted, "Rule")?.click());
 
 		expect(ruleOn).not.toHaveBeenCalled();
-		yield* settle(() => mounted.root.unmount());
 	}),
 );
 
 it.effect("says so when nothing is waiting on the admiral", () =>
 	Effect.gen(function* () {
-		const mounted = mount();
+		const mounted = yield* mount();
 		yield* showing(mounted, { rulings: [] });
 
 		expect(mounted.container.textContent).toContain("Nothing is waiting on you");
-		yield* settle(() => mounted.root.unmount());
 	}),
 );

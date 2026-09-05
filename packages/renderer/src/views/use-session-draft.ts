@@ -1,5 +1,9 @@
-import { SessionInputId } from "@antumbra/contract";
+import { SessionInputId, type SessionInputReceipt } from "@antumbra/contract";
+import { useAtomValue } from "@effect/atom-react";
+import { Effect } from "effect";
 import { useRef, useState } from "react";
+import { useRequest } from "#adapters/request.ts";
+import type { RendererRequestError } from "#adapters/request-error.ts";
 import { readSessionInputRequest } from "#adapters/session-input.ts";
 import { sendSessionInput } from "#adapters/trpc.ts";
 import { useSessionDraft as usePersistedSessionDraft } from "#hooks/session-draft.ts";
@@ -16,7 +20,8 @@ export const useSessionDraft = ({
 }) => {
 	const [inputId, setInputId] = useState<SessionInputId>();
 	const [issue, setIssue] = useState<string>();
-	const [sending, setSending] = useState(false);
+	const { requestAtom, submit } = useRequest<SessionInputReceipt, RendererRequestError>();
+	const sending = useAtomValue(requestAtom).waiting;
 	const words = usePersistedSessionDraft(sessionId, "message");
 	const textArea = useRef<HTMLTextAreaElement>(null);
 	const changed = () => {
@@ -34,7 +39,6 @@ export const useSessionDraft = ({
 		setInputId(undefined);
 	};
 	const refused = (message: string) => {
-		setSending(false);
 		setIssue(message);
 		onError(message);
 		textArea.current?.focus();
@@ -45,7 +49,6 @@ export const useSessionDraft = ({
 		},
 		sent: ReturnType<typeof words.capture>,
 	) => {
-		setSending(false);
 		clear(sent);
 		draftImages.announce(receipt.status === "accepted" ? "Message sent" : "Message queued while the session wakes");
 	};
@@ -55,16 +58,12 @@ export const useSessionDraft = ({
 		const id = inputId ?? SessionInputId.make(crypto.randomUUID());
 		setInputId(id);
 		setIssue(undefined);
-		setSending(true);
-		readSessionInputRequest(
-			sessionId,
-			id,
-			draftImages.images,
-			sent.text,
-			(request) => sendSessionInput(request, (receipt) => accepted(receipt, sent), refused),
-			(message) => {
-				refused(message);
-			},
+		void submit(
+			readSessionInputRequest(sessionId, id, draftImages.images, sent.text).pipe(
+				Effect.flatMap(sendSessionInput),
+				Effect.tap((receipt) => Effect.sync(() => accepted(receipt, sent))),
+				Effect.tapError((error) => Effect.sync(() => refused(error.message))),
+			),
 		);
 	};
 	return {

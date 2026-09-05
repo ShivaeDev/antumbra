@@ -1,7 +1,5 @@
-import { useAtomSet } from "@effect/atom-react";
 import { Effect, Exit, Schema } from "effect";
-import { Atom } from "effect/unstable/reactivity";
-import { useState } from "react";
+import { useRequest } from "#adapters/request.ts";
 import { useAppForm } from "#forms/hook.ts";
 
 export const useRequestForm = <Input, Output, A, E extends { readonly message: string }>({
@@ -17,8 +15,7 @@ export const useRequestForm = <Input, Output, A, E extends { readonly message: s
 	readonly resetAfterSuccess: (submitted: Input) => Input;
 	readonly onSuccess: (result: A) => void;
 }) => {
-	const [atom] = useState(() => Atom.fn((effect: Effect.Effect<A, E | Schema.SchemaError>) => effect));
-	const submit = useAtomSet(atom, { mode: "promiseExit" });
+	const { requestAtom, submit } = useRequest<A, E | Schema.SchemaError>();
 	const form = useAppForm({
 		defaultValues,
 		validators: { onChange: Schema.toStandardSchemaV1(schema) },
@@ -29,5 +26,5 @@ export const useRequestForm = <Input, Output, A, E extends { readonly message: s
 			onSuccess(result.value);
 		},
 	});
-	return Object.assign(form, { requestAtom: atom });
+	return Object.assign(form, { requestAtom });
 };

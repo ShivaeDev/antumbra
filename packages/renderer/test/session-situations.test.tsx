@@ -1,10 +1,11 @@
 import type { SessionSituation } from "@antumbra/contract";
 import { expect, it } from "@effect/vitest";
-import { Effect } from "effect";
+import { Deferred, Effect } from "effect";
 import { act } from "react";
 import { createRoot } from "react-dom/client";
 import { renderToStaticMarkup } from "react-dom/server";
 import { beforeEach, vi } from "vitest";
+import { RendererRequestError } from "#adapters/request-error.ts";
 import { discardMissingSessionDrafts } from "#session-drafts/store.ts";
 import { SessionSituations } from "#views/session-situations.tsx";
 
@@ -38,6 +39,12 @@ const mounted = (situations: ReadonlyArray<SessionSituation>) =>
 		const container = document.createElement("div");
 		document.body.append(container);
 		const root = createRoot(container);
+		yield* Effect.addFinalizer(() =>
+			step(() => {
+				root.unmount();
+				container.remove();
+			}),
+		);
 		yield* Effect.promise(() =>
 			act(() => {
 				root.render(controls(situations));
@@ -62,7 +69,6 @@ const clickLabelled = (label: string): void => {
 
 const composer = (): HTMLTextAreaElement | null => document.querySelector("textarea");
 
-// React controlled inputs observe the prototype value setter.
 const nativeValue = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, "value")?.set;
 
 const rewrite = (text: string): void => {
@@ -77,6 +83,7 @@ const rewrite = (text: string): void => {
 beforeEach(() => {
 	discardMissingSessionDrafts(new Set());
 	sendToSession.mockReset();
+	sendToSession.mockReturnValue(Effect.void);
 	situationDraft.mockReset();
 });
 
@@ -101,7 +108,7 @@ it.effect("draws the words from the catalog and sends nothing on its own", () =>
 		});
 		const { root } = yield* mounted([conflicts]);
 		yield* step(() => clickLabelled("Resolve conflicts"));
-		expect(situationDraft).toHaveBeenCalledWith({ changeId: "change-1", situation: "merge_conflicts" }, expect.any(Function), expect.any(Function));
+		expect(situationDraft.mock.calls.at(0)?.at(0)).toEqual({ changeId: "change-1", situation: "merge_conflicts" });
 		expect(composer()?.value).toBe(DRAFT);
 		expect(sendToSession).not.toHaveBeenCalled();
 		yield* step(() => root.unmount());
@@ -118,7 +125,7 @@ it.effect("sends the edited words verbatim through the ordinary send", () =>
 		yield* step(() => clickLabelled("Resolve conflicts"));
 		yield* step(() => rewrite(`${DRAFT} Take the eastern approach.`));
 		yield* step(() => clickLabelled("Send"));
-		expect(sendToSession).toHaveBeenCalledWith("session-1", `${DRAFT} Take the eastern approach.`, expect.any(Function), expect.any(Function));
+		expect(sendToSession).toHaveBeenCalledWith("session-1", `${DRAFT} Take the eastern approach.`);
 		yield* step(() => root.unmount());
 	}),
 );
@@ -140,23 +147,25 @@ it.effect("keeps an edited situation draft when the dialog is cancelled", () =>
 
 it.effect("preserves a failed situation send and clears it on success", () =>
 	Effect.gen(function* () {
-		let done: () => void = () => undefined;
-		let fail: (message: string) => void = () => undefined;
+		const failed = yield* Deferred.make<void, RendererRequestError>();
+		const accepted = yield* Deferred.make<void>();
 		situationDraft.mockImplementation((_draft: unknown, onDraft: (text: string) => void) => {
 			onDraft(DRAFT);
 		});
-		sendToSession.mockImplementation((_sessionId: string, _text: string, onDone: () => void, onError: (message: string) => void) => {
-			done = onDone;
-			fail = onError;
-		});
+		sendToSession.mockReturnValueOnce(Deferred.await(failed));
+		sendToSession.mockReturnValueOnce(Deferred.await(accepted));
 		const { root } = yield* mounted([conflicts]);
 		yield* step(() => clickLabelled("Resolve conflicts"));
 		yield* step(() => rewrite(`${DRAFT} Keep this until sent.`));
 		yield* step(() => clickLabelled("Send"));
-		yield* step(() => fail("delivery refused"));
+		yield* step(() => {
+			Effect.runSync(Deferred.fail(failed, new RendererRequestError({ message: "delivery refused" })));
+		});
 		expect(composer()?.value).toBe(`${DRAFT} Keep this until sent.`);
 		yield* step(() => clickLabelled("Send"));
-		yield* step(done);
+		yield* step(() => {
+			Effect.runSync(Deferred.succeed(accepted, undefined));
+		});
 		yield* step(() => clickLabelled("Resolve conflicts"));
 		expect(composer()?.value).toBe(DRAFT);
 		yield* step(() => root.unmount());

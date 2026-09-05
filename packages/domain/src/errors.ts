@@ -30,6 +30,7 @@ export {
 	SessionNotFound,
 	SessionStillDelegating,
 } from "@antumbra/sessions";
+export { AgentNotFound } from "@antumbra/vocabulary/agent-runtime";
 export {
 	CaptainAlreadyHailed,
 	CaptainSessionUnavailable,
@@ -39,10 +40,6 @@ export {
 	PieceAlreadyCrewed,
 	PieceNotOnVoyage,
 } from "#piece-work-errors.ts";
-
-export class AgentNotFound extends Data.TaggedError("AgentNotFound")<{
-	readonly agentId: string;
-}> {}
 
 export class ChangeNotAddressable extends Data.TaggedError("ChangeNotAddressable")<{
 	readonly changeId: string;

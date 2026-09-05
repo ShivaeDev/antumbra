@@ -13,6 +13,7 @@ const LISTENING = "opencode server listening on http://127.0.0.1:51491\n";
 
 const OPTIONS = {
 	command: "/opt/homebrew/bin/opencode",
+	constrained: false,
 	cwd: "/moorage",
 	plugin: "/antumbra/opencode/caller-session.js",
 	skills: "/antumbra/skills",
@@ -61,6 +62,28 @@ it.effect("starts the server on a free local port, naming Antumbra's skills, too
 						}),
 					},
 					extendEnv: true,
+				},
+			},
+		]);
+	}),
+);
+
+it.effect("the server constrained sessions run on drops the admiral's configuration and is offered no skills", () =>
+	Effect.gen(function* () {
+		const fake = opencodeThat({ exitCode: Effect.never, stderr: "", stdout: LISTENING });
+		yield* Effect.scoped(Effect.provide(serveOpencode({ ...OPTIONS, constrained: true }), fake.layer));
+		expect(fake.spawned).toMatchObject([
+			{
+				options: {
+					env: {
+						OPENCODE_CONFIG_CONTENT: JSON.stringify({
+							mcp: { antumbra: { timeout: 300_000, type: "remote", url: "http://127.0.0.1:52001" } },
+							plugin: ["file:///antumbra/opencode/caller-session.js"],
+						}),
+						OPENCODE_DISABLE_CLAUDE_CODE_PROMPT: "1",
+						OPENCODE_DISABLE_EXTERNAL_SKILLS: "1",
+						OPENCODE_DISABLE_PROJECT_CONFIG: "1",
+					},
 				},
 			},
 		]);

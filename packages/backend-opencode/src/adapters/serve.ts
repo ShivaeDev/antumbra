@@ -10,6 +10,7 @@ import { opencodeFailure } from "#failure.ts";
 
 interface ServeOptions {
 	readonly command: string;
+	readonly constrained: boolean;
 	readonly cwd: string;
 	readonly plugin: string;
 	readonly skills: string;
@@ -21,12 +22,25 @@ const SERVE_ARGS = ["serve", "--port", "0", "--hostname", "127.0.0.1"];
 // A tool call carries a whole domain act, so the server waits far longer for one than opencode's five-second default.
 const TOOL_TIMEOUT = 300_000;
 
+// opencode reads these once per process. `OPENCODE_PURE` is not among them: it would drop the caller-session plugin and the tool server with the
+// admiral's own extensions.
+const CONSTRAINED_ENV = {
+	OPENCODE_DISABLE_CLAUDE_CODE_PROMPT: "1",
+	OPENCODE_DISABLE_EXTERNAL_SKILLS: "1",
+	OPENCODE_DISABLE_PROJECT_CONFIG: "1",
+};
+
 const configContent = (options: ServeOptions): string =>
 	JSON.stringify({
 		mcp: { [TOOL_SERVER_NAME]: { timeout: TOOL_TIMEOUT, type: "remote", url: options.tools } },
 		plugin: [pathToFileURL(options.plugin).href],
-		skills: { paths: [options.skills] },
+		...(options.constrained ? {} : { skills: { paths: [options.skills] } }),
 	});
+
+const serveEnv = (options: ServeOptions) => ({
+	OPENCODE_CONFIG_CONTENT: configContent(options),
+	...(options.constrained ? CONSTRAINED_ENV : {}),
+});
 
 const connectionTo = (baseUrl: string, watchExit: (listener: () => void) => void): OpencodeConnection => {
 	const calls = httpCalls(baseUrl);
@@ -79,7 +93,7 @@ export const serveOpencode = Effect.fnUntraced(function* (options: ServeOptions)
 	const child = yield* spawner.spawn(
 		ChildProcess.make(options.command, SERVE_ARGS, {
 			cwd: options.cwd,
-			env: { OPENCODE_CONFIG_CONTENT: configContent(options) },
+			env: serveEnv(options),
 			extendEnv: true,
 			forceKillAfter: 5_000,
 			stdin: "ignore",

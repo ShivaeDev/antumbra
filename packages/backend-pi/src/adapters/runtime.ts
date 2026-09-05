@@ -61,15 +61,31 @@ const adopt = (session: AgentSession): PiSession => {
 	};
 };
 
+export const loadedResources = (request: PiOpenRequest, skills: string) =>
+	request.constrainedPrompt === undefined
+		? { additionalSkillPaths: [skills] }
+		: {
+				noContextFiles: true,
+				noExtensions: true,
+				noPromptTemplates: true,
+				noSkills: true,
+				noThemes: true,
+				systemPrompt: request.constrainedPrompt,
+			};
+
+// pi reads an explicit tool list as the whole allowlist: naming Antumbra's tools leaves its built-ins out, and an empty list leaves no tools at all.
+export const chosenTools = (request: PiOpenRequest) =>
+	request.constrainedPrompt === undefined ? {} : { tools: request.tools.map((tool) => tool.name) };
+
 const open =
 	(options: PiRuntimeOptions) =>
 	async (request: PiOpenRequest): Promise<PiSession> => {
 		const modelRuntime = await ModelRuntime.create();
 		const model = await chosenModel(modelRuntime, request.model);
 		const resourceLoader = new DefaultResourceLoader({
-			additionalSkillPaths: [options.skills],
 			agentDir: getAgentDir(),
 			cwd: request.cwd,
+			...loadedResources(request, options.skills),
 		});
 		await resourceLoader.reload();
 		const { session } = await createAgentSession({
@@ -79,6 +95,7 @@ const open =
 			modelRuntime,
 			resourceLoader,
 			sessionManager: sessions(request),
+			...chosenTools(request),
 			...(model === undefined ? {} : { model }),
 			...(request.effort === undefined ? {} : { thinkingLevel: request.effort }),
 		});

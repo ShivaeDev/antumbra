@@ -21,7 +21,8 @@ const decodeInitialize = Schema.decodeUnknownOption(InitializeResponse);
 const versionOf = (response: unknown): Option.Option<string> =>
 	Option.map(decodeInitialize(response), ({ userAgent }) => userAgent.split(" ")[0]?.split("/")[1] ?? "");
 
-export const offerSkills = (request: Request, folder: string) => Effect.asVoid(request("skills/extraRoots/set", { extraRoots: [folder] }));
+export const offerSkills = (request: Request, folder: string | undefined) =>
+	folder === undefined ? Effect.void : Effect.asVoid(request("skills/extraRoots/set", { extraRoots: [folder] }));
 
 // Codex requires one initialize followed by initialized, with experimentalApi enabled for dynamic tools.
 export const handshake = (request: Request) =>

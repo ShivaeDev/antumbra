@@ -10,6 +10,7 @@ export interface ToolAccess {
 }
 
 interface SessionShape {
+	readonly constrainedPrompt: string | undefined;
 	readonly cwd: string;
 	readonly effort: EffortLevel | undefined;
 	readonly executable: string;
@@ -32,6 +33,13 @@ const served = (access: ToolAccess) => ({
 	},
 });
 
+// An empty `settingSources` is the SDK's isolation mode: no settings files and no CLAUDE.md. An empty `tools` leaves the built-in tools out, and
+// `strictMcpConfig` keeps every MCP server but the one passed here from reaching the session.
+const harness = (session: SessionShape) =>
+	session.constrainedPrompt === undefined
+		? { plugins: [{ path: session.skills, type: "local" as const }] }
+		: { settingSources: [], strictMcpConfig: true, systemPrompt: session.constrainedPrompt, tools: [] };
+
 // Claude keys transcript storage by canonical cwd. Delegated-agent text requires `forwardSubagentText`; workflow-agent records are available only
 // through `sessionStore`.
 export const sessionOptions = (session: SessionShape): Options => ({
@@ -39,9 +47,9 @@ export const sessionOptions = (session: SessionShape): Options => ({
 	forwardSubagentText: true,
 	pathToClaudeCodeExecutable: session.executable,
 	permissionMode: "auto",
-	plugins: [{ path: session.skills, type: "local" }],
 	sessionStore: session.store,
 	sessionStoreFlush: "eager",
+	...harness(session),
 	...(session.effort === undefined ? {} : { effort: session.effort }),
 	...(session.model === undefined ? {} : { model: session.model }),
 	...(session.resume === undefined ? {} : { resume: session.resume }),

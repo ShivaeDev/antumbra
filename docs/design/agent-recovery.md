@@ -33,6 +33,12 @@ releases its Piece assignment; recovery resumes the same Session or explicitly l
 Agent setup reaches its success boundary when the required Moorage and Berths are ready. Opening a usable provider Session is subsequent work. A
 provider, authentication, or transcript failure after resource readiness must not undo the Agent or cause the same resources to be provisioned again.
 
+A Session ordinarily opens on the admiral's own harness — the skills, plugins, memories, settings, and context files already on the machine — with
+Antumbra's tools and skills added on top. A **constrained Session** is the narrow exception a cheap single-purpose role opens instead: Antumbra writes
+its prompt in place of the harness's own, no configuration of the admiral's is loaded and Antumbra's skills are not handed over either, and its tools
+are exactly the ones it was given, which may be none. Either kind signs in as the admiral from wherever the harness already keeps its credentials;
+nothing about a constrained Session copies or moves them.
+
 ## Demand outlives dispatch
 
 A Piece's human posture is long-lived demand. `launch_piece` changes that posture to desired; reconciliation owns queueing, starting, and resuming. A

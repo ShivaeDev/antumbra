@@ -9,10 +9,11 @@ import { openThreadSession } from "#thread.ts";
 
 const THREAD = "thread-1";
 
-const openFake = (resume: Option.Option<string> = Option.none(), fake = makeFakeAppServer()) =>
+const openFake = (resume: Option.Option<string> = Option.none(), fake = makeFakeAppServer(), constrainedPrompt?: string) =>
 	Effect.gen(function* () {
 		const server = yield* makeCodexServer({ skills: "/antumbra/skills", spawn: () => fake.process });
 		const handle = yield* openThreadSession(server, {
+			constrainedPrompt,
 			cwd: "/moorage",
 			effort: Option.none(),
 			model: Option.none(),
@@ -41,6 +42,18 @@ const turnCompleted = (fake: FakeAppServer, id: string, status = "completed") =>
 		threadId: THREAD,
 		turn: { durationMs: 12, id, items: [], status },
 	});
+
+it.live("a constrained thread takes Antumbra's instructions and can only read", () =>
+	Effect.gen(function* () {
+		const { fake } = yield* openFake(Option.none(), makeFakeAppServer(), "Smooth this board.");
+		expect(askedFor(fake, "thread/start")).toEqual({
+			approvalsReviewer: "auto_review",
+			baseInstructions: "Smooth this board.",
+			cwd: "/moorage",
+			sandbox: "read-only",
+		});
+	}),
+);
 
 it.live("the handshake runs, a thread opens, and session.opened names it", () =>
 	Effect.gen(function* () {

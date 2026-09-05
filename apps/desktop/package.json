@@ -17,7 +17,7 @@
 		"build": "node script/build.ts",
 		"package": "node script/build.ts && electron-builder --mac --publish never",
 		"pretest": "install-electron",
-		"test": "vitest run",
+		"test": "node ../../script/test.ts",
 		"typecheck": "tsc --noEmit",
 		"typecheck:compat": "tsc6 --noEmit"
 	},
@@ -26,6 +26,7 @@
 		"@antumbra/backend-claude": "workspace:*",
 		"@antumbra/backend-codex": "workspace:*",
 		"@antumbra/backend-opencode": "workspace:*",
+		"@antumbra/backend-pi": "workspace:*",
 		"@antumbra/contract": "workspace:*",
 		"@antumbra/domain": "workspace:*",
 		"@antumbra/github": "workspace:*",

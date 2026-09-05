@@ -1,4 +1,5 @@
 import { type IntentStatus, isTerminalIntentStatus, Kernel } from "@antumbra/kernel";
+import { Database } from "@antumbra/persistence";
 import { type BerthSite, type Runner, RunnerFailure } from "@antumbra/plugin-api";
 import { Repos } from "@antumbra/repos";
 import { expect, it } from "@effect/vitest";
@@ -72,6 +73,7 @@ it.live("failed setup rings the same reconciler", () =>
 			provision: () => new RunnerFailure({ detail: "setup abandoned", tag: "local" }),
 		};
 		yield* Effect.gen(function* () {
+			const db = yield* Database;
 			const domain = yield* AgentDomain;
 			const repos = yield* Repos;
 			const kernel = yield* Kernel;
@@ -81,6 +83,9 @@ it.live("failed setup rings the same reconciler", () =>
 			});
 			const spawn = yield* kernel.submit(domain.spawn, payload("failed-trigger"));
 			expect(yield* untilTerminal(spawn.changes)).toBe("failed");
+			const intent = yield* db.Intent.where({ id: spawn.id }).first();
+			expect(Option.getOrThrow(intent).detail).toContain("RunnerFailure");
+			expect(Option.getOrThrow(intent).detail).toContain("setup abandoned");
 			yield* reclaimedOnce(calls, reclaimed);
 		}).pipe(Effect.provide(domainKernelLayer(temporary, backend.backend, {}, runner)));
 	}),

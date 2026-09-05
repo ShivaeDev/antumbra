@@ -1,14 +1,17 @@
 import { it } from "@antumbra/persistence/testing";
 import { expect } from "@effect/vitest";
-import { Deferred, Effect, Option, Ref, Schema, Stream } from "effect";
+import { Data, Deferred, Effect, Option, Ref, Schema, Stream } from "effect";
 import * as TestClock from "effect/testing/TestClock";
 import { type Gate, gaugeCeiling, maxConcurrency, settle } from "#gate.ts";
 import { defineIntent } from "#intent.ts";
 import { Kernel } from "#kernel.ts";
 import { KernelLive } from "#layer.ts";
 import { statusesUntilTerminal } from "#test/harness.ts";
+import { IntentExecution } from "#workflow.ts";
 
 const EMPTY = Schema.Struct({});
+
+class BerthOccupied extends Data.TaggedError("BerthOccupied")<{ readonly detail: string }> {}
 
 it.effectDB("runs a submitted intent through running to succeeded", function* () {
 	const started = yield* Deferred.make<void>();
@@ -44,6 +47,24 @@ it.effectDB("records a failing intent as failed with its cause in detail", funct
 		const row = yield* db.Intent.where({ id: submission.id }).first();
 		const detail = Option.isSome(row) ? row.value.detail : null;
 		expect(detail).toContain("intent exploded");
+	}).pipe(Effect.provide(KernelLive({ kinds: [kind] })));
+});
+
+it.effectDB("keeps a step's own failure as the intent's recorded reason", function* (db) {
+	const kind = defineIntent({
+		execute: () => IntentExecution.use((execution) => execution.step("provision", new BerthOccupied({ detail: "the berth is not empty" }))),
+		payload: EMPTY,
+		tag: "test/step-failure",
+	});
+	yield* Effect.gen(function* () {
+		const kernel = yield* Kernel;
+		const submission = yield* kernel.submit(kind, {});
+		const statuses = yield* statusesUntilTerminal(submission.changes);
+		expect(statuses.at(-1)).toBe("failed");
+		const row = yield* db.Intent.where({ id: submission.id }).first();
+		const detail = Option.isSome(row) ? row.value.detail : null;
+		expect(detail).toContain("BerthOccupied");
+		expect(detail).toContain("the berth is not empty");
 	}).pipe(Effect.provide(KernelLive({ kinds: [kind] })));
 });
 

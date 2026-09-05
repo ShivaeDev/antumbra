@@ -2,6 +2,7 @@ import { allToolSpecs } from "@antumbra/agent-tools";
 import { claudePlugin } from "@antumbra/backend-claude";
 import { codexPlugin } from "@antumbra/backend-codex";
 import { opencodePlugin } from "@antumbra/backend-opencode";
+import { piPlugin } from "@antumbra/backend-pi";
 import { applicationLayers as domainApplicationLayers } from "@antumbra/domain";
 import { githubPlugin } from "@antumbra/github";
 import { databaseFileInDataDirectory, PersistenceLive } from "@antumbra/persistence";
@@ -39,6 +40,7 @@ const application = Layer.unwrap(
 		yield* Effect.orDie(
 			opencodePlugin({ cwd: configureDataDirectory(), plugin: opencodePluginFile(), skills, tools: allToolSpecs }).activate(host.context),
 		);
+		yield* Effect.orDie(piPlugin({ skills }).activate(host.context));
 		yield* Effect.orDie(runnerPlugin.activate(host.context));
 		yield* Effect.orDie(githubPlugin().activate(host.context));
 		return domainApplicationLayers(

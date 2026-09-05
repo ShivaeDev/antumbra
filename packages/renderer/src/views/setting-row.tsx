@@ -24,7 +24,7 @@ export const SettingRow = ({
 			{declaration.kind === "flag" ? (
 				<FlagField checked={value === true} id={id} onChange={onChange} />
 			) : (
-				<CountField declaration={declaration} id={id} onChange={onChange} value={Number(value)} />
+				<CountField declaration={declaration} id={id} key={Number(value)} onChange={onChange} value={Number(value)} />
 			)}
 			<p className="text-2xs text-muted-foreground">
 				{overridden

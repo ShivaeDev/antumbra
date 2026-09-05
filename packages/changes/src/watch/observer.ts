@@ -44,7 +44,7 @@ const watchOneHost = Effect.fn("ChangeWatcher.watchOneHost")(function* (hostTag:
 	}
 });
 
-export const ChangeWatcherLive = (hostTags: ReadonlyArray<string>, overrides: Partial<ObserveCadenceOptions> = {}) =>
+export const ChangeWatcher = (hostTags: ReadonlyArray<string>, overrides: Partial<ObserveCadenceOptions> = {}) =>
 	Layer.effectDiscard(
 		Effect.gen(function* () {
 			const options = { ...DEFAULTS, ...overrides };

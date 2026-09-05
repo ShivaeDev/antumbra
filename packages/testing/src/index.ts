@@ -3,7 +3,7 @@ import {
 	AgentDomain,
 	AgentDomainLive,
 	BackendCapacityReleaseLive,
-	ChangeWatcherLive,
+	ChangeWatcher,
 	DispatcherLive,
 	FlagshipLive,
 	IntentFeedLive,
@@ -50,7 +50,7 @@ const applicationLayer = (temporary: TemporaryPersistence, scripted: ScriptedBac
 		RulingSourceLive,
 		SightSourceLive,
 		VoyageSourceLive,
-		ChangeWatcherLive(),
+		ChangeWatcher(),
 		DispatcherLive(),
 		Layer.unwrap(
 			Effect.gen(function* () {

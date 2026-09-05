@@ -5,8 +5,7 @@
 	"type": "module",
 	"exports": {
 		".": "./src/index.ts",
-		"./watch/live": "./src/watch/live.ts",
-		"./watch/cadence": "./src/watch/cadence.ts"
+		"./*": "./src/*.ts"
 	},
 	"imports": {
 		"#test/*": "./test/*",

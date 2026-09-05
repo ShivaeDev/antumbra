@@ -10,7 +10,7 @@ import { SettingsSourceLive } from "@antumbra/settings";
 import { NodeServices } from "@effect/platform-node";
 import { Effect, Layer } from "effect";
 import { BackendCapacityReleaseLive } from "#backend-capacity-release.ts";
-import { ChangeWatcherLive } from "#change-watcher.ts";
+import { ChangeWatcher } from "#change-watcher.ts";
 import { DispatcherLive, type DispatcherOptions } from "#dispatcher.ts";
 import { AgentDomain, AgentDomainLive } from "#domain.ts";
 import { domainCapabilities } from "#domain-capabilities.ts";
@@ -113,4 +113,4 @@ export const watchingLayer = (
 		patienceMillis: 50,
 	},
 	runner: Runner = passiveRunner,
-) => ChangeWatcherLive(cadence).pipe(Layer.provideMerge(dispatchingLayer(temporary, backend, dispatcher, {}, runner, changeHosts)));
+) => ChangeWatcher(cadence).pipe(Layer.provideMerge(dispatchingLayer(temporary, backend, dispatcher, {}, runner, changeHosts)));

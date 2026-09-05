@@ -5,6 +5,7 @@ import { RulingDelivery } from "@antumbra/rulings/delivery/service";
 import { SettingsSourceLive } from "@antumbra/settings";
 import { Effect, Layer } from "effect";
 import { BackendCapacityReleases } from "#backend-capacity-releases/service.ts";
+import { CostSourceLive } from "#cost-source.ts";
 import { DispatcherLive } from "#dispatcher.ts";
 import { AgentDomain, AgentDomainLive } from "#domain.ts";
 import { FlagshipLive } from "#flagship.ts";
@@ -27,6 +28,7 @@ export const applicationLayers = (...providers: Parameters<typeof AgentDomainLiv
 	).pipe(Layer.provideMerge(AgentDomainLive(...providers)));
 
 	return Layer.mergeAll(
+		CostSourceLive,
 		HoldSourceLive,
 		RulingSourceLive,
 		SightSourceLive,

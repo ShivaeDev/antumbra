@@ -26,6 +26,8 @@ export {
 	TRPC_UNSUBSCRIBE_CHANNEL,
 	type TrpcResponse,
 } from "#channels.ts";
+export { CostSource } from "#costs/source.ts";
+export { AgentSpend, BackendSpend, CostsView, DaySpend, ModelSpend, UsageTotal, VoyageSpend } from "#costs/views.ts";
 export {
 	AgentSummary,
 	AgentWork,

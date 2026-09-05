@@ -1,6 +1,7 @@
 import { Effect, Layer, ManagedRuntime } from "effect";
 import { AppInfoSource } from "#app-info.ts";
 import { AppLifecycleSource } from "#app-lifecycle.ts";
+import { costFixture } from "#fixtures/cost-source.ts";
 import { type FixtureFeeds, staticFeeds } from "#fixtures/feeds.ts";
 import { info } from "#fixtures/fleet.ts";
 import { holdFixture } from "#fixtures/hold-source.ts";
@@ -35,6 +36,7 @@ export const makeRuntime = (feeds: FixtureFeeds = staticFeeds) =>
 				change: () => Effect.succeed(reading),
 				current: Effect.succeed(reading),
 			}),
+			costFixture(feeds),
 			holdFixture(feeds),
 			rulingFixture(feeds),
 			sightFixture(feeds),

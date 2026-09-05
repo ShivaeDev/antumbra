@@ -1,3 +1,4 @@
+export { costs } from "#fixtures/cost-source.ts";
 export { type FixtureFeeds, staticFeeds } from "#fixtures/feeds.ts";
 export { flagshipSummary } from "#fixtures/flagship.ts";
 export { fleet, info } from "#fixtures/fleet.ts";

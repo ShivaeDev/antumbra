@@ -12,7 +12,7 @@ interface EffectAppOptions {
 
 type DatabaseRequirement = Context.Service.Identifier<typeof Database>;
 
-type EffectAppBody<Harness, A, E, Services> = (harness: Harness) => Effect.fn.Return<A, E, Services | DatabaseRequirement>;
+type EffectAppBody<Harness, A, Services> = (harness: Harness) => Effect.fn.Return<A, unknown, Services | DatabaseRequirement>;
 
 interface EffectApp<Harness, Services> {
 	readonly harness: Effect.Effect<Harness, never, Services | DatabaseRequirement>;
@@ -20,11 +20,9 @@ interface EffectApp<Harness, Services> {
 }
 
 export const makeEffectApp = <Harness, Services>(makeApp: (temporary: TemporaryPersistence) => Effect.Effect<EffectApp<Harness, Services>>) =>
-	function effectApp<A, E>(
+	function effectApp<A>(
 		name: string,
-		...args:
-			| readonly [body: EffectAppBody<Harness, A, E, Services>]
-			| readonly [options: EffectAppOptions, body: EffectAppBody<Harness, A, E, Services>]
+		...args: readonly [body: EffectAppBody<Harness, A, Services>] | readonly [options: EffectAppOptions, body: EffectAppBody<Harness, A, Services>]
 	): void {
 		const live = args.length === 2;
 		const body = args.length === 1 ? args[0] : args[1];

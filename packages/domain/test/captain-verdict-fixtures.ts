@@ -4,8 +4,7 @@ import { type Ruling, Rulings } from "@antumbra/rulings";
 import { expect } from "@effect/vitest";
 import { Effect, Option } from "effect";
 import { AgentDomain } from "#domain.ts";
-import { domainKernelLayer } from "#test/domain-layers.ts";
-import { acquireTemporaryPersistence, makeScriptedBackend, type ScriptedBackend, type ScriptedSession, sessionFor } from "#test/harness.ts";
+import { type ScriptedBackend, type ScriptedSession, sessionFor } from "#test/harness.ts";
 import { eventually, openReefVoyage, terminalIntent } from "#test/voyage-fixtures.ts";
 
 export const ASKER = "agent-asker";
@@ -73,24 +72,19 @@ const hailed = (scripted: ScriptedBackend, voyageId: string) =>
 		};
 	});
 
-export const withLadder = <A, E, R>(body: (ladder: Ladder) => Effect.Effect<A, E, R>) =>
-	Effect.gen(function* () {
-		const temporary = yield* acquireTemporaryPersistence;
-		const scripted = yield* makeScriptedBackend;
-		yield* Effect.gen(function* () {
-			const voyage = yield* openReefVoyage;
-			yield* seedAsker(voyage.id);
-			yield* openFlagship;
-			const captain = yield* hailed(scripted, voyage.id);
-			const flagship = yield* hailed(scripted, FLAGSHIP_ID);
-			yield* body({
-				captain: captain.session,
-				captainAgentId: captain.agentId,
-				flagship: flagship.session,
-				voyageId: voyage.id,
-			});
-		}).pipe(Effect.provide(domainKernelLayer(temporary, scripted.backend)));
-	});
+export const crewLadder = Effect.fnUntraced(function* (scripted: ScriptedBackend) {
+	const voyage = yield* openReefVoyage;
+	yield* seedAsker(voyage.id);
+	yield* openFlagship;
+	const captain = yield* hailed(scripted, voyage.id);
+	const flagship = yield* hailed(scripted, FLAGSHIP_ID);
+	return {
+		captain: captain.session,
+		captainAgentId: captain.agentId,
+		flagship: flagship.session,
+		voyageId: voyage.id,
+	};
+});
 
 export const standing = (rulingId: string) =>
 	Effect.gen(function* () {

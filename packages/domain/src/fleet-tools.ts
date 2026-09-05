@@ -36,7 +36,7 @@ const proclaimed = (ruling: Ruling): string =>
 
 export const makeFleetToolCompiler = Effect.gen(function* () {
 	const compileCaptainTools = yield* makeCaptainToolCompiler;
-	const charter = yield* makeReportingCharter;
+	const charter = yield* makeReportingCharter();
 	const rulings = yield* Rulings;
 	const procedures = yield* VoyageProcedureService;
 	const voyages = yield* Voyages;

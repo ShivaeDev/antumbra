@@ -92,3 +92,10 @@ export const concludedPieces = (world: RetirementWorld): ReadonlyMap<string, "ab
 		}),
 	);
 };
+
+export const heldPieceCount = (world: RetirementWorld): number => {
+	const settled = settledPieces(world);
+	return world.pieces.filter(
+		(piece) => piece.parkedAt === null && piece.launchedAt === null && pieceExecutionState(world, settled, piece.id) === undefined,
+	).length;
+};

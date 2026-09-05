@@ -4,7 +4,7 @@ import { EdgeReached, FrontierBlocking } from "#charter-edge-errors.ts";
 import { frontierOf } from "#frontier.ts";
 import type { VoyageWorld } from "#voyage-rows.ts";
 import { piecesOfVoyage } from "#voyage-state.ts";
-import { VoyageWorldSource } from "#voyage-world.ts";
+import { VoyageWorldSource } from "#voyage-world/service.ts";
 
 const UNLAUNCHED_LIMIT = 3;
 
@@ -32,7 +32,7 @@ export const makeEdgeCharter = Effect.gen(function* () {
 	const world = yield* VoyageWorldSource;
 	return (input: CharterInput) =>
 		Effect.gen(function* () {
-			const edge = edgeOf(yield* world.read, input.voyageId);
+			const edge = edgeOf(yield* world.read(), input.voyageId);
 			return Option.isSome(edge) ? yield* edge.value : yield* pieces.charter(input);
 		});
 });

@@ -37,6 +37,7 @@
 		"@antumbra/session-inputs": "workspace:*",
 		"@antumbra/service-definition": "workspace:*",
 		"@antumbra/vocabulary": "workspace:*",
-		"effect": "catalog:"
+		"effect": "catalog:",
+		"@antumbra/provider-capacity": "workspace:*"
 	}
 }

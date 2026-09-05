@@ -5,7 +5,8 @@ import { type AgentPrompt, checksFailed, mergeConflicts, unresolvedReviews } fro
 import { Effect } from "effect";
 import { repoNameOf } from "#change-view.ts";
 import { ChangeNotAddressable } from "#errors.ts";
-import { type VoyageWorldReadFailure, VoyageWorldSource } from "#voyage-world.ts";
+import type { VoyageWorldReadFailure } from "#voyage-world/read.ts";
+import { VoyageWorldSource } from "#voyage-world/service.ts";
 
 type SituationDraftRefused = ChangeNotAddressable | PrismaError | VoyageWorldReadFailure;
 
@@ -36,6 +37,6 @@ export const makeSituationDraft = Effect.gen(function* () {
 			if (change === undefined || change.externalId === null) {
 				return yield* new ChangeNotAddressable({ changeId: draft.changeId });
 			}
-			return situationWords(draft.situation, change, repoNameOf(yield* source.read, change.repoId));
+			return situationWords(draft.situation, change, repoNameOf(yield* source.read(), change.repoId));
 		});
 });

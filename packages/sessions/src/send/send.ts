@@ -1,11 +1,11 @@
 import { Database } from "@antumbra/persistence";
 import type { AgentPrompt } from "@antumbra/prompts";
+import { BackendCapacities } from "@antumbra/provider-capacity/service";
 import { SessionFabric } from "@antumbra/session-fabric";
 import { decodeStoredAgentSessionStatus } from "@antumbra/vocabulary/agent-runtime";
 import type { SessionInputId } from "@antumbra/vocabulary/session-input";
 import { Effect, Option } from "effect";
 import { makeRefuseSubsessionAttach } from "#attach-roots.ts";
-import type { SessionCapacities } from "#capacity.ts";
 import { makeCurrentSessionRecovery } from "#current/recovery.ts";
 import { SessionEnded, SessionNotFound } from "#errors.ts";
 import { promptInput } from "#input.ts";
@@ -19,10 +19,11 @@ export type {
 	SessionSendRefused,
 } from "#send/errors.ts";
 
-export const makeSessionSend = (imageInputBackends: ReadonlySet<string>, capacities: SessionCapacities) =>
+export const makeSessionSend = (imageInputBackends: ReadonlySet<string>) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
 		const fabric = yield* SessionFabric;
+		const capacities = yield* BackendCapacities;
 		const reach = yield* SessionReach;
 		const recovery = yield* makeCurrentSessionRecovery;
 		const refuseSubsession = yield* makeRefuseSubsessionAttach;
@@ -68,6 +69,6 @@ export const makeSessionSend = (imageInputBackends: ReadonlySet<string>, capacit
 				// Mark execution only after provider handoff succeeds.
 				yield* recovery.awaken(sessionId);
 			});
-		const sendInput = yield* makeSendInput(imageInputBackends, open, rouseInput, capacities);
+		const sendInput = yield* makeSendInput(imageInputBackends, open, rouseInput);
 		return { sendInput, sendPrompt };
 	});

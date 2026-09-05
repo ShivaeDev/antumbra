@@ -2,7 +2,8 @@ import { DomainFeeds } from "@antumbra/domain-feeds";
 import type { ChangeHost } from "@antumbra/plugin-api";
 import { Context, Effect, Layer } from "effect";
 import { type QuayReading, quayReading } from "#quay-view.ts";
-import { type VoyageWorldReadFailure, VoyageWorldSource } from "#voyage-world.ts";
+import type { VoyageWorldReadFailure } from "#voyage-world/read.ts";
+import { VoyageWorldSource } from "#voyage-world/service.ts";
 
 export interface ChangeHostCapabilityView {
 	readonly available: boolean;
@@ -33,7 +34,7 @@ export const ChangeProceduresLive = (hosts: ReadonlyMap<string, ChangeHost>) =>
 					})),
 				),
 				hostTags: [...hosts.keys()],
-				quay: world.read.pipe(Effect.map(quayReading)),
+				quay: world.read().pipe(Effect.map(quayReading)),
 				requestRefresh: feeds.publishChangeRefresh(),
 			});
 		}),

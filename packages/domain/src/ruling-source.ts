@@ -17,7 +17,7 @@ import { proclaimFailure, reclassifyFailure, toRulingFailure, verdictFailure } f
 import { rulingStaleness } from "#ruling-staleness.ts";
 import { supersessionFailure } from "#ruling-supersession.ts";
 import { withdrawalFailure } from "#ruling-withdrawal.ts";
-import { VoyageWorldSource } from "#voyage-world.ts";
+import { VoyageWorldSource } from "#voyage-world/service.ts";
 
 const standingSeen = (ruling: Ruling, stale: boolean): Effect.Effect<StandingRulingsView["rulings"][number], RulingFailure> =>
 	Option.match(ruling.answer, {
@@ -33,7 +33,7 @@ export const RulingSourceLive = Layer.effect(RulingSource)(
 		const rulings = yield* Rulings;
 		const world = yield* VoyageWorldSource;
 		const refreshes = yield* makeRulingRefreshes;
-		const open = Effect.all({ open: rulings.open(), rows: world.read }).pipe(
+		const open = Effect.all({ open: rulings.open(), rows: world.read() }).pipe(
 			Effect.map(({ open, rows }) => ({
 				rulings: open.map((ruling) => rulingSeen(ruling, rows)),
 			})),
@@ -41,7 +41,7 @@ export const RulingSourceLive = Layer.effect(RulingSource)(
 		);
 		const standing = Effect.all({
 			ruled: rulings.standing([]),
-			rows: world.read,
+			rows: world.read(),
 		}).pipe(
 			Effect.mapError(toRulingFailure),
 			Effect.flatMap(({ ruled, rows }) => {

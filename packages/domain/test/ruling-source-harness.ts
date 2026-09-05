@@ -7,10 +7,10 @@ import { ReposLive } from "@antumbra/repos";
 import { RulingsLive } from "@antumbra/rulings";
 import { Deferred, Effect, Layer, Stream } from "effect";
 import { RulingSourceLive } from "#ruling-source.ts";
-import { VoyageWorldSourceLive } from "#voyage-world.ts";
+import { VoyageWorldSource } from "#voyage-world/service.ts";
 
 export const layer = RulingSourceLive.pipe(
-	Layer.provideMerge(VoyageWorldSourceLive),
+	Layer.provideMerge(VoyageWorldSource.layer),
 	Layer.provideMerge(ChangesLive(new Map(), new Map())),
 	Layer.provideMerge(PiecesLive),
 	Layer.provideMerge(ReposLive),

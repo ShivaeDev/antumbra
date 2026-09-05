@@ -1,7 +1,7 @@
 export { drainActiveSessions } from "@antumbra/sessions";
 export { SettingsSourceLive } from "@antumbra/settings";
 export { BackendCapacityReleaseLive } from "#backend-capacity-release.ts";
-export { ChangeWatcherLive } from "#change-watcher.ts";
+export { ChangeWatcher } from "#change-watcher.ts";
 export { DispatcherLive } from "#dispatcher.ts";
 export { AgentDomain, AgentDomainLive } from "#domain.ts";
 export { FlagshipLive } from "#flagship.ts";

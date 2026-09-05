@@ -15,7 +15,7 @@ import { readVoyageView } from "#voyage-read.ts";
 import { requireVoyage } from "#voyage-record.ts";
 import type { VoyageRow } from "#voyage-rows.ts";
 import { voyageSummaries } from "#voyage-view.ts";
-import { VoyageWorldSource } from "#voyage-world.ts";
+import { VoyageWorldSource } from "#voyage-world/service.ts";
 
 export type { OpenVoyageInput, VoyageProcedures } from "#voyage-procedures.ts";
 
@@ -97,7 +97,7 @@ export const VoyageProceduresLive = Layer.effect(VoyageProcedureService)(
 			readReport: reports.read,
 			removeArtifactSupersession: (input) => artifacts.removeSupersession({ actor: { _tag: "admiral" }, ...input }),
 			launch: pieces.launch,
-			list: world.read.pipe(Effect.map(voyageSummaries)),
+			list: world.read().pipe(Effect.map(voyageSummaries)),
 			open: (input) => Effect.provide(openVoyage(input), context),
 			park: (pieceId) => pieces.park(pieceId, true),
 			read: (voyageId) => readVoyageView(voyageId).pipe(Effect.provideService(VoyageWorldSource, world)),

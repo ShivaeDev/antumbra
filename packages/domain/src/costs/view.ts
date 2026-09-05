@@ -1,4 +1,4 @@
-import type { AgentSpend, BackendSpend, CostsView, DaySpend, ModelSpend, UsageTotal, VoyageSpend } from "@antumbra/contract";
+import type { AgentSpend, BackendSpend, CostsView, DaySpend, ModelSpend, VoyageSpend } from "@antumbra/contract";
 import type { SessionUsage } from "@antumbra/session-event-journal";
 import { countReading, emptyTallies, type SpendSession, type SpendTallies } from "#costs/buckets.ts";
 import { windowDays } from "#costs/days.ts";
@@ -13,10 +13,6 @@ export interface SpendWorld {
 	readonly voyageNames: ReadonlyMap<string, string>;
 	readonly voyageOfAgent: ReadonlyMap<string, string>;
 }
-
-const tokensOf = (total: UsageTotal): number => total.inputTokens + total.outputTokens + total.cacheReadTokens + total.cacheWriteTokens;
-
-const bySpend = (left: { readonly total: UsageTotal }, right: { readonly total: UsageTotal }): number => tokensOf(right.total) - tokensOf(left.total);
 
 const gather = (world: SpendWorld): SpendTallies => {
 	const tallies = emptyTallies();
@@ -41,15 +37,13 @@ const daysOf = (tallies: SpendTallies, now: Date): ReadonlyArray<DaySpend> =>
 	windowDays(now, COST_WINDOW_DAYS).map((day) => ({ backends: backendsOf(tallies.days.get(day)), day }) satisfies DaySpend);
 
 const modelsOf = (tallies: SpendTallies): ReadonlyArray<ModelSpend> =>
-	[...tallies.models].map(([model, tally]) => ({ model, total: totalOf(tally) }) satisfies ModelSpend).toSorted(bySpend);
+	[...tallies.models].map(([model, tally]) => ({ model, total: totalOf(tally) }) satisfies ModelSpend);
 
 const voyagesOf = (tallies: SpendTallies, names: ReadonlyMap<string, string>): ReadonlyArray<VoyageSpend> =>
-	[...tallies.voyages]
-		.flatMap(([voyageId, tally]) => {
-			const name = names.get(voyageId);
-			return name === undefined ? [] : [{ name, total: totalOf(tally), voyageId } satisfies VoyageSpend];
-		})
-		.toSorted(bySpend);
+	[...tallies.voyages].flatMap(([voyageId, tally]) => {
+		const name = names.get(voyageId);
+		return name === undefined ? [] : [{ name, total: totalOf(tally), voyageId } satisfies VoyageSpend];
+	});
 
 export const costsView = (world: SpendWorld): CostsView => {
 	const tallies = gather(world);

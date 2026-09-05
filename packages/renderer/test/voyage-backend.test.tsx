@@ -3,7 +3,10 @@ import { expect, it } from "@effect/vitest";
 import { Effect } from "effect";
 import { act } from "react";
 import { createRoot } from "react-dom/client";
+import { vi } from "vitest";
 import { VoyageHeader } from "#views/voyage-header.tsx";
+
+vi.mock("#adapters/trpc-costs.ts", () => ({ watchCosts: vi.fn(() => vi.fn()) }));
 
 it.effect("shows the captain and crew backend choices independently", () =>
 	Effect.gen(function* () {

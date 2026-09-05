@@ -63,7 +63,7 @@ describe("session standing bar", () => {
 		expect(rendered).toContain("flex-wrap");
 		expect(rendered).not.toContain("truncate");
 		expect(rendered).toContain("cache read 96240");
-		expect(rendered).toContain("total $0.0600");
+		expect(rendered).toContain("session $0.0600");
 	});
 
 	it("uses the tree when a delegate has no state frame", () => {

@@ -31,17 +31,18 @@ const memberPieces = (world: VoyageWorld, voyageId: string): ReadonlyArray<Piece
 };
 
 const countStates = (states: ReadonlyArray<PieceState>): PieceCounts => {
-	const held = (state: PieceState) => states.filter((candidate) => candidate === state).length;
-	return {
-		abandoned: held("abandoned"),
-		active: held("active"),
-		blocked: held("blocked"),
-		done: held("done"),
-		held: held("held"),
-		landing: held("landing"),
-		parked: held("parked"),
-		ready: held("ready"),
+	const counts: Record<PieceState, number> = {
+		abandoned: 0,
+		active: 0,
+		blocked: 0,
+		done: 0,
+		held: 0,
+		landing: 0,
+		parked: 0,
+		ready: 0,
 	};
+	for (const state of states) counts[state] += 1;
+	return counts;
 };
 
 export const voyageView = (world: VoyageWorld, voyage: VoyageRow): VoyageView => {

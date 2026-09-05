@@ -6,6 +6,7 @@ import type { OpencodeServer } from "#server.ts";
 import { frameFor } from "#session-frames.ts";
 import { textOnly } from "#session-input.ts";
 import { openSession, promptSettings, sessionIdOf, sessionOpened } from "#session-open.ts";
+import { servedTools } from "#session-tools.ts";
 import { turnRequests } from "#turn-requests.ts";
 import { makeTurnDriver } from "#turns.ts";
 
@@ -28,6 +29,11 @@ export const openOpencodeSession = Effect.fn("OpenCode.openSession")(function* (
 	const forDriver = yield* PubSub.subscribe(server.frames);
 	const [route, response] = yield* openSession(server, options);
 	const sessionId = yield* sessionIdOf(route, response);
+	const tools = yield* servedTools(options.tools);
+	yield* Effect.acquireRelease(
+		Effect.sync(() => server.tools.remember(sessionId, tools)),
+		() => Effect.sync(() => server.tools.forget(sessionId)),
+	);
 	const driver = yield* makeTurnDriver(turnRequests(server, sessionId, options.cwd, settings));
 	yield* Effect.forkScoped(server.exited.pipe(Effect.andThen(driver.close)));
 	yield* Effect.forkScoped(

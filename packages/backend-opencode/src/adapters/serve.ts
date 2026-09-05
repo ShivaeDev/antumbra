@@ -1,20 +1,32 @@
+import { pathToFileURL } from "node:url";
 import { Deferred, Effect, Fiber, Stream } from "effect";
 import { ChildProcess, ChildProcessSpawner } from "effect/unstable/process";
 import type { OpencodeConnection } from "#adapters/connection.ts";
 import { openEventStream } from "#adapters/event-stream.ts";
 import { httpCalls } from "#adapters/http.ts";
 import { listeningUrl } from "#adapters/listening.ts";
+import { TOOL_SERVER_NAME } from "#adapters/tool-server.ts";
 import { opencodeFailure } from "#failure.ts";
 
 interface ServeOptions {
 	readonly command: string;
 	readonly cwd: string;
+	readonly plugin: string;
 	readonly skills: string;
+	readonly tools: string;
 }
 
 const SERVE_ARGS = ["serve", "--port", "0", "--hostname", "127.0.0.1"];
 
-const configContent = (skills: string): string => JSON.stringify({ skills: { paths: [skills] } });
+// A tool call carries a whole domain act, so the server waits far longer for one than opencode's five-second default.
+const TOOL_TIMEOUT = 300_000;
+
+const configContent = (options: ServeOptions): string =>
+	JSON.stringify({
+		mcp: { [TOOL_SERVER_NAME]: { timeout: TOOL_TIMEOUT, type: "remote", url: options.tools } },
+		plugin: [pathToFileURL(options.plugin).href],
+		skills: { paths: [options.skills] },
+	});
 
 const connectionTo = (baseUrl: string, watchExit: (listener: () => void) => void): OpencodeConnection => {
 	const calls = httpCalls(baseUrl);
@@ -67,7 +79,7 @@ export const serveOpencode = Effect.fnUntraced(function* (options: ServeOptions)
 	const child = yield* spawner.spawn(
 		ChildProcess.make(options.command, SERVE_ARGS, {
 			cwd: options.cwd,
-			env: { OPENCODE_CONFIG_CONTENT: configContent(options.skills) },
+			env: { OPENCODE_CONFIG_CONTENT: configContent(options) },
 			extendEnv: true,
 			forceKillAfter: 5_000,
 			stdin: "ignore",

@@ -4,7 +4,8 @@
 	"private": true,
 	"type": "module",
 	"exports": {
-		".": "./src/index.ts"
+		".": "./src/index.ts",
+		"./plugin/caller-session.js": "./plugin/caller-session.js"
 	},
 	"imports": {
 		"#test/*": "./test/*",
@@ -27,6 +28,7 @@
 		"@antumbra/skills": "workspace:*",
 		"@antumbra/vocabulary": "workspace:*",
 		"@effect/platform-node": "catalog:",
+		"@modelcontextprotocol/sdk": "catalog:",
 		"effect": "catalog:"
 	}
 }

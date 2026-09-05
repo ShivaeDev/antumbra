@@ -1,3 +1,4 @@
+import { allToolSpecs } from "@antumbra/agent-tools";
 import { claudePlugin } from "@antumbra/backend-claude";
 import { codexPlugin } from "@antumbra/backend-codex";
 import { opencodePlugin } from "@antumbra/backend-opencode";
@@ -13,6 +14,7 @@ import { findOnLoginPath } from "#adapters/login-shell.ts";
 import {
 	artifactsInDataDirectory,
 	configureDataDirectory,
+	opencodePluginFile,
 	persistenceMigrationsDirectory,
 	runnerRootsInDataDirectory,
 	sessionInputsInDataDirectory,
@@ -35,7 +37,9 @@ const application = Layer.unwrap(
 		const skills = skillsDirectory();
 		yield* Effect.orDie(claudePlugin({ skills }).activate(host.context));
 		yield* Effect.orDie(codexPlugin({ cwd: configureDataDirectory(), skills }).activate(host.context));
-		yield* Effect.orDie(opencodePlugin({ cwd: configureDataDirectory(), skills }).activate(host.context));
+		yield* Effect.orDie(
+			opencodePlugin({ cwd: configureDataDirectory(), plugin: opencodePluginFile(), skills, tools: allToolSpecs }).activate(host.context),
+		);
 		yield* Effect.orDie(piPlugin({ skills }).activate(host.context));
 		yield* Effect.orDie(runnerPlugin.activate(host.context));
 		yield* Effect.orDie(githubPlugin().activate(host.context));

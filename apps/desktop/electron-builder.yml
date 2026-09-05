@@ -18,6 +18,8 @@ extraResources:
     to: persistence
   - from: out/skills
     to: skills
+  - from: out/opencode
+    to: opencode
 mac:
   # A workspace install contains only the current host's sharp prebuild, so packaging remains single-architecture.
   target:

@@ -10,6 +10,7 @@ import { sessionOptions, type ToolAccess } from "#session-options.ts";
 
 interface RawSessionOptions {
 	readonly call: ToolCall;
+	readonly constrainedPrompt: string | undefined;
 	readonly cwd: string;
 	readonly effort: EffortLevel | undefined;
 	readonly executable: string;
@@ -66,6 +67,7 @@ export const openRawSession = (options: RawSessionOptions): RawSession => {
 	const input = new InputQueue(deliveries.frame);
 	const live = query({
 		options: sessionOptions({
+			constrainedPrompt: options.constrainedPrompt,
 			cwd: options.cwd,
 			effort: options.effort,
 			executable: options.executable,

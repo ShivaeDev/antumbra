@@ -1,6 +1,5 @@
 import type { IntentDemandRegistration } from "@antumbra/intent-demand";
 import type { AnyIntentKind, IntentKind } from "@antumbra/kernel";
-import type { BackendFailure, ModelChoice } from "@antumbra/plugin-api";
 import type { SiestaFields, WakeFields } from "@antumbra/sessions";
 import { Context, type Effect } from "effect";
 import type { RetireFields } from "#retire.ts";
@@ -10,11 +9,8 @@ import type { VoyageProcedures } from "#voyages/service.ts";
 export class AgentDomain extends Context.Service<
 	AgentDomain,
 	{
-		readonly backends: ReadonlyArray<string>;
 		readonly kinds: ReadonlyArray<AnyIntentKind>;
-		readonly imageInputBackends: ReadonlySet<string>;
 		readonly intentDemands: ReadonlyArray<IntentDemandRegistration>;
-		readonly listModels: (backend: string) => Effect.Effect<ReadonlyArray<ModelChoice>, BackendFailure>;
 		readonly retryResourceReclaim: Effect.Effect<void>;
 		readonly retire: IntentKind<RetireFields>;
 		readonly sessionsAttached: Effect.Effect<ReadonlySet<string>>;

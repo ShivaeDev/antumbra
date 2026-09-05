@@ -3,7 +3,8 @@ import { Database } from "@antumbra/persistence";
 import { Clock, Effect } from "effect";
 import { readyPieces } from "#dispatch-policy.ts";
 import { ExecutionSource } from "#execution/service.ts";
-import { type DueWake, makeDueWakes } from "#mail-due-wakes.ts";
+import type { DueWake } from "#mail-delivery/due-wakes.ts";
+import { MailDelivery } from "#mail-delivery/service.ts";
 import type { DispatchWorld } from "#voyage-rows.ts";
 
 const dispatchWaiting = (world: DispatchWorld, nowMillis: number): ReadonlyArray<HoldWaiting> =>
@@ -50,12 +51,12 @@ const wakeWaiting = Effect.fnUntraced(function* (due: ReadonlyArray<DueWake>) {
 
 export const makeHoldWaits = Effect.gen(function* () {
 	const db = yield* Database;
-	const dueWakes = yield* makeDueWakes;
+	const mail = yield* MailDelivery;
 	const execution = yield* ExecutionSource;
 	return Effect.fnUntraced(function* () {
 		const nowMillis = yield* Clock.currentTimeMillis;
 		const world = yield* execution.dispatch();
-		const wakes = yield* wakeWaiting(yield* dueWakes()).pipe(Effect.provideService(Database, db));
+		const wakes = yield* wakeWaiting(yield* mail.dueWakes()).pipe(Effect.provideService(Database, db));
 		return {
 			queues: [
 				{ kind: "dispatch", waiting: dispatchWaiting(world, nowMillis) },

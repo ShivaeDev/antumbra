@@ -1,67 +1,38 @@
 import type { StandingRulingView } from "@antumbra/contract";
-import { useState } from "react";
+import { Schema } from "effect";
+import { useRequestForm } from "#adapters/form.ts";
 import { supersedeRuling } from "#adapters/trpc-rulings.ts";
-import { Button } from "#components/ui/button.tsx";
-import { Select, SelectContent, SelectTrigger, SelectValue } from "#components/ui/select.tsx";
-import { SelectItem } from "#components/ui/select-parts.tsx";
-import { Field } from "#views/field.tsx";
+import { RequestForm } from "#forms/view.tsx";
 
-const SuccessorPick = ({
-	onPick,
-	others,
-	ruling,
-}: {
-	readonly onPick: (byRulingId: string) => void;
-	readonly others: ReadonlyArray<StandingRulingView>;
-	readonly ruling: StandingRulingView;
-}) => (
-	<Select onValueChange={onPick}>
-		<SelectTrigger aria-label={`Supersede "${ruling.question}" with`}>
-			<SelectValue placeholder="A later standing ruling" />
-		</SelectTrigger>
-		<SelectContent>
-			{others.map((other) => (
-				<SelectItem key={other.id} value={other.id}>
-					{other.question}
-				</SelectItem>
-			))}
-		</SelectContent>
-	</Select>
-);
+const successorSchema = Schema.Struct({ byRulingId: Schema.NonEmptyString });
 
-export const RulingSupersede = ({
-	onError,
-	others,
-	ruling,
-}: {
-	readonly onError: (message: string) => void;
-	readonly others: ReadonlyArray<StandingRulingView>;
-	readonly ruling: StandingRulingView;
-}) => {
-	const [byRulingId, setByRulingId] = useState<string | undefined>(undefined);
-	if (others.length === 0) {
-		return null;
-	}
+export const RulingSupersede = ({ others, ruling }: { readonly others: ReadonlyArray<StandingRulingView>; readonly ruling: StandingRulingView }) => {
+	const form = useRequestForm({
+		defaultValues: { byRulingId: "" },
+		schema: successorSchema,
+		request: ({ byRulingId }) => supersedeRuling({ byRulingId, rulingId: ruling.id }),
+		resetAfterSuccess: (value) => value,
+		onSuccess: () => undefined,
+	});
+	if (others.length === 0) return null;
+	const label = `Supersede "${ruling.question}" with`;
+	const choices = others.map((other) => ({ value: other.id, label: other.question }));
 	return (
-		<div className="flex min-w-0 items-end gap-2">
-			<div className="min-w-0 flex-1">
-				<Field label="Supersede with…">
-					<SuccessorPick onPick={setByRulingId} others={others} ruling={ruling} />
-				</Field>
+		<RequestForm form={form}>
+			<div className="flex min-w-0 items-end gap-2">
+				<div className="min-w-0 flex-1">
+					<form.AppField name="byRulingId">
+						{(field) => <field.SelectField label="Supersede with…" aria-label={label} placeholder="A later standing ruling" choices={choices} />}
+					</form.AppField>
+				</div>
+				<form.Subscribe selector={(state) => state.values.byRulingId === ""}>
+					{(unchosen) => (
+						<form.Submit disabled={unchosen} pending="Superseding…" size="sm" variant="outline">
+							Supersede
+						</form.Submit>
+					)}
+				</form.Subscribe>
 			</div>
-			<Button
-				disabled={byRulingId === undefined}
-				onClick={() => {
-					if (byRulingId !== undefined) {
-						supersedeRuling({ byRulingId, rulingId: ruling.id }, onError);
-					}
-				}}
-				size="sm"
-				type="button"
-				variant="outline"
-			>
-				Supersede
-			</Button>
-		</div>
+		</RequestForm>
 	);
 };

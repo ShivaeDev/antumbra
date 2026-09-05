@@ -20,7 +20,7 @@ export const VoyagesAside = ({
 }) => (
 	<div className="flex min-w-0 flex-col gap-3 font-sans">
 		<SectionHeading count={voyages.length} title="Voyages" />
-		<OpenVoyageForm backends={backends} defaults={defaults} onError={onError} onOpened={onSelect} />
+		<OpenVoyageForm backends={backends} defaults={defaults} onOpened={onSelect} />
 		<VoyagesPanel onError={onError} onSelect={onSelect} selected={selected} voyages={voyages} />
 	</div>
 );

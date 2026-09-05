@@ -5,7 +5,7 @@ import { SessionFabric } from "@antumbra/session-fabric";
 import { SessionInputs } from "@antumbra/session-inputs";
 import { Effect, Result } from "effect";
 import { admitCapacity } from "#admission/admit.ts";
-import { makeCurrentSessionRecovery } from "#current/recovery.ts";
+import { CurrentSessions } from "#current/service.ts";
 import { promptInput } from "#input.ts";
 import { makeSessionRecoveryContext } from "#recovery/context.ts";
 import { recoveryHeld } from "#recovery/error.ts";
@@ -26,7 +26,7 @@ export const makeWakeKind = Effect.gen(function* () {
 	const inputs = yield* SessionInputs;
 	const loadCarriedInput = yield* makeLoadCarriedInput;
 	const patience = yield* SessionWakePatience;
-	const recovery = yield* makeCurrentSessionRecovery;
+	const recovery = yield* CurrentSessions;
 	const runtime = yield* SessionRecoveryRuntime;
 	// An existing attachment receives carried input; only an idle attachment receives the generic wake instruction.
 	const delivered = (sessionId: string, carriedInput: CarriedInput) =>

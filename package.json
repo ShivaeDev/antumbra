@@ -21,8 +21,8 @@
 		"test:guards": "node script/test.ts --dir script",
 		"test:packages": "node script/test.ts --config script/vitest.workspace.ts",
 		"test:runner-local": "pnpm --filter @antumbra/runner-local test",
-		"typecheck": "pnpm --recursive --if-present typecheck",
-		"typecheck:compat": "pnpm --recursive --if-present typecheck:compat",
+		"typecheck": "pnpm --recursive --no-sort --if-present typecheck",
+		"typecheck:compat": "pnpm --recursive --no-sort --if-present typecheck:compat",
 		"typecheck:root": "tsc --noEmit",
 		"typecheck:workspace": "tsc --noEmit -p tsconfig.workspace.json",
 		"ready": "node script/ready.ts"

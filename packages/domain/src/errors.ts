@@ -30,6 +30,7 @@ export {
 	SessionNotFound,
 	SessionStillDelegating,
 } from "@antumbra/sessions";
+export { AgentNotFound } from "@antumbra/vocabulary/agent-runtime";
 export {
 	CaptainAlreadyHailed,
 	CaptainSessionUnavailable,
@@ -40,10 +41,6 @@ export {
 	PieceNotOnVoyage,
 } from "#piece-work-errors.ts";
 
-export class AgentNotFound extends Data.TaggedError("AgentNotFound")<{
-	readonly agentId: string;
-}> {}
-
 export class ChangeNotAddressable extends Data.TaggedError("ChangeNotAddressable")<{
 	readonly changeId: string;
 }> {
@@ -52,14 +49,7 @@ export class ChangeNotAddressable extends Data.TaggedError("ChangeNotAddressable
 	}
 }
 
-export class AgentStillWorking extends Data.TaggedError("AgentStillWorking")<{
-	readonly agentId: string;
-	readonly sessionId: string;
-}> {
-	override get message(): string {
-		return `agent ${this.agentId} is working in session ${this.sessionId} and cannot be retired`;
-	}
-}
+export { AgentStillWorking } from "@antumbra/sessions/retirement/errors";
 
 export class UnknownBackendTag extends Data.TaggedError("UnknownBackendTag")<{
 	readonly tag: string;

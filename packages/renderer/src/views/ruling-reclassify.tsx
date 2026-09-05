@@ -1,11 +1,11 @@
 import type { ReclassifyRequest, RulingView } from "@antumbra/contract";
-import { useState } from "react";
+import { Schema } from "effect";
+import { useRequestForm } from "#adapters/form.ts";
 import { reclassifyRuling } from "#adapters/trpc-rulings.ts";
-import { Button } from "#components/ui/button.tsx";
-import { Input } from "#components/ui/input.tsx";
-import { rulingRadii, rulingUrgencies } from "#rulings/labels.ts";
-import { LabelledField } from "#views/field.tsx";
-import { AxisSelect } from "#views/ruling-axis-select.tsx";
+import { RequestForm } from "#forms/view.tsx";
+import { axisSchema, RulingAxisFields } from "#views/ruling-axis-fields.tsx";
+
+const draftSchema = Schema.Struct({ ...axisSchema.fields, note: Schema.String });
 
 const requestOf = (ruling: RulingView, radius: RulingView["radius"], urgency: RulingView["urgency"], note: string): ReclassifyRequest => ({
 	rulingId: ruling.id,
@@ -14,27 +14,31 @@ const requestOf = (ruling: RulingView, radius: RulingView["radius"], urgency: Ru
 	...(urgency === ruling.urgency ? {} : { urgency }),
 });
 
-export const RulingReclassify = ({ onError, ruling }: { readonly onError: (message: string) => void; readonly ruling: RulingView }) => {
-	const [radius, setRadius] = useState(ruling.radius);
-	const [urgency, setUrgency] = useState(ruling.urgency);
-	const [note, setNote] = useState("");
-	const unmoved = radius === ruling.radius && urgency === ruling.urgency;
+export const RulingReclassify = ({ ruling }: { readonly ruling: RulingView }) => {
+	const form = useRequestForm({
+		defaultValues: { radius: ruling.radius, urgency: ruling.urgency, note: "" },
+		schema: draftSchema.check(
+			Schema.makeFilter((value) => (value.radius === ruling.radius && value.urgency === ruling.urgency ? "Change radius or urgency" : undefined)),
+		),
+		request: ({ radius, urgency, note }) => reclassifyRuling(requestOf(ruling, radius, urgency, note)),
+		resetAfterSuccess: (value) => value,
+		onSuccess: () => undefined,
+	});
 	return (
-		<div className="flex min-w-0 flex-wrap items-end gap-2">
-			<LabelledField label="Radius">{(id) => <AxisSelect id={id} onChange={setRadius} value={radius} words={rulingRadii} />}</LabelledField>
-			<LabelledField label="Urgency">{(id) => <AxisSelect id={id} onChange={setUrgency} value={urgency} words={rulingUrgencies} />}</LabelledField>
-			<div className="min-w-32 flex-1">
-				<LabelledField label="Why">{(id) => <Input id={id} onChange={(event) => setNote(event.target.value)} value={note} />}</LabelledField>
+		<RequestForm form={form}>
+			<div className="flex min-w-0 flex-wrap items-end gap-2">
+				<RulingAxisFields form={form} fields={{ radius: "radius", urgency: "urgency" }} />
+				<div className="min-w-32 flex-1">
+					<form.AppField name="note">{(field) => <field.TextField label="Why" />}</form.AppField>
+				</div>
+				<form.Subscribe selector={(state) => state.values.radius === ruling.radius && state.values.urgency === ruling.urgency}>
+					{(unmoved) => (
+						<form.Submit disabled={unmoved} pending="Reclassifying…" size="sm" variant="outline">
+							Reclassify
+						</form.Submit>
+					)}
+				</form.Subscribe>
 			</div>
-			<Button
-				disabled={unmoved}
-				onClick={() => reclassifyRuling(requestOf(ruling, radius, urgency, note), onError)}
-				size="sm"
-				type="button"
-				variant="outline"
-			>
-				Reclassify
-			</Button>
-		</div>
+		</RequestForm>
 	);
 };

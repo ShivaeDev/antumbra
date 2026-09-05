@@ -1,4 +1,5 @@
 import { Kernel } from "@antumbra/kernel";
+import { Database } from "@antumbra/persistence";
 import { Pieces } from "@antumbra/pieces";
 import { Reports } from "@antumbra/reports";
 import { Voyages } from "@antumbra/voyages";
@@ -50,6 +51,7 @@ export const born = (fields: SpawnFields) =>
 		const kernel = yield* Kernel;
 		const submission = yield* kernel.submit(domain.spawn, fields);
 		expect(yield* untilTerminal(submission.changes)).toBe("succeeded");
+		return fields.sessionId;
 	});
 
 export const landed = (pieceId: string) =>
@@ -71,3 +73,12 @@ const retirePass = Effect.gen(function* () {
 export const sweptAt = (millis: number) => Effect.flatMap(retirePass, (pass) => laterBy(millis, pass));
 
 export const swept = Effect.flatten(retirePass);
+
+export const awaitRetirement = Effect.gen(function* () {
+	const db = yield* Database;
+	const kernel = yield* Kernel;
+	const intents = yield* db.Intent.where({ tag: "agent/retire" }).all();
+	for (const intent of intents) {
+		expect(yield* untilTerminal(kernel.changes(intent.id))).toBe("succeeded");
+	}
+});

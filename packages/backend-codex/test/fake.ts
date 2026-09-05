@@ -61,7 +61,12 @@ const answer = (method: string, params: unknown, nextTurn: () => number): unknow
 
 export const makeFakeAppServer = ({ hold, scripted = () => Option.none() }: FakeOptions = {}): FakeAppServer => {
 	let lineListener: ((line: string) => void) | null = null;
-	let exitListener: ((code: number | null) => void) | null = null;
+	const exitListeners: Array<(code: number | null) => void> = [];
+	const emitExit = (code: number | null): void => {
+		for (const listener of exitListeners) {
+			listener(code);
+		}
+	};
 	let turnCounter = 0;
 	const nextTurn = () => {
 		turnCounter += 1;
@@ -134,10 +139,10 @@ export const makeFakeAppServer = ({ hold, scripted = () => Option.none() }: Fake
 	};
 	const process: LineProcess = {
 		kill: () => {
-			exitListener?.(0);
+			emitExit(0);
 		},
 		onExit: (listener) => {
-			exitListener = listener;
+			exitListeners.push(listener);
 		},
 		onLine: (listener) => {
 			lineListener = listener;
@@ -146,7 +151,7 @@ export const makeFakeAppServer = ({ hold, scripted = () => Option.none() }: Fake
 		write: receive,
 	};
 	return {
-		exit: () => exitListener?.(1),
+		exit: () => emitExit(1),
 		notify: (method, params) => send({ method, params }),
 		process,
 		requests,

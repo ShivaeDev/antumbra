@@ -28,23 +28,34 @@ jobs:
 
   typecheck-compat:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        partition: [heavy, remaining]
+    env:
+      COMPAT_PACKAGES: "desktop changes domain pieces renderer reports rulings testing voyages harness"
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup
-      - run: pnpm typecheck:compat
+      - run: |
+          filters=()
+          for package in $COMPAT_PACKAGES; do
+            filters+=(--filter "${{ matrix.partition == 'remaining' && '!' || '' }}@antumbra/$package")
+          done
+          pnpm "${filters[@]}" --recursive --no-sort --if-present typecheck:compat
 
   test:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        shard: [1, 2, 3, 4]
-    name: test (${{ matrix.shard }}/4)
+        shard: [1, 2, 3, 4, 5, 6, 7, 8]
+    name: test (${{ matrix.shard }}/8)
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup
-      - run: pnpm exec vitest run --config script/vitest.workspace.ts --shard=${{ matrix.shard }}/4
+      - run: pnpm exec vitest run --config script/vitest.workspace.ts --shard=${{ matrix.shard }}/8
 
   isolated:
     runs-on: ubuntu-latest

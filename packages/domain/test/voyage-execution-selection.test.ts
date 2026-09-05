@@ -35,10 +35,14 @@ const world = (over: Partial<RetirementWorld>): RetirementWorld => ({
 it("chooses the lexical alive assignee independent of row order", () => {
 	const view = world({
 		agentStatus: new Map([
+			["agent-0", "retired"],
+			["agent-1", "alive"],
 			["agent-z", "alive"],
 			["agent-a", "alive"],
 		]),
 		assignments: [
+			{ agentId: "agent-0", pieceId: "piece-one" },
+			{ agentId: "agent-1", pieceId: "piece-other" },
 			{ agentId: "agent-z", pieceId: "piece-one" },
 			{ agentId: "agent-a", pieceId: "piece-one" },
 		],
@@ -79,7 +83,13 @@ it("holds on the lexical Agent instead of trying another or spawning", () => {
 });
 
 it("uses explicit current truth and otherwise newest open history", () => {
-	const sessions = [session("agent-a", "session-a"), session("agent-a", "session-b")];
+	const sessions = [
+		session("agent-a", "session-a"),
+		session("agent-a", "session-c", "idle", new Date(2)),
+		session("agent-a", "session-b", "idle", new Date(2)),
+		session("agent-other", "session-other", "idle", new Date(3)),
+		{ ...session("agent-a", "session-closed", "idle", new Date(4)), status: "closed" as const },
+	];
 	expect(
 		executionSessionOfAgent(
 			world({
@@ -97,7 +107,8 @@ it("uses explicit current truth and otherwise newest open history", () => {
 			}),
 			"agent-a",
 		)?.id,
-	).toBe("session-b");
+	).toBe("session-c");
+	expect(executionSessionOfAgent(world({ sessions }), "agent-a")).toBeUndefined();
 });
 
 it("ignores retired identity and stale execution for dispatch state", () => {

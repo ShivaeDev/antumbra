@@ -1,9 +1,10 @@
 import type { ModelChoice, RoleSettings } from "@antumbra/contract";
 import { expect, it } from "@effect/vitest";
-import { Effect } from "effect";
+import { Deferred, Effect } from "effect";
 import { act } from "react";
 import { createRoot } from "react-dom/client";
 import { beforeEach, vi } from "vitest";
+import { RendererRequestError } from "#adapters/request-error.ts";
 import { OpenVoyageForm } from "#views/open-voyage-form.tsx";
 
 const { backendModels, openVoyage } = vi.hoisted(() => ({ backendModels: vi.fn(), openVoyage: vi.fn() }));
@@ -20,6 +21,7 @@ const listed: Record<string, ReadonlyArray<ModelChoice>> = {
 
 beforeEach(() => {
 	openVoyage.mockReset();
+	openVoyage.mockReturnValue(Effect.succeed({ id: "voyage" }));
 	backendModels.mockReset();
 	backendModels.mockImplementation((backend: string, onModels: (choices: ReadonlyArray<ModelChoice>) => void) => {
 		onModels(listed[backend] ?? []);
@@ -74,7 +76,7 @@ const choose = (name: string, backend: string) =>
 		);
 	});
 
-const shown = (backends: ReadonlyArray<string>, defaults: ReadonlyArray<RoleSettings> = []) =>
+const shown = (backends: ReadonlyArray<string>, defaults: ReadonlyArray<RoleSettings> = [], onOpened: (id: string) => void = () => undefined) =>
 	Effect.gen(function* () {
 		const container = document.createElement("div");
 		document.body.append(container);
@@ -85,12 +87,13 @@ const shown = (backends: ReadonlyArray<string>, defaults: ReadonlyArray<RoleSett
 				container.remove();
 			}),
 		);
-		yield* settle(() => root.render(<OpenVoyageForm backends={backends} defaults={defaults} onError={() => undefined} onOpened={() => undefined} />));
+		yield* settle(() => root.render(<OpenVoyageForm backends={backends} defaults={defaults} onOpened={onOpened} />));
 		yield* settle(() => buttonSaying("Open voyage")?.click());
 		yield* settle(() => {
 			write(labelled("Name"), "Reef survey");
 			write(labelled("North star"), "The reef is charted");
 		});
+		return root;
 	});
 
 it.effect(
@@ -142,5 +145,60 @@ it.effect(
 		expect(named("Captain model")?.placeholder).toBe("gpt-5-codex");
 		expect(named("Captain effort")?.placeholder).toBe("high");
 		expect(named("Crew model")?.placeholder).toBe("the backend's own");
+	}),
+);
+
+it.effect("keeps both role drafts after failure and closes only when opening succeeds", () =>
+	Effect.gen(function* () {
+		const first = yield* Deferred.make<{ readonly id: string }, RendererRequestError>();
+		const second = yield* Deferred.make<{ readonly id: string }>();
+		const started = yield* Deferred.make<void>();
+		const retried = yield* Deferred.make<void>();
+		openVoyage.mockReturnValueOnce(Deferred.succeed(started, undefined).pipe(Effect.andThen(Deferred.await(first))));
+		openVoyage.mockReturnValueOnce(Deferred.succeed(retried, undefined).pipe(Effect.andThen(Deferred.await(second))));
+		const opened: Array<string> = [];
+		yield* shown(["claude", "codex"], [], (id) => opened.push(id));
+		yield* choose("Crew backend", "codex");
+		yield* settle(() => write(named("Captain model"), "unlisted-model"));
+		yield* settle(() => document.querySelector("form")?.requestSubmit());
+		yield* Deferred.await(started);
+		expect(buttonSaying("Opening…")?.disabled).toBe(true);
+		expect(named("Captain model")?.closest("fieldset")?.disabled).toBe(true);
+		expect(opened).toEqual([]);
+		yield* settle(() => {
+			Effect.runSync(Deferred.fail(first, new RendererRequestError({ message: "Repository unavailable" })));
+		});
+		expect(document.querySelector('[role="alert"]')?.textContent).toContain("Repository unavailable");
+		expect(named("Captain model")?.value).toBe("unlisted-model");
+		expect(document.querySelector('[aria-label="Crew backend"]')?.textContent).toContain("codex");
+		yield* settle(() => buttonSaying("Open voyage")?.click());
+		yield* Deferred.await(retried);
+		yield* settle(() => {
+			Effect.runSync(Deferred.succeed(second, { id: "opened-voyage" }));
+		});
+		expect(opened).toEqual(["opened-voyage"]);
+		expect(document.querySelector("form")).toBeNull();
+		yield* settle(() => buttonSaying("Open voyage")?.click());
+		expect(labelled("Name")?.value).toBe("");
+		expect(labelled("North star")?.value).toBe("");
+	}),
+);
+
+it.effect("waits for a backend before opening and keeps explicit model text when catalogs arrive", () =>
+	Effect.gen(function* () {
+		const responses: Array<(models: ReadonlyArray<ModelChoice>) => void> = [];
+		backendModels.mockImplementation((_backend: string, onModels: (models: ReadonlyArray<ModelChoice>) => void) => responses.push(onModels));
+		const root = yield* shown([]);
+		yield* settle(() => document.querySelector("form")?.requestSubmit());
+		expect(openVoyage).not.toHaveBeenCalled();
+		yield* settle(() => root.render(<OpenVoyageForm backends={["claude"]} defaults={[]} onOpened={() => undefined} />));
+		yield* settle(() => write(named("Captain model"), "my-model"));
+		yield* settle(() => {
+			for (const respond of responses) respond(listed.claude ?? []);
+		});
+		expect(named("Captain model")?.value).toBe("my-model");
+		expect(named("Crew model")?.value).toBe("");
+		yield* settle(() => document.querySelector("form")?.requestSubmit());
+		expect(openVoyage.mock.calls.at(-1)?.at(0)).toMatchObject({ captainModel: "my-model" });
 	}),
 );

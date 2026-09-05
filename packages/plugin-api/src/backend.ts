@@ -44,6 +44,10 @@ export interface SessionHandle {
 }
 
 export interface OpenSessionOptions {
+	// A constrained session runs on this prompt in place of the harness's own: none of the user's plugins, skills, memories, hooks, settings or
+	// context files are loaded, Antumbra's skills are not handed over either, and the only tools are the ones named below. Credentials stay where the
+	// harness keeps them.
+	readonly constrainedPrompt?: string | undefined;
 	readonly cwd: string;
 	readonly effort: Option.Option<string>;
 	readonly model: Option.Option<string>;

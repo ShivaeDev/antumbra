@@ -1,5 +1,5 @@
 import { useStore } from "@tanstack/react-form";
-import type { ReactNode } from "react";
+import type { ComponentProps, ReactNode } from "react";
 import { Input } from "#components/ui/input.tsx";
 import { Select, SelectContent, SelectTrigger, SelectValue } from "#components/ui/select.tsx";
 import { SelectItem } from "#components/ui/select-parts.tsx";
@@ -7,7 +7,7 @@ import { Textarea } from "#components/ui/textarea.tsx";
 import { useFieldContext } from "#forms/context.ts";
 import { errorMessage } from "#forms/messages.ts";
 
-export const Field = ({ label, children }: { readonly label: string; readonly children: (id: string) => ReactNode }) => {
+export const Field = ({ label, children }: { readonly label: ReactNode; readonly children: (id: string) => ReactNode }) => {
 	const field = useFieldContext<unknown>();
 	const state = useStore(field.store);
 	return (
@@ -25,17 +25,20 @@ export const Field = ({ label, children }: { readonly label: string; readonly ch
 	);
 };
 
-export const TextField = ({ label, placeholder }: { readonly label: string; readonly placeholder?: string }) => {
+export const TextField = ({
+	label,
+	...props
+}: Omit<ComponentProps<typeof Input>, "value" | "defaultValue" | "onChange" | "onBlur" | "name" | "id"> & { readonly label: ReactNode }) => {
 	const field = useFieldContext<string>();
 	const state = useStore(field.store);
 	return (
 		<Field label={label}>
 			{(id) => (
 				<Input
+					{...props}
 					id={id}
 					name={field.name}
 					value={state.value}
-					placeholder={placeholder}
 					onBlur={field.handleBlur}
 					onChange={(event) => field.handleChange(event.target.value)}
 					aria-invalid={state.meta.isTouched && !state.meta.isValid}
@@ -46,17 +49,21 @@ export const TextField = ({ label, placeholder }: { readonly label: string; read
 	);
 };
 
-export const TextareaField = ({ label }: { readonly label: string }) => {
+export const TextareaField = ({
+	label,
+	...props
+}: Omit<ComponentProps<typeof Textarea>, "value" | "defaultValue" | "onChange" | "onBlur" | "name" | "id"> & { readonly label: string }) => {
 	const field = useFieldContext<string>();
 	const state = useStore(field.store);
 	return (
 		<Field label={label}>
 			{(id) => (
 				<Textarea
+					{...props}
 					id={id}
 					name={field.name}
 					value={state.value}
-					rows={3}
+					rows={props.rows ?? 3}
 					onBlur={field.handleBlur}
 					onChange={(event) => field.handleChange(event.target.value)}
 					aria-invalid={state.meta.isTouched && !state.meta.isValid}
@@ -71,13 +78,17 @@ export const SelectField = ({
 	label,
 	placeholder,
 	choices,
-}: {
-	readonly label: string;
-	readonly placeholder: string;
-	readonly choices: ReadonlyArray<{ readonly value: string; readonly label: string }>;
-}) => {
+	value,
+	...triggerProps
+}: Omit<ComponentProps<typeof SelectTrigger>, "id" | "onBlur" | "children" | "value"> &
+	Pick<ComponentProps<typeof Select>, "value"> & {
+		readonly label: ReactNode;
+		readonly placeholder: string;
+		readonly choices: ReadonlyArray<{ readonly value: string; readonly label: string }>;
+	}) => {
 	const field = useFieldContext<string>();
 	const state = useStore(field.store);
+	const displayed = value ?? state.value;
 	const options = choices.map((choice) => (
 		<SelectItem key={choice.value} value={choice.value}>
 			{choice.label}
@@ -86,8 +97,14 @@ export const SelectField = ({
 	return (
 		<Field label={label}>
 			{(id) => (
-				<Select value={state.value} onValueChange={field.handleChange}>
+				<Select
+					value={displayed}
+					onValueChange={(next) => {
+						if (next !== "" && next !== displayed) field.handleChange(next);
+					}}
+				>
 					<SelectTrigger
+						{...triggerProps}
 						id={id}
 						onBlur={field.handleBlur}
 						aria-invalid={state.meta.isTouched && !state.meta.isValid}

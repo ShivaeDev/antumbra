@@ -7,10 +7,12 @@ import { rawOf } from "#mapping.ts";
 import { ThreadResponse } from "#protocol.ts";
 import type { CodexServer } from "#server.ts";
 
-const THREAD_POLICY = {
+const threadPolicy = (options: OpenSessionOptions) => ({
 	approvalsReviewer: "auto_review",
-	sandbox: "workspace-write",
-};
+	...(options.constrainedPrompt === undefined
+		? { sandbox: "workspace-write" }
+		: { baseInstructions: options.constrainedPrompt, sandbox: "read-only" }),
+});
 
 // Codex omits `dynamicTools` when a thread has no tools.
 const dynamicTools = (tools: ReadonlyArray<DirectTool>) =>
@@ -45,7 +47,7 @@ export const openThread = (
 					cwd: options.cwd,
 					...dynamicTools(options.tools),
 					...chosenModel(settings),
-					...THREAD_POLICY,
+					...threadPolicy(options),
 				})
 				.pipe(Effect.map((response) => ["thread/start", response] as const)),
 		// Codex stores resume specifications in the rollout; resumed processes still need live tool registrations.
@@ -56,7 +58,7 @@ export const openThread = (
 						cwd: options.cwd,
 						threadId: attached,
 						...chosenModel(settings),
-						...THREAD_POLICY,
+						...threadPolicy(options),
 					}),
 				),
 				Effect.map((response) => ["thread/resume", response] as const),

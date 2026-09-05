@@ -21,11 +21,11 @@ export const useRequestForm = <Input, Output, A, E extends { readonly message: s
 	const submit = useAtomSet(atom, { mode: "promiseExit" });
 	const form = useAppForm({
 		defaultValues,
-		validators: { onChange: Schema.toStandardSchemaV1(schema), onSubmit: Schema.toStandardSchemaV1(schema) },
+		validators: { onChange: Schema.toStandardSchemaV1(schema) },
 		onSubmit: async ({ value, formApi }) => {
 			const result = await submit(Schema.decodeEffect(schema)(value).pipe(Effect.flatMap(request)));
 			if (Exit.isFailure(result)) return;
-			formApi.reset(resetAfterSuccess(value));
+			formApi.reset(resetAfterSuccess(value), { keepDefaultValues: true });
 			onSuccess(result.value);
 		},
 	});

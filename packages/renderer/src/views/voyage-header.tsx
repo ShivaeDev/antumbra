@@ -23,7 +23,7 @@ export const VoyageHeader = ({
 			<CaptainCall captain={voyage.captain} onError={onError} voyageId={voyage.id} />
 			<FocusToggle onError={onError} voyage={voyage} />
 		</div>
-		<VoyageRoleSettings backends={fleet?.backends ?? []} defaults={fleet?.roleSettings ?? []} onError={onError} voyage={voyage} />
+		<VoyageRoleSettings backends={fleet?.backends ?? []} defaults={fleet?.roleSettings ?? []} voyage={voyage} />
 		<p className="min-w-0 text-xs wrap-anywhere">
 			<span className="text-2xs text-muted-foreground">North star </span>
 			{voyage.northStar}

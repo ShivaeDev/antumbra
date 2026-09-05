@@ -10,6 +10,7 @@ vi.mock("#adapters/trpc.ts", () => ({ backendModels, setRoleSettings }));
 
 beforeEach(() => {
 	setRoleSettings.mockReset();
+	setRoleSettings.mockReturnValue(Effect.void);
 	backendModels.mockReset();
 	backendModels.mockImplementation((_backend: string, onModels: (choices: ReadonlyArray<never>) => void) => {
 		onModels([]);
@@ -36,7 +37,7 @@ const shown = Effect.gen(function* () {
 			container.remove();
 		}),
 	);
-	yield* settle(() => root.render(<RoleDefaults backends={["claude", "codex"]} defaults={[]} onError={() => undefined} />));
+	yield* settle(() => root.render(<RoleDefaults backends={["claude", "codex"]} defaults={[]} />));
 	return container;
 });
 
@@ -51,7 +52,7 @@ it.effect(
 	Effect.fnUntraced(function* () {
 		const container = yield* shown;
 
-		expect([...container.querySelectorAll('th[scope="row"]')].map((cell) => cell.textContent)).toEqual(["Flagship", "Captain", "Crew"]);
+		expect([...container.querySelectorAll("span.text-xs")].map((cell) => cell.textContent)).toEqual(["Flagship", "Captain", "Crew"]);
 		expect(container.querySelector('[aria-label="Flagship backend"]')?.textContent).toContain("claude");
 		expect(named(container, "Flagship model")?.placeholder).toBe("the backend's own");
 		expect(saveButton(container)?.disabled).toBe(true);

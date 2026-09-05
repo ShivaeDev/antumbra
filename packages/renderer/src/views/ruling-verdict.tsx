@@ -1,11 +1,11 @@
 import type { RuleRequest, RulingChoiceView, RulingView } from "@antumbra/contract";
-import { useState } from "react";
+import { Schema } from "effect";
+import type { ReactNode } from "react";
+import { useRequestForm } from "#adapters/form.ts";
 import { ruleOn } from "#adapters/trpc-rulings.ts";
 import { Badge } from "#components/ui/badge.tsx";
-import { Button } from "#components/ui/button.tsx";
-import { Textarea } from "#components/ui/textarea.tsx";
+import { RequestForm } from "#forms/view.tsx";
 import { cn } from "#lib/utils.ts";
-import { LabelledField } from "#views/field.tsx";
 
 const ChoiceOption = ({
 	choice,
@@ -41,7 +41,7 @@ const recommendedFirst = (ruling: RulingView): ReadonlyArray<RulingChoiceView> =
 	return [...ruling.choices.filter((choice) => choice.id === recommended), ...ruling.choices.filter((choice) => choice.id !== recommended)];
 };
 
-export const OfferedChoices = ({
+const OfferedChoices = ({
 	chosen,
 	onPick,
 	ruling,
@@ -68,25 +68,34 @@ export const OfferedChoices = ({
 const verdictOf = (ruling: RulingView, answer: string, chosen: string | undefined): RuleRequest =>
 	chosen === undefined ? { answer, rulingId: ruling.id } : { answer, choiceId: chosen, rulingId: ruling.id };
 
-export const RulingVerdict = ({
-	chosen,
-	onError,
-	ruling,
-}: {
-	readonly chosen: string | undefined;
-	readonly onError: (message: string) => void;
-	readonly ruling: RulingView;
-}) => {
-	const [answer, setAnswer] = useState("");
-	const wordless = answer.trim() === "";
+const answerSchema = Schema.Struct({ answer: Schema.String.check(Schema.isPattern(/\S/)), choiceId: Schema.UndefinedOr(Schema.String) });
+
+const blankAnswer: typeof answerSchema.Type = { answer: "", choiceId: undefined };
+
+export const RulingVerdict = ({ children, ruling }: { readonly children: ReactNode; readonly ruling: RulingView }) => {
+	const form = useRequestForm({
+		defaultValues: blankAnswer,
+		schema: answerSchema,
+		request: ({ answer, choiceId }) => ruleOn(verdictOf(ruling, answer, choiceId)),
+		resetAfterSuccess: (value) => value,
+		onSuccess: () => undefined,
+	});
 	return (
-		<div className="flex min-w-0 flex-col gap-2 border-t border-border pt-2">
-			<LabelledField label="Your answer">
-				{(id) => <Textarea id={id} onChange={(event) => setAnswer(event.target.value)} rows={2} value={answer} />}
-			</LabelledField>
-			<Button className="ml-auto" disabled={wordless} onClick={() => ruleOn(verdictOf(ruling, answer, chosen), onError)} size="sm" type="button">
-				Rule
-			</Button>
-		</div>
+		<RequestForm form={form}>
+			<form.AppField name="choiceId">
+				{(field) => <OfferedChoices chosen={field.state.value} onPick={field.handleChange} ruling={ruling} />}
+			</form.AppField>
+			{children}
+			<div className="flex flex-col gap-2 border-t border-border pt-2">
+				<form.AppField name="answer">{(field) => <field.TextareaField label="Your answer" rows={2} />}</form.AppField>
+				<form.Subscribe selector={(state) => state.values.answer.trim() === ""}>
+					{(wordless) => (
+						<form.Submit className="ml-auto" disabled={wordless} pending="Ruling…" size="sm">
+							Rule
+						</form.Submit>
+					)}
+				</form.Subscribe>
+			</div>
+		</RequestForm>
 	);
 };

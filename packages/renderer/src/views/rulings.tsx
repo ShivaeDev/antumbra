@@ -23,27 +23,27 @@ const byVoyage = (rulings: ReadonlyArray<RulingView>): ReadonlyArray<VoyageGroup
 	return [...groups.values()];
 };
 
-const Header = ({ onError, open }: { readonly onError: (message: string) => void; readonly open: OpenRulingsView }) => (
+const Header = ({ open }: { readonly open: OpenRulingsView }) => (
 	<header className="flex shrink-0 flex-col gap-1 border-b border-border px-4 py-3">
 		<div className="flex items-baseline gap-2">
 			<h2 className="text-base">The rulings</h2>
 			<span className="text-2xs text-muted-foreground tabular-nums">{open.rulings.length}</span>
 			<div className="ml-auto">
-				<RulingProclaim onError={onError} />
+				<RulingProclaim />
 			</div>
 		</div>
 		<p className="text-2xs text-muted-foreground">Open questions from the fleet, voyage by voyage, in the order they should be answered.</p>
 	</header>
 );
 
-const RulingList = ({ listed, onError }: { readonly listed: ReadonlyArray<RulingView>; readonly onError: (message: string) => void }) => (
+const RulingList = ({ listed }: { readonly listed: ReadonlyArray<RulingView> }) => (
 	<div className="flex min-w-0 flex-col gap-3 p-4">
 		{byVoyage(listed).map((group) => (
 			<section aria-label={group.name} className="flex min-w-0 flex-col gap-2" key={group.key}>
 				<h3 className="text-sm">{group.name}</h3>
 				<ul className="flex min-w-0 flex-col gap-2">
 					{group.rulings.map((ruling) => (
-						<RulingCard key={ruling.id} onError={onError} ruling={ruling} />
+						<RulingCard key={ruling.id} ruling={ruling} />
 					))}
 				</ul>
 			</section>
@@ -51,7 +51,7 @@ const RulingList = ({ listed, onError }: { readonly listed: ReadonlyArray<Ruling
 	</div>
 );
 
-const Parked = ({ onError, parked }: { readonly onError: (message: string) => void; readonly parked: ReadonlyArray<RulingView> }) =>
+const Parked = ({ parked }: { readonly parked: ReadonlyArray<RulingView> }) =>
 	parked.length === 0 ? null : (
 		<section className="flex min-w-0 flex-col border-t border-border">
 			<header className="flex flex-col gap-1 px-4 pt-3 pb-2">
@@ -60,13 +60,13 @@ const Parked = ({ onError, parked }: { readonly onError: (message: string) => vo
 			</header>
 			<ul className="flex min-w-0 flex-col gap-2 px-4 pb-4">
 				{parked.map((ruling) => (
-					<RulingCard key={ruling.id} onError={onError} ruling={ruling} />
+					<RulingCard key={ruling.id} ruling={ruling} />
 				))}
 			</ul>
 		</section>
 	);
 
-const OpenRulings = ({ onError, open }: { readonly onError: (message: string) => void; readonly open: OpenRulingsView }) => {
+const OpenRulings = ({ open }: { readonly open: OpenRulingsView }) => {
 	const waiting = open.rulings.filter((ruling) => ruling.parked === null);
 	return open.rulings.length === 0 ? (
 		<p className="m-auto max-w-sm px-6 text-center text-xs text-muted-foreground">
@@ -74,13 +74,13 @@ const OpenRulings = ({ onError, open }: { readonly onError: (message: string) =>
 		</p>
 	) : (
 		<>
-			{waiting.length === 0 ? null : <RulingList listed={waiting} onError={onError} />}
-			<Parked onError={onError} parked={open.rulings.filter((ruling) => ruling.parked !== null)} />
+			{waiting.length === 0 ? null : <RulingList listed={waiting} />}
+			<Parked parked={open.rulings.filter((ruling) => ruling.parked !== null)} />
 		</>
 	);
 };
 
-export const RulingsPanel = ({ onError }: { readonly onError: (message: string) => void }) => {
+export const RulingsPanel = () => {
 	const { error: feedError, value: open } = useFeed("rulings", watchOpenRulings);
 	const standing = useFeed("standing-rulings", watchStandingRulings);
 
@@ -93,15 +93,15 @@ export const RulingsPanel = ({ onError }: { readonly onError: (message: string) 
 	}
 	return (
 		<section className="flex min-h-0 min-w-0 flex-1 flex-col bg-background font-sans text-foreground">
-			<Header onError={onError} open={open} />
+			<Header open={open} />
 			{feedError === undefined ? null : (
 				<p className="border-b border-destructive/30 bg-destructive/10 px-4 py-1.5 text-xs text-destructive" role="alert">
 					feed lost: {feedError}
 				</p>
 			)}
 			<div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto">
-				<OpenRulings onError={onError} open={open} />
-				<StandingRulings error={standing.error} onError={onError} standing={standing.value} />
+				<OpenRulings open={open} />
+				<StandingRulings error={standing.error} standing={standing.value} />
 			</div>
 		</section>
 	);

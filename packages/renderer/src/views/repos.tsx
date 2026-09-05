@@ -1,10 +1,11 @@
 import type { RepoSummary } from "@antumbra/contract";
-import { useState } from "react";
+import { useStore } from "@tanstack/react-form";
+import { Schema } from "effect";
+import { useRequestForm } from "#adapters/form.ts";
 import { forgetRepo, registerRepo } from "#adapters/trpc.ts";
 import { Badge } from "#components/ui/badge.tsx";
 import { Button } from "#components/ui/button.tsx";
-import { Input } from "#components/ui/input.tsx";
-import { Field } from "#views/field.tsx";
+import { RequestForm } from "#forms/view.tsx";
 
 const RepoRow = ({ onError, repo }: { readonly onError: (message: string) => void; readonly repo: RepoSummary }) => (
 	<div className="flex min-w-0 items-start gap-2 border-b border-border py-2 last:border-b-0">
@@ -21,27 +22,30 @@ const RepoRow = ({ onError, repo }: { readonly onError: (message: string) => voi
 	</div>
 );
 
-const AddRepo = ({ onError }: { readonly onError: (message: string) => void }) => {
-	const [source, setSource] = useState("");
-	const [defaultRef, setDefaultRef] = useState("main");
-	const ready = source !== "" && defaultRef !== "";
-	const add = () => registerRepo({ defaultRef, source }, () => setSource(""), onError);
+const registrationSchema = Schema.Struct({ source: Schema.NonEmptyString, defaultRef: Schema.NonEmptyString });
+const AddRepo = () => {
+	const form = useRequestForm({
+		defaultValues: { source: "", defaultRef: "main" },
+		schema: registrationSchema,
+		request: registerRepo,
+		resetAfterSuccess: (value) => ({ ...value, source: "" }),
+		onSuccess: () => undefined,
+	});
+	const ready = useStore(form.store, (state) => state.values.source !== "" && state.values.defaultRef !== "");
 	return (
-		<div className="flex items-end gap-2">
-			<div className="min-w-0 flex-1">
-				<Field label="Source">
-					<Input aria-label="Source" onChange={(event) => setSource(event.target.value)} placeholder="path or url" value={source} />
-				</Field>
+		<RequestForm form={form}>
+			<div className="flex items-end gap-2">
+				<div className="min-w-0 flex-1">
+					<form.AppField name="source">{(field) => <field.TextField label="Source" placeholder="path or url" />}</form.AppField>
+				</div>
+				<div className="w-24 shrink-0">
+					<form.AppField name="defaultRef">{(field) => <field.TextField label="Default ref" placeholder="main" />}</form.AppField>
+				</div>
+				<form.Submit disabled={!ready} pending="Adding…" variant="outline">
+					Add
+				</form.Submit>
 			</div>
-			<div className="w-24 shrink-0">
-				<Field label="Default ref">
-					<Input aria-label="Default ref" onChange={(event) => setDefaultRef(event.target.value)} placeholder="main" value={defaultRef} />
-				</Field>
-			</div>
-			<Button disabled={!ready} onClick={add} variant="outline">
-				Add
-			</Button>
-		</div>
+		</RequestForm>
 	);
 };
 
@@ -56,6 +60,6 @@ export const ReposList = ({ onError, repos }: { readonly onError: (message: stri
 				))}
 			</div>
 		)}
-		<AddRepo onError={onError} />
+		<AddRepo />
 	</div>
 );

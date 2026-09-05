@@ -16,6 +16,7 @@ export {
 export { ChangeHeldResourceReadLive } from "#held-resource-read.ts";
 export { changesLayer } from "#layer.ts";
 export {
+	changeOutcomeTallies,
 	changeStatus,
 	changesOfPiece,
 	unresolvedChangesOfPiece,

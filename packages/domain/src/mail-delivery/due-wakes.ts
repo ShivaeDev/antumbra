@@ -15,7 +15,7 @@ export interface DueWake {
 	readonly waitedMillis: number;
 }
 
-const restingRootSessions = Effect.fnUntraced(function* () {
+const restingRootSessions = Effect.fn("MailDelivery.restingRootSessions")(function* () {
 	const db = yield* Database;
 	const sessions = yield* db.AgentSession.where(rootSessions).where(openSessions).all();
 	const agents = yield* db.Agent.where((agent) => agent.id.in(sessions.map((session) => session.agentId))).all();
@@ -29,31 +29,28 @@ const restingRootSessions = Effect.fnUntraced(function* () {
 	});
 });
 
-export const makeDueWakes = Effect.gen(function* () {
+export const dueWakes = Effect.fn("MailDelivery.dueWakes")(function* () {
 	const boards = yield* Boards;
-	const db = yield* Database;
 	const settings = yield* SettingsSource;
-	return Effect.fnUntraced(function* () {
-		const { settings: chosen } = yield* settings.current;
-		const quietMillis = chosen.routineMailMinutes * MILLIS_PER_MINUTE;
-		const nowMillis = yield* Clock.currentTimeMillis;
-		const resting = yield* restingRootSessions().pipe(Effect.provideService(Database, db));
-		const due: Array<DueWake> = [];
-		for (const session of resting) {
-			const unread = yield* boards.unread(session.agentId);
-			const batch = dueMail({ nowMillis, quietMillis, unread });
-			if (batch === undefined) {
-				continue;
-			}
-			const earliest = Math.min(...unread.map((entry) => entry.createdAt.getTime()));
-			due.push({
-				agentId: session.agentId,
-				batch,
-				sessionId: session.id,
-				unreadIds: unread.map((entry) => entry.id),
-				waitedMillis: nowMillis - earliest,
-			});
+	const { settings: chosen } = yield* settings.current;
+	const quietMillis = chosen.routineMailMinutes * MILLIS_PER_MINUTE;
+	const nowMillis = yield* Clock.currentTimeMillis;
+	const resting = yield* restingRootSessions();
+	const due: Array<DueWake> = [];
+	for (const session of resting) {
+		const unread = yield* boards.unread(session.agentId);
+		const batch = dueMail({ nowMillis, quietMillis, unread });
+		if (batch === undefined) {
+			continue;
 		}
-		return due;
-	});
+		const earliest = Math.min(...unread.map((entry) => entry.createdAt.getTime()));
+		due.push({
+			agentId: session.agentId,
+			batch,
+			sessionId: session.id,
+			unreadIds: unread.map((entry) => entry.id),
+			waitedMillis: nowMillis - earliest,
+		});
+	}
+	return due;
 });

@@ -72,6 +72,7 @@ const rawSession = (options: ClaudeBackendOptions, session: OpenSessionOptions, 
 				try: () =>
 					openRawSession({
 						call,
+						constrainedPrompt: session.constrainedPrompt,
 						cwd: session.cwd,
 						effort,
 						executable: options.executable,

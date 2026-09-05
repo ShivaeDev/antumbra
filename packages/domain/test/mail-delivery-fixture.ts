@@ -5,7 +5,7 @@ import { expect } from "@effect/vitest";
 import { Effect, Option } from "effect";
 import { AgentDomain } from "#domain.ts";
 import type { SpawnFields } from "#index.ts";
-import { MAIL_DELIVERY_TAG } from "#mail-delivery-demands.ts";
+import { MAIL_DELIVERY_TAG } from "#mail-delivery/demands.ts";
 import { rawOf, type ScriptedBackend, sessionFor } from "#test/harness.ts";
 import { eventually, untilTerminal } from "#test/session-recovery-fixture.ts";
 

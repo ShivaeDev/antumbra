@@ -1,10 +1,15 @@
-import { type AgentRole, type AgentSettingsChoice, type RoleSettings, UNCHOSEN_AGENT_SETTINGS } from "@antumbra/contract";
+import {
+	type AgentRole,
+	type AgentSettingsChoice,
+	type RoleSettings,
+	UNCHOSEN_AGENT_SETTINGS,
+	type VoyageAgentRole,
+	type VoyageView,
+} from "@antumbra/contract";
+import { Schema } from "effect";
 
-export interface RoleDraft {
-	readonly backend: string;
-	readonly effort: string;
-	readonly model: string;
-}
+export const roleDraftSchema = Schema.Struct({ backend: Schema.String, effort: Schema.String, model: Schema.String });
+export type RoleDraft = typeof roleDraftSchema.Type;
 
 export interface RolePlaceholder {
 	readonly backend: string;
@@ -12,21 +17,13 @@ export interface RolePlaceholder {
 	readonly model: string;
 }
 
-export interface RoleField<Role extends string = AgentRole> {
-	readonly label: string;
-	readonly placeholder: RolePlaceholder;
-	readonly role: Role;
-}
-
-export interface RoleLine<Role extends string = AgentRole> extends RoleField<Role> {
-	readonly settings: AgentSettingsChoice;
-}
-
 export const roleLabel: Record<AgentRole, string> = { captain: "Captain", crew: "Crew", flagship: "Flagship" };
 
 export const BACKEND_OWN = "the backend's own";
 
 export const EMPTY_DRAFT: RoleDraft = { backend: "", effort: "", model: "" };
+
+export const EMPTY_PLACEHOLDER: RolePlaceholder = { backend: "", effort: BACKEND_OWN, model: BACKEND_OWN };
 
 const named = (value: string): string | null => (value.trim() === "" ? null : value.trim());
 
@@ -42,11 +39,25 @@ export const chosenOf = (draft: RoleDraft): AgentSettingsChoice => ({
 	model: named(draft.model),
 });
 
-export const sameSettings = (left: AgentSettingsChoice, right: AgentSettingsChoice): boolean =>
+const sameSettings = (left: AgentSettingsChoice, right: AgentSettingsChoice): boolean =>
 	left.backend === right.backend && left.effort === right.effort && left.model === right.model;
 
 export const roleDefault = (defaults: ReadonlyArray<RoleSettings>, role: AgentRole): AgentSettingsChoice =>
 	defaults.find((row) => row.role === role) ?? UNCHOSEN_AGENT_SETTINGS;
+
+export const changedRoles = <Role extends string>(
+	roles: ReadonlyArray<Role>,
+	drafts: Readonly<Record<Role, RoleDraft>>,
+	settingsOf: (role: Role) => AgentSettingsChoice,
+): ReadonlyArray<Role> => roles.filter((role) => !sameSettings(chosenOf(drafts[role]), settingsOf(role)));
+
+export const signatureOf = <Role extends string>(roles: ReadonlyArray<Role>, settingsOf: (role: Role) => AgentSettingsChoice): string =>
+	roles.map((role) => [role, settingsOf(role).backend, settingsOf(role).model, settingsOf(role).effort].join(":")).join("|");
+
+export const voyageRoleSettings =
+	(voyage: VoyageView) =>
+	(role: VoyageAgentRole): AgentSettingsChoice =>
+		role === "captain" ? voyage.captainSettings : voyage.crewSettings;
 
 export const fleetPlaceholder = (backends: ReadonlyArray<string>): RolePlaceholder => ({
 	backend: backends[0] ?? "",
@@ -59,6 +70,3 @@ export const voyagePlaceholder = (backends: ReadonlyArray<string>, fleetDefault:
 	effort: fleetDefault.effort ?? BACKEND_OWN,
 	model: fleetDefault.model ?? BACKEND_OWN,
 });
-
-export const signatureOf = (lines: ReadonlyArray<RoleLine<string>>): string =>
-	lines.map((line) => [line.role, line.settings.backend, line.settings.model, line.settings.effort].join(":")).join("|");

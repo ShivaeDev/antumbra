@@ -23,7 +23,7 @@ export const SettingsPanel = ({
 					Changes take effect on the next pass of the work they govern. Running sessions are not interrupted.
 				</p>
 			</header>
-			<RoleDefaults backends={fleet?.backends ?? []} defaults={fleet?.roleSettings ?? []} onError={onError} />
+			<RoleDefaults backends={fleet?.backends ?? []} defaults={fleet?.roleSettings ?? []} />
 			{settings === undefined ? (
 				<p className="text-xs text-muted-foreground">Reading settings…</p>
 			) : (

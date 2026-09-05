@@ -9,6 +9,7 @@ export interface PiModel {
 }
 
 export interface PiOpenRequest {
+	readonly constrainedPrompt: string | undefined;
 	readonly cwd: string;
 	readonly effort: PiThinkingLevel | undefined;
 	readonly model: string | undefined;

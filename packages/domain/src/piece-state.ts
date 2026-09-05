@@ -1,6 +1,6 @@
 import type { EdgeRow, PieceRow } from "@antumbra/pieces";
 import { atWork } from "#agent-at-work.ts";
-import { pieceOutcomeTally } from "#outcome-status.ts";
+import { pieceOutcomeTallies } from "#outcome-status.ts";
 import type { AwaitingRuling, DispatchWorld, RetirementWorld } from "#voyage-rows.ts";
 
 type PieceStateRows = Omit<DispatchWorld, "memberships" | "voyages">;
@@ -63,16 +63,15 @@ const settledPieces = (world: RetirementWorld): Settled => {
 		done: new Set<string>(),
 		landing: new Set<string>(),
 	};
-	for (const piece of world.pieces) {
-		if (world.pieceVerdicts.get(piece.id) === "abandoned") {
-			settled.abandoned.add(piece.id);
+	for (const [pieceId, tally] of pieceOutcomeTallies(world)) {
+		if (world.pieceVerdicts.get(pieceId) === "abandoned") {
+			settled.abandoned.add(pieceId);
 		}
-		const tally = pieceOutcomeTally(world, piece.id);
 		if (tally.landed >= 1 && tally.pending === 0) {
-			settled.done.add(piece.id);
+			settled.done.add(pieceId);
 		}
 		if (tally.pending >= 1) {
-			settled.landing.add(piece.id);
+			settled.landing.add(pieceId);
 		}
 	}
 	return settled;

@@ -1,15 +1,7 @@
-import type {
-	AppInfo,
-	ModelChoice,
-	RepoRegistration,
-	RepoSummary,
-	RoleSettings,
-	SituationDraft,
-	SpawnReceipt,
-	SpawnRequest,
-} from "@antumbra/contract";
+import type { AppInfo, ModelChoice, RepoRegistration, RoleSettings, SituationDraft, SpawnRequest } from "@antumbra/contract";
 import { Data, Effect } from "effect";
 import { client, fired, toError } from "#adapters/bridge.ts";
+import { RendererRequestError } from "#adapters/request-error.ts";
 
 export {
 	interruptSession,
@@ -41,17 +33,21 @@ export const backendModels = (backend: string, onModels: (models: ReadonlyArray<
 		.catch((cause: unknown) => onError(toError(cause).message));
 };
 
-export const setRoleSettings = (settings: RoleSettings, onError: (message: string) => void): void =>
-	fired(client.setRoleSettings.mutate(settings), onError);
+export const setRoleSettings = Effect.fn("Renderer.setRoleSettings")((settings: RoleSettings) =>
+	Effect.tryPromise({
+		try: () => client.setRoleSettings.mutate(settings),
+		catch: (cause) => new RendererRequestError({ message: toError(cause).message }),
+	}),
+);
 
 export const restartApp = (onError: (message: string) => void): void => fired(client.restart.mutate(), onError);
 
-export const spawnAgent = (request: SpawnRequest, onDone: (receipt: SpawnReceipt) => void, onError: (message: string) => void): void => {
-	client.spawnAgent
-		.mutate(request)
-		.then(onDone)
-		.catch((cause: unknown) => onError(toError(cause).message));
-};
+export const spawnAgent = Effect.fn("Renderer.spawnAgent")((request: SpawnRequest) =>
+	Effect.tryPromise({
+		try: () => client.spawnAgent.mutate(request),
+		catch: (cause) => new RendererRequestError({ message: toError(cause).message }),
+	}),
+);
 
 export const retireAgent = (agentId: string, onError: (message: string) => void): void => {
 	client.retireAgent
@@ -81,12 +77,12 @@ export const situationDraft = (draft: SituationDraft, onDraft: (text: string) =>
 		.catch((cause: unknown) => onError(toError(cause).message));
 };
 
-export const registerRepo = (registration: RepoRegistration, onDone: (repo: RepoSummary) => void, onError: (message: string) => void): void => {
-	client.registerRepo
-		.mutate(registration)
-		.then(onDone)
-		.catch((cause: unknown) => onError(toError(cause).message));
-};
+export const registerRepo = Effect.fn("Renderer.registerRepo")((request: RepoRegistration) =>
+	Effect.tryPromise({
+		try: () => client.registerRepo.mutate(request),
+		catch: (cause) => new RendererRequestError({ message: toError(cause).message }),
+	}),
+);
 
 export const forgetRepo = (repoId: string, onError: (message: string) => void): void => {
 	client.forgetRepo

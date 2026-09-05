@@ -1,114 +1,85 @@
-import { defaultModelId, effortsFor, useBackendModels } from "#hooks/backend-models.ts";
-import { EMPTY_DRAFT, type RoleDraft, type RoleField, type RolePlaceholder } from "#views/role-settings.ts";
-import { BackendCell, SuggestedCell } from "#views/role-settings-cells.tsx";
+import { useStore } from "@tanstack/react-form";
+import type { ReactNode } from "react";
+import { withFieldGroup } from "#forms/hook.ts";
+import { defaultModelId, effortsFor, emptyCatalog, type ModelCatalog } from "#hooks/backend-models.ts";
+import { EMPTY_DRAFT, EMPTY_PLACEHOLDER, type RolePlaceholder } from "#views/role-settings.ts";
 
-const heading = "text-left text-2xs font-normal text-muted-foreground";
+const FLEET_DEFAULT = "@fleet-default";
 
-const RoleRow = ({
-	backends,
-	draft,
-	inheritLabel,
-	label,
-	onChange,
-	placeholder,
-}: {
+const roleProps: {
 	readonly backends: ReadonlyArray<string>;
-	readonly draft: RoleDraft;
+	readonly catalog: ModelCatalog;
 	readonly inheritLabel: string | null;
 	readonly label: string;
-	readonly onChange: (draft: RoleDraft) => void;
 	readonly placeholder: RolePlaceholder;
-}) => {
-	const catalog = useBackendModels(draft.backend === "" ? placeholder.backend : draft.backend);
-	const named = effortsFor(catalog, draft.model === "" ? placeholder.model : draft.model);
-	const offered = named.length === 0 ? effortsFor(catalog, defaultModelId(catalog)) : named;
-	return (
-		<>
-			<tr>
-				<th className="pr-2 text-left text-xs font-normal" scope="row">
-					{label}
-				</th>
-				<BackendCell
-					backends={backends}
-					chosen={draft.backend}
-					inheritLabel={inheritLabel}
-					label={label}
-					onChange={(backend) => onChange({ ...draft, backend })}
-					placeholder={placeholder.backend}
-				/>
-				<SuggestedCell
-					label={`${label} model`}
-					onChange={(model) => onChange({ ...draft, model })}
-					placeholder={placeholder.model}
-					suggestions={catalog.choices.map((choice) => ({ label: choice.name, value: choice.id }))}
-					value={draft.model}
-				/>
-				<SuggestedCell
-					label={`${label} effort`}
-					onChange={(effort) => onChange({ ...draft, effort })}
-					placeholder={placeholder.effort}
-					suggestions={offered.map((effort) => ({ label: "", value: effort }))}
-					value={draft.effort}
-				/>
-			</tr>
-			{catalog.failure === null ? null : (
-				<tr>
-					<td className="text-2xs text-destructive" colSpan={4}>{`${label} models could not be listed: ${catalog.failure}. Name one yourself.`}</td>
-				</tr>
-			)}
-		</>
-	);
-};
+} = { backends: [], catalog: emptyCatalog, inheritLabel: null, label: "", placeholder: EMPTY_PLACEHOLDER };
 
-export const RoleSettingsFields = ({
-	backends,
-	drafts,
-	inheritLabel,
-	lines,
-	onChange,
-}: {
-	readonly backends: ReadonlyArray<string>;
-	readonly drafts: Readonly<Record<string, RoleDraft>>;
-	readonly inheritLabel: string | null;
-	readonly lines: ReadonlyArray<RoleField<string>>;
-	readonly onChange: (role: string, draft: RoleDraft) => void;
-}) => (
-	<table className="w-full border-separate border-spacing-x-0 border-spacing-y-1">
-		<thead>
-			<tr>
-				<th className="w-0 p-0" scope="col">
-					<span className="sr-only">Role</span>
-				</th>
-				<th className={`w-28 ${heading}`} scope="col">
-					Backend
-				</th>
-				<th className={`pl-2 ${heading}`} scope="col">
-					Model
-				</th>
-				<th className={`w-24 pl-2 ${heading}`} scope="col">
-					Effort
-				</th>
-			</tr>
-		</thead>
-		<tbody>
-			{lines.map((line) => (
-				<RoleRow
-					backends={backends}
-					draft={drafts[line.role] ?? EMPTY_DRAFT}
-					inheritLabel={inheritLabel}
-					key={line.role}
-					label={line.label}
-					onChange={(draft) => onChange(line.role, draft)}
-					placeholder={line.placeholder}
-				/>
-			))}
-			{backends.length === 0 ? (
-				<tr>
-					<td className="text-2xs text-muted-foreground" colSpan={4}>
-						No backend is registered.
-					</td>
-				</tr>
-			) : null}
-		</tbody>
-	</table>
+export const RoleFields = withFieldGroup({
+	defaultValues: EMPTY_DRAFT,
+	props: roleProps,
+	render: ({ group, backends, catalog, inheritLabel, label, placeholder }) => {
+		const model = useStore(group.store, (state) => state.values.model);
+		const inherit = inheritLabel === null ? [] : [{ label: inheritLabel, value: FLEET_DEFAULT }];
+		const named = effortsFor(catalog, model === "" ? placeholder.model : model);
+		const offered = named.length === 0 ? effortsFor(catalog, defaultModelId(catalog)) : named;
+		return (
+			<>
+				<span className="text-xs">{label}</span>
+				<group.AppField
+					name="backend"
+					listeners={{
+						onChange: ({ value }) => {
+							if (value === FLEET_DEFAULT) group.setFieldValue("backend", "");
+							group.setFieldValue("model", "");
+							group.setFieldValue("effort", "");
+						},
+					}}
+				>
+					{(field) => (
+						<field.SelectField
+							aria-label={`${label} backend`}
+							choices={[...inherit, ...backends.map((tag) => ({ label: tag, value: tag }))]}
+							disabled={backends.length === 0}
+							label={<span className="sr-only">{`${label} backend`}</span>}
+							placeholder={placeholder.backend}
+						/>
+					)}
+				</group.AppField>
+				<group.AppField name="model">
+					{(field) => (
+						<field.DatalistField
+							aria-label={`${label} model`}
+							choices={catalog.choices.map((choice) => ({ label: choice.name, value: choice.id }))}
+							label={<span className="sr-only">{`${label} model`}</span>}
+							placeholder={placeholder.model}
+						/>
+					)}
+				</group.AppField>
+				<group.AppField name="effort">
+					{(field) => (
+						<field.DatalistField
+							aria-label={`${label} effort`}
+							choices={offered.map((effort) => ({ label: effort, value: effort }))}
+							label={<span className="sr-only">{`${label} effort`}</span>}
+							placeholder={placeholder.effort}
+						/>
+					)}
+				</group.AppField>
+				{catalog.failure === null ? null : (
+					<p className="col-span-full w-full text-2xs text-destructive">{`${label} models could not be listed: ${catalog.failure}. Name one yourself.`}</p>
+				)}
+			</>
+		);
+	},
+});
+
+export const RoleGrid = ({ backends, children }: { readonly backends: ReadonlyArray<string>; readonly children: ReactNode }) => (
+	<div className="grid min-w-0 grid-cols-[auto_7rem_1fr_6rem] items-center gap-x-2 gap-y-1">
+		<span />
+		<span className="text-2xs text-muted-foreground">Backend</span>
+		<span className="text-2xs text-muted-foreground">Model</span>
+		<span className="text-2xs text-muted-foreground">Effort</span>
+		{children}
+		{backends.length === 0 ? <p className="col-span-full text-2xs text-muted-foreground">No backend is registered.</p> : null}
+	</div>
 );

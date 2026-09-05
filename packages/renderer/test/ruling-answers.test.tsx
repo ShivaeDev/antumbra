@@ -41,7 +41,7 @@ const shoal: RulingView = {
 	reclassifications: [],
 	recommendation: null,
 	requestedAt: "2026-08-15T09:40:00.000Z",
-	requester: { agentId: "agent-surveyor", kind: "agent" },
+	requester: { agent: { id: "agent-surveyor", role: "surveyor" }, kind: "agent" },
 	rung: { kind: "admiral" },
 	subjects: [],
 	urgency: "blocking",
@@ -94,6 +94,11 @@ const buttonSaying = (mounted: Mounted, words: string) =>
 const entrySaying = (mounted: Mounted, words: string) =>
 	[...mounted.container.querySelectorAll("li li")].find((entry) => entry.textContent?.includes(words) === true);
 
+const opening = (mounted: Mounted, words: string): Effect.Effect<void> => settle(() => buttonSaying(mounted, words)?.click());
+
+const fieldsOf = (mounted: Mounted): ReadonlyArray<string | null> =>
+	[...mounted.container.querySelectorAll("li label")].map((each) => each.textContent);
+
 beforeEach(() => {
 	askMoreOnRuling.mockClear();
 	opened.length = 0;
@@ -106,7 +111,8 @@ it.effect("asks the asker for more without ruling anything", () =>
 		const mounted = mount();
 		yield* showing(mounted, { rulings: [shoal] });
 
-		yield* writing(mounted, "Ask them for more", "which chart edition are you reading?");
+		yield* opening(mounted, "Ask them for more");
+		yield* writing(mounted, "What do you need from them?", "which chart edition are you reading?");
 		yield* settle(() => buttonSaying(mounted, "Ask more")?.click());
 
 		expect(askMoreOnRuling).toHaveBeenCalledWith({ note: "which chart edition are you reading?", rulingId: "ruling-1" }, expect.any(Function));
@@ -120,7 +126,8 @@ it.effect("leaves a request for later with the words for why", () =>
 		const mounted = mount();
 		yield* showing(mounted, { rulings: [shoal] });
 
-		yield* writing(mounted, "Leave it for later because…", "the survey lands first");
+		yield* opening(mounted, "Leave it for later");
+		yield* writing(mounted, "Why not now?", "the survey lands first");
 		yield* settle(() => buttonSaying(mounted, "Not now")?.click());
 
 		expect(parkRuling).toHaveBeenCalledWith({ note: "the survey lands first", rulingId: "ruling-1" }, expect.any(Function));
@@ -151,15 +158,28 @@ it.effect("shows what was said since the request beside the question", () =>
 				{
 					...shoal,
 					contexts: [
-						{ at: "2026-08-15T09:45:00.000Z", authorAgentId: null, body: "which chart edition are you reading?" },
-						{ at: "2026-08-15T09:47:00.000Z", authorAgentId: "agent-surveyor", body: "the 2019 edition" },
+						{ at: "2026-08-15T09:45:00.000Z", author: null, body: "which chart edition are you reading?" },
+						{ at: "2026-08-15T09:47:00.000Z", author: { id: "agent-surveyor", role: "surveyor" }, body: "the 2019 edition" },
 					],
 				},
 			],
 		});
 
 		expect(entrySaying(mounted, "which chart edition are you reading?")?.textContent).toContain("the admiral");
-		expect(entrySaying(mounted, "the 2019 edition")?.textContent).toContain("agent-surveyor");
+		expect(entrySaying(mounted, "the 2019 edition")?.textContent).toContain("the surveyor");
+		yield* settle(() => mounted.root.unmount());
+	}),
+);
+
+it.effect("offers the answer alone until the admiral opens another act", () =>
+	Effect.gen(function* () {
+		const mounted = mount();
+		yield* showing(mounted, { rulings: [shoal] });
+
+		expect(fieldsOf(mounted)).toEqual(["Your answer"]);
+		yield* opening(mounted, "Change radius or urgency");
+
+		expect(fieldsOf(mounted)).toEqual(["Your answer", "Radius", "Urgency", "Why"]);
 		yield* settle(() => mounted.root.unmount());
 	}),
 );

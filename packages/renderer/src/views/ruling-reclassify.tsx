@@ -20,7 +20,7 @@ export const RulingReclassify = ({ onError, ruling }: { readonly onError: (messa
 	const [note, setNote] = useState("");
 	const unmoved = radius === ruling.radius && urgency === ruling.urgency;
 	return (
-		<div className="flex min-w-0 flex-wrap items-end gap-2 border-t border-border pt-2">
+		<div className="flex min-w-0 flex-wrap items-end gap-2">
 			<LabelledField label="Radius">{(id) => <AxisSelect id={id} onChange={setRadius} value={radius} words={rulingRadii} />}</LabelledField>
 			<LabelledField label="Urgency">{(id) => <AxisSelect id={id} onChange={setUrgency} value={urgency} words={rulingUrgencies} />}</LabelledField>
 			<div className="min-w-32 flex-1">

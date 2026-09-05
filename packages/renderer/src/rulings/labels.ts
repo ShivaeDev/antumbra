@@ -1,4 +1,5 @@
-import { RulingView, type StandingRulingView } from "@antumbra/contract";
+import { type RulingAgentView, RulingView, type StandingRulingView } from "@antumbra/contract";
+import { whenLabel } from "#voyages/labels.ts";
 import type { Tone } from "#voyages/tone.ts";
 
 type GatedPiece = RulingView["gatedPieces"][number];
@@ -45,20 +46,32 @@ export const rulingAuthorityLabel: Readonly<Record<Authority, string>> = {
 	flagship: "the flagship",
 };
 
-export const rulingActorLabel = (by: Authority, agentId: string | null): string =>
-	by === "captain" && agentId !== null ? `captain ${agentId}` : rulingAuthorityLabel[by];
+export const rulingActorLabel = (by: Authority, agent: RulingAgentView | null): string =>
+	by === "captain" && agent !== null ? `the ${agent.role}` : rulingAuthorityLabel[by];
 
 const RUNG_LABEL: Readonly<Record<"admiral" | "flagship", string>> = {
-	admiral: "waits on you",
-	flagship: "waits on the flagship",
+	admiral: "Waits on you",
+	flagship: "Waits on the flagship",
 };
 
-export const rulingRungLabel = (rung: Rung): string =>
-	rung.kind === "captain" ? `waits on the captain of ${rung.voyageName}` : RUNG_LABEL[rung.kind];
+const rulingRungLabel = (rung: Rung): string => (rung.kind === "captain" ? `Waits on the captain of ${rung.voyageName}` : RUNG_LABEL[rung.kind]);
+
+export const rulingWaitsLabel = (ruling: RulingView): string => `${rulingRungLabel(ruling.rung)}. ${rulingRadiusLabel[ruling.radius]}.`;
 
 export const rulingRequesterLabel = (requester: Requester): string =>
-	requester.kind === "authority" ? `asked by ${rulingAuthorityLabel[requester.by]}` : requester.agentId;
+	requester.kind === "authority" ? rulingAuthorityLabel[requester.by] : `the ${requester.agent.role}`;
+
+export const rulingRequesterId = (requester: Requester): string | undefined => (requester.kind === "agent" ? requester.agent.id : undefined);
+
+const askedOf = (ruling: RulingView): string => {
+	const piece = ruling.subjects.find((subject) => subject.kind === "piece");
+	const asker = `Asked by ${rulingRequesterLabel(ruling.requester)}`;
+	return piece === undefined ? asker : `${asker} on ${rulingSubjectLabel.piece} “${piece.label}”`;
+};
+
+export const rulingAskedLabel = (ruling: RulingView): string =>
+	`${[askedOf(ruling), ...(ruling.voyage === null ? [] : [ruling.voyage.name]), whenLabel(ruling.requestedAt)].join(", ")}.`;
 
 export const rulingGatedPieceLabel = (piece: GatedPiece): string => `${piece.title} (${piece.voyageName})`;
 
-export const rulingContextAuthorLabel = (context: Context): string => context.authorAgentId ?? "the admiral";
+export const rulingContextAuthorLabel = (context: Context): string => (context.author === null ? "the admiral" : `the ${context.author.role}`);

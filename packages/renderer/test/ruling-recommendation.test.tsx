@@ -44,7 +44,7 @@ const shoal: RulingView = {
 	reclassifications: [],
 	recommendation: { choiceId: "choice-2", reasoning: "the chart was surveyed at slack water" },
 	requestedAt: "2026-08-15T09:40:00.000Z",
-	requester: { agentId: "agent-surveyor", kind: "agent" },
+	requester: { agent: { id: "agent-surveyor", role: "surveyor" }, kind: "agent" },
 	rung: { kind: "captain", voyageId: "voyage-1", voyageName: "Chart the reef" },
 	subjects: [],
 	urgency: "blocking",

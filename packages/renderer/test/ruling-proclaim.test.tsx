@@ -38,10 +38,14 @@ const settle = (change: () => void): Effect.Effect<void> =>
 
 const mount = () => {
 	const container = document.createElement("div");
+	document.body.append(container);
 	return { container, root: createRoot(container) };
 };
 
 type Mounted = ReturnType<typeof mount>;
+
+const clicking = (words: string): Effect.Effect<void> =>
+	settle(() => [...document.querySelectorAll("button")].find((button) => button.textContent === words)?.click());
 
 const showing = (mounted: Mounted, onError: (message: string) => void): Effect.Effect<void> =>
 	Effect.gen(function* () {
@@ -49,17 +53,34 @@ const showing = (mounted: Mounted, onError: (message: string) => void): Effect.E
 		yield* settle(() => opened.at(-1)?.({ rulings: [] }));
 	});
 
-const fieldNamed = (mounted: Mounted, label: string) => {
-	const tag = [...mounted.container.querySelectorAll("label")].find((each) => each.textContent === label);
-	return tag === undefined ? null : mounted.container.querySelector<HTMLElement>(`[id="${tag.htmlFor}"]`);
+const proclaiming = (mounted: Mounted, onError: (message: string) => void): Effect.Effect<void> =>
+	Effect.gen(function* () {
+		yield* showing(mounted, onError);
+		yield* clicking("Proclaim a ruling");
+	});
+
+const leaving = (mounted: Mounted): Effect.Effect<void> =>
+	settle(() => {
+		mounted.root.unmount();
+		mounted.container.remove();
+	});
+
+const fieldNamed = (label: string) => {
+	const tag = [...document.querySelectorAll("label")].find((each) => each.textContent === label);
+	return tag === undefined ? null : document.querySelector<HTMLElement>(`[id="${tag.htmlFor}"]`);
+};
+
+const writtenIn = (label: string): string | undefined => {
+	const box = fieldNamed(label);
+	return box instanceof HTMLInputElement || box instanceof HTMLTextAreaElement ? box.value : undefined;
 };
 
 const valueSetter = (box: HTMLElement) =>
 	Object.getOwnPropertyDescriptor(box instanceof HTMLTextAreaElement ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype, "value")?.set;
 
-const writing = (mounted: Mounted, label: string, words: string): Effect.Effect<void> =>
+const writing = (label: string, words: string): Effect.Effect<void> =>
 	settle(() => {
-		const box = fieldNamed(mounted, label);
+		const box = fieldNamed(label);
 		const set = box === null ? undefined : valueSetter(box);
 		if (box !== null && set !== undefined) {
 			set.call(box, words);
@@ -67,23 +88,20 @@ const writing = (mounted: Mounted, label: string, words: string): Effect.Effect<
 		}
 	});
 
-const choosing = (mounted: Mounted, label: string, word: string): Effect.Effect<void> =>
+const choosing = (label: string, word: string): Effect.Effect<void> =>
 	settle(() => {
-		const box = fieldNamed(mounted, label);
+		const box = fieldNamed(label);
 		if (box instanceof HTMLSelectElement) {
 			box.value = word;
 			box.dispatchEvent(new Event("change", { bubbles: true }));
 		}
 	});
 
-const proclaiming = (mounted: Mounted): Effect.Effect<void> =>
-	settle(() => [...mounted.container.querySelectorAll("button")].find((button) => button.textContent?.includes("Proclaim") === true)?.click());
-
-const wroteTheRule = (mounted: Mounted): Effect.Effect<void> =>
+const wroteTheRule = (): Effect.Effect<void> =>
 	Effect.gen(function* () {
-		yield* writing(mounted, "Question", "May a voyage dredge a channel?");
-		yield* writing(mounted, "Context", "Two voyages dredged without surveying.");
-		yield* writing(mounted, "Your answer", "Survey the channel first, always.");
+		yield* writing("Question", "May a voyage dredge a channel?");
+		yield* writing("Context", "Two voyages dredged without surveying.");
+		yield* writing("Your answer", "Survey the channel first, always.");
 	});
 
 beforeEach(() => {
@@ -91,15 +109,29 @@ beforeEach(() => {
 	proclaimRuling.mockReset();
 });
 
-it.effect("proclaims the rule the admiral wrote for itself", () =>
+it.effect("keeps the proclamation fields behind the header button", () =>
 	Effect.gen(function* () {
 		const mounted = mount();
 		yield* showing(mounted, () => undefined);
 
-		yield* wroteTheRule(mounted);
-		yield* writing(mounted, "Tags", "dredging, charts");
-		yield* choosing(mounted, "Radius", "voyage");
-		yield* proclaiming(mounted);
+		expect(document.body.textContent).toContain("Proclaim a ruling");
+		expect(fieldNamed("Your answer")).toBeNull();
+		yield* clicking("Proclaim a ruling");
+
+		expect(fieldNamed("Your answer")).not.toBeNull();
+		yield* leaving(mounted);
+	}),
+);
+
+it.effect("proclaims the rule the admiral wrote for itself", () =>
+	Effect.gen(function* () {
+		const mounted = mount();
+		yield* proclaiming(mounted, () => undefined);
+
+		yield* wroteTheRule();
+		yield* writing("Tags", "dredging, charts");
+		yield* choosing("Radius", "voyage");
+		yield* clicking("Proclaim");
 
 		expect(proclaimRuling).toHaveBeenCalledWith(
 			{
@@ -111,51 +143,70 @@ it.effect("proclaims the rule the admiral wrote for itself", () =>
 				urgency: "eventual",
 			},
 			expect.any(Function),
+			expect.any(Function),
 		);
-		yield* settle(() => mounted.root.unmount());
+		yield* leaving(mounted);
 	}),
 );
 
 it.effect("names no tags on a rule that carries none", () =>
 	Effect.gen(function* () {
 		const mounted = mount();
-		yield* showing(mounted, () => undefined);
+		yield* proclaiming(mounted, () => undefined);
 
-		yield* wroteTheRule(mounted);
-		yield* writing(mounted, "Tags", "  ,  ");
-		yield* proclaiming(mounted);
+		yield* wroteTheRule();
+		yield* writing("Tags", "  ,  ");
+		yield* clicking("Proclaim");
 
 		expect(proclaimRuling.mock.calls[0]?.[0]).not.toHaveProperty("tags");
-		yield* settle(() => mounted.root.unmount());
+		yield* leaving(mounted);
 	}),
 );
 
 it.effect("never proclaims a rule missing its context or its answer", () =>
 	Effect.gen(function* () {
 		const mounted = mount();
-		yield* showing(mounted, () => undefined);
+		yield* proclaiming(mounted, () => undefined);
 
-		yield* writing(mounted, "Question", "May a voyage dredge a channel?");
-		yield* proclaiming(mounted);
+		yield* writing("Question", "May a voyage dredge a channel?");
+		yield* clicking("Proclaim");
 
 		expect(proclaimRuling).not.toHaveBeenCalled();
-		yield* settle(() => mounted.root.unmount());
+		yield* leaving(mounted);
+	}),
+);
+
+it.effect("clears the form and closes once the proclamation lands", () =>
+	Effect.gen(function* () {
+		proclaimRuling.mockImplementation((_request: unknown, onDone: () => void) => {
+			onDone();
+		});
+		const mounted = mount();
+		yield* proclaiming(mounted, () => undefined);
+
+		yield* wroteTheRule();
+		yield* clicking("Proclaim");
+
+		expect(fieldNamed("Your answer")).toBeNull();
+		yield* clicking("Proclaim a ruling");
+		expect(writtenIn("Question")).toBe("");
+		yield* leaving(mounted);
 	}),
 );
 
 it.effect("shows the words a refused proclamation came back with", () =>
 	Effect.gen(function* () {
 		const refusals: Array<string> = [];
-		proclaimRuling.mockImplementation((_request: unknown, onError: (message: string) => void) => {
+		proclaimRuling.mockImplementation((_request: unknown, _onDone: () => void, onError: (message: string) => void) => {
 			onError("the fleet has no tag dredging");
 		});
 		const mounted = mount();
-		yield* showing(mounted, (message) => refusals.push(message));
+		yield* proclaiming(mounted, (message) => refusals.push(message));
 
-		yield* wroteTheRule(mounted);
-		yield* proclaiming(mounted);
+		yield* wroteTheRule();
+		yield* clicking("Proclaim");
 
 		expect(refusals).toEqual(["the fleet has no tag dredging"]);
-		yield* settle(() => mounted.root.unmount());
+		yield* leaving(mounted);
 	}),
 );

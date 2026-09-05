@@ -45,7 +45,7 @@ const berthReclaim: StandingRulingView = {
 	radius: "fleet",
 	ruledAt: "2026-08-14T16:20:00.000Z",
 	ruledBy: "admiral",
-	ruledByAgentId: null,
+	ruledByAgent: null,
 	stale: false,
 	subjects: [],
 	urgency: "pressing",
@@ -59,9 +59,9 @@ const chartAuthority: StandingRulingView = {
 	radius: "voyage",
 	ruledAt: "2026-08-13T11:00:00.000Z",
 	ruledBy: "captain",
-	ruledByAgentId: "agent-mate",
+	ruledByAgent: { id: "agent-mate", role: "captain" },
 	stale: false,
-	subjects: [{ kind: "voyage", label: "voyage-1" }],
+	subjects: [{ id: "voyage-1", kind: "voyage", label: "Chart the reef" }],
 	urgency: "blocking",
 };
 
@@ -133,9 +133,9 @@ it.effect("lists what stands newest first with who ruled and what", () =>
 		expect(questions).toEqual([berthReclaim.question, chartAuthority.question]);
 		expect(mounted.container.textContent).toContain(berthReclaim.answer);
 		expect(mounted.container.textContent).toContain("ruled by the admiral");
-		expect(mounted.container.textContent).toContain("ruled by captain agent-mate");
+		expect(mounted.container.textContent).toContain("ruled by the captain");
 		expect(mounted.container.textContent).toContain("chose: trust the soundings");
-		expect(mounted.container.textContent).toContain("Voyage: voyage-1");
+		expect(mounted.container.textContent).toContain("Voyage: Chart the reef");
 		yield* settle(() => mounted.root.unmount());
 	}),
 );
@@ -145,6 +145,7 @@ it.effect("supersedes a ruling with the later one picked for it", () =>
 		const mounted = mount();
 		yield* showing(mounted, [berthReclaim, chartAuthority]);
 
+		yield* settle(() => buttonSaying(mounted, "Replace with a later ruling")?.click());
 		expect(buttonSaying(mounted, "Supersede")?.disabled).toBe(true);
 		yield* picking(mounted, chartAuthority.question);
 		expect(buttonSaying(mounted, "Supersede")?.disabled).toBe(false);
@@ -160,6 +161,7 @@ it.effect("offers no supersession when one ruling stands alone", () =>
 		const mounted = mount();
 		yield* showing(mounted, [berthReclaim]);
 
+		expect(buttonSaying(mounted, "Replace with a later ruling")).toBeUndefined();
 		expect(mounted.container.querySelector('[role="combobox"]')).toBeNull();
 		expect(buttonSaying(mounted, "Supersede")).toBeUndefined();
 		yield* settle(() => mounted.root.unmount());
@@ -181,6 +183,7 @@ it.effect("withdraws a standing ruling with the words that retire it", () =>
 		const mounted = mount();
 		yield* showing(mounted, [berthReclaim]);
 
+		yield* settle(() => buttonSaying(mounted, "Take it out of force")?.click());
 		expect(buttonSaying(mounted, "Withdraw")?.disabled).toBe(true);
 		yield* writing(mounted, "Withdraw because…", "berths are gone entirely");
 		expect(buttonSaying(mounted, "Withdraw")?.disabled).toBe(false);

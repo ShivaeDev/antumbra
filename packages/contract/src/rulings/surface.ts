@@ -18,6 +18,7 @@ export { RulingFailure, RulingRefused, RulingSource } from "#rulings/source.ts";
 export {
 	AwaitingRulingView,
 	OpenRulingsView,
+	RulingAgentView,
 	RulingChoiceView,
 	RulingContextView,
 	RulingGatedPieceView,

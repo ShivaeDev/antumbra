@@ -8,9 +8,15 @@ export const RulingChoiceView = Schema.Struct({
 });
 export type RulingChoiceView = typeof RulingChoiceView.Type;
 
+export const RulingAgentView = Schema.Struct({
+	id: Schema.String,
+	role: Schema.String,
+});
+export type RulingAgentView = typeof RulingAgentView.Type;
+
 export const RulingContextView = Schema.Struct({
 	at: Schema.String,
-	authorAgentId: Schema.NullOr(Schema.String),
+	author: Schema.NullOr(RulingAgentView),
 	body: Schema.String,
 });
 export type RulingContextView = typeof RulingContextView.Type;
@@ -22,13 +28,14 @@ export const RulingParkedView = Schema.Struct({
 export type RulingParkedView = typeof RulingParkedView.Type;
 
 export const RulingSubjectView = Schema.Struct({
+	id: Schema.String,
 	kind: RulingSubjectKindSchema,
 	label: Schema.String,
 });
 export type RulingSubjectView = typeof RulingSubjectView.Type;
 
 export const RulingRequesterView = Schema.Union([
-	Schema.Struct({ agentId: Schema.String, kind: Schema.Literal("agent") }),
+	Schema.Struct({ agent: RulingAgentView, kind: Schema.Literal("agent") }),
 	Schema.Struct({
 		by: RulingAuthoritySchema,
 		kind: Schema.Literal("authority"),
@@ -45,7 +52,7 @@ export type RulingAxesView = typeof RulingAxesView.Type;
 export const RulingReclassificationView = Schema.Struct({
 	at: Schema.String,
 	by: RulingAuthoritySchema,
-	byAgentId: Schema.NullOr(Schema.String),
+	byAgent: Schema.NullOr(RulingAgentView),
 	note: Schema.optional(Schema.String),
 	radius: Schema.optional(RulingRadiusSchema),
 	urgency: Schema.optional(RulingUrgencySchema),
@@ -121,7 +128,7 @@ export const StandingRulingView = Schema.Struct({
 	radius: RulingRadiusSchema,
 	ruledAt: Schema.String,
 	ruledBy: RulingAuthoritySchema,
-	ruledByAgentId: Schema.NullOr(Schema.String),
+	ruledByAgent: Schema.NullOr(RulingAgentView),
 	stale: Schema.Boolean,
 	subjects: Schema.Array(RulingSubjectView),
 	urgency: RulingUrgencySchema,

@@ -51,7 +51,7 @@ const shown = Effect.gen(function* () {
 		}),
 	);
 	yield* settle(() => root.render(<VoyageHeader fleet={fleet} onError={() => undefined} voyage={voyage} />));
-	return container;
+	return { container, root };
 });
 
 const named = (container: HTMLElement, name: string): HTMLInputElement | null =>
@@ -69,7 +69,7 @@ const saveButton = (container: HTMLElement): HTMLButtonElement | undefined =>
 it.effect(
 	"shows what each role sails on and what it takes from the fleet",
 	Effect.fnUntraced(function* () {
-		const container = yield* shown;
+		const { container } = yield* shown;
 
 		expect(named(container, "Captain model")?.value).toBe("claude-opus-4-6");
 		expect(container.querySelector('[aria-label="Captain backend"]')?.textContent).toContain("claude");
@@ -83,7 +83,7 @@ it.effect(
 it.effect(
 	"writes only the role the admiral moved",
 	Effect.fnUntraced(function* () {
-		const container = yield* shown;
+		const { container } = yield* shown;
 
 		yield* settle(() => write(named(container, "Crew model"), "gpt-5"));
 		yield* settle(() => saveButton(container)?.click());
@@ -99,7 +99,7 @@ it.effect("keeps the draft and says why when a role's settings cannot be set", (
 		const attempt = yield* Deferred.make<void, RendererRequestError>();
 		const started = yield* Deferred.make<void>();
 		setAgentSettings.mockReturnValueOnce(Deferred.succeed(started, undefined).pipe(Effect.andThen(Deferred.await(attempt))));
-		const container = yield* shown;
+		const { container } = yield* shown;
 
 		yield* settle(() => write(named(container, "Crew effort"), " high "));
 		yield* settle(() => container.querySelector("form")?.requestSubmit());
@@ -114,5 +114,46 @@ it.effect("keeps the draft and says why when a role's settings cannot be set", (
 
 		expect(container.querySelector('[role="alert"]')?.textContent).toContain("Voyage unavailable");
 		expect(named(container, "Crew effort")?.value).toBe(" high ");
+	}),
+);
+
+it.effect("retains the other role's edit and request error when a saved role refreshes", () =>
+	Effect.gen(function* () {
+		const pending = yield* Deferred.make<void, RendererRequestError>();
+		const started = yield* Deferred.make<void>();
+		setAgentSettings.mockReturnValueOnce(Effect.void);
+		setAgentSettings.mockReturnValueOnce(Deferred.succeed(started, undefined).pipe(Effect.andThen(Deferred.await(pending))));
+		const { container, root } = yield* shown;
+		yield* settle(() => {
+			write(named(container, "Captain effort"), "medium");
+			write(named(container, "Crew effort"), " high ");
+		});
+		yield* settle(() => container.querySelector("form")?.requestSubmit());
+		yield* Deferred.await(started);
+		const refreshed = { ...voyage, captainSettings: { ...voyage.captainSettings, effort: "medium" } };
+		yield* settle(() => root.render(<VoyageHeader fleet={fleet} onError={() => undefined} voyage={refreshed} />));
+		expect(named(container, "Crew effort")?.value).toBe(" high ");
+		expect(named(container, "Crew effort")?.closest("fieldset")?.disabled).toBe(true);
+		yield* settle(() => {
+			Effect.runSync(Deferred.fail(pending, new RendererRequestError({ message: "Crew unavailable" })));
+		});
+		expect(container.querySelector('[role="alert"]')?.textContent).toContain("Crew unavailable");
+		expect(named(container, "Crew effort")?.value).toBe(" high ");
+		yield* settle(() => container.querySelector("form")?.requestSubmit());
+		expect(setAgentSettings.mock.calls.map((call) => call.at(0)?.role)).toEqual(["captain", "crew", "crew"]);
+	}),
+);
+
+it.effect("refreshes untouched saved settings and starts a new draft when the voyage changes", () =>
+	Effect.gen(function* () {
+		const { container, root } = yield* shown;
+		const refreshed = { ...voyage, crewSettings: { backend: "codex", model: "saved-model", effort: "high" } };
+		yield* settle(() => root.render(<VoyageHeader fleet={fleet} onError={() => undefined} voyage={refreshed} />));
+		expect(named(container, "Crew model")?.value).toBe("saved-model");
+		expect(saveButton(container)?.disabled).toBe(true);
+		yield* settle(() => write(named(container, "Crew model"), "unsaved-model"));
+		yield* settle(() => root.render(<VoyageHeader fleet={fleet} onError={() => undefined} voyage={{ ...refreshed, id: "other-voyage" }} />));
+		expect(named(container, "Crew model")?.value).toBe("saved-model");
+		expect(saveButton(container)?.disabled).toBe(true);
 	}),
 );

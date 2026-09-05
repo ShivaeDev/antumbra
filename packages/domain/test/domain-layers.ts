@@ -6,6 +6,7 @@ import { KernelLive, type KernelOptions } from "@antumbra/kernel";
 import type { TemporaryPersistence } from "@antumbra/persistence/testing";
 import type { AgentBackend, ChangeHost, Runner } from "@antumbra/plugin-api";
 import type { ResourceReconcileOptions } from "@antumbra/resource-reclamation";
+import { RulingDelivery } from "@antumbra/rulings/delivery/service";
 import { SessionFabricLive } from "@antumbra/session-fabric";
 import { SettingsSourceLive } from "@antumbra/settings";
 import { NodeServices } from "@effect/platform-node";
@@ -68,6 +69,7 @@ export const domainKernelServices = (
 		RulingDeliveryLive,
 		SessionShutdown.layer,
 	).pipe(
+		Layer.provideMerge(RulingDelivery.layer),
 		Layer.provideMerge(
 			Layer.unwrap(
 				Effect.gen(function* () {

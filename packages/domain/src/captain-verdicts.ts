@@ -1,11 +1,11 @@
 import { bind, ruleOnSpec } from "@antumbra/agent-tools";
 import type { DirectTool } from "@antumbra/plugin-api";
 import { type Ruling, Rulings, type RulingVerdict } from "@antumbra/rulings";
+import { bindsWords } from "@antumbra/rulings/radius/words";
 import type { RulingAuthority } from "@antumbra/vocabulary/ruling";
 import { Effect, Option } from "effect";
 import { makeRulingSpeaker } from "#ruling-speaker.ts";
 import { pickOf, verdictRefusal } from "#ruling-verdict-refusals.ts";
-import { bindsWords } from "#ruling-words.ts";
 import { answered, refused } from "#tool-answers.ts";
 import type { SessionIdentity } from "#tool-identity.ts";
 

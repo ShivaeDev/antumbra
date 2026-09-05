@@ -1,13 +1,12 @@
 import { ChangesLive } from "@antumbra/changes";
 import { DomainFeedsLive } from "@antumbra/domain-feeds";
-import { persistenceIt } from "@antumbra/persistence/testing";
+import { it } from "@antumbra/persistence/testing";
 import { PiecesLive } from "@antumbra/pieces";
 import { ReposLive } from "@antumbra/repos";
 import { expect } from "@effect/vitest";
 import { Effect, Layer } from "effect";
 import { Quay } from "#quay/service.ts";
 
-const it = persistenceIt();
 const QuayLayer = Quay.layer.pipe(
 	Layer.provide(ChangesLive(new Map(), new Map())),
 	Layer.provide(ReposLive),

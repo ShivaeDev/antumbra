@@ -18,5 +18,9 @@ Tests prove behavior at the narrowest meaningful boundary and fail for meaningfu
    - Use `Deferred`, `Queue`, a stream element, or another explicit barrier for a controlled fake or signal. A real sleep or repeated state read is
      not a substitute for a signal the test owns.
    - Use condition-named, bounded polling only across a true black-box boundary that exposes no causal signal.
-8. Repeated test behavior belongs to its semantic owner or a narrow shared test support package. Use Effect primitives directly when a helper would
+8. Use the established fixture at the boundary being tested: import `it` from `@antumbra/persistence/testing` for isolated `it.effectDB` acts, and use
+   the appropriate `effectApp` harness for composed capability or runtime behavior. These helpers own the test scope, database cleanup, and test
+   clock; do not repeat that lifecycle or construct the same test API in each file. Keep explicit separate database or runtime lifetimes when
+   reconstruction or durable recovery is the behavior under test. Request live time only when the boundary requires it.
+9. Repeated test behavior belongs to its semantic owner or a narrow shared test support package. Use Effect primitives directly when a helper would
    only rename them, and never hide clocks, barriers, and black-box polling behind one universal waiting helper.

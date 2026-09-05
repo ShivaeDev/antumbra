@@ -1,11 +1,9 @@
 import { RulingSource } from "@antumbra/contract";
-import { persistenceIt } from "@antumbra/persistence/testing";
+import { it } from "@antumbra/persistence/testing";
 import { Rulings } from "@antumbra/rulings";
 import { expect } from "@effect/vitest";
 import { Effect, Fiber, Option } from "effect";
 import { asked, layer, oneStanding, seedFleet, voyageId, watchUntil } from "#test/ruling-source-harness.ts";
-
-const it = persistenceIt();
 
 it.effectDB("a supersession drops the older ruling from the standing feed", function* () {
 	yield* Effect.gen(function* () {

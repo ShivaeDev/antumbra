@@ -1,9 +1,7 @@
-import { persistenceIt } from "@antumbra/persistence/testing";
+import { it } from "@antumbra/persistence/testing";
 import { expect } from "@effect/vitest";
 import { Option } from "effect";
 import { readVoyageCaptain } from "#voyage-captain-read.ts";
-
-const it = persistenceIt();
 
 it.effectDB("reads the standing captain's root Session and excludes Piece workers with the captain role", function* (db) {
 	for (const id of ["voyage", "other-voyage"]) {

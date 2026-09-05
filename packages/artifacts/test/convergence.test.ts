@@ -4,19 +4,17 @@ import { join } from "node:path";
 import { Artifacts, artifactsLayer } from "@antumbra/artifacts";
 import { DomainFeedsLive } from "@antumbra/domain-feeds";
 import { Database } from "@antumbra/persistence";
-import { persistenceIt } from "@antumbra/persistence/testing";
+import { it } from "@antumbra/persistence/testing";
 import { NodeServices } from "@effect/platform-node";
 import { expect } from "@effect/vitest";
 import { type Context, Effect, Layer } from "effect";
-
-const persistence = persistenceIt();
 
 const root = mkdtempSync(join(tmpdir(), "antumbra-convergence-"));
 const moorage = join(root, "moorage");
 const published = join(root, "published");
 mkdirSync(moorage);
 mkdirSync(published);
-persistence.afterAll(() => rmSync(root, { force: true, recursive: true }));
+it.afterAll(() => rmSync(root, { force: true, recursive: true }));
 
 const layer = artifactsLayer(published).pipe(Layer.provideMerge(DomainFeedsLive), Layer.provide(NodeServices.layer));
 
@@ -58,7 +56,7 @@ const seed = Effect.gen(function* () {
 	});
 });
 
-persistence.effectDB("refuses two predecessors for one successor", function* (db) {
+it.effectDB("refuses two predecessors for one successor", function* (db) {
 	yield* seed;
 	const artifacts = yield* Artifacts.pipe(Effect.provide(layer));
 	const first = yield* land(artifacts, "first");

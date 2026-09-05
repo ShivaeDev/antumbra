@@ -1,0 +1,207 @@
+[
+  {
+    "id": "table.rulingContext",
+    "label": "Create table rulingContext",
+    "summary": "Creates table rulingContext with required columns",
+    "operationClass": "additive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "table",
+        "name": "rulingContext"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"rulingContext\" does not exist",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "table",
+          "rulingContext"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"rulingContext\"",
+        "sql": "CREATE TABLE \"rulingContext\" (\n  \"at\" TEXT NOT NULL,\n  \"authorAgentId\" TEXT,\n  \"body\" TEXT NOT NULL,\n  \"id\" TEXT NOT NULL,\n  \"rulingId\" TEXT NOT NULL,\n  PRIMARY KEY (\"id\"),\n  FOREIGN KEY (\"rulingId\") REFERENCES \"ruling\" (\"id\") ON DELETE RESTRICT ON UPDATE RESTRICT,\n  FOREIGN KEY (\"authorAgentId\") REFERENCES \"agent\" (\"id\") ON DELETE RESTRICT ON UPDATE RESTRICT\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"rulingContext\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "table",
+          "rulingContext"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.ruling.parkedAt",
+    "label": "Add column parkedAt on ruling",
+    "summary": "Adds column parkedAt on ruling",
+    "operationClass": "additive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "column",
+        "name": "parkedAt",
+        "table": "ruling"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"parkedAt\" is missing",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM pragma_table_info(?) WHERE \"name\" = ?",
+        "params": [
+          "ruling",
+          "parkedAt"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"parkedAt\"",
+        "sql": "ALTER TABLE \"ruling\" ADD COLUMN \"parkedAt\" TEXT"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"parkedAt\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM pragma_table_info(?) WHERE \"name\" = ?",
+        "params": [
+          "ruling",
+          "parkedAt"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.ruling.parkedNote",
+    "label": "Add column parkedNote on ruling",
+    "summary": "Adds column parkedNote on ruling",
+    "operationClass": "additive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "column",
+        "name": "parkedNote",
+        "table": "ruling"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"parkedNote\" is missing",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM pragma_table_info(?) WHERE \"name\" = ?",
+        "params": [
+          "ruling",
+          "parkedNote"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"parkedNote\"",
+        "sql": "ALTER TABLE \"ruling\" ADD COLUMN \"parkedNote\" TEXT"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"parkedNote\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM pragma_table_info(?) WHERE \"name\" = ?",
+        "params": [
+          "ruling",
+          "parkedNote"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.rulingContext.rulingContext_rulingId_idx",
+    "label": "Create index rulingContext_rulingId_idx on rulingContext",
+    "summary": "Creates index rulingContext_rulingId_idx on rulingContext",
+    "operationClass": "additive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "index",
+        "name": "rulingContext_rulingId_idx",
+        "table": "rulingContext"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"rulingContext_rulingId_idx\" is missing",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "index",
+          "rulingContext_rulingId_idx"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"rulingContext_rulingId_idx\"",
+        "sql": "CREATE INDEX \"rulingContext_rulingId_idx\" ON \"rulingContext\" (\"rulingId\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"rulingContext_rulingId_idx\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "index",
+          "rulingContext_rulingId_idx"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.rulingContext.rulingContext_authorAgentId_idx",
+    "label": "Create index rulingContext_authorAgentId_idx on rulingContext",
+    "summary": "Creates index rulingContext_authorAgentId_idx on rulingContext",
+    "operationClass": "additive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "index",
+        "name": "rulingContext_authorAgentId_idx",
+        "table": "rulingContext"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"rulingContext_authorAgentId_idx\" is missing",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "index",
+          "rulingContext_authorAgentId_idx"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"rulingContext_authorAgentId_idx\"",
+        "sql": "CREATE INDEX \"rulingContext_authorAgentId_idx\" ON \"rulingContext\" (\"authorAgentId\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"rulingContext_authorAgentId_idx\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "index",
+          "rulingContext_authorAgentId_idx"
+        ]
+      }
+    ]
+  }
+]

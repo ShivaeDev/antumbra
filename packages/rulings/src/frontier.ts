@@ -5,12 +5,16 @@ import { decodeRuling } from "#read.ts";
 
 export const frontier = Effect.fn("Rulings.frontier")(function* (voyageId: string) {
 	const db = yield* Database;
-	const rows = yield* db.Ruling.where({ ruledAt: null })
+	const rows = yield* db.Ruling.where({ ruledAt: null, parkedAt: null })
 		.where((ruling) => ruling.requesterAgentId.isNotNull())
 		.where((ruling) => ruling.subjects.some({ kind: "voyage", voyageId }))
 		.include(
 			"choices",
 			db.RulingChoice.orderBy((choice) => choice.position.asc()),
+		)
+		.include(
+			"contexts",
+			db.RulingContext.orderBy((row) => row.at.asc()),
 		)
 		.include(
 			"reclassifications",

@@ -8,6 +8,19 @@ export const RulingChoiceView = Schema.Struct({
 });
 export type RulingChoiceView = typeof RulingChoiceView.Type;
 
+export const RulingContextView = Schema.Struct({
+	at: Schema.String,
+	authorAgentId: Schema.NullOr(Schema.String),
+	body: Schema.String,
+});
+export type RulingContextView = typeof RulingContextView.Type;
+
+export const RulingParkedView = Schema.Struct({
+	at: Schema.String,
+	note: Schema.String,
+});
+export type RulingParkedView = typeof RulingParkedView.Type;
+
 export const RulingSubjectView = Schema.Struct({
 	kind: RulingSubjectKindSchema,
 	label: Schema.String,
@@ -77,9 +90,11 @@ export type RulingRungView = typeof RulingRungView.Type;
 export const RulingView = Schema.Struct({
 	choices: Schema.Array(RulingChoiceView),
 	context: Schema.String,
+	contexts: Schema.Array(RulingContextView),
 	declared: RulingAxesView,
 	gatedPieces: Schema.Array(RulingGatedPieceView),
 	id: Schema.String,
+	parked: Schema.NullOr(RulingParkedView),
 	question: Schema.String,
 	radius: RulingRadiusSchema,
 	reclassifications: Schema.Array(RulingReclassificationView),

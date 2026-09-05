@@ -3,7 +3,9 @@ import { useState } from "react";
 import { Badge } from "#components/ui/badge.tsx";
 import { rulingGatedPieceLabel, rulingRequesterLabel, rulingRungLabel, rulingSubjectLabel } from "#rulings/labels.ts";
 import { MarkdownView } from "#views/markdown-view.tsx";
+import { RulingAside } from "#views/ruling-aside.tsx";
 import { RulingAxes } from "#views/ruling-axes.tsx";
+import { RulingContexts } from "#views/ruling-contexts.tsx";
 import { RulingReclassifications } from "#views/ruling-reclassifications.tsx";
 import { RulingReclassify } from "#views/ruling-reclassify.tsx";
 import { OfferedChoices, RulingVerdict } from "#views/ruling-verdict.tsx";
@@ -38,8 +40,15 @@ export const RulingCard = ({ onError, ruling }: { readonly onError: (message: st
 			)}
 
 			<MarkdownView className="text-xs text-muted-foreground" markdown={ruling.context} />
+			<RulingContexts contexts={ruling.contexts} />
+			{ruling.parked === null ? null : (
+				<p className="min-w-0 text-2xs text-muted-foreground">
+					Not now, {whenLabel(ruling.parked.at)}: {ruling.parked.note}
+				</p>
+			)}
 			<RulingReclassifications reclassifications={ruling.reclassifications} />
 			<RulingReclassify onError={onError} ruling={ruling} />
+			<RulingAside onError={onError} ruling={ruling} />
 			<RulingVerdict chosen={chosen} onError={onError} ruling={ruling} />
 		</li>
 	);

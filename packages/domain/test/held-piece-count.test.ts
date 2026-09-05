@@ -1,13 +1,7 @@
-import { changesLayer } from "@antumbra/changes";
-import { PiecesLive } from "@antumbra/pieces";
-import { it } from "@antumbra/testing-runtime/domain";
-import { Voyages } from "@antumbra/voyages";
+import { it } from "@antumbra/testing";
 import { expect } from "@effect/vitest";
-import { Effect, Layer } from "effect";
 import { heldPieceCount } from "#execution/held-piece-count.ts";
 import { changeOf } from "#test/change-fixtures.ts";
-
-const layer = changesLayer(new Map(), new Map()).pipe(Layer.provideMerge(PiecesLive), Layer.provide(Voyages.layer));
 
 it.effectApp("counts only unlaunched voyage work without active execution or settled outcomes", function* ({ db }) {
 	for (const id of ["home", "other"])
@@ -25,7 +19,7 @@ it.effectApp("counts only unlaunched voyage work without active execution or set
 	yield* db.Repo.create({ id: "repo", name: "repo", source: "repo", defaultRef: "main" });
 	yield* db.Change.create(changeOf({ id: "change", headRef: "work", repoId: "repo", stage: "open" }));
 	yield* db.PieceChange.create({ pieceId: "pending", changeId: "change" });
-	expect(yield* heldPieceCount("home").pipe(Effect.provide(layer))).toBe(2);
+	expect(yield* heldPieceCount("home")).toBe(2);
 	yield* db.Change.where({ id: "change" }).update({ stage: "landed", landedAt: new Date(2) });
-	expect(yield* heldPieceCount("home").pipe(Effect.provide(layer))).toBe(1);
+	expect(yield* heldPieceCount("home")).toBe(1);
 });

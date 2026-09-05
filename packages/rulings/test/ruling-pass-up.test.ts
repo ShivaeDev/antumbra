@@ -1,8 +1,9 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Rulings } from "@antumbra/rulings";
+import { it } from "@antumbra/testing";
 import { expect } from "@effect/vitest";
 import { Effect, Option, PubSub } from "effect";
-import { asked, it, layer, requesterId, seedFleet } from "#test/rulings-harness.ts";
+import { asked, requesterId, seedFleet } from "#test/rulings-harness.ts";
 
 it.effectApp("moves the rung one step and says who moved it", function* () {
 	yield* Effect.scoped(
@@ -34,114 +35,104 @@ it.effectApp("moves the rung one step and says who moved it", function* () {
 			]);
 			expect(yield* rulings.get(requested.id)).toEqual(climbed);
 		}),
-	).pipe(Effect.provide(layer));
+	);
 });
 
 it.effectApp("leaves both axes where the asker declared them", function* () {
-	yield* Effect.gen(function* () {
-		yield* seedFleet;
-		const rulings = yield* Rulings;
-		const requested = yield* rulings.request(asked);
+	yield* seedFleet;
+	const rulings = yield* Rulings;
+	const requested = yield* rulings.request(asked);
 
-		const climbed = yield* rulings.passUp({
-			by: "captain",
-			note: "not mine to settle",
-			rulingId: requested.id,
-		});
+	const climbed = yield* rulings.passUp({
+		by: "captain",
+		note: "not mine to settle",
+		rulingId: requested.id,
+	});
 
-		expect(climbed.radius).toBe("voyage");
-		expect(climbed.urgency).toBe("pressing");
-		expect(climbed.declared).toEqual({ radius: "voyage", urgency: "pressing" });
-	}).pipe(Effect.provide(layer));
+	expect(climbed.radius).toBe("voyage");
+	expect(climbed.urgency).toBe("pressing");
+	expect(climbed.declared).toEqual({ radius: "voyage", urgency: "pressing" });
 });
 
 it.effectApp("climbs from the flagship to the admiral", function* () {
-	yield* Effect.gen(function* () {
-		yield* seedFleet;
-		const rulings = yield* Rulings;
-		const requested = yield* rulings.request({
-			...asked,
-			radius: "fleet",
-			rung: "flagship",
-		});
+	yield* seedFleet;
+	const rulings = yield* Rulings;
+	const requested = yield* rulings.request({
+		...asked,
+		radius: "fleet",
+		rung: "flagship",
+	});
 
-		const climbed = yield* rulings.passUp({
-			by: "flagship",
-			note: "this is the admiral's to settle",
-			rulingId: requested.id,
-		});
+	const climbed = yield* rulings.passUp({
+		by: "flagship",
+		note: "this is the admiral's to settle",
+		rulingId: requested.id,
+	});
 
-		expect(climbed.rung).toEqual(Option.some("admiral"));
-	}).pipe(Effect.provide(layer));
+	expect(climbed.rung).toEqual(Option.some("admiral"));
 });
 
 it.effectApp("refuses a rung the question does not wait on", function* ({ db }) {
-	yield* Effect.gen(function* () {
-		yield* seedFleet;
-		const rulings = yield* Rulings;
-		const requested = yield* rulings.request(asked);
+	yield* seedFleet;
+	const rulings = yield* Rulings;
+	const requested = yield* rulings.request(asked);
 
-		const failure = yield* Effect.flip(
-			rulings.passUp({
-				by: "flagship",
-				note: "sending it on",
-				rulingId: requested.id,
-			}),
-		);
-
-		expect(failure).toMatchObject({
-			_tag: "RulingNotAtRung",
+	const failure = yield* Effect.flip(
+		rulings.passUp({
 			by: "flagship",
+			note: "sending it on",
 			rulingId: requested.id,
-			rung: "captain",
-		});
-		expect(yield* db.RulingReclassification.all()).toEqual([]);
-		expect((yield* rulings.get(requested.id)).rung).toEqual(Option.some("captain"));
-	}).pipe(Effect.provide(layer));
+		}),
+	);
+
+	expect(failure).toMatchObject({
+		_tag: "RulingNotAtRung",
+		by: "flagship",
+		rulingId: requested.id,
+		rung: "captain",
+	});
+	expect(yield* db.RulingReclassification.all()).toEqual([]);
+	expect((yield* rulings.get(requested.id)).rung).toEqual(Option.some("captain"));
 });
 
 it.effectApp("refuses to move a ruling that already stands", function* ({ db }) {
-	yield* Effect.gen(function* () {
-		yield* seedFleet;
-		const rulings = yield* Rulings;
-		const requested = yield* rulings.request(asked);
-		yield* rulings.rule({
-			answer: "trust the soundings",
+	yield* seedFleet;
+	const rulings = yield* Rulings;
+	const requested = yield* rulings.request(asked);
+	yield* rulings.rule({
+		answer: "trust the soundings",
+		by: "captain",
+		rulingId: requested.id,
+	});
+
+	const failure = yield* Effect.flip(
+		rulings.passUp({
 			by: "captain",
+			note: "on reflection this is wider",
 			rulingId: requested.id,
-		});
+		}),
+	);
 
-		const failure = yield* Effect.flip(
-			rulings.passUp({
-				by: "captain",
-				note: "on reflection this is wider",
-				rulingId: requested.id,
-			}),
-		);
-
-		expect(failure).toMatchObject({
-			_tag: "RulingAlreadyRuled",
-			rulingId: requested.id,
-		});
-		expect(yield* db.RulingReclassification.all()).toEqual([]);
-	}).pipe(Effect.provide(layer));
+	expect(failure).toMatchObject({
+		_tag: "RulingAlreadyRuled",
+		rulingId: requested.id,
+	});
+	expect(yield* db.RulingReclassification.all()).toEqual([]);
 });
 
 it.effectApp("refuses to move a ruling nothing asked", function* () {
-	yield* Effect.gen(function* () {
-		const rulings = yield* Rulings;
+	const rulings = yield* Rulings;
 
-		const failure = yield* Effect.flip(
-			rulings.passUp({
-				by: "captain",
-				note: "sending it on",
-				rulingId: "ruling-missing",
-			}),
-		);
-
-		expect(failure).toMatchObject({
-			_tag: "RulingNotFound",
+	const failure = yield* Effect.flip(
+		rulings.passUp({
+			by: "captain",
+			note: "sending it on",
 			rulingId: "ruling-missing",
-		});
-	}).pipe(Effect.provide(layer));
+		}),
+	);
+
+	expect(failure).toMatchObject({
+		_tag: "RulingNotFound",
+		rulingId: "ruling-missing",
+	});
 });

@@ -1,4 +1,4 @@
-import { it } from "@antumbra/testing-runtime/domain";
+import { it } from "@antumbra/testing";
 import { expect } from "@effect/vitest";
 
 for (const run of [1, 2]) {

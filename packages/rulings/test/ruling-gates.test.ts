@@ -1,8 +1,9 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Rulings } from "@antumbra/rulings";
+import { it } from "@antumbra/testing";
 import { expect } from "@effect/vitest";
 import { Effect, PubSub } from "effect";
-import { asked, it, layer, pieceId, seedFleet } from "#test/rulings-harness.ts";
+import { asked, pieceId, seedFleet } from "#test/rulings-harness.ts";
 
 it.effectApp("holds the pieces a request names until it is ruled", function* () {
 	yield* Effect.scoped(
@@ -22,7 +23,7 @@ it.effectApp("holds the pieces a request names until it is ruled", function* () 
 			expect(yield* PubSub.take(readiness)).toBeUndefined();
 			expect(yield* rulings.openGates()).toEqual([{ pieceId, question: asked.question, rulingId: requested.id }]);
 		}),
-	).pipe(Effect.provide(layer));
+	);
 });
 
 it.effectApp("leaves a ruled ruling holding nothing", function* () {
@@ -45,60 +46,54 @@ it.effectApp("leaves a ruled ruling holding nothing", function* () {
 			expect(yield* PubSub.take(readiness)).toBeUndefined();
 			expect(yield* rulings.openGates()).toEqual([]);
 		}),
-	).pipe(Effect.provide(layer));
+	);
 });
 
 it.effectApp("refuses to gate on a ruling that already stands", function* ({ db }) {
-	yield* Effect.gen(function* () {
-		yield* seedFleet;
-		const rulings = yield* Rulings;
-		const requested = yield* rulings.request(asked);
-		yield* rulings.rule({
-			answer: "trust the soundings",
-			by: "admiral",
-			rulingId: requested.id,
-		});
+	yield* seedFleet;
+	const rulings = yield* Rulings;
+	const requested = yield* rulings.request(asked);
+	yield* rulings.rule({
+		answer: "trust the soundings",
+		by: "admiral",
+		rulingId: requested.id,
+	});
 
-		const failure = yield* Effect.flip(rulings.gate({ pieceIds: [pieceId], rulingId: requested.id }));
+	const failure = yield* Effect.flip(rulings.gate({ pieceIds: [pieceId], rulingId: requested.id }));
 
-		expect(failure).toMatchObject({
-			_tag: "RulingAlreadyRuled",
-			rulingId: requested.id,
-		});
-		expect(yield* db.RulingGate.all()).toEqual([]);
-	}).pipe(Effect.provide(layer));
+	expect(failure).toMatchObject({
+		_tag: "RulingAlreadyRuled",
+		rulingId: requested.id,
+	});
+	expect(yield* db.RulingGate.all()).toEqual([]);
 });
 
 it.effectApp("refuses a gate naming what the fleet lost", function* ({ db }) {
-	yield* Effect.gen(function* () {
-		yield* seedFleet;
-		const rulings = yield* Rulings;
-		const requested = yield* rulings.request(asked);
+	yield* seedFleet;
+	const rulings = yield* Rulings;
+	const requested = yield* rulings.request(asked);
 
-		const failure = yield* Effect.flip(
-			rulings.gate({
-				pieceIds: [pieceId, "piece-adrift"],
-				rulingId: requested.id,
-			}),
-		);
+	const failure = yield* Effect.flip(
+		rulings.gate({
+			pieceIds: [pieceId, "piece-adrift"],
+			rulingId: requested.id,
+		}),
+	);
 
-		expect(failure).toMatchObject({
-			_tag: "RulingGatePieceMissing",
-			pieceId: "piece-adrift",
-		});
-		expect(yield* db.RulingGate.all()).toEqual([]);
-	}).pipe(Effect.provide(layer));
+	expect(failure).toMatchObject({
+		_tag: "RulingGatePieceMissing",
+		pieceId: "piece-adrift",
+	});
+	expect(yield* db.RulingGate.all()).toEqual([]);
 });
 
 it.effectApp("refuses to gate on a ruling nothing asked", function* () {
-	yield* Effect.gen(function* () {
-		const rulings = yield* Rulings;
+	const rulings = yield* Rulings;
 
-		expect(yield* Effect.flip(rulings.gate({ pieceIds: [], rulingId: "ruling-missing" }))).toMatchObject({
-			_tag: "RulingNotFound",
-			rulingId: "ruling-missing",
-		});
-	}).pipe(Effect.provide(layer));
+	expect(yield* Effect.flip(rulings.gate({ pieceIds: [], rulingId: "ruling-missing" }))).toMatchObject({
+		_tag: "RulingNotFound",
+		rulingId: "ruling-missing",
+	});
 });
 
 it.effectApp("lands the gates a request names", function* () {
@@ -115,23 +110,21 @@ it.effectApp("lands the gates a request names", function* () {
 			expect(yield* PubSub.take(readiness)).toBeUndefined();
 			expect(yield* rulings.openGates()).toEqual([{ pieceId, question: asked.question, rulingId: requested.id }]);
 		}),
-	).pipe(Effect.provide(layer));
+	);
 });
 
 it.effectApp("refuses a whole request gating what the fleet lost", function* ({ db }) {
-	yield* Effect.gen(function* () {
-		yield* seedFleet;
-		const rulings = yield* Rulings;
+	yield* seedFleet;
+	const rulings = yield* Rulings;
 
-		const failure = yield* Effect.flip(rulings.request({ ...asked, gates: [pieceId, "piece-adrift"] }));
+	const failure = yield* Effect.flip(rulings.request({ ...asked, gates: [pieceId, "piece-adrift"] }));
 
-		expect(failure).toMatchObject({
-			_tag: "RulingGatePieceMissing",
-			pieceId: "piece-adrift",
-		});
-		expect(yield* db.Ruling.all()).toEqual([]);
-		expect(yield* db.RulingGate.all()).toEqual([]);
-	}).pipe(Effect.provide(layer));
+	expect(failure).toMatchObject({
+		_tag: "RulingGatePieceMissing",
+		pieceId: "piece-adrift",
+	});
+	expect(yield* db.Ruling.all()).toEqual([]);
+	expect(yield* db.RulingGate.all()).toEqual([]);
 });
 
 it.effectApp("tells the voyage of a request only when it holds", function* () {
@@ -146,5 +139,5 @@ it.effectApp("tells the voyage of a request only when it holds", function* () {
 
 			expect(yield* PubSub.takeUpTo(readiness, 1)).toEqual([]);
 		}),
-	).pipe(Effect.provide(layer));
+	);
 });

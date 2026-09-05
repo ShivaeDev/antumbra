@@ -2,11 +2,11 @@ import { BoardScope, Boards } from "@antumbra/boards";
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database } from "@antumbra/persistence";
 import { Rulings } from "@antumbra/rulings";
+import { it } from "@antumbra/testing";
 import { it as effectIt, expect } from "@effect/vitest";
 import { Effect, Option } from "effect";
 import { domainCapabilityLayer, domainKernelLayer } from "#test/domain-layers.ts";
 import { acquireTemporaryPersistence, makeScriptedBackend } from "#test/harness.ts";
-import { it } from "#test/runtime-harness.ts";
 import { eventually } from "#test/voyage-fixtures.ts";
 
 const ASKER = "agent-asker";

@@ -1,9 +1,10 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Rulings } from "@antumbra/rulings";
+import { it } from "@antumbra/testing";
 import { expect } from "@effect/vitest";
 import { Effect, Option, PubSub } from "effect";
 import { TestClock } from "effect/testing";
-import { asked, it, layer, seedFleet } from "#test/rulings-harness.ts";
+import { asked, seedFleet } from "#test/rulings-harness.ts";
 
 const standingPair = Effect.gen(function* () {
 	yield* seedFleet;
@@ -48,151 +49,141 @@ it.effectApp("drops a superseded ruling from the standing set", function* () {
 			expect(Option.getOrThrow(superseded.answer).text).toBe("trust the soundings");
 			expect(Option.isNone((yield* rulings.get(newer.id)).supersession)).toBe(true);
 		}),
-	).pipe(Effect.provide(layer));
+	);
 });
 
 it.effectApp("refuses to supersede a ruling with itself", function* () {
-	yield* Effect.gen(function* () {
-		const { older, rulings } = yield* standingPair;
+	const { older, rulings } = yield* standingPair;
 
-		const failure = yield* Effect.flip(
-			rulings.supersede({
-				by: "admiral",
-				byRulingId: older.id,
-				rulingId: older.id,
-			}),
-		);
-
-		expect(failure).toMatchObject({
-			_tag: "RulingSupersedesItself",
+	const failure = yield* Effect.flip(
+		rulings.supersede({
+			by: "admiral",
+			byRulingId: older.id,
 			rulingId: older.id,
-		});
-		expect(yield* rulings.standing([])).toHaveLength(2);
-	}).pipe(Effect.provide(layer));
+		}),
+	);
+
+	expect(failure).toMatchObject({
+		_tag: "RulingSupersedesItself",
+		rulingId: older.id,
+	});
+	expect(yield* rulings.standing([])).toHaveLength(2);
 });
 
 it.effectApp("refuses a ruling that has not been ruled on either side", function* () {
-	yield* Effect.gen(function* () {
-		const { newer, older, rulings } = yield* standingPair;
-		const open = yield* rulings.request(asked);
+	const { newer, older, rulings } = yield* standingPair;
+	const open = yield* rulings.request(asked);
 
-		const unruledTarget = yield* Effect.flip(
-			rulings.supersede({
-				by: "admiral",
-				byRulingId: newer.id,
-				rulingId: open.id,
-			}),
-		);
-		const unruledSuccessor = yield* Effect.flip(
-			rulings.supersede({
-				by: "admiral",
-				byRulingId: open.id,
-				rulingId: older.id,
-			}),
-		);
+	const unruledTarget = yield* Effect.flip(
+		rulings.supersede({
+			by: "admiral",
+			byRulingId: newer.id,
+			rulingId: open.id,
+		}),
+	);
+	const unruledSuccessor = yield* Effect.flip(
+		rulings.supersede({
+			by: "admiral",
+			byRulingId: open.id,
+			rulingId: older.id,
+		}),
+	);
 
-		expect(unruledTarget).toMatchObject({
-			_tag: "RulingNotRuled",
-			rulingId: open.id,
-		});
-		expect(unruledSuccessor).toMatchObject({
-			_tag: "RulingNotRuled",
-			rulingId: open.id,
-		});
-		expect(Option.isNone((yield* rulings.get(older.id)).supersession)).toBe(true);
-	}).pipe(Effect.provide(layer));
+	expect(unruledTarget).toMatchObject({
+		_tag: "RulingNotRuled",
+		rulingId: open.id,
+	});
+	expect(unruledSuccessor).toMatchObject({
+		_tag: "RulingNotRuled",
+		rulingId: open.id,
+	});
+	expect(Option.isNone((yield* rulings.get(older.id)).supersession)).toBe(true);
 });
 
 it.effectApp("supersedes a ruling once and only once", function* () {
-	yield* Effect.gen(function* () {
-		const { newer, older, rulings } = yield* standingPair;
-		const third = yield* rulings.request(asked);
-		yield* rulings.rule({
-			answer: "resurvey the shoal",
-			by: "admiral",
-			rulingId: third.id,
-		});
-		yield* rulings.supersede({
-			by: "admiral",
-			byRulingId: newer.id,
-			rulingId: older.id,
-		});
+	const { newer, older, rulings } = yield* standingPair;
+	const third = yield* rulings.request(asked);
+	yield* rulings.rule({
+		answer: "resurvey the shoal",
+		by: "admiral",
+		rulingId: third.id,
+	});
+	yield* rulings.supersede({
+		by: "admiral",
+		byRulingId: newer.id,
+		rulingId: older.id,
+	});
 
-		const again = yield* Effect.flip(
-			rulings.supersede({
-				by: "admiral",
-				byRulingId: third.id,
-				rulingId: older.id,
-			}),
-		);
-
-		expect(again).toMatchObject({
-			_tag: "RulingAlreadySuperseded",
-			byRulingId: newer.id,
+	const again = yield* Effect.flip(
+		rulings.supersede({
+			by: "admiral",
+			byRulingId: third.id,
 			rulingId: older.id,
-		});
-		expect(Option.getOrThrow((yield* rulings.get(older.id)).supersession).byRulingId).toBe(newer.id);
-	}).pipe(Effect.provide(layer));
+		}),
+	);
+
+	expect(again).toMatchObject({
+		_tag: "RulingAlreadySuperseded",
+		byRulingId: newer.id,
+		rulingId: older.id,
+	});
+	expect(Option.getOrThrow((yield* rulings.get(older.id)).supersession).byRulingId).toBe(newer.id);
 });
 
 it.effectApp("refuses a successor that is itself superseded", function* () {
-	yield* Effect.gen(function* () {
-		const { newer, older, rulings } = yield* standingPair;
-		const third = yield* rulings.request(asked);
-		yield* rulings.rule({
-			answer: "resurvey the shoal",
+	const { newer, older, rulings } = yield* standingPair;
+	const third = yield* rulings.request(asked);
+	yield* rulings.rule({
+		answer: "resurvey the shoal",
+		by: "admiral",
+		rulingId: third.id,
+	});
+	yield* rulings.supersede({
+		by: "admiral",
+		byRulingId: newer.id,
+		rulingId: older.id,
+	});
+
+	const failure = yield* Effect.flip(
+		rulings.supersede({
 			by: "admiral",
+			byRulingId: older.id,
 			rulingId: third.id,
-		});
-		yield* rulings.supersede({
-			by: "admiral",
-			byRulingId: newer.id,
-			rulingId: older.id,
-		});
+		}),
+	);
 
-		const failure = yield* Effect.flip(
-			rulings.supersede({
-				by: "admiral",
-				byRulingId: older.id,
-				rulingId: third.id,
-			}),
-		);
-
-		expect(failure).toMatchObject({
-			_tag: "RulingAlreadySuperseded",
-			byRulingId: newer.id,
-			rulingId: older.id,
-		});
-		expect(new Set((yield* rulings.standing([])).map((ruling) => ruling.id))).toEqual(new Set([third.id, newer.id]));
-	}).pipe(Effect.provide(layer));
+	expect(failure).toMatchObject({
+		_tag: "RulingAlreadySuperseded",
+		byRulingId: newer.id,
+		rulingId: older.id,
+	});
+	expect(new Set((yield* rulings.standing([])).map((ruling) => ruling.id))).toEqual(new Set([third.id, newer.id]));
 });
 
 it.effectApp("refuses to supersede a ruling nothing asked", function* () {
-	yield* Effect.gen(function* () {
-		const { newer, rulings } = yield* standingPair;
+	const { newer, rulings } = yield* standingPair;
 
-		const missingTarget = yield* Effect.flip(
-			rulings.supersede({
-				by: "admiral",
-				byRulingId: newer.id,
-				rulingId: "ruling-missing",
-			}),
-		);
-		const missingSuccessor = yield* Effect.flip(
-			rulings.supersede({
-				by: "admiral",
-				byRulingId: "ruling-missing",
-				rulingId: newer.id,
-			}),
-		);
+	const missingTarget = yield* Effect.flip(
+		rulings.supersede({
+			by: "admiral",
+			byRulingId: newer.id,
+			rulingId: "ruling-missing",
+		}),
+	);
+	const missingSuccessor = yield* Effect.flip(
+		rulings.supersede({
+			by: "admiral",
+			byRulingId: "ruling-missing",
+			rulingId: newer.id,
+		}),
+	);
 
-		expect(missingTarget).toMatchObject({
-			_tag: "RulingNotFound",
-			rulingId: "ruling-missing",
-		});
-		expect(missingSuccessor).toMatchObject({
-			_tag: "RulingNotFound",
-			rulingId: "ruling-missing",
-		});
-	}).pipe(Effect.provide(layer));
+	expect(missingTarget).toMatchObject({
+		_tag: "RulingNotFound",
+		rulingId: "ruling-missing",
+	});
+	expect(missingSuccessor).toMatchObject({
+		_tag: "RulingNotFound",
+		rulingId: "ruling-missing",
+	});
 });

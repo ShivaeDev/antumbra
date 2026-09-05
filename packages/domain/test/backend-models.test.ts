@@ -1,7 +1,7 @@
 import { SightSource } from "@antumbra/contract";
+import { it } from "@antumbra/testing";
 import { expect } from "@effect/vitest";
 import { Effect } from "effect";
-import { it } from "#test/runtime-harness.ts";
 
 it.effectApp("the fleet answers which models a backend offers and refuses a backend it does not run", function* () {
 	const sight = yield* SightSource;

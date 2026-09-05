@@ -1,11 +1,13 @@
-import { it } from "@antumbra/testing-runtime/capabilities";
+import { Repos } from "@antumbra/repos";
+import { it } from "@antumbra/testing";
 import { expect } from "@effect/vitest";
 import { changeOf } from "#test/change-fixtures.ts";
 
 const REEF = "/testing/repo-forget/reef";
 const SHOAL = "/testing/repo-forget/shoal";
 
-it.effectApp("forgetting one repo removes its change graph and leaves another intact", function* ({ db, repos }) {
+it.effectApp("forgetting one repo removes its change graph and leaves another intact", function* ({ db }) {
+	const repos = yield* Repos;
 	const reef = yield* repos.register({
 		defaultRef: "main",
 		source: REEF,

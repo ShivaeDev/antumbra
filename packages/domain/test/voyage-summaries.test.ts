@@ -1,21 +1,9 @@
-import { changesLayer } from "@antumbra/changes";
-import { PiecesLive } from "@antumbra/pieces";
-import { ReposLive } from "@antumbra/repos";
-import { RulingsLive } from "@antumbra/rulings";
-import { it } from "@antumbra/testing-runtime/domain";
-import { Voyages } from "@antumbra/voyages";
+import { it } from "@antumbra/testing";
 import { expect } from "@effect/vitest";
-import { Effect, Layer, Option } from "effect";
+import { Effect, Option } from "effect";
 import { VoyageSummaries } from "#voyage/summaries/service.ts";
 
-const layer = VoyageSummaries.layer.pipe(
-	Layer.provideMerge(changesLayer(new Map(), new Map())),
-	Layer.provideMerge(PiecesLive),
-	Layer.provideMerge(Voyages.layer),
-	Layer.provideMerge(ReposLive),
-	Layer.provideMerge(RulingsLive),
-);
-const read = Effect.flatMap(VoyageSummaries, (summaries) => summaries.read()).pipe(Effect.provide(layer));
+const read = Effect.flatMap(VoyageSummaries, (summaries) => summaries.read());
 const voyage = (id: string, born: number) => ({
 	id,
 	name: id,
@@ -46,12 +34,13 @@ it.effectApp("fleet counts include shared members and settle their unberthed pre
 	for (const id of ["member", "prerequisite", "unrelated"]) yield* db.Piece.create(piece(id));
 	for (const voyageId of ["first", "second"]) yield* db.VoyagePiece.create({ voyageId, pieceId: "member" });
 	yield* db.PieceEdge.create({ fromPieceId: "prerequisite", toPieceId: "member" });
+	const flagship = Option.getOrThrow(yield* db.Voyage.where({ kind: "flagship" }).first());
 	const blocked = yield* read;
-	expect(blocked.map((summary) => summary.id)).toEqual(["first", "second", "empty"]);
-	expect(blocked.map((summary) => summary.counts.blocked)).toEqual([1, 1, 0]);
-	expect(blocked.map((summary) => Object.values(summary.counts).reduce((sum, count) => sum + count, 0))).toEqual([1, 1, 0]);
+	expect(blocked.map((summary) => summary.id)).toEqual(["first", "second", "empty", flagship.id]);
+	expect(blocked.map((summary) => summary.counts.blocked)).toEqual([1, 1, 0, 0]);
+	expect(blocked.map((summary) => Object.values(summary.counts).reduce((sum, count) => sum + count, 0))).toEqual([1, 1, 0, 0]);
 	yield* db.PieceVerdict.create({ pieceId: "prerequisite", verdict: "delivered" });
-	expect((yield* read).map((summary) => summary.counts.ready)).toEqual([1, 1, 0]);
+	expect((yield* read).map((summary) => summary.counts.ready)).toEqual([1, 1, 0, 0]);
 });
 
 it.effectApp("parking an unanswered ruling keeps its member blocked until it is ruled", function* ({ db }) {

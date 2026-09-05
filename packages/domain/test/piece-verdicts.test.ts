@@ -1,9 +1,9 @@
 import { Database } from "@antumbra/persistence";
 import { Pieces } from "@antumbra/pieces";
+import { it } from "@antumbra/testing";
 import { expect } from "@effect/vitest";
 import { Effect, Option } from "effect";
 import { AgentDomain } from "#domain.ts";
-import { it } from "#test/runtime-harness.ts";
 import { aliveAgent, chain, land, openReefVoyage, stateOf, terminalIntent } from "#test/voyage-fixtures.ts";
 
 const soleReefPiece = Effect.gen(function* () {

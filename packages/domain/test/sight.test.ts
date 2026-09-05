@@ -4,8 +4,8 @@ import { Database } from "@antumbra/persistence";
 import { expect } from "@effect/vitest";
 import { Effect, Fiber, Stream } from "effect";
 import { standDown } from "#test/harness.ts";
+import { it } from "#test/runtime-harness.ts";
 import { eventually, liveSession, note, spawnRequest } from "#test/sight-fixture.ts";
-import { it } from "#test/sight-harness.ts";
 
 it.effectApp("spawn surfaces on the fleet feed once the agent lives", { clock: "live" }, function* () {
 	const sight = yield* SightSource;

@@ -2,7 +2,7 @@ import { SightSource } from "@antumbra/contract";
 import { Database, type NewAgentSession } from "@antumbra/persistence";
 import { expect } from "@effect/vitest";
 import { Effect, Option, Stream } from "effect";
-import { it } from "#test/sight-harness.ts";
+import { it } from "#test/runtime-harness.ts";
 
 const spawnRequest = {
 	backend: "scripted",

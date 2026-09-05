@@ -1,10 +1,10 @@
 import type { DirectTool } from "@antumbra/plugin-api";
+import { Voyages } from "@antumbra/voyages";
 import { expect, it } from "@effect/vitest";
 import { Effect, Option } from "effect";
 import { domainCapabilityLayer } from "#test/domain-layers.ts";
 import { acquireTemporaryPersistence } from "#test/harness.ts";
 import { makeVoyageReadingToolCompiler } from "#voyage-reading-tools.ts";
-import { VoyageProcedureService } from "#voyages/service.ts";
 
 const readVoyage = (tools: ReadonlyArray<DirectTool>) => Option.getOrThrow(Option.fromUndefinedOr(tools.find((tool) => tool.name === "read_voyage")));
 
@@ -12,9 +12,9 @@ it.live("an agent reads a voyage it names", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
 		yield* Effect.gen(function* () {
-			const voyages = yield* VoyageProcedureService;
+			const voyageRecords = yield* Voyages;
 			const compile = yield* makeVoyageReadingToolCompiler;
-			const shoals = yield* voyages.open({
+			const shoals = yield* voyageRecords.open({
 				backend: "scripted",
 				context: "the shoals are unnamed",
 				name: "Name the shoals",

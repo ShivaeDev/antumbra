@@ -1,6 +1,7 @@
-import { DomainFeeds } from "@antumbra/domain-feeds";
+import { DomainFeeds, DomainFeedsLive } from "@antumbra/domain-feeds";
+import { it } from "@antumbra/persistence/testing";
 import { Pieces, PiecesLive } from "@antumbra/pieces";
-import { it } from "@antumbra/testing-runtime/domain";
+import { Voyages } from "@antumbra/voyages";
 import { expect } from "@effect/vitest";
 import { Effect, Option, PubSub } from "effect";
 
@@ -14,7 +15,7 @@ const voyage = {
 	northStar: "every shoal is known",
 };
 
-it.effectApp("verifies existence without exposing a row", function* ({ db }) {
+it.effectDB("verifies existence without exposing a row", function* (db) {
 	yield* Effect.gen(function* () {
 		const pieces = yield* Pieces;
 		const piece = {
@@ -34,10 +35,10 @@ it.effectApp("verifies existence without exposing a row", function* ({ db }) {
 			_tag: "PieceNotFound",
 			pieceId: "missing-piece",
 		});
-	}).pipe(Effect.provide(PiecesLive));
+	}).pipe(Effect.provide(PiecesLive), Effect.provide(Voyages.layer), Effect.provide(DomainFeedsLive));
 });
 
-it.effectApp("answers voyage membership without exposing rows", function* ({ db }) {
+it.effectDB("answers voyage membership without exposing rows", function* (db) {
 	yield* Effect.gen(function* () {
 		const pieces = yield* Pieces;
 		const member = {
@@ -58,10 +59,10 @@ it.effectApp("answers voyage membership without exposing rows", function* ({ db 
 
 		expect(yield* pieces.membersOfVoyage(voyage.id)).toEqual(new Set([member.id]));
 		expect(yield* pieces.membersOfVoyage("missing-voyage")).toEqual(new Set());
-	}).pipe(Effect.provide(PiecesLive));
+	}).pipe(Effect.provide(PiecesLive), Effect.provide(Voyages.layer), Effect.provide(DomainFeedsLive));
 });
 
-it.effectApp("publishes after successful piece changes", function* ({ db }) {
+it.effectDB("publishes after successful piece changes", function* (db) {
 	yield* Effect.scoped(
 		Effect.gen(function* () {
 			const feeds = yield* DomainFeeds;
@@ -86,10 +87,10 @@ it.effectApp("publishes after successful piece changes", function* ({ db }) {
 			expect(yield* PubSub.takeUpTo(notices, 1)).toEqual([]);
 			expect(Option.getOrThrow(yield* db.Piece.where({ id: piece.id }).first()).launchedAt).toBeInstanceOf(Date);
 		}),
-	).pipe(Effect.provide(PiecesLive));
+	).pipe(Effect.provide(PiecesLive), Effect.provide(Voyages.layer), Effect.provide(DomainFeedsLive));
 });
 
-it.effectApp("refuses an invalid charter without rows or a notification", function* ({ db }) {
+it.effectDB("refuses an invalid charter without rows or a notification", function* (db) {
 	yield* Effect.scoped(
 		Effect.gen(function* () {
 			const feeds = yield* DomainFeeds;
@@ -111,7 +112,56 @@ it.effectApp("refuses an invalid charter without rows or a notification", functi
 				voyageId: "missing",
 			});
 			expect(yield* db.Piece.where({ title: "Adrift" }).all()).toEqual([]);
+			expect(yield* db.VoyagePiece.all()).toEqual([]);
+			expect(yield* db.PieceEdge.all()).toEqual([]);
 			expect(yield* PubSub.takeUpTo(notices, 1)).toEqual([]);
 		}),
-	).pipe(Effect.provide(PiecesLive));
+	).pipe(Effect.provide(PiecesLive), Effect.provide(Voyages.layer), Effect.provide(DomainFeedsLive));
+});
+
+it.effectDB("a refused charter leaves no partial piece or membership", function* (db) {
+	yield* Effect.gen(function* () {
+		const pieces = yield* Pieces;
+		yield* db.Voyage.create(voyage);
+		const failure = yield* Effect.flip(
+			pieces.charter({
+				charter: "do adrift",
+				dependsOn: ["missing"],
+				expectation: "adrift is landed",
+				role: "hand",
+				title: "adrift",
+				voyageId: voyage.id,
+			}),
+		);
+		expect(failure).toMatchObject({ _tag: "PieceNotFound" });
+		expect(yield* db.Piece.all()).toEqual([]);
+		expect(yield* db.VoyagePiece.all()).toEqual([]);
+		expect(yield* db.PieceEdge.all()).toEqual([]);
+	}).pipe(Effect.provide(PiecesLive), Effect.provide(Voyages.layer), Effect.provide(DomainFeedsLive));
+});
+
+it.effectDB("a refused rewire preserves the previous dependencies", function* (db) {
+	yield* Effect.gen(function* () {
+		const pieces = yield* Pieces;
+		yield* db.Voyage.create(voyage);
+		const alpha = yield* pieces.charter({
+			charter: "do alpha",
+			dependsOn: [],
+			expectation: "alpha is landed",
+			role: "hand",
+			title: "alpha",
+			voyageId: voyage.id,
+		});
+		const beta = yield* pieces.charter({
+			charter: "do beta",
+			dependsOn: [alpha.id],
+			expectation: "beta is landed",
+			role: "hand",
+			title: "beta",
+			voyageId: voyage.id,
+		});
+		const failure = yield* Effect.flip(pieces.setDependencies(beta.id, ["missing"]));
+		expect(failure).toMatchObject({ _tag: "PieceNotFound" });
+		expect(yield* db.PieceEdge.where({ toPieceId: beta.id }).all()).toMatchObject([{ fromPieceId: alpha.id, toPieceId: beta.id }]);
+	}).pipe(Effect.provide(PiecesLive), Effect.provide(Voyages.layer), Effect.provide(DomainFeedsLive));
 });

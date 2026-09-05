@@ -2,6 +2,7 @@ import { Database } from "@antumbra/persistence";
 import { Pieces } from "@antumbra/pieces";
 import type { ReportRow } from "@antumbra/reports";
 import { Reports } from "@antumbra/reports";
+import { Voyages } from "@antumbra/voyages";
 import { expect, it } from "@effect/vitest";
 import { Effect } from "effect";
 import { AgentDomain } from "#domain.ts";
@@ -20,8 +21,8 @@ const landedOn = (pieceId: string, title: string) =>
 
 const reportOnAnotherVoyage = Effect.gen(function* () {
 	const pieces = yield* Pieces;
-	const domain = yield* AgentDomain;
-	const shoals = yield* domain.voyages.open({
+	const voyageRecords = yield* Voyages;
+	const shoals = yield* voyageRecords.open({
 		backend: "scripted",
 		context: "the shoals are unnamed",
 		name: "Name the shoals",

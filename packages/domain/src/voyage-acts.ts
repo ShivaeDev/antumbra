@@ -10,6 +10,7 @@ import type {
 	VoyageBackendRequest,
 } from "@antumbra/contract";
 import { Pieces } from "@antumbra/pieces";
+import { Voyages } from "@antumbra/voyages";
 import { Effect, Match, Option } from "effect";
 import { toFailure } from "#sight-failure.ts";
 import type { VoyageReads } from "#voyage-reads.ts";
@@ -26,7 +27,8 @@ export const makeVoyageActs = (reads: VoyageReads) =>
 		const boards = yield* Boards;
 		const pieces = yield* Pieces;
 		const artifacts = yield* Artifacts;
-		const voyages = yield* VoyageProcedureService;
+		const procedures = yield* VoyageProcedureService;
+		const voyages = yield* Voyages;
 		return {
 			charterPiece: (request: CharterPieceRequest) =>
 				pieces.charter(request).pipe(
@@ -34,7 +36,7 @@ export const makeVoyageActs = (reads: VoyageReads) =>
 					Effect.mapError(toFailure),
 				),
 			hail: (voyageId: string) =>
-				voyages.hail(voyageId).pipe(
+				procedures.hail(voyageId).pipe(
 					Effect.map((captain) => ({ agentId: captain.agentId })),
 					Effect.mapError(toFailure),
 				),
@@ -57,7 +59,7 @@ export const makeVoyageActs = (reads: VoyageReads) =>
 				artifacts.supersede({ actor: { _tag: "admiral" }, ...request }).pipe(Effect.asVoid, Effect.mapError(toFailure)),
 			unpark: (pieceId: string) => pieces.park(pieceId, false).pipe(Effect.mapError(toFailure)),
 			workPieceNow: (pieceId: string) =>
-				voyages.workNow(pieceId).pipe(
+				procedures.workNow(pieceId).pipe(
 					Effect.map((crewed) => ({ agentId: crewed.agentId })),
 					Effect.mapError(toFailure),
 				),

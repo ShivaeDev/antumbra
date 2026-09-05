@@ -17,8 +17,21 @@ it.effectDB("resolves a role from the voyage, then the fleet, then the backend t
 		yield* roles.changeDefault("crew", { backend: "codex", effort: "medium", model: "gpt-5" });
 		expect(yield* roles.resolve("voyage-reef", "crew")).toEqual({ backend: "codex", effort: "medium", model: "gpt-5" });
 
+		yield* roles.changeForVoyage("voyage-reef", "crew", { backend: null, effort: null, model: "opus" });
+		expect(yield* roles.resolve("voyage-reef", "crew")).toEqual({ backend: "codex", effort: "medium", model: "opus" });
+	}).pipe(Effect.provide(layer));
+});
+
+it.effectDB("leaves the fleet's model and effort behind when a voyage sails a role on another backend", function* () {
+	yield* Effect.gen(function* () {
+		const roles = yield* RoleSettings;
+		yield* roles.changeDefault("crew", { backend: "codex", effort: "medium", model: "gpt-5" });
+
+		yield* roles.changeForVoyage("voyage-reef", "crew", { backend: "claude", effort: null, model: null });
+		expect(yield* roles.resolve("voyage-reef", "crew")).toEqual({ backend: "claude" });
+
 		yield* roles.changeForVoyage("voyage-reef", "crew", { backend: "claude", effort: null, model: "opus" });
-		expect(yield* roles.resolve("voyage-reef", "crew")).toEqual({ backend: "claude", effort: "medium", model: "opus" });
+		expect(yield* roles.resolve("voyage-reef", "crew")).toEqual({ backend: "claude", model: "opus" });
 	}).pipe(Effect.provide(layer));
 });
 

@@ -35,8 +35,8 @@ export const OpenVoyageForm = ({
 		},
 	});
 	const draft = useStore(form.store, (state) => state.values);
-	const captainPlaceholder = voyagePlaceholder(backends, roleDefault(defaults, "captain"));
-	const crewPlaceholder = voyagePlaceholder(backends, roleDefault(defaults, "crew"));
+	const captainPlaceholder = voyagePlaceholder(backends, roleDefault(defaults, "captain"), draft.captain.backend);
+	const crewPlaceholder = voyagePlaceholder(backends, roleDefault(defaults, "crew"), draft.crew.backend);
 	const captainCatalog = useBackendModels(draft.captain.backend === "" ? captainPlaceholder.backend : draft.captain.backend);
 	const crewCatalog = useBackendModels(draft.crew.backend === "" ? crewPlaceholder.backend : draft.crew.backend);
 	const ready = draft.name !== "" && draft.northStar !== "";

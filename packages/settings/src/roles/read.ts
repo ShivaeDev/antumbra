@@ -42,10 +42,13 @@ export const resolveRoleSettings = Effect.fn("RoleSettings.resolve")(function* (
 	const rows = yield* rowsFor(voyageId === null ? [FLEET_SCOPE] : [FLEET_SCOPE, voyageId]);
 	const override = voyageId === null ? UNCHOSEN : chosen(rows, voyageId, role);
 	const standing = chosen(rows, FLEET_SCOPE, role);
-	const effort = override.effort ?? standing.effort;
-	const model = override.model ?? standing.model;
+	const sailsOn = standing.backend ?? FIRST_BACKEND;
+	const backend = override.backend ?? sailsOn;
+	const inherited = backend === sailsOn ? standing : UNCHOSEN;
+	const effort = override.effort ?? inherited.effort;
+	const model = override.model ?? inherited.model;
 	return {
-		backend: override.backend ?? standing.backend ?? FIRST_BACKEND,
+		backend,
 		...(effort === null ? {} : { effort }),
 		...(model === null ? {} : { model }),
 	} satisfies ResolvedAgentSettings;

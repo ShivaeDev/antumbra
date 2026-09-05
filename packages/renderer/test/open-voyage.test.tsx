@@ -148,6 +148,19 @@ it.effect(
 	}),
 );
 
+it.effect(
+	"drops the fleet's model and effort once a role sails on another backend",
+	Effect.fnUntraced(function* () {
+		yield* shown(["claude", "codex"], [{ backend: "codex", effort: "high", model: "gpt-5-codex", role: "captain" }]);
+
+		yield* choose("Captain backend", "claude");
+
+		expect(named("Captain model")?.placeholder).toBe("the backend's own");
+		expect(named("Captain effort")?.placeholder).toBe("the backend's own");
+		expect(suggested("Captain model")).toEqual(["sonnet", "opus"]);
+	}),
+);
+
 it.effect("keeps both role drafts after failure and closes only when opening succeeds", () =>
 	Effect.gen(function* () {
 		const first = yield* Deferred.make<{ readonly id: string }, RendererRequestError>();

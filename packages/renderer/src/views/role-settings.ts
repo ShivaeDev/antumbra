@@ -65,8 +65,12 @@ export const fleetPlaceholder = (backends: ReadonlyArray<string>): RolePlacehold
 	model: BACKEND_OWN,
 });
 
-export const voyagePlaceholder = (backends: ReadonlyArray<string>, fleetDefault: AgentSettingsChoice): RolePlaceholder => ({
-	backend: fleetDefault.backend ?? backends[0] ?? "",
-	effort: fleetDefault.effort ?? BACKEND_OWN,
-	model: fleetDefault.model ?? BACKEND_OWN,
-});
+export const voyagePlaceholder = (backends: ReadonlyArray<string>, fleetDefault: AgentSettingsChoice, backend: string): RolePlaceholder => {
+	const inherited = fleetDefault.backend ?? backends[0] ?? "";
+	const sails = backend === "" || backend === inherited;
+	return {
+		backend: inherited,
+		effort: (sails ? fleetDefault.effort : null) ?? BACKEND_OWN,
+		model: (sails ? fleetDefault.model : null) ?? BACKEND_OWN,
+	};
+};

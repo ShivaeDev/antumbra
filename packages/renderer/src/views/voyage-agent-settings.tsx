@@ -44,8 +44,8 @@ const SettingsForm = ({
 		onSuccess: () => undefined,
 	});
 	const drafts = useStore(form.store, (state) => state.values);
-	const captainPlaceholder = voyagePlaceholder(backends, roleDefault(defaults, "captain"));
-	const crewPlaceholder = voyagePlaceholder(backends, roleDefault(defaults, "crew"));
+	const captainPlaceholder = voyagePlaceholder(backends, roleDefault(defaults, "captain"), drafts.captain.backend);
+	const crewPlaceholder = voyagePlaceholder(backends, roleDefault(defaults, "crew"), drafts.crew.backend);
 	const captainCatalog = useBackendModels(drafts.captain.backend === "" ? captainPlaceholder.backend : drafts.captain.backend);
 	const crewCatalog = useBackendModels(drafts.crew.backend === "" ? crewPlaceholder.backend : drafts.crew.backend);
 	return (

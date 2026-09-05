@@ -6,7 +6,7 @@ import { capacityHoldDetail } from "@antumbra/sessions/admission/hold";
 import { expect, it } from "@effect/vitest";
 import { Clock, Deferred, Effect, Layer, ManagedRuntime, Option, Ref } from "effect";
 import { AgentDomain } from "#agent-domain-service.ts";
-import { BackendCapacityReleaseLive, BackendCapacityReleases } from "#backend-capacity-release.ts";
+import { BackendCapacityReleases } from "#backend-capacity-releases/service.ts";
 import {
 	makeCapacities,
 	SCRIPTED,
@@ -80,7 +80,7 @@ const domainKernelLayer = (temporary: TemporaryPersistence, backendTemplate: Age
 };
 
 const releaseRuntimeLayer = (temporary: TemporaryPersistence, backend: AgentBackend, capacity: BackendCapacitySource, attempts: Attempts) =>
-	BackendCapacityReleaseLive.pipe(Layer.provideMerge(domainKernelLayer(temporary, backend, capacity, attempts)));
+	BackendCapacityReleases.layer.pipe(Layer.provideMerge(domainKernelLayer(temporary, backend, capacity, attempts)));
 
 const parkWorkAndDurablyClear = Effect.gen(function* () {
 	const db = yield* Database;

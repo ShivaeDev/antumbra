@@ -5,7 +5,7 @@ import { capacityHoldDetail } from "@antumbra/sessions/admission/hold";
 import { expect, it } from "@effect/vitest";
 import { Deferred, Effect, Fiber, Layer, Option, Ref, Stream } from "effect";
 import { AgentDomain } from "#agent-domain-service.ts";
-import { BackendCapacityReleaseLive, BackendCapacityReleases } from "#backend-capacity-release.ts";
+import { BackendCapacityReleases } from "#backend-capacity-releases/service.ts";
 import {
 	dependencies,
 	type KernelService,
@@ -53,7 +53,7 @@ const assertStaleDetailSafety = (spawn: SpawnKind) =>
 		yield* domain.backendCapacities.clear(SCRIPTED);
 		const race = yield* makeStaleDetailRace;
 		yield* Layer.build(
-			BackendCapacityReleaseLive.pipe(Layer.provideMerge(Layer.mergeAll(Layer.succeed(Kernel, race.kernel), Layer.succeed(AgentDomain, domain)))),
+			BackendCapacityReleases.layer.pipe(Layer.provideMerge(Layer.mergeAll(Layer.succeed(Kernel, race.kernel), Layer.succeed(AgentDomain, domain)))),
 		);
 
 		expect(yield* Ref.get(race.attempted)).toEqual([capacityHoldDetail(SCRIPTED, "scripted quota exhausted")]);

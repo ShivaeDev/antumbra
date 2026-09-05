@@ -1,16 +1,10 @@
 import { SightSource } from "@antumbra/contract";
 import { Database, type NewAgentSession } from "@antumbra/persistence";
-import type { TemporaryPersistence } from "@antumbra/persistence/testing";
-import { SessionFabricLive } from "@antumbra/session-fabric";
 import { makeRefuseSubsessionAttach, SubsessionAttachRefused } from "@antumbra/sessions";
 import { CurrentSessions } from "@antumbra/sessions/current/service";
-import { expect, it } from "@effect/vitest";
-import { Effect, Layer, Result, Stream } from "effect";
-import { domainKernelLayer, sightSourceTestLayer } from "#test/domain-layers.ts";
-import { acquireTemporaryPersistence, makeScriptedBackend, type ScriptedBackend } from "#test/harness.ts";
-
-const sightLayer = (temporary: TemporaryPersistence, scripted: ScriptedBackend) =>
-	sightSourceTestLayer.pipe(Layer.provideMerge(domainKernelLayer(temporary, scripted.backend)), Layer.provideMerge(SessionFabricLive));
+import { it } from "@antumbra/testing";
+import { expect } from "@effect/vitest";
+import { Effect, Result, Stream } from "effect";
 
 const spawnRequest = {
 	backend: "scripted",
@@ -39,75 +33,57 @@ const openSubsession = (id: string, agentId: string, parentSessionId: string, ro
 		} satisfies NewAgentSession);
 	});
 
-it.live("the fleet lists root Sessions and never a subsession", () =>
-	Effect.gen(function* () {
-		const temporary = yield* acquireTemporaryPersistence;
-		const scripted = yield* makeScriptedBackend;
-		yield* Effect.gen(function* () {
-			const sight = yield* SightSource;
-			const receipt = yield* sight.spawn(spawnRequest);
-			yield* sight.fleetFeed.pipe(
-				Stream.filter((fleet) =>
-					fleet.agents.some((agent) => agent.id === receipt.agentId && agent.sessions.some((session) => session.id === receipt.sessionId)),
-				),
-				Stream.runHead,
-			);
+it.effectApp("the fleet lists root Sessions and never a subsession", function* () {
+	const sight = yield* SightSource;
+	const receipt = yield* sight.spawn(spawnRequest);
+	yield* sight.fleetFeed.pipe(
+		Stream.filter((fleet) =>
+			fleet.agents.some((agent) => agent.id === receipt.agentId && agent.sessions.some((session) => session.id === receipt.sessionId)),
+		),
+		Stream.runHead,
+	);
 
-			yield* openSubsession("session-child", receipt.agentId, receipt.sessionId, receipt.sessionId);
-			const fleet = yield* sight.fleet;
-			expect(fleet.agents.flatMap((agent) => agent.sessions).map((row) => row.id)).toEqual([receipt.sessionId]);
-		}).pipe(Effect.provide(sightLayer(temporary, scripted)));
-	}),
-);
+	yield* openSubsession("session-child", receipt.agentId, receipt.sessionId, receipt.sessionId);
+	const fleet = yield* sight.fleet;
+	expect(fleet.agents.flatMap((agent) => agent.sessions).map((row) => row.id)).toEqual([receipt.sessionId]);
+});
 
-it.live("a subsession is never a resume target", () =>
-	Effect.gen(function* () {
-		const temporary = yield* acquireTemporaryPersistence;
-		const scripted = yield* makeScriptedBackend;
-		yield* Effect.gen(function* () {
-			const sight = yield* SightSource;
-			const receipt = yield* sight.spawn(spawnRequest);
-			yield* sight.fleetFeed.pipe(
-				Stream.filter((fleet) =>
-					fleet.agents.some(
-						(agent) => agent.id === receipt.agentId && agent.status === "alive" && agent.sessions.some((session) => session.id === receipt.sessionId),
-					),
-				),
-				Stream.runHead,
-			);
-			yield* openSubsession("session-child", receipt.agentId, receipt.sessionId, receipt.sessionId);
+it.effectApp("a subsession is never a resume target", function* () {
+	const sight = yield* SightSource;
+	const receipt = yield* sight.spawn(spawnRequest);
+	yield* sight.fleetFeed.pipe(
+		Stream.filter((fleet) =>
+			fleet.agents.some(
+				(agent) => agent.id === receipt.agentId && agent.status === "alive" && agent.sessions.some((session) => session.id === receipt.sessionId),
+			),
+		),
+		Stream.runHead,
+	);
+	yield* openSubsession("session-child", receipt.agentId, receipt.sessionId, receipt.sessionId);
 
-			const current = yield* CurrentSessions;
-			expect(Result.isSuccess(yield* current.resumable(receipt.sessionId))).toBe(true);
-			const child = yield* current.resumable("session-child");
-			expect(Result.isFailure(child)).toBe(true);
-			if (Result.isFailure(child)) {
-				expect(child.failure._tag).toBe("no-root");
-			}
-		}).pipe(Effect.provide(sightLayer(temporary, scripted)));
-	}),
-);
+	const current = yield* CurrentSessions;
+	expect(Result.isSuccess(yield* current.resumable(receipt.sessionId))).toBe(true);
+	const child = yield* current.resumable("session-child");
+	expect(Result.isFailure(child)).toBe(true);
+	if (Result.isFailure(child)) {
+		expect(child.failure._tag).toBe("no-root");
+	}
+});
 
-it.live("the attachment seam refuses a subsession id outright", () =>
-	Effect.gen(function* () {
-		const temporary = yield* acquireTemporaryPersistence;
-		const scripted = yield* makeScriptedBackend;
-		yield* Effect.gen(function* () {
-			const sight = yield* SightSource;
-			const receipt = yield* sight.spawn(spawnRequest);
-			yield* sight.fleetFeed.pipe(
-				Stream.filter((fleet) =>
-					fleet.agents.some((agent) => agent.id === receipt.agentId && agent.sessions.some((session) => session.id === receipt.sessionId)),
-				),
-				Stream.runHead,
-			);
-			yield* openSubsession("session-child", receipt.agentId, receipt.sessionId, receipt.sessionId);
+it.effectApp("the attachment seam refuses a subsession id outright", function* () {
+	const sight = yield* SightSource;
+	const receipt = yield* sight.spawn(spawnRequest);
+	yield* sight.fleetFeed.pipe(
+		Stream.filter((fleet) =>
+			fleet.agents.some((agent) => agent.id === receipt.agentId && agent.sessions.some((session) => session.id === receipt.sessionId)),
+		),
+		Stream.runHead,
+	);
+	yield* openSubsession("session-child", receipt.agentId, receipt.sessionId, receipt.sessionId);
 
-			const refuseSubsession = yield* makeRefuseSubsessionAttach;
-			yield* refuseSubsession(receipt.sessionId);
-			const refused = yield* Effect.flip(refuseSubsession("session-child"));
-			expect(refused).toBeInstanceOf(SubsessionAttachRefused);
-			expect(refused.message).toContain(receipt.sessionId);
-		}).pipe(Effect.provide(sightLayer(temporary, scripted)));
-	}),
-);
+	const refuseSubsession = yield* makeRefuseSubsessionAttach;
+	yield* refuseSubsession(receipt.sessionId);
+	const refused = yield* Effect.flip(refuseSubsession("session-child"));
+	expect(refused).toBeInstanceOf(SubsessionAttachRefused);
+	expect(refused.message).toContain(receipt.sessionId);
+});

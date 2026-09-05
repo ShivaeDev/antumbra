@@ -20,6 +20,8 @@ packages a macOS build with `pnpm --filter @antumbra/desktop package`.
 - [Design guides](docs/design/README.md) — the relationships, acts, and rationale behind that language.
 - [Branding](docs/branding.md) — the wordmark, the dark palette, the type scale, and the copy register.
 
+- [Running tests](docs/contributing/tests.md) — test commands and local worktree coordination.
+
 ## License
 
 [MIT](LICENSE)

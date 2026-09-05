@@ -9,7 +9,7 @@
 	},
 	"scripts": {
 		"dev": "node script/dev.ts",
-		"test": "vitest run",
+		"test": "node ../../script/test.ts",
 		"typecheck": "tsc --noEmit",
 		"typecheck:compat": "tsc6 --noEmit"
 	},

@@ -592,6 +592,9 @@ importers:
       '@antumbra/prompts':
         specifier: workspace:*
         version: link:../prompts
+      '@antumbra/provider-capacity':
+        specifier: workspace:*
+        version: link:../provider-capacity
       '@antumbra/reports':
         specifier: workspace:*
         version: link:../reports
@@ -942,6 +945,46 @@ importers:
         specifier: 'catalog:'
         version: 4.0.0-rc.112
     devDependencies:
+      '@effect/vitest':
+        specifier: 'catalog:'
+        version: 4.0.0-rc.112(effect@4.0.0-rc.112)(vitest@4.1.9(@types/node@24.10.1)(happy-dom@20.11.2)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0)))
+      '@types/node':
+        specifier: 'catalog:'
+        version: 24.10.1
+      '@typescript/native':
+        specifier: 'catalog:'
+        version: typescript@7.0.2
+      typescript:
+        specifier: 'catalog:'
+        version: '@typescript/typescript6@6.0.2'
+      vitest:
+        specifier: 'catalog:'
+        version: 4.1.9(@types/node@24.10.1)(happy-dom@20.11.2)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0))
+
+  packages/provider-capacity:
+    dependencies:
+      '@antumbra/domain-feeds':
+        specifier: workspace:*
+        version: link:../domain-feeds
+      '@antumbra/persistence':
+        specifier: workspace:*
+        version: link:../persistence
+      '@antumbra/plugin-api':
+        specifier: workspace:*
+        version: link:../plugin-api
+      '@antumbra/service-definition':
+        specifier: workspace:*
+        version: link:../service-definition
+      '@antumbra/vocabulary':
+        specifier: workspace:*
+        version: link:../vocabulary
+      effect:
+        specifier: 'catalog:'
+        version: 4.0.0-rc.112
+    devDependencies:
+      '@antumbra/testing-runtime':
+        specifier: workspace:*
+        version: link:../testing-runtime
       '@effect/vitest':
         specifier: 'catalog:'
         version: 4.0.0-rc.112(effect@4.0.0-rc.112)(vitest@4.1.9(@types/node@24.10.1)(happy-dom@20.11.2)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0)))

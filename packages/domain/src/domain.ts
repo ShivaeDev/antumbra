@@ -1,5 +1,6 @@
 import { ChangeHeldResourceReadLive } from "@antumbra/changes";
 import type { AgentBackend, ChangeHost, Runner } from "@antumbra/plugin-api";
+import { BackendCapacitiesLive } from "@antumbra/provider-capacity";
 import { ResourceReclaimRunnersLive, type ResourceReconcileOptions, ResourceReconcilerLive } from "@antumbra/resource-reclamation";
 import { SessionFabricLive } from "@antumbra/session-fabric";
 import { SessionInputsLive } from "@antumbra/session-inputs";
@@ -22,6 +23,7 @@ export const AgentDomainLive = (
 	const capabilities = domainCapabilities(changeHosts, runners, artifactsDirectory);
 	return Layer.effect(AgentDomain)(makeAgentDomain(backends, runners)).pipe(
 		Layer.provide(LiveDelegationsLive),
+		Layer.provide(BackendCapacitiesLive(backends)),
 		Layer.provide(
 			ResourceReconcilerLive(reclaimOptions).pipe(Layer.provide(ChangeHeldResourceReadLive), Layer.provide(ResourceReclaimRunnersLive(runners))),
 		),

@@ -2,13 +2,12 @@ import { dirname, join } from "node:path";
 import { defineIntent, type IntentExecution, type IntentKind, type Kernel, KernelLive } from "@antumbra/kernel";
 import type { TemporaryPersistence } from "@antumbra/persistence/testing";
 import type { AgentBackend } from "@antumbra/plugin-api";
+import type { BackendCapacityReading, BackendCapacityService } from "@antumbra/provider-capacity";
 import { type WakeFields, WakePayload } from "@antumbra/sessions";
 import { SettingsSourceLive } from "@antumbra/settings";
 import { NodeServices } from "@effect/platform-node";
 import { Effect, Layer, Ref, Stream } from "effect";
 import { AgentDomain } from "#agent-domain-service.ts";
-import type { BackendCapacities } from "#backend-capacity.ts";
-import type { BackendCapacityReading } from "#backend-capacity-model.ts";
 import { BackendCapacityReleaseLive } from "#backend-capacity-release.ts";
 import { AgentDomainLive } from "#domain.ts";
 import { type SpawnFields, SpawnPayload } from "#spawn-fields.ts";
@@ -37,16 +36,15 @@ export const makeCapacities = Effect.gen(function* () {
 		status: "blocked",
 	});
 	const current = () => Ref.get(state).pipe(Effect.map(readingOf));
-	const capacities: BackendCapacities = {
-		admit: () => Effect.void,
-		announce: Effect.void,
+	const capacities: BackendCapacityService = {
+		announce: () => Effect.void,
 		clear: () =>
 			Ref.set(state, {
 				detail: null,
 				status: "available",
 			}),
 		current: () => current(),
-		snapshot: current().pipe(Effect.map((reading) => [reading])),
+		snapshot: () => current().pipe(Effect.map((reading) => [reading])),
 	};
 	return { capacities, state };
 });
@@ -71,7 +69,7 @@ export const spawnPayload = (name: string): SpawnFields => ({
 
 export const wakePayload = (name: string): WakeFields => ({ sessionId: name });
 
-const makeReleaseDomain = (capacities: BackendCapacities, spawn: IntentKind<SpawnFields>, wake: IntentKind<WakeFields>) =>
+const makeReleaseDomain = (capacities: BackendCapacityService, spawn: IntentKind<SpawnFields>, wake: IntentKind<WakeFields>) =>
 	Effect.map(AgentDomain, (template) =>
 		AgentDomain.of({
 			...template,
@@ -94,7 +92,7 @@ export const templateDomainLayer = (temporary: TemporaryPersistence, backend: Ag
 
 export const withReleaseDomain = (
 	temporary: TemporaryPersistence,
-	capacities: BackendCapacities,
+	capacities: BackendCapacityService,
 	spawn: IntentKind<SpawnFields>,
 	wake: IntentKind<WakeFields>,
 	use: (domain: AgentDomainService) => Effect.Effect<void, unknown>,

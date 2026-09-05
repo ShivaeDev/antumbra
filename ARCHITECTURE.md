@@ -111,6 +111,9 @@ settlement, and the mortal reconcile loop. `changes` owns the whole durable Chan
 a read the reclaimer is handed; Domain composes the two capabilities. Resource reclamation never imports Change truth, Domain, applications, or
 providers.
 
+`provider-capacity` owns durable provider capacity readings, historical capacity evidence, and the scoped observation of registered backend capacity
+sources. Domain composes the capability and owns capacity admission waits and the release of waiting Intents.
+
 `session-fabric` owns live Session attachment: opening a backend session, pumping its events, confirming native identity, and gating starts against
 stops. Everything it holds is process memory that may disappear at exit — handles, fibers, semaphores — rebuilt empty at boot, so the capability
 persists nothing and reaches no further than the driven ports. Domain composes it and supplies the durable event sink.

@@ -3,11 +3,11 @@ import type { IntentDemandRegistration } from "@antumbra/intent-demand";
 import type { AnyIntentKind, IntentKind } from "@antumbra/kernel";
 import type { BackendFailure } from "@antumbra/plugin-api";
 import type { AgentPrompt } from "@antumbra/prompts";
+import type { BackendCapacityService } from "@antumbra/provider-capacity";
 import type { RepoRegistry } from "@antumbra/repos";
 import type { SessionInputDraft } from "@antumbra/session-inputs";
 import type { SessionSendReceipt, SessionSendRefused, SiestaFields, WakeFields } from "@antumbra/sessions";
 import { Context, type Effect } from "effect";
-import type { BackendCapacities } from "#backend-capacity.ts";
 import type { ChangeProcedures } from "#change-procedures.ts";
 import type { SessionNotLive } from "#errors.ts";
 import type { RetireFields } from "#retire.ts";
@@ -17,7 +17,7 @@ import type { VoyageProcedures } from "#voyages.ts";
 export class AgentDomain extends Context.Service<
 	AgentDomain,
 	{
-		readonly backendCapacities: BackendCapacities;
+		readonly backendCapacities: BackendCapacityService;
 		readonly backends: ReadonlyArray<string>;
 		readonly boards: BoardsService;
 		readonly changes: ChangeProcedures;

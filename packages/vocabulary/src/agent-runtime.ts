@@ -2,6 +2,7 @@ export {
 	agentTransition,
 	InvalidAgentTransition,
 } from "#agent-runtime/agent-lifecycle.ts";
+export { AgentNotFound } from "#agent-runtime/missing.ts";
 export {
 	decodeSessionExecutionStatus,
 	InvalidSessionExecutionStatus,

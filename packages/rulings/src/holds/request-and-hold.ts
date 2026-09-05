@@ -1,10 +1,10 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Effect, Option, PubSub } from "effect";
 import type { RulingRequest } from "#acts.ts";
+import { makeHolding } from "#holds/holding.ts";
+import type { RuledRuling } from "#holds/ruled.ts";
+import type { RulingHoldState } from "#holds/state.ts";
 import type { Ruling } from "#model.ts";
-import { makeHolding } from "#ruling-holds/holding.ts";
-import type { RuledRuling } from "#ruling-holds/ruled-ruling.ts";
-import type { RulingHoldState } from "#ruling-holds/state.ts";
 import { Rulings } from "#rulings.ts";
 
 const ruledOf = (ruling: Ruling): Option.Option<RuledRuling> => Option.map(ruling.answer, (answer) => ({ answer, ruling }));

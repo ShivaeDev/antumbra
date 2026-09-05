@@ -1,6 +1,7 @@
 import { bind, requestRulingSpec } from "@antumbra/agent-tools";
 import type { DirectTool, DirectToolOutcome } from "@antumbra/plugin-api";
-import { type Ruling, RulingHolds, type RulingRequest, Rulings } from "@antumbra/rulings";
+import { type Ruling, type RulingRequest, Rulings } from "@antumbra/rulings";
+import { RulingHolds } from "@antumbra/rulings/holds/service";
 import type { RulingAuthority } from "@antumbra/vocabulary/ruling";
 import { Effect } from "effect";
 import { CaptainMembership } from "#captain-membership.ts";

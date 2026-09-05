@@ -61,24 +61,33 @@ export const countsOfVoyage = (
 export const voyageView = (world: VoyageDetailRows, voyage: VoyageRow): VoyageView => {
 	const states = pieceStates(world);
 	const pieces = memberPieces(world, voyage.id).map((piece) => pieceView(world, states, piece));
+	const captain = captainOf(world, voyage.id);
+	const counts = countStates(pieces.map((piece) => piece.state));
 	return {
 		...voyage,
-		captain: captainOf(world, voyage.id),
-		counts: countStates(pieces.map((piece) => piece.state)),
+		captain,
+		counts,
 		crew: crewOf(world, voyage.id),
 		lastStirredAt: lastStirredAt(world, voyage.id),
 		pieces,
-		state: voyageState(world, states, voyage.id),
+		state: voyageState(counts.active, captain),
 	};
 };
 
 export const voyageSummaries = (world: VoyageSummaryRows): ReadonlyArray<VoyageSummary> => {
 	const states = pieceStates(world);
-	return world.voyages.map((voyage) => ({
-		...voyage,
-		captain: captainOf(world, voyage.id),
-		counts: countsOfVoyage(world, states, voyage.id),
-		lastStirredAt: lastStirredAt(world, voyage.id),
-		state: voyageState(world, states, voyage.id),
-	}));
+	const memberships = Map.groupBy(world.memberships, (membership) => membership.voyageId);
+	const crews = Map.groupBy(world.crews, (crew) => crew.voyageId);
+	return world.voyages.map((voyage) => {
+		const rows = { ...world, memberships: memberships.get(voyage.id) ?? [], crews: crews.get(voyage.id) ?? [] };
+		const captain = captainOf(rows, voyage.id);
+		const counts = countsOfVoyage(rows, states, voyage.id);
+		return {
+			...voyage,
+			captain,
+			counts,
+			lastStirredAt: lastStirredAt(rows, voyage.id),
+			state: voyageState(counts.active, captain),
+		};
+	});
 };

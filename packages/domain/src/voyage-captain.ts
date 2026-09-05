@@ -39,9 +39,6 @@ const hailedLast = (world: CaptainWorld, members: ReadonlyArray<VoyageCrewMember
 	return latest;
 };
 
-export const captainAtWork = (world: CaptainWorld, voyageId: string): Option.Option<VoyageCaptain> =>
-	workingCaptain(world, captains(world, voyageId));
-
 export const captainOf = (world: CaptainWorld, voyageId: string): Option.Option<VoyageCaptain> => {
 	const members = captains(world, voyageId);
 	const working = workingCaptain(world, members);

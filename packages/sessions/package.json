@@ -5,8 +5,7 @@
 	"type": "module",
 	"exports": {
 		".": "./src/index.ts",
-		"./admission/hold": "./src/admission/hold.ts",
-		"./admission/admit": "./src/admission/admit.ts"
+		"./*": "./src/*.ts"
 	},
 	"imports": {
 		"#test/*": "./test/*",

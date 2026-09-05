@@ -5,8 +5,7 @@
 	"type": "module",
 	"exports": {
 		".": "./src/index.ts",
-		"./service": "./src/service.ts",
-		"./model": "./src/model.ts"
+		"./*": "./src/*.ts"
 	},
 	"imports": {
 		"#test/*": "./test/*",

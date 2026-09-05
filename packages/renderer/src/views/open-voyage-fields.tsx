@@ -1,122 +1,86 @@
-import { useId } from "react";
-import { Input } from "#components/ui/input.tsx";
-import { Select, SelectContent, SelectTrigger, SelectValue } from "#components/ui/select.tsx";
-import { SelectItem } from "#components/ui/select-parts.tsx";
-import { Textarea } from "#components/ui/textarea.tsx";
-import { effortsFor, type ModelCatalog } from "#hooks/backend-models.ts";
-import { LabelledField } from "#views/field.tsx";
-import { type AgentDraft, type VoyageDraft, withBackend } from "#views/open-voyage-draft.ts";
+import { withFieldGroup } from "#forms/hook.ts";
+import { emptyCatalog, type ModelCatalog } from "#hooks/backend-models.ts";
+import { AgentSettingsChoice } from "#views/agent-settings-choice.tsx";
+import { emptyDraft } from "#views/open-voyage-draft.ts";
 
-const RoleRow = ({
-	agent,
-	backends,
-	catalog,
-	label,
-	onChange,
-}: {
-	readonly agent: AgentDraft;
-	readonly backends: ReadonlyArray<string>;
-	readonly catalog: ModelCatalog;
-	readonly label: string;
-	readonly onChange: (agent: AgentDraft) => void;
-}) => {
-	const models = useId();
-	const efforts = useId();
-	return (
-		<>
-			<span className="text-xs">{label}</span>
-			<Select disabled={backends.length === 0} onValueChange={(backend) => onChange(withBackend(backend))} value={agent.backend}>
-				<SelectTrigger aria-label={`${label} backend`}>
-					<SelectValue />
-				</SelectTrigger>
-				<SelectContent>
-					{backends.map((tag) => (
-						<SelectItem key={tag} value={tag}>
-							{tag}
-						</SelectItem>
-					))}
-				</SelectContent>
-			</Select>
-			<div className="min-w-0">
-				<Input
-					aria-label={`${label} model`}
-					list={models}
-					onChange={(event) => onChange({ ...agent, model: event.target.value })}
-					placeholder="default"
-					value={agent.model}
-				/>
-				<datalist id={models}>
-					{catalog.choices.map((choice) => (
-						<option key={choice.id} value={choice.id}>
-							{choice.name}
-						</option>
-					))}
-				</datalist>
-			</div>
-			<div className="min-w-0">
-				<Input
-					aria-label={`${label} effort`}
-					list={efforts}
-					onChange={(event) => onChange({ ...agent, effort: event.target.value })}
-					placeholder="default"
-					value={agent.effort}
-				/>
-				<datalist id={efforts}>
-					{effortsFor(catalog, agent.model).map((offered) => (
-						<option key={offered} value={offered} />
-					))}
-				</datalist>
-			</div>
-			{catalog.failure === null ? null : (
-				<p className="col-span-4 text-2xs text-destructive">{`${label} models could not be listed: ${catalog.failure}. Name one yourself.`}</p>
-			)}
-		</>
-	);
+const roleProps: { readonly backends: ReadonlyArray<string>; readonly backend: string; readonly catalog: ModelCatalog; readonly label: string } = {
+	backends: [],
+	backend: "",
+	catalog: emptyCatalog,
+	label: "",
 };
+const RoleRow = withFieldGroup({
+	defaultValues: emptyDraft.captain,
+	props: roleProps,
+	render: ({ group, backends, backend, catalog, label }) => {
+		const choices = backends.map((tag) => ({ value: tag, label: tag }));
+		return (
+			<>
+				<span className="text-xs">{label}</span>
+				<group.AppField
+					name="backend"
+					listeners={{
+						onChange: () => {
+							group.setFieldValue("model", "");
+							group.setFieldValue("effort", "");
+						},
+					}}
+				>
+					{(field) => (
+						<field.SelectField
+							label={<span className="sr-only">{`${label} backend`}</span>}
+							aria-label={`${label} backend`}
+							value={backend}
+							choices={choices}
+							placeholder=""
+							disabled={backends.length === 0}
+						/>
+					)}
+				</group.AppField>
+				<AgentSettingsChoice
+					form={group}
+					fields={{ model: "model", effort: "effort" }}
+					catalog={catalog}
+					label={label}
+					labelClassName="sr-only"
+					placeholder="default"
+				/>
+			</>
+		);
+	},
+});
 
-const ColumnHeadings = () => (
-	<>
-		<span />
-		<span className="text-2xs text-muted-foreground">Backend</span>
-		<span className="text-2xs text-muted-foreground">Model</span>
-		<span className="text-2xs text-muted-foreground">Effort</span>
-	</>
-);
-
-export const VoyageFields = ({
-	backends,
-	captainCatalog,
-	crewCatalog,
-	draft,
-	onChange,
-}: {
+const voyageProps: {
 	readonly backends: ReadonlyArray<string>;
+	readonly captainBackend: string;
+	readonly crewBackend: string;
 	readonly captainCatalog: ModelCatalog;
 	readonly crewCatalog: ModelCatalog;
-	readonly draft: VoyageDraft;
-	readonly onChange: (draft: VoyageDraft) => void;
-}) => (
-	<div className="flex min-w-0 flex-col gap-3">
-		<LabelledField label="Name">
-			{(id) => <Input id={id} onChange={(event) => onChange({ ...draft, name: event.target.value })} value={draft.name} />}
-		</LabelledField>
-		<LabelledField label="North star">
-			{(id) => <Input id={id} onChange={(event) => onChange({ ...draft, northStar: event.target.value })} value={draft.northStar} />}
-		</LabelledField>
-		<LabelledField label="Context">
-			{(id) => <Textarea id={id} onChange={(event) => onChange({ ...draft, context: event.target.value })} rows={3} value={draft.context} />}
-		</LabelledField>
-		<div className="grid min-w-0 grid-cols-[auto_7rem_1fr_6rem] items-center gap-x-2 gap-y-1">
-			<ColumnHeadings />
-			<RoleRow
-				agent={draft.captain}
-				backends={backends}
-				catalog={captainCatalog}
-				label="Captain"
-				onChange={(captain) => onChange({ ...draft, captain })}
-			/>
-			<RoleRow agent={draft.crew} backends={backends} catalog={crewCatalog} label="Crew" onChange={(crew) => onChange({ ...draft, crew })} />
-			{backends.length === 0 ? <p className="col-span-4 text-2xs text-muted-foreground">No backend is registered.</p> : null}
-		</div>
-	</div>
-);
+} = {
+	backends: [],
+	captainBackend: "",
+	crewBackend: "",
+	captainCatalog: emptyCatalog,
+	crewCatalog: emptyCatalog,
+};
+
+export const VoyageFields = withFieldGroup({
+	defaultValues: emptyDraft,
+	props: voyageProps,
+	render: ({ group, backends, captainBackend, crewBackend, captainCatalog, crewCatalog }) => (
+		<>
+			<group.AppField name="name">{(field) => <field.TextField label="Name" />}</group.AppField>
+			<group.AppField name="northStar">{(field) => <field.TextField label="North star" />}</group.AppField>
+			<group.AppField name="context">{(field) => <field.TextareaField label="Context" />}</group.AppField>
+			<div className="grid min-w-0 grid-cols-[auto_7rem_1fr_6rem] items-center gap-x-2 gap-y-1">
+				<span />
+				<span className="text-2xs text-muted-foreground">Backend</span>
+				<span className="text-2xs text-muted-foreground">Model</span>
+				<span className="text-2xs text-muted-foreground">Effort</span>
+				<RoleRow form={group} fields="captain" backends={backends} backend={captainBackend} catalog={captainCatalog} label="Captain" />
+				<RoleRow form={group} fields="crew" backends={backends} backend={crewBackend} catalog={crewCatalog} label="Crew" />
+				{backends.length === 0 ? <p className="col-span-full text-2xs text-muted-foreground">No backend is registered.</p> : null}
+			</div>
+		</>
+	),
+});

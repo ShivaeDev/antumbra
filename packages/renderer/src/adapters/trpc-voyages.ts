@@ -50,18 +50,22 @@ export const readReportMarkdown = (reportId: string, onDone: (report: ReportMark
 		.catch((cause: unknown) => onError(toError(cause).message));
 };
 
-export const openVoyage = (request: OpenVoyageRequest, onDone: (voyage: VoyageSummary) => void, onError: OnError): void => {
-	client.openVoyage
-		.mutate(request)
-		.then(onDone)
-		.catch((cause: unknown) => onError(toError(cause).message));
-};
+export const openVoyage = Effect.fn("Renderer.openVoyage")((request: OpenVoyageRequest) =>
+	Effect.tryPromise({
+		try: () => client.openVoyage.mutate(request),
+		catch: (cause) => new RendererRequestError({ message: toError(cause).message }),
+	}),
+);
 
 export const focusVoyage = (voyageId: string, focused: boolean, onError: OnError): void =>
 	fired(client.focusVoyage.mutate({ focused, voyageId }), onError);
 
-export const setAgentSettings = (request: VoyageAgentSettingsRequest, onError: OnError): void =>
-	fired(client.setAgentSettings.mutate(request), onError);
+export const setAgentSettings = Effect.fn("Renderer.setAgentSettings")((request: VoyageAgentSettingsRequest) =>
+	Effect.tryPromise({
+		try: () => client.setAgentSettings.mutate(request),
+		catch: (cause) => new RendererRequestError({ message: toError(cause).message }),
+	}),
+);
 
 export const setCaptainBackend = (request: VoyageBackendRequest, onError: OnError): void => fired(client.setCaptainBackend.mutate(request), onError);
 

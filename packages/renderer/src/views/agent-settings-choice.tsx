@@ -1,66 +1,46 @@
-import { useId } from "react";
-import { Input } from "#components/ui/input.tsx";
-import { effortsFor, type ModelCatalog } from "#hooks/backend-models.ts";
-import { LabelledField } from "#views/field.tsx";
+import { useStore } from "@tanstack/react-form";
+import { withFieldGroup } from "#forms/hook.ts";
+import { effortsFor, emptyCatalog, type ModelCatalog } from "#hooks/backend-models.ts";
 
-export const AgentSettingsChoice = ({
-	catalog,
-	effort,
-	label,
-	model,
-	onChange,
-}: {
-	readonly catalog: ModelCatalog;
-	readonly effort: string;
-	readonly label: string;
-	readonly model: string;
-	readonly onChange: (chosen: { readonly effort: string; readonly model: string }) => void;
-}) => {
-	const models = useId();
-	const efforts = useId();
-	return (
-		<div className="flex min-w-0 flex-wrap items-end gap-2">
-			<div className="min-w-40 flex-1">
-				<LabelledField label={`${label} model`}>
-					{(id) => (
-						<Input
-							id={id}
-							list={models}
-							onChange={(event) => onChange({ effort, model: event.target.value })}
-							placeholder="the backend's own"
-							value={model}
-						/>
-					)}
-				</LabelledField>
-				<datalist id={models}>
-					{catalog.choices.map((choice) => (
-						<option key={choice.id} value={choice.id}>
-							{choice.name}
-						</option>
-					))}
-				</datalist>
-			</div>
-			<div className="min-w-24">
-				<LabelledField label={`${label} effort`}>
-					{(id) => (
-						<Input
-							id={id}
-							list={efforts}
-							onChange={(event) => onChange({ effort: event.target.value, model })}
-							placeholder="the backend's own"
-							value={effort}
-						/>
-					)}
-				</LabelledField>
-				<datalist id={efforts}>
-					{effortsFor(catalog, model).map((offered) => (
-						<option key={offered} value={offered} />
-					))}
-				</datalist>
-			</div>
-			{catalog.failure === null ? null : (
-				<p className="w-full text-2xs text-destructive">{`${label} models could not be listed: ${catalog.failure}. Name one yourself.`}</p>
-			)}
-		</div>
-	);
+const props: { readonly catalog: ModelCatalog; readonly label: string; readonly labelClassName?: string; readonly placeholder: string } = {
+	catalog: emptyCatalog,
+	label: "",
+	placeholder: "the backend's own",
 };
+
+export const AgentSettingsChoice = withFieldGroup({
+	defaultValues: { model: "", effort: "" },
+	props,
+	render: ({ group, catalog, label, labelClassName, placeholder }) => {
+		const model = useStore(group.store, (state) => state.values.model);
+		const models = catalog.choices.map((choice) => ({ value: choice.id, label: choice.name }));
+		const efforts = effortsFor(catalog, model).map((offered) => ({ value: offered, label: offered }));
+		return (
+			<>
+				<group.AppField name="model">
+					{(field) => (
+						<field.DatalistField
+							label={<span className={labelClassName}>{`${label} model`}</span>}
+							aria-label={`${label} model`}
+							choices={models}
+							placeholder={placeholder}
+						/>
+					)}
+				</group.AppField>
+				<group.AppField name="effort">
+					{(field) => (
+						<field.DatalistField
+							label={<span className={labelClassName}>{`${label} effort`}</span>}
+							aria-label={`${label} effort`}
+							choices={efforts}
+							placeholder={placeholder}
+						/>
+					)}
+				</group.AppField>
+				{catalog.failure === null ? null : (
+					<p className="col-span-full w-full text-2xs text-destructive">{`${label} models could not be listed: ${catalog.failure}. Name one yourself.`}</p>
+				)}
+			</>
+		);
+	},
+});

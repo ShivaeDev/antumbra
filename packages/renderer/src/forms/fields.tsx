@@ -7,7 +7,7 @@ import { Textarea } from "#components/ui/textarea.tsx";
 import { useFieldContext } from "#forms/context.ts";
 import { errorMessage } from "#forms/messages.ts";
 
-export const Field = ({ label, children }: { readonly label: string; readonly children: (id: string) => ReactNode }) => {
+export const Field = ({ label, children }: { readonly label: ReactNode; readonly children: (id: string) => ReactNode }) => {
 	const field = useFieldContext<unknown>();
 	const state = useStore(field.store);
 	return (
@@ -25,17 +25,20 @@ export const Field = ({ label, children }: { readonly label: string; readonly ch
 	);
 };
 
-export const TextField = ({ label, placeholder }: { readonly label: string; readonly placeholder?: string }) => {
+export const TextField = ({
+	label,
+	...props
+}: Omit<ComponentProps<typeof Input>, "value" | "defaultValue" | "onChange" | "onBlur" | "name" | "id"> & { readonly label: ReactNode }) => {
 	const field = useFieldContext<string>();
 	const state = useStore(field.store);
 	return (
 		<Field label={label}>
 			{(id) => (
 				<Input
+					{...props}
 					id={id}
 					name={field.name}
 					value={state.value}
-					placeholder={placeholder}
 					onBlur={field.handleBlur}
 					onChange={(event) => field.handleChange(event.target.value)}
 					aria-invalid={state.meta.isTouched && !state.meta.isValid}
@@ -79,7 +82,7 @@ export const SelectField = ({
 	...triggerProps
 }: Omit<ComponentProps<typeof SelectTrigger>, "id" | "onBlur" | "children" | "value"> &
 	Pick<ComponentProps<typeof Select>, "value"> & {
-		readonly label: string;
+		readonly label: ReactNode;
 		readonly placeholder: string;
 		readonly choices: ReadonlyArray<{ readonly value: string; readonly label: string }>;
 	}) => {

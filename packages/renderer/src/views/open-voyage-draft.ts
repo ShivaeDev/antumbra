@@ -1,18 +1,16 @@
 import type { OpenVoyageRequest } from "@antumbra/contract";
+import { Schema } from "effect";
 
-export interface AgentDraft {
-	readonly backend: string;
-	readonly effort: string;
-	readonly model: string;
-}
-
-export interface VoyageDraft {
-	readonly captain: AgentDraft;
-	readonly context: string;
-	readonly crew: AgentDraft;
-	readonly name: string;
-	readonly northStar: string;
-}
+export const agentDraftSchema = Schema.Struct({ backend: Schema.String, effort: Schema.String, model: Schema.String });
+export type AgentDraft = typeof agentDraftSchema.Type;
+export const voyageDraftSchema = Schema.Struct({
+	captain: agentDraftSchema,
+	crew: agentDraftSchema,
+	context: Schema.String,
+	name: Schema.NonEmptyString,
+	northStar: Schema.NonEmptyString,
+});
+export type VoyageDraft = typeof voyageDraftSchema.Type;
 
 const noSettings: AgentDraft = { backend: "", effort: "", model: "" };
 
@@ -38,7 +36,5 @@ export const withChosenBackends = (backends: ReadonlyArray<string>, draft: Voyag
 	captain: { ...draft.captain, backend: chosenBackend(backends, draft.captain.backend) },
 	crew: { ...draft.crew, backend: chosenBackend(backends, draft.crew.backend) },
 });
-
-export const withBackend = (backend: string): AgentDraft => ({ backend, effort: "", model: "" });
 
 export const withPresetModel = (agent: AgentDraft, model: string): AgentDraft => (model === "" || agent.model !== "" ? agent : { ...agent, model });

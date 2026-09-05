@@ -2,6 +2,7 @@ import { expect, it } from "@effect/vitest";
 import { Effect } from "effect";
 import { act } from "react";
 import { createRoot } from "react-dom/client";
+import { useAppForm } from "#forms/hook.ts";
 import type { ModelCatalog } from "#hooks/backend-models.ts";
 import { type AgentDraft, emptyDraft, type VoyageDraft, withPresetModel } from "#views/open-voyage-draft.ts";
 import { VoyageFields } from "#views/open-voyage-fields.tsx";
@@ -30,22 +31,46 @@ const settle = (change: () => void): Effect.Effect<void> =>
 		}),
 	);
 
-const shown = (captainCatalog: ModelCatalog, crewCatalog: ModelCatalog, draft: VoyageDraft, onChange: (draft: VoyageDraft) => void) =>
+const Fields = ({
+	captainCatalog,
+	crewCatalog,
+	draft,
+}: {
+	readonly captainCatalog: ModelCatalog;
+	readonly crewCatalog: ModelCatalog;
+	readonly draft: VoyageDraft;
+}) => {
+	const form = useAppForm({ defaultValues: draft });
+	return (
+		<VoyageFields
+			form={form}
+			fields={{ captain: "captain", crew: "crew", name: "name", northStar: "northStar", context: "context" }}
+			backends={["claude", "codex"]}
+			captainBackend={draft.captain.backend}
+			crewBackend={draft.crew.backend}
+			captainCatalog={captainCatalog}
+			crewCatalog={crewCatalog}
+		/>
+	);
+};
+const shown = (captainCatalog: ModelCatalog, crewCatalog: ModelCatalog, draft: VoyageDraft) =>
 	Effect.gen(function* () {
 		const container = document.createElement("div");
+		document.body.append(container);
 		const root = createRoot(container);
-		yield* settle(() =>
-			root.render(
-				<VoyageFields backends={["claude", "codex"]} captainCatalog={captainCatalog} crewCatalog={crewCatalog} draft={draft} onChange={onChange} />,
-			),
+		yield* Effect.addFinalizer(() =>
+			settle(() => {
+				root.unmount();
+				container.remove();
+			}),
 		);
+		yield* settle(() => root.render(<Fields captainCatalog={captainCatalog} crewCatalog={crewCatalog} draft={draft} />));
 		return container;
 	});
 
 const offered = (container: HTMLElement): ReadonlyArray<ReadonlyArray<string>> =>
 	[...container.querySelectorAll("datalist")].map((list) => [...list.querySelectorAll("option")].map((option) => option.value));
 
-// React controlled inputs observe the prototype value setter.
 const nativeValue = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")?.set;
 
 const fieldNamed = (container: HTMLElement, name: string): HTMLInputElement | null =>
@@ -57,7 +82,6 @@ it.effect("each role offers the models of its own backend and the efforts of its
 			claudeModels,
 			codexModels,
 			draftOf({ backend: "claude", model: "sonnet" }, { backend: "codex", model: "gpt-5-codex" }),
-			() => undefined,
 		);
 
 		expect(offered(container)).toEqual([["sonnet", "opus"], ["low", "medium"], ["gpt-5-codex"], ["high"]]);
@@ -66,8 +90,7 @@ it.effect("each role offers the models of its own backend and the efforts of its
 
 it.effect("the form takes a model the list lacks", () =>
 	Effect.gen(function* () {
-		const drafts: Array<VoyageDraft> = [];
-		const container = yield* shown(claudeModels, claudeModels, emptyDraft, (draft) => drafts.push(draft));
+		const container = yield* shown(claudeModels, claudeModels, emptyDraft);
 		const model = fieldNamed(container, "Crew model");
 
 		yield* settle(() => {
@@ -78,13 +101,13 @@ it.effect("the form takes a model the list lacks", () =>
 			model.dispatchEvent(new Event("input", { bubbles: true }));
 		});
 
-		expect(drafts.at(-1)?.crew.model).toBe("a-model-nobody-listed");
+		expect(model?.value).toBe("a-model-nobody-listed");
 	}),
 );
 
 it.effect("a backend that cannot list its models still leaves that role's fields to type in", () =>
 	Effect.gen(function* () {
-		const container = yield* shown({ choices: [], failure: "claude: no executable found" }, codexModels, emptyDraft, () => undefined);
+		const container = yield* shown({ choices: [], failure: "claude: no executable found" }, codexModels, emptyDraft);
 
 		expect(container.textContent).toContain("Captain models could not be listed: claude: no executable found");
 		expect(fieldNamed(container, "Captain model")?.value).toBe("");

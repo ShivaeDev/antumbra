@@ -30,7 +30,6 @@ export const VoyageHeader = ({ onError, voyage }: { readonly onError: (message: 
 				key={`captain-${voyage.captainBackend}`}
 				label="Captain"
 				model={voyage.captainModel}
-				onError={onError}
 				voyageId={voyage.id}
 			/>
 			<AgentSettingsEditor
@@ -40,7 +39,6 @@ export const VoyageHeader = ({ onError, voyage }: { readonly onError: (message: 
 				key={`crew-${voyage.crewBackend}`}
 				label="Crew"
 				model={voyage.crewModel}
-				onError={onError}
 				voyageId={voyage.id}
 			/>
 		</div>

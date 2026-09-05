@@ -1,6 +1,5 @@
 import { DomainFeedsLive } from "@antumbra/domain-feeds";
 import { Database, type NewAgentSession } from "@antumbra/persistence";
-import { acquireTemporaryPersistence, type TemporaryPersistence } from "@antumbra/persistence/testing";
 import type { SessionAudit, SessionCensus } from "@antumbra/plugin-api";
 import { SessionEventJournalLive } from "@antumbra/session-event-journal";
 import { SessionFabricLive } from "@antumbra/session-fabric";
@@ -8,14 +7,7 @@ import type { AgentEvent } from "@antumbra/vocabulary/session-events";
 import { Effect, Layer, Ref } from "effect";
 import { LiveDelegationsLive } from "#tree/live.ts";
 
-export const treeLayer = (temporary: TemporaryPersistence) =>
-	SessionEventJournalLive.pipe(Layer.provideMerge(Layer.mergeAll(temporary.layer, DomainFeedsLive, LiveDelegationsLive, SessionFabricLive)));
-
-export const treeTest = <A, E, R>(body: Effect.Effect<A, E, R>) =>
-	Effect.gen(function* () {
-		const temporary = yield* acquireTemporaryPersistence;
-		return yield* body.pipe(Effect.provide(treeLayer(temporary)));
-	});
+export const treeLayer = SessionEventJournalLive.pipe(Layer.provideMerge(Layer.mergeAll(DomainFeedsLive, LiveDelegationsLive, SessionFabricLive)));
 
 export interface SeededSession {
 	readonly agentId: string;

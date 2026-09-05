@@ -14,6 +14,8 @@ const { opened, proclaimRuling } = vi.hoisted(() => {
 });
 
 vi.mock("#adapters/trpc-rulings.ts", () => ({
+	askMoreOnRuling: vi.fn(),
+	parkRuling: vi.fn(),
 	proclaimRuling,
 	reclassifyRuling: vi.fn(),
 	ruleOn: vi.fn(),

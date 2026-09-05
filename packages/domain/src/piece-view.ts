@@ -3,7 +3,8 @@ import { changesOfPiece } from "@antumbra/changes";
 import type { ReportRow } from "@antumbra/reports";
 import { type ChangeView, changeView, repoNameOf } from "#change-view.ts";
 import { awaitingRulingsOf, dependenciesOf, type PieceState } from "#piece-state.ts";
-import type { AwaitingRuling, PieceRow, VoyageWorld } from "#voyage-rows.ts";
+import type { VoyageDetailRows } from "#voyage/detail/rows.ts";
+import type { AwaitingRuling, PieceRow } from "#voyage-rows.ts";
 
 export interface PieceAgentView {
 	readonly agentId: string;
@@ -21,7 +22,7 @@ export interface PieceView extends PieceRow {
 	readonly state: PieceState;
 }
 
-const agentsOf = (world: VoyageWorld, pieceId: string): ReadonlyArray<PieceAgentView> =>
+const agentsOf = (world: VoyageDetailRows, pieceId: string): ReadonlyArray<PieceAgentView> =>
 	world.assignments
 		.filter((assignment) => assignment.pieceId === pieceId)
 		.map((assignment) => ({
@@ -29,7 +30,7 @@ const agentsOf = (world: VoyageWorld, pieceId: string): ReadonlyArray<PieceAgent
 			status: world.agentStatus.get(assignment.agentId) ?? "unknown",
 		}));
 
-const reportsOf = (world: VoyageWorld, pieceId: string): ReadonlyArray<ReportRow> =>
+const reportsOf = (world: VoyageDetailRows, pieceId: string): ReadonlyArray<ReportRow> =>
 	world.pieceReports
 		.filter((link) => link.pieceId === pieceId)
 		.flatMap((link) => {
@@ -37,10 +38,10 @@ const reportsOf = (world: VoyageWorld, pieceId: string): ReadonlyArray<ReportRow
 			return report === undefined ? [] : [report];
 		});
 
-const artifactsOf = (world: VoyageWorld, pieceId: string): ReadonlyArray<ArtifactRow> =>
+const artifactsOf = (world: VoyageDetailRows, pieceId: string): ReadonlyArray<ArtifactRow> =>
 	[...world.artifacts.values()].filter((artifact) => artifact.pieceId === pieceId && artifact.supersededByArtifactId === null);
 
-const artifactHistoryOf = (world: VoyageWorld, pieceId: string): ReadonlyArray<ArtifactRow & { readonly successorArtifactId: string }> =>
+const artifactHistoryOf = (world: VoyageDetailRows, pieceId: string): ReadonlyArray<ArtifactRow & { readonly successorArtifactId: string }> =>
 	[...world.artifacts.values()]
 		.filter((artifact) => artifact.pieceId === pieceId)
 		.flatMap((artifact) => {
@@ -48,7 +49,7 @@ const artifactHistoryOf = (world: VoyageWorld, pieceId: string): ReadonlyArray<A
 			return successorArtifactId === null ? [] : [{ ...artifact, successorArtifactId }];
 		});
 
-export const pieceView = (world: VoyageWorld, states: ReadonlyMap<string, PieceState>, piece: PieceRow): PieceView => ({
+export const pieceView = (world: VoyageDetailRows, states: ReadonlyMap<string, PieceState>, piece: PieceRow): PieceView => ({
 	...piece,
 	agents: agentsOf(world, piece.id),
 	artifactHistory: artifactHistoryOf(world, piece.id),

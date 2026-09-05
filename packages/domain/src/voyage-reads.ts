@@ -1,8 +1,9 @@
 import { BoardScope, Boards } from "@antumbra/boards";
 import { SightFailure, type VoyageSummary, type VoyageView } from "@antumbra/contract";
-import { Effect } from "effect";
+import { Effect, Option } from "effect";
 import { type CrewRuntime, restingCrew } from "#crew-rest.ts";
 import { toFailure } from "#sight-failure.ts";
+import { VoyageDetails } from "#voyage/detail/service.ts";
 import { summarySeen, voyageSeen } from "#voyage-projection.ts";
 import { type VoyageView as DerivedVoyage, voyageSummaries, voyageView } from "#voyage-view.ts";
 import { VoyageWorldSource } from "#voyage-world/service.ts";
@@ -15,15 +16,16 @@ export interface VoyageReads {
 
 const absent = (voyageId: string) => new SightFailure({ message: `no such voyage: ${voyageId}` });
 
-const listed = (all: ReadonlyArray<VoyageSummary>, voyageId: string) => {
-	const opened = all.find((row) => row.id === voyageId);
-	return opened === undefined ? absent(voyageId) : Effect.succeed(opened);
-};
-
 export const makeVoyageReads = (runtime: Effect.Effect<CrewRuntime>) =>
 	Effect.gen(function* () {
 		const boards = yield* Boards;
 		const world = yield* VoyageWorldSource;
+		const details = yield* VoyageDetails;
+		const detailOf = Effect.fnUntraced(function* (voyageId: string) {
+			const detail = yield* details.read(voyageId).pipe(Effect.mapError(toFailure));
+			if (Option.isNone(detail)) return yield* absent(voyageId);
+			return detail.value;
+		});
 		const boardOf = (voyageId: string) => boards.read(BoardScope.Voyage({ voyageId })).pipe(Effect.mapError(toFailure));
 		const pieceBoardsOf = (pieceIds: ReadonlyArray<string>) =>
 			Effect.forEach(pieceIds, (pieceId) =>
@@ -37,22 +39,21 @@ export const makeVoyageReads = (runtime: Effect.Effect<CrewRuntime>) =>
 				board: boardOf(voyageId),
 				pieceBoards: pieceBoardsOf(view.pieces.map((piece) => piece.id)),
 			}).pipe(Effect.map(({ board, pieceBoards }) => voyageSeen(view, board, pieceBoards, resting)));
-		const readVoyage = (voyageId: string) =>
-			Effect.gen(function* () {
-				const rows = yield* world.read().pipe(Effect.mapError(toFailure));
-				const voyage = rows.voyages.find((row) => row.id === voyageId);
-				if (voyage === undefined) {
-					return yield* absent(voyageId);
-				}
-				const resting = restingCrew(rows, yield* runtime);
-				return yield* seenVoyage(voyageId, voyageView(rows, voyage), resting);
-			});
+		const readVoyage = Effect.fn("VoyageReads.voyage")(function* (voyageId: string) {
+			const { rows, voyage } = yield* detailOf(voyageId);
+			const resting = restingCrew(rows, yield* runtime);
+			return yield* seenVoyage(voyageId, voyageView(rows, voyage), resting);
+		});
+		const summaryOf = Effect.fn("VoyageReads.summaryOf")(function* (voyageId: string) {
+			const { rows, voyage } = yield* detailOf(voyageId);
+			return summarySeen(voyageView(rows, voyage));
+		});
 		const voyages = world.read().pipe(
 			Effect.map((rows) => voyageSummaries(rows).map(summarySeen)),
 			Effect.mapError(toFailure),
 		);
 		return {
-			summaryOf: (voyageId) => voyages.pipe(Effect.flatMap((all) => listed(all, voyageId))),
+			summaryOf,
 			voyage: readVoyage,
 			voyages,
 		} satisfies VoyageReads;

@@ -14,6 +14,8 @@ const { opened, ruleOn } = vi.hoisted(() => {
 });
 
 vi.mock("#adapters/trpc-rulings.ts", () => ({
+	askMoreOnRuling: vi.fn(),
+	parkRuling: vi.fn(),
 	proclaimRuling: vi.fn(),
 	reclassifyRuling: vi.fn(),
 	ruleOn,
@@ -32,9 +34,11 @@ const shoal: RulingView = {
 		{ detail: null, id: "choice-2", label: "trust the chart" },
 	],
 	context: "The eastern shoal sounds two metres shallower than the chart says.",
+	contexts: [],
 	declared: { radius: "voyage", urgency: "pressing" },
 	gatedPieces: [],
 	id: "ruling-1",
+	parked: null,
 	question: "Which reading do we plot against?",
 	radius: "voyage",
 	reclassifications: [],

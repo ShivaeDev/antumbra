@@ -1,4 +1,4 @@
-import { bind, requestRulingSpec } from "@antumbra/agent-tools";
+import { addContextSpec, bind, requestRulingSpec } from "@antumbra/agent-tools";
 import type { DirectTool, DirectToolOutcome } from "@antumbra/plugin-api";
 import { type Ruling, type RulingRequest, Rulings } from "@antumbra/rulings";
 import { RulingHolds } from "@antumbra/rulings/holds/service";
@@ -17,7 +17,13 @@ const holds = (ruling: Ruling): string => (ruling.gatedPieceIds.length === 0 ? "
 const said = (ruling: Ruling): string =>
 	`ruling ${ruling.id} requested — ${ruling.radius} radius, ${ruling.urgency}${holds(ruling)}. The answer reaches you as mail; nothing here waits for it.`;
 
+const appended = (ruling: Ruling): string => `context added to ruling ${ruling.id} — it stands beside the original context for whoever answers.`;
+
 type Ask = (typeof requestRulingSpec)["input"]["Type"];
+type Added = (typeof addContextSpec)["input"]["Type"];
+
+const holdsAgain = (ruling: Ruling, identity: SessionIdentity): boolean =>
+	ruling.urgency === "blocking" && ruling.requester.kind === "agent" && ruling.requester.agentId === identity.agentId;
 
 const requestOf = (identity: SessionIdentity, input: Ask, gates: ReadonlyArray<string>, rung: RulingAuthority): RulingRequest => ({
 	choices: (input.choices ?? []).map(choiceOf),
@@ -45,7 +51,19 @@ export const makeRulingToolCompiler = Effect.gen(function* () {
 				? yield* answered(identity, requestRulingSpec.name, hold.requestAndHold(request), heldSaid)
 				: yield* answered(identity, requestRulingSpec.name, rulings.request(request), said);
 		});
+	const contextFrom = (identity: SessionIdentity, input: Added): Effect.Effect<DirectToolOutcome> =>
+		Effect.gen(function* () {
+			const holding = yield* rulings.get(input.rulingId).pipe(
+				Effect.map((ruling) => holdsAgain(ruling, identity)),
+				Effect.orElseSucceed(() => false),
+			);
+			const given = { authorAgentId: identity.agentId, body: input.context, rulingId: input.rulingId };
+			return holding
+				? yield* answered(identity, addContextSpec.name, hold.addContextAndHold(given), heldSaid)
+				: yield* answered(identity, addContextSpec.name, rulings.addContext(given), appended);
+		});
 	return (identity: SessionIdentity): ReadonlyArray<DirectTool> => [
+		bind(addContextSpec, (input: Added) => contextFrom(identity, input)),
 		bind(requestRulingSpec, (input) => {
 			const gates = input.gates ?? [];
 			return gates.length === 0

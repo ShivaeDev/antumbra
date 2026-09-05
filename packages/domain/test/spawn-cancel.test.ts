@@ -2,6 +2,7 @@ import { type IntentStatus, isTerminalIntentStatus, Kernel } from "@antumbra/ker
 import { Database } from "@antumbra/persistence";
 import type { Runner } from "@antumbra/plugin-api";
 import { Repos } from "@antumbra/repos";
+import { SessionFabric } from "@antumbra/session-fabric";
 import { expect, it } from "@effect/vitest";
 import { Deferred, Effect, Option, Stream } from "effect";
 import { AgentDomain } from "#domain.ts";
@@ -68,7 +69,8 @@ it.live("explicit cancel settles a spawn waiting behind closed admission", () =>
 			const db = yield* Database;
 			const kernel = yield* Kernel;
 			const domain = yield* AgentDomain;
-			yield* domain.closeSessionStarts;
+			const fabric = yield* SessionFabric;
+			yield* fabric.closeStarts();
 			const submission = yield* kernel.submit(domain.spawn, payload);
 			yield* eventually(
 				Effect.gen(function* () {

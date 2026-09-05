@@ -1,5 +1,6 @@
 import { Kernel } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
+import { SessionFabric } from "@antumbra/session-fabric";
 import { drainActiveSessions } from "@antumbra/sessions";
 import { expect, it } from "@effect/vitest";
 import { Effect, ManagedRuntime, Option } from "effect";
@@ -22,8 +23,9 @@ const closeAndHoldSpawn = (scripted: ScriptedBackend, recorded: ScriptedRunner) 
 	Effect.gen(function* () {
 		const db = yield* Database;
 		const domain = yield* AgentDomain;
+		const fabric = yield* SessionFabric;
 		const kernel = yield* Kernel;
-		yield* domain.closeSessionStarts;
+		yield* fabric.closeStarts();
 		const submission = yield* kernel.submit(domain.spawn, WAITING_SPAWN);
 		yield* eventually(
 			Effect.gen(function* () {
@@ -56,8 +58,9 @@ const closeAndHoldRecovery = (scripted: ScriptedBackend) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
 		const domain = yield* AgentDomain;
+		const fabric = yield* SessionFabric;
 		const kernel = yield* Kernel;
-		yield* domain.closeSessionStarts;
+		yield* fabric.closeStarts();
 		const submission = yield* kernel.submit(domain.wake, {
 			sessionId: recoveryPayload.sessionId,
 		});

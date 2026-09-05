@@ -1,6 +1,7 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { isTerminalIntentStatus, Kernel } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
+import { SessionFabric } from "@antumbra/session-fabric";
 import { requireSiestaSucceeded, rootSessions, SessionShutdown } from "@antumbra/sessions";
 import { decodeSessionExecutionStatus, decodeStoredAgentSessionStatus } from "@antumbra/vocabulary/agent-runtime";
 import { Effect, Layer, Stream } from "effect";
@@ -9,13 +10,13 @@ import { AgentDomain } from "#agent-domain-service.ts";
 const makeSessionShutdownDrain = Effect.gen(function* () {
 	const db = yield* Database;
 	const domain = yield* AgentDomain;
+	const fabric = yield* SessionFabric;
 	const feeds = yield* DomainFeeds;
 	const kernel = yield* Kernel;
 	const markActiveSessionsDraining = Effect.gen(function* () {
-		const attached = yield* domain.sessionsAttached;
+		const attached = yield* fabric.attached();
 		const sessions = yield* db.AgentSession.where(rootSessions)
 			.where((session) => session.id.in([...attached]))
-			.select("id", "status", "executionStatus")
 			.all();
 		const draining: Array<string> = [];
 		for (const session of sessions) {
@@ -66,7 +67,7 @@ const makeSessionShutdownDrain = Effect.gen(function* () {
 		}
 	});
 	// A refused quit can leave the application running, so the drain always reopens Session starts.
-	return domain.closeSessionStarts.pipe(Effect.andThen(drainOpenSessions), Effect.ensuring(domain.reopenSessionStarts));
+	return fabric.closeStarts().pipe(Effect.andThen(drainOpenSessions), Effect.ensuring(fabric.reopenStarts()));
 });
 
 export const SessionShutdownLive = Layer.effect(SessionShutdown)(makeSessionShutdownDrain.pipe(Effect.map((drain) => SessionShutdown.of({ drain }))));

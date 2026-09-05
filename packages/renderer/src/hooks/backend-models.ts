@@ -17,8 +17,8 @@ export const effortsFor = (catalog: ModelCatalog, model: string): ReadonlyArray<
 export const useBackendModels = (backend: string): ModelCatalog => {
 	const [catalog, setCatalog] = useState<ModelCatalog>(emptyCatalog);
 	useEffect(() => {
+		setCatalog(emptyCatalog);
 		if (backend === "") {
-			setCatalog(emptyCatalog);
 			return;
 		}
 		let listening = true;

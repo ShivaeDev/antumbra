@@ -43,6 +43,15 @@ export const openVoyageRequest = (draft: VoyageDraft, backend: string): OpenVoya
 export const chosenBackend = (backends: ReadonlyArray<string>, backend: string): string =>
 	backends.includes(backend) ? backend : (backends[0] ?? "");
 
+export const withBackend = (draft: VoyageDraft, backend: string): VoyageDraft => ({
+	...draft,
+	backend,
+	captainEffort: "",
+	captainModel: "",
+	crewEffort: "",
+	crewModel: "",
+});
+
 export const withPresetModels = (draft: VoyageDraft, model: string): VoyageDraft =>
 	model === "" || draft.captainModel !== "" || draft.crewModel !== "" ? draft : { ...draft, captainModel: model, crewModel: model };
 
@@ -66,7 +75,7 @@ const BackendField = ({
 	readonly onChange: (draft: VoyageDraft) => void;
 }) => (
 	<Field label="Backend">
-		<Select onValueChange={(backend) => onChange({ ...draft, backend })} value={chosenBackend(backends, draft.backend)}>
+		<Select onValueChange={(backend) => onChange(withBackend(draft, backend))} value={chosenBackend(backends, draft.backend)}>
 			<SelectTrigger aria-label="Backend">
 				<SelectValue placeholder="no backend registered" />
 			</SelectTrigger>

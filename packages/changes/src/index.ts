@@ -18,8 +18,7 @@ export { changesLayer } from "#layer.ts";
 export {
 	changeOutcomeTallies,
 	changeStatus,
-	changesOfPiece,
-	unresolvedChangesOfPiece,
+	changesByPiece,
 } from "#outcome-status.ts";
 export { Changes } from "#service.ts";
 export {

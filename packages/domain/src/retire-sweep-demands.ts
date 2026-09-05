@@ -4,7 +4,7 @@ import type { IntentKind } from "@antumbra/kernel";
 import { SessionFabric } from "@antumbra/session-fabric";
 import { LiveDelegations } from "@antumbra/sessions";
 import { Clock, Effect } from "effect";
-import { claimedCrew, restingCrew, retirableCrew } from "#crew-rest.ts";
+import { crewRest } from "#crew-rest.ts";
 import { ExecutionSource } from "#execution/service.ts";
 import { concludedPieces } from "#piece-state.ts";
 import type { RetireFields } from "#retire.ts";
@@ -25,8 +25,7 @@ const sweptCrew = Effect.gen(function* () {
 		attached: yield* fabric.attached(),
 		delegating: yield* live.delegating(),
 	};
-	const resting = restingCrew(world, runtime);
-	const retirable = retirableCrew(world, runtime);
+	const { resting, retirable } = crewRest(world, runtime);
 	const now = yield* Clock.currentTimeMillis;
 	const idleSince = yield* fabric.idleSince();
 	const restedLongEnough = (sessionIds: ReadonlyArray<string>) =>
@@ -35,7 +34,9 @@ const sweptCrew = Effect.gen(function* () {
 			return since !== undefined && now - since >= chosen.retireRestMinutes * MILLIS_PER_MINUTE;
 		});
 	const states = concludedPieces(world);
-	const crewOf = (wanted: "done" | "abandoned") => [...states].flatMap(([pieceId, state]) => (state === wanted ? claimedCrew(world, pieceId) : []));
+	const assignments = Map.groupBy(world.assignments, (assignment) => assignment.pieceId);
+	const crewOf = (wanted: "done" | "abandoned") =>
+		[...states].flatMap(([pieceId, state]) => (state === wanted ? (assignments.get(pieceId) ?? []).map((assignment) => assignment.agentId) : []));
 	const landed = crewOf("done").filter((agentId) => {
 		const rested = resting.get(agentId);
 		return rested !== undefined && restedLongEnough(rested);

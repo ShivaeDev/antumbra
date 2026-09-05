@@ -4,12 +4,12 @@ import { Effect, Option } from "effect";
 import { VoyageNotFound } from "#errors.ts";
 import { answered, onVoyage } from "#tool-answers.ts";
 import type { SessionIdentity } from "#tool-identity.ts";
+import { VoyageDetails } from "#voyage/detail/service.ts";
 import { readVoyageView } from "#voyage-read.ts";
 import { renderVoyage } from "#voyage-render.ts";
-import { VoyageWorldSource } from "#voyage-world/service.ts";
 
-export const makeVoyageReadingToolCompiler = Effect.gen(function* () {
-	const world = yield* VoyageWorldSource;
+export const makeVoyageReadingToolCompiler = Effect.fnUntraced(function* () {
+	const details = yield* VoyageDetails;
 	const read = (identity: SessionIdentity, voyageId: string) =>
 		answered(
 			identity,
@@ -21,7 +21,7 @@ export const makeVoyageReadingToolCompiler = Effect.gen(function* () {
 						onSome: Effect.succeed,
 					}),
 				),
-				Effect.provideService(VoyageWorldSource, world),
+				Effect.provideService(VoyageDetails, details),
 			),
 			renderVoyage,
 		);
@@ -30,4 +30,4 @@ export const makeVoyageReadingToolCompiler = Effect.gen(function* () {
 			input.voyageId === undefined ? onVoyage(identity, (voyageId) => read(identity, voyageId)) : read(identity, input.voyageId),
 		),
 	];
-});
+})();

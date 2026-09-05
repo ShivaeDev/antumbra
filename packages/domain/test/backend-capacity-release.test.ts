@@ -2,11 +2,12 @@ import { IntentExecution, Kernel, KernelLive } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
 import type { TemporaryPersistence } from "@antumbra/persistence/testing";
 import { type AgentBackend, type BackendCapacitySource, makeBackendCapacityController } from "@antumbra/plugin-api";
+import { BackendCapacities } from "@antumbra/provider-capacity";
 import { capacityHoldDetail } from "@antumbra/sessions/admission/hold";
 import { expect, it } from "@effect/vitest";
 import { Clock, Deferred, Effect, Layer, ManagedRuntime, Option, Ref } from "effect";
 import { AgentDomain } from "#agent-domain-service.ts";
-import { BackendCapacityReleaseLive, BackendCapacityReleases } from "#backend-capacity-release.ts";
+import { BackendCapacityReleases } from "#backend-capacity-releases/service.ts";
 import {
 	makeCapacities,
 	SCRIPTED,
@@ -42,13 +43,14 @@ const recordAttempt = (attempts: Attempts, name: string) =>
 		return [count, next] as const;
 	});
 
-const parkFirstAttempt = (attempts: Attempts, template: AgentDomainService, name: string) =>
+const parkFirstAttempt = (attempts: Attempts, name: string) =>
 	Effect.gen(function* () {
 		const attempt = yield* recordAttempt(attempts, name);
 		if (attempt !== 1) {
 			return;
 		}
-		const reading = (yield* template.backendCapacities.snapshot())[0];
+		const capacities = yield* BackendCapacities;
+		const reading = (yield* capacities.snapshot())[0];
 		if (reading === undefined) {
 			return yield* Effect.die("scripted capacity is missing");
 		}
@@ -56,22 +58,24 @@ const parkFirstAttempt = (attempts: Attempts, template: AgentDomainService, name
 		yield* execution.wait(capacityHoldDetail(SCRIPTED, reading.detail));
 	});
 
-const restartDomain = (template: AgentDomainService, attempts: Attempts): AgentDomainService => {
-	const execute = (name: string) => parkFirstAttempt(attempts, template, name);
-	const spawn = spawnKind((payload) => execute(payload.agentId));
-	const wake = wakeKind((payload) => execute(payload.sessionId));
-	return AgentDomain.of({
-		...template,
-		kinds: [spawn, wake],
-		spawn,
-		wake,
+const restartDomain = (template: AgentDomainService, attempts: Attempts) =>
+	Effect.gen(function* () {
+		const capacities = yield* BackendCapacities;
+		const execute = (name: string) => parkFirstAttempt(attempts, name).pipe(Effect.provideService(BackendCapacities, capacities));
+		const spawn = spawnKind((payload) => execute(payload.agentId));
+		const wake = wakeKind((payload) => execute(payload.sessionId));
+		return AgentDomain.of({
+			...template,
+			kinds: [spawn, wake],
+			spawn,
+			wake,
+		});
 	});
-};
 
 const domainKernelLayer = (temporary: TemporaryPersistence, backendTemplate: AgentBackend, capacity: BackendCapacitySource, attempts: Attempts) => {
 	const backend = { ...backendTemplate, capacity };
-	const domain = Layer.effect(AgentDomain)(Effect.map(AgentDomain, (template) => restartDomain(template, attempts))).pipe(
-		Layer.provide(templateDomainLayer(temporary, backend)),
+	const domain = Layer.effect(AgentDomain)(Effect.flatMap(AgentDomain, (template) => restartDomain(template, attempts))).pipe(
+		Layer.provideMerge(templateDomainLayer(temporary, backend)),
 	);
 	return Layer.unwrap(Effect.map(AgentDomain, (current) => KernelLive({ kinds: current.kinds }))).pipe(
 		Layer.provideMerge(domain),
@@ -80,26 +84,27 @@ const domainKernelLayer = (temporary: TemporaryPersistence, backendTemplate: Age
 };
 
 const releaseRuntimeLayer = (temporary: TemporaryPersistence, backend: AgentBackend, capacity: BackendCapacitySource, attempts: Attempts) =>
-	BackendCapacityReleaseLive.pipe(Layer.provideMerge(domainKernelLayer(temporary, backend, capacity, attempts)));
+	BackendCapacityReleases.layer.pipe(Layer.provideMerge(domainKernelLayer(temporary, backend, capacity, attempts)));
 
 const parkWorkAndDurablyClear = Effect.gen(function* () {
 	const db = yield* Database;
 	const domain = yield* AgentDomain;
+	const capacities = yield* BackendCapacities;
 	const kernel = yield* Kernel;
 	const birth = yield* kernel.submit(domain.spawn, spawnPayload("birth"));
 	const resume = yield* kernel.submit(domain.wake, wakePayload("wake"));
 	yield* Effect.all([waitForChange(kernel, birth.id, "waiting"), waitForChange(kernel, resume.id, "waiting")], { concurrency: "unbounded" });
 	// The first runtime has no release reconciler, so the durable clear remains unconsumed until restart.
-	yield* domain.backendCapacities.clear(SCRIPTED);
+	yield* capacities.clear(SCRIPTED);
 	expect(Option.getOrThrow(yield* db.BackendCapacity.where({ backend: SCRIPTED }).first())).toMatchObject({ status: "available" });
 	return [birth.id, resume.id] as const;
 });
 
 const verifyRestartedRelease = (ids: ReadonlyArray<string>, attempts: Attempts) =>
 	Effect.gen(function* () {
-		const domain = yield* AgentDomain;
+		const capacities = yield* BackendCapacities;
 		const kernel = yield* Kernel;
-		expect((yield* domain.backendCapacities.snapshot())[0]).toMatchObject({
+		expect((yield* capacities.snapshot())[0]).toMatchObject({
 			status: "available",
 		});
 		yield* Effect.all(

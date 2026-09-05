@@ -1,4 +1,5 @@
 import { Pieces } from "@antumbra/pieces";
+import { Voyages } from "@antumbra/voyages";
 import { expect, it } from "@effect/vitest";
 import { Effect, Option, Ref } from "effect";
 import type { SpawnFields } from "#spawn-fields.ts";
@@ -28,7 +29,8 @@ it.live("a voyage opened with a model and an effort per role stores and shows bo
 		const temporary = yield* acquireTemporaryPersistence;
 		yield* Effect.gen(function* () {
 			const voyages = yield* VoyageProcedureService;
-			const voyage = yield* voyages.open(opened);
+			const voyageRecords = yield* Voyages;
+			const voyage = yield* voyageRecords.open(opened);
 			expect(voyage).toMatchObject({
 				captainEffort: "high",
 				captainModel: "opus",
@@ -52,10 +54,11 @@ it.live("changing a role's settings reaches the sessions spawned after it", () =
 		yield* Effect.gen(function* () {
 			const pieces = yield* Pieces;
 			const voyages = yield* VoyageProcedureService;
-			const voyage = yield* voyages.open(opened);
+			const voyageRecords = yield* Voyages;
+			const voyage = yield* voyageRecords.open(opened);
 
 			yield* voyages.hail(voyage.id);
-			yield* voyages.setAgentSettings(voyage.id, "captain", { effort: "max", model: "sonnet" });
+			yield* voyageRecords.setAgentSettings(voyage.id, "captain", { effort: "max", model: "sonnet" });
 			yield* voyages.hail(voyage.id);
 
 			const piece = yield* pieces.charter({
@@ -66,7 +69,7 @@ it.live("changing a role's settings reaches the sessions spawned after it", () =
 				title: "Sound",
 				voyageId: voyage.id,
 			});
-			yield* voyages.setAgentSettings(voyage.id, "crew", { effort: null, model: null });
+			yield* voyageRecords.setAgentSettings(voyage.id, "crew", { effort: null, model: null });
 			yield* voyages.workNow(piece.id);
 
 			expect((yield* Ref.get(submissions)).map(({ effort, model }) => ({ effort, model }))).toEqual([

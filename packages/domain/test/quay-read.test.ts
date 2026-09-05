@@ -3,6 +3,7 @@ import { DomainFeedsLive } from "@antumbra/domain-feeds";
 import { it } from "@antumbra/persistence/testing";
 import { PiecesLive } from "@antumbra/pieces";
 import { ReposLive } from "@antumbra/repos";
+import { Voyages } from "@antumbra/voyages";
 import { expect } from "@effect/vitest";
 import { Effect, Layer } from "effect";
 import { Quay } from "#quay/service.ts";
@@ -11,6 +12,7 @@ const QuayLayer = Quay.layer.pipe(
 	Layer.provide(changesLayer(new Map(), new Map())),
 	Layer.provide(ReposLive),
 	Layer.provide(PiecesLive),
+	Layer.provideMerge(Voyages.layer),
 	Layer.provide(DomainFeedsLive),
 );
 

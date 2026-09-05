@@ -1,5 +1,6 @@
 import { dirname, join } from "node:path";
 import type { ObserveCadenceOptions } from "@antumbra/changes/watch/cadence";
+import { ChangeWatcher } from "@antumbra/changes/watch/observer";
 import { IntentDemandLive } from "@antumbra/intent-demand";
 import { KernelLive, type KernelOptions } from "@antumbra/kernel";
 import type { TemporaryPersistence } from "@antumbra/persistence/testing";
@@ -9,8 +10,7 @@ import { SessionFabricLive } from "@antumbra/session-fabric";
 import { SettingsSourceLive } from "@antumbra/settings";
 import { NodeServices } from "@effect/platform-node";
 import { Effect, Layer } from "effect";
-import { BackendCapacityReleaseLive } from "#backend-capacity-release.ts";
-import { ChangeWatcher } from "#change-watcher.ts";
+import { BackendCapacityReleases } from "#backend-capacity-releases/service.ts";
 import { DispatcherLive, type DispatcherOptions } from "#dispatcher.ts";
 import { AgentDomain, AgentDomainLive } from "#domain.ts";
 import { domainCapabilities } from "#domain-capabilities.ts";
@@ -101,7 +101,7 @@ export const dispatchingLayer = (
 	changeHosts: ReadonlyMap<string, ChangeHost> = new Map(),
 ) => DispatcherLive(dispatcher).pipe(Layer.provideMerge(domainKernelLayer(temporary, backend, options, runner, changeHosts)));
 
-export const sightSourceTestLayer = SightSourceLive.pipe(Layer.provideMerge(BackendCapacityReleaseLive));
+export const sightSourceTestLayer = SightSourceLive.pipe(Layer.provideMerge(BackendCapacityReleases.layer));
 
 export const watchingLayer = (
 	temporary: TemporaryPersistence,

@@ -1,7 +1,6 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database } from "@antumbra/persistence";
 import { Clock, Effect } from "effect";
-import type { VoyageRow } from "#voyage-rows.ts";
 
 export interface OpenVoyageInput {
 	readonly backend: string;
@@ -15,11 +14,11 @@ export interface OpenVoyageInput {
 	readonly northStar: string;
 }
 
-export const openVoyage = Effect.fn("Voyages.open")(function* (input: OpenVoyageInput) {
+export const open = Effect.fn("Voyages.open")(function* (input: OpenVoyageInput) {
 	const db = yield* Database;
 	const feeds = yield* DomainFeeds;
 	const now = yield* Clock.currentTimeMillis;
-	const row: VoyageRow = {
+	const row = {
 		captainBackend: input.backend,
 		captainEffort: input.captainEffort ?? null,
 		captainModel: input.captainModel ?? null,
@@ -29,11 +28,11 @@ export const openVoyage = Effect.fn("Voyages.open")(function* (input: OpenVoyage
 		crewModel: input.crewModel ?? null,
 		focusedAt: input.focused === true ? new Date(now) : null,
 		id: crypto.randomUUID(),
-		kind: "voyage",
+		kind: "voyage" as const,
 		name: input.name,
 		northStar: input.northStar,
 	};
-	yield* db.Voyage.create(row);
+	const created = yield* db.Voyage.create(row);
 	yield* feeds.publishVoyageRefresh();
-	return row;
+	return created;
 });

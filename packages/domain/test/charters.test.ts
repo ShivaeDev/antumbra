@@ -1,9 +1,8 @@
-import { BoardScope, EntryInput } from "@antumbra/boards";
+import { BoardScope, Boards, EntryInput } from "@antumbra/boards";
 import { Database } from "@antumbra/persistence";
 import { Pieces } from "@antumbra/pieces";
 import { expect, it } from "@effect/vitest";
 import { Effect, Option } from "effect";
-import { AgentDomain } from "#domain.ts";
 import { dispatchingLayer } from "#test/domain-layers.ts";
 import { acquireTemporaryPersistence, makeScriptedBackend, type ScriptedBackend, sessionFor } from "#test/harness.ts";
 import { onPiece, ruled, seedAsker, unruled } from "#test/ruling-fixtures.ts";
@@ -29,7 +28,7 @@ it.live("a dispatched crew is told both registers of its boards", () =>
 		const scripted = yield* makeScriptedBackend;
 		yield* Effect.gen(function* () {
 			const pieces = yield* Pieces;
-			const domain = yield* AgentDomain;
+			const boards = yield* Boards;
 			const reef = yield* openReefVoyage;
 			const alpha = yield* pieces.charter({
 				charter: "sound the shallows",
@@ -40,10 +39,10 @@ it.live("a dispatched crew is told both registers of its boards", () =>
 				voyageId: reef.id,
 			});
 			const wrote = (body: string, register: "rough" | "smooth") =>
-				domain.boards.write(BoardScope.Voyage({ voyageId: reef.id }), EntryInput.Note({ authorAgentId: Option.none(), body, register }));
+				boards.write(BoardScope.Voyage({ voyageId: reef.id }), EntryInput.Note({ authorAgentId: Option.none(), body, register }));
 			yield* wrote("the eastern approach is safe", "smooth");
 			yield* wrote("the swell is running", "rough");
-			yield* domain.boards.write(
+			yield* boards.write(
 				BoardScope.Piece({ pieceId: alpha.id }),
 				EntryInput.Note({
 					authorAgentId: Option.none(),

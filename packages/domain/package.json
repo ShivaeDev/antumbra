@@ -49,6 +49,7 @@
 		"@antumbra/service-definition": "workspace:*",
 		"@antumbra/vocabulary": "workspace:*",
 		"effect": "catalog:",
-		"@antumbra/provider-capacity": "workspace:*"
+		"@antumbra/provider-capacity": "workspace:*",
+		"@antumbra/voyages": "workspace:*"
 	}
 }

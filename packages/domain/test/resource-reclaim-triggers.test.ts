@@ -1,5 +1,6 @@
 import { type IntentStatus, isTerminalIntentStatus, Kernel } from "@antumbra/kernel";
 import { type BerthSite, type Runner, RunnerFailure } from "@antumbra/plugin-api";
+import { Repos } from "@antumbra/repos";
 import { expect, it } from "@effect/vitest";
 import { Deferred, Effect, Option, Ref, Stream } from "effect";
 import { AgentDomain } from "#domain.ts";
@@ -41,8 +42,9 @@ it.live("retirement rings the reconciler without waiting for cadence", () =>
 		const runner = reclaimedRunner(recorded.runner, calls, reclaimed);
 		yield* Effect.gen(function* () {
 			const domain = yield* AgentDomain;
+			const repos = yield* Repos;
 			const kernel = yield* Kernel;
-			yield* domain.repos.register({
+			yield* repos.register({
 				defaultRef: "main",
 				source: "/somewhere/retire-trigger",
 			});
@@ -71,8 +73,9 @@ it.live("failed setup rings the same reconciler", () =>
 		};
 		yield* Effect.gen(function* () {
 			const domain = yield* AgentDomain;
+			const repos = yield* Repos;
 			const kernel = yield* Kernel;
-			yield* domain.repos.register({
+			yield* repos.register({
 				defaultRef: "main",
 				source: "/somewhere/failed-trigger",
 			});

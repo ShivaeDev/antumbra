@@ -15,7 +15,6 @@
 		"typecheck:compat": "tsc6 --noEmit"
 	},
 	"devDependencies": {
-		"@antumbra/boards": "workspace:*",
 		"@effect/vitest": "catalog:",
 		"@types/node": "catalog:",
 		"@typescript/native": "catalog:",
@@ -30,6 +29,8 @@
 		"@antumbra/testing-runtime": "workspace:*",
 		"@effect/platform-node": "catalog:",
 		"effect": "catalog:",
-		"@antumbra/pieces": "workspace:*"
+		"@antumbra/pieces": "workspace:*",
+		"@antumbra/voyages": "workspace:*",
+		"@antumbra/boards": "workspace:*"
 	}
 }

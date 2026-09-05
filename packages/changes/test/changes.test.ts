@@ -149,3 +149,15 @@ it.effectApp("owns preparation and host reconciliation as one aggregate", functi
 		});
 	}).pipe(Effect.provide(layer(scripted.host)));
 });
+
+it.effectApp("reads current host availability when capabilities are requested", function* () {
+	const scripted = yield* makeHost;
+	const capability = yield* Ref.make({ available: false, detail: "signed out" });
+	yield* Effect.gen(function* () {
+		const changes = yield* Changes;
+		expect(yield* changes.hostTags()).toEqual(["scripted"]);
+		expect(yield* changes.hostCapabilities()).toEqual([{ available: false, detail: "signed out", tag: "scripted" }]);
+		yield* Ref.set(capability, { available: true, detail: "ready" });
+		expect(yield* changes.hostCapabilities()).toEqual([{ available: true, detail: "ready", tag: "scripted" }]);
+	}).pipe(Effect.provide(layer({ ...scripted.host, capability: Ref.get(capability) })));
+});

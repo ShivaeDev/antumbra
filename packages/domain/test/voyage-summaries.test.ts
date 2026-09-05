@@ -78,8 +78,8 @@ it.effectApp("fleet captain selection excludes outside workers while retired roo
 	yield* db.Voyage.create(voyage("crewed", 1));
 	yield* db.Piece.create(piece("outside"));
 	for (const [id, born, status] of [
-		["captain", 1, "alive"],
-		["worker", 2, "alive"],
+		["worker", 1, "alive"],
+		["captain", 2, "alive"],
 		["retired", 3, "retired"],
 	] as const) {
 		yield* db.Agent.create({ id, charter: id, role: "hand", status, createdAt: new Date(born) });

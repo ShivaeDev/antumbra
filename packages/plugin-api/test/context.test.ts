@@ -10,6 +10,7 @@ const fakeBackend = (tag: string): AgentBackend => ({
 	capabilities: {
 		imageInput: false,
 	},
+	listModels: Effect.succeed([]),
 	openSession: () => Effect.die("unused in this test"),
 	tag,
 });

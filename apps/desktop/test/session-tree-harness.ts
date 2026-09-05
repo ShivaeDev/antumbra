@@ -25,6 +25,7 @@ const scriptedClaude = (script: ReadonlyArray<Delivery>, stored: StoredTranscrip
 	capabilities: {
 		imageInput: false,
 	},
+	listModels: Effect.succeed([]),
 	openSession: () =>
 		Effect.sync(() => {
 			const lanes = openSessionLanes();
@@ -50,6 +51,7 @@ const scriptedCodex = (
 	capabilities: {
 		imageInput: true,
 	},
+	listModels: Effect.succeed([]),
 	openSession: () =>
 		Effect.sync(() => {
 			const tree = openThreadTree(rootThread, openThreadClaims());

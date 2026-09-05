@@ -52,10 +52,18 @@ export interface OpenSessionOptions {
 	readonly tools: ReadonlyArray<DirectTool>;
 }
 
+export interface ModelChoice {
+	readonly efforts: ReadonlyArray<string>;
+	readonly id: string;
+	readonly isDefault: boolean;
+	readonly name: string;
+}
+
 export interface AgentBackend {
 	readonly audit: SessionAudit;
 	readonly capacity?: BackendCapacitySource;
 	readonly capabilities: BackendCapabilities;
+	readonly listModels: Effect.Effect<ReadonlyArray<ModelChoice>, BackendFailure>;
 	readonly openSession: (options: OpenSessionOptions) => Effect.Effect<SessionHandle, BackendFailure, Scope.Scope>;
 	readonly tag: string;
 }

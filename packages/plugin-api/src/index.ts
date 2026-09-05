@@ -7,6 +7,7 @@ export type {
 export {
 	type AgentBackend,
 	BackendFailure,
+	type ModelChoice,
 	type OpenSessionOptions,
 	type SessionHandle,
 	type SessionInput,

@@ -1,5 +1,6 @@
 import { type AgentBackend, type BackendFailure, noSessionAudit } from "@antumbra/plugin-api";
 import { Effect, RcRef } from "effect";
+import { listOpencodeModels } from "#models.ts";
 import type { OpencodeServer } from "#server.ts";
 import { openOpencodeSession } from "#session.ts";
 
@@ -8,7 +9,7 @@ export const opencodeBackend = (server: RcRef.RcRef<OpencodeServer, BackendFailu
 	capabilities: {
 		imageInput: false,
 	},
-	listModels: Effect.succeed([]),
+	listModels: RcRef.get(server).pipe(Effect.flatMap(listOpencodeModels), Effect.scoped),
 	openSession: (options) => RcRef.get(server).pipe(Effect.flatMap((live) => openOpencodeSession(live, options))),
 	tag: "opencode",
 });

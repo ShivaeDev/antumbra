@@ -1,5 +1,6 @@
 import type { OpencodeConnection, OpencodeEventListeners, OpencodeRequest } from "#adapters/connection.ts";
 import { SESSION } from "#test/frames.ts";
+import { PROVIDERS } from "#test/providers.ts";
 
 interface FakeCall {
 	readonly body: unknown;
@@ -16,6 +17,9 @@ export interface FakeOpencode {
 }
 
 const answer = (path: string): unknown => {
+	if (path === "/config/providers") {
+		return PROVIDERS;
+	}
 	if (path === "/session") {
 		return { directory: "/moorage", id: SESSION };
 	}

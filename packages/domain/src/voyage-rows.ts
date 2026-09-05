@@ -53,27 +53,32 @@ interface ReportLinkRow {
 	readonly reportId: string;
 }
 
-export interface ExecutionWorld {
+export interface RetirementWorld {
 	readonly agentStatus: ReadonlyMap<string, AgentStatus>;
 	readonly currentSessionByAgent: ReadonlyMap<string, string | null>;
 	readonly artifacts: ReadonlyMap<string, ArtifactRow>;
 	readonly assignments: ReadonlyArray<AssignmentRow>;
 	readonly changes: ReadonlyArray<ChangeRow>;
 	readonly dismissedChangeIds: ReadonlySet<string>;
-	readonly edges: ReadonlyArray<EdgeRow>;
-	readonly memberships: ReadonlyArray<MembershipRow>;
 	readonly pieceChanges: ReadonlyArray<PieceChangeRow>;
 	readonly pieceReports: ReadonlyArray<ReportLinkRow>;
 	readonly pieceVerdicts: ReadonlyMap<string, PieceVerdict>;
 	readonly pieces: ReadonlyArray<PieceRow>;
-	readonly rulingGates: ReadonlyArray<RulingGate>;
 	readonly sessions: ReadonlyArray<AgentSessionRow>;
+}
+
+export interface DispatchWorld extends RetirementWorld {
+	readonly edges: ReadonlyArray<EdgeRow>;
+	readonly memberships: ReadonlyArray<MembershipRow>;
+	readonly rulingGates: ReadonlyArray<RulingGate>;
 	readonly voyages: ReadonlyArray<VoyageRow>;
 }
 
-export interface VoyageWorld extends ExecutionWorld {
+export interface VoyageWorld extends DispatchWorld {
 	readonly crews: ReadonlyArray<CrewRow>;
 	readonly openRulings: ReadonlyArray<Ruling>;
 	readonly reports: ReadonlyMap<string, ReportRow>;
 	readonly repos: ReadonlyMap<string, RepoRow>;
 }
+
+export type AgentExecutionWorld = Pick<RetirementWorld, "agentStatus" | "currentSessionByAgent" | "sessions">;

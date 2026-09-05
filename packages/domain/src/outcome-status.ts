@@ -1,5 +1,5 @@
 import { changeStatus, changesOfPiece, unresolvedChangesOfPiece } from "@antumbra/changes";
-import type { ExecutionWorld } from "#voyage-rows.ts";
+import type { RetirementWorld } from "#voyage-rows.ts";
 
 // Changes land only after host observation; a withdrawn change remains pending only while its replacement is underway.
 interface OutcomeTally {
@@ -10,7 +10,7 @@ interface OutcomeTally {
 const countedLinks = (links: ReadonlyArray<{ readonly pieceId: string }>, pieceId: string): number =>
 	links.filter((link) => link.pieceId === pieceId).length;
 
-export const pieceOutcomeTally = (world: ExecutionWorld, pieceId: string): OutcomeTally => {
+export const pieceOutcomeTally = (world: RetirementWorld, pieceId: string): OutcomeTally => {
 	const statuses = changesOfPiece(world, pieceId).map(changeStatus);
 	const landedChanges = statuses.filter((status) => status === "landed").length;
 	return {

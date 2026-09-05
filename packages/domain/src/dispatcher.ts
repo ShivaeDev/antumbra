@@ -27,7 +27,7 @@ const onePass = (port: DispatchPort, maxRunning: number | undefined) =>
 		const settings = yield* SettingsSource;
 		const effectiveMaxRunning = maxRunning ?? (yield* settings.current).settings.maxParallelSessions;
 		const now = yield* Clock.currentTimeMillis;
-		const world = yield* source.read();
+		const world = yield* source.dispatch();
 		const allowed = yield* dispatchable(port.state, now);
 		const pending = yield* pendingDispatches;
 		let budget = effectiveMaxRunning - agentsAtWork(world) - pending.pieceIds.size;

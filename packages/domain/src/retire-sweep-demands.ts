@@ -6,7 +6,7 @@ import { LiveDelegations } from "@antumbra/sessions";
 import { Clock, Effect } from "effect";
 import { claimedCrew, restingCrew, retirableCrew } from "#crew-rest.ts";
 import { ExecutionSource } from "#execution/service.ts";
-import { type PieceState, pieceStates } from "#piece-state.ts";
+import { concludedPieces } from "#piece-state.ts";
 import type { RetireFields } from "#retire.ts";
 
 const MILLIS_PER_MINUTE = 60_000;
@@ -20,7 +20,7 @@ const sweptCrew = Effect.gen(function* () {
 	if (!chosen.retireSweep) {
 		return [];
 	}
-	const world = yield* source.read();
+	const world = yield* source.retirement();
 	const runtime = {
 		attached: yield* fabric.attached(),
 		delegating: yield* live.delegating(),
@@ -34,8 +34,8 @@ const sweptCrew = Effect.gen(function* () {
 			const since = idleSince.get(sessionId);
 			return since !== undefined && now - since >= chosen.retireRestMinutes * MILLIS_PER_MINUTE;
 		});
-	const states = pieceStates(world);
-	const crewOf = (wanted: PieceState) => [...states].flatMap(([pieceId, state]) => (state === wanted ? claimedCrew(world, pieceId) : []));
+	const states = concludedPieces(world);
+	const crewOf = (wanted: "done" | "abandoned") => [...states].flatMap(([pieceId, state]) => (state === wanted ? claimedCrew(world, pieceId) : []));
 	const landed = crewOf("done").filter((agentId) => {
 		const rested = resting.get(agentId);
 		return rested !== undefined && restedLongEnough(rested);

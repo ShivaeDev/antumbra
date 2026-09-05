@@ -1,5 +1,5 @@
 import { newestSession } from "@antumbra/sessions";
-import type { AgentSessionRow, ExecutionWorld } from "#voyage-rows.ts";
+import type { AgentSessionRow, RetirementWorld } from "#voyage-rows.ts";
 
 const compareIds = (left: string, right: string) => {
 	if (left === right) {
@@ -9,7 +9,7 @@ const compareIds = (left: string, right: string) => {
 };
 
 export const executionSessionOfAgent = (
-	world: Pick<ExecutionWorld, "currentSessionByAgent" | "sessions">,
+	world: Pick<RetirementWorld, "currentSessionByAgent" | "sessions">,
 	agentId: string,
 ): AgentSessionRow | undefined => {
 	const currentSessionId = world.currentSessionByAgent.get(agentId);
@@ -31,7 +31,7 @@ export type AssignedExecution =
 	| { readonly _tag: "unavailable"; readonly agentId: string }
 	| ({ readonly _tag: "resume" } & AssignedExecutionSession);
 
-export const assignedExecution = (world: ExecutionWorld, pieceId: string): AssignedExecution => {
+export const assignedExecution = (world: RetirementWorld, pieceId: string): AssignedExecution => {
 	const assigned = world.assignments
 		.filter((assignment) => assignment.pieceId === pieceId)
 		.filter((assignment) => world.agentStatus.get(assignment.agentId) === "alive")

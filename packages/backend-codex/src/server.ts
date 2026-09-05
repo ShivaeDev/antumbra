@@ -13,7 +13,7 @@ import { makeToolRegistry, type ToolRegistry } from "#tool-registry.ts";
 
 interface CodexServerOptions {
 	readonly observeCapacity?: BackendCapacityController["observe"];
-	readonly skills: string;
+	readonly skills: string | undefined;
 	readonly spawn: () => LineProcess;
 }
 

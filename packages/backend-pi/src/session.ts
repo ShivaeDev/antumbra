@@ -34,6 +34,7 @@ export const openPiSession = (runtime: PiRuntime, options: OpenSessionOptions): 
 		const effort = yield* thinkingLevel(options.effort);
 		const call = yield* sessionToolCall;
 		const session = yield* liveSession(runtime, {
+			constrainedPrompt: options.constrainedPrompt,
 			cwd: options.cwd,
 			effort,
 			model: Option.getOrUndefined(options.model),

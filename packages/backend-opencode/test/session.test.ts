@@ -38,6 +38,21 @@ it.effect("opens a session and reports the id opencode minted for it", () =>
 	),
 );
 
+it.effect("a constrained session takes the agent that displaces opencode's prompt and carries Antumbra's own on every turn", () =>
+	Effect.scoped(
+		Effect.gen(function* () {
+			const fake = makeFakeOpencode();
+			const handle = yield* opened(fake, { constrainedPrompt: "Smooth this board." });
+			yield* handle.queue(words("go on then"));
+			expect(fake.calls.find((call) => call.path === PROMPT)?.body).toEqual({
+				agent: "antumbra",
+				parts: [{ text: "go on then", type: "text" }],
+				system: "Smooth this board.",
+			});
+		}),
+	),
+);
+
 it.effect("resumes by reading the session rather than creating another", () =>
 	Effect.scoped(
 		Effect.gen(function* () {

@@ -1,4 +1,4 @@
-import type { AntumbraPlugin, ToolDefinition } from "@antumbra/plugin-api";
+import type { AntumbraPlugin, PluginContext, ToolDefinition } from "@antumbra/plugin-api";
 import { skillFolders } from "@antumbra/skills";
 import { NodeServices } from "@effect/platform-node";
 import { Effect, Option, RcRef } from "effect";
@@ -16,12 +16,21 @@ interface OpencodePluginOptions {
 	readonly tools: ReadonlyArray<ToolDefinition>;
 }
 
-const liveServer = (command: string, options: OpencodePluginOptions) =>
+const registerOpencode = (context: PluginContext, command: string, options: OpencodePluginOptions) =>
 	Effect.gen(function* () {
 		const sessions = makeToolSessions(options.tools.map((tool) => tool.name));
 		const tools = yield* serveToolRequests(answerToolRequest(options.tools, sessions));
-		const serve = serveOpencode({ command, cwd: options.cwd, plugin: options.plugin, skills: skillFolders(options.skills), tools });
-		return yield* makeOpencodeServer(Effect.provide(serve, NodeServices.layer), sessions);
+		const liveServer = (constrained: boolean) =>
+			makeOpencodeServer(
+				Effect.provide(
+					serveOpencode({ command, constrained, cwd: options.cwd, plugin: options.plugin, skills: skillFolders(options.skills), tools }),
+					NodeServices.layer,
+				),
+				sessions,
+			);
+		const ordinary = yield* RcRef.make({ acquire: liveServer(false) });
+		const constrained = yield* RcRef.make({ acquire: liveServer(true) });
+		yield* context.registerAgentBackend(opencodeBackend({ constrained, ordinary }));
 	});
 
 export const opencodePlugin = (options: OpencodePluginOptions): AntumbraPlugin => ({
@@ -30,8 +39,7 @@ export const opencodePlugin = (options: OpencodePluginOptions): AntumbraPlugin =
 			context.findExecutable("opencode"),
 			Option.match({
 				onNone: () => Effect.logWarning("opencode: no executable found on the login PATH; backend not registered"),
-				onSome: (command) =>
-					Effect.flatMap(RcRef.make({ acquire: liveServer(command, options) }), (server) => context.registerAgentBackend(opencodeBackend(server))),
+				onSome: (command) => registerOpencode(context, command, options),
 			}),
 		),
 	name: "opencode",

@@ -47,6 +47,16 @@ describe("a pi session", () => {
 		),
 	);
 
+	it.effect("hands pi the prompt a constrained session runs on", () =>
+		Effect.scoped(
+			Effect.gen(function* () {
+				const fake = makeFakePi();
+				yield* opened(fake, { constrainedPrompt: "Smooth this board." });
+				expect(fake.opened[0]?.constrainedPrompt).toBe("Smooth this board.");
+			}),
+		),
+	);
+
 	it.effect("hands pi the model and thinking level the voyage chose", () =>
 		Effect.scoped(
 			Effect.gen(function* () {

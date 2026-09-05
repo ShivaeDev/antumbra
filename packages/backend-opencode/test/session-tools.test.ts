@@ -16,7 +16,8 @@ const tool = (name: string): DirectTool => ({
 	name,
 });
 
-const options = (tools: ReadonlyArray<DirectTool>): OpenSessionOptions => ({
+const options = (tools: ReadonlyArray<DirectTool>, constrainedPrompt?: string): OpenSessionOptions => ({
+	constrainedPrompt,
 	cwd: "/moorage",
 	effort: Option.none(),
 	model: Option.none(),
@@ -25,8 +26,8 @@ const options = (tools: ReadonlyArray<DirectTool>): OpenSessionOptions => ({
 	tools,
 });
 
-const opened = (fake: ReturnType<typeof makeFakeOpencode>, sessions: ToolSessions, tools: ReadonlyArray<DirectTool>) =>
-	makeOpencodeServer(fake.connect, sessions).pipe(Effect.flatMap((server) => openOpencodeSession(server, options(tools))));
+const opened = (fake: ReturnType<typeof makeFakeOpencode>, sessions: ToolSessions, tools: ReadonlyArray<DirectTool>, constrainedPrompt?: string) =>
+	makeOpencodeServer(fake.connect, sessions).pipe(Effect.flatMap((server) => openOpencodeSession(server, options(tools, constrainedPrompt))));
 
 it.effect("denies the new session every tool of the union it was not given", () =>
 	Effect.scoped(
@@ -37,6 +38,21 @@ it.effect("denies the new session every tool of the union it was not given", () 
 				permission: [
 					{ action: "deny", pattern: "*", permission: "antumbra_rule_on" },
 					{ action: "deny", pattern: "*", permission: "antumbra_write_board" },
+				],
+			});
+		}),
+	),
+);
+
+it.effect("a constrained session may call nothing but the tools it was given", () =>
+	Effect.scoped(
+		Effect.gen(function* () {
+			const fake = makeFakeOpencode();
+			yield* opened(fake, makeToolSessions(UNION), [tool("read_board")], "Smooth this board.");
+			expect(fake.calls[0]?.body).toEqual({
+				permission: [
+					{ action: "deny", pattern: "*", permission: "*" },
+					{ action: "allow", pattern: "*", permission: "antumbra_read_board" },
 				],
 			});
 		}),

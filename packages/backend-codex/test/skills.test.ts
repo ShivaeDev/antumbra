@@ -12,3 +12,13 @@ it.live("the app server is pointed at the folder Antumbra keeps its skills in", 
 		}),
 	),
 );
+
+it.live("the app server constrained sessions run on is pointed at no skills at all", () =>
+	Effect.scoped(
+		Effect.gen(function* () {
+			const fake = makeFakeAppServer();
+			yield* makeCodexServer({ skills: undefined, spawn: () => fake.process });
+			expect(fake.requests.map((request) => request.method)).toEqual(["initialize"]);
+		}),
+	),
+);

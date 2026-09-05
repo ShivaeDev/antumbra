@@ -7,6 +7,7 @@ import { Option, Schema } from "effect";
 import type { ToolSessions } from "#tool-sessions.ts";
 
 export const CALLER_SESSION = "callerSession";
+export const CONSTRAINED_AGENT = "antumbra";
 export const TOOL_SERVER_NAME = "antumbra";
 
 export const wireName = (name: string): string => `${TOOL_SERVER_NAME}_${name}`;

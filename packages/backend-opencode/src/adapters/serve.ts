@@ -6,11 +6,12 @@ import { openEventStream } from "#adapters/event-stream.ts";
 import { httpCalls } from "#adapters/http.ts";
 import { listeningUrl } from "#adapters/listening.ts";
 import { freeLoopbackPort, LOOPBACK } from "#adapters/loopback.ts";
-import { TOOL_SERVER_NAME } from "#adapters/tool-server.ts";
+import { CONSTRAINED_AGENT, TOOL_SERVER_NAME } from "#adapters/tool-server.ts";
 import { opencodeFailure } from "#failure.ts";
 
 interface ServeOptions {
 	readonly command: string;
+	readonly constrained: boolean;
 	readonly cwd: string;
 	readonly plugin: string;
 	readonly skills: string;
@@ -24,12 +25,29 @@ const START_PATIENCE_MILLIS = 30_000;
 // A tool call carries a whole domain act, so the server waits far longer for one than opencode's five-second default.
 const TOOL_TIMEOUT = 300_000;
 
+// opencode reads these once per process. `OPENCODE_PURE` is not among them: it would drop the caller-session plugin and the tool server with the
+// admiral's own extensions.
+const CONSTRAINED_ENV = {
+	OPENCODE_DISABLE_CLAUDE_CODE_PROMPT: "1",
+	OPENCODE_DISABLE_EXTERNAL_SKILLS: "1",
+	OPENCODE_DISABLE_PROJECT_CONFIG: "1",
+};
+
+const CONSTRAINED_CONFIG = {
+	agent: { [CONSTRAINED_AGENT]: { prompt: "Follow the instructions in the system message." } },
+};
+
 const configContent = (options: ServeOptions): string =>
 	JSON.stringify({
 		mcp: { [TOOL_SERVER_NAME]: { timeout: TOOL_TIMEOUT, type: "remote", url: options.tools } },
 		plugin: [pathToFileURL(options.plugin).href],
-		skills: { paths: [options.skills] },
+		...(options.constrained ? CONSTRAINED_CONFIG : { skills: { paths: [options.skills] } }),
 	});
+
+const serveEnv = (options: ServeOptions) => ({
+	OPENCODE_CONFIG_CONTENT: configContent(options),
+	...(options.constrained ? CONSTRAINED_ENV : {}),
+});
 
 const connectionTo = (baseUrl: string, watchExit: (listener: () => void) => void): OpencodeConnection => {
 	const calls = httpCalls(baseUrl);
@@ -83,7 +101,7 @@ export const serveOpencode = Effect.fnUntraced(function* (options: ServeOptions)
 	const child = yield* spawner.spawn(
 		ChildProcess.make(options.command, serveArgs(port), {
 			cwd: options.cwd,
-			env: { OPENCODE_CONFIG_CONTENT: configContent(options) },
+			env: serveEnv(options),
 			extendEnv: true,
 			forceKillAfter: 5_000,
 			stdin: "ignore",

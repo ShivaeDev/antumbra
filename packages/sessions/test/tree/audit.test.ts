@@ -1,11 +1,9 @@
-import { persistenceIt } from "@antumbra/persistence/testing";
+import { it } from "@antumbra/persistence/testing";
 import type { AgentEvent } from "@antumbra/vocabulary/session-events";
 import { expect } from "@effect/vitest";
 import { Effect, Option } from "effect";
 import { journalOf, scriptedLane, seedAgent, seedSession, sessionRow, treeLayer } from "#test/tree/fixture.ts";
 import { makeSessionTreeAudits } from "#tree/audit.ts";
-
-const it = persistenceIt();
 
 const AGENT = "agent-audited";
 const ROOT = "session-root";

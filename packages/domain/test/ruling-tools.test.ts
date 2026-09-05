@@ -1,5 +1,6 @@
 import { isTerminalIntentStatus, Kernel } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
+import { Pieces } from "@antumbra/pieces";
 import type { DirectTool } from "@antumbra/plugin-api";
 import { expect, it } from "@effect/vitest";
 import { Effect, Option, Stream } from "effect";
@@ -14,9 +15,27 @@ const ASK = {
 	context: "the chart disagrees with what we sounded",
 	question: "which reading do we trust?",
 	radius: "voyage",
+	recommendation: { choice: "resurvey", reasoning: "a fresh sounding settles it either way" },
 	tags: ["surveying", "charts"],
 	urgency: "pressing",
 };
+
+const adrift = Effect.gen(function* () {
+	const db = yield* Database;
+	yield* db.Agent.create({
+		charter: "sound the shallows",
+		id: "agent-adrift",
+		role: "hand",
+		status: "alive",
+	});
+	const compile = yield* makeRulingToolCompiler;
+	return compile({
+		agentId: "agent-adrift",
+		pieceId: Option.none(),
+		sessionId: "session-adrift",
+		voyageId: Option.none(),
+	});
+});
 
 const rulingTool = (tools: ReadonlyArray<DirectTool>): DirectTool =>
 	Option.getOrThrow(Option.fromUndefinedOr(tools.find((tool) => tool.name === "request_ruling")));
@@ -26,11 +45,12 @@ it.live("a request carries who asked and where the asker stood", () =>
 		const temporary = yield* acquireTemporaryPersistence;
 		const scripted = yield* makeScriptedBackend;
 		yield* Effect.gen(function* () {
+			const pieces = yield* Pieces;
 			const db = yield* Database;
 			const domain = yield* AgentDomain;
 			const kernel = yield* Kernel;
 			const voyage = yield* openReefVoyage;
-			const alpha = yield* domain.voyages.charterPiece({
+			const alpha = yield* pieces.charter({
 				charter: "do alpha",
 				dependsOn: [],
 				expectation: "alpha is landed",
@@ -67,7 +87,47 @@ it.live("a request carries who asked and where the asker stood", () =>
 				["tag", "charts"],
 			]);
 			expect((yield* db.RulingChoice.all()).map((row) => row.label)).toEqual(["resurvey"]);
+			expect(stored).toMatchObject({
+				recommendationReasoning: "a fresh sounding settles it either way",
+				recommendedChoiceId: (yield* db.RulingChoice.all())[0]?.id,
+			});
 		}).pipe(Effect.provide(domainKernelLayer(temporary, scripted.backend)));
+	}),
+);
+
+it.live("a recommendation the asker never offered is refused, not stored", () =>
+	Effect.gen(function* () {
+		const temporary = yield* acquireTemporaryPersistence;
+		yield* Effect.gen(function* () {
+			const db = yield* Database;
+			const tools = yield* adrift;
+
+			const outcome = yield* rulingTool(tools).call({ ...ASK, recommendation: { choice: "anchor overnight", reasoning: "the tide turns at dusk" } });
+
+			expect(outcome).toEqual({
+				ok: false,
+				text: 'request_ruling: RulingRecommendationMissing: the recommended choice "anchor overnight" is not among the offered "resurvey"',
+			});
+			expect(yield* db.Ruling.all()).toEqual([]);
+			expect(yield* db.RulingChoice.all()).toEqual([]);
+		}).pipe(Effect.provide(domainCapabilityLayer(temporary)));
+	}),
+);
+
+it.live("a request without a recommendation never reaches the record", () =>
+	Effect.gen(function* () {
+		const temporary = yield* acquireTemporaryPersistence;
+		yield* Effect.gen(function* () {
+			const db = yield* Database;
+			const tools = yield* adrift;
+			const { recommendation: _, ...unrecommended } = ASK;
+
+			const outcome = yield* rulingTool(tools).call(unrecommended);
+
+			expect(outcome.ok).toBe(false);
+			expect(outcome.text).toContain("recommendation");
+			expect(yield* db.Ruling.all()).toEqual([]);
+		}).pipe(Effect.provide(domainCapabilityLayer(temporary)));
 	}),
 );
 
@@ -148,11 +208,11 @@ it.live("a hold naming another voyage's piece is refused, not stored", () =>
 		const temporary = yield* acquireTemporaryPersistence;
 		const scripted = yield* makeScriptedBackend;
 		yield* Effect.gen(function* () {
+			const pieces = yield* Pieces;
 			const db = yield* Database;
-			const domain = yield* AgentDomain;
 			const { bravo, voyage } = yield* chain;
 			const other = yield* openReefVoyage;
-			const foreign = yield* domain.voyages.charterPiece({
+			const foreign = yield* pieces.charter({
 				charter: "do delta",
 				dependsOn: [],
 				expectation: "delta is landed",
@@ -182,11 +242,12 @@ it.live("crew on a piece may hold a sibling piece of its voyage", () =>
 		const temporary = yield* acquireTemporaryPersistence;
 		const scripted = yield* makeScriptedBackend;
 		yield* Effect.gen(function* () {
+			const pieces = yield* Pieces;
 			const domain = yield* AgentDomain;
 			const kernel = yield* Kernel;
 			const voyage = yield* openReefVoyage;
 			const charter = (title: string) =>
-				domain.voyages.charterPiece({
+				pieces.charter({
 					charter: `do ${title}`,
 					dependsOn: [],
 					expectation: `${title} is landed`,

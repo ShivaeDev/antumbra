@@ -1,0 +1,81 @@
+import { DomainFeeds } from "@antumbra/domain-feeds";
+import { Database } from "@antumbra/persistence";
+import { Pieces } from "@antumbra/pieces";
+import type { ChangeHostRepo } from "@antumbra/plugin-api";
+import { UnknownRunnerError } from "@antumbra/plugin-api";
+import { ensureAgentCanOwnLocalWork, ensureBerthResourcesUnclaimed } from "@antumbra/resource-reclamation";
+import { Clock, Effect, Option } from "effect";
+import { RunnerRegistry } from "#registries.ts";
+import { activeChange, linkProduces } from "#submissions/links.ts";
+import type { Proposal, SubmitChangeInput } from "#submissions/model.ts";
+import { preparedChange, submissionKey } from "#submissions/prepared-row.ts";
+import { berthFor, claimingHost, repoNamed } from "#submissions/repository.ts";
+
+interface PreparedSubmission {
+	readonly hostTag: string;
+	readonly repo: ChangeHostRepo;
+	readonly row: ReturnType<typeof preparedChange>;
+}
+
+export const prepareChange = Effect.fn("Changes.prepareChange")(function* (input: SubmitChangeInput, proposal?: Proposal) {
+	const db = yield* Database;
+	const feeds = yield* DomainFeeds;
+	const pieces = yield* Pieces;
+	const runners = yield* RunnerRegistry;
+	yield* pieces.verifyExists(input.pieceId);
+	const repo = yield* repoNamed(input.repoName);
+	const key = submissionKey(input.agentId, repo.id);
+	const linked = yield* Effect.gen(function* () {
+		yield* ensureAgentCanOwnLocalWork(input.agentId);
+		const existing = yield* activeChange(key);
+		if (Option.isNone(existing)) {
+			return Option.none<{
+				readonly linked: boolean;
+				readonly row: ReturnType<typeof preparedChange>;
+			}>();
+		}
+		return Option.some({
+			linked: yield* linkProduces(input.pieceId, existing.value.id),
+			row: existing.value,
+		});
+	});
+	if (Option.isSome(linked)) {
+		if (linked.value.linked) {
+			yield* feeds.publishVoyageRefresh();
+		}
+		return {
+			hostTag: linked.value.row.host,
+			repo,
+			row: linked.value.row,
+		} satisfies PreparedSubmission;
+	}
+	const host = yield* claimingHost(repo);
+	const berth = yield* berthFor(input.agentId, repo);
+	const runner = runners.get(berth.runner);
+	if (runner === undefined) {
+		return yield* new UnknownRunnerError({ tag: berth.runner });
+	}
+	const evidence = yield* runner.captureChange(berth);
+	const candidate = preparedChange(input, repo, host.tag, evidence, yield* Clock.currentTimeMillis, proposal);
+	const stored = yield* Effect.gen(function* () {
+		yield* ensureAgentCanOwnLocalWork(input.agentId);
+		yield* ensureBerthResourcesUnclaimed(berth.id);
+		const existing = yield* activeChange(key);
+		const row = Option.getOrElse(existing, () => candidate);
+		let created = false;
+		if (Option.isNone(existing)) {
+			yield* db.Change.create(row);
+			created = true;
+		}
+		const linked = yield* linkProduces(input.pieceId, row.id);
+		return { changed: created || linked, row };
+	});
+	if (stored.changed) {
+		yield* feeds.publishVoyageRefresh();
+	}
+	return {
+		hostTag: stored.row.host,
+		repo,
+		row: stored.row,
+	} satisfies PreparedSubmission;
+});

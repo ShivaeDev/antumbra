@@ -1,12 +1,10 @@
-import { persistenceIt } from "@antumbra/persistence/testing";
+import { it } from "@antumbra/persistence/testing";
 import { SessionEventJournal } from "@antumbra/session-event-journal";
 import type { AgentEvent } from "@antumbra/vocabulary/session-events";
 import { expect } from "@effect/vitest";
 import { Effect, Option } from "effect";
 import { journalOf, pointAgent, seedAgent, seedSession, sessionRow, treeLayer } from "#test/tree/fixture.ts";
 import { makeSessionNodeReconciler } from "#tree/reconcile.ts";
-
-const it = persistenceIt();
 
 const AGENT = "agent-reconciled";
 const ROOT = "session-root";

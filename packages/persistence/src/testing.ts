@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { makeDatabaseIt } from "@shivaedev/effect-prisma/testing";
-import { Effect } from "effect";
+import { Effect, Layer } from "effect";
 import { brandDatabaseFilePath, type DatabaseFilePath } from "#data-dir.ts";
 import { Database } from "#database.ts";
 import { PersistenceLive } from "#layer.ts";
@@ -39,12 +39,7 @@ export const temporaryPersistence = (): TemporaryPersistence => {
 
 export const acquireTemporaryPersistence = Effect.acquireRelease(Effect.sync(temporaryPersistence), (temporary) => Effect.sync(temporary.remove));
 
-export const persistenceIt = () => {
-	const temporary = temporaryPersistence();
-	const harness = makeDatabaseIt({
-		database: Database,
-		layer: temporary.layer,
-	});
-	harness.afterAll(temporary.remove);
-	return harness;
-};
+export const it = makeDatabaseIt({
+	database: Database,
+	layer: Layer.unwrap(acquireTemporaryPersistence.pipe(Effect.map((temporary) => temporary.layer))),
+});

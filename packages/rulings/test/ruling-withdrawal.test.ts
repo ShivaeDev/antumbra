@@ -8,7 +8,7 @@ import { asked, it, layer, seedFleet } from "#test/rulings-harness.ts";
 const standingRuling = Effect.gen(function* () {
 	yield* seedFleet;
 	const rulings = yield* Rulings;
-	const ruling = yield* rulings.request(asked);
+	const ruling = yield* rulings.request({ ...asked, radius: "fleet" });
 	yield* rulings.rule({
 		answer: "trust the soundings",
 		by: "admiral",
@@ -32,6 +32,7 @@ it.effectApp("drops a withdrawn ruling from the standing set", function* () {
 
 			expect(yield* PubSub.take(notices)).toBeUndefined();
 			expect(yield* rulings.standing([])).toEqual([]);
+			expect(yield* rulings.binding([])).toEqual([]);
 			const provenance = Option.getOrThrow(withdrawn.withdrawal);
 			expect(provenance.by).toBe("admiral");
 			expect(provenance.note).toBe("the shoal was dredged away");

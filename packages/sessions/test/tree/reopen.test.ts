@@ -1,13 +1,11 @@
 import { Database } from "@antumbra/persistence";
-import { persistenceIt } from "@antumbra/persistence/testing";
+import { it } from "@antumbra/persistence/testing";
 import { noSessionAudit } from "@antumbra/plugin-api";
 import type { AgentEvent } from "@antumbra/vocabulary/session-events";
 import { expect } from "@effect/vitest";
 import { Effect, Option } from "effect";
 import { journalOf, seedAgent, seedSession, sessionRow, treeLayer } from "#test/tree/fixture.ts";
 import { makeSessionTreeSinks } from "#tree/sink.ts";
-
-const it = persistenceIt();
 
 const AGENT = "agent-redriven";
 const ROOT = "session-root";

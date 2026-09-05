@@ -1,12 +1,10 @@
 import { SETTINGS, SettingsSource } from "@antumbra/contract";
-import { persistenceIt } from "@antumbra/persistence/testing";
+import { it } from "@antumbra/persistence/testing";
 import { SettingsSourceLive } from "@antumbra/settings";
 import { expect } from "@effect/vitest";
 import { Effect } from "effect";
 
-const persistence = persistenceIt();
-
-persistence.effectDB("answers the catalog for a setting nothing has set", function* () {
+it.effectDB("answers the catalog for a setting nothing has set", function* () {
 	yield* Effect.gen(function* () {
 		const reading = yield* (yield* SettingsSource).current;
 		expect(reading.settings).toEqual({
@@ -20,7 +18,7 @@ persistence.effectDB("answers the catalog for a setting nothing has set", functi
 	}).pipe(Effect.provide(SettingsSourceLive));
 });
 
-persistence.effectDB("keeps a changed value typed by its declaration", function* () {
+it.effectDB("keeps a changed value typed by its declaration", function* () {
 	yield* Effect.gen(function* () {
 		const source = yield* SettingsSource;
 		const switched = yield* source.change({
@@ -38,7 +36,7 @@ persistence.effectDB("keeps a changed value typed by its declaration", function*
 	}).pipe(Effect.provide(SettingsSourceLive));
 });
 
-persistence.effectDB("refuses a value its declaration does not accept and stores nothing", function* (db) {
+it.effectDB("refuses a value its declaration does not accept and stores nothing", function* (db) {
 	yield* Effect.gen(function* () {
 		const refused = yield* Effect.flip(
 			(yield* SettingsSource).change({
@@ -51,7 +49,7 @@ persistence.effectDB("refuses a value its declaration does not accept and stores
 	expect(yield* db.Setting.all()).toEqual([]);
 });
 
-persistence.effectDB("forgets the row when the declared value is chosen again", function* (db) {
+it.effectDB("forgets the row when the declared value is chosen again", function* (db) {
 	yield* Effect.gen(function* () {
 		const source = yield* SettingsSource;
 		yield* source.change({ key: "maxParallelSessions", value: 7 });

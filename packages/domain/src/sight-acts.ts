@@ -20,7 +20,7 @@ import { makeRetryBackendCapacity } from "#backend-capacity-retry.ts";
 import { SessionMessageEmpty } from "#errors.ts";
 import { retirePieceCrew } from "#retire-crew.ts";
 import { toFailure } from "#sight-failure.ts";
-import { makeSituationDraft } from "#situation-draft.ts";
+import { makeSituationDraft } from "#situation/draft.ts";
 
 interface SightActs {
 	readonly forgetRepo: (repoId: string) => Effect.Effect<void, SightFailure>;
@@ -42,7 +42,7 @@ export const makeSightActs = Effect.gen(function* () {
 	const domain = yield* AgentDomain;
 	const kernel = yield* Kernel;
 	const inputs = yield* SessionInputs;
-	const draft = yield* makeSituationDraft;
+	const draft = yield* makeSituationDraft();
 	const retryBackend = yield* makeRetryBackendCapacity;
 
 	return {

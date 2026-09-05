@@ -4,12 +4,10 @@ import { join } from "node:path";
 import { Artifacts, artifactsLayer } from "@antumbra/artifacts";
 import { DomainFeedsLive } from "@antumbra/domain-feeds";
 import { Database, type DatabaseService } from "@antumbra/persistence";
-import { persistenceIt } from "@antumbra/persistence/testing";
+import { it } from "@antumbra/persistence/testing";
 import { NodeServices } from "@effect/platform-node";
 import { expect } from "@effect/vitest";
 import { type Context, Effect, Layer, Option } from "effect";
-
-const it = persistenceIt();
 
 const piece = {
 	charter: "draw the reef",

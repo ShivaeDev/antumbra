@@ -1,9 +1,8 @@
-import type { RulingReclassificationView, RulingSubjectView, RulingView, StandingRulingView } from "@antumbra/contract";
+import type { RulingReclassificationView, RulingSubjectView, RulingView, RulingVoyageView, StandingRulingView } from "@antumbra/contract";
 import type { Ruling, RulingAnswer, RulingReclassification, RulingSubject } from "@antumbra/rulings";
 import { Option } from "effect";
-import { gatedPiecesSeen } from "#ruling-gated-pieces.ts";
-import { rungSeen } from "#ruling-rung-view.ts";
-import type { VoyageWorld } from "#voyage-rows.ts";
+import { type GatedPieceRows, gatedPiecesSeen } from "#ruling-gated-pieces.ts";
+import { type RungRows, rungSeen } from "#ruling-rung-view.ts";
 
 const subjectSeen = (subject: RulingSubject): RulingSubjectView =>
 	subject.kind === "tag" ? { kind: subject.kind, label: subject.tag } : { kind: subject.kind, label: subject.id };
@@ -26,7 +25,13 @@ const reclassificationSeen = (reclassification: RulingReclassification): RulingR
 	}),
 });
 
-export const rulingSeen = (ruling: Ruling, world: VoyageWorld): RulingView => ({
+const voyageSeen = (ruling: Ruling, world: Pick<GatedPieceRows, "voyages">): RulingVoyageView | null => {
+	const named = new Set(ruling.subjects.flatMap((subject) => (subject.kind === "voyage" ? [subject.id] : [])));
+	const voyage = world.voyages.find((row) => named.has(row.id));
+	return voyage === undefined ? null : { id: voyage.id, name: voyage.name };
+};
+
+export const rulingSeen = (ruling: Ruling, world: GatedPieceRows & RungRows): RulingView => ({
 	choices: ruling.choices.map((choice) => ({
 		detail: choice.detail,
 		id: choice.id,
@@ -39,11 +44,13 @@ export const rulingSeen = (ruling: Ruling, world: VoyageWorld): RulingView => ({
 	question: ruling.question,
 	radius: ruling.radius,
 	reclassifications: ruling.reclassifications.map(reclassificationSeen),
+	recommendation: Option.getOrNull(ruling.recommendation),
 	requestedAt: ruling.createdAt.toISOString(),
 	requester: ruling.requester,
 	rung: rungSeen(ruling, world),
 	subjects: ruling.subjects.map(subjectSeen),
 	urgency: ruling.urgency,
+	voyage: voyageSeen(ruling, world),
 });
 
 const chosenLabel = (ruling: Ruling, answer: RulingAnswer): string | null =>

@@ -1,6 +1,7 @@
 import { BoardScope } from "@antumbra/boards";
 import { Kernel } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
+import { Pieces } from "@antumbra/pieces";
 import { expect, it } from "@effect/vitest";
 import { Effect, Fiber, Option, Stream } from "effect";
 import { AgentDomain } from "#domain.ts";
@@ -129,6 +130,7 @@ it.live("Piece membership cannot supply missing Session Voyage authority", () =>
 		const temporary = yield* acquireTemporaryPersistence;
 		const scripted = yield* makeScriptedBackend;
 		yield* Effect.gen(function* () {
+			const pieces = yield* Pieces;
 			const domain = yield* AgentDomain;
 			const voyage = yield* domain.voyages.open({
 				backend: "scripted",
@@ -136,7 +138,7 @@ it.live("Piece membership cannot supply missing Session Voyage authority", () =>
 				name: "Chart the reef",
 				northStar: "every shoal is known",
 			});
-			const piece = yield* domain.voyages.charterPiece({
+			const piece = yield* pieces.charter({
 				charter: "sound the shallows",
 				dependsOn: [],
 				expectation: "soundings are landed",

@@ -1,6 +1,6 @@
 import type { ChangeRow } from "@antumbra/changes";
 import type { ChangeChecks, ChangeMergeable, ChangeReview, ChangeStage } from "@antumbra/vocabulary/change";
-import type { VoyageWorld } from "#voyage-rows.ts";
+import type { RepoRow } from "#voyage-rows.ts";
 
 export interface ChangeView {
 	readonly activityAt: Date;
@@ -19,7 +19,8 @@ export interface ChangeView {
 	readonly url: string | null;
 }
 
-export const repoNameOf = (world: VoyageWorld, repoId: string): string => world.repos.get(repoId)?.name ?? repoId;
+export const repoNameOf = (world: { readonly repos: ReadonlyMap<string, RepoRow> }, repoId: string): string =>
+	world.repos.get(repoId)?.name ?? repoId;
 
 export const changeView = (repoName: string, change: ChangeRow): ChangeView => ({
 	activityAt: change.activityAt,

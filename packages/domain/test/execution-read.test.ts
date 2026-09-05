@@ -1,6 +1,6 @@
-import { ChangesLive } from "@antumbra/changes";
+import { changesLayer } from "@antumbra/changes";
 import { DomainFeedsLive } from "@antumbra/domain-feeds";
-import { persistenceIt } from "@antumbra/persistence/testing";
+import { it } from "@antumbra/persistence/testing";
 import { PiecesLive } from "@antumbra/pieces";
 import { RulingsLive } from "@antumbra/rulings";
 import { expect } from "@effect/vitest";
@@ -14,9 +14,8 @@ import { concludedPieces, pieceStates } from "#piece-state.ts";
 import { changeOf } from "#test/change-fixtures.ts";
 import { assignedExecution } from "#voyage-execution-selection.ts";
 
-const it = persistenceIt();
 const layer = ExecutionSource.layer.pipe(
-	Layer.provideMerge(ChangesLive(new Map(), new Map())),
+	Layer.provideMerge(changesLayer(new Map(), new Map())),
 	Layer.provideMerge(PiecesLive),
 	Layer.provideMerge(RulingsLive),
 	Layer.provideMerge(DomainFeedsLive),

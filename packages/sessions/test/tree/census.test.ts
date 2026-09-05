@@ -1,4 +1,4 @@
-import { persistenceIt } from "@antumbra/persistence/testing";
+import { it } from "@antumbra/persistence/testing";
 import type { SessionCensus } from "@antumbra/plugin-api";
 import type { AgentEvent } from "@antumbra/vocabulary/session-events";
 import { expect } from "@effect/vitest";
@@ -7,8 +7,6 @@ import { sessionAtRest } from "#at-rest.ts";
 import { censusLane, seedAgent, seedSession, treeLayer } from "#test/tree/fixture.ts";
 import { LiveDelegations } from "#tree/live.ts";
 import { makeSessionTreeSinks } from "#tree/sink.ts";
-
-const it = persistenceIt();
 
 const AGENT = "agent-censused";
 const ROOT = "session-root";

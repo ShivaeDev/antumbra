@@ -1,9 +1,9 @@
 import { SettingsSource } from "@antumbra/contract";
+import { Pieces } from "@antumbra/pieces";
 import { expect, it } from "@effect/vitest";
 import { Effect } from "effect";
 import { TestClock } from "effect/testing";
 import { nextBackoffMillis } from "#dispatch-policy.ts";
-import { AgentDomain } from "#domain.ts";
 import { dispatchingLayer } from "#test/domain-layers.ts";
 import { acquireTemporaryPersistence, makeScriptedBackend } from "#test/harness.ts";
 import { assignedPieces, chain, eventually, land, openReefVoyage, PATIENCE, standDownOneAlive, stateOf } from "#test/voyage-fixtures.ts";
@@ -94,9 +94,9 @@ it.effect("a parked piece is never dispatched until it is unparked", () =>
 		const temporary = yield* acquireTemporaryPersistence;
 		const scripted = yield* makeScriptedBackend;
 		yield* Effect.gen(function* () {
-			const domain = yield* AgentDomain;
+			const pieces = yield* Pieces;
 			const voyage = yield* openReefVoyage;
-			const piece = yield* domain.voyages.charterPiece({
+			const piece = yield* pieces.charter({
 				charter: "sound the shallows",
 				dependsOn: [],
 				expectation: "soundings are landed",
@@ -104,13 +104,13 @@ it.effect("a parked piece is never dispatched until it is unparked", () =>
 				title: "alpha",
 				voyageId: voyage.id,
 			});
-			yield* domain.voyages.park(piece.id);
-			yield* domain.voyages.launch(piece.id);
+			yield* pieces.park(piece.id, true);
+			yield* pieces.launch(piece.id);
 			yield* TestClock.adjust(300);
 			expect(yield* assignedPieces).toEqual([]);
 			expect(yield* stateOf(voyage.id, piece.id)).toBe("parked");
 
-			yield* domain.voyages.unpark(piece.id);
+			yield* pieces.park(piece.id, false);
 			yield* TestClock.withLive(
 				eventually(
 					Effect.gen(function* () {

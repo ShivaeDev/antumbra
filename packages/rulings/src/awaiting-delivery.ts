@@ -1,13 +1,13 @@
-import { Database } from "@antumbra/persistence";
 import { Effect } from "effect";
-import { loadRuling } from "#read.ts";
+import { decodeRuling } from "#read.ts";
+import { relationQuery } from "#relation-query.ts";
 
 export const awaitingDelivery = Effect.fn("Rulings.awaitingDelivery")(function* () {
-	const db = yield* Database;
-	const rows = yield* db.Ruling.where({ deliveredAt: null })
+	const rows = yield* (yield* relationQuery())
+		.where({ deliveredAt: null })
 		.where((ruling) => ruling.ruledAt.isNotNull())
 		.where((ruling) => ruling.requesterAgentId.isNotNull())
 		.orderBy((ruling) => ruling.ruledAt.asc())
 		.all();
-	return yield* Effect.forEach(rows, loadRuling);
+	return yield* Effect.forEach(rows, decodeRuling);
 });

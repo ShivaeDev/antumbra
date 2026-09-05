@@ -1,13 +1,13 @@
-import { Database } from "@antumbra/persistence";
 import { Effect, Option } from "effect";
-import { loadRuling } from "#read.ts";
+import { decodeRuling } from "#read.ts";
+import { relationQuery } from "#relation-query.ts";
 
 export const awaitingAscent = Effect.fn("Rulings.awaitingAscent")(function* () {
-	const db = yield* Database;
-	const rows = yield* db.Ruling.where({ ruledAt: null })
+	const rows = yield* (yield* relationQuery())
+		.where({ ruledAt: null })
 		.where((ruling) => ruling.requesterAgentId.isNotNull())
 		.orderBy((ruling) => ruling.createdAt.asc())
 		.all();
-	const asked = yield* Effect.forEach(rows, loadRuling);
+	const asked = yield* Effect.forEach(rows, decodeRuling);
 	return asked.filter((ruling) => Option.exists(ruling.rung, (rung) => rung !== "admiral"));
 });

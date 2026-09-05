@@ -1,11 +1,10 @@
-import { Database } from "@antumbra/persistence";
 import { Effect } from "effect";
 import { inOpenOrder } from "#order.ts";
-import { loadRuling } from "#read.ts";
+import { decodeRuling } from "#read.ts";
+import { relationQuery } from "#relation-query.ts";
 
 export const open = Effect.fn("Rulings.open")(function* () {
-	const db = yield* Database;
-	const rows = yield* db.Ruling.where({ ruledAt: null }).all();
-	const rulings = yield* Effect.forEach(rows, loadRuling);
+	const rows = yield* (yield* relationQuery()).where({ ruledAt: null }).all();
+	const rulings = yield* Effect.forEach(rows, decodeRuling);
 	return rulings.sort(inOpenOrder);
 });

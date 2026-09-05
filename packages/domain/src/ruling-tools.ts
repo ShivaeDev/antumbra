@@ -1,10 +1,10 @@
 import { bind, requestRulingSpec } from "@antumbra/agent-tools";
 import type { DirectTool, DirectToolOutcome } from "@antumbra/plugin-api";
-import { type Ruling, type RulingRequest, Rulings } from "@antumbra/rulings";
+import { type Ruling, RulingHolds, type RulingRequest, Rulings } from "@antumbra/rulings";
 import type { RulingAuthority } from "@antumbra/vocabulary/ruling";
 import { Effect } from "effect";
 import { CaptainMembership } from "#captain-membership.ts";
-import { heldSaid, makeRulingHold } from "#ruling-hold.ts";
+import { heldSaid } from "#ruling-hold-answer.ts";
 import { choiceOf } from "#ruling-inputs.ts";
 import { rungAsked } from "#ruling-station.ts";
 import { subjectsOf } from "#ruling-subjects.ts";
@@ -34,7 +34,7 @@ const requestOf = (identity: SessionIdentity, input: Ask, gates: ReadonlyArray<s
 export const makeRulingToolCompiler = Effect.gen(function* () {
 	const membership = yield* CaptainMembership;
 	const rulings = yield* Rulings;
-	const hold = yield* makeRulingHold;
+	const hold = yield* RulingHolds;
 	const world = yield* VoyageWorldSource;
 	const rungFor = (identity: SessionIdentity) =>
 		world.read.pipe(
@@ -45,7 +45,7 @@ export const makeRulingToolCompiler = Effect.gen(function* () {
 		Effect.gen(function* () {
 			const request = requestOf(identity, input, gates, yield* rungFor(identity));
 			return request.urgency === "blocking"
-				? yield* answered(identity, requestRulingSpec.name, hold(request), heldSaid)
+				? yield* answered(identity, requestRulingSpec.name, hold.requestAndHold(request), heldSaid)
 				: yield* answered(identity, requestRulingSpec.name, rulings.request(request), said);
 		});
 	return (identity: SessionIdentity): ReadonlyArray<DirectTool> => [

@@ -4,7 +4,8 @@
 	"private": true,
 	"type": "module",
 	"exports": {
-		".": "./src/index.ts"
+		".": "./src/index.ts",
+		"./stand-down/service": "./src/stand-down/service.ts"
 	},
 	"imports": {
 		"#test/*": "./test/*",

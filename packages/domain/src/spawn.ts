@@ -4,7 +4,7 @@ import { UnknownRunnerError } from "@antumbra/plugin-api";
 import type { SessionAttachment } from "@antumbra/session-fabric";
 import type { SinkFor } from "@antumbra/sessions";
 import { Effect } from "effect";
-import type { BackendCapacities } from "#backend-capacity.ts";
+import type { CapacityAdmission } from "#backend-capacity.ts";
 import { charterDelivery } from "#charter.ts";
 import { UnknownBackendTag } from "#errors.ts";
 import { makePrepareMoorage } from "#moorage-plan.ts";
@@ -21,7 +21,7 @@ export type { SpawnFields } from "#spawn-fields.ts";
 
 interface SpawnRuntime {
 	readonly backends: ReadonlyMap<string, AgentBackend>;
-	readonly capacities: BackendCapacities;
+	readonly capacities: CapacityAdmission;
 	readonly runners: ReadonlyMap<string, Runner>;
 	readonly sinkFor: SinkFor;
 }

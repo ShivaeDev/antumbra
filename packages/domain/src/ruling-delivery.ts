@@ -1,10 +1,9 @@
 import { Boards } from "@antumbra/boards";
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database } from "@antumbra/persistence";
-import { type Ruling, type RulingAnswer, Rulings } from "@antumbra/rulings";
+import { type Ruling, type RulingAnswer, RulingHolds, Rulings } from "@antumbra/rulings";
 import { Effect, Layer, Option, Stream } from "effect";
 import { rulingAnswerMail } from "#ruling-answer-mail.ts";
-import { RulingHolds } from "#ruling-holds.ts";
 
 const guarded = <A, R>(act: Effect.Effect<A, unknown, R>, said: string) => act.pipe(Effect.catchCause((cause) => Effect.logError(said, cause)));
 
@@ -14,7 +13,7 @@ const mailAndMark = (ruling: Ruling, answer: RulingAnswer, toAgentId: string) =>
 		const boards = yield* Boards;
 		const holds = yield* RulingHolds;
 		const rulings = yield* Rulings;
-		const row = yield* db.Ruling.where({ id: ruling.id }).select("deliveredAt").first();
+		const row = yield* db.Ruling.where({ id: ruling.id }).first();
 		if (Option.isNone(row) || row.value.deliveredAt !== null) {
 			return;
 		}

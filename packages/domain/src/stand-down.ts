@@ -1,5 +1,5 @@
 import { bind, standDownSpec } from "@antumbra/agent-tools";
-import { SessionStandDown } from "@antumbra/sessions";
+import { SessionStandDown } from "@antumbra/sessions/stand-down/service";
 import { Effect } from "effect";
 import { answered } from "#tool-answers.ts";
 import type { SessionIdentity } from "#tool-identity.ts";

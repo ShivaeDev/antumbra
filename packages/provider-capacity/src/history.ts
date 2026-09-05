@@ -2,7 +2,8 @@ import { Database } from "@antumbra/persistence";
 import type { AgentBackend, BackendCapacityObservation } from "@antumbra/plugin-api";
 import { projectHistoricalAgentEvent } from "@antumbra/vocabulary/session-events";
 import { Effect, Option } from "effect";
-import { ignoreCapacityObservation } from "#backend-capacity-write.ts";
+import { ignoreCapacityObservation } from "#observation-values.ts";
+import { CapacitySources } from "#sources.ts";
 
 interface HistoricalBackendCapacity {
 	readonly backend: string;
@@ -48,22 +49,22 @@ const observationFor = (
 	return observation;
 };
 
-export const recoverBackendCapacities = (backends: ReadonlyMap<string, AgentBackend>, storedBackends: ReadonlySet<string>) =>
-	Effect.gen(function* () {
-		const db = yield* Database;
-		const pending = [...backends].filter(([backend, registered]) => registered.capacity !== undefined && !storedBackends.has(backend));
-		if (pending.length === 0) {
-			return [];
-		}
-		const sessions = yield* db.AgentSession.where((session) => session.backend.in(pending.map(([backend]) => backend))).all();
-		const backendBySession = new Map(sessions.map((session) => [session.id, session.backend] as const));
-		const events = (yield* db.SessionEvent.where((event) => event.sessionId.in(sessions.map((session) => session.id))).all()).toSorted(
-			(left, right) => left.at.getTime() - right.at.getTime() || left.sessionId.localeCompare(right.sessionId) || left.seq - right.seq,
-		);
-		return pending.map(
-			([backend, registered]): HistoricalBackendCapacity => ({
-				backend,
-				observation: observationFor(backend, registered, backendBySession, events),
-			}),
-		);
-	});
+export const recoverBackendCapacities = Effect.fn("BackendCapacities.recoverHistory")(function* (storedBackends: ReadonlySet<string>) {
+	const backends = yield* CapacitySources;
+	const db = yield* Database;
+	const pending = [...backends].filter(([backend, registered]) => registered.capacity !== undefined && !storedBackends.has(backend));
+	if (pending.length === 0) {
+		return [];
+	}
+	const sessions = yield* db.AgentSession.where((session) => session.backend.in(pending.map(([backend]) => backend))).all();
+	const backendBySession = new Map(sessions.map((session) => [session.id, session.backend] as const));
+	const events = (yield* db.SessionEvent.where((event) => event.sessionId.in(sessions.map((session) => session.id))).all()).toSorted(
+		(left, right) => left.at.getTime() - right.at.getTime() || left.sessionId.localeCompare(right.sessionId) || left.seq - right.seq,
+	);
+	return pending.map(
+		([backend, registered]): HistoricalBackendCapacity => ({
+			backend,
+			observation: observationFor(backend, registered, backendBySession, events),
+		}),
+	);
+});

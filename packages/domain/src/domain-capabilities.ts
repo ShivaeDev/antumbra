@@ -6,14 +6,13 @@ import { PiecesLive } from "@antumbra/pieces";
 import type { ChangeHost, Runner } from "@antumbra/plugin-api";
 import { ReportsLive } from "@antumbra/reports";
 import { ReposLive } from "@antumbra/repos";
-import { RulingsLive } from "@antumbra/rulings";
+import { RulingHoldsLive, RulingsLive } from "@antumbra/rulings";
 import { SessionEventJournalLive } from "@antumbra/session-event-journal";
-import { SessionStandDownLive } from "@antumbra/sessions";
+import { SessionStandDownLive } from "@antumbra/sessions/stand-down/service";
 import { Layer } from "effect";
 import { CaptainMembershipLive } from "#captain-membership.ts";
 import { ChangeProceduresLive } from "#change-procedures.ts";
 import { KernelReachDeferredLive } from "#kernel-reach.ts";
-import { RulingHoldsLive } from "#ruling-holds.ts";
 import { VoyageWorldSourceLive } from "#voyage-world.ts";
 import { VoyageProceduresLive } from "#voyages.ts";
 
@@ -28,8 +27,7 @@ export const domainCapabilities = (
 		ArtifactsLive(artifactsDirectory),
 		ReportsLive,
 		ReposLive,
-		RulingHoldsLive,
-		RulingsLive,
+		RulingHoldsLive.pipe(Layer.provideMerge(RulingsLive)),
 		SessionEventJournalLive,
 		KernelReachDeferredLive,
 	).pipe(Layer.provideMerge(DomainFeedsLive));

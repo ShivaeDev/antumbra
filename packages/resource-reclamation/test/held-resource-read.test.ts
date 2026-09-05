@@ -25,7 +25,7 @@ it.effectApp("runs again after held-resource reading fails", function* () {
 	} satisfies HeldResourceRead<string>);
 	yield* Effect.gen(function* () {
 		const reconciler = yield* ResourceReconciler;
-		yield* reconciler.reconcile;
+		yield* reconciler.reconcile();
 		expect(yield* Ref.get(attempts)).toBe(2);
 	}).pipe(Effect.provide(layer(read)));
 });

@@ -32,7 +32,7 @@ export const SightSourceLive = Layer.effect(SightSource)(
 				Effect.flatMap(
 					Effect.all({
 						attached: domain.sessionsAttached,
-						capacities: domain.backendCapacities.snapshot,
+						capacities: domain.backendCapacities.snapshot(),
 						delegating: domain.sessionsDelegating,
 					}),
 					(runtime) => fleetSnapshot(domain.backends, domain.imageInputBackends, intents, runtime.capacities, runtime),

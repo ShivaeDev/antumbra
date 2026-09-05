@@ -42,7 +42,6 @@ export { requireSiestaSucceeded } from "#shutdown-verdict.ts";
 export { makeSiestaKind, type SiestaFields } from "#siesta.ts";
 export { compileSessionSiestaDemands } from "#siesta-demands.ts";
 export { situationsByAgent } from "#situations.ts";
-export { SessionStandDown, SessionStandDownLive } from "#stand-down/service.ts";
 export { LiveDelegations, LiveDelegationsLive } from "#tree/live.ts";
 export { makeSessionNodeReconciler } from "#tree/reconcile.ts";
 export { makeSessionTreeSinks, type SinkFor } from "#tree/sink.ts";

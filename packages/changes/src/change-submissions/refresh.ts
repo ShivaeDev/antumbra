@@ -1,16 +1,11 @@
 import { Database } from "@antumbra/persistence";
 import type { ChangeRef } from "@antumbra/plugin-api";
 import { Effect } from "effect";
-import { changeRow } from "#change-read.ts";
 import type { ChangeRow } from "#change-rows.ts";
 import { applyObservations } from "#change-submissions/observations.ts";
 import { ChangeHostRegistry } from "#change-submissions/registries.ts";
+import { watchableChanges } from "#change-submissions/watchable.ts";
 import { UnknownChangeHostTag } from "#errors.ts";
-
-export const watchableChanges = Effect.fn("Changes.watchable")(function* (hostTag: string) {
-	const db = yield* Database;
-	return yield* Effect.forEach(yield* db.Change.where({ host: hostTag, stage: "open" }).all(), changeRow);
-});
 
 const changeRef = (
 	row: ChangeRow,
@@ -30,27 +25,21 @@ const changeRef = (
 		: [
 				{
 					externalId: row.externalId,
-					repo: {
-						defaultRef: repo.defaultRef,
-						id: repo.id,
-						name: repo.name,
-						source: repo.source,
-					},
+					repo,
 				},
 			];
 };
 
-export const refreshSubmittedChanges = (hostTag: string) =>
-	Effect.gen(function* () {
-		const db = yield* Database;
-		const hosts = yield* ChangeHostRegistry;
-		const host = hosts.get(hostTag);
-		if (host === undefined) {
-			return yield* new UnknownChangeHostTag({ tag: hostTag });
-		}
-		const changes = yield* watchableChanges(hostTag);
-		const repoIds = changes.map((change) => change.repoId);
-		const repos = new Map((yield* db.Repo.where((repo) => repo.id.in(repoIds)).all()).map((repo) => [repo.id, repo] as const));
-		const refs = changes.flatMap((row) => changeRef(row, repos));
-		return refs.length === 0 ? [] : yield* applyObservations(hostTag, yield* host.observe(refs));
-	});
+export const refreshSubmittedChanges = Effect.fn("Changes.refresh")(function* (hostTag: string) {
+	const db = yield* Database;
+	const hosts = yield* ChangeHostRegistry;
+	const host = hosts.get(hostTag);
+	if (host === undefined) {
+		return yield* new UnknownChangeHostTag({ tag: hostTag });
+	}
+	const changes = yield* watchableChanges(hostTag);
+	const repoIds = changes.map((change) => change.repoId);
+	const repos = new Map((yield* db.Repo.where((repo) => repo.id.in(repoIds)).all()).map((repo) => [repo.id, repo] as const));
+	const refs = changes.flatMap((row) => changeRef(row, repos));
+	return refs.length === 0 ? [] : yield* applyObservations(hostTag, yield* host.observe(refs));
+});

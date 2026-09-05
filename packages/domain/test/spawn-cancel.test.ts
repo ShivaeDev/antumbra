@@ -1,6 +1,7 @@
 import { type IntentStatus, isTerminalIntentStatus, Kernel } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
 import type { Runner } from "@antumbra/plugin-api";
+import { Repos } from "@antumbra/repos";
 import { SessionFabric } from "@antumbra/session-fabric";
 import { expect, it } from "@effect/vitest";
 import { Deferred, Effect, Option, Stream } from "effect";
@@ -38,7 +39,8 @@ it.live("explicit cancel settles one spawning birth and its incomplete plan", ()
 			const db = yield* Database;
 			const kernel = yield* Kernel;
 			const domain = yield* AgentDomain;
-			yield* domain.repos.register({
+			const repos = yield* Repos;
+			yield* repos.register({
 				defaultRef: "main",
 				source: "/somewhere/cancel",
 			});

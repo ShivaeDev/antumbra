@@ -1,4 +1,4 @@
-import { BoardScope, EntryInput } from "@antumbra/boards";
+import { BoardScope, Boards, EntryInput } from "@antumbra/boards";
 import { Kernel } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
 import type { AgentBackend } from "@antumbra/plugin-api";
@@ -106,12 +106,13 @@ it.live("drains once, rebuilds idle truth, and resumes the same native Session",
 		const prepareShutdown = Effect.gen(function* () {
 			const db = yield* Database;
 			const domain = yield* AgentDomain;
+			const boards = yield* Boards;
 			const sight = yield* makeSightSessionEvents;
 			const voyage = yield* openReefVoyage;
 			const hailed = yield* domain.voyages.hail(voyage.id);
 			expect(yield* terminalIntent(hailed.intentId)).toBe("succeeded");
 			const live = yield* sessionFor(scripted, hailed.agentId);
-			yield* domain.boards.write(
+			yield* boards.write(
 				BoardScope.Agent({ agentId: hailed.agentId }),
 				EntryInput.Note({
 					authorAgentId: Option.none(),

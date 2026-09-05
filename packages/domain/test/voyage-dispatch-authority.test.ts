@@ -1,4 +1,4 @@
-import { BoardScope } from "@antumbra/boards";
+import { BoardScope, Boards } from "@antumbra/boards";
 import { Kernel } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
 import { Pieces } from "@antumbra/pieces";
@@ -41,7 +41,7 @@ it.live("dispatched crew keeps its selected Voyage authority across rebuild", ()
 		const scripted = yield* makeScriptedBackend;
 		const selected = yield* Effect.gen(function* () {
 			const db = yield* Database;
-			const domain = yield* AgentDomain;
+			const boards = yield* Boards;
 			const voyageRecords = yield* Voyages;
 			const sight = yield* makeSightSessionEvents;
 			const { alpha, voyage } = yield* chain;
@@ -74,8 +74,8 @@ it.live("dispatched crew keeps its selected Voyage authority across rebuild", ()
 					scope: "voyage",
 				}),
 			).toEqual({ ok: true, text: "written to the voyage board" });
-			expect(yield* domain.boards.read(BoardScope.Voyage({ voyageId: voyage.id }))).toMatchObject([{ body: "the swell is running" }]);
-			expect(yield* domain.boards.read(BoardScope.Voyage({ voyageId: decoy.id }))).toEqual([]);
+			expect(yield* boards.read(BoardScope.Voyage({ voyageId: voyage.id }))).toMatchObject([{ body: "the swell is running" }]);
+			expect(yield* boards.read(BoardScope.Voyage({ voyageId: decoy.id }))).toEqual([]);
 
 			const opened = yield* sight.sessionEventFeed({ fromSeq: 0, sessionId: session.id }).pipe(Stream.take(1), Stream.runCollect, Effect.forkChild);
 			yield* live.emit({
@@ -97,7 +97,7 @@ it.live("dispatched crew keeps its selected Voyage authority across rebuild", ()
 		const resumedBackend = reportsNativeRef(scripted.backend, scripted, "native-selected-voyage");
 		yield* Effect.gen(function* () {
 			const db = yield* Database;
-			const domain = yield* AgentDomain;
+			const boards = yield* Boards;
 			yield* hail(selected.sessionId);
 			yield* eventually(
 				Effect.gen(function* () {
@@ -118,11 +118,11 @@ it.live("dispatched crew keeps its selected Voyage authority across rebuild", ()
 					scope: "voyage",
 				}),
 			).toEqual({ ok: true, text: "written to the voyage board" });
-			expect((yield* domain.boards.read(BoardScope.Voyage({ voyageId: selected.voyageId }))).map((entry) => entry.body)).toEqual([
+			expect((yield* boards.read(BoardScope.Voyage({ voyageId: selected.voyageId }))).map((entry) => entry.body)).toEqual([
 				"the swell is running",
 				"the durable authority survived rebuild",
 			]);
-			expect(yield* domain.boards.read(BoardScope.Voyage({ voyageId: selected.decoyId }))).toEqual([]);
+			expect(yield* boards.read(BoardScope.Voyage({ voyageId: selected.decoyId }))).toEqual([]);
 		}).pipe(Effect.provide(domainKernelLayer(temporary, resumedBackend)));
 	}),
 );
@@ -133,7 +133,7 @@ it.live("Piece membership cannot supply missing Session Voyage authority", () =>
 		const scripted = yield* makeScriptedBackend;
 		yield* Effect.gen(function* () {
 			const pieces = yield* Pieces;
-			const domain = yield* AgentDomain;
+			const boards = yield* Boards;
 			const voyageRecords = yield* Voyages;
 			const voyage = yield* voyageRecords.open({
 				backend: "scripted",
@@ -157,7 +157,7 @@ it.live("Piece membership cannot supply missing Session Voyage authority", () =>
 					scope: "voyage",
 				}),
 			).toEqual({ ok: false, text: "you have no voyage board" });
-			expect(yield* domain.boards.read(BoardScope.Voyage({ voyageId: voyage.id }))).toEqual([]);
+			expect(yield* boards.read(BoardScope.Voyage({ voyageId: voyage.id }))).toEqual([]);
 		}).pipe(Effect.provide(domainKernelLayer(temporary, scripted.backend)));
 	}),
 );

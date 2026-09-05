@@ -23,7 +23,7 @@ export const AgentDomainLive = (
 	const capabilities = domainCapabilities(changeHosts, runners, artifactsDirectory);
 	return Layer.effect(AgentDomain)(makeAgentDomain(backends, runners)).pipe(
 		Layer.provideMerge(LiveDelegationsLive),
-		Layer.provide(BackendCapacitiesLive(backends)),
+		Layer.provideMerge(BackendCapacitiesLive(backends)),
 		Layer.provide(
 			ResourceReconcilerLive(reclaimOptions).pipe(Layer.provide(ChangeHeldResourceReadLive), Layer.provide(ResourceReclaimRunnersLive(runners))),
 		),

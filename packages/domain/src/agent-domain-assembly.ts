@@ -1,7 +1,4 @@
-import { Boards } from "@antumbra/boards";
 import type { AgentBackend, Runner } from "@antumbra/plugin-api";
-import { BackendCapacities } from "@antumbra/provider-capacity";
-import { Repos } from "@antumbra/repos";
 import { ResourceReconciler } from "@antumbra/resource-reclamation";
 import { SessionFabric } from "@antumbra/session-fabric";
 import {
@@ -26,12 +23,9 @@ import { VoyageProcedureService } from "#voyages/service.ts";
 
 export const makeAgentDomain = (backends: ReadonlyMap<string, AgentBackend>, runners: ReadonlyMap<string, Runner>) =>
 	Effect.gen(function* () {
-		const boards = yield* Boards;
 		const fabric = yield* SessionFabric;
-		const repos = yield* Repos;
 		const resourceReconciler = yield* ResourceReconciler;
 		const voyages = yield* VoyageProcedureService;
-		const backendCapacities = yield* BackendCapacities;
 		const sinkFor = yield* makeSessionTreeSinks;
 		const reconcileCurrentSessions = yield* makeCurrentSessionReconciler;
 		const reconcileSessionNodes = yield* makeSessionNodeReconciler;
@@ -57,13 +51,10 @@ export const makeAgentDomain = (backends: ReadonlyMap<string, AgentBackend>, run
 		const imageInputBackends = imageInputBackendsOf(backends);
 		const sessionSend = yield* makeSessionSend(imageInputBackends);
 		return {
-			backendCapacities,
 			backends: [...backends.keys()],
-			boards,
 			imageInputBackends,
 			intentDemands,
 			kinds: [spawn, retire, siesta, wake],
-			repos,
 			retryResourceReclaim: resourceReconciler.reconcile(),
 			retire,
 			sendSessionInput: sessionSend.sendInput,

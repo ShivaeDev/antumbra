@@ -13,6 +13,7 @@ import type {
 import { Kernel } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
 import { admiralWords } from "@antumbra/prompts";
+import { Repos } from "@antumbra/repos";
 import { SessionFabric } from "@antumbra/session-fabric";
 import { SessionInputs } from "@antumbra/session-inputs";
 import { Effect } from "effect";
@@ -40,6 +41,7 @@ interface SightActs {
 
 export const makeSightActs = Effect.gen(function* () {
 	const db = yield* Database;
+	const repos = yield* Repos;
 	const domain = yield* AgentDomain;
 	const fabric = yield* SessionFabric;
 	const kernel = yield* Kernel;
@@ -48,9 +50,9 @@ export const makeSightActs = Effect.gen(function* () {
 	const retryBackend = yield* makeRetryBackendCapacity;
 
 	return {
-		forgetRepo: (repoId) => domain.repos.forget(repoId).pipe(Effect.mapError(toFailure)),
+		forgetRepo: (repoId) => repos.forget(repoId).pipe(Effect.mapError(toFailure)),
 		interrupt: (sessionId) => fabric.interrupt(sessionId).pipe(Effect.mapError(toFailure)),
-		registerRepo: (registration) => domain.repos.register(registration).pipe(Effect.mapError(toFailure)),
+		registerRepo: (registration) => repos.register(registration).pipe(Effect.mapError(toFailure)),
 		retryBackend: (backend) => retryBackend(backend).pipe(Effect.mapError(toFailure)),
 		retire: (agentId) => kernel.submit(domain.retire, { agentId }).pipe(Effect.asVoid, Effect.mapError(toFailure)),
 		retireCrew: (pieceId) =>

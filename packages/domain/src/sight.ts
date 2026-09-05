@@ -3,6 +3,7 @@ import { SightSource } from "@antumbra/contract";
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Kernel } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
+import { BackendCapacities } from "@antumbra/provider-capacity";
 import { Repos } from "@antumbra/repos";
 import { SessionFabric } from "@antumbra/session-fabric";
 import { LiveDelegations } from "@antumbra/sessions";
@@ -19,6 +20,7 @@ export const SightSourceLive = Layer.effect(SightSource)(
 	Effect.gen(function* () {
 		const changes = yield* Changes;
 		const repos = yield* Repos;
+		const backendCapacities = yield* BackendCapacities;
 		const domain = yield* AgentDomain;
 		const fabric = yield* SessionFabric;
 		const delegations = yield* LiveDelegations;
@@ -36,7 +38,7 @@ export const SightSourceLive = Layer.effect(SightSource)(
 				Effect.flatMap(
 					Effect.all({
 						attached: fabric.attached(),
-						capacities: domain.backendCapacities.snapshot(),
+						capacities: backendCapacities.snapshot(),
 						delegating: delegations.delegating(),
 					}),
 					(runtime) => fleetSnapshot(domain.backends, domain.imageInputBackends, intents, runtime.capacities, runtime),

@@ -74,7 +74,7 @@ export const makeAgentDomain = (backends: ReadonlyMap<string, AgentBackend>, run
 			intentDemands,
 			kinds: [spawn, retire, siesta, wake],
 			repos,
-			retryResourceReclaim: resourceReconciler.reconcile,
+			retryResourceReclaim: resourceReconciler.reconcile(),
 			reopenSessionStarts: fabric.reopenStarts(),
 			retire,
 			sendSessionInput: sessionSend.sendInput,

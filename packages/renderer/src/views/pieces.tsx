@@ -16,7 +16,7 @@ export const PiecesPanel = ({
 	readonly voyageId: string;
 }) => (
 	<Section>
-		<SectionHeading action={<CharterPieceForm onError={onError} pieces={pieces} voyageId={voyageId} />} count={pieces.length} title="Pieces" />
+		<SectionHeading action={<CharterPieceForm pieces={pieces} voyageId={voyageId} />} count={pieces.length} title="Pieces" />
 		{pieces.length === 0 ? (
 			<p className="text-2xs text-muted-foreground">Nothing chartered yet — charter a piece to give the voyage work</p>
 		) : (

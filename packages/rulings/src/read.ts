@@ -6,6 +6,8 @@ import { RulingNotFound } from "#errors.ts";
 import type { Ruling, RulingAxes } from "#model.ts";
 import { storedRequester } from "#requester.ts";
 import { storedAnswer, storedReclassification, storedRecommendation, storedRung } from "#stored.ts";
+import { storedContext } from "#stored-contexts.ts";
+import { storedParking } from "#stored-parking.ts";
 import { storedSupersession, storedWithdrawal } from "#stored-retirement.ts";
 import type { StoredRuling } from "#stored-rows.ts";
 import { storedSubject } from "#stored-subjects.ts";
@@ -15,6 +17,9 @@ const relationsOf = Effect.fnUntraced(function* (rulingId: string) {
 	return {
 		choices: yield* db.RulingChoice.where({ rulingId })
 			.orderBy((choice) => choice.position.asc())
+			.all(),
+		contexts: yield* db.RulingContext.where({ rulingId })
+			.orderBy((row) => row.at.asc())
 			.all(),
 		gates: yield* db.RulingGate.where({ rulingId }).all(),
 		reclassifications: yield* db.RulingReclassification.where({ rulingId })
@@ -38,10 +43,12 @@ export const decodeRuling = Effect.fnUntraced(function* (row: StoredRuling & Eff
 		answer: yield* storedAnswer(row),
 		choices: row.choices,
 		context: row.context,
+		contexts: row.contexts.map(storedContext),
 		createdAt: row.createdAt,
 		declared,
 		gatedPieceIds: row.gates.map((gate) => gate.pieceId),
 		id: row.id,
+		parked: yield* storedParking(row),
 		question: row.question,
 		reclassifications,
 		recommendation: yield* storedRecommendation(row),

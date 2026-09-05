@@ -8,6 +8,7 @@ type SubjectKind = RulingView["subjects"][number]["kind"];
 type Urgency = RulingView["urgency"];
 type Authority = StandingRulingView["ruledBy"];
 type Requester = RulingView["requester"];
+type Context = RulingView["contexts"][number];
 
 export const rulingUrgencyLabel: Readonly<Record<Urgency, string>> = {
 	blocking: "Holding the asker",
@@ -59,3 +60,5 @@ export const rulingRequesterLabel = (requester: Requester): string =>
 	requester.kind === "authority" ? `asked by ${rulingAuthorityLabel[requester.by]}` : requester.agentId;
 
 export const rulingGatedPieceLabel = (piece: GatedPiece): string => `${piece.title} (${piece.voyageName})`;
+
+export const rulingContextAuthorLabel = (context: Context): string => context.authorAgentId ?? "the admiral";

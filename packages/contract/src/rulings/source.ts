@@ -1,8 +1,12 @@
 import { Context, Data, type Effect, type Stream } from "effect";
 import type {
+	AskMoreRequest,
+	ParkRequest,
 	ProclaimRequest,
 	ReclassifyRequest,
 	RuleRequest,
+	RulingAskedMoreReceipt,
+	RulingParkedReceipt,
 	RulingProclaimedReceipt,
 	RulingReclassifiedReceipt,
 	RulingRuledReceipt,
@@ -24,8 +28,10 @@ export class RulingRefused extends Data.TaggedError("RulingRefused")<{
 export class RulingSource extends Context.Service<
 	RulingSource,
 	{
+		readonly askMore: (request: AskMoreRequest) => Effect.Effect<RulingAskedMoreReceipt, RulingFailure | RulingRefused>;
 		readonly open: Effect.Effect<OpenRulingsView, RulingFailure>;
 		readonly openFeed: Stream.Stream<OpenRulingsView, RulingFailure>;
+		readonly park: (request: ParkRequest) => Effect.Effect<RulingParkedReceipt, RulingFailure | RulingRefused>;
 		readonly proclaim: (request: ProclaimRequest) => Effect.Effect<RulingProclaimedReceipt, RulingFailure | RulingRefused>;
 		readonly reclassify: (request: ReclassifyRequest) => Effect.Effect<RulingReclassifiedReceipt, RulingFailure | RulingRefused>;
 		readonly rule: (request: RuleRequest) => Effect.Effect<RulingRuledReceipt, RulingFailure | RulingRefused>;

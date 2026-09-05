@@ -10,6 +10,10 @@ export class RulingAlreadyRuled extends Data.TaggedError("RulingAlreadyRuled")<{
 	readonly rulingId: string;
 }> {}
 
+export class RulingAlreadyParked extends Data.TaggedError("RulingAlreadyParked")<{
+	readonly rulingId: string;
+}> {}
+
 export class RulingGatePieceMissing extends Data.TaggedError("RulingGatePieceMissing")<{
 	readonly pieceId: string;
 }> {}

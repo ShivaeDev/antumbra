@@ -10,6 +10,18 @@ export const soundingReading: RulingView = {
 		{ detail: null, id: "choice-2", label: "trust the chart" },
 	],
 	context: "The eastern shoal sounds two metres shallower than the chart says, and the next piece plots a course over it.",
+	contexts: [
+		{
+			at: "2026-08-15T09:52:00.000Z",
+			authorAgentId: null,
+			body: "How old is the sounding?",
+		},
+		{
+			at: "2026-08-15T09:58:00.000Z",
+			authorAgentId: "agent-2",
+			body: "Taken last Tuesday at slack water.",
+		},
+	],
 	declared: { radius: "voyage", urgency: "pressing" },
 	gatedPieces: [
 		{
@@ -20,6 +32,7 @@ export const soundingReading: RulingView = {
 		},
 	],
 	id: "ruling-1",
+	parked: null,
 	question: "Which reading do we plot the course against?",
 	radius: "voyage",
 	reclassifications: [
@@ -50,9 +63,11 @@ export const soundingReading: RulingView = {
 export const berthNaming: RulingView = {
 	choices: [],
 	context: "Two repositories name their default branch differently and the berths inherit the disagreement.",
+	contexts: [],
 	declared: { radius: "fleet", urgency: "eventual" },
 	gatedPieces: [],
 	id: "ruling-2",
+	parked: { at: "2026-08-15T09:00:00.000Z", note: "after the reef is charted" },
 	question: "What do we call the branch a berth is cut from?",
 	radius: "fleet",
 	reclassifications: [],

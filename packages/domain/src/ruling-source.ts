@@ -12,6 +12,7 @@ import { RulingDisplay } from "#ruling-display/service.ts";
 import { makeRulingRefreshes } from "#ruling-feed.ts";
 import { proclamationOf, reclassificationOf, verdictOf } from "#ruling-inputs.ts";
 import { proclaimFailure, reclassifyFailure, toRulingFailure, verdictFailure } from "#ruling-refusals.ts";
+import { makeRulingReplies } from "#ruling-replies.ts";
 import { supersessionFailure } from "#ruling-supersession.ts";
 import { withdrawalFailure } from "#ruling-withdrawal.ts";
 
@@ -20,11 +21,14 @@ export const RulingSourceLive = Layer.effect(RulingSource)(
 		const rulings = yield* Rulings;
 		const display = yield* RulingDisplay;
 		const refreshes = yield* makeRulingRefreshes;
+		const replies = yield* makeRulingReplies;
 		const open = display.open().pipe(Effect.mapError(toRulingFailure));
 		const standing = display.standing().pipe(Effect.mapError(toRulingFailure));
 		return {
+			askMore: replies.askMore,
 			open,
 			openFeed: refreshes(open),
+			park: replies.park,
 			proclaim: (request: ProclaimRequest) =>
 				rulings.proclaim(proclamationOf(request)).pipe(
 					Effect.map((proclaimed) => ({ rulingId: proclaimed.id })),

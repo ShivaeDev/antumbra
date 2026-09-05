@@ -1,6 +1,8 @@
 export type {
 	RulingChoiceInput,
 	RulingClimbingAuthority,
+	RulingContextInput,
+	RulingParkInput,
 	RulingProclamation,
 	RulingReclassifyInput,
 	RulingRecommendationInput,
@@ -10,6 +12,8 @@ export type {
 export { answersAt, reachesRung } from "#authority.ts";
 export { RulingOutsideAuthority } from "#errors.ts";
 export type {
+	RulingContextFailure,
+	RulingParkFailure,
 	RulingProclaimFailure,
 	RulingReadFailure,
 	RulingReclassifyFailure,
@@ -21,7 +25,9 @@ export type {
 	Ruling,
 	RulingAnswer,
 	RulingChoice,
+	RulingContext,
 	RulingGate,
+	RulingParking,
 	RulingReclassification,
 	RulingRecommendation,
 	RulingSubject,

@@ -1,5 +1,7 @@
 import { AppInfo, AppInfoSource } from "#app-info.ts";
 import { AppLifecycleSource } from "#app-lifecycle.ts";
+import { CostSource } from "#costs/source.ts";
+import { CostsView } from "#costs/views.ts";
 import { HoldSource } from "#holds/source.ts";
 import { HoldsView } from "#holds/views.ts";
 import { type AppRuntime, makeProcedure, trpc } from "#router-procedure.ts";
@@ -23,6 +25,9 @@ export const makeAppRouter = (runtime: AppRuntime) => {
 			.mutation(function* (input) {
 				return yield* (yield* SettingsSource).change(input);
 			}),
+		costsFeed: procedure.output(CostsView).subscription(function* () {
+			return (yield* CostSource).costsFeed;
+		}),
 		holdsFeed: procedure.output(HoldsView).subscription(function* () {
 			return (yield* HoldSource).holdsFeed;
 		}),

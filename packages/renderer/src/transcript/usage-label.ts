@@ -1,8 +1,7 @@
 import type { UsageEvent } from "@antumbra/vocabulary/session-events";
+import { money } from "#costs/format.ts";
 
 type Usage = typeof UsageEvent.Type;
-
-const money = (usd: number): string => `$${usd.toFixed(4)}`;
 
 export const cacheShare = (event: Usage): number | undefined => {
 	if (event.cacheReadTokens === undefined) {
@@ -27,7 +26,7 @@ const tokens = (event: Usage): ReadonlyArray<string> => [
 
 const costs = (event: Usage): ReadonlyArray<string> => [
 	...(event.costUsd === undefined ? [] : [`turn ${money(event.costUsd)}`]),
-	...(event.cumulativeCostUsd === undefined ? [] : [`total ${money(event.cumulativeCostUsd)}`]),
+	...(event.cumulativeCostUsd === undefined ? [] : [`session ${money(event.cumulativeCostUsd)}`]),
 ];
 
 export const usageFacts = (event: Usage): ReadonlyArray<string> => [...tokens(event), ...costs(event)];

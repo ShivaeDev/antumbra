@@ -37,8 +37,9 @@ Every reader takes the same shape: the summary in place of what it covers, and e
 instead, so covered sources stay reachable. Smoothing may make derivable material recede from the frontier, but it never deletes the underlying graph.
 That is how a Board can preserve evidence without making every old detail equally salient.
 
-The admiral asks for a pass from the Board. The triggers that ask without being asked, and the page that reads the smooth log as a tree, are
-[intended](intended.md).
+The admiral asks for a pass from the Board. The Board page reads the smooth log as that same shape made visible: every entry sits once at its
+chronological position, newest first, either in full or folded into the highest summary that covers it, and opening a summary reads the entries behind
+it. The triggers that ask without being asked are [intended](intended.md).
 
 ## Coordination rails
 

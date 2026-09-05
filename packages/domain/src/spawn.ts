@@ -7,7 +7,6 @@ import type { SinkFor } from "@antumbra/sessions";
 import { admitCapacity } from "@antumbra/sessions/admission/admit";
 import { Effect } from "effect";
 import { AgentBirth } from "#agent-birth/service.ts";
-import { charterDelivery } from "#charter.ts";
 import { UnknownBackendTag } from "#errors.ts";
 import { makePrepareMoorage } from "#moorage-plan.ts";
 import { type SpawnFields, SpawnPayload } from "#spawn-fields.ts";
@@ -28,7 +27,6 @@ interface SpawnRuntime {
 export const spawnKind = (runtime: SpawnRuntime) =>
 	Effect.gen(function* () {
 		const capacities = yield* BackendCapacities;
-		const delivery = yield* charterDelivery;
 		const prepareMoorage = yield* makePrepareMoorage;
 		const registration = yield* spawnRegistration;
 		const birth = yield* AgentBirth;
@@ -37,7 +35,7 @@ export const spawnKind = (runtime: SpawnRuntime) =>
 		const toolsFor = yield* makeSpawnTools;
 		const admitSpawnSession = (payload: SpawnFields, attachment: SessionAttachment) =>
 			Effect.gen(function* () {
-				yield* delivery.deliverOnce(payload, attachment.handle);
+				yield* birth.deliverCharter(payload, attachment.handle);
 				yield* birth.activate(payload);
 			});
 		const reconcileMoorage = (payload: SpawnFields, runner: Runner, plan: MooragePlan) =>

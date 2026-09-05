@@ -5,7 +5,7 @@ import { openSessionProjection, type SessionProjection } from "#projection.ts";
 import type { OpencodeServer } from "#server.ts";
 import { frameFor } from "#session-frames.ts";
 import { textOnly } from "#session-input.ts";
-import { openSession, sessionIdOf, sessionOpened } from "#session-open.ts";
+import { openSession, promptSettings, sessionIdOf, sessionOpened } from "#session-open.ts";
 import { turnRequests } from "#turn-requests.ts";
 import { makeTurnDriver } from "#turns.ts";
 
@@ -23,11 +23,12 @@ export const openOpencodeSession = Effect.fn("OpenCode.openSession")(function* (
 	server: OpencodeServer,
 	options: OpenSessionOptions,
 ): Effect.fn.Return<SessionHandle, BackendFailure, Scope.Scope> {
+	const settings = yield* promptSettings(options);
 	const forEvents = yield* PubSub.subscribe(server.frames);
 	const forDriver = yield* PubSub.subscribe(server.frames);
 	const [route, response] = yield* openSession(server, options);
 	const sessionId = yield* sessionIdOf(route, response);
-	const driver = yield* makeTurnDriver(turnRequests(server, sessionId, options.cwd));
+	const driver = yield* makeTurnDriver(turnRequests(server, sessionId, options.cwd, settings));
 	yield* Effect.forkScoped(server.exited.pipe(Effect.andThen(driver.close)));
 	yield* Effect.forkScoped(
 		Stream.fromSubscription(forDriver).pipe(

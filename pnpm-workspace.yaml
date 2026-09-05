@@ -23,6 +23,7 @@ catalog:
   "@shivaedev/effect-prisma": 0.6.3
   "@shivaedev/effect-trpc": 0.3.4
   "@tailwindcss/vite": 4.3.3
+  '@tanstack/react-form': 1.33.5
   "@trpc/client": 11.18.0
   "@trpc/server": 11.18.0
   "@types/node": 24.10.1

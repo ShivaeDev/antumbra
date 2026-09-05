@@ -1,13 +1,14 @@
 import type { BackendFailure } from "@antumbra/plugin-api";
 import type { Effect } from "effect";
 import type { OpencodeServer } from "#server.ts";
+import type { PromptSettings } from "#session-open.ts";
 
 export interface TurnRequests {
 	readonly abort: Effect.Effect<unknown, BackendFailure>;
 	readonly prompt: (text: string) => Effect.Effect<unknown, BackendFailure>;
 }
 
-export const turnRequests = (server: OpencodeServer, sessionId: string, cwd: string): TurnRequests => {
+export const turnRequests = (server: OpencodeServer, sessionId: string, cwd: string, settings: PromptSettings): TurnRequests => {
 	const query = { directory: cwd };
 	return {
 		abort: server.post({
@@ -17,7 +18,7 @@ export const turnRequests = (server: OpencodeServer, sessionId: string, cwd: str
 		}),
 		prompt: (text) =>
 			server.post({
-				body: { parts: [{ text, type: "text" }] },
+				body: { ...settings, parts: [{ text, type: "text" }] },
 				path: `/session/${sessionId}/prompt_async`,
 				query,
 			}),

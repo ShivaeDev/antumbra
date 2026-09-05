@@ -23,8 +23,8 @@ export type {
 	SessionIdentity,
 	SessionRecoveryContext,
 } from "#recovery/context.ts";
-export { SessionRecoveryRuntime } from "#recovery/runtime.ts";
-export { makeSessionRecoveryRuntime } from "#resume.ts";
+export { sessionRecoveryLayer } from "#recovery/layer.ts";
+export { SessionRecoveryRuntime } from "#recovery/service.ts";
 export {
 	isRootSession,
 	nodeSessionsOnly,

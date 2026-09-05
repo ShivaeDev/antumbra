@@ -3,6 +3,7 @@ import { Database } from "@antumbra/persistence";
 import { defineService } from "@antumbra/service-definition";
 import { Voyages } from "@antumbra/voyages";
 import { Effect } from "effect";
+import { assignAgent } from "#assign-agent.ts";
 import { charter } from "#charter.ts";
 import { landVerdict } from "#land-verdict.ts";
 import { launch } from "#launch.ts";
@@ -18,6 +19,7 @@ export const Pieces = defineService({
 	id: "@antumbra/pieces/Pieces",
 	initialize: Effect.void,
 	methods: () => ({
+		assignAgent,
 		charter,
 		landVerdict,
 		launch,

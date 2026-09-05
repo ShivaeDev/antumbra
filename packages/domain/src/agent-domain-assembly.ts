@@ -5,13 +5,12 @@ import {
 	compileSessionSiestaDemands,
 	makeCurrentSessionReconciler,
 	makeSessionNodeReconciler,
-	makeSessionRecoveryRuntime,
 	makeSessionSend,
 	makeSessionTreeSinks,
 	makeSiestaKind,
 	makeWakeKind,
 	type SessionRecoveryContext,
-	SessionRecoveryRuntime,
+	sessionRecoveryLayer,
 } from "@antumbra/sessions";
 import { Effect } from "effect";
 import { makeBackendModels } from "#backend-models.ts";
@@ -44,13 +43,13 @@ export const makeAgentDomain = (backends: ReadonlyMap<string, AgentBackend>, run
 		const retire = yield* makeRetireKind;
 		const compileTools = yield* makeAgentToolCompiler(backends);
 		const toolsFor = (context: SessionRecoveryContext) => compileTools(context.role, context.identity);
-		const recoveryRuntime = yield* makeSessionRecoveryRuntime({
+		const recovery = sessionRecoveryLayer({
 			backends,
 			settingsFor: yield* makeSessionAgentSettings,
 			sinkFor,
 			toolsFor,
 		});
-		const wake = yield* makeWakeKind.pipe(Effect.provideService(SessionRecoveryRuntime, recoveryRuntime));
+		const wake = yield* makeWakeKind.pipe(Effect.provide(recovery));
 		const siesta = yield* makeSiestaKind;
 		const intentDemands = [
 			...(yield* compileSessionSiestaDemands(siesta)),

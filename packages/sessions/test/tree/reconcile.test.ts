@@ -2,9 +2,11 @@ import { it } from "@antumbra/persistence/testing";
 import { SessionEventJournal } from "@antumbra/session-event-journal";
 import type { AgentEvent } from "@antumbra/vocabulary/session-events";
 import { expect } from "@effect/vitest";
-import { Effect, Option } from "effect";
+import { Effect, Layer, Option } from "effect";
 import { journalOf, pointAgent, seedAgent, seedSession, sessionRow, treeLayer } from "#test/tree/fixture.ts";
-import { makeSessionNodeReconciler } from "#tree/reconcile.ts";
+import { SessionNodeReconciler } from "#tree/reconcile/service.ts";
+
+const layer = SessionNodeReconciler.layer.pipe(Layer.provideMerge(treeLayer));
 
 const AGENT = "agent-reconciled";
 const ROOT = "session-root";
@@ -46,9 +48,9 @@ const payloadsOn = (sessionId: string) => journalOf(sessionId).pipe(Effect.map((
 it.effectDB("a node whose acquisition can never come back is closed", function* () {
 	yield* Effect.gen(function* () {
 		yield* seedTree("closed");
-		const reconcile = yield* makeSessionNodeReconciler;
+		const nodes = yield* SessionNodeReconciler;
 
-		yield* reconcile;
+		yield* nodes.reconcile();
 
 		const node = yield* nodeRow;
 		expect(node.status).toBe("closed");
@@ -59,7 +61,7 @@ it.effectDB("a node whose acquisition can never come back is closed", function* 
 		const said = (yield* payloadsOn(NODE)).join("");
 		expect(said).toContain("stream-detached");
 		expect(said).toContain("the detach that would have said so never ran");
-	}).pipe(Effect.provide(treeLayer));
+	}).pipe(Effect.provide(layer));
 });
 
 it.effectDB("a node whose stream already said it detached is not told twice", function* () {
@@ -67,51 +69,51 @@ it.effectDB("a node whose stream already said it detached is not told twice", fu
 		yield* seedTree("closed");
 		const journal = yield* SessionEventJournal;
 		yield* journal.record(NODE, detached);
-		const reconcile = yield* makeSessionNodeReconciler;
+		const nodes = yield* SessionNodeReconciler;
 
-		yield* reconcile;
+		yield* nodes.reconcile();
 
 		const said = yield* payloadsOn(NODE);
 		expect(said.at(-1)).toContain("unknown");
 		expect(said.at(-1)).toContain("how its work ended was never reported");
 		expect((yield* nodeRow).outcome).toBe("unknown");
-	}).pipe(Effect.provide(treeLayer));
+	}).pipe(Effect.provide(layer));
 });
 
 it.effectDB("a node whose root is still open is left alone", function* () {
 	yield* Effect.gen(function* () {
 		yield* seedTree("open");
-		const reconcile = yield* makeSessionNodeReconciler;
+		const nodes = yield* SessionNodeReconciler;
 
-		yield* reconcile;
+		yield* nodes.reconcile();
 
 		expect((yield* nodeRow).status).toBe("open");
 		expect(yield* journalOf(NODE)).toHaveLength(0);
-	}).pipe(Effect.provide(treeLayer));
+	}).pipe(Effect.provide(layer));
 });
 
 it.effectDB("a node whose root a living Agent still holds is left alone", function* () {
 	yield* Effect.gen(function* () {
 		yield* seedTree("closed");
 		yield* pointAgent(AGENT, ROOT);
-		const reconcile = yield* makeSessionNodeReconciler;
+		const nodes = yield* SessionNodeReconciler;
 
-		yield* reconcile;
+		yield* nodes.reconcile();
 
 		expect((yield* nodeRow).status).toBe("open");
 		expect(yield* journalOf(NODE)).toHaveLength(0);
-	}).pipe(Effect.provide(treeLayer));
+	}).pipe(Effect.provide(layer));
 });
 
 it.effectDB("a node of a dormant Agent's closed root is closed", function* () {
 	yield* Effect.gen(function* () {
 		yield* seedTree("closed", "dormant");
 		yield* pointAgent(AGENT, ROOT);
-		const reconcile = yield* makeSessionNodeReconciler;
+		const nodes = yield* SessionNodeReconciler;
 
-		yield* reconcile;
+		yield* nodes.reconcile();
 
 		expect((yield* nodeRow).status).toBe("closed");
 		expect((yield* nodeRow).outcome).toBe("unknown");
-	}).pipe(Effect.provide(treeLayer));
+	}).pipe(Effect.provide(layer));
 });

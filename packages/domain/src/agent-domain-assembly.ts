@@ -3,7 +3,6 @@ import { ResourceReconciler } from "@antumbra/resource-reclamation";
 import { SessionFabric } from "@antumbra/session-fabric";
 import {
 	compileSessionSiestaDemands,
-	makeSessionNodeReconciler,
 	makeSessionTreeSinks,
 	makeSiestaKind,
 	makeWakeKind,
@@ -11,6 +10,7 @@ import {
 	sessionRecoveryLayer,
 } from "@antumbra/sessions";
 import { CurrentSessions } from "@antumbra/sessions/current/service";
+import { SessionNodeReconciler } from "@antumbra/sessions/tree/reconcile/service";
 import { Effect } from "effect";
 import { mailDeliveryDemands } from "#mail-delivery/demands.ts";
 import { MailDelivery } from "#mail-delivery/service.ts";
@@ -29,10 +29,10 @@ export const makeAgentDomain = (backends: ReadonlyMap<string, AgentBackend>, run
 		const mail = yield* MailDelivery;
 		const sinkFor = yield* makeSessionTreeSinks(mail.deliver());
 		const currentSessions = yield* CurrentSessions;
-		const reconcileSessionNodes = yield* makeSessionNodeReconciler;
+		const nodes = yield* SessionNodeReconciler;
 		yield* currentSessions.reconcile();
 		// Reconcile roots first because node acquisition liveness depends on root settlement.
-		yield* reconcileSessionNodes;
+		yield* nodes.reconcile();
 		const spawn = yield* spawnKind({
 			backends,
 			runners,

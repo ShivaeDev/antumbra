@@ -7,6 +7,8 @@ The body starts with `### Why?`: state the problem in one to three sentences. Fo
 Add `### Decisions` only when the change makes meaningful tradeoffs, with one bullet per decision. Add `### Callouts` only when a spot deserves
 reviewer attention, with one bullet per callout.
 
+A change an agent opens carries both: the reviewer was not in the session, so state what was decided and why, and the spots worth a closer look.
+
 Do not add file lists, test plans, or diff narration.
 
 Review applies only the relevant [quality-gate routes](../../quality-gates/README.md). When feedback reveals a reusable quality rule, follow that

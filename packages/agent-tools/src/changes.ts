@@ -14,7 +14,8 @@ export const openChangeSpec = defineTool({
 			}),
 		),
 		body: Schema.String.annotate({
-			description: "What the change does and why, written for whoever reviews it.",
+			description:
+				"What the change does and why, written for whoever reviews it. Say what you decided and why under `### Decisions`, and what a reviewer should look at closely under `### Callouts`.",
 		}),
 		draft: Schema.optionalKey(
 			Schema.Boolean.annotate({

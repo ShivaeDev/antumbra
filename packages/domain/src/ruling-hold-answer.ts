@@ -1,6 +1,6 @@
 import { rulingAnswerMail } from "@antumbra/rulings/delivery/answer-mail";
 import type { RulingHeldEnd } from "@antumbra/rulings/holds/held";
-import { notNowWords, questionBackWords } from "#ruling-reply-words.ts";
+import { notNowWords, questionBackWords } from "@antumbra/rulings/replies/words";
 
 export const heldSaid = (end: RulingHeldEnd): string => {
 	switch (end._tag) {

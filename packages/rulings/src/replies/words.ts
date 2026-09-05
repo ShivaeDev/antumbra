@@ -1,4 +1,4 @@
-import type { Ruling } from "@antumbra/rulings";
+import type { Ruling } from "#model.ts";
 
 export const questionBackWords = (ruling: Ruling, note: string): string =>
 	[

@@ -1,9 +1,8 @@
 import type { OpenRulingsView, RulingView } from "@antumbra/contract";
 import { expect, it } from "@effect/vitest";
 import { Effect } from "effect";
-import { act } from "react";
-import { createRoot } from "react-dom/client";
 import { beforeEach, vi } from "vitest";
+import { mount, settle } from "#test/dom.ts";
 import { RulingsPanel } from "#views/rulings.tsx";
 
 const { askMoreOnRuling, opened, parkRuling, reclassifyRuling } = vi.hoisted(() => {
@@ -73,28 +72,6 @@ const unmoved: RulingView = {
 	urgency: "eventual",
 	voyage: null,
 };
-
-const settle = (change: () => void): Effect.Effect<void> =>
-	Effect.promise(() =>
-		act(() => {
-			change();
-			return Promise.resolve();
-		}),
-	);
-
-const mount = () =>
-	Effect.gen(function* () {
-		const container = document.createElement("div");
-		document.body.append(container);
-		const root = createRoot(container);
-		yield* Effect.addFinalizer(() =>
-			settle(() => {
-				root.unmount();
-				container.remove();
-			}),
-		);
-		return { container, root };
-	});
 
 type Mounted = Effect.Success<ReturnType<typeof mount>>;
 

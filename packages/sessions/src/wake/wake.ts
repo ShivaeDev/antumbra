@@ -7,7 +7,7 @@ import { Effect, Result } from "effect";
 import { admitCapacity } from "#admission/admit.ts";
 import { CurrentSessions } from "#current/service.ts";
 import { promptInput } from "#input.ts";
-import { makeSessionRecoveryContext } from "#recovery/context.ts";
+import { SessionRecoveryContexts } from "#recovery/contexts/service.ts";
 import { recoveryHeld } from "#recovery/error.ts";
 import { SessionRecoveryRuntime } from "#recovery/service.ts";
 import { unresumable, waitFor } from "#unresumable.ts";
@@ -21,7 +21,7 @@ export type { WakeFields } from "#wake/input.ts";
 
 export const makeWakeKind = Effect.gen(function* () {
 	const capacities = yield* BackendCapacities;
-	const load = yield* makeSessionRecoveryContext;
+	const contexts = yield* SessionRecoveryContexts;
 	const fabric = yield* SessionFabric;
 	const inputs = yield* SessionInputs;
 	const loadCarriedInput = yield* makeLoadCarriedInput;
@@ -46,7 +46,7 @@ export const makeWakeKind = Effect.gen(function* () {
 	const admitted = (sessionId: string, carriedInput: CarriedInput) =>
 		fabric.withStartAdmission((permit) =>
 			Effect.gen(function* () {
-				const context = yield* load(sessionId);
+				const context = yield* contexts.load(sessionId);
 				if (Result.isFailure(context)) {
 					return yield* unresumable(sessionId, context.failure);
 				}
@@ -73,7 +73,7 @@ export const makeWakeKind = Effect.gen(function* () {
 		});
 	const runWake = (fields: WakeFields) =>
 		Effect.gen(function* () {
-			const context = yield* load(fields.sessionId);
+			const context = yield* contexts.load(fields.sessionId);
 			if (Result.isSuccess(context)) {
 				yield* admitCapacity(context.success.backend).pipe(Effect.provideService(BackendCapacities, capacities));
 			}

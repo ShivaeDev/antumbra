@@ -1,9 +1,8 @@
 import type { OpenRulingsView, RulingView } from "@antumbra/contract";
 import { expect, it } from "@effect/vitest";
 import { Deferred, Effect } from "effect";
-import { act } from "react";
-import { createRoot } from "react-dom/client";
 import { beforeEach, vi } from "vitest";
+import { mount, settle, write } from "#test/dom.ts";
 import { RulingsPanel } from "#views/rulings.tsx";
 
 interface Opened {
@@ -101,30 +100,6 @@ const berths: RulingView = {
 	voyage: null,
 };
 
-const settle = (change: () => void): Effect.Effect<void> =>
-	Effect.promise(() =>
-		act(() => {
-			change();
-			return Promise.resolve();
-		}),
-	);
-
-const nativeValue = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, "value")?.set;
-
-const mount = () =>
-	Effect.gen(function* () {
-		const container = document.createElement("div");
-		document.body.append(container);
-		const root = createRoot(container);
-		yield* Effect.addFinalizer(() =>
-			settle(() => {
-				root.unmount();
-				container.remove();
-			}),
-		);
-		return { container, root };
-	});
-
 const showing = (mounted: Effect.Success<ReturnType<typeof mount>>, view: OpenRulingsView = { rulings: [shoal, berths] }): Effect.Effect<void> =>
 	Effect.gen(function* () {
 		yield* settle(() => mounted.root.render(<RulingsPanel />));
@@ -136,11 +111,8 @@ const buttonSaying = (mounted: Effect.Success<ReturnType<typeof mount>>, words: 
 
 const answering = (mounted: Effect.Success<ReturnType<typeof mount>>, words: string): Effect.Effect<void> =>
 	settle(() => {
-		const box = mounted.container.querySelector("li textarea");
-		if (box !== null && nativeValue !== undefined) {
-			nativeValue.call(box, words);
-			box.dispatchEvent(new Event("input", { bubbles: true }));
-		}
+		const box = mounted.container.querySelector<HTMLTextAreaElement>("li textarea");
+		if (box !== null) write(box, words);
 	});
 
 beforeEach(() => {

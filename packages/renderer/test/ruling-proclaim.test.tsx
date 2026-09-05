@@ -1,10 +1,9 @@
 import type { OpenRulingsView } from "@antumbra/contract";
 import { expect, it } from "@effect/vitest";
 import { Deferred, Effect } from "effect";
-import { act } from "react";
-import { createRoot } from "react-dom/client";
 import { beforeEach, vi } from "vitest";
 import { RendererRequestError } from "#adapters/request-error.ts";
+import { mount, settle, write } from "#test/dom.ts";
 import { RulingsPanel } from "#views/rulings.tsx";
 
 const { opened, proclaimRuling } = vi.hoisted(() => {
@@ -26,28 +25,6 @@ vi.mock("#adapters/trpc-rulings.ts", () => ({
 	watchStandingRulings: () => () => undefined,
 	withdrawRuling: vi.fn(),
 }));
-
-const settle = (change: () => void): Effect.Effect<void> =>
-	Effect.promise(() =>
-		act(() => {
-			change();
-			return Promise.resolve();
-		}),
-	);
-
-const mount = () =>
-	Effect.gen(function* () {
-		const container = document.createElement("div");
-		document.body.append(container);
-		const root = createRoot(container);
-		yield* Effect.addFinalizer(() =>
-			settle(() => {
-				root.unmount();
-				container.remove();
-			}),
-		);
-		return { container, root };
-	});
 
 type Mounted = Effect.Success<ReturnType<typeof mount>>;
 
@@ -76,17 +53,10 @@ const writtenIn = (label: string): string | undefined => {
 	return box instanceof HTMLInputElement || box instanceof HTMLTextAreaElement ? box.value : undefined;
 };
 
-const valueSetter = (box: HTMLElement) =>
-	Object.getOwnPropertyDescriptor(box instanceof HTMLTextAreaElement ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype, "value")?.set;
-
 const writing = (label: string, words: string): Effect.Effect<void> =>
 	settle(() => {
 		const box = fieldNamed(label);
-		const set = box === null ? undefined : valueSetter(box);
-		if (box !== null && set !== undefined) {
-			set.call(box, words);
-			box.dispatchEvent(new Event("input", { bubbles: true }));
-		}
+		if (box instanceof HTMLInputElement || box instanceof HTMLTextAreaElement) write(box, words);
 	});
 
 const choosing = (label: string, word: string): Effect.Effect<void> =>

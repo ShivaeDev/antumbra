@@ -1,28 +1,23 @@
-import { Database, type PrismaError } from "@antumbra/persistence";
-import { SessionImageMediaType } from "@antumbra/vocabulary/session-input";
-import { type Context, Effect, Option, Schema } from "effect";
+import { Database } from "@antumbra/persistence";
+import { SessionImageMediaType, type SessionInputId } from "@antumbra/vocabulary/session-input";
+import { Effect, Option, Schema } from "effect";
 import { readImage } from "#adapters/custody.ts";
 import { transcriptThumbnail } from "#adapters/thumbnail.ts";
-import { type SessionInputCustodyFailed, SessionInputNotFound, StoredSessionInputInvalid } from "#errors.ts";
+import { SessionInputNotFound, StoredSessionInputInvalid } from "#errors.ts";
 import type { SessionInputImage } from "#model.ts";
+import { StorageRoot } from "#storage-root.ts";
 import { requireInput } from "#stored.ts";
 
 const decodeMediaType = Schema.decodeUnknownOption(SessionImageMediaType);
 const invalid = (inputId: string, detail: string) => new StoredSessionInputInvalid({ detail, inputId });
 
-export const readStoredImage = Effect.fn("SessionInputs.image")(function* (
-	root: string,
-	request: {
-		readonly inputId: string;
-		readonly position: number;
-		readonly sessionId: string;
-	},
-): Effect.fn.Return<
-	SessionInputImage,
-	PrismaError | SessionInputCustodyFailed | SessionInputNotFound | StoredSessionInputInvalid,
-	Context.Service.Identifier<typeof Database>
-> {
+export const readStoredImage = Effect.fn("SessionInputs.image")(function* (request: {
+	readonly inputId: SessionInputId;
+	readonly position: number;
+	readonly sessionId: string;
+}) {
 	const db = yield* Database;
+	const root = yield* StorageRoot;
 	const input = yield* requireInput(request.inputId);
 	if (input.sessionId !== request.sessionId) {
 		return yield* new SessionInputNotFound({ inputId: request.inputId });
@@ -53,5 +48,5 @@ export const readStoredImage = Effect.fn("SessionInputs.image")(function* (
 		bytes: yield* transcriptThumbnail(bytes),
 		mediaType: "image/webp",
 		name: displayName,
-	};
+	} satisfies SessionInputImage;
 });

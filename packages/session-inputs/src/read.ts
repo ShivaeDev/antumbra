@@ -1,10 +1,11 @@
 import { Database, type PrismaError } from "@antumbra/persistence";
 import type { SessionInput, SessionInputImagePart, SessionInputTextPart } from "@antumbra/plugin-api";
-import { SessionImageMediaType } from "@antumbra/vocabulary/session-input";
+import { SessionImageMediaType, type SessionInputId } from "@antumbra/vocabulary/session-input";
 import { type Context, Effect, Option, Schema } from "effect";
 import { imagePath, readImage } from "#adapters/custody.ts";
-import { type SessionInputCustodyFailed, type SessionInputNotFound, StoredSessionInputInvalid } from "#errors.ts";
+import { type SessionInputCustodyFailed, StoredSessionInputInvalid } from "#errors.ts";
 import type { StoredSessionInput } from "#model.ts";
+import { StorageRoot } from "#storage-root.ts";
 import { deliveryStatus, requireInput } from "#stored.ts";
 
 const decodeMediaType = Schema.decodeUnknownOption(SessionImageMediaType);
@@ -55,15 +56,9 @@ const storedPart = (
 	return Effect.fail(invalid(inputId, `part ${part.position} has invalid shape`));
 };
 
-export const readStoredInput = Effect.fn("SessionInputs.load")(function* (
-	root: string,
-	inputId: string,
-): Effect.fn.Return<
-	StoredSessionInput,
-	PrismaError | SessionInputCustodyFailed | SessionInputNotFound | StoredSessionInputInvalid,
-	Context.Service.Identifier<typeof Database>
-> {
+export const readStoredInput = Effect.fn("SessionInputs.load")(function* (inputId: SessionInputId) {
 	const db = yield* Database;
+	const root = yield* StorageRoot;
 	const stored = yield* requireInput(inputId);
 	const rows = yield* db.SessionInputPart.where({ inputId })
 		.orderBy((part) => part.position.asc())
@@ -83,5 +78,5 @@ export const readStoredInput = Effect.fn("SessionInputs.load")(function* (
 		input,
 		sessionId: stored.sessionId,
 		status: yield* Effect.fromResult(deliveryStatus(inputId, stored.deliveryStatus)),
-	};
+	} satisfies StoredSessionInput;
 });

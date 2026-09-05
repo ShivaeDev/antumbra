@@ -4,7 +4,9 @@
 	"private": true,
 	"type": "module",
 	"exports": {
-		".": "./src/index.ts"
+		".": "./src/index.ts",
+		"./admission/hold": "./src/admission/hold.ts",
+		"./admission/admit": "./src/admission/admit.ts"
 	},
 	"imports": {
 		"#test/*": "./test/*",
@@ -36,6 +38,7 @@
 		"@antumbra/session-inputs": "workspace:*",
 		"@antumbra/service-definition": "workspace:*",
 		"@antumbra/vocabulary": "workspace:*",
-		"effect": "catalog:"
+		"effect": "catalog:",
+		"@antumbra/provider-capacity": "workspace:*"
 	}
 }

@@ -1,10 +1,10 @@
 import { IntentExecution, Kernel } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
 import type { BackendCapacityReading } from "@antumbra/provider-capacity";
+import { capacityHoldDetail } from "@antumbra/sessions/admission/hold";
 import { expect, it } from "@effect/vitest";
 import { Deferred, Effect, Fiber, Layer, Option, Ref, Stream } from "effect";
 import { AgentDomain } from "#agent-domain-service.ts";
-import { capacityHoldDetail } from "#backend-capacity-hold.ts";
 import { BackendCapacityReleaseLive, BackendCapacityReleases } from "#backend-capacity-release.ts";
 import {
 	dependencies,

@@ -1,7 +1,7 @@
 import { Kernel } from "@antumbra/kernel";
+import { parseCapacityHoldDetail } from "@antumbra/sessions/admission/hold";
 import { Context, Effect, Layer, Option, Semaphore, Stream } from "effect";
 import { AgentDomain } from "#agent-domain-service.ts";
-import { parseCapacityHoldDetail } from "#backend-capacity-hold.ts";
 
 export class BackendCapacityReleases extends Context.Service<
 	BackendCapacityReleases,

@@ -1,9 +1,9 @@
 import type { SessionInput } from "@antumbra/plugin-api";
+import { BackendCapacities } from "@antumbra/provider-capacity/service";
 import { SessionFabric } from "@antumbra/session-fabric";
 import { type SessionInputDraft, SessionInputNotFound, SessionInputs } from "@antumbra/session-inputs";
 import type { SessionInputId } from "@antumbra/vocabulary/session-input";
 import { Effect } from "effect";
-import type { SessionCapacities } from "#capacity.ts";
 import { makeCurrentSessionRecovery } from "#current/recovery.ts";
 import { admiralInput } from "#input.ts";
 import { makeSessionInputAdmission } from "#input-admission.ts";
@@ -17,11 +17,11 @@ export const makeSendInput = (
 	imageInputBackends: ReadonlySet<string>,
 	open: (sessionId: string) => Effect.Effect<OpenSession, SessionSendRefused>,
 	rouse: (sessionId: string, inputId: SessionInputId) => Effect.Effect<void, SessionSendRefused>,
-	capacities: SessionCapacities,
 ) =>
 	Effect.gen(function* () {
 		const admission = yield* makeSessionInputAdmission(imageInputBackends);
 		const fabric = yield* SessionFabric;
+		const capacities = yield* BackendCapacities;
 		const inputs = yield* SessionInputs;
 		const recovery = yield* makeCurrentSessionRecovery;
 		const accepted = (sessionId: string, inputId: SessionInputId, input: SessionInput) => {

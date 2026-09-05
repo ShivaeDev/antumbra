@@ -25,6 +25,12 @@ jobs:
       - uses: ./.github/actions/setup
       - run: pnpm typecheck
       - run: pnpm typecheck:root
+
+  typecheck-compat:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
       - run: pnpm typecheck:compat
 
   test:
@@ -69,6 +75,7 @@ jobs:
     needs:
       - lint
       - typecheck
+      - typecheck-compat
       - test
       - isolated
       - guards
@@ -79,6 +86,7 @@ jobs:
         run: |
           test "${{ needs.lint.result }}" = success
           test "${{ needs.typecheck.result }}" = success
+          test "${{ needs.typecheck-compat.result }}" = success
           test "${{ needs.test.result }}" = success
           test "${{ needs.isolated.result }}" = success
           test "${{ needs.guards.result }}" = success

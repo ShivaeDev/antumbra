@@ -1,9 +1,8 @@
 import type { Ruling, RulingSubject } from "@antumbra/rulings";
-import { type PieceState, pieceStates } from "#piece-state.ts";
-import type { VoyageWorld } from "#voyage-rows.ts";
-import { piecesOfVoyage } from "#voyage-state.ts";
+import { concludedPieces } from "#piece-state.ts";
+import type { RetirementWorld, VoyageWorld } from "#voyage-rows.ts";
 
-const CONCLUDED: ReadonlySet<PieceState> = new Set<PieceState>(["abandoned", "done"]);
+type StalenessRows = RetirementWorld & Pick<VoyageWorld, "memberships">;
 
 interface ConcludableSubject {
 	readonly id: string;
@@ -12,20 +11,15 @@ interface ConcludableSubject {
 
 const concludable = (subject: RulingSubject): subject is ConcludableSubject => subject.kind === "piece" || subject.kind === "voyage";
 
-const pieceConcluded = (states: ReadonlyMap<string, PieceState>, pieceId: string): boolean => {
-	const state = states.get(pieceId);
-	return state !== undefined && CONCLUDED.has(state);
+const voyageConcluded = (world: StalenessRows, states: ReadonlyMap<string, "abandoned" | "done">, voyageId: string): boolean => {
+	const pieces = world.memberships.filter((membership) => membership.voyageId === voyageId);
+	return pieces.length > 0 && pieces.every((membership) => states.has(membership.pieceId));
 };
 
-const voyageConcluded = (world: VoyageWorld, states: ReadonlyMap<string, PieceState>, voyageId: string): boolean => {
-	const pieces = piecesOfVoyage(world, voyageId);
-	return pieces.length > 0 && pieces.every((pieceId) => pieceConcluded(states, pieceId));
-};
-
-export const rulingStaleness = (world: VoyageWorld) => {
-	const states = pieceStates(world);
+export const rulingStaleness = (world: StalenessRows) => {
+	const states = concludedPieces(world);
 	const concluded = (subject: ConcludableSubject): boolean =>
-		subject.kind === "piece" ? pieceConcluded(states, subject.id) : voyageConcluded(world, states, subject.id);
+		subject.kind === "piece" ? states.has(subject.id) : voyageConcluded(world, states, subject.id);
 	return (ruling: Ruling): boolean => {
 		const finite = ruling.subjects.filter(concludable);
 		return finite.length > 0 && finite.every(concluded);

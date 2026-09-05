@@ -1,4 +1,5 @@
 import { Database } from "@antumbra/persistence";
+import { Pieces } from "@antumbra/pieces";
 import { expect, it } from "@effect/vitest";
 import { Effect } from "effect";
 import { AgentDomain } from "#domain.ts";
@@ -26,13 +27,14 @@ it.live("a dispatched crew is told the moorage folder it was berthed in", () =>
 		const scripted = yield* makeScriptedBackend;
 		const recorder = yield* makeScriptedRunner;
 		yield* Effect.gen(function* () {
+			const pieces = yield* Pieces;
 			const domain = yield* AgentDomain;
 			yield* domain.repos.register({
 				defaultRef: "main",
 				source: "/workspace/Desktop",
 			});
 			const reef = yield* openReefVoyage;
-			const alpha = yield* domain.voyages.charterPiece({
+			const alpha = yield* pieces.charter({
 				charter: "Investigate lost edits after restart.",
 				dependsOn: [],
 				expectation: "A report identifying the cause.",
@@ -40,7 +42,7 @@ it.live("a dispatched crew is told the moorage folder it was berthed in", () =>
 				title: "Investigate lost edits",
 				voyageId: reef.id,
 			});
-			yield* domain.voyages.launch(alpha.id);
+			yield* pieces.launch(alpha.id);
 
 			const agentId = yield* eventually(crewOf(alpha.id));
 			const charter = yield* eventually(charterDelivered(scripted, agentId));

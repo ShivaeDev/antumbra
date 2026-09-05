@@ -3,8 +3,8 @@ import { ensureAgentCanOwnLocalWork } from "@antumbra/resource-reclamation";
 import { Clock, Effect, Option } from "effect";
 import { changeRow } from "#change-read.ts";
 import type { ChangeRow } from "#change-rows.ts";
-import { PreparedChangeInvalid } from "#change-submissions/errors.ts";
-import type { Proposal } from "#change-submissions/model.ts";
+import { PreparedChangeInvalid } from "#submissions/errors.ts";
+import type { Proposal } from "#submissions/model.ts";
 
 const requireStoredChange = (id: string) =>
 	Effect.gen(function* () {

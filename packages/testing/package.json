@@ -29,6 +29,7 @@
 		"@antumbra/persistence": "workspace:*",
 		"@antumbra/testing-runtime": "workspace:*",
 		"@effect/platform-node": "catalog:",
-		"effect": "catalog:"
+		"effect": "catalog:",
+		"@antumbra/pieces": "workspace:*"
 	}
 }

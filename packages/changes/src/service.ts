@@ -3,28 +3,32 @@ import { Database } from "@antumbra/persistence";
 import { Pieces } from "@antumbra/pieces";
 import { defineService } from "@antumbra/service-definition";
 import { Effect } from "effect";
-import { adoptSubmittedChange } from "#change-submissions/adopt.ts";
-import { readHeldResources } from "#change-submissions/held-resources.ts";
-import { observedChanges } from "#change-submissions/observed.ts";
-import { openSubmittedChange } from "#change-submissions/open.ts";
-import { refreshSubmittedChanges } from "#change-submissions/refresh.ts";
-import { ChangeHostRegistry, RunnerRegistry } from "#change-submissions/registries.ts";
-import { submitChange } from "#change-submissions/submit.ts";
-import { watchableChanges } from "#change-submissions/watchable.ts";
+import { changeById } from "#by-id.ts";
 import { dismissChange } from "#dismiss.ts";
 import { forPieces } from "#for-pieces.ts";
+import { pendingForPieces } from "#pending-for-pieces.ts";
+import { ChangeHostRegistry, RunnerRegistry } from "#registries.ts";
 import { readChangeSnapshot } from "#snapshot.ts";
+import { adoptSubmittedChange } from "#submissions/adopt.ts";
+import { readHeldResources } from "#submissions/held-resources.ts";
+import { observedChanges } from "#submissions/observed.ts";
+import { openSubmittedChange } from "#submissions/open.ts";
+import { refreshSubmittedChanges } from "#submissions/refresh.ts";
+import { submitChange } from "#submissions/submit.ts";
+import { watchableChanges } from "#submissions/watchable.ts";
 
 export const Changes = defineService({
 	id: "@antumbra/changes/Changes",
 	initialize: Effect.void,
 	methods: () => ({
 		adopt: adoptSubmittedChange,
+		byId: changeById,
 		dismiss: dismissChange,
 		forPieces,
 		heldResources: readHeldResources,
 		observed: observedChanges,
 		open: openSubmittedChange,
+		pendingForPieces,
 		refresh: refreshSubmittedChanges,
 		snapshot: readChangeSnapshot,
 		submit: submitChange,

@@ -2,9 +2,10 @@ import type { ChangeRow } from "@antumbra/changes";
 import type { ChangeChecks, ChangeStage } from "@antumbra/plugin-api";
 import { expect, it } from "@effect/vitest";
 import { changeView } from "#change-view.ts";
-import { type QuayGroup, quayGroup } from "#quay-group.ts";
-import { quayPieces, quayRows } from "#quay-view.ts";
-import type { PieceRow, VoyageWorld } from "#voyage-rows.ts";
+import { type QuayGroup, quayGroup } from "#quay/group.ts";
+import type { QuayRecords } from "#quay/records.ts";
+import { quayPieces, quayRows } from "#quay/view.ts";
+import type { PieceRow } from "#voyage-rows.ts";
 
 const MOMENT = new Date("2026-08-15T09:00:00.000Z");
 
@@ -51,41 +52,24 @@ const change = (id: string, over: Partial<ChangeRow> = {}): ChangeRow => ({
 	...over,
 });
 
-const world = (over: Partial<VoyageWorld>): VoyageWorld => ({
-	agentStatus: new Map(),
-	currentSessionByAgent: new Map(),
-	artifacts: new Map(),
-	assignments: [],
+const world = (over: Partial<QuayRecords>): QuayRecords => ({
 	changes: [],
-	crews: [],
 	dismissedChangeIds: new Set(),
-	edges: [],
 	memberships: [{ pieceId: "alpha", voyageId: "voyage-1" }],
-	openRulings: [],
 	pieceChanges: [],
-	pieceReports: [],
-	pieceVerdicts: new Map(),
-	rulingGates: [],
 	pieces: [piece("alpha")],
-	reports: new Map(),
 	repos: new Map([["repo-1", { id: "repo-1", name: "shoals" }]]),
 	sessions: [],
 	voyages: [
 		{
-			captainBackend: "scripted",
-			context: "the reef is uncharted",
-			crewBackend: "scripted",
-			focusedAt: null,
 			id: "voyage-1",
-			kind: "voyage",
 			name: "Chart the reef",
-			northStar: "every shoal is known",
 		},
 	],
 	...over,
 });
 
-const onAlpha = (rows: ReadonlyArray<ChangeRow>): VoyageWorld =>
+const onAlpha = (rows: ReadonlyArray<ChangeRow>): QuayRecords =>
 	world({
 		changes: rows,
 		pieceChanges: rows.map((row) => ({
@@ -174,15 +158,10 @@ it("a row carries the opener's canonical stored session association", () => {
 	]);
 	const [row] = quayRows({
 		...associated,
-		currentSessionByAgent: new Map([["agent-one", "session-newer"]]),
 		sessions: [
 			{
 				agentId: "agent-one",
-				backend: "scripted",
-				createdAt: MOMENT,
-				executionStatus: "idle",
 				id: "session-one",
-				status: "open",
 			},
 		],
 	});

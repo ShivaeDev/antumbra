@@ -1,7 +1,7 @@
 import { Database } from "@antumbra/persistence";
+import { Pieces } from "@antumbra/pieces";
 import { expect, it } from "@effect/vitest";
 import { Effect, Option } from "effect";
-import { AgentDomain } from "#domain.ts";
 import { domainKernelLayer } from "#test/domain-layers.ts";
 import { acquireTemporaryPersistence, makeScriptedBackend } from "#test/harness.ts";
 import { openReefVoyage, stateOf } from "#test/voyage-fixtures.ts";
@@ -14,10 +14,10 @@ it.live("a boot frees a Piece its Agent can no longer work", () =>
 		const scripted = yield* makeScriptedBackend;
 
 		const held = yield* Effect.gen(function* () {
+			const pieces = yield* Pieces;
 			const db = yield* Database;
-			const domain = yield* AgentDomain;
 			const voyage = yield* openReefVoyage;
-			const piece = yield* domain.voyages.charterPiece({
+			const piece = yield* pieces.charter({
 				charter: "sound the shallows",
 				dependsOn: [],
 				expectation: "soundings are landed",
@@ -25,7 +25,7 @@ it.live("a boot frees a Piece its Agent can no longer work", () =>
 				title: "alpha",
 				voyageId: voyage.id,
 			});
-			yield* domain.voyages.launch(piece.id);
+			yield* pieces.launch(piece.id);
 			yield* db.Agent.create({
 				charter: "sound the shallows",
 				currentSessionId: null,

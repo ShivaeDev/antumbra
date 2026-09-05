@@ -1,10 +1,11 @@
+import { Pieces } from "@antumbra/pieces";
 import { expect, it } from "@effect/vitest";
 import { Effect, Ref } from "effect";
 import type { SpawnFields } from "#spawn-fields.ts";
 import { domainCapabilityLayer } from "#test/domain-layers.ts";
 import { acquireTemporaryPersistence } from "#test/harness.ts";
 import { fakeKernelReach } from "#test/kernel-reach-fixture.ts";
-import { VoyageProcedureService } from "#voyage-procedures.ts";
+import { VoyageProcedureService } from "#voyages/service.ts";
 
 it.live("uses each voyage backend for future captain and crew spawns", () =>
 	Effect.gen(function* () {
@@ -15,6 +16,7 @@ it.live("uses each voyage backend for future captain and crew spawns", () =>
 			submitSpawn: (payload: SpawnFields) => Ref.update(submissions, (current) => [...current, payload]).pipe(Effect.as("spawn-intent")),
 		};
 		yield* Effect.gen(function* () {
+			const pieces = yield* Pieces;
 			const voyages = yield* VoyageProcedureService;
 			const voyage = yield* voyages.open({
 				backend: "scripted",
@@ -27,7 +29,7 @@ it.live("uses each voyage backend for future captain and crew spawns", () =>
 			yield* voyages.setCaptainBackend(voyage.id, "codex");
 			yield* voyages.hail(voyage.id);
 
-			const piece = yield* voyages.charterPiece({
+			const piece = yield* pieces.charter({
 				charter: "sound the eastern shoal",
 				dependsOn: [],
 				expectation: "the soundings are landed",

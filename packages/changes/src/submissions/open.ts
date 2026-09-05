@@ -2,13 +2,13 @@ import { DomainFeeds } from "@antumbra/domain-feeds";
 import { ChangeHostUnavailable } from "@antumbra/plugin-api";
 import { Effect } from "effect";
 import type { ChangeRow } from "#change-rows.ts";
-import { ChangeObservationConflict, PreparedChangeInvalid } from "#change-submissions/errors.ts";
-import type { OpenChangeInput } from "#change-submissions/model.ts";
-import { applyObservations } from "#change-submissions/observations.ts";
-import { prepareChange } from "#change-submissions/prepare.ts";
-import { freezeProposal } from "#change-submissions/proposal.ts";
-import { ChangeHostRegistry } from "#change-submissions/registries.ts";
 import { UnknownChangeHostTag } from "#errors.ts";
+import { ChangeHostRegistry } from "#registries.ts";
+import { ChangeObservationConflict, PreparedChangeInvalid } from "#submissions/errors.ts";
+import type { OpenChangeInput } from "#submissions/model.ts";
+import { applyObservations } from "#submissions/observations.ts";
+import { prepareChange } from "#submissions/prepare.ts";
+import { freezeProposal } from "#submissions/proposal.ts";
 
 const retainsClaimOrSettles = (row: ChangeRow, submissionKey: string): boolean =>
 	row.stage === "open" ? row.submissionKey === submissionKey : (row.stage === "landed" || row.stage === "withdrawn") && row.submissionKey === null;

@@ -1,4 +1,5 @@
 export type { PrismaError } from "@shivaedev/effect-prisma";
+export { or } from "@shivaedev/effect-prisma";
 export { applyMigrations } from "#adapters/migrator.ts";
 export { databaseFileInDataDirectory } from "#data-dir.ts";
 export {

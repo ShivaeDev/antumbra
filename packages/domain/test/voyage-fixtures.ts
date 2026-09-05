@@ -1,5 +1,7 @@
 import { isTerminalIntentStatus, Kernel } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
+import { Pieces } from "@antumbra/pieces";
+import { Reports } from "@antumbra/reports";
 import { expect } from "@effect/vitest";
 import { Effect, Option, Schedule, Stream } from "effect";
 import { AgentDomain } from "#domain.ts";
@@ -45,10 +47,10 @@ export const openReefVoyage = Effect.gen(function* () {
 });
 
 export const chain = Effect.gen(function* () {
-	const domain = yield* AgentDomain;
+	const pieces = yield* Pieces;
 	const voyage = yield* openReefVoyage;
 	const charter = (title: string, dependsOn: ReadonlyArray<string>) =>
-		domain.voyages.charterPiece({
+		pieces.charter({
 			charter: `do ${title}`,
 			dependsOn,
 			expectation: `${title} is landed`,
@@ -59,9 +61,9 @@ export const chain = Effect.gen(function* () {
 	const alpha = yield* charter("alpha", []);
 	const bravo = yield* charter("bravo", [alpha.id]);
 	const charlie = yield* charter("charlie", [alpha.id]);
-	yield* domain.voyages.launch(alpha.id);
-	yield* domain.voyages.launch(bravo.id);
-	yield* domain.voyages.launch(charlie.id);
+	yield* pieces.launch(alpha.id);
+	yield* pieces.launch(bravo.id);
+	yield* pieces.launch(charlie.id);
 	return { alpha, bravo, charlie, voyage };
 });
 
@@ -74,8 +76,8 @@ export const stateOf = (voyageId: string, pieceId: string) =>
 
 export const land = (pieceId: string, title: string) =>
 	Effect.gen(function* () {
-		const domain = yield* AgentDomain;
-		yield* domain.voyages.landReport({
+		const reports = yield* Reports;
+		yield* reports.land({
 			body: `${title} landed`,
 			pieceId,
 			title,

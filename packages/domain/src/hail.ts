@@ -31,59 +31,58 @@ export type HailRefused =
 	| VoyageNotFound
 	| VoyageWorldReadFailure;
 
-export const hailCaptain = (voyageId: string) =>
-	Effect.gen(function* () {
-		const boards = yield* Boards;
-		const reach = yield* KernelReach;
-		const db = yield* Database;
-		const storedVoyage = yield* db.Voyage.where({ id: voyageId }).first();
-		if (Option.isNone(storedVoyage)) {
-			return yield* new VoyageNotFound({ voyageId });
-		}
-		const kind = yield* Effect.fromResult(decodeStoredVoyageKind(voyageId, storedVoyage.value.kind));
-		const voyage = voyageRow(storedVoyage.value, kind);
-		const current = yield* readVoyageCaptain(voyageId);
-		if (Option.isSome(current) && current.value.status === "alive") {
-			const sessionId = current.value.sessionId;
-			if (sessionId === null) {
-				return yield* new CaptainSessionUnavailable({
-					agentId: current.value.agentId,
-					detail: "no open execution to resume",
-					voyageId,
-				});
-			}
-			const intentId = yield* reach.submitWake({ sessionId });
-			return { agentId: current.value.agentId, intentId };
-		}
-		if (Option.isSome(current) && current.value.atWork) {
-			return yield* new CaptainAlreadyHailed({
+export const hailCaptain = Effect.fn("Voyages.hail")(function* (voyageId: string) {
+	const boards = yield* Boards;
+	const reach = yield* KernelReach;
+	const db = yield* Database;
+	const storedVoyage = yield* db.Voyage.where({ id: voyageId }).first();
+	if (Option.isNone(storedVoyage)) {
+		return yield* new VoyageNotFound({ voyageId });
+	}
+	const kind = yield* Effect.fromResult(decodeStoredVoyageKind(voyageId, storedVoyage.value.kind));
+	const voyage = voyageRow(storedVoyage.value, kind);
+	const current = yield* readVoyageCaptain(voyageId);
+	if (Option.isSome(current) && current.value.status === "alive") {
+		const sessionId = current.value.sessionId;
+		if (sessionId === null) {
+			return yield* new CaptainSessionUnavailable({
 				agentId: current.value.agentId,
+				detail: "no open execution to resume",
 				voyageId,
 			});
 		}
-		const source = yield* VoyageWorldSource;
-		const world = yield* source.read();
-		const voyageLog = yield* boards.read(BoardScope.Voyage({ voyageId })).pipe(Effect.map(entryBodies));
-		const agentId = crypto.randomUUID();
-		const bindingRulings = yield* standingRulingsFor({
-			agentId,
-			pieceId: Option.none(),
-			voyageId: Option.some(voyageId),
-		});
-		const intentId = yield* reach.submitSpawn({
-			agentId,
-			backend: voyage.captainBackend,
-			charter: charterForKind(voyage.kind, {
-				context: voyage.context,
-				northStar: voyage.northStar,
-				pieceLines: voyageView(world, voyage).pieces.map(pieceLineWithOutcomes),
-				rulings: bindingRulings.map(rulingLine),
-				voyageLog,
-			}),
-			role: CAPTAIN_ROLE,
-			runner: "local",
-			sessionId: crypto.randomUUID(),
+		const intentId = yield* reach.submitWake({ sessionId });
+		return { agentId: current.value.agentId, intentId };
+	}
+	if (Option.isSome(current) && current.value.atWork) {
+		return yield* new CaptainAlreadyHailed({
+			agentId: current.value.agentId,
 			voyageId,
 		});
-		return { agentId, intentId };
+	}
+	const source = yield* VoyageWorldSource;
+	const world = yield* source.read();
+	const voyageLog = yield* boards.read(BoardScope.Voyage({ voyageId })).pipe(Effect.map(entryBodies));
+	const agentId = crypto.randomUUID();
+	const bindingRulings = yield* standingRulingsFor({
+		agentId,
+		pieceId: Option.none(),
+		voyageId: Option.some(voyageId),
 	});
+	const intentId = yield* reach.submitSpawn({
+		agentId,
+		backend: voyage.captainBackend,
+		charter: charterForKind(voyage.kind, {
+			context: voyage.context,
+			northStar: voyage.northStar,
+			pieceLines: voyageView(world, voyage).pieces.map(pieceLineWithOutcomes),
+			rulings: bindingRulings.map(rulingLine),
+			voyageLog,
+		}),
+		role: CAPTAIN_ROLE,
+		runner: "local",
+		sessionId: crypto.randomUUID(),
+		voyageId,
+	});
+	return { agentId, intentId };
+});

@@ -52,7 +52,7 @@ export const hailCaptain = Effect.fn("Voyages.hail")(function* (voyageId: string
 	const details = yield* VoyageDetails;
 	const detail = yield* details.read(voyageId);
 	if (Option.isNone(detail)) return yield* new VoyageNotFound({ voyageId });
-	const voyageLog = yield* boards.read(BoardScope.Voyage({ voyageId })).pipe(Effect.map(entryBodies));
+	const voyageLog = yield* boards.digest(BoardScope.Voyage({ voyageId })).pipe(Effect.map(entryBodies));
 	const agentId = crypto.randomUUID();
 	const bindingRulings = yield* standingRulingsFor({
 		agentId,

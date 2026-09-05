@@ -117,6 +117,7 @@ export {
 } from "#voyage-requests.ts";
 export {
 	BoardEntryView,
+	BoardSmoothing,
 	CrewMemberView,
 	PieceAgentView,
 	PieceCounts,

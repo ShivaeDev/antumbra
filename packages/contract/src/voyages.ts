@@ -42,6 +42,7 @@ export class VoyageSource extends Context.Service<
 		readonly rewire: (request: RewireRequest) => Effect.Effect<void, SightFailure>;
 		readonly setAgentSettings: (request: VoyageAgentSettingsRequest) => Effect.Effect<void, SightFailure>;
 		readonly setFocus: (voyageId: string, focused: boolean) => Effect.Effect<void, SightFailure>;
+		readonly smoothBoard: (voyageId: string) => Effect.Effect<void, SightFailure>;
 		readonly supersedeArtifact: (request: ArtifactSupersessionRequest) => Effect.Effect<void, SightFailure>;
 		readonly unpark: (pieceId: string) => Effect.Effect<void, SightFailure>;
 		readonly voyage: (voyageId: string) => Effect.Effect<VoyageView, SightFailure>;

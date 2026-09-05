@@ -44,6 +44,7 @@ export const voyageFixture = (feeds: FixtureFeeds) =>
 		rewire: () => Effect.void,
 		setAgentSettings: () => Effect.void,
 		setFocus: () => Effect.void,
+		smoothBoard: () => Effect.void,
 		supersedeArtifact: () => Effect.void,
 		unpark: () => Effect.void,
 		voyage: (voyageId) => {

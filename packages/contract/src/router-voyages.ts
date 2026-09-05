@@ -85,6 +85,10 @@ export const voyageRoutes = (procedure: AppProcedure) => ({
 		const voyages = yield* VoyageSource;
 		yield* surface(voyages.setAgentSettings(input));
 	}),
+	smoothBoard: procedure.input(VoyageRef).mutation(function* (input) {
+		const voyages = yield* VoyageSource;
+		yield* surface(voyages.smoothBoard(input.voyageId));
+	}),
 	unparkPiece: procedure.input(PieceRef).mutation(function* (input) {
 		const voyages = yield* VoyageSource;
 		yield* surface(voyages.unpark(input.pieceId));

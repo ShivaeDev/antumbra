@@ -19,4 +19,5 @@ export const flagshipView: VoyageView = {
 	context: "Fleet-level rulings and findings belong here.",
 	crew: [],
 	pieces: [],
+	smoothing: { state: "idle", uncovered: 0 },
 };

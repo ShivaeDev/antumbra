@@ -100,11 +100,18 @@ export const VoyageSummary = Schema.Struct({
 });
 export type VoyageSummary = typeof VoyageSummary.Type;
 
+export const BoardSmoothing = Schema.Struct({
+	state: Schema.Literals(["failed", "idle", "running"]),
+	uncovered: Schema.Number,
+});
+export type BoardSmoothing = typeof BoardSmoothing.Type;
+
 export const VoyageView = Schema.Struct({
 	...VoyageSummary.fields,
 	board: Schema.Array(BoardEntryView),
 	context: Schema.String,
 	crew: Schema.Array(CrewMemberView),
 	pieces: Schema.Array(PieceView),
+	smoothing: BoardSmoothing,
 });
 export type VoyageView = typeof VoyageView.Type;

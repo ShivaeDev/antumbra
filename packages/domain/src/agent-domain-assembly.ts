@@ -17,6 +17,7 @@ import { MailDelivery } from "#mail-delivery/service.ts";
 import { makeRetireKind } from "#retire.ts";
 import { compileRetireSweepDemands } from "#retire-sweep-demands.ts";
 import { makeSessionAgentSettings } from "#session-agent-settings.ts";
+import { smoothKind } from "#smoothing/kind.ts";
 import { spawnKind } from "#spawn.ts";
 import { makeAgentToolCompiler } from "#spawn-tools.ts";
 import { VoyageProcedureService } from "#voyages/service.ts";
@@ -39,6 +40,7 @@ export const makeAgentDomain = (backends: ReadonlyMap<string, AgentBackend>, run
 			sinkFor,
 		});
 		const retire = yield* makeRetireKind;
+		const smooth = yield* smoothKind({ backends, runners, sinkFor });
 		const compileTools = yield* makeAgentToolCompiler;
 		const toolsFor = (context: SessionRecoveryContext) => compileTools(context.role, context.identity);
 		const recovery = sessionRecoveryLayer({
@@ -56,11 +58,12 @@ export const makeAgentDomain = (backends: ReadonlyMap<string, AgentBackend>, run
 		];
 		return {
 			intentDemands,
-			kinds: [spawn, retire, siesta, wake],
+			kinds: [spawn, retire, siesta, smooth, wake],
 			retryResourceReclaim: resourceReconciler.reconcile(),
 			retire,
 			sessionsAttached: fabric.attached(),
 			siesta,
+			smooth,
 			spawn,
 			voyages,
 			wake,

@@ -1,5 +1,5 @@
 import type { BoardEntryRow } from "@antumbra/boards";
-import type { BoardEntryView, ChangeView, PieceCounts, PieceView, VoyageSummary, VoyageView } from "@antumbra/contract";
+import type { BoardEntryView, BoardSmoothing, ChangeView, PieceCounts, PieceView, VoyageSummary, VoyageView } from "@antumbra/contract";
 import { Option } from "effect";
 import type { ChangeView as DerivedChange } from "#change-view.ts";
 import { crewReleasable } from "#crew-rest.ts";
@@ -79,15 +79,18 @@ export const summarySeen = (summary: DerivedSummary): VoyageSummary => ({
 	state: summary.state,
 });
 
-export const voyageSeen = (
-	view: DerivedVoyage,
-	board: ReadonlyArray<BoardEntryRow>,
-	pieceBoards: ReadonlyMap<string, ReadonlyArray<BoardEntryRow>>,
-	resting: ReadonlyMap<string, ReadonlyArray<string>>,
-): VoyageView => ({
+export interface VoyageSighting {
+	readonly board: ReadonlyArray<BoardEntryRow>;
+	readonly pieceBoards: ReadonlyMap<string, ReadonlyArray<BoardEntryRow>>;
+	readonly resting: ReadonlyMap<string, ReadonlyArray<string>>;
+	readonly smoothing: BoardSmoothing;
+}
+
+export const voyageSeen = (view: DerivedVoyage, sighting: VoyageSighting): VoyageView => ({
 	...summarySeen(view),
-	board: board.map(entrySeen),
+	board: sighting.board.map(entrySeen),
 	context: view.context,
 	crew: view.crew,
-	pieces: view.pieces.map((piece) => pieceSeen(piece, pieceBoards.get(piece.id) ?? [], resting)),
+	pieces: view.pieces.map((piece) => pieceSeen(piece, sighting.pieceBoards.get(piece.id) ?? [], sighting.resting)),
+	smoothing: sighting.smoothing,
 });

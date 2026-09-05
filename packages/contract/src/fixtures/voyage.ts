@@ -95,10 +95,18 @@ export const reefView: VoyageView = {
 			id: "entry-1",
 			register: "smooth",
 		},
+		{
+			authorAgentId: "agent-1",
+			body: "sounded the eastern shoal at low water",
+			createdAt: "2026-08-15T11:40:00.000Z",
+			id: "entry-2",
+			register: "rough",
+		},
 	],
 	context: "the reef is uncharted",
 	crew: [{ agentId: "agent-1", role: "captain", status: "alive" }],
 	pieces: [soundings, chart],
+	smoothing: { state: "idle", uncovered: 1 },
 };
 
 export const quayView: QuayView = {

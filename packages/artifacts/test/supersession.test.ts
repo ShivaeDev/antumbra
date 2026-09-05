@@ -7,7 +7,7 @@ import { Database, type DatabaseService } from "@antumbra/persistence";
 import { persistenceIt } from "@antumbra/persistence/testing";
 import { NodeServices } from "@effect/platform-node";
 import { expect } from "@effect/vitest";
-import { Effect, Layer, Option } from "effect";
+import { type Context, Effect, Layer, Option } from "effect";
 
 const it = persistenceIt();
 
@@ -67,7 +67,7 @@ const land = (pieceId: string, title: string, authorAgentId = "agent-chart") =>
 		});
 	});
 
-const useArtifacts = <A, E>(use: (artifacts: Artifacts["Service"]) => Effect.Effect<A, E>) =>
+const useArtifacts = <A, E>(use: (artifacts: Context.Service.Shape<typeof Artifacts>) => Effect.Effect<A, E>) =>
 	Artifacts.pipe(Effect.flatMap(use), Effect.provide(layer));
 
 it.effectDB("lands an explicit revision and keeps immutable lineage", function* (db) {

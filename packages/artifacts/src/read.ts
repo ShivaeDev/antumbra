@@ -3,6 +3,7 @@ import { Effect, FileSystem, Option, Path } from "effect";
 import { digestBytes, readOpened } from "#content.ts";
 import { ArtifactNotFound, StoredArtifactContentInvalid, type StoredArtifactContentInvalidReason } from "#errors.ts";
 import type { ArtifactMarkdown } from "#model.ts";
+import { ArtifactStorage } from "#storage.ts";
 
 interface StoredArtifactIdentity {
 	readonly basename: string;
@@ -43,7 +44,8 @@ const readAndVerify = Effect.fnUntraced(function* (
 	return new TextDecoder().decode(bytes);
 });
 
-export const readArtifactMarkdown = Effect.fn("Artifacts.readMarkdown")(function* (root: string, artifactId: string) {
+export const readArtifactMarkdown = Effect.fn("Artifacts.readMarkdown")(function* (artifactId: string) {
+	const { root } = yield* ArtifactStorage;
 	const db = yield* Database;
 	const stored = yield* db.Artifact.where({ id: artifactId }).first();
 	if (Option.isNone(stored)) {

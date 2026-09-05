@@ -5,7 +5,7 @@ import { appendGate, requirePiece } from "#gate-rows.ts";
 import { requireOpen } from "#open-row.ts";
 import { loadRuling } from "#read.ts";
 
-export const gate = Effect.fn("rulings.gate")(function* (input: RulingGateInput) {
+export const gate = Effect.fn("Rulings.gate")(function* (input: RulingGateInput) {
 	const feeds = yield* DomainFeeds;
 	const row = yield* requireOpen(input.rulingId);
 	yield* Effect.forEach(input.pieceIds, requirePiece);

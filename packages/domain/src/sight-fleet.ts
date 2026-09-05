@@ -1,11 +1,12 @@
 import { Changes } from "@antumbra/changes";
-import type { AgentSummary, Fleet, RepoSummary } from "@antumbra/contract";
+import type { AgentSummary, Fleet } from "@antumbra/contract";
 import { Database } from "@antumbra/persistence";
+import type { BackendCapacityReading } from "@antumbra/provider-capacity";
+import { Repos } from "@antumbra/repos";
 import { rootSessions, situationsByAgent } from "@antumbra/sessions";
 import { decodeStoredAgentStatus, decodeStoredBerthStatus, decodeStoredResourceReclaimState } from "@antumbra/vocabulary/agent-runtime";
 import { Effect } from "effect";
 import { workOf } from "#agent-work.ts";
-import type { BackendCapacityReading } from "#backend-capacity.ts";
 import { attributeIntents } from "#sight-diagnostics.ts";
 import { type FleetRuntime, sessionSummary } from "#sight-fleet-sessions.ts";
 import type { PendingIntent } from "#sight-intents.ts";
@@ -19,6 +20,7 @@ export const fleetSnapshot = (
 ) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
+		const registry = yield* Repos;
 		const changes = yield* Changes;
 		const storedAgents = yield* db.Agent.orderBy((agent) => agent.createdAt.asc()).all();
 		const agents = yield* Effect.forEach(storedAgents, (agent) =>
@@ -29,7 +31,7 @@ export const fleetSnapshot = (
 			.all();
 		const pointers = new Map(agents.map((agent) => [agent.id, agent.currentSessionId]));
 		const attribution = attributeIntents(intents, new Set(agents.map((agent) => agent.id)), new Set(sessions.map((session) => session.id)));
-		const snapshot = yield* changes.snapshot;
+		const snapshot = yield* changes.snapshot();
 		const assignments = yield* db.PieceAgent.orderBy((assignment) => assignment.assignedAt.asc()).all();
 		const situations = situationsByAgent(
 			{ ...snapshot, assignments },
@@ -45,12 +47,7 @@ export const fleetSnapshot = (
 				status: Effect.fromResult(decodeStoredBerthStatus(berth.id, berth.status)),
 			}).pipe(Effect.map((decoded) => ({ ...berth, ...decoded }))),
 		);
-		const repos: ReadonlyArray<RepoSummary> = (yield* db.Repo.orderBy((repo) => repo.createdAt.asc()).all()).map((repo) => ({
-			defaultRef: repo.defaultRef,
-			id: repo.id,
-			name: repo.name,
-			source: repo.source,
-		}));
+		const repos = yield* registry.registered();
 		const work = {
 			assignments,
 			crews: yield* db.VoyageAgent.all(),

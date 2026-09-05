@@ -9,27 +9,13 @@ import type { PieceCounts as DerivedCounts, VoyageSummary as DerivedSummary, Voy
 const stamp = (at: Date | null): string | null => (at === null ? null : at.toISOString());
 
 export const changeSeen = (change: DerivedChange): ChangeView => ({
+	...change,
 	activityAt: change.activityAt.toISOString(),
-	checks: change.checks,
-	externalId: change.externalId,
-	host: change.host,
-	id: change.id,
-	isDraft: change.isDraft,
-	mergeable: change.mergeable,
 	observedAt: change.observedAt.toISOString(),
-	repoId: change.repoId,
-	repoName: change.repoName,
-	review: change.review,
-	stage: change.stage,
-	title: change.title,
-	url: change.url,
 });
 
 const pieceSeen = (piece: DerivedPiece, board: ReadonlyArray<BoardEntryRow>, resting: ReadonlyMap<string, ReadonlyArray<string>>): PieceView => ({
-	agents: piece.agents.map((agent) => ({
-		agentId: agent.agentId,
-		status: agent.status,
-	})),
+	agents: piece.agents,
 	artifactHistory: piece.artifactHistory.map((artifact) => ({
 		authorAgentId: artifact.authorAgentId,
 		byteSize: artifact.byteSize,
@@ -45,10 +31,7 @@ const pieceSeen = (piece: DerivedPiece, board: ReadonlyArray<BoardEntryRow>, res
 		id: artifact.id,
 		title: artifact.title,
 	})),
-	awaitingRulings: piece.awaitingRulings.map((ruling) => ({
-		question: ruling.question,
-		rulingId: ruling.rulingId,
-	})),
+	awaitingRulings: piece.awaitingRulings,
 	board: board.map(entrySeen),
 	canRetireCrew: crewReleasable(piece, resting),
 	changes: piece.changes.map(changeSeen),
@@ -105,10 +88,6 @@ export const voyageSeen = (
 	...summarySeen(view),
 	board: board.map(entrySeen),
 	context: view.context,
-	crew: view.crew.map((member) => ({
-		agentId: member.agentId,
-		role: member.role,
-		status: member.status,
-	})),
+	crew: view.crew,
 	pieces: view.pieces.map((piece) => pieceSeen(piece, pieceBoards.get(piece.id) ?? [], resting)),
 });

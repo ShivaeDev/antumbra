@@ -9,7 +9,7 @@ import type { HailedCaptain, HailRefused } from "#hail.ts";
 import type { CrewedPiece, WorkRefused } from "#piece-work.ts";
 import type { VoyageRow } from "#voyage-rows.ts";
 import type { VoyageSummary, VoyageView } from "#voyage-view.ts";
-import type { VoyageWorldReadFailure } from "#voyage-world.ts";
+import type { VoyageWorldReadFailure } from "#voyage-world/read.ts";
 
 export interface OpenVoyageInput {
 	readonly backend: string;

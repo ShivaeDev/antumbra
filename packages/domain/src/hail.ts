@@ -13,7 +13,8 @@ import { CAPTAIN_ROLE } from "#voyage-captain.ts";
 import { readVoyageCaptain } from "#voyage-captain-read.ts";
 import { voyageRow } from "#voyage-row-projection.ts";
 import { voyageView } from "#voyage-view.ts";
-import { type VoyageWorldReadFailure, VoyageWorldSource } from "#voyage-world.ts";
+import type { VoyageWorldReadFailure } from "#voyage-world/read.ts";
+import { VoyageWorldSource } from "#voyage-world/service.ts";
 
 export interface HailedCaptain {
 	readonly agentId: string;
@@ -61,7 +62,7 @@ export const hailCaptain = (voyageId: string) =>
 			});
 		}
 		const source = yield* VoyageWorldSource;
-		const world = yield* source.read;
+		const world = yield* source.read();
 		const voyageLog = yield* boards.read(BoardScope.Voyage({ voyageId })).pipe(Effect.map(entryBodies));
 		const agentId = crypto.randomUUID();
 		const bindingRulings = yield* standingRulingsFor({

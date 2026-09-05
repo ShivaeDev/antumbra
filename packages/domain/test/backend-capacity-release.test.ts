@@ -2,10 +2,10 @@ import { IntentExecution, Kernel, KernelLive } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
 import type { TemporaryPersistence } from "@antumbra/persistence/testing";
 import { type AgentBackend, type BackendCapacitySource, makeBackendCapacityController } from "@antumbra/plugin-api";
+import { capacityHoldDetail } from "@antumbra/sessions/admission/hold";
 import { expect, it } from "@effect/vitest";
 import { Clock, Deferred, Effect, Layer, ManagedRuntime, Option, Ref } from "effect";
 import { AgentDomain } from "#agent-domain-service.ts";
-import { capacityHoldDetail } from "#backend-capacity-hold.ts";
 import { BackendCapacityReleaseLive, BackendCapacityReleases } from "#backend-capacity-release.ts";
 import {
 	makeCapacities,
@@ -48,7 +48,7 @@ const parkFirstAttempt = (attempts: Attempts, template: AgentDomainService, name
 		if (attempt !== 1) {
 			return;
 		}
-		const reading = (yield* template.backendCapacities.snapshot)[0];
+		const reading = (yield* template.backendCapacities.snapshot())[0];
 		if (reading === undefined) {
 			return yield* Effect.die("scripted capacity is missing");
 		}
@@ -99,7 +99,7 @@ const verifyRestartedRelease = (ids: ReadonlyArray<string>, attempts: Attempts) 
 	Effect.gen(function* () {
 		const domain = yield* AgentDomain;
 		const kernel = yield* Kernel;
-		expect((yield* domain.backendCapacities.snapshot)[0]).toMatchObject({
+		expect((yield* domain.backendCapacities.snapshot())[0]).toMatchObject({
 			status: "available",
 		});
 		yield* Effect.all(

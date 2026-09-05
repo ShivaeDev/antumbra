@@ -59,7 +59,7 @@ export const writeVerdict = (input: RulingVerdict, at: Date) =>
 		return yield* loadRuling(yield* requireRuling(input.rulingId));
 	});
 
-export const rule = Effect.fn("rulings.rule")(function* (input: RulingVerdict) {
+export const rule = Effect.fn("Rulings.rule")(function* (input: RulingVerdict) {
 	const feeds = yield* DomainFeeds;
 	const now = yield* Clock.currentTimeMillis;
 	const ruled = yield* writeVerdict(input, new Date(now));

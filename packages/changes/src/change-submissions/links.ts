@@ -2,7 +2,7 @@ import { Database } from "@antumbra/persistence";
 import { Effect, Option } from "effect";
 import { changeRow } from "#change-read.ts";
 
-export const activeChange = Effect.fn("changes.activeChange")(function* (key: string) {
+export const activeChange = Effect.fn("Changes.activeChange")(function* (key: string) {
 	const db = yield* Database;
 	const stored = yield* db.Change.where({ submissionKey: key }).first();
 	return yield* Option.match(stored, {
@@ -11,7 +11,7 @@ export const activeChange = Effect.fn("changes.activeChange")(function* (key: st
 	});
 });
 
-export const linkProduces = Effect.fn("changes.linkProduces")(function* (pieceId: string, changeId: string) {
+export const linkProduces = Effect.fn("Changes.linkProduces")(function* (pieceId: string, changeId: string) {
 	const db = yield* Database;
 	const linked = yield* db.PieceChange.where({ changeId, pieceId }).first();
 	if (Option.isSome(linked)) {

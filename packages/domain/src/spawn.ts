@@ -1,10 +1,11 @@
 import { defineIntent, IntentExecution } from "@antumbra/kernel";
 import type { AgentBackend, MooragePlan, Runner } from "@antumbra/plugin-api";
 import { UnknownRunnerError } from "@antumbra/plugin-api";
+import { BackendCapacities } from "@antumbra/provider-capacity/service";
 import type { SessionAttachment } from "@antumbra/session-fabric";
 import type { SinkFor } from "@antumbra/sessions";
+import { admitCapacity } from "@antumbra/sessions/admission/admit";
 import { Effect } from "effect";
-import type { BackendCapacities } from "#backend-capacity.ts";
 import { charterDelivery } from "#charter.ts";
 import { UnknownBackendTag } from "#errors.ts";
 import { makePrepareMoorage } from "#moorage-plan.ts";
@@ -21,13 +22,13 @@ export type { SpawnFields } from "#spawn-fields.ts";
 
 interface SpawnRuntime {
 	readonly backends: ReadonlyMap<string, AgentBackend>;
-	readonly capacities: BackendCapacities;
 	readonly runners: ReadonlyMap<string, Runner>;
 	readonly sinkFor: SinkFor;
 }
 
 export const spawnKind = (runtime: SpawnRuntime) =>
 	Effect.gen(function* () {
+		const capacities = yield* BackendCapacities;
 		const delivery = yield* charterDelivery;
 		const prepareMoorage = yield* makePrepareMoorage;
 		const isActivatedBirth = yield* makeIsActivatedBirth;
@@ -62,7 +63,7 @@ export const spawnKind = (runtime: SpawnRuntime) =>
 				if (backend === undefined) {
 					return yield* new UnknownBackendTag({ tag: payload.backend });
 				}
-				yield* runtime.capacities.admit(payload.backend);
+				yield* admitCapacity(payload.backend).pipe(Effect.provideService(BackendCapacities, capacities));
 				const runner = runtime.runners.get(payload.runner);
 				if (runner === undefined) {
 					return yield* new UnknownRunnerError({ tag: payload.runner });

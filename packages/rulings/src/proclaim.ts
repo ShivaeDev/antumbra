@@ -30,7 +30,7 @@ const verdictOf = (asked: Ruling, input: RulingProclamation): RulingVerdict => {
 			};
 };
 
-export const proclaim = Effect.fn("rulings.proclaim")(function* (input: RulingProclamation) {
+export const proclaim = Effect.fn("Rulings.proclaim")(function* (input: RulingProclamation) {
 	const feeds = yield* DomainFeeds;
 	const now = yield* Clock.currentTimeMillis;
 	const asked = askedOf(input);

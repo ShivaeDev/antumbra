@@ -16,7 +16,12 @@ the service-parameter lint rule.
    dependency proof. The constructor rejects overload distinctions TypeScript preserves; redundant declarations erased to one structural signature are
    not observable to a type-level API. The definition file is assembly only: each public operation and nontrivial initializer is a named `Effect.fn`
    export in its own focused file. Referencing those exports beside `Effect.void`, requirements, and the derived Layer keeps the definition a readable
-   inventory instead of a second implementation home.
+   inventory instead of a second implementation home. Use this constructor when dependencies and private state share the service Layer lifetime; do
+   not force caller-scoped resources or dynamically supplied data into that lifetime. Named effectful operations use named `Effect.fn` spans so traces
+   identify the work. Span names use `PascalCaseOwner.lowerCamelCaseOperation`: the owner is the service, capability, or package, and the operation
+   matches its public member when one exists (`Boards.read`, `Repos.forget`, `SettingsSource.current`). Private operations retain their own
+   descriptive lowerCamelCase name. This convention names spans, not wire events or service identifiers. `Effect.gen` remains appropriate for inline
+   composition, including Layer assembly; a generator alone is not evidence that another operation or file is needed.
 3. A domain capability owns the whole business act: validation, durable writes in their required order, and notifications after the writes succeed.
    Its caller names the act and supplies only domain input.
 4. Keep services small and composable. Give a capability its own package when that creates a real, named responsibility and a one-way dependency edge;

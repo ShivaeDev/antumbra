@@ -16,11 +16,10 @@ const reference = (rulingId: string, kind: RulingReferenceKind, row: StoredRulin
 	return id === null ? Effect.fail(invalidRulingValue("subject reference", rulingId, row)) : Effect.succeed<RulingSubject>({ id, kind });
 };
 
-export const storedSubject = (rulingId: string, row: StoredRulingSubject) =>
-	Effect.gen(function* () {
-		const kind = yield* Effect.fromResult(decodeStoredRulingSubjectKind(rulingId, row.kind));
-		if (kind !== "tag") {
-			return yield* reference(rulingId, kind, row);
-		}
-		return row.tag === null ? yield* invalidRulingValue("subject tag", rulingId, row) : ({ kind, tag: row.tag } satisfies RulingSubject);
-	});
+export const storedSubject = Effect.fnUntraced(function* (rulingId: string, row: StoredRulingSubject) {
+	const kind = yield* Effect.fromResult(decodeStoredRulingSubjectKind(rulingId, row.kind));
+	if (kind !== "tag") {
+		return yield* reference(rulingId, kind, row);
+	}
+	return row.tag === null ? yield* invalidRulingValue("subject tag", rulingId, row) : ({ kind, tag: row.tag } satisfies RulingSubject);
+});

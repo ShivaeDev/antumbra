@@ -21,6 +21,7 @@ Quality feedback starts with clarification, not pattern copying. Ask why the sha
 cost behind the direction. Record the answer under `### Decisions` in the pull request that carries the change, as
 [pull requests](../docs/contributing/pull-requests.md) describes, so the reasoning survives the review.
 
-Then update the narrow applicable route when the lesson is reusable. Add a mechanical gate only when a tool can prove the fact without guessing at
-semantics; otherwise preserve it as explicit review guidance with representative good and bad examples. A one-off preference need not become
-repository law.
+Then update the narrow applicable route when the lesson is reusable. Merge it into the existing rule, removing repetition or superseded guidance; do
+not accumulate a second rulebook or a history of review conversations. Public guidance states the reason directly and uses public examples, without
+private planning references. Add a mechanical gate only when a tool can prove the fact without guessing at semantics; otherwise preserve it as
+explicit review guidance with representative good and bad examples. A one-off preference need not become repository law.

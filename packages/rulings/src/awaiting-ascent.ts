@@ -2,7 +2,7 @@ import { Database } from "@antumbra/persistence";
 import { Effect, Option } from "effect";
 import { loadRuling } from "#read.ts";
 
-export const awaitingAscent = Effect.fn("rulings.awaitingAscent")(function* () {
+export const awaitingAscent = Effect.fn("Rulings.awaitingAscent")(function* () {
 	const db = yield* Database;
 	const rows = yield* db.Ruling.where({ ruledAt: null })
 		.where((ruling) => ruling.requesterAgentId.isNotNull())

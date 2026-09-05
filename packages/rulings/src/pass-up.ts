@@ -8,7 +8,7 @@ import { requireOpen } from "#open-row.ts";
 import { loadRuling, requireRuling } from "#read.ts";
 import { storedRung } from "#stored.ts";
 
-export const passUp = Effect.fn("rulings.passUp")(function* (input: RulingPassUpInput) {
+export const passUp = Effect.fn("Rulings.passUp")(function* (input: RulingPassUpInput) {
 	const db = yield* Database;
 	const feeds = yield* DomainFeeds;
 	const now = yield* Clock.currentTimeMillis;

@@ -1,4 +1,4 @@
 import { Effect, PubSub } from "effect";
 
 export const makeSubscribeRulingRefresh = (feed: PubSub.PubSub<void>) =>
-	Effect.fn("domainFeeds.subscribeRulingRefresh")(() => PubSub.subscribe(feed));
+	Effect.fn("DomainFeeds.subscribeRulingRefresh")(() => PubSub.subscribe(feed));

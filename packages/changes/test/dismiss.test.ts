@@ -20,7 +20,7 @@ it.effectApp("a change that died at its host is dismissed once and stays so", fu
 		expect(verdicts[0]?.verdict).toBe("dismissed");
 		const [after] = yield* db.Change.where({ id: row.id }).all();
 		expect(after?.stage).toBe("withdrawn");
-		expect(yield* changes.snapshot).toMatchObject({
+		expect(yield* changes.snapshot()).toMatchObject({
 			dismissedChangeIds: new Set([row.id]),
 		});
 	}).pipe(Effect.provide(changesLayer([])), Effect.provideService(Database, db));

@@ -8,7 +8,7 @@ import { AgentDomain } from "#domain.ts";
 import { domainKernelLayer, sightSourceTestLayer } from "#test/domain-layers.ts";
 import { acquireTemporaryPersistence, makeScriptedBackend, type ScriptedBackend, standDown } from "#test/harness.ts";
 import { born, chartered, handFor, landed } from "#test/retire-crew-fixture.ts";
-import { eventually, untilTerminal } from "#test/session-recovery-fixture.ts";
+import { untilTerminal } from "#test/session-recovery-fixture.ts";
 
 const SOUNDER = "agent-sounder";
 const MATE = "agent-mate";
@@ -16,6 +16,15 @@ const ELSEWHERE = "agent-elsewhere";
 
 const sightLayer = (temporary: TemporaryPersistence, scripted: ScriptedBackend) =>
 	sightSourceTestLayer.pipe(Layer.provideMerge(domainKernelLayer(temporary, scripted.backend)));
+
+const awaitRetirement = Effect.fnUntraced(function* () {
+	const db = yield* Database;
+	const kernel = yield* Kernel;
+	const intents = yield* db.Intent.where({ tag: "agent/retire" }).all();
+	for (const intent of intents) {
+		expect(yield* untilTerminal(kernel.changes(intent.id))).toBe("succeeded");
+	}
+});
 
 const retiredAgents = Effect.gen(function* () {
 	const db = yield* Database;
@@ -41,11 +50,8 @@ it.live("retiring a piece's crew retires exactly the agents claimed to it", () =
 
 			yield* sight.retireCrew(pieceId);
 
-			yield* eventually(
-				Effect.gen(function* () {
-					expect(yield* retiredAgents).toEqual([MATE, SOUNDER].toSorted());
-				}),
-			);
+			yield* awaitRetirement();
+			expect(yield* retiredAgents).toEqual([MATE, SOUNDER].toSorted());
 		}).pipe(Effect.provide(sightLayer(temporary, scripted)));
 	}),
 );
@@ -69,11 +75,8 @@ it.live("retiring a piece's crew never retires the voyage captain", () =>
 
 			yield* sight.retireCrew(pieceId);
 
-			yield* eventually(
-				Effect.gen(function* () {
-					expect(yield* retiredAgents).toEqual([SOUNDER]);
-				}),
-			);
+			yield* awaitRetirement();
+			expect(yield* retiredAgents).toEqual([SOUNDER]);
 			const still = yield* db.Agent.where({ id: captain.agentId }).first();
 			expect(Option.getOrThrow(still).status).toBe("alive");
 		}).pipe(Effect.provide(sightLayer(temporary, scripted)));

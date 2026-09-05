@@ -1,4 +1,4 @@
-import { Kernel } from "@antumbra/kernel";
+import type { Kernel } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
 import { expect } from "@effect/vitest";
 import { type Context, Effect } from "effect";

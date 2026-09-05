@@ -54,7 +54,7 @@ export const writeRequest = (row: StoredRuling, input: RulingRequest) =>
 		return yield* loadRuling(row);
 	});
 
-export const request = Effect.fn("rulings.request")(function* (input: RulingRequest) {
+export const request = Effect.fn("Rulings.request")(function* (input: RulingRequest) {
 	const feeds = yield* DomainFeeds;
 	const now = yield* Clock.currentTimeMillis;
 	const stored = yield* writeRequest(requested(input, now), input);

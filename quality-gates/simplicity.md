@@ -21,6 +21,9 @@ challenges unnecessary code, imagined failure modes, contrived tests, and unjust
 5. Do not deny an agent or component an operation merely because a narrower policy sounds safer. Start permissive. Add a block only for a real product
    rule or an observed failure. Agents may read one another's Voyages unless a current product rule says otherwise.
 
+Do not reconstruct an object merely to omit fields or narrow its type when the existing value already satisfies the consumer. Keep transformations
+that rename, derive, or otherwise change values for a current semantic need.
+
 ## The threat model is narrow, not empty
 
 Antumbra is a local, cooperative application whose agents can already exercise broad authority on the machine. Its agents run shells with the

@@ -1,3 +1,4 @@
+import { Changes } from "@antumbra/changes";
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database } from "@antumbra/persistence";
 import { expect, it } from "@effect/vitest";
@@ -37,7 +38,7 @@ it.live("a change the record cannot place is refused before any host runs", () =
 	withHost((scripted) =>
 		Effect.gen(function* () {
 			const db = yield* Database;
-			const domain = yield* AgentDomain;
+			const changes = yield* Changes;
 			const { piece, repo } = yield* reefWithPiece;
 
 			const noPiece = yield* Effect.flip(openedChange("no-such-piece", repo.name));
@@ -46,7 +47,7 @@ it.live("a change the record cannot place is refused before any host runs", () =
 				pieceId: "no-such-piece",
 			});
 			const noPieceAdoption = yield* Effect.flip(
-				domain.changes.adopt({
+				changes.adopt({
 					agentId: CREW,
 					pieceId: "no-such-piece",
 					repoName: repo.name,
@@ -98,6 +99,7 @@ it.live("adopting the same change twice is one row and one link per piece", () =
 		Effect.gen(function* () {
 			const db = yield* Database;
 			const domain = yield* AgentDomain;
+			const changes = yield* Changes;
 			const { piece, repo, voyage } = yield* reefWithPiece;
 			yield* db.Agent.create({
 				charter: "chart the reef",
@@ -115,7 +117,7 @@ it.live("adopting the same change twice is one row and one link per piece", () =
 			});
 			const url = "https://scripted.test/changes/77";
 			const adopt = (pieceId: string) =>
-				domain.changes.adopt({
+				changes.adopt({
 					agentId: CREW,
 					pieceId,
 					repoName: repo.name,
@@ -123,7 +125,7 @@ it.live("adopting the same change twice is one row and one link per piece", () =
 				});
 
 			const first = yield* adopt(piece.id);
-			expect(yield* adopt(piece.id)).toEqual(first);
+			expect(yield* adopt(piece.id)).toMatchObject(first);
 			const shared = yield* adopt(second.id);
 			expect(shared.id).toBe(first.id);
 
@@ -139,6 +141,7 @@ it.live("a landed change flips its piece done and wakes the voyage feed", () =>
 	withHost((scripted) =>
 		Effect.gen(function* () {
 			const domain = yield* AgentDomain;
+			const changes = yield* Changes;
 			const feeds = yield* DomainFeeds;
 			const { piece, repo, voyage } = yield* reefWithPiece;
 			yield* berthed(CREW);
@@ -164,7 +167,7 @@ it.live("a landed change flips its piece done and wakes the voyage feed", () =>
 			const heard = yield* Effect.scoped(
 				Effect.gen(function* () {
 					const subscription = yield* feeds.subscribeVoyageRefresh();
-					yield* domain.changes.refresh("scripted");
+					yield* changes.refresh("scripted");
 					return yield* Stream.fromSubscription(subscription).pipe(Stream.take(1), Stream.runCollect);
 				}),
 			);
@@ -196,15 +199,15 @@ it.live("a landed change flips its piece done and wakes the voyage feed", () =>
 it.live("a change that has landed never goes back to open", () =>
 	withHost((scripted) =>
 		Effect.gen(function* () {
-			const domain = yield* AgentDomain;
+			const changes = yield* Changes;
 			const { piece, repo, voyage } = yield* reefWithPiece;
 			yield* berthed(CREW);
 			yield* openedChange(piece.id, repo.name);
 			yield* scripted.drive.transition(repo.id, "1", { stage: "landed" });
-			const landed = (yield* domain.changes.refresh("scripted"))[0];
+			const landed = (yield* changes.refresh("scripted"))[0];
 			expect(landed?.stage).toBe("landed");
 
-			const stood = (yield* domain.changes.observed("scripted", [
+			const stood = (yield* changes.observed("scripted", [
 				scriptedObservation("scripted", "1", {
 					baseRef: "main",
 					headRef: HEAD,

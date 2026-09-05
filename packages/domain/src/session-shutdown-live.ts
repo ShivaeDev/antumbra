@@ -13,12 +13,12 @@ const makeSessionShutdownDrain = Effect.gen(function* () {
 	const kernel = yield* Kernel;
 	const markActiveSessionsDraining = Effect.gen(function* () {
 		const attached = yield* domain.sessionsAttached;
-		const sessions = yield* db.AgentSession.where(rootSessions).all();
+		const sessions = yield* db.AgentSession.where(rootSessions)
+			.where((session) => session.id.in([...attached]))
+			.select("id", "status", "executionStatus")
+			.all();
 		const draining: Array<string> = [];
 		for (const session of sessions) {
-			if (!attached.has(session.id)) {
-				continue;
-			}
 			const status = yield* Effect.fromResult(decodeStoredAgentSessionStatus(session.id, session.status));
 			if (status !== "open") {
 				continue;

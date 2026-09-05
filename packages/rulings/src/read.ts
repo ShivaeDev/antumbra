@@ -3,7 +3,7 @@ import { decodeStoredRulingRadius, decodeStoredRulingUrgency } from "@antumbra/v
 import { Effect, Option } from "effect";
 import { effectiveAxes } from "#axes.ts";
 import { RulingNotFound } from "#errors.ts";
-import type { Ruling, RulingAxes, RulingChoice } from "#model.ts";
+import type { Ruling, RulingAxes } from "#model.ts";
 import { storedRequester } from "#requester.ts";
 import { storedAnswer, storedReclassification, storedRung } from "#stored.ts";
 import { contextsOf } from "#stored-contexts.ts";
@@ -12,52 +12,39 @@ import { storedSupersession, storedWithdrawal } from "#stored-retirement.ts";
 import type { StoredRuling } from "#stored-rows.ts";
 import { storedSubject } from "#stored-subjects.ts";
 
-const choicesOf = (rulingId: string) =>
-	Effect.gen(function* () {
-		const db = yield* Database;
-		const rows = yield* db.RulingChoice.where({ rulingId })
-			.orderBy((choice) => choice.position.asc())
-			.all();
-		return rows.map(
-			(row): RulingChoice => ({
-				detail: row.detail,
-				id: row.id,
-				label: row.label,
-				position: row.position,
-			}),
-		);
-	});
+const choicesOf = Effect.fnUntraced(function* (rulingId: string) {
+	const db = yield* Database;
+	return yield* db.RulingChoice.where({ rulingId })
+		.orderBy((choice) => choice.position.asc())
+		.all();
+});
 
-const gatedPieceIdsOf = (rulingId: string) =>
-	Effect.gen(function* () {
-		const db = yield* Database;
-		const rows = yield* db.RulingGate.where({ rulingId }).select("pieceId").all();
-		return rows.map((row) => row.pieceId);
-	});
+const gatedPieceIdsOf = Effect.fnUntraced(function* (rulingId: string) {
+	const db = yield* Database;
+	const rows = yield* db.RulingGate.where({ rulingId }).all();
+	return rows.map((row) => row.pieceId);
+});
 
-const reclassificationsOf = (rulingId: string) =>
-	Effect.gen(function* () {
-		const db = yield* Database;
-		const rows = yield* db.RulingReclassification.where({ rulingId })
-			.orderBy((row) => row.at.asc())
-			.all();
-		return yield* Effect.forEach(rows, (row) => storedReclassification(rulingId, row));
-	});
+const reclassificationsOf = Effect.fnUntraced(function* (rulingId: string) {
+	const db = yield* Database;
+	const rows = yield* db.RulingReclassification.where({ rulingId })
+		.orderBy((row) => row.at.asc())
+		.all();
+	return yield* Effect.forEach(rows, (row) => storedReclassification(rulingId, row));
+});
 
-const declaredOf = (row: StoredRuling) =>
-	Effect.gen(function* () {
-		return {
-			radius: yield* Effect.fromResult(decodeStoredRulingRadius(row.id, row.radius)),
-			urgency: yield* Effect.fromResult(decodeStoredRulingUrgency(row.id, row.urgency)),
-		} satisfies RulingAxes;
-	});
+const declaredOf = Effect.fnUntraced(function* (row: StoredRuling) {
+	return {
+		radius: yield* Effect.fromResult(decodeStoredRulingRadius(row.id, row.radius)),
+		urgency: yield* Effect.fromResult(decodeStoredRulingUrgency(row.id, row.urgency)),
+	} satisfies RulingAxes;
+});
 
-const subjectsOf = (rulingId: string) =>
-	Effect.gen(function* () {
-		const db = yield* Database;
-		const rows = yield* db.RulingSubject.where({ rulingId }).all();
-		return yield* Effect.forEach(rows, (row) => storedSubject(rulingId, row));
-	});
+const subjectsOf = Effect.fnUntraced(function* (rulingId: string) {
+	const db = yield* Database;
+	const rows = yield* db.RulingSubject.where({ rulingId }).all();
+	return yield* Effect.forEach(rows, (row) => storedSubject(rulingId, row));
+});
 
 export const loadRuling = (row: StoredRuling) =>
 	Effect.gen(function* () {

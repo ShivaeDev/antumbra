@@ -9,20 +9,6 @@ export type PieceState = (typeof PIECE_STATES)[number];
 export const dependenciesOf = (edges: ReadonlyArray<EdgeRow>, pieceId: string): ReadonlyArray<string> =>
 	edges.filter((edge) => edge.toPieceId === pieceId).map((edge) => edge.fromPieceId);
 
-const donePieces = (world: VoyageWorld): ReadonlySet<string> =>
-	new Set(
-		world.pieces
-			.map((piece) => ({ id: piece.id, ...pieceOutcomeTally(world, piece.id) }))
-			.filter((tally) => tally.landed >= 1 && tally.pending === 0)
-			.map((tally) => tally.id),
-	);
-
-const landingPieces = (world: VoyageWorld): ReadonlySet<string> =>
-	new Set(world.pieces.filter((piece) => pieceOutcomeTally(world, piece.id).pending >= 1).map((piece) => piece.id));
-
-const abandonedPieces = (world: VoyageWorld): ReadonlySet<string> =>
-	new Set(world.pieces.filter((piece) => world.pieceVerdicts.get(piece.id) === "abandoned").map((piece) => piece.id));
-
 export const awaitingRulingsOf = (world: VoyageWorld, pieceId: string): ReadonlyArray<AwaitingRuling> =>
 	world.rulingGates.filter((gate) => gate.pieceId === pieceId).map((gate) => ({ question: gate.question, rulingId: gate.rulingId }));
 
@@ -65,10 +51,22 @@ const stateOf = (world: VoyageWorld, settled: Settled, piece: PieceRow): PieceSt
 };
 
 export const pieceStates = (world: VoyageWorld): ReadonlyMap<string, PieceState> => {
-	const settled: Settled = {
-		abandoned: abandonedPieces(world),
-		done: donePieces(world),
-		landing: landingPieces(world),
+	const settled = {
+		abandoned: new Set<string>(),
+		done: new Set<string>(),
+		landing: new Set<string>(),
 	};
+	for (const piece of world.pieces) {
+		if (world.pieceVerdicts.get(piece.id) === "abandoned") {
+			settled.abandoned.add(piece.id);
+		}
+		const tally = pieceOutcomeTally(world, piece.id);
+		if (tally.landed >= 1 && tally.pending === 0) {
+			settled.done.add(piece.id);
+		}
+		if (tally.pending >= 1) {
+			settled.landing.add(piece.id);
+		}
+	}
 	return new Map(world.pieces.map((piece) => [piece.id, stateOf(world, settled, piece)]));
 };

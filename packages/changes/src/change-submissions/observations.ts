@@ -6,40 +6,41 @@ import { Clock, Effect, Option } from "effect";
 import type { ObservationAttachment } from "#change-submissions/observation-match.ts";
 import { reconcileObservation } from "#change-submissions/observation-projection.ts";
 
-const ensureObservationUnclaimed = (observation: ChangeObservation, attachment: ObservationAttachment) =>
-	Effect.gen(function* () {
-		const db = yield* Database;
-		if (attachment._tag === "Claimed") {
-			yield* ensureAgentResourcesUnclaimed(attachment.agentId);
-		}
-		const repo = yield* db.Repo.where({ id: observation.repoId }).first();
-		if (Option.isSome(repo)) {
-			yield* ensureBranchResourcesUnclaimed(repo.value.source, observation.headRef);
-		}
-	});
+const ensureObservationUnclaimed = Effect.fnUntraced(function* (observation: ChangeObservation, attachment: ObservationAttachment) {
+	const db = yield* Database;
+	if (attachment._tag === "Claimed") {
+		yield* ensureAgentResourcesUnclaimed(attachment.agentId);
+	}
+	const repo = yield* db.Repo.where({ id: observation.repoId }).first();
+	if (Option.isSome(repo)) {
+		yield* ensureBranchResourcesUnclaimed(repo.value.source, observation.headRef);
+	}
+});
 
-const applyObservation = (hostTag: string, observation: ChangeObservation, now: number, attachment: ObservationAttachment) =>
-	Effect.gen(function* () {
-		yield* ensureObservationUnclaimed(observation, attachment);
-		return yield* reconcileObservation(hostTag, observation, now, attachment);
-	});
+const applyObservation = Effect.fnUntraced(function* (
+	hostTag: string,
+	observation: ChangeObservation,
+	now: number,
+	attachment: ObservationAttachment,
+) {
+	yield* ensureObservationUnclaimed(observation, attachment);
+	return yield* reconcileObservation(hostTag, observation, now, attachment);
+});
 
-export const applyObservations = (
+export const applyObservations = Effect.fn("Changes.applyObservations")(function* (
 	hostTag: string,
 	observations: ReadonlyArray<ChangeObservation>,
 	attachment: ObservationAttachment = { _tag: "Observed" },
-) => {
+) {
 	if (observations.length === 0) {
-		return Effect.succeed([]);
+		return [];
 	}
-	return Effect.gen(function* () {
-		const feeds = yield* DomainFeeds;
-		const now = yield* Clock.currentTimeMillis;
-		const results = yield* Effect.forEach(observations, (observation) => applyObservation(hostTag, observation, now, attachment), { concurrency: 1 });
-		const reconciled = results.flatMap((result) => (Option.isSome(result) ? [result.value] : []));
-		if (reconciled.some((result) => result.changed)) {
-			yield* Effect.all([feeds.publishResourceReclaim(), feeds.publishVoyageRefresh()], { discard: true });
-		}
-		return reconciled.map((result) => result.row);
-	});
-};
+	const feeds = yield* DomainFeeds;
+	const now = yield* Clock.currentTimeMillis;
+	const results = yield* Effect.forEach(observations, (observation) => applyObservation(hostTag, observation, now, attachment), { concurrency: 1 });
+	const reconciled = results.flatMap((result) => (Option.isSome(result) ? [result.value] : []));
+	if (reconciled.some((result) => result.changed)) {
+		yield* Effect.all([feeds.publishResourceReclaim(), feeds.publishVoyageRefresh()], { discard: true });
+	}
+	return reconciled.map((result) => result.row);
+});

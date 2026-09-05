@@ -1,23 +1,17 @@
 import { newestSession } from "@antumbra/sessions";
 import type { AgentSessionRow, RetirementWorld } from "#voyage-rows.ts";
 
-const compareIds = (left: string, right: string) => {
-	if (left === right) {
-		return 0;
-	}
-	return left < right ? -1 : 1;
-};
-
 export const executionSessionOfAgent = (
 	world: Pick<RetirementWorld, "currentSessionByAgent" | "sessions">,
 	agentId: string,
 ): AgentSessionRow | undefined => {
 	const currentSessionId = world.currentSessionByAgent.get(agentId);
-	const open = world.sessions.filter((session) => session.agentId === agentId && session.status === "open");
 	if (currentSessionId === null) {
-		return newestSession(open);
+		return newestSession(world.sessions.filter((session) => session.agentId === agentId && session.status === "open"));
 	}
-	return currentSessionId === undefined ? undefined : open.find((session) => session.id === currentSessionId);
+	return currentSessionId === undefined
+		? undefined
+		: world.sessions.find((session) => session.id === currentSessionId && session.agentId === agentId && session.status === "open");
 };
 
 interface AssignedExecutionSession {
@@ -32,13 +26,16 @@ export type AssignedExecution =
 	| ({ readonly _tag: "resume" } & AssignedExecutionSession);
 
 export const assignedExecution = (world: RetirementWorld, pieceId: string): AssignedExecution => {
-	const assigned = world.assignments
-		.filter((assignment) => assignment.pieceId === pieceId)
-		.filter((assignment) => world.agentStatus.get(assignment.agentId) === "alive")
-		.map((assignment) => assignment.agentId)
-		.filter((agentId, index, all) => all.indexOf(agentId) === index)
-		.toSorted(compareIds);
-	const agentId = assigned[0];
+	let agentId: string | undefined;
+	for (const assignment of world.assignments) {
+		if (
+			assignment.pieceId === pieceId &&
+			world.agentStatus.get(assignment.agentId) === "alive" &&
+			(agentId === undefined || assignment.agentId < agentId)
+		) {
+			agentId = assignment.agentId;
+		}
+	}
 	if (agentId === undefined) {
 		return { _tag: "unassigned" };
 	}

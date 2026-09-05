@@ -15,4 +15,12 @@ const newestFirst = (left: SessionAge, right: SessionAge) => {
 };
 
 // SQLite timestamps have whole-second precision, so ids make ties deterministic.
-export const newestSession = <Session extends SessionAge>(sessions: ReadonlyArray<Session>): Session | undefined => sessions.toSorted(newestFirst)[0];
+export const newestSession = <Session extends SessionAge>(sessions: ReadonlyArray<Session>): Session | undefined => {
+	let newest: Session | undefined;
+	for (const session of sessions) {
+		if (newest === undefined || newestFirst(session, newest) < 0) {
+			newest = session;
+		}
+	}
+	return newest;
+};

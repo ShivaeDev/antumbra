@@ -1,5 +1,5 @@
 import { expect, it } from "@effect/vitest";
-import { piece, RELEASED, session, withChanges, world } from "#test/piece-ladder-fixtures.ts";
+import { change, piece, RELEASED, session, withChanges, world } from "#test/piece-ladder-fixtures.ts";
 import { lastStirredAt } from "#voyage-activity.ts";
 
 const LATER = new Date("2026-08-16T09:00:00.000Z");
@@ -42,4 +42,34 @@ it("another voyage's rows do not stir this one", () => {
 		sessions: [session("active")],
 	});
 	expect(lastStirredAt(elsewhere, "voyage-1")).toBe(null);
+});
+
+it("linked changes stir every member piece's voyage regardless of stage or dismissal", () => {
+	const touched = world({
+		memberships: [onVoyage, { pieceId: "beta", voyageId: "voyage-1" }],
+		pieces: [piece("alpha"), piece("beta"), piece("elsewhere")],
+		changes: [
+			change("shared", "landed"),
+			{ ...change("dismissed", "withdrawn"), activityAt: LATER },
+			{ ...change("unrelated", "open"), activityAt: new Date(LATER.getTime() + 1) },
+		],
+		pieceChanges: [
+			{ pieceId: "alpha", changeId: "shared", purpose: "produces" },
+			{ pieceId: "beta", changeId: "shared", purpose: "produces" },
+			{ pieceId: "beta", changeId: "dismissed", purpose: "produces" },
+			{ pieceId: "elsewhere", changeId: "unrelated", purpose: "produces" },
+		],
+		dismissedChangeIds: new Set(["dismissed"]),
+	});
+	expect(lastStirredAt(touched, "voyage-1")).toEqual(LATER);
+	expect(lastStirredAt({ ...touched, changes: touched.changes.filter((row) => row.id !== "dismissed") }, "voyage-1")).toEqual(RELEASED);
+});
+
+it("assigned agents contribute historical sessions without crew membership", () => {
+	const assigned = world({
+		memberships: [onVoyage],
+		assignments: [{ agentId: "agent-1", pieceId: "alpha" }],
+		sessions: [{ ...session("idle"), status: "closed", createdAt: LATER }],
+	});
+	expect(lastStirredAt(assigned, "voyage-1")).toEqual(LATER);
 });

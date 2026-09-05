@@ -1,6 +1,7 @@
 import { type IntentStatus, isTerminalIntentStatus, Kernel } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
 import { type AgentBackend, BackendFailure, type Runner } from "@antumbra/plugin-api";
+import { Repos } from "@antumbra/repos";
 import { expect, it } from "@effect/vitest";
 import { Deferred, Effect, Fiber, Option, Stream } from "effect";
 import { AgentDomain } from "#domain.ts";
@@ -98,7 +99,8 @@ it.live("spawn stays spawning until its moorage and session exist", () =>
 			const db = yield* Database;
 			const kernel = yield* Kernel;
 			const domain = yield* AgentDomain;
-			yield* domain.repos.register({
+			const repos = yield* Repos;
+			yield* repos.register({
 				defaultRef: "main",
 				source: "/somewhere/phase",
 			});
@@ -143,7 +145,8 @@ it.live("a failed spawn becomes dormant without hiding its failure", () =>
 			const db = yield* Database;
 			const kernel = yield* Kernel;
 			const domain = yield* AgentDomain;
-			yield* domain.repos.register({
+			const repos = yield* Repos;
+			yield* repos.register({
 				defaultRef: "main",
 				source: "/somewhere/repo",
 			});

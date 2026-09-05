@@ -2,11 +2,11 @@ import { dirname, join } from "node:path";
 import { defineIntent, type IntentExecution, type IntentKind, type Kernel, KernelLive } from "@antumbra/kernel";
 import type { TemporaryPersistence } from "@antumbra/persistence/testing";
 import type { AgentBackend } from "@antumbra/plugin-api";
-import type { BackendCapacityReading, BackendCapacityService } from "@antumbra/provider-capacity";
+import { BackendCapacities, type BackendCapacityReading, type BackendCapacityService } from "@antumbra/provider-capacity";
 import { type WakeFields, WakePayload } from "@antumbra/sessions";
 import { SettingsSourceLive } from "@antumbra/settings";
 import { NodeServices } from "@effect/platform-node";
-import { Effect, Layer, Ref, Stream } from "effect";
+import { type Context, Effect, Layer, Ref, Stream } from "effect";
 import { AgentDomain } from "#agent-domain-service.ts";
 import { BackendCapacityReleases } from "#backend-capacity-releases/service.ts";
 import { AgentDomainLive } from "#domain.ts";
@@ -69,11 +69,10 @@ export const spawnPayload = (name: string): SpawnFields => ({
 
 export const wakePayload = (name: string): WakeFields => ({ sessionId: name });
 
-const makeReleaseDomain = (capacities: BackendCapacityService, spawn: IntentKind<SpawnFields>, wake: IntentKind<WakeFields>) =>
+const makeReleaseDomain = (spawn: IntentKind<SpawnFields>, wake: IntentKind<WakeFields>) =>
 	Effect.map(AgentDomain, (template) =>
 		AgentDomain.of({
 			...template,
-			backendCapacities: capacities,
 			backends: [SCRIPTED],
 			kinds: [spawn, wake],
 			spawn,
@@ -95,13 +94,13 @@ export const withReleaseDomain = (
 	capacities: BackendCapacityService,
 	spawn: IntentKind<SpawnFields>,
 	wake: IntentKind<WakeFields>,
-	use: (domain: AgentDomainService) => Effect.Effect<void, unknown>,
+	use: (domain: AgentDomainService) => Effect.Effect<void, unknown, Context.Service.Identifier<typeof BackendCapacities>>,
 ) =>
 	Effect.gen(function* () {
 		const scripted = yield* makeScriptedBackend;
 		yield* Effect.gen(function* () {
-			const domain = yield* makeReleaseDomain(capacities, spawn, wake);
-			yield* use(domain);
+			const domain = yield* makeReleaseDomain(spawn, wake);
+			yield* use(domain).pipe(Effect.provideService(BackendCapacities, capacities));
 		}).pipe(Effect.provide(templateDomainLayer(temporary, scripted.backend)));
 	});
 

@@ -1,14 +1,16 @@
 import { Kernel } from "@antumbra/kernel";
+import { BackendCapacities } from "@antumbra/provider-capacity";
 import { parseCapacityHoldDetail } from "@antumbra/sessions/admission/hold";
 import { Effect, Option, Semaphore, Stream } from "effect";
 import { AgentDomain } from "#agent-domain-service.ts";
 
 export const initialize = Effect.fn("BackendCapacityReleases.initialize")(function* () {
+	const backendCapacities = yield* BackendCapacities;
 	const domain = yield* AgentDomain;
 	const kernel = yield* Kernel;
 	const serial = yield* Semaphore.make(1);
 	const reconcile = Effect.fn("BackendCapacityReleases.reconcile")(function* () {
-		const statuses = new Map((yield* domain.backendCapacities.snapshot()).map((capacity) => [capacity.backend, capacity.status]));
+		const statuses = new Map((yield* backendCapacities.snapshot()).map((capacity) => [capacity.backend, capacity.status]));
 		const [spawns, wakes] = yield* Effect.all([kernel.active(domain.spawn), kernel.active(domain.wake)], { concurrency: 1 });
 		const parked = [...spawns, ...wakes].flatMap((intent) => {
 			if (intent.status !== "waiting" || intent.detail === null) {

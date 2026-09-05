@@ -1,6 +1,6 @@
 import { IntentExecution, Kernel } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
-import type { BackendCapacityReading } from "@antumbra/provider-capacity";
+import { BackendCapacities, type BackendCapacityReading } from "@antumbra/provider-capacity";
 import { capacityHoldDetail } from "@antumbra/sessions/admission/hold";
 import { expect, it } from "@effect/vitest";
 import { Deferred, Effect, Fiber, Layer, Option, Ref, Stream } from "effect";
@@ -47,10 +47,11 @@ const assertStaleDetailSafety = (spawn: SpawnKind) =>
 		const kernel = yield* Kernel;
 		const db = yield* Database;
 		const domain = yield* AgentDomain;
+		const capacities = yield* BackendCapacities;
 		const held = yield* kernel.submit(spawn, spawnPayload("held"));
 		const unrelated = yield* kernel.submit(spawn, spawnPayload("unrelated"));
 		yield* Effect.all([waitForChange(kernel, held.id, "waiting"), waitForChange(kernel, unrelated.id, "waiting")], { concurrency: "unbounded" });
-		yield* domain.backendCapacities.clear(SCRIPTED);
+		yield* capacities.clear(SCRIPTED);
 		const race = yield* makeStaleDetailRace;
 		yield* Layer.build(
 			BackendCapacityReleases.layer.pipe(Layer.provideMerge(Layer.mergeAll(Layer.succeed(Kernel, race.kernel), Layer.succeed(AgentDomain, domain)))),

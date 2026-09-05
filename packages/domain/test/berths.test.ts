@@ -1,6 +1,7 @@
 import { isTerminalIntentStatus, Kernel } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
 import type { Runner } from "@antumbra/plugin-api";
+import { Repos } from "@antumbra/repos";
 import { expect, it } from "@effect/vitest";
 import { Clock, Effect, Option, Ref, Stream } from "effect";
 import { AgentDomain } from "#domain.ts";
@@ -23,7 +24,8 @@ const sweepPayload: SpawnFields = {
 const submitSpawn = Effect.gen(function* () {
 	const kernel = yield* Kernel;
 	const domain = yield* AgentDomain;
-	yield* domain.repos.register({
+	const repos = yield* Repos;
+	yield* repos.register({
 		defaultRef: "main",
 		source: REEF_SOURCE,
 	});

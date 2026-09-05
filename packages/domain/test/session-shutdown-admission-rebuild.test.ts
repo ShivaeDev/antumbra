@@ -1,14 +1,15 @@
 import { Kernel } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
+import type { Runner } from "@antumbra/plugin-api";
 import { SessionFabric } from "@antumbra/session-fabric";
 import { expect, it } from "@effect/vitest";
-import { Effect, ManagedRuntime, Option } from "effect";
+import { Deferred, Effect, Option, Stream } from "effect";
 import { AgentDomain } from "#domain.ts";
 import { drainActiveSessions } from "#shutdown.ts";
 import type { SpawnFields } from "#spawn.ts";
 import { domainKernelLayer } from "#test/domain-layers.ts";
 import { acquireTemporaryPersistence, makeScriptedBackend, makeScriptedRunner, type ScriptedBackend, type ScriptedRunner } from "#test/harness.ts";
-import { eventually, payload as recoveryPayload, reportsNativeRef, seedResumableAgent, untilTerminal } from "#test/session-recovery-fixture.ts";
+import { payload as recoveryPayload, reportsNativeRef, seedResumableAgent, untilTerminal } from "#test/session-recovery-fixture.ts";
 
 const WAITING_SPAWN: SpawnFields = {
 	agentId: "shutdown-agent-waiting",
@@ -19,7 +20,7 @@ const WAITING_SPAWN: SpawnFields = {
 	sessionId: "shutdown-session-waiting",
 };
 
-const closeAndHoldSpawn = (scripted: ScriptedBackend, recorded: ScriptedRunner) =>
+const closeAndHoldSpawn = (scripted: ScriptedBackend, provisioned: Deferred.Deferred<void>) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
 		const domain = yield* AgentDomain;
@@ -27,11 +28,7 @@ const closeAndHoldSpawn = (scripted: ScriptedBackend, recorded: ScriptedRunner) 
 		const kernel = yield* Kernel;
 		yield* fabric.closeStarts();
 		const submission = yield* kernel.submit(domain.spawn, WAITING_SPAWN);
-		yield* eventually(
-			Effect.gen(function* () {
-				expect(yield* recorded.provisioned).toHaveLength(1);
-			}),
-		);
+		yield* Deferred.await(provisioned);
 		const agent = Option.getOrThrow(yield* db.Agent.where({ id: WAITING_SPAWN.agentId }).first());
 		expect(agent.status).toBe("spawning");
 		const sessionAbsent = Option.isNone(yield* db.AgentSession.where({ id: WAITING_SPAWN.sessionId }).first());
@@ -64,11 +61,10 @@ const closeAndHoldRecovery = (scripted: ScriptedBackend) =>
 		const submission = yield* kernel.submit(domain.wake, {
 			sessionId: recoveryPayload.sessionId,
 		});
-		yield* eventually(
-			Effect.gen(function* () {
-				const intent = Option.getOrThrow(yield* db.Intent.where({ id: submission.id }).first());
-				expect(intent.status).toBe("running");
-			}),
+		yield* submission.changes.pipe(
+			Stream.filter((status) => status === "running"),
+			Stream.take(1),
+			Stream.runDrain,
 		);
 		const session = Option.getOrThrow(yield* db.AgentSession.where({ id: recoveryPayload.sessionId }).first());
 		expect(session.executionStatus).toBe("idle");
@@ -94,9 +90,12 @@ it.live("rebuild requeues a post-close spawn without writing unattached Session 
 		const temporary = yield* acquireTemporaryPersistence;
 		const scripted = yield* makeScriptedBackend;
 		const recorded = yield* makeScriptedRunner;
-		const runtime = ManagedRuntime.make(domainKernelLayer(temporary, scripted.backend, {}, recorded.runner));
-		const waiting = yield* Effect.promise(() => runtime.runPromise(closeAndHoldSpawn(scripted, recorded)));
-		yield* Effect.promise(() => runtime.dispose());
+		const provisioned = yield* Deferred.make<void>();
+		const runner: Runner = {
+			...recorded.runner,
+			provision: (plan) => recorded.runner.provision(plan).pipe(Effect.tap(Deferred.succeed(provisioned, undefined))),
+		};
+		const waiting = yield* closeAndHoldSpawn(scripted, provisioned).pipe(Effect.provide(domainKernelLayer(temporary, scripted.backend, {}, runner)));
 		yield* verifySpawnRebuild(waiting.intentId, waiting.sessionAbsent, scripted, recorded).pipe(
 			Effect.provide(domainKernelLayer(temporary, scripted.backend, {}, recorded.runner)),
 		);
@@ -115,9 +114,7 @@ it.live("rebuild requeues a post-close recovery without waking its Session early
 			}),
 		).pipe(Effect.provide(temporary.layer));
 		const backend = reportsNativeRef(scripted.backend, scripted, "native-durable");
-		const runtime = ManagedRuntime.make(domainKernelLayer(temporary, backend, {}, recorded.runner));
-		const intentId = yield* Effect.promise(() => runtime.runPromise(closeAndHoldRecovery(scripted)));
-		yield* Effect.promise(() => runtime.dispose());
+		const intentId = yield* closeAndHoldRecovery(scripted).pipe(Effect.provide(domainKernelLayer(temporary, backend, {}, recorded.runner)));
 		yield* verifyRecoveryRebuild(intentId, scripted).pipe(Effect.provide(domainKernelLayer(temporary, backend, {}, recorded.runner)));
 	}),
 );

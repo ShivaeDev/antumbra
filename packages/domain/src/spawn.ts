@@ -9,7 +9,6 @@ import { Effect } from "effect";
 import { AgentBirth } from "#agent-birth/service.ts";
 import { UnknownBackendTag } from "#errors.ts";
 import { type SpawnFields, SpawnPayload } from "#spawn-fields.ts";
-import { spawnRegistration } from "#spawn-registration/service.ts";
 import { makeSpawnSessionStart } from "#spawn-session-start.ts";
 import { makeSpawnTeardown } from "#spawn-teardown.ts";
 import { makeSpawnTools } from "#spawn-tools.ts";
@@ -26,7 +25,6 @@ interface SpawnRuntime {
 export const spawnKind = (runtime: SpawnRuntime) =>
 	Effect.gen(function* () {
 		const capacities = yield* BackendCapacities;
-		const registration = yield* spawnRegistration;
 		const birth = yield* AgentBirth;
 		const startSession = yield* makeSpawnSessionStart;
 		const teardown = yield* makeSpawnTeardown;
@@ -62,7 +60,7 @@ export const spawnKind = (runtime: SpawnRuntime) =>
 				if (runner === undefined) {
 					return yield* new UnknownRunnerError({ tag: payload.runner });
 				}
-				yield* registration.ensure(payload);
+				yield* birth.register(payload);
 				const plan = yield* birth.prepareMoorage(payload, runner).pipe(Effect.onError(teardown.settleUnlessTeardown(payload)));
 				yield* reconcileMoorage(payload, runner, plan).pipe(Effect.onInterrupt(() => teardown.settleCancellation(payload)));
 				yield* startSession(

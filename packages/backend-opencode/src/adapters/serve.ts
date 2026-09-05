@@ -5,6 +5,7 @@ import type { OpencodeConnection } from "#adapters/connection.ts";
 import { openEventStream } from "#adapters/event-stream.ts";
 import { httpCalls } from "#adapters/http.ts";
 import { listeningUrl } from "#adapters/listening.ts";
+import { freeLoopbackPort, LOOPBACK } from "#adapters/loopback.ts";
 import { TOOL_SERVER_NAME } from "#adapters/tool-server.ts";
 import { opencodeFailure } from "#failure.ts";
 
@@ -16,7 +17,9 @@ interface ServeOptions {
 	readonly tools: string;
 }
 
-const SERVE_ARGS = ["serve", "--port", "0", "--hostname", "127.0.0.1"];
+const serveArgs = (port: string) => ["serve", "--port", port, "--hostname", LOOPBACK];
+
+const START_PATIENCE_MILLIS = 30_000;
 
 // A tool call carries a whole domain act, so the server waits far longer for one than opencode's five-second default.
 const TOOL_TIMEOUT = 300_000;
@@ -76,8 +79,9 @@ const exitedFirst = (child: ChildProcessSpawner.ChildProcessHandle, complaints: 
 
 export const serveOpencode = Effect.fnUntraced(function* (options: ServeOptions) {
 	const spawner = yield* ChildProcessSpawner.ChildProcessSpawner;
+	const port = yield* freeLoopbackPort;
 	const child = yield* spawner.spawn(
-		ChildProcess.make(options.command, SERVE_ARGS, {
+		ChildProcess.make(options.command, serveArgs(port), {
 			cwd: options.cwd,
 			env: { OPENCODE_CONFIG_CONTENT: configContent(options) },
 			extendEnv: true,
@@ -94,7 +98,12 @@ export const serveOpencode = Effect.fnUntraced(function* (options: ServeOptions)
 			Effect.sync(() => exited()),
 		),
 	);
-	const address = yield* Effect.raceFirst(printed, exitedFirst(child, complaints));
+	const address = yield* Effect.raceFirst(printed, exitedFirst(child, complaints)).pipe(
+		Effect.timeoutOrElse({
+			duration: START_PATIENCE_MILLIS,
+			orElse: () => Effect.fail(`opencode serve did not print its address on port ${port} in time`),
+		}),
+	);
 	return connectionTo(address, (listener) => {
 		exited = listener;
 	});

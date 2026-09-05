@@ -1,15 +1,15 @@
 import { changesLayer } from "@antumbra/changes";
-import { DomainFeedsLive } from "@antumbra/domain-feeds";
-import { it } from "@antumbra/persistence/testing";
 import { PiecesLive } from "@antumbra/pieces";
+import { it } from "@antumbra/testing-runtime/domain";
+import { Voyages } from "@antumbra/voyages";
 import { expect } from "@effect/vitest";
 import { Effect, Layer } from "effect";
 import { heldPieceCount } from "#execution/held-piece-count.ts";
 import { changeOf } from "#test/change-fixtures.ts";
 
-const layer = changesLayer(new Map(), new Map()).pipe(Layer.provideMerge(PiecesLive), Layer.provide(DomainFeedsLive));
+const layer = changesLayer(new Map(), new Map()).pipe(Layer.provideMerge(PiecesLive), Layer.provide(Voyages.layer));
 
-it.effectDB("counts only unlaunched voyage work without active execution or settled outcomes", function* (db) {
+it.effectApp("counts only unlaunched voyage work without active execution or settled outcomes", function* ({ db }) {
 	for (const id of ["home", "other"])
 		yield* db.Voyage.create({ id, name: id, context: id, northStar: id, captainBackend: "scripted", crewBackend: "scripted" });
 	for (const id of ["held", "launched", "parked", "active", "abandoned", "done", "pending", "foreign"]) {

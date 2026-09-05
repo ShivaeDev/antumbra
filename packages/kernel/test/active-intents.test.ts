@@ -79,6 +79,7 @@ it.effectDB("returns decoded payloads for every nonterminal status", function* (
 		yield* statusesUntilTerminal(kernel.changes(running.id));
 		expect(yield* kernel.active(kind)).toEqual([]);
 	}).pipe(
+		Effect.ensuring(Deferred.succeed(cancelRelease, undefined)),
 		Effect.provide(
 			KernelLive({
 				gates: [maxConcurrency(2)],

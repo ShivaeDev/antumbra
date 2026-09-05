@@ -45,38 +45,38 @@ const selectedPrepared = (candidates: ReadonlyArray<ChangeRow>, attachment: Obse
 	);
 };
 
-export const matchObservation = (hostTag: string, observation: ChangeObservation, attachment: ObservationAttachment) =>
-	Effect.gen(function* () {
-		const db = yield* Database;
-		const external = yield* db.Change.where({
-			externalId: observation.externalId,
-			host: hostTag,
-			repoId: observation.repoId,
-		}).first();
-		if (observation.headSha === null) {
-			return {
-				external: yield* decodedOptional(external),
-				prepared: Option.none<ChangeRow>(),
-				preparedCandidates: [],
-			} satisfies ObservationMatches;
-		}
-		const candidates = (yield* Effect.forEach(
-			yield* db.Change.where({
-				host: hostTag,
-				repoId: observation.repoId,
-			}).all(),
-			changeRow,
-		)).filter(
-			(row) =>
-				row.externalId === null &&
-				row.stage === "prepared" &&
-				row.preparedHeadRef === observation.headRef &&
-				row.preparedHeadSha === observation.headSha &&
-				hasSubmissionClaim(row),
-		);
+export const matchObservation = Effect.fn("Changes.matchObservation")(function* (
+	hostTag: string,
+	observation: ChangeObservation,
+	attachment: ObservationAttachment,
+) {
+	const db = yield* Database;
+	const external = yield* db.Change.where({
+		externalId: observation.externalId,
+		host: hostTag,
+		repoId: observation.repoId,
+	}).first();
+	if (observation.headSha === null) {
 		return {
 			external: yield* decodedOptional(external),
-			prepared: selectedPrepared(candidates, attachment),
-			preparedCandidates: candidates,
+			prepared: Option.none<ChangeRow>(),
+			preparedCandidates: [],
 		} satisfies ObservationMatches;
-	});
+	}
+	const candidates = (yield* Effect.forEach(
+		yield* db.Change.where({
+			externalId: null,
+			host: hostTag,
+			preparedHeadRef: observation.headRef,
+			preparedHeadSha: observation.headSha,
+			repoId: observation.repoId,
+			stage: "prepared",
+		}).all(),
+		changeRow,
+	)).filter(hasSubmissionClaim);
+	return {
+		external: yield* decodedOptional(external),
+		prepared: selectedPrepared(candidates, attachment),
+		preparedCandidates: candidates,
+	} satisfies ObservationMatches;
+});

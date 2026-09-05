@@ -81,6 +81,13 @@ it.effectDB("attaches an exact later observation and ignores unknown identity", 
 			repoName: "reef",
 			sessionId: "session-crew",
 		});
+		for (const mismatch of [{ headSha: "different-commit" }, { headSha: null }, { headRef: "work/unknown", headSha: `sha-${HEAD}` }]) {
+			expect(
+				yield* changes.observed("scripted", [
+					observation("41", { baseRef: "main", headRef: HEAD, repoId: "repo-reef", title: "not this submission" }, mismatch),
+				]),
+			).toEqual([]);
+		}
 		const [attached] = yield* changes.observed("scripted", [
 			observation("41", {
 				baseRef: "main",

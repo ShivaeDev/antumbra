@@ -1,8 +1,9 @@
 import { SightSource } from "@antumbra/contract";
+import { Kernel } from "@antumbra/kernel";
 import { expect, it } from "@effect/vitest";
 import { Effect, Ref } from "effect";
 import { acquireTemporaryPersistence } from "#test/harness.ts";
-import { eventually, payload, refuseWhile, reportsNativeRef } from "#test/session-recovery-fixture.ts";
+import { payload, refuseWhile, reportsNativeRef, untilWaitingOrTerminal } from "#test/session-recovery-fixture.ts";
 import { NATIVE, onlyWake, sessionRow, sleepingRoot, wakeChips, wakeLayer } from "#test/session-wake-fixture.ts";
 
 it.live("a wake that cannot be taken parks with its reason on the fleet", () =>
@@ -14,14 +15,10 @@ it.live("a wake that cannot be taken parks with its reason on the fleet", () =>
 
 		yield* Effect.gen(function* () {
 			const sight = yield* SightSource;
+			const kernel = yield* Kernel;
 			yield* sight.send(payload.sessionId, "steer for the reef");
-			const parked = yield* eventually(
-				Effect.gen(function* () {
-					const row = yield* onlyWake;
-					expect(row.status).toBe("waiting");
-					return row;
-				}),
-			);
+			expect(yield* untilWaitingOrTerminal(kernel.changes((yield* onlyWake).id))).toBe("waiting");
+			const parked = yield* onlyWake;
 			expect(parked.detail).toContain("authentication is required");
 			expect(wakeChips(yield* sight.fleet)).toEqual([
 				{

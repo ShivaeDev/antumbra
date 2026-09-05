@@ -75,14 +75,17 @@ export const SelectField = ({
 	label,
 	placeholder,
 	choices,
+	value,
 	...triggerProps
-}: Omit<ComponentProps<typeof SelectTrigger>, "id" | "onBlur" | "children"> & {
-	readonly label: string;
-	readonly placeholder: string;
-	readonly choices: ReadonlyArray<{ readonly value: string; readonly label: string }>;
-}) => {
+}: Omit<ComponentProps<typeof SelectTrigger>, "id" | "onBlur" | "children" | "value"> &
+	Pick<ComponentProps<typeof Select>, "value"> & {
+		readonly label: string;
+		readonly placeholder: string;
+		readonly choices: ReadonlyArray<{ readonly value: string; readonly label: string }>;
+	}) => {
 	const field = useFieldContext<string>();
 	const state = useStore(field.store);
+	const displayed = value ?? state.value;
 	const options = choices.map((choice) => (
 		<SelectItem key={choice.value} value={choice.value}>
 			{choice.label}
@@ -91,7 +94,12 @@ export const SelectField = ({
 	return (
 		<Field label={label}>
 			{(id) => (
-				<Select value={state.value} onValueChange={field.handleChange}>
+				<Select
+					value={displayed}
+					onValueChange={(next) => {
+						if (next !== "" && next !== displayed) field.handleChange(next);
+					}}
+				>
 					<SelectTrigger
 						{...triggerProps}
 						id={id}

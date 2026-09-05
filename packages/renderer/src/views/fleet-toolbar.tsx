@@ -6,6 +6,6 @@ export const FleetToolbar = ({ fleet, onError }: { readonly fleet: Fleet | undef
 	<div className="flex flex-wrap items-center gap-2">
 		<h2 className="min-w-0 flex-1 text-base">Fleet</h2>
 		<ReposDialog onError={onError} repos={fleet?.repos ?? []} />
-		<SpawnDialog backends={fleet?.backends ?? []} onError={onError} />
+		<SpawnDialog backends={fleet?.backends ?? []} />
 	</div>
 );

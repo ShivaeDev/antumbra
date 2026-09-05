@@ -87,7 +87,7 @@ const mount = () =>
 
 const showing = (mounted: Effect.Success<ReturnType<typeof mount>>, standing: ReadonlyArray<StandingRulingView>): Effect.Effect<void> =>
 	Effect.gen(function* () {
-		yield* settle(() => mounted.root.render(<RulingsPanel onError={() => undefined} />));
+		yield* settle(() => mounted.root.render(<RulingsPanel />));
 		yield* settle(() => openFeeds.at(-1)?.({ rulings: [] }));
 		yield* settle(() => standingFeeds.at(-1)?.({ rulings: standing }));
 	});
@@ -127,7 +127,8 @@ const questionsIn = (list: Element | undefined): ReadonlyArray<string | null> =>
 beforeEach(() => {
 	openFeeds.length = 0;
 	standingFeeds.length = 0;
-	supersedeRuling.mockClear();
+	supersedeRuling.mockReset();
+	supersedeRuling.mockReturnValue(Effect.void);
 	withdrawRuling.mockReset();
 	withdrawRuling.mockReturnValue(Effect.void);
 });
@@ -154,11 +155,12 @@ it.effect("supersedes a ruling with the later one picked for it", () =>
 
 		yield* settle(() => buttonSaying(mounted, "Replace with a later ruling")?.click());
 		expect(buttonSaying(mounted, "Supersede")?.disabled).toBe(true);
+		expect(mounted.container.querySelector('[role="combobox"]')?.getAttribute("aria-label")).toBe(`Supersede "${berthReclaim.question}" with`);
 		yield* picking(mounted, chartAuthority.question);
 		expect(buttonSaying(mounted, "Supersede")?.disabled).toBe(false);
 		yield* settle(() => buttonSaying(mounted, "Supersede")?.click());
 
-		expect(supersedeRuling).toHaveBeenCalledWith({ byRulingId: chartAuthority.id, rulingId: berthReclaim.id }, expect.any(Function));
+		expect(supersedeRuling).toHaveBeenCalledWith({ byRulingId: chartAuthority.id, rulingId: berthReclaim.id });
 	}),
 );
 

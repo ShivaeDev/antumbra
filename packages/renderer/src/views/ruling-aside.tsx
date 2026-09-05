@@ -4,7 +4,7 @@ import { type RulingAct, RulingActs } from "#views/ruling-acts.tsx";
 import { RulingNoteForm } from "#views/ruling-note-form.tsx";
 import { RulingReclassify } from "#views/ruling-reclassify.tsx";
 
-const asideActs = (onError: (message: string) => void, ruling: RulingView): ReadonlyArray<RulingAct> => [
+const asideActs = (ruling: RulingView): ReadonlyArray<RulingAct> => [
 	{
 		act: <RulingNoteForm request={askMoreOnRuling} label="What do you need from them?" rulingId={ruling.id} words="Ask more" pending="Asking…" />,
 		words: "Ask them for more",
@@ -17,9 +17,7 @@ const asideActs = (onError: (message: string) => void, ruling: RulingView): Read
 				},
 			]
 		: []),
-	{ act: <RulingReclassify onError={onError} ruling={ruling} />, words: "Change radius or urgency" },
+	{ act: <RulingReclassify ruling={ruling} />, words: "Change radius or urgency" },
 ];
 
-export const RulingAside = ({ onError, ruling }: { readonly onError: (message: string) => void; readonly ruling: RulingView }) => (
-	<RulingActs acts={asideActs(onError, ruling)} />
-);
+export const RulingAside = ({ ruling }: { readonly ruling: RulingView }) => <RulingActs acts={asideActs(ruling)} />;

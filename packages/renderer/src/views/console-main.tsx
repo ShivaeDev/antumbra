@@ -53,7 +53,7 @@ export const ConsoleMain = (props: ConsoleProps) => {
 		return <QuayPanel onError={props.onError} onSelect={props.onChange} selectedId={props.change} />;
 	}
 	if (props.mode === "rulings") {
-		return <RulingsPanel onError={props.onError} />;
+		return <RulingsPanel />;
 	}
 	if (props.mode === "costs") {
 		return <CostsPanel />;

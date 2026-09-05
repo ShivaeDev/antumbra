@@ -70,7 +70,7 @@ beforeEach(() => {
 it.effect("holds every ruling in one scrolling body the panel can bound", () =>
 	Effect.gen(function* () {
 		const mounted = mount();
-		yield* settle(() => mounted.root.render(<RulingsPanel onError={() => undefined} />));
+		yield* settle(() => mounted.root.render(<RulingsPanel />));
 		yield* settle(() => opened.at(-1)?.(taller));
 
 		const scrollers = [...mounted.container.querySelectorAll("[class~='overflow-y-auto']")];

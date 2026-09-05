@@ -6,9 +6,11 @@ import { Schema } from "effect";
 
 export const OpenVoyageRequest = Schema.Struct({
 	backend: Schema.String,
+	captainBackend: Schema.optionalKey(Schema.String),
 	captainEffort: Schema.optionalKey(Schema.String),
 	captainModel: Schema.optionalKey(Schema.String),
 	context: Schema.String,
+	crewBackend: Schema.optionalKey(Schema.String),
 	crewEffort: Schema.optionalKey(Schema.String),
 	crewModel: Schema.optionalKey(Schema.String),
 	name: Schema.String,

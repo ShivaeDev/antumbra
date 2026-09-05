@@ -1,62 +1,42 @@
+import { useStore } from "@tanstack/react-form";
+import { Schema } from "effect";
 import { PlusIcon } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useRequestForm } from "#adapters/form.ts";
 import { spawnAgent } from "#adapters/trpc.ts";
-import { Button } from "#components/ui/button.tsx";
+import { Button, buttonVariants } from "#components/ui/button.tsx";
 import { Dialog, DialogClose, DialogContent, DialogTrigger } from "#components/ui/dialog.tsx";
 import { DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "#components/ui/dialog-sections.tsx";
-import { Input } from "#components/ui/input.tsx";
-import { Select, SelectContent, SelectTrigger, SelectValue } from "#components/ui/select.tsx";
-import { SelectItem } from "#components/ui/select-parts.tsx";
-import { Textarea } from "#components/ui/textarea.tsx";
-import { Field } from "#views/field.tsx";
+import { RequestForm } from "#forms/view.tsx";
 
-const BackendField = ({
-	backends,
-	chosen,
-	onBackend,
-}: {
-	readonly backends: ReadonlyArray<string>;
-	readonly chosen: string;
-	readonly onBackend: (backend: string) => void;
-}) => (
-	<Field label="Backend">
-		<Select onValueChange={onBackend} value={chosen}>
-			<SelectTrigger aria-label="Backend">
-				<SelectValue placeholder="no backend registered" />
-			</SelectTrigger>
-			<SelectContent>
-				{backends.map((tag) => (
-					<SelectItem key={tag} value={tag}>
-						{tag}
-					</SelectItem>
-				))}
-			</SelectContent>
-		</Select>
-	</Field>
-);
+const blank = { backend: "", role: "", charter: "" };
+const chosenBackend = (backends: ReadonlyArray<string>, backend: string) => (backends.includes(backend) ? backend : (backends[0] ?? ""));
+const draftSchema = Schema.Struct({ backend: Schema.String, role: Schema.NonEmptyString, charter: Schema.NonEmptyString });
 
-export const SpawnDialog = ({ backends, onError }: { readonly backends: ReadonlyArray<string>; readonly onError: (message: string) => void }) => {
+export const SpawnDialog = ({ backends }: { readonly backends: ReadonlyArray<string> }) => {
 	const [open, setOpen] = useState(false);
-	const [backend, setBackend] = useState("");
-	const [role, setRole] = useState("");
-	const [charter, setCharter] = useState("");
-	const chosen = backends.includes(backend) ? backend : (backends[0] ?? "");
-	const ready = role !== "" && charter !== "" && chosen !== "";
-	const submit = () =>
-		spawnAgent(
-			{ backend: chosen, charter, role },
-			() => {
-				setRole("");
-				setCharter("");
-				setOpen(false);
-			},
-			onError,
-		);
-
+	const form = useRequestForm({
+		defaultValues: blank,
+		schema: draftSchema.check(
+			Schema.makeFilter((draft) =>
+				chosenBackend(backends, draft.backend) === "" ? { path: ["backend"], issue: "No backend is registered" } : undefined,
+			),
+		),
+		request: (draft) => spawnAgent({ ...draft, backend: chosenBackend(backends, draft.backend) }),
+		resetAfterSuccess: (draft) => ({ ...draft, role: "", charter: "" }),
+		onSuccess: () => setOpen(false),
+	});
+	const draft = useStore(form.store, (state) => state.values);
+	const chosen = chosenBackend(backends, draft.backend);
+	useEffect(() => {
+		void form.validate("change");
+	}, [chosen, form]);
+	const ready = draft.role !== "" && draft.charter !== "" && chosen !== "";
+	const choices = backends.map((backend) => ({ value: backend, label: backend }));
 	return (
 		<Dialog onOpenChange={setOpen} open={open}>
 			<DialogTrigger asChild>
-				<Button>
+				<Button type="button">
 					<PlusIcon />
 					Spawn agent
 				</Button>
@@ -66,27 +46,23 @@ export const SpawnDialog = ({ backends, onError }: { readonly backends: Readonly
 					<DialogTitle>Spawn an agent</DialogTitle>
 					<DialogDescription>A role to answer for and a charter to work from, on one of the backends this host registered.</DialogDescription>
 				</DialogHeader>
-				<BackendField backends={backends} chosen={chosen} onBackend={setBackend} />
-				<Field label="Role">
-					<Input aria-label="Role" onChange={(event) => setRole(event.target.value)} placeholder="navigator" value={role} />
-				</Field>
-				<Field label="Charter">
-					<Textarea
-						aria-label="Charter"
-						onChange={(event) => setCharter(event.target.value)}
-						placeholder="what this agent is for"
-						rows={4}
-						value={charter}
-					/>
-				</Field>
-				<DialogFooter>
-					<DialogClose asChild>
-						<Button variant="outline">Cancel</Button>
-					</DialogClose>
-					<Button disabled={!ready} onClick={submit}>
-						Spawn
-					</Button>
-				</DialogFooter>
+				<RequestForm form={form}>
+					<form.AppField name="backend">
+						{(field) => <field.SelectField label="Backend" value={chosen} choices={choices} placeholder="no backend registered" />}
+					</form.AppField>
+					<form.AppField name="role">{(field) => <field.TextField label="Role" placeholder="navigator" />}</form.AppField>
+					<form.AppField name="charter">
+						{(field) => <field.TextareaField label="Charter" placeholder="what this agent is for" rows={4} />}
+					</form.AppField>
+					<DialogFooter>
+						<DialogClose type="button" className={buttonVariants({ variant: "outline" })}>
+							Cancel
+						</DialogClose>
+						<form.Submit disabled={!ready} pending="Spawning…">
+							Spawn
+						</form.Submit>
+					</DialogFooter>
+				</RequestForm>
 			</DialogContent>
 		</Dialog>
 	);

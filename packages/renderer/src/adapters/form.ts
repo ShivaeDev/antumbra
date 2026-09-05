@@ -25,7 +25,7 @@ export const useRequestForm = <Input, Output, A, E extends { readonly message: s
 		onSubmit: async ({ value, formApi }) => {
 			const result = await submit(Schema.decodeEffect(schema)(value).pipe(Effect.flatMap(request)));
 			if (Exit.isFailure(result)) return;
-			formApi.reset(resetAfterSuccess(value));
+			formApi.reset(resetAfterSuccess(value), { keepDefaultValues: true });
 			onSuccess(result.value);
 		},
 	});

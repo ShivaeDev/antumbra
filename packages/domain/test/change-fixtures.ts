@@ -3,6 +3,7 @@ import { Database } from "@antumbra/persistence";
 import { Pieces } from "@antumbra/pieces";
 import type { ChangeStage } from "@antumbra/plugin-api";
 import { Repos } from "@antumbra/repos";
+import { Voyages } from "@antumbra/voyages";
 import { Effect } from "effect";
 import { AgentDomain } from "#domain.ts";
 
@@ -77,11 +78,12 @@ export const reefWithPiece = Effect.gen(function* () {
 	const pieces = yield* Pieces;
 	const domain = yield* AgentDomain;
 	const repos = yield* Repos;
+	const voyageRecords = yield* Voyages;
 	const repo = yield* repos.register({
 		defaultRef: "main",
 		source: REEF_SOURCE,
 	});
-	const voyage = yield* domain.voyages.open({
+	const voyage = yield* voyageRecords.open({
 		backend: "scripted",
 		context: "the reef is uncharted",
 		name: "Chart the reef",

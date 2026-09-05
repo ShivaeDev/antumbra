@@ -30,6 +30,7 @@
 		"@antumbra/testing-runtime": "workspace:*",
 		"@effect/platform-node": "catalog:",
 		"effect": "catalog:",
-		"@antumbra/pieces": "workspace:*"
+		"@antumbra/pieces": "workspace:*",
+		"@antumbra/voyages": "workspace:*"
 	}
 }

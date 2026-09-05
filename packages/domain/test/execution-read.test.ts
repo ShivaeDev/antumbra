@@ -3,6 +3,7 @@ import { DomainFeedsLive } from "@antumbra/domain-feeds";
 import { it } from "@antumbra/persistence/testing";
 import { PiecesLive } from "@antumbra/pieces";
 import { RulingsLive } from "@antumbra/rulings";
+import { Voyages } from "@antumbra/voyages";
 import { expect } from "@effect/vitest";
 import { Effect, Layer } from "effect";
 import { agentsAtWork } from "#agent-at-work.ts";
@@ -17,6 +18,7 @@ import { assignedExecution } from "#voyage-execution-selection.ts";
 const layer = ExecutionSource.layer.pipe(
 	Layer.provideMerge(changesLayer(new Map(), new Map())),
 	Layer.provideMerge(PiecesLive),
+	Layer.provideMerge(Voyages.layer),
 	Layer.provideMerge(RulingsLive),
 	Layer.provideMerge(DomainFeedsLive),
 );

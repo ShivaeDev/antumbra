@@ -1,4 +1,4 @@
-import { Context, Effect, Schedule, Schema } from "effect";
+import { Context, Effect, Predicate, Schedule, Schema } from "effect";
 import { Activity, Workflow, WorkflowEngine } from "effect/unstable/workflow";
 
 const IntentWorkflowPayload = Schema.Struct({
@@ -13,6 +13,34 @@ const IntentWaitSignal = Schema.Struct({
 type IntentWaitSignal = typeof IntentWaitSignal.Type;
 
 export const isIntentWaitSignal = Schema.is(IntentWaitSignal);
+
+// The workflow engine stores a step's failure as JSON, so the step hands it over as data that reads back as an error.
+class IntentStepFailure extends Schema.Error<IntentStepFailure>("IntentStepFailure")({
+	_tag: Schema.String,
+	detail: Schema.optional(Schema.String),
+	message: Schema.String,
+}) {
+	override get name(): string {
+		return this._tag;
+	}
+}
+
+const textOf = (source: unknown, key: string) => {
+	if (!Predicate.hasProperty(source, key)) {
+		return undefined;
+	}
+	const value = source[key];
+	return typeof value === "string" && value.length > 0 ? value : undefined;
+};
+
+const stepFailureOf = (error: unknown) => {
+	const detail = textOf(error, "detail");
+	return new IntentStepFailure({
+		_tag: textOf(error, "_tag") ?? "IntentStepFailure",
+		detail,
+		message: textOf(error, "message") ?? detail ?? String(error),
+	});
+};
 
 export class IntentExecution extends Context.Service<
 	IntentExecution,
@@ -32,8 +60,8 @@ const makeExecution = (tag: string, intentId: string) =>
 			step: (name, execute) => {
 				// Effect activities retry interruption by default; kernel cancellation must not.
 				const activity = Activity.make({
-					error: Schema.Unknown,
-					execute,
+					error: IntentStepFailure,
+					execute: Effect.mapError(execute, stepFailureOf),
 					interruptRetryPolicy: Schedule.recurs(0),
 					name: `${tag}/${name}`,
 				});

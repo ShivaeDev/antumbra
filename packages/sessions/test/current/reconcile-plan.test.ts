@@ -111,6 +111,27 @@ it("leaves an Agent that still holds an open Session alone", () => {
 	);
 });
 
+it("selects the newest open history by time and then id while closing older roots in row order", () => {
+	const planned = planCurrentSessionReconciliation(
+		[agent("agent-alive", "alive", null)],
+		[
+			session("session-z", "agent-alive", "open"),
+			session("session-b", "agent-alive", "open", "idle", new Date(2)),
+			session("session-a", "agent-alive", "open", "idle", new Date(2)),
+			session("session-closed", "agent-alive", "closed", "idle", new Date(3)),
+		],
+		nothingAttached,
+	);
+	expect(planned).toEqual(
+		Result.succeed({
+			agentsToReclaim: [],
+			executionsToSettle: [],
+			pointers: [{ agentId: "agent-alive", currentSessionId: "session-b", fromCurrentSessionId: null }],
+			sessionsToClose: ["session-z", "session-a"],
+		}),
+	);
+});
+
 // Only the process that began a drain can finish it, so a detached draining row is stale after process exit.
 it("settles a draining Session that nothing is attached to", () => {
 	const planned = planCurrentSessionReconciliation(

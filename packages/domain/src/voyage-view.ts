@@ -46,6 +46,18 @@ const countStates = (states: ReadonlyArray<PieceState>): PieceCounts => {
 	return counts;
 };
 
+export const countsOfVoyage = (
+	world: Pick<VoyageSummaryRows, "memberships">,
+	states: ReadonlyMap<string, PieceState>,
+	voyageId: string,
+): PieceCounts =>
+	countStates(
+		piecesOfVoyage(world, voyageId).flatMap((pieceId) => {
+			const state = states.get(pieceId);
+			return state === undefined ? [] : [state];
+		}),
+	);
+
 export const voyageView = (world: VoyageDetailRows, voyage: VoyageRow): VoyageView => {
 	const states = pieceStates(world);
 	const pieces = memberPieces(world, voyage.id).map((piece) => pieceView(world, states, piece));
@@ -65,12 +77,7 @@ export const voyageSummaries = (world: VoyageSummaryRows): ReadonlyArray<VoyageS
 	return world.voyages.map((voyage) => ({
 		...voyage,
 		captain: captainOf(world, voyage.id),
-		counts: countStates(
-			piecesOfVoyage(world, voyage.id).flatMap((pieceId) => {
-				const state = states.get(pieceId);
-				return state === undefined ? [] : [state];
-			}),
-		),
+		counts: countsOfVoyage(world, states, voyage.id),
 		lastStirredAt: lastStirredAt(world, voyage.id),
 		state: voyageState(world, states, voyage.id),
 	}));

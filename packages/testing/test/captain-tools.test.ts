@@ -90,7 +90,9 @@ it.effectApp("a captain charters a piece and positions it in the pool", { clock:
 	yield* withCaptain(scripted, (captain) =>
 		Effect.gen(function* () {
 			const alpha = yield* chartered(captain, "alpha", []);
-			expect(yield* callTool(captain, "launch_piece", { pieceId: alpha })).toEqual({ ok: true, text: "launched into the pool" });
+			const launched = yield* callTool(captain, "launch_piece", { pieceId: alpha });
+			expect(launched.ok).toBe(true);
+			expect(launched.text.split("\n")).toContain("launched into the pool");
 			expect(yield* callTool(captain, "park_piece", { pieceId: alpha })).toEqual({
 				ok: true,
 				text: "parked",

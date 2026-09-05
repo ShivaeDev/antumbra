@@ -8,10 +8,6 @@
       "model": "Agent",
       "namespace": "__unbound__"
     },
-    "agentRoleSettings": {
-      "model": "AgentRoleSettings",
-      "namespace": "__unbound__"
-    },
     "agentSession": {
       "model": "AgentSession",
       "namespace": "__unbound__"
@@ -320,77 +316,6 @@
               },
               "namespaceId": "__unbound__",
               "table": "agent"
-            }
-          },
-          "AgentRoleSettings": {
-            "fields": {
-              "backend": {
-                "nullable": true,
-                "type": {
-                  "codecId": "sqlite/text@1",
-                  "kind": "scalar"
-                }
-              },
-              "effort": {
-                "nullable": true,
-                "type": {
-                  "codecId": "sqlite/text@1",
-                  "kind": "scalar"
-                }
-              },
-              "model": {
-                "nullable": true,
-                "type": {
-                  "codecId": "sqlite/text@1",
-                  "kind": "scalar"
-                }
-              },
-              "role": {
-                "nullable": false,
-                "type": {
-                  "codecId": "sqlite/text@1",
-                  "kind": "scalar"
-                }
-              },
-              "scope": {
-                "nullable": false,
-                "type": {
-                  "codecId": "sqlite/text@1",
-                  "kind": "scalar"
-                }
-              },
-              "updatedAt": {
-                "nullable": false,
-                "type": {
-                  "codecId": "sqlite/datetime@1",
-                  "kind": "scalar"
-                }
-              }
-            },
-            "relations": {},
-            "storage": {
-              "fields": {
-                "backend": {
-                  "column": "backend"
-                },
-                "effort": {
-                  "column": "effort"
-                },
-                "model": {
-                  "column": "model"
-                },
-                "role": {
-                  "column": "role"
-                },
-                "scope": {
-                  "column": "scope"
-                },
-                "updatedAt": {
-                  "column": "updatedAt"
-                }
-              },
-              "namespaceId": "__unbound__",
-              "table": "agentRoleSettings"
             }
           },
           "AgentSession": {
@@ -3785,6 +3710,27 @@
           },
           "Voyage": {
             "fields": {
+              "captainBackend": {
+                "nullable": false,
+                "type": {
+                  "codecId": "sqlite/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "captainEffort": {
+                "nullable": true,
+                "type": {
+                  "codecId": "sqlite/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "captainModel": {
+                "nullable": true,
+                "type": {
+                  "codecId": "sqlite/text@1",
+                  "kind": "scalar"
+                }
+              },
               "context": {
                 "nullable": false,
                 "type": {
@@ -3796,6 +3742,27 @@
                 "nullable": false,
                 "type": {
                   "codecId": "sqlite/datetime@1",
+                  "kind": "scalar"
+                }
+              },
+              "crewBackend": {
+                "nullable": false,
+                "type": {
+                  "codecId": "sqlite/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "crewEffort": {
+                "nullable": true,
+                "type": {
+                  "codecId": "sqlite/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "crewModel": {
+                "nullable": true,
+                "type": {
+                  "codecId": "sqlite/text@1",
                   "kind": "scalar"
                 }
               },
@@ -3854,11 +3821,29 @@
             },
             "storage": {
               "fields": {
+                "captainBackend": {
+                  "column": "captainBackend"
+                },
+                "captainEffort": {
+                  "column": "captainEffort"
+                },
+                "captainModel": {
+                  "column": "captainModel"
+                },
                 "context": {
                   "column": "context"
                 },
                 "createdAt": {
                   "column": "createdAt"
+                },
+                "crewBackend": {
+                  "column": "crewBackend"
+                },
+                "crewEffort": {
+                  "column": "crewEffort"
+                },
+                "crewModel": {
+                  "column": "crewModel"
                 },
                 "focusedAt": {
                   "column": "focusedAt"
@@ -4037,53 +4022,6 @@
                   ]
                 }
               ]
-            },
-            "agentRoleSettings": {
-              "columns": {
-                "backend": {
-                  "codecId": "sqlite/text@1",
-                  "nativeType": "text",
-                  "nullable": true
-                },
-                "effort": {
-                  "codecId": "sqlite/text@1",
-                  "nativeType": "text",
-                  "nullable": true
-                },
-                "model": {
-                  "codecId": "sqlite/text@1",
-                  "nativeType": "text",
-                  "nullable": true
-                },
-                "role": {
-                  "codecId": "sqlite/text@1",
-                  "nativeType": "text",
-                  "nullable": false
-                },
-                "scope": {
-                  "codecId": "sqlite/text@1",
-                  "nativeType": "text",
-                  "nullable": false
-                },
-                "updatedAt": {
-                  "codecId": "sqlite/datetime@1",
-                  "default": {
-                    "expression": "now()",
-                    "kind": "function"
-                  },
-                  "nativeType": "text",
-                  "nullable": false
-                }
-              },
-              "foreignKeys": [],
-              "indexes": [],
-              "primaryKey": {
-                "columns": [
-                  "scope",
-                  "role"
-                ]
-              },
-              "uniques": []
             },
             "agentSession": {
               "columns": {
@@ -6512,6 +6450,21 @@
             },
             "voyage": {
               "columns": {
+                "captainBackend": {
+                  "codecId": "sqlite/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "captainEffort": {
+                  "codecId": "sqlite/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "captainModel": {
+                  "codecId": "sqlite/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
                 "context": {
                   "codecId": "sqlite/text@1",
                   "nativeType": "text",
@@ -6525,6 +6478,21 @@
                   },
                   "nativeType": "text",
                   "nullable": false
+                },
+                "crewBackend": {
+                  "codecId": "sqlite/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "crewEffort": {
+                  "codecId": "sqlite/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "crewModel": {
+                  "codecId": "sqlite/text@1",
+                  "nativeType": "text",
+                  "nullable": true
                 },
                 "focusedAt": {
                   "codecId": "sqlite/datetime@1",
@@ -6642,7 +6610,7 @@
         "id": "__unbound__"
       }
     },
-    "storageHash": "sha256:8fa0a7c1cac3b3148dd7926a8c664444bc354110a83744b444ff44d5d866c2b9"
+    "storageHash": "sha256:c00af53d4dcb889060844e9014e5764ead596459e84345ee882b1f82a8ab642c"
   },
   "capabilities": {
     "sql": {

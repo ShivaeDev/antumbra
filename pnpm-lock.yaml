@@ -1564,9 +1564,18 @@ importers:
       '@antumbra/contract':
         specifier: workspace:*
         version: link:../contract
+      '@antumbra/domain-feeds':
+        specifier: workspace:*
+        version: link:../domain-feeds
       '@antumbra/persistence':
         specifier: workspace:*
         version: link:../persistence
+      '@antumbra/service-definition':
+        specifier: workspace:*
+        version: link:../service-definition
+      '@antumbra/vocabulary':
+        specifier: workspace:*
+        version: link:../vocabulary
       effect:
         specifier: 'catalog:'
         version: 4.0.0-rc.112
@@ -1638,6 +1647,12 @@ importers:
       '@antumbra/repos':
         specifier: workspace:*
         version: link:../repos
+      '@antumbra/settings':
+        specifier: workspace:*
+        version: link:../settings
+      '@antumbra/vocabulary':
+        specifier: workspace:*
+        version: link:../vocabulary
       '@antumbra/voyages':
         specifier: workspace:*
         version: link:../voyages

@@ -16,7 +16,7 @@ import type {
 } from '@prisma-next/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'sha256:8fa0a7c1cac3b3148dd7926a8c664444bc354110a83744b444ff44d5d866c2b9'>;
+  StorageHashBase<'sha256:c00af53d4dcb889060844e9014e5764ead596459e84345ee882b1f82a8ab642c'>;
 export type ExecutionHash = ExecutionHashBase<string>;
 export type ProfileHash =
   ProfileHashBase<'sha256:3cc333ecad9f3f4c7229370a9d2c37e908cdce0f8d2e9fb132d50605b024eff2'>;
@@ -37,14 +37,6 @@ export type FieldOutputTypes = {
       readonly status: CodecTypes['sqlite/text@1']['output'];
       readonly currentSessionId: CodecTypes['sqlite/text@1']['output'] | null;
       readonly createdAt: CodecTypes['sqlite/datetime@1']['output'];
-      readonly updatedAt: CodecTypes['sqlite/datetime@1']['output'];
-    };
-    readonly AgentRoleSettings: {
-      readonly scope: CodecTypes['sqlite/text@1']['output'];
-      readonly role: CodecTypes['sqlite/text@1']['output'];
-      readonly backend: CodecTypes['sqlite/text@1']['output'] | null;
-      readonly model: CodecTypes['sqlite/text@1']['output'] | null;
-      readonly effort: CodecTypes['sqlite/text@1']['output'] | null;
       readonly updatedAt: CodecTypes['sqlite/datetime@1']['output'];
     };
     readonly AgentSession: {
@@ -353,6 +345,12 @@ export type FieldOutputTypes = {
       readonly northStar: CodecTypes['sqlite/text@1']['output'];
       readonly context: CodecTypes['sqlite/text@1']['output'];
       readonly focusedAt: CodecTypes['sqlite/datetime@1']['output'] | null;
+      readonly captainBackend: CodecTypes['sqlite/text@1']['output'];
+      readonly captainModel: CodecTypes['sqlite/text@1']['output'] | null;
+      readonly captainEffort: CodecTypes['sqlite/text@1']['output'] | null;
+      readonly crewBackend: CodecTypes['sqlite/text@1']['output'];
+      readonly crewModel: CodecTypes['sqlite/text@1']['output'] | null;
+      readonly crewEffort: CodecTypes['sqlite/text@1']['output'] | null;
       readonly createdAt: CodecTypes['sqlite/datetime@1']['output'];
     };
     readonly VoyageAgent: {
@@ -376,14 +374,6 @@ export type FieldInputTypes = {
       readonly status: CodecTypes['sqlite/text@1']['input'];
       readonly currentSessionId: CodecTypes['sqlite/text@1']['input'] | null;
       readonly createdAt: CodecTypes['sqlite/datetime@1']['input'];
-      readonly updatedAt: CodecTypes['sqlite/datetime@1']['input'];
-    };
-    readonly AgentRoleSettings: {
-      readonly scope: CodecTypes['sqlite/text@1']['input'];
-      readonly role: CodecTypes['sqlite/text@1']['input'];
-      readonly backend: CodecTypes['sqlite/text@1']['input'] | null;
-      readonly model: CodecTypes['sqlite/text@1']['input'] | null;
-      readonly effort: CodecTypes['sqlite/text@1']['input'] | null;
       readonly updatedAt: CodecTypes['sqlite/datetime@1']['input'];
     };
     readonly AgentSession: {
@@ -692,6 +682,12 @@ export type FieldInputTypes = {
       readonly northStar: CodecTypes['sqlite/text@1']['input'];
       readonly context: CodecTypes['sqlite/text@1']['input'];
       readonly focusedAt: CodecTypes['sqlite/datetime@1']['input'] | null;
+      readonly captainBackend: CodecTypes['sqlite/text@1']['input'];
+      readonly captainModel: CodecTypes['sqlite/text@1']['input'] | null;
+      readonly captainEffort: CodecTypes['sqlite/text@1']['input'] | null;
+      readonly crewBackend: CodecTypes['sqlite/text@1']['input'];
+      readonly crewModel: CodecTypes['sqlite/text@1']['input'] | null;
+      readonly crewEffort: CodecTypes['sqlite/text@1']['input'] | null;
       readonly createdAt: CodecTypes['sqlite/datetime@1']['input'];
     };
     readonly VoyageAgent: {
@@ -715,14 +711,6 @@ export type StorageColumnTypes = {
       readonly id: CodecTypes['sqlite/text@1']['output'];
       readonly role: CodecTypes['sqlite/text@1']['output'];
       readonly status: CodecTypes['sqlite/text@1']['output'];
-      readonly updatedAt: CodecTypes['sqlite/datetime@1']['output'];
-    };
-    readonly agentRoleSettings: {
-      readonly backend: CodecTypes['sqlite/text@1']['output'] | null;
-      readonly effort: CodecTypes['sqlite/text@1']['output'] | null;
-      readonly model: CodecTypes['sqlite/text@1']['output'] | null;
-      readonly role: CodecTypes['sqlite/text@1']['output'];
-      readonly scope: CodecTypes['sqlite/text@1']['output'];
       readonly updatedAt: CodecTypes['sqlite/datetime@1']['output'];
     };
     readonly agentSession: {
@@ -1025,8 +1013,14 @@ export type StorageColumnTypes = {
       readonly value: CodecTypes['sqlite/text@1']['output'];
     };
     readonly voyage: {
+      readonly captainBackend: CodecTypes['sqlite/text@1']['output'];
+      readonly captainEffort: CodecTypes['sqlite/text@1']['output'] | null;
+      readonly captainModel: CodecTypes['sqlite/text@1']['output'] | null;
       readonly context: CodecTypes['sqlite/text@1']['output'];
       readonly createdAt: CodecTypes['sqlite/datetime@1']['output'];
+      readonly crewBackend: CodecTypes['sqlite/text@1']['output'];
+      readonly crewEffort: CodecTypes['sqlite/text@1']['output'] | null;
+      readonly crewModel: CodecTypes['sqlite/text@1']['output'] | null;
       readonly focusedAt: CodecTypes['sqlite/datetime@1']['output'] | null;
       readonly id: CodecTypes['sqlite/text@1']['output'];
       readonly kind: CodecTypes['sqlite/text@1']['output'];
@@ -1054,14 +1048,6 @@ export type StorageColumnInputTypes = {
       readonly id: CodecTypes['sqlite/text@1']['input'];
       readonly role: CodecTypes['sqlite/text@1']['input'];
       readonly status: CodecTypes['sqlite/text@1']['input'];
-      readonly updatedAt: CodecTypes['sqlite/datetime@1']['input'];
-    };
-    readonly agentRoleSettings: {
-      readonly backend: CodecTypes['sqlite/text@1']['input'] | null;
-      readonly effort: CodecTypes['sqlite/text@1']['input'] | null;
-      readonly model: CodecTypes['sqlite/text@1']['input'] | null;
-      readonly role: CodecTypes['sqlite/text@1']['input'];
-      readonly scope: CodecTypes['sqlite/text@1']['input'];
       readonly updatedAt: CodecTypes['sqlite/datetime@1']['input'];
     };
     readonly agentSession: {
@@ -1364,8 +1350,14 @@ export type StorageColumnInputTypes = {
       readonly value: CodecTypes['sqlite/text@1']['input'];
     };
     readonly voyage: {
+      readonly captainBackend: CodecTypes['sqlite/text@1']['input'];
+      readonly captainEffort: CodecTypes['sqlite/text@1']['input'] | null;
+      readonly captainModel: CodecTypes['sqlite/text@1']['input'] | null;
       readonly context: CodecTypes['sqlite/text@1']['input'];
       readonly createdAt: CodecTypes['sqlite/datetime@1']['input'];
+      readonly crewBackend: CodecTypes['sqlite/text@1']['input'];
+      readonly crewEffort: CodecTypes['sqlite/text@1']['input'] | null;
+      readonly crewModel: CodecTypes['sqlite/text@1']['input'] | null;
       readonly focusedAt: CodecTypes['sqlite/datetime@1']['input'] | null;
       readonly id: CodecTypes['sqlite/text@1']['input'];
       readonly kind: CodecTypes['sqlite/text@1']['input'];
@@ -1444,45 +1436,6 @@ type ContractBase = Omit<
               primaryKey: { readonly columns: readonly ['id'] };
               uniques: readonly [{ readonly columns: readonly ['currentSessionId'] }];
               indexes: readonly [{ readonly columns: readonly ['status'] }];
-              foreignKeys: readonly [];
-            };
-            readonly agentRoleSettings: {
-              columns: {
-                readonly scope: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'sqlite/text@1';
-                  readonly nullable: false;
-                };
-                readonly role: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'sqlite/text@1';
-                  readonly nullable: false;
-                };
-                readonly backend: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'sqlite/text@1';
-                  readonly nullable: true;
-                };
-                readonly model: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'sqlite/text@1';
-                  readonly nullable: true;
-                };
-                readonly effort: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'sqlite/text@1';
-                  readonly nullable: true;
-                };
-                readonly updatedAt: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'sqlite/datetime@1';
-                  readonly nullable: false;
-                  readonly default: { readonly kind: 'function'; readonly expression: 'now()' };
-                };
-              };
-              primaryKey: { readonly columns: readonly ['scope', 'role'] };
-              uniques: readonly [];
-              indexes: readonly [];
               foreignKeys: readonly [];
             };
             readonly agentSession: {
@@ -3393,6 +3346,36 @@ type ContractBase = Omit<
                   readonly codecId: 'sqlite/datetime@1';
                   readonly nullable: true;
                 };
+                readonly captainBackend: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'sqlite/text@1';
+                  readonly nullable: false;
+                };
+                readonly captainModel: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'sqlite/text@1';
+                  readonly nullable: true;
+                };
+                readonly captainEffort: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'sqlite/text@1';
+                  readonly nullable: true;
+                };
+                readonly crewBackend: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'sqlite/text@1';
+                  readonly nullable: false;
+                };
+                readonly crewModel: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'sqlite/text@1';
+                  readonly nullable: true;
+                };
+                readonly crewEffort: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'sqlite/text@1';
+                  readonly nullable: true;
+                };
                 readonly createdAt: {
                   readonly nativeType: 'text';
                   readonly codecId: 'sqlite/datetime@1';
@@ -3585,10 +3568,6 @@ type ContractBase = Omit<
       readonly namespace: '__unbound__' & NamespaceId;
       readonly model: 'Setting';
     };
-    readonly agentRoleSettings: {
-      readonly namespace: '__unbound__' & NamespaceId;
-      readonly model: 'AgentRoleSettings';
-    };
   };
   readonly domain: {
     readonly namespaces: {
@@ -3692,47 +3671,6 @@ type ContractBase = Omit<
                 readonly status: { readonly column: 'status' };
                 readonly currentSessionId: { readonly column: 'currentSessionId' };
                 readonly createdAt: { readonly column: 'createdAt' };
-                readonly updatedAt: { readonly column: 'updatedAt' };
-              };
-            };
-          };
-          readonly AgentRoleSettings: {
-            readonly fields: {
-              readonly scope: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
-              };
-              readonly role: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
-              };
-              readonly backend: {
-                readonly nullable: true;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
-              };
-              readonly model: {
-                readonly nullable: true;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
-              };
-              readonly effort: {
-                readonly nullable: true;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
-              };
-              readonly updatedAt: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/datetime@1' };
-              };
-            };
-            readonly relations: Record<string, never>;
-            readonly storage: {
-              readonly table: 'agentRoleSettings';
-              readonly namespaceId: '__unbound__';
-              readonly fields: {
-                readonly scope: { readonly column: 'scope' };
-                readonly role: { readonly column: 'role' };
-                readonly backend: { readonly column: 'backend' };
-                readonly model: { readonly column: 'model' };
-                readonly effort: { readonly column: 'effort' };
                 readonly updatedAt: { readonly column: 'updatedAt' };
               };
             };
@@ -5814,6 +5752,30 @@ type ContractBase = Omit<
                 readonly nullable: true;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/datetime@1' };
               };
+              readonly captainBackend: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
+              };
+              readonly captainModel: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
+              };
+              readonly captainEffort: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
+              };
+              readonly crewBackend: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
+              };
+              readonly crewModel: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
+              };
+              readonly crewEffort: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
+              };
               readonly createdAt: {
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/datetime@1' };
@@ -5842,6 +5804,12 @@ type ContractBase = Omit<
                 readonly northStar: { readonly column: 'northStar' };
                 readonly context: { readonly column: 'context' };
                 readonly focusedAt: { readonly column: 'focusedAt' };
+                readonly captainBackend: { readonly column: 'captainBackend' };
+                readonly captainModel: { readonly column: 'captainModel' };
+                readonly captainEffort: { readonly column: 'captainEffort' };
+                readonly crewBackend: { readonly column: 'crewBackend' };
+                readonly crewModel: { readonly column: 'crewModel' };
+                readonly crewEffort: { readonly column: 'crewEffort' };
                 readonly createdAt: { readonly column: 'createdAt' };
               };
             };

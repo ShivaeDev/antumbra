@@ -62,6 +62,11 @@ export const fleet: Fleet = {
 	],
 	diag: { intents: [] },
 	repos: [{ defaultRef: "main", id: "repo-1", name: "shoals", source: "/tmp/shoals" }],
+	roleSettings: [
+		{ backend: "claude", effort: "high", model: "claude-opus-4-6", role: "flagship" },
+		{ backend: "claude", effort: null, model: null, role: "captain" },
+		{ backend: null, effort: null, model: null, role: "crew" },
+	],
 };
 
 export const backendModels: ReadonlyArray<ModelChoice> = [

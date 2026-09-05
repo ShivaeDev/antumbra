@@ -30,6 +30,7 @@ export const sightFixture = (feeds: FixtureFeeds) =>
 					})
 				: Effect.void,
 		sendInput: (request) => Effect.succeed({ id: request.id, status: "accepted" as const }),
+		setRoleSettings: () => Effect.void,
 		sessionImage: () =>
 			Effect.succeed({
 				bytes: new Uint8Array(),

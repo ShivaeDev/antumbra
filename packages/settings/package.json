@@ -24,7 +24,10 @@
 	},
 	"dependencies": {
 		"@antumbra/contract": "workspace:*",
+		"@antumbra/domain-feeds": "workspace:*",
 		"@antumbra/persistence": "workspace:*",
+		"@antumbra/service-definition": "workspace:*",
+		"@antumbra/vocabulary": "workspace:*",
 		"effect": "catalog:"
 	}
 }

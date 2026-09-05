@@ -1,5 +1,6 @@
 import { HistoricalAgentEvent } from "@antumbra/vocabulary/session-events";
 import { Context, Data, type Effect, Schema, type Stream } from "effect";
+import type { RoleSettings } from "#agent-settings.ts";
 import type { Fleet, ModelChoice, RepoSummary } from "#fleet.ts";
 import type { SessionImage, SessionImageRequest, SessionInputReceipt, SessionInputRequest } from "#session-inputs.ts";
 import { ChangeSituation } from "#session-situations.ts";
@@ -61,6 +62,7 @@ export class SightSource extends Context.Service<
 		readonly retireCrew: (pieceId: string) => Effect.Effect<void, SightFailure>;
 		readonly send: (sessionId: string, text: string) => Effect.Effect<void, SightFailure>;
 		readonly sendInput: (request: SessionInputRequest) => Effect.Effect<SessionInputReceipt, SightFailure>;
+		readonly setRoleSettings: (settings: RoleSettings) => Effect.Effect<void, SightFailure>;
 		readonly sessionImage: (request: SessionImageRequest) => Effect.Effect<SessionImage, SightFailure>;
 		readonly sessionEventFeed: (query: EventQuery) => Stream.Stream<SessionEvent, SightFailure>;
 		readonly sessionEvents: (query: EventQuery) => Effect.Effect<ReadonlyArray<SessionEvent>, SightFailure>;

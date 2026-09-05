@@ -1,5 +1,6 @@
 import { ResourceReclaimStateSchema, SessionPresenceSchema } from "@antumbra/vocabulary/agent-runtime";
 import { Schema } from "effect";
+import { RoleSettings } from "#agent-settings.ts";
 import { SessionSituation } from "#session-situations.ts";
 import { AgentDiagnostics, FleetDiagnostics, SessionDiagnostics } from "#sight-diagnostics.ts";
 
@@ -90,5 +91,6 @@ export const Fleet = Schema.Struct({
 	capacities: Schema.Array(BackendCapacitySummary),
 	diag: FleetDiagnostics,
 	repos: Schema.Array(RepoSummary),
+	roleSettings: Schema.Array(RoleSettings),
 });
 export type Fleet = typeof Fleet.Type;

@@ -171,12 +171,6 @@ model Voyage {
   northStar String
   context   String
   focusedAt DateTime?
-  captainBackend String
-  captainModel   String?
-  captainEffort  String?
-  crewBackend    String
-  crewModel      String?
-  crewEffort     String?
   createdAt DateTime  @default(now())
   rulingSubjects RulingSubject[]
 }
@@ -487,4 +481,15 @@ model Setting {
   key       String   @id
   value     String
   updatedAt DateTime @default(now())
+}
+
+model AgentRoleSettings {
+  scope     String
+  role      String
+  backend   String?
+  model     String?
+  effort    String?
+  updatedAt DateTime @default(now())
+
+  @@id([scope, role])
 }

@@ -3,9 +3,6 @@ import { Data, Option, Result, Schema } from "effect";
 export const VoyageKindSchema = Schema.Literals(["voyage", "flagship"]);
 export type VoyageKind = typeof VoyageKindSchema.Type;
 
-export const VoyageAgentRoleSchema = Schema.Literals(["captain", "crew"]);
-export type VoyageAgentRole = typeof VoyageAgentRoleSchema.Type;
-
 export class StoredVoyageKindInvalid extends Data.TaggedError("StoredVoyageKindInvalid")<{
 	readonly value: unknown;
 	readonly voyageId: string;

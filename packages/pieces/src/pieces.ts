@@ -8,6 +8,7 @@ import { launch } from "#launch.ts";
 import { park } from "#park.ts";
 import { verifyPieceExists } from "#rows.ts";
 import { setDependencies } from "#set-dependencies.ts";
+import { verdicts } from "#verdicts.ts";
 import { memberPieceIds } from "#voyage-membership.ts";
 
 const requirements = [Database, DomainFeeds] as const;
@@ -23,6 +24,7 @@ export const Pieces = defineService({
 		park,
 		setDependencies,
 		verifyExists: verifyPieceExists,
+		verdicts,
 	}),
 	requires: requirements,
 });

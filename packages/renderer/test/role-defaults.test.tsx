@@ -1,9 +1,8 @@
 import { expect, it } from "@effect/vitest";
 import { Deferred, Effect } from "effect";
-import { act } from "react";
-import { createRoot } from "react-dom/client";
 import { beforeEach, vi } from "vitest";
 import { RendererRequestError } from "#adapters/request-error.ts";
+import { mount, settle, write } from "#test/dom.ts";
 import { RoleDefaults } from "#views/role-defaults.tsx";
 
 const { backendModels, setRoleSettings } = vi.hoisted(() => ({ backendModels: vi.fn(), setRoleSettings: vi.fn() }));
@@ -18,32 +17,17 @@ beforeEach(() => {
 	});
 });
 
-const settle = (change: () => void) =>
-	Effect.promise(() =>
-		act(() => {
-			change();
-			return Promise.resolve();
-		}),
-	);
-
-const nativeValue = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")?.set;
-
 const shown = Effect.gen(function* () {
-	const container = document.createElement("div");
-	document.body.append(container);
-	const root = createRoot(container);
-	yield* Effect.addFinalizer(() =>
-		settle(() => {
-			root.unmount();
-			container.remove();
-		}),
-	);
+	const { container, root } = yield* mount();
 	yield* settle(() => root.render(<RoleDefaults backends={["claude", "codex"]} defaults={[]} />));
 	return { container, root };
 });
 
-const named = (container: HTMLElement, name: string): HTMLInputElement | null =>
-	container.querySelector<HTMLInputElement>(`input[aria-label="${name}"]`);
+const named = (container: HTMLElement, name: string): HTMLInputElement => {
+	const input = container.querySelector<HTMLInputElement>(`input[aria-label="${name}"]`);
+	if (input === null) return Effect.runSync(Effect.die(`Missing field ${name}`));
+	return input;
+};
 
 const saveButton = (container: HTMLElement): HTMLButtonElement | undefined =>
 	[...container.querySelectorAll("button")].find((button) => button.textContent === "Save");
@@ -67,11 +51,7 @@ it.effect(
 		const model = named(container, "Flagship model");
 
 		yield* settle(() => {
-			if (model === null) {
-				return;
-			}
-			nativeValue?.call(model, "opus");
-			model.dispatchEvent(new Event("input", { bubbles: true }));
+			write(model, "opus");
 		});
 		expect(saveButton(container)?.disabled).toBe(false);
 		yield* settle(() => saveButton(container)?.click());
@@ -90,8 +70,7 @@ it.effect("keeps unsaved role drafts when another role's saved update arrives du
 		yield* settle(() => {
 			for (const role of ["Flagship", "Crew"]) {
 				const input = named(container, `${role} model`);
-				nativeValue?.call(input, `${role}-model`);
-				input?.dispatchEvent(new Event("input", { bubbles: true }));
+				write(input, `${role}-model`);
 			}
 		});
 		yield* settle(() => container.querySelector("form")?.requestSubmit());

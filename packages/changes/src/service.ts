@@ -10,6 +10,7 @@ import { hostCapabilities } from "#host-capabilities.ts";
 import { hostTags } from "#host-tags.ts";
 import { pendingForPieces } from "#pending-for-pieces.ts";
 import { ChangeHostRegistry, RunnerRegistry } from "#registries.ts";
+import { situationsForPieces } from "#situations/for-pieces.ts";
 import { readChangeSnapshot } from "#snapshot.ts";
 import { adoptSubmittedChange } from "#submissions/adopt.ts";
 import { readHeldResources } from "#submissions/held-resources.ts";
@@ -27,6 +28,7 @@ export const Changes = defineService({
 		byId: changeById,
 		dismiss: dismissChange,
 		forPieces,
+		situationsForPieces,
 		heldResources: readHeldResources,
 		hostCapabilities,
 		hostTags,

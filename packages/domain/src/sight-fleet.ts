@@ -3,9 +3,10 @@ import type { AgentSummary, Fleet } from "@antumbra/contract";
 import { Database } from "@antumbra/persistence";
 import type { BackendCapacityReading } from "@antumbra/provider-capacity";
 import { Repos } from "@antumbra/repos";
-import { rootSessions, situationsByAgent } from "@antumbra/sessions";
+import { rootSessions } from "@antumbra/sessions";
 import { decodeStoredAgentStatus, decodeStoredBerthStatus, decodeStoredResourceReclaimState } from "@antumbra/vocabulary/agent-runtime";
 import { Effect } from "effect";
+import { situationsByAgent } from "#agent-situations.ts";
 import { workByAgent } from "#agent-work.ts";
 import { attributeIntents } from "#sight-diagnostics.ts";
 import { type FleetRuntime, sessionSummary } from "#sight-fleet-sessions.ts";
@@ -33,11 +34,7 @@ export const fleetSnapshot = Effect.fn("Sight.fleetSnapshot")(function* (
 	const attribution = attributeIntents(intents, new Set(agents.map((agent) => agent.id)), new Set(sessions.map((session) => session.id)));
 	const assignments = yield* db.PieceAgent.orderBy((assignment) => assignment.assignedAt.asc()).all();
 	const pieceIds = [...new Set(assignments.map((assignment) => assignment.pieceId))];
-	const snapshot = yield* changes.forPieces(pieceIds);
-	const situations = situationsByAgent(
-		{ ...snapshot, assignments },
-		agents.map((agent) => agent.id),
-	);
+	const situations = situationsByAgent(assignments, yield* changes.situationsForPieces(pieceIds));
 	const sessionSummaries = yield* Effect.forEach(sessions, (session) =>
 		sessionSummary(session, imageInputBackends, runtime, attribution, pointers, situations),
 	);

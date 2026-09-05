@@ -9,7 +9,7 @@ import type { AgentBackendTag } from "@antumbra/vocabulary/agent-backend";
 import { Clock, Context, Effect, Layer } from "effect";
 import { hailCaptain } from "#hail.ts";
 import { KernelReach } from "#kernel-reach.ts";
-import { workPieceNow } from "#piece-work.ts";
+import { workPieceNow } from "#piece-work/work.ts";
 import { type OpenVoyageInput, VoyageProcedureService, type VoyageProcedures } from "#voyage-procedures.ts";
 import { readVoyageView } from "#voyage-read.ts";
 import { requireVoyage } from "#voyage-record.ts";
@@ -84,6 +84,7 @@ export const VoyageProceduresLive = Layer.effect(VoyageProcedureService)(
 			Context.add(Database, db),
 			Context.add(DomainFeeds, feeds),
 			Context.add(KernelReach, reach),
+			Context.add(Pieces, pieces),
 			Context.add(Rulings, rulings),
 			Context.add(VoyageWorldSource, world),
 		);

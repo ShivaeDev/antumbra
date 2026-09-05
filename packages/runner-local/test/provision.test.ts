@@ -151,3 +151,14 @@ it.live("prunes a stale registration before remounting its exact branch", () =>
 		expect((yield* git(["-C", berth.path, "rev-parse", "--git-common-dir"])).trim()).toBe(mirror);
 	}),
 );
+
+it.live("provisions concurrent moorages that share one mirror", () =>
+	Effect.gen(function* () {
+		const { runner, source } = yield* makeHarbor;
+		const plans = ["0123456789abcdef", "89abcdef01234567", "fedcba9876543210"].map((agentId) => runner.plan({ agentId, repos: [berthing(source)] }));
+		yield* Effect.forEach(plans, (plan) => runner.provision(plan), { concurrency: "unbounded", discard: true });
+		for (const plan of plans) {
+			expect(existsSync(join(plan.root, "source", "README.md"))).toBe(true);
+		}
+	}),
+);

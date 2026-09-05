@@ -14,3 +14,6 @@ export type ChangeMergeable = typeof ChangeMergeable.Type;
 
 export const PieceChangePurpose = Schema.Literals(["depends_on", "produces", "reviews"]);
 export type PieceChangePurpose = typeof PieceChangePurpose.Type;
+
+export const ChangeSituation = Schema.Literals(["merge_conflicts", "checks_failed", "unresolved_reviews"]);
+export type ChangeSituation = typeof ChangeSituation.Type;

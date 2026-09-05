@@ -1427,9 +1427,6 @@ importers:
 
   packages/sessions:
     dependencies:
-      '@antumbra/changes':
-        specifier: workspace:*
-        version: link:../changes
       '@antumbra/contract':
         specifier: workspace:*
         version: link:../contract

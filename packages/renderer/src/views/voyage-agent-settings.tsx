@@ -1,44 +1,36 @@
-import type { VoyageAgentRole } from "@antumbra/contract";
-import { useState } from "react";
+import { type RoleSettings, VOYAGE_AGENT_ROLES, type VoyageAgentRole, type VoyageView } from "@antumbra/contract";
 import { setAgentSettings } from "#adapters/trpc-voyages.ts";
-import { Button } from "#components/ui/button.tsx";
-import { useBackendModels } from "#hooks/backend-models.ts";
-import { AgentSettingsChoice } from "#views/agent-settings-choice.tsx";
+import { roleDefault, roleLabel, voyagePlaceholder } from "#views/role-settings.ts";
+import { RoleSettingsForm } from "#views/role-settings-form.tsx";
 
-const chosen = (value: string): string | null => (value.trim() === "" ? null : value.trim());
-
-export const AgentSettingsEditor = ({
-	agentRole,
-	backend,
-	effort,
-	label,
-	model,
+export const VoyageRoleSettings = ({
+	backends,
+	defaults,
 	onError,
-	voyageId,
+	voyage,
 }: {
-	readonly agentRole: VoyageAgentRole;
-	readonly backend: string;
-	readonly effort: string | null;
-	readonly label: string;
-	readonly model: string | null;
+	readonly backends: ReadonlyArray<string>;
+	readonly defaults: ReadonlyArray<RoleSettings>;
 	readonly onError: (message: string) => void;
-	readonly voyageId: string;
+	readonly voyage: VoyageView;
 }) => {
-	const catalog = useBackendModels(backend);
-	const [next, setNext] = useState({ effort: effort ?? "", model: model ?? "" });
-	const unmoved = chosen(next.model) === model && chosen(next.effort) === effort;
+	const lines = VOYAGE_AGENT_ROLES.map((role: VoyageAgentRole) => ({
+		label: roleLabel[role],
+		placeholder: voyagePlaceholder(backends, roleDefault(defaults, role)),
+		role,
+		settings: role === "captain" ? voyage.captainSettings : voyage.crewSettings,
+	}));
 	return (
-		<div className="flex min-w-0 flex-wrap items-end gap-2">
-			<AgentSettingsChoice catalog={catalog} effort={next.effort} label={label} model={next.model} onChange={setNext} />
-			<Button
-				disabled={unmoved}
-				onClick={() => setAgentSettings({ effort: chosen(next.effort), model: chosen(next.model), role: agentRole, voyageId }, onError)}
-				size="sm"
-				type="button"
-				variant="outline"
-			>
-				Set
-			</Button>
-		</div>
+		<RoleSettingsForm
+			backends={backends}
+			inheritLabel="Fleet default"
+			lines={lines}
+			onSave={(changes) => {
+				for (const change of changes) {
+					setAgentSettings({ ...change.settings, role: change.role, voyageId: voyage.id }, onError);
+				}
+			}}
+			saveLabel="Save"
+		/>
 	);
 };

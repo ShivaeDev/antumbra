@@ -63,7 +63,7 @@ it.effect("draws a voyage snapshot as its chart, work, and board", () =>
 	Effect.gen(function* () {
 		const container = document.createElement("div");
 		const root = createRoot(container);
-		yield* react(() => root.render(<VoyagePanel onError={() => undefined} piece={undefined} voyageId="voyage-1" />));
+		yield* react(() => root.render(<VoyagePanel fleet={undefined} onError={() => undefined} piece={undefined} voyageId="voyage-1" />));
 
 		expect(container.textContent).toContain("taking a sight…");
 
@@ -81,10 +81,10 @@ it.effect("another voyage is another subscription and another picture", () =>
 	Effect.gen(function* () {
 		const container = document.createElement("div");
 		const root = createRoot(container);
-		yield* react(() => root.render(<VoyagePanel onError={() => undefined} piece={undefined} voyageId="voyage-1" />));
+		yield* react(() => root.render(<VoyagePanel fleet={undefined} onError={() => undefined} piece={undefined} voyageId="voyage-1" />));
 		yield* react(() => opened[0]?.onVoyage(named("Chart the reef")));
 
-		yield* react(() => root.render(<VoyagePanel onError={() => undefined} piece={undefined} voyageId="voyage-2" />));
+		yield* react(() => root.render(<VoyagePanel fleet={undefined} onError={() => undefined} piece={undefined} voyageId="voyage-2" />));
 
 		expect(opened[1]?.voyageId).toBe("voyage-2");
 		expect(container.textContent).not.toContain("Chart the reef");

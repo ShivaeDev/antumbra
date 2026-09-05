@@ -1,4 +1,13 @@
-import type { AppInfo, ModelChoice, RepoRegistration, RepoSummary, SituationDraft, SpawnReceipt, SpawnRequest } from "@antumbra/contract";
+import type {
+	AppInfo,
+	ModelChoice,
+	RepoRegistration,
+	RepoSummary,
+	RoleSettings,
+	SituationDraft,
+	SpawnReceipt,
+	SpawnRequest,
+} from "@antumbra/contract";
 import { Data, Effect } from "effect";
 import { client, fired, toError } from "#adapters/bridge.ts";
 
@@ -31,6 +40,9 @@ export const backendModels = (backend: string, onModels: (models: ReadonlyArray<
 		.then(onModels)
 		.catch((cause: unknown) => onError(toError(cause).message));
 };
+
+export const setRoleSettings = (settings: RoleSettings, onError: (message: string) => void): void =>
+	fired(client.setRoleSettings.mutate(settings), onError);
 
 export const restartApp = (onError: (message: string) => void): void => fired(client.restart.mutate(), onError);
 

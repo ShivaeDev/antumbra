@@ -13,7 +13,7 @@ it("offers Settings in the established console navigation", () => {
 });
 
 it("says nothing about a setting until the reading arrives", () => {
-	const html = renderToStaticMarkup(<SettingsPanel onError={() => undefined} onSettings={() => undefined} settings={undefined} />);
+	const html = renderToStaticMarkup(<SettingsPanel fleet={undefined} onError={() => undefined} onSettings={() => undefined} settings={undefined} />);
 	expect(html).toContain("Reading settings…");
 	expect(html).not.toContain("Retire rested agents");
 });

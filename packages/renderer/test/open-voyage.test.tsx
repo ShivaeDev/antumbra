@@ -1,4 +1,4 @@
-import type { ModelChoice } from "@antumbra/contract";
+import type { ModelChoice, RoleSettings } from "@antumbra/contract";
 import { expect, it } from "@effect/vitest";
 import { Effect } from "effect";
 import { act } from "react";
@@ -74,7 +74,7 @@ const choose = (name: string, backend: string) =>
 		);
 	});
 
-const shown = (backends: ReadonlyArray<string>) =>
+const shown = (backends: ReadonlyArray<string>, defaults: ReadonlyArray<RoleSettings> = []) =>
 	Effect.gen(function* () {
 		const container = document.createElement("div");
 		document.body.append(container);
@@ -85,7 +85,7 @@ const shown = (backends: ReadonlyArray<string>) =>
 				container.remove();
 			}),
 		);
-		yield* settle(() => root.render(<OpenVoyageForm backends={backends} onError={() => undefined} onOpened={() => undefined} />));
+		yield* settle(() => root.render(<OpenVoyageForm backends={backends} defaults={defaults} onError={() => undefined} onOpened={() => undefined} />));
 		yield* settle(() => buttonSaying("Open voyage")?.click());
 		yield* settle(() => {
 			write(labelled("Name"), "Reef survey");
@@ -108,13 +108,10 @@ it.effect(
 		yield* settle(() => buttonSaying("Open voyage")?.click());
 
 		expect(openVoyage.mock.calls.at(0)?.at(0)).toEqual({
-			backend: "claude",
-			captainBackend: "claude",
 			captainEffort: "max",
 			captainModel: "opus",
 			context: "",
 			crewBackend: "codex",
-			crewModel: "gpt-5-codex",
 			name: "Reef survey",
 			northStar: "The reef is charted",
 		});
@@ -122,21 +119,28 @@ it.effect(
 );
 
 it.effect(
-	"leaves a role's model and effort out of the request when the admiral names neither",
+	"asks for nothing a role was not given, so the voyage sails as the fleet says",
 	Effect.fnUntraced(function* () {
 		yield* shown(["claude", "codex"]);
 
-		yield* settle(() => write(named("Captain model"), ""));
-		yield* settle(() => write(named("Crew model"), ""));
 		yield* settle(() => buttonSaying("Open voyage")?.click());
 
 		expect(openVoyage.mock.calls.at(0)?.at(0)).toEqual({
-			backend: "claude",
-			captainBackend: "claude",
 			context: "",
-			crewBackend: "claude",
 			name: "Reef survey",
 			northStar: "The reef is charted",
 		});
+	}),
+);
+
+it.effect(
+	"shows the fleet's default for a role the admiral leaves alone",
+	Effect.fnUntraced(function* () {
+		yield* shown(["claude", "codex"], [{ backend: "codex", effort: "high", model: "gpt-5-codex", role: "captain" }]);
+
+		expect(document.querySelector('[aria-label="Captain backend"]')?.textContent).toContain("codex");
+		expect(named("Captain model")?.placeholder).toBe("gpt-5-codex");
+		expect(named("Captain effort")?.placeholder).toBe("high");
+		expect(named("Crew model")?.placeholder).toBe("the backend's own");
 	}),
 );

@@ -1,13 +1,16 @@
-import { SETTING_KEYS, type SettingsReading } from "@antumbra/contract";
+import { type Fleet, SETTING_KEYS, type SettingsReading } from "@antumbra/contract";
 import { changeSetting } from "#adapters/trpc-settings.ts";
 import { RestartControl } from "#views/restart-control.tsx";
+import { RoleDefaults } from "#views/role-defaults.tsx";
 import { SettingRow } from "#views/setting-row.tsx";
 
 export const SettingsPanel = ({
+	fleet,
 	onError,
 	onSettings,
 	settings,
 }: {
+	readonly fleet: Fleet | undefined;
 	readonly onError: (message: string) => void;
 	readonly onSettings: (settings: SettingsReading) => void;
 	readonly settings: SettingsReading | undefined;
@@ -20,6 +23,7 @@ export const SettingsPanel = ({
 					Changes take effect on the next pass of the work they govern. Running sessions are not interrupted.
 				</p>
 			</header>
+			<RoleDefaults backends={fleet?.backends ?? []} defaults={fleet?.roleSettings ?? []} onError={onError} />
 			{settings === undefined ? (
 				<p className="text-xs text-muted-foreground">Reading settings…</p>
 			) : (

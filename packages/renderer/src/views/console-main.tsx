@@ -47,7 +47,7 @@ export const ConsoleMain = (props: ConsoleProps) => {
 		);
 	}
 	if (props.mode === "settings") {
-		return <SettingsPanel onError={props.onError} onSettings={props.onSettings} settings={props.settings} />;
+		return <SettingsPanel fleet={props.fleet} onError={props.onError} onSettings={props.onSettings} settings={props.settings} />;
 	}
 	if (props.mode === "quay") {
 		return <QuayPanel onError={props.onError} onSelect={props.onChange} selectedId={props.change} />;
@@ -66,6 +66,7 @@ export const ConsoleMain = (props: ConsoleProps) => {
 			<aside className={ASIDE}>
 				<VoyagesAside
 					backends={props.fleet?.backends ?? []}
+					defaults={props.fleet?.roleSettings ?? []}
 					onError={props.onError}
 					onSelect={props.onVoyage}
 					selected={props.voyage}
@@ -75,7 +76,7 @@ export const ConsoleMain = (props: ConsoleProps) => {
 			{props.voyage === undefined ? (
 				<section className="m-auto text-xs text-muted-foreground">select a voyage to see its pieces</section>
 			) : (
-				<VoyagePanel onError={props.onError} piece={props.piece} voyageId={props.voyage} />
+				<VoyagePanel fleet={props.fleet} onError={props.onError} piece={props.piece} voyageId={props.voyage} />
 			)}
 		</div>
 	);

@@ -48,6 +48,7 @@ const fleetWith = (presence: Presence, intents: ReadonlyArray<Intent> = [], canA
 	capacities: [],
 	diag: { intents: [] },
 	repos: [],
+	roleSettings: [],
 });
 
 const box = (fleet: Fleet | undefined) => <SessionMessage fleet={fleet} onError={() => undefined} sessionId="session-1" />;

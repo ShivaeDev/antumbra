@@ -81,13 +81,9 @@ describe("dependsOnLabel", () => {
 describe("byFlagship", () => {
 	const voyage = (id: string, kind: VoyageSummary["kind"]): VoyageSummary => ({
 		captain: null,
-		captainBackend: "scripted",
-		captainEffort: null,
-		captainModel: null,
+		captainSettings: { backend: "scripted", effort: null, model: null },
 		counts: { active: 0, done: 0, pieces: 0, ready: 0 },
-		crewBackend: "scripted",
-		crewEffort: null,
-		crewModel: null,
+		crewSettings: { backend: "scripted", effort: null, model: null },
 		focusedAt: null,
 		id,
 		kind,

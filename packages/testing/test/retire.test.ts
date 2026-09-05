@@ -1,4 +1,5 @@
 import { AgentDomain } from "@antumbra/domain";
+import { VoyageProcedureService } from "@antumbra/domain/voyages/service";
 import { type IntentStatus, isTerminalIntentStatus, Kernel } from "@antumbra/kernel";
 import { Database, type NewAgentSession } from "@antumbra/persistence";
 import { Pieces } from "@antumbra/pieces";
@@ -13,7 +14,7 @@ const terminalStatus = <E, R>(changes: Stream.Stream<IntentStatus, E, R>) =>
 const workingCrew = Effect.gen(function* () {
 	const pieces = yield* Pieces;
 	const db = yield* Database;
-	const domain = yield* AgentDomain;
+	const procedures = yield* VoyageProcedureService;
 	const kernel = yield* Kernel;
 	const voyageRecords = yield* Voyages;
 	const voyage = yield* voyageRecords
@@ -34,7 +35,7 @@ const workingCrew = Effect.gen(function* () {
 			voyageId: voyage.id,
 		})
 		.pipe(Effect.orDie);
-	const crewed = yield* domain.voyages.workNow(piece.id).pipe(Effect.orDie);
+	const crewed = yield* procedures.workNow(piece.id).pipe(Effect.orDie);
 	expect(yield* terminalStatus(kernel.changes(crewed.intentId))).toBe("succeeded");
 	const session = Option.getOrThrow(yield* db.AgentSession.where({ agentId: crewed.agentId }).first());
 	return { agentId: crewed.agentId, pieceId: piece.id, sessionId: session.id };

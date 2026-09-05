@@ -3,9 +3,9 @@ import { Database } from "@antumbra/persistence";
 import { type Ruling, Rulings } from "@antumbra/rulings";
 import { expect } from "@effect/vitest";
 import { Effect, Option } from "effect";
-import { AgentDomain } from "#domain.ts";
 import { type ScriptedBackend, type ScriptedSession, sessionFor } from "#test/harness.ts";
 import { eventually, openReefVoyage, terminalIntent } from "#test/voyage-fixtures.ts";
+import { VoyageProcedureService } from "#voyages/service.ts";
 
 export const ASKER = "agent-asker";
 
@@ -55,8 +55,8 @@ export const ask = (radius: "fleet" | "voyage", rung: "captain" | "flagship") =>
 
 const hailed = (scripted: ScriptedBackend, voyageId: string) =>
 	Effect.gen(function* () {
-		const domain = yield* AgentDomain;
-		const captain = yield* domain.voyages.hail(voyageId);
+		const procedures = yield* VoyageProcedureService;
+		const captain = yield* procedures.hail(voyageId);
 		expect(yield* terminalIntent(captain.intentId)).toBe("succeeded");
 		return {
 			agentId: captain.agentId,

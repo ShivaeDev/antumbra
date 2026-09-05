@@ -2,12 +2,12 @@ import { Database } from "@antumbra/persistence";
 import { Pieces } from "@antumbra/pieces";
 import { expect, it } from "@effect/vitest";
 import { Effect, Fiber, Option, Stream } from "effect";
-import { AgentDomain } from "#domain.ts";
 import { makeSightSessionEvents } from "#sight-session-events.ts";
 import { dispatchingLayer, domainKernelLayer } from "#test/domain-layers.ts";
 import { acquireTemporaryPersistence, callTool, makeScriptedBackend, rawOf, sessionFor } from "#test/harness.ts";
 import { hail, reportsNativeRef } from "#test/session-recovery-fixture.ts";
 import { eventually, openReefVoyage, PATIENCE } from "#test/voyage-fixtures.ts";
+import { VoyageProcedureService } from "#voyages/service.ts";
 
 const firstAssignment = Effect.gen(function* () {
 	const db = yield* Database;
@@ -22,7 +22,7 @@ it.live("a Piece role named captain remains crew across Session recovery", () =>
 		const selected = yield* Effect.gen(function* () {
 			const pieces = yield* Pieces;
 			const db = yield* Database;
-			const domain = yield* AgentDomain;
+			const procedures = yield* VoyageProcedureService;
 			const sight = yield* makeSightSessionEvents;
 			const voyage = yield* openReefVoyage;
 			const piece = yield* pieces.charter({
@@ -46,7 +46,7 @@ it.live("a Piece role named captain remains crew across Session recovery", () =>
 			]);
 			expect(live.tools.map((tool) => tool.name)).toContain("land_report");
 			expect(live.tools.map((tool) => tool.name)).not.toContain("charter_piece");
-			expect(Option.getOrThrow(yield* domain.voyages.read(voyage.id)).captain).toEqual(Option.none());
+			expect(Option.getOrThrow(yield* procedures.read(voyage.id)).captain).toEqual(Option.none());
 			expect(
 				yield* callTool(live, "land_report", {
 					body: "the reef is sounded",
@@ -79,7 +79,7 @@ it.live("a Piece role named captain remains crew across Session recovery", () =>
 
 		const resumedBackend = reportsNativeRef(scripted.backend, scripted, "native-piece-captain-role");
 		yield* Effect.gen(function* () {
-			const domain = yield* AgentDomain;
+			const procedures = yield* VoyageProcedureService;
 			yield* hail(selected.sessionId);
 			yield* eventually(
 				Effect.gen(function* () {
@@ -89,7 +89,7 @@ it.live("a Piece role named captain remains crew across Session recovery", () =>
 			const resumed = yield* sessionFor(scripted, selected.agentId);
 			expect(resumed.tools.map((tool) => tool.name)).toContain("land_report");
 			expect(resumed.tools.map((tool) => tool.name)).not.toContain("charter_piece");
-			expect(Option.getOrThrow(yield* domain.voyages.read(selected.voyageId)).captain).toEqual(Option.none());
+			expect(Option.getOrThrow(yield* procedures.read(selected.voyageId)).captain).toEqual(Option.none());
 		}).pipe(Effect.provide(domainKernelLayer(temporary, resumedBackend)));
 	}),
 );

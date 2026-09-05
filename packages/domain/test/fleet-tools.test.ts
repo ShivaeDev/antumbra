@@ -4,10 +4,10 @@ import { Reports } from "@antumbra/reports";
 import { it } from "@antumbra/testing";
 import { expect } from "@effect/vitest";
 import { Option } from "effect";
-import { AgentDomain } from "#domain.ts";
 import { flagshipCaptain, hailedCaptain, toolNames } from "#test/flagship-fixtures.ts";
 import { callTool } from "#test/harness.ts";
 import { openReefVoyage } from "#test/voyage-fixtures.ts";
+import { VoyageProcedureService } from "#voyages/service.ts";
 
 const FLEET_TOOLS = ["read_fleet", "register_repo", "open_voyage", "charter_piece_on_voyage", "hail_captain", "proclaim_ruling"];
 
@@ -35,7 +35,7 @@ it.effectApp("the flagship's captain holds the fleet acts and a captain's own", 
 it.effectApp("the flagship's captain reads every voyage in the fleet", function* ({ scripted }) {
 	const { captain, voyageId } = yield* flagshipCaptain(scripted);
 	const pieces = yield* Pieces;
-	const domain = yield* AgentDomain;
+	const procedures = yield* VoyageProcedureService;
 	const reef = yield* openReefVoyage;
 	const sounding = yield* pieces.charter({
 		charter: "sound the eastern shoal",
@@ -53,7 +53,7 @@ it.effectApp("the flagship's captain reads every voyage in the fleet", function*
 		title: "drawing",
 		voyageId: reef.id,
 	});
-	const flagship = Option.getOrThrow((yield* domain.voyages.read(voyageId)).pipe(Option.flatMap((view) => view.captain)));
+	const flagship = Option.getOrThrow((yield* procedures.read(voyageId)).pipe(Option.flatMap((view) => view.captain)));
 
 	const read = yield* callTool(captain, "read_fleet", {});
 
@@ -110,7 +110,7 @@ it.effectApp("a voyage the fleet has not got is refused, not read", function* ({
 
 it.effectApp("the flagship's captain charters a piece on a voyage it names", function* ({ scripted }) {
 	const { captain } = yield* flagshipCaptain(scripted);
-	const domain = yield* AgentDomain;
+	const procedures = yield* VoyageProcedureService;
 	const reef = yield* openReefVoyage;
 
 	const outcome = yield* callTool(captain, "charter_piece_on_voyage", {
@@ -121,7 +121,7 @@ it.effectApp("the flagship's captain charters a piece on a voyage it names", fun
 		voyageId: reef.id,
 	});
 
-	const view = Option.getOrThrow(yield* domain.voyages.read(reef.id));
+	const view = Option.getOrThrow(yield* procedures.read(reef.id));
 	const piece = view.pieces[0];
 	expect(outcome).toEqual({
 		ok: true,

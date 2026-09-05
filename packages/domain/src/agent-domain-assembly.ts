@@ -1,6 +1,4 @@
 import type { AgentBackend, Runner } from "@antumbra/plugin-api";
-import { ResourceReconciler } from "@antumbra/resource-reclamation";
-import { SessionFabric } from "@antumbra/session-fabric";
 import {
 	compileSessionSiestaDemands,
 	makeSessionTreeSinks,
@@ -19,13 +17,9 @@ import { compileRetireSweepDemands } from "#retire-sweep-demands.ts";
 import { makeSessionAgentSettings } from "#session-agent-settings.ts";
 import { spawnKind } from "#spawn.ts";
 import { makeAgentToolCompiler } from "#spawn-tools.ts";
-import { VoyageProcedureService } from "#voyages/service.ts";
 
 export const makeAgentDomain = (backends: ReadonlyMap<string, AgentBackend>, runners: ReadonlyMap<string, Runner>) =>
 	Effect.gen(function* () {
-		const fabric = yield* SessionFabric;
-		const resourceReconciler = yield* ResourceReconciler;
-		const voyages = yield* VoyageProcedureService;
 		const mail = yield* MailDelivery;
 		const sinkFor = yield* makeSessionTreeSinks(mail.deliver());
 		const currentSessions = yield* CurrentSessions;
@@ -57,12 +51,9 @@ export const makeAgentDomain = (backends: ReadonlyMap<string, AgentBackend>, run
 		return {
 			intentDemands,
 			kinds: [spawn, retire, siesta, wake],
-			retryResourceReclaim: resourceReconciler.reconcile(),
 			retire,
-			sessionsAttached: fabric.attached(),
 			siesta,
 			spawn,
-			voyages,
 			wake,
 		};
 	});

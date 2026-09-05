@@ -404,13 +404,13 @@ model Ruling {
 }
 
 model RulingChoice {
-  id          String   @id
-  rulingId    String
-  position    Int
-  label       String
-  detail      String?
-  ruling      Ruling   @relation("RulingChoices", fields: [rulingId], references: [id], onDelete: Restrict, onUpdate: Restrict)
-  answered    Ruling[] @relation("RulingAnswer")
+  id       String  @id
+  rulingId String
+  position Int
+  label    String
+  detail   String?
+  ruling   Ruling  @relation("RulingChoices", fields: [rulingId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  answered Ruling[] @relation("RulingAnswer")
 
   @@unique([rulingId, position])
 }

@@ -1,7 +1,7 @@
 import { Context, Data, type Effect, Schema } from "effect";
 import type { RequestOrigin } from "#router-procedure.ts";
 
-export const ConsoleMode = Schema.Literals(["flagship", "fleet", "voyages", "quay", "rulings", "settings"]);
+export const ConsoleMode = Schema.Literals(["flagship", "fleet", "voyages", "quay", "rulings", "holds", "settings"]);
 export type ConsoleMode = typeof ConsoleMode.Type;
 
 export const ConsolePlace = Schema.Struct({

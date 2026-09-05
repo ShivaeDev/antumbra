@@ -6,6 +6,7 @@ export { BackendCapacityReleases } from "#backend-capacity-releases/service.ts";
 export { DispatcherLive } from "#dispatcher.ts";
 export { AgentDomain, AgentDomainLive } from "#domain.ts";
 export { FlagshipLive } from "#flagship.ts";
+export { HoldSourceLive } from "#hold-source.ts";
 export { IntentFeedLive } from "#intent-feed.ts";
 export { KernelReachLive } from "#kernel-reach.ts";
 export { abandonRestartIntent, honorRestartIntent, recordRestartIntent } from "#restart.ts";

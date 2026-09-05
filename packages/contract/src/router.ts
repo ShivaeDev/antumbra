@@ -1,5 +1,7 @@
 import { AppInfo, AppInfoSource } from "#app-info.ts";
 import { AppLifecycleSource } from "#app-lifecycle.ts";
+import { HoldSource } from "#holds/source.ts";
+import { HoldsView } from "#holds/views.ts";
 import { type AppRuntime, makeProcedure, trpc } from "#router-procedure.ts";
 import { quayRoutes } from "#router-quay.ts";
 import { rulingRoutes } from "#router-rulings.ts";
@@ -21,6 +23,9 @@ export const makeAppRouter = (runtime: AppRuntime) => {
 			.mutation(function* (input) {
 				return yield* (yield* SettingsSource).change(input);
 			}),
+		holdsFeed: procedure.output(HoldsView).subscription(function* () {
+			return (yield* HoldSource).holdsFeed;
+		}),
 		restart: procedure.mutation(function* () {
 			yield* (yield* AppLifecycleSource).restart;
 		}),

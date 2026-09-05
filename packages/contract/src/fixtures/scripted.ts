@@ -2,6 +2,7 @@ import { type Duration, Effect, Stream } from "effect";
 import type { FixtureFeeds } from "#fixtures/feeds.ts";
 import { flagshipSummary } from "#fixtures/flagship.ts";
 import { fleet } from "#fixtures/fleet.ts";
+import { holds } from "#fixtures/hold-source.ts";
 import { openRulings, standingRulings } from "#fixtures/ruling.ts";
 import {
 	grownStanding,
@@ -39,6 +40,7 @@ export const makeScriptedFeeds = (beat: Duration.Input): FixtureFeeds => {
 	return {
 		events: step(Stream.fromArray(storedEvents), ...wokenEvents, laterEvent, ...cachedTurnEvents, closingEvent, restingEvent),
 		fleet: step(Stream.make(fleet), crewedFleet, mooredFleet),
+		holds: Stream.make(holds),
 		quay: step(Stream.make(quayView), checkingQuay, landedQuay),
 		rulings: step(Stream.make(openRulings), urgentRulings, ruledRulings),
 		standing: step(Stream.make(standingRulings), grownStanding, supersededStanding, proclaimedStanding, staleStanding, withdrawnStanding),

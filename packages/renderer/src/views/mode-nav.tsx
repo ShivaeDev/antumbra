@@ -1,5 +1,5 @@
 import type { ConsoleMode } from "@antumbra/contract";
-import { Anchor, Flag, Gavel, type LucideIcon, Settings, Ship, Users } from "lucide-react";
+import { Anchor, Flag, Gavel, type LucideIcon, Pause, Settings, Ship, Users } from "lucide-react";
 import { Button } from "#components/ui/button.tsx";
 import { cn } from "#lib/utils.ts";
 
@@ -15,6 +15,7 @@ const MODES: ReadonlyArray<ModeEntry> = [
 	{ icon: Ship, label: "Voyages", mode: "voyages" },
 	{ icon: Anchor, label: "Quay", mode: "quay" },
 	{ icon: Gavel, label: "Rulings", mode: "rulings" },
+	{ icon: Pause, label: "Holds", mode: "holds" },
 	{ icon: Settings, label: "Settings", mode: "settings" },
 ];
 

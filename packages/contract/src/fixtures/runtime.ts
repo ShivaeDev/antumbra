@@ -3,6 +3,7 @@ import { AppInfoSource } from "#app-info.ts";
 import { AppLifecycleSource } from "#app-lifecycle.ts";
 import { type FixtureFeeds, staticFeeds } from "#fixtures/feeds.ts";
 import { info } from "#fixtures/fleet.ts";
+import { holdFixture } from "#fixtures/hold-source.ts";
 import { rulingFixture } from "#fixtures/ruling-source.ts";
 import { sightFixture } from "#fixtures/sight-source.ts";
 import { voyageFixture } from "#fixtures/voyage-source.ts";
@@ -19,6 +20,9 @@ const reading: SettingsReading = {
 		routineMailMinutes: SETTINGS.routineMailMinutes.fallback,
 		retireRestMinutes: SETTINGS.retireRestMinutes.fallback,
 		retireSweep: SETTINGS.retireSweep.fallback,
+		holdEverything: SETTINGS.holdEverything.fallback,
+		holdPieceDispatch: SETTINGS.holdPieceDispatch.fallback,
+		holdWakes: SETTINGS.holdWakes.fallback,
 	},
 };
 
@@ -31,6 +35,7 @@ export const makeRuntime = (feeds: FixtureFeeds = staticFeeds) =>
 				change: () => Effect.succeed(reading),
 				current: Effect.succeed(reading),
 			}),
+			holdFixture(feeds),
 			rulingFixture(feeds),
 			sightFixture(feeds),
 			voyageFixture(feeds),

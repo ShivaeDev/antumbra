@@ -1,6 +1,7 @@
 import type { ConsoleMode, Fleet, SettingsReading, VoyageSummary } from "@antumbra/contract";
 import { FlagshipPanel } from "#views/flagship.tsx";
 import { FleetSurface } from "#views/fleet-surface.tsx";
+import { HoldsPanel } from "#views/holds.tsx";
 import { QuayPanel } from "#views/quay.tsx";
 import { RulingsPanel } from "#views/rulings.tsx";
 import { SettingsPanel } from "#views/settings.tsx";
@@ -52,6 +53,9 @@ export const ConsoleMain = (props: ConsoleProps) => {
 	}
 	if (props.mode === "rulings") {
 		return <RulingsPanel onError={props.onError} />;
+	}
+	if (props.mode === "holds") {
+		return <HoldsPanel onError={props.onError} onSettings={props.onSettings} settings={props.settings} />;
 	}
 	return (
 		<div className="flex min-h-0 min-w-0 flex-1">

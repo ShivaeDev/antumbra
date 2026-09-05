@@ -3,6 +3,7 @@ import { initTRPC } from "@trpc/server";
 import { Context, Effect, Layer } from "effect";
 import type { AppInfoSource } from "#app-info.ts";
 import type { AppLifecycleSource } from "#app-lifecycle.ts";
+import type { HoldSource } from "#holds/source.ts";
 import type { RulingFailure, RulingRefused, RulingSource } from "#rulings/source.ts";
 import type { SettingsSource } from "#settings/readings.ts";
 import type { SightFailure, SightSource } from "#sight.ts";
@@ -16,7 +17,7 @@ interface RequestContext {
 export class RequestOrigin extends Context.Service<RequestOrigin, RequestContext>()("@antumbra/contract/RequestOrigin") {}
 
 export type AppRuntime = EffectTRPCRuntime<
-	AppInfoSource | AppLifecycleSource | RulingSource | SettingsSource | SightSource | VoyageSource | WindowSource,
+	AppInfoSource | AppLifecycleSource | HoldSource | RulingSource | SettingsSource | SightSource | VoyageSource | WindowSource,
 	never
 >;
 

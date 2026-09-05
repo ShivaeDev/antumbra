@@ -1,7 +1,8 @@
 import type { BackendCapacityController, BackendFailure } from "@antumbra/plugin-api";
-import { Deferred, Effect, PubSub, Queue, type Scope } from "effect";
+import { Deferred, Effect, type Option, PubSub, Queue, RcRef, type Scope } from "effect";
 import type { LineProcess } from "#adapters/process.ts";
 import { connectRpc, type RpcConnection, type RpcNotification, type RpcServerRequest } from "#adapters/rpc.ts";
+import { tellCliVersionOnce } from "#cli-version.ts";
 import { codexFailure } from "#failure.ts";
 import { handshake, offerSkills } from "#handshake.ts";
 import { rawOf } from "#mapping.ts";
@@ -22,6 +23,7 @@ export interface CodexServer {
 	readonly request: Request;
 	readonly threads: ThreadClaims;
 	readonly tools: ToolRegistry;
+	readonly version: Option.Option<string>;
 }
 
 const wire = (
@@ -77,7 +79,7 @@ export const makeCodexServer = (options: CodexServerOptions): Effect.Effect<Code
 			),
 		);
 		const request = requestOn(rpc);
-		yield* handshake(request);
+		const version = yield* handshake(request);
 		rpc.notify("initialized", {});
 		yield* offerSkills(request, options.skills);
 		return {
@@ -86,5 +88,9 @@ export const makeCodexServer = (options: CodexServerOptions): Effect.Effect<Code
 			request,
 			threads,
 			tools,
+			version,
 		} satisfies CodexServer;
 	});
+
+export const makeCodexServers = (options: CodexServerOptions): Effect.Effect<RcRef.RcRef<CodexServer, BackendFailure>, never, Scope.Scope> =>
+	Effect.flatMap(tellCliVersionOnce, (tell) => RcRef.make({ acquire: Effect.tap(makeCodexServer(options), (live) => tell(live.version)) }));

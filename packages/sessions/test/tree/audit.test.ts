@@ -3,7 +3,7 @@ import type { AgentEvent } from "@antumbra/vocabulary/session-events";
 import { expect } from "@effect/vitest";
 import { Effect, Option } from "effect";
 import { journalOf, scriptedLane, seedAgent, seedSession, sessionRow, treeLayer } from "#test/tree/fixture.ts";
-import { makeSessionTreeAudits } from "#tree/audit.ts";
+import { SessionTreeAudits } from "#tree/audit/service.ts";
 import { makeSessionTreeSweeps } from "#tree/sweeps.ts";
 
 const AGENT = "agent-audited";
@@ -51,7 +51,7 @@ const completenessOf = (id: string) => sessionRow(id).pipe(Effect.map((row) => O
 it.effectDB("a node whose ledger holds nothing reads complete", function* () {
 	yield* Effect.gen(function* () {
 		const lane = yield* scriptedLane([]);
-		const audits = yield* makeSessionTreeAudits;
+		const audits = yield* SessionTreeAudits;
 		yield* seedTree("recording");
 		const tree = yield* rows;
 
@@ -65,7 +65,7 @@ it.effectDB("a node whose ledger holds nothing reads complete", function* () {
 it.effectDB("the same ledger read twice reaches the same verdict", function* () {
 	yield* Effect.gen(function* () {
 		const lane = yield* scriptedLane([missedLine]);
-		const audits = yield* makeSessionTreeAudits;
+		const audits = yield* SessionTreeAudits;
 		yield* seedTree("recording");
 		const first = yield* rows;
 
@@ -83,7 +83,7 @@ it.effectDB("the same ledger read twice reaches the same verdict", function* () 
 it.effectDB("a row from before the record kept gaps is never audited", function* () {
 	yield* Effect.gen(function* () {
 		const lane = yield* scriptedLane([missedLine]);
-		const audits = yield* makeSessionTreeAudits;
+		const audits = yield* SessionTreeAudits;
 		yield* seedTree("unaudited");
 		const tree = yield* rows;
 
@@ -98,7 +98,7 @@ it.effectDB("a row from before the record kept gaps is never audited", function*
 it.effectDB("a node still being written to has nothing to audit yet", function* () {
 	yield* Effect.gen(function* () {
 		const lane = yield* scriptedLane([missedLine]);
-		const audits = yield* makeSessionTreeAudits;
+		const audits = yield* SessionTreeAudits;
 		yield* seedTree("recording", "open");
 		const tree = yield* rows;
 

@@ -4,7 +4,7 @@ import { Clock, Effect, Option, Ref } from "effect";
 import { type SessionTree, spawnerOf, type TreeNode, withAdopted, withNode } from "#tree/attribution.ts";
 import { adoptedLateGap, observed } from "#tree/gaps.ts";
 import { makeSessionTreeReopen } from "#tree/reopen.ts";
-import { makeSessionTreeRows } from "#tree/rows.ts";
+import { SessionTreeRows } from "#tree/rows/service.ts";
 
 type SubsessionOpened = Extract<AgentEvent, { type: "subsession.opened" }>;
 
@@ -18,7 +18,7 @@ const admittedOpening = (node: string, seen: AgentEvent): AgentEvent => ({
 export const makeSessionTreeAdoption = Effect.gen(function* () {
 	const journal = yield* SessionEventJournal;
 	const reopening = yield* makeSessionTreeReopen;
-	const rows = yield* makeSessionTreeRows;
+	const rows = yield* SessionTreeRows;
 	return (rootSessionId: string, tree: Ref.Ref<SessionTree>) => {
 		const reopen = reopening(rootSessionId, tree);
 		const mint = (subsessionRef: string, origin: Origin, seen: AgentEvent) =>

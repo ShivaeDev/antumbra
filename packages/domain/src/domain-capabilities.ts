@@ -14,6 +14,9 @@ import { SessionDrain } from "@antumbra/sessions/drain/service";
 import { SessionRegistration } from "@antumbra/sessions/registration/service";
 import { SessionRestart } from "@antumbra/sessions/restart/service";
 import { SessionRetirement } from "@antumbra/sessions/retirement/service";
+import { SessionTreeAudits } from "@antumbra/sessions/tree/audit/service";
+import { SessionTreeLedger } from "@antumbra/sessions/tree/ledger/service";
+import { SessionTreeRows } from "@antumbra/sessions/tree/rows/service";
 import { SessionTrees } from "@antumbra/sessions/tree/service";
 import { Voyages } from "@antumbra/voyages";
 import { VoyageAuthority } from "@antumbra/voyages/authority/service";
@@ -40,7 +43,7 @@ export const domainCapabilities = (
 		ReportsLive,
 		ReposLive,
 		RulingHoldsLive.pipe(Layer.provideMerge(RulingsLive)),
-		SessionEventJournalLive,
+		SessionTreeAudits.layer.pipe(Layer.provideMerge(Layer.mergeAll(SessionTreeLedger.layer, SessionTreeRows.layer, SessionEventJournalLive))),
 		SessionTrees.layer,
 		SessionRegistration.layer,
 		SessionDrain.layer,

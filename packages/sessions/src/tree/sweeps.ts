@@ -2,17 +2,17 @@ import type { StoredAgentSession } from "@antumbra/persistence";
 import type { SessionAudit, SessionCensus } from "@antumbra/plugin-api";
 import type { AgentEvent } from "@antumbra/vocabulary/session-events";
 import { Effect, Option, Ref } from "effect";
-import { makeSessionTreeAudits } from "#tree/audit.ts";
+import { SessionTreeAudits } from "#tree/audit/service.ts";
 import { type Censused, settleCensusedWork } from "#tree/census.ts";
-import { makeSessionTreeLedger } from "#tree/ledger.ts";
-import { makeSessionTreeRows } from "#tree/rows.ts";
+import { SessionTreeLedger } from "#tree/ledger/service.ts";
+import { SessionTreeRows } from "#tree/rows/service.ts";
 
 type RecordEvent = (event: AgentEvent) => Effect.Effect<boolean, unknown>;
 
 export const makeSessionTreeSweeps = Effect.gen(function* () {
-	const audits = yield* makeSessionTreeAudits;
-	const ledger = yield* makeSessionTreeLedger;
-	const rows = yield* makeSessionTreeRows;
+	const audits = yield* SessionTreeAudits;
+	const ledger = yield* SessionTreeLedger;
+	const rows = yield* SessionTreeRows;
 	return (lane: SessionAudit, rootSessionId: string, censused: Censused) =>
 		Effect.gen(function* () {
 			const taking = yield* Ref.make(false);

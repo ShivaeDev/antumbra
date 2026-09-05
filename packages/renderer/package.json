@@ -34,6 +34,7 @@
 		"@radix-ui/react-select": "catalog:",
 		"@radix-ui/react-separator": "catalog:",
 		"@radix-ui/react-slot": "catalog:",
+		"@tanstack/react-form": "catalog:",
 		"@trpc/client": "catalog:",
 		"@trpc/server": "catalog:",
 		"class-variance-authority": "catalog:",

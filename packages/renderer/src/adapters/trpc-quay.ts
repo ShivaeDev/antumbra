@@ -1,5 +1,7 @@
 import type { AdoptChangeRequest, QuayView } from "@antumbra/contract";
+import { Effect } from "effect";
 import { client, toError } from "#adapters/bridge.ts";
+import { RendererRequestError } from "#adapters/request-error.ts";
 import type { Unsubscribe } from "#adapters/trpc.ts";
 
 type OnError = (message: string) => void;
@@ -29,9 +31,9 @@ export const dismissChange = (changeId: string, onError: OnError): void => {
 		.catch((cause: unknown) => onError(toError(cause).message));
 };
 
-export const adoptChange = (request: AdoptChangeRequest, onDone: () => void, onError: OnError): void => {
-	client.adoptChange
-		.mutate(request)
-		.then(onDone)
-		.catch((cause: unknown) => onError(toError(cause).message));
-};
+export const adoptChange = Effect.fn("Renderer.adoptChange")((request: AdoptChangeRequest) =>
+	Effect.tryPromise({
+		try: () => client.adoptChange.mutate(request),
+		catch: (cause) => new RendererRequestError({ message: toError(cause).message }),
+	}),
+);

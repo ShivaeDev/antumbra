@@ -1,6 +1,6 @@
 import type { EventQuery, SessionEvent, SightFailure } from "@antumbra/contract";
 import { DomainFeeds, type StoredEvent } from "@antumbra/domain-feeds";
-import { Database } from "@antumbra/persistence";
+import { SessionEventJournal } from "@antumbra/session-event-journal";
 import { projectHistoricalAgentEvent } from "@antumbra/vocabulary/session-events";
 import { Effect, Stream } from "effect";
 import { toFailure } from "#sight-failure.ts";
@@ -20,17 +20,13 @@ const projectSessionEvent = (row: StoredEvent): SessionEvent => ({
 
 export const makeSightSessionEvents = Effect.gen(function* () {
 	const feeds = yield* DomainFeeds;
-	const db = yield* Database;
+	const journal = yield* SessionEventJournal;
 
 	const sessionEvents = (query: EventQuery) =>
-		db.SessionEvent.where({ sessionId: query.sessionId })
-			.where((event) => event.seq.gte(query.fromSeq))
-			.orderBy((event) => event.seq.asc())
-			.all()
-			.pipe(
-				Effect.map((rows) => rows.map(projectSessionEvent)),
-				Effect.mapError(toFailure),
-			);
+		journal.read(query.sessionId, query.fromSeq).pipe(
+			Effect.map((rows) => rows.map(projectSessionEvent)),
+			Effect.mapError(toFailure),
+		);
 
 	return {
 		// Subscribe before rehydrating, then discard live events already covered by the durable sequence.

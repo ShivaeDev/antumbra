@@ -7,5 +7,6 @@ export {
 	MailNotAddressed,
 	StoredBoardEntryInvalid,
 } from "#errors.ts";
-export type { BoardEntryRow, MailPrecedence, UnreadMailRow } from "#model.ts";
+export type { BoardEntryRow, MailPrecedence, SummaryRow, UnreadMailRow } from "#model.ts";
 export { BoardScope, EntryInput } from "#model.ts";
+export type { SmoothingDay } from "#summaries.ts";

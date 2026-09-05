@@ -1119,20 +1119,6 @@
                   "kind": "scalar"
                 }
               },
-              "coversFrom": {
-                "nullable": true,
-                "type": {
-                  "codecId": "sqlite/integer@1",
-                  "kind": "scalar"
-                }
-              },
-              "coversTo": {
-                "nullable": true,
-                "type": {
-                  "codecId": "sqlite/integer@1",
-                  "kind": "scalar"
-                }
-              },
               "createdAt": {
                 "nullable": false,
                 "type": {
@@ -1149,13 +1135,6 @@
               },
               "kind": {
                 "nullable": false,
-                "type": {
-                  "codecId": "sqlite/text@1",
-                  "kind": "scalar"
-                }
-              },
-              "level": {
-                "nullable": true,
                 "type": {
                   "codecId": "sqlite/text@1",
                   "kind": "scalar"
@@ -1202,12 +1181,6 @@
                 "body": {
                   "column": "body"
                 },
-                "coversFrom": {
-                  "column": "coversFrom"
-                },
-                "coversTo": {
-                  "column": "coversTo"
-                },
                 "createdAt": {
                   "column": "createdAt"
                 },
@@ -1216,9 +1189,6 @@
                 },
                 "kind": {
                   "column": "kind"
-                },
-                "level": {
-                  "column": "level"
                 },
                 "precedence": {
                   "column": "precedence"
@@ -4616,16 +4586,6 @@
                   "nativeType": "text",
                   "nullable": false
                 },
-                "coversFrom": {
-                  "codecId": "sqlite/integer@1",
-                  "nativeType": "integer",
-                  "nullable": true
-                },
-                "coversTo": {
-                  "codecId": "sqlite/integer@1",
-                  "nativeType": "integer",
-                  "nullable": true
-                },
                 "createdAt": {
                   "codecId": "sqlite/datetime@1",
                   "default": {
@@ -4648,11 +4608,6 @@
                   },
                   "nativeType": "text",
                   "nullable": false
-                },
-                "level": {
-                  "codecId": "sqlite/text@1",
-                  "nativeType": "text",
-                  "nullable": true
                 },
                 "precedence": {
                   "codecId": "sqlite/text@1",
@@ -6687,7 +6642,7 @@
         "id": "__unbound__"
       }
     },
-    "storageHash": "sha256:54379f1480902cc6664dca557e57a0b8515bb0371a7634858021e0914652618e"
+    "storageHash": "sha256:8fa0a7c1cac3b3148dd7926a8c664444bc354110a83744b444ff44d5d866c2b9"
   },
   "capabilities": {
     "sql": {

@@ -1,4 +1,4 @@
-import type { BoardOwnerKind, BoardRegister } from "@antumbra/vocabulary/board";
+import type { BoardOwnerKind, BoardRegister, SummaryLevel } from "@antumbra/vocabulary/board";
 import { Data, type Option } from "effect";
 
 export type MailPrecedence = "flash" | "priority" | "routine";
@@ -26,19 +26,35 @@ interface BoardEntryFields {
 	readonly sourceRef: string | null;
 }
 
+interface UnsummarizedFields {
+	readonly coversFrom: null;
+	readonly coversTo: null;
+	readonly level: null;
+}
+
 export type BoardEntryVariant =
-	| {
+	| (UnsummarizedFields & {
 			readonly kind: "mail";
 			readonly precedence: MailPrecedence;
 			readonly sourceRef: string;
-	  }
-	| {
+	  })
+	| (UnsummarizedFields & {
 			readonly kind: "note";
 			readonly precedence: "routine";
 			readonly sourceRef: string | null;
+	  })
+	| {
+			readonly coversFrom: number;
+			readonly coversTo: number;
+			readonly kind: "summary";
+			readonly level: SummaryLevel;
+			readonly precedence: "routine";
+			readonly sourceRef: null;
 	  };
 
 export type BoardEntryRow = BoardEntryFields & BoardEntryVariant;
+
+export type SummaryRow = BoardEntryRow & { readonly kind: "summary" };
 
 export type UnreadMailRow = BoardEntryRow & { readonly delivered: boolean };
 
@@ -55,6 +71,13 @@ export type EntryInput = Data.TaggedEnum<{
 	};
 	Note: EntryFields & {
 		readonly sourceRef?: string;
+	};
+	Summary: {
+		readonly authorAgentId: Option.Option<string>;
+		readonly body: string;
+		readonly coversFrom: number;
+		readonly coversTo: number;
+		readonly level: SummaryLevel;
 	};
 }>;
 

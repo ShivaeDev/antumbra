@@ -344,6 +344,9 @@ model BoardEntry {
   register      String
   authorAgentId String?
   body          String
+  level         String?
+  coversFrom    Int?
+  coversTo      Int?
   createdAt     DateTime @default(now())
 
   @@index([boardId])

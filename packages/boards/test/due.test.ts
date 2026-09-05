@@ -13,10 +13,13 @@ interface Waiting {
 const waiting = (mail: Waiting, index: number): UnreadMailRow => ({
 	authorAgentId: null,
 	body: "the eastern approach is closed",
+	coversFrom: null,
+	coversTo: null,
 	createdAt: new Date(NOW - (mail.waitedMillis ?? 0)),
 	delivered: mail.delivered ?? false,
 	id: `entry-${index}`,
 	kind: "mail",
+	level: null,
 	precedence: mail.precedence,
 	register: "smooth",
 	seq: index + 1,

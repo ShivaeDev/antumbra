@@ -1,4 +1,4 @@
-import { BoardRegisterSchema } from "@antumbra/vocabulary/board";
+import { BoardRegisterSchema, SummaryLevelSchema } from "@antumbra/vocabulary/board";
 import { Effect, Option, Schema } from "effect";
 import { StoredBoardEntryInvalid } from "#errors.ts";
 import { type AppendFields, type BoardEntryRow, type BoardEntryVariant, EntryInput } from "#model.ts";
@@ -12,18 +12,35 @@ const StoredFields = {
 	seq: Schema.Number,
 };
 
+const Unsummarized = {
+	coversFrom: Schema.Null,
+	coversTo: Schema.Null,
+	level: Schema.Null,
+};
+
 const StoredBoardEntry = Schema.Union([
 	Schema.Struct({
 		...StoredFields,
+		...Unsummarized,
 		kind: Schema.Literals(["mail"]),
 		precedence: Schema.Literals(["flash", "priority", "routine"]),
 		sourceRef: Schema.String,
 	}),
 	Schema.Struct({
 		...StoredFields,
+		...Unsummarized,
 		kind: Schema.Literals(["note"]),
 		precedence: Schema.Literals(["routine"]),
 		sourceRef: Schema.NullOr(Schema.String),
+	}),
+	Schema.Struct({
+		...StoredFields,
+		coversFrom: Schema.Number,
+		coversTo: Schema.Number,
+		kind: Schema.Literals(["summary"]),
+		level: SummaryLevelSchema,
+		precedence: Schema.Literals(["routine"]),
+		sourceRef: Schema.Null,
 	}),
 ]);
 
@@ -46,18 +63,37 @@ export const nextSequence = (last: Option.Option<{ readonly seq: number }>) =>
 		onSome: (entry) => entry.seq + 1,
 	});
 
+const UNSUMMARIZED = { coversFrom: null, coversTo: null, level: null } as const;
+
 export const storedEntryVariant = (input: EntryInput): BoardEntryVariant =>
 	EntryInput.$match(input, {
 		Mail: ({ precedence, sourceRef }): BoardEntryVariant => ({
+			...UNSUMMARIZED,
 			kind: "mail",
 			precedence,
 			sourceRef,
 		}),
 		Note: ({ sourceRef }): BoardEntryVariant => ({
+			...UNSUMMARIZED,
 			kind: "note",
 			precedence: "routine",
 			sourceRef: sourceRef ?? null,
 		}),
+		Summary: ({ coversFrom, coversTo, level }): BoardEntryVariant => ({
+			coversFrom,
+			coversTo,
+			kind: "summary",
+			level,
+			precedence: "routine",
+			sourceRef: null,
+		}),
+	});
+
+export const entryRegister = (input: EntryInput) =>
+	EntryInput.$match(input, {
+		Mail: ({ register }) => register,
+		Note: ({ register }) => register,
+		Summary: () => "smooth" as const,
 	});
 
 export const appendedEntry = (input: EntryInput, fields: AppendFields): BoardEntryRow => {
@@ -66,7 +102,7 @@ export const appendedEntry = (input: EntryInput, fields: AppendFields): BoardEnt
 		body: input.body,
 		createdAt: new Date(fields.nowMillis),
 		id: crypto.randomUUID(),
-		register: input.register,
+		register: entryRegister(input),
 		seq: fields.seq,
 	};
 	return { ...row, ...storedEntryVariant(input) };

@@ -13,7 +13,6 @@ import { Pieces } from "@antumbra/pieces";
 import { RoleSettings } from "@antumbra/settings";
 import { Voyages } from "@antumbra/voyages";
 import { Effect, Match, Option } from "effect";
-import { makeOpenVoyage } from "#open-voyage.ts";
 import { toFailure } from "#sight-failure.ts";
 import type { VoyageReads } from "#voyage-reads.ts";
 import { VoyageProcedureService } from "#voyages/service.ts";
@@ -32,7 +31,6 @@ export const makeVoyageActs = (reads: VoyageReads) =>
 		const procedures = yield* VoyageProcedureService;
 		const roles = yield* RoleSettings;
 		const voyages = yield* Voyages;
-		const openVoyage = yield* makeOpenVoyage;
 		return {
 			charterPiece: (request: CharterPieceRequest) =>
 				pieces.charter(request).pipe(
@@ -47,7 +45,7 @@ export const makeVoyageActs = (reads: VoyageReads) =>
 			landPieceVerdict: (request: PieceVerdictRequest) => pieces.landVerdict(request.pieceId, request.verdict).pipe(Effect.mapError(toFailure)),
 			launch: (pieceId: string) => pieces.launch(pieceId).pipe(Effect.mapError(toFailure)),
 			open: (request: OpenVoyageRequest) =>
-				openVoyage(request).pipe(
+				procedures.open(request).pipe(
 					Effect.mapError(toFailure),
 					Effect.flatMap((row) => reads.summaryOf(row.id)),
 				),

@@ -7,7 +7,6 @@ import { domainKernelLayer } from "#test/domain-layers.ts";
 import { acquireTemporaryPersistence, makeScriptedBackend, makeScriptedRunner, rawOf } from "#test/harness.ts";
 import {
 	durableRows,
-	eventually,
 	hail,
 	payload,
 	refuseWhile,
@@ -18,7 +17,7 @@ import {
 	WAKE_INSTRUCTION,
 } from "#test/session-recovery-fixture.ts";
 
-it.live("a hail after a rebuild resumes the same native session and sequence", () =>
+it.effect("a hail after a rebuild resumes the same native session and sequence", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
 		const scripted = yield* makeScriptedBackend;
@@ -29,17 +28,11 @@ it.live("a hail after a rebuild resumes the same native session and sequence", (
 		yield* Effect.gen(function* () {
 			const db = yield* Database;
 			const sight = yield* makeSightSessionEvents;
-			yield* hail(payload.sessionId);
-			const resumed = yield* eventually(
-				Effect.gen(function* () {
-					const live = yield* scripted.session(payload.sessionId);
-					expect(yield* scripted.opened).toHaveLength(2);
-					expect(live).toBeDefined();
-					const attached = Option.getOrThrow(Option.fromUndefinedOr(live));
-					expect(yield* attached.sent).toEqual([WAKE_INSTRUCTION]);
-					return attached;
-				}),
-			);
+			const recovery = yield* hail(payload.sessionId);
+			expect(yield* untilTerminal(recovery.changes)).toBe("succeeded");
+			const resumed = Option.getOrThrow(Option.fromUndefinedOr(yield* scripted.session(payload.sessionId)));
+			expect(yield* scripted.opened).toHaveLength(2);
+			expect(yield* resumed.sent).toEqual([WAKE_INSTRUCTION]);
 			const secondOpen = (yield* scripted.opened)[1];
 			expect(secondOpen?.resume).toEqual(Option.some("native-durable"));
 			expect(secondOpen?.sessionId).toBe(payload.sessionId);
@@ -64,7 +57,7 @@ it.live("a hail after a rebuild resumes the same native session and sequence", (
 	}),
 );
 
-it.live("provider refusal waits without rewriting durable identity", () =>
+it.effect("provider refusal waits without rewriting durable identity", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
 		const scripted = yield* makeScriptedBackend;
@@ -98,7 +91,7 @@ it.live("provider refusal waits without rewriting durable identity", () =>
 	}),
 );
 
-it.live("a provider fork on resume waits without replacing the durable native identity", () =>
+it.effect("a provider fork on resume waits without replacing the durable native identity", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
 		const scripted = yield* makeScriptedBackend;

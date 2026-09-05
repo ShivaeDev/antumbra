@@ -1205,6 +1205,9 @@ importers:
 
   packages/rulings:
     dependencies:
+      '@antumbra/boards':
+        specifier: workspace:*
+        version: link:../boards
       '@antumbra/domain-feeds':
         specifier: workspace:*
         version: link:../domain-feeds

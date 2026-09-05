@@ -6,7 +6,10 @@
 	"exports": {
 		".": "./src/index.ts",
 		"./holds/service": "./src/holds/service.ts",
-		"./holds/ruled": "./src/holds/ruled.ts"
+		"./holds/ruled": "./src/holds/ruled.ts",
+		"./delivery/service": "./src/delivery/service.ts",
+		"./delivery/answer-mail": "./src/delivery/answer-mail.ts",
+		"./answer/ruled-by-words": "./src/answer/ruled-by-words.ts"
 	},
 	"imports": {
 		"#test/*": "./test/*",
@@ -26,6 +29,7 @@
 		"vitest": "catalog:"
 	},
 	"dependencies": {
+		"@antumbra/boards": "workspace:*",
 		"@antumbra/domain-feeds": "workspace:*",
 		"@antumbra/persistence": "workspace:*",
 		"@antumbra/service-definition": "workspace:*",

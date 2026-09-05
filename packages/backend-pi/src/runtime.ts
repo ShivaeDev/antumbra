@@ -19,7 +19,6 @@ export interface PiOpenRequest {
 export interface PiSession {
 	readonly abort: () => Promise<void>;
 	readonly dispose: () => void;
-	// Resolves once pi has accepted the text, not when the run it starts is over.
 	readonly prompt: (text: string, delivery: "followUp" | "steer") => Promise<void>;
 	readonly sessionFile: string;
 	readonly sessionId: string;

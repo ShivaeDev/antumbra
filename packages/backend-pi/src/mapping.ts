@@ -58,7 +58,6 @@ const toolEnded = (event: ToolEnded): AgentEvent => ({
 	type: "tool.completed",
 });
 
-// pi's remaining events — turn and message starts, deltas, queue, compaction and retry notices — have no neutral counterpart.
 export const toAgentEvents = (event: PiEvent, served: ReadonlySet<string>): AgentEvent[] => {
 	switch (event.type) {
 		case "agent_start":

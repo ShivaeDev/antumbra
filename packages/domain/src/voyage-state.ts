@@ -1,8 +1,7 @@
 import { Option } from "effect";
 import type { PieceState } from "#piece-state.ts";
-import type { VoyageSummaryRows } from "#voyage-rows.ts";
 import { captainAtWork } from "#voyage-captain.ts";
-import type { VoyageWorld } from "#voyage-rows.ts";
+import type { VoyageSummaryRows, VoyageWorld } from "#voyage-rows.ts";
 
 export type VoyageState = "quiet" | "underWay";
 

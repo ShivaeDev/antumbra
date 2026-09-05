@@ -3,8 +3,8 @@ import { Rulings } from "@antumbra/rulings";
 import { rootSessions } from "@antumbra/sessions";
 import { decodeStoredAgentStatus } from "@antumbra/vocabulary/agent-runtime";
 import { Effect } from "effect";
-import { readOutcomes } from "#execution/outcomes.ts";
 import { decodeRootSession } from "#execution/decode-session.ts";
+import { readOutcomes } from "#execution/outcomes.ts";
 import { CAPTAIN_ROLE } from "#voyage-captain.ts";
 import type { VoyageSummaryRows } from "#voyage-rows.ts";
 

@@ -4,9 +4,9 @@ import { Effect, Option } from "effect";
 import { type CrewRuntime, restingCrew } from "#crew-rest.ts";
 import { toFailure } from "#sight-failure.ts";
 import { VoyageDetails } from "#voyage/detail/service.ts";
+import { VoyageSummaries } from "#voyage/summaries/service.ts";
 import { summarySeen, voyageSeen } from "#voyage-projection.ts";
 import { type VoyageView as DerivedVoyage, voyageView } from "#voyage-view.ts";
-import { VoyageSummaries } from "#voyage/summaries/service.ts";
 
 export interface VoyageReads {
 	readonly summaryOf: (voyageId: string) => Effect.Effect<VoyageSummary, SightFailure>;

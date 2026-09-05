@@ -1,4 +1,3 @@
-import { VoyageSummaries } from "#voyage/summaries/service.ts";
 import { Boards } from "@antumbra/boards";
 import { Database } from "@antumbra/persistence";
 import { Pieces } from "@antumbra/pieces";
@@ -9,6 +8,7 @@ import { hailCaptain } from "#hail.ts";
 import { KernelReach } from "#kernel-reach.ts";
 import { workPieceNow } from "#piece-work/work.ts";
 import { VoyageDetails } from "#voyage/detail/service.ts";
+import { VoyageSummaries } from "#voyage/summaries/service.ts";
 import { readVoyageView } from "#voyage-read.ts";
 import { VoyageWorldSource } from "#voyage-world/service.ts";
 import { list } from "#voyages/list.ts";

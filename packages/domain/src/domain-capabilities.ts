@@ -1,4 +1,3 @@
-import { VoyageSummaries } from "#voyage/summaries/service.ts";
 import { artifactsLayer } from "@antumbra/artifacts";
 import { BoardsLive } from "@antumbra/boards";
 import { changesLayer } from "@antumbra/changes";
@@ -20,6 +19,7 @@ import { ExecutionSource } from "#execution/service.ts";
 import { KernelReachDeferredLive } from "#kernel-reach.ts";
 import { Quay } from "#quay/service.ts";
 import { VoyageDetails } from "#voyage/detail/service.ts";
+import { VoyageSummaries } from "#voyage/summaries/service.ts";
 import { VoyageWorldSource } from "#voyage-world/service.ts";
 import { VoyageProcedureService } from "#voyages/service.ts";
 
@@ -40,7 +40,9 @@ export const domainCapabilities = (
 		KernelReachDeferredLive,
 	).pipe(Layer.provideMerge(Voyages.layer), Layer.provideMerge(DomainFeedsLive));
 	const changes = changesLayer(changeHosts, runners).pipe(Layer.provideMerge(foundations));
-	const world = Layer.mergeAll(VoyageWorldSource.layer, VoyageSummaries.layer, ExecutionSource.layer, Quay.layer, VoyageDetails.layer).pipe(Layer.provideMerge(changes));
+	const world = Layer.mergeAll(VoyageWorldSource.layer, VoyageSummaries.layer, ExecutionSource.layer, Quay.layer, VoyageDetails.layer).pipe(
+		Layer.provideMerge(changes),
+	);
 	return Layer.mergeAll(CaptainMembershipLive, ChangeProceduresLive(changeHosts), SessionStandDownLive, VoyageProcedureService.layer).pipe(
 		Layer.provideMerge(world),
 	);

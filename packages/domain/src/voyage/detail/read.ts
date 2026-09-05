@@ -1,10 +1,10 @@
 import { Database } from "@antumbra/persistence";
 import { Repos } from "@antumbra/repos";
 import { Effect, Option } from "effect";
-import { related } from "#voyage/related.ts";
 import { decodeVoyage } from "#voyage/decode.ts";
-import { byId } from "#voyage-row-projection.ts";
 import type { VoyageDetailRows } from "#voyage/detail/rows.ts";
+import { related } from "#voyage/related.ts";
+import { byId } from "#voyage-row-projection.ts";
 
 export const read = Effect.fn("VoyageDetails.read")(function* (voyageId: string) {
 	const db = yield* Database;

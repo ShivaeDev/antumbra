@@ -2,7 +2,7 @@ import { BoardScope, Boards } from "@antumbra/boards";
 import { Database } from "@antumbra/persistence";
 import { type Ruling, Rulings } from "@antumbra/rulings";
 import { expect } from "@effect/vitest";
-import { type Context, Effect, Option } from "effect";
+import { Effect, Option } from "effect";
 import { AgentDomain } from "#domain.ts";
 import { domainKernelLayer } from "#test/domain-layers.ts";
 import { acquireTemporaryPersistence, makeScriptedBackend, type ScriptedBackend, type ScriptedSession, sessionFor } from "#test/harness.ts";
@@ -17,12 +17,6 @@ export interface Ladder {
 	readonly flagship: ScriptedSession;
 	readonly voyageId: string;
 }
-
-type LadderNeeds =
-	| AgentDomain
-	| Context.Service.Identifier<typeof Boards>
-	| Context.Service.Identifier<typeof Database>
-	| Context.Service.Identifier<typeof Rulings>;
 
 const seedAsker = (voyageId: string) =>
 	Effect.gen(function* () {
@@ -79,7 +73,7 @@ const hailed = (scripted: ScriptedBackend, voyageId: string) =>
 		};
 	});
 
-export const withLadder = <A, E>(body: (ladder: Ladder) => Effect.Effect<A, E, LadderNeeds>) =>
+export const withLadder = <A, E, R>(body: (ladder: Ladder) => Effect.Effect<A, E, R>) =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
 		const scripted = yield* makeScriptedBackend;

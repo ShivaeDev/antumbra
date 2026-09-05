@@ -12,7 +12,7 @@ import type { ChangeProcedures } from "#change-procedures.ts";
 import type { SessionNotLive } from "#errors.ts";
 import type { RetireFields } from "#retire.ts";
 import type { SpawnFields } from "#spawn-fields.ts";
-import type { VoyageProcedures } from "#voyages.ts";
+import type { VoyageProcedures } from "#voyages/service.ts";
 
 export class AgentDomain extends Context.Service<
 	AgentDomain,

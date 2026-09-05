@@ -8,8 +8,8 @@ import { asked, it, layer, seedFleet } from "#test/rulings-harness.ts";
 const standingPair = Effect.gen(function* () {
 	yield* seedFleet;
 	const rulings = yield* Rulings;
-	const older = yield* rulings.request(asked);
-	const newer = yield* rulings.request(asked);
+	const older = yield* rulings.request({ ...asked, radius: "fleet" });
+	const newer = yield* rulings.request({ ...asked, radius: "fleet" });
 	yield* rulings.rule({
 		answer: "trust the soundings",
 		by: "admiral",
@@ -39,6 +39,7 @@ it.effectApp("drops a superseded ruling from the standing set", function* () {
 
 			expect(yield* PubSub.take(notices)).toBeUndefined();
 			expect((yield* rulings.standing([])).map((ruling) => ruling.id)).toEqual([newer.id]);
+			expect((yield* rulings.binding([])).map((ruling) => ruling.id)).toEqual([newer.id]);
 			const provenance = Option.getOrThrow(superseded.supersession);
 			expect(provenance.by).toBe("admiral");
 			expect(provenance.byRulingId).toBe(newer.id);

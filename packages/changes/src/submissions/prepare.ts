@@ -5,11 +5,11 @@ import type { ChangeHostRepo } from "@antumbra/plugin-api";
 import { UnknownRunnerError } from "@antumbra/plugin-api";
 import { ensureAgentCanOwnLocalWork, ensureBerthResourcesUnclaimed } from "@antumbra/resource-reclamation";
 import { Clock, Effect, Option } from "effect";
-import { activeChange, linkProduces } from "#change-submissions/links.ts";
-import type { Proposal, SubmitChangeInput } from "#change-submissions/model.ts";
-import { preparedChange, submissionKey } from "#change-submissions/prepared-row.ts";
-import { RunnerRegistry } from "#change-submissions/registries.ts";
-import { berthFor, claimingHost, repoNamed } from "#change-submissions/repository.ts";
+import { RunnerRegistry } from "#registries.ts";
+import { activeChange, linkProduces } from "#submissions/links.ts";
+import type { Proposal, SubmitChangeInput } from "#submissions/model.ts";
+import { preparedChange, submissionKey } from "#submissions/prepared-row.ts";
+import { berthFor, claimingHost, repoNamed } from "#submissions/repository.ts";
 
 interface PreparedSubmission {
 	readonly hostTag: string;

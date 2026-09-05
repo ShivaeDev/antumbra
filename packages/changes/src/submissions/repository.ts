@@ -2,8 +2,8 @@ import { Database } from "@antumbra/persistence";
 import type { ChangeHost, ChangeHostRepo } from "@antumbra/plugin-api";
 import { ensureAgentCanOwnLocalWork } from "@antumbra/resource-reclamation";
 import { Effect, Option } from "effect";
-import { ChangeHostRegistry } from "#change-submissions/registries.ts";
 import { BerthNotFound, NoChangeHost, RepoNotFound } from "#errors.ts";
+import { ChangeHostRegistry } from "#registries.ts";
 
 export const claimingHost = Effect.fnUntraced(function* (repo: ChangeHostRepo): Effect.fn.Return<ChangeHost, NoChangeHost, ChangeHostRegistry> {
 	const hosts = yield* ChangeHostRegistry;

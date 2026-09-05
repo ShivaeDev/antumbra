@@ -6,7 +6,7 @@ export { acquireTemporaryPersistence } from "@antumbra/persistence/testing";
 import { PiecesLive } from "@antumbra/pieces";
 import type { ChangeHost, ChangeObservation, ChangeRef, OpenChangeRequest, Runner } from "@antumbra/plugin-api";
 import { Effect, Layer, Ref } from "effect";
-import { ChangesLive } from "#index.ts";
+import { changesLayer as configuredChangesLayer } from "#layer.ts";
 
 export const CREW = "agent-crew";
 export const HEAD = `work/${CREW}/berth-0`;
@@ -29,7 +29,7 @@ export const passiveRunner: Runner = {
 };
 
 export const changesLayer = (hosts: ReadonlyArray<ChangeHost>, runner: Runner = passiveRunner) =>
-	ChangesLive(new Map(hosts.map((host) => [host.tag, host] as const)), new Map([[runner.tag, runner]])).pipe(
+	configuredChangesLayer(new Map(hosts.map((host) => [host.tag, host] as const)), new Map([[runner.tag, runner]])).pipe(
 		Layer.provideMerge(PiecesLive),
 		Layer.provideMerge(DomainFeedsLive),
 	);

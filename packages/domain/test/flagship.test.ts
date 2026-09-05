@@ -1,4 +1,4 @@
-import { ChangesLive } from "@antumbra/changes";
+import { changesLayer } from "@antumbra/changes";
 import { DomainFeedsLive } from "@antumbra/domain-feeds";
 import { it } from "@antumbra/persistence/testing";
 import { PiecesLive } from "@antumbra/pieces";
@@ -13,7 +13,7 @@ import { VoyageWorldSource } from "#voyage-world/service.ts";
 
 const WorldLive = VoyageWorldSource.layer.pipe(
 	Layer.provideMerge(
-		ChangesLive(new Map(), new Map()).pipe(
+		changesLayer(new Map(), new Map()).pipe(
 			Layer.provideMerge(PiecesLive),
 			Layer.provideMerge(ReposLive),
 			Layer.provideMerge(RulingsLive),

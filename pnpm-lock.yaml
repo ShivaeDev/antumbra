@@ -1504,6 +1504,9 @@ importers:
       '@antumbra/persistence':
         specifier: workspace:*
         version: link:../persistence
+      '@antumbra/pieces':
+        specifier: workspace:*
+        version: link:../pieces
       '@antumbra/testing-runtime':
         specifier: workspace:*
         version: link:../testing-runtime

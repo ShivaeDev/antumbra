@@ -1,4 +1,5 @@
 import { Database } from "@antumbra/persistence";
+import { Pieces } from "@antumbra/pieces";
 import { expect, it } from "@effect/vitest";
 import { Effect, Fiber, Option, Stream } from "effect";
 import { AgentDomain } from "#domain.ts";
@@ -19,11 +20,12 @@ it.live("a Piece role named captain remains crew across Session recovery", () =>
 		const temporary = yield* acquireTemporaryPersistence;
 		const scripted = yield* makeScriptedBackend;
 		const selected = yield* Effect.gen(function* () {
+			const pieces = yield* Pieces;
 			const db = yield* Database;
 			const domain = yield* AgentDomain;
 			const sight = yield* makeSightSessionEvents;
 			const voyage = yield* openReefVoyage;
-			const piece = yield* domain.voyages.charterPiece({
+			const piece = yield* pieces.charter({
 				charter: "lead the sounding party",
 				dependsOn: [],
 				expectation: "soundings are landed",
@@ -31,7 +33,7 @@ it.live("a Piece role named captain remains crew across Session recovery", () =>
 				title: "sound the reef",
 				voyageId: voyage.id,
 			});
-			yield* domain.voyages.launch(piece.id);
+			yield* pieces.launch(piece.id);
 			const assignment = yield* eventually(firstAssignment);
 			const live = yield* eventually(sessionFor(scripted, assignment.agentId));
 

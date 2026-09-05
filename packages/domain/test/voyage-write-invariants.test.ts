@@ -1,10 +1,11 @@
 import { Database } from "@antumbra/persistence";
+import { Pieces } from "@antumbra/pieces";
 import { expect, it } from "@effect/vitest";
 import { Effect, Option } from "effect";
 import { domainCapabilityLayer } from "#test/domain-layers.ts";
 import { acquireTemporaryPersistence } from "#test/harness.ts";
-import { VoyageProcedureService } from "#voyage-procedures.ts";
-import type { VoyageProcedures } from "#voyages.ts";
+import type { VoyageProcedures } from "#voyages/service.ts";
+import { VoyageProcedureService } from "#voyages/service.ts";
 
 const withDomain = <A, E, R>(body: (voyages: VoyageProcedures) => Effect.Effect<A, E, R>) =>
 	Effect.gen(function* () {
@@ -23,20 +24,22 @@ const openVoyage = (voyages: VoyageProcedures) =>
 		northStar: "every shoal is known",
 	});
 
-const charter = (voyages: VoyageProcedures, voyageId: string, title: string, dependsOn: ReadonlyArray<string> = []) =>
-	voyages.charterPiece({
-		charter: `do ${title}`,
-		dependsOn,
-		expectation: `${title} is landed`,
-		role: "hand",
-		title,
-		voyageId,
-	});
+const charter = (voyageId: string, title: string, dependsOn: ReadonlyArray<string> = []) =>
+	Effect.flatMap(Pieces, (owner) =>
+		owner.charter({
+			charter: `do ${title}`,
+			dependsOn,
+			expectation: `${title} is landed`,
+			role: "hand",
+			title,
+			voyageId,
+		}),
+	);
 
 it.live("chartering refuses an absent voyage without orphan rows", () =>
-	withDomain((voyages) =>
+	withDomain(() =>
 		Effect.gen(function* () {
-			const failure = yield* Effect.flip(charter(voyages, "missing", "adrift"));
+			const failure = yield* Effect.flip(charter("missing", "adrift"));
 			const db = yield* Database;
 
 			expect(failure).toMatchObject({ _tag: "VoyageNotFound" });
@@ -51,7 +54,7 @@ it.live("a refused charter leaves no partial piece or membership", () =>
 	withDomain((voyages) =>
 		Effect.gen(function* () {
 			const voyage = yield* openVoyage(voyages);
-			const failure = yield* Effect.flip(charter(voyages, voyage.id, "adrift", ["missing"]));
+			const failure = yield* Effect.flip(charter(voyage.id, "adrift", ["missing"]));
 			const db = yield* Database;
 
 			expect(failure).toMatchObject({ _tag: "PieceNotFound" });
@@ -65,10 +68,11 @@ it.live("a refused charter leaves no partial piece or membership", () =>
 it.live("a refused rewire preserves the previous dependencies", () =>
 	withDomain((voyages) =>
 		Effect.gen(function* () {
+			const pieces = yield* Pieces;
 			const voyage = yield* openVoyage(voyages);
-			const alpha = yield* charter(voyages, voyage.id, "alpha");
-			const beta = yield* charter(voyages, voyage.id, "beta", [alpha.id]);
-			const failure = yield* Effect.flip(voyages.rewire(beta.id, ["missing"]));
+			const alpha = yield* charter(voyage.id, "alpha");
+			const beta = yield* charter(voyage.id, "beta", [alpha.id]);
+			const failure = yield* Effect.flip(pieces.setDependencies(beta.id, ["missing"]));
 			const db = yield* Database;
 
 			expect(failure).toMatchObject({ _tag: "PieceNotFound" });

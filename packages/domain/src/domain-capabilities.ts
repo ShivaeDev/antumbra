@@ -1,6 +1,6 @@
 import { artifactsLayer } from "@antumbra/artifacts";
 import { BoardsLive } from "@antumbra/boards";
-import { ChangesLive } from "@antumbra/changes";
+import { changesLayer } from "@antumbra/changes";
 import { DomainFeedsLive } from "@antumbra/domain-feeds";
 import { PiecesLive } from "@antumbra/pieces";
 import type { ChangeHost, Runner } from "@antumbra/plugin-api";
@@ -18,7 +18,7 @@ import { ExecutionSource } from "#execution/service.ts";
 import { KernelReachDeferredLive } from "#kernel-reach.ts";
 import { Quay } from "#quay/service.ts";
 import { VoyageWorldSource } from "#voyage-world/service.ts";
-import { VoyageProceduresLive } from "#voyages.ts";
+import { VoyageProcedureService } from "#voyages/service.ts";
 
 export const domainCapabilities = (
 	changeHosts: ReadonlyMap<string, ChangeHost>,
@@ -36,9 +36,9 @@ export const domainCapabilities = (
 		SessionEventJournalLive,
 		KernelReachDeferredLive,
 	).pipe(Layer.provideMerge(DomainFeedsLive));
-	const changes = ChangesLive(changeHosts, runners).pipe(Layer.provideMerge(foundations));
+	const changes = changesLayer(changeHosts, runners).pipe(Layer.provideMerge(foundations));
 	const world = Layer.mergeAll(VoyageWorldSource.layer, ExecutionSource.layer, Quay.layer).pipe(Layer.provideMerge(changes));
-	return Layer.mergeAll(CaptainMembershipLive, ChangeProceduresLive(changeHosts), SessionStandDownLive, VoyageProceduresLive).pipe(
+	return Layer.mergeAll(CaptainMembershipLive, ChangeProceduresLive(changeHosts), SessionStandDownLive, VoyageProcedureService.layer).pipe(
 		Layer.provideMerge(world),
 	);
 };

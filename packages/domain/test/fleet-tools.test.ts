@@ -1,4 +1,6 @@
 import { Database } from "@antumbra/persistence";
+import { Pieces } from "@antumbra/pieces";
+import { Reports } from "@antumbra/reports";
 import { expect, it } from "@effect/vitest";
 import { Effect, Option } from "effect";
 import { AgentDomain } from "#domain.ts";
@@ -40,9 +42,10 @@ it.live("the flagship's captain holds the fleet acts and a captain's own", () =>
 it.live("the flagship's captain reads every voyage in the fleet", () =>
 	withFlagshipCaptain((captain) =>
 		Effect.gen(function* () {
+			const pieces = yield* Pieces;
 			const domain = yield* AgentDomain;
 			const reef = yield* openReefVoyage;
-			const sounding = yield* domain.voyages.charterPiece({
+			const sounding = yield* pieces.charter({
 				charter: "sound the eastern shoal",
 				dependsOn: [],
 				expectation: "the shoal is sounded",
@@ -50,7 +53,7 @@ it.live("the flagship's captain reads every voyage in the fleet", () =>
 				title: "sounding",
 				voyageId: reef.id,
 			});
-			yield* domain.voyages.charterPiece({
+			yield* pieces.charter({
 				charter: "draw the eastern shoal",
 				dependsOn: [sounding.id],
 				expectation: "the shoal is drawn",
@@ -77,9 +80,10 @@ it.live("the flagship's captain reads every voyage in the fleet", () =>
 it.live("the flagship's captain reads a voyage it names", () =>
 	withFlagshipCaptain((captain) =>
 		Effect.gen(function* () {
-			const domain = yield* AgentDomain;
+			const pieces = yield* Pieces;
+			const reports = yield* Reports;
 			const reef = yield* openReefVoyage;
-			const sounding = yield* domain.voyages.charterPiece({
+			const sounding = yield* pieces.charter({
 				charter: "sound the eastern shoal",
 				dependsOn: [],
 				expectation: "the shoal is sounded",
@@ -87,7 +91,7 @@ it.live("the flagship's captain reads a voyage it names", () =>
 				title: "sounding",
 				voyageId: reef.id,
 			});
-			const landed = yield* domain.voyages.landReport({
+			const landed = yield* reports.land({
 				body: "the eastern shoal is three fathoms",
 				pieceId: sounding.id,
 				title: "eastern soundings",

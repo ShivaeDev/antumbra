@@ -86,13 +86,18 @@ export const parkPiece = (pieceId: string, onError: OnError): void => fired(clie
 
 export const unparkPiece = (pieceId: string, onError: OnError): void => fired(client.unparkPiece.mutate({ pieceId }), onError);
 
-export const rewirePiece = (request: RewireRequest, onError: OnError): void => fired(client.rewirePiece.mutate(request), onError);
+export const rewirePiece = Effect.fn("Renderer.rewirePiece")((request: RewireRequest) =>
+	Effect.tryPromise({
+		try: () => client.rewirePiece.mutate(request),
+		catch: (cause) => new RendererRequestError({ message: toError(cause).message }),
+	}),
+);
 
 export const workPieceNow = (pieceId: string, onError: OnError): void => fired(client.workPieceNow.mutate({ pieceId }), onError);
 
-export const writeBoard = (request: BoardWriteRequest, onDone: () => void, onError: OnError): void => {
-	client.writeBoard
-		.mutate(request)
-		.then(onDone)
-		.catch((cause: unknown) => onError(toError(cause).message));
-};
+export const writeBoard = Effect.fn("Renderer.writeBoard")((request: BoardWriteRequest) =>
+	Effect.tryPromise({
+		try: () => client.writeBoard.mutate(request),
+		catch: (cause) => new RendererRequestError({ message: toError(cause).message }),
+	}),
+);

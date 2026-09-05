@@ -1,4 +1,5 @@
 import type { CharterPieceRequest } from "@antumbra/contract";
+import { soundings } from "@antumbra/contract/fixtures";
 import { expect, it } from "@effect/vitest";
 import { Deferred, Effect, Schema } from "effect";
 import { act, useState } from "react";
@@ -63,21 +64,26 @@ it.effect(
 				container.remove();
 			}),
 		);
-		yield* settle(() => root.render(<CharterPieceForm pieces={[]} voyageId="voyage" />));
+		yield* settle(() => root.render(<CharterPieceForm pieces={[soundings, { ...soundings, id: "harbor", title: "Harbor" }]} voyageId="voyage" />));
 		yield* settle(() => button("Charter piece").click());
 		yield* settle(() => {
 			change("Title", "Sound the channel");
 			change("Charter", "Find the safe passage");
 			change("Role", "navigator");
+			const dependency = document.querySelector("select");
+			for (const option of dependency?.options ?? []) option.selected = option.value === soundings.id;
+			dependency?.dispatchEvent(new Event("change", { bubbles: true }));
 		});
-		yield* settle(() => root.render(<CharterPieceForm pieces={[]} voyageId="current-voyage" />));
+		yield* settle(() =>
+			root.render(<CharterPieceForm pieces={[soundings, { ...soundings, id: "harbor", title: "Harbor" }]} voyageId="current-voyage" />),
+		);
 		yield* settle(() => document.querySelector("form")?.requestSubmit());
 		expect(yield* Deferred.await(requested)).toEqual({
 			title: "Sound the channel",
 			charter: "Find the safe passage",
 			role: "navigator",
 			expectation: "",
-			dependsOn: [],
+			dependsOn: [soundings.id],
 			voyageId: "current-voyage",
 		});
 		expect(button("Chartering…").disabled).toBe(true);

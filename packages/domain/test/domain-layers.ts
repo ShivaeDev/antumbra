@@ -1,7 +1,7 @@
 import { dirname, join } from "node:path";
 import type { ObserveCadenceOptions } from "@antumbra/changes/watch/cadence";
 import { ChangeWatcher } from "@antumbra/changes/watch/observer";
-import { IntentDemandLive } from "@antumbra/intent-demand";
+import { intentDemandLayer } from "@antumbra/intent-demand";
 import { KernelLive, type KernelOptions } from "@antumbra/kernel";
 import type { TemporaryPersistence } from "@antumbra/persistence/testing";
 import type { AgentBackend, ChangeHost, Runner } from "@antumbra/plugin-api";
@@ -60,7 +60,7 @@ export const domainKernelServices = (
 		Layer.unwrap(
 			Effect.gen(function* () {
 				const domain = yield* AgentDomain;
-				return IntentDemandLive(domain.intentDemands);
+				return intentDemandLayer(domain.intentDemands);
 			}),
 		),
 		RulingAscent,

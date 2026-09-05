@@ -1,5 +1,5 @@
 import { ChangeWatcher } from "@antumbra/changes/watch/observer";
-import { IntentDemandLive } from "@antumbra/intent-demand";
+import { intentDemandLayer } from "@antumbra/intent-demand";
 import { KernelLive } from "@antumbra/kernel";
 import { SettingsSourceLive } from "@antumbra/settings";
 import { Effect, Layer } from "effect";
@@ -35,7 +35,7 @@ export const applicationLayers = (...providers: Parameters<typeof AgentDomainLiv
 		Layer.unwrap(
 			Effect.gen(function* () {
 				const domain = yield* AgentDomain;
-				return IntentDemandLive(domain.intentDemands);
+				return intentDemandLayer(domain.intentDemands);
 			}),
 		),
 		FlagshipLive,

@@ -15,7 +15,7 @@ export const openChangeSpec = defineTool({
 		),
 		body: Schema.String.annotate({
 			description:
-				"Written for a reviewer who was not in the session, in four headed sections: `### Why?` states the problem in one to three sentences, `### How?` states the approach in one or two, `### Decisions` gives one bullet per tradeoff you made and why, and `### Callouts` gives one bullet per spot a reviewer should look at closely. Leave the last two out when there is none. Evidence you gathered belongs in a Report the body points at. No file lists, test plans or diff narration.",
+				"Four sections, written for a reviewer who was not in the session. `### Why?` and `### How?` are the valuable ones and are never held to a sentence count; give each the length the difficulty of the work and the explanation it needs. Why is the product side: the problem that started the work, the goal, and why anyone cared. How is the approach at a high level for a technical reader, product as well as code. Write each as short paragraphs with line breaks between them, telling the story in order rather than in one flowing blob. `### Decisions` lists the major trade-offs, one bullet each; ten bullets means you have gone well past the major ones. `### Callouts` lists the spots a reviewer should look at closely, one bullet each. Leave either section out when there is none. The body stands on its own: the reviewer sees no report of yours, no board and no machine you worked on, so put the thing in the body instead of pointing at where it lives. No file lists, test plans or diff narration.",
 		}),
 		draft: Schema.optionalKey(
 			Schema.Boolean.annotate({

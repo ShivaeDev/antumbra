@@ -46,7 +46,7 @@ export const domainCapabilityLayer = (temporary: TemporaryPersistence, reach: Ke
 		Layer.provideMerge(temporary.layer),
 	);
 
-export const domainKernelLayer = (
+export const domainKernelServices = (
 	temporary: TemporaryPersistence,
 	backend: AgentBackend,
 	options: Omit<KernelOptions, "kinds"> = {},
@@ -89,8 +89,10 @@ export const domainKernelLayer = (
 			).pipe(Layer.provide(NodeServices.layer)),
 		),
 		Layer.provideMerge(SettingsSourceLive),
-		Layer.provideMerge(temporary.layer),
 	);
+
+export const domainKernelLayer = (...args: Parameters<typeof domainKernelServices>) =>
+	domainKernelServices(...args).pipe(Layer.provideMerge(args[0].layer));
 
 export const dispatchingLayer = (
 	temporary: TemporaryPersistence,

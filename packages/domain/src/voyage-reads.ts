@@ -3,6 +3,7 @@ import { SightFailure, type VoyageSummary, type VoyageView } from "@antumbra/con
 import { Effect, Option } from "effect";
 import { type CrewRuntime, crewRest } from "#crew-rest.ts";
 import { toFailure } from "#sight-failure.ts";
+import { makeSmoothingState } from "#smoothing/state.ts";
 import { VoyageDetails } from "#voyage/detail/service.ts";
 import { VoyageSummaries } from "#voyage/summaries/service.ts";
 import { summarySeen, voyageSeen } from "#voyage-projection.ts";
@@ -19,6 +20,7 @@ const absent = (voyageId: string) => new SightFailure({ message: `no such voyage
 export const makeVoyageReads = (runtime: Effect.Effect<CrewRuntime>) =>
 	Effect.gen(function* () {
 		const boards = yield* Boards;
+		const smoothingOf = yield* makeSmoothingState;
 		const summaries = yield* VoyageSummaries;
 		const details = yield* VoyageDetails;
 		const detailOf = Effect.fnUntraced(function* (voyageId: string) {
@@ -38,7 +40,8 @@ export const makeVoyageReads = (runtime: Effect.Effect<CrewRuntime>) =>
 			Effect.all({
 				board: boardOf(voyageId),
 				pieceBoards: pieceBoardsOf(view.pieces.map((piece) => piece.id)),
-			}).pipe(Effect.map(({ board, pieceBoards }) => voyageSeen(view, board, pieceBoards, resting)));
+				smoothing: smoothingOf(voyageId).pipe(Effect.mapError(toFailure)),
+			}).pipe(Effect.map((sighting) => voyageSeen(view, { ...sighting, resting })));
 		const readVoyage = Effect.fn("VoyageReads.voyage")(function* (voyageId: string) {
 			const { rows, voyage } = yield* detailOf(voyageId);
 			const { resting } = crewRest(rows, yield* runtime);

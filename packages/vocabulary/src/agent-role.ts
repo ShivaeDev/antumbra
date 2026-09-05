@@ -1,6 +1,6 @@
 import { Schema } from "effect";
 
-export const AGENT_ROLES = ["flagship", "captain", "crew"] as const;
+export const AGENT_ROLES = ["flagship", "captain", "crew", "smoother"] as const;
 
 export const AgentRoleSchema = Schema.Literals(AGENT_ROLES);
 export type AgentRole = typeof AgentRoleSchema.Type;

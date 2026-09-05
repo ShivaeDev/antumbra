@@ -10,6 +10,7 @@ import { changeView } from "#change-view.ts";
 import { Quay } from "#quay/service.ts";
 import { quaySeen } from "#quay-projection.ts";
 import { failureMessage, toFailure } from "#sight-failure.ts";
+import { makeSmoothBoard } from "#smoothing/act.ts";
 import { makeVoyageActs } from "#voyage-acts.ts";
 import { makeVoyageRefreshes } from "#voyage-feed.ts";
 import { changeSeen } from "#voyage-projection.ts";
@@ -42,6 +43,7 @@ export const VoyageSourceLive = Layer.effect(VoyageSource)(
 		const reads = yield* makeVoyageReads(runtime);
 		const acts = yield* makeVoyageActs(reads);
 		const refreshes = yield* makeVoyageRefreshes;
+		const smoothBoard = yield* makeSmoothBoard;
 		const quay = Effect.gen(function* () {
 			const reading = yield* quayReader.read();
 			return quaySeen(reading, yield* changes.hostCapabilities());
@@ -68,6 +70,7 @@ export const VoyageSourceLive = Layer.effect(VoyageSource)(
 						}),
 					),
 				),
+			smoothBoard,
 			voyage: reads.voyage,
 			voyageFeed: (voyageId: string) => refreshes(reads.voyage(voyageId)),
 			voyages: reads.voyages,

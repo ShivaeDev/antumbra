@@ -61,6 +61,7 @@ it.effectDB("names every role in the fleet's defaults, chosen or not", function*
 			{ backend: null, effort: null, model: null, role: "flagship" },
 			{ backend: "claude", effort: "high", model: null, role: "captain" },
 			{ backend: null, effort: null, model: null, role: "crew" },
+			{ backend: null, effort: null, model: null, role: "smoother" },
 		]);
 	}).pipe(Effect.provide(layer));
 });

@@ -1,0 +1,147 @@
+[
+  {
+    "id": "column.boardEntry.coversFrom",
+    "label": "Add column coversFrom on boardEntry",
+    "summary": "Adds column coversFrom on boardEntry",
+    "operationClass": "additive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "column",
+        "name": "coversFrom",
+        "table": "boardEntry"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"coversFrom\" is missing",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM pragma_table_info(?) WHERE \"name\" = ?",
+        "params": [
+          "boardEntry",
+          "coversFrom"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"coversFrom\"",
+        "sql": "ALTER TABLE \"boardEntry\" ADD COLUMN \"coversFrom\" INTEGER"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"coversFrom\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM pragma_table_info(?) WHERE \"name\" = ?",
+        "params": [
+          "boardEntry",
+          "coversFrom"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.boardEntry.coversTo",
+    "label": "Add column coversTo on boardEntry",
+    "summary": "Adds column coversTo on boardEntry",
+    "operationClass": "additive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "column",
+        "name": "coversTo",
+        "table": "boardEntry"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"coversTo\" is missing",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM pragma_table_info(?) WHERE \"name\" = ?",
+        "params": [
+          "boardEntry",
+          "coversTo"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"coversTo\"",
+        "sql": "ALTER TABLE \"boardEntry\" ADD COLUMN \"coversTo\" INTEGER"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"coversTo\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM pragma_table_info(?) WHERE \"name\" = ?",
+        "params": [
+          "boardEntry",
+          "coversTo"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.boardEntry.level",
+    "label": "Add column level on boardEntry",
+    "summary": "Adds column level on boardEntry",
+    "operationClass": "additive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "column",
+        "name": "level",
+        "table": "boardEntry"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"level\" is missing",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM pragma_table_info(?) WHERE \"name\" = ?",
+        "params": [
+          "boardEntry",
+          "level"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"level\"",
+        "sql": "ALTER TABLE \"boardEntry\" ADD COLUMN \"level\" TEXT"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"level\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM pragma_table_info(?) WHERE \"name\" = ?",
+        "params": [
+          "boardEntry",
+          "level"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "data.boardEntry.roughenAgentNotes",
+    "label": "Move agent-written notes to the rough register",
+    "summary": "the smooth register now holds summaries and what the admiral wrote, so notes an agent left fold under a summary instead",
+    "operationClass": "data",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "table",
+        "name": "boardEntry"
+      }
+    },
+    "precheck": [],
+    "execute": [
+      {
+        "description": "the smooth register now holds summaries and what the admiral wrote, so notes an agent left fold under a summary instead",
+        "sql": "UPDATE \"boardEntry\"\n              SET \"register\" = 'rough'\n            WHERE \"register\" = 'smooth' AND \"kind\" = 'note' AND \"authorAgentId\" IS NOT NULL"
+      }
+    ],
+    "postcheck": []
+  }
+]

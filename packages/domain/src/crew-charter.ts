@@ -7,8 +7,8 @@ import type { PieceRow, VoyageRow } from "#voyage-rows.ts";
 export const charterFor = (piece: PieceRow, voyage: VoyageRow, agentId: string) =>
 	Effect.gen(function* () {
 		const boards = yield* Boards;
-		const voyageLog = yield* boards.read(BoardScope.Voyage({ voyageId: voyage.id })).pipe(Effect.map(entryBodies));
-		const pieceLog = yield* boards.read(BoardScope.Piece({ pieceId: piece.id })).pipe(Effect.map(entryBodies));
+		const voyageLog = yield* boards.digest(BoardScope.Voyage({ voyageId: voyage.id })).pipe(Effect.map(entryBodies));
+		const pieceLog = yield* boards.digest(BoardScope.Piece({ pieceId: piece.id })).pipe(Effect.map(entryBodies));
 		const standing = yield* standingRulingsFor({
 			agentId,
 			pieceId: Option.some(piece.id),

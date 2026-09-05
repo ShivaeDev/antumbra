@@ -90,6 +90,8 @@ export const rewirePiece = Effect.fn("Renderer.rewirePiece")((request: RewireReq
 
 export const workPieceNow = (pieceId: string, onError: OnError): void => fired(client.workPieceNow.mutate({ pieceId }), onError);
 
+export const smoothBoard = (voyageId: string, onError: OnError): void => fired(client.smoothBoard.mutate({ voyageId }), onError);
+
 export const writeBoard = Effect.fn("Renderer.writeBoard")((request: BoardWriteRequest) =>
 	Effect.tryPromise({
 		try: () => client.writeBoard.mutate(request),

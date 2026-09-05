@@ -13,8 +13,13 @@ const withScope = (identity: SessionIdentity, name: BoardScopeName, act: (scope:
 		onSome: act,
 	});
 
-const rendered = (entries: ReadonlyArray<BoardEntryRow>): string =>
-	entries.length === 0 ? "the board is empty" : entries.map((entry) => `[${entry.register}] ${entry.body}`).join("\n");
+const label = (entry: BoardEntryRow): string => (entry.kind === "summary" ? `summary ${entry.id}` : entry.register);
+
+const lines = (entries: ReadonlyArray<BoardEntryRow>): string => entries.map((entry) => `[${label(entry)}] ${entry.body}`).join("\n");
+
+const rendered = (entries: ReadonlyArray<BoardEntryRow>): string => (entries.length === 0 ? "the board is empty" : lines(entries));
+
+const under = (entries: ReadonlyArray<BoardEntryRow>): string => (entries.length === 0 ? "no notes stand behind that summary" : lines(entries));
 
 export const makeBoardToolCompiler = Effect.gen(function* () {
 	const boards = yield* Boards;
@@ -38,6 +43,12 @@ export const makeBoardToolCompiler = Effect.gen(function* () {
 				),
 			),
 		),
-		bind(readBoardSpec, (input) => withScope(identity, input.scope, (scope) => answered(identity, readBoardSpec.name, boards.read(scope), rendered))),
+		bind(readBoardSpec, (input) =>
+			withScope(identity, input.scope, (scope) =>
+				input.summaryId === undefined
+					? answered(identity, readBoardSpec.name, boards.digest(scope), rendered)
+					: answered(identity, readBoardSpec.name, boards.under(scope, input.summaryId), under),
+			),
+		),
 	];
 });

@@ -1,5 +1,5 @@
 import { Effect, Option } from "effect";
-import { entryRow, storedEntryVariant } from "#entries.ts";
+import { entryRegister, entryRow, storedEntryVariant } from "#entries.ts";
 import { BoardSourceConflict, type StoredBoardEntryInvalid } from "#errors.ts";
 import type { BoardEntryRow, EntryInput } from "#model.ts";
 
@@ -16,7 +16,7 @@ export const replayedEntry = (
 			existing.body === input.body &&
 			existing.kind === expected.kind &&
 			existing.precedence === expected.precedence &&
-			existing.register === input.register &&
+			existing.register === entryRegister(input) &&
 			existing.sourceRef === expected.sourceRef;
 		if (!matches) {
 			return yield* new BoardSourceConflict({

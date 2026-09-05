@@ -17,7 +17,7 @@ export interface RolePlaceholder {
 	readonly model: string;
 }
 
-export const roleLabel: Record<AgentRole, string> = { captain: "Captain", crew: "Crew", flagship: "Flagship" };
+export const roleLabel: Record<AgentRole, string> = { captain: "Captain", crew: "Crew", flagship: "Flagship", smoother: "Smoother" };
 
 export const BACKEND_OWN = "the backend's own";
 

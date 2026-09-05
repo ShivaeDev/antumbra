@@ -37,7 +37,7 @@ it.effect(
 	Effect.fnUntraced(function* () {
 		const { container } = yield* shown;
 
-		expect([...container.querySelectorAll("span.text-xs")].map((cell) => cell.textContent)).toEqual(["Flagship", "Captain", "Crew"]);
+		expect([...container.querySelectorAll("span.text-xs")].map((cell) => cell.textContent)).toEqual(["Flagship", "Captain", "Crew", "Smoother"]);
 		expect(container.querySelector('[aria-label="Flagship backend"]')?.textContent).toContain("claude");
 		expect(named(container, "Flagship model")?.placeholder).toBe("the backend's own");
 		expect(saveButton(container)?.disabled).toBe(true);

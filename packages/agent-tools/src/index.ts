@@ -4,6 +4,7 @@ export {
 	readBoardSpec,
 	readMailSpec,
 	writeBoardSpec,
+	writeSummarySpec,
 } from "#boards.ts";
 export {
 	charterPieceSpec,

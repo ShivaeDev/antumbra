@@ -1,5 +1,5 @@
 import type { Fleet, VoyageView } from "@antumbra/contract";
-import { watchVoyage } from "#adapters/trpc-voyages.ts";
+import { smoothBoard, watchVoyage } from "#adapters/trpc-voyages.ts";
 import { useFeed } from "#hooks/feed.ts";
 import { BoardPanel } from "#views/board.tsx";
 import { CrewPanel } from "#views/crew.tsx";
@@ -33,7 +33,12 @@ export const VoyagePanel = ({
 				<div className="grid min-w-0 grid-cols-1 items-start gap-6 px-5 py-4 @4xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] @4xl:gap-8">
 					<PiecesPanel onError={onError} pieces={voyage.pieces} selected={piece} voyageId={voyage.id} />
 					<div className="flex min-w-0 flex-col gap-6">
-						<BoardPanel entries={voyage.board} scope={{ kind: "voyage", voyageId: voyage.id }} />
+						<BoardPanel
+							entries={voyage.board}
+							onSmooth={() => smoothBoard(voyage.id, onError)}
+							scope={{ kind: "voyage", voyageId: voyage.id }}
+							smoothing={voyage.smoothing}
+						/>
 						<CrewPanel crew={voyage.crew} />
 					</div>
 				</div>

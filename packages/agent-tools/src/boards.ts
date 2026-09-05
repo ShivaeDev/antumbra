@@ -33,7 +33,25 @@ export const markReadSpec = defineTool({
 });
 
 export const readBoardSpec = defineTool({
-	description: "Read earlier notes on a board before starting or resuming its work.",
-	input: Schema.Struct({ scope: Scope }),
+	description:
+		"Read a board before starting or resuming its work. You get a summary for each stretch that has been smoothed and every note since in full. Name a summary to read the notes behind it instead.",
+	input: Schema.Struct({
+		scope: Scope,
+		summaryId: Schema.optional(
+			Schema.String.annotate({
+				description: "The id of a summary this board already showed you. Its own notes come back in place of the board.",
+			}),
+		),
+	}),
 	name: "read_board",
+});
+
+export const writeSummarySpec = defineTool({
+	description: "Write the summary of the entries you were given. Call it once, with the whole summary.",
+	input: Schema.Struct({
+		text: Schema.String.annotate({
+			description: "The summary, as plain paragraphs.",
+		}),
+	}),
+	name: "write_summary",
 });

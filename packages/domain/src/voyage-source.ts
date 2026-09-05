@@ -13,7 +13,7 @@ import { makeVoyageRefreshes } from "#voyage-feed.ts";
 import { VoyageProcedureService } from "#voyage-procedures.ts";
 import { changeSeen } from "#voyage-projection.ts";
 import { makeVoyageReads } from "#voyage-reads.ts";
-import { VoyageWorldSource } from "#voyage-world.ts";
+import { VoyageWorldSource } from "#voyage-world/service.ts";
 
 const artifactMarkdownFailure = (cause: unknown) => new ArtifactMarkdownFailure({ message: failureMessage(cause) });
 

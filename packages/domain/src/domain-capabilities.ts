@@ -13,7 +13,7 @@ import { CaptainMembershipLive } from "#captain-membership.ts";
 import { ChangeProceduresLive } from "#change-procedures.ts";
 import { KernelReachDeferredLive } from "#kernel-reach.ts";
 import { StandDownLive } from "#stand-down.ts";
-import { VoyageWorldSourceLive } from "#voyage-world.ts";
+import { VoyageWorldSource } from "#voyage-world/service.ts";
 import { VoyageProceduresLive } from "#voyages.ts";
 
 export const domainCapabilities = (
@@ -32,7 +32,7 @@ export const domainCapabilities = (
 		KernelReachDeferredLive,
 	).pipe(Layer.provideMerge(DomainFeedsLive));
 	const changes = ChangesLive(changeHosts, runners).pipe(Layer.provideMerge(foundations));
-	const world = VoyageWorldSourceLive.pipe(Layer.provideMerge(changes));
+	const world = VoyageWorldSource.layer.pipe(Layer.provideMerge(changes));
 	return Layer.mergeAll(CaptainMembershipLive, ChangeProceduresLive(changeHosts), StandDownLive, VoyageProceduresLive).pipe(
 		Layer.provideMerge(world),
 	);

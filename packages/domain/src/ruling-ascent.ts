@@ -4,7 +4,7 @@ import { type Ruling, Rulings } from "@antumbra/rulings";
 import { Effect, Layer, Option, Stream } from "effect";
 import { rulingAscentMail } from "#ruling-ascent-mail.ts";
 import { rungHolder } from "#ruling-ascent-rung.ts";
-import { VoyageWorldSource } from "#voyage-world.ts";
+import { VoyageWorldSource } from "#voyage-world/service.ts";
 
 const guarded = <A, R>(act: Effect.Effect<A, unknown, R>, said: string) => act.pipe(Effect.catchCause((cause) => Effect.logError(said, cause)));
 
@@ -32,7 +32,7 @@ const onePass = Effect.gen(function* () {
 		return;
 	}
 	const source = yield* VoyageWorldSource;
-	const world = yield* source.read;
+	const world = yield* source.read();
 	yield* Effect.forEach(
 		climbing,
 		(ruling) =>

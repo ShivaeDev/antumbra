@@ -15,6 +15,7 @@ import {
 	persistenceMigrationsDirectory,
 	runnerRootsInDataDirectory,
 	sessionInputsInDataDirectory,
+	skillsDirectory,
 } from "#adapters/shell.ts";
 
 const persistence = Layer.unwrap(
@@ -30,8 +31,9 @@ const application = Layer.unwrap(
 	Effect.gen(function* () {
 		const host = yield* makePluginHost({ findExecutable: findOnLoginPath });
 		const runnerPlugin = localRunnerPlugin(runnerRootsInDataDirectory(configureDataDirectory()));
-		yield* Effect.orDie(claudePlugin().activate(host.context));
-		yield* Effect.orDie(codexPlugin({ cwd: configureDataDirectory() }).activate(host.context));
+		const skills = skillsDirectory();
+		yield* Effect.orDie(claudePlugin({ skills }).activate(host.context));
+		yield* Effect.orDie(codexPlugin({ cwd: configureDataDirectory(), skills }).activate(host.context));
 		yield* Effect.orDie(opencodePlugin({ cwd: configureDataDirectory() }).activate(host.context));
 		yield* Effect.orDie(runnerPlugin.activate(host.context));
 		yield* Effect.orDie(githubPlugin().activate(host.context));

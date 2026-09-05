@@ -15,6 +15,7 @@ interface SessionShape {
 	readonly executable: string;
 	readonly model: string | undefined;
 	readonly resume: string | undefined;
+	readonly skills: string;
 	readonly store: SessionStore;
 	readonly tools: Option.Option<ToolAccess>;
 }
@@ -38,6 +39,7 @@ export const sessionOptions = (session: SessionShape): Options => ({
 	forwardSubagentText: true,
 	pathToClaudeCodeExecutable: session.executable,
 	permissionMode: "auto",
+	plugins: [{ path: session.skills, type: "local" }],
 	sessionStore: session.store,
 	sessionStoreFlush: "eager",
 	...(session.effort === undefined ? {} : { effort: session.effort }),

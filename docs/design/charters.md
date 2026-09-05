@@ -84,6 +84,10 @@ Give the Agent guidance when it can act on it. A wake asks it to recover current
 execution may pause. Board writing uses the [rough register](attention-and-memory.md); the Agent has no register to choose, so it needs guidance about
 useful notes, not register mechanics.
 
+Antumbra gives every harness its own tools, and it gives every harness its own skills the same way. A skill is a document the harness loads when the
+work calls for it, so a procedure an Agent needs only sometimes stays out of the charter and out of every tool description; the input that needs it
+says which skill to use. Each backend hands the same skill files to its harness through the harness's own skill mechanism.
+
 Review a charter for the role's task, authority, applicable decisions, successor notes and stopping point. Review a tool description for the choice
 the Agent makes when calling it: publish a pull request, record a prepared Change, leave a note, answer a question or mark itself idle. Explain
 pending outcomes where crew judge completion, rather than repeating completion rules in every Change description.

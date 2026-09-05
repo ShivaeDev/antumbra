@@ -62,6 +62,10 @@ it("unpacks native code from the asar archive", () => {
 	expect(unpacked).toContain("**/node_modules/@img/**");
 });
 
+it("ships the skill files the harnesses read beside the app", () => {
+	expect(listUnder("extraResources")).toContain("from: out/skills");
+});
+
 it("asks for no architecture the installed prebuilds cannot fill", () => {
 	expect(builderDeclarations).not.toContain("universal");
 });

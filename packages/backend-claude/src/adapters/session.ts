@@ -16,6 +16,7 @@ interface RawSessionOptions {
 	readonly model: string | undefined;
 	readonly observeCapacity: BackendCapacityController["observe"];
 	readonly resume: string | undefined;
+	readonly skills: string;
 	readonly tools: ReadonlyArray<DirectTool>;
 }
 
@@ -70,6 +71,7 @@ export const openRawSession = (options: RawSessionOptions): RawSession => {
 			executable: options.executable,
 			model: options.model,
 			resume: options.resume,
+			skills: options.skills,
 			store: mirroringSessionStore((write) => deliveries.deliver({ kind: "mirror", write })),
 			tools: toolAccess(options),
 		}),

@@ -41,6 +41,6 @@ describe("CI test shards", () => {
 		expect(workflow).toContain("matrix.shard");
 		expect(workflow).toContain("pnpm test:desktop");
 		expect(workflow).toContain("pnpm test:runner-local");
-		expect(workflow).toContain("shard: [1, 2, 3, 4]");
+		expect(workflow).toContain("shard: [1, 2, 3, 4, 5, 6, 7, 8]");
 	});
 });

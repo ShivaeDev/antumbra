@@ -1,8 +1,8 @@
 import type { ChangeObservation } from "@antumbra/plugin-api";
 import { Effect, Option } from "effect";
 import type { ChangeRow } from "#change-rows.ts";
-import { ChangeIdentityCollision, ChangeObservationConflict } from "#change-submissions/errors.ts";
-import type { ObservationAttachment, ObservationMatches } from "#change-submissions/observation-match.ts";
+import { ChangeIdentityCollision, ChangeObservationConflict } from "#submissions/errors.ts";
+import type { ObservationAttachment, ObservationMatches } from "#submissions/observation-match.ts";
 
 type ClaimedAttachment = Extract<ObservationAttachment, { readonly _tag: "Claimed" }>;
 

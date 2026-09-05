@@ -3,8 +3,8 @@ import { Database } from "@antumbra/persistence";
 import type { ChangeObservation } from "@antumbra/plugin-api";
 import { ensureAgentResourcesUnclaimed, ensureBranchResourcesUnclaimed } from "@antumbra/resource-reclamation";
 import { Clock, Effect, Option } from "effect";
-import type { ObservationAttachment } from "#change-submissions/observation-match.ts";
-import { reconcileObservation } from "#change-submissions/observation-projection.ts";
+import type { ObservationAttachment } from "#submissions/observation-match.ts";
+import { reconcileObservation } from "#submissions/observation-projection.ts";
 
 const ensureObservationUnclaimed = Effect.fnUntraced(function* (observation: ChangeObservation, attachment: ObservationAttachment) {
 	const db = yield* Database;

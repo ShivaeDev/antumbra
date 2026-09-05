@@ -1,4 +1,4 @@
-import { ChangesLive } from "@antumbra/changes";
+import { changesLayer } from "@antumbra/changes";
 import type { OpenRulingsView, RulingFailure, StandingRulingsView } from "@antumbra/contract";
 import { DomainFeedsLive } from "@antumbra/domain-feeds";
 import { Database } from "@antumbra/persistence";
@@ -11,7 +11,7 @@ import { VoyageWorldSource } from "#voyage-world/service.ts";
 
 export const layer = RulingSourceLive.pipe(
 	Layer.provideMerge(VoyageWorldSource.layer),
-	Layer.provideMerge(ChangesLive(new Map(), new Map())),
+	Layer.provideMerge(changesLayer(new Map(), new Map())),
 	Layer.provideMerge(PiecesLive),
 	Layer.provideMerge(ReposLive),
 	Layer.provideMerge(RulingsLive),

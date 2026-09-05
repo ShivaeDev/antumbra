@@ -1,4 +1,4 @@
-import { ChangesLive } from "@antumbra/changes";
+import { changesLayer } from "@antumbra/changes";
 import { DomainFeedsLive } from "@antumbra/domain-feeds";
 import { persistenceIt } from "@antumbra/persistence/testing";
 import { PiecesLive } from "@antumbra/pieces";
@@ -9,7 +9,7 @@ import { Quay } from "#quay/service.ts";
 
 const it = persistenceIt();
 const QuayLayer = Quay.layer.pipe(
-	Layer.provide(ChangesLive(new Map(), new Map())),
+	Layer.provide(changesLayer(new Map(), new Map())),
 	Layer.provide(ReposLive),
 	Layer.provide(PiecesLive),
 	Layer.provide(DomainFeedsLive),

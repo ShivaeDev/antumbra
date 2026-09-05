@@ -4,13 +4,13 @@ import { Pieces } from "@antumbra/pieces";
 import { ChangeHostUnavailable } from "@antumbra/plugin-api";
 import { ensureAgentCanOwnLocalWork, ensureBranchResourcesUnclaimed } from "@antumbra/resource-reclamation";
 import { Clock, Effect, Option } from "effect";
-import { activeChange, linkProduces } from "#change-submissions/links.ts";
-import type { AdoptChangeInput } from "#change-submissions/model.ts";
-import type { ObservationAttachment } from "#change-submissions/observation-match.ts";
-import { reconcileObservation } from "#change-submissions/observation-projection.ts";
-import { submissionKey } from "#change-submissions/prepared-row.ts";
-import { claimingHost, repoNamed } from "#change-submissions/repository.ts";
 import { proposedChange } from "#change-write.ts";
+import { activeChange, linkProduces } from "#submissions/links.ts";
+import type { AdoptChangeInput } from "#submissions/model.ts";
+import type { ObservationAttachment } from "#submissions/observation-match.ts";
+import { reconcileObservation } from "#submissions/observation-projection.ts";
+import { submissionKey } from "#submissions/prepared-row.ts";
+import { claimingHost, repoNamed } from "#submissions/repository.ts";
 
 const adoptionAttachment = Effect.fnUntraced(function* (agentId: string | null, repoId: string) {
 	if (agentId === null) {

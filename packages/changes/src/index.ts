@@ -3,17 +3,6 @@ export type {
 	PieceChangeRow,
 } from "#change-rows.ts";
 export {
-	ChangeIdentityCollision,
-	ChangeObservationConflict,
-} from "#change-submissions/errors.ts";
-export { ChangesLive } from "#change-submissions/live.ts";
-export type {
-	AdoptChangeInput,
-	OpenChangeInput,
-	SubmitChangeInput,
-} from "#change-submissions/model.ts";
-export { Changes } from "#change-submissions/service.ts";
-export {
 	BerthNotFound,
 	ChangeNotFound,
 	ChangeStillAlive,
@@ -25,8 +14,19 @@ export {
 	UnknownChangeHostTag,
 } from "#errors.ts";
 export { ChangeHeldResourceReadLive } from "#held-resource-read.ts";
+export { changesLayer } from "#layer.ts";
 export {
 	changeStatus,
 	changesOfPiece,
 	unresolvedChangesOfPiece,
 } from "#outcome-status.ts";
+export { Changes } from "#service.ts";
+export {
+	ChangeIdentityCollision,
+	ChangeObservationConflict,
+} from "#submissions/errors.ts";
+export type {
+	AdoptChangeInput,
+	OpenChangeInput,
+	SubmitChangeInput,
+} from "#submissions/model.ts";

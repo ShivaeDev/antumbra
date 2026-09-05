@@ -3,7 +3,7 @@ import type { ChangeHost, ChangeObservation, OpenChangeRequest, Runner } from "@
 import { it } from "@antumbra/testing-runtime/domain";
 import { expect } from "@effect/vitest";
 import { Effect, Layer, Ref } from "effect";
-import { Changes, ChangesLive } from "#index.ts";
+import { Changes, changesLayer } from "#index.ts";
 
 const runner: Runner = {
 	captureChange: (berth) =>
@@ -63,7 +63,7 @@ const makeHost = Effect.gen(function* () {
 	return { host, openings: Ref.get(openings) };
 });
 
-const layer = (host: ChangeHost) => ChangesLive(new Map([[host.tag, host]]), new Map([[runner.tag, runner]])).pipe(Layer.provide(PiecesLive));
+const layer = (host: ChangeHost) => changesLayer(new Map([[host.tag, host]]), new Map([[runner.tag, runner]])).pipe(Layer.provide(PiecesLive));
 
 it.effectApp("owns preparation and host reconciliation as one aggregate", function* ({ db }) {
 	const scripted = yield* makeHost;

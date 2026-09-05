@@ -7,5 +7,5 @@ export class ChangeHostRegistry extends Context.Service<ChangeHostRegistry, Read
 
 export class RunnerRegistry extends Context.Service<RunnerRegistry, ReadonlyMap<string, Runner>>()("@antumbra/changes/RunnerRegistry") {}
 
-export const ChangeRegistriesLive = (hosts: ReadonlyMap<string, ChangeHost>, runners: ReadonlyMap<string, Runner>) =>
+export const changeRegistriesLayer = (hosts: ReadonlyMap<string, ChangeHost>, runners: ReadonlyMap<string, Runner>) =>
 	Layer.merge(Layer.succeed(ChangeHostRegistry)(hosts), Layer.succeed(RunnerRegistry)(runners));

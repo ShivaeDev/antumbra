@@ -74,9 +74,7 @@ export const openedSession = (db: DatabaseService, session: Opening) =>
 
 export const openedVoyage = (db: DatabaseService, voyageId: string, name: string) =>
 	db.Voyage.create({
-		captainBackend: "claude",
 		context: "",
-		crewBackend: "claude",
 		id: voyageId,
 		name,
 		northStar: "spend is visible",

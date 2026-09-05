@@ -43,6 +43,7 @@ const world: VoyageDetailRows = {
 	rulingGates: [],
 	pieces: [piece],
 	reports: new Map(),
+	roleSettings: new Map(),
 	repos: new Map(),
 	sessions: [],
 };

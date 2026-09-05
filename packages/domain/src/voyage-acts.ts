@@ -8,11 +8,12 @@ import type {
 	PieceVerdictRequest,
 	RewireRequest,
 	VoyageAgentSettingsRequest,
-	VoyageBackendRequest,
 } from "@antumbra/contract";
 import { Pieces } from "@antumbra/pieces";
+import { RoleSettings } from "@antumbra/settings";
 import { Voyages } from "@antumbra/voyages";
 import { Effect, Match, Option } from "effect";
+import { makeOpenVoyage } from "#open-voyage.ts";
 import { toFailure } from "#sight-failure.ts";
 import type { VoyageReads } from "#voyage-reads.ts";
 import { VoyageProcedureService } from "#voyages/service.ts";
@@ -29,7 +30,9 @@ export const makeVoyageActs = (reads: VoyageReads) =>
 		const pieces = yield* Pieces;
 		const artifacts = yield* Artifacts;
 		const procedures = yield* VoyageProcedureService;
+		const roles = yield* RoleSettings;
 		const voyages = yield* Voyages;
+		const openVoyage = yield* makeOpenVoyage;
 		return {
 			charterPiece: (request: CharterPieceRequest) =>
 				pieces.charter(request).pipe(
@@ -44,7 +47,7 @@ export const makeVoyageActs = (reads: VoyageReads) =>
 			landPieceVerdict: (request: PieceVerdictRequest) => pieces.landVerdict(request.pieceId, request.verdict).pipe(Effect.mapError(toFailure)),
 			launch: (pieceId: string) => pieces.launch(pieceId).pipe(Effect.mapError(toFailure)),
 			open: (request: OpenVoyageRequest) =>
-				voyages.open(request).pipe(
+				openVoyage(request).pipe(
 					Effect.mapError(toFailure),
 					Effect.flatMap((row) => reads.summaryOf(row.id)),
 				),
@@ -53,10 +56,9 @@ export const makeVoyageActs = (reads: VoyageReads) =>
 				artifacts.removeSupersession({ actor: { _tag: "admiral" }, ...request }).pipe(Effect.mapError(toFailure)),
 			rewire: (request: RewireRequest) => pieces.setDependencies(request.pieceId, request.dependsOn).pipe(Effect.mapError(toFailure)),
 			setAgentSettings: (request: VoyageAgentSettingsRequest) =>
-				voyages.setAgentSettings(request.voyageId, request.role, request).pipe(Effect.mapError(toFailure)),
-			setCaptainBackend: (request: VoyageBackendRequest) =>
-				voyages.setCaptainBackend(request.voyageId, request.backend).pipe(Effect.mapError(toFailure)),
-			setCrewBackend: (request: VoyageBackendRequest) => voyages.setCrewBackend(request.voyageId, request.backend).pipe(Effect.mapError(toFailure)),
+				voyages
+					.verifyExists(request.voyageId)
+					.pipe(Effect.andThen(roles.changeForVoyage(request.voyageId, request.role, request)), Effect.mapError(toFailure)),
 			setFocus: (voyageId: string, focused: boolean) => voyages.setFocus(voyageId, focused).pipe(Effect.mapError(toFailure)),
 			supersedeArtifact: (request: ArtifactSupersessionRequest) =>
 				artifacts.supersede({ actor: { _tag: "admiral" }, ...request }).pipe(Effect.asVoid, Effect.mapError(toFailure)),

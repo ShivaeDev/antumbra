@@ -4,6 +4,7 @@ import { it } from "@antumbra/persistence/testing";
 import { PiecesLive } from "@antumbra/pieces";
 import { ReposLive } from "@antumbra/repos";
 import { RulingsLive } from "@antumbra/rulings";
+import { RoleSettings } from "@antumbra/settings";
 import { Voyages } from "@antumbra/voyages";
 import { expect } from "@effect/vitest";
 import { Effect, Layer, Option } from "effect";
@@ -16,11 +17,12 @@ const layer = VoyageDetails.layer.pipe(
 	Layer.provideMerge(Voyages.layer),
 	Layer.provideMerge(ReposLive),
 	Layer.provideMerge(RulingsLive),
+	Layer.provideMerge(RoleSettings.layer),
 	Layer.provideMerge(DomainFeedsLive),
 );
 const read = (voyageId: string) => Effect.flatMap(VoyageDetails, (details) => details.read(voyageId)).pipe(Effect.provide(layer));
 const piece = (id: string) => ({ id, title: id, charter: id, expectation: id, role: "hand", launchedAt: new Date(1) });
-const voyage = (id: string) => ({ id, name: id, context: id, northStar: id, captainBackend: "scripted", crewBackend: "scripted" });
+const voyage = (id: string) => ({ id, name: id, context: id, northStar: id });
 const agent = (id: string, createdAt: Date) => ({ id, status: "alive", role: "captain", charter: id, createdAt });
 const root = (id: string, agentId: string, executionStatus = "idle") => ({
 	id,

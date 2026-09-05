@@ -18,7 +18,7 @@ const QuayLayer = Quay.layer.pipe(
 
 it.effectDB("reads every berthing and resolves only the originating root session", function* (db) {
 	for (const id of ["voyage-one", "voyage-two", "voyage-empty"]) {
-		yield* db.Voyage.create({ id, name: id, captainBackend: "scripted", crewBackend: "scripted", context: "reef", northStar: "chart the reef" });
+		yield* db.Voyage.create({ id, name: id, context: "reef", northStar: "chart the reef" });
 	}
 	for (const id of ["piece-one", "piece-empty"]) {
 		yield* db.Piece.create({

@@ -15,7 +15,7 @@ import type { VoyageProcedures } from "#voyages/service.ts";
 
 const openVoyage = Effect.gen(function* () {
 	const voyages = yield* Voyages;
-	return yield* voyages.open({ backend: "scripted", context: "the reef is uncharted", name: "Chart the reef", northStar: "every shoal is known" });
+	return yield* voyages.open({ context: "the reef is uncharted", name: "Chart the reef", northStar: "every shoal is known" });
 });
 
 const charter = (voyageId: string, title: string, dependsOn: ReadonlyArray<string> = []) =>

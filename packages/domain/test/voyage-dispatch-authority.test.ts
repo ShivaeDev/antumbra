@@ -46,7 +46,6 @@ it.live("dispatched crew keeps its selected Voyage authority across rebuild", ()
 			const sight = yield* makeSightSessionEvents;
 			const { alpha, voyage } = yield* chain;
 			const decoy = yield* voyageRecords.open({
-				backend: "scripted",
 				context: "the southern reef is unrelated",
 				name: "Chart the southern reef",
 				northStar: "every southern shoal is known",
@@ -136,7 +135,6 @@ it.live("Piece membership cannot supply missing Session Voyage authority", () =>
 			const boards = yield* Boards;
 			const voyageRecords = yield* Voyages;
 			const voyage = yield* voyageRecords.open({
-				backend: "scripted",
 				context: "the reef is uncharted",
 				name: "Chart the reef",
 				northStar: "every shoal is known",

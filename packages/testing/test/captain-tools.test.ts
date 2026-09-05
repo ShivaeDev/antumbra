@@ -37,7 +37,6 @@ const hailedCaptain = (scripted: ScriptedBackend, voyageId: string) =>
 const openReefVoyage = Voyages.pipe(
 	Effect.flatMap((voyageRecords) =>
 		voyageRecords.open({
-			backend: "scripted",
 			context: "the reef is uncharted",
 			name: "Chart the reef",
 			northStar: "every shoal is known",
@@ -63,7 +62,6 @@ const pieceOnAnotherVoyage = Effect.gen(function* () {
 	const pieces = yield* Pieces;
 	const voyageRecords = yield* Voyages;
 	const shoals = yield* voyageRecords.open({
-		backend: "scripted",
 		context: "the shoals are unnamed",
 		name: "Name the shoals",
 		northStar: "every shoal has a name",

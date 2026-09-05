@@ -7,6 +7,7 @@ import { BackendCapacities } from "@antumbra/provider-capacity";
 import { Repos } from "@antumbra/repos";
 import { SessionFabric } from "@antumbra/session-fabric";
 import { LiveDelegations } from "@antumbra/sessions";
+import { RoleSettings } from "@antumbra/settings";
 import { Effect, Layer, Stream } from "effect";
 import { AgentDomain } from "#agent-domain-service.ts";
 import { makeSightActs } from "#sight-acts.ts";
@@ -20,6 +21,7 @@ export const SightSourceLive = Layer.effect(SightSource)(
 	Effect.gen(function* () {
 		const changes = yield* Changes;
 		const repos = yield* Repos;
+		const roles = yield* RoleSettings;
 		const backendCapacities = yield* BackendCapacities;
 		const domain = yield* AgentDomain;
 		const fabric = yield* SessionFabric;
@@ -46,6 +48,7 @@ export const SightSourceLive = Layer.effect(SightSource)(
 			),
 			Effect.provideService(Changes, changes),
 			Effect.provideService(Repos, repos),
+			Effect.provideService(RoleSettings, roles),
 			Effect.provideService(Database, db),
 			Effect.mapError(toFailure),
 		);

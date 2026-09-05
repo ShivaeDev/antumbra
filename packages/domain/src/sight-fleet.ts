@@ -4,6 +4,7 @@ import { Database } from "@antumbra/persistence";
 import type { BackendCapacityReading } from "@antumbra/provider-capacity";
 import { Repos } from "@antumbra/repos";
 import { rootSessions } from "@antumbra/sessions";
+import { RoleSettings } from "@antumbra/settings";
 import { decodeStoredAgentStatus, decodeStoredBerthStatus, decodeStoredResourceReclaimState } from "@antumbra/vocabulary/agent-runtime";
 import { Effect } from "effect";
 import { situationsByAgent } from "#agent-situations.ts";
@@ -46,6 +47,7 @@ export const fleetSnapshot = Effect.fn("Sight.fleetSnapshot")(function* (
 		}).pipe(Effect.map((decoded) => ({ ...berth, ...decoded }))),
 	);
 	const repos = yield* registry.registered();
+	const roleSettings = yield* (yield* RoleSettings).defaults();
 	const crews = yield* db.VoyageAgent.where({ role: CAPTAIN_ROLE }).all();
 	const memberships = yield* db.VoyagePiece.where((membership) => membership.pieceId.in(pieceIds)).all();
 	const voyageIds = [...new Set([...memberships.map((membership) => membership.voyageId), ...crews.map((crew) => crew.voyageId)])];
@@ -103,5 +105,6 @@ export const fleetSnapshot = Effect.fn("Sight.fleetSnapshot")(function* (
 		})),
 		diag: { intents: attribution.loose },
 		repos,
+		roleSettings,
 	} satisfies Fleet;
 });

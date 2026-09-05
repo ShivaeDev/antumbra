@@ -22,7 +22,6 @@ const reportOnAnotherVoyage = Effect.gen(function* () {
 	const pieces = yield* Pieces;
 	const voyageRecords = yield* Voyages;
 	const shoals = yield* voyageRecords.open({
-		backend: "scripted",
 		context: "the shoals are unnamed",
 		name: "Name the shoals",
 		northStar: "every shoal has a name",

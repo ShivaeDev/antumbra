@@ -4,14 +4,14 @@ import { Voyages } from "@antumbra/voyages";
 import { expect } from "@effect/vitest";
 import { Effect, Option, PubSub } from "effect";
 
-const reef = { backend: "scripted", context: "the reef is uncharted", name: "Chart the reef", northStar: "every shoal is known" };
+const reef = { context: "the reef is uncharted", name: "Chart the reef", northStar: "every shoal is known" };
 
 it.effectApp("opens a voyage with durable direction and publishes its changes", function* ({ db }) {
 	const voyages = yield* Voyages;
 	const feeds = yield* DomainFeeds;
 	const notices = yield* feeds.subscribeVoyageRefresh();
 	const voyage = yield* voyages.open(reef);
-	expect(voyage).toMatchObject({ captainBackend: "scripted", crewBackend: "scripted", focusedAt: null, kind: "voyage", name: reef.name });
+	expect(voyage).toMatchObject({ focusedAt: null, kind: "voyage", name: reef.name });
 	expect(Option.getOrThrow(yield* db.Voyage.where({ id: voyage.id }).first())).toEqual(voyage);
 	expect(yield* PubSub.take(notices)).toBeUndefined();
 	yield* voyages.verifyExists(voyage.id);
@@ -23,29 +23,17 @@ it.effectApp("opens a voyage with durable direction and publishes its changes", 
 	expect(yield* PubSub.take(notices)).toBeUndefined();
 });
 
-it.effectApp("switches each backend without changing the other", function* ({ db }) {
-	const voyages = yield* Voyages;
-	const voyage = yield* voyages.open(reef);
-	yield* voyages.setCaptainBackend(voyage.id, "codex");
-	expect(Option.getOrThrow(yield* db.Voyage.where({ id: voyage.id }).first())).toMatchObject({ captainBackend: "codex", crewBackend: "scripted" });
-	yield* voyages.setCrewBackend(voyage.id, "claude");
-	expect(Option.getOrThrow(yield* db.Voyage.where({ id: voyage.id }).first())).toMatchObject({ captainBackend: "codex", crewBackend: "claude" });
-});
-
 it.effectApp("refuses direction changes to an absent voyage", function* () {
 	const voyages = yield* Voyages;
-	expect(yield* Effect.flip(voyages.setCaptainBackend("missing", "codex"))).toMatchObject({ _tag: "VoyageNotFound" });
-	expect(yield* Effect.flip(voyages.setCrewBackend("missing", "codex"))).toMatchObject({ _tag: "VoyageNotFound" });
 	expect(yield* Effect.flip(voyages.setFocus("missing", true))).toMatchObject({ _tag: "VoyageNotFound" });
 });
 
 it.effectApp("later boot leaves the standing flagship alone", function* ({ db }) {
 	const voyages = yield* Voyages;
 	const first = Option.getOrThrow(yield* db.Voyage.where({ kind: "flagship" }).first());
-	expect(first).toMatchObject({ name: "Flagship", captainBackend: "claude", crewBackend: "claude", focusedAt: null });
-	yield* voyages.setCaptainBackend(first.id, "codex");
+	expect(first).toMatchObject({ name: "Flagship", focusedAt: null });
 	yield* voyages.ensureFlagship(reef);
 	const standing = yield* db.Voyage.where({ kind: "flagship" }).all();
 	expect(standing).toHaveLength(1);
-	expect(standing[0]).toMatchObject({ id: first.id, captainBackend: "codex" });
+	expect(standing[0]).toMatchObject({ id: first.id });
 });

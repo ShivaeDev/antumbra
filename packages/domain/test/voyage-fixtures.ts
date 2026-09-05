@@ -40,7 +40,6 @@ export const sessionIdOf = (agentId: string) =>
 export const openReefVoyage = Effect.gen(function* () {
 	const voyageRecords = yield* Voyages;
 	return yield* voyageRecords.open({
-		backend: "scripted",
 		context: "the reef is uncharted",
 		name: "Chart the reef",
 		northStar: "every shoal is known",

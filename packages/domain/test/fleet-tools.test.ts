@@ -68,12 +68,14 @@ it.live("the flagship's captain reads every voyage in the fleet", () =>
 			expect(read.ok).toBe(true);
 			expect(read.text).toContain(`- ${FLAGSHIP_ID} Flagship [`);
 			expect(read.text).toContain(
-				`flagship · captain on scripted · crew on scripted · 0 pieces (0 unlaunched, 0 parked, 0 landed) · captain ${flagship.agentId} [alive] · last stirred 20`,
+				`flagship · captain as the fleet sets it · crew as the fleet sets it · 0 pieces (0 unlaunched, 0 parked, 0 landed) · captain ${flagship.agentId} [alive] · last stirred 20`,
 			);
 			expect(read.text).toContain(
-				`- ${reef.id} Chart the reef [quiet] · voyage · captain on scripted · crew on scripted · 2 pieces (2 unlaunched, 0 parked, 0 landed) · captain none · never stirred\n  north star: every shoal is known`,
+				`- ${reef.id} Chart the reef [quiet] · voyage · captain as the fleet sets it · crew as the fleet sets it · 2 pieces (2 unlaunched, 0 parked, 0 landed) · captain none · never stirred\n  north star: every shoal is known`,
 			);
 			expect(read.text).toContain("# Backends\n\n- scripted\n  haiku (default) · efforts low, high\n  opus · efforts high, max");
+			expect(read.text).toContain("# Roles\n\nEvery voyage sails on these unless it names its own.");
+			expect(read.text).toContain("- flagship on scripted\n- captain on scripted\n- crew on scripted");
 		}),
 	),
 );

@@ -65,6 +65,7 @@ export const world = (over: Partial<VoyageDetailRows>): VoyageDetailRows => ({
 	rulingGates: [],
 	pieces: [piece("alpha")],
 	reports: new Map(),
+	roleSettings: new Map(),
 	repos: new Map(),
 	sessions: [],
 	...over,

@@ -11,7 +11,6 @@ it.effectApp("an agent reads a voyage it names", function* () {
 	const voyageRecords = yield* Voyages;
 	const compile = yield* makeVoyageReadingToolCompiler;
 	const shoals = yield* voyageRecords.open({
-		backend: "scripted",
 		context: "the shoals are unnamed",
 		name: "Name the shoals",
 		northStar: "every shoal has a name",

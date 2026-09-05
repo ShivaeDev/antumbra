@@ -10,20 +10,19 @@ import {
 import type { AgentBackend, DirectTool } from "@antumbra/plugin-api";
 import { type RegisteredRepo, Repos } from "@antumbra/repos";
 import { type Ruling, type RulingProclamation, Rulings } from "@antumbra/rulings";
+import { type ResolvedAgentSettings, RoleSettings } from "@antumbra/settings";
 import { AGENT_BACKEND_TAGS, AgentBackendTagSchema } from "@antumbra/vocabulary/agent-backend";
-import { Voyages } from "@antumbra/voyages";
 import { Effect, Schema } from "effect";
 import { makeBackendModels } from "#backend-models.ts";
 import { makeCaptainToolCompiler } from "#captain-tools.ts";
 import { makeReportingCharter, withNotice } from "#charter-notice.ts";
 import { renderFleet, rolePart } from "#fleet-render.ts";
 import type { HailedCaptain } from "#hail.ts";
+import { makeOpenVoyage } from "#open-voyage.ts";
 import { tagSubjects } from "#ruling-inputs.ts";
 import { answered, refused } from "#tool-answers.ts";
 import type { SessionIdentity } from "#tool-identity.ts";
 import { VoyageProcedureService } from "#voyages/service.ts";
-
-const [FIRST_BACKEND] = AGENT_BACKEND_TAGS;
 
 type VoyageAsked = (typeof openVoyageSpec)["input"]["Type"];
 
@@ -33,19 +32,6 @@ const isBackendTag = Schema.is(AgentBackendTagSchema);
 
 const unknownBackend = (input: VoyageAsked): string | undefined =>
 	[input.captainBackend, input.crewBackend].find((tag) => tag !== undefined && !isBackendTag(tag));
-
-const openRequest = (input: VoyageAsked) => ({
-	backend: FIRST_BACKEND,
-	captainBackend: input.captainBackend,
-	captainEffort: input.captainEffort,
-	captainModel: input.captainModel,
-	context: input.context,
-	crewBackend: input.crewBackend,
-	crewEffort: input.crewEffort,
-	crewModel: input.crewModel,
-	name: input.name,
-	northStar: input.northStar,
-});
 
 const backendUnnamed = (tag: string): string =>
 	`${openVoyageSpec.name}: the fleet has no backend named ${tag} — it names ${AGENT_BACKEND_TAGS.join(", ")}`;
@@ -70,21 +56,21 @@ const proclaimed = (ruling: Ruling): string =>
 	`ruling ${ruling.id} proclaimed by the flagship — it binds the whole fleet until the admiral supersedes it`;
 
 interface OpenedVoyage {
-	readonly captainBackend: string;
-	readonly captainEffort: string | null;
-	readonly captainModel: string | null;
-	readonly crewBackend: string;
-	readonly crewEffort: string | null;
-	readonly crewModel: string | null;
+	readonly captain: ResolvedAgentSettings;
+	readonly crew: ResolvedAgentSettings;
 	readonly id: string;
 }
 
+const sailing = (settings: ResolvedAgentSettings) => ({
+	backend: settings.backend,
+	effort: settings.effort ?? null,
+	model: settings.model ?? null,
+});
+
 const opened = (voyage: OpenedVoyage): string =>
-	[
-		`opened voyage ${voyage.id}`,
-		rolePart("captain", voyage.captainBackend, voyage.captainModel, voyage.captainEffort),
-		rolePart("crew", voyage.crewBackend, voyage.crewModel, voyage.crewEffort),
-	].join(" · ");
+	[`opened voyage ${voyage.id}`, rolePart("captain", sailing(voyage.captain), "unnamed"), rolePart("crew", sailing(voyage.crew), "unnamed")].join(
+		" · ",
+	);
 
 const registered = (known: boolean, repo: RegisteredRepo): string =>
 	`${known ? "already registered" : "registered"} repo ${repo.id} ${repo.name} · ${repo.source} · default ref ${repo.defaultRef}`;
@@ -96,11 +82,13 @@ export const makeFleetToolCompiler = (backends: ReadonlyMap<string, AgentBackend
 		const repos = yield* Repos;
 		const rulings = yield* Rulings;
 		const procedures = yield* VoyageProcedureService;
-		const voyages = yield* Voyages;
+		const roles = yield* RoleSettings;
+		const openVoyage = yield* makeOpenVoyage;
 		const listModels = makeBackendModels(backends);
 		const readFleet = Effect.all({
 			backends: Effect.forEach([...backends.keys()], (tag) => Effect.map(listModels(tag), (models) => ({ models, tag }))),
 			repos: repos.registered(),
+			roles: roles.defaults(),
 			voyages: procedures.list(),
 		});
 		const registerRepo = (registration: Registration) =>
@@ -108,16 +96,21 @@ export const makeFleetToolCompiler = (backends: ReadonlyMap<string, AgentBackend
 				const known = (yield* repos.registered()).some((row) => row.source === registration.source);
 				return { known, repo: yield* repos.register(registration) };
 			});
-		const openVoyage = (identity: SessionIdentity, input: VoyageAsked) => {
+		const sailingAs = (voyageId: string) =>
+			Effect.all({ captain: roles.resolve(voyageId, "captain"), crew: roles.resolve(voyageId, "crew") }).pipe(
+				Effect.map((settings) => ({ ...settings, id: voyageId })),
+			);
+		const openAsked = (input: VoyageAsked) => Effect.flatMap(openVoyage(input), (voyage) => sailingAs(voyage.id));
+		const openTool = (identity: SessionIdentity, input: VoyageAsked) => {
 			const unknown = unknownBackend(input);
 			return unknown === undefined
-				? answered(identity, openVoyageSpec.name, voyages.open(openRequest(input)), opened)
+				? answered(identity, openVoyageSpec.name, openAsked(input), opened)
 				: Effect.succeed(refused(backendUnnamed(unknown)));
 		};
 		const fleetActs = (identity: SessionIdentity): ReadonlyArray<DirectTool> => [
 			bind(readFleetSpec, () => answered(identity, readFleetSpec.name, readFleet, renderFleet)),
 			bind(registerRepoSpec, (input) => answered(identity, registerRepoSpec.name, registerRepo(input), ({ known, repo }) => registered(known, repo))),
-			bind(openVoyageSpec, (input) => openVoyage(identity, input)),
+			bind(openVoyageSpec, (input) => openTool(identity, input)),
 			bind(charterVoyagePieceSpec, (input) =>
 				answered(
 					identity,

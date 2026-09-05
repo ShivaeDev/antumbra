@@ -11,6 +11,7 @@ import { RulingHoldsLive } from "@antumbra/rulings/holds/service";
 import { RulingReplies } from "@antumbra/rulings/replies/service";
 import { SessionEventJournalLive } from "@antumbra/session-event-journal";
 import { SessionTrees } from "@antumbra/sessions/tree/service";
+import { RoleSettings } from "@antumbra/settings";
 import { Voyages } from "@antumbra/voyages";
 import { VoyageAuthority } from "@antumbra/voyages/authority/service";
 import { Layer } from "effect";
@@ -38,7 +39,7 @@ export const domainCapabilities = (
 		SessionEventJournalLive,
 		SessionTrees.layer,
 		sessionReachLayer,
-	).pipe(Layer.provideMerge(Voyages.layer), Layer.provideMerge(DomainFeedsLive));
+	).pipe(Layer.provideMerge(Voyages.layer), Layer.provideMerge(RoleSettings.layer), Layer.provideMerge(DomainFeedsLive));
 	const changes = changesLayer(changeHosts, runners).pipe(Layer.provideMerge(foundations));
 	const world = Layer.mergeAll(VoyageSummaries.layer, ExecutionSource.layer, Quay.layer, VoyageDetails.layer).pipe(Layer.provideMerge(changes));
 	return Layer.mergeAll(RulingReplies.layer, CaptainMembershipLive, VoyageProcedureService.layer).pipe(Layer.provideMerge(world));

@@ -11,9 +11,7 @@ export const FLAGSHIP_ID = "voyage-flagship";
 export const openFlagship = Effect.gen(function* () {
 	const db = yield* Database;
 	yield* db.Voyage.create({
-		captainBackend: "scripted",
 		context: "Fleet-level rulings and findings belong here.",
-		crewBackend: "scripted",
 		focusedAt: null,
 		id: FLAGSHIP_ID,
 		kind: "flagship",

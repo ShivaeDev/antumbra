@@ -2,6 +2,7 @@ import type {
 	ModelChoice,
 	RepoRegistration,
 	RepoSummary,
+	RoleSettings as RoleSettingsChoice,
 	SessionImage,
 	SessionImageRequest,
 	SessionInputReceipt,
@@ -18,6 +19,7 @@ import { Repos } from "@antumbra/repos";
 import { SessionFabric } from "@antumbra/session-fabric";
 import { SessionInputs } from "@antumbra/session-inputs";
 import { SessionSend } from "@antumbra/sessions/send/service";
+import { RoleSettings } from "@antumbra/settings";
 import { Effect } from "effect";
 import { AgentDomain } from "#agent-domain-service.ts";
 import { makeRetryBackendCapacity } from "#backend-capacity-retry.ts";
@@ -37,6 +39,7 @@ interface SightActs {
 	readonly send: (sessionId: string, text: string) => Effect.Effect<void, SightFailure>;
 	readonly sendInput: (request: SessionInputRequest) => Effect.Effect<SessionInputReceipt, SightFailure>;
 	readonly sessionImage: (request: SessionImageRequest) => Effect.Effect<SessionImage, SightFailure>;
+	readonly setRoleSettings: (settings: RoleSettingsChoice) => Effect.Effect<void, SightFailure>;
 	readonly situationDraft: (draft: SituationDraft) => Effect.Effect<string, SightFailure>;
 	readonly sleep: (sessionId: string) => Effect.Effect<void, SightFailure>;
 	readonly spawn: (request: SpawnRequest) => Effect.Effect<SpawnReceipt, SightFailure>;
@@ -52,6 +55,7 @@ export const makeSightActs = Effect.gen(function* () {
 	const inputs = yield* SessionInputs;
 	const draft = yield* makeSituationDraft();
 	const retryBackend = yield* makeRetryBackendCapacity;
+	const roles = yield* RoleSettings;
 
 	return {
 		backendModels: (backend) => domain.listModels(backend).pipe(Effect.mapError(toFailure)),
@@ -79,6 +83,7 @@ export const makeSightActs = Effect.gen(function* () {
 				Effect.mapError(toFailure),
 			),
 		sessionImage: (request) => inputs.image(request).pipe(Effect.mapError(toFailure)),
+		setRoleSettings: (settings) => roles.changeDefault(settings.role, settings).pipe(Effect.mapError(toFailure)),
 		situationDraft: (request) => draft(request).pipe(Effect.mapError(toFailure)),
 		sleep: (sessionId) => kernel.submit(domain.siesta, { sessionId }).pipe(Effect.asVoid, Effect.mapError(toFailure)),
 		spawn: (request) =>

@@ -20,18 +20,13 @@ it.live("the flagship's captain opens a voyage on the fleet's default", () =>
 			}).all())[0];
 			expect(outcome).toEqual({
 				ok: true,
-				text: `opened voyage ${opened?.id} · captain on claude · crew on claude`,
+				text: `opened voyage ${opened?.id} · captain on scripted · crew on scripted`,
 			});
-			expect(opened).toMatchObject({
-				captainBackend: "claude",
-				captainEffort: null,
-				captainModel: null,
-				crewBackend: "claude",
-				crewEffort: null,
-				crewModel: null,
-				kind: "voyage",
-				northStar: "every shoal has a name",
-			});
+			expect(opened).toMatchObject({ kind: "voyage", northStar: "every shoal has a name" });
+			expect(yield* db.AgentRoleSettings.where({ scope: opened?.id ?? "" }).all()).toMatchObject([
+				{ backend: null, effort: null, model: null, role: "captain" },
+				{ backend: null, effort: null, model: null, role: "crew" },
+			]);
 		}),
 	),
 );
@@ -60,14 +55,10 @@ it.live("a voyage opens on the backend, model and effort the admiral named for e
 				ok: true,
 				text: `opened voyage ${opened?.id} · captain on claude with opus at high effort · crew on codex with gpt-5 at medium effort`,
 			});
-			expect(opened).toMatchObject({
-				captainBackend: "claude",
-				captainEffort: "high",
-				captainModel: "opus",
-				crewBackend: "codex",
-				crewEffort: "medium",
-				crewModel: "gpt-5",
-			});
+			expect(yield* db.AgentRoleSettings.where({ scope: opened?.id ?? "" }).all()).toMatchObject([
+				{ backend: "claude", effort: "high", model: "opus", role: "captain" },
+				{ backend: "codex", effort: "medium", model: "gpt-5", role: "crew" },
+			]);
 		}),
 	),
 );

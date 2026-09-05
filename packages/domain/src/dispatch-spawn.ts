@@ -1,5 +1,5 @@
 import { type IntentStatus, type IntentSubmission, isTerminalIntentStatus } from "@antumbra/kernel";
-import { agentSettingsOf } from "@antumbra/voyages/agent-settings";
+import type { ResolvedAgentSettings } from "@antumbra/settings";
 import { Effect, Option, Queue, Stream } from "effect";
 import { charterFor } from "#crew-charter.ts";
 import { accountOfIntent } from "#dispatch-failure-account.ts";
@@ -15,7 +15,7 @@ export interface DispatchPort {
 	readonly submit: (payload: SpawnFields) => Effect.Effect<IntentSubmission, SpawnRefused, never>;
 }
 
-type DispatchTarget = { readonly _tag: "resume"; readonly sessionId: string } | { readonly _tag: "spawn" };
+type DispatchTarget = { readonly _tag: "resume"; readonly sessionId: string } | { readonly _tag: "spawn"; readonly settings: ResolvedAgentSettings };
 
 const settle = (port: DispatchPort, pieceId: string, intentId: string, status: Option.Option<IntentStatus>) =>
 	Effect.gen(function* () {
@@ -65,8 +65,7 @@ export const dispatchPiece = (port: DispatchPort, candidate: ReadyPiece, target:
 		const agentId = crypto.randomUUID();
 		const submission = yield* port.submit({
 			agentId,
-			backend: candidate.voyage.crewBackend,
-			...agentSettingsOf(candidate.voyage, "crew"),
+			...target.settings,
 			charter: yield* charterFor(candidate.piece, candidate.voyage, agentId),
 			pieceId,
 			runner: "local",

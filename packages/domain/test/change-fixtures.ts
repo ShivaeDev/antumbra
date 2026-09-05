@@ -82,7 +82,6 @@ export const reefWithPiece = Effect.gen(function* () {
 		source: REEF_SOURCE,
 	});
 	const voyage = yield* voyageRecords.open({
-		backend: "scripted",
 		context: "the reef is uncharted",
 		name: "Chart the reef",
 		northStar: "every shoal is known",

@@ -25,7 +25,9 @@
 		"@antumbra/pieces": "workspace:*",
 		"@antumbra/voyages": "workspace:*",
 		"@antumbra/boards": "workspace:*",
-		"@antumbra/repos": "workspace:*"
+		"@antumbra/repos": "workspace:*",
+		"@antumbra/settings": "workspace:*",
+		"@antumbra/vocabulary": "workspace:*"
 	},
 	"dependencies": {
 		"@antumbra/domain": "workspace:*",

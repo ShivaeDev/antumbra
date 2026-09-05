@@ -40,7 +40,6 @@ it.live("crew open a change through the tool and hear where it lives", () =>
 			const voyageRecords = yield* Voyages;
 			yield* repos.register({ defaultRef: "main", source: REEF_SOURCE });
 			const voyage = yield* voyageRecords.open({
-				backend: "scripted",
 				context: "the reef is uncharted",
 				name: "Chart the reef",
 				northStar: "every shoal is known",

@@ -68,13 +68,9 @@ const countsSeen = (counts: DerivedCounts): PieceCounts => ({
 
 export const summarySeen = (summary: DerivedSummary): VoyageSummary => ({
 	captain: Option.getOrNull(summary.captain),
-	captainBackend: summary.captainBackend,
-	captainEffort: summary.captainEffort,
-	captainModel: summary.captainModel,
+	captainSettings: summary.captainSettings,
 	counts: countsSeen(summary.counts),
-	crewBackend: summary.crewBackend,
-	crewEffort: summary.crewEffort,
-	crewModel: summary.crewModel,
+	crewSettings: summary.crewSettings,
 	focusedAt: stamp(summary.focusedAt),
 	id: summary.id,
 	kind: summary.kind,

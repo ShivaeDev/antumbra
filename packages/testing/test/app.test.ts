@@ -19,9 +19,7 @@ it.effectApp("keeps both Board registers in write order", function* ({ db }) {
 	const boards = yield* Boards;
 	const voyageId = "testing-board-voyage";
 	yield* db.Voyage.create({
-		captainBackend: "scripted",
 		context: "the reef is uncharted",
-		crewBackend: "scripted",
 		id: voyageId,
 		name: "Chart the reef",
 		northStar: "every shoal is known",

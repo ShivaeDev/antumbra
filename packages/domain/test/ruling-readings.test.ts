@@ -21,7 +21,6 @@ const HAND: SpawnFields = {
 const anotherVoyage = Effect.gen(function* () {
 	const voyageRecords = yield* Voyages;
 	return yield* voyageRecords.open({
-		backend: "scripted",
 		context: "the shoals are unnamed",
 		name: "Name the shoals",
 		northStar: "every shoal has a name",

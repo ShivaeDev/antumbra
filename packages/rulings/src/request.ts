@@ -4,18 +4,10 @@ import { Clock, Effect } from "effect";
 import type { RulingRequest } from "#acts.ts";
 import { appendGate, requirePiece } from "#gate-rows.ts";
 import { loadRuling } from "#read.ts";
+import { offeredChoices } from "#recommendation.ts";
 import { requesterColumns } from "#requester.ts";
 import type { StoredRuling } from "#stored-rows.ts";
 import { subjectRow, verifySubject } from "#subjects.ts";
-
-const choiceRows = (rulingId: string, input: RulingRequest) =>
-	input.choices.map((choice, position) => ({
-		detail: choice.detail ?? null,
-		id: crypto.randomUUID(),
-		label: choice.label,
-		position,
-		rulingId,
-	}));
 
 export const requested = (input: RulingRequest, nowMillis: number): StoredRuling => ({
 	answer: null,
@@ -26,6 +18,8 @@ export const requested = (input: RulingRequest, nowMillis: number): StoredRuling
 	id: crypto.randomUUID(),
 	question: input.question,
 	radius: input.radius,
+	recommendationReasoning: input.recommendation?.reasoning ?? null,
+	recommendedChoiceId: null,
 	...requesterColumns(input.requester),
 	ruledAt: null,
 	ruledBy: null,
@@ -45,11 +39,13 @@ export const writeRequest = (row: StoredRuling, input: RulingRequest) =>
 		const db = yield* Database;
 		yield* Effect.forEach(input.subjects, verifySubject);
 		yield* Effect.forEach(input.gates, requirePiece);
-		yield* db.Ruling.create(row);
-		yield* Effect.forEach(choiceRows(row.id, input), (choice) => db.RulingChoice.create(choice));
+		const offered = yield* offeredChoices(row.id, input);
+		const asked = { ...row, recommendedChoiceId: offered.recommendedChoiceId };
+		yield* db.Ruling.create(asked);
+		yield* Effect.forEach(offered.rows, (choice) => db.RulingChoice.create(choice));
 		yield* Effect.forEach(input.subjects, (subject) => db.RulingSubject.create(subjectRow(row.id, subject)));
 		yield* Effect.forEach(input.gates, (pieceId) => appendGate(row.id, pieceId));
-		return yield* loadRuling(row);
+		return yield* loadRuling(asked);
 	});
 
 export const request = Effect.fn("Rulings.request")(function* (input: RulingRequest) {

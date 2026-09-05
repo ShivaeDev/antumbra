@@ -31,6 +31,7 @@ export const soundingReading: RulingView = {
 			urgency: "blocking",
 		},
 	],
+	recommendation: { choiceId: "choice-1", reasoning: "a sounding taken this week outranks a chart printed years ago" },
 	requestedAt: "2026-08-15T09:40:00.000Z",
 	requester: { agentId: "agent-2", kind: "agent" },
 	rung: {
@@ -43,6 +44,7 @@ export const soundingReading: RulingView = {
 		{ kind: "tag", label: "surveying" },
 	],
 	urgency: "blocking",
+	voyage: { id: "voyage-1", name: "Chart the reef" },
 };
 
 export const berthNaming: RulingView = {
@@ -54,11 +56,13 @@ export const berthNaming: RulingView = {
 	question: "What do we call the branch a berth is cut from?",
 	radius: "fleet",
 	reclassifications: [],
+	recommendation: null,
 	requestedAt: "2026-08-15T08:10:00.000Z",
 	requester: { agentId: "agent-1", kind: "agent" },
 	rung: { kind: "flagship" },
 	subjects: [{ kind: "repo", label: "repo-1" }],
 	urgency: "eventual",
+	voyage: null,
 };
 
 export const openRulings: OpenRulingsView = {

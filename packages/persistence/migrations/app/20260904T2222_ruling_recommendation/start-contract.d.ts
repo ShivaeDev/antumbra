@@ -16,7 +16,7 @@ import type {
 } from '@prisma-next/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'sha256:70ede805e551115c3ac012e70a57e8c52b14ace94d31912b4e9dbfed9c2f1486'>;
+  StorageHashBase<'sha256:b39bd2f5dba5aa1699755a4a8ea4c3a9c079042454911c18090109c8c0faae4c'>;
 export type ExecutionHash = ExecutionHashBase<string>;
 export type ProfileHash =
   ProfileHashBase<'sha256:3cc333ecad9f3f4c7229370a9d2c37e908cdce0f8d2e9fb132d50605b024eff2'>;
@@ -242,8 +242,6 @@ export type FieldOutputTypes = {
       readonly question: CodecTypes['sqlite/text@1']['output'];
       readonly answer: CodecTypes['sqlite/text@1']['output'] | null;
       readonly answerChoiceId: CodecTypes['sqlite/text@1']['output'] | null;
-      readonly recommendedChoiceId: CodecTypes['sqlite/text@1']['output'] | null;
-      readonly recommendationReasoning: CodecTypes['sqlite/text@1']['output'] | null;
       readonly ruledBy: CodecTypes['sqlite/text@1']['output'] | null;
       readonly ruledByAgentId: CodecTypes['sqlite/text@1']['output'] | null;
       readonly ruledAt: CodecTypes['sqlite/datetime@1']['output'] | null;
@@ -562,8 +560,6 @@ export type FieldInputTypes = {
       readonly question: CodecTypes['sqlite/text@1']['input'];
       readonly answer: CodecTypes['sqlite/text@1']['input'] | null;
       readonly answerChoiceId: CodecTypes['sqlite/text@1']['input'] | null;
-      readonly recommendedChoiceId: CodecTypes['sqlite/text@1']['input'] | null;
-      readonly recommendationReasoning: CodecTypes['sqlite/text@1']['input'] | null;
       readonly ruledBy: CodecTypes['sqlite/text@1']['input'] | null;
       readonly ruledByAgentId: CodecTypes['sqlite/text@1']['input'] | null;
       readonly ruledAt: CodecTypes['sqlite/datetime@1']['input'] | null;
@@ -881,8 +877,6 @@ export type StorageColumnTypes = {
       readonly id: CodecTypes['sqlite/text@1']['output'];
       readonly question: CodecTypes['sqlite/text@1']['output'];
       readonly radius: CodecTypes['sqlite/text@1']['output'];
-      readonly recommendationReasoning: CodecTypes['sqlite/text@1']['output'] | null;
-      readonly recommendedChoiceId: CodecTypes['sqlite/text@1']['output'] | null;
       readonly requesterAgentId: CodecTypes['sqlite/text@1']['output'] | null;
       readonly requesterAuthority: CodecTypes['sqlite/text@1']['output'] | null;
       readonly ruledAt: CodecTypes['sqlite/datetime@1']['output'] | null;
@@ -1201,8 +1195,6 @@ export type StorageColumnInputTypes = {
       readonly id: CodecTypes['sqlite/text@1']['input'];
       readonly question: CodecTypes['sqlite/text@1']['input'];
       readonly radius: CodecTypes['sqlite/text@1']['input'];
-      readonly recommendationReasoning: CodecTypes['sqlite/text@1']['input'] | null;
-      readonly recommendedChoiceId: CodecTypes['sqlite/text@1']['input'] | null;
       readonly requesterAgentId: CodecTypes['sqlite/text@1']['input'] | null;
       readonly requesterAuthority: CodecTypes['sqlite/text@1']['input'] | null;
       readonly ruledAt: CodecTypes['sqlite/datetime@1']['input'] | null;
@@ -2481,16 +2473,6 @@ type ContractBase = Omit<
                   readonly nullable: true;
                 };
                 readonly answerChoiceId: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'sqlite/text@1';
-                  readonly nullable: true;
-                };
-                readonly recommendedChoiceId: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'sqlite/text@1';
-                  readonly nullable: true;
-                };
-                readonly recommendationReasoning: {
                   readonly nativeType: 'text';
                   readonly codecId: 'sqlite/text@1';
                   readonly nullable: true;
@@ -4695,14 +4677,6 @@ type ContractBase = Omit<
                 readonly nullable: true;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
               };
-              readonly recommendedChoiceId: {
-                readonly nullable: true;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
-              };
-              readonly recommendationReasoning: {
-                readonly nullable: true;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
-              };
               readonly ruledBy: {
                 readonly nullable: true;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
@@ -4866,8 +4840,6 @@ type ContractBase = Omit<
                 readonly question: { readonly column: 'question' };
                 readonly answer: { readonly column: 'answer' };
                 readonly answerChoiceId: { readonly column: 'answerChoiceId' };
-                readonly recommendedChoiceId: { readonly column: 'recommendedChoiceId' };
-                readonly recommendationReasoning: { readonly column: 'recommendationReasoning' };
                 readonly ruledBy: { readonly column: 'ruledBy' };
                 readonly ruledByAgentId: { readonly column: 'ruledByAgentId' };
                 readonly ruledAt: { readonly column: 'ruledAt' };

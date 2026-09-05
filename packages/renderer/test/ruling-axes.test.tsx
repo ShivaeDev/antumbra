@@ -43,11 +43,13 @@ const moved: RulingView = {
 			urgency: "blocking",
 		},
 	],
+	recommendation: null,
 	requestedAt: "2026-08-15T09:40:00.000Z",
 	requester: { agentId: "agent-surveyor", kind: "agent" },
 	rung: { kind: "admiral" },
 	subjects: [],
 	urgency: "blocking",
+	voyage: null,
 };
 
 const unmoved: RulingView = {
@@ -59,11 +61,13 @@ const unmoved: RulingView = {
 	question: "What do we call the branch a berth is cut from?",
 	radius: "fleet",
 	reclassifications: [],
+	recommendation: null,
 	requestedAt: "2026-08-15T08:10:00.000Z",
 	requester: { agentId: "agent-bosun", kind: "agent" },
 	rung: { kind: "flagship" },
 	subjects: [],
 	urgency: "eventual",
+	voyage: null,
 };
 
 const settle = (change: () => void): Effect.Effect<void> =>

@@ -8,23 +8,22 @@ import { part, SESSION, spoke, status, textPart } from "#test/frames.ts";
 
 const PROMPT = `/session/${SESSION}/prompt_async`;
 
-const options = (resume: Option.Option<string> = Option.none()): OpenSessionOptions => ({
+const options = (chosen: Partial<OpenSessionOptions> = {}): OpenSessionOptions => ({
 	cwd: "/moorage",
 	effort: Option.none(),
 	model: Option.none(),
-	resume,
+	resume: Option.none(),
 	sessionId: "antumbra-session",
 	tools: [],
+	...chosen,
 });
 
 const words = (text: string) => ({
 	parts: [{ text, type: "text" }] as const,
 });
 
-const opened = (fake: FakeOpencode, resume?: string) =>
-	makeOpencodeServer(fake.connect).pipe(
-		Effect.flatMap((server) => openOpencodeSession(server, options(resume === undefined ? Option.none() : Option.some(resume)))),
-	);
+const opened = (fake: FakeOpencode, chosen: Partial<OpenSessionOptions> = {}) =>
+	makeOpencodeServer(fake.connect).pipe(Effect.flatMap((server) => openOpencodeSession(server, options(chosen))));
 
 it.effect("opens a session and reports the id opencode minted for it", () =>
 	Effect.scoped(
@@ -42,7 +41,7 @@ it.effect("resumes by reading the session rather than creating another", () =>
 	Effect.scoped(
 		Effect.gen(function* () {
 			const fake = makeFakeOpencode();
-			const handle = yield* opened(fake, SESSION);
+			const handle = yield* opened(fake, { resume: Option.some(SESSION) });
 			expect(fake.calls.map((call) => call.path)).toEqual([`/session/${SESSION}`]);
 			expect(yield* handle.nativeRef).toEqual(Option.some(SESSION));
 		}),
@@ -79,6 +78,32 @@ it.effect("sends a prompt straight away when the session is not working", () =>
 			const handle = yield* opened(fake);
 			yield* handle.queue(words("go on then"));
 			expect(spoken(fake)).toEqual([JSON.stringify({ parts: [{ text: "go on then", type: "text" }] })]);
+		}),
+	),
+);
+
+it.effect("carries the voyage's model and effort on the prompt", () =>
+	Effect.scoped(
+		Effect.gen(function* () {
+			const fake = makeFakeOpencode();
+			const handle = yield* opened(fake, { effort: Option.some("high"), model: Option.some("opencode-go/gpt-5.6-luna") });
+			yield* handle.queue(words("go on then"));
+			expect(spoken(fake)).toEqual([
+				JSON.stringify({
+					model: { modelID: "gpt-5.6-luna", providerID: "opencode-go" },
+					variant: "high",
+					parts: [{ text: "go on then", type: "text" }],
+				}),
+			]);
+		}),
+	),
+);
+
+it.effect("refuses to open on a model that names no provider", () =>
+	Effect.scoped(
+		Effect.gen(function* () {
+			const outcome = yield* Effect.exit(opened(makeFakeOpencode(), { model: Option.some("gpt-5.6-luna") }));
+			expect(outcome._tag).toBe("Failure");
 		}),
 	),
 );

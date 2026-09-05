@@ -4,6 +4,7 @@ import { expect } from "@effect/vitest";
 import { Effect, Option } from "effect";
 import { journalOf, scriptedLane, seedAgent, seedSession, sessionRow, treeLayer } from "#test/tree/fixture.ts";
 import { makeSessionTreeAudits } from "#tree/audit.ts";
+import { makeSessionTreeSweeps } from "#tree/sweeps.ts";
 
 const AGENT = "agent-audited";
 const ROOT = "session-root";
@@ -105,5 +106,38 @@ it.effectDB("a node still being written to has nothing to audit yet", function* 
 
 		expect(yield* completenessOf(NODE)).toBe("recording");
 		expect(yield* lane.readings).toBe(0);
+	}).pipe(Effect.provide(treeLayer));
+});
+
+it.effectDB("closure audits its node and reconnection finishes only its closed unfinished nodes", function* () {
+	yield* Effect.gen(function* () {
+		const lane = yield* scriptedLane([missedLine]);
+		const makeSweeps = yield* makeSessionTreeSweeps;
+		yield* seedTree("recording");
+		yield* seedAgent("other-agent");
+		yield* seedSession({ agentId: "other-agent", id: "other-root", nativeRef: "other-root", rootSessionId: "other-root" });
+		for (const node of [
+			{ id: "stale", rootSessionId: ROOT, status: "closed" },
+			{ id: "writing", rootSessionId: ROOT, status: "open" },
+			{ id: "foreign", rootSessionId: "other-root", status: "closed" },
+		]) {
+			yield* seedSession({
+				...node,
+				agentId: node.rootSessionId === ROOT ? AGENT : "other-agent",
+				nativeRef: node.id,
+				parentSessionId: node.rootSessionId,
+			});
+		}
+		const sweeps = yield* makeSweeps(lane.audit, ROOT, () => Effect.void);
+		const record = () => Effect.succeed(false);
+		yield* sweeps.closed(NODE, record);
+		expect(yield* completenessOf(NODE)).toBe("incomplete");
+		expect(yield* completenessOf("stale")).toBe("recording");
+		yield* sweeps.closed("foreign", record);
+		yield* sweeps.reconnected(record);
+		expect(yield* completenessOf("stale")).toBe("incomplete");
+		expect(yield* completenessOf("writing")).toBe("recording");
+		expect(yield* completenessOf("foreign")).toBe("recording");
+		expect(yield* journalOf(NODE)).toHaveLength(1);
 	}).pipe(Effect.provide(treeLayer));
 });

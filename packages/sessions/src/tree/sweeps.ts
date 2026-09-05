@@ -56,10 +56,9 @@ export const makeSessionTreeSweeps = Effect.gen(function* () {
 					if (Option.isNone(found)) {
 						return;
 					}
-					const nodes = yield* ledger.nodeRows(found.value.id);
-					const node = nodes.find((row) => row.id === sessionId);
-					if (node !== undefined) {
-						yield* audits.audit(lane, found.value, node);
+					const node = yield* ledger.nodeById(found.value.id, sessionId);
+					if (Option.isSome(node)) {
+						yield* audits.audit(lane, found.value, node.value);
 					}
 					yield* census(found.value, record);
 				});
@@ -70,8 +69,7 @@ export const makeSessionTreeSweeps = Effect.gen(function* () {
 						return;
 					}
 					yield* census(found.value, record);
-					const nodes = yield* ledger.nodeRows(found.value.id);
-					const stale = nodes.filter((node) => node.status === "closed" && node.completeness === "recording");
+					const stale = yield* ledger.awaitingAudit(found.value.id);
 					yield* Effect.forEach(stale, (node) => audits.audit(lane, found.value, node), { concurrency: 1, discard: true });
 				});
 			return { closed, reconnected };

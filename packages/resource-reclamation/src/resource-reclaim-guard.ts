@@ -33,19 +33,25 @@ export const ensureAgentResourcesUnclaimed = Effect.fn("ResourceReclamation.ensu
 	yield* Effect.forEach(berths, (berth) => claimed("Berth", berth.id, agentId, berth.reclaimState));
 });
 
+const ensureStoredBerthUnclaimed = Effect.fnUntraced(function* (berth: {
+	readonly id: string;
+	readonly agentId: string;
+	readonly reclaimState: string | null;
+}) {
+	const db = yield* Database;
+	yield* claimed("Berth", berth.id, berth.agentId, berth.reclaimState);
+	const moorage = yield* db.Moorage.where({
+		agentId: berth.agentId,
+	}).first();
+	if (Option.isSome(moorage)) {
+		yield* claimed("Moorage", moorage.value.agentId, berth.agentId, moorage.value.reclaimState);
+	}
+});
+
 export const ensureBerthResourcesUnclaimed = Effect.fn("ResourceReclamation.ensureBerthResourcesUnclaimed")(function* (berthId: string) {
 	const db = yield* Database;
 	const berth = yield* db.Berth.where({ id: berthId }).first();
-	if (Option.isNone(berth)) {
-		return;
-	}
-	yield* claimed("Berth", berth.value.id, berth.value.agentId, berth.value.reclaimState);
-	const moorage = yield* db.Moorage.where({
-		agentId: berth.value.agentId,
-	}).first();
-	if (Option.isSome(moorage)) {
-		yield* claimed("Moorage", moorage.value.agentId, berth.value.agentId, moorage.value.reclaimState);
-	}
+	if (Option.isSome(berth)) yield* ensureStoredBerthUnclaimed(berth.value);
 });
 
 export const ensureAgentCanOwnLocalWork = (agentId: string) =>
@@ -57,5 +63,5 @@ export const ensureBranchResourcesUnclaimed = Effect.fn("ResourceReclamation.ens
 ) {
 	const db = yield* Database;
 	const berths = yield* db.Berth.where({ branch, source }).all();
-	yield* Effect.forEach(berths, (berth) => ensureBerthResourcesUnclaimed(berth.id));
+	yield* Effect.forEach(berths, ensureStoredBerthUnclaimed);
 });

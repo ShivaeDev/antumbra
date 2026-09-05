@@ -6,6 +6,13 @@ import { Effect, Option } from "effect";
 import { SmoothingPassFailed } from "#errors.ts";
 import { makeSmoothingMaterial } from "#smoothing/material.ts";
 import { makeSmootherSession } from "#smoothing/session.ts";
+import type { SummaryWritten } from "#smoothing/summary-tool.ts";
+
+const DETAIL: Record<SummaryWritten["_tag"], string> = {
+	silent: "the smoother wrote no summary",
+	timedOut: "the smoother did not answer in time",
+	written: "the smoother wrote an empty summary",
+};
 
 export interface SmoothingPass {
 	readonly agentId: string;
@@ -34,7 +41,7 @@ export const makeSmoothingPass = (sinkFor: SinkFor) =>
 			if (summary === "") {
 				return yield* new SmoothingPassFailed({
 					day: pass.day.day,
-					detail: written._tag === "written" ? "the smoother wrote an empty summary" : "the smoother wrote no summary",
+					detail: DETAIL[written._tag],
 					voyageId: pass.voyageId,
 				});
 			}

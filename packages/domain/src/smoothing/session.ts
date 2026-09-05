@@ -8,6 +8,10 @@ import type { ResolvedAgentSettings } from "@antumbra/settings";
 import { Deferred, Effect, Option } from "effect";
 import { boundSummaryTool, endingSink, type SummaryWritten } from "#smoothing/summary-tool.ts";
 
+const PATIENCE_MILLIS = 600_000;
+
+const TIMED_OUT: SummaryWritten = { _tag: "timedOut" };
+
 export interface SmootherSession {
 	readonly agentId: string;
 	readonly backend: AgentBackend;
@@ -53,7 +57,7 @@ export const makeSmootherSession = (sinkFor: SinkFor) =>
 			yield* registration.ensureRoot({ agentId: session.agentId, backend: session.backend.tag, sessionId }, session.cwd);
 			const sink = endingSink(yield* sinkFor(sessionId, session.backend.audit), written);
 			return yield* attach(session, sessionId, written, sink).pipe(
-				Effect.andThen(Deferred.await(written)),
+				Effect.andThen(Deferred.await(written).pipe(Effect.timeoutOrElse({ duration: PATIENCE_MILLIS, orElse: () => Effect.succeed(TIMED_OUT) }))),
 				Effect.onExit(() => closeSession(session.agentId, sessionId)),
 			);
 		});

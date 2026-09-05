@@ -4,6 +4,7 @@ import { Database } from "@antumbra/persistence";
 import { it } from "@antumbra/testing";
 import { expect } from "@effect/vitest";
 import { Effect, Option } from "effect";
+import { TestClock } from "effect/testing";
 import { callTool, completesTurn, type ScriptedBackend } from "#test/harness.ts";
 import { openReefVoyage, terminalIntent } from "#test/voyage-fixtures.ts";
 
@@ -110,4 +111,20 @@ it.effectApp("a smoothing pass with nothing uncovered opens no session at all", 
 	expect(yield* terminalIntent(intent.id)).toBe("succeeded");
 	expect(yield* scripted.opened).toEqual([]);
 	expect(yield* db.VoyageAgent.where({ role: "smoother" }).count()).toBe(0);
+});
+
+it.effectApp("a smoother that never answers fails the pass once its time is up", function* ({ scripted }) {
+	const boards = yield* Boards;
+	const source = yield* VoyageSource;
+	const voyage = yield* roughVoyage();
+
+	yield* source.smoothBoard(voyage.id);
+	const pass = yield* smootherAtWork(scripted);
+	yield* TestClock.adjust("10 minutes");
+	expect(yield* terminalIntent(pass.intentId)).toBe("failed");
+
+	const db = yield* Database;
+	expect((yield* boards.read(BoardScope.Voyage({ voyageId: voyage.id }))).map((entry) => entry.kind)).toEqual(["note", "note"]);
+	expect(Option.getOrThrow(yield* db.Intent.where({ id: pass.intentId }).first()).detail).toContain("did not answer in time");
+	expect(yield* smoothingOf(voyage.id)).toEqual({ state: "failed", uncovered: 2 });
 });

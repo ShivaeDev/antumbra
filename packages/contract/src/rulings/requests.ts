@@ -50,6 +50,28 @@ export const RulingReclassifiedReceipt = Schema.Struct({
 });
 export type RulingReclassifiedReceipt = typeof RulingReclassifiedReceipt.Type;
 
+export const AskMoreRequest = Schema.Struct({
+	note: Schema.NonEmptyString,
+	rulingId: Schema.String,
+});
+export type AskMoreRequest = typeof AskMoreRequest.Type;
+
+export const RulingAskedMoreReceipt = Schema.Struct({
+	rulingId: Schema.String,
+});
+export type RulingAskedMoreReceipt = typeof RulingAskedMoreReceipt.Type;
+
+export const ParkRequest = Schema.Struct({
+	note: Schema.NonEmptyString,
+	rulingId: Schema.String,
+});
+export type ParkRequest = typeof ParkRequest.Type;
+
+export const RulingParkedReceipt = Schema.Struct({
+	rulingId: Schema.String,
+});
+export type RulingParkedReceipt = typeof RulingParkedReceipt.Type;
+
 export const SupersedeRequest = Schema.Struct({
 	byRulingId: Schema.String,
 	rulingId: Schema.String,

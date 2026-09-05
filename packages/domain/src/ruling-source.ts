@@ -14,6 +14,7 @@ import { makeRulingRefreshes } from "#ruling-feed.ts";
 import { proclamationOf, reclassificationOf, verdictOf } from "#ruling-inputs.ts";
 import { rulingSeen, standingRulingSeen } from "#ruling-projection.ts";
 import { proclaimFailure, reclassifyFailure, toRulingFailure, verdictFailure } from "#ruling-refusals.ts";
+import { makeRulingReplies } from "#ruling-replies.ts";
 import { rulingStaleness } from "#ruling-staleness.ts";
 import { supersessionFailure } from "#ruling-supersession.ts";
 import { withdrawalFailure } from "#ruling-withdrawal.ts";
@@ -33,6 +34,7 @@ export const RulingSourceLive = Layer.effect(RulingSource)(
 		const rulings = yield* Rulings;
 		const world = yield* VoyageWorldSource;
 		const refreshes = yield* makeRulingRefreshes;
+		const replies = yield* makeRulingReplies;
 		const open = Effect.all({ open: rulings.open(), rows: world.read() }).pipe(
 			Effect.map(({ open, rows }) => ({
 				rulings: open.map((ruling) => rulingSeen(ruling, rows)),
@@ -51,8 +53,10 @@ export const RulingSourceLive = Layer.effect(RulingSource)(
 			Effect.map((seen) => ({ rulings: seen })),
 		);
 		return {
+			askMore: replies.askMore,
 			open,
 			openFeed: refreshes(open),
+			park: replies.park,
 			proclaim: (request: ProclaimRequest) =>
 				rulings.proclaim(proclamationOf(request)).pipe(
 					Effect.map((proclaimed) => ({ rulingId: proclaimed.id })),

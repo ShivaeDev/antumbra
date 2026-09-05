@@ -1,4 +1,14 @@
 import { rulingAnswerMail } from "@antumbra/rulings/delivery/answer-mail";
-import type { RuledRuling } from "@antumbra/rulings/holds/ruled";
+import type { RulingHeldEnd } from "@antumbra/rulings/holds/held";
+import { notNowWords, questionBackWords } from "#ruling-reply-words.ts";
 
-export const heldSaid = ({ answer, ruling }: RuledRuling): string => `Ruled — your hold is over.\n${rulingAnswerMail(ruling, answer)}`;
+export const heldSaid = (end: RulingHeldEnd): string => {
+	switch (end._tag) {
+		case "asked":
+			return questionBackWords(end.ruling, end.note);
+		case "parked":
+			return notNowWords(end.ruling, end.note);
+		default:
+			return `Ruled — your hold is over.\n${rulingAnswerMail(end.ruling, end.answer)}`;
+	}
+};

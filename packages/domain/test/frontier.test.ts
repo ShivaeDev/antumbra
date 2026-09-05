@@ -6,14 +6,16 @@ import { RELEASED, world } from "#test/piece-ladder-fixtures.ts";
 
 const REEF = "voyage-1";
 
-const asked = (id: string, over: Partial<Pick<Ruling, "requester" | "subjects">> = {}): Ruling => ({
+const asked = (id: string, over: Partial<Pick<Ruling, "parked" | "requester" | "subjects">> = {}): Ruling => ({
 	answer: Option.none(),
 	choices: [],
 	context: `context of ${id}`,
+	contexts: [],
 	createdAt: RELEASED,
 	declared: { radius: "voyage", urgency: "pressing" },
 	gatedPieceIds: [],
 	id,
+	parked: Option.none(),
 	question: `question ${id}`,
 	radius: "voyage",
 	reclassifications: [],
@@ -49,4 +51,12 @@ it("the frontier is what agents asked about the voyage and nothing else", () => 
 
 	expect(frontierOf(built, REEF).map((ruling) => ruling.id)).toEqual(["by-a-hand", "about-the-ship-and-more"]);
 	expect(frontierOf(built, "voyage-2").map((ruling) => ruling.id)).toEqual(["about-another-ship"]);
+});
+
+it("leaves a request parked for later off the frontier", () => {
+	const built = world({
+		openRulings: [asked("still-asked"), asked("left-for-later", { parked: Option.some({ at: RELEASED, note: "after the survey lands" }) })],
+	});
+
+	expect(frontierOf(built, REEF).map((ruling) => ruling.id)).toEqual(["still-asked"]);
 });

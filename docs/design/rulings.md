@@ -25,6 +25,18 @@ record: an answer separated from its question loses its meaning.
 Every ruling begins as a request. An authority that wants a standing rule requests and answers a ruling of its own, so that context is never missing.
 Whether a question and its answer ever become separable records is deliberately undecided.
 
+## Answering with something other than a verdict
+
+Whoever holds a request may answer it in two ways that settle nothing. **Asking back** appends the question to the record and reaches the asker, so
+the asker answers where the request lives rather than in a side conversation; context is only ever appended, and the asker's original words stand.
+**Not now** parks the request: it stays open and unruled, leaves the frontier the voyage's work reads, and waits for a later moment. Neither is a
+verdict, so nothing that the ruling gates is released and no standing rule is created; a parked request comes back the moment it is ruled, and the
+note saying why it waits stands beside it in the meantime.
+
+Both reach the asker the way an answer does. A blocking asker holds until one of the three arrives: a verdict ends the hold with the answer, a
+question back ends it with the question so the asker can answer and hold again, and a "not now" ends it with leave to work on what does not need the
+answer.
+
 ## Radius and urgency
 
 A request declares two axes, and the two answer different questions.

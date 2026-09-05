@@ -21,6 +21,7 @@ const CAPTAIN_TOOLS = [
 	"mark_read",
 	"write_board",
 	"read_board",
+	"add_context",
 	"request_ruling",
 	"rule_on",
 	"pass_up",

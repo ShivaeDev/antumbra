@@ -1,5 +1,5 @@
-import type { RulingReclassificationView, RulingSubjectView, RulingView, StandingRulingView } from "@antumbra/contract";
-import type { Ruling, RulingAnswer, RulingReclassification, RulingSubject } from "@antumbra/rulings";
+import type { RulingContextView, RulingReclassificationView, RulingSubjectView, RulingView, StandingRulingView } from "@antumbra/contract";
+import type { Ruling, RulingAnswer, RulingContext, RulingReclassification, RulingSubject } from "@antumbra/rulings";
 import { Option } from "effect";
 import { gatedPiecesSeen } from "#ruling-gated-pieces.ts";
 import { rungSeen } from "#ruling-rung-view.ts";
@@ -26,6 +26,12 @@ const reclassificationSeen = (reclassification: RulingReclassification): RulingR
 	}),
 });
 
+const contextSeen = (context: RulingContext): RulingContextView => ({
+	at: context.at.toISOString(),
+	authorAgentId: Option.getOrNull(context.authorAgentId),
+	body: context.body,
+});
+
 export const rulingSeen = (ruling: Ruling, world: VoyageWorld): RulingView => ({
 	choices: ruling.choices.map((choice) => ({
 		detail: choice.detail,
@@ -33,9 +39,11 @@ export const rulingSeen = (ruling: Ruling, world: VoyageWorld): RulingView => ({
 		label: choice.label,
 	})),
 	context: ruling.context,
+	contexts: ruling.contexts.map(contextSeen),
 	declared: ruling.declared,
 	gatedPieces: gatedPiecesSeen(world, ruling.gatedPieceIds),
 	id: ruling.id,
+	parked: Option.getOrNull(Option.map(ruling.parked, (parked) => ({ at: parked.at.toISOString(), note: parked.note }))),
 	question: ruling.question,
 	radius: ruling.radius,
 	reclassifications: ruling.reclassifications.map(reclassificationSeen),

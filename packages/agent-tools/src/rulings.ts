@@ -53,3 +53,17 @@ export const requestRulingSpec = defineTool({
 	}),
 	name: "request_ruling",
 });
+
+export const addContextSpec = defineTool({
+	description:
+		"Add context to a ruling request you or another agent made. Answer here when the admiral asks you something about your request; a blocking request of your own waits again for the answer.",
+	input: Schema.Struct({
+		context: Schema.String.annotate({
+			description: "What you are adding, written for whoever answers.",
+		}),
+		rulingId: Schema.String.annotate({
+			description: "The id of the ruling request, as your mail names it.",
+		}),
+	}),
+	name: "add_context",
+});

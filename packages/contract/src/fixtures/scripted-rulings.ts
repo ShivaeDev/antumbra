@@ -4,9 +4,11 @@ import type { OpenRulingsView, RulingView, StandingRulingsView, StandingRulingVi
 const courseCall: RulingView = {
 	choices: [{ detail: null, id: "choice-3", label: "hold the course" }],
 	context: "The flagship and the surveyor disagree on which repository the chart lives in.",
+	contexts: [],
 	declared: { radius: "fleet", urgency: "blocking" },
 	gatedPieces: [],
 	id: "ruling-3",
+	parked: null,
 	question: "Where does the chart belong?",
 	radius: "fleet",
 	reclassifications: [

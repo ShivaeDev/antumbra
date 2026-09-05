@@ -8,12 +8,14 @@ import { createRoot } from "react-dom/client";
 import { beforeEach, vi } from "vitest";
 import { RulingsPanel } from "#views/rulings.tsx";
 
-const { opened, reclassifyRuling } = vi.hoisted(() => {
+const { askMoreOnRuling, opened, parkRuling, reclassifyRuling } = vi.hoisted(() => {
 	const held: Array<(rulings: OpenRulingsView) => void> = [];
-	return { opened: held, reclassifyRuling: vi.fn() };
+	return { askMoreOnRuling: vi.fn(), opened: held, parkRuling: vi.fn(), reclassifyRuling: vi.fn() };
 });
 
 vi.mock("#adapters/trpc-rulings.ts", () => ({
+	askMoreOnRuling,
+	parkRuling,
 	proclaimRuling: vi.fn(),
 	reclassifyRuling,
 	ruleOn: vi.fn(),
@@ -29,9 +31,11 @@ vi.mock("#adapters/trpc-rulings.ts", () => ({
 const moved: RulingView = {
 	choices: [],
 	context: "The eastern shoal sounds two metres shallower than the chart says.",
+	contexts: [],
 	declared: { radius: "voyage", urgency: "pressing" },
 	gatedPieces: [],
 	id: "ruling-1",
+	parked: null,
 	question: "Which reading do we plot against?",
 	radius: "voyage",
 	reclassifications: [
@@ -53,9 +57,11 @@ const moved: RulingView = {
 const unmoved: RulingView = {
 	choices: [],
 	context: "Two repositories name their default branch differently.",
+	contexts: [],
 	declared: { radius: "fleet", urgency: "eventual" },
 	gatedPieces: [],
 	id: "ruling-2",
+	parked: null,
 	question: "What do we call the branch a berth is cut from?",
 	radius: "fleet",
 	reclassifications: [],

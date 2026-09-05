@@ -1,4 +1,4 @@
-import type { OpenRulingsView } from "@antumbra/contract";
+import type { OpenRulingsView, RulingView } from "@antumbra/contract";
 import { watchOpenRulings, watchStandingRulings } from "#adapters/trpc-rulings.ts";
 import { useFeed } from "#hooks/feed.ts";
 import { RulingCard } from "#views/ruling-card.tsx";
@@ -15,18 +15,38 @@ const Header = ({ open }: { readonly open: OpenRulingsView }) => (
 	</header>
 );
 
-const RulingList = ({ onError, open }: { readonly onError: (message: string) => void; readonly open: OpenRulingsView }) =>
-	open.rulings.length === 0 ? (
+const RulingList = ({ listed, onError }: { readonly listed: ReadonlyArray<RulingView>; readonly onError: (message: string) => void }) => (
+	<ul className="flex min-w-0 flex-col gap-2 p-4">
+		{listed.map((ruling) => (
+			<RulingCard key={ruling.id} onError={onError} ruling={ruling} />
+		))}
+	</ul>
+);
+
+const Parked = ({ onError, parked }: { readonly onError: (message: string) => void; readonly parked: ReadonlyArray<RulingView> }) =>
+	parked.length === 0 ? null : (
+		<section className="flex min-w-0 flex-col border-t border-border">
+			<header className="flex flex-col gap-1 px-4 pt-3 pb-2">
+				<h3 className="text-sm">Not now</h3>
+				<p className="text-2xs text-muted-foreground">Left for a later moment. Nothing waits on them; ruling one brings it back.</p>
+			</header>
+			<RulingList listed={parked} onError={onError} />
+		</section>
+	);
+
+const OpenRulings = ({ onError, open }: { readonly onError: (message: string) => void; readonly open: OpenRulingsView }) => {
+	const waiting = open.rulings.filter((ruling) => ruling.parked === null);
+	return open.rulings.length === 0 ? (
 		<p className="m-auto max-w-sm px-6 text-center text-xs text-muted-foreground">
 			Nothing is waiting on you. A ruling appears here the moment an agent asks for one.
 		</p>
 	) : (
-		<ul className="flex min-w-0 flex-col gap-2 p-4">
-			{open.rulings.map((ruling) => (
-				<RulingCard key={ruling.id} onError={onError} ruling={ruling} />
-			))}
-		</ul>
+		<>
+			{waiting.length === 0 ? null : <RulingList listed={waiting} onError={onError} />}
+			<Parked onError={onError} parked={open.rulings.filter((ruling) => ruling.parked !== null)} />
+		</>
 	);
+};
 
 export const RulingsPanel = ({ onError }: { readonly onError: (message: string) => void }) => {
 	const { error: feedError, value: open } = useFeed("rulings", watchOpenRulings);
@@ -49,7 +69,7 @@ export const RulingsPanel = ({ onError }: { readonly onError: (message: string) 
 			)}
 			<div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto">
 				<RulingProclaim onError={onError} />
-				<RulingList onError={onError} open={open} />
+				<OpenRulings onError={onError} open={open} />
 				<StandingRulings error={standing.error} onError={onError} standing={standing.value} />
 			</div>
 		</section>

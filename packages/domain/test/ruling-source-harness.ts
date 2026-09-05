@@ -1,3 +1,4 @@
+import { BoardsLive } from "@antumbra/boards";
 import { ChangesLive } from "@antumbra/changes";
 import type { OpenRulingsView, RulingFailure, StandingRulingsView } from "@antumbra/contract";
 import { DomainFeedsLive } from "@antumbra/domain-feeds";
@@ -5,6 +6,7 @@ import { Database } from "@antumbra/persistence";
 import { PiecesLive } from "@antumbra/pieces";
 import { ReposLive } from "@antumbra/repos";
 import { RulingsLive } from "@antumbra/rulings";
+import { RulingHoldsLive } from "@antumbra/rulings/holds/service";
 import { Deferred, Effect, Layer, Stream } from "effect";
 import { RulingSourceLive } from "#ruling-source.ts";
 import { VoyageWorldSource } from "#voyage-world/service.ts";
@@ -14,6 +16,8 @@ export const layer = RulingSourceLive.pipe(
 	Layer.provideMerge(ChangesLive(new Map(), new Map())),
 	Layer.provideMerge(PiecesLive),
 	Layer.provideMerge(ReposLive),
+	Layer.provideMerge(RulingHoldsLive),
+	Layer.provideMerge(BoardsLive),
 	Layer.provideMerge(RulingsLive),
 	Layer.provideMerge(DomainFeedsLive),
 );

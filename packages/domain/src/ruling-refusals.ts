@@ -1,5 +1,12 @@
+import type { BoardOwnerNotFound, BoardSourceConflict, StoredBoardEntryInvalid } from "@antumbra/boards";
 import { RulingFailure, RulingRefused } from "@antumbra/contract";
-import type { RulingProclaimFailure, RulingReclassifyFailure, RulingVerdictFailure } from "@antumbra/rulings";
+import type {
+	RulingContextFailure,
+	RulingParkFailure,
+	RulingProclaimFailure,
+	RulingReclassifyFailure,
+	RulingVerdictFailure,
+} from "@antumbra/rulings";
 import { failureMessage } from "#sight-failure.ts";
 
 export const toRulingFailure = (cause: unknown): RulingFailure => new RulingFailure({ message: failureMessage(cause) });
@@ -50,6 +57,21 @@ export const reclassifyFailure = (cause: RulingReclassifyFailure): RulingFailure
 			return new RulingRefused({
 				reason: `reclassifying ${cause.rulingId} names no axis`,
 			});
+		default:
+			return toRulingFailure(cause);
+	}
+};
+
+type ReplyFailure = BoardOwnerNotFound | BoardSourceConflict | RulingContextFailure | RulingParkFailure | StoredBoardEntryInvalid;
+
+export const replyFailure = (cause: ReplyFailure): RulingFailure | RulingRefused => {
+	switch (cause._tag) {
+		case "RulingAlreadyParked":
+			return new RulingRefused({ reason: `ruling ${cause.rulingId} is already parked` });
+		case "RulingAlreadyRuled":
+			return new RulingRefused({ reason: `ruling ${cause.rulingId} was already ruled` });
+		case "RulingNotFound":
+			return new RulingRefused({ reason: `no open ruling: ${cause.rulingId}` });
 		default:
 			return toRulingFailure(cause);
 	}

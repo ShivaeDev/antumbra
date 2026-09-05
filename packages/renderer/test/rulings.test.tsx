@@ -26,6 +26,8 @@ const { opened, ruleOn, watchOpenRulings } = vi.hoisted(() => {
 });
 
 vi.mock("#adapters/trpc-rulings.ts", () => ({
+	askMoreOnRuling: vi.fn(),
+	parkRuling: vi.fn(),
 	proclaimRuling: vi.fn(),
 	reclassifyRuling: vi.fn(),
 	ruleOn,
@@ -45,6 +47,7 @@ const shoal: RulingView = {
 		{ detail: null, id: "choice-2", label: "trust the chart" },
 	],
 	context: "The eastern shoal sounds two metres shallower than the chart says.",
+	contexts: [],
 	declared: { radius: "voyage", urgency: "pressing" },
 	gatedPieces: [
 		{
@@ -55,6 +58,7 @@ const shoal: RulingView = {
 		},
 	],
 	id: "ruling-1",
+	parked: null,
 	question: "Which reading do we plot against?",
 	radius: "voyage",
 	reclassifications: [
@@ -80,9 +84,11 @@ const shoal: RulingView = {
 const berths: RulingView = {
 	choices: [],
 	context: "Two repositories name their default branch differently.",
+	contexts: [],
 	declared: { radius: "fleet", urgency: "eventual" },
 	gatedPieces: [],
 	id: "ruling-2",
+	parked: null,
 	question: "What do we call the branch a berth is cut from?",
 	radius: "fleet",
 	reclassifications: [],

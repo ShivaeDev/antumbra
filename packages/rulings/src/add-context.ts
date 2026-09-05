@@ -5,7 +5,7 @@ import type { RulingContextInput } from "#acts.ts";
 import { requireOpen } from "#open-row.ts";
 import { loadRuling } from "#read.ts";
 
-export const addContext = Effect.fn("rulings.addContext")(function* (input: RulingContextInput) {
+export const addContext = Effect.fn("Rulings.addContext")(function* (input: RulingContextInput) {
 	const db = yield* Database;
 	const feeds = yield* DomainFeeds;
 	const now = yield* Clock.currentTimeMillis;

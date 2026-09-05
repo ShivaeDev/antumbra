@@ -4,6 +4,7 @@ import { Database, type NewAgentSession } from "@antumbra/persistence";
 import { Pieces } from "@antumbra/pieces";
 import { it } from "@antumbra/testing";
 import type { ScriptedBackend } from "@antumbra/testing-runtime";
+import { Voyages } from "@antumbra/voyages";
 import { expect } from "@effect/vitest";
 import { Effect, Option, Stream } from "effect";
 
@@ -25,7 +26,8 @@ const workingCrew = Effect.gen(function* () {
 	const db = yield* Database;
 	const domain = yield* AgentDomain;
 	const kernel = yield* Kernel;
-	const voyage = yield* domain.voyages
+	const voyageRecords = yield* Voyages;
+	const voyage = yield* voyageRecords
 		.open({
 			backend: "scripted",
 			context: "the reef is uncharted",

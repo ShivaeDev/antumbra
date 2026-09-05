@@ -1,6 +1,7 @@
 import { PiecesLive } from "@antumbra/pieces";
 import type { ChangeHost, ChangeObservation, OpenChangeRequest, Runner } from "@antumbra/plugin-api";
 import { it } from "@antumbra/testing-runtime/domain";
+import { Voyages } from "@antumbra/voyages";
 import { expect } from "@effect/vitest";
 import { Effect, Layer, Ref } from "effect";
 import { Changes, changesLayer } from "#index.ts";
@@ -63,7 +64,8 @@ const makeHost = Effect.gen(function* () {
 	return { host, openings: Ref.get(openings) };
 });
 
-const layer = (host: ChangeHost) => changesLayer(new Map([[host.tag, host]]), new Map([[runner.tag, runner]])).pipe(Layer.provide(PiecesLive));
+const layer = (host: ChangeHost) =>
+	changesLayer(new Map([[host.tag, host]]), new Map([[runner.tag, runner]])).pipe(Layer.provide(PiecesLive), Layer.provideMerge(Voyages.layer));
 
 it.effectApp("owns preparation and host reconciliation as one aggregate", function* ({ db }) {
 	const scripted = yield* makeHost;

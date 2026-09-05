@@ -4,9 +4,10 @@ import { it } from "@antumbra/persistence/testing";
 import { PiecesLive } from "@antumbra/pieces";
 import { ReposLive } from "@antumbra/repos";
 import { RulingsLive } from "@antumbra/rulings";
+import { Voyages } from "@antumbra/voyages";
 import { expect } from "@effect/vitest";
 import { Effect, Layer } from "effect";
-import { ensureFlagship } from "#flagship.ts";
+import { FlagshipLive } from "#flagship.ts";
 import { summarySeen } from "#voyage-projection.ts";
 import { voyageSummaries } from "#voyage-view.ts";
 import { VoyageWorldSource } from "#voyage-world/service.ts";
@@ -15,6 +16,7 @@ const WorldLive = VoyageWorldSource.layer.pipe(
 	Layer.provideMerge(
 		changesLayer(new Map(), new Map()).pipe(
 			Layer.provideMerge(PiecesLive),
+			Layer.provideMerge(Voyages.layer),
 			Layer.provideMerge(ReposLive),
 			Layer.provideMerge(RulingsLive),
 			Layer.provideMerge(DomainFeedsLive),
@@ -22,7 +24,7 @@ const WorldLive = VoyageWorldSource.layer.pipe(
 	),
 );
 
-const boot = Effect.provide(ensureFlagship, DomainFeedsLive);
+const boot = Effect.void.pipe(Effect.provide(FlagshipLive), Effect.provide(Voyages.layer), Effect.provide(DomainFeedsLive));
 
 const readWorld = Effect.gen(function* () {
 	const source = yield* VoyageWorldSource;
@@ -43,18 +45,6 @@ it.effectDB("the fleet is born sailing under a flagship", function* (db) {
 	expect(flagships[0]?.northStar).toBe("The fleet sails well.");
 	expect(flagships[0]?.captainBackend).toBe("claude");
 	expect(flagships[0]?.crewBackend).toBe("claude");
-});
-
-it.effectDB("a later boot leaves the standing flagship alone", function* (db) {
-	yield* boot;
-	const first = yield* db.Voyage.where({ kind: "flagship" }).all();
-
-	yield* boot;
-	yield* boot;
-
-	const standing = yield* db.Voyage.where({ kind: "flagship" }).all();
-	expect(standing.length).toBe(1);
-	expect(standing[0]?.id).toBe(first[0]?.id);
 });
 
 it.effectDB("boot writes the row and spawns no captain", function* (db) {

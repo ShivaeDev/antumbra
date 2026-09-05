@@ -1,8 +1,9 @@
 import { expect, it } from "@effect/vitest";
-import { Effect } from "effect";
+import { Deferred, Effect } from "effect";
 import { act } from "react";
 import { createRoot } from "react-dom/client";
 import { beforeEach, vi } from "vitest";
+import { RendererRequestError } from "#adapters/request-error.ts";
 import { RoleDefaults } from "#views/role-defaults.tsx";
 
 const { backendModels, setRoleSettings } = vi.hoisted(() => ({ backendModels: vi.fn(), setRoleSettings: vi.fn() }));
@@ -38,7 +39,7 @@ const shown = Effect.gen(function* () {
 		}),
 	);
 	yield* settle(() => root.render(<RoleDefaults backends={["claude", "codex"]} defaults={[]} />));
-	return container;
+	return { container, root };
 });
 
 const named = (container: HTMLElement, name: string): HTMLInputElement | null =>
@@ -50,7 +51,7 @@ const saveButton = (container: HTMLElement): HTMLButtonElement | undefined =>
 it.effect(
 	"offers a row per role and falls to the first backend until one is named",
 	Effect.fnUntraced(function* () {
-		const container = yield* shown;
+		const { container } = yield* shown;
 
 		expect([...container.querySelectorAll("span.text-xs")].map((cell) => cell.textContent)).toEqual(["Flagship", "Captain", "Crew"]);
 		expect(container.querySelector('[aria-label="Flagship backend"]')?.textContent).toContain("claude");
@@ -62,7 +63,7 @@ it.effect(
 it.effect(
 	"writes the fleet's default for the role the admiral moved",
 	Effect.fnUntraced(function* () {
-		const container = yield* shown;
+		const { container } = yield* shown;
 		const model = named(container, "Flagship model");
 
 		yield* settle(() => {
@@ -76,5 +77,49 @@ it.effect(
 		yield* settle(() => saveButton(container)?.click());
 
 		expect(setRoleSettings.mock.calls.map((call) => call.at(0))).toEqual([{ backend: null, effort: null, model: "opus", role: "flagship" }]);
+	}),
+);
+
+it.effect("keeps unsaved role drafts when another role's saved update arrives during a failed batch", () =>
+	Effect.gen(function* () {
+		const pending = yield* Deferred.make<void, RendererRequestError>();
+		const started = yield* Deferred.make<void>();
+		setRoleSettings.mockReturnValueOnce(Effect.void);
+		setRoleSettings.mockReturnValueOnce(Deferred.succeed(started, undefined).pipe(Effect.andThen(Deferred.await(pending))));
+		const { container, root } = yield* shown;
+		yield* settle(() => {
+			for (const role of ["Flagship", "Crew"]) {
+				const input = named(container, `${role} model`);
+				nativeValue?.call(input, `${role}-model`);
+				input?.dispatchEvent(new Event("input", { bubbles: true }));
+			}
+		});
+		yield* settle(() => container.querySelector("form")?.requestSubmit());
+		yield* Deferred.await(started);
+		const flagship = { role: "flagship" as const, backend: null, effort: null, model: "Flagship-model" };
+		yield* settle(() => root.render(<RoleDefaults backends={["claude", "codex"]} defaults={[flagship]} />));
+		expect(named(container, "Crew model")?.value).toBe("Crew-model");
+		expect(named(container, "Crew model")?.closest("fieldset")?.disabled).toBe(true);
+		yield* settle(() => {
+			Effect.runSync(Deferred.fail(pending, new RendererRequestError({ message: "Crew unavailable" })));
+		});
+		expect(container.querySelector('[role="alert"]')?.textContent).toContain("Crew unavailable");
+		expect(named(container, "Crew model")?.value).toBe("Crew-model");
+		yield* settle(() => container.querySelector("form")?.requestSubmit());
+		expect(setRoleSettings.mock.calls.map((call) => call.at(0)?.role)).toEqual(["flagship", "crew", "crew"]);
+	}),
+);
+
+it.effect("refreshes an untouched form from saved defaults", () =>
+	Effect.gen(function* () {
+		const { container, root } = yield* shown;
+		yield* settle(() =>
+			root.render(
+				<RoleDefaults backends={["claude", "codex"]} defaults={[{ role: "crew", backend: "codex", model: "saved-model", effort: "high" }]} />,
+			),
+		);
+		expect(named(container, "Crew model")?.value).toBe("saved-model");
+		expect(named(container, "Crew effort")?.value).toBe("high");
+		expect(saveButton(container)?.disabled).toBe(true);
 	}),
 );

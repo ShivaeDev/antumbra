@@ -61,7 +61,7 @@ back. See [`docs/design/agent-recovery.md`](docs/design/agent-recovery.md).
 | `packages/reports`        | Durable report landing                                           |
 | `packages/session-fabric` | Live Session attachment, start admission, and stop lifecycle    |
 | `packages/sessions`       | Durable Session tree: node lifecycle and adoption, the gap ledger, the completeness audit, boot reconciliation of nodes nothing is listening to, and the tree read model the window subscribes to |
-| `packages/settings`       | Durable setting overrides and catalog-backed readings          |
+| `packages/settings`       | Durable setting overrides, catalog-backed readings, and the agent settings each role sails on |
 | `packages/domain`         | Application-facing use cases and capability Layer composition |
 | `packages/git`            | Semantic Git operations over Effect's child-process port        |
 | `packages/github`         | GitHub change-host adapter: pull requests through `gh`           |
@@ -125,8 +125,9 @@ persists nothing and reaches no further than the driven ports. Domain composes i
 `sessions` owns the durable Session tree: node lifecycle and adoption, the gap ledger, the completeness audit, boot reconciliation of nodes nothing is
 listening to, and the tree read model the window subscribes to. Domain composes it inside the application facade.
 
-`settings` owns durable overrides and catalog-backed readings. The contract owns the closed catalog and the bridge-facing service because both window
-and runtime consumers speak that public language; Domain re-exports the live Layer so the desktop still composes through the application facade.
+`settings` owns durable overrides and catalog-backed readings, and the agent settings — backend, model, effort — each role sails on, whether the fleet
+set them or one Voyage did. The contract owns the closed catalog and the bridge-facing service because both window and runtime consumers speak that
+public language; Domain re-exports the live Layer so the desktop still composes through the application facade.
 
 `session-inputs` owns human message ingestion before transport. Source images are bounded, decoded, normalized, and installed in app-owned
 content-addressed custody; SQLite stores only ordered metadata and delivery readings. Recovery carries an input id, never bytes or a renderer path.

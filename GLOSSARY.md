@@ -10,6 +10,8 @@ Owner: [Work and planning](docs/design/work-and-planning.md)
 - [**Admiral**](docs/design/work-and-planning.md#authority-and-staffing) — the human who directs the fleet without conning a ship.
 - [**Captain**](docs/design/work-and-planning.md#authority-and-staffing) — the Agent role accountable for one Voyage.
 - [**Crew**](docs/design/work-and-planning.md#authority-and-staffing) — Agents assigned to a Voyage's Pieces.
+- [**Role**](docs/design/work-and-planning.md#authority-and-staffing) — a named kind of agent — flagship, captain, crew — and the backend, model, and
+  effort it sails on.
 - [**Polaris**](docs/design/work-and-planning.md#voyages-and-their-course) — the fixed north star a Voyage moves toward but never reaches.
 - [**Voyage**](docs/design/work-and-planning.md#voyages-and-their-course) — a ship under sail for an objective, with its charted work and memory.
 - [**Ephemeris**](docs/design/work-and-planning.md#ephemerides-and-the-cone-of-uncertainty) — a revisable forecast of the course, not a promise.

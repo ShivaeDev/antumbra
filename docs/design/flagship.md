@@ -26,6 +26,9 @@ and the agent that does things for the admiral. It stands in for the admiral on 
 "The admiral's chief of staff" is the right label, with one qualification: a chief of staff who runs daily allocation is not what this is. The
 flagship captain is a place to bring an ask and an authority that can answer it, not a layer every piece of work passes through.
 
+The flagship captain sails on the fleet's default for the `flagship` role. It is a kind of agent of its own, not a captain like the others, so what it
+runs on is set once for the fleet rather than on a Voyage; [work and planning](work-and-planning.md) owns roles and how their settings resolve.
+
 The flagship captain always exists. It is born on its first hail, like every captain, and persists from then on as a long-lived captain under the
 ordinary rules of [rest and reaping](agent-recovery.md#rest-and-reaping): it stands down when it has nothing left to do, takes a siesta by the clock
 or on the admiral's word, and wakes when it is spoken to. It is hailable at any time; a siesta changes what holds it, never whether it is there.
@@ -56,13 +59,13 @@ dashboard about it. The fleet's highest-level agent is somewhere to talk, not so
 ## What it does
 
 On the admiral's word the flagship captain may register a repository, open a Voyage with the backend, model and effort its captain and its crew are to
-run on, charter a Piece on a named Voyage, and proclaim a fleet ruling as the `flagship` authority. It also rules on the requests that climb to it, as
-that same authority, and passes up what only the admiral may settle. Beside those acts it reads the fleet whole — every Voyage, where it stands and
-who captains it, which repositories are registered, and what each backend can be asked to run — because a Voyage it charters onto is one it has to be
-able to name, and settings it is asked for are ones it has to be able to check. Together those acts let one sentence from the admiral — work this
-repository toward that objective, on these settings, starting now — become a sailing Voyage rather than a form filled in a screen at a time. These are
-the ordinary domain acts, called by an agent that happens to sit at the top; the flagship gets no private verbs and no act the admiral could not
-perform directly.
+run on — naming only what the fleet's defaults should not settle — charter a Piece on a named Voyage, and proclaim a fleet ruling as the `flagship`
+authority. It also rules on the requests that climb to it, as that same authority, and passes up what only the admiral may settle. Beside those acts
+it reads the fleet whole — every Voyage, where it stands and who captains it, which repositories are registered, what each backend can be asked to
+run, and what the fleet has set for each role — because a Voyage it charters onto is one it has to be able to name, and settings it is asked for are
+ones it has to be able to check. Together those acts let one sentence from the admiral — work this repository toward that objective, on these
+settings, starting now — become a sailing Voyage rather than a form filled in a screen at a time. These are the ordinary domain acts, called by an
+agent that happens to sit at the top; the flagship gets no private verbs and no act the admiral could not perform directly.
 
 Everything it does lands on the fleet Board, so what was done in the admiral's name reads as one story rather than as changes discovered later across
 scattered Voyages. Fleet-level rulings and findings belong on that Board, and the flagship captain decides what among them needs broadcasting to the

@@ -7,7 +7,7 @@ import { AgentDomain } from "#domain.ts";
 import type { SpawnFields } from "#index.ts";
 import { makeSightSessionEvents } from "#sight-session-events.ts";
 import { domainKernelLayer, sightSourceTestLayer } from "#test/domain-layers.ts";
-import { rawOf, type ScriptedBackend, sessionFor } from "#test/harness.ts";
+import { makeScriptedBackend, rawOf, type ScriptedBackend, sessionFor } from "#test/harness.ts";
 import { aheadBy } from "#test/session-clock.ts";
 import { reportsNativeRef, untilTerminal } from "#test/session-recovery-fixture.ts";
 
@@ -29,6 +29,13 @@ export const sessionRow = Effect.gen(function* () {
 
 export const sightLayer = (temporary: Parameters<typeof domainKernelLayer>[0], scripted: ScriptedBackend) =>
 	sightSourceTestLayer.pipe(Layer.provideMerge(domainKernelLayer(temporary, reportsNativeRef(scripted.backend, scripted, "native-idle"))));
+
+export const idleBackend = makeScriptedBackend.pipe(
+	Effect.map((scripted) => ({
+		providers: { backends: new Map([[scripted.backend.tag, reportsNativeRef(scripted.backend, scripted, "native-idle")]]) },
+		state: scripted,
+	})),
+);
 
 export const spawned = Effect.gen(function* () {
 	const domain = yield* AgentDomain;

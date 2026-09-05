@@ -8,8 +8,12 @@ import type { VoyageRow } from "#voyage-rows.ts";
 
 const reef: VoyageRow = {
 	captainBackend: "scripted",
+	captainEffort: null,
+	captainModel: null,
 	context: "the reef is uncharted",
 	crewBackend: "scripted",
+	crewEffort: null,
+	crewModel: null,
 	focusedAt: null,
 	id: "voyage-1",
 	kind: "voyage",

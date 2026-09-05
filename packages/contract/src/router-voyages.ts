@@ -11,6 +11,7 @@ import {
 	OpenVoyageRequest,
 	PieceVerdictRequest,
 	RewireRequest,
+	VoyageAgentSettingsRequest,
 	VoyageBackendRequest,
 } from "#voyage-requests.ts";
 import { ReportMarkdown, VoyageSummary, VoyageView } from "#voyage-views.ts";
@@ -80,6 +81,10 @@ export const voyageRoutes = (procedure: AppProcedure) => ({
 	rewirePiece: procedure.input(RewireRequest).mutation(function* (input) {
 		const voyages = yield* VoyageSource;
 		yield* surface(voyages.rewire(input));
+	}),
+	setAgentSettings: procedure.input(VoyageAgentSettingsRequest).mutation(function* (input) {
+		const voyages = yield* VoyageSource;
+		yield* surface(voyages.setAgentSettings(input));
 	}),
 	setCaptainBackend: procedure.input(VoyageBackendRequest).mutation(function* (input) {
 		const voyages = yield* VoyageSource;

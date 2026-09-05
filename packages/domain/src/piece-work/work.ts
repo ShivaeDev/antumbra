@@ -2,6 +2,7 @@ import { Database } from "@antumbra/persistence";
 import { Pieces } from "@antumbra/pieces";
 import { decodeStoredVoyageKind } from "@antumbra/vocabulary/voyage";
 import { Effect, Option } from "effect";
+import { agentSettingsOf } from "#agent-settings.ts";
 import { charterFor } from "#crew-charter.ts";
 import { PieceNotFound } from "#errors.ts";
 import { KernelReach } from "#kernel-reach.ts";
@@ -42,6 +43,7 @@ export const workPieceNow = Effect.fn("Voyages.workPieceNow")(function* (pieceId
 	const intentId = yield* reach.submitSpawn({
 		agentId,
 		backend: voyage.value.crewBackend,
+		...agentSettingsOf(voyage.value, "crew"),
 		charter: yield* charterFor(piece, { ...voyage.value, kind }, agentId),
 		pieceId,
 		role: piece.role,

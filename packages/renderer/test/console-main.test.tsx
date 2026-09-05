@@ -33,8 +33,12 @@ const render = (mode: ConsoleMode): string =>
 				{
 					captain: null,
 					captainBackend: "codex",
+					captainEffort: null,
+					captainModel: null,
 					counts: { active: 0, done: 0, pieces: 0, ready: 0 },
 					crewBackend: "codex",
+					crewEffort: null,
+					crewModel: null,
 					focusedAt: null,
 					id: "voyage-1",
 					kind: "voyage",

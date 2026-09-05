@@ -4,7 +4,7 @@ import { openVoyage } from "#adapters/trpc-voyages.ts";
 import { Button } from "#components/ui/button.tsx";
 import { Dialog, DialogContent, DialogTrigger } from "#components/ui/dialog.tsx";
 import { DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "#components/ui/dialog-sections.tsx";
-import { chosenBackend, emptyDraft, type VoyageDraft, VoyageFields } from "#views/open-voyage-fields.tsx";
+import { chosenBackend, emptyDraft, openVoyageRequest, type VoyageDraft, VoyageFields } from "#views/open-voyage-fields.tsx";
 
 export const OpenVoyageForm = ({
 	backends,
@@ -21,7 +21,7 @@ export const OpenVoyageForm = ({
 	const ready = draft.name !== "" && draft.northStar !== "" && backend !== "";
 	const submit = () =>
 		openVoyage(
-			{ ...draft, backend },
+			openVoyageRequest(draft, backend),
 			(opened) => {
 				setDraft(emptyDraft);
 				setOpen(false);

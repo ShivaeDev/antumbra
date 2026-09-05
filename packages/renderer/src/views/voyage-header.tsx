@@ -2,6 +2,7 @@ import type { VoyageView } from "@antumbra/contract";
 import { setCaptainBackend, setCrewBackend } from "#adapters/trpc-voyages.ts";
 import { Badge } from "#components/ui/badge.tsx";
 import { BackendSwitch, CaptainCall, FocusToggle } from "#views/voyage-acts.tsx";
+import { AgentSettingsEditor } from "#views/voyage-agent-settings.tsx";
 import { VoyageProgress } from "#views/voyage-progress.tsx";
 import { voyageStateLabel } from "#voyages/labels.ts";
 import { voyageTone } from "#voyages/tone.ts";
@@ -19,6 +20,17 @@ export const VoyageHeader = ({ onError, voyage }: { readonly onError: (message: 
 			<BackendSwitch backend={voyage.crewBackend} label="Crew" onChange={(backend) => setCrewBackend({ backend, voyageId: voyage.id }, onError)} />
 			<CaptainCall captain={voyage.captain} onError={onError} voyageId={voyage.id} />
 			<FocusToggle onError={onError} voyage={voyage} />
+		</div>
+		<div className="flex min-w-0 flex-wrap items-end gap-4">
+			<AgentSettingsEditor
+				agentRole="captain"
+				effort={voyage.captainEffort}
+				label="Captain"
+				model={voyage.captainModel}
+				onError={onError}
+				voyageId={voyage.id}
+			/>
+			<AgentSettingsEditor agentRole="crew" effort={voyage.crewEffort} label="Crew" model={voyage.crewModel} onError={onError} voyageId={voyage.id} />
 		</div>
 		<p className="min-w-0 text-xs wrap-anywhere">
 			<span className="text-2xs text-muted-foreground">North star </span>

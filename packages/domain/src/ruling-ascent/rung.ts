@@ -1,7 +1,7 @@
 import { Database } from "@antumbra/persistence";
 import type { Ruling } from "@antumbra/rulings";
 import { Effect, Option } from "effect";
-import { readVoyageCaptain } from "#voyage-captain-read.ts";
+import { readCaptains } from "#voyage-captain-read.ts";
 
 const destinations = Effect.fn("RulingAscent.destinations")(function* (rulings: ReadonlyArray<Ruling>) {
 	const db = yield* Database;
@@ -28,11 +28,7 @@ const destinations = Effect.fn("RulingAscent.destinations")(function* (rulings: 
 
 export const rungHolders = Effect.fn("RulingAscent.rungHolders")(function* (rulings: ReadonlyArray<Ruling>) {
 	const voyages = yield* destinations(rulings);
-	const captains = new Map(
-		yield* Effect.forEach([...new Set(voyages.map(([, voyageId]) => voyageId))], (voyageId) =>
-			readVoyageCaptain(voyageId).pipe(Effect.map((captain) => [voyageId, captain] as const)),
-		),
-	);
+	const captains = yield* readCaptains([...new Set(voyages.map(([, voyageId]) => voyageId))]);
 	return new Map(
 		voyages.flatMap(([rulingId, voyageId]) =>
 			Option.match(captains.get(voyageId) ?? Option.none(), {

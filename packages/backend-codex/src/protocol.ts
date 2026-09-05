@@ -8,6 +8,9 @@ const ThreadRef = Schema.Struct({ id: Schema.String });
 
 export const ThreadResponse = Schema.Struct({ thread: ThreadRef });
 
+// Codex advertises reasoning efforts per model, so the protocol constrains one only to a non-empty string.
+export const ReasoningEffort = Schema.NonEmptyString;
+
 export const TurnStatus = Schema.Literals(["completed", "interrupted", "failed", "inProgress"]);
 
 export const TurnError = Schema.Struct({ message: Schema.String });

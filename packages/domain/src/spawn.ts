@@ -36,7 +36,7 @@ export const spawnKind = (runtime: SpawnRuntime) =>
 		const resolution = yield* spawnResolution;
 		const startSession = yield* makeSpawnSessionStart;
 		const teardown = yield* makeSpawnTeardown;
-		const toolsFor = yield* makeSpawnTools(runtime.backends);
+		const toolsFor = yield* makeSpawnTools;
 		const admitSpawnSession = (payload: SpawnFields, attachment: SessionAttachment) =>
 			Effect.gen(function* () {
 				yield* delivery.deliverOnce(payload, attachment.handle);

@@ -7,13 +7,13 @@ import {
 	readFleetSpec,
 	registerRepoSpec,
 } from "@antumbra/agent-tools";
-import type { AgentBackend, DirectTool } from "@antumbra/plugin-api";
+import type { DirectTool } from "@antumbra/plugin-api";
 import { type RegisteredRepo, Repos } from "@antumbra/repos";
 import { type Ruling, type RulingProclamation, Rulings } from "@antumbra/rulings";
 import { AGENT_BACKEND_TAGS, AgentBackendTagSchema } from "@antumbra/vocabulary/agent-backend";
 import { Voyages } from "@antumbra/voyages";
 import { Effect, Schema } from "effect";
-import { makeBackendModels } from "#backend-models.ts";
+import { BackendCatalog } from "#backend-catalog/service.ts";
 import { makeCaptainToolCompiler } from "#captain-tools.ts";
 import { makeReportingCharter, withNotice } from "#charter-notice.ts";
 import { renderFleet, rolePart } from "#fleet-render.ts";
@@ -89,52 +89,52 @@ const opened = (voyage: OpenedVoyage): string =>
 const registered = (known: boolean, repo: RegisteredRepo): string =>
 	`${known ? "already registered" : "registered"} repo ${repo.id} ${repo.name} · ${repo.source} · default ref ${repo.defaultRef}`;
 
-export const makeFleetToolCompiler = (backends: ReadonlyMap<string, AgentBackend>) =>
-	Effect.gen(function* () {
-		const compileCaptainTools = yield* makeCaptainToolCompiler;
-		const charter = yield* makeReportingCharter();
-		const repos = yield* Repos;
-		const rulings = yield* Rulings;
-		const procedures = yield* VoyageProcedureService;
-		const voyages = yield* Voyages;
-		const listModels = makeBackendModels(backends);
-		const readFleet = Effect.all({
-			backends: Effect.forEach([...backends.keys()], (tag) => Effect.map(listModels(tag), (models) => ({ models, tag }))),
-			repos: repos.registered(),
-			voyages: procedures.list(),
-		});
-		const registerRepo = (registration: Registration) =>
-			Effect.gen(function* () {
-				const known = (yield* repos.registered()).some((row) => row.source === registration.source);
-				return { known, repo: yield* repos.register(registration) };
-			});
-		const openVoyage = (identity: SessionIdentity, input: VoyageAsked) => {
-			const unknown = unknownBackend(input);
-			return unknown === undefined
-				? answered(identity, openVoyageSpec.name, voyages.open(openRequest(input)), opened)
-				: Effect.succeed(refused(backendUnnamed(unknown)));
-		};
-		const fleetActs = (identity: SessionIdentity): ReadonlyArray<DirectTool> => [
-			bind(readFleetSpec, () => answered(identity, readFleetSpec.name, readFleet, renderFleet)),
-			bind(registerRepoSpec, (input) => answered(identity, registerRepoSpec.name, registerRepo(input), ({ known, repo }) => registered(known, repo))),
-			bind(openVoyageSpec, (input) => openVoyage(identity, input)),
-			bind(charterVoyagePieceSpec, (input) =>
-				answered(
-					identity,
-					charterVoyagePieceSpec.name,
-					charter({
-						charter: input.charter,
-						dependsOn: [],
-						expectation: input.expectation,
-						role: input.role,
-						title: input.title,
-						voyageId: input.voyageId,
-					}),
-					(chartered) => withNotice(chartered, `chartered ${chartered.piece.id} on voyage ${input.voyageId}`),
-				),
-			),
-			bind(hailCaptainSpec, (input) => answered(identity, hailCaptainSpec.name, procedures.hail(input.voyageId), hailed(input.voyageId))),
-			bind(proclaimRulingSpec, (input) => answered(identity, proclaimRulingSpec.name, rulings.proclaim(proclamationOf(input)), proclaimed)),
-		];
-		return (identity: SessionIdentity): ReadonlyArray<DirectTool> => [...compileCaptainTools(identity), ...fleetActs(identity)];
+export const makeFleetToolCompiler = Effect.gen(function* () {
+	const compileCaptainTools = yield* makeCaptainToolCompiler;
+	const charter = yield* makeReportingCharter();
+	const repos = yield* Repos;
+	const rulings = yield* Rulings;
+	const procedures = yield* VoyageProcedureService;
+	const voyages = yield* Voyages;
+	const catalog = yield* BackendCatalog;
+	const { backends } = yield* catalog.snapshot();
+	const readFleet = Effect.all({
+		backends: Effect.forEach(backends, (tag) => Effect.map(catalog.listModels(tag), (models) => ({ models, tag }))),
+		repos: repos.registered(),
+		voyages: procedures.list(),
 	});
+	const registerRepo = (registration: Registration) =>
+		Effect.gen(function* () {
+			const known = (yield* repos.registered()).some((row) => row.source === registration.source);
+			return { known, repo: yield* repos.register(registration) };
+		});
+	const openVoyage = (identity: SessionIdentity, input: VoyageAsked) => {
+		const unknown = unknownBackend(input);
+		return unknown === undefined
+			? answered(identity, openVoyageSpec.name, voyages.open(openRequest(input)), opened)
+			: Effect.succeed(refused(backendUnnamed(unknown)));
+	};
+	const fleetActs = (identity: SessionIdentity): ReadonlyArray<DirectTool> => [
+		bind(readFleetSpec, () => answered(identity, readFleetSpec.name, readFleet, renderFleet)),
+		bind(registerRepoSpec, (input) => answered(identity, registerRepoSpec.name, registerRepo(input), ({ known, repo }) => registered(known, repo))),
+		bind(openVoyageSpec, (input) => openVoyage(identity, input)),
+		bind(charterVoyagePieceSpec, (input) =>
+			answered(
+				identity,
+				charterVoyagePieceSpec.name,
+				charter({
+					charter: input.charter,
+					dependsOn: [],
+					expectation: input.expectation,
+					role: input.role,
+					title: input.title,
+					voyageId: input.voyageId,
+				}),
+				(chartered) => withNotice(chartered, `chartered ${chartered.piece.id} on voyage ${input.voyageId}`),
+			),
+		),
+		bind(hailCaptainSpec, (input) => answered(identity, hailCaptainSpec.name, procedures.hail(input.voyageId), hailed(input.voyageId))),
+		bind(proclaimRulingSpec, (input) => answered(identity, proclaimRulingSpec.name, rulings.proclaim(proclamationOf(input)), proclaimed)),
+	];
+	return (identity: SessionIdentity): ReadonlyArray<DirectTool> => [...compileCaptainTools(identity), ...fleetActs(identity)];
+});

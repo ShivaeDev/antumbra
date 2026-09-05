@@ -73,7 +73,6 @@ const makeReleaseDomain = (spawn: IntentKind<SpawnFields>, wake: IntentKind<Wake
 	Effect.map(AgentDomain, (template) =>
 		AgentDomain.of({
 			...template,
-			backends: [SCRIPTED],
 			kinds: [spawn, wake],
 			spawn,
 			wake,

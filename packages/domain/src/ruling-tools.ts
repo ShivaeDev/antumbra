@@ -4,14 +4,13 @@ import { type Ruling, type RulingRequest, Rulings } from "@antumbra/rulings";
 import { RulingHolds } from "@antumbra/rulings/holds/service";
 import type { RulingAuthority } from "@antumbra/vocabulary/ruling";
 import { Effect } from "effect";
+import { VoyageAuthority } from "#authority/service.ts";
 import { CaptainMembership } from "#captain-membership.ts";
 import { heldSaid } from "#ruling-hold-answer.ts";
 import { choiceOf } from "#ruling-inputs.ts";
-import { rungAsked } from "#ruling-station.ts";
 import { subjectsOf } from "#ruling-subjects.ts";
 import { answered } from "#tool-answers.ts";
 import type { SessionIdentity } from "#tool-identity.ts";
-import { VoyageWorldSource } from "#voyage-world.ts";
 
 const holds = (ruling: Ruling): string => (ruling.gatedPieceIds.length === 0 ? "" : `; holds ${ruling.gatedPieceIds.length} piece(s)`);
 
@@ -36,12 +35,8 @@ export const makeRulingToolCompiler = Effect.gen(function* () {
 	const membership = yield* CaptainMembership;
 	const rulings = yield* Rulings;
 	const hold = yield* RulingHolds;
-	const world = yield* VoyageWorldSource;
-	const rungFor = (identity: SessionIdentity) =>
-		world.read.pipe(
-			Effect.map((rows) => rungAsked(rows, identity)),
-			Effect.orElseSucceed((): RulingAuthority => "admiral"),
-		);
+	const authority = yield* VoyageAuthority;
+	const rungFor = (identity: SessionIdentity) => authority.rungAsked(identity).pipe(Effect.orElseSucceed((): RulingAuthority => "admiral"));
 	const requestFrom = (identity: SessionIdentity, input: Ask, gates: ReadonlyArray<string>): Effect.Effect<DirectToolOutcome> =>
 		Effect.gen(function* () {
 			const request = requestOf(identity, input, gates, yield* rungFor(identity));

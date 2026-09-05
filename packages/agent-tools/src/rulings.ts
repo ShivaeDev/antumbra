@@ -44,7 +44,8 @@ export const requestRulingSpec = defineTool({
 	input: Schema.Struct({
 		choices: Schema.optional(Choices),
 		context: Schema.String.annotate({
-			description: "Context needed to answer the question.",
+			description:
+				"What a human needs in order to decide, read on a page rather than in a transcript. Markdown is rendered, so write short paragraphs, put enumerated evidence in a list, and quote exact sentences as blockquotes.",
 		}),
 		gates: Schema.optional(
 			Schema.Array(Schema.String).annotate({
@@ -71,7 +72,8 @@ export const addContextSpec = defineTool({
 		"Add context to a ruling request you or another agent made. Answer here when the admiral asks you something about your request; a blocking request of your own waits again for the answer.",
 	input: Schema.Struct({
 		context: Schema.String.annotate({
-			description: "What you are adding, written for whoever answers.",
+			description:
+				"What you are adding, written for whoever answers. It is rendered as Markdown under the question, so keep to short paragraphs, a list for enumerated evidence, and blockquotes for exact sentences.",
 		}),
 		rulingId: Schema.String.annotate({
 			description: "The id of the ruling request, as your mail names it.",

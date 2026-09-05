@@ -15,7 +15,7 @@ export const openChangeSpec = defineTool({
 		),
 		body: Schema.String.annotate({
 			description:
-				"Four sections, written for a reviewer who was not in the session. `### Why?` and `### How?` are the valuable ones and are never held to a sentence count; give each the length the difficulty of the work and the explanation it needs. Why is the product side: the problem that started the work, the goal, and why anyone cared. How is the approach at a high level for a technical reader, product as well as code. Write each as short paragraphs with line breaks between them, telling the story in order rather than in one flowing blob. `### Decisions` lists the major trade-offs, one bullet each; ten bullets means you have gone well past the major ones. `### Callouts` lists the spots a reviewer should look at closely, one bullet each. Leave either section out when there is none. The body stands on its own: the reviewer sees no report of yours, no board and no machine you worked on, so put the thing in the body instead of pointing at where it lives. No file lists, test plans or diff narration.",
+				"The pull request body, written for a busy maintainer who was not in the session. Four sections in this order. `### Why?` is the product story: the problem that started the work, the goal, and why it matters. `### How?` is the bird's-eye view of the approach for a technical reader: what was built, how the parts fit, and where it sits in the product, at the level that lets them trust the diff before opening it. `### Decisions` only when the work made a major trade-off: one bullet each, with the reason. `### Callouts` only when a spot needs a close look: one bullet each, with what to look for. Give Why and How the length the work needs, in short paragraphs, one idea per sentence, active voice. Use a table when items compare or line up, and a Mermaid diagram when the change is a flow or a set of connected parts. Leave out file lists, test plans, risk speculation, diff narration, and pointers to reports, boards, paths or servers the reader cannot open. This format applies in every repository.",
 		}),
 		draft: Schema.optionalKey(
 			Schema.Boolean.annotate({
@@ -24,7 +24,8 @@ export const openChangeSpec = defineTool({
 		),
 		repo: Repo,
 		title: Schema.String.annotate({
-			description: "One line naming what the change does.",
+			description:
+				"One line that names the change by its effect on the product or on the people who use it, in the present tense, like a release note. Spend every word on the effect; a type prefix such as fix: and a verb such as improve, update or clean up carry no information.",
 		}),
 	}),
 	name: "open_change",

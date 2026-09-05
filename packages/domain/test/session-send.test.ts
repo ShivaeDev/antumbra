@@ -2,11 +2,19 @@ import { existsSync } from "node:fs";
 import { SightSource } from "@antumbra/contract";
 import { isTerminalIntentStatus, Kernel } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
+import { SessionInputDelivery } from "@antumbra/sessions/input-delivery/service";
 import { it } from "@antumbra/testing";
 import { SessionInputId } from "@antumbra/vocabulary/session-input";
 import { expect } from "@effect/vitest";
 import { Effect, Option, Stream } from "effect";
-import { endTurn, type ScriptedBackend } from "#test/harness.ts";
+import { endTurn, makeScriptedBackend, type ScriptedBackend } from "#test/harness.ts";
+
+const bytes = new Uint8Array(
+	Buffer.from(
+		"iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAACXBIWXMAAAPoAAAD6AG1e1JrAAAAEUlEQVQImWNwzHz4H4QZYAwAVhYKKeA4Rd8AAAAASUVORK5CYII=",
+		"base64",
+	),
+);
 
 const spawnRequest = {
 	backend: "scripted",
@@ -48,12 +56,6 @@ it.effectApp("an ordered image input reaches the agent once through durable cust
 	const session = yield* liveSession(scripted, receipt.sessionId);
 	expect(yield* session.sent).toEqual([spawnRequest.charter]);
 	const id = SessionInputId.make("00000000-0000-4000-8000-000000000041");
-	const bytes = new Uint8Array(
-		Buffer.from(
-			"iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAACXBIWXMAAAPoAAAD6AG1e1JrAAAAEUlEQVQImWNwzHz4H4QZYAwAVhYKKeA4Rd8AAAAASUVORK5CYII=",
-			"base64",
-		),
-	);
 	const request = {
 		id,
 		parts: [
@@ -82,6 +84,8 @@ it.effectApp("an ordered image input reaches the agent once through durable cust
 		status: "accepted",
 	});
 	expect(yield* session.received).toHaveLength(received.length);
+	const delivery = yield* SessionInputDelivery;
+	expect((yield* Effect.flip(delivery.load("another-session", id)))._tag).toBe("SessionInputNotFound");
 });
 
 it.effectApp("a message with no words is refused before any delivery", { clock: "live" }, function* ({ scripted }) {
@@ -110,3 +114,32 @@ it.effectApp("only an ended session and an unknown id refuse the message", { clo
 	expect(ghost.message).toContain("there is no session ghost on the fleet");
 	expect(yield* session.sent).toEqual([spawnRequest.charter]);
 });
+
+it.effectApp.withProviders(
+	"a text-only backend refuses images before durable custody",
+	Effect.gen(function* () {
+		const scripted = yield* makeScriptedBackend;
+		return {
+			providers: { backends: new Map([[scripted.backend.tag, { ...scripted.backend, capabilities: { imageInput: false } }]]) },
+			state: scripted,
+		};
+	}),
+	function* ({ db }, scripted) {
+		const sight = yield* SightSource;
+		const receipt = yield* sight.spawn(spawnRequest);
+		const session = yield* liveSession(scripted, receipt.sessionId);
+		const before = yield* session.received;
+		const id = SessionInputId.make("00000000-0000-4000-8000-000000000042");
+		const refusal = yield* Effect.flip(
+			sight.sendInput({
+				id,
+				sessionId: receipt.sessionId,
+				parts: [{ bytes, declaredMediaType: "image/png", name: "reef.png", type: "image" }],
+			}),
+		);
+		expect(refusal.message).toContain("backend_text_only");
+		expect(Option.isNone(yield* db.SessionInput.where({ id }).first())).toBe(true);
+		expect(yield* db.SessionAttachment.all()).toHaveLength(0);
+		expect(yield* session.received).toEqual(before);
+	},
+);

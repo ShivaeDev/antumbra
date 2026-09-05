@@ -1,4 +1,4 @@
-import { ArtifactsLive } from "@antumbra/artifacts";
+import { artifactsLayer } from "@antumbra/artifacts";
 import { BoardsLive } from "@antumbra/boards";
 import { ChangesLive } from "@antumbra/changes";
 import { DomainFeedsLive } from "@antumbra/domain-feeds";
@@ -25,7 +25,7 @@ export const domainCapabilities = (
 	const foundations = Layer.mergeAll(
 		PiecesLive,
 		BoardsLive,
-		ArtifactsLive(artifactsDirectory),
+		artifactsLayer(artifactsDirectory),
 		ReportsLive,
 		ReposLive,
 		RulingHoldsLive.pipe(Layer.provideMerge(RulingsLive)),

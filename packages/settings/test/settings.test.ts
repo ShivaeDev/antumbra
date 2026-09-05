@@ -14,6 +14,9 @@ it.effectDB("answers the catalog for a setting nothing has set", function* () {
 			routineMailMinutes: 5,
 			retireRestMinutes: 15,
 			retireSweep: true,
+			holdEverything: false,
+			holdPieceDispatch: false,
+			holdWakes: false,
 		});
 		expect(reading.overridden).toEqual([]);
 	}).pipe(Effect.provide(SettingsSourceLive));

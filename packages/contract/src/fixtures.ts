@@ -1,6 +1,7 @@
 export { type FixtureFeeds, staticFeeds } from "#fixtures/feeds.ts";
 export { flagshipSummary } from "#fixtures/flagship.ts";
 export { fleet, info } from "#fixtures/fleet.ts";
+export { holds } from "#fixtures/hold-source.ts";
 export {
 	berthNaming,
 	berthReclaim,

@@ -1,4 +1,4 @@
-import { SettingsSource } from "@antumbra/contract";
+import { holding, SettingsSource } from "@antumbra/contract";
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Kernel } from "@antumbra/kernel";
 import { Clock, Effect, Layer, Queue } from "effect";
@@ -21,9 +21,13 @@ const DEFAULTS = { patienceMillis: 5000 } as const;
 
 const onePass = (port: DispatchPort, maxRunning: number | undefined) =>
 	Effect.gen(function* () {
-		const source = yield* ExecutionSource;
 		const settings = yield* SettingsSource;
-		const effectiveMaxRunning = maxRunning ?? (yield* settings.current).settings.maxParallelSessions;
+		const { settings: chosen } = yield* settings.current;
+		if (holding(chosen, "dispatch")) {
+			return;
+		}
+		const source = yield* ExecutionSource;
+		const effectiveMaxRunning = maxRunning ?? chosen.maxParallelSessions;
 		const now = yield* Clock.currentTimeMillis;
 		const world = yield* source.dispatch();
 		const allowed = yield* dispatchable(port.state, now);

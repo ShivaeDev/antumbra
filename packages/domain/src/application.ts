@@ -7,6 +7,7 @@ import { BackendCapacityReleases } from "#backend-capacity-releases/service.ts";
 import { DispatcherLive } from "#dispatcher.ts";
 import { AgentDomain, AgentDomainLive } from "#domain.ts";
 import { FlagshipLive } from "#flagship.ts";
+import { HoldSourceLive } from "#hold-source.ts";
 import { IntentFeedLive } from "#intent-feed.ts";
 import { KernelReachLive } from "#kernel-reach.ts";
 import { RulingAscent } from "#ruling-ascent/observer.ts";
@@ -25,6 +26,7 @@ export const applicationLayers = (...providers: Parameters<typeof AgentDomainLiv
 	).pipe(Layer.provideMerge(AgentDomainLive(...providers)));
 
 	return Layer.mergeAll(
+		HoldSourceLive,
 		RulingSourceLive,
 		SightSourceLive,
 		VoyageSourceLive,

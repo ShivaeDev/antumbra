@@ -33,6 +33,8 @@ Owner: [Attention and memory](docs/design/attention-and-memory.md)
 - [**Attention lanes**](docs/design/attention-and-memory.md#attention-lanes) — escalation, decision point, finding, and grievance.
 - [**Heave to**](docs/design/attention-and-memory.md#heave-to) — discussion mode that keeps the Agent's context from moving on.
 - [**Precedence**](docs/design/attention-and-memory.md#mail-and-precedence) — routine, priority, and flash ordering for Agent mail.
+- [**Hold**](docs/design/attention-and-memory.md#holds) — a stop on what Antumbra sends by itself, per kind or all at once, that leaves running work
+  alone; distinct from a _held_ Piece, which is chartered and not yet launched.
 
 ## Rulings
 

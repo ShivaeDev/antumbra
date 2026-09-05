@@ -20,12 +20,20 @@ const Version = () => {
 	);
 };
 
-export const NavRail = ({ mode, onMode }: { readonly mode: ConsoleMode; readonly onMode: (mode: ConsoleMode) => void }) => (
+export const NavRail = ({
+	held,
+	mode,
+	onMode,
+}: {
+	readonly held: boolean;
+	readonly mode: ConsoleMode;
+	readonly onMode: (mode: ConsoleMode) => void;
+}) => (
 	<div className="flex w-44 shrink-0 flex-col gap-4 border-r border-border bg-card px-2 py-3">
 		<header className="flex flex-col px-2">
 			<h1 className="text-sm font-medium">Antumbra</h1>
 			<Version />
 		</header>
-		<ModeNav mode={mode} onMode={onMode} />
+		<ModeNav held={held} mode={mode} onMode={onMode} />
 	</div>
 );

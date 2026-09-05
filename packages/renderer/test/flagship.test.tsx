@@ -19,7 +19,7 @@ const captained: VoyageSummary = {
 };
 
 it("offers the flagship first, because it is where the admiral speaks", () => {
-	const html = renderToStaticMarkup(<ModeNav mode="flagship" onMode={() => undefined} />);
+	const html = renderToStaticMarkup(<ModeNav held={false} mode="flagship" onMode={() => undefined} />);
 
 	expect(html).toContain("Flagship");
 	expect(html.indexOf("Flagship")).toBeLessThan(html.indexOf("Fleet"));

@@ -1,4 +1,4 @@
-import type { ConsoleMode, ConsolePlace, SettingsReading } from "@antumbra/contract";
+import { type ConsoleMode, type ConsolePlace, HOLD_KINDS, holding, type SettingsReading } from "@antumbra/contract";
 import { useEffect, useState } from "react";
 import { watchFleet } from "#adapters/trpc.ts";
 import { loadSettings } from "#adapters/trpc-settings.ts";
@@ -22,6 +22,7 @@ export const ConsoleApp = ({ place }: { readonly place: ConsolePlace }) => {
 	const [notice, setNotice] = useState<string | undefined>(undefined);
 	const [settings, setSettings] = useState<SettingsReading | undefined>(undefined);
 	const feedErrors = [fleetError, voyagesError].flatMap((error) => (error === undefined ? [] : [error]));
+	const held = settings !== undefined && HOLD_KINDS.some((kind) => holding(settings.settings, kind));
 
 	useEffect(() => {
 		loadSettings(setSettings, setNotice);
@@ -50,7 +51,7 @@ export const ConsoleApp = ({ place }: { readonly place: ConsolePlace }) => {
 
 	return (
 		<div className="flex h-screen min-w-0 bg-background text-foreground">
-			<NavRail mode={mode} onMode={setMode} />
+			<NavRail held={held} mode={mode} onMode={setMode} />
 			<main className="flex min-h-0 min-w-0 flex-1 flex-col">
 				<NoticeBar feedErrors={feedErrors} notice={notice} onDismiss={() => setNotice(undefined)} />
 				{fleet === undefined ? null : <ProviderCapacities capacities={fleet.capacities} onError={setNotice} />}

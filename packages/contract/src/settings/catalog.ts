@@ -8,6 +8,9 @@ export const SETTING_KEYS = [
 	"routineMailMinutes",
 	"retireRestMinutes",
 	"retireSweep",
+	"holdEverything",
+	"holdPieceDispatch",
+	"holdWakes",
 ] as const;
 
 export const SettingKey = Schema.Literals(SETTING_KEYS);
@@ -51,5 +54,20 @@ export const SETTINGS = {
 		description: "Retire agents that have rested longer than the threshold.",
 		fallback: true,
 		title: "Retire rested agents",
+	}),
+	holdEverything: flag({
+		description: "Nothing Antumbra sends on its own goes out. Every queue keeps filling and running sessions carry on.",
+		fallback: false,
+		title: "Hold everything",
+	}),
+	holdPieceDispatch: flag({
+		description: "Launched pieces wait in the queue instead of having an agent spawned on them.",
+		fallback: false,
+		title: "Hold piece dispatch",
+	}),
+	holdWakes: flag({
+		description: "Agents at rest are not woken by their own mail; the mail stays unread and due.",
+		fallback: false,
+		title: "Hold wakes",
 	}),
 } as const satisfies Record<SettingKey, SettingDeclaration>;

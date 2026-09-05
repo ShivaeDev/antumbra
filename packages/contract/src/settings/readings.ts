@@ -9,6 +9,9 @@ const fields: { readonly [K in SettingKey]: (typeof SETTINGS)[K]["value"] } = {
 	routineMailMinutes: SETTINGS.routineMailMinutes.value,
 	retireRestMinutes: SETTINGS.retireRestMinutes.value,
 	retireSweep: SETTINGS.retireSweep.value,
+	holdEverything: SETTINGS.holdEverything.value,
+	holdPieceDispatch: SETTINGS.holdPieceDispatch.value,
+	holdWakes: SETTINGS.holdWakes.value,
 };
 
 export const Settings = Schema.Struct(fields);

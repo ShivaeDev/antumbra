@@ -110,10 +110,11 @@ Posture, readiness, queueing, and progress answer different questions:
 - queued means it will start when admitted capacity is available; and
 - progress is derived from durable facts such as assignment, established resources, provider acceptance, and landed Outcomes.
 
-Launching changes durable demand; reconciliation decides when eligible demand needs a dispatch Intent. Parking withdraws demand from the pool without
-deleting the Piece, its finished work, or its history. Done is derived from landed Outcomes and pending obligations, never declared, and done work
-remains available as the parent of a follow-up. A captain launching through an Agent tool and the admiral launching through the app express the same
-durable demand; neither starts a hidden Voyage-level process.
+Launching changes durable demand; reconciliation decides when eligible demand needs a dispatch Intent. A [hold](attention-and-memory.md#holds) on
+dispatch suspends that decision without withdrawing demand: eligible Pieces stay queued and start once the hold comes off. Parking withdraws demand
+from the pool without deleting the Piece, its finished work, or its history. Done is derived from landed Outcomes and pending obligations, never
+declared, and done work remains available as the parent of a follow-up. A captain launching through an Agent tool and the admiral launching through
+the app express the same durable demand; neither starts a hidden Voyage-level process.
 
 ## Verdicts
 

@@ -39,6 +39,14 @@ export {
 	VoyageCommand,
 } from "#fleet.ts";
 export {
+	HOLD_KINDS,
+	HOLDS,
+	HoldKind,
+	holding,
+} from "#holds/catalog.ts";
+export { HoldSource } from "#holds/source.ts";
+export { HoldsView, HoldWaiting, MailWaiting } from "#holds/views.ts";
+export {
 	SubscribeRequest,
 	TrpcRequest,
 	UnsubscribeRequest,

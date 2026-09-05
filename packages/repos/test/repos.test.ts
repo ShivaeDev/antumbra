@@ -1,12 +1,11 @@
 import { DomainFeeds, DomainFeedsLive } from "@antumbra/domain-feeds";
 import { Database } from "@antumbra/persistence";
-import { persistenceIt } from "@antumbra/persistence/testing";
+import { it } from "@antumbra/persistence/testing";
 import { Repos, ReposLive, repoSlug } from "@antumbra/repos";
-import { expect, it } from "@effect/vitest";
+import { expect } from "@effect/vitest";
 import { Effect, Layer, PubSub } from "effect";
 import { repoName } from "#repo-name.ts";
 
-const persistence = persistenceIt();
 const layer = ReposLive.pipe(Layer.provideMerge(DomainFeedsLive));
 const OBSERVED = new Date("2026-08-17T00:00:00.000Z");
 
@@ -70,7 +69,7 @@ it("lowers the same name into the one spelling a folder and a ref carry", () => 
 	expect(repoSlug("/")).toBe("repo");
 });
 
-persistence.effectDB("updates repeat registration and publishes registry changes", function* (db) {
+it.effectDB("updates repeat registration and publishes registry changes", function* (db) {
 	yield* Effect.scoped(
 		Effect.gen(function* () {
 			const feeds = yield* DomainFeeds;
@@ -105,7 +104,7 @@ persistence.effectDB("updates repeat registration and publishes registry changes
 	).pipe(Effect.provide(layer));
 });
 
-persistence.effectDB("refuses a second source that would berth in the first source's folder", function* (db) {
+it.effectDB("refuses a second source that would berth in the first source's folder", function* (db) {
 	yield* Effect.scoped(
 		Effect.gen(function* () {
 			const repos = yield* Repos;
@@ -126,7 +125,7 @@ persistence.effectDB("refuses a second source that would berth in the first sour
 	).pipe(Effect.provide(layer));
 });
 
-persistence.effectDB("forgets the complete change graph before publishing its two projections", function* (db) {
+it.effectDB("forgets the complete change graph before publishing its two projections", function* (db) {
 	yield* Effect.scoped(
 		Effect.gen(function* () {
 			const feeds = yield* DomainFeeds;

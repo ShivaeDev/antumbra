@@ -2,7 +2,7 @@ import { existsSync, mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import type { NewAgentSession } from "@antumbra/persistence";
-import { persistenceIt } from "@antumbra/persistence/testing";
+import { it } from "@antumbra/persistence/testing";
 import { SessionInputs, sessionInputsLayer } from "@antumbra/session-inputs";
 import { MAX_SESSION_IMAGE_SOURCE_BYTES, SessionInputId } from "@antumbra/vocabulary/session-input";
 import { expect, it as plainIt } from "@effect/vitest";
@@ -10,7 +10,6 @@ import { Effect } from "effect";
 import { SessionInputInvalid } from "#errors.ts";
 import { prepareInput } from "#prepare.ts";
 
-const it = persistenceIt();
 const custodyRoot = mkdtempSync(join(tmpdir(), "antumbra-session-inputs-"));
 it.afterAll(() => rmSync(custodyRoot, { force: true, recursive: true }));
 const id = (suffix: string) => SessionInputId.make(`00000000-0000-4000-8000-${suffix.padStart(12, "0")}`);

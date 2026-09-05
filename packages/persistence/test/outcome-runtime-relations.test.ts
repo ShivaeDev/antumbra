@@ -1,8 +1,7 @@
-import { persistenceIt } from "@antumbra/persistence/testing";
+import { it } from "@antumbra/persistence/testing";
 import { expect } from "@effect/vitest";
 import { Effect } from "effect";
 
-const it = persistenceIt();
 const piece = {
 	charter: "sound the shallows",
 	expectation: "the soundings land",

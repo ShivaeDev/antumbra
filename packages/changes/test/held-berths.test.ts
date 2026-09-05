@@ -87,3 +87,19 @@ it("a berth cut from a source no longer registered is not held", () => {
 it("the berth holding no change at all is simply absent", () => {
 	expect(holding([REEF_BERTH], [], REGISTRY, []).size).toBe(0);
 });
+
+it("a replacement holds a withdrawn change only through a shared Piece", () => {
+	const withdrawn = onReef("withdrawn");
+	const replacement = changeOf({ headRef: "work/replacement", id: "replacement", repoId: REEF.id, stage: "prepared" });
+	const separate = [...linked, { changeId: replacement.id, pieceId: "piece-2", purpose: "produces" as const }];
+	expect(holding([REEF_BERTH], [withdrawn, replacement], REGISTRY, separate).size).toBe(0);
+	const shared = [...separate, { changeId: withdrawn.id, pieceId: "piece-2", purpose: "produces" as const }];
+	expect(holding([REEF_BERTH], [withdrawn, replacement], REGISTRY, shared)).toEqual(new Map([[REEF_BERTH.id, withdrawn.id]]));
+});
+
+it("the first backing Change determines the hold reason regardless of link order", () => {
+	const first = onReef("open");
+	const second = { ...first, id: "change-2" };
+	const reversedLinks = [{ changeId: second.id, pieceId: "piece-2", purpose: "produces" as const }, ...linked];
+	expect(holding([REEF_BERTH], [first, second], REGISTRY, reversedLinks)).toEqual(new Map([[REEF_BERTH.id, first.id]]));
+});

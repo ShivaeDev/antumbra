@@ -14,6 +14,7 @@ import { BackendProviders } from "#backend-catalog/providers.ts";
 import { BackendCatalog } from "#backend-catalog/service.ts";
 import { domainCapabilities } from "#domain-capabilities.ts";
 import { imageInputBackendsOf } from "#image-input-backends.ts";
+import { MailDelivery } from "#mail-delivery/service.ts";
 
 export { AgentDomain } from "#agent-domain-service.ts";
 
@@ -29,6 +30,7 @@ export const AgentDomainLive = (
 	return Layer.effect(AgentDomain)(makeAgentDomain(backends, runners)).pipe(
 		Layer.provideMerge(sessionSendLayer(imageInputBackendsOf(backends))),
 		Layer.provideMerge(CurrentSessions.layer),
+		Layer.provideMerge(MailDelivery.layer),
 		Layer.provideMerge(BackendCatalog.layer.pipe(Layer.provide(Layer.succeed(BackendProviders)(backends)))),
 		Layer.provideMerge(LiveDelegationsLive),
 		Layer.provideMerge(BackendCapacitiesLive(backends)),

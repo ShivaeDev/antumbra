@@ -6,7 +6,7 @@ import { Effect } from "effect";
 import { sessionAtRest } from "#at-rest.ts";
 import { censusLane, seedAgent, seedSession, treeLayer } from "#test/tree/fixture.ts";
 import { LiveDelegations } from "#tree/live.ts";
-import { makeSessionTreeSinks } from "#tree/sink.ts";
+import { SessionTreeSinks } from "#tree/sink/service.ts";
 
 const AGENT = "agent-censused";
 const ROOT = "session-root";
@@ -66,8 +66,8 @@ const restingRoots = Effect.gen(function* () {
 
 const attachedOver = (found: SessionCensus, stream: ReadonlyArray<AgentEvent>) =>
 	Effect.gen(function* () {
-		const sinkFor = yield* makeSessionTreeSinks(Effect.void);
-		const sink = yield* sinkFor(ROOT, censusLane(found));
+		const sinks = yield* SessionTreeSinks;
+		const sink = yield* sinks.create(ROOT, censusLane(found), Effect.void);
 		yield* Effect.forEach(stream, sink.record, {
 			concurrency: 1,
 			discard: true,

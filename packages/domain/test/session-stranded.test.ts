@@ -1,7 +1,7 @@
 import { SightSource } from "@antumbra/contract";
 import { Database } from "@antumbra/persistence";
 import { SessionFabric, SessionFabricLive } from "@antumbra/session-fabric";
-import { makeSessionTurnRests } from "@antumbra/sessions";
+import { SessionTurnRests } from "@antumbra/sessions/turn-rest/service";
 import type { AgentEvent } from "@antumbra/vocabulary/session-events";
 import { expect, it } from "@effect/vitest";
 import { Effect, Layer } from "effect";
@@ -66,9 +66,9 @@ it.live("an ending that lands after the attachment went still settles", () =>
 		const scripted = yield* makeScriptedBackend;
 		yield* Effect.gen(function* () {
 			const fabric = yield* SessionFabric;
-			const turnRestFor = yield* makeSessionTurnRests(Effect.void);
+			const turnRests = yield* SessionTurnRests;
 			yield* spawned;
-			const turns = yield* turnRestFor(HAND.sessionId);
+			const turns = yield* turnRests.create(HAND.sessionId, Effect.void);
 			yield* turns.observed(spoke);
 
 			yield* fabric.stop(HAND.sessionId);
@@ -85,10 +85,10 @@ it.live("an ending is refused when a newer attachment holds the session", () =>
 		yield* Effect.gen(function* () {
 			const fabric = yield* SessionFabric;
 			const sight = yield* SightSource;
-			const turnRestFor = yield* makeSessionTurnRests(Effect.void);
+			const turnRests = yield* SessionTurnRests;
 			yield* spawned;
 			yield* openedNatively(scripted);
-			const turns = yield* turnRestFor(HAND.sessionId);
+			const turns = yield* turnRests.create(HAND.sessionId, Effect.void);
 			yield* turns.observed(spoke);
 
 			yield* fabric.stop(HAND.sessionId);

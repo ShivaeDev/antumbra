@@ -104,3 +104,25 @@ it.effectDB("lays the last thirty days out in order, split by backend, and leave
 		expect(view.total.inputTokens).toBe(451);
 	}).pipe(Effect.provide(costsLayer));
 });
+
+it.effectDB("lists only metered work while retaining every turn from the same Session", function* (db) {
+	yield* Effect.gen(function* () {
+		const at = new Date(yield* Clock.currentTimeMillis);
+		for (const name of ["working", "quiet"]) {
+			yield* openedVoyage(db, `voyage-${name}`, name);
+			yield* crewedAgent(db, `agent-${name}`, `voyage-${name}`);
+			yield* openedSession(db, { agentId: `agent-${name}`, backend: "claude", id: `session-${name}` });
+		}
+		yield* openedSession(db, { agentId: "agent-working", backend: "claude", id: "session-delegate", parentSessionId: "session-working" });
+		const empty = yield* costsView;
+		expect(empty.total.turns).toBe(0);
+		expect(empty.agents).toEqual([]);
+		expect(empty.voyages).toEqual([]);
+		yield* spentTurn(db, { at, inputTokens: 100, outputTokens: 10, seq: 0, sessionId: "session-working" });
+		yield* spentTurn(db, { at, inputTokens: 200, outputTokens: 20, seq: 1, sessionId: "session-working" });
+		const view = yield* costsView;
+		expect(view.total).toMatchObject({ inputTokens: 300, outputTokens: 30, turns: 2 });
+		expect(view.agents).toEqual([{ agentId: "agent-working", sessionIds: ["session-working"], total: view.total }]);
+		expect(view.voyages).toEqual([{ name: "working", total: view.total, voyageId: "voyage-working" }]);
+	}).pipe(Effect.provide(costsLayer));
+});

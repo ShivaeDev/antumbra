@@ -1,7 +1,6 @@
-import { DomainFeedsLive } from "@antumbra/domain-feeds";
-import { it } from "@antumbra/persistence/testing";
 import { type AgentBackend, makeBackendCapacityController } from "@antumbra/plugin-api";
 import { makeScriptedBackend } from "@antumbra/testing-runtime";
+import { it } from "@antumbra/testing-runtime/domain";
 import type { AgentEvent } from "@antumbra/vocabulary/session-events";
 import { expect } from "@effect/vitest";
 import { Clock, Context, Effect, Layer, Option } from "effect";
@@ -15,7 +14,7 @@ const quotaRaw = {
 
 const quotaEvent: AgentEvent = { raw: quotaRaw, type: "raw" };
 
-it.effectDB("recovers a provider-wide hold from durable session evidence", function* (db) {
+it.effectApp("recovers a provider-wide hold from durable session evidence", function* ({ db }) {
 	yield* Effect.scoped(
 		Effect.gen(function* () {
 			const scripted = yield* makeScriptedBackend;
@@ -137,5 +136,5 @@ it.effectDB("recovers a provider-wide hold from durable session evidence", funct
 				status: "available",
 			});
 		}),
-	).pipe(Effect.provide(DomainFeedsLive));
+	);
 });

@@ -1,10 +1,8 @@
-import { DomainFeeds, DomainFeedsLive } from "@antumbra/domain-feeds";
-import { it } from "@antumbra/persistence/testing";
+import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Reports, ReportsLive } from "@antumbra/reports";
+import { it } from "@antumbra/testing-runtime/domain";
 import { expect } from "@effect/vitest";
-import { Effect, Layer, PubSub } from "effect";
-
-const layer = ReportsLive.pipe(Layer.provideMerge(DomainFeedsLive));
+import { Effect, PubSub } from "effect";
 
 const piece = {
 	charter: "sound the shallows",
@@ -16,7 +14,7 @@ const piece = {
 	title: "Soundings",
 };
 
-it.effectDB("lands a report with its piece link and publishes a voyage refresh", function* (db) {
+it.effectApp("lands a report with its piece link and publishes a voyage refresh", function* ({ db }) {
 	yield* Effect.gen(function* () {
 		const feeds = yield* DomainFeeds;
 		const reports = yield* Reports;
@@ -38,10 +36,10 @@ it.effectDB("lands a report with its piece link and publishes a voyage refresh",
 		expect(yield* db.Report.all()).toMatchObject([report]);
 		expect(yield* db.PieceReport.all()).toEqual([{ pieceId: piece.id, reportId: report.id }]);
 		expect(yield* PubSub.take(notices)).toBeUndefined();
-	}).pipe(Effect.provide(layer), Effect.scoped);
+	}).pipe(Effect.provide(ReportsLive), Effect.scoped);
 });
 
-it.effectDB("refuses an orphan report without publishing", function* (db) {
+it.effectApp("refuses an orphan report without publishing", function* ({ db }) {
 	yield* Effect.gen(function* () {
 		const feeds = yield* DomainFeeds;
 		const reports = yield* Reports;
@@ -63,5 +61,5 @@ it.effectDB("refuses an orphan report without publishing", function* (db) {
 		expect(yield* db.Report.all()).toEqual(beforeReports);
 		expect(yield* db.PieceReport.all()).toEqual(beforeLinks);
 		expect(yield* PubSub.takeUpTo(notices, 1)).toEqual([]);
-	}).pipe(Effect.provide(layer), Effect.scoped);
+	}).pipe(Effect.provide(ReportsLive), Effect.scoped);
 });

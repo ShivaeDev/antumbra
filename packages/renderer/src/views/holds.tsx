@@ -1,4 +1,5 @@
 import { HOLD_KINDS, HOLDS, type HoldsView, type SettingKey, type SettingsReading } from "@antumbra/contract";
+import { Effect } from "effect";
 import { watchHolds } from "#adapters/trpc-holds.ts";
 import { changeSetting } from "#adapters/trpc-settings.ts";
 import { useFeed } from "#hooks/feed.ts";
@@ -54,7 +55,15 @@ export const HoldsPanel = ({
 	readonly settings: SettingsReading | undefined;
 }) => {
 	const { error: feedError, value: holds } = useFeed("holds", watchHolds);
-	const onHold = (key: SettingKey, held: boolean) => changeSetting({ key, value: held }, onSettings, onError);
+	const onHold = (key: SettingKey, held: boolean) =>
+		Effect.runFork(
+			changeSetting({ key, value: held }).pipe(
+				Effect.match({
+					onSuccess: onSettings,
+					onFailure: (error) => onError(error.message),
+				}),
+			),
+		);
 
 	return (
 		<section className="flex min-h-0 min-w-0 flex-1 flex-col bg-background font-sans text-foreground">

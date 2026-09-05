@@ -4,7 +4,7 @@ import { expect } from "@effect/vitest";
 import { Effect, Option } from "effect";
 import { journalOf, scriptedLane, seedAgent, seedSession, sessionRow, treeLayer } from "#test/tree/fixture.ts";
 import { SessionTreeAudits } from "#tree/audit/service.ts";
-import { makeSessionTreeSweeps } from "#tree/sweeps.ts";
+import { SessionTreeSweeps } from "#tree/sweeps/service.ts";
 
 const AGENT = "agent-audited";
 const ROOT = "session-root";
@@ -112,7 +112,7 @@ it.effectDB("a node still being written to has nothing to audit yet", function* 
 it.effectDB("closure audits its node and reconnection finishes only its closed unfinished nodes", function* () {
 	yield* Effect.gen(function* () {
 		const lane = yield* scriptedLane([missedLine]);
-		const makeSweeps = yield* makeSessionTreeSweeps;
+		const treeSweeps = yield* SessionTreeSweeps;
 		yield* seedTree("recording");
 		yield* seedAgent("other-agent");
 		yield* seedSession({ agentId: "other-agent", id: "other-root", nativeRef: "other-root", rootSessionId: "other-root" });
@@ -128,7 +128,7 @@ it.effectDB("closure audits its node and reconnection finishes only its closed u
 				parentSessionId: node.rootSessionId,
 			});
 		}
-		const sweeps = yield* makeSweeps(lane.audit, ROOT, () => Effect.void);
+		const sweeps = yield* treeSweeps.create(lane.audit, ROOT, () => Effect.void);
 		const record = () => Effect.succeed(false);
 		yield* sweeps.closed(NODE, record);
 		expect(yield* completenessOf(NODE)).toBe("incomplete");

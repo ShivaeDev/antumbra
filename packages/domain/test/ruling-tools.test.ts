@@ -5,10 +5,10 @@ import type { DirectTool } from "@antumbra/plugin-api";
 import { it } from "@antumbra/testing";
 import { expect } from "@effect/vitest";
 import { Effect, Option, Stream } from "effect";
-import { AgentDomain } from "#domain.ts";
 import { makeRulingToolCompiler } from "#ruling-tools.ts";
 import { callTool, type ScriptedBackend, sessionFor } from "#test/harness.ts";
 import { chain, openReefVoyage } from "#test/voyage-fixtures.ts";
+import { VoyageProcedureService } from "#voyages/service.ts";
 
 const ASK = {
 	choices: [{ detail: "the soundings are fresher", label: "resurvey" }],
@@ -43,7 +43,7 @@ const rulingTool = (tools: ReadonlyArray<DirectTool>): DirectTool =>
 it.effectApp("a request carries who asked and where the asker stood", function* ({ scripted }) {
 	const pieces = yield* Pieces;
 	const db = yield* Database;
-	const domain = yield* AgentDomain;
+	const procedures = yield* VoyageProcedureService;
 	const kernel = yield* Kernel;
 	const voyage = yield* openReefVoyage;
 	const alpha = yield* pieces.charter({
@@ -54,7 +54,7 @@ it.effectApp("a request carries who asked and where the asker stood", function* 
 		title: "alpha",
 		voyageId: voyage.id,
 	});
-	const crewed = yield* domain.voyages.workNow(alpha.id);
+	const crewed = yield* procedures.workNow(alpha.id);
 	const status = yield* kernel.changes(crewed.intentId).pipe(Stream.takeUntil(isTerminalIntentStatus), Stream.runLast, Effect.map(Option.getOrThrow));
 	expect(status).toBe("succeeded");
 	const live = yield* sessionFor(scripted, crewed.agentId);
@@ -146,9 +146,9 @@ const gatedPieceIds = Effect.gen(function* () {
 
 const captainOf = (scripted: ScriptedBackend, voyageId: string) =>
 	Effect.gen(function* () {
-		const domain = yield* AgentDomain;
+		const procedures = yield* VoyageProcedureService;
 		const kernel = yield* Kernel;
-		const hailed = yield* domain.voyages.hail(voyageId);
+		const hailed = yield* procedures.hail(voyageId);
 		const status = yield* kernel
 			.changes(hailed.intentId)
 			.pipe(Stream.takeUntil(isTerminalIntentStatus), Stream.runLast, Effect.map(Option.getOrThrow));
@@ -204,7 +204,7 @@ it.effectApp("a hold naming another voyage's piece is refused, not stored", func
 
 it.effectApp("crew on a piece may hold a sibling piece of its voyage", function* ({ scripted }) {
 	const pieces = yield* Pieces;
-	const domain = yield* AgentDomain;
+	const procedures = yield* VoyageProcedureService;
 	const kernel = yield* Kernel;
 	const voyage = yield* openReefVoyage;
 	const charter = (title: string) =>
@@ -218,7 +218,7 @@ it.effectApp("crew on a piece may hold a sibling piece of its voyage", function*
 		});
 	const alpha = yield* charter("alpha");
 	const bravo = yield* charter("bravo");
-	const crewed = yield* domain.voyages.workNow(alpha.id);
+	const crewed = yield* procedures.workNow(alpha.id);
 	const status = yield* kernel.changes(crewed.intentId).pipe(Stream.takeUntil(isTerminalIntentStatus), Stream.runLast, Effect.map(Option.getOrThrow));
 	expect(status).toBe("succeeded");
 	const crew = yield* sessionFor(scripted, crewed.agentId);

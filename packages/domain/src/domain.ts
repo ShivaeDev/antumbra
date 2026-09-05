@@ -36,7 +36,7 @@ export const AgentDomainLive = (
 		Layer.provideMerge(BackendCatalog.layer.pipe(Layer.provide(Layer.succeed(BackendProviders)(backends)))),
 		Layer.provideMerge(LiveDelegationsLive),
 		Layer.provideMerge(BackendCapacitiesLive(backends)),
-		Layer.provide(
+		Layer.provideMerge(
 			ResourceReconcilerLive(reclaimOptions).pipe(Layer.provide(ChangeHeldResourceReadLive), Layer.provide(ResourceReclaimRunnersLive(runners))),
 		),
 		Layer.provideMerge(capabilities),

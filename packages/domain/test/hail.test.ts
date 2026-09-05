@@ -3,10 +3,10 @@ import { Database } from "@antumbra/persistence";
 import { it } from "@antumbra/testing";
 import { expect } from "@effect/vitest";
 import { Effect, Option } from "effect";
-import { AgentDomain } from "#domain.ts";
 import { hailCaptain } from "#hail.ts";
 import { sessionFor } from "#test/harness.ts";
 import { aliveAgent, openReefVoyage, retireOneAlive, sessionIdOf, terminalIntent } from "#test/voyage-fixtures.ts";
+import { VoyageProcedureService } from "#voyages/service.ts";
 
 const CAPTAIN_TOOLS = [
 	"charter_piece",
@@ -30,7 +30,7 @@ const CAPTAIN_TOOLS = [
 
 it.effectApp("hailing a voyage brings it a captain and puts it under way", function* ({ scripted }) {
 	const db = yield* Database;
-	const domain = yield* AgentDomain;
+	const procedures = yield* VoyageProcedureService;
 	const boards = yield* Boards;
 	const voyage = yield* openReefVoyage;
 	yield* boards.write(
@@ -42,13 +42,13 @@ it.effectApp("hailing a voyage brings it a captain and puts it under way", funct
 		}),
 	);
 
-	const hailed = yield* domain.voyages.hail(voyage.id);
+	const hailed = yield* procedures.hail(voyage.id);
 	expect(yield* terminalIntent(hailed.intentId)).toBe("succeeded");
 	const captain = yield* aliveAgent(hailed.agentId);
 	expect(captain.role).toBe("captain");
 	expect(yield* db.VoyageAgent.all()).toMatchObject([{ agentId: hailed.agentId, role: "captain", voyageId: voyage.id }]);
 
-	const view = Option.getOrThrow(yield* domain.voyages.read(voyage.id));
+	const view = Option.getOrThrow(yield* procedures.read(voyage.id));
 	expect(view.state).toBe("underWay");
 	expect(Option.getOrThrow(view.captain)).toEqual({
 		agentId: hailed.agentId,
@@ -64,9 +64,9 @@ it.effectApp("hailing a voyage brings it a captain and puts it under way", funct
 
 it.effectApp("a second hail reaches the captain the voyage already has", function* () {
 	const db = yield* Database;
-	const domain = yield* AgentDomain;
+	const procedures = yield* VoyageProcedureService;
 	const voyage = yield* openReefVoyage;
-	const hailed = yield* domain.voyages.hail(voyage.id);
+	const hailed = yield* procedures.hail(voyage.id);
 	expect(yield* terminalIntent(hailed.intentId)).toBe("succeeded");
 	yield* aliveAgent(hailed.agentId);
 
@@ -75,27 +75,27 @@ it.effectApp("a second hail reaches the captain the voyage already has", functio
 	expect(Option.getOrThrow(yield* db.Intent.where({ id: again.intentId }).first()).tag).toBe("agent/wake");
 	expect(yield* db.Agent.all()).toHaveLength(1);
 	expect(yield* db.VoyageAgent.all()).toHaveLength(1);
-	expect(yield* Effect.flip(domain.voyages.hail("no-such-voyage"))).toMatchObject({ _tag: "VoyageNotFound" });
+	expect(yield* Effect.flip(procedures.hail("no-such-voyage"))).toMatchObject({ _tag: "VoyageNotFound" });
 });
 
 it.effectApp("a retired captain is history, and the voyage may be hailed again", { clock: "live" }, function* ({ scripted }) {
 	const db = yield* Database;
-	const domain = yield* AgentDomain;
+	const procedures = yield* VoyageProcedureService;
 	const voyage = yield* openReefVoyage;
-	const first = yield* domain.voyages.hail(voyage.id);
+	const first = yield* procedures.hail(voyage.id);
 	expect(yield* terminalIntent(first.intentId)).toBe("succeeded");
 	yield* aliveAgent(first.agentId);
 
 	yield* retireOneAlive(scripted);
-	expect(Option.getOrThrow(yield* domain.voyages.read(voyage.id)).state).toBe("quiet");
+	expect(Option.getOrThrow(yield* procedures.read(voyage.id)).state).toBe("quiet");
 
-	const second = yield* domain.voyages.hail(voyage.id);
+	const second = yield* procedures.hail(voyage.id);
 	expect(second.agentId).not.toBe(first.agentId);
 	expect(yield* terminalIntent(second.intentId)).toBe("succeeded");
 	yield* aliveAgent(second.agentId);
 
 	expect((yield* db.VoyageAgent.all()).length).toBe(2);
-	const view = Option.getOrThrow(yield* domain.voyages.read(voyage.id));
+	const view = Option.getOrThrow(yield* procedures.read(voyage.id));
 	expect(Option.getOrThrow(view.captain)).toEqual({
 		agentId: second.agentId,
 		atWork: true,

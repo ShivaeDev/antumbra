@@ -1,5 +1,5 @@
 import { BoardScope, Boards } from "@antumbra/boards";
-import { AgentDomain } from "@antumbra/domain";
+import { VoyageProcedureService } from "@antumbra/domain/voyages/service";
 import { type IntentStatus, isTerminalIntentStatus, Kernel } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
 import { Pieces } from "@antumbra/pieces";
@@ -27,9 +27,9 @@ const sessionOf = (scripted: ScriptedBackend, agentId: string) =>
 
 const hailedCaptain = (scripted: ScriptedBackend, voyageId: string) =>
 	Effect.gen(function* () {
-		const domain = yield* AgentDomain;
+		const procedures = yield* VoyageProcedureService;
 		const kernel = yield* Kernel;
-		const hailed = yield* domain.voyages.hail(voyageId);
+		const hailed = yield* procedures.hail(voyageId);
 		expect(yield* terminalStatus(kernel.changes(hailed.intentId))).toBe("succeeded");
 		return yield* sessionOf(scripted, hailed.agentId);
 	});

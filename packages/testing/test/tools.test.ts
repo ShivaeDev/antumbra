@@ -1,5 +1,6 @@
 import { BoardScope, Boards } from "@antumbra/boards";
 import { AgentDomain, type SpawnFields } from "@antumbra/domain";
+import { VoyageProcedureService } from "@antumbra/domain/voyages/service";
 import { type IntentStatus, isTerminalIntentStatus, Kernel } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
 import { Pieces } from "@antumbra/pieces";
@@ -27,7 +28,7 @@ const sessionOf = (scripted: ScriptedBackend, agentId: string) =>
 
 const workingCrew = Effect.gen(function* () {
 	const pieces = yield* Pieces;
-	const domain = yield* AgentDomain;
+	const procedures = yield* VoyageProcedureService;
 	const voyageRecords = yield* Voyages;
 	const kernel = yield* Kernel;
 	const voyage = yield* voyageRecords.open({
@@ -44,7 +45,7 @@ const workingCrew = Effect.gen(function* () {
 		title: "soundings",
 		voyageId: voyage.id,
 	});
-	const crewed = yield* domain.voyages.workNow(piece.id);
+	const crewed = yield* procedures.workNow(piece.id);
 	expect(yield* terminalStatus(kernel.changes(crewed.intentId))).toBe("succeeded");
 	return { agentId: crewed.agentId, piece, voyage };
 });
@@ -67,7 +68,7 @@ const spawnByHand = Effect.gen(function* () {
 });
 
 it.effectApp("a crew member lands a report against the piece it was spawned for", { clock: "live" }, function* ({ db, scripted }) {
-	const domain = yield* AgentDomain;
+	const procedures = yield* VoyageProcedureService;
 	const crew = yield* workingCrew;
 	const live = yield* sessionOf(scripted, crew.agentId);
 
@@ -77,9 +78,9 @@ it.effectApp("a crew member lands a report against the piece it was spawned for"
 	});
 	expect(yield* db.Report.where({ authorAgentId: crew.agentId }).all()).toMatchObject([{ authorAgentId: crew.agentId, title: "soundings" }]);
 	yield* endsTurn(scripted, Option.getOrThrow(yield* db.AgentSession.where({ agentId: crew.agentId }).first()).id);
-	expect(
-		Option.getOrThrow(yield* domain.voyages.read(crew.voyage.id).pipe(Effect.orDie)).pieces.find((piece) => piece.id === crew.piece.id)?.state,
-	).toBe("done");
+	expect(Option.getOrThrow(yield* procedures.read(crew.voyage.id).pipe(Effect.orDie)).pieces.find((piece) => piece.id === crew.piece.id)?.state).toBe(
+		"done",
+	);
 });
 
 it.effectApp("arguments the model got wrong come back as a refusal", { clock: "live" }, function* ({ db, scripted }) {

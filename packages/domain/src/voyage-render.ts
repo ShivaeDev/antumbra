@@ -2,6 +2,7 @@ import { Option } from "effect";
 import { pieceLine } from "#piece-line.ts";
 import type { PieceView } from "#piece-view.ts";
 import type { VoyageCaptain } from "#voyage-captain.ts";
+import { paceWords, type VoyagePace } from "#voyage-pace.ts";
 import type { VoyageView } from "#voyage-view.ts";
 
 const listed = (lines: ReadonlyArray<string>): string => (lines.length === 0 ? "- none" : lines.join("\n"));
@@ -30,9 +31,10 @@ const captainLine = (captain: Option.Option<VoyageCaptain>): string =>
 		onSome: (row) => `- ${row.agentId} [${row.status}]`,
 	});
 
-export const renderVoyage = (view: VoyageView): string =>
+export const renderVoyage = (view: VoyageView, pace: VoyagePace): string =>
 	[
 		`# ${view.name} [${view.state}]`,
+		paceWords(pace),
 		``,
 		`## Pieces`,
 		listed(view.pieces.map(pieceLine)),

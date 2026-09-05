@@ -24,7 +24,8 @@ const berthLine = (berth: typeof Berth.Type): string => `${berth.repo} — ${ber
 
 const berthsBody = (input: BerthedCharter): string =>
 	[
-		`Working directory: ${input.moorageRoot}. Keep notes and scratch files here; repository folders are listed below.`,
+		`Working directory: ${input.moorageRoot}`,
+		`Scratch folder: ${input.moorageRoot}/scratch — write notes and drafts here; nothing in it is ever committed.`,
 		...input.berths.map(berthLine),
 	].join("\n");
 

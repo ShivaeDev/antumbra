@@ -75,7 +75,9 @@ it.effectApp("the reply counts the pieces waiting to launch, and launched or par
 	expect((yield* callTool(ladder.captain, "park_piece", { pieceId: bravo })).ok).toBe(true);
 	const fourth = yield* captainCharters(ladder, "delta");
 
-	expect(noticeOf(fourth.text)).toEqual(["this voyage has 1 other chartered piece not yet launched"]);
+	const [unlaunched = "", pace = ""] = noticeOf(fourth.text);
+	expect(unlaunched).toBe("this voyage has 1 other chartered piece not yet launched");
+	expect(pace).toContain("waiting for capacity; the fleet runs at most 4 agents at once");
 });
 
 it.effectApp("a first charter on a quiet voyage carries no notice", { clock: "live" }, function* ({ scripted }) {

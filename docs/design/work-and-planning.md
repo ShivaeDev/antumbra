@@ -78,6 +78,10 @@ course can honestly be plotted: past a question nobody has answered, a plan is a
 Chartering reports the frontier rather than stopping at it. A charter always lands, and the tool's reply names the blocking questions standing on the
 Voyage and counts the Pieces already chartered and not yet launched; a Piece already launched, parked, or abandoned is settled and counts for nothing.
 
+Launching reports the same way. The reply says how many of the Voyage's Pieces are running, how many wait for capacity, and how many agents the fleet
+runs at once, and the charter reply and the Voyage reading carry those numbers too. A captain that has launched ten Pieces where two may run can read
+that and pace itself; refusing the eleventh would decide for it.
+
 Those facts inform the captain without deciding for it. Work that does not need an open answer is worth chartering while the question stands, and a
 plan that lays out many parallel Pieces before any of them sails is legitimate: its captain may learn only once all of them have run. Refusing would
 stop those plans along with the careless ones, and any fixed number of unlaunched Pieces is a guess about a Voyage the rule has never seen. The reply

@@ -18,6 +18,11 @@ export type CrewCharter = typeof CrewCharter.Type;
 const STANDING_ORDER = [
 	"- Complete your assigned Piece. Report findings, work done and what remains. Suggest further work for the captain to charter.",
 	"- Your work is done when its outcomes have landed. An open Change is still pending; a finished reply does not complete the Piece.",
+	"- Land a Report with the evidence first, then open one Change for the claims the code contradicts. Work that changes what the product promises waits for a ruling and goes in a Change of its own.",
+	"- Write the Change body as the `open_change` description says, with Decisions and Callouts only when the work made a major trade-off or a spot needs a close look.",
+	"- A sentence in a guide that says what never happens, what is never overwritten, or what is always allowed is a product decision. Ask about it rather than soften it.",
+	"- Correct a claim by saying the true thing plainly. Do not replace a sentence with a list of conditions, and do not use a word that only means something inside the code.",
+	"- One ruling answers one question. What you offered in added context and nobody answered stays as it is.",
 	STANDING_ORDERS,
 ].join("\n");
 

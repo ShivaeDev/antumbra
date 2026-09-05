@@ -43,6 +43,7 @@ export const domainCapabilityLayer = (temporary: TemporaryPersistence, reach: Ke
 				Layer.provide(NodeServices.layer),
 			),
 		),
+		Layer.provideMerge(SettingsSourceLive),
 		Layer.provideMerge(temporary.layer),
 	);
 

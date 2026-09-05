@@ -1,8 +1,9 @@
 import { Database } from "@antumbra/persistence";
-import { Effect } from "effect";
+import { Effect, Option } from "effect";
+import { entryRow } from "#entries.ts";
 import { MailNotAddressed } from "#errors.ts";
 import { BoardScope, EntryInput, type MailInput } from "#model.ts";
-import { readBoard } from "#read.ts";
+import { linkedBoardId, requireBoardOwner } from "#owner.ts";
 import { writeEntry } from "#write.ts";
 
 const alreadyReadEntryIds = Effect.fnUntraced(function* (entryIds: ReadonlyArray<string>) {
@@ -11,8 +12,18 @@ const alreadyReadEntryIds = Effect.fnUntraced(function* (entryIds: ReadonlyArray
 	return new Set(receipts.map((receipt) => receipt.entryId));
 });
 
-const mailEntries = (agentId: string) =>
-	readBoard(BoardScope.Agent({ agentId })).pipe(Effect.map((entries) => entries.filter((entry) => entry.kind === "mail")));
+const mailEntries = Effect.fnUntraced(function* (agentId: string, entryIds?: ReadonlyArray<string>) {
+	const db = yield* Database;
+	const scope = BoardScope.Agent({ agentId });
+	yield* requireBoardOwner(scope);
+	const boardId = yield* linkedBoardId(scope);
+	if (Option.isNone(boardId)) {
+		return [];
+	}
+	const mail = db.BoardEntry.where({ boardId: boardId.value, kind: "mail" });
+	const requested = entryIds === undefined ? mail : mail.where((entry) => entry.id.in(entryIds));
+	return yield* Effect.forEach(yield* requested.orderBy((entry) => entry.seq.asc()).all(), entryRow);
+});
 
 export const mail = Effect.fn("Boards.mail")((input: MailInput) =>
 	writeEntry(
@@ -35,7 +46,7 @@ export const unreadMail = Effect.fn("Boards.unread")(function* (agentId: string)
 
 export const markMailRead = Effect.fn("Boards.markRead")(function* (agentId: string, entryIds: ReadonlyArray<string>) {
 	const db = yield* Database;
-	const entries = yield* mailEntries(agentId);
+	const entries = yield* mailEntries(agentId, entryIds);
 	const addressed = new Set(entries.map((entry) => entry.id));
 	const requested = new Set(entryIds);
 	const stray = [...requested].find((entryId) => !addressed.has(entryId));

@@ -2,7 +2,7 @@ import { BoardScope, Boards, BoardsLive, EntryInput } from "@antumbra/boards";
 import { DomainFeeds, DomainFeedsLive } from "@antumbra/domain-feeds";
 import { it } from "@antumbra/persistence/testing";
 import { expect } from "@effect/vitest";
-import { Effect, Layer, Option, PubSub } from "effect";
+import { Effect, Layer, Option, PubSub, Result } from "effect";
 
 const layer = BoardsLive.pipe(Layer.provideMerge(DomainFeedsLive));
 
@@ -71,14 +71,27 @@ it.effectDB("owns replay-safe pull mail and explicit read receipts", function* (
 			yield* boards.markRead(input.toAgentId, []);
 			const first = yield* boards.mail(input);
 			const replay = yield* boards.mail(input);
+			expect(yield* PubSub.takeUpTo(notices, 1)).toEqual([]);
+			const note = yield* boards.write(
+				BoardScope.Agent({ agentId: input.toAgentId }),
+				EntryInput.Note({ authorAgentId: Option.none(), body: "board context is not mail", register: "smooth" }),
+			);
+			yield* db.Agent.create({ id: "other-mailbox", charter: "receive other mail", role: "hand", status: "alive" });
+			const foreign = yield* boards.mail({ ...input, toAgentId: "other-mailbox" });
+			const second = yield* boards.mail({ ...input, sourceRef: "selection:attention-2", body: "a second message" });
 
 			expect(replay.id).toBe(first.id);
-			expect((yield* boards.unread(input.toAgentId)).map((row) => row.id)).toEqual([first.id]);
-			expect(yield* PubSub.takeUpTo(notices, 1)).toEqual([]);
+			expect((yield* boards.unread(input.toAgentId)).map((row) => row.id)).toEqual([first.id, second.id]);
 
+			for (const stray of [note.id, foreign.id]) {
+				const rejected = yield* Effect.result(boards.markRead(input.toAgentId, [first.id, stray]));
+				expect(Result.isFailure(rejected) && rejected.failure).toMatchObject({ _tag: "MailNotAddressed", entryId: stray });
+			}
+			expect((yield* boards.unread(input.toAgentId)).map((row) => row.id)).toEqual([first.id, second.id]);
 			yield* boards.markRead(input.toAgentId, [first.id]);
 			yield* boards.markRead(input.toAgentId, [first.id, first.id]);
-			expect(yield* boards.unread(input.toAgentId)).toEqual([]);
+			expect((yield* boards.unread(input.toAgentId)).map((row) => row.id)).toEqual([second.id]);
+			expect((yield* boards.unread("other-mailbox")).map((row) => row.id)).toEqual([foreign.id]);
 			expect(yield* db.BoardEntryReceipt.all()).toMatchObject([{ entryId: first.id }]);
 		}),
 	).pipe(Effect.provide(layer));

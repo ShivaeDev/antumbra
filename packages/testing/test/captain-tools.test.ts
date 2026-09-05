@@ -53,7 +53,8 @@ const chartered = (captain: ScriptedSession, title: string, dependsOn: ReadonlyA
 			title,
 		});
 		expect(outcome.ok).toBe(true);
-		return outcome.text.replace("chartered ", "");
+		const [said = ""] = outcome.text.split("\n");
+		return said.replace("chartered ", "");
 	});
 
 const pieceOnAnotherVoyage = Effect.gen(function* () {

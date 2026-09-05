@@ -31,7 +31,7 @@ export const makeSituationDraft = Effect.gen(function* () {
 	const source = yield* VoyageWorldSource;
 	return (draft: SituationDraft): Effect.Effect<AgentPrompt, SituationDraftRefused> =>
 		Effect.gen(function* () {
-			const snapshot = yield* changes.snapshot;
+			const snapshot = yield* changes.snapshot();
 			const change = snapshot.changes.find((row) => row.id === draft.changeId);
 			if (change === undefined || change.externalId === null) {
 				return yield* new ChangeNotAddressable({ changeId: draft.changeId });

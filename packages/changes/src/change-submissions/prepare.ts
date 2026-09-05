@@ -17,66 +17,65 @@ interface PreparedSubmission {
 	readonly row: ReturnType<typeof preparedChange>;
 }
 
-export const prepareChange = (input: SubmitChangeInput, proposal?: Proposal) =>
-	Effect.gen(function* () {
-		const db = yield* Database;
-		const feeds = yield* DomainFeeds;
-		const pieces = yield* Pieces;
-		const runners = yield* RunnerRegistry;
-		yield* pieces.verifyExists(input.pieceId);
-		const repo = yield* repoNamed(input.repoName);
-		const key = submissionKey(input.agentId, repo.id);
-		const linked = yield* Effect.gen(function* () {
-			yield* ensureAgentCanOwnLocalWork(input.agentId);
-			const existing = yield* activeChange(key);
-			if (Option.isNone(existing)) {
-				return Option.none<{
-					readonly linked: boolean;
-					readonly row: ReturnType<typeof preparedChange>;
-				}>();
-			}
-			return Option.some({
-				linked: yield* linkProduces(input.pieceId, existing.value.id),
-				row: existing.value,
-			});
-		});
-		if (Option.isSome(linked)) {
-			if (linked.value.linked) {
-				yield* feeds.publishVoyageRefresh();
-			}
-			return {
-				hostTag: linked.value.row.host,
-				repo,
-				row: linked.value.row,
-			} satisfies PreparedSubmission;
+export const prepareChange = Effect.fn("Changes.prepareChange")(function* (input: SubmitChangeInput, proposal?: Proposal) {
+	const db = yield* Database;
+	const feeds = yield* DomainFeeds;
+	const pieces = yield* Pieces;
+	const runners = yield* RunnerRegistry;
+	yield* pieces.verifyExists(input.pieceId);
+	const repo = yield* repoNamed(input.repoName);
+	const key = submissionKey(input.agentId, repo.id);
+	const linked = yield* Effect.gen(function* () {
+		yield* ensureAgentCanOwnLocalWork(input.agentId);
+		const existing = yield* activeChange(key);
+		if (Option.isNone(existing)) {
+			return Option.none<{
+				readonly linked: boolean;
+				readonly row: ReturnType<typeof preparedChange>;
+			}>();
 		}
-		const host = yield* claimingHost(repo);
-		const berth = yield* berthFor(input.agentId, repo);
-		const runner = runners.get(berth.runner);
-		if (runner === undefined) {
-			return yield* new UnknownRunnerError({ tag: berth.runner });
-		}
-		const evidence = yield* runner.captureChange(berth);
-		const candidate = preparedChange(input, repo, host.tag, evidence, yield* Clock.currentTimeMillis, proposal);
-		const stored = yield* Effect.gen(function* () {
-			yield* ensureAgentCanOwnLocalWork(input.agentId);
-			yield* ensureBerthResourcesUnclaimed(berth.id);
-			const existing = yield* activeChange(key);
-			const row = Option.getOrElse(existing, () => candidate);
-			let created = false;
-			if (Option.isNone(existing)) {
-				yield* db.Change.create(row);
-				created = true;
-			}
-			const linked = yield* linkProduces(input.pieceId, row.id);
-			return { changed: created || linked, row };
+		return Option.some({
+			linked: yield* linkProduces(input.pieceId, existing.value.id),
+			row: existing.value,
 		});
-		if (stored.changed) {
+	});
+	if (Option.isSome(linked)) {
+		if (linked.value.linked) {
 			yield* feeds.publishVoyageRefresh();
 		}
 		return {
-			hostTag: stored.row.host,
+			hostTag: linked.value.row.host,
 			repo,
-			row: stored.row,
+			row: linked.value.row,
 		} satisfies PreparedSubmission;
+	}
+	const host = yield* claimingHost(repo);
+	const berth = yield* berthFor(input.agentId, repo);
+	const runner = runners.get(berth.runner);
+	if (runner === undefined) {
+		return yield* new UnknownRunnerError({ tag: berth.runner });
+	}
+	const evidence = yield* runner.captureChange(berth);
+	const candidate = preparedChange(input, repo, host.tag, evidence, yield* Clock.currentTimeMillis, proposal);
+	const stored = yield* Effect.gen(function* () {
+		yield* ensureAgentCanOwnLocalWork(input.agentId);
+		yield* ensureBerthResourcesUnclaimed(berth.id);
+		const existing = yield* activeChange(key);
+		const row = Option.getOrElse(existing, () => candidate);
+		let created = false;
+		if (Option.isNone(existing)) {
+			yield* db.Change.create(row);
+			created = true;
+		}
+		const linked = yield* linkProduces(input.pieceId, row.id);
+		return { changed: created || linked, row };
 	});
+	if (stored.changed) {
+		yield* feeds.publishVoyageRefresh();
+	}
+	return {
+		hostTag: stored.row.host,
+		repo,
+		row: stored.row,
+	} satisfies PreparedSubmission;
+});

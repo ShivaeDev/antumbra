@@ -497,6 +497,9 @@ importers:
       '@antumbra/resource-reclamation':
         specifier: workspace:*
         version: link:../resource-reclamation
+      '@antumbra/service-definition':
+        specifier: workspace:*
+        version: link:../service-definition
       '@antumbra/vocabulary':
         specifier: workspace:*
         version: link:../vocabulary

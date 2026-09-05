@@ -12,11 +12,11 @@ export interface ChangeSnapshot {
 	readonly pieceChanges: ReadonlyArray<PieceChangeRow>;
 }
 
-export const readChangeSnapshot: Effect.Effect<
+export const readChangeSnapshot = Effect.fn("Changes.snapshot")(function* (): Effect.fn.Return<
 	ChangeSnapshot,
 	PrismaError | StoredChangeInvalid | StoredChangeVerdictInvalid | StoredPieceChangeInvalid,
 	Context.Service.Identifier<typeof Database>
-> = Effect.gen(function* () {
+> {
 	const db = yield* Database;
 	const changes = yield* Effect.forEach(yield* db.Change.orderBy((change) => change.createdAt.asc()).all(), changeRow);
 	const pieceChanges = yield* Effect.forEach(yield* db.PieceChange.all(), pieceChangeRow);

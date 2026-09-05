@@ -38,7 +38,10 @@ export class VoyageWorldSource extends Context.Service<
 const voyageWorld: Effect.Effect<
 	VoyageWorld,
 	VoyageWorldReadFailure,
-	Changes | Context.Service.Identifier<typeof Database> | Context.Service.Identifier<typeof Repos> | Context.Service.Identifier<typeof Rulings>
+	| Context.Service.Identifier<typeof Changes>
+	| Context.Service.Identifier<typeof Database>
+	| Context.Service.Identifier<typeof Repos>
+	| Context.Service.Identifier<typeof Rulings>
 > = Effect.gen(function* () {
 	const changeSnapshot = yield* Changes;
 	const db = yield* Database;
@@ -48,7 +51,7 @@ const voyageWorld: Effect.Effect<
 	const agentStatuses = yield* Effect.forEach(agents, (agent) =>
 		Effect.fromResult(decodeStoredAgentStatus(agent.id, agent.status)).pipe(Effect.map((status) => [agent.id, status] as const)),
 	);
-	const { changes, dismissedChangeIds, pieceChanges } = yield* changeSnapshot.snapshot;
+	const { changes, dismissedChangeIds, pieceChanges } = yield* changeSnapshot.snapshot();
 	const artifacts = yield* db.Artifact.all();
 	const pieces = yield* db.Piece.orderBy((piece) => piece.createdAt.asc()).all();
 	return {

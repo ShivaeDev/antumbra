@@ -1,9 +1,10 @@
 import type { Fleet } from "@antumbra/contract";
 import { expect, it } from "@effect/vitest";
-import { Effect } from "effect";
+import { Deferred, Effect } from "effect";
 import { act } from "react";
 import { createRoot } from "react-dom/client";
 import { vi } from "vitest";
+import { RendererRequestError } from "#adapters/request-error.ts";
 import { SessionMessage } from "#views/session-message.tsx";
 
 const { sendSessionInput } = vi.hoisted(() => ({ sendSessionInput: vi.fn() }));
@@ -57,7 +58,14 @@ const step = (change: () => void) =>
 const mounted = () =>
 	Effect.gen(function* () {
 		const container = document.createElement("div");
+		document.body.append(container);
 		const root = createRoot(container);
+		yield* Effect.addFinalizer(() =>
+			step(() => {
+				root.unmount();
+				container.remove();
+			}),
+		);
 		yield* step(() => root.render(<SessionMessage fleet={fleet} onError={() => undefined} sessionId="session-1" />));
 		return { container, root };
 	});
@@ -117,13 +125,18 @@ const installObjectUrls = () => {
 it.effect("pastes ordered images before text and clears previews only after acceptance", () =>
 	Effect.gen(function* () {
 		installObjectUrls();
-		sendSessionInput.mockImplementation((_request: unknown, onDone: (receipt: { status: "accepted" }) => void) => onDone({ status: "accepted" }));
+		const accepted = yield* Deferred.make<{ readonly status: "accepted" }>();
+		const started = yield* Deferred.make<void>();
+		sendSessionInput.mockReturnValue(Deferred.succeed(started, undefined).pipe(Effect.andThen(Deferred.await(accepted))));
 		const { container, root } = yield* mounted();
 		yield* step(() => paste(container, [imageFile("west.png"), imageFile("east.png")]));
 		expect(container.querySelectorAll("img")).toHaveLength(2);
 		yield* step(() => write(container, "compare these reefs"));
 		yield* step(() => pressEnter(container));
-		yield* step(() => undefined);
+		yield* Deferred.await(started);
+		expect(container.querySelector("textarea")?.disabled).toBe(false);
+		expect(container.querySelector('input[type="file"]')?.hasAttribute("disabled")).toBe(true);
+		expect(URL.revokeObjectURL).not.toHaveBeenCalled();
 		expect(sendSessionInput).toHaveBeenLastCalledWith(
 			expect.objectContaining({
 				parts: [
@@ -132,9 +145,12 @@ it.effect("pastes ordered images before text and clears previews only after acce
 					{ text: "compare these reefs", type: "text" },
 				],
 			}),
-			expect.any(Function),
-			expect.any(Function),
 		);
+		yield* step(() => {
+			Effect.runSync(Deferred.succeed(accepted, { status: "accepted" as const }));
+		});
+		expect(URL.revokeObjectURL).toHaveBeenCalledWith("blob:west.png");
+		expect(URL.revokeObjectURL).toHaveBeenCalledWith("blob:east.png");
 		expect(container.querySelectorAll("img")).toHaveLength(0);
 		expect(container.querySelector("textarea")?.value).toBe("");
 		yield* step(() => root.unmount());
@@ -144,16 +160,14 @@ it.effect("pastes ordered images before text and clears previews only after acce
 it.effect("retains the draft and stable id when delivery is refused", () =>
 	Effect.gen(function* () {
 		installObjectUrls();
-		sendSessionInput.mockImplementation((_request: unknown, _onDone: unknown, onError: (message: string) => void) => onError("provider refused"));
+		sendSessionInput.mockReturnValue(Effect.fail(new RendererRequestError({ message: "provider refused" })));
 		const { container, root } = yield* mounted();
 		yield* step(() => paste(container, [imageFile("reef.png")]));
 		yield* step(() => pressEnter(container));
-		yield* step(() => undefined);
 		const firstId = sendSessionInput.mock.calls.at(-1)?.[0].id;
 		expect(container.querySelectorAll("img")).toHaveLength(1);
 		expect(container.textContent).toContain("provider refused");
 		yield* step(() => pressEnter(container));
-		yield* step(() => undefined);
 		expect(sendSessionInput.mock.calls.at(-1)?.[0].id).toBe(firstId);
 		expect(container.querySelectorAll("img")).toHaveLength(1);
 		yield* step(() => root.unmount());

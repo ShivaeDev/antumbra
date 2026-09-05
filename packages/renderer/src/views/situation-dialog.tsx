@@ -1,5 +1,9 @@
 import type { SessionSituation } from "@antumbra/contract";
+import { useAtomValue } from "@effect/atom-react";
+import { Effect } from "effect";
 import { useEffect, useRef, useState } from "react";
+import { useRequest } from "#adapters/request.ts";
+import type { RendererRequestError } from "#adapters/request-error.ts";
 import { sendToSession, situationDraft } from "#adapters/trpc.ts";
 import { Button } from "#components/ui/button.tsx";
 import { Dialog, DialogClose, DialogContent } from "#components/ui/dialog.tsx";
@@ -22,7 +26,8 @@ export const SituationDialog = ({
 	const draft = useSessionDraft(sessionId, `situation:${situation.changeId}:${situation.situation}`);
 	const initialText = useRef(draft.text).current;
 	const [drafting, setDrafting] = useState(initialText === "");
-	const [sending, setSending] = useState(false);
+	const { requestAtom, submit } = useRequest<void, RendererRequestError>();
+	const sending = useAtomValue(requestAtom).waiting;
 
 	useEffect(() => {
 		if (initialText !== "") {
@@ -49,19 +54,16 @@ export const SituationDialog = ({
 			return;
 		}
 		const sent = draft.capture();
-		setSending(true);
-		sendToSession(
-			sessionId,
-			sent.text,
-			() => {
-				draft.clear(sent);
-				setSending(false);
-				onClose();
-			},
-			(message) => {
-				setSending(false);
-				onError(message);
-			},
+		void submit(
+			sendToSession(sessionId, sent.text).pipe(
+				Effect.tap(() =>
+					Effect.sync(() => {
+						draft.clear(sent);
+						onClose();
+					}),
+				),
+				Effect.tapError((error) => Effect.sync(() => onError(error.message))),
+			),
 		);
 	};
 	return (

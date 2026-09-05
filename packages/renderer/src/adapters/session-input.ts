@@ -1,4 +1,6 @@
 import type { SessionInputId, SessionInputRequest } from "@antumbra/contract";
+import { Effect } from "effect";
+import { RendererRequestError } from "#adapters/request-error.ts";
 import type { DraftImage } from "#views/session-draft.ts";
 
 const buildRequest = async (sessionId: string, id: SessionInputId, images: ReadonlyArray<DraftImage>, text: string): Promise<SessionInputRequest> => {
@@ -17,15 +19,10 @@ const buildRequest = async (sessionId: string, id: SessionInputId, images: Reado
 		: { id, parts: [first, ...rest], sessionId };
 };
 
-export const readSessionInputRequest = (
-	sessionId: string,
-	id: SessionInputId,
-	images: ReadonlyArray<DraftImage>,
-	text: string,
-	onDone: (request: SessionInputRequest) => void,
-	onError: (message: string) => void,
-): void => {
-	void buildRequest(sessionId, id, images, text)
-		.then(onDone)
-		.catch((cause: unknown) => onError(`image_read_failed: ${cause instanceof Error ? cause.message : String(cause)}`));
-};
+export const readSessionInputRequest = Effect.fn("Renderer.readSessionInputRequest")(
+	(sessionId: string, id: SessionInputId, images: ReadonlyArray<DraftImage>, text: string) =>
+		Effect.tryPromise({
+			try: () => buildRequest(sessionId, id, images, text),
+			catch: (cause) => new RendererRequestError({ message: `image_read_failed: ${cause instanceof Error ? cause.message : String(cause)}` }),
+		}),
+);

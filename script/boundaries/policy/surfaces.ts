@@ -40,4 +40,21 @@ export const surfacePolicy = [
 			illegal: importFrom(files.inPackage("prompts", "src/situations.ts")).to(files.inPackage("changes", "src/change-read.ts")),
 			legal: importFrom(files.inPackage("sessions", "src/session-send.ts")).to(files.inPackage("prompts", "src/index.ts")),
 		}),
+	fence("skills-imports-no-caller")
+		.because(
+			"A skill is a document the harness reads for itself, and the package that holds them names the shipped layout and nothing else. A skill that reached for domain truth, a port or a view would make its words a function of the layer that delivered them, and the directory would stop being one a harness can be pointed at unchanged.",
+		)
+		.forbidsImportsFrom(packages.named("skills"))
+		.to(
+			anyOf(
+				applications.all,
+				domainAndCapabilities,
+				packages.named("agent-tools", "contract", "git", "harness", "kernel", "persistence", "plugin-api", "prompts", "renderer"),
+				adapters,
+			),
+		)
+		.demonstratedBy({
+			illegal: importFrom(files.inPackage("skills", "src/index.ts")).to(files.inPackage("plugin-api", "src/backend.ts")),
+			legal: importFrom(files.inPackage("backend-codex", "src/plugin.ts")).to(files.inPackage("skills", "src/index.ts")),
+		}),
 ] as const satisfies readonly BoundaryRule[];

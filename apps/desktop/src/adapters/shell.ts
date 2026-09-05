@@ -53,6 +53,8 @@ export {
 export const persistenceMigrationsDirectory = (): string =>
 	app.isPackaged ? join(process.resourcesPath, "persistence", "migrations") : join(import.meta.dirname, "persistence", "migrations");
 
+export const skillsDirectory = (): string => (app.isPackaged ? join(process.resourcesPath, "skills") : join(import.meta.dirname, "skills"));
+
 export const quitWhenAllWindowsClosed = Effect.sync(() => {
 	app.on("window-all-closed", () => {
 		app.quit();

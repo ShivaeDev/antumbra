@@ -12,6 +12,7 @@ const base = {
 	executable: "/usr/bin/false",
 	model: undefined,
 	resume: undefined,
+	skills: "/antumbra/skills",
 	store: mirroringSessionStore(() => {}),
 };
 
@@ -33,6 +34,11 @@ it("a session with tools hands the SDK the server instance itself", () => {
 		antumbra: { instance: server, name: "antumbra", type: "sdk" },
 	});
 	expect(options.allowedTools).toEqual(["mcp__antumbra__land_report", "mcp__antumbra__read_mail"]);
+});
+
+it("Antumbra's skills reach Claude Code as a local plugin", () => {
+	const options = sessionOptions({ ...base, tools: Option.none() });
+	expect(options.plugins).toEqual([{ path: "/antumbra/skills", type: "local" }]);
 });
 
 it("resuming names the transcript the provider already has", () => {

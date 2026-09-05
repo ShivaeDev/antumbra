@@ -14,7 +14,8 @@ export const openChangeSpec = defineTool({
 			}),
 		),
 		body: Schema.String.annotate({
-			description: "What the change does and why, written for whoever reviews it.",
+			description:
+				"The pull request body: Why, How, and optionally Decisions and Callouts. Before writing it, use the pr-description skill: it says how to write the title and the body.",
 		}),
 		draft: Schema.optionalKey(
 			Schema.Boolean.annotate({
@@ -23,7 +24,7 @@ export const openChangeSpec = defineTool({
 		),
 		repo: Repo,
 		title: Schema.String.annotate({
-			description: "One line naming what the change does.",
+			description: "The pull request title, in the shape the pr-description skill gives.",
 		}),
 	}),
 	name: "open_change",

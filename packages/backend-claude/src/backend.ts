@@ -61,6 +61,7 @@ const makeHandle = (raw: RawSession) =>
 
 interface ClaudeBackendOptions {
 	readonly executable: string;
+	readonly skills: string;
 }
 
 const rawSession = (options: ClaudeBackendOptions, session: OpenSessionOptions, call: ToolCall, capacity: BackendCapacityController) =>
@@ -77,6 +78,7 @@ const rawSession = (options: ClaudeBackendOptions, session: OpenSessionOptions, 
 						model: Option.getOrUndefined(session.model),
 						observeCapacity: capacity.observe,
 						resume: Option.getOrUndefined(session.resume),
+						skills: options.skills,
 						tools: session.tools,
 					}),
 			}),

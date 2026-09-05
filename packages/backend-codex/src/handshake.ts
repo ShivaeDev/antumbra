@@ -33,6 +33,8 @@ const checkVersion = (response: unknown) =>
 		},
 	});
 
+export const offerSkills = (request: Request, folder: string) => Effect.asVoid(request("skills/extraRoots/set", { extraRoots: [folder] }));
+
 // Codex requires one initialize followed by initialized, with experimentalApi enabled for dynamic tools.
 export const handshake = (request: Request) =>
 	request("initialize", {

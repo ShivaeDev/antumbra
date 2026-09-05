@@ -1,5 +1,5 @@
 {
-	"name": "@antumbra/backend-codex",
+	"name": "@antumbra/skills",
 	"version": "0.0.0",
 	"private": true,
 	"type": "module",
@@ -7,7 +7,6 @@
 		".": "./src/index.ts"
 	},
 	"imports": {
-		"#test/*": "./test/*",
 		"#*": "./src/*"
 	},
 	"scripts": {
@@ -21,11 +20,5 @@
 		"@typescript/native": "catalog:",
 		"typescript": "catalog:",
 		"vitest": "catalog:"
-	},
-	"dependencies": {
-		"@antumbra/plugin-api": "workspace:*",
-		"@antumbra/skills": "workspace:*",
-		"@antumbra/vocabulary": "workspace:*",
-		"effect": "catalog:"
 	}
 }

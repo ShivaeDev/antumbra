@@ -15,7 +15,7 @@ import type { SessionIdentity } from "#tool-identity.ts";
 const holds = (ruling: Ruling): string => (ruling.gatedPieceIds.length === 0 ? "" : `; holds ${ruling.gatedPieceIds.length} piece(s)`);
 
 const said = (ruling: Ruling): string =>
-	`ruling ${ruling.id} requested — ${ruling.radius} radius, ${ruling.urgency}${holds(ruling)}. The answer reaches you as mail; nothing here waits for it.`;
+	`ruling ${ruling.id} requested — ${ruling.radius} radius, ${ruling.urgency}${holds(ruling)}. The answer reaches you as mail and wakes you when you are at rest; carry on with what does not need it.`;
 
 const appended = (ruling: Ruling): string => `context added to ruling ${ruling.id} — it stands beside the original context for whoever answers.`;
 

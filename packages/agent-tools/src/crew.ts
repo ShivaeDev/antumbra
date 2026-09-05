@@ -57,9 +57,3 @@ export const removeArtifactSupersessionSpec = defineTool({
 	}),
 	name: "remove_supersession",
 });
-
-export const standDownSpec = defineTool({
-	description: "Mark yourself idle when you have no work to do now. You remain available for messages.",
-	input: Schema.Struct({}),
-	name: "stand_down",
-});

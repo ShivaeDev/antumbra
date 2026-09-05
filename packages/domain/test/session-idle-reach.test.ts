@@ -5,7 +5,7 @@ import { SessionInputId } from "@antumbra/vocabulary/session-input";
 import { expect, it } from "@effect/vitest";
 import { Effect, Option } from "effect";
 import { AgentDomain } from "#domain.ts";
-import { acquireTemporaryPersistence, callTool, makeScriptedBackend, sessionFor, standDown } from "#test/harness.ts";
+import { acquireTemporaryPersistence, endTurn, makeScriptedBackend, sessionFor } from "#test/harness.ts";
 import { HAND, openedNatively, presenceOf, sessionRow, sightLayer, spawned } from "#test/session-idle-fixture.ts";
 import { eventually, untilTerminal } from "#test/session-recovery-fixture.ts";
 
@@ -19,7 +19,7 @@ it.live("a send to an asleep root resumes it and delivers the words", () =>
 			const sight = yield* SightSource;
 			yield* spawned;
 			const first = yield* openedNatively(scripted);
-			yield* callTool(first, "stand_down", undefined);
+			yield* endTurn(scripted, HAND.agentId);
 			const siesta = yield* kernel.submit(domain.siesta, {
 				sessionId: HAND.sessionId,
 			});
@@ -58,7 +58,7 @@ it.live("an asleep root wakes from an input id and receives its durable image", 
 			const sight = yield* SightSource;
 			yield* spawned;
 			const first = yield* openedNatively(scripted);
-			yield* callTool(first, "stand_down", undefined);
+			yield* endTurn(scripted, HAND.agentId);
 			const siesta = yield* kernel.submit(domain.siesta, {
 				sessionId: HAND.sessionId,
 			});
@@ -110,7 +110,7 @@ it.live("a send to a retired agent's session refuses", () =>
 			const sight = yield* SightSource;
 			yield* spawned;
 			const live = yield* openedNatively(scripted);
-			yield* standDown(scripted, HAND.agentId);
+			yield* endTurn(scripted, HAND.agentId);
 			yield* sight.retire(HAND.agentId);
 			yield* eventually(
 				Effect.gen(function* () {
@@ -163,9 +163,8 @@ it.live("a restart leaves an idle session asleep until it is spoken to", () =>
 		const scripted = yield* makeScriptedBackend;
 		yield* Effect.gen(function* () {
 			yield* spawned;
-			const live = yield* openedNatively(scripted);
-			yield* callTool(live, "stand_down", undefined);
-			expect((yield* sessionRow).executionStatus).toBe("idle");
+			yield* openedNatively(scripted);
+			yield* endTurn(scripted, HAND.agentId);
 		}).pipe(Effect.provide(sightLayer(temporary, scripted)));
 
 		yield* Effect.gen(function* () {

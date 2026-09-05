@@ -1,6 +1,7 @@
 import { expect, it } from "@effect/vitest";
 import { Effect, Schema } from "effect";
-import { landReportSpec, standDownSpec } from "#crew.ts";
+import { readMailSpec } from "#boards.ts";
+import { landReportSpec } from "#crew.ts";
 import { bind, defineTool } from "#define.ts";
 
 it("emits a closed object schema the model can fill", () => {
@@ -12,7 +13,7 @@ it("emits a closed object schema the model can fill", () => {
 });
 
 it("emits a plain object schema for a tool that takes no arguments", () => {
-	expect(standDownSpec.inputSchema).toEqual({
+	expect(readMailSpec.inputSchema).toEqual({
 		additionalProperties: false,
 		properties: {},
 		required: [],
@@ -47,10 +48,10 @@ it.effect("arguments the schema refuses come back as a refusal, not a crash", ()
 
 it.effect("a tool that takes no arguments accepts an absent payload", () =>
 	Effect.gen(function* () {
-		const tool = bind(standDownSpec, () => Effect.succeed({ ok: true, text: "standing down" }));
+		const tool = bind(readMailSpec, () => Effect.succeed({ ok: true, text: "no mail" }));
 		expect(yield* tool.call(undefined)).toEqual({
 			ok: true,
-			text: "standing down",
+			text: "no mail",
 		});
 	}),
 );

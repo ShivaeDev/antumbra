@@ -4,7 +4,7 @@ import { expect, it } from "@effect/vitest";
 import { Effect, Option } from "effect";
 import { changeOf } from "#test/change-fixtures.ts";
 import { domainKernelLayer } from "#test/domain-layers.ts";
-import { acquireTemporaryPersistence, makeScriptedBackend, type ScriptedBackend, standDown } from "#test/harness.ts";
+import { acquireTemporaryPersistence, endTurn, makeScriptedBackend, type ScriptedBackend } from "#test/harness.ts";
 import { born, chartered, handFor, landed, MINUTE_MILLIS, swept, sweptAt } from "#test/retire-crew-fixture.ts";
 import { eventually } from "#test/session-recovery-fixture.ts";
 import { stateOf } from "#test/voyage-fixtures.ts";
@@ -29,7 +29,7 @@ const writtenOffPiece = (scripted: ScriptedBackend, quiet: boolean) =>
 		const { pieceId, voyageId } = yield* chartered;
 		yield* born(handFor(HAND, pieceId, voyageId));
 		if (quiet) {
-			yield* standDown(scripted, HAND);
+			yield* endTurn(scripted, HAND);
 		}
 		yield* pieces.landVerdict(pieceId, "abandoned");
 		return pieceId;
@@ -41,7 +41,7 @@ const closedWithoutVerdict = (scripted: ScriptedBackend) =>
 		const { pieceId, voyageId } = yield* chartered;
 		yield* born(handFor(HAND, pieceId, voyageId));
 		yield* landed(pieceId);
-		yield* standDown(scripted, HAND);
+		yield* endTurn(scripted, HAND);
 		yield* Effect.all([
 			db.Change.create(
 				changeOf({
@@ -89,7 +89,7 @@ it.live("an abandoned piece's working crew is left alone until it stops", () =>
 			expect(yield* retireIntents).toEqual([]);
 			expect(yield* statusOf(HAND)).toBe("alive");
 
-			yield* standDown(scripted, HAND);
+			yield* endTurn(scripted, HAND);
 			yield* swept;
 
 			expect(yield* retireIntents).toHaveLength(1);

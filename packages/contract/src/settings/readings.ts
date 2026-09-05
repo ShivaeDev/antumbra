@@ -6,6 +6,7 @@ const fields: { readonly [K in SettingKey]: (typeof SETTINGS)[K]["value"] } = {
 	foldToolCalls: SETTINGS.foldToolCalls.value,
 	maxParallelSessions: SETTINGS.maxParallelSessions.value,
 	idleSiestaMinutes: SETTINGS.idleSiestaMinutes.value,
+	routineMailMinutes: SETTINGS.routineMailMinutes.value,
 	retireRestMinutes: SETTINGS.retireRestMinutes.value,
 	retireSweep: SETTINGS.retireSweep.value,
 };

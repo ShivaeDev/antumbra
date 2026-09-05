@@ -16,6 +16,7 @@ import {
 import { Effect } from "effect";
 import { makeBackendModels } from "#backend-models.ts";
 import { imageInputBackendsOf } from "#image-input-backends.ts";
+import { compileMailDeliveryDemands, makeMailDelivery } from "#mail-delivery-demands.ts";
 import { makeRetireKind } from "#retire.ts";
 import { compileRetireSweepDemands } from "#retire-sweep-demands.ts";
 import { makeSessionAgentSettings } from "#session-agent-settings.ts";
@@ -28,7 +29,8 @@ export const makeAgentDomain = (backends: ReadonlyMap<string, AgentBackend>, run
 		const fabric = yield* SessionFabric;
 		const resourceReconciler = yield* ResourceReconciler;
 		const voyages = yield* VoyageProcedureService;
-		const sinkFor = yield* makeSessionTreeSinks;
+		const deliverMail = yield* makeMailDelivery;
+		const sinkFor = yield* makeSessionTreeSinks(deliverMail);
 		const reconcileCurrentSessions = yield* makeCurrentSessionReconciler;
 		const reconcileSessionNodes = yield* makeSessionNodeReconciler;
 		yield* reconcileCurrentSessions;
@@ -50,7 +52,11 @@ export const makeAgentDomain = (backends: ReadonlyMap<string, AgentBackend>, run
 		});
 		const wake = yield* makeWakeKind.pipe(Effect.provideService(SessionRecoveryRuntime, recoveryRuntime));
 		const siesta = yield* makeSiestaKind;
-		const intentDemands = [...(yield* compileSessionSiestaDemands(siesta)), ...(yield* compileRetireSweepDemands(retire))];
+		const intentDemands = [
+			...(yield* compileSessionSiestaDemands(siesta)),
+			...compileMailDeliveryDemands(deliverMail),
+			...(yield* compileRetireSweepDemands(retire)),
+		];
 		const imageInputBackends = imageInputBackendsOf(backends);
 		const sessionSend = yield* makeSessionSend(imageInputBackends);
 		return {

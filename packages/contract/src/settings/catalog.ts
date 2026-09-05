@@ -1,7 +1,14 @@
 import { Schema } from "effect";
 import { count, flag, type SettingDeclaration } from "#settings/declaration.ts";
 
-export const SETTING_KEYS = ["foldToolCalls", "maxParallelSessions", "idleSiestaMinutes", "retireRestMinutes", "retireSweep"] as const;
+export const SETTING_KEYS = [
+	"foldToolCalls",
+	"maxParallelSessions",
+	"idleSiestaMinutes",
+	"routineMailMinutes",
+	"retireRestMinutes",
+	"retireSweep",
+] as const;
 
 export const SettingKey = Schema.Literals(SETTING_KEYS);
 export type SettingKey = typeof SettingKey.Type;
@@ -25,6 +32,13 @@ export const SETTINGS = {
 		least: 1,
 		most: 1440,
 		title: "Idle before siesta, in minutes",
+	}),
+	routineMailMinutes: count({
+		description: "Routine mail waits this long before it wakes a resting agent; priority and flash mail wake one at once.",
+		fallback: 5,
+		least: 1,
+		most: 1440,
+		title: "Routine mail before a wake, in minutes",
 	}),
 	retireRestMinutes: count({
 		description: "How long an agent must have rested before the sweep may retire it.",

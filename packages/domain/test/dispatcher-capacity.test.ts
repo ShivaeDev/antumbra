@@ -11,7 +11,7 @@ import { makeRetryBackendCapacity } from "#backend-capacity-retry.ts";
 import { DispatcherLive } from "#dispatcher.ts";
 import { makeSightSessionEvents } from "#sight-session-events.ts";
 import { dispatchingLayer, domainKernelLayer } from "#test/domain-layers.ts";
-import { acquireTemporaryPersistence, callTool, makeScriptedBackend, rawOf, sessionFor } from "#test/harness.ts";
+import { acquireTemporaryPersistence, endTurn, makeScriptedBackend, rawOf, sessionFor } from "#test/harness.ts";
 import { reportsNativeRef, WAKE_INSTRUCTION } from "#test/session-recovery-fixture.ts";
 import { assignedPieces, chain, eventually, PATIENCE } from "#test/voyage-fixtures.ts";
 
@@ -186,7 +186,7 @@ it.live("a provider hold stops automatic wakes until the admiral retries it", ()
 
 			capacity.observe(rawOf("quota/rejected"), yield* Clock.currentTimeMillis);
 			yield* eventually(expectScriptedProviderBlocked);
-			yield* callTool(live, "stand_down", undefined);
+			yield* endTurn(scripted, assignment.agentId);
 			yield* Queue.take(blockedReads);
 			expect(yield* live.steered).not.toContain(WAKE_INSTRUCTION);
 

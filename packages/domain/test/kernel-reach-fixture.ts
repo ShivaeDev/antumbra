@@ -9,4 +9,5 @@ export const fakeKernelReach: KernelReachService = {
 	settleWakes: () => unexpected("settleWakes"),
 	submitSpawn: () => unexpected("submitSpawn"),
 	submitWake: () => unexpected("submitWake"),
+	wakePending: () => unexpected("wakePending"),
 };

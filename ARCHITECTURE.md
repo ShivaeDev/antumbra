@@ -20,8 +20,9 @@ deliberate: Electron scopes the lock by the `userData` path, so a development ru
 database under `backups/` and keeps the five newest.
 
 Explicitly addressed mail is persisted as an immutable entry on the addressee's Agent Board; its marked-read receipt is separate durable truth, so a
-read never clears it. Raw Change and Review observations remain in their own records. No mailbox feed, settling timer, presentation cap, or
-observation hook turns those facts into mail or resumes an Agent; v1 attention is pulled only after human selection.
+read never clears it. Raw Change and Review observations remain in their own records. No settling timer, presentation cap, or observation hook turns
+those facts into mail. Unread mail that has come due wakes the addressee's root Session when it is at rest — priority at once, routine after a quiet
+window the admiral sets — and never reaches one that is at work.
 
 Closing the app stops local execution, not durable work. A graceful quit marks every attached root Session that is not idle as draining, stops each
 attachment so its turn is cut, and settles the rows to idle before the process exits; a forced exit never invents completion. Nothing on the next boot
@@ -147,8 +148,8 @@ that returns an id and an observable status stream. The scheduler admits queued 
 component that starts work. It runs on a tick — a nudge from any status change, or a five-second patience timeout — so a lost tick costs latency,
 never liveness. The kernel accepts admission gates as options (a concurrency cap, a settle window, a gauge ceiling); the desktop configures none, and
 the running-agent budget belongs to the dispatcher, which reads it from the `maxParallelSessions` setting. A tick is not a Session wake: a wake is an
-Intent of its own (`agent/wake`) that puts one Session back on its provider, and only a hail, a send, a dispatcher assignment, or a restart the
-admiral asked for submits one. Intent lifecycles are explicit state machines with transition tables.
+Intent of its own (`agent/wake`) that puts one Session back on its provider, and only a hail, a send, a dispatcher assignment, mail that has come due
+for a resting Session, or a restart the admiral asked for submits one. Intent lifecycles are explicit state machines with transition tables.
 
 An Intent is a mortal executable attempt, not durable Piece demand. A desired Piece that is dependency-blocked has no dispatch workflow;
 reconciliation submits a new Intent when it becomes eligible. Waiting is reserved for an admitted attempt that needs immediate external intervention,

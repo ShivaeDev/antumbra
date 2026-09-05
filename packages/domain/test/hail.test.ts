@@ -25,7 +25,6 @@ const CAPTAIN_TOOLS = [
 	"rule_on",
 	"pass_up",
 	"reclassify_ruling",
-	"stand_down",
 	"read_rulings",
 ];
 

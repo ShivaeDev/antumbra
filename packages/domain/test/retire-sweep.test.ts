@@ -3,7 +3,7 @@ import { Database } from "@antumbra/persistence";
 import { expect, it } from "@effect/vitest";
 import { Effect, Option } from "effect";
 import { domainKernelLayer } from "#test/domain-layers.ts";
-import { acquireTemporaryPersistence, makeScriptedBackend, type ScriptedBackend, standDown } from "#test/harness.ts";
+import { acquireTemporaryPersistence, endTurn, makeScriptedBackend, type ScriptedBackend } from "#test/harness.ts";
 import { born, chartered, handFor, landed, MINUTE_MILLIS, sweptAt } from "#test/retire-crew-fixture.ts";
 import { eventually } from "#test/session-recovery-fixture.ts";
 
@@ -19,7 +19,7 @@ const finishedPiece = (scripted: ScriptedBackend) =>
 		const { pieceId, voyageId } = yield* chartered;
 		yield* born(handFor(HAND, pieceId, voyageId));
 		yield* landed(pieceId);
-		yield* standDown(scripted, HAND);
+		yield* endTurn(scripted, HAND);
 		return pieceId;
 	});
 
@@ -67,7 +67,7 @@ it.live("a piece not yet done is never swept however long its agent rests", () =
 		yield* Effect.gen(function* () {
 			const { pieceId, voyageId } = yield* chartered;
 			yield* born(handFor(HAND, pieceId, voyageId));
-			yield* standDown(scripted, HAND);
+			yield* endTurn(scripted, HAND);
 
 			yield* sweptAt(24 * 60 * MINUTE_MILLIS);
 

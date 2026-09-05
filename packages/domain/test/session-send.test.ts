@@ -6,7 +6,7 @@ import { it } from "@antumbra/testing";
 import { SessionInputId } from "@antumbra/vocabulary/session-input";
 import { expect } from "@effect/vitest";
 import { Effect, Option, Stream } from "effect";
-import { type ScriptedBackend, standDown } from "#test/harness.ts";
+import { endTurn, type ScriptedBackend } from "#test/harness.ts";
 
 const spawnRequest = {
 	backend: "scripted",
@@ -100,7 +100,7 @@ it.effectApp("only an ended session and an unknown id refuse the message", { clo
 	const receipt = yield* sight.spawn(spawnRequest);
 	const session = yield* liveSession(scripted, receipt.sessionId);
 	expect(yield* session.sent).toEqual([spawnRequest.charter]);
-	yield* standDown(scripted, receipt.agentId);
+	yield* endTurn(scripted, receipt.agentId);
 	yield* sight.retire(receipt.agentId);
 	yield* awaitIntent("agent/retire");
 	expect(yield* session.closed).toBe(true);

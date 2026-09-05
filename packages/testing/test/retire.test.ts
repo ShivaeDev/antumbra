@@ -2,24 +2,13 @@ import { AgentDomain } from "@antumbra/domain";
 import { type IntentStatus, isTerminalIntentStatus, Kernel } from "@antumbra/kernel";
 import { Database, type NewAgentSession } from "@antumbra/persistence";
 import { Pieces } from "@antumbra/pieces";
-import { it } from "@antumbra/testing";
-import type { ScriptedBackend } from "@antumbra/testing-runtime";
+import { endsTurn, it } from "@antumbra/testing";
 import { Voyages } from "@antumbra/voyages";
 import { expect } from "@effect/vitest";
 import { Effect, Option, Stream } from "effect";
 
 const terminalStatus = <E, R>(changes: Stream.Stream<IntentStatus, E, R>) =>
 	changes.pipe(Stream.takeUntil(isTerminalIntentStatus), Stream.runLast, Effect.map(Option.getOrThrow), Effect.orDie);
-
-const standDown = (scripted: ScriptedBackend, sessionId: string) =>
-	Effect.gen(function* () {
-		const session = yield* scripted.session(sessionId);
-		const tool = session?.tools.find((candidate) => candidate.name === "stand_down");
-		if (tool === undefined) {
-			return yield* Effect.die(`the session has no stand_down tool: ${sessionId}`);
-		}
-		yield* tool.call(undefined);
-	});
 
 const workingCrew = Effect.gen(function* () {
 	const pieces = yield* Pieces;
@@ -98,7 +87,7 @@ it.effectApp("an abandoned piece's crew is retired on the very next pass", { clo
 	const domain = yield* AgentDomain;
 	const kernel = yield* Kernel;
 	const crewed = yield* workingCrew;
-	yield* standDown(scripted, crewed.sessionId);
+	yield* endsTurn(scripted, crewed.sessionId);
 	yield* pieces.landVerdict(crewed.pieceId, "abandoned").pipe(Effect.orDie);
 	const demand = Option.getOrThrow(Option.fromUndefinedOr(domain.intentDemands.find((registration) => registration.tag === "agent/retire")));
 	yield* demand.pass.pipe(Effect.orDie);
@@ -119,9 +108,9 @@ it.effectApp("retiring an agent that is working refuses by name", { clock: "live
 	expect(Option.getOrThrow(yield* db.Agent.where({ id: crew.agentId }).first()).status).toBe("alive");
 });
 
-it.effectApp("retiring an agent that has stood down is allowed through", { clock: "live" }, function* ({ db, scripted }) {
+it.effectApp("retiring an agent at rest is allowed through", { clock: "live" }, function* ({ db, scripted }) {
 	const crew = yield* workingCrew;
-	yield* standDown(scripted, crew.sessionId);
+	yield* endsTurn(scripted, crew.sessionId);
 
 	expect((yield* retiring(crew.agentId)).status).toBe("succeeded");
 	expect(Option.getOrThrow(yield* db.Agent.where({ id: crew.agentId }).first()).status).toBe("retired");

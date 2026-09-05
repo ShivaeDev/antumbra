@@ -8,7 +8,6 @@ import { makeChangeToolCompiler } from "#change-tools.ts";
 import { makeReportToolCompiler } from "#report-tools.ts";
 import { makeRulingReadingToolCompiler } from "#ruling-reading-tools.ts";
 import { makeRulingToolCompiler } from "#ruling-tools.ts";
-import { makeStandDownTool } from "#stand-down.ts";
 import { answered, onPiece } from "#tool-answers.ts";
 import type { SessionIdentity } from "#tool-identity.ts";
 import { makeVoyageReadingToolCompiler } from "#voyage-reading-tools.ts";
@@ -48,7 +47,6 @@ export const makeCrewToolCompiler = Effect.gen(function* () {
 	const compileRulingReadingTools = yield* makeRulingReadingToolCompiler;
 	const compileVoyageReadingTools = yield* makeVoyageReadingToolCompiler;
 	const reports = yield* Reports;
-	const standDownTool = yield* makeStandDownTool;
 	function crewTools(identity: SessionIdentity): ReadonlyArray<DirectTool> {
 		return [
 			bind(landReportSpec, (input) =>
@@ -98,7 +96,6 @@ export const makeCrewToolCompiler = Effect.gen(function* () {
 			...compileVoyageReadingTools(identity),
 			...compileBoardTools(identity),
 			...compileRulingTools(identity),
-			standDownTool(identity),
 			...compileRulingReadingTools(identity),
 		];
 	}

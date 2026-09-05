@@ -17,7 +17,7 @@ export const writeBoardSpec = defineTool({
 });
 
 export const readMailSpec = defineTool({
-	description: "Read your unread mail, oldest first. Reading does not mark it as read.",
+	description: "Read your unread mail, oldest first, when a wake says mail is waiting or when you start work. Reading does not mark it as read.",
 	input: Schema.Struct({}),
 	name: "read_mail",
 });

@@ -6,7 +6,7 @@ import { Voyages } from "@antumbra/voyages";
 import { expect } from "@effect/vitest";
 import { Effect, Option, Schedule, Stream } from "effect";
 import { AgentDomain } from "#domain.ts";
-import { type ScriptedBackend, standDown } from "#test/harness.ts";
+import { endTurn, type ScriptedBackend } from "#test/harness.ts";
 
 export const PATIENCE = { maxRunning: 4, patienceMillis: 50 };
 
@@ -90,19 +90,19 @@ export const assignedPieces = Effect.gen(function* () {
 	return (yield* db.PieceAgent.all()).map((row) => row.pieceId);
 });
 
-export const standDownAll = (scripted: ScriptedBackend) =>
+export const restAllCrew = (scripted: ScriptedBackend) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
 		const alive = yield* db.Agent.where({ status: "alive" }).all();
-		yield* Effect.forEach(alive, (agent) => standDown(scripted, agent.id));
+		yield* Effect.forEach(alive, (agent) => endTurn(scripted, agent.id));
 	});
 
-export const standDownOneAlive = (scripted: ScriptedBackend) =>
+export const restOneAlive = (scripted: ScriptedBackend) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
 		const alive = yield* db.Agent.where({ status: "alive" }).all();
 		const agentId = alive[0]?.id ?? "";
-		yield* standDown(scripted, agentId);
+		yield* endTurn(scripted, agentId);
 		return agentId;
 	});
 
@@ -110,7 +110,7 @@ export const retireOneAlive = (scripted: ScriptedBackend) =>
 	Effect.gen(function* () {
 		const kernel = yield* Kernel;
 		const domain = yield* AgentDomain;
-		const agentId = yield* standDownOneAlive(scripted);
+		const agentId = yield* restOneAlive(scripted);
 		const submission = yield* kernel.submit(domain.retire, { agentId });
 		return yield* submission.changes.pipe(Stream.takeUntil(isTerminalIntentStatus), Stream.runLast);
 	});

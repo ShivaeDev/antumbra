@@ -25,9 +25,9 @@ describes one of these carries a marker pointing here. When one ships, its line 
   [Guide.](attention-and-memory.md#attention-lanes)
 - **Admission policy** — composable policies, priority classes, "reclaiming outranks finishing outranks starting", and loud, temporary overcommit to
   break a stall. The scheduler admits by creation time; the desktop configures no gates; the running-agent budget is one setting the dispatcher reads.
-- **Message precedence and the `queue` path for mail** — routine, priority, and flash choosing between `steer` and `queue`. Precedence is stored on
-  mail and shown; every send steers; `queue` carries only the charter at spawn and the instruction handed to a resumed Session.
-  [Guide.](attention-and-memory.md#mail-and-precedence)
+- **Flash steering into running work** — flash mail interrupting an Agent mid-turn, and routine and priority held while an Agent has heaved to.
+  Precedence already orders waking: priority and flash wake a resting Agent at once, routine waits a quiet window, and nothing reaches an Agent at
+  work but the admiral's own send. [Guide.](attention-and-memory.md#mail-and-precedence)
 - **Dedicated smoothing agents for standing rulings** — agents that reclassify, consolidate, and retire a scope's standing rulings so a captain's
   context is not spent on it. Superseding, withdrawing, and reclassifying exist as acts any authority may perform; consolidation and the dedicated
   pass do not. [Guide.](rulings.md#standing-rulings-and-smoothing)

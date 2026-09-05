@@ -85,9 +85,8 @@ Owner: [Agent identity, resources, and recovery](docs/design/agent-recovery.md)
 - [**Hail**](docs/design/agent-recovery.md#hailing-an-agent) — address an Agent by resuming it or establishing its execution context.
 - [**Moorage**](docs/design/agent-recovery.md#provisioning-and-resource-topology) — an Agent's current replaceable resource home.
 - [**Berth**](docs/design/agent-recovery.md#provisioning-and-resource-topology) — one repository worktree inside a Moorage.
-- [**Stand down**](docs/design/agent-recovery.md#rest-and-reaping) — an Agent's own declaration that it has nothing left to do; it stays attached and
-  reachable.
-- [**Idle**](docs/design/agent-recovery.md#rest-and-reaping) — a Session that has stood down and is listening with nothing to do.
+- [**Idle**](docs/design/agent-recovery.md#rest-and-reaping) — a Session whose turn has ended; it stays attached, listening, and reachable, and its
+  own unread mail wakes it.
 - [**Siesta**](docs/design/agent-recovery.md#rest-and-reaping) — the reversible rest an idle Session is put into by the clock or by the admiral; its
   process is reclaimed and speaking to it wakes it.
 - [**Stranded**](docs/design/agent-recovery.md#rest-and-reaping) — a Session whose process is gone with its work unfinished; nothing resumes it, and a

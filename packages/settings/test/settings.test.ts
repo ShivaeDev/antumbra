@@ -11,6 +11,7 @@ it.effectDB("answers the catalog for a setting nothing has set", function* () {
 			foldToolCalls: false,
 			maxParallelSessions: 4,
 			idleSiestaMinutes: 60,
+			routineMailMinutes: 5,
 			retireRestMinutes: 15,
 			retireSweep: true,
 		});

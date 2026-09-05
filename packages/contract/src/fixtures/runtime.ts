@@ -16,6 +16,7 @@ const reading: SettingsReading = {
 		foldToolCalls: SETTINGS.foldToolCalls.fallback,
 		maxParallelSessions: SETTINGS.maxParallelSessions.fallback,
 		idleSiestaMinutes: SETTINGS.idleSiestaMinutes.fallback,
+		routineMailMinutes: SETTINGS.routineMailMinutes.fallback,
 		retireRestMinutes: SETTINGS.retireRestMinutes.fallback,
 		retireSweep: SETTINGS.retireSweep.fallback,
 	},

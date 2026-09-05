@@ -1,7 +1,7 @@
 import type { BoardOwnerKind, BoardRegister } from "@antumbra/vocabulary/board";
 import { Data, type Option } from "effect";
 
-type MailPrecedence = "flash" | "priority" | "routine";
+export type MailPrecedence = "flash" | "priority" | "routine";
 
 export type BoardScope = Data.TaggedEnum<{
 	Agent: { readonly agentId: string };
@@ -39,6 +39,8 @@ export type BoardEntryVariant =
 	  };
 
 export type BoardEntryRow = BoardEntryFields & BoardEntryVariant;
+
+export type UnreadMailRow = BoardEntryRow & { readonly delivered: boolean };
 
 interface EntryFields {
 	readonly authorAgentId: Option.Option<string>;

@@ -2,7 +2,7 @@ import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database } from "@antumbra/persistence";
 import { defineService } from "@antumbra/service-definition";
 import { type Context, Effect } from "effect";
-import { mail, markMailRead, unreadMail } from "#mailbox.ts";
+import { mail, markMailDelivered, markMailRead, unreadMail } from "#mailbox.ts";
 import { readBoard } from "#read.ts";
 import { ensureBoard, writeEntry } from "#write.ts";
 
@@ -14,6 +14,7 @@ export const Boards = defineService({
 	methods: () => ({
 		ensure: ensureBoard,
 		mail,
+		markDelivered: markMailDelivered,
 		markRead: markMailRead,
 		read: readBoard,
 		unread: unreadMail,

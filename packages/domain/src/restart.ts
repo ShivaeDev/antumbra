@@ -1,5 +1,5 @@
 import { Database } from "@antumbra/persistence";
-import { rootSessions } from "@antumbra/sessions";
+import { openSessions, rootSessions } from "@antumbra/sessions";
 import { Effect, Option, Schema } from "effect";
 import { AgentDomain } from "#agent-domain-service.ts";
 import { KernelReach } from "#kernel-reach.ts";
@@ -12,8 +12,8 @@ export const recordRestartIntent = Effect.gen(function* () {
 	const db = yield* Database;
 	const domain = yield* AgentDomain;
 	const attached = yield* domain.sessionsAttached;
-	const roots = yield* db.AgentSession.where(rootSessions).all();
-	const resuming = roots.filter((session) => attached.has(session.id)).map((session) => session.id);
+	const roots = yield* db.AgentSession.where(rootSessions).where(openSessions).all();
+	const resuming = roots.filter((session) => attached.has(session.id) && session.executionStatus !== "idle").map((session) => session.id);
 	yield* db.AppMeta.where(RESTART_RESUME).deleteAll();
 	yield* db.AppMeta.create({ ...RESTART_RESUME, value: JSON.stringify(resuming) });
 });

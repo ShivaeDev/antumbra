@@ -4,7 +4,7 @@ import { Database } from "@antumbra/persistence";
 import { it } from "@antumbra/testing";
 import { expect } from "@effect/vitest";
 import { Effect, Fiber, Stream } from "effect";
-import { standDown } from "#test/harness.ts";
+import { endTurn } from "#test/harness.ts";
 import { eventually, liveSession, note, spawnRequest } from "#test/sight-fixture.ts";
 
 it.effectApp("spawn surfaces on the fleet feed once the agent lives", { clock: "live" }, function* () {
@@ -102,7 +102,7 @@ it.effectApp("retire through sight lands on the fleet as retired and closed", { 
 			expect(agent?.status).toBe("alive");
 		}),
 	);
-	yield* standDown(scripted, receipt.agentId);
+	yield* endTurn(scripted, receipt.agentId);
 	yield* sight.retire(receipt.agentId);
 	yield* eventually(
 		Effect.gen(function* () {

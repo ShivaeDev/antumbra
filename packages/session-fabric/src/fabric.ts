@@ -6,7 +6,6 @@ import { makeIdleSince } from "#operations/idle-since.ts";
 import { makeInterrupt } from "#operations/interrupt.ts";
 import { makeReopenStarts } from "#operations/reopen-starts.ts";
 import { makeSend } from "#operations/send.ts";
-import { makeStandDown } from "#operations/stand-down.ts";
 import { makeStart } from "#operations/start.ts";
 import { makeStop } from "#operations/stop.ts";
 import { makeStopIdle } from "#operations/stop-idle.ts";
@@ -26,7 +25,6 @@ export const SessionFabric = defineService({
 		interrupt: makeInterrupt(state.attachments),
 		reopenStarts: makeReopenStarts(state.startAdmission),
 		send: makeSend(state.attachments),
-		standDown: makeStandDown(state.attachments),
 		start: genericMethod(makeStart(state.attachments, state.lifecycles)),
 		stop: makeStop(state.attachments, state.lifecycles),
 		stopIdle: makeStopIdle(state.attachments, state.lifecycles),

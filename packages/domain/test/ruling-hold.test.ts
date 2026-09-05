@@ -65,7 +65,7 @@ it.effectApp("a blocking request holds until ruled and returns the answer", { cl
 
 	const pressing = yield* ask("pressing");
 	expect(pressing).toMatchObject({ ok: true });
-	expect(pressing.text).toContain("nothing here waits for it");
+	expect(pressing.text).toContain("carry on with what does not need it");
 	expect(held.pollUnsafe()).toBeUndefined();
 
 	const ruled = yield* ruleOn(row.id);

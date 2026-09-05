@@ -66,7 +66,7 @@ const restingRoots = Effect.gen(function* () {
 
 const attachedOver = (found: SessionCensus, stream: ReadonlyArray<AgentEvent>) =>
 	Effect.gen(function* () {
-		const sinkFor = yield* makeSessionTreeSinks;
+		const sinkFor = yield* makeSessionTreeSinks(Effect.void);
 		const sink = yield* sinkFor(ROOT, censusLane(found));
 		yield* Effect.forEach(stream, sink.record, {
 			concurrency: 1,

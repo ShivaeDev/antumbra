@@ -4,7 +4,7 @@ import { Kernel } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
 import { expect, it } from "@effect/vitest";
 import { Effect, PubSub } from "effect";
-import { acquireTemporaryPersistence, callTool, makeScriptedBackend, rawOf, type ScriptedSession } from "#test/harness.ts";
+import { acquireTemporaryPersistence, makeScriptedBackend, rawOf, type ScriptedSession } from "#test/harness.ts";
 import {
 	DEFAULT_IDLE_SIESTA_AFTER_MILLIS,
 	HAND,
@@ -101,7 +101,7 @@ it.live("a completed turn settles the session that was working", () =>
 	}),
 );
 
-it.live("a turn ending is never written down as a declaration", () =>
+it.live("resting writes nothing to the journal beyond the turn that ended", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
 		const scripted = yield* makeScriptedBackend;
@@ -110,13 +110,6 @@ it.live("a turn ending is never written down as a declaration", () =>
 			const live = yield* openedNatively(scripted);
 			yield* completes(live);
 			yield* settled;
-			expect(yield* journalKinds).toEqual(["session.opened", "turn.completed"]);
-
-			expect(yield* callTool(live, "stand_down", undefined)).toEqual({
-				ok: true,
-				text: "standing by",
-			});
-			expect((yield* sessionRow).executionStatus).toBe("idle");
 			expect(yield* journalKinds).toEqual(["session.opened", "turn.completed"]);
 		}).pipe(Effect.provide(sightLayer(temporary, scripted)));
 	}),

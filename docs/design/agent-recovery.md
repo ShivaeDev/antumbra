@@ -98,10 +98,12 @@ conversation.
 Nothing resumes a Session on its own. Startup reconciles the durable rows and stops there: every Session comes back detached, and one whose row still
 says it was executing is **stranded** rather than repaired. No timer, sweep, projection, or boot pass ever opens a provider conversation to find out
 how a Session is doing. A wake is submitted by a hail, by a send, or by the dispatcher handing a Session a Piece already assigned to it — three
-explicit acts, each one asked for by somebody. A restart the admiral asks for is such an act as well: before the drain it records the attached roots
-in one `AppMeta` row, the next boot deletes that row and then submits a wake for each of those roots, and a crash between the two leaves everything
-asleep; a drain that fails deletes the row too, so an abandoned restart wakes nothing. One other wake reaches boot: a wake Intent that was still
-running when the process went is requeued by the kernel's reclaim, because it was asked for before the exit. Nothing else on boot wakes anything.
+explicit acts, each one asked for by somebody, and the Agent's own unread mail coming due is a fourth. A restart the admiral asks for is such a reason
+as well, but it wakes only the roots whose work it cut: before the drain it records the attached roots that were mid-turn in one `AppMeta` row, the
+next boot deletes that row and then submits a wake for each of those roots, and a crash between the two leaves everything asleep; a drain that fails
+deletes the row too, so an abandoned restart wakes nothing. Roots that were already at rest come back at rest and are woken by their mail if any is
+waiting, because a restart is not itself a reason to start talking. One other wake reaches boot: a wake Intent that was still running when the process
+went is requeued by the kernel's reclaim, because it was asked for before the exit. Nothing else on boot wakes anything.
 
 Missing observers, an empty in-memory registry, or a dead watcher only remove current knowledge; they never mean an Agent retired, a Session closed, a
 Moorage orphaned, or a claim released.
@@ -160,8 +162,8 @@ terminal support until Antumbra can actually render and operate a terminal.
 A root Session is in one of five states, and only the last of them refuses to be spoken to.
 
 - **Working** — taking a turn. Words are steered into the running turn.
-- **Idle** — the Agent has said it has nothing left to do. The provider Session stays open and listening and no tokens are spent holding it. Words
-  arrive immediately, because there is nothing to wake.
+- **Idle** — the Agent's turn has ended. The provider Session stays open and listening and no tokens are spent holding it. Words arrive immediately,
+  because there is nothing to wake, and unread mail that has come due is delivered as words.
 - **Asleep** — the process attachment was given up on purpose, from a Session that had nothing left to do. The Session row is open and resumable, and
   words wake it: Antumbra resumes it through the same machinery a hail uses and delivers them on arrival.
 - **Stranded** — the process attachment is gone and the row still says the Session was executing, so the work it was doing never finished. Nothing
@@ -169,12 +171,13 @@ A root Session is in one of five states, and only the last of them refuses to be
   log.
 - **Retired** — the identity has ended. This is the only state that refuses.
 
-The two quiet states are reached by different things, and which thing matters. Standing down is a declaration, not a request to be put away: it drains
-work toward a safe holding point and leaves the Agent idle, attached, and reachable. Siesta is reached from outside the Agent instead — by the clock
-when a Session has been idle longer than the threshold, or by the admiral asking for it now — never by the Agent, which cannot ask to be reclaimed and
-cannot refuse to be. Both askers reach it through the same act and meet the same guard inside it, so there is one way a Session is put to rest and one
-way it wakes. Idleness is therefore true only of a live process: a restart necessarily leaves every idle Session asleep, which is what the record
-already said, so boot has nothing to repair and reads them as ordinary resumable Sessions rather than as failures.
+The two quiet states are reached by different things, and which thing matters. Rest is simply a turn ending: the Agent stops when its work stops, and
+that leaves it idle, attached, and reachable without declaring anything. An Agent has no way to put itself away, so it cannot say something false
+about how reachable it will be. Siesta is reached from outside the Agent instead — by the clock when a Session has been idle longer than the
+threshold, or by the admiral asking for it now — never by the Agent, which cannot ask to be reclaimed and cannot refuse to be. Both askers reach it
+through the same act and meet the same guard inside it, so there is one way a Session is put to rest and one way it wakes. Idleness is therefore true
+only of a live process: a restart necessarily leaves every idle Session asleep, which is what the record already said, so boot has nothing to repair
+and reads them as ordinary resumable Sessions rather than as failures.
 
 A Session that was working when its process went is the other case, and it is not rest at all. Its turn ends with nobody listening, so the ending
 settles the row the way any ending does — an ending nothing is holding is nobody's to refuse — and the Session reads asleep from then on. Where no
@@ -199,7 +202,7 @@ Board, mailbox, and recovery evidence remain, so losing the process attachment n
 Reclamation applies only to replaceable resources. Boards, transcripts, Agent identity, Session identity, and story are not cleanup targets. The
 evidence boundary and selection policy above govern every automated reclamation.
 
-Stand-down leaves an Agent idle and reachable; siesta is the reversible rest a long-idle Session is later put into. Both preserve the Agent, its
+A turn ending leaves an Agent idle and reachable; siesta is the reversible rest a long-idle Session is later put into. Both preserve the Agent, its
 Moorage, and its resumable root Sessions, and either can be left by speaking to the Session. Retirement is the explicit irreversible end of an Agent
 and normally drives terminal Moorage cleanup. Exceptional recovery may instead reclaim a broken or deliberately abandoned setup for a non-retired
 Agent; a later ordinary provision attempt reuses the same Moorage row, reconciles surviving evidence, and recreates only what is absent. There is no

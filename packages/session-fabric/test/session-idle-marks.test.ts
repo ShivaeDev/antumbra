@@ -20,19 +20,22 @@ const standing = Effect.gen(function* () {
 	return { fabric, steered };
 });
 
-it.live("standing down keeps the acquisition and remembers when it began", () =>
+const endsTurn = (fabric: typeof SessionFabric.Service, sessionId: string) =>
+	Effect.flatMap(fabric.turnMark(sessionId), (mark) => fabric.turnEnded(sessionId, mark));
+
+it.live("a turn ending keeps the acquisition and remembers when the rest began", () =>
 	Effect.scoped(
 		Effect.gen(function* () {
 			const { fabric } = yield* standing;
 			expect(yield* fabric.idleSince()).toEqual(new Map());
-			yield* fabric.standDown(options.sessionId);
+			yield* endsTurn(fabric, options.sessionId);
 			expect(yield* fabric.holds(options.sessionId)).toBe(true);
 			expect((yield* fabric.idleSince()).get(options.sessionId)).toBeGreaterThanOrEqual(0);
 		}),
 	).pipe(withFabric),
 );
 
-it.live("a session that never stood down is not reclaimed as idle", () =>
+it.live("a session whose turn has not ended is not reclaimed as idle", () =>
 	Effect.scoped(
 		Effect.gen(function* () {
 			const { fabric } = yield* standing;
@@ -46,7 +49,7 @@ it.live("words end the idleness, and a reclaim arriving after them declines", ()
 	Effect.scoped(
 		Effect.gen(function* () {
 			const { fabric, steered } = yield* standing;
-			yield* fabric.standDown(options.sessionId);
+			yield* endsTurn(fabric, options.sessionId);
 			yield* fabric.send(options.sessionId, textInput("one more thing"));
 			expect(yield* fabric.idleSince()).toEqual(new Map());
 			expect(yield* fabric.stopIdle(options.sessionId)).toBe(false);
@@ -56,11 +59,11 @@ it.live("words end the idleness, and a reclaim arriving after them declines", ()
 	).pipe(withFabric),
 );
 
-it.live("a reclaim takes the attachment of a session still standing down", () =>
+it.live("a reclaim takes the attachment of a session still at rest", () =>
 	Effect.scoped(
 		Effect.gen(function* () {
 			const { fabric, steered } = yield* standing;
-			yield* fabric.standDown(options.sessionId);
+			yield* endsTurn(fabric, options.sessionId);
 			expect(yield* fabric.stopIdle(options.sessionId)).toBe(true);
 			expect(yield* fabric.holds(options.sessionId)).toBe(false);
 			expect(yield* fabric.attached()).toEqual(new Set());
@@ -71,21 +74,17 @@ it.live("a reclaim takes the attachment of a session still standing down", () =>
 	).pipe(withFabric),
 );
 
-it.effect("an ending leaves the same mark a declaration left, once", () =>
+it.effect("a repeated ending leaves the mark the first one left", () =>
 	Effect.scoped(
 		Effect.gen(function* () {
 			const { fabric } = yield* standing;
-			yield* fabric.standDown(options.sessionId);
-			const declared = (yield* fabric.idleSince()).get(options.sessionId);
-			yield* TestClock.adjust(20);
-
 			const mark = yield* fabric.turnMark(options.sessionId);
 			expect(yield* fabric.turnEnded(options.sessionId, mark)).toBe("rested");
-			expect((yield* fabric.idleSince()).get(options.sessionId)).toBe(declared);
+			const first = (yield* fabric.idleSince()).get(options.sessionId);
 			yield* TestClock.adjust(20);
 
 			expect(yield* fabric.turnEnded(options.sessionId, mark)).toBe("rested");
-			expect((yield* fabric.idleSince()).get(options.sessionId)).toBe(declared);
+			expect((yield* fabric.idleSince()).get(options.sessionId)).toBe(first);
 			expect(yield* fabric.holds(options.sessionId)).toBe(true);
 		}),
 	).pipe(withFabric),

@@ -6,7 +6,7 @@ import type { Runner } from "@antumbra/plugin-api";
 import { expect, it } from "@effect/vitest";
 import { Effect, Option } from "effect";
 import { dispatchingLayer } from "#test/domain-layers.ts";
-import { acquireTemporaryPersistence, callTool, makeScriptedBackend, sessionFor, standDown } from "#test/harness.ts";
+import { acquireTemporaryPersistence, callTool, endTurn, makeScriptedBackend, sessionFor } from "#test/harness.ts";
 import { chain, eventually, PATIENCE, stateOf } from "#test/voyage-fixtures.ts";
 
 const acquireMoorage = Effect.acquireRelease(
@@ -52,7 +52,7 @@ it.live("a landed local artifact survives removal of its moorage", () =>
 				ok: true,
 				text: "artifact landed; other current artifacts: none; call supersede if this is a new version",
 			});
-			yield* standDown(scripted, assignment.value.agentId);
+			yield* endTurn(scripted, assignment.value.agentId);
 			expect(yield* stateOf(voyage.id, alpha.id)).toBe("done");
 
 			const artifact = (yield* db.Artifact.all())[0];

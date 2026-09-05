@@ -73,7 +73,9 @@ it.effectApp("a crew member lands a report against the piece it was spawned for"
 	});
 	expect(yield* db.Report.where({ authorAgentId: crew.agentId }).all()).toMatchObject([{ authorAgentId: crew.agentId, title: "soundings" }]);
 	expect(yield* callTool(live, "stand_down", undefined)).toEqual({ ok: true, text: "standing by" });
-	expect(Option.getOrThrow(yield* domain.voyages.read(crew.voyage.id)).pieces.find((piece) => piece.id === crew.piece.id)?.state).toBe("done");
+	expect(
+		Option.getOrThrow(yield* domain.voyages.read(crew.voyage.id).pipe(Effect.orDie)).pieces.find((piece) => piece.id === crew.piece.id)?.state,
+	).toBe("done");
 });
 
 it.effectApp("arguments the model got wrong come back as a refusal", { clock: "live" }, function* ({ db, scripted }) {

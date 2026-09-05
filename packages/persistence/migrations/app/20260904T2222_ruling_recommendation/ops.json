@@ -1,0 +1,84 @@
+[
+  {
+    "id": "column.ruling.recommendationReasoning",
+    "label": "Add column recommendationReasoning on ruling",
+    "summary": "Adds column recommendationReasoning on ruling",
+    "operationClass": "additive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "column",
+        "name": "recommendationReasoning",
+        "table": "ruling"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"recommendationReasoning\" is missing",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM pragma_table_info(?) WHERE \"name\" = ?",
+        "params": [
+          "ruling",
+          "recommendationReasoning"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"recommendationReasoning\"",
+        "sql": "ALTER TABLE \"ruling\" ADD COLUMN \"recommendationReasoning\" TEXT"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"recommendationReasoning\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM pragma_table_info(?) WHERE \"name\" = ?",
+        "params": [
+          "ruling",
+          "recommendationReasoning"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.ruling.recommendedChoiceId",
+    "label": "Add column recommendedChoiceId on ruling",
+    "summary": "Adds column recommendedChoiceId on ruling",
+    "operationClass": "additive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "column",
+        "name": "recommendedChoiceId",
+        "table": "ruling"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"recommendedChoiceId\" is missing",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM pragma_table_info(?) WHERE \"name\" = ?",
+        "params": [
+          "ruling",
+          "recommendedChoiceId"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"recommendedChoiceId\"",
+        "sql": "ALTER TABLE \"ruling\" ADD COLUMN \"recommendedChoiceId\" TEXT"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"recommendedChoiceId\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM pragma_table_info(?) WHERE \"name\" = ?",
+        "params": [
+          "ruling",
+          "recommendedChoiceId"
+        ]
+      }
+    ]
+  }
+]

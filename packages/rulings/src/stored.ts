@@ -6,7 +6,7 @@ import {
 	StoredRulingValueInvalid,
 } from "@antumbra/vocabulary/ruling";
 import { Effect, Option, type Result } from "effect";
-import type { RulingAnswer, RulingReclassification } from "#model.ts";
+import type { RulingAnswer, RulingReclassification, RulingRecommendation } from "#model.ts";
 import type { StoredRuling, StoredRulingReclassification } from "#stored-rows.ts";
 
 export const invalidRulingValue = (field: string, rulingId: string, value: unknown) => new StoredRulingValueInvalid({ field, rulingId, value });
@@ -26,6 +26,16 @@ export const storedAnswer = Effect.fnUntraced(function* (row: StoredRuling) {
 		choiceId: Option.fromNullOr(row.answerChoiceId),
 		text: row.answer,
 	});
+});
+
+export const storedRecommendation = Effect.fnUntraced(function* (row: StoredRuling) {
+	if (row.recommendedChoiceId === null && row.recommendationReasoning === null) {
+		return Option.none<RulingRecommendation>();
+	}
+	if (row.recommendedChoiceId === null || row.recommendationReasoning === null) {
+		return yield* invalidRulingValue("recommendation", row.id, row);
+	}
+	return Option.some<RulingRecommendation>({ choiceId: row.recommendedChoiceId, reasoning: row.recommendationReasoning });
 });
 
 export const storedRung = Effect.fnUntraced(function* (row: StoredRuling) {

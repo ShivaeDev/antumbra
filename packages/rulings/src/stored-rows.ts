@@ -7,6 +7,8 @@ export interface StoredRuling {
 	readonly id: string;
 	readonly question: string;
 	readonly radius: string;
+	readonly recommendationReasoning: string | null;
+	readonly recommendedChoiceId: string | null;
 	readonly requesterAgentId: string | null;
 	readonly requesterAuthority: string | null;
 	readonly ruledAt: Date | null;

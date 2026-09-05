@@ -63,17 +63,19 @@ one-Piece-one-Agent, and one-Piece-one-Change assumptions from becoming product 
 
 Plans bend by editing typed links: promote, park, reorder, add or remove a dependency, split, or merge. Position moves; durable substance does not.
 
-## The frontier and the edge
+## The frontier
 
 A Voyage's **frontier** is the set of open questions its agents have asked about it: every ruling request from a crew member or captain that names the
 Voyage and has not yet been ruled. It is a reading over the ruling records rather than a phase the Voyage passes through, and it marks how far the
 course can honestly be plotted: past a question nobody has answered, a plan is a guess.
 
-The **edge** is how far ahead of that frontier a captain may charter, and chartering stops there for two reasons. A `blocking` question on the
-frontier means the Voyage is holding for an answer, and work chartered under it is a guess the answer may undo; chartering resumes once the question
-is ruled or reclassified below blocking. Three unlaunched Pieces on the Voyage mean planning has run ahead of sailing, and a charter is dead reckoning
-that gets less honest the further it reaches; launching, parking, or abandoning one of them reopens the edge. Both refusals say what clears them. The
-admiral charters freely, and a Piece already launched, parked, or abandoned never counts against the edge.
+Chartering reports the frontier rather than stopping at it. A charter always lands, and the tool's reply names the blocking questions standing on the
+Voyage and counts the Pieces already chartered and not yet launched; a Piece already launched, parked, or abandoned is settled and counts for nothing.
+
+Those facts inform the captain without deciding for it. Work that does not need an open answer is worth chartering while the question stands, and a
+plan that lays out many parallel Pieces before any of them sails is legitimate: its captain may learn only once all of them have run. Refusing would
+stop those plans along with the careless ones, and any fixed number of unlaunched Pieces is a guess about a Voyage the rule has never seen. The reply
+says what stands, the standing orders say to charter what does not need the answer, and the judgment stays with the captain.
 
 ## Occultations and dependency blockage
 

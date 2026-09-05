@@ -2346,20 +2346,6 @@
                   "kind": "scalar"
                 }
               },
-              "recommendationReasoning": {
-                "nullable": true,
-                "type": {
-                  "codecId": "sqlite/text@1",
-                  "kind": "scalar"
-                }
-              },
-              "recommendedChoiceId": {
-                "nullable": true,
-                "type": {
-                  "codecId": "sqlite/text@1",
-                  "kind": "scalar"
-                }
-              },
               "requesterAgentId": {
                 "nullable": true,
                 "type": {
@@ -2614,12 +2600,6 @@
                 },
                 "radius": {
                   "column": "radius"
-                },
-                "recommendationReasoning": {
-                  "column": "recommendationReasoning"
-                },
-                "recommendedChoiceId": {
-                  "column": "recommendedChoiceId"
                 },
                 "requesterAgentId": {
                   "column": "requesterAgentId"
@@ -5222,16 +5202,6 @@
                   "nativeType": "text",
                   "nullable": false
                 },
-                "recommendationReasoning": {
-                  "codecId": "sqlite/text@1",
-                  "nativeType": "text",
-                  "nullable": true
-                },
-                "recommendedChoiceId": {
-                  "codecId": "sqlite/text@1",
-                  "nativeType": "text",
-                  "nullable": true
-                },
                 "requesterAgentId": {
                   "codecId": "sqlite/text@1",
                   "nativeType": "text",
@@ -6249,7 +6219,7 @@
         "id": "__unbound__"
       }
     },
-    "storageHash": "sha256:70ede805e551115c3ac012e70a57e8c52b14ace94d31912b4e9dbfed9c2f1486"
+    "storageHash": "sha256:b39bd2f5dba5aa1699755a4a8ea4c3a9c079042454911c18090109c8c0faae4c"
   },
   "capabilities": {
     "sql": {

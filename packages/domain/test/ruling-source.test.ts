@@ -1,11 +1,9 @@
 import { RulingSource } from "@antumbra/contract";
-import { persistenceIt } from "@antumbra/persistence/testing";
+import { it } from "@antumbra/persistence/testing";
 import { Rulings } from "@antumbra/rulings";
 import { expect } from "@effect/vitest";
 import { Effect, Fiber, Option } from "effect";
 import { anyGated, anyOpen, asked, layer, noneOpen, pieceId, requesterId, seedFleet, voyageId, watchUntil } from "#test/ruling-source-harness.ts";
-
-const it = persistenceIt();
 
 it.effectDB("the open feed carries a request the moment it lands", function* () {
 	yield* Effect.gen(function* () {

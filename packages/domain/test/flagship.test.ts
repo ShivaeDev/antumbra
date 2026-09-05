@@ -1,6 +1,6 @@
 import { changesLayer } from "@antumbra/changes";
 import { DomainFeedsLive } from "@antumbra/domain-feeds";
-import { persistenceIt } from "@antumbra/persistence/testing";
+import { it } from "@antumbra/persistence/testing";
 import { PiecesLive } from "@antumbra/pieces";
 import { ReposLive } from "@antumbra/repos";
 import { RulingsLive } from "@antumbra/rulings";
@@ -10,8 +10,6 @@ import { ensureFlagship } from "#flagship.ts";
 import { summarySeen } from "#voyage-projection.ts";
 import { voyageSummaries } from "#voyage-view.ts";
 import { VoyageWorldSource } from "#voyage-world/service.ts";
-
-const it = persistenceIt();
 
 const WorldLive = VoyageWorldSource.layer.pipe(
 	Layer.provideMerge(

@@ -35,4 +35,4 @@ export {
 	reclassifyRulingSpec,
 	ruleOnSpec,
 } from "#ruling-verdicts.ts";
-export { requestRulingSpec } from "#rulings.ts";
+export { addContextSpec, requestRulingSpec } from "#rulings.ts";

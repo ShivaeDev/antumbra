@@ -1,5 +1,6 @@
 import type { BackendFailure, SessionInput } from "@antumbra/plugin-api";
 import { Data, Effect, Option, Schema } from "effect";
+import type { AgentSettings } from "#agent-settings.ts";
 import { codexFailure } from "#failure.ts";
 import { TurnResponse } from "#protocol.ts";
 import type { CodexServer } from "#server.ts";
@@ -50,7 +51,7 @@ export interface TurnRequests {
 
 // A timeout while residual work drains still means the turn is no longer
 // running, so the interrupt is successful.
-export const turnRequests = (server: CodexServer, threadId: string): TurnRequests => ({
+export const turnRequests = (server: CodexServer, threadId: string, settings: AgentSettings): TurnRequests => ({
 	interrupt: (turnId) =>
 		server.request("turn/interrupt", { threadId, turnId }, INTERRUPT_TIMEOUT_MS).pipe(
 			Effect.asVoid,
@@ -62,6 +63,7 @@ export const turnRequests = (server: CodexServer, threadId: string): TurnRequest
 				clientUserMessageId: input.id,
 				input: userInput(input),
 				threadId,
+				...settings,
 			})
 			.pipe(Effect.flatMap(turnIdOf)),
 	steer: (turnId, input) =>

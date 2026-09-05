@@ -14,6 +14,8 @@ const openFake = (resume: Option.Option<string> = Option.none(), fake = makeFake
 		const server = yield* makeCodexServer({ spawn: () => fake.process });
 		const handle = yield* openThreadSession(server, {
 			cwd: "/moorage",
+			effort: Option.none(),
+			model: Option.none(),
 			resume,
 			sessionId: "session-1",
 			tools: [],
@@ -160,6 +162,8 @@ it.live("closing a session fails text held before provider acceptance", () =>
 		const server = yield* makeCodexServer({ spawn: () => fake.process });
 		const handle = yield* openThreadSession(server, {
 			cwd: "/moorage",
+			effort: Option.none(),
+			model: Option.none(),
 			resume: Option.none(),
 			sessionId: "session-cut",
 			tools: [],
@@ -249,6 +253,8 @@ it.live("turn.completed carries the codex status; the child dying ends the strea
 		const server = yield* makeCodexServer({ spawn: () => fake.process });
 		const handle: SessionHandle = yield* openThreadSession(server, {
 			cwd: "/moorage",
+			effort: Option.none(),
+			model: Option.none(),
 			resume: Option.none(),
 			sessionId: "session-1",
 			tools: [],

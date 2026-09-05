@@ -1,4 +1,4 @@
-import { query, type SDKMessage, type SDKUserMessage } from "@anthropic-ai/claude-agent-sdk";
+import { type EffortLevel, query, type SDKMessage, type SDKUserMessage } from "@anthropic-ai/claude-agent-sdk";
 import type { BackendCapacityController, BackendFailure, DirectTool } from "@antumbra/plugin-api";
 import { type Effect, Option } from "effect";
 import { InputQueue } from "#adapters/input-queue.ts";
@@ -11,7 +11,9 @@ import { sessionOptions, type ToolAccess } from "#session-options.ts";
 interface RawSessionOptions {
 	readonly call: ToolCall;
 	readonly cwd: string;
+	readonly effort: EffortLevel | undefined;
 	readonly executable: string;
+	readonly model: string | undefined;
 	readonly observeCapacity: BackendCapacityController["observe"];
 	readonly resume: string | undefined;
 	readonly tools: ReadonlyArray<DirectTool>;
@@ -64,7 +66,9 @@ export const openRawSession = (options: RawSessionOptions): RawSession => {
 	const live = query({
 		options: sessionOptions({
 			cwd: options.cwd,
+			effort: options.effort,
 			executable: options.executable,
+			model: options.model,
 			resume: options.resume,
 			store: mirroringSessionStore((write) => deliveries.deliver({ kind: "mirror", write })),
 			tools: toolAccess(options),

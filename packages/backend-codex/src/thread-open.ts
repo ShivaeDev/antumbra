@@ -1,6 +1,7 @@
 import type { BackendFailure, DirectTool, OpenSessionOptions } from "@antumbra/plugin-api";
 import type { AgentEvent } from "@antumbra/vocabulary/session-events";
 import { Effect, Option, Schema } from "effect";
+import { type AgentSettings, chosenModel } from "#agent-settings.ts";
 import { codexFailure } from "#failure.ts";
 import { rawOf } from "#mapping.ts";
 import { ThreadResponse } from "#protocol.ts";
@@ -32,13 +33,18 @@ const attachable = (server: CodexServer, threadId: string): Effect.Effect<string
 		? Effect.fail(codexFailure(`thread ${threadId} is a subsession of a running session; subsessions are read from the stream, never attached`))
 		: Effect.succeed(threadId);
 
-export const openThread = (server: CodexServer, options: OpenSessionOptions): Effect.Effect<readonly [string, unknown], BackendFailure> =>
+export const openThread = (
+	server: CodexServer,
+	options: OpenSessionOptions,
+	settings: AgentSettings,
+): Effect.Effect<readonly [string, unknown], BackendFailure> =>
 	Option.match(options.resume, {
 		onNone: () =>
 			server
 				.request("thread/start", {
 					cwd: options.cwd,
 					...dynamicTools(options.tools),
+					...chosenModel(settings),
 					...THREAD_POLICY,
 				})
 				.pipe(Effect.map((response) => ["thread/start", response] as const)),
@@ -49,6 +55,7 @@ export const openThread = (server: CodexServer, options: OpenSessionOptions): Ef
 					server.request("thread/resume", {
 						cwd: options.cwd,
 						threadId: attached,
+						...chosenModel(settings),
 						...THREAD_POLICY,
 					}),
 				),

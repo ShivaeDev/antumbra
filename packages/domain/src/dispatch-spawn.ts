@@ -1,5 +1,6 @@
 import { type IntentStatus, type IntentSubmission, isTerminalIntentStatus } from "@antumbra/kernel";
 import { Effect, Option, Queue, Stream } from "effect";
+import { agentSettingsOf } from "#agent-settings.ts";
 import { charterFor } from "#crew-charter.ts";
 import { accountOfIntent } from "#dispatch-failure-account.ts";
 import type { ReadyPiece } from "#dispatch-policy.ts";
@@ -65,6 +66,7 @@ export const dispatchPiece = (port: DispatchPort, candidate: ReadyPiece, target:
 		const submission = yield* port.submit({
 			agentId,
 			backend: candidate.voyage.crewBackend,
+			...agentSettingsOf(candidate.voyage, "crew"),
 			charter: yield* charterFor(candidate.piece, candidate.voyage, agentId),
 			pieceId,
 			runner: "local",

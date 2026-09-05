@@ -15,12 +15,15 @@ const captainPart = (captain: Option.Option<VoyageCaptain>): string =>
 
 const stirredPart = (at: Date | null): string => (at === null ? "never stirred" : `last stirred ${at.toISOString()}`);
 
+const rolePart = (role: string, backend: string, model: string | null, effort: string | null): string =>
+	[`${role} on ${backend}`, ...(model === null ? [] : [`with ${model}`]), ...(effort === null ? [] : [`at ${effort} effort`])].join(" ");
+
 const voyageLines = (voyage: VoyageSummary): ReadonlyArray<string> => [
 	[
 		`- ${voyage.id} ${voyage.name} [${voyage.state}]`,
 		voyage.kind,
-		`captain on ${voyage.captainBackend}`,
-		`crew on ${voyage.crewBackend}`,
+		rolePart("captain", voyage.captainBackend, voyage.captainModel, voyage.captainEffort),
+		rolePart("crew", voyage.crewBackend, voyage.crewModel, voyage.crewEffort),
 		countsPart(voyage.counts),
 		captainPart(voyage.captain),
 		stirredPart(voyage.lastStirredAt),

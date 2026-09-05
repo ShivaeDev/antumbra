@@ -1,6 +1,7 @@
 import type { BackendFailure, SessionInput } from "@antumbra/plugin-api";
 import { Deferred, Effect, Option, Ref, Schema, type Scope, Semaphore } from "effect";
 import type { RpcNotification } from "#adapters/rpc.ts";
+import type { AgentSettings } from "#agent-settings.ts";
 import { TurnNotification } from "#protocol.ts";
 import { makeQueuedTurns } from "#queued-turns.ts";
 import type { CodexServer } from "#server.ts";
@@ -20,11 +21,11 @@ const turnIdIn = (notification: RpcNotification): Option.Option<string> =>
 	Option.map(decodeTurnNotification(notification.params), ({ turn }) => turn.id);
 
 // Codex exposes start, steer, and interrupt; queued delivery is local.
-export const makeTurnDriver = (server: CodexServer, threadId: string): Effect.Effect<TurnDriver, never, Scope.Scope> =>
+export const makeTurnDriver = (server: CodexServer, threadId: string, settings: AgentSettings): Effect.Effect<TurnDriver, never, Scope.Scope> =>
 	Effect.gen(function* () {
 		const state = yield* Ref.make<TurnState>(idle);
 		const gate = yield* Semaphore.make(1);
-		const requests = turnRequests(server, threadId);
+		const requests = turnRequests(server, threadId, settings);
 		const closure = yield* Deferred.make<never, BackendFailure>();
 		const failWhenClosed = Deferred.await(closure);
 		const queued = makeQueuedTurns(state, gate.withPermit, requests, failWhenClosed);

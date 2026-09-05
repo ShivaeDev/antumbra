@@ -8,7 +8,9 @@ const server = new McpServer({ name: "antumbra", version: "0.0.0" });
 
 const base = {
 	cwd: "/moorage/./crew",
+	effort: undefined,
 	executable: "/usr/bin/false",
+	model: undefined,
 	resume: undefined,
 	store: mirroringSessionStore(() => {}),
 };
@@ -40,4 +42,10 @@ it("resuming names the transcript the provider already has", () => {
 		tools: Option.none(),
 	});
 	expect(options.resume).toBe("native-1");
+});
+
+it("the voyage's model and effort ride on the session options", () => {
+	const options = sessionOptions({ ...base, effort: "xhigh", model: "opus", tools: Option.none() });
+	expect(options.model).toBe("opus");
+	expect(options.effort).toBe("xhigh");
 });

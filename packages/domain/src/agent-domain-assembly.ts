@@ -18,6 +18,7 @@ import { Effect } from "effect";
 import { imageInputBackendsOf } from "#image-input-backends.ts";
 import { makeRetireKind } from "#retire.ts";
 import { compileRetireSweepDemands } from "#retire-sweep-demands.ts";
+import { makeSessionAgentSettings } from "#session-agent-settings.ts";
 import { spawnKind } from "#spawn.ts";
 import { makeAgentToolCompiler } from "#spawn-tools.ts";
 import { VoyageProcedureService } from "#voyages/service.ts";
@@ -44,6 +45,7 @@ export const makeAgentDomain = (backends: ReadonlyMap<string, AgentBackend>, run
 		const toolsFor = (context: SessionRecoveryContext) => compileTools(context.role, context.identity);
 		const recoveryRuntime = yield* makeSessionRecoveryRuntime({
 			backends,
+			settingsFor: yield* makeSessionAgentSettings,
 			sinkFor,
 			toolsFor,
 		});

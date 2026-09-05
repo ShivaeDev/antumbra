@@ -9,13 +9,13 @@ import { ReposLive } from "@antumbra/repos";
 import { RulingsLive } from "@antumbra/rulings";
 import { RulingHoldsLive } from "@antumbra/rulings/holds/service";
 import { SessionEventJournalLive } from "@antumbra/session-event-journal";
+import { SessionStandDownLive } from "@antumbra/sessions/stand-down/service";
 import { Layer } from "effect";
 import { VoyageAuthority } from "#authority/service.ts";
 import { CaptainMembershipLive } from "#captain-membership.ts";
 import { ChangeProceduresLive } from "#change-procedures.ts";
 import { KernelReachDeferredLive } from "#kernel-reach.ts";
 import { Quay } from "#quay/service.ts";
-import { StandDownLive } from "#stand-down.ts";
 import { VoyageWorldSource } from "#voyage-world/service.ts";
 import { VoyageProceduresLive } from "#voyages.ts";
 
@@ -37,7 +37,7 @@ export const domainCapabilities = (
 	).pipe(Layer.provideMerge(DomainFeedsLive));
 	const changes = ChangesLive(changeHosts, runners).pipe(Layer.provideMerge(foundations));
 	const world = Layer.mergeAll(VoyageWorldSource.layer, Quay.layer).pipe(Layer.provideMerge(changes));
-	return Layer.mergeAll(CaptainMembershipLive, ChangeProceduresLive(changeHosts), StandDownLive, VoyageProceduresLive).pipe(
+	return Layer.mergeAll(CaptainMembershipLive, ChangeProceduresLive(changeHosts), SessionStandDownLive, VoyageProceduresLive).pipe(
 		Layer.provideMerge(world),
 	);
 };

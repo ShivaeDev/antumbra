@@ -42,7 +42,7 @@ const heldResources = (resources: ReadonlyArray<ResourceIdentity>) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
 		const current = yield* db.Change
-			.where({ stage: "open" })
+			.where({ stage: "open", resourceId: { in: resources.map((resource) => resource.id) } })
 			.include("repo");
 		return inferHeldResources(current, resources);
 	});
@@ -59,17 +59,22 @@ stable answer as one boundary.
 
 ## Repeated reads
 
-Give a common domain read a named method on its owning capability so callers do not repeat the same filtering and inference. Return full records by
-default so callers share coherent, reusable types instead of accumulating partial shapes for individual field needs. Optimize which records are read
-through scoped filtering; selecting fewer fields is not a reason to add another read method. Share predicates inside the owner when existing domain
-queries compose the same condition. Add methods for existing domain questions; do not wrap every database operation in a generic CRUD facade.
+Give a common domain read a named method on its owning capability so callers do not repeat the same filtering and inference. Name the operation for
+the domain question or result. Execute the query inside it and return the answer in one Effect; callers should not yield a read only to receive
+another query they must execute. Private query composition remains an implementation detail.
+
+Scope records to the requested subjects or candidates and the related evidence needed to answer the question, including transitive dependencies when
+required. A global census is appropriate only when the product question is genuinely global. Moving an unfiltered table scan into a new service does
+not fix its cost; neither does adding a predicate that leaves the irrelevant records in scope. Review the nested reads as well as the entry point.
+
+Return full records by default so callers share coherent, reusable types instead of accumulating partial shapes for individual field needs. Optimize
+which records are read, not how few fields are selected. Share predicates inside the owner when existing domain queries compose the same condition.
+Add methods for existing domain questions; do not wrap every database operation in a generic CRUD facade.
 
 ## What remains valid
 
 Semantic ownership is not a ban on querying, calculation, or reshaping:
 
-- Scoped filtering reads fewer records without moving ownership. Filter in the owning capability rather than loading a table for a caller to
-  interpret.
 - Load related data through declared Prisma relations, such as `include`, so relation names and result types remain contract-owned. Do not reconstruct
   a join with unrelated table reads and positional or identifier matching in a caller.
 - Domain inference and calculation live where the question is answered. A pure private helper is part of that implementation; exporting it does not

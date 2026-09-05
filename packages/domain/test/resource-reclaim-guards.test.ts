@@ -1,3 +1,4 @@
+import { Changes } from "@antumbra/changes";
 import { type IntentStatus, isTerminalIntentStatus, Kernel } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
 import { expect, it } from "@effect/vitest";
@@ -66,10 +67,10 @@ it.live("prepare, open authorization, adoption, and observation reject a claim",
 		const backend = yield* makeScriptedBackend;
 		const host = yield* makeScriptedHost();
 		yield* Effect.gen(function* () {
-			const domain = yield* AgentDomain;
+			const changes = yield* Changes;
 			const { piece, repo } = yield* reefWithPiece;
 			yield* seedAgentResources("agent-boundary", "alive");
-			yield* domain.changes.submit({
+			yield* changes.submit({
 				agentId: "agent-boundary",
 				pieceId: piece.id,
 				repoName: repo.name,
@@ -78,7 +79,7 @@ it.live("prepare, open authorization, adoption, and observation reject a claim",
 			yield* claimAgentResources("agent-boundary");
 
 			yield* expectClaimed(
-				domain.changes.open({
+				changes.open({
 					agentId: "agent-boundary",
 					base: null,
 					body: "must not open",
@@ -90,7 +91,7 @@ it.live("prepare, open authorization, adoption, and observation reject a claim",
 				}),
 			);
 			yield* expectClaimed(
-				domain.changes.adopt({
+				changes.adopt({
 					agentId: "agent-boundary",
 					pieceId: piece.id,
 					repoName: repo.name,
@@ -98,7 +99,7 @@ it.live("prepare, open authorization, adoption, and observation reject a claim",
 				}),
 			);
 			yield* expectClaimed(
-				domain.changes.observed("scripted", [
+				changes.observed("scripted", [
 					scriptedObservation("scripted", "41", {
 						baseRef: "main",
 						headRef: `work/agent-boundary/berth-0`,

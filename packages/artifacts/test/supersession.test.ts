@@ -1,13 +1,13 @@
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { Artifacts, ArtifactsLive } from "@antumbra/artifacts";
+import { Artifacts, artifactsLayer } from "@antumbra/artifacts";
 import { DomainFeedsLive } from "@antumbra/domain-feeds";
 import { Database, type DatabaseService } from "@antumbra/persistence";
 import { persistenceIt } from "@antumbra/persistence/testing";
 import { NodeServices } from "@effect/platform-node";
 import { expect } from "@effect/vitest";
-import { Effect, Layer, Option } from "effect";
+import { type Context, Effect, Layer, Option } from "effect";
 
 const it = persistenceIt();
 
@@ -28,7 +28,7 @@ const published = join(root, "published");
 mkdirSync(published);
 it.afterAll(() => rmSync(root, { force: true, recursive: true }));
 
-const layer = ArtifactsLive(published).pipe(Layer.provideMerge(DomainFeedsLive), Layer.provide(NodeServices.layer));
+const layer = artifactsLayer(published).pipe(Layer.provideMerge(DomainFeedsLive), Layer.provide(NodeServices.layer));
 
 const ensureAuthor = (db: DatabaseService, authorAgentId: string) =>
 	Effect.gen(function* () {
@@ -67,7 +67,7 @@ const land = (pieceId: string, title: string, authorAgentId = "agent-chart") =>
 		});
 	});
 
-const useArtifacts = <A, E>(use: (artifacts: Artifacts["Service"]) => Effect.Effect<A, E>) =>
+const useArtifacts = <A, E>(use: (artifacts: Context.Service.Shape<typeof Artifacts>) => Effect.Effect<A, E>) =>
 	Artifacts.pipe(Effect.flatMap(use), Effect.provide(layer));
 
 it.effectDB("lands an explicit revision and keeps immutable lineage", function* (db) {

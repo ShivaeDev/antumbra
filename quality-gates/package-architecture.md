@@ -22,7 +22,9 @@ it sits in the layer its name claims, and whether Effect services have the right
    package beside it. A package that only ever ships with one other is a candidate for merging; a package whose parts serve different callers is a
    candidate for splitting.
 8. Capability packages form a dependency-inversion tree. The application-facing domain facade assembles their Layers; the desktop consumes that facade
-   rather than reconstructing the tree service by service.
+   rather than reconstructing the tree service by service. Keep an existing package-root entry point where it serves callers. When exposing deep
+   imports, use a wildcard export map to the defining files, not a manifest entry per file; the manifest should not duplicate the source tree. Import
+   those paths directly without adding forwarding barrels.
 9. Every dependency-cruiser rule names an independent prohibition with a written rationale; it never mirrors a manifest's complete allowed-edge list.
    A rule is never widened, weakened, or exempted to make a change pass — a violation says the code is in the wrong package.
 10. If a change feels weird — an import that wants to cross a layer, a file that wants two homes — step back and split or refactor the package first.

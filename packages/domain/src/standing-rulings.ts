@@ -1,6 +1,6 @@
 import { type Ruling, type RulingAnswer, type RulingSubject, Rulings } from "@antumbra/rulings";
+import { ruledByWords } from "@antumbra/rulings/answer/ruled-by-words";
 import { Effect, Option } from "effect";
-import { ruledByWords } from "#ruling-words.ts";
 
 interface RulingReader {
 	readonly agentId: string;
@@ -15,7 +15,7 @@ const subjectsOf = (reader: RulingReader, tags: ReadonlyArray<string>): Readonly
 	...tags.map((tag): RulingSubject => ({ kind: "tag", tag })),
 ];
 
-export const standingRulingsFor = Effect.fn("domain.standingRulingsFor")(function* (reader: RulingReader, tags: ReadonlyArray<string> = []) {
+export const standingRulingsFor = Effect.fn("Domain.standingRulingsFor")(function* (reader: RulingReader, tags: ReadonlyArray<string> = []) {
 	const rulings = yield* Rulings;
 	const named = yield* rulings.standing(subjectsOf(reader, tags));
 	const ruled = yield* rulings.standing([]);

@@ -1,24 +1,13 @@
-import { getSubagentMessages, listSubagents } from "@anthropic-ai/claude-agent-sdk";
+import { getSubagentMessages } from "@anthropic-ai/claude-agent-sdk";
 import type { NodeAuditRequest, SessionAudit, SessionCensusRequest } from "@antumbra/plugin-api";
 import type { AgentEvent } from "@antumbra/vocabulary/session-events";
 import { Effect } from "effect";
+import { unrecordedSubagents } from "#adapters/unrecorded-subagents.ts";
 import { censusFindings, censusUnreadable, transcriptFindings } from "#subsession-audit.ts";
-import type { AdoptedAgent } from "#workflow-adoption.ts";
-
-const readAgent = async (request: SessionCensusRequest, agentId: string): Promise<AdoptedAgent> => ({
-	agentId,
-	messages: await getSubagentMessages(request.rootRef, agentId, {
-		dir: request.cwd,
-	}),
-});
 
 const takeCensus = async (request: SessionCensusRequest): Promise<ReadonlyArray<AgentEvent>> => {
 	try {
-		const directory = await listSubagents(request.rootRef, {
-			dir: request.cwd,
-		});
-		const missed = directory.filter((agentId) => !request.admitted(agentId));
-		return censusFindings(await Promise.all(missed.map((agentId) => readAgent(request, agentId))));
+		return censusFindings(await unrecordedSubagents(request.rootRef, request.cwd, request.admitted));
 	} catch (error) {
 		return [censusUnreadable(String(error))];
 	}

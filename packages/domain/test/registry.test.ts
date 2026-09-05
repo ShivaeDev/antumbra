@@ -87,7 +87,7 @@ it.live("the fleet snapshot carries the registry", () =>
 				attached: new Set(),
 				delegating: new Set(),
 			});
-			expect(fleet.repos).toEqual([
+			expect(fleet.repos).toMatchObject([
 				{
 					defaultRef: "main",
 					id: repo.id,

@@ -12,26 +12,25 @@ import { submissionKey } from "#change-submissions/prepared-row.ts";
 import { claimingHost, repoNamed } from "#change-submissions/repository.ts";
 import { proposedChange } from "#change-write.ts";
 
-const adoptionAttachment = (agentId: string | null, repoId: string) =>
-	Effect.gen(function* () {
-		if (agentId === null) {
-			return { _tag: "ExternalOnly" } satisfies ObservationAttachment;
-		}
-		const key = submissionKey(agentId, repoId);
-		const active = yield* activeChange(key);
-		return Option.match(active, {
-			onNone: () => ({ _tag: "ExternalOnly" }) as const,
-			onSome: (row) =>
-				({
-					_tag: "Claimed",
-					agentId,
-					changeId: row.id,
-					submissionKey: key,
-				}) as const,
-		}) satisfies ObservationAttachment;
-	});
+const adoptionAttachment = Effect.fnUntraced(function* (agentId: string | null, repoId: string) {
+	if (agentId === null) {
+		return { _tag: "ExternalOnly" } satisfies ObservationAttachment;
+	}
+	const key = submissionKey(agentId, repoId);
+	const active = yield* activeChange(key);
+	return Option.match(active, {
+		onNone: () => ({ _tag: "ExternalOnly" }) as const,
+		onSome: (row) =>
+			({
+				_tag: "Claimed",
+				agentId,
+				changeId: row.id,
+				submissionKey: key,
+			}) as const,
+	}) satisfies ObservationAttachment;
+});
 
-export const adoptSubmittedChange = Effect.fn("changes.adopt")(function* (input: AdoptChangeInput) {
+export const adoptSubmittedChange = Effect.fn("Changes.adopt")(function* (input: AdoptChangeInput) {
 	const db = yield* Database;
 	const feeds = yield* DomainFeeds;
 	const pieces = yield* Pieces;

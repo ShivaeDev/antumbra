@@ -113,7 +113,7 @@ it.effectDB("preserves a prepared replacement when old host identity returns", f
 		const changes = yield* Changes;
 		const first = yield* opened;
 		yield* scripted.transition("repo-reef", "1", { stage: "withdrawn" });
-		yield* changes.refresh("scripted");
+		expect(yield* changes.refresh("scripted")).toMatchObject([{ id: first.id, stage: "withdrawn" }]);
 		const replacement = yield* changes.submit({
 			agentId: CREW,
 			pieceId: "piece-reef",

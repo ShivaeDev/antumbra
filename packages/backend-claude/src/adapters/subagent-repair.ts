@@ -1,5 +1,5 @@
-import { getSubagentMessages, listSubagents } from "@anthropic-ai/claude-agent-sdk";
-import type { AdoptedAgent, Repair } from "#workflow-adoption.ts";
+import { unrecordedSubagents } from "#adapters/unrecorded-subagents.ts";
+import type { Repair } from "#workflow-adoption.ts";
 
 interface RepairRequest {
 	readonly cwd: string;
@@ -7,21 +7,10 @@ interface RepairRequest {
 	readonly recorded: (agentId: string) => boolean;
 }
 
-const read = async (request: RepairRequest, agentId: string): Promise<AdoptedAgent> => ({
-	agentId,
-	messages: await getSubagentMessages(request.nativeSessionId, agentId, {
-		dir: request.cwd,
-	}),
-});
-
 export const repairSubagents = async (request: RepairRequest): Promise<Repair> => {
 	try {
-		const census = await listSubagents(request.nativeSessionId, {
-			dir: request.cwd,
-		});
-		const missing = census.filter((agentId) => !request.recorded(agentId));
 		return {
-			agents: await Promise.all(missing.map((id) => read(request, id))),
+			agents: await unrecordedSubagents(request.nativeSessionId, request.cwd, request.recorded),
 			failure: undefined,
 		};
 	} catch (error) {

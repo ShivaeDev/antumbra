@@ -23,34 +23,37 @@ export interface LiveSessionAttachment extends SessionAttachment {
 export const closeSessionAttachment = (attachment: LiveSessionAttachment, exit: Exit.Exit<unknown, unknown> = Exit.void) =>
 	Scope.close(attachment.scope, exit);
 
-export const openSessionAttachment = (backend: AgentBackend, options: OpenSessionOptions, sink: EventSink) =>
-	Effect.gen(function* () {
-		const scope = yield* Scope.make();
-		return yield* Effect.gen(function* () {
-			const handle = yield* backend.openSession(options).pipe(Scope.provide(scope));
-			const opened = yield* makeOpeningConfirmation;
-			yield* sink.attached;
-			const observe = (event: AgentEvent) =>
-				sink.record(event).pipe(
-					Effect.flatMap((persisted) => opened.observe(event, persisted)),
-					Effect.asVoid,
-				);
-			const endedBeforeOpening = new BackendFailure({
-				detail: "session ended before confirming its native identity",
-				tag: backend.tag,
-			});
-			yield* handle.events.pipe(
-				Stream.runForEach(observe),
-				Effect.tapError(opened.fail),
-				Effect.ensuring(opened.fail(endedBeforeOpening)),
-				Effect.ensuring(sink.detached),
-				Effect.catchCause((cause) => Effect.logError("event pump failed", { sessionId: options.sessionId }, cause)),
-				Effect.forkIn(scope),
+export const openSessionAttachment = Effect.fn("SessionFabric.openSessionAttachment")(function* (
+	backend: AgentBackend,
+	options: OpenSessionOptions,
+	sink: EventSink,
+) {
+	const scope = yield* Scope.make();
+	return yield* Effect.gen(function* () {
+		const handle = yield* backend.openSession(options).pipe(Scope.provide(scope));
+		const opened = yield* makeOpeningConfirmation;
+		yield* sink.attached;
+		const observe = (event: AgentEvent) =>
+			sink.record(event).pipe(
+				Effect.flatMap((persisted) => opened.observe(event, persisted)),
+				Effect.asVoid,
 			);
-			return {
-				handle,
-				openedNativeRef: opened.await,
-				scope,
-			} satisfies LiveSessionAttachment;
-		}).pipe(Effect.onExit((exit) => (Exit.isFailure(exit) ? Scope.close(scope, exit) : Effect.void)));
-	});
+		const endedBeforeOpening = new BackendFailure({
+			detail: "session ended before confirming its native identity",
+			tag: backend.tag,
+		});
+		yield* handle.events.pipe(
+			Stream.runForEach(observe),
+			Effect.tapError(opened.fail),
+			Effect.ensuring(opened.fail(endedBeforeOpening)),
+			Effect.ensuring(sink.detached),
+			Effect.catchCause((cause) => Effect.logError("event pump failed", { sessionId: options.sessionId }, cause)),
+			Effect.forkIn(scope),
+		);
+		return {
+			handle,
+			openedNativeRef: opened.await,
+			scope,
+		} satisfies LiveSessionAttachment;
+	}).pipe(Effect.onExit((exit) => (Exit.isFailure(exit) ? Scope.close(scope, exit) : Effect.void)));
+});

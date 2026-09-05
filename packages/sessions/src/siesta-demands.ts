@@ -3,15 +3,10 @@ import { defineIntentDemand } from "@antumbra/intent-demand";
 import type { IntentKind } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
 import { SessionFabric } from "@antumbra/session-fabric";
-import {
-	decodeSessionExecutionStatus,
-	decodeStoredAgentSessionStatus,
-	decodeStoredAgentStatus,
-	sessionPresence,
-} from "@antumbra/vocabulary/agent-runtime";
+import { decodeSessionExecutionStatus, decodeStoredAgentStatus, sessionPresence } from "@antumbra/vocabulary/agent-runtime";
 import { Clock, Effect, Result } from "effect";
 import { sessionAtRest } from "#at-rest.ts";
-import { rootSessions } from "#roots.ts";
+import { openSessions, rootSessions } from "#roots.ts";
 import type { SiestaFields } from "#siesta.ts";
 import { LiveDelegations } from "#tree/live.ts";
 
@@ -30,17 +25,13 @@ const siestaDemands = Effect.gen(function* () {
 	const now = yield* Clock.currentTimeMillis;
 	const threshold = chosen.idleSiestaMinutes * MILLIS_PER_MINUTE;
 	const overdue = new Set([...(yield* fabric.idleSince())].flatMap(([sessionId, since]) => (now - since >= threshold ? [sessionId] : [])));
-	const agents = yield* db.Agent.all();
+	const sessions = yield* db.AgentSession.where(rootSessions).where(openSessions).all();
+	const agents = yield* db.Agent.where((agent) => agent.id.in(sessions.map((session) => session.agentId))).all();
 	const agentStatuses = new Map(agents.map((agent) => [agent.id, decodeStoredAgentStatus(agent.id, agent.status)] as const));
-	const sessions = yield* db.AgentSession.where(rootSessions).all();
 	const siesta: Array<SiestaFields> = [];
 	for (const session of sessions) {
-		const status = decodeStoredAgentSessionStatus(session.id, session.status);
 		const agentStatus = agentStatuses.get(session.agentId);
-		if (Result.isFailure(status) || (agentStatus !== undefined && Result.isFailure(agentStatus))) {
-			continue;
-		}
-		if (agentStatus === undefined || agentStatus.success !== "alive" || status.success !== "open") {
+		if (agentStatus === undefined || Result.isFailure(agentStatus) || agentStatus.success !== "alive") {
 			continue;
 		}
 		const executionStatus = yield* Effect.fromResult(decodeSessionExecutionStatus(session.id, session.executionStatus));

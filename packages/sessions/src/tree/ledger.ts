@@ -26,10 +26,7 @@ export const makeSessionTreeLedger = Effect.gen(function* () {
 		db.SessionEvent.where({ sessionId })
 			.all()
 			.pipe(Effect.map((rows) => rows.flatMap(rawOf)));
-	const nodeRows = (rootSessionId: string) =>
-		db.AgentSession.where({ rootSessionId })
-			.all()
-			.pipe(Effect.map((rows) => rows.filter((row) => !isRootSession(row))));
+	const nodeRows = (rootSessionId: string) => db.AgentSession.where({ rootSessionId }).where(nodeSessionsOnly).all();
 	const nodeRow = (rootSessionId: string, nativeRef: string) =>
 		db.AgentSession.where({ nativeRef, rootSessionId })
 			.first()

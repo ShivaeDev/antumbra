@@ -12,7 +12,7 @@ export const makeSpawnTeardown = Effect.gen(function* () {
 	// Teardown cannot propagate settlement failure; log the stranded birth for boot reconciliation.
 	const settleAfterFailure = (payload: SpawnFields) =>
 		resolution.settleFailure(payload).pipe(
-			Effect.tap(() => resources.request),
+			Effect.tap(() => resources.request()),
 			Effect.catchCause((cause) =>
 				Effect.logError("spawn failure settlement failed", { agentId: payload.agentId, sessionId: payload.sessionId }, cause),
 			),

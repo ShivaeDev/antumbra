@@ -7,7 +7,8 @@ import { KernelReach, type SpawnRefused } from "#kernel-reach.ts";
 import { pieceStates, workingAssignees } from "#piece-state.ts";
 import { PieceAbandoned, PieceAlreadyCrewed, PieceNotOnVoyage } from "#piece-work-errors.ts";
 import type { VoyageRow, VoyageWorld } from "#voyage-rows.ts";
-import { type VoyageWorldReadFailure, VoyageWorldSource } from "#voyage-world.ts";
+import type { VoyageWorldReadFailure } from "#voyage-world/read.ts";
+import { VoyageWorldSource } from "#voyage-world/service.ts";
 
 export interface CrewedPiece {
 	readonly agentId: string;
@@ -34,7 +35,7 @@ export const workPieceNow = (pieceId: string) =>
 	Effect.gen(function* () {
 		const reach = yield* KernelReach;
 		const source = yield* VoyageWorldSource;
-		const world = yield* source.read;
+		const world = yield* source.read();
 		const piece = world.pieces.find((row) => row.id === pieceId);
 		if (piece === undefined) {
 			return yield* new PieceNotFound({ pieceId });

@@ -10,7 +10,7 @@ export const SettingsSourceLive = Layer.effect(SettingsSource)(
 		const context = Context.make(Database, db);
 		return {
 			change: (change) => Effect.provide(changeSetting(change), context),
-			current: Effect.provide(readSettings, context),
+			current: Effect.provide(readSettings(), context),
 		};
 	}),
 );

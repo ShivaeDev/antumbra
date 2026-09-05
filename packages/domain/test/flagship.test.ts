@@ -2,19 +2,25 @@ import { ChangesLive } from "@antumbra/changes";
 import { DomainFeedsLive } from "@antumbra/domain-feeds";
 import { persistenceIt } from "@antumbra/persistence/testing";
 import { PiecesLive } from "@antumbra/pieces";
+import { ReposLive } from "@antumbra/repos";
 import { RulingsLive } from "@antumbra/rulings";
 import { expect } from "@effect/vitest";
 import { Effect, Layer } from "effect";
 import { ensureFlagship } from "#flagship.ts";
 import { summarySeen } from "#voyage-projection.ts";
 import { voyageSummaries } from "#voyage-view.ts";
-import { VoyageWorldSource, VoyageWorldSourceLive } from "#voyage-world.ts";
+import { VoyageWorldSource } from "#voyage-world/service.ts";
 
 const it = persistenceIt();
 
-const WorldLive = VoyageWorldSourceLive.pipe(
+const WorldLive = VoyageWorldSource.layer.pipe(
 	Layer.provideMerge(
-		ChangesLive(new Map(), new Map()).pipe(Layer.provideMerge(PiecesLive), Layer.provideMerge(RulingsLive), Layer.provideMerge(DomainFeedsLive)),
+		ChangesLive(new Map(), new Map()).pipe(
+			Layer.provideMerge(PiecesLive),
+			Layer.provideMerge(ReposLive),
+			Layer.provideMerge(RulingsLive),
+			Layer.provideMerge(DomainFeedsLive),
+		),
 	),
 );
 
@@ -22,12 +28,12 @@ const boot = Effect.provide(ensureFlagship, DomainFeedsLive);
 
 const readWorld = Effect.gen(function* () {
 	const source = yield* VoyageWorldSource;
-	return yield* source.read;
+	return yield* source.read();
 }).pipe(Effect.provide(WorldLive));
 
 const readWorldFailure = Effect.gen(function* () {
 	const source = yield* VoyageWorldSource;
-	return yield* Effect.flip(source.read);
+	return yield* Effect.flip(source.read());
 }).pipe(Effect.provide(WorldLive));
 
 it.effectDB("the fleet is born sailing under a flagship", function* (db) {

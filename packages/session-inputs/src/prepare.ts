@@ -44,35 +44,36 @@ const preparePart = (part: SessionInputDraftPart, position: number): Effect.Effe
 	);
 };
 
-export const prepareInput = (draft: SessionInputDraft): Effect.Effect<PreparedSessionInput, SessionInputInvalid> =>
-	Effect.gen(function* () {
-		const firstText = draft.parts.findIndex((part) => part.type === "text");
-		const textCount = draft.parts.filter((part) => part.type === "text").length;
-		if (textCount > 1 || (firstText >= 0 && draft.parts.slice(firstText + 1).some((part) => part.type === "image"))) {
-			return yield* new SessionInputInvalid({
-				detail: "images must come first in display order, followed by at most one text part",
-				reason: "invalid_order",
-			});
-		}
-		const imageCount = draft.parts.filter((part) => part.type === "image").length;
-		if (imageCount > MAX_SESSION_IMAGES) {
-			return yield* new SessionInputInvalid({
-				detail: `${imageCount} images exceeds the ${MAX_SESSION_IMAGES} image limit`,
-				reason: "too_many_images",
-			});
-		}
-		const parts = yield* Effect.forEach(draft.parts, preparePart);
-		const imageBytes = parts.reduce((total, part) => total + (part.type === "image" ? part.image.bytes.length : 0), 0);
-		if (imageBytes > MAX_SESSION_INPUT_IMAGE_BYTES) {
-			return yield* new SessionInputInvalid({
-				detail: `${imageBytes} normalized bytes exceeds the ${MAX_SESSION_INPUT_IMAGE_BYTES} byte input limit`,
-				reason: "input_too_large",
-			});
-		}
-		return {
-			id: draft.id,
-			parts,
-			requestDigest: digestRequest(draft.sessionId, draft.parts),
-			sessionId: draft.sessionId,
-		};
-	});
+export const prepareInput = Effect.fn("SessionInputs.prepareInput")(function* (
+	draft: SessionInputDraft,
+): Effect.fn.Return<PreparedSessionInput, SessionInputInvalid> {
+	const firstText = draft.parts.findIndex((part) => part.type === "text");
+	const textCount = draft.parts.filter((part) => part.type === "text").length;
+	if (textCount > 1 || (firstText >= 0 && draft.parts.slice(firstText + 1).some((part) => part.type === "image"))) {
+		return yield* new SessionInputInvalid({
+			detail: "images must come first in display order, followed by at most one text part",
+			reason: "invalid_order",
+		});
+	}
+	const imageCount = draft.parts.filter((part) => part.type === "image").length;
+	if (imageCount > MAX_SESSION_IMAGES) {
+		return yield* new SessionInputInvalid({
+			detail: `${imageCount} images exceeds the ${MAX_SESSION_IMAGES} image limit`,
+			reason: "too_many_images",
+		});
+	}
+	const parts = yield* Effect.forEach(draft.parts, preparePart);
+	const imageBytes = parts.reduce((total, part) => total + (part.type === "image" ? part.image.bytes.length : 0), 0);
+	if (imageBytes > MAX_SESSION_INPUT_IMAGE_BYTES) {
+		return yield* new SessionInputInvalid({
+			detail: `${imageBytes} normalized bytes exceeds the ${MAX_SESSION_INPUT_IMAGE_BYTES} byte input limit`,
+			reason: "input_too_large",
+		});
+	}
+	return {
+		id: draft.id,
+		parts,
+		requestDigest: digestRequest(draft.sessionId, draft.parts),
+		sessionId: draft.sessionId,
+	};
+});

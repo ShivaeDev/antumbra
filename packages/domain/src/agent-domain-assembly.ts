@@ -1,5 +1,6 @@
 import { Boards } from "@antumbra/boards";
 import type { AgentBackend, Runner } from "@antumbra/plugin-api";
+import { BackendCapacities } from "@antumbra/provider-capacity";
 import { Repos } from "@antumbra/repos";
 import { ResourceReconciler } from "@antumbra/resource-reclamation";
 import { SessionFabric } from "@antumbra/session-fabric";
@@ -17,7 +18,6 @@ import {
 	SessionRecoveryRuntime,
 } from "@antumbra/sessions";
 import { Effect } from "effect";
-import { makeBackendCapacities } from "#backend-capacity.ts";
 import { ChangeProcedureService } from "#change-procedures.ts";
 import { imageInputBackendsOf } from "#image-input-backends.ts";
 import { makeRetireKind } from "#retire.ts";
@@ -35,7 +35,7 @@ export const makeAgentDomain = (backends: ReadonlyMap<string, AgentBackend>, run
 		const live = yield* LiveDelegations;
 		const resourceReconciler = yield* ResourceReconciler;
 		const voyages = yield* VoyageProcedureService;
-		const backendCapacities = yield* makeBackendCapacities(backends);
+		const backendCapacities = yield* BackendCapacities;
 		const sinkFor = yield* makeSessionTreeSinks;
 		const reconcileCurrentSessions = yield* makeCurrentSessionReconciler;
 		const reconcileSessionNodes = yield* makeSessionNodeReconciler;
@@ -44,7 +44,6 @@ export const makeAgentDomain = (backends: ReadonlyMap<string, AgentBackend>, run
 		yield* reconcileSessionNodes;
 		const spawn = yield* spawnKind({
 			backends,
-			capacities: backendCapacities,
 			runners,
 			sinkFor,
 		});
@@ -56,11 +55,11 @@ export const makeAgentDomain = (backends: ReadonlyMap<string, AgentBackend>, run
 			sinkFor,
 			toolsFor,
 		});
-		const wake = yield* makeWakeKind(backendCapacities).pipe(Effect.provideService(SessionRecoveryRuntime, recoveryRuntime));
+		const wake = yield* makeWakeKind.pipe(Effect.provideService(SessionRecoveryRuntime, recoveryRuntime));
 		const siesta = yield* makeSiestaKind;
 		const intentDemands = [...(yield* compileSessionSiestaDemands(siesta)), ...(yield* compileRetireSweepDemands(retire))];
 		const imageInputBackends = imageInputBackendsOf(backends);
-		const sessionSend = yield* makeSessionSend(imageInputBackends, backendCapacities);
+		const sessionSend = yield* makeSessionSend(imageInputBackends);
 		return {
 			backendCapacities,
 			backends: [...backends.keys()],
@@ -72,7 +71,7 @@ export const makeAgentDomain = (backends: ReadonlyMap<string, AgentBackend>, run
 			intentDemands,
 			kinds: [spawn, retire, siesta, wake],
 			repos,
-			retryResourceReclaim: resourceReconciler.reconcile,
+			retryResourceReclaim: resourceReconciler.reconcile(),
 			reopenSessionStarts: fabric.reopenStarts(),
 			retire,
 			sendSessionInput: sessionSend.sendInput,

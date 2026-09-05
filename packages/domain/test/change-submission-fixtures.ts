@@ -1,5 +1,5 @@
+import { Changes } from "@antumbra/changes";
 import { Effect } from "effect";
-import { AgentDomain } from "#domain.ts";
 import { domainKernelLayer } from "#test/domain-layers.ts";
 import { acquireTemporaryPersistence, changeHostsOf, makeScriptedBackend, passiveRunner } from "#test/harness.ts";
 import { makeScriptedHost, type ScriptedHost } from "#test/scripted-host.ts";
@@ -18,8 +18,8 @@ export const withHost = <A, E, R>(body: (scripted: ScriptedHost) => Effect.Effec
 
 export const openedChange = (pieceId: string, repoName: string) =>
 	Effect.gen(function* () {
-		const domain = yield* AgentDomain;
-		return yield* domain.changes.open({
+		const changes = yield* Changes;
+		return yield* changes.open({
 			agentId: CREW,
 			base: null,
 			body: "sounded three fathoms",
@@ -33,8 +33,8 @@ export const openedChange = (pieceId: string, repoName: string) =>
 
 export const submittedChange = (pieceId: string, repoName: string) =>
 	Effect.gen(function* () {
-		const domain = yield* AgentDomain;
-		return yield* domain.changes.submit({
+		const changes = yield* Changes;
+		return yield* changes.submit({
 			agentId: CREW,
 			pieceId,
 			repoName,

@@ -7,7 +7,7 @@ import type { RulingSupersedeInput } from "#retirement.ts";
 import { requireStanding } from "#standing-row.ts";
 import type { StoredRuling } from "#stored-rows.ts";
 
-export const supersede = Effect.fn("rulings.supersede")(function* (input: RulingSupersedeInput) {
+export const supersede = Effect.fn("Rulings.supersede")(function* (input: RulingSupersedeInput) {
 	const db = yield* Database;
 	const feeds = yield* DomainFeeds;
 	const now = yield* Clock.currentTimeMillis;

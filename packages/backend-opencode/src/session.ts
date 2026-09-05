@@ -19,34 +19,36 @@ const eventsOfFrame =
 			}),
 		);
 
-export const openOpencodeSession = (server: OpencodeServer, options: OpenSessionOptions): Effect.Effect<SessionHandle, BackendFailure, Scope.Scope> =>
-	Effect.gen(function* () {
-		const forEvents = yield* PubSub.subscribe(server.frames);
-		const forDriver = yield* PubSub.subscribe(server.frames);
-		const [route, response] = yield* openSession(server, options);
-		const sessionId = yield* sessionIdOf(route, response);
-		const driver = yield* makeTurnDriver(turnRequests(server, sessionId, options.cwd));
-		yield* Effect.forkScoped(server.exited.pipe(Effect.andThen(driver.close)));
-		yield* Effect.forkScoped(
-			Stream.fromSubscription(forDriver).pipe(
-				Stream.runForEach((frame) =>
-					Option.match(frameFor(sessionId, frame), {
-						onNone: () => Effect.void,
-						onSome: driver.track,
-					}),
-				),
+export const openOpencodeSession = Effect.fn("OpenCode.openSession")(function* (
+	server: OpencodeServer,
+	options: OpenSessionOptions,
+): Effect.fn.Return<SessionHandle, BackendFailure, Scope.Scope> {
+	const forEvents = yield* PubSub.subscribe(server.frames);
+	const forDriver = yield* PubSub.subscribe(server.frames);
+	const [route, response] = yield* openSession(server, options);
+	const sessionId = yield* sessionIdOf(route, response);
+	const driver = yield* makeTurnDriver(turnRequests(server, sessionId, options.cwd));
+	yield* Effect.forkScoped(server.exited.pipe(Effect.andThen(driver.close)));
+	yield* Effect.forkScoped(
+		Stream.fromSubscription(forDriver).pipe(
+			Stream.runForEach((frame) =>
+				Option.match(frameFor(sessionId, frame), {
+					onNone: () => Effect.void,
+					onSome: driver.track,
+				}),
 			),
-		);
-		const projection = openSessionProjection();
-		const events: Stream.Stream<AgentEvent> = Stream.make(sessionOpened(route, response, sessionId)).pipe(
-			Stream.concat(Stream.fromSubscription(forEvents).pipe(Stream.flatMap(eventsOfFrame(sessionId, projection)))),
-			Stream.interruptWhen(server.exited),
-		);
-		return {
-			events,
-			interrupt: driver.interrupt,
-			nativeRef: Effect.succeed(Option.some(sessionId)),
-			queue: (input) => Effect.flatMap(textOnly(input), driver.queue),
-			steer: (input) => Effect.flatMap(textOnly(input), driver.steer),
-		} satisfies SessionHandle;
-	});
+		),
+	);
+	const projection = openSessionProjection();
+	const events: Stream.Stream<AgentEvent> = Stream.make(sessionOpened(route, response, sessionId)).pipe(
+		Stream.concat(Stream.fromSubscription(forEvents).pipe(Stream.flatMap(eventsOfFrame(sessionId, projection)))),
+		Stream.interruptWhen(server.exited),
+	);
+	return {
+		events,
+		interrupt: driver.interrupt,
+		nativeRef: Effect.succeed(Option.some(sessionId)),
+		queue: (input) => Effect.flatMap(textOnly(input), driver.queue),
+		steer: (input) => Effect.flatMap(textOnly(input), driver.steer),
+	} satisfies SessionHandle;
+});

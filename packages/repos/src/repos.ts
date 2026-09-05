@@ -4,6 +4,7 @@ import { defineService } from "@antumbra/service-definition";
 import { type Context, Effect } from "effect";
 import { forgetRepo } from "#forget.ts";
 import { registerRepo } from "#register.ts";
+import { registeredRepos } from "#registered.ts";
 
 export const Repos = defineService({
 	id: "@antumbra/repos/Repos",
@@ -11,6 +12,7 @@ export const Repos = defineService({
 	methods: () => ({
 		forget: forgetRepo,
 		register: registerRepo,
+		registered: registeredRepos,
 	}),
 	requires: [Database, DomainFeeds],
 });

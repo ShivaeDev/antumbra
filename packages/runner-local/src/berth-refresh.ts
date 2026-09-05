@@ -3,7 +3,7 @@ import type { BerthPlan } from "@antumbra/plugin-api";
 import { Effect } from "effect";
 import { runGit } from "#git-runtime.ts";
 
-export const refreshBerth = Effect.fn("runnerLocal.refreshBerth")(
+export const refreshBerth = Effect.fn("RunnerLocal.refreshBerth")(
 	(mirror: string, berth: BerthPlan): Effect.Effect<void> =>
 		Effect.catch(
 			Effect.gen(function* () {

@@ -1,42 +1,26 @@
-import { Clock, Effect, Layer, Queue, Ref } from "effect";
+import { Clock, Effect, Layer, Queue, Ref, Result } from "effect";
 import { IntentDemand, type IntentDemandHealth } from "#intent-demand.ts";
 import type { IntentDemandRegistration } from "#registration.ts";
 
 const PATIENCE_MILLIS = 5_000;
 
-const updateHealth = (health: Ref.Ref<ReadonlyMap<string, IntentDemandHealth>>, tag: string, value: IntentDemandHealth) =>
-	Ref.update(health, (current) => new Map(current).set(tag, value));
-
-const runRegistration = <R>(health: Ref.Ref<ReadonlyMap<string, IntentDemandHealth>>, registration: IntentDemandRegistration<R>) =>
-	registration.pass.pipe(
-		Effect.matchEffect({
-			onFailure: (failure) =>
-				Clock.currentTimeMillis.pipe(
-					Effect.flatMap((failedAtMillis) =>
-						updateHealth(health, registration.tag, {
-							failedAtMillis,
-							failure,
-							state: "degraded",
-						}),
-					),
-					Effect.andThen(
-						Effect.logWarning("intent demand pass degraded", {
-							detail: failure.detail,
-							tag: registration.tag,
-						}),
-					),
-				),
-			onSuccess: () =>
-				Clock.currentTimeMillis.pipe(
-					Effect.flatMap((checkedAtMillis) =>
-						updateHealth(health, registration.tag, {
-							checkedAtMillis,
-							state: "healthy",
-						}),
-					),
-				),
-		}),
-	);
+const runRegistration = Effect.fn("IntentDemand.runRegistration")(function* <R>(
+	health: Ref.Ref<ReadonlyMap<string, IntentDemandHealth>>,
+	registration: IntentDemandRegistration<R>,
+) {
+	const result = yield* Effect.result(registration.pass);
+	const now = yield* Clock.currentTimeMillis;
+	const value: IntentDemandHealth = Result.isFailure(result)
+		? { failedAtMillis: now, failure: result.failure, state: "degraded" }
+		: { checkedAtMillis: now, state: "healthy" };
+	yield* Ref.update(health, (current) => new Map(current).set(registration.tag, value));
+	if (Result.isFailure(result)) {
+		yield* Effect.logWarning("intent demand pass degraded", {
+			detail: result.failure.detail,
+			tag: registration.tag,
+		});
+	}
+});
 
 export const IntentDemandLive = <R>(registrations: ReadonlyArray<IntentDemandRegistration<R>>) =>
 	Layer.effect(
@@ -58,7 +42,7 @@ export const IntentDemandLive = <R>(registrations: ReadonlyArray<IntentDemandReg
 				}),
 			);
 			return IntentDemand.of({
-				health: Ref.get(health).pipe(Effect.map((current) => new Map(current))),
+				health: Ref.get(health),
 				request: Queue.offer(tick, undefined).pipe(Effect.asVoid),
 			});
 		}),

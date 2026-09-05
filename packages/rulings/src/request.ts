@@ -3,7 +3,7 @@ import { Database } from "@antumbra/persistence";
 import { Clock, Effect } from "effect";
 import type { RulingRequest } from "#acts.ts";
 import { appendGate, requirePiece } from "#gate-rows.ts";
-import { loadRuling, requireRuling } from "#read.ts";
+import { loadRuling } from "#read.ts";
 import { offeredChoices } from "#recommendation.ts";
 import { requesterColumns } from "#requester.ts";
 import type { StoredRuling } from "#stored-rows.ts";
@@ -40,17 +40,15 @@ export const writeRequest = (row: StoredRuling, input: RulingRequest) =>
 		yield* Effect.forEach(input.subjects, verifySubject);
 		yield* Effect.forEach(input.gates, requirePiece);
 		const offered = yield* offeredChoices(row.id, input);
-		yield* db.Ruling.create(row);
+		const asked = { ...row, recommendedChoiceId: offered.recommendedChoiceId };
+		yield* db.Ruling.create(asked);
 		yield* Effect.forEach(offered.rows, (choice) => db.RulingChoice.create(choice));
-		if (offered.recommendedChoiceId !== null) {
-			yield* db.Ruling.where({ id: row.id }).update({ recommendedChoiceId: offered.recommendedChoiceId });
-		}
 		yield* Effect.forEach(input.subjects, (subject) => db.RulingSubject.create(subjectRow(row.id, subject)));
 		yield* Effect.forEach(input.gates, (pieceId) => appendGate(row.id, pieceId));
-		return yield* loadRuling(yield* requireRuling(row.id));
+		return yield* loadRuling(asked);
 	});
 
-export const request = Effect.fn("rulings.request")(function* (input: RulingRequest) {
+export const request = Effect.fn("Rulings.request")(function* (input: RulingRequest) {
 	const feeds = yield* DomainFeeds;
 	const now = yield* Clock.currentTimeMillis;
 	const stored = yield* writeRequest(requested(input, now), input);

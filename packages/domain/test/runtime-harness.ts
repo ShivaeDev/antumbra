@@ -1,7 +1,7 @@
 import { Database } from "@antumbra/persistence";
 import { makeEffectApp, makeScriptedBackend } from "@antumbra/testing-runtime";
 import { Effect, Layer } from "effect";
-import { domainKernelServices } from "#test/domain-layers.ts";
+import { domainKernelServices, sightSourceTestLayer } from "#test/domain-layers.ts";
 
 export const it = {
 	effectApp: makeEffectApp((temporary) =>
@@ -10,7 +10,8 @@ export const it = {
 			const harness = Effect.gen(function* () {
 				return { db: yield* Database, scripted };
 			});
-			return { harness, layer: domainKernelServices(temporary, scripted.backend).pipe(Layer.orDie) };
+			const layer = sightSourceTestLayer.pipe(Layer.provideMerge(domainKernelServices(temporary, scripted.backend)), Layer.orDie);
+			return { harness, layer };
 		}),
 	),
 };

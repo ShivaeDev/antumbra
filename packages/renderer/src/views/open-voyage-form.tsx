@@ -5,7 +5,8 @@ import { Button } from "#components/ui/button.tsx";
 import { Dialog, DialogContent, DialogTrigger } from "#components/ui/dialog.tsx";
 import { DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "#components/ui/dialog-sections.tsx";
 import { defaultModelId, useBackendModels } from "#hooks/backend-models.ts";
-import { chosenBackend, emptyDraft, openVoyageRequest, type VoyageDraft, VoyageFields, withPresetModels } from "#views/open-voyage-fields.tsx";
+import { emptyDraft, openVoyageRequest, type VoyageDraft, withChosenBackends, withPresetModel } from "#views/open-voyage-draft.ts";
+import { VoyageFields } from "#views/open-voyage-fields.tsx";
 
 export const OpenVoyageForm = ({
 	backends,
@@ -18,16 +19,21 @@ export const OpenVoyageForm = ({
 }) => {
 	const [open, setOpen] = useState(false);
 	const [draft, setDraft] = useState<VoyageDraft>(emptyDraft);
-	const backend = chosenBackend(backends, draft.backend);
-	const catalog = useBackendModels(backend);
-	const preset = defaultModelId(catalog);
+	const chosen = withChosenBackends(backends, draft);
+	const captainCatalog = useBackendModels(chosen.captain.backend);
+	const crewCatalog = useBackendModels(chosen.crew.backend);
+	const captainPreset = defaultModelId(captainCatalog);
+	const crewPreset = defaultModelId(crewCatalog);
 	useEffect(() => {
-		setDraft((current) => withPresetModels(current, preset));
-	}, [preset]);
-	const ready = draft.name !== "" && draft.northStar !== "" && backend !== "";
+		setDraft((current) => ({ ...current, captain: withPresetModel(current.captain, captainPreset) }));
+	}, [captainPreset]);
+	useEffect(() => {
+		setDraft((current) => ({ ...current, crew: withPresetModel(current.crew, crewPreset) }));
+	}, [crewPreset]);
+	const ready = chosen.name !== "" && chosen.northStar !== "" && chosen.captain.backend !== "" && chosen.crew.backend !== "";
 	const submit = () =>
 		openVoyage(
-			openVoyageRequest(draft, backend),
+			openVoyageRequest(chosen),
 			(opened) => {
 				setDraft(emptyDraft);
 				setOpen(false);
@@ -46,9 +52,11 @@ export const OpenVoyageForm = ({
 			<DialogContent>
 				<DialogHeader>
 					<DialogTitle>Open a voyage</DialogTitle>
-					<DialogDescription>A voyage needs a name and the north star it steers by. Everything else is chartered later.</DialogDescription>
+					<DialogDescription>
+						A voyage needs a name, the north star it steers by, and who sails it. The work itself is chartered later.
+					</DialogDescription>
 				</DialogHeader>
-				<VoyageFields backends={backends} catalog={catalog} draft={draft} onChange={setDraft} />
+				<VoyageFields backends={backends} captainCatalog={captainCatalog} crewCatalog={crewCatalog} draft={chosen} onChange={setDraft} />
 				<DialogFooter>
 					<Button disabled={!ready} onClick={submit} type="button">
 						Open voyage

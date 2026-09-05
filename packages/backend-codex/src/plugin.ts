@@ -11,6 +11,7 @@ import { bundledCodex } from "#adapters/chatgpt-bundle.ts";
 import { type LineProcess, spawnLineProcess } from "#adapters/process.ts";
 import { codexAudit } from "#adapters/thread-audit.ts";
 import { classifyCodexCapacity } from "#capacity.ts";
+import { listCodexModels } from "#models.ts";
 import { type CodexServer, makeCodexServer } from "#server.ts";
 import { openThreadSession } from "#thread.ts";
 
@@ -26,6 +27,7 @@ const codexBackend = (server: RcRef.RcRef<CodexServer, BackendFailure>, capacity
 	capabilities: {
 		imageInput: true,
 	},
+	listModels: RcRef.get(server).pipe(Effect.flatMap(listCodexModels), Effect.scoped),
 	openSession: (options) => RcRef.get(server).pipe(Effect.flatMap((live) => openThreadSession(live, options))),
 	tag: "codex",
 });

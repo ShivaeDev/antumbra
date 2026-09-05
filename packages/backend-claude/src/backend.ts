@@ -13,6 +13,7 @@ import { sessionToolCall } from "#adapters/session-tools.ts";
 import { claudeAudit } from "#adapters/subagent-audit.ts";
 import type { ToolCall } from "#adapters/tool-server.ts";
 import { effortLevel } from "#effort.ts";
+import { listClaudeModels } from "#models.ts";
 import { laneEvents, openSessionLanes } from "#session-lanes.ts";
 
 const failure = (detail: unknown) => new BackendFailure({ detail: String(detail), tag: "claude" });
@@ -89,6 +90,7 @@ export const claudeBackend = (options: ClaudeBackendOptions, capacity: BackendCa
 	capabilities: {
 		imageInput: false,
 	},
+	listModels: listClaudeModels(options.executable),
 	openSession: (session) =>
 		sessionToolCall.pipe(
 			Effect.flatMap((call) => rawSession(options, session, call, capacity)),

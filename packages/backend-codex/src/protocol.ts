@@ -24,6 +24,17 @@ export const Turn = Schema.Struct({
 
 export const TurnResponse = Schema.Struct({ turn: Turn });
 
+export const ModelListResponse = Schema.Struct({
+	data: Schema.Array(
+		Schema.Struct({
+			displayName: Schema.String,
+			isDefault: Schema.Boolean,
+			model: Schema.String,
+			supportedReasoningEfforts: Schema.Array(Schema.Struct({ reasoningEffort: ReasoningEffort })),
+		}),
+	),
+});
+
 export const DynamicToolCallParams = Schema.Struct({
 	arguments: Schema.Unknown,
 	threadId: Schema.String,

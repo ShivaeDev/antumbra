@@ -40,6 +40,7 @@ export const scriptedBackend = (openSession: AgentBackend["openSession"]): Agent
 	capabilities: {
 		imageInput: false,
 	},
+	listModels: Effect.succeed([]),
 	openSession,
 	tag: "scripted",
 });

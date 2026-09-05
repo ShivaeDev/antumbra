@@ -76,6 +76,14 @@ export const BackendCapacitySummary = Schema.Struct({
 });
 export type BackendCapacitySummary = typeof BackendCapacitySummary.Type;
 
+export const ModelChoice = Schema.Struct({
+	efforts: Schema.Array(Schema.String),
+	id: Schema.String,
+	isDefault: Schema.Boolean,
+	name: Schema.String,
+});
+export type ModelChoice = typeof ModelChoice.Type;
+
 export const Fleet = Schema.Struct({
 	agents: Schema.Array(AgentSummary),
 	backends: Schema.Array(Schema.String),

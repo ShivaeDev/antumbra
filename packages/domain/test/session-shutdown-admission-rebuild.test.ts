@@ -1,10 +1,10 @@
 import { Kernel } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
 import { SessionFabric } from "@antumbra/session-fabric";
-import { drainActiveSessions } from "@antumbra/sessions";
 import { expect, it } from "@effect/vitest";
 import { Effect, ManagedRuntime, Option } from "effect";
 import { AgentDomain } from "#domain.ts";
+import { drainActiveSessions } from "#shutdown.ts";
 import type { SpawnFields } from "#spawn.ts";
 import { domainKernelLayer } from "#test/domain-layers.ts";
 import { acquireTemporaryPersistence, makeScriptedBackend, makeScriptedRunner, type ScriptedBackend, type ScriptedRunner } from "#test/harness.ts";

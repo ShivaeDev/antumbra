@@ -37,7 +37,6 @@ export {
 	type SessionSendReceipt,
 	type SessionSendRefused,
 } from "#send/send.ts";
-export { drainActiveSessions, SessionShutdown } from "#shutdown.ts";
 export { requireSiestaSucceeded } from "#shutdown-verdict.ts";
 export { makeSiestaKind, type SiestaFields } from "#siesta.ts";
 export { compileSessionSiestaDemands } from "#siesta-demands.ts";

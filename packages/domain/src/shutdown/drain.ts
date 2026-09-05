@@ -2,18 +2,18 @@ import { DomainFeeds } from "@antumbra/domain-feeds";
 import { isTerminalIntentStatus, Kernel } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
 import { SessionFabric } from "@antumbra/session-fabric";
-import { requireSiestaSucceeded, rootSessions, SessionShutdown } from "@antumbra/sessions";
+import { requireSiestaSucceeded, rootSessions } from "@antumbra/sessions";
 import { decodeSessionExecutionStatus, decodeStoredAgentSessionStatus } from "@antumbra/vocabulary/agent-runtime";
-import { Effect, Layer, Stream } from "effect";
+import { Effect, Stream } from "effect";
 import { AgentDomain } from "#agent-domain-service.ts";
 
-const makeSessionShutdownDrain = Effect.gen(function* () {
+export const drainSessions = Effect.fn("SessionShutdown.drain")(function* () {
 	const db = yield* Database;
 	const domain = yield* AgentDomain;
 	const fabric = yield* SessionFabric;
 	const feeds = yield* DomainFeeds;
 	const kernel = yield* Kernel;
-	const markActiveSessionsDraining = Effect.gen(function* () {
+	const markActiveSessionsDraining = Effect.fnUntraced(function* () {
 		const attached = yield* fabric.attached();
 		const sessions = yield* db.AgentSession.where(rootSessions)
 			.where((session) => session.id.in([...attached]))
@@ -46,28 +46,24 @@ const makeSessionShutdownDrain = Effect.gen(function* () {
 			Stream.runLast,
 			Effect.flatMap((status) => requireSiestaSucceeded(intentId, sessionId, status)),
 		);
-	const drainOpenSessions = Effect.gen(function* () {
+	const drainOpenSessions = Effect.fnUntraced(function* () {
 		while (true) {
-			const sessionIds = yield* markActiveSessionsDraining;
+			const sessionIds = yield* markActiveSessionsDraining();
 			if (sessionIds.length === 0) {
 				return;
 			}
 			yield* announce;
 			const siestas = yield* kernel.active(domain.siesta);
-			const drainSession = (sessionId: string) => {
+			const drainSession = Effect.fnUntraced(function* (sessionId: string) {
 				const current = siestas.filter((intent) => intent.payload.sessionId === sessionId);
-				return Effect.gen(function* () {
-					const intents = current.length > 0 ? current : [yield* kernel.submit(domain.siesta, { sessionId })];
-					yield* Effect.forEach(intents, (intent) => waitForSiesta(sessionId, intent.id), { concurrency: "unbounded" });
-				});
-			};
+				const intents = current.length > 0 ? current : [yield* kernel.submit(domain.siesta, { sessionId })];
+				yield* Effect.forEach(intents, (intent) => waitForSiesta(sessionId, intent.id), { concurrency: "unbounded" });
+			});
 			yield* Effect.forEach(sessionIds, drainSession, {
 				concurrency: "unbounded",
 			});
 		}
 	});
 	// A refused quit can leave the application running, so the drain always reopens Session starts.
-	return fabric.closeStarts().pipe(Effect.andThen(drainOpenSessions), Effect.ensuring(fabric.reopenStarts()));
+	return yield* fabric.closeStarts().pipe(Effect.andThen(drainOpenSessions()), Effect.ensuring(fabric.reopenStarts()));
 });
-
-export const SessionShutdownLive = Layer.effect(SessionShutdown)(makeSessionShutdownDrain.pipe(Effect.map((drain) => SessionShutdown.of({ drain }))));

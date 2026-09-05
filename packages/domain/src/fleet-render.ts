@@ -1,6 +1,19 @@
+import type { ModelChoice } from "@antumbra/plugin-api";
+import type { RegisteredRepo } from "@antumbra/repos";
 import { Option } from "effect";
 import type { VoyageCaptain } from "#voyage-captain.ts";
 import type { PieceCounts, VoyageSummary } from "#voyage-view.ts";
+
+export interface FleetBackend {
+	readonly models: ReadonlyArray<ModelChoice>;
+	readonly tag: string;
+}
+
+export interface FleetReading {
+	readonly backends: ReadonlyArray<FleetBackend>;
+	readonly repos: ReadonlyArray<RegisteredRepo>;
+	readonly voyages: ReadonlyArray<VoyageSummary>;
+}
 
 const countsPart = (counts: PieceCounts): string => {
 	const total = Object.values(counts).reduce((sum, count) => sum + count, 0);
@@ -15,7 +28,7 @@ const captainPart = (captain: Option.Option<VoyageCaptain>): string =>
 
 const stirredPart = (at: Date | null): string => (at === null ? "never stirred" : `last stirred ${at.toISOString()}`);
 
-const rolePart = (role: string, backend: string, model: string | null, effort: string | null): string =>
+export const rolePart = (role: string, backend: string, model: string | null, effort: string | null): string =>
 	[`${role} on ${backend}`, ...(model === null ? [] : [`with ${model}`]), ...(effort === null ? [] : [`at ${effort} effort`])].join(" ");
 
 const voyageLines = (voyage: VoyageSummary): ReadonlyArray<string> => [
@@ -31,4 +44,23 @@ const voyageLines = (voyage: VoyageSummary): ReadonlyArray<string> => [
 	`  north star: ${voyage.northStar}`,
 ];
 
-export const renderFleet = (voyages: ReadonlyArray<VoyageSummary>): string => ["# Fleet", "", ...voyages.flatMap(voyageLines)].join("\n");
+const repoLine = (repo: RegisteredRepo): string => `- ${repo.id} ${repo.name} · ${repo.source} · default ref ${repo.defaultRef}`;
+
+const modelLine = (model: ModelChoice): string => `  ${model.id}${model.isDefault ? " (default)" : ""} · efforts ${model.efforts.join(", ")}`;
+
+const backendLines = (backend: FleetBackend): ReadonlyArray<string> => [`- ${backend.tag}`, ...backend.models.map(modelLine)];
+
+export const renderFleet = (fleet: FleetReading): string =>
+	[
+		"# Fleet",
+		"",
+		...fleet.voyages.flatMap(voyageLines),
+		"",
+		"# Repositories",
+		"",
+		...fleet.repos.map(repoLine),
+		"",
+		"# Backends",
+		"",
+		...fleet.backends.flatMap(backendLines),
+	].join("\n");

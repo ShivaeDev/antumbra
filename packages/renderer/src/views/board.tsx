@@ -23,15 +23,7 @@ const EntryRow = ({ entry }: { readonly entry: BoardEntryView }) => {
 	);
 };
 
-export const BoardPanel = ({
-	entries,
-	onError,
-	scope,
-}: {
-	readonly entries: ReadonlyArray<BoardEntryView>;
-	readonly onError: (message: string) => void;
-	readonly scope: BoardTarget;
-}) => {
+export const BoardPanel = ({ entries, scope }: { readonly entries: ReadonlyArray<BoardEntryView>; readonly scope: BoardTarget }) => {
 	const [open, setOpen] = useState(false);
 	const Chevron = open ? ChevronDown : ChevronRight;
 	return (
@@ -55,7 +47,7 @@ export const BoardPanel = ({
 					))}
 				</ul>
 			) : null}
-			{open ? <BoardComposer onError={onError} scope={scope} /> : null}
+			{open ? <BoardComposer scope={scope} /> : null}
 		</Section>
 	);
 };

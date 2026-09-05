@@ -1,8 +1,8 @@
 import type { PieceView } from "@antumbra/contract";
 import { useState } from "react";
-import { launchPiece, parkPiece, rewirePiece, unparkPiece, workPieceNow } from "#adapters/trpc-voyages.ts";
+import { launchPiece, parkPiece, unparkPiece, workPieceNow } from "#adapters/trpc-voyages.ts";
 import { Button } from "#components/ui/button.tsx";
-import { PiecePicker, pickable } from "#views/piece-picker.tsx";
+import { PieceRewire } from "#views/piece-rewire.tsx";
 import { actsFor, type PieceAct } from "#voyages/acts.ts";
 import { pieceActLabel } from "#voyages/labels.ts";
 
@@ -16,7 +16,6 @@ export const PieceActs = ({
 	readonly pieces: ReadonlyArray<PieceView>;
 }) => {
 	const [rewiring, setRewiring] = useState(false);
-	const [dependsOn, setDependsOn] = useState(piece.dependsOn);
 	const act = (chosen: PieceAct) => {
 		if (chosen === "launch") {
 			return launchPiece(piece.id, onError);
@@ -30,12 +29,7 @@ export const PieceActs = ({
 		if (chosen === "workNow") {
 			return workPieceNow(piece.id, onError);
 		}
-		setDependsOn(piece.dependsOn);
 		return setRewiring(!rewiring);
-	};
-	const rewire = () => {
-		rewirePiece({ dependsOn, pieceId: piece.id }, onError);
-		setRewiring(false);
 	};
 	return (
 		<div className="flex min-w-0 flex-col gap-2">
@@ -53,15 +47,7 @@ export const PieceActs = ({
 					</Button>
 				))}
 			</div>
-			{rewiring ? (
-				<div className="flex min-w-0 flex-col gap-2 rounded-md border border-border bg-muted p-2">
-					<span className="text-2xs font-medium text-muted-foreground">Depends on</span>
-					<PiecePicker chosen={dependsOn} exclude={piece.id} onChange={setDependsOn} pieces={pickable(pieces)} />
-					<Button className="self-start" onClick={rewire} size="sm" type="button">
-						Save position
-					</Button>
-				</div>
-			) : null}
+			{rewiring ? <PieceRewire piece={piece} pieces={pieces} onSaved={() => setRewiring(false)} /> : null}
 		</div>
 	);
 };

@@ -3,30 +3,17 @@ import { DomainFeeds } from "@antumbra/domain-feeds";
 import { isTerminalIntentStatus, Kernel } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
 import { Rulings } from "@antumbra/rulings";
-import { expect, it } from "@effect/vitest";
-import { type Context, Effect, Option, Stream } from "effect";
+import { expect } from "@effect/vitest";
+import { Effect, Option, Stream } from "effect";
 import { AgentDomain } from "#domain.ts";
-import { domainKernelLayer } from "#test/domain-layers.ts";
-import { acquireTemporaryPersistence, makeScriptedBackend, type ScriptedBackend, sessionFor } from "#test/harness.ts";
+import { type ScriptedBackend, sessionFor } from "#test/harness.ts";
+import { it } from "#test/runtime-harness.ts";
 import { eventually, openReefVoyage } from "#test/voyage-fixtures.ts";
 
 const ASKER = "agent-asker";
 const FLAGSHIP_ID = "voyage-flagship";
 
 type Rung = "admiral" | "captain" | "flagship";
-
-interface Fleet {
-	readonly flagshipCaptain: string;
-	readonly reefCaptain: string;
-	readonly scripted: ScriptedBackend;
-}
-
-type FleetNeeds =
-	| AgentDomain
-	| Context.Service.Identifier<typeof Boards>
-	| Context.Service.Identifier<typeof Database>
-	| Context.Service.Identifier<typeof DomainFeeds>
-	| Context.Service.Identifier<typeof Rulings>;
 
 const openFlagship = Effect.gen(function* () {
 	const db = yield* Database;
@@ -105,137 +92,107 @@ const carried = (agentId: string, count: number) =>
 		}),
 	);
 
-const withFleet = <A, E>(body: (fleet: Fleet) => Effect.Effect<A, E, FleetNeeds>) =>
-	Effect.gen(function* () {
-		const temporary = yield* acquireTemporaryPersistence;
-		const scripted = yield* makeScriptedBackend;
-		yield* Effect.gen(function* () {
-			const reefId = yield* crewReef;
-			yield* openFlagship;
-			yield* body({
-				flagshipCaptain: yield* hailCaptain(scripted, FLAGSHIP_ID),
-				reefCaptain: yield* hailCaptain(scripted, reefId),
-				scripted,
-			});
-		}).pipe(Effect.provide(domainKernelLayer(temporary, scripted.backend)));
+const crewFleet = Effect.fnUntraced(function* (scripted: ScriptedBackend) {
+	const reefId = yield* crewReef;
+	yield* openFlagship;
+	return {
+		flagshipCaptain: yield* hailCaptain(scripted, FLAGSHIP_ID),
+		reefCaptain: yield* hailCaptain(scripted, reefId),
+	};
+});
+
+it.effectApp("a crew member's question reaches its own captain as one mail", { clock: "live" }, function* ({ scripted }) {
+	const fleet = yield* crewFleet(scripted);
+	const rulingId = yield* ask("may a voyage dredge what it has not surveyed?", "captain");
+
+	const entries = yield* carried(fleet.reefCaptain, 1);
+	expect(entries[0]).toMatchObject({
+		authorAgentId: null,
+		kind: "mail",
+		precedence: "priority",
+		sourceRef: `ruling-ascent:${rulingId}`,
+	});
+	expect(entries[0]?.body).toBe(
+		[
+			`${ASKER} asks for a ruling that would bind one voyage — the asker works on; what the ruling gates waits.`,
+			"Question: may a voyage dredge what it has not surveyed?",
+			"Context: two voyages dredged each other's soundings",
+			"Choices offered:",
+			"- resurvey — and chart it again",
+			`${ASKER} would choose "resurvey": both soundings are a season old`,
+			`Rule on it with rule_on, naming ruling ${rulingId}. If it is not yours to settle, pass_up carries it to the rung above with what you know.`,
+		].join("\n"),
+	);
+	expect(yield* mailbox(fleet.flagshipCaptain)).toEqual([]);
+});
+
+it.effectApp("a captain's own question reaches the flagship", { clock: "live" }, function* ({ scripted }) {
+	const fleet = yield* crewFleet(scripted);
+	const rulingId = yield* ask("may we dredge?", "flagship", "fleet", fleet.reefCaptain);
+
+	const entries = yield* carried(fleet.flagshipCaptain, 1);
+	expect(entries[0]?.sourceRef).toBe(`ruling-ascent:${rulingId}`);
+	expect(yield* mailbox(fleet.reefCaptain)).toEqual([]);
+});
+
+it.effectApp("a question a captain passes up climbs on the next pass", { clock: "live" }, function* ({ scripted }) {
+	const fleet = yield* crewFleet(scripted);
+	const rulings = yield* Rulings;
+	const rulingId = yield* ask("which reading do we trust?", "captain");
+	yield* carried(fleet.reefCaptain, 1);
+
+	yield* rulings.passUp({
+		by: "captain",
+		byAgentId: fleet.reefCaptain,
+		note: "the other ship charts the same reef",
+		rulingId,
 	});
 
-it.live("a crew member's question reaches its own captain as one mail", () =>
-	withFleet((fleet) =>
-		Effect.gen(function* () {
-			const rulingId = yield* ask("may a voyage dredge what it has not surveyed?", "captain");
+	const entries = yield* carried(fleet.flagshipCaptain, 1);
+	expect(entries[0]?.sourceRef).toBe(`ruling-ascent:${rulingId}`);
+});
 
-			const entries = yield* carried(fleet.reefCaptain, 1);
-			expect(entries[0]).toMatchObject({
-				authorAgentId: null,
-				kind: "mail",
-				precedence: "priority",
-				sourceRef: `ruling-ascent:${rulingId}`,
-			});
-			expect(entries[0]?.body).toBe(
-				[
-					`${ASKER} asks for a ruling that would bind one voyage — the asker works on; what the ruling gates waits.`,
-					"Question: may a voyage dredge what it has not surveyed?",
-					"Context: two voyages dredged each other's soundings",
-					"Choices offered:",
-					"- resurvey — and chart it again",
-					`${ASKER} would choose "resurvey": both soundings are a season old`,
-					`Rule on it with rule_on, naming ruling ${rulingId}. If it is not yours to settle, pass_up carries it to the rung above with what you know.`,
-				].join("\n"),
-			);
-			expect(yield* mailbox(fleet.flagshipCaptain)).toEqual([]);
-		}),
-	),
-);
+it.effectApp("a question the admiral holds is carried to nobody", { clock: "live" }, function* ({ scripted }) {
+	const fleet = yield* crewFleet(scripted);
+	const climbing = yield* ask("may we dredge?", "flagship", "fleet");
+	yield* ask("and who signs the survey?", "admiral", "fleet");
 
-it.live("a captain's own question reaches the flagship", () =>
-	withFleet((fleet) =>
-		Effect.gen(function* () {
-			const rulingId = yield* ask("may we dredge?", "flagship", "fleet", fleet.reefCaptain);
+	const entries = yield* carried(fleet.flagshipCaptain, 1);
+	expect(entries[0]?.sourceRef).toBe(`ruling-ascent:${climbing}`);
+	expect(yield* mailbox(fleet.reefCaptain)).toEqual([]);
+});
 
-			const entries = yield* carried(fleet.flagshipCaptain, 1);
-			expect(entries[0]?.sourceRef).toBe(`ruling-ascent:${rulingId}`);
-			expect(yield* mailbox(fleet.reefCaptain)).toEqual([]);
-		}),
-	),
-);
+it.effectApp("a later pass carries the next question and repeats no earlier one", { clock: "live" }, function* ({ scripted }) {
+	const fleet = yield* crewFleet(scripted);
+	const feeds = yield* DomainFeeds;
+	const first = yield* ask("may we dredge?", "captain");
+	yield* carried(fleet.reefCaptain, 1);
 
-it.live("a question a captain passes up climbs on the next pass", () =>
-	withFleet((fleet) =>
-		Effect.gen(function* () {
-			const rulings = yield* Rulings;
-			const rulingId = yield* ask("which reading do we trust?", "captain");
-			yield* carried(fleet.reefCaptain, 1);
+	yield* feeds.publishRulingRefresh();
+	const second = yield* ask("and who signs the survey?", "captain");
 
-			yield* rulings.passUp({
-				by: "captain",
-				byAgentId: fleet.reefCaptain,
-				note: "the other ship charts the same reef",
-				rulingId,
-			});
+	const entries = yield* carried(fleet.reefCaptain, 2);
+	expect(entries.map((entry) => entry.sourceRef)).toEqual([`ruling-ascent:${first}`, `ruling-ascent:${second}`]);
+});
 
-			const entries = yield* carried(fleet.flagshipCaptain, 1);
-			expect(entries[0]?.sourceRef).toBe(`ruling-ascent:${rulingId}`);
-		}),
-	),
-);
+it.effectApp("a question asked before its rung is held climbs on the hail", { clock: "live" }, function* ({ scripted }) {
+	const db = yield* Database;
+	const reefId = yield* crewReef;
 
-it.live("a question the admiral holds is carried to nobody", () =>
-	withFleet((fleet) =>
-		Effect.gen(function* () {
-			const climbing = yield* ask("may we dredge?", "flagship", "fleet");
-			yield* ask("and who signs the survey?", "admiral", "fleet");
+	const rulingId = yield* ask("which reading do we trust?", "captain");
+	expect(yield* db.BoardEntry.all()).toEqual([]);
 
-			const entries = yield* carried(fleet.flagshipCaptain, 1);
-			expect(entries[0]?.sourceRef).toBe(`ruling-ascent:${climbing}`);
-			expect(yield* mailbox(fleet.reefCaptain)).toEqual([]);
-		}),
-	),
-);
+	const captain = yield* hailCaptain(scripted, reefId);
 
-it.live("a later pass carries the next question and repeats no earlier one", () =>
-	withFleet((fleet) =>
-		Effect.gen(function* () {
-			const feeds = yield* DomainFeeds;
-			const first = yield* ask("may we dredge?", "captain");
-			yield* carried(fleet.reefCaptain, 1);
+	const entries = yield* carried(captain, 1);
+	expect(entries[0]?.sourceRef).toBe(`ruling-ascent:${rulingId}`);
+});
 
-			yield* feeds.publishRulingRefresh();
-			const second = yield* ask("and who signs the survey?", "captain");
+it.effectApp("a captain's question is never carried back to itself", { clock: "live" }, function* ({ scripted }) {
+	const fleet = yield* crewFleet(scripted);
+	yield* ask("what does the reef need next?", "captain", "voyage", fleet.reefCaptain);
+	const asked = yield* ask("which reading do we trust?", "captain");
 
-			const entries = yield* carried(fleet.reefCaptain, 2);
-			expect(entries.map((entry) => entry.sourceRef)).toEqual([`ruling-ascent:${first}`, `ruling-ascent:${second}`]);
-		}),
-	),
-);
-
-it.live("a question asked before its rung is held climbs on the hail", () =>
-	Effect.gen(function* () {
-		const temporary = yield* acquireTemporaryPersistence;
-		const scripted = yield* makeScriptedBackend;
-		yield* Effect.gen(function* () {
-			const db = yield* Database;
-			const reefId = yield* crewReef;
-
-			const rulingId = yield* ask("which reading do we trust?", "captain");
-			expect(yield* db.BoardEntry.all()).toEqual([]);
-
-			const captain = yield* hailCaptain(scripted, reefId);
-
-			const entries = yield* carried(captain, 1);
-			expect(entries[0]?.sourceRef).toBe(`ruling-ascent:${rulingId}`);
-		}).pipe(Effect.provide(domainKernelLayer(temporary, scripted.backend)));
-	}),
-);
-
-it.live("a captain's question is never carried back to itself", () =>
-	withFleet((fleet) =>
-		Effect.gen(function* () {
-			yield* ask("what does the reef need next?", "captain", "voyage", fleet.reefCaptain);
-			const asked = yield* ask("which reading do we trust?", "captain");
-
-			const entries = yield* carried(fleet.reefCaptain, 1);
-			expect(entries[0]?.sourceRef).toBe(`ruling-ascent:${asked}`);
-		}),
-	),
-);
+	const entries = yield* carried(fleet.reefCaptain, 1);
+	expect(entries[0]?.sourceRef).toBe(`ruling-ascent:${asked}`);
+});

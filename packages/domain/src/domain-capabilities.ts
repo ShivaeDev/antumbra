@@ -12,6 +12,7 @@ import { RulingReplies } from "@antumbra/rulings/replies/service";
 import { SessionEventJournalLive } from "@antumbra/session-event-journal";
 import { SessionDrain } from "@antumbra/sessions/drain/service";
 import { SessionRegistration } from "@antumbra/sessions/registration/service";
+import { SessionRestart } from "@antumbra/sessions/restart/service";
 import { SessionRetirement } from "@antumbra/sessions/retirement/service";
 import { SessionTrees } from "@antumbra/sessions/tree/service";
 import { Voyages } from "@antumbra/voyages";
@@ -43,6 +44,7 @@ export const domainCapabilities = (
 		SessionRegistration.layer,
 		SessionDrain.layer,
 		SessionRetirement.layer,
+		SessionRestart.layer,
 		sessionReachLayer,
 	).pipe(Layer.provideMerge(Voyages.layer), Layer.provideMerge(DomainFeedsLive));
 	const changes = changesLayer(changeHosts, runners).pipe(Layer.provideMerge(foundations));

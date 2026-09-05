@@ -16,7 +16,6 @@ interface OpencodePluginOptions {
 	readonly tools: ReadonlyArray<ToolDefinition>;
 }
 
-// The tool server is listening before opencode starts, because opencode reads its address out of the config it boots with.
 const liveServer = (command: string, options: OpencodePluginOptions) =>
 	Effect.gen(function* () {
 		const sessions = makeToolSessions(options.tools.map((tool) => tool.name));

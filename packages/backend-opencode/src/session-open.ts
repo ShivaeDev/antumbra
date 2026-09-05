@@ -29,7 +29,6 @@ export const promptSettings = (options: OpenSessionOptions): Effect.Effect<Promp
 	});
 };
 
-// Every session reaches the one tool server, so the tools this session was not given are denied to it by name.
 const withoutOtherTools = (server: OpencodeServer, tools: OpenSessionOptions["tools"]) => {
 	const given = new Set(tools.map((tool) => tool.name));
 	return server.tools.names.filter((name) => !given.has(name)).map((name) => ({ action: "deny", pattern: "*", permission: wireName(name) }));

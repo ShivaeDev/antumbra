@@ -9,7 +9,6 @@ import { readRulingsSpec } from "#ruling-readings.ts";
 import { passUpSpec, reclassifyRulingSpec, ruleOnSpec } from "#ruling-verdicts.ts";
 import { addContextSpec, requestRulingSpec } from "#rulings.ts";
 
-// A harness that registers tools once for the whole process is given this union; each session still receives only the tools of its own role.
 export const allToolSpecs: ReadonlyArray<ToolDefinition> = [
 	addContextSpec,
 	adoptChangeSpec,

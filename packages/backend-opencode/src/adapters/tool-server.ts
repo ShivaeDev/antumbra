@@ -9,7 +9,6 @@ import type { ToolSessions } from "#tool-sessions.ts";
 export const CALLER_SESSION = "callerSession";
 export const TOOL_SERVER_NAME = "antumbra";
 
-// Opencode addresses a remote tool by the server name it was configured under joined to the tool's own name.
 export const wireName = (name: string): string => `${TOOL_SERVER_NAME}_${name}`;
 
 const listed = (tool: ToolDefinition) => ({

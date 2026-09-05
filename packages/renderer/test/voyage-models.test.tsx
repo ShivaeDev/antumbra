@@ -1,9 +1,8 @@
 import { expect, it } from "@effect/vitest";
 import { Effect } from "effect";
-import { act } from "react";
-import { createRoot } from "react-dom/client";
 import { useAppForm } from "#forms/hook.ts";
 import type { ModelCatalog } from "#hooks/backend-models.ts";
+import { mount, settle, write } from "#test/dom.ts";
 import { emptyDraft, type VoyageDraft } from "#views/open-voyage-draft.ts";
 import { VoyageFields } from "#views/open-voyage-fields.tsx";
 import { EMPTY_PLACEHOLDER, type RoleDraft, type RolePlaceholder } from "#views/role-settings.ts";
@@ -23,14 +22,6 @@ const draftOf = (captain: Partial<RoleDraft>, crew: Partial<RoleDraft>): VoyageD
 	captain: { ...emptyDraft.captain, ...captain },
 	crew: { ...emptyDraft.crew, ...crew },
 });
-
-const settle = (change: () => void): Effect.Effect<void> =>
-	Effect.promise(() =>
-		act(() => {
-			change();
-			return Promise.resolve();
-		}),
-	);
 
 const Fields = ({
 	captainCatalog,
@@ -59,15 +50,7 @@ const Fields = ({
 
 const shown = (captainCatalog: ModelCatalog, crewCatalog: ModelCatalog, draft: VoyageDraft, captainPlaceholder = EMPTY_PLACEHOLDER) =>
 	Effect.gen(function* () {
-		const container = document.createElement("div");
-		document.body.append(container);
-		const root = createRoot(container);
-		yield* Effect.addFinalizer(() =>
-			settle(() => {
-				root.unmount();
-				container.remove();
-			}),
-		);
+		const { container, root } = yield* mount();
 		yield* settle(() =>
 			root.render(<Fields captainCatalog={captainCatalog} captainPlaceholder={captainPlaceholder} crewCatalog={crewCatalog} draft={draft} />),
 		);
@@ -76,8 +59,6 @@ const shown = (captainCatalog: ModelCatalog, crewCatalog: ModelCatalog, draft: V
 
 const offered = (container: HTMLElement): ReadonlyArray<ReadonlyArray<string>> =>
 	[...container.querySelectorAll("datalist")].map((list) => [...list.querySelectorAll("option")].map((option) => option.value));
-
-const nativeValue = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")?.set;
 
 const fieldNamed = (container: HTMLElement, name: string): HTMLInputElement | null =>
 	container.querySelector<HTMLInputElement>(`input[aria-label="${name}"]`);
@@ -119,8 +100,7 @@ it.effect("the form takes a model the list lacks", () =>
 			if (model === null) {
 				return;
 			}
-			nativeValue?.call(model, "a-model-nobody-listed");
-			model.dispatchEvent(new Event("input", { bubbles: true }));
+			write(model, "a-model-nobody-listed");
 		});
 
 		expect(model?.value).toBe("a-model-nobody-listed");

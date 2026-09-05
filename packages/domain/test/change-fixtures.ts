@@ -2,6 +2,7 @@ import type { ChangeRow } from "@antumbra/changes";
 import { Database } from "@antumbra/persistence";
 import { Pieces } from "@antumbra/pieces";
 import type { ChangeStage } from "@antumbra/plugin-api";
+import { Repos } from "@antumbra/repos";
 import { Effect } from "effect";
 import { AgentDomain } from "#domain.ts";
 
@@ -75,7 +76,8 @@ export const berthed = (agentId: string, source = REEF_SOURCE) =>
 export const reefWithPiece = Effect.gen(function* () {
 	const pieces = yield* Pieces;
 	const domain = yield* AgentDomain;
-	const repo = yield* domain.repos.register({
+	const repos = yield* Repos;
+	const repo = yield* repos.register({
 		defaultRef: "main",
 		source: REEF_SOURCE,
 	});

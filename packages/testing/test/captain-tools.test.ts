@@ -1,4 +1,4 @@
-import { BoardScope } from "@antumbra/boards";
+import { BoardScope, Boards } from "@antumbra/boards";
 import { AgentDomain } from "@antumbra/domain";
 import { type IntentStatus, isTerminalIntentStatus, Kernel } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
@@ -168,7 +168,7 @@ it.effectApp("rewiring onto another voyage's piece is refused, not written", { c
 
 it.effectApp("a captain may read another voyage without conning it", { clock: "live" }, function* ({ scripted }) {
 	yield* Effect.gen(function* () {
-		const domain = yield* AgentDomain;
+		const boards = yield* Boards;
 		const reef = yield* openReefVoyage;
 		const elsewhere = yield* pieceOnAnotherVoyage;
 		const captain = yield* hailedCaptain(scripted, reef.id);
@@ -192,8 +192,6 @@ it.effectApp("a captain may read another voyage without conning it", { clock: "l
 				scope: "voyage",
 			}),
 		).toEqual({ ok: true, text: "written to the voyage board" });
-		expect(yield* domain.boards.read(BoardScope.Voyage({ voyageId: reef.id }))).toMatchObject([
-			{ body: "hand the next captain the eastern approach" },
-		]);
+		expect(yield* boards.read(BoardScope.Voyage({ voyageId: reef.id }))).toMatchObject([{ body: "hand the next captain the eastern approach" }]);
 	});
 });

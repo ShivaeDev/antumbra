@@ -2,6 +2,7 @@ import { Changes } from "@antumbra/changes";
 import type { ObserveCadenceOptions } from "@antumbra/changes/watch/cadence";
 import { Database } from "@antumbra/persistence";
 import { Pieces } from "@antumbra/pieces";
+import { Repos } from "@antumbra/repos";
 import { describe, expect, it } from "@effect/vitest";
 import { Effect, Queue } from "effect";
 import { TestClock } from "effect/testing";
@@ -203,8 +204,8 @@ describe("a chain gated on a change", () => {
 		watched(BRISK, (scripted, backend) =>
 			Effect.gen(function* () {
 				const pieces = yield* Pieces;
-				const domain = yield* AgentDomain;
-				const repo = yield* domain.repos.register({
+				const repos = yield* Repos;
+				const repo = yield* repos.register({
 					defaultRef: "main",
 					source: REEF_SOURCE,
 				});

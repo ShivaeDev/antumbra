@@ -1,5 +1,6 @@
 import { Database } from "@antumbra/persistence";
 import { Pieces } from "@antumbra/pieces";
+import { Repos } from "@antumbra/repos";
 import { expect, it } from "@effect/vitest";
 import { Effect } from "effect";
 import { AgentDomain } from "#domain.ts";
@@ -36,14 +37,15 @@ it.live("crew open a change through the tool and hear where it lives", () =>
 			const pieces = yield* Pieces;
 			const db = yield* Database;
 			const domain = yield* AgentDomain;
-			yield* domain.repos.register({ defaultRef: "main", source: REEF_SOURCE });
+			const repos = yield* Repos;
+			yield* repos.register({ defaultRef: "main", source: REEF_SOURCE });
 			const voyage = yield* domain.voyages.open({
 				backend: "scripted",
 				context: "the reef is uncharted",
 				name: "Chart the reef",
 				northStar: "every shoal is known",
 			});
-			yield* domain.repos.register({
+			yield* repos.register({
 				defaultRef: "main",
 				source: "/somewhere/shoals",
 			});

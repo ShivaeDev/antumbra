@@ -1,6 +1,7 @@
 import { type IntentStatus, isTerminalIntentStatus, Kernel } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
 import type { AgentBackend } from "@antumbra/plugin-api";
+import { Repos } from "@antumbra/repos";
 import { expect, it } from "@effect/vitest";
 import { Deferred, Effect, Option, Ref, Stream } from "effect";
 import { AgentDomain } from "#domain.ts";
@@ -41,7 +42,8 @@ it.live("boot requeues a running spawn without reclaiming its ready berth", () =
 			const db = yield* Database;
 			const kernel = yield* Kernel;
 			const domain = yield* AgentDomain;
-			yield* domain.repos.register({
+			const repos = yield* Repos;
+			yield* repos.register({
 				defaultRef: "main",
 				source: "/somewhere/running",
 			});

@@ -2,7 +2,7 @@ import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { makeDatabaseIt } from "@shivaedev/effect-prisma/testing";
+import { makeDatabaseIt, withTestTransaction as withDatabaseTestTransaction } from "@shivaedev/effect-prisma/testing";
 import { Effect, Layer } from "effect";
 import { brandDatabaseFilePath, type DatabaseFilePath } from "#data-dir.ts";
 import { Database } from "#database.ts";
@@ -38,6 +38,8 @@ export const temporaryPersistence = (): TemporaryPersistence => {
 };
 
 export const acquireTemporaryPersistence = Effect.acquireRelease(Effect.sync(temporaryPersistence), (temporary) => Effect.sync(temporary.remove));
+
+export const withTestTransaction = withDatabaseTestTransaction(Database);
 
 export const it = makeDatabaseIt({
 	database: Database,

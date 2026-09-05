@@ -1,5 +1,5 @@
 import type { Database } from "@antumbra/persistence";
-import type { TemporaryPersistence } from "@antumbra/persistence/testing";
+import { type TemporaryPersistence, withTestTransaction } from "@antumbra/persistence/testing";
 import { type Context, Effect, Layer } from "effect";
 import { TestClock, TestConsole } from "effect/testing";
 import { workerIt } from "#adapters/worker.ts";
@@ -35,8 +35,9 @@ export const makeEffectApp = <Harness, Services>(makeApp: (temporary: TemporaryP
 		workerIt(name, ({ antumbraApp, signal }) => {
 			const program = makeApp(antumbraApp.temporary).pipe(
 				Effect.flatMap((app) => app.harness.pipe(Effect.flatMap(runBody), Effect.provide(app.layer))),
-				Effect.provide(antumbraApp.context),
 				Effect.scoped,
+				withTestTransaction,
+				Effect.provide(antumbraApp.context),
 			);
 			return Effect.runPromise(live ? program : program.pipe(Effect.provide(testEnvironment)), { signal });
 		});

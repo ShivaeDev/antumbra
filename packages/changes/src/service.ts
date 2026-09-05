@@ -6,6 +6,8 @@ import { Effect } from "effect";
 import { changeById } from "#by-id.ts";
 import { dismissChange } from "#dismiss.ts";
 import { forPieces } from "#for-pieces.ts";
+import { hostCapabilities } from "#host-capabilities.ts";
+import { hostTags } from "#host-tags.ts";
 import { pendingForPieces } from "#pending-for-pieces.ts";
 import { ChangeHostRegistry, RunnerRegistry } from "#registries.ts";
 import { readChangeSnapshot } from "#snapshot.ts";
@@ -26,6 +28,8 @@ export const Changes = defineService({
 		dismiss: dismissChange,
 		forPieces,
 		heldResources: readHeldResources,
+		hostCapabilities,
+		hostTags,
 		observed: observedChanges,
 		open: openSubmittedChange,
 		pendingForPieces,

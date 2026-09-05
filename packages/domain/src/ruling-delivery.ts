@@ -1,7 +1,8 @@
 import { Boards } from "@antumbra/boards";
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database } from "@antumbra/persistence";
-import { type Ruling, type RulingAnswer, RulingHolds, Rulings } from "@antumbra/rulings";
+import { type Ruling, type RulingAnswer, Rulings } from "@antumbra/rulings";
+import { RulingHolds } from "@antumbra/rulings/holds/service";
 import { Effect, Layer, Option, Stream } from "effect";
 import { rulingAnswerMail } from "#ruling-answer-mail.ts";
 

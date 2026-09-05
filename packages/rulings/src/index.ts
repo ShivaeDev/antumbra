@@ -24,6 +24,4 @@ export type {
 	RulingReclassification,
 	RulingSubject,
 } from "#model.ts";
-export type { RuledRuling } from "#ruling-holds/ruled-ruling.ts";
-export { RulingHolds, RulingHoldsLive } from "#ruling-holds.ts";
 export { Rulings, RulingsLive } from "#rulings.ts";

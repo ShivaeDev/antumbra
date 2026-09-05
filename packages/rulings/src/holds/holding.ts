@@ -1,5 +1,5 @@
 import { Effect, Ref, type Scope } from "effect";
-import type { RulingHoldState } from "#ruling-holds/state.ts";
+import type { RulingHoldState } from "#holds/state.ts";
 
 const without = (current: ReadonlySet<string>, rulingId: string): ReadonlySet<string> => {
 	const next = new Set(current);

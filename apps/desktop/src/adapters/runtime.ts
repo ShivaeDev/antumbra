@@ -5,7 +5,7 @@ import {
 	AgentDomain,
 	AgentDomainLive,
 	BackendCapacityReleaseLive,
-	ChangeWatcherLive,
+	ChangeWatcher,
 	DispatcherLive,
 	FlagshipLive,
 	IntentFeedLive,
@@ -75,7 +75,7 @@ export const applicationLayers = () =>
 		RulingSourceLive,
 		SightSourceLive,
 		VoyageSourceLive,
-		ChangeWatcherLive(),
+		ChangeWatcher(),
 		DispatcherLive(),
 		Layer.unwrap(
 			Effect.gen(function* () {

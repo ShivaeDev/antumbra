@@ -19,6 +19,7 @@ it.effectDB("reads the standing captain's root Session and excludes Piece worker
 	yield* db.Piece.create({ charter: "sound the reef", expectation: "soundings", id: "piece", role: "captain", title: "Sound" });
 	yield* db.VoyagePiece.create({ pieceId: "piece", voyageId: "voyage" });
 	for (const [id, createdAt] of [
+		["earlier", 0],
 		["standing", 1],
 		["worker", 2],
 		["elsewhere", 3],
@@ -27,7 +28,7 @@ it.effectDB("reads the standing captain's root Session and excludes Piece worker
 		yield* db.AgentSession.create({
 			agentId: id,
 			cwd: "/test",
-			executionStatus: "idle",
+			executionStatus: id === "earlier" ? "active" : "idle",
 			id: `${id}-root`,
 			rootSessionId: `${id}-root`,
 			status: "open",
@@ -36,6 +37,8 @@ it.effectDB("reads the standing captain's root Session and excludes Piece worker
 	}
 	yield* db.PieceAgent.create({ agentId: "worker", pieceId: "piece" });
 
+	expect(Option.getOrThrow(yield* readVoyageCaptain("voyage"))).toMatchObject({ agentId: "earlier", atWork: true });
+	yield* db.AgentSession.where({ id: "earlier-root" }).update({ executionStatus: "idle" });
 	expect(Option.getOrThrow(yield* readVoyageCaptain("voyage"))).toEqual({
 		agentId: "standing",
 		atWork: false,

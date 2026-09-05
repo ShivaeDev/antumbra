@@ -5,8 +5,7 @@
 	"type": "module",
 	"exports": {
 		".": "./src/index.ts",
-		"./holds/service": "./src/holds/service.ts",
-		"./holds/ruled": "./src/holds/ruled.ts"
+		"./*": "./src/*.ts"
 	},
 	"imports": {
 		"#test/*": "./test/*",
@@ -26,6 +25,7 @@
 		"vitest": "catalog:"
 	},
 	"dependencies": {
+		"@antumbra/boards": "workspace:*",
 		"@antumbra/domain-feeds": "workspace:*",
 		"@antumbra/persistence": "workspace:*",
 		"@antumbra/service-definition": "workspace:*",

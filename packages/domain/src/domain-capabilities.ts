@@ -1,4 +1,4 @@
-import { ArtifactsLive } from "@antumbra/artifacts";
+import { artifactsLayer } from "@antumbra/artifacts";
 import { BoardsLive } from "@antumbra/boards";
 import { ChangesLive } from "@antumbra/changes";
 import { DomainFeedsLive } from "@antumbra/domain-feeds";
@@ -10,6 +10,7 @@ import { RulingsLive } from "@antumbra/rulings";
 import { RulingHoldsLive } from "@antumbra/rulings/holds/service";
 import { SessionEventJournalLive } from "@antumbra/session-event-journal";
 import { Layer } from "effect";
+import { VoyageAuthority } from "#authority/service.ts";
 import { CaptainMembershipLive } from "#captain-membership.ts";
 import { ChangeProceduresLive } from "#change-procedures.ts";
 import { KernelReachDeferredLive } from "#kernel-reach.ts";
@@ -24,9 +25,10 @@ export const domainCapabilities = (
 	artifactsDirectory: string,
 ) => {
 	const foundations = Layer.mergeAll(
+		VoyageAuthority.layer,
 		PiecesLive,
 		BoardsLive,
-		ArtifactsLive(artifactsDirectory),
+		artifactsLayer(artifactsDirectory),
 		ReportsLive,
 		ReposLive,
 		RulingHoldsLive.pipe(Layer.provideMerge(RulingsLive)),

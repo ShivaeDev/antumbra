@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import type { NewAgentSession } from "@antumbra/persistence";
 import { persistenceIt } from "@antumbra/persistence/testing";
-import { SessionInputs, SessionInputsLive } from "@antumbra/session-inputs";
+import { SessionInputs, sessionInputsLayer } from "@antumbra/session-inputs";
 import { MAX_SESSION_IMAGE_SOURCE_BYTES, SessionInputId } from "@antumbra/vocabulary/session-input";
 import { expect, it as plainIt } from "@effect/vitest";
 import { Effect } from "effect";
@@ -129,6 +129,6 @@ it.effectDB("normalizes, owns, replays, and reads durable images", function* (db
 			}),
 		);
 		expect(conflict._tag).toBe("SessionInputConflict");
-	}).pipe(Effect.provide(SessionInputsLive(custodyRoot)));
+	}).pipe(Effect.provide(sessionInputsLayer(custodyRoot)));
 	expect(yield* db.SessionAttachment.all()).toHaveLength(1);
 });

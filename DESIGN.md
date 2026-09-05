@@ -46,12 +46,13 @@ The [work and planning guide](docs/design/work-and-planning.md) owns the detaile
   identity. A mortal Intent schedules an operation and never stands in for long-lived Piece demand.
 - **Activity has no turns in the domain.** Agent activity is an event stream, load is a level, and quiescence is a derived gauge no workflow awaits.
   Provider turn events are telemetry, not a completion ontology. Admission governs Agent births, never message delivery. Mail is durable truth;
-  carrying it into execution is a separate effect, and today the Agent pulls its own mailbox through a tool.
+  carrying it into execution is a separate effect: mail wakes an Agent that is at rest and the Agent then reads its own mailbox through a tool.
 - **Voyages sail by Piece launch, not play.** Launch records durable demand. Reconciliation creates or cancels dispatch attempts as eligibility
   changes; a blocked desired Piece needs no sleeping workflow.
 - **Recovery resumes before it replaces.** A wake restores the same Agent, Antumbra Session, and provider-native conversation. It is asked for — a
-  hail, a send, or a Piece assigned to that Session — and never guessed at by a timer or a boot pass; a Session whose process went with work
-  unfinished is shown as stranded until somebody hails it. A successor or fork is explicit, linked, and never invented from a missing process handle.
+  hail, a send, a Piece assigned to that Session, or mail that has come due for it — and never guessed at by a timer or a boot pass; a Session whose
+  process went with work unfinished is shown as stranded until somebody hails it. A successor or fork is explicit, linked, and never invented from a
+  missing process handle.
 - **Sessions recede.** Humans and Agents hail, address, inspect, and direct the durable Agent and its work. Antumbra manages execution machinery
   beneath that surface.
 - **Agents act through transport-free tools.** Domain acts are defined once as typed schemas and handlers, injected when an execution context opens,
@@ -91,7 +92,7 @@ The [Agent recovery guide](docs/design/agent-recovery.md) owns resource, Session
 - **Smoothing advances a frontier without erasing evidence.** It appends a provenance-bearing summary and conditionally moves the selected frontier;
   every source remains reachable. Intended, not yet built.
 - **Reach and interruption are different.** Ruling requests and mail land durably before policy decides whether, when, and how to interrupt. In v1 the
-  admiral chooses what an idle Agent receives; persisted facts do not wake one.
+  admiral chooses what interrupts an Agent at work; an Agent at rest is woken by its own unread mail and by nothing else persisted.
 - **A Ruling is a record, not a Board entry.** One typed record binds the context, the question, and the answer, and the answer is read in the light
   of its question. The Board keeps the free-form log and the small asks between agents; rulings have their own lifecycle and typed scope.
 - **Rulings climb the ladder on two declared axes.** Radius says how widely the answer applies and which authority may give it; urgency says whether

@@ -38,11 +38,10 @@ retries on its own. A change that adds to this list needs a product ruling first
    at a time, and a violation heals by rule rather than by choice: keep the Session the Agent points at when it is a valid open root, otherwise the
    newest by `createdAt` with the larger id breaking a tie, and close the rest. A child is refused an attachment at two seams — the domain refuses a
    Session id that is not a root, and the backend refuses a provider thread it knows to be a node.
-7. Stand-down is reversible siesta; retirement is irreversible Agent death. A root Session's whole subtree settles before it is reaped — an open
-   subsession means the record is still unaccounted for, and resource pressure never interrupts one. Reclamation targets replaceable resources only:
-   identity, boards, transcripts, and story are never cleanup targets. Reprovisioning a non-retired Agent reuses the same Moorage row. Automation
-   fails closed on dirty, unpushed, unauthenticated, or uncertain evidence; age may prioritize a resource already proven safe, but never proves
-   safety.
+7. Siesta is reversible rest; retirement is irreversible Agent death. A root Session's whole subtree settles before it is reaped — an open subsession
+   means the record is still unaccounted for, and resource pressure never interrupts one. Reclamation targets replaceable resources only: identity,
+   boards, transcripts, and story are never cleanup targets. Reprovisioning a non-retired Agent reuses the same Moorage row. Automation fails closed
+   on dirty, unpushed, unauthenticated, or uncertain evidence; age may prioritize a resource already proven safe, but never proves safety.
 8. A record states its own completeness, and states it as a projection. Completeness is re-derived from the node's journaled gap ledger — an empty
    ledger is `complete`, any gap is `incomplete` — so a later repair reruns the same reading instead of arguing with what an earlier one concluded. A
    ledger that cannot be read is a refusal, never an empty one. Reopening a node returns it to `recording` whatever an earlier audit concluded, and

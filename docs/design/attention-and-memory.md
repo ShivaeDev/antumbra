@@ -75,10 +75,11 @@ Heaving to does not erase demand, park a Piece, or retire the Agent. Those are s
 ## Mail and precedence
 
 Mail is an immutable, Board-backed message addressed to an Agent. Its stable record and marked-read receipt are separate durable facts; reading does
-not mean handling. Carrying mail into an execution context is separate from writing it: today the Agent reads its mailbox through one tool and marks
-entries read through another, and nothing pushes mail into a running Session.
+not mean handling. Carrying mail into an execution context is separate from writing it: the Agent reads its mailbox through one tool and marks entries
+read through another, and nothing pushes mail into a running Session.
 
-Mail carries a **precedence** — routine, priority, or flash — and today it is stored and shown, not acted on. The ordering it is meant to drive is
-intended, not yet built: routine waits for a full idle boundary, priority jumps the routine queue at that boundary, and flash alone may steer into
-running work, with routine and priority held during heave-to. What steers into running work today is the admiral's own send. In v1, the admiral
-selects what an idle Agent receives: mail arrival and external observations never wake, resume, or interrupt an Agent on their own.
+The mailbox is the inbox: an Agent at rest is woken by its own unread mail, and an Agent at work is never interrupted by it. Mail carries a
+**precedence** — routine, priority, or flash. Priority wakes a resting Agent at once; routine waits a quiet window the admiral sets, so a trickle of
+ordinary notes does not cost a turn each. One wake carries the whole batch and tells the Agent what waits, because an Agent that must be told an
+answer is coming should be told by the answer itself. Flash steering into running work is intended, not yet built, and so is holding routine and
+priority during heave-to; until then flash wakes like priority. What steers into running work today is the admiral's own send.

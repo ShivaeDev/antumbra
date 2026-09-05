@@ -1,5 +1,4 @@
 export { ChangeWatcher } from "@antumbra/changes/watch/observer";
-export { drainActiveSessions } from "@antumbra/sessions";
 export { SettingsSourceLive } from "@antumbra/settings";
 export { applicationLayers } from "#application.ts";
 export { BackendCapacityReleases } from "#backend-capacity-releases/service.ts";
@@ -12,7 +11,7 @@ export { abandonRestartIntent, honorRestartIntent, recordRestartIntent } from "#
 export { RulingAscent } from "#ruling-ascent/observer.ts";
 export { RulingDeliveryLive } from "#ruling-delivery.ts";
 export { RulingSourceLive } from "#ruling-source.ts";
-export { SessionShutdownLive } from "#session-shutdown-live.ts";
+export { drainActiveSessions } from "#shutdown.ts";
 export { SightSourceLive } from "#sight.ts";
 export type { SpawnFields } from "#spawn.ts";
 export { VoyageSourceLive } from "#voyage-source.ts";

@@ -12,7 +12,7 @@ import { KernelReachLive } from "#kernel-reach.ts";
 import { RulingAscent } from "#ruling-ascent/observer.ts";
 import { RulingDeliveryLive } from "#ruling-delivery.ts";
 import { RulingSourceLive } from "#ruling-source.ts";
-import { SessionShutdownLive } from "#session-shutdown-live.ts";
+import { SessionShutdown } from "#shutdown/service.ts";
 import { SightSourceLive } from "#sight.ts";
 import { VoyageSourceLive } from "#voyage-source.ts";
 
@@ -41,6 +41,6 @@ export const applicationLayers = (...providers: Parameters<typeof AgentDomainLiv
 		KernelReachLive,
 		RulingAscent,
 		RulingDeliveryLive,
-		SessionShutdownLive,
+		SessionShutdown.layer,
 	).pipe(Layer.provideMerge(BackendCapacityReleases.layer), Layer.provideMerge(kernel), Layer.provideMerge(SettingsSourceLive));
 };

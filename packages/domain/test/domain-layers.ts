@@ -18,7 +18,7 @@ import { IntentFeedLive } from "#intent-feed.ts";
 import { KernelReachInstaller, KernelReachLive, type KernelReachService } from "#kernel-reach.ts";
 import { RulingAscent } from "#ruling-ascent/observer.ts";
 import { RulingDeliveryLive } from "#ruling-delivery.ts";
-import { SessionShutdownLive } from "#session-shutdown-live.ts";
+import { SessionShutdown } from "#shutdown/service.ts";
 import { SightSourceLive } from "#sight.ts";
 import { passiveRunner } from "#test/harness.ts";
 import { fakeKernelReach } from "#test/kernel-reach-fixture.ts";
@@ -65,7 +65,7 @@ export const domainKernelServices = (
 		),
 		RulingAscent,
 		RulingDeliveryLive,
-		SessionShutdownLive,
+		SessionShutdown.layer,
 	).pipe(
 		Layer.provideMerge(
 			Layer.unwrap(

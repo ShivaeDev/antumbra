@@ -8,7 +8,6 @@ import { admitCapacity } from "@antumbra/sessions/admission/admit";
 import { Effect } from "effect";
 import { AgentBirth } from "#agent-birth/service.ts";
 import { UnknownBackendTag } from "#errors.ts";
-import { makePrepareMoorage } from "#moorage-plan.ts";
 import { type SpawnFields, SpawnPayload } from "#spawn-fields.ts";
 import { spawnRegistration } from "#spawn-registration/service.ts";
 import { makeSpawnSessionStart } from "#spawn-session-start.ts";
@@ -27,7 +26,6 @@ interface SpawnRuntime {
 export const spawnKind = (runtime: SpawnRuntime) =>
 	Effect.gen(function* () {
 		const capacities = yield* BackendCapacities;
-		const prepareMoorage = yield* makePrepareMoorage;
 		const registration = yield* spawnRegistration;
 		const birth = yield* AgentBirth;
 		const startSession = yield* makeSpawnSessionStart;
@@ -65,7 +63,7 @@ export const spawnKind = (runtime: SpawnRuntime) =>
 					return yield* new UnknownRunnerError({ tag: payload.runner });
 				}
 				yield* registration.ensure(payload);
-				const plan = yield* prepareMoorage(payload, runner).pipe(Effect.onError(teardown.settleUnlessTeardown(payload)));
+				const plan = yield* birth.prepareMoorage(payload, runner).pipe(Effect.onError(teardown.settleUnlessTeardown(payload)));
 				yield* reconcileMoorage(payload, runner, plan).pipe(Effect.onInterrupt(() => teardown.settleCancellation(payload)));
 				yield* startSession(
 					payload,

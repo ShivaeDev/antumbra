@@ -5,7 +5,6 @@ import {
 	compileSessionSiestaDemands,
 	makeCurrentSessionReconciler,
 	makeSessionNodeReconciler,
-	makeSessionSend,
 	makeSessionTreeSinks,
 	makeSiestaKind,
 	makeWakeKind,
@@ -57,7 +56,6 @@ export const makeAgentDomain = (backends: ReadonlyMap<string, AgentBackend>, run
 			...(yield* compileRetireSweepDemands(retire)),
 		];
 		const imageInputBackends = imageInputBackendsOf(backends);
-		const sessionSend = yield* makeSessionSend(imageInputBackends);
 		return {
 			backends: [...backends.keys()],
 			imageInputBackends,
@@ -66,8 +64,6 @@ export const makeAgentDomain = (backends: ReadonlyMap<string, AgentBackend>, run
 			listModels: makeBackendModels(backends),
 			retryResourceReclaim: resourceReconciler.reconcile(),
 			retire,
-			sendSessionInput: sessionSend.sendInput,
-			sendToSession: sessionSend.sendPrompt,
 			sessionsAttached: fabric.attached(),
 			siesta,
 			spawn,

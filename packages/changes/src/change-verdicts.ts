@@ -29,3 +29,9 @@ export const readDismissedChangeIds: Effect.Effect<
 	const rows = yield* Effect.forEach(yield* db.ChangeVerdict.all(), changeVerdictRow);
 	return new Set(rows.filter((row) => row.verdict === "dismissed").map((row) => row.changeId));
 });
+
+export const dismissedChangeIdsFor = Effect.fn("Changes.dismissedChangeIdsFor")(function* (changeIds: ReadonlyArray<string>) {
+	const db = yield* Database;
+	const rows = yield* Effect.forEach(yield* db.ChangeVerdict.where((verdict) => verdict.changeId.in(changeIds)).all(), changeVerdictRow);
+	return new Set(rows.filter((row) => row.verdict === "dismissed").map((row) => row.changeId));
+});

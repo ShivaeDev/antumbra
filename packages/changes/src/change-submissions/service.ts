@@ -12,6 +12,7 @@ import { ChangeHostRegistry, RunnerRegistry } from "#change-submissions/registri
 import { submitChange } from "#change-submissions/submit.ts";
 import { watchableChanges } from "#change-submissions/watchable.ts";
 import { dismissChange } from "#dismiss.ts";
+import { forPieces } from "#for-pieces.ts";
 import { readChangeSnapshot } from "#snapshot.ts";
 
 export const Changes = defineService({
@@ -20,6 +21,7 @@ export const Changes = defineService({
 	methods: () => ({
 		adopt: adoptSubmittedChange,
 		dismiss: dismissChange,
+		forPieces,
 		heldResources: readHeldResources,
 		observed: observedChanges,
 		open: openSubmittedChange,

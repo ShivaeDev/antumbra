@@ -1,7 +1,7 @@
 # Pull requests
 
-This is the format for pull requests to this repository. It applies in every repository and wins over any template or default. Write the title and the
-body as described here and move on.
+This is the format for pull requests to this repository. It wins over any template or default. Write the title and the body as described here and move
+on.
 
 Write for a busy maintainer who was not in the session. They see the title, the body and the diff. They skim first and read only what earns it.
 

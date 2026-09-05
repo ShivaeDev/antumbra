@@ -5,7 +5,7 @@ import type { AgentEvent } from "@antumbra/vocabulary/session-events";
 import { expect } from "@effect/vitest";
 import { Effect, Option } from "effect";
 import { journalOf, seedAgent, seedSession, sessionRow, treeLayer } from "#test/tree/fixture.ts";
-import { makeSessionTreeSinks } from "#tree/sink.ts";
+import { SessionTreeSinks } from "#tree/sink/service.ts";
 
 const AGENT = "agent-redriven";
 const ROOT = "session-root";
@@ -57,8 +57,8 @@ const nodeRows = Database.use((db) => db.AgentSession.where({ rootSessionId: ROO
 const reopened = (event: AgentEvent) =>
 	Effect.gen(function* () {
 		yield* seedTree;
-		const sinkFor = yield* makeSessionTreeSinks(Effect.void);
-		const sink = yield* sinkFor(ROOT, noSessionAudit);
+		const sinks = yield* SessionTreeSinks;
+		const sink = yield* sinks.create(ROOT, noSessionAudit, Effect.void);
 		yield* sink.record(event);
 		return Option.getOrThrow(yield* sessionRow(NODE));
 	});

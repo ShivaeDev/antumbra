@@ -10,11 +10,18 @@ import { SessionTreeLedger } from "#tree/ledger/service.ts";
 import { SessionTreeLifecycle } from "#tree/lifecycle/service.ts";
 import { LiveDelegationsLive } from "#tree/live.ts";
 import { SessionTreeRows } from "#tree/rows/service.ts";
+import { SessionTreeSinks } from "#tree/sink/service.ts";
+import { SessionTreeSweeps } from "#tree/sweeps/service.ts";
+import { SessionTurnRests } from "#turn-rest/service.ts";
 
-export const treeLayer = Layer.mergeAll(SessionTreeAudits.layer, SessionTreeLifecycle.layer).pipe(
+const treeServices = Layer.mergeAll(SessionTreeAudits.layer, SessionTreeLifecycle.layer).pipe(
 	Layer.provideMerge(Layer.mergeAll(SessionTreeLedger.layer, SessionTreeRows.layer, SessionEventJournalLive)),
 	Layer.provideMerge(Layer.mergeAll(LiveDelegationsLive, SessionFabricLive)),
 	Layer.provideMerge(DomainFeedsLive),
+);
+
+export const treeLayer = SessionTreeSinks.layer.pipe(
+	Layer.provideMerge(Layer.mergeAll(SessionTreeSweeps.layer, SessionTurnRests.layer).pipe(Layer.provideMerge(treeServices))),
 );
 
 export interface SeededSession {

@@ -15,7 +15,7 @@ it.effect("passes an effort pi knows straight through", () =>
 );
 
 it.effect("refuses an effort pi has no thinking level for", () =>
-	Effect.map(Effect.exit(thinkingLevel(Option.some("max"))), (outcome) => {
+	Effect.map(Effect.exit(thinkingLevel(Option.some("relentless"))), (outcome) => {
 		expect(outcome._tag).toBe("Failure");
 	}),
 );

@@ -1,5 +1,5 @@
 import type { DirectTool } from "@antumbra/plugin-api";
-import { type AgentToolResult, defineTool, type ToolDefinition } from "@mariozechner/pi-coding-agent";
+import { type AgentToolResult, defineTool, type ToolDefinition } from "@earendil-works/pi-coding-agent";
 import type { ToolCall } from "#adapters/tool-call.ts";
 
 // pi reads a refusal from a thrown error and hands the model an error tool result carrying its text.

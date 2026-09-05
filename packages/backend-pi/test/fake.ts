@@ -59,7 +59,7 @@ export const makeFakePi = (models: ReadonlyArray<PiModel> = []): FakePi => {
 			refusal = detail;
 		},
 		runtime: {
-			models: () => models,
+			models: () => Promise.resolve(models),
 			open: (request) => {
 				opened.push(request);
 				return Promise.resolve(session);

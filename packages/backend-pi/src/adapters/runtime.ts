@@ -1,26 +1,29 @@
 import {
 	type AgentSession,
-	AuthStorage,
 	createAgentSession,
 	DefaultResourceLoader,
 	getAgentDir,
-	ModelRegistry,
+	ModelRuntime,
 	SessionManager,
-} from "@mariozechner/pi-coding-agent";
+} from "@earendil-works/pi-coding-agent";
 import type { PiModel, PiOpenRequest, PiRuntime, PiSession } from "#runtime.ts";
 
 interface PiRuntimeOptions {
 	readonly skills: string;
 }
 
-const catalog = (): ModelRegistry => ModelRegistry.create(AuthStorage.create());
+type CatalogModel = Awaited<ReturnType<ModelRuntime["getAvailable"]>>[number];
 
-const chosenModel = (registry: ModelRegistry, id: string | undefined) => {
+const available = (): Promise<readonly CatalogModel[]> => ModelRuntime.create().then((runtime) => runtime.getAvailable());
+
+const chosenModel = async (runtime: ModelRuntime, id: string | undefined): Promise<CatalogModel | undefined> => {
 	if (id === undefined) {
 		return undefined;
 	}
 	const separator = id.indexOf("/");
-	const found = separator <= 0 ? undefined : registry.find(id.slice(0, separator), id.slice(separator + 1));
+	const models = await runtime.getAvailable();
+	const found =
+		separator <= 0 ? undefined : models.find((model) => model.provider === id.slice(0, separator) && model.id === id.slice(separator + 1));
 	if (found === undefined) {
 		throw new Error(`pi offers no model ${id} with credentials; name one of provider/model-id from its catalog`);
 	}
@@ -61,8 +64,8 @@ const adopt = (session: AgentSession): PiSession => {
 const open =
 	(options: PiRuntimeOptions) =>
 	async (request: PiOpenRequest): Promise<PiSession> => {
-		const registry = catalog();
-		const model = chosenModel(registry, request.model);
+		const modelRuntime = await ModelRuntime.create();
+		const model = await chosenModel(modelRuntime, request.model);
 		const resourceLoader = new DefaultResourceLoader({
 			additionalSkillPaths: [options.skills],
 			agentDir: getAgentDir(),
@@ -70,9 +73,10 @@ const open =
 		});
 		await resourceLoader.reload();
 		const { session } = await createAgentSession({
+			agentDir: getAgentDir(),
 			customTools: [...request.tools],
 			cwd: request.cwd,
-			modelRegistry: registry,
+			modelRuntime,
 			resourceLoader,
 			sessionManager: sessions(request),
 			...(model === undefined ? {} : { model }),
@@ -81,9 +85,7 @@ const open =
 		return adopt(session);
 	};
 
-const models = (): ReadonlyArray<PiModel> =>
-	catalog()
-		.getAvailable()
-		.map((model) => ({ id: `${model.provider}/${model.id}`, name: `${model.name} (${model.provider})` }));
+const models = (): Promise<ReadonlyArray<PiModel>> =>
+	available().then((catalog) => catalog.map((model) => ({ id: `${model.provider}/${model.id}`, name: `${model.name} (${model.provider})` })));
 
 export const piRuntime = (options: PiRuntimeOptions): PiRuntime => ({ models, open: open(options) });

@@ -26,7 +26,7 @@
 		"@antumbra/plugin-api": "workspace:*",
 		"@antumbra/skills": "workspace:*",
 		"@antumbra/vocabulary": "workspace:*",
-		"@mariozechner/pi-coding-agent": "catalog:",
+		"@earendil-works/pi-coding-agent": "catalog:",
 		"effect": "catalog:"
 	}
 }

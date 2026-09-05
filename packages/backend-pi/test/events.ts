@@ -34,7 +34,16 @@ export const asked = (text: string): PiEvent => ({
 export const ended = (stopReason: Assistant["stopReason"], errorMessage?: string): PiEvent => ({
 	messages: [assistant([{ text: "done", type: "text" }], stopReason, errorMessage)],
 	type: "agent_end",
+	willRetry: false,
 });
+
+export const retrying = (): PiEvent => ({
+	messages: [assistant([{ text: "overloaded", type: "text" }], "error", "overloaded")],
+	type: "agent_end",
+	willRetry: true,
+});
+
+export const settled: PiEvent = { type: "agent_settled" };
 
 export const toolStart = (toolName: string): PiEvent => ({
 	args: { path: "README.md" },

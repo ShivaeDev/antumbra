@@ -1,7 +1,7 @@
 import { describe, expect, it } from "@effect/vitest";
 import { toAgentEvents } from "#mapping.ts";
 import type { PiEvent } from "#runtime.ts";
-import { asked, assistant, ended, toolEnd, toolStart } from "#test/events.ts";
+import { asked, assistant, ended, retrying, settled, toolEnd, toolStart } from "#test/events.ts";
 
 const NONE = new Set<string>();
 
@@ -14,11 +14,20 @@ describe("pi events on the neutral log", () => {
 		]);
 	});
 
-	it("completes the turn when the run ends and rests the session", () => {
+	it("completes the turn when the run ends", () => {
 		const events = toAgentEvents(ended("stop"), NONE);
-		expect(kinds(events)).toEqual(["turn.completed", "session.state"]);
+		expect(kinds(events)).toEqual(["turn.completed"]);
 		expect(events[0]).toMatchObject({ status: "completed" });
-		expect(events[1]).toMatchObject({ state: "idle" });
+	});
+
+	it("holds the turn open while pi is still going to retry it", () => {
+		expect(toAgentEvents(retrying(), NONE)).toEqual([]);
+	});
+
+	it("rests the session only once pi has settled", () => {
+		expect(toAgentEvents(settled, NONE)).toEqual([
+			{ raw: { kind: "agent_settled", payload: "{}", source: "pi" }, state: "idle", type: "session.state" },
+		]);
 	});
 
 	it("reads an aborted ending as an interruption and an errored one as a failure", () => {

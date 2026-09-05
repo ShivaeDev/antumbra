@@ -1,4 +1,4 @@
-import type { AgentSessionEvent, ToolDefinition } from "@mariozechner/pi-coding-agent";
+import type { AgentSessionEvent, ToolDefinition } from "@earendil-works/pi-coding-agent";
 import type { PiThinkingLevel } from "#effort.ts";
 
 export type PiEvent = AgentSessionEvent;
@@ -26,6 +26,6 @@ export interface PiSession {
 }
 
 export interface PiRuntime {
-	readonly models: () => ReadonlyArray<PiModel>;
+	readonly models: () => Promise<ReadonlyArray<PiModel>>;
 	readonly open: (request: PiOpenRequest) => Promise<PiSession>;
 }

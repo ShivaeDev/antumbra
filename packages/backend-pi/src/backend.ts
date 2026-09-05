@@ -10,7 +10,7 @@ export const piBackend = (runtime: PiRuntime): AgentBackend => ({
 	capabilities: {
 		imageInput: false,
 	},
-	listModels: Effect.try({ catch: piFailure, try: () => modelChoices(runtime.models()) }),
+	listModels: Effect.tryPromise({ catch: piFailure, try: () => runtime.models() }).pipe(Effect.map(modelChoices)),
 	openSession: (options) => openPiSession(runtime, options),
 	tag: "pi",
 });

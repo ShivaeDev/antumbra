@@ -2,7 +2,7 @@ import type { BackendFailure } from "@antumbra/plugin-api";
 import { Effect, Option, Schema } from "effect";
 import { piFailure } from "#failure.ts";
 
-const THINKING_LEVELS = ["off", "minimal", "low", "medium", "high", "xhigh"] as const;
+const THINKING_LEVELS = ["off", "minimal", "low", "medium", "high", "xhigh", "max"] as const;
 
 export type PiThinkingLevel = (typeof THINKING_LEVELS)[number];
 

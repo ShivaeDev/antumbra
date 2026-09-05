@@ -33,12 +33,12 @@ const turnStatus = (stopReason: string | undefined): "completed" | "failed" | "i
 };
 
 const turnEvents = (event: Ended): AgentEvent[] => {
+	if (event.willRetry) {
+		return [];
+	}
 	const ending = event.messages.filter((message) => message.role === "assistant").at(-1);
 	const raw = rawOf("agent_end", ending === undefined ? {} : { errorMessage: ending.errorMessage, stopReason: ending.stopReason });
-	return [
-		{ raw, status: turnStatus(ending?.stopReason), type: "turn.completed" },
-		{ raw, state: "idle", type: "session.state" },
-	];
+	return [{ raw, status: turnStatus(ending?.stopReason), type: "turn.completed" }];
 };
 
 const toolStarted = (event: ToolStarted, served: ReadonlySet<string>): AgentEvent => ({
@@ -64,6 +64,8 @@ export const toAgentEvents = (event: PiEvent, served: ReadonlySet<string>): Agen
 			return [{ raw: rawOf("agent_start", {}), state: "running", type: "session.state" }];
 		case "agent_end":
 			return turnEvents(event);
+		case "agent_settled":
+			return [{ raw: rawOf("agent_settled", {}), state: "idle", type: "session.state" }];
 		case "message_end":
 			return messageEvents(event.message, rawOf("message_end", event.message));
 		case "tool_execution_start":

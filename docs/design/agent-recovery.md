@@ -74,8 +74,11 @@ read on its own — the renderer opens a node's feed — while only the root is 
 the log says who actually did it.
 
 The transcript accumulates messages, pairs tool lifecycle events, and renders usage and turn events as visual rhythm rather than domain boundaries.
-Unknown kinds and provider payloads remain visible as raw evidence instead of taking the projection down. A renderer may invoke only acts already
-owned by the domain, such as spawn, retire, or interrupt. It cannot invent a reply path or another delivery model.
+Usage events are also the fleet's only account of what its work costs: totals are read back out of the stored events rather than counted on the write
+path, and are shown as a running total beside the transcript, as a Voyage's own spend, and day by day on the Costs page. Antumbra keeps no price
+table, so a total carries only what the backends themselves reported and says which it is — partial where some contributing turn reported no cost, and
+not reported where none did. Unknown kinds and provider payloads remain visible as raw evidence instead of taking the projection down. A renderer may
+invoke only acts already owned by the domain, such as spawn, retire, or interrupt. It cannot invent a reply path or another delivery model.
 
 Every backend implements two delivery acts. `steer` enters work already under way; `queue` waits for the provider's next full boundary. The caller
 names the act: every send to a live Session steers, while the charter delivered at spawn and the instruction handed to a resumed Session are queued.

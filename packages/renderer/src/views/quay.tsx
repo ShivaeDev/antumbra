@@ -66,7 +66,7 @@ export const QuayPanel = ({
 	const noSelection = selectedId === undefined;
 	const absent = selectionState(changes.length, selectedId);
 	return (
-		<section className="flex min-w-0 flex-1 flex-col bg-background font-sans text-foreground">
+		<section className="flex min-h-0 min-w-0 flex-1 flex-col bg-background font-sans text-foreground">
 			<QuayHeader onError={onError} view={quay} />
 			{feedError === undefined ? null : (
 				<p className="border-destructive/30 border-b bg-destructive/10 px-4 py-1.5 text-xs text-destructive" role="alert">

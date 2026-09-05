@@ -1,5 +1,5 @@
 import { Effect, Option, Schema } from "effect";
-import { InitializeResponse, PINNED_CLI_VERSION } from "#protocol.ts";
+import { InitializeResponse } from "#protocol.ts";
 import type { Request } from "#requests.ts";
 
 const CLIENT_INFO = { name: "antumbra", title: "Antumbra", version: "0.0.0" };
@@ -18,20 +18,8 @@ export const MUTED_NOTIFICATIONS = [
 
 const decodeInitialize = Schema.decodeUnknownOption(InitializeResponse);
 
-// Codex has no protocol negotiation; userAgent is compared with the pinned CLI version.
-const checkVersion = (response: unknown) =>
-	Option.match(decodeInitialize(response), {
-		onNone: () => Effect.logWarning("codex: initialize response unrecognised"),
-		onSome: ({ userAgent }) => {
-			const version = userAgent.split(" ")[0]?.split("/")[1] ?? "";
-			return version === PINNED_CLI_VERSION
-				? Effect.logInfo("codex app-server", { version })
-				: Effect.logWarning("codex app-server version differs from the pin", {
-						pinned: PINNED_CLI_VERSION,
-						version,
-					});
-		},
-	});
+const versionOf = (response: unknown): Option.Option<string> =>
+	Option.map(decodeInitialize(response), ({ userAgent }) => userAgent.split(" ")[0]?.split("/")[1] ?? "");
 
 export const offerSkills = (request: Request, folder: string) => Effect.asVoid(request("skills/extraRoots/set", { extraRoots: [folder] }));
 
@@ -44,4 +32,4 @@ export const handshake = (request: Request) =>
 			requestAttestation: false,
 		},
 		clientInfo: CLIENT_INFO,
-	}).pipe(Effect.flatMap(checkVersion));
+	}).pipe(Effect.map(versionOf));

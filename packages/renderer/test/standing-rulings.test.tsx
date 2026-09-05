@@ -71,26 +71,35 @@ const settle = (change: () => void): Effect.Effect<void> =>
 		}),
 	);
 
-const mount = () => {
-	const container = document.createElement("div");
-	return { container, root: createRoot(container) };
-};
+const mount = () =>
+	Effect.gen(function* () {
+		const container = document.createElement("div");
+		document.body.append(container);
+		const root = createRoot(container);
+		yield* Effect.addFinalizer(() =>
+			settle(() => {
+				root.unmount();
+				container.remove();
+			}),
+		);
+		return { container, root };
+	});
 
-const showing = (mounted: ReturnType<typeof mount>, standing: ReadonlyArray<StandingRulingView>): Effect.Effect<void> =>
+const showing = (mounted: Effect.Success<ReturnType<typeof mount>>, standing: ReadonlyArray<StandingRulingView>): Effect.Effect<void> =>
 	Effect.gen(function* () {
 		yield* settle(() => mounted.root.render(<RulingsPanel onError={() => undefined} />));
 		yield* settle(() => openFeeds.at(-1)?.({ rulings: [] }));
 		yield* settle(() => standingFeeds.at(-1)?.({ rulings: standing }));
 	});
 
-const buttonSaying = (mounted: ReturnType<typeof mount>, words: string) =>
+const buttonSaying = (mounted: Effect.Success<ReturnType<typeof mount>>, words: string) =>
 	[...mounted.container.querySelectorAll("button")].find((button) => button.textContent?.includes(words) === true);
 
 const keyed = (target: Element | null | undefined, key: string) => {
 	target?.dispatchEvent(new KeyboardEvent("keydown", { bubbles: true, key }));
 };
 
-const picking = (mounted: ReturnType<typeof mount>, words: string): Effect.Effect<void> =>
+const picking = (mounted: Effect.Success<ReturnType<typeof mount>>, words: string): Effect.Effect<void> =>
 	Effect.gen(function* () {
 		yield* settle(() => keyed(mounted.container.querySelector('[role="combobox"]'), "ArrowDown"));
 		yield* settle(() =>
@@ -101,7 +110,7 @@ const picking = (mounted: ReturnType<typeof mount>, words: string): Effect.Effec
 		);
 	});
 
-const writing = (mounted: ReturnType<typeof mount>, label: string, words: string): Effect.Effect<void> =>
+const writing = (mounted: Effect.Success<ReturnType<typeof mount>>, label: string, words: string): Effect.Effect<void> =>
 	settle(() => {
 		const tag = [...mounted.container.querySelectorAll("label")].find((each) => each.textContent === label);
 		const box = mounted.container.querySelector<HTMLInputElement>(`[id="${tag?.htmlFor}"]`);
@@ -119,12 +128,13 @@ beforeEach(() => {
 	openFeeds.length = 0;
 	standingFeeds.length = 0;
 	supersedeRuling.mockClear();
-	withdrawRuling.mockClear();
+	withdrawRuling.mockReset();
+	withdrawRuling.mockReturnValue(Effect.void);
 });
 
 it.effect("lists what stands newest first with who ruled and what", () =>
 	Effect.gen(function* () {
-		const mounted = mount();
+		const mounted = yield* mount();
 		yield* showing(mounted, [berthReclaim, chartAuthority]);
 
 		const questions = [...mounted.container.querySelectorAll("li h3")].map((heading) => heading.textContent);
@@ -134,13 +144,12 @@ it.effect("lists what stands newest first with who ruled and what", () =>
 		expect(mounted.container.textContent).toContain("ruled by the captain");
 		expect(mounted.container.textContent).toContain("chose: trust the soundings");
 		expect(mounted.container.textContent).toContain("Voyage: Chart the reef");
-		yield* settle(() => mounted.root.unmount());
 	}),
 );
 
 it.effect("supersedes a ruling with the later one picked for it", () =>
 	Effect.gen(function* () {
-		const mounted = mount();
+		const mounted = yield* mount();
 		yield* showing(mounted, [berthReclaim, chartAuthority]);
 
 		yield* settle(() => buttonSaying(mounted, "Replace with a later ruling")?.click());
@@ -150,35 +159,32 @@ it.effect("supersedes a ruling with the later one picked for it", () =>
 		yield* settle(() => buttonSaying(mounted, "Supersede")?.click());
 
 		expect(supersedeRuling).toHaveBeenCalledWith({ byRulingId: chartAuthority.id, rulingId: berthReclaim.id }, expect.any(Function));
-		yield* settle(() => mounted.root.unmount());
 	}),
 );
 
 it.effect("offers no supersession when one ruling stands alone", () =>
 	Effect.gen(function* () {
-		const mounted = mount();
+		const mounted = yield* mount();
 		yield* showing(mounted, [berthReclaim]);
 
 		expect(buttonSaying(mounted, "Replace with a later ruling")).toBeUndefined();
 		expect(mounted.container.querySelector('[role="combobox"]')).toBeNull();
 		expect(buttonSaying(mounted, "Supersede")).toBeUndefined();
-		yield* settle(() => mounted.root.unmount());
 	}),
 );
 
 it.effect("says so when nothing stands yet", () =>
 	Effect.gen(function* () {
-		const mounted = mount();
+		const mounted = yield* mount();
 		yield* showing(mounted, []);
 
 		expect(mounted.container.textContent).toContain("Nothing stands yet");
-		yield* settle(() => mounted.root.unmount());
 	}),
 );
 
 it.effect("withdraws a standing ruling with the words that retire it", () =>
 	Effect.gen(function* () {
-		const mounted = mount();
+		const mounted = yield* mount();
 		yield* showing(mounted, [berthReclaim]);
 
 		yield* settle(() => buttonSaying(mounted, "Take it out of force")?.click());
@@ -187,31 +193,28 @@ it.effect("withdraws a standing ruling with the words that retire it", () =>
 		expect(buttonSaying(mounted, "Withdraw")?.disabled).toBe(false);
 		yield* settle(() => buttonSaying(mounted, "Withdraw")?.click());
 
-		expect(withdrawRuling).toHaveBeenCalledWith({ note: "berths are gone entirely", rulingId: berthReclaim.id }, expect.any(Function));
-		yield* settle(() => mounted.root.unmount());
+		expect(withdrawRuling).toHaveBeenCalledWith({ note: "berths are gone entirely", rulingId: berthReclaim.id });
 	}),
 );
 
 it.effect("gathers what has gone stale under its own heading", () =>
 	Effect.gen(function* () {
-		const mounted = mount();
+		const mounted = yield* mount();
 		yield* showing(mounted, [berthReclaim, { ...chartAuthority, stale: true }]);
 
 		const lists = [...mounted.container.querySelectorAll("ul")];
 		expect(questionsIn(lists[0])).toEqual([berthReclaim.question]);
 		expect(questionsIn(lists[1])).toEqual([chartAuthority.question]);
 		expect(mounted.container.textContent).toContain("They bind until you withdraw them");
-		yield* settle(() => mounted.root.unmount());
 	}),
 );
 
 it.effect("names no stale heading while every ruling still applies", () =>
 	Effect.gen(function* () {
-		const mounted = mount();
+		const mounted = yield* mount();
 		yield* showing(mounted, [berthReclaim, chartAuthority]);
 
 		expect(mounted.container.querySelectorAll("ul")).toHaveLength(1);
 		expect(mounted.container.textContent).not.toContain("Stale");
-		yield* settle(() => mounted.root.unmount());
 	}),
 );

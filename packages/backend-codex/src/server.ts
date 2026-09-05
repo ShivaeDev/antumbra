@@ -1,7 +1,8 @@
 import type { BackendCapacityController, BackendFailure } from "@antumbra/plugin-api";
-import { Deferred, Effect, PubSub, Queue, type Scope } from "effect";
+import { Deferred, Duration, Effect, type Option, PubSub, Queue, RcRef, type Scope } from "effect";
 import type { LineProcess } from "#adapters/process.ts";
 import { connectRpc, type RpcConnection, type RpcNotification, type RpcServerRequest } from "#adapters/rpc.ts";
+import { tellCliVersionOnce } from "#cli-version.ts";
 import { codexFailure } from "#failure.ts";
 import { handshake, offerSkills } from "#handshake.ts";
 import { rawOf } from "#mapping.ts";
@@ -22,6 +23,7 @@ export interface CodexServer {
 	readonly request: Request;
 	readonly threads: ThreadClaims;
 	readonly tools: ToolRegistry;
+	readonly version: Option.Option<string>;
 }
 
 const wire = (
@@ -77,7 +79,7 @@ export const makeCodexServer = (options: CodexServerOptions): Effect.Effect<Code
 			),
 		);
 		const request = requestOn(rpc);
-		yield* handshake(request);
+		const version = yield* handshake(request);
 		rpc.notify("initialized", {});
 		yield* offerSkills(request, options.skills);
 		return {
@@ -86,5 +88,28 @@ export const makeCodexServer = (options: CodexServerOptions): Effect.Effect<Code
 			request,
 			threads,
 			tools,
+			version,
 		} satisfies CodexServer;
+	});
+
+type CodexServers = RcRef.RcRef<CodexServer, BackendFailure>;
+
+const IDLE_APP_SERVER_LIFE = Duration.minutes(5);
+
+const forgetWhenExited = (live: CodexServer, pool: Deferred.Deferred<CodexServers>) =>
+	Effect.forkScoped(Effect.andThen(live.exited, Effect.flatMap(Deferred.await(pool), RcRef.invalidate)));
+
+export const makeCodexServers = (options: CodexServerOptions): Effect.Effect<CodexServers, never, Scope.Scope> =>
+	Effect.gen(function* () {
+		const tell = yield* tellCliVersionOnce;
+		const pool = yield* Deferred.make<CodexServers>();
+		const servers = yield* RcRef.make({
+			acquire: makeCodexServer(options).pipe(
+				Effect.tap((live) => tell(live.version)),
+				Effect.tap((live) => forgetWhenExited(live, pool)),
+			),
+			idleTimeToLive: IDLE_APP_SERVER_LIFE,
+		});
+		yield* Deferred.succeed(pool, servers);
+		return servers;
 	});

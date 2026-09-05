@@ -13,7 +13,7 @@ import { type LineProcess, spawnLineProcess } from "#adapters/process.ts";
 import { codexAudit } from "#adapters/thread-audit.ts";
 import { classifyCodexCapacity } from "#capacity.ts";
 import { listCodexModels } from "#models.ts";
-import { type CodexServer, makeCodexServer } from "#server.ts";
+import { type CodexServer, makeCodexServers } from "#server.ts";
 import { openThreadSession } from "#thread.ts";
 
 interface CodexPluginOptions {
@@ -40,9 +40,7 @@ const codexCommand = (context: PluginContext) =>
 const registerCodex = (context: PluginContext, spawn: () => LineProcess, skills: string) =>
 	Effect.gen(function* () {
 		const capacity = yield* makeBackendCapacityController(classifyCodexCapacity);
-		const server = yield* RcRef.make({
-			acquire: makeCodexServer({ observeCapacity: capacity.observe, skills, spawn }),
-		});
+		const server = yield* makeCodexServers({ observeCapacity: capacity.observe, skills, spawn });
 		yield* context.registerAgentBackend(codexBackend(server, capacity.source));
 	});
 

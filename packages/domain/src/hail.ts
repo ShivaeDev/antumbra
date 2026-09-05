@@ -1,8 +1,8 @@
 import { BoardScope, Boards, entryBodies } from "@antumbra/boards";
 import { Database } from "@antumbra/persistence";
 import { decodeStoredVoyageKind } from "@antumbra/vocabulary/voyage";
+import { agentSettingsOf } from "@antumbra/voyages/agent-settings";
 import { Effect, Option } from "effect";
-import { agentSettingsOf } from "#agent-settings.ts";
 import { charterForKind } from "#charter-flagship.ts";
 import { CaptainAlreadyHailed, CaptainSessionUnavailable, VoyageNotFound } from "#errors.ts";
 import { KernelReach } from "#kernel-reach/service.ts";

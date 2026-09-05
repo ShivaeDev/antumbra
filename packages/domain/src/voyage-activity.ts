@@ -1,11 +1,7 @@
-import { changesOfPiece } from "@antumbra/changes";
 import type { VoyageSummaryRows } from "#voyage-rows.ts";
 import { piecesOfVoyage } from "#voyage-state.ts";
 
-type ActivityRows = Pick<
-	VoyageSummaryRows,
-	"memberships" | "crews" | "assignments" | "pieces" | "sessions" | "changes" | "pieceChanges" | "dismissedChangeIds"
->;
+type ActivityRows = Pick<VoyageSummaryRows, "memberships" | "crews" | "assignments" | "pieces" | "sessions" | "changes" | "pieceChanges">;
 
 const agentsOf = (world: ActivityRows, voyageId: string, pieceIds: ReadonlySet<string>): ReadonlySet<string> =>
 	new Set([
@@ -13,16 +9,28 @@ const agentsOf = (world: ActivityRows, voyageId: string, pieceIds: ReadonlySet<s
 		...world.assignments.filter((assignment) => pieceIds.has(assignment.pieceId)).map((assignment) => assignment.agentId),
 	]);
 
-const present = (moments: ReadonlyArray<Date | null>): ReadonlyArray<Date> => moments.flatMap((moment) => (moment === null ? [] : [moment]));
+const latestMoment = (latest: number | null, moment: Date | null): number | null =>
+	moment === null ? latest : Math.max(latest ?? -Infinity, moment.getTime());
 
 export const lastStirredAt = (world: ActivityRows, voyageId: string): Date | null => {
 	const pieceIds = new Set(piecesOfVoyage(world, voyageId));
 	const agentIds = agentsOf(world, voyageId, pieceIds);
 	const pieces = world.pieces.filter((piece) => pieceIds.has(piece.id));
-	const moments = present([
-		...world.sessions.filter((session) => agentIds.has(session.agentId)).map((session) => session.createdAt),
-		...pieces.flatMap((piece) => [piece.launchedAt, piece.parkedAt]),
-		...pieces.flatMap((piece) => changesOfPiece(world, piece.id).map((change) => change.activityAt)),
-	]);
-	return moments.length === 0 ? null : new Date(Math.max(...moments.map((moment) => moment.getTime())));
+	const existingPieceIds = new Set(pieces.map((piece) => piece.id));
+	const changeIds = new Set(world.pieceChanges.filter((link) => existingPieceIds.has(link.pieceId)).map((link) => link.changeId));
+	let latest: number | null = null;
+	for (const session of world.sessions) {
+		if (agentIds.has(session.agentId)) {
+			latest = latestMoment(latest, session.createdAt);
+		}
+	}
+	for (const piece of pieces) {
+		latest = latestMoment(latestMoment(latest, piece.launchedAt), piece.parkedAt);
+	}
+	for (const change of world.changes) {
+		if (changeIds.has(change.id)) {
+			latest = latestMoment(latest, change.activityAt);
+		}
+	}
+	return latest === null ? null : new Date(latest);
 };

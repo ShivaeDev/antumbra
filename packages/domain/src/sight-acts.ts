@@ -17,6 +17,7 @@ import { admiralWords } from "@antumbra/prompts";
 import { Repos } from "@antumbra/repos";
 import { SessionFabric } from "@antumbra/session-fabric";
 import { SessionInputs } from "@antumbra/session-inputs";
+import { SessionSend } from "@antumbra/sessions/send/service";
 import { Effect } from "effect";
 import { AgentDomain } from "#agent-domain-service.ts";
 import { makeRetryBackendCapacity } from "#backend-capacity-retry.ts";
@@ -45,6 +46,7 @@ export const makeSightActs = Effect.gen(function* () {
 	const db = yield* Database;
 	const repos = yield* Repos;
 	const domain = yield* AgentDomain;
+	const sessionSend = yield* SessionSend;
 	const fabric = yield* SessionFabric;
 	const kernel = yield* Kernel;
 	const inputs = yield* SessionInputs;
@@ -69,10 +71,10 @@ export const makeSightActs = Effect.gen(function* () {
 				if (text.trim().length === 0) {
 					return yield* new SessionMessageEmpty({ sessionId });
 				}
-				yield* domain.sendToSession(sessionId, admiralWords({ words: text }));
+				yield* sessionSend.sendPrompt(sessionId, admiralWords({ words: text }));
 			}).pipe(Effect.mapError(toFailure)),
 		sendInput: (request) =>
-			domain.sendSessionInput(request).pipe(
+			sessionSend.sendInput(request).pipe(
 				Effect.map((status) => ({ id: request.id, status })),
 				Effect.mapError(toFailure),
 			),

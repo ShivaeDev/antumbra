@@ -4,6 +4,7 @@ import { Badge } from "#components/ui/badge.tsx";
 import { BackendSwitch, CaptainCall, FocusToggle } from "#views/voyage-acts.tsx";
 import { AgentSettingsEditor } from "#views/voyage-agent-settings.tsx";
 import { VoyageProgress } from "#views/voyage-progress.tsx";
+import { VoyageSpend } from "#views/voyage-spend.tsx";
 import { voyageStateLabel } from "#voyages/labels.ts";
 import { voyageTone } from "#voyages/tone.ts";
 
@@ -48,8 +49,11 @@ export const VoyageHeader = ({ onError, voyage }: { readonly onError: (message: 
 			{voyage.northStar}
 		</p>
 		{voyage.context === "" ? null : <p className="min-w-0 whitespace-pre-wrap text-xs text-muted-foreground wrap-anywhere">{voyage.context}</p>}
-		<div className="max-w-md">
-			<VoyageProgress counts={voyage.counts} withLegend />
+		<div className="flex min-w-0 flex-wrap items-end gap-4">
+			<div className="min-w-0 max-w-md flex-1">
+				<VoyageProgress counts={voyage.counts} withLegend />
+			</div>
+			<VoyageSpend voyageId={voyage.id} />
 		</div>
 	</header>
 );

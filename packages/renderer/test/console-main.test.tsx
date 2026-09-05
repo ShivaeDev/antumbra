@@ -12,6 +12,10 @@ vi.mock("#views/rulings.tsx", () => ({
 	RulingsPanel: () => <section>open rulings</section>,
 }));
 
+vi.mock("#views/costs.tsx", () => ({
+	CostsPanel: () => <section>the costs</section>,
+}));
+
 const render = (mode: ConsoleMode): string =>
 	renderToStaticMarkup(
 		<ConsoleMain
@@ -62,6 +66,14 @@ it("gives Rulings the whole workspace without the voyage rail", () => {
 	const markup = render("rulings");
 
 	expect(markup).toContain("open rulings");
+	expect(markup).not.toContain("Unrelated voyage");
+	expect(markup).not.toContain("<aside");
+});
+
+it("gives Costs the whole workspace without the voyage rail", () => {
+	const markup = render("costs");
+
+	expect(markup).toContain("the costs");
 	expect(markup).not.toContain("Unrelated voyage");
 	expect(markup).not.toContain("<aside");
 });

@@ -2,6 +2,7 @@ export { ChangeWatcher } from "@antumbra/changes/watch/observer";
 export { SettingsSourceLive } from "@antumbra/settings";
 export { applicationLayers } from "#application.ts";
 export { BackendCapacityReleases } from "#backend-capacity-releases/service.ts";
+export { CostSourceLive } from "#cost-source.ts";
 export { DispatcherLive } from "#dispatcher.ts";
 export { AgentDomain, AgentDomainLive } from "#domain.ts";
 export { FlagshipLive } from "#flagship.ts";

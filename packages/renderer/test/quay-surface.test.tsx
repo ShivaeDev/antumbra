@@ -226,3 +226,16 @@ it.effect("explains an empty quay before there is anything to select", () =>
 		yield* settle(() => mounted.root.unmount());
 	}),
 );
+
+it.effect("holds every pull request in one scrolling list the panel can bound", () =>
+	Effect.gen(function* () {
+		const taller = { ...snapshot, rows: Array.from({ length: 24 }, (_, index) => row("alongside", `sound channel ${index}`)) };
+		const mounted = mount(undefined);
+		yield* showing(mounted, taller);
+
+		const list = mounted.container.querySelector("[class~='overflow-y-auto']");
+		expect(list?.querySelectorAll('nav[aria-label="Pull requests"] li')).toHaveLength(taller.rows.length);
+		expect(mounted.container.firstElementChild?.className).toContain("min-h-0");
+		yield* settle(() => mounted.root.unmount());
+	}),
+);

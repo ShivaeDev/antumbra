@@ -12,12 +12,14 @@ import { TranscriptRow } from "#views/transcript-row.tsx";
 import { useTail } from "#views/transcript-tail.ts";
 
 export const TranscriptView = ({
+	agentId,
 	foldToolCalls,
 	nodes = [],
 	onOpenNode,
 	presence,
 	sessionId,
 }: {
+	readonly agentId?: string | undefined;
 	readonly foldToolCalls: boolean;
 	readonly nodes?: ReadonlyArray<SessionTreeNode> | undefined;
 	readonly onOpenNode?: ((nodeId: string) => void) | undefined;
@@ -54,7 +56,7 @@ export const TranscriptView = ({
 					Jump to latest
 				</Button>
 			)}
-			<SessionStandingBar activity={activity} node={node} standing={standing} />
+			<SessionStandingBar activity={activity} agentId={agentId} node={node} standing={standing} />
 		</section>
 	);
 };

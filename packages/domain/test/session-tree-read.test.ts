@@ -1,13 +1,8 @@
 import { SightSource } from "@antumbra/contract";
 import { Database, type NewAgentSession } from "@antumbra/persistence";
-import type { TemporaryPersistence } from "@antumbra/persistence/testing";
-import { expect, it } from "@effect/vitest";
-import { Effect, Layer, Option, Stream } from "effect";
-import { domainKernelLayer, sightSourceTestLayer } from "#test/domain-layers.ts";
-import { acquireTemporaryPersistence, makeScriptedBackend, type ScriptedBackend } from "#test/harness.ts";
-
-const sightLayer = (temporary: TemporaryPersistence, scripted: ScriptedBackend) =>
-	sightSourceTestLayer.pipe(Layer.provideMerge(domainKernelLayer(temporary, scripted.backend)));
+import { expect } from "@effect/vitest";
+import { Effect, Option, Stream } from "effect";
+import { it } from "#test/sight-harness.ts";
 
 const spawnRequest = {
 	backend: "scripted",
@@ -77,55 +72,43 @@ const spawned = Effect.gen(function* () {
 	return receipt;
 });
 
-it.live("reads a Session's whole tree, its depths and both its counts", () =>
-	Effect.gen(function* () {
-		const temporary = yield* acquireTemporaryPersistence;
-		const scripted = yield* makeScriptedBackend;
-		yield* Effect.gen(function* () {
-			const sight = yield* SightSource;
-			const receipt = yield* spawned;
-			yield* openNode("session-child", receipt.agentId, rooted(receipt.sessionId), surveyor);
-			yield* openNode(
-				"session-grandchild",
-				receipt.agentId,
-				{
-					parentSessionId: "session-child",
-					rootSessionId: receipt.sessionId,
-				},
-				mapper,
-			);
+it.effectApp("reads a Session's whole tree, its depths and both its counts", { clock: "live" }, function* () {
+	const sight = yield* SightSource;
+	const receipt = yield* spawned;
+	yield* openNode("session-child", receipt.agentId, rooted(receipt.sessionId), surveyor);
+	yield* openNode(
+		"session-grandchild",
+		receipt.agentId,
+		{
+			parentSessionId: "session-child",
+			rootSessionId: receipt.sessionId,
+		},
+		mapper,
+	);
 
-			const tree = yield* sight.sessionTree(receipt.sessionId);
-			expect(tree.nodes.map((node) => [node.id, node.depth])).toEqual([
-				[receipt.sessionId, 0],
-				["session-child", 1],
-				["session-grandchild", 2],
-			]);
-			expect(tree.nodes.slice(1).map((node) => node.displayName)).toEqual(["reef-surveyor", "Map the quay grouping"]);
-			expect(tree.nodes[2]).toMatchObject({
-				completeness: "complete",
-				nativeRef: "native-session-grandchild",
-				outcome: "completed",
-				status: "closed",
-			});
-			expect(tree.alive).toBe(2);
-			expect(tree.total).toBe(3);
-		}).pipe(Effect.provide(sightLayer(temporary, scripted)));
-	}),
-);
+	const tree = yield* sight.sessionTree(receipt.sessionId);
+	expect(tree.nodes.map((node) => [node.id, node.depth])).toEqual([
+		[receipt.sessionId, 0],
+		["session-child", 1],
+		["session-grandchild", 2],
+	]);
+	expect(tree.nodes.slice(1).map((node) => node.displayName)).toEqual(["reef-surveyor", "Map the quay grouping"]);
+	expect(tree.nodes[2]).toMatchObject({
+		completeness: "complete",
+		nativeRef: "native-session-grandchild",
+		outcome: "completed",
+		status: "closed",
+	});
+	expect(tree.alive).toBe(2);
+	expect(tree.total).toBe(3);
+});
 
-it.live("the tree feed opens with the picture the read would have given", () =>
-	Effect.gen(function* () {
-		const temporary = yield* acquireTemporaryPersistence;
-		const scripted = yield* makeScriptedBackend;
-		yield* Effect.gen(function* () {
-			const sight = yield* SightSource;
-			const receipt = yield* spawned;
-			yield* openNode("session-child", receipt.agentId, rooted(receipt.sessionId), surveyor);
+it.effectApp("the tree feed opens with the picture the read would have given", { clock: "live" }, function* () {
+	const sight = yield* SightSource;
+	const receipt = yield* spawned;
+	yield* openNode("session-child", receipt.agentId, rooted(receipt.sessionId), surveyor);
 
-			const opened = yield* Stream.runHead(sight.sessionTreeFeed(receipt.sessionId));
-			const read = yield* sight.sessionTree(receipt.sessionId);
-			expect(Option.getOrUndefined(opened)).toEqual(read);
-		}).pipe(Effect.provide(sightLayer(temporary, scripted)));
-	}),
-);
+	const opened = yield* Stream.runHead(sight.sessionTreeFeed(receipt.sessionId));
+	const read = yield* sight.sessionTree(receipt.sessionId);
+	expect(Option.getOrUndefined(opened)).toEqual(read);
+});

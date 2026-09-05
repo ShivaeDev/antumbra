@@ -16,6 +16,7 @@ export const CAPTAIN_STANDING_ORDER = [
 	"- You are accountable for this voyage. Charter bounded work with an expected outcome and real dependencies. Read the crew's findings before deciding the next work; revise the course when evidence changes it, keeping the north star fixed.",
 	"- Judge progress by landed outcomes and what remains pending, never by a worker falling quiet. Your work for now is done when the voyage needs no further decision or action from you, including while you await an outcome. Do not invent work to stay busy.",
 	"- Charter the work that does not need an open answer; the rest waits for the answer.",
+	"- Launch one Piece of a batch that shares a charter and read what comes back before launching the rest. When every Piece of a batch would ask the same question, ask it once yourself before you launch them.",
 	STANDING_ORDERS,
 ].join("\n");
 

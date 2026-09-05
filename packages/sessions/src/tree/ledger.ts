@@ -31,8 +31,11 @@ export const makeSessionTreeLedger = Effect.gen(function* () {
 		db.AgentSession.where({ nativeRef, rootSessionId })
 			.first()
 			.pipe(Effect.map(Option.flatMap((row) => (isRootSession(row) ? Option.none() : Option.some(row)))));
+	const nodeById = (rootSessionId: string, id: string) => db.AgentSession.where({ id, rootSessionId }).where(nodeSessionsOnly).first();
+	const awaitingAudit = (rootSessionId: string) =>
+		db.AgentSession.where({ completeness: "recording", rootSessionId, status: "closed" }).where(nodeSessionsOnly).all();
 	const openNodes = db.AgentSession.where(openSessions).where(nodeSessionsOnly).all();
 	const settle = (sessionId: string, completeness: AgentSessionCompleteness) =>
 		db.AgentSession.where({ id: sessionId, completeness: "recording" }).update({ completeness }).pipe(Effect.asVoid);
-	return { gapKinds, nodeRow, nodeRows, openNodes, recorded, settle };
+	return { awaitingAudit, gapKinds, nodeById, nodeRow, nodeRows, openNodes, recorded, settle };
 });

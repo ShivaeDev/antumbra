@@ -1,9 +1,9 @@
 import { Database } from "@antumbra/persistence";
+import { Pieces } from "@antumbra/pieces";
 import { Rulings } from "@antumbra/rulings";
 import { expect, it } from "@effect/vitest";
 import { Effect } from "effect";
 import { TestClock } from "effect/testing";
-import { AgentDomain } from "#domain.ts";
 import { dispatchingLayer } from "#test/domain-layers.ts";
 import { acquireTemporaryPersistence, makeScriptedBackend } from "#test/harness.ts";
 import { assignedPieces, eventually, openReefVoyage, PATIENCE, stateOf } from "#test/voyage-fixtures.ts";
@@ -37,10 +37,10 @@ it.effect("a gated piece is not dispatched until its ruling lands", () =>
 		const temporary = yield* acquireTemporaryPersistence;
 		const scripted = yield* makeScriptedBackend;
 		yield* Effect.gen(function* () {
-			const domain = yield* AgentDomain;
+			const pieces = yield* Pieces;
 			const rulings = yield* Rulings;
 			const voyage = yield* openReefVoyage;
-			const piece = yield* domain.voyages.charterPiece({
+			const piece = yield* pieces.charter({
 				charter: "sound the shallows",
 				dependsOn: [],
 				expectation: "soundings are landed",
@@ -50,7 +50,7 @@ it.effect("a gated piece is not dispatched until its ruling lands", () =>
 			});
 			const ruling = yield* requestedRuling;
 			yield* rulings.gate({ pieceIds: [piece.id], rulingId: ruling.id });
-			yield* domain.voyages.launch(piece.id);
+			yield* pieces.launch(piece.id);
 			yield* TestClock.adjust(300);
 			expect(yield* assignedPieces).toEqual([]);
 			expect(yield* stateOf(voyage.id, piece.id)).toBe("blocked");

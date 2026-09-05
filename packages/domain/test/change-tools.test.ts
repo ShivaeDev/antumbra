@@ -1,4 +1,5 @@
 import { Database } from "@antumbra/persistence";
+import { Pieces } from "@antumbra/pieces";
 import { expect, it } from "@effect/vitest";
 import { Effect } from "effect";
 import { AgentDomain } from "#domain.ts";
@@ -32,6 +33,7 @@ it.live("crew open a change through the tool and hear where it lives", () =>
 			supports: (repo) => repo.name === "reef",
 		});
 		yield* Effect.gen(function* () {
+			const pieces = yield* Pieces;
 			const db = yield* Database;
 			const domain = yield* AgentDomain;
 			yield* domain.repos.register({ defaultRef: "main", source: REEF_SOURCE });
@@ -45,7 +47,7 @@ it.live("crew open a change through the tool and hear where it lives", () =>
 				defaultRef: "main",
 				source: "/somewhere/shoals",
 			});
-			const piece = yield* domain.voyages.charterPiece({
+			const piece = yield* pieces.charter({
 				charter: "sound the shallows",
 				dependsOn: [],
 				expectation: "soundings are landed",
@@ -53,7 +55,7 @@ it.live("crew open a change through the tool and hear where it lives", () =>
 				title: "alpha",
 				voyageId: voyage.id,
 			});
-			yield* domain.voyages.launch(piece.id);
+			yield* pieces.launch(piece.id);
 			const crew = yield* eventually(
 				Effect.gen(function* () {
 					const row = (yield* db.PieceAgent.where({ pieceId: piece.id }).all())[0];

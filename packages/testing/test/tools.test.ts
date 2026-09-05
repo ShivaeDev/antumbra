@@ -2,6 +2,7 @@ import { BoardScope } from "@antumbra/boards";
 import { AgentDomain, type SpawnFields } from "@antumbra/domain";
 import { type IntentStatus, isTerminalIntentStatus, Kernel } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
+import { Pieces } from "@antumbra/pieces";
 import { it } from "@antumbra/testing";
 import type { ScriptedBackend, ScriptedSession } from "@antumbra/testing-runtime";
 import { expect } from "@effect/vitest";
@@ -24,6 +25,7 @@ const sessionOf = (scripted: ScriptedBackend, agentId: string) =>
 	});
 
 const workingCrew = Effect.gen(function* () {
+	const pieces = yield* Pieces;
 	const domain = yield* AgentDomain;
 	const kernel = yield* Kernel;
 	const voyage = yield* domain.voyages.open({
@@ -32,7 +34,7 @@ const workingCrew = Effect.gen(function* () {
 		name: "Chart the reef",
 		northStar: "every shoal is known",
 	});
-	const piece = yield* domain.voyages.charterPiece({
+	const piece = yield* pieces.charter({
 		charter: "sound the shallows",
 		dependsOn: [],
 		expectation: "the soundings are recorded",

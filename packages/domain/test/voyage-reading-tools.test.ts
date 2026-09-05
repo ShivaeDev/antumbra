@@ -3,8 +3,8 @@ import { expect, it } from "@effect/vitest";
 import { Effect, Option } from "effect";
 import { domainCapabilityLayer } from "#test/domain-layers.ts";
 import { acquireTemporaryPersistence } from "#test/harness.ts";
-import { VoyageProcedureService } from "#voyage-procedures.ts";
 import { makeVoyageReadingToolCompiler } from "#voyage-reading-tools.ts";
+import { VoyageProcedureService } from "#voyages/service.ts";
 
 const readVoyage = (tools: ReadonlyArray<DirectTool>) => Option.getOrThrow(Option.fromUndefinedOr(tools.find((tool) => tool.name === "read_voyage")));
 

@@ -10,7 +10,7 @@ import type { HailedCaptain } from "#hail.ts";
 import { tagSubjects } from "#ruling-inputs.ts";
 import { answered } from "#tool-answers.ts";
 import type { SessionIdentity } from "#tool-identity.ts";
-import { VoyageProcedureService } from "#voyage-procedures.ts";
+import { VoyageProcedureService } from "#voyages/service.ts";
 
 const [FIRST_BACKEND] = AGENT_BACKEND_TAGS;
 
@@ -39,7 +39,7 @@ export const makeFleetToolCompiler = Effect.gen(function* () {
 	const rulings = yield* Rulings;
 	const voyages = yield* VoyageProcedureService;
 	const fleetActs = (identity: SessionIdentity): ReadonlyArray<DirectTool> => [
-		bind(readFleetSpec, () => answered(identity, readFleetSpec.name, voyages.list, renderFleet)),
+		bind(readFleetSpec, () => answered(identity, readFleetSpec.name, voyages.list(), renderFleet)),
 		bind(openVoyageSpec, (input) =>
 			answered(
 				identity,

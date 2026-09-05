@@ -2,6 +2,7 @@ import { BoardScope } from "@antumbra/boards";
 import { AgentDomain } from "@antumbra/domain";
 import { type IntentStatus, isTerminalIntentStatus, Kernel } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
+import { Pieces } from "@antumbra/pieces";
 import { it } from "@antumbra/testing";
 import type { ScriptedBackend, ScriptedSession } from "@antumbra/testing-runtime";
 import { expect } from "@effect/vitest";
@@ -57,6 +58,7 @@ const chartered = (captain: ScriptedSession, title: string, dependsOn: ReadonlyA
 	});
 
 const pieceOnAnotherVoyage = Effect.gen(function* () {
+	const pieces = yield* Pieces;
 	const domain = yield* AgentDomain;
 	const shoals = yield* domain.voyages.open({
 		backend: "scripted",
@@ -64,7 +66,7 @@ const pieceOnAnotherVoyage = Effect.gen(function* () {
 		name: "Name the shoals",
 		northStar: "every shoal has a name",
 	});
-	const piece = yield* domain.voyages.charterPiece({
+	const piece = yield* pieces.charter({
 		charter: "name the northern shoal",
 		dependsOn: [],
 		expectation: "the shoal is named",
@@ -75,7 +77,7 @@ const pieceOnAnotherVoyage = Effect.gen(function* () {
 	return { piece, voyageId: shoals.id };
 });
 
-const withCaptain = <A, E>(scripted: ScriptedBackend, body: (captain: ScriptedSession) => Effect.Effect<A, E, AgentDomain>) =>
+const withCaptain = <A, E, R>(scripted: ScriptedBackend, body: (captain: ScriptedSession) => Effect.Effect<A, E, R>) =>
 	Effect.gen(function* () {
 		const voyage = yield* openReefVoyage;
 		const captain = yield* hailedCaptain(scripted, voyage.id);

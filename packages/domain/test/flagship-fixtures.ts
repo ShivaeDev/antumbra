@@ -1,7 +1,6 @@
-import type { Kernel } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
 import { expect } from "@effect/vitest";
-import { type Context, Effect } from "effect";
+import { Effect } from "effect";
 import { AgentDomain } from "#domain.ts";
 import { domainKernelLayer } from "#test/domain-layers.ts";
 import { acquireTemporaryPersistence, makeScriptedBackend, type ScriptedBackend, type ScriptedSession, sessionFor } from "#test/harness.ts";
@@ -33,9 +32,7 @@ export const hailedCaptain = (scripted: ScriptedBackend, voyageId: string) =>
 
 export const toolNames = (session: ScriptedSession): ReadonlyArray<string> => session.tools.map((tool) => tool.name);
 
-export const withFlagshipCaptain = <A, E>(
-	body: (captain: ScriptedSession) => Effect.Effect<A, E, AgentDomain | Context.Service.Identifier<typeof Database> | Kernel>,
-) =>
+export const withFlagshipCaptain = <A, E, R>(body: (captain: ScriptedSession) => Effect.Effect<A, E, R>) =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
 		const scripted = yield* makeScriptedBackend;

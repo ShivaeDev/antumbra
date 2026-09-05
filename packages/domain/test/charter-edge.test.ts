@@ -1,4 +1,5 @@
 import { Database } from "@antumbra/persistence";
+import { Pieces } from "@antumbra/pieces";
 import { Rulings } from "@antumbra/rulings";
 import { expect, it } from "@effect/vitest";
 import { Effect, Option } from "effect";
@@ -89,7 +90,7 @@ it.live("a question reclassified below blocking holds no charter", () =>
 it.live("three unlaunched pieces are the edge until one launches, parks or is abandoned", () =>
 	withLadder((ladder) =>
 		Effect.gen(function* () {
-			const domain = yield* AgentDomain;
+			const pieces = yield* Pieces;
 			for (const title of ["alpha", "bravo", "charlie"]) {
 				expect((yield* captainCharters(ladder, title)).ok).toBe(true);
 			}
@@ -108,7 +109,7 @@ it.live("three unlaunched pieces are the edge until one launches, parks or is ab
 			expect((yield* captainCharters(ladder, "echo")).ok).toBe(true);
 			expect((yield* captainCharters(ladder, "foxtrot")).ok).toBe(false);
 
-			yield* domain.voyages.landPieceVerdict(charlie, "abandoned");
+			yield* pieces.landVerdict(charlie, "abandoned");
 			expect((yield* captainCharters(ladder, "foxtrot")).ok).toBe(true);
 			expect(yield* pieceCount).toBe(6);
 		}),
@@ -134,7 +135,7 @@ it.live("the flagship charters nothing on a voyage whose frontier holds a blocki
 it.live("the flagship meets the same edge on a voyage it names", () =>
 	withLadder((ladder) =>
 		Effect.gen(function* () {
-			const domain = yield* AgentDomain;
+			const pieces = yield* Pieces;
 			for (const title of ["alpha", "bravo", "charlie"]) {
 				expect((yield* flagshipCharters(ladder, title)).ok).toBe(true);
 			}
@@ -144,7 +145,7 @@ it.live("the flagship meets the same edge on a voyage it names", () =>
 
 			expect(refusal).toEqual({ ok: false, text: edgeReached("charter_piece_on_voyage", unlaunched) });
 
-			yield* domain.voyages.launch(unlaunched[0] ?? "");
+			yield* pieces.launch(unlaunched[0] ?? "");
 			expect((yield* flagshipCharters(ladder, "delta")).ok).toBe(true);
 			expect(yield* pieceCount).toBe(4);
 		}),

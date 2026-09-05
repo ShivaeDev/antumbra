@@ -1,6 +1,7 @@
 import { PiecesLive } from "@antumbra/pieces";
 import type { ChangeHost, ChangeObservation, OpenChangeRequest, Runner } from "@antumbra/plugin-api";
 import { it } from "@antumbra/testing-runtime/domain";
+import { Voyages } from "@antumbra/voyages";
 import { expect } from "@effect/vitest";
 import { Effect, Layer, Ref } from "effect";
 import { Changes, changesLayer } from "#index.ts";
@@ -63,7 +64,8 @@ const makeHost = Effect.gen(function* () {
 	return { host, openings: Ref.get(openings) };
 });
 
-const layer = (host: ChangeHost) => changesLayer(new Map([[host.tag, host]]), new Map([[runner.tag, runner]])).pipe(Layer.provide(PiecesLive));
+const layer = (host: ChangeHost) =>
+	changesLayer(new Map([[host.tag, host]]), new Map([[runner.tag, runner]])).pipe(Layer.provide(PiecesLive), Layer.provideMerge(Voyages.layer));
 
 it.effectApp("owns preparation and host reconciliation as one aggregate", function* ({ db }) {
 	const scripted = yield* makeHost;
@@ -146,4 +148,16 @@ it.effectApp("owns preparation and host reconciliation as one aggregate", functi
 			],
 		});
 	}).pipe(Effect.provide(layer(scripted.host)));
+});
+
+it.effectApp("reads current host availability when capabilities are requested", function* () {
+	const scripted = yield* makeHost;
+	const capability = yield* Ref.make({ available: false, detail: "signed out" });
+	yield* Effect.gen(function* () {
+		const changes = yield* Changes;
+		expect(yield* changes.hostTags()).toEqual(["scripted"]);
+		expect(yield* changes.hostCapabilities()).toEqual([{ available: false, detail: "signed out", tag: "scripted" }]);
+		yield* Ref.set(capability, { available: true, detail: "ready" });
+		expect(yield* changes.hostCapabilities()).toEqual([{ available: true, detail: "ready", tag: "scripted" }]);
+	}).pipe(Effect.provide(layer({ ...scripted.host, capability: Ref.get(capability) })));
 });

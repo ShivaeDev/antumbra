@@ -2,6 +2,7 @@ import { BoardScope } from "@antumbra/boards";
 import { Kernel } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
 import { Pieces } from "@antumbra/pieces";
+import { Voyages } from "@antumbra/voyages";
 import { expect, it } from "@effect/vitest";
 import { Effect, Fiber, Option, Stream } from "effect";
 import { AgentDomain } from "#domain.ts";
@@ -41,9 +42,10 @@ it.live("dispatched crew keeps its selected Voyage authority across rebuild", ()
 		const selected = yield* Effect.gen(function* () {
 			const db = yield* Database;
 			const domain = yield* AgentDomain;
+			const voyageRecords = yield* Voyages;
 			const sight = yield* makeSightSessionEvents;
 			const { alpha, voyage } = yield* chain;
-			const decoy = yield* domain.voyages.open({
+			const decoy = yield* voyageRecords.open({
 				backend: "scripted",
 				context: "the southern reef is unrelated",
 				name: "Chart the southern reef",
@@ -132,7 +134,8 @@ it.live("Piece membership cannot supply missing Session Voyage authority", () =>
 		yield* Effect.gen(function* () {
 			const pieces = yield* Pieces;
 			const domain = yield* AgentDomain;
-			const voyage = yield* domain.voyages.open({
+			const voyageRecords = yield* Voyages;
+			const voyage = yield* voyageRecords.open({
 				backend: "scripted",
 				context: "the reef is uncharted",
 				name: "Chart the reef",

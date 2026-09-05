@@ -1,5 +1,6 @@
 import { DomainFeedsLive } from "@antumbra/domain-feeds";
 import { Database } from "@antumbra/persistence";
+import { Voyages } from "@antumbra/voyages";
 
 export { acquireTemporaryPersistence } from "@antumbra/persistence/testing";
 
@@ -31,6 +32,7 @@ export const passiveRunner: Runner = {
 export const changesLayer = (hosts: ReadonlyArray<ChangeHost>, runner: Runner = passiveRunner) =>
 	configuredChangesLayer(new Map(hosts.map((host) => [host.tag, host] as const)), new Map([[runner.tag, runner]])).pipe(
 		Layer.provideMerge(PiecesLive),
+		Layer.provideMerge(Voyages.layer),
 		Layer.provideMerge(DomainFeedsLive),
 	);
 

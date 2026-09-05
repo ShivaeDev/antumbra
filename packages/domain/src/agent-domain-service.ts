@@ -8,7 +8,6 @@ import type { RepoRegistry } from "@antumbra/repos";
 import type { SessionInputDraft } from "@antumbra/session-inputs";
 import type { SessionSendReceipt, SessionSendRefused, SiestaFields, WakeFields } from "@antumbra/sessions";
 import { Context, type Effect } from "effect";
-import type { ChangeProcedures } from "#change-procedures.ts";
 import type { SessionNotLive } from "#errors.ts";
 import type { RetireFields } from "#retire.ts";
 import type { SpawnFields } from "#spawn-fields.ts";
@@ -20,7 +19,6 @@ export class AgentDomain extends Context.Service<
 		readonly backendCapacities: BackendCapacityService;
 		readonly backends: ReadonlyArray<string>;
 		readonly boards: BoardsService;
-		readonly changes: ChangeProcedures;
 		readonly closeSessionStarts: Effect.Effect<void>;
 		readonly interruptSession: (sessionId: string) => Effect.Effect<void, BackendFailure | SessionNotLive>;
 		readonly kinds: ReadonlyArray<AnyIntentKind>;

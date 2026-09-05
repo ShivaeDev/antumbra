@@ -16,7 +16,6 @@
 		"typecheck:compat": "tsc6 --noEmit"
 	},
 	"devDependencies": {
-		"@antumbra/testing-runtime": "workspace:*",
 		"@effect/vitest": "catalog:",
 		"@types/node": "catalog:",
 		"@typescript/native": "catalog:",
@@ -28,6 +27,7 @@
 		"@antumbra/persistence": "workspace:*",
 		"@antumbra/service-definition": "workspace:*",
 		"@antumbra/vocabulary": "workspace:*",
-		"effect": "catalog:"
+		"effect": "catalog:",
+		"@antumbra/voyages": "workspace:*"
 	}
 }

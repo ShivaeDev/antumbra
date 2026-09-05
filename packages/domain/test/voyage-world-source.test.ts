@@ -4,6 +4,7 @@ import { it } from "@antumbra/persistence/testing";
 import { PiecesLive } from "@antumbra/pieces";
 import { ReposLive } from "@antumbra/repos";
 import { Rulings, RulingsLive } from "@antumbra/rulings";
+import { Voyages } from "@antumbra/voyages";
 import { expect } from "@effect/vitest";
 import { Effect, Layer } from "effect";
 import { VoyageWorldSource } from "#voyage-world/service.ts";
@@ -12,6 +13,7 @@ const WorldLive = VoyageWorldSource.layer.pipe(
 	Layer.provideMerge(
 		changesLayer(new Map(), new Map()).pipe(
 			Layer.provideMerge(PiecesLive),
+			Layer.provideMerge(Voyages.layer),
 			Layer.provideMerge(ReposLive),
 			Layer.provideMerge(RulingsLive),
 			Layer.provideMerge(DomainFeedsLive),

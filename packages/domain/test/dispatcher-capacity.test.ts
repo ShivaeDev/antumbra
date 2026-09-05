@@ -5,7 +5,7 @@ import { makeBackendCapacityController } from "@antumbra/plugin-api";
 import { expect, it } from "@effect/vitest";
 import { Clock, Deferred, Effect, Fiber, Layer, Option, Queue, Stream } from "effect";
 import { AgentDomain } from "#agent-domain-service.ts";
-import { BackendCapacityReleaseLive } from "#backend-capacity-release.ts";
+import { BackendCapacityReleases } from "#backend-capacity-releases/service.ts";
 import { makeRetryBackendCapacity } from "#backend-capacity-retry.ts";
 import { DispatcherLive } from "#dispatcher.ts";
 import { makeSightSessionEvents } from "#sight-session-events.ts";
@@ -129,7 +129,7 @@ it.live("a retried birth recovered after restart is not dispatched twice", () =>
 				status: "queued",
 			});
 			yield* Deferred.succeed(releaseSubmit, undefined);
-		}).pipe(Effect.provide(BackendCapacityReleaseLive.pipe(Layer.provideMerge(observedDispatcher))));
+		}).pipe(Effect.provide(BackendCapacityReleases.layer.pipe(Layer.provideMerge(observedDispatcher))));
 	}),
 );
 

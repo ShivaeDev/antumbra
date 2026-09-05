@@ -9,7 +9,7 @@ import { makeCurrentSessionRecovery } from "#current/recovery.ts";
 import { promptInput } from "#input.ts";
 import { makeSessionRecoveryContext } from "#recovery/context.ts";
 import { recoveryHeld } from "#recovery/error.ts";
-import { SessionRecoveryRuntime } from "#recovery/runtime.ts";
+import { SessionRecoveryRuntime } from "#recovery/service.ts";
 import { unresumable, waitFor } from "#unresumable.ts";
 import { accountedWake } from "#wake/account.ts";
 import { type CarriedInput, makeLoadCarriedInput, type WakeFields, WakePayload } from "#wake/input.ts";

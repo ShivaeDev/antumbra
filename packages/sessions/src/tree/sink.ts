@@ -5,7 +5,7 @@ import type { AgentEvent } from "@antumbra/vocabulary/session-events";
 import { Clock, Effect, Ref } from "effect";
 import { emptySessionTree, nodeOf, openNodes, withCaller } from "#tree/attribution.ts";
 import { streamDetachedGap } from "#tree/gaps.ts";
-import { makeSessionTreeLifecycle } from "#tree/lifecycle.ts";
+import { SessionTreeLifecycle } from "#tree/lifecycle/service.ts";
 import { LiveDelegations } from "#tree/live.ts";
 import { makeSessionTreeSweeps } from "#tree/sweeps.ts";
 import { makeSessionTurnRests } from "#turn-rest.ts";
@@ -19,7 +19,7 @@ export type SinkFor = (rootSessionId: string, audit: SessionAudit) => Effect.Eff
 export const makeSessionTreeSinks = (afterRest: Effect.Effect<void, unknown>) =>
 	Effect.gen(function* () {
 		const journal = yield* SessionEventJournal;
-		const lifecycle = yield* makeSessionTreeLifecycle;
+		const nodes = yield* SessionTreeLifecycle;
 		const sweepsFor = yield* makeSessionTreeSweeps;
 		const live = yield* LiveDelegations;
 		const turnRestFor = yield* makeSessionTurnRests(afterRest);
@@ -27,7 +27,6 @@ export const makeSessionTreeSinks = (afterRest: Effect.Effect<void, unknown>) =>
 			Effect.gen(function* () {
 				const report = (operation: string, cause: unknown) => Effect.logError("session tree persistence failed", { operation, rootSessionId }, cause);
 				const tree = yield* Ref.make(emptySessionTree);
-				const nodes = lifecycle(rootSessionId, tree);
 				const censused = (nodeSessionId: string, working: boolean) =>
 					working ? live.began(rootSessionId, nodeSessionId) : live.ended(rootSessionId, nodeSessionId);
 				const sweeps = yield* sweepsFor(audit, rootSessionId, censused);
@@ -35,7 +34,7 @@ export const makeSessionTreeSinks = (afterRest: Effect.Effect<void, unknown>) =>
 				const routed = (event: AgentEvent) =>
 					Effect.gen(function* () {
 						const known = nodeOf(yield* Ref.get(tree), event);
-						const node = known ?? (yield* nodes.admitNode(event));
+						const node = known ?? (yield* nodes.admitNode(rootSessionId, tree, event));
 						if (event.type === "tool.started") {
 							yield* Ref.update(tree, withCaller(event.toolId, node?.sessionId ?? rootSessionId));
 						}
@@ -43,7 +42,7 @@ export const makeSessionTreeSinks = (afterRest: Effect.Effect<void, unknown>) =>
 					});
 				const opened = (event: SubsessionOpened, fromStream: boolean) =>
 					Effect.gen(function* () {
-						const recorded = yield* nodes.openNode(event);
+						const recorded = yield* nodes.openNode(rootSessionId, tree, event);
 						const node = (yield* Ref.get(tree)).nodes.get(event.subsessionRef);
 						if (fromStream && node !== undefined) {
 							yield* live.began(rootSessionId, node.sessionId);
@@ -53,7 +52,7 @@ export const makeSessionTreeSinks = (afterRest: Effect.Effect<void, unknown>) =>
 				const closed = (event: SubsessionEnded, again: RecordEvent) =>
 					Effect.gen(function* () {
 						const node = (yield* Ref.get(tree)).nodes.get(event.subsessionRef);
-						const recorded = yield* nodes.closeNode(event);
+						const recorded = yield* nodes.closeNode(rootSessionId, tree, event);
 						if (node !== undefined) {
 							yield* live.ended(rootSessionId, node.sessionId);
 							yield* sweeps.closed(node.sessionId, again);

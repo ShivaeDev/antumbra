@@ -118,6 +118,7 @@ export {
 export {
 	BoardEntryView,
 	BoardSmoothing,
+	BoardSummaryView,
 	CrewMemberView,
 	PieceAgentView,
 	PieceCounts,
